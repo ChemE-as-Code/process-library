@@ -1,3 +1,62 @@
 # Equipment list. Schema: `cheme schema equipment`.
+# Concept stage: the items the PFD (process/flowsheet.yaml) links to, no P&ID yet (no sheet).
+# Design pressure and temperature are ASSUMED concept values (D-011): the highest operating
+# value of the simulation + 10 % (at least + 2 bar, full vacuum for the vacuum items) and + 25 K.
+# Duties are the simulated ones (process/flowsheet.yaml, D-012) unless marked as the script's.
+# Sizes, dimensions and weights come at basic engineering (datasheets).
 schema: cheme/equipment/v1
-equipment: []
+equipment:
+  # ---- dehydrogenation (block RXN)
+  - {tag: V-100, type: Vessel, service: EB feed drum (fresh + recycle EB),
+     design_pressure_barg: 3.5, design_temperature_degc: 75, material: CS,
+     notes: "300 kPa(a), 317 K, 63.7 t/h (S2). ASSUMED."}
+  - {tag: E-101, type: TubularHeatExchanger, service: Feed / effluent exchanger (EB vaporiser and preheater),
+     design_pressure_barg: 3.5, design_temperature_degc: 600, material: "stainless steel (hot hydrocarbon and steam; open input, D-011)",
+     notes: "EB + primary steam 352 -> 793 K, effluent 846 -> 566 K, 25.6 MW; least approach 52 K, phase change on the cold side (D-004). Full vacuum design. ASSUMED."}
+  - {tag: H-101, type: Furnace, service: "Steam superheater: firebox B-101 and coils H-101A (main steam to 1073 K) and H-101B (reheat to 1008 K)",
+     design_pressure_barg: 3.5, design_temperature_degc: 825, material: "alloy coils (open input, D-011)",
+     notes: "Absorbed 27.3 + 4.8 MW; fired with the off-gas and natural gas, 15 % excess air; stack 483 K simulated (523 K in the script) (D-009, D-012). The BREF's SSH capacities are 10-100 MW (5.3.5, p. 282). ASSUMED."}
+  - {tag: E-102, type: TubularHeatExchanger, service: Interstage reheater (superheated steam / bed 1 effluent),
+     design_pressure_barg: 3.5, design_temperature_degc: 825, material: "alloy (open input, D-011)",
+     notes: "Bed 1 effluent 813 -> 893 K, steam 1073 -> 904 K, 7.9 MW (D-004). Full vacuum design. ASSUMED."}
+  - {tag: R-101, type: Vessel, service: "Dehydrogenation reactor, bed 1 (adiabatic, radial, iron oxide catalyst)",
+     design_pressure_barg: 3.5, design_temperature_degc: 645, material: "stainless or refractory-lined (open input)",
+     notes: "Inlet 893 K / 85 kPa(a), outlet 813 K; conversion model, no rate law: volume not sized; the BREF gives about 120 m3 (120-160 t) of catalyst for 300 kt/a over all beds (5.2.3.1.1, p. 255). Full vacuum design. ASSUMED."}
+  - {tag: R-102, type: Vessel, service: "Dehydrogenation reactor, bed 2 (adiabatic, radial, iron oxide catalyst)",
+     design_pressure_barg: 3.5, design_temperature_degc: 645, material: "stainless or refractory-lined (open input)",
+     notes: "Inlet 893 K / 70 kPa(a), outlet 846 K (D-004, D-005). Full vacuum design. ASSUMED."}
+  # ---- effluent condensation and off-gas (block REC)
+  - {tag: E-103, type: TubularHeatExchanger, service: Effluent condenser,
+     design_pressure_barg: 3.5, design_temperature_degc: 320, material: CS,
+     notes: "566 -> 313 K, 74.0 MW simulated (79.7 MW in the script; PR does not condense the organic phase, D-012) to cooling water; air coolers and LP steam raising are the usual alternatives (I-04). ASSUMED."}
+  - {tag: V-101, type: Vessel, service: "Three-phase separator (off-gas, process condensate, crude styrene; decanter X-101)",
+     design_pressure_barg: 3.5, design_temperature_degc: 65, material: CS,
+     notes: "313 K, 45 kPa(a); off-gas 5.2 t/h, condensate 81.8 t/h, crude styrene 62.1 t/h (D-007, D-008). Full vacuum design. ASSUMED."}
+  - {tag: K-101, type: Compressor, service: Off-gas (vacuum) compressor,
+     design_pressure_barg: 5, design_temperature_degc: 280, material: CS,
+     notes: "45 -> 300 kPa(a), 5.2 t/h, 1085 kW shaft power in one stage (script, excluded from the simulation, D-012); two stages with intercooling expected at basic engineering. ASSUMED."}
+  - {tag: E-104, type: TubularHeatExchanger, service: Off-gas aftercooler,
+     design_pressure_barg: 5, design_temperature_degc: 280, material: CS,
+     notes: "528 -> 313 K, 2.2 MW to cooling water (script, D-012). ASSUMED."}
+  - {tag: V-102, type: Vessel, service: Off-gas knock-out drum,
+     design_pressure_barg: 5, design_temperature_degc: 65, material: CS,
+     notes: "313 K, 300 kPa(a); condensate 3.5 t/h to the decanter, off-gas 1.67 t/h to the burners (D-007). No aromatics absorber (I-03). ASSUMED."}
+  # ---- fractionation (block FRAC)
+  - {tag: P-201, type: CentrifugalPump, service: Crude styrene pump,
+     design_pressure_barg: 3.5, design_temperature_degc: 65, material: CS,
+     notes: "45 -> 150 kPa(a), 62.1 t/h, 3 kW. ASSUMED."}
+  - {tag: C-301, type: Column, service: Benzene / toluene column,
+     design_pressure_barg: 3.5, design_temperature_degc: 150, material: CS,
+     notes: "50/65 kPa(a); DWSIM shortcut: 9.1 theoretical stages at R 29.9 (Rmin 2.0); reboiler 6.9 MW LP steam (D-008). Full vacuum design. ASSUMED."}
+  - {tag: C-304, type: Column, service: Benzene / toluene splitter,
+     design_pressure_barg: 3.5, design_temperature_degc: 120, material: CS,
+     notes: "45/60 kPa(a); 21 theoretical stages at R 2.91; reboiler 0.13 MW (D-008). ASSUMED."}
+  - {tag: C-302, type: Column, service: EB / styrene splitter (vacuum),
+     design_pressure_barg: 3.5, design_temperature_degc: 125, material: "CS (packed, low pressure drop)",
+     notes: "10/25 kPa(a); 73 theoretical stages at R 11.55 (Rmin 8.88); reboiler 28.5 MW LP steam, the plant's largest steam user as in the BREF (5.3.5, p. 282). Inhibitor dosed upstream (D-008, D-011). ASSUMED."}
+  - {tag: P-302, type: CentrifugalPump, service: EB recycle pump,
+     design_pressure_barg: 3.5, design_temperature_degc: 95, material: CS,
+     notes: "10 -> 300 kPa(a), 23.1 t/h, 3 kW. ASSUMED."}
+  - {tag: C-303, type: Column, service: Styrene finishing column (vacuum),
+     design_pressure_barg: 3.5, design_temperature_degc: 130, material: CS,
+     notes: "8/12 kPa(a); rigorous, 10 stages incl. condenser and reboiler, R 0.5; reboiler 5.5 MW; tar 334 kg/h (D-008, D-012). ASSUMED."}
