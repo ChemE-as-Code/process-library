@@ -14,8 +14,10 @@ Model (every choice is a DESIGN.md decision, ASSUMED where marked there):
 - reactor R-101 (D-021): adiabatic; toluene conversion per pass X = 0.75 (the per-pass
   conversion of a published thermal HDA process, US 3,291,849); the biphenyl reaction
   2 BZ <=> BIPH + H2 at chemical equilibrium at the adiabatic outlet (ideal gas, formation data
-  of process/materials.yaml), the upper bound of the biphenyl formed from the benzene;
-  outlet temperature from the energy balance. Superseded (D-005): the Douglas (1988)
+  of process/materials.yaml), the upper bound of the biphenyl formed from the benzene (not of
+  the selectivity loss: heavier polyaromatics and hydrocracking are not modelled, D-021);
+  outlet temperature from the energy balance. The DWSIM model differs here: its R101B is
+  isothermal at the R101 outlet temperature (its adiabatic equilibrium reactor fails, D-021). Superseded (D-005): the Douglas (1988)
   selectivity correlation, which could not be read at its source (I-06);
 - quench: part of the separator liquid mixed into the effluent to QUENCH_T (D-004);
 - flashes, enthalpies, compressor and pump: thermo Peng-Robinson with the ChemSep kij set,

@@ -2,9 +2,15 @@
 # Heats of reaction from the ideal-gas formation enthalpies of process/materials.yaml (298.15 K).
 # D-021 (S2): the reactor R-101 is modelled in two steps of the same vessel: R101, a conversion
 # reactor running HDA at the per-pass toluene conversion of a published thermal HDA process
-# (US 3,291,849), and R101B, an equilibrium reactor running BIPH at the adiabatic outlet (ideal-gas
-# formation data of process/materials.yaml, given with their sources). The equilibrium is the most
-# biphenyl the benzene can form at the outlet. No rate law: the reactor volume is not predicted.
+# (US 3,291,849), and R101B, an equilibrium reactor running BIPH at the outlet (ideal-gas
+# formation data of process/materials.yaml, given with their sources). The vessel is adiabatic,
+# but DWSIM 9.0.5's adiabatic equilibrium reactor fails (D-021), so R101B is solved isothermal at
+# the R101 outlet temperature: its 17.4 kW of heat has no energy stream (about 0.4 K and slightly
+# less biphenyl than the adiabatic outlet; open item process-library issue, D-021). The
+# equilibrium bounds the biphenyl make only, not the selectivity loss: heavier polyaromatics and
+# hydrocracking to light paraffins are excluded (ASSUMED, design basis), so the modelled benzene
+# selectivity is optimistic (US 3,607,960 Example 1: 94.5 % at 85 % conversion,
+# process/reaction-evidence.yaml O2). No rate law: the reactor volume is not predicted.
 # Superseded: D-005's Douglas (1988) selectivity correlation (recalled, never read at its source,
 # I-06) and D-014's lumped HDABP reaction that carried it into DWSIM.
 schema: cheme/reactions/v1
@@ -14,7 +20,7 @@ reactions:
     equation: C7H8 + H2 -> C6H6 + CH4
     stoichiometry: {TOL: -1.0, H2: -1.0, BZ: 1.0, CH4: 1.0}
     reversible: false
-    conversion: {key: TOL, value: 0.75, provenance: given, source: "US 3,291,849 A (C. C. King, J. F. Campagnolo, L. M. Lehman; Hydrocarbon Research, Inc.), Hydrodealkylation, granted 1966-12-13, detailed description, the paragraph beginning 'The reactor 44 is an internally insulated open chamber': a non-catalytic toluene reactor at about 600 psig, 20-40 s residence and at most 1350 F, controlled so that about 75 % of the toluene in its total feed is converted; read in full text at https://patents.google.com/patent/US3291849 on 2026-11-03 (D-021). Conditions of R-101 (895-937 K, 3450-3380 kPa(a), D-004) lie inside the patent's 1100-1500 F, slightly below its 500-800 psig"}
+    conversion: {key: TOL, value: 0.75, provenance: given, source: "US 3,291,849 A (C. C. King, J. F. Campagnolo, L. M. Lehman; Hydrocarbon Research, Inc.), Hydrodealkylation, granted 1966-12-13, detailed description, the paragraph beginning 'The reactor 44 is an internally insulated open chamber': a non-catalytic toluene reactor at about 600 psig, 20-40 s residence and at most 1350 F, controlled so that about 75 % of the toluene in its total feed is converted; read in full text at https://patents.google.com/patent/US3291849 on 2026-11-03 (process/reaction-evidence.yaml O1, D-021). Adopted from the patent's reactor as the design value of R-101: R-101's volume and residence time are not designed to it. The patent's reactor holds its temperature profile with quench gas added at points along the reactor; R-101 is a single adiabatic vessel without intermediate quench, at 3450-3380 kPa(a) (485 psig), below the patent's about 600 psig (500-800 psig) but inside its 1100-1500 F (895-938 K, D-004)"}
     heat_of_reaction:
       value: -41764.0
       provenance: calculated
@@ -30,4 +36,4 @@ reactions:
       provenance: calculated
       source: "ideal-gas formation enthalpies of process/materials.yaml at 298.15 K (181400 - 2 x 83180 kJ/kmol)"
     catalyst: none (thermal)
-    sources: ["US 3,607,960 A (Gulf Research & Development Co., 1971), background: diphenyl formed in thermal hydrodealkylation and present in its feed raises the benzene yield, i.e. the diphenyl reaction runs both ways (D-021)"]
+    sources: ["US 3,607,960 A (Gulf Research & Development Co., 1971), background: the benzene yield of thermal hydrodealkylation 'may be increased somewhat' by conducting it in the presence of diphenyl; a reversible diphenyl reaction is consistent with that statement (an inference of this design, not the patent's words) (D-021)"]

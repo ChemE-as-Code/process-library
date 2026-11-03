@@ -141,6 +141,8 @@ Cash flow by year: estimate/tea-cashflow.csv.
 | prices-2025-exports | 17,874,305 | -275,305,819 |  | 1049 | no |
 | no-carbon-price | 17,874,305 | -140,499,102 |  | 865.2 | no |
 | capex-class5-high | 35,748,610 | -168,863,148 |  | 903.8 | no |
+| selectivity-0945 | 17,874,305 | -168,132,547 |  | 902.9 | no |
+| selectivity-0945-credited | 17,874,305 | -154,788,521 |  | 884.7 | no |
 
 ## What dominates the outcome (lcop, one input at a time)
 
