@@ -137,8 +137,8 @@ steps:
   - id: P101
     block: RXN
     title: Toluene feed pump
-    # Pumping fails in cheme 0.8.0 process build like HeatingInFurnace (D-011): GeneratingFlow.
-    class: GeneratingFlow
+    # Pumping since core v1.4.1 builds it (the 0.8.0 build failure of D-011 is gone; D-016).
+    class: Pumping
     links: [{target: equipment, ref: P-101}]
     ports:
       - {id: in, direction: in}
@@ -166,9 +166,8 @@ steps:
   - id: H101
     block: RXN
     title: Reactor feed heater (fired)
-    # HeatingInFurnace is the right DEXPI class, but cheme 0.8.0 process build fails on its
-    # optional method enum (TypeError in step_method, D-011); ExchangingThermalEnergy until fixed.
-    class: ExchangingThermalEnergy
+    # HeatingInFurnace: core v1.4.1 builds it (the 0.8.0 TypeError of D-011 is gone; D-016).
+    class: HeatingInFurnace
     links: [{target: equipment, ref: H-101}]
     ports:
       - {id: in, direction: in}
