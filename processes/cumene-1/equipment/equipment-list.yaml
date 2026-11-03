@@ -1,3 +1,50 @@
 # Equipment list. Schema: `cheme schema equipment`.
+# Concept stage: the items the PFD (process/flowsheet.yaml) needs, no P&ID yet (no sheet).
+# Design pressure and temperature are ASSUMED concept values (D-014): the highest operating
+# value of the simulation + 10 % (at least + 2 bar) and + 25 K. Duties and temperatures are the
+# DWSIM run's (D-011). Sizes, stage counts of real trays and weights come at basic engineering
+# (datasheets). Carbon steel throughout: the licensor states all-carbon-steel construction
+# (Versalis brochure, PDF p. 3); ASSUMED here.
 schema: cheme/equipment/v1
-equipment: []
+equipment:
+  # ---- alkylation and transalkylation (block RXN)
+  - {tag: V-101, type: Vessel, service: Benzene feed drum (fresh + recycle benzene),
+     design_pressure_barg: 3.5, design_temperature_degc: 75, material: CS,
+     notes: "150 kPa(a), 318 K, 135 t/h (S3); its level sets the fresh benzene (D-011). ASSUMED."}
+  - {tag: P-101, type: CentrifugalPump, service: Benzene charge pump,
+     design_pressure_barg: 45, design_temperature_degc: 75, material: CS,
+     notes: "150 -> 4200 kPa(a), 135 t/h; 284 kW at efficiency 0.65 (Q1). A spare at basic engineering. ASSUMED."}
+  - {tag: P-102, type: CentrifugalPump, service: Propylene feed pump,
+     design_pressure_barg: 45, design_temperature_degc: 65, material: CS,
+     notes: "2000 -> 4200 kPa(a), 12.6 t/h liquid propylene with 5 mol% propane; 25 kW (Q2). ASSUMED."}
+  - {tag: E-101, type: TubularHeatExchanger, service: Alkylator feed / effluent exchanger,
+     design_pressure_barg: 45, design_temperature_degc: 188, material: CS,
+     notes: "Feed 322 -> 413 K, effluent 436 -> 346 K, 5.2 MW; least approach 23 K (D-004, D-011). ASSUMED."}
+  - {tag: R-101, type: Vessel, service: "Alkylation reactor (zeolite fixed beds, liquid phase, propylene before each bed, interbed coolers raising LP steam)",
+     design_pressure_barg: 44, design_temperature_degc: 188, material: CS,
+     notes: "413 -> 436 K, 4100/4000 kPa(a); 6.2 MW to LP steam 250 kPa(a) (Q4). Conversion reactor model, no rate law: catalyst volume and bed count not sized (D-005, D-009). ASSUMED."}
+  - {tag: P-103, type: CentrifugalPump, service: DIPB recycle pump,
+     design_pressure_barg: 45, design_temperature_degc: 190, material: CS,
+     notes: "30 -> 4200 kPa(a) from the C-204 reflux drum, 6.7 t/h; 16 kW (Q3). ASSUMED."}
+  - {tag: E-102, type: TubularHeatExchanger, service: Transalkylator feed heater (MP steam),
+     design_pressure_barg: 45, design_temperature_degc: 185, material: CS,
+     notes: "359 -> 433 K, 23.0 t/h, 0.96 MW MP steam (Q5). ASSUMED."}
+  - {tag: R-102, type: Vessel, service: "Transalkylation reactor (zeolite, liquid phase, adiabatic)",
+     design_pressure_barg: 44, design_temperature_degc: 185, material: CS,
+     notes: "433 K, 4100/4000 kPa(a); DIPB 40 % per pass with benzene/DIPB 5 (D-005). Not sized. ASSUMED."}
+  # ---- distillation (block SEP)
+  - {tag: C-201, type: ProcessColumn, service: Depropaniser (benzene slipstream),
+     design_pressure_barg: 16.5, design_temperature_degc: 230, material: CS,
+     notes: "1500/1520 kPa(a); total condenser 318 K (0.20 MW to cooling water), HP-steam reboiler 2.5 MW at 476 K; reflux 1.94, about 32 theoretical stages (DWSIM shortcut); feed 27.7 t/h, LPG 0.69 t/h (D-006, D-008). ASSUMED."}
+  - {tag: C-202, type: ProcessColumn, service: Benzene column,
+     design_pressure_barg: 3.5, design_temperature_degc: 210, material: CS,
+     notes: "150/180 kPa(a); condenser 321 K (21.4 MW), MP-steam reboiler 19.3 MW at 454 K; reflux 0.5, about 22 theoretical stages (DWSIM shortcut); feed 154 t/h (D-008). The largest duty of the plant: heat integration open (I-08). ASSUMED."}
+  - {tag: C-203, type: ProcessColumn, service: Cumene column,
+     design_pressure_barg: 3.5, design_temperature_degc: 225, material: CS,
+     notes: "120/150 kPa(a); condenser 432 K (4.7 MW), HP-steam reboiler 4.5 MW at 499 K; reflux 0.65, about 22 theoretical stages (DWSIM shortcut); cumene 34.0 t/h (D-008). ASSUMED."}
+  - {tag: E-103, type: TubularHeatExchanger, service: Cumene product cooler,
+     design_pressure_barg: 3.5, design_temperature_degc: 160, material: CS,
+     notes: "432 -> 313 K, 2.25 MW to cooling water (Q12). The heat could preheat a cold stream (I-08). ASSUMED."}
+  - {tag: C-204, type: ProcessColumn, service: DIPB column (vacuum),
+     design_pressure_barg: 3.5, design_temperature_degc: 215, material: CS,
+     notes: "30/45 kPa(a), full vacuum design; condenser 436 K (0.81 MW), HP-steam reboiler 0.53 MW at 487 K; reflux 0.5, 24 stages (rigorous, D-011); vacuum system not designed (D-008). ASSUMED."}
