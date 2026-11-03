@@ -869,8 +869,9 @@ def _discover(library: Path, report: Report, mappings: dict, public: bool = Fals
                 data = normalise_units(raw)
                 study_allocation = (study or {}).get("allocation") if path.name == "dataset.yaml" else None
                 choice = choose_allocation(pid, data, study_allocation, mappings)
-                if choice.source == "study" and data.get("allocation") and data["allocation"].get("method") != study_allocation.get("method"):
-                    report.warn(where, f"study allocation {study_allocation.get('method')!r} differs from the dataset's default {data['allocation'].get('method')!r}: the study's is used")
+                # core leaves allocation.method out of a dataset when it is its default, mass
+                if choice.source == "study" and data.get("allocation") and data["allocation"].get("method", "mass") != study_allocation.get("method", "mass"):
+                    report.warn(where, f"study allocation {study_allocation.get('method', 'mass')!r} differs from the dataset's default {data['allocation'].get('method', 'mass')!r}: the study's is used")
                 if choice.finding:
                     report.warn(where, f"allocation: {choice.finding}")
                 datasets.append(
