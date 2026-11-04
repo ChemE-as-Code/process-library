@@ -1245,6 +1245,28 @@ P-01 (feed, heater and reactor):
   (I-102); burner management in the heater package.
 - Quench: TIC-115 on the quenched effluent sets the quench valve TV-115 on AR-117.
 
+P-02 (HP separator and recycle gas):
+- E-102: effluent to cooling water (CWS-230/CWR-231, DN350 for 5.07 MW at the design-basis
+  10 K range and 1.5 m/s, ASSUMED); TI-201 on the outlet. PSV-215 on the CW side (tube
+  rupture of the 42 barg loop into the CW side; blocked-in CW side), to atmosphere, set at a
+  6 barg CW-side design pressure, ASSUMED (the design basis gives no CW pressure).
+- V-101: level LIC-202 on the let-down valve LV-202 to C-201; separate low-low trip LZ-203
+  closing the shutdown valve XV-204 (I-201: gas blow-by from the 32 barg separator into the
+  9 barg stabiliser), high-high LZ-206 stopping K-101 (I-202: liquid carry-over). AR-118 (S18)
+  is merged into AR-116, which keeps DN100 through the let-down (the liquid flashes after
+  LV-202), as PG-105 and PG-109 on P-01. Relief PSV-214 (fire; blocked gas outlet with the
+  make-up hydrogen and P-101 running), set 42 barg, to the flare.
+- K-101: loop pressure PIC-205 on the suction sets the make-up hydrogen FIC-108 (P-01); the PSA
+  hydrogen HG-125 joins the suction (M102); anti-surge UIC-207 with the recycle valve UV-207 on
+  HG-232 (DN200, 70 % of the rated flow, ASSUMED) from the discharge ahead of the check valve
+  CV-115. No discharge PSV of its own: HG-115 has no isolation valve from K-101 to PSV-119
+  (P-01), which protects it. Manual loop depressuring HS-209 / XV-209 (FL-233) to the flare;
+  rate and orifice with S8. Lube oil, seals and machine protection are in the package.
+- Purge: AIC-210 (hydrogen in the recycle gas) sets the purge flow FIC-211 / FV-211 on HG-113 to
+  PK-101 (P-03): the purge holds the loop's 40 mol% H2 specification (D-007).
+- P-102/P-102B take the quench liquid off AR-116 (SPL2, AR-235); continuous minimum flow
+  AR-237 through the restriction globe valve HV-237 back to V-101, since TV-115 can close.
+
 ## LCI summary (lca/inventory.csv, per kg benzene)
 
 Regenerated in S3a (D-024) from the inventory with the purge hydrogen PSA (`cheme assess lca --write`,
