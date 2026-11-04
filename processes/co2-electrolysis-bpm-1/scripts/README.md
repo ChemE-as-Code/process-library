@@ -21,4 +21,17 @@ edit the XML (skill `pid-edit`). To move back, put the hand edits into the scrip
 A generator takes the sheet file as its argument and edits it in place, starting from the
 frame (for a new sheet: the one `cheme sheet new` wrote).
 
+The pilot skids of #330 (DESIGN.md D-007 to D-015):
+
+- `regen.py`: the single rerun command, `cheme run scripts/regen.py --duration H
+  [--scratch DIR] [--check]`. It carries the design basis through `cheme process cell`,
+  `duty`, `stack --write`, `datasheets draft`, the balance and `process build` into every value
+  that depends on the campaign duration (steps 1 to 9; the layout, plots, records and
+  `--uncertainty`/`--record` follow in the next stage). `--check` regenerates in a temporary
+  copy and reports any model file that differs (exit 3).
+- `skid_balance.py`: the flowsheet's stream values of both cases from core's stack and duty
+  results (library ADR 0027, contract `balance-output/1`).
+- `_core.py`: the one coupling to cheme-as-code (its commands' `--json` output only).
+- `_yamledit.py`: targeted edits of hand-maintained YAML that refuse any other change.
+
 `agent-run/` holds the runner and prompts of a staged agent design run (see its README).
