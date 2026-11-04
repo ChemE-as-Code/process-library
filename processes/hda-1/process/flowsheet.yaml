@@ -159,7 +159,7 @@ steps:
     title: Toluene feed pump
     # Pumping since core v1.4.1 builds it (the 0.8.0 build failure of D-011 is gone; D-016).
     class: Pumping
-    links: [{target: equipment, ref: P-101}]
+    links: [{target: equipment, ref: P-101}, {target: equipment, ref: P-101B}]
     ports:
       - {id: in, direction: in}
       - {id: out, direction: out}
@@ -292,7 +292,7 @@ steps:
     block: RXN
     title: Quench pump
     class: Pumping
-    links: [{target: equipment, ref: P-102}]
+    links: [{target: equipment, ref: P-102}, {target: equipment, ref: P-102B}]
     ports:
       - {id: in, direction: in}
       - {id: out, direction: out}
@@ -349,7 +349,7 @@ steps:
     block: SEP
     title: Stabiliser
     class: Distilling
-    links: [{target: equipment, ref: C-201}, {target: equipment, ref: E-201}, {target: equipment, ref: E-202}]
+    links: [{target: equipment, ref: C-201}, {target: equipment, ref: E-201}, {target: equipment, ref: E-202}, {target: equipment, ref: V-201}, {target: equipment, ref: P-201A}, {target: equipment, ref: P-201B}]
     ports:
       - {id: feed, direction: in, delegates: feed}
       - {id: top, direction: out, delegates: offgas}
@@ -360,7 +360,7 @@ steps:
     block: SEP
     title: Benzene column
     class: Distilling
-    links: [{target: equipment, ref: C-202}, {target: equipment, ref: E-203}, {target: equipment, ref: E-204}]
+    links: [{target: equipment, ref: C-202}, {target: equipment, ref: E-203}, {target: equipment, ref: E-204}, {target: equipment, ref: V-202}, {target: equipment, ref: P-202A}, {target: equipment, ref: P-202B}]
     ports:
       - {id: feed, direction: in}
       - {id: top, direction: out}
@@ -381,7 +381,7 @@ steps:
     block: SEP
     title: Toluene column (vacuum)
     class: Distilling
-    links: [{target: equipment, ref: C-203}, {target: equipment, ref: E-205}, {target: equipment, ref: E-206}]
+    links: [{target: equipment, ref: C-203}, {target: equipment, ref: E-205}, {target: equipment, ref: E-206}, {target: equipment, ref: V-203}, {target: equipment, ref: PK-201}, {target: equipment, ref: P-203A}, {target: equipment, ref: P-203B}, {target: equipment, ref: P-204A}, {target: equipment, ref: P-204B}]
     ports:
       - {id: feed, direction: in}
       - {id: top, direction: out, delegates: tolrec}
@@ -394,6 +394,7 @@ streams:
     title: Fresh toluene
     from: TOLF.out
     to: M100.fresh
+    links: [{target: line, ref: TO-101, sheet: P-01}]
     template: mixture
     state:
       design:
@@ -405,6 +406,7 @@ streams:
     title: Toluene to feed pump
     from: M100.out
     to: P101.in
+    links: [{target: line, ref: TO-102, sheet: P-01}]
     template: mixture
     state:
       design:
@@ -416,6 +418,7 @@ streams:
     title: Pumped toluene
     from: P101.out
     to: M101.tol
+    links: [{target: line, ref: TO-103, sheet: P-01}]
     template: mixture
     state:
       design:
@@ -427,6 +430,7 @@ streams:
     title: Make-up hydrogen
     from: H2MU.out
     to: M101.h2
+    links: [{target: line, ref: HG-104, sheet: P-01}]
     template: mixture
     state:
       design:
@@ -438,6 +442,7 @@ streams:
     title: Combined reactor feed
     from: M101.out
     to: E101.cold_in
+    links: [{target: line, ref: HG-115, sheet: P-01}]
     template: mixture
     state:
       design:
@@ -449,6 +454,7 @@ streams:
     title: Preheated feed
     from: E101.cold_out
     to: H101.in
+    links: [{target: line, ref: PG-106, sheet: P-01}]
     template: mixture
     state:
       design:
@@ -460,6 +466,7 @@ streams:
     title: Reactor feed
     from: H101.out
     to: R101.in
+    links: [{target: line, ref: PG-107, sheet: P-01}]
     template: mixture
     state:
       design:
@@ -484,6 +491,7 @@ streams:
     title: Reactor effluent
     from: R101B.out
     to: Q101.in
+    links: [{target: line, ref: PG-108, sheet: P-01}]
     template: mixture
     state:
       design:
@@ -495,6 +503,7 @@ streams:
     title: Quenched effluent
     from: Q101.out
     to: E101.hot_in
+    links: [{target: line, ref: PG-108, sheet: P-01}]
     template: mixture
     state:
       design:
@@ -506,6 +515,7 @@ streams:
     title: Effluent after feed / effluent exchanger
     from: E101.hot_out
     to: E102.in
+    links: [{target: line, ref: PG-110, sheet: P-01}]
     template: mixture
     state:
       design:
@@ -517,6 +527,7 @@ streams:
     title: Cooled effluent to separator
     from: E102.out
     to: V101.in
+    links: [{target: line, ref: PG-111, sheet: P-02}]
     template: mixture
     state:
       design:
@@ -528,6 +539,7 @@ streams:
     title: Separator gas
     from: V101.vap
     to: M102.sep
+    links: [{target: line, ref: HG-112, sheet: P-02}]
     template: mixture
     state:
       design:
@@ -539,6 +551,7 @@ streams:
     title: K-101 suction gas (separator gas + PSA hydrogen)
     from: M102.out
     to: K101.in
+    links: [{target: line, ref: HG-112, sheet: P-02}]
     template: mixture
     state:
       design:
@@ -550,6 +563,7 @@ streams:
     title: Compressed recycle gas
     from: K101.out
     to: SPL1.in
+    links: [{target: line, ref: HG-115, sheet: P-01}]
     template: mixture
     state:
       design:
@@ -561,6 +575,7 @@ streams:
     title: Recycle gas to the reactor feed
     from: SPL1.recycle
     to: M101.rec
+    links: [{target: line, ref: HG-115, sheet: P-01}]
     template: mixture
     state:
       design:
@@ -572,6 +587,7 @@ streams:
     title: Purge gas to the PSA
     from: SPL1.purge
     to: X100.in
+    links: [{target: line, ref: HG-113, sheet: P-02}]
     template: mixture
     state:
       design:
@@ -595,6 +611,7 @@ streams:
     title: PSA hydrogen
     from: X101.prod
     to: PV101.in
+    links: [{target: line, ref: HG-125, sheet: P-03}]
     template: mixture
     state:
       design:
@@ -606,6 +623,7 @@ streams:
     title: PSA hydrogen to the K-101 suction
     from: PV101.out
     to: M102.h2
+    links: [{target: line, ref: HG-125, sheet: P-03}]
     template: mixture
     state:
       design:
@@ -628,6 +646,7 @@ streams:
     title: PSA tail gas
     from: X102.out
     to: K102.in
+    links: [{target: line, ref: FG-126, sheet: P-03}]
     template: mixture
     state:
       design:
@@ -639,6 +658,7 @@ streams:
     title: Tail gas to the fuel gas header
     from: K102.out
     to: FUELGAS.tail
+    links: [{target: line, ref: FG-128, sheet: P-03}]
     template: mixture
     state:
       design:
@@ -650,6 +670,7 @@ streams:
     title: Separator liquid
     from: V101.liq
     to: SPL2.in
+    links: [{target: line, ref: AR-116, sheet: P-02}]
     template: mixture
     state:
       design:
@@ -661,6 +682,7 @@ streams:
     title: Quench liquid to quench pump
     from: SPL2.quench
     to: P102.in
+    links: [{target: line, ref: AR-235, sheet: P-02}]
     template: mixture
     state:
       design:
@@ -672,6 +694,7 @@ streams:
     title: Quench liquid (pumped)
     from: P102.out
     to: Q101.quench
+    links: [{target: line, ref: AR-117, sheet: P-02}]
     template: mixture
     state:
       design:
@@ -683,6 +706,7 @@ streams:
     title: Separator liquid to stabiliser
     from: SPL2.net
     to: C201.feed
+    links: [{target: line, ref: AR-116, sheet: P-02}]
     template: mixture
     state:
       design:
@@ -694,6 +718,7 @@ streams:
     title: Stabiliser off-gas
     from: C201.top
     to: FUELGAS.stab
+    links: [{target: line, ref: FG-119, sheet: P-04}]
     template: mixture
     state:
       design:
@@ -705,6 +730,7 @@ streams:
     title: Stabiliser bottoms
     from: C201.bot
     to: C202.feed
+    links: [{target: line, ref: AR-120, sheet: P-04}]
     template: mixture
     state:
       design:
@@ -716,6 +742,7 @@ streams:
     title: Benzene distillate to product cooler
     from: C202.top
     to: E207.in
+    links: [{target: line, ref: BZ-537, sheet: P-05}]
     template: mixture
     state:
       design:
@@ -727,6 +754,7 @@ streams:
     title: Benzene product
     from: E207.out
     to: BENZENE.in
+    links: [{target: line, ref: BZ-121, sheet: P-05}]
     template: mixture
     state:
       design:
@@ -738,6 +766,7 @@ streams:
     title: Benzene column bottoms
     from: C202.bot
     to: C203.feed
+    links: [{target: line, ref: TO-122, sheet: P-05}]
     template: mixture
     state:
       design:
@@ -749,6 +778,7 @@ streams:
     title: Toluene recycle
     from: C203.top
     to: M100.rec
+    links: [{target: line, ref: TO-123, sheet: P-06}]
     template: mixture
     state:
       design:
@@ -760,6 +790,7 @@ streams:
     title: Biphenyl by-product
     from: C203.bot
     to: DIPHENYL.in
+    links: [{target: line, ref: DP-124, sheet: P-06}]
     template: mixture
     state:
       design:
