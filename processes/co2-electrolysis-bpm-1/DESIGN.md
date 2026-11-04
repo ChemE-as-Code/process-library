@@ -348,7 +348,14 @@ bleed, make-up or degassing until the anolyte reaches the pH threshold 12 (D-003
 of the campaign H. The duty D-A states `reservoir.size: to_horizon`: `cheme process stack
 --write` writes the exact volume that reaches H (V = V0 Q(H) / Q*, rounded up to 4
 significant figures, core ADR 0044 amendment), so V is proportional to H. No time margin is
-added; the uncertainty of WDE is reported as a band instead (next stage, `--uncertainty`).
+added; the uncertainty of WDE is reported as a band instead (`regen.py --uncertainty`, D-022).
+
+Results (`results/scenarios/<H>h/record.json`): 1165.15 L exact, 1166 L written at 1,000 h
+(T-101 D 1.074 x H 1.611 m); 11651.5 L, 11660 L at 10,000 h (D 2.313 x H 3.470 m); the end
+state at either duration about 0.400 mol/L carbon and 0.803 mol/L K+ (pH 12.02). KOH 0.649 kg
+per kg CO delivered at both. With WDE one sd lower (0.9585) the reservoir sized at the mean
+reaches pH 12 after 804 h of the 1,000 h, and the volume to the horizon is 1451 L (+24.5 %);
+one sd higher, 880 L (-24.5 %).
 
 Reason: the simplest skid, with no chemicals handled during the run; the closed form makes
 the duration dependence exact (ADR 0043).
@@ -382,6 +389,14 @@ Rejected: threshold (on/off) dosing: thousands of switches over 10,000 h and no 
 Assumptions: dosing, bleed and make-up are open-loop in the model (the AIC-201 trim is not
 simulated) and run while the current is on; the KOH use depends on the setpoints. Dosing does
 not save KOH against Skid A: it uses more per kg CO (reported unsoftened in the results).
+
+Results: bleed 1.8661 L/h, dose 2.0959 mol/h (0.41918 L/h of 5 M), make-up 1.4469 L/h,
+residence time 26.8 h; at H pH 13.699, 0.500 mol/L OH-, 0.250 mol/L carbon, ionic strength
+1.250 mol/L, 50.0 L, at both durations. T-201 D 0.376 x H 0.564 m and T-202 D 0.448 x H 0.538 m
+(84.5 L, refilled 6 times in 1,000 h, 60 times in 10,000 h) do not change with H; the dosed,
+bled and make-up totals scale x 10. KOH per kg CO delivered: 1.167 dosed plus 0.028 (1,000 h)
+or 0.0028 (10,000 h) for the 50 L fill, against Skid A's 0.649 and the floor of 0.648 per kg
+delivered (0.583 per kg formed): dosing does not save KOH; it costs 1.8 times Skid A's.
 
 ## D-011 Campaign-averaged KOH fill and spent anolyte; the anolyte in the flowsheet (2026-11-04)
 Decision: `scripts/skid_balance.py` writes every stream value per hour from core's duty totals
@@ -441,7 +456,14 @@ Decision: D-A-ONOFF (24 h period, half on, starting on) and D-A-PART (12 h at 20
 100 mA/cm2, both measured points, steps) run at STK-A's arrangement by naming the stack
 (`stack: STK-A`, core ADR 0044 amendment) on D-A's reservoir volume (copied by regen, step 7)
 with a horizon of 3 H. They are compared with D-A at equal CO formed (`cheme process duty
---compare`, next stage); at fixed recovery equal CO formed is equal CO delivered.
+--compare`, regen step 12); at fixed recovery equal CO formed is equal CO delivered.
+
+Results (half of D-A's campaign CO, 55.96 kg at 1,000 h): on/off reaches it in 992 h (9,992 h at
+10,000 h) with the charge, energy, hydroxide deficit and final pH of D-A within 1e-3; part load
+reaches it in 716 h with 7.6 % more charge, 1.47 times the hydroxide deficit and 1.3 % less
+energy (U and FE of the two measured points); at D-A's whole campaign CO the part-load duty
+reaches pH 12 first (969.5 h, 75.9 of 111.9 kg: `cheme.duty-target-not-reached`). D-A against
+D-B at equal CO: equal charge and energy, KOH dosed only in D-B (58.8 kg at 1,000 h).
 
 Reason: the arrangement is stated once (the stack), and the horizon leaves room for the
 threshold to end a duty before the target.
@@ -456,7 +478,19 @@ Decision: FE, WDE, U and kWh/kg are called invariant of the duration only where 
 density, the temperature, the electrolyte state and the time on stream stay inside the
 measured conditions (1 h runs in fresh 1 M KOH, carbon below about 0.01 mol/L). Otherwise the
 results say "held constant by assumption, not supported by measurement". The check is
-scripts/regen.py's (next stage, step 14): core does not check the electrolyte state.
+scripts/regen.py's (step 14): core does not check the electrolyte state.
+- Current density: core's hours outside the measured 25-250 mA/cm2 of the schedule.
+- Temperature: the duty model is isothermal by assumption; the condition is that the cooler
+  E-x11 removes the stack heat (flowsheet Q105, Q205 against `cheme process stack`) at the
+  measured series' 25 degC (both ASSUMED).
+- Electrolyte state: the duty's OH- and dissolved carbon against fresh 1 M KOH after its 1 h
+  run (OH- >= 0.9769 mol/L, carbon <= 0.00926 mol/L from the measured WDE and carbon share).
+- Time on stream: the duty's hours against the 1 h runs.
+
+Results: the current density and the temperature hold; the electrolyte and the time on stream
+fail on both skids (Skid A outside from 22 h, 978 h of 1,000; Skid B 999 h; 999 h beyond the
+measured hour), so FE, WDE, U and kWh/kg are "held constant by assumption, not supported by
+measurement" in every record and report.
 
 Reason: both skids run far beyond the measured 1 h and electrolyte.
 
@@ -465,8 +499,13 @@ Assumptions: none beyond the measured conditions.
 ## D-015 Skid envelope and feasibility (2026-11-04)
 Decision: each skid is one 20 ft frame, 6.06 x 2.44 m in plan with 2.20 m usable height above
 the deck (ASSUMED). A skid is feasible when every item fits that envelope in plan and height;
-the height is checked by scripts/regen.py from the layout model (next stage), because core's
-layout checks containment in plan only.
+the height is checked by scripts/regen.py from the layout model (step 13, D-021), because
+core's layout checks containment in plan only.
+
+Results: Skid A is feasible at 1,000 h and not at 10,000 h ("Skid A cannot meet the 10,000 h
+duty within the skid envelope": T-101 tops out 1.27 m above the envelope, though it still fits
+the frame in plan). At the measured mean the longest campaign whose reservoir fits 2.20 m is
+about 2,550 h. Skid B is feasible at both.
 
 Reason: the tank of Skid A grows with the campaign (V proportional to H, D-009).
 
@@ -646,3 +685,59 @@ plan); Skid B is unchanged.
 Reason: core checks containment in a structure in plan only (D-015).
 
 Assumptions: the envelope and the tanks' H/D (D-015).
+
+## D-022 Results, records, resize report and uncertainty of the skids (2026-11-05)
+Decision: `scripts/regen.py` ends every run with its results as files (steps 14 to 19, scripts
+`_results.py` for the arithmetic and the figures):
+- `results/scenarios/<H>h/record.json`, the calculation record of one scenario: the inputs'
+  sha256, core's version, the condensed duty, stack and comparison results, per skid the
+  values, the duty `run_fingerprint`, the feasibility with its reasons and the invariants
+  (D-014). Deterministic (no time stamp or git HEAD; floats to 10 significant figures), so
+  `--check` compares bytes.
+- `results/resize-1000h-10000h.{json,md}`, written once both design scenarios have a record:
+  41 rows (quantity and skid) with both values, changed or not, its rule, the calculated cause
+  and the frozen hand value of `results/expected.yaml` with tolerance and status; the P&IDs'
+  sha256 and the stack dimensions as the unchanged artefacts. Result: 0 hand checks failed, no
+  rule broken.
+- `--uncertainty`: core propagates no measurement scatter (design core gap C2), so in temporary
+  copies only the pilot cell becomes `performance: specified` at the P200 mean, at mean +- 1 sd
+  of WDE, of FE CO and of U one at a time (the sample sd over the replicates), and at the 20 degC
+  meter basis (FE x 273.15 / 293.15, D-005); the stack report and D-A at the committed volume
+  give the cells, kWh/kg, the volume to the horizon and how long the design reservoir lasts,
+  and Skid B's rates follow from the step-6 closed form. A specified cell's duty must name its
+  product, so the copies add `product: CO` to the duties. The co-ion split is the membrane
+  block's 0.670 there (the measured cell's duty uses the titration's 0.66978), so the bounding
+  runs are compared with the specified mean, not with the measured run. Written to
+  `results/scenarios/<H>h/uncertainty.json` and two figures drawn by the script
+  (`figures/skids/<H>h/uncertainty-ranges.svg`, `uncertainty-ph-band.svg`). A run without
+  `--uncertainty` removes a stale `uncertainty.json` (step 10 has removed its figures).
+- `--record` writes the ADR 0020 session record (`cheme runs record --kind manual --slug
+  regen-<H>h --report-file results/resize-1000h-10000h.md`), apart from the calculation record.
+- `--check` (gate `skid-regen-current`) regenerates every design scenario in a temporary copy
+  and compares the records, the resize report, the scenario's figures and, at the design
+  duration, the model files and datasheets.
+- Step 13 now leaves out the validate findings that `checks/checks.yaml` accepts with a reason
+  (the twelve P&ID manifold crossings), as `cheme check` does.
+
+Results (both scenarios): see D-009, D-010, D-013 to D-015 and the README table. Uncertainty
+(one sd at a time): WDE moves Skid A's volume and Skid B's dose by -24.5 % / +24.5 %, and with
+WDE one sd low the reservoir sized at the mean reaches pH 12 at 80 % of the campaign (804 of
+1,000 h); FE CO one sd low, or the 20 degC meter basis, needs 32 cells (4 x 8) and raises
+kWh/kg by 11.7 % and 7.3 %; U moves kWh/kg by -2.7 % / +2.7 % and not the cells. Core issues met
+(not fixed here): `cheme datasheets fill` fails on NPSH (P-x01, P-202: "flash failed") and leaves
+the coolers' duty TBD (water is outside the property package); a specified cell's duty refuses
+without `product:`.
+
+Reason: the results are reviewable as files, the hand expectations are checked by the library
+test `tests/test_co2_electrolysis_bpm_skids.py` on the committed records (fast) and on a fresh
+regeneration of both scenarios (with core), and a stale result fails the gate. The
+regeneration test takes about 4 min on a laptop (5 min for the whole library suite with it)
+and needs core's `props` and `png` extras, so it is marked `engineering` and runs in its own CI
+job (library ADR 0033), not in the 15 min library job. `regen.py --check` takes about 5.5 min.
+
+Rejected: Monte Carlo over the measured scatter (core gap C2; the bounding runs show the
+direction and size of each parameter's effect, which a single design reservoir needs); a time
+margin on Skid A (D-009: the band is reported instead).
+
+Assumptions: the sd over three (U, WDE) or two (FE) replicates is a weak estimate of the scatter;
+one parameter at a time leaves out their combination.
