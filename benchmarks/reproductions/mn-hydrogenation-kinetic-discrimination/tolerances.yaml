@@ -1,0 +1,78 @@
+# Acceptance tolerances for the Mn-CNP kinetic-model reproduction (#341, ADR 0030).
+# FROZEN 2026-11-04, committed with source.yaml and inputs.yaml before any run that compares
+# computed values with reported ones. Do not edit: a revision is a new file with its reason,
+# and comparison.md names which file it used.
+#
+# Basis: we refit the source's regression models to the source's own run table (SI Table S1/S2)
+# with the source's term lists and outlier lists. Differences can come only from (a) rounding of
+# the tabulated regressors (two decimals for the logarithms), (b) the fitting algorithm (MATLAB
+# fitlm / fitnlm vs our least squares), (c) for model IV, the reconstructed end-of-run substrate
+# concentration and the robust-weighting conventions. A coefficient deviation small against the
+# coefficient's own standard error does not change any conclusion drawn from the model.
+frozen: "2026-11-04"
+reference: source.yaml reported_results
+checks:
+  data_integrity:
+    response_vs_published_y:
+      abs: 1.0e-4
+      reason: ln of the SI Table S1 rate column must equal the y column of SI Tables S6/S10/S16/S21 (five decimals)
+    run_count:
+      exact: 30
+      reason: the design has 30 runs
+    pure_error_ms:
+      rel: 0.01
+      reason: recomputed from the six centre runs (1-5, 11); SI Table S4 gives 0.044638
+  models_I_II_III:      # ordinary least squares refits
+    coefficient:
+      abs_rule: "|ours - reported| <= max(0.10 * reported SE, 0.005 * |reported|)"
+      reason: a tenth of a standard error is immaterial; 0.5 % covers the source's rounding
+    coefficient_se:
+      rel: 0.05
+      reason: SEs depend on the residual variance and on regressor rounding
+    rmse:
+      rel: 0.02
+      reason: reported to three digits
+    r2:
+      abs: 0.002
+      reason: reported to three digits
+    press:
+      rel: 0.02
+      reason: leave-one-out residual sum of squares from the hat matrix; reported to five digits
+    fitted_values:
+      abs: 0.02
+      reason: max over the tabulated runs (SI Tables S6, S10, S16), in ln units; about 2 % in rate
+  model_IV:            # robust (bisquare) fit with reconstructed x5
+    coefficient:
+      abs_rule: "|ours - reported| <= 0.25 * reported SE"
+      reason: robust-weighting conventions and the reconstructed end-of-run substrate are not exactly those of the source
+    coefficient_se:
+      rel: 0.15
+      reason: robust covariance conventions differ between implementations
+    rmse:
+      rel: 0.10
+      reason: weighted vs unweighted root mean square conventions differ
+    fitted_values:
+      abs: 0.05
+      reason: max over the 24 tabulated runs of SI Table S21
+  conventional_kinetics:   # straight lines through SI Tables S23-S26 (article Figure 7)
+    activation_energy:
+      abs: 1.0   # kJ/mol
+      reason: reported rounded to whole kJ/mol (90 and 51)
+    activation_energy_se:
+      abs: 1.0   # kJ/mol
+      reason: reported rounded to whole kJ/mol (7 and 4)
+    r2:
+      abs: 0.006
+      reason: reported to two decimals (0.96)
+    reaction_order:
+      abs: 0.15
+      reason: reported as approximate values (~2.5, ~0, ~1.5)
+sensitivity_not_gating:
+  - model III with the 25-run set of SI Table S16 (run 28 kept)
+  - models I-III fitted with x3, x4 recomputed from the raw Table S1 levels instead of the rounded Table S2 values
+pass_rule: >-
+  pass: every check within tolerance. partial: every check of data_integrity,
+  models_I_II_III for models II and III, and conventional_kinetics within tolerance, but one or
+  more checks of model I or model IV outside it. fail: any other outcome. A check that cannot be
+  evaluated is reported as a gap, not a pass. The discrimination design (extension.md) is not
+  part of the verdict.

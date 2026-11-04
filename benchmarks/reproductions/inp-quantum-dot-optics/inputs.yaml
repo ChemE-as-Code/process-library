@@ -1,0 +1,78 @@
+# Every input of run.py, with value, unit, label and source or rationale (#342).
+# Labels follow ADR 0031:
+# label: measured      = from the source's data: read from the archived instrument files, or an
+#                        experimental amount or condition the source states for its own samples
+#                        (basis: source-stated)
+#        reconstructed = derived by us from the source (file names, headers, dates, stated amounts)
+#        assumed       = our choice, with the reason; a method, literature value or model value we
+#                        adopt because the source states it carries basis: source-stated;
+#                        sensitivity reported where it matters
+# Fixed before the first comparison run, with tolerances.yaml (freeze commit 75775d98). Revised after
+# review (no value used by a judged check changed): labels and notes of qy_ref, decay.model,
+# decay.tau_average, quality_screen.*, extension.*; extension.epsilon_450 and
+# extension.reagent_volumes added; equal_dilution rationale corrected. A second review relabelled
+# qy_ref (literature value) and extension.epsilon_330 (model value) from measured to assumed,
+# basis: source-stated, and narrowed the measured definition above to match ADR 0031; no value
+# changed. See comparison.md, Order.
+
+spectra:
+  absorbance_columns:   {value: "wavelength nm, optical density", label: measured, source: "dataset README.txt; PerkinElmer ASCII header, block after #DATA"}
+  pl_columns:           {value: "wavelength nm, counts (instrument-corrected)", label: measured, source: "README.txt; FLS980 header 'Scan Corr. by File: True' in every emission file used"}
+  sample_to_file_map:   {value: mapping.csv, label: reconstructed, source: "folder and file names, internal file names and dates in the instrument headers, Methods and SI captions; ambiguities flagged in the flags column"}
+  reference_pairing:    {value: "mapping.csv ref_id", label: reconstructed, rule: "the coumarin 102 reference in the same folder; where a folder has none, the reference recorded on the same day (absorbance header date)"}
+
+absorbance_processing:
+  baseline_window:      {value: [680, 700], unit: nm, label: assumed, rationale: "mean OD in this window subtracted as offset/scatter baseline; 2.6 nm InP QDs and coumarin 102 do not absorb there"}
+  excitation_wavelength: {value: 387, unit: nm, label: measured, source: "PL header 'Fixed/Offset 387.00'; Methods"}
+  absorbed_fraction:    {value: "f = 1 - 10^(-A(387 nm))", label: assumed, rationale: "IUPAC relative method (Brouwer 2011, cited by the source) uses absorptance; A is the baseline-corrected OD, linearly interpolated"}
+  smoothing:            {value: "Savitzky-Golay, window 21 points, order 3", unit: "1 nm grid", label: assumed}
+  peak_window:          {value: [420, 520], unit: nm, label: assumed, rationale: "first excitonic transition of 2.6 nm InP lies near 460-480 nm (source)"}
+  peak_rule:            {value: "largest local maximum of the smoothed spectrum in the window; if none, minimum of the smoothed second derivative", label: assumed}
+  valley_rule:          {value: "minimum of the smoothed spectrum between peak - 60 nm and the peak; peak-to-valley ratio = A(peak)/A(valley)", label: assumed}
+
+pl_processing:
+  baseline:             {value: none, label: assumed, rationale: "spectra are dark-corrected by the instrument (references contain negative counts); a constant baseline would also remove solvent Raman near 400-440 nm; sensitivity with a constant baseline (mean 400-404 nm) reported"}
+  integration_range:    {value: "full recorded range, identical for sample and its reference", label: assumed, rationale: "the source states integrated emission; ranges are 400-700 nm (Figure 1, 4, S9) or 400-750 nm (S5-S8, S16)"}
+  integration_rule:     {value: trapezoidal in wavelength, label: assumed}
+  smoothing:            {value: "Savitzky-Golay, window 11 points, order 3", label: assumed}
+  peak_window:          {value: [470, 620], unit: nm, label: assumed, rationale: "band-edge emission; trap emission lies above 650 nm"}
+  fwhm_rule:            {value: "half-maximum crossings searched outward from the peak, linear interpolation; not resolved if a crossing is missing in the record", label: assumed}
+  energy_conversion:    {value: "E = 1239.842 / lambda; I(E) = I(lambda) * lambda^2 / 1239.842", unit: "eV, nm", label: assumed, rationale: "Jacobian conversion; the FWHM in meV is taken on I(E)"}
+
+plqy:
+  formula:              {value: "PLQY = QY_ref * (F_s / F_ref) * (f_ref / f_s) * (n_s / n_ref)^2", label: assumed, source: "IUPAC relative method cited by the source"}
+  qy_ref:               {value: 0.95, unit: "-", label: assumed, basis: "source-stated literature value", source: "Methods: literature value (Jones et al. 1985) that the source uses; not measured by the source, which reports 0.99 from its own sphere measurement"}
+  n_ref:                {value: 1.361, unit: "-", label: assumed, rationale: "ethanol, sodium D line, 20 C"}
+  n_sample:             {value: 1.497, unit: "-", label: assumed, rationale: "aliquots taken as measured in toluene (the purification solvent); mesitylene 1.499 is equivalent; hexadecane 1.434 would lower the 200 C values by 8 %; not stated by the source"}
+
+decay:
+  model:                {value: "y = A1 exp(-t/t1) + A2 exp(-t/t2)", label: assumed, basis: source-stated, source: "Methods: biexponential fit (a method, not data)"}
+  fit_window:           {value: "from the maximum of the record to its end, points with counts > 0", label: assumed}
+  weights:              {value: "Poisson, sigma = sqrt(max(counts, 1))", label: assumed}
+  offset:               {value: 0, unit: counts, label: assumed, rationale: "pre-pulse channels are zero in the records"}
+  irf_deconvolution:    {value: none, label: assumed, rationale: no instrument response archived}
+  start_values:         {value: {t1: 10, t2: 100}, unit: ns, label: assumed}
+  tau_average:          {value: "(A1 t1^2 + A2 t2^2) / (A1 t1 + A2 t2)", label: assumed, basis: source-stated, source: "Methods (a method, not data)"}
+
+sphere:
+  scatter_window:       {value: [380, 400], unit: nm, label: assumed, rationale: "excitation 389 nm (header), record starts at 380 nm"}
+  emission_window:      {value: [420, 700], unit: nm, label: assumed}
+  blank_rule:           {value: "the scan with the larger scatter integral is the blank", label: assumed, rationale: "a sample absorbs part of the excitation; the two scans are not labelled"}
+  formula:              {value: "PLQY = (E_sample - E_blank) / (S_blank - S_sample)", label: assumed, source: "standard integrating-sphere method (de Mello type), as the header states corrected spectra"}
+
+quality_screen:   # stated optical criteria and the varied thresholds (deliverable 2)
+  plqy_threshold:       {value: 50, unit: "%", label: assumed, rationale: "about the 150 C, 60 min level of the source; varied over [30, 50, 70]"}
+  fwhm_threshold:       {value: 300, unit: meV, label: assumed, rationale: "our choice of threshold, set at the source's typical FWHM after in situ HF (~300 meV, Results); varied over [250, 300, 350]"}
+  od387_target:         {value: 0.1, tolerance: 0.05, unit: "-", label: measured, basis: "source-stated target (value); the tolerance 0.05 is our choice", source: "Methods: OD ~0.1 at 387 nm for all samples; samples outside 0.05-0.15 flagged for inner-filter and reabsorption risk"}
+
+extension:   # hypothetical design extension, see extension.md (not validated)
+  epsilon_330:          {value: 0.45, unit: cm-1 uM-1, label: assumed, basis: "source-stated model value (Maxwell-Garnett), not a measurement", source: "Methods, per as-synthesized QD"}
+  epsilon_450:          {value: "epsilon_330 * A450 / A330 of untreated_case", unit: M-1 cm-1, label: reconstructed, rationale: "scaled by us with the measured 450/330 nm absorbance ratio of the 0 min aliquot; computed in run.py"}
+  batch_qd_amount:      {value: 41, unit: nmol, label: measured, basis: source-stated, source: "Methods: 30 uL stock per standard batch"}
+  reagent_volumes:      {value: {qd_stock_uL: 30, solvent_uL: 820, amine_uL: 90, benzoyl_fluoride_uL: 90}, label: measured, basis: source-stated, source: "Methods, In Situ HF Treatment: stock diluted in mesitylene, then octylamine and benzoyl fluoride solutions added in sequence at 150 C; used only for the aliquot-volume sensitivity"}
+  pump_wavelength:      {value: 450, unit: nm, label: assumed, rationale: "blue LED pump of a colour-conversion layer"}
+  target_absorbance_450: {value: 1.0, unit: "-", label: assumed, rationale: "layer absorbing 90 % of the blue pump"}
+  equal_dilution:       {value: true, label: assumed, rationale: "Figure 1C is labelled absolute absorption and the text reads the OD drop as InP loss; aliquot dilution is not stated. The Methods add 180 uL of reagent solutions after the 850 uL QD dilution. The 0 min aliquot is read as taken before benzoyl fluoride (mapping.csv), so if aliquots were handled alike it is 1030/940 to 1030/850 = 1.10-1.21 times more concentrated than the 5-60 min aliquots (octylamine before or after it). This biases retained fractions low and stock per m2 high by that factor; reported as a range (reagent_volumes), not applied. The 5 against 60 min comparison is unaffected"}
+  base_case:            {value: F1-150-60, label: assumed, rationale: "design choice: the standard 60 min treatment"}
+  changed_input:        {value: "treatment time 60 min -> 5 min (F1-150-05)", label: assumed, rationale: "design choice: the earliest measured aliquot"}
+  untreated_case:       {value: F1-150-00, label: assumed, rationale: "design choice: the 0 min aliquot of the same run as reference"}

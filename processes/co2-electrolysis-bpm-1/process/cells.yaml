@@ -1,0 +1,53 @@
+# The electrochemical cells of the process. Schema cheme/electrochemical-cells/v1 (`cheme schema
+# process-cells`); `cheme process cell` evaluates them (Faraday balance, power, heat, membrane).
+# bench-cell is the measured 5 cm2 reverse-bias BPM cell of process/design-basis.yaml
+# (capacity.reference_cell) at the design current density 200 mA/cm2 (DESIGN.md D-006). Its
+# voltage and Faradaic efficiencies are not stated here: performance: measured looks them up in
+# the measured series (DESIGN.md D-005) at I / active_area, and refuses the cell outside the
+# measured 25-250 mA/cm2.
+schema: cheme/electrochemical-cells/v1
+kind: electrochemical_cells
+cells:
+  - id: bench-cell
+    title: Reverse-bias bipolar-membrane CO2 electrolysis cell, 5 cm2 (measured bench cell)
+    performance: measured
+    reaction: CO2R
+    electrons: 2
+    # The half-reactions in their alkaline form, so that they add up to CO2 -> CO + 1/2 O2. In
+    # the cell the reverse-biased BPM dissociates water: its cation exchange layer gives the Ag
+    # cathode protons (CO2 + 2 H+ + 2 e- -> CO + H2O), its anion exchange layer the Ni anode
+    # hydroxide. That pair adds up to the same overall reaction only with the membrane's water
+    # dissociation (2 H2O -> 2 H+ + 2 OH-), which is no electrode reaction and which the electrode
+    # check cannot hold (DESIGN.md D-006). The electrons per extent and the home electrode of each
+    # product are the same in both forms. The co-ions that cross instead of H+ and OH- are in
+    # membrane: below; they do not change the Faraday balance.
+    electrodes:
+      cathode: {equation: "CO2 + H2O + 2 e- -> CO + 2 OH-", species: {CO2: -1, H2O: -1, e-: -2, CO: 1, OH-: 2}}
+      anode: {equation: "2 OH- -> 1/2 O2 + H2O + 2 e-", species: {OH-: -2, e-: 2, O2: 0.5, H2O: 1}}
+    cells: 1
+    current: {value: 1.0, unit: A, provenance: given, source: "design current density 200 mA/cm2 on the 5 cm2 active area (DESIGN.md D-006)"}
+    active_area: {value: 5, unit: cm2, provenance: given, source: "Prats Vergel et al., Nat. Chem. Eng. (2025), doi:10.1038/s44286-025-00306-7, Methods"}
+    side_reactions:
+      - {reaction: WS, electrons: 2}       # current fraction: the measured FE of H2
+    measurements:
+      file: experiments/electrochemistry/rbpm-1m-koh.yaml
+      product: CO
+      side_products: [H2]
+    membrane:
+      kind: bipolar
+      bias: reverse
+      # the water dissociation efficiency is the measured one at 200 mA/cm2; the co-ion split is
+      # the measured carbon share of the co-ion current there (HCO3- 0.670 +- 0.082, n 3: the
+      # titration's second end point), the rest K+ (D-006)
+      co_ion_crossover: {K+: 0.330, HCO3-: 0.670}
+      source: "experiments/electrochemistry/rbpm-1m-koh.yaml, point P200 (titration, DESIGN.md D-002, D-005)"
+    thermal:
+      kind: isothermal
+      temperature: {value: 25, unit: °C, provenance: assumed, source: "room temperature; the paper and the dataset state no cell temperature (DESIGN.md D-005)"}
+    operating_range:
+      current_density: [250, 2500]
+      source: "the measured series: 25-250 mA/cm2 in 1 M KOH, 1 h runs (experiments/electrochemistry/rbpm-1m-koh.yaml)"
+    electrolyte: "1 M KOH anolyte, 90 mL recirculated at 20 mL/min; no catholyte (humidified CO2 gas feed)"
+    sources:
+      - "Prats Vergel et al., Nat. Chem. Eng. (2025), doi:10.1038/s44286-025-00306-7"
+      - "Prats Vergel et al., 4TU.ResearchData (2025), doi:10.4121/5c4fc325-a71b-4ca8-9c1b-01c0405936a2.v1 (CC BY 4.0)"
