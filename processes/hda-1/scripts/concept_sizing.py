@@ -46,7 +46,11 @@ U = {  # W/(m2 K), overall, clean
     "E-207": 500,  # benzene liquid product cooled against cooling water (D-022)
     "E-103": 100,  # tail-gas aftercooler: methane-rich gas at 0.47 MPa against cooling water (D-024)
 }
-CP_TAIL = 38.0       # kJ/(kmol K), tail gas (84 mol% CH4, 14 mol% H2) between 313 and 440 K (D-024)
+# kJ/(kmol K), mean cp of the tail gas (84 mol% CH4, 14 mol% H2) between 313 and 436 K at 0.45 to
+# 0.47 MPa: not assumed but taken from scripts/hda_balance.py (thermo, Peng-Robinson), whose K-102
+# outlet is 430.76 K and whose E-103 duty is 238.06 kW for 187.2 kmol/h: 238.06 * 3600 /
+# (187.2 * (430.76 - 313.15)) = 38.9 (review of PR #327; 38.0 ASSUMED before) (D-024)
+CP_TAIL = 38.9
 F_FACTOR = 2.0       # Pa^0.5, sieve trays at the design vapour load
 ACTIVE = 0.85        # active-area fraction of the column cross-section
 TRAY_EFF = 0.7       # overall tray efficiency
@@ -116,7 +120,8 @@ def main() -> None:
         "E-207": (abs(units["E207"]["duty_kW"]), lmtd(t("S26") - CW_OUT, 313.15 - CW_IN),
                   "S26 -> 313.15 K against CW (D-022)"),
         # D-024: the K-102 discharge temperature is not in the run record (the aftercooler is
-        # inside the compressor unit), so it follows from the aftercooler duty at CP_TAIL
+        # inside the compressor unit), so it follows from the simulated aftercooler duty at the
+        # balance script's Peng-Robinson cp (CP_TAIL)
         "E-103": (units["K102"]["cooling_kW"], lmtd(t_k102 - CW_OUT, t("S34") - CW_IN),
                   f"K-102 discharge {t_k102:.1f} K -> S34 {t('S34'):.2f} K against CW (D-024)"),
     }

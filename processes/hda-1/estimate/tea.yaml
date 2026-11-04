@@ -179,17 +179,31 @@ scenarios:
   - {id: capex-class5-high, scale: {capex:isbl: 2.0}, source: "AACE 18R-97 class 5 upper bound +100 % on the ISBL"}
   # D-024: the PSA package's cost range as ISBL multipliers (the scenarios scale the whole ISBL,
   # so the PSA's own share is converted): PK-101 at 4 056 500 USD 2023 is 4 538 554 EUR of the
-  # 16 389 645 EUR ISBL (x 0.97290 EUR 2025 per USD 2023, x 1.15 allowance). Own calculation.
-  - {id: psa-capex-high, scale: {capex:isbl: 1.104459}, source: "PK-101 at 5 586 700 USD 2023 (the NETL PSA scaled on the adsorbed flow with exponent 0.5 instead of 0.6, D-024): ISBL + 1 712 041 EUR, ASSUMED"}
-  - {id: psa-capex-low, scale: {capex:isbl: 0.887568}, source: "PK-101 at 2 409 500 USD 2023 (the NETL PSA scaled on the total feed flow, exponent 0.6, D-024): ISBL - 1 842 720 EUR, ASSUMED"}
+  # 16 390 151 EUR ISBL (x 0.97290 EUR 2025 per USD 2023, x 1.15 allowance). Own calculation.
+  - {id: psa-capex-high, scale: {capex:isbl: 1.104455}, source: "PK-101 at 5 586 700 USD 2023 (the NETL PSA scaled on the adsorbed flow with exponent 0.5 instead of 0.6, D-024): ISBL + 1 712 041 EUR, ASSUMED"}
+  - {id: psa-capex-low, scale: {capex:isbl: 0.887571}, source: "PK-101 at 2 409 500 USD 2023 (the NETL PSA scaled on the total feed flow, exponent 0.6, D-024): ISBL - 1 842 720 EUR, ASSUMED"}
   # Benzene selectivity (D-021, review of PR #326): the model's 0.9734 bounds only the biphenyl
   # make; heavier polyaromatics and hydrocracking are excluded, so it is optimistic. US 3,607,960
   # Example 1 reports 94.5 % for its primary reactors at 85 % conversion per pass
   # (process/reaction-evidence.yaml O2), a higher conversion than R-101's 75 %. Own calculation
-  # on the DWSIM extents (HDA 166.83, BIPH 2.215 kmol/h): net benzene formed 162.40 kmol/h; at
-  # 0.945 the toluene converted is 162.40 / 0.945 = 171.85 kmol/h, 5.02 kmol/h (462.6 kg/h) more,
-  # so fresh toluene x (15432.3 + 462.6) / 15432.3 = 1.030, and its dealkylation takes 5.02 kmol/h
-  # (10.1 kg/h) more hydrogen, x 1.018. Second-order effects (purge, recycle, duties) are not
-  # rerun. ASSUMED screening scale factors, not a simulation.
-  - {id: selectivity-0945, scale: {rate:feed:TOLF: 1.030, rate:feed:H2MU@H2: 1.018}, source: "benzene selectivity 0.945 (US 3,607,960 Example 1, primary reactors, 85 % conversion; reaction-evidence O2) instead of 0.9734: toluene and make-up hydrogen scaled by the own calculation above; the lost aromatics are not credited (upper bound of the cost), ASSUMED (D-021)"}
-  - {id: selectivity-0945-credited, scale: {rate:feed:TOLF: 1.030, rate:feed:H2MU@H2: 1.018, rate:product:DIPHENYL: 2.112, rate:product:FUELGAS: 1.026}, source: "as selectivity-0945, with the loss credited as fuel: the 5.02 kmol/h of extra toluene leave as heavy aromatics (5.02 x 78.11 = 392 kg/h, credited at the biphenyl LHV: 352 -> 744 kg/h, x 2.112) and methane (80.5 kg/h into the fuel gas, x 1.026); the heavy ends' real composition and LHV are not known (reaction-evidence O2 gaps), ASSUMED (D-021)"}
+  # on the DWSIM extents of the D-024 run (HDA 166.78, BIPH 2.217 kmol/h): net benzene formed
+  # 162.35 kmol/h; at 0.945 the toluene converted is 162.35 / 0.945 = 171.80 kmol/h, 5.02 kmol/h
+  # (462.1 kg/h) more, so fresh toluene x (15427.2 + 462.1) / 15427.2 = 1.030, and its
+  # dealkylation takes 5.02 kmol/h (10.1 kg/h) more hydrogen, against the 389.5 kg/h of H2 in the
+  # make-up S4 (392.63 kg/h at 99.9 mol% H2, D-024): x 1.026. Second-order effects (purge,
+  # recycle, duties) are not rerun. ASSUMED screening scale factors, not a simulation.
+  - {id: selectivity-0945, scale: {rate:feed:TOLF: 1.030, rate:feed:H2MU@H2: 1.026}, source: "benzene selectivity 0.945 (US 3,607,960 Example 1, primary reactors, 85 % conversion; reaction-evidence O2) instead of 0.9734: toluene and make-up hydrogen scaled by the own calculation above (D-024 run); the lost aromatics are not credited (upper bound of the cost), ASSUMED (D-021)"}
+  - {id: selectivity-0945-credited, scale: {rate:feed:TOLF: 1.030, rate:feed:H2MU@H2: 1.026, rate:product:DIPHENYL: 2.113, rate:product:FUELGAS: 1.027}, source: "as selectivity-0945, with the loss credited as fuel: the 5.02 kmol/h of extra toluene leave as heavy aromatics (5.02 x 78.11 = 391.8 kg/h, credited at the biphenyl LHV: 352.0 -> 743.8 kg/h, x 2.113) and methane (80.5 kg/h into the 2968.1 kg/h of fuel gas of D-024, x 1.027); the heavy ends' real composition and LHV are not known (reaction-evidence O2 gaps), ASSUMED (D-021)"}
+  # PSA hydrogen recovery (D-024, review of PR #327): 0.75 is the low end of the published 75-92 %
+  # (Matijasevic and Petric 2016, Table 1, p. 3), whose feed limit (> 40 vol% H2) the purge just
+  # meets (40.0 mol%), so a vendor may offer less. Own calculation: the PSA feed holds
+  # 161.88 / 0.75 = 215.84 kg/h of H2 (scripts/hda_balance.py); each 0.05 of recovery lost is
+  # 10.79 kg/h more make-up H2 (x 1.0277 on the 389.53 kg/h of H2 in S4) and the same hydrogen
+  # more in the fuel gas, credited by its energy: 10.79 kg/h x 119.96 MJ/kg (LHV of H2 from the
+  # formation enthalpy of H2O(g), -241.826 kJ/mol, CODATA, Cox et al. 1989, as lca/lca.yaml) =
+  # 1294.6 MJ/h on 2968.1 kg/h x 50.66 MJ/kg = 150 364 MJ/h, x 1.00861 (the fuel gas is priced per
+  # GJ at a fixed 50.66 MJ/kg). The loop is not solved again: less hydrogen through the recycle
+  # dilutes it less (slightly less K-101 power and H-101 duty), so the scenarios are a little
+  # pessimistic. ASSUMED screening scale factors, not a simulation.
+  - {id: psa-recovery-070, scale: {rate:feed:H2MU@H2: 1.02770, rate:product:FUELGAS: 1.00861}, source: "PK-101 hydrogen recovery 0.70 instead of 0.75 (below the published range, for a feed at its 40 % limit): own calculation above, ASSUMED (D-024)"}
+  - {id: psa-recovery-065, scale: {rate:feed:H2MU@H2: 1.05541, rate:product:FUELGAS: 1.01722}, source: "PK-101 hydrogen recovery 0.65 instead of 0.75: own calculation above, ASSUMED (D-024)"}
