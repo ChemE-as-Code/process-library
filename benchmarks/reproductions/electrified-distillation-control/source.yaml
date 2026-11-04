@@ -1,0 +1,175 @@
+# Reference record for the electrified-distillation control case (#335, tracker #333, ADR 0030).
+# Facts (specifications, numbers) are taken from the pinned sources and restated in our own form
+# with locators. No text, tables or figures of the source are copied into the library. The
+# supporting-information workbook is downloaded by run.py at runtime and is not committed.
+reference:
+  id: cui-2025-fvc-control
+  title: Control of fully electrified heat pump assisted distillation process by flash vapor circulation
+  authors: [Chengtian Cui, Xiaodong Zhang, Meng Qi, Anton A. Kiss]
+  journal: Chemical Engineering Research and Design, 220 (2025) 450-460
+  doi: 10.1016/j.cherd.2025.07.023
+  version: final published version (version of record), available online 2025-07-14
+  licence:
+    name: CC BY 4.0 (open access; licence statement on the first page of the article and in the Crossref record)
+    url: http://creativecommons.org/licenses/by/4.0/
+    note: >-
+      CC BY 4.0 would allow redistribution with attribution, but the library rule (CLAUDE.md) is
+      to restate facts in our own form and draw every figure ourselves. We do so. The supporting
+      information is published with the article (Appendix A); we take it to be under the same
+      licence but do not redistribute it: run.py downloads it.
+  accessed: "2026-11-04"
+  kind: model reference (Aspen Plus V14 steady state and Aspen Dynamics V14 simulations; no plant or experimental data)
+  files:
+    - name: article PDF (final published version, TU Delft repository copy with a cover page)
+      url: https://repository.tudelft.nl/file/File_9b20976a-b549-436f-bb39-f5627edc5a6c
+      record: https://repository.tudelft.nl/record/uuid:f56aa208-9035-4420-bbd8-22f8077e367b
+      sha256: 22a846f3b8d2aabc2b2117844863346530abc0a80d4334bf942fbd2a8377f555
+      bytes: 10976865
+      pages: 12 (1 cover + 11 article pages)
+      use: text facts below; not used by run.py
+      access_note: >-
+        The publisher page (sciencedirect.com) and the Abo Akademi repository copy refused
+        automated downloads (HTTP 403) on 2026-11-04; the TU Delft repository copy was open.
+    - name: supporting information workbook (Appendix A, mmc1)
+      url: https://ars.els-cdn.com/content/image/1-s2.0-S0263876225003818-mmc1.xlsx
+      sha256: 4f57888ecfb2cb91918c437e4ecae7c235e65c391c55ab33a6ddeffc4d37a575
+      bytes: 527045
+      use: >-
+        downloaded and hash-checked by run.py; read for the nominal stream table, the column
+        profile and the eight dynamic responses
+      sheets:
+        "Stream data": steady-state stream table of the Aspen Plus flowsheet (streams 1-28, FEED, MEOH, WATER)
+        "Column data": stage table of the column block (38 stages), liquid and vapour compositions, hydraulic table
+        time series CS1: "sheets 'CS1 +20% F', 'CS1 -20% F', 'CS1 +20% MeOH', 'CS1 -20% MeOH' (Aspen Dynamics)"
+        time series CS2: "sheets 'CS2 +20% F', 'CS2 -20% F', 'CS2 +20% MeOH', 'CS2 -20% MeOH' (Aspen Dynamics)"
+      series_variables: >-
+        time (h, step 0.01 h, 0-10 h); distillate and bottoms molar flows (kmol/h); flash vapour
+        circulation, stream 11 (kmol/h); distillate methanol and bottoms water mole fractions;
+        power of COMP1, COMP2, COMP3 (kW); block stage 35 temperature (C); reflux ratio (the
+        multiplier's second input, mass basis)
+  related:
+    - id: cui-2024-fvc
+      title: Fully electrified heat pump assisted distillation process by flash vapour circulation
+      doi: 10.1016/j.cherd.2024.05.011
+      use: origin of the FVC-2 configuration (steady state); not used for numbers here
+      url: https://repository.tudelft.nl/file/File_dee61d3b-fb81-43ff-b664-dcbf92a98657
+      sha256: 094a7a9f9bfe0b956edb19d5b047fcd46ba1b2b43fcd2d7d24ab71263c338247
+
+# The reference case, restated. Numbering: block stages of the Aspen column block (1 = top,
+# 38 = bottom), as the SI variable names use them (BLOCKS("COLUMN").Stage(35).T). The paper counts
+# the drum as stage 1, so its "feed stage 30" is block stage 29 and its 40 stages are 38 column
+# stages plus the drum (FLASH-D) and the reboiler flash (FLASH-R).
+case:
+  system: methanol / water, binary
+  feed: {flow: 100 kmol/h, methanol: 0.80, water: 0.20, temperature: 30 C, pressure: 5 bar, after_valve_V1: 1.203 bar, phase: liquid,
+         locator: "article section 2; SI Stream data, FEED and stream 1"}
+  products:
+    distillate: {methanol: 0.99, flow: 80.806 kmol/h, locator: "section 2; SI stream MEOH"}
+    bottoms: {water: 0.9999, flow: 19.194 kmol/h, locator: "section 2; SI stream WATER"}
+  column:
+    stages: "38 in the column block; plus FLASH-D (drum) and FLASH-R (reboiler flash): 40 equilibrium stages"
+    feed_stage: 29 (block numbering; liquid feed, SI Column data 'Liquid feed' column)
+    top_pressure: 1.007 bar (block stage 1)
+    stage_pressure_drop: 0.7 kPa
+    bottom_pressure: 1.266 bar (block stage 38)
+    FLASH_R_pressure: 1.276 bar
+    FLASH_D_pressure: 1.007 bar
+    locator: "section 2; SI Column data"
+  heat_pump:
+    description: >-
+      Overhead vapour (stream 2) plus the flash vapour circulation (stream 11/12) is compressed
+      in three stages COMP1-COMP3 with intercoolers HEX1 and HEX2 and the main exchanger HEX3;
+      all three heat the column bottoms withdrawal (streams 19-24) on its way to FLASH-R. A trim
+      condenser COND follows HEX3. Valve V2 throttles the condensate to 1.007 bar into FLASH-D,
+      whose vapour returns to COMP1 (the FVC) and whose liquid is split into reflux and
+      distillate (SP1). No steam.
+    isentropic_efficiency: 0.75
+    discharge: {pressure: 6.258 bar, temperature: 150 C}
+    suction: {pressure: 1.007 bar, temperature: 64.76 C}
+    locator: "section 2; Fig. 1; SI Stream data streams 2-13"
+  control_basis:
+    software: Aspen Dynamics V14
+    drum_and_sump_holdup: 5 min at 50 % level, nominal
+    valves: 3 bar nominal pressure drop at about 50 % open; bottoms valve V8 raised to 12 bar
+    level_controllers: {type: P-only, Kc: 2, tau_I: 9999 min}
+    flow_controllers: {Kc: 0.5, tau_I: 0.3 min}
+    pressure_controllers: {Kc: 20, tau_I: 12 min}
+    temperature_and_composition: Tyreus-Luyben tuning (values not reported)
+    deadtimes: {temperature: 1 min, composition: 3 min}
+    disturbances: ±20 % steps in feed flow and in feed methanol fraction (0.80 to 0.96 and 0.64), at 0.5 h, run to 10 h
+    locator: "section 3.1 and 3.2"
+  control_structures:
+    CS1:
+      loops:
+        FC1: feed flow by valve V1
+        LC1: reflux drum (FLASH-D) level by distillate flow
+        LC2: column sump level by the withdrawal stream 19
+        LC3: FLASH-R level by the bottoms flow (valve V8)
+        RR: reflux ratio fixed (reflux = RR x distillate mass flow, by a multiplier)
+        PC1: column top pressure by the trim-condenser duty (COND)
+        PC2: compressor discharge pressure by valve V2 (after COND, before the drum)
+        TC: block stage 35 temperature by the total compressor power; COMP2 and COMP3 powers in fixed ratio to COMP1
+      locator: "section 3.2 list of loops; Fig. 3"
+    CS2:
+      change: "as CS1, plus a composition controller on the distillate methanol fraction that sets the reflux ratio"
+      locator: "section 3.3; Fig. 6"
+  reference_figures_and_tables:
+    - {locator: "Fig. 1", what: steady-state flowsheet and Aspen Plus layout}
+    - {locator: "Fig. 2", what: steady-state temperature and composition profiles}
+    - {locator: "Fig. 3 / Fig. 6", what: control structures CS1 / CS2}
+    - {locator: "Fig. 5", what: CS1 responses to the ±20 % feed composition steps}
+    - {locator: "Fig. 8", what: CS2 responses to the ±20 % feed composition steps}
+    - {locator: "Table 1", what: settling times}
+    - {locator: "Table 2", what: integral absolute errors}
+    - {locator: "SI workbook", what: the numbers behind Fig. 1, 2, 4, 5, 7, 8}
+
+# Reported results restated as facts. SI values are read by run.py from the workbook at runtime;
+# the values here are the ones it reads, written down for the record (rounded).
+reported_results:
+  nominal:
+    reflux_ratio: {value: 0.64636, basis: mass (equal to molar, reflux and distillate share one composition), locator: "SI Stream data, streams 14 and 17; series RR.Input2 at t=0"}
+    distillate_flow: {value: 80.806, unit: kmol/h, locator: "SI stream 17 / MEOH"}
+    overhead_vapour: {value: 133.036, unit: kmol/h, locator: "SI stream 2"}
+    flash_vapour_circulation: {value: 7.308, unit: kmol/h, locator: "SI stream 11; text 7.3 kmol/h"}
+    compressor_flow: {value: 140.344, unit: kmol/h, locator: "SI stream 3"}
+    compressor_power: {COMP1: 166.194, COMP2: 68.439, COMP3: 68.414, total: 303.05, unit: kW, text_total: 302, locator: "SI series at t=0; text section 2"}
+    reboiler_duty: {value: 1425.5, unit: kW, parts: "HEX1 68.4 + HEX2 68.4 + HEX3 1288.6", text: 1426, locator: "SI enthalpy flows streams 3-8 (our arithmetic); text section 2"}
+    trim_condenser_duty: {value: 184.6, unit: kW, locator: "SI enthalpy flows streams 8-9 (our arithmetic)"}
+    conventional_condenser_duty: {value: 1307, unit: kW, locator: "text section 2 (column without heat pump); SI streams 2 and 13 give 1306.9 kW"}
+    conventional_reboiler_duty: {value: 1426, unit: kW, locator: "text section 2"}
+    COP: {value: 4.72, locator: "text section 2"}
+    stage35_temperature: {value: 88.911, unit: C, locator: "SI series at t=0; SI Column data"}
+    column_profile: {what: "T, P, x, y, L, V and enthalpies of the 38 block stages", locator: "SI Column data"}
+  disturbances_final_values:
+    note: "values at t = 10 h of the SI series; Q_R from the text where given"
+    CS1_plus20_MeOH:  {x_D: 0.99799, x_B_water: 0.99992, RR: 0.64636, W_total_kW: 441.08, FVC_kmolh: 41.39, D_kmolh: 96.21, Q_R_kW_text: 1654, COP_text: 3.74}
+    CS1_minus20_MeOH: {x_D: 0.97836, x_B_water: 0.99986, RR: 0.64636, W_total_kW: 247.07, FVC_kmolh: 7.27, D_kmolh: 65.40, Q_R_kW_text: 1194, COP_text: 4.83}
+    CS2_plus20_MeOH:  {x_D: 0.99007, x_B_water: 0.99994, RR: 0.30311, W_total_kW: 283.05, FVC_kmolh: 4.92, D_kmolh: 97.00, Q_R_kW_text: 1341, COP_text: 4.74}
+    CS2_minus20_MeOH: {x_D: 0.99000, x_B_water: 0.99986, RR: 0.72118, W_total_kW: 255.47, FVC_kmolh: 7.62, D_kmolh: 64.63}
+    CS1_plus20_F:  {x_D: 0.98912, x_B_water: 0.99986, W_total_kW: 451.94, FVC_kmolh: 42.38, D_kmolh: 97.07, Q_R_kW_text: 1713, COP_text: 3.79, use: calibration of the heat-pump capacity closure (inputs.yaml); not a check}
+    CS1_minus20_F: {x_D: 0.99076, x_B_water: 0.99992, W_total_kW: 235.48, FVC_kmolh: 3.41, D_kmolh: 64.59, Q_R_kW_text: 1138, COP_text: 4.84}
+    CS2_plus20_F:  {x_D: 0.99000, RR: 0.65590, W_total_kW: 455.44, FVC_kmolh: 42.71}
+    CS2_minus20_F: {x_D: 0.99000, RR: 0.63797, W_total_kW: 234.42, FVC_kmolh: 3.39}
+    locator: "SI sheets 'CS1 ...' and 'CS2 ...', last row; text sections 3.2 and 3.3"
+  text_values_that_differ_from_the_SI:
+    - "Section 3.2 gives 99.76 mol% (+20 % methanol) and 97.75 mol% (-20 %) for CS1; the SI series end at 0.99799 and 0.97836. We compare with the SI."
+    - "Section 3.3 gives the CS2 throughput reflux ratios as 0.656 and 0.638 (SI 0.65590, 0.63797): consistent."
+  table1_settling_time_h:
+    note: "definition not stated in the paper; not reproducible from the SI series with a simple band rule (see comparison.md)"
+    CS1: {plus20_F: {MeOH: 2.5, water: 1.6}, minus20_F: {MeOH: 2.5, water: 0.5}, plus20_MeOH: {MeOH: 1.8, water: 1.6}, minus20_MeOH: {MeOH: 1.8, water: 1.0}}
+    CS2: {plus20_F: {MeOH: 3.5, water: 2.5}, minus20_F: {MeOH: 4.0, water: 1.5}, plus20_MeOH: {MeOH: 9.5, water: 2.5}, minus20_MeOH: {MeOH: 3.5, water: 1.5}}
+  table2_IAE:
+    definition: "integral over 0-10 h (time in h) of |x_D - 0.99| (MeOH) and |x_B,water - 0.9999| (water); recomputed from the SI series by trapezoidal integration within 1 %"
+    CS1: {plus20_F: {MeOH: 0.010580, water: 0.007575}, minus20_F: {MeOH: 0.009107, water: 0.000274}, plus20_MeOH: {MeOH: 0.070604, water: 0.002605}, minus20_MeOH: {MeOH: 0.100947, water: 0.000367}}
+    CS2: {plus20_F: {MeOH: 0.001212, water: 0.009474}, minus20_F: {MeOH: 0.003157, water: 0.000275}, plus20_MeOH: {MeOH: 0.011353, water: 0.001962}, minus20_MeOH: {MeOH: 0.003038, water: 0.000435}}
+  qualitative_conclusions:
+    - "CS1 holds stage 35 within about 2 h but leaves a distillate purity offset after a feed composition step (section 3.2)."
+    - "CS2 returns the distillate to 0.99 by moving the reflux ratio, 0.303 at +20 % and 0.721 at -20 % methanol (section 3.3)."
+    - "At +20 % methanol CS2 needs 283 kW of compressor power against 442 kW for CS1 (section 3.3)."
+    - "CS2 is slower: methanol settling 9.5 h against 1.8 h at +20 % methanol (Table 1)."
+
+# Not published (needed for an exact dynamic reproduction): see inputs.yaml 'gaps'.
+public_model_files: >-
+  No Aspen Plus or Aspen Dynamics files, no repository and no dataset other than the SI workbook
+  were found (article Appendix A, TU Delft and Abo Akademi repository records, Crossref and
+  OpenAlex metadata, 2026-11-04).
