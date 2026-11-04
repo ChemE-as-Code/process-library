@@ -7,12 +7,32 @@
 - **Tolerances:** `tolerances.yaml`, frozen in commit 9aeb7614 with `source.yaml` and
   `inputs.yaml`, before any run that compared our values with the reported ones. Not changed since:
   `git diff 9aeb7614 HEAD -- benchmarks/reproductions/electrified-distillation-control/tolerances.yaml`
-  is empty.
+  is empty. run.py reads every tolerance, ratio band and the pass fraction from that file and
+  records its sha256 in comparison.json (`tolerances_file`). The earlier run used literals with the
+  same values, except the water-IAE band, which it took as 1/3 instead of the frozen 0.33; no
+  status depended on the difference.
+- **Frozen files amended after the freeze:** `source.yaml` and `inputs.yaml`, with no reference
+  value and no model value changed. Commit 2ba5980b corrected the Table 2 recomputation bound in
+  `source.yaml` (the frozen text said 1 %; run.py finds 2.5 %, a finding about the source, not a
+  tolerance). The review-fix commit restored the frozen wording with the finding beside it, added
+  the licence note, restated the level loops as the article words them, and recorded the article's
+  feed description. In `inputs.yaml` it renamed the labels to ADR 0031's vocabulary, split mixed
+  entries and added the NRTL alpha variants, which the committed results already contained. Each
+  file's header lists its amendments.
 - **Run:** `uv run benchmarks/reproductions/electrified-distillation-control/run.py` from the
-  repository root, 2026-11-04, from an empty cache (the SI downloaded and hash-checked). Python
-  3.13.16, numpy 2.3.4, scipy 1.16.3, matplotlib 3.10.7, openpyxl 3.1.5, pyyaml 6.0.3; 150 s on
-  a laptop. Output: `results/comparison.json` and five SVG figures. A second run in a separate copy
-  gave byte-identical results.
+  repository root, 2026-11-04, from an empty cache (the SI downloaded and hash-checked, the
+  packages installed fresh). Python 3.13.16, numpy 2.3.4, scipy 1.16.3, matplotlib 3.10.7,
+  openpyxl 3.1.5, pyyaml 6.0.3; the script metadata sets `exclude-newer = 2026-11-04T00:00:00Z`
+  for uv, so the transitive packages resolve to the same set, which comparison.json records
+  (`software.resolved_packages`). Output: `results/comparison.json` and five SVG figures.
+- **Changes to run.py since the first committed results (review fixes), no status changed:** the
+  smooth minimum of the heat-pump closure no longer lets the reboiler duty exceed full
+  condensation of the compressed vapour below the design load (it gave up to +1 kW, so COP 4.708
+  against the physical 4.704); below-design powers rose by 0.1 % (CS2 +20 % methanol 284.0 to
+  284.3 kW). Each dynamic run now starts its bubble-point iterations from the nominal state, so the
+  result of a case does not depend on the case run before it. Tolerances are read from
+  `tolerances.yaml`. The sensitivity rows record both direction flags; the extension records its
+  flags per point and the peak power at kappa 0.10-0.30.
 - **Model:** our own, described in `inputs.yaml`. It has 38 equilibrium stages plus the drum
   (FLASH-D) and the reboiler flash (FLASH-R), and a quasi-steady energy balance per stage. NRTL
   parameters are fitted to the SI stage equilibrium data, and enthalpies to the SI stage and stream
@@ -25,6 +45,19 @@
 The pass rule (`tolerances.yaml`) gives *partial* when at least 75 % of the primary checks pass
 and both direction checks pass. One primary check fails: the CS1 distillate purity after the -20 %
 methanol step.
+
+What the count shows. The rule is applied as frozen, but not every check is an equal test:
+
+- The 7 nominal checks are **consistency checks of the reconstruction**, not independent tests.
+  NRTL and the enthalpy model are fitted to the same SI stage x, y, T and h data (and the feed,
+  distillate and bottoms stream enthalpies) that the profile RMS, the duties and the reflux ratio
+  are then compared with. They show that the fit and our stage model reproduce the SI state.
+- 2 of the 10 numeric step checks, CS2 x_D at ±20 % methanol, are the **controller set point**
+  held by integral action, and pass by construction once the loop settles. The direction check
+  "CS2 recovers purity" also rests on that fact; its informative half is the CS1 offset.
+- The **independent tests** are the other 8 step checks (CS1 purity, CS2 reflux ratio, the four
+  compressor powers): 7 of 8 pass. Over all numeric checks other than the two set points, 14 of 15
+  pass.
 
 ### Nominal steady state (our model solved at the reported purities 0.99 and 0.9999)
 
@@ -44,6 +77,14 @@ b21 = 478.1 K (alpha 0.3). It reproduces the 40 SI equilibrium points to 0.08 K 
 temperature and 0.0014 RMS in vapour mole fraction. The enthalpy fit reproduces the SI to 82 kJ/kmol
 (liquid) and 13 kJ/kmol (vapour) RMS.
 
+The fitted liquid heat capacities are fit artefacts, not physical values: 119.7 kJ/(kmol K) for
+methanol (about 81-88 in the literature near 25-65 C) and 59.6 for water (about 75). The SI stage
+points lie along one path in (x, T), on which composition and temperature move together, so the
+fit identifies the enthalpy only along that path. Away from it the liquid enthalpy is
+uncertain. This matters for the feed, 30 C and 42 K subcooled: its enthalpy at z = 0.64 or 0.96
+(the composition steps) lies off the SI path, so part of the step-response deviations may come
+from the feed enthalpy rather than the column.
+
 ### Feed composition steps, values at 10 h
 
 | Check | Reference (SI at 10 h) | Ours | Deviation | Tolerance | Status |
@@ -55,9 +96,9 @@ temperature and 0.0014 RMS in vapour mole fraction. The enthalpy fit reproduces 
 | CS2 +20 % methanol, reflux ratio | 0.30311 | 0.28446 | -6.2 % | rel 15 % | pass |
 | CS2 -20 % methanol, reflux ratio | 0.72118 | 0.76218 | +5.7 % | rel 10 % | pass |
 | CS1 +20 % methanol, compressor power | 441.1 kW | 418.1 kW | -5.2 % | rel 10 % | pass |
-| CS1 -20 % methanol, compressor power | 247.1 kW | 257.2 kW | +4.1 % | rel 10 % | pass |
-| CS2 +20 % methanol, compressor power | 283.0 kW | 284.0 kW | +0.4 % | rel 10 % | pass |
-| CS2 -20 % methanol, compressor power | 255.5 kW | 266.5 kW | +4.3 % | rel 10 % | pass |
+| CS1 -20 % methanol, compressor power | 247.1 kW | 257.4 kW | +4.2 % | rel 10 % | pass |
+| CS2 +20 % methanol, compressor power | 283.0 kW | 284.3 kW | +0.4 % | rel 10 % | pass |
+| CS2 -20 % methanol, compressor power | 255.5 kW | 266.7 kW | +4.4 % | rel 10 % | pass |
 | Direction: CS2 recovers purity | CS1 offsets +0.0080 / -0.0116; CS2 0.0001 / 0.0000 | CS1 +0.0088 / -0.0169; CS2 < 1e-7 | - | CS2 offset < 0.25 CS1 offset | pass |
 | Direction: CS2 needs less power at +20 % methanol | 283 < 441 kW | 284 < 418 kW | - | - | pass |
 
@@ -73,19 +114,20 @@ specifications gives the same purities, reflux ratios and powers to four or more
 | IAE x_D, CS1 -20 % MeOH | 0.1007 h | 0.1274 h | 1.26 | 0.5-2 | pass |
 | IAE x_D, CS2 +20 % MeOH | 0.0114 h | 0.0025 h | 0.22 | 0.5-2 | fail |
 | IAE x_D, CS2 -20 % MeOH | 0.0031 h | 0.0009 h | 0.28 | 0.5-2 | fail |
-| IAE bottoms water, CS1 +20 % / -20 % | 0.00262 / 0.00036 | 0.00035 / 0.00072 | 0.13 / 1.97 | 0.33-3 | fail / pass |
-| IAE bottoms water, CS2 +20 % / -20 % | 0.00196 / 0.00043 | 0.00037 / 0.00072 | 0.19 / 1.66 | 0.33-3 | fail / pass |
-| Settling of x_D (our rule on both), CS1 +20 % / -20 % | 1.33 / 1.60 h | 2.76 / 4.35 h | 2.08 / 2.72 | 0.5-2 | fail / fail |
-| Settling of x_D, CS2 +20 % / -20 % | 5.41 / 1.93 h | 2.75 / 1.23 h | 0.51 / 0.64 | 0.5-2 | pass / pass |
-| FVC flow at 10 h, CS1 +20 % / -20 % | 41.4 / 7.3 kmol/h | 34.2 / 10.0 | -7.2 / +2.7 | abs 5 | fail / pass |
-| FVC flow at 10 h, CS2 +20 % / -20 % | 4.9 / 7.6 kmol/h | 7.0 / 9.5 | +2.1 / +1.9 | abs 5 | pass / pass |
-| Direction: CS2 needs more power at -20 % MeOH | 255.5 > 247.1 kW | 266.5 > 257.2 kW | - | - | pass |
-| CS1 -20 % throughput: power / x_D | 235.5 kW / 0.99076 | 245.2 kW / 0.99000 | +4.1 % / -0.0008 | rel 10 % / abs 0.002 | pass / pass |
+| IAE bottoms water, CS1 +20 % / -20 % | 0.00262 / 0.00036 | 0.00036 / 0.00071 | 0.14 / 1.96 | 0.33-3 | fail / pass |
+| IAE bottoms water, CS2 +20 % / -20 % | 0.00196 / 0.00043 | 0.00039 / 0.00072 | 0.20 / 1.66 | 0.33-3 | fail / pass |
+| Settling of x_D (our rule on both), CS1 +20 % / -20 % | 1.33 / 1.60 h | 2.75 / 4.35 h | 2.07 / 2.72 | 0.5-2 | fail / fail |
+| Settling of x_D, CS2 +20 % / -20 % | 5.41 / 1.93 h | 2.75 / 1.24 h | 0.51 / 0.64 | 0.5-2 | pass / pass |
+| FVC flow at 10 h, CS1 +20 % / -20 % | 41.4 / 7.3 kmol/h | 34.2 / 10.1 | -7.2 / +2.8 | abs 5 | fail / pass |
+| FVC flow at 10 h, CS2 +20 % / -20 % | 4.9 / 7.6 kmol/h | 7.1 / 9.6 | +2.2 / +2.0 | abs 5 | pass / pass |
+| Direction: CS2 needs more power at -20 % MeOH | 255.5 > 247.1 kW | 266.7 > 257.4 kW | - | - | pass |
+| CS1 -20 % throughput: power / x_D | 235.5 kW / 0.99076 | 245.4 kW / 0.99000 | +4.2 % / -0.0008 | rel 10 % / abs 0.002 | pass / pass |
 | CS2 +20 % / -20 % throughput: reflux ratio | 0.6559 / 0.6380 | 0.6589 / 0.6589 | +0.5 % / +3.3 % | rel 5 % | pass / pass |
 
 Source-internal check: Table 2's sixteen IAE values follow from the SI series (trapezoidal integral
 of |x_D - 0.99| and |x_B,water - 0.9999| over 0-10 h, time in hours) to within 2.5 %
-(`table2_vs_SI_series`). Table 1's settling times do not follow from any simple band rule we tried,
+(`table2_vs_SI_series`; largest: CS2 +20 % F, MeOH, 0.001242 against 0.001212). This is a finding
+about the source: `source.yaml` as frozen said "within 1 %" (see run details above). Table 1's settling times do not follow from any simple band rule we tried,
 so settling is compared like-for-like: the last time after the step at which x_D differs from its
 10 h value by more than 5e-4, applied to both models.
 
@@ -100,13 +142,17 @@ the reflux ratio to 0.284 and 0.762 (source 0.303 and 0.721).
 (+36 %; source 303 to 441 kW, +46 %). CS2 lowers it to 284 kW (-7 %; source 283 kW, -7 %).
 Under CS1 the fixed reflux ratio drives the overhead vapour up with the distillate flow. Above the
 design load the exchangers no longer condense all the compressed vapour, the flash vapour
-circulation rises from 8 to 34 kmol/h (source 7 to 41) and the COP falls from 4.70 to 4.01
-(source 4.72 to 3.74). CS2 cuts the reflux, so the load stays below design and the COP stays at
-4.71. At -20 % methanol both structures need less power than at nominal; CS2 needs 4 % more than
-CS1 (ours 266 against 257 kW, source 255 against 247 kW), the price of holding 0.99.
+circulation rises from 8.0 to 34.2 kmol/h (source 7.3 to 41.4) and the COP falls from 4.70 to
+4.01 (source 4.72 to 3.74). CS2 cuts the reflux, so the load stays below design and the COP stays
+at its full-condensation value, 4.70 (q_c / w; the source reports 4.74). At -20 % methanol both
+structures need less power than at nominal; CS2 needs 4 % more than CS1 (ours 267 against
+257 kW, source 255 against 247 kW), the price of holding 0.99.
 
-**Sensitivity.** The sensitivity study (`fig_sensitivity.svg`, comparison.json `sensitivity`)
-varied the following and re-ran all four composition cases:
+**Sensitivity.** The sensitivity study (`fig_sensitivity.svg`, comparison.json `sensitivity`) has
+the base case and 23 variants. Each variant re-ran the four composition cases, except the CC
+tuning and analyser-deadtime variants, which re-ran only the two CS2 cases: CS1 does not use the
+composition loop, so these rows take the base CS1 cases for their direction checks
+(`CS1_cases_from`). The variants:
 
 - weir height and column diameter (tray holdup from about x0.5 to x2);
 - drum, sump and FLASH-R holdups;
@@ -115,13 +161,18 @@ varied the following and re-ran all four composition cases:
 - the exchanger-capacity parameter kappa (0.10, 0.30, and no limit);
 - the NRTL alpha (0.2 and 0.4, refitted).
 
-The conclusion (CS2 recovers purity and needs less power at +20 % methanol) holds in all 24
-variants. The end values do not depend on holdups or tuning: CS1 x_D at -20 % stays within
-0.9731-0.9733 and CS2 reflux ratio at +20 % within 0.284-0.313. Only kappa moves the CS1 power at
-+20 % methanol: 495 kW (kappa 0.10), 418 kW (0.19, calibrated), 380 kW (0.30) and 356 kW (no
-capacity limit), against 441 kW in the source. The CS2 power does not move (284 kW in every
-variant), because CS2 stays below the design load. The transient metrics do depend on what we
-reconstructed. The CS2 IAE at +20 % methanol ranges from 0.0013 to 0.021 h, the latter with a
+The conclusion (CS2 recovers purity and needs less power at +20 % methanol) holds in the base case
+and all 23 variants: both direction flags (`CS2_recovers_purity`, `CS2_saves_power_plus20`) are
+true in every row of comparison.json. In the variants whose runs settle within 10 h, the end
+values do not depend on holdups or tuning: CS1 x_D at -20 % stays within 0.9731-0.9733 and the CS2
+reflux ratio at +20 % within 0.284-0.287. The exception is the 10 min analyser deadtime: its CS2
+run at +20 % methanol is still settling at 10 h, at x_D 0.9907, reflux ratio 0.313 and 289.8 kW
+(steady values 0.99, 0.284 and 284.3 kW), and comparison.json flags it
+(`CS2_xD_within_5e-4_of_0.99_at_10h` false). Only kappa moves the CS1 power at +20 % methanol:
+495 kW (kappa 0.10), 418 kW (0.19, calibrated), 380 kW (0.30) and 356 kW (no capacity limit),
+against 441 kW in the source. The CS2 power at +20 % methanol stays within 284.2-284.7 kW in every
+settled variant (289.8 kW in the unsettled one), because CS2 stays below the design load. The
+transient metrics do depend on what we reconstructed. The CS2 IAE at +20 % methanol ranges from 0.0013 to 0.021 h, the latter with a
 10 min analyser deadtime, which brackets the source's 0.0114 h. The CS2 settling time ranges from
 2.0 to 7.4 h, against 5.4 h for the source by the same rule.
 
