@@ -28,19 +28,40 @@ criterion. This reproduction makes no claim about when the Ni anode corrodes.
 | `figures/` | plots written by `reproduce.py` from the run (R1, R2/D1, V1) |
 | `NOTICE.md` | attribution of the dataset |
 
+**Deviation from the ADR 0030 layout.** ADR 0030 lists a minimal cheme case (`case/`) among the
+files of a reproduction folder. This folder has none. The reference here is not a flowsheet that
+a cheme backend can represent: it is the authors' own Python model module and their titration
+sheets. So the reproduction is script-based: the pinned `reproduce.py` runs the unmodified
+module and the paper's titration equations, and `reruns/` and `figures/` hold what it writes.
+The other ADR 0030 rules apply unchanged (pinned source, tolerances frozen first, comparison
+with deviations).
+
 Run from a clean environment (needs `uv` and network access to data.4tu.nl):
 
 ```sh
 uv run --isolated benchmarks/reproductions/vermaas-rbpm-wde/reproduce.py
 ```
 
-The script caches the downloads in `~/.cache/cheme-as-code/4tu/` and refuses any file whose
-sha256 differs from `source.yaml`. It runs the authors' model module from its own extracted
-folder in a separate isolated interpreter (`python -I`). The module is used unmodified: the
-script imports it from file and calls `MassBalanceAnode.massBalanceTanks` with the inputs in
-`source.yaml`. The authors' `Simulative_script.py` is not run, because it saves no results. The
-script writes a run record to `reruns/` and prints the comparison table, and it exits non-zero
-when a check fails.
+The script caches the downloads in `~/.cache/cheme-as-code/4tu/` (`--cache DIR` for another
+place). A download goes to a `.part` file and is renamed into the cache only after its sha256
+matches `source.yaml`; a cached file that does not match is downloaded again. Each run extracts
+the verified zips into a new temporary folder, so nothing extracted earlier is reused. The
+authors' model module runs from that folder in a separate isolated interpreter (`python -I`).
+The module is used unmodified: the script imports it from file and calls
+`MassBalanceAnode.massBalanceTanks` with the inputs in `source.yaml`. A thin wrapper around
+`scipy.integrate.solve_ivp`, inside that interpreter only, keeps the solver's event time and
+state, which the authors' result dictionary drops. The authors' `Simulative_script.py` is not
+run, because it saves no results.
+
+The script prints the comparison table and exits non-zero when a check fails. It writes a run
+record to `reruns/` (never overwriting one) and the plots to `figures/`. The record names the
+commit, whether the folder had uncommitted changes before the run wrote anything, the sha256 of
+`reproduce.py`, `source.yaml` and `tolerances.yaml`, whether `tolerances.yaml` still equals its
+frozen version, and whether each input was downloaded or taken from the cache. With uncommitted
+changes it writes no record unless `--allow-dirty` is given (the record is then marked
+provisional); `--no-record` writes nothing to the folder. It also compares its R1 rebuild with
+the design case's own series (`processes/co2-electrolysis-bpm-1/data/measured/wde-1m-koh.yaml`),
+as ADR 0031 requires the two parsers to agree; that comparison is reported, not a frozen check.
 
 **Status (2026-11-04, `comparison.md`):**
 
