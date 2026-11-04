@@ -142,6 +142,13 @@ wde_method:
     index). The sheet's own calculation (embedded image) evaluates every V0 with every (V1, V2)
     pair and reports the mean and standard deviation of that matrix. One run per date and
     current density; dates at the same condition are the replicate runs.
+  replicates_clarified: >-
+    Added after review (PR #343, 2026-11-04); the text above is unchanged. The replicates are
+    the runs (dates): three per current density in 1 M KOH. The (V0, V1/V2) pairs of one sheet
+    share their V0 and V1/V2 readings and are not independent replicates. The R1 check pools
+    every pair of every run (reproduce.py as first run); tolerances.yaml does not fix how runs
+    are combined. The mean of the run means, the sd across run means and the number of runs
+    are reported beside it (comparison.md).
 
 # Split declared before any comparison run (ADR 0030; plan amendment 2).
 split:
@@ -185,3 +192,6 @@ irregularities:
   - The 0.1 M to 3 M KOH and CsOH sheets of later dates hold their titration values only as images.
   - Raw file names use concentrations without a decimal point (05M, 22M, 222M, 33M); in TitrationToWDE the concentration folder has both "0.5M" and "05M" style names.
   - One sheet (20241002, 1 M KOH, 200 mA/cm2) was opened before the tolerances were frozen, including its embedded calculation image; see tolerances.yaml.
+  # Added after review (PR #343, 2026-11-04), from SourceData_Manuscript.zip/PratsVergel_SourceData_Fig5.xlsx, sheet Fig5a:
+  - "Fig5a, WDE 98: the 10 L cell reads 1616, the 1 L value of the WDE 99 row. In the same row the 1 L (803) and 100 L (80300) cells agree with each other (100 x 803), so this one cell of the source-data sheet looks inconsistent. Whether the plotted Fig. 5a point shows the same value was not checked."
+  - "Fig5a, WDE 50: 1 L 32, 10 L 321, 100 L 3210; the 100 L cell follows the 10 L cell (10 x 321), not 100 x the 1 L cell (3200)."
