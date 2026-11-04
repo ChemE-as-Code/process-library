@@ -91,18 +91,30 @@ equipment:
      design_pressure_barg: 12, design_temperature_degc: 65, material: CS,
      dimensions: {length: 1.0, width: 0.4, height: 0.6},
      notes: "Installed spare of P-201A (D-025). ASSUMED. Dimensions as P-201A, ASSUMED."}
-  - {tag: C-202, type: ProcessColumn, service: Benzene column,
+  - {tag: C-202, sheet: P-05, type: ProcessColumn, service: Benzene column,
      design_pressure_barg: 3.5, design_temperature_degc: 160, material: CS,
      dimensions: {diameter: 2.2, height: 38.0},
      notes: "Top 150, bottom 170 kPa(a); R 2.18 = 1.3 x DWSIM Underwood minimum 1.674 (D-008 rule, D-014; the script value R 1.28 is below the DWSIM minimum); 38 theoretical stages (DWSIM shortcut, D-014). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
-  - {tag: E-203, type: TubularHeatExchanger, service: Benzene column condenser,
+  - {tag: E-203, sheet: P-05, type: TubularHeatExchanger, service: Benzene column condenser,
      design_pressure_barg: 3.5, design_temperature_degc: 120, material: CS,
      dimensions: {diameter: 0.9, length: 6.0},
      notes: "~4.20 MW to cooling water, condenser only (simulated, D-014); the product subcooling to 313 K is the product cooler E-207 (D-022). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
-  - {tag: E-204, type: TubularHeatExchanger, service: Benzene column reboiler,
+  - {tag: E-204, sheet: P-05, type: TubularHeatExchanger, service: Benzene column reboiler,
      design_pressure_barg: 3.5, design_temperature_degc: 175, material: CS,
      dimensions: {diameter: 1.2, length: 7.0},
-     notes: "~3.48 MW from LP steam 450 kPa(a) (simulated, D-014); bottoms 404 K (D-008, D-010). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
+     notes: "~3.48 MW from LP steam 450 kPa(a) (simulated, D-014); bottoms 404 K (D-008, D-010). Thermosyphon, steam through TV-502, condensate through ST-541 (D-025). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
+  - {tag: V-202, sheet: P-05, type: Vessel, service: Benzene column reflux drum,
+     design_pressure_barg: 3.5, design_temperature_degc: 120, material: CS,
+     dimensions: {diameter: 1.6, length: 4.0},
+     notes: "Added with the P&IDs (D-025): the simulation lumps condenser and drum in step C202. 150 kPa(a), 366 K; 39.7 t/h of condensate (scripts/concept_sizing.py), 5 min at half full, ASSUMED: about 8 m3. Nitrogen pad PCV-505 and vent PV-504. Design as C-202 and E-203. Dimensions ASSUMED."}
+  - {tag: P-202A, sheet: P-05, type: CentrifugalPump, service: Benzene reflux and product pump (running),
+     design_pressure_barg: 10, design_temperature_degc: 120, material: CS,
+     dimensions: {length: 1.6, width: 0.6, height: 0.9},
+     notes: "Added with the P&IDs (D-025): 39.7 t/h (reflux 27.2 + distillate 12.5) from V-202 to the C-202 top (38 m) and through E-207 to storage; about 7 kW at 0.65 efficiency for about 400 kPa, ASSUMED; not in the flowsheet (implicit in C202). Continuous minimum flow BZ-536. Design ASSUMED (shut-off head on the drum's 3.5 barg design). Dimensions ASSUMED."}
+  - {tag: P-202B, sheet: P-05, type: CentrifugalPump, service: Benzene reflux and product pump (installed spare),
+     design_pressure_barg: 10, design_temperature_degc: 120, material: CS,
+     dimensions: {length: 1.6, width: 0.6, height: 0.9},
+     notes: "Installed spare of P-202A (D-025). ASSUMED. Dimensions as P-202A, ASSUMED."}
   - {tag: C-203, type: ProcessColumn, service: Toluene column (vacuum),
      design_pressure_barg: 3.5, design_temperature_degc: 230, material: CS,
      dimensions: {diameter: 1.4, height: 14.0},
@@ -115,7 +127,7 @@ equipment:
      design_pressure_barg: 3.5, design_temperature_degc: 280, material: CS,
      dimensions: {diameter: 0.6, length: 4.0},
      notes: "~0.64 MW from HP steam 4200 kPa(a) (shell side design 45 barg); biphenyl bottoms 457 K at about 5 mol% toluene (simulated, D-022; the D-008 target was 2 mol% at 479 K) (D-008, D-010). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
-  - {tag: E-207, type: TubularHeatExchanger, service: Benzene product cooler,
+  - {tag: E-207, sheet: P-05, type: TubularHeatExchanger, service: Benzene product cooler,
      design_pressure_barg: 3.5, design_temperature_degc: 120, material: CS,
      dimensions: {diameter: 0.4, length: 4.0},
      notes: "~0.31 MW to cooling water: benzene distillate 366 -> 313 K (simulated, D-022, I-12); about 20 m2 at U 500 W/(m2 K). ASSUMED. Dimensions ASSUMED (D-022, scripts/concept_sizing.py)."}

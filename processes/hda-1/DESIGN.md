@@ -1311,6 +1311,21 @@ P-04 (stabiliser):
 - Steam and condensate lines are sized from rounded saturated-steam table values that are
   recalled, not looked up in this run, and marked ASSUMED in the line list.
 
+P-05 (benzene column and product):
+- Added: reflux drum V-202 and reflux / product pumps P-202A/B (lumped in step C202). Total
+  condenser E-203; V-202 pressure by a nitrogen pad (self-acting PCV-505) and a vent PV-504 to
+  the flare (PIC-504). Reflux on flow FIC-507 / FV-507 (R 2.18, D-014); distillate on the drum
+  level LIC-506 / LV-506 through the product cooler E-207 to storage, with TI-509, the purity
+  analyser AI-510 and FI-511 on BZ-121 (S21). Tray temperature TIC-502 on the LP steam TV-502
+  (E-204 thermosyphon, steam trap ST-541); sump level LIC-508 on TO-122 to C-203.
+- Relief: PSV-514 on the C-202 top (C-202, E-203 process side, V-202), 3.5 barg, to the flare;
+  thermal relief PSV-515 / PSV-516 on the E-203 and E-207 CW sides. P-202A/B: minimum flow
+  BZ-536 (HV-536), low-low LZ-512 stops them (I-501).
+- Layout: the DN450 overhead would have run 32 m from C-202 (set back from the rack, D-018) to
+  E-203 in the condenser row with no rack to carry it, so E-203, V-202, P-202A/B and E-207 are
+  placed beside C-202 (`layout/equipment-placement.yaml`, ASSUMED); the rack still carries the
+  product and the bottoms.
+
 ## LCI summary (lca/inventory.csv, per kg benzene)
 
 Regenerated in S3a (D-024) from the inventory with the purge hydrogen PSA (`cheme assess lca --write`,
