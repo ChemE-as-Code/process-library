@@ -90,9 +90,11 @@ is in `comparison.json`.
    implies 7377 Pa, 0.7 % above IF97 at 313.000 K). For this series the intercept alone
    changes the slope by 45 %.
 2. **Capacity definition not applicable to this series.** The SI reads total capacity at p/p0
-   0.85, and sample 8 ends at 0.4246. Our choice (the uptake at 0.4246) reproduces row 8's α
-   and Δp/p0. Row 8's 0.92 "g/g" is an open question to the authors (our 0.2973 g/g is
-   16.504 mmol/g; 16.504 / 18.015 = 0.916). Δp/p0(75–25 %) is sensitive to the capacity: a
+   0.85, and sample 8 ends at 0.4246. With our choice (the uptake at 0.4246), α and Δp/p0
+   agree with row 8 within 0.0002 and 0.0004 (not a blind check); this is consistent with, but
+   does not show, the same choice by the authors. Row 8 gives 0.92 in a column headed g/g; our
+   uptake at p/p0 0.4246 is 0.2973 g/g (16.504 mmol/g). What the 0.92 represents for a series
+   ending below 0.85 is an open question to the authors (`comparison.md`). Δp/p0(75–25 %) is sensitive to the capacity: a
    capacity 10 % above ours would give 0.0110 (`comparison.md`, item 1).
 3. **CAU-10-CH3 not available as data.** The dataset holds CAU-10-H only; CAU-10-CH3 is out of
    scope.

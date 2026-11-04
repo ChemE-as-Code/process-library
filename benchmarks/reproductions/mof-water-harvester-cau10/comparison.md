@@ -60,7 +60,7 @@ marker is within tolerance. Table S7, obtained since, labels sample 8 and confir
 
 | Quantity | Reference | Ours | Note |
 | --- | --- | --- | --- |
-| Henry constant K_H | 2160 cm3/g (H5, digitised) | not evaluable | as frozen: definition in SI Section 7 not available; a candidate, q/(p/p0) at the lowest point, gives 1733 cm3/g (-20 %). Now evaluated under `tolerances-si.yaml` (second part) |
+| Henry constant K_H | 2160 cm3/g (H5, digitised) | not evaluable | as frozen: definition in SI Section 7 not available; a candidate, q/(p/p0) at the lowest point, gives 1733 cm3/g (-20 %). That candidate is on a cm3(STP)/g basis and is not the Section 7 quantity (q R T / p, about 15.8 times larger for the same ratio), so its -20 % says nothing about agreement. Now evaluated under `tolerances-si.yaml` (second part) |
 | Step position at 40 °C | 0.15 to 0.165 (in-situ PXRD, other sample) | α 0.197; 10 % to 90 % of capacity between 0.189 and 0.219 | sample 8 steps about 0.03 higher than the PXRD transition |
 | Uptake just after the step | 0.32 g/g (Figure 1 powder, other sample, ambient) | 0.277 g/g at p/p0 0.25 | -13 %; pellets, binder content unknown |
 | Step at ambient temperature | 0.18 (Figure 1 powder) | 0.182 at 298.15 K | sample 8's α moved by the Dubinin-Polanyi characteristic curve |
@@ -71,7 +71,10 @@ marker is within tolerance. Table S7, obtained since, labels sample 8 and confir
 
 1. **α and Δp/p0 (+0.0004 each).** Both are within one marker's digitisation error (±3 px;
    ±6 px for H5, see item 6).
-   The capacity definition behind Table S7 is unknown. Checked after the run: with a capacity
+   SI Section 7 reads total capacity at p/p0 0.85, which sample 8 does not reach; what the
+   authors used for this series is not stated (sentence updated after the SI was obtained;
+   written under `tolerances.yaml` as "the capacity definition behind Table S7 is unknown").
+   Checked after the run: with a capacity
    10 % lower or higher than ours, α is 0.1968 or 0.1978 (within the ±0.002 that
    `tolerances.yaml` assumed), but Δp/p0 is 0.0057 or 0.0110. The frozen reason gave ±0.002
    for this effect, which **understates the upper side**: had the article used a capacity 10 %
@@ -83,7 +86,8 @@ marker is within tolerance. Table S7, obtained since, labels sample 8 and confir
 2. **K_H not evaluable** under `tolerances.yaml`. The article defines K_H in SI Section 7,
    which could not be obtained when that file was frozen (publisher returns HTTP 403 to
    scripted requests; no open copy). The candidate ratio uses one point at p/p0 0.0012 and is
-   not a Henry-law fit; it is reported, not compared. The context item stays as frozen; the
+   not a Henry-law fit; it is reported, not compared. It is in cm3(STP)/g, not on the Section 7
+   basis (q R T / p0 per unit p/p0), on which the same ratio is about 27 500 cm3/g. The context item stays as frozen; the
    SI has since been obtained and K_H is compared under `tolerances-si.yaml` (second part).
 3. **Step higher than the PXRD transition.** The in-situ PXRD (another sample, humidity
    generator, 40 °C) puts the transition at 15 % to 16.5 % RH; sample 8's volumetric isotherm
@@ -118,12 +122,18 @@ marker is within tolerance. Table S7, obtained since, labels sample 8 and confir
 - **Blindness (disclosed in `tolerances-si.yaml`).** The α and Δp/p0 checks are **not blind**:
   our values (0.19719, 0.00739) were already published under `tolerances.yaml` when Table S7
   was read and the tolerances were set, so their outcome was foreseeable. The Henry slope and
-  K_H checks are blind: neither had been computed by us. The digitisation check is not blind.
+  K_H checks are blind: neither the Section 7 fit slope nor the Section 7 K_H had been computed
+  by us; a single-point cm3(STP) ratio (1733 cm3/g, a different quantity) had been published
+  under `tolerances.yaml`. The digitisation check is not blind.
 - **Run:** 2026-11-04T22:24:40Z, same command and environment as above, data read from the
   cache (sha256 checked). Two consecutive
   runs gave byte-identical `results/`. Apart from the new `table_s7` section, the only change
   in `results/` is `inputs_sha256` of `source.yaml` and `inputs.yaml`, which were edited
   (corrections below); every computed value under `tolerances.yaml` is unchanged.
+  Rerun after review (2026-11-04): the sample-identity items now read the file number, the
+  Metadata.txt entry number and the dataset's numbering rule from the fetched files, the
+  digitisation budgets are parsed from the frozen rule, and the capacity definition in
+  `results/` is our own restatement. No check value, tolerance or verdict changed.
 - **Method (frozen):** least squares through the origin on the 9 adsorption points with
   0 < p/p0 ≤ 0.1 (p/p0 0.0012 to 0.0836; the next point is at 0.1777); K_H = slope R T / p0 with
   T = 313.000 K, p0 = 7325.6 Pa (IAPWS-IF97), R = 8.314462618 J/(mol K), in cm3/g.
@@ -132,7 +142,7 @@ marker is within tolerance. Table S7, obtained since, labels sample 8 and confir
 
 | Check | Table S7 row 8 | Ours | Deviation | Tolerance | Blind | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| Sample identity | 4TU 10.4121/22009211, CAU-10-H, 313 K, row 8 | file `8 - CAU-10-H.csv`; Metadata.txt entry 8, CAU-10-H pellets, 313.000 K | - | rule | - | pass |
+| Sample identity | 4TU 10.4121/22009211, CAU-10-H, 313 K, row 8 | file `8 - CAU-10-H.csv` (number 8 from the fetched file name); Metadata.txt entry 8 (number read from its CAU-10-H heading), CAU-10-H pellets, 313.000 K; Metadata.txt states that its numbering is the Table S7 position | - | rule | - | pass |
 | α | 0.197 | 0.19719 | +0.00019 | abs 0.001 | no | pass |
 | Δp/p0(75–25 %) | 0.007 | 0.00739 | +0.00039 | abs 0.001 | no | pass |
 | Henry slope | 6.14 mmol/g | 8.8915 mmol/g | +44.8 % | rel 3 % | yes | **fail** |
@@ -182,7 +192,10 @@ Our Figure 7 marker H5 against row 8: α 0.19675 vs 0.197 (−0.00025, tolerance
 Δp/p0 0.00694 vs 0.007 (−0.00006, tolerance 0.0037); log10 K_H 3.3343 (2159 cm3/g) vs 3.3357
 (2166 cm3/g), −0.0014 in both panels (tolerance 0.0171). Our digitisation agrees with the
 authors' tabulated values. Row 8's values place sample 8 at marker H5, the marker picked by
-nearest α under `tolerances.yaml`.
+nearest α under `tolerances.yaml`. The frozen α and log10 K_H budgets use the uncovered ±3 px,
+although `source.yaml` gives ±6 px for H5 in panel b (±0.0027 in α, ±0.033 in log10 K_H); the
+deviations (−0.00025, −0.0014) are inside either figure, so the outcome does not depend on it.
+`run.py` reads the three budgets from the frozen rule text.
 
 ### Total capacity (context, no verdict): an open question to the authors
 
@@ -226,7 +239,8 @@ untouched):
 
 - SI not available when `tolerances.yaml` was frozen. Closed on 2026-11-04: the owner obtained
   it (second part). Still open: the SI does not state whether the Henry fit has an intercept,
-  which R2 is given, or where total capacity was read for a series that ends below p/p0 0.85.
+  which R2 is given, the source of p0 (row 8 implies 7377 Pa, 0.7 % above IF97 at 313.000 K),
+  or where total capacity was read for a series that ends below p/p0 0.85.
 - Only one CAU-10-H isotherm temperature is published as data, so no isosteric heat can be fitted
   and every temperature transfer in the design extension rests on the characteristic-curve
   assumption.

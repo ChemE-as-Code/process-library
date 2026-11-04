@@ -23,8 +23,11 @@ sha256 e906a0672c76ed9b03c9ac6d7c7ecd83c6cb7a81b31ddb71e581657b2fe7b59b), from t
 only. It states no licence of its own. The repository owner obtained it on 2026-11-04. It is
 not committed or redistributed here. Used as facts and numbers only: the definitions of
 Section 7 (p. 30) and the values of Table S7 row 8 (p. 31), restated in our own form with
-locators in `source.yaml` and `tolerances-si.yaml`. No table, figure or text of it is
-reproduced. The second SI file (a zip of crystal structures) was not used.
+locators in `source.yaml` and `tolerances-si.yaml`. No table or figure of it is reproduced,
+and no text apart from one seven-word phrase of Section 7 (p. 30), which the frozen
+`tolerances-si.yaml` quotes with its locator in `method_stated.total_capacity`; that file stays
+as frozen (ADR 0030), and `run.py` writes our own restatement into `results/` instead. The
+second SI file (a zip of crystal structures) was not used.
 
 **Committed, by the owner's decision of 2026-11-04.** The SVG figures and `results/sweep.json`
 (the RH sweep resampled at 149 points from the isotherm) are computed by `run.py` and committed

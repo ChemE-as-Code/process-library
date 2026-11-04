@@ -38,6 +38,7 @@ import hashlib
 import json
 import math
 import os
+import re
 import sys
 import time
 import urllib.error
@@ -150,6 +151,30 @@ def check_mapping(meta: Path, inputs: dict) -> dict:
     if abs(t_bath - inputs["isotherm"]["temperature"]["value"]) > 1e-6 or "CAU-10-H" not in sample:
         raise SystemExit(f"sample mapping changed: {sample!r} at {t_bath} K")
     return {"file": "8 - CAU-10-H.csv", "metadata_entry": "8. CAU-10-H", "sample": sample, "bath_temperature_K": t_bath}
+
+
+TABLE_S7_NUMBERING = "refers to the position of the sample in Table S7"
+# SI Section 7's capacity definition, restated in our own words (as source.yaml section_7); the
+# frozen tolerances-si.yaml words it differently and is not copied into the results.
+SI_TOTAL_CAPACITY_DEFINITION = "read at p/p0 0.85, the upper end of most of the authors' isotherms (SI Section 7, p. 30)"
+
+
+def table_s7_numbering(meta: Path, csv: Path, mof: str) -> dict:
+    """Read, from the fetched files, the dataset's own numbering rule and the numbers it gives sample 8.
+
+    The file number is taken from the fetched file's name; the entry number from the Metadata.txt
+    heading line that names the MOF (it must be unique); the rule from Metadata.txt's first line.
+    """
+    text = meta.read_bytes().decode("latin-1").replace("\r\n", "\n").replace("\r", "\n")
+    lines = text.split("\n")
+    heads = [int(m.group(1)) for ln in lines if (m := re.fullmatch(r"(\d+)\. " + re.escape(mof), ln.strip()))]
+    if len(heads) != 1:
+        raise SystemExit(f"Metadata.txt has {len(heads)} entries named {mof!r}; expected exactly one")
+    m = re.match(r"(\d+) - ", csv.name)
+    if not m:
+        raise SystemExit(f"file name {csv.name!r} does not start with a sample number")
+    return {"file": csv.name, "file_number": int(m.group(1)), "metadata_entry_number": heads[0],
+            "metadata_states_table_s7_numbering": TABLE_S7_NUMBERING in " ".join(lines[0].split())}
 
 
 # ---------------------------------------------------------------------------- properties
@@ -348,7 +373,8 @@ def _linfit(x: np.ndarray, q: np.ndarray, intercept: bool) -> dict:
             "r2_centred": 1 - ss / float(np.dot(q - q.mean(), q - q.mean()))}
 
 
-def compare_table_s7(iso: dict, src: dict, tol_si: dict, rep: dict, mapping: dict, T_iso: float, M_w: float) -> dict:
+def compare_table_s7(iso: dict, src: dict, tol_si: dict, rep: dict, mapping: dict, numbering: dict, T_iso: float,
+                     M_w: float) -> dict:
     """Comparison of sample 8 with Table S7 row 8, as frozen in tolerances-si.yaml (method_ours, checks, pass_rule)."""
     ads = iso["ads"]
     ref = tol_si["reference"]["values"]
@@ -378,10 +404,15 @@ def compare_table_s7(iso: dict, src: dict, tol_si: dict, rep: dict, mapping: dic
     # Checks.
     rid = tol_si["reference"]["row_identity"]
     ds_doi = src["dataset"]["doi"]
+    row = tol_si["reference"]["row"]
     identity_items = {
-        "table_row": tol_si["reference"]["row"],
-        "file": mapping["file"],
-        "file_number_equals_row": mapping["file"].split(" - ")[0] == str(tol_si["reference"]["row"]),
+        "table_row": row,
+        "file": numbering["file"],
+        "file_number": numbering["file_number"],
+        "metadata_entry_number": numbering["metadata_entry_number"],
+        "metadata_states_table_s7_numbering": numbering["metadata_states_table_s7_numbering"],
+        "file_number_equals_row": numbering["file_number"] == row,
+        "metadata_entry_number_equals_row": numbering["metadata_entry_number"] == row,
         "row_source": rid["source"], "dataset_doi": ds_doi,
         "source_is_dataset": rid["source"].rstrip("/").endswith(ds_doi.split(".v")[0]),
         "row_mof": rid["mof"], "metadata_sample": mapping["sample"],
@@ -389,7 +420,8 @@ def compare_table_s7(iso: dict, src: dict, tol_si: dict, rep: dict, mapping: dic
         "row_temperature_K": rid["temperature_K"], "metadata_bath_temperature_K": mapping["bath_temperature_K"],
         "temperature_matches_metadata": abs(rid["temperature_K"] - mapping["bath_temperature_K"]) < 0.5,
     }
-    identity_ok = all(identity_items[k] for k in ("file_number_equals_row", "source_is_dataset",
+    identity_ok = all(identity_items[k] for k in ("metadata_states_table_s7_numbering", "file_number_equals_row",
+                                                  "metadata_entry_number_equals_row", "source_is_dataset",
                                                   "mof_matches_metadata", "temperature_matches_metadata"))
     enough = n >= 3
     a_dev = desc["alpha"] - ref["alpha"]
@@ -431,18 +463,25 @@ def compare_table_s7(iso: dict, src: dict, tol_si: dict, rep: dict, mapping: dic
     h5_lk = {p: 3 + (cal[f"panel_{p}_y"]["decade_px"]["1e3"] - h5[f"panel_{p}_px"][1]) / cal[f"panel_{p}_y"]["px_per_decade"]
              for p in ("a", "b")}
     lk_ref = math.log10(ref["K_H_cm3_per_g"])
+    # Budgets of the digitisation check, parsed from the frozen rule text (digitisation uncertainty
+    # + table rounding), so that code and tolerances-si.yaml cannot diverge.
+    dig_rule = " ".join(chk["digitisation_check"]["rule"].split())
+    budgets = {k: round(float(a) + float(b), 4) for k, a, b in
+               re.findall(r"(alpha|delta_p_75_25|log10 K_H) ±\(([0-9.]+) \+ ([0-9.]+)\)", dig_rule)}
+    if set(budgets) != {"alpha", "delta_p_75_25", "log10 K_H"}:
+        raise SystemExit(f"digitisation_check rule in tolerances-si.yaml not parsed: {budgets}")
     dig_items = {
         "alpha": {"digitised": round(h5_alpha, 5), "reference": ref["alpha"], "deviation": round(h5_alpha - ref["alpha"], 5),
-                  "tolerance_abs": round(0.0013 + 0.0005, 4)},
+                  "tolerance_abs": budgets["alpha"]},
         "delta_p_75_25": {"digitised": round(h5_dp, 5), "reference": ref["delta_p_75_25"],
-                          "deviation": round(h5_dp - ref["delta_p_75_25"], 5), "tolerance_abs": round(0.0032 + 0.0005, 4)},
+                          "deviation": round(h5_dp - ref["delta_p_75_25"], 5), "tolerance_abs": budgets["delta_p_75_25"]},
         **{f"log10_K_H_panel_{p}": {"digitised": round(v, 5), "digitised_cm3_per_g": round(10 ** v, 0),
                                      "reference": round(lk_ref, 5), "deviation": round(v - lk_ref, 5),
-                                     "tolerance_abs": round(0.017 + 0.0001, 4)} for p, v in h5_lk.items()},
+                                     "tolerance_abs": budgets["log10 K_H"]} for p, v in h5_lk.items()},
     }
     for v in dig_items.values():
         v["status"] = "pass" if abs(v["deviation"]) <= v["tolerance_abs"] + 1e-12 else "fail"
-    digitisation = {"marker": "H5", "rule": " ".join(chk["digitisation_check"]["rule"].split()), "blind": False,
+    digitisation = {"marker": "H5", "rule": dig_rule, "blind": False,
                     **dig_items, "status": "pass" if all(v["status"] == "pass" for v in dig_items.values()) else "fail"}
 
     def fit_out(f, n_pts, p0_):
@@ -481,7 +520,7 @@ def compare_table_s7(iso: dict, src: dict, tol_si: dict, rep: dict, mapping: dic
         "context_not_in_pass_rule": {
             "total_capacity_unit": {
                 "reference_g_per_g": ref["total_capacity_stated_g_per_g"],
-                "reference_definition": tol_si["reference"]["method_stated"]["total_capacity"],
+                "reference_definition": SI_TOTAL_CAPACITY_DEFINITION,
                 "ours_at_p_over_p0": desc["total_capacity_at_p_over_p0"],
                 "ours_mmol_per_g": cap, "ours_g_per_g": round(cap * M_w / 1000, 4),
                 "ours_mmol_per_g_divided_by_18.015": round(cap / M_w, 4),
@@ -795,7 +834,8 @@ def main() -> int:
     rep = reproduce(iso, src, tol, T_iso, M_w)
     dsn = design(iso, inp, rep["descriptors"], M_w)
     tol_si = yaml.safe_load((HERE / "tolerances-si.yaml").read_text())
-    ts7 = compare_table_s7(iso, src, tol_si, rep, mapping, T_iso, M_w)
+    numbering = table_s7_numbering(meta, csv, tol_si["reference"]["row_identity"]["mof"])
+    ts7 = compare_table_s7(iso, src, tol_si, rep, mapping, numbering, T_iso, M_w)
 
     RESULTS.mkdir(exist_ok=True)
     _style()
