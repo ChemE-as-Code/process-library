@@ -11,7 +11,9 @@ This is how the `digitised` values in source.yaml were obtained. It is not neede
 reproduction (run.py reads the values from source.yaml). It downloads the open thesis PDF from
 its pinned URL into a cache outside git, checks its sha256, and reads the line paths of two
 figures with PyMuPDF. Nothing downloaded is executed and nothing of the PDF is written to the
-repository; only numbers are printed.
+repository; only numbers are printed. The repository permits downloading the PDF only for
+strictly personal use without the author's consent: the download is for the person running
+this script, for their own research use, and nothing of it is redistributed.
 
 Method: the plotted curves are stored in the PDF as polylines (50 segments each). The axis
 frame and the tick-label centres give a linear map from page points to data units. Each curve

@@ -14,6 +14,17 @@
   bubble cells lost mass by a cell sum. Fixed (cell sum in both); closure is now 1.6e-12. The
   38 comparisons were the same in that run (the bug moved the profile values by < 1e-5), and
   the tolerances were not touched.
+- **Commit history versus this order.** Commits d09d4dde (digitise.py made deterministic),
+  89be1291 (model, run and results) and afa3dfdb (write-up) were assembled together after the
+  runs and carry the same timestamp. The digitise fix happened after the first run, although
+  d09d4dde comes first in the history. The pre-fix run.py and its invalid-run output were not
+  committed, so the invalid run is documented only here. What the history does show is that
+  the freeze commit 38aa2e3f (14:57:31) comes before all three, and that `source.yaml`,
+  `inputs.yaml` and `tolerances.yaml` are unchanged since then.
+- **Files written after the run** (review response, 2026-11-04): `tolerances-strict-budget.yaml`
+  (a stricter budget, a sensitivity view only, see below) and `addendum.yaml` (corrections to
+  `source.yaml` and `inputs.yaml`, and the validity limits used to flag the extension). Neither
+  changes the verdict of record.
 
 ## Result: PARTIAL under the frozen rule (29 of 38 comparisons pass; G1 and G3 all pass)
 
@@ -28,6 +39,47 @@
 29/38 = 76 % is above the 75 % threshold and all G1 and G3 checks pass, so the verdict is
 PARTIAL. Internal checks (not comparisons): dynamic utilisation at 19.9 s vs Eq. 7.51,
 0.99929 vs 0.99996 (abs 6.7e-4, limit 1e-3, pass); dynamic mass balance 1.6e-12 (pass).
+
+### How firm the PARTIAL verdict is
+
+- **One pass from FAIL.** The rule needs ceil(0.75 x 38) = 29 passes; the run has 29. One
+  fewer gives 28/38 = 73.7 %, which is FAIL.
+- **Five passes lie within 1.4 percentage points of their 10 % limit** (`comparison.json`
+  `verdict_margin`):
+
+  | Check | Deviation | Limit |
+  | --- | --- | --- |
+  | H*, d_b 4.5 cm, 1 mbar (text, G3, required for PARTIAL) | +9.4 % | 10 % |
+  | H* Fig. 7.4a, u_mf 0.01 cm/s, d_b 4 cm | -9.6 % | 10 % |
+  | H* Fig. 7.4b, d_b 2 cm | -9.3 % | 10 % |
+  | H* Fig. 7.4a, u_mf 2.5 cm/s, d_b 2 cm | -9.2 % | 10 % |
+  | H* Fig. 7.4a, u_mf 5 cm/s, d_b 1 cm | -8.6 % | 10 % |
+
+- **The required 1 mbar text check passes on an unquantified allowance.** Its frozen reason is
+  "6.5 cm, 2 s.f.; diffusion-dominated K_be". Rounding to 2 s.f. accounts for 0.8 %. The
+  rounding of the reconstructed D (tau_ga to 3 s.f., +-0.054 %) moves our H* by 0.03 %
+  (7.110-7.114 cm). The rest of the 10 % is the "K_be evaluation" allowance, which the
+  tolerance file does not quantify. For scale: if eps_mf, which the source does not state for
+  Fig. 7.4, were 0.45 or 0.55 instead of 0.5, our H* would be 7.48 or 6.79 cm (+5.2 % or
+  -4.5 %). Matching 6.5 cm would need eps_mf = 0.60 or a diffusivity 20.5 % higher. The
+  tolerance was set after a hand estimate of about 7.1 cm (+9.2 %, disclosed in the
+  tolerance header); the allowance it rests on is not traceable to a stated uncertainty.
+- **The G4 tolerance is wider than its stated budget away from the smallest value.** The
+  digitisation uncertainty is +-0.9 cm, 8.6 % of the smallest value (10.4 cm) but 0.4-3 % at
+  the other points; 10 % is applied to every point.
+- **Not all 38 comparisons are independent.** The two G1 checks are the same formula with the
+  inlet scaled by 1000 (identical deviation, +2.56 %). tau_ga at 1 mbar follows from the
+  reconstructed D scaled as 1/P, so it tests the source's arithmetic. The two Thiele moduli
+  equal sqrt(tau_c/tau_rxn) and sqrt(tau_sa/tau_rxn) with the reported tau_rxn, so they are
+  not independent of tau_c and tau_sa. Without these four, 25 of 34 independent comparisons
+  pass (73.5 %), below 75 %. The frozen rule counts all 38; this count is information only.
+- **Stricter budget (sensitivity view, not the verdict of record).**
+  `tolerances-strict-budget.yaml`, written after the run, keeps only the stated rounding,
+  the digitisation uncertainty and the rounding of stated inputs, with no allowance for
+  K_be evaluation. Under it the result is **FAIL, 17 of 38** (G1 2/2, G2 10/11, G3 1/2,
+  G4 4/20, G5 0/3): the 1 mbar text anchor and tau_ga at 1 mbar fail. The tolerance of record
+  remains `tolerances.yaml`, and its verdict remains PARTIAL. A reader should weigh the
+  PARTIAL label with the points above.
 
 ### G1-G3
 
@@ -71,13 +123,24 @@ Each cell: reference / ours (deviation). Tolerance rel 10 % throughout. Figure:
 | 0.4 | 0.046 | 0.028 | -0.017 | abs 0.03 | pass |
 
 Figure: `results/fig2-bubble-profile.svg`. Our dynamic profile and the quasi-steady
-exponential coincide (the emulsion concentration is 1e-3 of the inlet).
+exponential nearly coincide (the emulsion concentration is 7e-4 of the inlet).
+
+The counted values are from the N_z = 400 grid, which is biased high by the first-order upwind
+error (see Grid and solver). Corrected values, for information (`comparison.json`
+`supplementary.G5_corrected_for_upwind_error`): Richardson extrapolation of N_z = 400 and 200
+gives 0.404, 0.164 and 0.027 at z/H = 0.1, 0.2 and 0.4, in agreement with the analytic
+quasi-steady profile C_em + (1 - C_em) exp(-9.07 z/H) (0.404, 0.164, 0.027). Deviations
+-0.058, -0.050 and -0.018: the same statuses (1/3 within abs 0.03), with slightly larger
+misses.
 
 ## Deviations and explanations
 
-1. **Bubble-emulsion exchange at small bubbles (main cause of the G4 and G5 failures).** Both
-   failure groups point the same way: at d_b = 1-2 cm the source's exchange is weaker than
-   Table 7.1 gives when we evaluate it. The digitised Fig. 7.3 profile decays as
+1. **Bubble-emulsion exchange (main cause of the G4 and G5 failures).** Since Eq. 7.52 gives
+   H* = (u_b/K_be) ln[u_b delta/(u0 (1 - eta*))] and the log term does not depend on K_be, H* is
+   exactly proportional to u_b/K_be. At d_b = 1-2 cm the source's exchange is weaker than
+   Table 7.1 (p. 178) gives when we evaluate it; at d_b = 3-4 cm and low u_mf it is stronger.
+   The G4 differences depend on d_b and change sign, from -35 % to +16 %; a single factor on
+   K_be cannot explain them. The digitised Fig. 7.3 profile decays as
    exp(-7.71 z/H); ours decays as exp(-9.07 z/H) (H K_be/u_b with K_be = 21.6 1/s,
    u_b = 0.243 m/s, H = 0.102 m), so the source's K_be/u_b is about 15 % lower. In Fig. 7.4a
    the source's curves grow more slowly with bubble size than ours: between 1 and 4 cm, H*
@@ -101,11 +164,17 @@ exponential coincide (the emulsion concentration is 1e-3 of the inlet).
 4. **1 mbar text anchor at +9.4 %.** It passes, but only just. The digitised Fig. 7.4b gives
    6.37-6.50 cm at 4.5 cm, so the text value and the figure agree with each other, and ours is
    higher. This is the same exchange difference as in item 1, here at large d_b.
-5. **Lumped kinetics.** The Travis rate laws are not in the chapter. Our first-order
-   site-balance kinetics are fitted to the reported tau_rxn only. They give an emulsion
-   concentration of about 1e-3 of the inlet, which is why the dynamic utilisation is 0.9993
-   rather than Eq. 7.51's 0.99996 (internal check). The bubble profile (G5) does not depend on
-   the kinetics at this level.
+5. **Lumped kinetics and the emulsion slip.** The Travis rate expressions are not in the
+   chapter. Our first-order site-balance kinetics are fitted to the reported tau_rxn only.
+   They leave an emulsion concentration of about 7e-4 of the inlet in the quasi-steady
+   period, where Eqs. 7.51 and 7.52 assume zero. At mid-pulse our outlet slip is 7.4e-4
+   against 4.2e-5 from Eq. 7.51 (18 times larger); 60 % of it leaves with the emulsion gas,
+   and the bubble outlet is 8.2e-4 rather than exp(-9.07) = 1.2e-4 (`dynamic_base.mid_pulse`).
+   The internal check `dynamic_vs_qss_eta` compares eta in absolute terms (limit 1e-3) while
+   1 - eta_qss is 4e-5, so it passes despite this 18-fold difference in slip: it checks only
+   that the two utilisations agree to 0.1 %. A future case should compare 1 - eta in relative
+   or log terms, or compare C_b(H) - C_em with the profile. The bubble profile (G5) is
+   affected by C_em only at the 1e-3 level.
 6. **Source densities not mutually consistent.** rho_b = 130 kg/m3 with eps_mf = 0.5 implies an
    agglomerate density of about 170 kg/m3 in the expanded bed, while Eq. 7.2 gives 47 kg/m3.
    We keep the batch surface fixed (`inputs.yaml` q_sites). This affects only the dynamic
@@ -116,7 +185,9 @@ exponential coincide (the emulsion concentration is 1e-3 of the inlet).
 - Saturation time 46.4 s of the full dynamic model (Fig. 7.3): the TMA inlet concentration
   is not stated. We reconstructed P_TMA,in = 40 mbar from that time, so our 45.7 s (99 % mean
   coverage) is not a check.
-- Cumulative CH4 of about 1.5 per TMA (Fig. 7.1a): this needs the Travis surface chemistry.
+- Cumulative CH4 of about 1.5 per TMA (Fig. 7.1a, p. 194): this needs the Travis rate
+  expressions nu_1 to nu_3 and their parameters, which the chapter does not give (Table 7.3,
+  p. 187, gives the coverage balances and generation terms).
 - tau_rxn (Table 7.4): kinetic, used as an input.
 - The nano-porous gamma-alumina case (Fig. 7.5, 7.6; Eq. 7.45): K_gp, eps_0 and d_b for
   Fig. 7.6 are not stated; not attempted.
@@ -135,7 +206,31 @@ at most 0.9 %, Fig. 7.3 is unchanged, and no check changes status (G4 stays 13/2
 ## Grid and solver
 
 N_z = 400, N_r = 40 against N_z = 200, N_r = 20: t99 45.747 s vs 45.747 s; C_b/C_in at
-z/H = 0.1, 0.408 vs 0.412. The first-order upwind bubble grid adds a numerical exchange of
-under 1 % of the exponent at N_z = 400.
+z/H = 0.1, 0.408 vs 0.412. The first-order upwind bubble grid reduces the exchange exponent:
+per cell it applies a factor 1/(1 + a) with a = 9.07/400 = 0.0227, and ln(1 + a)/a = 0.989, so
+the exponent is about 1.1-1.2 % too small at N_z = 400 (an earlier version of this file said
+"under 1 %"). The counted G5 values are therefore biased high by about 0.004 at z/H = 0.1; the
+corrected values are given under G5. No status changes.
+
+## Corrections after review
+
+Recorded in `addendum.yaml`, since `source.yaml` and `inputs.yaml` are frozen with the
+tolerances:
+
+- Titles as published: the article is "Modeling the precursor utilization in atomic layer
+  deposition on nanostructured materials in fluidized bed reactors"; the thesis is
+  "Aggregation Phenomena in Atomic Layer Deposition: Bridging Macro and Nano".
+- Reuse terms: the repository cover page permits download and distribution only for strictly
+  personal use without consent, and the journal copyright (Elsevier) may apply to chapter 7.
+  digitise.py downloads for the user's own research use and redistributes nothing.
+- Literature index: the four "AlOx on titania" papers were found by a title search (the index
+  has no substrate field). It missed Valdesueiro et al. 2015 (TMA/H2O on TiO2 at 1 atm) and
+  King et al. 2007 (in situ mass spectrometry of outlet TMA; ch. 7 ref. [6]). Neither was
+  examined; both are candidate validation sources. A newer index version (v4, 2025-12-17)
+  exists and was not consulted.
+- Locators: chapter 7 reuses table and figure numbers. "Table 7.1" here is p. 178 (not the
+  gamma-alumina table on p. 199); "Fig. 7.1" for CH4 is p. 194.
+- Input labels: a fourth label "reported" is used; R and N_A are reference constants, M_TMA is
+  reconstructed, and S_BET, rho_b and n_max are reported model parameters, not measured.
 
 Tolerances were not changed after the run.
