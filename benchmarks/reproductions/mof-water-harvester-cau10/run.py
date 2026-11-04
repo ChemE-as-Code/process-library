@@ -19,6 +19,11 @@ Rerun from the repository root:
 2. Confirms the sample mapping (file 8 = CAU-10-H at 313 K) from the dataset's Metadata.txt.
 3. Reproduces the Figure 7 descriptors (alpha, delta_p_75_25) of the CAU-10-H uptake series
    and compares them with our digitisation under the frozen tolerances.yaml.
+3b. Compares sample 8 with the values the authors tabulate for it (Table S7 row 8 of the
+   Supporting Information) under the frozen tolerances-si.yaml: alpha, delta_p_75_25 and the
+   Henry constant (fit through the origin on 0 < p/p0 <= 0.1, SI Section 7), with variants, a
+   check of our Figure 7 digitisation and the total-capacity context. The reference values are
+   read from tolerances-si.yaml; the SI itself is not read and not committed.
 4. Sizes an adsorbent bed: working capacity, adsorbent mass and packed volume against inlet
    relative humidity for the stated yield and recovery, regeneration heat, infeasible region.
 
@@ -33,6 +38,7 @@ import hashlib
 import json
 import math
 import os
+import re
 import sys
 import time
 import urllib.error
@@ -145,6 +151,30 @@ def check_mapping(meta: Path, inputs: dict) -> dict:
     if abs(t_bath - inputs["isotherm"]["temperature"]["value"]) > 1e-6 or "CAU-10-H" not in sample:
         raise SystemExit(f"sample mapping changed: {sample!r} at {t_bath} K")
     return {"file": "8 - CAU-10-H.csv", "metadata_entry": "8. CAU-10-H", "sample": sample, "bath_temperature_K": t_bath}
+
+
+TABLE_S7_NUMBERING = "refers to the position of the sample in Table S7"
+# SI Section 7's capacity definition, restated in our own words (as source.yaml section_7); the
+# frozen tolerances-si.yaml words it differently and is not copied into the results.
+SI_TOTAL_CAPACITY_DEFINITION = "read at p/p0 0.85, the upper end of most of the authors' isotherms (SI Section 7, p. 30)"
+
+
+def table_s7_numbering(meta: Path, csv: Path, mof: str) -> dict:
+    """Read, from the fetched files, the dataset's own numbering rule and the numbers it gives sample 8.
+
+    The file number is taken from the fetched file's name; the entry number from the Metadata.txt
+    heading line that names the MOF (it must be unique); the rule from Metadata.txt's first line.
+    """
+    text = meta.read_bytes().decode("latin-1").replace("\r\n", "\n").replace("\r", "\n")
+    lines = text.split("\n")
+    heads = [int(m.group(1)) for ln in lines if (m := re.fullmatch(r"(\d+)\. " + re.escape(mof), ln.strip()))]
+    if len(heads) != 1:
+        raise SystemExit(f"Metadata.txt has {len(heads)} entries named {mof!r}; expected exactly one")
+    m = re.match(r"(\d+) - ", csv.name)
+    if not m:
+        raise SystemExit(f"file name {csv.name!r} does not start with a sample number")
+    return {"file": csv.name, "file_number": int(m.group(1)), "metadata_entry_number": heads[0],
+            "metadata_states_table_s7_numbering": TABLE_S7_NUMBERING in " ".join(lines[0].split())}
 
 
 # ---------------------------------------------------------------------------- properties
@@ -325,6 +355,185 @@ def reproduce(iso: dict, src: dict, tol: dict, T_iso: float, M_w: float) -> dict
                         "delta_p_75_25": dp},
         "digitised_markers": [{k: (round(v, 4) if isinstance(v, float) else v) for k, v in d.items()} for d in dig],
         "checks": checks, "verdict": verdict, "context_not_in_pass_rule": context,
+    }
+
+
+# ---------------------------------------------------------------------------- Table S7 (tolerances-si.yaml)
+def _linfit(x: np.ndarray, q: np.ndarray, intercept: bool) -> dict:
+    """Least squares q = slope x (+ b). R2 uncentred = 1 - SSres/sum q^2; centred = 1 - SSres/sum (q - mean)^2."""
+    if intercept:
+        A = np.column_stack([x, np.ones_like(x)])
+        (slope, b), *_ = np.linalg.lstsq(A, q, rcond=None)
+    else:
+        slope, b = float(np.dot(x, q) / np.dot(x, x)), 0.0
+    res = q - (slope * x + b)
+    ss = float(np.dot(res, res))
+    return {"slope": float(slope), "intercept": float(b),
+            "r2_uncentred": 1 - ss / float(np.dot(q, q)),
+            "r2_centred": 1 - ss / float(np.dot(q - q.mean(), q - q.mean()))}
+
+
+def compare_table_s7(iso: dict, src: dict, tol_si: dict, rep: dict, mapping: dict, numbering: dict, T_iso: float,
+                     M_w: float) -> dict:
+    """Comparison of sample 8 with Table S7 row 8, as frozen in tolerances-si.yaml (method_ours, checks, pass_rule)."""
+    ads = iso["ads"]
+    ref = tol_si["reference"]["values"]
+    chk = tol_si["checks"]
+    desc = rep["descriptors"]
+    p0 = p_sat(T_iso)
+    kh = lambda slope, p0_: slope * R_GAS * T_iso / p0_ * 1000  # noqa: E731  mmol/g * m3/mol -> cm3/g
+
+    # Henry fit (method_ours.henry_fit): adsorption branch, 0 < p/p0 <= 0.1, through the origin.
+    def window(strict: bool):
+        x, q = ads[:, 0], ads[:, 2]
+        sel = (x > 0) & ((x < 0.1) if strict else (x <= 0.1))
+        return x[sel], q[sel]
+
+    x, q = window(strict=False)
+    n = int(len(x))
+    main = _linfit(x, q, intercept=False)
+    with_b = _linfit(x, q, intercept=True)
+    xs_, qs_ = window(strict=True)
+    strict = _linfit(xs_, qs_, intercept=False)
+    p0_row = R_GAS * T_iso * ref["henry_slope_mmol_per_g"] / ref["K_H_cm3_per_g"] * 1000
+    K_H = kh(main["slope"], p0)
+
+    def rel(ours, refv):
+        return ours / refv - 1
+
+    # Checks.
+    rid = tol_si["reference"]["row_identity"]
+    ds_doi = src["dataset"]["doi"]
+    row = tol_si["reference"]["row"]
+    identity_items = {
+        "table_row": row,
+        "file": numbering["file"],
+        "file_number": numbering["file_number"],
+        "metadata_entry_number": numbering["metadata_entry_number"],
+        "metadata_states_table_s7_numbering": numbering["metadata_states_table_s7_numbering"],
+        "file_number_equals_row": numbering["file_number"] == row,
+        "metadata_entry_number_equals_row": numbering["metadata_entry_number"] == row,
+        "row_source": rid["source"], "dataset_doi": ds_doi,
+        "source_is_dataset": rid["source"].rstrip("/").endswith(ds_doi.split(".v")[0]),
+        "row_mof": rid["mof"], "metadata_sample": mapping["sample"],
+        "mof_matches_metadata": rid["mof"] in mapping["sample"],
+        "row_temperature_K": rid["temperature_K"], "metadata_bath_temperature_K": mapping["bath_temperature_K"],
+        "temperature_matches_metadata": abs(rid["temperature_K"] - mapping["bath_temperature_K"]) < 0.5,
+    }
+    identity_ok = all(identity_items[k] for k in ("metadata_states_table_s7_numbering", "file_number_equals_row",
+                                                  "metadata_entry_number_equals_row", "source_is_dataset",
+                                                  "mof_matches_metadata", "temperature_matches_metadata"))
+    enough = n >= 3
+    a_dev = desc["alpha"] - ref["alpha"]
+    d_dev = desc["delta_p_75_25"] - ref["delta_p_75_25"]
+    s_dev = rel(main["slope"], ref["henry_slope_mmol_per_g"])
+    k_dev = rel(K_H, ref["K_H_cm3_per_g"])
+    checks = {
+        "sample_identity": {**identity_items, "rule": " ".join(chk["sample_identity"]["rule"].split()),
+                            "status": "pass" if identity_ok else "fail"},
+        "alpha": {"reference": ref["alpha"], "ours": round(desc["alpha"], 5), "deviation": round(a_dev, 5),
+                  "tolerance_abs": chk["alpha"]["abs"], "blind": False,
+                  "status": "pass" if abs(a_dev) <= chk["alpha"]["abs"] else "fail"},
+        "delta_p_75_25": {"reference": ref["delta_p_75_25"], "ours": round(desc["delta_p_75_25"], 5),
+                          "deviation": round(d_dev, 5), "tolerance_abs": chk["delta_p_75_25"]["abs"], "blind": False,
+                          "status": "pass" if abs(d_dev) <= chk["delta_p_75_25"]["abs"] else "fail"},
+        "henry_slope": {"reference_mmol_per_g": ref["henry_slope_mmol_per_g"], "ours_mmol_per_g": round(main["slope"], 4),
+                        "deviation_rel": round(s_dev, 5), "tolerance_rel": chk["henry_slope"]["rel"], "blind": True,
+                        "status": ("pass" if abs(s_dev) <= chk["henry_slope"]["rel"] else "fail") if enough
+                        else "not evaluable (fewer than 3 points)"},
+        "henry_constant": {"reference_cm3_per_g": ref["K_H_cm3_per_g"], "ours_cm3_per_g": round(K_H, 1),
+                           "deviation_rel": round(k_dev, 5), "tolerance_rel": chk["henry_constant"]["rel"], "blind": True,
+                           "status": ("pass" if abs(k_dev) <= chk["henry_constant"]["rel"] else "fail") if enough
+                           else "not evaluable (fewer than 3 points)"},
+    }
+    st = {k: v["status"] for k, v in checks.items()}
+    core = all(st[k] == "pass" for k in ("sample_identity", "alpha", "delta_p_75_25"))
+    if core and st["henry_slope"] == "pass" and st["henry_constant"] == "pass":
+        verdict = "pass"
+    elif core:
+        verdict = "partial"
+    else:
+        verdict = "fail"
+
+    # Digitisation check (beside the verdict): marker H5 against row 8.
+    cal = src["reference_figure"]["calibration"]
+    h5 = next(m for m in src["reference_figure"]["cau10_h_markers"] if m["id"] == "H5")
+    h5_dp = (h5["panel_a_px"][0] - cal["panel_a_x"]["tick_px"][0]) / cal["panel_a_x"]["px_per_unit"]
+    h5_alpha = (h5["panel_b_px"][0] - cal["panel_b_x"]["tick_px"][0]) / cal["panel_b_x"]["px_per_unit"]
+    h5_lk = {p: 3 + (cal[f"panel_{p}_y"]["decade_px"]["1e3"] - h5[f"panel_{p}_px"][1]) / cal[f"panel_{p}_y"]["px_per_decade"]
+             for p in ("a", "b")}
+    lk_ref = math.log10(ref["K_H_cm3_per_g"])
+    # Budgets of the digitisation check, parsed from the frozen rule text (digitisation uncertainty
+    # + table rounding), so that code and tolerances-si.yaml cannot diverge.
+    dig_rule = " ".join(chk["digitisation_check"]["rule"].split())
+    budgets = {k: round(float(a) + float(b), 4) for k, a, b in
+               re.findall(r"(alpha|delta_p_75_25|log10 K_H) ±\(([0-9.]+) \+ ([0-9.]+)\)", dig_rule)}
+    if set(budgets) != {"alpha", "delta_p_75_25", "log10 K_H"}:
+        raise SystemExit(f"digitisation_check rule in tolerances-si.yaml not parsed: {budgets}")
+    dig_items = {
+        "alpha": {"digitised": round(h5_alpha, 5), "reference": ref["alpha"], "deviation": round(h5_alpha - ref["alpha"], 5),
+                  "tolerance_abs": budgets["alpha"]},
+        "delta_p_75_25": {"digitised": round(h5_dp, 5), "reference": ref["delta_p_75_25"],
+                          "deviation": round(h5_dp - ref["delta_p_75_25"], 5), "tolerance_abs": budgets["delta_p_75_25"]},
+        **{f"log10_K_H_panel_{p}": {"digitised": round(v, 5), "digitised_cm3_per_g": round(10 ** v, 0),
+                                     "reference": round(lk_ref, 5), "deviation": round(v - lk_ref, 5),
+                                     "tolerance_abs": budgets["log10 K_H"]} for p, v in h5_lk.items()},
+    }
+    for v in dig_items.values():
+        v["status"] = "pass" if abs(v["deviation"]) <= v["tolerance_abs"] + 1e-12 else "fail"
+    digitisation = {"marker": "H5", "rule": dig_rule, "blind": False,
+                    **dig_items, "status": "pass" if all(v["status"] == "pass" for v in dig_items.values()) else "fail"}
+
+    def fit_out(f, n_pts, p0_):
+        return {"points": n_pts, "slope_mmol_per_g": round(f["slope"], 4), "intercept_mmol_per_g": round(f["intercept"], 5),
+                "K_H_cm3_per_g": round(kh(f["slope"], p0_), 1),
+                "K_H_deviation_rel": round(rel(kh(f["slope"], p0_), ref["K_H_cm3_per_g"]), 5),
+                "slope_deviation_rel": round(rel(f["slope"], ref["henry_slope_mmol_per_g"]), 5),
+                "r2_uncentred": round(f["r2_uncentred"], 5), "r2_centred": round(f["r2_centred"], 5)}
+
+    cap = desc["total_capacity_mmol_per_g"]
+    return {
+        "tolerances_file": "tolerances-si.yaml",
+        "tolerances_sha256": sha256(HERE / "tolerances-si.yaml"),
+        "reference": {"document": "Supporting Information of 10.1002/adma.202210050 (obtained by the repository owner; "
+                                  "not committed)",
+                      "sha256": tol_si["supporting_information"]["sha256"], "locator": tol_si["reference"]["locator"],
+                      "row": tol_si["reference"]["row"], "values": ref},
+        "henry_fit": {
+            "method": " ".join(tol_si["method_ours"]["henry_fit"].split()),
+            "window_p_over_p0": [round(float(x[0]), 5), round(float(x[-1]), 5)],
+            "points": n, "temperature_K": T_iso, "p0_if97_Pa": round(p0, 1), "R_J_per_mol_K": R_GAS,
+            **{k: v for k, v in fit_out(main, n, p0).items() if k not in ("points", "intercept_mmol_per_g")},
+        },
+        "variants_outside_pass_rule": {
+            "with_intercept": fit_out(with_b, n, p0),
+            "bound_strictly_below_0.1": fit_out(strict, int(len(xs_)), p0),
+            "p0_implied_by_row": {"p0_Pa": round(p0_row, 1), "p0_vs_if97_rel": round(p0_row / p0 - 1, 5),
+                                  "K_H_cm3_per_g": round(kh(main["slope"], p0_row), 1),
+                                  "K_H_deviation_rel": round(rel(kh(main["slope"], p0_row), ref["K_H_cm3_per_g"]), 5)},
+        },
+        "checks": checks,
+        "verdict": verdict,
+        "pass_rule": " ".join(tol_si["pass_rule"].split()),
+        "verdict_under_tolerances_yaml": rep["verdict"],
+        "digitisation_check": digitisation,
+        "context_not_in_pass_rule": {
+            "total_capacity_unit": {
+                "reference_g_per_g": ref["total_capacity_stated_g_per_g"],
+                "reference_definition": SI_TOTAL_CAPACITY_DEFINITION,
+                "ours_at_p_over_p0": desc["total_capacity_at_p_over_p0"],
+                "ours_mmol_per_g": cap, "ours_g_per_g": round(cap * M_w / 1000, 4),
+                "ours_mmol_per_g_divided_by_18.015": round(cap / M_w, 4),
+                "status": "no verdict: the apparent factor is a question to the authors, not a finding",
+            },
+            "r2": {"reference": ref["r2"], "ours_through_origin_uncentred": round(main["r2_uncentred"], 5),
+                   "ours_with_intercept_centred": round(with_b["r2_centred"], 5),
+                   "ours_through_origin_centred": round(main["r2_centred"], 5),
+                   "note": "the SI does not state which R2; reported, not compared"},
+        },
+        "note_on_tolerances_yaml_henry_context": (
+            "the henry_constant context item of tolerances.yaml is kept as frozen (status 'not evaluable'); "
+            "K_H is now evaluated here, under tolerances-si.yaml, with the definition of SI Section 7"),
     }
 
 
@@ -624,6 +833,9 @@ def main() -> int:
 
     rep = reproduce(iso, src, tol, T_iso, M_w)
     dsn = design(iso, inp, rep["descriptors"], M_w)
+    tol_si = yaml.safe_load((HERE / "tolerances-si.yaml").read_text())
+    numbering = table_s7_numbering(meta, csv, tol_si["reference"]["row_identity"]["mof"])
+    ts7 = compare_table_s7(iso, src, tol_si, rep, mapping, numbering, T_iso, M_w)
 
     RESULTS.mkdir(exist_ok=True)
     _style()
@@ -661,6 +873,7 @@ def main() -> int:
                             "p_over_p0_lowest_desorption": float(iso["des"][-1, 0]),
                             "desorption_monotonic_up_to_p_over_p0": iso["des_monotonic_up_to"]},
         "reproduction": rep,
+        "table_s7": ts7,
         "design_extension": dsn,
         "figures": ["isotherm_cau10h_313K.svg", "reproduction_figure7.svg", "harvester_mass_vs_rh.svg"],
     }
@@ -671,6 +884,13 @@ def main() -> int:
           f"dp75-25 {c['delta_p_75_25']['ours']} vs {c['delta_p_75_25']['reference']} ({c['delta_p_75_25']['status']}), "
           f"marker {c['marker_identification']['matched_marker']} ({c['marker_identification']['status']}), "
           f"p0 {c['saturation_pressure']['ours_Pa']} vs {c['saturation_pressure']['reference_Pa']} Pa ({c['saturation_pressure']['status']})")
+    s = ts7["checks"]
+    print(f"Table S7 (tolerances-si.yaml) verdict {ts7['verdict']}: identity ({s['sample_identity']['status']}), "
+          f"alpha dev {s['alpha']['deviation']} ({s['alpha']['status']}), dp dev {s['delta_p_75_25']['deviation']} "
+          f"({s['delta_p_75_25']['status']}), slope {s['henry_slope']['ours_mmol_per_g']} vs "
+          f"{s['henry_slope']['reference_mmol_per_g']} ({s['henry_slope']['status']}), K_H {s['henry_constant']['ours_cm3_per_g']} vs "
+          f"{s['henry_constant']['reference_cm3_per_g']} ({s['henry_constant']['status']}); "
+          f"digitisation check {ts7['digitisation_check']['status']}")
     b, ch = dsn["base_case"], dsn["changed_case"]
     print(f"design: RH {b['inlet_relative_humidity']} -> {b['adsorbent_mass_kg']} kg; RH {ch['inlet_relative_humidity']} -> "
           f"{ch['adsorbent_mass_kg']} kg (bounds {ch['interpolation_bounds']['adsorbent_mass_kg']}); "
