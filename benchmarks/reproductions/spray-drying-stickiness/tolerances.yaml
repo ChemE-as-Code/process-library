@@ -1,0 +1,85 @@
+# Acceptance tolerances for the spray-drying stickiness case study (#337, ADR 0030).
+# FROZEN 2026-11-04, committed with source.yaml and inputs.yaml before any run of run.py that
+# compares computed values with reported values. Do not edit: a revision is a new file with its
+# reason, and comparison.md names the file it used.
+#
+# Two reference results are compared (source.yaml):
+#   A  a MEASURED trajectory of one sessile MD12 droplet (OCT paper) - our model is an
+#      independent prediction from conditions and properties; agreement tests the model and
+#      the hypothesis that the surface glass transition marks the locking point.
+#   B  MODELLED t_glass values of the thesis' own 1D model (Table 5.1, DE 12, particle
+#      ejector) - a model-to-model reproduction with stated parameters, partly reconstructed
+#      where the printed equations are garbled (inputs.yaml), and one unstated input (gas
+#      velocity) reconstructed from the reference's own t_full.
+frozen: "2026-11-04"
+reference: source.yaml reference_A_oct_sessile_droplet, reference_B_thesis_model_tglass
+
+checks:
+  # --- Group A: measured sessile droplet (OCT) ---------------------------------------------
+  A1_initial_d2_rate:
+    reference: 880 um2/s
+    computed_as: least-squares slope of d^2 over model t in [0, 20] s with d0 = 432 um fixed, as in the paper
+    rel: 0.30
+    reason: >-
+      ambient RH +-5 %-points changes the vapour-pressure driving force by about +-13 %, ambient
+      T +-1 K by about +-7 %, the substrate heat supply (assumed k_s, Cassie contact) by about
+      +-15 %, and the sessile shape factor and the 9 s time-origin ambiguity add a few per cent
+  A2_locking_time:
+    reference: 160 s
+    computed_as: t_glass, first time the droplet temperature falls to the Gordon-Taylor Tg of the surface composition
+    rel: 0.25
+    reason: >-
+      the reference is "about 160 s" (+-10 s reading) with a +-9 s time-origin ambiguity, and it
+      tests a hypothesis as well as the model: the thesis itself finds measured locking 11 %
+      later than its modelled t_glass for DE 12 at 10 wt% (Tables 4.1 and 5.1); our model has
+      no internal flow while the droplet recirculates at about 20 um/s
+  A3_locked_radius:
+    reference: 141 um
+    computed_as: curvature radius of the model droplet at t_glass (spherical cap at the measured contact angle)
+    rel: 0.10
+    reason: >-
+      radius scales with the cube root of the mean solids fraction at locking, so a 25 % timing
+      error moves it by about 8 %; the reported value is a single fitted circle at 250 s
+  # --- Group B: thesis model, DE 12, particle ejector ---------------------------------------
+  B1_tglass_c10_T25: {reference: 53.9 s, rel: 0.25}
+  B2_tglass_c20_T25: {reference: 27.5 s, rel: 0.25}
+  B3_tglass_c30_T25: {reference: 11.9 s, rel: 0.25}
+  B4_tglass_c20_T45: {reference: 15.5 s, rel: 0.25}
+  B5_tglass_c20_T65: {reference: 10.3 s, rel: 0.25}
+  B_reason: >-
+    same equations and stated parameters, but four parameters are read from garbled print
+    (D0, chi, the SMT units, the blend sign), the gas velocity is reconstructed, and the
+    reference's grid, time step and surface-value treatment are not stated; a cross-
+    implementation tolerance of 25 % on a threshold-crossing time is a deliberate, not tight,
+    bound
+  B6_solids_ratio_T25:
+    reference: 0.221
+    computed_as: t_glass(30 wt%) / t_glass(10 wt%) at 25 degC
+    abs: 0.05
+    reason: the main finding of the reference model (solids dominate); independent of the external-transfer reconstruction
+  # --- Internal checks (scored) ------------------------------------------------------------
+  I1_solute_mass_conservation:
+    computed_as: max over all runs of |m_s(t) - m_s(0)| / m_s(0)
+    rel: 1.0e-6
+    reason: the finite-volume scheme conserves solute by construction; a larger error is a bug
+  I2_grid_convergence:
+    computed_as: "|t_glass(300 cells) - t_glass(150 cells)| / t_glass(150 cells) for case A and case B c20_T25"
+    rel: 0.02
+    reason: discretisation error must be small against the comparison tolerances
+  I3_tfull_closure:
+    computed_as: "|R0^2/kappa_model - t_full target| / target for the three reconstructed gas velocities"
+    rel: 1.0e-3
+    reason: the reconstruction must hit its own target
+
+informational_not_scored:
+  - "A: model centre and outer-10-um mean concentration at 60 s vs 15 +- 2 and 23 +- 3 wt% (OCT concentration is order-of-magnitude in viscosity; initial reading 14 wt% for a 10 wt% solution)"
+  - "A: model brackets (no substrate heat; isothermal droplet) for A1"
+  - "A: model time to an end of constant-rate drying vs about 60 s (no unique model definition)"
+  - "C: measured locking times DE 12 (thesis Table 4.1) vs our t_glass/t_full"
+  - "property sanity: model viscosity at 10 and 46 wt%, 20 degC, vs 1.1 mPa s and about 0.1 Pa s"
+
+pass_rule: >-
+  PASS if every scored check (A1-A3, B1-B6, I1-I3) is within tolerance. PARTIAL if every
+  internal check (I1-I3) passes and every check of one group (A or B) passes while the other
+  group has a failure. FAIL otherwise. A check that cannot be evaluated is reported as a gap,
+  not a pass. The verdict is recorded in results/comparison.json and comparison.md.

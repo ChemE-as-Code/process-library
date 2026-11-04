@@ -1,0 +1,206 @@
+# Model inputs for the spray-drying stickiness case study (#337). Every input has a value, a
+# unit, a label and a source or rationale.
+#   measured      - a measured condition or property stated in a pinned source (source.yaml)
+#   reconstructed - derived by us from stated facts, or a reading of a garbled/ambiguous source
+#                   equation, with the reasoning given
+#   assumed       - our choice, with the rationale; not taken from the sources
+# "OCT" = Sewalt et al. 2022 (Food Res. Int. 157, 111049); "thesis" = Sewalt 2024 (TU Delft).
+# Committed with tolerances.yaml before the first comparison run (order is evidence, ADR 0030).
+
+constants:
+  pressure: {value: 101325, unit: Pa, label: assumed, rationale: "atmospheric; neither source states the pressure"}
+  gas_constant: {value: 8.314462618, unit: J/mol/K, label: measured, source: "CODATA 2018"}
+  boltzmann: {value: 1.380649e-23, unit: J/K, label: measured, source: "SI exact"}
+  molar_mass_water: {value: 0.018015, unit: kg/mol, label: measured, source: "standard atomic weights"}
+  molar_mass_air: {value: 0.028965, unit: kg/mol, label: measured, source: "standard dry air"}
+  latent_heat_water:
+    value: "2.501e6 - 2370 (T - 273.15)"
+    unit: J/kg
+    label: assumed
+    rationale: "linear fit to steam-table enthalpy of vaporisation, 0-100 degC (within 0.3 %); the thesis model does not state its H_vap"
+  cp_water_vapour: {value: 1880, unit: J/kg/K, label: assumed, rationale: "textbook value near 300-360 K; used only in the dryer energy balance"}
+
+# Material model for MD12-water. Shared by every run (reproduction and extension).
+material:
+  solute: maltodextrin DE 12 (MD12)
+  molar_mass_solute: {value: 1518, unit: g/mol, label: measured, source: "thesis Table 5.2 and eq. A.1 (5.6)"}
+  density_solute: {value: 1540, unit: kg/m3, label: measured, source: "thesis Table 5.2"}
+  density_water: {value: 998, unit: kg/m3, label: measured, source: "thesis Table 5.2"}
+  cp_solute: {value: 1500, unit: J/kg/K, label: measured, source: "thesis Table 5.2"}
+  cp_water: {value: 4186, unit: J/kg/K, label: measured, source: "thesis Table 5.2"}
+  mixing: {value: ideal (additive volumes), label: measured, source: "thesis 5.6.2 and eq. A.49 (model assumption stated there)"}
+  glass_transition:
+    Tg_solute: {value: 425, unit: K, label: measured, source: "thesis Table 5.2 (MD12)"}
+    Tg_water: {value: 134, unit: K, label: measured, source: "thesis Table 5.2"}
+    dCp_solute: {value: 0.426, unit: kJ/kg/K, label: measured, source: "thesis Table 5.2"}
+    dCp_water: {value: 1.92, unit: kJ/kg/K, label: measured, source: "thesis Table 5.2"}
+    gordon_taylor_k: {value: "dCp_water / dCp_solute = 4.507", unit: "-", label: reconstructed, source: "thesis eqs. A.54-A.55: k is the ratio of the heat-capacity steps; species 1 = solute, 2 = water"}
+  water_activity:
+    model: {value: GAB, label: measured, source: "thesis eq. A.6"}
+    w_m: {value: 0.0510, unit: kg water/kg solids, label: measured, source: "thesis Table 5.4"}
+    k: {value: 0.92, unit: "-", label: measured, source: "thesis Table 5.4"}
+    c: {value: 16.91, unit: "-", label: measured, source: "thesis Table 5.4"}
+    temperature_dependence: {value: none, label: measured, source: "thesis Table 5.4 gives constant parameters"}
+    cap_at_one:
+      value: "a_w = min(a_GAB(w), 1)"
+      label: reconstructed
+      rationale: "with k < 1 the GAB form gives a_w > 1 above w = 0.634 (solids below 61 wt%); the thesis solves for a_w by bisection, which we read as bracketing [0, 1]"
+  viscosity:
+    water: {value: "cubic of thesis eq. A.51 times 1e-3", unit: Pa s, label: reconstructed, rationale: "printed factor 10^3 gives mPa s values (0.89 at 298 K); read as 10^-3 Pa s"}
+    SMT_k_H: {value: 5.30, unit: "-", label: measured, source: "thesis Table 5.5"}
+    SMT_K: {value: 2.47e-3, unit: "dL/g (reconstructed)", label: measured, source: "thesis Table 5.5"}
+    SMT_alpha: {value: 0.267, unit: "-", label: measured, source: "thesis Table 5.5"}
+    SMT_units:
+      value: "[eta] = K M^alpha in dL/g with c in g/dL"
+      label: reconstructed
+      rationale: >-
+        units not stated; this reading gives 1.5 mPa s at 10 wt% and 0.16 Pa s at 46 wt%,
+        20 degC, against the stated 1.1 mPa s and about 0.1 Pa s (OCT 2.1, 3.4.3). Reported
+        as a sanity check in comparison.md, not tuned.
+    WLF_C1: {value: 17.4, unit: "-", label: measured, source: "thesis eq. A.53"}
+    WLF_C2: {value: 51.6, unit: K, label: measured, source: "thesis eq. A.53"}
+    WLF_mu_g: {value: 1.0e12, unit: Pa s, label: reconstructed, rationale: "printed '10 x 10^12'; thesis p. 11 uses 10^12 Pa s at the glass transition"}
+    WLF_floor: {value: "T - Tg >= -0.9 C2", unit: K, label: assumed, rationale: "WLF diverges at T - Tg = -C2; clamp below Tg, where the solute term no longer matters"}
+    blend_P0: {value: 0.7, unit: "solute mass fraction", label: measured, source: "thesis Table 5.5"}
+    blend_P1: {value: 0.043, unit: "solute mass fraction", label: measured, source: "thesis Table 5.5"}
+    blend_direction:
+      value: "mu = (1 - s) mu_SMT + s mu_WLF, s = 1 / (1 + exp(-(w_s - P0)/P1))"
+      label: reconstructed
+      rationale: "eq. A.56 as printed weights WLF at low solids; SMT is stated to hold in the dilute regime, so the sign of the exponent is read as reversed"
+  diffusivity:
+    model: {value: "generalised Darken with free-volume water self-diffusion and Stokes-Einstein solute self-diffusion", label: measured, source: "thesis eqs. A.57-A.60"}
+    D0_water:
+      value: 1.48e-7
+      unit: m2/s
+      label: reconstructed
+      rationale: >-
+        printed "148 x 10^-7"; read as 1.48e-7 so that the free-volume expression gives pure-water
+        self-diffusion 2.2e-9 m2/s at 298 K (measured value 2.30e-9, Mills 1973); 1.48e-5 would
+        give a value 100 times too large
+    E_water: {value: 2340, unit: J/mol, label: measured, source: "thesis Table 5.6"}
+    V_star_water: {value: 0.91, unit: L/kg, label: measured, source: "thesis Table 5.6"}
+    V_star_solute: {value: 0.59, unit: L/kg, label: measured, source: "thesis Table 5.6 (sucrose, used for carbohydrates)"}
+    K1_gamma_water: {value: 1.945e-3, unit: L/kg/K, label: measured, source: "thesis Table 5.6"}
+    K1_gamma_solute: {value: 0.366e-3, unit: L/kg/K, label: measured, source: "thesis Table 5.6"}
+    K2_water: {value: -19.73, unit: K, label: measured, source: "thesis Table 5.6"}
+    K2_solute: {value: 69.21, unit: K, label: measured, source: "thesis Table 5.6"}
+    Tg_water_fv: {value: 134, unit: K, label: measured, source: "thesis Table 5.6"}
+    Tg_solute_fv: {value: 333, unit: K, label: measured, source: "thesis Table 5.6 (sucrose value in the free-volume term; the Gordon-Taylor surface criterion uses 425 K)"}
+    zeta: {value: 0.79, unit: "-", label: measured, source: "thesis Table 5.6 and eq. A.59"}
+    chi: {value: 0.8, unit: "-", label: reconstructed, rationale: "Table 5.6 lists 'xi = 0.8', the only parameter of eqs. A.57-A.59 not otherwise given; read as the Flory-Huggins chi of eq. A.58"}
+    r_h_solute: {value: 0.5e-9, unit: m, label: measured, source: "thesis Table 5.6"}
+  gas_film:
+    vapour_diffusivity: {value: "1.4850e-7 T - 1.88805e-5", unit: m2/s, label: measured, source: "thesis eq. A.10"}
+    air_viscosity: {value: "thesis eq. A.14", unit: Pa s, label: measured}
+    air_conductivity: {value: "thesis eq. A.17", unit: W/m/K, label: measured}
+    air_cp: {value: "thesis eq. A.20", unit: J/kg/K, label: measured}
+    air_density: {value: "ideal gas, dry air, at film temperature", unit: kg/m3, label: assumed, rationale: "thesis uses the ideal gas law for vapour; air density by the same rule"}
+    film_temperature: {value: "(T_surface + T_gas)/2", unit: K, label: measured, source: "thesis 5.6.2"}
+    sherwood: {value: "2 + 0.6 Re^0.5 Sc^(1/3)", label: measured, source: "thesis eq. A.11"}
+    nusselt: {value: "2 + 0.4 Re^0.5 Pr^(1/3)", label: measured, source: "thesis eq. A.18 as printed"}
+    vapour_flux: {value: "A beta M_w (a_w Psat(T_d) - RH Psat(T_gas)) / (R T_film)", label: measured, source: "thesis eqs. A.4-A.9 (low-flux, no Stefan correction)"}
+    saturation_pressure: {value: "Antoine, thesis Table 5.3", unit: Pa, label: measured}
+  internal_temperature: {value: uniform, label: measured, source: "thesis 5.6.2 (Biot < 0.01)"}
+  internal_flow: {value: none, label: measured, source: "thesis 5.6.2 (diffusion only); the OCT droplet has Marangoni flow of about 20 um/s, a known deviation"}
+
+numerics:
+  method: {value: "finite volumes on xi = r/R(t), conservative moving-mesh fluxes, upwind advection, BDF time integration (scipy solve_ivp)", label: assumed}
+  cells: {value: 150, unit: "-", label: assumed, rationale: "grid check at 300 cells is a scored internal check"}
+  grid_stretch: {value: "xi_j = 1 - (1 - j/N)^2", label: assumed, rationale: "fine cells at the surface, where the gradient is steep"}
+  rtol: {value: 1.0e-6, label: assumed}
+  atol: {value: 1.0e-10, label: assumed}
+  surface_value: {value: "outermost cell value (cell width ~ R/N^2)", label: assumed}
+
+# ---------------------------------------------------------------------------------------------
+# Case A: OCT sessile droplet (reproduction of a measured trajectory).
+# ---------------------------------------------------------------------------------------------
+case_A_oct:
+  initial_mass_fraction_solute: {value: 0.10, unit: kg/kg, label: measured, source: "OCT 2.1 (prepared solution)"}
+  initial_equivalent_diameter: {value: 432, unit: um, label: measured, source: "OCT 2.3"}
+  contact_angle: {value: 154, unit: deg, label: measured, source: "OCT 2.2 (water on the substrate; taken as constant during drying)"}
+  constant_contact_angle: {value: true, label: assumed, rationale: "superhydrophobic substrate; the paper describes the shape by one fitted circle throughout"}
+  gas_temperature: {value: 293.15, unit: K, label: measured, source: "OCT 2.3"}
+  gas_relative_humidity: {value: 0.35, unit: "-", label: measured, source: "OCT 2.3"}
+  gas_velocity: {value: 0, unit: m/s, label: assumed, rationale: "ambient air, no flow stated; natural convection neglected (Grashof number of order 1e-2)"}
+  initial_temperature: {value: 293.15, unit: K, label: assumed, rationale: "solution at room temperature"}
+  sessile_transfer_factor:
+    value: "Popov (2005) diffusion-limited sessile-drop flux at contact angle theta, relative to an isolated sphere of the same volume"
+    label: assumed
+    source: "Popov, Phys. Rev. E 71 (2005) 036313, eq. for J(theta); computed in run.py"
+    applies_to: air-side mass and heat transfer
+  substrate_conduction:
+    value: "Q = 4 k_s a (T_gas - T_d), a = contact radius"
+    label: assumed
+    rationale: "steady conduction from a semi-infinite substrate at ambient temperature through the contact disc"
+  substrate_conductivity:
+    value: 0.15
+    unit: W/m/K
+    label: assumed
+    rationale: "low end of bulk PDMS (0.15-0.27); the micro-rough Cassie contact wets only part of the disc"
+  brackets_reported_not_scored: [no substrate heat (k_s = 0), isothermal droplet at 20 degC]
+  t_fit_window: {value: [0, 20], unit: s, label: measured, source: "OCT 3.1 (fit over the first 20 s with d0 fixed)"}
+
+# ---------------------------------------------------------------------------------------------
+# Case B: thesis model, particle ejector, DE 12 (model-to-model reproduction).
+# ---------------------------------------------------------------------------------------------
+case_B_thesis_pe:
+  geometry: {value: free sphere, label: measured, source: "thesis 5.6.2"}
+  initial_radius: {value: 240, unit: um, label: measured, source: "thesis 5.3.2"}
+  gas: {value: "dry gas with air properties", label: reconstructed, rationale: "experiments use dry nitrogen (5.2.2); the model's correlations are for air (A.10-A.20)"}
+  gas_relative_humidity: {value: 0.0, unit: "-", label: measured, source: "thesis 5.2.2 (dry nitrogen)"}
+  initial_temperature: {value: 293.15, unit: K, label: assumed, rationale: "solution at room temperature; not stated"}
+  conditions:   # initial solute mass fraction, gas temperature
+    c10_T25: {w0: 0.10, T_gas_K: 298.15}
+    c20_T25: {w0: 0.20, T_gas_K: 298.15}
+    c30_T25: {w0: 0.30, T_gas_K: 298.15}
+    c20_T45: {w0: 0.20, T_gas_K: 318.15}
+    c20_T65: {w0: 0.20, T_gas_K: 338.15}
+    label: measured
+    source: "thesis Table 5.1 rows (DE 12, PE)"
+  t_full_targets:
+    T25: {value: 57.96, unit: s, from: "53.9 / 0.93"}
+    T45: {value: 36.90, unit: s, from: "15.5 / 0.42"}
+    T65: {value: 26.41, unit: s, from: "10.3 / 0.39"}
+    label: reconstructed
+    rationale: "t_full = t_glass / (t_glass/t_full) from Table 5.1; ratio printed to two decimals, so +-0.5 to 1.3 % rounding"
+  gas_velocity:
+    value: "solved per temperature so that the steady wet-bulb R^2-rate of a pure-water droplet of R0 = 240 um gives t_full = R0^2/kappa equal to the target"
+    unit: m/s
+    label: reconstructed
+    rationale: "the thesis does not state the nitrogen velocity; t_full pins the external transfer the reference model used"
+
+# ---------------------------------------------------------------------------------------------
+# Extension: HYPOTHETICAL pilot co-current spray dryer (not validated; see extension.md).
+# ---------------------------------------------------------------------------------------------
+extension:
+  chamber:
+    diameter: {value: 1.0, unit: m, label: assumed, rationale: "pilot co-current chamber size class"}
+    cylinder_height: {value: 1.0, unit: m, label: assumed}
+    cone_included_angle: {value: 60, unit: deg, label: assumed}
+  drying_gas:
+    medium: {value: air, label: assumed}
+    dry_mass_flow: {value: 120, unit: kg/h, range: [96, 144], label: assumed, rationale: "pilot class; +-20 % carried into the residence-time range"}
+    inlet_temperature: {value: 453.15, unit: K, label: assumed}
+    outlet_temperature: {value: 358.15, unit: K, label: assumed, rationale: "held by adjusting the feed rate, the usual operating mode"}
+    heat_loss_fraction: {value: 0.10, unit: "of the gas enthalpy drop", label: assumed}
+    base_inlet_humidity: {value: 0.008, unit: kg water/kg dry air, label: assumed, rationale: "temperate ambient air, heated without added moisture"}
+  feed:
+    temperature: {value: 298.15, unit: K, label: assumed}
+    base_solids: {value: 0.30, unit: kg/kg, label: assumed}
+  droplet:
+    initial_diameters: {value: [60, 150], unit: um, label: assumed, rationale: "median and coarse tail of a two-fluid-nozzle or rotary spray; size held fixed when solids change"}
+    slip_velocity: {value: 0.2, unit: m/s, label: assumed, rationale: "droplets entrained in the gas after the first milliseconds; same order as the thesis falling-droplet column (0.2 m/s)"}
+    initial_temperature: {value: 298.15, unit: K, label: assumed, rationale: "feed temperature"}
+    gas_seen: {value: "outlet temperature and outlet humidity (well-mixed chamber)", label: assumed, rationale: "conservative (slow-drying) bound; near the atomiser the gas is hotter and drier"}
+    horizon: {value: "3 t_full", unit: s, label: assumed}
+  changed_inputs:
+    inlet_humidity: {values: [0.005, 0.008, 0.015, 0.025], unit: kg/kg, label: assumed, rationale: "dry winter to humid summer ambient air; feed solids at base"}
+    feed_solids: {values: [0.20, 0.30, 0.40], unit: kg/kg, label: assumed, rationale: "inlet humidity at base"}
+  stickiness:
+    criterion: {value: "surface sticky while T_d - Tg(surface) > dT_c", label: measured, source: "thesis 2.1 and 5.3.2 (T - Tg)c concept"}
+    dT_c_band: {value: [0, 20], unit: K, label: assumed, rationale: "0 K is the thesis chapter-5 criterion (glassy surface); 20 K brackets the lower static-test offsets reported in thesis ch. 2; no MD12 value exists"}
+    late_bound_factor: {value: 4, unit: "x t_glass", label: measured, source: "thesis 5.3.3: at spray-drying-like rates bouncing began only after 3.5-4.5 t_glass"}
+  residence_time:
+    core_velocity: {value: [1.0, 3.0], unit: m/s, label: assumed, rationale: "axial velocity of the central spray-gas jet in a pilot co-current chamber; sets the shortest pass through the chamber"}
+    mean_gas_time: {value: "V_chamber / Q_outlet", label: reconstructed, rationale: "from the assumed geometry and gas flow"}
+    note: "a recirculating fines fraction stays longer than the mean gas time; that tail is not bounded here"

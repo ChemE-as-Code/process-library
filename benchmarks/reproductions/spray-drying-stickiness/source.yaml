@@ -1,0 +1,201 @@
+# Reference record for the spray-drying stickiness case study (#337, tracker #333; ADR 0030,
+# case layout ADR 0031). Facts (conditions, property parameters, reported numbers) are restated
+# from the pinned sources in our own form, with locators. No text, figure or table of a source is
+# copied here: the restated numbers are a selection, arranged by us.
+#
+# Open data: none. Neither source deposits data in a repository (4TU.ResearchData, Zenodo and the
+# Crossref relations of the paper were searched on 2026-11-04; nothing found). The paper's
+# supplementary material is two videos on the publisher's site, not numbers. Every compared value
+# below is stated in the text or in a table of the source; nothing is digitised from a figure.
+
+sources:
+  oct_paper:
+    kind: experimental study (single sessile droplet, optical coherence tomography)
+    citation: >-
+      Sewalt, E.J.G., Kalkman, J., van Ommen, J.R., Meesters, G.M.H., van Steijn, V. (2022).
+      Revealing how maltodextrin-containing droplets dry using optical coherence tomography.
+      Food Research International 157, 111049.
+    doi: 10.1016/j.foodres.2022.111049
+    version: published version of record (received 2021-09-17, accepted 2022-02-18, online 2022-04-02)
+    copy_read:
+      url: https://repository.tudelft.nl/file/File_b50c2bfb-cc2a-4e52-a477-dd2d34f61664
+      landing: http://resolver.tudelft.nl/uuid:c1400999-1a0a-47ee-8652-30c7152ea0c3
+      note: TU Delft repository copy of the final published version (10 pages with the repository cover page)
+      sha256: b8e5dfd828f1bac7a94452e8a747b85cabbcc8eed03bd982a0dc0837b45ed468
+    licence:
+      name: CC BY 4.0 (stated on the article's first page; Crossref licence vor = creativecommons.org/licenses/by/4.0)
+      reuse: >-
+        Text, figures and data may be reused with attribution. We use facts and numbers only and
+        draw our own figures; attribution is this record and the README.
+    accessed: "2026-11-04"
+    open_data: none (supplementary videos only)
+  thesis:
+    kind: doctoral thesis (experiments and a one-dimensional droplet drying model)
+    citation: >-
+      Sewalt, E.J.G. (2024). Predicting collision outcomes of partially-dried droplets in spray
+      drying. Doctoral thesis, Delft University of Technology.
+    doi: 10.4233/uuid:8204cf4d-a5fd-4e20-956c-37aba9bf3dd7
+    version: final published version (defended 2024-05-02), file 20240403_Dissertation_EJGS.pdf
+    copy_read:
+      url: https://repository.tudelft.nl/file/File_9dc5d289-f9e0-4def-8c3e-d4ca9993018d
+      landing: http://resolver.tudelft.nl/uuid:8204cf4d-a5fd-4e20-956c-37aba9bf3dd7
+      sha256: a6e00721cee480ebba079fe5374a2da9775f84b384b15c58ccf3a0d65aee5231
+      pages: 116 PDF pages; locators below use the printed page numbers
+    licence:
+      name: none stated ("License info not available" on the repository record)
+      reuse: >-
+        The repository notice allows personal use only; no text, figure or table may be
+        redistributed. We restate a selection of numbers and model equations as facts, in our own
+        form, with locators, and draw our own figures. Chapters 4 and 5 are unpublished papers
+        (cited in the thesis as "not published").
+    accessed: "2026-11-04"
+    open_data: none
+    note: >-
+      Chapter 3 of the thesis is the OCT paper. Chapter 5's model appendix (5.6) draws on the MSc
+      thesis of L. Presili (TU Delft, 2020), which we did not obtain.
+
+# ---------------------------------------------------------------------------------------------
+# Reference result A: measured drying trajectory of one sessile MD12 droplet (OCT paper).
+# ---------------------------------------------------------------------------------------------
+reference_A_oct_sessile_droplet:
+  locator: OCT paper sections 2.1-2.3 (conditions), 3.1 and Fig. 2b (kinetics), 3.3 and Fig. 4c (skin), 3.4.3 and Fig. 5b (concentration)
+  measurement_geometry:
+    configuration: sessile droplet on a micro-rough superhydrophobic PDMS substrate (Sylgard 184 cast on sandpaper), imaged from above by spectral-domain OCT
+    contact_angle_water: {value: 154, uncertainty: 4, unit: deg, locator: "2.2"}
+    droplet_volume: {value: 42.2, unit: nL, locator: "2.3"}
+    equivalent_spherical_diameter_initial: {value: 432, unit: um, locator: "2.3"}
+    shape_analysis: circle fitted to the droplet interface in each 2D scan; equivalent spherical diameter from the spherical-cap relation; fitted radius R(t) reported (2.9)
+    time_origin: >-
+      not stated exactly; imaging started about 9 s after dispensing (2.3), and the d2 fit uses
+      d0 = 432 um, the dispensed size. We treat t = 0 as dispensing and carry +-9 s as an
+      ambiguity of every reported time.
+  conditions:
+    solute: maltodextrin DE 12 (MD12, Glucidex), 10 wt% in deionised water, plus 0.1 wt% TiO2 tracer (2.1)
+    viscosity_10wt_percent: {value: 1.1, unit: mPa s, note: "solution viscosity quoted from Both et al. (2019)", locator: "2.1"}
+    ambient_air: {temperature: 20 degC, relative_humidity: 35 %, flow: none stated (ambient air), locator: "2.3"}
+  reported_results:
+    initial_d2_rate:
+      value: 880
+      unit: um2/s
+      definition: slope kappa of d^2 = d0^2 - kappa t fitted to the first 20 s, d0 = 432 um
+      locator: "3.1"
+    full_evaporation_time_at_initial_rate: {value: 213, unit: s, locator: "3.1", note: "follows from kappa and d0"}
+    full_evaporation_observed: {value: 240, unit: s, qualifier: approximately, locator: "2.3"}
+    end_of_constant_rate_regime: {value: 60, unit: s, qualifier: around, locator: "3.1"}
+    locking_point:
+      value: 160
+      unit: s
+      qualifier: "after about 160 s"
+      meaning: start of the third regime (shape stops changing; invagination at the apex begins)
+      locator: "3.1"
+    skin_onset_before_locking: {value: 15, unit: s, qualifier: about, locator: "3.3"}
+    skin_thickness_at_locking: {value: 20, uncertainty: 3, unit: um, locator: "3.3"}
+    skin_thickness_maximum: {value: 87, uncertainty: 2, unit: um, at_time: 217 s, locator: "3.3"}
+    outer_radius_locked: {value: 141, unit: um, at_time: 250 s, meaning: fitted circle radius after locking, locator: "3.3"}
+    total_solids: {value: 5.1, unit: ug, locator: "3.3", note: "authors' figure; 42.2 nL at 10 wt% gives about 4.4 ug with a solution density near 1.04 g/mL"}
+    dry_shell_thickness_estimate: {value: 20, unit: um, basis: "dry amorphous MD, density 1.1-1.4 g/mL, outer radius 141 um", locator: "3.3"}
+    final_morphology: hollow spherical cap with a gas vacuole (3.1)
+    concentration_measurements:
+      method: tracer diffusivity -> viscosity -> MD12 concentration; at least order-of-magnitude accuracy in viscosity (1, 3.4.3)
+      initial_depth_average: {value: 14, uncertainty: 2, unit: wt%, note: "prepared 10 wt%", locator: "3.4.3"}
+      at_60_s_bulk: {value: 15, uncertainty: 2, unit: wt%, locator: "3.4.3"}
+      at_60_s_near_interface: {value: 23, uncertainty: 3, unit: wt%, locator: "3.4.3"}
+      upper_measurable_limit: {value: 46, unit: wt%, viscosity_there: "about 0.1 Pa s", locator: "3.4.3"}
+      bulk_near_locking: {value: "> 30", unit: wt%, locator: "3.4.3"}
+    internal_flow: {value: 20, unit: um/s, meaning: mean upward velocity in the central region at the start (Marangoni recirculation), locator: "3.2"}
+
+# ---------------------------------------------------------------------------------------------
+# Reference result B: modelled time to a glassy surface (thesis, chapter 5, Table 5.1).
+# ---------------------------------------------------------------------------------------------
+reference_B_thesis_model_tglass:
+  locator: thesis section 5.2.4, 5.3.2 (pp. 63-67), Table 5.1 (p. 67), Appendix 5.6 (pp. 71-93)
+  model: >-
+    one-dimensional, spherical, free (non-sessile) droplet; radial Fickian diffusion of water and
+    solute with a concentration-dependent diffusivity; receding interface with solute captured
+    by it; uniform droplet temperature; Ranz-Marshall heat and mass transfer through a thin
+    film at the mean of surface and gas temperature; GAB water activity at the surface;
+    t_glass = first time the surface reaches its glass transition (droplet T = Gordon-Taylor
+    Tg of the surface composition).
+  case_specification:
+    setup: particle ejector (PE), sessile droplet in a nitrogen stream (5.2.2; 4.2.2)
+    gas: dry nitrogen at 25, 45 or 65 degC at the droplet (4.2.2, 5.2.2)
+    initial_radius_used_in_model: {value: 240, unit: um, locator: "5.3.2 p. 65"}
+    gas_velocity: not stated
+    t_full_definition: >-
+      time to evaporate a pure-water droplet of the same initial radius, t_full = R0^2 / kappa
+      with kappa the constant-rate R^2 evaporation rate (Appendix 4.5.1, eq. A.1)
+  reported_results_DE12:
+    # restated from Table 5.1 (rows for DE 12 in the particle ejector); t_glass in s and the
+    # ratio t_glass/t_full as printed (two decimals)
+    c10_T25: {t_glass_s: 53.9, t_glass_over_t_full: 0.93}
+    c20_T25: {t_glass_s: 27.5, t_glass_over_t_full: 0.48}
+    c30_T25: {t_glass_s: 11.9, t_glass_over_t_full: 0.21}
+    c20_T45: {t_glass_s: 15.5, t_glass_over_t_full: 0.42}
+    c20_T65: {t_glass_s: 10.3, t_glass_over_t_full: 0.39}
+    keys: "cNN = initial MD12 mass fraction in wt%, TNN = gas temperature in degC"
+  related_statements:
+    - "The initial solids fraction has the largest influence on t_glass; DE has a minor one (5.3.2, p. 65)."
+    - "Thesis Fig. 5.5 example (falling droplet column): the surface reaches the glass transition near 80 wt% solids (p. 65)."
+    - "PE collisions, DE 5 and 12: the first bouncing collisions fall at t_dry/t_glass = 0.5 to 1.5 (p. 68)."
+    - "Falling droplet column (100 +- 20 degC, 210 +- 40 um, 0.10-1.29 s drying): bouncing only from t_dry/t_glass > 3.5 (DE 5) up to > 4.5 (DE 21); sticking up to t_dry/t_glass = 5.5 for DE 12 (5.3.3, p. 69)."
+    - "The thesis concludes that a surface-glass criterion from a 1D model is only an order-of-magnitude predictor of collision outcome and too simple at spray-drying rates (5.5)."
+  not_reproducible_here:
+    - "Falling droplet column rows of Table 5.1: the mean initial diameter used for each condition is not stated."
+
+# ---------------------------------------------------------------------------------------------
+# Reference result C (informational): measured locking times, DE 12, particle ejector.
+# ---------------------------------------------------------------------------------------------
+reference_C_thesis_locking_DE12:
+  locator: thesis Table 4.1 (p. 50) and Table 4.3 (p. 55), section 4.3.2
+  measurement_geometry: sessile droplet on hydrophobic PTFE under a unidirectional nitrogen stream; side-view high-speed camera; locking time read as the frame where the circumference stops moving (Fig. 4.5)
+  normalised_locking_time_mean_sd:   # t_l / t_full(R0,i), mean and standard deviation of four repeats
+    c10_T25: [1.04, 0.02]
+    c20_T25: [0.86, 0.04]
+    c30_T25: [0.52, 0.11]
+    c20_T45: [0.90, 0.12]
+    c20_T65: [0.79, 0.06]
+  initial_sessile_diameter_all_PE_runs: {value: 462, sd: 66, unit: um, locator: "4.2.4"}
+
+# ---------------------------------------------------------------------------------------------
+# Model and property parameters stated in the thesis (used in inputs.yaml, restated as facts).
+# ---------------------------------------------------------------------------------------------
+thesis_model_parameters:
+  locator: thesis Appendix 5.6, Tables 5.2-5.6 and equations A.1-A.60 (pp. 74-92)
+  species:                        # Table 5.2 (sources named there: Meerdink 1993, Siemons et al. 2020)
+    MD12: {M_g_per_mol: 1518, Tg_K: 425, cp_J_per_kgK: 1500, dCp_kJ_per_kgK: 0.426, density_kg_per_L: 1.54}
+    water: {M_g_per_mol: 18, Tg_K: 134, cp_J_per_kgK: 4186, dCp_kJ_per_kgK: 1.92, density_kg_per_L: 0.998}
+    molar_mass_rule: "M = 162 * 111.11 / DE + 18 (eq. A.1 of 5.6)"
+  gordon_taylor: "Tg = (w_s Tg_s + k w_w Tg_w) / (w_s + k w_w), k = dCp_w / dCp_s (eqs. A.54-A.55)"
+  antoine_water:                  # Table 5.3, P in mmHg, T in degC, P[Pa] = 133.32 * 10^(A - B/(T + C))
+    low: {range_K: [273.15, 373.15], A: 8.07131, B: 1730.63, C: 233.426}
+    high: {range_K: [373.15, 647.096], A: 8.14019, B: 1810.94, C: 244.485}
+  gab_MD12: {w_m: 0.0510, k: 0.92, c: 16.91, form: "w = w_m c k a / ((1 - k a)(1 - k a + c k a)), w = water/solids mass ratio (eq. A.6, Table 5.4)"}
+  vapour_diffusivity_in_air: "D = 1.4850e-7 T - 1.88805e-5 m2/s, T in K (eq. A.10)"
+  air_viscosity: "mu = -2.293e-11 T^2 + 5.991782e-8 T + 2.53901766e-6 Pa s (eq. A.14)"
+  air_conductivity: "lambda = 6.7755124e-5 T + 6.108642996e-3 W/m/K (eq. A.17)"
+  air_heat_capacity: "cp = 2.98463495e-4 T^2 - 0.124554461009 T + 1016.8585391153 J/kg/K (eq. A.20)"
+  sherwood: "Sh = 2 + 0.6 Re^0.5 Sc^(1/3) (eq. A.11)"
+  nusselt: "Nu = 2 + 0.4 Re^0.5 Pr^(1/3) (eq. A.18, as printed; the Ranz-Marshall original uses 0.6)"
+  water_viscosity: "cubic in T (eq. A.51), printed with a factor 10^3; it gives mPa s values, so we read the factor as 10^-3 Pa s"
+  mixture_density: "rho = phi_s (rho_s - rho_w) + rho_w, phi_s solute volume fraction (eq. A.49)"
+  viscosity_model:                # eqs. A.50-A.56, Table 5.5
+    SMT: "mu = ([eta] c exp(k_H [eta] c) + 1) mu_w, c = (1 - x_w) rho_mix, [eta] = K M^alpha"
+    WLF: "log10(mu/mu_g) = -C1 (T - Tg) / (C2 + (T - Tg)), C1 = 17.4, C2 = 51.6, mu_g printed as '10 x 10^12' Pa s"
+    blend: "logistic switch in the solute mass fraction with P0 and P1 (eq. A.56)"
+    MD12: {k_H: 5.30, K: 2.47e-3, alpha: 0.267, P0: 0.7, P1: 0.043}
+  free_volume_diffusion:          # eqs. A.57-A.60, Table 5.6 (water and sucrose; sucrose values used for carbohydrates)
+    darken: "D = ((1 - X) D_self,w + X D_self,s) Q, Q = 1 - 2 chi X (1 - X), X = water volume fraction"
+    water: {V_star_L_per_kg: 0.91, D0_printed: "148 x 10^-7 m2/s", E_J_per_mol: 2.34e3, K1_over_gamma_L_per_kgK: 1.945e-3, K2_K: -19.73, Tg_K: 134, density_kg_per_L: 1.0}
+    sucrose: {V_star_L_per_kg: 0.59, K1_over_gamma_L_per_kgK: 0.366e-3, K2_K: 69.21, Tg_K: 333, density_kg_per_L: 1.54, zeta: 0.79, xi: 0.8, r_h_m: 0.5e-9}
+    solute_self_diffusion: "Stokes-Einstein D_self,s = k_B T / (6 pi mu r_h) (eq. A.60)"
+
+# Stickiness criteria reported in the thesis (chapter 2 = Sewalt et al., KONA 2021).
+stickiness_criteria:
+  locator: thesis chapter 2, sections 2.1-2.4 and Table 2.2 (pp. 8-21)
+  statements:
+    - "Onset of stickiness is commonly expressed as a critical offset (T - Tg)c above the glass transition (p. 9)."
+    - "Reported (T - Tg)c for dynamic tests spans about -5 to 90 degC across materials and methods (p. 20)."
+    - "Maltodextrin DE 21, fluidised bed (Palzer 2005): (T - Tg)c = 47 to 62 degC (Table 2.2, p. 21)."
+    - "Skim milk powder, static vs fluidised-bed test: average offsets 13 and 18 degC (p. 20)."
+    - "Prototypical WLF case: viscosity at the glass transition 10^12 Pa s (p. 11)."
+  no_value_for_MD12: true
