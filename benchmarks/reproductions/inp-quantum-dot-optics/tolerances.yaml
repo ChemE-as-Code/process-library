@@ -1,0 +1,59 @@
+# Acceptance tolerances for the InP quantum-dot optics reproduction (#342; ADR 0030).
+# FROZEN 2026-11-04, committed with source.yaml and inputs.yaml before the first run that compares
+# computed values with reported values. Do not edit: a revision is a new file with its reason,
+# and comparison.md names the file it used.
+#
+# Basis. The reported quantum yields come from the authors' own processing of the same files,
+# whose details are not all stated: refractive-index correction, absorbance or absorptance,
+# baseline and integration range (inputs.yaml labels these assumed). Relative PLQY measurements
+# carry about 10 % relative uncertainty (IUPAC report cited by the source). We therefore accept
+# max(5 percentage points, 10 % of the reported value) for a quantum yield. Values the source
+# gives as approximate ("ca.", "~") get the same 10 % relative band. Bounds ("never exceeded
+# 5 %", ">70 %", "<0.2 %") are checked as stated, without margin. Absorption peaks are sampled
+# at 1 nm on a broad excitonic band: 3 nm. Lifetimes depend on the fit window, background and
+# missing instrument response: 15 % relative.
+frozen: "2026-11-04"
+reference: source.yaml reported_results
+plqy_band: {abs_pp: 5, rel: 0.10, rule: "pass if |ours - reported| <= max(abs_pp, rel * reported)"}
+
+checks:
+  # Primary: Figure 1E/1F quantum yields (the published optical comparison).
+  P1: {reported: plqy_150C_early,      metric: plqy_pct, sample: F1-150-05,  tol: plqy_band}
+  P2: {reported: plqy_150C_60min,      metric: plqy_pct, sample: F1-150-60,  tol: plqy_band}
+  P3: {reported: plqy_RT_max,          metric: plqy_pct, samples: [F1-RT-00, F1-RT-05, F1-RT-30, F1-RT-60], tol: "every value < 5"}
+  P4: {reported: plqy_90C_max,         metric: plqy_pct, samples: [F1-090-00, F1-090-05, F1-090-30, F1-090-60], tol: "every value < 5"}
+  P5: {reported: plqy_200C_60min_fig1F, metric: plqy_pct, sample: F1-200-60, tol: plqy_band}
+  P6: {reported: plqy_200C_high,       metric: plqy_pct, samples: [F1-200-05, F1-200-30, F1-200-60, F1-200-60W], tol: "max value > 70"}
+  P7: {reported: plqy_ZnCl2,           metric: plqy_pct, sample: F1-200Z,    tol: plqy_band}
+  P8: {reported: plqy_as_synthesized,  metric: plqy_pct, sample: F1-AS,      tol: "value < 0.2"}
+  # Pair: one archived measurement, two different reported values (known before the run).
+  X1: {reported: plqy_150C_washed,     metric: plqy_pct, sample: F1-150-60W, tol: plqy_band, pair: X}
+  X2: {reported: plqy_fig4_hotinj_HF,  metric: plqy_pct, sample: F4-HI-HF,   tol: plqy_band, pair: X}
+  # Secondary: absorption, emission width, Figure 4B and S9, lifetimes, sphere.
+  S1: {reported: abs_peak_before,      metric: abs_peak_nm, sample: F1-150-00, tol: {abs: 3}}
+  S2: {reported: abs_peak_initial,     metric: abs_peak_nm, sample: F1-150-05, tol: {abs: 3}}
+  S3: {reported: abs_redshift_later,   metric: "abs_peak_nm(F1-150-60) - abs_peak_nm(F1-150-05)", tol: "difference >= 1 nm"}
+  S4: {reported: pl_fwhm_nm,           metric: pl_fwhm_nm,  sample: F1-150-60, tol: {rel: 0.10}}
+  S5: {reported: pl_fwhm_meV,          metric: pl_fwhm_meV, sample: F1-150-60, tol: {rel: 0.10}}
+  S6: {reported: plqy_fig4_heatup_HF,  metric: plqy_pct, sample: F4-HU-HF,   tol: plqy_band}
+  S7: {reported: plqy_fig4_heatup_InF3, metric: plqy_pct, sample: F4-HU-InF3, tol: plqy_band}
+  S8: {reported: plqy_fig4_hotinj_InF3, metric: plqy_pct, sample: F4-HI-InF3, tol: plqy_band}
+  S9: {reported: plqy_InF3_S9_max,     metric: plqy_pct, samples: [S9-InF3-05, S9-InF3-30, S9-InF3-60], tol: "max value within plqy_band"}
+  S10: {reported: tau_as_synthesized,  metric: tau_avg_ns, sample: D-AS,     tol: {rel: 0.15}}
+  S11: {reported: tau_200C,            metric: tau_avg_ns, sample: D-200-60, tol: {rel: 0.15}}
+  S12: {reported: tau_ZnCl2,           metric: tau_avg_ns, sample: D-200Z,   tol: {rel: 0.15}}
+  S13: {reported: plqy_sphere,         metric: plqy_sphere_pct, sample: SPH-ZNCL, tol: plqy_band}
+
+pair_rule: >-
+  X1 and X2 use the same archived files with reported values 64 % and 54 %, which cannot both lie
+  within the band. The pair counts as one passed check when exactly one member passes (the
+  other is reported as a source inconsistency), and as failed when neither passes.
+pass_rule: >-
+  pass: every primary check (P1-P8), the pair X and every secondary check (S1-S13) passes.
+  partial: every primary check passes, and the pair or one or more secondary checks fail.
+  fail: any primary check fails.
+  A check that cannot be evaluated counts as not passed and is reported as a gap.
+not_judged: >-
+  Diagnostics (source.yaml diag_*), the Figure 1C inset value 469 nm, the quality screen and
+  the sensitivity variants (no refractive-index correction, absorbance in place of absorptance,
+  constant PL baseline, hexadecane index for 200 C) are reported in comparison.json and not judged.
