@@ -1,0 +1,154 @@
+# Every model input of run.py, with value, unit, label and source or rationale.
+# Labels: measured (a measured number from the source), reconstructed (derived by us from
+# measured numbers), assumed (our choice, with the reason).
+dataset:
+  runs:
+    value: 30 batch runs, SI Table S1 (raw) and Table S2 (transformed), parsed from the pinned SI PDF at runtime
+    label: measured
+    source: source.yaml files[0], SI pages 4-5
+  x1_inverse_temperature:
+    value: SI Table S2 column 1 as tabulated (0.003288, 0.002949, 0.002673 1/K)
+    unit: 1/K
+    label: measured
+    source: SI Table S2
+    note: >-
+      These are 1/(T + 274.1 K) with T the set point in degC, not 1/(T + 273.15 K). We use the
+      tabulated values, which are what the authors regressed on (SI section 4.1: models built
+      from the variables of Table S2). The 0.95 K offset may be a calibrated vial temperature
+      (article Experimental Section: reactor temperature calibrated with an external thermocouple).
+  x2_pressure:
+    value: 10, 30, 50
+    unit: bar
+    label: measured
+    source: SI Table S1/S2
+  x3_ln_catalyst:
+    value: SI Table S2 column 3 as tabulated (-9.68, -8.76, -8.29; ln of mol/L)
+    label: measured
+    source: SI Table S2 (two decimals; raw levels 0.06, 0.16, 0.25 mmol/L in Table S1)
+  x4_ln_base:
+    value: SI Table S2 column 4 as tabulated (-9.68, -5.07, -4.38; ln of mol/L)
+    label: measured
+    source: SI Table S2 (two decimals; raw levels 0.06, 6.28, 12.50 mmol/L in Table S1)
+  y_response:
+    value: ln of the "alcohol" rate column of SI Table S1 (mol/(L h)), full precision
+    label: measured
+    source: SI Table S1; Table S2 rounds it to two decimals, Tables S6/S10/S16/S21 give the y used to five decimals, which equals ln of the Table S1 column
+  reaction_time:
+    value: SI Table S1 time column, h; x6 = 3600 * time in s
+    label: measured
+    source: SI Table S1
+  yield:
+    value: SI Table S1 yield column, %
+    label: measured
+    source: SI Table S1
+  initial_substrate_per_run:
+    value: S0 = rate * time / yield, per run
+    unit: mol/L
+    label: reconstructed
+    rationale: >-
+      Model IV needs the substrate concentration at the end of each run (x5 = ln S_end). The SI
+      does not tabulate it. 5 mmol substrate in about 3.9 mL gives about 1.27 mol/L; the per-run
+      value follows from the three tabulated columns. S_end = S0 * (1 - yield).
+  initial_substrate_nominal:
+    value: median of the reconstructed per-run S0 (computed by run.py, reported in comparison.json)
+    unit: mol/L
+    label: reconstructed
+    rationale: substrate was not varied in the design; the nominal value is used for predictions
+
+fitting:
+  gas_constant_model_IV:
+    value: 0.008314
+    unit: kJ/(mol K)
+    label: measured
+    source: SI page 24, model IV equation
+  gas_constant_kinetics:
+    value: 8.314
+    unit: J/(mol K)
+    label: assumed
+    rationale: standard value; used to turn the Arrhenius slope of SI Tables S23/S24 into kJ/mol
+  model_I_method: {value: ordinary least squares on all 30 runs, label: assumed, rationale: "SI section 4.1 names fitlm(..., 'quadratic') with no robust option"}
+  model_II_method: {value: ordinary least squares on the 26 runs left after removing runs 14, 20, 22, 30, label: assumed, rationale: "SI section 4.2: stepwiselm, then refit with the outliers excluded; the selected terms are taken from the source, the stepwise search is not repeated"}
+  model_III_method: {value: ordinary least squares on 24 runs, runs 7, 16, 20, 22, 28, 30 removed (SI text), label: assumed, rationale: "SI section 4.3 text; 24 observations reported. Sensitivity: the 25-run set of SI Table S16 (run 28 kept)"}
+  model_IV_method:
+    value: >-
+      linear in its coefficients once x5 is moved to the left side; iteratively reweighted least
+      squares with bisquare weights (tuning constant 4.685, residuals adjusted for leverage, scale
+      = median absolute deviation / 0.6745 of the adjusted residuals) on the 24 runs left after
+      removing runs 7, 10, 22, 25, 28, 30; covariance from the final weighted fit
+    label: assumed
+    rationale: >-
+      SI section 4.4 names fitnlm with RobustWgtFun bisquare; MATLAB's exact robust variance and
+      scale conventions are not given, so ours is a close but not identical implementation
+  outlier_lists:
+    value: taken from the source, not re-derived
+    label: measured
+    source: SI pages 11, 18, 24
+  conventional_kinetics:
+    value: least-squares lines through SI Tables S23 (8 points), S24 (8), S25 first 4 and last 5 points, S26 first 6 points
+    label: assumed
+    rationale: the SI states which points the authors fitted (Table S25 two regions, Table S26 last point not fitted)
+
+discrimination_design:   # hypothetical design extension, see extension.md
+  measurement_resolution_sigma_y:
+    value: 0.2113
+    unit: ln(mol/(L h))
+    label: measured
+    source: sqrt of the pure-error mean square 0.044638 (5 degrees of freedom), SI Table S4; run.py recomputes it from the six centre runs
+    note: about 21 % in rate, one standard deviation of a single run's ln average rate
+  criterion:
+    value: >-
+      pairwise D_ij = (yhat_i - yhat_j)^2 / (2 sigma_y^2 + s_i^2 + s_j^2), with s_i^2 the
+      variance of model i's prediction from its parameter covariance (Buzzi-Ferraris and
+      Forzatti type). The design maximises min over the three pairs (II-III, II-IV, III-IV).
+    label: assumed
+    rationale: >-
+      a single response, three rival models and Gaussian errors; the minimum over pairs asks for
+      one run that separates every pair. D = 4 means a separation of two combined standard
+      deviations.
+  discrimination_threshold:
+    value: 4.0
+    label: assumed
+    rationale: two combined standard deviations; below this a single run cannot separate a pair
+  in_range_box:
+    temperature: {min: 30, max: 100, unit: degC, x1: "1/(T + 274.1 K), as Table S2"}
+    pressure: {min: 10, max: 50, unit: bar}
+    catalyst: {min: 0.0625, max: 0.25, unit: mmol/L}
+    base: {min: 0.0625, max: 12.5, unit: mmol/L}
+    run_time: {min: 2, max: 24, unit: h, note: "DoE run times 1.67-27.78 h"}
+    substrate: {value: nominal S0, note: "not varied in the design; any other value is an extrapolation"}
+    label: measured
+    source: SI Table S1 ranges
+  grid:
+    temperature_degC: [30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
+    pressure_bar: [10, 20, 30, 40, 50]
+    catalyst_mmol_per_L: 7 values log-spaced from 0.0625 to 0.25
+    base_mmol_per_L: 15 values log-spaced from 0.0625 to 12.5
+    run_time_h: [2, 4, 8, 16, 24]
+    label: assumed
+    rationale: covers the studied box at steps finer than the three design levels
+  measurable_yield_window:
+    value: [0.02, 0.90]
+    label: assumed
+    rationale: >-
+      every model must predict a final yield in this window, so that the GC yield is above the
+      detection floor (0.11 % is the lowest tabulated yield) and the run is not complete
+      (a complete run only gives a lower bound on the rate). Models II and III predict
+      yield = rate * time / S0; model IV predicts it from its own fitted relation (extension.md).
+  extrapolation_grid:
+    temperature_degC: [110, 120]
+    pressure_bar: [60, 80]
+    catalyst_mmol_per_L: [0.5]
+    base_mmol_per_L: [25]
+    substrate_factor: [0.5, 2.0]
+    label: assumed
+    rationale: one step beyond each studied bound, each flagged as an extrapolation
+  changed_input:
+    value: initial substrate concentration halved (0.5 x nominal S0), at the selected condition
+    label: assumed
+    rationale: >-
+      the models disagree on the substrate order (models II and III have none, model IV is first
+      order through x5); substrate was not varied in the design, so this is an extrapolation
+  monte_carlo_check:
+    value: 4000 parameter draws per model, multivariate normal, seed 341
+    label: assumed
+    rationale: checks the linear propagation of prediction variance for model IV, whose yield is a nonlinear function of its coefficients

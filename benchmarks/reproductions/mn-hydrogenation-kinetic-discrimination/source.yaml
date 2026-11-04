@@ -1,0 +1,174 @@
+# Reference record for the Mn-CNP hydrogenation kinetic-model case (#341, tracker #333, ADR 0030).
+# Facts (conditions, fitted coefficients, statistics) are restated in our own form with locators.
+# No table, figure or text of the source is copied here. The raw run table (SI Table S1/S2) is
+# not committed: run.py downloads the pinned SI file at runtime and verifies its sha256.
+reference:
+  id: van-schendel-2021-mn-cnp-doe-kinetics
+  title: >-
+    Utilizing Design of Experiments Approach to Assess Kinetic Parameters for a Mn Homogeneous
+    Hydrogenation Catalyst
+  authors: [Robin K. A. van Schendel, Wenjun Yang, Evgeny A. Uslamin, Evgeny A. Pidko]
+  journal: ChemCatChem 2021, 13(23), 4886-4896
+  doi: 10.1002/cctc.202101140
+  version: version of record (published 2021-09-14 online; issue 2021-12-07); PMC9291086 version 1
+  licence:
+    name: CC BY 4.0
+    evidence: >-
+      Article licence statement (open access under CC BY 4.0); PMC open-access metadata for
+      PMC9291086.1 gives license_code "CC BY" for the article record that lists the SI file.
+      The SI PDF itself carries no separate licence line.
+    reuse: >-
+      CC BY 4.0 would allow redistribution with attribution. We still do not commit the SI file
+      or its tables; run.py downloads it at runtime. Numbers restated below are facts with
+      locators, in our own form.
+  accessed: "2026-11-04"
+  kind: >-
+    published experimental dataset (30 batch runs, design of experiments) and the authors'
+    regression models fitted to it; plus separate conventional initial-rate kinetic runs
+  files:
+    - name: CCTC-13-4886-s001.pdf
+      what: Supporting Information (30 pages); raw run table, regression outputs, kinetic runs
+      url: https://pmc-oa-opendata.s3.amazonaws.com/PMC9291086.1/CCTC-13-4886-s001.pdf
+      md5: 3a2fb2371d0eec722865b28e31b933c8     # as published in the PMC open-data index
+      sha256: 6f87234815fe263a747e4663ddaebad1cba818a8175e3fa992e4d924c08b652f
+      bytes: 583049
+      use: downloaded by run.py; text of pages 4-5 (Tables S1, S2) and 9, 14, 20, 25, 28-29 parsed
+    - name: PMC9291086.1.pdf
+      what: article PDF (version of record, PMC copy)
+      url: https://pmc-oa-opendata.s3.amazonaws.com/PMC9291086.1/PMC9291086.1.pdf
+      md5: 2bb17f6759f682fec1ca3ff099da13ed
+      sha256: e92d74b3ff9941bfb632d67fd658053065d7ef0acbf4cceba030d25ec2285877
+      use: read for model definitions, Table 2, Table 3 and Figure 7; not downloaded by run.py
+    - name: index
+      url: https://pmc-oa-opendata.s3.amazonaws.com/PMC9291086.1/PMC9291086.1.json
+      use: open-data index of the record (licence code, file list, md5)
+  other_locations:
+    - https://doi.org/10.1002/cctc.202101140 (publisher; scripted download refused, HTTP 403)
+    - https://pmc.ncbi.nlm.nih.gov/articles/PMC9291086/ (browser challenge for files)
+    - http://resolver.tudelft.nl/uuid:edd1bc98-1df5-4c44-b122-7854d6cc6843 (TU Delft repository, article only, no SI)
+  no_dataset: >-
+    No separate data deposit (4TU.ResearchData, Zenodo) was found. The SI tables are the only
+    machine-readable record of the runs.
+
+# The experiment, restated.
+system:
+  reaction: acetophenone + H2 -> 1-phenylethanol (the conclusion names benzophenone; the experimental section and SI name acetophenone)
+  catalyst: Mn(I) CNP pincer complex (NHC-phosphine-amine), activated by KOtBu
+  solvent: 1,4-dioxane, dodecane internal standard
+  reactor: home-built parallel autoclaves, 4 mL glass vials, magnetic stirring; six vials heated together at one temperature
+  substrate: 5 mmol per vial, about 1.27 mol/L (reconstructed, inputs.yaml)
+  measurements: H2 uptake by pressure transducers (ideal gas law); final yield by GC-FID; mass balance 90-110 %
+  locator: article Experimental Section; SI sections 2 and 2.1
+
+design_of_experiments:
+  kind: central composite face-centred design, four factors at three levels, factors not coded
+  runs: 30 (cube, axial and centre points with replicates; temperature not randomised)
+  factors:
+    temperature: {levels: [30, 65, 100], unit: degC}
+    pressure_H2: {levels: [10, 30, 50], unit: bar}
+    catalyst: {levels: [0.06, 0.16, 0.25], unit: mmol/L}
+    base_KOtBu: {levels: [0.06, 6.28, 12.50], unit: mmol/L}
+  response: y = ln(alcohol formed / reaction time), alcohol in mol/L, time in h (average rate, not initial rate)
+  regressors: {x1: 1/T in 1/K, x2: p in bar, x3: ln(catalyst, mol/L), x4: ln(base, mol/L)}
+  run_times: 1.67 h to 27.78 h, set per run
+  locator: article "Design of Experiment", Table 1; SI Table S1 (raw), Table S2 (transformed)
+
+# Competing models of the source (article Eqs. 8, 9/18, 10/19, 17/20; SI section 4).
+models:
+  I:   {form: full quadratic in x1..x4 (15 terms), fit: MATLAB fitlm, n: 30}
+  II:  {form: "b0 + b1 x1 + b2 x2 + b3 x3 + b4 x4 + b5 x1 x3 + b6 x2 x4 + b7 x4^2", fit: stepwiselm (SSE criterion), outliers_removed: [14, 20, 22, 30], n: 26}
+  III: {form: "b0 + b1 x1 + b2 x2 + b3 x3 + b4 x4 + b5 x4^2", fit: fitlm, outliers_removed_text: [7, 16, 20, 22, 28, 30], n: 24}
+  IV:  {form: "y = b0 - b1 x1/0.008314 + b2 x2 + b3 x3 + b4 x4 + x5 + b6 x6, x5 = ln(substrate at end, mol/L), x6 = reaction time in s", fit: fitnlm with bisquare robust weights, outliers_removed: [7, 10, 22, 25, 28, 30], n: 24}
+  outlier_rule: standardised residual outside +/-1.25 after a first fit, then refit
+  inconsistency: >-
+    Model III: the SI text lists runs 7, 16, 20, 22, 28 and 30 as removed (24 observations, as
+    reported), but SI Table S16 lists 25 runs including run 28. Recorded as a source
+    inconsistency; tolerances.yaml fixes which list is primary.
+  locator: SI pages 6, 11, 18, 24
+
+# Reported results restated (SI tables; article Tables 2 and 3 agree where they overlap).
+reported_results:
+  model_I:
+    locator: SI Table S3, Table S4
+    rmse: 0.515
+    r2: 0.983
+    adj_r2: 0.966
+    press: 22.8951
+    pred_r2: 0.9003
+    pure_error_ms: 0.044638        # 5 degrees of freedom (centre replicates), SI Table S4
+    coefficients:   # estimate, SE
+      Intercept: [12.92, 60.033]
+      x1: [-2933.4, 21213]
+      x2: [0.022821, 0.11496]
+      x3: [0.4413, 13.664]
+      x4: [-1.122, 1.7074]
+      x1:x2: [-39.281, 20.924]
+      x1:x3: [-2156.1, 600.48]
+      x1:x4: [-271.31, 153.41]
+      x2:x3: [-0.00953, 0.0092376]
+      x2:x4: [0.006024, 0.0023601]
+      x3:x4: [0.004032, 0.06768]
+      x1^2: [-3.72e+6, 3.42e+6]
+      x2^2: [0.00137, 0.00080019]
+      x3^2: [-0.41955, 0.74968]
+      x4^2: [-0.19002, 0.10492]
+  model_II:
+    locator: SI Table S7, Table S8; article Table 2, Table 3
+    n: 26
+    rmse: 0.387
+    r2: 0.984
+    adj_r2: 0.978
+    press: 5.1862
+    pred_r2: 0.9696
+    coefficients:
+      Intercept: [57.28, 14.22]
+      x1: [-19523, 4674]
+      x2: [0.068951, 0.014934]
+      x3: [6.0532, 1.6052]
+      x4: [-2.6974, 0.776]
+      x1:x3: [-1601.3, 529.76]
+      x2:x4: [0.0057967, 0.00217]
+      x4^2: [-0.24092, 0.054258]
+    fitted_values: SI Table S10 (26 runs, parsed at runtime)
+  model_III:
+    locator: SI Table S13, Table S14; article Table 2, Table 3
+    n: 24
+    rmse: 0.413
+    r2: 0.979
+    adj_r2: 0.973
+    press: 6.1608
+    pred_r2: 0.9572
+    coefficients:
+      Intercept: [16.705, 3.40]
+      x1: [-4936.9, 382.09]
+      x2: [0.040648, 0.0061137]
+      x3: [1.3553, 0.160]
+      x4: [-2.1133, 0.82233]
+      x4^2: [-0.21516, 0.057568]
+    fitted_values: SI Table S16 (25 rows, parsed at runtime)
+  model_IV:
+    locator: SI Table S20; article Table 2, Table 3
+    n: 24
+    rmse: 0.657
+    coefficients:
+      Intercept: [31.554, 4.0357]
+      Ea_kJ_per_mol: [39.307, 7.5597]     # b1, enters as -b1 x1 / 0.008314
+      x2: [0.035241, 0.0092655]
+      x3: [1.5982, 0.27672]
+      x4: [1.0932, 0.07059]
+      x6_per_s: [-3.70e-5, 8.84e-6]
+    fitted_values: SI Table S21 (24 runs, parsed at runtime)
+  apparent_activation_energy_from_models:
+    locator: article Table 3 (T^-1 row, normalised to kJ/mol)
+    model_II: 162.3       # = -b1 * 0.008314, before the x1:x3 interaction
+    model_III: 41.0
+    model_IV: 39.3
+  conventional_kinetics:
+    note: separate initial-rate runs by the same authors (not part of the 30 DoE runs)
+    locator: article Figure 7 and text; SI Tables S23-S26 (values parsed at runtime)
+    Ea_50ppm: {value: 90, se: 7, r2: 0.96, unit: kJ/mol}
+    Ea_200ppm: {value: 51, se: 4, r2: 0.96, unit: kJ/mol}
+    base_order_low: {value: 2.5, note: "reported as ~2.5, first four points of SI Table S25"}
+    base_order_high: {value: 0.0, note: "reported as ~0, last five points of SI Table S25"}
+    catalyst_order: {value: 1.5, note: "reported as ~1.5, SI Table S26 without the last point"}
+    interpretation_by_authors: mass-transfer limitation already at 200 ppm catalyst (Ea about half of the 50 ppm value)
