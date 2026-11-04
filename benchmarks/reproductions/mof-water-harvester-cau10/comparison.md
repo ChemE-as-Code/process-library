@@ -123,5 +123,4 @@ value or tolerance changed, and `tolerances.yaml` is untouched. The frozen text 
   and every temperature transfer in the design extension rests on the characteristic-curve
   assumption.
 - CAU-10-CH3 is not in the dataset (its isotherm in the article is reproduced from a 2013 paper).
-- The figures and the per-point RH sweep are not committed (CC BY-SA 4.0 data; README.md).
   Tolerances were not changed after the run.

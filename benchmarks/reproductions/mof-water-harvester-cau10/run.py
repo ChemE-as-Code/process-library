@@ -22,9 +22,8 @@ Rerun from the repository root:
 4. Sizes an adsorbent bed: working capacity, adsorbent mass and packed volume against inlet
    relative humidity for the stated yield and recovery, regeneration heat, infeasible region.
 
-Writes results/comparison.json (committed: scalar results only), results/sweep.json (the full
-RH sweep, resampled from the CC BY-SA 4.0 isotherm, not committed) and three SVG figures (not
-committed; README.md). Exits non-zero only if the script fails; the reproduction verdict is
+Writes results/comparison.json (scalar results), results/sweep.json (the full RH sweep,
+resampled from the CC BY-SA 4.0 isotherm) and three SVG figures (NOTICE.md). Exits non-zero only if the script fails; the reproduction verdict is
 recorded in comparison.json.
 """
 
@@ -488,7 +487,7 @@ def design(iso: dict, inp: dict, desc: dict, M_w: float) -> dict:
         "mass_ratio_changed_over_base_bounds": ratio_bounds,
         "sensitivity_of_base_case": sens,
         "design_points": [case(x) for x in DESIGN_POINTS_RH],
-        # Per-point resampling of the CC BY-SA 4.0 isotherm: written to results/sweep.json, not committed.
+        # Per-point resampling of the CC BY-SA 4.0 isotherm: written to results/sweep.json (NOTICE.md).
         "sweep": {"inlet_relative_humidity": rh.tolist(),
                   "working_capacity_g_per_g": np.round(dq, 5).tolist(),
                   "adsorbent_mass_kg": [None if not np.isfinite(m) else round(float(m), 3) for m in mass],
@@ -635,7 +634,7 @@ def main() -> int:
 
     rep["descriptors"] = {k: (round(v, 5) if isinstance(v, float) else v) for k, v in rep["descriptors"].items()}
     sweep = dsn.pop("sweep")
-    dsn["sweep_file"] = "results/sweep.json (written by run.py, git-ignored: per-point resampling of the CC BY-SA 4.0 data)"
+    dsn["sweep_file"] = "results/sweep.json (written by run.py: per-point resampling of the CC BY-SA 4.0 data; NOTICE.md)"
     data_source = {
         "doi": src["dataset"]["doi"], "title": src["dataset"]["title"], "authors": src["dataset"]["authors"],
         "repository": src["dataset"]["repository"], "file": "8 - CAU-10-H.csv",
