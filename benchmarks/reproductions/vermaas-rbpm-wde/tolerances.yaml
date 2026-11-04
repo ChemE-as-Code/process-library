@@ -1,0 +1,80 @@
+# Acceptance tolerances for the rBPM WDE reproduction (ADR 0030).
+# FROZEN 2026-11-04, committed alone before any comparison run. Do not edit: a revision is a new
+# file with its reason, and comparison.md names which file it used.
+#
+# What was seen before freezing (stated so the order can be judged):
+# - the structure of the source-data workbooks (sheet names, column headers, number of values,
+#   decimal places), not their values;
+# - the raw titration volumes of the 1 M KOH sheets (inputs of R1), parsed to check their layout;
+# - one sheet's embedded calculation image (20241002, 1 M KOH, 200 mA/cm2). Our method (paper
+#   equations 3 to 10, nominal I = j*A and t_CP = 3600 s) reproduces its 15 matrix values only
+#   with a common factor 0.98774 on the co-ion amounts, i.e. our 1 - WDE is about 1.2 % larger
+#   (about -0.0005 in WDE at 200 mA/cm2). The R1 tolerance below is set from the experimental
+#   scatter and the reading resolution, not from that offset, and comparison.md reports it.
+# - the authors' model code (read as text, not run).
+frozen: "2026-11-04"
+reference: source.yaml (file_to_figure, split)
+
+checks:
+  R1:
+    what: WDE mean per current density, ours vs Fig. 3a
+    rule: abs(WDE_ours - WDE_pub) <= max(0.25 * sd_pub, d_res)
+    d_res: >-
+      2 * 1e-4 mL * c_HCl * (V_tank / V_titrate) * F / (j * A * t_CP); two burette readings of
+      0.0001 mL resolution (the last digit in the sheets) enter each co-ion amount
+    reason: >-
+      The published standard deviation is the scatter of the replicate titrations and runs at that
+      current density. A rebuild that differs from the published mean by a quarter of that scatter
+      or less leaves every conclusion drawn from the error bars unchanged. A larger difference
+      means the rebuild is using different inputs or a different aggregation. d_res only matters
+      if sd_pub is tiny.
+    also_reported: standard deviation and number of (V0, V1/V2) pairs per current density; co-ion partial current; HCO3- share of the co-ion current (C_xover)
+  R2:
+    what: time to pH 12 at 1 L, the authors' unmodified pH-stop model vs Fig. 5a, for each WDE row
+    rule: abs(t_ours - t_pub) <= max(dt_grid, 1.0e-3 * t_pub)
+    dt_grid: t_op / (N_eval - 1) = 10000 h / 9999
+    t_ours: last time in the model's returned result (its t_eval grid), as the authors' result dictionary returns it; the event time is reported beside it
+    censored: a row whose published value is at or above t_op - dt_grid passes if ours is too
+    reason: >-
+      Same equations and same code, so only numerics can differ. The result dictionary resolves
+      time only to one t_eval interval (1.0001 h). The solver runs at rtol 1e-6. SciPy versions
+      newer than the authors' may move the BDF steps, which is allowed for by 0.1 % relative.
+    inputs_not_stated_in_paper: C_xover 0.66 and the initial concentrations are the script defaults (source.yaml model_code.default_inputs)
+  D1:
+    what: is the pH stop event volume-dependent?
+    run: the unmodified pH-stop model at WDE 0.95, 200 mA/cm2, 1 M KOH, C_xover 0.66, for V_tank 1 L and 10 L (WDE 0.95 so that both volumes reach the event within t_op)
+    measure: concentration-basis pH at the stop, 14 + log10(c_OH), and -log10(c_H) from the H+ state, both from the model's own trajectory
+    classification:
+      confirmed: pH at stop is 12.00 +/- 0.05 at 1 L and 13.00 +/- 0.05 at 10 L (the stop uses -log10 of H+ moles, which is pH - log10(V_tank / 1 L))
+      rejected: pH at stop is 12.00 +/- 0.05 at both volumes
+      unresolved: anything else, reported with the values
+    h_state_check: >-
+      at 1 L, |-log10(c_H) - (14 + log10(c_OH))| <= 0.05 at the stop. Otherwise the H+ state is
+      reported as numerically unresolved: n_H is about 1e-12 mol at pH 12, far below atol 1e-9.
+    reason: >-
+      The two outcomes differ by log10(10) = 1.00 pH at 10 L. A band of 0.05, a twentieth of that
+      difference, separates them whatever the event-location error of the solver, provided that
+      error stays below the band (reported beside the result).
+    published_10L: >-
+      the unmodified 10 L result is compared with the Fig. 5a 10 L column under the R2 rule.
+      Agreement means that column was produced with the stop event as coded.
+  V1:
+    what: validation; time to pH 12 of the measured Fig. 3c trajectory vs the authors' model without stop condition
+    model_inputs: V_tank 0.020 L, j 100 mA/cm2, A 5 cm2, c_OH,0 0.1 M (other initial values as the script), WDE from Fig. 4a at 0.1 M, C_xover = j_HCO3 / (j_HCO3 + j_K) from Fig. 4c at 0.1 M
+    t12_measured: first time the measured pH is at or below 12, linearly interpolated between neighbouring points
+    t12_model: first time the model pH (14 + log10 c_OH, the authors' reported pH) is at or below 12
+    rule: >-
+      t12_measured lies within the envelope of t12_model over the input corners WDE +/- 2 sd and
+      C_xover +/- 2 sd (sd from Fig. 4a and, propagated, Fig. 4c)
+    reason: >-
+      The model is not fitted to Fig. 3c. Its only uncertain inputs are the two measured
+      efficiencies, so the prediction is uncertain by their replicate spread (about 95 % at 2 sd).
+      A measured time outside that envelope means the model misses something that matters, such
+      as CO2 uptake, probe drift or a different effective WDE over 4 h. It is then reported as not
+      validated.
+    also_reported: pH RMSE over the measured time range; whether the measured pH reaches 12 at all (if not, V1 is a gap)
+
+pass_rule: >-
+  Each check is reported on its own. R1 and R2 are reproduction; V1 is validation; D1 is a
+  classification. They are never pooled into one verdict. A check that cannot be evaluated is
+  reported as a gap, not a pass.
