@@ -35,6 +35,7 @@ import numpy as np
 import scipy
 import yaml
 from scipy.integrate import solve_ivp
+from scipy.optimize import brentq
 from scipy.sparse import lil_matrix
 
 matplotlib.use("svg")
@@ -55,6 +56,11 @@ SVG_META = {"Date": None, "Creator": "cheme reproductions #336 run.py"}
 INP = yaml.safe_load((HERE / "inputs.yaml").read_text())
 SRC = yaml.safe_load((HERE / "source.yaml").read_text())
 TOL = yaml.safe_load((HERE / "tolerances.yaml").read_text())
+# Written after the first comparison run (see their headers): a stricter tolerance budget,
+# reported as a sensitivity view next to the frozen verdict, and the post-freeze addendum
+# (corrections to source.yaml and inputs.yaml; validity limits used to flag the extension).
+TOL_STRICT = yaml.safe_load((HERE / "tolerances-strict-budget.yaml").read_text())
+ADD = yaml.safe_load((HERE / "addendum.yaml").read_text())
 
 
 def v(section: str, key: str):
@@ -117,8 +123,8 @@ def hydro(u0: float, umf: float, db: float, D: float, eps_mf: float = EPS_MF) ->
     return {"u_b": ub, "delta": delta, "K_be": kbe}
 
 
-def h_star(u0: float, umf: float, db: float, D: float, eta: float) -> float:
-    h = hydro(u0, umf, db, D)
+def h_star(u0: float, umf: float, db: float, D: float, eta: float, eps_mf: float = EPS_MF) -> float:
+    h = hydro(u0, umf, db, D, eps_mf)
     return h["u_b"] / h["K_be"] * math.log(h["u_b"] * h["delta"] / (u0 * (1.0 - eta)))
 
 
@@ -283,6 +289,25 @@ def dynamic(mass: float, H0_: float, dt: float, db: float, P_tma: float, u0: flo
         "cem": Y[iem], "nfev": int(sol.nfev),
     }
     if t99 == t99:
+        # Slip decomposition at mid-pulse (quasi-steady period). Eq. 7.51 assumes C_em = 0; in
+        # our model the emulsion keeps a small concentration, which leaves with the emulsion gas
+        # and also lifts the bubble-phase outlet concentration.
+        tm = 0.5 * t99
+        cem_m = float(np.interp(tm, sol.t, Y[iem]))
+        cbh_m = float(np.interp(tm, sol.t, Y[nz - 1]))
+        cout_m = float(np.interp(tm, sol.t, c_out))
+        a = H * kbe / ub
+        res["mid_pulse"] = {
+            "t_s": tm,
+            "slip_dynamic": cout_m,
+            "slip_eq_7_51": 1.0 - eta_qss(u0, UMF, db, D, H),
+            "slip_ratio_dynamic_over_eq_7_51": cout_m / (1.0 - eta_qss(u0, UMF, db, D, H)),
+            "C_em_over_C_in": cem_m,
+            "C_b_outlet_over_C_in": cbh_m,
+            "C_b_outlet_eq_7_51": math.exp(-a),
+            "C_b_outlet_qss_with_C_em": cem_m + (1 - cem_m) * math.exp(-a),
+            "emulsion_share_of_slip": UMF * (1 - delta) * cem_m / (u0 * cout_m),
+        }
         cum_out_99 = float(np.interp(t99, sol.t, Y[icum]))
         res["at_t99"] = {
             "c_out": float(np.interp(t99, sol.t, c_out)),
@@ -319,9 +344,20 @@ def scaled_geometry(mass: float, strategy: str) -> dict:
     db = darton_db(H / 2)
     tdh = 1000 * U0**2 / G
     return {"mass_kg": mass, "strategy": strategy, "H0_m": h0, "d_t_m": dt, "H_m": H,
-            "H0_over_dt": h0 / dt, "d_b_darton_m": db, "TDH_m": tdh,
+            "H0_over_dt": h0 / dt, "H_over_dt": H / dt, "d_b_darton_m": db, "TDH_m": tdh,
             "plenum_m": v("extension", "plenum"), "filter_m": v("extension", "filter_section"),
             "vessel_height_m": v("extension", "plenum") + H + tdh + v("extension", "filter_section")}
+
+
+def in_range(g: dict) -> dict:
+    """Validity limits for the scaled beds (addendum.yaml extension_validity)."""
+    lim = ADD["extension_validity"]
+    h_dt = g["H_m"] / g["d_t_m"]
+    return {
+        "H_over_dt_within_0.1_to_4": lim["H_over_dt"]["min"] <= h_dt <= lim["H_over_dt"]["max"],
+        "H0_over_dt_below_2": g["H0_m"] / g["d_t_m"] < lim["H0_over_dt_max"]["value"],
+        "d_b_over_d_t_below_slugging_margin": g["d_b_darton_m"] / g["d_t_m"] <= lim["db_over_dt_max"]["value"],
+    }
 
 
 # ----------------------------------------------------------------------------------------
@@ -402,18 +438,31 @@ def fig_pulse(runs):
     save(fig, "fig3-pulse-breakthrough-coverage.svg")
 
 
-def fig_sweep(sweep):
-    fig, axs = plt.subplots(1, 2, figsize=(8.0, 3.2))
+def fig_sweep(sweep, dyn):
+    fig, axs = plt.subplots(1, 2, figsize=(8.4, 3.4))
     for s, c in (("A", COL[1]), ("B", COL[3])):
         m = [x["mass_kg"] for x in sweep[s]]
-        axs[0].plot(m, [x["pulse_estimate_s"] for x in sweep[s]], "o-", color=c, label=f"strategy {s}")
-        axs[1].plot(m, [max(1 - x["eta_qss"], 1e-12) for x in sweep[s]], "o-", color=c, label=f"strategy {s}")
+        ok = [x["in_range"] for x in sweep[s]]
+        y0 = [x["pulse_estimate_s"] for x in sweep[s]]
+        y1 = [max(1 - x["eta_qss"], 1e-12) for x in sweep[s]]
+        for ax, y, what in ((axs[0], y0, ""), (axs[1], y1, ", Eq. 7.51")):
+            ax.plot(m, y, "-", color=c, lw=1)
+            ax.plot([a for a, k in zip(m, ok) if k], [b for b, k in zip(y, ok) if k], "o", color=c,
+                    label=f"strategy {s}{what}")
+            if not all(ok):
+                ax.plot([a for a, k in zip(m, ok) if not k], [b for b, k in zip(y, ok) if not k], "x", color=c,
+                        ms=7, mew=1.5, label=f"strategy {s}, outside H/d_t 0.1-4")
+    for key, (lab, c, mk) in {"base": ("lab", COL[0], "s"), "A": ("1 kg A", COL[1], "*"), "B": ("1 kg B", COL[3], "*")}.items():
+        axs[1].plot(dyn[key]["geometry"]["mass_kg"], dyn[key]["mid_pulse"]["slip_dynamic"], mk, color=c, ms=9,
+                    mfc="none", label=f"{lab}, our dynamic model (mid-pulse)")
+    axs[1].axhline(1e-4, color="0.4", lw=0.8, ls="--")
+    axs[1].text(0.025, 1.15e-4, "H* sized for 1 - eta = 1e-4", fontsize=6.5, color="0.3")
     axs[0].set(xscale="log", xlabel="batch mass [kg]", ylabel="TMA pulse to 99 % coverage [s]",
                title="Pulse time (tau_sat_min x 0.99 / eta)")
     axs[1].set(xscale="log", yscale="log", xlabel="batch mass [kg]", ylabel="precursor slip 1 - eta [-]",
-               title="Quasi-steady precursor slip (Eq. 7.51)", ylim=(1e-6, 1e-3))
-    for ax in axs:
-        ax.legend(frameon=False, fontsize=7)
+               title="Precursor slip: Eq. 7.51 (C_em = 0) vs dynamic", ylim=(1e-6, 1e-2))
+    axs[0].legend(frameon=False, fontsize=7)
+    axs[1].legend(frameon=False, fontsize=6, loc="lower right", ncol=1)
     fig.suptitle("A: H0 = 6 cm, d_t widened; B: H0/d_t = 1.  d_b from Darton (HYPOTHETICAL)", fontsize=9)
     save(fig, "fig4-batch-sweep.svg")
 
@@ -486,7 +535,7 @@ def section_view(geoms: list[dict], name: str):
         x0 += dt + gap
     txt = ("HYPOTHETICAL design extension, not validated.  Dimensions in mm, drawn to scale.\n"
            "Assumptions: u0 = 7 cm/s (1.4 u_mf, u_mf = 5 cm/s at lab scale); bubbling (ABF) fluidisation of\n"
-           "P-25 agglomerates (d_ag 300 um, rho_ag 47 kg/m3: Geldart group A by size and density, indicative);\n"
+           "P-25 agglomerates (d_ag 300 um, rho_ag 47 kg/m3: not Geldart group B; A or C undetermined);\n"
            "bed expansion H/H0 = 1.7 (lab value); d_b from Darton et al. (1977) at mid-bed; freeboard =\n"
            "TDH = 1000 u0^2/g (Fournol et al. 1973, group A); 150 mm filter section; 100 mm plenum.\n"
            "Dashed line: settled bed H0.  Bubbles drawn at d_b to scale.")
@@ -502,6 +551,16 @@ def section_view(geoms: list[dict], name: str):
 # ----------------------------------------------------------------------------------------
 # Main
 # ----------------------------------------------------------------------------------------
+# Comparisons that are not independent of another counted comparison (reported next to the
+# frozen count; the frozen rule still counts all 38).
+NOT_INDEPENDENT = {
+    "tau_sat_min_0.1mbar": "same formula as the 100 mbar check with the inlet scaled by 1000: identical deviation",
+    "tau_ga_mbar": "follows from the reconstructed D scaled as 1/P: tests the source's arithmetic, not our model",
+    "thiele_atm": "equals sqrt(tau_c / tau_rxn) at 1.013 bar with the reported tau_rxn: not independent of tau_c",
+    "thiele_mbar": "equals sqrt(tau_sa / tau_rxn) at 1 mbar with the reported tau_rxn: not independent of tau_sa",
+}
+
+
 def check(name, group, ref, ours, tol_key, unit=""):
     tol = TOL["checks"][tol_key]
     if "rel" in tol:
@@ -512,9 +571,35 @@ def check(name, group, ref, ours, tol_key, unit=""):
         dev = ours - ref
         ok = abs(dev) <= tol["abs"]
         tol_s = {"abs": tol["abs"]}
-    return {"name": name, "group": group, "reference": sig(ref), "ours": sig(ours), "unit": unit,
-            "deviation": sig(dev, 4), "deviation_kind": "rel" if "rel" in tol else "abs",
-            "tolerance": tol_s, "tolerance_key": tol_key, "status": "pass" if ok else "fail"}
+    lim = tol.get("rel", tol.get("abs"))
+    out = {"name": name, "group": group, "reference": sig(ref), "ours": sig(ours), "unit": unit,
+           "deviation": sig(dev, 4), "deviation_kind": "rel" if "rel" in tol else "abs",
+           "tolerance": tol_s, "tolerance_key": tol_key, "status": "pass" if ok else "fail",
+           "margin": sig(lim - abs(dev), 4)}
+    if group != "internal":
+        out["independent"] = tol_key not in NOT_INDEPENDENT
+    return out
+
+
+def strict_tolerance(c: dict, envelope_half: float = 0.0) -> dict:
+    """Tolerance of one check under tolerances-strict-budget.yaml (a sensitivity view)."""
+    t = TOL_STRICT["checks"][c["tolerance_key"]]
+    if "abs" in t:
+        return {"abs": t["abs"]}
+    if "rel" in t:
+        return {"rel": t["rel"]}
+    ref = c["reference"]
+    return {"rel": t["digitisation_abs"] / ref + envelope_half / ref + t["rel_inputs"]}
+
+
+def verdict_of(checks: list[dict], status_key: str = "status") -> str:
+    n_pass = sum(c[status_key] == "pass" for c in checks)
+    head_ok = all(c[status_key] == "pass" for c in checks if c["group"] in ("G1", "G3"))
+    if n_pass == len(checks):
+        return "PASS"
+    if n_pass >= 0.75 * len(checks) and head_ok:
+        return "PARTIAL"
+    return "FAIL"
 
 
 def main() -> int:
@@ -563,10 +648,12 @@ def main() -> int:
             ours = 100 * h_star(1.5 * umf, umf, d / 100, D_mol(P_ATM), 0.9999)
             checks.append(check(f"H* Fig. 7.4a, u_mf = {umf * 100:g} cm/s, d_b = {d:g} cm", "G4",
                                 f74["panel_a_1.013_bar"][key][i], ours, "Hstar_fig_7_4a", "cm"))
+    envelope_half = {}
     for i, d in enumerate(f74["d_b_cm"][:4]):
         ref = 0.5 * (f74["panel_b_1_mbar"]["min"][i] + f74["panel_b_1_mbar"]["max"][i])
         ours = float(np.mean([100 * h_star(1.5 * u, u, d / 100, D_mol(P_MBAR), 0.9999) for u in umfs]))
         checks.append(check(f"H* Fig. 7.4b (mean over u_mf), d_b = {d:g} cm", "G4", ref, ours, "Hstar_fig_7_4b", "cm"))
+        envelope_half[checks[-1]["name"]] = 0.5 * (f74["panel_b_1_mbar"]["max"][i] - f74["panel_b_1_mbar"]["min"][i])
 
     # G5: dynamic model, base case
     P_tma = v("dynamic_model", "P_TMA_in")
@@ -586,19 +673,80 @@ def main() -> int:
     ]
     # grid study (base, coarse grid)
     coarse = dynamic(MASS0, H0, DT0, DB, P_tma, nz=200, nr=20, t_profile=19.9)
+    # G5 values corrected for the first-order upwind error: Richardson extrapolation of the
+    # N_z = 400 and 200 runs, and the analytic quasi-steady profile with our C_em. Reported
+    # against the frozen G5 tolerance for information; the counted G5 values are the N_z = 400 ones.
+    a_base = base["hydro"]["H_Kbe_over_ub"]
+    cem19 = base["profile"]["cem"]
+    g5_corrected = []
+    for zq in (0.1, 0.2, 0.4):
+        ref = prof["t_19.9_s"][prof["z_over_H"].index(zq)]
+        fine = float(np.interp(zq, base["profile"]["z_over_H"], base["profile"]["cb"]))
+        crs = float(np.interp(zq, coarse["profile"]["z_over_H"], coarse["profile"]["cb"]))
+        rich = 2 * fine - crs
+        ana = cem19 + (1 - cem19) * math.exp(-a_base * zq)
+        lim = TOL["checks"]["bubble_profile_fig_7_3"]["abs"]
+        g5_corrected.append({"z_over_H": zq, "reference": ref, "ours_Nz400": sig(fine, 4), "ours_Nz200": sig(crs, 4),
+                             "richardson": sig(rich, 4), "analytic_qss_with_C_em": sig(ana, 4),
+                             "deviation_richardson": sig(rich - ref, 4),
+                             "status_richardson_frozen_tol": "pass" if abs(rich - ref) <= lim else "fail"})
 
-    # verdict
+    # verdict (frozen rule, tolerances.yaml)
     n_all = len(checks)
     n_pass = sum(c["status"] == "pass" for c in checks)
     head_ok = all(c["status"] == "pass" for c in checks if c["group"] in ("G1", "G3"))
     if not all(c["status"] == "pass" for c in internal):
         verdict = "invalid run"
-    elif n_pass == n_all:
-        verdict = "PASS"
-    elif n_pass >= 0.75 * n_all and head_ok:
-        verdict = "PARTIAL"
     else:
-        verdict = "FAIL"
+        verdict = verdict_of(checks)
+    need = math.ceil(0.75 * n_all)
+    borderline = [{"name": c["name"], "deviation": c["deviation"], "tolerance": c["tolerance"], "margin": c["margin"]}
+                  for c in checks if c["status"] == "pass"
+                  and abs(c["deviation"]) >= 0.85 * c["tolerance"].get("rel", c["tolerance"].get("abs"))]
+    indep = [c for c in checks if c["independent"]]
+    margin_info = {
+        "passes_needed_for_PARTIAL": need, "passes": n_pass, "passes_above_threshold": n_pass - need,
+        "borderline_passes_within_15pc_of_limit": borderline,
+        "independent_comparisons": len(indep),
+        "independent_passes": sum(c["status"] == "pass" for c in indep),
+        "independent_pass_fraction": sig(sum(c["status"] == "pass" for c in indep) / len(indep), 4),
+        "not_independent": NOT_INDEPENDENT,
+        "note": "The frozen rule counts all 38 comparisons; the independent count is information only.",
+    }
+    # sensitivity view: the same pass rule under the stricter budget (not the verdict of record)
+    strict_checks = []
+    for c in checks:
+        st = strict_tolerance(c, envelope_half.get(c["name"], 0.0))
+        lim = st.get("rel", st.get("abs"))
+        strict_checks.append({"name": c["name"], "group": c["group"], "deviation": c["deviation"],
+                              "tolerance": {k: sig(x, 4) for k, x in st.items()},
+                              "status": "pass" if abs(c["deviation"]) <= lim else "fail"})
+    strict_by_group = {}
+    for c in strict_checks:
+        strict_by_group.setdefault(c["group"], [0, 0])
+        strict_by_group[c["group"]][0] += c["status"] == "pass"
+        strict_by_group[c["group"]][1] += 1
+    strict = {
+        "tolerances_file": "tolerances-strict-budget.yaml",
+        "label": "sensitivity view written after the run; NOT the verdict of record",
+        "verdict": verdict_of(strict_checks),
+        "checks_passed": sum(c["status"] == "pass" for c in strict_checks), "checks_total": len(strict_checks),
+        "by_group": {k: f"{a}/{b}" for k, (a, b) in sorted(strict_by_group.items())},
+        "checks": strict_checks,
+    }
+    # G3 1 mbar anchor: how far H* moves with the source's rounded or unstated inputs
+    d_rel = TOL_STRICT["d_rounding_rel"]
+    g3_sens = {
+        "base_cm": sig(100 * h_star(0.075, 0.05, 0.045, D_mol(P_MBAR), 0.9999), 4),
+        "D_minus_rounding_cm": sig(100 * h_star(0.075, 0.05, 0.045, D_mol(P_MBAR) * (1 - d_rel), 0.9999), 4),
+        "D_plus_rounding_cm": sig(100 * h_star(0.075, 0.05, 0.045, D_mol(P_MBAR) * (1 + d_rel), 0.9999), 4),
+        "eps_mf_0.45_cm": sig(100 * h_star(0.075, 0.05, 0.045, D_mol(P_MBAR), 0.9999, 0.45), 4),
+        "eps_mf_0.55_cm": sig(100 * h_star(0.075, 0.05, 0.045, D_mol(P_MBAR), 0.9999, 0.55), 4),
+        "eps_mf_for_6.5_cm": None,
+        "D_factor_for_6.5_cm": None,
+    }
+    g3_sens["eps_mf_for_6.5_cm"] = sig(brentq(lambda e: 100 * h_star(0.075, 0.05, 0.045, D_mol(P_MBAR), 0.9999, e) - 6.5, 0.3, 0.99), 4)
+    g3_sens["D_factor_for_6.5_cm"] = sig(brentq(lambda f: 100 * h_star(0.075, 0.05, 0.045, D_mol(P_MBAR) * f, 0.9999) - 6.5, 0.8, 2.0), 4)
     by_group = {}
     for c in checks:
         gname = c["group"]
@@ -618,16 +766,19 @@ def main() -> int:
             eta = eta_qss(U0, UMF, g["d_b_darton_m"], D_mol(P_ATM), g["H_m"])
             tmin = tau_sat_min(v("extension", "P_TMA_in"), g["H0_m"])
             hreq = h_star(U0, UMF, g["d_b_darton_m"], D_mol(P_ATM), 0.9999)
+            flags = in_range(g)
             sweep[s].append({**{k: sig(x) if isinstance(x, float) else x for k, x in g.items()},
                              "eta_qss": sig(eta, 10), "tau_sat_min_s": sig(tmin),
-                             "pulse_estimate_s": sig(0.99 * tmin / eta), "H_star_9999_m": sig(hreq)})
+                             "pulse_estimate_s": sig(0.99 * tmin / eta), "H_star_9999_m": sig(hreq),
+                             "H_star_over_H": sig(hreq / g["H_m"], 4),
+                             "range_checks": flags, "in_range": all(flags.values())})
     gB = geo["B"]
     sens_db = [{"d_b_cm": d * 100, "eta_qss": sig(eta_qss(U0, UMF, d, D_mol(P_ATM), gB["H_m"]), 10),
                 "H_star_9999_cm": sig(100 * h_star(U0, UMF, d, D_mol(P_ATM), 0.9999), 4)}
                for d in (0.01, gB["d_b_darton_m"], 0.045, 0.08)]
     geldart = {"rho_ag_g_cm3": AG["rho3"]["value"] / 1000, "d_ag_um": D_AG * 1e6,
                "product": AG["rho3"]["value"] / 1000 * D_AG * 1e6, "A_B_boundary_product": 225,
-               "group": "A (indicative; behaves as ABF, agglomerate bubbling fluidisation)"}
+               "group": "not B; A or C undetermined (agglomerates lie off Geldart's chart; the source treats the bed as ABF, agglomerate bubbling fluidisation)"}
 
     def summary(r, g=None):
         out = {"geometry": {k: sig(x) for k, x in r["geometry"].items()},
@@ -637,6 +788,7 @@ def main() -> int:
                "tau_sat_min_s": sig(r["tau_sat_min_s"]), "t99_s": sig(r["t99_s"]),
                "eta_qss": sig(r["eta_qss"], 10), "mass_balance_rel": sig(r["mass_balance_rel"], 3),
                "at_t99": {k: sig(x) for k, x in r.get("at_t99", {}).items()},
+               "mid_pulse": {k: sig(x, 4) for k, x in r.get("mid_pulse", {}).items()},
                "TMA_flow_g_min": sig(r["hydro"]["u0"] * r["geometry"]["area_m2"] * r["C_in_mol_m3"] * M_TMA * 60),
                "TMA_per_batch_g": sig(r["at_t99"]["TMA_fed_mol"] * M_TMA) if "at_t99" in r else None}
         if g:
@@ -651,7 +803,9 @@ def main() -> int:
         "verdict": verdict, "checks_passed": n_pass, "checks_total": n_all,
         "by_group": {k: f"{a}/{b}" for k, (a, b) in sorted(by_group.items())},
         "headline_checks_G1_G3_all_pass": head_ok,
+        "verdict_margin": margin_info,
         "checks": checks, "internal_checks": internal,
+        "strict_budget_sensitivity": strict,
         "not_evaluable": [
             {"target": "saturation time 46.4 s of the full dynamic model (Fig. 7.3)", "reason": "TMA inlet concentration not stated; our P_TMA,in is reconstructed from this value"},
             {"target": "cumulative CH4 about 1.5 per TMA (Fig. 7.1a)", "reason": "Travis rate laws and parameters not given; our kinetics are lumped"},
@@ -667,6 +821,9 @@ def main() -> int:
             "time_scales_1_mbar": {k: sig(x) for k, x in mb.items()},
             "fig_7_3_slope_H_Kbe_over_ub_ours": sig(base["hydro"]["H_Kbe_over_ub"], 4),
             "fig_7_3_slope_from_digitised_z0.1_z0.2": sig(-(math.log(prof["t_19.9_s"][2]) - math.log(prof["t_19.9_s"][1])) / 0.1, 4),
+            "Hstar_1mbar_text_anchor_sensitivity": g3_sens,
+            "G5_corrected_for_upwind_error": g5_corrected,
+            "internal_check_note": "dynamic_vs_qss_eta compares eta in absolute terms (frozen limit 1e-3) while 1 - eta_qss is about 4e-5, so it cannot detect a large relative difference in slip; see dynamic_base.mid_pulse for the slip ratio",
             "Hstar_1mbar_text_anchor_by_umf_cm": {f"{u * 100:g}": sig(100 * h_star(1.5 * u, u, 0.045, D_mol(P_MBAR), 0.9999), 4) for u in umfs},
             "grid_study": {"t99_fine_s": sig(base["t99_s"]), "t99_coarse_s": sig(coarse["t99_s"]),
                            "cb_z0.1_fine": sig(float(np.interp(0.1, base["profile"]["z_over_H"], base["profile"]["cb"])), 4),
@@ -689,15 +846,18 @@ def main() -> int:
     fig_hstar(None, None, f74)
     fig_profile(base, prof)
     fig_pulse({"base": base, "A": runA, "B": runB})
-    fig_sweep(sweep)
+    fig_sweep(sweep, {"base": base, "A": runA, "B": runB})
     section_view([geo["A"], geo["B"]], "fig5-section-view-1kg.svg")
 
-    print(f"verdict: {verdict} ({n_pass}/{n_all}); by group {result['by_group']}")
+    print(f"verdict: {verdict} ({n_pass}/{n_all}, {need} needed); by group {result['by_group']}")
+    print(f"  independent comparisons: {margin_info['independent_passes']}/{margin_info['independent_comparisons']};"
+          f" strict-budget view: {strict['verdict']} ({strict['checks_passed']}/{strict['checks_total']}) {strict['by_group']}")
     for c in checks + internal:
         print(f"  [{c['status']:4}] {c['name']}: ref {c['reference']} ours {c['ours']} dev {c.get('deviation')}")
     for s, r in (("base", base), ("A", runA), ("B", runB)):
         print(f"  {s}: d_t {r['geometry']['d_t_m']:.3f} m, H {r['geometry']['H_m']:.3f} m, d_b {r['geometry']['d_b_m'] * 100:.2f} cm,"
-              f" tau_min {r['tau_sat_min_s']:.1f} s, t99 {r['t99_s']:.1f} s, eta_qss {r['eta_qss']:.6f}, mb {r['mass_balance_rel']:.1e}")
+              f" tau_min {r['tau_sat_min_s']:.1f} s, t99 {r['t99_s']:.1f} s, eta_qss {r['eta_qss']:.6f},"
+              f" slip dyn/qss {r['mid_pulse']['slip_dynamic']:.2e}/{r['mid_pulse']['slip_eq_7_51']:.2e}, mb {r['mass_balance_rel']:.1e}")
     return 0
 
 
