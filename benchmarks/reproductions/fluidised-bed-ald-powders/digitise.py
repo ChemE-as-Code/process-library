@@ -17,7 +17,7 @@ Method: the plotted curves are stored in the PDF as polylines (50 segments each)
 frame and the tick-label centres give a linear map from page points to data units. Each curve
 is then linearly interpolated at the requested abscissae.
 
-    uv run benchmarks/reproductions/fluidised-bed-ald-powders/digitise.py
+    uv run benchmarks/reproductions/fluidised-bed-ald-powders/digitise.py [--unrounded]
 """
 
 from __future__ import annotations
@@ -99,18 +99,31 @@ def interp(xy: np.ndarray, fx, fy, at: list[float]) -> list[float]:
     return [float(v) for v in np.interp(at, x[order], y[order])]
 
 
+UNROUNDED = "--unrounded" in sys.argv
+
+
 def main() -> None:
     doc = fitz.open(fetch())
     result: dict = {"source_sha256": SHA256}
 
     # Fig. 7.4 (PDF page 221, printed page 198): H* vs d_b.
     page = doc[220]
-    lab = {(t, round(x), round(y)) for t, x, y in label_centres(page, 280, 440)}
+    # Label centres rounded to whole points, as when the source.yaml values were read (the
+    # rounding is inside the stated +-0.5 pt uncertainty); --unrounded shows the sensitivity.
+    lab = label_centres(page, 280, 440)
+    if not UNROUNDED:
+        lab = [(t, round(x), round(y)) for t, x, y in lab]
+
     def find(text, xmin, xmax, which):
+        # exactly one label must match, otherwise the calibration would be ambiguous
         c = [(x, y) for t, x, y in lab if t == text and xmin < x < xmax]
+        assert len(c) == 1, (text, xmin, xmax, c)
         return c[0][which]
-    # panel a: x ticks 0 and 4 cm, y ticks 0 and 250 cm; panel b: x 0 and 4 cm, y 0 and 6 cm
-    ax = axis_map(find("0", 155, 170, 0), 0.0, find("4", 250, 260, 0), 4.0)
+    # panel a: x ticks 0 and 4 cm, y ticks 0 and 250 cm; panel b: x 0 and 4 cm, y 0 and 6 cm.
+    # The x-tick "0" (centre x = 162.4) and the y-tick "0" (x = 157.1) are told apart by x.
+    # (A first version of this script matched both and picked one in set order; the
+    # source.yaml values were read with the x-tick, which coincides with the curves' origin.)
+    ax = axis_map(find("0", 160, 170, 0), 0.0, find("4", 250, 260, 0), 4.0)
     ay = axis_map(find("0", 150, 160, 1), 0.0, find("250", 140, 165, 1), 250.0)
     bx = axis_map(find("0", 290, 300, 0), 0.0, find("4", 380, 395, 0), 4.0)
     by = axis_map(find("0", 285, 293, 1), 0.0, find("6", 285, 293, 1), 6.0)
