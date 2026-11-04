@@ -1436,6 +1436,83 @@ P-07 (flare, nitrogen and natural gas headers) and P-08 (cooling water and steam
   (`layout/plant-model.yaml`) is left for S5: rebuilt now, it routes the new P&ID nozzles and
   reports walkway-riser and escape-way findings that the 3D layout section resolves.
 
+### D-026 Control and lists: loops, fail positions, sequences, trips, narrative, philosophy (2026-11-04, S4)
+Decision: the control intent of hda-1 is recorded in `control/loops.yaml`, `sequences.yaml`,
+`cause-effect.yaml`, `process/narrative.md` and `control/philosophy.md`, as ammonia-1's D-030
+did. All of it is PROPOSED: it states intent for the HAZOP (S6) and the reviewers and claims no
+SIL, no independence of layers and no safe operating limit.
+
+Loops (28, one per controller on P-01 to P-06; `cheme control report` 0 findings):
+- Load and recycle: FIC-103 sets the plant load (toluene, the limiting reactant); the fresh
+  toluene is on the V-100 level (LIC-102) and the toluene recycle on the V-203 level (LIC-606),
+  so the recycle balances itself. FIC-106 holds the P-101 minimum flow.
+- H2/aromatics ratio: not a loop. The recycle gas is fixed by K-101 (no capacity control drawn)
+  and the loop pressure, so the ratio follows the toluene; FFI-217 indicates it and its low alarm
+  is on FIC-103 with the response "reduce the load". A low-low ratio trip into US-122 is not
+  added: FFI-217 is computed from an analyser (AIC-210) and three flows, and composition
+  measurements are avoided in safety functions (skill control-safeguarding-and-interlocks); the
+  coil flow trip I-101 and the compressor trips I-202/I-203 cover the loss of recycle gas, which is
+  the credible cause of a fast ratio drop. The HAZOP (S6) may revisit this.
+- Reactor: TIC-111 on the fuel (setpoint S7), TIC-115 on the quench (setpoint S9); loop pressure
+  PIC-205 cascades onto the make-up hydrogen FIC-108; the recycle gas hydrogen AIC-210 (40 mol%,
+  D-007) cascades onto the purge FIC-211; UIC-207 anti-surge. PSA: PIC-301 on the product
+  back-pressure (S30), PIC-303 on the K-102 spillback (S33). Columns: tray temperature on the
+  reboiler steam, reflux on flow (C-202, C-203) or on the drum level (C-201, no liquid
+  distillate, D-008), distillate or recycle on the drum level, bottoms on the sump level, pressure
+  on the off-gas (C-201), the vent with a nitrogen pad (V-100, V-202) or the vacuum package
+  suction (C-203).
+- Setpoints: a design-case value of `process/flowsheet.yaml` wherever one exists (temperatures and
+  pressures linked with `stream:` so validate keeps them in step). The three flow setpoints
+  (FIC-103 S3, FIC-108 S4, FIC-211 S13) name their stream in `source` only: core 1.4.1 compares a
+  kg/h target with a kg/h stream value only through Pint (`foundation/units._convert` sends every
+  unit outside K, °C and the pressures to Pint, even an identical one), and the plant validate job
+  installs core without the `units` extra, so a link would leave a `cheme.control-case` info that
+  the gate `control-complete` fails on. Reported as core issue (see the PR); the link is restored
+  once core compares identical units. Reflux setpoints are R times the design distillate (FIC-507
+  2.18 x 12498.2 = 27246 kg/h; FIC-607 0.5 x 4884.74 = 2442.4 kg/h), own calculation.
+- ASSUMED (the reason in each target's source): levels 50 %; the V-100 and V-202 vents at
+  155 kPa(a), 5 kPa above the 150 kPa(a) operating pressure with the pads 5 kPa below; the P-101
+  minimum flow 6100 kg/h (30 % of S3) until the vendor; the K-101 control line 10 % from the surge
+  line; the column tray setpoints at the simulated bottoms temperatures (S20, S22, S24) until the
+  column design (S7) gives the control tray, since the shortcut models give no tray profile.
+
+Fail positions (review 2026-11-04-basic-pids#29): all 33 actuated valves now carry one on the
+P&IDs (FailAction and an F.C./F.O. label, `scripts/s4_fail_positions.py`) and in the instrument
+list. The rule: the failure goes to the safe side of the valve's own hazard. Closed (F.C.): feed,
+fuel and hydrogen (FV-103, LV-102, FV-108, TV-111, XV-112, XV-120, XV-121, XV-125), steam
+(TV-402, TV-502, TV-602), let-down and bottoms between pressure levels and products (LV-202,
+XV-204, LV-408, LV-506, LV-508, LV-606, LV-608), the purge and the PSA product (FV-211, PV-301)
+and the vacuum suction PV-604 (isolates C-203 from the package and the flare when PK-201 stops;
+C-203 is full-vacuum rated). Open (F.O.): the depressuring valve XV-209 (a depressuring valve
+that fails closed does not depressure on loss of air or power, so loss of instrument air
+depressures the loop: the hot hydrogen loop without firing control is safest at low pressure),
+the fuel bleed XV-126, the anti-surge UV-207 and the spillback PV-303 (machine protection), the
+minimum flow FV-106, the quench TV-115, the vents PV-104 and PV-504 and the off-gas PV-404 (no
+overpressure), the refluxes LV-405, FV-507 and FV-607 (column tops kept cool). For the HAZOP (S6)
+to confirm.
+
+Trips (`control/cause-effect.yaml`): the nine S3b trips get a delay, latching, a manual reset
+condition and their bypass (start-up bypasses only on I-101, I-103, I-201, I-401, I-501, I-601,
+each removed at a named sequence step), all ASSUMED as usual practice for a first issue; no trip
+setpoint is given (they need the design limits and S6). Added: I-105 burner management of the
+H-101 package (flame failure, purge, air; acts on the plant fuel double block and bleed) and I-203
+K-101 machine protection (stops K-101, cuts the feed as I-202 does). Both have the package item as
+their cause, since the trip sensors are vendor scope and not on the P&IDs (D-025 open items). No
+trip acts on a control valve of the loop register; UIC-207 opens UV-207 on a machine stop by its
+own anti-surge function. Questions for S6: sensor voting of I-102 (one TZ-113 drawn), whether I-104
+and I-105 should also cut the feed, the SIL of every trip.
+
+Sequences (7): SEQ-START-RXN (nitrogen purge, hydrogen pressure-up, K-101 on full recycle,
+heater light-off by the BMS and heat-up on circulating hydrogen, V-100 and P-101 on minimum
+flow, toluene at 30 %, quench and let-down, design load and the cascades), SEQ-START-PSA,
+SEQ-START-DIST, SEQ-SD-PLANT, SEQ-TRIP-RXN, SEQ-TRIP-PSA, SEQ-EDP. Rates, temperatures and step
+times ASSUMED (start-up toluene 6100 kg/h = 30 % of S3, make-up 100 kg/h, heat-up hold 873.15 K =
+22 K below S7, PSA purge 1000 kg/h) until the vendors' procedures. Connections the sequences need
+that the P&IDs do not show, for S9: nitrogen purge points and loop vents, the PSA start-up and
+the benzene off-specification routing, valve position feedback (limit switches) on the XV valves,
+the nitrogen connection that breaks the C-203 vacuum. The control system and the trip logic are
+taken to be on an uninterruptible supply (ASSUMED).
+
 ## LCI summary (lca/inventory.csv, per kg benzene)
 
 Regenerated in S3a (D-024) from the inventory with the purge hydrogen PSA (`cheme assess lca --write`,

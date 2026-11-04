@@ -2,29 +2,569 @@
 # PROPOSED control intent, not approved for implementation; the review status comes from reviews/.
 # Trips are not loops: they go in control/cause-effect.yaml, which `interlocks` refers to.
 # Conventions (action, fail, travel, split range) and the checks: skill control-loops.
-# Leave a value out until it is known (action, fail, value): validate reports it as
-# cheme.control-incomplete (info), and a stage gate decides when it must be given.
+# S4 (D-026): one entry per controller drawn on P-01 to P-06 (28 loops). Setpoints that are a
+# design-case value of process/flowsheet.yaml name their stream (validate keeps them in step);
+# levels, minimum flows, surge margins, pad/vent pressures and the tray temperatures are ASSUMED
+# (D-026). Fail positions are those drawn on the P&IDs (D-026), for the HAZOP (S6) to confirm.
+# Output 100 % opens a valve (default travel). The H2/aromatics ratio FFI-217 is indicated and
+# alarmed, not controlled (D-025, D-026): its alarm is on FIC-103, the loop the operator moves.
 schema: cheme/loops/v1
-loops: []
-#  - id: FIC-101                        # stable id, usually the loop tag
-#    title: Feed flow
-#    purpose: Hold the feed rate of the operating case.
-#    section: FEED                      # a section of process/narrative.md
-#    cases: [design]                    # operating cases of process/flowsheet.yaml
-#    variable: flow                     # flow, level, temperature, pressure, composition, ...
-#    measurement: [{tag: FT-101}]
-#    controller: FIC-101
-#    action: reverse                    # direct: output rises with the measurement
-#    final_elements:
-#      - {tag: FV-101, kind: valve, actuator: pneumatic, fail: closed}
-#    targets:
-#      - {kind: setpoint, value: 3600, unit: kg/h, provenance: given, source: basis of design,
-#         cases: [design], stream: S1, property: flow}
-#    modes: [manual, auto]
-#    normal_mode: auto
-#    links: []                          # cascade, ratio, feedforward, override
-#    alarms: [{tag: FT-101, condition: FAL, response: check the feed pump}]
-#    interlocks: []                     # related C&E ids
-#    rationale: ""
-#    operator: ""                       # judgement the operator has to make
-#    unresolved: []                     # open points, one per entry
+loops:
+  # ---------------------------------------------------------------- FEED: V-100 and P-101 (P-01)
+  - id: LIC-102
+    title: V-100 level (fresh toluene make-up)
+    purpose: Hold the feed drum level by admitting fresh toluene, so the plant takes exactly the toluene it converts while the toluene recycle comes back from C-203 on its own level control.
+    section: FEED
+    cases: [design]
+    variable: level
+    measurement: [{tag: LIC-102}]
+    controller: LIC-102
+    action: reverse
+    final_elements:
+      - {tag: LV-102, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 50, unit: "%", provenance: assumed, source: "D-026: half of the measuring range, usual for a surge drum, ASSUMED"}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: LIC-102, condition: LAL, response: "Check the fresh toluene supply from the tank farm and LV-102; reduce the reactor feed FIC-103 before the low-low trip I-103 stops the feed pumps."}
+      - {tag: LIC-102, condition: LAH, response: "Check LV-102 and the toluene recycle LIC-606; close the battery limit valve by hand if LV-102 does not close."}
+    interlocks: [I-103]
+    rationale: The fresh feed is the make-up of a recycle system, so it is the manipulated variable of the drum level (level-to-feed); the load is set downstream at FIC-103. LV-102 fails closed so that a failure cannot overfill V-100 into its vent; a falling level is protected by I-103.
+    operator: Watches the fresh toluene rate against the benzene make; a fresh feed well above the stoichiometric need points to a toluene loss (biphenyl, fuel gas) or a recycle upset.
+  - id: FIC-103
+    title: Reactor toluene feed (plant load)
+    purpose: Hold the toluene rate to the reaction loop; it sets the plant load and, with the recycle gas, the H2/aromatics ratio at the reactor inlet.
+    section: FEED
+    cases: [design]
+    variable: flow
+    measurement: [{tag: FIC-103}]
+    controller: FIC-103
+    action: reverse
+    final_elements:
+      - {tag: FV-103, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 20311.9, unit: kg/h, provenance: calculated, source: "process/flowsheet.yaml design case, stream S3 flow (DWSIM, D-024); not linked with stream: S3 because core 1.4.1 compares kg/h with kg/h only through Pint, which the plant validate job does not install (D-026)", cases: [design]}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: FFI-217, condition: FFAL, response: "H2/aromatics ratio at the reactor inlet low (D-007 lower limit): reduce FIC-103 until the ratio is back; check K-101 throughput (UIC-207 recycle open?), the loop hydrogen AIC-210 and the make-up FIC-108."}
+      - {tag: FIC-103, condition: FAL, response: "Check P-101/P-101B and FV-103; the reactor outlet temperature falls with the load and TIC-111 follows."}
+    interlocks: [I-101, I-102, I-202, I-203]
+    rationale: The load setter. The toluene is the limiting reactant and the loop gas is held by the compressor and the loop pressure, so the ratio follows the toluene rate; it is therefore indicated (FFI-217) and the operator acts on FIC-103 (D-026). FV-103 fails closed (no feed without control); the trip valve XV-120 on the same line is separate from FV-103.
+    operator: Changes the load in small steps, the gas side first on a rise (the ratio never below its alarm), the toluene first on a fall.
+  - id: PIC-104
+    title: V-100 pressure (vent to flare)
+    purpose: Keep the nitrogen-blanketed feed drum below its vent setpoint by venting to the flare; the self-acting PCV-105 adds nitrogen below its own set point.
+    section: FEED
+    cases: [design]
+    variable: pressure
+    measurement: [{tag: PIC-104}]
+    controller: PIC-104
+    action: direct
+    final_elements:
+      - {tag: PV-104, kind: valve, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: setpoint, value: 155, unit: kPa(a), provenance: assumed, source: "D-026: 5 kPa above the 150 kPa(a) of the drum (S2, D-004), PCV-105 set 5 kPa below it, so the pad and the vent never act together, ASSUMED"}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: PIC-104, condition: PAH, response: "Check PV-104 and the flare header; check PCV-105 for passing before PSV-118 lifts."}
+      - {tag: PIC-104, condition: PAL, response: "Check the nitrogen supply PI-701 and PCV-105; a vacuum would draw air into the drum."}
+    rationale: Split between two devices instead of one split-range controller, since the pad regulator is self-acting. PV-104 fails open, so a failure vents the drum rather than leaving PSV-118 as the only path.
+    operator: Confirms the nitrogen header pressure before the drum is filled.
+  - id: FIC-106
+    title: P-101 minimum flow
+    purpose: Keep the high-head multistage feed pump above its minimum continuous flow by recycling to V-100 when the reactor feed is low.
+    section: FEED
+    cases: [design]
+    variable: flow
+    measurement: [{tag: FIC-106}]
+    controller: FIC-106
+    action: reverse
+    final_elements:
+      - {tag: FV-106, kind: valve, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: setpoint, value: 6100, unit: kg/h, provenance: assumed, source: "D-026: about 30 % of the design flow S3 (20311.9 kg/h), a usual minimum continuous flow of a multistage centrifugal pump, ASSUMED until the pump vendor gives it"}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: FIC-106, condition: FAL, response: "Check FV-106; stop the running pump if the flow stays below the minimum."}
+    interlocks: [I-103]
+    rationale: "The sensor is inside the recycle loop on the pump discharge (centrifugal pump practice, skill control-loops); at the design load FV-106 is closed. FV-106 fails open: pump protection comes before the recycle cost."
+    operator: Never puts FIC-106 in manual with a pump running.
+  # ---------------------------------------------------------------- RXN: make-up H2, heater, reactor, quench (P-01)
+  - id: FIC-108
+    title: Make-up hydrogen flow (slave of the loop pressure)
+    purpose: Admit the make-up hydrogen the reaction and the purge consume, at the rate the loop pressure asks for.
+    section: RXN
+    cases: [design]
+    variable: flow
+    measurement: [{tag: FIC-108}]
+    controller: FIC-108
+    action: reverse
+    final_elements:
+      - {tag: FV-108, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 392.63, unit: kg/h, provenance: given, source: "process/flowsheet.yaml design case, stream S4 flow (given, D-020, D-024); not linked with stream: S4 (kg/h needs Pint in core 1.4.1, D-026)", cases: [design]}
+    modes: [manual, auto, cascade]
+    normal_mode: cascade
+    links:
+      - {type: cascade, loop: PIC-205}
+    transitions:
+      - {from: auto, to: cascade, by: operator, condition: {loop: PIC-205, state: in auto}}
+    alarms:
+      - {tag: FIC-108, condition: FAH, response: "A make-up rate well above the design at constant load means hydrogen leaves the loop somewhere: check the purge FIC-211, XV-209 and the PSVs for passing."}
+    interlocks: [I-101, I-102, I-202, I-203]
+    rationale: "Pressure-to-make-up cascade (D-025): the hydrogen consumed and purged shows as a falling loop pressure, which PIC-205 turns into a make-up flow setpoint; the flow slave rejects supply pressure changes. FV-108 fails closed; XV-121 is the trip valve on the same line."
+    operator: Holds FIC-108 in auto at a low rate while the loop is pressured up, then hands it to PIC-205.
+  - id: TIC-111
+    title: H-101 outlet / reactor inlet temperature
+    purpose: Hold the reactor inlet temperature, which with the heat of reaction sets the reactor outlet temperature, by the fuel to the heater.
+    section: RXN
+    cases: [design]
+    variable: temperature
+    measurement: [{tag: TIC-111}]
+    controller: TIC-111
+    action: reverse
+    final_elements:
+      - {tag: TV-111, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 895.15, unit: K, provenance: assumed, source: "process/flowsheet.yaml design case (S7 ASSUMED, D-004)", cases: [design], stream: S7, property: temperature}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: TIC-111, condition: TAH, response: "Reduce the firing by hand if TV-111 does not close; watch TI-124 and TZ-113 for a runaway before I-102 acts."}
+      - {tag: TIC-111, condition: TAL, response: "Check the firing (fuel pressure, burners); a low inlet temperature lowers the conversion: reduce FIC-103 if it cannot be held."}
+      - {tag: TI-124, condition: TAH, response: "Bed or shell temperature high: reduce the TIC-111 setpoint and the load; open the quench if the outlet rises."}
+    interlocks: [I-101, I-102, I-104, I-105]
+    rationale: The usual fired heater scheme (outlet temperature on the fuel). A cascade on a fuel pressure or flow slave is not drawn; the heater vendor's burner management (I-105) may add one with its fuel/air limits (D-026). TV-111 fails closed; the double block and bleed XV-112/XV-125/XV-126 (US-112) is the trip.
+    operator: Moves the setpoint only within the reactor window of D-021 and in small steps, watching the reactor outlet TZ-113 and TI-124.
+  - id: TIC-115
+    title: Quench (quenched effluent temperature)
+    purpose: Quench the reactor effluent with separator liquid to stop the side reactions and keep the E-101 hot inlet at its design temperature.
+    section: RXN
+    cases: [design]
+    variable: temperature
+    measurement: [{tag: TIC-115}]
+    controller: TIC-115
+    action: direct
+    final_elements:
+      - {tag: TV-115, kind: valve, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: setpoint, value: 893.15, unit: K, provenance: assumed, source: "process/flowsheet.yaml design case (S9 ASSUMED, D-004)", cases: [design], stream: S9, property: temperature}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: TIC-115, condition: TAH, response: "Check P-102/P-102B and TV-115; reduce the load if the quench cannot be held (E-101 hot inlet overheated)."}
+    interlocks: [I-201]
+    rationale: The temperature after the quench point is the measure; the quench liquid is the manipulated stream. TV-115 fails open (full quench cools; too little quench overheats E-101); P-102/P-102B have continuous minimum flow (AR-237), so TV-115 may close.
+    operator: Starts the quench pump before toluene enters the loop.
+  # ---------------------------------------------------------------- SEPG: HP separator, recycle gas, purge (P-02)
+  - id: LIC-202
+    title: V-101 level (let-down to the stabiliser)
+    purpose: Hold the HP separator level by letting the liquid down to C-201.
+    section: SEPG
+    cases: [design]
+    variable: level
+    measurement: [{tag: LIC-202}]
+    controller: LIC-202
+    action: direct
+    final_elements:
+      - {tag: LV-202, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 50, unit: "%", provenance: assumed, source: "D-026: half of the measuring range, ASSUMED"}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: LIC-202, condition: LAL, response: "Check LV-202 for passing; the low-low trip I-201 closes XV-204 before gas blows through to C-201."}
+      - {tag: LIC-202, condition: LAH, response: "Check LV-202 and C-201; reduce the load before I-202 stops K-101."}
+    interlocks: [I-201, I-202]
+    rationale: "A liquid seal between 3250 and 800 kPa(a): LV-202 fails closed so that a failure does not send loop gas into C-201; the separate shutdown valve XV-204 (I-201) backs it up on its own transmitter LZ-203."
+    operator: Watches the stabiliser pressure PIC-404 when the let-down rate changes.
+  - id: PIC-205
+    title: Reaction loop pressure (master of the make-up hydrogen)
+    purpose: Hold the loop pressure at the K-101 suction, which sets the reactor pressure and the hydrogen partial pressure.
+    section: SEPG
+    cases: [design]
+    variable: pressure
+    measurement: [{tag: PIC-205}]
+    controller: PIC-205
+    action: reverse
+    targets:
+      - {kind: setpoint, value: 3250, unit: kPa(a), provenance: assumed, source: "process/flowsheet.yaml design case (S14 ASSUMED, D-004, D-007)", cases: [design], stream: S14, property: pressure}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: PIC-205, condition: PAH, response: "Check FV-108 (closed?); reduce the make-up by hand; check that the purge FIC-211 is flowing before PSV-214 or PSV-119 lifts."}
+      - {tag: PIC-205, condition: PAL, response: "Check the hydrogen supply pressure and FV-108; reduce the load: a low loop pressure lowers the hydrogen partial pressure (coking, D-007)."}
+    rationale: Cascade onto FIC-108 (D-025). The loop has no pressure control valve of its own, so its pressure is held by the balance of make-up against consumption and purge.
+    operator: Puts the master in auto once the loop is at pressure and K-101 runs.
+  - id: UIC-207
+    title: K-101 anti-surge
+    purpose: Keep the recycle gas compressor away from its surge line by recycling cooled gas from the discharge through E-102 and V-101.
+    section: SEPG
+    cases: [design]
+    variable: other
+    measurement:
+      - {tag: FT-218, role: suction flow}
+      - {tag: PT-219, role: suction pressure}
+      - {tag: PT-220, role: discharge pressure}
+      - {tag: TI-201, role: suction temperature (V-101 inlet)}
+    controller: UIC-207
+    action: reverse
+    final_elements:
+      - {tag: UV-207, kind: valve, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: setpoint, value: 10, unit: "%", provenance: assumed, source: "D-026: control line 10 % in flow from the vendor's surge line, usual practice, ASSUMED (the surge line and the algorithm are the vendor's, D-025)"}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: UIC-207, condition: UAH, response: "Recycle open in normal operation: check the loop flow (FI-216) and the ratio FFI-217; the reactor sees less recycle gas."}
+    interlocks: [I-203]
+    rationale: The recycle returns upstream of E-102 (D-025), so it is cooled and knocked out on every pass. UV-207 fails open (machine protection first). It acts on its own valve; no other loop shares UV-207.
+    operator: Never in manual while K-101 runs, except at the vendor's instruction.
+  - id: AIC-210
+    title: Recycle gas hydrogen (master of the purge)
+    purpose: Hold the hydrogen content of the recycle gas at the loop specification by purging methane to the PSA.
+    section: SEPG
+    cases: [design]
+    variable: composition
+    measurement: [{tag: AIC-210}]
+    controller: AIC-210
+    action: reverse
+    targets:
+      - {kind: setpoint, value: 40, unit: mol%, provenance: assumed, source: "D-007: the loop's 40 mol% hydrogen specification (purge composition of the design case, S13)"}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: AIC-210, condition: AAL, response: "Raise the purge by hand if the master saturates; check the make-up purity and the PSA product AI-302."}
+    rationale: "Cascade onto the purge flow FIC-211: methane is made by the reaction and enters with the make-up, and only the purge removes it, so the purge rate is the manipulated variable of the hydrogen content (D-007). A slow loop (analyser and the loop's hold-up)."
+    operator: Keeps the master in manual while the analyser is out of service or the loop has not circulated long enough.
+  - id: FIC-211
+    title: Purge gas flow to the PSA (slave)
+    purpose: Hold the purge flow from the recycle gas to PK-101.
+    section: SEPG
+    cases: [design]
+    variable: flow
+    measurement: [{tag: FIC-211}]
+    controller: FIC-211
+    action: reverse
+    final_elements:
+      - {tag: FV-211, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 2956.23, unit: kg/h, provenance: calculated, source: "process/flowsheet.yaml design case, stream S13 flow (DWSIM, D-024); not linked with stream: S13 (kg/h needs Pint in core 1.4.1, D-026)", cases: [design]}
+    modes: [manual, auto, cascade]
+    normal_mode: cascade
+    links:
+      - {type: cascade, loop: AIC-210}
+    transitions:
+      - {from: auto, to: cascade, by: operator, condition: {loop: AIC-210, state: in auto}}
+    rationale: "FV-211 fails closed: the loop pressure is kept and the PSA is isolated; methane builds up only slowly, so the operator has time."
+    operator: Puts FIC-211 in manual and closes it when the PSA or K-102 is not running (SEQ-TRIP-PSA).
+  # ---------------------------------------------------------------- PSA: PK-101, K-102, E-103 (P-03)
+  - id: PIC-301
+    title: PSA adsorption pressure (hydrogen product back-pressure)
+    purpose: Hold the adsorption pressure of PK-101 by letting the hydrogen product down to the K-101 suction.
+    section: PSA
+    cases: [design]
+    variable: pressure
+    measurement: [{tag: PIC-301}]
+    controller: PIC-301
+    action: direct
+    final_elements:
+      - {tag: PV-301, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 3540, unit: kPa(a), provenance: assumed, source: "process/flowsheet.yaml design case (S30 ASSUMED, D-024)", cases: [design], stream: S30, property: pressure}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: AI-302, condition: AAL, response: "Hydrogen purity of the PSA product low: check the PSA cycle (vendor) and raise the purge only after the PSA is back on specification; off-specification product dilutes the loop."}
+    rationale: Back-pressure control upstream (the step PV101 of the simulation). PV-301 fails closed, which holds the PSA at its feed pressure (PK-101 is designed for 42 barg). The cycle control of the beds is the vendor's.
+    operator: Changes nothing in the cycle settings without the vendor.
+  - id: PIC-303
+    title: K-102 suction pressure (tail gas spillback)
+    purpose: Hold the tail gas pressure at the K-102 suction, which is the PSA desorption pressure, by spilling cooled gas back from the discharge.
+    section: PSA
+    cases: [design]
+    variable: pressure
+    measurement: [{tag: PIC-303}]
+    controller: PIC-303
+    action: reverse
+    final_elements:
+      - {tag: PV-303, kind: valve, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: setpoint, value: 140, unit: kPa(a), provenance: assumed, source: "process/flowsheet.yaml design case (S33 ASSUMED, D-024)", cases: [design], stream: S33, property: pressure}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: PIC-303, condition: PAH, response: "Check K-102 (running, unloading) and the fuel gas header pressure; the PSA desorption pressure rises and its recovery falls before PSV-307 lifts."}
+      - {tag: PIC-303, condition: PAL, response: "Check PV-303; a vacuum at the K-102 suction draws air at leaks."}
+    rationale: A reciprocating machine is not throttled on its discharge; the spillback (FG-330, cooled after E-103) keeps the suction at the desorption pressure at any tail gas rate (D-024, D-025). PV-303 fails open (machine protection, the full spillback is the start-up path).
+    operator: Starts K-102 on full spillback before the PSA cycle starts.
+  # ---------------------------------------------------------------- STAB: C-201 stabiliser (P-04)
+  - id: TIC-402
+    title: C-201 tray temperature (MP steam to E-202)
+    purpose: Hold the stripping of hydrogen and methane in C-201 by the reboiler heat.
+    section: STAB
+    cases: [design]
+    variable: temperature
+    measurement: [{tag: TIC-402}]
+    controller: TIC-402
+    action: reverse
+    final_elements:
+      - {tag: TV-402, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 447.75, unit: K, provenance: assumed, source: "D-026: the simulated bottoms temperature of C-201 (S20, 447.751 K) as the first setpoint, ASSUMED: the shortcut model gives no tray profile; the sensitive tray and its temperature come with the column design (S7)"}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: TIC-402, condition: TAL, response: "Check the MP steam (header, TV-402, steam trap ST-444); light ends would go on to C-202 and its vent."}
+    rationale: "The usual stripper scheme: temperature on the reboiler steam. TV-402 fails closed (no heat input on a failure, so C-201 does not pressure up against a closed off-gas outlet)."
+    operator: Adjusts the setpoint from the C-202 vent rate and the benzene in the stabiliser off-gas.
+  - id: PIC-404
+    title: Stabiliser pressure (off-gas to fuel gas)
+    purpose: Hold the stabiliser pressure at the reflux drum by releasing the off-gas to the site fuel gas header.
+    section: STAB
+    cases: [design]
+    variable: pressure
+    measurement: [{tag: PIC-404}]
+    controller: PIC-404
+    action: direct
+    final_elements:
+      - {tag: PV-404, kind: valve, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: setpoint, value: 800, unit: kPa(a), provenance: assumed, source: "process/flowsheet.yaml design case (S19 ASSUMED, D-008)", cases: [design], stream: S19, property: pressure}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: PIC-404, condition: PAH, response: "Check PV-404 and the fuel gas header; cut the MP steam (TIC-402 to manual) before PSV-413 lifts; check V-101 for gas blow-by (I-201)."}
+    rationale: With a partial condenser the off-gas is the only distillate (D-008), so its valve holds the pressure. PV-404 fails open (no overpressure; the fuel gas header takes the gas).
+  - id: LIC-405
+    title: V-201 level (reflux)
+    purpose: Return all condensed liquid as reflux, holding the reflux drum level.
+    section: STAB
+    cases: [design]
+    variable: level
+    measurement: [{tag: LIC-405}]
+    controller: LIC-405
+    action: direct
+    final_elements:
+      - {tag: LV-405, kind: valve, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: setpoint, value: 50, unit: "%", provenance: assumed, source: "D-026: half of the measuring range, ASSUMED"}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: LIC-405, condition: LAL, response: "Check the condenser E-201 and the reflux pumps; I-401 stops them at low-low."}
+    interlocks: [I-401]
+    rationale: No liquid distillate (D-008), so the drum level sets the reflux. LV-405 fails open (the column top stays cool; a draining drum stops the pumps through I-401).
+  - id: LIC-408
+    title: C-201 sump level (bottoms to C-202)
+    purpose: Hold the stabiliser sump level by the bottoms flow to the benzene column.
+    section: STAB
+    cases: [design]
+    variable: level
+    measurement: [{tag: LIC-408}]
+    controller: LIC-408
+    action: direct
+    final_elements:
+      - {tag: LV-408, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 50, unit: "%", provenance: assumed, source: "D-026: half of the measuring range, ASSUMED"}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: LIC-408, condition: LAL, response: "Check LV-408 for passing; losing the sump seal sends C-201 vapour into C-202."}
+      - {tag: LIC-408, condition: LAH, response: "Check LV-408 and C-202; reduce the let-down from V-101."}
+    rationale: The bottoms flow by pressure difference (800 to 170 kPa(a)) needs no pump. LV-408 fails closed so that C-202 (3.5 barg design) does not see C-201 vapour.
+  # ---------------------------------------------------------------- BZ: C-202 benzene column and product (P-05)
+  - id: TIC-502
+    title: C-202 tray temperature (LP steam to E-204)
+    purpose: Hold the benzene recovery (toluene-free bottoms limit) by the reboiler heat.
+    section: BZ
+    cases: [design]
+    variable: temperature
+    measurement: [{tag: TIC-502}]
+    controller: TIC-502
+    action: reverse
+    final_elements:
+      - {tag: TV-502, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 404.15, unit: K, provenance: assumed, source: "D-026: the simulated bottoms temperature of C-202 (S22, 404.153 K) as the first setpoint, ASSUMED: the shortcut model gives no tray profile; the sensitive tray comes with the column design (S7)"}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: TIC-502, condition: TAL, response: "Check the LP steam and ST-541; benzene goes down to C-203 and back with the toluene recycle."}
+    interlocks: [I-501]
+    rationale: "Dual composition control is not attempted: the reflux is on flow (FIC-507) and the boil-up holds the tray temperature, a usual first scheme; the product purity AI-510 is indicated and the operator trims the reflux (D-026). TV-502 fails closed."
+    operator: Trims the reflux FIC-507 from the benzene purity AI-510.
+  - id: PIC-504
+    title: V-202 pressure (vent to flare, nitrogen pad)
+    purpose: Hold the benzene column pressure at the reflux drum; the self-acting PCV-505 adds nitrogen below its set point, PV-504 vents above this one.
+    section: BZ
+    cases: [design]
+    variable: pressure
+    measurement: [{tag: PIC-504}]
+    controller: PIC-504
+    action: direct
+    final_elements:
+      - {tag: PV-504, kind: valve, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: setpoint, value: 155, unit: kPa(a), provenance: assumed, source: "D-026: 5 kPa above the 150 kPa(a) of the condenser and drum (S26, D-008), PCV-505 set 5 kPa below it, ASSUMED"}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: PIC-504, condition: PAH, response: "Check the cooling water to E-203 (TI-801, PI-802) and PV-504; cut the LP steam (TIC-502 to manual) before PSV-514 lifts."}
+    rationale: A total condenser has no vapour product; the pad and the vent hold the pressure against inerts and condenser changes. PV-504 fails open.
+  - id: LIC-506
+    title: V-202 level (benzene distillate)
+    purpose: Hold the reflux drum level by the benzene product flow through E-207 to storage.
+    section: BZ
+    cases: [design]
+    variable: level
+    measurement: [{tag: LIC-506}]
+    controller: LIC-506
+    action: direct
+    final_elements:
+      - {tag: LV-506, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 50, unit: "%", provenance: assumed, source: "D-026: half of the measuring range, ASSUMED"}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: AI-510, condition: AAL, response: "Benzene purity low: raise the reflux FIC-507; route the product to the off-specification tank (tank farm, outside the plant) until it is back."}
+      - {tag: TI-509, condition: TAH, response: "Check the cooling water to E-207; hot benzene to storage raises the tank breathing losses."}
+    interlocks: [I-501]
+    rationale: The distillate is the larger product of the drum, so the reflux goes on flow and the product on level (skill control-loops). LV-506 fails closed (no product to storage without control; the drum fills slowly while the steam is closed too).
+  - id: FIC-507
+    title: C-202 reflux flow
+    purpose: Hold the reflux of C-202 at the design reflux ratio.
+    section: BZ
+    cases: [design]
+    variable: flow
+    measurement: [{tag: FIC-507}]
+    controller: FIC-507
+    action: reverse
+    final_elements:
+      - {tag: FV-507, kind: valve, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: setpoint, value: 27246, unit: kg/h, provenance: calculated, source: "R 2.18 (process/simulation.yaml C202, D-008, D-014) times the design distillate S26 12498.2 kg/h, own calculation"}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: FIC-507, condition: FAL, response: "Check P-202A/B and FV-507; benzene purity follows."}
+    interlocks: [I-501]
+    rationale: Reflux on flow, the larger and steadier of the two drum outlets at R 2.18. FV-507 fails open (the column top kept cool).
+    operator: Trims the setpoint from the product purity AI-510.
+  - id: LIC-508
+    title: C-202 sump level (bottoms to C-203)
+    purpose: Hold the benzene column sump level by the bottoms flow to the toluene column.
+    section: BZ
+    cases: [design]
+    variable: level
+    measurement: [{tag: LIC-508}]
+    controller: LIC-508
+    action: direct
+    final_elements:
+      - {tag: LV-508, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 50, unit: "%", provenance: assumed, source: "D-026: half of the measuring range, ASSUMED"}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: LIC-508, condition: LAL, response: "Check LV-508 for passing; vapour would pass into the vacuum column."}
+    rationale: The bottoms flow by pressure difference (170 to 45 kPa(a)). LV-508 fails closed.
+  # ---------------------------------------------------------------- TOL: C-203 toluene column, recycle, biphenyl (P-06)
+  - id: TIC-602
+    title: C-203 tray temperature (HP steam to E-206)
+    purpose: Hold the toluene stripping from the biphenyl bottoms by the reboiler heat.
+    section: TOL
+    cases: [design]
+    variable: temperature
+    measurement: [{tag: TIC-602}]
+    controller: TIC-602
+    action: reverse
+    final_elements:
+      - {tag: TV-602, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 456.98, unit: K, provenance: assumed, source: "D-026: the simulated bottoms temperature of C-203 (S24, 456.978 K) as the first setpoint, ASSUMED: the tray profile and the sensitive tray come with the column design (S7)"}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: TIC-602, condition: TAH, response: "Check TV-602; reduce the HP steam by hand (an E-206 tube rupture puts 41 barg steam into the column, PSV-615)."}
+    interlocks: [I-601]
+    rationale: TV-602 fails closed (no heat input).
+  - id: PIC-604
+    title: C-203 vacuum (PK-201 suction)
+    purpose: Hold the toluene column top pressure under vacuum by the suction valve of the vacuum package.
+    section: TOL
+    cases: [design]
+    variable: pressure
+    measurement: [{tag: PIC-604}]
+    controller: PIC-604
+    action: direct
+    final_elements:
+      - {tag: PV-604, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 30, unit: kPa(a), provenance: assumed, source: "process/simulation.yaml C203 condenser_pressure (D-008)"}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: PIC-604, condition: PAH, response: "Check PK-201 (vendor package) and the condenser E-205 cooling water; reduce the HP steam: a rising pressure raises the bottoms temperature."}
+    rationale: Throttling the suction of a vacuum package is a usual scheme (an air or nitrogen bleed is the vendor's alternative). PV-604 fails closed, isolating the column from the package and the flare when PK-201 stops (no back-flow); the column is designed for full vacuum, and with the steam closed it is brought to atmospheric with nitrogen (SEQ-SD-PLANT).
+  - id: LIC-606
+    title: V-203 level (toluene recycle to V-100)
+    purpose: Hold the toluene column reflux drum level by the toluene recycle flow to the feed drum.
+    section: TOL
+    cases: [design]
+    variable: level
+    measurement: [{tag: LIC-606}]
+    controller: LIC-606
+    action: direct
+    final_elements:
+      - {tag: LV-606, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 50, unit: "%", provenance: assumed, source: "D-026: half of the measuring range, ASSUMED"}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: LIC-606, condition: LAL, response: "Check the reflux FIC-607 and P-203A/B; I-601 stops the pumps at low-low."}
+      - {tag: FI-609, condition: FAL, response: "Toluene recycle low at constant load: check C-203 and the benzene column bottoms; the fresh feed LIC-102 makes it up."}
+    interlocks: [I-601]
+    rationale: The recycle is the larger drum outlet (4.9 t/h against 2.4 t/h reflux); level-to-recycle passes the toluene back without accumulating it in the distillation. LV-606 fails closed (no overfilling of V-100 through the recycle).
+  - id: FIC-607
+    title: C-203 reflux flow
+    purpose: Hold the reflux of C-203 at the design reflux ratio.
+    section: TOL
+    cases: [design]
+    variable: flow
+    measurement: [{tag: FIC-607}]
+    controller: FIC-607
+    action: reverse
+    final_elements:
+      - {tag: FV-607, kind: valve, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: setpoint, value: 2442.4, unit: kg/h, provenance: calculated, source: "R 0.5 (process/simulation.yaml C203, D-008) times the design distillate S23 4884.74 kg/h, own calculation"}
+    modes: [manual, auto]
+    normal_mode: auto
+    interlocks: [I-601]
+    rationale: Reflux on flow, the smaller drum outlet, which is the more accurate one to measure (skill control-loops). FV-607 fails open.
+  - id: LIC-608
+    title: C-203 sump level (biphenyl to storage)
+    purpose: Hold the toluene column sump level by the biphenyl by-product flow.
+    section: TOL
+    cases: [design]
+    variable: level
+    measurement: [{tag: LIC-608}]
+    controller: LIC-608
+    action: direct
+    final_elements:
+      - {tag: LV-608, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 50, unit: "%", provenance: assumed, source: "D-026: half of the measuring range, ASSUMED"}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: LIC-608, condition: LAH, response: "Check P-204A/B, LV-608 and the tracing of DP-124 (biphenyl is a solid at ambient temperature; the line is traced, D-025)."}
+    rationale: The smallest product (352 kg/h); the level holds the sump, LV-608 fails closed so the sump is not drained into storage. The type of P-204A/B and its protection are open with the pump selection (D-025).
