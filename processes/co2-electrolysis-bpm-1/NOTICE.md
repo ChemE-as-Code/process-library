@@ -23,3 +23,7 @@ facts from the Methods and Supplementary Note 5 of
 
 `figures/cell-cross-section.svg` is drawn by `scripts/cell_section.py` from our own files, not
 traced from the paper.
+
+The formation enthalpies behind the heats of reaction in `process/reactions.yaml` are the CODATA
+Key Values for Thermodynamics (Cox, Wagman, Medvedev, Hemisphere, New York, 1989), used as facts
+with their source.

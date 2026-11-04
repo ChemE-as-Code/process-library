@@ -66,6 +66,9 @@ Assumptions:
   used for the skid.
 
 ## D-004 No process/cells.yaml until the cell balance has measured inputs (2026-11-04)
+Superseded by D-005 and D-006 (2026-11-04): core#137 landed, the measured series exists and
+`process/cells.yaml` now has the bench cell.
+
 Decision: The cell balance (`cheme process cell`, schema cheme/electrochemical-cells/v1) is not
 written yet.
 - It needs a Faradaic efficiency and a cell voltage.
@@ -198,3 +201,50 @@ Assumptions:
   own sheet arithmetic uses 22.4 L/mol. The meter's reference temperature is not stated; at
   20 °C every FE would be 6.8 % lower.
 - The GC fractions are of the gas that passes the meter (wet basis), as in eq. 39.
+
+## D-006 The bench cell at 200 mA/cm2 in process/cells.yaml (2026-11-04)
+Decision: `process/cells.yaml` holds one cell, `bench-cell`.
+- Performance: `performance: measured` on the series of D-005.
+- Operating point: 1 A on 5 cm2, i.e. 200 mA/cm2. The cell is isothermal at 25 °C (ASSUMED,
+  D-005).
+- Reactions: CO2R (n = 2) is the overall reaction and WS (n = 2) the side reaction. They take
+  their current fractions from the measured FE of CO and H2.
+- Membrane: a reverse-bias bipolar membrane. The WDE is the measured one. The co-ion split K+
+  0.330 / HCO3- 0.670 is the measured carbon share of the co-ion current at P200 (0.670 +-
+  0.082, n 3).
+- Operating range: the measured 25-250 mA/cm2.
+- Reactions and materials: `process/reactions.yaml` holds CO2R and WS. Their heats of reaction
+  come from the CODATA formation enthalpies: dH = 282.98 and 285.83 kJ/mol at 298.15 K, U_tn =
+  1.4664 and 1.4812 V. `process/materials.yaml` holds CO2, CO, H2O, H2, O2 and KOH.
+
+`cheme process cell` result (no findings):
+- U = 5.367 +- 0.147 V, FE CO 0.383 +- 0.040, FE H2 0.560 +- 0.038 (measured point P200, no
+  interpolation). The unassigned current, 5.7 %, becomes heat.
+- P = 5.37 W; reaction enthalpy 1.39 W; heat to remove 3.98 W.
+- CO 0.200 g/h, H2 0.0211 g/h, O2 0.281 g/h. Electricity 26.9 kWh per kg CO formed (all the
+  cell's electricity, not allocated). Voltage efficiency against U_tn 0.27.
+- WDE 0.967 +- 0.008. Co-ion current 3.3 % of the current: K+ 0.114 and HCO3- 0.231 umol/s.
+  Anolyte hydroxide deficit 0.346 umol/s (1.24e-6 kmol/h).
+- The charge, element and energy balances close.
+
+Reason:
+- 200 mA/cm2 is the current density of the paper's long-term anolyte stability model, for the
+  same 5 cm2 cell in 1 M KOH (Results, Fig. 5). The skid work (#330) starts from that case.
+- It is a measured point, so the lookup does not interpolate. Its WDE has three runs. Its
+  voltage is steady within a run (sd 0.03-0.07 V in the window), unlike at 250 mA/cm2.
+
+Rejected:
+- 250 mA/cm2. Its voltage rises by 0.8-1.8 V from the first to the second half of the hour
+  and scatters by 0.8 V between runs. A fourth run at it (20241023) stopped after 2845 s, near
+  -9.5 V.
+- 150 mA/cm2, which has three FE replicates. It is not the paper's design case; the FE at 200
+  has two replicates whose sums agree within 0.002.
+- Electrode half-reactions in the acidic-cathode form (CO2 + 2 H+ + 2 e- -> CO + H2O at the
+  cathode, alkaline anode). They are what the BPM does. But they add up to the overall reaction
+  only with the membrane's water dissociation, and core's electrode check refuses them (its
+  `dissociation:` takes only components of the overall reaction). The alkaline form has the same
+  electrons per extent and the same home electrodes.
+
+Assumptions:
+- The bench cell's performance at 200 mA/cm2 is that of the 1 h runs. There is no measurement of
+  a longer run in 1 M KOH (the 5 h pH record is in 0.1 M KOH, design basis).
