@@ -1,14 +1,19 @@
 # Every input of run.py, with value, unit, label and source or rationale (#342).
 # Labels follow ADR 0031:
-# label: measured      = from the source: read from the archived instrument files, or a number the
-#                        source states (basis: source-stated, with what kind of number it is)
+# label: measured      = from the source's data: read from the archived instrument files, or an
+#                        experimental amount or condition the source states for its own samples
+#                        (basis: source-stated)
 #        reconstructed = derived by us from the source (file names, headers, dates, stated amounts)
-#        assumed       = our choice, with the reason; a method we follow because the source states it
-#                        carries basis: source-stated; sensitivity reported where it matters
+#        assumed       = our choice, with the reason; a method, literature value or model value we
+#                        adopt because the source states it carries basis: source-stated;
+#                        sensitivity reported where it matters
 # Fixed before the first comparison run, with tolerances.yaml (freeze commit 75775d98). Revised after
 # review (no value used by a judged check changed): labels and notes of qy_ref, decay.model,
 # decay.tau_average, quality_screen.*, extension.*; extension.epsilon_450 and
-# extension.reagent_volumes added; equal_dilution rationale corrected. See comparison.md, Order.
+# extension.reagent_volumes added; equal_dilution rationale corrected. A second review relabelled
+# qy_ref (literature value) and extension.epsilon_330 (model value) from measured to assumed,
+# basis: source-stated, and narrowed the measured definition above to match ADR 0031; no value
+# changed. See comparison.md, Order.
 
 spectra:
   absorbance_columns:   {value: "wavelength nm, optical density", label: measured, source: "dataset README.txt; PerkinElmer ASCII header, block after #DATA"}
@@ -36,7 +41,7 @@ pl_processing:
 
 plqy:
   formula:              {value: "PLQY = QY_ref * (F_s / F_ref) * (f_ref / f_s) * (n_s / n_ref)^2", label: assumed, source: "IUPAC relative method cited by the source"}
-  qy_ref:               {value: 0.95, unit: "-", label: measured, basis: source-stated, source: "Methods: literature value (Jones et al. 1985) that the source uses; not measured by the source, which reports 0.99 from its own sphere measurement"}
+  qy_ref:               {value: 0.95, unit: "-", label: assumed, basis: "source-stated literature value", source: "Methods: literature value (Jones et al. 1985) that the source uses; not measured by the source, which reports 0.99 from its own sphere measurement"}
   n_ref:                {value: 1.361, unit: "-", label: assumed, rationale: "ethanol, sodium D line, 20 C"}
   n_sample:             {value: 1.497, unit: "-", label: assumed, rationale: "aliquots taken as measured in toluene (the purification solvent); mesitylene 1.499 is equivalent; hexadecane 1.434 would lower the 200 C values by 8 %; not stated by the source"}
 
@@ -61,7 +66,7 @@ quality_screen:   # stated optical criteria and the varied thresholds (deliverab
   od387_target:         {value: 0.1, tolerance: 0.05, unit: "-", label: measured, basis: "source-stated target (value); the tolerance 0.05 is our choice", source: "Methods: OD ~0.1 at 387 nm for all samples; samples outside 0.05-0.15 flagged for inner-filter and reabsorption risk"}
 
 extension:   # hypothetical design extension, see extension.md (not validated)
-  epsilon_330:          {value: 0.45, unit: cm-1 uM-1, label: measured, basis: "source-stated model value (Maxwell-Garnett), not a measurement", source: "Methods, per as-synthesized QD"}
+  epsilon_330:          {value: 0.45, unit: cm-1 uM-1, label: assumed, basis: "source-stated model value (Maxwell-Garnett), not a measurement", source: "Methods, per as-synthesized QD"}
   epsilon_450:          {value: "epsilon_330 * A450 / A330 of untreated_case", unit: M-1 cm-1, label: reconstructed, rationale: "scaled by us with the measured 450/330 nm absorbance ratio of the 0 min aliquot; computed in run.py"}
   batch_qd_amount:      {value: 41, unit: nmol, label: measured, basis: source-stated, source: "Methods: 30 uL stock per standard batch"}
   reagent_volumes:      {value: {qd_stock_uL: 30, solvent_uL: 820, amine_uL: 90, benzoyl_fluoride_uL: 90}, label: measured, basis: source-stated, source: "Methods, In Situ HF Treatment: stock diluted in mesitylene, then octylamine and benzoyl fluoride solutions added in sequence at 150 C; used only for the aliquot-volume sensitivity"}
