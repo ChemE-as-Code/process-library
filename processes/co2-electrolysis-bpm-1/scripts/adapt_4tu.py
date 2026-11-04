@@ -38,13 +38,29 @@ AREA = 5.0  # cm2
 
 
 def fetch(cache: Path) -> Path:
+    """Download (once) to <name>.part, rename into the cache only after the sha256 matches.
+
+    A cached file that fails the check is downloaded once more. The zip is read directly; nothing
+    is extracted.
+    """
     cache.mkdir(parents=True, exist_ok=True)
     target = cache / RAW["name"]
+
+    def digest(path: Path) -> str:
+        return hashlib.sha256(path.read_bytes()).hexdigest()
+
+    if target.exists() and digest(target) != RAW["sha256"]:
+        print(f"cached {target.name} fails its sha256; downloading again")
+        target.unlink()
     if not target.exists():
-        urllib.request.urlretrieve(RAW["url"], target)
-    digest = hashlib.sha256(target.read_bytes()).hexdigest()
-    if digest != RAW["sha256"]:
-        raise SystemExit(f"sha256 mismatch for {target}: {digest}")
+        part = target.with_name(target.name + ".part")
+        part.unlink(missing_ok=True)
+        urllib.request.urlretrieve(RAW["url"], part)
+        got = digest(part)
+        if got != RAW["sha256"]:
+            part.unlink(missing_ok=True)
+            raise SystemExit(f"sha256 mismatch for the download of {RAW['name']}: {got}; the record may have changed")
+        part.replace(target)
     return target
 
 
