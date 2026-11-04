@@ -52,7 +52,14 @@ Issue #329 asked for both the reproduction and the design case in
   held-out protocol.
 - Raw-data parsing exists twice: in the benchmark's `reproduce.py` and in the process folder's
   adapter. The duplication is deliberate, so the design never imports the held-out folder. The
-  two must agree on the same inputs, which the benchmark records.
+  two must agree on the same inputs. `reproduce.py` compares its R1 rebuild with the process
+  folder's data file and writes the result to each run record (`design_data_consistency`;
+  consistent in `reruns/2026-11-04-run-3.json`). The check runs on the benchmark side, so the
+  design still never reads `benchmarks/`. It is reported, not a frozen check, and CI does not
+  run it.
+- The vermaas-rbpm-wde reproduction has no `case/` (ADR 0030 lists one). Its reference is the
+  authors' Python model and titration sheets, which no cheme backend represents, so it is
+  script-based (`reproduce.py`, `reruns/`, `figures/`). Its README records the deviation.
 - No checker enforces that a process script does not read `benchmarks/`. A follow-up could add
   a test.
 - Issue #329's folder name is kept for the design case. The reproduction lives in
