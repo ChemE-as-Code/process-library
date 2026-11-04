@@ -93,7 +93,8 @@ the voltage, Faradaic efficiencies (FE) and WDE per point from it.
   density. The replicates are these runs.
 - Window: the second half of the 1 h run, t = 1800-3600 s after the current start.
   - The voltage is the mean of the chronopotentiometry samples in it.
-  - The gas is the mean of GC injections 8-13 (t = 1896-3476 s).
+  - The gas is the mean of GC injections 8-13. Their located times vary by run: injection 8 at
+    t = 1882-1909 s, injection 13 at 3461-3488 s.
 - Voltage sign: the CP files give the cell voltage and the current negative (the
   potentiostat's sign for a cathodic working electrode). The file states the voltage positive,
   U = -U_file. It is the terminal voltage, not
@@ -135,10 +136,11 @@ FE of the run:
 - The first hand estimate (about 29 %, with 52 sccm and 273.15 K) was right in kind: 29.6 %
   with that flow. The rest is the meter reading in the window, 30 s before each injection
   (53.9 sccm), and the mixture factor.
-- The pressure and the conversion equations are therefore those of the SI, with T = 273.15 K
-  as in the sheet's 22.4 L/mol. The GC column is not used. The text of the paper (FE CO of 30-40 % with K+) agrees with the
-  calculation, not with the column. That is a check of the basis only, not a comparison of
-  results (ADR 0032).
+- The pressure and the conversion equations are therefore those of the SI. T = 273.15 K is
+  ASSUMED: its only hint is the sheet's 22.4 L/mol, the constant of the column rejected here
+  (Assumptions). The GC column is not used. The text of the paper (FE CO of 30-40 % with K+)
+  agrees with the calculation, not with the column. That is a check of the basis only, not a
+  comparison of results (ADR 0032).
 
 Results (mean +- sd (n), cathode FE sum, `cheme experiments electrochem`):
 
@@ -153,13 +155,25 @@ Results (mean +- sd (n), cathode FE sum, `cheme experiments electrochem`):
 
 The findings: one info, `electrochem-validity`, that the temperature range is derived from the
 assumed cell temperature. There is no `fe-sum-low` or `fe-sum-high`.
-- The cathode FE sums are 0.93-0.97. The rest, 3-7 % of the current, is no measured product.
-  Liquid products (formate) are not analysed, and the instruments' calibration error is not
-  propagated. A replicate's sum lies between 0.917 and 1.042; the three above 1 are of the
-  second GC export (20241023 j100, 20241024 j150, 20241025 j250), inside core's 1.05.
+- The cathode FE sums of the points are 0.93-0.97. A replicate's sum lies between 0.917 and
+  1.042, inside core's 1.05, and the sums split by GC export:
+  - The 12 runs of the first GC export (20240926-20241016) sum to 0.917-0.947, mean 0.937.
+    There the rest, 5-8 % of the current, is no measured product: liquid products (formate)
+    are not analysed, and the instruments' calibration error is not propagated.
+  - The 5 runs of the second export (20241022-20241025) sum to 0.954-1.042, mean 0.998,
+    about 6 % above the first. The three sums above 1 are among them (20241023 j100,
+    20241024 j150, 20241025 j250). The flow meter reads about 5 % high before the current
+    starts in exactly these runs (irregularities below), so these sums are not read as a
+    product balance. One second-export replicate sits in each point but P200, where 20241024
+    has no MFM file.
 - No carbon balance closes: the GC does not measure CO2. The conversion of the CO2 fed to
-  products is 0.6-6.6 %, and the carbon to the anolyte 0.5-1.1 % of the CO2 fed.
-- The window barely moves the FE (less than 0.01 against 600-3600 s or 2700-3600 s). The
+  products is 0.6-6.6 %, and the carbon to the anolyte 0.5-1.1 % of the CO2 fed. Both rest on
+  the 50 sccm inlet stated for every run, which the meter baseline of the second export
+  contradicts.
+- The window barely moves the point means of the FE (less than 0.01 against 600-3600 s or
+  2700-3600 s; at most 0.009, H2 at 250 mA/cm2). Single runs move more, by up to 0.022
+  (20241022 j25, CO, 600-3600 s); 20241023 j50, 20241002 j150, 20241014 j250 and 20241025 j250
+  move by 0.011-0.020 there. The
   voltage rises over the hour, most at 250 mA/cm2 (7.22 V over 600-3600 s, 7.58 V over the
   window, 7.87 V over 2700-3600 s), where it also scatters most (sd 0.80 V). The window is stated with every value.
 
@@ -171,11 +185,32 @@ Irregularities of the raw data, recorded and not corrected:
 - 20241024 j200 has no MFM file, so it has no FE (the point at 200 mA/cm2 has two FE replicates).
 - The second GC export (20241022 onwards) gives the amounts without a unit. They are read as ppm
   (GC ReadMe), and they are of the same order as the first export's ppm.
+- The meter baseline steps up with the second export. Before the current starts (the mean of
+  the readings before injection 2) the meter shows the humidified CO2 feed alone. 50 sccm of
+  CO2 saturated at 25 °C should read 51.5 sccm on the CO2-calibrated meter (51.6 sccm of gas,
+  mixture factor 1.002). The 12 runs of 20240926-20241016 read 51.53-52.24 sccm. The 5 runs of
+  20241022-20241025 read 53.74-54.59 sccm, 4-6 % high, and the 2025 files of no run read
+  53.8-55.3 sccm, so the step persists. The data do not say why:
+  - A meter offset or span change would pass straight into FE = x Q (eq. 37). The five
+    replicates' FE would then be about 5 % high; scaled by the baseline ratio their sums would
+    be 0.91-0.99, like the first export's.
+  - A real rise of the feed would leave the FE as computed. The stated inlet of 50 sccm, and
+    with it the CO2 conversion of these runs, would then be wrong.
+  - A calibration change of the GC between the exports would raise the sums but not the meter
+    baseline. It does not explain the step on its own.
+  No correction is applied: the file keeps the readings and the 50 sccm inlet, and each
+  replicate's `source` gives its baseline next to the meter reading.
 - 20241022 j25: the MFM file records overnight. Its first hour is used.
-- 25 more 1 M KOH files belong to no run of the study. They are listed in the header of the
-  measurement file: a second campaign (Jan to Feb 2025, 25-200 mA/cm2, CP, MFM and GC without a
-  titration), 20241023 j250 (CP and GC; the run stops at 2845 s, at -9.5 V), and two MFM files
-  whose names have no day or spell the electrolyte 1KOH.
+- 27 more 1 M KOH files belong to no run of the study. They are listed in the header of the
+  measurement file:
+  - a second campaign (Jan to Feb 2025, 25-200 mA/cm2, CP, MFM and GC without a titration);
+  - 20241023 j250 (CP and GC). Its voltage reaches -10.05 V at 2467 s and stays there from
+    2502 s to the end of the record at 2845 s, at the full current (1.263 A). That is very
+    likely the potentiostat's compliance limit. Its mean over 1800-2845 s is -9.55 V;
+  - four files whose names have no day or another electrolyte spelling: Feb_MFM_j150_1MKOH,
+    Jan06_MFM_j50_1KOH, and the pair Feb_MFM_j150_11MKOH (in CP-RawData) and
+    Feb_CP_j150_11MKOH (in MFM-RawData; it holds a CP record), with folder and kind swapped.
+    The doubled 1 marks a repeat file, as the dataset's 2MKOH/22MKOH/222MKOH.
 
 Reason: the raw files are the measured data (ADR 0032). The SI states the authors' conversion,
 and the raw files carry everything it needs, so no correction factor is invented. The second
@@ -186,7 +221,8 @@ Rejected:
 - Taking the GC sheets' FE column as `faradaic_efficiency`. It is a template with a fixed
   current and flow (above), not the run's FE.
 - A single meter correction factor for the file (core's `flow_correction`). The mixture factor
-  changes with the composition, from 1.006 at 25 to 1.042 at 250 mA/cm2.
+  changes with the composition, from 1.006 at 25 to 1.041 at 250 mA/cm2 (point means; 1.006-1.043
+  over the replicates).
 - Adding the second campaign's runs as FE replicates. A replicate here holds the voltage, FE
   and WDE of one run, and those runs have no titration. They could be a separate FE series
   later.
@@ -197,9 +233,13 @@ Assumptions:
 - The cell temperature is 25 °C (ASSUMED, room temperature). The paper and the dataset state
   none. It enters the water vapour share of the gas at saturation (3.13 %, IAPWS-95, about
   0.3 % in Q_gas) and the validity range.
-- The meter's sccm are at 0 °C and 101.325 kPa. SI eq. 37 gives the pressure, and the authors'
-  own sheet arithmetic uses 22.4 L/mol. The meter's reference temperature is not stated; at
-  20 °C every FE would be 6.8 % lower.
+- The meter's sccm are at 0 °C (ASSUMED) and 101.325 kPa. SI eq. 37 gives the pressure. The
+  meter's reference temperature is not stated; the only hint is the 22.4 L/mol of the authors'
+  FE column, which is rejected above as a template, so it is weak evidence. Every FE scales
+  with 1 / T: at 20 °C it would be 6.8 % lower, at 25 °C 8.4 % (common normal conditions of
+  thermal meters). The point FE sums would then be 0.87-0.91 or 0.85-0.89, and the bench cell's
+  FE CO 0.357 or 0.351 instead of 0.383 (D-006). The data file marks the value ASSUMED with the
+  same sensitivity.
 - The GC fractions are of the gas that passes the meter (wet basis), as in eq. 39.
 
 ## D-006 The bench cell at 200 mA/cm2 in process/cells.yaml (2026-11-04)
@@ -235,8 +275,9 @@ Reason:
 
 Rejected:
 - 250 mA/cm2. Its voltage rises by 0.8-1.8 V from the first to the second half of the hour
-  and scatters by 0.8 V between runs. A fourth run at it (20241023) stopped after 2845 s, near
-  -9.5 V.
+  and scatters by 0.8 V between runs. A fourth run at it (20241023) reached -10.05 V at 2467 s
+  and held there, very likely at the potentiostat's compliance limit, from 2502 s until the
+  record ends at 2845 s (D-005).
 - 150 mA/cm2, which has three FE replicates. It is not the paper's design case; the FE at 200
   has two replicates whose sums agree within 0.002.
 - Electrode half-reactions in the acidic-cathode form (CO2 + 2 H+ + 2 e- -> CO + H2O at the
@@ -248,3 +289,7 @@ Rejected:
 Assumptions:
 - The bench cell's performance at 200 mA/cm2 is that of the 1 h runs. There is no measurement of
   a longer run in 1 M KOH (the 5 h pH record is in 0.1 M KOH, design basis).
+- The FE rest on the meter's 0 °C basis (ASSUMED, D-005). At 20 °C FE CO would be 0.357 and the
+  electricity about 28.8 kWh per kg CO. The two FE replicates of P200 (20241002, 20241004) are
+  of the first GC export, so the meter baseline step of the second export (D-005) does not
+  enter this point.

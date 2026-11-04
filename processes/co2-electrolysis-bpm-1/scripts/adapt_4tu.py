@@ -203,7 +203,8 @@ INJECTIONS = range(2, 14)  # injection 2 at the current start (GC ReadMe) to 13
 # Conversion factors of the CO2-calibrated thermal mass-flow meter (SI Note 5, eq. 38-39):
 # Q_gas = Q_MFM C_mix / C_CO2 with 1 / C_mix = sum_i c_i / C_i
 CONVERSION = {"CO2": 0.74, "CO": 1.00, "H2": 1.01, "H2O": 0.79}
-T_STD, P_STD = 273.15, 101325.0  # K, Pa: the meter's sccm basis (SI eq. 37; D-005)
+# K, Pa: the meter's sccm basis; P from SI eq. 37, T ASSUMED (the meter's is not stated; D-005)
+T_STD, P_STD = 273.15, 101325.0
 R_GAS = 8.314462618  # J/(mol K), CODATA 2018
 P_SAT_25C = 3169.9  # Pa, water at 25 degC (IAPWS-95): 100 % RH at the ASSUMED 25 degC
 X_H2O = P_SAT_25C / P_STD
@@ -220,7 +221,8 @@ def _date_of(month: str, day: str) -> str:
 
 def raw_index(names: list[str]) -> tuple[dict[tuple[str, int], dict[str, list[str]]], list[str]]:
     """The CP, MFM and GC files of the 1 M KOH runs by (date, j); and every other file whose
-    name says 1 M KOH (a missing day, a misspelt electrolyte) but gives no run key."""
+    name says 1 M KOH (a missing day, a misspelt electrolyte, the doubled 1 of a repeat file
+    such as 11MKOH, as the dataset's 2MKOH/22MKOH/222MKOH) but gives no run key."""
     index: dict[tuple[str, int], dict[str, list[str]]] = {}
     odd = []
     for n in names:
@@ -230,7 +232,7 @@ def raw_index(names: list[str]) -> tuple[dict[tuple[str, int], dict[str, list[st
             kind = n.split("-", 1)[0]
             if m and n.startswith(f"{m.group(3)}-RawData/"):
                 index.setdefault((_date_of(m.group(1), m.group(2)), int(m.group(4))), {}).setdefault(kind, []).append(n)
-            elif re.search(r"_1M?KOH\.xlsx$", base):
+            elif re.search(r"_1+M?KOH\.xlsx$", base):
                 odd.append(n)
         elif n.startswith(GC_DIR) and n.endswith(".xls"):
             m = re.match(r"(\d{8})_P0\d_rBPMJuly_1MKOH_j(\d+)_", base)
@@ -395,6 +397,8 @@ def measured_run(z: zipfile.ZipFile, tit: dict, files: dict[str, list[str]]) -> 
         "injections": [r["k"] for r in rows],
         "outlet_flow": q_bar,
         "q_mfm": statistics.fmean(r["q_mfm"] for r in rows),
+        # the reading before the current start (the humidified CO2 feed alone, D-005 irregularities)
+        "q_baseline": statistics.fmean(v for s, v in flow if s < zero),
         "factor": statistics.fmean(r["factor"] for r in rows),
         # flow-weighted: FE from these fractions and q_bar is the mean of the injections' FE
         "fractions": {p: sum(r["x"][p] * r["q_gas"] for r in rows) / (q_bar * len(rows)) for p in ("CO", "H2")},
@@ -455,7 +459,8 @@ def measurement_doc(runs: list[dict]) -> dict:
                 rep["outlet_flow"] = round(g["outlet_flow"], 3)
                 rep["fractions"] = {p: {"value": round(g["fractions"][p] * 1e6, 1), "unit": "ppm"} for p in ("CO", "H2")}
                 loc.append(f"{g['mfm_file']} (meter reading {g['q_mfm']:.2f} sccm as CO2, mixture factor "
-                           f"{g['factor']:.4f}, 30 s before each injection)")
+                           f"{g['factor']:.4f}, 30 s before each injection; {g['q_baseline']:.2f} sccm before "
+                           f"the current start)")
                 loc.append(f"{g['gc_file']} (injections {g['injections'][0]}-{g['injections'][-1]}, flow-weighted)")
             else:
                 loc.append("no MFM file of this run in the dataset: no Faradaic efficiency"
@@ -499,8 +504,10 @@ def measurement_doc(runs: list[dict]) -> dict:
             "flow_unit": "sccm",
             "standard_conditions": {
                 "temperature": {"value": T_STD, "unit": "K",
-                                "source": "the authors' FE column uses 22.4 L/mol (0 degC); the meter's reference "
-                                          "temperature is not stated (DESIGN.md D-005)"},
+                                "source": ("ASSUMED: 0 degC; the meter's reference temperature is not stated, and "
+                                           "the only hint is the 22.4 L/mol of the authors' FE column, which D-005 "
+                                           "rejects as a template; every FE scales with 1 / T: at 20 degC it would "
+                                           "be 6.8 % lower, at 25 degC 8.4 % (DESIGN.md D-005)")},
                 "pressure": {"value": P_STD / 1000, "unit": "kPa", "source": "SI Note 5, eq. 37: P = 101325 Pa"},
             },
             "flow_position": "outlet",
@@ -533,7 +540,7 @@ def report_runs(runs: list[dict]) -> None:
     print("runs (window means):")
     for r in runs:
         g = r["gas"]
-        gas = (f"Q {g['q_mfm']:.2f}->{g['outlet_flow']:.2f} sccm FE CO {g['fe']['CO']:.4f} H2 {g['fe']['H2']:.4f} "
+        gas = (f"Q {g['q_baseline']:.2f} before the current, {g['q_mfm']:.2f}->{g['outlet_flow']:.2f} sccm FE CO {g['fe']['CO']:.4f} H2 {g['fe']['H2']:.4f} "
                f"sum {g['fe']['CO'] + g['fe']['H2']:.4f}") if g else "no gas data"
         print(f"  {r['date']} j{r['j']:3.0f}: U {r['voltage']:.3f} V (sd {r['voltage_sd']:.3f}, first half "
               f"{r['voltage_first_half']:.3f}), I {r['current_measured']:.4f} A, WDE {r['wde']:.5f}; {gas}")
