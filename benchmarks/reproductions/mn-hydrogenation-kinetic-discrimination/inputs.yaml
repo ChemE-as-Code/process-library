@@ -123,9 +123,33 @@ discrimination_design:   # hypothetical design extension, see extension.md
     pressure_bar: [10, 20, 30, 40, 50]
     catalyst_mmol_per_L: 7 values log-spaced from 0.0625 to 0.25
     base_mmol_per_L: 15 values log-spaced from 0.0625 to 12.5
-    run_time_h: [2, 4, 8, 16, 24]
+    run_time_h: [2, 3, 4, 5, 6, 7, 8, 16, 24]
     label: assumed
-    rationale: covers the studied box at steps finer than the three design levels
+    rationale: >-
+      covers the studied box at steps finer than the three design levels. Run times 3, 5, 6 and
+      7 h added after the first run (2026-11-04), together with model_IV_run_time_limit below;
+      this file is not a tolerance file and the change does not touch the reproduction verdict.
+  model_IV_run_time_limit:
+    value: "t <= -1/b6 (b6 from our refit, about 7.5 h)"
+    unit: h
+    label: assumed
+    rationale: >-
+      added after the first run. Read as fitted (yield = g t / (1 + g t), g = exp(... + b6 t)),
+      model IV predicts a yield that rises to a maximum at t = -1/b6 and then falls, which no
+      batch run can show. Its time term stands for "slow runs were run longer" (the source
+      reports high VIF for time and substrate) rather than a kinetic effect. Longer runs are
+      therefore excluded from the search. Sensitivity: the integrated reading of the source's
+      Eq. 14 (dP/dt = g0 exp(b6 t) S, a deactivating first-order catalyst), which is monotonic
+      and has no limit, is reported next to it.
+  design_T_t_support:
+    value: convex hull of the 30 design runs in (temperature, run time)
+    label: assumed
+    rationale: >-
+      added after the first run. Run time was set per run and is confounded with temperature in
+      the design (30 degC runs lasted 19.8-27.8 h, 65 degC runs 8.0-15.5 h, 100 degC runs
+      1.7-22.4 h). Model IV uses run time as a regressor, so a (T, t) pair outside this hull is
+      an extrapolation of model IV even when T and t are each within range. The primary search
+      stays inside the hull; the best run outside it is reported as an extrapolation.
   measurable_yield_window:
     value: [0.02, 0.90]
     label: assumed
