@@ -69,3 +69,4 @@ with an ADR in the same pull request.
 | [0028](0028-registry-covers-main-products-and-feeds.md) | Register every process's main product and feeds with verified identities; label functional units by product name | **Accepted**, 2026-10-31 |
 | [0029](0029-no-total-when-every-contribution-is-a-gap.md) | Give no total, with the reason, when every contribution to a category is a gap | **Proposed**, 2026-10-30 |
 | [0030](0030-reference-reproduction-benchmarks.md) | Keep reference reproductions in benchmarks/reproductions/, tolerances committed before the run | **Proposed**, 2026-11-01 |
+| [0031](0031-measured-series-as-design-inputs.md) | A process may use measured series from a pinned dataset; reproduction results stay held out | **Proposed**, 2026-11-04 |

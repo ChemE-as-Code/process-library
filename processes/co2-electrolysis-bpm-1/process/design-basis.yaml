@@ -1,0 +1,39 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Concept stage, #329: the measured reference cell only. The pilot-skid duty (CO delivery rate,
+# purity and pressure at the skid boundary, pH threshold, run duration) is set in #330
+# (DESIGN.md D-001).
+schema: cheme/design_basis/v1
+capacity:
+  reference_cell:
+    provenance: given
+    source: "Prats Vergel et al., Nat. Chem. Eng. (2025), DOI 10.1038/s44286-025-00306-7, Methods"
+    hardware: Dioxide Materials MEA cell (zero gap)
+    active_area: 5 cm2
+    membrane: Fumasep FBM bipolar membrane, reverse bias (CEL to the cathode, AEL to the anode)
+    cathode: 100 nm Ag sputtered on Sigracet 39BB
+    anode: Ni foam
+    cathode_feed: humidified CO2, 50 sccm
+    catholyte: none
+    anolyte:
+      composition: KOH 0.1-3 M or CsOH 1 M
+      volume: 90 mL
+      recirculation: 20 mL/min
+    measured_range:
+      current_density: 25-250 mA/cm2
+      run_duration: 1 h (WDE runs); one 4 h run in 20 mL 0.1 M KOH
+    measured_data: data/measured/wde-1m-koh.yaml (WDE, 1 M KOH, 25-250 mA/cm2; scripts/adapt_4tu.py)
+  pilot_skid:
+    status: not set (#330)
+feeds:
+  - {name: carbon dioxide, state: humidified gas, note: "reference cell feed; pilot-skid source and purity in #330"}
+  - {name: potassium hydroxide, state: aqueous anolyte, note: "initial fill and make-up in #330"}
+  - {name: water, note: "humidification and anolyte make-up"}
+products:
+  - {name: carbon monoxide, note: "main product; delivery rate, purity and pressure at the skid boundary set in #330"}
+  - {name: hydrogen, note: "cathode by-product (competing hydrogen evolution)"}
+  - {name: oxygen, note: "anode product, leaves with the anolyte to the reservoir"}
+utilities:
+  - {name: electricity, note: "DC to the cell"}
+site: {}
+assumptions:
+  - "Stability criterion: anolyte pH 12, the authors' criterion (Methods). That pH 12 protects a Ni anode is ASSUMED after the authors; it is a stated threshold, not a predicted corrosion onset (DESIGN.md D-003)."
