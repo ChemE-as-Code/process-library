@@ -1342,6 +1342,25 @@ P-06 (toluene column, toluene recycle, biphenyl):
   minimum-flow or relief protection are for the pump selection (S5). The reboiler return under
   vacuum is DN700 by the D-012 two-phase velocity, to be checked with the reboiler design.
 
+P-07 (flare, nitrogen and natural gas headers) and P-08 (cooling water and steam headers):
+- Every utility or relief line that a process sheet sends to P-07 or P-08 is drawn there as a
+  branch on its header, with the same number and an off-page connector naming the source and
+  its sheet, so `cheme.offpage-mismatch` checks both ends.
+- Flare header FL-701 collects the ten relief and vent lines (PSV-118, PSV-119, PSV-214,
+  PSV-307, PSV-308, PSV-413, PSV-514, PV-504, PSV-615, PK-201) to the site flare at the battery
+  limit; DN300 is a placeholder until the relief loads (S8). The knock-out drum, seal and stack
+  are the site's; the header purge and slope are open (S8 / detail).
+- Nitrogen header N2-702 (to PCV-105 and PCV-505) and natural gas header NG-703 (to the H-101
+  burners) from the site networks, DN50 ASSUMED.
+- Cooling water headers CWS-801 / CWR-802, DN500 for 10.8 MW at the design-basis 10 K range and
+  1.5 m/s, with six users; LP, MP and HP steam headers LS-803, MS-804, HS-805 to the three
+  reboilers; condensate header CD-806 DN80 to the site return (flash recovery open).
+- The CW and flare branches to A-200 run along the main rack PR-1; to reach the benzene column
+  group (set back one column height from PR-1, D-018) a spur rack PR-2 (x 127, y 50 to 95,
+  one level at 6 m, ASSUMED) is added to `layout/site-plan.yaml`. The 3D model
+  (`layout/plant-model.yaml`) is left for S5: rebuilt now, it routes the new P&ID nozzles and
+  reports walkway-riser and escape-way findings that the 3D layout section resolves.
+
 ## LCI summary (lca/inventory.csv, per kg benzene)
 
 Regenerated in S3a (D-024) from the inventory with the purge hydrogen PSA (`cheme assess lca --write`,
