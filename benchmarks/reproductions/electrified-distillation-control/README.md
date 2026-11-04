@@ -106,8 +106,12 @@ keeps them few rather than none.
 ## Evidence gaps
 
 - **No model files.** Tray hydraulics, exchanger areas and UA, pressure-drop coefficients,
-  compressor maps and controller ranges are not published. We reconstruct them (`inputs.yaml`) and
-  vary them. They change the transient (IAE, settling) but not the end values.
+  compressor maps and controller ranges are not published. We reconstruct them (`inputs.yaml`).
+  The sensitivity study varies the tray hydraulics, holdups, tuning and analyser deadtime; these
+  change the transient (IAE, settling) but not the end values. The pressure drops, the specific
+  compressor work and the controller ranges are held fixed, not varied, and may contribute to the
+  end-value deviations. The exchanger stand-in, kappa, moves the CS1 power at +20 % methanol (next
+  point).
 - **Heat-pump capacity above the design load** is one reconstructed parameter (kappa = 0.19),
   calibrated on the CS1 +20 % throughput case. The CS1 power at +20 % methanol depends on it
   (356-495 kW across the variants; source 441 kW). The CS2 result does not.

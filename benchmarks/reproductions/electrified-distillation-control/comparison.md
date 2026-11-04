@@ -198,8 +198,8 @@ transient metrics do depend on what we reconstructed. The CS2 IAE at +20 % metha
 3. **Faster CS2, slower CS1 than the source (secondary).** Our CS2 settles in about half the source's
    time and has a quarter of its IAE. The paper attributes the slow CS2 to the 3 min analyser lag
    and to transport delay in the variable FVC flow. Our model has the analyser lag, but no
-   transport delay: the heat-pump loop has no inventory. With a 10 min effective deadtime our CS2
-   is as slow as the source's. Our CS1 drifts to its new purity more slowly (settling 2.8 and 4.4 h
+   transport delay: the heat-pump loop has no inventory. With a 6 min effective deadtime our CS2
+   settles in about the source's time (5.3 h against 5.4 h); with 10 min it is slower (7.4 h). Our CS1 drifts to its new purity more slowly (settling 2.8 and 4.4 h
    against 1.3 and 1.6 h), so the tray and drum holdups we assumed are probably larger in effect
    than the Aspen ones, or our tray hydraulics are slower. Table 1 cannot settle this, as its
    definition is not stated.
