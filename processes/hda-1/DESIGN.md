@@ -1467,7 +1467,7 @@ Loops (28, one per controller on P-01 to P-06; `cheme control report` 0 findings
   kg/h target with a kg/h stream value only through Pint (`foundation/units._convert` sends every
   unit outside K, °C and the pressures to Pint, even an identical one), and the plant validate job
   installs core without the `units` extra, so a link would leave a `cheme.control-case` info that
-  the gate `control-complete` fails on. Reported as core issue (see the PR); the link is restored
+  the gate `control-complete` fails on. Reported as core#153; the link is restored
   once core compares identical units. Reflux setpoints are R times the design distillate (FIC-507
   2.18 x 12498.2 = 27246 kg/h; FIC-607 0.5 x 4884.74 = 2442.4 kg/h), own calculation.
 - ASSUMED (the reason in each target's source): levels 50 %; the V-100 and V-202 vents at
@@ -1512,6 +1512,22 @@ that the P&IDs do not show, for S9: nitrogen purge points and loop vents, the PS
 the benzene off-specification routing, valve position feedback (limit switches) on the XV valves,
 the nitrogen connection that breaks the C-203 vacuum. The control system and the trip logic are
 taken to be on an uninterruptible supply (ASSUMED).
+
+Derived assessments brought up to the S3b lists (review 2026-11-04-basic-pids#27): the 14 items
+the P&IDs added are now in `estimate/cost-basis.yaml`. The spares P-101B and P-102B take their
+running pump's simulated power; the column pumps the flowsheet lumps into the column steps get a
+shaft power from `scripts/s4_pump_powers.py` (P = m / rho x dp / 0.65, densities from `thermo`,
+differential pressures ASSUMED from the P&ID routing): P-202A/B 8.5 kW, P-203A/B 1.42 kW, and
+P-201A/B (0.03 kW) and P-204A/B (0.07 kW) at the correlation's 1 kW minimum. PK-201 is excluded
+from the correlation estimate (vendor package, no size, D-008) and stays in the 15 % uncovered
+allowance, whose text in `estimate/tea.yaml` now says so (the fraction is unchanged). K-102 is
+purchased cost only (the package FBM is centrifugal only), as are H-101 and the reflux drums
+V-201/V-202/V-203 (no horizontal vessel FBM); the K-102 and H-101 factors go to the class 4
+estimate (S5). `cheme assess equipment/tea/lca --write` at this commit: 36 items (28 bare module,
+5 purchased only, 2 the project's own cost, 1 excluded, 0 not covered); bare module total of the
+items with all factors 5.60 MUSD (6.12 before; K-102 lost its centrifugal FBM), fixed capital
+27.95 MEUR (27.36), LCOP 876.5 EUR/t (875.5), NPV -148.8 MEUR; the LCA result is unchanged (its
+dataset and manifest record the new list hashes).
 
 ## LCI summary (lca/inventory.csv, per kg benzene)
 
