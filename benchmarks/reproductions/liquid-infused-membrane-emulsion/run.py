@@ -194,13 +194,20 @@ def check_ift() -> list[dict]:
                 g_lo = gamma(s, o, c, a_shift=-1, b_shift=+1) * 1e3
                 g_hi = gamma(s, o, c, a_shift=+1, b_shift=-1) * 1e3
                 m = meas[f"{s}{lv}_{o}"]
-                lo, hi = g_lo - 2 * m["sd"], g_hi + 2 * m["sd"]
+                # an IFT cannot be negative: the reported lower bound is clipped at 0 (the
+                # comparison itself is unchanged, every measured value is positive)
+                lo, hi = max(0.0, g_lo - 2 * m["sd"]), g_hi + 2 * m["sd"]
+                dev = g - m["value"]
                 rows.append({
                     "quantity": f"IFT {s}{lv} / {o}", "unit": "mN/m",
                     "reference": m["value"], "computed": round(g, 3),
-                    "deviation": round(g - m["value"], 3),
+                    "deviation": round(dev, 3),
                     "tolerance": f"in [{lo:.2f}, {hi:.2f}] (fit CI box +- 2 sd)",
                     "pass": bool(lo <= m["value"] <= hi),
+                    # informational, not in the pass rule: the band tests consistency with the
+                    # fit's box uncertainty, not with the measurement's own standard deviation
+                    "deviation_pct": round(dev / m["value"] * 100, 2),
+                    "abs_deviation_in_measurement_sd": round(abs(dev) / m["sd"], 2),
                 })
     return rows
 
@@ -269,7 +276,9 @@ def check_stated() -> list[dict]:
 DARCY = v(INP["constants"]["darcy"])
 MU_OIL = v(INP["fluids"]["hexadecane_viscosity"]) * 1e-3
 L_MEM = v(INP["membrane"]["thickness"]) * 1e-6
-TMP_RUN = v(INP["operation"]["tmp_emulsion_runs"]) * BAR
+TMP_RUN = v(INP["operation"]["tmp_flux_case"]) * BAR  # SI flux calculation, SDS10 / K101-infused
+TMP_TABLE3 = v(INP["operation"]["tmp_table3_upper_bound"])  # bar; assumed upper bound for Table 3
+ACC = v(INP["operation"]["controller_accuracy"]) * 1e-3  # bar
 J_OIL = v(INP["operation"]["oil_flux_SDS10_K101"])
 KAPPA = {k: v(n) for k, n in INP["lld"]["kappa_darcy"].items()}
 
@@ -322,7 +331,7 @@ CASES = [(s, lv, m) for m in ["dry", "K101"] for s in SURFS for lv in LEVELS]
 
 
 def classify_table3() -> dict:
-    tmp = v(INP["operation"]["tmp_emulsion_runs"])
+    tmp = TMP_TABLE3
     wf = REP["water_fraction_in_permeate"]
     rows, agree, undecided = [], 0, 0
     for s, lv, m in CASES:
@@ -334,21 +343,43 @@ def classify_table3() -> dict:
         ok = pred_water == (obs > 0)
         agree += ok
         inside = lo <= tmp <= hi
+        near = (lo - ACC) <= tmp <= (hi + ACC)
+        clipped = gamma(s, "hexadecane", conc(s, LEVEL[lv]), -1, +1) == 0.0
         undecided += inside
         rows.append({"emulsion": f"{s}{lv}", "membrane": "K101-infused" if m == "K101" else "dry",
                      "oil_entry_bar": round(p_oil, 4), "water_entry_bar": round(p_w, 4),
                      "water_entry_band_bar": [round(lo, 4), round(hi, 4)],
                      "predicted_water_at_0.1_bar": pred_water, "observed_water_fraction": obs,
-                     "agrees": ok, "tmp_inside_water_entry_band": inside})
+                     "agrees": ok, "tmp_inside_water_entry_band": inside,
+                     "tmp_within_one_controller_accuracy_of_band": near,
+                     "band_low_edge_has_water_hexadecane_ift_clipped_to_zero": clipped})
     high = [r for r in rows if r["emulsion"].endswith("50")]
     order_entry = [r["emulsion"] + "/" + r["membrane"] for r in sorted(high, key=lambda r: r["water_entry_bar"])]
     order_water = [r["emulsion"] + "/" + r["membrane"] for r in sorted(high, key=lambda r: -r["observed_water_fraction"])]
-    return {"tmp_bar": tmp, "rows": rows, "agree": agree, "of": len(rows),
+    return {"tmp_bar": tmp, "controller_accuracy_bar": ACC, "rows": rows, "agree": agree, "of": len(rows),
             "cases_with_tmp_inside_band": undecided,
             "disagreements_with_tmp_inside_band": sum(1 for r in rows if not r["agrees"] and r["tmp_inside_water_entry_band"]),
             "50pct_cmc_order_by_rising_water_entry": order_entry,
             "50pct_cmc_order_by_falling_water_fraction": order_water,
             "50pct_cmc_orders_identical": order_entry == order_water}
+
+
+def entry_with_measured_ift() -> dict:
+    """Water entry pressures with the measured SI Table S2 IFTs in place of the Szyszkowski fit.
+
+    Informational sensitivity, not in the pass rule: same radii and configuration rules as window().
+    """
+    meas = REP["ift_measured"]
+    out = {}
+    for s, lv, m in CASES:
+        g_meas = meas[f"{s}{lv}_hexadecane"]["value"] * 1e-3
+        g_add = G23 if m == "K101" else 0.0
+        p_meas = entry(g_meas + g_add, radius(s, "hexadecane"))
+        p_fit = window(s, lv, m)[1]
+        out[f"{s}{lv}|{m}"] = {"water_entry_fit_bar": round(p_fit, 4),
+                               "water_entry_measured_ift_bar": round(p_meas, 4),
+                               "shift_bar": round(p_meas - p_fit, 4)}
+    return out
 
 
 def sweep() -> tuple[np.ndarray, dict]:
@@ -393,6 +424,10 @@ def area_estimate() -> dict:
     d_cell = v(INP["membrane"]["cell_diameter"]) * 1e-3
     a_cell = math.pi * d_cell**2 / 4
     j_cap = KAPPA["K101_cycle1"] * DARCY * TMP_RUN / (MU_OIL * L_MEM)
+    # SI p. S7 states 1 mPa s for the Table S3 permeabilities although hexadecane (3.2 mPa s) was
+    # pushed through; if so, the permeabilities on a hexadecane basis are MU_OIL / MU_LLD higher
+    mu_lld_alt = v(INP["lld"]["viscosity_basis_stated"]) * 1e-3
+    f_alt = MU_OIL / mu_lld_alt
     u_max = REP["creaming_rate_SDS10"]["value_range"][1] * 1e-6
     return {
         "case": "K101-infused membrane, SDS10 emulsion, TMP 0.1 bar, dead-end with feed refreshing",
@@ -406,6 +441,7 @@ def area_estimate() -> dict:
         "cell_oil_rate_mL_h": round(J_OIL * a_cell * 3.6e9, 2),
         "darcy_capacity_flux_lld_cycle1_m3_m2_s": float(f"{j_cap:.4g}"),
         "capacity_to_observed_ratio": round(j_cap / J_OIL, 1),
+        "capacity_to_observed_ratio_if_table_s3_used_1_mPa_s": round(f_alt * j_cap / J_OIL, 1),
         "creaming_supply_flux_largest_droplets_m3_m2_s": float(f"{phi * u_max:.4g}"),
         "limits": [
             "batch dead-end figure: flux depends on refresh frequency and oil concentration (source)",
@@ -430,7 +466,8 @@ def creaming_radii() -> dict:
 def extension() -> dict:
     ext = INP["extension"]
     s, lv = "SDS", "10"
-    acc = v(INP["operation"]["controller_accuracy"]) * 1e-3  # bar
+    acc = ACC
+    tmp_obs = TMP_TABLE3  # highest TMP at which the source ran emulsions
     margin = ext["control_margin"]["value"] * acc
     out = {"label": "HYPOTHETICAL design extension (not validated)",
            "design_case": "SDS10 emulsion, K101-infused membrane under a hexadecane layer",
@@ -447,12 +484,13 @@ def extension() -> dict:
             "mean_pore_radius_um": round(v(INP["membrane"]["pore_radius_mean"]) * sc, 3),
             "oil_entry_bar": round(p_oil, 4), "water_entry_bar": round(p_w, 4),
             "window_width_bar": round(p_w - p_oil, 4),
-            "pressure_ratio_water_to_oil": round(p_w / p_oil, 3),
+            "pressure_ratio_water_to_oil": round(p_w / p_oil, 4),
             "robust_window_bar": [round(p_oil_r, 4), round(p_w_r, 4)],
             "usable_tmp_range_bar": [round(p_oil_r + margin, 4), round(p_w_r - margin, 4)],
             "tolerable_tmp_variation_bar": round(usable, 4),
             "controller_steps_in_usable_range": int(usable // acc),
             "darcy_capacity_at_top_of_usable_range_m3_m2_s": float(f"{k * top / (MU_OIL * L_MEM):.4g}"),
+            "usable_range_entirely_above_observed_tmp": bool(p_oil_r + margin > tmp_obs),
         }
     b, c = out["base"], out["changed"]
     out["consequence"] = {
@@ -465,8 +503,12 @@ def extension() -> dict:
         "radii scaled in proportion: assumes the liquid lining scales with the pore; not measured",
         "Darcy capacity assumes kappa = phi r^2 / 24 at unchanged porosity and active fraction; a capacity bound, not a flux prediction (the measured flux is supply-limited)",
         "surfactant depletion by adsorption in the pore grows as r falls (SI eq S8); at 0.9 um its effect on the LEP is not known",
-        "the window ratio water/oil entry is independent of r: pore size cannot repair selectivity that the IFTs do not give",
+        "within the threshold model the water/oil entry ratio is independent of r; whether real leakage (not captured at 50 % cmc) depends on pore size is not known",
+        f"operating-pressure extrapolation: the usable TMP ranges (base {out['base']['usable_tmp_range_bar'][0]:.3f}-{out['base']['usable_tmp_range_bar'][1]:.3f} bar, "
+        f"changed {out['changed']['usable_tmp_range_bar'][0]:.3f}-{out['changed']['usable_tmp_range_bar'][1]:.3f} bar) lie entirely above the highest TMP at which the source ran emulsions "
+        f"({tmp_obs:g} bar); selective behaviour, leakage and the supply-limited flux were never observed there",
     ]
+    out["observed_tmp_max_bar"] = tmp_obs
     scales = np.round(np.linspace(0.25, 2.0, 141), 5)
     curve = {"scale": scales.tolist(), "oil_entry_bar": [], "water_entry_bar": [],
              "usable_low_bar": [], "usable_high_bar": []}
@@ -478,6 +520,11 @@ def extension() -> dict:
         curve["usable_low_bar"].append(round(p_oil_r + margin, 5))
         curve["usable_high_bar"].append(round(p_w_r - margin, 5))
     out["curve"] = curve
+    above = [float(sc) for sc, lo in zip(scales, curve["usable_low_bar"]) if lo > tmp_obs]
+    out["curve_usable_range_above_observed_tmp"] = {
+        "scales_affected": f"{min(above):g} to {max(above):g}" if above else "none",
+        "note": "the whole usable range lies above the observed TMP for these pore-radius scales "
+                "(the oil bound rises as r falls)"}
     return out
 
 
@@ -597,12 +644,18 @@ def fig_extension(ext):
         ax.plot([xr, xr], [lo, hi], color=C_TEXT, lw=2.5)
         ax.text(xr + 0.04, hi, f"{'base' if tag == 'base' else 'changed'}: r = {xr:.2f} um\nusable {lo:.2f}-{hi:.2f} bar",
                 fontsize=7.5, color=C_TEXT, va="bottom")
+    tmp_obs = ext["observed_tmp_max_bar"]
+    ax.axhspan(tmp_obs, 2.0, color="#f0efec", zorder=0, lw=0)
+    ax.axhline(tmp_obs, color=C_TEXT, lw=1, ls="-.")
+    ax.text(x[-1] - 0.03, 0.9, f"grey, above the dash-dot line: TMP higher than any at which\nthe source ran emulsions ({tmp_obs:g} bar); never observed",
+            ha="right", va="bottom", fontsize=7, color=C_TEXT)
     ax.set_xlabel("mean pore radius [um] (all curvature radii scaled together)")
     ax.set_ylabel("transmembrane pressure [bar]")
     ax.set_ylim(0, 2.0); ax.set_xlim(x[0], x[-1])
     ax.set_title("HYPOTHETICAL: SDS 10 % cmc on a K101-infused membrane", fontsize=9.5, loc="left", color=C_TEXT)
     ax.legend(fontsize=7.5, loc="upper right")
-    fig.text(0.01, 0.01, "Design extension, not validated. Shaded: selective window from the threshold model.", fontsize=6.5, color=C_TEXT2)
+    fig.text(0.01, 0.01, "Design extension, not validated. Green: selective window from the threshold model. "
+             "Grey: above the observed TMP range (extrapolation).", fontsize=6.5, color=C_TEXT2)
     fig.tight_layout(rect=(0, 0.03, 1, 1))
     save(fig, "extension_pore_radius.svg")
 
@@ -627,6 +680,7 @@ def main() -> int:
     ext = extension()
     variant = {f"{s}50": round(lep_water_combined(s, "50", r_oil="K101"), 4) for s in SURFS}
     phi_dry = 24 * KAPPA["dry"] * DARCY / (v(INP["membrane"]["pore_radius_mean"]) * 1e-6) ** 2
+    f_alt = MU_OIL / (v(INP["lld"]["viscosity_basis_stated"]) * 1e-3)
     direct = {f"{s}{lv}": round(window(s, lv, "K101_direct")[1], 4) for s in SURFS for lv in LEVELS}
 
     with open(RESULTS / "sweep.csv", "w", encoding="utf-8") as fh:
@@ -656,6 +710,8 @@ def main() -> int:
             "water_entry_aqueous_on_K101_bar": direct,
             "creaming_implied_droplet_size_SDS10": creaming_radii(),
             "dry_membrane_porosity_from_kappa_phi_r2_over_24": round(phi_dry, 4),
+            "dry_membrane_porosity_if_table_s3_used_1_mPa_s": round(phi_dry * f_alt, 4),
+            "water_entry_with_measured_table_s2_ift": entry_with_measured_ift(),
         },
         "pressure_sweep": {k: {kk: vv for kk, vv in d.items() if kk != "state"} for k, d in sw.items()},
         "area_estimate": area,
