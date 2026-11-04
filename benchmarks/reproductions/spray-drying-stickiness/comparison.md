@@ -37,7 +37,7 @@
 
 ## Result: FAIL under the frozen rule
 
-8 of 12 scored checks pass. The verdict is FAIL because each reference group has a failure: A3 in
+7 of 12 scored checks pass. The verdict is FAIL because each reference group has a failure: A3 in
 group A, and B1-B4 in group B. The first run was also FAIL; in that run I1 failed as well
 (7.7e-6 against 1e-6).
 
