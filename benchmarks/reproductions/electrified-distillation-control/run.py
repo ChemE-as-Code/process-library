@@ -7,6 +7,8 @@
 #     "pyyaml==6.0.3",
 #     "openpyxl==3.1.5",
 # ]
+# [tool.uv]
+# exclude-newer = "2026-11-04T00:00:00Z"
 # ///
 """Electrified distillation with flash vapour circulation: CS1 against CS2 (#335, tracker #333).
 
@@ -438,22 +440,29 @@ HP_SMOOTH_KW = 2.0     # width of the smooth minimum between full condensation a
 
 
 def _hp_forward(p: Params, mc, QR0_kW):
+    """Q_R = qa - e g((qa - qb)/e), g(u) = 0 (u <= 0), u^3 - u^4/2 (0 < u < 1), u - 1/2 (u >= 1).
+
+    A twice continuously differentiable smooth minimum that never exceeds full condensation
+    (Q_R <= qa = q_c m_c), equals qa exactly at and below the design load, and lies e/2 above the
+    capacity branch qb well above it.
+    """
     qa = p.q_c / 3600.0 * mc
     if not p.hp_limit:
         return qa
     mc0 = QR0_kW / (p.q_c / 3600.0)
     qb = QR0_kW * (1 + p.kappa * ((mc / mc0) ** 2 - 1))
     e = HP_SMOOTH_KW
-    return 0.5 * (qa + qb - np.sqrt((qa - qb) ** 2 + e * e)) + 0.5 * e   # equals qa = qb at the design load
+    u = (qa - qb) / e
+    g = 0.0 if u <= 0.0 else (u ** 3 - 0.5 * u ** 4 if u < 1.0 else u - 0.5)
+    return qa - e * g
 
 
 def heat_pump(p: Params, QR_kW=None, W_kW=None, QR0_kW=None):
     """Quasi-steady heat-pump closure (inputs.yaml heat_pump), kW and kmol/h.
 
     W -> (m_c, Q_R) or Q_R -> (m_c, W). Full condensation (Q_R = q_c m_c) up to the nominal
-    design load, capacity-limited above it (Q_cap = Q_R0 [1 + kappa ((m_c/m_c0)^2 - 1)]); a smooth
-    minimum of width HP_SMOOTH_KW joins the two, shifted so that the design point is exact (it lies
-    within 1 kW of either branch away from it).
+    design load, capacity-limited above it (Q_cap = Q_R0 [1 + kappa ((m_c/m_c0)^2 - 1)]); a C2
+    smooth minimum of width HP_SMOOTH_KW joins the two (_hp_forward). Q_R never exceeds q_c m_c.
     """
     from scipy.optimize import brentq
     if W_kW is not None:
@@ -604,6 +613,7 @@ class Plant:
 
 def simulate(plant: Plant, ctrl: Ctrl, dist, t_end=10.0, t_step=0.5, dt_out=0.01, s0=None):
     s0 = plant.initial_state() if s0 is None else s0
+    plant._Tg = plant.ss["T"].copy()      # bubble-point guesses from the nominal state: each run independent of the last
     t_out = np.round(np.arange(0.0, t_end + 1e-9, dt_out), 10)
     ts, Ss = [], []
     segs = [(0.0, t_step), (t_step, t_end)]
@@ -786,6 +796,27 @@ def rnd(v, s=6):
     return v
 
 
+TOLERANCES = HERE / "tolerances.yaml"
+
+
+def _num(v):
+    """A tolerance or reference from tolerances.yaml: a number, or a string such as '1425.5 kW'."""
+    return float(str(v).split()[0])
+
+
+def load_tolerances() -> dict:
+    """The frozen tolerances; compare() takes every tolerance from here, not from literals."""
+    raw = TOLERANCES.read_bytes()
+    tol = yaml.safe_load(raw)
+    # the pass fraction is stated in words in the frozen pass_rule; read it from there
+    rule = " ".join(tol["pass_rule"].split())
+    frac = 0.75 if "at least 75 % of the primary checks" in rule else None
+    if frac is None:
+        raise SystemExit("tolerances.yaml pass_rule: pass fraction not found")
+    return dict(primary=tol["primary"], secondary=tol["secondary"], pass_fraction=frac,
+                sha256=hashlib.sha256(raw).hexdigest(), frozen=tol["frozen"])
+
+
 def check(name, ref, ours, rel=None, abs_=None, unit=""):
     dev = ours - ref
     if rel is not None:
@@ -798,37 +829,66 @@ def check(name, ref, ours, rel=None, abs_=None, unit=""):
                 deviation_rel=(dev / ref if ref else None), tolerance=tol, unit=unit, pass_=bool(ok))
 
 
-def compare(si, ss, plant, res, tdiag):
+def recovers_purity(m) -> bool:
+    """Direction rule of tolerances.yaml: |x_D,CS2 - 0.99| < 0.25 |x_D,CS1 - 0.99| at +-20 % methanol."""
+    return bool(all(abs(m[f"CS2 {s} MeOH"]["xD"] - 0.99) < 0.25 * abs(m[f"CS1 {s} MeOH"]["xD"] - 0.99)
+                    for s in ("+20%", "-20%")))
+
+
+def compare(si, ss, plant, res, tdiag, tol):
     p = plant.p
+    TP, TS = tol["primary"], tol["secondary"]
+
+    def pc(name, ref, ours, unit=""):
+        """Primary check with the tolerance of tolerances.yaml; its reference is recorded beside ours."""
+        t = TP[name]
+        c = check(name, ref, ours, rel=t.get("rel"), abs_=(_num(t["abs"]) if "abs" in t else None), unit=unit)
+        r = t.get("reference")
+        try:
+            c["reference_in_tolerances_yaml"] = _num(r)
+        except (TypeError, ValueError):
+            c["reference_in_tolerances_yaml"] = r
+        return c
     col = si["column"]
     sr = si["series"]
     V1 = ss["V"][0]
     lam = ss["H"][0] - ss["hD"]
     Tnom = ss["T"] - 273.15
     prim = []
-    prim.append(check("nominal_reflux_ratio", 0.64636, ss["RR"], rel=0.10))
-    prim.append(check("nominal_reboiler_duty", 1425.5, ss["QR"] / 3600, rel=0.05, unit="kW"))
-    prim.append(check("nominal_conventional_condenser_duty", 1307.0, V1 * lam / 3600, rel=0.05, unit="kW"))
-    prim.append(check("nominal_compressor_power", 303.05, plant.W0, rel=0.05, unit="kW"))
-    prim.append(check("nominal_stage35_temperature", 88.911, Tnom[p.tc_stage - 1], abs_=2.0, unit="K"))
-    prim.append(check("nominal_profile_temperature_rms", 0.0, float(np.sqrt(np.mean((Tnom - col["T_C"]) ** 2))), abs_=1.0, unit="K"))
-    prim.append(check("nominal_profile_x_rms", 0.0, float(np.sqrt(np.mean((ss["x"] - col["x"]) ** 2))), abs_=0.02, unit="mol/mol"))
+    # nominal references as frozen in tolerances.yaml (restated from the SI and the text)
+    for nm in ("nominal_reflux_ratio", "nominal_reboiler_duty", "nominal_conventional_condenser_duty",
+               "nominal_compressor_power", "nominal_stage35_temperature"):
+        unit = "K" if "temperature" in nm else ("" if "ratio" in nm else "kW")
+        ours = {"nominal_reflux_ratio": ss["RR"], "nominal_reboiler_duty": ss["QR"] / 3600,
+                "nominal_conventional_condenser_duty": V1 * lam / 3600, "nominal_compressor_power": plant.W0,
+                "nominal_stage35_temperature": Tnom[p.tc_stage - 1]}[nm]
+        prim.append(pc(nm, _num(TP[nm]["reference"]), ours, unit=unit))
+    prim.append(pc("nominal_profile_temperature_rms", 0.0, float(np.sqrt(np.mean((Tnom - col["T_C"]) ** 2))), unit="K"))
+    prim.append(pc("nominal_profile_x_rms", 0.0, float(np.sqrt(np.mean((ss["x"] - col["x"]) ** 2))), unit="mol/mol"))
     m = {k: metrics(v) for k, v in res.items()}
     ref = {k: {"xD": float(v["xD"][-1]), "RR": float(v["RR"][-1]), "W": float(v["W"][-1]), "FVC": float(v["FVC"][-1]),
                "xBw": float(v["xBw"][-1]), "D": float(v["D"][-1]),
                "IAE_MeOH": float(np.trapezoid(np.abs(v["xD"] - 0.99), v["t"])),
                "IAE_water": float(np.trapezoid(np.abs(v["xBw"] - 0.9999), v["t"])),
                "settling_MeOH_h": settling(v["t"], v["xD"])} for k, v in sr.items()}
-    prim.append(check("CS1_plus20_MeOH_xD", ref["CS1 +20% MeOH"]["xD"], m["CS1 +20% MeOH"]["xD"], abs_=0.002))
-    prim.append(check("CS1_minus20_MeOH_xD", ref["CS1 -20% MeOH"]["xD"], m["CS1 -20% MeOH"]["xD"], abs_=0.003))
-    prim.append(check("CS2_plus20_MeOH_xD", ref["CS2 +20% MeOH"]["xD"], m["CS2 +20% MeOH"]["xD"], abs_=0.001))
-    prim.append(check("CS2_minus20_MeOH_xD", ref["CS2 -20% MeOH"]["xD"], m["CS2 -20% MeOH"]["xD"], abs_=0.001))
-    prim.append(check("CS2_plus20_MeOH_RR", ref["CS2 +20% MeOH"]["RR"], m["CS2 +20% MeOH"]["RR"], rel=0.15))
-    prim.append(check("CS2_minus20_MeOH_RR", ref["CS2 -20% MeOH"]["RR"], m["CS2 -20% MeOH"]["RR"], rel=0.10))
+    # step references are read from the SI series; tolerances.yaml holds the same values rounded
+    for cs in ("CS1", "CS2"):
+        for sg, tag in (("+20%", "plus20"), ("-20%", "minus20")):
+            k = f"{cs} {sg} MeOH"
+            prim.append(pc(f"{cs}_{tag}_MeOH_xD", ref[k]["xD"], m[k]["xD"]))
+    for sg, tag in (("+20%", "plus20"), ("-20%", "minus20")):
+        k = f"CS2 {sg} MeOH"
+        prim.append(pc(f"CS2_{tag}_MeOH_RR", ref[k]["RR"], m[k]["RR"]))
     for k, nm in (("CS1 +20% MeOH", "CS1_plus20_MeOH_power"), ("CS1 -20% MeOH", "CS1_minus20_MeOH_power"),
                   ("CS2 +20% MeOH", "CS2_plus20_MeOH_power"), ("CS2 -20% MeOH", "CS2_minus20_MeOH_power")):
-        prim.append(check(nm, ref[k]["W"], m[k]["W"], rel=0.10, unit="kW"))
-    ok1 = all(abs(m[f"CS2 {s} MeOH"]["xD"] - 0.99) < 0.25 * abs(m[f"CS1 {s} MeOH"]["xD"] - 0.99) for s in ("+20%", "-20%"))
+        prim.append(pc(nm, ref[k]["W"], m[k]["W"], unit="kW"))
+    for c in prim:      # the SI values read at runtime must be the ones frozen in tolerances.yaml
+        ry = c["reference_in_tolerances_yaml"]
+        if isinstance(ry, float) and c["reference"] != 0.0 and abs(ry - c["reference"]) > 5e-4 * abs(c["reference"]):
+            raise SystemExit(f"{c['check']}: reference {c['reference']} differs from tolerances.yaml {ry}")
+    if "< 0.25 |x_D,CS1 - 0.99|" not in TP["direction_CS2_recovers_purity"]["rule"]:
+        raise SystemExit("tolerances.yaml direction_CS2_recovers_purity: factor 0.25 not found")
+    ok1 = recovers_purity(m)
     prim.append(dict(check="direction_CS2_recovers_purity", reference="|x_D,CS2-0.99| < 0.25 |x_D,CS1-0.99| at +-20 % MeOH",
                      ours={s: [m[f"CS1 {s} MeOH"]["xD"] - 0.99, m[f"CS2 {s} MeOH"]["xD"] - 0.99] for s in ("+20%", "-20%")},
                      pass_=bool(ok1)))
@@ -838,15 +898,22 @@ def compare(si, ss, plant, res, tdiag):
 
     sec = []
     for k in ("CS1 +20% MeOH", "CS1 -20% MeOH", "CS2 +20% MeOH", "CS2 -20% MeOH"):
-        for q, band in (("IAE_MeOH", (0.5, 2.0)), ("IAE_water", (1 / 3, 3.0)), ("settling_MeOH_h", (0.5, 2.0))):
+        for q, band in (("IAE_MeOH", tuple(TS["IAE_MeOH_composition_cases"]["ratio"])),
+                        ("IAE_water", tuple(TS["IAE_water_composition_cases"]["ratio"])),
+                        ("settling_MeOH_h", tuple(TS["settling_time_like_for_like"]["ratio"]))):
             r, o = ref[k][q], m[k][q]
             ratio = o / r if r > 0 else (np.inf if o > 0 else 1.0)
             sec.append(dict(check=f"{q} {k}", reference=r, ours=o, ratio=ratio, tolerance=f"ratio {band[0]:.2g}-{band[1]:.2g}",
                             pass_=bool(band[0] <= ratio <= band[1])))
-        sec.append(check(f"FVC_final {k}", ref[k]["FVC"], m[k]["FVC"], abs_=5.0, unit="kmol/h"))
+        sec.append(check(f"FVC_final {k}", ref[k]["FVC"], m[k]["FVC"], abs_=_num(TS["FVC_final_composition_cases"]["abs"]), unit="kmol/h"))
     sec.append(dict(check="direction_CS2_power_minus20", reference="W_CS2 > W_CS1 at -20 % MeOH",
                     ours=[m["CS1 -20% MeOH"]["W"], m["CS2 -20% MeOH"]["W"]],
                     pass_=bool(m["CS2 -20% MeOH"]["W"] > m["CS1 -20% MeOH"]["W"])))
+    # throughput_cases states its tolerances in words; the literals below restate them (asserted)
+    thr = " ".join(TS["throughput_cases"]["reference"].split())
+    for frag in ("power 235.48 kW (rel 0.10)", "(rel 0.05)", "0.99076 (abs 0.002)"):
+        if frag not in thr:
+            raise SystemExit(f"tolerances.yaml throughput_cases: '{frag}' not found")
     sec.append(check("CS1_minus20_F_power", ref["CS1 -20% F"]["W"], m["CS1 -20% F"]["W"], rel=0.10, unit="kW"))
     sec.append(check("CS1_minus20_F_xD", ref["CS1 -20% F"]["xD"], m["CS1 -20% F"]["xD"], abs_=0.002))
     sec.append(check("CS2_plus20_F_RR", ref["CS2 +20% F"]["RR"], m["CS2 +20% F"]["RR"], rel=0.05))
@@ -862,7 +929,7 @@ def compare(si, ss, plant, res, tdiag):
     dirs = [c for c in prim if c["check"].startswith("direction")]
     if npass == len(prim):
         verdict = "pass"
-    elif npass >= 0.75 * len(prim) and all(c["pass_"] for c in dirs):
+    elif npass >= tol["pass_fraction"] * len(prim) and all(c["pass_"] for c in dirs):
         verdict = "partial"
     else:
         verdict = "fail"
@@ -922,40 +989,73 @@ def sensitivity(si, base_c1, base_c2):
         finally:
             if alpha is not None:
                 globals()["NRTL_ALPHA"] = 0.3
-        c = row["cases"]
+        c = dict(row["cases"])
+        if cases == cs2only and out and out[0]["cases"]:
+            # CS1 does not use the composition loop, so the CC tuning and analyser deadtime leave it
+            # unchanged: the direction checks of these rows use the base CS1 cases
+            for k in comp:
+                if k.startswith("CS1"):
+                    c[k] = out[0]["cases"][k]
+            row["CS1_cases_from"] = "base (CS1 does not use the composition loop)"
         if all(k in c for k in comp):
-            row["CS2_recovers_purity"] = bool(all(abs(c[f"CS2 {s} MeOH"]["xD"] - 0.99) < 0.25 * abs(c[f"CS1 {s} MeOH"]["xD"] - 0.99) for s in ("+20%", "-20%")))
+            row["CS2_recovers_purity"] = recovers_purity(c)
             row["CS2_saves_power_plus20"] = bool(c["CS2 +20% MeOH"]["W"] < c["CS1 +20% MeOH"]["W"])
+            row["CS2_power_plus20_kW"] = c["CS2 +20% MeOH"]["W"]
+            row["CS2_xD_within_5e-4_of_0.99_at_10h"] = bool(all(abs(c[k]["xD"] - 0.99) < 5e-4 for k in cs2only))
         out.append(row)
     return out
 
 
-def extension(plant, c2):
+def extension(plant, c2, hp):
     """HYPOTHETICAL: CS2 distillate set point 0.99 -> 0.995 (inputs.yaml design_extension)."""
     p, ss0 = plant.p, plant.ss
     QR0 = plant.QR0
-    mc_cal = 202.2
+    # top of the range the capacity closure was calibrated over, as a load ratio m_c / m_c0
+    # (the closure is applied as a ratio to our model's m_c0): SI +20 % throughput over SI nominal
+    r_cal = hp["mc_plus20F_SI_kmolh"] / hp["mc0_SI_kmolh"]
 
-    def state(z, xsp, cs):
+    def state(z, xsp, cs, F=None, s=None):
         specs = {"T35": plant.Tsp, "xD": xsp} if cs == 2 else {"T35": plant.Tsp, "RR": plant.RR0}
-        s = solve_ss(p, specs, ss0["u"], z=z)
+        if s is None:
+            s = solve_ss(p, specs, ss0["u"], z=z, F=F)
         mc, W = heat_pump(p, QR_kW=s["QR"] / 3600, QR0_kW=QR0)
+        flags = [f for f, c in (
+            (f"compressor load m_c/m_c0 = {mc / plant.mc0:.3f} beyond the calibrated range (up to {r_cal:.3f}, "
+             f"{r_cal * plant.mc0:.1f} kmol/h in our model)", mc / plant.mc0 > r_cal),
+            ("x_D set point outside every case the source simulated (all at 0.99)", cs == 2 and abs(xsp - 0.99) > 1e-9),
+            ("feed outside the source's composition cases 0.64-0.96", not (0.639 <= z <= 0.961)),
+            ("reflux ratio below 0.303, the lowest the source reports", s["RR"] < 0.303)) if c]
         return dict(z=z, xD=s["xD"], xBw=1 - s["xR"], RR=s["RR"], QR=s["QR"] / 3600, W=W, mc=mc, FVC=mc - s["V"][0],
-                    V_top=s["V"][0], resid=s["resid_max"],
-                    flags=[f for f, c in (("compressor flow beyond the calibrated range (202 kmol/h)", mc > mc_cal),
-                                          ("feed outside the source's composition cases 0.64-0.96", not (0.639 <= z <= 0.961)),
-                                          ("reflux ratio below 0.303, the lowest the source reports", s["RR"] < 0.303)) if c])
+                    V_top=s["V"][0], load_ratio=mc / plant.mc0, resid=s["resid_max"], flags=flags), s
     zs = np.round(np.arange(0.60, 0.9701, 0.01), 4)
     sweep = {"CS1 (RR fixed)": [], "CS2 x_D 0.99": [], "CS2 x_D 0.995": []}
+    raw = {k: [] for k in sweep}
     for z in zs:
-        sweep["CS1 (RR fixed)"].append(state(float(z), None, 1))
-        sweep["CS2 x_D 0.99"].append(state(float(z), 0.99, 2))
-        sweep["CS2 x_D 0.995"].append(state(float(z), 0.995, 2))
-    points = {f"{tag} z={z}": state(z, xsp, 2) for z in (0.64, 0.80, 0.96) for tag, xsp in (("0.99", 0.99), ("0.995", 0.995))}
+        for lab, xsp, cs in (("CS1 (RR fixed)", None, 1), ("CS2 x_D 0.99", 0.99, 2), ("CS2 x_D 0.995", 0.995, 2)):
+            d, s = state(float(z), xsp, cs)
+            sweep[lab].append(d); raw[lab].append(s)
+    points = {f"{tag} z={z}": state(z, xsp, 2)[0] for z in (0.64, 0.80, 0.96) for tag, xsp in (("0.99", 0.99), ("0.995", 0.995))}
+    # The steady column does not depend on the capacity parameter kappa; only the power needed for a
+    # given reboiler duty does. Peak power of the sweep, and our own model's +-20 % envelope (CS1 at
+    # +20 % methanol and at +20 % throughput), at the kappa range of the sensitivity study.
+    env = {"CS1 +20% MeOH": state(0.96, None, 1)[1], "CS1 +20% F": state(0.80, None, 1, F=120.0)[1]}
+
+    def power(QR_kW, kap):
+        return heat_pump(replace(p, kappa=kap), QR_kW=QR_kW, QR0_kW=QR0)[1]
+    kappa_range = []
+    for kap in (0.10, p.kappa, 0.30):
+        row = dict(kappa=kap)
+        for lab in ("CS2 x_D 0.99", "CS2 x_D 0.995"):
+            Ws = [power(s["QR"] / 3600, kap) for s in raw[lab]]
+            i = int(np.argmax(Ws))
+            row[f"peak_W_kW {lab}"] = Ws[i]; row[f"peak_at_z {lab}"] = float(zs[i])
+        for k, s in env.items():
+            row[f"W_kW {k} (our model's envelope)"] = power(s["QR"] / 3600, kap)
+        kappa_range.append(row)
     o = simulate(plant, replace(c2, xD_sp_step=(0.5, 0.995)), step_dist(p.F, p.z))
     dyn = dict(t=o["t"], xD=o["xD"], RR=o["RR"], W=o["W"], settling_h=settling(o["t"], o["xD"]),
                final=dict(xD=float(o["xD"][-1]), RR=float(o["RR"][-1]), W=float(o["W"][-1]), FVC=float(o["FVC"][-1])))
-    return dict(sweep=sweep, points=points, setpoint_step=dyn)
+    return dict(sweep=sweep, points=points, setpoint_step=dyn, kappa_range=kappa_range)
 
 
 # ----------------------------------------------------------------------------- figures (our own matplotlib code)
@@ -978,7 +1078,13 @@ def _style():
     return plt
 
 
-def _save(fig, name):
+CREDIT = ("Source data: Cui, Zhang, Qi and Kiss (2025), Chem. Eng. Res. Des. 220, 450-460, "
+          "doi 10.1016/j.cherd.2025.07.023, CC BY 4.0.\nSI values replotted, not modified; model and figure are ours.")
+
+
+def _save(fig, name, credit=True):
+    if credit:
+        fig.text(0.0, -0.02, CREDIT, fontsize=6.5, color=INK2, ha="left", va="top", wrap=False)
     fig.savefig(RESULTS / name, format="svg", metadata={"Date": None, "Creator": "run.py (#335)"}, bbox_inches="tight")
     preview = os.environ.get("CHEME_FIG_PREVIEW_DIR")       # development only: PNG copies outside git
     if preview:
@@ -1015,7 +1121,7 @@ def figures(si, ss, plant, res, sens, ext):
             o, r = res[k], sr[k]
             for i, (q, scale) in enumerate((("xD", 1.0), ("RR", 1.0), ("W", 1.0))):
                 ax[i, jc].plot(o["t"], o[q] * scale, color=colr, lw=1.8, label=f"{cs}, our model")
-                ax[i, jc].plot(r["t"], r[q] * scale, color=colr, lw=1.2, ls=(0, (4, 2)), label=f"{cs}, source SI (Aspen Dynamics)")
+                ax[i, jc].plot(r["t"], r[q] * scale, color=colr, lw=1.2, ls=(0, (4, 2)), label=f"{cs}, Cui et al. (2025) SI, Aspen Dynamics")
         ax[0, jc].axhline(0.99, color=INK2, lw=0.8, ls=":")
         ax[0, jc].set_title(f"Feed methanol {sgn} (0.80 to {'0.96' if sgn == '+20%' else '0.64'})")
         ax[2, jc].set_xlabel("time (h); step at 0.5 h")
@@ -1037,7 +1143,7 @@ def figures(si, ss, plant, res, sens, ext):
             o, r = res[k], sr[k]
             for i, q in enumerate(("xD", "W", "FVC")):
                 ax[i, jc].plot(o["t"], o[q], color=colr, lw=1.8, label=f"{cs}, our model")
-                ax[i, jc].plot(r["t"], r[q], color=colr, lw=1.2, ls=(0, (4, 2)), label=f"{cs}, source SI")
+                ax[i, jc].plot(r["t"], r[q], color=colr, lw=1.2, ls=(0, (4, 2)), label=f"{cs}, Cui et al. (2025) SI, Aspen Dynamics")
         ax[0, jc].set_title(f"Feed flow {sgn}" + ("  (CS1: calibration case)" if sgn == "+20%" else ""))
         ax[2, jc].set_xlabel("time (h); step at 0.5 h")
     ax[0, 0].set_ylabel("distillate methanol (mol/mol)")
@@ -1076,7 +1182,7 @@ def figures(si, ss, plant, res, sens, ext):
         ax[2].set_xscale("log"); ax[2].set_xlabel("IAE of x_D over 10 h,\n+20 % methanol (h)")
         ax[0].set_yticks(y); ax[0].set_yticklabels(labels)
         ax[0].legend(loc="lower left")
-        fig.suptitle("Sensitivity to the reconstructed parameters (dashed: source SI values)", fontsize=10.5, fontweight="bold")
+        fig.suptitle("Sensitivity to the reconstructed parameters (dashed: Cui et al. (2025) SI values)", fontsize=10.5, fontweight="bold")
         fig.tight_layout()
         _save(fig, "fig_sensitivity.svg"); plt.close(fig)
 
@@ -1091,7 +1197,7 @@ def figures(si, ss, plant, res, sens, ext):
     for k, mk, colr in (("CS1", "s", C_CS1), ("CS2", "D", C_CS2)):
         zz = [0.96, 0.64]
         ax[0].plot(zz, [sr[f"{k} +20% MeOH"]["W"][-1], sr[f"{k} -20% MeOH"]["W"][-1]], mk, ms=5, mfc="none", mec=colr, mew=1.2,
-                   label=f"{k}, source SI at 10 h")
+                   label=f"{k}, Cui et al. (2025) SI at 10 h")
         ax[1].plot(zz, [sr[f"{k} +20% MeOH"]["RR"][-1], sr[f"{k} -20% MeOH"]["RR"][-1]], mk, ms=5, mfc="none", mec=colr, mew=1.2)
         ax[2].plot(zz, [sr[f"{k} +20% MeOH"]["xD"][-1], sr[f"{k} -20% MeOH"]["xD"][-1]], mk, ms=5, mfc="none", mec=colr, mew=1.2)
     for a in ax:
@@ -1112,6 +1218,17 @@ def series_out(o, step=10):
     return {k: rnd(np.asarray(o[k])[::step].tolist(), 6) for k in keys}
 
 
+def resolved_packages() -> list[str]:
+    """The installed distribution set of the run environment (name==version, sorted)."""
+    from importlib import metadata
+    names = {}
+    for d in metadata.distributions():
+        n = (d.metadata["Name"] or "").lower().replace("_", "-")
+        if n:
+            names[n] = d.version
+    return [f"{n}=={v}" for n, v in sorted(names.items())]
+
+
 def main(argv):
     quick = "--quick" in argv
     t_start = time.time()
@@ -1121,7 +1238,8 @@ def main(argv):
     dn = step_dist(p.F, p.z)
     c1, c2, tinfo = tune(plant, dn)
     res = run_all(plant, c1, c2)
-    cmp_ = compare(si, ss, plant, res, tdiag)
+    tol = load_tolerances()
+    cmp_ = compare(si, ss, plant, res, tdiag, tol)
     ss_end = {}
     for name, (cs, kw) in scenarios().items():
         specs = {"T35": plant.Tsp, "RR": plant.RR0} if cs == 1 else {"T35": plant.Tsp, "xD": 0.99}
@@ -1129,17 +1247,20 @@ def main(argv):
         mc, W = heat_pump(p, QR_kW=s["QR"] / 3600, QR0_kW=plant.QR0)
         ss_end[name] = dict(xD=s["xD"], RR=s["RR"], W=W, QR=s["QR"] / 3600, FVC=mc - s["V"][0], resid=s["resid_max"])
     sens = [] if quick else sensitivity(si, c1, c2)
-    ext = extension(plant, c2)
+    ext = extension(plant, c2, hp)
     figures(si, ss, plant, res, sens, ext)
     import matplotlib, scipy, openpyxl
     lam = ss["H"][0] - ss["hD"]
     out = {
         "case": CASE_ID, "issue": 335, "tracker": 333,
         "verdict": cmp_["verdict"], "pass_rule": "tolerances.yaml pass_rule",
+        "tolerances_file": {"path": "tolerances.yaml", "sha256": tol["sha256"], "frozen": tol["frozen"],
+                            "pass_fraction": tol["pass_fraction"]},
         "primary_passed": cmp_["primary_passed"], "primary_total": cmp_["primary_total"],
         "secondary_passed": cmp_["secondary_passed"], "secondary_total": cmp_["secondary_total"],
         "software": {"python": platform.python_version(), "numpy": np.__version__, "scipy": scipy.__version__,
-                     "matplotlib": matplotlib.__version__, "openpyxl": openpyxl.__version__, "pyyaml": yaml.__version__},
+                     "matplotlib": matplotlib.__version__, "openpyxl": openpyxl.__version__, "pyyaml": yaml.__version__,
+                     "resolved_packages": resolved_packages(), "uv_exclude_newer": "2026-11-04T00:00:00Z"},
         "source_file": {"url": SI_URL, "sha256": SI_SHA256},
         "thermodynamics_fit": tdiag, "heat_pump_reconstruction": hp,
         "hydraulics": {"diameter_m": p.diameter, "weir_height_m": p.weir_h, "tray_holdup_kmol_top_mid_bottom":
@@ -1160,6 +1281,7 @@ def main(argv):
         "extension_HYPOTHETICAL": {"label": "hypothetical design extension, not validated",
                                    "points": ext["points"], "setpoint_step_nominal_feed": {
                                        "settling_h": ext["setpoint_step"]["settling_h"], "final": ext["setpoint_step"]["final"]},
+                                   "peak_power_and_envelope_against_kappa": ext["kappa_range"],
                                    "sweep": ext["sweep"]},
     }
     for k in list(out["checks_primary"]) + list(out["checks_secondary"]):
