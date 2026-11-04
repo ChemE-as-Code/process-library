@@ -1,0 +1,173 @@
+# Reference record for the microfluidic T-junction case (#338, tracker #333; ADR 0030, ADR 0031).
+# Facts (equations, geometries, numbers) restated in our own form with locators. No text, code,
+# figures or tables of any source are copied here. Digitised values are marked as digitised.
+accessed: "2026-11-04"
+
+sources:
+  model:
+    id: van-steijn-2010
+    citation: >-
+      V. van Steijn, C. R. Kleijn, M. T. Kreutzer, Predictive model for the size of bubbles and
+      droplets created in microfluidic T-junctions, Lab Chip 10 (19), 2513-2518 (2010)
+    doi: 10.1039/C002625E
+    version: version of record (Lab Chip, published online 2010-07-09); PMID 20617259
+    authorship_verified: >-
+      Authors, title, journal, volume and pages confirmed from OpenAlex and the PubMed record
+      (PMID 20617259). The abstract (PubMed) states a closed-form, fit-free expression for the
+      size of bubbles and droplets in T-junctions, built on continuity, geometry and the pinch-off
+      mechanism, and validated with gas bubbles and liquid droplets in T-junctions of many shapes.
+    availability: >-
+      Closed access. OpenAlex reports oa_status closed and no repository full text; the publisher
+      page is behind a bot wall; the TU Delft record of the author's thesis (uuid
+      dcfe8cfc-b5d9-41e4-a785-540c492a6eb7, 2010) has no file. The full text was NOT read for this
+      case. The equations below are taken from the open restatement (replication below) and
+      checked for internal consistency and against an independent evaluation (Nekouei 2017).
+    licence: (c) Royal Society of Chemistry; no reuse beyond facts, none of its content is reproduced
+    kind: predictive model (closed form, no fitted parameters) with experimental validation
+
+  model_restatement:
+    id: schackart-kaarj-replication
+    citation: >-
+      K. E. Schackart III, K. Kaarj, [Re] Predictive model for the size of bubbles and droplets
+      created in microfluidic T-junctions (replication prepared for ReScience C; publication status
+      not confirmed)
+    repository: https://github.com/schackartk/t-junction_model_replication
+    commit: 1b5c86437189b621db4a83ecda50cc8c1b157d08   # head of master, last push 2023-04-14
+    files:
+      - path: article/content.tex
+        sha256: ab4461262b2184c88af96ef6d2d2e6db79461b6d5e0522a136c34445cceb7a7d
+        use: restated model equations (filling volume, squeezing coefficient, R_fill, R_pinch, q_gutter/q_c)
+      - path: src/make_figures.py
+        sha256: 28af0899055f6be49c823706e13caf0f1c23519cab5bec23d34f31aed0e6633a
+        use: the geometries and corner roundness of the original Fig. 3 series, as the replicators read them
+    licence: MIT (repository LICENSE); only equations and parameter values (facts) are restated, no code is used or run
+    note: >-
+      The replicators report that the original article's Fig. 2a is consistent with a misplaced
+      bracket in the w_in > w branch of the filling equation, and that the original Fig. 3 liquid
+      droplet line is less steep than the equations give. We use the bracketing that agrees with
+      the geometric derivation (checked in run.py, check model_internal.fill_closed_vs_geometry).
+    kind: secondary source (independent re-implementation of the model from the original text)
+
+  comparison_data:
+    id: nekouei-vanapalli-2017
+    citation: >-
+      M. Nekouei, S. A. Vanapalli, Volume-of-fluid simulations in microfluidic T-junction devices:
+      influence of viscosity ratio on droplet size, Phys. Fluids 29, 032007 (2017); preprint arXiv:1703.00937v1
+    doi: 10.1063/1.4978801
+    file:
+      url: https://arxiv.org/pdf/1703.00937v1
+      name: 1703.00937v1.pdf
+      sha256: e79589aeccb3a03efa6369b5f2ec9b5bb89a7df21aadeb0f259820028d49647b
+      bytes: 1337787
+      downloaded_by: run.py at runtime into the user cache (not committed)
+    licence: >-
+      arXiv non-exclusive distribution licence 1.0 (not an open content licence). Not
+      redistributed. Only numbers (facts) are restated here: digitised marker and line
+      coordinates of Fig. 5 and two squeezing coefficients from the text.
+    kind: secondary source; replots the original experimental points of van Steijn 2010 and its model lines, plus own VOF simulations
+
+  regime_and_fluids:
+    id: korczyk-2019
+    citation: >-
+      P. M. Korczyk, V. van Steijn, S. Blonski, D. Zaremba, D. A. Beattie, P. Garstecki, Accounting
+      for corner flow unifies the understanding of droplet formation in microfluidic channels,
+      Nat. Commun. 10, 2528 (2019)
+    doi: 10.1038/s41467-019-10505-5
+    file: {url: "https://www.nature.com/articles/s41467-019-10505-5.pdf", sha256: 3c4d3819e1e98dcb53e81a6b146adb167fa029a6bd1334e9bcf0dc35e8baed43, use: read once for facts, not downloaded by run.py}
+    licence: CC BY 4.0 (open access, gold)
+    data_availability: raw data on request from the authors only (not obtained)
+    kind: later model by an author of the original; used for the leaking-regime bound and the fluid properties of the design extension
+
+# The model as restated (our notation). Dimensionless volume v = V/(h w^2), flow-rate ratio q = q_d/q_c,
+# r = w_in/w, eta = h/w. w: main channel width, w_in: side (dispersed-phase) inlet width,
+# h: channel depth (all channels the same depth), eps: corner roundness of the junction.
+model:
+  locator: model_restatement article/content.tex, section "van Steijn et al. model overview", equations 1-6
+  total: v = v_fill + alpha q
+  fill_r_le_1: v_fill = 3 pi/8 - (pi/2)(1 - pi/4) eta
+  fill_r_gt_1: >-
+    v_fill = (pi/4 - asin(1 - 1/r)/2) r^2 - (r - 1) sqrt(2 r - 1)/2 + pi/8
+             - (1/2)(1 - pi/4) [ (pi/2 - asin(1 - 1/r)) r + pi/2 ] eta
+  fill_geometry: >-
+    V_fill = h A_tip - 2 A_gutter l_gutter, with A_gutter = (1 - pi/4) h^2/4 (corner gutter of
+    radius h/2), A_tip the plan area of the tip when it touches the far wall (3 pi w^2/8 for
+    r <= 1) and l_gutter its perimeter (pi w for r <= 1)
+  alpha: >-
+    alpha = (1 - pi/4) (1 - q_gutter/q_c)^-1 [ (R_pinch/w)^2 - (R_fill/w)^2 + (pi/4)(R_pinch/w - R_fill/w) eta ]
+  R_fill: max(w, w_in)
+  R_pinch: >-
+    w + w_in - d + sqrt(2 (w_in - d)(w - d)), with d = h w/(h + w) - eps (the neck width at pinch-off,
+    2 r_pinch = h w/(h + w), less the corner roundness)
+  q_gutter_over_q_c: 0.1   # stated by the original as determined experimentally (per the restatement)
+  corner_roundness: {bubbles: 0.1 w, liquid_droplets: 0.01 w}   # original Fig. 3 series, per make_figures.py
+  regime: squeezing (low capillary number); dispersed phase non-wetting; all channels the same depth
+
+# Reference figure: the original Fig. 3 (dimensionless volume versus flow-rate ratio, model lines and
+# measured bubbles for several junction shapes) is closed. Its experimental points for three shapes
+# are replotted, with the model lines, in Nekouei & Vanapalli Fig. 5. That replot is our reference.
+reference_figure:
+  original: van Steijn 2010 Fig. 3 (not accessed)
+  used: nekouei-vanapalli-2017, arXiv:1703.00937v1 page 11, Fig. 5 (vector graphics, Form XObject /Meta61)
+  axes: {x: "q_d/q_c (0 to 10)", y: "V/(h w^2) (0 to 35)"}
+  series_geometry:
+    note: >-
+      The Fig. 5 legend gives (w_in/w, h/w) = (0.33, 0.33) circles, (0.67, 0.11) triangles,
+      (1.33, 0.17) diamonds; the replication's reading of the original Fig. 3 gives the same
+      pairs. The Nekouei body text (page 10-11) lists (0.67, 0.17) and (1.33, 0.11) instead; we
+      take the legend, which two sources agree on. Recorded as reconstructed in inputs.yaml.
+    open_symbols: experiments of van Steijn 2010 (gas bubbles, per the original Fig. 3 description in the restatement)
+    filled_symbols: VOF simulations of Nekouei & Vanapalli (viscosity ratio 0.1, Ca ~ 1e-3); informational only
+    dashed_lines: the van Steijn 2010 model, drawn by Nekouei & Vanapalli from the original's equations (their caption)
+  digitisation:
+    method: >-
+      Exact extraction of vector paths from the PDF content stream (pypdf), no image tracing.
+      Markers are identified by path shape (circle: four Bezier curves; triangle: three
+      segments; diamond: four segments) and paint (stroked = open, filled = closed); the marker
+      centre is the centre of its bounding box. Axis calibration from the axis tick marks:
+      x = 0 at 54.379 pt and x = 10 at 288.98 pt; y = 0 at 50.647 pt and y = 35 at 285.25 pt
+      (form coordinates). run.py repeats this extraction and checks it against the values below.
+    uncertainty: >-
+      Coordinates lie on a 0.6 pt grid (EMF origin), so the extraction resolution is +-0.3 pt:
+      +-0.013 in q and +-0.045 in V/(h w^2). The fidelity of the replot to the original Fig. 3 is
+      not stated by Nekouei & Vanapalli and cannot be checked (original closed): an unquantified
+      uncertainty on top, assumed small against the 15 % tolerance.
+  digitised:   # (q_d/q_c, V/(h w^2)), DIGITISED
+    experiment:
+      r0.33_h0.33: [[1.630, 1.701], [3.241, 3.043], [9.431, 6.624]]
+      r0.67_h0.11: [[0.339, 1.208], [0.569, 1.298], [0.978, 1.925], [1.387, 3.804], [2.947, 6.490], [4.098, 7.117], [5.223, 9.176], [7.269, 12.129]]
+      r1.33_h0.17: [[0.543, 3.088], [0.748, 3.715], [1.822, 6.758], [3.126, 9.802], [6.170, 18.037]]
+    vof_simulation:
+      r0.33_h0.33: [[0.991, 1.432], [1.988, 2.059], [2.986, 2.954], [3.983, 3.670], [4.980, 4.386], [5.978, 5.281]]
+      r0.67_h0.11: [[0.978, 3.267], [1.975, 4.610], [2.973, 5.774], [3.996, 8.459], [4.993, 9.534], [5.991, 11.413]]
+      r1.33_h0.17: [[0.479, 3.043], [0.991, 5.013], [1.988, 6.893], [2.986, 11.637]]
+    model_lines:   # end points (q, v) of each dashed line; the start lies 0.3 pt left of the axis (line cap)
+      r0.33_h0.33: [[-0.013, 1.029], [9.987, 6.579]]
+      r0.67_h0.11: [[-0.013, 1.208], [9.987, 17.142]]
+      r1.33_h0.17: [[-0.013, 1.298], [9.987, 32.091]]
+    line_assignment: >-
+      Each dashed line is assigned to the series whose experimental points it passes through:
+      slope 0.56 with the circles, 1.59 with the triangles, 3.08 with the diamonds.
+
+reported_results:
+  alpha_independent:   # squeezing coefficient evaluated with the van Steijn 2010 model by Nekouei & Vanapalli
+    locator: nekouei-vanapalli-2017 arXiv v1 page 18, first paragraph (comparison with their fitted beta)
+    w_in_over_w_1_h_over_w_0.33: {value: 1.8, digits: 2}
+    w_in_over_w_1_h_over_w_1: {value: 1.15, digits: 3}
+    note: corner roundness not stated; q_gutter/q_c = 0.1 implied by the model
+  claimed_agreement:
+    locator: van-steijn-2010 abstract (PubMed)
+    statement: model validated experimentally with bubbles and droplets in many junction shapes, without fitting; no numerical error band is stated in the open sources
+  squeezing_regime_lower_bound:
+    locator: korczyk-2019 page 4-5, Eq. (3) and Fig. 3 caption
+    statement: >-
+      gutter leakage makes the size depend on Ca at low q Ca; leakage is below 10 % of the necking
+      flow for q Ca > 10 beta, with beta = 7.4e-5 +- 0.3e-5 fitted for square channels
+      (W = H = 360 um, FC-40 in hexadecane); beta depends on the aspect ratio
+  fluid_properties:
+    locator: korczyk-2019 Methods, "Experiments"
+    hexadecane_viscosity: {value: 3.6, unit: mPa s, kind: measured}
+    fc40_viscosity: {value: 4.1, unit: mPa s, kind: measured}
+    interfacial_tension: {value: 7.3, unit: mN/m, kind: measured (pendant drop)}
+  experimental_range:
+    locator: nekouei-vanapalli-2017 Table 1 (row for van Steijn et al.)
+    statement: Ca < 0.01, 0.1 < q < 10, 0.33 < w_in/w < 3 for the van Steijn experiments

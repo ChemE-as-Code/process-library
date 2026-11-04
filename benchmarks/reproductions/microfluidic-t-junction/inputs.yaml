@@ -1,0 +1,71 @@
+# Every model input of the T-junction case, with value, unit, label and source or rationale.
+# Labels: measured (a measurement reported by a source), reconstructed (read or inferred from a
+# secondary source, not from the closed original), assumed (our choice, with reason).
+# Locators refer to the source ids in source.yaml.
+
+model_constants:
+  q_gutter_over_q_c:
+    value: 0.1
+    unit: "-"
+    label: measured
+    source: van-steijn-2010 (determined experimentally by the original authors), as restated by schackart-kaarj-replication article/content.tex
+    note: fixed fraction of the continuous phase that bypasses the forming bubble through the corners
+  model_form:
+    value: closed form of source.yaml model (filling plus squeezing, no fitted parameter)
+    label: reconstructed
+    source: schackart-kaarj-replication article/content.tex equations 1-6; original text not accessed
+
+reproduction:
+  series:   # the three geometries of the reference figure
+    r0.33_h0.33:
+      w_in_over_w: {value: 0.3333333333, unit: "-", label: reconstructed, source: "Fig. 5 legend (nekouei-vanapalli-2017) gives 0.33; make_figures.py uses 1/3"}
+      h_over_w: {value: 0.3333333333, unit: "-", label: reconstructed, source: "Fig. 5 legend gives 0.33; make_figures.py uses 1/3"}
+      eps_over_w: {value: 0.1, unit: "-", label: reconstructed, source: "corner roundness for the bubble series of the original Fig. 3, per make_figures.py"}
+    r0.67_h0.11:
+      w_in_over_w: {value: 0.6666666667, unit: "-", label: reconstructed, source: "Fig. 5 legend gives 0.67; make_figures.py uses 2/3"}
+      h_over_w: {value: 0.11, unit: "-", label: reconstructed, source: "Fig. 5 legend and make_figures.py; Nekouei body text gives 0.17 (conflict, source.yaml series_geometry)"}
+      eps_over_w: {value: 0.1, unit: "-", label: reconstructed, source: as above}
+    r1.33_h0.17:
+      w_in_over_w: {value: 1.3333333333, unit: "-", label: reconstructed, source: "Fig. 5 legend gives 1.33; make_figures.py uses 4/3"}
+      h_over_w: {value: 0.17, unit: "-", label: reconstructed, source: "Fig. 5 legend and make_figures.py; Nekouei body text gives 0.11 (conflict)"}
+      eps_over_w: {value: 0.1, unit: "-", label: reconstructed, source: as above}
+  alpha_checks:   # inputs for the comparison with the two independently evaluated squeezing coefficients
+    case_a: {w_in_over_w: 1.0, h_over_w: 0.33, eps_over_w: 0.0, label: "reconstructed (geometry from nekouei-vanapalli-2017 page 18) and assumed (eps)"}
+    case_b: {w_in_over_w: 1.0, h_over_w: 1.0, eps_over_w: 0.0, label: "reconstructed (geometry) and assumed (eps)"}
+    eps_rationale: >-
+      Nekouei & Vanapalli do not state the corner roundness; eps = 0 is the value the original
+      uses for its squeezing-coefficient chart (Fig. 2b, per the restatement).
+  flow_rate_ratio_grid: {value: "0 to 10", unit: "-", label: assumed, rationale: axis range of the reference figure}
+
+design_extension:   # HYPOTHETICAL design, not validated
+  fluids:
+    system: FC-40 droplets in hexadecane, no surfactant
+    mu_c: {value: 3.6e-3, unit: Pa s, label: measured, source: korczyk-2019 Methods}
+    mu_d: {value: 4.1e-3, unit: Pa s, label: measured, source: korczyk-2019 Methods}
+    gamma: {value: 7.3e-3, unit: N/m, label: measured, source: korczyk-2019 Methods (pendant drop)}
+    rationale: an open, measured, non-wetting liquid pair with viscosity ratio near 1 (1.14), so the model's neglect of viscosity ratio is defensible
+  eps_over_w: {value: 0.01, unit: "-", label: assumed, rationale: "the original's value for its liquid-droplet series (per make_figures.py); a well-made junction with sharp corners"}
+  targets:
+    V1: {value: 0.5, unit: nL, label: assumed, rationale: "a typical assay droplet; 0.5 nL = 5.0e5 um^3"}
+    V2: {value: 2.0, unit: nL, label: assumed, rationale: four times V1, to show how geometry and flow ratio change with size}
+  fabrication_grid:
+    h: {value: [25, 50, 75, 100], unit: um, label: assumed, rationale: common single-layer mould depths}
+    w: {value: "50 to 500 in 5 um steps", unit: um, label: assumed, rationale: soft-lithography resolution well above 5 um}
+    w_in_over_w: {value: [0.3333333333, 0.5, 0.6666666667, 1.0, 1.3333333333, 2.0, 3.0], unit: "-", label: assumed, rationale: spans the experimental range of the original}
+  validity:   # requests outside these bounds are flagged
+    h_over_w: {min: 0.11, max: 0.48, label: reconstructed, source: "smallest and largest h/w of the original Fig. 3 series (make_figures.py: 0.11 to 0.48)"}
+    w_in_over_w: {min: 0.33, max: 3.0, label: reconstructed, source: nekouei-vanapalli-2017 Table 1 row for van Steijn et al.}
+    q: {min: 0.1, max: 10.0, label: reconstructed, source: nekouei-vanapalli-2017 Table 1}
+    Ca_max: {value: 0.01, label: reconstructed, source: "nekouei-vanapalli-2017 Table 1: the van Steijn and Garstecki experiments were at Ca < 0.01; above it the size falls with Ca (Christopher et al., as summarised there)"}
+    leaking_bound: {rule: "q Ca >= 10 beta", beta: 7.4e-5, label: measured, source: "korczyk-2019 Fig. 3 caption; fitted for square channels; used as an indicative bound for h/w < 1"}
+    viscosity_ratio_max: {value: 1.5, label: assumed, rationale: "nekouei-vanapalli-2017 find the size independent of mu_d/mu_c below 1 and rising above it; 1.5 keeps the effect small"}
+  design_rule:
+    q_window_nominal: {min: 0.5, max: 5.0, label: assumed, rationale: "keep a factor of 5 margin to the validated q range at both ends"}
+    Ca_operating: {value: 0.003, label: assumed, rationale: "inside the squeezing window: a factor 3 below Ca_max and, for q >= 0.5, q Ca >= 1.5e-3, twice the leaking bound 7.4e-4"}
+    objective: maximise droplet frequency f = q_d/V at Ca_operating; ties broken by smaller w, then smaller h
+  length_estimate: {rule: "L = V/(h w)", label: assumed, source: "korczyk-2019 (valid for long droplets, L > w)"}
+  flagged_requests:
+    F1: {request: "V = 0.02 nL with the fabrication grid", label: assumed, purpose: below the smallest droplet the validated geometry range can make}
+    F2: {request: "V2 from design D2 at f = 1000 Hz", label: assumed, purpose: throughput that forces Ca above the squeezing regime}
+    F3: {request: "V2 in a square channel h = w = 100 um, w_in = w", label: assumed, purpose: aspect ratio outside the validated range}
+    F4: {request: "design D1 at Ca = 1e-4", label: assumed, purpose: slow flow in the leaking regime}
