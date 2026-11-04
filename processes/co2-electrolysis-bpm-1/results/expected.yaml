@@ -1,0 +1,232 @@
+# Frozen hand expectations of the CO2 pilot skids (process-library#330), committed on their own
+# before the first regeneration run (as ADR 0030 freezes tolerances): the regenerated results
+# (scripts/regen.py at 1000 h and 10000 h) are compared with these values and tolerances by
+# tests/test_co2_electrolysis_bpm_skids.py. The closed forms are tests/skid_formulas.py (no core,
+# no regen import); tests/test_skid_formulas.py checks that they reproduce every value below from
+# the measured series and core's ADR 0043 regression (322.30 h at 1 L, 1 A, WDE 0.95, Cx 0.66).
+#
+# Each expectation: `key` (the path in skid_formulas.hand_values()), `value`, `unit`, `formula`,
+# `tolerance` for the regenerated result (`exact`, `rel` or `abs`; `direction` where only the sign
+# of a difference is asserted), and `spec` where the design spec's rounded hand value was
+# corrected when the values were re-derived from the measured point (see `corrections`). The run's
+# values govern the figures in prose; these govern the test. The design inputs are ASSUMED (spec
+# sections 2 to 4; their reasons go in the #330 decisions of DESIGN.md); a changed input needs a
+# new frozen commit.
+schema: process-library/skid-expectations/1
+issue: 330
+frozen: 2026-11-04
+formulas: tests/skid_formulas.py
+measurements:
+  file: experiments/electrochemistry/rbpm-1m-koh.yaml
+  sha256: dac88e65d553902ba60a61feea05ad73bd6a2f0889210624f954bf7adb2b3aff
+  point: P200
+  part_load_point: P100
+  co_ion_split: "process/cells.yaml membrane.co_ion_crossover HCO3- 0.670 (the P200 titration mean 0.6698 rounded): the split the duties run with"
+core: {version: 1.5.0, commit: a59e1a983348c98c6cee528d489fa030310876ff}
+
+# The measured point P200 (means over the replicates; sd and n in skid_formulas.measured_point)
+inputs:
+  voltage_v: {key: inputs.voltage_v, value: 5.366833, unit: V, n: 3, sd: 0.1471}
+  fe_co: {key: inputs.fe_co, value: 0.3825011, unit: "-", n: 2, sd: 0.0400}
+  fe_h2: {key: inputs.fe_h2, value: 0.5600253, unit: "-", n: 2, sd: 0.0385}
+  wde: {key: inputs.wde, value: 0.9666643, unit: "-", n: 3, sd: 0.00817}
+  co_ion_carbon_fraction_measured: {key: inputs.co_ion_carbon_fraction_measured, value: 0.6697790, unit: "-", n: 3, sd: 0.0822}
+  co_ion_carbon_fraction: {key: inputs.co_ion_carbon_fraction, value: 0.670, unit: "-", source: process/cells.yaml}
+  charge_per_carbon_ph12:
+    key: inputs.charge_per_carbon_ph12
+    value: 1.979535
+    unit: eq/mol
+    formula: "g = (K1 h + 2 K1 K2) / (h^2 + K1 h + K1 K2), h = 1e-12, pK1 6.37, pK2 10.32"
+  usable_hydroxide_mol_l:
+    key: inputs.usable_hydroxide_mol_l
+    value: 0.99
+    unit: mol/L
+    formula: "c0 - Kw / h + h at pH 12, c0 1 mol/L"
+
+# The design inputs (ASSUMED, spec #330 sections 2 to 4)
+design:
+  co_delivered_kg_h: 0.100
+  recovery: 0.90
+  cell_area_cm2: 100
+  cell_current_a: 20
+  max_stack_voltage_v: 48
+  rectifier_efficiency: 0.95
+  envelope_per_cell_mm: {pitch: 8, end_plates: 120, frame_margin: 40}
+  threshold_ph: 12
+  koh_fill_mol_l: 1.0
+  durations_h: [1000, 10000]
+  reservoir: {margin: 0.25, aspect_ratio: 1.5}
+  skid_envelope_m: {length: 6.06, width: 2.44, usable_height: 2.20}
+  skid_b: {volume_l: 50, hydroxide_mol_l: 0.5, carbon_mol_l: 0.25, dose_mol_l: 5.0, dose_density_kg_l: 1.22}
+  dosing_pump_margin: 0.5
+  dosing_tank: {margin: 0.2, aspect_ratio: 1.2, refill_interval_h: 168}
+  recirculation: {flow_per_area_ml_min_cm2: 4, density_kg_m3: 1050}
+  on_off: {period_h: 24, duty_fraction: 0.5, start: "on"}
+  part_load: {current_density_ma_cm2: [200, 100], step_h: [12, 12], interpolation: step}
+
+# The 322.30 h regression of core ADR 0043 (asserted by tests/test_skid_formulas.py)
+regression:
+  formula: "t = V (c0 - [OH-] + [H+]) F / (N I (1 - WDE) ((1 - Cx) + Cx g)) at pH 12"
+  cases:
+    - {volume_l: 1, current_a: 1, wde: 0.95, cx: 0.66, c0_mol_l: 1, value_h: 322.30, tolerance: {abs: 0.005}}
+    - {volume_l: 10, current_a: 1, wde: 0.95, cx: 0.66, c0_mol_l: 1, value_h: 3223.0, tolerance: {abs: 0.05}}
+
+expectations:
+  E1:
+    title: Arrangement, both skids, both durations
+    applies: {skids: [A, B], durations_h: [1000, 10000]}
+    items:
+      - {key: E1.formed_kg_h, value: 0.1111111, unit: kg/h, formula: "delivered / recovery", tolerance: {rel: 1.0e-6}}
+      - {key: E1.area_m2, value: 0.2779524, unit: m2, formula: "A = n F Ndot / (FE j), Ndot the CO formed", tolerance: {rel: 1.0e-6}, spec: 0.2776}
+      - {key: E1.cells_required, value: 28, unit: "-", formula: "ceil(A / A_cell)", tolerance: exact}
+      - {key: E1.max_in_series, value: 8, unit: "-", formula: "floor(U_max / U) = floor(48 / 5.3668)", tolerance: exact}
+      - {key: E1.stacks, value: 4, unit: "-", formula: "ceil(cells / max in series)", tolerance: exact}
+      - {key: E1.cells_per_stack, value: 7, unit: "-", formula: "ceil(cells / stacks)", tolerance: exact}
+      - {key: E1.stack_voltage_v, value: 37.56783, unit: V, formula: "7 U", tolerance: {rel: 1.0e-6}}
+      - {key: E1.bus_current_a, value: 80.0, unit: A, formula: "stacks x I", tolerance: {rel: 1.0e-9}}
+      - {key: E1.dc_power_kw, value: 3.005427, unit: kW, formula: "N U I", tolerance: {rel: 1.0e-6}, spec: 3.006}
+      - {key: E1.ac_power_kw, value: 3.163607, unit: kW, formula: "DC / rectifier efficiency 0.95", tolerance: {rel: 1.0e-6}}
+      - {key: E1.co_formed_kg_h, value: 0.1119296, unit: kg/h, formula: "N I FE M_CO / (2 F)", tolerance: {rel: 1.0e-6}, spec: 0.1121}
+      - {key: E1.co_delivered_kg_h, value: 0.1007367, unit: kg/h, formula: "CO formed x recovery", tolerance: {rel: 1.0e-6}}
+      - {key: E1.margin, value: 0.007366632, unit: "-", formula: "CO formed / (delivered / recovery) - 1", tolerance: {rel: 1.0e-5}, spec: 0.009}
+      - {key: E1.kwh_per_kg_formed, value: 26.85104, unit: kWh/kg, formula: "DC power / CO formed = 2 F U / (FE M_CO)", tolerance: {rel: 1.0e-6}}
+      - {key: E1.kwh_per_kg_delivered, value: 29.83449, unit: kWh/kg, formula: "DC power / CO delivered", tolerance: {rel: 1.0e-6}}
+      - {key: E1.envelope_m.length, value: 0.176, unit: m, formula: "7 x pitch + end plates", tolerance: {abs: 1.0e-9}}
+      - {key: E1.envelope_m.width, value: 0.18, unit: m, formula: "sqrt(A_cell) + 2 x frame margin", tolerance: {abs: 1.0e-9}}
+      - {key: E1.envelope_m.height, value: 0.18, unit: m, formula: "sqrt(A_cell) + 2 x frame margin", tolerance: {abs: 1.0e-9}}
+      - {key: E1.stack_heat_kw, value: 2.226786, unit: kW, formula: "N I (U - FE_CO U_tn,CO - FE_H2 U_tn,H2): the cooler E-x11 duty", tolerance: {rel: 1.0e-6}}
+      - {key: E1.recirculation_l_min, value: 11.2, unit: L/min, formula: "flow per area x N A_cell", tolerance: {rel: 1.0e-9}}
+      - {key: E1.recirculation_kg_h, value: 705.6, unit: kg/h, formula: "11.2 L/min x 1050 kg/m3", tolerance: {rel: 1.0e-9}}
+  E2:
+    title: Skid A scales with the duration (reservoir sized to the horizon, no dosing or bleed)
+    applies: {skids: [A], durations_h: [1000, 10000]}
+    items:
+      - {key: E2.1000.volume_exact_l, value: 1165.304, unit: L, formula: "V = N I H (1 - WDE)((1 - Cx) + Cx g) / (F x 0.99 mol/L)", tolerance: {rel: 0.01}, spec: 1154}
+      - {key: E2.1000.volume_written_l, value: 1166, unit: L, formula: "the exact volume rounded up to 4 significant figures (core reservoir.size: to_horizon)", tolerance: {rel: 0.01}}
+      - {key: E2.10000.volume_exact_l, value: 11653.04, unit: L, formula: "as at 1000 h", tolerance: {rel: 0.01}}
+      - {key: E2.10000.volume_written_l, value: 11660, unit: L, formula: "rounded up to 4 significant figures", tolerance: {rel: 0.01}}
+      - {key: E2.volume_ratio, value: 10.0, unit: "-", formula: "V_A(10000) / V_A(1000)", tolerance: {rel: 1.0e-3}}
+      - {key: E2.1000.tank.held_m3, value: 1.4575, unit: m3, formula: "V (1 + 0.25)", tolerance: {rel: 0.01}, spec: 1.443}
+      - {key: E2.1000.tank.diameter, value: 1.074, unit: m, formula: "D = (4 V (1 + margin) / (pi H/D))^(1/3), rounded up to the mm", tolerance: {rel: 0.005}}
+      - {key: E2.1000.tank.height, value: 1.611, unit: m, formula: "H = 1.5 D", tolerance: {rel: 0.005}}
+      - {key: E2.10000.tank.held_m3, value: 14.575, unit: m3, formula: "V (1 + 0.25)", tolerance: {rel: 0.01}, spec: 14.4}
+      - {key: E2.10000.tank.diameter, value: 2.313, unit: m, formula: "as at 1000 h", tolerance: {rel: 0.005}}
+      - {key: E2.10000.tank.height, value: 3.470, unit: m, formula: "H = 1.5 D", tolerance: {rel: 0.005}}
+      - {key: E2.diameter_ratio, value: 2.154435, unit: "-", formula: "10^(1/3)", tolerance: {rel: 1.0e-3}}
+      - {key: E2.1000.fits_height, value: true, unit: "-", formula: "tank height <= 2.20 m usable above the deck", tolerance: exact}
+      - {key: E2.10000.fits_height, value: false, unit: "-", formula: "3.47 m > 2.20 m: Skid A at 10,000 h is not feasible on height", tolerance: exact}
+      - {key: E2.10000.fits_plan, value: true, unit: "-", formula: "D 2.313 m <= frame width 2.44 m: plan containment does not see it", tolerance: exact}
+      - {key: E2.max_volume_in_envelope_l, value: 2973.483, unit: L, formula: "pi/4 (2.20 / 1.5)^2 2.20 / (1 + 0.25)", tolerance: {rel: 0.01}}
+      - {key: E2.max_duration_in_envelope_h, value: 2551.68, unit: h, formula: "max volume / (V_A per h)", tolerance: {rel: 0.01}, spec: 2580}
+      - {key: E2.1000.final.carbon, value: 0.4002348, unit: mol/L, formula: "Cx (1 - WDE) N I H / (F V), V the written volume", tolerance: {abs: 0.005}}
+      - {key: E2.1000.final.cation, value: 0.8028694, unit: mol/L, formula: "1 - (1 - Cx)(1 - WDE) N I H / (F V)", tolerance: {abs: 0.005}}
+      - {key: E2.10000.final.carbon, value: 0.4002348, unit: mol/L, formula: "as at 1000 h", tolerance: {abs: 0.005}}
+      - {key: E2.10000.final.cation, value: 0.8028694, unit: mol/L, formula: "as at 1000 h", tolerance: {abs: 0.005}}
+  E3:
+    title: Skid B is steady (continuous dosing, bleed and make-up at the setpoints)
+    applies: {skids: [B], durations_h: [1000, 10000]}
+    rules:
+      - "the species at H equal the algebraic steady state within 1e-3 mol/L"
+      - "reservoir, P-202 capacity, T-202 and the bleed rate unchanged with the duration (tolerance exact between the two runs)"
+      - "dosed, bled and make-up totals x 10 between the durations (rel 1e-3)"
+      - "the reservoir volume stays within 1 % of 50 L"
+    items:
+      - {key: E3.bleed_l_h, value: 1.866695, unit: L/h, formula: "b = Cx (1 - WDE) N I / (F C_T), C_T 0.25 mol/L", tolerance: {rel: 1.0e-3}, spec: 1.848}
+      - {key: E3.cation_mol_l, value: 0.9998956, unit: mol/L, formula: "[OH-] + C_T g at [OH-] 0.5 mol/L", tolerance: {abs: 1.0e-3}}
+      - {key: E3.ph, value: 13.69897, unit: "-", formula: "14 + log10 0.5 (concentration basis)", tolerance: {abs: 1.0e-3}}
+      - {key: E3.dose_mol_h, value: 2.096354, unit: mol/h, formula: "b [K+] + (1 - Cx)(1 - WDE) N I / F", tolerance: {rel: 1.0e-3}, spec: 2.075}
+      - {key: E3.dose_solution_l_h, value: 0.4192709, unit: L/h, formula: "dose / 5 mol/L", tolerance: {rel: 1.0e-3}, spec: 0.415}
+      - {key: E3.makeup_water_l_h, value: 1.447424, unit: L/h, formula: "b - dose solution (constant volume; regen corrects it once from the probe's volume drift)", tolerance: {rel: 0.01}, spec: 1.43}
+      - {key: E3.residence_h, value: 26.78531, unit: h, formula: "V / b", tolerance: {rel: 1.0e-3}}
+      - {key: E3.ionic_strength_mol_l, value: 1.249791, unit: mol/L, formula: "(K+ + OH- + HCO3- + 4 CO3-2) / 2: inside the model's 1.5", tolerance: {abs: 1.0e-3}}
+      - {key: E3.dosing_pump_l_h, value: 0.6289063, unit: L/h, formula: "dose solution x (1 + 0.5)", tolerance: {rel: 1.0e-3}}
+      - {key: E3.dosing_pump_kg_h, value: 0.7672657, unit: kg/h, formula: "x 1.22 kg/L", tolerance: {rel: 1.0e-3}}
+      - {key: E3.dosing_tank_held_l, value: 84.52501, unit: L, formula: "dose solution x min(168 h, campaign) x (1 + 0.2) (core refill_interval)", tolerance: {rel: 1.0e-3}}
+      - {key: E3.dosing_tank.diameter, value: 0.448, unit: m, formula: "H/D 1.2, rounded up to the mm", tolerance: {rel: 0.005}}
+      - {key: E3.dosing_tank.height, value: 0.538, unit: m, formula: "1.2 D", tolerance: {rel: 0.005}}
+      - {key: E3.refills.1000, value: 6, unit: "-", formula: "ceil(1000 / 168)", tolerance: exact}
+      - {key: E3.refills.10000, value: 60, unit: "-", formula: "ceil(10000 / 168)", tolerance: exact}
+      - {key: E3.totals.1000.dosed_solution_l, value: 419.2709, unit: L, formula: "rate x H", tolerance: {rel: 1.0e-3}}
+      - {key: E3.totals.1000.bleed_l, value: 1866.695, unit: L, formula: "b x H", tolerance: {rel: 1.0e-3}}
+      - {key: E3.totals.1000.makeup_water_l, value: 1447.424, unit: L, formula: "make-up x H", tolerance: {rel: 0.01}}
+      - {key: E3.totals.10000.dosed_solution_l, value: 4192.709, unit: L, formula: "rate x H", tolerance: {rel: 1.0e-3}}
+      - {key: E3.totals.10000.bleed_l, value: 18666.95, unit: L, formula: "b x H", tolerance: {rel: 1.0e-3}}
+      - {key: E3.totals.10000.makeup_water_l, value: 14474.24, unit: L, formula: "make-up x H", tolerance: {rel: 0.01}}
+      - {key: E3.dosing_tank_without_interval_l.1000, value: 503.1250, unit: L, formula: "without A1: dose solution x H x 1.2 (not used: core 1.5.0 has refill_interval)", tolerance: {rel: 1.0e-3}}
+      - {key: E3.dosing_tank_without_interval_l.10000, value: 5031.250, unit: L, formula: "the x 10 artefact A1 removes", tolerance: {rel: 1.0e-3}}
+  E4:
+    title: KOH per kg CO delivered (the arrangement's delivered output 0.10074 kg/h)
+    rules:
+      - "both skids >= the floor per kg formed (and per kg delivered)"
+      - "Skid A constant with the duration; Skid B's make-up constant, its fill share / 10"
+    items:
+      - {key: E4.skid_a.1000, value: 0.6494004, unit: kg/kg, formula: "V_A x 1 mol/L x M_KOH / (CO delivered x H)", tolerance: {rel: 0.01}, spec: 0.647}
+      - {key: E4.skid_a.10000, value: 0.6494004, unit: kg/kg, formula: "as at 1000 h", tolerance: {rel: 0.01}}
+      - {key: E4.skid_b_makeup, value: 1.167559, unit: kg/kg, formula: "dose x M_KOH / CO delivered", tolerance: {rel: 0.01}, spec: 1.16}
+      - {key: E4.skid_b_fill_share.1000, value: 0.02784736, unit: kg/kg, formula: "50 L x 1 mol/L x M_KOH / (CO delivered x H)", tolerance: {rel: 0.01}}
+      - {key: E4.skid_b_fill_share.10000, value: 0.002784736, unit: kg/kg, formula: "as at 1000 h", tolerance: {rel: 0.01}}
+      - {key: E4.floor_per_kg_formed, value: 0.5830577, unit: kg/kg, formula: "(1 + Cx)(1 - WDE)(2 / FE) M_KOH / M_CO", tolerance: {rel: 1.0e-6}, spec: 0.577}
+      - {key: E4.floor_per_kg_delivered, value: 0.6478419, unit: kg/kg, formula: "floor / recovery", tolerance: {rel: 1.0e-6}}
+      - {key: E4.skid_a_per_kg_formed_exact, value: 0.5841115, unit: kg/kg, formula: "((1 - Cx) + Cx g) / 0.99 x (1 - WDE)(2 / FE) M_KOH / M_CO: just above the floor", tolerance: {rel: 0.01}}
+  E5:
+    title: On/off (24 h, half on, starting on) at equal CO formed, 0.5 H of D-A's output
+    rules:
+      - "charge, energy, hydroxide deficit equal to D-A within rel 1e-3; final pH equal within 1e-3"
+    items:
+      - {key: E5.1000.co_target_kg, value: 55.96481, unit: kg, formula: "0.5 H x CO formed", tolerance: {rel: 1.0e-6}}
+      - {key: E5.1000.elapsed_h, value: 992.0, unit: h, formula: "floor(t_on / 12) 24 + (t_on mod 12), t_on 500 h", tolerance: {abs: 0.5}}
+      - {key: E5.10000.co_target_kg, value: 559.6481, unit: kg, formula: "0.5 H x CO formed", tolerance: {rel: 1.0e-6}}
+      - {key: E5.10000.elapsed_h, value: 9992.0, unit: h, formula: "t_on 5000 h", tolerance: {abs: 5.0}}
+  E6:
+    title: Part load (12 h at P200, 12 h at P100, step) at equal CO formed
+    rules:
+      - "charge and deficit per kg above D-A's (direction asserted), the ratios within 5 %"
+      - "at the full-H target (H x CO formed) D-A-PART ends first: cheme.duty-target-not-reached"
+    items:
+      - {key: E6.p100.voltage_v, value: 4.0321, unit: V, formula: "P100 mean", tolerance: {rel: 1.0e-6}}
+      - {key: E6.p100.fe_co, value: 0.3009547, unit: "-", formula: "P100 mean", tolerance: {rel: 1.0e-6}}
+      - {key: E6.p100.wde, value: 0.9298167, unit: "-", formula: "P100 mean", tolerance: {rel: 1.0e-6}}
+      - {key: E6.co_share_at_p200, value: 0.7176671, unit: "-", formula: "12 FE200 / (12 FE200 + 6 FE100)", tolerance: {rel: 0.05}}
+      - {key: E6.charge_ratio, value: 1.076501, unit: "-", formula: "18 FE200 / (12 FE200 + 6 FE100)", tolerance: {rel: 0.05, direction: above 1}}
+      - {key: E6.deficit_ratio, value: 1.473137, unit: "-", formula: "(12 (1 - W200) + 6 (1 - W100)) FE200 / ((12 FE200 + 6 FE100)(1 - W200))", tolerance: {rel: 0.05, direction: above 1}, spec: 1.48}
+      - {key: E6.energy_ratio, value: 0.9872587, unit: "-", formula: "(12 U200 + 6 U100) FE200 / ((12 FE200 + 6 FE100) U200)", tolerance: {rel: 0.05}}
+      - {key: E6.kwh_per_kg_p200, value: 26.85104, unit: kWh/kg, formula: "2 F U200 / (FE200 M_CO)", tolerance: {rel: 1.0e-6}}
+      - {key: E6.kwh_per_kg_p100, value: 25.63928, unit: kWh/kg, formula: "2 F U100 / (FE100 M_CO)", tolerance: {rel: 1.0e-6}}
+  E7:
+    title: D-A against D-B at equal CO (0.5 H x CO formed)
+    rules:
+      - "equal charge and energy within rel 1e-3 (one arrangement, one operating point)"
+      - "dosed KOH zero in D-A, above zero in D-B (the E3 rate times the elapsed time, rel 1e-3)"
+  E8:
+    title: The layout carries the sizes (Phase 8 check 2)
+    rules:
+      - "for every tag cheme process stack --write wrote: the stack JSON value equals the equipment-list dimensions at the writer's rounding (mm, rounded up)"
+      - "the list equals the layout/plant-model.yaml item dimensions exactly"
+      - "the bbox extents equal (D, D, H) for a tank and (L, W, H) for a stack"
+      - "the datasheet's main dimensions are equal"
+      - "T-101, T-201 and T-202 carry fingerprint == the duty's run_fingerprint"
+  E9:
+    title: Infeasible and out-of-range are reported (Phase 8 check 4)
+    rules:
+      - "Skid A at 10,000 h: feasible false with the envelope (height) reason and the sentence \"Skid A cannot meet the 10,000 h duty within the skid envelope\""
+      - "time on stream (H against the measured 1 h) and the electrolyte state fail for both skids and are labelled \"held constant by assumption, not supported by measurement\""
+    items:
+      - {key: measured_state.carbon_mol_l, value: 0.009256345, unit: mol/L, formula: "Cx (1 - WDE) I t / (F V_anolyte), 1 A, 1 h, 90 mL", tolerance: {rel: 1.0e-3}}
+      - {key: measured_state.time_on_stream_h, value: 1.0, unit: h, formula: "the measured runs", tolerance: exact}
+  E10:
+    title: LCI reconciliation
+    status: added with #331
+
+# Where the spec's hand values (design-spec_330 section 7) were re-derived from the measured
+# P200 point and differ; the frozen value above is the re-derived one. Most spec values were
+# rounded from WDE 0.967 (1 - WDE 0.033 instead of 0.03334, -1.0 %); the rest are rounding.
+corrections:
+  - "E1 area 0.2776 m2 -> 0.27795 m2 (28 cells either way)"
+  - "E1 DC power 3.006 kW -> 3.0054 kW (28 x 5.36683 V x 20 A)"
+  - "E1 CO formed 0.1121 kg/h -> 0.11193 kg/h, margin 0.9 % -> 0.74 %"
+  - "E2 V_A at 1000 h 1154 L -> 1165.3 L exact (1166 L written); tank 1.443 m3 -> 1.4575 m3 (D 1.074 x H 1.611 m); at 10000 h 14.4 m3 -> 14.575 m3 (D 2.313 x H 3.470 m)"
+  - "E2 the maximum duration in the 2.20 m envelope about 2580 h -> 2552 h"
+  - "E2 rounding: core 1.5.0 reservoir.size: to_horizon writes 4 significant figures rounded up (1166 L, 11660 L), not ceil to 10 L; the ratio is 10 within rel 1e-3"
+  - "E3 b 1.848 L/h -> 1.8667 L/h; dose 2.075 mol/h -> 2.0964 mol/h = 0.415 L/h -> 0.4193 L/h of 5 M; make-up 1.43 L/h -> 1.447 L/h; T-202 84 L -> 84.5 L"
+  - "E4 Skid A 0.647 -> 0.649 kg/kg (per kg delivered by the arrangement; 0.654 per kg of the 0.100 kg/h duty); Skid B 1.16 -> 1.168 kg/kg; floor 0.577 -> 0.583 kg KOH/kg CO formed"
+  - "E6 deficit ratio 1.48 -> 1.473 (within the spec's 5 %)"
