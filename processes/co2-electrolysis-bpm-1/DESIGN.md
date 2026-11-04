@@ -293,3 +293,187 @@ Assumptions:
   electricity about 28.8 kWh per kg CO. The two FE replicates of P200 (20241002, 20241004) are
   of the first GC export, so the meter baseline step of the second export (D-005) does not
   enter this point.
+
+## D-007 Two pilot skids as two trains and two cases in one folder (2026-11-04)
+Decision: #330 designs two CO2-to-CO pilot skids from one design basis in this folder.
+- Train A (1xx tags, Skid A) and train B (2xx tags, Skid B) are both in
+  `process/flowsheet.yaml`. Case `skid-a` (default) runs train A, case `skid-b` train B; the
+  other train is idle there (zero flow). The terminals are shared, with one port per train.
+- Both skids use `pilot-cell` of `process/cells.yaml`: the bench cell scaled 20x to 100 cm2 at
+  the same 200 mA/cm2, its performance looked up in the measured series (ASSUMED: the per-area
+  performance transfers from 5 to 100 cm2).
+- The stacks STK-A and STK-B (`stacks:`) are sized by `cheme process stack` (core ADR 0044);
+  their skid duties D-A and D-B are in `process/duties.yaml` (core ADR 0043).
+- The cell is not linked to a flowsheet step: the idle train has zero flow in the other case,
+  and the cell's Faraday balance would then not match its stream.
+- One command regenerates everything that depends on the campaign duration:
+  `cheme run scripts/regen.py --duration H` (D-009 to D-011; spec #330 section 6). Core is
+  reached only through `scripts/_core.py` (the `--json` output of its commands); input files
+  are changed only by targeted edits that refuse any other change (`scripts/_yamledit.py`) or
+  by core's own writers (`cheme process stack --write`).
+
+Reason: one folder keeps one measured series, one cell, one product specification and one
+rerun command for both designs, and the library's tools (CI discovery, LCI, catalogue,
+balance-script check) assume one plant root per process. Two cases give each skid its own
+functional unit for the LCA (#331).
+
+Rejected:
+- Nested plant roots per skid (library ADR 0033 structure): every library tool would need to
+  change, and the measured series would be referenced across folders.
+- Two top-level process folders: the cell, the series and the product specification would be
+  duplicated.
+- Two trains in one case: one LCA dataset would mix both skids.
+
+Assumptions: the area scale-up; a 25 °C anolyte held by the cooler (ASSUMED).
+
+## D-008 Product specification and CO recovery (2026-11-04)
+Decision: `process/design-basis.yaml` `capacity.pilot_skid`: 0.100 kg/h CO delivered at the
+skid boundary, at >= 0.99 mol/mol dry and 5.0 bar(a), with 0.90 of the CO formed recovered by
+the gas conditioning. All ASSUMED pilot choices. `scripts/regen.py` copies the product duty
+into `stacks[].product` (step 2); core sizes the stacks for rate / recovery formed
+(`product.recovery`, core ADR 0044 amendment) and reports the output formed and delivered.
+
+Reason: 0.100 kg/h gives 28 cells of 100 cm2, four stacks of seven on a 48 V bus (about 3 kW
+DC), a pilot scale. Skid A at 1000 h fits a 20 ft frame and at 10,000 h does not: the crossing
+is a reported result, not a target (D-015).
+
+Rejected: a delivered rate equal to the rate formed (recovery 1): the PSA loses CO to its tail
+gas, and the stacks would be undersized.
+
+Assumptions: the rate, purity, pressure and recovery are ASSUMED (no customer or vendor).
+
+## D-009 Skid A: one fill that lasts the campaign (2026-11-04)
+Decision: Skid A is filled once with fresh 1 M KOH and runs at 200 mA/cm2 without dosing,
+bleed, make-up or degassing until the anolyte reaches the pH threshold 12 (D-003) at the end
+of the campaign H. The duty D-A states `reservoir.size: to_horizon`: `cheme process stack
+--write` writes the exact volume that reaches H (V = V0 Q(H) / Q*, rounded up to 4
+significant figures, core ADR 0044 amendment), so V is proportional to H. No time margin is
+added; the uncertainty of WDE is reported as a band instead (next stage, `--uncertainty`).
+
+Reason: the simplest skid, with no chemicals handled during the run; the closed form makes
+the duration dependence exact (ADR 0043).
+
+Rejected: probing the duty at a trial volume and scaling in the library (the spec's fallback):
+core computes the exact volume itself now.
+
+Assumptions: the measured WDE and co-ion split hold over the whole campaign and across the
+changing electrolyte (not supported by measurement, D-014).
+
+## D-010 Skid B: continuous KOH dosing, bleed and make-up at a steady state (2026-11-04)
+Decision: Skid B holds 50 L (ASSUMED: about 4.5 min hold-up at the 11.2 L/min recirculation,
+for O2 disengagement) at the ASSUMED setpoints 0.5 mol/L OH- and 0.25 mol/L carbon by
+continuous dosing of 5 M KOH (density 1.22 kg/L ASSUMED), a bleed to the site effluent and
+make-up water. `scripts/regen.py` (step 6) sets the rates from the steady-state balance:
+- bleed b = Cx (1 - WDE) N I / (F C_T), so the carbon that enters leaves with the bleed;
+- dose = [b [K+] + (1 - Cx)(1 - WDE) N I / F] / 5 M, with [K+] from the setpoints' charge
+  balance (concentration basis, the anolyte model's constants);
+- make-up = b - dose, corrected once from the probe run's volume drift.
+Cx is the duty's carbon share: for a measured cell the duty takes the titration's share
+(0.66978 at P200), while `cheme process cell` reports the membrane block's rounded 0.670; the
+setpoints are then held exactly. The 5 M day tank T-202 is refilled weekly (`refill_interval`
+168 h, core ADR 0044 amendment), so its size does not grow with H. There is no bleed tank.
+
+Reason: continuous dosing has a closed-form steady state (residence time V / b, about 27 h)
+and no dosing chatter. The setpoints keep the ionic strength about 1.25 mol/L, inside the
+anolyte model's 1.5.
+
+Rejected: threshold (on/off) dosing: thousands of switches over 10,000 h and no closed form.
+
+Assumptions: dosing, bleed and make-up are open-loop in the model (the AIC-201 trim is not
+simulated) and run while the current is on; the KOH use depends on the setpoints. Dosing does
+not save KOH against Skid A: it uses more per kg CO (reported unsoftened in the results).
+
+## D-011 Campaign-averaged KOH fill and spent anolyte; the anolyte in the flowsheet (2026-11-04)
+Decision: `scripts/skid_balance.py` writes every stream value per hour from core's duty totals
+over the committed horizon H.
+- KOH-FILL is the initial fill over H, SPENT the final inventory over H (campaign-averaged
+  streams, because LCA consumables cannot be per case).
+- The cation and carbon routes (initial, dosed, bled, through the membrane, final) are core's
+  totals by route (core ADR 0044 amendment); the script asserts that K and C close to 1e-9
+  relative, so the reservoir's balance is not closed by difference.
+- The dissolved carbon is lumped as K2CO3 and the free hydroxide as KOH (the HCO3- share is
+  below 2.1 % of the carbon at pH >= 12); K and C are exact, the speciation stays the duty
+  model's.
+- The recirculation loop is at the campaign's mean state: Skid A the mean of the initial and
+  final reservoir (exact at constant fluxes and volume), Skid B the steady state.
+- The water: the fill and the anolyte at 1.05 kg/L, the make-up water at 0.997 kg/L (ASSUMED);
+  the water of the spent anolyte and the bleed by balance, shared by their volumes.
+
+Reason: the flowsheet's balances (tolerance abs 1e-5 kg/h) close by construction, and the LCA
+reads one stream per consumable.
+
+Rejected: a per-campaign batch flowsheet (no case structure for it in the LCA).
+
+Assumptions: the densities; the lumping of the carbon.
+
+## D-012 Gas conditioning, CO2 recycle, tail-gas oxidation and the stream conditions (2026-11-04)
+Decision: the cathode gas conditioning is a black box at the concept stage:
+- the cathode is fed with 10 sccm/cm2 of CO2 (the bench ratio, at the meter's 0 °C basis,
+  D-005), humidified with the water the cathode consumes (hydrogen evolution) and leaves with;
+  the duty model holds the anolyte volume, so no net water crosses the membrane (ASSUMED);
+- V-x21 separates the condensate, which carries the K+ that crossed to the cathode as K2CO3 at
+  an ASSUMED 1 mol/kg (the salt precipitation risk of the cathode is not modelled), and passes
+  the gas saturated at 25 °C and 110 kPa(a);
+- K-x31 compresses to 600 kPa(a); the PSA X-x31 delivers 0.90 of the CO formed at 0.99 mol/mol
+  dry (H2 the rest) at 500 kPa(a), returns 0.95 of the unreacted CO2 to the cathode feed and
+  sends the rest with the water to the oxidiser X-x32, which burns CO and H2 with twice the
+  stoichiometric air (reactions COX, HOX): no CO or H2 is vented;
+- the stack heat (cheme process stack) is removed by the cooler E-x11 to cooling water
+  (isothermal model);
+- the power: the stacks' AC power (DC over the rectifier efficiency 0.95, ASSUMED), and
+  ESTIMATES until `cheme datasheets fill` gives the pump and compressor powers: the pumps at
+  efficiency 0.3 (dosing 0.1, 300 kPa), the compressor adiabatic (kappa 1.3, efficiency 0.5),
+  the PSA 0.5 kWh per kg CO delivered (TBD vendor);
+- the temperatures and pressures of the streams are design conditions, ASSUMED.
+- The cooling water terminal CW is a product-side utility terminal (heat leaves the process
+  to it), as core's energy streams run; the spec listed it with the feeds.
+
+Reason: a pilot skid buys the gas conditioning as a package; the absolute kWh/kg and the vented
+CO2 depend on these assumptions, the A-versus-B and duration comparisons do not.
+
+Rejected: venting the PSA tail gas (CO is toxic, H2 flammable).
+
+Assumptions: every value above; FE H2 0.56 makes about 1.46 mol H2 per mol CO, so the tail gas
+is mostly H2 and CO2.
+
+## D-013 The comparison duties on Skid A's hardware (2026-11-04)
+Decision: D-A-ONOFF (24 h period, half on, starting on) and D-A-PART (12 h at 200 and 12 h at
+100 mA/cm2, both measured points, steps) run at STK-A's arrangement by naming the stack
+(`stack: STK-A`, core ADR 0044 amendment) on D-A's reservoir volume (copied by regen, step 7)
+with a horizon of 3 H. They are compared with D-A at equal CO formed (`cheme process duty
+--compare`, next stage); at fixed recovery equal CO formed is equal CO delivered.
+
+Reason: the arrangement is stated once (the stack), and the horizon leaves room for the
+threshold to end a duty before the target.
+
+Rejected: restating `cells_in_series` and `stacks` in the comparison duties (the spec's
+fallback): core now takes them from the stack.
+
+Assumptions: dosing would run while off, so Skid B is not compared on/off.
+
+## D-014 Conditional invariants (2026-11-04)
+Decision: FE, WDE, U and kWh/kg are called invariant of the duration only where the current
+density, the temperature, the electrolyte state and the time on stream stay inside the
+measured conditions (1 h runs in fresh 1 M KOH, carbon below about 0.01 mol/L). Otherwise the
+results say "held constant by assumption, not supported by measurement". The check is
+scripts/regen.py's (next stage, step 14): core does not check the electrolyte state.
+
+Reason: both skids run far beyond the measured 1 h and electrolyte.
+
+Assumptions: none beyond the measured conditions.
+
+## D-015 Skid envelope and feasibility (2026-11-04)
+Decision: each skid is one 20 ft frame, 6.06 x 2.44 m in plan with 2.20 m usable height above
+the deck (ASSUMED). A skid is feasible when every item fits that envelope in plan and height;
+the height is checked by scripts/regen.py from the layout model (next stage), because core's
+layout checks containment in plan only.
+
+Reason: the tank of Skid A grows with the campaign (V proportional to H, D-009).
+
+Assumptions: the envelope and the tanks' H/D are ASSUMED.
+
+## D-016 CO2 source (2026-11-04)
+Decision: merchant liquefied CO2, a fossil industrial by-product (ASSUMED, conservative), for
+the LCA of #331. An owner decision: it drives the climate result.
+
+Assumptions: site NL (ASSUMED).
