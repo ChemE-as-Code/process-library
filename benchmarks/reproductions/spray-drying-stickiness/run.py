@@ -98,6 +98,9 @@ TGW_FV, TGS_FV = float(v(DIF["Tg_water_fv"])), float(v(DIF["Tg_solute_fv"]))
 ZETA, CHI = float(v(DIF["zeta"])), float(v(DIF["chi"]))
 RH_S = float(v(DIF["r_h_solute"]))
 
+# Post-hoc diagnostic overrides (empty for every scored run; see diagnostics()).
+OVR: dict = {}
+
 NUM = INPUTS["numerics"]
 N_CELLS = int(v(NUM["cells"]))
 RTOL = float(v(NUM["rtol"]))
@@ -196,9 +199,9 @@ def diffusivity(phi, T):
     om_s = 1.0 - om_w
     num = om_w * VS_W + om_s * ZETA * VS_S
     den = om_w * K1_W * (K2_W + T - TGW_FV) + om_s * K1_S * (K2_S + T - TGS_FV)
-    d_w = D0_W * np.exp(-E_W / (R_GAS * T)) * np.exp(-num / den)
+    d_w = OVR.get("D0", D0_W) * np.exp(-E_W / (R_GAS * T)) * np.exp(-num / den)
     d_s = K_B * T / (6.0 * math.pi * viscosity(om_s, T) * RH_S)
-    q = 1.0 - 2.0 * CHI * X * (1.0 - X)
+    q = 1.0 - 2.0 * OVR.get("chi", CHI) * X * (1.0 - X)
     return ((1.0 - X) * d_w + X * d_s) * q
 
 
@@ -248,16 +251,22 @@ class Droplet:
         re = rho * self.u * 2.0 * R / mu
         sc, pr = mu / (rho * dv), mu * cp / lam
         sh = 2.0 + 0.6 * math.sqrt(re) * sc ** (1.0 / 3.0)
-        nu = 2.0 + 0.4 * math.sqrt(re) * pr ** (1.0 / 3.0)
+        nu = 2.0 + OVR.get("nu_coef", 0.4) * math.sqrt(re) * pr ** (1.0 / 3.0)
         beta, h = sh * dv / (2.0 * R), nu * lam / (2.0 * R)
         area = 4.0 * math.pi * R * R
         mdot = self.F * area * beta * M_W * (a_w * psat(T) - self.p_v_gas) / (R_GAS * Tf)
         q_in = self.F * area * h * (self.T_gas - T) + self.g_sub * R * (self.T_gas - T)
         return float(mdot), float(q_in)
 
+    # state: s_i = solute volume in cell i / (4/3 pi R0^3), then r = R/R0 and T. The sum of s_i
+    # is a linear invariant, which the BDF integrator conserves to round-off.
+    def phi_of(self, y):
+        return y[:self.N] / (self.vfrac * y[self.N] ** 3)
+
     def rhs(self, t, y):
         N = self.N
-        phi, r, T = y[:N], y[N], y[N + 1]
+        r, T = y[N], y[N + 1]
+        phi = self.phi_of(y)
         R = r * self.R0
         a_w = water_activity(mass_fraction_solute(phi[-1]))
         mdot, q_in = self.transfer(R, T, a_w)
@@ -272,7 +281,7 @@ class Droplet:
         flux = area * (-d_face * (phi[1:] - phi[:-1]) / dr - up * w_face)
         F_all = np.concatenate(([0.0], flux, [0.0]))
         vol = (4.0 / 3.0) * math.pi * R**3 * self.vfrac
-        dphi = (F_all[:-1] - F_all[1:]) / vol - 3.0 * phi * Rdot / R
+        ds = (F_all[:-1] - F_all[1:]) / ((4.0 / 3.0) * math.pi * self.R0**3)
         if self.iso:
             dT = 0.0
         else:
@@ -280,7 +289,7 @@ class Droplet:
             wsc = mass_fraction_solute(phi)
             heat_cap = float(np.sum(mass * (wsc * CP_S + (1.0 - wsc) * CP_W)))
             dT = (q_in - mdot * latent_heat(T)) / heat_cap
-        return np.concatenate((dphi, [Rdot / self.R0, dT]))
+        return np.concatenate((ds, [Rdot / self.R0, dT]))
 
     def sparsity(self):
         N = self.N
@@ -297,17 +306,22 @@ class Droplet:
         return S.tocsr()
 
     def solute_mass_error(self, y):
-        N = self.N
-        phi, r = y[:N], y[N]
-        return abs(float(np.sum(phi * self.vfrac)) * r**3 - self.vs_total) / self.vs_total
+        return abs(float(np.sum(y[:self.N])) - self.vs_total) / self.vs_total
 
     def surface_margin(self, y):
         """T_d - Tg(surface) [K]."""
-        return float(y[self.N + 1] - tg_gordon_taylor(mass_fraction_solute(y[self.N - 1])))
+        return float(y[self.N + 1] - tg_gordon_taylor(mass_fraction_solute(self.phi_of(y)[-1])))
+
+    def fields(self, y):
+        """(phi cells, r, T) from a state vector or an array of states (columns)."""
+        y = np.asarray(y)
+        if y.ndim == 1:
+            return self.phi_of(y), y[self.N], y[self.N + 1]
+        return y[:self.N] / (self.vfrac[:, None] * y[self.N] ** 3), y[self.N], y[self.N + 1]
 
     def run(self, t_end, stop_at_glass=True):
-        y0 = np.concatenate((np.full(self.N, self.phi0), [1.0, self.T0]))
-        atol = np.concatenate((np.full(self.N, ATOL), [ATOL, 1e-6]))
+        y0 = np.concatenate((self.phi0 * self.vfrac, [1.0, self.T0]))
+        atol = np.concatenate((ATOL * self.vfrac, [ATOL, 1e-6]))
         events = None
         if stop_at_glass:
             def ev(t, y):
@@ -368,7 +382,7 @@ def oct_informational(res):
     drop, sol, R0 = res["drop"], res["sol"], res["R0"]
     info = {}
     y = sol.sol(60.0)
-    phi, r = y[:drop.N], y[drop.N]
+    phi, r, _ = drop.fields(y)
     R = r * R0
     info["centre_wt_percent_60s"] = float(100 * mass_fraction_solute(phi[0]))
     rr = drop.xc * R
@@ -414,14 +428,15 @@ def case_b(n_cells=N_CELLS, only=None):
             continue
         T_gas = float(cond["T_gas_K"])
         key = f"T{round(T_gas - 273.15)}"
-        drop = Droplet(R0, float(cond["w0"]), float(v(B["initial_temperature"])), T_gas, 0.0,
+        T0 = wet_bulb_rate(R0, T_gas, 0.0, vel[key]["u_m_s"])[0] if OVR.get("T0_wet_bulb") else float(v(B["initial_temperature"]))
+        drop = Droplet(R0, float(cond["w0"]), T0, T_gas, 0.0,
                        u_rel=vel[key]["u_m_s"], n_cells=n_cells)
         sol, t_glass, merr = drop.run(400.0)
         y = sol.sol(t_glass)
         out["runs"][name] = {"t_glass_s": t_glass, "t_full_s": vel[key]["t_full_target_s"],
                              "t_glass_over_t_full": t_glass / vel[key]["t_full_target_s"],
                              "T_droplet_at_glass_K": float(y[drop.N + 1]),
-                             "surface_wt_percent_at_glass": float(100 * mass_fraction_solute(y[drop.N - 1])),
+                             "surface_wt_percent_at_glass": float(100 * mass_fraction_solute(drop.phi_of(y)[-1])),
                              "mass_error": merr, "sol": sol, "drop": drop}
     return out
 
@@ -481,7 +496,8 @@ def extension_run(d0_um, w0, Y_in):
     sol, _, merr = drop.run(3.0 * t_full, stop_at_glass=False)
     tt = np.geomspace(1e-4 * t_full, 3.0 * t_full, 1500)
     ys = sol.sol(tt)
-    margin = ys[drop.N + 1] - tg_gordon_taylor(mass_fraction_solute(ys[drop.N - 1]))
+    phis, _, Ts = drop.fields(ys)
+    margin = Ts - tg_gordon_taylor(mass_fraction_solute(phis[-1]))
 
     def first_below(level):
         idx = np.nonzero(margin <= level)[0]
@@ -503,9 +519,42 @@ def extension_run(d0_um, w0, Y_in):
             "t_late_bound_s": None if t_0 is None else factor * t_0,
             "final_margin_K": float(margin[-1]),
             "final_mean_moisture_wt_percent": float(100 * (1 - mass_fraction_solute(
-                np.sum(ys[:drop.N, -1] * drop.vfrac) / np.sum(drop.vfrac)))),
+                np.sum(ys[:drop.N, -1]) / ys[drop.N, -1] ** 3))),
             "mass_error": merr, "_t": tt, "_margin": margin}
 
+
+
+def diagnostics(a):
+    """Post-hoc sensitivity of the case-B bias and the case-A radius (not scored, after the run)."""
+    out = {"note": "post-hoc diagnosis after the comparison run; not scored, inputs.yaml unchanged"}
+    variants = {
+        "baseline": {},
+        "nusselt_coefficient_0.6": {"nu_coef": 0.6},
+        "D0_literal_1.48e-5": {"D0": 1.48e-5},
+        "chi_0": {"chi": 0.0},
+        "initial_T_at_wet_bulb": {"T0_wet_bulb": True},
+    }
+    ref = SOURCE["reference_B_thesis_model_tglass"]["reported_results_DE12"]
+    out["B_tglass_s"] = {}
+    for name, ovr in variants.items():
+        OVR.clear()
+        OVR.update(ovr)
+        row = {}
+        for cond in ("c10_T25", "c20_T25", "c30_T25"):
+            t = case_b(only=cond)["runs"][cond]["t_glass_s"]
+            row[cond] = {"t_glass_s": t, "deviation_rel": t / float(ref[cond]["t_glass_s"]) - 1.0}
+        out["B_tglass_s"][name] = row
+    OVR.clear()
+    # case A: when does the model droplet pass the measured locked radius, and with what surface?
+    drop, sol, R0 = a["drop"], a["sol"], a["R0"]
+    r_target = 141e-6 / a["rc_over_req"] / R0
+    t_hit = brentq(lambda t: sol.sol(t)[drop.N] - r_target, 1.0, a["t_glass"])
+    phi, _, T = drop.fields(sol.sol(t_hit))
+    out["A_model_at_measured_locked_radius"] = {
+        "t_s": t_hit, "surface_wt_percent": float(100 * mass_fraction_solute(phi[-1])),
+        "centre_wt_percent": float(100 * mass_fraction_solute(phi[0])),
+        "surface_T_minus_Tg_K": float(T - tg_gordon_taylor(mass_fraction_solute(phi[-1])))}
+    return out
 
 # ------------------------------------------------------------------------------------------
 # Checks
@@ -564,7 +613,7 @@ def fig_oct(res, brackets):
     kap = ref["initial_d2_rate"]["value"]
     d0 = 432.0
     t_lin = np.linspace(0, 213, 50)
-    ax1.plot(t_lin, 1 - kap * t_lin / d0**2, color=INK2, lw=1.2, ls="--", label="measured initial rate (880 um²/s), extrapolated")
+    ax1.plot(t_lin, 1 - kap * t_lin / d0**2, color=INK2, lw=1.2, ls="--", label="measured initial rate (880 µm²/s), extrapolated")
     ax1.plot(tt, d2n, color=S1, label="model, k_s = 0.15 W/m/K (scored)")
     for key, col, lab in (("no_substrate", S2, "model bracket: no substrate heat"),
                           ("isothermal", S3, "model bracket: isothermal 20 °C")):
@@ -575,14 +624,15 @@ def fig_oct(res, brackets):
     ax1.annotate("measured locking ≈ 160 s", (160, 0.95), ha="center", fontsize=8, color=INK2)
     r_lock = ref["outer_radius_locked"]["value"]
     ax1.plot([160], [(r_lock / res["rc_over_req"] / (d0 / 2)) ** 2], "o", ms=8, color=INK,
-             mec=SURF, mew=2, label="measured locked radius 141 um")
+             mec=SURF, mew=2, label="measured locked radius 141 µm (fitted at 250 s), at locking")
     ax1.plot([tg], [d2n[-1]], "D", ms=8, color=S1, mec=SURF, mew=2, label="model surface glass (t_glass)")
     ax1.set_ylabel("(d/d0)²")
     ax1.set_ylim(0, 1.05)
     ax1.legend(fontsize=7, loc="lower left")
     ax1.set_title("A. Sessile MD12 droplet, 10 wt%, 20 °C, 35 % RH: model vs OCT measurement", fontsize=9, loc="left")
-    ws_s = 100 * mass_fraction_solute(ys[drop.N - 1])
-    ws_c = 100 * mass_fraction_solute(ys[0])
+    phis, _, _ = drop.fields(ys)
+    ws_s = 100 * mass_fraction_solute(phis[-1])
+    ws_c = 100 * mass_fraction_solute(phis[0])
     ax2.plot(tt, ws_s, color=S1, label="model surface")
     ax2.plot(tt, ws_c, color=S2, label="model centre")
     cm = ref["concentration_measurements"]
@@ -612,13 +662,16 @@ def fig_thesis(bres):
     ax.plot(x, y, "o", ms=8, color=S1, mec=SURF, mew=2, label="this model")
     labels = {"c10_T25": "10 wt%, 25 °C", "c20_T25": "20 wt%, 25 °C", "c30_T25": "30 wt%, 25 °C",
               "c20_T45": "20 wt%, 45 °C", "c20_T65": "20 wt%, 65 °C"}
+    offsets = {"c30_T25": (30, -26), "c20_T65": (-10, 28)}
     for k, xi, yi in zip(names, x, y):
-        ax.annotate(labels[k], (xi, yi), xytext=(6, -10), textcoords="offset points", fontsize=7, color=INK2)
+        ax.annotate(labels[k], (xi, yi), xytext=offsets.get(k, (6, -10)), textcoords="offset points",
+                    fontsize=7, color=INK2,
+                    arrowprops={"arrowstyle": "-", "color": INK2, "lw": 0.6} if k in offsets else None)
     ax.set_xlim(*lim)
     ax.set_ylim(*lim)
     ax.set_xlabel("thesis model t_glass (s), Table 5.1")
     ax.set_ylabel("this model t_glass (s)")
-    ax.set_title("B. Time to a glassy surface, MD12, R0 = 240 um, dry gas", fontsize=9, loc="left")
+    ax.set_title("B. Time to a glassy surface, MD12, R0 = 240 µm, dry gas", fontsize=9, loc="left")
     ax.legend(fontsize=7, loc="upper left")
     fig.tight_layout()
     save(fig, "fig2_thesis_tglass.svg")
@@ -641,16 +694,16 @@ def fig_dryer(ext, window):
             ax.set_xscale("log")
             ax.set_xlim(1e-3, 60)
             ax.set_ylim(-80, 320)
-            ax.set_title(f"d0 = {d0} um, changed input: {title}", fontsize=9, loc="left")
+            ax.set_title(f"d0 = {d0} µm, changed input: {title}", fontsize=9, loc="left")
             if col == 0:
                 ax.set_ylabel("surface T − Tg (K)")
             if row == 1:
                 ax.set_xlabel("drying time (s), log scale")
-            ax.legend(fontsize=7, loc="upper right", title=title, title_fontsize=7)
-            if row == 0 and col == 0:
-                ax.annotate("sticky threshold band\n(T − Tg)c = 0 to 20 K", (1.2e-3, -60), fontsize=7, color=INK2)
-                ax.annotate("core pass", (window["core_pass_s"][0], 290), fontsize=7, color=INK2)
-                ax.annotate("mean gas\nresidence", (window["mean_gas_time_s"][0], 270), fontsize=7, color=INK2)
+            ax.legend(fontsize=7, loc="upper left", title=title, title_fontsize=7)
+            ax.annotate("sticky threshold band (T − Tg)c = 0 to 20 K", (1.2e-3, -62), fontsize=7, color=INK2)
+            ax.annotate("core\npass", (window["core_pass_s"][0] * 1.05, 255), fontsize=7, color=INK2)
+            ax.annotate("mean gas\nresidence", (window["mean_gas_time_s"][0] * 0.55, 200), fontsize=7, color=INK2,
+                        ha="right")
     fig.suptitle("Hypothetical pilot co-current dryer (outlet 85 °C): droplet surface stickiness vs residence-time window",
                  fontsize=9, x=0.02, ha="left")
     fig.tight_layout()
@@ -784,6 +837,7 @@ def main():
     for r in ext["sweeps"]["inlet_humidity"] + ext["sweeps"]["feed_solids"]:
         m_max = max(m_max, r["mass_error"])
 
+    info["post_hoc_diagnostics"] = diagnostics(a)
     vd = verdict(checks)
     comp = {
         "case": "spray-drying-stickiness", "issue": 337, "tracker": 333,
