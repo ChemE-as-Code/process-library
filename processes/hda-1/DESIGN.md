@@ -1292,6 +1292,25 @@ P-03 (purge PSA and tail gas):
 - FG-128 leaves to the site fuel gas header at the battery limit (no header drawn: it is
   outside the plant, D-009), with FI-306 for the export.
 
+P-04 (stabiliser):
+- The simulation lumps the column, partial condenser, drum and reboiler in step C201. The sheet
+  adds the reflux drum V-201 and the reflux pumps P-201A/B (equipment list, sizes ASSUMED). The
+  overhead and reboiler lines are sized on the vapour rates of `scripts/concept_sizing.py`
+  (top 350 kg/h, bottom 13.5 t/h); the reflux is about 175 kg/h, so the reflux lines are DN25.
+- Control: the column pressure PIC-404 on the off-gas valve PV-404 (FG-119 to the site fuel gas
+  header); V-201 level LIC-405 on the reflux LV-405, so all condensed liquid is refluxed and the
+  off-gas is the only distillate (D-008); tray temperature TIC-402 on the MP steam TV-402;
+  sump level LIC-408 on the bottoms LV-408 (AR-120 flows to C-202 by the pressure difference).
+  The reboiler is a thermosyphon (AR-437 / PG-438) with a steam trap ST-444 on the condensate.
+- Reflux pumps: continuous minimum flow AR-436 through HV-436 back to V-201; LZ-411 low-low
+  stops them (I-401).
+- Relief: PSV-413 on the column top protects C-201, the E-201 process side and V-201 (no
+  isolation valve between them), set 9 barg, to the flare; the gas blow-by from V-101 is the
+  likely governing case (S8), with I-201 on P-02 as the layer before it. PSV-414 on the E-201
+  CW side: tube rupture is a case (9 barg against 6 barg, more than 10/13 of it).
+- Steam and condensate lines are sized from rounded saturated-steam table values that are
+  recalled, not looked up in this run, and marked ASSUMED in the line list.
+
 ## LCI summary (lca/inventory.csv, per kg benzene)
 
 Regenerated in S3a (D-024) from the inventory with the purge hydrogen PSA (`cheme assess lca --write`,

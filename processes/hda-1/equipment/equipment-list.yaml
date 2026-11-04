@@ -67,18 +67,30 @@ equipment:
      dimensions: {diameter: 0.7, length: 5.0},
      notes: "About 436 -> 313 K, ~0.25 MW to cooling water, 470 -> 450 kPa(a) (DWSIM, D-024); about 47 m2 at U 100 W/(m2 K) (scripts/concept_sizing.py); design temperature 436 K + 25 K, rounded up. ASSUMED. Dimensions ASSUMED (D-024)."}
   # ---- stabilisation and distillation (block SEP)
-  - {tag: C-201, type: ProcessColumn, service: Stabiliser,
+  - {tag: C-201, sheet: P-04, type: ProcessColumn, service: Stabiliser,
      design_pressure_barg: 9, design_temperature_degc: 200, material: CS,
      dimensions: {diameter: 1.0, height: 12.5},
      notes: "800 kPa(a); partial condenser at 313 K, L/D 1 (D-008); 8 theoretical stages ASSUMED (the DWSIM shortcut gives 3.0, too few for a stabiliser, D-017). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
-  - {tag: E-201, type: TubularHeatExchanger, service: Stabiliser partial condenser,
+  - {tag: E-201, sheet: P-04, type: TubularHeatExchanger, service: Stabiliser partial condenser,
      design_pressure_barg: 9, design_temperature_degc: 200, material: CS,
      dimensions: {diameter: 0.5, length: 4.0},
      notes: "~0.16 MW to cooling water (D-008). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
-  - {tag: E-202, type: TubularHeatExchanger, service: Stabiliser reboiler,
+  - {tag: E-202, sheet: P-04, type: TubularHeatExchanger, service: Stabiliser reboiler,
      design_pressure_barg: 14, design_temperature_degc: 225, material: CS,
      dimensions: {diameter: 0.9, length: 5.0},
-     notes: "~1.43 MW from MP steam 1500 kPa(a); bottoms 448 K (D-008, D-010). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
+     notes: "~1.43 MW from MP steam 1500 kPa(a); bottoms 448 K (D-008, D-010). Thermosyphon on the column sump, steam on the tube side through TV-402, condensate through the steam trap ST-444 (D-025). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
+  - {tag: V-201, sheet: P-04, type: Vessel, service: Stabiliser reflux drum,
+     design_pressure_barg: 9, design_temperature_degc: 65, material: CS,
+     dimensions: {diameter: 0.6, length: 1.8},
+     notes: "Added with the P&IDs (D-025): the simulation lumps condenser and drum in step C201. 800 kPa(a), 313 K; off-gas 175 kg/h (S19) to the fuel gas header, all condensed liquid (about 175 kg/h, the top vapour 350 kg/h of scripts/concept_sizing.py less the off-gas) refluxed. Design as C-201, design temperature 313 K + 25 K, rounded up. Size: a practical minimum for the small liquid rate, ASSUMED."}
+  - {tag: P-201A, sheet: P-04, type: CentrifugalPump, service: Stabiliser reflux pump (running),
+     design_pressure_barg: 12, design_temperature_degc: 65, material: CS,
+     dimensions: {length: 1.0, width: 0.4, height: 0.6},
+     notes: "Added with the P&IDs (D-025): about 0.2 t/h reflux from V-201 to the top of C-201 (about 12 m static head plus the control valve), power below 1 kW, not in the flowsheet (implicit in step C201). Continuous minimum flow AR-436 through the restriction globe valve HV-436. Design 9 barg + 3 bar for the head, rounded, ASSUMED. Dimensions ASSUMED."}
+  - {tag: P-201B, sheet: P-04, type: CentrifugalPump, service: Stabiliser reflux pump (installed spare),
+     design_pressure_barg: 12, design_temperature_degc: 65, material: CS,
+     dimensions: {length: 1.0, width: 0.4, height: 0.6},
+     notes: "Installed spare of P-201A (D-025). ASSUMED. Dimensions as P-201A, ASSUMED."}
   - {tag: C-202, type: ProcessColumn, service: Benzene column,
      design_pressure_barg: 3.5, design_temperature_degc: 160, material: CS,
      dimensions: {diameter: 2.2, height: 38.0},

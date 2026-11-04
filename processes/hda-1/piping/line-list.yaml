@@ -20,8 +20,8 @@ lines:
   - {number: HG-113, from: HG-115, to: PK-101, nominal_diameter: DN80, fluid: Purge gas, sheet: P-02, notes: "S13 on FV-211 (FIC-211, set by AIC-210); continues on P-03; purge to the PSA, 3600 kPa(a), 324 K, 68 mm (D-024; was FG-113 to the fuel gas header). Design 42 barg / 80 degC (the loop's, D-012), ASSUMED"}
   - {number: AR-116, from: V-101, to: C-201, nominal_diameter: DN100, fluid: Crude aromatics, sheet: P-02, notes: "S16 separator liquid; after the quench take-off AR-235 (SPL2) it carries S18 through the shutdown valve XV-204 (C&E I-201) and the level let-down valve LV-202 (LIC-202) to C-201 (P-04). AR-118 (S18) merged into this line: the drafting API continues a run through a tee (D-025). DN100 over the whole line: S18 needs DN80 as a liquid (D-012) but flashes after LV-202 (3250 -> 800 kPa(a)), so the larger size is kept downstream, ASSUMED until the let-down is sized (D-025)"}
   - {number: AR-117, from: P-102, to: PG-108, nominal_diameter: DN40, fluid: Crude aromatics, sheet: P-02, notes: "S27 pumped quench liquid (P-102 takes suction from AR-116 through AR-235); continues on P-01 to TV-115. Was S17 in the concept list (S17 is the suction, AR-235, D-025)"}
-  - {number: FG-119, from: C-201, to: B/L, nominal_diameter: DN40, fluid: Fuel gas, notes: "S19 stabiliser off-gas"}
-  - {number: AR-120, from: C-201, to: C-202, nominal_diameter: DN80, fluid: Stabilised aromatics, notes: "S20"}
+  - {number: FG-119, from: V-201, to: B/L, nominal_diameter: DN40, fluid: Fuel gas, sheet: P-04, notes: "S19 stabiliser off-gas from the reflux drum V-201 on the column pressure valve PV-404 (PIC-404) to the site fuel gas header (D-025; the simulation lumps the condenser and drum in C201)"}
+  - {number: AR-120, from: C-201, to: C-202, nominal_diameter: DN80, fluid: Stabilised aromatics, sheet: P-04, notes: "S20 on the sump level valve LV-408 (LIC-408); flows to C-202 by the pressure difference (800 -> 170 kPa(a)); continues on P-05"}
   - {number: BZ-121, from: C-202, to: B/L, nominal_diameter: DN65, fluid: Benzene, notes: "S21 benzene product to storage"}
   - {number: TO-122, from: C-202, to: C-203, nominal_diameter: DN50, fluid: Toluene / biphenyl, notes: "S22"}
   - {number: TO-123, from: C-203, to: V-100, nominal_diameter: DN40, fluid: Toluene, sheet: P-01, notes: "S23 toluene recycle (distillate pump at basic engineering)"}
@@ -63,3 +63,23 @@ lines:
   - {number: CWS-333, from: CWS-801, to: E-103, nominal_diameter: DN80, fluid: Cooling water, sheet: P-03, notes: "E-103, 0.25 MW: 5.9 kg/s, 71 mm at 1.5 m/s (D-025)"}
   - {number: CWR-334, from: E-103, to: CWR-802, nominal_diameter: DN80, fluid: Cooling water, sheet: P-03, notes: "E-103 cooling water return; PSV-309 branch CWR-335"}
   - {number: CWR-335, from: CWR-334, to: atmosphere, nominal_diameter: DN25, fluid: Cooling water, sheet: P-03, notes: "PSV-309, thermal relief of the blocked-in E-103 CW side, to atmosphere at a safe location; DN25 minimum, ASSUMED. Tube rupture is not a case: both sides are designed for 6 barg"}
+  # P-04 stabiliser. Column vapour rates from scripts/concept_sizing.py (D-017). Steam lines:
+  # duty over the latent heat, saturated vapour density, the D-012 gas velocities; latent heats
+  # and densities are rounded saturated-steam table values (IAPWS-IF97), recalled and not looked
+  # up in this run, ASSUMED: 1500 kPa(a) 1946 kJ/kg, 7.6 kg/m3; 450 kPa(a) 2120 kJ/kg,
+  # 2.4 kg/m3; 4200 kPa(a) 1695 kJ/kg, 21 kg/m3 (D-025)
+  - {number: PG-430, from: C-201, to: E-201, nominal_diameter: DN50, fluid: Stabiliser overhead, sheet: P-04, notes: "Top vapour 350 kg/h at 4.76 kg/m3 (scripts/concept_sizing.py), 36 mm at 20 m/s; DN50, one size up for the condenser line, ASSUMED"}
+  - {number: PG-431, from: E-201, to: V-201, nominal_diameter: DN50, fluid: Stabiliser overhead, sheet: P-04, notes: "Partial condenser outlet, two-phase, DN of PG-430"}
+  - {number: AR-432, from: V-201, to: P-201A, nominal_diameter: DN25, fluid: Reflux, sheet: P-04, notes: "Reflux pump suction, about 175 kg/h; DN25 minimum, ASSUMED"}
+  - {number: AR-433, from: AR-432, to: P-201B, nominal_diameter: DN25, fluid: Reflux, sheet: P-04, notes: "Suction branch of the spare P-201B"}
+  - {number: AR-434, from: P-201A, to: C-201, nominal_diameter: DN25, fluid: Reflux, sheet: P-04, notes: "Reflux to C-201 on the V-201 level valve LV-405 (LIC-405: all condensed liquid refluxed, D-008); DN25 minimum, ASSUMED"}
+  - {number: AR-435, from: P-201B, to: AR-434, nominal_diameter: DN25, fluid: Reflux, sheet: P-04, notes: "Discharge of the spare P-201B"}
+  - {number: AR-436, from: AR-434, to: V-201, nominal_diameter: DN25, fluid: Reflux, sheet: P-04, notes: "Continuous minimum flow of P-201A/B back to V-201 through the restriction globe valve HV-436; DN25 minimum, ASSUMED"}
+  - {number: AR-437, from: C-201, to: E-202, nominal_diameter: DN150, fluid: Stabiliser bottoms, sheet: P-04, notes: "Thermosyphon reboiler feed: circulation about 4 x the bottom vapour 13.5 t/h (ASSUMED circulation ratio), about 54 t/h at 750 kg/m3 (ASSUMED), 130 mm at 1.5 m/s"}
+  - {number: PG-438, from: E-202, to: C-201, nominal_diameter: DN200, fluid: Stabiliser bottoms (two-phase), sheet: P-04, notes: "Reboiler return: bottom vapour 13.5 t/h at 17.7 kg/m3 (scripts/concept_sizing.py), 0.21 m3/s, 164 mm at the D-012 two-phase 10 m/s"}
+  - {number: MS-439, from: MS-804, to: E-202, nominal_diameter: DN100, fluid: MP steam, sheet: P-04, notes: "MP steam on TV-402 (TIC-402, tray temperature): 1425 kW / 1946 kJ/kg = 0.73 kg/s, 0.096 m3/s, 90 mm at 15 m/s (D-025)"}
+  - {number: CWS-440, from: CWS-801, to: E-201, nominal_diameter: DN65, fluid: Cooling water, sheet: P-04, notes: "E-201, 0.16 MW: 3.8 kg/s, 57 mm at 1.5 m/s (D-025); PSV-414 branch CWS-442"}
+  - {number: CWR-441, from: E-201, to: CWR-802, nominal_diameter: DN65, fluid: Cooling water, sheet: P-04, notes: "E-201 cooling water return"}
+  - {number: CWS-442, from: CWS-440, to: atmosphere, nominal_diameter: DN25, fluid: Cooling water, sheet: P-04, notes: "PSV-414 on the E-201 CW side (tube rupture: 9 barg process side against 6 barg CW side; blocked in) to atmosphere at a safe location; DN placeholder until S8, ASSUMED"}
+  - {number: FL-443, from: C-201, to: FL-701, nominal_diameter: DN100, fluid: Relief gas, sheet: P-04, notes: "PSV-413 on the C-201 top (protects C-201, E-201 process side and V-201: no isolation valve between them) to the flare header; DN placeholder until S8, ASSUMED"}
+  - {number: CD-444, from: E-202, to: CD-806, nominal_diameter: DN50, fluid: Condensate, sheet: P-04, notes: "E-202 condensate through the steam trap ST-444 to the condensate header: 0.73 kg/s, 27 mm at 1.5 m/s as liquid; DN50 for the flash after the trap, ASSUMED"}
