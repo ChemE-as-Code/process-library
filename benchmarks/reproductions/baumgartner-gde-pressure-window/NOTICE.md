@@ -8,10 +8,21 @@ This reproduction uses, without redistributing them, the article
 
 published under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/), and its supporting
 information, `sc2c00195_si_001.pdf` and `sc2c00195_si_002.xlsx`. The supporting-information
-files state no licence of their own.
+files state no licence of their own. They are distributed with the article in the Europe PMC
+open-access package, whose record for PMC9006256 gives the licence as CC BY (checked
+2026-11-04).
 
 `reproduce.py` downloads the supporting information at run time from Europe PMC (PMC9006256).
-This folder holds the files' checksums, plus facts and numbers taken from the article and the
-supporting information, in our own form and with locators, and numbers derived from them. It
-contains none of the source's files, tables, figures, drawings or text. The figures in
-`figures/` are drawn by `reproduce.py` from those numbers.
+This folder holds:
+
+- the files' checksums;
+- facts and numbers taken from the article and the supporting information, in our own form and
+  with locators. These include every value of the spreadsheet's breakthrough-pressure sheet
+  (`deltaP`) and the averaged values of the electrolysis runs used here (sheet `FE`), re-keyed
+  as measured values per material in `source.yaml`, the run records in `reruns/` and the tables
+  of `comparison.md`;
+- numbers derived from them.
+
+It contains none of the source's files, figures, drawings or text, and no copy of a source
+table's layout or formatting. The figures in `figures/` are drawn by `reproduce.py` from those
+numbers.

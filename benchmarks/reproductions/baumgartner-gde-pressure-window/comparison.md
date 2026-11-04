@@ -13,12 +13,16 @@
 - **Runs:** `uv run --isolated benchmarks/reproductions/baumgartner-gde-pressure-window/reproduce.py`,
   2026-11-04, Python 3.12.15, numpy 2.2.6, openpyxl 3.1.5, matplotlib 3.10.3.
   - `reruns/2026-11-04-run.json` is the first comparison run. Its `dirty: true` is because the
-    script was not yet committed.
+    script was not yet committed. The exact script of that run is in no commit: the script
+    committed with it in 9421aac already had the changed figure layout and the informational
+    block (below), so checking out 9421aac does not reproduce this record byte for byte.
   - `reruns/2026-11-04-run-2.json` was run from an empty download cache and an empty uv cache,
     with the script as committed in fad8fed. Between the two runs, three things changed: the
     figure layout, an informational block (operating rows outside the 200 mA/cm2 scope of K2)
     and a download retry. Every frozen check is identical in the two records. This record's
     `dirty: true` is because `figures/`, the output of the first run, was not yet committed.
+    It is the record a commit reproduces. A later commit made the download retry more robust
+    (dropped connections, a non-zip answer, a missing member); it changes no computed number.
   - One earlier attempt stopped on an HTTP 500 from Europe PMC before any comparison. That
     failure is the reason for the retry.
 - **Order of evidence:** `git log -- benchmarks/reproductions/baumgartner-gde-pressure-window/`
@@ -30,14 +34,16 @@
 
 | Check | Kind | Result under the frozen rule |
 | --- | --- | --- |
-| R1 | reproduction: window per GDE | **FAIL**: all 7 GDE windows match the sheet and all 4 match the text. The uncoated-GDL consistency sub-check fails for SGL 39BC (sheet 67 mbar, SI Table S3 62 mbar) |
+| R1 | reproduction: window per GDE | **FAIL**: all 7 GDE windows match the sheet and all 4 match the text. The uncoated-GDL consistency sub-check fails for SGL 39BC: the sheet's 67 mbar is Sample 2 of SI Table S3, and the frozen check compared it against the table's mean of 62 mbar |
 | R2 | reproduction: window spread | **pass**: 14.14 mbar against the text's 14 mbar and the sheet's 14.14 mbar (141.42 mbar for H23C6) |
 | R3 | reproduction: the paper's heights | **pass** on the water basis: 40.9 / 81.7 / 51.1 cm against 41 / 81 / 51 cm |
 | K1 | claim classification | range supported (6 of 6). C1 (below 51 cm) **contradicted** for 3 of 5 materials. C2 (H23C6 above 1 m) supported. C3 (H23C6 above 200 cm) supported at nominal values only |
-| K2 | consistency of operating points | none outside: 3 inside and 3 at the edge, all at the gas-breakthrough end of the window |
+| K2 | consistency of operating points | none outside: 3 inside and 3 at the edge, all near the gas-breakthrough end of the window |
 
-The script exits 1 because R1 fails. The failure is a disagreement between the two published
-copies of one uncoated-GDL value, not an error in the reproduction (see below). Reproduction,
+The script exits 1 because R1 fails. The spreadsheet gives one of the two SGL 39BC samples,
+while the frozen check compared it against the mean in SI Table S3. Both published values are
+consistent with each other, so this is neither an error in the reproduction nor a data error in
+the source (see below). Reproduction,
 claim checks and consistency are reported separately and not pooled (tolerances.yaml
 pass_rule).
 
@@ -92,8 +98,12 @@ h = dp* / (rho g), g = 9.80665 m/s².
 The paper's heights use the density of water. The windows were measured with 1 M KHCO3, which
 is about 6.7 % denser (ASSUMED 1065 kg/m³, range 1055 to 1075, tolerances.yaml constants), so
 the heights of the measured system are about 6 % lower: 38 to 77 cm instead of 41 to 81 cm, and
-48 cm instead of 51 cm. H2 (81 cm against 81.7) is consistent with truncation rather than
-rounding. The tolerance allows both. As the tolerances header says, R3 is not blind: only the
+48 cm instead of 51 cm. No single convention reproduces all three published heights on the
+water basis: H1 (40.86 cm, published 41) needs rounding, and H2 (81.72 cm, published 81) needs
+truncation. The same holds for 1000 kg/m³ with g = 9.81 m/s². Rounding fits all three only if
+rho g lies between about 9.82 and 9.88 kN/m³, above water's 9.79 kN/m³. The paper's exact
+density basis and rounding therefore cannot be identified from the three values. The tolerance
+allows either convention. As the tolerances header says, R3 is not blind: only the
 water basis matched in the hand check before the freeze.
 
 ### h_max per GDE (reported, no rule)
@@ -155,19 +165,26 @@ The sheet records gas minus liquid (FE, cell A8), so dp_op is the negative of co
 | SGL 39BC | −11.1 (6.0) | −2 to 69 | edge, 9.1 below | 0.002 | 0 |
 | LT1400W | −0.4 (3.2) | −3 to 38 | inside | 0.002 | 0 |
 
-Every 200 mA/cm2 run sat at the gas-breakthrough end of the window, within one 10 mbar
-backpressure step of dp_G*. None recorded gas in the liquid outlet. This is consistent with the
+Every 200 mA/cm2 run sat near the gas-breakthrough end of the window. Five of the six were
+within one 10 mbar backpressure step of dp_G* (0.4 to 9.1 mbar from it). TGP-H-120 sat
+11.5 mbar above dp_G*, inside the window. None recorded gas in the liquid outlet. This is consistent with the
 open-circuit window: no run is outside it by more than the measurement step. It also shows the
 authors' set point, just above gas breakthrough. In a tall cell that set point, applied at the
 top, gives the full window as height (the plot below). The recorded liquid-into-gas flows of up
 to 0.04 mL/min are small but not zero, even in flow-by.
 
-**Informational, outside the frozen scope:** H23C6 has only a 100 mA/cm2 row. Its operating dp
-was −64 mbar, 46 mbar below its open-circuit gas-breakthrough pressure. Yet liquid entered the
-gas outlet at 1.27 mL/min. The open-circuit window of H23C6 (−18 to 370 mbar) therefore does not
-describe the electrode under current: it flooded at a lower liquid pressure than the window
-allows. This matches the paper's report that the electrode lost its hydrophobicity during
-electrolysis. It is the strongest sign in the data that C2 and C3 hold only at open circuit.
+**Informational, outside the frozen scope:** H23C6 has only a 100 mA/cm2 row. For H23C6 the
+authors used a separate sample for each experiment (SI section 6), so this run and the window
+measurement (−18 to 370 mbar) are on different samples. The operating dp was −64 mbar. That is
+46 mbar below the window's gas-breakthrough pressure, which is within the ±100 mbar error the
+authors assume for H23C6 and so not significant on its own. Yet liquid entered the gas outlet at
+1.27 mL/min. For liquid to enter at dp = −64 mbar, the liquid-breakthrough pressure must have
+fallen from 370 mbar to −64 mbar or lower, a drop of at least 434 mbar. That is more than three
+times the 141 mbar spread of the window, so it is not explained by sample-to-sample variation
+within the stated error. The electrode flooded under current at a far lower liquid pressure than
+its open-circuit window allows. This matches the paper's report that the electrode lost its
+hydrophobicity during electrolysis. It is the strongest sign in the data that C2 and C3 hold
+only at open circuit.
 
 ## Pressure vs elevation: where the hydrostatic bound applies
 
@@ -222,12 +239,15 @@ local dp stays inside the window along a tall channel with flow is the question 
 The pressure windows of all seven GDEs and their stated spread are reproduced exactly from the
 tabulated breakthrough pressures. The paper's height conversions are reproduced on a water
 density basis. With the density of the 1 M KHCO3 actually used, every height is about 6 % lower.
-Two published statements do not hold as written:
 
-- the uncoated SGL 39BC value differs between the spreadsheet and SI Table S3, which makes R1
-  FAIL under the frozen rule;
-- "below 51 cm for every material above 50 % FE_CO" is contradicted by three of five materials
-  on nominal values, though not beyond the authors' error.
+R1 is recorded as FAIL under the frozen rule because of the uncoated SGL 39BC sub-check. The
+spreadsheet carries Sample 2 of SI Table S3 (67 mbar), and the frozen check compared it against
+the table's mean row (62 mbar). Table S3 lists 67 mbar too, so the two published copies do not
+contradict each other, and this is not a data error in the source.
+
+One published statement does not hold as written: "below 51 cm for every material above 50 %
+FE_CO" is contradicted by three of five materials on nominal values, though not beyond the
+authors' error.
 
 The paper's main conclusion, that commercial cracked-MPL GDEs limit flow-by cells to well below
 1 m, is unaffected: the largest nominal h_max among them is 80 cm on the water basis and 75 cm on

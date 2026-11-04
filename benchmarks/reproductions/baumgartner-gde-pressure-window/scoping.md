@@ -21,14 +21,23 @@ floods first and how much margin the set point leaves.
 ## Whether a spatial solver is needed
 
 For fully developed laminar flow in a straight channel, a one-dimensional estimate already
-answers the question: dp(z) = dp_top + (rho g + friction gradient)(H − z). That is what
-`reproduce.py` evaluates, and the frictional term is 0.05 to 3 % of rho g for the cases above. A
-2D or 3D solver adds information only where that estimate stops holding:
+answers the question: dp(z) = dp_top + (rho g + friction gradient)(H − z). `reproduce.py`
+evaluates the two parts separately: the hydrostatic profile (the figure) and, per case, the
+frictional gradient and its ratio r to rho g, which is 0.05 to 3 % for the cases above. Because
+the profile is linear, the combined estimate is their sum. A 2D or 3D solver adds information
+only where that estimate stops holding:
 
 1. **Inlet and outlet manifolds and entrance lengths.** Distributor jets, a developing velocity
-   profile (entrance length about 0.05 Re Dh, up to about 8 cm for the cases above) and contraction losses at the ports
-   add local pressure changes. These are largest at the bottom, which is the end nearest
-   flooding.
+   profile and contraction losses at the ports add local pressure changes. These are largest at
+   the bottom, which is the end nearest flooding. The hydrodynamic entrance length is not small
+   for every case above. The round-tube estimate 0.05 Re Dh gives 0.8 to 7.7 cm for the 2 mm
+   gap and 4.8 to 48 cm for the 5 mm gap, so at 5 mm and 0.1 m/s the flow would develop over
+   about half of a 1 m electrode. The parallel-plate correlation of Shah and London,
+   L/Dh ≈ 0.011 Re + 0.315/(1 + 0.0175 Re), gives about a quarter of that: 0.2 to 1.7 cm and
+   1.2 to 10.6 cm. The extra pressure drop of the developing region, of order 0.7 rho u²/2, is
+   at most about 0.04 mbar, against about 104 mbar of hydrostatic change over 1 m, so the 1D
+   result changes little. The fully developed gradient is still not the local gradient over
+   that length.
 2. **Non-uniform gap.** A GDE compressed by the gasket, or a flow field with ribs or a spacer
    mesh, gives a non-uniform b(x, z), and friction scales as 1/b².
 3. **Gas side.** The frictional drop of a long or serpentine gas channel makes p_G(z)
@@ -37,10 +46,13 @@ answers the question: dp(z) = dp_top + (rho g + friction gradient)(H − z). Tha
    mixture density and change the gradient with current and position.
 
 **Decision rule:** implement only if the one-dimensional ratio r = friction gradient / rho g
-exceeds 0.05 for a design case, if the cell has manifolds or a non-uniform gap whose losses
-cannot be bounded by hand, or if a collaborator's measured pressure profile (below) becomes
-available to compare with. At the lab conditions of the paper (r = 1.8e-3), none of these
-applies.
+exceeds 0.05 for a design case, if its entrance length (Shah and London, above) exceeds 10 % of
+H, if the cell has manifolds or a non-uniform gap whose losses cannot be bounded by hand, or if
+a collaborator's measured pressure profile (below) becomes available to compare with. Of the
+1 m cases above, only the 5 mm gap at 0.1 m/s reaches the entrance-length trigger (10.6 cm).
+At the lab conditions of the paper (r = 1.8e-3) none applies: the entrance length, about 7 mm,
+is a third of the 22 mm electrode, but the whole hydrostatic difference across that electrode
+is only 2.3 mbar.
 
 ## Candidate tools
 
@@ -80,8 +92,10 @@ reduced window taken from measurements.
    - hydrostatic profile at Q = 0: dp(z) linear with slope rho g, to machine precision;
    - fully developed laminar segment: frictional gradient within 0.5 % of the Shah and London
      rectangular-duct value used in `reproduce.py`;
-   - the 1 m cases of `comparison.md`: total dp change over H within 0.5 % of
-     (rho g + friction gradient) H away from the ends.
+   - the 1 m cases of `comparison.md`: dp change within 0.5 % of (rho g + friction gradient)
+     times the length, with rho g and the friction gradient as `reproduce.py` records them per
+     case, taken between the end of the entrance length (Shah and London, above) and 5 gap
+     widths below the outlet.
 2. **The lab cell of the paper (consistency):** 100 mL/min, 30 mm wide, 33 mm flow channel, the
    catholyte pressure and the reactor differential pressure of the SI spreadsheet (sheet FE).
    The cell is too short (22 mm electrode) to resolve a profile. It checks only the absolute

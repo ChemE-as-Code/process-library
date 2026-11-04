@@ -3,7 +3,10 @@
 This folder reproduces the flow-by pressure window of seven commercial gas diffusion electrodes,
 and the maximum electrode height that follows from it, from Baumgartner, Koopman, Forner-Cuenca
 and Vermaas (ACS Sustainable Chem. Eng. 2022). The inputs are the tabulated breakthrough
-pressures in the paper's supporting information. Issue #332, tracker core#136. Protocol: ADR 0030.
+pressures in the paper's supporting information. Issue #332, tracker core#136. Protocol: ADR 0030
+(Proposed), with one deviation: there is no `case/` folder. The model is a plain-Python data
+reproduction with no cheme flowsheet, the situation in which ADR 0031 (Proposed) notes that the
+HDA layout (`case/` with a `plant.yaml`) does not fit.
 
 The issue is a separate follow-up to the bipolar-membrane benchmark (#329), and its result does
 not depend on that benchmark or on the other #136 issues. No process folder uses these results.
@@ -46,8 +49,10 @@ comparison, and exits non-zero when R1, R2 or R3 fails.
 
 **Status (2026-11-04, `comparison.md`):**
 
-- **R1:** FAIL under the frozen rule. All 7 GDE windows reproduce exactly. The uncoated SGL 39BC
-  value differs between the spreadsheet (67 mbar) and SI Table S3 (62 mbar).
+- **R1:** FAIL under the frozen rule. All 7 GDE windows reproduce exactly. For the uncoated
+  SGL 39BC, the spreadsheet carries Sample 2 of SI Table S3 (67 mbar), and the frozen check
+  compared it against the table's mean (62 mbar). The two published copies are consistent; this
+  is not a data error in the source.
 - **R2, R3:** pass. The paper's heights use water density; with the 1 M KHCO3 used in the
   measurements they are about 6 % lower.
 - **K1:**
@@ -55,7 +60,7 @@ comparison, and exits non-zero when R1, R2 or R3 fails.
   - "below 51 cm for every material above 50 % FE_CO" is contradicted for 3 of 5 materials
     (59 to 74 cm), though it lies within the authors' error;
   - H23C6 above 1 m is supported, and above 200 cm only at nominal values.
-- **K2:** every 200 mA/cm2 run sat at the gas-breakthrough end of its window, none more than one
-  10 mbar step outside.
+- **K2:** every 200 mA/cm2 run sat near the gas-breakthrough end of its window, none more than
+  one 10 mbar step outside.
 
 The script therefore exits 1.

@@ -24,6 +24,8 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import hashlib
+import http.client
+import io
 import json
 import math
 import platform
@@ -31,7 +33,6 @@ import re
 import subprocess
 import sys
 import time
-import urllib.error
 import urllib.request
 import zipfile
 from pathlib import Path
@@ -79,11 +80,20 @@ def fetch(source: dict, cache: Path) -> dict[str, Path]:
             print(f"download supporting information (Europe PMC), attempt {attempt}", file=sys.stderr)
             try:
                 with urllib.request.urlopen(si["url"], timeout=300) as r:
-                    target.write_bytes(r.read())
+                    data = r.read()
+                if not zipfile.is_zipfile(io.BytesIO(data)):  # e.g. an HTML error or challenge page
+                    raise zipfile.BadZipFile(f"answer is not a zip archive ({len(data)} bytes)")
+                with zipfile.ZipFile(io.BytesIO(data)) as z:
+                    missing = sorted(set(wanted) - set(z.namelist()))
+                if missing:
+                    sys.exit(f"the downloaded archive lacks the pinned file(s) {missing}; the record changed")
+                target.write_bytes(data)
                 break
-            except (urllib.error.URLError, TimeoutError) as e:
+            # OSError covers URLError, timeouts and reset connections; HTTPException covers a
+            # transfer cut short (IncompleteRead).
+            except (OSError, http.client.HTTPException, zipfile.BadZipFile) as e:
                 if attempt == 5:
-                    sys.exit(f"download failed: {e}")
+                    sys.exit(f"download failed: {e!r}")
                 time.sleep(10 * attempt)
         with zipfile.ZipFile(target) as z:
             for name in wanted:  # extract only the pinned members, by exact name
