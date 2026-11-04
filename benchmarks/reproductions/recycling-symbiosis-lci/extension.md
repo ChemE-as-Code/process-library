@@ -42,8 +42,8 @@ chain's remaining demand after its recyclate and its own ethylene (336.4 kg).
   selling it is not possible (no buyer for small, intermittent off-gas olefin streams). Whether
   that holds is a site question, not a property of the chemistry.
 - The saturation point scales inversely with the PP plant's ethylene yield. At 0.10 kg/kg it
-  moves to 5.4 times the LDPE batch; at 0.20 kg/kg to 2.7 times. This yield is assumed, so the
-  number 3.6 is illustrative.
+  moves to 5.4 times the LDPE batch; at 0.20 kg/kg to 2.7 times (comparison.json
+  `sensitivities.pp_yields`). This yield is assumed, so the number 3.6 is illustrative.
 
 ## Out of range and extrapolation flags
 

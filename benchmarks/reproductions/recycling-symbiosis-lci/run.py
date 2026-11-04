@@ -20,8 +20,9 @@ Run from the repository root:
    library's cut-off model with mass allocation.
 3. One changed input (the PP waste throughput) as a hypothetical design extension.
 
-Writes results/comparison.json and results/*.svg. Every input comes from inputs.yaml (and the
-pinned library file it names). Exits non-zero only when the script itself fails, including a
+Writes results/comparison.json and results/*.svg. Every model input comes from inputs.yaml (and
+the pinned library file it names); the reported reference values and the coproduct prices come
+from source.yaml, the acceptance tolerances from tolerances.yaml. Exits non-zero only when the script itself fails, including a
 failed internal reconciliation check; a reproduction outside tolerance is a verdict, recorded
 in comparison.json.
 """
@@ -118,24 +119,45 @@ def ldpe_pyrolysis() -> dict:
     }
 
 
-def pp_pyrolysis(ldpe: dict) -> dict:
+def pp_yields() -> dict[str, float]:
     p = INP["pyrolysis_PP"]
-    y = {k: v for k, v in p["mass_yield"].items() if k not in ("label", "rationale")}
+    return {k: v for k, v in p["mass_yield"].items() if k not in ("label", "rationale")}
+
+
+def pp_pyrolysis(ldpe: dict, yields: dict[str, float] | None = None) -> dict:
+    """PP pyrolysis per kg feed from the assumed yields; the remainder closes the carbon on CH2."""
+    y = dict(yields) if yields is not None else pp_yields()
     fuel_total = 1.0 - sum(y.values())
-    if fuel_total < 0:
-        raise ValueError("PP pyrolysis yields exceed 1 kg/kg")
-    # the remainder is taken as CH2, so the feed carbon is CH2 plus the carbon excess of products
+    if fuel_total <= 0:
+        raise ValueError("PP pyrolysis yields reach or exceed 1 kg/kg")
+    # the remainder holds the feed carbon (CH2) that the products do not (inputs.yaml pyrolysis_PP.fuel)
     c_products = sum(m * carbon_fraction(k) for k, m in y.items())
-    co2 = fuel_total * CO2_PER_KG_CH2
-    w_c_feed = c_products + fuel_total * W_C_CH2
+    w_c_rem = (W_C_CH2 - c_products) / fuel_total
+    if not 0.0 < w_c_rem < 1.0:
+        raise ValueError(f"PP remainder carbon fraction {w_c_rem:.4f} is not physical")
+    co2 = fuel_total * w_c_rem * M_CO2 / AM["C"]
+    w_c_feed = c_products + fuel_total * w_c_rem
+    h_to_c_rem = ((1.0 - w_c_rem) / AM["H"]) / (w_c_rem / AM["C"])
     # same net electricity per kg feed as the LDPE model (assumed)
     return {
         "products": y,
-        "fuel": {"CH2 (remainder)": fuel_total},
+        "fuel": {"remainder (C and H only)": fuel_total},
         "fuel_total": fuel_total,
+        "fuel_carbon_fraction": w_c_rem,
+        "fuel_H_to_C_molar": h_to_c_rem,
         "co2": co2,
         "w_c_feed": w_c_feed,
         "electricity": ldpe["electricity"],
+    }
+
+
+def element_balance(model: dict) -> dict:
+    """Carbon of a pyrolysis model's products and fuel against a CH2 feed, per kg feed (diagnostic)."""
+    return {
+        "carbon_in_feed_as_CH2": W_C_CH2,
+        "carbon_in_products_and_fuel": model["w_c_feed"],
+        "imbalance_kg_C_per_kg_feed": model["w_c_feed"] - W_C_CH2,
+        "imbalance_rel": (model["w_c_feed"] - W_C_CH2) / W_C_CH2,
     }
 
 
@@ -206,16 +228,28 @@ def ethylene1_factor() -> dict:
         for row in csv.DictReader(fh):
             rows[row["key"]] = row
     products = ["product:ETHYLENE", "product:PROPYLENE", "product:CRUDEC4", "product:PYGAS"]
-    hc = sum(float(rows[k]["quantity"]) for k in products)
-    co2 = float(rows["emission:CO2"]["quantity"])
+    # inventory.csv is per kg ethylene with mass allocation already applied to the emissions
+    # (ethylene-1 DESIGN.md D-016); under mass allocation the value per kg is the same for every
+    # hydrocarbon product, so it is used as it stands. The plant column (kg/h, unallocated) is a
+    # cross-check of that reading.
+    co2_alloc = float(rows["emission:CO2"]["quantity"])
+    co2_plant = float(rows["emission:CO2"]["plant"])
+    hc_plant = sum(float(rows[k]["plant"]) for k in products)
+    eth_plant = float(rows["product:ETHYLENE"]["plant"])
+    cross = co2_plant / hc_plant
+    if abs(cross - co2_alloc) / co2_alloc > 1e-5:
+        raise RuntimeError("ethylene-1 inventory.csv emission:CO2 is not the mass-allocated value per kg")
     return {
         "path": d["path"],
         "sha256": digest,
         "sha256_pinned": d["sha256"],
         "sha256_match": digest == d["sha256"],
-        "co2_unallocated_per_kg_ethylene": co2,
-        "hydrocarbon_products_per_kg_ethylene": hc,
-        "co2_per_kg_olefin_mass_allocated": co2 / hc,
+        "co2_per_kg_hydrocarbon_product_mass_allocated_in_file": co2_alloc,
+        "plant_co2_unallocated_kg_per_h": co2_plant,
+        "plant_hydrocarbon_products_kg_per_h": hc_plant,
+        "co2_unallocated_per_kg_ethylene": co2_plant / eth_plant,
+        "cross_check_plant_co2_over_hydrocarbon_products": cross,
+        "co2_per_kg_olefin_mass_allocated": co2_alloc,
     }
 
 
@@ -266,7 +300,9 @@ def chains(config: str, waste: dict[str, float], pyro: dict[str, dict], f_virgin
             "fuel_base": feed * P["fuel_total"],
             "co2_base": feed * P["co2"],
             "electricity_kWh": feed * P["electricity"],
-            "carbon_in_pyrolysis_feed": feed * P["w_c_feed"],
+            "carbon_in_pyrolysis_feed_as_CH2": feed * W_C_CH2,
+            # carbon the pyrolysis model creates (+) or loses (-) against a CH2 feed (diagnostic)
+            "pyrolysis_model_carbon_imbalance": feed * (P["w_c_feed"] - W_C_CH2),
         }
 
     # route the other olefin
@@ -323,14 +359,21 @@ def chains(config: str, waste: dict[str, float], pyro: dict[str, dict], f_virgin
         poly_loss = (a["own_monomer_used"] + a["olefin_received"] + a["virgin_monomer"]) - (polymer_made - a["recyclate"])
         m_out = polymer_made + poly_loss + sum(a["exported"].values()) + a["other_olefin_sent"] + a["fuel_burnt"]
         checks[f"mass_closure_{name}"] = {"in": m_in, "out": m_out, "rel": abs(m_out - m_in) / m_in}
-        # carbon: mechanical stream and olefins as CH2, pyrolysis feed as its model represents it
-        c_in = (a["mech_in"] - a["rejects_to_pyrolysis"]) * W_C_CH2 + a["carbon_in_pyrolysis_feed"] \
-            + (a["virgin_monomer"] + a["olefin_received"]) * W_C_CH2
+        # carbon: every hydrocarbon input as CH2 (waste, virgin and received olefin). The pyrolysis
+        # model's own element imbalance enters as a declared term, so this check tests the chain
+        # bookkeeping (routing, burning, export) and holds by construction for the pyrolysis unit.
+        c_in_ch2 = (a["waste"] + a["virgin_monomer"] + a["olefin_received"]) * W_C_CH2
+        c_in = c_in_ch2 + a["pyrolysis_model_carbon_imbalance"]
         c_out = polymer_made * W_C_CH2 + poly_loss * W_C_CH2 + a["exported"]["CH4"] * carbon_fraction("CH4") \
             + a["exported"]["C6H6"] * carbon_fraction("C6H6") \
             + (a["exported"][OWN[name]] + a["exported"][OTHER[name]] + a["other_olefin_sent"]) * W_C_CH2 \
             + a["direct_co2"] * AM["C"] / M_CO2
-        checks[f"carbon_closure_{name}"] = {"in": c_in, "out": c_out, "rel": abs(c_out - c_in) / c_in}
+        checks[f"carbon_closure_{name}"] = {
+            "in_as_CH2": c_in_ch2, "pyrolysis_model_imbalance_term": a["pyrolysis_model_carbon_imbalance"],
+            "in": c_in, "out": c_out, "rel": abs(c_out - c_in) / c_in,
+            "rel_against_CH2_without_model_term_diagnostic": abs(c_out - c_in_ch2) / c_in_ch2,
+            "note": "holds by construction for the pyrolysis unit; its element balance is reported under pyrolysis_element_balance",
+        }
         b = f[PARTNER[name]]
         checks[f"exchange_identity_{name}_to_{PARTNER[name]}"] = {
             "sent": a["other_olefin_sent"],
@@ -382,6 +425,88 @@ def chains(config: str, waste: dict[str, float], pyro: dict[str, dict], f_virgin
 
 
 # --------------------------------------------------------------------------------------------
+# sensitivities (not frozen checks): burnt-olefin heat credit, energy allocation, PP yields
+
+
+def lhv(formula: str) -> float:
+    """Lower heating value in MJ/kg from the standard enthalpy of combustion (inputs.yaml)."""
+    c = INP["constants"]
+    dch = c["combustion_enthalpy"][formula]["value"]  # kJ/mol, negative, water liquid
+    n_h2o = parse_formula(formula).get("H", 0) / 2
+    return (-dch - n_h2o * c["water_vaporisation_enthalpy"]["value"]) / molar_mass(formula)
+
+
+def saturation_ratio(pyro: dict, W_L: float, W_P: float) -> float:
+    base = chains("L", {"LDPE": W_L, "PP": W_P}, pyro, 0.0)
+    mech = INP["mechanical_recycling"]
+    feed_per_kg_pp = 1 - mech["share_of_waste"]["value"] * mech["yield"]["value"]
+    return base["folders"]["LDPE"]["deficit_after_own"] / (pyro["PP"]["products"]["C2H4"] * feed_per_kg_pp) / W_L
+
+
+def sensitivities(runs: dict, pyro: dict, waste: dict, f_virgin: float) -> dict:
+    out: dict = {"label": "sensitivities, not frozen checks"}
+    # (1) D_fuel: heat of the burnt olefin displaces natural gas (inputs.yaml configurations.D_fuel)
+    hc = INP["configurations"]["D_fuel"]["heat_credit_sensitivity"]
+    ef, disp = hc["natural_gas_co2_factor"]["value"], hc["displacement"]["value"]
+    df = runs["D_fuel"]["folders"]
+    heat = sum(df[n]["other_olefin_burnt"] * lhv(OTHER[n]) for n in ("LDPE", "PP"))
+    gross = runs["D_fuel"]["combined"]["foreground_direct_co2_kg"] - runs["L"]["combined"]["foreground_direct_co2_kg"]
+    credit = heat * disp * ef
+    out["D_fuel_heat_credit"] = {
+        "lhv_MJ_per_kg": {k: lhv(k) for k in ("C2H4", "C3H6")},
+        "heat_of_burnt_olefin_MJ": heat,
+        "natural_gas_co2_displaced_kg": credit,
+        "co2_avoided_by_linking_no_heat_use_kg (upper bound)": gross,
+        "co2_avoided_by_linking_with_heat_credit_kg": gross - credit,
+    }
+    # (2) energy (LHV) allocation of each plant's direct CO2, against mass (base)
+    e: dict = {}
+    for cfg, r in runs.items():
+        f = r["folders"]
+        per_mj = {}
+        for n in ("LDPE", "PP"):
+            a = f[n]
+            energy = ((a["own_monomer_used"] + a["own_monomer_surplus_exported"]) * lhv(OWN[n])
+                      + (a["other_olefin_sent"] + a["other_olefin_exported"]) * lhv(OTHER[n])
+                      + a["recovered"]["CH4"] * lhv("CH4") + a["recovered"]["C6H6"] * lhv("C6H6"))
+            per_mj[n] = a["direct_co2"] / energy
+        e[cfg] = {}
+        for n in ("LDPE", "PP"):
+            a = f[n]
+            pol = a["own_monomer_used"] * lhv(OWN[n]) * per_mj[n] \
+                + a["olefin_received"] / INP["polymerisation"]["olefin_substitution"]["value"] * lhv(OTHER[n]) * per_mj[PARTNER[n]]
+            e[cfg][n] = {"polymer_foreground_co2_energy_alloc_kg": pol,
+                         "polymer_foreground_co2_mass_alloc_kg": a["polymer_foreground_co2_cutoff"]}
+    out["energy_allocation"] = {"lhv_MJ_per_kg": {k: lhv(k) for k in ("CH4", "C2H4", "C3H6", "C6H6")}, "configurations": e}
+    # (3) PP pyrolysis yields over the assumed range (inputs.yaml pyrolysis_PP.sensitivity_range)
+    rng = INP["pyrolysis_PP"]["sensitivity_range"]
+    rows = []
+    for comp in ("C2H4", "C3H6"):
+        for bound in ("low", "high"):
+            y = pp_yields()
+            y[comp] = rng[comp][bound]
+            pyro_s = {"LDPE": pyro["LDPE"], "PP": pp_pyrolysis(pyro["LDPE"], y)}
+            rs = {cfg: chains(cfg, waste, pyro_s, f_virgin) for cfg in ("D_fuel", "D_market", "L")}
+            for cfg, r in rs.items():
+                for key, c in r["checks"].items():
+                    if c["status"] != "pass":
+                        raise RuntimeError(f"sensitivity reconciliation check failed: {comp} {bound} {cfg}:{key}")
+            rows.append({
+                "varied": f"PP {comp} yield", "bound": bound, "value_kg_per_kg_feed": rng[comp][bound],
+                "ethylene_to_LDPE_kg": rs["L"]["folders"]["PP"]["other_olefin_sent"],
+                "propylene_to_PP_kg": rs["L"]["folders"]["LDPE"]["other_olefin_sent"],
+                "virgin_olefin_saved_vs_D_fuel_kg": rs["D_fuel"]["combined"]["virgin_olefin_bought_kg"] - rs["L"]["combined"]["virgin_olefin_bought_kg"],
+                "virgin_olefin_bought_L_kg": rs["L"]["combined"]["virgin_olefin_bought_kg"],
+                "foreground_direct_co2_D_fuel_kg": rs["D_fuel"]["combined"]["foreground_direct_co2_kg"],
+                "foreground_direct_co2_L_kg": rs["L"]["combined"]["foreground_direct_co2_kg"],
+                "saturation_ratio_PP_to_LDPE": saturation_ratio(pyro_s, waste["LDPE"], waste["PP"]),
+            })
+    out["pp_yields"] = {"range": {k: {b: rng[k][b] for b in ("low", "high")} for k in ("C2H4", "C3H6")},
+                        "label": rng["label"], "rows": rows}
+    return out
+
+
+# --------------------------------------------------------------------------------------------
 # provenance check of the component source (download, hash, never parse or execute)
 
 
@@ -392,14 +517,15 @@ def cache_dir() -> Path:
     return d
 
 
-def verify_component_source() -> dict:
-    entry = SRC["component"]["files"][0]
-    target = cache_dir() / "somoza-tornos-2020-accepted-manuscript.pdf"
+def verify_download(entry: dict, name: str) -> dict:
+    """Download a pinned file into the cache and check its sha256; it is never parsed or executed."""
+    target = cache_dir() / name
     status = {"url": entry["url"], "sha256_pinned": entry["sha256"], "cache": f"$XDG_CACHE_HOME or ~/.cache, cheme-reproductions/{CASE}/{target.name}"}
     try:
         if not target.exists() or sha256_file(target) != entry["sha256"]:
             tmp = target.with_suffix(".part")
-            with urllib.request.urlopen(entry["url"], timeout=60) as r, open(tmp, "wb") as fh:
+            req = urllib.request.Request(entry["url"], headers={"User-Agent": f"cheme-reproductions/{CASE} (provenance hash check)"})
+            with urllib.request.urlopen(req, timeout=120) as r, open(tmp, "wb") as fh:
                 fh.write(r.read())
             tmp.replace(target)
         digest = sha256_file(target)
@@ -408,6 +534,15 @@ def verify_component_source() -> dict:
     except OSError as exc:  # network failure: the numbers are in inputs.yaml, so the run goes on
         status["status"] = f"not verified ({type(exc).__name__})"
     return status
+
+
+def verify_component_source() -> dict:
+    return verify_download(SRC["component"]["files"][0], "somoza-tornos-2020-accepted-manuscript.pdf")
+
+
+def verify_target_source() -> dict:
+    book = SRC["target"]["records"]["abstract_book"]
+    return verify_download({"url": book["download_url"], "sha256": book["sha256"]}, "setac-europe-2025-abstract-book.pdf")
 
 
 # --------------------------------------------------------------------------------------------
@@ -597,6 +732,8 @@ def main() -> int:
 
     ldpe = ldpe_pyrolysis()
     pp = pp_pyrolysis(ldpe)
+    if abs(element_balance(pp)["imbalance_rel"]) > 1e-12:
+        raise RuntimeError("PP pyrolysis model does not close on CH2")
     pyro = {"LDPE": ldpe, "PP": pp}
     comp = component_reproduction(ldpe)
     eth1 = ethylene1_factor()
@@ -625,6 +762,7 @@ def main() -> int:
 
     case_verdict = "partial" if comp["verdict"] == "pass" else "fail"
     ext = extension(pyro, f_virgin)
+    sens = sensitivities(runs, pyro, waste, f_virgin)
     fig_monomer_supply(runs)
     fig_combined(runs)
 
@@ -645,18 +783,26 @@ def main() -> int:
                       "direct_co2": ldpe["co2"], "net_electricity_kWh": ldpe["electricity"],
                       "label": "reconstructed (Somoza-Tornos et al. 2020)"},
             "PP": {"products": pp["products"], "fuel_total": pp["fuel_total"], "direct_co2": pp["co2"],
+                    "fuel_carbon_fraction": pp["fuel_carbon_fraction"], "fuel_H_to_C_molar": pp["fuel_H_to_C_molar"],
                     "net_electricity_kWh": pp["electricity"], "label": "assumed"},
         },
+        "pyrolysis_element_balance": {
+            "note": "diagnostic, per kg pyrolysis feed, against the CH2 of the polymer; not a frozen check",
+            "LDPE": element_balance(ldpe),
+            "PP": element_balance(pp),
+        },
         "allocation": {
-            "rule": "mass (docs/system-model.md step 3)",
+            "rule": "mass (docs/system-model.md step 3; step 2 not applied, inputs.yaml coproduct_treatment)",
             "price_ratio_max_min": max(v for k, v in SRC["component"]["model_facts"]["prices_eur_per_kg"].items() if k != "locator" and k != "waste_PE_sorted")
             / min(v for k, v in SRC["component"]["model_facts"]["prices_eur_per_kg"].items() if k != "locator" and k != "waste_PE_sorted"),
         },
         "displaced_production": eth1,
         "configurations": runs,
         "extension": ext,
+        "sensitivities": sens,
         "provenance": {
             "component_source": verify_component_source(),
+            "target_source_abstract_book": verify_target_source(),
             "python": platform.python_version(),
             "packages": {p: metadata.version(p) for p in ("numpy", "matplotlib", "pyyaml")},
             "figures": ["results/monomer-supply.svg", "results/combined-inventory.svg", "results/extension-pp-throughput.svg"],
@@ -674,7 +820,8 @@ def main() -> int:
         print(f"  {cfg:8s} virgin olefin {c['virgin_olefin_bought_kg']:7.1f} kg, exchanged {c['olefin_exchanged_kg']:6.1f} kg, "
               f"net (system expansion) {c['net_virgin_olefin_system_expansion_kg']:7.1f} kg, direct CO2 {c['foreground_direct_co2_kg']:6.1f} kg")
     print(f"  extension: saturation at {ext['saturation_waste_PP_kg']:.0f} kg waste PP")
-    print(f"  source check: {out['provenance']['component_source']['status']}")
+    print(f"  source check: component {out['provenance']['component_source']['status']}, "
+          f"target abstract book {out['provenance']['target_source_abstract_book']['status']}")
     return 0
 
 
