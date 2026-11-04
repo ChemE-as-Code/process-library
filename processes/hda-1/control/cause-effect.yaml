@@ -1,41 +1,73 @@
 # Cause and effect list: interlocks and trips. Schema: `cheme schema interlocks`.
 # On a sheet, refer to an interlock ("see C&E I-01") instead of spelling out what it trips.
-# S3b (D-025): the trips the P&IDs draw, PROPOSED; SIL, delays, resets and bypasses come with
-# the control and safeguarding work (S4) and the HAZOP (S6).
+# S3b (D-025): the trips the P&IDs draw, PROPOSED; SIL, voting, delays, resets and bypasses come
+# with the control and safeguarding work (S4) and the HAZOP / LOPA (S6).
 schema: cheme/interlocks/v1
 interlocks:
   - id: I-101
-    title: H-101 coil flow low-low
+    title: H-101 coil flow low-low (loss of recycle gas or feed through the fired coil)
     cause: {tag: FZ-110, condition: FALL}
     effects:
       - {tag: XV-112, action: close}
+      - {tag: XV-125, action: close}
+      - {tag: XV-126, action: open}
+      - {tag: XV-120, action: close}
+      - {tag: XV-121, action: close}
     sheet: P-01
     sil: null
-    notes: "D-025. Loss of process flow through the fired coil overheats the tubes; the burner management system of the H-101 package also stops the burners. Logic US-112."
+    notes: "D-025. Loss of process flow through the fired coil overheats the tubes: the fuel double block and bleed (US-112) stops the firing; the burner management of the H-101 package also stops the burners. Without coil flow the loop runs below the H2/aromatics ratio of 5 (D-007, coking), so US-122 also cuts the toluene feed (XV-120) and the make-up hydrogen (XV-121). SIL and sensor voting: S4/S6."
   - id: I-102
-    title: R-101 outlet temperature high-high
+    title: R-101 outlet temperature high-high (reaction runaway)
     cause: {tag: TZ-113, condition: TAHH}
     effects:
       - {tag: XV-112, action: close}
+      - {tag: XV-125, action: close}
+      - {tag: XV-126, action: open}
+      - {tag: XV-120, action: close}
+      - {tag: XV-121, action: close}
+      - {tag: XV-209, action: open}
     sheet: P-01
     sil: null
-    notes: "D-025. Thermal HDA and the hydrocracking side reactions are exothermic: stopping the firing removes the heat input; the loop depressuring (HS-209/XV-209, P-02) is the operator's further action. Logic US-112."
+    notes: "D-025. Thermal HDA and the hydrocracking side reactions are exothermic: stopping the firing removes the heat input, and cutting the toluene feed (XV-120) and the make-up hydrogen (XV-121) removes the reactants the feed/effluent exchanger E-101 would keep preheating. The trip also opens the loop depressuring valve XV-209 (FL-233 to the flare, P-02) automatically, as API 521 recommends for a hot hydrogen reactor with a temperature runaway; HS-209 stays as the manual initiation. Rate and orifice: S8. A single sensor is drawn; the sensor voting (for example 2oo3 over TZ-113 and the bed temperatures TI-124) and the SIL come from S4/S6."
+  - id: I-103
+    title: V-100 level low-low (feed pumps running dry)
+    cause: {tag: LZ-123, condition: LL}
+    effects:
+      - {tag: P-101, action: stop}
+      - {tag: P-101B, action: stop}
+    sheet: P-01
+    sil: null
+    notes: "D-025. Machine protection of the high-head multistage feed pumps (150 to 3600 kPa(a)), independent of the level loop LIC-102, as on the other pump suction drums (I-401, I-501, I-601). Losing the toluene feed lowers the coil flow and the reactor load; FZ-110 (I-101) covers the coil."
+  - id: I-104
+    title: H-101 fuel gas pressure low-low or high-high
+    cause: {tag: PZ-127, condition: "PALL or PAHH"}
+    effects:
+      - {tag: XV-112, action: close}
+      - {tag: XV-125, action: close}
+      - {tag: XV-126, action: open}
+    sheet: P-01
+    sil: null
+    notes: "D-025. Low fuel pressure lets the flame lift off or go out (unburnt gas into the firebox); high pressure overfires the coil. Logic US-112 (double block and bleed). The pilot gas and the flame detection are in the heater package BMS (open item for the vendor). SIL: S4/S6."
   - id: I-201
-    title: V-101 level low-low (gas blow-by to the stabiliser)
+    title: V-101 level low-low (gas blow-by to the stabiliser, quench pumps running dry)
     cause: {tag: LZ-203, condition: LL}
     effects:
       - {tag: XV-204, action: close}
+      - {tag: P-102, action: stop}
+      - {tag: P-102B, action: stop}
     sheet: P-02
     sil: null
-    notes: "D-025. Losing the separator level would send loop gas at 32 barg into C-201 (design 9 barg) through LV-202; XV-204 is a separate shutdown valve, independent of the level loop LIC-202. PSV on C-201 (P-04) is the relief layer behind it; whether the blow-by is its governing case is for S8."
+    notes: "D-025. Losing the separator level would send loop gas at 32 barg into C-201 (design 9 barg) through LV-202; XV-204 is a separate shutdown valve, independent of the level loop LIC-202. PSV on C-201 (P-04) is the relief layer behind it; whether the blow-by is its governing case is for S8. The quench pumps P-102/P-102B take suction from the same drum bottom (AR-235) and are stopped too; losing the quench raises the E-101 inlet temperature, which TIC-115 alarms (S4)."
   - id: I-202
     title: V-101 level high-high (liquid carry-over to K-101)
     cause: {tag: LZ-206, condition: HH}
     effects:
       - {tag: K-101, action: stop}
+      - {tag: XV-120, action: close}
+      - {tag: XV-121, action: close}
     sheet: P-02
     sil: null
-    notes: "D-025. Liquid slugs damage the recycle compressor. Stopping K-101 stops the recycle gas and with it the coil flow, so FZ-110 then trips the firing (I-101)."
+    notes: "D-025. Liquid slugs damage the recycle compressor. Stopping K-101 stops the recycle gas and with it the coil flow, so FZ-110 then trips the firing (I-101); the feed cut-off (US-122, P-01) acts at once, so no toluene and make-up hydrogen enter a loop without recycle gas (below the H2/aromatics ratio of 5, D-007)."
   - id: I-401
     title: V-201 level low-low (reflux pumps running dry)
     cause: {tag: LZ-411, condition: LL}
