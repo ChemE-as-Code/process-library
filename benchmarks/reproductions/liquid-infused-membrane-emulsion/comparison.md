@@ -32,7 +32,11 @@
   the 1 mPa s viscosity-basis sensitivity, an operating-pressure flag and a grey region in the
   extension figure), stores the water/oil ratio to 4 decimals, and reads the TMP as two inputs
   (`tmp_flux_case`, `tmp_table3_upper_bound`, both 0.1 bar). In `inputs.yaml` and
-  `source.yaml` only labels, notes and the licence record changed; no input value changed.
+  `source.yaml` only labels, notes and the licence record changed, and no existing input value
+  changed. One numeric input was added: `lld.viscosity_basis_stated` = 1.0 mPa s (the viscosity
+  SI p. S7 states for the Table S3 calculation). It is used only for the viscosity-basis
+  sensitivity (capacity 164 times the measured flux, dry porosity 0.68) and is outside the pass
+  rule.
 
 ## Result: PASS under the frozen rule (28 of 28 checks)
 
@@ -113,10 +117,16 @@ fractions come from source Table 3.
   negative and is clipped to zero, so the edge is just 2 gamma23 / (r + hci). The authors give
   the same argument only as a reason for *less* water. A lower actual TMP (the source says at
   most 0.1 bar) would widen the gap.
-- Ranking holds: for the four 50 % cmc cases, rising water entry pressure matches falling
-  observed water fraction exactly (CTAB 50 dry 0.046 bar / 0.5; CTAB 50 K101 0.153 / 0.25;
-  SDS 50 dry 0.154 / 0.2; SDS 50 K101 0.259 / 0.05). The entry pressure orders the leakage,
-  but a sharp threshold does not predict whether water leaks.
+- Ranking at the nominal fit: for the four 50 % cmc cases, rising water entry pressure matches
+  falling observed water fraction (CTAB 50 dry 0.046 bar / 0.5; CTAB 50 K101 0.153 / 0.25;
+  SDS 50 dry 0.154 / 0.2; SDS 50 K101 0.259 / 0.05). This is weaker than it looks. Of the three
+  steps in this order, the first and the last follow from the model structure: for the same
+  surfactant, the K101-infused value is the dry value plus 2 gamma23 / r with the same radius,
+  so it is always higher. The only informative step is the middle one, CTAB 50 K101
+  (0.1527 bar) against SDS 50 dry (0.1543 bar). These differ by 1.6 mbar, less than the
+  5.5 mbar controller accuracy, and each lies well inside the other's fit band (0.102-0.210 and
+  0.031-0.239 bar). So the order of the two middle cases is not resolved. A sharp threshold
+  does not predict whether water leaks.
 - Plausible causes, not tested here: pores that have lost K101 (LLD suggests only about 45 %
   of the infusion liquid is retained after pure hexadecane flow, active pore fraction 0.55
   after cycle 3, and the source reports hexadecane-filled patches in the used K101-infused

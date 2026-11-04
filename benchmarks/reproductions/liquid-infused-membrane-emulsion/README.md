@@ -48,7 +48,7 @@ observed permeating phase is oil only at 10 % cmc, and oil with some water at 50
   variation) and halves the permeation capacity. Within the threshold model, pore size does not
   change the water/oil entry-pressure ratio (4.1). Whether real leakage, which the model does
   not capture at 50 % cmc, depends on pore size is not known. The changed case would run at
-  0.21 to 0.64 bar, above any TMP the source tested (at most 0.1 bar).
+  0.21 to 0.64 bar, above the highest TMP at which the source ran emulsions (at most 0.1 bar).
 - Crossflow module sizing is not achievable from these data. `extension.md` lists the eight
   missing pieces of information.
 
