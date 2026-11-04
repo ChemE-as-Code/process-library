@@ -28,9 +28,13 @@ source lacks what a reproduction needs). The gaps were already recorded in the R
 
 ## Achievable scope
 
-- Reproducible: the analytical results (Eq. 7.25), the transport time scales and Thiele moduli
-  (Table 7.4), and the quasi-steady utilisation reduction and bed height (Eqs. 7.51 and 7.52,
-  text values and Fig. 7.4).
+- Reproducible: the analytical results (Eq. 7.25) and the transport time scales and Thiele
+  moduli (Table 7.4).
+- Partly reproducible: the quasi-steady utilisation reduction and bed height (Eqs. 7.51 and
+  7.52). The two bed heights stated in the text pass (G3 2/2, the 1 mbar value only just, at
+  +9.4 % against a 10 % tolerance). The Fig. 7.4 curves agree at 13 of 20 points (G4), with
+  deviations from -35 % to +16 % that depend on bubble size; we attribute them to a difference
+  in K_be/u_b whose cause is not identified.
 - Partly reproducible: the dynamic bubble-phase profile (Fig. 7.3), which depends on the
   exchange and hardly on the kinetics.
 - Not reproducible from the published material: the dynamic saturation time and the CH4

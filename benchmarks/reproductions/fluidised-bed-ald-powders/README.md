@@ -34,7 +34,7 @@ kinetics, fitted only to the reported reaction time scale.
 
 | Deliverable (#336) | Status |
 | --- | --- |
-| 1. Select a powder/precursor system and reproduce one utilisation or coverage result from the dynamic model | **not met.** System: TMA on P-25 TiO2. The dynamic bubble profile (Fig. 7.3) agrees at 1 of 3 points. The dynamic saturation time and CH4 yield cannot be evaluated (inlet concentration and Travis rate expressions not stated). What is reproduced is the quasi-steady utilisation reduction (Eqs. 7.51 and 7.52, G3) and the time scales (Table 7.4) |
+| 1. Select a powder/precursor system and reproduce one utilisation or coverage result from the dynamic model | **not met.** System: TMA on P-25 TiO2. The dynamic bubble profile (Fig. 7.3) agrees at 1 of 3 points. The dynamic saturation time and CH4 yield cannot be evaluated (inlet concentration and Travis rate expressions not stated). Partly reproduced: the quasi-steady utilisation reduction and bed height (Eqs. 7.51 and 7.52); both text values pass (G3 2/2, the 1 mbar value only just, +9.4 % against 10 %), but Fig. 7.4 agrees at 13 of 20 points (G4). Reproduced: the time scales (Table 7.4, 11/11) |
 | 2. Change batch size at fixed target coverage; plot pulse timing, outlet precursor and coverage; dimensioned section with scale-up assumptions | met, as a hypothetical extension: 22 g to 1 kg at 99 % mean coverage, two strategies (`extension.md`, fig3 to fig5) |
 | 3. Source version, numerical comparison, clean rerun command, input labels, evidence gaps | met: `source.yaml`, `comparison.md`, rerun below, `inputs.yaml` (labels corrected in `addendum.yaml`), Evidence gaps below |
 
@@ -50,7 +50,9 @@ with that in mind (`comparison.md`, "How firm the PARTIAL verdict is").
 
 **Headline (hypothetical extension, not validated).** In our model at 1.013 bar, with Darton
 bubble sizes, more than 99.9 % of the TMA is taken up in both 1 kg designs. A 99.99 % target is
-not met in either: emulsion slip, which Eq. 7.52 ignores, keeps the loss at 0.03-0.1 %. The
+not met in either: the non-zero emulsion concentration, which Eq. 7.52 ignores, raises the
+total outlet slip at mid-pulse to about 9 times the Eq. 7.51 value (57-58 % of it leaves with the
+emulsion gas, the rest through the bubbles), and the loss over the pulse is 0.03-0.1 %. The
 pulse length is set by the settled bed height: 46 s at H0 = 60 mm (bed 404 mm wide) and 163 s
 at H0/d_t = 1 (214 mm x 364 mm expanded bed, vessel 1.11 m). Bubble size is the main risk to
 utilisation: 4.5 cm bubbles in the 1 kg geometric scale-up would let 1.7 % of the TMA escape.
