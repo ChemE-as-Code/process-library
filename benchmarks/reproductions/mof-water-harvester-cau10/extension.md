@@ -37,7 +37,7 @@ bounds are narrow (base case 4.6 to 4.8 kg); below the step they are not.
 
 ## Result: required adsorbent against inlet humidity
 
-Figure: `results/harvester_mass_vs_rh.svg` (run.py; not committed, see README.md). It shows the
+Figure: `results/harvester_mass_vs_rh.svg` (drawn by run.py). It shows the
 linear value, the bounds as a band and the unmeasured gap.
 
 | Inlet RH at 313 K | Vapour in air | Working capacity (bounds) | Adsorbent (bounds) | Packed volume | Flag |
