@@ -6,6 +6,8 @@
 #     "matplotlib==3.10.7",
 #     "pyyaml==6.0.3",
 # ]
+# [tool.uv]
+# exclude-newer = "2026-11-04T00:00:00Z"
 # ///
 """InP quantum-dot treatment and optical quality: reproduction and screen (#342, tracker #333).
 
@@ -567,6 +569,10 @@ def main() -> int:
         ("InF3 time at 150 C", "time_min", ["S9-InF3-05", "S9-InF3-30", "S9-InF3-60"]),
     ]
     FACTORS = ["synthesis", "treatment", "temperature_C", "time_min", "washed", "bzf_per_qd", "treatment_solvent"]
+    CONTRAST_NOTES = {
+        "HF dose at 150 C, 180 min": "benzoyl fluoride dose; the octylamine amount is stated for S5 ([octylamine]/[QD] = 2000) "
+                                     "but not for S7, so the amine may also differ (not a recorded factor)",
+    }
     contrasts = []
     pb = tol["plqy_band"]
     for name, factor, ids, *imp in CONTRASTS:
@@ -584,6 +590,7 @@ def main() -> int:
         fw = [metrics[i]["pl"]["pl_fwhm_meV"] for i in ids]
         contrasts.append({
             "contrast": name, "factor": factor, "samples": ids, "levels": [by_id[i][factor] for i in ids],
+            "note": CONTRAST_NOTES.get(name, ""),
             "plqy_pct": qs, "abs_peak_nm": pk, "pl_fwhm_meV": fw, "pl_peak_nm": [metrics[i]["pl"]["pl_peak_nm"] for i in ids],
             "sessions": sess, "references": refs, "implied_by_factor": implied, "other_varying": others, "ambiguous_samples": amb,
             "plqy_change_measurable": bool(measurable),
@@ -622,10 +629,27 @@ def main() -> int:
             "layer_A540_self_absorption": A_t * a["A540"] / a["A450"] if a["A450"] > 0 else None,
             "pl_peak_nm": metrics[i]["pl"]["pl_peak_nm"],
         }
+    # Sensitivity, not a correction: the Methods add amine and benzoyl fluoride solutions after the
+    # QDs are diluted; the 0 min aliquot is read as taken before benzoyl fluoride (mapping.csv). If
+    # aliquots were handled alike, the 0 min aliquot is k times more concentrated than the later ones.
+    vol = ex["reagent_volumes"]["value"]
+    v_all = vol["qd_stock_uL"] + vol["solvent_uL"] + vol["amine_uL"] + vol["benzoyl_fluoride_uL"]
+    k_range = [v_all / (vol["qd_stock_uL"] + vol["solvent_uL"] + vol["amine_uL"]), v_all / (vol["qd_stock_uL"] + vol["solvent_uL"])]
+    volume_bias = {"k_range": k_range, "note": "retained fractions x k, stock and batches per m2 / k; 0 min row unchanged; not applied to extension.rows", "rows": {}}
+    for i, r in ext_rows.items():
+        if i == "F1-150-00":
+            continue
+        volume_bias["rows"][i] = {
+            "retained_A330_range": [r["retained_A330"] * k for k in k_range],
+            "retained_A450_range": [r["retained_A450"] * k for k in k_range],
+            "starting_qd_nmol_per_m2_range": [r["starting_qd_nmol_per_m2"] / k for k in reversed(k_range)],
+            "standard_batches_per_m2_range": [r["standard_batches_per_m2"] / k for k in reversed(k_range)],
+        }
     base, chg = ext_rows[ex["base_case"]["value"]], ext_rows["F1-150-05"]
     extension = {
         "label": "HYPOTHETICAL design extension (not validated)",
         "epsilon_450_untreated_M-1cm-1": eps450_0, "target_absorbance_450": A_t, "rows": ext_rows,
+        "aliquot_volume_bias": volume_bias,
         "base_case": ex["base_case"]["value"], "changed_input": ex["changed_input"]["value"],
         "change": {
             "plqy_pp": chg["plqy_pct"] - base["plqy_pct"],
@@ -669,7 +693,7 @@ def main() -> int:
                     s.get("constant_pl_baseline"), s.get("posthoc_no_absorbance_baseline"), " | ".join(m.get("confounder_flags", [])), r["flags"]]
             w.writerow(["" if v is None else (f"{v:.4g}" if isinstance(v, float) else v) for v in vals])
 
-    make_figures(metrics, by_id, rep, tol, ext_rows, files, rows)
+    make_figures(metrics, by_id, rep, tol, ext_rows, volume_bias, files, rows)
     print(f"verdict: {verdict} ({n_pass} of {n_units} checks pass); results in {RESULTS.relative_to(HERE.parents[2])}")
     for k, v in results.items():
         print(f"  {k:4s} {v['status']:14s} ours={v.get('ours')!s:.8} reported={v['reported']}")
@@ -682,7 +706,7 @@ def _save(fig, path):
     plt.close(fig)
 
 
-def make_figures(metrics, by_id, rep, tol, ext_rows, files, rows):
+def make_figures(metrics, by_id, rep, tol, ext_rows, volume_bias, files, rows):
     plt.rcParams.update({"svg.hashsalt": "cheme-342", "svg.fonttype": "none", "font.size": 9, "axes.spines.top": False, "axes.spines.right": False})
     pb = tol["plqy_band"]
 
@@ -739,10 +763,11 @@ def make_figures(metrics, by_id, rep, tol, ext_rows, files, rows):
     fig.subplots_adjust(right=0.78)
     _save(fig, RESULTS / "fig_quality_screen.svg")
 
-    # 3. extension: material retained, PLQY and batches per m2 against time at 150 C
+    # 3. extension: absorbance retained, PLQY and batches per m2 against time at 150 C
     fig, (a1, a2) = plt.subplots(1, 2, figsize=(7.2, 3.2))
     t = [float(r["time_min"]) for r in ext_rows.values()]
     a1.plot(t, [100 * r["retained_A450"] for r in ext_rows.values()], "o-", color="#1f77b4", label="absorbance at 450 nm retained (%)")
+    a1.plot(t, [100 * r["retained_A330"] for r in ext_rows.values()], "^--", color="#ff7f0e", label="absorbance at 330 nm retained (%)")
     a1.plot(t, [r["plqy_pct"] for r in ext_rows.values()], "s-", color="#2ca02c", label="PLQY (%)")
     a1.set_xlabel("time at 150 C (min)")
     a1.set_ylim(0, 105)
@@ -750,6 +775,11 @@ def make_figures(metrics, by_id, rep, tol, ext_rows, files, rows):
     a1.set_title("measured, one session", fontsize=8)
     tt = [r["time_min"] for k, r in ext_rows.items() if k != "F1-150-00"]
     a2.bar([f"{x} min" for x in tt], [r["standard_batches_per_m2"] for k, r in ext_rows.items() if k != "F1-150-00"], color="#999999")
+    lo_hi = [volume_bias["rows"][k]["standard_batches_per_m2_range"] for k in ext_rows if k != "F1-150-00"]
+    a2.vlines(range(len(lo_hi)), [v[0] for v in lo_hi], [v[1] for v in lo_hi], color="black", lw=1.2,
+              label=f"range if the 0 min aliquot was {volume_bias['k_range'][0]:.2f}-{volume_bias['k_range'][1]:.2f} x more concentrated")
+    a2.set_ylim(0, 1.3 * max(v[1] for v in lo_hi + [[0, r["standard_batches_per_m2"]] for r in ext_rows.values()]))
+    a2.legend(fontsize=6.5, frameon=False, loc="upper left")
     for x, (k, r) in enumerate([(k, r) for k, r in ext_rows.items() if k != "F1-150-00"]):
         a2.text(x, r["standard_batches_per_m2"], f"{r['blue_to_green_photon_yield_pct']:.0f} % blue->green", ha="center", va="bottom", fontsize=7)
     a2.set_ylabel("41 nmol batches per m2 (A450 = 1)")
