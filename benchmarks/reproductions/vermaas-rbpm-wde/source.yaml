@@ -1,0 +1,187 @@
+# Reference record for the reverse-bias bipolar-membrane CO2 electrolysis reproduction
+# (process-library#329, tracker core#136, ADR 0030).
+# Facts (conditions, file layout, numbers) taken from the pinned dataset and the paper, restated
+# in our own form with locators. No code, spreadsheet content, text or figures of the source are
+# copied into the library; reproduce.py downloads the pinned files at run time.
+reference:
+  id: prats-vergel-2025-rbpm-wde
+  paper:
+    citation: >-
+      G. Prats Vergel, H. Mu, N. Kolobov, J. Biemolt, D. A. Vermaas, T. Burdyny, "Water
+      dissociation efficiencies control the viability of reverse-bias bipolar membranes for CO2
+      electrolysis", Nature Chemical Engineering (2025)
+    doi: 10.1038/s44286-025-00306-7
+    open_copy: https://pmc.ncbi.nlm.nih.gov/articles/PMC12638254/
+    read: Methods (WDE determination, equations 3 to 10), Fig. 3 to 5 captions and the Results
+      text on Fig. 3c and Fig. 5; Supplementary Information not read (not open)
+  dataset:
+    title: "Data underlying the publication: Water Dissociation Efficiencies control the viability of reverse-bias bipolar membranes for CO2 electrolysis"
+    doi: 10.4121/5c4fc325-a71b-4ca8-9c1b-01c0405936a2.v1
+    repository: 4TU.ResearchData
+    api: https://data.4tu.nl/v2/articles/5c4fc325-a71b-4ca8-9c1b-01c0405936a2/files
+    version: 1
+    published: "2025-10-15"
+    licence:
+      name: CC BY 4.0
+      note: >-
+        Applies to every file of the record, data and scripts. We redistribute none of them; the
+        attribution is in NOTICE.md and the README.
+    # md5 as reported by the 4TU API; sha256 computed on download 2026-11-04. reproduce.py
+    # refuses a file whose sha256 differs.
+    files:
+      - name: RawData_Experiments_rBPME_WDE.zip
+        size: 13473348
+        md5: 4000ec173290a28e81364f0f792a9476
+        sha256: 3f7d70d9d7bbb5bf024dc27f4ff778a66e52211348263be37a47001b8a720c10
+        url: https://data.4tu.nl/file/5c4fc325-a71b-4ca8-9c1b-01c0405936a2/24f2fa03-878e-4af1-b398-98fdd3df10f9
+      - name: SourceData_Manuscript.zip
+        size: 46104
+        md5: 1e001c624ffca9687b20bb4b0ab7796c
+        sha256: 3f113e1c7cbfe7baefc00b97855a141ad81dc5ad3d1264d5791c828301354de0
+        url: https://data.4tu.nl/file/5c4fc325-a71b-4ca8-9c1b-01c0405936a2/c580d953-052b-47b0-914a-424fbd2079af
+      - name: Model_rBPM_WDE_longterm.zip
+        size: 5077
+        md5: 58a1b260e2a782e947c48cfa2f1e57b5
+        sha256: 6d50cbe4a733199e3abcb79ebfb7613ec452f929feea8eb5672cf3a36a63382b
+        url: https://data.4tu.nl/file/5c4fc325-a71b-4ca8-9c1b-01c0405936a2/11e2618b-8f07-4ce3-9011-6369f92f3f02
+      - name: SourceData_SupplementaryData.xlsx
+        size: 40231
+        md5: da5728185e5fd3d7ed8ac6efb1eab3c6
+        sha256: ce9b9898d35c15deff4b02598d209cba37f61b3c1dfc0f79eb55ae5de79e5810
+        url: https://data.4tu.nl/file/5c4fc325-a71b-4ca8-9c1b-01c0405936a2/1b80f3e1-70d3-4917-8281-7604d2a00ab6
+  accessed: "2026-11-04"
+  kind: >-
+    experimental data (titration-based water dissociation efficiency, measured anolyte pH) and a
+    model reference (the authors' anolyte mass-balance script and its published output)
+
+# Where each compared quantity sits. Sheet and column names as in the pinned files.
+file_to_figure:
+  wde_vs_current_density:
+    figure: Fig. 3a
+    file: SourceData_Manuscript.zip/PratsVergel_SourceData_Fig3.xlsx
+    sheet: Fig3a
+    columns: {j: "j [mA/cm2]", wde: WDE, wde_sd: sd WDE, j_coion: "j co-ions [mA/cm2]", j_coion_sd: sd j co-ions}
+    raw: RawData_Experiments_rBPME_WDE.zip/TitrationToWDE/CurrentDensity/*.docx
+  charge_carriers_vs_current_density:
+    figure: Fig. 3b
+    file: SourceData_Manuscript.zip/PratsVergel_SourceData_Fig3.xlsx
+    sheet: Fig3b
+    columns: {j: "j [mA/cm2]", oh: "% Charge carrier OH-", hco3: "% Charge carrier HCO3-", k: "% Charge carrier K+"}
+  measured_ph_short_term:
+    figure: Fig. 3c
+    file: SourceData_Manuscript.zip/PratsVergel_SourceData_Fig3.xlsx
+    sheet: Fig3c
+    columns: {t: t (h), ph: pH}
+    conditions: {anolyte: 0.1 M KOH, volume: 20 mL, j: 100 mA/cm2, area: 5 cm2, note: "Ni anode failed in under 4 h (caption)"}
+  wde_vs_concentration:
+    figure: Fig. 4a
+    file: SourceData_Manuscript.zip/PratsVergel_SourceData_Fig4.xlsx
+    sheet: Fig4a
+    columns: {c: "c [M]", wde: WDE, wde_sd: sd WDE}
+    conditions: {j: 100 mA/cm2, anolyte: KOH, volume: 90 mL, duration: 1 h}
+  coion_split_vs_concentration:
+    figure: Fig. 4c
+    file: SourceData_Manuscript.zip/PratsVergel_SourceData_Fig4.xlsx
+    sheet: Fig4c
+    columns: {c: "c [M]", j_hco3: "j HCO3- [mA/cm2]", j_hco3_sd: sd j HCO3-, j_k: "j K+ [mA/cm2]", j_k_sd: sd j K+}
+  time_to_ph_threshold:
+    figure: Fig. 5a
+    file: SourceData_Manuscript.zip/PratsVergel_SourceData_Fig5.xlsx
+    sheet: Fig5a
+    columns: {wde: WDE, t_1L: 1 L, t_10L: 10 L, t_100L: 100 L}
+    header_label: time to Ni corrosion
+    conditions: {j: 200 mA/cm2, anolyte: 1 M KOH, area: 5 cm2, criterion: anolyte pH below 12}
+    note: >-
+      The sheet labels the quantity "time to Ni corrosion". The paper defines it as the time for
+      the anolyte pH to fall below 12. We report it as time to a pH threshold of 12 and make no
+      claim about corrosion onset.
+  model_code:
+    file: Model_rBPM_WDE_longterm.zip
+    members:
+      - Model_rBPM_stability_crossover.py: well-mixed anolyte mass balance (OH-, CO3--, HCO3-, CO2, H+, K+), no stop condition
+      - Model_rBPM_stability_crossover_pHstop.py: the same model with a terminal event at pH 12
+      - Simulative_script.py: driver with the default inputs below; prints run time only, saves no results
+    default_inputs:
+      locator: Simulative_script.py, parameter block
+      initial_concentrations_M: {OH-: 1, CO3--: 1.0e-7, HCO3-: 1.0e-7, CO2: 1.0e-7, H+: 1.0e-14, K+: 1}
+      V_tank: 1 L
+      j: 200 mA/cm2
+      WDE: 0.99
+      C_xover: 0.66      # fraction of the co-ion current carried by carbon species
+      t_op: 10000 h
+    solver: {locator: massBalanceTanks, method: BDF, rtol: 1.0e-6, atol: 1.0e-9, t_eval: 10000 points over [0, t_op]}
+    state_basis: moles in the tank (the right-hand side divides by V_tank to form concentrations)
+
+# The measured system, for the process folder and the cross-section (paper, Methods).
+cell:
+  area: 5 cm2
+  hardware: Dioxide Materials MEA cell
+  membrane: Fumasep FBM bipolar membrane, reverse bias
+  cathode: 100 nm Ag sputtered on Sigracet 39BB
+  anode: Ni foam
+  anolyte: {composition: KOH 0.1 to 3 M or CsOH 1 M, volume: 90 mL, recirculation: 20 mL/min}
+  cathode_feed: humidified CO2, 50 sccm
+  catholyte: none
+
+# WDE determination (paper, Methods, equations 3 to 10), restated.
+wde_method:
+  titrant: HCl 0.1 N, standardised (c_HCl)
+  sample: V_titrate per titration, from the sheet ("Sampling Volume per Titration")
+  tank: V_tank 90 mL; constant current for t_CP = 1 h
+  before: one equivalence point V0; no carbonate assumed before electrolysis
+  after: V1 (CO3-- to HCO3-) and V2 (HCO3- to CO2), cumulative burette volumes
+  carbon_assumption: all carbon measured is CO3-- (the HCO3- that crosses is converted in the alkaline anolyte)
+  equations:
+    c_CO3_end: (V2 - V1) * c_HCl / V_titrate
+    c_OH_end: (2*V1 - V2) * c_HCl / V_titrate
+    c_K: c_OH + 2*c_CO3   # electroneutrality; before: V0 * c_HCl / V_titrate, after: V2 * c_HCl / V_titrate
+    J_coion: (c_end - c_0) * V_tank / (A * t_CP), per co-ion (HCO3- gained, K+ lost)
+    WDE: 1 - F * (J_HCO3 + J_K) / j
+  replicates: >-
+    Each sheet lists the "before" titrations (V0) and the paired "after" titrations (V1, V2 by
+    index). The sheet's own calculation (embedded image) evaluates every V0 with every (V1, V2)
+    pair and reports the mean and standard deviation of that matrix. One run per date and
+    current density; dates at the same condition are the replicate runs.
+
+# Split declared before any comparison run (ADR 0030; plan amendment 2).
+split:
+  reproduction:
+    - id: R1
+      what: WDE vs current density in 1 M KOH, rebuilt from the titration sheets with the paper's equations, against Fig. 3a
+      inputs: TitrationToWDE/CurrentDensity/*.docx (all 1 M KOH, 25 to 250 mA/cm2)
+    - id: R2
+      what: >-
+        the authors' unmodified pH-stop model at the Fig. 5a conditions (1 L, 200 mA/cm2, 1 M KOH,
+        script defaults otherwise) for each WDE of the Fig. 5a sheet, against the 1 L column
+      inputs: Model_rBPM_WDE_longterm.zip, Fig5a WDE column
+    - id: D1
+      what: >-
+        verification of the suspected volume dependence of the pH stop event: the unmodified
+        model at 1 L and 10 L, its stop compared with the concentration-basis pH of its own
+        trajectory, and the 10 L result compared with the Fig. 5a 10 L column
+  validation:
+    - id: V1
+      what: >-
+        the authors' unmodified model without stop condition at the Fig. 3c conditions (20 mL,
+        0.1 M KOH, 100 mA/cm2, 5 cm2), against the measured pH trajectory of Fig. 3c
+      inputs: >-
+        WDE and C_xover from the published 0.1 M KOH, 100 mA/cm2 measurements (Fig. 4a WDE, Fig. 4c
+        HCO3- and K+ partial current densities); not from Fig. 3c
+      independence: >-
+        Fig. 3c is not used to construct the WDE series or to set any model input. Its inputs come
+        from separate 1 h titration runs in 90 mL. The 0.1 M titration values are only in images
+        in the raw data, so the published Fig. 4a and 4c values are used instead of a transcription.
+  design_inputs: >-
+    processes/co2-electrolysis-bpm-1 may use the R1 measured series (reproduction set) as design
+    data. It must not use R2, D1 or V1 results (ADR 0030, ADR 0031).
+
+# Irregularities in the pinned raw data, as found (2026-11-04). None is corrected silently.
+irregularities:
+  - TitrationToWDE/CurrentDensity/20241024_P00_rBPMJul_1MKOH_j150_WDR.docx states "Experiment NO 20241016 ... j250" in its header (template carried over); the file name is used.
+  - TitrationToWDE/CurrentDensity/20241007_P00_rBPMJul_1MKOH_j100_WDR.docx states an electrolyte volume of 10 mL; all others state 90 mL and the Methods state 90 mL. 90 mL is used and the deviation reported.
+  - TitrationToWDE/CurrentDensity/20241007_P00_rBPMJul_1MKOH_j50_WDR.docx has blank sample and electrolyte volume fields; 1 mL and 90 mL (as the other sheets of that date) are used.
+  - V0 ("before") titrations are shared by the runs of one date (labels "Oct02 uniform", "Oct04 j25", "Oct07 uniform"); the same before-values enter several current densities.
+  - Unused cells are marked "-"; V1 and V2 are paired by position.
+  - The 0.1 M to 3 M KOH and CsOH sheets of later dates hold their titration values only as images.
+  - Raw file names use concentrations without a decimal point (05M, 22M, 222M, 33M); in TitrationToWDE the concentration folder has both "0.5M" and "05M" style names.
+  - One sheet (20241002, 1 M KOH, 200 mA/cm2) was opened before the tolerances were frozen, including its embedded calculation image; see tolerances.yaml.
