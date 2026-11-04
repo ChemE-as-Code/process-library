@@ -7,8 +7,9 @@ title: CO2 electrolysis to CO in a reverse-bias bipolar-membrane cell (measured 
 summary: >-
   CO2 electrolysis to carbon monoxide on Ag in a zero-gap cell with a reverse-bias bipolar
   membrane and a recirculated KOH anolyte, grounded in the measured water dissociation
-  efficiencies of Prats Vergel et al. (2025). Concept stage: the measured bench cell and its WDE
-  series; pilot-skid designs and LCA follow.
+  efficiencies of Prats Vergel et al. (2025). Concept stage: the measured bench cell, its series of
+  voltage, Faradaic and water dissociation efficiency, and its cell balance; pilot-skid designs and
+  LCA follow.
 description: |
   The case starts from the experiments of Prats Vergel, Vermaas, Burdyny and colleagues
   (Nature Chemical Engineering 2025; 4TU dataset v1, CC BY 4.0). A 5 cm2 membrane electrode
@@ -22,12 +23,15 @@ description: |
   - the measured cell configuration;
   - the WDE series in 1 M KOH (25 to 250 mA/cm2), rebuilt from the raw titration sheets by
     scripts/adapt_4tu.py;
+  - the measured series of the same 18 runs (cell voltage, CO and H2 Faradaic efficiency, WDE),
+    rebuilt from the raw chronopotentiometry, flow-meter, GC and titration files
+    (experiments/electrochemistry/rbpm-1m-koh.yaml);
+  - the cell balance of the bench cell at 200 mA/cm2 on those measurements (process/cells.yaml);
   - a labelled cell cross-section.
 
   The independent reproduction of the published series and model is a separate, held-out
-  benchmark (benchmarks/reproductions/vermaas-rbpm-wde, ADR 0030 and 0032). Faradaic
-  efficiency, cell voltage and the cell balance follow with core#137. The intermittent duty,
-  stack and two pilot skids follow with core#138, core#139 and #330, and the LCA with #331
+  benchmark (benchmarks/reproductions/vermaas-rbpm-wde, ADR 0030 and 0032). The intermittent
+  duty, stack and two pilot skids follow with core#138, core#139 and #330, and the LCA with #331
   (tracker core#136).
 families: [electrolysis]
 keywords: [CO2 electrolysis, CO2 reduction, carbon monoxide, bipolar membrane, reverse bias, water dissociation efficiency, MEA, gas diffusion electrode, silver catalyst, KOH anolyte, nickel anode, anolyte acidification]
@@ -38,17 +42,17 @@ facets:
   product_classes: [industrial-gases, chemicals]
   unit_operations: [electrolysis]
   region: generic
-# Honest claim: a measured bench cell, no flowsheet and no balance yet.
+# Honest claim: a measured bench cell and its cell balance; no flowsheet yet.
 maturity: concept
 validation:
   status: unreviewed
   notes: >-
-    Measured data only. The WDE series is calculated from the pinned raw titration sheets
-    with the paper's equations (DESIGN.md D-002) and is not yet compared with anything in
-    this folder. A held-out reproduction in benchmarks/reproductions/vermaas-rbpm-wde/
+    Measured data and a cell balance on them. The WDE series and the measured series (voltage,
+    Faradaic efficiencies) are calculated from the pinned raw files with the paper's equations
+    and SI Note 5 (DESIGN.md D-002, D-005) and are not compared with anything in this folder. A held-out reproduction in benchmarks/reproductions/vermaas-rbpm-wde/
     compares the series with the published values (ADR 0032); its result is not validation of
-    this design. No cell balance, flowsheet, sizing or inventory yet; cheme maturity reaches
-    no level.
+    this design. The bench cell's Faraday balance (process/cells.yaml, D-006) is bookkeeping on
+    the measured values. No flowsheet, sizing or inventory yet; cheme maturity reaches no level.
     Not reviewed.
 chemistry:
   inputs:

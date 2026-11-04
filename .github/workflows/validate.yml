@@ -4,11 +4,11 @@ on: [pull_request, push]
 permissions:
   contents: read
 
-# core is pinned to a commit (bfb5215: core main 2026-10-25; core has no tags
-# yet). An unpinned install turned validate red when core changed its generated LCA records
-# (#91). Bump the pin deliberately, in every URL of validate.yml and release.yml at once, together
-# with the records that core regenerates (cheme assess lca-scenarios --write);
-# tests/test_workflows.py checks that every core install carries the same commit.
+# core is pinned to a commit (ab9d91e: core main 2026-11-04, v1.4.1 with core#137). An unpinned
+# install turned validate red when core changed its generated LCA records (#91). Bump the pin
+# deliberately, in every URL of validate.yml and release.yml at once, together with the records
+# that core regenerates (cheme assess lca-scenarios --write); tests/test_workflows.py checks that
+# every core install carries the same commit.
 jobs:
   # Every process folder with a plant.yaml is a plantcode project, validated on its own.
   discover:
@@ -44,8 +44,8 @@ jobs:
         env:
           PLANTCODE_READ_TOKEN: ${{ secrets.PLANTCODE_READ_TOKEN }}
       - uses: astral-sh/setup-uv@v6
-      # core v1.4.1 (the tag's commit; pinned by commit, tests/test_workflows.py)
-      - run: uv tool install "git+https://github.com/ChemE-as-Code/core.git@278a8682f02fc98db664c7c3236aa7ee2ea88e17"
+      # core main ab9d91e (v1.4.1 with core#137; pinned by commit, tests/test_workflows.py)
+      - run: uv tool install "git+https://github.com/ChemE-as-Code/core.git@ab9d91edc9949d63413516eaaf0df1834ca51bb4"
       - run: cheme fmt --check
       - run: cheme validate
       # core's per-scenario LCA records (lca/scenarios/<id>.json) must be current
@@ -62,8 +62,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      # core v1.4.1
-      CORE: "cheme-as-code[units] @ git+https://github.com/ChemE-as-Code/core.git@278a8682f02fc98db664c7c3236aa7ee2ea88e17"
+      # core main ab9d91e (v1.4.1 with core#137)
+      CORE: "cheme-as-code[units] @ git+https://github.com/ChemE-as-Code/core.git@ab9d91edc9949d63413516eaaf0df1834ca51bb4"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         # Full history here only: the catalog records each process folder's last commit
@@ -117,9 +117,9 @@ jobs:
         env:
           PLANTCODE_READ_TOKEN: ${{ secrets.PLANTCODE_READ_TOKEN }}
       - uses: astral-sh/setup-uv@v6
-      # core v1.4.1 with the property extras the balance scripts import (thermo, CoolProp,
+      # core main ab9d91e with the property extras the balance scripts import (thermo, CoolProp,
       # scipy through thermo, Cantera); the same commit as the validate job
-      - run: uv tool install --python 3.12 "cheme-as-code[props,units,cantera] @ git+https://github.com/ChemE-as-Code/core.git@278a8682f02fc98db664c7c3236aa7ee2ea88e17"
+      - run: uv tool install --python 3.12 "cheme-as-code[props,units,cantera] @ git+https://github.com/ChemE-as-Code/core.git@ab9d91edc9949d63413516eaaf0df1834ca51bb4"
       - name: balance scripts reproduce the flowsheet
         run: |
           uv run --python 3.12 scripts/check_balance_scripts.py --library . --strict --jobs 4 \

@@ -10,20 +10,27 @@
 
 The case is CO2 electrolysis to CO, grounded in the measured water dissociation efficiencies of
 Prats Vergel, Vermaas, Burdyny et al. (Nature Chemical Engineering 2025; 4TU dataset v1,
-CC BY 4.0, see `NOTICE.md`). The tracker is ChemE-as-Code/core#136; this stage is #329.
+CC BY 4.0, see `NOTICE.md`). The tracker is ChemE-as-Code/core#136; the measured cell is #329,
+its series and cell balance the groundwork of #330.
 
 | path | what |
 |---|---|
 | `process/design-basis.yaml` | the measured reference cell (5 cm2 MEA, Fumasep FBM reverse bias, Ag GDE, Ni foam, KOH anolyte) |
 | `data/measured/wde-1m-koh.yaml` | WDE vs current density in 1 M KOH, calculated from the raw titration sheets (generated) |
-| `scripts/adapt_4tu.py` | downloads the pinned raw data, verifies its sha256, writes the data file and `figures/wde-1m-koh.svg` |
+| `experiments/electrochemistry/rbpm-1m-koh.yaml` | the measured series: cell voltage, outlet gas (CO, H2) and titration of each of the 18 runs at 25-250 mA/cm2, from the raw CP, MFM, GC and titration files (generated; `cheme experiments electrochem`) |
+| `process/materials.yaml`, `process/reactions.yaml` | components; CO2 -> CO + 1/2 O2 and H2O -> H2 + 1/2 O2 with CODATA heats of reaction |
+| `process/cells.yaml` | the bench cell at 200 mA/cm2, its voltage and efficiencies looked up in the measured series (`cheme process cell`) |
+| `scripts/adapt_4tu.py` | downloads the pinned raw data, verifies its sha256, writes the two data files and `figures/wde-1m-koh.svg` (`scripts/rawsheets.py` reads the spreadsheets) |
+| `figures/polarisation.svg`, `faradaic-efficiency.svg`, `partial-current-density.svg`, `water-dissociation-efficiency.svg` | the measured series, drawn by `cheme experiments electrochem --plot` |
 | `scripts/cell_section.py` | draws `figures/cell-cross-section.svg` from the design basis |
-| `DESIGN.md` | decisions D-001 to D-004 |
+| `DESIGN.md` | decisions D-001 to D-006 |
 
 Regenerate, from this folder:
 
 ```sh
 cheme run scripts/adapt_4tu.py
+cheme experiments electrochem experiments/electrochemistry/rbpm-1m-koh.yaml --plot figures/
+cheme process cell
 cheme run scripts/cell_section.py
 ```
 
@@ -32,7 +39,6 @@ The comparison with the published results is held out in
 
 The following stages are planned:
 
-- **core#137:** Faradaic efficiency, voltage and the cell balance.
 - **core#138, core#139, #330:** intermittent operation, stack sizing and two pilot skids.
 - **#331:** life-cycle inventory and assessment.
 
