@@ -1,0 +1,111 @@
+# Every model input of run.py, with value, unit, label and source or rationale.
+# label: measured      = a number the source reports from its own measurement or its own fit to it
+#        reconstructed = derived by us from reported numbers (rule stated)
+#        assumed       = chosen by us (rationale stated); not from the source
+# Reported results that run.py compares with are in source.yaml (reported_results), not here.
+
+constants:
+  g: {value: 9.81, unit: m s-2, label: assumed, rationale: standard gravity}
+  darcy: {value: 0.987e-12, unit: m2, label: measured, source: "SI Table S3 footnote (conversion the authors use)"}
+
+surfactants:
+  cmc:
+    SDS:  {value: 8.1,  unit: mol m-3, label: measured, source: "article Table 1"}
+    CTAB: {value: 0.92, unit: mol m-3, label: measured, source: "article Table 1",
+           note: "SI p. S15 gives 0.74 mol/m3 from the hexadecane IFT series; Table 1 (0.92) defines the prepared solutions"}
+  concentration_levels:
+    "10": {value: 0.10, unit: fraction of cmc, label: measured, source: "article, preparation of surfactant solutions"}
+    "50": {value: 0.50, unit: fraction of cmc, label: measured, source: same}
+
+interfacial_tension:
+  gamma_star:        # pure water against the oil; the Szyszkowski reference value
+    K101:      {value: 54.7, unit: mN m-1, label: measured, source: "SI Table S2"}
+    hexadecane: {value: 28.6, unit: mN m-1, label: measured, source: "SI Table S2"}
+  gamma_hexadecane_K101: {value: 8.7, sd: 0.08, unit: mN m-1, label: measured, source: "SI Table S1"}
+  szyszkowski:       # gamma = gamma* (1 - b ln(1 + C/a)); hci = half the 95 % confidence interval
+    SDS_hexadecane:  {a: 2.08,    a_hci: 0.831,   b: 0.511, b_hci: 0.116,  unit_a: mol m-3, label: measured, source: "article Table 2 (authors' fit)"}
+    SDS_K101:        {a: 2.24,    a_hci: 0.264,   b: 0.412, b_hci: 0.0281, unit_a: mol m-3, label: measured, source: "article Table 2"}
+    CTAB_hexadecane: {a: 4.02e-3, a_hci: 1.75e-3, b: 0.183, b_hci: 0.0166, unit_a: mol m-3, label: measured, source: "article Table 2"}
+    CTAB_K101:       {a: 0.201,   a_hci: 0.0493,  b: 0.383, b_hci: 0.0513, unit_a: mol m-3, label: measured, source: "article Table 2"}
+  fit_range: {value: 0.5, unit: fraction of cmc, label: measured, source: "article Figure 4a (fits shown up to 50 % cmc)",
+              note: values above 0.5 cmc are extrapolations and are flagged}
+
+entry_pressure_model:
+  contact_angle:
+    value: 180
+    unit: deg
+    label: assumed
+    source: "the authors' assumption for eq 3 (complete non-wetting of the lined pore by the entering phase)"
+  curvature_radius:  # fitted meniscus radius in the liquid-lined pore; hci = half 95 % CI
+    SDS_hexadecane:  {value: 1.66, hci: 0.0925, unit: um, label: measured, source: "article Table 2 (fit of eq 3 to LEPs)"}
+    CTAB_hexadecane: {value: 1.63, hci: 0.0696, unit: um, label: measured, source: "article Table 2"}
+    SDS_K101:        {value: 1.82, hci: 0.0406, unit: um, label: measured, source: "article Table 2"}
+    CTAB_K101:       {value: 1.82, hci: 0.0341, unit: um, label: measured, source: "article Table 2"}
+  configuration_rules:   # which interface and which radius bound each threshold
+    dry_membrane:
+      label: reconstructed
+      oil_entry: 0 bar (hexadecane wicks into dry PVDF spontaneously; article)
+      water_entry: 2 gamma12(C) / r(surfactant, hexadecane) - the dry membrane is hexadecane-filled during the run (article, Table 3 discussion), so it is treated as hexadecane-infused
+    K101_under_hexadecane_layer:
+      label: reconstructed
+      oil_entry: 2 gamma23 / r(surfactant, K101) - hexadecane displacing K101 in the K101-lined pore
+      water_entry: 2 (gamma12(C) + gamma23) / r(surfactant, hexadecane)
+      rationale: >-
+        The text gives 0.26 and 0.15 bar as the values to which the hexadecane-infused LEPs
+        (0.15 and 0.05 bar) "would increase", i.e. the same radius with the IFT sum. The variant
+        with r(surfactant, K101) is reported as a sensitivity, not compared.
+    K101_direct_contact:
+      label: reconstructed
+      water_entry: 2 gamma_water_K101(C) / r(surfactant, K101) - aqueous phase meets K101 directly, as in the LEP measurement without oil
+
+membrane:
+  pore_radius_mean: {value: 1.78, unit: um, label: measured, source: "SI p. S3"}
+  pore_radius_largest: {value: 1.915, unit: um, label: reconstructed, source: "SI Figure S2a first bubble point d = 3.83 um, halved; the article rounds to 1.92 um"}
+  thickness: {value: 134, unit: um, label: measured, source: "SI p. S7"}
+  cell_diameter: {value: 25, unit: mm, label: measured, source: "article Figure 3 (schematic dimension)"}
+
+fluids:
+  hexadecane_viscosity: {value: 3.2, unit: mPa s, label: measured, source: "SI Table S1 (20 C)"}
+  hexadecane_density: {value: 727, unit: kg m-3, label: measured, source: "SI Table S1 (24 C)"}
+  water_density: {value: 997, unit: kg m-3, label: measured, source: "SI Table S2, MQ water"}
+  continuous_phase_density:
+    value: 997
+    unit: kg m-3
+    label: assumed
+    rationale: >-
+      Taken equal to water. SI Table S2 lists 0.867 to 0.955 g/cm3 for the surfactant solutions,
+      which contain less than 0.15 wt% surfactant; those values are not used.
+  continuous_phase_viscosity: {value: 1.0, unit: mPa s, label: assumed, rationale: "water; the authors use 1 mPa s for the aqueous phase (SI p. S7)"}
+  oil_mass_fraction: {value: 0.05, unit: "-", label: measured, source: "article, emulsion preparation (5 wt% hexadecane)"}
+
+operation:
+  tmp_emulsion_runs: {value: 0.1, unit: bar, label: reconstructed, source: "article states TMP at most 0.1 bar; the SI flux calculation uses 0.1 bar"}
+  pressure_step:
+    default: {value: 22, unit: mbar, label: measured, source: "article, LEP measurement"}
+    CTAB_hexadecane: {value: 5.5, unit: mbar, label: measured, source: "article, LEP measurement (small steps for CTAB with hexadecane)"}
+  controller_accuracy: {value: 5.5, unit: mbar, label: measured, source: "article, LEP measurement (accuracy of the pressure controller)"}
+  oil_flux_SDS10_K101: {value: 0.4e-5, unit: m3 m-2 s-1, label: measured, source: "SI p. S8 (average over the record of Figure S5)"}
+
+lld:
+  kappa_darcy:    # SI Table S3
+    K101_cycle1: {value: 8.91e-3, label: measured}
+    K101_cycle2: {value: 1.33e-2, label: measured}
+    K101_cycle3: {value: 1.56e-2, label: measured}
+    dry:         {value: 2.85e-2, label: measured}
+
+sweep:
+  tmp_min: {value: 0.0, unit: bar, label: assumed, rationale: sweep range}
+  tmp_max: {value: 0.7, unit: bar, label: assumed, rationale: above the highest entry pressure of any case}
+  tmp_step: {value: 0.001, unit: bar, label: assumed, rationale: well below the 5.5 mbar controller accuracy}
+  concentration_max_plotted: {value: 1.0, unit: fraction of cmc, label: assumed, rationale: "curves above 0.5 cmc drawn dashed as extrapolation"}
+
+area_estimate:   # only for the case with flux data (K101-infused, SDS 10, 0.1 bar, dead-end)
+  feed_flow: {value: 1.0, unit: m3 h-1, label: assumed, rationale: "round design basis for a per-unit-feed figure; area scales linearly"}
+  oil_recovered_fraction: {value: 1.0, unit: "-", label: assumed, rationale: "all dispersed oil permeated; an upper bound on oil to be passed"}
+
+extension:   # hypothetical design extension, one changed input
+  design_case: {value: SDS10 with K101-infused membrane, label: assumed, rationale: "the only case with zero water in the permeate and with flux data"}
+  pore_radius_scale: {base: 1.0, changed: 0.5, unit: "-", label: assumed,
+                      rationale: "a membrane of the same chemistry with half the pore size; every curvature radius scaled by the same factor (liquid lining in proportion)"}
+  control_margin: {value: 2, unit: controller accuracies on each side, label: assumed,
+                   rationale: "operating point kept 2 x 5.5 mbar inside each bound"}

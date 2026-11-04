@@ -1,0 +1,170 @@
+# Reference record for the liquid-infused membrane emulsion case (#340, tracker #333; ADR 0030
+# protocol, case layout per ADR 0031). Facts and numbers taken from the pinned source, restated
+# in our own form with locators. No text, table or figure of the source is copied here; the
+# figure values below were digitised by us and are marked as such.
+reference:
+  id: bazyar-2019-liquid-infused-membranes-ow-emulsions
+  title: Liquid-Infused Membranes with Oil-in-Water Emulsions
+  authors: [Hanieh Bazyar, Noor van de Beek, Rob G. H. Lammertink]
+  journal: Langmuir 35 (29), 9513-9520
+  published: 2019-06-26 (online), 2019-07-23 (issue)
+  doi: 10.1021/acs.langmuir.9b01055
+  version: version of record; PubMed Central PMC6750837, pmc-version 1 (PMC6750837.1)
+  pmid: 31241957
+  kind: experimental study (laboratory dead-end filtration cell); measured properties, fitted
+    correlations and observations
+  licence:
+    name: CC BY-NC-ND (ACS AuthorChoice open access)
+    note: >-
+      The licence forbids derivative works of the article. We redistribute nothing of it: no
+      text, table or figure. Only facts and numbers are restated, with attribution, as CLAUDE.md
+      allows. The article and SI are fetched or read at run time from their public locations
+      and are not committed.
+  accessed: "2026-11-04"
+  files:
+    - name: article full text, JATS XML
+      url: https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=6750837&rettype=xml
+      sha256: f0ea5de5e36e3fdb295d7be4719a9500244150762bb3995ba88210a6d2a9e249
+      bytes: 100388
+      use: text, Tables 1-4, Table 2 fit parameters, pressures stated in the text
+      runtime: run.py downloads it into the cache, verifies the sha256 and checks that the
+        restated anchor numbers occur in it (source_check in comparison.json)
+    - name: la9b01055_si_002.pdf (supporting information, 23 pages)
+      obtained_from: https://www.ebi.ac.uk/europepmc/webservices/rest/PMC6750837/supplementaryFiles
+        (a zip generated on request; its own hash changes, the files inside did not between two
+        downloads)
+      sha256: 6b76cf02d96fdb326f2650fe5483d4e9f18a70b86993e1d1927b60b049290a4a
+      bytes: 8028603
+      use: Tables S1-S3, porometry, membrane thickness, emulsion-run oil flux
+      runtime: not downloaded by run.py (7 MB archive, slow and not byte-stable); the numbers
+        used are restated below
+    - name: la9b01055_0004.jpg (article Figure 4, both panels, 400 x 174 px)
+      obtained_from: same archive as the SI
+      sha256: d0ce4ee9a829aeba1e758cad03ce4838d218b4f959d494db9ec77ff718ca94e7
+      use: digitising the Figure 4b entry pressures (below); the image is not committed
+  unavailable:
+    - the article PDF (ACS, University of Twente repository and Europe PMC rendering returned a
+      bot-check page to a script); not needed, the XML holds the same text and tables
+    - raw data (pressure and flux logs, IFT series, droplet size data): not published
+
+# The reference case, restated.
+case:
+  membrane:
+    material: PVDF (Solef 6020/1001), cast from 15 wt% in NMP at 500 um wet thickness,
+      non-solvent bath water/NMP 25:75 vol%   # Experimental section, membrane fabrication
+    pore_radius_mean: {value: 1.78, unit: um, locator: "SI p. S3, capillary flow porometry"}
+    pore_radius_spread: {value: 0.14, unit: um, note: full width at half maximum / 2, locator: "SI p. S3"}
+    pore_radius_largest: {value: 1.92, unit: um, locator: "article, LEP and IFT results; SI Figure S2a first bubble point d = 3.83 um at 0.167 bar"}
+    porometry_mean_flow_pore: {diameter: 3.41, unit: um, pressure: 0.188 bar, locator: "SI Figure S2a annotation"}
+    porometry_smallest_pore: {diameter: 2.04, unit: um, pressure: 0.314 bar, locator: "SI Figure S2a annotation"}
+    thickness: {value: 134, unit: um, locator: "SI p. S7 and S8"}
+    test_cell: {diameter: 25, unit: mm, feed_chamber_height: 20 mm, locator: "article Figure 3 schematic"}
+  infusion_liquids:
+    K101: Krytox GPL 101 perfluoropolyether oil, 15.5 uL/cm2 applied, wicked in spontaneously
+    hexadecane: same procedure (used for the LEP measurements of the "hexadecane-infused" membrane)
+    dry: no infusion; becomes hexadecane-filled during oil permeation (article, Table 3 discussion)
+  feed_emulsions:
+    oil: hexadecane, 5 wt%, dyed (Sudan IV)
+    continuous_phase: water with SDS or CTAB at 10 % or 50 % of the cmc (SDS 10, SDS 50, CTAB 10, CTAB 50)
+    cmc: {SDS: 8.1 mM, CTAB: 0.92 mM, locator: "article Table 1"}
+    emulsification: rotor-stator, 14 000 rpm, 15 min
+    droplet_size: number-weighted mode near 1 um diameter for all four (article Figure 5; not digitised)
+  operation:
+    mode: dead-end, pressure-controlled (nitrogen over a 500 mL feed), cell upside down so that
+      creaming brings oil to the membrane
+    tmp: "at most 0.1 bar for all emulsion runs (article, oil permeation section); 0.1 bar in the SI flux calculation"
+    lep_protocol: pressure raised in steps of 22 mbar (5.5 mbar for CTAB with hexadecane), 200 s
+      per step; LEP = first pressure with stable permeate flux
+  model_in_source:
+    eq1: entry pressure = 2 gamma |cos theta_E| / r (Young-Laplace), theta_E advancing angle > 90 deg
+    eq2: gamma(C) = gamma* - b gamma* ln(1 + C/a) (Szyszkowski)
+    eq3: eq1 with theta_E = 180 deg and eq2 at the bulk concentration C0
+    eq4: Stokes creaming velocity u = 2 a^2 (rho - rho0) g / (9 mu)
+    combined_interface: under a hexadecane layer on the K101-infused membrane, the aqueous phase
+      meets two interfaces in series; entry pressure from gamma12 + gamma23 (article, Figure 6 discussion)
+
+# Reported results, restated with locators. Units as stated.
+reported_results:
+  ift_measured:        # SI Table S2, pendant drop, mean of >= 6, mN/m (+- standard deviation)
+    locator: SI Table S2
+    water_K101:      {value: 54.7, sd: 0.16}
+    water_hexadecane: {value: 28.6, sd: 0.27}
+    CTAB10_K101:     {value: 47.7, sd: 0.67}
+    CTAB10_hexadecane: {value: 12.2, sd: 0.08}
+    CTAB50_K101:     {value: 29.8, sd: 0.14}
+    CTAB50_hexadecane: {value: 3.3, sd: 0.06}
+    SDS10_K101:      {value: 47.6, sd: 0.67}
+    SDS10_hexadecane: {value: 25.5, sd: 0.15}
+    SDS50_K101:      {value: 31.8, sd: 0.25}
+    SDS50_hexadecane: {value: 12.8, sd: 0.13}
+  ift_hexadecane_K101: {value: 8.7, sd: 0.08, unit: mN/m, locator: "SI Table S1; article text"}
+  szyszkowski_and_radius_fits:   # article Table 2; +- = half the 95 % confidence interval
+    locator: article Table 2
+    CTAB_hexadecane: {a: 4.02e-3, a_hci: 1.75e-3, b: 0.183, b_hci: 0.0166, r_um: 1.63, r_hci_um: 0.0696}
+    CTAB_K101:       {a: 0.201,   a_hci: 0.0493,  b: 0.383, b_hci: 0.0513, r_um: 1.82, r_hci_um: 0.0341}
+    SDS_hexadecane:  {a: 2.08,    a_hci: 0.831,   b: 0.511, b_hci: 0.116,  r_um: 1.66, r_hci_um: 0.0925}
+    SDS_K101:        {a: 2.24,    a_hci: 0.264,   b: 0.412, b_hci: 0.0281, r_um: 1.82, r_hci_um: 0.0406}
+    units: {a: mol/m3, b: "-", r: um}
+  lep_stated_in_text:
+    hexadecane_through_K101_infused: {value: 0.08, unit: bar, locator: "article, LEP and IFT results, last paragraph"}
+    hexadecane_through_dry: {value: 0, unit: bar, note: spontaneous wicking}
+    CTAB50_through_hexadecane_infused: {value: 0.05, unit: bar, locator: "article, oil permeation section, Table 3 discussion"}
+    SDS50_through_hexadecane_infused: {value: 0.15, unit: bar, locator: same}
+    combined_interface_K101_infused_under_hexadecane:
+      locator: "article, Figure 6 discussion"
+      note: stated as the values to which the hexadecane-infused LEPs above "would increase"
+        when gamma23 = 8.7 mN/m is added to gamma12
+      SDS50: {value: 0.26, unit: bar}
+      CTAB50: {value: 0.15, unit: bar}
+  lep_figure4b_digitised:
+    locator: article Figure 4b (symbols are measured LEPs)
+    method: >-
+      Digitised by us from la9b01055_0004.jpg (right panel about 175 x 141 px). Axis calibrated on
+      the plot frame and the inner y ticks (x: 0 at column 221, 0.5 at column 396; y: 0 bar at
+      row 143.5, one 0.1 bar tick every 21.5 rows, so 215 rows per bar). A marker value is the
+      darkness-weighted centre of the dark rows in the 4 to 5 columns at its x position. Where
+      two markers overlap (pure water for each oil, and both K101-infused points at 10 % cmc)
+      one value is read for both.
+    uncertainty: 0.015 bar (about 3 px; markers about 5 px tall, overlapping the fit lines)
+    unit: bar
+    points:   # concentration as fraction of cmc
+      water_hexadecane_infused: {C_frac: 0.0, value: 0.342}
+      water_K101_infused:       {C_frac: 0.0, value: 0.599}
+      SDS10_hexadecane_infused: {C_frac: 0.1, value: 0.282}
+      CTAB10_hexadecane_infused: {C_frac: 0.1, value: 0.150}
+      SDS10_K101_infused:       {C_frac: 0.1, value: 0.518, note: overlaps CTAB10_K101_infused}
+      CTAB10_K101_infused:      {C_frac: 0.1, value: 0.518, note: overlaps SDS10_K101_infused}
+      SDS50_hexadecane_infused: {C_frac: 0.5, value: 0.158}
+      CTAB50_hexadecane_infused: {C_frac: 0.5, value: 0.047}
+      SDS50_K101_infused:       {C_frac: 0.5, value: 0.351}
+      CTAB50_K101_infused:      {C_frac: 0.5, value: 0.330}
+  water_fraction_in_permeate:   # article Table 3, TMP <= 0.1 bar, estimated from collected permeate
+    locator: article Table 3; SI Figures S7-S9 (pictures)
+    K101_infused: {SDS10: 0.0, SDS50: 0.05, CTAB10: 0.0, CTAB50: 0.25}
+    dry:          {SDS10: 0.0, SDS50: 0.2,  CTAB10: 0.0, CTAB50: 0.5}
+  emulsion_run_oil_flux:
+    locator: SI p. S8, Figure S5 and its text
+    case: K101-infused membrane, SDS 10 emulsion, dead-end, feed chamber refreshed repeatedly
+    average_flux: {value: 0.4e-5, unit: m3 m-2 s-1}
+    tmp: {value: 0.1, unit: bar}
+    oil_viscosity: {value: 3.2, unit: mPa s}
+    permeability_reported: {value: 1.74e-4, unit: Darcy}
+    note: flux falls between refreshes as the oil droplet concentration falls; the authors state
+      the flux depends on the refresh frequency and the oil concentration
+  lld_permeability:   # SI Table S3, pure hexadecane pushed through, Darcy; 1 Darcy = 0.987e-12 m2
+    locator: SI Table S3
+    K101_cycle1: {kappa: 8.91e-3, active_fraction: 0.31}
+    K101_cycle2: {kappa: 1.33e-2, active_fraction: 0.47}
+    K101_cycle3: {kappa: 1.56e-2, active_fraction: 0.55}
+    dry:         {kappa: 2.85e-2, active_fraction: 1}
+    note: active fraction = porosity ratio to the dry membrane through kappa = phi r^2 / 24;
+      about 45 % of the infusion liquid retained after cycle 3
+  creaming_rate_SDS10:
+    value_range: [0.06, 19.85]
+    unit: um/s
+    locator: article, oil permeation section (Stokes law, smallest and largest droplets)
+    note: droplet radii used are not stated; not compared, reported as implied radii only
+  contact_angles:   # article Table 4, water on the membrane, deg; not used in the model
+    locator: article Table 4
+    K101_infused_before: {static: 117, advancing: 119, receding: 114}
+    dry_before: {static: 136, advancing: 142.3, receding: 117}
