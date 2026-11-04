@@ -2,6 +2,7 @@
 # requires-python = ">=3.12,<3.14"
 # dependencies = [
 #     "numpy==2.3.4",
+#     "scipy==1.16.3",
 #     "matplotlib==3.10.7",
 #     "pyyaml==6.0.3",
 #     "pypdf==5.1.0",
@@ -39,6 +40,9 @@ R_J = 8.314              # J/(mol K)
 T_OFFSET = 274.1         # K; Table S2 tabulates 1/(T_degC + 274.1 K), see inputs.yaml
 SEED = 341
 
+CREDIT = ("Data: van Schendel, Yang, Uslamin, Pidko, ChemCatChem 2021, 13, 4886, "
+          "doi:10.1002/cctc.202101140, CC BY 4.0 (SI {tables}); fits and figure by run.py "
+          "(see NOTICE.md)")
 COLOURS = {"II": "#2a78d6", "III": "#eb6834", "IV": "#1baf7a"}
 INK, INK2, GRID = "#0b0b0b", "#52514e", "#d9d8d4"
 
@@ -144,6 +148,8 @@ def bisquare_irls(X: np.ndarray, y: np.ndarray, k: float = 4.685, tol: float = 1
     h = np.minimum(np.sum(q**2, axis=1), 0.9999)
     adj = 1 / np.sqrt(1 - h)
     b = np.linalg.lstsq(X, y, rcond=None)[0]
+    res_ols = y - X @ b
+    ols_s = float(np.sqrt(res_ols @ res_ols / (n - p)))
     for _ in range(500):
         res = y - X @ b
         ra = res * adj
@@ -160,9 +166,25 @@ def bisquare_irls(X: np.ndarray, y: np.ndarray, k: float = 4.685, tol: float = 1
     res = y - X @ b
     mse_w = float(np.sum(w * res**2) / (n - p))
     cov = mse_w * np.linalg.inv((X * w[:, None]).T @ X)
+    # MATLAB robustfit / statrobustsigma convention (sensitivity only, not used by the checks):
+    # Street-corrected robust sigma from the final adjusted residuals, shrunk towards OLS sigma.
+    ra = res * adj
+    mad_s = float(np.median(np.sort(np.abs(ra))[max(0, p - 1):]) / 0.6745)
+    bis = lambda u: np.where(np.abs(u) < 1, (1 - u**2) ** 2, 0.0)  # noqa: E731
+    st = mad_s * k
+    u = ra / st
+    phi = u * bis(u)
+    dphi = ((u + 1e-4) * bis(u + 1e-4) - (u - 1e-4) * bis(u - 1e-4)) / 2e-4
+    m1 = float(np.mean(dphi))
+    m2 = float(np.sum((1 - h) * phi**2) / (n - p))
+    K = 1 + (p / n) * (1 - m1) / m1
+    robust_s = K * np.sqrt(m2) * st / m1
+    matlab_s = float(max(robust_s, np.sqrt((ols_s**2 * p**2 + robust_s**2 * n) / (p**2 + n))))
     return {"b": b, "cov": cov, "se": np.sqrt(np.diag(cov)), "rmse": float(np.sqrt(mse_w)),
             "rmse_unweighted": float(np.sqrt(res @ res / (n - p))), "weights": w, "n": n,
-            "dfe": n - p, "fitted_lin": X @ b}
+            "dfe": n - p, "fitted_lin": X @ b,
+            "matlab_convention": {"s": matlab_s, "robust_s": float(robust_s), "ols_s": ols_s,
+                                  "mad_s": mad_s, "cov_scale": matlab_s**2 / mse_w}}
 
 
 def line_fit(x: np.ndarray, y: np.ndarray) -> dict:
@@ -189,6 +211,54 @@ def design(x1, x2, x3, x4, terms):
 
 def design_iv(x1, x2, x3, x4, t_s):
     return np.stack([np.ones_like(x1), -x1 / R_KJ, x2, x3, x4, t_s], axis=-1)
+
+
+def integrated_iv(b, x1, x2, x3, x4, t_h, S0):
+    """Model IV read as the integrated rate law of the source's Eq. 14.
+
+    dP/dt = g0 exp(k t) S with g0 = exp(b0 - b1 x1/R + b2 x2 + b3 x3 + b4 x4) in 1/h and
+    k = 3600 b5 in 1/h, so yield Y = 1 - exp(-g0 expm1(k t)/k) and y = ln(S0 Y / t).
+    """
+    X0 = design_iv(x1, x2, x3, x4, np.zeros_like(t_h))
+    g0 = np.exp(X0 @ b)
+    k = 3600.0 * b[5]
+    with np.errstate(divide="ignore", invalid="ignore"):
+        tau = np.where(np.abs(k) > 1e-12, np.expm1(k * t_h) / k, t_h)
+    yl = -np.expm1(-g0 * tau)
+    return np.log(S0 * yl / t_h), yl
+
+
+def fit_integrated_iv(x1, x2, x3, x4, t_h, S0, y, starts):
+    """Nonlinear least squares of the integrated reading to measured y (unweighted)."""
+    from scipy.optimize import least_squares
+
+    def resid(b):
+        return integrated_iv(b, x1, x2, x3, x4, t_h, S0)[0] - y
+
+    scale = np.array([10.0, 10.0, 0.01, 0.5, 0.5, 1e-5])
+    best, by_start = None, []
+    for b0 in starts:
+        r = least_squares(lambda z: resid(z * scale), np.asarray(b0) / scale, method="lm",
+                          xtol=1e-14, ftol=1e-14, gtol=1e-14, max_nfev=20000)
+        by_start.append({"start": np.asarray(b0), "b": r.x * scale,
+                         "rmse_dfe": float(np.sqrt(2 * r.cost / (len(y) - len(b0))))})
+        if best is None or r.cost < best.cost:
+            best = r
+    b = best.x * scale
+    J = best.jac / scale
+    n, npar = J.shape
+    res = resid(b)
+    mse = float(res @ res / (n - npar))
+    cov = mse * np.linalg.inv(J.T @ J)
+    se = np.sqrt(np.diag(cov))
+    # identifiable combination when the catalyst dies early: ln(g0 / |k|) = b0 - ln(3600 |b6|)
+    gr = np.zeros(npar)
+    gr[0], gr[5] = 1.0, -1.0 / b[5]
+    return {"b": b, "cov": cov, "se": se, "rmse": float(np.sqrt(mse)),
+            "max_abs_residual": float(np.max(np.abs(res))), "n": n, "dfe": n - npar,
+            "corr_b0_b6": float(cov[0, 5] / (se[0] * se[5])), "by_start": by_start,
+            "ln_g0_over_k": float(b[0] - np.log(3600 * abs(b[5]))),
+            "ln_g0_over_k_se": float(np.sqrt(gr @ cov @ gr))}
 
 
 # ----------------------------------------------------------------------------- checks
@@ -234,14 +304,25 @@ class Predictor:
         self.f = fits
         self.iv_mode = iv_mode
 
-    def predict(self, model, T_c, p, cat_mM, base_mM, t_h, S0):
+    @staticmethod
+    def _x(T_c, p, cat_mM, base_mM, t_h, S0):
         x1 = 1.0 / (np.asarray(T_c, float) + T_OFFSET)
         x2 = np.asarray(p, float)
         x3 = np.log(np.asarray(cat_mM, float) * 1e-3)
         x4 = np.log(np.asarray(base_mM, float) * 1e-3)
-        t_h = np.asarray(t_h, float)
-        S0 = np.asarray(S0, float)
-        x1, x2, x3, x4, t_h, S0 = np.broadcast_arrays(x1, x2, x3, x4, t_h, S0)
+        return np.broadcast_arrays(x1, x2, x3, x4, np.asarray(t_h, float), np.asarray(S0, float))
+
+    def leverage(self, model, T_c, p, cat_mM, base_mM, t_h):
+        """h = x' (X'X)^-1 x against the model's fitting set (linear design of the regressors)."""
+        x1, x2, x3, x4, t_h, _ = self._x(T_c, p, cat_mM, base_mM, t_h, 1.0)
+        if model == "IV":
+            X = design_iv(x1, x2, x3, x4, 3600.0 * t_h)
+        else:
+            X = design(x1, x2, x3, x4, TERMS_II if model == "II" else TERMS_III)
+        return np.einsum("...i,ij,...j->...", X, self.f[model]["XtX_inv"], X)
+
+    def predict(self, model, T_c, p, cat_mM, base_mM, t_h, S0):
+        x1, x2, x3, x4, t_h, S0 = self._x(T_c, p, cat_mM, base_mM, t_h, S0)
         fit = self.f[model]
         if model in ("II", "III"):
             X = design(x1, x2, x3, x4, TERMS_II if model == "II" else TERMS_III)
@@ -257,14 +338,9 @@ class Predictor:
             yld = gt / (1 + gt)
             y = lng + np.log(S0) - np.log1p(gt)
             return y, (1 - yld) * np.sqrt(var_lng), yld
-        # integrated reading: dP/dt = g0 exp(b6 t) S, so ln(S0/S) = g0 (1 - exp(b6 t)) / (-b6)
+        # integrated reading (coefficients refitted to that form): see integrated_iv
         def y_of(b):
-            X0 = design_iv(x1, x2, x3, x4, np.zeros_like(t_h))
-            g0 = np.exp(X0 @ b)                       # 1/h
-            k = 3600.0 * b[5]                          # 1/h, negative = deactivation
-            tau = np.where(np.abs(k) > 1e-12, np.expm1(k * t_h) / k, t_h)
-            yl = -np.expm1(-g0 * tau)
-            return np.log(S0 * yl / t_h), yl
+            return integrated_iv(b, x1, x2, x3, x4, t_h, S0)
         y, yld = y_of(fit["b"])
         grad = []
         for j in range(len(fit["b"])):
@@ -342,6 +418,17 @@ def condition_record(pred, sigma_m, T, p, c, b, t, S0):
                                   (2 * sigma_m**2 + ys[a][1] ** 2 + ys[b_][1] ** 2))
                 for a, b_ in PAIRS}
     rec["D_min"] = min(rec["D"].values())
+    rec["D_limit_infinite_replicates"] = {
+        f"{a}-{b_}": float((ys[a][0] - ys[b_][0]) ** 2 / (ys[a][1] ** 2 + ys[b_][1] ** 2))
+        for a, b_ in PAIRS}
+    rec["D_min_limit_infinite_replicates"] = min(rec["D_limit_infinite_replicates"].values())
+    if all("XtX_inv" in pred.f[m] for m in ("II", "III", "IV")):
+        lev = {}
+        for m in ("II", "III", "IV"):
+            h = float(pred.leverage(m, T, p, c, b, t))
+            hmax = float(pred.f[m]["h_max_data"])
+            lev[m] = {"h": h, "h_max_fitting_data": hmax, "hidden_extrapolation": bool(h > hmax)}
+        rec["leverage"] = lev
     return rec
 
 
@@ -396,6 +483,8 @@ def fig_parity(plt, data, fits, ref_fitted):
     axes[0].legend(loc="upper left")
     fig.suptitle("Reproduction: refits of the published models to the 30-run table (SI S1/S2)",
                  x=0.02, y=1.04, ha="left", fontsize=10, color=INK)
+    fig.text(0.02, -0.06, CREDIT.format(tables="Tables S1, S2, S10, S16, S21"), fontsize=7,
+             color=INK2, ha="left")
     save(fig, "fig1_parity.svg")
     plt.close(fig)
 
@@ -441,6 +530,8 @@ def fig_kinetics(plt, kin, res):
     fig.suptitle("Separate initial-rate kinetics (same authors): our straight-line fits",
                  x=0.02, ha="left", fontsize=10, color=INK)
     fig.tight_layout()
+    fig.text(0.02, -0.03, CREDIT.format(tables="Tables S23-S26"), fontsize=7, color=INK2,
+             ha="left")
     save(fig, "fig3_conventional_kinetics.svg")
     plt.close(fig)
 
@@ -499,7 +590,7 @@ def fig_design(plt, pred, pred_int, sigma_m, run_a, run_b, S0, data, window, thr
                      cmap="Blues", extend="max")
     ax.contourf(BB, TT, (~feas).astype(float), levels=[0.5, 1.5], colors="none", hatches=["////"])
     ax.contour(BB, TT, D23, levels=[thr], colors=INK, linewidths=1)
-    ax.scatter(np.exp(data["x4"]) * 1e3, 1 / data["x1"] - T_OFFSET, s=22, marker="s",
+    ax.scatter(np.exp(data["x4"]) * 1e3, data["T_c"], s=22, marker="s",
                facecolor="white", edgecolor=INK, zorder=3, label="design runs")
     ax.scatter([b0], [T0], s=110, marker="*", color=COLOURS["IV"], edgecolor=INK, zorder=4,
                label="run A")
@@ -525,7 +616,7 @@ def fig_design(plt, pred, pred_int, sigma_m, run_a, run_b, S0, data, window, thr
         ax.plot(ts, np.minimum(yld, 1.2), color=COLOURS[m], label=f"model {m}")
     yi = pred_int.predict("IV", T1, p1, c1, b1, ts, S0)[2]
     ax.plot(ts, yi, color=COLOURS["IV"], ls=(0, (4, 2)), lw=1.5,
-            label="model IV, integrated reading")
+            label="model IV, integrated form (refitted)")
     ax.axvspan(t_max_iv, ts.max(), color=GRID, alpha=0.35, lw=0)
     ax.annotate(f"model IV as fitted:\nyield falls after {t_max_iv:.1f} h\n(excluded)",
                 (t_max_iv + 0.6, 0.05), fontsize=8, color=INK2)
@@ -541,6 +632,8 @@ def fig_design(plt, pred, pred_int, sigma_m, run_a, run_b, S0, data, window, thr
                  "(bands: dark = parameter 95 %, light = with measurement σ)",
                  x=0.02, ha="left", fontsize=10, color=INK)
     fig.tight_layout()
+    fig.text(0.02, -0.015, CREDIT.format(tables="Tables S1, S2; models refitted to them"),
+             fontsize=7, color=INK2, ha="left")
     save(fig, "fig2_discrimination.svg")
     plt.close(fig)
 
@@ -605,6 +698,48 @@ def main() -> int:
     fiv = bisquare_irls(Xiv, y[idx] - np.log(S_end[idx]))
     fiv["fitted"] = fiv["fitted_lin"] + np.log(S_end[idx])
     fits["IV"] = fiv
+    # leverage reference: (X'X)^-1 of each model's fitting set and the largest data leverage
+    for m in ("II", "III", "IV"):
+        i = used[m]
+        Xm = Xiv if m == "IV" else design(x1[i], x2[i], x3[i], x4[i],
+                                           TERMS_II if m == "II" else TERMS_III)
+        fits[m]["XtX_inv"] = np.linalg.inv(Xm.T @ Xm)
+        hd = np.einsum("ij,jk,ik->i", Xm, fits[m]["XtX_inv"], Xm)
+        fits[m]["h_max_data"] = float(hd.max())
+        fits[m]["h_max_data_run"] = int(runs[i][np.argmax(hd)])
+    # model IV read as the integrated rate law (sensitivity): reused coefficients vs a refit
+    y_iv_reused = integrated_iv(fiv["b"], x1[idx], x2[idx], x3[idx], x4[idx], t_h[idx],
+                                S0_run[idx])[0]
+    b_start0 = fiv["b"].copy()
+    b_start0[5] = 0.0
+    fint = fit_integrated_iv(x1[idx], x2[idx], x3[idx], x4[idx], t_h[idx], S0_run[idx], y[idx],
+                             [fiv["b"], b_start0])
+    fint["XtX_inv"] = fiv["XtX_inv"]
+    fint["h_max_data"] = fiv["h_max_data"]
+    fiv_as_fitted_res = y[idx] - fiv["fitted"]
+    integrated_record = {
+        "form": "y = ln(S0 Y / t), Y = 1 - exp(-g0 expm1(k t) / k), k = 3600 b6 (source Eq. 14 integrated)",
+        "runs": [int(r) for r in runs[idx]],
+        "as_fitted_form_rmse_vs_measured_y": float(np.sqrt(np.mean(fiv_as_fitted_res**2))),
+        "as_fitted_form_max_abs_residual": float(np.max(np.abs(fiv_as_fitted_res))),
+        "reused_coefficients_rmse_vs_measured_y": float(np.sqrt(np.mean((y[idx] - y_iv_reused) ** 2))),
+        "reused_coefficients_max_abs_residual": float(np.max(np.abs(y[idx] - y_iv_reused))),
+        "refit_method": "unweighted nonlinear least squares (Levenberg-Marquardt), same 24 runs, "
+                        "per-run reconstructed S0",
+        "refit_terms": TERMS_IV, "refit_b": fint["b"], "refit_se": fint["se"],
+        "refit_rmse_dfe": fint["rmse"], "refit_dfe": fint["dfe"],
+        "refit_rmse_vs_measured_y": float(fint["rmse"] * np.sqrt(fint["dfe"] / fint["n"])),
+        "refit_max_abs_residual": fint["max_abs_residual"],
+        "refit_deactivation_time_constant_h": float(-1 / (3600 * fint["b"][5])),
+        "refit_corr_intercept_b6": fint["corr_b0_b6"],
+        "refit_ln_g0_over_k": fint["ln_g0_over_k"], "refit_ln_g0_over_k_se": fint["ln_g0_over_k_se"],
+        "refit_by_start": fint["by_start"],
+        "reading": "the refit is not identifiable: the catalyst dies within about 0.3 h, so every run "
+                   "is read as finished long before it was stopped and only ln(g0/|k|) (the final "
+                   "yield) is determined; the run-time term then acts as a pure 1/t. Linear "
+                   "prediction variances are meaningless, so no D values are computed from this "
+                   "reading; only point predictions are reported",
+    }
     # sensitivity: regressors from raw Table S1 levels
     x3r, x4r = np.log(cat_raw * 1e-3), np.log(base_raw * 1e-3)
     sens_raw = {}
@@ -723,6 +858,33 @@ def main() -> int:
                                           @ fits["III_S16"]["b"] - ref_fitted["III"]["yhat"])))},
         "raw_levels": {m: {"b": sens_raw[m]["b"], "rmse": sens_raw[m]["rmse"]} for m in sens_raw},
         "model_IV_rmse_unweighted": fits["IV"]["rmse_unweighted"],
+        "model_IV_matlab_robust_sigma": {
+            "note": "non-gating: MATLAB robustfit/statrobustsigma convention applied to our final "
+                    "bisquare weights; the frozen RMSE check still compares the weighted RMSE",
+            **fits["IV"]["matlab_convention"],
+            "reference_rmse": rr["model_IV"]["rmse"],
+            "s_deviation_rel": fits["IV"]["matlab_convention"]["s"] / rr["model_IV"]["rmse"] - 1,
+            "se_scaled": fits["IV"]["se"] * np.sqrt(fits["IV"]["matlab_convention"]["cov_scale"]),
+            "se_scaled_deviation_rel_vs_SI": [
+                float(fits["IV"]["se"][j] * np.sqrt(fits["IV"]["matlab_convention"]["cov_scale"])
+                      / rr["model_IV"]["coefficients"][t][1] - 1) for j, t in enumerate(TERMS_IV)],
+        },
+        "near_complete_runs_yield_ge_87pct": {
+            "runs": [int(r) for r in runs[yld_pct >= 87]],
+            "yield_pct": yld_pct[yld_pct >= 87],
+            "in_fitting_set": {m: [int(r) for r in runs[used[m]] if yld_pct[r - 1] >= 87]
+                               for m in ("II", "III", "IV")},
+            "note": "average rates of near-complete runs are lower bounds on the rate; the source "
+                    "regressed on them",
+        },
+        "model_IV_end_substrate_mass_balance": {
+            "note": "S_end reconstructed as S0 (1 - Y), i.e. 100 % mass balance; the source used "
+                    "GC-measured S_end and reports mass balances of 90-110 %. Shift of x5 = ln S_end "
+                    "if 10 % of S0 is added to S_end (the downward shift is unbounded at Y >= 0.9)",
+            "runs": [int(r) for r in runs[used["IV"]]],
+            "yield": yld_pct[used["IV"]] / 100,
+            "dx5_plus_10pct_S0": np.log1p(0.1 / (1 - yld_pct[used["IV"]] / 100)),
+        },
         "model_IV_zero_weight_runs": [int(runs[used["IV"]][i]) for i in
                                       np.nonzero(fits["IV"]["weights"] == 0)[0]],
     }
@@ -735,7 +897,7 @@ def main() -> int:
     window = tuple(dd["measurable_yield_window"]["value"])
     fits3 = {m: fits[m] for m in ("II", "III", "IV")}
     pred = Predictor(fits3, "fitted")
-    pred_int = Predictor(fits3, "integrated")
+    pred_int = Predictor({**fits3, "IV": fint}, "integrated")
     t_max_iv = float(-1 / (3600 * fits["IV"]["b"][5]))   # h; model IV (as fitted) yield peaks here
     g = dd["grid"]
     grid = {"T": np.array(g["temperature_degC"], float), "p": np.array(g["pressure_bar"], float),
@@ -743,7 +905,7 @@ def main() -> int:
             "t": np.array(g["run_time_h"], float)}
 
     # joint (temperature, run time) support of the 30 design runs, scaled to similar magnitudes
-    hull = convex_hull(np.column_stack([(1 / x1 - T_OFFSET) / 100.0, t_h / 10.0]))
+    hull = convex_hull(np.column_stack([T_c / 100.0, t_h / 10.0]))   # S1 set points
     hull_txt = [[float(round(a * 100, 2)), float(round(b * 10, 2))] for a, b in hull]
 
     def search(pr, sm, tmax, ntop=10, hl=hull):
@@ -771,6 +933,11 @@ def main() -> int:
 
     main_s = search(pred, sigma_m, t_max_iv)
     best = main_s["top"][0]
+    dis_m = discrimination(pred, sigma_m, grid, S0_nom, window, t_max_iv, hull)
+    Dinf = np.minimum.reduce([(dis_m["pred"][a][0] - dis_m["pred"][b][0]) ** 2 /
+                              (dis_m["pred"][a][1] ** 2 + dis_m["pred"][b][1] ** 2)
+                              for a, b in PAIRS])
+    Dinf_best_feasible = float(np.max(np.where(dis_m["feasible"], Dinf, -1)))
 
     def replicates_needed(rec, target):
         """Smallest number of replicate runs n <= 12 for which every pair reaches D >= target."""
@@ -809,12 +976,15 @@ def main() -> int:
             break
     two_run["run_A_II_III_D_limit_infinite_replicates"] = float(
         (ma["y_ln_rate"] - mb["y_ln_rate"]) ** 2 / (ma["s_param"] ** 2 + mb["s_param"] ** 2))
-    two_run["run_A_integrated_reading"] = condition_record(
-        pred_int, sigma_m, run_a["T_degC"], run_a["p_bar"], run_a["catalyst_mmol_per_L"],
-        run_a["base_mmol_per_L"], run_a["run_time_h"], S0_nom)
-    two_run["run_B_integrated_reading"] = condition_record(
-        pred_int, sigma_m, run_b["T_degC"], run_b["p_bar"], run_b["catalyst_mmol_per_L"],
-        run_b["base_mmol_per_L"], run_b["run_time_h"], S0_nom)
+    two_run["model_IV_integrated_reading_refit"] = integrated_record
+    def int_point(r):
+        y_, _, yl_ = pred_int.predict("IV", r["T_degC"], r["p_bar"], r["catalyst_mmol_per_L"],
+                                      r["base_mmol_per_L"], r["run_time_h"], S0_nom)
+        return {"y_ln_rate": float(y_), "rate_mol_per_L_h": float(np.exp(y_)), "yield": float(yl_),
+                "note": "point prediction only (refit not identifiable, no D)"}
+
+    two_run["run_A_model_IV_integrated_refit"] = int_point(run_a)
+    two_run["run_B_model_IV_integrated_refit"] = int_point(run_b)
 
     dis_nh = discrimination(pred, sigma_m, grid, S0_nom, window, t_max_iv, None)
     outside = dis_nh["feasible"] & ~in_hull(hull, T / 100.0, Tt / 10.0)
@@ -826,11 +996,19 @@ def main() -> int:
         "run_B_outside_design_T_t_hull": run_b_outside_hull,
         "no_T_t_hull_restriction": brief(search(pred, sigma_m, t_max_iv, 1, None)["top"][0]),
         "no_run_time_limit_for_model_IV": brief(search(pred, sigma_m, np.inf, 1)["top"][0]),
-        "model_IV_integrated_reading": brief(search(pred_int, sigma_m, np.inf, 1)["top"][0]),
-        "single_run_under_integrated_reading": condition_record(
-            pred_int, sigma_m, best["T_degC"], best["p_bar"], best["catalyst_mmol_per_L"],
-            best["base_mmol_per_L"], best["run_time_h"], S0_nom),
+        "single_run_model_IV_integrated_refit": int_point(best),
     }
+    # model IV covariance scaled to MATLAB's robust sigma (non-gating sensitivity)
+    fiv_m = dict(fits["IV"], cov=fits["IV"]["cov"] * fits["IV"]["matlab_convention"]["cov_scale"])
+    pred_m = Predictor({**fits3, "IV": fiv_m}, "fitted")
+    rec_m = {k: condition_record(pred_m, sigma_m, r["T_degC"], r["p_bar"], r["catalyst_mmol_per_L"],
+                                 r["base_mmol_per_L"], r["run_time_h"], S0_nom)["D"]
+             for k, r in (("run_A", run_a), ("run_B", run_b), ("single_best", best))}
+    best_m = search(pred_m, sigma_m, t_max_iv, 1)["top"][0]
+    sens["model_IV_cov_matlab_sigma"] = {
+        "cov_scale": fits["IV"]["matlab_convention"]["cov_scale"], "D_at": rec_m,
+        "two_run_D_min": min(max(rec_m["run_A"][k], rec_m["run_B"][k]) for k in rec_m["run_A"]),
+        "best_single_run": brief(best_m)}
     sel_sigma = {f"{sm:.4g}": brief(search(pred, sm, t_max_iv, 1)["top"][0]) for sm in (0.1, 0.4)}
     sel_sigma[f"{sigma_m:.4g}"] = brief(best)
 
@@ -903,6 +1081,10 @@ def main() -> int:
         "feasible_points_with_D_min_ge_threshold": main_s["feasible_points_with_D_min_ge_threshold"],
         "selected_single_run": best,
         "single_run_replicates_for_D_min_ge_threshold": replicates_needed(best, thr),
+        "single_run_replicates_searched_up_to": 12,
+        "D_min_limit_infinite_replicates_best_feasible_grid_point": Dinf_best_feasible,
+        "leverage_max_fitting_data": {m: {"h": fits[m]["h_max_data"], "run": fits[m]["h_max_data_run"]}
+                                      for m in ("II", "III", "IV")},
         "two_run_design": two_run,
         "top10": main_s["top"], "best_per_pair": main_s["pair_best"],
         "selection_vs_sigma": sel_sigma, "sensitivity": sens,
@@ -919,6 +1101,7 @@ def main() -> int:
         "source_file_sha256": src["reference"]["files"][0]["sha256"],
         "versions": {"python": sys.version.split()[0], "numpy": np.__version__,
                      "pypdf": __import__("pypdf").__version__,
+                     "scipy": __import__("scipy").__version__,
                      "matplotlib": __import__("matplotlib").__version__},
         "verdict": verdict, "checks_passed": n_pass, "checks_total": len(checks),
         "checks": checks,
@@ -945,7 +1128,7 @@ def main() -> int:
     (RESULTS / "comparison.json").write_text(json.dumps(to_builtin(comparison), indent=1) + "\n")
 
     plt = setup_mpl()
-    data = {"y": y, "x1": x1, "x4": x4, "used": used}
+    data = {"y": y, "x1": x1, "x4": x4, "T_c": T_c, "used": used}
     fig_parity(plt, data, fits, ref_fitted)
     fig_design(plt, pred, pred_int, sigma_m, run_a, run_b, S0_nom, data, window, thr, t_max_iv, hull)
     fig_kinetics(plt, si, kin_res)
@@ -959,6 +1142,10 @@ def main() -> int:
               f"cat {r['catalyst_mmol_per_L']:.3g} mM, base {r['base_mmol_per_L']:.3g} mM, "
               f"{r['run_time_h']:.0f} h; D = " + ", ".join(f"{k} {v:.2f}" for k, v in r["D"].items()))
     print(f"two-run design D_min = {two_run['D_min']:.2f}")
+    print(f"model IV integrated form: reused coefficients RMSE "
+          f"{integrated_record['reused_coefficients_rmse_vs_measured_y']:.3f}, refit RMSE "
+          f"{integrated_record['refit_rmse_vs_measured_y']:.3f} (vs measured y, n = 24)")
+    print(f"model IV MATLAB-convention sigma {fits['IV']['matlab_convention']['s']:.5f}")
     return 0
 
 

@@ -9,6 +9,7 @@
   "python": "3.13.16",
   "numpy": "2.3.4",
   "pypdf": "5.1.0",
+  "scipy": "1.16.3",
   "matplotlib": "3.10.7"
  },
  "verdict": "fail",
@@ -1615,6 +1616,154 @@
    }
   },
   "model_IV_rmse_unweighted": 0.618126,
+  "model_IV_matlab_robust_sigma": {
+   "note": "non-gating: MATLAB robustfit/statrobustsigma convention applied to our final bisquare weights; the frozen RMSE check still compares the weighted RMSE",
+   "s": 0.657207,
+   "robust_s": 0.657207,
+   "ols_s": 0.617508,
+   "mad_s": 0.828675,
+   "cov_scale": 1.29938,
+   "reference_rmse": 0.657,
+   "s_deviation_rel": 0.000314784,
+   "se_scaled": [
+    4.15071,
+    7.74563,
+    0.0094118,
+    0.283281,
+    0.0721875,
+    9.10571e-06
+   ],
+   "se_scaled_deviation_rel_vs_SI": [
+    0.0284977,
+    0.0245952,
+    0.0157899,
+    0.0237082,
+    0.0226308,
+    0.030058
+   ]
+  },
+  "near_complete_runs_yield_ge_87pct": {
+   "runs": [
+    7,
+    10,
+    13,
+    14,
+    15,
+    21
+   ],
+   "yield_pct": [
+    94.83,
+    92.69,
+    92.34,
+    87.64,
+    89.34,
+    92.84
+   ],
+   "in_fitting_set": {
+    "II": [
+     7,
+     10,
+     13,
+     15,
+     21
+    ],
+    "III": [
+     10,
+     13,
+     14,
+     15,
+     21
+    ],
+    "IV": [
+     13,
+     14,
+     15,
+     21
+    ]
+   },
+   "note": "average rates of near-complete runs are lower bounds on the rate; the source regressed on them"
+  },
+  "model_IV_end_substrate_mass_balance": {
+   "note": "S_end reconstructed as S0 (1 - Y), i.e. 100 % mass balance; the source used GC-measured S_end and reports mass balances of 90-110 %. Shift of x5 = ln S_end if 10 % of S0 is added to S_end (the downward shift is unbounded at Y >= 0.9)",
+   "runs": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    8,
+    9,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    23,
+    24,
+    26,
+    27,
+    29
+   ],
+   "yield": [
+    0.3722,
+    0.362,
+    0.43,
+    0.3945,
+    0.309,
+    0.0698,
+    0.7024,
+    0.2917,
+    0.5848,
+    0.0023,
+    0.9234,
+    0.8764,
+    0.8934,
+    0.0436,
+    0.0066,
+    0.0644,
+    0.214,
+    0.0011,
+    0.9284,
+    0.0793,
+    0.1078,
+    0.3318,
+    0.0224,
+    0.0011
+   ],
+   "dx5_plus_10pct_S0": [
+    0.147805,
+    0.145606,
+    0.161641,
+    0.152852,
+    0.135158,
+    0.102109,
+    0.289696,
+    0.132066,
+    0.215795,
+    0.0955197,
+    0.83529,
+    0.592808,
+    0.661701,
+    0.0994459,
+    0.095914,
+    0.101548,
+    0.11976,
+    0.0954103,
+    0.874071,
+    0.10311,
+    0.106234,
+    0.139463,
+    0.097391,
+    0.0954103
+   ]
+  },
   "model_IV_zero_weight_runs": []
  },
  "extension": {
@@ -1634,7 +1783,7 @@
   "model_IV_run_time_limit_h": 7.47104,
   "design_T_t_hull_degC_h": [
    [
-    30.04,
+    30.0,
     19.8
    ],
    [
@@ -1642,15 +1791,15 @@
     7.97
    ],
    [
-    100.01,
+    100.0,
     1.67
    ],
    [
-    100.01,
+    100.0,
     22.43
    ],
    [
-    30.04,
+    30.0,
     27.78
    ]
   ],
@@ -1701,9 +1850,48 @@
     "II-IV": 2.14412,
     "III-IV": 6.7343
    },
-   "D_min": 1.65634
+   "D_min": 1.65634,
+   "D_limit_infinite_replicates": {
+    "II-III": 3.16748,
+    "II-IV": 3.59188,
+    "III-IV": 10.9918
+   },
+   "D_min_limit_infinite_replicates": 3.16748,
+   "leverage": {
+    "II": {
+     "h": 0.297182,
+     "h_max_fitting_data": 0.569458,
+     "hidden_extrapolation": false
+    },
+    "III": {
+     "h": 0.312906,
+     "h_max_fitting_data": 0.447903,
+     "hidden_extrapolation": false
+    },
+    "IV": {
+     "h": 0.288496,
+     "h_max_fitting_data": 0.544817,
+     "hidden_extrapolation": false
+    }
+   }
   },
   "single_run_replicates_for_D_min_ge_threshold": null,
+  "single_run_replicates_searched_up_to": 12,
+  "D_min_limit_infinite_replicates_best_feasible_grid_point": 3.16748,
+  "leverage_max_fitting_data": {
+   "II": {
+    "h": 0.569458,
+    "run": 29
+   },
+   "III": {
+    "h": 0.447903,
+    "run": 29
+   },
+   "IV": {
+    "h": 0.544817,
+    "run": 29
+   }
+  },
   "two_run_design": {
    "run_A": {
     "T_degC": 100.0,
@@ -1749,7 +1937,30 @@
      "II-IV": 0.0133058,
      "III-IV": 4.25937
     },
-    "D_min": 0.0133058
+    "D_min": 0.0133058,
+    "D_limit_infinite_replicates": {
+     "II-III": 6.4412,
+     "II-IV": 0.0192402,
+     "III-IV": 6.16332
+    },
+    "D_min_limit_infinite_replicates": 0.0192402,
+    "leverage": {
+     "II": {
+      "h": 0.571142,
+      "h_max_fitting_data": 0.569458,
+      "hidden_extrapolation": true
+     },
+     "III": {
+      "h": 0.497474,
+      "h_max_fitting_data": 0.447903,
+      "hidden_extrapolation": true
+     },
+     "IV": {
+      "h": 0.36089,
+      "h_max_fitting_data": 0.544817,
+      "hidden_extrapolation": false
+     }
+    }
    },
    "run_B": {
     "T_degC": 100.0,
@@ -1795,7 +2006,30 @@
      "II-IV": 36.0962,
      "III-IV": 30.6752
     },
-    "D_min": 0.147075
+    "D_min": 0.147075,
+    "D_limit_infinite_replicates": {
+     "II-III": 0.269676,
+     "II-IV": 71.7834,
+     "III-IV": 59.5735
+    },
+    "D_min_limit_infinite_replicates": 0.269676,
+    "leverage": {
+     "II": {
+      "h": 0.343245,
+      "h_max_fitting_data": 0.569458,
+      "hidden_extrapolation": false
+     },
+     "III": {
+      "h": 0.326709,
+      "h_max_fitting_data": 0.447903,
+      "hidden_extrapolation": false
+     },
+     "IV": {
+      "h": 0.529733,
+      "h_max_fitting_data": 0.544817,
+      "hidden_extrapolation": false
+     }
+    }
    },
    "D_pair_best_of_two": {
     "II-III": 4.22608,
@@ -1806,97 +2040,124 @@
    "separates_all_pairs": true,
    "run_A_replicates_for_II_III_D_ge_9": null,
    "run_A_II_III_D_limit_infinite_replicates": 6.4412,
-   "run_A_integrated_reading": {
-    "T_degC": 100.0,
-    "p_bar": 10.0,
-    "catalyst_mmol_per_L": 0.25,
-    "base_mmol_per_L": 0.133229,
-    "run_time_h": 7.0,
-    "S0_mol_per_L": 1.2551,
-    "models": {
-     "II": {
-      "y_ln_rate": -4.56147,
-      "s_param": 0.292241,
-      "band_95_y": [
-       -5.2683,
-       -3.85464
+   "model_IV_integrated_reading_refit": {
+    "form": "y = ln(S0 Y / t), Y = 1 - exp(-g0 expm1(k t) / k), k = 3600 b6 (source Eq. 14 integrated)",
+    "runs": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     8,
+     9,
+     11,
+     12,
+     13,
+     14,
+     15,
+     16,
+     17,
+     18,
+     19,
+     20,
+     21,
+     23,
+     24,
+     26,
+     27,
+     29
+    ],
+    "as_fitted_form_rmse_vs_measured_y": 0.535313,
+    "as_fitted_form_max_abs_residual": 1.22118,
+    "reused_coefficients_rmse_vs_measured_y": 1.25263,
+    "reused_coefficients_max_abs_residual": 2.2438,
+    "refit_method": "unweighted nonlinear least squares (Levenberg-Marquardt), same 24 runs, per-run reconstructed S0",
+    "refit_terms": [
+     "Intercept",
+     "Ea_kJ_per_mol",
+     "x2",
+     "x3",
+     "x4",
+     "x6_per_s"
+    ],
+    "refit_b": [
+     35.1466,
+     42.285,
+     0.0338686,
+     1.76826,
+     1.02395,
+     -0.000970908
+    ],
+    "refit_se": [
+     982996.0,
+     4.41691,
+     0.00699243,
+     0.196382,
+     0.0536439,
+     954.399
+    ],
+    "refit_rmse_dfe": 0.417953,
+    "refit_dfe": 18,
+    "refit_rmse_vs_measured_y": 0.361958,
+    "refit_max_abs_residual": 0.808781,
+    "refit_deactivation_time_constant_h": 0.286101,
+    "refit_corr_intercept_b6": -1.0,
+    "refit_ln_g0_over_k": 33.8952,
+    "refit_ln_g0_over_k_se": 2.81183,
+    "refit_by_start": [
+     {
+      "start": [
+       31.3998,
+       39.1221,
+       0.0349067,
+       1.58925,
+       1.08869,
+       -3.71806e-05
       ],
-      "rate_mol_per_L_h": 0.0104467,
-      "yield": 0.0582638
+      "b": [
+       35.1055,
+       42.285,
+       0.0338686,
+       1.76826,
+       1.02395,
+       -0.000931761
+      ],
+      "rmse_dfe": 0.417953
      },
-     "III": {
-      "y_ln_rate": -5.609,
-      "s_param": 0.291472,
-      "band_95_y": [
-       -6.31461,
-       -4.90339
+     {
+      "start": [
+       31.3998,
+       39.1221,
+       0.0349067,
+       1.58925,
+       1.08869,
+       0.0
       ],
-      "rate_mol_per_L_h": 0.00366473,
-      "yield": 0.020439
-     },
-     "IV": {
-      "y_ln_rate": -3.98486,
-      "s_param": 0.413111,
-      "band_95_y": [
-       -4.89432,
-       -3.07539
+      "b": [
+       35.1466,
+       42.285,
+       0.0338686,
+       1.76826,
+       1.02395,
+       -0.000970908
       ],
-      "rate_mol_per_L_h": 0.0185951,
-      "yield": 0.103709
+      "rmse_dfe": 0.417953
      }
-    },
-    "D": {
-     "II-III": 4.22608,
-     "II-IV": 0.9627,
-     "III-IV": 7.64787
-    },
-    "D_min": 0.9627
+    ],
+    "reading": "the refit is not identifiable: the catalyst dies within about 0.3 h, so every run is read as finished long before it was stopped and only ln(g0/|k|) (the final yield) is determined; the run-time term then acts as a pure 1/t. Linear prediction variances are meaningless, so no D values are computed from this reading; only point predictions are reported"
    },
-   "run_B_integrated_reading": {
-    "T_degC": 100.0,
-    "p_bar": 10.0,
-    "catalyst_mmol_per_L": 0.0992126,
-    "base_mmol_per_L": 12.5,
-    "run_time_h": 2.0,
-    "S0_mol_per_L": 1.2551,
-    "models": {
-     "II": {
-      "y_ln_rate": -3.62156,
-      "s_param": 0.226553,
-      "band_95_y": [
-       -4.22876,
-       -3.01436
-      ],
-      "rate_mol_per_L_h": 0.0267409,
-      "yield": 0.0426114
-     },
-     "III": {
-      "y_ln_rate": -3.4516,
-      "s_param": 0.236207,
-      "band_95_y": [
-       -4.07277,
-       -2.83042
-      ],
-      "rate_mol_per_L_h": 0.031695,
-      "yield": 0.0505057
-     },
-     "IV": {
-      "y_ln_rate": -0.760404,
-      "s_param": 0.213289,
-      "band_95_y": [
-       -1.34886,
-       -0.171947
-      ],
-      "rate_mol_per_L_h": 0.467477,
-      "yield": 0.744923
-     }
-    },
-    "D": {
-     "II-III": 0.147075,
-     "II-IV": 43.985,
-     "III-IV": 38.0023
-    },
-    "D_min": 0.147075
+   "run_A_model_IV_integrated_refit": {
+    "y_ln_rate": -4.90433,
+    "rate_mol_per_L_h": 0.00741443,
+    "yield": 0.041352,
+    "note": "point prediction only (refit not identifiable, no D)"
+   },
+   "run_B_model_IV_integrated_refit": {
+    "y_ln_rate": -1.01533,
+    "rate_mol_per_L_h": 0.362281,
+    "yield": 0.577293,
+    "note": "point prediction only (refit not identifiable, no D)"
    }
   },
   "top10": [
@@ -1944,7 +2205,30 @@
      "II-IV": 2.14412,
      "III-IV": 6.7343
     },
-    "D_min": 1.65634
+    "D_min": 1.65634,
+    "D_limit_infinite_replicates": {
+     "II-III": 3.16748,
+     "II-IV": 3.59188,
+     "III-IV": 10.9918
+    },
+    "D_min_limit_infinite_replicates": 3.16748,
+    "leverage": {
+     "II": {
+      "h": 0.297182,
+      "h_max_fitting_data": 0.569458,
+      "hidden_extrapolation": false
+     },
+     "III": {
+      "h": 0.312906,
+      "h_max_fitting_data": 0.447903,
+      "hidden_extrapolation": false
+     },
+     "IV": {
+      "h": 0.288496,
+      "h_max_fitting_data": 0.544817,
+      "hidden_extrapolation": false
+     }
+    }
    },
    {
     "T_degC": 100.0,
@@ -1990,7 +2274,30 @@
      "II-IV": 1.65801,
      "III-IV": 5.95972
     },
-    "D_min": 1.58355
+    "D_min": 1.58355,
+    "D_limit_infinite_replicates": {
+     "II-III": 2.73854,
+     "II-IV": 2.64218,
+     "III-IV": 9.36755
+    },
+    "D_min_limit_infinite_replicates": 2.64218,
+    "leverage": {
+     "II": {
+      "h": 0.390219,
+      "h_max_fitting_data": 0.569458,
+      "hidden_extrapolation": false
+     },
+     "III": {
+      "h": 0.375219,
+      "h_max_fitting_data": 0.447903,
+      "hidden_extrapolation": false
+     },
+     "IV": {
+      "h": 0.322849,
+      "h_max_fitting_data": 0.544817,
+      "hidden_extrapolation": false
+     }
+    }
    },
    {
     "T_degC": 100.0,
@@ -2036,7 +2343,30 @@
      "II-IV": 2.37402,
      "III-IV": 7.09532
     },
-    "D_min": 1.58355
+    "D_min": 1.58355,
+    "D_limit_infinite_replicates": {
+     "II-III": 2.73854,
+     "II-IV": 3.67532,
+     "III-IV": 10.8525
+    },
+    "D_min_limit_infinite_replicates": 2.73854,
+    "leverage": {
+     "II": {
+      "h": 0.390219,
+      "h_max_fitting_data": 0.569458,
+      "hidden_extrapolation": false
+     },
+     "III": {
+      "h": 0.375219,
+      "h_max_fitting_data": 0.447903,
+      "hidden_extrapolation": false
+     },
+     "IV": {
+      "h": 0.359991,
+      "h_max_fitting_data": 0.544817,
+      "hidden_extrapolation": false
+     }
+    }
    },
    {
     "T_degC": 100.0,
@@ -2082,7 +2412,30 @@
      "II-IV": 1.57994,
      "III-IV": 5.66361
     },
-    "D_min": 1.40576
+    "D_min": 1.40576,
+    "D_limit_infinite_replicates": {
+     "II-III": 2.1824,
+     "II-IV": 2.36101,
+     "III-IV": 8.39365
+    },
+    "D_min_limit_infinite_replicates": 2.1824,
+    "leverage": {
+     "II": {
+      "h": 0.524994,
+      "h_max_fitting_data": 0.569458,
+      "hidden_extrapolation": false
+     },
+     "III": {
+      "h": 0.48676,
+      "h_max_fitting_data": 0.447903,
+      "hidden_extrapolation": true
+     },
+     "IV": {
+      "h": 0.372938,
+      "h_max_fitting_data": 0.544817,
+      "hidden_extrapolation": false
+     }
+    }
    },
    {
     "T_degC": 100.0,
@@ -2128,7 +2481,30 @@
      "II-IV": 2.311,
      "III-IV": 6.7782
     },
-    "D_min": 1.40576
+    "D_min": 1.40576,
+    "D_limit_infinite_replicates": {
+     "II-III": 2.1824,
+     "II-IV": 3.34222,
+     "III-IV": 9.73452
+    },
+    "D_min_limit_infinite_replicates": 2.1824,
+    "leverage": {
+     "II": {
+      "h": 0.524994,
+      "h_max_fitting_data": 0.569458,
+      "hidden_extrapolation": false
+     },
+     "III": {
+      "h": 0.48676,
+      "h_max_fitting_data": 0.447903,
+      "hidden_extrapolation": true
+     },
+     "IV": {
+      "h": 0.417874,
+      "h_max_fitting_data": 0.544817,
+      "hidden_extrapolation": false
+     }
+    }
    },
    {
     "T_degC": 95.0,
@@ -2174,7 +2550,30 @@
      "II-IV": 2.02324,
      "III-IV": 6.07423
     },
-    "D_min": 1.37445
+    "D_min": 1.37445,
+    "D_limit_infinite_replicates": {
+     "II-III": 2.42677,
+     "II-IV": 3.18756,
+     "III-IV": 9.42403
+    },
+    "D_min_limit_infinite_replicates": 2.42677,
+    "leverage": {
+     "II": {
+      "h": 0.367401,
+      "h_max_fitting_data": 0.569458,
+      "hidden_extrapolation": false
+     },
+     "III": {
+      "h": 0.361242,
+      "h_max_fitting_data": 0.447903,
+      "hidden_extrapolation": false
+     },
+     "IV": {
+      "h": 0.340103,
+      "h_max_fitting_data": 0.544817,
+      "hidden_extrapolation": false
+     }
+    }
    },
    {
     "T_degC": 95.0,
@@ -2220,7 +2619,30 @@
      "II-IV": 2.76708,
      "III-IV": 7.15927
     },
-    "D_min": 1.37445
+    "D_min": 1.37445,
+    "D_limit_infinite_replicates": {
+     "II-III": 2.42677,
+     "II-IV": 4.22998,
+     "III-IV": 10.7987
+    },
+    "D_min_limit_infinite_replicates": 2.42677,
+    "leverage": {
+     "II": {
+      "h": 0.367401,
+      "h_max_fitting_data": 0.569458,
+      "hidden_extrapolation": false
+     },
+     "III": {
+      "h": 0.361242,
+      "h_max_fitting_data": 0.447903,
+      "hidden_extrapolation": false
+     },
+     "IV": {
+      "h": 0.380795,
+      "h_max_fitting_data": 0.544817,
+      "hidden_extrapolation": false
+     }
+    }
    },
    {
     "T_degC": 100.0,
@@ -2266,7 +2688,30 @@
      "II-IV": 1.54152,
      "III-IV": 6.53533
     },
-    "D_min": 1.3692
+    "D_min": 1.3692,
+    "D_limit_infinite_replicates": {
+     "II-III": 2.0388,
+     "II-IV": 2.5929,
+     "III-IV": 11.0802
+    },
+    "D_min_limit_infinite_replicates": 2.0388,
+    "leverage": {
+     "II": {
+      "h": 0.618974,
+      "h_max_fitting_data": 0.569458,
+      "hidden_extrapolation": true
+     },
+     "III": {
+      "h": 0.527219,
+      "h_max_fitting_data": 0.447903,
+      "hidden_extrapolation": true
+     },
+     "IV": {
+      "h": 0.427181,
+      "h_max_fitting_data": 0.544817,
+      "hidden_extrapolation": false
+     }
+    }
    },
    {
     "T_degC": 95.0,
@@ -2312,7 +2757,30 @@
      "II-IV": 1.36832,
      "III-IV": 5.01536
     },
-    "D_min": 1.36832
+    "D_min": 1.36832,
+    "D_limit_infinite_replicates": {
+     "II-III": 2.42677,
+     "II-IV": 2.21809,
+     "III-IV": 7.9903
+    },
+    "D_min_limit_infinite_replicates": 2.21809,
+    "leverage": {
+     "II": {
+      "h": 0.367401,
+      "h_max_fitting_data": 0.569458,
+      "hidden_extrapolation": false
+     },
+     "III": {
+      "h": 0.361242,
+      "h_max_fitting_data": 0.447903,
+      "hidden_extrapolation": false
+     },
+     "IV": {
+      "h": 0.304097,
+      "h_max_fitting_data": 0.544817,
+      "hidden_extrapolation": false
+     }
+    }
    },
    {
     "T_degC": 100.0,
@@ -2358,7 +2826,30 @@
      "II-IV": 1.28439,
      "III-IV": 4.97166
     },
-    "D_min": 1.23903
+    "D_min": 1.23903,
+    "D_limit_infinite_replicates": {
+     "II-III": 1.78493,
+     "II-IV": 1.85235,
+     "III-IV": 7.11957
+    },
+    "D_min_limit_infinite_replicates": 1.78493,
+    "leverage": {
+     "II": {
+      "h": 0.661801,
+      "h_max_fitting_data": 0.569458,
+      "hidden_extrapolation": true
+     },
+     "III": {
+      "h": 0.607306,
+      "h_max_fitting_data": 0.447903,
+      "hidden_extrapolation": true
+     },
+     "IV": {
+      "h": 0.390717,
+      "h_max_fitting_data": 0.544817,
+      "hidden_extrapolation": false
+     }
+    }
    }
   ],
   "best_per_pair": {
@@ -2459,6 +2950,29 @@
      "III-IV": 41.2198
     },
     "D_min": 0.1604,
+    "D_limit_infinite_replicates": {
+     "II-III": 0.443775,
+     "II-IV": 104.198,
+     "III-IV": 91.5777
+    },
+    "D_min_limit_infinite_replicates": 0.443775,
+    "leverage": {
+     "II": {
+      "h": 0.164995,
+      "h_max_fitting_data": 0.569458,
+      "hidden_extrapolation": false
+     },
+     "III": {
+      "h": 0.151498,
+      "h_max_fitting_data": 0.447903,
+      "hidden_extrapolation": false
+     },
+     "IV": {
+      "h": 0.605077,
+      "h_max_fitting_data": 0.544817,
+      "hidden_extrapolation": true
+     }
+    },
     "extrapolated_factors": [
      "temperature-run time combination"
     ]
@@ -2479,59 +2993,40 @@
     "run_time_h": 16.0,
     "D_min": 1.77846
    },
-   "model_IV_integrated_reading": {
-    "T_degC": 100.0,
-    "p_bar": 20.0,
-    "catalyst_mmol_per_L": 0.25,
-    "base_mmol_per_L": 0.133229,
-    "run_time_h": 5.0,
-    "D_min": 2.40468
+   "single_run_model_IV_integrated_refit": {
+    "y_ln_rate": -4.62151,
+    "rate_mol_per_L_h": 0.00983793,
+    "yield": 0.0548684,
+    "note": "point prediction only (refit not identifiable, no D)"
    },
-   "single_run_under_integrated_reading": {
-    "T_degC": 100.0,
-    "p_bar": 30.0,
-    "catalyst_mmol_per_L": 0.25,
-    "base_mmol_per_L": 0.0912514,
-    "run_time_h": 7.0,
-    "S0_mol_per_L": 1.2551,
-    "models": {
-     "II": {
-      "y_ln_rate": -4.92282,
-      "s_param": 0.210804,
-      "band_95_y": [
-       -5.50783,
-       -4.33782
-      ],
-      "rate_mol_per_L_h": 0.00727856,
-      "yield": 0.0405942
+   "model_IV_cov_matlab_sigma": {
+    "cov_scale": 1.29938,
+    "D_at": {
+     "run_A": {
+      "II-III": 4.22608,
+      "II-IV": 0.0118937,
+      "III-IV": 3.80672
      },
-     "III": {
-      "y_ln_rate": -5.47961,
-      "s_param": 0.231163,
-      "band_95_y": [
-       -6.09345,
-       -4.86577
-      ],
-      "rate_mol_per_L_h": 0.00417094,
-      "yield": 0.0232623
+     "run_B": {
+      "II-III": 0.147075,
+      "II-IV": 33.8934,
+      "III-IV": 28.8459
      },
-     "IV": {
-      "y_ln_rate": -3.71649,
-      "s_param": 0.36755,
-      "band_95_y": [
-       -4.54745,
-       -2.88553
-      ],
-      "rate_mol_per_L_h": 0.0243192,
-      "yield": 0.135634
+     "single_best": {
+      "II-III": 1.65634,
+      "II-IV": 1.91669,
+      "III-IV": 6.04501
      }
     },
-    "D": {
-     "II-III": 1.65634,
-     "II-IV": 5.4133,
-     "III-IV": 11.1891
-    },
-    "D_min": 1.65634
+    "two_run_D_min": 4.22608,
+    "best_single_run": {
+     "T_degC": 100.0,
+     "p_bar": 30.0,
+     "catalyst_mmol_per_L": 0.25,
+     "base_mmol_per_L": 0.0912514,
+     "run_time_h": 7.0,
+     "D_min": 1.65634
+    }
    }
   },
   "at_run_A": {
@@ -2565,7 +3060,7 @@
     "as_fitted_max_yield": 0.0621153,
     "as_fitted_at_h": 7.47,
     "t_max_h": 7.47104,
-    "integrated_yield_limit_200h": 0.164754
+    "integrated_yield_limit_200h": 0.041352
    }
   },
   "best_existing_run": {
@@ -2956,6 +3451,29 @@
     "III-IV": 19.9817
    },
    "D_min": 3.9717,
+   "D_limit_infinite_replicates": {
+    "II-III": 5.35426,
+    "II-IV": 5.65345,
+    "III-IV": 29.1741
+   },
+   "D_min_limit_infinite_replicates": 5.35426,
+   "leverage": {
+    "II": {
+     "h": 1.07138,
+     "h_max_fitting_data": 0.569458,
+     "hidden_extrapolation": true
+    },
+    "III": {
+     "h": 0.563979,
+     "h_max_fitting_data": 0.447903,
+     "hidden_extrapolation": true
+    },
+    "IV": {
+     "h": 0.505293,
+     "h_max_fitting_data": 0.544817,
+     "hidden_extrapolation": false
+    }
+   },
    "extrapolated_factors": [
     "temperature",
     "catalyst",
@@ -3007,6 +3525,29 @@
     "III-IV": 0.599989
    },
    "D_min": 0.599989,
+   "D_limit_infinite_replicates": {
+    "II-III": 6.4412,
+    "II-IV": 1.9892,
+    "III-IV": 0.868187
+   },
+   "D_min_limit_infinite_replicates": 0.868187,
+   "leverage": {
+    "II": {
+     "h": 0.571142,
+     "h_max_fitting_data": 0.569458,
+     "hidden_extrapolation": true
+    },
+    "III": {
+     "h": 0.497474,
+     "h_max_fitting_data": 0.447903,
+     "hidden_extrapolation": true
+    },
+    "IV": {
+     "h": 0.36089,
+     "h_max_fitting_data": 0.544817,
+     "hidden_extrapolation": false
+    }
+   },
    "extrapolated_factors": [
     "substrate"
    ]
