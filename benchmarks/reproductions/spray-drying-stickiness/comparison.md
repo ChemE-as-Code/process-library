@@ -9,18 +9,31 @@
   `git diff 0f6f7b49 HEAD -- tolerances.yaml` is empty.
 - **Run:** `uv run benchmarks/reproductions/spray-drying-stickiness/run.py` from the repository
   root, 2026-11-04. uv chose Python 3.13.16 with numpy 2.3.4, scipy 1.16.3, matplotlib 3.10.7 and
-  pyyaml 6.0.3. The model uses 150 radial cells, BDF with rtol 1e-6. Wall time is about 15 s.
+  pyyaml 6.0.3; the full resolved set (13 packages) is in `comparison.json` and `run.py.lock`. The model uses 150 radial cells, BDF with rtol 1e-6. Wall time is about 15 s.
   Two runs give byte-identical `results/`.
 - **Order:**
   1. Commit 0f6f7b49 freezes the sources, inputs and tolerances.
   2. Commit aff3efd3 holds the first comparison run, with its script and results.
-  3. Commit 83d4e0da holds the second run, the one reported here.
-  The script changed between the two runs in three ways, none of which touches an input or a
+  3. Commit 83d4e0da holds the second run.
+  The script changed between the first two runs in three ways, none of which touches an input or a
   tolerance:
   - The cell state became solute content per cell instead of volume fraction (see I1 below).
   - Post-hoc diagnostics were added (not scored).
   - Figure labels were fixed.
   Every scored physical value is unchanged to four significant digits between the runs.
+  4. A later commit applies the review of the case and holds the run reported here. It changes no input value and no tolerance,
+     and no scored physical value changes. The changes:
+     - I1 is now evaluated after every run, as frozen ("max over all runs"): reproduction, grid
+       check, brackets, extension and post-hoc diagnostics, 37 runs. It was 8.3e-15 over the
+       reproduction runs only; it is 1.3e-14 over all runs.
+     - A check that cannot be evaluated now reports status `gap` (none does here), as the
+       frozen pass_rule requires.
+     - The script header sets `exclude-newer`, `run.py.lock` pins the transitive dependencies,
+       and `comparison.json` records the resolved package list.
+     - In `inputs.yaml`, the thesis model's closures are relabelled from measured to
+       reconstructed (assumed for case A), and the extension's stickiness criterion and
+       bouncing-onset factor to assumed. The extension's factor 4 became the range 3.5-5.5.
+       Only the extension uses these entries.
 
 ## Result: FAIL under the frozen rule
 
@@ -39,7 +52,7 @@ group A, and B1-B4 in group B. The first run was also FAIL; in that run I1 faile
 | B4 t_glass, 20 wt%, 45 °C | 15.5 s | 11.3 s | -27.3 % | rel 25 % | **fail** |
 | B5 t_glass, 20 wt%, 65 °C | 10.3 s | 7.98 s | -22.5 % | rel 25 % | pass |
 | B6 t_glass(30 wt%) / t_glass(10 wt%), 25 °C | 0.221 | 0.237 | +0.016 | abs 0.05 | pass |
-| I1 solute mass conservation, all runs | - | 8.3e-15 | - | rel 1e-6 | pass |
+| I1 solute mass conservation, all runs | - | 1.3e-14 (37 runs) | - | rel 1e-6 | pass |
 | I2 grid convergence, 150 vs 300 cells | - | 0.27 % (B), 0.01 % (A) | - | rel 2 % | pass |
 | I3 t_full closure of the gas-velocity reconstruction | - | 2.6e-14 | - | rel 1e-3 | pass |
 
@@ -72,8 +85,9 @@ t / t_full.
 | 20 wt%, 65 °C | 0.79 ± 0.06 | 0.39 | 0.30 |
 
 In the nitrogen jet, both models put the surface glass transition well before the measured
-locking point: by 11 to 60 % in the thesis model and by 43 to 73 % in ours. The thesis reaches
-the same conclusion: locking is not the surface glass transition.
+locking point: by 11 to 60 % in the thesis model and by 43 to 73 % in ours. This agrees with the
+thesis's description of the locking point (4.3.4, p. 51): there, the skin has reached a strength
+that resists further shrinking while the surface is still wet.
 
 ## Deviations and explanations
 
@@ -133,8 +147,8 @@ the same conclusion: locking is not the surface glass transition.
 ## Gaps found (reported, not fixed here)
 
 - The measured d(t) curve is only in a figure (OCT Fig. 2b). We compared three stated features
-  (initial rate, locking time, locked radius), not the curve. Digitising the figure would add an
-  uncertainty of about ±2 % of full scale and was not needed for the scored checks.
+  (initial rate, locking time, locked radius), not the curve. The figure was not digitised, so
+  no digitisation uncertainty was assessed.
 - The time origin of the OCT data is ambiguous by about 9 s (imaging started about 9 s after
   dispensing).
 - Thesis Table 5.1 rows for the falling droplet column cannot be reproduced: the initial diameter

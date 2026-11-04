@@ -3,7 +3,12 @@
 #   measured      - a measured condition or property stated in a pinned source (source.yaml)
 #   reconstructed - derived by us from stated facts, or a reading of a garbled/ambiguous source
 #                   equation, with the reasoning given
+#                   (also: a model specification of the reference model, adopted by us; it is a
+#                   modelling choice of the source, not a measurement)
 #   assumed       - our choice, with the rationale; not taken from the sources
+# Labels revised after the second run (review of the case, 2026-11-04): the model closures of
+# the thesis were first labelled measured; they are model specifications, so they are now
+# reconstructed (cases B and extension) and assumed when applied to case A. No value changed.
 # "OCT" = Sewalt et al. 2022 (Food Res. Int. 157, 111049); "thesis" = Sewalt 2024 (TU Delft).
 # Committed with tolerances.yaml before the first comparison run (order is evidence, ADR 0030).
 
@@ -28,7 +33,7 @@ material:
   density_water: {value: 998, unit: kg/m3, label: measured, source: "thesis Table 5.2"}
   cp_solute: {value: 1500, unit: J/kg/K, label: measured, source: "thesis Table 5.2"}
   cp_water: {value: 4186, unit: J/kg/K, label: measured, source: "thesis Table 5.2"}
-  mixing: {value: ideal (additive volumes), label: measured, source: "thesis 5.6.2 and eq. A.49 (model assumption stated there)"}
+  mixing: {value: ideal (additive volumes), label: reconstructed, source: "thesis 5.6.2 and eq. A.49", rationale: "model specification of the reference (thesis 5.6.2), adopted"}
   glass_transition:
     Tg_solute: {value: 425, unit: K, label: measured, source: "thesis Table 5.2 (MD12)"}
     Tg_water: {value: 134, unit: K, label: measured, source: "thesis Table 5.2"}
@@ -36,11 +41,11 @@ material:
     dCp_water: {value: 1.92, unit: kJ/kg/K, label: measured, source: "thesis Table 5.2"}
     gordon_taylor_k: {value: "dCp_water / dCp_solute = 4.507", unit: "-", label: reconstructed, source: "thesis eqs. A.54-A.55: k is the ratio of the heat-capacity steps; species 1 = solute, 2 = water"}
   water_activity:
-    model: {value: GAB, label: measured, source: "thesis eq. A.6"}
+    model: {value: GAB, label: reconstructed, source: "thesis eq. A.6", rationale: "model specification of the reference (thesis 5.6.2), adopted"}
     w_m: {value: 0.0510, unit: kg water/kg solids, label: measured, source: "thesis Table 5.4"}
     k: {value: 0.92, unit: "-", label: measured, source: "thesis Table 5.4"}
     c: {value: 16.91, unit: "-", label: measured, source: "thesis Table 5.4"}
-    temperature_dependence: {value: none, label: measured, source: "thesis Table 5.4 gives constant parameters"}
+    temperature_dependence: {value: none, label: reconstructed, source: "thesis Table 5.4 gives constant parameters", rationale: "model specification of the reference (thesis 5.6.2), adopted"}
     cap_at_one:
       value: "a_w = min(a_GAB(w), 1)"
       label: reconstructed
@@ -68,7 +73,7 @@ material:
       label: reconstructed
       rationale: "eq. A.56 as printed weights WLF at low solids; SMT is stated to hold in the dilute regime, so the sign of the exponent is read as reversed"
   diffusivity:
-    model: {value: "generalised Darken with free-volume water self-diffusion and Stokes-Einstein solute self-diffusion", label: measured, source: "thesis eqs. A.57-A.60"}
+    model: {value: "generalised Darken with free-volume water self-diffusion and Stokes-Einstein solute self-diffusion", label: reconstructed, source: "thesis eqs. A.57-A.60", rationale: "model specification of the reference (thesis 5.6.2), adopted"}
     D0_water:
       value: 1.48e-7
       unit: m2/s
@@ -95,13 +100,13 @@ material:
     air_conductivity: {value: "thesis eq. A.17", unit: W/m/K, label: measured}
     air_cp: {value: "thesis eq. A.20", unit: J/kg/K, label: measured}
     air_density: {value: "ideal gas, dry air, at film temperature", unit: kg/m3, label: assumed, rationale: "thesis uses the ideal gas law for vapour; air density by the same rule"}
-    film_temperature: {value: "(T_surface + T_gas)/2", unit: K, label: measured, source: "thesis 5.6.2"}
-    sherwood: {value: "2 + 0.6 Re^0.5 Sc^(1/3)", label: measured, source: "thesis eq. A.11"}
-    nusselt: {value: "2 + 0.4 Re^0.5 Pr^(1/3)", label: measured, source: "thesis eq. A.18 as printed"}
-    vapour_flux: {value: "A beta M_w (a_w Psat(T_d) - RH Psat(T_gas)) / (R T_film)", label: measured, source: "thesis eqs. A.4-A.9 (low-flux, no Stefan correction)"}
+    film_temperature: {value: "(T_surface + T_gas)/2", unit: K, label: reconstructed, source: "thesis 5.6.2", rationale: "model specification of the reference (thesis 5.6.2), adopted"}
+    sherwood: {value: "2 + 0.6 Re^0.5 Sc^(1/3)", label: reconstructed, source: "thesis eq. A.11", rationale: "model specification of the reference (thesis 5.6.2), adopted"}
+    nusselt: {value: "2 + 0.4 Re^0.5 Pr^(1/3)", label: reconstructed, source: "thesis eq. A.18 as printed", rationale: "model specification of the reference (thesis 5.6.2), adopted"}
+    vapour_flux: {value: "A beta M_w (a_w Psat(T_d) - RH Psat(T_gas)) / (R T_film)", label: reconstructed, source: "thesis eqs. A.4-A.9 (low-flux, no Stefan correction)", rationale: "model specification of the reference (thesis 5.6.2), adopted"}
     saturation_pressure: {value: "Antoine, thesis Table 5.3", unit: Pa, label: measured}
-  internal_temperature: {value: uniform, label: measured, source: "thesis 5.6.2 (Biot < 0.01)"}
-  internal_flow: {value: none, label: measured, source: "thesis 5.6.2 (diffusion only); the OCT droplet has Marangoni flow of about 20 um/s, a known deviation"}
+  internal_temperature: {value: uniform, label: reconstructed, source: "thesis 5.6.2 (Biot < 0.01)", rationale: "model specification of the reference (thesis 5.6.2), adopted"}
+  internal_flow: {value: none, label: reconstructed, source: "thesis 5.6.2 (diffusion only)", rationale: "model specification of the reference (thesis 5.6.2), adopted; the measured OCT droplet recirculates at about 20 um/s (OCT 3.2), so for case A this is our assumption and a known deviation"}
 
 numerics:
   method: {value: "finite volumes on xi = r/R(t), conservative moving-mesh fluxes, upwind advection, BDF time integration (scipy solve_ivp)", label: assumed}
@@ -139,12 +144,16 @@ case_A_oct:
     rationale: "low end of bulk PDMS (0.15-0.27); the micro-rough Cassie contact wets only part of the disc"
   brackets_reported_not_scored: [no substrate heat (k_s = 0), isothermal droplet at 20 degC]
   t_fit_window: {value: [0, 20], unit: s, label: measured, source: "OCT 3.1 (fit over the first 20 s with d0 fixed)"}
+  model_closures:
+    value: "the material and gas-film model of section material (ideal mixing, uniform temperature, no internal flow, film rule, Sherwood and Nusselt correlations, low-flux vapour flux)"
+    label: assumed
+    rationale: "these closures are the thesis model's specification for a free droplet; applying them to the OCT sessile droplet, which recirculates at about 20 um/s (OCT 3.2), is our choice"
 
 # ---------------------------------------------------------------------------------------------
 # Case B: thesis model, particle ejector, DE 12 (model-to-model reproduction).
 # ---------------------------------------------------------------------------------------------
 case_B_thesis_pe:
-  geometry: {value: free sphere, label: measured, source: "thesis 5.6.2"}
+  geometry: {value: free sphere, label: reconstructed, source: "thesis 5.6.2", rationale: "model specification of the reference (thesis 5.6.2), adopted"}
   initial_radius: {value: 240, unit: um, label: measured, source: "thesis 5.3.2"}
   gas: {value: "dry gas with air properties", label: reconstructed, rationale: "experiments use dry nitrogen (5.2.2); the model's correlations are for air (A.10-A.20)"}
   gas_relative_humidity: {value: 0.0, unit: "-", label: measured, source: "thesis 5.2.2 (dry nitrogen)"}
@@ -191,16 +200,26 @@ extension:
     initial_diameters: {value: [60, 150], unit: um, label: assumed, rationale: "median and coarse tail of a two-fluid-nozzle or rotary spray; size held fixed when solids change"}
     slip_velocity: {value: 0.2, unit: m/s, label: assumed, rationale: "droplets entrained in the gas after the first milliseconds; same order as the thesis falling-droplet column (0.2 m/s)"}
     initial_temperature: {value: 298.15, unit: K, label: assumed, rationale: "feed temperature"}
-    gas_seen: {value: "outlet temperature and outlet humidity (well-mixed chamber)", label: assumed, rationale: "conservative (slow-drying) bound; near the atomiser the gas is hotter and drier"}
+    gas_seen: {value: "outlet temperature and outlet humidity (well-mixed chamber)", label: assumed, rationale: "slow-drying bound for the drying time only; near the atomiser the gas is hotter and drier. NOT conservative for re-softening of dried powder in hotter gas (extension.json equilibrium_powder_along_gas_line)"}
     horizon: {value: "3 t_full", unit: s, label: assumed}
   changed_inputs:
     inlet_humidity: {values: [0.005, 0.008, 0.015, 0.025], unit: kg/kg, label: assumed, rationale: "dry winter to humid summer ambient air; feed solids at base"}
     feed_solids: {values: [0.20, 0.30, 0.40], unit: kg/kg, label: assumed, rationale: "inlet humidity at base"}
   stickiness:
-    criterion: {value: "surface sticky while T_d - Tg(surface) > dT_c", label: measured, source: "thesis 2.1 and 5.3.2 (T - Tg)c concept"}
+    criterion: {value: "surface sticky while T_d - Tg(surface) > dT_c", label: assumed, rationale: "our choice of criterion, after the (T - Tg)c concept of thesis 2.1 (p. 8) and the surface-glass criterion of thesis 5.3.2; the thesis finds it only an order-of-magnitude predictor of collision outcome (5.5, p. 71)"}
     dT_c_band: {value: [0, 20], unit: K, label: assumed, rationale: "0 K is the thesis chapter-5 criterion (glassy surface); 20 K brackets the lower static-test offsets reported in thesis ch. 2; no MD12 value exists"}
-    late_bound_factor: {value: 4, unit: "x t_glass", label: measured, source: "thesis 5.3.3: at spray-drying-like rates bouncing began only after 3.5-4.5 t_glass"}
+    bouncing_onset_factor:
+      value: [3.5, 5.5]
+      unit: "x t_glass"
+      label: assumed
+      name: approximate bouncing onset (thesis FDC, DE 5-21)
+      rationale: >-
+        thesis 5.3.3 (p. 69), falling droplet column at 100 degC: bouncing only from
+        t_dry/t_glass > 3.5 (DE 5) to > 4.5 (DE 21), and sticking collisions up to 5.5 t_glass for
+        DE 12. Not a bound. The factor is defined on the thesis model's t_glass; it is applied
+        here to this model's t_glass, which is 22-36 % shorter (case B), so the times it gives
+        are biased short (the run also reports the upper end scaled by the case-B bias).
   residence_time:
     core_velocity: {value: [1.0, 3.0], unit: m/s, label: assumed, rationale: "axial velocity of the central spray-gas jet in a pilot co-current chamber; sets the shortest pass through the chamber"}
-    mean_gas_time: {value: "V_chamber / Q_outlet", label: reconstructed, rationale: "from the assumed geometry and gas flow"}
+    mean_gas_time: {value: "V_chamber / Q_outlet", label: assumed, rationale: "computed from the assumed geometry and gas flow"}
     note: "a recirculating fines fraction stays longer than the mean gas time; that tail is not bounded here"

@@ -22,9 +22,9 @@ feed solids, and overlaid a bounded residence-time window.
 
 | Item | Status |
 | --- | --- |
-| Reproduction | **FAIL** under the frozen rule: 8 of 12 scored checks pass. A, measured trajectory: initial d² rate (-9 %) and locking time (+12 %) pass; locked radius (-20 %) fails. B, thesis model: the solids trend passes (ratio 0.237 against 0.221) and 1 of 5 times passes; t_glass is 22-36 % early. Internal checks 3 of 3 pass. See `comparison.md` |
-| Independent validation | None. No data independent of the two sources exist for this case |
-| Design extension | Hypothetical, not validated (`extension.md`). Feed solids 20 to 40 wt% halves the time to a glassy surface. Inlet humidity 5 to 25 g/kg lengthens it by about 30 % but leaves the dried powder 19-26 K below Tg at the outlet. Coarse 150 µm droplets stay sticky into the 0.6-1.9 s core-pass window |
+| Reproduction | **FAIL** under the frozen rule: 8 of 12 scored checks pass. A, measured trajectory: initial d² rate (-9 %) and locking time (+12 %) pass, the latter by coincidental timing (the droplet state at locking differs, see A3); locked radius (-20 %) fails. B, thesis model: the solids trend passes (ratio 0.237 against 0.221) and 1 of 5 times passes; t_glass is 22-36 % early. Internal checks 3 of 3 pass. See `comparison.md` |
+| Independent validation | None. No independent single-droplet MD12 dataset was identified (searched: 4TU.ResearchData, Zenodo and the paper's Crossref relations for deposited data; OpenAlex, "maltodextrin single droplet drying", 2026-11-04). That search finds single-droplet maltodextrin studies by other groups, for example Siemons et al. 2020 (doi:10.1016/j.foodres.2020.108988, sessile droplets of several DEs), whose data and reuse terms we have not assessed. Case A compares the model against an experiment from the same research group whose parameters partly feed the model, so it is not independent validation |
+| Design extension | Hypothetical, not validated (`extension.md`). Feed solids 20 to 40 wt% halves the time to a glassy surface. Inlet humidity 5 to 25 g/kg lengthens it by about 30 %. Powder in equilibrium with the outlet air is 19-26 K below Tg (this assumes it equilibrates within the 23-35 s mean gas residence; at the end of the modelled horizon the particles still hold 7.3-8.8 wt% water against 3.5-4.2 wt% at equilibrium). In gas hotter than about 137-146 °C, near the atomiser, dried powder in equilibrium with the gas is above Tg. Coarse 150 µm droplets can still have a surface above the assumed (T - Tg)c in the 0.6-1.9 s core-pass window; whether they deposit is not determined |
 | Specialist review | Not yet (optional follow-up: a spray-drying and particle-technology specialist) |
 
 ## Rerun
@@ -35,7 +35,9 @@ From the repository root:
 uv run benchmarks/reproductions/spray-drying-stickiness/run.py
 ```
 
-The run takes about 15 s. It needs uv only; the dependencies are pinned in the script header.
+The run takes about 15 s. It needs uv only. The direct dependencies are pinned in the script
+header, which also sets `exclude-newer = 2026-11-04`; `run.py.lock` pins the transitive ones, and
+`results/comparison.json` (`run.resolved_packages`) records the set that ran.
 No dataset exists to download, so the script reads nothing but the three YAML files here. It
 writes `results/` deterministically and exits non-zero only if it fails to run; the verdict is
 in `results/comparison.json`.
@@ -50,9 +52,10 @@ in `results/comparison.json`.
 | `run.py` | single entry point: model, comparison, extension, figures |
 | `results/comparison.json` | every compared quantity, the informational comparisons, post-hoc diagnostics and the verdict |
 | `results/extension.json` | dryer balance, residence window, sweep results, equilibrium powder state |
-| `results/fig1_oct_trajectory.svg` | case A: model against the measured initial rate, locking time and locked radius; surface and centre concentration |
+| `run.py.lock` | uv lock of the script's full dependency set, transitive packages included (`uv lock --script`) |
+| `results/fig1_oct_trajectory.svg` | case A: the model trajectory against three reported features (initial rate, locking time, locked radius), not against the measured d(t) curve; surface and centre concentration against the two OCT readings at 60 s |
 | `results/fig2_thesis_tglass.svg` | case B: parity plot of t_glass against the thesis model |
-| `results/fig3_dryer_stickiness.svg` | extension: surface T - Tg against drying time for both changed inputs and both droplet sizes, with the sticky band and the residence-time window |
+| `results/fig3_dryer_stickiness.svg` | extension: surface T - Tg against drying time for both changed inputs and both droplet sizes, with the sticky band, the 3.5-5.5 × t_glass bouncing-onset range and the residence-time window |
 | `comparison.md` | run details, result table, deviations and explanations |
 | `extension.md` | hypothetical design extension, consequences, extrapolation flags, dryer measurements needed |
 
@@ -81,10 +84,17 @@ in `results/comparison.json`.
 - **Locking is not the surface glass transition.** The sessile droplet locks into a viscous,
   non-glassy skin (diagnostic in `comparison.md`). A shell-strength criterion would be needed to
   predict locking; no source gives one for MD12.
-- **No (T - Tg)c for MD12.** The stickiness band of the extension is assumed. The thesis late
-  bound (4 × t_glass) comes from DE 5-21 collisions at 85-125 °C.
+- **No (T - Tg)c for MD12.** The stickiness band of the extension is assumed. The approximate
+  bouncing onset (3.5-5.5 × t_glass) comes from the thesis falling-droplet column (DE 5-21,
+  about 100 °C). It is defined on the thesis model's t_glass, which is 1.29-1.57 times ours.
 - **No dryer-scale data.** The extension cannot be validated, and wall deposition cannot be
   inferred. `extension.md` lists the measurements needed.
-- **Python version.** uv selected Python 3.13.16 within `>=3.12,<3.14`.
+- **Python version.** uv selected Python 3.13.16 within `>=3.12,<3.14`; the patch level is not
+  pinned, and the run records it.
 - **No equivalent in cheme core.** Core has no single-droplet drying model and no spray-dryer
   unit (with residence time and outlet humidity). This case implements both locally in `run.py`.
+  ADR 0031 asks for a core issue in such a case, linked from #333. That issue (a droplet-drying
+  unit and a spray-dryer unit) is not opened yet: it is deferred to the coordinator, who opens
+  it and links it with the case PR on #333.
+- **ADR 0031 is not on this branch.** The case cites ADR 0031 (case layout), which is under
+  review in its own PR. The case PR depends on that PR.

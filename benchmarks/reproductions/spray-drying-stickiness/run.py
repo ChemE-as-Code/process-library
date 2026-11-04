@@ -6,6 +6,8 @@
 #   "matplotlib==3.10.7",
 #   "pyyaml==6.0.3",
 # ]
+# [tool.uv]
+# exclude-newer = "2026-11-04T00:00:00Z"
 # ///
 """Spray-drying stickiness case study (#337, tracker #333; ADR 0030, layout ADR 0031).
 
@@ -31,6 +33,7 @@ only if it fails to run; the reproduction verdict is recorded in comparison.json
 
 from __future__ import annotations
 
+import importlib.metadata
 import json
 import math
 import platform
@@ -100,6 +103,9 @@ RH_S = float(v(DIF["r_h_solute"]))
 
 # Post-hoc diagnostic overrides (empty for every scored run; see diagnostics()).
 OVR: dict = {}
+
+# Solute mass error of every droplet run (reproduction, brackets, extension, diagnostics), for I1.
+MASS_ERRORS: list[float] = []
 
 NUM = INPUTS["numerics"]
 N_CELLS = int(v(NUM["cells"]))
@@ -334,6 +340,7 @@ class Droplet:
             raise RuntimeError(f"integration failed: {sol.message}")
         t_glass = float(sol.t_events[0][0]) if stop_at_glass and sol.t_events[0].size else None
         mass_err = max(self.solute_mass_error(sol.y[:, k]) for k in range(sol.y.shape[1]))
+        MASS_ERRORS.append(mass_err)
         return sol, t_glass, mass_err
 
 
@@ -371,7 +378,7 @@ def case_a(n_cells=N_CELLS, k_sub=None, isothermal=False):
     d2 = (2.0 * R0 * sol.sol(tt)[drop.N]) ** 2
     kappa = float(-np.sum((d2 - (2 * R0) ** 2) * tt) / np.sum(tt * tt))
     out = {"drop": drop, "sol": sol, "t_glass": t_glass, "mass_error": merr, "kappa_um2_s": kappa * 1e12,
-           "flux_factor": flux_factor, "rc_over_req": rc_over_req, "R0": R0}
+           "flux_factor": flux_factor, "rc_over_req": rc_over_req, "R0": R0, "R_curv_lock_um": None}
     if t_glass is not None:
         y = sol.sol(t_glass)
         out["R_curv_lock_um"] = float(y[drop.N] * R0 * rc_over_req * 1e6)
@@ -391,7 +398,7 @@ def oct_informational(res):
     phi_mean = float(np.sum(phi[mask] * vol) / np.sum(vol))
     info["outer_10um_wt_percent_60s"] = float(100 * mass_fraction_solute(phi_mean))
     # end of constant rate: instantaneous d^2 rate 10 % below the fitted initial rate
-    tt = np.linspace(1.0, res["t_glass"], 2000)
+    tt = np.linspace(1.0, res["t_glass"] or float(res["sol"].t[-1]), 2000)
     d2 = (2.0 * R0 * sol.sol(tt)[drop.N]) ** 2
     rate = -np.gradient(d2, tt) * 1e12
     below = np.nonzero(rate < 0.9 * res["kappa_um2_s"])[0]
@@ -432,12 +439,15 @@ def case_b(n_cells=N_CELLS, only=None):
         drop = Droplet(R0, float(cond["w0"]), T0, T_gas, 0.0,
                        u_rel=vel[key]["u_m_s"], n_cells=n_cells)
         sol, t_glass, merr = drop.run(400.0)
-        y = sol.sol(t_glass)
-        out["runs"][name] = {"t_glass_s": t_glass, "t_full_s": vel[key]["t_full_target_s"],
-                             "t_glass_over_t_full": t_glass / vel[key]["t_full_target_s"],
-                             "T_droplet_at_glass_K": float(y[drop.N + 1]),
-                             "surface_wt_percent_at_glass": float(100 * mass_fraction_solute(drop.phi_of(y)[-1])),
-                             "mass_error": merr, "sol": sol, "drop": drop}
+        run = {"t_glass_s": t_glass, "t_full_s": vel[key]["t_full_target_s"], "t_glass_over_t_full": None,
+               "T_droplet_at_glass_K": None, "surface_wt_percent_at_glass": None,
+               "mass_error": merr, "sol": sol, "drop": drop}
+        if t_glass is not None:  # no glass within the horizon: the checks report a gap
+            y = sol.sol(t_glass)
+            run.update({"t_glass_over_t_full": t_glass / vel[key]["t_full_target_s"],
+                        "T_droplet_at_glass_K": float(y[drop.N + 1]),
+                        "surface_wt_percent_at_glass": float(100 * mass_fraction_solute(drop.phi_of(y)[-1]))})
+        out["runs"][name] = run
     return out
 
 
@@ -511,12 +521,12 @@ def extension_run(d0_um, w0, Y_in):
     lo, hi = v(X["stickiness"]["dT_c_band"])
     t_20, stays_20 = first_below(float(hi))
     t_0, stays_0 = first_below(float(lo))
-    factor = float(v(X["stickiness"]["late_bound_factor"]))
+    f_lo, f_hi = (float(f) for f in v(X["stickiness"]["bouncing_onset_factor"]))
     return {"d0_um": d0_um, "feed_solids": w0, "Y_in": Y_in, "RH_out": bal["RH_out"],
             "T_wet_bulb_K": T_wb, "t_full_s": t_full,
             "t_nonsticky_dTc20_s": t_20, "stays_below_dTc20": stays_20,
             "t_glass_surface_s": t_0, "stays_glassy": stays_0,
-            "t_late_bound_s": None if t_0 is None else factor * t_0,
+            "t_bouncing_onset_range_s": None if t_0 is None else [f_lo * t_0, f_hi * t_0],
             "final_margin_K": float(margin[-1]),
             "final_mean_moisture_wt_percent": float(100 * (1 - mass_fraction_solute(
                 np.sum(ys[:drop.N, -1]) / ys[drop.N, -1] ** 3))),
@@ -547,6 +557,9 @@ def diagnostics(a):
     OVR.clear()
     # case A: when does the model droplet pass the measured locked radius, and with what surface?
     drop, sol, R0 = a["drop"], a["sol"], a["R0"]
+    if a["t_glass"] is None:
+        out["A_model_at_measured_locked_radius"] = None
+        return out
     r_target = 141e-6 / a["rc_over_req"] / R0
     t_hit = brentq(lambda t: sol.sol(t)[drop.N] - r_target, 1.0, a["t_glass"])
     phi, _, T = drop.fields(sol.sol(t_hit))
@@ -560,18 +573,20 @@ def diagnostics(a):
 # Checks
 # ------------------------------------------------------------------------------------------
 def rel_check(name, ref, val, rel):
+    if val is None:  # frozen pass_rule: a check that cannot be evaluated is a gap, not a pass
+        return {"check": name, "reference": ref, "computed": None, "deviation_rel": None, "tolerance_rel": rel,
+                "status": "gap"}
     dev = (val - ref) / ref
     return {"check": name, "reference": ref, "computed": val, "deviation_rel": dev, "tolerance_rel": rel,
             "status": "pass" if abs(dev) <= rel else "fail"}
 
 
 def verdict(checks):
+    """Frozen pass_rule. A 'gap' is never a pass, so it can only lower the verdict."""
     by = {c["check"]: c["status"] for c in checks}
     a = [by[k] for k in by if k.startswith("A")]
     b = [by[k] for k in by if k.startswith("B")]
     i = [by[k] for k in by if k.startswith("I")]
-    if "gap" in a + b + i:
-        pass
     if all(s == "pass" for s in a + b + i):
         return "PASS"
     if all(s == "pass" for s in i) and (all(s == "pass" for s in a) or all(s == "pass" for s in b)):
@@ -604,7 +619,7 @@ def save(fig, name):
 
 def fig_oct(res, brackets):
     drop, sol, R0 = res["drop"], res["sol"], res["R0"]
-    tg = res["t_glass"]
+    tg = res["t_glass"] if res["t_glass"] is not None else float(sol.t[-1])
     tt = np.linspace(0.0, tg, 400)
     ys = sol.sol(tt)
     d2n = ys[drop.N] ** 2
@@ -618,7 +633,7 @@ def fig_oct(res, brackets):
     for key, col, lab in (("no_substrate", S2, "model bracket: no substrate heat"),
                           ("isothermal", S3, "model bracket: isothermal 20 °C")):
         b = brackets[key]
-        t_b = np.linspace(0.0, b["t_glass"], 300)
+        t_b = np.linspace(0.0, b["t_glass"] if b["t_glass"] is not None else float(b["sol"].t[-1]), 300)
         ax1.plot(t_b, b["sol"].sol(t_b)[b["drop"].N] ** 2, color=col, lw=1.2, label=lab)
     ax1.axvspan(150, 170, color=GRID, alpha=0.8, lw=0)
     ax1.annotate("measured locking ≈ 160 s", (160, 0.95), ha="center", fontsize=8, color=INK2)
@@ -652,7 +667,7 @@ def fig_oct(res, brackets):
 
 def fig_thesis(bres):
     ref = SOURCE["reference_B_thesis_model_tglass"]["reported_results_DE12"]
-    names = [k for k in ref if k.startswith("c")]
+    names = [k for k in ref if k.startswith("c") and bres["runs"][k]["t_glass_s"] is not None]
     x = [ref[k]["t_glass_s"] for k in names]
     y = [bres["runs"][k]["t_glass_s"] for k in names]
     fig, ax = plt.subplots(figsize=(4.6, 4.4))
@@ -677,7 +692,7 @@ def fig_thesis(bres):
     save(fig, "fig2_thesis_tglass.svg")
 
 
-def fig_dryer(ext, window):
+def fig_dryer(ext, window, bias_hi):
     fig, axes = plt.subplots(2, 2, figsize=(9.0, 6.6), sharey=True)
     sweeps = (("feed_solids", "feed solids", lambda r: f"{100 * r['feed_solids']:.0f} wt%"),
               ("inlet_humidity", "inlet humidity", lambda r: f"{1000 * r['Y_in']:.0f} g/kg"))
@@ -689,18 +704,26 @@ def fig_dryer(ext, window):
             ax.axvspan(*window["mean_gas_time_s"], color="#b7d3f6", alpha=0.6, lw=0)
             runs = [r for r in ext["sweeps"][key] if r["d0_um"] == d0]
             ramp = RAMP[-len(runs):] if len(runs) < 4 else RAMP
-            for r, colr in zip(runs, ramp):
+            for j, (r, colr) in enumerate(zip(runs, ramp)):
                 ax.plot(r["_t"], r["_margin"], color=colr, label=lab(r))
+                if r["t_bouncing_onset_range_s"] is not None:
+                    lo, hi = r["t_bouncing_onset_range_s"]
+                    yb = -40 - 8 * j
+                    ax.plot([lo, hi], [yb, yb], color=colr, lw=3.0, solid_capstyle="butt")
+                    ax.plot([hi, hi * bias_hi], [yb, yb], color=colr, lw=1.2, ls=":")
             ax.set_xscale("log")
             ax.set_xlim(1e-3, 60)
-            ax.set_ylim(-80, 320)
+            ax.set_ylim(-140, 320)
             ax.set_title(f"d0 = {d0} µm, changed input: {title}", fontsize=9, loc="left")
             if col == 0:
                 ax.set_ylabel("surface T − Tg (K)")
             if row == 1:
                 ax.set_xlabel("drying time (s), log scale")
             ax.legend(fontsize=7, loc="upper left", title=title, title_fontsize=7)
-            ax.annotate("sticky threshold band (T − Tg)c = 0 to 20 K", (1.2e-3, -62), fontsize=7, color=INK2)
+            ax.annotate("grey band: sticky threshold (T − Tg)c = 0 to 20 K (assumed)\n"
+                        "bars: 3.5-5.5 × t_glass, approximate bouncing onset (thesis FDC, DE 5-21)\n"
+                        f"dotted: upper end × {bias_hi:.2f} (t_glass bias against the thesis model)",
+                        (1.2e-3, -134), fontsize=6.5, color=INK2)
             ax.annotate("core\npass", (window["core_pass_s"][0] * 1.05, 255), fontsize=7, color=INK2)
             ax.annotate("mean gas\nresidence", (window["mean_gas_time_s"][0] * 0.55, 200), fontsize=7, color=INK2,
                         ha="right")
@@ -749,39 +772,30 @@ def main():
         name = f"B{i}_tglass_{k}"
         checks.append(rel_check(name, float(refB[k]["t_glass_s"]), b["runs"][k]["t_glass_s"],
                                 float(tA[name]["rel"])))
-    ratio = b["runs"]["c30_T25"]["t_glass_s"] / b["runs"]["c10_T25"]["t_glass_s"]
+    t30, t10 = b["runs"]["c30_T25"]["t_glass_s"], b["runs"]["c10_T25"]["t_glass_s"]
+    ratio = None if t30 is None or t10 is None else t30 / t10
     ref_ratio = float(str(tA["B6_solids_ratio_T25"]["reference"]))
+    tol6 = float(tA["B6_solids_ratio_T25"]["abs"])
     checks.append({"check": "B6_solids_ratio_T25", "reference": ref_ratio, "computed": ratio,
-                   "deviation_abs": ratio - ref_ratio, "tolerance_abs": float(tA["B6_solids_ratio_T25"]["abs"]),
-                   "status": "pass" if abs(ratio - ref_ratio) <= float(tA["B6_solids_ratio_T25"]["abs"]) else "fail"})
-
-    # ---------------- Internal checks
-    merrs = [a["mass_error"], a_fine["mass_error"]] + [r["mass_error"] for r in b["runs"].values()] \
-        + [r["mass_error"] for r in b_fine["runs"].values()] + [x["mass_error"] for x in brackets.values()]
-    m_max = max(merrs)
-    checks.append({"check": "I1_solute_mass_conservation", "computed": m_max,
-                   "tolerance_rel": float(tA["I1_solute_mass_conservation"]["rel"]),
-                   "status": "pass" if m_max <= float(tA["I1_solute_mass_conservation"]["rel"]) else "fail"})
-    g_a = abs(a_fine["t_glass"] - a["t_glass"]) / a["t_glass"]
-    g_b = abs(b_fine["runs"]["c20_T25"]["t_glass_s"] - b["runs"]["c20_T25"]["t_glass_s"]) / b["runs"]["c20_T25"]["t_glass_s"]
-    checks.append({"check": "I2_grid_convergence", "computed": max(g_a, g_b), "case_A": g_a, "case_B_c20_T25": g_b,
-                   "tolerance_rel": float(tA["I2_grid_convergence"]["rel"]),
-                   "status": "pass" if max(g_a, g_b) <= float(tA["I2_grid_convergence"]["rel"]) else "fail"})
-    clos = max(abs(vv["t_full_model_s"] - vv["t_full_target_s"]) / vv["t_full_target_s"] for vv in b["velocity"].values())
-    checks.append({"check": "I3_tfull_closure", "computed": clos, "tolerance_rel": float(tA["I3_tfull_closure"]["rel"]),
-                   "status": "pass" if clos <= float(tA["I3_tfull_closure"]["rel"]) else "fail"})
+                   "deviation_abs": None if ratio is None else ratio - ref_ratio, "tolerance_abs": tol6,
+                   "status": "gap" if ratio is None else ("pass" if abs(ratio - ref_ratio) <= tol6 else "fail")})
+    # t_glass bias of this model against the thesis model (thesis / ours), used in the extension
+    bias = [float(refB[k]["t_glass_s"]) / b["runs"][k]["t_glass_s"] for k in refB
+            if k.startswith("c") and b["runs"][k]["t_glass_s"] is not None]
 
     # ---------------- Informational
     refC = SOURCE["reference_C_thesis_locking_DE12"]["normalised_locking_time_mean_sd"]
     info["C_locking_vs_model"] = {k: {"measured_tl_over_tfull": refC[k][0], "sd": refC[k][1],
                                       "model_tglass_over_tfull": b["runs"][k]["t_glass_over_t_full"]} for k in refC}
+    sec = SOURCE["secondary_sources"]
     info["B_runs"] = {k: strip(r) for k, r in b["runs"].items()}
     info["B_reconstructed_velocity"] = b["velocity"]
     info["property_sanity"] = {
         "viscosity_10wt_20C_mPa_s": float(viscosity(0.10, 293.15) * 1e3), "stated_10wt_mPa_s": 1.1,
         "viscosity_46wt_20C_Pa_s": float(viscosity(0.46, 293.15)), "stated_46wt_Pa_s": 0.1,
         "water_self_diffusion_298K_m2_s": float(D0_W * math.exp(-E_W / (R_GAS * 298.15)) * math.exp(
-            -VS_W / (K1_W * (K2_W + 298.15 - TGW_FV)))), "measured_water_self_diffusion_298K_m2_s": 2.30e-9,
+            -VS_W / (K1_W * (K2_W + 298.15 - TGW_FV)))),
+        "measured_water_self_diffusion_298K_m2_s": float(sec["mills_1973"]["water_self_diffusion_298K"]["value"]),
         "popov_f_90deg": popov_90, "popov_f_90deg_exact": 2.0,
         "surface_wt_percent_glass_at_15C": float(100 * brentq(lambda w: tg_gordon_taylor(w) - 288.15, 0.3, 0.999)),
         "gab_aw_cap_solids_wt_percent": float(100 / (1 + gab_moisture(1.0))),
@@ -828,35 +842,81 @@ def main():
         p_c = a_c * float(psat(T_out))
         Y_out_c = (M_W / M_AIR) * p_c / (P_ATM - p_c)
         crit[f"dTc_{dTc}K"] = {"RH_out": a_c, "Y_out": Y_out_c, "Y_in_equivalent": Y_out_c - (bal["Y_out"] - base_Y)}
+    # Equilibrium powder state along the gas path (inlet to outlet, humidity linear in T): the
+    # well-mixed outlet gas is the slow-drying bound but NOT a conservative bound for re-softening
+    # of dried powder that meets hotter gas nearer the atomiser.
+    T_in = float(v(X["drying_gas"]["inlet_temperature"]))
+    gas_line = {"basis": "gas from inlet (T_in, Y_in) to outlet (T_out, Y_out) with Y linear in T; powder in "
+                         "equilibrium with the local gas (GAB, no T dependence) at the gas temperature"}
+    for Y in X["changed_inputs"]["inlet_humidity"]["values"]:
+        Y = float(Y)
+        bY = dryer_balance(Y, base_w)
+
+        def margin_at(T, Y=Y, bY=bY):
+            Yl = Y + (bY["Y_out"] - Y) * (T_in - T) / (T_in - T_out)
+            return equilibrium_margin(T, humidity_to_pv(Yl) / float(psat(T)))
+
+        pts = []
+        for T in np.linspace(T_in, T_out, 20):
+            m, mo = margin_at(float(T))
+            pts.append({"T_gas_C": float(T - 273.15), "equilibrium_moisture_wt_percent": mo,
+                        "equilibrium_T_minus_Tg_K": m})
+        cross = {f"dTc_{dTc}K": float(brentq(lambda T: margin_at(T)[0] - float(dTc), T_out, T_in) - 273.15)
+                 for dTc in v(X["stickiness"]["dT_c_band"])}
+        gas_line[f"{Y:.3f}"] = {"points": pts, "gas_temperature_C_above_which_dried_powder_exceeds_dTc": cross}
     ext_out = {
         "label": "HYPOTHETICAL design extension, not validated",
         "dryer_base": bal, "dryer_gas_flow_kg_h": G, "residence_window": window,
         "equilibrium_powder_at_outlet": eq, "critical_outlet_humidity_for_stickiness": crit,
+        "equilibrium_powder_along_gas_line": gas_line,
+        "tglass_bias_thesis_over_this_model": {"min": min(bias), "max": max(bias),
+                                               "basis": "case B, thesis Table 5.1 t_glass / this model's t_glass"},
         "sweeps": {k: [strip(r) for r in rs] for k, rs in ext["sweeps"].items()},
     }
-    for r in ext["sweeps"]["inlet_humidity"] + ext["sweeps"]["feed_solids"]:
-        m_max = max(m_max, r["mass_error"])
-
     info["post_hoc_diagnostics"] = diagnostics(a)
+
+    # ---------------- Internal checks (after every run, so I1 covers all runs as frozen)
+    m_max = max(MASS_ERRORS)
+    checks.append({"check": "I1_solute_mass_conservation", "computed": m_max, "runs_covered": len(MASS_ERRORS),
+                   "scope": "every droplet run of the script: reproduction, grid check, brackets, extension, diagnostics",
+                   "tolerance_rel": float(tA["I1_solute_mass_conservation"]["rel"]),
+                   "status": "pass" if m_max <= float(tA["I1_solute_mass_conservation"]["rel"]) else "fail"})
+    tg_b, tg_bf = b["runs"]["c20_T25"]["t_glass_s"], b_fine["runs"]["c20_T25"]["t_glass_s"]
+    if None in (a["t_glass"], a_fine["t_glass"], tg_b, tg_bf):
+        checks.append({"check": "I2_grid_convergence", "computed": None,
+                       "tolerance_rel": float(tA["I2_grid_convergence"]["rel"]), "status": "gap"})
+    else:
+        g_a = abs(a_fine["t_glass"] - a["t_glass"]) / a["t_glass"]
+        g_b = abs(tg_bf - tg_b) / tg_b
+        checks.append({"check": "I2_grid_convergence", "computed": max(g_a, g_b), "case_A": g_a, "case_B_c20_T25": g_b,
+                       "tolerance_rel": float(tA["I2_grid_convergence"]["rel"]),
+                       "status": "pass" if max(g_a, g_b) <= float(tA["I2_grid_convergence"]["rel"]) else "fail"})
+    clos = max(abs(vv["t_full_model_s"] - vv["t_full_target_s"]) / vv["t_full_target_s"] for vv in b["velocity"].values())
+    checks.append({"check": "I3_tfull_closure", "computed": clos, "tolerance_rel": float(tA["I3_tfull_closure"]["rel"]),
+                   "status": "pass" if clos <= float(tA["I3_tfull_closure"]["rel"]) else "fail"})
+
     vd = verdict(checks)
     comp = {
         "case": "spray-drying-stickiness", "issue": 337, "tracker": 333,
         "tolerances_file": "tolerances.yaml (frozen 2026-11-04)",
         "verdict": vd, "pass_rule": TOL["pass_rule"], "checks": checks, "informational": info,
+        "gaps": [c["check"] for c in checks if c["status"] == "gap"],
         "run": {"python": platform.python_version(), "numpy": np.__version__, "scipy": scipy.__version__,
-                "matplotlib": matplotlib.__version__, "cells": N_CELLS, "rtol": RTOL},
-        "max_solute_mass_error_all_runs_incl_extension": m_max,
+                "matplotlib": matplotlib.__version__, "cells": N_CELLS, "rtol": RTOL,
+                "resolved_packages": sorted(f"{d.metadata['Name'].lower()}=={d.version}"
+                                            for d in importlib.metadata.distributions())},
     }
     (RESULTS / "comparison.json").write_text(json.dumps(comp, indent=2, sort_keys=True, default=float) + "\n")
     (RESULTS / "extension.json").write_text(json.dumps(ext_out, indent=2, sort_keys=True, default=float) + "\n")
 
     fig_oct(a, brackets)
     fig_thesis(b)
-    fig_dryer(ext, window)
+    fig_dryer(ext, window, max(bias))
 
     print(f"verdict: {vd}")
     for c in checks:
-        print(f"  {c['check']:32s} {c['status']:5s} computed={c['computed']:.4g}" +
+        comp_s = "n/a" if c["computed"] is None else f"{c['computed']:.4g}"
+        print(f"  {c['check']:32s} {c['status']:5s} computed={comp_s}" +
               (f" reference={c['reference']:.4g}" if "reference" in c else ""))
     return 0
 
