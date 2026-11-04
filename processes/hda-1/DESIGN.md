@@ -957,7 +957,8 @@ Flowsheet (`process/flowsheet.yaml`, new block HRU):
   pressure loss, is still above the suction pressure, so it reaches the suction through a
   pressure control valve (PV101) and no booster is needed. D-023 had assumed a booster from
   3150 to 3250 kPa(a): a machine for 2.8 kW, rejected. The mixer M102 joins the PSA hydrogen
-  to the separator gas ahead of K-101.
+  to the separator gas ahead of K-101. The price of this routing: K-101 now also compresses
+  the purge itself (see the K-101 split under Results).
 - The loop specifications of D-007 are kept: H2/aromatics 5 at the reactor inlet and 40 mol%
   H2 in the purge, now the purge at the K-101 discharge. `scripts/hda_balance.py` holds the PSA
   as a specified split and solves the loop again. The purge fraction becomes 0.0937615 of the
@@ -989,7 +990,11 @@ Flowsheet (`process/flowsheet.yaml`, new block HRU):
 - Fuel gas header: 450 kPa(a), still ASSUMED (D-023, I-05). K-102 discharges at 470 kPa(a), and
   its aftercooler E-103 (20 kPa drop, outlet 313.15 K) is modelled in the same compressor step.
   The tail gas does not condense: at 450 kPa(a) the benzene partial pressure is about 6 kPa,
-  against a vapour pressure of about 24 kPa at 313 K.
+  against a vapour pressure of about 24 kPa at 313 K. Own calculation: the partial pressure
+  is 0.01238 x 450 = 5.6 kPa (S34 benzene mole fraction, `process/simulation-run.json`); the
+  vapour pressure is that of `thermo` 0.6.1 (the property package of `scripts/hda_balance.py`,
+  source register), `VaporPressure` of benzene at 313.15 K, its default method HEOS_FIT:
+  24.39 kPa (its other correlations, Antoine, Wagner, DIPPR and VDI, give 24.30 to 25.00 kPa).
 
 Simulation (`cheme process simulate --fill`, DWSIM 9.0.5, Peng-Robinson; then
 `cheme process propagate --fill` and `simulate --fill` repeated until no stale value was
@@ -1018,6 +1023,15 @@ left):
     more methane: 50.9 mol% (48.8), and the outlet is 936.2 K (938.2).
   - Effects of that dilution: K-101 278.8 kW (231.0), H-101 3042.2 kW (2901.8), E-101 25285 kW
     (24275), E-102 5072 kW (4904). Plant power 564.8 kW (268.0).
+  - K-101 split (own calculation, review of PR #327): the +47.8 kW on K-101 is not all
+    dilution. With SPL1 at the discharge, K-101 also compresses the purge itself, 267.7 kmol/h
+    from 3250 to 3600 kPa(a). At the machine's mean 0.0977 kW per kmol/h (278.8 kW over
+    S28 + S13, about 2855 kmol/h) that is about 26.1 kW; the dilution of the loop is the other
+    about 21.7 kW. Against the rejected D-023 booster (2.8 kW) the chosen routing costs about
+    23 kW more power, about 0.02 MEUR/a at the TEA's 100.65 EUR/MWh and 8000 h/a. It saves a
+    second hydrogen machine (its capital, spare, seals and one more leak source in hydrogen
+    service), which is judged worth more; the trade-off stays open with the make-up-line
+    option below.
   - Returning the hydrogen into the make-up line M101 instead would avoid the dilution (worth
     about 0.1 MEUR/a). It needs the product above 3600 kPa(a), so a higher K-101 discharge
     pressure or a booster. This is left as an option for basic engineering.
@@ -1031,8 +1045,10 @@ still be exported. The TEA keeps the accounting of D-009/D-019: H-101 on purchas
 gas, the whole fuel gas credited.
 
 Sizes, lists and layout:
-- `scripts/concept_sizing.py`: E-103 46.4 m2 (U 100 W/(m2 K) ASSUMED; the K-102 discharge,
-  about 439 K, follows from the aftercooler duty at an ASSUMED cp of 38 kJ/(kmol K)). E-101 is
+- `scripts/concept_sizing.py`: E-103 47.1 m2 (U 100 W/(m2 K) ASSUMED; the K-102 discharge,
+  about 436 K, follows from the simulated aftercooler duty at the mean cp of the balance
+  script's Peng-Robinson run, 38.9 kJ/(kmol K); 439 K at an assumed 38 before the review of
+  PR #327). E-101 is
   now 1351.9 m2 (2 x 676 m2) and E-102 312.1 m2.
 - Equipment list: PK-101 (42 barg, the loop's design pressure, D-012; 80 degC), K-102 and
   E-103 (6 barg / 190 degC). All ASSUMED by the D-012 rule. PK-101's plot of 10 x 6 m (9 m
@@ -1048,14 +1064,19 @@ Sizes, lists and layout:
     pull is kept clear of K-102.
   - New separations (ASSUMED, as D-018): H-101 to PK-101 and to K-102 30 m; A-900 to PK-101
     45 m; PK-101 toppling to PR-1.
-  - Measured: PK-101 is 47.0 m from A-900, 28.0 m from PR-1, 1.0 m from R-5 and 2.9 m from
-    V-101 (`cheme show`). H-101 to PK-101 is 39.1 m and to K-102 44.0 m (footprints from the
+  - Measured (first placement): PK-101 is 47.0 m from A-900, 28.0 m from PR-1, 1.0 m from R-5
+    and 2.9 m from V-101 (`cheme show`); see the correction below for the turned package. H-101 to PK-101 is 39.1 m and to K-102 44.0 m (footprints from the
     placement).
   - `cheme layout build`: 22 items, no clash, no blocked envelope. No separation or route
     finding.
-  - Viewed 2026-11-04: `cheme layout render --plan` (build/layout-plan.svg) in a browser. The
-    three items are drawn inside A-100, PK-101's box ends just short of R-5, and nothing
-    overlaps.
+  - Viewed 2026-11-04: `cheme layout render --plan` (build/layout-plan.svg) in a browser.
+    Correction in the review of PR #327: that first placement (PK-101 unrotated, x 81-91)
+    stuck 1 m out of A-100 (east edge x = 90) and stood 1.0 m from the edge of R-5, which the
+    earlier sentence here missed. PK-101 is now turned by 90 degrees (long side north-south,
+    footprint x 83-89, y 80-90): inside A-100 and 3.0 m from the edge of R-5 (x = 92). Road
+    clearances of 3 m from R-5 for PK-101, K-102 and E-103 are now declared in
+    `layout/site-plan.yaml` (ASSUMED as D-018: room for vehicle impact protection and
+    maintenance access), so `layout-plot-plan` checks them.
 
 Capital (`estimate/cost-basis.yaml`, class 5):
 - PK-101: 4.06 MUSD 2023, priced as the package's bare module cost. The basis is NETL (2022),
@@ -1066,11 +1087,13 @@ Capital (`estimate/cost-basis.yaml`, class 5):
     stream 10), with exponent 0.6 (ASSUMED, the six-tenths rule; the NETL scaling guideline,
     QGESS Rev. 4 of 2019, lists no adsorber).
   - Escalation: CEPCI 797.9/603.1 (2023/2018 annual, Chemical Engineering, Sept. 2024, p. 45).
+    The 2018 annual average stands in for NETL's Dec 2018 cost base (ASSUMED: no monthly
+    index was available; small at class 5).
   - This is an extrapolation by a factor of about 25 below the reference plant.
   - Range: 2.41 MUSD when scaled on the total feed flow, 5.59 MUSD with exponent 0.5.
   - This replaces D-023's unsourced 2 to 8 MEUR band. No vendor quotation was available.
 - K-102: the CAPCOST compressor correlation at its 450 kW minimum, 814 126 USD (an upper
-  estimate for 249 kW). E-103: 124 232 USD. Their motors are in the allowance.
+  estimate for 249 kW). E-103: 124 684 USD. Their motors are in the allowance.
 - The 15 % allowance of the estimate also applies to PK-101, which overstates it slightly.
 
 TEA (`cheme assess tea --write`), against the S2 run of PR #326:
@@ -1085,9 +1108,16 @@ TEA (`cheme assess tea --write`), against the S2 run of PR #326:
   psa-capex-high -151.37 MEUR (incremental -3.01).
 - Break-even package price: about 4.18 MUSD 2023 bare module, about 7.8 MEUR of fixed capital
   with this estimate's factors.
+- Scenarios for the PSA's hydrogen recovery (review of PR #327; the purge is at the source's
+  40 % feed limit, so a vendor may offer less than 0.75): psa-recovery-070 -148.99 MEUR and
+  psa-recovery-065 -149.89 MEUR, about -0.895 MEUR of NPV per 0.05 of recovery (screening
+  scale factors on make-up hydrogen and fuel gas, `estimate/tea.yaml`; the loop is not solved
+  again). Break-even recovery: 0.75 - 0.05 x 0.268 / 0.895 = about 0.735 (own calculation on
+  the incremental NPV of +0.268 MEUR: baseline -148.095 against the S2 -148.363 MEUR).
 - Why this is below D-023's +2.9 to +9.7 MEUR: a lower recovery (0.75 instead of 0.85), the
-  loop dilution above (+140 kW fired, +48 kW on K-101 where D-023 assumed 8.9 kW), and the
-  full capital factors on a sourced package price.
+  loop dilution above (+140 kW fired; +48 kW on K-101, of which about 26 kW recompress the
+  purge and about 22 kW are dilution, where D-023 assumed 8.9 kW), and the full capital
+  factors on a sourced package price.
 - The PSA does not change the D-019 decision: LCOP is still about 202 EUR/t above the benzene
   price.
 
@@ -1111,8 +1141,9 @@ central estimate, but only just. It is kept for three reasons:
   8.7 kt CO2/a at 56.1 t/TJ (D-019). This is a screening estimate, not an LCA result, as the
   backgrounds are open (I-11).
 
-To reverse: a vendor budget price for PK-101 above about 4.2 MUSD 2023 (bare-module
-equivalent) makes the incremental NPV negative. Then the purge goes back to the fuel gas header
+To reverse: either of two criteria makes the incremental NPV negative: a vendor budget price
+for PK-101 above about 4.2 MUSD 2023 (bare-module equivalent), or a vendor hydrogen recovery
+below about 0.73 at this purge (a 40 mol% H2 feed) with the price at 4.06 MUSD. Then the purge goes back to the fuel gas header
 (D-007, D-009), unless the owner values the hydrogen and CO2 effects. A price within the range
 does not change the decision of D-019.
 
@@ -1121,6 +1152,12 @@ Rejected:
 - Membranes: low-pressure permeate, recompression, lower purity (D-023).
 - Firing H-101 directly on the tail gas at 140 kPa(a) without K-102: H-101 takes only 8.6 %
   of it, so the compressor stays for the rest. It is a basic-engineering option.
+- Not assessed here; an open basic-engineering option instead: desorbing the tail gas at or
+  near the fuel gas header pressure (about 450 kPa(a)), which removes K-102 (0.81 MUSD bare
+  module, about 0.2 MEUR/a of power) and E-103, at the cost of a lower hydrogen recovery.
+  The published basis used here (Matijasevic and Petric 2016, NETL 2022) gives no recovery at
+  that desorption pressure, so the option cannot be priced without vendor data. It pays if
+  the recovery lost is worth less than the compressor saved.
 
 The benzene absorber of I-07 is not included. About 232 kg/h of aromatics (S34 + S19) go to
 the site fuel gas header and are burned there. Recovering them (about 1.6 % of the benzene
@@ -1130,7 +1167,18 @@ Open (basic engineering, not I-07):
 - the vendor's PSA performance (recovery at a 40 % H2 feed, number of beds, cycle, tail-gas
   surge drum) and a budget price;
 - the site fuel gas header pressure (I-05);
-- K-102's type (centrifugal or screw);
+- K-102's type: at a ratio of 3.36, about 240 kJ/kg of head and about 3460 m3/h of suction gas
+  it is more likely reciprocating (two stages with an intercooler, since one stage discharges
+  at about 436 K, above the usual limit of about 150 degC, ASSUMED as a rule of thumb) or an
+  oil-flooded screw than the centrifugal machine of the list type and its CAPCOST price (an
+  upper estimate). The discharge temperature for FG-127 and E-103 is taken from the simulated
+  aftercooler duty at the balance script's Peng-Robinson cp (436 K; the script's own outlet
+  is 431 K), not from an assumed cp;
+- the tail-gas side's back-flow case: on a K-102 trip the suction (FG-126, the PSA tail-gas
+  surge drum) settles out towards the header pressure through the machine and its non-return
+  valve, so FG-126 is designed for 6 barg as K-102 and FG-127 (D-012 on the header pressure,
+  review of PR #327); the relief scenario and the surge drum's design pressure go to the P&IDs
+  and the vendor;
 - whether the hydrogen returns to the make-up line instead of the K-101 suction;
 - a new optimisation of the purge H2 fraction of D-007 now that the purge is recovered.
 
