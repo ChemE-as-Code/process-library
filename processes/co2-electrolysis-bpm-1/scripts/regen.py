@@ -54,12 +54,34 @@ Steps (design spec #330, section 6):
     findings of `cheme validate --json`; the generated details (tank roof handrails, ladders)
     and the pipes above the envelope are reported apart. Then the validate findings.
 
-Steps 14 to 19 (the invariant checks, --uncertainty, the calculation record, the resize
-report, --record and the --check of the records) follow in the next stage of #330.
-
-With --scratch DIR the run is made in a copy; the scenario's figures (figures/skids/<H>h,
-figures/duty/<H>h, figures/compare/<H>h) are then copied back into this folder, so that the
-10,000 h scenario's figures are committed while the model files stay at the 1,000 h design.
+14. Conditional invariants: per skid, from the duty's series, the hours outside the measured
+    current density (core's time_outside_measured_range_h), temperature (the cooler duty
+    against the stack heat: the model is isothermal by assumption), electrolyte state (OH- and
+    carbon of species_mol_l against fresh 1 M KOH after its 1 h run) and time on stream (H
+    against 1 h). FE, WDE, U and kWh/kg are "invariant" only if every condition holds, else
+    "held constant by assumption, not supported by measurement" (DESIGN.md D-014).
+15. --uncertainty: in temporary copies only, bounding `performance: specified` cells at the
+    measured mean and mean +- 1 sd of WDE, FE CO and U (the sd of the measured series) and at
+    the 20 degC meter basis (FE x 273.15 / 293.15, D-005): the cells, the reservoir volume to the
+    horizon and the time the design reservoir lasts, the dosing and kWh/kg, into
+    results/scenarios/<H>h/uncertainty.json, and two band figures drawn by the script
+    (figures/skids/<H>h/uncertainty-ranges.svg, uncertainty-ph-band.svg).
+16. The calculation record results/scenarios/<H>h/record.json: the inputs' sha256, core's
+    version, the condensed duty, stack and comparison results, the per-skid values, the duty
+    run_fingerprint, the feasibility with its reasons and the invariants. Deterministic: no time
+    stamp or git HEAD, floats to 10 significant figures (scripts/_results.py).
+17. The resize report results/resize-1000h-10000h.{json,md} once both scenarios' records exist:
+    one row per quantity and skid with both values, changed or not, its rule
+    (invariant-of-duration, proportional-to-duration, fixed-by-setpoint, amortisation,
+    infeasible), the calculated cause and the frozen hand value of results/expected.yaml with
+    its tolerance and status; and the unchanged artefacts (P&ID sha256, stack dimensions).
+18. --record: `cheme runs record --kind manual --slug regen-<H>h --report-file
+    results/resize-1000h-10000h.md` (the session record of ADR 0020, not the calculation
+    record).
+19. --check: every scenario (or only --duration H) regenerated in a temporary copy and compared
+    with the committed records, the resize report, the scenario's figures and, for the design
+    duration, the model files and datasheets (exit 3 on a difference). The uncertainty runs are
+    repeated for a scenario whose uncertainty.json is committed.
 
 Findings are collected, never fatal: an infeasible skid is a result. The exit code is non-zero
 only on a tool error (1), on refused input (2) or on a --check difference (3).
@@ -76,10 +98,10 @@ import sys
 import tempfile
 from pathlib import Path
 
-import yaml
-
 import _core
+import _results as res
 import _yamledit as ye
+import yaml
 
 SCRIPT = "scripts/regen.py"
 INPUTS = (
@@ -102,8 +124,27 @@ MODEL_FILES = (
     "equipment/equipment-list.yaml",
     "layout/plant-model.yaml",
 )
-#: the figure folders of one scenario (H substituted), written by steps 10 and 12
+#: the figure folders of one scenario (H substituted), written by steps 10, 12 and 15
 SCENARIO_FIGURES = ("figures/skids/{h}h", "figures/duty/{h}h", "figures/compare/{h}h")
+#: the records of one scenario (steps 15 and 16)
+SCENARIO_RESULTS = "results/scenarios/{h}h"
+RECORD = SCENARIO_RESULTS + "/record.json"
+UNCERTAINTY = SCENARIO_RESULTS + "/uncertainty.json"
+#: the resize report between the two design scenarios (step 17)
+RESIZE = "results/resize-1000h-10000h"
+EXPECTED = "results/expected.yaml"
+PIDS = ("pid/P-01.xml", "pid/P-02.xml")
+#: the bounding cells of --uncertainty (step 15): name, shifts in sd of the measured point
+UNCERTAINTY_CASES = (
+    ("mean (specified)", {}),
+    ("WDE -1 sd", {"wde": -1}),
+    ("WDE +1 sd", {"wde": 1}),
+    ("FE CO -1 sd", {"fe": -1}),
+    ("FE CO +1 sd", {"fe": 1}),
+    ("U -1 sd", {"u": -1}),
+    ("U +1 sd", {"u": 1}),
+    ("FE at the 20 degC meter basis", {"meter_k": 293.15}),
+)
 #: the train of each skid: its sheet, flowsheet case, frame and reservoir
 SKIDS = {
     "A": {"sheet": "P-01", "case": "skid-a", "frame": "SKID-A", "reservoir": "T-101"},
@@ -118,9 +159,8 @@ COMPARISONS = (
 COMPARE_TOLERANCE = 1e-3
 #: margins of the rendered views around a frame, m (the access steps stand outside it)
 VIEW_MARGIN = {"west": 0.6, "south": 2.1, "east": 2.1, "north": 0.8}
-COPY_IGNORE = shutil.ignore_patterns(
-    "build", ".venv", "__pycache__", ".DS_Store", ".claude", "runs"
-)
+IGNORED = ("build", ".venv", "__pycache__", ".DS_Store", ".claude", "runs")
+COPY_IGNORE = shutil.ignore_patterns(*IGNORED)
 STACKS = {"A": "STK-A", "B": "STK-B"}
 SKID_DUTIES = {"A": "D-A", "B": "D-B"}
 COMPARISON = ("D-A-ONOFF", "D-A-PART")
@@ -135,9 +175,10 @@ class Refused(RuntimeError):
 
 
 class Run:
-    def __init__(self, root: Path, duration: float) -> None:
+    def __init__(self, root: Path, duration: float, uncertainty: bool = False) -> None:
         self.root = root
         self.h = float(duration)
+        self.with_uncertainty = uncertainty
         self.findings: list[dict] = []
         self.summary: dict = {"duration_h": self.h}
 
@@ -800,13 +841,377 @@ class Run:
                         + [f"{p['line']} to {p['top_m']:.3f} m" for p in pipes]
                     ),
                 )
-        problems = [f for f in validate if f.get("level") in ("error", "warning")]
+        accepted = _accepted_ids(self.root)
+        problems = [
+            f
+            for f in validate
+            if f.get("level") in ("error", "warning") and f.get("id") not in accepted
+        ]
         for f in problems:
             self.note(
                 "13", f["level"], f"{f.get('file')}:{f.get('line')} {f.get('rule')}: {f.get('message')}"
             )
         self.summary["envelope"] = {"basis": env, "skids": result}
-        print(f"[13] validate: {len(problems)} error/warning finding(s) not accepted")
+        print(
+            f"[13] validate: {len(problems)} error/warning finding(s) not accepted in "
+            "checks/checks.yaml"
+        )
+
+    # -- 14 ---------------------------------------------------------------------------------
+    def measured_state(self, duty_a: dict) -> dict:
+        """The electrolyte the performance was measured in: fresh 1 M KOH (90 mL) after its 1 h
+        run at 1 A, from the measured WDE and the duty's carbon share (the titration's)."""
+        bench = _core.cell_point(_core.cell_report(self.root), "bench-cell")
+        ref = self.load("process/design-basis.yaml")["capacity"]["reference_cell"]
+        volume_l = _litres_text(ref["anolyte"]["volume"])
+        seconds = float(bench["validity"].get("duration_s") or 3600.0)
+        tot = _core.totals(duty_a)
+        cx = tot["membrane_carbon_mol"] / (tot["membrane_cation_mol"] + tot["membrane_carbon_mol"])
+        co_ion = (1 - bench["wde"]) * bench["current_a"] * seconds / _core.FARADAY / volume_l
+        c0 = float(
+            next(d for d in self.load("process/duties.yaml")["duties"] if d["id"] == "D-A")[
+                "reservoir"
+            ]["composition"]["hydroxide"]["value"]
+        )
+        return {
+            "electrolyte": bench["validity"].get("electrolyte"),
+            "hydroxide_fresh_mol_l": c0,
+            "carbon_max_mol_l": cx * co_ion,
+            # [OH-] = [K+] - 2 C at pH ~14: the K+ that left and two OH- per carbon taken up
+            "hydroxide_min_mol_l": c0 - (1 - cx) * co_ion - 2 * cx * co_ion,
+            "time_on_stream_h": seconds / 3600.0,
+            "anolyte_volume_l": volume_l,
+            "co_ion_carbon_share": cx,
+            "source": (
+                "experiments/electrochemistry/rbpm-1m-koh.yaml (1 h runs at 1 A on 5 cm2 in 90 mL "
+                "fresh 1 M KOH): carbon Cx (1 - WDE) I t / (F V), hydroxide c0 - (1 + Cx)(1 - WDE) "
+                "I t / (F V)"
+            ),
+        }
+
+    def invariants(self) -> None:
+        run = _core.duty_report(self.root, list(SKID_DUTIES.values()))
+        measured = self.measured_state(_core.duty(run, "D-A"))
+        flowsheet = self.load("process/flowsheet.yaml")
+        cells = self.load("process/cells.yaml")
+        pilot = next(c for c in cells["cells"] if c["id"] == "pilot-cell")
+        t_cell = float(pilot["thermal"]["temperature"]["value"])
+        t_meas = self.summary["cell"]["validity"].get("temperature_k") or [298.15, 298.15]
+        t_meas_c = float(t_meas[0]) - 273.15
+        out, final = {}, {}
+        for key, did in SKID_DUTIES.items():
+            duty = _core.duty(run, did)
+            n = 1 if key == "A" else 2
+            cooler = _stream_duty(flowsheet, f"Q{n}05", SKIDS[key]["case"])
+            heat = self.summary["stacks"][STACKS[key]]["values"]["heat_duty_kw"]
+            out[key] = res.conditions(duty, measured, cooler, heat, t_cell, t_meas_c)
+            out[key]["cooler_stream"] = f"Q{n}05"
+            series = duty["series"]
+            species = {k: v[-1] for k, v in series["species_mol_l"].items()}
+            final[key] = {
+                "species_mol_l": species,
+                "ionic_strength_mol_l": series["ionic_strength_mol_l"][-1],
+                "duty": _core.condensed_duty(duty),
+            }
+            failed = out[key]["failed"]
+            if failed:
+                hours = ", ".join(
+                    f"{name} {out[key]['conditions'][name]['hours_outside']:,.1f} h"
+                    for name in failed
+                )
+                self.note(
+                    "14",
+                    "warning",
+                    f"Skid {key} ({did}): FE, WDE, U and kWh/kg {res.LABEL_ASSUMED} "
+                    f"(outside the measured conditions: {hours})",
+                )
+            else:
+                print(f"[14] Skid {key} ({did}): every condition holds, FE, WDE, U invariant")
+        self.summary["measured_state"] = measured
+        self.summary["invariants"] = out
+        self.summary["skid_final"] = final
+
+    # -- 15 ---------------------------------------------------------------------------------
+    def uncertainty(self) -> None:
+        """Bounding specified cells in temporary copies: the measured mean, mean +- 1 sd of WDE,
+        FE CO and U one at a time, and the 20 degC meter basis (D-005)."""
+        point = self.summary["cell"]
+        da = next(d for d in self.load("process/duties.yaml")["duties"] if d["id"] == "D-A")
+        design_l = _litres(da["reservoir"]["volume"])
+        threshold = float(da["threshold"]["ph"])
+        setpoints = SKID_B_SETPOINTS
+        rows, band = [], []
+        with tempfile.TemporaryDirectory() as tmp:
+            for i, (name, shift) in enumerate(UNCERTAINTY_CASES):
+                copy = Path(tmp) / f"case-{i}" / self.root.name
+                shutil.copytree(
+                    self.root, copy, ignore=shutil.ignore_patterns(*IGNORED, "figures", "results")
+                )
+                cell = _bounding_cell(point, shift)
+                _write_specified(copy / "process", cell, name)
+                stack = _core.stack(_core.stack_report(copy), STACKS["A"])
+                v = {k: (x or {}).get("value") for k, x in (stack.get("values") or {}).items()}
+                run = _core.duty_report(copy, ["D-A"])
+                d = _core.duty(run, "D-A")
+                if d.get("refused"):
+                    raise _core.CoreError(f"--uncertainty {name}: D-A refused: {d.get('reasons')}")
+                required = (d.get("required_volume") or {}).get("volume_l")
+                lasts = d["time_to_threshold_h"] if d["ended"] == "threshold" else self.h
+                e_mol_h = v["cells_total"] * v["stack_current_a"] * 3600.0 / _core.FARADAY
+                b = _steady_b(cell["wde"], cell["cx"], e_mol_h, setpoints, d)
+                rows.append(
+                    {
+                        "case": name,
+                        "cell": cell,
+                        "cells": v["cells_total"],
+                        "stacks": v["stacks"],
+                        "cells_per_stack": v["cells_per_stack"],
+                        "dc_power_kw": v["dc_power_kw"],
+                        "co_formed_kg_h": v["product_output_kg_h"],
+                        "kwh_per_kg_formed": v["electricity_kwh_per_kg"],
+                        "skid_a_volume_to_horizon_l": required,
+                        "skid_a_design_volume_lasts_h": lasts,
+                        "skid_a_design_volume_reaches_horizon": d["ended"] == "horizon",
+                        "skid_b_bleed_l_h": b["bleed_l_h"],
+                        "skid_b_dose_mol_h": b["dose_mol_h"],
+                        "skid_b_dose_l_h": b["dose_l_h"],
+                    }
+                )
+                if name in ("mean (specified)", "WDE -1 sd", "WDE +1 sd"):
+                    band.append(
+                        {
+                            "label": f"WDE {cell['wde']:.4f}"
+                            + (" (mean)" if name.startswith("mean") else f" ({name[4:]})"),
+                            "t_h": d["series"]["t_h"],
+                            "ph": d["series"]["ph"],
+                        }
+                    )
+                print(
+                    f"[15] {name}: {v['cells_total']} cells ({v['stacks']} x {v['cells_per_stack']}), "
+                    f"{v['electricity_kwh_per_kg']:.4g} kWh/kg, V_A {required:.6g} L to {self.h:g} h, "
+                    f"the design {design_l:g} L lasts {lasts:.6g} h; Skid B dose {b['dose_mol_h']:.5g} mol/h"
+                )
+        base = rows[0]
+        keys = (
+            ("cells", "cells", "-"),
+            ("kwh_per_kg_formed", "electricity per kg CO formed", "kWh/kg"),
+            ("skid_a_volume_to_horizon_l", "Skid A volume to the horizon", "L"),
+            ("skid_a_design_volume_lasts_h", "Skid A design reservoir lasts", "h"),
+            ("skid_b_dose_mol_h", "Skid B KOH dose", "mol/h"),
+            ("skid_b_bleed_l_h", "Skid B bleed", "L/h"),
+        )
+        ranges = {}
+        for key, _label, _unit in keys:
+            sd_vals = [r[key] for r in rows[1:-1] if r[key] is not None]
+            ranges[key] = {
+                "mean": base[key],
+                "sd_bounds": [min(sd_vals), max(sd_vals)],
+                "meter_20c": rows[-1][key],
+            }
+        doc = {
+            "schema": res.UNCERTAINTY_SCHEMA,
+            "issue": 330,
+            "duration_h": self.h,
+            "design_volume_l": design_l,
+            "method": (
+                "bounding runs (core does not propagate the measured scatter, design core_gaps C2): "
+                "pilot-cell as performance: specified at the measured mean and at mean +- 1 sd of "
+                "one parameter at a time (the sample sd over the replicates of P200), and at the "
+                "20 degC meter basis (FE x 273.15 / 293.15, DESIGN.md D-005); the co-ion split "
+                "the membrane block's 0.670; Skid B's rates from the closed-form steady state at "
+                "the setpoints"
+            ),
+            "cases": rows,
+            "ranges": ranges,
+        }
+        out = self.root / UNCERTAINTY.format(h=f"{self.h:g}")
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(res.dump(doc), encoding="utf-8")
+        figs = self.root / SCENARIO_FIGURES[0].format(h=f"{self.h:g}")
+        figs.mkdir(parents=True, exist_ok=True)
+        quantities = [
+            {
+                "label": label,
+                "unit": unit,
+                "base": base[key],
+                "cases": [{"case": r["case"], "value": r[key]} for r in rows[1:]],
+            }
+            for key, label, unit in keys
+        ]
+        (figs / "uncertainty-ranges.svg").write_text(
+            res.range_svg(
+                quantities,
+                f"Measurement uncertainty at {self.h:,.0f} h: one parameter at a time",
+                "Bounding specified cells at the P200 mean +- 1 sd of WDE, FE CO and U, and FE at "
+                "the 20 degC meter basis",
+            ),
+            encoding="utf-8",
+        )
+        (figs / "uncertainty-ph-band.svg").write_text(
+            res.band_svg(
+                band,
+                threshold,
+                self.h,
+                f"Skid A design reservoir ({design_l:,.0f} L) against WDE +- 1 sd",
+                "Duty D-A at 200 mA/cm2; the reservoir sized at the mean reaches pH 12 early at "
+                "WDE - 1 sd (no time margin, D-009)",
+            ),
+            encoding="utf-8",
+        )
+        self.summary["uncertainty"] = {"ranges": ranges}
+        print(f"[15] {len(rows)} bounding runs: {out.relative_to(self.root)}, two band figures")
+
+    # -- 16 ---------------------------------------------------------------------------------
+    def skid_block(self, key: str) -> dict:
+        s = self.summary
+        sid = STACKS[key]
+        st = s["stacks"][sid]
+        v = st["values"]
+        eq = {e["tag"]: e for e in st["equipment"]}
+        res_tag = SKIDS[key]["reservoir"]
+        tank = eq[res_tag]["values"]
+        did = SKID_DUTIES[key]
+        tot = s["duties"][did]["totals"]
+        final = s["skid_final"][key]
+        recovery = v["product_recovery"]
+        delivered = tot["product_kg"] * recovery
+        m_koh = _molar_mass(self.root, "KOH")
+        stacks_cfg = next(x for x in self.load("process/cells.yaml")["stacks"] if x["id"] == sid)
+        margin = float(stacks_cfg["equipment"]["reservoir"]["margin"]["value"])
+        fill_kg = tot["initial_cation_mol"] * m_koh / 1000.0
+        dosed_kg = tot["dosing_hydroxide_kg"]
+        env = s["envelope"]["skids"][key]
+        duty_ok = bool(s["duties"][did]["feasible"])
+        reasons = list(env["reasons"])
+        if not duty_ok:
+            reasons.insert(0, f"duty {did} ended by {s['duties'][did]['ended']}")
+        feasible = duty_ok and env["feasible"]
+        pump = eq[f"P-{1 if key == 'A' else 2}01"]["values"]
+        block = {
+            "stack": sid,
+            "duty": did,
+            "case": SKIDS[key]["case"],
+            "cells": v["cells_total"],
+            "stacks": v["stacks"],
+            "cells_per_stack": v["cells_per_stack"],
+            "stack_voltage_v": v["stack_voltage_v"],
+            "bus_current_a": v["bus_current_a"],
+            "dc_power_kw": v["dc_power_kw"],
+            "ac_power_kw": v["ac_power_kw"],
+            "co_formed_kg_h": v["product_output_kg_h"],
+            "co_delivered_kg_h": v["product_delivered_kg_h"],
+            "margin": v["output_margin"],
+            "kwh_per_kg_formed": v["electricity_kwh_per_kg"],
+            "kwh_per_kg_delivered": v["electricity_kwh_per_kg_delivered"],
+            "stack_heat_kw": v["heat_duty_kw"],
+            "cooler_kw": s["invariants"][key]["conditions"]["temperature"]["cooler_kw"],
+            "recirculation_kg_h": pump.get("mass_flow_kg_h"),
+            "stack_envelope_m": {
+                "length": v["stack_length_m"],
+                "width": v["stack_width_m"],
+                "height": v["stack_height_m"],
+            },
+            "reservoir_tag": res_tag,
+            "reservoir_volume_l": v["reservoir_working_volume_l"],
+            "reservoir_held_m3": v["reservoir_working_volume_l"] * (1 + margin) / 1000.0,
+            "reservoir_diameter_m": tank["diameter"],
+            "reservoir_height_m": tank["height"],
+            "final_ph": tot["final_ph"],
+            "final_carbon_mol_l": tot["final_carbon_mol"] / tot["final_volume_l"],
+            "final_cation_mol_l": tot["final_cation_mol"] / tot["final_volume_l"],
+            "final_hydroxide_mol_l": final["species_mol_l"].get("OH-"),
+            "final_ionic_strength_mol_l": final["ionic_strength_mol_l"],
+            "final_volume_l": tot["final_volume_l"],
+            "totals_charge_c": tot["charge_c"],
+            "totals_energy_kwh": tot["energy_kwh"],
+            "totals_product_kg": tot["product_kg"],
+            "totals_delivered_kg": delivered,
+            "dosed_solution_l": tot["dosing_solution_l"],
+            "dosed_hydroxide_kg": dosed_kg,
+            "bleed_l": tot["bleed_l"],
+            "makeup_water_l": tot["makeup_water_l"],
+            "hydroxide_deficit_mol": tot["hydroxide_deficit_mol"],
+            "koh_fill_kg": fill_kg,
+            "koh_fill_kg_h": fill_kg / self.h,
+            "koh_per_kg_delivered": (fill_kg + dosed_kg) / delivered,
+            "koh_fill_per_kg_delivered": fill_kg / delivered,
+            "koh_dosed_per_kg_delivered": dosed_kg / delivered,
+            "run_fingerprint": st["duty"].get("run_fingerprint"),
+            "equipment": st["equipment"],
+            "items_top_m": env["items_top_m"],
+            "envelope_top_m": env["envelope_top_m"],
+            "headroom_left_m": env["headroom_left_m"],
+            "envelope_feasible": env["feasible"],
+            "duty_feasible": duty_ok,
+            "feasible": feasible,
+            "reasons": reasons,
+            "sentences": []
+            if feasible
+            else [f"Skid {key} cannot meet the {self.h:,.0f} h duty within the skid envelope"],
+            "invariants": s["invariants"][key],
+            "duty_result": final["duty"],
+        }
+        if key == "A":
+            block["reservoir_volume_exact_l"] = s["skid_a"]["volume_exact_l"]
+            block["reservoir_limited_by"] = s["skid_a"]["limited_by"]
+        else:
+            b = s["skid_b"]
+            tank_cfg = stacks_cfg["equipment"]["dosing_tank"]
+            block.update(
+                bleed_l_h=b["bleed_l_h"],
+                dose_mol_h=b["dose_mol_h"],
+                dose_l_h=b["dose_l_h"],
+                makeup_l_h=b["makeup_l_h"],
+                residence_h=b["residence_h"],
+                carbon_share_duty=b["carbon_share_duty"],
+                cation_setpoint_mol_l=b["cation_setpoint_mol_l"],
+                dosing_pump_kg_h=eq["P-202"]["values"]["mass_flow_kg_h"],
+                dosing_tank_diameter_m=eq["T-202"]["values"]["diameter"],
+                dosing_tank_height_m=eq["T-202"]["values"]["height"],
+                dosing_tank_fills=v["dosing_tank_fills_per_campaign"],
+                dosing_solution_per_fill_l=v["dosing_solution_per_fill_l"],
+                dosing_tank_held_l=v["dosing_solution_per_fill_l"]
+                * (1 + float(tank_cfg["margin"]["value"])),
+            )
+        return block
+
+    def write_record(self) -> None:
+        s = self.summary
+        root = self.root
+        record = {
+            "schema": res.RECORD_SCHEMA,
+            "issue": 330,
+            "command": f"cheme run {SCRIPT} --duration {self.h:g}",
+            "duration_h": self.h,
+            "ad_hoc": s["ad_hoc"],
+            "scenarios_h": s["scenarios_h"],
+            "core": s["core"],
+            "inputs_sha256": s["inputs_sha256"],
+            "model_sha256": {rel: _sha(root / rel) for rel in MODEL_FILES},
+            "pid_sha256": {rel: _sha(root / rel) for rel in PIDS},
+            "cell": {k: v for k, v in s["cell"].items() if k != "reasons"},
+            "measured_state": s["measured_state"],
+            "skids": {key: self.skid_block(key) for key in SKIDS},
+            "duties": s["duties"],
+            "comparisons": s["comparisons"],
+            "envelope_basis": s["envelope"]["basis"],
+            "control": s["control"],
+            "findings": [f for f in self.findings if f["level"] in ("error", "warning")],
+        }
+        if "uncertainty" in s:
+            record["uncertainty"] = {
+                "file": UNCERTAINTY.format(h=f"{self.h:g}"),
+                "ranges": s["uncertainty"]["ranges"],
+            }
+        out = root / RECORD.format(h=f"{self.h:g}")
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(res.dump(record), encoding="utf-8")
+        a, b = record["skids"]["A"], record["skids"]["B"]
+        print(
+            f"[16] {out.relative_to(root)}: Skid A feasible {a['feasible']}, Skid B feasible "
+            f"{b['feasible']}; invariants: A {a['invariants']['fe_wde_u_kwh_per_kg']!r}, "
+            f"B {b['invariants']['fe_wde_u_kwh_per_kg']!r}"
+        )
 
     def run(self) -> None:
         self.preflight()
@@ -822,6 +1227,16 @@ class Run:
         self.control()
         self.duty_plots()
         self.envelope_check()
+        self.invariants()
+        if self.with_uncertainty:
+            self.uncertainty()
+        else:
+            # step 10 removed the scenario's band figures: a kept uncertainty.json would be stale
+            stale = self.root / UNCERTAINTY.format(h=f"{self.h:g}")
+            if stale.exists():
+                stale.unlink()
+                print(f"[15] {stale.relative_to(self.root)} removed (run without --uncertainty)")
+        self.write_record()
 
 
 def _num(x: float):
@@ -887,27 +1302,172 @@ def _same(have, want) -> bool:
     return yaml.safe_load(ye.flow(have)) == yaml.safe_load(ye.flow(want))
 
 
-def _check(root: Path, duration: float) -> int:
+def _sha(path: Path) -> str | None:
+    return hashlib.sha256(path.read_bytes()).hexdigest() if path.exists() else None
+
+
+def _litres_text(text) -> float:
+    """'90 mL' (the design basis' free text) in L."""
+    value, unit = str(text).split()[:2]
+    return float(value) * {"L": 1.0, "mL": 1e-3, "m3": 1e3}[unit]
+
+
+def _molar_mass(root: Path, component: str) -> float:
+    data = yaml.safe_load((root / "process" / "materials.yaml").read_text(encoding="utf-8"))
+    return float(next(c for c in data["components"] if c["id"] == component)["molar_mass"])
+
+
+def _stream_duty(flowsheet: dict, stream_id: str, case: str) -> float:
+    stream = next(s for s in flowsheet["streams"] if s["id"] == stream_id)
+    return float(stream["state"][case]["duty"]["value"])
+
+
+def _accepted_ids(root: Path) -> set[str]:
+    """The finding ids that checks/checks.yaml accepts with a reason (any gate)."""
+    path = root / "checks" / "checks.yaml"
+    if not path.exists():
+        return set()
+    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    entries = list(data.get("accept") or [])
+    for c in data.get("checks") or []:
+        entries += c.get("accept") or []
+    return {a["id"] for a in entries if isinstance(a, dict) and "id" in a}
+
+
+def _bounding_cell(point: dict, shift: dict) -> dict:
+    """The specified values of one bounding run: the measured mean of P200 moved by whole sd."""
+    u = point["voltage_v"] + shift.get("u", 0) * point["voltage_sd_v"]
+    fe = dict(point["fe"])
+    fe["CO"] += shift.get("fe", 0) * point["fe_sd"]["CO"]
+    if "meter_k" in shift:  # the flow meter's 0 degC standard basis read at another temperature
+        fe = {k: x * 273.15 / shift["meter_k"] for k, x in fe.items()}
+    wde = point["wde"] + shift.get("wde", 0) * point["wde_sd"]
+    return {"voltage_v": u, "fe_co": fe["CO"], "fe_h2": fe["H2"], "wde": wde, "cx": 0.670}
+
+
+def _write_specified(process: Path, cell: dict, case: str) -> None:
+    """In a temporary copy only: pilot-cell as `performance: specified` at *cell*, and its duties
+    naming their product (a specified cell's duty must; a measured one takes it from the
+    measurement). The files are rewritten by pyyaml: their comments do not matter there."""
+    path = process / "duties.yaml"
+    duties = yaml.safe_load(path.read_text(encoding="utf-8"))
+    for duty in duties["duties"]:
+        if duty.get("cell") == "pilot-cell":
+            duty.setdefault("product", "CO")
+    path.write_text(yaml.safe_dump(duties, sort_keys=False, allow_unicode=True), encoding="utf-8")
+    path = process / "cells.yaml"
+    data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    pilot = next(c for c in data["cells"] if c["id"] == "pilot-cell")
+    src = f"bounding run {case} (scripts/regen.py --uncertainty, temporary copy)"
+    pilot["performance"] = "specified"
+    pilot.pop("measurements", None)
+    pilot["voltage"] = {"value": cell["voltage_v"], "unit": "V", "provenance": "assumed", "source": src}
+    pilot["faradaic_efficiency"] = {"value": cell["fe_co"], "provenance": "assumed", "source": src}
+    pilot["side_reactions"] = [
+        {
+            "reaction": "WS",
+            "electrons": 2,
+            "current_fraction": {"value": cell["fe_h2"], "provenance": "assumed", "source": src},
+        }
+    ]
+    pilot["membrane"]["water_dissociation_efficiency"] = {
+        "value": cell["wde"],
+        "provenance": "assumed",
+        "source": src,
+    }
+    path.write_text(yaml.safe_dump(data, sort_keys=False, allow_unicode=True), encoding="utf-8")
+
+
+def _steady_b(wde: float, cx: float, e_mol_h: float, setpoints: dict, duty: dict) -> dict:
+    """Skid B's bleed and dose at the setpoints (step 6's closed form, no probe run)."""
+    consts = duty["anolyte_model"]["constants"]
+    oh, ct = setpoints["hydroxide_mol_l"], setpoints["carbon_mol_l"]
+    h = consts["Kw"] / oh
+    k1, k2 = 10.0 ** -consts["pK1"], 10.0 ** -consts["pK2"]
+    g = (k1 * h + 2 * k1 * k2) / (h**2 + k1 * h + k1 * k2)
+    cation = oh + ct * g - h
+    bleed = cx * (1 - wde) * e_mol_h / ct
+    dose = bleed * cation + (1 - cx) * (1 - wde) * e_mol_h
+    return {"bleed_l_h": bleed, "dose_mol_h": dose, "dose_l_h": dose / 5.0}
+
+
+def _scenarios(root: Path) -> tuple[float, list[float]]:
+    basis = yaml.safe_load((root / "process" / "design-basis.yaml").read_text(encoding="utf-8"))
+    duration = basis["capacity"]["pilot_skid"]["duration"]
+    return float(duration["design"]["value"]), [float(x) for x in duration["scenarios"]]
+
+
+def _resize_texts(root: Path, records: dict[float, dict]) -> dict[str, str]:
+    expected = yaml.safe_load((root / EXPECTED).read_text(encoding="utf-8"))
+    report = res.resize_report(records, expected)
+    return {
+        f"{RESIZE}.json": res.dump(report),
+        f"{RESIZE}.md": res.resize_markdown(res.tidy(report)),
+    }
+
+
+def write_resize(root: Path) -> list[str]:
+    """Step 17: the resize report, when both design scenarios have a record in *root*."""
+    _, scenarios = _scenarios(root)
+    paths = {h: root / RECORD.format(h=f"{h:g}") for h in scenarios}
+    if len(scenarios) != 2 or not all(p.exists() for p in paths.values()):
+        print("[17] resize report: waits for the record of every design scenario")
+        return []
+    records = {h: json.loads(p.read_text(encoding="utf-8")) for h, p in paths.items()}
+    written = []
+    for rel, text in _resize_texts(root, records).items():
+        (root / rel).parent.mkdir(parents=True, exist_ok=True)
+        (root / rel).write_text(text, encoding="utf-8")
+        written.append(rel)
+    report = json.loads((root / f"{RESIZE}.json").read_text(encoding="utf-8"))
+    s = report["summary"]
+    print(
+        f"[17] {RESIZE}.md: {s['rows']} rows, hand checks failed {s['hand_checks_failed']}, "
+        f"rules broken {s['rules_broken'] or 'none'}"
+    )
+    return written
+
+
+def _scenario_outputs(h: float) -> list[str]:
+    return [p.format(h=f"{h:g}") for p in (*SCENARIO_FIGURES, SCENARIO_RESULTS)]
+
+
+def _check(root: Path, durations: list[float]) -> int:
+    """Step 19: every scenario regenerated in a temporary copy and compared."""
+    design, scenarios = _scenarios(root)
+    differ: list[str] = []
+    records: dict[float, dict] = {}
     with tempfile.TemporaryDirectory() as tmp:
-        scratch = Path(tmp) / root.name
-        shutil.copytree(root, scratch, ignore=COPY_IGNORE)
-        Run(scratch, duration).run()
-        differ = [
-            rel for rel in MODEL_FILES if (scratch / rel).read_bytes() != (root / rel).read_bytes()
-        ]
-        ds = root / "equipment" / "datasheets"
-        for path in sorted((scratch / "equipment" / "datasheets").glob("*.yaml")):
-            mine = ds / path.name
-            if not mine.exists() or mine.read_bytes() != path.read_bytes():
-                differ.append(f"equipment/datasheets/{path.name}")
-        for pattern in SCENARIO_FIGURES:
-            rel = pattern.format(h=f"{duration:g}")
-            mine, theirs = _tree(root, rel), _tree(scratch, rel)
-            for name in sorted(set(mine) | set(theirs)):
-                if mine.get(name) != theirs.get(name):
-                    differ.append(name)
+        for h in durations:
+            scratch = Path(tmp) / f"{h:g}h" / root.name
+            shutil.copytree(root, scratch, ignore=COPY_IGNORE)
+            with_unc = (root / UNCERTAINTY.format(h=f"{h:g}")).exists()
+            print(f"[check] regenerating {h:g} h{' with --uncertainty' if with_unc else ''}")
+            Run(scratch, h, uncertainty=with_unc).run()
+            rel_files = []
+            if h == design:
+                rel_files += list(MODEL_FILES)
+                ds = root / "equipment" / "datasheets"
+                for path in sorted((scratch / "equipment" / "datasheets").glob("*.yaml")):
+                    mine = ds / path.name
+                    if not mine.exists() or mine.read_bytes() != path.read_bytes():
+                        differ.append(f"equipment/datasheets/{path.name}")
+            differ += [
+                rel for rel in rel_files if (scratch / rel).read_bytes() != (root / rel).read_bytes()
+            ]
+            for rel in _scenario_outputs(h):
+                mine, theirs = _tree(root, rel), _tree(scratch, rel)
+                for name in sorted(set(mine) | set(theirs)):
+                    if mine.get(name) != theirs.get(name):
+                        differ.append(name)
+            path = scratch / RECORD.format(h=f"{h:g}")
+            records[h] = json.loads(path.read_text(encoding="utf-8"))
+    if len(scenarios) == 2 and set(scenarios) <= set(records):
+        for rel, text in _resize_texts(root, {h: records[h] for h in scenarios}).items():
+            if not (root / rel).exists() or (root / rel).read_text(encoding="utf-8") != text:
+                differ.append(rel)
     for rel in differ:
-        print(f"[check] differs from a regeneration at {duration:g} h: {rel}")
+        print(f"[check] differs from a regeneration: {rel}")
     print(f"[check] {'clean' if not differ else str(len(differ)) + ' file(s) differ'}")
     return 3 if differ else 0
 
@@ -916,42 +1476,61 @@ def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
         prog="cheme run scripts/regen.py", description=__doc__.split("\n\n")[0]
     )
-    parser.add_argument("--duration", type=float, required=True, help="the campaign H, h")
+    parser.add_argument(
+        "--duration", type=float, help="the campaign H, h (with --check: only this scenario)"
+    )
     parser.add_argument("--scratch", type=Path, help="run in a copy of the folder at DIR")
     parser.add_argument(
-        "--check", action="store_true", help="regenerate in a temporary copy and compare"
+        "--check",
+        action="store_true",
+        help="regenerate every scenario (or --duration) in a temporary copy and compare",
     )
-    parser.add_argument("--uncertainty", action="store_true", help="bounding runs (next stage)")
-    parser.add_argument("--record", action="store_true", help="cheme runs record (next stage)")
+    parser.add_argument(
+        "--uncertainty", action="store_true", help="bounding runs of the measured scatter (step 15)"
+    )
+    parser.add_argument(
+        "--record", action="store_true", help="cheme runs record of this run (step 18)"
+    )
     args = parser.parse_args(argv)
     root = Path.cwd()
     source = root
-    if args.uncertainty or args.record:
-        print(
-            "regen: --uncertainty and --record are not implemented yet (steps 15 and 18, next stage of #330)",
-            file=sys.stderr,
-        )
-        return 2
     try:
         if args.check:
-            return _check(root, args.duration)
+            if args.scratch or args.record or args.uncertainty:
+                raise Refused("--check takes no --scratch, --record or --uncertainty")
+            _, scenarios = _scenarios(root)
+            return _check(root, [args.duration] if args.duration else scenarios)
+        if args.duration is None:
+            raise Refused("--duration H is required (except with --check)")
         if args.scratch:
             target = args.scratch.resolve()
             if target.exists():
                 shutil.rmtree(target)
             shutil.copytree(root, target, ignore=COPY_IGNORE)
             root = target
-        run = Run(root, args.duration)
+        run = Run(root, args.duration, uncertainty=args.uncertainty)
         run.run()
+        resized = write_resize(root) if not run.summary["ad_hoc"] else []
         if root != source:
-            # the scenario's figures are committed; its model files stay in the scratch copy
-            for pattern in SCENARIO_FIGURES:
-                rel = pattern.format(h=f"{args.duration:g}")
+            # the scenario's figures and records are committed; its model files stay in the
+            # scratch copy
+            for rel in _scenario_outputs(args.duration):
                 if (root / rel).exists():
                     if (source / rel).exists():
                         shutil.rmtree(source / rel)
                     shutil.copytree(root / rel, source / rel)
                     print(f"regen: {rel} copied back from the scratch run")
+            for rel in resized:
+                (source / rel).parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(root / rel, source / rel)
+                print(f"regen: {rel} copied back from the scratch run")
+        if args.record:
+            report = f"{RESIZE}.md" if (source / f"{RESIZE}.md").exists() else None
+            rec = ["runs", "record", "--kind", "manual", "--slug", f"regen-{args.duration:g}h"]
+            if report:
+                rec += ["--report-file", report]
+            out = _core.cheme(source, *rec).stdout.strip()
+            print(f"[18] cheme runs record: {out.splitlines()[-1] if out else 'written'}")
     except Refused as exc:
         print(f"regen: refused: {exc}", file=sys.stderr)
         return 2

@@ -24,14 +24,19 @@ frame (for a new sheet: the one `cheme sheet new` wrote).
 The pilot skids of #330 (DESIGN.md D-007 to D-021):
 
 - `regen.py`: the single rerun command, `cheme run scripts/regen.py --duration H
-  [--scratch DIR] [--check]`. It carries the design basis through `cheme process cell`,
-  `duty`, `stack --write`, `datasheets draft`, the balance and `process build`, `layout build`,
-  `datasheets fill` per case, `layout render`, `control report`, the duty plots and
-  comparisons and the envelope check into every value and figure that depends on the campaign
-  duration (steps 1 to 13; the invariants, records and `--uncertainty`/`--record` follow in
-  the next stage). It owns the draft datasheets (D-020). `--check` regenerates in a temporary
-  copy and reports any model file, datasheet or figure of that duration that differs (exit 3).
-  `--scratch DIR` runs in a copy and copies the scenario's figures back (D-021).
+  [--scratch DIR] [--uncertainty] [--record]` or `--check [--duration H]`. It carries the design
+  basis through `cheme process cell`, `duty`, `stack --write`, `datasheets draft`, the balance
+  and `process build`, `layout build`, `datasheets fill` per case, `layout render`, `control
+  report`, the duty plots and comparisons and the envelope check into every value and figure that
+  depends on the campaign duration (steps 1 to 13), then checks the conditional invariants,
+  writes the calculation record `results/scenarios/<H>h/record.json` and, once both scenarios
+  have one, the resize report `results/resize-1000h-10000h.{json,md}` (steps 14 to 17).
+  `--uncertainty` adds the bounding runs (step 15), `--record` the session record (step 18). It
+  owns the draft datasheets (D-020). `--check` regenerates every design scenario in a temporary
+  copy and reports any record, figure, model file or datasheet that differs (exit 3). `--scratch
+  DIR` runs in a copy and copies the scenario's figures and records back (D-021, D-022).
+- `_results.py`: the arithmetic of steps 14 to 17 (invariants, record, resize report) and the
+  uncertainty figures, plain SVG; no core import.
 - `skid_balance.py`: the flowsheet's stream values of both cases from core's stack and duty
   results (library ADR 0027, contract `balance-output/1`).
 - `_core.py`: the one coupling to cheme-as-code (its commands' `--json` output only).
