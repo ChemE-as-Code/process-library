@@ -1,0 +1,55 @@
+# Special piping items: relief devices. Schema: `cheme schema piping_items`.
+# Drawn on the P&IDs in S3b (D-025). Set pressure = design pressure of the protected item
+# (equipment list, D-012), ASSUMED until the MAWP is known; relief_case = the case that makes
+# the device necessary, named here; the governing case, its load and the orifice come with the
+# relief study (S8). Every PSV discharges to the flare header (P-07) unless it says otherwise.
+schema: cheme/piping_items/v1
+piping_items:
+  # ---- P-01
+  - {tag: PSV-118, type: SpringLoadedGlobeSafetyValve, line: FL-133, sheet: P-01, set_pressure_barg: 3.5,
+     relief_case: "V-100: nitrogen blanket regulator PCV-105 failed open; external fire",
+     notes: "Set ASSUMED = V-100 design pressure (D-012). Load open (S8)."}
+  - {tag: PSV-119, type: SpringLoadedGlobeSafetyValve, line: FL-135, sheet: P-01, set_pressure_barg: 42,
+     relief_case: "Reactor loop blocked downstream (no isolation valve from E-101 inlet to V-101): P-101 at shut-off and make-up hydrogen with the loop blocked; fire on E-101/R-101",
+     notes: "Set ASSUMED = loop design pressure 42 barg (D-012). Protects E-101 (both sides), H-101 coil, R-101, E-102 process side; the hot sections relieve through the cold feed (D-025). Load open (S8)."}
+  # ---- P-02
+  - {tag: PSV-214, type: SpringLoadedGlobeSafetyValve, line: FL-234, sheet: P-02, set_pressure_barg: 42,
+     relief_case: "V-101: external fire; gas outlet blocked (K-101 suction closed) with the make-up hydrogen and P-101 running; also protects the K-101 suction and casing, which have no isolation from V-101",
+     notes: "Set ASSUMED = V-101 design pressure (D-012). K-101 has no PSV of its own on the discharge: HG-115 runs from K-101 through its check valve CV-115 to E-101 with no isolation valve, so PSV-119 on P-01 (set at the same 42 barg) protects the discharge against the shut-off case; the check valve opens in the relieving direction (D-025). Load open (S8)."}
+  - {tag: PSV-215, type: SpringLoadedGlobeSafetyValve, line: FL-238, sheet: P-02, set_pressure_barg: 6,
+     relief_case: "E-102 cooling water side: tube rupture (loop gas at up to 42 barg with H2, CH4 and benzene into the CW side; CW-side design 6 barg is below 10/13 of the 42 barg process side design); blocked-in CW side with hot effluent flowing (thermal expansion)",
+     notes: "Set ASSUMED = 6 barg CW-side design pressure (design basis gives no CW pressure; usual site CW systems run at 3-5 barg, ASSUMED). Discharges into FL-234 and the flare header, not to atmosphere: a tube-rupture relief carries hydrogen and benzene (D-025). Water comes with it; the site flare knock-out drum takes it (S8). Whether a tube rupture needs a bursting disc instead is for S8."}
+  # ---- P-03
+  - {tag: PSV-307, type: SpringLoadedGlobeSafetyValve, line: FL-332, sheet: P-03, set_pressure_barg: 6,
+     relief_case: "PSA tail gas side (FG-126, PK-101 tail gas drum): a switching valve failed open (feed gas at 36 bar into the 6 barg side); back-flow from the fuel gas header on a K-102 trip; fire",
+     notes: "Set ASSUMED = FG-126 design pressure 6 barg (D-024). Taken off FG-126 upstream of the block valve HV-332 (moved downstream of the take-off in the review of PR #328), so no valve isolates the PK-101 tail gas side from it. The vendor's package relief may take part of this duty; the split and whether the package relief alone covers the failed-open case are for S8 with the vendor (D-025)."}
+  - {tag: PSV-308, type: SpringLoadedGlobeSafetyValve, line: FL-331, sheet: P-03, set_pressure_barg: 6,
+     relief_case: "K-102 discharge blocked (closed header or E-103 outlet) with the machine running; the likely reciprocating or screw machine (D-024) needs it",
+     notes: "Set ASSUMED = K-102 / FG-127 design pressure 6 barg (D-024). Load open (S8)."}
+  - {tag: PSV-309, type: SpringLoadedGlobeSafetyValve, line: CWR-335, sheet: P-03, set_pressure_barg: 6,
+     relief_case: "E-103 cooling water side blocked in with hot tail gas flowing (thermal expansion)",
+     notes: "Set ASSUMED = 6 barg CW-side design pressure, as PSV-215. To atmosphere (D-025)."}
+  # ---- P-04
+  - {tag: PSV-413, type: SpringLoadedGlobeSafetyValve, line: FL-443, sheet: P-04, set_pressure_barg: 9,
+     relief_case: "C-201 with E-201 process side and V-201: external fire; cooling water failure with the reboiler on; gas blow-by from V-101 (32 barg) if XV-204 and LV-202 fail open; blocked off-gas outlet",
+     notes: "Set ASSUMED = C-201 design pressure 9 barg (D-012). The blow-by case is likely to govern (S8); I-201 is the layer before it (D-025)."}
+  - {tag: PSV-414, type: SpringLoadedGlobeSafetyValve, line: FL-442, sheet: P-04, set_pressure_barg: 6,
+     relief_case: "E-201 cooling water side: tube rupture (stabiliser overhead with H2, CH4 and benzene at 9 barg into the CW side; CW-side design 6 barg is below 10/13 of the 9 barg process side, 6/9 = 0.67 < 0.77); blocked in with hot vapour flowing",
+     notes: "Set ASSUMED = 6 barg CW-side design pressure, as PSV-215. Discharges through FL-442 into FL-443 and the flare header, not to atmosphere: a tube-rupture relief carries hydrogen and benzene (D-025, review of PR #328). Water comes with it; the site flare knock-out drum takes it (S8)."}
+  # ---- P-05
+  - {tag: PSV-514, type: SpringLoadedGlobeSafetyValve, line: FL-548, sheet: P-05, set_pressure_barg: 3.5,
+     relief_case: "C-202 with the E-203 process side and V-202: external fire; cooling water failure with the reboiler on; blocked vent with the nitrogen regulator PCV-505 failed open",
+     notes: "Set ASSUMED = C-202 design pressure 3.5 barg (D-012). CW failure is the likely governing case (S8)."}
+  - {tag: PSV-515, type: SpringLoadedGlobeSafetyValve, line: CWS-544, sheet: P-05, set_pressure_barg: 6,
+     relief_case: "E-203 cooling water side blocked in with hot vapour condensing (thermal expansion)",
+     notes: "Set ASSUMED = 6 barg CW-side design pressure, as PSV-215. To atmosphere (D-025)."}
+  - {tag: PSV-516, type: SpringLoadedGlobeSafetyValve, line: CWR-547, sheet: P-05, set_pressure_barg: 6,
+     relief_case: "E-207 cooling water side blocked in with hot benzene flowing (thermal expansion)",
+     notes: "Set ASSUMED = 6 barg CW-side design pressure, as PSV-215. To atmosphere (D-025)."}
+  # ---- P-06
+  - {tag: PSV-615, type: SpringLoadedGlobeSafetyValve, line: FL-645, sheet: P-06, set_pressure_barg: 3.5,
+     relief_case: "C-203 with the E-205 process side and V-203: E-206 tube rupture (HP steam at 41 barg into the 3.5 barg column); external fire; cooling water failure; loss of vacuum is not an overpressure case (full vacuum design)",
+     notes: "Set ASSUMED = C-203 design pressure 3.5 barg (D-012). The tube rupture is likely to govern (S8)."}
+  - {tag: PSV-616, type: SpringLoadedGlobeSafetyValve, line: CWS-644, sheet: P-06, set_pressure_barg: 6,
+     relief_case: "E-205 cooling water side blocked in with hot vapour condensing (thermal expansion)",
+     notes: "Set ASSUMED = 6 barg CW-side design pressure, as PSV-215. To atmosphere (D-025)."}
