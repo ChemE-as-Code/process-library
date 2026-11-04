@@ -1,12 +1,20 @@
 # Every input of run.py's model, with value, unit, label and source or rationale (#335).
 #
-# Labels. The source is a simulation study, so nothing here is measured on a plant.
-#   reported      taken directly from the source (article text or SI workbook); the case's
-#                 equivalent of "measured" in the tracker's vocabulary
-#   literature    a published property value from another source (named)
+# Labels follow ADR 0031 (measured | reconstructed | assumed). The source is a simulation study,
+# so nothing here is measured on a plant.
+#   measured      taken directly from a published source's data or statement: the reference
+#                 (article text or SI workbook; its "data" are Aspen simulation outputs and
+#                 specifications) or, where marked origin: literature, another named publication
 #   reconstructed derived from source data by the stated procedure; run.py does it at runtime
 #                 where the procedure says so and records the result in results/comparison.json
 #   assumed       our choice, with the rationale; varied in the sensitivity study where it matters
+#
+# Amended after the freeze (commit 9aeb7614), with no model value changed (review-fix commit):
+# labels renamed to the ADR 0031 vocabulary (reported -> measured; literature -> measured with
+# origin: literature); entries that mixed a reported structure with our own value or
+# interpretation split into separate labelled entries (reflux_ratio_CS1, TC tuning, FLASH-D drum,
+# level loops); the NRTL alpha variants, already in the committed results, added to
+# sensitivity_study; the feed phase source corrected.
 #
 # Stage numbering: Aspen column block stages, 1 = top, 38 = bottom (source.yaml, case).
 
@@ -24,25 +32,26 @@ model:
     Aspen Dynamics' own rigorous model is not public
 
 feed:
-  flow:            {value: 100.0, unit: kmol/h, label: reported, source: "article section 2; SI FEED"}
-  methanol:        {value: 0.80, unit: mol/mol, label: reported, source: "article section 2; SI FEED"}
-  temperature:     {value: 30.0, unit: C, label: reported, source: "article section 2; SI stream 1"}
-  phase:           {value: liquid (subcooled), label: reported, source: "SI stream 1 vapour fraction 0"}
-  stage:           {value: 29, label: reported, source: "SI Column data, 'Liquid feed' 100 kmol/h on stage 29"}
+  flow:            {value: 100.0, unit: kmol/h, label: measured, source: "article section 2; SI FEED"}
+  methanol:        {value: 0.80, unit: mol/mol, label: measured, source: "article section 2; SI FEED"}
+  temperature:     {value: 30.0, unit: C, label: measured, source: "article section 2; SI stream 1"}
+  phase:           {value: liquid (subcooled), label: measured, source: "SI FEED and stream 1, vapour fraction 0, 30 C",
+                    note: "the article (section 2) says 'saturated liquid at 30 C and 5 bar'; 30 C is about 42 K below the bubble point, so we follow the SI (source.yaml, text_values_that_differ_from_the_SI)"}
+  stage:           {value: 29, label: measured, source: "SI Column data, 'Liquid feed' 100 kmol/h on stage 29"}
 
 column:
-  stages:          {value: 38, label: reported, source: "SI Column data"}
-  murphree_efficiency: {value: 1.0, label: reported, source: "article section 2, theoretical stages"}
-  top_pressure:    {value: 1.007, unit: bar, label: reported, source: "article section 2; SI stage 1"}
-  stage_pressure_drop: {value: 0.007, unit: bar, label: reported, source: "article section 2 (0.7 kPa); SI stage pressures"}
+  stages:          {value: 38, label: measured, source: "SI Column data"}
+  murphree_efficiency: {value: 1.0, label: measured, source: "article section 2, theoretical stages"}
+  top_pressure:    {value: 1.007, unit: bar, label: measured, source: "article section 2; SI stage 1"}
+  stage_pressure_drop: {value: 0.007, unit: bar, label: measured, source: "article section 2 (0.7 kPa); SI stage pressures"}
   pressures_fixed: {value: true, label: assumed, rationale: "PC1 holds the top pressure; stage pressure drops taken as constant"}
-  FLASH_R_pressure: {value: 1.276, unit: bar, label: reported, source: "SI stream 24/25"}
-  FLASH_D_pressure: {value: 1.007, unit: bar, label: reported, source: "SI stream 10/11/13"}
-  temperature_control_stage: {value: 35, label: reported, source: "SI series variable BLOCKS(\"COLUMN\").Stage(35).T; article section 3.2"}
+  FLASH_R_pressure: {value: 1.276, unit: bar, label: measured, source: "SI stream 24/25"}
+  FLASH_D_pressure: {value: 1.007, unit: bar, label: measured, source: "SI stream 10/11/13"}
+  temperature_control_stage: {value: 35, label: measured, source: "SI series variable BLOCKS(\"COLUMN\").Stage(35).T; article section 3.2"}
 
 specifications:
-  distillate_methanol: {value: 0.99, unit: mol/mol, label: reported, source: "article section 2"}
-  bottoms_water:   {value: 0.9999, unit: mol/mol, label: reported, source: "article section 2"}
+  distillate_methanol: {value: 0.99, unit: mol/mol, label: measured, source: "article section 2"}
+  bottoms_water:   {value: 0.9999, unit: mol/mol, label: measured, source: "article section 2"}
   nominal_steady_state: >-
     run.py solves the steady state of our model with these two specifications (unknowns: the
     stage compositions, distillate flow and reflux ratio); reflux ratio, duties, compressor
@@ -51,16 +60,16 @@ specifications:
 thermodynamics:
   vapour_pressure:
     form: "log10(P/bar) = A - B/(T/K + C)"
-    methanol: {A: 5.20409, B: 1581.341, C: -33.50, range_K: [288.10, 356.83], label: literature,
+    methanol: {A: 5.20409, B: 1581.341, C: -33.50, range_K: [288.10, 356.83], label: measured, origin: literature,
                source: "NIST Chemistry WebBook, SRD 69, methanol Antoine parameters (Ambrose and Sprake, 1970)",
                flag: "used up to 380 K (extrapolated 23 K); gives 3.53 bar at 373.15 K"}
-    water:    {A: 5.08354, B: 1663.125, C: -45.622, range_K: [344, 373], label: literature,
+    water:    {A: 5.08354, B: 1663.125, C: -45.622, range_K: [344, 373], label: measured, origin: literature,
                source: "NIST Chemistry WebBook, SRD 69, water Antoine parameters (Bridgeman and Aldrich, 1964)",
                flag: "used from 337 K to 380 K (extrapolated about 7 K at each end)"}
   vapour_phase: {value: ideal gas, label: assumed, rationale: "pressures 1.0-1.3 bar"}
   activity_model:
     form: "NRTL, tau_ij = b_ij / T, alpha = 0.3"
-    alpha: {value: 0.3, label: assumed, rationale: "usual value for this pair"}
+    alpha: {value: 0.3, label: assumed, rationale: "usual value for this pair; varied 0.2 and 0.4 in the sensitivity study"}
     b_ij:
       value: fitted at runtime
       unit: K
@@ -98,13 +107,14 @@ hydraulics:
   weir_height:     {value: 0.05, unit: m, label: assumed, rationale: "typical; not reported"}
   weir_length:     {value: 0.73, unit: column diameters, label: assumed, rationale: "segmental downcomer of about 12 % of the area"}
   active_area:     {value: 0.80, unit: fraction of column area, label: assumed, rationale: "typical"}
-  francis_coefficient: {value: 1.84, unit: m^0.5/s, label: literature, source: "Francis weir formula Q = 1.84 L h^1.5 (SI units), textbook form"}
+  francis_coefficient: {value: 1.84, unit: m^0.5/s, label: measured, origin: literature, source: "Francis weir formula Q = 1.84 L h^1.5 (SI units), textbook form"}
   vapour_holdup:   {value: 0, label: assumed, rationale: "small at 1 bar"}
 
 holdups:
-  reflux_drum_FLASH_D: {value: "5 min of liquid inflow (reflux + distillate) at 50 % level", label: reported,
-                        source: "article section 3.1 (reflux drum); FLASH-D taken as the reflux drum (reconstructed interpretation)"}
-  column_sump_stage_38: {value: "5 min of the withdrawal flow (stream 19) at 50 % level", label: reported, source: "article section 3.1"}
+  reflux_drum: {value: "5 min of liquid inflow (reflux + distillate) at 50 % level", label: measured, source: "article section 3.1 (reflux drum)"}
+  reflux_drum_is_FLASH_D: {value: "the reflux drum of section 3.1 is FLASH-D of the FVC-2 flowsheet", label: reconstructed,
+                           procedure: "FLASH-D receives the throttled condensate and feeds reflux and distillate (Fig. 1, SI streams 10-17); source.yaml level_loop_interpretation"}
+  column_sump_stage_38: {value: "5 min of the withdrawal flow (stream 19) at 50 % level", label: measured, source: "article section 3.1"}
   FLASH_R: {value: "5 min of liquid inflow (stream 19) at 50 % level", label: assumed,
             rationale: "the paper does not size FLASH-R; same rule as the sump; varied x0.25 and x2"}
   heat_pump_loop_inventory: {value: 0, label: assumed, rationale: "compressors, exchangers and the FVC line quasi-steady"}
@@ -115,7 +125,7 @@ heat_pump:
   heat_per_compressed_mole_q_c: {value: "Q_R0 / m_c0 = 1425.5 kW / 140.344 kmol/h = 36.57 kJ/mol", label: reconstructed,
                                  source: "SI enthalpy flows of streams 3-8 (HEX1 + HEX2 + HEX3)",
                                  note: "full condensation in HEX1-3, as in the SI nominal state (stream 8 saturated liquid)"}
-  power_split: {value: "COMP1 : COMP2 : COMP3 = 166.194 : 68.439 : 68.414", label: reported, source: "SI series at t = 0; article section 3.2 (fixed ratios)"}
+  power_split: {value: "COMP1 : COMP2 : COMP3 = 166.194 : 68.439 : 68.414", label: measured, source: "SI series at t = 0; article section 3.2 (fixed ratios)"}
   compressor_flow: {value: "m_c = W / w", label: assumed}
   FVC_flow: {value: "F_FVC = m_c - V_top (PC1 ideal: the flash vapour closes the suction balance)", label: assumed}
   reboiler_duty_closure:
@@ -142,20 +152,26 @@ control:
   FC1_feed_flow: {value: ideal (flow at its set point), label: assumed, rationale: "Kc 0.5, tau_I 0.3 min in the source: much faster than the column"}
   PC1_PC2: {value: ideal (pressures fixed), label: assumed, rationale: "see column.pressures_fixed and heat_pump"}
   level_controllers:
-    type: {value: "P-only, Kc = 2 (%/%)", label: reported, source: "article section 3.1"}
+    type: {value: "P-only, Kc = 2 (%/%)", label: measured, source: "article section 3.1"}
     level_span: {value: "0-100 % = 0 to 2 x nominal holdup", label: assumed, rationale: "50 % level at nominal (section 3.1)"}
     output_span: {value: "0 to 2 x nominal flow, no saturation applied", label: assumed, rationale: "valves about 50 % open at nominal (section 3.1); the source re-sized V8 to avoid saturation"}
-    LC1: "drum level -> distillate (reflux follows by the ratio)"
-    LC2: "sump (stage 38) level -> withdrawal stream 19"
-    LC3: "FLASH-R level -> bottoms"
-  reflux_ratio_CS1: {value: "fixed at the nominal steady-state value of our model", label: reported, source: "article section 3.2 (fixed RR)"}
+    loops_as_reported: {value: "LC1 reflux drum level by distillate flow; LC2 column sump level by the withdrawal stream; LC3 base level of the column by the bottoms flow", label: measured, source: "article section 3.2, items 2-4"}
+    loops_in_model:
+      value: "LC1 FLASH-D level -> distillate (reflux follows by the ratio); LC2 stage 38 level -> withdrawal stream 19; LC3 FLASH-R level -> bottoms (V8)"
+      label: reconstructed
+      procedure: "mapping onto the FVC-2 flowsheet, source.yaml case.control_structures.CS1.loops.level_loop_interpretation"
+  reflux_ratio_CS1_structure: {value: "reflux ratio held constant by a multiplier (reflux = RR x distillate)", label: measured, source: "article section 3.2, item 5"}
+  reflux_ratio_CS1_value: {value: "0.65886, the nominal steady-state RR of our model at x_D 0.99 and x_B,water 0.9999 (source: 0.64636)", label: reconstructed,
+                           procedure: "run.py nominal steady state (comparison.json nominal.RR)"}
   TC:
-    measured: {value: block stage 35 temperature, label: reported}
-    manipulated: {value: total compressor power, label: reported}
+    measured: {value: block stage 35 temperature, label: measured}
+    manipulated: {value: total compressor power, label: measured}
     action: {value: "reverse: W rises when T35 falls", label: assumed}
     set_point: {value: "T35 of our nominal steady state", label: assumed, rationale: "the source holds its own nominal T35, 88.91 C"}
-    deadtime: {value: 1.0, unit: min, label: reported, source: "article section 3.1"}
-    tuning: {value: "Tyreus-Luyben PI: Kc = Ku / 3.2, tau_I = 2.2 Pu", label: reported, source: "article section 3.1 (method)"}
+    deadtime: {value: 1.0, unit: min, label: measured, source: "article section 3.1"}
+    tuning_method: {value: Tyreus-Luyben PI, label: measured, source: "article section 3.1 (method named; settings not reported)"}
+    tuning_rule_constants: {value: "Kc = Ku / 3.2, tau_I = 2.2 Pu", label: measured, origin: literature,
+                            source: "Tyreus-Luyben settings as given in W. L. Luyben, Distillation Design and Control Using Aspen Simulation, 2nd ed., Wiley (2013), doi 10.1002/9781118510193, which the article cites for its loop settings (section 3.1)"}
     Ku_Pu:
       value: computed at runtime
       label: reconstructed
@@ -164,20 +180,20 @@ control:
         nominal steady state (finite-difference Jacobian), loop open, including the deadtime
         representation; equivalent to an ideal relay test
   CC_CS2:
-    measured: {value: distillate methanol mole fraction, label: reported, source: "article section 3.3"}
-    manipulated: {value: reflux ratio, label: reported}
-    set_point: {value: 0.99, label: reported}
-    deadtime: {value: 3.0, unit: min, label: reported, source: "article section 3.1 and 3.4 (analyser lag)"}
-    tuning: {value: "Tyreus-Luyben PI from Ku, Pu of the linearised model with TC closed", label: reconstructed}
+    measured: {value: distillate methanol mole fraction, label: measured, source: "article section 3.3"}
+    manipulated: {value: reflux ratio, label: measured}
+    set_point: {value: 0.99, label: measured}
+    deadtime: {value: 3.0, unit: min, label: measured, source: "article section 3.1 and 3.4 (analyser lag)"}
+    tuning: {value: "Tyreus-Luyben PI (constants as for TC) from Ku, Pu of the linearised model with TC closed", label: reconstructed}
   deadtime_representation: {value: "8 first-order lags in series, each deadtime / 8", label: assumed, rationale: "smooth for the ODE solver; phase error small below the crossover frequency"}
 
 disturbances:
-  time: {value: 0.5, unit: h, label: reported, source: "article section 3.2"}
-  horizon: {value: 10.0, unit: h, label: reported, source: "article section 3.2; SI series end at 10 h"}
-  feed_methanol_plus20: {value: 0.96, label: reported, source: "article section 3.2"}
-  feed_methanol_minus20: {value: 0.64, label: reported, source: "article section 3.2"}
-  feed_flow_plus20: {value: 120, unit: kmol/h, label: reported}
-  feed_flow_minus20: {value: 80, unit: kmol/h, label: reported}
+  time: {value: 0.5, unit: h, label: measured, source: "article section 3.2"}
+  horizon: {value: 10.0, unit: h, label: measured, source: "article section 3.2; SI series end at 10 h"}
+  feed_methanol_plus20: {value: 0.96, label: measured, source: "article section 3.2"}
+  feed_methanol_minus20: {value: 0.64, label: measured, source: "article section 3.2"}
+  feed_flow_plus20: {value: 120, unit: kmol/h, label: measured}
+  feed_flow_minus20: {value: 80, unit: kmol/h, label: measured}
   shape: {value: step, label: assumed, rationale: "the source says step changes"}
 
 sensitivity_study:
@@ -190,6 +206,7 @@ sensitivity_study:
     CC_tuning: "Kc x0.5 and x2; tau_I x0.5 and x2"
     CC_deadtime: "6 min and 10 min"
     heat_pump_closure: "kappa = 0.1 and 0.3; no capacity limit (Q_R = q_c m_c)"
+    NRTL_alpha: "0.2 and 0.4, NRTL refitted to the SI equilibrium points and both loops retuned (added here after the freeze; already in the committed results)"
   reported_quantities: "final x_D, final RR, final W, IAE of x_D, settling time, for CS1 and CS2 at +-20 % methanol"
 
 design_extension:

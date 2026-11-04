@@ -2,6 +2,11 @@
 # Facts (specifications, numbers) are taken from the pinned sources and restated in our own form
 # with locators. No text, tables or figures of the source are copied into the library. The
 # supporting-information workbook is downloaded by run.py at runtime and is not committed.
+#
+# Amended after the freeze (commit 9aeb7614), with no reference value changed: commit 2ba5980b
+# (Table 2 recomputation bound) and the review-fix commit that follows it (table2_IAE note restored
+# to the frozen wording with the finding beside it; licence note; loop wording restated as the
+# article gives it, with our interpretation labelled; the article's feed description recorded).
 reference:
   id: cui-2025-fvc-control
   title: Control of fully electrified heat pump assisted distillation process by flash vapor circulation
@@ -15,8 +20,11 @@ reference:
     note: >-
       CC BY 4.0 would allow redistribution with attribution, but the library rule (CLAUDE.md) is
       to restate facts in our own form and draw every figure ourselves. We do so. The supporting
-      information is published with the article (Appendix A); we take it to be under the same
-      licence but do not redistribute it: run.py downloads it.
+      information is published with the article (Appendix A). Its own licence is not stated
+      separately, and the publisher page could not be opened by script (HTTP 403), so we have not
+      verified it. We therefore use the SI only as a source of numbers (facts), cited, and do not
+      redistribute the file: run.py downloads it. Our figures replot some SI series beside our
+      results, with the citation on each figure; attribution in NOTICE.md.
   accessed: "2026-11-04"
   kind: model reference (Aspen Plus V14 steady state and Aspen Dynamics V14 simulations; no plant or experimental data)
   files:
@@ -62,7 +70,7 @@ reference:
 case:
   system: methanol / water, binary
   feed: {flow: 100 kmol/h, methanol: 0.80, water: 0.20, temperature: 30 C, pressure: 5 bar, after_valve_V1: 1.203 bar, phase: liquid,
-         locator: "article section 2; SI Stream data, FEED and stream 1"}
+         locator: "article section 2 (which says 'saturated liquid'; see text_values_that_differ_from_the_SI); SI Stream data, FEED and stream 1"}
   products:
     distillate: {methanol: 0.99, flow: 80.806 kmol/h, locator: "section 2; SI stream MEOH"}
     bottoms: {water: 0.9999, flow: 19.194 kmol/h, locator: "section 2; SI stream WATER"}
@@ -102,9 +110,16 @@ case:
     CS1:
       loops:
         FC1: feed flow by valve V1
-        LC1: reflux drum (FLASH-D) level by distillate flow
-        LC2: column sump level by the withdrawal stream 19
-        LC3: FLASH-R level by the bottoms flow (valve V8)
+        LC1: reflux drum level by the distillate flow rate
+        LC2: column sump level by the withdrawal stream
+        LC3: base level of the distillation column by the bottoms flow rate
+        level_loop_interpretation:
+          label: reconstructed
+          note: >-
+            Our mapping of LC1-LC3 onto the FVC-2 flowsheet (Fig. 1, SI stream table), not the
+            article's words: the reflux drum is FLASH-D; the withdrawal stream is stream 19 (column
+            bottom to HEX1); the "base level" is the FLASH-R (reboiler flash) level, manipulated by
+            the bottoms flow through V8, the valve the article re-sized for LC3 (section 3.1).
         RR: reflux ratio fixed (reflux = RR x distillate mass flow, by a multiplier)
         PC1: column top pressure by the trim-condenser duty (COND)
         PC2: compressor discharge pressure by valve V2 (after COND, before the drum)
@@ -154,12 +169,25 @@ reported_results:
   text_values_that_differ_from_the_SI:
     - "Section 3.2 gives 99.76 mol% (+20 % methanol) and 97.75 mol% (-20 %) for CS1; the SI series end at 0.99799 and 0.97836. We compare with the SI."
     - "Section 3.3 gives the CS2 throughput reflux ratios as 0.656 and 0.638 (SI 0.65590, 0.63797): consistent."
+    - >-
+      Section 2 calls the feed a saturated liquid at 30 C and 5 bar. The SI gives 30 C and 5 bar
+      with vapour fraction 0 (FEED), and 1.203 bar after V1 (stream 1); at either pressure 30 C
+      is well below the bubble point (about 72 C at 1.2 bar for 80 mol% methanol), so the feed is
+      subcooled liquid. Our model follows the SI: a 30 C liquid feed, about 42 K subcooled at the
+      feed stage. This matters for the energy balance: the subcooling condenses vapour on the
+      feed stage and raises the boil-up needed below it.
   table1_settling_time_h:
     note: "definition not stated in the paper; not reproducible from the SI series with a simple band rule (see comparison.md)"
     CS1: {plus20_F: {MeOH: 2.5, water: 1.6}, minus20_F: {MeOH: 2.5, water: 0.5}, plus20_MeOH: {MeOH: 1.8, water: 1.6}, minus20_MeOH: {MeOH: 1.8, water: 1.0}}
     CS2: {plus20_F: {MeOH: 3.5, water: 2.5}, minus20_F: {MeOH: 4.0, water: 1.5}, plus20_MeOH: {MeOH: 9.5, water: 2.5}, minus20_MeOH: {MeOH: 3.5, water: 1.5}}
   table2_IAE:
-    definition: "integral over 0-10 h (time in h) of |x_D - 0.99| (MeOH) and |x_B,water - 0.9999| (water); recomputed from the SI series by trapezoidal integration within 2.5 % (run.py, table2_vs_SI_series)"
+    definition: "integral over 0-10 h (time in h) of |x_D - 0.99| (MeOH) and |x_B,water - 0.9999| (water); recomputed from the SI series by trapezoidal integration within 1 %"
+    recomputation_finding_after_freeze: >-
+      The frozen definition above says "within 1 %". run.py (comparison.json table2_vs_SI_series)
+      finds agreement within 2.5 %; the largest deviation is CS2 +20 % F, MeOH: 0.001242 from the
+      SI series against 0.001212 in Table 2. Recorded here after the freeze (first in commit
+      2ba5980b, which edited the definition itself; restored to the frozen wording in the
+      review-fix commit). No reference value changed, and the bound is not a tolerance.
     CS1: {plus20_F: {MeOH: 0.010580, water: 0.007575}, minus20_F: {MeOH: 0.009107, water: 0.000274}, plus20_MeOH: {MeOH: 0.070604, water: 0.002605}, minus20_MeOH: {MeOH: 0.100947, water: 0.000367}}
     CS2: {plus20_F: {MeOH: 0.001212, water: 0.009474}, minus20_F: {MeOH: 0.003157, water: 0.000275}, plus20_MeOH: {MeOH: 0.011353, water: 0.001962}, minus20_MeOH: {MeOH: 0.003038, water: 0.000435}}
   qualitative_conclusions:
