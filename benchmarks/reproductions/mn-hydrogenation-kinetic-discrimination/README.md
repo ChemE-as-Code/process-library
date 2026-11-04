@@ -2,7 +2,7 @@
 
 Case study for issue #341 (scope tracker #333, priority P3). Protocol: ADR 0030 (reference
 reproductions, tolerances frozen first); layout: ADR 0031 (case studies: a reproduction plus
-a labelled design extension; proposed in its own PR, which must be merged first).
+a labelled design extension; Proposed, merged in #344).
 
 **Engineering question.** Which feasible batch condition most clearly distinguishes the
 competing kinetic models of a manganese-catalysed hydrogenation?
