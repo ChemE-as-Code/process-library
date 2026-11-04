@@ -6,7 +6,7 @@
 schema: cheme/site_plan/v1
 site: {name: "hda-1 notional plot (Rotterdam area, ASSUMED)", width: 180, depth: 125}
 areas:
-  - {id: A-100, title: "Reaction and gas recycle: feed drum, pumps, FEHE, fired heater, reactor, trim cooler, HP separator, recycle compressor", box: [20, 56, 90, 112], kind: process}
+  - {id: A-100, title: "Reaction and gas recycle: feed drum, pumps, FEHE, fired heater, reactor, trim cooler, HP separator, recycle compressor; purge hydrogen PSA and tail-gas compressor (D-024)", box: [20, 56, 90, 112], kind: process}
   - {id: A-200, title: "Stabilisation and distillation: stabiliser, benzene and toluene columns with their condensers and reboilers", box: [100, 56, 165, 112], kind: process}
   - {id: A-800, title: "Utility interface (steam letdown, cooling water headers; reserved)", box: [70, 15, 90, 40], kind: reserved}
   - {id: A-900, title: "Control room and substation (reserved)", box: [20, 15, 60, 40], kind: reserved}
@@ -39,6 +39,17 @@ separations:
   - {from: A-900, to: K-101, min_m: 45, reason: "control room plot to the high-pressure hydrogen compressor", basis: D-018}
   - {from: A-900, to: C-202, min_m: 45, reason: "control room plot to the largest benzene inventory", basis: D-018}
   - {from: A-900, to: V-101, min_m: 30, reason: "control room plot to the high-pressure separator", basis: D-018}
+  # purge hydrogen recovery (D-024): the PSA's switching valves and the tail-gas compressor are
+  # leak sources of hydrogen-rich and methane-rich gas, treated as K-101
+  - {from: H-101, to: PK-101, min_m: 30, reason: "open flame to the hydrogen PSA (switching valves, 42 barg hydrogen)", basis: D-024}
+  - {from: H-101, to: K-102, min_m: 30, reason: "open flame to the tail-gas compressor (seal leaks)", basis: D-024}
+  - {from: A-900, to: PK-101, min_m: 45, reason: "control room plot to the hydrogen PSA", basis: D-024}
+  - {from: PK-101, to: PR-1, min_factor_of_height: 1, reason: "toppling of the adsorber vessels", basis: D-024}
+  # road clearance of the purge hydrogen recovery items: room for vehicle impact protection and
+  # maintenance access beside the access road (ASSUMED, as D-018; no owner's standard yet)
+  - {from: PK-101, to: R-5, min_m: 3, measure: footprint, reason: "PSA valve skid and adsorbers beside the access road: impact protection and maintenance access", basis: D-024}
+  - {from: K-102, to: R-5, min_m: 3, measure: footprint, reason: "tail-gas compressor beside the access road: impact protection and maintenance access", basis: D-024}
+  - {from: E-103, to: R-5, min_m: 3, measure: footprint, reason: "tail-gas aftercooler beside the access road: impact protection", basis: D-024}
 notes: >-
   ASSUMED: notional plot, roads, rack and spacing criteria (D-018); no site survey, no wind
   rose, no QRA, no owner's spacing standard yet. Roads on all four sides and a north-south

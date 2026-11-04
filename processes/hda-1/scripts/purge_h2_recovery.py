@@ -1,6 +1,11 @@
 """Screening test of a PSA on the purge S13: incremental NPV and break-even capital (D-023, I-07).
 
-Run: cheme run scripts/purge_h2_recovery.py
+Superseded by D-024: the PSA is now in the flowsheet (block HRU), simulated, priced and in the
+TEA, whose own run gives the incremental test (DESIGN.md D-024). This script is the record of
+the S2 screening and reads the S2 flowsheet, where S13 was the purge at the K-101 suction; on the
+current flowsheet it stops. To reproduce D-023, run it on commit 45b79e1a (the merge of PR #326).
+
+Run (on the S2 flowsheet): cheme run scripts/purge_h2_recovery.py
 
 The question is whether a PSA's own benefit pays for its own cost, not whether it closes the
 plant's LCOP gap. The script reads the purge S13 of process/flowsheet.yaml and the price, tax
@@ -54,6 +59,9 @@ def poly_power(n_kmol_h: float, p_in: float, p_out: float) -> float:
 
 def main() -> None:
     fs = yaml.safe_load((ROOT / "process/flowsheet.yaml").read_text(encoding="utf-8"))
+    if any(step["id"] == "X101" for step in fs["steps"]):
+        raise SystemExit("the flowsheet holds the PSA (D-024): this S2 screening (D-023) applies to "
+                         "the flowsheet without it; see DESIGN.md D-024 for the incremental test")
     tea = yaml.safe_load((ROOT / "estimate/tea.yaml").read_text(encoding="utf-8"))
     st = {s["id"]: s["state"]["design"] for s in fs["streams"]}
     s13, s14 = st["S13"], st["S14"]

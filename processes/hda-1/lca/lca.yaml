@@ -22,7 +22,7 @@ boundary: cradle-to-gate
 case: design
 location: GLO
 year: 2026
-technology: "thermal toluene hydrodealkylation, adiabatic reactor 895-937 K / 3.4 MPa, H2 recycle with purge, stabiliser, benzene and vacuum toluene columns; 100 kt/a benzene, concept design"
+technology: "thermal toluene hydrodealkylation, adiabatic reactor 895-936 K / 3.4 MPa, H2 recycle with purge and purge hydrogen recovery by PSA, stabiliser, benzene and vacuum toluene columns; 100 kt/a benzene, concept design"
 rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
 # system_model unset (cut-off, the Atlas default): the exported dataset is allocated by energy;
 # system expansion is computed as a comparison only (D-013).
@@ -41,28 +41,28 @@ allocation:
     stage. Energy (LHV) is used because the fuel gas co-product is an energy carrier sold to the site fuel system and the products are all fuels or
     hydrocarbons with similar LHVs; mass would give the high-LHV fuel gas a smaller share than its energy content (D-013).
   substitution:
-    FUELGAS: {missing: "no background chosen yet: heat from natural gas in an industrial furnace, per MJ LHV of the fuel gas (site fuel system), market for the site's region", source: "purge and stabiliser off-gas burned in the site fuel gas header (D-009)"}
+    FUELGAS: {missing: "no background chosen yet: heat from natural gas in an industrial furnace, per MJ LHV of the fuel gas (site fuel system), market for the site's region", source: "PSA tail gas and stabiliser off-gas burned in the site fuel gas header (D-009, D-024)"}
     DIPHENYL: {missing: "no background chosen yet: biphenyl production (e.g. from benzene dehydrocondensation) or, when it is burned, heavy fuel oil per MJ LHV", source: "biphenyl by-product sold or burned (D-009)"}
   compare: [substitution, mass]
   # LHV per kg, ideal gas at 298.15 K, from the formation enthalpies of process/materials.yaml
   # and CO2(g) -393.51, H2O(g) -241.826 kJ/mol (CODATA key values, Cox et al. 1989); the
-  # mixtures by their flowsheet compositions (S21, S24, S13 + S19). Calculated, D-013.
+  # mixtures by their flowsheet compositions (S21, S24, S34 + S19). Calculated, D-013.
   # Gas basis kept for the liquid products on purpose: benzene and biphenyl on the same
   # basis as the gaseous fuel gas, and a liquid basis (benzene ~40.1 MJ/kg) moves benzene's
   # energy share by well under 1 percentage point (review 2026-10-27-pfd-lci-review#8).
   properties:
     BENZENE: {energy: 40580, source: "LHV of S21 (99.9 mol% benzene, 0.1 % toluene) from formation enthalpies, gas basis (D-013)"}
-    DIPHENYL: {energy: 39680, source: "LHV of S24 (95.1 mol% biphenyl, 4.9 % toluene, simulated, D-022) from formation enthalpies, gas basis (D-013)"}
-    FUELGAS: {energy: 54230, source: "LHV of S13 + S19 (H2, CH4, benzene, toluene; mass-weighted) from formation enthalpies, simulated streams of D-022 (D-013)"}
+    DIPHENYL: {energy: 39680, source: "LHV of S24 (95.2 mol% biphenyl, 4.8 % toluene, simulated, D-024: 39676 kJ/kg) from formation enthalpies, gas basis (D-013)"}
+    FUELGAS: {energy: 50660, source: "LHV of S34 + S19 (PSA tail gas and stabiliser off-gas: H2, CH4, benzene, toluene; mass-weighted) from formation enthalpies, simulated streams of D-024 (D-013); 54230 before the PSA took out the hydrogen"}
 flows:
   - {key: feed:TOLF, missing: "no background chosen yet: toluene, liquid, market for (aromatics extraction from catalytic reformate or pyrolysis gasoline at a refinery or steam cracker), delivered to the plant", source: "fresh toluene S1 (design basis D-003; composition from the BPCL toluene data sheet, D-020)"}
-  - {key: feed:H2MU, missing: "no background chosen yet: hydrogen of PSA grade (99.9 mol%, the rest taken as methane) at 3.7 MPa, e.g. from steam methane reforming with PSA or a refinery hydrogen network; a two-component feed: link a hydrogen activity per kg H2 and count the CH4 with it, or split it", source: "make-up hydrogen S4 (D-003, D-020)"}
-  - {key: feed:POWER, missing: "no background chosen yet: electricity, medium voltage, market for the site's grid (site not chosen)", source: "recycle compressor K-101, toluene pump P-101 and quench pump P-102 (Q1, Q2; D-010; Q12, D-022)"}
+  - {key: feed:H2MU, missing: "no background chosen yet: hydrogen of PSA grade (99.9 mol%, the rest taken as methane) at 3.7 MPa, e.g. from steam methane reforming with PSA or a refinery hydrogen network; a two-component feed: link a hydrogen activity per kg H2 and count the CH4 with it, or split it", source: "make-up hydrogen S4 (D-003, D-020), reduced by the PSA hydrogen returned to the loop (D-024)"}
+  - {key: feed:POWER, missing: "no background chosen yet: electricity, medium voltage, market for the site's grid (site not chosen)", source: "recycle compressor K-101, toluene pump P-101, quench pump P-102 and tail-gas compressor K-102 (Q1, Q2; D-010; Q12, D-022; Q13, D-024)"}
   - {key: feed:FUEL, missing: "no background chosen yet: heat, from natural gas, at an industrial furnace >100 kW (combustion emissions included in that activity), per MJ absorbed", source: "feed heater H-101 absorbed duty Q3 (D-009)"}
   - {key: feed:MPS, missing: "no background chosen yet: steam, in chemical industry, 1500 kPa(a) (site boiler on natural gas), per MJ of condensing heat", source: "stabiliser reboiler Q5 (D-010)"}
   - {key: feed:LPS, missing: "no background chosen yet: steam, in chemical industry, 450 kPa(a), per MJ of condensing heat", source: "benzene column reboiler Q7 (D-010)"}
   - {key: feed:HPS, missing: "no background chosen yet: steam, in chemical industry, 4200 kPa(a), per MJ of condensing heat", source: "toluene column reboiler Q9 (D-010)"}
-  - {key: product:CW, missing: "no background chosen yet: cooling water circulation per MJ rejected (pump and fan electricity, make-up water withdrawal and evaporation, blowdown, treatment chemicals)", source: "heat to cooling water Q4, Q6, Q8, Q10 (D-010) and the product cooler E-207, Q11 (D-022)"}
+  - {key: product:CW, missing: "no background chosen yet: cooling water circulation per MJ rejected (pump and fan electricity, make-up water withdrawal and evaporation, blowdown, treatment chemicals)", source: "heat to cooling water Q4, Q6, Q8, Q10 (D-010), the product cooler E-207, Q11 (D-022), and the tail-gas aftercooler E-103, Q14 (D-024)"}
 emission_exclusions:
   - {id: heater-combustion, method: combustion, equipment: [H-101], reason: "the feed heater's combustion emissions (CO2, NOx, CO, CH4, N2O, PM) belong to the purchased-heat background of feed:FUEL (heat from natural gas at an industrial furnace), which is per MJ delivered and includes them; counting them here would double count (D-013)", source: "D-013"}
   - {id: storage-tanks, method: storage-tank, reason: "fresh toluene, benzene and biphenyl tanks are outside the battery limit (design basis): their breathing losses belong to the storage, not to this plant boundary (D-013)", source: "design basis"}

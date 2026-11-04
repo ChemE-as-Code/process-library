@@ -13,14 +13,13 @@ lines:
   - {number: PG-105, from: HG-115, to: E-101, nominal_diameter: DN300, fluid: Reactor feed, notes: "S5, two-phase (vapour fraction 0.92)"}
   - {number: PG-106, from: E-101, to: H-101, nominal_diameter: DN400, fluid: Reactor feed, notes: "S6, 840 K"}
   - {number: PG-107, from: H-101, to: R-101, nominal_diameter: DN400, fluid: Reactor feed, notes: "S7, 895 K"}
-  - {number: PG-108, from: R-101, to: E-101, nominal_diameter: DN400, fluid: Reactor effluent, notes: "S8 937 K, quench liquid injected (Q101)"}
-  - {number: PG-109, from: PG-108, to: E-101, nominal_diameter: DN400, fluid: Reactor effluent, notes: "S9 quenched, 893 K"}
+  - {number: PG-108, from: R-101, to: E-101, nominal_diameter: DN450, fluid: Reactor effluent, notes: "S8 936 K, quench liquid injected (Q101); DN400 -> DN450 with the PSA's larger loop flow (405 mm, D-024)"}
+  - {number: PG-109, from: PG-108, to: E-101, nominal_diameter: DN450, fluid: Reactor effluent, notes: "S9 quenched, 893 K; DN400 -> DN450 (400.2 mm, D-024)"}
   - {number: PG-110, from: E-101, to: E-102, nominal_diameter: DN350, fluid: Reactor effluent, notes: "S10, two-phase"}
   - {number: PG-111, from: E-102, to: V-101, nominal_diameter: DN300, fluid: Reactor effluent, notes: "S11, two-phase"}
-  - {number: HG-112, from: V-101, to: HG-114, nominal_diameter: DN250, fluid: Recycle gas, notes: "S12 separator gas to the purge take-off"}
-  - {number: FG-113, from: HG-112, to: B/L, nominal_diameter: DN80, fluid: Fuel gas, notes: "S13 purge to the fuel gas header"}
-  - {number: HG-114, from: HG-112, to: K-101, nominal_diameter: DN250, fluid: Recycle gas, notes: "S14"}
-  - {number: HG-115, from: K-101, to: PG-105, nominal_diameter: DN250, fluid: Recycle gas, notes: "S15"}
+  - {number: HG-112, from: V-101, to: K-101, nominal_diameter: DN250, fluid: Recycle gas, notes: "S12 separator gas; S14 after the PSA hydrogen HG-125 joins it (M102, D-024)"}
+  - {number: HG-115, from: K-101, to: PG-105, nominal_diameter: DN250, fluid: Recycle gas, notes: "S15 compressed recycle gas; S28 after the purge take-off HG-113 (D-024)"}
+  - {number: HG-113, from: HG-115, to: PK-101, nominal_diameter: DN80, fluid: Purge gas, notes: "S13 purge to the PSA, 3600 kPa(a), 324 K, 68 mm (D-024; was FG-113 to the fuel gas header). Design 42 barg / 80 degC (the loop's, D-012), ASSUMED"}
   - {number: AR-116, from: V-101, to: AR-118, nominal_diameter: DN100, fluid: Crude aromatics, notes: "S16 separator liquid"}
   - {number: AR-117, from: P-102, to: PG-108, nominal_diameter: DN40, fluid: Crude aromatics, notes: "S17 quench liquid (P-102 takes suction from AR-116)"}
   - {number: AR-118, from: AR-116, to: C-201, nominal_diameter: DN80, fluid: Crude aromatics, notes: "S18, let-down valve before C-201"}
@@ -30,3 +29,9 @@ lines:
   - {number: TO-122, from: C-202, to: C-203, nominal_diameter: DN50, fluid: Toluene / biphenyl, notes: "S22"}
   - {number: TO-123, from: C-203, to: V-100, nominal_diameter: DN40, fluid: Toluene, notes: "S23 toluene recycle (distillate pump at basic engineering)"}
   - {number: DP-124, from: C-203, to: B/L, nominal_diameter: DN25, fluid: Biphenyl, notes: "S24 biphenyl by-product, traced (melting point 342 K)"}
+  # ---- purge hydrogen recovery (D-024, I-07). Design conditions ASSUMED as D-012: the highest
+  # operating value + 10 % (at least + 2 bar) and + 25 K, rounded up.
+  - {number: HG-125, from: PK-101, to: HG-112, nominal_diameter: DN40, fluid: Hydrogen, notes: "S30/S31 PSA hydrogen, 3540 -> 3250 kPa(a) through the pressure control valve PV101, 324 K, 162 kg/h; 37 mm at 15 m/s as an ideal gas (the script's flash takes the 99.9 % H2 as a liquid and gives DN125, not used). Design 42 barg / 80 degC, ASSUMED (D-024)"}
+  - {number: FG-126, from: PK-101, to: K-102, nominal_diameter: DN250, fluid: Fuel gas, notes: "S33 PSA tail gas, 140 kPa(a), 311 K, 2.79 t/h; 247 mm at 20 m/s. Design 6 barg / 75 degC, ASSUMED (D-024): on a K-102 trip the suction side settles out towards the fuel gas header (450 kPa(a), about 3.5 barg) back through the machine and its non-return valve, so the D-012 rule is applied to the header pressure (3.5 barg + 2 bar, rounded up), as K-102 and FG-127; the back-flow relief case of the tail-gas side is open for the P&IDs (D-024)"}
+  - {number: FG-127, from: K-102, to: E-103, nominal_diameter: DN200, fluid: Fuel gas, notes: "K-102 discharge to the aftercooler, 470 kPa(a), about 436 K (the simulated E-103 duty at the balance script's Peng-Robinson cp, D-024); about 160 mm at 20 m/s. Design 6 barg / 190 degC (436 K + 25 K, rounded up), ASSUMED (D-024)"}
+  - {number: FG-128, from: E-103, to: B/L, nominal_diameter: DN150, fluid: Fuel gas, notes: "S34 tail gas to the site fuel gas header, 450 kPa(a), 313 K; 138 mm at 20 m/s. Design 6 barg / 65 degC, ASSUMED (D-024)"}

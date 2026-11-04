@@ -24,7 +24,12 @@ Model (every choice is a DESIGN.md decision, ASSUMED where marked there):
   ideal-gas heat capacities of thermo; formation enthalpies of process/materials.yaml added for
   the reactor energy balance (unqualified for this mixture, see above);
 - loop specs: H2/aromatics at the reactor inlet RATIO and purge-gas H2 mole fraction Y_PURGE_H2
-  (D-007); the fresh toluene follows from the benzene product rate (the balance is scaled,
+  (D-007);
+- purge hydrogen recovery (D-024, I-07): the purge is drawn at the K-101 discharge and goes to a
+  PSA; its hydrogen product (recovery PSA_REC_H2 at PSA_Y_H2 purity, the rest methane, no
+  aromatics) is let down into the K-101 suction, its tail gas is let down to the desorption
+  pressure, compressed into the site fuel gas header and aftercooled. The PSA is a specified
+  split (no adsorption model), isothermal at its feed temperature; the let-downs are isenthalpic; the fresh toluene follows from the benzene product rate (the balance is scaled,
   exact because every split depends on composition, temperature and pressure only);
 - columns: component splits from specifications; stabiliser overhead in equilibrium with an
   aromatic reflux at the partial condenser; benzene and toluene columns by Underwood minimum
@@ -78,6 +83,14 @@ P_C203_TOP, P_C203_BOT = 30.0, 45.0                # D-008
 R_FACTOR = 1.3                       # D-008: R / Rmin
 R_FLOOR = 0.5                        # D-008: least reflux ratio of an easy split (toluene/biphenyl)
 T_PRODUCT = 313.15                   # D-008: benzene product cooled in the condenser train
+# ---- PSA on the purge (D-024, I-07)
+PSA_REC_H2 = 0.75                    # D-024: low end of the PSA H2 recovery 75-92 % (Matijasevic and
+#                                      Petric 2016, Table 1), as the purge sits at the table's feed
+#                                      limit (> 40 vol% H2); ASSUMED within the published range
+PSA_Y_H2 = 0.999                     # D-024: PSA product purity 99.9 % (same Table 1); rest CH4 ASSUMED
+DP_PSA = 60.0                        # D-024: feed to product, 2.45 -> 2.39 MPa (NETL 2022, Exhibit 3-4, streams 10, 11)
+P_PSA_TAIL = 140.0                   # D-024: tail gas 0.14 MPa (NETL 2022, Exhibit 3-4, stream 13)
+P_FG_HEADER = 450.0                  # D-023: site fuel gas header, ASSUMED (no site data, I-05)
 
 # ---- thermo
 consts, props = ChemicalConstantsPackage.from_IDs(NAMES)
@@ -213,8 +226,16 @@ def downstream(st, sep_liq_guess=None):
             break
         ql = ql_new
     st.update(quench=ql, qmix=qin, sep_res=res, sep_vap=vap, sep_liq=liq)
-    st["purge"] = scale(vap, beta)
-    st["recycle"] = scale(vap, 1 - beta)
+    # PSA (D-024): the purge is the fraction beta of the K-101 discharge, which carries the PSA
+    # hydrogen returned to the suction: P_H2 = REC beta (V_H2 + P_H2)
+    h2p = PSA_REC_H2 * beta * vap["H2"] / (1 - PSA_REC_H2 * beta)
+    prod = {c: 0.0 for c in C}
+    prod["H2"], prod["CH4"] = h2p, h2p * (1 - PSA_Y_H2) / PSA_Y_H2
+    suction = add(vap, prod)
+    st["psa_prod"], st["suction"] = prod, suction
+    st["purge"] = scale(suction, beta)
+    st["recycle"] = scale(suction, 1 - beta)
+    st["tail"] = {c: st["purge"][c] - prod[c] for c in C}
     st["liq_out"] = scale(liq, 1 - phi)
     return st
 
@@ -346,8 +367,11 @@ def main():
         "S8": ("Reactor effluent", "rout", st["t_rout"], P_ROUT),
         "S9": ("Quenched effluent (= S10, S11)", "qmix", QUENCH_T, P_ROUT),
         "S12": ("Separator gas", "sep_vap", T_SEP, P_SEP),
-        "S13": ("Purge gas", "purge", T_SEP, P_SEP),
-        "S14": ("Recycle gas", "recycle", T_SEP, P_SEP),
+        "S13": ("Purge gas to the PSA (K-101 discharge)", "purge", None, P_MIX),
+        "S14": ("K-101 suction (separator gas + PSA hydrogen)", "suction", None, P_SEP),
+        "S28": ("Recycle gas to the reactor feed", "recycle", None, P_MIX),
+        "S30": ("PSA hydrogen", "psa_prod", None, P_MIX - DP_PSA),
+        "S34": ("PSA tail gas to the fuel gas header", "tail", T_SEP, P_FG_HEADER),
         "S16": ("Separator liquid", "sep_liq", T_SEP, P_SEP),
         "S17": ("Quench liquid", "quench", T_SEP, P_SEP),
         "S18": ("Liquid to stabiliser", "liq_out", T_SEP, P_SEP),
@@ -363,15 +387,40 @@ def main():
 
     # ---- energy
     q = {}
-    # recycle compressor K-101 (S14 -> S15)
-    rec = S_["S14"]
-    g1 = GAS.to(T=T_SEP, P=P_SEP * 1e3, zs=zs(rec))
-    s1 = g1.S()
-    t2s = brentq(lambda t: GAS.to(T=t, P=P_MIX * 1e3, zs=zs(rec)).S() - s1, T_SEP, 600)
-    dh_s = GAS.to(T=t2s, P=P_MIX * 1e3, zs=zs(rec)).H() - g1.H()
-    dh = dh_s / ETA_K
-    t_k = brentq(lambda t: GAS.to(T=t, P=P_MIX * 1e3, zs=zs(rec)).H() - g1.H() - dh, T_SEP, 600)
-    q["K101"] = tot(rec) / 3600 * dh
+    # recycle compressor K-101 (S14 -> S15): the suction is the separator gas (T_SEP) mixed with
+    # the PSA hydrogen, which leaves the PSA at the K-101 discharge temperature (isothermal split)
+    # and is let down isenthalpically through PV-101; suction and discharge temperatures are
+    # solved together (D-024)
+    suc, prod, vap_g = S_["S14"], S_["S30"], S_["S12"]
+    h_vap = h_gas(vap_g, T_SEP, P_SEP)
+    t_k, t_suc = T_SEP + 10.0, T_SEP
+    for _ in range(50):
+        h_prod = h_gas(prod, t_k, P_MIX - DP_PSA)
+        t_suc_new = brentq(lambda t: h_gas(suc, t, P_SEP) - h_vap - h_prod, 280, 450)
+        g1 = GAS.to(T=t_suc_new, P=P_SEP * 1e3, zs=zs(suc))
+        s1 = g1.S()
+        t2s = brentq(lambda t: GAS.to(T=t, P=P_MIX * 1e3, zs=zs(suc)).S() - s1, t_suc_new, 600)
+        dh = (GAS.to(T=t2s, P=P_MIX * 1e3, zs=zs(suc)).H() - g1.H()) / ETA_K
+        t_k_new = brentq(lambda t: GAS.to(T=t, P=P_MIX * 1e3, zs=zs(suc)).H() - g1.H() - dh,
+                         t_suc_new, 600)
+        done = abs(t_k_new - t_k) < 1e-7 and abs(t_suc_new - t_suc) < 1e-7
+        t_k, t_suc = t_k_new, t_suc_new
+        if done:
+            break
+    q["K101"] = tot(suc) / 3600 * dh
+    rec = S_["S28"]
+    # PSA tail gas (S32 -> S33 -> S34): let down isenthalpically from the PSA to P_PSA_TAIL,
+    # compressed into the header (K-102) and aftercooled to T_SEP (E-103)
+    tail = S_["S34"]
+    h_tail_psa = h_gas(tail, t_k, P_MIX - DP_PSA)
+    t_tail = brentq(lambda t: h_gas(tail, t, P_PSA_TAIL) - h_tail_psa, 200, 450)
+    g1t = GAS.to(T=t_tail, P=P_PSA_TAIL * 1e3, zs=zs(tail))
+    t2s = brentq(lambda t: GAS.to(T=t, P=P_FG_HEADER * 1e3, zs=zs(tail)).S() - g1t.S(), t_tail, 700)
+    dh_t = (GAS.to(T=t2s, P=P_FG_HEADER * 1e3, zs=zs(tail)).H() - g1t.H()) / ETA_K
+    t_k102 = brentq(lambda t: GAS.to(T=t, P=P_FG_HEADER * 1e3, zs=zs(tail)).H() - g1t.H() - dh_t,
+                    t_tail, 700)
+    q["K102"] = tot(tail) / 3600 * dh_t
+    q["E103"] = h_tail_psa + q["K102"] - h_gas(tail, T_SEP, P_FG_HEADER)
     # toluene pump P-101: fresh toluene + recycle (S2 -> S3)
     tolmix = add(S_["S1"], S_["S23"])
     res_d203 = bubble(S_["S23"], P_C203_TOP)
@@ -424,7 +473,7 @@ def main():
     q["C202_cond"], q["C202_reb"] = c202["q_cond"], c202["q_reb"]
     q["C203_cond"], q["C203_reb"] = c203["q_cond"], c203["q_reb"]
 
-    temps = {"S8": st["t_rout"], "S20": resb.T, "S22": c202["t_bot"], "S23": c203["t_top"],
+    temps = {"S8": st["t_rout"], "S13": t_k, "S14": t_suc, "S28": t_k, "S30": t_k, "S20": resb.T, "S22": c202["t_bot"], "S23": c203["t_top"],
              "S24": c203["t_bot"]}
     out = {"streams": {}, "duties_kW": q, "checks": {}}
     for sid, (title, key, t, p) in names.items():
@@ -441,6 +490,7 @@ def main():
     out["streams"]["S10"] = {"title": "Effluent after FEHE", "T_K": round(t_hot_out, 2),
                              "P_kPa": P_FEHE_HOT}
     out["streams"]["S15"] = {"title": "Compressed recycle gas", "T_K": round(t_k, 2), "P_kPa": P_MIX}
+    out["streams"]["S33"] = {"title": "PSA tail gas let down", "T_K": round(t_tail, 2), "P_kPa": P_PSA_TAIL}
     xi1, xi2 = st["xi1"] * f, st["xi2"] * f
     arom_in = sum(S_["S7"][c] for c in AROM)
     out["checks"] = {
@@ -459,17 +509,25 @@ def main():
         "C201_bottoms_T_K": resb.T,
         "benzene_yield_mol_per_mol_fresh_toluene": S_["S21"]["BZ"] / S_["S1"]["TOL"],
         "benzene_product_wt_purity": S_["S21"]["BZ"] * MW["BZ"] / mass(S_["S21"]),
-        "recycle_gas_kmol_h": tot(S_["S14"]),
-        "aromatics_lost_to_fuel_gas_kg_h": sum((S_["S13"][c] + S_["S19"][c]) * MW[c] for c in AROM),
+        "recycle_gas_kmol_h": tot(S_["S28"]),
+        "K101_suction_kmol_h": tot(S_["S14"]),
+        "aromatics_lost_to_fuel_gas_kg_h": sum((S_["S34"][c] + S_["S19"][c]) * MW[c] for c in AROM),
+        "PSA": {"feed_kmol_h": tot(S_["S13"]), "feed_y_H2": S_["S13"]["H2"] / tot(S_["S13"]),
+                "H2_recovered_kg_h": S_["S30"]["H2"] * MW["H2"],
+                "recovery_H2": S_["S30"]["H2"] / S_["S13"]["H2"],
+                "recovery_CH4": S_["S30"]["CH4"] / S_["S13"]["CH4"],
+                "product_y_H2": S_["S30"]["H2"] / tot(S_["S30"]),
+                "tail_kmol_h": tot(S_["S34"]), "tail_T_after_letdown_K": t_tail,
+                "K102_outlet_T_K": t_k102, "K102_kW": q["K102"], "E103_kW": q["E103"]},
     }
     # first-pass line sizes (D-012): velocity by phase on the PR bulk density
     tp = {sid: (temps.get(sid, t), p) for sid, (title, key, t, p) in names.items()}
     tp.update({"S2": (t_tolmix, P_TOLDRUM), "S3": (t_pump, P_MIX), "S5": (t_mix, P_MIX),
                "S6": (T_FEHE_COLD_OUT, P_FEHE_COLD), "S10": (t_hot_out, P_FEHE_HOT),
-               "S11": (T_SEP, P_SEP), "S15": (t_k, P_MIX)})
+               "S11": (T_SEP, P_SEP), "S15": (t_k, P_MIX), "S33": (t_tail, P_PSA_TAIL)})
     comp = dict(S_)
     comp.update({"S2": tolmix, "S3": tolmix, "S5": mixed, "S6": mixed, "S10": qm, "S11": qm,
-                 "S15": rec})
+                 "S15": S_["S14"], "S33": S_["S34"]})
     sizes = {}
     dns = [15, 20, 25, 40, 50, 65, 80, 100, 125, 150, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800]
     for sid in sorted(tp, key=lambda s: int(s[1:])):
@@ -484,13 +542,14 @@ def main():
                       "DN": next(d for d in dns if d >= d_mm)}
     out["line_sizes"] = sizes
     mass_in = mass(S_["S1"]) + mass(S_["S4"])
-    mass_out = mass(S_["S13"]) + mass(S_["S19"]) + mass(S_["S21"]) + mass(S_["S24"])
+    mass_out = mass(S_["S34"]) + mass(S_["S19"]) + mass(S_["S21"]) + mass(S_["S24"])
     out["checks"]["mass_in_kg_h"], out["checks"]["mass_out_kg_h"] = mass_in, mass_out
     # overall energy closure (kW, formation enthalpies included): feeds + heat and work in =
     # products + heat to cooling water; the pump's temperature rise is neglected (D-010)
     h_in = (h_fl(S_["S1"], flash(S_["S1"], T=T_TOL_FEED, P=P_TOL_FEED)) + h_mu
-            + q["K101"] + q["P101"] + q["H101"] + q["C201_reb"] + q["C202_reb"] + q["C203_reb"])
-    h_out = (h_gas(S_["S13"], T_SEP, P_SEP) + h_fl(vap, resv)
+            + q["K101"] + q["K102"] + q["P101"] + q["H101"] + q["C201_reb"] + q["C202_reb"]
+            + q["C203_reb"])
+    h_out = (h_gas(S_["S34"], T_SEP, P_FG_HEADER) + q["E103"] + h_fl(vap, resv)
              + h_fl(S_["S21"], flash(S_["S21"], T=T_PRODUCT, P=P_C202_TOP))
              + h_fl(S_["S24"], bubble(S_["S24"], P_C203_BOT))
              + q["E102"] + q["C201_cond"] + q["C202_cond"] + q["C203_cond"])

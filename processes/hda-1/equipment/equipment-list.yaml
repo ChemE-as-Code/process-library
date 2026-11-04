@@ -20,11 +20,11 @@ equipment:
   - {tag: E-101, type: TubularHeatExchanger, service: Feed / effluent exchanger,
      design_pressure_barg: 42, design_temperature_degc: 645, material: "alloy / stainless in hot hydrogen (open input, D-012)",
      dimensions: {diameter: 1.6, length: 9.0},
-     notes: "Feed 321 -> 840 K (vaporises the toluene), effluent 893 -> 395 K, ~24.5 MW; minimum internal approach 53 K (scripts/hda_balance.py, D-004). ASSUMED. Two shells in series of about 654 m2 each (1309 m2, D-017), stacked, so the footprint is one shell's; the stacked height is set at basic (layout-3d, D-018). Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
+     notes: "Feed 322 -> 840 K (vaporises the toluene), effluent 893 -> 394 K, ~25.3 MW since the PSA (D-024; 24.3 MW before); least approach 53.9 K (DWSIM, D-024). ASSUMED. Two shells in series of about 676 m2 each (1352 m2, D-017, D-024), stacked, so the footprint is one shell's; the stacked height is set at basic (layout-3d, D-018). Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
   - {tag: H-101, type: Furnace, service: Reactor feed heater (fired),
      design_pressure_barg: 42, design_temperature_degc: 650, material: "alloy tubes (hot hydrogen, open input)",
      dimensions: {diameter: 4.0, height: 14.0},
-     notes: "840 -> 895 K, absorbed ~3.0 MW; fired with natural gas (D-009). Burning the purge gas instead is the usual alternative. ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
+     notes: "840 -> 895 K, absorbed ~3.04 MW (DWSIM, D-024; 2.90 MW before the PSA); fired with purchased natural gas (D-009, D-019); firing it from the site fuel gas header, which the PSA tail gas and the stabiliser off-gas feed, would take 8.6 % of that gas and is an option only (H-101 fuel balance in D-024). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
   - {tag: R-101, type: Vessel, service: "HDA reactor (adiabatic, thermal, empty vessel)",
      design_pressure_barg: 42, design_temperature_degc: 690, material: "refractory-lined carbon steel or alloy (hot hydrogen, open input)",
      dimensions: {diameter: 2.5, height: 9.0},
@@ -32,19 +32,32 @@ equipment:
   - {tag: E-102, type: TubularHeatExchanger, service: Effluent trim cooler,
      design_pressure_barg: 42, design_temperature_degc: 150, material: CS,
      dimensions: {diameter: 1.1, length: 7.0},
-     notes: "395 -> 313 K, ~4.9 MW to cooling water; an air cooler plus trim cooler is the usual alternative (D-010). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
+     notes: "394 -> 313 K, ~5.07 MW to cooling water (DWSIM, D-024); an air cooler plus trim cooler is the usual alternative (D-010). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
   - {tag: V-101, type: Vessel, service: High-pressure separator,
      design_pressure_barg: 42, design_temperature_degc: 65, material: CS,
      dimensions: {diameter: 1.4, height: 5.0},
-     notes: "313 K, 3250 kPa(a); gas 29.3 t/h, liquid 23.5 t/h (D-004). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
+     notes: "313 K, 3250 kPa(a); gas 31.4 t/h, liquid 23.4 t/h (DWSIM, D-024). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
   - {tag: K-101, type: CentrifugalCompressor, service: Recycle gas compressor,
      design_pressure_barg: 42, design_temperature_degc: 75, material: CS,
      dimensions: {length: 6.0, width: 4.0, height: 3.0},
-     notes: "3250 -> 3600 kPa(a), 26.0 t/h (2353 kmol/h); ~230 kW shaft at isentropic efficiency 0.75 (D-010). Electric drive ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
+     notes: "3250 -> 3600 kPa(a), 31.5 t/h (2855 kmol/h: the separator gas and the PSA hydrogen; the purge is drawn at its discharge, D-024); ~279 kW shaft at isentropic efficiency 0.75 (D-010; 231 kW before the PSA). Electric drive ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
   - {tag: P-102, type: CentrifugalPump, service: Quench liquid pump,
      design_pressure_barg: 42, design_temperature_degc: 65, material: CS,
      dimensions: {length: 1.2, width: 0.5, height: 0.7},
      notes: "3250 -> 3450 kPa(a), 5.5 t/h; 0.52 kW (simulated pumping step P102, D-022). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
+  # ---- purge hydrogen recovery (block HRU, D-024, I-07)
+  - {tag: PK-101, type: Vessel, service: "Purge hydrogen PSA package (adsorber vessels, valve skid, tail gas surge drum)",
+     design_pressure_barg: 42, design_temperature_degc: 80, material: CS,
+     dimensions: {length: 10.0, width: 6.0, height: 9.0},
+     notes: "Package item. Feed S13 2956 kg/h (267.7 kmol/h, 40.0 mol% H2) at 3600 kPa(a), 324 K; H2 recovery 0.75 into 99.9 mol% H2 at 3540 kPa(a), 162 kg/h; tail gas 2793 kg/h at 140 kPa(a) (D-024). Design pressure the loop's 42 barg (D-012), the beds cycle to the tail gas pressure; design temperature 324 K + 25 K, rounded up. Number of beds, cycle and adsorbent inventory: vendor input. Dimensions: package plot, ASSUMED (D-024)."}
+  - {tag: K-102, type: CentrifugalCompressor, service: Tail-gas compressor (PSA tail gas to the fuel gas header),
+     design_pressure_barg: 6, design_temperature_degc: 190, material: CS,
+     dimensions: {length: 5.0, width: 3.0, height: 2.5},
+     notes: "140 -> 470 kPa(a), 2.79 t/h (187.2 kmol/h, 84 mol% CH4); ~249 kW shaft at isentropic efficiency 0.75, modelled as one adiabatic stage (DWSIM, D-010, D-024); discharge about 436 K (the simulated aftercooler duty at the balance script's Peng-Robinson cp; the script itself gives 431 K at 239 kW). Pressure ratio 3.36 at about 3460 m3/h actual suction and about 240 kJ/kg head is a small flow for a centrifugal machine: a reciprocating (two stages with an intercooler, since one stage would discharge above the usual limit of about 150 degC, ASSUMED as a rule of thumb) or an oil-flooded screw machine is more likely, chosen at basic engineering; the type CentrifugalCompressor and its CAPCOST price at the 450 kW minimum are placeholders (an upper estimate, D-024). Electric drive ASSUMED. Design pressure 3.7 barg + 2 bar, design temperature 436 K + 25 K, rounded up. ASSUMED. Dimensions ASSUMED (D-024)."}
+  - {tag: E-103, type: TubularHeatExchanger, service: Tail-gas aftercooler,
+     design_pressure_barg: 6, design_temperature_degc: 190, material: CS,
+     dimensions: {diameter: 0.7, length: 5.0},
+     notes: "About 436 -> 313 K, ~0.25 MW to cooling water, 470 -> 450 kPa(a) (DWSIM, D-024); about 47 m2 at U 100 W/(m2 K) (scripts/concept_sizing.py); design temperature 436 K + 25 K, rounded up. ASSUMED. Dimensions ASSUMED (D-024)."}
   # ---- stabilisation and distillation (block SEP)
   - {tag: C-201, type: ProcessColumn, service: Stabiliser,
      design_pressure_barg: 9, design_temperature_degc: 200, material: CS,

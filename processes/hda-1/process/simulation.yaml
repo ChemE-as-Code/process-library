@@ -18,6 +18,19 @@ method_selection:
     interaction_parameters_available: false  # not checked which pairs DWSIM's PR set covers (H2 and CH4 with the aromatics); uncertain, so the conservative answer
     liquid_liquid_expected: false     # no water; the aromatics are fully miscible
     vapor_association_expected: false # no carboxylic acids or HF
+# D-024: first guesses of the two new tear streams (recycle gas and PSA hydrogen), from
+# scripts/hda_balance.py with the PSA; guesses only, never stream values
+guesses:
+  S28:
+    temperature: {value: 323.95, provenance: assumed}
+    pressure: {value: 3600, provenance: assumed}
+    flow: {value: 28572.77, basis: mass, provenance: assumed}
+    composition: {basis: mole_fraction, values: {H2: 0.4, CH4: 0.590361, TOL: 0.001033, BZ: 0.008605, BIPH: 0.0000001}, provenance: assumed}
+  S31:
+    temperature: {value: 323.0, provenance: assumed}
+    pressure: {value: 3250, provenance: assumed}
+    flow: {value: 163.17, basis: mass, provenance: assumed}
+    composition: {basis: mole_fraction, values: {H2: 0.999, CH4: 0.001}, provenance: assumed}
 specs:
   # ---- RXN (D-004, D-007, D-010)
   P101:
@@ -109,3 +122,38 @@ specs:
     # so the lowest flow that converges is used: 352 kg/h, about 5 mol% toluene (D-022 deviation).
     reboiler_spec: {flow: {value: 352.0, unit: kg/h, provenance: assumed, source: "D-008, D-022: the lowest bottoms flow DWSIM converges at, about 5 mol% toluene instead of 2 mol%"}}
     outlets: {top: distillate, bot: bottoms}
+  # ---- HRU (D-024, I-07): purge hydrogen recovery. The PSA package PK-101 is X100 (the
+  # adsorbers' pressure loss), X101 (the split) and X102 (the tail gas let-down); both outlets of
+  # a DWSIM component separator leave at its inlet temperature and pressure.
+  X100:
+    outlet_pressure: {value: 3540, provenance: assumed, source: "D-024: feed to product pressure loss 60 kPa (NETL 2022, DOE/NETL-2022/3241, Exhibit 3-4, Case 1 streams 10 and 11: 2.45 -> 2.39 MPa)"}
+  X101:
+    recovery_outlet: prod
+    # CH4 0.000508672: the fraction that gives the 99.9 mol% product at the design PSA feed
+    # (S13 of scripts/hda_balance.py, 40.0 mol% H2); the aromatics are all adsorbed and leave
+    # with the tail gas (ASSUMED)
+    recoveries: {H2: 0.75, CH4: 0.000508672, TOL: 0.0, BZ: 0.0, BIPH: 0.0}
+    basis_source: >-
+      D-024: H2 recovery 0.75 and product purity 99.9 % from Matijasevic, L., Petric, M. (2016),
+      Integration of hydrogen systems in petroleum refinery, Chem. Biochem. Eng. Q. 30(3)
+      291-304, doi:10.15255/CABEQ.2015.2337, authors' manuscript, Table 1 (p. 3, after Patel et
+      al. 2006): PSA feed H2 content > 40 vol%, purity 99.9 %, recovery 75-92 %. The purge
+      (40.0 mol% H2) sits at the table's feed limit, so the low end of the recovery range is
+      taken (ASSUMED within the published range); the 0.1 % remainder of the product is taken as
+      methane and the aromatics as fully adsorbed (ASSUMED, no vendor data)
+    operating_basis: "adsorption at 3540 kPa(a) and the K-101 discharge temperature (about 324 K) on the dry purge gas (40 mol% H2, 59 mol% CH4, about 1 mol% benzene and toluene); tail gas desorbed at 140 kPa(a); cycle average (D-024)"
+  PV101:
+    outlet_pressure: {value: 3250, provenance: assumed, source: "D-007, D-024: K-101 suction (V-101 pressure)"}
+  X102:
+    outlet_pressure: {value: 140, provenance: assumed, source: "D-024: PSA tail gas at 0.14 MPa (NETL 2022, DOE/NETL-2022/3241, Exhibit 3-4, Case 1 stream 13)"}
+  K102:
+    outlet_pressure: {value: 450, provenance: assumed, source: "D-023, D-024: the site fuel gas header, after the aftercooler (no site data, I-05); the machine discharges at 470 kPa(a), the aftercooler takes 20 kPa"}
+    efficiency: {value: 0.75, provenance: assumed, source: "D-010: compressor isentropic efficiency"}
+    # One adiabatic stage is a model simplification (review of PR #327): at a ratio of 3.36 and
+    # about 240 kJ/kg of head on about 3460 m3/h of suction gas the machine is more likely
+    # reciprocating (two stages with an intercooler, below the usual discharge limit of about
+    # 150 degC) or an oil-flooded screw, chosen at basic engineering (D-024). Two intercooled
+    # stages would take a little less power than the 249 kW simulated here, an upper value.
+    stages: 1
+    outlet_temperature: {value: 313.15, provenance: assumed, source: "D-024: aftercooler E-103 to the separator temperature (D-004), against cooling water"}
+    pressure_drop: {value: 20, unit: kPa, provenance: assumed, source: "D-024: aftercooler E-103 gas side"}
