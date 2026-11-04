@@ -28,6 +28,11 @@ Decision: scripts/adapt_4tu.py evaluates every 1 M KOH sheet of the current-dens
 - Pairing: every "before" titration (V0) is paired with every "after" pair (V1, V2) of a sheet,
   as the authors' sheets do.
 - Aggregation: pooled over the three runs at each current density.
+  - The replicates are the three runs (dates).
+  - The pairs of one run share their V0 and V1/V2 readings, so `n_pairs` is not a count of
+    independent replicates. The pooled sd (over pairs) is not a run-to-run sd.
+  - The per-run means are listed in the data file. A use that needs run-to-run scatter takes it
+    from those three means (clarified 2026-11-04, review of PR #343).
 
 Two sheets deviate in their headers, and the nominal values are used. 20241007 j100 states 10 mL
 of electrolyte, and 20241007 j50 leaves the field blank; 90 mL and 1 mL are used, and the data
