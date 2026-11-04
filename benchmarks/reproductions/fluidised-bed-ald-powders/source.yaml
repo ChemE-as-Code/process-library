@@ -1,0 +1,153 @@
+# Reference record for the fluidised-bed ALD on powders case (#336, tracker #333; ADR 0030,
+# ADR 0031). Facts and numbers taken from the pinned sources, restated in our own form with
+# locators. No text, tables, figures or equations are copied; the model is re-implemented in
+# run.py from the published equations.
+reference:
+  id: grillo-2015-fbr-ald-precursor-utilisation
+  title: >-
+    Modelling the precursor utilisation in atomic layer deposition on nanostructured materials
+    in fluidised bed reactors (TMA/H2O on TiO2 P25 nanoparticles and on nano-porous
+    gamma-alumina)
+  authors: [F. Grillo, M. T. Kreutzer, J. R. van Ommen]
+  version_of_record:
+    doi: 10.1016/j.cej.2015.01.067
+    citation: Chemical Engineering Journal 268 (2015) 384-398
+    access: closed (OpenAlex oa_status "closed", 2026-11-04; Leiden repository record 1887/3200616 is metadata only)
+    consulted: false
+  open_version_used:
+    what: >-
+      Chapter 7 of F. Grillo, "Aggregation Phenomena in Atomic Layer Deposition", PhD thesis,
+      TU Delft, 2018. The chapter states that it was published as the CEJ article above.
+      Numbers of equations, tables and figures below are the thesis numbers (chapter 7); they
+      may differ from the article. Differences between thesis chapter and article, if any, are
+      not known.
+    doi: 10.4233/uuid:97fabd08-203c-4471-9596-7ad91f7eb2c0
+    repository_record: https://repository.tudelft.nl/record/uuid:97fabd08-203c-4471-9596-7ad91f7eb2c0
+    file:
+      name: Thesis_Final_FG.pdf
+      url: https://repository.tudelft.nl/file/File_054098c0-4b65-41b2-9b62-721326918bc1
+      sha256: 1b41aef7c0da355335566dfa7c8c7c16791f16346f253dc53a7631906737b802
+      size_bytes: 59696178
+      pages: 258 (chapter 7 is PDF pages 196-234, printed pages 173-210)
+    isbn: 978-90-65624-23-9
+    licence:
+      name: none stated (copyright 2018 F. Grillo; the repository shows "License info not available")
+      reuse_terms: >-
+        Openly downloadable, but no open licence. We redistribute nothing of it (no text,
+        figures, tables, PDF). Only facts and numbers (parameter values, reported results) are
+        restated, with locators; digitised curve values are numbers read from the figures.
+        run.py does not download it; digitise.py downloads it to a cache outside git.
+  accessed: "2026-11-04"
+  kind: model reference (numerical reproduction target; not plant or experimental data)
+
+literature_index:
+  title: "ALD on particles: Literature collection and dataset"
+  doi: 10.5281/zenodo.14832687
+  record: https://zenodo.org/records/14832687
+  creators: [P. M. Piechulla, C. Mingliang, A. Goulas, R. Puurunen, J. R. van Ommen]
+  version: 2025-02-07 (797 articles)
+  file: {name: 2025-02-07_DOI-10.5281-zenodo.14832687.xlsx, md5: 3897cf2ec848a1713e1a8e9f2b396b0b, sha256: dad6302c708ceb90ce209661b0f5ae13e3ad082ae836ed8a106c6743d41ddc51}
+  licence: CC BY-NC-ND 4.0
+  use: >-
+    Discovery only, as the issue asks. Not redistributed, no rows copied, not used as data. Its
+    licence (NonCommercial, NoDerivatives) does not allow republication under CC BY 4.0.
+  findings: >-
+    203 of the 797 entries are tagged with operation principle "fluidized bed"; 78 of those
+    have an AlOx coating; 4 of those concern AlOx on titania (bibliographic facts: DOIs
+    10.1111/j.1551-2916.2006.01216.x, 10.1007/s11051-009-9587-0, 10.1016/j.apsusc.2017.07.168,
+    10.3390/nano8020061). The index lists experimental papers only; the modelling paper used
+    here is not in it. None of the four gives an outlet-precursor or utilisation time series
+    in a form that would serve as independent validation of the model without further work
+    (not examined in detail; recorded as an evidence gap).
+  accessed: "2026-11-04"
+
+# The selected system: TMA half-reaction (the first of the two ALD half-reactions) on
+# Evonik/Degussa P-25 TiO2 nanoparticle agglomerates in a bubbling fluidised bed, 500 K.
+system:
+  precursor: trimethylaluminium (TMA), diluted in N2 (carrier and fluidising gas)
+  powder: Degussa P-25 TiO2 nanoparticles (fluidised as multi-level agglomerates)
+  temperature: 500 K
+  pressures: [1.013 bar, 1 mbar]
+  locator: thesis section 7.1 (last paragraphs) and Table 7.5
+
+# Model as published (thesis chapter 7), summarised in our own words:
+model_summary:
+  reactor_scale: >-
+    Two-phase bubbling bed (Table 7.1): solids-free bubbles in plug flow with average size d_b
+    and rise velocity u_b; emulsion at minimum fluidisation, totally back-mixed; isothermal;
+    lumped bubble-emulsion exchange coefficient K_be (Sit and Grace); emulsion gas to
+    agglomerate film coefficient K_ga with Sh = 2. Two-phase theory flow split.
+  agglomerate_scale: >-
+    At 1.013 bar a spherical complex agglomerate (300 um) treated as a mono-dispersed porous
+    medium with Fickian effective diffusivity of the complex level; at 1 mbar a bi-dispersed
+    particle-pellet model (Table 7.2). Diffusivities from Eqs. 7.12-7.15, tortuosity 1/eps.
+  kinetics: >-
+    Surface-coverage dynamics after Travis et al. (absolute reaction rate theory; Table 7.3).
+    The rate expressions nu_1..nu_3 and their parameters are not given in the chapter (it refers
+    to Travis et al.), and neither is the TMA inlet concentration of the dynamic simulations.
+  quasi_steady_reduction: >-
+    For the quasi-steady period with emulsion concentration near zero, the precursor
+    utilisation is eta = 1 - (u_b delta / u) exp(-H K_be / u_b) (Eq. 7.51), and the bed height
+    for a target eta* is H* = (u_b/K_be) ln[u_b delta / (u_0 (1 - eta*))] (Eq. 7.52). Minimum
+    saturation time (complete uptake) tau_sat_min = rho_b S_BET n_max H0 / (u_0 C_in) (Eq. 7.24).
+
+# Reported results used as reproduction targets (facts restated, own form).
+reported_results:
+  tau_sat_min:
+    locator: thesis Eq. 7.25 (p. 189) with Eq. 7.24 and Table 7.5 parameters, n_max = 4.8 Al nm^-2
+    at_P_TMA_100_mbar: {value: 18, unit: s}
+    at_P_TMA_0.1_mbar: {value: 5, unit: h}
+  time_scales_table_7_4:
+    locator: thesis Table 7.4 (p. 188), TMA half-reaction, 22 g P-25, parameters of Table 7.5
+    unit: s
+    tau_em: {1.013_bar: 0.91, 1_mbar: 0.91}
+    tau_b: {1.013_bar: 0.42, 1_mbar: 0.42}
+    tau_int: {1.013_bar: 5.0e-2, 1_mbar: 2.6e-3}
+    tau_ga: {1.013_bar: 9.34e-4, 1_mbar: 9.25e-7}
+    tau_c: {1.013_bar: 1.6e-3, 1_mbar: 1.15e-5}
+    tau_sa: {1.013_bar: 2.43e-5, 1_mbar: 1.39e-5}
+    tau_rxn: {1.013_bar: 2.5e-5, 1_mbar: 5.7e-6, note: from the Travis kinetics; used as an input, not a target}
+    thiele_star: {1.013_bar: 8, 1_mbar: 1.56, unit: "-", note: "phi* = R_k sqrt(<nu'>/D_k), Eq. 7.23"}
+  required_height_text:
+    locator: thesis p. 199, first paragraph (discussion of Fig. 7.4)
+    atm_db_4.5cm_umf_5cms: {value: 100, unit: cm, qualifier: "about"}
+    mbar_db_4.5cm: {value: 6.5, unit: cm}
+    conditions: eta* = 0.9999, u0 = 1.5 u_mf (Fig. 7.4 caption), T = 500 K, TMA
+  required_height_fig_7_4:
+    locator: thesis Fig. 7.4 (p. 198), panels a (1.013 bar) and b (1 mbar)
+    digitised: true
+    method: >-
+      digitise.py: the curves are vector polylines in the PDF; page coordinates mapped to data
+      units with the tick-label centres (0 and 4 cm on x; 0 and 250 cm, or 0 and 6 cm, on y);
+      linear interpolation between polyline vertices. Curve identity in panel a from the curve
+      labels (top to bottom u_mf = 0.01, 0.1, 2.5, 5 cm/s). Panel b curves (u_mf from 0.01 to
+      5 cm/s) nearly coincide and are given as their envelope.
+    uncertainty: >-
+      +-0.5 pt in page coordinates (label-centre calibration and line width): +-0.9 cm in panel a,
+      +-0.03 cm in panel b; polyline resolution 0.1 cm in d_b (negligible).
+    unit: cm
+    d_b_cm: [1.0, 2.0, 3.0, 4.0, 4.5]
+    panel_a_1.013_bar:
+      umf_0.01_cms: [24.90, 71.43, 131.85, 203.46, 242.96]
+      umf_0.1_cms: [19.16, 54.66, 100.61, 155.00, 184.97]
+      umf_2.5_cms: [14.40, 40.71, 74.64, 114.71, 136.78]
+      umf_5_cms: [10.42, 29.07, 52.96, 81.08, 96.53]
+    panel_b_1_mbar:
+      min: [0.668, 1.913, 3.497, 5.350, 6.369]
+      max: [0.692, 1.922, 3.528, 5.442, 6.498]
+  bubble_profile_fig_7_3:
+    locator: thesis Fig. 7.3 (p. 197), dynamic model, 1.013 bar, Table 7.5 parameters; caption gives tau_sat = 46.4 s
+    digitised: true
+    method: as for Fig. 7.4 (vector polylines; axis map from tick labels 0 and 1 on both axes); the 11 curves are taken in drawing order, which matches the caption's time order
+    uncertainty: +-0.004 in C/C_in (+-0.7 pt on a 179 pt axis)
+    quantity: C_TMA,bubble / C_TMA,in versus z/H
+    z_over_H: [0.02, 0.1, 0.2, 0.3, 0.4, 0.6, 1.0]
+    t_19.9_s: [0.8565, 0.4623, 0.2138, 0.0988, 0.0456, 0.0096, 0.0002]
+    note: the curves for 0.9 s to 19.9 s coincide to 4 decimals (quasi-steady period)
+  dynamic_model_not_reproducible:
+    locator: thesis Fig. 7.1 (p. 194), Fig. 7.3 caption, p. 195
+    saturation_time_atm: {value: 46.4, unit: s}
+    cumulative_CH4_per_TMA_after_TMA_pulse: {value: 1.5, unit: "-", qualifier: "close to"}
+    why_not_reproducible: >-
+      needs the TMA inlet concentration of the simulation and the Travis rate expressions and
+      parameters, neither stated in the chapter. Recorded as an evidence gap.

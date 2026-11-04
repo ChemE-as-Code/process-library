@@ -1,0 +1,115 @@
+# Post-freeze addendum to source.yaml and inputs.yaml (#336). Written 2026-11-04, after the
+# comparison run, in response to two independent reviews. source.yaml, inputs.yaml and
+# tolerances.yaml were committed together in 38aa2e3f before the first run and are left
+# unchanged, so `git diff 38aa2e3f HEAD -- <file>` stays empty for all three. Where this file
+# corrects them, this file holds. No value used in a comparison changes. run.py reads only
+# `extension_validity` from this file.
+
+source_corrections:
+  reference_titles:
+    reason: source.yaml reference.title paraphrases the article title and appends a system description.
+    version_of_record_title: >-
+      Modeling the precursor utilization in atomic layer deposition on nanostructured materials
+      in fluidized bed reactors
+    version_of_record_title_source: Crossref record of doi:10.1016/j.cej.2015.01.067, accessed 2026-11-04
+    thesis_title: "Aggregation Phenomena in Atomic Layer Deposition: Bridging Macro and Nano"
+    thesis_title_source: thesis PDF cover page and TU Delft repository record
+    system_description: TMA/H2O on TiO2 P25 nanoparticles and on nano-porous gamma-alumina (our description, not part of either title)
+
+  reuse_terms:
+    reason: source.yaml licence.reuse_terms leaves out the repository's restriction and the split copyright.
+    repository_cover_page: >-
+      The TU Delft cover page of the PDF permits download, forwarding and distribution of the
+      text or parts of it only for strictly personal use, unless the author or copyright holder
+      consents or an open content licence applies (none is stated).
+    split_copyright: >-
+      The thesis copyright page states that parts of it are published in journals under
+      different terms. Chapter 7 is published as the Elsevier CEJ article, whose copyright may
+      apply to its content.
+    our_use: >-
+      Facts and numbers only (parameter values, reported results, digitised curve values),
+      restated in our own form with locators. Nothing of the PDF is redistributed. digitise.py
+      downloads the PDF for the person running it, for their own research use, into a cache
+      outside git; it writes only numbers. run.py downloads nothing.
+
+  literature_index:
+    reason: >-
+      source.yaml literature_index.findings states a count of AlOx-on-titania papers without
+      the selection method, misses two relevant entries, and makes a claim about papers it says
+      were not examined.
+    method: >-
+      The index (pinned xlsx, sha256 dad6302c...) has columns year, journal, title,
+      affiliation, country, area, DOI, operation principle and coating; it has no substrate
+      field. Rows with operation principle "fluidized bed" (203) and coating containing "AlOx"
+      (78) were filtered; the four DOIs in source.yaml are those whose TITLE mentions titania or
+      TiO2. A title search cannot find papers whose substrate is named only in the abstract.
+    corrections:
+      - The four title hits include 10.1007/s11051-009-9587-0 (coating "AlOx, alucone"), a
+        paper on molecular layer deposited polymer films, not alumina ALD alone.
+      - Missed by the title search, both indexed as fluidized bed / AlOx - 10.3390/ma8031249
+        (Valdesueiro, Meesters, Kreutzer, van Ommen, Materials 8 (2015) 1249; per its abstract,
+        AlOx by TMA/H2O on titanium oxide nanoparticles in a fluidised bed at atmospheric
+        pressure) and 10.1016/j.surfcoat.2007.05.002 (King et al., Surf. Coat. Technol. 2007;
+        ALD on particles in a fluidised bed with in situ mass spectrometry; chapter 7 ref. [6],
+        cited on p. 195 for the experimental steep TMA breakthrough).
+      - The sentence "None of the four gives an outlet-precursor or utilisation time series"
+        is withdrawn. None of these papers was examined. Candidate independent validation
+        sources are King et al. 2007 (outlet TMA and CH4 by mass spectrometry) and
+        Valdesueiro et al. 2015 (TMA/H2O on TiO2 at 1 atm).
+    newer_version: >-
+      Zenodo lists a newer version of the index under the concept DOI 10.5281/zenodo.12700975:
+      record 17968436 (v4, 2025-12-17). It was not consulted. The counts (797, 203, 78) refer
+      to the pinned version 14832687 (2025-02-07), the one the issue links.
+
+  locators:
+    reason: >-
+      Chapter 7 of the thesis reuses table and figure numbers. "Table 7.1" is the reactor-scale
+      model and correlations (printed p. 178) and also the gamma-alumina simulation parameters
+      (p. 199). "Figure 7.1" appears on p. 175, 177 and 194; "Figure 7.2" on p. 181 and 196.
+    in_this_case:
+      inputs.yaml correlations "Table 7.1": Table 7.1, p. 178 (reactor-scale model and correlations)
+      source.yaml model_summary "Table 7.1": Table 7.1, p. 178
+      source.yaml and comparison.md "Fig. 7.1" (CH4 and RGA): Fig. 7.1a, p. 194
+      source.yaml model_summary "Table 7.2", "Table 7.3": p. 185 and p. 187
+      back-mixing limits: p. 178 (H/d_t from 0.1 to 4) and p. 179 (H0/d_t < 2 for P-25)
+
+  surface_chemistry:
+    note: >-
+      Table 7.3 (p. 187) gives the surface-coverage balances and generation terms. What the
+      chapter does not give are the Travis rate expressions nu_1 to nu_3 and their parameters
+      (as source.yaml states correctly). README wording corrected accordingly.
+
+input_labels:
+  reason: >-
+    ADR 0031 defines three labels: measured, reconstructed, assumed. inputs.yaml adds a fourth,
+    "reported" (a model parameter value stated in the source, not itself a measurement), and
+    applies some labels inconsistently with its own definitions.
+  scheme: >-
+    This case keeps "reported" as a fourth label. It has no equivalent in ADR 0031: such a value
+    is neither measured data nor derived by us nor our choice. Recorded for the coordinator as a
+    proposed addition to ADR 0031 (an ADR change is not made in this case's branch).
+  relabelled:
+    R: {label: reference constant, reason: "CODATA 2018 exact value; not from the source"}
+    N_A: {label: reference constant, reason: "CODATA 2018 exact value; not from the source"}
+    M_TMA: {label: reconstructed, reason: "computed by us from IUPAC standard atomic weights; the source does not state it"}
+    S_BET: {label: reported, reason: "Table 7.5 lists it as a simulation parameter; no measurement source cited"}
+    rho_b: {label: reported, reason: "Table 7.5 lists it as a simulation parameter; no measurement source cited"}
+    n_max_Al: {label: reported, reason: "literature value (chapter 7 ref. [51], a growth-per-cycle model paper) used as a model parameter"}
+  unchanged_measured: [u_mf, H_over_H0]  # Table 7.5, citing Tahmasebpoor et al. (ref. [38])
+
+extension_validity:  # used by run.py to flag the batch sweep
+  H_over_dt:
+    min: 0.1
+    max: 4
+    label: reported
+    source: "p. 178: solids back-mixing is a fair assumption for bubbling beds with H/d_t from 0.1 to 4 (expanded bed height)"
+  H0_over_dt_max:
+    value: 2
+    label: reported
+    source: "p. 179: P-25 beds taken as back-mixed for H0/d_t < 2"
+  db_over_dt_max:
+    value: 0.333
+    label: assumed
+    rationale: >-
+      A margin below slugging, which sets in as bubbles approach the bed diameter. Not from the
+      source; a flag, not a model limit.
