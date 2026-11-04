@@ -1,0 +1,70 @@
+# Acceptance tolerances for the linked LDPE / PP recycling inventory case (#339; ADR 0030).
+# FROZEN 2026-11-04, committed with source.yaml and inputs.yaml before the first run of run.py
+# that compares computed values with reported ones. Do not edit: a revision is a new file with
+# its reason, and comparison.md names the file it used.
+#
+# Disclosure: while inspecting the source (before this freeze) we checked by hand that Table 2
+# closes in mass (feed = products + fuel) and noticed in a rough mental estimate that the
+# benzene line and the direct CO2 might differ from Eq. 1 by a few per cent. The tolerances
+# below are set from the stated precision of the source's inputs, not from that estimate.
+frozen: "2026-11-04"
+reference: source.yaml component.reported_results.per_kg_ethylene
+
+component_checks:   # Somoza-Tornos et al. 2020, Table 2, recomputed from Eq. 1 and the recoveries
+  waste_PE_feed:
+    rel: 0.02
+    reason: >-
+      1 / ethylene yield; ethylene coefficient given to 2 decimals (0.1 %), product purity
+      99.5 wt% not attributed (0.5 %), Eq. 1 hydrogen deficit (0.2 % of mass), 3 significant
+      figures in the table (0.2 %); 2 % covers their sum with margin
+  methane:
+    rel: 0.02
+    reason: coefficient 1.66 to 2 decimals (0.3 %), purity (0.5 %), feed-ratio uncertainty as above
+  propylene:
+    rel: 0.02
+    reason: coefficient 1.17 to 2 decimals (0.4 %), purity (0.5 %), feed-ratio uncertainty as above
+  benzene:
+    rel: 0.03
+    reason: coefficient 0.45 to 2 decimals (1.1 %), purity (0.5 %), feed-ratio uncertainty as above
+  direct_CO2_fuel_combustion:
+    rel: 0.05
+    reason: >-
+      the fuel is everything not recovered; its CO2 depends on all small coefficients (0.07,
+      0.09: up to 7 % each on their own terms) and on complete combustion, which the source
+      implies but does not state
+
+target_checks:   # El Khoury et al. 2025 (source.yaml target.reported_results)
+  status: not evaluable
+  reason: >-
+    every reported result is a share or ranking of characterised impacts computed with an
+    unnamed licensed background database; the abstract gives no inventory inputs (sufficiency.md).
+    Declared before the run: no numerical comparison with the target is possible.
+  direction_check:
+    claim: S4 (symbiosis) has the lowest burden of the scenarios compared
+    test: >-
+      combined virgin olefin demand and combined foreground direct CO2 of L are not above those
+      of D_fuel and D_market (cut-off figures)
+    counts_for_reproduction: false
+    reason: a consistency check of direction on inventory indicators, not a reproduction of impact results
+
+reconciliation_checks:   # internal: must hold to machine precision in every configuration
+  mass_closure:
+    rel: 1.0e-9
+    reason: per folder and combined, hydrocarbon mass in (waste + virgin monomer + received olefin) equals out (polymer + exported products + sent olefin + fuel burnt)
+  carbon_closure:
+    rel: 1.0e-9
+    reason: carbon in equals carbon in products plus carbon in CO2
+  exchange_identity:
+    abs: 1.0e-9   # kg
+    reason: olefin sent by one folder equals olefin received by the other, and the receiver's virgin monomer falls by exactly that amount times the substitution ratio
+  allocation_conservation:
+    rel: 1.0e-9
+    reason: the mass-allocated direct CO2 of all products of both folders sums to the unallocated total
+
+pass_rule: >-
+  Component reproduction: pass when every component check is within its tolerance, fail
+  otherwise; a check that cannot be evaluated is a gap, not a pass. Target reproduction: not
+  achievable (declared above). Case verdict: "partial" when the component reproduction passes
+  and every reconciliation check holds; "fail" when a component check fails; "not achievable"
+  is kept for the target in every case. A failed reconciliation check is a script error (run.py
+  exits non-zero), not a reproduction result.
