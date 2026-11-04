@@ -199,6 +199,7 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 88 | `sodium-nitrite` | Sodium nitrite | inorganic-chemicals | n/a, to be sourced | n/a | - | - | 2 | sodium-nitrite-1 (T2) |
 | 89 | `tetrahydrofuran` | Tetrahydrofuran (from 1,4-butanediol) | oxygenates | n/a, to be sourced | n/a | - | - | 2 | thf-1 (T2) |
 | 90 | `thionyl-chloride` | Thionyl chloride | inorganic-chemicals | n/a, to be sourced | n/a | - | - | 2 | thionyl-chloride-1 (T2) |
+| 91 | `carbon-monoxide-co2-electrolysis` | Carbon monoxide by CO2 electrolysis | electrolysis | n/a, to be sourced | n/a | rbpm-mea | - | 2 | - |
 
 Volume sources (ids as in `coverage.yaml` `sources:`): `usgs-mcs-2024` U.S. Geological Survey,
 Mineral Commodity Summaries 2024; `iea-ammonia-2021` IEA, Ammonia Technology Roadmap (2021);
