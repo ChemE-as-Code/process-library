@@ -1,6 +1,6 @@
 # Equipment list. Schema: `cheme schema equipment`.
-# Concept stage: the items the PFD (process/flowsheet.yaml) needs, no P&ID yet (no sheet).
-# Design pressure and temperature are ASSUMED concept values (D-012): the highest operating
+# Basic P&IDs (S3b, D-025): the items the PFD (process/flowsheet.yaml) needs plus those the
+# P&IDs add (drums, pumps and spares, coolers), each with the sheet that draws it. Design pressure and temperature are ASSUMED concept values (D-012): the highest operating
 # value of the balance (scripts/hda_balance.py) + 10 % (at least + 2 bar) and + 25 K; one
 # design pressure for the whole reactor loop (42 barg). Sizes, dimensions and weights come at
 # basic engineering (datasheets). Materials in hot hydrogen service are an open input (D-012).
@@ -152,6 +152,6 @@ equipment:
      dimensions: {length: 1.0, width: 0.4, height: 0.6},
      notes: "Installed spare of P-204A (D-025). ASSUMED. Dimensions as P-204A, ASSUMED."}
   - {tag: E-207, sheet: P-05, type: TubularHeatExchanger, service: Benzene product cooler,
-     design_pressure_barg: 3.5, design_temperature_degc: 120, material: CS,
+     design_pressure_barg: 10, design_temperature_degc: 120, material: CS,
      dimensions: {diameter: 0.4, length: 4.0},
-     notes: "~0.31 MW to cooling water: benzene distillate 366 -> 313 K (simulated, D-022, I-12); about 20 m2 at U 500 W/(m2 K). ASSUMED. Dimensions ASSUMED (D-022, scripts/concept_sizing.py)."}
+     notes: "~0.31 MW to cooling water: benzene distillate 366 -> 313 K (simulated, D-022, I-12); about 20 m2 at U 500 W/(m2 K). Benzene side designed for 10 barg, the P-202A/B shut-off design: it sits on the pump discharge behind LV-506 and a closed storage inlet blocks it in with the pump running, so the side is rated for that case instead of a process-side PSV (D-025, review of PR #328; was 3.5 barg as C-202). The CW side stays at 6 barg with PSV-516. ASSUMED. Dimensions ASSUMED (D-022, scripts/concept_sizing.py)."}

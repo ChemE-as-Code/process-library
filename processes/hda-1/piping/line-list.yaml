@@ -1,5 +1,6 @@
 # Line list. Schema: `cheme schema lines`.
-# Concept stage: one line per material stream of the PFD (stream id in the notes), no P&ID yet.
+# Basic P&IDs (S3b, D-025): every line drawn on the sheets P-01 to P-08, each with its sheet;
+# a PFD stream's line names the stream id in the notes. A line on two sheets is listed once.
 # DN: first-pass size from velocity (D-012, ASSUMED): gas 15 m/s above 1000 kPa(a), 20 m/s
 # below, two-phase 10 m/s, liquid 1.5 m/s, on the Peng-Robinson bulk density of
 # scripts/hda_balance.py (line_sizes in its output); inside diameter taken as the DN, DN25 the
@@ -77,7 +78,7 @@ lines:
   - {number: AR-436, from: AR-434, to: V-201, nominal_diameter: DN25, fluid: Reflux, sheet: P-04, notes: "Continuous minimum flow of P-201A/B back to V-201 through the restriction globe valve HV-436; DN25 minimum, ASSUMED"}
   - {number: AR-437, from: C-201, to: E-202, nominal_diameter: DN150, fluid: Stabiliser bottoms, sheet: P-04, notes: "Thermosyphon reboiler feed: circulation about 4 x the bottom vapour 13.5 t/h (ASSUMED circulation ratio), about 54 t/h at 750 kg/m3 (ASSUMED), 130 mm at 1.5 m/s"}
   - {number: PG-438, from: E-202, to: C-201, nominal_diameter: DN200, fluid: Stabiliser bottoms (two-phase), sheet: P-04, notes: "Reboiler return: bottom vapour 13.5 t/h at 17.7 kg/m3 (scripts/concept_sizing.py), 0.21 m3/s, 164 mm at the D-012 two-phase 10 m/s"}
-  - {number: MS-439, from: MS-804, to: E-202, nominal_diameter: DN100, fluid: MP steam, sheet: P-04, notes: "MP steam on TV-402 (TIC-402, tray temperature): 1425 kW / 1946 kJ/kg = 0.73 kg/s, 0.096 m3/s, 90 mm at 15 m/s (D-025)"}
+  - {number: MS-439, from: MS-804, to: E-202, nominal_diameter: DN100, fluid: MP steam, sheet: P-04, notes: "MP steam on TV-402 (TIC-402, tray temperature): 1425 kW / 1946.4 kJ/kg = 0.732 kg/s; saturated vapour at 1.5 MPa 7.592 kg/m3, so 0.0964 m3/s, 90 mm at 15 m/s (D-025; saturation properties NIST WebBook SRD 69, IAPWS-95, isobar 1.5 MPa, saturation row at 471.44 K: h' 844.56, h'' 2791.0 kJ/kg)"}
   - {number: CWS-440, from: CWS-801, to: E-201, nominal_diameter: DN65, fluid: Cooling water, sheet: P-04, notes: "E-201, 0.16 MW: 3.8 kg/s, 57 mm at 1.5 m/s (D-025); PSV-414 branch FL-442 (to the flare)"}
   - {number: CWR-441, from: E-201, to: CWR-802, nominal_diameter: DN65, fluid: Cooling water, sheet: P-04, notes: "E-201 cooling water return"}
   - {number: FL-442, from: CWS-440, to: FL-443, nominal_diameter: DN25, fluid: "Relief, cooling water with gas", sheet: P-04, notes: "PSV-414 on the E-201 CW side (tube rupture: stabiliser overhead at 9 barg with H2, CH4 and benzene into the 6 barg CW side; blocked in) discharging into FL-443 and so to the flare header (D-025; was CWS-442 to atmosphere, review of PR #328); DN placeholder until S8, ASSUMED"}
@@ -94,7 +95,7 @@ lines:
   - {number: BZ-537, from: BZ-534, to: E-207, nominal_diameter: DN65, fluid: Benzene, sheet: P-05, notes: "S26 benzene distillate on the V-202 level valve LV-506 (LIC-506) to the product cooler, 12.5 t/h, 60 mm at 1.5 m/s"}
   - {number: TO-538, from: C-202, to: E-204, nominal_diameter: DN200, fluid: Toluene / biphenyl, sheet: P-05, notes: "Thermosyphon reboiler feed: circulation about 4 x the bottom vapour 32.6 t/h (ASSUMED ratio), about 130 t/h at 800 kg/m3 (ASSUMED), 196 mm at 1.5 m/s"}
   - {number: PG-539, from: E-204, to: C-202, nominal_diameter: DN500, fluid: Toluene / biphenyl (two-phase), sheet: P-05, notes: "Reboiler return: bottom vapour 32.6 t/h at 4.78 kg/m3, 1.90 m3/s, 491 mm at the D-012 two-phase 10 m/s"}
-  - {number: LS-540, from: LS-803, to: E-204, nominal_diameter: DN250, fluid: LP steam, sheet: P-05, notes: "LP steam on TV-502 (TIC-502): 3485 kW / 2120 kJ/kg = 1.64 kg/s, 0.68 m3/s at 2.4 kg/m3, 207 mm at 20 m/s (D-025)"}
+  - {number: LS-540, from: LS-803, to: E-204, nominal_diameter: DN250, fluid: LP steam, sheet: P-05, notes: "LP steam on TV-502 (TIC-502): 3485 kW / 2120.3 kJ/kg = 1.644 kg/s, 0.680 m3/s at 2.416 kg/m3 (saturated vapour at 0.45 MPa), 208 mm at 20 m/s (D-025; NIST WebBook SRD 69, IAPWS-95, isobar 0.45 MPa, saturation row at 421.05 K: h' 623.14, h'' 2743.4 kJ/kg)"}
   - {number: CD-541, from: E-204, to: CD-806, nominal_diameter: DN50, fluid: Condensate, sheet: P-05, notes: "E-204 condensate through the steam trap ST-541: 1.64 kg/s, 39 mm at 1.5 m/s as liquid; DN50, ASSUMED"}
   - {number: CWS-542, from: CWS-801, to: E-203, nominal_diameter: DN300, fluid: Cooling water, sheet: P-05, notes: "E-203, 4.20 MW: 100.5 kg/s, 293 mm at 1.5 m/s (D-025); PSV-515 branch CWS-544"}
   - {number: CWR-543, from: E-203, to: CWR-802, nominal_diameter: DN300, fluid: Cooling water, sheet: P-05, notes: "E-203 cooling water return"}
@@ -115,7 +116,7 @@ lines:
   - {number: TO-636, from: TO-634, to: V-203, nominal_diameter: DN25, fluid: Toluene, sheet: P-06, notes: "Continuous minimum flow of P-203A/B back to V-203 through the restriction globe valve HV-636; DN25 minimum, ASSUMED"}
   - {number: TO-638, from: C-203, to: E-206, nominal_diameter: DN100, fluid: Biphenyl / toluene, sheet: P-06, notes: "Thermosyphon reboiler feed: about 4 x the bottom vapour 6.0 t/h (ASSUMED ratio), about 24 t/h at 900 kg/m3 (ASSUMED), 79 mm at 1.5 m/s; DN100 for the low head under vacuum, ASSUMED"}
   - {number: PG-639, from: E-206, to: C-203, nominal_diameter: DN700, fluid: Biphenyl / toluene (two-phase), sheet: P-06, notes: "Reboiler return under vacuum: bottom vapour 6.0 t/h at 1.79 kg/m3, 3.34 m3/s, 652 mm at the D-012 two-phase 10 m/s; ISO 6708 DN700"}
-  - {number: HS-640, from: HS-805, to: E-206, nominal_diameter: DN50, fluid: HP steam, sheet: P-06, notes: "HP steam on TV-602 (TIC-602): 638 kW / 1695 kJ/kg = 0.38 kg/s, 0.018 m3/s at 21 kg/m3, 39 mm at 15 m/s (D-025)"}
+  - {number: HS-640, from: HS-805, to: E-206, nominal_diameter: DN50, fluid: HP steam, sheet: P-06, notes: "HP steam on TV-602 (TIC-602): 638 kW / 1698.1 kJ/kg = 0.376 kg/s, 0.0178 m3/s at 21.13 kg/m3 (saturated vapour at 4.2 MPa), 39 mm at 15 m/s (D-025; NIST WebBook SRD 69, IAPWS-95, isobar 4.2 MPa, saturation row at 526.41 K: h' 1101.7, h'' 2799.8 kJ/kg)"}
   - {number: CD-641, from: E-206, to: CD-806, nominal_diameter: DN25, fluid: Condensate, sheet: P-06, notes: "E-206 condensate through the steam trap ST-641: 0.38 kg/s, about 20 mm at 1.5 m/s as liquid; DN25, ASSUMED (the HP condensate flashes into the common condensate header, open for P-08 / S5)"}
   - {number: CWS-642, from: CWS-801, to: E-205, nominal_diameter: DN150, fluid: Cooling water, sheet: P-06, notes: "E-205, 0.78 MW: 18.7 kg/s, 126 mm at 1.5 m/s (D-025); PSV-616 branch CWS-644"}
   - {number: CWR-643, from: E-205, to: CWR-802, nominal_diameter: DN150, fluid: Cooling water, sheet: P-06, notes: "E-205 cooling water return"}
