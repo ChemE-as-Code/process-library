@@ -30,6 +30,8 @@ import platform
 import re
 import subprocess
 import sys
+import time
+import urllib.error
 import urllib.request
 import zipfile
 from pathlib import Path
@@ -73,8 +75,16 @@ def fetch(source: dict, cache: Path) -> dict[str, Path]:
     if not all((folder / n).exists() for n in wanted):
         cache.mkdir(parents=True, exist_ok=True)
         target = cache / "supplementaryFiles.zip"
-        print("download supporting information (Europe PMC)", file=sys.stderr)
-        urllib.request.urlretrieve(si["url"], target)
+        for attempt in range(1, 6):  # the endpoint answers HTTP 500 now and then
+            print(f"download supporting information (Europe PMC), attempt {attempt}", file=sys.stderr)
+            try:
+                with urllib.request.urlopen(si["url"], timeout=300) as r:
+                    target.write_bytes(r.read())
+                break
+            except (urllib.error.URLError, TimeoutError) as e:
+                if attempt == 5:
+                    sys.exit(f"download failed: {e}")
+                time.sleep(10 * attempt)
         with zipfile.ZipFile(target) as z:
             for name in wanted:  # extract only the pinned members, by exact name
                 folder.mkdir(parents=True, exist_ok=True)
