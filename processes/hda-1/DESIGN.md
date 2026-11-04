@@ -1326,6 +1326,22 @@ P-05 (benzene column and product):
   placed beside C-202 (`layout/equipment-placement.yaml`, ASSUMED); the rack still carries the
   product and the bottoms.
 
+P-06 (toluene column, toluene recycle, biphenyl):
+- Added (lumped in step C203): reflux drum V-203, vacuum package PK-201 (not sized, D-008:
+  load, type and power are vendor inputs), reflux and recycle pumps P-203A/B (the C-203
+  distillate pump of D-010) and biphenyl bottoms pumps P-204A/B.
+- Control: vacuum PIC-604 on the PK-201 suction PV-604; reflux FIC-607 / FV-607 (R 0.5);
+  V-203 level LIC-606 on the toluene recycle LV-606 (TO-123 to V-100 on P-01, FI-609); tray
+  temperature TIC-602 on the HP steam TV-602 (E-206 thermosyphon, steam trap ST-641); sump
+  level LIC-608 on the biphenyl LV-608 (DP-124, traced, to storage).
+- Relief: PSV-615 on the column top (C-203, E-205 process side, V-203), 3.5 barg, to the flare;
+  an E-206 tube rupture (HP steam at 41 barg into the 3.5 barg column) is likely to govern it
+  (S8). Loss of vacuum is not an overpressure case (full vacuum design). PSV-616 thermal relief
+  on the E-205 CW side. P-203A/B: minimum flow TO-636, low-low LZ-612 stops them (I-601).
+- Open: P-204A/B carry 352 kg/h, far below a centrifugal pump's best point; their type and
+  minimum-flow or relief protection are for the pump selection (S5). The reboiler return under
+  vacuum is DN700 by the D-012 two-phase velocity, to be checked with the reboiler design.
+
 ## LCI summary (lca/inventory.csv, per kg benzene)
 
 Regenerated in S3a (D-024) from the inventory with the purge hydrogen PSA (`cheme assess lca --write`,
