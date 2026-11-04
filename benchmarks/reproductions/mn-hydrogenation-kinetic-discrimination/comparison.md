@@ -7,8 +7,10 @@
   first comparison run followed it the same afternoon; the file has not changed since
   (`git diff 1fa0e6d HEAD -- tolerances.yaml` is empty).
 - **Run:** `uv run benchmarks/reproductions/mn-hydrogenation-kinetic-discrimination/run.py`
-  from the repository root, 2026-11-04, Python 3.13.16, numpy 2.3.4, pypdf 5.1.0,
-  matplotlib 3.10.7, pyyaml 6.0.3, uv 0.13.0. About 5 s. Every number below is in
+  from the repository root, 2026-11-04, Python 3.13.16, numpy 2.3.4, scipy 1.16.3 (only for
+  the integrated-form sensitivity of model IV), pypdf 5.1.0, matplotlib 3.10.7, pyyaml 6.0.3,
+  uv 0.13.0. About 8 s. Rerun after review fixes on the same day; the checks and the verdict
+  did not change. Every number below is in
   `results/comparison.json`.
 - **Method:** the four models of the source refitted to SI Table S2 regressors and
   y = ln(Table S1 rate), with the source's term lists and outlier lists. Models I-III by
@@ -29,7 +31,7 @@ requires for "partial", so the verdict under the frozen rule is **fail**, not pa
 | --- | --- | --- | --- |
 | data integrity (30 runs, y, pure error) | 3 | 3 | pure-error mean square 0.044638 vs 0.044638 |
 | model I, full quadratic, n = 30 | 34 | 34 | x3 coefficient +0.081 (tolerance 1.37, 0.1 SE) |
-| models II and III | 38 | 37 | **model II fitted values vs SI Table S10: 0.305 (tolerance 0.02)** |
+| models II and III | 36 | 35 | **model II fitted values vs SI Table S10: 0.305 (tolerance 0.02)** |
 | model IV, robust, n = 24 | 14 | 13 | **RMSE 0.577 vs 0.657, -12.3 % (tolerance 10 %)** |
 | conventional kinetics (Figure 7) | 9 | 9 | Ea at 50 ppm 90.7 vs 90 kJ/mol |
 
@@ -90,23 +92,34 @@ Model I (34 checks, all pass): every coefficient within 0.1 SE, SEs within 0.5 %
    inconsistency; our model II matches the reported coefficients, which is what the design
    extension uses. The frozen check compares with Table S10, so it fails.
 2. **Model IV RMSE and SEs: robust scale convention.** Our coefficients agree within
-   0.12 SE, but our SEs are 9.6-10.9 % smaller and our RMSE 12.3 % smaller than MATLAB's.
-   The seven ratios correspond to one scale factor of 1.11 to 1.14 on the residual
-   standard deviation: MATLAB's robust fit estimates sigma with its own robust formula,
-   while we use the bisquare-weighted residual mean square (`inputs.yaml`). The unweighted
-   RMSE of our fit is 0.618 (-5.9 %). The SE check passes at 15 %; the RMSE check (10 %)
-   fails. If MATLAB's larger sigma is the right one, the prediction bands of model IV in the
-   extension are about 10 % too narrow; this does not change which runs are selected.
-3. **Model III outlier list.** The SI text lists runs 7, 16, 20, 22, 28, 30 as removed; SI
+   0.12 SE, but our SEs are 9.6-10.9 % smaller and our RMSE 12.3 % smaller than the
+   source's. The seven ratios correspond to one scale factor of 1.11 to 1.14 on the residual
+   standard deviation. We report the bisquare-weighted residual RMSE; MATLAB reports a robust
+   sigma. Applying MATLAB's robustfit convention (statrobustsigma: Street-corrected sigma
+   from the leverage-adjusted residuals with the MAD scale, shrunk towards the OLS sigma) to
+   our final weights gives sigma = 0.6572 against the reported 0.657, and SEs within 1.6 to
+   3.0 % of SI Table S20 (`sensitivity.model_IV_matlab_robust_sigma`). The convention is
+   therefore reproduced, as a non-gating sensitivity; the frozen RMSE check compares the
+   weighted RMSE and still fails (10 % tolerance), and the SE check passes at 15 %. The
+   unweighted RMSE of our fit is 0.618 (-5.9 %). With model IV's covariance scaled to the
+   MATLAB sigma (variance x 1.30), runs A and B, the best single run and the two-run D_min
+   of 4.23 are unchanged; run A's D(III, IV) falls from 4.26 to 3.81, which does not matter
+   because run B separates that pair at D = 28.8 (`extension.sensitivity.model_IV_cov_matlab_sigma`).
+3. **Model IV statistics differ between article and SI.** Article Table 2 gives adjusted R2
+   0.945, F 99.7 and p 1.79e-12; SI pages 24-25 give 0.942, 75.6 and 1.93e-11. The article
+   text gives 19 error degrees of freedom, SI Table S20 18 (six coefficients, 24 runs). R2,
+   predicted R2, RMSE and all coefficients agree. We compare with the SI values only for
+   RMSE, which is the same in both (`source.yaml` source_inconsistencies).
+4. **Model III outlier list.** The SI text lists runs 7, 16, 20, 22, 28, 30 as removed; SI
    Table S16 has 25 rows including run 28. Our 24-run fit (text list) reproduces every row of
    Table S16 to 0.0016, including run 28, so Table S16 lists the 24-run model's prediction
    for run 28 as well. The text list is correct. The 25-run alternative (sensitivity) gives
    different coefficients (x1 -5188 K, RMSE 0.461) and does not reproduce Table S16 (0.34).
-4. **Regressor rounding.** Refitting with x3 and x4 computed from the raw Table S1 levels
+5. **Regressor rounding.** Refitting with x3 and x4 computed from the raw Table S1 levels
    instead of the rounded Table S2 values moves model II's x1 coefficient by 1.4 % and model
    III's x4 coefficient by 8 % (sensitivity `raw_levels`); the Table S2 values reproduce the
    source, so the authors fitted the rounded values. Table S2 also uses 1/(T + 274.1 K).
-5. **Reproduced but not compared:** apparent activation energies from the refits: model II
+6. **Reproduced but not compared:** apparent activation energies from the refits: model II
    33.4, 45.7 and 51.8 kJ/mol at 0.0625, 0.157 and 0.25 mmol/L catalyst (through its
    T x ln cat term), model III 41.0 kJ/mol, model IV 39.1 kJ/mol. The initial-rate runs give
    90.7 kJ/mol at 50 ppm and 51.2 kJ/mol at 200 ppm. Model II's interaction term makes the

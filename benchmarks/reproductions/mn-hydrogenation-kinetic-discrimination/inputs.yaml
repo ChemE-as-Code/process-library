@@ -1,6 +1,7 @@
 # Every model input of run.py, with value, unit, label and source or rationale.
-# Labels: measured (a measured number from the source), reconstructed (derived by us from
-# measured numbers), assumed (our choice, with the reason).
+# Labels: measured (a measured number from the source; also used, with a note, for a method
+# choice the source specifies), reconstructed (derived by us from measured numbers, with method
+# and uncertainty), assumed (our choice, with the reason).
 dataset:
   runs:
     value: 30 batch runs, SI Table S1 (raw) and Table S2 (transformed), parsed from the pinned SI PDF at runtime
@@ -33,24 +34,47 @@ dataset:
     value: ln of the "alcohol" rate column of SI Table S1 (mol/(L h)), full precision
     label: measured
     source: SI Table S1; Table S2 rounds it to two decimals, Tables S6/S10/S16/S21 give the y used to five decimals, which equals ln of the Table S1 column
+    note: >-
+      the Table S1 column header reads "mol/h". We read it as mol/(L h): the Table S2 header gives
+      ln(mol/l alcohol per h), the article defines the response as alcohol formed per reaction
+      time with alcohol in mol/L, and rate * time / yield gives 1.20-1.29 mol/L, the substrate
+      concentration of 5 mmol in about 4 mL. In mol/h, 5 mmol converted in 1.67 h would give at
+      most 0.003 mol/h, while the column reaches 0.69 (run 13).
   reaction_time:
     value: SI Table S1 time column, h; x6 = 3600 * time in s
     label: measured
     source: SI Table S1
+    note: >-
+      the article (section "Nonlinear Regression Model (IV)") says x6 is the reaction time in
+      seconds that it took to finish each reaction according to the H2 consumption data. The
+      Table S1 times look mixed: shared batch stop times for some groups (centre runs 15.51 h,
+      30 degC runs 27.78 or 19.80 h), different near-completion times for the high-yield 100 degC
+      runs (1.67, 4.64, 8.31, 12.22 h at 87-93 % yield). Six runs (7, 10, 13, 14, 15, 21) are at
+      87-95 % yield; their average rates are lower bounds on the rate, and the source regressed on
+      them (comparison.json sensitivity.near_complete_runs_yield_ge_87pct).
   yield:
     value: SI Table S1 yield column, %
     label: measured
     source: SI Table S1
   initial_substrate_per_run:
-    value: S0 = rate * time / yield, per run
+    value: S0 = rate * time / yield, per run (1.204-1.289 mol/L, median 1.255 mol/L)
     unit: mol/L
     label: reconstructed
     rationale: >-
-      Model IV needs the substrate concentration at the end of each run (x5 = ln S_end). The SI
-      does not tabulate it. 5 mmol substrate in about 3.9 mL gives about 1.27 mol/L; the per-run
-      value follows from the three tabulated columns. S_end = S0 * (1 - yield).
+      Model IV needs the substrate concentration at the end of each run (x5 = ln S_end). The
+      source used the GC-measured value (article, section "Nonlinear Regression Model (IV)") but
+      does not tabulate it. The per-run S0 follows from the three tabulated columns (5 mmol in
+      about 4.0 mL). We set S_end = S0 * (1 - yield), which assumes a 100 % mass balance.
+    uncertainty: >-
+      S0 spread 1.204-1.289 mol/L (about +/-3.5 %), from rounding of the tabulated columns and the
+      actual liquid volume. The SI reports mass balances within 90-110 % (SI section 2). If 10 % of
+      S0 were added to S_end, x5 would rise by ln(1 + 0.1/(1 - yield)): 0.12 at 20 % yield, 0.22
+      at 58 %, 0.6-0.9 for the four 88-93 % yield runs in the model IV set (13, 14, 15, 21); a
+      10 % shortfall would make S_end zero or negative at yields of 90 % or more, so the downward
+      error is unbounded there. The impact on the fit is bounded in practice: our model IV
+      coefficients reproduce the reported ones within 0.12 SE (comparison.md).
   initial_substrate_nominal:
-    value: median of the reconstructed per-run S0 (computed by run.py, reported in comparison.json)
+    value: median of the reconstructed per-run S0, 1.255 mol/L (computed by run.py, reported in comparison.json)
     unit: mol/L
     label: reconstructed
     rationale: substrate was not varied in the design; the nominal value is used for predictions
@@ -60,6 +84,7 @@ fitting:
     value: 0.008314
     unit: kJ/(mol K)
     label: measured
+    note: source-specified constant of the model IV equation, not a measurement
     source: SI page 24, model IV equation
   gas_constant_kinetics:
     value: 8.314
@@ -77,11 +102,14 @@ fitting:
       removing runs 7, 10, 22, 25, 28, 30; covariance from the final weighted fit
     label: assumed
     rationale: >-
-      SI section 4.4 names fitnlm with RobustWgtFun bisquare; MATLAB's exact robust variance and
-      scale conventions are not given, so ours is a close but not identical implementation
+      SI section 4.4 names fitnlm with RobustWgtFun bisquare. The SI does not state MATLAB's robust
+      scale convention. The covariance used here is the bisquare-weighted residual mean square.
+      Sensitivity (non-gating): MATLAB's robustfit/statrobustsigma convention applied to our final
+      weights gives sigma 0.6572 (reported 0.657) and SEs within 1.6-3.0 % of SI Table S20.
   outlier_lists:
     value: taken from the source, not re-derived
     label: measured
+    note: source-specified method choice, not a measurement
     source: SI pages 11, 18, 24
   conventional_kinetics:
     value: least-squares lines through SI Tables S23 (8 points), S24 (8), S25 first 4 and last 5 points, S26 first 6 points
@@ -92,8 +120,8 @@ discrimination_design:   # hypothetical design extension, see extension.md
   measurement_resolution_sigma_y:
     value: 0.2113
     unit: ln(mol/(L h))
-    label: measured
-    source: sqrt of the pure-error mean square 0.044638 (5 degrees of freedom), SI Table S4; run.py recomputes it from the six centre runs
+    label: reconstructed
+    source: derived from SI Table S4 as sqrt of the pure-error mean square 0.044638 (5 degrees of freedom), SI Table S4; run.py recomputes it from the six centre runs
     note: about 21 % in rate, one standard deviation of a single run's ln average rate
   criterion:
     value: >-
@@ -116,8 +144,10 @@ discrimination_design:   # hypothetical design extension, see extension.md
     base: {min: 0.0625, max: 12.5, unit: mmol/L}
     run_time: {min: 2, max: 24, unit: h, note: "DoE run times 1.67-27.78 h"}
     substrate: {value: nominal S0, note: "not varied in the design; any other value is an extrapolation"}
-    label: measured
-    source: SI Table S1 ranges
+    label: reconstructed
+    source: >-
+      SI Table S1 ranges; the catalyst and base minimum 0.0625 mmol/L is exp(-9.68) from Table S2,
+      the level actually regressed on (Table S1 rounds it to 0.06); grid bounds 2-24 h are our choice
   grid:
     temperature_degC: [30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
     pressure_bar: [10, 20, 30, 40, 50]
@@ -136,16 +166,18 @@ discrimination_design:   # hypothetical design extension, see extension.md
     rationale: >-
       added after the first run. Read as fitted (yield = g t / (1 + g t), g = exp(... + b6 t)),
       model IV predicts a yield that rises to a maximum at t = -1/b6 and then falls, which no
-      batch run can show. Its time term stands for "slow runs were run longer" (the source
-      reports high VIF for time and substrate) rather than a kinetic effect. Longer runs are
-      therefore excluded from the search. Sensitivity: the integrated reading of the source's
-      Eq. 14 (dP/dt = g0 exp(b6 t) S, a deactivating first-order catalyst), which is monotonic
-      and has no limit, is reported next to it.
+      batch run can show. Its time term is confounded with run time (the source reports high
+      VIF for time and substrate) and may reflect how run times were chosen rather than a
+      kinetic effect; run B of the extension tests this. Longer runs are therefore excluded
+      from the search. Sensitivity: the integrated reading of the source's Eq. 14
+      (dP/dt = g0 exp(b6 t) S, a deactivating first-order catalyst), refitted to the same 24
+      runs by nonlinear least squares (it is monotonic and has no time limit); point
+      predictions only, because the refit is not identifiable (extension.md).
   design_T_t_support:
-    value: convex hull of the 30 design runs in (temperature, run time)
+    value: convex hull of the 30 design runs in (temperature set point of SI Table S1, run time)
     label: assumed
     rationale: >-
-      added after the first run. Run time was set per run and is confounded with temperature in
+      added after the first run. Run time differs between runs and is confounded with temperature in
       the design (30 degC runs lasted 19.8-27.8 h, 65 degC runs 8.0-15.5 h, 100 degC runs
       1.7-22.4 h). Model IV uses run time as a regressor, so a (T, t) pair outside this hull is
       an extrapolation of model IV even when T and t are each within range. The primary search
@@ -172,6 +204,14 @@ discrimination_design:   # hypothetical design extension, see extension.md
     rationale: >-
       the models disagree on the substrate order (models II and III have none, model IV is first
       order through x5); substrate was not varied in the design, so this is an extrapolation
+  leverage_flag:
+    value: "h = x' (X'X)^-1 x for each model's regressors against its own fitting set; flagged when h exceeds the largest leverage of that set"
+    label: assumed
+    rationale: >-
+      a hidden-extrapolation check: a condition inside the box and the (T, t) hull can still lie
+      where a model's regressors were not jointly sampled (e.g. in the gap between base levels).
+      Reported per condition in comparison.json; not a feasibility constraint, so the search
+      results are unchanged.
   monte_carlo_check:
     value: 4000 parameter draws per model, multivariate normal, seed 341
     label: assumed

@@ -22,15 +22,24 @@ values in its index; `run.py` uses that URL.
 ## What is missing
 
 - **Time-resolved data.** H2 uptake was logged for every run, but the curves are not
-  published. Each design run gives one number, the average rate over a run time that was
-  chosen per run. Model IV uses that run time as a regressor, so its "deactivation" term
-  cannot be separated from the choice of run time (the authors report high variance
-  inflation for time and substrate).
-- **Substrate concentration was not varied.** Every run used 5 mmol in about 3.9 mL
-  (about 1.25 mol/L, reconstructed per run in `inputs.yaml`). Model IV is first order in
+  published. Each design run gives one number, the average rate over its run time. The
+  article says model IV's x6 is the time each run took to finish according to the H2
+  uptake; the Table S1 times look mixed (shared batch stop times for some groups, different
+  near-completion times for the high-yield 100 °C runs). Model IV uses that run time as a
+  regressor, so its "deactivation" term cannot be separated from how run times were chosen
+  (the authors report high variance inflation for time and substrate).
+- **Near-complete runs.** Six runs (7, 10, 13, 14, 15, 21) reached 87-95 % yield. Their
+  average rates are only lower bounds on the rate, but the source regressed on them (five
+  each in models II and III, four in model IV). We keep the source's data sets.
+- **Substrate concentration was not varied.** Every run used 5 mmol in about 4.0 mL
+  (1.255 mol/L nominal, range 1.20-1.29 mol/L, reconstructed per run in `inputs.yaml`). Model IV is first order in
   substrate, models II and III have no substrate term; the data cannot tell these apart.
-- **End-of-run substrate concentration** (regressor x5 of model IV) is not tabulated. We
-  reconstruct it from rate, time and yield (S_end = rate * time * (1 - Y) / Y).
+- **End-of-run substrate concentration** (regressor x5 of model IV) was measured by GC in
+  the source but is not tabulated. We reconstruct it from rate, time and yield
+  (S_end = rate * time * (1 - Y) / Y), which assumes a 100 % mass balance. The SI reports
+  mass balances within 90-110 %; at 88-93 % yield a 10 % error in the balance moves
+  ln S_end by +0.6 to +0.9, or makes it undefined downwards (`inputs.yaml`). The model IV
+  coefficients still reproduce within 0.12 SE, so the effect on the fit is bounded.
 - **Measurement error at low yield.** The only replicate information is the six centre runs
   (yields 30-58 %), pure-error standard deviation 0.211 in ln(rate). No replicates exist at
   the low yields (2-6 %) where models II and III differ most.

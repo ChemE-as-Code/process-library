@@ -1,7 +1,8 @@
 # Reference record for the Mn-CNP hydrogenation kinetic-model case (#341, tracker #333, ADR 0030).
-# Facts (conditions, fitted coefficients, statistics) are restated in our own form with locators.
-# No table, figure or text of the source is copied here. The raw run table (SI Table S1/S2) is
-# not committed: run.py downloads the pinned SI file at runtime and verifies its sha256.
+# Facts (conditions, fitted coefficients, statistics) are restated as data with locators, in our
+# own form (CC BY 4.0, attribution in NOTICE.md). No table layout, figure or text of the source is
+# reproduced. The raw run table (SI Table S1/S2) is not committed: run.py downloads the pinned SI
+# file at runtime and verifies its sha256.
 reference:
   id: van-schendel-2021-mn-cnp-doe-kinetics
   title: >-
@@ -56,7 +57,7 @@ system:
   catalyst: Mn(I) CNP pincer complex (NHC-phosphine-amine), activated by KOtBu
   solvent: 1,4-dioxane, dodecane internal standard
   reactor: home-built parallel autoclaves, 4 mL glass vials, magnetic stirring; six vials heated together at one temperature
-  substrate: 5 mmol per vial, about 1.27 mol/L (reconstructed, inputs.yaml)
+  substrate: 5 mmol per vial; 1.255 mol/L nominal (median of the per-run reconstruction, range 1.20-1.29 mol/L), i.e. about 4.0 mL of solution (reconstructed, inputs.yaml)
   measurements: H2 uptake by pressure transducers (ideal gas law); final yield by GC-FID; mass balance 90-110 %
   locator: article Experimental Section; SI sections 2 and 2.1
 
@@ -70,7 +71,13 @@ design_of_experiments:
     base_KOtBu: {levels: [0.06, 6.28, 12.50], unit: mmol/L}
   response: y = ln(alcohol formed / reaction time), alcohol in mol/L, time in h (average rate, not initial rate)
   regressors: {x1: 1/T in 1/K, x2: p in bar, x3: ln(catalyst, mol/L), x4: ln(base, mol/L)}
-  run_times: 1.67 h to 27.78 h, set per run
+  run_times: >-
+    1.67 h to 27.78 h. The article (section "Nonlinear Regression Model (IV)") describes x6 as the
+    reaction time in seconds that it took to finish each reaction according to the H2 consumption
+    data. SI Table S1 looks mixed: groups of runs share one time (the centre runs 15.51 h, the
+    30 degC runs 27.78 h or 19.80 h), which looks like a batch stop time, while the high-yield
+    100 degC runs have different times (1.67, 4.64, 8.31, 12.22 h at 87-93 % yield), which looks
+    like stop at completion.
   locator: article "Design of Experiment", Table 1; SI Table S1 (raw), Table S2 (transformed)
 
 # Competing models of the source (article Eqs. 8, 9/18, 10/19, 17/20; SI section 4).
@@ -79,6 +86,16 @@ models:
   II:  {form: "b0 + b1 x1 + b2 x2 + b3 x3 + b4 x4 + b5 x1 x3 + b6 x2 x4 + b7 x4^2", fit: stepwiselm (SSE criterion), outliers_removed: [14, 20, 22, 30], n: 26}
   III: {form: "b0 + b1 x1 + b2 x2 + b3 x3 + b4 x4 + b5 x4^2", fit: fitlm, outliers_removed_text: [7, 16, 20, 22, 28, 30], n: 24}
   IV:  {form: "y = b0 - b1 x1/0.008314 + b2 x2 + b3 x3 + b4 x4 + x5 + b6 x6, x5 = ln(substrate at end, mol/L), x6 = reaction time in s", fit: fitnlm with bisquare robust weights, outliers_removed: [7, 10, 22, 25, 28, 30], n: 24}
+  labels: >-
+    the article (section "Statistical models", Figure 3) says models II and III came from
+    eliminating terms by statistical significance and by "chemical logic" respectively, and
+    that model IV follows the general principles of formal kinetics; the abstract calls the
+    last model the one that "implements chemical logic". We call model IV the formal-kinetics
+    nonlinear model.
+  model_IV_x5: >-
+    the article says x5 is the substrate concentration at the end of the reaction as measured by
+    GC; it is not tabulated (inputs.yaml reconstructs it). The authors call b6 (their beta5) the
+    rate constant for catalyst activation; its fitted sign is negative.
   outlier_rule: standardised residual outside +/-1.25 after a first fit, then refit
   inconsistency: >-
     Model III: the SI text lists runs 7, 16, 20, 22, 28 and 30 as removed (24 observations, as
@@ -86,7 +103,8 @@ models:
     inconsistency; tolerances.yaml fixes which list is primary.
   locator: SI pages 6, 11, 18, 24
 
-# Reported results restated (SI tables; article Tables 2 and 3 agree where they overlap).
+# Reported results restated (SI tables; article Tables 2 and 3 agree with them for models II and
+# III and for all coefficients; for model IV statistics see source_inconsistencies).
 reported_results:
   model_I:
     locator: SI Table S3, Table S4
@@ -172,3 +190,13 @@ reported_results:
     base_order_high: {value: 0.0, note: "reported as ~0, last five points of SI Table S25"}
     catalyst_order: {value: 1.5, note: "reported as ~1.5, SI Table S26 without the last point"}
     interpretation_by_authors: mass-transfer limitation already at 200 ppm catalyst (Ea about half of the 50 ppm value)
+
+source_inconsistencies:
+  model_II_fitted_values: SI Table S10 lists fitted values of the 30-run first-stage fit, not of the 26-run model whose coefficients SI Table S7 reports (comparison.md, explanation 1)
+  model_III_rows: SI Table S16 lists 25 rows (run 28 included) where the SI text and the fit use 24 runs
+  model_IV_statistics:
+    article_Table_2: {r2: 0.955, adj_r2: 0.945, pred_r2: 0.9221, F: 99.7, p: 1.79e-12, rmse: 0.657}
+    SI_pages_24_25: {r2: 0.955, adj_r2: 0.942, pred_r2: 0.9221, F: 75.6, p: 1.93e-11, rmse: 0.657, press: 10.2716}
+    error_degrees_of_freedom: {article_text: 19, SI_Table_S20: 18}
+    note: six coefficients and 24 runs give 18; coefficients and RMSE agree between article and SI
+  temperature: SI Table S2 tabulates 1/(T + 274.1 K) without explanation
