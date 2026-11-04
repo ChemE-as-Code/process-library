@@ -132,8 +132,9 @@ def read_isotherm(path: Path) -> dict:
     # allowed only on its low-pressure tail, where the reversed p/p0 values strictly increase.
     xs = des[::-1, 0]
     bad = np.nonzero(np.diff(xs) <= 0)[0]
-    des_mono_max = float(xs[bad[0]]) if len(bad) else float(xs[-1])
-    return {"all": a, "ads": ads, "des": des, "des_monotonic_up_to": des_mono_max}
+    n_mono = int(bad[0]) + 1 if len(bad) else len(xs)
+    return {"all": a, "ads": ads, "des": des, "des_monotonic_up_to": float(xs[n_mono - 1]),
+            "des_monotonic_n": n_mono}
 
 
 def check_mapping(meta: Path, inputs: dict) -> dict:
@@ -200,7 +201,7 @@ def q_des(iso: dict, x: float) -> float:
     if not (xs[0] <= x <= iso["des_monotonic_up_to"]):
         raise ValueError(f"desorption-branch request at p/p0 {x} outside the monotonic measured tail "
                          f"({xs[0]:.4f} to {iso['des_monotonic_up_to']:.4f})")
-    n = int(np.searchsorted(xs, iso["des_monotonic_up_to"], side="right"))
+    n = iso["des_monotonic_n"]
     return float(np.interp(x, xs[:n], qs[:n]))
 
 

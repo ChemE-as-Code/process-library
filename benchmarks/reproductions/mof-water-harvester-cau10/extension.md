@@ -61,9 +61,9 @@ gap: everywhere in it the working capacity is at most 0.0052 g/g, against the 0.
 threshold.
 
 The step runs from RH 0.189 to 0.219 (10 % to 90 % of capacity), with its inflection at 0.197.
-On the step a change of 0.01 in RH changes the mass by up to a factor of ten, so a design point
-there is not robust. Above the step the mass is almost flat: from RH 0.22 to 0.42 it falls by
-only 10 %.
+On the step a change of 0.01 in RH changes the mass by more than a factor of ten (12 between RH
+0.19 and 0.20), so a design point there is not robust. Above the step the mass is almost flat:
+from RH 0.22 to 0.42 it falls by only 10 %.
 
 ## Changed-input example: inlet RH 0.30 → 0.18
 

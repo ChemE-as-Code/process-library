@@ -113,6 +113,7 @@ value or tolerance changed, and `tolerances.yaml` is untouched. The frozen text 
 | `inputs.yaml` | IF97 check | stated, not run | now run at every start (`run.py` `check_p_sat`) |
 | `inputs.yaml` | adsorption enthalpy | no uncertainty | assumed ±10 % range, effect reported |
 | `inputs.yaml` | bed temperature, changed RH | rationale only | the 0.5 K limit is enforced; the changed RH's measured segment is named |
+| `inputs.yaml` | `negligible_working_capacity_fraction` rationale | 10 % of the working capacity "at the highest measured RH" (0.4246) | "at the top of the sweep (RH 0.42)", which is what `run.py` has always used; value unchanged |
 
 ## Gaps found (reported, not fixed here)
 
