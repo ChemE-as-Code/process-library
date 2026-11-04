@@ -1,0 +1,101 @@
+# Routing intent of the pilot skids (#330, DESIGN.md D-019). Schema: `cheme schema routing`.
+# The lines of DN 25 and above are routed (the anolyte loops, the KOH fill, the spent anolyte
+# drain, the O2 vents, the oxidiser flues); the DN 15 lines (cathode gas, CO2 feed, cooling
+# water, the small liquid lines of Skid B's dosing, make-up and bleed) are not routed at the
+# concept stage: skid small bore, run by the skid fabricator (each skipped below with that
+# reason). Every rule is ASSUMED (D-019).
+schema: cheme/routing/v1
+rules:
+  # the skid pipe-way: local runs inside a skid 1.0 m above grade (0.85 m above the deck),
+  # under the 2.35 m envelope top (ASSUMED)
+  local_elevation_m: 1.0
+  battery_limits:
+    # the KOH fill (once per campaign) and the spent anolyte drain (at the end of the run) are
+    # hose connections at the west end of each frame, beside the reservoir, for a road tanker
+    # or IBCs on the access road (ASSUMED, D-019); not on the utility rack
+    - {id: BL-A-fill, lines: [KOH-101], point: [5.3, 9.55, 0.9]}
+    - {id: BL-A-drain, lines: [SP-101], point: [5.3, 9.25, 0.4]}
+    - {id: BL-B-fill, lines: [KOH-201], point: [20.3, 9.55, 0.9]}
+    - {id: BL-B-drain, lines: [SP-201], point: [20.3, 9.25, 0.4]}
+  vents:
+    # the O2 vents of the reservoirs and the oxidiser flues rise until a 1 m sphere around the
+    # outlet clears every walking level up to the headroom (ASSUMED radius, until the vent study)
+    - {lines: ["O2V-*", "FG-*"], radius_m: 1.0}
+lines:
+  # -- anolyte manifolds at the stacks, laid out by hand (D-019, ASSUMED) -------------------
+  # The supply header runs low (0.20 m) 0.145 m south of the stack inlets (y 8.30), fed from
+  # the cooler top over the header at 0.90 m and down at its west end; a short stub north to
+  # each inlet. The return rises from each outlet to a header at 0.60 m above the outlets
+  # (y 8.445), 0.14 m west of the supply stubs. Only the return's last segment, to the
+  # reservoir top, is generated: the reservoir's size and nozzles change with the campaign
+  # (D-009), so no pinned route ends on T-101 or T-201.
+  - {line: AN-103, segment: Line_AN103_S1, route: [[9.03, 7.9, 0.767], [9.03, 7.9, 0.9], [9.03, 8.3, 0.9], [8.2, 8.3, 0.9], [8.2, 8.3, 0.2], [8.47, 8.3, 0.2]]}
+  - {line: AN-103, segment: Line_AN103_S2, route: [[8.47, 8.3, 0.2], [8.97, 8.3, 0.2]]}
+  - {line: AN-103, segment: Line_AN103_S3, route: [[8.97, 8.3, 0.2], [9.47, 8.3, 0.2]]}
+  - {line: AN-103, segment: Line_AN103_S4, route: [[9.47, 8.3, 0.2], [9.97, 8.3, 0.2], [9.97, 8.445, 0.2]]}
+  - {line: AN-103A, segment: Line_AN103A_S1, route: [[8.47, 8.3, 0.2], [8.47, 8.445, 0.2]]}
+  - {line: AN-103B, segment: Line_AN103B_S1, route: [[8.97, 8.3, 0.2], [8.97, 8.445, 0.2]]}
+  - {line: AN-103C, segment: Line_AN103C_S1, route: [[9.47, 8.3, 0.2], [9.47, 8.445, 0.2]]}
+  - {line: AN-104, segment: Line_AN104_S1, route: [[9.83, 8.445, 0.28], [9.83, 8.445, 0.6], [9.33, 8.445, 0.6]]}
+  - {line: AN-104, segment: Line_AN104_S2, route: [[9.33, 8.445, 0.6], [8.83, 8.445, 0.6]]}
+  - {line: AN-104, segment: Line_AN104_S3, route: [[8.83, 8.445, 0.6], [8.33, 8.445, 0.6]]}
+  - {line: AN-104C, segment: Line_AN104C_S1, route: [[9.33, 8.445, 0.28], [9.33, 8.445, 0.6]]}
+  - {line: AN-104B, segment: Line_AN104B_S1, route: [[8.83, 8.445, 0.28], [8.83, 8.445, 0.6]]}
+  - {line: AN-104A, segment: Line_AN104A_S1, route: [[8.33, 8.445, 0.28], [8.33, 8.445, 0.6]]}
+  - {line: AN-203, segment: Line_AN203_S1, route: [[24.03, 7.9, 0.767], [24.03, 7.9, 0.9], [24.03, 8.3, 0.9], [23.2, 8.3, 0.9], [23.2, 8.3, 0.2], [23.47, 8.3, 0.2]]}
+  - {line: AN-203, segment: Line_AN203_S2, route: [[23.47, 8.3, 0.2], [23.97, 8.3, 0.2]]}
+  - {line: AN-203, segment: Line_AN203_S3, route: [[23.97, 8.3, 0.2], [24.47, 8.3, 0.2]]}
+  - {line: AN-203, segment: Line_AN203_S4, route: [[24.47, 8.3, 0.2], [24.97, 8.3, 0.2], [24.97, 8.445, 0.2]]}
+  - {line: AN-203A, segment: Line_AN203A_S1, route: [[23.47, 8.3, 0.2], [23.47, 8.445, 0.2]]}
+  - {line: AN-203B, segment: Line_AN203B_S1, route: [[23.97, 8.3, 0.2], [23.97, 8.445, 0.2]]}
+  - {line: AN-203C, segment: Line_AN203C_S1, route: [[24.47, 8.3, 0.2], [24.47, 8.445, 0.2]]}
+  - {line: AN-204, segment: Line_AN204_S1, route: [[24.83, 8.445, 0.28], [24.83, 8.445, 0.6], [24.33, 8.445, 0.6]]}
+  - {line: AN-204, segment: Line_AN204_S2, route: [[24.33, 8.445, 0.6], [23.83, 8.445, 0.6]]}
+  - {line: AN-204, segment: Line_AN204_S3, route: [[23.83, 8.445, 0.6], [23.33, 8.445, 0.6]]}
+  - {line: AN-204C, segment: Line_AN204C_S1, route: [[24.33, 8.445, 0.28], [24.33, 8.445, 0.6]]}
+  - {line: AN-204B, segment: Line_AN204B_S1, route: [[23.83, 8.445, 0.28], [23.83, 8.445, 0.6]]}
+  - {line: AN-204A, segment: Line_AN204A_S1, route: [[23.33, 8.445, 0.28], [23.33, 8.445, 0.6]]}
+  # -- Skid A small bore (DN 15), not routed at concept ------------------------------------
+  - {line: CWS-101, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: CWR-101, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: CO2-101, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: CO2-101B, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: CO2-101C, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: CO2-101D, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: CO2-102, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: W-101, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: CG-101, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: CG-101B, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: CG-101C, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: CG-101D, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: CG-102, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: CG-103, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: CD-101, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: CO-101, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: TG-101, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: AIR-101, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  # -- Skid B small bore (DN 15), not routed at concept ------------------------------------
+  - {line: CWS-201, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: CWR-201, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: CO2-201, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: CO2-201B, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: CO2-201C, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: CO2-201D, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: CO2-202, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: W-201, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: CG-201, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: CG-201B, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: CG-201C, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: CG-201D, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: CG-202, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: CG-203, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: CD-201, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: CO-201, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: TG-201, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: AIR-201, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: KOH-202, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: KOH-203, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: KOH-204, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: W-202, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: BL-201, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+notes: "ASSUMED: the skid pipe-way elevation, the rack tier and the battery limit point (D-019)."

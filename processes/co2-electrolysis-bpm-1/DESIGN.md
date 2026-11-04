@@ -550,3 +550,57 @@ it. The model doses and bleeds only with the current on (D-010).
 Assumptions: every trip value and alarm margin (ASSUMED), the fail positions, SIL not screened.
 The pH basis: the probe reads activity pH, the model concentration-basis pH (core ADR 0043):
 the values need an offset or a calibration before use (control/philosophy.md).
+
+## D-019 Skid layout: plot, frames, placement, zones and routing (2026-11-04)
+Decision: a notional pilot plot (ASSUMED, `layout/site-plan.yaml`): 32 x 16 m, two process
+areas A-100 (Skid A) and A-200 (Skid B), an access road R-1 along the south for the KOH and CO2
+deliveries, and a one-tier utility rack PR-1 (2.8 m) along the skids for the site tie-ins.
+- Frames (`layout/structures.yaml`): SKID-A and SKID-B, each one 20 ft frame of the envelope
+  (D-015), 6.06 x 2.44 m, deck 0.15 m above grade (UPN 140 on HEB 140 corner posts), two
+  access steps per frame at remote corners outside the hazardous zone (south side at the west
+  end, east end at its north corner), so that the deck has two ways off.
+- Placement (`layout/equipment-placement.yaml`): every item on the deck of its frame, sized
+  from the equipment list only (the model's `size_from: list`; no `size:` in the placement, so
+  a regenerated tank is drawn at its new size). Skid A keeps the frame's west 2.44 m for T-101
+  alone: at 10,000 h the tank's D 2.31 m still fits the frame width and no other item stands
+  in that circle; the growth then fails on height (D-015). Rows across the frame: south the
+  anolyte pump, cooler, separator and compressor; the middle the four stacks, turned so that
+  their anolyte connections face south (to the pump and cooler) and their gas connections
+  north (to the gas packages); north the PSA, the oxidiser, the rectifier and the fan. Skid B
+  the same, with the day tank T-202 and the metering pump P-202 at the west end.
+- Outlines of the items `cheme process stack` does not size (pumps, cooler, separator,
+  compressor, packages, rectifier, fan) are ASSUMED in the equipment list (`assumed: true`),
+  until vendor drawings; the stacks' and tanks' are the tool's.
+- Zones (`layout/zones.yaml`, ASSUMED screening): one zone 2 per skid from the flanges of the
+  stacks, the separator, the compressor (a diaphragm compressor: no shaft seal on the gas
+  side, so flanges, 1 m, not a 3 m compressor seal), the PSA (CO) and the oxidiser; radii from
+  core's indicative table, not an area classification.
+- Routing (`piping/routing.yaml`): the DN 25 lines are routed (anolyte loops, KOH fill, spent
+  anolyte drain, O2 vents, oxidiser flues), the DN 15 lines are skipped as skid small bore run
+  by the fabricator at the concept stage. The anolyte supply and return manifolds at the
+  stacks are laid out by hand (pinned routes); every route that ends on a reservoir is left to
+  the router, because the reservoir and its nozzles change with the campaign. The KOH fill and
+  the spent anolyte drain end at hose connections at the frame's west end (battery limit
+  points), for a tanker or IBCs on the road. The O2 vents and the flues rise until a 1 m sphere
+  clears every walking level (ASSUMED radius): to about 3.4 m, above the 2.35 m envelope top
+  (fitted at site, reported apart by the envelope check).
+- The package equipment spacing table is switched off in the site plan (`criteria:
+  spacing_table: false`): inside a 20 ft frame the spacing is the fabricator's. Accepted in
+  `checks/checks.yaml` for the layout review: the plot-plan pump access space (1 m all round)
+  of P-101, P-201, P-202, and two lines under 2.1 m over the deck (AN-104 to the reservoir
+  top, KOH-101 to its hose connection): the skid is worked from grade along its long sides.
+Measured (`cheme show --layout`, 1,000 h): X-131 to X-231 14 m between footprints (separation
+6 m, D-019); T-101 to its nearest item X-131 0.9 m; items top 1.95 m (X-x31) under the 2.35 m
+envelope top on both skids.
+
+Reason: the layout carries the sizes of the regenerated equipment (E8) and makes the
+envelope check concrete: the items of each frame, their bounding boxes, against the frame.
+
+Rejected: an enclosure (casing walls) around each frame: it would make the deck and the
+items "inside a casing" (not operable, ways down not counted) for a skid that is ventilated
+and opened for work; the enclosure stays an assumption of the control (K-x41, D-017).
+
+Assumptions: the plot, areas, road, rack, frame sections, deck height, steps, outlines,
+arrangement, zones, pipe-way elevation, vent radius and hose connection points (all ASSUMED).
+Core limitations met: the tank family draws a roof handrail and a ladder on any tank, also on
+a 1 m skid tank (to 2.89 m at 1,000 h); they are reported apart, not counted in the envelope.

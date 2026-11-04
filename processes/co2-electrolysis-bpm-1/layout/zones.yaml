@@ -1,0 +1,39 @@
+# Zones of the pilot skids (#330, DESIGN.md D-019). Schema: `cheme schema zones`.
+# Screening only, ASSUMED: the volumes from sources are sized by cheme-as-code's indicative
+# radius table, not by an area classification. The cathode gas is about 56 mol% H2 with CO and
+# CO2 (process/flowsheet.yaml), the PSA product is CO: both flammable (CO also toxic). The
+# host site's classification (IEC 60079-10-1) replaces these, made or reviewed by a competent
+# person (skill area-classification); the gas detection and the extract fan K-x41 of
+# control/cause-effect.yaml are not credited here.
+schema: cheme/zones/v1
+zones:
+  # ---- hydrogen and carbon monoxide, secondary grade sources: zone 2
+  - id: Z-HAZ-A
+    title: "Skid A cathode gas train: stacks, separator, compressor, PSA and tail-gas oxidiser"
+    kind: hazardous
+    zone: 2
+    sources:
+      - {item: E-101A, release_grade: secondary, substance: hydrogen, source_kind: flange}
+      - {item: E-101B, release_grade: secondary, substance: hydrogen, source_kind: flange}
+      - {item: E-101C, release_grade: secondary, substance: hydrogen, source_kind: flange}
+      - {item: E-101D, release_grade: secondary, substance: hydrogen, source_kind: flange}
+      - {item: V-121, release_grade: secondary, substance: hydrogen, source_kind: flange}
+      # a diaphragm compressor has no shaft seal on the gas side: its flanges and valve heads
+      - {item: K-131, release_grade: secondary, substance: hydrogen, source_kind: flange}
+      - {item: X-131, release_grade: secondary, substance: carbon monoxide, source_kind: flange, substance_class: flammable_gas}
+      - {item: X-132, release_grade: secondary, substance: hydrogen, source_kind: flange}
+    basis: "Flanged and sealed parts of the H2-rich cathode gas and of the CO product leak only on failure (secondary grade); screening radius of the package table, ASSUMED (D-019)."
+  - id: Z-HAZ-B
+    title: "Skid B cathode gas train: stacks, separator, compressor, PSA and tail-gas oxidiser"
+    kind: hazardous
+    zone: 2
+    sources:
+      - {item: E-201A, release_grade: secondary, substance: hydrogen, source_kind: flange}
+      - {item: E-201B, release_grade: secondary, substance: hydrogen, source_kind: flange}
+      - {item: E-201C, release_grade: secondary, substance: hydrogen, source_kind: flange}
+      - {item: E-201D, release_grade: secondary, substance: hydrogen, source_kind: flange}
+      - {item: V-221, release_grade: secondary, substance: hydrogen, source_kind: flange}
+      - {item: K-231, release_grade: secondary, substance: hydrogen, source_kind: flange}
+      - {item: X-231, release_grade: secondary, substance: carbon monoxide, source_kind: flange, substance_class: flammable_gas}
+      - {item: X-232, release_grade: secondary, substance: hydrogen, source_kind: flange}
+    basis: "As Z-HAZ-A, for Skid B (D-019)."

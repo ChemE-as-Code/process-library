@@ -1,0 +1,37 @@
+# Steel structures of the pilot skids (#330, DESIGN.md D-015, D-019). Schema: `cheme schema structures`.
+# Each skid is one 20 ft frame (6.06 x 2.44 m in plan, process/design-basis.yaml
+# capacity.pilot_skid.skid_envelope, ASSUMED) with its deck 0.15 m above grade (ASSUMED base
+# frame of UPN 140 channels on HEB 140 corner posts). The usable height is 2.20 m above the
+# deck (ASSUMED); core checks only that each item stands inside the frame in plan,
+# scripts/regen.py checks the height (step 13).
+# Two access steps per frame (ASSUMED), remote from each other so that they count as two ways
+# off the deck, both outside the hazardous zone of the cathode gas train (layout/zones.yaml):
+# one on the south side at the west end, one on the east end at its north corner.
+schema: cheme/structures/v1
+structures:
+  - id: SKID-A
+    title: "Skid A frame (20 ft, one KOH fill)"
+    origin: [5.5, 7.5]
+    spans_x: [6.06]
+    spans_y: [2.44]
+    column_section: HEB140
+    beam_section: UPN140
+    levels:
+      - {id: DECK, title: "Skid deck", elevation: 0.15, kind: deck}
+    stairs:
+      - {id: ST-A1, from: grade, to: DECK, side: south, offset: 0.0}
+      - {id: ST-A2, from: grade, to: DECK, side: east, offset: 1.4}
+    notes: "ASSUMED 20 ft skid frame, sections, deck height and access steps (D-015, D-019); the tank T-101 stands at the west end with room for its growth with the campaign (D-019)"
+  - id: SKID-B
+    title: "Skid B frame (20 ft, KOH dosing)"
+    origin: [20.5, 7.5]
+    spans_x: [6.06]
+    spans_y: [2.44]
+    column_section: HEB140
+    beam_section: UPN140
+    levels:
+      - {id: DECK, title: "Skid deck", elevation: 0.15, kind: deck}
+    stairs:
+      - {id: ST-B1, from: grade, to: DECK, side: south, offset: 0.0}
+      - {id: ST-B2, from: grade, to: DECK, side: east, offset: 1.4}
+    notes: "ASSUMED 20 ft skid frame, sections, deck height and access steps (D-015, D-019)"
