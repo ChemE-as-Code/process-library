@@ -37,7 +37,8 @@ v101 = equipment(sheet, "Vessel", "V-101", shape=DRUM, at=(150, 100), scale=(1.4
                  nozzles=[Nozzle("N1", (-14, -12), 300), Nozzle("N2", (0, -24), 250),
                           Nozzle("N3", (0, 24), 100), Nozzle("N4", (-10, -24), 150),
                           Nozzle("N5", (-14, 4), 50), Nozzle("N6", (-14, 18), 50),
-                          Nozzle("N7", (14, 0), 25), Nozzle("N8", (14, -14), 50)],
+                          Nozzle("N7", (14, 0), 25), Nozzle("N8", (14, -14), 50),
+                          Nozzle("N9", (-8, 24), 50)],
                  label_at=(150, 100))
 k101 = equipment(sheet, "CentrifugalCompressor", "K-101", shape="COMPRESSOR_CENTRIFUGAL_SHAPE",
                  at=(270, 50), scale=2.0,
@@ -134,6 +135,12 @@ line(sheet, "AR-236", dn=40, fluid="Crude aromatics", route=[
 line(sheet, "AR-237", dn=25, fluid="Crude aromatics", route=[
     minflow.branch, valve("HV237", "GlobeValve", at=(186, 165)), (175, 165), (175, 100),
     v101["N7"]], label_at=(184, 120))
+
+# ---- drain to the closed drain system
+line(sheet, "DR-240", dn=50, fluid="Drain", route=[
+    v101["N9"], valve("HV240", "GateValve", at=(142, 130)),
+    offpage("out", at=(142, 137), note="to closed drain", rotation=90,
+            note_at=(128, 141))], labels=False)
 
 # ---- relief valves
 make_safety_valve(sheet, "PSV214", label_at=(128, 64))

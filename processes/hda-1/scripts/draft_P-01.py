@@ -32,7 +32,7 @@ v100 = equipment(sheet, "Vessel", "V-100", shape=DRUM, at=(60, 105), scale=(1.6,
                  nozzles=[Nozzle("N1", (-16, -10), 80), Nozzle("N2", (16, -10), 40),
                           Nozzle("N3", (0, 19.5), 80), Nozzle("N4", (-16, 8), 50),
                           Nozzle("N5", (0, -19.5), 50), Nozzle("N6", (16, 8), 40),
-                          Nozzle("N8", (10, -19.5), 80)],
+                          Nozzle("N8", (10, -19.5), 80), Nozzle("N9", (-8, 19.5), 50)],
                  label_at=(42, 136))
 p101 = equipment(sheet, "CentrifugalPump", "P-101", shape=PUMP, at=(100, 172),
                  nozzles=[Nozzle("N1", (-7.5, 0), 80), Nozzle("N2", (0, -7.5), 80)],
@@ -141,6 +141,12 @@ line(sheet, "NG-137", dn=50, fluid="Natural gas", route=[
     offpage("in", at=(300, BOTTOM), note="from natural gas header, P-07", rotation=270,
             note_at=(325, 252)),
     xv112, tv111, h101["N3"]], label_at=(309, 150))
+
+# ---- drain to the closed drain system
+line(sheet, "DR-138", dn=50, fluid="Drain", route=[
+    v100["N9"], valve("HV138", "GateValve", at=(52, 130.5)),
+    offpage("out", at=(52, 137.5), note="to closed drain", rotation=90,
+            note_at=(40, 141.5))], labels=False)
 
 # ---- relief valves: placeholders made safety valves (pid_common.make_safety_valve)
 make_safety_valve(sheet, "PSV118", label_at=(80, 60))

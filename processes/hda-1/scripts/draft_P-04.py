@@ -37,7 +37,7 @@ c201 = equipment(sheet, "ProcessColumn", "C-201", shape="COLUMN_SHAPE", at=(130,
                           Nozzle("N3", (10, -48), 25), Nozzle("N4", (0, 60), 80),
                           Nozzle("N5", (-10, 45), 150), Nozzle("N6", (-10, 25), 200),
                           Nozzle("N7", (-10, -50), 100), Nozzle("N8", (-10, 55), 50),
-                          Nozzle("N9", (-10, 0), 25)],
+                          Nozzle("N9", (-10, 0), 25), Nozzle("N10", (6, 58), 50)],
                  markers=[Marker("COLUMN_TRAYS_SHAPE", 0, 2.0)],
                  label_at=(130, 150))
 e201 = equipment(sheet, "TubularHeatExchanger", "E-201", shape=HX, at=(180, 60),
@@ -47,7 +47,7 @@ e201 = equipment(sheet, "TubularHeatExchanger", "E-201", shape=HX, at=(180, 60),
 v201 = equipment(sheet, "Vessel", "V-201", shape=DRUM, at=(240, 100), scale=(1.4, 1.0),
                  nozzles=[Nozzle("N1", (-14, -8), 50), Nozzle("N2", (0, -15), 40),
                           Nozzle("N3", (0, 15), 25), Nozzle("N4", (-14, 6), 50),
-                          Nozzle("N5", (14, 6), 25), Nozzle("N6", (14, -5), 50)],
+                          Nozzle("N5", (14, 6), 25), Nozzle("N6", (14, -5), 50), Nozzle("N7", (-8, 15), 25)],
                  label_at=(240, 100))
 e202 = equipment(sheet, "TubularHeatExchanger", "E-202", shape=HX, at=(65, 170),
                  nozzles=[Nozzle("S1", (-7, -7), 100), Nozzle("S2", (-7, 7), 50),
@@ -140,6 +140,16 @@ line(sheet, "AR-120", dn=80, fluid="Stabilised aromatics", route=[
     c201["N4"], lv408, (130, 245),
     offpage("out", at=(EDGE, 245), note="to C-202, P-05", note_at=(386, 239))],
     label_at=(200, 239))
+
+# ---- drains to the closed drain system
+line(sheet, "DR-445", dn=50, fluid="Drain", route=[
+    c201["N10"], valve("HV445", "GateValve", at=(136, 199)),
+    offpage("out", at=(136, 206), note="to drain", rotation=90,
+            note_at=(141, 213))], labels=False)
+line(sheet, "DR-446", dn=25, fluid="Drain", route=[
+    v201["N7"], valve("HV446", "GateValve", at=(232, 121)),
+    offpage("out", at=(232, 128), note="to drain", rotation=90,
+            note_at=(222, 131))], labels=False)
 
 # ---- relief valves
 make_safety_valve(sheet, "PSV413", label_at=(88, 60))

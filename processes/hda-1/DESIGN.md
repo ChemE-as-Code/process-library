@@ -1233,6 +1233,12 @@ Conventions (all ASSUMED where they set a value):
   valve class (core#132, filed in S3b): the draft draws a globe valve and `pid_common.make_safety_valve` changes its
   class, tag property and symbol (the edit ammonia-1's D-027 made by hand).
 - Trips go into `control/cause-effect.yaml`; the sheet only names the interlock.
+- Vents and drains. Every vessel and column has a bottom drain with a block valve to the closed
+  drain system (DR-138, DR-240, DR-445, DR-446, DR-551, DR-552, DR-651, DR-652); the process
+  vents are the pressure-control vents to the flare (PV-104, PV-504, PK-201) and the relief
+  lines. Exchanger and pump vents and drains, high-point vents, column top maintenance vents,
+  sample points and the control valve block and bypass valves are left to the detail P&IDs
+  (S9), as ammonia-1 did.
 
 P-01 (feed, heater and reactor):
 - V-100: fresh toluene on level control (LIC-102, LV-102), toluene recycle TO-123 from

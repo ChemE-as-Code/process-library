@@ -36,7 +36,7 @@ c203 = equipment(sheet, "ProcessColumn", "C-203", shape="COLUMN_SHAPE", at=(130,
                           Nozzle("N3", (10, -48), 50), Nozzle("N4", (0, 60), 25),
                           Nozzle("N5", (-10, 45), 100), Nozzle("N6", (-10, 10), 700),
                           Nozzle("N7", (-10, -50), 150), Nozzle("N8", (-10, 55), 50),
-                          Nozzle("N9", (-10, 0), 25)],
+                          Nozzle("N9", (-10, 0), 25), Nozzle("N10", (6, 58), 25)],
                  markers=[Marker("COLUMN_TRAYS_SHAPE", 0, 2.0)],
                  label_at=(130, 160))
 e205 = equipment(sheet, "TubularHeatExchanger", "E-205", shape=HX, at=(180, 60),
@@ -46,7 +46,7 @@ e205 = equipment(sheet, "TubularHeatExchanger", "E-205", shape=HX, at=(180, 60),
 v203 = equipment(sheet, "Vessel", "V-203", shape=DRUM, at=(240, 100), scale=(1.4, 1.0),
                  nozzles=[Nozzle("N1", (-14, -8), 80), Nozzle("N2", (0, -15), 50),
                           Nozzle("N3", (0, 15), 80), Nozzle("N4", (-14, 6), 50),
-                          Nozzle("N5", (14, 6), 25), Nozzle("N6", (14, -5), 50)],
+                          Nozzle("N5", (14, 6), 25), Nozzle("N6", (14, -5), 50), Nozzle("N7", (-8, 15), 50)],
                  label_at=(240, 100))
 pk201 = equipment(sheet, "Compressor", "PK-201", shape="PUMP_VACUUM_SHAPE", at=(285, 40),
                   nozzles=[Nozzle("N1", (-7.5, 0), 50), Nozzle("N2", (7.5, 0), 50)],
@@ -170,6 +170,16 @@ line(sheet, "DP-124", dn=25, fluid="Biphenyl", route=[
 line(sheet, "DP-650", dn=25, fluid="Biphenyl", route=[
     p204b["N2"], valve("CV650", "SwingCheckValve", at=(120, 218)),
     valve("HV650", "GateValve", at=(120, 212)), (120, 206), join_b.branch], label_at=(100, 213))
+
+# ---- drains to the closed drain system
+line(sheet, "DR-651", dn=25, fluid="Drain", route=[
+    c203["N10"], valve("HV651", "GateValve", at=(136, 199)),
+    offpage("out", at=(136, 206), note="to drain", rotation=90,
+            note_at=(141, 213))], labels=False)
+line(sheet, "DR-652", dn=50, fluid="Drain", route=[
+    v203["N7"], valve("HV652", "GateValve", at=(232, 121)),
+    offpage("out", at=(232, 128), note="to drain", rotation=90,
+            note_at=(222, 131))], labels=False)
 
 # ---- relief valves
 make_safety_valve(sheet, "PSV615", label_at=(88, 60))
