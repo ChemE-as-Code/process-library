@@ -18,13 +18,14 @@ design is infeasible; the step runs from RH 0.189 to 0.219, with its inflection 
 
 | Item | Status |
 | --- | --- |
-| Reproduction | **pass** under the frozen rule (4 of 4 checks): α and Δp/p0(75–25 %) of the 4TU CAU-10-H series against the digitised Figure 7 marker, marker identification, saturation-pressure basis (`comparison.md`). The checks are not independent: the marker is selected by α, so the α and identification checks are one test; the Δp/p0 tolerance would also admit marker H3; the saturation-pressure check is data integrity, not a reported value |
+| Reproduction | Against Figure 7 (`tolerances.yaml`): **pass** (4 of 4 checks): α and Δp/p0(75–25 %) of the 4TU CAU-10-H series against the digitised marker, marker identification, saturation-pressure basis. These checks are not independent: the marker is selected by α, so the α and identification checks are one test; the Δp/p0 tolerance would also admit marker H3; the saturation-pressure check is data integrity, not a reported value. Against Table S7 row 8 of the Supporting Information (`tolerances-si.yaml`): **partial** (3 of 5): sample identity, α (+0.0002) and Δp/p0 (+0.0004) pass, but these α and Δp/p0 checks are not blind; the blind Henry checks fail, slope 8.89 against 6.14 mmol/g (+45 %) and K_H 3159 against 2166 cm3/g (+46 %), with the frozen fit through the origin. A fit with an intercept, reported as a variant, gives 6.138 mmol/g. Our digitised marker H5 agrees with row 8 (`comparison.md`) |
 | Independent validation | none (no independent harvester or isotherm data used) |
 | Design extension | hypothetical: adsorbent mass, volume and regeneration heat against inlet RH, one changed-input example RH 0.30 → 0.18 (`extension.md`) |
 | Specialist review | not yet (optional follow-up: adsorption and cyclic sorption) |
 
-What is reproduced is our reading of the published uptake series: the same descriptors the
-article plots for it, within digitisation error. It is not a validation of the article, and
+What is reproduced is our reading of the published uptake series. α and Δp/p0 agree with what
+the article plots and tabulates for it. The Henry constant does not agree with the frozen
+method (`comparison.md`, second part). It is not a validation of the article, and
 the sizing is a design calculation built on the series, not a reproduction of anything the
 article reports (the article sizes no device).
 
@@ -51,20 +52,24 @@ is in `comparison.json`.
 | --- | --- |
 | `source.yaml` | pinned article and dataset (DOI, version, sha256, licences), sample mapping, reported facts with locators, digitised Figure 7 markers with method and uncertainty |
 | `inputs.yaml` | every model input with value, unit, label (measured, reconstructed, assumed) and source or rationale |
-| `tolerances.yaml` | acceptance tolerances and pass rule, frozen in d25eee1 before run.py existed |
+| `tolerances.yaml` | acceptance tolerances and pass rule against the digitised Figure 7, frozen in d25eee1 before run.py existed |
+| `tolerances-si.yaml` | second comparison, against Table S7 row 8 of the Supporting Information, frozen in ac79bdf6 before any Henry-constant computation |
 | `run.py` | single entry point (PEP 723 header, pinned dependencies) |
 | `digitise_figure7.py` | our digitiser: re-derives the Figure 7 pixel centres and calibration in `source.yaml` from the pinned PDF (optional; `uv run` it like `run.py`) |
-| `results/comparison.json` | every compared quantity, context comparisons, scalar design-extension results with interpolation bounds, and a `data_source` attribution block |
+| `results/comparison.json` | every compared quantity under both tolerance files (`reproduction`, `table_s7`), context comparisons, scalar design-extension results with interpolation bounds, and a `data_source` attribution block |
 | `results/sweep.json`, `results/*.svg` | full RH sweep and figures (headline: `results/harvester_mass_vs_rh.svg`) |
 | `comparison.md` | run details, result table, verdict, deviations, corrections after the freeze |
 | `extension.md` | the hypothetical design extension and its flags |
 | `sufficiency.md` | what the sources provide, what is missing, and the achievable scope |
-| `NOTICE.md` | attribution and licence of the dataset and article behind the committed numbers |
+| `NOTICE.md` | attribution and licence of the dataset, article and Supporting Information behind the committed numbers |
 
 ## Sources and reuse
 
 - Article: van der Veen et al., Adv. Mater. 2023, 10.1002/adma.202210050, CC BY-NC 4.0. Facts and
   numbers only, restated with locators; nothing copied.
+- Supporting Information of the article: obtained by the repository owner on 2026-11-04 (the
+  publisher refuses scripted requests), not committed; only the Section 7 definitions and the
+  Table S7 row 8 numbers are restated, with locators and the file's sha256 (`source.yaml`).
 - Data: 4TU.ResearchData 10.4121/22009211 v1 (Rega, de Lange, Wang, Grancha, van der Veen),
   CC BY-SA 4.0. The data file is not committed; it is downloaded at run time.
 - **Derived results:** the figures, the 149-point RH sweep and `comparison.json` are computed from
@@ -78,14 +83,17 @@ is in `comparison.json`.
 
 `sufficiency.md` is the sufficiency record (ADR 0031); in short:
 
-1. **Supporting Information not obtained.** Wiley returns HTTP 403 to scripted requests and no
-   open copy was found (searched: OpenAlex, Europe PMC, HAL, KU Leuven Lirias, TU Delft
-   repository). Without Table S7 the dataset's sample 8 cannot be matched to a labelled
-   Figure 7 point (we infer marker H5 by nearest α and check that the match is unique), and
-   without SI Section 7 the Henry constant cannot be compared.
-2. **Capacity definition unknown.** Δp/p0(75–25 %) is sensitive to it: a capacity 10 % above
-   ours would give 0.0110 and fail. The frozen tolerance reason understated this
-   (`comparison.md`, item 1).
+1. **Supporting Information: obtained late, not open.** Wiley returns HTTP 403 to scripted
+   requests and no open copy was found. The owner obtained the SI on 2026-11-04. Table S7 row 8
+   now labels sample 8, which matches marker H5, and Section 7 defines K_H. Not stated in the
+   SI: whether the Henry fit has an intercept, which R2 is given, and the p0 basis (the row
+   implies 7377 Pa, 0.7 % above IF97 at 313.000 K). For this series the intercept alone
+   changes the slope by 45 %.
+2. **Capacity definition not applicable to this series.** The SI reads total capacity at p/p0
+   0.85, and sample 8 ends at 0.4246. Our choice (the uptake at 0.4246) reproduces row 8's α
+   and Δp/p0. Row 8's 0.92 "g/g" is an open question to the authors (our 0.2973 g/g is
+   16.504 mmol/g; 16.504 / 18.015 = 0.916). Δp/p0(75–25 %) is sensitive to the capacity: a
+   capacity 10 % above ours would give 0.0110 (`comparison.md`, item 1).
 3. **CAU-10-CH3 not available as data.** The dataset holds CAU-10-H only; CAU-10-CH3 is out of
    scope.
 4. **One isotherm temperature (313 K).** No isosteric heat can be fitted; the regeneration
