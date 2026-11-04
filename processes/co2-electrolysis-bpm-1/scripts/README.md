@@ -33,5 +33,8 @@ The pilot skids of #330 (DESIGN.md D-007 to D-015):
   results (library ADR 0027, contract `balance-output/1`).
 - `_core.py`: the one coupling to cheme-as-code (its commands' `--json` output only).
 - `_yamledit.py`: targeted edits of hand-maintained YAML that refuse any other change.
+- `draft_P-01.py`, `draft_P-02.py`: the generators of the skid P&IDs P-01 (Skid A) and P-02
+  (Skid B), both drawing with `_skid_pid.py` from the frames `pid/frames/P-0x.xml` (generated
+  sheets, DESIGN.md D-017): change them, then `cheme regen P-01 P-02`.
 
 `agent-run/` holds the runner and prompts of a staged agent design run (see its README).

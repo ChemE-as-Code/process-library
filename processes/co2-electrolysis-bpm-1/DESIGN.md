@@ -477,3 +477,48 @@ Decision: merchant liquefied CO2, a fossil industrial by-product (ASSUMED, conse
 the LCA of #331. An owner decision: it drives the climate result.
 
 Assumptions: site NL (ASSUMED).
+
+## D-017 The skid P&IDs P-01 and P-02: generated, what they show and leave out (2026-11-04)
+Decision: Skid A is drawn on P-01, Skid B on P-02, both generated (`plant.yaml` `generator:`)
+by `scripts/draft_P-01.py` and `draft_P-02.py` from one drawing module `scripts/_skid_pid.py`
+(core's authoring API `chemeascode.domains.piping.authoring`, skill pid-draft). The frames are
+committed files (`pid/frames/P-0x.xml`, the empty sheets `cheme sheet new` wrote), so
+`cheme regen` works in a copy without git; change the script and `cheme regen`, never the XML.
+- Every PFD step is an equipment item and every material stream a line (the flowsheet streams
+  link their line, `links:`). A manifold to the four stacks is one line to the last stack with
+  a branch line (suffix A to D) to each of the others; the list says which.
+- DEXPI 2.0.1 has no class for an electrolyser stack, a black-box package or a rectifier: the
+  stacks E-x01A to D, the packages X-x31 and X-x32 and the rectifiers U-x01 are
+  `ProcessEquipment` in the P&IDs and the equipment list (`type` must be the drawn class); the
+  service and notes say what each is. The stacks were `Electrolyser` and the packages
+  `CustomEquipment` before (stage 2); `cheme process stack` does not read the type.
+- Added to the equipment list for the control: the rectifier U-x01 (the final element of
+  JIC-x01 and of the trips) and an enclosure extract fan K-x41 (ASSUMED enclosed skids,
+  started on gas detection). Both are drawn without a process connection; the DC bus is not
+  drawn.
+- Nominal diameters (ASSUMED): the anolyte loop DN 25 (11.2 L/min, about 0.3 m/s), the vents
+  DN 25, the cathode gas and the small liquid lines DN 15.
+- Skid B: the 5 M KOH dose enters the reservoir top from the day tank T-202 and the metering
+  pump P-202; the make-up water enters on level (LV-201); the bleed (FV-203, FIC-203) leaves
+  from the reservoir bottom by a branch of the drain line upstream of its isolation valve
+  (gravity, about 1.9 L/h: a metering pump is the alternative, open). The flowsheet draws the
+  bleed from T-201 (S223); the P&ID is the same source.
+- The four stacks are fed in parallel by four manifolds, which cannot be drawn without
+  crossings: with the anolyte manifolds above and below the stack row, each cathode gas
+  manifold crosses one of them three times (six crossings per sheet, accepted in the gate
+  drawing-clean of checks/checks.yaml until the design review confirms or redraws).
+- Left out at the concept stage (open, for the HAZOP and the relief study): relief devices
+  (K-x31 is a positive-displacement compressor; the cathode gas train), vents and drains
+  beyond the ones operation needs, double block and bleed, the speed signals of FIC-x01 and
+  AIC-201 to their pumps (the pairings are in control/loops.yaml), the stack vendor's own
+  connections.
+
+Reason: one module draws both skids the same way, so they differ only where the design does
+(Skid B's dosing, make-up and bleed); a generated sheet stays current with its script, and the
+validate drift check finds a hand edit.
+
+Rejected: hand-maintained sheets (two sheets of the same skid would drift apart); a stack
+drawn once as "typical of four" (each stack is a listed item that the P&ID must show).
+
+Assumptions: the nominal diameters, the fan and the enclosures, the gravity bleed.
+
