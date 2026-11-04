@@ -1196,10 +1196,17 @@ hand-maintained from then on and the scripts are provenance only, as in ammonia-
 | P-04 | stabiliser | C-201, E-201, V-201, P-201A/B, E-202 |
 | P-05 | benzene column and product | C-202, E-203, V-202, P-202A/B, E-204, E-207 |
 | P-06 | toluene column, toluene recycle, biphenyl | C-203, E-205, V-203, P-203A/B, E-206, P-204A/B, PK-201 |
-| P-07 | utility and flare headers | (headers only) |
+| P-07 | flare, nitrogen and natural gas headers | (headers only) |
+| P-08 | cooling water and steam headers | (headers only) |
+
+The utility headers were planned on one sheet (P-07). With every consumer branch drawn on the
+header sheet (the off-page check asks the named sheet to carry the line), about 35 branches do
+not fit one A3 frame legibly, so they are split: P-07 for the flare, nitrogen and natural gas,
+P-08 for cooling water, steam and condensate (S3b, while drawing P-03).
 
 Conventions (all ASSUMED where they set a value):
-- Numbers. New lines n30 and up on sheet P-0n, headers on P-07 from 701; instruments n01
+- Numbers. New lines n30 and up on sheet P-0n, headers on P-07 from 701 and on P-08 from 801;
+  instruments n01
   and up on sheet P-0n. The PFD lines keep their numbers. A line that continues on another
   sheet is drawn on both with the same number, and each off-page connector names the other
   end and its sheet (`cheme.offpage-mismatch` checks it).
@@ -1266,6 +1273,24 @@ P-02 (HP separator and recycle gas):
   PK-101 (P-03): the purge holds the loop's 40 mol% H2 specification (D-007).
 - P-102/P-102B take the quench liquid off AR-116 (SPL2, AR-235); continuous minimum flow
   AR-237 through the restriction globe valve HV-237 back to V-101, since TV-115 can close.
+
+P-03 (purge PSA and tail gas):
+- PK-101 is one package item (adsorber beds, switching valves, tail gas surge drum, cycle
+  control, the vendor's relief); the sheet draws its tie-ins with block valves (HV-330 purge
+  in, HV-331 hydrogen out, HV-332 tail gas out). PIC-301 holds the adsorption pressure on the
+  hydrogen product with PV-301 (step PV101 of the simulation, 3540 -> 3250 kPa(a)); AI-302
+  reads the product purity.
+- K-102: PIC-303 holds the tail gas pressure at the suction (the PSA desorption pressure,
+  140 kPa(a)) on the spillback PV-303 / FG-330, which returns cooled gas from downstream of
+  E-103 (DN150, full flow for start-up and PSA turndown, ASSUMED). Check valve CV-127 on the
+  discharge. Machine protection in its package.
+- Relief: PSV-307 on the tail gas side FG-126 (a switching valve failed open puts 36 bar feed
+  gas into the 6 barg side; back-flow from the header on a K-102 trip); PSV-308 on the K-102
+  discharge (blocked outlet; the likely machine is positive displacement, D-024); both 6 barg
+  to the flare. PSV-309 thermal relief on the E-103 CW side to atmosphere; tube rupture is not
+  a case there (both sides 6 barg).
+- FG-128 leaves to the site fuel gas header at the battery limit (no header drawn: it is
+  outside the plant, D-009), with FI-306 for the export.
 
 ## LCI summary (lca/inventory.csv, per kg benzene)
 

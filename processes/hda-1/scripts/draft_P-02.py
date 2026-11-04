@@ -57,12 +57,12 @@ line(sheet, "PG-110", dn=350, fluid="Reactor effluent", route=[
 line(sheet, "PG-111", dn=300, fluid="Reactor effluent", route=[
     e102["T2"], (120, 80), (120, 88), v101["N1"]], label_at=(112, 92))
 line(sheet, "CWS-230", dn=350, fluid="Cooling water", route=[
-    offpage("in", at=(LEFT, 110), note="from CW supply, P-07", note_at=(26, 116)),
+    offpage("in", at=(LEFT, 110), note="from CW supply, P-08", note_at=(26, 116)),
     (73, 110), e102["S1"]], label_at=(45, 104))
 cw_relief = tee("T238", at=(87, 55), branch="right", branch_dn=80)
 line(sheet, "CWR-231", dn=350, fluid="Cooling water", route=[
     e102["S2"], cw_relief, (87, 40),
-    offpage("out", at=(LEFT, 40), note="to CW return, P-07", rotation=180, note_at=(26, 34))],
+    offpage("out", at=(LEFT, 40), note="to CW return, P-08", rotation=180, note_at=(26, 34))],
     label_at=(45, 46))
 psv215 = valve("PSV215", "GlobeValve", tag="PSV-215", at=(100, 40))
 line(sheet, "CWR-238", dn=80, fluid="Cooling water", route=[
