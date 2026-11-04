@@ -20,9 +20,11 @@ Rerun from the repository root:  uv run benchmarks/reproductions/microfluidic-t-
    fabrication grid, with every design checked forward and out-of-regime requests flagged, and
    a dimensioned plan-view drawing (SVG) of each chosen junction.
 
-Writes results/ deterministically. Exits non-zero only if the script itself fails (download,
-checksum, extraction, or a design that does not reproduce its target); the reproduction verdict
-is recorded in results/comparison.json.
+Writes results/ deterministically. Exits non-zero only if the script itself fails: download,
+checksum or extraction (exit 1), a digitisation rerun that does not give the source.yaml values
+(exit 2; the extracted reference would not be the recorded one), or a design that does not
+reproduce its target (exit 3). The reproduction verdict is recorded in results/comparison.json;
+the digitisation rerun is one of its counted model_internal checks.
 """
 
 from __future__ import annotations
@@ -226,9 +228,37 @@ def compare_digitisation(extracted: dict, recorded: dict, tol: dict) -> dict:
 # --------------------------------------------------------------------------------------------
 # Reproduction checks
 # --------------------------------------------------------------------------------------------
-def reproduction(fig: dict) -> dict:
+def series_checks(fig: dict, k: str, r: float, eta: float, eps: float) -> dict:
+    """Line and experiment checks of one series at a given geometry (used by the diagnostic)."""
     t = TOL["checks"]
-    res: dict = {}
+    (qa, va), (qb, vb) = fig["model_lines"][k]
+    slope_ref = (vb - va) / (qb - qa)
+    icpt_ref = va - slope_ref * qa
+    devs = [v_total(q, r, eta, eps) / v - 1 for q, v in fig["experiment"][k]]
+    out = {"w_in_over_w": r, "h_over_w": eta, "eps_over_w": eps,
+           "intercept_deviation": v_fill(r, eta) - icpt_ref, "slope_rel_deviation": alpha(r, eta, eps) / slope_ref - 1,
+           "mean_abs_rel_deviation": sum(map(abs, devs)) / len(devs), "max_abs_rel_deviation": max(map(abs, devs))}
+    out["status"] = {
+        "intercept": "pass" if abs(out["intercept_deviation"]) <= t["model_lines"]["intercept"]["abs"] else "fail",
+        "slope": "pass" if abs(out["slope_rel_deviation"]) <= t["model_lines"]["slope"]["rel"] else "fail",
+        "mean": "pass" if out["mean_abs_rel_deviation"] <= t["model_vs_experiment"]["per_series_mean_abs_rel"]["max"] else "fail",
+        "points": "pass" if out["max_abs_rel_deviation"] <= t["model_vs_experiment"]["per_point_abs_rel"]["max"] else "fail"}
+    return out
+
+
+def swapped_geometry_diagnostic(fig: dict) -> dict:
+    """The Nekouei body text swaps the depths of the 0.67 and 1.33 series; evaluate that reading."""
+    s = INPUTS["reproduction"]["series"]
+    swap = {"r0.67_h0.11": s["r1.33_h0.17"]["h_over_w"]["value"], "r1.33_h0.17": s["r0.67_h0.11"]["h_over_w"]["value"]}
+    out = {k: series_checks(fig, k, s[k]["w_in_over_w"]["value"], eta, s[k]["eps_over_w"]["value"]) for k, eta in swap.items()}
+    out["note"] = ("diagnostic, not in the pass rule: the depths of the two series swapped as in the Nekouei body text "
+                   "(page 10-11), judged against the same frozen tolerances")
+    return out
+
+
+def reproduction(fig: dict, digi: dict) -> dict:
+    t = TOL["checks"]
+    res: dict = {"digitisation_rerun": digi}
 
     # internal: closed form vs geometric construction
     worst = 0.0
@@ -249,9 +279,15 @@ def reproduction(fig: dict) -> dict:
         ours = alpha(c["w_in_over_w"], c["h_over_w"], c["eps_over_w"])
         dev = ours - ref[refkey]["value"]
         tol = t["model_alpha_independent"][name]["abs"]
+        diag = {}
+        for e in (0.01, 0.1):
+            a_e = alpha(c["w_in_over_w"], c["h_over_w"], e)
+            diag[f"eps_{e:g}"] = {"ours": a_e, "deviation": a_e - ref[refkey]["value"],
+                                  "status_if_used": "pass" if abs(a_e - ref[refkey]["value"]) <= tol else "fail"}
         res["alpha_independent"][name] = {"w_in_over_w": c["w_in_over_w"], "h_over_w": c["h_over_w"], "eps_over_w": c["eps_over_w"],
                                           "reference": ref[refkey]["value"], "ours": ours, "deviation": dev,
-                                          "tolerance_abs": tol, "status": "pass" if abs(dev) <= tol else "fail"}
+                                          "tolerance_abs": tol, "status": "pass" if abs(dev) <= tol else "fail",
+                                          "diagnostic_other_eps_not_in_pass_rule": diag}
 
     # model lines and model vs experiment, per series
     series = INPUTS["reproduction"]["series"]
@@ -286,14 +322,17 @@ def reproduction(fig: dict) -> dict:
         res["vof_informational"][k] = {"points": vof, "mean_abs_rel_deviation": sum(abs(p["rel_deviation"]) for p in vof) / len(vof),
                                        "note": "not part of the pass rule: a third-party VOF simulation, not experiment"}
 
-    model_ok = (res["fill_closed_vs_geometry"]["status"] == "pass"
+    res["diagnostic_swapped_geometry_not_in_pass_rule"] = swapped_geometry_diagnostic(fig)
+
+    model_ok = (res["fill_closed_vs_geometry"]["status"] == "pass" and res["digitisation_rerun"]["status"] == "pass"
                 and all(c["status"] == "pass" for c in res["alpha_independent"].values())
                 and all(c["intercept"]["status"] == "pass" and c["slope"]["status"] == "pass" for c in res["model_lines"].values()))
     exp_ok = all(c["status_mean"] == "pass" and c["status_points"] == "pass" for c in res["model_vs_experiment"].values())
     res["verdict"] = "pass" if (model_ok and exp_ok) else ("partial" if model_ok else "fail")
     res["counts"] = {
-        "checks_total": 1 + 2 + 6 + 6,
-        "checks_passed": (res["fill_closed_vs_geometry"]["status"] == "pass")
+        "checks_total": 2 + 2 + 6 + 6,
+        "note": "model_internal 2 (filling volume, digitisation rerun), model_alpha_independent 2, model_lines 6, model_vs_experiment 6",
+        "checks_passed": (res["fill_closed_vs_geometry"]["status"] == "pass") + (res["digitisation_rerun"]["status"] == "pass")
         + sum(c["status"] == "pass" for c in res["alpha_independent"].values())
         + sum((c["intercept"]["status"] == "pass") + (c["slope"]["status"] == "pass") for c in res["model_lines"].values())
         + sum((c["status_mean"] == "pass") + (c["status_points"] == "pass") for c in res["model_vs_experiment"].values()),
@@ -309,12 +348,29 @@ FL = D["fluids"]
 MU_C, MU_D, GAMMA = FL["mu_c"]["value"], FL["mu_d"]["value"], FL["gamma"]["value"]
 EPS_D = D["eps_over_w"]["value"]
 VAL = D["validity"]
+EVB = D["evidence_bounds"]
 RULE = D["design_rule"]
 BETA = VAL["leaking_bound"]["beta"]
+S_CRIT = VAL["jetting_bound"]["S_crit"]
+CA_EXP = VAL["Ca_exp_max"]["value"]
+MARGIN = RULE["Ca_rule"]["margin"]
+EPS_BAND = RULE["eps_robustness"]["eps_over_w_band"]
+SPREAD_MAX = RULE["eps_robustness"]["max_rel_volume_spread"]
 UM, NL = 1e-6, 1e-12
 
 
+def ca_window(q: float) -> tuple[float, float]:
+    """Ca bounds of the squeezing regime at flow-rate ratio q: leaking bound below, S-number (or the
+    original's experimental Ca range) above. Empty if lower > upper."""
+    return 10 * BETA / q, min(CA_EXP, S_CRIT / (1 + q) ** 2)
+
+
+def ca_operating(q: float) -> float:
+    return ca_window(q)[1] / MARGIN
+
+
 def regime_flags(h: float, w: float, r: float, q: float | None, ca: float | None) -> list[str]:
+    """Blocking flags: outside the model's stated validity or outside the squeezing regime."""
     flags = []
     eta = h / w
     if not (VAL["h_over_w"]["min"] <= eta <= VAL["h_over_w"]["max"]):
@@ -323,26 +379,108 @@ def regime_flags(h: float, w: float, r: float, q: float | None, ca: float | None
         flags.append(f"w_in/w = {r:.3g} outside the validated range")
     if q is not None and not (VAL["q"]["min"] <= q <= VAL["q"]["max"]):
         flags.append(f"q_d/q_c = {q:.3g} outside the validated range {VAL['q']['min']}-{VAL['q']['max']}")
-    if ca is not None and ca > VAL["Ca_max"]["value"]:
-        flags.append(f"Ca = {ca:.3g} above the squeezing limit {VAL['Ca_max']['value']}: shear-assisted break-up, model over-predicts the size")
+    if ca is not None and ca > CA_EXP:
+        flags.append(f"Ca = {ca:.3g} above the original's experimental Ca range (Ca < {CA_EXP:g})")
+    if ca is not None and q is not None and q > 0 and ca * (1 + q) ** 2 > S_CRIT:
+        flags.append(f"S = Ca (1 + q)^2 = {ca * (1 + q) ** 2:.3g} above S_crit = {S_CRIT:g}: squeezing-to-jetting transition, "
+                     "a thread forms and the model does not apply")
     if ca is not None and q is not None and q * ca < 10 * BETA:
         flags.append(f"q Ca = {q * ca:.3g} below 10 beta = {10 * BETA:.3g}: leaking regime, size grows as Ca falls")
-    if MU_D / MU_C > VAL["viscosity_ratio_max"]["value"]:
-        flags.append("viscosity ratio above the assumed limit")
     return flags
 
 
-def design_point(V: float, h: float, w: float, r: float, ca: float) -> dict:
+def evidence_notes(h: float, w: float) -> list[str]:
+    """Non-blocking notes: inside the model's stated validity but outside what this reproduction confirmed."""
+    eta = h / w
+    lo, hi = EVB["h_over_w_reproduced"]["min"], EVB["h_over_w_reproduced"]["max"]
+    notes = []
+    if eta > hi:
+        notes.append(f"h/w = {eta:.3g} above the h/w range reproduced here ({lo}-{hi}): no reproduced series covers it")
+    if eta < lo:
+        notes.append(f"h/w = {eta:.3g} below the h/w range reproduced here ({lo}-{hi}), towards the shape (h/w = 0.11) "
+                     "whose published agreement was not reproduced")
+    return notes
+
+
+def global_extrapolations() -> list[str]:
+    """Inputs of every design that lie outside the reproduced range (ADR 0031)."""
+    vr = VAL["viscosity_ratio"]
+    out = ["liquid-liquid branch with eps = 0.01 w: not reproduced here; the original validated it at one geometry only "
+           "(w_in/w = 1, h/w = 0.48), and the replicators report that the original's liquid line is steeper than the "
+           "equations give"]
+    lam = MU_D / MU_C
+    if not (vr["min"] <= lam <= vr["max"]):
+        out.append(f"viscosity ratio mu_d/mu_c = {lam:.3g} outside the original's experimental range {vr['min']}-{vr['max']} "
+                   "(extrapolation; droplets expected somewhat larger than predicted)")
+    out.append("Ca: the operating Ca of the original's experiments is not known (closed); only Ca < 0.01 is reported")
+    out.append("regime bounds (leaking beta, S_crit) fitted in square channels and applied to shallow channels as indications")
+    return out
+
+
+def eps_band(V: float, h: float, w: float, r: float, q: float) -> dict:
+    """Corner-roundness sensitivity of a design: q needed and volume made at the design q, for eps in the band."""
+    eta, hw2 = h / w, h * w**2
+    v = V / hw2
+    rows = {}
+    for e in sorted({EPS_BAND[0], EPS_D, EPS_BAND[1]}):
+        a = alpha(r, eta, e)
+        rows[f"eps_{e:g}"] = {"alpha": a, "q_required": (v - v_fill(r, eta)) / a,
+                              "V_at_design_q_nL": v_total(q, r, eta, e) * hw2 / NL}
+    vs = [x["V_at_design_q_nL"] for x in rows.values()]
+    qs = [x["q_required"] for x in rows.values()]
+    spread = max(abs(x / (V / NL) - 1) for x in vs)
+    return {"by_eps": rows, "q_band": [min(qs), max(qs)], "V_band_at_design_q_nL": [min(vs), max(vs)],
+            "max_rel_volume_spread": spread, "limit": SPREAD_MAX,
+            "status": "within" if spread <= SPREAD_MAX else "exceeds"}
+
+
+def design_point(V: float, h: float, w: float, r: float, ca: float | None = None) -> dict:
+    """Invert the model for V at one geometry; Ca from the design rule unless given."""
     eta = h / w
     v = V / (h * w**2)
     vf, a = v_fill(r, eta), alpha(r, eta, EPS_D)
     q = (v - vf) / a
+    if ca is None:
+        ca = ca_operating(q) if (math.isfinite(q) and q > 0) else math.nan
     qc = ca * GAMMA * w * h / MU_C                  # Ca = mu_c U_c / gamma, U_c = q_c/(w h)
     qd = q * qc
-    return {"h_um": h / UM, "w_um": w / UM, "w_in_over_w": r, "w_in_um": r * w / UM, "h_over_w": eta,
-            "v_target": v, "v_fill": vf, "alpha": a, "q": q, "Ca": ca, "q_c_uL_min": qc * 6e10,
-            "q_d_uL_min": qd * 6e10, "frequency_Hz": qd / V if q > 0 else 0.0,
-            "length_over_w": V / (h * w) / w, "length_um": V / (h * w) / UM}
+    out = {"h_um": h / UM, "w_um": w / UM, "w_in_over_w": r, "w_in_um": r * w / UM, "h_over_w": eta,
+           "v_target": v, "v_fill": vf, "alpha": a, "q": q, "Ca": ca, "q_c_uL_min": qc * 6e10,
+           "q_d_uL_min": qd * 6e10, "frequency_Hz": qd / V if q > 0 else 0.0,
+           "length_over_w": V / (h * w) / w, "length_um": V / (h * w) / UM}
+    if math.isfinite(q) and q > 0:
+        lo, hi = ca_window(q)
+        out["Ca_window"] = [lo, hi]
+        out["S"] = ca * (1 + q) ** 2
+    return out
+
+
+def volume_ranges(d: dict) -> dict:
+    """Volumes a fixed junction can make: over the validated q range (stating the Ca window needed at
+    each end), and inside the design window (q nominal and Ca a factor MARGIN inside both bounds)."""
+    hw2 = (d["h_um"] * UM) * (d["w_um"] * UM) ** 2
+    r, eta = d["w_in_over_w"], d["h_over_w"]
+    qs = np.geomspace(VAL["q"]["min"], VAL["q"]["max"], 2001)
+    in_regime = [float(q) for q in qs if ca_window(float(q))[0] <= ca_window(float(q))[1]]
+    def rng(qlist):
+        if not qlist:
+            return None
+        q0, q1 = min(qlist), max(qlist)
+        return {"q": [q0, q1], "V_nL": [v_total(q0, r, eta, EPS_D) * hw2 / NL, v_total(q1, r, eta, EPS_D) * hw2 / NL],
+                "Ca_window_at_ends": [list(ca_window(q0)), list(ca_window(q1))]}
+    return {"validated_q_in_regime": rng(in_regime), "design_window": rng(design_q_window())}
+
+
+_QWIN: list[float] = []
+
+
+def design_q_window() -> list[float]:
+    """q range where Ca_op is at least MARGIN above the leaking bound, intersected with the nominal window
+    (grid of 200001 log-spaced points, relative resolution 5e-5)."""
+    if not _QWIN:
+        qs = [float(q) for q in np.geomspace(0.01, 100, 200001) if ca_window(float(q))[0] * MARGIN <= ca_operating(float(q))]
+        _QWIN.extend([max(min(qs), RULE["q_window_nominal"]["min"]), min(max(qs), RULE["q_window_nominal"]["max"])])
+    return list(_QWIN)
 
 
 def invert(V: float) -> dict:
@@ -350,22 +488,29 @@ def invert(V: float) -> dict:
     hs = [x * UM for x in grid["h"]["value"]]
     ws = [x * UM for x in range(50, 501, 5)]
     rs = grid["w_in_over_w"]["value"]
-    ca = RULE["Ca_operating"]["value"]
     feasible, nominal = [], []
+    n_eps_rejected = 0
     for h in hs:
         for w in ws:
             for r in rs:
-                p = design_point(V, h, w, r, ca)
-                if not math.isfinite(p["q"]):
+                p = design_point(V, h, w, r)
+                if not math.isfinite(p["q"]) or p["q"] <= 0:
                     continue
-                p["flags"] = regime_flags(h, w, r, p["q"], ca)
-                if p["q"] <= 0:
+                p["flags"] = regime_flags(h, w, r, p["q"], p["Ca"])
+                if p["flags"]:
                     continue
-                if not p["flags"]:
-                    feasible.append(p)
-                    if RULE["q_window_nominal"]["min"] <= p["q"] <= RULE["q_window_nominal"]["max"]:
+                feasible.append(p)
+                margin_ok = p["Ca"] >= MARGIN * p["Ca_window"][0]
+                q_ok = RULE["q_window_nominal"]["min"] <= p["q"] <= RULE["q_window_nominal"]["max"]
+                if margin_ok and q_ok:
+                    p["eps_band"] = eps_band(V, h, w, r, p["q"])
+                    if p["eps_band"]["status"] == "within":
                         nominal.append(p)
+                    else:
+                        n_eps_rejected += 1
     best = max(nominal, key=lambda p: (round(p["frequency_Hz"], 9), -p["w_um"], -p["h_um"])) if nominal else None
+    if best is not None:
+        best["evidence_notes"] = evidence_notes(best["h_um"] * UM, best["w_um"] * UM)
     # forward check of every feasible design
     worst = 0.0
     for p in feasible:
@@ -376,25 +521,37 @@ def invert(V: float) -> dict:
         k = f"{p['h_um']:.0f}"
         if k not in per_h or p["frequency_Hz"] > per_h[k]["frequency_Hz"]:
             per_h[k] = p
-    return {"V_nL": V / NL, "n_feasible": len(feasible), "n_nominal": len(nominal), "best": best,
+    best_eps_sensitive = None
+    sens = [p for p in feasible if "eps_band" in p and p["eps_band"]["status"] == "exceeds"]
+    if sens:
+        best_eps_sensitive = max(sens, key=lambda p: (round(p["frequency_Hz"], 9), -p["w_um"], -p["h_um"]))
+    return {"V_nL": V / NL, "n_feasible": len(feasible), "n_nominal": len(nominal),
+            "n_rejected_eps_sensitive": n_eps_rejected, "best": best,
+            "best_rejected_eps_sensitive": best_eps_sensitive,
             "best_per_depth": per_h, "forward_check_max_rel_dev": worst,
             "feasible_ranges": {
                 "w_um": [min(p["w_um"] for p in feasible), max(p["w_um"] for p in feasible)] if feasible else None,
                 "h_um": sorted({p["h_um"] for p in feasible}),
-                "q": [min(p["q"] for p in feasible), max(p["q"] for p in feasible)] if feasible else None}}
+                "q": [min(p["q"] for p in feasible), max(p["q"] for p in feasible)] if feasible else None,
+                "w_in_over_w_nominal": sorted({round(p["w_in_over_w"], 4) for p in nominal})}}
 
 
 def smallest_validated_droplet() -> dict:
+    """Smallest droplet of the grid inside the validated geometry and q range, with the Ca window it needs."""
     grid = D["fabrication_grid"]
+    q = VAL["q"]["min"]
     best = None
     for h in grid["h"]["value"]:
         for r in grid["w_in_over_w"]["value"]:
             w = h / VAL["h_over_w"]["max"]              # smallest width the aspect-ratio bound allows
             w = math.ceil(w / 5) * 5
             hm, wm = h * UM, w * UM
-            V = v_total(VAL["q"]["min"], r, hm / wm, EPS_D) * hm * wm**2
+            V = v_total(q, r, hm / wm, EPS_D) * hm * wm**2
             if best is None or V < best["V_nL"] * NL:
-                best = {"V_nL": V / NL, "h_um": h, "w_um": w, "w_in_over_w": r, "q": VAL["q"]["min"]}
+                best = {"V_nL": V / NL, "h_um": h, "w_um": w, "w_in_over_w": r, "q": q}
+    lo, hi = ca_window(q)
+    best["Ca_window_required"] = [lo, hi]
+    best["flags_at_Ca_window_mid"] = regime_flags(best["h_um"] * UM, best["w_um"] * UM, best["w_in_over_w"], q, math.sqrt(lo * hi))
     return best
 
 
@@ -407,24 +564,25 @@ def design_extension() -> dict:
         Vf = v_total(d["q"], d["w_in_over_w"], d["h_over_w"], EPS_D) * (d["h_um"] * UM) * (d["w_um"] * UM) ** 2
         d["forward_V_nL"] = Vf / NL
         d["forward_rel_dev"] = Vf / V - 1
-    for d in (d1, d2):
-        hw2 = (d["h_um"] * UM) * (d["w_um"] * UM) ** 2
-        d["V_range_validated_q_nL"] = [v_total(VAL["q"][b], d["w_in_over_w"], d["h_over_w"], EPS_D) * hw2 / NL for b in ("min", "max")]
+        d["volume_ranges"] = volume_ranges(d)
     forward_ok = max(inv1["forward_check_max_rel_dev"], inv2["forward_check_max_rel_dev"],
                      abs(d1["forward_rel_dev"]), abs(d2["forward_rel_dev"])) <= tol
 
     # changed-input example: same junction as D1, target changed from V1 to V2
-    ch = design_point(t2, d1["h_um"] * UM, d1["w_um"] * UM, d1["w_in_over_w"], RULE["Ca_operating"]["value"])
+    ch = design_point(t2, d1["h_um"] * UM, d1["w_um"] * UM, d1["w_in_over_w"])
     ch["flags"] = regime_flags(d1["h_um"] * UM, d1["w_um"] * UM, d1["w_in_over_w"], ch["q"], ch["Ca"])
-    changed = {"description": "junction D1 kept, target volume changed from V1 to V2; only the flow-rate ratio is changed",
+    ch["eps_band"] = eps_band(t2, d1["h_um"] * UM, d1["w_um"] * UM, d1["w_in_over_w"], ch["q"])
+    changed = {"description": "junction D1 kept, target volume changed from V1 to V2; only the pump settings are changed",
                "V1_q": d1["q"], "V2_q": ch["q"], "V1_length_um": d1["length_um"], "V2_length_um": ch["length_um"],
+               "V1_Ca": d1["Ca"], "V2_Ca": ch["Ca"],
                "V1_frequency_Hz": d1["frequency_Hz"], "V2_frequency_Hz": ch["frequency_Hz"],
-               "q_d_uL_min": [d1["q_d_uL_min"], ch["q_d_uL_min"]], "q_c_uL_min": ch["q_c_uL_min"], "flags": ch["flags"]}
-    rev = design_point(t1, d2["h_um"] * UM, d2["w_um"] * UM, d2["w_in_over_w"], RULE["Ca_operating"]["value"])
+               "q_d_uL_min": [d1["q_d_uL_min"], ch["q_d_uL_min"]], "q_c_uL_min": [d1["q_c_uL_min"], ch["q_c_uL_min"]],
+               "V2_Ca_window": ch.get("Ca_window"), "V2_eps_band": ch["eps_band"], "flags": ch["flags"],
+               "D1_volume_ranges": d1["volume_ranges"]}
+    rev = design_point(t1, d2["h_um"] * UM, d2["w_um"] * UM, d2["w_in_over_w"])
     changed["reverse"] = {"description": "junction D2 kept, target V1: below the filling volume if q < 0",
                           "v_target": rev["v_target"], "v_fill": rev["v_fill"], "q": rev["q"],
-                          "smallest_V_in_range_nL": v_total(VAL["q"]["min"], d2["w_in_over_w"], d2["h_over_w"], EPS_D)
-                          * (d2["h_um"] * UM) * (d2["w_um"] * UM) ** 2 / NL}
+                          "D2_volume_ranges": d2["volume_ranges"]}
 
     # flagged requests
     flagged = {}
@@ -437,10 +595,13 @@ def design_extension() -> dict:
     qd_req = f_req * t2
     qc_req = qd_req / d2["q"]
     ca_req = MU_C * qc_req / (GAMMA * d2["w_um"] * UM * d2["h_um"] * UM)
+    ca_top = ca_window(d2["q"])[1]
     flagged["F2"] = {"request": "V2 from D2 at 1000 droplets per second", "Ca_required": ca_req,
+                     "S_required": ca_req * (1 + d2["q"]) ** 2,
                      "q_c_uL_min": qc_req * 6e10, "flags": regime_flags(d2["h_um"] * UM, d2["w_um"] * UM, d2["w_in_over_w"], d2["q"], ca_req),
-                     "max_frequency_in_regime_Hz": d2["frequency_Hz"] * VAL["Ca_max"]["value"] / RULE["Ca_operating"]["value"]}
-    f3 = design_point(t2, 100 * UM, 100 * UM, 1.0, RULE["Ca_operating"]["value"])
+                     "Ca_at_S_crit": ca_top,
+                     "max_frequency_in_regime_Hz": d2["frequency_Hz"] * ca_top / d2["Ca"]}
+    f3 = design_point(t2, 100 * UM, 100 * UM, 1.0)
     f3["flags"] = regime_flags(100 * UM, 100 * UM, 1.0, f3["q"], f3["Ca"])
     flagged["F3"] = {"request": "V2 in a square channel h = w = 100 um, w_in = w", **f3}
     f4 = design_point(t1, d1["h_um"] * UM, d1["w_um"] * UM, d1["w_in_over_w"], 1e-4)
@@ -449,6 +610,8 @@ def design_extension() -> dict:
 
     return {"label": "HYPOTHETICAL design extension (not validated)", "fluids": FL["system"],
             "targets_nL": [t1 / NL, t2 / NL], "V1": inv1, "V2": inv2, "D1": d1, "D2": d2,
+            "design_q_window": design_q_window(),
+            "inputs_outside_reproduced_range": global_extrapolations(),
             "forward_check": {"tolerance_rel": tol, "status": "pass" if forward_ok else "fail"},
             "changed_input": changed, "flagged_requests": flagged}
 
@@ -480,7 +643,7 @@ def fig_reproduction(fig: dict, path: Path):
         vf = np.array(fig["vof_simulation"][k])
         ax.plot(vf[:, 0], vf[:, 1], ls="none", marker=st["marker"], ms=4, color=st["color"], alpha=0.45)
     ax.plot([], [], color=INK2, lw=1, ls=(0, (2, 3)), label="model as drawn in the replot (Nekouei & Vanapalli Fig. 5)")
-    ax.plot([], [], ls="none", marker="o", ms=7, mfc="white", mec=INK2, label="experiment, van Steijn 2010 (digitised)")
+    ax.plot([], [], ls="none", marker="o", ms=7, mfc="white", mec=INK2, label="experiment, van Steijn 2010, digitised from\nthe replot in Nekouei & Vanapalli 2017 Fig. 5")
     ax.plot([], [], ls="none", marker="o", ms=4, color=INK2, alpha=0.45, label="VOF, Nekouei & Vanapalli (informational)")
     ax.set_xlim(0, 10)
     ax.set_ylim(0, 35)
@@ -502,17 +665,20 @@ def fig_design_map(ext: dict, path: Path):
         d = ext[dkey]
         h = d["h_um"] * UM
         ax.axhspan(VAL["q"]["min"], VAL["q"]["max"], color="#eeede9", zorder=0)
-        ax.axhspan(RULE["q_window_nominal"]["min"], RULE["q_window_nominal"]["max"], color="#dcdbd5", zorder=0)
+        qw = ext["design_q_window"]
+        ax.axhspan(qw[0], qw[1], color="#dcdbd5", zorder=0)
         w_right = 0.0
         for i, r in enumerate(rs):
             ws = np.arange(h / VAL["h_over_w"]["max"], h / VAL["h_over_w"]["min"], 1 * UM)
             qs = np.array([(V / (h * w**2) - v_fill(r, h / w)) / alpha(r, h / w, EPS_D) for w in ws])
-            ax.plot(ws / UM, qs, color=colors[i], lw=1.6, label=f"w_in/w = {r:.2f}")
+            robust = np.array([q > 0 and eps_band(V, h, w, r, q)["status"] == "within" for w, q in zip(ws, qs)])
+            ax.plot(ws / UM, np.where(robust, qs, np.nan), color=colors[i], lw=1.6, label=f"w_in/w = {r:.2f}")
+            ax.plot(ws / UM, np.where(robust, np.nan, qs), color=colors[i], lw=1.0, ls=(0, (2, 2)))
             if (qs >= 0.05).any():
                 w_right = max(w_right, ws[qs >= 0.05].max() / UM)
         ax.set_xlim(h / VAL["h_over_w"]["max"] / UM - 5, w_right * 1.1)
         ax.plot([d["w_um"]], [d["q"]], marker="*", ms=12, color=INK, ls="none")
-        ax.annotate(f"{dkey}: w = {d['w_um']:.0f} µm, w_in/w = {d['w_in_over_w']:.2f},\nq = {d['q']:.2f}, {d['frequency_Hz']:.0f} Hz",
+        ax.annotate(f"{dkey}: w = {d['w_um']:.0f} µm, w_in/w = {d['w_in_over_w']:.2f},\nq = {d['q']:.2f}, Ca = {d['Ca']:.2g}, {d['frequency_Hz']:.0f} Hz",
                     (d["w_um"], d["q"]), xytext=(8, 8), textcoords="offset points", fontsize=7, color=INK)
         ax.set_yscale("log")
         ax.set_ylim(0.05, 20)
@@ -520,12 +686,15 @@ def fig_design_map(ext: dict, path: Path):
         ax.set_title(f"V = {ext[key]['V_nL']:.2g} nL, depth h = {d['h_um']:.0f} µm", fontsize=9, color=INK, loc="left")
         style_axes(ax)
     axes[0].set_ylabel("required q_d/q_c (-)", color=INK)
-    f.text(0.01, 0.005, "Light band: validated q range 0.1-10; darker band: design window 0.5-5. Curves start at the largest validated h/w (0.48). "
-           "Star: chosen design (highest droplet frequency at Ca = 0.003).", fontsize=6.5, color=INK2)
+    qw = ext["design_q_window"]
+    f.text(0.01, 0.005, f"Light band: validated q range 0.1-10. Darker band: design window q = {qw[0]:.2f}-{qw[1]:.2f} (Ca a factor 2 inside "
+           "the leaking and S-number bounds). Curves start at h/w = 0.48.\nDashed: the volume at that q moves by more than 15 % "
+           "if the corner roundness is 0 or 0.1 w instead of 0.01 w (not nominal). Star: chosen design (highest frequency).",
+           fontsize=6.5, color=INK2)
     handles, labels = axes[0].get_legend_handles_labels()
     f.legend(handles, labels, fontsize=7, frameon=False, loc="lower center", ncol=7, bbox_to_anchor=(0.5, 0.035))
     f.suptitle("HYPOTHETICAL design map (not validated): flow-rate ratio needed for each target volume", fontsize=9, color=INK, x=0.01, ha="left")
-    f.tight_layout(rect=(0, 0.1, 1, 1))
+    f.tight_layout(rect=(0, 0.12, 1, 1))
     save(f, path)
 
 
@@ -618,8 +787,10 @@ def drawing_svg(d: dict, name: str, V_nL: float) -> str:
     p.append(dim(xs + W + 12, ys, xs + W + 12, ys + H))
     p.append(t(xs + W + 20, ys + H / 2 + 4, f"h = {h:.0f} µm", 11, "start"))
     # design table
-    rows = [f"w_in/w = {d['w_in_over_w']:.2f}, h/w = {d['h_over_w']:.3f}, corner roundness eps = {EPS_D:g} w",
-            f"flow-rate ratio q_d/q_c = {d['q']:.3f} at Ca = {d['Ca']:g} (FC-40 droplets in hexadecane)",
+    eb = d["eps_band"]["V_band_at_design_q_nL"]
+    rows = [f"w_in/w = {d['w_in_over_w']:.2f}, h/w = {d['h_over_w']:.3f}, corner roundness eps = {EPS_D:g} w "
+            f"(eps 0 to 0.1 w gives {eb[0]:.3g} to {eb[1]:.3g} nL)",
+            f"flow-rate ratio q_d/q_c = {d['q']:.3f} at Ca = {d['Ca']:.2g}, S = {d['S']:.3g} (FC-40 droplets in hexadecane)",
             f"forward check: predicted V = {d.get('forward_V_nL', V_nL):.6g} nL; about {d['frequency_Hz']:.0f} droplets per second",
             "model: van Steijn, Kleijn and Kreutzer, Lab Chip 2010 (squeezing regime); case #338"]
     for i, row in enumerate(rows):
@@ -639,7 +810,7 @@ def main() -> int:
     if digi["status"] != "pass":
         print("digitisation rerun does not match source.yaml:", digi, file=sys.stderr)
         return 2
-    rep = reproduction(fig)
+    rep = reproduction(fig, digi)
     ext = design_extension()
     if ext["forward_check"]["status"] != "pass":
         print("design forward check failed", file=sys.stderr)
@@ -654,7 +825,6 @@ def main() -> int:
         "case": CASE_ID, "issue": 338, "tracker": 333,
         "tolerances": "tolerances.yaml (frozen 2026-11-04)",
         "reference_pdf": {"url": spec["url"], "sha256": spec["sha256"]},
-        "digitisation_rerun": digi,
         "reproduction": rep,
         "design_extension": ext,
         "versions": {"python": sys.version.split()[0], "numpy": np.__version__, "matplotlib": matplotlib.__version__,
