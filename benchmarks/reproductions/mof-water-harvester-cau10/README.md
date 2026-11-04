@@ -5,8 +5,7 @@ specified amount of water per cycle?
 
 Issue #334 (P1), scope tracker #333. Protocol: ADR 0030 (reference reproductions, tolerances
 frozen first) and ADR 0031 (case studies: a reproduction plus a labelled design extension;
-Proposed, in the coordinator's separate pull request and not yet on main, so this folder
-follows its draft and should merge after it).
+Proposed, merged in #344).
 
 **Answer in one line (hypothetical design, not validated).** For 1 kg of water per cycle at
 80 % recovery, a bed of CAU-10-H pellets at 40 °C needs 4.65 kg (7.7 L packed) at inlet RH 0.30
