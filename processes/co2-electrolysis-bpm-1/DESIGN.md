@@ -43,7 +43,7 @@ belong to the held-out reproduction.
 
 Rejected:
 - Taking the published Fig. 3a values as design data. They are results to be reproduced, not
-  inputs (ADR 0031).
+  inputs (ADR 0032).
 - Applying the 1.2 % factor the authors' own sheet calculation implies. The paper does not
   state it, and the reproduction reports it.
 

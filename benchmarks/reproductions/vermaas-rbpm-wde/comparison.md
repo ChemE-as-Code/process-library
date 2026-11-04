@@ -303,7 +303,7 @@ What changed:
   - writes no record from a dirty tree unless `--allow-dirty` is given;
   - extracts the verified zips fresh on every run;
   - downloads to `.part` files that are renamed only after the sha256 check.
-- **Design-data consistency.** ADR 0031 said the benchmark records that the two raw-data parsers
+- **Design-data consistency.** ADR 0032 said the benchmark records that the two raw-data parsers
   agree; it did not. Run 3 now compares the R1 rebuild with the design data file and records
   the result.
 - **V1 wording.** The note above on "over 4 h" in the frozen V1 reason is new.

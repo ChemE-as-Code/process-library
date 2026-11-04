@@ -523,7 +523,7 @@ def evaluate(source: dict, files: dict) -> tuple[dict, tuple]:
 
 
 def design_data_consistency(ours: dict) -> dict:
-    """Compare the R1 rebuild with the design case's own series (ADR 0031: the two parsers must
+    """Compare the R1 rebuild with the design case's own series (ADR 0032: the two parsers must
     agree on the same inputs). Reads the design data; the design never reads this folder.
     Not a frozen check: reported, and it does not change any verdict or the exit code."""
     if not DESIGN_DATA.exists():

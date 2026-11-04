@@ -5,7 +5,7 @@ Downloads (once) RawData_Experiments_rBPME_WDE.zip of the 4TU record
 evaluates every 1 M KOH titration sheet of the current-density study with the paper's
 equations 3 to 10 (DESIGN.md D-002). Writes data/measured/wde-1m-koh.yaml and
 figures/wde-1m-koh.svg. Uses only the raw sheets: no published result and nothing of
-benchmarks/reproductions/ enters (ADR 0031).
+benchmarks/reproductions/ enters (ADR 0032).
 
 Run from the process folder: cheme run scripts/adapt_4tu.py [--cache DIR]
 """

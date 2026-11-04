@@ -5,7 +5,7 @@ Prats Vergel, Vermaas, Burdyny et al. (Nature Chemical Engineering 2025) from th
 for issue #329 (tracker core#136). Protocol: ADR 0030.
 
 This folder is the held-out check. `processes/co2-electrolysis-bpm-1/` is the design case. It may
-use the measured R1 series as design data (ADR 0031), and it uses none of the comparison results
+use the measured R1 series as design data (ADR 0032), and it uses none of the comparison results
 here.
 
 | Check | What | Kind |
@@ -61,7 +61,7 @@ frozen version, and whether each input was downloaded or taken from the cache. W
 changes it writes no record unless `--allow-dirty` is given (the record is then marked
 provisional); `--no-record` writes nothing to the folder. It also compares its R1 rebuild with
 the design case's own series (`processes/co2-electrolysis-bpm-1/data/measured/wde-1m-koh.yaml`),
-as ADR 0031 requires the two parsers to agree; that comparison is reported, not a frozen check.
+as ADR 0032 requires the two parsers to agree; that comparison is reported, not a frozen check.
 
 **Status (2026-11-04, run of record `reruns/2026-11-04-run-3.json`, detail in `comparison.md`):**
 

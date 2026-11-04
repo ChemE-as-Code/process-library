@@ -1,4 +1,4 @@
-# 0031. A process may use measured series from a pinned dataset; reproduction results stay held out
+# 0032. A process may use measured series from a pinned dataset; reproduction results stay held out
 
 - **Status:** Proposed, 2026-11-04
 - **Deciders:** the owner (to accept); drafted for #329
@@ -16,6 +16,11 @@ the measured experiment that is also reproduced:
 - the water dissociation efficiency series of a published bipolar-membrane cell, rebuilt from
   the dataset's raw titration sheets;
 - the later pilot-skid sizing of #330, which needs that series as its cell performance.
+
+ADR 0031 (case studies, #333) covers a reproduction plus a labelled hypothetical design
+extension inside the benchmark folder, and repeats that a case's results are not design data.
+This case needs more than an extension in the benchmark: a full process folder (skids, P&IDs,
+layout, LCA in #330 and #331) whose cell performance is the measured experiment itself.
 
 Issue #329 asked for both the reproduction and the design case in
 `processes/co2-electrolysis-bpm-1`. Options considered:
@@ -60,6 +65,10 @@ Issue #329 asked for both the reproduction and the design case in
 - The vermaas-rbpm-wde reproduction has no `case/` (ADR 0030 lists one). Its reference is the
   authors' Python model and titration sheets, which no cheme backend represents, so it is
   script-based (`reproduce.py`, `reruns/`, `figures/`). Its README records the deviation.
+- Compatible with ADR 0031: what crosses into the process folder is the measured series
+  computed from raw data, never a reproduction or extension result. The vermaas-rbpm-wde folder
+  predates ADR 0031 and keeps its own layout (`reproduce.py` instead of `run.py`, `reruns/`
+  instead of `results/`, cache in `~/.cache/cheme-as-code/4tu/`).
 - No checker enforces that a process script does not read `benchmarks/`. A follow-up could add
   a test.
 - Issue #329's folder name is kept for the design case. The reproduction lives in

@@ -28,7 +28,7 @@ cheme run scripts/cell_section.py
 ```
 
 The comparison with the published results is held out in
-`benchmarks/reproductions/vermaas-rbpm-wde/` and is not used here (ADR 0031).
+`benchmarks/reproductions/vermaas-rbpm-wde/` and is not used here (ADR 0032).
 
 The following stages are planned:
 
