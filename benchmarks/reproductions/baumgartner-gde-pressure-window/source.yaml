@@ -1,0 +1,206 @@
+# Reference record for the GDE pressure-window reproduction (process-library#332, tracker
+# core#136, ADR 0030).
+# Facts (conditions, file layout, numbers) taken from the pinned paper and its supporting
+# information, restated in our own form with locators. No table, figure, drawing, spreadsheet
+# content or passage of the source is copied into the library; reproduce.py downloads the pinned
+# files at run time.
+reference:
+  id: baumgartner-2022-gde-pressure-window
+  paper:
+    citation: >-
+      L. M. Baumgartner, C. I. Koopman, A. Forner-Cuenca, D. A. Vermaas, "Narrow Pressure
+      Stability Window of Gas Diffusion Electrodes Limits the Scale-Up of CO2 Electrolyzers",
+      ACS Sustainable Chemistry & Engineering 10 (14), 4683-4693 (2022)
+    doi: 10.1021/acssuschemeng.2c00195
+    open_copy: https://pmc.ncbi.nlm.nih.gov/articles/PMC9006256/
+    licence: CC BY 4.0 (ACS AuthorChoice; stated in the article's licence element)
+    read: >-
+      full text (Europe PMC full-text XML of PMC9006256): Experimental Methods (Physical GDE
+      characterization), Results (flooding resistance; trade-off between flooding resistance and
+      mass transfer), Figure 3 and Figure 8 captions, Conclusions. Supporting Information PDF:
+      sections 6 (flooding resistance) and 8.1 to 8.2 (cell and setup).
+    full_text_xml:
+      url: https://www.ebi.ac.uk/europepmc/webservices/rest/PMC9006256/fullTextXML
+      sha256: 92f58860b4df37b787f337f1b3041e09504aa73f11433532d62060c0d5dc481a   # as accessed; not used by the script
+  supporting_information:
+    # The ACS site (pubs.acs.org/doi/suppl/...) refused the download (HTTP 403), and the PMC
+    # file links answer with a browser challenge page. Europe PMC serves both SI files as one zip.
+    # That zip is assembled per request (its member timestamps are the request date), so the zip
+    # itself has no stable checksum. reproduce.py pins and verifies each member instead.
+    url: https://www.ebi.ac.uk/europepmc/webservices/rest/PMC9006256/supplementaryFiles?includeInlineImage=false
+    publisher_urls:
+      - https://pubs.acs.org/doi/suppl/10.1021/acssuschemeng.2c00195/suppl_file/sc2c00195_si_001.pdf
+      - https://pubs.acs.org/doi/suppl/10.1021/acssuschemeng.2c00195/suppl_file/sc2c00195_si_002.xlsx
+    files:
+      - name: sc2c00195_si_001.pdf
+        size: 5367831
+        sha256: 3ab8f280257266baabd6d3dc4d07e0940deb386093f0f4b27ff68c0c95021c2e
+        use: methods only (read by us for the procedure and the cell; not read by the script)
+      - name: sc2c00195_si_002.xlsx
+        size: 56588
+        sha256: d0d8169e554a474b813ff619fb3a8338c31323aab02f6b18c13c910d2120448a
+        use: tabulated breakthrough pressures (sheet deltaP) and recorded electrolysis parameters (sheet FE)
+    licence:
+      name: not stated on the files
+      note: >-
+        The article is CC BY 4.0. The SI files carry no licence statement of their own. We
+        redistribute neither: this folder holds their checksums, the facts and numbers we use,
+        with locators, and numbers derived from them.
+    data_repository: >-
+      None found. 4TU.ResearchData (search API, 2026-11-04) has no record for this paper, and the
+      paper cites none. The SI spreadsheet is the most primary data published: it tabulates one
+      value per sample, not pressure-sensor time series.
+  accessed: "2026-11-04"
+  kind: >-
+    experimental data (tabulated breakthrough pressures of seven commercial gas diffusion layers,
+    uncoated and coated with an Ag catalyst layer) and the authors' stated design implications
+    (window width, maximum electrode height)
+
+# Definitions, as the paper states them (Results, flooding resistance; SI section 5).
+definitions:
+  differential_pressure: "dp = p_L - p_G (liquid minus gas). The SI spreadsheet's FE sheet records the opposite sign (gas minus liquid; sheet FE, cell A8)."
+  regimes:
+    - "dp below dp_G*: gas breakthrough into the liquid (flow-through)"
+    - "dp_G* <= dp <= dp_L*: no breakthrough (flow-by)"
+    - "dp above dp_L*: liquid breakthrough into the gas compartment (flooding; the percolation threshold)"
+  window: "dp* = dp_L* - dp_G*, the flow-by pressure window"
+  note: >-
+    The issue text writes the window in terms of p_gas - p_liquid. The width is the same in both
+    conventions; this folder keeps the paper's sign (p_L - p_G) throughout.
+
+# How the tabulated values were measured (SI section 6 unless stated).
+method:
+  uncoated_gdl:
+    fluid: water
+    cell: two-compartment characterisation cell, MPL facing the liquid, 3.8 cm2 exposed, sample on a polypropylene mesh
+    procedure: liquid outlet closed, liquid filled at 1 mL/min over 15 min; dp_L* read when the first droplet appears on the gas side; 30 mLn/min CO2 sweeps the gas side
+    dp_G: not measured; assumed 0 mbar for all uncoated samples (SI section 6; spreadsheet deltaP, footnote under column B)
+    samples: one per material; SGL 39BC repeated once (two values, 57 and 67 mbar, mean 62 mbar, sample sd 7 mbar; SI Table S3)
+  coated_gde:
+    fluid: 1 M KHCO3 saturated with CO2
+    cell: three-compartment flow cell, cathode exposed through a 22 mm hole (3.8 cm2), catholyte and anolyte separated by a cation exchange membrane (SI Fig. S13 to S15)
+    flow: 100 mL/min per electrolyte channel, upward; gas downward (SI section 8.1)
+    gas_pressure: set by a check valve at the gas outlet, nominal cracking pressure 345 mbar
+    procedure: >-
+      start in gas breakthrough, raise the liquid backpressure in steps of 10 mbar, record dp at
+      each regime transition (gas breakthrough to flow-by, flow-by to liquid breakthrough), then
+      lower again to gas breakthrough. At open circuit potential, right before the electrolysis.
+    sensor: differential pressure meter (Endress+Hauser Deltabar S) between gas compartment (P+) and catholyte compartment (P-), ports inside the cell (SI section 8.1)
+    samples: one per material; H23C6 used a separate sample per experiment, the others one sample for all
+  stated_errors:
+    dp_L_and_dp_G: >-
+      10 mbar for every material except H23C6 (estimated from a literature study of Toray paper
+      GDLs), 100 mbar for H23C6 (estimated from another literature study); not replicate spreads
+      (Figure 3 caption; SI section 6)
+    window: Gaussian propagation of the two, sqrt(s_G^2 + s_L^2) (Figure 3 caption; formula cells G and M of sheet deltaP)
+
+# Cell geometry, for the frictional pressure-drop check (SI Fig. S13 to S15, labels).
+cell:
+  flow_channel: {width: 30 mm, height: 33 mm, flow: upward}
+  exposed_electrode: {diameter: 22 mm, area: 3.8 cm2}
+  catholyte_compartment_layers: >-
+    from the cathode: silicone gasket 0.5 mm, PMMA plate 2 mm (reference electrode), silicone
+    gasket 0.5 mm, cation exchange membrane, silicone gasket 0.5 mm; the drawing gives no depth
+    of the catholyte gap itself, so reproduce.py uses 3.5 mm (sum of the layers, uncompressed) as ASSUMED
+  electrolyte_flow: 100 mL/min per channel
+
+# Where each used quantity sits in the pinned spreadsheet. Sheet and column letters as in the file.
+file_to_table:
+  breakthrough_pressures:
+    file: sc2c00195_si_002.xlsx
+    sheet: deltaP
+    rows: "3 to 9, column A = material: TGP-H-060, TGP-H-090, TGP-H-120, SGL22BB, SGL39BC, LT1400W, H23C6"
+    columns:
+      gdl: {dp_G: B, dp_L: C, s_G: D, s_L: E, window: F, s_window: G}
+      gde: {dp_G: H, dp_L: I, s_G: J, s_L: K, window: L, s_window: M}
+    unit: mbar
+    note: the window columns F and L are entered values, not formulas; G and M are formulas (root sum of squares)
+  electrolysis_runs:
+    file: sc2c00195_si_002.xlsx
+    sheet: FE
+    blocks: >-
+      one block per sample, headed by a cell "<date> <material> Sample <n>" in column A, then an
+      "Experiment overview" table (header row starting "Experiment number") with averaged values,
+      then a "GC injection overview". Seven blocks, one per material, H23C6 included (the paper
+      reports it unstable at 200 mA/cm2). Notes in column AG: "Have fluctuations (not
+      representative)" (TGP-H-120) and "fluctuation in potential" (LT1400W), both on the
+      potential.
+    columns: {j: AC, dp_reactor_gas_minus_liquid: I, dp_reactor_sd: J, liquid_into_gas_outlet: AB, gas_into_liquid_outlet: AA, fe_co: AI, fe_co_err: AJ}
+  gdl_liquid_breakthrough_si:
+    locator: SI Table S3 (PDF), in mbar
+    values: {TGP-H-060: 65, TGP-H-090: 77, TGP-H-120: 64, SGL22BB: 44, SGL39BC: 62, LT1400W: 52, H23C6: 464}
+
+# The published results compared against (paper text, own wording, with locators).
+published:
+  windows_stated_in_text:   # coated GDEs; the uncoated values of SI Table S3 differ, so these are the GDE windows
+    TGP-H-060: {value: 58, unit: mbar, locator: "Results, flooding resistance, thickness paragraph"}
+    TGP-H-120: {value: 78, unit: mbar, locator: "Results, flooding resistance, thickness paragraph; trade-off section"}
+    LT1400W: {value: 41, unit: mbar, locator: "Results, flooding resistance, pore-size paragraph"}
+    SGL22BB: {value: 49, unit: mbar, locator: "Results, flooding resistance, pore-size paragraph"}
+  window_range:
+    statement: the window of most commercial GDL materials lies between 40 and 80 mbar
+    locator: Results, flooding resistance, paragraph introducing dp*
+  window_sd:
+    value: 14
+    unit: mbar
+    locator: Results, flooding resistance, same paragraph ("variations in the material properties")
+  heights:
+    - {id: H1, from_window: 40, to_height: 41, unit: "mbar -> cm", locator: "Results, flooding resistance: 40-80 mbar implies about 41-81 cm"}
+    - {id: H2, from_window: 80, to_height: 81, unit: "mbar -> cm", locator: same sentence}
+    - {id: H3, from_window: 50, to_height: 51, unit: "mbar -> cm", locator: "Results, trade-off section: 50 mbar of hydrostatic pressure corresponds to 51 cm with an aqueous electrolyte, vertical"}
+  density_basis: >-
+    not stated. The capillary-pressure figure (Figure 4b caption) uses water at 20 degC; the
+    measurements used 1 M KHCO3 (GDE) and water (GDL).
+  claims:
+    - id: C1
+      statement: >-
+        every material with a CO Faradaic efficiency above 50 % at 200 mA/cm2 has MPL cracks and a
+        window that limits the cell height to less than 51 cm in flow-by mode
+      locator: Conclusions, third paragraph; also Results, trade-off section ("these same materials exhibited the lowest pressure window, below 50 mbar")
+    - id: C2
+      statement: the crack-free H23C6 withstands differential pressures that would allow cells taller than 1 m
+      locator: Results, trade-off section
+    - id: C3
+      statement: H23C6 showed an initial flooding resistance above 200 cm
+      locator: Conclusions, third paragraph
+  fe_co_stated_in_text:   # at 200 mA/cm2, flow-by (Results, mass-transfer section; Figure 7)
+    TGP-H-060: 81
+    TGP-H-090: 71
+    TGP-H-120: 46
+    SGL39BC: 75
+    H23C6: "75 (hypothetical: the sample was unstable; the value is inferred from SGL 39BC)"
+  caveat: >-
+    The windows were measured at open circuit potential. The paper notes that the hydrophobicity,
+    and so the window, decreases under applied potential (electrowetting), and that a practical
+    height must be smaller still for robustness against material variation and pressure-control
+    accuracy (Results, flooding resistance; trade-off section).
+
+# Split declared before any comparison run (ADR 0030).
+split:
+  reproduction:
+    - id: R1
+      what: window dp* = dp_L* - dp_G* for each coated GDE from the tabulated breakthrough pressures, against the sheet's window column and the values stated in the text
+    - id: R2
+      what: the window standard deviation by Gaussian propagation, against the text's 14 mbar and the sheet's error column
+    - id: R3
+      what: the paper's height conversions H1 to H3, h = dp* / (rho g)
+  claim_checks:
+    - id: K1
+      what: the claims C1 to C3 and the "40 to 80 mbar for most materials" range, evaluated with the reproduced windows and the spreadsheet's Faradaic efficiencies
+  consistency:
+    - id: K2
+      what: >-
+        the differential pressure recorded during each 200 mA/cm2 electrolysis run (sheet FE)
+        against the window of the same material measured at open circuit before it
+  reported_not_checked:
+    - h_max per GDE with an interval over the window uncertainty and the electrolyte density
+    - frictional pressure drop of the catholyte channel against rho g h (hydrostatic applicability)
+  design_inputs: none. No process folder uses these results (ADR 0030).
+
+# Irregularities, as found before the comparison run (2026-11-04). None is corrected silently.
+irregularities:
+  - The ACS supporting-information URLs return HTTP 403 to a script, and the PMC file links return a browser challenge page; Europe PMC is the source used.
+  - The uncoated-GDL gas breakthrough pressures (sheet deltaP, column B) are an assumption (0 mbar), not measurements, as the sheet's footnote and SI section 6 state; they are not reproduced as data.
+  - The window columns of sheet deltaP are typed values, not computed from the breakthrough columns, so the subtraction is a real check.
+  - The text gives no density or g for the height conversion.
+  - Materials are spelled differently between text and sheet (SGL 22BB / SGL22BB, TGP-H-060 / Toray060 in the FE block titles); reproduce.py maps them explicitly.
