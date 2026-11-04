@@ -573,8 +573,13 @@ def fig_design(plt, pred, pred_int, sigma_m, run_a, run_b, S0, data, window, thr
     xs = np.linspace(30, 100, 200)
     bands(axes[0, 1], xs, "T_c", "temperature / °C (dotted: design levels)", False, T0,
           [30, 65, 100])
-    axes[0, 1].set_title("(b) run A: vs temperature, other factors fixed", loc="left",
-                         fontsize=9, color=INK)
+    out = ~in_hull(hull, xs / 100.0, np.full_like(xs, t0) / 10.0)
+    edges = np.flatnonzero(np.diff(np.r_[0, out.astype(int), 0]))
+    for i0, i1 in zip(edges[::2], edges[1::2]):
+        axes[0, 1].axvspan(xs[i0], xs[i1 - 1], color=GRID, alpha=0.35, lw=0)
+    axes[0, 1].set_title(f"(b) run A: vs temperature, other factors fixed;\n"
+                         f"shaded: (T, t = {t0:.0f} h) outside the design runs",
+                         loc="left", fontsize=9, color=INK)
 
     ax = axes[1, 0]
     Tg = np.linspace(30, 100, 71)

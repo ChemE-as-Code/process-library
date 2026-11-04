@@ -92,7 +92,7 @@ Model I (34 checks, all pass): every coefficient within 0.1 SE, SEs within 0.5 %
    inconsistency; our model II matches the reported coefficients, which is what the design
    extension uses. The frozen check compares with Table S10, so it fails.
 2. **Model IV RMSE and SEs: robust scale convention.** Our coefficients agree within
-   0.12 SE, but our SEs are 9.6-10.9 % smaller and our RMSE 12.3 % smaller than the
+   0.07 SE (largest: x4, 0.064 SE), but our SEs are 9.6-10.9 % smaller and our RMSE 12.3 % smaller than the
    source's. The seven ratios correspond to one scale factor of 1.11 to 1.14 on the residual
    standard deviation. We report the bisquare-weighted residual RMSE; MATLAB reports a robust
    sigma. Applying MATLAB's robustfit convention (statrobustsigma: Street-corrected sigma

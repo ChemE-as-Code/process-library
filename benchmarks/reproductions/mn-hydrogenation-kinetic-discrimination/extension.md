@@ -53,12 +53,12 @@ and on a (T, t) pair the design never visited. Both answers are kept as sensitiv
 
 ## Result
 
-**No single feasible run separates all three models.** The best single run (100 °C,
-30 bar, 0.25 mmol/L Mn, 0.091 mmol/L KOtBu, 7 h) reaches D = 1.66 for II vs III, the
+**No feasible grid point (70,875-point grid) separates all three models in a single run.**
+The best single run (100 °C, 30 bar, 0.25 mmol/L Mn, 0.091 mmol/L KOtBu, 7 h) reaches D = 1.66 for II vs III, the
 hardest pair; no feasible grid point reaches D = 4 for all pairs. Up to 12 replicates of
 the best single run do not bring all three pairs to D >= 4, because replicates shrink only
-the measurement term. Even infinitely many replicates of any feasible run give D_min <= 3.2
-(3.17 at the best single run), because parameter uncertainty remains. At run A below, the
+the measurement term. Even infinitely many replicates of any feasible grid point give
+D_min <= 3.2 (3.17 at the best single run), because parameter uncertainty remains. At run A below, the
 II-III separation is capped at D = 6.4 by parameter uncertainty, so D >= 9 is out of reach
 there.
 

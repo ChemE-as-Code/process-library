@@ -21,7 +21,7 @@ average rate (full quadratic I; stepwise II; III with the interaction terms elim
 | --- | --- | --- |
 | Reproduction | **fail** under the frozen rule (94 of 96 checks pass) | All 35 coefficients of models I-IV, their standard errors, RMSE, R2 and PRESS of models I-III, and the initial-rate Ea and orders reproduce within the frozen tolerances. Two checks fail on how the source reported numbers: SI Table S10 lists the fitted values of the 30-run first-stage fit, not of the reported 26-run model II (we reproduce both); model IV's RMSE differs by -12 % because we report the weighted residual RMSE, while MATLAB reports its robust sigma; applying MATLAB's robust-sigma convention to our fit gives 0.6572 (reported 0.657), a non-gating sensitivity. See `comparison.md`. |
 | Independent validation | none | No data from another laboratory exist. The initial-rate runs are separate experiments by the same authors; their comparison with the regression coefficients is the article's and is restated, not counted as validation. |
-| Design extension | hypothetical | Two runs at 100 °C and 10 bar separate every pair of models by at least two combined standard deviations (D >= 4.2); no single run does, and even infinitely many replicates of any feasible single run give D_min <= 3.2. Run A is a hidden extrapolation (leverage above the design's maximum) for models II and III. See `extension.md`. |
+| Design extension | hypothetical | Two runs at 100 °C and 10 bar separate every pair of models by at least two combined standard deviations (D >= 4.2); no feasible point of the 70,875-point grid does as a single run, and even infinitely many replicates of any feasible grid point give D_min <= 3.2. Run A is a hidden extrapolation (leverage above the design's maximum) for models II and III. See `extension.md`. |
 | Specialist review | not yet | Optional follow-up: catalysis and kinetic experiment design. |
 
 ## Result in brief
@@ -96,7 +96,7 @@ credit. `NOTICE.md` records the CC BY 4.0 attribution for the restated numbers.
 - End-of-run substrate concentration (a model IV regressor) was measured by GC in the
   source but not tabulated. We reconstruct it from rate, time and yield, which assumes a
   100 % mass balance; the SI reports 90-110 %, which at 90 % yield moves ln S_end by +0.7 or
-  more. The model IV coefficients still reproduce within 0.12 SE.
+  more. The model IV coefficients still reproduce within 0.07 SE (largest: x4, 0.064 SE).
 - No replicate data at low yield; the proposed run A sits at 2-6 % yield, where the
   measurement resolution may be worse than the 0.21 used.
 - Inconsistencies in the source: SI Table S10 fitted values come from a different fit

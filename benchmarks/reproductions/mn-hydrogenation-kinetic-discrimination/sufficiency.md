@@ -39,7 +39,7 @@ values in its index; `run.py` uses that URL.
   (S_end = rate * time * (1 - Y) / Y), which assumes a 100 % mass balance. The SI reports
   mass balances within 90-110 %; at 88-93 % yield a 10 % error in the balance moves
   ln S_end by +0.6 to +0.9, or makes it undefined downwards (`inputs.yaml`). The model IV
-  coefficients still reproduce within 0.12 SE, so the effect on the fit is bounded.
+  coefficients still reproduce within 0.07 SE (largest: x4, 0.064 SE), so the effect on the fit is bounded.
 - **Measurement error at low yield.** The only replicate information is the six centre runs
   (yields 30-58 %), pure-error standard deviation 0.211 in ln(rate). No replicates exist at
   the low yields (2-6 %) where models II and III differ most.
