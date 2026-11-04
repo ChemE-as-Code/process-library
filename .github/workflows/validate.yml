@@ -80,7 +80,7 @@ jobs:
           PLANTCODE_READ_TOKEN: ${{ secrets.PLANTCODE_READ_TOKEN }}
       - uses: astral-sh/setup-uv@v6
       - name: tooling tests
-        run: uv run --python 3.12 --with pytest --with pyyaml --with jsonschema --with openpyxl --with ./python --with bw2calc --with olca-schema==2.6.2 --with multifunctional==1.1.2 --with chemicals==1.5.2 --with "$CORE" pytest -q tests
+        run: uv run --python 3.12 --with pytest --with pyyaml --with jsonschema --with openpyxl --with ./python --with bw2calc --with olca-schema==2.6.2 --with multifunctional==1.1.2 --with chemicals==1.5.2 --with "$CORE" pytest -q tests -m "not engineering"
         env:
           ATLAS_REQUIRE_BRIGHTWAY: "1"
           ATLAS_REQUIRE_CORE: "1"
@@ -102,6 +102,30 @@ jobs:
           name: catalog
           path: dist-public/
           retention-days: 14
+
+  # Tests that regenerate a whole process design (pytest marker engineering, ADR 0033): the #330
+  # pilot skids regenerated at 1000 h and 10000 h and asserted against their frozen hand
+  # expectations. They need core's props (datasheet fill) and png (rendered views) extras and take
+  # minutes, so they run here and not in the library job.
+  engineering:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      # core v1.5.0, merge commit a59e1a9 (the same commit as every job, tests/test_workflows.py)
+      CORE: "cheme-as-code[units,props,png] @ git+https://github.com/ChemE-as-Code/core.git@a59e1a983348c98c6cee528d489fa030310876ff"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 1  # the files only, no history (see "Repository size" in README.md)
+      - run: |
+          git config --global url."https://x-access-token:${PLANTCODE_READ_TOKEN}@github.com/ChemE-as-Code/core".insteadOf "https://github.com/ChemE-as-Code/core"
+        env:
+          PLANTCODE_READ_TOKEN: ${{ secrets.PLANTCODE_READ_TOKEN }}
+      - uses: astral-sh/setup-uv@v6
+      - name: engineering regeneration tests
+        run: uv run --python 3.12 --with pytest --with pyyaml --with "$CORE" pytest -q tests -m engineering
+        env:
+          ATLAS_REQUIRE_CORE: "1"
 
   # Balance scripts reproduce the flowsheet values that cite them (ADR 0027): every process
   # script that follows the balance-output contract is re-run with the pinned cheme and its
