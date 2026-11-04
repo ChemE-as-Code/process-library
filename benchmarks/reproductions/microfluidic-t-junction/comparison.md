@@ -21,7 +21,12 @@
 - **Revision after review (same day):** `run.py` now counts the digitisation rerun as a check,
   records two diagnostics outside the pass rule (alpha at other eps, the swapped geometry
   reading), and revises the design extension (`inputs.yaml` revision r1, `extension.md`).
-  `tolerances.yaml` and the reproduction inputs are unchanged, and the verdict is the same.
+  `source.yaml` was also revised after the freeze: it records the replication's publication
+  status, adds the Korczyk et al. squeezing-regime upper bound, the viscosity-ratio range and the
+  squeezing-to-dripping trend, and corrects the note on the original Fig. 3 liquid-droplet line
+  ("steeper", not "less steep", than the equations give). The digitised reference values and the
+  reported alpha values in `source.yaml` are as frozen. `tolerances.yaml` and the reproduction
+  inputs are unchanged, and the verdict is the same.
 
 ## Result: PARTIAL under the frozen rule (14 of 16 checks pass)
 
@@ -104,8 +109,8 @@ numerical prediction, not measurements, so they are not counted as independent v
 
 1. **Low-q points of the shallow junction (cause of the failure).** At q < 1 the three measured
    bubbles in the h/w = 0.11 junction are only 6 % to 69 % larger than the filling volume
-   (v_fill = 1.14). The model adds 0.58 to 1.66 to v_fill there. Above q = 1.4 the same series
-   agrees within 14 %. Its mean deviation over those five points is 9.5 %, computed after the
+   (v_fill = 1.14). The model adds 0.58 to 1.66 to v_fill there. From q = 1.39 upward the same
+   series agrees within 14 %. Its mean deviation over those five points is 9.5 %, computed after the
    run for diagnosis only; the verdict does not change. Two explanations are possible, and the
    open sources cannot separate them:
    - The physics differs at low q. In a very shallow junction, more continuous phase may bypass
