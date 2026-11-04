@@ -63,10 +63,15 @@ provisional); `--no-record` writes nothing to the folder. It also compares its R
 the design case's own series (`processes/co2-electrolysis-bpm-1/data/measured/wde-1m-koh.yaml`),
 as ADR 0031 requires the two parsers to agree; that comparison is reported, not a frozen check.
 
-**Status (2026-11-04, `comparison.md`):**
+**Status (2026-11-04, run of record `reruns/2026-11-04-run-3.json`, detail in `comparison.md`):**
 
-- **R1, R2:** FAIL under the frozen rules, both by small margins (detail in `comparison.md`).
-- **D1:** confirmed in the script, absent from the published figure.
+- **R1:** FAIL under the frozen rule. 5 of 6 current densities pass; 200 mA/cm2 misses its limit
+  by 0.00006 with the pooled aggregation.
+- **R2:** FAIL under the frozen rule. 11 of 21 rows pass: 10 within the tolerance, plus WDE
+  0.999 by the censored rule. The 20 uncensored rows are within 0.77 % at the solver's event
+  time, small in relative terms. The 10 failing rows miss the absolute limit by up to 3.0 times.
+- **D1:** confirmed in the script (on the event state, with the event-location error below the
+  band), absent from the published figure.
 - **V1:** pass on time to pH 12; the later trajectory is not reproduced.
 
 The script therefore exits 1.
