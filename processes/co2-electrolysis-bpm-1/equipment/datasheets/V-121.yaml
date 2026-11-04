@@ -40,6 +40,36 @@ materials:
   main:
     value: SS316
     source: equipment/equipment-list.yaml
+dimensions:
+  orientation: vertical
+  outside_diameter:
+    value: 0.2
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.diameter
+    assumed: true
+  overall_height:
+    value: 0.6
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.height
+    assumed: true
+  head:
+    value: ellipsoidal_2_1
+    source: equipment/equipment-list.yaml dimensions.head
+  support:
+    type:
+      value: none
+      source: equipment/equipment-list.yaml dimensions.support
+    elevation:
+      value: 0.15
+      unit: m
+      source: 'layout/plant-model.yaml V-121 position z (layout/equipment-placement.yaml): the base above
+        grade'
+  tangent_length:
+    value: 0.5
+    unit: m
+    source: 'layout/plant-model.yaml part V-121/shell: the generated shell between the heads (the 3D model''s
+      proportions, not a vessel design)'
+    assumed: true
 nozzles:
 - name: N1
   dn: 15
@@ -60,10 +90,34 @@ nozzles:
   lines: []
   source: pid/P-01.xml
 type_specific:
+  diameter_m:
+    value: 0.2
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+    assumed: true
+  height_m:
+    value: 0.6
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+    assumed: true
   volume_m3:
-    value: TBD
+    value: 0.01571
     unit: m3
-    source: 'TBD: sizing (DESIGN.md, a supplier)'
+    source: 'cheme datasheets fill: pi/4 D^2 L, D 0.2 m (dimensions.outside_diameter), L 0.5 m (dimensions.tangent_length);
+      the cylindrical shell between the tangent lines, heads not included; over the outside diameter:
+      an upper bound of the shell'
+    assumed: true
+    fingerprint: 7633cf57b38b8b4d
+    inputs:
+    - datasheet:dimensions.orientation
+    - datasheet:dimensions.inside_diameter
+    - datasheet:dimensions.outside_diameter
+    - datasheet:dimensions.tangent_length
+    - datasheet:dimensions.overall_length
+    - datasheet:dimensions.overall_height
+    - datasheet:type_specific.diameter_m
+    - datasheet:type_specific.length_m
+    - datasheet:type_specific.height_m
   process_streams:
   - stream: S104
     direction: in
@@ -77,5 +131,33 @@ type_specific:
     direction: out
     title: Cathode gas, saturated
     source: process/flowsheet.yaml (case skid-a)
-sizing_basis: []
-notes: ''
+  rating:
+    value: TBD
+    unit: ''
+    source: 'TBD: unsupported in cheme-as-code: no separator rating (droplet settling, K-factor, demister,
+      level settings): from the supplier''s rating (docs/framework/sizing.md) (cheme datasheets fill)'
+  mechanical_design:
+    value: TBD
+    unit: ''
+    source: 'TBD: unsupported in cheme-as-code: no mechanical design to a code (wall thickness, MAWP,
+      nozzle loads): from the supplier or a mechanical calculation (docs/framework/sizing.md) (cheme datasheets
+      fill)'
+  corrosion_allowance_mm:
+    value: TBD
+    unit: mm
+    source: 'TBD: unsupported in cheme-as-code: no material selection or corrosion allowance: the material
+      is the equipment list''s, given; the allowance from a materials/corrosion review (docs/framework/sizing.md)
+      (cheme datasheets fill)'
+  relief_protection:
+    value: TBD
+    unit: ''
+    source: 'TBD: unsupported in cheme-as-code: no relief scenarios or device sizing (API 520/521, ISO
+      4126): from a relief study (docs/framework/sizing.md) (cheme datasheets fill)'
+sizing_basis:
+- parameter: sizing_scope
+  value: preliminary
+  reference: 'cheme datasheets fill: the values it writes are preliminary process sizing (short-cut methods,
+    declared or typical parameters), not a rating or a design to a code; not calculated: rating, mechanical
+    code, materials corrosion, relief, dynamics controls (docs/framework/sizing.md)'
+notes: outline ASSUMED, a knock-out pot for about 3 L/min of gas on a bracket off the deck (DESIGN.md
+  D-019)

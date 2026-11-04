@@ -41,6 +41,12 @@ dimensions:
     source: 'equipment/equipment-list.yaml dimensions.height: cheme process stack: stack STK-A, 7 cells
       per stack, the envelope of process/cells.yaml'
     assumed: true
+  support:
+    elevation:
+      value: 0.15
+      unit: m
+      source: 'layout/plant-model.yaml E-101A position z (layout/equipment-placement.yaml): the base above
+        grade'
 nozzles:
 - name: N1
   dn: 25
@@ -110,5 +116,48 @@ type_specific:
     direction: in
     title: AC power to the rectifier and stacks
     source: process/flowsheet.yaml (case skid-a)
-sizing_basis: []
+  catalyst_mass_kg:
+    value: TBD
+    unit: kg
+    source: 'TBD: E101: no bed and no catalyst space velocity to size it from (cheme datasheets fill)'
+  catalyst_volume_m3:
+    value: TBD
+    unit: m3
+    source: 'TBD: E101: no bed and no catalyst space velocity to size it from (cheme datasheets fill)'
+  pressure_drop_kpa:
+    value: TBD
+    unit: kPa
+    source: 'TBD: E101: no bed and no catalyst space velocity to size it from (cheme datasheets fill)'
+  duty_kw:
+    value: TBD
+    unit: kW
+    source: 'TBD: one outlet with a temperature; ideal_gas data for CO, CO2, H2, H2O, K2CO3, KOH, O2 (cheme
+      datasheets fill)'
+  rating:
+    value: TBD
+    unit: ''
+    source: 'TBD: unsupported in cheme-as-code: no reactor internals, heat-transfer surface or distributor
+      design: from the supplier''s rating (docs/framework/sizing.md) (cheme datasheets fill)'
+  mechanical_design:
+    value: TBD
+    unit: ''
+    source: 'TBD: unsupported in cheme-as-code: no mechanical design to a code (wall thickness, MAWP,
+      nozzle loads): from the supplier or a mechanical calculation (docs/framework/sizing.md) (cheme datasheets
+      fill)'
+  corrosion_allowance_mm:
+    value: TBD
+    unit: mm
+    source: 'TBD: unsupported in cheme-as-code: no material selection or corrosion allowance: the material
+      is the equipment list''s, given; the allowance from a materials/corrosion review (docs/framework/sizing.md)
+      (cheme datasheets fill)'
+  relief_protection:
+    value: TBD
+    unit: ''
+    source: 'TBD: unsupported in cheme-as-code: no relief scenarios or device sizing (API 520/521, ISO
+      4126): from a relief study (docs/framework/sizing.md) (cheme datasheets fill)'
+sizing_basis:
+- parameter: sizing_scope
+  value: preliminary
+  reference: 'cheme datasheets fill: the values it writes are preliminary process sizing (short-cut methods,
+    declared or typical parameters), not a rating or a design to a code (docs/framework/sizing.md)'
 notes: electrolyser stack (no DEXPI class, D-017)

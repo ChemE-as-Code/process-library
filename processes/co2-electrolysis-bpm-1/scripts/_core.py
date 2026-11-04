@@ -7,8 +7,12 @@ section 0). Field names of core's JSON are read here and nowhere else, so a chan
 interface is one edit in one file.
 
 Commands used: ``cheme process cell --json``, ``cheme process stack [--write] --json``,
-``cheme process duty IDS --json``, ``cheme datasheets draft``, ``cheme process build``,
-``cheme process streams``, ``cheme run``.
+``cheme process duty IDS --json [--plot DIR]``, ``cheme process duty --compare``,
+``cheme datasheets draft``, ``cheme datasheets fill --case C --tag T``, ``cheme process build``,
+``cheme process streams``, ``cheme layout build``, ``cheme layout render``,
+``cheme control report --json``, ``cheme validate --json``, ``cheme run``. The generated layout
+model ``layout/plant-model.yaml`` (schema ``cheme schema layout_model``) is read here too, for
+the envelope check: core checks containment in a structure in plan only.
 """
 
 from __future__ import annotations
@@ -100,9 +104,15 @@ def duty_report(root: Path, ids: list[str]) -> dict[str, Any]:
     return cheme(root, "process", "duty", *ids, "--json", ok=(0, 1)).json()
 
 
-def compare_report(root: Path, ids: list[str], co_kg: float, tolerance: float) -> dict[str, Any]:
-    return cheme(
-        root,
+def duty_plots(root: Path, ids: list[str], out: Path) -> dict[str, Any]:
+    """``cheme process duty IDS --json --plot OUT``: the time plots and operating maps."""
+    return cheme(root, "process", "duty", *ids, "--json", "--plot", str(out), ok=(0, 1)).json()
+
+
+def compare_report(
+    root: Path, ids: list[str], co_kg: float, tolerance: float, plot: Path | None = None
+) -> dict[str, Any]:
+    args = [
         "process",
         "duty",
         "--compare",
@@ -112,8 +122,136 @@ def compare_report(root: Path, ids: list[str], co_kg: float, tolerance: float) -
         "--tolerance",
         repr(tolerance),
         "--json",
-        ok=(0, 1),
-    ).json()
+    ]
+    if plot is not None:
+        args += ["--plot", str(plot)]
+    return cheme(root, *args, ok=(0, 1)).json()
+
+
+def compare_rows(report: dict[str, Any]) -> list[dict[str, Any]]:
+    return list(report.get("rows") or [])
+
+
+def layout_build(root: Path) -> str:
+    """``cheme layout build``: writes layout/plant-model.yaml, prints the model findings (exit 1
+    on an error finding, such as a clash: the model is still written, the clash is a result)."""
+    result = cheme(root, "layout", "build", ok=(0, 1))
+    if not (root / "layout" / "plant-model.yaml").exists():
+        raise CoreError(f"cheme layout build wrote no model: {result.stderr.strip()[-400:]}")
+    return result.stdout
+
+
+def render(root: Path, *args: str) -> list[Path]:
+    """``cheme layout render ARGS``: the files it wrote (under build/), from its output."""
+    out = cheme(root, "layout", "render", *args).stdout
+    paths = [
+        root / line.split("wrote ", 1)[1].strip()
+        for line in out.splitlines()
+        if line.startswith("wrote ")
+    ]
+    if not paths:
+        raise CoreError(f"cheme layout render {' '.join(args)}: wrote nothing: {out.strip()[-400:]}")
+    return paths
+
+
+def datasheets_fill(root: Path, case: str, tags: list[str]) -> Result:
+    args = ["datasheets", "fill", "--case", case]
+    for tag in tags:
+        args += ["--tag", tag]
+    return cheme(root, *args, ok=(0, 1))
+
+
+def control_report(root: Path, out: Path) -> dict[str, Any]:
+    return cheme(root, "control", "report", "--json", "-o", str(out), ok=(0, 1)).json()
+
+
+def validate(root: Path) -> dict[str, Any]:
+    return cheme(root, "validate", "--json", ok=(0, 1)).json()
+
+
+def validate_findings(report: dict[str, Any]) -> list[dict[str, Any]]:
+    """Findings with level, rule, file, line, message, id and whether they are accepted."""
+    return list(report.get("findings") or [])
+
+
+# -- the layout model (layout/plant-model.yaml) -------------------------------------------------
+
+
+def plant_model(root: Path) -> dict[str, Any]:
+    import yaml
+
+    path = root / "layout" / "plant-model.yaml"
+    if not path.exists():
+        raise CoreError("no layout/plant-model.yaml: cheme layout build wrote no model")
+    return yaml.safe_load(path.read_text(encoding="utf-8"))
+
+
+def model_structure(model: dict[str, Any], structure_id: str) -> dict[str, Any]:
+    """A structure's footprint [x0, y0, x1, y1], rotation and level elevations."""
+    entry = next((s for s in model.get("structures") or [] if s.get("id") == structure_id), None)
+    if entry is None:
+        raise CoreError(f"layout/plant-model.yaml: no structure {structure_id}")
+    return {
+        "id": entry["id"],
+        "footprint": [float(v) for v in entry["footprint"]],
+        "rotation_deg": float(entry.get("rotation_deg") or 0.0),
+        "width": float(entry["width"]),
+        "depth": float(entry["depth"]),
+        "levels": {lv["id"]: float(lv["elevation"]) for lv in entry.get("levels") or []},
+    }
+
+
+def model_items_on(model: dict[str, Any], structure_id: str) -> list[dict[str, Any]]:
+    """The equipment mounted on a structure: tag, bbox [x0, y0, z0, x1, y1, z1], dimensions,
+    size_from, and the top of its generated detail parts (handrails, ladders, nozzles)."""
+    items = []
+    for item in model.get("equipment") or []:
+        if (item.get("mount") or {}).get("structure") != structure_id:
+            continue
+        tops = [t for t in (_part_top(p) for p in item.get("parts") or []) if t is not None]
+        items.append(
+            {
+                "tag": item["tag"],
+                "bbox": [float(v) for v in item["bbox"]],
+                "dimensions": dict(item.get("dimensions") or {}),
+                "size_from": item.get("size_from"),
+                "parts_top_m": max(tops) if tops else None,
+            }
+        )
+    return items
+
+
+def model_pipes_over(model: dict[str, Any], footprint: list[float]) -> list[dict[str, Any]]:
+    """Pipes with a point over a plan footprint: id, line and their highest point."""
+    x0, y0, x1, y1 = footprint
+    found = []
+    for pipe in model.get("pipes") or []:
+        points = pipe.get("points") or []
+        over = [p for p in points if x0 <= p[0] <= x1 and y0 <= p[1] <= y1]
+        if over:
+            found.append(
+                {
+                    "id": pipe["id"],
+                    "line": pipe.get("line"),
+                    "top_m": max(float(p[2]) for p in over),
+                }
+            )
+    return found
+
+
+def _part_top(part: dict[str, Any]) -> float | None:
+    kind = part.get("kind")
+    if kind == "cylinder" and "start" in part and "end" in part:
+        vertical = abs(part["start"][0] - part["end"][0]) < 1e-9 and abs(
+            part["start"][1] - part["end"][1]
+        ) < 1e-9
+        top = max(part["start"][2], part["end"][2])
+        return float(top if vertical else top + part.get("radius", 0.0))
+    if kind == "box" and "centre" in part and "size" in part:
+        return float(part["centre"][2] + part["size"][2] / 2)
+    if kind == "annulus" and "centre" in part:
+        return float(part["centre"][2] + part.get("depth", 0.0) / 2)
+    return None
 
 
 # -- reading them -------------------------------------------------------------------------------

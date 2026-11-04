@@ -44,6 +44,17 @@ dimensions:
     type:
       value: none
       source: equipment/equipment-list.yaml dimensions.support
+    elevation:
+      value: 0.15
+      unit: m
+      source: 'layout/plant-model.yaml T-101 position z (layout/equipment-placement.yaml): the base above
+        grade'
+  tangent_length:
+    value: 1.611
+    unit: m
+    source: 'layout/plant-model.yaml part T-101/shell: the generated shell between the heads (the 3D model''s
+      proportions, not a vessel design)'
+    assumed: true
 nozzles:
 - name: N1
   dn: 25
@@ -94,9 +105,21 @@ type_specific:
   volume_m3:
     value: 1.459
     unit: m3
-    source: 'equipment/equipment-list.yaml dimensions: pi/4 D^2 x height (overall, including heads and
-      skirt: an upper bound)'
+    source: 'cheme datasheets fill: pi/4 D^2 L, D 1.074 m (dimensions.outside_diameter), L 1.611 m (dimensions.tangent_length);
+      the cylindrical shell between the tangent lines, heads not included; over the outside diameter:
+      an upper bound of the shell'
     assumed: true
+    fingerprint: d9606392bc6580a9
+    inputs:
+    - datasheet:dimensions.orientation
+    - datasheet:dimensions.inside_diameter
+    - datasheet:dimensions.outside_diameter
+    - datasheet:dimensions.tangent_length
+    - datasheet:dimensions.overall_length
+    - datasheet:dimensions.overall_height
+    - datasheet:type_specific.diameter_m
+    - datasheet:type_specific.length_m
+    - datasheet:type_specific.height_m
   process_streams:
   - stream: S112
     direction: out
@@ -118,5 +141,32 @@ type_specific:
     direction: out
     title: Spent anolyte (campaign-averaged)
     source: process/flowsheet.yaml (case skid-a)
-sizing_basis: []
+  rating:
+    value: TBD
+    unit: ''
+    source: 'TBD: unsupported in cheme-as-code: no separator rating (droplet settling, K-factor, demister,
+      level settings): from the supplier''s rating (docs/framework/sizing.md) (cheme datasheets fill)'
+  mechanical_design:
+    value: TBD
+    unit: ''
+    source: 'TBD: unsupported in cheme-as-code: no mechanical design to a code (wall thickness, MAWP,
+      nozzle loads): from the supplier or a mechanical calculation (docs/framework/sizing.md) (cheme datasheets
+      fill)'
+  corrosion_allowance_mm:
+    value: TBD
+    unit: mm
+    source: 'TBD: unsupported in cheme-as-code: no material selection or corrosion allowance: the material
+      is the equipment list''s, given; the allowance from a materials/corrosion review (docs/framework/sizing.md)
+      (cheme datasheets fill)'
+  relief_protection:
+    value: TBD
+    unit: ''
+    source: 'TBD: unsupported in cheme-as-code: no relief scenarios or device sizing (API 520/521, ISO
+      4126): from a relief study (docs/framework/sizing.md) (cheme datasheets fill)'
+sizing_basis:
+- parameter: sizing_scope
+  value: preliminary
+  reference: 'cheme datasheets fill: the values it writes are preliminary process sizing (short-cut methods,
+    declared or typical parameters), not a rating or a design to a code; not calculated: rating, mechanical
+    code, materials corrosion, relief, dynamics controls (docs/framework/sizing.md)'
 notes: ''

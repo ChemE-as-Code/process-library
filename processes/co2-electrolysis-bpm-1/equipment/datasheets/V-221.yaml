@@ -11,20 +11,21 @@ operating:
   inlet_pressure:
     value: 110.0
     unit: kPa(a)
-    source: 'process/flowsheet.yaml stream S204 (case skid-a), assumed: ASSUMED design condition (DESIGN.md
+    source: 'process/flowsheet.yaml stream S204 (case skid-b), assumed: ASSUMED design condition (DESIGN.md
       D-012)'
     assumed: true
   inlet_temperature:
     value: 298.15
     unit: K
-    source: 'process/flowsheet.yaml stream S204 (case skid-a), assumed: ASSUMED design condition (DESIGN.md
+    source: 'process/flowsheet.yaml stream S204 (case skid-b), assumed: ASSUMED design condition (DESIGN.md
       D-012)'
     assumed: true
   inlet_flow:
-    value: 0.0
+    value: 3.394668404
     unit: kg/h
-    source: 'process/flowsheet.yaml stream S204 (case skid-a), assumed: scripts/skid_balance.py: the train
-      is idle in this case (D-007)'
+    source: 'process/flowsheet.yaml stream S204 (case skid-b), assumed: scripts/skid_balance.py: duty
+      D-B at 7 x 4 over 1000 h: CO and H2 at the measured FE, CO2 less the CO, the carbon to the anolyte
+      and the K+ carbonated'
     assumed: true
 design:
   pressure_barg:
@@ -39,6 +40,36 @@ materials:
   main:
     value: SS316
     source: equipment/equipment-list.yaml
+dimensions:
+  orientation: vertical
+  outside_diameter:
+    value: 0.2
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.diameter
+    assumed: true
+  overall_height:
+    value: 0.6
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.height
+    assumed: true
+  head:
+    value: ellipsoidal_2_1
+    source: equipment/equipment-list.yaml dimensions.head
+  support:
+    type:
+      value: none
+      source: equipment/equipment-list.yaml dimensions.support
+    elevation:
+      value: 0.15
+      unit: m
+      source: 'layout/plant-model.yaml V-221 position z (layout/equipment-placement.yaml): the base above
+        grade'
+  tangent_length:
+    value: 0.5
+    unit: m
+    source: 'layout/plant-model.yaml part V-221/shell: the generated shell between the heads (the 3D model''s
+      proportions, not a vessel design)'
+    assumed: true
 nozzles:
 - name: N1
   dn: 15
@@ -59,22 +90,74 @@ nozzles:
   lines: []
   source: pid/P-02.xml
 type_specific:
+  diameter_m:
+    value: 0.2
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+    assumed: true
+  height_m:
+    value: 0.6
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+    assumed: true
   volume_m3:
-    value: TBD
+    value: 0.01571
     unit: m3
-    source: 'TBD: sizing (DESIGN.md, a supplier)'
+    source: 'cheme datasheets fill: pi/4 D^2 L, D 0.2 m (dimensions.outside_diameter), L 0.5 m (dimensions.tangent_length);
+      the cylindrical shell between the tangent lines, heads not included; over the outside diameter:
+      an upper bound of the shell'
+    assumed: true
+    fingerprint: 7633cf57b38b8b4d
+    inputs:
+    - datasheet:dimensions.orientation
+    - datasheet:dimensions.inside_diameter
+    - datasheet:dimensions.outside_diameter
+    - datasheet:dimensions.tangent_length
+    - datasheet:dimensions.overall_length
+    - datasheet:dimensions.overall_height
+    - datasheet:type_specific.diameter_m
+    - datasheet:type_specific.length_m
+    - datasheet:type_specific.height_m
   process_streams:
   - stream: S204
     direction: in
     title: Cathode outlet (gas and condensate)
-    source: process/flowsheet.yaml (case skid-a)
+    source: process/flowsheet.yaml (case skid-b)
   - stream: S205
     direction: out
     title: Cathode condensate (carbonate)
-    source: process/flowsheet.yaml (case skid-a)
+    source: process/flowsheet.yaml (case skid-b)
   - stream: S206
     direction: out
     title: Cathode gas, saturated
-    source: process/flowsheet.yaml (case skid-a)
-sizing_basis: []
-notes: ''
+    source: process/flowsheet.yaml (case skid-b)
+  rating:
+    value: TBD
+    unit: ''
+    source: 'TBD: unsupported in cheme-as-code: no separator rating (droplet settling, K-factor, demister,
+      level settings): from the supplier''s rating (docs/framework/sizing.md) (cheme datasheets fill)'
+  mechanical_design:
+    value: TBD
+    unit: ''
+    source: 'TBD: unsupported in cheme-as-code: no mechanical design to a code (wall thickness, MAWP,
+      nozzle loads): from the supplier or a mechanical calculation (docs/framework/sizing.md) (cheme datasheets
+      fill)'
+  corrosion_allowance_mm:
+    value: TBD
+    unit: mm
+    source: 'TBD: unsupported in cheme-as-code: no material selection or corrosion allowance: the material
+      is the equipment list''s, given; the allowance from a materials/corrosion review (docs/framework/sizing.md)
+      (cheme datasheets fill)'
+  relief_protection:
+    value: TBD
+    unit: ''
+    source: 'TBD: unsupported in cheme-as-code: no relief scenarios or device sizing (API 520/521, ISO
+      4126): from a relief study (docs/framework/sizing.md) (cheme datasheets fill)'
+sizing_basis:
+- parameter: sizing_scope
+  value: preliminary
+  reference: 'cheme datasheets fill: the values it writes are preliminary process sizing (short-cut methods,
+    declared or typical parameters), not a rating or a design to a code; not calculated: rating, mechanical
+    code, materials corrosion, relief, dynamics controls (docs/framework/sizing.md)'
+notes: outline ASSUMED, a knock-out pot for about 3 L/min of gas on a bracket off the deck (DESIGN.md
+  D-019)

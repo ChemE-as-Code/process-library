@@ -21,14 +21,17 @@ edit the XML (skill `pid-edit`). To move back, put the hand edits into the scrip
 A generator takes the sheet file as its argument and edits it in place, starting from the
 frame (for a new sheet: the one `cheme sheet new` wrote).
 
-The pilot skids of #330 (DESIGN.md D-007 to D-015):
+The pilot skids of #330 (DESIGN.md D-007 to D-021):
 
 - `regen.py`: the single rerun command, `cheme run scripts/regen.py --duration H
   [--scratch DIR] [--check]`. It carries the design basis through `cheme process cell`,
-  `duty`, `stack --write`, `datasheets draft`, the balance and `process build` into every value
-  that depends on the campaign duration (steps 1 to 9; the layout, plots, records and
-  `--uncertainty`/`--record` follow in the next stage). `--check` regenerates in a temporary
-  copy and reports any model file that differs (exit 3).
+  `duty`, `stack --write`, `datasheets draft`, the balance and `process build`, `layout build`,
+  `datasheets fill` per case, `layout render`, `control report`, the duty plots and
+  comparisons and the envelope check into every value and figure that depends on the campaign
+  duration (steps 1 to 13; the invariants, records and `--uncertainty`/`--record` follow in
+  the next stage). It owns the draft datasheets (D-020). `--check` regenerates in a temporary
+  copy and reports any model file, datasheet or figure of that duration that differs (exit 3).
+  `--scratch DIR` runs in a copy and copies the scenario's figures back (D-021).
 - `skid_balance.py`: the flowsheet's stream values of both cases from core's stack and duty
   results (library ADR 0027, contract `balance-output/1`).
 - `_core.py`: the one coupling to cheme-as-code (its commands' `--json` output only).

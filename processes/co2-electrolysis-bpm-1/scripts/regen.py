@@ -34,10 +34,32 @@ Steps (design spec #330, section 6):
 9. `cheme run scripts/skid_balance.py` (contract balance-output/1), its values applied to
    process/flowsheet.yaml (targeted edit), then `cheme process build` (BFD, PFD) and
    `cheme process streams` for both cases.
+10. Layout and datasheets: `cheme layout build` (the 3D model from layout/*.yaml, the
+    equipment list's sizes and the P&IDs; routing every line, so the same as `cheme layout
+    route` without --line); the draft datasheets drafted again from the model as it now is,
+    train B's from case skid-b (D-020), and `cheme process stack --write` into them;
+    `cheme datasheets fill --case skid-a` for the 1xx tags and
+    `--case skid-b` for the 2xx tags, then per skid `cheme layout render` of the frame's
+    plan, a section across the reservoir (x) and one along the frame (y), SVG and PNG, copied
+    to figures/skids/<H>h/.
+11. `cheme control report --json` (into build/control/): the loop and sequence findings.
+12. Duty plots and comparisons: `cheme process duty D-A D-B D-A-ONOFF D-A-PART --plot
+    figures/duty/<H>h/`; `--compare D-A,D-A-ONOFF,D-A-PART` at half the campaign's CO,
+    `D-A,D-A-PART` at the whole (the part-load duty reaches the threshold first:
+    cheme.duty-target-not-reached) and `D-A,D-B` at half, each plotted into
+    figures/compare/<H>h/<name>/. The CO target is D-A's product over H, from the run.
+13. Envelope check: per skid, the union of the layout model's bounding boxes of the items on
+    frame SKID-A or SKID-B against the frame's plan and the deck plus the usable height
+    (process/design-basis.yaml skid_envelope), plus core's "is not inside structure"
+    findings of `cheme validate --json`; the generated details (tank roof handrails, ladders)
+    and the pipes above the envelope are reported apart. Then the validate findings.
 
-Steps 10 to 19 (layout, datasheet fill, control report, duty plots and comparisons, the
-envelope and invariant checks, --uncertainty, the calculation record, the resize report,
---record and the full --check of records and figures) follow in the next stage of #330.
+Steps 14 to 19 (the invariant checks, --uncertainty, the calculation record, the resize
+report, --record and the --check of the records) follow in the next stage of #330.
+
+With --scratch DIR the run is made in a copy; the scenario's figures (figures/skids/<H>h,
+figures/duty/<H>h, figures/compare/<H>h) are then copied back into this folder, so that the
+10,000 h scenario's figures are committed while the model files stay at the 1,000 h design.
 
 Findings are collected, never fatal: an infeasible skid is a result. The exit code is non-zero
 only on a tool error (1), on refused input (2) or on a --check difference (3).
@@ -78,7 +100,24 @@ MODEL_FILES = (
     "process/BFD.xml",
     "process/PFD.xml",
     "equipment/equipment-list.yaml",
+    "layout/plant-model.yaml",
 )
+#: the figure folders of one scenario (H substituted), written by steps 10 and 12
+SCENARIO_FIGURES = ("figures/skids/{h}h", "figures/duty/{h}h", "figures/compare/{h}h")
+#: the train of each skid: its sheet, flowsheet case, frame and reservoir
+SKIDS = {
+    "A": {"sheet": "P-01", "case": "skid-a", "frame": "SKID-A", "reservoir": "T-101"},
+    "B": {"sheet": "P-02", "case": "skid-b", "frame": "SKID-B", "reservoir": "T-201"},
+}
+#: the comparisons of step 12: name, duties, share of D-A's campaign CO
+COMPARISONS = (
+    ("equal-co-half", ("D-A", "D-A-ONOFF", "D-A-PART"), 0.5),
+    ("part-load-full", ("D-A", "D-A-PART"), 1.0),
+    ("skid-a-vs-b-half", ("D-A", "D-B"), 0.5),
+)
+COMPARE_TOLERANCE = 1e-3
+#: margins of the rendered views around a frame, m (the access steps stand outside it)
+VIEW_MARGIN = {"west": 0.6, "south": 2.1, "east": 2.1, "north": 0.8}
 COPY_IGNORE = shutil.ignore_patterns(
     "build", ".venv", "__pycache__", ".DS_Store", ".claude", "runs"
 )
@@ -324,6 +363,8 @@ class Run:
             "final_species_mol_l": species,
             "final_volume_l": v_end,
             "cells": n_cells,
+            "ended": run["ended"],
+            "feasible": run["feasible"],
         }
 
     # -- 7 ----------------------------------------------------------------------------------
@@ -442,20 +483,330 @@ class Run:
         for case in doc["cases"]:
             table = _core.cheme(self.root, "process", "streams", "--case", case, "--json").json()
             balances[case] = table.get("balances")
-        validate = _core.cheme(self.root, "validate", "--json", ok=(0, 1)).json()
-        problems = [
-            f for f in validate.get("findings", []) if f.get("level") in ("error", "warning")
-        ]
+        self.summary["balance"] = {"changed_values": len(changes), "balances": balances}
+        print(f"[9] flowsheet: {len(changes)} value(s) applied; BFD and PFD built")
+
+    # -- 10 ---------------------------------------------------------------------------------
+    def layout_and_datasheets(self) -> None:
+        # the model first: a draft takes the tanks' tangent lengths from it
+        build = _core.layout_build(self.root)
+        equipment = self.load("equipment/equipment-list.yaml")["equipment"]
+        redrafted = self.redraft_datasheets(equipment)
+        written = next((ln for ln in build.splitlines() if ln.startswith("wrote ")), "")
+        # the model's findings are taken from cheme validate in step 13, which applies the
+        # acceptances of checks/checks.yaml; the build prints them unaccepted
+        model_findings = sum(
+            1 for ln in build.splitlines() if " warning cheme." in ln or " error cheme." in ln
+        )
+        if not any(ln.startswith(("wrote ", "unchanged ")) for ln in build.splitlines()):
+            raise _core.CoreError(f"cheme layout build: no model written: {build.strip()[-400:]}")
+        written = next(
+            (ln for ln in build.splitlines() if ln.startswith(("wrote ", "unchanged "))), ""
+        )
+        filled = {}
+        for key, skid in SKIDS.items():
+            tags = [e["tag"] for e in equipment if e.get("sheet") == skid["sheet"]]
+            result = _core.datasheets_fill(self.root, skid["case"], tags)
+            for line in (result.stdout + result.stderr).splitlines():
+                if " warning cheme." in line or " error cheme." in line:
+                    self.note("10", "warning", line.split(" -- ")[0])
+            filled[skid["case"]] = tags
+        model = _core.plant_model(self.root)
+        out = self.root / SCENARIO_FIGURES[0].format(h=f"{self.h:g}")
+        _fresh(out)
+        figures = []
+        for key, skid in SKIDS.items():
+            frame = _core.model_structure(model, skid["frame"])
+            x0, y0, x1, y1 = frame["footprint"]
+            deck = max(frame["levels"].values())
+            items = _core.model_items_on(model, skid["frame"])
+            reservoir = next(i for i in items if i["tag"] == skid["reservoir"])
+            tops = [i["bbox"][5] for i in items] + [
+                p["top_m"] for p in _core.model_pipes_over(model, frame["footprint"])
+            ]
+            z_top = math.ceil((max(tops + [deck + self.envelope()["usable_height"]]) + 0.6) * 2) / 2
+            px0, px1 = x0 - VIEW_MARGIN["west"], x1 + VIEW_MARGIN["east"]
+            py0, py1 = y0 - VIEW_MARGIN["south"], y1 + VIEW_MARGIN["north"]
+            x_res = (reservoir["bbox"][0] + reservoir["bbox"][3]) / 2
+            y_mid = (y0 + y1) / 2
+            views = {
+                "plan": ["--plan", "--crop", _crop(px0, py0, px1, py1)],
+                "section-x": [
+                    "--section",
+                    f"x={_r(x_res)}",
+                    "--depth",
+                    _r(reservoir["bbox"][3] - reservoir["bbox"][0] + 0.3),
+                    "--crop",
+                    _crop(y0 - 1.0, 0.0, y1 + 1.0, z_top),
+                ],
+                "section-y": [
+                    "--section",
+                    f"y={_r(y_mid)}",
+                    "--depth",
+                    _r(y1 - y0 + 0.4),
+                    "--crop",
+                    _crop(px0, 0.0, px1, z_top),
+                ],
+            }
+            for view, args in views.items():
+                for fmt in ([], ["--png"]):
+                    for path in _core.render(self.root, *args, *fmt):
+                        target = out / f"skid-{key.lower()}-{view}{path.suffix}"
+                        shutil.copyfile(path, target)
+                        figures.append(str(target.relative_to(self.root)))
+        self.summary["layout"] = {
+            "build": written,
+            "build_findings": model_findings,
+            "datasheets_redrafted": redrafted,
+            "datasheets_filled": filled,
+            "figures": figures,
+        }
+        print(
+            f"[10] {written or 'layout built'} ({model_findings} model finding(s), accepted or not: step 13); datasheets filled per case "
+            f"({', '.join(f'{c}: {len(t)}' for c, t in filled.items())}); {len(figures)} figure(s) in {out.relative_to(self.root)}"
+        )
+
+    def redraft_datasheets(self, equipment: list[dict]) -> list[str]:
+        """Redraw every draft datasheet from the model as it now is, each from its own case.
+
+        `cheme datasheets draft` copies the list sizes and the linked streams' conditions into a
+        datasheet and never touches an existing one, `cheme datasheets fill` never overwrites a
+        value it gives, and draft reads the default case only (core 1.5.0). A draft kept from an
+        earlier run would keep the old campaign's tank size and stream values, and train B's
+        drafts would carry case skid-a (zero flows). So regen owns the drafts (`draft: true`,
+        DESIGN.md D-020): they are removed and drafted again, train A's in this folder (default
+        case skid-a), train B's in a temporary copy whose default case is skid-b, copied back.
+        A datasheet without `draft: true` (completed by hand) is kept as it is."""
+        ds = self.root / "equipment" / "datasheets"
+        drafted = []
+        for key, skid in SKIDS.items():
+            tags = [e["tag"] for e in equipment if e.get("sheet") == skid["sheet"]]
+            redo = []
+            for tag in tags:
+                path = ds / f"{tag}.yaml"
+                if path.exists():
+                    if not (yaml.safe_load(path.read_text(encoding="utf-8")) or {}).get("draft"):
+                        continue
+                    path.unlink()
+                redo.append(tag)
+            if not redo:
+                continue
+            args = ["datasheets", "draft"] + [a for t in redo for a in ("--tag", t)]
+            if _default_case(self.load("process/flowsheet.yaml")) == skid["case"]:
+                _core.cheme(self.root, *args)
+            else:
+                with tempfile.TemporaryDirectory() as tmp:
+                    copy = Path(tmp) / self.root.name
+                    shutil.copytree(self.root, copy, ignore=COPY_IGNORE)
+                    _set_default_case(copy / "process" / "flowsheet.yaml", skid["case"])
+                    _core.cheme(copy, *args)
+                    for tag in redo:
+                        shutil.copyfile(
+                            copy / "equipment" / "datasheets" / f"{tag}.yaml", ds / f"{tag}.yaml"
+                        )
+            drafted += redo
+        # the pumps' type_specific values of cheme process stack go into the new drafts
+        _core.stack_report(self.root, write=True)
+        print(f"[10] {len(drafted)} draft datasheet(s) drafted again, each from its case")
+        return drafted
+
+    # -- 11 ---------------------------------------------------------------------------------
+    def control(self) -> None:
+        report = _core.control_report(self.root, self.root / "build" / "control")
+        levels: dict[str, int] = {}
+        for f in report.get("findings") or []:
+            levels[f.get("level", "?")] = levels.get(f.get("level", "?"), 0) + 1
+            if f.get("level") == "error":
+                self.note("11", "error", f"{f.get('rule')}: {f.get('message')}")
+        self.summary["control"] = {
+            "loops": len(report.get("loops") or []),
+            "sequences": len(report.get("sequences") or []),
+            "findings_by_level": dict(sorted(levels.items())),
+        }
+        print(
+            f"[11] control report: {self.summary['control']['loops']} loop(s), "
+            f"{self.summary['control']['sequences']} sequence(s), findings {self.summary['control']['findings_by_level']}"
+        )
+
+    # -- 12 ---------------------------------------------------------------------------------
+    def duty_plots(self) -> None:
+        h = f"{self.h:g}"
+        duty_dir = self.root / SCENARIO_FIGURES[1].format(h=h)
+        _fresh(duty_dir)
+        ids = [*SKID_DUTIES.values(), *COMPARISON]
+        run = _core.duty_plots(self.root, ids, duty_dir)
+        da = _core.duty(run, "D-A")
+        co_rate = _core.totals(da)["product_kg"] / float(da["horizon_h"])
+        compare_dir = self.root / SCENARIO_FIGURES[2].format(h=h)
+        _fresh(compare_dir)
+        results = {}
+        for name, duties, share in COMPARISONS:
+            target = _round(share * self.h * co_rate, 12)
+            plot = compare_dir / name
+            plot.mkdir(parents=True)
+            report = _core.compare_report(
+                self.root, list(duties), target, COMPARE_TOLERANCE, plot=plot
+            )
+            rows = {
+                r["id"]: {
+                    k: r.get(k)
+                    for k in (
+                        "reached", "ended", "delivered_kg", "elapsed_h", "charge_c",
+                        "energy_kwh", "final_ph", "dosing_hydroxide_kg",
+                        "hydroxide_deficit_mol", "feasible", "reason",
+                    )
+                }
+                for r in _core.compare_rows(report)
+            }  # fmt: skip
+            rules = sorted({f.get("rule") for f in _core.findings(report) if f.get("rule")})
+            results[name] = {"duties": list(duties), "target_kg": target, "rows": rows, "rules": rules}
+            print(
+                f"[12] compare {','.join(duties)} at {target:.6g} kg CO: "
+                + "; ".join(
+                    f"{d} {'reached' if r['reached'] else 'not reached'} in {r['elapsed_h']:.6g} h"
+                    for d, r in rows.items()
+                )
+                + (f" ({', '.join(rules)})" if rules else "")
+            )
+        self.summary["duties"] = {
+            d["id"]: {
+                "ended": d["ended"],
+                "feasible": d["feasible"],
+                "horizon_h": d["horizon_h"],
+                "totals": _core.totals(d),
+            }
+            for d in run.get("duties", [])
+        }
+        self.summary["comparisons"] = {"co_rate_kg_h": co_rate, "results": results}
+        print(f"[12] duty plots of {', '.join(ids)} in {duty_dir.relative_to(self.root)}")
+
+    # -- 13 ---------------------------------------------------------------------------------
+    def envelope(self) -> dict:
+        env = self.load("process/design-basis.yaml")["capacity"]["pilot_skid"]["skid_envelope"]
+        return {k: float(env[k]["value"]) for k in ("length", "width", "usable_height")}
+
+    def envelope_check(self) -> None:
+        env = self.envelope()
+        model = _core.plant_model(self.root)
+        validate = _core.validate_findings(_core.validate(self.root))
+        result = {}
+        for key, skid in SKIDS.items():
+            frame = _core.model_structure(model, skid["frame"])
+            x0, y0, x1, y1 = frame["footprint"]
+            deck = max(frame["levels"].values())
+            limit = deck + env["usable_height"]
+            reasons = []
+            if not (
+                math.isclose(frame["width"], env["length"], abs_tol=1e-6)
+                and math.isclose(frame["depth"], env["width"], abs_tol=1e-6)
+            ):
+                reasons.append(
+                    f"frame {skid['frame']} is {frame['width']:g} x {frame['depth']:g} m, the envelope "
+                    f"{env['length']:g} x {env['width']:g} m"
+                )
+            items = _core.model_items_on(model, skid["frame"])
+            box = [
+                min(i["bbox"][0] for i in items),
+                min(i["bbox"][1] for i in items),
+                min(i["bbox"][2] for i in items),
+                max(i["bbox"][3] for i in items),
+                max(i["bbox"][4] for i in items),
+                max(i["bbox"][5] for i in items),
+            ]
+            tol = 1e-6
+            for i in items:
+                b = i["bbox"]
+                if b[0] < x0 - tol or b[1] < y0 - tol or b[3] > x1 + tol or b[4] > y1 + tol:
+                    reasons.append(
+                        f"{i['tag']} [{b[0]:.3f}, {b[1]:.3f}, {b[3]:.3f}, {b[4]:.3f}] is outside the frame "
+                        f"in plan [{x0:g}, {y0:g}, {x1:g}, {y1:g}]"
+                    )
+                if b[5] > limit + tol:
+                    reasons.append(
+                        f"{i['tag']} top {b[5]:.3f} m above grade is above the envelope's {limit:.3f} m "
+                        f"(deck {deck:g} m + {env['usable_height']:g} m usable height) by {b[5] - limit:.3f} m"
+                    )
+            core = [
+                f["message"]
+                for f in validate
+                if f.get("rule") == "cheme.layout-level"
+                and f"is not inside structure {skid['frame']} " in f.get("message", "")
+            ]
+            reasons += [f"core: {m}" for m in core]
+            # an item that no longer fits beside the others on the frame (a clash error of the
+            # layout model) does not fit the skid either
+            tags = {i["tag"] for i in items}
+            clashes = [
+                f["message"]
+                for f in validate
+                if f.get("level") == "error"
+                and str(f.get("rule", "")).startswith("cheme.layout-clash")
+                and tags & set(f.get("ids") or [])
+            ]
+            reasons += [f"core: {m}" for m in clashes]
+            details = sorted(
+                (
+                    {"tag": i["tag"], "parts_top_m": i["parts_top_m"]}
+                    for i in items
+                    if i["parts_top_m"] is not None and i["parts_top_m"] > limit + tol
+                ),
+                key=lambda d: d["tag"],
+            )
+            pipes = sorted(
+                (
+                    p
+                    for p in _core.model_pipes_over(model, frame["footprint"])
+                    if p["top_m"] > limit + tol
+                ),
+                key=lambda p: p["id"],
+            )
+            feasible = not reasons
+            duty_ok = self.summary.get(f"skid_{key.lower()}", {}).get("feasible", True)
+            result[key] = {
+                "frame": skid["frame"],
+                "footprint": frame["footprint"],
+                "deck_m": deck,
+                "envelope_top_m": limit,
+                "items_bbox": box,
+                "items_top_m": box[5],
+                "headroom_left_m": limit - box[5],
+                "feasible": feasible,
+                "reasons": reasons,
+                "core_not_inside": core,
+                "details_above_envelope": details,
+                "pipes_above_envelope": [{"id": p["id"], "line": p["line"], "top_m": p["top_m"]} for p in pipes],
+                "skid_feasible": feasible and bool(duty_ok),
+            }
+            if feasible:
+                print(
+                    f"[13] Skid {key}: inside the envelope (items top {box[5]:.3f} m, envelope {limit:.3f} m, "
+                    f"{limit - box[5]:.3f} m left)"
+                )
+            else:
+                self.note(
+                    "13",
+                    "error",
+                    f"Skid {key} cannot meet the {self.h:,.0f} h duty within the skid envelope: "
+                    + "; ".join(reasons),
+                )
+            if details or pipes:
+                self.note(
+                    "13",
+                    "info",
+                    f"Skid {key}: above the {limit:.3f} m envelope but not counted (generated details, "
+                    f"fitted or cut at site): "
+                    + ", ".join(
+                        [f"{d['tag']} details to {d['parts_top_m']:.3f} m" for d in details]
+                        + [f"{p['line']} to {p['top_m']:.3f} m" for p in pipes]
+                    ),
+                )
+        problems = [f for f in validate if f.get("level") in ("error", "warning")]
         for f in problems:
             self.note(
-                "9",
-                f["level"],
-                f"{f.get('file')}:{f.get('line')} {f.get('rule')}: {f.get('message')}",
+                "13", f["level"], f"{f.get('file')}:{f.get('line')} {f.get('rule')}: {f.get('message')}"
             )
-        self.summary["balance"] = {"changed_values": len(changes), "balances": balances}
-        print(
-            f"[9] flowsheet: {len(changes)} value(s) applied; BFD and PFD built; validate: {len(problems)} error/warning finding(s)"
-        )
+        self.summary["envelope"] = {"basis": env, "skids": result}
+        print(f"[13] validate: {len(problems)} error/warning finding(s) not accepted")
 
     def run(self) -> None:
         self.preflight()
@@ -467,6 +818,10 @@ class Run:
         self.copy_comparison()
         self.datasheets_and_stacks()
         self.balance_and_build()
+        self.layout_and_datasheets()
+        self.control()
+        self.duty_plots()
+        self.envelope_check()
 
 
 def _num(x: float):
@@ -475,6 +830,50 @@ def _num(x: float):
 
 def _round(x: float, digits: int = 9) -> float:
     return float(f"{x:.{digits}g}")
+
+
+def _r(x: float) -> str:
+    """A coordinate for a command line: rounded to the millimetre, shortest form."""
+    return f"{round(x, 3):g}"
+
+
+def _crop(a: float, b: float, c: float, d: float) -> str:
+    return ",".join(_r(v) for v in (a, b, c, d))
+
+
+def _default_case(flowsheet: dict) -> str:
+    cases = flowsheet.get("cases") or []
+    return next((c["id"] for c in cases if c.get("default")), cases[0]["id"] if cases else "")
+
+
+def _set_default_case(path: Path, case: str) -> None:
+    """In a temporary copy only: make *case* the flowsheet's default (the `default: true` line
+    moved under its id), checked by loading the result."""
+    lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
+    lines = [ln for ln in lines if ln.strip() != "default: true"]
+    at = next(i for i, ln in enumerate(lines) if ln.strip() == f"- id: {case}")
+    indent = lines[at][: len(lines[at]) - len(lines[at].lstrip())] + "  "
+    lines.insert(at + 1, f"{indent}default: true\n")
+    text = "".join(lines)
+    if _default_case(yaml.safe_load(text)) != case:
+        raise ye.EditRefused(f"{path}: could not make {case} the default case")
+    path.write_text(text, encoding="utf-8")
+
+
+def _fresh(path: Path) -> None:
+    """An empty folder: the previous run's figures are removed, so none is left stale."""
+    if path.exists():
+        shutil.rmtree(path)
+    path.mkdir(parents=True)
+
+
+def _tree(root: Path, rel: str) -> dict[str, bytes]:
+    base = root / rel
+    if not base.exists():
+        return {}
+    return {
+        str(p.relative_to(root)): p.read_bytes() for p in sorted(base.rglob("*")) if p.is_file()
+    }
 
 
 def _litres(q: dict) -> float:
@@ -501,6 +900,12 @@ def _check(root: Path, duration: float) -> int:
             mine = ds / path.name
             if not mine.exists() or mine.read_bytes() != path.read_bytes():
                 differ.append(f"equipment/datasheets/{path.name}")
+        for pattern in SCENARIO_FIGURES:
+            rel = pattern.format(h=f"{duration:g}")
+            mine, theirs = _tree(root, rel), _tree(scratch, rel)
+            for name in sorted(set(mine) | set(theirs)):
+                if mine.get(name) != theirs.get(name):
+                    differ.append(name)
     for rel in differ:
         print(f"[check] differs from a regeneration at {duration:g} h: {rel}")
     print(f"[check] {'clean' if not differ else str(len(differ)) + ' file(s) differ'}")
@@ -520,6 +925,7 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--record", action="store_true", help="cheme runs record (next stage)")
     args = parser.parse_args(argv)
     root = Path.cwd()
+    source = root
     if args.uncertainty or args.record:
         print(
             "regen: --uncertainty and --record are not implemented yet (steps 15 and 18, next stage of #330)",
@@ -537,6 +943,15 @@ def main(argv: list[str]) -> int:
             root = target
         run = Run(root, args.duration)
         run.run()
+        if root != source:
+            # the scenario's figures are committed; its model files stay in the scratch copy
+            for pattern in SCENARIO_FIGURES:
+                rel = pattern.format(h=f"{args.duration:g}")
+                if (root / rel).exists():
+                    if (source / rel).exists():
+                        shutil.rmtree(source / rel)
+                    shutil.copytree(root / rel, source / rel)
+                    print(f"regen: {rel} copied back from the scratch run")
     except Refused as exc:
         print(f"regen: refused: {exc}", file=sys.stderr)
         return 2

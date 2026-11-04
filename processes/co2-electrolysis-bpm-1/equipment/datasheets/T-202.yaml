@@ -11,38 +11,38 @@ operating:
   inlet_pressure:
     value: 101.3
     unit: kPa(a)
-    source: 'process/flowsheet.yaml stream S219 (case skid-a), assumed: ASSUMED design condition (DESIGN.md
+    source: 'process/flowsheet.yaml stream S219 (case skid-b), assumed: ASSUMED design condition (DESIGN.md
       D-012)'
     assumed: true
   inlet_temperature:
     value: 298.15
     unit: K
-    source: 'process/flowsheet.yaml stream S219 (case skid-a), assumed: ASSUMED design condition (DESIGN.md
+    source: 'process/flowsheet.yaml stream S219 (case skid-b), assumed: ASSUMED design condition (DESIGN.md
       D-012)'
     assumed: true
   inlet_flow:
-    value: 0.0
+    value: 0.5113977798
     unit: kg/h
-    source: 'process/flowsheet.yaml stream S219 (case skid-a), assumed: scripts/skid_balance.py: the train
-      is idle in this case (D-007)'
+    source: 'process/flowsheet.yaml stream S219 (case skid-b), assumed: scripts/skid_balance.py: duty
+      D-B at 7 x 4 over 1000 h: the 5 M KOH dosed, 0.419179 L/h'
     assumed: true
   outlet_pressure:
     value: 101.3
     unit: kPa(a)
-    source: 'process/flowsheet.yaml stream S220 (case skid-a), assumed: ASSUMED design condition (DESIGN.md
+    source: 'process/flowsheet.yaml stream S220 (case skid-b), assumed: ASSUMED design condition (DESIGN.md
       D-012)'
     assumed: true
   outlet_temperature:
     value: 298.15
     unit: K
-    source: 'process/flowsheet.yaml stream S220 (case skid-a), assumed: ASSUMED design condition (DESIGN.md
+    source: 'process/flowsheet.yaml stream S220 (case skid-b), assumed: ASSUMED design condition (DESIGN.md
       D-012)'
     assumed: true
   outlet_flow:
-    value: 0.0
+    value: 0.5113977798
     unit: kg/h
-    source: 'process/flowsheet.yaml stream S220 (case skid-a), assumed: scripts/skid_balance.py: the train
-      is idle in this case (D-007)'
+    source: 'process/flowsheet.yaml stream S220 (case skid-b), assumed: scripts/skid_balance.py: duty
+      D-B at 7 x 4 over 1000 h: the 5 M KOH dosed, 0.419179 L/h'
     assumed: true
 design:
   pressure_barg:
@@ -82,6 +82,17 @@ dimensions:
     type:
       value: none
       source: equipment/equipment-list.yaml dimensions.support
+    elevation:
+      value: 0.15
+      unit: m
+      source: 'layout/plant-model.yaml T-202 position z (layout/equipment-placement.yaml): the base above
+        grade'
+  tangent_length:
+    value: 0.538
+    unit: m
+    source: 'layout/plant-model.yaml part T-202/shell: the generated shell between the heads (the 3D model''s
+      proportions, not a vessel design)'
+    assumed: true
 nozzles:
 - name: N1
   dn: 15
@@ -114,19 +125,58 @@ type_specific:
       1000 h) 70.422 L with its margin)'
     assumed: true
   volume_m3:
-    value: 0.085
+    value: 0.08481
     unit: m3
-    source: 'equipment/equipment-list.yaml dimensions: pi/4 D^2 x height (overall, including heads and
-      skirt: an upper bound)'
+    source: 'cheme datasheets fill: pi/4 D^2 L, D 0.448 m (dimensions.outside_diameter), L 0.538 m (dimensions.tangent_length);
+      the cylindrical shell between the tangent lines, heads not included; over the outside diameter:
+      an upper bound of the shell'
     assumed: true
+    fingerprint: 26e36a065bb18d34
+    inputs:
+    - datasheet:dimensions.orientation
+    - datasheet:dimensions.inside_diameter
+    - datasheet:dimensions.outside_diameter
+    - datasheet:dimensions.tangent_length
+    - datasheet:dimensions.overall_length
+    - datasheet:dimensions.overall_height
+    - datasheet:type_specific.diameter_m
+    - datasheet:type_specific.length_m
+    - datasheet:type_specific.height_m
   process_streams:
   - stream: S219
     direction: in
     title: 5 M KOH to the day tank
-    source: process/flowsheet.yaml (case skid-a)
+    source: process/flowsheet.yaml (case skid-b)
   - stream: S220
     direction: out
     title: 5 M KOH to the dosing pump
-    source: process/flowsheet.yaml (case skid-a)
-sizing_basis: []
+    source: process/flowsheet.yaml (case skid-b)
+  rating:
+    value: TBD
+    unit: ''
+    source: 'TBD: unsupported in cheme-as-code: no separator rating (droplet settling, K-factor, demister,
+      level settings): from the supplier''s rating (docs/framework/sizing.md) (cheme datasheets fill)'
+  mechanical_design:
+    value: TBD
+    unit: ''
+    source: 'TBD: unsupported in cheme-as-code: no mechanical design to a code (wall thickness, MAWP,
+      nozzle loads): from the supplier or a mechanical calculation (docs/framework/sizing.md) (cheme datasheets
+      fill)'
+  corrosion_allowance_mm:
+    value: TBD
+    unit: mm
+    source: 'TBD: unsupported in cheme-as-code: no material selection or corrosion allowance: the material
+      is the equipment list''s, given; the allowance from a materials/corrosion review (docs/framework/sizing.md)
+      (cheme datasheets fill)'
+  relief_protection:
+    value: TBD
+    unit: ''
+    source: 'TBD: unsupported in cheme-as-code: no relief scenarios or device sizing (API 520/521, ISO
+      4126): from a relief study (docs/framework/sizing.md) (cheme datasheets fill)'
+sizing_basis:
+- parameter: sizing_scope
+  value: preliminary
+  reference: 'cheme datasheets fill: the values it writes are preliminary process sizing (short-cut methods,
+    declared or typical parameters), not a rating or a design to a code; not calculated: rating, mechanical
+    code, materials corrosion, relief, dynamics controls (docs/framework/sizing.md)'
 notes: ''

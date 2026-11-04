@@ -40,6 +40,28 @@ materials:
     value: TBD
     unit: ''
     source: 'TBD: no material in the equipment list'
+dimensions:
+  overall_length:
+    value: 0.6
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.length
+    assumed: true
+  overall_width:
+    value: 0.5
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.width
+    assumed: true
+  overall_height:
+    value: 1.2
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.height
+    assumed: true
+  support:
+    elevation:
+      value: 0.15
+      unit: m
+      source: 'layout/plant-model.yaml X-132 position z (layout/equipment-placement.yaml): the base above
+        grade'
 nozzles:
 - name: N1
   dn: 15
@@ -57,6 +79,21 @@ nozzles:
   - FG-101
   source: pid/P-01.xml
 type_specific:
+  height_m:
+    value: 1.2
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+    assumed: true
+  length_m:
+    value: 0.6
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+    assumed: true
+  width_m:
+    value: 0.5
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+    assumed: true
   process_streams:
   - stream: S109
     direction: in
@@ -70,5 +107,50 @@ type_specific:
     direction: out
     title: Oxidiser flue gas
     source: process/flowsheet.yaml (case skid-a)
-sizing_basis: []
-notes: black box at the concept stage, DESIGN.md D-012; no DEXPI package class (D-017)
+  catalyst_mass_kg:
+    value: TBD
+    unit: kg
+    source: 'TBD: X132: no bed and no catalyst space velocity to size it from (cheme datasheets fill)'
+  catalyst_volume_m3:
+    value: TBD
+    unit: m3
+    source: 'TBD: X132: no bed and no catalyst space velocity to size it from (cheme datasheets fill)'
+  pressure_drop_kpa:
+    value: TBD
+    unit: kPa
+    source: 'TBD: X132: no bed and no catalyst space velocity to size it from (cheme datasheets fill)'
+  duty_kw:
+    value: TBD
+    unit: kW
+    source: 'TBD: reaction COX: no equilibrium_constant and no ideal_gas data for CO, O2, CO2; reaction
+      HOX: no equilibrium_constant and no ideal_gas data for H2, O2, H2O; ideal_gas data for CO, CO2,
+      H2, H2O, N2, O2 (cheme datasheets fill)'
+  rating:
+    value: TBD
+    unit: ''
+    source: 'TBD: unsupported in cheme-as-code: no reactor internals, heat-transfer surface or distributor
+      design: from the supplier''s rating (docs/framework/sizing.md) (cheme datasheets fill)'
+  mechanical_design:
+    value: TBD
+    unit: ''
+    source: 'TBD: unsupported in cheme-as-code: no mechanical design to a code (wall thickness, MAWP,
+      nozzle loads): from the supplier or a mechanical calculation (docs/framework/sizing.md) (cheme datasheets
+      fill)'
+  corrosion_allowance_mm:
+    value: TBD
+    unit: mm
+    source: 'TBD: unsupported in cheme-as-code: no material selection or corrosion allowance: the material
+      is the equipment list''s, given; the allowance from a materials/corrosion review (docs/framework/sizing.md)
+      (cheme datasheets fill)'
+  relief_protection:
+    value: TBD
+    unit: ''
+    source: 'TBD: unsupported in cheme-as-code: no relief scenarios or device sizing (API 520/521, ISO
+      4126): from a relief study (docs/framework/sizing.md) (cheme datasheets fill)'
+sizing_basis:
+- parameter: sizing_scope
+  value: preliminary
+  reference: 'cheme datasheets fill: the values it writes are preliminary process sizing (short-cut methods,
+    declared or typical parameters), not a rating or a design to a code (docs/framework/sizing.md)'
+notes: black box at the concept stage, DESIGN.md D-012; no DEXPI package class (D-017); outline ASSUMED
+  (D-019)
