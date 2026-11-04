@@ -34,6 +34,7 @@ import json
 import os
 import platform
 import re
+import subprocess
 import sys
 import urllib.request
 from importlib import metadata
@@ -217,16 +218,52 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
+def pinned_library_file(d: dict) -> tuple[bytes, dict]:
+    """The library file as committed at the pinned commit (inputs.yaml displaced_production).
+
+    Read with git show so that a later change to the working-tree file cannot change the
+    displaced-olefin value. The commit must be reachable from main (local or origin) and the
+    content must match the pinned sha256; otherwise the run stops.
+    """
+    def git(*args: str) -> subprocess.CompletedProcess:
+        return subprocess.run(["git", "-C", str(REPO), *args], capture_output=True)
+
+    commit = d["commit"]
+    if git("cat-file", "-e", f"{commit}^{{commit}}").returncode != 0:
+        raise RuntimeError(f"pinned commit {commit} of {d['path']} is not in this clone")
+    reachable = any(git("merge-base", "--is-ancestor", commit, ref).returncode == 0
+                    for ref in ("origin/main", "main"))
+    if not reachable:
+        raise RuntimeError(f"pinned commit {commit} of {d['path']} is not reachable from main or origin/main")
+    shown = git("show", f"{commit}:{d['path']}")
+    if shown.returncode != 0:
+        raise RuntimeError(f"{d['path']} not found at pinned commit {commit}")
+    data = shown.stdout
+    digest = hashlib.sha256(data).hexdigest()
+    if digest != d["sha256"]:
+        raise RuntimeError(f"{d['path']} at {commit} has sha256 {digest}, not the pinned {d['sha256']}")
+    work = REPO / d["path"]
+    work_digest = sha256_file(work) if work.exists() else None
+    return data, {
+        "commit": commit,
+        "commit_reachable_from_main": reachable,
+        "read_from": "git show <commit>:<path>",
+        "sha256": digest,
+        "working_tree_sha256": work_digest,
+        "working_tree_matches_pinned": work_digest == d["sha256"],
+    }
+
+
 def ethylene1_factor() -> dict:
     d = INP["displaced_production"]["dataset"]
-    path = REPO / d["path"]
-    digest = sha256_file(path)
+    data, pin = pinned_library_file(d)
+    digest = pin["sha256"]
     rows = {}
     import csv
+    import io
 
-    with open(path, encoding="utf-8", newline="") as fh:
-        for row in csv.DictReader(fh):
-            rows[row["key"]] = row
+    for row in csv.DictReader(io.StringIO(data.decode("utf-8"), newline="")):
+        rows[row["key"]] = row
     products = ["product:ETHYLENE", "product:PROPYLENE", "product:CRUDEC4", "product:PYGAS"]
     # inventory.csv is per kg ethylene with mass allocation already applied to the emissions
     # (ethylene-1 DESIGN.md D-016); under mass allocation the value per kg is the same for every
@@ -241,7 +278,7 @@ def ethylene1_factor() -> dict:
         raise RuntimeError("ethylene-1 inventory.csv emission:CO2 is not the mass-allocated value per kg")
     return {
         "path": d["path"],
-        "sha256": digest,
+        **pin,
         "sha256_pinned": d["sha256"],
         "sha256_match": digest == d["sha256"],
         "co2_per_kg_hydrocarbon_product_mass_allocated_in_file": co2_alloc,
@@ -351,20 +388,33 @@ def chains(config: str, waste: dict[str, float], pyro: dict[str, dict], f_virgin
         a["virgin_supply_gate_co2"] = a["virgin_monomer"] * f_virgin
 
     # ---------------- checks (internal) ----------------
+    # The out side of each balance is rebuilt from the primary inputs (waste, delivery basis,
+    # mechanical split, pyrolysis yields), not from the supply terms the routing computed, so the
+    # in and out sides do not cancel term by term: a supply that misses or overshoots the
+    # monomer demand, or a recovered stream that is lost or counted twice in routing, fails.
     checks = {}
     for name in ("LDPE", "PP"):
         a = f[name]
+        W, P = waste[name], pyro[name]
+        rec_ind = W * s * y                                   # recyclate, from the mechanical split
+        feed_ind = W - rec_ind                                # pyrolysis feed (input not made into recyclate)
+        from_mono_ind = W * deliver - rec_ind * subst_rec     # polymer the chain must make from monomer
+        demand_ind = from_mono_ind * mono_per_poly            # monomer it must polymerise
+        poly_loss = demand_ind - from_mono_ind                # polymerisation loss (0 at 1 kg/kg)
+        other_out_ind = feed_ind * P["products"][OTHER[name]]  # the other olefin as recovered
         m_in = a["waste"] + a["virgin_monomer"] + a["olefin_received"]
-        polymer_made = a["recyclate"] + (a["own_monomer_used"] + a["olefin_received"] + a["virgin_monomer"]) / mono_per_poly
-        poly_loss = (a["own_monomer_used"] + a["olefin_received"] + a["virgin_monomer"]) - (polymer_made - a["recyclate"])
-        m_out = polymer_made + poly_loss + sum(a["exported"].values()) + a["other_olefin_sent"] + a["fuel_burnt"]
+        # out: delivered polymer and its losses, as the basis demands, plus every pyrolysis output
+        # that leaves the folder as routed (exported, sent, burnt); the own monomer polymerised is
+        # inside the polymer. In equals out only if own + received + virgin monomer meets the demand.
+        m_out = rec_ind + from_mono_ind + poly_loss + sum(a["exported"].values()) + a["other_olefin_sent"] \
+            + a["fuel_burnt"]
         checks[f"mass_closure_{name}"] = {"in": m_in, "out": m_out, "rel": abs(m_out - m_in) / m_in}
         # carbon: every hydrocarbon input as CH2 (waste, virgin and received olefin). The pyrolysis
         # model's own element imbalance enters as a declared term, so this check tests the chain
         # bookkeeping (routing, burning, export) and holds by construction for the pyrolysis unit.
         c_in_ch2 = (a["waste"] + a["virgin_monomer"] + a["olefin_received"]) * W_C_CH2
         c_in = c_in_ch2 + a["pyrolysis_model_carbon_imbalance"]
-        c_out = polymer_made * W_C_CH2 + poly_loss * W_C_CH2 + a["exported"]["CH4"] * carbon_fraction("CH4") \
+        c_out = (rec_ind + from_mono_ind + poly_loss) * W_C_CH2 + a["exported"]["CH4"] * carbon_fraction("CH4") \
             + a["exported"]["C6H6"] * carbon_fraction("C6H6") \
             + (a["exported"][OWN[name]] + a["exported"][OTHER[name]] + a["other_olefin_sent"]) * W_C_CH2 \
             + a["direct_co2"] * AM["C"] / M_CO2
@@ -374,12 +424,20 @@ def chains(config: str, waste: dict[str, float], pyro: dict[str, dict], f_virgin
             "rel_against_CH2_without_model_term_diagnostic": abs(c_out - c_in_ch2) / c_in_ch2,
             "note": "holds by construction for the pyrolysis unit; its element balance is reported under pyrolysis_element_balance",
         }
-        b = f[PARTNER[name]]
-        checks[f"exchange_identity_{name}_to_{PARTNER[name]}"] = {
-            "sent": a["other_olefin_sent"],
+        # exchange: the sender's outflow is its recovered other olefin less what it sold and burnt
+        # (recomputed from its pyrolysis feed); the receiver's supply must meet its demand rebuilt
+        # from its own primary inputs, with the received olefin in place of virgin monomer.
+        b, nb = f[PARTNER[name]], PARTNER[name]
+        Wb, Pb = waste[nb], pyro[nb]
+        rec_b = Wb * s * y
+        demand_b = (Wb * deliver - rec_b * subst_rec) * mono_per_poly
+        own_b = min((Wb - rec_b) * Pb["products"][OWN[nb]], demand_b)
+        outflow = other_out_ind - a["other_olefin_exported"] - a["other_olefin_burnt"]
+        checks[f"exchange_identity_{name}_to_{nb}"] = {
+            "sent_from_sender_outflow": outflow,
             "received": b["olefin_received"],
-            "abs": abs(a["other_olefin_sent"] * subst_ole - b["olefin_received"])
-            + abs(b["deficit_after_own"] - b["olefin_received"] - b["virgin_monomer"]),
+            "abs": abs(outflow * subst_ole - b["olefin_received"])
+            + abs(demand_b - own_b - b["olefin_received"] - b["virgin_monomer"]),
         }
     total_co2 = f["LDPE"]["direct_co2"] + f["PP"]["direct_co2"]
     alloc_sum = sum(f[n]["alloc_co2_own_monomer_used"] + f[n]["alloc_co2_sent"] + f[n]["alloc_co2_exported"]
@@ -522,13 +580,20 @@ def verify_download(entry: dict, name: str) -> dict:
     target = cache_dir() / name
     status = {"url": entry["url"], "sha256_pinned": entry["sha256"], "cache": f"$XDG_CACHE_HOME or ~/.cache, cheme-reproductions/{CASE}/{target.name}"}
     try:
-        if not target.exists() or sha256_file(target) != entry["sha256"]:
+        if target.exists() and sha256_file(target) == entry["sha256"]:
+            digest = entry["sha256"]
+        else:
+            # download to a .part file and replace the cached copy only when the hash matches;
+            # on a mismatch the old cache is kept and the .part file is removed
             tmp = target.with_suffix(".part")
             req = urllib.request.Request(entry["url"], headers={"User-Agent": f"cheme-reproductions/{CASE} (provenance hash check)"})
             with urllib.request.urlopen(req, timeout=120) as r, open(tmp, "wb") as fh:
                 fh.write(r.read())
-            tmp.replace(target)
-        digest = sha256_file(target)
+            digest = sha256_file(tmp)
+            if digest == entry["sha256"]:
+                tmp.replace(target)
+            else:
+                tmp.unlink()
         status["sha256"] = digest
         status["status"] = "verified" if digest == entry["sha256"] else "hash mismatch"
     except OSError as exc:  # network failure: the numbers are in inputs.yaml, so the run goes on
@@ -737,8 +802,8 @@ def main() -> int:
     pyro = {"LDPE": ldpe, "PP": pp}
     comp = component_reproduction(ldpe)
     eth1 = ethylene1_factor()
-    if not eth1["sha256_match"]:
-        print(f"warning: {eth1['path']} differs from the pinned sha256; the displaced-olefin value is recomputed from the current file", file=sys.stderr)
+    if not eth1["working_tree_matches_pinned"]:
+        print(f"note: the working-tree {eth1['path']} differs from the pinned commit; the pinned version is used", file=sys.stderr)
     f_virgin = eth1["co2_per_kg_olefin_mass_allocated"]
 
     waste = {"LDPE": INP["functional_basis"]["waste_LDPE_sorted"]["value"],

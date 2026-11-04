@@ -15,8 +15,10 @@
   Output `results/comparison.json` and three SVG figures. Rerun after review from an empty
   cache; two runs gave byte-identical results. The component source (UPCommons accepted
   manuscript) and the target's abstract book were downloaded into the cache and both matched
-  their pinned sha256. The library file `processes/ethylene-1/lca/inventory.csv` matched its
-  pinned sha256.
+  their pinned sha256. The library file `processes/ethylene-1/lca/inventory.csv` is read as
+  committed at the pinned commit 7943fe1 (`git show`), which is reachable from main; it matched
+  its pinned sha256, as does the working-tree copy. Rerun after the second review from an empty
+  cache, with the same result files byte for byte.
 - **Revised after review** (same day, after the first comparison run): the frozen
   `tolerances.yaml` and every input of the component checks are unchanged, so the component
   verdict is the one first reported. Changes to the reconciliation are listed under
@@ -28,7 +30,7 @@
 | --- | --- |
 | Target reproduction (El Khoury et al. 2025) | **not achievable**: no inventory inputs published; every reported result is a share of characterised impacts on an unnamed licensed background |
 | Component reproduction (Somoza-Tornos et al. 2020, Table 2) | **fail**: 4 of 5 checks pass; benzene is 6.3 % low against a 3 % tolerance |
-| Reconciliation checks (mass, carbon, exchange identity, allocation conservation) | all hold to rounding (relative error 0) in all three configurations, the extension and the sensitivities. The carbon check tests the chain bookkeeping only: it holds by construction for the pyrolysis units, whose element balance is reported separately below |
+| Reconciliation checks (mass, carbon, exchange identity, allocation conservation) | all hold to rounding (relative error 0) in all three configurations, the extension and the sensitivities. They are bookkeeping checks inside one model: they catch routing and supply errors, not errors in the model's inputs. The carbon check holds by construction for the pyrolysis units, whose element balance is reported separately below |
 | Direction check against the target's claim (S4 lowest) | consistent on inventory indicators (does not count for the verdict) |
 
 The pass rule makes the case verdict "fail" when a component check fails. That is the result.
@@ -218,6 +220,31 @@ unchanged:
 4. **New sensitivities:** the burnt-olefin heat credit, energy allocation and the PP yields.
 5. **Wording:** the CO2 pass, the reach of the component failure, the D_fuel upper bound and the
    consistency with the abstract's ranking, as above.
+
+Second review (no result changed; every number above is as before):
+
+6. **Reconciliation checks made independent.** As first written, the exchange identity could
+   not fail: it compared the received olefin with the sent olefin times the substitution ratio,
+   and the virgin monomer with the deficit less the received olefin, which is how `run.py`
+   computes both. The mass and carbon closures also cancelled in their monomer terms, because
+   they took the polymer made from the monomer supply itself. The checks now rebuild the out
+   side from the primary inputs: the exchange identity compares the received olefin with the
+   sender's recovered other olefin less what it sold and burnt, and the receiver's own,
+   received and virgin monomer with its demand recomputed from waste, delivery basis and
+   mechanical split; the mass and carbon closures take the polymer from the delivery basis.
+   A changed virgin, received or sold olefin now fails them (tested by perturbing each by 1 kg).
+   They remain checks of bookkeeping inside one model, not evidence on its inputs. The frozen
+   rule (`tolerances.yaml` reconciliation_checks) is unchanged and is not at fault: it states
+   what must hold, and the first implementation did not test it independently. All checks
+   still hold to rounding, so the verdict is unchanged.
+7. **Pinned library file.** `run.py` read the working-tree
+   `processes/ethylene-1/lca/inventory.csv` and only warned if it differed from the pinned
+   sha256, so a later change to that file would have changed the displaced-olefin results
+   silently. It now reads the file at the pinned commit with `git show` and stops if the
+   commit is not reachable from main or the content does not match the pinned sha256.
+8. **Download cache.** On a sha256 mismatch the downloaded file replaced the cached copy. The
+   download is now checked before it is moved into the cache; on a mismatch it is discarded,
+   the cached copy is kept and the status records "hash mismatch".
 
 ## Gaps found (reported, not fixed here)
 

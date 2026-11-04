@@ -54,12 +54,15 @@ From the repository root:
 uv run benchmarks/reproductions/recycling-symbiosis-lci/run.py
 ```
 
-It reads `inputs.yaml`, `source.yaml`, `tolerances.yaml` and the pinned library file
-`processes/ethylene-1/lca/inventory.csv`, downloads the component source's accepted manuscript
+It reads `inputs.yaml`, `source.yaml`, `tolerances.yaml` and the library file
+`processes/ethylene-1/lca/inventory.csv` as committed at the pinned commit (with `git show`; it
+stops if that commit is not reachable from main or the file does not match its pinned sha256),
+downloads the component source's accepted manuscript
 and the target's abstract book (9.5 MB) into
 `$XDG_CACHE_HOME/cheme-reproductions/recycling-symbiosis-lci/` (default `~/.cache/...`) only to
-check their sha256 (they are never parsed or executed; without network the run continues and
-records "not verified"), and writes `results/`. It exits non-zero only if the script fails or an internal
+check their sha256 (they are never parsed or executed; a download that does not match is
+discarded and any cached copy kept; without network the run continues and records "not
+verified"), and writes `results/`. It exits non-zero only if the script fails or an internal
 reconciliation check fails; the reproduction verdict is in `results/comparison.json`.
 
 ## Files
