@@ -41,7 +41,8 @@ In physical terms:
   window is therefore an upper estimate of where operation is selective.** For 50 % cmc it is
   not supported by the observations.
 - The selective window supported by both the model and Table 3 is SDS 10 and CTAB 10 (both
-  membranes) at TMP up to 0.1 bar, with oil entry 0.08 bar measured on the K101-infused
+  membranes) at TMP up to 0.1 bar (for CTAB 10 on the dry membrane only at the nominal fit:
+  0.1 bar lies inside the band of the water entry pressure, whose low edge is 0.086 bar), with oil entry 0.08 bar measured on the K101-infused
   membrane.
 
 ## 2. Membrane area, only where flux data support it
@@ -54,11 +55,15 @@ feed chamber refreshed repeatedly. Average oil flux 4.0e-6 m3 m-2 s-1 (14.4 L m-
 | Oil volume fraction of the feed (5 wt% hexadecane, water density) | 0.0673 |
 | Test cell area (25 mm diameter) | 4.91e-4 m2, about 7.1 mL/h of oil |
 | Area to pass all the oil of 1 m3/h of this feed, at the measured flux (assumed basis) | **4.7 m2 per m3/h of feed** |
-| Darcy capacity of the open pores at 0.1 bar (LLD cycle 1 permeability) | 2.05e-4 m3 m-2 s-1, 51 times the measured flux |
+| Darcy capacity of the open pores at 0.1 bar (LLD cycle 1 permeability) | 2.05e-4 m3 m-2 s-1, 51 times the measured flux (164 times if Table S3 used 1 mPa s, see below) |
 | Creaming supply from the largest droplets (phi x 19.85 um/s) | 1.3e-6 m3 m-2 s-1 |
 
 The flux is limited by how fast oil reaches the membrane, not by permeation. The open pores
-could pass 51 times more oil at the same TMP. The source states that the flux falls as the
+could pass 51 times more oil at the same TMP. This uses the SI Table S3 permeability with the
+hexadecane viscosity, 3.2 mPa s. SI p. S7 states that 1 mPa s was used for Table S3; if so, the
+permeability on a hexadecane basis is 3.2 times higher, the capacity about 160 times the
+measured flux, and the implied dry porosity 0.68 instead of 0.21. Either way the flux is
+supply-limited. The source states that the flux falls as the
 droplet concentration falls and depends on how often the feed is refreshed. The measured
 average is also three times the steady creaming supply from the largest droplets, so it
 includes oil that accumulated between refreshes. The 4.7 m2 figure is therefore a batch,
@@ -78,7 +83,7 @@ flux data. The usable TMP range is the window narrowed by the fit CIs and by a m
 | --- | --- | --- | --- |
 | Oil entry [bar] | 0.096 | 0.191 | 2 |
 | Water entry [bar] | 0.392 | 0.783 | 2 |
-| Water/oil entry ratio | 4.10 | 4.10 | 1 |
+| Water/oil entry ratio | 4.09 | 4.09 | 1 |
 | Usable TMP range [bar] | 0.109-0.312 | 0.207-0.636 | - |
 | Tolerable TMP variation [bar] | 0.204 | 0.429 | 2.11 |
 | Controller steps (5.5 mbar) in usable range | 37 | 78 | - |
@@ -91,13 +96,23 @@ Engineering consequence:
   channel plus pressure ripple plus set-point error. That is the property a crossflow module
   needs most. (The usable variation more than doubles because the fixed control margin takes a
   smaller share.)
-- **Pore size cannot change selectivity.** The water/oil entry ratio is 4.1 for any r, because
-  both bounds scale with 1/r. Surfactant level, oil and infusion liquid set selectivity.
+- **Within the threshold model, pore size does not change the water/oil entry-pressure
+  ratio** (4.09 for any r, because both bounds scale with 1/r). In the model, surfactant level,
+  oil and infusion liquid set selectivity. Whether real leakage, which the model does not
+  capture at 50 % cmc (largest pores, K101 loss), depends on pore size is not known.
 - **Smaller pores halve the permeation capacity at the top of the window.** Capacity goes as
   r^2 x (1/r) = r. While the flux is supply-limited (part 2), this costs nothing. It would
   start to matter only if oil delivery became faster than about 3e-4 m3 m-2 s-1.
 
 Extrapolation and validity flags:
+
+- **Operating pressure outside the observed range.** The changed case's usable TMP range,
+  0.207 to 0.636 bar, lies entirely above the highest TMP at which the source ran emulsions
+  (0.1 bar). So does the base range (0.109 to 0.312 bar): its lower bound has the control margin
+  added to the 0.098 bar oil bound. No measurement backs the selective behaviour, the leakage at
+  50 % cmc or the supply-limited flux at these pressures. In `results/extension_pore_radius.svg`
+  the region above 0.1 bar is shaded grey; the whole usable range lies above it for pore
+  radius scales 0.25 to 1.09 (`comparison.json` design_extension).
 
 - The radius scaling assumes the liquid lining scales with the pore. Not measured.
 - kappa = phi r^2 / 24 at unchanged porosity and active-pore fraction is the source's simple
@@ -126,8 +141,8 @@ The data support only a dead-end, gravity-fed batch cell. Sizing a crossflow mod
    pores), because breakthrough starts in the largest pores. The fitted curvature radius is a
    single value.
 5. **Long-term retention of the infusion liquid under emulsion flow.** Only an LLD estimate
-   exists (about 45 % lost after pure oil flow). A K101 loss rate sets the module life and
-   whether re-infusion is needed.
+   exists (about 45 % retained, i.e. about 55 % displaced, after pure oil flow). A K101 loss
+   rate under emulsion flow sets the module life and whether re-infusion is needed.
 6. **Axial pressure drop of the chosen channel geometry**, to check it against the tolerable
    TMP variation (0.20 bar for the base membrane). This also needs the permeate-side pressure.
 7. **Fouling and surfactant adsorption over time**, and the effect of real oils (crude or

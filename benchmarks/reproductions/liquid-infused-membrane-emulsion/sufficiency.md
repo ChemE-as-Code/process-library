@@ -21,7 +21,11 @@ Access used here:
 | Figure 4b (LEP against concentration) | same archive, `la9b01055_0004.jpg`, 400 x 174 px for both panels | yes, low resolution | the 12 measured LEP points, digitised (method and uncertainty in `source.yaml`) |
 | Raw data (flux and pressure logs, IFT series, droplet size data) | none published | - | - |
 
-Reuse terms: CC BY-NC-ND forbids derivatives of the article. We copy no text, table or figure.
+Reuse terms: the article is published open access under ACS AuthorChoice CC-BY-NC-ND terms
+(http://pubs.acs.org/page/policy/authorchoice_ccbyncnd_termsofuse.html; copyright American
+Chemical Society, 2019). The licence statement in the XML permits copying, redistribution and
+adaptation only for non-commercial purposes. These non-commercial and no-derivatives terms are
+incompatible with this library's CC BY 4.0, so we copy no text, table or figure.
 We restate facts and numbers (property values, fitted parameters, stated pressures, water
 fractions) in our own form with locators, which CLAUDE.md allows, and draw every figure from our
 own code. The run fetches the article XML at runtime into a cache outside git; nothing of the
@@ -39,8 +43,10 @@ source is committed.
    0.05 bar (CTAB 50) and 0.15 bar (SDS 50); the authors' combined-interface estimate for the
    K101-infused membrane under a hexadecane layer, 0.26 bar (SDS 50) and 0.15 bar (CTAB 50).
    The other LEP points (pure water, 10 % cmc, K101-infused) exist only in Figure 4b. We
-   digitised all 12 points from the low-resolution figure image, with an uncertainty of about
-   0.015 bar; they are compared as digitised values, not as reported numbers.
+   digitised all 12 series points from the low-resolution figure image, with an uncertainty of
+   about 0.015 bar. Markers overlap for pure water and for both K101-infused points at
+   10 % cmc, so they give 10 distinct values, compared in 11 checks (the shared water point
+   once per fit radius) as digitised values, not as reported numbers.
 3. **Permeating phase.** Water fraction in the permeate for the eight combinations of emulsion
    (SDS or CTAB at 10 or 50 % cmc) and membrane (dry or K101-infused), all at a transmembrane
    pressure (TMP) of at most 0.1 bar (Table 3). This is the observed selectivity.
@@ -67,8 +73,8 @@ source is committed.
 
 ## Scope decided from this
 
-- **Reproduction:** recompute the eight tabulated IFTs, the 12 digitised Figure 4b entry
-  pressures, the four entry pressures stated in the text, the
+- **Reproduction:** recompute the eight tabulated IFTs, the 12 digitised Figure 4b series
+  points (10 distinct values), the four entry pressures stated in the text, the
   hexadecane entry pressure, the emulsion-run oil permeability and the three LLD active-pore
   fractions from the reported inputs, under tolerances frozen before the run.
 - **Model against the paper's own observations (not independent validation):** apply the
