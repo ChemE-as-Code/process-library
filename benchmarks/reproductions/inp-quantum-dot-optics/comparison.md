@@ -8,14 +8,27 @@
   `git diff 75775d98 HEAD -- benchmarks/reproductions/inp-quantum-dot-optics/tolerances.yaml` is empty.
 - **Run:** 2026-11-04, `uv run benchmarks/reproductions/inp-quantum-dot-optics/run.py` from the
   repository root; Python 3.13.16, numpy 2.3.4, scipy 1.16.3, matplotlib 3.10.7, pyyaml 6.0.3
-  (uv 0.13.0). 113 archive members fetched by HTTP range request, each checked against CRC-32 and
+  (uv 0.13.0; transitive packages resolved with `exclude-newer = 2026-11-04T00:00:00Z` from the
+  script metadata, added after review). `requires-python` admits 3.12 and 3.13 as the library
+  convention sets; only 3.13 was run. 113 archive members fetched by HTTP range request, each checked against CRC-32 and
   sha256. Two consecutive runs gave byte-identical `results/`.
 - **Order:** commits 1bf8d659 (sufficiency, mapping) and 75775d98 (freeze) come before the
   run.py commit. The sufficiency inspection printed raw integrals and absorbances; no quantum
-  yield was computed by script before the freeze. After the first run we changed only
-  diagnostics and presentation: a post-hoc sensitivity (no absorbance baseline), no PL peak
-  when the maximum sits at the window edge (trap-dominated samples, not used in any check),
-  implied factors in the contrast table, and figure layout. No judged value changed.
+  yield was computed by script before the freeze. git shows only this order. run.py and its
+  results were first committed together in 0954f953, after the first comparison run and after
+  later edits, so the state of the script at the first run is not recorded in git and cannot be
+  audited. By the author's own record, the edits after the first run were to diagnostics and
+  presentation: a post-hoc sensitivity (no absorbance baseline), no PL peak when the maximum sits
+  at the window edge (trap-dominated samples; this sets their FWHM to none, which keeps them out
+  of the quality screen, and is not used in any check), implied factors in the contrast table,
+  and figure layout; no judged value changed. That claim rests on the author's record, not on
+  git. Later cases should commit run.py, or the first-run `comparison.json`, before or at the
+  first run.
+- **Revisions after review (this file's run):** labels and notes in `inputs.yaml` (no value
+  used by a check changed), an aliquot-volume sensitivity and the 330 nm retention in the
+  extension, the `exclude-newer` date in the script metadata, and text corrections here and in
+  README.md, extension.md and sufficiency.md. The check results are unchanged. `tolerances.yaml`
+  is unchanged.
 
 ## Result: FAIL under the frozen rule (15 of 22 checks pass; 4 of 8 primary checks fail)
 
@@ -55,17 +68,28 @@ Per-sample values are in `results/sample_metrics.csv`. The figure is `results/fi
 
 ## Deviations and explanations
 
-1. **2022 sessions (P5, P6, P7): absorbance baseline at low OD, most likely main cause.** These
-   samples were measured at OD 0.047 (ZnCl2) to 0.07 at 387 nm, below the stated ~0.1. Their
-   spectra carry a negative offset of -0.005 to -0.009 OD at 680-700 nm, which our frozen rule
-   subtracts. At OD 0.05 this changes the absorbed fraction by about 15 %. A post-hoc variant
-   without the absorbance baseline (not judged; `diagnostics.posthoc_no_absorbance_baseline_pct`)
-   gives 64.0 % for 200 °C 60 min (within 67 ± 6.7), 80.8 % for ZnCl2 (within 85 ± 8.5) and a
-   200 °C maximum of 67.1 % (still not > 70 %). For the 150 °C series it gives 52.3 % (60 min) and
-   39.9 % (5 min), so P1 and P2 would still pass. The authors' baseline handling is not stated, so
-   this explains the deviation but does not identify their procedure. The ZnCl2 sample is also
-   flagged for its OD (inner-filter-free but noise-sensitive) and for its file name (60 min)
-   against the stated 5 min.
+1. **2022 sessions (P5, P6, P7).** Baseline-corrected OD at 387 nm (`results/sample_metrics.csv`):
+   F1-200-05 0.084, F1-200-30 0.105, F1-200-60 0.071, F1-200-60W 0.119, F1-200Z 0.047. The
+   offsets at 680-700 nm, which our frozen rule subtracts, are -0.003 to -0.009 OD.
+   - *P5 and P7 (the two low-OD samples): absorbance baseline, a plausible cause.* F1-200-60
+     (OD 0.071, offset -0.007) and F1-200Z (OD 0.047, offset -0.007) sit at or below the lower
+     edge of the stated ~0.1. At OD 0.05 the offset changes the absorbed fraction by about 15 %. A
+     post-hoc variant without the absorbance baseline (not judged;
+     `diagnostics.posthoc_no_absorbance_baseline_pct`) gives 64.0 % for 200 °C 60 min (within
+     67 ± 6.7) and 80.8 % for ZnCl2 (within 85 ± 8.5). For the 150 °C series it gives 52.3 %
+     (60 min) and 39.9 % (5 min), so P1 and P2 would still pass. Low OD does not reliably cause a
+     failure: the heat-up sample F4-HU-HF (OD 0.051, offset -0.005) passes S6 under the frozen
+     rule (53.3 % against 55 %). The authors' baseline handling is not stated, so this offers an
+     explanation but does not identify their procedure. The ZnCl2 sample is also flagged for its
+     file name (60 min) against the stated 5 min.
+   - *P6: unexplained.* The series maximum is F1-200-60W at 65.2 %. It lies inside the
+     0.05-0.15 window with a small offset (-0.003); without the baseline it gives 65.8 %, still
+     below 70 %. The highest post-hoc value in the series is 67.1 %. Figure 1E (inspected, not
+     digitised) plots the three unwashed 200 °C points below 70 % and only the washed 200 °C
+     point above it. The source's ">70 %" therefore most likely refers to the washed sample,
+     F1-200-60W, which is the sample our P6 maximum already uses (`source.yaml` records "which
+     aliquot is not stated", which remains true of the text). The failure stands and its cause
+     is not identified.
 2. **Refractive index (all PLQYs).** We correct for toluene against ethanol, (1.497/1.361)² = 1.21.
    Without it, every PLQY falls by 17 % (150 °C 60 min: 46.2 %). With it, the 150 °C series and
    Figure 4B agree, so the authors most likely applied it. For the 200 °C samples a hexadecane

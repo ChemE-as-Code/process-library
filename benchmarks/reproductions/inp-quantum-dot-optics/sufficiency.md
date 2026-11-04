@@ -11,7 +11,7 @@ compared with a reported one.
 | --- | --- | --- | --- |
 | Dataset v1 | 4TU.ResearchData, doi 10.4121/1370d230-bca3-4af4-af06-1a9f168a4b10.v1 | CC BY-NC-SA 4.0 | one 3.47 GB zip and a README; ordered by figure |
 | Article | Chem. Mater. 2022, 34, 10093, doi 10.1021/acs.chemmater.2c02800; PMC9686131 | CC BY 4.0 (open access) | methods, reported PLQYs, peaks, widths, lifetimes |
-| Supporting information | cm2c02800_si_001.pdf (via Europe PMC) | published with the article | captions of Figures S4-S9, S16, S19 (doses, conditions) |
+| Supporting information | cm2c02800_si_001.pdf (via Europe PMC) | no separate licence stated; distributed as supplementary material of the CC BY 4.0 article (PMC9686131). We use only facts restated in our own words | captions of Figures S4-S9, S16, S19 (doses, conditions) |
 
 The archive holds, for the optics: 64 absorbance files (PerkinElmer Lambda 365 ASCII, 300-700 or
 300-900 nm, 1 nm), 63 emission files (Edinburgh FLS980, 387 nm excitation, corrected spectra),
@@ -44,7 +44,8 @@ state the reference quantum yield (0.95), the excitation wavelength (387 nm) and
 - **Measurement solvent.** The solvent in the cuvette for aliquots is not stated (treatment in
   mesitylene or hexadecane, purified QDs in toluene).
 - **Concentration.** The Methods say OD ~0.1 at 387 nm for all samples, but the 0 min aliquots
-  have OD 0.31-0.36 and the RT aliquots 0.21-0.23: inner-filter and reabsorption effects are
+  have OD 0.31-0.36 and the RT aliquots 0.21-0.23 (raw OD at 387 nm, as inspected here; after
+  the 680-700 nm baseline of run.py, 0.31-0.36 and 0.18-0.21): inner-filter and reabsorption effects are
   not controlled for those.
 - **Sample identity.** See the flags in mapping.csv. The main ones: the Figure 4B "hot injection
   in situ HF" files are the washed 150 C sample of Figure 1 (text 64 %, Figure 4B 54 %); the
