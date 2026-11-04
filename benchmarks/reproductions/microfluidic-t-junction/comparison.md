@@ -18,11 +18,20 @@
   pypdf 5.1.0 and uv 0.13.0. Two runs gave byte-identical `results/`. The final run used an
   empty cache (`XDG_CACHE_HOME` set to a new directory), so the PDF was downloaded and verified
   again.
+- **Revision after review (same day):** `run.py` now counts the digitisation rerun as a check,
+  records two diagnostics outside the pass rule (alpha at other eps, the swapped geometry
+  reading), and revises the design extension (`inputs.yaml` revision r1, `extension.md`).
+  `tolerances.yaml` and the reproduction inputs are unchanged, and the verdict is the same.
 
-## Result: PARTIAL under the frozen rule (13 of 15 checks pass)
+## Result: PARTIAL under the frozen rule (14 of 16 checks pass)
 
-The model is reproduced: the implementation check, both independently evaluated squeezing
-coefficients, and all six intercept and slope checks pass. The published agreement with the
+The 16 checks are the two `model_internal` checks (filling volume, digitisation rerun), two
+`model_alpha_independent`, six `model_lines` and six `model_vs_experiment` checks. A failed
+digitisation rerun also stops the run (exit 2), because the extracted reference would then not
+be the one recorded in `source.yaml`.
+
+The model is reproduced: both implementation checks, both squeezing coefficients evaluated by a
+third party (under the assumed eps = 0, see below), and all six intercept and slope checks pass. The published agreement with the
 experiments is reproduced for two of the three junction shapes. For the shallowest shape
 (w_in/w = 0.67, h/w = 0.11) both of its checks fail. Under the pass rule, that makes the result
 **partial**.
@@ -42,11 +51,20 @@ experiments is reproduced for two of the three junction shapes. For the shallowe
 | Intercept v_fill, 1.33 / 0.17 | 1.338 | 1.288 | -0.050 | abs 0.15 | pass |
 | Slope alpha, 1.33 / 0.17 | 3.079 | 3.202 | +4.0 % | rel 10 % | pass |
 
-Here v = V/(h w²) and q = q_d/q_c. The geometry columns give w_in/w and h/w. The reference
+Here v = V/(h w²) and q = q_d/q_c. The geometry columns give w_in/w and h/w.
+
+The two alpha checks pass under the assumed eps = 0. Nekouei and Vanapalli do not state the
+corner roundness. eps = 0 is the convention of the original's squeezing-coefficient chart
+(Fig. 2b, per the restatement), and it was chosen before the freeze, after the two values had
+been estimated by hand (`tolerances.yaml` header). With eps = 0.01 w the values would be 1.798
+and 1.179 (case b fails); with eps = 0.1 w they would be 2.116 and 1.462 (both fail). These
+values are in `comparison.json` under `diagnostic_other_eps_not_in_pass_rule`. The checks
+therefore show that our implementation agrees with one third-party evaluation under the
+assumed eps. They add little independent constraint on eps or on the model itself. The reference
 lines are the dashed model lines of the replot. Their intercept is extrapolated to q = 0 from
 the extracted end points.
 
-The slope checks also confirm the corner roundness of the bubble series. With eps = 0, the
+The slope checks do constrain the corner roundness of the bubble series. With eps = 0, the
 slopes would be 0.281, 1.380 and 2.761, which deviate by -49 %, -13 % and -10.3 %. All three
 would fail. With eps = 0.1 w, the value recorded for the original's bubble series, all three
 pass.
@@ -97,10 +115,13 @@ numerical prediction, not measurements, so they are not counted as independent v
      vertical coordinate as the start points of the replot's dashed lines, which may point to an
      artefact of the replot. The original figure, which would settle this, is closed.
 2. **Geometry reading.** The replot's legend and the replication script agree on (0.67, 0.11)
-   and (1.33, 0.17), while the replot's body text swaps the two depths. We tested the swapped
-   reading after the run, for diagnosis only. It does not rescue the 0.67 series (mean 20.7 %,
-   max 55 %) and it makes the 1.33 series fail (mean 12.1 %, max 23 %, slope +10 % against the
-   line). The legend reading is kept.
+   and (1.33, 0.17), while the replot's body text swaps the two depths. `run.py` evaluates the
+   swapped reading as a diagnostic outside the pass rule
+   (`reproduction.diagnostic_swapped_geometry_not_in_pass_rule`). It does not rescue the 0.67
+   series (mean 20.7 %, max 55 %, both fail). The 1.33 series still passes all four checks under
+   the swap (mean 12.1 %, max 23 %, intercept -0.03, slope +9.95 % against the 10 % limit, so
+   only just). The verdict would therefore be partial under either reading, and the swap does
+   not discriminate between them. The legend reading is kept because two sources agree on it.
 3. **Model lines.** Our intercepts differ from the replot's lines by -0.09 to +0.03, and our
    slopes by -4 % to +7 %. Nekouei and Vanapalli do not say how they evaluated the lines
    (rounding of h/w, eps, or reading values off the original's chart). These differences are
@@ -109,7 +130,9 @@ numerical prediction, not measurements, so they are not counted as independent v
    consistent in three ways: the filling volume agrees with its geometric construction; R_pinch
    follows from the neck-width relation the restatement gives; and alpha follows from
    integrating the receding-interface equation. Two squeezing coefficients evaluated by a third
-   party also agree to their reported digits. The restatement reports a misplaced bracket in
+   party also agree to their reported digits, under the assumed eps = 0 (see above). The
+   restatement itself is unreviewed: it is submitted to ReScience C (ReScience/submissions#71)
+   and was open without reviewers on 2026-11-04. The restatement reports a misplaced bracket in
    the original's Fig. 2a for w_in > w. We use the bracketing that matches the geometry, and it
    enters only the 1.33 series.
 

@@ -12,9 +12,9 @@ squeezing term linear in q_d/q_c. Both terms are set by w_in/w, h/w and the corn
 
 | Part | Status |
 | --- | --- |
-| Reproduction | **partial** under the frozen rule (13 of 15 checks). The model is reproduced: implementation, two independently evaluated squeezing coefficients, and the intercepts and slopes of the published model lines all pass. Agreement with the experiments is reproduced for two of three junction shapes (mean deviation 10 % and 8 %). The shallowest shape (h/w = 0.11) fails: its mean deviation is 25 %, driven by three points below q = 1. |
+| Reproduction | **partial** under the frozen rule (14 of 16 checks). The model is reproduced: the implementation and digitisation checks, and the intercepts and slopes of the published model lines all pass; the implementation also agrees with a third-party evaluation of two squeezing coefficients under the assumed corner roundness eps = 0. Agreement with the experiments is reproduced for two of three junction shapes (mean deviation 10 % and 8 %). The shallowest shape (h/w = 0.11) fails: its mean deviation is 25 %, driven by three points below q = 1. |
 | Independent validation | none. The experimental points come from the model's own paper. The VOF points of Nekouei and Vanapalli are reported as informational only. |
-| Design extension | HYPOTHETICAL (`extension.md`): the model inverted for 0.5 nL and 2.0 nL, a forward check of every design, a changed-input example, four flagged out-of-regime requests, and dimensioned drawings |
+| Design extension | HYPOTHETICAL (`extension.md`): the model's unreproduced liquid-droplet branch inverted for 0.5 nL and 2.0 nL inside both squeezing-regime bounds (leaking and S-number), with a corner-roundness robustness check, a forward check of every design, a changed-input example, four flagged out-of-regime requests, and dimensioned drawings |
 | Specialist review | not yet (an optional follow-up with a microfluidics and multiphase-flow specialist) |
 
 Rerun from the repository root (needs `uv`; the reference PDF is downloaded into
@@ -43,14 +43,16 @@ uv run benchmarks/reproductions/microfluidic-t-junction/run.py
 - **van Steijn 2010** is closed access and was not read. Its authorship and its abstract's
   claims were checked through OpenAlex and PubMed.
 - **The equations** are taken from an open replication by Schackart and Kaarj (GitHub, MIT
-  licence, commit pinned). They are restated as facts in `source.yaml` and implemented
-  independently in `run.py`.
+  licence, commit pinned). It is submitted to ReScience C (ReScience/submissions#71) and was
+  open and unreviewed on 2026-11-04. The equations are restated as facts in `source.yaml` and
+  implemented independently in `run.py`.
 - **The reference figure** is the replot of three of the original's six Fig. 3 series in
   Nekouei and Vanapalli (arXiv:1703.00937v1, arXiv non-exclusive licence). Its marker and line
   coordinates are read from the PDF's vector paths at runtime. Neither the PDF nor its figure
   is redistributed.
-- **Korczyk et al. 2019** (Nat. Commun., CC BY 4.0) supplies the leaking-regime bound and the
-  measured fluid properties of the design extension.
+- **Korczyk et al. 2019** (Nat. Commun., CC BY 4.0) supplies the two squeezing-regime bounds
+  (leaking, and the S-number upper bound) and the measured fluid properties of the design
+  extension.
 
 All figures and drawings are made by our own code.
 
@@ -61,13 +63,17 @@ All figures and drawings are made by our own code.
 - A fixed 10 % of the continuous phase bypasses the forming droplet through the corners.
 - Corner roundness is 0.1 w for the gas-bubble series and 0.01 w for liquid droplets.
 - No viscosity-ratio term.
-- Validated ranges (from the original's experiments): h/w from 0.11 to 0.48, w_in/w from 0.33
-  to 3, q_d/q_c from 0.1 to 10, and Ca below 0.01.
+- Experimental ranges of the original (Nekouei and Vanapalli, Table 1, and the replication):
+  h/w from 0.11 to 0.48, w_in/w from 0.33 to 3, q_d/q_c from 0.1 to 10, viscosity ratio from
+  0.01 to 0.1, and Ca below 0.01. The Ca range is not a regime boundary: the squeezing regime is
+  bounded by q Ca ≥ 7.4e-4 and Ca (1 + q)² ≤ 0.017 (Korczyk et al. 2019).
+- This reproduction confirmed the published agreement only for h/w from 0.17 to 0.33.
 
 ## Evidence gaps
 
-- The equations could not be checked against the original text. They are checked only for
-  internal consistency and against two squeezing coefficients evaluated by a third party.
+- The equations could not be checked against the original text. They rest on an unreviewed
+  restatement, and are checked only for internal consistency and against two squeezing
+  coefficients evaluated by a third party (which agree only under the assumed eps = 0).
 - Only three of the six series of the original Fig. 3 are available, through a third-party
   replot whose fidelity is not stated. The liquid-droplet series is missing, so the
   liquid-liquid branch (corner roundness 0.01 w) used by the design extension is not
@@ -76,5 +82,7 @@ All figures and drawings are made by our own code.
   physics (more gutter bypass in shallow junctions) or a replot artefact.
 - No independent experimental data were found. Korczyk et al. 2019 provide data only on
   request.
-- The leaking-regime bound was fitted for square channels and is applied to shallow channels
-  as an indication only.
+- The leaking-regime bound and the S-number bound were fitted for square channels and are
+  applied to shallow channels as indications only.
+- The design fluid's viscosity ratio (1.14) is outside the original's experimental range (0.01
+  to 0.1); the design extension is an extrapolation in this respect.
