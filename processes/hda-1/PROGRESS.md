@@ -57,6 +57,35 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 ## Responses to reviews
 
+### Review of PR #328, round 1 (2026-11-04)
+
+| finding | response | commit |
+|---|---|---|
+| (high) no feed cut-off, no automatic depressuring | XV-120 (toluene, TO-103) and XV-121 (make-up H2, HG-104) by US-122, effects of I-101, I-102 and I-202; I-102 also opens XV-209 (API 521 depressuring, rate S8); SIL, sensor voting and set points from S4/S6 (C&E header, D-025). Closed. | 13f44830, 46081047 |
+| (medium) H2/aromatics ratio not measured | FI-216 on HG-115 and FFI-217 (ratio, low alarm at 5, D-007); indicated and alarmed, a low-low trip and the ratio control intent are S4 items (D-025). Closed. | 8c2601ad, 46081047 |
+| (medium) anti-surge recycle uncooled, one input | HG-232 now returns into PG-110 upstream of E-102 (P-01), so E-102 cools it and V-101 knocks it out; UIC-207 takes FT-218, PT-219, PT-220 as drawn signal lines; TI-221 and VI-222 added; surge map, element type and machine protection are vendor open items (D-025). Closed. | fc961ce6 |
+| (medium) fuel train single trip valve | Double block and bleed XV-112/XV-125 with bleed XV-126 (NG-139), fuel pressure PZ-127 (I-104); pilot gas, flame detection and BMS in the heater package as an open item (D-025). Closed. | 13f44830 |
+| (medium) HV-332 can isolate PSV-307 | HV-332 moved downstream of the PSV-307 take-off; package relief split with the vendor (S8). Closed. | d97ddb33 |
+| (medium) tube-rupture PSVs to atmosphere (engineering and integrity lens) | PSV-215 via FL-238 into FL-234 and PSV-414 via FL-442 into FL-443, both to the flare; gas detection on CWR-231/CWR-441 as an S6/S9 open item (D-025). Closed. | 8c2601ad, 6592383c |
+| (medium) V-100 without low-low trip; P-102 not stopped | LZ-123 stops P-101/P-101B (I-103); I-201 also stops P-102/P-102B. Closed. | 13f44830 |
+| (medium) V-101 drain on AR-116 | AR-116 lowered, DR-240 clear; its note set vertical beside the arrow, clear of AR-116, XV-204 and LV-202 (rendered and checked). Closed. | 8c2601ad, 6592383c |
+| (medium) E-101 nozzle S2 inside the body | S2 on the shell outline, PG-106 rerouted. Closed. | 13f44830 |
+| (medium) E-207 design 3.5 barg on a 10 barg pump discharge | E-207 benzene side (and BZ-121) rated 10 barg, the P-202A/B design, instead of a liquid PSV (equipment list, D-025). Closed. | 46081047 |
+| (low) K-101 isolation, K-102 class, K-102 discharge isolation, CV-115 type | K-101 isolation by loop depressuring, N2 purge and spectacle blinds (S9), in D-025; K-102 ReciprocatingCompressor; HV-327 after CV-127; CV-115 type open with the vendor (D-025). Closed. | d97ddb33, 46081047 |
+| (low) no CW isolation valves | Listed as an S9 open item in D-025; the thermal-relief PSVs stay for the blocked-in case those valves create. Carried to S9. | 46081047 |
+| (low) HG-104 without check / B/L valve; single TZ-113 | B/L block and check valve on HG-104; R-101 TI-124 added; I-102 sensor redundancy from S4/S6 (D-025). Closed. | 13f44830 |
+| (low) P-204A/B minimum flow | Kept as the declared open item for the pump selection (S5), D-025. Carried to S5. | - |
+| (low) FZ-110 trip not drawn | Signal line FZ-110 to US-112 drawn. Closed. | 13f44830 |
+| (low) blind header ends drawn as off-page connectors | Carried: core v1.4.1 has no blind flange or end cap in `cheme fragment` or the authoring API (lines end only at nozzles, tee branches or off-page connectors); filed as ChemE-as-Code/core#151. Replacing nine ends by hand needs a shape copied into each sheet's catalogue; done with the S9 detail P&IDs or once core#151 lands. The notes say "(blind)" and name no sheet, so no ambiguity about a continuation remains on the sheets. | - |
+| (low) drain note wording | One wording "to closed drain (S9)" on all eight drains, placed clear of the arrows. Closed. | 6592383c |
+| (low) HG-115 note names M101 | Now "to E-101, P-01". Closed. | 8c2601ad |
+| (low) P-204A/B tags; slanted instrument lines | P-204B tag placed as P-204A's. The slanted measuring and signal lines (LIC-506, LIC-606, TIC-111, FIC-211, FI-609) are left: lint reports nothing and the reviewer marked them optional; straightened with the detail P&IDs. Partly closed. | 74817191 |
+| (low) P-08 steam branch arrows mid-sheet | MP and HP headers moved down, branch arrows now 16 to 20 mm clear of the next header. Closed. | 74817191 |
+| (low) 10/13 rule inverted | Reworded in special-items.yaml, D-025 and the PR body (CW-side design below 10/13 of the process side). Closed. | 6592383c, 46081047 |
+| (low) stale header comments | Equipment and line list headers at the S3b state; obsolete planned-sheet comment removed from plant.yaml. Closed. | 46081047 |
+| (low) steam densities recalled | Looked up in the NIST Chemistry WebBook (SRD 69, IAPWS-95), saturation rows at 0.45, 1.5 and 4.2 MPa, cited in D-025 and the line list; DN unchanged. Closed. | 46081047 |
+| (low) PV101 has no link | Step PV101 linked to PIC-301 (P-03); BFD/PFD rebuilt; process-links passes. Closed. | 46081047 |
+
 ### Review of PR #327, round 1 (2026-11-04)
 
 | finding | response | commit |
