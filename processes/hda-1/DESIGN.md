@@ -1182,6 +1182,69 @@ Open (basic engineering, not I-07):
 - whether the hydrogen returns to the make-up line instead of the K-101 suction;
 - a new optimisation of the purge H2 fraction of D-007 now that the purge is recovered.
 
+### D-025 P&IDs of the whole plant: sheet split, conventions and content (2026-11-04, S3b)
+Decision: the simulated PFD (D-024) is drawn on seven DEXPI 2.0.1 sheets, one per PFD section,
+declared in `plant.yaml`. Each sheet's first revision was written by `scripts/draft_P-0n.py`
+(authoring API of core v1.4.1, shared bits in `scripts/pid_common.py`); the sheets are
+hand-maintained from then on and the scripts are provenance only, as in ammonia-1.
+
+| sheet | section | equipment |
+|---|---|---|
+| P-01 | feed, heater and reactor | V-100, P-101, P-101B, E-101, H-101, R-101 |
+| P-02 | HP separator and recycle gas | E-102, V-101, P-102, P-102B, K-101 |
+| P-03 | purge PSA and tail gas | PK-101, K-102, E-103 |
+| P-04 | stabiliser | C-201, E-201, V-201, P-201A/B, E-202 |
+| P-05 | benzene column and product | C-202, E-203, V-202, P-202A/B, E-204, E-207 |
+| P-06 | toluene column, toluene recycle, biphenyl | C-203, E-205, V-203, P-203A/B, E-206, P-204A/B, PK-201 |
+| P-07 | utility and flare headers | (headers only) |
+
+Conventions (all ASSUMED where they set a value):
+- Numbers. New lines n30 and up on sheet P-0n, headers on P-07 from 701; instruments n01
+  and up on sheet P-0n. The PFD lines keep their numbers. A line that continues on another
+  sheet is drawn on both with the same number, and each off-page connector names the other
+  end and its sheet (`cheme.offpage-mismatch` checks it).
+- Junctions. The drafting API continues a line through a tee and lets a line start or end only
+  at a nozzle, a tee branch or an off-page connector, so the line number cannot change at a
+  mixing point. Two PFD lines that were the continuation of another after a junction are
+  therefore merged into the run they continue: PG-105 (S5, combined reactor feed) into HG-115,
+  and PG-109 (S9, quenched effluent) into PG-108. Their streams are named in the notes of the
+  run's line-list entry. HG-115 is DN300 over its whole length (the D-012 size of S5,
+  two-phase 10 m/s): the recycle gas alone needs DN250 at 15 m/s and runs at about 11 m/s in
+  DN300, ASSUMED.
+- Spares. Every process pump has an installed spare with its own suction and discharge
+  isolation, suction strainer and discharge check valve. P-101 and P-102 keep their tags for
+  the running pump (the flowsheet, estimate, plot plan and LCA use them); their spares are
+  P-101B and P-102B. New pumps are tagged A/B.
+- Control valves are drawn as the final element with their instrument; block and bypass
+  valves of the control valve stations are left to the detail P&IDs (S9) and listed as an
+  open item, as ammonia-1 did.
+- Relief. A relief valve is drawn wherever a credible overpressure exists; its set pressure is
+  the protected item's design pressure (D-012) and the case that makes it necessary is named
+  in `piping/special-items.yaml`; the governing case, the load and the orifice come from the
+  relief study (S8). Hydrocarbon relief and vents go to the flare header (P-07); steam-side and
+  cooling-water-side relief to atmosphere at a safe location. The authoring API has no safety
+  valve class (core#132, filed in S3b): the draft draws a globe valve and `pid_common.make_safety_valve` changes its
+  class, tag property and symbol (the edit ammonia-1's D-027 made by hand).
+- Trips go into `control/cause-effect.yaml`; the sheet only names the interlock.
+
+P-01 (feed, heater and reactor):
+- V-100: fresh toluene on level control (LIC-102, LV-102), toluene recycle TO-123 from
+  P-203A/B (P-06), pressure by a nitrogen blanket through the self-acting regulator PCV-105 and
+  a vent PV-104 to the flare (PIC-104), relief PSV-118 (blanket regulator failed open, fire).
+- P-101/P-101B: the reactor toluene feed FIC-103/FV-103 sets the plant load; minimum flow
+  FIC-106/FV-106 back to V-100 (high-head multistage service).
+- M101: the make-up hydrogen (FIC-108, set point from the loop pressure PIC-205 on P-02) and
+  the toluene join the recycle gas HG-115 ahead of E-101.
+- Loop relief PSV-119 on the cold combined feed: from the E-101 inlet through the H-101 coil,
+  R-101, the E-101 tube side and E-102 to V-101 there is no isolation valve, so one device
+  protects the fired coil and the hot sections from the cold end (V-101 has its own, P-02).
+  The sources of overpressure are P-101 at shut-off and the make-up hydrogen against a blocked
+  loop, and fire.
+- H-101: outlet temperature TIC-111 on the fuel valve TV-111; trip valve XV-112 closed by
+  US-112 on coil flow low-low FZ-110 (I-101) or R-101 outlet temperature high-high TZ-113
+  (I-102); burner management in the heater package.
+- Quench: TIC-115 on the quenched effluent sets the quench valve TV-115 on AR-117.
+
 ## LCI summary (lca/inventory.csv, per kg benzene)
 
 Regenerated in S3a (D-024) from the inventory with the purge hydrogen PSA (`cheme assess lca --write`,

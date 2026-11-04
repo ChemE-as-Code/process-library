@@ -1,13 +1,22 @@
 # Cause and effect list: interlocks and trips. Schema: `cheme schema interlocks`.
 # On a sheet, refer to an interlock ("see C&E I-01") instead of spelling out what it trips.
+# S3b (D-025): the trips the P&IDs draw, PROPOSED; SIL, delays, resets and bypasses come with
+# the control and safeguarding work (S4) and the HAZOP (S6).
 schema: cheme/interlocks/v1
-interlocks: []
-#  - id: I-01
-#    title: LIN tank low-low level
-#    cause: {tag: LIA-101, condition: LALL}
-#    effects:
-#      - {tag: P-101A, action: stop}     # trip, stop, start, close, open, depressurize, alarm
-#      - {tag: XV-101, action: close}
-#    sheet: P-01
-#    sil: null                           # from SIL screening: 1 to 4, or 0 / a (no SIL)
-#    notes: D-012
+interlocks:
+  - id: I-101
+    title: H-101 coil flow low-low
+    cause: {tag: FZ-110, condition: FALL}
+    effects:
+      - {tag: XV-112, action: close}
+    sheet: P-01
+    sil: null
+    notes: "D-025. Loss of process flow through the fired coil overheats the tubes; the burner management system of the H-101 package also stops the burners. Logic US-112."
+  - id: I-102
+    title: R-101 outlet temperature high-high
+    cause: {tag: TZ-113, condition: TAHH}
+    effects:
+      - {tag: XV-112, action: close}
+    sheet: P-01
+    sil: null
+    notes: "D-025. Thermal HDA and the hydrocracking side reactions are exothermic: stopping the firing removes the heat input; the loop depressuring (HS-209/XV-209, P-02) is the operator's further action. Logic US-112."

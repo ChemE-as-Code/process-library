@@ -9,23 +9,27 @@
 schema: cheme/equipment/v1
 equipment:
   # ---- reaction, quench, separation and gas recycle (block RXN)
-  - {tag: V-100, type: Vessel, service: Toluene feed drum (fresh + recycle toluene),
+  - {tag: V-100, sheet: P-01, type: Vessel, service: Toluene feed drum (fresh + recycle toluene),
      design_pressure_barg: 3.5, design_temperature_degc: 100, material: CS,
      dimensions: {diameter: 1.8, length: 3.6},
      notes: "150 kPa(a), 314 K, 20.5 t/h (S2). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
-  - {tag: P-101, type: CentrifugalPump, service: Toluene feed pump,
+  - {tag: P-101, sheet: P-01, type: CentrifugalPump, service: Toluene feed pump (running),
      design_pressure_barg: 42, design_temperature_degc: 100, material: CS,
      dimensions: {length: 2.2, width: 0.8, height: 1.0},
-     notes: "150 -> 3600 kPa(a), 20.5 t/h; ~37 kW at efficiency 0.65 counted from 30 kPa(a), i.e. incl. the C-203 distillate pump (D-010). A spare (P-101B) at basic engineering. ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
-  - {tag: E-101, type: TubularHeatExchanger, service: Feed / effluent exchanger,
+     notes: "150 -> 3600 kPa(a), 20.5 t/h; ~37 kW at efficiency 0.65 counted from 30 kPa(a), i.e. incl. the C-203 distillate pump (D-010; that pump is P-203A/B since the P&IDs, D-025). Installed spare P-101B; minimum flow FV-106 back to V-100 (D-025). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
+  - {tag: P-101B, sheet: P-01, type: CentrifugalPump, service: Toluene feed pump (installed spare),
+     design_pressure_barg: 42, design_temperature_degc: 100, material: CS,
+     dimensions: {length: 2.2, width: 0.8, height: 1.0},
+     notes: "Installed spare of P-101, same duty (D-025). The running pump keeps the tag P-101 that the flowsheet, the estimate, the plot plan and the LCA use. ASSUMED. Dimensions as P-101, ASSUMED."}
+  - {tag: E-101, sheet: P-01, type: TubularHeatExchanger, service: Feed / effluent exchanger,
      design_pressure_barg: 42, design_temperature_degc: 645, material: "alloy / stainless in hot hydrogen (open input, D-012)",
      dimensions: {diameter: 1.6, length: 9.0},
      notes: "Feed 322 -> 840 K (vaporises the toluene), effluent 893 -> 394 K, ~25.3 MW since the PSA (D-024; 24.3 MW before); least approach 53.9 K (DWSIM, D-024). ASSUMED. Two shells in series of about 676 m2 each (1352 m2, D-017, D-024), stacked, so the footprint is one shell's; the stacked height is set at basic (layout-3d, D-018). Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
-  - {tag: H-101, type: Furnace, service: Reactor feed heater (fired),
+  - {tag: H-101, sheet: P-01, type: Furnace, service: Reactor feed heater (fired),
      design_pressure_barg: 42, design_temperature_degc: 650, material: "alloy tubes (hot hydrogen, open input)",
      dimensions: {diameter: 4.0, height: 14.0},
      notes: "840 -> 895 K, absorbed ~3.04 MW (DWSIM, D-024; 2.90 MW before the PSA); fired with purchased natural gas (D-009, D-019); firing it from the site fuel gas header, which the PSA tail gas and the stabiliser off-gas feed, would take 8.6 % of that gas and is an option only (H-101 fuel balance in D-024). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
-  - {tag: R-101, type: Vessel, service: "HDA reactor (adiabatic, thermal, empty vessel)",
+  - {tag: R-101, sheet: P-01, type: Vessel, service: "HDA reactor (adiabatic, thermal, empty vessel)",
      design_pressure_barg: 42, design_temperature_degc: 690, material: "refractory-lined carbon steel or alloy (hot hydrogen, open input)",
      dimensions: {diameter: 2.5, height: 9.0},
      notes: "Inlet 895 K / 3450 kPa(a), outlet 938 K; toluene conversion 0.75 per pass (US 3,291,849) and biphenyl at equilibrium (D-021), no rate law: volume not sized. ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
