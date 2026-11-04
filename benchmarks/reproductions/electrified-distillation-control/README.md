@@ -2,7 +2,7 @@
 
 Case study for issue #335 (scope tracker #333). It follows ADR 0030 (reference reproductions,
 tolerances frozen first) and the layout of ADR 0031 (a reproduction plus a labelled design
-extension; status Proposed, merged on main in PR #344, not yet on this branch).
+extension; status Proposed, merged in #344).
 
 **Engineering question.** In a fully electrified methanol/water column, a three-stage heat pump
 compresses the overhead vapour to boil the bottoms. Part of the throttled condensate flashes and
@@ -120,9 +120,8 @@ keeps them few rather than none.
   without the Aspen file (`comparison.md`, deviation 1).
 - **Core capability gap.** cheme 1.2.1 has no dynamic column model and no control-loop simulation:
   the dynamics live in this case's run.py. cheme's P&ID authoring covered the loop drawing. The gap
-  is reusable (any column control study needs a tray-by-tray dynamic model with PI loops). No core
-  issue has been opened from this branch yet; it is to be opened in ChemE-as-Code/core and linked
-  here and from #333.
+  is reusable (any column control study needs a tray-by-tray dynamic model with PI loops). Opened as
+  core#143 and linked from #333.
 
 ## Credits
 
