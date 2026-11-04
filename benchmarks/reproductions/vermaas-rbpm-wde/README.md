@@ -25,6 +25,7 @@ criterion. This reproduction makes no claim about when the Ni anode corrodes.
 | `reproduce.py` | the one command: download, verify checksums, rebuild, run, compare |
 | `comparison.md` | results, deviations and explanations |
 | `reruns/` | run records (inputs, versions, every compared number) |
+| `figures/` | plots written by `reproduce.py` from the run (R1, R2/D1, V1) |
 | `NOTICE.md` | attribution of the dataset |
 
 Run from a clean environment (needs `uv` and network access to data.4tu.nl):
@@ -40,3 +41,11 @@ script imports it from file and calls `MassBalanceAnode.massBalanceTanks` with t
 `source.yaml`. The authors' `Simulative_script.py` is not run, because it saves no results. The
 script writes a run record to `reruns/` and prints the comparison table, and it exits non-zero
 when a check fails.
+
+**Status (2026-11-04, `comparison.md`):**
+
+- **R1, R2:** FAIL under the frozen rules, both by small margins (detail in `comparison.md`).
+- **D1:** confirmed in the script, absent from the published figure.
+- **V1:** pass on time to pH 12; the later trajectory is not reproduced.
+
+The script therefore exits 1.
