@@ -70,3 +70,4 @@ with an ADR in the same pull request.
 | [0029](0029-no-total-when-every-contribution-is-a-gap.md) | Give no total, with the reason, when every contribution to a category is a gap | **Proposed**, 2026-10-30 |
 | [0030](0030-reference-reproduction-benchmarks.md) | Keep reference reproductions in benchmarks/reproductions/, tolerances committed before the run | **Proposed**, 2026-11-01 |
 | [0031](0031-case-studies-reproduction-plus-design-extension.md) | A case study is a reference reproduction plus one labelled design extension, rerun by one command | **Proposed**, 2026-11-04 |
+| [0032](0032-measured-series-as-design-inputs.md) | A process may use measured series from a pinned dataset; reproduction results stay held out | **Proposed**, 2026-11-04 |
