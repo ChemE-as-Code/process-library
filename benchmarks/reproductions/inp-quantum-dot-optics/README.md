@@ -2,7 +2,7 @@
 
 Case study for issue #342 (tracker #333, priority P3). Protocol: ADR 0030 (reproduction, tolerances
 frozen first). Folder layout: ADR 0031 (a reproduction plus a labelled design extension; status
-Proposed, merged to main in PR #344 after this branch was cut, so it is not yet on this branch).
+Proposed, merged in #344).
 The case depends on ADR 0031: it has no cheme case (`case/`), which ADR 0030 lists, because the
 model is a spectrum analysis that no cheme unit covers.
 
