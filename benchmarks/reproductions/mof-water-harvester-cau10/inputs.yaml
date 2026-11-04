@@ -1,8 +1,14 @@
 # Model inputs for the CAU-10-H water harvester case (#334). Every input has a value, a unit, a
-# label (measured | reconstructed | assumed) and a source or rationale. run.py reads this file.
-#   measured      = taken from the pinned dataset or a reference property standard
-#   reconstructed = derived by us from measured inputs with a stated model
-#   assumed       = chosen by us, no source; the design result depends on it as stated
+# label (measured | reference property | reconstructed | assumed) and a source or rationale.
+# run.py reads the values only.
+#   measured           = taken from the pinned dataset (ADR 0031: "from the source's data")
+#   reference property = a standard property value or correlation (IUPAC, IAPWS); a fourth label
+#                        beside the three of ADR 0031, because these are neither the source's data
+#                        nor our choice
+#   reconstructed      = derived by us from measured inputs with a stated model and uncertainty
+#   assumed            = chosen by us, no source; the design result depends on it as stated
+# Corrected after the freeze (labels and rationale only, no value changed; comparison.md lists
+# each change; the frozen text is in commit d25eee1).
 
 isotherm:
   data_file:
@@ -21,16 +27,22 @@ isotherm:
   molar_mass_water:
     value: 18.015
     unit: g/mol
-    label: measured
+    label: reference property
     source: standard atomic weights (IUPAC)
   branch_split:
     value: the point of highest p/p0 ends the adsorption branch; the points after it are the desorption branch
-    label: measured
-    source: order of points in the data file
+    label: assumed
+    rationale: processing rule, based on the order of points in the data file (rising, then falling p/p0)
   interpolation:
     value: linear in p/p0 on each branch, between measured points only
     label: assumed
-    rationale: both branches are monotonic in p/p0; no isotherm model is fitted, so nothing is extrapolated
+    rationale: >-
+      no isotherm model is fitted, so nothing is extrapolated. The adsorption branch is strictly
+      monotonic (run.py checks it). The desorption branch is monotonic in p/p0 only below 0.1855
+      (it reverses three times between 0.185 and 0.189); run.py reads it only there and stops
+      otherwise; the design reads it at 0.0317 to 0.0705. The adsorption branch has no measured
+      point between p/p0 0.0836 and 0.1777: loadings in that gap, and in any wide segment, are
+      reported with bounds from the measured points either side (run.py interpolation_bounds).
   total_capacity_for_descriptors:
     value: uptake at the highest measured p/p0 (0.4246)
     label: assumed
@@ -41,8 +53,10 @@ isotherm:
 saturation_pressure:
   model:
     value: IAPWS-IF97 saturation-pressure equation (region 4)
-    label: measured
-    source: IAPWS R7-97(2012), equation 30; implementation ours, checked against the IF97 verification values at 300 K and 500 K
+    label: reference property
+    source: >-
+      IAPWS R7-97(2012), equation 30; implementation ours. run.py checks it at every run against
+      the verification values of Table 35 (300 K, 500 K, 600 K; relative deviation below 1e-8)
 
 adsorption_state:
   bed_temperature:
@@ -52,7 +66,9 @@ adsorption_state:
     rationale: >-
       equal (within 0.15 K) to the measured isotherm temperature, so no temperature transfer of
       the isotherm is needed for the adsorption state; the air entering the bed is taken at the
-      same temperature (isothermal adsorption, adsorption heat removed)
+      same temperature (isothermal adsorption, adsorption heat removed). run.py stops if the bed
+      temperature differs from the isotherm temperature by more than 0.5 K, because it reads
+      loadings at 313 K only
   inlet_relative_humidity_sweep:
     value: {from: 0.05, to: 0.42, step: 0.0025}
     unit: "-"
@@ -129,7 +145,7 @@ regeneration_heat:
   vaporisation_enthalpy_313K:
     value: 2406.0
     unit: kJ/kg
-    label: measured
+    label: reference property
     source: IAPWS-95 saturated water properties at 40 °C (h_fg = 2406.0 kJ/kg, standard steam tables)
   adsorption_enthalpy:
     value: h_fg + A/M at the step, A = R T ln(1/alpha) at 313 K
@@ -140,6 +156,10 @@ regeneration_heat:
       the Dubinin relation (isosteric heat = vaporisation enthalpy + adsorption potential, thermal
       expansion of the adsorbate neglected) gives an estimate; literature values for CAU-10-H are
       not used here because none was pinned
+    uncertainty: >-
+      not quantifiable from the sources; an assumed range of ±10 % (42.8 to 52.3 kJ/mol around
+      47.6 kJ/mol) is carried, and run.py reports its effect on the regeneration heat
+      (sensitivity_of_base_case)
   adsorbent_heat_capacity:
     value: 0.90
     unit: kJ/(kg K)
@@ -148,7 +168,7 @@ regeneration_heat:
   water_heat_capacity:
     value: 4.18
     unit: kJ/(kg K)
-    label: measured
+    label: reference property
     source: liquid water near 60 °C, IAPWS-95 (standard tables)
   housing_and_losses:
     value: 0
@@ -170,4 +190,10 @@ cycle:
 
 changed_input_example:
   base_relative_humidity: {value: 0.30, unit: "-", label: assumed, rationale: humid inlet, on the plateau of the isotherm}
-  changed_relative_humidity: {value: 0.18, unit: "-", label: assumed, rationale: drier inlet, just below the step}
+  changed_relative_humidity:
+    value: 0.18
+    unit: "-"
+    label: assumed
+    rationale: >-
+      drier inlet, just below the step; it lies between the measured adsorption points 0.1777 and
+      0.1903, across which the uptake rises by 48 %, so run.py reports bounds beside the linear value
