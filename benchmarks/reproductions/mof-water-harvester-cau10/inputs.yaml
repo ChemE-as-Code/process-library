@@ -1,0 +1,173 @@
+# Model inputs for the CAU-10-H water harvester case (#334). Every input has a value, a unit, a
+# label (measured | reconstructed | assumed) and a source or rationale. run.py reads this file.
+#   measured      = taken from the pinned dataset or a reference property standard
+#   reconstructed = derived by us from measured inputs with a stated model
+#   assumed       = chosen by us, no source; the design result depends on it as stated
+
+isotherm:
+  data_file:
+    value: "8 - CAU-10-H.csv"
+    label: measured
+    source: source.yaml dataset.files[0]
+  temperature:
+    value: 313.0
+    unit: K
+    label: measured
+    source: Metadata.txt entry 8, analysis bath temperature 313.000 K
+  basis:
+    value: per gram of pellet sample (as measured; binder content unknown)
+    label: measured
+    source: Metadata.txt entry 8, sample "CAU-10-H pellets (TZ-P29R10)"
+  molar_mass_water:
+    value: 18.015
+    unit: g/mol
+    label: measured
+    source: standard atomic weights (IUPAC)
+  branch_split:
+    value: the point of highest p/p0 ends the adsorption branch; the points after it are the desorption branch
+    label: measured
+    source: order of points in the data file
+  interpolation:
+    value: linear in p/p0 on each branch, between measured points only
+    label: assumed
+    rationale: both branches are monotonic in p/p0; no isotherm model is fitted, so nothing is extrapolated
+  total_capacity_for_descriptors:
+    value: uptake at the highest measured p/p0 (0.4246)
+    label: assumed
+    rationale: >-
+      the article does not define total capacity in the text and Table S7 is not available; the
+      measured series ends at 0.4246, above the plateau onset (about 0.25)
+
+saturation_pressure:
+  model:
+    value: IAPWS-IF97 saturation-pressure equation (region 4)
+    label: measured
+    source: IAPWS R7-97(2012), equation 30; implementation ours, checked against the IF97 verification values at 300 K and 500 K
+
+adsorption_state:
+  bed_temperature:
+    value: 313.15
+    unit: K
+    label: assumed
+    rationale: >-
+      equal (within 0.15 K) to the measured isotherm temperature, so no temperature transfer of
+      the isotherm is needed for the adsorption state; the air entering the bed is taken at the
+      same temperature (isothermal adsorption, adsorption heat removed)
+  inlet_relative_humidity_sweep:
+    value: {from: 0.05, to: 0.42, step: 0.0025}
+    unit: "-"
+    label: assumed
+    rationale: design sweep; the upper end stays inside the measured adsorption branch (max 0.4246)
+  equilibrium:
+    value: the bed reaches equilibrium with the inlet air during the adsorption step (no mass-transfer limit)
+    label: assumed
+    rationale: kinetics are not in the sources; this sets a lower bound on adsorbent mass
+  start_loading:
+    value: the regeneration-state loading (desorption branch at the regeneration relative pressure)
+    label: assumed
+    rationale: cyclic steady state; the adsorption branch is used for the end of adsorption
+
+regeneration_state:
+  relative_pressure:
+    value: 0.05
+    unit: "-"
+    label: assumed
+    rationale: >-
+      chosen inside the measured desorption branch (lowest point 0.0317), so the regeneration
+      loading is read from data at 313 K without extrapolation
+  condenser_temperature:
+    value: 303.15
+    unit: K
+    label: assumed
+    rationale: air-cooled condenser a few kelvin above a 25 °C ambient; sets the vapour pressure during desorption
+  temperature_transfer:
+    value: >-
+      Dubinin-Polanyi characteristic curve: equal loading at equal adsorption potential
+      A = R T ln(p_sat(T)/p); used only to translate the regeneration relative pressure into a
+      bed temperature for the heat estimate, never to read loadings
+    label: assumed
+    rationale: >-
+      common first approximation for microporous adsorbents; the article reports only a limited
+      effect of temperature (288 K to 313 K) on the isotherm descriptors (source.yaml); the
+      regeneration temperature it gives (about 85 °C) lies outside that measured range and is
+      flagged as an extrapolation
+
+recovery:
+  collection_recovery:
+    value: 0.80
+    unit: "-"
+    label: assumed
+    rationale: fraction of the water desorbed per cycle that is condensed and collected; the rest leaves with vent gas or stays as film; no source
+
+target:
+  water_yield_per_cycle:
+    value: 1.0
+    unit: kg
+    label: assumed
+    rationale: design basis; adsorbent mass scales linearly with it
+
+feasibility:
+  negligible_working_capacity_fraction:
+    value: 0.10
+    unit: "-"
+    label: assumed
+    rationale: >-
+      working capacity below 10 % of the working capacity at the highest measured RH is called
+      negligible (adsorbent mass more than ten times the plateau value); the step inflection is
+      reported beside it as the physical marker
+
+bed:
+  packed_density:
+    value: 600
+    unit: kg/m3
+    label: assumed
+    rationale: >-
+      packed bed of shaped MOF bodies; no density in the sources (the instrument's 1.000 g/cm3
+      is a default entry); packed volume scales with 1/density
+
+regeneration_heat:
+  vaporisation_enthalpy_313K:
+    value: 2406.0
+    unit: kJ/kg
+    label: measured
+    source: IAPWS-95 saturated water properties at 40 °C (h_fg = 2406.0 kJ/kg, standard steam tables)
+  adsorption_enthalpy:
+    value: h_fg + A/M at the step, A = R T ln(1/alpha) at 313 K
+    unit: kJ/kg
+    label: reconstructed
+    rationale: >-
+      no isosteric heat in the sources and only one isotherm temperature, so it cannot be fitted;
+      the Dubinin relation (isosteric heat = vaporisation enthalpy + adsorption potential, thermal
+      expansion of the adsorbate neglected) gives an estimate; literature values for CAU-10-H are
+      not used here because none was pinned
+  adsorbent_heat_capacity:
+    value: 0.90
+    unit: kJ/(kg K)
+    label: assumed
+    rationale: typical order for dry MOFs (0.7 to 1.0 kJ/(kg K)); no source pinned
+  water_heat_capacity:
+    value: 4.18
+    unit: kJ/(kg K)
+    label: measured
+    source: liquid water near 60 °C, IAPWS-95 (standard tables)
+  housing_and_losses:
+    value: 0
+    unit: kJ
+    label: assumed
+    rationale: bed housing, heat exchanger and heat losses are not modelled; the heat is a lower bound
+
+cycle:
+  cycles_per_day:
+    value: 1
+    unit: 1/d
+    label: assumed
+    rationale: passive day-night cycle (adsorb overnight, regenerate by day); only scales daily yield and mean heat duty
+  desorption_time:
+    value: 6
+    unit: h
+    label: assumed
+    rationale: for the mean regeneration heat duty only
+
+changed_input_example:
+  base_relative_humidity: {value: 0.30, unit: "-", label: assumed, rationale: humid inlet, on the plateau of the isotherm}
+  changed_relative_humidity: {value: 0.18, unit: "-", label: assumed, rationale: drier inlet, just below the step}
