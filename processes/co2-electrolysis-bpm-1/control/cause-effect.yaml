@@ -1,13 +1,173 @@
 # Cause and effect list: interlocks and trips. Schema: `cheme schema interlocks`.
 # On a sheet, refer to an interlock ("see C&E I-01") instead of spelling out what it trips.
+#
+# The trips of the two pilot skids of #330 (DESIGN.md D-018): I-1xx Skid A (P-01), I-2xx
+# Skid B (P-02), the same numbering in both. PROPOSED, not approved: no SIL screening, no
+# HAZOP yet (sil: null); every trip value is ASSUMED. The pH values are the duty model's
+# concentration basis (D-003); the probe reads activity pH, so the trip value needs the offset
+# of control/philosophy.md before it is set. A trip of the rectifier (U-x01) stops the current,
+# and with it the CO, H2 and O2 production; the anolyte pump and the CO2 purge keep running
+# unless the trip says otherwise (SEQ-x-TRIP in control/sequences.yaml).
 schema: cheme/interlocks/v1
-interlocks: []
-#  - id: I-01
-#    title: LIN tank low-low level
-#    cause: {tag: LIA-101, condition: LALL}
-#    effects:
-#      - {tag: P-101A, action: stop}     # trip, stop, start, close, open, depressurize, alarm
-#      - {tag: XV-101, action: close}
-#    sheet: P-01
-#    sil: null                           # from SIL screening: 1 to 4, or 0 / a (no SIL)
-#    notes: D-012
+interlocks:
+  # -- Skid A (P-01) ----------------------------------------------------------------------
+  - id: I-101
+    title: Skid A anolyte pH low-low (end of the campaign)
+    cause: {tag: AI-101, condition: "AALL: pH 12.2, concentration basis (ASSUMED margin above the pH 12 threshold, D-003)"}
+    effects:
+      - {tag: U-101, action: trip}
+    sheet: P-01
+    sil: null
+    latching: true
+    reset: manual
+    notes: "The duty sizes T-101 to reach pH 12 at the end of the campaign (D-009); the trip ends the run before the threshold is crossed. D-018."
+  - id: I-102
+    title: Skid A anolyte level low-low
+    cause: {tag: LIA-101, condition: LALL}
+    effects:
+      - {tag: U-101, action: trip}
+      - {tag: P-101, action: stop}
+    sheet: P-01
+    sil: null
+    latching: true
+    reset: manual
+    notes: "Loss of anolyte (a leak, a drain left open): the stacks lose their anolyte and P-101 runs dry. D-018."
+  - id: I-103
+    title: Skid A CO detected in the enclosure
+    cause: {tag: AIA-141, condition: "AHH: CO, ASSUMED set point by the gas detection study"}
+    effects:
+      - {tag: U-101, action: trip}
+      - {tag: FV-102, action: close}
+      - {tag: K-131, action: stop}
+      - {tag: K-141, action: start}
+    sheet: P-01
+    sil: null
+    latching: true
+    reset: manual
+    notes: "CO is toxic: stop making it, stop the CO2 feed and the compressor, ventilate. D-018."
+  - id: I-104
+    title: Skid A H2 detected in the enclosure
+    cause: {tag: AIA-142, condition: "AHH: H2, ASSUMED set point (a fraction of the lower flammability limit) by the gas detection study"}
+    effects:
+      - {tag: U-101, action: trip}
+      - {tag: FV-102, action: close}
+      - {tag: K-131, action: stop}
+      - {tag: K-141, action: start}
+    sheet: P-01
+    sil: null
+    latching: true
+    reset: manual
+    notes: "H2 (about 1.46 mol per mol CO at the measured FE) is flammable. D-018."
+  - id: I-105
+    title: Skid A anolyte temperature high-high at the stack outlet
+    cause: {tag: TSHH-112, condition: THH}
+    effects:
+      - {tag: U-101, action: trip}
+    sheet: P-01
+    sil: null
+    latching: true
+    reset: manual
+    notes: "Loss of cooling: the stacks heat at about 2.2 kW; the measured series is at 25 degC only. Trip value ASSUMED (membrane and PP limits, vendor). D-018."
+  - id: I-106
+    title: Skid A anolyte recirculation flow low-low
+    cause: {tag: FIC-101, condition: FALL}
+    effects:
+      - {tag: U-101, action: trip}
+    sheet: P-01
+    sil: null
+    latching: true
+    reset: manual
+    delay: {value: 5, unit: s}
+    notes: "The stacks without anolyte flow lose the anode's water and O2 removal. The trip shares its transmitter with FIC-101 (HAZOP to judge). D-018."
+  # -- Skid B (P-02) ----------------------------------------------------------------------
+  - id: I-201
+    title: Skid B anolyte pH low-low
+    cause: {tag: AIC-201, condition: "AALL: pH 12.2, concentration basis (ASSUMED, as I-101)"}
+    effects:
+      - {tag: U-201, action: trip}
+    sheet: P-02
+    sil: null
+    latching: true
+    reset: manual
+    notes: "Normal operation holds pH 13.7 (D-010); pH 12.2 means the dosing failed. The trip shares its probe with AIC-201 (HAZOP to judge). D-018."
+  - id: I-202
+    title: Skid B anolyte level low-low
+    cause: {tag: LIA-202, condition: LALL}
+    effects:
+      - {tag: U-201, action: trip}
+      - {tag: P-201, action: stop}
+      - {tag: P-202, action: stop}
+      - {tag: FV-203, action: close}
+    sheet: P-02
+    sil: null
+    latching: true
+    reset: manual
+    notes: "LIA-202 is independent of the make-up control LIC-201. The 50 L reservoir holds about 4.5 min of the recirculation (D-010). D-018."
+  - id: I-203
+    title: Skid B CO detected in the enclosure
+    cause: {tag: AIA-241, condition: "AHH: CO, ASSUMED set point by the gas detection study"}
+    effects:
+      - {tag: U-201, action: trip}
+      - {tag: FV-202, action: close}
+      - {tag: K-231, action: stop}
+      - {tag: K-241, action: start}
+    sheet: P-02
+    sil: null
+    latching: true
+    reset: manual
+    notes: "As I-103. D-018."
+  - id: I-204
+    title: Skid B H2 detected in the enclosure
+    cause: {tag: AIA-242, condition: "AHH: H2, ASSUMED set point (a fraction of the lower flammability limit) by the gas detection study"}
+    effects:
+      - {tag: U-201, action: trip}
+      - {tag: FV-202, action: close}
+      - {tag: K-231, action: stop}
+      - {tag: K-241, action: start}
+    sheet: P-02
+    sil: null
+    latching: true
+    reset: manual
+    notes: "As I-104. D-018."
+  - id: I-205
+    title: Skid B anolyte temperature high-high at the stack outlet
+    cause: {tag: TSHH-212, condition: THH}
+    effects:
+      - {tag: U-201, action: trip}
+    sheet: P-02
+    sil: null
+    latching: true
+    reset: manual
+    notes: "As I-105. D-018."
+  - id: I-206
+    title: Skid B anolyte recirculation flow low-low
+    cause: {tag: FIC-201, condition: FALL}
+    effects:
+      - {tag: U-201, action: trip}
+    sheet: P-02
+    sil: null
+    latching: true
+    reset: manual
+    delay: {value: 5, unit: s}
+    notes: "As I-106. D-018."
+  - id: I-207
+    title: Skid B dosing and bleed off with the current off
+    cause: {tag: JIC-201, condition: "current off (below 5 % of the setpoint, ASSUMED)"}
+    effects:
+      - {tag: P-202, action: stop}
+      - {tag: FV-203, action: close}
+    sheet: P-02
+    sil: null
+    latching: false
+    reset: automatic
+    notes: "The dose and the bleed are sized for the current on (duty D-B, D-010); dosing or bleeding with the current off would drift the anolyte. A permissive, not a safety trip: it resets when the current is back."
+  - id: I-208
+    title: Skid B 5 M KOH day tank level low-low
+    cause: {tag: LIA-203, condition: LALL}
+    effects:
+      - {tag: P-202, action: stop}
+    sheet: P-02
+    sil: null
+    latching: true
+    reset: manual
+    notes: "Dry-run protection of the metering pump; the day tank is refilled weekly (refill_interval 168 h, D-010). AIC-201 then alarms as the pH falls."

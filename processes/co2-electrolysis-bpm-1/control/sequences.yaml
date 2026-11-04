@@ -2,27 +2,323 @@
 # PROPOSED operating intent, not approved for implementation; the review status comes from reviews/.
 # Start permissives are not trips: trips stay in control/cause-effect.yaml, named by id here.
 # Skill control-sequences.
+#
+# The two pilot skids of #330 (DESIGN.md D-018): for each skid the fill, the start-up, the
+# response to a trip (the pH trip that ends a campaign above all) and the end-of-run drain.
+# A campaign is one run of duration H (process/design-basis.yaml capacity.pilot_skid): Skid A
+# on one fill, Skid B on a fill kept by dosing, bleed and make-up (D-009, D-010).
 schema: cheme/sequences/v1
-sequences: []
-#  - id: SEQ-START
-#    title: Start up the feed section
-#    mode: startup                      # startup, shutdown, abnormal, normal, other
-#    section: FEED
-#    permissives:
-#      - {interlock: I-01, state: reset}
-#      - {all: [{loop: FIC-101, state: in manual}, {tag: XV-107, state: open}]}
-#    interlocks: [I-01]
-#    steps:
-#      - id: S1
-#        title: Admit feed
-#        actions:
-#          - {loop: FIC-101, action: setpoint, setpoint: {value: 1200, unit: kg/h, provenance: assumed}}
-#          - {loop: FIC-101, action: auto, by: operator}
-#        complete: {tag: LT-102, state: "> 30 %", delay: {value: 30, unit: s}}
-#        timeout: {value: 30, unit: min}
-#        on_timeout: abort
-#    abort:
-#      condition: {interlock: I-01, state: tripped}
-#      actions: [{tag: FV-101, action: close}]
-#      then: SEQ-STOP
-#    reset: {latching: true, manual: true, condition: {interlock: I-01, state: reset}}
+sequences:
+  # -- Skid A (P-01) ----------------------------------------------------------------------
+  - id: SEQ-A-FILL
+    title: Fill the Skid A reservoir with fresh 1 M KOH
+    mode: startup
+    cases: [skid-a]
+    equipment: [T-101, P-101]
+    permissives:
+      - {tag: HV-103, state: closed}
+      - {tag: U-101, state: "off"}
+    steps:
+      - id: S1
+        title: Fill T-101 through HV-102
+        actions:
+          - {tag: HV-102, action: open, by: operator}
+        complete: {tag: LIA-101, state: "at the working volume of the duty D-A (the T-101 level of 1166 L at 1000 h, process/duties.yaml)"}
+        operator: Fill with fresh 1 M KOH only (the measured series' electrolyte, D-014); record the volume filled.
+      - id: S2
+        title: Close the fill
+        actions:
+          - {tag: HV-102, action: close, by: operator}
+        complete: {tag: HV-102, state: closed}
+      - id: S3
+        title: Circulate
+        actions:
+          - {tag: HV-101, action: open, by: operator}
+          - {tag: P-101, action: start, by: operator}
+          - {loop: FIC-101, action: auto, by: operator}
+        complete: {loop: FIC-101, state: at setpoint, delay: {value: 10, unit: min}}
+        operator: Check the stacks for leaks and the return to T-101; top up to the working level.
+        next: end
+    abort:
+      condition: {any: [{interlock: I-102, state: tripped}, {text: operator finds a leak}]}
+      actions:
+        - {tag: P-101, action: stop}
+        - {tag: HV-102, action: close}
+    reset: {latching: true, manual: true, condition: {interlock: I-102, state: reset}}
+  - id: SEQ-A-START
+    title: Start Skid A
+    mode: startup
+    cases: [skid-a]
+    equipment: [E-101A, E-101B, E-101C, E-101D, U-101, V-121, K-131, X-131, X-132, K-141]
+    permissives:
+      - {sequence: SEQ-A-FILL, state: complete}
+      - {all: [{interlock: I-101, state: reset}, {interlock: I-102, state: reset}, {interlock: I-103, state: reset}, {interlock: I-104, state: reset}, {interlock: I-105, state: reset}, {interlock: I-106, state: reset}]}
+      - {loop: FIC-101, state: at setpoint}
+      - {text: "cooling water, CO2, air and demineralised water available at the battery limit"}
+    interlocks: [I-101, I-102, I-103, I-104, I-105, I-106]
+    steps:
+      - id: S1
+        title: Ventilate and cool
+        actions:
+          - {tag: K-141, action: start, by: operator}
+          - {loop: TIC-111, action: auto, by: operator}
+        complete: {loop: TIC-111, state: at setpoint}
+      - id: S2
+        title: Purge the cathodes with CO2 and humidify
+        actions:
+          - {loop: FIC-102, action: auto, by: operator}
+          - {tag: HV-104, action: open, by: operator}
+          - {loop: PIC-121, action: auto, by: operator}
+          - {loop: LIC-122, action: auto, by: operator}
+        complete: {loop: FIC-102, state: at setpoint, delay: {value: 15, unit: min}}
+        operator: Set the water on FI-103 to the cathode's water (process/flowsheet.yaml S102).
+      - id: S3
+        title: Start the gas conditioning
+        actions:
+          - {tag: K-131, action: start, by: operator}
+          - {tag: X-132, action: start, by: operator}
+          - {tag: X-131, action: start, by: operator}
+          - {loop: PIC-131, action: auto, by: operator}
+        complete: {text: X-131 and X-132 report ready (package signals)}
+        operator: The oxidiser runs before the PSA sends tail gas (no CO or H2 vented, D-012).
+      - id: S4
+        title: Ramp the current
+        actions:
+          - {loop: JIC-101, action: auto, by: operator}
+        complete: {loop: JIC-101, state: at setpoint, delay: {value: 30, unit: min}}
+        operator: Ramp to the 80 A of the duty in steps; watch the stack voltage, TIC-111 and the CO2 flow.
+        next: end
+    abort:
+      condition: {any: [{interlock: I-101, state: tripped}, {interlock: I-102, state: tripped}, {interlock: I-103, state: tripped}, {interlock: I-104, state: tripped}, {interlock: I-105, state: tripped}, {interlock: I-106, state: tripped}]}
+      actions:
+        - {tag: U-101, action: stop}
+      then: SEQ-A-TRIP
+    reset: {latching: true, manual: true, condition: {all: [{interlock: I-103, state: reset}, {interlock: I-104, state: reset}]}}
+  - id: SEQ-A-TRIP
+    title: Skid A after a trip of the rectifier (pH, level, temperature, flow, gas)
+    mode: abnormal
+    cases: [skid-a]
+    equipment: [U-101, P-101, K-131, X-131, X-132]
+    interlocks: [I-101, I-102, I-103, I-104, I-105, I-106]
+    steps:
+      - id: S1
+        title: Current off, keep the purge
+        actions:
+          - {loop: JIC-101, action: manual, by: automatic}
+          - {loop: FIC-102, action: auto, by: automatic}
+        complete: {tag: U-101, state: "off"}
+        operator: Keep the CO2 purge and the oxidiser until the cathode gas is free of CO and H2; P-101 runs unless I-102 stopped it.
+      - id: S2
+        title: Stop the gas conditioning
+        actions:
+          - {tag: K-131, action: stop, by: operator}
+          - {tag: X-131, action: stop, by: operator}
+          - {tag: X-132, action: stop, by: operator}
+        complete: {text: cathode gas train purged and depressurised}
+      - id: S3
+        title: Decide
+        actions:
+          - {text: "after I-101 (pH low-low): the campaign is over, go to SEQ-A-DRAIN; after any other trip: find the cause, reset, restart with SEQ-A-START", by: operator}
+        complete: {text: operator decision recorded}
+        next: end
+    abort:
+      condition: {any: [{interlock: I-103, state: tripped}, {interlock: I-104, state: tripped}]}
+      actions:
+        - {tag: K-141, action: start}
+      notes: "On gas detection the enclosure stays ventilated; nobody enters until the detectors are clear."
+    reset: {latching: true, manual: true}
+  - id: SEQ-A-DRAIN
+    title: End of run - drain the spent anolyte of Skid A
+    mode: shutdown
+    cases: [skid-a]
+    equipment: [T-101, P-101, U-101]
+    permissives:
+      - {tag: U-101, state: "off"}
+      - {sequence: SEQ-A-TRIP, state: complete}
+    steps:
+      - id: S1
+        title: Stop the recirculation
+        actions:
+          - {tag: P-101, action: stop, by: operator}
+          - {loop: TIC-111, action: manual, by: operator}
+        complete: {tag: P-101, state: stopped}
+      - id: S2
+        title: Drain T-101 to the spent anolyte collection
+        actions:
+          - {tag: HV-103, action: open, by: operator}
+        complete: {tag: LIA-101, state: empty}
+        operator: Sample the spent anolyte (pH, carbonate) for the campaign record; it is the SPENT stream of the flowsheet (D-011).
+      - id: S3
+        title: Rinse and close
+        actions:
+          - {tag: HV-103, action: close, by: operator}
+        complete: {tag: HV-103, state: closed}
+        operator: Rinse with demineralised water to the effluent; the stacks are replaced per their interval (process/cells.yaml).
+        next: end
+    abort:
+      condition: {text: operator stops the drain}
+      actions:
+        - {tag: HV-103, action: close}
+    reset: {latching: false, manual: true}
+  # -- Skid B (P-02) ----------------------------------------------------------------------
+  - id: SEQ-B-FILL
+    title: Fill the Skid B reservoir and the KOH day tank
+    mode: startup
+    cases: [skid-b]
+    equipment: [T-201, T-202, P-201]
+    permissives:
+      - {tag: HV-203, state: closed}
+      - {tag: U-201, state: "off"}
+    steps:
+      - id: S1
+        title: Fill T-201 through HV-202 and T-202 through HV-205
+        actions:
+          - {tag: HV-202, action: open, by: operator}
+          - {tag: HV-205, action: open, by: operator}
+        complete: {all: [{tag: LIC-201, state: "at the 50 L working volume (duty D-B)"}, {tag: LIA-203, state: full}]}
+        operator: Fresh 1 M KOH in T-201, 5 M KOH in T-202 (ASSUMED density 1.22 kg/L, D-010).
+      - id: S2
+        title: Close the fills
+        actions:
+          - {tag: HV-202, action: close, by: operator}
+          - {tag: HV-205, action: close, by: operator}
+        complete: {all: [{tag: HV-202, state: closed}, {tag: HV-205, state: closed}]}
+      - id: S3
+        title: Circulate, level in automatic
+        actions:
+          - {tag: HV-201, action: open, by: operator}
+          - {tag: P-201, action: start, by: operator}
+          - {loop: FIC-201, action: auto, by: operator}
+          - {loop: LIC-201, action: auto, by: operator}
+        complete: {loop: FIC-201, state: at setpoint, delay: {value: 10, unit: min}}
+        next: end
+    abort:
+      condition: {any: [{interlock: I-202, state: tripped}, {text: operator finds a leak}]}
+      actions:
+        - {tag: P-201, action: stop}
+        - {tag: HV-202, action: close}
+    reset: {latching: true, manual: true, condition: {interlock: I-202, state: reset}}
+  - id: SEQ-B-START
+    title: Start Skid B
+    mode: startup
+    cases: [skid-b]
+    equipment: [E-201A, E-201B, E-201C, E-201D, U-201, V-221, K-231, X-231, X-232, K-241, P-202]
+    permissives:
+      - {sequence: SEQ-B-FILL, state: complete}
+      - {all: [{interlock: I-201, state: reset}, {interlock: I-202, state: reset}, {interlock: I-203, state: reset}, {interlock: I-204, state: reset}, {interlock: I-205, state: reset}, {interlock: I-206, state: reset}, {interlock: I-208, state: reset}]}
+      - {loop: FIC-201, state: at setpoint}
+      - {text: "cooling water, CO2, air and demineralised water available at the battery limit"}
+    interlocks: [I-201, I-202, I-203, I-204, I-205, I-206, I-207, I-208]
+    steps:
+      - id: S1
+        title: Ventilate and cool
+        actions:
+          - {tag: K-241, action: start, by: operator}
+          - {loop: TIC-211, action: auto, by: operator}
+        complete: {loop: TIC-211, state: at setpoint}
+      - id: S2
+        title: Purge the cathodes with CO2 and humidify
+        actions:
+          - {loop: FIC-202, action: auto, by: operator}
+          - {tag: HV-204, action: open, by: operator}
+          - {loop: PIC-221, action: auto, by: operator}
+          - {loop: LIC-222, action: auto, by: operator}
+        complete: {loop: FIC-202, state: at setpoint, delay: {value: 15, unit: min}}
+        operator: Set the water on FI-203 to the cathode's water (process/flowsheet.yaml S202).
+      - id: S3
+        title: Start the gas conditioning
+        actions:
+          - {tag: K-231, action: start, by: operator}
+          - {tag: X-232, action: start, by: operator}
+          - {tag: X-231, action: start, by: operator}
+          - {loop: PIC-231, action: auto, by: operator}
+        complete: {text: X-231 and X-232 report ready (package signals)}
+      - id: S4
+        title: Ramp the current
+        actions:
+          - {loop: JIC-201, action: auto, by: operator}
+        complete: {loop: JIC-201, state: at setpoint, delay: {value: 30, unit: min}}
+      - id: S5
+        title: Dosing and bleed in automatic
+        entry: {interlock: I-207, state: reset}
+        actions:
+          - {tag: P-202, action: start, by: operator}
+          - {loop: AIC-201, action: auto, by: operator}
+          - {loop: FIC-203, action: auto, by: operator}
+        complete: {loop: AIC-201, state: at setpoint, delay: {value: 1, unit: h}}
+        operator: "The fresh 1 M KOH fill is above the setpoints at start; the anolyte reaches its steady state in a few residence times (V / b, about 27 h, D-010): watch AIC-201 and the bleed, do not chase the pH by hand."
+        next: end
+    abort:
+      condition: {any: [{interlock: I-201, state: tripped}, {interlock: I-202, state: tripped}, {interlock: I-203, state: tripped}, {interlock: I-204, state: tripped}, {interlock: I-205, state: tripped}, {interlock: I-206, state: tripped}]}
+      actions:
+        - {tag: U-201, action: stop}
+      then: SEQ-B-TRIP
+    reset: {latching: true, manual: true, condition: {all: [{interlock: I-203, state: reset}, {interlock: I-204, state: reset}]}}
+  - id: SEQ-B-TRIP
+    title: Skid B after a trip of the rectifier (pH, level, temperature, flow, gas)
+    mode: abnormal
+    cases: [skid-b]
+    equipment: [U-201, P-201, P-202, K-231, X-231, X-232]
+    interlocks: [I-201, I-202, I-203, I-204, I-205, I-206, I-207]
+    steps:
+      - id: S1
+        title: Current off, dosing and bleed off, keep the purge
+        actions:
+          - {loop: JIC-201, action: manual, by: automatic}
+          - {tag: P-202, action: stop, by: automatic}
+          - {tag: FV-203, action: close, by: automatic}
+        complete: {all: [{tag: U-201, state: "off"}, {interlock: I-207, state: tripped}]}
+        operator: Keep the CO2 purge and the oxidiser until the cathode gas is free of CO and H2.
+      - id: S2
+        title: Stop the gas conditioning
+        actions:
+          - {tag: K-231, action: stop, by: operator}
+          - {tag: X-231, action: stop, by: operator}
+          - {tag: X-232, action: stop, by: operator}
+        complete: {text: cathode gas train purged and depressurised}
+      - id: S3
+        title: Decide
+        actions:
+          - {text: "after I-201 (pH low-low): check the dosing (P-202, T-202, AIC-201) before a restart; at the end of the campaign go to SEQ-B-DRAIN; after any other trip: find the cause, reset, restart with SEQ-B-START", by: operator}
+        complete: {text: operator decision recorded}
+        next: end
+    abort:
+      condition: {any: [{interlock: I-203, state: tripped}, {interlock: I-204, state: tripped}]}
+      actions:
+        - {tag: K-241, action: start}
+      notes: "On gas detection the enclosure stays ventilated; nobody enters until the detectors are clear."
+    reset: {latching: true, manual: true}
+  - id: SEQ-B-DRAIN
+    title: End of run - drain the anolyte of Skid B
+    mode: shutdown
+    cases: [skid-b]
+    equipment: [T-201, P-201, U-201]
+    permissives:
+      - {tag: U-201, state: "off"}
+      - {sequence: SEQ-B-TRIP, state: complete}
+    steps:
+      - id: S1
+        title: Stop the recirculation and the make-up
+        actions:
+          - {tag: P-201, action: stop, by: operator}
+          - {loop: LIC-201, action: manual, by: operator}
+          - {tag: LV-201, action: close, by: operator}
+          - {loop: TIC-211, action: manual, by: operator}
+        complete: {tag: P-201, state: stopped}
+      - id: S2
+        title: Drain T-201 to the spent anolyte collection
+        actions:
+          - {tag: HV-203, action: open, by: operator}
+        complete: {tag: LIA-202, state: empty}
+        operator: The 50 L at the steady state is the SPENT stream of the flowsheet (D-011).
+      - id: S3
+        title: Close
+        actions:
+          - {tag: HV-203, action: close, by: operator}
+        complete: {tag: HV-203, state: closed}
+        next: end
+    abort:
+      condition: {text: operator stops the drain}
+      actions:
+        - {tag: HV-203, action: close}
+    reset: {latching: false, manual: true}

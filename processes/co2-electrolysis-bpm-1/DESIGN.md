@@ -522,3 +522,31 @@ drawn once as "typical of four" (each stack is a listed item that the P&ID must 
 
 Assumptions: the nominal diameters, the fan and the enclosures, the gravity bleed.
 
+## D-018 Control of the skids: loops, trips and sequences (2026-11-04)
+Decision: `control/loops.yaml`, `control/cause-effect.yaml`, `control/sequences.yaml` and
+`control/philosophy.md` hold the control of both skids (1xx Skid A, case skid-a; 2xx Skid B,
+case skid-b), PROPOSED for the HAZOP:
+- loops per skid: FIC-x01 recirculation (pump speed), TIC-x11 anolyte at the stack inlet
+  (cooling water), JIC-x01 stack current (rectifier), FIC-x02 fresh CO2, PIC-x21 cathode
+  back-pressure, LIC-x22 condensate, PIC-x31 product pressure, the pH (AI-101 with AAL on
+  Skid A, which has nothing to manipulate on pH); Skid B adds AIC-201 trimming the P-202 dose
+  around the duty's rate (feedforward from the current), FIC-203 bleed and LIC-201 make-up;
+- setpoints that are a case value name their stream, so validate keeps them in step with the
+  flowsheet; the current is 80 A (4 x 20 A, cheme process stack);
+- trips per skid: pH low-low at 12.2 (concentration basis) trips the rectifier (the end of the
+  campaign on Skid A), level low-low trips the rectifier and stops the pump (Skid B on an
+  independent LIA-202), CO or H2 detected trips the rectifier, closes the CO2, stops the
+  compressor and starts the fan, the stack outlet temperature high-high and the recirculation
+  flow low-low trip the rectifier; on Skid B the dose and the bleed are interlocked off with the
+  current off (I-207, a permissive) and the day tank's low-low level stops the dosing pump;
+- sequences per skid: fill, start-up, the response to a trip, the end-of-run drain;
+- fail positions proposed: cooling water open, CO2 closed, cathode back-pressure open,
+  condensate, make-up and bleed closed, product closed (open point).
+
+Reason: the duty model holds the stacks at the measured operating point; the loops hold the
+skid there, and the trips stop the current before the anolyte, the cooling or the flow leaves
+it. The model doses and bleeds only with the current on (D-010).
+
+Assumptions: every trip value and alarm margin (ASSUMED), the fail positions, SIL not screened.
+The pH basis: the probe reads activity pH, the model concentration-basis pH (core ADR 0043):
+the values need an offset or a calibration before use (control/philosophy.md).

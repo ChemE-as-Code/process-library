@@ -2,29 +2,343 @@
 # PROPOSED control intent, not approved for implementation; the review status comes from reviews/.
 # Trips are not loops: they go in control/cause-effect.yaml, which `interlocks` refers to.
 # Conventions (action, fail, travel, split range) and the checks: skill control-loops.
-# Leave a value out until it is known (action, fail, value): validate reports it as
-# cheme.control-incomplete (info), and a stage gate decides when it must be given.
+#
+# The two pilot skids of #330 (DESIGN.md D-007, D-018): the 1xx loops run Skid A (case skid-a,
+# sheet P-01), the 2xx loops Skid B (case skid-b, sheet P-02); each skid has the same loops,
+# Skid B adds the pH trim of the dosing (AIC-201), the bleed (FIC-203) and the make-up on level
+# (LIC-201). Setpoints that are a stream value of the case name it (`stream:`), so validate
+# keeps them in step with process/flowsheet.yaml. The pH is measured on an activity basis; the
+# duty model's pH is concentration-basis (control/philosophy.md): the pH values here are the
+# model's and need the probe offset before use (open, `unresolved`). Fail positions and
+# actions are proposals for the HAZOP (D-018).
 schema: cheme/loops/v1
-loops: []
-#  - id: FIC-101                        # stable id, usually the loop tag
-#    title: Feed flow
-#    purpose: Hold the feed rate of the operating case.
-#    section: FEED                      # a section of process/narrative.md
-#    cases: [design]                    # operating cases of process/flowsheet.yaml
-#    variable: flow                     # flow, level, temperature, pressure, composition, ...
-#    measurement: [{tag: FT-101}]
-#    controller: FIC-101
-#    action: reverse                    # direct: output rises with the measurement
-#    final_elements:
-#      - {tag: FV-101, kind: valve, actuator: pneumatic, fail: closed}
-#    targets:
-#      - {kind: setpoint, value: 3600, unit: kg/h, provenance: given, source: basis of design,
-#         cases: [design], stream: S1, property: flow}
-#    modes: [manual, auto]
-#    normal_mode: auto
-#    links: []                          # cascade, ratio, feedforward, override
-#    alarms: [{tag: FT-101, condition: FAL, response: check the feed pump}]
-#    interlocks: []                     # related C&E ids
-#    rationale: ""
-#    operator: ""                       # judgement the operator has to make
-#    unresolved: []                     # open points, one per entry
+loops:
+  # -- Skid A (P-01) ----------------------------------------------------------------------
+  - id: FIC-101
+    title: Skid A anolyte recirculation
+    purpose: Hold the anolyte flow through the four stacks at the duty's flow per area.
+    cases: [skid-a]
+    variable: flow
+    measurement: [{tag: FIC-101}]
+    controller: FIC-101
+    action: reverse
+    final_elements:
+      - {tag: P-101, kind: drive, actuator: electric, fail: stop}
+    targets:
+      - {kind: setpoint, value: 705.6, unit: kg/h, provenance: assumed, source: "process/cells.yaml STK-A recirculation_pump: 4 mL/(min cm2) (bench ratio, ASSUMED) at 1050 kg/m3 (cheme process stack)", cases: [skid-a], stream: S113, property: flow}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: FIC-101, condition: FAL, response: "check P-101 and the stack inlet manifold; the low-low flow trip I-106 stops the current"}
+    interlocks: [I-106]
+    rationale: "Speed control of the recirculation pump: most of the head is the stacks' pressure drop, so a speed drive saves the throttling valve (skill control-loops). The flow sets the anolyte residence time in the stacks and removes the O2."
+    unresolved: ["the anolyte flow per area and the stack pressure drop are ASSUMED (no stack vendor)"]
+  - id: TIC-111
+    title: Skid A anolyte temperature at the stack inlet
+    purpose: Hold the anolyte entering the stacks so that the stacks run at the 25 degC of the measured series.
+    cases: [skid-a]
+    variable: temperature
+    measurement: [{tag: TIC-111}]
+    controller: TIC-111
+    action: direct
+    final_elements:
+      - {tag: TV-111, kind: valve, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: setpoint, value: 296.15, unit: K, provenance: assumed, source: "process/flowsheet.yaml S114: 2 K below the 25 degC stack (D-012), ASSUMED", cases: [skid-a], stream: S114, property: temperature}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: TIC-111, condition: TAH, response: "check the cooling water and TV-111; the stack outlet high-high trip I-105 stops the current"}
+    interlocks: [I-105]
+    rationale: "Sensor on the outlet of the target stream, valve on the utility (skill control-loops). The cooler removes the stack heat (about 2.2 kW, cheme process stack); the duty model is isothermal by assumption."
+  - id: JIC-101
+    title: Skid A stack current
+    purpose: Hold the bus current of the four stacks at the duty's current density.
+    cases: [skid-a]
+    variable: other
+    measurement: [{tag: JIC-101}]
+    controller: JIC-101
+    action: reverse
+    final_elements:
+      - {tag: U-101, kind: other, actuator: electric, fail: off}
+    targets:
+      - {kind: setpoint, value: 80, unit: A, provenance: calculated, source: "cheme process stack STK-A: 4 stacks of 7 cells in parallel, 20 A per stack (200 mA/cm2 on 100 cm2)", cases: [skid-a]}
+    modes: [manual, auto]
+    normal_mode: auto
+    interlocks: [I-101, I-102, I-103, I-104, I-105, I-106]
+    rationale: "The current sets the CO rate (Faraday); the rectifier runs constant current, its voltage follows the stacks (37.6 V at the measured point)."
+    operator: "Ramp the current up only with the permissives of SEQ-A-START met; end the campaign at the pH threshold."
+    notes: "J: the electrical quantity at the rectifier output, as the spec of #330 names it."
+  - id: FIC-102
+    title: Skid A fresh CO2 feed
+    purpose: Feed the fresh CO2 that, with the PSA recycle, gives the cathode its 10 sccm/cm2.
+    cases: [skid-a]
+    variable: flow
+    measurement: [{tag: FIC-102}]
+    controller: FIC-102
+    action: reverse
+    final_elements:
+      - {tag: FV-102, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 0.3563130156, unit: kg/h, provenance: assumed, source: "process/flowsheet.yaml S101 (scripts/skid_balance.py: the cathode feed less the PSA recycle)", cases: [skid-a], stream: S101, property: flow}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: FIC-102, condition: FAL, response: "check the CO2 supply; without CO2 the stacks make H2 only: reduce the current"}
+    interlocks: [I-103, I-104]
+    rationale: "The flow element upstream of its valve on the fresh CO2. The total cathode feed is the fresh CO2 plus the recycle; the measured FE holds at 10 sccm/cm2 (D-012)."
+    unresolved: ["the total cathode feed is not controlled directly: a ratio of the fresh CO2 to the current, or a flow measurement of the total feed with FIC-102 as its slave, is open"]
+  - id: PIC-121
+    title: Skid A cathode back-pressure
+    purpose: Hold the cathode outlet pressure upstream of the compressor.
+    cases: [skid-a]
+    variable: pressure
+    measurement: [{tag: PIC-121}]
+    controller: PIC-121
+    action: reverse
+    final_elements:
+      - {tag: PV-121, kind: valve, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: setpoint, value: 110, unit: kPa(a), provenance: assumed, source: "process/flowsheet.yaml S106 (ASSUMED design condition, D-012)", cases: [skid-a], stream: S106, property: pressure}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: PIC-121, condition: PAH, response: "check K-131 and PV-121; the membrane's pressure difference is limited (vendor)"}
+    rationale: "Back-pressure control (sensor upstream of the valve). The fail-open valve keeps the stack cathode from pressurising against a stopped compressor."
+    unresolved: ["the allowed cathode-anode pressure difference of the stack (vendor)", "the suction control of K-131 (recycle or speed) is the package's"]
+  - id: LIC-122
+    title: Skid A cathode condensate level
+    purpose: Drain the carbonate condensate from V-121 without blowing gas through to the effluent.
+    cases: [skid-a]
+    variable: level
+    measurement: [{tag: LIC-122}]
+    controller: LIC-122
+    action: direct
+    final_elements:
+      - {tag: LV-122, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 50, unit: "%", provenance: assumed, source: "ASSUMED mid-range level, D-018"}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: LIC-122, condition: LAH, response: "check LV-122 and the effluent line; liquid must not reach K-131"}
+    rationale: "The fail-closed drain keeps CO out of the effluent line."
+  - id: PIC-131
+    title: Skid A CO product pressure
+    purpose: Hold the CO product at the boundary pressure of the design basis.
+    cases: [skid-a]
+    variable: pressure
+    measurement: [{tag: PIC-131}]
+    controller: PIC-131
+    action: direct
+    final_elements:
+      - {tag: PV-131, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 500, unit: kPa(a), provenance: assumed, source: "process/flowsheet.yaml S108 (process/design-basis.yaml capacity.pilot_skid, ASSUMED)", cases: [skid-a], stream: S108, property: pressure}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: PIC-131, condition: PAL, response: "check X-131; product below the boundary pressure"}
+    rationale: "Back-pressure control of the PSA product (sensor upstream of the valve)."
+    unresolved: ["fail position of PV-131 against the PSA package's own pressure protection (vendor): closed proposed"]
+  - id: AI-101
+    title: Skid A anolyte pH
+    purpose: Show the anolyte pH against the end-of-campaign threshold.
+    cases: [skid-a]
+    variable: other
+    measurement: [{tag: AI-101}]
+    targets:
+      - {kind: low, value: 12.5, unit: pH, provenance: assumed, source: "ASSUMED alarm margin above the pH 12 threshold (D-003), concentration basis", cases: [skid-a]}
+    modes: [manual]
+    normal_mode: manual
+    alarms:
+      - {tag: AI-101, condition: AAL, response: "the campaign approaches its pH threshold: plan the end of run (SEQ-A-DRAIN); the low-low pH trip I-101 stops the current"}
+    interlocks: [I-101]
+    rationale: "Skid A has no dosing: nothing is manipulated on pH, the end of the run is the operator's (D-009). The duty's threshold is the design criterion, not a corrosion limit (D-003)."
+    unresolved: ["indication with an alarm only: no controller action and no final element, since Skid A has nothing to manipulate on pH (D-009)", "probe (activity) pH against the model's concentration-basis pH: offset or calibration before the alarm and trip values are set"]
+  # -- Skid B (P-02) ----------------------------------------------------------------------
+  - id: FIC-201
+    title: Skid B anolyte recirculation
+    purpose: Hold the anolyte flow through the four stacks at the duty's flow per area.
+    cases: [skid-b]
+    variable: flow
+    measurement: [{tag: FIC-201}]
+    controller: FIC-201
+    action: reverse
+    final_elements:
+      - {tag: P-201, kind: drive, actuator: electric, fail: stop}
+    targets:
+      - {kind: setpoint, value: 705.6, unit: kg/h, provenance: assumed, source: "process/cells.yaml STK-B recirculation_pump: 4 mL/(min cm2) (bench ratio, ASSUMED) at 1050 kg/m3 (cheme process stack)", cases: [skid-b], stream: S213, property: flow}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: FIC-201, condition: FAL, response: "check P-201 and the stack inlet manifold; the low-low flow trip I-206 stops the current"}
+    interlocks: [I-206]
+    rationale: "As FIC-101."
+    unresolved: ["the anolyte flow per area and the stack pressure drop are ASSUMED (no stack vendor)"]
+  - id: TIC-211
+    title: Skid B anolyte temperature at the stack inlet
+    purpose: Hold the anolyte entering the stacks so that the stacks run at the 25 degC of the measured series.
+    cases: [skid-b]
+    variable: temperature
+    measurement: [{tag: TIC-211}]
+    controller: TIC-211
+    action: direct
+    final_elements:
+      - {tag: TV-211, kind: valve, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: setpoint, value: 296.15, unit: K, provenance: assumed, source: "process/flowsheet.yaml S214: 2 K below the 25 degC stack (D-012), ASSUMED", cases: [skid-b], stream: S214, property: temperature}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: TIC-211, condition: TAH, response: "check the cooling water and TV-211; the stack outlet high-high trip I-205 stops the current"}
+    interlocks: [I-205]
+    rationale: "As TIC-111."
+  - id: JIC-201
+    title: Skid B stack current
+    purpose: Hold the bus current of the four stacks at the duty's current density.
+    cases: [skid-b]
+    variable: other
+    measurement: [{tag: JIC-201}]
+    controller: JIC-201
+    action: reverse
+    final_elements:
+      - {tag: U-201, kind: other, actuator: electric, fail: off}
+    targets:
+      - {kind: setpoint, value: 80, unit: A, provenance: calculated, source: "cheme process stack STK-B: 4 stacks of 7 cells in parallel, 20 A per stack (200 mA/cm2 on 100 cm2)", cases: [skid-b]}
+    modes: [manual, auto]
+    normal_mode: auto
+    interlocks: [I-201, I-202, I-203, I-204, I-205, I-206, I-207]
+    rationale: "As JIC-101. Its current-off signal stops the dosing and the bleed (I-207): the model doses and bleeds only while the current is on (D-010)."
+    notes: "J: the electrical quantity at the rectifier output, as the spec of #330 names it."
+  - id: FIC-202
+    title: Skid B fresh CO2 feed
+    purpose: Feed the fresh CO2 that, with the PSA recycle, gives the cathode its 10 sccm/cm2.
+    cases: [skid-b]
+    variable: flow
+    measurement: [{tag: FIC-202}]
+    controller: FIC-202
+    action: reverse
+    final_elements:
+      - {tag: FV-202, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 0.3563130156, unit: kg/h, provenance: assumed, source: "process/flowsheet.yaml S201 (scripts/skid_balance.py: the cathode feed less the PSA recycle)", cases: [skid-b], stream: S201, property: flow}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: FIC-202, condition: FAL, response: "check the CO2 supply; without CO2 the stacks make H2 only: reduce the current"}
+    interlocks: [I-203, I-204]
+    rationale: "As FIC-102."
+    unresolved: ["the total cathode feed is not controlled directly (as FIC-102)"]
+  - id: PIC-221
+    title: Skid B cathode back-pressure
+    purpose: Hold the cathode outlet pressure upstream of the compressor.
+    cases: [skid-b]
+    variable: pressure
+    measurement: [{tag: PIC-221}]
+    controller: PIC-221
+    action: reverse
+    final_elements:
+      - {tag: PV-221, kind: valve, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: setpoint, value: 110, unit: kPa(a), provenance: assumed, source: "process/flowsheet.yaml S206 (ASSUMED design condition, D-012)", cases: [skid-b], stream: S206, property: pressure}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: PIC-221, condition: PAH, response: "check K-231 and PV-221; the membrane's pressure difference is limited (vendor)"}
+    rationale: "As PIC-121."
+    unresolved: ["the allowed cathode-anode pressure difference of the stack (vendor)", "the suction control of K-231 (recycle or speed) is the package's"]
+  - id: LIC-222
+    title: Skid B cathode condensate level
+    purpose: Drain the carbonate condensate from V-221 without blowing gas through to the effluent.
+    cases: [skid-b]
+    variable: level
+    measurement: [{tag: LIC-222}]
+    controller: LIC-222
+    action: direct
+    final_elements:
+      - {tag: LV-222, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 50, unit: "%", provenance: assumed, source: "ASSUMED mid-range level, D-018"}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: LIC-222, condition: LAH, response: "check LV-222 and the effluent line; liquid must not reach K-231"}
+    rationale: "As LIC-122."
+  - id: PIC-231
+    title: Skid B CO product pressure
+    purpose: Hold the CO product at the boundary pressure of the design basis.
+    cases: [skid-b]
+    variable: pressure
+    measurement: [{tag: PIC-231}]
+    controller: PIC-231
+    action: direct
+    final_elements:
+      - {tag: PV-231, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 500, unit: kPa(a), provenance: assumed, source: "process/flowsheet.yaml S208 (process/design-basis.yaml capacity.pilot_skid, ASSUMED)", cases: [skid-b], stream: S208, property: pressure}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: PIC-231, condition: PAL, response: "check X-231; product below the boundary pressure"}
+    rationale: "As PIC-131."
+    unresolved: ["fail position of PV-231 against the PSA package's own pressure protection (vendor): closed proposed"]
+  - id: AIC-201
+    title: Skid B anolyte pH trim of the KOH dose
+    purpose: Trim the 5 M KOH dose of P-202 around the duty's continuous rate so that the anolyte stays at the hydroxide setpoint.
+    cases: [skid-b]
+    variable: other
+    measurement: [{tag: AIC-201}]
+    controller: AIC-201
+    action: reverse
+    final_elements:
+      - {tag: P-202, kind: drive, actuator: electric, fail: stop}
+    targets:
+      - {kind: setpoint, value: 13.7, unit: pH, provenance: calculated, source: "duty D-B steady state at the ASSUMED 0.5 mol/L OH- and 0.25 mol/L carbon (scripts/regen.py step 6; results/expected.yaml E3: pH 13.699, concentration basis)", cases: [skid-b]}
+      - {kind: low, value: 13.5, unit: pH, provenance: assumed, source: "ASSUMED alarm margin below the setpoint, concentration basis", cases: [skid-b]}
+    modes: [manual, auto]
+    normal_mode: auto
+    links:
+      - {type: feedforward, tag: JIC-201, notes: "the dose base rate is the duty's (process/duties.yaml D-B, about 0.42 L/h of 5 M at 80 A): it scales with the current; AIC-201 trims it"}
+    alarms:
+      - {tag: AIC-201, condition: AAL, response: "check P-202, the day tank T-202 and the probe; the low-low pH trip I-201 stops the current"}
+    interlocks: [I-201, I-207, I-208]
+    rationale: "A pH trim of a feedforward dose: the dosing is continuous in the model (no threshold dosing, D-010), and the trim corrects the drift of WDE and co-ion crossover the model holds constant. The trim is not simulated (design-risks: open-loop dosing in the model)."
+    unresolved: ["probe (activity) pH against the model's concentration-basis pH: offset or calibration before the setpoint is set", "the trim range of P-202 (stroke or speed) around the base rate"]
+  - id: FIC-203
+    title: Skid B anolyte bleed
+    purpose: Bleed the anolyte at the steady-state rate that carries out the carbon the membrane lets in.
+    cases: [skid-b]
+    variable: flow
+    measurement: [{tag: FIC-203}]
+    controller: FIC-203
+    action: reverse
+    final_elements:
+      - {tag: FV-203, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 1.961518322, unit: kg/h, provenance: assumed, source: "process/flowsheet.yaml S223 (scripts/skid_balance.py: the D-B bleed 1.866 L/h, scripts/regen.py step 6)", cases: [skid-b], stream: S223, property: flow}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: FIC-203, condition: FAL, response: "check FV-203 and the bleed line; without bleed the carbonate rises above its setpoint"}
+    interlocks: [I-202, I-207]
+    rationale: "The bleed sets the carbon in the anolyte (b = Cx (1 - WDE) N I / (F C_T), D-010); flow control holds it against the reservoir level."
+    unresolved: ["a control valve at about 1.9 L/h by gravity is at the edge of what a valve controls: a metering pump is the alternative (D-017)"]
+  - id: LIC-201
+    title: Skid B anolyte level by make-up water
+    purpose: Hold the reservoir at its 50 L working volume with make-up water.
+    cases: [skid-b]
+    variable: level
+    measurement: [{tag: LIC-201}]
+    controller: LIC-201
+    action: reverse
+    final_elements:
+      - {tag: LV-201, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 80, unit: "%", provenance: calculated, source: "the D-B working volume 50 L in the 62.5 L of T-201 (cheme process stack, margin 0.25), flat-ended cylinder"}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: LIC-201, condition: LAL, response: "check LV-201 and the water supply; the independent low-low level trip I-202 (LIA-202) stops the skid"}
+    interlocks: [I-202]
+    rationale: "The make-up water closes the reservoir's water balance: in the model it is the bleed less the dose, a fixed rate (D-010); on the skid the level sets it."
