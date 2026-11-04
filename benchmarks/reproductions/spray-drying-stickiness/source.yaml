@@ -138,7 +138,8 @@ reference_B_thesis_model_tglass:
     - "Thesis Fig. 5.5 example (falling droplet column): the surface reaches the glass transition near 80 wt% solids (p. 65)."
     - "PE collisions, DE 5 and 12: the first bouncing collisions fall at t_dry/t_glass = 0.5 to 1.5 (p. 68)."
     - "Falling droplet column (100 +- 20 degC, 210 +- 40 um, 0.10-1.29 s drying): bouncing only from t_dry/t_glass > 3.5 (DE 5) up to > 4.5 (DE 21); sticking up to t_dry/t_glass = 5.5 for DE 12 (5.3.3, p. 69)."
-    - "The thesis concludes that a surface-glass criterion from a 1D model is only an order-of-magnitude predictor of collision outcome and too simple at spray-drying rates (5.5)."
+    - "The thesis concludes that a surface-glass criterion from a 1D model is only an order-of-magnitude predictor of collision outcome and too simple at spray-drying rates (5.5, p. 71)."
+    - "At the locking point the skin has reached a strength that resists further shrinking, while the surface is still wet (4.3.4, p. 51)."
   not_reproducible_here:
     - "Falling droplet column rows of Table 5.1: the mean initial diameter used for each condition is not stated."
 
@@ -193,9 +194,28 @@ thesis_model_parameters:
 stickiness_criteria:
   locator: thesis chapter 2, sections 2.1-2.4 and Table 2.2 (pp. 8-21)
   statements:
-    - "Onset of stickiness is commonly expressed as a critical offset (T - Tg)c above the glass transition (p. 9)."
-    - "Reported (T - Tg)c for dynamic tests spans about -5 to 90 degC across materials and methods (p. 20)."
+    - "Onset of stickiness is commonly expressed as a critical offset (T - Tg)c above the glass transition (2.1, p. 8)."
+    - "Reported (T - Tg)c for dynamic tests spans about -5 to 90 degC across materials and methods (2.4, p. 19)."
     - "Maltodextrin DE 21, fluidised bed (Palzer 2005): (T - Tg)c = 47 to 62 degC (Table 2.2, p. 21)."
-    - "Skim milk powder, static vs fluidised-bed test: average offsets 13 and 18 degC (p. 20)."
-    - "Prototypical WLF case: viscosity at the glass transition 10^12 Pa s (p. 11)."
+    - "Skim milk powder, static vs dynamic test: average offsets 13 and 18 degC (2.4, p. 19)."
+    - "Prototypical WLF case: viscosity at the glass transition 10^12 Pa s (2.3, p. 10)."
   no_value_for_MD12: true
+
+# Secondary sources used for one model input and one property check (facts only).
+secondary_sources:
+  popov_2005:
+    kind: theory paper (diffusion-limited evaporation flux of a sessile droplet)
+    citation: "Popov, Yu.O. (2005). Evaporative deposition patterns: spatial dimensions of the deposit. Physical Review E 71, 036313."
+    doi: 10.1103/PhysRevE.71.036313
+    used_for: inputs.yaml case_A_oct.sessile_transfer_factor (the flux expression J(theta), evaluated in run.py)
+    check: "f(90 deg) = 2, the hemisphere limit, is reported in comparison.json"
+    licence: publisher copyright; we use the published equation as a fact, no text or figure
+    accessed: "2026-11-04"
+  mills_1973:
+    kind: experimental study (self-diffusion of water by tracer methods)
+    citation: "Mills, R. (1973). Self-diffusion in normal and heavy water in the range 1-45 deg. Journal of Physical Chemistry 77, 685-688."
+    doi: 10.1021/j100624a025
+    used_for: informational check of the D0 reading (inputs.yaml material.diffusivity.D0_water)
+    water_self_diffusion_298K: {value: 2.30e-9, unit: m2/s, locator: "value at 25 degC"}
+    licence: publisher copyright; one measured value restated as a fact
+    accessed: "2026-11-04"
