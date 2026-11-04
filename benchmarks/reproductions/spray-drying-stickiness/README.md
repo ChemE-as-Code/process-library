@@ -94,7 +94,4 @@ in `results/comparison.json`.
 - **No equivalent in cheme core.** Core has no single-droplet drying model and no spray-dryer
   unit (with residence time and outlet humidity). This case implements both locally in `run.py`.
   ADR 0031 asks for a core issue in such a case, linked from #333. That issue (a droplet-drying
-  unit and a spray-dryer unit) is not opened yet: it is deferred to the coordinator, who opens
-  it and links it with the case PR on #333.
-- **ADR 0031 is not on this branch.** The case cites ADR 0031 (case layout), which is under
-  review in its own PR. The case PR depends on that PR.
+  unit and a spray-dryer unit) is core#144, linked from #333.
