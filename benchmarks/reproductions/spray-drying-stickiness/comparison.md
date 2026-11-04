@@ -14,7 +14,7 @@
 - **Order:**
   1. Commit 0f6f7b49 freezes the sources, inputs and tolerances.
   2. Commit aff3efd3 holds the first comparison run, with its script and results.
-  3. The current commit holds the second run.
+  3. Commit 83d4e0da holds the second run, the one reported here.
   The script changed between the two runs in three ways, none of which touches an input or a
   tolerance:
   - The cell state became solute content per cell instead of volume fraction (see I1 below).
