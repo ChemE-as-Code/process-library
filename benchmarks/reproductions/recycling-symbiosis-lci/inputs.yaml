@@ -1,0 +1,148 @@
+# Every model input of the linked LDPE / PP recycling inventory (#339). Labels:
+#   measured       - a measured quantity or reference constant taken from its source
+#   reconstructed  - a number stated by a source model and restated here, or derived from
+#                    stated numbers by a rule written next to it
+#   assumed        - our choice, with a rationale; no source states it for this case
+# Units are SI or kg-based. run.py reads this file and nothing else for inputs (apart from the
+# pinned library file named under displaced_production).
+schema: recycling-symbiosis-lci/inputs/v1
+
+constants:
+  atomic_mass:   # g/mol, IUPAC 2021 conventional/abridged standard atomic weights
+    C: {value: 12.011, unit: g/mol, label: measured, source: "IUPAC standard atomic weights (abridged)"}
+    H: {value: 1.008, unit: g/mol, label: measured, source: "IUPAC standard atomic weights (abridged)"}
+    O: {value: 15.999, unit: g/mol, label: measured, source: "IUPAC standard atomic weights (abridged)"}
+  polyolefin_formula:
+    value: CH2
+    label: measured
+    source: repeat unit of polyethylene (C2H4)n and polypropylene (C3H6)n; both have the empirical formula CH2
+    note: additives, fillers and moisture of real waste are not represented (assumed clean, sorted polymer)
+
+functional_basis:
+  description: >-
+    Treatment of one batch of sorted post-consumer waste in each chain, and delivery of the same
+    mass of polymer by each chain (a closed-loop, steady-state basis: what one chain collects it
+    supplies again, from recyclate, its own recovered monomer, received monomer and virgin
+    monomer). The two chains are two folders (LDPE, PP) of one combined system.
+  waste_LDPE_sorted: {value: 1000, unit: kg, label: assumed, rationale: "scale of the basis; every result is linear in it"}
+  waste_PP_sorted: {value: 1000, unit: kg, label: assumed, rationale: "equal to the LDPE batch for the base case; varied in extension.md"}
+  polymer_delivered_per_kg_waste: {value: 1.0, unit: kg/kg, label: assumed, rationale: "closed-loop basis: each chain delivers the mass of polymer it collected"}
+
+mechanical_recycling:   # both chains
+  share_of_waste: {value: 0.5, unit: "-", label: assumed, rationale: "scenario S3 combines mechanical and chemical recycling; the abstract gives no split, so an even split is taken"}
+  yield: {value: 0.75, unit: kg recyclate / kg input, label: assumed, rationale: "round value for sorted film and rigid packaging recyclers; rejects are polymer-rich"}
+  rejects_to: {value: pyrolysis, label: assumed, rationale: "in a combined mechanical and chemical scheme the rejects feed the pyrolysis unit; no incineration or landfill in S3/S4"}
+  recyclate_substitution: {value: 1.0, unit: kg polymer / kg recyclate, label: assumed, rationale: "recyclate counted as delivered polymer one to one; quality loss not modelled"}
+
+pyrolysis_LDPE:   # Somoza-Tornos et al. 2020 (source.yaml component), applied to LDPE
+  basis: {value: "waste PE model applied to sorted LDPE", label: reconstructed, source: "source.yaml component; the source models generic waste PE and quotes an LDPE heating value"}
+  global_reaction_coefficients:   # mol product per pseudo-mole of PE (Eq. 1)
+    label: reconstructed
+    source: "source.yaml component.model_facts.global_reaction (Eq. 1), fitted by the source to measured yields"
+    C2H4: 4.62
+    C3H6: 1.17
+    C3H4: 0.07
+    C4H8: 0.09
+    C4H6: 0.59
+    C6H6: 0.45
+    CH4: 1.66
+  normalisation:
+    value: mass fractions = coefficient x molar mass / sum over products
+    label: assumed
+    rationale: >-
+      Eq. 1 does not state the pseudo-unit of PE; its products sum to 280.4 g per pseudo-mole
+      (C20.04 H39.38), close to C20H40 (280.5 g) with a 1.5 % hydrogen deficit. Normalising the
+      product masses closes the mass balance exactly; the element imbalance is reported.
+  recovery:
+    label: reconstructed
+    source: "source.yaml component.model_facts.separations (T1 to T4)"
+    CH4: 0.99
+    C2H4: 0.999
+    C3H6: 0.99
+    C6H6: 0.99
+  product_stream_mass:
+    value: recovered key component only
+    label: assumed
+    rationale: "the 0.5 wt% impurities of each product (purity 99.5 wt%) are not attributed to a component by the source; neglected (bounded at 0.5 %)"
+  fuel:
+    value: every unrecovered component, burnt completely to CO2 and water in the furnace
+    label: reconstructed
+    source: "source.yaml component.model_facts (T4 top fires the furnace; direct CO2 only from this combustion)"
+  net_electricity_per_kg_ethylene: {value: 0.454, unit: kWh/kg, label: reconstructed, source: "source.yaml component.reported_results.per_kg_ethylene.net_electricity"}
+
+pyrolysis_PP:   # no open inventory of PP pyrolysis to monomers was found (sufficiency.md)
+  mass_yield:
+    label: assumed
+    rationale: >-
+      Round values for thermal cracking of PP at the LDPE model's severity: more propylene and
+      methane and less ethylene than PE, because PP chains break at the methyl-substituted
+      carbon. Not from a source; the extension and sufficiency.md treat them as the main
+      evidence gap. Recovery is folded in: the values are recovered product per kg feed.
+    C3H6: 0.30
+    C2H4: 0.15
+    CH4: 0.12
+    C6H6: 0.08
+  fuel:
+    value: the remaining mass (0.35 kg/kg), taken as CH2 (polyolefin carbon content) and burnt completely in the furnace
+    label: assumed
+    rationale: "composition of the remainder unknown; CH2 is the carbon content of the feed itself"
+  net_electricity_per_kg_feed:
+    value: same per kg of feed as the LDPE model (0.454 kWh/kg ethylene / 2.17 kg feed per kg ethylene in the source)
+    label: assumed
+    rationale: "similar cryogenic separation train; no PP-specific data"
+
+polymerisation:
+  monomer_per_kg_polymer: {value: 1.0, unit: kg/kg, label: assumed, rationale: "polymerisation losses neglected (below 1 % in practice); the chain's monomer demand equals the polymer it makes from monomer"}
+  olefin_substitution: {value: 1.0, unit: kg virgin / kg recovered, label: reconstructed, source: "recovered ethylene and propylene meet 99.5 wt% (source.yaml component separations), taken as polymer grade"}
+
+configurations:
+  D_fuel:
+    label: assumed
+    description: >-
+      Disconnected. Each chain uses its own recovered monomer. The other olefin (propylene from
+      the LDPE plant, ethylene from the PP plant) has no material outlet in its folder and joins
+      the furnace fuel. Methane and benzene are sold.
+  D_market:
+    label: assumed
+    description: >-
+      Disconnected. As D_fuel, but the other olefin is sold to the external market as a
+      coproduct.
+  L:
+    label: assumed
+    description: >-
+      Linked (industrial symbiosis). The other olefin goes to the other chain's polymerisation
+      and replaces its virgin monomer, up to that chain's remaining demand; any surplus is sold.
+      Methane and benzene are sold.
+  exchange_logistics: {value: none, label: assumed, rationale: "co-located plants; transport and storage of the exchanged olefin not modelled"}
+
+coproduct_treatment:
+  system_model:
+    value: cut-off (ADR 0007, docs/system-model.md)
+    label: assumed
+    rationale: "the library's default system model; the sorted waste enters each recycler burden-free, and no credit is given for exported coproducts in the per-folder attribution"
+  allocation_rule:
+    value: mass
+    label: reconstructed
+    source: >-
+      docs/system-model.md section 2 step 3 (WBCSD rule): ratio of highest to lowest price per kg
+      of the pyrolysis coproducts, from source.yaml component.model_facts.prices_eur_per_kg
+      (ethylene 1.075, propylene 0.875, benzene 0.994, methane 0.334 EUR/kg) is 3.2, below 5,
+      so mass allocation. Applied to the direct CO2 of each pyrolysis plant among its products.
+  system_expansion_view:
+    value: exported olefin replaces virgin olefin one to one in the market
+    label: assumed
+    rationale: "reported only as the combined-system 'net virgin olefin' line, beside the cut-off figures, never mixed into them (docs/system-model.md section 1, variants)"
+
+displaced_production:
+  dataset:
+    path: processes/ethylene-1/lca/inventory.csv
+    commit: 7943fe15dbd892ace91961b2ee841999b45484bc
+    sha256: 54f0ffb5092c1c01f06b2007ecd47fd09ad787163e7993451dcb795a6bd8bf02
+    label: reconstructed
+    rule: >-
+      direct CO2 per kg of hydrocarbon product = emission:CO2 / (ETHYLENE + PROPYLENE + CRUDEC4
+      + PYGAS) quantities in the file: mass allocation, as ethylene-1 D-016 does; the same value
+      per kg for ethylene and propylene
+    caveat: >-
+      gate-to-gate, ethane route, concept and unreviewed; the upstream burden of ethane, power and
+      steam is a gap, as is any naphtha or propane dehydrogenation route
