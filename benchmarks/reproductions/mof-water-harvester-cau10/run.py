@@ -6,6 +6,8 @@
 #   "matplotlib==3.10.7",
 #   "pyyaml==6.0.3",
 # ]
+# [tool.uv]
+# exclude-newer = "2026-11-04T00:00:00Z"
 # ///
 """CAU-10-H water harvester case (#334, tracker #333): reproduction and design extension.
 
@@ -20,8 +22,10 @@ Rerun from the repository root:
 4. Sizes an adsorbent bed: working capacity, adsorbent mass and packed volume against inlet
    relative humidity for the stated yield and recovery, regeneration heat, infeasible region.
 
-Writes results/comparison.json and three SVG figures. Exits non-zero only if the script fails;
-the reproduction verdict is recorded in comparison.json.
+Writes results/comparison.json (committed: scalar results only), results/sweep.json (the full
+RH sweep, resampled from the CC BY-SA 4.0 isotherm, not committed) and three SVG figures (not
+committed; README.md). Exits non-zero only if the script fails; the reproduction verdict is
+recorded in comparison.json.
 """
 
 from __future__ import annotations
@@ -61,6 +65,18 @@ INK2 = "#52514e"
 SURFACE = "#fcfcfb"
 SHADE_INFEASIBLE = "#d9d8d4"
 SHADE_STEP = "#ecebe7"
+
+# Reporting rule for interpolated loadings (not a model input): a point is "loosely constrained"
+# when its adsorption-branch segment spans more than 10 % change in uptake or more than 0.01 in
+# p/p0. The isotherm is monotonic, so the uptake lies between the two measured end points of the
+# segment; those end points are reported as bounds beside the linear value.
+LOOSE_REL_UPTAKE = 0.10
+LOOSE_DX = 0.01
+# Design points reported as scalars in comparison.json (extension.md table).
+DESIGN_POINTS_RH = (0.15, 0.18, 0.19, 0.195, 0.20, 0.22, 0.30, 0.42)
+# Largest allowed difference between the bed temperature and the isotherm temperature: loadings
+# are read from the 313 K isotherm only (inputs.yaml adsorption_state.bed_temperature).
+MAX_T_OFFSET_K = 0.5
 
 
 # ---------------------------------------------------------------------------- data access
@@ -112,7 +128,12 @@ def read_isotherm(path: Path) -> dict:
     ads, des = a[: i_top + 1], a[i_top:]
     if not (np.all(np.diff(ads[:, 0]) > 0) and np.all(np.diff(ads[:, 2]) > 0)):
         raise SystemExit("adsorption branch is not monotonic; linear inverse interpolation invalid")
-    return {"all": a, "ads": ads, "des": des}
+    # The desorption branch is not monotonic in p/p0 on the step (0.185 to 0.189). Lookups are
+    # allowed only on its low-pressure tail, where the reversed p/p0 values strictly increase.
+    xs = des[::-1, 0]
+    bad = np.nonzero(np.diff(xs) <= 0)[0]
+    des_mono_max = float(xs[bad[0]]) if len(bad) else float(xs[-1])
+    return {"all": a, "ads": ads, "des": des, "des_monotonic_up_to": des_mono_max}
 
 
 def check_mapping(meta: Path, inputs: dict) -> dict:
@@ -141,6 +162,20 @@ def p_sat(T: float) -> float:
     return (2 * C / (-B + math.sqrt(B * B - 4 * A * C))) ** 4 * 1e6
 
 
+# IAPWS R7-97(2012), Table 35: computer-program verification values of the saturation pressure.
+IF97_VERIFICATION_PA = {300.0: 0.353658941e4, 500.0: 0.263889776e7, 600.0: 0.123443146e8}
+
+
+def check_p_sat() -> dict:
+    out = {}
+    for T, ref in IF97_VERIFICATION_PA.items():
+        dev = p_sat(T) / ref - 1
+        if abs(dev) > 1e-8:
+            raise SystemExit(f"p_sat({T} K) deviates from the IF97 verification value by {dev:.2e}")
+        out[f"{T:.0f}_K"] = {"reference_Pa": ref, "ours_Pa": round(p_sat(T), 4), "deviation_rel": float(f"{dev:.2e}")}
+    return out
+
+
 def vapour_density(T: float, rh: float) -> float:
     """Water vapour mass concentration in g/m3 (ideal gas)."""
     return rh * p_sat(T) * 0.018015 / (R_GAS * T) * 1000
@@ -159,11 +194,25 @@ def q_ads(ads: np.ndarray, x):
     return np.interp(x, ads[:, 0], ads[:, 2])
 
 
-def q_des(des: np.ndarray, x: float) -> float:
+def q_des(iso: dict, x: float) -> float:
+    des = iso["des"]
     xs, qs = des[::-1, 0], des[::-1, 2]
-    if not (xs[0] <= x <= xs[-1]):
-        raise ValueError("desorption-branch request outside the measured range")
-    return float(np.interp(x, xs, qs))
+    if not (xs[0] <= x <= iso["des_monotonic_up_to"]):
+        raise ValueError(f"desorption-branch request at p/p0 {x} outside the monotonic measured tail "
+                         f"({xs[0]:.4f} to {iso['des_monotonic_up_to']:.4f})")
+    n = int(np.searchsorted(xs, iso["des_monotonic_up_to"], side="right"))
+    return float(np.interp(x, xs[:n], qs[:n]))
+
+
+def ads_segment(ads: np.ndarray, x):
+    """Measured adsorption points bracketing x: (x_lo, x_hi, q_lo, q_hi), in mmol/g; vectorised."""
+    x = np.atleast_1d(np.asarray(x, dtype=float))
+    i = np.clip(np.searchsorted(ads[:, 0], x, side="left"), 1, len(ads) - 1)
+    exact = np.isclose(ads[i, 0], x, rtol=0, atol=1e-12) | np.isclose(ads[i - 1, 0], x, rtol=0, atol=1e-12)
+    j = np.where(np.isclose(ads[i - 1, 0], x, rtol=0, atol=1e-12), i - 1, i)
+    lo = np.where(exact, j, i - 1)
+    hi = np.where(exact, j, i)
+    return ads[lo, 0], ads[hi, 0], ads[lo, 2], ads[hi, 2]
 
 
 # ---------------------------------------------------------------------------- reproduction
@@ -297,8 +346,13 @@ def design(iso: dict, inp: dict, desc: dict, M_w: float) -> dict:
     cp_w = v("regeneration_heat", "water_heat_capacity")
     h_fg = v("regeneration_heat", "vaporisation_enthalpy_313K")
 
+    # Loadings are read from the isotherm at T_iso only; the design is defined for a bed at T_iso.
+    if abs(T_ads - T_iso) > MAX_T_OFFSET_K:
+        raise SystemExit(f"bed temperature {T_ads} K differs from the isotherm temperature {T_iso} K by more than "
+                         f"{MAX_T_OFFSET_K} K: loadings at other temperatures are not supported (inputs.yaml)")
+
     g = M_w / 1000  # mmol/g -> g/g
-    q_reg = q_des(des, x_reg) * g
+    q_reg = q_des(iso, x_reg) * g
     q_hi = q_ads(ads, rh) * g
     dq = np.clip(q_hi - q_reg, 0.0, None)
     dq_ref = dq[-1]
@@ -306,7 +360,21 @@ def design(iso: dict, inp: dict, desc: dict, M_w: float) -> dict:
     with np.errstate(divide="ignore"):
         mass = np.where(dq > 0, Y / (eta * dq), np.inf)
     vol_L = mass / rho * 1000
-    rh_feasible_min = float(rh[~negligible][0])
+    # Monotone bounds on the sweep: uptake between the measured end points of each segment.
+    _, _, s_qlo, s_qhi = ads_segment(ads, rh)
+    dq_lo = np.clip(s_qlo * g - q_reg, 0.0, None)
+    dq_hi = np.clip(s_qhi * g - q_reg, 0.0, None)
+    with np.errstate(divide="ignore"):
+        mass_lo = np.where(dq_hi > 0, Y / (eta * dq_hi), np.inf)
+        mass_hi = np.where(dq_lo > 0, Y / (eta * dq_lo), np.inf)
+
+    # Threshold crossings solved on the interpolant (not on the sweep grid), with their segments.
+    thr = f_neg * dq_ref
+    rh_neg = x_at_loading(ads, (thr + q_reg) / g)
+    rh_zero = x_at_loading(ads, q_reg / g)
+    seg_neg = ads_segment(ads, rh_neg)
+    seg_zero = ads_segment(ads, rh_zero)
+    i_gap = int(np.argmax(np.diff(ads[:, 0])))
 
     # Regeneration temperature by the characteristic curve (equal adsorption potential).
     A_reg = R_GAS * T_iso * math.log(1 / x_reg)
@@ -318,6 +386,21 @@ def design(iso: dict, inp: dict, desc: dict, M_w: float) -> dict:
     def heat_per_kg_collected(dq_i, qhi_i):
         sensible = (cp_s + qhi_i * cp_w) * (T_reg - T_ads) / dq_i  # kJ per kg desorbed
         return (sensible + dh_ads) / eta, sensible / eta, dh_ads / eta
+
+    def bounds(rh_i):
+        """Monotone bracket from the two measured adsorption points around rh_i."""
+        xl, xh, ql, qh_ = (float(a[0]) for a in ads_segment(ads, rh_i))
+        ql, qh_ = ql * g, qh_ * g
+        wide = bool((qh_ / ql - 1) > LOOSE_REL_UPTAKE or (xh - xl) > LOOSE_DX)
+        dl, dh = max(ql - q_reg, 0.0), max(qh_ - q_reg, 0.0)
+        out = {"segment_p_over_p0": [round(xl, 4), round(xh, 4)], "segment_uptake_g_per_g": [round(ql, 4), round(qh_, 4)],
+               "wide_segment": wide, "working_capacity_g_per_g": [round(dl, 4), round(dh, 4)],
+               "adsorbent_mass_kg": [round(Y / (eta * dh), 1) if dh > 0 else None,
+                                     round(Y / (eta * dl), 1) if dl > 0 else None]}
+        if dh > 0:
+            heat = [heat_per_kg_collected(dh, qh_)[0] / 3600, heat_per_kg_collected(dl, ql)[0] / 3600 if dl > 0 else None]
+            out["regeneration_heat_kWh_per_kg_water"] = [round(heat[0], 2), round(heat[1], 2) if heat[1] else None]
+        return out
 
     def case(rh_i):
         qh = float(q_ads(ads, rh_i)) * g
@@ -336,23 +419,34 @@ def design(iso: dict, inp: dict, desc: dict, M_w: float) -> dict:
                         "mean_heat_duty_W": round(tot * Y * 1000 / (v("cycle", "desorption_time") * 3600), 0)})
         else:
             out.update({"adsorbent_mass_kg": None, "note": "no net uptake above the regeneration loading"})
+        out["interpolation_bounds"] = bounds(rh_i)
         return out
 
     base = case(v("changed_input_example", "base_relative_humidity"))
     changed = case(v("changed_input_example", "changed_relative_humidity"))
     ratio = (changed["adsorbent_mass_kg"] / base["adsorbent_mass_kg"]) if changed["adsorbent_mass_kg"] else None
+    cb = changed["interpolation_bounds"]["adsorbent_mass_kg"]
+    ratio_bounds = [round(x / base["adsorbent_mass_kg"], 1) if x else None for x in cb]
 
     # One-at-a-time sensitivity of the base case (all within measured data or plain scaling).
     rh_b = v("changed_input_example", "base_relative_humidity")
     qh_b = float(q_ads(ads, rh_b)) * g
     sens = {}
-    for x_alt in (float(des[-1, 0]), 0.0705):
-        d_alt = qh_b - q_des(des, x_alt) * g
+    for x_alt in (float(des[-1, 0]), float(des[-2, 0])):  # the two lowest measured desorption points
+        d_alt = qh_b - q_des(iso, x_alt) * g
         sens[f"regeneration_p_over_p0_{x_alt:.4f}"] = {"adsorbent_mass_kg": round(Y / (eta * d_alt), 2)}
     for eta_alt in (0.6, 0.9):
         sens[f"recovery_{eta_alt}"] = {"adsorbent_mass_kg": round(Y / (eta_alt * base["working_capacity_g_per_g"]), 2)}
     for rho_alt in (400, 800):
         sens[f"packed_density_{rho_alt}"] = {"packed_volume_L": round(base["adsorbent_mass_kg"] / rho_alt * 1000, 1)}
+    # Adsorption enthalpy: Dubinin estimate with an assumed +-10 % range (inputs.yaml).
+    for f in (0.9, 1.1):
+        row = {}
+        for name in ("base", "changed"):
+            qh = float(q_ads(ads, v("changed_input_example", f"{name}_relative_humidity"))) * g
+            sens_part = (cp_s + qh * cp_w) * (T_reg - T_ads) / (qh - q_reg)
+            row[f"{name}_regeneration_heat_kWh_per_kg_water"] = round((sens_part + f * dh_ads) / eta / 3600, 3)
+        sens[f"adsorption_enthalpy_x{f}"] = row
 
     return {
         "label": "HYPOTHETICAL design extension (not validated)",
@@ -361,7 +455,11 @@ def design(iso: dict, inp: dict, desc: dict, M_w: float) -> dict:
             "adsorption": f"bed and inlet air at {T_ads} K, inlet RH {float(ads[0,0]):.4f} to {float(ads[-1,0]):.4f} (measured adsorption branch)",
             "regeneration": f"relative pressure {x_reg} on the measured desorption branch (lowest point {float(des[-1,0]):.4f})",
             "not_supported": f"inlet RH above {float(ads[-1,0]):.4f}; any loading at a temperature other than {T_iso} K",
+            "bed_temperature_check": f"|T_bed - T_iso| = {abs(T_ads - T_iso):.2f} K <= {MAX_T_OFFSET_K} K (enforced; "
+                                     "run.py stops otherwise)",
+            "desorption_lookups_up_to_p_over_p0": round(iso["des_monotonic_up_to"], 4),
         },
+        "adsorption_branch_largest_gap_p_over_p0": [round(float(ads[i_gap, 0]), 4), round(float(ads[i_gap + 1, 0]), 4)],
         "regeneration_loading_g_per_g": round(q_reg, 4),
         "regeneration_temperature_K": round(T_reg, 2),
         "regeneration_temperature_C": round(T_reg - 273.15, 1),
@@ -371,15 +469,31 @@ def design(iso: dict, inp: dict, desc: dict, M_w: float) -> dict:
         "adsorption_enthalpy_kJ_per_mol": round(dh_ads * M_w / 1000, 2),
         "working_capacity_at_highest_rh_g_per_g": round(float(dq_ref), 4),
         "negligible_threshold_g_per_g": round(float(f_neg * dq_ref), 4),
-        "minimum_feasible_inlet_rh": rh_feasible_min,
+        "minimum_feasible_inlet_rh": round(rh_neg, 4),
+        "minimum_feasible_inlet_rh_segment": [round(float(seg_neg[0][0]), 4), round(float(seg_neg[1][0]), 4)],
+        "minimum_feasible_inlet_rh_note": "working capacity equals the negligible threshold; solved on the linear "
+                                          "interpolant; the monotone bracket is the measured segment",
+        "zero_working_capacity_rh_linear": round(rh_zero, 4),
+        "zero_working_capacity_rh_segment": [round(float(seg_zero[0][0]), 4), round(float(seg_zero[1][0]), 4)],
+        "zero_working_capacity_note": "no measured adsorption point in this segment; the crossing can lie anywhere in it",
         "step_region_rh": [round(desc["x10"], 4), round(desc["x90"], 4)],
         "step_inflection_rh": round(desc["alpha"], 4),
+        "interpolation_bounds_rule": (
+            "bounds use the uptake at the measured adsorption points either side (the isotherm is monotonic); "
+            f"wide_segment marks a segment with more than {LOOSE_REL_UPTAKE:.0%} change in uptake or more than "
+            f"{LOOSE_DX} in p/p0; a null upper mass bound means the lower end of the segment has no net uptake"),
         "base_case": base, "changed_case": changed,
         "mass_ratio_changed_over_base": round(ratio, 2) if ratio else None,
+        "mass_ratio_changed_over_base_bounds": ratio_bounds,
         "sensitivity_of_base_case": sens,
+        "design_points": [case(x) for x in DESIGN_POINTS_RH],
+        # Per-point resampling of the CC BY-SA 4.0 isotherm: written to results/sweep.json, not committed.
         "sweep": {"inlet_relative_humidity": rh.tolist(),
                   "working_capacity_g_per_g": np.round(dq, 5).tolist(),
                   "adsorbent_mass_kg": [None if not np.isfinite(m) else round(float(m), 3) for m in mass],
+                  "adsorbent_mass_bounds_kg": [[None if not np.isfinite(a) else round(float(a), 3),
+                                                None if not np.isfinite(b) else round(float(b), 3)]
+                                               for a, b in zip(mass_lo, mass_hi)],
                   "packed_volume_L": [None if not np.isfinite(x) else round(float(x), 2) for x in vol_L],
                   "negligible": negligible.tolist()},
     }
@@ -459,28 +573,38 @@ def fig_headline(dsn, iso_top):
     fig, ax = plt.subplots(figsize=(6.8, 4.4))
     rh_min = dsn["minimum_feasible_inlet_rh"]
     ax.axvspan(0.0, rh_min, color=SHADE_INFEASIBLE, lw=0)
-    ax.text(0.105, 7, f"INFEASIBLE\nworking capacity\n< {dsn['negligible_threshold_g_per_g']:.3f} g/g:\nbelow the step", color=INK, fontsize=8, ha="center", va="center")
+    ax.text(0.115, 7, f"INFEASIBLE\nworking capacity\n< {dsn['negligible_threshold_g_per_g']:.3f} g/g:\nbelow the step", color=INK, fontsize=8, ha="center", va="center")
     s0, s1 = dsn["step_region_rh"]
     ax.axvspan(s0, s1, color=SHADE_STEP, lw=0, hatch="///", ec="#b9b8b3")
     ax.axvspan(iso_top, 0.45, color=SHADE_STEP, lw=0)
     ax.text(0.437, 7, "not\nmeasured", color=INK2, fontsize=8, ha="center", va="center")
-    ax.plot(rh[~neg], m[~neg], color=C_ADS, label="required adsorbent mass")
+    b = np.array([[np.nan if x is None else x for x in pair] for pair in sw["adsorbent_mass_bounds_kg"]], dtype=float)
+    b[np.isnan(b[:, 1]), 1] = 1e4  # unbounded above: no net uptake at the lower end of the segment
+    ax.fill_between(rh, b[:, 0], b[:, 1], color=C_ADS, alpha=0.15, lw=0,
+                    label="bounds from the measured points either side")
+    g0, g1 = dsn["adsorption_branch_largest_gap_p_over_p0"]
+    ax.annotate("", xy=(g0, 1500), xytext=(g1, 1500), arrowprops={"arrowstyle": "<->", "color": INK2, "lw": 0.6})
+    ax.text(0.5 * (g0 + g1), 1300, f"no measured adsorption\npoints, p/p0 {g0:.3f} to {g1:.3f}", color=INK2, fontsize=7.5,
+            ha="center", va="top")
+    ax.plot(rh[~neg], m[~neg], color=C_ADS, label="required adsorbent mass (linear interpolation)")
     ax.plot(rh[neg], m[neg], color=C_ADS, lw=1, ls=":")
-    for c, lab, off in [(dsn["base_case"], "base", (8, 8)), (dsn["changed_case"], "changed input", (-118, -6))]:
+    for c, lab, off in [(dsn["base_case"], "base", (8, 8)), (dsn["changed_case"], "changed input", (-122, -40))]:
         if c["adsorbent_mass_kg"]:
             ax.plot([c["inlet_relative_humidity"]], [c["adsorbent_mass_kg"]], "o", color=INK, ms=6, zorder=5)
-            ax.annotate(f"{lab}: RH {c['inlet_relative_humidity']:.2f}\n{c['adsorbent_mass_kg']:.1f} kg, {c['packed_volume_L']:.0f} L",
+            lo, hi = c["interpolation_bounds"]["adsorbent_mass_kg"]
+            span = f"\n(bounds {lo:.0f} to {hi:.0f} kg)" if c["interpolation_bounds"]["wide_segment"] and hi and hi / lo > 1.2 else ""
+            ax.annotate(f"{lab}: RH {c['inlet_relative_humidity']:.2f}\n{c['adsorbent_mass_kg']:.3g} kg, {c['packed_volume_L']:.0f} L{span}",
                         (c["inlet_relative_humidity"], c["adsorbent_mass_kg"]), xytext=off, textcoords="offset points", color=INK, fontsize=8)
     ax.annotate(f"step {s0:.3f} to {s1:.3f}\n(mass very sensitive to RH)", (0.5 * (s0 + s1), 40), xytext=(22, 0),
                 textcoords="offset points", color=INK2, fontsize=8, va="center", arrowprops={"arrowstyle": "-", "color": INK2, "lw": 0.6})
     ax.set_yscale("log")
-    ax.set_ylim(2, 300)
+    ax.set_ylim(2, 2000)
     ax.set_xlim(0.05, 0.45)
     ax.set_xlabel("inlet relative humidity at the bed, 313 K (-)")
     ax.set_ylabel("adsorbent mass per cycle (kg pellets)")
     ax.set_title("CAU-10-H harvester: adsorbent for 1 kg water per cycle at 80 % recovery\n"
                  "(regeneration at p/p0 0.05; packed volume = mass / 600 kg/m3)", fontsize=9, color=INK, loc="left")
-    ax.legend(loc="upper right")
+    ax.legend(loc="center right", bbox_to_anchor=(1.0, 0.62), fontsize=8)
     _save(fig, "harvester_mass_vs_rh.svg")
 
 
@@ -489,6 +613,7 @@ def main() -> int:
     src = yaml.safe_load((HERE / "source.yaml").read_text())
     inp = yaml.safe_load((HERE / "inputs.yaml").read_text())
     tol = yaml.safe_load((HERE / "tolerances.yaml").read_text())
+    if9_check = check_p_sat()
     files = {f["name"]: f for f in src["dataset"]["files"]}
     csv = fetch(files["8 - CAU-10-H.csv"])
     meta = fetch(files["Metadata.txt"])
@@ -505,21 +630,36 @@ def main() -> int:
     x_reg = inp["regeneration_state"]["relative_pressure"]["value"]
     fig_isotherm(iso, rep["descriptors"], (x_reg, dsn["regeneration_loading_g_per_g"]), M_w)
     fig_reproduction(rep, tol)
-    fig_headline(dsn, float(iso["ads"][-1, 0]))
+    fig_headline(dsn, float(iso["ads"][-1, 0]))  # uses dsn["sweep"], which goes to sweep.json below
 
     rep["descriptors"] = {k: (round(v, 5) if isinstance(v, float) else v) for k, v in rep["descriptors"].items()}
+    sweep = dsn.pop("sweep")
+    dsn["sweep_file"] = "results/sweep.json (written by run.py, git-ignored: per-point resampling of the CC BY-SA 4.0 data)"
+    data_source = {
+        "doi": src["dataset"]["doi"], "title": src["dataset"]["title"], "authors": src["dataset"]["authors"],
+        "repository": src["dataset"]["repository"], "file": "8 - CAU-10-H.csv",
+        "licence": src["dataset"]["licence"]["name"], "licence_url": src["dataset"]["licence"]["url"],
+        "use": "interpolated and transformed by run.py (descriptors, working capacities, sizing); the data file is not "
+               "redistributed",
+    }
+    (RESULTS / "sweep.json").write_text(json.dumps({"case": CASE_ID, "data_source": data_source,
+                                                    "label": dsn["label"], "sweep": sweep}, indent=2,
+                                                   ensure_ascii=False) + "\n")
     out = {
         "case": CASE_ID, "issue": 334, "tracker": 333,
         "command": f"uv run benchmarks/reproductions/{CASE_ID}/run.py",
         "versions": {"python": sys.version.split()[0], "numpy": np.__version__, "scipy": scipy.__version__,
                      "matplotlib": matplotlib.__version__, "pyyaml": yaml.__version__},
+        "data_source": data_source,
         "tolerances_file": "tolerances.yaml",
+        "if97_verification": if9_check,
         "inputs_sha256": {n: sha256(HERE / n) for n in ("source.yaml", "inputs.yaml", "tolerances.yaml")},
         "data_sha256_verified": {n: f["sha256"] for n, f in files.items()},
         "sample_mapping": mapping,
         "measured_series": {"adsorption_points": int(len(iso["ads"])), "desorption_points": int(len(iso["des"]) - 1),
                             "p_over_p0_range_adsorption": [float(iso["ads"][0, 0]), float(iso["ads"][-1, 0])],
-                            "p_over_p0_lowest_desorption": float(iso["des"][-1, 0])},
+                            "p_over_p0_lowest_desorption": float(iso["des"][-1, 0]),
+                            "desorption_monotonic_up_to_p_over_p0": iso["des_monotonic_up_to"]},
         "reproduction": rep,
         "design_extension": dsn,
         "figures": ["isotherm_cau10h_313K.svg", "reproduction_figure7.svg", "harvester_mass_vs_rh.svg"],
@@ -533,7 +673,8 @@ def main() -> int:
           f"p0 {c['saturation_pressure']['ours_Pa']} vs {c['saturation_pressure']['reference_Pa']} Pa ({c['saturation_pressure']['status']})")
     b, ch = dsn["base_case"], dsn["changed_case"]
     print(f"design: RH {b['inlet_relative_humidity']} -> {b['adsorbent_mass_kg']} kg; RH {ch['inlet_relative_humidity']} -> "
-          f"{ch['adsorbent_mass_kg']} kg; feasible from RH {dsn['minimum_feasible_inlet_rh']}; T_reg {dsn['regeneration_temperature_C']} °C")
+          f"{ch['adsorbent_mass_kg']} kg (bounds {ch['interpolation_bounds']['adsorbent_mass_kg']}); "
+          f"feasible from RH {dsn['minimum_feasible_inlet_rh']}; T_reg {dsn['regeneration_temperature_C']} °C")
     print(f"wrote {RESULTS}")
     return 0
 
