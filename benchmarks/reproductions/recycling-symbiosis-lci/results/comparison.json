@@ -1,0 +1,1147 @@
+{
+  "case": "recycling-symbiosis-lci",
+  "issue": "ChemE-as-Code/process-library#339 (tracker #333)",
+  "tolerances_file": "tolerances.yaml",
+  "verdict": {
+    "case": "fail",
+    "target_reproduction": "not achievable",
+    "component_reproduction": "fail",
+    "rule": "Component reproduction: pass when every component check is within its tolerance, fail otherwise; a check that cannot be evaluated is a gap, not a pass. Target reproduction: not achievable (declared above). Case verdict: \"partial\" when the component reproduction passes and every reconciliation check holds; \"fail\" when a component check fails; \"not achievable\" is kept for the target in every case. A failed reconciliation check is a script error (run.py exits non-zero), not a reproduction result."
+  },
+  "component_reproduction": {
+    "reference": "source.yaml component.reported_results.per_kg_ethylene (Table 2)",
+    "checks": {
+      "waste_PE_feed": {
+        "reference": 2.17,
+        "ours": 2.165553,
+        "unit": "kg/kg ethylene",
+        "deviation_rel": -0.002049,
+        "tolerance_rel": 0.02,
+        "status": "pass"
+      },
+      "methane": {
+        "reference": 0.204,
+        "ours": 0.203623,
+        "unit": "kg/kg ethylene",
+        "deviation_rel": -0.001849,
+        "tolerance_rel": 0.02,
+        "status": "pass"
+      },
+      "propylene": {
+        "reference": 0.378,
+        "ours": 0.376448,
+        "unit": "kg/kg ethylene",
+        "deviation_rel": -0.004106,
+        "tolerance_rel": 0.02,
+        "status": "pass"
+      },
+      "benzene": {
+        "reference": 0.287,
+        "ours": 0.268766,
+        "unit": "kg/kg ethylene",
+        "deviation_rel": -0.063533,
+        "tolerance_rel": 0.03,
+        "status": "fail"
+      },
+      "direct_CO2_fuel_combustion": {
+        "reference": 0.986,
+        "ours": 1.02577,
+        "unit": "kg/kg ethylene",
+        "deviation_rel": 0.040334,
+        "tolerance_rel": 0.05,
+        "status": "pass"
+      }
+    },
+    "verdict": "fail",
+    "context": {
+      "fuel_by_difference_in_table_kg_per_kg_ethylene": 0.301,
+      "fuel_ours_kg_per_kg_ethylene": 0.3167,
+      "CO2_per_kg_table_fuel_implied": 3.2757,
+      "CO2_per_kg_our_fuel": 3.2388,
+      "eq1_pseudo_unit": {
+        "C": 20.04,
+        "H": 39.38,
+        "mass_g": 280.39548,
+        "H_deficit_vs_CH2": 0.01747
+      }
+    }
+  },
+  "target": {
+    "status": "not evaluable",
+    "direction_check": {
+      "claim": "S4 (symbiosis) has the lowest burden of the scenarios compared",
+      "virgin_olefin_L_not_above_D": true,
+      "direct_co2_L_not_above_D": true,
+      "net_virgin_olefin_L_minus_D_market_system_expansion_kg": 0.0,
+      "counts_for_reproduction": false,
+      "status": "consistent"
+    }
+  },
+  "pyrolysis_models_per_kg_feed": {
+    "LDPE": {
+      "products": {
+        "CH4": 0.094028,
+        "C2H4": 0.461776,
+        "C3H6": 0.173835,
+        "C6H6": 0.12411
+      },
+      "fuel": {
+        "C2H4": 0.000462,
+        "C3H6": 0.001756,
+        "C3H4": 0.010002,
+        "C4H8": 0.018009,
+        "C4H6": 0.113819,
+        "C6H6": 0.001254,
+        "CH4": 0.00095
+      },
+      "fuel_total": 0.146252,
+      "direct_co2": 0.473676,
+      "net_electricity_kWh": 0.209646,
+      "label": "reconstructed (Somoza-Tornos et al. 2020)"
+    },
+    "PP": {
+      "products": {
+        "C3H6": 0.3,
+        "C2H4": 0.15,
+        "CH4": 0.12,
+        "C6H6": 0.08
+      },
+      "fuel_total": 0.35,
+      "direct_co2": 1.098107,
+      "net_electricity_kWh": 0.209646,
+      "label": "assumed"
+    }
+  },
+  "allocation": {
+    "rule": "mass (docs/system-model.md step 3)",
+    "price_ratio_max_min": 3.218563
+  },
+  "displaced_production": {
+    "path": "processes/ethylene-1/lca/inventory.csv",
+    "sha256": "54f0ffb5092c1c01f06b2007ecd47fd09ad787163e7993451dcb795a6bd8bf02",
+    "sha256_pinned": "54f0ffb5092c1c01f06b2007ecd47fd09ad787163e7993451dcb795a6bd8bf02",
+    "sha256_match": true,
+    "co2_unallocated_per_kg_ethylene": 0.432561,
+    "hydrocarbon_products_per_kg_ethylene": 1.09222,
+    "co2_per_kg_olefin_mass_allocated": 0.396038
+  },
+  "configurations": {
+    "D_fuel": {
+      "config": "D_fuel",
+      "folders": {
+        "LDPE": {
+          "waste": 1000,
+          "mech_in": 500.0,
+          "recyclate": 375.0,
+          "rejects_to_pyrolysis": 125.0,
+          "pyrolysis_feed": 625.0,
+          "recovered": {
+            "CH4": 58.767589,
+            "C2H4": 288.609927,
+            "C3H6": 108.646594,
+            "C6H6": 77.568536
+          },
+          "polymer_delivered": 1000.0,
+          "polymer_from_monomer": 625.0,
+          "monomer_demand": 625.0,
+          "own_monomer_used": 288.609927,
+          "own_monomer_surplus_exported": 0.0,
+          "deficit_after_own": 336.390073,
+          "fuel_base": 91.407353,
+          "co2_base": 296.047304,
+          "electricity_kWh": 131.028907,
+          "carbon_in_pyrolysis_feed": 536.519972,
+          "other_olefin_recovered": 108.646594,
+          "other_olefin_sent": 0.0,
+          "other_olefin_exported": 0.0,
+          "other_olefin_burnt": 108.646594,
+          "olefin_received": 0.0,
+          "virgin_monomer": 336.390073,
+          "fuel_burnt": 200.053948,
+          "direct_co2": 636.920475,
+          "exported": {
+            "CH4": 58.767589,
+            "C6H6": 77.568536,
+            "C2H4": 0.0,
+            "C3H6": 0.0
+          },
+          "pyrolysis_products_mass": 424.946052,
+          "co2_per_kg_product_mass_alloc": 1.498827,
+          "alloc_co2_own_monomer_used": 432.576255,
+          "alloc_co2_received_olefin": 0.0,
+          "alloc_co2_exported": 204.34422,
+          "alloc_co2_sent": 0.0,
+          "polymer_foreground_co2_cutoff": 432.576255,
+          "virgin_supply_gate_co2": 133.223367
+        },
+        "PP": {
+          "waste": 1000,
+          "mech_in": 500.0,
+          "recyclate": 375.0,
+          "rejects_to_pyrolysis": 125.0,
+          "pyrolysis_feed": 625.0,
+          "recovered": {
+            "C3H6": 187.5,
+            "C2H4": 93.75,
+            "CH4": 75.0,
+            "C6H6": 50.0
+          },
+          "polymer_delivered": 1000.0,
+          "polymer_from_monomer": 625.0,
+          "monomer_demand": 625.0,
+          "own_monomer_used": 187.5,
+          "own_monomer_surplus_exported": 0.0,
+          "deficit_after_own": 437.5,
+          "fuel_base": 218.75,
+          "co2_base": 686.317014,
+          "electricity_kWh": 131.028907,
+          "carbon_in_pyrolysis_feed": 530.417982,
+          "olefin_received": 0.0,
+          "other_olefin_recovered": 93.75,
+          "other_olefin_sent": 0.0,
+          "other_olefin_exported": 0.0,
+          "other_olefin_burnt": 93.75,
+          "virgin_monomer": 437.5,
+          "fuel_burnt": 312.5,
+          "direct_co2": 980.452877,
+          "exported": {
+            "CH4": 75.0,
+            "C6H6": 50.0,
+            "C3H6": 0.0,
+            "C2H4": 0.0
+          },
+          "pyrolysis_products_mass": 312.5,
+          "co2_per_kg_product_mass_alloc": 3.137449,
+          "alloc_co2_own_monomer_used": 588.271726,
+          "alloc_co2_received_olefin": 0.0,
+          "alloc_co2_exported": 392.181151,
+          "alloc_co2_sent": 0.0,
+          "polymer_foreground_co2_cutoff": 588.271726,
+          "virgin_supply_gate_co2": 173.266775
+        }
+      },
+      "combined": {
+        "virgin_olefin_bought_kg": 773.890073,
+        "virgin_ethylene_kg": 336.390073,
+        "virgin_propylene_kg": 437.5,
+        "olefin_exported_kg": 0.0,
+        "olefin_burnt_kg": 202.396594,
+        "olefin_exchanged_kg": 0.0,
+        "net_virgin_olefin_system_expansion_kg": 773.890073,
+        "methane_exported_kg": 133.767589,
+        "benzene_exported_kg": 127.568536,
+        "foreground_direct_co2_kg": 1617.373351,
+        "polymer_foreground_co2_cutoff_kg": 1020.847981,
+        "exported_products_co2_cutoff_kg": 596.52537,
+        "virgin_supply_gate_co2_kg": 306.490143,
+        "net_virgin_supply_gate_co2_system_expansion_kg": 306.490143,
+        "net_electricity_kWh": 262.057814,
+        "polymer_delivered_kg": 2000.0,
+        "waste_treated_kg": 2000
+      },
+      "checks": {
+        "mass_closure_LDPE": {
+          "in": 1336.390073,
+          "out": 1336.390073,
+          "rel": 0.0,
+          "status": "pass"
+        },
+        "carbon_closure_LDPE": {
+          "in": 1145.667057,
+          "out": 1145.667057,
+          "rel": 0.0,
+          "status": "pass"
+        },
+        "exchange_identity_LDPE_to_PP": {
+          "sent": 0.0,
+          "received": 0.0,
+          "abs": 0.0,
+          "status": "pass"
+        },
+        "mass_closure_PP": {
+          "in": 1437.5,
+          "out": 1437.5,
+          "rel": 0.0,
+          "status": "pass"
+        },
+        "carbon_closure_PP": {
+          "in": 1226.143191,
+          "out": 1226.143191,
+          "rel": 0.0,
+          "status": "pass"
+        },
+        "exchange_identity_PP_to_LDPE": {
+          "sent": 0.0,
+          "received": 0.0,
+          "abs": 0.0,
+          "status": "pass"
+        },
+        "allocation_conservation": {
+          "unallocated": 1617.373351,
+          "allocated_sum": 1617.373351,
+          "rel": 0.0,
+          "status": "pass"
+        }
+      }
+    },
+    "D_market": {
+      "config": "D_market",
+      "folders": {
+        "LDPE": {
+          "waste": 1000,
+          "mech_in": 500.0,
+          "recyclate": 375.0,
+          "rejects_to_pyrolysis": 125.0,
+          "pyrolysis_feed": 625.0,
+          "recovered": {
+            "CH4": 58.767589,
+            "C2H4": 288.609927,
+            "C3H6": 108.646594,
+            "C6H6": 77.568536
+          },
+          "polymer_delivered": 1000.0,
+          "polymer_from_monomer": 625.0,
+          "monomer_demand": 625.0,
+          "own_monomer_used": 288.609927,
+          "own_monomer_surplus_exported": 0.0,
+          "deficit_after_own": 336.390073,
+          "fuel_base": 91.407353,
+          "co2_base": 296.047304,
+          "electricity_kWh": 131.028907,
+          "carbon_in_pyrolysis_feed": 536.519972,
+          "other_olefin_recovered": 108.646594,
+          "other_olefin_sent": 0.0,
+          "other_olefin_exported": 108.646594,
+          "other_olefin_burnt": 0.0,
+          "olefin_received": 0.0,
+          "virgin_monomer": 336.390073,
+          "fuel_burnt": 91.407353,
+          "direct_co2": 296.047304,
+          "exported": {
+            "CH4": 58.767589,
+            "C6H6": 77.568536,
+            "C2H4": 0.0,
+            "C3H6": 108.646594
+          },
+          "pyrolysis_products_mass": 533.592647,
+          "co2_per_kg_product_mass_alloc": 0.554819,
+          "alloc_co2_own_monomer_used": 160.126253,
+          "alloc_co2_received_olefin": 0.0,
+          "alloc_co2_exported": 135.921052,
+          "alloc_co2_sent": 0.0,
+          "polymer_foreground_co2_cutoff": 160.126253,
+          "virgin_supply_gate_co2": 133.223367
+        },
+        "PP": {
+          "waste": 1000,
+          "mech_in": 500.0,
+          "recyclate": 375.0,
+          "rejects_to_pyrolysis": 125.0,
+          "pyrolysis_feed": 625.0,
+          "recovered": {
+            "C3H6": 187.5,
+            "C2H4": 93.75,
+            "CH4": 75.0,
+            "C6H6": 50.0
+          },
+          "polymer_delivered": 1000.0,
+          "polymer_from_monomer": 625.0,
+          "monomer_demand": 625.0,
+          "own_monomer_used": 187.5,
+          "own_monomer_surplus_exported": 0.0,
+          "deficit_after_own": 437.5,
+          "fuel_base": 218.75,
+          "co2_base": 686.317014,
+          "electricity_kWh": 131.028907,
+          "carbon_in_pyrolysis_feed": 530.417982,
+          "olefin_received": 0.0,
+          "other_olefin_recovered": 93.75,
+          "other_olefin_sent": 0.0,
+          "other_olefin_exported": 93.75,
+          "other_olefin_burnt": 0.0,
+          "virgin_monomer": 437.5,
+          "fuel_burnt": 218.75,
+          "direct_co2": 686.317014,
+          "exported": {
+            "CH4": 75.0,
+            "C6H6": 50.0,
+            "C3H6": 0.0,
+            "C2H4": 93.75
+          },
+          "pyrolysis_products_mass": 406.25,
+          "co2_per_kg_product_mass_alloc": 1.689396,
+          "alloc_co2_own_monomer_used": 316.761699,
+          "alloc_co2_received_olefin": 0.0,
+          "alloc_co2_exported": 369.555315,
+          "alloc_co2_sent": 0.0,
+          "polymer_foreground_co2_cutoff": 316.761699,
+          "virgin_supply_gate_co2": 173.266775
+        }
+      },
+      "combined": {
+        "virgin_olefin_bought_kg": 773.890073,
+        "virgin_ethylene_kg": 336.390073,
+        "virgin_propylene_kg": 437.5,
+        "olefin_exported_kg": 202.396594,
+        "olefin_burnt_kg": 0.0,
+        "olefin_exchanged_kg": 0.0,
+        "net_virgin_olefin_system_expansion_kg": 571.493479,
+        "methane_exported_kg": 133.767589,
+        "benzene_exported_kg": 127.568536,
+        "foreground_direct_co2_kg": 982.364318,
+        "polymer_foreground_co2_cutoff_kg": 476.887951,
+        "exported_products_co2_cutoff_kg": 505.476367,
+        "virgin_supply_gate_co2_kg": 306.490143,
+        "net_virgin_supply_gate_co2_system_expansion_kg": 226.333331,
+        "net_electricity_kWh": 262.057814,
+        "polymer_delivered_kg": 2000.0,
+        "waste_treated_kg": 2000
+      },
+      "checks": {
+        "mass_closure_LDPE": {
+          "in": 1336.390073,
+          "out": 1336.390073,
+          "rel": 0.0,
+          "status": "pass"
+        },
+        "carbon_closure_LDPE": {
+          "in": 1145.667057,
+          "out": 1145.667057,
+          "rel": 0.0,
+          "status": "pass"
+        },
+        "exchange_identity_LDPE_to_PP": {
+          "sent": 0.0,
+          "received": 0.0,
+          "abs": 0.0,
+          "status": "pass"
+        },
+        "mass_closure_PP": {
+          "in": 1437.5,
+          "out": 1437.5,
+          "rel": 0.0,
+          "status": "pass"
+        },
+        "carbon_closure_PP": {
+          "in": 1226.143191,
+          "out": 1226.143191,
+          "rel": 0.0,
+          "status": "pass"
+        },
+        "exchange_identity_PP_to_LDPE": {
+          "sent": 0.0,
+          "received": 0.0,
+          "abs": 0.0,
+          "status": "pass"
+        },
+        "allocation_conservation": {
+          "unallocated": 982.364318,
+          "allocated_sum": 982.364318,
+          "rel": 0.0,
+          "status": "pass"
+        }
+      }
+    },
+    "L": {
+      "config": "L",
+      "folders": {
+        "LDPE": {
+          "waste": 1000,
+          "mech_in": 500.0,
+          "recyclate": 375.0,
+          "rejects_to_pyrolysis": 125.0,
+          "pyrolysis_feed": 625.0,
+          "recovered": {
+            "CH4": 58.767589,
+            "C2H4": 288.609927,
+            "C3H6": 108.646594,
+            "C6H6": 77.568536
+          },
+          "polymer_delivered": 1000.0,
+          "polymer_from_monomer": 625.0,
+          "monomer_demand": 625.0,
+          "own_monomer_used": 288.609927,
+          "own_monomer_surplus_exported": 0.0,
+          "deficit_after_own": 336.390073,
+          "fuel_base": 91.407353,
+          "co2_base": 296.047304,
+          "electricity_kWh": 131.028907,
+          "carbon_in_pyrolysis_feed": 536.519972,
+          "other_olefin_recovered": 108.646594,
+          "other_olefin_sent": 108.646594,
+          "other_olefin_exported": 0.0,
+          "other_olefin_burnt": 0.0,
+          "olefin_received": 93.75,
+          "virgin_monomer": 242.640073,
+          "fuel_burnt": 91.407353,
+          "direct_co2": 296.047304,
+          "exported": {
+            "CH4": 58.767589,
+            "C6H6": 77.568536,
+            "C2H4": 0.0,
+            "C3H6": 0.0
+          },
+          "pyrolysis_products_mass": 533.592647,
+          "co2_per_kg_product_mass_alloc": 0.554819,
+          "alloc_co2_own_monomer_used": 160.126253,
+          "alloc_co2_received_olefin": 158.380849,
+          "alloc_co2_exported": 75.641864,
+          "alloc_co2_sent": 60.279188,
+          "polymer_foreground_co2_cutoff": 318.507102,
+          "virgin_supply_gate_co2": 96.094773
+        },
+        "PP": {
+          "waste": 1000,
+          "mech_in": 500.0,
+          "recyclate": 375.0,
+          "rejects_to_pyrolysis": 125.0,
+          "pyrolysis_feed": 625.0,
+          "recovered": {
+            "C3H6": 187.5,
+            "C2H4": 93.75,
+            "CH4": 75.0,
+            "C6H6": 50.0
+          },
+          "polymer_delivered": 1000.0,
+          "polymer_from_monomer": 625.0,
+          "monomer_demand": 625.0,
+          "own_monomer_used": 187.5,
+          "own_monomer_surplus_exported": 0.0,
+          "deficit_after_own": 437.5,
+          "fuel_base": 218.75,
+          "co2_base": 686.317014,
+          "electricity_kWh": 131.028907,
+          "carbon_in_pyrolysis_feed": 530.417982,
+          "olefin_received": 108.646594,
+          "other_olefin_recovered": 93.75,
+          "other_olefin_sent": 93.75,
+          "other_olefin_exported": 0.0,
+          "other_olefin_burnt": 0.0,
+          "virgin_monomer": 328.853406,
+          "fuel_burnt": 218.75,
+          "direct_co2": 686.317014,
+          "exported": {
+            "CH4": 75.0,
+            "C6H6": 50.0,
+            "C3H6": 0.0,
+            "C2H4": 0.0
+          },
+          "pyrolysis_products_mass": 406.25,
+          "co2_per_kg_product_mass_alloc": 1.689396,
+          "alloc_co2_own_monomer_used": 316.761699,
+          "alloc_co2_received_olefin": 60.279188,
+          "alloc_co2_exported": 211.174466,
+          "alloc_co2_sent": 158.380849,
+          "polymer_foreground_co2_cutoff": 377.040886,
+          "virgin_supply_gate_co2": 130.238558
+        }
+      },
+      "combined": {
+        "virgin_olefin_bought_kg": 571.493479,
+        "virgin_ethylene_kg": 242.640073,
+        "virgin_propylene_kg": 328.853406,
+        "olefin_exported_kg": 0.0,
+        "olefin_burnt_kg": 0.0,
+        "olefin_exchanged_kg": 202.396594,
+        "net_virgin_olefin_system_expansion_kg": 571.493479,
+        "methane_exported_kg": 133.767589,
+        "benzene_exported_kg": 127.568536,
+        "foreground_direct_co2_kg": 982.364318,
+        "polymer_foreground_co2_cutoff_kg": 695.547988,
+        "exported_products_co2_cutoff_kg": 286.81633,
+        "virgin_supply_gate_co2_kg": 226.333331,
+        "net_virgin_supply_gate_co2_system_expansion_kg": 226.333331,
+        "net_electricity_kWh": 262.057814,
+        "polymer_delivered_kg": 2000.0,
+        "waste_treated_kg": 2000
+      },
+      "checks": {
+        "mass_closure_LDPE": {
+          "in": 1336.390073,
+          "out": 1336.390073,
+          "rel": 0.0,
+          "status": "pass"
+        },
+        "carbon_closure_LDPE": {
+          "in": 1145.667057,
+          "out": 1145.667057,
+          "rel": 0.0,
+          "status": "pass"
+        },
+        "exchange_identity_LDPE_to_PP": {
+          "sent": 108.646594,
+          "received": 108.646594,
+          "abs": 0.0,
+          "status": "pass"
+        },
+        "mass_closure_PP": {
+          "in": 1437.5,
+          "out": 1437.5,
+          "rel": 0.0,
+          "status": "pass"
+        },
+        "carbon_closure_PP": {
+          "in": 1226.143191,
+          "out": 1226.143191,
+          "rel": 0.0,
+          "status": "pass"
+        },
+        "exchange_identity_PP_to_LDPE": {
+          "sent": 93.75,
+          "received": 93.75,
+          "abs": 0.0,
+          "status": "pass"
+        },
+        "allocation_conservation": {
+          "unallocated": 982.364318,
+          "allocated_sum": 982.364318,
+          "rel": 0.0,
+          "status": "pass"
+        }
+      }
+    }
+  },
+  "extension": {
+    "label": "HYPOTHETICAL design extension (not validated)",
+    "changed_input": {
+      "name": "functional_basis.waste_PP_sorted",
+      "base": 1000,
+      "changed": 4000.0,
+      "unit": "kg"
+    },
+    "base": {
+      "ethylene_received_by_LDPE_kg": 93.75,
+      "ethylene_surplus_sold_kg": 0.0,
+      "LDPE_virgin_ethylene_kg": 242.640073,
+      "LDPE_share_of_ethylene_demand_met_by_exchange": 0.15,
+      "propylene_received_by_PP_kg": 108.646594,
+      "PP_virgin_propylene_kg": 328.853406,
+      "virgin_olefin_saved_vs_D_fuel_kg": 202.396594,
+      "net_virgin_olefin_system_expansion_kg": 571.493479,
+      "net_virgin_olefin_system_expansion_D_market_kg": 571.493479
+    },
+    "changed": {
+      "ethylene_received_by_LDPE_kg": 336.390073,
+      "ethylene_surplus_sold_kg": 38.609927,
+      "LDPE_virgin_ethylene_kg": 0.0,
+      "LDPE_share_of_ethylene_demand_met_by_exchange": 0.538224,
+      "propylene_received_by_PP_kg": 108.646594,
+      "PP_virgin_propylene_kg": 1641.353406,
+      "virgin_olefin_saved_vs_D_fuel_kg": 445.036667,
+      "net_virgin_olefin_system_expansion_kg": 1602.743479,
+      "net_virgin_olefin_system_expansion_D_market_kg": 1602.743479
+    },
+    "saturation_waste_PP_kg": 3588.160776,
+    "saturation_ratio_PP_to_LDPE": 3.588161,
+    "sweep": [
+      {
+        "waste_PP_kg": 100.0,
+        "ethylene_to_LDPE_kg": 9.375,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 327.0151,
+        "propylene_to_PP_kg": 43.75,
+        "virgin_olefin_saved_vs_D_fuel_kg": 53.125
+      },
+      {
+        "waste_PP_kg": 200.0,
+        "ethylene_to_LDPE_kg": 18.75,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 317.6401,
+        "propylene_to_PP_kg": 87.5,
+        "virgin_olefin_saved_vs_D_fuel_kg": 106.25
+      },
+      {
+        "waste_PP_kg": 300.0,
+        "ethylene_to_LDPE_kg": 28.125,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 308.2651,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 136.7716
+      },
+      {
+        "waste_PP_kg": 400.0,
+        "ethylene_to_LDPE_kg": 37.5,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 298.8901,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 146.1466
+      },
+      {
+        "waste_PP_kg": 500.0,
+        "ethylene_to_LDPE_kg": 46.875,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 289.5151,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 155.5216
+      },
+      {
+        "waste_PP_kg": 600.0,
+        "ethylene_to_LDPE_kg": 56.25,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 280.1401,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 164.8966
+      },
+      {
+        "waste_PP_kg": 700.0,
+        "ethylene_to_LDPE_kg": 65.625,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 270.7651,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 174.2716
+      },
+      {
+        "waste_PP_kg": 800.0,
+        "ethylene_to_LDPE_kg": 75.0,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 261.3901,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 183.6466
+      },
+      {
+        "waste_PP_kg": 900.0,
+        "ethylene_to_LDPE_kg": 84.375,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 252.0151,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 193.0216
+      },
+      {
+        "waste_PP_kg": 1000.0,
+        "ethylene_to_LDPE_kg": 93.75,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 242.6401,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 202.3966
+      },
+      {
+        "waste_PP_kg": 1100.0,
+        "ethylene_to_LDPE_kg": 103.125,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 233.2651,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 211.7716
+      },
+      {
+        "waste_PP_kg": 1200.0,
+        "ethylene_to_LDPE_kg": 112.5,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 223.8901,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 221.1466
+      },
+      {
+        "waste_PP_kg": 1300.0,
+        "ethylene_to_LDPE_kg": 121.875,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 214.5151,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 230.5216
+      },
+      {
+        "waste_PP_kg": 1400.0,
+        "ethylene_to_LDPE_kg": 131.25,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 205.1401,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 239.8966
+      },
+      {
+        "waste_PP_kg": 1500.0,
+        "ethylene_to_LDPE_kg": 140.625,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 195.7651,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 249.2716
+      },
+      {
+        "waste_PP_kg": 1600.0,
+        "ethylene_to_LDPE_kg": 150.0,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 186.3901,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 258.6466
+      },
+      {
+        "waste_PP_kg": 1700.0,
+        "ethylene_to_LDPE_kg": 159.375,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 177.0151,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 268.0216
+      },
+      {
+        "waste_PP_kg": 1800.0,
+        "ethylene_to_LDPE_kg": 168.75,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 167.6401,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 277.3966
+      },
+      {
+        "waste_PP_kg": 1900.0,
+        "ethylene_to_LDPE_kg": 178.125,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 158.2651,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 286.7716
+      },
+      {
+        "waste_PP_kg": 2000.0,
+        "ethylene_to_LDPE_kg": 187.5,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 148.8901,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 296.1466
+      },
+      {
+        "waste_PP_kg": 2100.0,
+        "ethylene_to_LDPE_kg": 196.875,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 139.5151,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 305.5216
+      },
+      {
+        "waste_PP_kg": 2200.0,
+        "ethylene_to_LDPE_kg": 206.25,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 130.1401,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 314.8966
+      },
+      {
+        "waste_PP_kg": 2300.0,
+        "ethylene_to_LDPE_kg": 215.625,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 120.7651,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 324.2716
+      },
+      {
+        "waste_PP_kg": 2400.0,
+        "ethylene_to_LDPE_kg": 225.0,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 111.3901,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 333.6466
+      },
+      {
+        "waste_PP_kg": 2500.0,
+        "ethylene_to_LDPE_kg": 234.375,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 102.0151,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 343.0216
+      },
+      {
+        "waste_PP_kg": 2600.0,
+        "ethylene_to_LDPE_kg": 243.75,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 92.6401,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 352.3966
+      },
+      {
+        "waste_PP_kg": 2700.0,
+        "ethylene_to_LDPE_kg": 253.125,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 83.2651,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 361.7716
+      },
+      {
+        "waste_PP_kg": 2800.0,
+        "ethylene_to_LDPE_kg": 262.5,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 73.8901,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 371.1466
+      },
+      {
+        "waste_PP_kg": 2900.0,
+        "ethylene_to_LDPE_kg": 271.875,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 64.5151,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 380.5216
+      },
+      {
+        "waste_PP_kg": 3000.0,
+        "ethylene_to_LDPE_kg": 281.25,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 55.1401,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 389.8966
+      },
+      {
+        "waste_PP_kg": 3100.0,
+        "ethylene_to_LDPE_kg": 290.625,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 45.7651,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 399.2716
+      },
+      {
+        "waste_PP_kg": 3200.0,
+        "ethylene_to_LDPE_kg": 300.0,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 36.3901,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 408.6466
+      },
+      {
+        "waste_PP_kg": 3300.0,
+        "ethylene_to_LDPE_kg": 309.375,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 27.0151,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 418.0216
+      },
+      {
+        "waste_PP_kg": 3400.0,
+        "ethylene_to_LDPE_kg": 318.75,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 17.6401,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 427.3966
+      },
+      {
+        "waste_PP_kg": 3500.0,
+        "ethylene_to_LDPE_kg": 328.125,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 8.2651,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 436.7716
+      },
+      {
+        "waste_PP_kg": 3588.1608,
+        "ethylene_to_LDPE_kg": 336.3901,
+        "ethylene_surplus_sold_kg": 0.0,
+        "LDPE_virgin_ethylene_kg": 0.0,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 445.0367
+      },
+      {
+        "waste_PP_kg": 3600.0,
+        "ethylene_to_LDPE_kg": 336.3901,
+        "ethylene_surplus_sold_kg": 1.1099,
+        "LDPE_virgin_ethylene_kg": 0.0,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 445.0367
+      },
+      {
+        "waste_PP_kg": 3700.0,
+        "ethylene_to_LDPE_kg": 336.3901,
+        "ethylene_surplus_sold_kg": 10.4849,
+        "LDPE_virgin_ethylene_kg": 0.0,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 445.0367
+      },
+      {
+        "waste_PP_kg": 3800.0,
+        "ethylene_to_LDPE_kg": 336.3901,
+        "ethylene_surplus_sold_kg": 19.8599,
+        "LDPE_virgin_ethylene_kg": 0.0,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 445.0367
+      },
+      {
+        "waste_PP_kg": 3900.0,
+        "ethylene_to_LDPE_kg": 336.3901,
+        "ethylene_surplus_sold_kg": 29.2349,
+        "LDPE_virgin_ethylene_kg": 0.0,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 445.0367
+      },
+      {
+        "waste_PP_kg": 4000.0,
+        "ethylene_to_LDPE_kg": 336.3901,
+        "ethylene_surplus_sold_kg": 38.6099,
+        "LDPE_virgin_ethylene_kg": 0.0,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 445.0367
+      },
+      {
+        "waste_PP_kg": 4100.0,
+        "ethylene_to_LDPE_kg": 336.3901,
+        "ethylene_surplus_sold_kg": 47.9849,
+        "LDPE_virgin_ethylene_kg": 0.0,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 445.0367
+      },
+      {
+        "waste_PP_kg": 4200.0,
+        "ethylene_to_LDPE_kg": 336.3901,
+        "ethylene_surplus_sold_kg": 57.3599,
+        "LDPE_virgin_ethylene_kg": 0.0,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 445.0367
+      },
+      {
+        "waste_PP_kg": 4300.0,
+        "ethylene_to_LDPE_kg": 336.3901,
+        "ethylene_surplus_sold_kg": 66.7349,
+        "LDPE_virgin_ethylene_kg": 0.0,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 445.0367
+      },
+      {
+        "waste_PP_kg": 4400.0,
+        "ethylene_to_LDPE_kg": 336.3901,
+        "ethylene_surplus_sold_kg": 76.1099,
+        "LDPE_virgin_ethylene_kg": 0.0,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 445.0367
+      },
+      {
+        "waste_PP_kg": 4500.0,
+        "ethylene_to_LDPE_kg": 336.3901,
+        "ethylene_surplus_sold_kg": 85.4849,
+        "LDPE_virgin_ethylene_kg": 0.0,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 445.0367
+      },
+      {
+        "waste_PP_kg": 4600.0,
+        "ethylene_to_LDPE_kg": 336.3901,
+        "ethylene_surplus_sold_kg": 94.8599,
+        "LDPE_virgin_ethylene_kg": 0.0,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 445.0367
+      },
+      {
+        "waste_PP_kg": 4700.0,
+        "ethylene_to_LDPE_kg": 336.3901,
+        "ethylene_surplus_sold_kg": 104.2349,
+        "LDPE_virgin_ethylene_kg": 0.0,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 445.0367
+      },
+      {
+        "waste_PP_kg": 4800.0,
+        "ethylene_to_LDPE_kg": 336.3901,
+        "ethylene_surplus_sold_kg": 113.6099,
+        "LDPE_virgin_ethylene_kg": 0.0,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 445.0367
+      },
+      {
+        "waste_PP_kg": 4900.0,
+        "ethylene_to_LDPE_kg": 336.3901,
+        "ethylene_surplus_sold_kg": 122.9849,
+        "LDPE_virgin_ethylene_kg": 0.0,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 445.0367
+      },
+      {
+        "waste_PP_kg": 5000.0,
+        "ethylene_to_LDPE_kg": 336.3901,
+        "ethylene_surplus_sold_kg": 132.3599,
+        "LDPE_virgin_ethylene_kg": 0.0,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 445.0367
+      },
+      {
+        "waste_PP_kg": 5100.0,
+        "ethylene_to_LDPE_kg": 336.3901,
+        "ethylene_surplus_sold_kg": 141.7349,
+        "LDPE_virgin_ethylene_kg": 0.0,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 445.0367
+      },
+      {
+        "waste_PP_kg": 5200.0,
+        "ethylene_to_LDPE_kg": 336.3901,
+        "ethylene_surplus_sold_kg": 151.1099,
+        "LDPE_virgin_ethylene_kg": 0.0,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 445.0367
+      },
+      {
+        "waste_PP_kg": 5300.0,
+        "ethylene_to_LDPE_kg": 336.3901,
+        "ethylene_surplus_sold_kg": 160.4849,
+        "LDPE_virgin_ethylene_kg": 0.0,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 445.0367
+      },
+      {
+        "waste_PP_kg": 5400.0,
+        "ethylene_to_LDPE_kg": 336.3901,
+        "ethylene_surplus_sold_kg": 169.8599,
+        "LDPE_virgin_ethylene_kg": 0.0,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 445.0367
+      },
+      {
+        "waste_PP_kg": 5500.0,
+        "ethylene_to_LDPE_kg": 336.3901,
+        "ethylene_surplus_sold_kg": 179.2349,
+        "LDPE_virgin_ethylene_kg": 0.0,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 445.0367
+      },
+      {
+        "waste_PP_kg": 5600.0,
+        "ethylene_to_LDPE_kg": 336.3901,
+        "ethylene_surplus_sold_kg": 188.6099,
+        "LDPE_virgin_ethylene_kg": 0.0,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 445.0367
+      },
+      {
+        "waste_PP_kg": 5700.0,
+        "ethylene_to_LDPE_kg": 336.3901,
+        "ethylene_surplus_sold_kg": 197.9849,
+        "LDPE_virgin_ethylene_kg": 0.0,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 445.0367
+      },
+      {
+        "waste_PP_kg": 5800.0,
+        "ethylene_to_LDPE_kg": 336.3901,
+        "ethylene_surplus_sold_kg": 207.3599,
+        "LDPE_virgin_ethylene_kg": 0.0,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 445.0367
+      },
+      {
+        "waste_PP_kg": 5900.0,
+        "ethylene_to_LDPE_kg": 336.3901,
+        "ethylene_surplus_sold_kg": 216.7349,
+        "LDPE_virgin_ethylene_kg": 0.0,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 445.0367
+      },
+      {
+        "waste_PP_kg": 6000.0,
+        "ethylene_to_LDPE_kg": 336.3901,
+        "ethylene_surplus_sold_kg": 226.1099,
+        "LDPE_virgin_ethylene_kg": 0.0,
+        "propylene_to_PP_kg": 108.6466,
+        "virgin_olefin_saved_vs_D_fuel_kg": 445.0367
+      }
+    ]
+  },
+  "provenance": {
+    "component_source": {
+      "url": "https://upcommons.upc.edu/bitstreams/ce26c0ff-8b5f-4918-880c-25cc1380d321/download",
+      "sha256_pinned": "b476880d050306966388261604b758c1aad209c3fd06ac2360f33186224cf233",
+      "cache": "$XDG_CACHE_HOME or ~/.cache, cheme-reproductions/recycling-symbiosis-lci/somoza-tornos-2020-accepted-manuscript.pdf",
+      "sha256": "b476880d050306966388261604b758c1aad209c3fd06ac2360f33186224cf233",
+      "status": "verified"
+    },
+    "python": "3.13.16",
+    "packages": {
+      "numpy": "2.3.4",
+      "matplotlib": "3.10.7",
+      "pyyaml": "6.0.3"
+    },
+    "figures": [
+      "results/monomer-supply.svg",
+      "results/combined-inventory.svg",
+      "results/extension-pp-throughput.svg"
+    ]
+  }
+}
