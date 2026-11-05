@@ -1,0 +1,31 @@
+# Components and templates of n-bromosuccinimide-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol (IUPAC 2021
+# standard atomic weights applied to the formula), normal_boiling_point in K at 101.325 kPa.
+#
+# The aqueous liquor is carried as molecular pseudo-components (NaOH, NaBr, succinimide and NBS
+# dissolved), an inventory basis, not a speciation: core has no property package for this
+# liquor (DESIGN.md D-006). The NBS crystals are a separate solid component, NBS_S
+# (phase: solid). The liquid data the semi-batch reactor needs (D-005), all ASSUMED:
+# - liquid_molar_volume, m3/kmol: water from its density at 278 K; bromine from its liquid
+#   density, 3.10 g/cm3 (CRC Handbook); NaOH 2.13, NaBr 3.21 and NBS 2.098 g/cm3 from the
+#   solids' densities (PubChem) and succinimide 1.41 g/cm3 (ASSUMED: no open value found), taken
+#   as their volume in the solution (ideal mixing, no partial molar volumes);
+# - liquid_heat_capacity, kJ/(kmol K): water 75.3 and liquid bromine 75.7 (NIST WebBook);
+#   NaOH 59.5 and NaBr 51.4 the solids' (NIST WebBook), standing for the dissolved salts;
+#   succinimide 140 and NBS 160 estimated (no open measured value found).
+# - normal boiling points: water 373.12 K, bromine 331.9 K (CRC Handbook). The solids have none.
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.015, normal_boiling_point: 373.12, liquid_molar_volume: 0.01802, liquid_heat_capacity: 75.3}
+  - {id: NAOH, name: Sodium hydroxide (dissolved), formula: NaOH, cas: 1310-73-2, molar_mass: 39.997, liquid_molar_volume: 0.0188, liquid_heat_capacity: 59.5}
+  - {id: SUCC, name: Succinimide (dissolved), formula: C4H5NO2, cas: 123-56-8, molar_mass: 99.089, liquid_molar_volume: 0.0703, liquid_heat_capacity: 140.0}
+  - {id: BR2, name: Bromine, formula: Br2, cas: 7726-95-6, molar_mass: 159.808, normal_boiling_point: 331.9, liquid_molar_volume: 0.05155, liquid_heat_capacity: 75.7}
+  - {id: NBS, name: N-Bromosuccinimide (dissolved), formula: C4H4BrNO2, cas: 128-08-5, molar_mass: 177.985, liquid_molar_volume: 0.0848, liquid_heat_capacity: 160.0}
+  - {id: NBS_S, name: N-Bromosuccinimide (crystals), formula: C4H4BrNO2, cas: 128-08-5, molar_mass: 177.985, phase: solid, liquid_molar_volume: 0.0848, liquid_heat_capacity: 160.0}
+  - {id: NABR, name: Sodium bromide (dissolved; dry residue in the product), formula: NaBr, cas: 7647-15-6, molar_mass: 102.894, liquid_molar_volume: 0.0321, liquid_heat_capacity: 51.4}
+templates:
+  - {id: liquor, title: Aqueous liquor and slurry, components: [H2O, NAOH, SUCC, BR2, NBS, NBS_S, NABR]}
+property_method:
+  adapter: thermo
+  status: placeholder

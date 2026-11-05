@@ -1,0 +1,16 @@
+# fcc-1's own exchange overrides for the Atlas LCI build (ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. The vacuum gas oil links the Atlas producer
+# refinery-distillation-1 explicitly. The catalyst stays a reported gap: the shared vocabulary has
+# no FCC catalyst entry.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:steam":
+    use: steam
+    atlas: false
+    source: "Steam by mass, pressure not stated by the source: the shared background entry, not one Atlas producer's pressure level."
+  "feed:fuel":
+    use: heat-natural-gas
+    source: "Fuel fired in the feed heater or CO boiler, counted as heat in kWh; refinery fuel gas in practice, natural-gas heat as a proxy (the background heat activity includes the combustion)."
+  "output:cooling-water": {use: cooling-water, source: "heat rejected to cooling water (kWh), at the BREF's 17 K rise"}
+  "output:wastewater": {use: wastewater, source: "sour water to stripping and site treatment, by mass"}
+  "feed:vacuum-gas-oil": {dataset: {path: processes/refinery-distillation-1/lca/datasets/atmospheric-residue-vacuum-distillation.yaml, product: "product:vacuum-gas-oil"}, source: "the Atlas producer refinery-distillation-1, untreated vacuum gas oil (360 to 560 degC) of the vacuum unit; this FCC takes it without a feed hydrotreater, as its untreated dry gas and products assume"}

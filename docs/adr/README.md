@@ -73,3 +73,4 @@ with an ADR in the same pull request.
 | [0032](0032-measured-series-as-design-inputs.md) | A process may use measured series from a pinned dataset; reproduction results stay held out | **Proposed**, 2026-11-04 |
 | [0033](0033-engineering-regeneration-tests-own-ci-job.md) | A process's regeneration test runs in its own CI job, marked `engineering` | **Proposed**, 2026-11-05 |
 | [0034](0034-design-case-lci-datasets.md) | An engineering project may export a design case's own LCI dataset beside its study's | **Proposed**, 2026-11-05 |
+| [0035](0035-batch-processes-on-a-dedicated-train.md) | A batch process folder describes a dedicated train; campaigns on a multipurpose plant are out of scope | **Proposed**, 2026-11-05 |

@@ -1,12 +1,20 @@
-# Equipment cost basis of the class 5 estimate (D-019). Schema: `cheme schema cost_basis`.
+# Equipment cost basis of the class 4 estimate (S5, D-027; class 5 at the concept, D-019). Schema: `cheme schema cost_basis`.
 # `cheme assess equipment` prices each listed item with the Turton et al. (CAPCOST) correlations
 # of the package (base CEPCI 397, 2001) and escalates them with the index below. Sizes are the
 # concept sizes of scripts/concept_sizing.py (D-017), all ASSUMED; the datasheets replace them
 # at basic engineering.
 schema: cheme/cost_basis/v1
-# AACE 18R-97 class 5: concept sizes (no datasheets), correlation costs; the estimate's range is
-# the class 5 range (-20 % to -50 % low, +30 % to +100 % high).
-estimate_class: 5
+# AACE 18R-97 class 4 since S5 (D-027): the definition behind it is the basic design (simulated
+# PFD, P&IDs of the whole plant, equipment, line and instrument lists, 3D layout with routed
+# lines and a material take-off), about 1 % to 15 % of complete definition, and the method is
+# equipment factored (bare module costs per item). AACE RP 18R-97 (Rev. August 7, 2020),
+# Table 1 "Cost Estimate Classification Matrix for Process Industries", class 4: study or
+# feasibility, equipment factored or parametric models, typical accuracy -15 % to -30 % low and
+# +20 % to +50 % high (read in the sample pages at
+# https://web.aacei.org/docs/default-source/toc/toc_18r-97.pdf, 2026-11-05). The equipment
+# sizes are still the concept sizes of D-017 (ASSUMED): the datasheets (S7) replace them, so
+# the high end of the class 4 range applies.
+estimate_class: 4
 cost_index:
   value: 797.9
   year: 2023
@@ -25,15 +33,16 @@ items:
   - {tag: P-101, size: 36.5, size_source: "process/simulation-run.json, case design, step P101 duty_kW (DWSIM pump power, D-014, D-022)"}
   - {tag: P-102, size: 1.0, size_source: "the correlation's minimum 1 kW, an upper estimate: the item's shaft power is 0.52 kW (process/simulation-run.json, case design, step P102 duty_kW, DWSIM, D-022), below the correlation's range 1 to 300 kW (D-019)"}
   - {tag: K-101, size: 450, size_source: "the correlation's minimum 450 kW, an upper estimate: the item's shaft power is 278.8 kW (DWSIM duty: process/simulation-run.json, case design, step K101 duty_kW, D-024; the motor is outside the correlation, see the uncovered allowance in estimate/tea.yaml), below the correlation's range 450 to 3000 kW, which is not extrapolated (D-019)"}
-  - {tag: H-101, size: 3042.1, size_source: "process/simulation-run.json, case design, step H101 duty_kW (absorbed duty, DWSIM, D-024)"}
+  - {tag: H-101, size: 3042.1, size_source: "process/simulation-run.json, case design, step H101 duty_kW (absorbed duty, DWSIM, D-024)",
+     fbm: 2.88, factor_source: "Guthrie's module method as given by J. R. Viguri Fuente and E. Cifrian Bemposta, Chemical Process Design, topic 5.3 Heat transfer equipment, Universidad de Cantabria OpenCourseWare (CC BY-NC-SA 4.0, 2018), https://ocw.unican.es/pluginfile.php/2992/course/section/2870/topic_5.3.pdf: slide 10 'Guthrie MPF for Direct Fired Heaters', MPF = Fm + Fp + Fd with Fd 1.00 for a cylindrical heater, Fp 0.15 for a design pressure up to 1000 psig (42 barg is about 610 psig) and Fm 0.50 for stainless steel radiant tubes (hot hydrogen, material open input I-09; chrome/moly would be 0.45); slide 11, direct fired heaters, module factor MF 2.23 in the lowest cost band (2.10 in the highest) and the bare module cost BMC = UF x BC x (MPF + MF - 1). Applied to the package's correlation cost as Guthrie's base cost BC (a cylindrical carbon steel heater at up to 500 psig): FBM = 1.65 + 2.23 - 1 = 2.88. The lowest band applies because the bands are set on Guthrie's own base cost C = C0 (S/S0)^0.77 of slide 11 (C0 20 kUSD, S0 5 MMBtu/h, in the course's base-year dollars): at the absorbed duty 3042.1 kW = 10.38 MMBtu/h, C is about 35 kUSD, below the 200 kUSD limit of MF2 (own calculation). The source contradicts itself: the box on slide 10 writes MPF = Fm + Fp + Fd, but slide 11 writes MPF = Fm (Fp + Fd) under the cost table; the product form gives MPF = 0.50 x 1.15 = 0.575 and FBM 1.81 (and MPF 0 for a carbon steel heater, which would put every carbon steel heater below its own base cost, the reason the additive form is taken as the intended one; no second readable source was found to settle it). FBM is therefore ASSUMED in the range 1.81 to 2.88; 2.88 (the higher) is carried in the base case and 1.81 in the TEA scenario h101-fbm-low. Two methods are combined here (Turton's purchased cost, Guthrie's factors), ASSUMED; replaces the screening installation factor 2.5 of D-019 (core#129, review 2026-11-03-concept-closeout#5) (D-027)"}
   - {tag: E-207, size: 19.8, size_source: "scripts/concept_sizing.py: Q 314.5 kW (DWSIM), S26 366.2 -> 313.15 K against cooling water 298/308 K, LMTD 31.8 K, U 500 W/(m2 K) ASSUMED (D-022)"}
   - {tag: V-100, correlation: vessel_vertical, size_source: "list dimensions; the horizontal drum priced with the vertical vessel correlation, whose bare module factor the package holds (the horizontal one has none), ASSUMED (D-019)"}
   # ---- purge hydrogen recovery (D-024, I-07)
-  - {tag: K-102, size: 450, size_source: "the correlation's minimum 450 kW, an upper estimate: the item's shaft power is 249.0 kW (DWSIM duty: process/simulation-run.json, case design, step K102 duty_kW, D-024; the motor is in the uncovered allowance of estimate/tea.yaml), below the correlation's range 450 to 3000 kW, which is not extrapolated (D-019)"}
   # K-102 is a ReciprocatingCompressor since S3b (D-024, D-025): the package's compressor FBM is
-  # for a centrifugal machine only, so K-102 is purchased cost only (cheme.estimate-equipment-
-  # partial). A reciprocating bare module factor from a read source is carried to the class 4
-  # estimate (S5), as H-101's (review 2026-11-03-concept-closeout#5); review 2026-11-04-basic-pids#27.
+  # for a centrifugal machine only; its bare module factor comes from Guthrie's method (S5,
+  # D-027; core#129, review 2026-11-04-basic-pids#27).
+  - {tag: K-102, size: 450, size_source: "the correlation's minimum 450 kW, an upper estimate: the item's shaft power is 249.0 kW (DWSIM duty: process/simulation-run.json, case design, step K102 duty_kW, D-024; the motor is in the uncovered allowance of estimate/tea.yaml), below the correlation's range 450 to 3000 kW, which is not extrapolated (D-019)",
+     fbm: 3.40, factor_source: "Guthrie's module method as given by J. R. Viguri Fuente and E. Cifrian Bemposta, Chemical Process Design, topic 5.5 Compressors and turbines, Universidad de Cantabria OpenCourseWare (CC BY-NC-SA 4.0), https://ocw.unican.es/pluginfile.php/2992/course/section/2870/topic_5.5.pdf: slide 4 'Guthrie MPF for Compressors', MPF = Fd, 1.00 for a centrifugal machine with motor and 1.29 for a reciprocating machine with motor; slide 5, compressors, module factor MF 3.11 in the lowest cost band (2.93 in the highest) and BMC = UF x BC x (MPF + MF - 1). Guthrie's factors are written for a machine with its motor; the package's (Turton's) compressor correlation is for the machine without its driver. The factor is therefore applied to a machine-only cost (ASSUMED), and the K-102 motor stays in the uncovered allowance of estimate/tea.yaml (counted once): FBM = 1.29 + 3.11 - 1 = 3.40 (3.22 in the highest band). Two methods are combined here (Turton's purchased cost, Guthrie's factors), ASSUMED; replaces the screening installation factor 2.5 of D-019 applied since S4 (D-027)"}
   - {tag: E-103, size: 47.1, size_source: "scripts/concept_sizing.py: Q 247.8 kW (the K-102 aftercooler duty, DWSIM, D-024), K-102 discharge about 435.6 K (the simulated duty at the balance script's Peng-Robinson cp) -> 313.15 K against cooling water 298/308 K, LMTD 52.6 K, U 100 W/(m2 K) ASSUMED (D-024)"}
   - {tag: PK-101, cost: 4056500, currency: USD, year: 2023, status: ASSUMED, source: "PSA package scaled from a published plant estimate (D-024): NETL (2022), Comparison of Commercial, State-of-the-Art, Fossil-Based Hydrogen Production Technologies, DOE/NETL-2022/3241, Exhibit 3-13 (Case 1 total plant cost details, continued on p. 73), account 7.1 Pressure Swing Adsorber: bare erected cost 17 434 kUSD plus engineering, construction management, home office and fee 3 487 kUSD = 20 921 kUSD (cost base Dec 2018; the NETL contingencies left out, this estimate applies its own); the PSA's feed is stream 10 of Exhibit 3-4 (15 654 kmol/h, 74.83 mol% H2, 2.45 MPa). Scaled on the adsorbed (non-hydrogen) flow, 160.5 kmol/h here (S13: 267.67 kmol/h at 40.03 mol% H2) against 3 940 kmol/h, ratio 0.0407, exponent 0.6 (ASSUMED: the six-tenths rule; no PSA exponent was found in the NETL scaling guideline, QGESS Capital Cost Scaling Methodology Rev. 4 (2019), whose exhibits list no adsorber); escalated by CEPCI 797.9 (2023) / 603.1 (2018 annual; Chemical Engineering, Sept. 2024, p. 45, the source of the cost index above; the 2018 annual average stands in for NETL's Dec 2018 cost base, ASSUMED: no monthly index was available to this design). An extrapolation by a factor of about 25 below the reference, so ASSUMED; range 2.41 MUSD (feed-flow scaling) to 5.59 MUSD (exponent 0.5) in D-024. Taken as the package's bare module cost (direct plus contractor's indirect cost, as Turton's)"}
   # ---- items the P&IDs added (S3b, D-025), sized in S4 (D-026, review 2026-11-04-basic-pids#27).
@@ -49,7 +58,7 @@ items:
   - {tag: P-203B, size: 1.42, size_source: "installed spare of P-203A, as P-203A (scripts/s4_pump_powers.py, D-026)"}
   - {tag: P-204A, size: 1.0, size_source: "the correlation's minimum 1 kW, an upper estimate: about 0.07 kW shaft for the 352 kg/h biphenyl S24 at 400 kPa ASSUMED and efficiency 0.65 (scripts/s4_pump_powers.py, D-026); the pump type is open with the pump selection (D-025)"}
   - {tag: P-204B, size: 1.0, size_source: "installed spare of P-204A, as P-204A (scripts/s4_pump_powers.py, D-026)"}
-  - {tag: PK-201, exclude: "vacuum package of C-203 (vendor package): its load, type and power are vendor inputs (D-008, D-025), so no correlation size exists; it stays in the uncovered allowance of estimate/tea.yaml until the vendor or the class 4 estimate (S5) prices it (D-026)"}
+  - {tag: PK-201, exclude: "vacuum package of C-203 (vendor package): its load, type and power are vendor inputs (D-008, D-025), so no correlation size exists; it stays in the uncovered allowance of estimate/tea.yaml: the class 4 estimate (S5, D-027) did not price it (no vendor load, type or power yet); the vendor's quotation or the datasheets (S7) price it (D-026, D-027)"}
   # The reflux drums are horizontal, as V-100: priced with the vertical vessel correlation, whose
   # bare module factor the package holds, rather than purchased cost times the ASSUMED
   # purchased_installation factor of estimate/tea.yaml (review of PR #357, D-026).

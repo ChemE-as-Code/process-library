@@ -1,0 +1,12 @@
+# sulfur-recovery-1's own exchange overrides for the Atlas LCI build (ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. The H2S feed stays a reported gap: no Atlas
+# process makes acid gas yet (natural-gas-processing-1 treats a gas without H2S), and whether the
+# acid gas enters burden-free as a refinery residue is not decided here.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:hydrogen-sulfide":
+    atlas: false
+    source: "H2S in refinery or gas-plant acid gas. The supplier is not decided: a hydrotreater's amine regenerator is the usual one, and under the cut-off model the acid gas may be a residue that enters burden-free. Link it explicitly once a producer and that rule are chosen."
+  "feed:natural-gas":
+    atlas: false
+    source: "Pipeline natural gas: the only Atlas producer of the slug methane is hda-1's fuel gas, which is not natural gas (as styrene-1 and utility-steam-ng-boiler)."
