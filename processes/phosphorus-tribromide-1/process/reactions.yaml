@@ -1,0 +1,41 @@
+# Reactions of phosphorus-tribromide-1. Schema cheme/reactions/v1 (`cheme schema
+# process-reactions`).
+#
+# BROM: white phosphorus and bromine to PBr3 in a PBr3 heel at 120-130 C with a small bromine
+# excess (DE 1 281 414 / US 3 409 401, description, claims 1-4 and the example). Its kinetics
+# are not published openly: the rate law is a fast effective one, first order in dissolved
+# bromine and in white phosphorus, ASSUMED (D-005), so that the semi-batch is dosing-controlled;
+# reaction calorimetry must confirm it. The heat of reaction follows from the CRC liquid
+# formation enthalpy of PBr3 (-184.5 kJ/mol, chemicals package), liquid bromine (0) and molten
+# white phosphorus (+0.62 kJ/mol per atom, NIST WebBook / JANAF via chemicals): -740.48 kJ per mol
+# of P4, -185.1 kJ per mol of PBr3 (D-005).
+# REDP: the free bromine (PBr5 in the crude) taken up by red phosphorus before the distillation
+# (the patent's work-up: red phosphorus added, then a vacuum distillation). A conversion step;
+# its heat (about 3 J per kg of product) is not counted (D-007).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: BROM
+    title: Bromination of white phosphorus in a PBr3 heel
+    equation: P4 + 6 Br2 -> 4 PBr3
+    stoichiometry: {P4: -1, BR2: -6, PBR3: 4}
+    phase: liquid
+    heat_of_reaction: {value: -740480, provenance: given, source: "4 x (-184.5) - 4 x 0.62 kJ/mol: the CRC liquid formation enthalpy of PBr3 and NIST/JANAF molten white phosphorus (chemicals package), liquid bromine 0 (D-005); gas data with thermo's heat of vaporisation give -187.6 (CRC gas) to -194.2 (JANAF gas) kJ/mol PBr3 liquid, 1.7-5.3 % more"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # second order, in dissolved bromine and in white phosphorus: k = 1.0 m3/(kmol s) at
+      # 398.15 K (Ea 40 kJ/mol): A = 1.0 x exp(40000 / (8.314 x 398.15))
+      k: {A: 1.769e5, Ea: 40000}
+      orders: {BR2: 1, P4: 1}
+      temperature_range: [373.15, 423.15]
+      provenance: assumed
+      source: "ASSUMED fast effective rate (D-005): no open kinetics found (2026-11-05); to be replaced by reaction calorimetry"
+    sources: ["DE 1 281 414 B / US 3 409 401 A (Chemische Fabrik Kalk, 1966/1968): bromination of phosphorus in a PBr3 heel at 120-130 C, 0.05-0.5 % bromine excess"]
+  - id: REDP
+    title: Free bromine taken up by red phosphorus
+    equation: 2 P + 3 Br2 -> 2 PBr3
+    stoichiometry: {PRED: -2, BR2: -3, PBR3: 2}
+    phase: liquid
+    conversion: {key: BR2, value: 0.999, provenance: assumed, source: "the free bromine of the crude taken up by the red phosphorus before the distillation (D-007)"}
