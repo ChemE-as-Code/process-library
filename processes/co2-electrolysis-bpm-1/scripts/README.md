@@ -75,12 +75,16 @@ The pilot skids of #330 (DESIGN.md D-007 to D-023):
   results (library ADR 0027, contract `balance-output/1`).
 - `_core.py`: the one coupling to cheme-as-code (its commands' `--json` output only); the duty
   and comparison fields the scripts read are mapped and checked there, and the layout model is
-  read there (the items on a frame, their parts, the solids a stack's hand lift meets).
+  read there (the items on a frame, their parts, the solids a stack's slide lane meets).
+  Step 13 also makes the project's own layout checks of `layout/layout-checks.yaml` (DESIGN.md
+  D-047): each stack's reach from grade and its slide lane at deck level, the ignition sources'
+  clearance to the zone sources' outlines, the trays' clearance to the vent and flue outlets.
 - `_yamledit.py`: targeted edits of hand-maintained YAML that refuse any other change.
 - `_figures.py`: the skid plans and sections of step 10, core's A1 sheets (`cheme layout
   render`) cropped to the drawing at their scale, the grid bubbles, scale bar, north arrow and
   title block moved beside it, rasterised by resvg (DESIGN.md D-041); the plot plan with core's
-  road drawn under its zones, so the crane pads on the road show (D-043); no core import.
+  road drawn under its zones, so the crane hardstanding over the road shows (D-043, D-047); no
+  core import.
 - `draft_P-01.py`, `draft_P-02.py`: the generators of the skid P&IDs P-01 (Skid A) and P-02
   (Skid B), both drawing with `_skid_pid.py` from the frames `pid/frames/P-0x.xml` (generated
   sheets, DESIGN.md D-017): change them, then `cheme regen P-01 P-02`.

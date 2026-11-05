@@ -19,7 +19,8 @@ committed model: the nearest crane pad within reach whose lane is clear (else th
 lane from the pad's nearest point over the load to its far side, as wide as the load across the
 direction of travel plus the lane margin each side, and the laydown. What the load carries (a
 skid's items, in-line items, pipes, frame; a tank's own pipes and supports, disconnected first)
-is not in its own lane. A load below ``heavy_lift_t`` that is not a skid is moved by hoist or forklift: its
+is not in its own lane. A load below ``heavy_lift_t`` that is not a skid, and that the basis does not name a crane lift
+(``method: crane``), is moved by hoist or forklift: its
 carry lane runs from the laydown over it, and the carry height is the highest top in it plus the
 clearance; above the basis's ``carry_limit_m`` the lane is blocked for that method (a crane
 lift). Written into layout/lifting-study-units.csv and .md, deterministic.
@@ -330,21 +331,30 @@ def unit_study(
             tags = {i["tag"] for i in items}
             inline = {x["tag"] for x in _core.model_inline_of(model, f"pid/{lift['sheet']}.xml")}
             inline |= {x["id"] for x in _core.model_inline_of(model, f"pid/{lift['sheet']}.xml")}
-            prefix = (f"{frame}/", f"{lift['sheet']}/")
             fp = _core.model_structure(model, frame)["footprint"]
             trays = {t["id"] for t in model.get("trays") or []}
 
-            def off(s, trays=trays, fp=fp):
-                # a run of a cable tray over the frame: site-fitted above the envelope (D-045),
-                # its cables disconnected and the run taken off before the unit lift
-                p = s["plan"]
-                return s["owner"] in trays and (
-                    p[0] >= fp[0] - _EPS and p[1] >= fp[1] - _EPS and p[2] <= fp[2] + _EPS and p[3] <= fp[3] + _EPS
-                )
+            steps = f"{frame}/ST-"
 
-            def own(s, tags=tags, inline=inline, prefix=prefix, off=off):
+            def over(p, fp=fp):
+                return p[0] < fp[2] - _EPS and p[2] > fp[0] + _EPS and p[1] < fp[3] - _EPS and p[3] > fp[1] + _EPS
+
+            def off(s, trays=trays, steps=steps, over=over):
+                # a run of a cable tray over the frame: site-fitted above the envelope (D-045),
+                # its cables disconnected at the frame edge and the run taken off before the unit
+                # lift (the trays come in from the rack north of the skids, D-047); the access
+                # steps beside the frame travel loose (layout/lifting-basis.yaml)
+                return s["owner"].startswith(steps) or (s["owner"] in trays and over(s["plan"]))
+
+            def own(s, tags=tags, inline=inline, frame=frame, sheet=lift["sheet"], off=off, over=over):
+                # the frame, its items, its in-line items and the sheet's pipes over the frame (a
+                # pipe of an item off the frame, the oxidiser's flue, stays: D-047)
                 return (
-                    s["owner"] in tags or s["owner"] in inline or s["owner"].startswith(prefix) or off(s)
+                    s["owner"] in tags
+                    or s["owner"] in inline
+                    or s["owner"].startswith(f"{frame}/")
+                    or (s["owner"].startswith(f"{sheet}/") and over(s["plan"]))
+                    or off(s)
                 )
 
             mine = [s for s in solids if own(s) and not off(s)]
@@ -392,10 +402,14 @@ def unit_study(
                 if any(str(e.get("ref", "")).startswith(f"{tag}/") for e in p.get("ends") or [])
             }
 
-            # the tank's own pipes and their supports (SP-* of the pipe) go out with it
-            def own(s, tag=tag, ends=ends):
+            # the tank's own pipes and their supports (SP-* of the pipe) go out with it; what
+            # the basis names off_first (a site-fitted tray branch over the lane) is taken off
+            # before the lift
+            first = set(lift.get("off_first") or [])
+
+            def own(s, tag=tag, ends=ends, first=first):
                 owner = s["owner"]
-                return owner == tag or owner in ends or owner.rsplit("/", 1)[0] in ends
+                return owner == tag or owner in ends or owner.rsplit("/", 1)[0] in ends or owner in first
 
             x0, y0, z0, x1, y1, z1 = (float(v) for v in item["bbox"])
             plan = (x0, y0, x1, y1)
@@ -403,7 +417,9 @@ def unit_study(
             if not items_t:
                 findings.append(f"{lid}: no weight in the equipment list for {tag}")
         weight = items_t + frame_t + allowance_t + contents + heel_t
-        crane = kind == "skid" or weight >= c["heavy_lift_t"] - 1e-9
+        # a skid, a load of heavy_lift_t or more, or a lift the basis names a crane lift
+        # (T-101 from the crane hardstanding to the road, D-047)
+        crane = kind == "skid" or weight >= c["heavy_lift_t"] - 1e-9 or lift.get("method") == "crane"
         row = {k: "" for k in COLUMNS}
         row.update(
             id=lid,
@@ -528,7 +544,8 @@ def study_markdown(
         "(a skid's items, in-line items, pipes and frame; a tank's own pipes and their "
         "supports, disconnected first) is not in its own lane, nor are the runs of the cable "
         "trays over a skid's frame, taken off before its unit lift (site-fitted above the "
-        "envelope, DESIGN.md D-045; the runs between the rack and the frame stay), and anything else in it higher "
+        "envelope, DESIGN.md D-045; the runs between the rack and the frame stay) or a tray "
+        "branch the basis names `off_first` for an item's lift (swung off first, D-047), and anything else in it higher "
         "than the load's top "
         "plus the clearance blocks it. A load below `heavy_lift_t` that is not a skid is moved "
         "by hoist or forklift to its laydown: the carry height is the highest top in the lane "
@@ -561,7 +578,8 @@ def study_markdown(
         f"(`estimate/mto.csv`; the access steps ST-x1 and ST-x2 stand on grade and travel "
         f"loose) and its deck grating at {units.get('grating_kg_m2'):g} kg/m2 (ASSUMED): core "
         f"draws only the frame's perimeter members, corner posts and guard rail, so the drawn "
-        f"frame steel is not the skid's structure. Base frame: "
+        f"frame steel is not the skid's structure (its guard rail, which the design deletes on "
+        f"the 0.15 m deck, D-047, is kept in the weight as a margin). Base frame: "
         f"{units.get('base_frame_kg_m2'):g} kg/m2 of the frame's footprint, "
         f"{units.get('base_frame_basis', '')}. Allowance: {units.get('allowance_basis', '')} "
         f"(on the items, the drawn frame steel and the grating). Heel: what a drained tank keeps "
@@ -622,9 +640,9 @@ def study_markdown(
     out += [
         "",
         "Not covered: the crane's choice (no load chart: `layout/crane-chart.yaml`), outrigger "
-        "spread and ground bearing on the road, the rigging and the skid's lifting points "
-        "(a 20 ft frame lifted at its corner castings or lugs, the fabricator's), slewing "
-        "clearances, wind, the road closure and the lift over the live utility rack PR-1: the "
+        "spread and ground bearing on the hardstanding (CP-x, sized but not designed, D-047), "
+        "the rigging and the skid's lifting points (a 20 ft frame lifted at its corner castings "
+        "or lugs, the fabricator's), slewing clearances, wind and the road closure: the "
         "lifting plan (competent person, crane contractor).",
         "",
     ]
