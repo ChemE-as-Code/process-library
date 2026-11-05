@@ -39,7 +39,7 @@ assumption, not supported by measurement: the measured runs last 1 h in fresh 1 
 | `results/resize-1000h-10000h.md` | what changes from 1,000 to 10,000 h, why, and against the hand values |
 | `figures/duty/<H>h/`, `figures/compare/<H>h/` | the duty transients, operating maps and comparisons |
 | `scripts/regen.py` | the single rerun command of the skids (`scripts/README.md`) |
-| `DESIGN.md` | decisions D-001 to D-022 |
+| `DESIGN.md` | decisions D-001 to D-023 |
 
 Rerun the skids, from this folder (about 2 min at 1,000 h, 4 min at 10,000 h):
 
