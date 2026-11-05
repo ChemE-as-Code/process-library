@@ -1,13 +1,81 @@
 # Cause and effect list: interlocks and trips. Schema: `cheme schema interlocks`.
 # On a sheet, refer to an interlock ("see C&E I-01") instead of spelling out what it trips.
+# PROPOSED, not approved for implementation (D-021): the six trips the first P&IDs draw. The trip
+# setpoints are not set here (they need the design limits and the HAZOP); delays, latching and
+# reset are ASSUMED as usual practice for a first issue; sensor voting and the SIL are for the
+# HAZOP / LOPA: sil stays empty until then. No trip acts on a control valve of control/loops.yaml:
+# every effect is a shutdown valve (XV) or a machine stop. Machine protection of K-101 and K-102
+# (vibration, axial position, lube oil, seals) is in the compressor packages (D-017, D-018).
 schema: cheme/interlocks/v1
-interlocks: []
-#  - id: I-01
-#    title: LIN tank low-low level
-#    cause: {tag: LIA-101, condition: LALL}
-#    effects:
-#      - {tag: P-101A, action: stop}     # trip, stop, start, close, open, depressurize, alarm
-#      - {tag: XV-101, action: close}
-#    sheet: P-01
-#    sil: null                           # from SIL screening: 1 to 4, or 0 / a (no SIL)
-#    notes: D-012
+interlocks:
+  - id: I-101
+    title: V-103 level high-high (liquid to the make-up gas compressor)
+    cause: {tag: LZ-109, condition: LAHH}
+    effects:
+      - {tag: XV-110, action: close}
+      - {tag: K-101, action: stop}
+    sheet: P-01
+    sil: null
+    delay: {value: 2, unit: s}
+    latching: true
+    reset: manual
+    notes: "D-017. Liquid slugs damage the K-101 impellers. Closing XV-110 isolates the front end; the loop then loses its make-up gas and runs down (K-102 keeps circulating). Delay and reset ASSUMED (D-021)."
+  - id: I-201
+    title: Converter outlet temperature high-high (runaway or loss of steam-side cooling)
+    cause: {tag: TZ-210, condition: TAHH}
+    effects:
+      - {tag: XV-110, action: close}
+      - {tag: K-101, action: stop}
+    sheet: P-02
+    sil: null
+    delay: {value: 3, unit: s}
+    latching: true
+    reset: manual
+    notes: "D-018. Cutting the make-up gas removes the reactants; K-102 keeps circulating the loop gas, which carries the heat to E-102 and E-103 while the converter cools. Whether the loop should also be depressured (XV-304) is a question for the HAZOP (D-021)."
+  - id: I-202
+    title: V-104 steam drum level low-low (loss of converter cooling)
+    cause: {tag: LZ-211, condition: LALL}
+    effects:
+      - {tag: XV-110, action: close}
+      - {tag: K-101, action: stop}
+    sheet: P-02
+    sil: null
+    delay: {value: 5, unit: s}
+    latching: true
+    reset: manual
+    notes: "D-018. Without water on the shell the converter is no longer cooled and the drum and shell overheat; the reaction is stopped as in I-201. The BFW supply (pumps outside the boundary) is not tripped. Delay ASSUMED (D-021)."
+  - id: I-301
+    title: V-101 level low-low (gas blow-by into the LP flash drum)
+    cause: {tag: LZ-306, condition: LALL}
+    effects:
+      - {tag: XV-306, action: close}
+    sheet: P-03
+    sil: null
+    delay: {value: 2, unit: s}
+    latching: true
+    reset: manual
+    notes: "D-019. Loop gas at 7500 kPa(a) through an open LV-307 into V-102 (10 barg design) is the governing relief case of V-102 (PSV-311); XV-306 is the trip layer before it. Separate tap and valve from LIC-307 / LV-307."
+  - id: I-401
+    title: V-201 level low-low (topping column reflux pumps run dry)
+    cause: {tag: LZ-411, condition: LALL}
+    effects:
+      - {tag: P-201A, action: stop}
+      - {tag: P-201B, action: stop}
+    sheet: P-04
+    sil: null
+    delay: {value: 5, unit: s}
+    latching: true
+    reset: manual
+    notes: "D-020. Pump protection (machinery), not a process safety function as drafted; the HAZOP decides."
+  - id: I-501
+    title: V-202 level low-low (refining column reflux and product pumps run dry)
+    cause: {tag: LZ-511, condition: LALL}
+    effects:
+      - {tag: P-203A, action: stop}
+      - {tag: P-203B, action: stop}
+    sheet: P-05
+    sil: null
+    delay: {value: 5, unit: s}
+    latching: true
+    reset: manual
+    notes: "D-020. As I-401."

@@ -1,52 +1,89 @@
 # Equipment list. Schema: `cheme schema equipment`.
-# Concept stage: the items the PFD (process/flowsheet.yaml) needs, no P&ID yet (no sheet).
+# Concept stage: the items the PFD (process/flowsheet.yaml) needs, and the items the first P&IDs
+# add (D-016: suction knock-out drum, converter steam drum, reflux drums and pumps).
 # Design pressure and temperature are ASSUMED concept values (D-012): the highest operating
 # value of the balance (scripts/loop_balance.py) + 10 % (at least + 2 bar) and + 25 K; one
 # design pressure for the whole HP loop. Sizes, dimensions and weights come at basic
 # engineering (datasheets).
 equipment:
-  # ---- make-up gas compression (block CMP)
-  - {tag: K-101, type: CentrifugalCompressor, service: Make-up synthesis gas compressor,
+  # ---- make-up gas compression (block CMP), sheet P-01
+  - {tag: V-103, type: Vessel, service: Make-up gas suction knock-out drum, sheet: P-01,
+     design_pressure_barg: 28, design_temperature_degc: 65, material: CS,
+     notes: "Added with the P&IDs (D-016, D-017): protects K-101 against liquid from the front end (the make-up gas is dry by D-004, ASSUMED; a reformer upset or condensate carry-over is the case). Design: 2600 kPa(a) + 10 %, 313 K + 25 K (D-012), ASSUMED. Size not calculated."}
+  - {tag: K-101, type: CentrifugalCompressor, service: Make-up synthesis gas compressor, sheet: P-01,
      design_pressure_barg: 82, design_temperature_degc: 210, material: CS,
-     notes: "2600 -> 7550 kPa(a), 131.5 t/h; ~14.1 MW shaft at isentropic efficiency 0.75 (D-010, ASSUMED). One casing in the PFD; discharge 456 K: intercooling and the number of casings are a basic-engineering choice (D-010). Electric drive ASSUMED."}
-  - {tag: E-101, type: TubularHeatExchanger, service: Make-up gas aftercooler,
+     notes: "2600 -> 7550 kPa(a), 131.5 t/h; ~14.1 MW shaft at isentropic efficiency 0.75 (D-010, ASSUMED). One casing in the PFD; discharge 456 K: intercooling and the number of casings are a basic-engineering choice (D-010). Electric variable-speed drive ASSUMED (D-017)."}
+  - {tag: E-101, type: TubularHeatExchanger, service: Make-up gas aftercooler, sheet: P-01,
      design_pressure_barg: 82, design_temperature_degc: 210, material: CS,
-     notes: "456 -> 313 K, ~14.5 MW to cooling water (D-009). ASSUMED."}
-  # ---- synthesis loop (block SYN)
-  - {tag: K-102, type: CentrifugalCompressor, service: Recycle circulator,
+     notes: "456 -> 313 K, ~14.5 MW to cooling water (D-009). Gas in the tubes, cooling water in the shell (D-017). ASSUMED."}
+  # ---- synthesis loop (block SYN), sheets P-02 and P-03
+  - {tag: K-102, type: CentrifugalCompressor, service: Recycle circulator, sheet: P-02,
      design_pressure_barg: 89, design_temperature_degc: 75, material: CS,
-     notes: "7500 -> 8150 kPa(a), 608 t/h; ~4.7 MW shaft at isentropic efficiency 0.75 (D-010, ASSUMED). Often on the make-up compressor's shaft; separate here (D-010)."}
-  - {tag: E-102, type: TubularHeatExchanger, service: Converter feed/effluent exchanger,
+     notes: "7500 -> 8150 kPa(a), 608 t/h; ~4.7 MW shaft at isentropic efficiency 0.75 (D-010, ASSUMED). Often on the make-up compressor's shaft; separate here (D-010). Electric drive ASSUMED."}
+  - {tag: E-102, type: TubularHeatExchanger, service: Converter feed/effluent exchanger, sheet: P-02,
      design_pressure_barg: 89, design_temperature_degc: 280, material: "CS (hydrogen service: materials per the HP hydrogen rules, open input)",
-     notes: "Feed 322 -> 498 K, effluent 528 -> 373 K, ~96 MW (D-006); effluent starts to condense in it (vapour fraction 0.97 at the outlet). ASSUMED."}
-  - {tag: R-101, type: TubularHeatExchanger, service: "Methanol converter (boiling-water, catalyst in the tubes)",
+     notes: "Feed 322 -> 498 K, effluent 528 -> 373 K, ~96 MW (D-006); effluent starts to condense in it (vapour fraction 0.97 at the outlet). Feed in the tubes, effluent in the shell; a cold bypass TV-205 sets the converter inlet temperature (D-018). ASSUMED."}
+  - {tag: R-101, type: TubularHeatExchanger, service: "Methanol converter (boiling-water, catalyst in the tubes)", sheet: P-02,
      design_pressure_barg: 89, design_temperature_degc: 280, material: "tubes CS / low-alloy (hydrogen service, open input); shell CS",
-     notes: "Isothermal steam-raising converter on Cu/ZnO/Al2O3 (CU_ZNO), outlet 528 K / 7900 kPa(a), ~64-66 MW to MP steam at 2800 kPa(a) (shell design 30 barg, 260 C; D-003). Catalyst volume and tube count not sized: no kinetics chosen (D-005). Listed as a tubular exchanger because DEXPI has no tubular-reactor class in this list; ASSUMED."}
-  - {tag: E-103, type: TubularHeatExchanger, service: Loop cooler / condenser,
+     notes: "Isothermal steam-raising converter on Cu/ZnO/Al2O3 (CU_ZNO), outlet 528 K / 7900 kPa(a), ~64-66 MW to MP steam at 2800 kPa(a) (shell design 30 barg, 260 C; D-003). Shell side on natural circulation with the steam drum V-104 (D-018). Catalyst volume and tube count not sized: no kinetics chosen (D-005). Listed as a tubular exchanger because DEXPI has no tubular-reactor class in this list; ASSUMED."}
+  - {tag: V-104, type: Vessel, service: Converter steam drum, sheet: P-02,
+     design_pressure_barg: 30, design_temperature_degc: 260, material: CS,
+     notes: "Added with the P&IDs (D-016, D-018): separates the steam raised in the R-101 shell (natural circulation, riser SW-232, downcomer BW-233), takes the boiler feed water and the continuous blowdown. Design as the R-101 shell (D-003), ASSUMED. Size and circulation ratio not calculated."}
+  - {tag: E-103, type: TubularHeatExchanger, service: Loop cooler / condenser, sheet: P-03,
      design_pressure_barg: 89, design_temperature_degc: 125, material: CS,
      notes: "373 -> 313 K, ~57 MW to cooling water; air cooler plus trim cooler is the usual alternative (D-009). ASSUMED."}
-  - {tag: V-101, type: Vessel, service: HP separator (crude methanol),
+  - {tag: V-101, type: Vessel, service: HP separator (crude methanol), sheet: P-03,
      design_pressure_barg: 89, design_temperature_degc: 65, material: CS,
-     notes: "313 K, 7500 kPa(a); gas 487 t/h, liquid 121 t/h (D-008). ASSUMED."}
-  # ---- purification (block PUR)
-  - {tag: V-102, type: Vessel, service: LP flash drum (let-down),
+     notes: "313 K, 7500 kPa(a); gas 487 t/h, liquid 121 t/h (D-008). Carries the loop relief valve PSV-302 (D-019). ASSUMED."}
+  # ---- purification (block PUR), sheets P-03 to P-05
+  - {tag: V-102, type: Vessel, service: LP flash drum (let-down), sheet: P-03,
      design_pressure_barg: 10, design_temperature_degc: 70, material: CS,
-     notes: "600 kPa(a); gas blow-by from V-101 is a relief case (open, D-008). ASSUMED."}
-  - {tag: C-201, type: ProcessColumn, service: Topping column (light ends),
+     notes: "600 kPa(a); gas blow-by from V-101 is a relief case (PSV-311, LZ-306 / XV-306, D-008, D-019). ASSUMED."}
+  - {tag: C-201, type: ProcessColumn, service: Topping column (light ends), sheet: P-04,
      design_pressure_barg: 5, design_temperature_degc: 180, material: CS,
      notes: "Top 150 kPa(a), bottom 200 kPa(a); stages not calculated (D-008). ASSUMED."}
-  - {tag: E-201, type: TubularHeatExchanger, service: Topping column condenser,
+  - {tag: E-201, type: TubularHeatExchanger, service: Topping column condenser, sheet: P-04,
      design_pressure_barg: 5, design_temperature_degc: 120, material: CS,
-     notes: "~13 MW to cooling water at an ASSUMED reflux of 0.3 kmol per kmol feed (D-008)."}
-  - {tag: E-202, type: TubularHeatExchanger, service: Topping column reboiler,
+     notes: "~13 MW to cooling water at an ASSUMED reflux of 0.3 kmol per kmol feed (D-008). Partial condenser: the off-gas leaves V-201 (D-020)."}
+  - {tag: V-201, type: Vessel, service: Topping column reflux drum, sheet: P-04,
+     design_pressure_barg: 5, design_temperature_degc: 120, material: CS,
+     notes: "Added with the P&IDs (D-016, D-020): separates the off-gas (FG-116) from the condensed reflux. Design as C-201, ASSUMED. Size not calculated."}
+  - {tag: P-201A, type: CentrifugalPump, service: Topping column reflux pump, sheet: P-04,
+     design_pressure_barg: 10, design_temperature_degc: 120, material: CS,
+     notes: "Added with the P&IDs (D-016, D-020); P-201B the installed spare. Reflux about 37 t/h (0.3 kmol/kmol feed, D-008). Design ASSUMED, head not calculated."}
+  - {tag: P-201B, type: CentrifugalPump, service: Topping column reflux pump (spare), sheet: P-04,
+     design_pressure_barg: 10, design_temperature_degc: 120, material: CS,
+     notes: "Installed spare of P-201A (D-016, D-020). ASSUMED."}
+  - {tag: E-202, type: TubularHeatExchanger, service: Topping column reboiler, sheet: P-04,
      design_pressure_barg: 5, design_temperature_degc: 180, material: CS,
-     notes: "~19 MW from LP steam 450 kPa(a) (D-008, D-009). ASSUMED."}
-  - {tag: C-202, type: ProcessColumn, service: Refining column,
+     notes: "~19 MW from LP steam 450 kPa(a) (D-008, D-009); thermosyphon ASSUMED (D-020)."}
+  - {tag: P-202A, type: CentrifugalPump, service: Topping column bottoms pump (feed to C-202), sheet: P-04,
+     design_pressure_barg: 10, design_temperature_degc: 180, material: CS,
+     notes: "Added with the P&IDs: the pump between the columns that D-008 left open (CM-117, 117.6 t/h); P-202B the installed spare (D-016, D-020). Design ASSUMED, head not calculated."}
+  - {tag: P-202B, type: CentrifugalPump, service: Topping column bottoms pump (spare), sheet: P-04,
+     design_pressure_barg: 10, design_temperature_degc: 180, material: CS,
+     notes: "Installed spare of P-202A (D-016, D-020). ASSUMED."}
+  - {tag: C-202, type: ProcessColumn, service: Refining column, sheet: P-05,
      design_pressure_barg: 5, design_temperature_degc: 180, material: CS,
      notes: "Top 110 kPa(a), bottom 200 kPa(a); Grade AA overhead, water bottoms; a fusel-oil side draw is usual but not modelled (no by-products, D-005, D-008); stages not calculated. ASSUMED."}
-  - {tag: E-203, type: TubularHeatExchanger, service: Refining column condenser and product cooler,
+  - {tag: E-203, type: TubularHeatExchanger, service: Refining column condenser and product cooler, sheet: P-05,
      design_pressure_barg: 5, design_temperature_degc: 120, material: CS,
-     notes: "~92 MW to cooling water at reflux ratio 1.5 (ASSUMED, D-008); heat integration with the converter steam or a pressure-staged column pair is a basic-engineering option (D-008)."}
-  - {tag: E-204, type: TubularHeatExchanger, service: Refining column reboiler,
+     notes: "~92 MW to cooling water at reflux ratio 1.5 (ASSUMED, D-008); heat integration with the converter steam or a pressure-staged column pair is a basic-engineering option (D-008). Total condenser (D-020)."}
+  - {tag: V-202, type: Vessel, service: Refining column reflux drum, sheet: P-05,
+     design_pressure_barg: 5, design_temperature_degc: 120, material: CS,
+     notes: "Added with the P&IDs (D-016, D-020): reflux and product surge, vented to the flare header on the column pressure (PIC-504). Design as C-202, ASSUMED. Size not calculated."}
+  - {tag: P-203A, type: CentrifugalPump, service: Refining column reflux and product pump, sheet: P-05,
+     design_pressure_barg: 10, design_temperature_degc: 120, material: CS,
+     notes: "Added with the P&IDs (D-016, D-020); P-203B the installed spare. Reflux 156 t/h plus product 104 t/h (reflux ratio 1.5, D-008). Design ASSUMED, head not calculated."}
+  - {tag: P-203B, type: CentrifugalPump, service: Refining column reflux and product pump (spare), sheet: P-05,
+     design_pressure_barg: 10, design_temperature_degc: 120, material: CS,
+     notes: "Installed spare of P-203A (D-016, D-020). ASSUMED."}
+  - {tag: E-204, type: TubularHeatExchanger, service: Refining column reboiler, sheet: P-05,
      design_pressure_barg: 5, design_temperature_degc: 180, material: CS,
-     notes: "~87 MW from LP steam 450 kPa(a) (D-008, D-009). ASSUMED."}
+     notes: "~87 MW from LP steam 450 kPa(a) (D-008, D-009); thermosyphon ASSUMED (D-020). ASSUMED."}
+  - {tag: P-204A, type: CentrifugalPump, service: Refining column bottoms water pump, sheet: P-05,
+     design_pressure_barg: 10, design_temperature_degc: 180, material: CS,
+     notes: "Added with the P&IDs (D-016, D-020); P-204B the installed spare. Bottoms water 13.8 t/h to the battery limit. Design ASSUMED, head not calculated."}
+  - {tag: P-204B, type: CentrifugalPump, service: Refining column bottoms water pump (spare), sheet: P-05,
+     design_pressure_barg: 10, design_temperature_degc: 180, material: CS,
+     notes: "Installed spare of P-204A (D-016, D-020). ASSUMED."}

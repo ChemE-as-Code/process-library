@@ -1,0 +1,37 @@
+# Special piping items: relief devices. Schema: `cheme schema piping_items`.
+# Drawn on the P&IDs (D-016, D-019). Set pressure = design pressure of the protected item
+# (equipment list, D-012), ASSUMED until the MAWP is known; relief_case = the case that makes the
+# device necessary, named here; the governing case, its load and the orifice come with the relief
+# study (basic engineering). Every PSV discharges to the flare header (outside the boundary) unless
+# it says otherwise.
+schema: cheme/piping_items/v1
+piping_items:
+  # ---- P-01
+  - {tag: PSV-111, type: SpringLoadedGlobeSafetyValve, line: FL-132, sheet: P-01, set_pressure_barg: 82,
+     relief_case: "K-101 discharge blocked (CV-103 and the loop downstream closed, or K-102 tripped with K-101 running); settle-out of the loop into the discharge; fire on E-101",
+     notes: "Set ASSUMED = K-101 / E-101 design pressure 82 barg (D-012). Upstream of the check valve CV-103, so the loop PSV-302 (89 barg) does not cover the K-101 discharge (D-017). Load open."}
+  - {tag: PSV-112, type: SpringLoadedGlobeSafetyValve, line: FL-134, sheet: P-01, set_pressure_barg: 6,
+     relief_case: "E-101 cooling water side: tube rupture (make-up gas at up to 82 barg into the CW side, whose 6 barg design is below 10/13 of the gas side); blocked-in CW side with hot gas flowing (thermal expansion)",
+     notes: "Set ASSUMED = 6 barg CW-side design pressure (no CW pressure in the design basis; site CW systems usually run at 3-5 barg, ASSUMED). Discharges into FL-132 and the flare header: a tube-rupture relief carries hydrogen and CO (D-017). Whether a bursting disc is needed for the rupture case is for the relief study."}
+  # ---- P-02
+  - {tag: PSV-208, type: SpringLoadedGlobeSafetyValve, line: MS-236, sheet: P-02, set_pressure_barg: 30,
+     relief_case: "V-104 and the R-101 shell: PV-207 or the MP steam header blocked with the converter raising steam; fire",
+     notes: "Set ASSUMED = R-101 shell / V-104 design pressure 30 barg (D-003, D-012). Steam to atmosphere at a safe location (D-018). A tube leak in R-101 (synthesis gas at 80 bar into the shell) is a case for the relief study: it would put syngas into the steam system (D-018)."}
+  # ---- P-03
+  - {tag: PSV-302, type: SpringLoadedGlobeSafetyValve, line: FL-333, sheet: P-03, set_pressure_barg: 89,
+     relief_case: "V-101 and the HP loop (K-102 discharge downstream of CV-105, E-102 both sides, R-101 tubes, E-103 process side, V-101): fire; recycle gas outlet blocked with K-101 delivering make-up gas; the loop has no isolation valve between K-102 and V-101",
+     notes: "Set ASSUMED = loop design pressure 89 barg (D-012). One PSV for the loop as the loop has no block valves (D-019); a block valve added later needs its own case. Load open."}
+  - {tag: PSV-311, type: SpringLoadedGlobeSafetyValve, line: FL-335, sheet: P-03, set_pressure_barg: 10,
+     relief_case: "V-102: gas blow-by from V-101 (LV-307 failed open with V-101 empty; XV-306 / LZ-306 is the trip layer); fire; FG-114 blocked",
+     notes: "Set ASSUMED = V-102 design pressure 10 barg (D-012). The blow-by load through a fully open LV-307 is likely to govern and may lead to a higher V-102 design pressure instead (D-008, D-019). Load open."}
+  - {tag: PSV-312, type: SpringLoadedGlobeSafetyValve, line: FL-334, sheet: P-03, set_pressure_barg: 6,
+     relief_case: "E-103 cooling water side: tube rupture (loop gas at up to 89 barg into the CW side); blocked-in CW side (thermal expansion)",
+     notes: "As PSV-112 (D-019). Set ASSUMED = 6 barg CW-side design pressure."}
+  # ---- P-04
+  - {tag: PSV-413, type: SpringLoadedGlobeSafetyValve, line: FL-443, sheet: P-04, set_pressure_barg: 5,
+     relief_case: "C-201 and V-201: fire; cooling water failure with the reboiler running; PV-404 blocked; gas blow-by from V-101 through V-102 if both let-downs fail open",
+     notes: "Set ASSUMED = C-201 design pressure 5 barg (D-012). Protects V-201 too (no isolation valve between them, D-020). Load open."}
+  # ---- P-05
+  - {tag: PSV-513, type: SpringLoadedGlobeSafetyValve, line: FL-543, sheet: P-05, set_pressure_barg: 5,
+     relief_case: "C-202 and V-202: fire; cooling water failure with the reboiler running (the E-203 duty is the largest of the plant); PV-504 blocked",
+     notes: "Set ASSUMED = C-202 design pressure 5 barg (D-012). Protects V-202 too (D-020). The cooling water failure load is large (about 84 MW of vapour): the relief study may prefer a high-integrity steam cut-off; this register claims none. Load open."}

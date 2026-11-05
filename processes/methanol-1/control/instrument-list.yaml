@@ -1,3 +1,57 @@
 # Instrument list. Schema: `cheme schema instruments`.
+# Tags as printed on the P&IDs (D-016): numbers n01 and up on sheet P-0n. Loops, setpoints and
+# alarms are in control/loops.yaml (D-021); trips in control/cause-effect.yaml. The notes give the
+# fail position of every actuated valve the function drives, as drawn (F.C. / F.O. beside the
+# actuator), ASSUMED for the HAZOP to confirm (D-021).
 schema: cheme/instruments/v1
-instruments: []
+instruments:
+  # ---- P-01 make-up gas compression
+  - {tag: FI-101, sheet: P-01, service: "Make-up gas flow from the battery limit (SG-101), indication and totaliser"}
+  - {tag: PIC-102, sheet: P-01, service: "K-101 suction pressure (SG-130, the front end's back pressure); output to the K-101 variable-speed drive (D-017); also the suction pressure input of UIC-104"}
+  - {tag: FT-103, sheet: P-01, service: "K-101 suction flow (SG-130, after the anti-surge return), anti-surge input to UIC-104; element type with the vendor"}
+  - {tag: UIC-104, sheet: P-01, service: "K-101 anti-surge controller, recycle valve UV-104 (SG-131); inputs FT-103, PT-105 and the suction pressure of PIC-102; surge line and algorithm with the compressor vendor (D-017)", notes: "UV-104 fails open (F.O.) (D-021)"}
+  - {tag: PT-105, sheet: P-01, service: "K-101 discharge pressure (SG-102), anti-surge input to UIC-104"}
+  - {tag: TI-106, sheet: P-01, service: "K-101 discharge temperature (SG-102), high alarm; machine protection in the compressor package"}
+  - {tag: TI-107, sheet: P-01, service: "E-101 gas outlet temperature (SG-103), high alarm (cooling water failure)"}
+  - {tag: LI-108, sheet: P-01, service: "V-103 level, high alarm; manual drain DR-135"}
+  - {tag: LZ-109, sheet: P-01, service: "V-103 level high-high: closes XV-110 on SG-101 and stops K-101 (C&E I-101)", notes: "XV-110 fails closed (F.C.) (D-021)"}
+  # ---- P-02 synthesis loop and converter
+  - {tag: FT-201, sheet: P-02, service: "K-102 suction flow (SG-104), anti-surge input to UIC-203"}
+  - {tag: PT-202, sheet: P-02, service: "K-102 discharge pressure (SG-105), anti-surge input to UIC-203"}
+  - {tag: UIC-203, sheet: P-02, service: "K-102 anti-surge controller, spillback valve UV-203 (SG-231); surge line with the vendor (D-018)", notes: "UV-203 fails open (F.O.) (D-021)"}
+  - {tag: TIC-205, sheet: P-02, service: "Converter inlet temperature (SG-106 after the bypass joins), E-102 cold bypass valve TV-205 (SG-230) (D-018)", notes: "TV-205 fails open (F.O.): full bypass, the coldest converter feed (D-021)"}
+  - {tag: TI-206, sheet: P-02, service: "Converter outlet temperature (PG-107), high alarm; with the catalyst-tube temperatures at basic engineering"}
+  - {tag: PIC-207, sheet: P-02, service: "V-104 steam drum pressure, MP steam valve PV-207 (MS-234); sets the boiling temperature on the R-101 shell and so the converter temperature (D-018)", notes: "PV-207 fails open (F.O.) (D-021)"}
+  - {tag: LIC-209, sheet: P-02, service: "V-104 level, boiler feed water valve LV-209 (BF-235); single element here, three-element (steam and BFW flow) at basic engineering (D-018)", notes: "LV-209 fails open (F.O.) (D-021)"}
+  - {tag: TZ-210, sheet: P-02, service: "Converter outlet temperature high-high (PG-107), separate tap from TI-206 (C&E I-201)"}
+  - {tag: LZ-211, sheet: P-02, service: "V-104 level low-low, separate tap from LIC-209 (C&E I-202)"}
+  # ---- P-03 loop cooler, HP separator, purge and let-down
+  - {tag: TI-301, sheet: P-03, service: "E-103 outlet / V-101 inlet temperature (PG-109), high alarm"}
+  - {tag: FIC-303, sheet: P-03, service: "Purge flow to the reformer fuel (FG-111), FV-303; set point from PIC-308 (D-019)", notes: "FV-303 fails closed (F.C.) (D-021)"}
+  - {tag: HS-304, sheet: P-03, service: "Manual loop depressuring from the control room, opens XV-304 (FL-332) (D-019)", notes: "XV-304 fails open (F.O.) (D-021)"}
+  - {tag: AI-305, sheet: P-03, service: "Loop gas analyser on SG-110 (H2, CO, CO2, CH4): inerts and stoichiometric number, indication for the purge (D-019)"}
+  - {tag: LZ-306, sheet: P-03, service: "V-101 level low-low, closes XV-306 on CM-113 against gas blow-by into V-102 (C&E I-301)", notes: "XV-306 fails closed (F.C.) (D-021)"}
+  - {tag: LIC-307, sheet: P-03, service: "V-101 level, let-down valve LV-307 on CM-113 to V-102", notes: "LV-307 fails closed (F.C.) (D-021)"}
+  - {tag: PIC-308, sheet: P-03, service: "Loop pressure at the V-101 gas outlet (SG-110); its output is the set point of the purge FIC-303 (D-019)"}
+  - {tag: PIC-309, sheet: P-03, service: "V-102 pressure on the flash gas valve PV-309 (FG-114)", notes: "PV-309 fails open (F.O.) (D-021)"}
+  - {tag: LIC-310, sheet: P-03, service: "V-102 level, valve LV-310 on CM-115 to C-201", notes: "LV-310 fails closed (F.C.) (D-021)"}
+  # ---- P-04 topping column
+  - {tag: FI-401, sheet: P-04, service: "Topping column feed flow (CM-115)"}
+  - {tag: TIC-402, sheet: P-04, service: "C-201 column temperature (tray location with the column design), LP steam valve TV-402 (LS-438) (D-020)", notes: "TV-402 fails closed (F.C.) (D-021)"}
+  - {tag: PIC-404, sheet: P-04, service: "C-201 pressure at the reflux drum, off-gas valve PV-404 (FG-116) (D-020)", notes: "PV-404 fails open (F.O.) (D-021)"}
+  - {tag: LIC-405, sheet: P-04, service: "V-201 level, reflux valve LV-405 (RF-434): all condensed liquid refluxed (D-020)", notes: "LV-405 fails open (F.O.) (D-021)"}
+  - {tag: TI-407, sheet: P-04, service: "E-201 outlet temperature (PG-431)"}
+  - {tag: LIC-408, sheet: P-04, service: "C-201 sump level, bottoms valve LV-408 (CM-117) to C-202", notes: "LV-408 fails closed (F.C.) (D-021)"}
+  - {tag: PI-409, sheet: P-04, service: "C-201 overhead pressure (PG-430)"}
+  - {tag: LZ-411, sheet: P-04, service: "V-201 level low-low, stops P-201A/B (C&E I-401)"}
+  # ---- P-05 refining column and product
+  - {tag: FI-501, sheet: P-05, service: "Refining column feed flow (CM-117)"}
+  - {tag: TIC-502, sheet: P-05, service: "C-202 column temperature (tray location with the column design), LP steam valve TV-502 (LS-539) (D-020)", notes: "TV-502 fails closed (F.C.) (D-021)"}
+  - {tag: PIC-504, sheet: P-05, service: "C-202 pressure at the reflux drum, vent valve PV-504 (VG-532) to the flare header (D-020)", notes: "PV-504 fails open (F.O.) (D-021)"}
+  - {tag: LIC-505, sheet: P-05, service: "V-202 level, reflux valve LV-505 (RF-535) (D-020)", notes: "LV-505 fails open (F.O.) (D-021)"}
+  - {tag: FIC-507, sheet: P-05, service: "Methanol product flow (ME-118), FV-507 (D-020)", notes: "FV-507 fails closed (F.C.) (D-021)"}
+  - {tag: LIC-508, sheet: P-05, service: "C-202 sump level, bottoms water valve LV-508 (WW-119)", notes: "LV-508 fails closed (F.C.) (D-021)"}
+  - {tag: AI-509, sheet: P-05, service: "Water in the methanol product (ME-118), Grade AA control by the operator on TIC-502 and FIC-507 (D-020)"}
+  - {tag: PI-510, sheet: P-05, service: "C-202 overhead pressure (PG-530)"}
+  - {tag: LZ-511, sheet: P-05, service: "V-202 level low-low, stops P-203A/B (C&E I-501)"}
+  - {tag: TI-512, sheet: P-05, service: "E-203 outlet temperature (ME-531), product subcooling"}

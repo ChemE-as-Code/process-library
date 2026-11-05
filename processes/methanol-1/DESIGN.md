@@ -141,7 +141,8 @@ minimum reflux are not calculated (no qualified methanol-water VLE, D-006).
 Rejected: a three-column (pressure-staged) refining train (saves steam; a basic-engineering
 option once the duties are qualified); a single column (fuel grade only).
 Open: a fusel-oil side draw of the refining column (needs by-products, I-04); a pump between
-the columns (CM-117) and the LP flash relief case (gas blow-by from V-101).
+the columns (CM-117; drawn as P-202A/B, D-016, D-020) and the LP flash relief case (gas blow-by
+from V-101; PSV-311 and the trip I-301 drawn, load open, D-019).
 
 ## D-009 Utilities (2026-10-27)
 Decision: cooling water 298.15/308.15 K (min approach 5 K), LP steam 450 kPa(a) for the
@@ -421,6 +422,147 @@ slug, and a future `methane` entry would link it silently. In `process.yaml` pro
 product:FUELGAS lost their `inventory_key` too: the slug offered
 the steam to other processes as an Atlas supply, which displaced their links and raised warnings
 that fail `--strict` (as aniline-1 D-013 records), and named the fuel gas "Carbon dioxide".
+
+## D-016 First P&IDs: sheet split, added equipment, lines and their sizes (2026-11-05)
+Decision: five P&ID sheets, one per section of the PFD, drawn with the authoring API
+(`scripts/draft_P-0n.py` with `scripts/pid_common.py`) and hand-maintained from now on (no
+`generator:` in `plant.yaml`; the scripts are provenance only, as hda-1 D-025):
+P-01 make-up gas compression (V-103, K-101, E-101; steps K101, E101); P-02 synthesis loop and
+converter (K-102, E-102, R-101, V-104; M101, K102, E102, R101); P-03 HP separator, purge and
+let-down (E-103, V-101, V-102; E103, V101, SPL, V102); P-04 topping column (C-201, E-201,
+V-201, P-201A/B, E-202, P-202A/B; C201); P-05 refining column and product (C-202, E-203,
+V-202, P-203A/B, E-204, P-204A/B; C202). Utilities (cooling water, LP and MP steam, BFW,
+condensate, flare, fuel gas, closed drain) end at off-page connectors named after their header;
+no utility sheet is drawn in this first issue.
+Added equipment (12 items, 14 -> 26): suction knock-out drum V-103 (D-017), converter steam drum
+V-104 (D-018), reflux drums V-201, V-202 and the pumps P-201A/B (topping reflux), P-202A/B
+(topping bottoms to C-202: the pump D-008 left open), P-203A/B (refining reflux and product),
+P-204A/B (bottoms water), each pair one duty and one installed spare (D-020). Design conditions by
+the D-012 rule, ASSUMED; no item is sized.
+Lines: numbers n30 and up are new lines on sheet P-0n. The drafting API continues a line's run
+through a tee and an off-page connector continues the same line, so the PFD lines of the loop
+gas are merged: SG-112 (S12) and SG-104 (S4) are now part of SG-110 (V-101 -> purge take-off ->
+P-02 -> make-up joins -> K-102), as hda-1 merged PG-105 into HG-115. CM-117, ME-118 and WW-119
+now start at their pumps. New lines are sized by the D-011 velocities on the flows and duties of
+`process/flowsheet.yaml` (method in each line's note): cooling water at 10 K rise and 1.5 m/s,
+steam at 20 m/s (LP) and 15 m/s (MP), reflux and pump suction one size above the discharge,
+anti-surge and spillback lines at 70 % of the machine flow (ASSUMED surge margin), the E-102
+bypass at 20 % of the loop flow, reboiler circulation at about 4 times the vapour. Relief, drain,
+vent and blowdown sizes are placeholders until the relief study. All new DN ASSUMED.
+Reason: a PFD section per sheet keeps each sheet readable at A3 with the equipment, tags and
+nozzles clear; the merge keeps every off-page connector on the line it continues
+(`cheme.offpage-mismatch`).
+Rejected: one sheet per block (SYN on one sheet would put two compressors, three exchangers,
+the converter, the steam system and two drums on one A3); a utility sheet now (the headers are
+outside the boundary, D-001).
+Drawing: flow left to right, inflows on the left edge, outflows on the right edge, utilities and
+relief on the top and bottom edges; the drawing-clean gate passes with no finding and no accepted
+crossing. Every sheet's notes name the decisions behind it.
+
+## D-017 Make-up compression: control, protection and relief (2026-11-05)
+Decision: K-101 takes all the gas the front end delivers: PIC-102 holds the suction pressure on
+the speed of an electric variable-speed drive (ASSUMED; a steam turbine on the converter's MP
+steam is the usual alternative, D-009). Anti-surge UIC-104 on FT-103 (suction flow), PT-105
+(discharge) and the PIC-102 transmitter recycles through UV-104 (fail open) from after the
+aftercooler E-101 back to the suction downstream of V-103, so the recycled gas is cool; the check
+valve CV-103 is downstream of the anti-surge take-off. A suction knock-out drum V-103 is added
+although the make-up gas is dry by D-004: a front-end upset or condensate carry-over is the case;
+LZ-109 (level high-high) closes the battery-limit shutdown valve XV-110 and stops K-101 (C&E
+I-101). PSV-111 on the K-101 discharge upstream of CV-103 (blocked outlet, settle-out); PSV-112 on
+the E-101 cooling water side (tube rupture: 82 barg gas side against a 6 barg CW side, ASSUMED),
+both to the flare header.
+Reason: control-loops guidance (a dynamic machine on speed, anti-surge with a cooled recycle);
+the check valve upstream of the loop means the loop PSV-302 does not cover the K-101 discharge.
+Rejected: suction throttling (losses on a 14 MW machine); a recycle returned upstream of V-103
+(would put the recycle loop round the drum and a crossing on P-01, and the cooled recycle is dry).
+Open: the surge map and the anti-surge algorithm, and whether UIC-104 is in the vendor package;
+machine protection (vibration, axial position, lube oil, seals) is the package's.
+
+## D-018 Synthesis loop and converter: control, steam system and trips (2026-11-05)
+Decision: K-102 spillback UIC-203 / UV-203 (fail open) from the discharge ahead of the check valve
+CV-105 to the suction, uncooled: the circulator's rise is about 10 K (S4 -> S5), so a short
+spillback is acceptable (ASSUMED; a long turndown may need a cooled recycle). Converter inlet
+temperature TIC-205 on a cold bypass TV-205 (fail open) round E-102, which keeps the full loop flow
+through the converter. The R-101 shell runs on natural circulation with a steam drum V-104
+(added, riser SW-232 and downcomer BW-233 drawn as one line each for their sets): PIC-207 holds the
+drum pressure on the MP steam valve PV-207 (fail open, ASSUMED) and so the boiling temperature and
+the converter temperature (D-003); LIC-209 feeds BFW on LV-209 (fail open: dry-out is worse than
+overfilling), single element in this issue and three-element at basic engineering; continuous
+blowdown on HV-237; PSV-208 on the drum to atmosphere. Trips: TZ-210 (converter outlet high-high,
+I-201) and LZ-211 (drum level low-low, I-202) close XV-110 and stop K-101; K-102 keeps circulating
+to carry the heat away.
+Reason: in a boiling-water converter the shell's saturation temperature sets the reaction
+temperature; the bypass is the usual handle on a process-process exchanger (control-loops).
+Rejected: a cascade from TI-206 onto PIC-207 now (an option for basic engineering); a converter
+temperature trip that depressures the loop (a question for the HAZOP, D-021).
+Open: an R-101 tube leak puts synthesis gas into the steam system (relief study); catalyst-tube
+temperatures; the K-102 trip to K-101 interlock (D-021).
+
+## D-019 Loop pressure, purge, let-down and relief of the HP loop (2026-11-05)
+Decision: PIC-308 holds the loop pressure at the V-101 gas outlet and sets the purge FIC-303 /
+FV-303 (fail closed) in cascade; AI-305 (H2, CO, CO2, CH4) shows the inerts and the stoichiometric
+number so the operator may purge on inerts instead (D-007, I-08). The crude let-down LIC-307 /
+LV-307 (fail closed) is backed by LZ-306 (low-low, separate tap) closing XV-306 (I-301) against
+gas blow-by into V-102; V-102 pressure PIC-309 on the flash gas (PV-309 fail open) and level
+LIC-310 to C-201 (LV-310 fail closed). Relief: the loop has no isolation valve from the K-102
+check valve to V-101, so one PSV-302 on V-101 (set at the loop design pressure 89 barg, ASSUMED)
+protects the K-102 discharge, E-102, the R-101 tubes, E-103 and V-101; PSV-312 on the E-103
+cooling water side (tube rupture); PSV-311 on V-102 for the blow-by case, which may instead raise
+the V-102 design pressure. Manual loop depressuring HS-304 / XV-304 (fail open) to the flare
+header through FL-332, into which PSV-302 also discharges.
+Reason: with the make-up rate set by the front end (D-017) the purge is the loop's free outlet;
+a level seal with an independent shutdown valve is the usual protection of a let-down
+(pid-design-instrumentation: trip and control do not share sensor or final element).
+Rejected: a block valve at the V-101 gas outlet (it would need its own PSV); purging on a fixed
+flow.
+Open: depressuring rate and restriction orifice, the blow-by load, the simultaneous flare load on
+air failure (D-021).
+
+## D-020 Column control, reflux drums and pumps (2026-11-05)
+Decision: topping column C-201 with a partial condenser E-201 and reflux drum V-201: the off-gas
+leaves V-201 on PIC-404 / PV-404 (column pressure, fail open); LIC-405 returns all condensed
+liquid as reflux (no liquid distillate, D-008; LV-405 fail open); TIC-402 on a column temperature
+moves the LP steam TV-402 (fail closed); LIC-408 sends the bottoms through P-202A/B (the pump D-008
+left open) on LV-408 (fail closed) to C-202. Refining column C-202 with a total condenser E-203
+(which also subcools the product, D-008) and reflux drum V-202 vented to the flare header on
+PIC-504 / PV-504; the reflux (156 t/h) is on the drum level LIC-505 / LV-505 and the product
+(104 t/h, the smaller branch) on flow FIC-507 / FV-507, taken off the reflux pump discharge;
+AI-509 (water) for Grade AA; TIC-502 / TV-502 on a stripping-section temperature; LIC-508 sends the
+bottoms water through P-204A/B on LV-508. Both reboilers are thermosyphons on LP steam with a
+steam trap standing for a condensate pot. Every pump has an installed spare with suction gate valve
+and strainer, discharge check and gate valve. LZ-411 and LZ-511 (drum level low-low) stop the reflux
+pumps (I-401, I-501). PSV-413 and PSV-513 protect each column with its drum (no isolation valve
+between them).
+Reason: control-loops guidance: flow control on the smaller branch of a split, level on the other;
+a partial condenser holds its pressure on the non-condensable off-gas.
+Rejected: product on level and reflux on flow in C-202 (the larger branch on flow); a separate
+product cooler (E-203 subcools, D-008).
+Open: control tray locations and set points (rigorous columns, D-008); the pressure control of a
+total condenser (nitrogen split range, hot-vapour bypass or flooded condenser); pump minimum-flow
+protection (with the pump vendor: the reflux flows are large); the fusel-oil side draw (I-04);
+cooling of the bottoms water (394 K at the battery limit); the refining column's cooling water
+failure relief load (about 84 MW of vapour).
+
+## D-021 Control philosophy, loops, trips and their basis (2026-11-05)
+Decision: the control records are drafted for the first P&IDs: `control/philosophy.md`
+(objectives OBJ-1..OBJ-6, failures F-AIR, F-POWER, F-CW, F-BFW, F-K102), `process/narrative.md`
+(sections CMP, SYN, SEP, TOP, REF), `control/loops.yaml` (20 loops), `control/cause-effect.yaml`
+(I-101, I-201, I-202, I-301, I-401, I-501), `control/instrument-list.yaml` (44 functions) and
+`piping/special-items.yaml` (8 PSVs). Set points that are design-case pressures and temperatures
+name their stream; levels 50 % of range and surge margins 10 % are ASSUMED; the two column
+temperatures are unresolved. Fail positions: closed for feed, let-down, product, purge and steam
+valves; open for anti-surge, vents, refluxes, BFW, the converter bypass, the steam drum pressure
+valve and the depressuring valve, all ASSUMED for the HAZOP to confirm. Trip delays (2-5 s),
+latching and manual reset ASSUMED; trip setpoints, voting and SIL are left to the HAZOP / LOPA.
+The trips act on shutdown valves (XV) and machine stops only, never on a control valve; the speed
+loop PIC-102 shares K-101 with I-101, I-201 and I-202 (`cheme.control-shared-element`, info: a
+machine stop is the trip's final element by design; the HAZOP judges independence).
+Reason: the P&IDs need their loops, fail positions and trips to be reviewable; the skills
+control-loops, control-narrative and control-safeguarding-and-interlocks ask for this register
+before a HAZOP.
+Open: start-up, shutdown and abnormal sequences (`control/sequences.yaml` empty); the K-102 trip to
+K-101 / XV-110 interlock; depressuring on I-201; a plant-wide air failure opens XV-304 and all vents
+at once (a simultaneous flare load for the relief study).
 
 ## 3. Reaction and model evidence
 
