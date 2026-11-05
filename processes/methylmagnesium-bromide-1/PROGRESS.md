@@ -1,0 +1,11 @@
+# Progress
+
+Newest first. One line per change: date, sheet or file, what, why.
+
+| date | where | what | why |
+|---|---|---|---|
+| 2026-11-05 | DESIGN.md D-006, D-007, D-010, D-011, materials.yaml, equipment-list.yaml, process.yaml, lca/, tests | review of PR #383: product heat capacity 1.58 kJ/(kg K) (was 1.66), MeBr's 71.0 is at 318 K; E-101 about 19 kW in the main dosing and 20 kW in the initiation (was 15 kW over a wrong 6.75 h); the methyl bromide released as a toxic gas on a cooling failure (9 to 300 kg) and the relief routed to containment or the oxidiser; about 1 kmol of hydrogen per batch from the cake quench; the warm-up's hot water at 353 K above the MTT, with a heating permissive and trip as open safeguards; LCA dataset and manifest regenerated (stale input hashes); tests/test_methylmagnesium_bromide_1.py | review findings |
+| 2026-11-05 | process.yaml, lca/, benchmarks | Atlas manifest (concept, unreviewed, `publication.status: internal`); preliminary gate-to-gate LCI per kg of 35 wt% solution, nitrogen and iodine linked to asu-1 and iodine-1, magnesium, methyl bromide and 2-MeTHF gaps with cited proxies (inventory.csv, gaps.csv, dataset.yaml written by cheme); two KPIs with no_open_reference | issue #157 scope |
+| 2026-11-05 | DESIGN.md | source register, core features used, decisions D-001..D-013 (dedicated train, batch basis, gas dosing with an initiation hold, jacket-limited dosing, filtration, the hazard result with the k/10, k/100 and uninitiated cases), method table, lessons L-1..L-13 for core, open inputs | record the route, the batch basis, the hazard result and what core could not do |
+| 2026-11-05 | process/, equipment/ | design basis, materials (magnesium a solid reactant), reactions (Grignard formation and Wurtz coupling), semi-batch flowsheet with methyl bromide gas dosing (`dosing.absorbed`) and a vent (`batch.vent`), 2 blocks, 4 steps, 14 streams; batch recipe on core main (one vessel over M101 and R101, warm-up from the jacket, filtration time from Ruth's equation): cycle 9.0 h, 879.5 batches/a of 5000 kg, R-101 sized 6.3 m3 with its jacket checked; BFD/PFD built; equipment list as far as the PFD | balanced concept PFD of the first gas-dosed, vented semi-batch entry |
+| 2026-11-05 | all | scaffold from cheme init (core main 7334d7c, to be 1.8.0) | start of the case |
