@@ -205,6 +205,50 @@ def take_off(root: Path, write: bool = False) -> dict[str, Any]:
     return report
 
 
+def cable_schedule(root: Path, write: bool = False) -> dict[str, Any]:
+    """``cheme layout cables --json`` (cables, cabling summary) of the committed model; with
+    *write*, ``--write`` first (electrical/cable-schedule.csv and .md)."""
+    if write:
+        cheme(root, "layout", "cables", "--write")
+    report = cheme(root, "layout", "cables", "--json").json()
+    _require(report, ("cables", "cabling"), "cheme layout cables --json")
+    return report
+
+
+def model_trays_over(model: dict[str, Any], footprint: list[float]) -> list[dict[str, Any]]:
+    """Cable trays with a run over a plan footprint: id, system, kind, the cables and the
+    lowest and highest bottom of their runs over it (a branch's last run, the drop onto its
+    load, left out of the lowest)."""
+    x0, y0, x1, y1 = footprint
+    found = []
+    for tray in model.get("trays") or []:
+        points = tray.get("points") or []
+        runs = list(zip(points, points[1:]))
+        level = [
+            (a, b)
+            for k, (a, b) in enumerate(runs)
+            if abs(a[2] - b[2]) < 1e-6
+            and not (tray.get("kind") == "branch" and k == len(runs) - 1)
+            and min(a[0], b[0]) < x1 and max(a[0], b[0]) > x0
+            and min(a[1], b[1]) < y1 and max(a[1], b[1]) > y0
+        ]  # fmt: skip
+        over = [p for p in points if x0 <= p[0] <= x1 and y0 <= p[1] <= y1]
+        if not (over or level):
+            continue
+        zs = [float(p[2]) for p in over] + [float(a[2]) for a, _ in level]
+        found.append(
+            {
+                "id": tray["id"],
+                "system": tray.get("system"),
+                "kind": tray.get("kind"),
+                "cables": list(tray.get("cables") or []),
+                "level_low_m": min((float(a[2]) for a, _ in level), default=None),
+                "top_m": max(zs) + float(tray.get("depth") or 0.0),
+            }
+        )
+    return found
+
+
 def validate_findings(report: dict[str, Any]) -> list[dict[str, Any]]:
     """Findings with level, rule, file, line, message, id and whether they are accepted."""
     return list(report.get("findings") or [])

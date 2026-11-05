@@ -289,12 +289,23 @@ def unit_study(
             inline = {x["tag"] for x in _core.model_inline_of(model, f"pid/{lift['sheet']}.xml")}
             inline |= {x["id"] for x in _core.model_inline_of(model, f"pid/{lift['sheet']}.xml")}
             prefix = (f"{frame}/", f"{lift['sheet']}/")
-
-            def own(s, tags=tags, inline=inline, prefix=prefix):
-                return s["owner"] in tags or s["owner"] in inline or s["owner"].startswith(prefix)
-
-            mine = [s for s in solids if own(s)]
             fp = _core.model_structure(model, frame)["footprint"]
+            trays = {t["id"] for t in model.get("trays") or []}
+
+            def off(s, trays=trays, fp=fp):
+                # a run of a cable tray over the frame: site-fitted above the envelope (D-045),
+                # its cables disconnected and the run taken off before the unit lift
+                p = s["plan"]
+                return s["owner"] in trays and (
+                    p[0] >= fp[0] - _EPS and p[1] >= fp[1] - _EPS and p[2] <= fp[2] + _EPS and p[3] <= fp[3] + _EPS
+                )
+
+            def own(s, tags=tags, inline=inline, prefix=prefix, off=off):
+                return (
+                    s["owner"] in tags or s["owner"] in inline or s["owner"].startswith(prefix) or off(s)
+                )
+
+            mine = [s for s in solids if own(s) and not off(s)]
             plan = (
                 min([fp[0]] + [s["plan"][0] for s in mine]),
                 min([fp[1]] + [s["plan"][1] for s in mine]),
@@ -460,7 +471,9 @@ def study_markdown(
         "height. The lane runs from the pad's nearest point over the load to its far side, the "
         "load's width across the travel plus the lane margin each side; what the load carries "
         "(a skid's items, in-line items, pipes and frame; a tank's own pipes and their "
-        "supports, disconnected first) is not in its own lane, and anything else in it higher "
+        "supports, disconnected first) is not in its own lane, nor are the runs of the cable "
+        "trays over a skid's frame, taken off before its unit lift (site-fitted above the "
+        "envelope, DESIGN.md D-045; the runs between the rack and the frame stay), and anything else in it higher "
         "than the load's top "
         "plus the clearance blocks it. A load below `heavy_lift_t` that is not a skid is moved "
         "by hoist or forklift to its laydown: the carry height is the highest top in the lane "

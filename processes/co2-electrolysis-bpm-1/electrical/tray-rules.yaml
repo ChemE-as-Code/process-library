@@ -1,0 +1,25 @@
+# Cable tray rules of the pilot skids (skill electrical-cabling, DESIGN.md D-045). Schema:
+# `cheme schema trays`. Every value not given here is the package default (ASSUMED, `cheme
+# schema trays`: widths 100 to 900 mm, depth 100 mm, fill 30 % power and 40 % instrument,
+# 0.3 m power-to-instrument separation, 0.15 m spacing) until the host site's electrical
+# standard gives them.
+schema: cheme/trays/v1
+rules:
+  # PR-1 carries no modelled pipe (its site tie-ins are DN 15, skipped, D-019): the trays run on
+  # its one 2.8 m tier, power on the skid side, instrument on the road side. Core checks a tray
+  # as a capsule of half its width round its bottom centreline, so a tray resting on the beam
+  # (bottom at 2.8 m) reads as running through it: 2.85 m is the lowest tier that does not
+  tiers:
+    - {rack: PR-1, elevation: 2.85}
+  # branches run at 2.5 m or higher to above their load: clear of the 2.1 m walkway headroom over
+  # the 0.15 m deck with the tray's own depth, above the stacks' hand-lift columns and carry
+  # lanes (D-042); above the 2.35 m skid envelope, so the trays over the frames are site-fitted
+  branch_elevation_m: 2.5
+  # every skid load (the north-row terminals at 4.95 m) takes PR-1; the rectifiers' DC outputs
+  # (5.25 m) do not, so the 48 V DC cables are fed directly from them, never on the rack
+  rack_reach_m: 5.1
+  # a finer router grid than the 0.5 m default: the skid is 2.44 m wide
+  grid_m: 0.25
+notes: >-
+  ASSUMED (D-045): no project electrical standard; every value is the package default or the
+  choice above, for the electrical engineer to replace.

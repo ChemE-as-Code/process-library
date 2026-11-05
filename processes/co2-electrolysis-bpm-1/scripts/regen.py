@@ -136,8 +136,15 @@ Steps (design spec #330, section 6):
     with its tanks full, and T-101 alone, drained and full, into
     layout/lifting-study-units.csv and .md; both into the record (at 10,000 h the infeasible
     Skid A's lifts are reported there, never fixed).
+24. Cable schedule (after step 23, before step 13; DESIGN.md D-045): the model step 10 built
+    holds the trays and cables of electrical/electrical-list.yaml and electrical/tray-rules.yaml
+    (hand-authored intent); `cheme layout cables --write` writes electrical/cable-schedule.csv
+    and .md, its summary (cables, trays, lengths, what has no cable) and the tray and cable
+    findings of step 13's validate go into the record. Step 13 also reports, per skid, the
+    trays over the frame above the envelope (site-fitted, as the vent risers) and any level
+    tray run lower than the walkway headroom over the deck.
 
-Findings of steps 1 to 17, 21 to 23 are collected, never fatal: an infeasible skid is a result. The exit
+Findings of steps 1 to 17, 21 to 24 are collected, never fatal: an infeasible skid is a result. The exit
 code is non-zero on a tool error (1), on refused input (2), on a --check difference (3) or on a
 step 20 error (4; --check counts it as a difference too, and requires the scratch run to have
 written the scenario's lca.json).
@@ -164,6 +171,12 @@ import lca_sensitivity
 import yaml
 
 SCRIPT = "scripts/regen.py"
+#: the cable schedule `cheme layout cables --write` writes (step 24)
+CABLE_CSV = "electrical/cable-schedule.csv"
+CABLE_MD = "electrical/cable-schedule.md"
+#: the walkway headroom over a deck that a level tray run should keep, m (core's routing
+#: default headroom_walkway_m; core checks pipes against it, not trays: step 13 reports them)
+TRAY_HEADROOM_M = 2.1
 #: the hand-maintained inputs that regen reads and never writes (hashed in step 1); the files
 #: it writes in part are hashed after the run (MODEL_FILES, the record's model_sha256)
 INPUTS = (
@@ -177,6 +190,9 @@ INPUTS = (
     "layout/zones.yaml",
     "layout/lifting-basis.yaml",
     "piping/routing.yaml",
+    # the electrical intent (step 24, D-045): rooms, motors, feeders, junction boxes, points
+    "electrical/electrical-list.yaml",
+    "electrical/tray-rules.yaml",
     "control/cause-effect.yaml",
     "control/sequences.yaml",
     # the LCA's own inputs (step 20, #331); lca/lca.yaml is written in part by step 20
@@ -200,6 +216,9 @@ MODEL_FILES = (
     "layout/lifting-study.md",
     _lifting.UNITS_CSV,
     _lifting.UNITS_MD,
+    # the cable schedule of the model (step 24)
+    CABLE_CSV,
+    CABLE_MD,
 )
 #: what --check also compares at the design duration: the LCA (step 20) and the files and
 #: folders core's LCA writes (scripts/_lca.py)
@@ -1065,6 +1084,22 @@ class Run:
                 ),
                 key=lambda p: p["id"],
             )
+            # the cable trays over the frame (step 24, D-045): those above the envelope are
+            # site-fitted like the vent risers (reported, not counted); a level run under the
+            # walkway headroom over the deck is reported (core checks pipes against it, not trays)
+            trays = _core.model_trays_over(model, frame["footprint"])
+            trays_above = sorted(
+                ({"id": t["id"], "system": t["system"], "top_m": round(t["top_m"], 3)} for t in trays if t["top_m"] > limit + tol),
+                key=lambda t: t["id"],
+            )
+            trays_low = sorted(
+                (
+                    {"id": t["id"], "level_low_m": round(t["level_low_m"], 3)}
+                    for t in trays
+                    if t["level_low_m"] is not None and t["level_low_m"] < deck + TRAY_HEADROOM_M - tol
+                ),
+                key=lambda t: t["id"],
+            )
             feasible = not reasons
             duty_ok = self.summary.get(f"skid_{key.lower()}", {}).get("feasible", True)
             result[key] = {
@@ -1083,6 +1118,8 @@ class Run:
                 "stack_access_m": access,
                 "stack_lift": lifts,
                 "pipes_above_envelope": [{"id": p["id"], "line": p["line"], "top_m": p["top_m"]} for p in pipes],
+                "trays_above_envelope": trays_above,
+                "trays_under_headroom": trays_low,
                 "skid_feasible": feasible and bool(duty_ok),
             }
             if feasible:
@@ -1115,6 +1152,21 @@ class Run:
                         [f"{d['tag']} details to {d['parts_top_m']:.3f} m" for d in details]
                         + [f"{p['line']} to {p['top_m']:.3f} m" for p in pipes]
                     ),
+                )
+            if trays_above:
+                self.note(
+                    "13",
+                    "info",
+                    f"Skid {key}: {len(trays_above)} cable tray(s) over the frame above the {limit:.3f} m "
+                    f"envelope, site-fitted, not counted (D-045): up to "
+                    f"{max(t['top_m'] for t in trays_above):.3f} m",
+                )
+            for t in trays_low:
+                self.note(
+                    "13",
+                    "info",
+                    f"Skid {key}: tray {t['id']} runs level at {t['level_low_m']:.3f} m over the frame, "
+                    f"under the {TRAY_HEADROOM_M:g} m walkway headroom over the {deck:g} m deck (the deck is stepped onto, not a walkway, D-019)",
                 )
             if outside:
                 self.note(
@@ -1248,6 +1300,44 @@ class Run:
         print(
             f"[23] cheme layout lifting --write: {len(study['lifts'])} heavy item(s); unit lifts: "
             + "; ".join(f"{k} {r['weight_t']} t {r['status']}" for k, r in rows.items())
+        )
+
+    # -- 24 ---------------------------------------------------------------------------------
+    def cables(self) -> None:
+        """Step 24: `cheme layout cables --write` of the model as built (electrical/
+        cable-schedule.csv, .md); its summary into the record (D-045)."""
+        report = _core.cable_schedule(self.root, write=True)
+        cabling = report["cabling"]
+        cables = report["cables"]
+        by_room: dict[str, int] = {}
+        for c in cables:
+            by_room[c["from"]] = by_room.get(c["from"], 0) + 1
+        dc = [c for c in cables if c["system"] == "power" and float(c["voltage_v"] or 0) <= 120]
+        review = sorted(c["tag"] for c in cables if c.get("review_needed"))
+        for m in cabling.get("missing") or []:
+            self.note("24", "warning", f"no cable: {m['tag']} ({m['kind']}): {m['reason']}")
+        for tag in review:
+            self.note("24", "warning", f"cable {tag} review_needed")
+        self.summary["cabling"] = {
+            "cables": cabling["cables"],
+            "power": cabling["power"],
+            "instrument": cabling["instrument"],
+            "dc_48v": len(dc),
+            "motors": cabling["motors"],
+            "instruments": cabling["instruments"],
+            "junction_boxes": cabling["junction_boxes"],
+            "trays": cabling["trays"],
+            "tray_length_m": cabling["tray_length_m"],
+            "cable_length_m": cabling["cable_length_m"],
+            "dc_cable_length_m": sum(int(c["length_m"]) for c in dc),
+            "missing": cabling.get("missing") or [],
+            "review_needed": review,
+        }
+        print(
+            f"[24] cheme layout cables --write: {cabling['cables']} cables ({cabling['power']} power, "
+            f"{len(dc)} of them 48 V DC, {cabling['instrument']} instrument), {cabling['trays']} trays "
+            f"{cabling['tray_length_m']:g} m, cable {cabling['cable_length_m']:g} m, "
+            f"{len(cabling.get('missing') or [])} without a cable"
         )
 
     # -- 14 ---------------------------------------------------------------------------------
@@ -1625,6 +1715,8 @@ class Run:
             # unit lifts of layout/lifting-study-units.md), reported at every duration
             "take_off": {"totals": s["take_off"]["totals"], "findings": len(s["take_off"].get("findings") or [])},
             "lifting": s["lifting"],
+            # step 24: the cable schedule's summary (D-045)
+            "cabling": s["cabling"],
             "findings": [f for f in self.findings if f["level"] in ("error", "warning")],
         }
         if "uncertainty" in s:
@@ -1704,6 +1796,7 @@ class Run:
         # study of the model as built (cheme.layout-lifting-study-outdated otherwise)
         self.take_off()
         self.lifting()
+        self.cables()
         self.envelope_check()
         self.invariants()
         if self.with_uncertainty:
@@ -1906,8 +1999,9 @@ def _stack_lift(
     grade (the north side holds the 1.95 m gas packages). The lift envelope is the stack's plan
     grown by the side hand room across its axis; its column rises from the stack's top, its lane
     runs from the stack to the frame's south edge. The carry height is the lowest the stack's
-    bottom can pass over everything in the lane (items and their parts, pipes, steel, trays);
-    the column must be clear from the stack's top up to that height plus the stack's own height,
+    bottom can pass over everything in the lane (items and their parts, pipes, steel, trays)
+    that starts below the envelope top; what hangs over the lane above it (the cable trays,
+    D-045) is passed under; the column must be clear from the stack's top up to that height plus the stack's own height,
     and that top must stay under the envelope. Returns the column's blockers, the carry height
     above the deck and what sets it."""
     x0, y0, z0, x1, y1, z1 = stack["bbox"]
@@ -1922,7 +2016,13 @@ def _stack_lift(
     def meets(plan, box):
         return plan[0] < box[2] - tol and plan[2] > box[0] + tol and plan[1] < box[3] - tol and plan[3] > box[1] + tol
 
-    in_lane = [s for s in solids if s["owner"] != own and meets(s["plan"], lane) and s["z"][1] > deck + tol]
+    # what hangs over the lane above the envelope top (a cable tray, D-045) is passed under,
+    # not over: the column stays under the envelope
+    in_lane = [
+        s
+        for s in solids
+        if s["owner"] != own and meets(s["plan"], lane) and s["z"][1] > deck + tol and s["z"][0] < limit - tol
+    ]
     lane_top = max((s["z"][1] for s in in_lane), default=z0)
     setters = sorted({s["owner"] for s in in_lane if s["z"][1] >= lane_top - 0.005})
     carry = max(lane_top, z0)

@@ -1,0 +1,147 @@
+# Electrical rooms, motors, feeders and junction boxes of the pilot skids (skill
+# electrical-cabling, DESIGN.md D-045). Schema: `cheme schema electrical`.
+# Every room, voltage, power, power factor and point below is ASSUMED: there is no electrical
+# load list, no vendor data and no host-site electrical standard yet (a notional plot, D-019).
+schema: cheme/electrical/v1
+rooms:
+  # the host site's 400 V board and its control room, off the notional plot to the east
+  # (ASSUMED): the cables enter the plot along the utility rack PR-1 from its east end, like
+  # the site tie-ins
+  - {id: SDB-1, kind: mcc, title: "Host site 400 V distribution board (off the plot, ASSUMED)",
+     point: [31.5, 4.2, 4.3], voltage_v: 400,
+     notes: "ASSUMED: one 400 V three-phase supply for both skids; the cables leave it at the east end of PR-1"}
+  - {id: CR-1, kind: control, title: "Host site control room, the skids' PLC and safety I/O (off the plot, ASSUMED)",
+     point: [31.5, 4.8, 4.3],
+     notes: "ASSUMED: one control system for both skids; the junction boxes' multipair cables go there along PR-1"}
+  # The 48 V DC bus of each skid (D-008: four stacks of seven cells, JIC-x01 4 x 20 A) is its own
+  # cable class (D-045): one radial DC cable per stack from its own outgoing DC breaker in the
+  # rectifier cabinet (overcurrent protection per stack, HAZOP action D-031 item 9), never on the
+  # AC trays. Core has no DC room kind: each breaker's output is a room of kind mcc at 48 V, its
+  # point where its tray leaves the top of the cabinet's north side at 3.1 m (above the AC
+  # branches at 2.85 m), 0.25 m apart on the router's grid so each tray lines up with its stack
+  # (one room for all four would start the four trays at one point, where the router lets each
+  # detour round the ones before it). The points stand more than rack_reach_m (5.1 m,
+  # electrical/tray-rules.yaml) from PR-1, so the DC cables are fed directly from the rectifier
+  # and never reach the rack's AC power tray. All ASSUMED (no rectifier vendor yet).
+  - {id: DC-101A, kind: mcc, title: "U-101 DC output to E-101A, 48 V (ASSUMED)", point: [10.65, 9.75, 3.1], voltage_v: 48}
+  - {id: DC-101B, kind: mcc, title: "U-101 DC output to E-101B, 48 V (ASSUMED)", point: [10.9, 9.75, 3.1], voltage_v: 48}
+  - {id: DC-101C, kind: mcc, title: "U-101 DC output to E-101C, 48 V (ASSUMED)", point: [11.15, 9.75, 3.1], voltage_v: 48}
+  - {id: DC-101D, kind: mcc, title: "U-101 DC output to E-101D, 48 V (ASSUMED)", point: [11.4, 9.75, 3.1], voltage_v: 48}
+  - {id: DC-201A, kind: mcc, title: "U-201 DC output to E-201A, 48 V (ASSUMED)", point: [25.65, 9.75, 3.1], voltage_v: 48}
+  - {id: DC-201B, kind: mcc, title: "U-201 DC output to E-201B, 48 V (ASSUMED)", point: [25.9, 9.75, 3.1], voltage_v: 48}
+  - {id: DC-201C, kind: mcc, title: "U-201 DC output to E-201C, 48 V (ASSUMED)", point: [26.15, 9.75, 3.1], voltage_v: 48}
+  - {id: DC-201D, kind: mcc, title: "U-201 DC output to E-201D, 48 V (ASSUMED)", point: [26.4, 9.75, 3.1], voltage_v: 48}
+defaults:
+  lv_room: SDB-1
+  control_room: CR-1
+  lv_voltage_v: 400
+  jb_capacity: 24
+  spare_pairs: 0.2
+motors:
+  # No datasheet gives a motor rating (the shaft powers are TBD there): each rating below is the
+  # next IEC standard motor size above the flowsheet's power estimate (process/flowsheet.yaml
+  # Q102/Q103, Q202/Q203) with a margin, or an assumption where nothing is sized (the fans,
+  # the dosing pump). They size the trays only (D-045).
+  - {driven: P-101, power_kw: 0.18, assumed: true, cable_entry: {side: west, clearance_m: 0.25},
+     source: "ASSUMED IEC 0.18 kW motor: flowsheet Q102 0.031 kW (705.6 kg/h x 50 kPa / 0.3, ESTIMATE) with margin for the variable speed drive and a sealless pump"}
+  - {driven: K-131, power_kw: 0.37, assumed: true,
+     source: "ASSUMED IEC 0.37 kW motor: flowsheet Q103 0.236 kW (adiabatic 110 to 600 kPa(a), efficiency 0.5, ESTIMATE)"}
+  - {driven: K-141, power_kw: 0.25, assumed: true, cable_entry: {side: south, offset_m: -0.15, clearance_m: 0.2},
+     source: "ASSUMED IEC 0.25 kW motor: extract fan not sized (D-017, about 20 air changes per hour of a 20 ft enclosure)"}
+  - {driven: P-201, power_kw: 0.18, assumed: true, cable_entry: {side: west, clearance_m: 0.25},
+     source: "ASSUMED IEC 0.18 kW motor: flowsheet Q202 0.031 kW, as P-101"}
+  - {driven: K-231, power_kw: 0.37, assumed: true,
+     source: "ASSUMED IEC 0.37 kW motor: flowsheet Q203 0.236 kW, as K-131"}
+  - {driven: K-241, power_kw: 0.25, assumed: true, cable_entry: {side: south, offset_m: -0.15, clearance_m: 0.2},
+     source: "ASSUMED IEC 0.25 kW motor: as K-141"}
+  - {driven: P-202, power_kw: 0.12, assumed: true,
+     source: "ASSUMED IEC 0.12 kW motor: a diaphragm metering pump of 0.42 L/h (flowsheet S221)"}
+feeders:
+  # AC consumers that are not motors of the list, from SDB-1 at 400 V; a feeder's point is its
+  # terminal (cabinet top, package top) where the item's own top centre holds its nozzles
+  - {tag: F-U101, point: [11.05, 9.45, 1.35], power_kw: 3.2, power_factor: 0.95, assumed: true,
+     source: "flowsheet Q101 3.164 kW AC (DC 3.005 kW over the rectifier efficiency 0.95, ASSUMED); power factor 0.95 ASSUMED (an active front end)"}
+  - {tag: F-X131, point: [8.6, 9.6, 1.95], power_kw: 0.1, power_factor: 0.8, assumed: true,
+     source: "flowsheet Q104 0.050 kW (0.5 kWh/kg CO, ESTIMATE, TBD vendor), rounded up; power factor 0.8 ASSUMED (valve actuators and controller)"}
+  - {tag: F-X132, item: X-132, power_kw: 0.5, power_factor: 0.8, assumed: true,
+     source: "ASSUMED: no power in the flowsheet; the oxidiser's combustion air fan, igniter and burner management (D-031 item 10), TBD vendor"}
+  - {tag: F-U201, point: [26.05, 9.45, 1.35], power_kw: 3.2, power_factor: 0.95, assumed: true,
+     source: "flowsheet Q201 3.164 kW AC, as F-U101"}
+  - {tag: F-X231, point: [23.6, 9.6, 1.95], power_kw: 0.1, power_factor: 0.8, assumed: true,
+     source: "flowsheet Q204 0.050 kW, as F-X131"}
+  - {tag: F-X232, item: X-232, power_kw: 0.5, power_factor: 0.8, assumed: true,
+     source: "ASSUMED: as F-X132"}
+  # The 48 V DC bus (D-045): one cable per stack from its DC output on the rectifier, rated for the stack
+  # current 20 A (process/cells.yaml STK-A/STK-B, JIC-x01 4 x 20 A) at the 48 V bus rating
+  # (process/cells.yaml max_stack_voltage, D-008): power_kw = 48 V x 20 A. Core sizes every
+  # power cable as three-phase, I = P / (sqrt(3) U pf): the power factor 0.57735 = 1/sqrt(3)
+  # turns that into the DC current I = P / U = 20 A. It is no power factor: a DC load has none.
+  # Each cable's point is 0.21 m north of its stack, between the stack row and the gas packages,
+  # outside the stack's lift column and its carry lane to the south side (D-042); the tray ends
+  # 0.6 m above it (1.5 m) and the cable drops from there to the stack's busbar.
+  - {tag: DC-E101A, room: DC-101A, point: [8.4, 9.0, 0.9], voltage_v: 48, power_kw: 0.96, power_factor: 0.57735, assumed: true,
+     source: "DC: 20 A stack current at the 48 V bus rating (process/cells.yaml STK-A, D-008); pf 1/sqrt(3) gives core I = P/U"}
+  - {tag: DC-E101B, room: DC-101B, point: [8.9, 9.0, 0.9], voltage_v: 48, power_kw: 0.96, power_factor: 0.57735, assumed: true,
+     source: "DC: as DC-E101A"}
+  - {tag: DC-E101C, room: DC-101C, point: [9.4, 9.0, 0.9], voltage_v: 48, power_kw: 0.96, power_factor: 0.57735, assumed: true,
+     source: "DC: as DC-E101A"}
+  - {tag: DC-E101D, room: DC-101D, point: [9.9, 9.0, 0.9], voltage_v: 48, power_kw: 0.96, power_factor: 0.57735, assumed: true,
+     source: "DC: as DC-E101A"}
+  - {tag: DC-E201A, room: DC-201A, point: [23.4, 9.0, 0.9], voltage_v: 48, power_kw: 0.96, power_factor: 0.57735, assumed: true,
+     source: "DC: 20 A stack current at the 48 V bus rating (process/cells.yaml STK-B, D-008); pf 1/sqrt(3) gives core I = P/U"}
+  - {tag: DC-E201B, room: DC-201B, point: [23.9, 9.0, 0.9], voltage_v: 48, power_kw: 0.96, power_factor: 0.57735, assumed: true,
+     source: "DC: as DC-E201A"}
+  - {tag: DC-E201C, room: DC-201C, point: [24.4, 9.0, 0.9], voltage_v: 48, power_kw: 0.96, power_factor: 0.57735, assumed: true,
+     source: "DC: as DC-E201A"}
+  - {tag: DC-E201D, room: DC-201D, point: [24.9, 9.0, 0.9], voltage_v: 48, power_kw: 0.96, power_factor: 0.57735, assumed: true,
+     source: "DC: as DC-E201A"}
+junction_boxes:
+  # one per skid, low (0.4 to 1.2 m) on the frame's south edge west of the stack row, outside
+  # the zone 2, the stacks' carry lanes and, at 0.8 m, under the deck rail the drained
+  # reservoir is lifted over (D-043); 0.4 m or more from every power tray (ASSUMED)
+  - {tag: JB-101, point: [7.45, 7.75, 0.8], instruments: ["*-1*"], room: CR-1,
+     notes: "ASSUMED: Skid A's field instruments and actuated valves; south edge of the frame between T-101 and P-101, outside Z-HAZ-A"}
+  - {tag: JB-201, point: [22.47, 7.7, 0.8], instruments: ["*-2*"], room: CR-1,
+     notes: "ASSUMED: Skid B's, as JB-101"}
+instruments:
+  # Points ASSUMED (D-045) where the model cannot place what an instrument measures: the
+  # actuated valves and the transmitters on the DN 15 lines, which are skipped in the routing
+  # (skid small bore, D-019), stand beside the items their line joins, inside the frame and
+  # out of the stacks' hand room; core gives each a single-pair field cable (a positioner or a
+  # transmitter). The gas detectors' locations are the gas detection study's (D-031 item 5,
+  # open): here the CO detector at breathing height by the compressor and the H2 detector high
+  # over the stack row. JIC-x01 is the rectifier's current signal and its run and trip
+  # command: a cable from the rectifier to its skid's junction box.
+  # Skid A
+  - {tag: TV-111, point: [8.95, 7.65, 0.5], notes: "cooling water to E-111 (CWS-101, DN 15)"}
+  - {tag: FIC-102, point: [7.75, 8.45, 0.4], notes: "fresh CO2 CO2-101 (DN 15), west of the stack row"}
+  - {tag: FV-102, point: [7.75, 8.95, 0.4], notes: "fresh CO2 CO2-101 (DN 15)"}
+  - {tag: PIC-121, point: [9.95, 8.0, 0.6], notes: "cathode gas CG-102 (DN 15), V-121 to K-131"}
+  - {tag: PV-121, point: [10.05, 7.75, 0.6], notes: "cathode gas CG-102 (DN 15)"}
+  - {tag: LV-122, point: [9.7, 7.62, 0.3], notes: "condensate CD-101 (DN 15) under V-121"}
+  - {tag: PIC-131, point: [7.85, 9.45, 0.8], notes: "CO product CO-101 (DN 15), west of X-131"}
+  - {tag: PV-131, point: [7.85, 9.75, 0.8], notes: "CO product CO-101 (DN 15)"}
+  - {tag: AIA-141, point: [10.0, 8.95, 1.0], notes: "CO detector, ASSUMED location (gas detection study open, D-031 item 5)"}
+  - {tag: AIA-142, point: [9.15, 8.95, 2.0], notes: "H2 detector, ASSUMED location high over the stack row (gas detection study open)"}
+  - {tag: JIC-101, point: [11.2, 9.15, 0.9], notes: "U-101 current signal, run and trip command (south face of the cabinet)"}
+  # Skid B
+  - {tag: TV-211, point: [23.95, 7.65, 0.5], notes: "cooling water to E-211 (CWS-201, DN 15)"}
+  - {tag: FIC-202, point: [22.75, 8.45, 0.4], notes: "fresh CO2 CO2-201 (DN 15), west of the stack row"}
+  - {tag: FV-202, point: [22.75, 8.7, 0.4], notes: "fresh CO2 CO2-201 (DN 15)"}
+  - {tag: PIC-221, point: [24.95, 8.0, 0.6], notes: "cathode gas CG-202 (DN 15), V-221 to K-231"}
+  - {tag: PV-221, point: [25.05, 7.75, 0.6], notes: "cathode gas CG-202 (DN 15)"}
+  - {tag: LV-222, point: [24.7, 7.62, 0.3], notes: "condensate CD-201 (DN 15) under V-221"}
+  - {tag: PIC-231, point: [22.85, 9.5, 0.8], notes: "CO product CO-201 (DN 15), west of X-231"}
+  - {tag: PV-231, point: [22.85, 9.78, 0.8], notes: "CO product CO-201 (DN 15)"}
+  - {tag: FIC-203, point: [21.95, 9.1, 0.3], notes: "anolyte bleed BL-201 (DN 15), west of T-201"}
+  - {tag: FV-203, point: [21.95, 9.35, 0.3], notes: "anolyte bleed BL-201 (DN 15)"}
+  - {tag: LV-201, point: [22.4, 9.55, 0.9], notes: "make-up water to T-201 (DN 15), north of the tank"}
+  - {tag: AIA-241, point: [25.0, 8.95, 1.0], notes: "CO detector, ASSUMED location (as AIA-141)"}
+  - {tag: AIA-242, point: [24.15, 8.95, 2.0], notes: "H2 detector, ASSUMED location (as AIA-142)"}
+  - {tag: JIC-201, point: [26.2, 9.15, 0.9], notes: "U-201 current signal, run and trip command"}
+notes: >-
+  ASSUMED (D-045): the host site's 400 V board SDB-1 and control room CR-1 off the plot to the
+  east, the cables along PR-1; one junction box per skid; the 48 V DC bus of each skid its own
+  cable class from the rectifier's DC terminals to each stack, never on the AC trays. The Ex
+  rating of the electrical items and cables inside the zone 2 of each skid is an open owner
+  decision (#330, D-031 item 12): the assumption made is in D-045, no certification is claimed.
