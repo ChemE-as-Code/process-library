@@ -10,7 +10,8 @@ thermal screening of the initiation and the accumulation, and a preliminary gate
 Out of scope here: P&IDs, layout, HAZOP, TEA, datasheets.
 
 Starting point (2026-11-05): library `main` at 1ff21eeb (pinned to cheme-as-code 1.7.0); this
-entry is built and checked with **core main 7334d7c** (to be released as 1.8.0), because it uses
+entry was built with core main 7334d7c and rechecked on the release **1.8.0** (4e8fd80), which
+the library now pins, because it uses
 the gas vent and gas dosing of core ADR 0054 and the recipe units and filtration time of core
 ADR 0057 ("Core features used" below). The route and its sources were scouted for core#158 on
 2026-11-05.
@@ -40,7 +41,7 @@ MeMgBr from methyl bromide gas, its induction time, the Wurtz selectivity of met
 TD24 of the solution, the solubility of methyl bromide in 2-MeTHF, a plant's specific
 consumptions, and a market volume.
 
-## Core features used (core main 7334d7c, to be 1.8.0)
+## Core features used (core 1.8.0)
 
 - **`reactor: semibatch` with `dosing.profile`** (core ADR 0050): 5 % of the methyl bromide in 15
   min, a segment of share 0 for the 30 min initiation hold, then 95 % over 5 h.
@@ -386,9 +387,9 @@ the thermal oxidiser and the filling station.
   reaction is written on the gas basis (core ADR 0054), so the MTSR is conservative but the
   isothermal duty during the dosing leaves out the absorption of the unreacted gas (small here,
   0.6 % accumulated).
-- L-8: **core main still reports version 1.7.0**, so `plant.yaml` cannot require the 1.8.0 that
-  `batch.vent`, `dosing.absorbed`, recipe `units:` and `filtration:` need; a core pinned at 1.7.0
-  (the library's CI) rejects these fields.
+- L-8 (resolved): core main reported version 1.7.0 before its release, so `plant.yaml` could not
+  require the 1.8 that `batch.vent`, `dosing.absorbed`, recipe `units:` and `filtration:` need.
+  Core 1.8.0 is released and pinned; `plant.yaml` requires `cheme-as-code>=1.8`.
 - L-9: **no energy stream from a batch model.** R101's isothermal heat removal is known to the
   model but `process propagate` does not write it onto the energy port, and `process reactors`
   reports its duty as `?` without ideal-gas data for every component; Q1 is copied by hand from
