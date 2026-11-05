@@ -8,9 +8,9 @@ LCI. Out of scope here: P&IDs, layout, HAZOP, TEA, datasheets.
 
 Starting point (2026-11-05): library `main` at 256f1dc9; cheme-as-code 1.7.0 (core#158:
 `reactor: semibatch`, `process/recipe.yaml` with batch vessels, per-batch LCA consumables; core
-ADRs 0050 to 0053). Work-up re-expressed (D-014, 2026-11-05) on core main 7334d7c, released as
-1.8.0 (core#165: the crystallizer with spectators, the dryer and recipe units over several
-steps; core ADRs 0056, 0057).
+ADRs 0050 to 0053). Work-up re-expressed (D-014, 2026-11-05) on core main 7334d7c (unreleased;
+to be 1.8.0, core#165: the crystallizer with spectators, the dryer and recipe units over several
+steps; core ADRs 0056, 0057, still proposed).
 
 ## Source register
 
@@ -98,12 +98,15 @@ the charge's initial imide concentration (Ea 40 kJ/mol), ASSUMED. Heat: -80 kJ/m
 ASSUMED; of it -30 kJ/mol, the imide's deprotonation by NaOH (a weak acid neutralised by a
 strong base), is released in the dissolver M-101 (D-009), so BROM in R101 carries -50 kJ/mol.
 The 0.1 % of the bromine left unreacted is carried through the work-up as a spectator of the
-crystallizers and leaves with the dryer's vapour (D101's volatiles, D-014); in the alkaline
-liquor it would rather be hypobromite, not modelled.
+crystallizers: 92 % of it leaves with the mother liquor S9, 6 % with the wash filtrate S13, and
+about 1 % reaches D101 and leaves with its vapour S15 (one of its volatiles, D-014); 0.08 ppm
+stays in the product. All of it goes to the wastewater in S16. In the alkaline liquor it would
+rather be hypobromite, not modelled.
 The NBS is carried dissolved in the reactor model (the liquid model has one phase) and
 precipitates in the hold CR101, core's crystallizer in the same block (D-014; until then a
 conversion "reaction" PPT): the liquor leaves saturated at 14.7 g NBS per kg of water, the 25 C
-solubility (SRC-2) taken at 278 K as well; 95.4 % of the NBS formed crystallises.
+solubility (SRC-2) taken at 278 K as well, entered as a single `value` that works around core's
+no-extrapolation rule (D-014, L-8); 95.4 % of the NBS formed crystallises.
 Reason: no open kinetics or calorimetry of the caustic bromination exists (searched 2026-11-05):
 the fast effective rate is an ASSUMED placeholder for reaction calorimetry. The law is second
 order because the imide is a co-reactant at only a 2 % excess: in a semi-batch it runs down
@@ -115,7 +118,7 @@ D-007 is conservative.
 confirmed by reaction calorimetry (heat flow during the dosing) before basic engineering.
 Rejected at first: core 1.7.0's crystallizer, which refused any component besides its one
 solute and solvent while the mother liquor holds NaBr, NaOH and succinimide (lesson L-2). Core
-1.8.0's crystallizer takes them as spectators: used since D-014.
+main 7334d7c's crystallizer (1.8.0 when released) takes them as spectators: used since D-014.
 
 ## D-006 Balance method and property gate (2026-11-05)
 Decision (as revised by D-014): cheme propagates every stream: the mixers, the semi-batch R101,
@@ -163,9 +166,11 @@ published integral heats of solution; the imide's deprotonation, -30 kJ/mol; the
 filter-dryer's hot-water circuit (Q3, 24.64 kW from core's dryer model since D-014, 19.49 kW
 before: the cake heated to 333 K at 1.6 kJ/(kg K), the water evaporated at 2358 kJ/kg and the
 bromine at 187.5 kJ/kg, the vessel's metal heated from 278 K each batch, 70 % efficiency);
-electricity 6 kW year average (agitators of
-M-101 1 kW (P1) and R-101 2 kW (P2), filter-dryers and vacuum pump 3 kW (P3); a third
-filter-dryer does not change the energy per batch, so P3 stays). All ASSUMED. The precipitation
+electricity 7.5 kW year average (agitators of
+M-101 1 kW (P1) and R-101 2 kW (P2), filter-dryers' agitators and vacuum pump 4.5 kW (P3)). P3
+runs while a batch is in F-101, so its energy per batch scales with F-101's occupancy: 3 kW
+for the 8.5 h before D-014, 3 kW x 12.75 / 8.5 = 4.5 kW since (the number of units does not
+change it; the hours each batch spends in a unit do). All ASSUMED. The precipitation
 hold CR101 and the wash W101 are declared adiabatic (`process/simulation.yaml`): their heats of
 crystallisation are small and unknown.
 The dryer's vacuum condenser cooling water is not counted (small).
@@ -205,8 +210,8 @@ batch, ASSUMED) are an `lca.yaml` consumable `per_batch` with its disposal to th
 treatment (core ADR 0053, library ADR 0035): 2.99 kg per kg NBS at 1495 batches a year. Not
 counted: the vents of R-101 and the dryer (no P&ID).
 Per kg NBS: bromine 0.954 kg, succinimide 0.603 kg, caustic 50 wt% 0.487 kg, water 4.50 kg
-(plus 2.99 kg of rinse water), electricity 0.095 kWh, LP steam 0.390 kWh (0.309 kWh before
-D-014), brine 0.255 kWh removed, wastewater 5.54 kg (plus the rinses).
+(plus 2.99 kg of rinse water), electricity 0.119 kWh (0.095 kWh before D-014), LP steam 0.390
+kWh (0.309 kWh before D-014), brine 0.255 kWh removed, wastewater 5.54 kg (plus the rinses).
 
 ## Method and dependency table
 
@@ -215,7 +220,7 @@ D-014), brine 0.255 kWh removed, wastewater 5.54 kg (plus the rinses).
 | mass, component, element balances | done in cheme | cheme validate / process streams / propagate |
 | semi-batch R-101: composition, accumulation, cooling-failure temperature, peak cooling | done in cheme, kinetics ASSUMED | D-005, D-011, `cheme process reactors`, `reactor-hazards` |
 | batch recipe, cycle time, basis check | done in cheme | D-003, `cheme process recipe` |
-| precipitation and wash loss | done in cheme: crystallizers with spectators, solubility the 25 C value, no salting-out | D-005, D-007, D-014, core ADR 0056 |
+| precipitation and wash loss | done in cheme: crystallizers with spectators, solubility the 25 C value entered as a `value` at 278 K (a workaround, L-8), no salting-out | D-005, D-007, D-014, core ADRs 0025, 0056 |
 | filtration | specified split in cheme; time by Ruth, cake data ASSUMED | D-007, D-014, core ADR 0057 |
 | drying: outlets, duty Q3, drying time | done in cheme, moisture and rate ASSUMED | D-008, D-009, D-014, core ADR 0057 |
 | feeds for 500 t/a, duties Q1 and Q2, S16 temperature | script | D-006, D-009; no feed sizing to a product rate and no liquor enthalpy in core |
@@ -230,25 +235,36 @@ D-014), brine 0.255 kWh removed, wastewater 5.54 kg (plus the rinses).
   1.7.0 (core#161: energy streams are neither charge nor dose), and R101 now has its own
   agitator stream P2.
 - L-2: the crystallizer refused a mother liquor with other dissolved components; a batch
-  precipitation from a reaction liquor needs it (package 4). Resolved in core 1.8.0
-  (core#165, ADR 0056: `crystallizer.spectators`, a solubility `measured_in: mother_liquor` or
+  precipitation from a reaction liquor needs it (package 4). Resolved in core main 7334d7c
+  (1.8.0 when released; core#165, ADR 0056: `crystallizer.spectators`, a solubility `measured_in: mother_liquor` or
   corrected by `salting_out:`); CR101 and W101 use it (D-014).
 - L-3: a recipe's unit procedure named one flowsheet step; the filter-dryer F-101 spans four
   (F101, W101, F102, D101), so the recipe named D101 for it, and the drying time was a guess.
-  Resolved in core 1.8.0 (core#165, ADR 0057: `units: [F101, W101, F102, D101]`, `filter` and
-  `dry` `from:` the filters' `filtration:` and the `dryer:`); the recipe uses it (D-014).
+  Resolved in core main 7334d7c (1.8.0 when released; core#165, ADR 0057: `units: [F101,
+  W101, F102, D101]`, `filter` and `dry` `from:` the filters' `filtration:` and the `dryer:`);
+  the recipe uses it (D-014).
 - L-4: the reactor's volumes are per hour of the year average; the batch volume and the vessel
   were worked out by hand. Fixed in core 1.7.0: the recipe sizes the vessel (core ADR 0052).
 - L-5: the phase-change steps CR101 and W101 appeared in the thermal screening as reactors with
-  missing data (info findings). Resolved in core 1.8.0 (ADR 0056: phase changes are not
-  screened), and here by removing the conversion "reactions" altogether: `cheme process
-  reactor-hazards` lists R101 alone (D-014).
+  missing data (info findings). Resolved in core main 7334d7c (1.8.0 when released; ADR 0056:
+  phase changes are not screened), and here by removing the conversion "reactions"
+  altogether: `cheme process reactor-hazards` lists R101 alone (D-014).
 - L-6 (open, D-014): core propagates from the feeds and cannot solve them for a product rate,
   so the feeds for 500 t/a still come from scripts/balance.py; no liquor enthalpy, so Q1 and
   Q2 do too.
 - L-7 (open, D-014): the dryer writes no temperature on its outlets (the product's cooling in
   the vessel before discharge and the vacuum condenser are not modelled, and nor is the heat of
   cooling the vessel back to 278 K for the next batch's cold filtration).
+- L-8 (open, D-014): a single solubility datum away from the operating temperature has no
+  honest form. Core ADR 0025 interpolates `points` and never extrapolates, so the sourced
+  `points: [[298.15, 0.0147]]` is refused at CR101's and W101's 278.15 K (`cheme.process-
+  crystallizer`, "outside the solubility data (298.15-298.15 K)"), and propagate leaves CR101
+  and everything after it unsolved. The only accepted form is `value`, which core reads as
+  holding at the crystallizer's conditions, so `cheme process crystallizers` reports
+  "solubility given at the operating conditions", which this datum is not. CR101 and W101 use
+  `value` as a known workaround (D-014). Core needs an explicit ASSUMED temperature transfer of
+  a single point (the datum's temperature stated, the transfer marked assumed), reported as a
+  basis "not at the operating conditions".
 
 ## D-013 Dedicated train (2026-11-05)
 Decision: M-101, R-101 and the three F-101 (two before D-014) make only NBS, batch after batch:
@@ -260,19 +276,23 @@ idle time of a multipurpose train, shared tank farms and solvent recovery. NBS i
 multipurpose plants: there the burden per kg is higher, and this LCI is a lower bound for it.
 
 ## D-014 Precipitation, wash and filter-dryer on core's crystallizer and dryer models (2026-11-05)
-Decision: the work-up is written with core 1.8.0's models (core#165, core ADRs 0056 and 0057)
-instead of conversion "reactions" and a script:
+Decision: the work-up is written with core main 7334d7c's models (1.8.0 when released;
+core#165, core ADRs 0056 and 0057) instead of conversion "reactions" and a script:
 - CR101 (in R-101, block REACT with R101) and W101 (the reslurry wash, fed by the cake S8 and
   the wash water S10) are `crystallizer: basis: solubility` steps for NBS in water, crystal
   NBS_S, at 278.15 K, with the liquor's other solutes as `spectators: [NABR, NAOH, SUCC, BR2]`
   (the NaBr formed, the 2 % excess of NaOH and succinimide, the 0.1 % of free bromine). The
   reactions PPT and DISS are deleted.
 - Solubility basis: 0.0147 kg per kg of water, the 25 C value in pure water (SRC-2), taken at
-  278 K (ASSUMED, as in D-005: no open value at 0-10 C was found, searched again 2026-11-05),
-  with `salting_out:` coefficients of 0 for every spectator (ASSUMED): no open salting-out
-  data of NBS in a NaBr/NaOH liquor exists, and for a polar imide with a bromide salt even the
-  sign is uncertain (bromide sits on the salting-in side of chloride in the Hofmeister series),
-  so no correction is taken. The mother liquor (1.79 mol NaBr per kg of water) is therefore
+  278 K (ASSUMED, as in D-005: no open value at 0-10 C was found, searched again 2026-11-05).
+  It is entered as a single `value`, not as `points: [[298.15, 0.0147]]`, because core refuses
+  a single 298 K point at 278 K (ADR 0025: interpolated, never extrapolated). This is a known
+  workaround of that rule: `value` claims the figure holds at the crystallizer's conditions,
+  and `cheme process crystallizers` reports "solubility given at the operating conditions",
+  which is not so here (lesson L-8). The number is kept, with `salting_out:` coefficients of 0
+  for every spectator (ASSUMED): no open salting-out data of NBS in a NaBr/NaOH liquor exists,
+  and for a polar imide with a bromide salt even the sign is uncertain (bromide sits on the
+  salting-in side of chloride in the Hofmeister series), so no correction is taken. The mother liquor (1.79 mol NaBr per kg of water) is therefore
   assumed to dissolve NBS as pure water does. Both assumptions overstate what stays dissolved
   if NBS is less soluble cold and salted out, so the loss stays on the conservative side.
 - F101 and F102 keep their specified split (D-007) and give a Ruth filtration time
@@ -303,10 +323,12 @@ How the numbers moved (before, 1.7.0 with the conversion steps and the script, -
   salting-out the crystallizer's equilibrium is the script's algebra (the streams S7 to S13
   agree to 5 significant figures);
 - product 63.131 kg/h, 98.6 wt% crystals, 99.0 wt% NBS, 0.2 wt% moisture -> unchanged (the
-  moisture now holds 0.08 ppm (by mass) of the free bromine; before, all of it left with the
-  vapour);
+  moisture now holds 0.08 ppm (by mass) of the free bromine; before, all of the cake's
+  bromine left with the vapour);
 - dryer duty Q3 19.49 kW -> 24.64 kW (+26 %): the vessel's metal heated each batch, 5.15 kW, is
   new; LP steam per kg NBS 0.309 -> 0.390 kWh;
+- electricity 6 kW -> 7.5 kW: P3, F-101's agitators and vacuum pump, 3 kW -> 4.5 kW with the
+  longer occupancy (8.5 h -> 12.75 h a batch, D-009); per kg NBS 0.095 -> 0.119 kWh;
 - F-101: filtration 1.0 h -> 1.94 h, wash and refiltration 1.0 h -> 1.33 h, drying 5.0 h
   (guessed) -> 7.99 h (94.3 kg of water a batch over 5 kg/(m2 h) x 2.36 m2), occupancy 8.5 h ->
   12.75 h, units 2 -> 3;
@@ -318,8 +340,9 @@ the screening no longer sees phase changes as reactors (L-5); the dryer's outlet
 F-101's times follow from stated inputs, so a measured cake resistance, drying rate or moisture
 changes the cycle and the steam directly (L-3).
 Rejected: `measured_in: mother_liquor` with the pure-water value (it would present a pure-water
-figure as liquor data); an ASSUMED non-zero Setschenow coefficient (no basis for its size or
-sign; it would lower the loss without evidence); a heated agitator (`vessel.heated_area`) to
+figure as liquor data); `points: [[298.15, 0.0147]]` alone (honest, but refused at 278 K by
+core's no-extrapolation rule, L-8); an ASSUMED non-zero Setschenow coefficient (no basis for its
+size or sign; it would lower the loss without evidence); a heated agitator (`vessel.heated_area`) to
 keep two filter-dryers: it would need a drying rate of at least 6.85 kg/(m2 h) on the cake's
 2.36 m2, or about 37 % more heated area at 5 kg/(m2 h), neither known at this stage; the
 choice of two or three units is to be revisited with drying trials.

@@ -4,8 +4,8 @@ Year-average flows (kg/h, the recipe's basis, D-003) of the caustic bromination 
 succinimide: C4H5NO2 + NaOH + Br2 -> C4H4BrNO2 + NaBr + H2O, Br2 dosed into the cold alkaline
 succinimide solution, NBS precipitating, a reslurry wash, drying.
 
-Since core 1.8.0 every step is calculated by cheme from process/flowsheet.yaml (`cheme process
-propagate --fill`): the semi-batch R101, the precipitation CR101 and the reslurry wash W101 as
+Since core main 7334d7c (1.8.0 when released) every step is calculated by cheme from
+process/flowsheet.yaml (`cheme process propagate --fill`): the semi-batch R101, the precipitation CR101 and the reslurry wash W101 as
 crystallizers with spectators (core ADR 0056), the filters F101 and F102 as specified splits,
 the dryer D101 to its residual moisture, and its heat Q3 (core ADR 0057, `cheme process
 crystallizers`). This script keeps only what core still lacks:
@@ -17,7 +17,8 @@ crystallizers`). This script keeps only what core still lacks:
   deprotonation and bromination: no property package of core covers this liquor;
 - the temperature of S16 (the liquors mixed after the vacuum condenser).
 
-It prints the product, the yield and the other streams as a check against propagate. Run:
+It prints the product, the yield, the NBS lost and the other streams as a check against
+propagate, on the bases DESIGN.md states them (D-005, D-007). Run:
 `cheme run scripts/balance.py`. With BALANCE_OUTPUT set it writes the values the flowsheet
 cites (library ADR 0027).
 
@@ -163,6 +164,27 @@ def solve() -> tuple[float, dict[str, dict[str, float]]]:
     return br2, plant(br2)
 
 
+def losses(s: dict[str, dict[str, float]], br2: float) -> dict[str, float]:
+    """The NBS lost, as fractions of the NBS equivalent of the bromine dosed (the basis of the
+    yield, D-007): dissolved in the mother liquor S9 and in the wash filtrate S13, and passed
+    through both filters as solid."""
+    ref = br2 * MW["NBS"]
+    return {
+        "mother liquor": s["S9"].get("NBS", 0.0) / ref,
+        "wash filtrate": s["S13"].get("NBS", 0.0) / ref,
+        "solid through the filters": (s["S9"].get("NBS_S", 0.0) + s["S13"].get("NBS_S", 0.0))
+        / ref,
+    }
+
+
+def bromine_fate(s: dict[str, dict[str, float]]) -> dict[str, float]:
+    """Where the free bromine left in S6 goes, as fractions of it (D-005): a spectator of the
+    crystallizers, it divides with the liquid at the filters; D101's vapour takes the cake's but
+    for the share its residual moisture keeps."""
+    left = s["S6"].get("BR2", 0.0)
+    return {sid: s[sid].get("BR2", 0.0) / left for sid in ("S9", "S13", "S15", "S14")}
+
+
 def mixed_temperature(s: dict[str, dict[str, float]]) -> float:
     """K of S16: the mother liquor and wash filtrate (278.15 K) and the dryer's condensate
     after the vacuum condenser (303.15 K) mixed adiabatically, equal heat capacities (D-008)."""
@@ -183,12 +205,13 @@ def main() -> None:
         print(f"  {sid}: {tot:.3f} kg/h; {comp}")
     nbs = product.get("NBS_S", 0.0) + product.get("NBS", 0.0)
     print(f"  assay {nbs / total:.4f} NBS; yield on Br2 {nbs / MW['NBS'] / br2:.4f}")
-    lost = {
-        "mother liquor": s["S9"].get("NBS", 0.0) + s["S9"].get("NBS_S", 0.0),
-        "wash filtrate": s["S13"].get("NBS", 0.0) + s["S13"].get("NBS_S", 0.0),
-    }
-    made = s["S6"]["NBS"]
-    print("  NBS lost: " + ", ".join(f"{k} {v / made:.4f}" for k, v in lost.items()))
+    lost = losses(s, br2)
+    print(
+        "  NBS lost per NBS of the Br2 dosed: "
+        + ", ".join(f"{k} {v:.4f}" for k, v in lost.items())
+    )
+    fate = bromine_fate(s)
+    print("  free Br2 of S6 to: " + ", ".join(f"{k} {v:.4f}" for k, v in fate.items()))
     print(f"  S16 {mixed_temperature(s):.2f} K")
     for k, v in q.items():
         print(f"  {k}: {v:.3f} kW")
