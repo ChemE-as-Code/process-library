@@ -3,9 +3,36 @@
 | path | what |
 |---|---|
 | `safety/hazop/<study-id>/study.yaml` | one HAZOP study (`cheme schema hazop-study`): the one authoritative file, edited by the team and by agents |
-| `safety/risk-matrix.yaml` | the risk matrix the studies rate against (`cheme schema risk-matrix`). **The one `cheme init` writes is example data** (`example: true`): replace it with your company's matrix before anything is assessed. A matrix is `status: proposed` until the team accepts it (`status: accepted`, `accepted_by:`); a study rated against a proposed matrix stays a draft |
+| `safety/risk-matrix.yaml` | the risk matrix the studies rate against (`cheme schema risk-matrix`). **Here it is a proposal by an agent (ASSUMED, `status: proposed`)** in the structure of asu-1's 5x5 matrix, scaled to the pilot: the owner's team accepts it, or replaces it with the company's matrix, before anything is assessed; a study rated against a proposed matrix stays a draft |
 | `build/hazop/<study-id>.md`, `.html` | the report, derived from the study (`cheme safety hazop report`); never edited |
 | `reviews/<date>-hazop-<study-id>.md` | the review record of the study (skill `review`, `cheme safety hazop review`) |
+| `safety/hazop/SESSION.md` | the team session pack: roles, agenda, the decisions to take first, every high scenario with its proposed action, and how to record acceptance |
+
+## The studies of this plant
+
+> **These are agent-prepared drafts for a HAZOP team session. They are not a HAZOP: no session
+> has been held, nobody has accepted anything in them, and no human has reviewed them.** Every
+> node, deviation, scenario, safeguard, rating and action is `status: proposed, by: agent`, the
+> risk matrix is proposed, and `cheme safety hazop check` reports both studies as `draft`. Do
+> not use them for safety decisions, procurement or operation before the team session and a
+> human review (`safety/hazop/SESSION.md`).
+
+| study | what | sheet | nodes | scenarios | worst band high / medium / low | actions |
+|---|---|---|---:|---:|---|---:|
+| `H-01` | Skid A: one-fill anolyte reservoir | P-01 | 8 | 72 | 29 / 33 / 10 | 47 |
+| `H-02` | Skid B: KOH dosing, bleed and make-up | P-02 | 9 | 85 | 38 / 28 / 19 | 47 |
+
+The node numbers mean the same part of each skid (N1 anolyte loop, N2 stacks and DC supply, N3
+cathode CO2 feed, N4 cathode gas outlet, N5 gas conditioning, N6 tail gas and vents, N7 Skid B's
+dosing, bleed and make-up, N8 fill and drain, N9 the enclosure). The two studies were drafted
+apart and then integrated, so that the hardware both skids share is examined alike and rated by
+one convention (DESIGN.md D-030). The actions the drafting agent considers most important are
+in DESIGN.md D-031; the hazards judged not applicable, and the gaps of the plant as drawn, in
+D-032. The studies do not change the plant: what they find is an action for the design team.
+
+The gate `hazop-current` of `checks/checks.yaml` passes on the drafts: both studies are current
+against their analysed inputs and neither is example data. The house gates for an assessed and
+reviewed HAZOP (below) are added once the team session and a human review are recorded.
 
 There is no study until you start one: `cheme safety hazop init H-01 --title "..." --input
 pid/P-01.xml --input control/cause-effect.yaml`. A new study is a draft and has no judgements.
