@@ -20,7 +20,7 @@ sections:
     modes: [normal, startup, shutdown, trip]
     loops: [FIC-108, TIC-111, TIC-115]
     sequences: [SEQ-START-RXN, SEQ-SD-PLANT, SEQ-TRIP-RXN]
-    interlocks: [I-101, I-102, I-104, I-105]
+    interlocks: [I-101, I-102, I-104, I-105, I-106]
   - id: SEPG
     title: Effluent cooler, HP separator, recycle gas compressor and purge
     equipment: [E-102, V-101, K-101, P-102, P-102B]
@@ -38,6 +38,7 @@ sections:
     modes: [normal, startup, trip]
     loops: [PIC-301, PIC-303]
     sequences: [SEQ-START-PSA, SEQ-TRIP-PSA]
+    interlocks: [I-301]
   - id: STAB
     title: Stabiliser
     equipment: [C-201, E-201, V-201, P-201A, P-201B, E-202]
@@ -116,9 +117,12 @@ H2/aromatics ratio at the reactor inlet follows the toluene rate and the recycle
 indicated and alarmed (FFI-217) and acted on through the load FIC-103 (D-025, D-026).
 
 **Modes.** Purged, pressured up and heated on circulating hydrogen before toluene enters
-(SEQ-START-RXN). On a trip of the coil flow (I-101), the reactor outlet temperature (I-102), the
-fuel pressure (I-104) or the burner management (I-105) the firing stops; I-101 and I-102 also cut
-the toluene and the make-up hydrogen, and I-102 depressures the loop (SEQ-EDP). The hold after a
+(SEQ-START-RXN). The quench needs separator liquid, so it goes into service only after the first
+toluene (step S6); until then E-101 takes the unquenched effluent of the reduced start-up load,
+below its design temperature, with I-106 behind it (D-026). On a trip of the coil flow (I-101), the
+reactor outlet temperature (I-102), the fuel pressure (I-104), the burner management (I-105) or a
+loss of quench (I-106) the firing stops; I-101, I-102 and I-106 also cut the toluene and the
+make-up hydrogen, and I-102 depressures the loop (SEQ-EDP). The hold after a
 trip is SEQ-TRIP-RXN.
 
 **Assumptions and open points.** Sensor voting of I-102 and the SIL of every trip are S6's. The
@@ -158,7 +162,8 @@ PIC-301 holds on the hydrogen product; K-102 compresses the tail gas from the de
 held by its spillback PIC-303 and E-103 cools it.
 
 **Modes.** Started after the loop is at pressure (SEQ-START-PSA, run from SEQ-START-RXN step S7);
-a trip of the PSA or K-102 isolates the purge (SEQ-TRIP-PSA) and the loop runs on without it while
+a trip of the PSA or K-102 stops both and closes the purge shutdown valve XV-310 (I-301,
+SEQ-TRIP-PSA) and the loop runs on without it while
 methane builds up slowly.
 
 **Assumptions and open points.** The PSA start-up routing of off-specification hydrogen and the

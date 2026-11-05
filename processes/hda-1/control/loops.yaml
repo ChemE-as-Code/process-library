@@ -44,7 +44,7 @@ loops:
     final_elements:
       - {tag: FV-103, kind: valve, actuator: pneumatic, fail: closed}
     targets:
-      - {kind: setpoint, value: 20311.9, unit: kg/h, provenance: calculated, source: "process/flowsheet.yaml design case, stream S3 flow (DWSIM, D-024); not linked with stream: S3 because core 1.4.1 compares kg/h with kg/h only through Pint, which the plant validate job does not install (core#153, D-026)", cases: [design]}
+      - {kind: setpoint, value: 20311.9, unit: kg/h, provenance: calculated, source: "process/flowsheet.yaml design case, stream S3 flow (calculated, cheme process propagate: pass-through P101 from S2, D-024); not linked with stream: S3 because core 1.4.1 compares kg/h with kg/h only through Pint, which the plant validate job does not install (core#153, D-026)", cases: [design]}
     modes: [manual, auto]
     normal_mode: auto
     alarms:
@@ -157,9 +157,9 @@ loops:
     normal_mode: auto
     alarms:
       - {tag: TIC-115, condition: TAH, response: "Check P-102/P-102B and TV-115; reduce the load if the quench cannot be held (E-101 hot inlet overheated)."}
-    interlocks: [I-201]
+    interlocks: [I-106, I-201]
     rationale: The temperature after the quench point is the measure; the quench liquid is the manipulated stream. TV-115 fails open (full quench cools; too little quench overheats E-101); P-102/P-102B have continuous minimum flow (AR-237), so TV-115 may close.
-    operator: Starts the quench pump before toluene enters the loop.
+    operator: "Puts the quench in service in SEQ-START-RXN step S6, once V-101 holds liquid (the quench liquid is separator liquid, which exists only after the first toluene of step S5); until then the effluent is held down by the reduced TIC-111 setpoint and the reduced feed, with the TZ-128 leg of I-106 behind it (D-026)."
   # ---------------------------------------------------------------- SEPG: HP separator, recycle gas, purge (P-02)
   - id: LIC-202
     title: V-101 level (let-down to the stabiliser)
@@ -436,7 +436,7 @@ loops:
       - {tag: AI-510, condition: AAL, response: "Benzene purity low: raise the reflux FIC-507; route the product to the off-specification tank (tank farm, outside the plant) until it is back."}
       - {tag: TI-509, condition: TAH, response: "Check the cooling water to E-207; hot benzene to storage raises the tank breathing losses."}
     interlocks: [I-501]
-    rationale: The distillate is the larger product of the drum, so the reflux goes on flow and the product on level (skill control-loops). LV-506 fails closed (no product to storage without control; the drum fills slowly while the steam is closed too).
+    rationale: "At R 2.18 the reflux (27246 kg/h) is the larger drum outlet and the distillate (12498 kg/h) the smaller, so the rule of controlling the level with the largest stream would put the level on the reflux. The LV configuration (reflux on flow FIC-507, distillate on level) is chosen deliberately: the reflux, which sets the benzene purity with the tray temperature on the steam, is held steady at its flow, and the distillate (about a third of the condensate) still has range enough to hold the drum level; whether the reflux-on-level configuration controls the purity better is for a dynamic check at S7 (D-026). LV-506 fails closed (no product to storage without control; the drum fills slowly while the steam is closed too)."
   - id: FIC-507
     title: C-202 reflux flow
     purpose: Hold the reflux of C-202 at the design reflux ratio.

@@ -27,7 +27,7 @@ objectives:
 failures:
   - id: F-AIR
     title: Loss of instrument air
-    response: "Every actuated valve goes to the fail position drawn on the P&IDs and listed in control/loops.yaml (D-026). Closed: the toluene feed FV-103 and XV-120, the make-up hydrogen FV-108 and XV-121, the fuel TV-111, XV-112 and XV-125, the let-down LV-202 and XV-204, the purge FV-211, PV-301, the steam TV-402, TV-502 and TV-602, the column bottoms and product valves LV-408, LV-506, LV-508, LV-606 and LV-608, PV-604. Open: the fuel bleed XV-126, the depressuring valve XV-209, the anti-surge UV-207 and spillback PV-303, the minimum flow FV-106, the quench TV-115, the vents PV-104 and PV-504, the off-gas PV-404 and the refluxes LV-405, FV-507 and FV-607. The firing and the feed stop and the reaction loop is depressured to the flare; the columns lose their heat and stay on reflux. Restart follows SEQ-START-RXN once air is back."
+    response: "Every actuated valve goes to the fail position drawn on the P&IDs and listed in control/loops.yaml (D-026). Closed: the toluene feed LV-102, FV-103 and XV-120, the make-up hydrogen FV-108 and XV-121, the fuel TV-111, XV-112 and XV-125, the let-down LV-202 and XV-204, the purge FV-211 and XV-310, PV-301, the steam TV-402, TV-502 and TV-602, the column bottoms and product valves LV-408, LV-506, LV-508, LV-606 and LV-608, PV-604. Open: the fuel bleed XV-126, the depressuring valve XV-209, the anti-surge UV-207 and spillback PV-303, the minimum flow FV-106, the quench TV-115, the vents PV-104 and PV-504, the off-gas PV-404 and the refluxes LV-405, FV-507 and FV-607. The firing and the feed stop and the reaction loop is depressured to the flare; the columns lose their heat and stay on reflux. XV-209 and the fail-open vents PV-104, PV-504 and the off-gas PV-404 (and UV-207, PV-303) all open at the same moment, so a plant-wide air failure is a simultaneous flare load: it is handed to S8 as a relief and flare load case (D-026). Restart follows SEQ-START-RXN once air is back."
     loops: [FIC-103, FIC-108, TIC-111, LIC-202, UIC-207, FIC-211, TIC-402, TIC-502, TIC-602]
     sequences: [SEQ-EDP, SEQ-START-RXN]
     interlocks: [I-101, I-102]
@@ -49,7 +49,7 @@ failures:
     sequences: [SEQ-SD-PLANT]
   - id: F-FUEL
     title: Loss of the natural gas fuel
-    response: "The fuel pressure low-low trip I-104 (or the burner management, I-105) stops the firing; the loop keeps circulating and the reactor cools, so the reaction stops. I-104 does not cut the feed: the operator stops the toluene (SEQ-TRIP-RXN). Whether I-104 and I-105 should also cut the feed, as I-101 does, is a question for the HAZOP (S6)."
+    response: "The fuel pressure low-low trip I-104 (or the burner management, I-105) stops the firing; the loop keeps circulating and the reactor cools, so the reaction stops. I-104 and I-105 do not cut the feed: the operator closes XV-120 and XV-121 in SEQ-TRIP-RXN step S1, which completes only when they are closed. Whether I-104 and I-105 should also cut the feed, as I-101 does, is a question for the HAZOP (S6)."
     loops: [TIC-111, FIC-103]
     sequences: [SEQ-TRIP-RXN]
     interlocks: [I-104, I-105]
@@ -66,9 +66,16 @@ failures:
     interlocks: [I-101, I-202, I-203]
   - id: F-PSA
     title: Trip of the PSA PK-101 or the tail gas compressor K-102
-    response: "The purge is isolated (FV-211 closed, SEQ-TRIP-PSA); the loop runs on without purge while methane builds up over hours; the operator reduces the load if AIC-210 falls and restarts the PSA."
+    response: "I-301 stops K-102, holds the PSA cycle and closes the purge shutdown valve XV-310, so no purge flows into the PSA against a blocked tail gas outlet; the operator closes FV-211 behind it (SEQ-TRIP-PSA). The loop runs on without purge while methane builds up over hours; the operator reduces the load if AIC-210 falls and restarts the PSA (SEQ-START-PSA)."
     loops: [AIC-210, FIC-211, PIC-303]
     sequences: [SEQ-TRIP-PSA, SEQ-START-PSA]
+    interlocks: [I-301]
+  - id: F-QUENCH
+    title: Loss of the quench (P-102/P-102B stopped, TV-115 closed or AR-117 blocked)
+    response: "E-101 would receive the unquenched effluent (936 K) above its 918 K design temperature. I-106 (TZ-128, or both quench pumps stopped) stops the firing and cuts the toluene and the make-up hydrogen; K-101 keeps circulating and the effluent cools. The loop is held (SEQ-TRIP-RXN) and restarted once a quench pump runs. I-201 (V-101 level low-low) stops the quench pumps and so leads to I-106."
+    loops: [TIC-115, LIC-202, TIC-111, FIC-103]
+    sequences: [SEQ-TRIP-RXN]
+    interlocks: [I-106, I-201]
 unresolved: []
 ---
 
@@ -97,8 +104,8 @@ Three layers, kept apart:
    PSA trip, and emergency depressuring.
 3. **Protective functions** (`control/cause-effect.yaml`) act on their own transmitters (the Z
    tags) and their own trip valves (the XV tags) or stop machines, separate from the loops they
-   back up. Two trips act through vendor packages: the burner management of H-101 (I-105) and the
-   machine protection of K-101 (I-203). The relief devices (`piping/special-items.yaml`) are the
+   back up. Three trips act through vendor packages: the burner management of H-101 (I-105), the
+   machine protection of K-101 (I-203) and that of K-102 with the PSA cycle (I-301). The relief devices (`piping/special-items.yaml`) are the
    last layer; their cases are S8's.
 
 The load is set at one point (FIC-103). The toluene is the limiting reactant and the recycle gas
@@ -132,14 +139,16 @@ Automatic: all loops in their normal mode, the anti-surge and spillback loops, t
 abort actions of the sequences. The operator: sets the load, the reactor inlet temperature and the
 column refluxes; starts and stops machines and runs the start-up and shutdown sequences step by
 step (every start-up step is `by: operator`); removes the start-up bypasses of I-101, I-103,
-I-201, I-401, I-501 and I-601 at the step the sequence names; resets every latching trip after the
+I-201, I-401, I-501 and I-601 and of the pumps-stopped leg of I-106 at the step the sequence names
+(the burner management bypasses the low-low leg of I-104 by itself during light-off); resets every latching trip after the
 first-out cause has been found. No trip is reset automatically.
 
 ## Equipment and utility failures
 
 The designed responses are in the front matter: loss of instrument air (F-AIR), power (F-POWER),
 cooling water (F-CW), a steam header (F-STEAM), the natural gas fuel (F-FUEL), the make-up
-hydrogen (F-H2), and the trips of K-101 (F-K101) and of the PSA or K-102 (F-PSA). Each valve's fail
+hydrogen (F-H2), the trips of K-101 (F-K101) and of the PSA or K-102 (F-PSA), and the loss of
+the quench (F-QUENCH). Each valve's fail
 position is chosen so that the failure goes to the safe side of its own hazard (D-026): feed, fuel
 and hydrogen closed; steam closed; let-down and bottoms valves between pressure levels closed;
 refluxes, quench, minimum flow, anti-surge and spillback open; vents and the depressuring valve
