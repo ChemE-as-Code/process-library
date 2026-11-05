@@ -121,8 +121,23 @@ Steps (design spec #330, section 6):
     outside its band, the run not traced) fails the run (exit 4): the committed LCA would
     otherwise stay as an earlier design left it. When the LCA cannot be made at all, the
     scenario's lca.json is removed (it would describe another design).
+21. Item weights (run before step 10, numbered after the existing steps; scripts/_lifting.py,
+    DESIGN.md D-043): every listed item's empty weight from layout/lifting-basis.yaml (ASSUMED:
+    the outline volume times a bulk density, a tank's shell, bottom and roof at one wall
+    thickness, or a vendor's weight) into the equipment list's dimensions.weight, so the model
+    and core's lifting study carry it; the tanks' weights follow their sizes with H.
+22. Material take-off (after step 12, before step 13, whose validate then reads it current):
+    `cheme assess mto --write` (estimate/mto.csv, .md) of the model as built; its totals into
+    the record. No estimate: the project has no rates of its own (D-044).
+23. Lifting study (after step 22, before step 13): `cheme layout lifting --write`
+    (layout/lifting-study.csv, .md: every listed item of heavy_lift_t or more), then the lifts
+    core cannot express, worked
+    out with its criteria on the model (scripts/_lifting.py): each skid as a 20 ft unit, dry and
+    with its tanks full, and T-101 alone, drained and full, into
+    layout/lifting-study-units.csv and .md; both into the record (at 10,000 h the infeasible
+    Skid A's lifts are reported there, never fixed).
 
-Findings of steps 1 to 17 are collected, never fatal: an infeasible skid is a result. The exit
+Findings of steps 1 to 17, 21 to 23 are collected, never fatal: an infeasible skid is a result. The exit
 code is non-zero on a tool error (1), on refused input (2), on a --check difference (3) or on a
 step 20 error (4; --check counts it as a difference too, and requires the scratch run to have
 written the scenario's lca.json).
@@ -142,6 +157,7 @@ from pathlib import Path
 import _core
 import _figures
 import _lca
+import _lifting
 import _results as res
 import _yamledit as ye
 import lca_sensitivity
@@ -159,6 +175,7 @@ INPUTS = (
     "layout/site-plan.yaml",
     "layout/structures.yaml",
     "layout/zones.yaml",
+    "layout/lifting-basis.yaml",
     "piping/routing.yaml",
     "control/cause-effect.yaml",
     "control/sequences.yaml",
@@ -176,6 +193,13 @@ MODEL_FILES = (
     "equipment/equipment-list.yaml",
     "layout/plant-model.yaml",
     "control/loops.yaml",
+    # the take-off (step 22) and the lifting studies (step 23) of the model
+    "estimate/mto.csv",
+    "estimate/mto.md",
+    "layout/lifting-study.csv",
+    "layout/lifting-study.md",
+    _lifting.UNITS_CSV,
+    _lifting.UNITS_MD,
 )
 #: what --check also compares at the design duration: the LCA (step 20) and the files and
 #: folders core's LCA writes (scripts/_lca.py)
@@ -738,12 +762,14 @@ class Run:
         out = self.root / SCENARIO_FIGURES[0].format(h=f"{self.h:g}")
         _fresh(out)
         figures = []
-        # the plot plan of the whole plot: core's A1 sheet as it is (1:50 fits the 32 m plot)
-        for fmt in ([], ["--png"]):
-            for path in _core.render(self.root, "--plan", *fmt):
-                target = out / f"layout-plan{path.suffix}"
-                shutil.copyfile(path, target)
-                figures.append(str(target.relative_to(self.root)))
+        # the plot plan of the whole plot: core's A1 sheet (1:50 fits the 32 m plot), its roads
+        # drawn under its zones so the crane pads and the laydown on the road show (D-043),
+        # rasterised at core's own resolution
+        for path in _core.render(self.root, "--plan"):
+            svg = _figures.roads_under_zones(path.read_text(encoding="utf-8"))
+            (out / "layout-plan.svg").write_text(svg, encoding="utf-8", newline="")
+            (out / "layout-plan.png").write_bytes(_figures.svg_to_png(svg, _figures.CORE_PX_PER_MM))
+            figures += [f"{out.relative_to(self.root)}/layout-plan{s}" for s in (".svg", ".png")]
         cells = self.load("process/cells.yaml")
         scenario = f"{self.h:,.0f} h campaign"
         for key, skid in SKIDS.items():
@@ -1118,6 +1144,112 @@ class Run:
             "checks/checks.yaml"
         )
 
+    # -- 21 ---------------------------------------------------------------------------------
+    def weights(self) -> None:
+        """Step 21 (before step 10, numbered after the existing steps): every listed item's
+        empty weight from layout/lifting-basis.yaml into the equipment list's
+        dimensions.weight (a targeted edit of the value; the key is written by hand once), so
+        the model and core's lifting study carry it. The tanks' weights follow their sizes."""
+        basis = self.load(_lifting.BASIS)
+        equipment = self.load("equipment/equipment-list.yaml")["equipment"]
+        try:
+            weights = _lifting.item_weights(equipment, basis)
+        except _lifting.BasisError as exc:
+            raise Refused(str(exc)) from exc
+        changes = []
+        for item in equipment:
+            dims = item.get("dimensions") or {}
+            if "weight" not in dims:
+                raise Refused(
+                    f"equipment/equipment-list.yaml: {item['tag']} has no dimensions.weight: "
+                    "add the key once (step 21 keeps its value)"
+                )
+            want = weights[item["tag"]]["weight_t"]
+            if not _same(dims["weight"], want):
+                changes.append((["equipment", ("tag", item["tag"]), "dimensions", "weight"], want))
+        self.edit("equipment/equipment-list.yaml", changes)
+        self.summary["weights"] = weights
+        print(f"[21] item weights from {_lifting.BASIS}: {len(changes)} written into the equipment list")
+
+    # -- 22 ---------------------------------------------------------------------------------
+    def take_off(self) -> None:
+        """Step 22: `cheme assess mto --write` of the model as built (estimate/mto.csv, .md)."""
+        report = _core.take_off(self.root, write=True)
+        for f in report.get("findings") or []:
+            self.note("22", "warning", f"{f.get('rule')}: {f.get('message')}")
+        self.summary["take_off"] = report
+        totals = ", ".join(
+            f"{cat} {_num(round(q, 3))} {unit}"
+            for cat, units in report["totals"].items()
+            for unit, q in units.items()
+        )
+        print(f"[22] cheme assess mto --write: {totals}")
+
+    # -- 23 ---------------------------------------------------------------------------------
+    def lifting(self) -> None:
+        """Step 23: core's lifting study (`cheme layout lifting --write`: every listed item of
+        heavy_lift_t or more) and the unit lifts it cannot express (scripts/_lifting.py: the
+        skids as 20 ft units, T-101 drained and full) into layout/lifting-study-units.csv/.md."""
+        study = _core.lifting_study(self.root, write=True)
+        for f in study.get("findings") or []:
+            self.note("23", "warning", f"{f.get('rule')}: {f.get('message')}")
+        basis = self.load(_lifting.BASIS)
+        densities: dict[str, float] = {}
+        duties = {d["id"]: d for d in self.load("process/duties.yaml")["duties"]}
+        stacks = self.summary["stacks"]
+        for entry in basis.get("contents") or []:
+            kind, ref = entry["density_from"].split(" ", 1)
+            if kind == "pump":
+                rho = next(
+                    (
+                        e["values"].get("density_kg_m3")
+                        for st in stacks.values()
+                        for e in st["equipment"]
+                        if e["tag"] == ref
+                    ),
+                    None,
+                )
+            else:
+                did = ref.split()[0]
+                q = duties[did]["dosing"]["density"]
+                rho = float(q["value"]) * (1000.0 if q["unit"] in ("kg/L", "g/mL") else 1.0)
+            if rho is None:
+                raise Refused(f"{_lifting.BASIS}: no density for {entry['tag']} ({entry['density_from']})")
+            densities[entry["tag"]] = float(rho)
+        model = _core.plant_model(self.root)
+        try:
+            result = _lifting.unit_study(
+                model, basis, study["criteria"], self.summary["take_off"], densities
+            )
+        except _lifting.BasisError as exc:
+            raise Refused(str(exc)) from exc
+        for message in result["findings"]:
+            self.note("23", "warning", message)
+        for row in result["rows"]:
+            permitted = "not permitted" not in row["status"]
+            if permitted and ("blocked" in row["status"] or "no " in row["status"]):
+                self.note("23", "warning", f"unit lift {row['id']} ({row['weight_t']} t): {row['status']}")
+        (self.root / _lifting.UNITS_CSV).write_text(_lifting.study_csv(result), encoding="utf-8")
+        (self.root / _lifting.UNITS_MD).write_text(
+            _lifting.study_markdown(
+                result, basis, self.summary["weights"], study["criteria"], study["model_sha256"], self.h
+            ),
+            encoding="utf-8",
+        )
+        self.summary["lifting"] = {
+            "heavy_lift_t": float(study["criteria"]["heavy_lift_t"]["value"]),
+            "core_lifts": [
+                {k: lift.get(k) for k in ("tag", "weight_t", "pad", "required_t", "status")}
+                for lift in study["lifts"]
+            ],
+            "unit_lifts": _lifting.summary(result),
+        }
+        rows = {r["id"]: r for r in result["rows"]}
+        print(
+            f"[23] cheme layout lifting --write: {len(study['lifts'])} heavy item(s); unit lifts: "
+            + "; ".join(f"{k} {r['weight_t']} t {r['status']}" for k, r in rows.items())
+        )
+
     # -- 14 ---------------------------------------------------------------------------------
     def measured_state(self, duty_a: dict) -> dict:
         """The electrolyte the performance was measured in: fresh 1 M KOH (90 mL) after its 1 h
@@ -1489,6 +1621,10 @@ class Run:
             "comparisons": s["comparisons"],
             "envelope_basis": s["envelope"]["basis"],
             "control": s["control"],
+            # steps 22 and 23: the take-off's totals and the lifts (core's heavy items and the
+            # unit lifts of layout/lifting-study-units.md), reported at every duration
+            "take_off": {"totals": s["take_off"]["totals"], "findings": len(s["take_off"].get("findings") or [])},
+            "lifting": s["lifting"],
             "findings": [f for f in self.findings if f["level"] in ("error", "warning")],
         }
         if "uncertainty" in s:
@@ -1560,9 +1696,14 @@ class Run:
         self.datasheets_and_stacks()
         self.balance_and_build()
         self.control_setpoints()
+        self.weights()
         self.layout_and_datasheets()
         self.control()
         self.duty_plots()
+        # steps 22 and 23 before step 13: its validate then reads the take-off and the lifting
+        # study of the model as built (cheme.layout-lifting-study-outdated otherwise)
+        self.take_off()
+        self.lifting()
         self.envelope_check()
         self.invariants()
         if self.with_uncertainty:

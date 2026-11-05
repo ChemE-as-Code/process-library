@@ -15,7 +15,8 @@ Commands used: ``cheme process cell --json``, ``cheme process stack [--write] --
 ``cheme process duty IDS --json [--plot DIR]``, ``cheme process duty --compare``,
 ``cheme datasheets draft``, ``cheme datasheets fill --case C --tag T``, ``cheme process build``,
 ``cheme process streams``, ``cheme layout build``, ``cheme layout render``,
-``cheme control report --json``, ``cheme validate --json``, ``cheme run``, and for the LCA
+``cheme control report --json``, ``cheme validate --json``, ``cheme layout lifting [--write]
+--json`` and ``cheme assess mto [--write] --json`` (scripts/_lifting.py), ``cheme run``, and for the LCA
 (scripts/_lca.py, #331) ``cheme assess lca --write [--case C]``, ``--json``, ``--balance
 --json``, ``cheme assess lca-scenarios --write`` and ``cheme assess lca-cases --json``. The generated layout
 model ``layout/plant-model.yaml`` (schema ``cheme schema layout_model``) is read here too, for
@@ -182,6 +183,26 @@ def control_report(root: Path, out: Path) -> dict[str, Any]:
 
 def validate(root: Path) -> dict[str, Any]:
     return cheme(root, "validate", "--json", ok=(0, 1)).json()
+
+
+def lifting_study(root: Path, write: bool = False) -> dict[str, Any]:
+    """``cheme layout lifting --json`` (criteria, lifts, findings) of the committed model; with
+    *write*, ``--write`` first (layout/lifting-study.csv and .md)."""
+    if write:
+        cheme(root, "layout", "lifting", "--write")
+    report = cheme(root, "layout", "lifting", "--json").json()
+    _require(report, ("criteria", "lifts", "model_sha256"), "cheme layout lifting --json")
+    return report
+
+
+def take_off(root: Path, write: bool = False) -> dict[str, Any]:
+    """``cheme assess mto --json`` (rows, totals, findings) of the committed model; with
+    *write*, ``--write`` first (estimate/mto.csv and .md)."""
+    if write:
+        cheme(root, "assess", "mto", "--write")
+    report = cheme(root, "assess", "mto", "--json").json()
+    _require(report, ("rows", "totals", "model_sha256"), "cheme assess mto --json")
+    return report
 
 
 def validate_findings(report: dict[str, Any]) -> list[dict[str, Any]]:

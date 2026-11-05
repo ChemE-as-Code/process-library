@@ -1,0 +1,46 @@
+# Weights and unit lifts of the pilot skids, for the lifting study (DESIGN.md D-043).
+# A project file read by scripts/regen.py (no core schema): step 21 writes each item's empty
+# weight into the equipment list's dimensions.weight (core's lifting rule and study read it
+# there), step 23 writes the lifts core's study cannot express (the skids as 20 ft units, a tank
+# full and empty) into layout/lifting-study-units.csv and .md.
+#
+# Every number here is ASSUMED: no item has a vendor weight. The estimates are the list's
+# outline volume times a bulk density (the item's mass over its outline volume, the air in it
+# included), or a tank's shell, bottom and roof at one wall thickness. When a vendor gives a
+# weight, add it under `vendor:` with its source; it then replaces the estimate.
+schema: co2-bpm-1/lifting-basis/v1
+weights:
+  round_up_kg: 5
+  bulk_density_kg_m3:
+    - {tags: [E-101A, E-101B, E-101C, E-101D, E-201A, E-201B, E-201C, E-201D], value: 3000, basis: "ASSUMED: a filter-press stack of 7 cells between steel end plates on tie rods (plates, frames, gaskets, membranes), about 40 % of a steel block"}
+    - {tags: [P-101, P-201, P-202, K-131, K-231], value: 1000, basis: "ASSUMED: a small pump or diaphragm compressor with its motor on a base plate"}
+    - {tags: [K-141, K-241], value: 500, basis: "ASSUMED: a small extract fan with its motor"}
+    - {tags: [E-111, E-211], value: 1500, basis: "ASSUMED: a brazed plate pack with its connections and bracket"}
+    - {tags: [V-121, V-221], value: 600, basis: "ASSUMED: a small thin-walled SS316 pot with its bracket"}
+    - {tags: [X-131, X-231, X-132, X-232], value: 400, basis: "ASSUMED: a gas package on its own base frame (vessels, valves, small piping)"}
+    - {tags: [U-101, U-201], value: 500, basis: "ASSUMED: a rectifier cabinet (transformer, rectifier, cooling)"}
+  tanks:
+    - {tags: [T-101, T-201, T-202], density_kg_m3: 905, wall_m: 0.010, fittings_fraction: 0.25, basis: "ASSUMED: PP (about 905 kg/m3), shell, bottom and flat roof 10 mm at every size, plus 25 % for nozzles, ribs, ladder and roof rail"}
+  vendor: []
+# A full tank holds its whole outline volume (pi/4 D^2 H: the working volume and its freeboard)
+# at the density of its contents, as regen reads it from the stack sizing
+contents:
+  - {tag: T-101, density_from: "pump P-101", basis: "the anolyte density of the stack sizing (cheme process stack: P-101 density_kg_m3, ASSUMED about 1 M KOH)"}
+  - {tag: T-201, density_from: "pump P-201", basis: "the anolyte density of the stack sizing (cheme process stack: P-201 density_kg_m3, ASSUMED about 1 M KOH)"}
+  - {tag: T-202, density_from: "duty D-B dosing", basis: "duty D-B dosing.density (process/duties.yaml, ASSUMED about 5 M KOH)"}
+units:
+  # what a skid weighs beyond its items: the frame's own members (core's take-off mass per metre
+  # of each section) and deck grating, and an allowance on items and frame for what neither
+  # the list nor the model weighs (piping, valves, instruments, cable, bolting, drip tray)
+  grating_kg_m2: 35
+  allowance_fraction: 0.15
+  allowance_basis: "ASSUMED: piping, valves, instruments, cable, bolting and drip tray, 15 % of the items and frame"
+  # the access steps ST-x1 and ST-x2 stand on grade beside the frame: delivered loose, not in
+  # the unit lift
+  lifts:
+    - {id: SKID-A, kind: skid, frame: SKID-A, sheet: P-01, title: "Skid A as a 20 ft unit, T-101 drained (set or removal)"}
+    - {id: SKID-A-full, kind: skid, frame: SKID-A, sheet: P-01, full: [T-101], permitted: false, title: "Skid A as a unit with T-101 full (not a permitted lift: the bound)"}
+    - {id: T-101, kind: item, tag: T-101, laydown: LD-A1, title: "T-101 alone, drained (replacement)"}
+    - {id: T-101-full, kind: item, tag: T-101, full: [T-101], laydown: LD-A1, permitted: false, title: "T-101 alone, full (not a permitted lift: the bound)"}
+    - {id: SKID-B, kind: skid, frame: SKID-B, sheet: P-02, title: "Skid B as a 20 ft unit, T-201 and T-202 drained (set or removal)"}
+    - {id: SKID-B-full, kind: skid, frame: SKID-B, sheet: P-02, full: [T-201, T-202], permitted: false, title: "Skid B as a unit with T-201 and T-202 full (not a permitted lift: the bound)"}

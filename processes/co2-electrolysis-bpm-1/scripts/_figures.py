@@ -124,10 +124,30 @@ def crop_sheet(svg: str, title: str) -> str:
     return re.sub(r"\s+$", "", text) + "\n"
 
 
-def svg_to_png(svg: str) -> bytes:
-    """The cropped sheet as PNG, rasterised by resvg (the ``png`` extra of core)."""
+def svg_to_png(svg: str, zoom: float = PNG_PX_PER_MM) -> bytes:
+    """The cropped sheet as PNG, rasterised by resvg (the ``png`` extra of core), at *zoom*
+    pixels per sheet millimetre."""
     import resvg_py
 
-    return bytes(
-        resvg_py.svg_to_bytes(svg_string=svg, zoom=PNG_PX_PER_MM, background="#ffffff")
-    )
+    return bytes(resvg_py.svg_to_bytes(svg_string=svg, zoom=zoom, background="#ffffff"))
+
+
+#: core's own PNG resolution of a sheet (``cheme layout render --png``), px per mm
+CORE_PX_PER_MM = 4.0
+_ROADS = re.compile(r'(?ms)^(?P<indent>[ \t]*)<g id="roads">.*?^(?P=indent)</g>\n')
+_ZONES = re.compile(r'(?m)^[ \t]*<g id="zones">')
+
+
+def roads_under_zones(svg: str) -> str:
+    """Core's plot plan with its roads drawn before its zones (DESIGN.md D-043).
+
+    Core 1.5.0 paints the road's grey fill over the zones, so a crane pad or laydown standing
+    on the road is hidden. Only the order of the two groups changes: every element is kept as
+    core wrote it. A sheet without either group is returned unchanged."""
+    roads, zones = _ROADS.search(svg), _ZONES.search(svg)
+    if roads is None or zones is None or roads.start() < zones.start():
+        return svg
+    block = roads.group(0)
+    without = svg[: roads.start()] + svg[roads.end() :]
+    at = _ZONES.search(without).start()
+    return without[:at] + block + without[at:]
