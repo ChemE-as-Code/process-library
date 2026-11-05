@@ -1,0 +1,398 @@
+# HAZOP study H-05: a DRAFT until the team has accepted every entry and a
+# human review record covers it (cheme safety hazop check). Schema: cheme schema
+# hazop-study; workflow: safety/README.md and the skill hazop-study.
+# Drafted by an agent from the plant as drawn (P-08 rev A, C&E, loops, sequences,
+# special items). Every entry is a proposal for the team: status proposed.
+schema: cheme/hazop-study/v1
+kind: hazop-study
+id: H-05
+title: Storage and loading flare, KO drum, sumps and utilities
+scope: >-
+  Detail-stage HAZOP of P-08: the storage and loading flare header FL-8001 (from PV-1110,
+  PSV-7105, PSV-7111 and the purge), the knock-out drum D-8101 with LIC-8101 and pumps
+  P-8101A/B to the site liquid burner, the stack FL-8101 with pilots (FG-8002, PCV-8132, TI-8131)
+  and purge (FG-8001, FO-8111, FI-8111), the spill impoundment sumps T-8101 (with TSL-8102,
+  LI-8103, P-8102) and T-8102 (TSL-8104), and the terminal N2 (N-8001, N-8002, PI-8121) and
+  instrument-air (IA-8001, PI-8122) headers. Not covered: the flare derrick steel, the other
+  three flares on it and the liquid burner (site scope, D-001), and the N2, air and power
+  generation beyond the battery limit; loss of these utilities is analysed as a cause.
+modes:
+  - {id: holding, title: Holding, description: "Routine flare load only: pilots, purge and seal gas (6.0 m3/min permit limit, S-02); tank pressure control normally on the compressors."}
+  - {id: loading, title: Loading, description: "The largest flare cases: BOG compressor trip at loading (~54 t/h design case, D-017), carrier de-inerting and cooldown vapour."}
+  - {id: cooldown, title: Cooldown, description: "Carrier cooldown and de-inerting vapour to the flare (D-017, S-02)."}
+  - {id: startup, title: Start-up and shutdown, description: "Flare header purge and pilot light-off, KO drum pump-out, sump draining after rain."}
+analysed:
+  - {path: pid/P-08.xml, revision: 'sha256:25bfe4bf889cfdb487984ddbbd5e1481d524db60f3663f5573050b1f08b150fc', relation: analyses}
+  - {path: control/cause-effect.yaml, revision: 'sha256:cf339dc10a5425f3ba75897f6c8bb0b895599cfbc14b45effb0ea262dc1ad909', relation: analyses}
+  - {path: control/loops.yaml, revision: 'sha256:87745b629db15e255aec60ffb28bd670c9148c30788e2a72a7c7919016cdaf3a', relation: analyses}
+  - {path: control/sequences.yaml, revision: 'sha256:a762021b887989a0ab1598c297099a7128dc49a43751721d3d9833fed775316e', relation: analyses}
+  - {path: piping/special-items.yaml, revision: 'sha256:f8c427cf6a7b8e29343ebe92606451fae7ae01e74af068de2aed4471d129173e', relation: analyses}
+risk_matrix: safety/risk-matrix.yaml
+assessment_basis: >-
+  Each scenario is rated per category before its safeguards (initial): severity is the credible
+  worst outcome if every safeguard fails, likelihood that of the cause. The codes are agent
+  proposals with their basis, for the team to accept or change. No residual ratings are
+  proposed: crediting safeguards is the team's judgement (and a LOPA's where needed). The matrix
+  is the example matrix of cheme init (example: true), so the bands are illustrative.
+team: []            # to be named by the project; no team has sat on this draft yet
+notes: >-
+  Drafted by an agent (skills hazop-study, hazop-equipment-causes, relief-scenarios,
+  safeguard-crediting). The flare load figures are the concept values of D-017 and the equipment
+  list (ASSUMED); the fire and gas system and the foam system are not drawn at this revision.
+nodes:
+  - id: N1
+    title: Flare header FL-8001, KO drum D-8101, KO pumps and stack FL-8101
+    design_intent: >-
+      Take the tank pressure control vent PV-1110 (design case the BOG compressor trip at loading,
+      ~54 t/h), the relief of PSV-7105 / PSV-7111 and the D-7101 drain DR-7001 through FL-8001
+      (DN 900) into D-8101 (3.5 barg, -170 degC); knock out liquid and pump it by P-8101A/B (30 m3/h,
+      LIC-8101, high-high alarm) through LNG-8001 to the site liquid burner; burn the gas at
+      FL-8101 on the 122 m derrick with a continuous fuel-gas purge (FO-8111, FI-8111) and pilots
+      (FG-8002, PCV-8132, TI-8131) (D-017, S-02).
+    members: [FL-8001, PI-8112, D-8101, LIC-8101, P-8101A, P-8101B, LNG-8002, LNG-8003, LNG-8001, LNG-8004, FL-8002, FL-8101, FI-8133, FG-8001, FO-8111, FI-8111, FG-8002, PCV-8132, TI-8131, DR-7001, FL-7001, FL-7002]
+    status: proposed
+    by: agent
+    deviations:
+      - id: N1-HL
+        guide_word: more
+        parameter: level (liquid carry-over)
+        scenarios:
+          - id: S1
+            cause: >-
+              Liquid into the flare header beyond the KO drum's hold-up: liquid through PV-1110
+              after a tank overfill or rollover (H-01), LNG from D-7101 through DR-7001 (H-04), and
+              P-8101A/B not pumping (LIC-8101 fault, pump trip, the liquid burner not available).
+            consequence: >-
+              Level rises in D-8101 and LNG is carried with the gas up FL-8002 to the stack: burning
+              liquid rain around the 122 m derrick, cold liquid in the stack riser, flame-out.
+            refs: [D-8101, LIC-8101, P-8101A, P-8101B, FL-8002, FL-8101]
+            modes: [loading, holding]
+            safeguards: [SG1, SG2]
+            actions: [A1]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Burning liquid falling around the derrick; matrix 4 = permanent injury or fatality. B: needs a liquid source and failed pump-out, once in the plant life.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+                - {category: asset, severity: "3", likelihood: B, status: proposed, by: agent, basis: "Stack tip and derrick damage; matrix 3 = plant down for weeks.", band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 579975b5e9fe3f0e, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '3', likelihood: B}}}
+            notes: LIC-8101 carries both the pump control and the high-high alarm (instrument list); no independent level protection is drawn.
+      - id: N1-LL
+        guide_word: less
+        parameter: level
+        scenarios:
+          - id: S2
+            cause: LIC-8101 fails (reads high) and the KO pumps keep running with the drum empty.
+            consequence: P-8101A/B run dry (seal and bearing damage, gas release at the seal); flare gas blows by into LNG-8001 to the liquid burner.
+            refs: [LIC-8101, P-8101A, LNG-8001]
+            safeguards: [SG2]
+            actions: [A2]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: C, status: proposed, by: agent, basis: "Gas release at a pump seal; matrix 3 = lost-time injury.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b6fe1208a949a698, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: C}}}
+      - id: N1-NF
+        guide_word: "no"
+        parameter: flow (KO pump discharge)
+        scenarios:
+          - id: S3
+            cause: The liquid burner line LNG-8001 is closed at the battery limit (site liquid burner out of service) while a KO pump runs.
+            consequence: P-8101A/B deadheaded (no minimum-flow line drawn); heating and flashing in the casing, pump damage; D-8101 level rises (S1).
+            refs: [P-8101A, P-8101B, LNG-8001, {sheet: P-08, object: CV8102A}]
+            safeguards: [SG2]
+            actions: [A2]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "2", likelihood: C, status: proposed, by: agent, basis: "Pump damage; matrix 2 = plant down for days.", band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b67377b30017f4a1, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '2', likelihood: C}}}
+      - id: N1-HPT
+        guide_word: more
+        parameter: pressure (blocked-in liquid)
+        scenarios:
+          - id: S4
+            cause: LNG blocked in LNG-8001 / LNG-8004 between the check valves CV8102A/B and the battery-limit valve when the pumps stop.
+            consequence: Thermal expansion overpressures the DN 80 line; flange leak of LNG.
+            refs: [LNG-8001, LNG-8004, {sheet: P-08, object: CV8102A}, {sheet: P-08, object: CV8102B}]
+            actions: [A3]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: C, status: proposed, by: agent, basis: "LNG leak; matrix 3 = lost-time injury.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b6fe1208a949a698, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: C}}}
+      - id: N1-HP
+        guide_word: more
+        parameter: pressure (back-pressure)
+        scenarios:
+          - id: S5
+            cause: >-
+              Simultaneous relief of several sources on a common cause: power failure at loading
+              (PV-1110 with all BOG, PSV-7111 with the compressors running down, carrier return),
+              or loss of instrument air.
+            consequence: >-
+              Flow above the ~54 t/h design case of FL-8001 / D-8101; high back-pressure reduces
+              the capacity of PV-1110 and the PSVs; the tank pressure goes to PSV-2131A/B to
+              atmosphere; higher radiation at the fence than the 5.0 kW/m2 basis (S-10).
+            refs: [FL-8001, PI-8112, D-8101, FL-8101, PV-1110]
+            modes: [loading]
+            safeguards: [SG3]
+            actions: [A4]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, status: proposed, by: agent, basis: "Tank venting and radiation; matrix 4. C: grid failures occur several times in the plant life.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ac0a4b03e3d8d0c2, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: C}}}
+      - id: N1-OC
+        guide_word: other-than
+        parameter: composition (air in the flare system)
+        scenarios:
+          - id: S6
+            cause: >-
+              Loss of the purge (fuel gas FG-8001 lost, FO-8111 blocked by ice or hydrate) or
+              contraction of the cold header after a large cold release, drawing air in at the
+              stack tip.
+            consequence: >-
+              Air in FL-8002, D-8101 and FL-8001: a flammable mixture that flashes back from the
+              tip on the next release; internal deflagration in the KO drum or the header.
+            refs: [FG-8001, FO-8111, FI-8111, FL-8002, D-8101, FL-8001]
+            safeguards: [SG4]
+            actions: [A5]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Flashback and deflagration in the flare system; matrix 4. B: once in the plant life.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+                - {category: asset, severity: "4", likelihood: B, status: proposed, by: agent, basis: "KO drum or header rupture; matrix 4 = loss of the unit.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: f33c22768a8b83e6, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: B}}}
+            notes: No molecular or velocity seal and no O2 measurement are drawn on P-08.
+      - id: N1-NP
+        guide_word: "no"
+        parameter: flame (pilots)
+        scenarios:
+          - id: S7
+            cause: Pilot flame-out (fuel gas FG-8002 or PCV-8132 failure, high wind, liquid carry-over S1).
+            consequence: Cold BOG released unburnt at 122 m; dense cold methane plume, flammable cloud at grade in calm weather; ignition at grade.
+            refs: [FG-8002, PCV-8132, TI-8131, FL-8101]
+            safeguards: [SG5]
+            actions: [A6]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Flammable cloud from an unlit flare; matrix 4. B: once in the plant life.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+                - {category: environment, severity: "3", likelihood: C, status: proposed, by: agent, basis: "Unburnt methane release; matrix 3 = reportable release.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 1fb9317519cce7ee, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '3', likelihood: C}}}
+      - id: N1-LT
+        guide_word: less
+        parameter: temperature
+        scenarios:
+          - id: S8
+            cause: Cold BOG (-140 to -160 degC) or LNG enters FL-8001 / FL-8002 (PV-1110 vent of tank vapour, DR-7001 liquid, carrier cooldown vapour).
+            consequence: Lines and stack riser below their minimum design temperature if they are not of low-temperature material (FL-8001 and FL-8002 have no insulation and no material in the line list); brittle fracture.
+            refs: [FL-8001, FL-8002, FL-8101]
+            modes: [loading, cooldown]
+            actions: [A7]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Brittle fracture of the flare header in service; matrix 4.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+            notes: The equipment list gives D-8101 and FL-8101 -170 degC; the line list gives no material or design temperature for FL-8001 / FL-8002.
+      - id: N1-OT
+        guide_word: other-than
+        parameter: source (carrier de-inerting)
+        scenarios:
+          - id: S9
+            cause: >-
+              Carrier de-inerting and cooldown vapour, which D-017 and S-02 send to the storage and
+              loading flare, has no drawn route on P-05 / P-08: it can only reach FL-8001 through
+              the vapour return, the tank vapour header and PV-1110.
+            consequence: >-
+              Inert gas (N2, CO2) and warm vapour are taken into the tank vapour space and the BOG
+              compressors (H-04 S7) instead of the flare; trains' fuel gas off-spec; CO2 freezing
+              in the cold BOG system.
+            refs: [FL-8001, PV-1110, BOG-4001]
+            modes: [cooldown]
+            actions: [A8]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "2", likelihood: C, status: proposed, by: agent, basis: "BOG system upset and compressor trip; matrix 2 = plant down for days.", band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b67377b30017f4a1, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '2', likelihood: C}}}
+  - id: N2
+    title: Spill impoundment sumps T-8101 (tank area and trestle) and T-8102 (jetty)
+    design_intent: >-
+      Collect LNG spills from the tank-area troughs and trestle drip trays in T-8101 (10 min of one
+      loading line, D-018) and from the platform drip trays in T-8102; keep the sumps free of
+      water by P-8102 (started on LI-8103, stopped by TSL-8102 on LNG in the sump, I-801) to the
+      site oily water system; detect LNG with TSL-8102 / TSL-8104 and start the high-expansion
+      foam (C&E I-801 notes, instrument list).
+    members: [T-8101, TSL-8102, LI-8103, P-8102, W-8001, W-8002, T-8102, TSL-8104]
+    status: proposed
+    by: agent
+    deviations:
+      - id: N2-AW
+        guide_word: as-well-as
+        parameter: composition (LNG with water)
+        scenarios:
+          - id: S10
+            cause: LNG spill into T-8101 while rainwater stands in it (P-8102 behind the rain, LI-8103 fault).
+            consequence: Rapid phase transition and violent boiling in the sump; overpressure of the sump structure; a larger vapour cloud from the tank area.
+            refs: [T-8101, LI-8103, P-8102]
+            modes: [loading, holding]
+            safeguards: [SG6]
+            actions: [A9]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "RPT and vapour cloud in the tank area; matrix 4. B: needs a spill and standing water.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+          - id: S11
+            cause: P-8102 keeps running when LNG reaches the sump (TSL-8102 fails or I-801 does not act).
+            consequence: LNG pumped into W-8002 (carbon steel) and the site oily water system; cold embrittlement and rupture; flammable vapour in the site drains and sewers off the terminal.
+            refs: [P-8102, W-8002, TSL-8102]
+            safeguards: [SG7]
+            actions: [A10]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Flammable vapour in the site drains; matrix 4.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+                - {category: environment, severity: "3", likelihood: B, status: proposed, by: agent, basis: "Release to the oily water system; matrix 3 = reportable release.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 92790e212f41fb89, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '3', likelihood: B}}}
+      - id: N2-HL
+        guide_word: more
+        parameter: level
+        scenarios:
+          - id: S12
+            cause: A spill larger than the sump's design (a trestle line rupture with the ESD late, a release longer than 10 min, D-018), or rainwater not removed.
+            consequence: Sump overflow; LNG pool beyond the impoundment; vapour cloud beyond the 200 m zone (D-018).
+            refs: [T-8101, LI-8103, LNG-4001]
+            safeguards: [SG6, SG8]
+            actions: [A11]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: A, status: proposed, by: agent, basis: "Large pool fire or vapour cloud; matrix 4. A: not expected in the plant life.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ddcedc61b5d20d1a, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: A}}}
+          - id: S13
+            cause: Rainwater collects in the jetty sump T-8102, which has no level measurement and no pump drawn.
+            consequence: A platform spill meets standing water (rapid phase transition); reduced capacity; LNG overflowing toward the sea.
+            refs: [T-8102, TSL-8104]
+            safeguards: [SG9]
+            actions: [A12]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "RPT on the loading platform; matrix 4.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+  - id: N3
+    title: Terminal N2 and instrument-air headers
+    design_intent: >-
+      Supply N2 at 7 barg (N-8001 to Berth 2, N-8002 to Berth 1) for arm purge to below 1 % O2 and
+      2 % hydrocarbons, the leak tests at 5 bar (liquid arms) and 2.5 bar (vapour arm), seal gas
+      and blanketing; instrument air at 7 barg (IA-8001) to all pneumatic valves (D-020, S-01).
+    members: [N-8001, N-8002, PI-8121, IA-8001, PI-8122]
+    status: proposed
+    by: agent
+    deviations:
+      - id: N3-NF
+        guide_word: "no"
+        parameter: flow (N2)
+        scenarios:
+          - id: S14
+            cause: Loss of N2 from the site system (generator outage, header leak).
+            consequence: >-
+              Arms cannot be purged or leak-tested (loading delayed, or loading started with an
+              incomplete purge: O2 ingress, H-03 S6); compressor seal gas lost (H-04 S18).
+            refs: [N-8001, PI-8121]
+            modes: [startup, loading]
+            safeguards: [SG10]
+            actions: [A13]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "As H-03 S6; matrix 4.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+      - id: N3-HP
+        guide_word: more
+        parameter: pressure (N2 at the vapour arm)
+        scenarios:
+          - id: S15
+            cause: >-
+              N2 at 7 barg used for the vapour arm leak test at 2.5 bar on an arm designed for 3.5
+              barg; no N2 connection, pressure regulator or relief for the vapour arm is drawn (N-8001
+              enters the liquid header LNG-5001 only).
+            consequence: Overpressure of LA-5102 / BOG-5001 during the leak test; swivel seal damage, rupture.
+            refs: [N-8001, LA-5102, BOG-5001]
+            modes: [startup]
+            actions: [A14]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: C, status: proposed, by: agent, basis: "Pressure release at the arm during a test with people present; matrix 3 = lost-time injury.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b6fe1208a949a698, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: C}}}
+      - id: N3-NA
+        guide_word: "no"
+        parameter: flow (instrument air)
+        scenarios:
+          - id: S16
+            cause: Loss of instrument air (compressor or dryer failure at the site, header rupture).
+            consequence: >-
+              Every pneumatic valve goes to its fail position at once: PV-1110 and PV-1111 closed,
+              UV-7104A..C open, TV-7103 and LV-7102 closed, FV-2111A..D / FV-3111A..D open,
+              FV-4101/4102 last; the fail positions of the ESD valves (XV) are not in the files.
+              BOG compression and the flare route are lost together (H-04 S3): tank PSVs vent;
+              loading continues uncontrolled if the ESD valves stay open.
+            refs: [IA-8001, PI-8122, PV-1110, UV-7104A, FV-4101]
+            safeguards: [SG11]
+            actions: [A15]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, status: proposed, by: agent, basis: "Tank venting and loss of control at loading; matrix 4. C: air failures occur several times in the plant life.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ac0a4b03e3d8d0c2, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: C}}}
+      - id: N3-NE
+        guide_word: "no"
+        parameter: power
+        scenarios:
+          - id: S17
+            cause: Total loss of power (grid, 6.6 kV and 400 V).
+            consequence: >-
+              In-tank pumps, circulation, BOG compressors, KO pumps and P-8102 stop; BOG to the
+              flare only if PV-1110 and the control system have power (H-04 S4); the ship-shore
+              link, ESD logic and ERS hydraulics need a supply that the files do not name.
+            refs: [P-2101A, K-7101A, P-8101A, P-8102, XS-5100]
+            safeguards: [SG3]
+            actions: [A16]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, status: proposed, by: agent, basis: "Loss of ESD and link functions during loading; matrix 4. C: grid failures several times in the plant life.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ac0a4b03e3d8d0c2, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: C}}}
+safeguards:
+  - {id: SG1, title: "LIC-8101 KO drum level with high-high alarm, starting and stopping P-8101A/B", kind: control, refs: [LIC-8101, P-8101A, P-8101B], status: proposed, by: agent}
+  - {id: SG2, title: Installed spare KO pump P-8101B, kind: other, refs: [P-8101B], status: proposed, by: agent}
+  - {id: SG3, title: Tank relief valves PSV-2131A/B and PSV-3131A/B to atmosphere, kind: relief, refs: [PSV-2131A, PSV-2131B, PSV-3131A, PSV-3131B], status: proposed, by: agent}
+  - {id: SG4, title: "FI-8111 purge gas flow indication with the orifice FO-8111", kind: other, refs: [FI-8111, FO-8111], status: proposed, by: agent, notes: "No low-flow alarm is stated in the files."}
+  - {id: SG5, title: "TI-8131 pilot flame temperature, pilot failure alarm", kind: alarm, refs: [TI-8131], status: proposed, by: agent}
+  - {id: SG6, title: "LI-8103 sump level starting P-8102 (keeps T-8101 free of water)", kind: control, refs: [LI-8103, P-8102], status: proposed, by: agent}
+  - {id: SG7, title: "Interlock I-801: TSL-8102 low temperature stops P-8102", kind: interlock, interlock: I-801, refs: [TSL-8102, P-8102], status: proposed, by: agent}
+  - {id: SG8, title: "ESD-1 of the berths (I-501 / I-601) stops the loading pumps", kind: interlock, interlock: I-501, refs: [XS-5100], status: proposed, by: agent, notes: "Initiated by the platform fire and gas, not by a spill in the tank area or on the trestle (I-501 notes)."}
+  - {id: SG9, title: TSL-8104 jetty sump low temperature alarm, kind: alarm, refs: [TSL-8104], status: proposed, by: agent}
+  - {id: SG10, title: PI-8121 N2 header pressure indication, kind: other, refs: [PI-8121], status: proposed, by: agent}
+  - {id: SG11, title: PI-8122 instrument-air header pressure indication, kind: other, refs: [PI-8122], status: proposed, by: agent}
+actions:
+  - {id: A1, status: proposed, by: agent, text: "P&ID P-08 and C&E change: add an independent high-high level switch on D-8101 (separate from LIC-8101) with a defined action (start the spare pump, alarm, close LV-7102), and confirm the KO drum liquid hold-up for the largest credible liquid slug (H-01 S6, H-04 S9)."}
+  - {id: A2, status: proposed, by: agent, text: "P&ID P-08 change: add a low-level pump trip on D-8101 independent of LIC-8101 and a minimum-flow return for P-8101A/B to D-8101; state the response when the site liquid burner is unavailable."}
+  - {id: A3, status: proposed, by: agent, text: "P&ID P-08 change: thermal relief on LNG-8001 / LNG-8004 between the pump check valves and the battery limit (or show the battery-limit arrangement that relieves it), listed in piping/special-items.yaml."}
+  - {id: A4, status: proposed, by: agent, text: "Flare study: cumulative relief load of the common-cause cases (power failure and instrument-air failure at loading) on FL-8001 / D-8101 / FL-8101, the back-pressure at PV-1110 and the PSVs, and the radiation at the fence (S-10); see H-04 A3."}
+  - {id: A5, status: proposed, by: agent, text: "P&ID P-08 and C&E change: add a low purge-flow alarm on FI-8111, a back-up purge (N2) on loss of fuel gas, an O2 analyser on FL-8001 / D-8101, and show the molecular or velocity seal at the tip; confirm the purge rate against header contraction after a cold release."}
+  - {id: A6, status: proposed, by: agent, text: "Show the pilot ignition system and its re-ignition on pilot failure (TI-8131) on P-08, and define the response to an unlit flare during loading."}
+  - {id: A7, status: proposed, by: agent, text: "Line list change: give FL-8001, FL-8002 (and FL-7001 / FL-7002) a low-temperature material and minimum design temperature for the coldest relief (cold BOG, LNG carry-over), or show where the gas is warmed."}
+  - {id: A8, status: proposed, by: agent, text: "P&ID P-05 / P-06 / P-08 change: draw the carrier de-inerting and cooldown route to the storage and loading flare (D-017, S-02) separate from the tank vapour header, with its valves and the switch-over criterion (hydrocarbon content)."}
+  - {id: A9, status: proposed, by: agent, text: "Confirm the dry-sump philosophy of T-8101: a high level alarm on LI-8103, the P-8102 capacity against the design rain, and the start of the high-expansion foam on TSL-8102 shown on P-08 (the foam system is in the I-801 notes only)."}
+  - {id: A10, status: proposed, by: agent, text: "Determine the required integrity of I-801 (single TSL-8102) and consider a second, independent low-temperature switch or a discharge isolation valve on W-8002 that closes on LNG in the sump."}
+  - {id: A11, status: proposed, by: agent, text: "C&E change: add tank-area and trestle fire and gas / low-temperature spill detection as a cause of ESD-1 (I-501 / I-601) and of I-101, and confirm the T-8101 design spill against the ESD response time."}
+  - {id: A12, status: proposed, by: agent, text: "P&ID P-08 change: give T-8102 a level measurement and a water removal (pump or drain with LNG interlock as I-801), and show its foam system."}
+  - {id: A13, status: proposed, by: agent, text: "Add a low-pressure alarm on PI-8121 and make 'N2 header healthy' a permissive of SEQ-LOAD S1 / S2; consider a back-up N2 supply for purge and seal gas."}
+  - {id: A14, status: proposed, by: agent, text: "P&ID P-05 / P-06 / P-08 change: show the N2 connection for the vapour arm leak test and purge with a pressure regulator and a relief valve set below the 3.5 barg design of LA-5102 / LA-6102."}
+  - {id: A15, status: proposed, by: agent, text: "Record the fail position of every ESD and switching valve (XV) in the instrument list or the C&E, add a low instrument-air pressure alarm and action (ESD-1 at a set pressure) on PI-8122, and size air receivers for the ESD valves and PV-1110 (see H-04 A2)."}
+  - {id: A16, status: proposed, by: agent, text: "Write the power-failure case: which loads are on UPS (ESD logic, ship-shore link XS-5100 / XS-6100, ERS hydraulic accumulators, PV-1110 solenoid, flare pilots ignition), and the resulting flare load (A4)."}

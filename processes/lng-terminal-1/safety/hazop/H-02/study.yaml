@@ -1,0 +1,372 @@
+# HAZOP study H-02: a DRAFT until the team has accepted every entry and a
+# human review record covers it (cheme safety hazop check). Schema: cheme schema
+# hazop-study; workflow: safety/README.md and the skill hazop-study.
+# Drafted by an agent from the plant as drawn (P-02, P-03, P-04 rev A, C&E, loops,
+# sequences, special items). Every entry is a proposal for the team: status proposed.
+schema: cheme/hazop-study/v1
+kind: hazop-study
+id: H-02
+title: In-tank pumps, circulation and trestle lines
+scope: >-
+  Detail-stage HAZOP of the in-tank loading pumps P-2101A..D / P-3101A..D with their columns,
+  check valves and minimum-flow returns, the circulation pumps P-2102 / P-3102 and the
+  circulation header LNG-2002 / LNG-3002 (P-02, P-03), and the trestle lines on P-04: loading
+  lines LNG-4001 / LNG-4002 (~2.45 km) with FV-4101/FV-4102 and the tank-end ESD valves
+  XV-4101/XV-4102, the crossovers LNG-4006 (XV-4106) and LNG-4003 (XV-4103), the circulation
+  return LNG-4005 / LNG-4009 (XV-4105, XV-2123, XV-3123), the desuperheater spray take-off
+  LNG-4008 and the vapour return lines BOG-4001 / BOG-4002. The berth headers, the shore ESD
+  valves XV-5101/XV-6101 and the surge relief PSV-5131/PSV-6131 are in H-03; tank level and
+  pressure in H-01. Not covered: trestle structure, expansion loops, supports, drip trays and
+  low-point drains (not drawn at this revision, D-021).
+modes:
+  - {id: holding, title: Holding, description: "No carrier: P-2102 (or P-3102) circulates ~314 m3/h out on line A, through the platform crossover XV-4103 and back on line B to the tanks (D-008, SEQ-HOLD)."}
+  - {id: loading, title: Loading, description: "Four loading pumps of one tank (or any four) send 12,000 m3/h through both trestle lines (6,000 m3/h each, FIC-4101/FIC-4102) to one berth (D-011, SEQ-LOAD)."}
+  - {id: cooldown, title: Cooldown, description: "Cooldown of the trestle lines from warm (commissioning, after a long outage) and of the arms and berth header at 500 m3/h (SEQ-LOAD S3)."}
+  - {id: startup, title: Start-up and shutdown, description: "Pump start and stop, ramp-up and topping-off (SEQ-LOAD S4, S5), ESD-1 and its reset (SEQ-ESD), restart of the circulation (SEQ-HOLD)."}
+analysed:
+  - {path: pid/P-02.xml, revision: 'sha256:547309cb23552ee5287d099afd5793651137bd119f98ebc35227810e796fdeb4', relation: analyses}
+  - {path: pid/P-03.xml, revision: 'sha256:13f848ce73651dd6a1b0c16ae5b17f2d9d45bce5db9873ca0486fab2ffcb5c9b', relation: analyses}
+  - {path: pid/P-04.xml, revision: 'sha256:f754f92f07fa025c16b8d4863aca70a1caa78b3ffb9590158a13742606ae6976', relation: analyses}
+  - {path: control/cause-effect.yaml, revision: 'sha256:cf339dc10a5425f3ba75897f6c8bb0b895599cfbc14b45effb0ea262dc1ad909', relation: analyses}
+  - {path: control/loops.yaml, revision: 'sha256:87745b629db15e255aec60ffb28bd670c9148c30788e2a72a7c7919016cdaf3a', relation: analyses}
+  - {path: control/sequences.yaml, revision: 'sha256:a762021b887989a0ab1598c297099a7128dc49a43751721d3d9833fed775316e', relation: analyses}
+  - {path: piping/special-items.yaml, revision: 'sha256:f8c427cf6a7b8e29343ebe92606451fae7ae01e74af068de2aed4471d129173e', relation: analyses}
+risk_matrix: safety/risk-matrix.yaml
+assessment_basis: >-
+  Each scenario is rated per category before its safeguards (initial): severity is the credible
+  worst outcome if every safeguard fails, likelihood that of the cause. The codes are agent
+  proposals with their basis, for the team to accept or change. No residual ratings are
+  proposed: crediting safeguards is the team's judgement (and a LOPA's where needed). The matrix
+  is the example matrix of cheme init (example: true), so the bands are illustrative.
+team: []            # to be named by the project; no team has sat on this draft yet
+notes: >-
+  Drafted by an agent (skills hazop-study, hazop-equipment-causes, relief-scenarios,
+  safeguard-crediting). T-3101 pumps are identical to T-2101's (D-019): scenarios name the
+  T-2101 tags with the T-3101 tags in brackets. Surge figures quoted are the slow-closure
+  estimate of DESIGN.md D-023 (ASSUMED wave speed; a transient analysis is still to confirm it).
+nodes:
+  - id: N1
+    title: In-tank loading pumps P-2101A..D (P-3101A..D), columns and minimum-flow returns
+    design_intent: >-
+      Each submerged-motor pump delivers up to 3,000 m3/h at ~132 m (577 kPa differential)
+      through its column and check valve CV2121A..D into the header LNG-2001 (LNG-3001), DN 800, to
+      loading line A (B); FIC-2111A..D keep each pump above 900 m3/h by returning LNG through
+      FV-2111A..D (fail open) and LNG-2021..2024 into the tank (D-011).
+    members: [P-2101A, P-2101B, P-2101C, P-2101D, P-3101A, P-3101B, P-3101C, P-3101D, LNG-2001, LNG-2012, LNG-2013, LNG-2014, LNG-3001, FIC-2111A, FV-2111A, FIC-2111B, FIC-2111C, FIC-2111D, PI-2117, PI-3117, LNG-2021]
+    status: proposed
+    by: agent
+    deviations:
+      - id: N1-NF
+        guide_word: "no"
+        parameter: flow
+        scenarios:
+          - id: S1
+            cause: >-
+              Discharge blocked while a loading pump runs: XV-4101 (XV-4102) closed by I-501 /
+              I-601 before the pumps have stopped, FV-4101 stuck closed, or the carrier's manifold
+              valves closed; and FV-2111A (minimum flow) fails to open or is stuck.
+            consequence: >-
+              The pump runs against a closed discharge; the LNG in the column heats and flashes;
+              bearing and motor damage of the submerged-motor pump, vibration in the column.
+            refs: [P-2101A, XV-4101, FV-4101, FV-2111A]
+            modes: [loading, startup]
+            safeguards: [SG1, SG2]
+            actions: [A1]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: C, status: proposed, by: agent, basis: "In-tank pump damage, pump pulled through its column; matrix 3 = plant down for weeks (for that pump). C: blocked discharges occur several times in the plant life.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 4255ea3f73fe5efe, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '3', likelihood: C}}}
+      - id: N1-RF
+        guide_word: reverse
+        parameter: flow
+        scenarios:
+          - id: S2
+            cause: A loading pump stops while the others keep the header LNG-2001 pressurised; its check valve CV2121A leaks or sticks open.
+            consequence: Back flow through the stopped pump into the tank; reverse rotation; the pump cannot be restarted until the flow stops.
+            refs: [P-2101A, LNG-2001, {sheet: P-02, object: CV2121A}]
+            modes: [loading]
+            safeguards: [SG3]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "2", likelihood: C, status: proposed, by: agent, basis: "Pump damage on restart; matrix 2 = plant down for days (one pump).", band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b67377b30017f4a1, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '2', likelihood: C}}}
+      - id: N1-HP
+        guide_word: more
+        parameter: pressure
+        scenarios:
+          - id: S3
+            cause: >-
+              After ESD-1 (I-501) the pumps stop and XV-4101/XV-4102 close: the headers LNG-2001
+              and LNG-3001, the tank-end crossover LNG-4006, the circulation header LNG-2002 /
+              LNG-3002 and the spray line LNG-4008 are blocked in between the pump check valves
+              CV2121A..D, CV2122 (CV3121A..D, CV3122), FV-4101/XV-4101, XV-4105 and TV-7103 (fails
+              closed), and warm up. The thermal relief valves PSV-4111/PSV-4112 are downstream of
+              XV-4101/XV-4102 and do not reach this section; the minimum-flow returns branch off
+              upstream of the check valves.
+            consequence: Thermal expansion of trapped LNG overpressures the DN 800 headers on the tank roof and at the trestle start; flange leak, LNG release at height.
+            refs: [LNG-2001, LNG-3001, LNG-4006, LNG-2002, XV-4101, XV-4102, {sheet: P-02, object: CV2121A}]
+            modes: [loading, startup]
+            actions: [A2]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: C, status: proposed, by: agent, basis: "LNG leak on the tank roof or tank-area rack; matrix 3 = lost-time injury. C: every ESD-1 blocks the section in.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b6fe1208a949a698, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: C}}}
+      - id: N1-OT
+        guide_word: other-than
+        parameter: start-up condition
+        scenarios:
+          - id: S4
+            cause: A loading pump is started with its column warm or not filled and vented (after maintenance or a long standstill).
+            consequence: Vapour lock and cavitation at start; geysering of vapour and liquid in the column; pump and column damage.
+            refs: [P-2101A, LNG-2001]
+            modes: [startup, cooldown]
+            safeguards: [SG1]
+            actions: [A3]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "2", likelihood: C, status: proposed, by: agent, basis: "Pump damage; matrix 2 = plant down for days.", band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b67377b30017f4a1, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '2', likelihood: C}}}
+            notes: No column vent or cooldown connection is drawn on P-02 / P-03; the in-tank pump columns are a vendor detail the team should confirm.
+  - id: N2
+    title: Circulation P-2102 (P-3102), circulation header and return to the tanks
+    design_intent: >-
+      In holding, P-2102 (or P-3102) sends ~314 m3/h (rated 500 m3/h, minimum flow 150 m3/h by
+      FIC-2112 / FV-2112) through LNG-2002 into loading line A, through the platform crossover
+      LNG-4003 (XV-4103 open) and back on line B and LNG-4005 (XV-4105 open) to T-2101 (XV-2123) or
+      T-3101 (XV-3123), with the return TI-4102 less than 3 K above the tank liquid; it also
+      feeds the desuperheater spray LNG-4008 (D-008, D-010).
+    members: [P-2102, P-3102, FIC-2112, FV-2112, FIC-3112, LNG-2002, LNG-3002, LNG-4003, XV-4103, LNG-4005, LNG-4009, XV-4105, XV-2123, XV-3123, XV-4106, TI-4102, TI-4103, TI-4104]
+    modes: [holding]
+    status: proposed
+    by: agent
+    deviations:
+      - id: N2-NF
+        guide_word: "no"
+        parameter: flow
+        scenarios:
+          - id: S5
+            cause: >-
+              Circulation stops in holding: P-2102 trips (power, I-202) or is not restarted after a
+              loading, or XV-4103 / XV-4105 / XV-2123 closed.
+            consequence: >-
+              The 2.45 km DN 800 lines warm up (~380 kW ingress, D-012); vapour pockets form at
+              the high points and push liquid back (geysering into the tank and the vapour header,
+              tank pressure surge); on restart the vapour collapses or is swept as slugs (hammer);
+              top-to-bottom temperature differences bow the lines on the trestle; the next loading
+              starts from warm lines (longer cooldown, large vapour to the BOG system).
+            refs: [P-2102, LNG-4001, LNG-4002, XV-4103, XV-4105, TI-4102]
+            safeguards: [SG4, SG5, SG6]
+            actions: [A4, A5]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: C, status: proposed, by: agent, basis: "Hammer or bowing failure of a flange on the trestle, LNG release; matrix 3 = lost-time injury. C: circulation pump trips are expected several times in the plant life.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b6fe1208a949a698, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: C}}}
+                - {category: asset, severity: "3", likelihood: C, status: proposed, by: agent, basis: "Trestle line and support damage; matrix 3 = plant down for weeks.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 4255ea3f73fe5efe, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '3', likelihood: C}}}
+      - id: N2-LF
+        guide_word: less
+        parameter: flow (through the trestle)
+        scenarios:
+          - id: S6
+            cause: >-
+              The tank-end crossover XV-4106 is left open in holding: the circulation short-cuts
+              from line A to line B through LNG-4006 at the tank end and reaches LNG-4005 without
+              passing the trestle.
+            consequence: >-
+              The trestle lines warm up while TI-4102 at the return shows cold LNG (it sees the
+              short-cut flow): the warming is not seen at the tank end; as S5.
+            refs: [XV-4106, LNG-4006, TI-4102, TI-4103, TI-4104]
+            safeguards: [SG5]
+            actions: [A6]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: C, status: proposed, by: agent, basis: "As S5; matrix 3. C: a valve line-up error, possible several times.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 4255ea3f73fe5efe, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '3', likelihood: C}}}
+      - id: N2-RF
+        guide_word: reverse
+        parameter: flow
+        scenarios:
+          - id: S7
+            cause: >-
+              In holding the return leg runs backwards through FV-4102 and XV-4102 (LNG-4005
+              branches off line B on the tank side of both valves): the circulation passes the
+              loading control valve and the tank-end ESD valve in reverse.
+            consequence: Butterfly control valve FV-4102 throttling in reverse flow; seat or shaft damage, unstable control, possible tight shut-off loss.
+            refs: [FV-4102, XV-4102, LNG-4005]
+            safeguards: [SG7]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "1", likelihood: C, status: proposed, by: agent, basis: "Valve wear; matrix 1 = repair within a shift.", band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 85aab00e0badb4b2, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '1', likelihood: C}}}
+            notes: The team to confirm that FV-4102 and XV-4102 are specified bidirectional and how FV-4102 is held in holding (FIC-4102 mode).
+      - id: N2-HP
+        guide_word: more
+        parameter: pressure
+        scenarios:
+          - id: S8
+            cause: >-
+              LNG blocked in LNG-4005 / LNG-4009 between XV-4105 and XV-2123 / XV-3123 when the
+              circulation is stopped and the valves are closed (end of holding, loading start).
+            consequence: Thermal expansion overpressures the DN 250 return line; flange leak in the tank area.
+            refs: [LNG-4005, LNG-4009, XV-4105, XV-2123, XV-3123]
+            actions: [A2]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: C, status: proposed, by: agent, basis: "LNG leak in the tank area; matrix 3 = lost-time injury.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b6fe1208a949a698, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: C}}}
+          - id: S9
+            cause: >-
+              The circulation pump runs with no return path: XV-2123 and XV-3123 both closed while
+              XV-4105 is open, or XV-4103 closed.
+            consequence: P-2102 runs against a closed loop; heating and flashing in the column, pump damage.
+            refs: [P-2102, XV-2123, XV-3123, XV-4103]
+            safeguards: [SG8]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "2", likelihood: C, status: proposed, by: agent, basis: "Circulation pump damage; P-3102 remains; matrix 2 = plant down for days.", band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b67377b30017f4a1, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '2', likelihood: C}}}
+      - id: N2-HT
+        guide_word: more
+        parameter: temperature (cooldown)
+        scenarios:
+          - id: S10
+            cause: >-
+              Initial cooldown of the warm trestle lines (commissioning, after a long outage) at
+              too high a rate, or with liquid admitted into a warm line.
+            consequence: >-
+              Thermal shock and bowing of the DN 800 lines, flange leaks; flash vapour beyond the
+              BOG compressors' capacity, tank pressure rise and flaring.
+            refs: [LNG-4001, LNG-4002, FV-4101, TI-4103, TI-4104]
+            modes: [cooldown]
+            safeguards: [SG5]
+            actions: [A7]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: C, status: proposed, by: agent, basis: "Flange leak of LNG on the trestle during cooldown; matrix 3 = lost-time injury.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b6fe1208a949a698, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: C}}}
+                - {category: environment, severity: "2", likelihood: C, status: proposed, by: agent, basis: "Extra flaring; matrix 2 = minor release off site.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 286f676bb8108832, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '2', likelihood: C}}}
+  - id: N3
+    title: Trestle loading lines LNG-4001 / LNG-4002 and vapour return lines BOG-4001 / BOG-4002
+    design_intent: >-
+      Carry 6,000 m3/h each (3.4 m/s, ~91 kPa over 2.45 km) from the tank-end control valves
+      FV-4101 / FV-4102 (fail last) and ESD valves XV-4101 / XV-4102 to the berth headers; thermal
+      relief PSV-4111 / PSV-4112 into the vapour return lines; return the carrier's vapour (up to
+      45.6 t/h) through BOG-4001 / BOG-4002 to the tank vapour header (D-008, D-009).
+    members: [LNG-4001, LNG-4002, FV-4101, FV-4102, FIC-4101, FIC-4102, XV-4101, XV-4102, PSV-4111, PSV-4112, PI-4105, PI-4106, BOG-4001, BOG-4002, PI-4121, PI-4123, TI-4122, TI-4124, BOG-4011, BOG-4012]
+    status: proposed
+    by: agent
+    deviations:
+      - id: N3-HP
+        guide_word: more
+        parameter: pressure (surge)
+        scenarios:
+          - id: S11
+            cause: >-
+              ESD-1 (I-501 / I-601) closes the tank-end ESD valves XV-4101 / XV-4102 at the same
+              time as, or before, the shore ESD valve XV-5101 at the platform while the line flows
+              at 6,000 m3/h; the C&E gives no closure time or delay for XV-4101/XV-4102.
+            consequence: >-
+              The liquid column downstream of XV-4101 keeps moving toward the carrier: column
+              separation and a vapour cavity behind the valve, whose collapse on rejoining gives a
+              pressure peak in the 2.45 km line; upstream, the running pumps are deadheaded (S1).
+              Support or flange failure on the trestle, LNG release over land or sea.
+            refs: [XV-4101, XV-4102, LNG-4001, LNG-4002]
+            modes: [loading]
+            safeguards: [SG9]
+            actions: [A8]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "LNG release from a DN 800 line on the trestle; matrix 4 = permanent injury or fatality. B: needs an ESD at full rate with an unfavourable valve timing.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+                - {category: asset, severity: "3", likelihood: B, status: proposed, by: agent, basis: "Trestle line damage; matrix 3 = plant down for weeks.", band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 579975b5e9fe3f0e, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '3', likelihood: B}}}
+            notes: D-023 estimates the slow-closure surge at XV-5101 only (+299 kPa at 25 s); the tank-end valves are not in that estimate.
+          - id: S12
+            cause: >-
+              LNG blocked in LNG-4001 (LNG-4002) between XV-4101 (XV-4102) and the shore ESD valve
+              XV-5101 (XV-6101) after an ESD, warmed by the ~190 kW per line heat ingress.
+            consequence: Thermal expansion overpressures the 2.45 km line.
+            refs: [LNG-4001, XV-4101, XV-5101, PSV-4111]
+            safeguards: [SG10]
+            actions: [A11]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: C, status: proposed, by: agent, basis: "Flange leak on the trestle; matrix 3 = lost-time injury. C: every ESD blocks the line in.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b6fe1208a949a698, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: C}}}
+            notes: The relief path PSV-4111 -> BOG-4011 -> BOG-4001 is open to the tank header; the vapour line has no isolation drawn.
+      - id: N3-MF
+        guide_word: more
+        parameter: flow
+        scenarios:
+          - id: S13
+            cause: FIC-4101 fails high (transmitter reads low) and drives FV-4101 open beyond the carrier's agreed rate.
+            consequence: >-
+              Flow above 6,000 m3/h per line: higher arm velocity, larger return vapour from the
+              carrier (vapour arm capacity ~23.5 t/h, D-023) and a faster rise of the carrier's
+              tank level near topping-off; carrier tank overpressure or overfill (carrier side).
+            refs: [FIC-4101, FV-4101, LNG-4001]
+            modes: [loading]
+            safeguards: [SG11, SG12]
+            actions: [A9]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: B, status: proposed, by: agent, basis: "Carrier relief venting or overfill on deck; matrix 3 = lost-time injury.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: aa86891dd127d418, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: B}}}
+      - id: N3-OT
+        guide_word: other-than
+        parameter: containment
+        scenarios:
+          - id: S14
+            cause: Leak from a flange, valve or bellows on the 2.45 km trestle lines (thermal cycling, hammer, external impact).
+            consequence: >-
+              LNG spill on the trestle and below it: cold embrittlement of the carbon-steel trestle
+              structure, rapid phase transition where LNG reaches sea water, vapour cloud along
+              the trestle.
+            refs: [LNG-4001, LNG-4002, T-8101]
+            modes: [loading, holding]
+            safeguards: [SG13]
+            actions: [A10]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Flammable cloud and RPT; matrix 4 = permanent injury or fatality. B: a significant leak could happen once in the plant life.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+                - {category: environment, severity: "3", likelihood: B, status: proposed, by: agent, basis: "Methane release; matrix 3 = reportable release.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 92790e212f41fb89, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '3', likelihood: B}}}
+            notes: The drip trays and the spill route to T-8101 are not drawn on P-04 (D-021), and no leak detection is shown on the trestle.
+safeguards:
+  - {id: SG1, title: "FIC-2111A..D (FIC-3111A..D) minimum-flow control, FV-2111A..D fail open", kind: control, refs: [FIC-2111A, FIC-2111B, FIC-2111C, FIC-2111D, FV-2111A], status: proposed, by: agent}
+  - {id: SG2, title: "Interlock I-501 (I-601): ESD-1 stops the loading pumps", kind: interlock, interlock: I-501, refs: [XS-5100, P-2101A, P-2101B, P-2101C, P-2101D], status: proposed, by: agent}
+  - {id: SG3, title: Pump column check valves CV2121A..D (CV3121A..D), kind: check-valve, refs: [{sheet: P-02, object: CV2121A}, {sheet: P-02, object: CV2121B}, {sheet: P-02, object: CV2121C}, {sheet: P-02, object: CV2121D}, {sheet: P-03, object: CV3121A}], status: proposed, by: agent}
+  - {id: SG4, title: Installed second circulation pump P-3102 (and P-2102 for T-3101), kind: other, refs: [P-3102, P-2102], status: proposed, by: agent, notes: "Started by the operator; no auto-start is in the files."}
+  - {id: SG5, title: "Temperature indications TI-4102 (return), TI-4103 / TI-4104 (lines at the platform)", kind: other, refs: [TI-4102, TI-4103, TI-4104], status: proposed, by: agent, notes: "Indications; no alarm limits are in the files."}
+  - {id: SG6, title: "FIC-2112 (FIC-3112) circulation pump flow measurement and minimum-flow control", kind: control, refs: [FIC-2112, FV-2112, FIC-3112], status: proposed, by: agent}
+  - {id: SG7, title: FIC-4102 loading line B flow control (mode in holding to be stated), kind: control, refs: [FIC-4102, FV-4102], status: proposed, by: agent}
+  - {id: SG8, title: "FIC-2112 / FV-2112 minimum flow of P-2102 (fail open)", kind: control, refs: [FIC-2112, FV-2112], status: proposed, by: agent}
+  - {id: SG9, title: "I-501 stops the loading pumps first, XV-5101 closing in 25-30 s (D-016, D-023)", kind: interlock, interlock: I-501, refs: [XV-5101, XV-4101, XV-4102], status: proposed, by: agent, notes: "The order 'pumps first' is in the I-501 notes, not in the effects as a delay."}
+  - {id: SG10, title: "Thermal relief PSV-4111 / PSV-4112 into the vapour return lines", kind: relief, refs: [PSV-4111, PSV-4112], status: proposed, by: agent}
+  - {id: SG11, title: "Interlock I-502: Berth 2 header back-pressure PZT-5103 PAHH stops the loading pumps and closes XV-5101", kind: interlock, interlock: I-502, refs: [PZT-5103], status: proposed, by: agent}
+  - {id: SG12, title: "Carrier cargo plan and ramp agreed through the ship-shore link (SEQ-LOAD S4, S5)", kind: procedural, refs: [XS-5100], status: proposed, by: agent}
+  - {id: SG13, title: Impoundment sump T-8101 for tank-area and trestle spills, kind: mechanical, refs: [T-8101], status: proposed, by: agent, notes: "The collection from the trestle (drip trays) is not drawn."}
+actions:
+  - {id: A1, status: proposed, by: agent, text: "C&E change: add a low-flow or low-motor-current trip of each in-tank pump independent of FIC-2111x, and order I-501 / I-601 so that the pumps are proven stopped before XV-4101 / XV-4102 close (delay or position permissive in the C&E)."}
+  - {id: A2, status: proposed, by: agent, text: "P&ID P-02 / P-03 / P-04 change: thermal relief valves on the blocked-in pump headers LNG-2001 / LNG-3001 with LNG-4006 and LNG-2002 / LNG-3002 (upstream of FV-4101 / FV-4102 and XV-4105), and on LNG-4005 / LNG-4009 between XV-4105 and XV-2123 / XV-3123, discharging to the tank or the vapour system; list them in piping/special-items.yaml."}
+  - {id: A3, status: proposed, by: agent, text: "Confirm with the pump vendor the column vent, the cooldown and the start permissives of the in-tank pumps (column full and cold), and show the vent on P-02 / P-03 if it is a plant connection."}
+  - {id: A4, status: proposed, by: agent, text: "C&E / loops change: add a low circulation flow alarm (FIC-2112 / FIC-3112 measurement) and a high return temperature alarm on TI-4102, with automatic start of the standby circulation pump; state the response in SEQ-HOLD."}
+  - {id: A5, status: proposed, by: agent, text: "Write the restart procedure for warm trestle lines (re-cooldown rate, vapour venting at the high points, TI-4103 / TI-4104 limits) and show the high-point vents and low-point drains of LNG-4001 / LNG-4002 on P-04 (omitted at basic, D-021)."}
+  - {id: A6, status: proposed, by: agent, text: "Sequence change: make XV-4106 closed a permissive of SEQ-HOLD S1 (position feedback), and add a temperature alarm at the platform end (TI-4103 / TI-4104) so that a warming trestle is seen whatever the line-up."}
+  - {id: A7, status: proposed, by: agent, text: "Write the initial cooldown sequence of the trestle lines (it is not in control/sequences.yaml): rate limit, top-bottom temperature difference measurement on the DN 800 lines (not drawn), vapour routing and the BOG compressor and flare capacity it uses."}
+  - {id: A8, status: proposed, by: agent, text: "Extend the surge analysis (D-023, transient analysis before construction) to the closure of the tank-end ESD valves XV-4101 / XV-4102 and their timing relative to XV-5101 / XV-6101 and the pump stop; record the closure times and delays in the C&E effects of I-501 / I-601."}
+  - {id: A9, status: proposed, by: agent, text: "Consider a high-flow alarm on FIC-4101 / FIC-4102 independent of the controller, and the limit on the loading rate from the vapour arm capacity (D-023) in SEQ-LOAD S4."}
+  - {id: A10, status: proposed, by: agent, text: "P&ID P-04 change: draw the trestle drip trays and the spill route to T-8101 (with its capacity basis, D-018), and define leak detection (low temperature or gas) along the trestle with its ESD action in the C&E."}
+  - {id: A11, status: proposed, by: agent, text: "Relief study: the thermal relief valves PSV-4111 / PSV-4112 are set at 15.5 barg (special items, ASSUMED) while D-023 gives 15 barg as the design pressure of the loading lines and arms; confirm the design pressure of LNG-4001 / LNG-4002 and set the valves at or below it."}

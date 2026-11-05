@@ -1,0 +1,468 @@
+# HAZOP study H-04: a DRAFT until the team has accepted every entry and a
+# human review record covers it (cheme safety hazop check). Schema: cheme schema
+# hazop-study; workflow: safety/README.md and the skill hazop-study.
+# Drafted by an agent from the plant as drawn (P-07, P-01 rev A, C&E, loops,
+# sequences, special items). Every entry is a proposal for the team: status proposed.
+schema: cheme/hazop-study/v1
+kind: hazop-study
+id: H-04
+title: Tank vapour header, BOG desuperheater and compressors
+scope: >-
+  Detail-stage HAZOP of the tank vapour header on P-01 (BOG-1001 with BOG-1003, the vapour
+  returns BOG-4001 / BOG-4002, the split-range pressure control PIC-1110 / PV-1110 to the flare
+  header FL-8001 and the make-up PIC-1111 / PV-1111 on BOG-1009) and of the BOG system on P-07:
+  desuperheater TV-7103 (TIC-7103), suction drum D-7101 (LIC-7102 / LV-7102, LZT-7106, PSV-7105),
+  compressors K-7101A/B/C with anti-surge UIC-7104A..C / UV-7104A..C, suction ESD valves
+  XV-7121A..C, machine protection VZ-7110A..C, discharge header BOG-7002 with PSV-7111 to the
+  trains. The tank pressure deviations as seen by the tanks are in H-01; the flare and KO drum in
+  H-05. Not covered: the trains' end-flash / fuel gas system beyond the battery limit, the
+  compressor vendor packages (lube oil, seal gas, motors), shown only as causes.
+modes:
+  - {id: holding, title: Holding, description: "One compressor takes ~21.9 t/h of tank BOG (D-009, D-010)."}
+  - {id: loading, title: Loading, description: "Two compressors take 49.1 t/h with the carrier's return at about -120 degC, desuperheated to -140 degC (D-009, D-010)."}
+  - {id: cooldown, title: Cooldown, description: "Carrier and arm cooldown vapour, warmer and variable, through the vapour return."}
+  - {id: startup, title: Start-up and shutdown, description: "Compressor start on full recycle and loading (SEQ-BOG-START), stop and trip."}
+analysed:
+  - {path: pid/P-07.xml, revision: 'sha256:37d7939c34001277f83dbfb8b4c30d7d27db13dc9a0c1d840e716c5ee1876b33', relation: analyses}
+  - {path: pid/P-01.xml, revision: 'sha256:8b590374aba3773236eda557bd686da699ffa6c6304baf25437341f9f179a9a2', relation: analyses}
+  - {path: control/cause-effect.yaml, revision: 'sha256:cf339dc10a5425f3ba75897f6c8bb0b895599cfbc14b45effb0ea262dc1ad909', relation: analyses}
+  - {path: control/loops.yaml, revision: 'sha256:87745b629db15e255aec60ffb28bd670c9148c30788e2a72a7c7919016cdaf3a', relation: analyses}
+  - {path: control/sequences.yaml, revision: 'sha256:a762021b887989a0ab1598c297099a7128dc49a43751721d3d9833fed775316e', relation: analyses}
+  - {path: piping/special-items.yaml, revision: 'sha256:f8c427cf6a7b8e29343ebe92606451fae7ae01e74af068de2aed4471d129173e', relation: analyses}
+risk_matrix: safety/risk-matrix.yaml
+assessment_basis: >-
+  Each scenario is rated per category before its safeguards (initial): severity is the credible
+  worst outcome if every safeguard fails, likelihood that of the cause. The codes are agent
+  proposals with their basis, for the team to accept or change. No residual ratings are
+  proposed: crediting safeguards is the team's judgement (and a LOPA's where needed). The matrix
+  is the example matrix of cheme init (example: true), so the bands are illustrative.
+team: []            # to be named by the project; no team has sat on this draft yet
+notes: >-
+  Drafted by an agent (skills hazop-study, hazop-equipment-causes, relief-scenarios,
+  safeguard-crediting). K-7101B and K-7101C are identical to K-7101A: scenarios name the A
+  machine. Fail positions are those of control/loops.yaml; the XV fail positions are not in the
+  files.
+nodes:
+  - id: N1
+    title: Tank vapour header BOG-1001 with pressure control to the flare and make-up gas
+    design_intent: >-
+      Collect the tank BOG (BOG-1001 from T-2101, BOG-1003 from T-3101) and the carrier's return
+      (BOG-4001 / BOG-4002) at about 14 kPa(g); PIC-1110 sets the compressor load (0-50 %) and
+      opens PV-1110 (fails closed) to the flare header FL-8001 (50-100 %); PIC-1111 admits
+      compressed BOG from BOG-7002 through PV-1111 (fails closed) and BOG-1009 below 6 kPa(g)
+      (D-017). No isolation valve is drawn between the tanks, the header and D-7101.
+    members: [BOG-1001, BOG-1003, BOG-4001, BOG-4002, PIC-1110, PV-1110, FL-8001, PIC-1111, PV-1111, BOG-1009, TI-1112]
+    status: proposed
+    by: agent
+    deviations:
+      - id: N1-HP
+        guide_word: more
+        parameter: pressure
+        scenarios:
+          - id: S1
+            cause: >-
+              PV-1111 sticks open or PIC-1111 fails low (reads a low pressure): compressed BOG at
+              about 600 kPa(a) from BOG-7002, and the trains' end-flash / fuel gas system behind it
+              (no battery-limit isolation or check valve drawn), flows through the DN 150 BOG-1009
+              into the tank vapour header.
+            consequence: >-
+              A high-pressure source into tanks designed for +29 kPa(g): the header and tank
+              pressure rise beyond what PV-1110 can vent; PSV-2131A/B and PSV-3131A/B vent to
+              atmosphere; above their capacity the tank roof is overpressured.
+            refs: [PV-1111, PIC-1111, BOG-1009, BOG-7002, T-2101]
+            modes: [holding, loading]
+            safeguards: [SG1, SG2, SG3]
+            actions: [A1]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Atmospheric venting from the tank tops, possible roof damage; matrix 4 = permanent injury or fatality. B: a control valve stuck open, once in the plant life.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+                - {category: asset, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Tank roof overpressure; matrix 4 = loss of the unit.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: f33c22768a8b83e6, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: B}}}
+            notes: The relief case 'control valve failure open' (skill relief-scenarios) is not among the relief cases of PSV-2131A/B in the special items.
+          - id: S2
+            cause: >-
+              Carrier's return above the design (warm carrier tanks, carrier cooldown, the
+              carrier's return-gas compressor ramped faster than the 1 h of S-01) or a second
+              compressor not started in time (SEQ-LOAD S4).
+            consequence: Header pressure rises; PV-1110 flares the excess; with PV-1110 failed, as H-01 S11.
+            refs: [BOG-4001, PIC-1110, PV-1110, K-7101B]
+            modes: [loading, cooldown]
+            safeguards: [SG4, SG2]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: environment, severity: "2", likelihood: C, status: proposed, by: agent, basis: "Flaring above the routine limit of the permit (S-02); matrix 2 = minor release off site.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 286f676bb8108832, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '2', likelihood: C}}}
+          - id: S3
+            cause: >-
+              Loss of instrument air (common cause): PV-1110 and PV-1111 fail closed, the anti-surge
+              valves UV-7104A..C fail open (all running machines on full recycle, no net
+              compression), TV-7103 and LV-7102 fail closed.
+            consequence: >-
+              The BOG has no outlet: neither compression nor flare; the tank pressure rises to
+              PSV-2131A/B / PSV-3131A/B and cold BOG is vented to atmosphere for as long as the air
+              is lost; at loading the carrier's return adds to it.
+            refs: [PV-1110, UV-7104A, UV-7104B, UV-7104C, PSV-2131A, PI-8122]
+            safeguards: [SG3, SG5]
+            actions: [A2]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, status: proposed, by: agent, basis: "Prolonged cold methane venting at the tank tops; matrix 4. C: instrument air failures occur several times in the plant life.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ac0a4b03e3d8d0c2, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: C}}}
+                - {category: environment, severity: "3", likelihood: C, status: proposed, by: agent, basis: "Methane release; matrix 3 = reportable release.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 1fb9317519cce7ee, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '3', likelihood: C}}}
+          - id: S4
+            cause: Power failure (6.6 kV) stops all BOG compressors and the in-tank pumps.
+            consequence: >-
+              All BOG goes to the flare through PV-1110 (if air and the control system remain); at
+              loading the cumulative load (carrier return, boil-off, line flash) may exceed the
+              ~54 t/h design case of FL-8001 / D-8101 (D-017); without PV-1110, tank PSV venting.
+            refs: [K-7101A, K-7101B, PV-1110, FL-8001]
+            modes: [loading, holding]
+            safeguards: [SG4, SG3]
+            actions: [A3]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, status: proposed, by: agent, basis: "As S3; matrix 4. C: grid failures are expected several times in the plant life.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ac0a4b03e3d8d0c2, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: C}}}
+      - id: N1-LP
+        guide_word: less
+        parameter: pressure
+        scenarios:
+          - id: S5
+            cause: >-
+              PIC-7101 fails (suction pressure reads high) or its setpoint from PIC-1110 runs away:
+              the inlet guide vanes open and the compressors draw more than the boil-off.
+            consequence: Header and tank pressure fall toward vacuum; vacuum valves PSV-2133A/B admit air (H-01 S15).
+            refs: [PIC-7101, K-7101A, PIC-1110, PSV-2133A]
+            modes: [holding, loading]
+            safeguards: [SG6, SG7, SG8]
+            actions: [A14, A4]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Inner tank damage by vacuum; matrix 4 = loss of the unit.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: f33c22768a8b83e6, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: B}}}
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Air in the tank and compressor suction, flammable mixture; matrix 4.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+            notes: PIC-7101 is the cause and is not credited; I-204 / I-304 use the independent PZT-2112 / PZT-3112.
+          - id: S6
+            cause: >-
+              I-204 / I-304 stop the BOG compressors on low-low tank pressure and open PV-1111, but
+              the make-up source BOG-7002 is the compressors' own discharge: with them stopped the
+              make-up depends on the trains' system back-feeding BOG-7002.
+            consequence: The make-up is not there when the trip demands it; the vacuum relief valves admit air (H-01 S15).
+            refs: [PV-1111, BOG-1009, BOG-7002, K-7101A]
+            modes: [loading]
+            safeguards: [SG8]
+            actions: [A4]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "4", likelihood: B, status: proposed, by: agent, basis: "As S5; matrix 4.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: f33c22768a8b83e6, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: B}}}
+      - id: N1-OC
+        guide_word: other-than
+        parameter: composition (O2 and inerts)
+        scenarios:
+          - id: S7
+            cause: >-
+              Air in the vapour header: after a vacuum relief lift (PSV-2133A/B), from a
+              poorly purged vapour arm (H-03 S6), or carrier de-inerting gas sent into the vapour
+              return instead of to the flare.
+            consequence: >-
+              O2 (or N2 / CO2 inert gas) reaches the compressors and the trains' end-flash / fuel
+              gas system; flammable mixture in the suction drum and the compressor; inert gas
+              upsets the trains' fuel.
+            refs: [BOG-1001, D-7101, K-7101A, PSV-2133A]
+            safeguards: [SG9]
+            actions: [A5]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Internal deflagration in the BOG system; matrix 4. B: once in the plant life.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+  - id: N2
+    title: Desuperheater TV-7103 and BOG suction drum D-7101
+    design_intent: >-
+      Cool the return vapour from about -120 degC to -140 degC by spraying LNG (3.5 t/h at loading,
+      from LNG-2002 / LNG-4008) through TV-7103 (fails closed) on TIC-7103; knock out droplets and
+      carry-over in D-7101 (normally dry); LIC-7102 drains liquid through LV-7102 (fails closed) and
+      DR-7001 to D-8101; LZT-7106 high-high trips the compressors (I-701); PSV-7105 (2.5 barg) on
+      the inlet to the flare (D-010).
+    members: [TV-7103, TIC-7103, LNG-4008, D-7101, LIC-7102, LV-7102, LZT-7106, DR-7001, PSV-7105, FL-7001, PIC-7101]
+    status: proposed
+    by: agent
+    deviations:
+      - id: N2-MF
+        guide_word: more
+        parameter: flow (spray)
+        scenarios:
+          - id: S8
+            cause: TV-7103 sticks open or TIC-7103 reads warm (sensor fault), so LNG is sprayed in excess.
+            consequence: >-
+              Liquid accumulates in D-7101; LZT-7106 trips all compressors (I-701) and the tank
+              pressure goes to the flare (H-01 S11); if I-701 fails, liquid carry-over into the
+              compressors: impeller and casing damage, seal failure, BOG release in the
+              compressor area.
+            refs: [TV-7103, TIC-7103, D-7101, LZT-7106, K-7101A]
+            modes: [loading, holding]
+            safeguards: [SG10, SG11]
+            actions: [A6]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "4", likelihood: C, status: proposed, by: agent, basis: "Compressor destroyed by liquid; matrix 4 = loss of the unit. C: control valve or sensor faults several times in the plant life.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 93e154c44de9f515, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: C}}}
+                - {category: people, severity: "3", likelihood: C, status: proposed, by: agent, basis: "Gas release at a failed seal; matrix 3 = lost-time injury.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b6fe1208a949a698, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: C}}}
+            notes: I-701 trips all three machines at once (common-cause loss of BOG compression), which moves the load to the flare.
+          - id: S9
+            cause: >-
+              Liquid arrives with the vapour: LNG from D-5101 / D-6101 overflow or a hybrid arm
+              misline-up (H-03 S3, S13), thermal relief liquid from PSV-1121 / PSV-4111 / PSV-4112,
+              tank overfill (H-01 S6).
+            consequence: As S8; a liquid slug can exceed the drain capacity of LV-7102 / DR-7001 (DN 50).
+            refs: [D-7101, LV-7102, DR-7001, BOG-1001]
+            modes: [loading, cooldown]
+            safeguards: [SG10, SG11]
+            actions: [A6, A15]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "4", likelihood: C, status: proposed, by: agent, basis: "As S8; matrix 4.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 93e154c44de9f515, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: C}}}
+      - id: N2-LF
+        guide_word: less
+        parameter: flow (spray)
+        scenarios:
+          - id: S10
+            cause: >-
+              TV-7103 fails closed (instrument air) or the spray source is lost: LNG-2002 / LNG-4008
+              is fed only by the circulation pumps or the loading header; SEQ-LOAD does not say
+              which pump feeds the spray during loading.
+            consequence: >-
+              The return vapour reaches the compressors at about -120 degC (warmer during carrier
+              cooldown): higher suction volume and discharge temperature, the machines move toward
+              surge or their power limit; discharge piping above its design temperature.
+            refs: [TV-7103, LNG-4008, LNG-2002, K-7101A, TI-7107]
+            modes: [loading, cooldown]
+            safeguards: [SG12, SG13]
+            actions: [A7]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: C, status: proposed, by: agent, basis: "Compressor trip or damage, BOG to the flare; matrix 3 = plant down for weeks.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 4255ea3f73fe5efe, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '3', likelihood: C}}}
+      - id: N2-HL
+        guide_word: more
+        parameter: level
+        scenarios:
+          - id: S11
+            cause: LV-7102 fails closed (its fail position) or DR-7001 blocked (frozen, closed at D-8101) while carry-over is present.
+            consequence: Level rises in D-7101 to the LZT-7106 trip (all compressors stop) or, if it fails, carry-over to the compressors (S8).
+            refs: [LV-7102, LIC-7102, DR-7001, LZT-7106]
+            safeguards: [SG11]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "4", likelihood: B, status: proposed, by: agent, basis: "As S8; matrix 4. B: needs carry-over and a failed drain together.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: f33c22768a8b83e6, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: B}}}
+      - id: N2-LL
+        guide_word: less
+        parameter: level
+        scenarios:
+          - id: S12
+            cause: LIC-7102 fails (reads high) or LV-7102 sticks open with the drum dry.
+            consequence: Gas blow-by through DR-7001 into D-8101 and the flare header at the suction drum pressure; continuous flaring of BOG.
+            refs: [LIC-7102, LV-7102, DR-7001, D-8101]
+            safeguards: [SG14]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: environment, severity: "2", likelihood: C, status: proposed, by: agent, basis: "Continuous flaring; matrix 2 = minor release off site.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 286f676bb8108832, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '2', likelihood: C}}}
+            notes: D-8101 is designed for 3.5 barg as D-7101, so the blow-by does not overpressure it.
+      - id: N2-HP
+        guide_word: more
+        parameter: pressure
+        scenarios:
+          - id: S13
+            cause: >-
+              Compressor K-7101A is stopped by the operator or the control system (not by I-701 /
+              I-702, so XV-7121A stays open) and UV-7104A opens (fail open, anti-surge on run-down):
+              the recycle line BOG-7008 leaves the discharge downstream of the check valve CV7122A,
+              so the discharge header BOG-7002 at about 600 kPa(a), with the trains' system behind
+              it, flows back through UV-7104A into the suction and the suction header BOG-7001.
+            consequence: >-
+              Gas at 600 kPa(a) into D-7101 (3.5 barg design) and, through BOG-1001 without any
+              isolation, into the tanks (+29 kPa(g) design): PSV-7105 (2.5 barg) cannot protect the
+              tanks; tank PSVs vent to atmosphere; tank roof overpressure beyond their capacity.
+            refs: [K-7101A, UV-7104A, BOG-7008, {sheet: P-07, object: CV7122A}, XV-7121A, BOG-7002, D-7101, PSV-7105]
+            modes: [startup, holding, loading]
+            safeguards: [SG15, SG3, SG2]
+            actions: [A8, A9]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, status: proposed, by: agent, basis: "High-pressure gas into the tanks, venting at the tank top; matrix 4. C: a normal stop is a routine event.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ac0a4b03e3d8d0c2, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: C}}}
+                - {category: asset, severity: "4", likelihood: C, status: proposed, by: agent, basis: "Tank roof overpressure; matrix 4 = loss of the unit.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 93e154c44de9f515, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: C}}}
+          - id: S14
+            cause: >-
+              Header blocked toward the compressors (all XV-7121A..C closed after I-701) with
+              PV-1110 failed closed; fire at D-7101.
+            consequence: >-
+              The header pressure rises; because D-7101 cannot be isolated from the tanks, the tank
+              PSVs at +29 kPa(g) lift long before PSV-7105 at 2.5 barg: the stated blocked-outlet
+              case of PSV-7105 does not occur as written; the fire case of D-7101 remains.
+            refs: [PSV-7105, D-7101, XV-7121A, PV-1110, PSV-2131A]
+            safeguards: [SG3, SG16]
+            actions: [A10]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Tank PSV venting (H-01 S11, S12); matrix 4.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+  - id: N3
+    title: BOG compressors K-7101A/B/C, anti-surge and discharge to the trains
+    design_intent: >-
+      Compress 27 t/h each from 108 kPa(a), -140 degC to 600 kPa(a), about -49 degC (one machine in
+      holding, two at loading, C spare); suction pressure by PIC-7101 on the inlet guide vanes;
+      anti-surge recycle BOG-7008..BOG-7010 through UV-7104A..C (fail open, UIC-7104A..C, uncooled);
+      suction ESD valves XV-7121A..C and trips I-701, I-702; discharge check valves CV7122A..C;
+      relief PSV-7111 (7.5 barg) to the flare (D-010).
+    members: [K-7101A, K-7101B, K-7101C, UIC-7104A, UV-7104A, UIC-7104B, UV-7104B, UIC-7104C, UV-7104C, XV-7121A, XV-7121B, XV-7121C, VZ-7110A, VZ-7110B, VZ-7110C, BOG-7001, BOG-7002, BOG-7008, PSV-7111, PI-7108, TI-7107, FI-7109]
+    status: proposed
+    by: agent
+    deviations:
+      - id: N3-LF
+        guide_word: less
+        parameter: flow (surge)
+        scenarios:
+          - id: S15
+            cause: >-
+              Suction flow below the surge line: low boil-off in holding (one 27 t/h machine for
+              21.9 t/h), the end of a loading when the carrier's return stops, a compressor started
+              with PIC-7101 in auto, or UIC-7104A / UV-7104A failing to open (stuck).
+            consequence: Surge with flow reversal, vibration, thrust bearing and seal damage; repeated surge can destroy the machine.
+            refs: [K-7101A, UIC-7104A, UV-7104A, VZ-7110A]
+            safeguards: [SG17, SG18]
+            actions: [A16]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "4", likelihood: C, status: proposed, by: agent, basis: "Compressor damage; matrix 4 = loss of the unit (machine). C: low-flow events are routine in holding.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 93e154c44de9f515, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: C}}}
+            notes: VZ-7110A / I-702 stops the machine after damage has begun; the team to judge what it protects.
+      - id: N3-HT
+        guide_word: more
+        parameter: temperature
+        scenarios:
+          - id: S16
+            cause: >-
+              Long operation on full recycle (SEQ-BOG-START S1 starts on full recycle; low holding
+              load): the uncooled recycle BOG-7008 returns discharge gas at about -49 degC to the
+              suction downstream of D-7101 and the desuperheater.
+            consequence: >-
+              The suction temperature climbs with every pass; the discharge temperature exceeds the
+              design of the casing, seals and the cold-insulated discharge piping; machine trip or
+              damage.
+            refs: [BOG-7008, UV-7104A, K-7101A, TI-7107]
+            modes: [startup, holding]
+            safeguards: [SG13]
+            actions: [A11]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: C, status: proposed, by: agent, basis: "Compressor trip or seal damage; matrix 3 = plant down for weeks.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 4255ea3f73fe5efe, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '3', likelihood: C}}}
+      - id: N3-HP
+        guide_word: more
+        parameter: pressure
+        scenarios:
+          - id: S17
+            cause: >-
+              Blocked outlet: the trains' end-flash / fuel gas system stops taking BOG (train trip,
+              valve closed beyond the battery limit) while the compressors run.
+            consequence: Discharge pressure rises to the deadhead pressure of the machines; PSV-7111 relieves to the flare; the machines run into surge.
+            refs: [BOG-7002, PSV-7111, PI-7108, UIC-7104A]
+            modes: [holding, loading]
+            safeguards: [SG19, SG17]
+            actions: [A12]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: C, status: proposed, by: agent, basis: "Compressor surge and relief; matrix 3 = plant down for weeks.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 4255ea3f73fe5efe, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '3', likelihood: C}}}
+                - {category: environment, severity: "2", likelihood: C, status: proposed, by: agent, basis: "BOG flared; matrix 2 = minor release off site.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 286f676bb8108832, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '2', likelihood: C}}}
+      - id: N3-OT
+        guide_word: other-than
+        parameter: containment (seals)
+        scenarios:
+          - id: S18
+            cause: Loss of the N2 seal gas to the compressor dry gas seals (N2 header from the site, D-020), or seal failure.
+            consequence: BOG leaks at the seals into the compressor area and the seal vent; fire risk in the compressor area.
+            refs: [K-7101A, K-7101B, K-7101C, PI-8121]
+            safeguards: [SG20]
+            actions: [A13]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Gas release and fire in the compressor area; matrix 4. B: once in the plant life.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+            notes: The seal gas system is part of the vendor package and is not drawn on P-07.
+      - id: N3-RF
+        guide_word: reverse
+        parameter: flow
+        scenarios:
+          - id: S19
+            cause: A running machine trips while the others keep the header BOG-7002 pressurised; its check valve CV7122A leaks.
+            consequence: Reverse rotation of the tripped machine; XV-7121A (closed by I-702) confines the back flow to the casing (9 barg design).
+            refs: [K-7101A, {sheet: P-07, object: CV7122A}, XV-7121A]
+            safeguards: [SG21, SG22]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: B, status: proposed, by: agent, basis: "Bearing damage from reverse rotation; matrix 3 = plant down for weeks.", band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 579975b5e9fe3f0e, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '3', likelihood: B}}}
+safeguards:
+  - {id: SG1, title: "PIC-1110 / PV-1110 vent of the header to the storage and loading flare", kind: control, refs: [PIC-1110, PV-1110], status: proposed, by: agent}
+  - {id: SG2, title: "Interlocks I-203 / I-303: tank PAHH opens PV-1110 and stops the fill", kind: interlock, interlock: I-203, refs: [PZT-2112, PV-1110], status: proposed, by: agent, notes: "Same final element as PIC-1110; I-303 alike for T-3101."}
+  - {id: SG3, title: "Tank relief valves PSV-2131A/B, PSV-3131A/B to atmosphere", kind: relief, refs: [PSV-2131A, PSV-2131B, PSV-3131A, PSV-3131B], status: proposed, by: agent}
+  - {id: SG4, title: "PIC-1110 split range: compressor load, then PV-1110 to the flare", kind: control, refs: [PIC-1110, PV-1110, PIC-7101], status: proposed, by: agent}
+  - {id: SG5, title: PI-8122 instrument-air header pressure indication, kind: other, refs: [PI-8122], status: proposed, by: agent, notes: "No alarm or trip on low air pressure is in the files."}
+  - {id: SG6, title: "PIC-1111 / PV-1111 make-up gas", kind: control, refs: [PIC-1111, PV-1111], status: proposed, by: agent}
+  - {id: SG7, title: "Interlocks I-204 / I-304: tank PALL stops the loading pumps and the compressors, opens PV-1111", kind: interlock, interlock: I-204, refs: [PZT-2112, K-7101A, PV-1111], status: proposed, by: agent}
+  - {id: SG8, title: "Tank vacuum relief valves PSV-2133A/B, PSV-3133A/B", kind: relief, refs: [PSV-2133A, PSV-2133B, PSV-3133A, PSV-3133B], status: proposed, by: agent}
+  - {id: SG9, title: "Arm purge to below 1 % O2 before cooldown and de-inerting to the flare (SEQ-LOAD S2, D-017)", kind: procedural, refs: [HV-5151], status: proposed, by: agent}
+  - {id: SG10, title: "LIC-7102 / LV-7102 drain of D-7101 to D-8101", kind: control, refs: [LIC-7102, LV-7102], status: proposed, by: agent}
+  - {id: SG11, title: "Interlock I-701: LZT-7106 high-high stops K-7101A/B/C and closes XV-7121A/B/C", kind: interlock, interlock: I-701, refs: [LZT-7106, XV-7121A, XV-7121B, XV-7121C], status: proposed, by: agent}
+  - {id: SG12, title: TIC-7103 suction temperature control and indication, kind: control, refs: [TIC-7103, TV-7103], status: proposed, by: agent, notes: "The cause in S8 and S10 is its failure."}
+  - {id: SG13, title: TI-7107 discharge temperature indication, kind: other, refs: [TI-7107], status: proposed, by: agent}
+  - {id: SG14, title: "LIC-8101 KO drum level and the flare (D-8101 designed for the drum pressure)", kind: mechanical, refs: [D-8101, LIC-8101], status: proposed, by: agent}
+  - {id: SG15, title: "XV-7121A suction ESD valve, closed by I-701 / I-702", kind: interlock, interlock: I-702, refs: [XV-7121A, VZ-7110A], status: proposed, by: agent, notes: "Not closed on a normal stop according to the C&E and SEQ-BOG-START."}
+  - {id: SG16, title: PSV-7105 suction system relief to the flare (2.5 barg), kind: relief, refs: [PSV-7105], status: proposed, by: agent}
+  - {id: SG17, title: "UIC-7104A..C anti-surge control, UV-7104A..C fail open", kind: control, refs: [UIC-7104A, UIC-7104B, UIC-7104C, UV-7104A], status: proposed, by: agent}
+  - {id: SG18, title: "Interlock I-702: VZ-7110A machine protection (vibration, bearings) stops K-7101A", kind: interlock, interlock: I-702, refs: [VZ-7110A, K-7101A], status: proposed, by: agent}
+  - {id: SG19, title: PSV-7111 BOG discharge relief to the flare (7.5 barg), kind: relief, refs: [PSV-7111], status: proposed, by: agent}
+  - {id: SG20, title: PI-8121 N2 header pressure indication, kind: other, refs: [PI-8121], status: proposed, by: agent}
+  - {id: SG21, title: Discharge check valves CV7122A..C, kind: check-valve, refs: [{sheet: P-07, object: CV7122A}, {sheet: P-07, object: CV7122B}, {sheet: P-07, object: CV7122C}], status: proposed, by: agent}
+  - {id: SG22, title: "Interlock I-702 closes XV-7121A on a machine trip", kind: interlock, interlock: I-702, refs: [XV-7121A], status: proposed, by: agent}
+actions:
+  - {id: A1, status: proposed, by: agent, text: "Relief study / P&ID P-01 change: add 'PV-1111 fully open with the BOG-7002 and trains' pressure behind it' as a relief case of the tanks and the header, or limit the make-up flow below the PV-1110 and PSV capacity (restriction orifice on BOG-1009, smaller trim), and consider a high-high header pressure trip that closes a separate make-up ESD valve."}
+  - {id: A2, status: proposed, by: agent, text: "Utility failure review: give PV-1110 and the anti-surge valves an assured action on loss of instrument air (air receivers or accumulators, or review the PV-1110 fail position) so that the BOG keeps an outlet other than the tank PSVs; add a low instrument-air pressure alarm and action on PI-8122 to the C&E."}
+  - {id: A3, status: proposed, by: agent, text: "Flare study: size FL-8001 / D-8101 / FL-8101 for the cumulative load of the common-cause cases (power failure at loading: carrier return, boil-off, line flash, cooldown vapour, PSV-7111), not only the ~54 t/h compressor trip (D-017), and list which loads are on UPS (control system, PV-1110 solenoid, ship-shore link)."}
+  - {id: A4, status: proposed, by: agent, text: "P&ID P-07 / P-01 change: give the make-up a source that does not depend on the running compressors (e.g. from the trains' fuel gas header through a pressure reducing station, with the battery-limit connection drawn), or show and confirm that BOG-7002 stays pressurised from the trains after I-204 / I-304; record the answer in DESIGN.md D-017."}
+  - {id: A5, status: proposed, by: agent, text: "Consider an O2 analyser on the BOG header upstream of D-7101 with an alarm and compressor trip, and show the carrier de-inerting route to the flare (D-017 says to the storage and loading flare; no connection is drawn)."}
+  - {id: A6, status: proposed, by: agent, text: "Determine the required integrity of I-701 (single LZT-7106) as the only layer against carry-over to all three machines; consider a high-high spray / low suction temperature cut-out that closes TV-7103 independently of TIC-7103."}
+  - {id: A7, status: proposed, by: agent, text: "State the spray source during loading (circulation pump running, or the loading header back-feeding LNG-2002) in SEQ-LOAD and SEQ-BOG-START, and add a high suction temperature alarm / trip on the compressor inlet independent of TIC-7103."}
+  - {id: A8, status: proposed, by: agent, text: "P&ID P-07 change: move the anti-surge take-off upstream of the discharge check valve CV7122A..C, or add a discharge ESD valve / second check valve downstream of the recycle tee, so that the discharge header cannot back-flow through an open UV-7104 into the suction; add an ESD valve or check valve at the battery limit on BOG-7002."}
+  - {id: A9, status: proposed, by: agent, text: "C&E / sequence change: close XV-7121A..C (and a discharge isolation, if added) on every compressor stop, not only on I-701 / I-702, and add the normal stop to SEQ-BOG-START or a stop sequence."}
+  - {id: A10, status: proposed, by: agent, text: "Relief study: restate the relief case and set pressure of PSV-7105 (2.5 barg) for a suction system that cannot be isolated from tanks designed for +29 kPa(g): fire on D-7101 and back flow from the discharge (S13) are the credible cases."}
+  - {id: A11, status: proposed, by: agent, text: "P&ID P-07 change: route the anti-surge recycle upstream of the desuperheater (or add a recycle cooler), and add a high discharge temperature alarm and trip (TI-7107 is an indication) to the C&E."}
+  - {id: A12, status: proposed, by: agent, text: "Consider a high discharge pressure alarm / trip on PI-7108 that unloads or stops the compressors before PSV-7111 lifts, with the trains informing the terminal of a stop of their BOG intake."}
+  - {id: A13, status: proposed, by: agent, text: "Show the compressor seal gas supply (N2), its low-pressure trip and the seal vent destination on P-07, or reference the vendor P&ID in the sheet notes."}
+  - {id: A14, status: proposed, by: agent, text: "Determine the required integrity of I-204 / I-304 (SIL null in the C&E) for the compressor over-draw case, and consider a minimum suction pressure limit on the inlet guide vanes that does not depend on PIC-7101 or its PIC-1110 setpoint."}
+  - {id: A15, status: proposed, by: agent, text: "Size the D-7101 liquid hold-up and the drain LV-7102 / DR-7001 (DN 50) for the largest credible liquid slug from the vapour return (D-5101 overflow, hybrid arm misline-up, thermal relief discharges), or show that these sources are removed by the H-03 actions."}
+  - {id: A16, status: proposed, by: agent, text: "Confirm with the compressor vendor the anti-surge response time and a surge detection / trip independent of UIC-7104A..C, the turndown of one 27 t/h machine against the 21.9 t/h holding BOG, and add the vendor trips to the C&E (I-702 lists only vibration and bearings)."}

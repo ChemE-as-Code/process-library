@@ -1,0 +1,494 @@
+# HAZOP study H-03: a DRAFT until the team has accepted every entry and a
+# human review record covers it (cheme safety hazop check). Schema: cheme schema
+# hazop-study; workflow: safety/README.md and the skill hazop-study.
+# Drafted by an agent from the plant as drawn (P-05, P-06, P-04 rev A, C&E, loops,
+# sequences, special items). Every entry is a proposal for the team: status proposed.
+schema: cheme/hazop-study/v1
+kind: hazop-study
+id: H-03
+title: Berths, loading arms and ERS
+scope: >-
+  Detail-stage HAZOP of Berth 2 (P-05) and Berth 1 (P-06): the berth liquid header LNG-5001 /
+  LNG-6001 with the shore ESD valve XV-5101 / XV-6101, strainer SR-5102 / SR-6102 and surge relief
+  PSV-5131 / PSV-6131; the four 16 inch arms per berth (liquid, vapour, hybrid, liquid) with
+  their isolation valves, ERS ball valves and envelope monitoring; the vapour line BOG-5001 /
+  BOG-6001; the jetty drain drum D-5101 / D-6101 and pump P-5101 / P-6101; the N2 connection
+  N-8001 / N-8002 with HV-5151 / HV-6151; the ship-shore link XS-5100 / XS-6100 and the
+  interlocks I-501..I-503, I-601..I-603. The trestle lines are in H-02, the BOG system in H-04,
+  the jetty sump T-8102 and the N2 supply in H-05. Not covered: the carrier (its cargo system,
+  ESD valves and return-gas compressor), mooring equipment and the arm hydraulics (vendor
+  package), which appear only as causes.
+modes:
+  - {id: holding, title: Holding, description: "No carrier: arms stowed, berth header isolated by XV-5101 / XV-6101; the circulation passes the platform crossover LNG-4003 (H-02)."}
+  - {id: loading, title: Loading, description: "One carrier at one berth: 3 liquid arms at ~4,000 m3/h each, vapour arm (and hybrid arm as spare vapour path), SEQ-LOAD S4 and S5."}
+  - {id: cooldown, title: Cooldown, description: "Arms and carrier manifold cooled at 500 m3/h with ESD tests before and after (SEQ-LOAD S3)."}
+  - {id: startup, title: Connection and disconnection, description: "Connect, N2 leak test and purge (SEQ-LOAD S1, S2); drain, purge and disconnect (S6); ESD response (SEQ-ESD)."}
+analysed:
+  - {path: pid/P-05.xml, revision: 'sha256:5fb5750b209ed62b738551d658ac3e357fd8925f3773c30aff5ecfb490832255', relation: analyses}
+  - {path: pid/P-06.xml, revision: 'sha256:2f5d968daefd641688566b6e78432ea80238385087aecd07fd75d8f95f5329b8', relation: analyses}
+  - {path: pid/P-04.xml, revision: 'sha256:f754f92f07fa025c16b8d4863aca70a1caa78b3ffb9590158a13742606ae6976', relation: analyses}
+  - {path: control/cause-effect.yaml, revision: 'sha256:cf339dc10a5425f3ba75897f6c8bb0b895599cfbc14b45effb0ea262dc1ad909', relation: analyses}
+  - {path: control/loops.yaml, revision: 'sha256:87745b629db15e255aec60ffb28bd670c9148c30788e2a72a7c7919016cdaf3a', relation: analyses}
+  - {path: control/sequences.yaml, revision: 'sha256:a762021b887989a0ab1598c297099a7128dc49a43751721d3d9833fed775316e', relation: analyses}
+  - {path: piping/special-items.yaml, revision: 'sha256:f8c427cf6a7b8e29343ebe92606451fae7ae01e74af068de2aed4471d129173e', relation: analyses}
+risk_matrix: safety/risk-matrix.yaml
+assessment_basis: >-
+  Each scenario is rated per category before its safeguards (initial): severity is the credible
+  worst outcome if every safeguard fails, likelihood that of the cause. The codes are agent
+  proposals with their basis, for the team to accept or change. No residual ratings are
+  proposed: crediting safeguards is the team's judgement (and a LOPA's where needed). The matrix
+  is the example matrix of cheme init (example: true), so the bands are illustrative.
+team: []            # to be named by the project; no team has sat on this draft yet
+notes: >-
+  Drafted by an agent (skills hazop-study, hazop-equipment-causes, relief-scenarios,
+  safeguard-crediting). Berth 1 (P-06) is a renumbered copy of Berth 2 (D-015, D-019): node N3
+  repeats only the findings whose tags differ. Surge figures are the slow-closure estimate of
+  D-023 (ASSUMED wave speed); weather limits and the 35 kn disconnect are from S-01 via DESIGN.md.
+nodes:
+  - id: N1
+    title: Berth 2 liquid header LNG-5001, shore ESD valve, surge relief and jetty drain drum
+    design_intent: >-
+      Deliver up to 12,000 m3/h from loading line A (and line B through the platform crossover)
+      through XV-5101 and SR-5102 to the arm connections LNG-5002 / LNG-5003 / LNG-5001 S6-S7 at
+      about 350 kPa(a) at the manifold (D-011); XV-5101 closes in 25-30 s on ESD-1 (I-501) or
+      high back-pressure (I-502), PSV-5131 relieves surge and thermal expansion into D-5101
+      (D-016, D-023); after loading the arms and header drain by DR-5001 to D-5101, emptied by
+      P-5101 (LIC-5111) into the crossover LNG-4003.
+    members: [LNG-5001, XV-5101, UZ-5101, SR-5102, PDI-5102, PZT-5103, TI-5104, PSV-5131, DR-5001, DR-5002, D-5101, LIC-5111, P-5101, LNG-5005, LNG-5006, BOG-5002, N-8001, HV-5151]
+    status: proposed
+    by: agent
+    deviations:
+      - id: N1-HP
+        guide_word: more
+        parameter: pressure (surge)
+        scenarios:
+          - id: S1
+            cause: >-
+              The carrier's manifold or cargo valves close against the full loading rate (ship
+              ESD, or a valve closed by the ship without the link), faster than the 25 s assumed
+              for XV-5101 (D-023).
+            consequence: >-
+              Pressure surge at the manifold, in the arms and the header; D-023 gives +1,753 kPa
+              more for an instant closure, beyond the 15 barg design of the arms and lines:
+              swivel or coupler failure, LNG spray on the carrier deck and the platform, LNG into
+              the sea (rapid phase transition), cold embrittlement of deck and platform steel.
+            refs: [LA-5101, LA-5103, LA-5104, LNG-5001, PZT-5103, PSV-5131]
+            modes: [loading]
+            safeguards: [SG1, SG2, SG3]
+            actions: [A1]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "LNG release at the manifold with people on deck and platform; matrix 4 = permanent injury or fatality. B: could happen once in the plant life.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+                - {category: environment, severity: "3", likelihood: B, status: proposed, by: agent, basis: "LNG to sea; matrix 3 = reportable release.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 92790e212f41fb89, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '3', likelihood: B}}}
+          - id: S2
+            cause: >-
+              ESD-1 (I-501) closes XV-5101 faster than its 25-30 s or before the loading pumps
+              have stopped (actuator speed control lost, the closure time is not a C&E parameter).
+            consequence: As S1, with the peak at XV-5101 and along the trestle line.
+            refs: [XV-5101, UZ-5101, LNG-5001, LNG-4001]
+            modes: [loading]
+            safeguards: [SG3]
+            actions: [A1, A2]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "As S1; matrix 4.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+      - id: N1-HL
+        guide_word: more
+        parameter: level (D-5101)
+        scenarios:
+          - id: S3
+            cause: >-
+              DR-5001 is drawn with no valve between the header LNG-5001 and D-5101: during
+              cooldown and loading the header is open to the drain drum.
+            consequence: >-
+              LNG flows continuously into D-5101 (~50 m3); the drum fills and LNG leaves by its
+              vent BOG-5002 into the vapour line BOG-5001 and the vapour return to the tanks and
+              D-7101 (liquid carry-over to the BOG compressors, H-04); the loading flow is
+              short-circuited to the drain system.
+            refs: [DR-5001, D-5101, BOG-5002, BOG-5001, LIC-5111]
+            modes: [loading, cooldown]
+            safeguards: [SG4]
+            actions: [A3]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: D, status: proposed, by: agent, basis: "Liquid in the vapour return and the compressor suction; matrix 3 = plant down for weeks. D: as drawn it happens at every loading.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: d5ef0dbadb27cd72, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '3', likelihood: D}}}
+                - {category: people, severity: "3", likelihood: C, status: proposed, by: agent, basis: "Two-phase slugging in the vapour line, flange leak; matrix 3 = lost-time injury.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b6fe1208a949a698, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: C}}}
+            notes: Possibly a drafting omission (D-021 leaves low-point drains off); the team to confirm the intended drain isolation.
+          - id: S4
+            cause: >-
+              P-5101 is stopped while the crossover LNG-4003 is pressurised by the circulation or
+              the loading pumps: LNG-5006 has no check valve and no isolation valve drawn.
+            consequence: Back flow through P-5101 into D-5101; reverse rotation; drum overfill and liquid into the vapour line as S3.
+            refs: [P-5101, LNG-5006, LNG-4003, D-5101]
+            modes: [holding, loading]
+            safeguards: [SG4]
+            actions: [A4]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: C, status: proposed, by: agent, basis: "Pump damage, liquid to the BOG system; matrix 3 = plant down for weeks.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 4255ea3f73fe5efe, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '3', likelihood: C}}}
+          - id: S5
+            cause: LIC-5111 fails (level reads low) or P-5101 fails to start after the post-loading drain or after PSV-5131 has relieved.
+            consequence: D-5101 overfills; LNG into the vapour line as S3.
+            refs: [LIC-5111, P-5101, D-5101, PSV-5131]
+            modes: [startup, loading]
+            safeguards: [SG4]
+            actions: [A5]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: C, status: proposed, by: agent, basis: "Liquid in the vapour return; matrix 3 = plant down for weeks.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 4255ea3f73fe5efe, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '3', likelihood: C}}}
+            notes: LIC-5111 is the only level instrument; its high-high alarm is on the same transmitter as the pump control.
+      - id: N1-OC
+        guide_word: other-than
+        parameter: composition (O2 in the header and arms)
+        scenarios:
+          - id: S6
+            cause: >-
+              Purge to below 1 % O2 before cooldown not achieved (N2 supply low, PI-8121; purge
+              cut short; arm vent sample taken at the wrong point), or air drawn in through a
+              leaking coupler.
+            consequence: >-
+              Flammable mixture in the arms, the header and the vapour return when LNG is admitted;
+              ignition by static or a falling-film spark: internal deflagration of the arm or the
+              vapour line.
+            refs: [HV-5151, N-8001, LA-5101, LA-5102, LNG-5001]
+            modes: [startup, cooldown]
+            safeguards: [SG5, SG6]
+            actions: [A6]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Internal explosion of an arm with people at the manifold; matrix 4. B: could happen once in the plant life.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+      - id: N1-RF
+        guide_word: reverse
+        parameter: flow (into the N2 system)
+        scenarios:
+          - id: S7
+            cause: >-
+              HV-5151 left open after the leak test while the header is pressurised with LNG
+              (5-9 barg at loading, D-023) above the 7 barg N2 header, and CV5151 leaks.
+            consequence: LNG into the N2 header N-8001 (material not stated), cold embrittlement and rupture of the N2 line; N2 header contaminated toward Berth 1 and the users on P-08.
+            refs: [HV-5151, N-8001, {sheet: P-05, object: CV5151}, LNG-5001]
+            modes: [loading]
+            safeguards: [SG7, SG8]
+            actions: [A7]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: B, status: proposed, by: agent, basis: "Rupture of a utility line with a cold release; matrix 3 = lost-time injury.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: aa86891dd127d418, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: B}}}
+      - id: N1-LF
+        guide_word: less
+        parameter: flow
+        scenarios:
+          - id: S8
+            cause: SR-5102 blocked by construction debris or ice (first loadings, after maintenance).
+            consequence: High differential pressure, reduced loading rate, pumps toward minimum flow; strainer collapse sends debris to the carrier's manifold and tanks.
+            refs: [SR-5102, PDI-5102]
+            modes: [loading, cooldown]
+            safeguards: [SG9]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "2", likelihood: C, status: proposed, by: agent, basis: "Loading delay and strainer repair; matrix 2 = plant down for days.", band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b67377b30017f4a1, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '2', likelihood: C}}}
+      - id: N1-HT
+        guide_word: less
+        parameter: temperature (cooldown rate)
+        scenarios:
+          - id: S9
+            cause: Arms and header cooled too fast (FIC-4101 cooldown setpoint 500 m3/h set higher, or liquid admitted to warm arms).
+            consequence: Thermal shock of swivels and flanges, leaks at the arm joints; large flash vapour to the vapour arm.
+            refs: [FIC-4101, LNG-5001, TI-5104, LA-5101]
+            modes: [cooldown]
+            safeguards: [SG10]
+            actions: [A8]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: C, status: proposed, by: agent, basis: "LNG spray from a swivel at the manifold; matrix 3 = lost-time injury.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b6fe1208a949a698, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: C}}}
+            notes: The deviation is a faster temperature change than intended.
+  - id: N2
+    title: Berth 2 loading arms LA-5101..LA-5104, ERS, vapour arm and ship-shore link
+    design_intent: >-
+      Transfer LNG (three liquid arms, ~4,000 m3/h each) and return vapour (LA-5102, ~23.5 t/h at
+      40 m/s per arm, D-023; hybrid LA-5103 as spare vapour path through XV-5125) between the shore
+      and the carrier manifold within the arm envelope; ESD-1 (I-501) from the link XS-5100, manual
+      push buttons and the platform fire and gas; ESD-2 (I-503) from the envelope switches
+      ZS-5151..ZS-5154, manual or the 35 kn disconnect closes the ERS valves XV-5131..XV-5134 /
+      XV-5141..XV-5144 and releases the couplers (D-014, D-016).
+    members: [LA-5101, LA-5102, LA-5103, LA-5104, XV-5121, XV-5122, XV-5123, XV-5124, XV-5125, XV-5131, XV-5132, XV-5133, XV-5134, XV-5141, XV-5142, XV-5143, XV-5144, ZS-5151, ZS-5152, ZS-5153, ZS-5154, XS-5100, BOG-5001, BOG-5003, PI-5105, TI-5106]
+    status: proposed
+    by: agent
+    deviations:
+      - id: N2-OT
+        guide_word: other-than
+        parameter: position (arm envelope)
+        scenarios:
+          - id: S10
+            cause: >-
+              Carrier drift or surge along the berth: mooring line or hook failure, wind above the
+              35 kn disconnect limit, passing-ship interaction, tidal range not followed by the
+              mooring.
+            consequence: >-
+              The arms are dragged beyond their envelope; if ESD-2 does not act, arm structure or
+              swivel failure with LNG spilling on the carrier deck, the platform and into the sea
+              (rapid phase transition, cold embrittlement, pool or jet fire on ignition).
+            refs: [LA-5101, LA-5102, LA-5103, LA-5104, ZS-5151, ZS-5154]
+            modes: [loading, cooldown]
+            safeguards: [SG11, SG12, SG13, SG2]
+            actions: [A9, A10]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Arm failure with LNG release at the manifold; matrix 4 = permanent injury or fatality. B: could happen once in the plant life.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+                - {category: environment, severity: "3", likelihood: B, status: proposed, by: agent, basis: "LNG to sea; matrix 3 = reportable release.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 92790e212f41fb89, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '3', likelihood: B}}}
+                - {category: asset, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Arm and carrier manifold damage; matrix 4 = loss of the unit (berth).", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: f33c22768a8b83e6, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: B}}}
+          - id: S11
+            cause: >-
+              ESD-2 initiated (ZS-5151 fault, spurious or justified envelope trip) while LNG is still
+              flowing at the full rate: the I-503 effects close the ERS valves and XV-5101 but do
+              not stop the loading pumps; the order 'after ESD-1' is only in the notes.
+            consequence: >-
+              The ERS ball valves close against ~4,000 m3/h per arm: surge in the arms and header
+              (closure time of the ERS valves not in the files); the couplers release with a
+              pressurised volume between the ball valves: LNG spill on deck and into the sea.
+            refs: [XV-5131, XV-5141, ZS-5151, P-2101A]
+            modes: [loading]
+            safeguards: [SG3, SG1]
+            actions: [A11]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "LNG release at the manifold; matrix 4.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+            notes: I-503 is driven by any one of four position switches (logic any); a single switch fault gives a spurious release.
+      - id: N2-NF
+        guide_word: "no"
+        parameter: signal (ship-shore link)
+        scenarios:
+          - id: S12
+            cause: >-
+              The ship-shore link XS-5100 fails during loading (fibre break, connector pulled at
+              disconnection drift, loss of power on either side).
+            consequence: >-
+              An ESD on either side no longer reaches the other: the carrier may close its valves
+              with the shore pumps running (surge, S1), or the shore may trip while the carrier's
+              return-gas compressor runs (vapour back-pressure, S14).
+            refs: [XS-5100]
+            modes: [loading, cooldown]
+            safeguards: [SG2, SG3, SG14]
+            actions: [A12]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "As S1 with the link as the common cause; matrix 4.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+            notes: The C&E cause of I-501 is XS-5100 'trip'; whether a link fault is itself a trip (fail-safe) is not stated.
+      - id: N2-AW
+        guide_word: as-well-as
+        parameter: flow (liquid in the vapour line)
+        scenarios:
+          - id: S13
+            cause: >-
+              Hybrid arm LA-5103 lined up for liquid and vapour at once (XV-5123 and XV-5125 both
+              open, HS-5123 / HS-5125 are independent operator switches).
+            consequence: >-
+              LNG from the header into BOG-5003 / BOG-5001 and the vapour return to the tanks and
+              D-7101: liquid slugs in a vapour line, back-pressure on the carrier, liquid
+              carry-over to the BOG compressors (H-04).
+            refs: [XV-5123, XV-5125, HS-5123, HS-5125, BOG-5003, BOG-5001]
+            modes: [loading, startup]
+            actions: [A13]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: C, status: proposed, by: agent, basis: "Liquid in the BOG system; matrix 3 = plant down for weeks.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 4255ea3f73fe5efe, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '3', likelihood: C}}}
+                - {category: people, severity: "3", likelihood: C, status: proposed, by: agent, basis: "Slugging in the vapour line, flange leak; matrix 3.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b6fe1208a949a698, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: C}}}
+      - id: N2-HP
+        guide_word: more
+        parameter: pressure (vapour return back-pressure)
+        scenarios:
+          - id: S14
+            cause: >-
+              Vapour return beyond the vapour arm's capacity: the carrier's return reaches up to
+              45.6 t/h (D-009) while one 16 inch arm carries ~23.5 t/h at 40 m/s (D-023), the
+              hybrid arm being used for liquid; or XV-5122 / the vapour arm ERS valves are closed;
+              or the shore vapour header pressure is high (BOG compressors tripped, H-04).
+            consequence: >-
+              High back-pressure on the carrier's tanks: the carrier's return-gas compressor or its
+              tank relief valves act (outside the terminal); high velocity and noise in LA-5102.
+            refs: [LA-5102, XV-5122, XV-5132, XV-5142, PI-5105, BOG-5001]
+            modes: [loading, cooldown]
+            safeguards: [SG15, SG16]
+            actions: [A14]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: environment, severity: "3", likelihood: C, status: proposed, by: agent, basis: "Venting from the carrier's tank relief valves; matrix 3 = reportable release. C: return above one arm's capacity is the design case.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 1fb9317519cce7ee, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '3', likelihood: C}}}
+      - id: N2-OT2
+        guide_word: other-than
+        parameter: containment (connection)
+        scenarios:
+          - id: S15
+            cause: >-
+              Coupler not fully engaged or gasket damaged at the carrier manifold, swivel seal
+              leak, or the N2 leak test (5 bar liquid / 2.5 bar vapour arm) skipped.
+            consequence: >-
+              LNG spray at the manifold on cooldown or ramp-up: cold burns, cold embrittlement of
+              the platform and carrier deck, LNG into the sea (rapid phase transition).
+            refs: [LA-5101, LA-5104, LA-5103, T-8102, TSL-8104]
+            modes: [cooldown, loading]
+            safeguards: [SG17, SG18, SG1]
+            actions: [A15]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, status: proposed, by: agent, basis: "LNG spray at the manifold with people present; matrix 4. C: connection leaks occur several times in the plant life.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ac0a4b03e3d8d0c2, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: C}}}
+      - id: N2-BF
+        guide_word: before
+        parameter: sequence (disconnection)
+        scenarios:
+          - id: S16
+            cause: Arms disconnected before they are drained to D-5101 and purged to below 2 % hydrocarbons (SEQ-LOAD S6 cut short, completion by text only).
+            consequence: LNG or flammable vapour released at the coupler at disconnection; cold burns, flash fire on ignition.
+            refs: [LA-5101, LA-5102, D-5101]
+            modes: [startup]
+            safeguards: [SG19]
+            actions: [A16]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: C, status: proposed, by: agent, basis: "Release of the arm contents at the manifold; matrix 3 = lost-time injury.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b6fe1208a949a698, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: C}}}
+  - id: N3
+    title: Berth 1 (P-06) - header, drain drum, arms and link (renumbered copy of Berth 2)
+    design_intent: >-
+      As N1 and N2 for Berth 1 with loading line B: XV-6101, PSV-6131, D-6101, P-6101 / LIC-6111,
+      arms LA-6101..LA-6104 with ERS XV-6131..XV-6144, ZS-6151..ZS-6154, link XS-6100, interlocks
+      I-601..I-603 (D-019).
+    members: [LNG-6001, XV-6101, PZT-6103, PSV-6131, DR-6001, D-6101, LIC-6111, P-6101, LNG-6006, LA-6101, LA-6102, LA-6103, LA-6104, ZS-6151, XS-6100, HV-6151, XV-6123, XV-6125]
+    status: proposed
+    by: agent
+    notes: The team may merge N3 with N1 / N2 once it accepts that the two berths are identical; the scenarios here repeat the findings whose tags differ.
+    deviations:
+      - id: N3-HP
+        guide_word: more
+        parameter: pressure (surge)
+        scenarios:
+          - id: S17
+            cause: Carrier valves close against the full rate at Berth 1, or XV-6101 closes faster than intended (as S1, S2).
+            consequence: Surge in the Berth 1 arms and header and in loading line B; arm or coupler failure, LNG to deck and sea.
+            refs: [XV-6101, PZT-6103, PSV-6131, LNG-6001]
+            modes: [loading]
+            safeguards: [SG20, SG21, SG22]
+            actions: [A1, A2]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "As S1; matrix 4.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+      - id: N3-HL
+        guide_word: more
+        parameter: level (D-6101)
+        scenarios:
+          - id: S18
+            cause: DR-6001 has no valve (header open to D-6101) and LNG-6006 has no check valve (back flow through a stopped P-6101), as S3 / S4.
+            consequence: D-6101 overfills; LNG into the vapour line BOG-6001 and the BOG system.
+            refs: [DR-6001, D-6101, P-6101, LNG-6006, BOG-6002]
+            modes: [loading, holding]
+            safeguards: [SG23]
+            actions: [A3, A4]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: D, status: proposed, by: agent, basis: "As S3; matrix 3. D: as drawn at every loading.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: d5ef0dbadb27cd72, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '3', likelihood: D}}}
+      - id: N3-OT
+        guide_word: other-than
+        parameter: position (arm envelope) and link
+        scenarios:
+          - id: S19
+            cause: Carrier drift at Berth 1 beyond the envelope, or a spurious ESD-2 at full rate, or a link XS-6100 failure (as S10 to S12).
+            consequence: Arm failure or ERS release under flow; LNG on deck and into the sea.
+            refs: [LA-6101, ZS-6151, XS-6100, XV-6131]
+            modes: [loading]
+            safeguards: [SG24, SG20]
+            actions: [A9, A11, A12]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "As S10; matrix 4.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+      - id: N3-AW
+        guide_word: as-well-as
+        parameter: flow (liquid in the vapour line)
+        scenarios:
+          - id: S20
+            cause: Hybrid arm LA-6103 lined up for liquid and vapour at once (XV-6123 and XV-6125 open).
+            consequence: LNG into BOG-6003 / BOG-6001 and the BOG system (as S13).
+            refs: [XV-6123, XV-6125, LA-6103]
+            modes: [loading]
+            actions: [A13]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: C, status: proposed, by: agent, basis: "As S13; matrix 3.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 4255ea3f73fe5efe, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '3', likelihood: C}}}
+safeguards:
+  - {id: SG1, title: "Interlock I-501: Berth 2 ESD-1 stops the loading pumps, closes XV-5101, XV-4101, XV-4102 and trips the carrier through the link", kind: interlock, interlock: I-501, refs: [XS-5100, XV-5101], status: proposed, by: agent}
+  - {id: SG2, title: "Interlock I-502: PZT-5103 header back-pressure high-high stops the loading pumps and closes XV-5101", kind: interlock, interlock: I-502, refs: [PZT-5103, XV-5101], status: proposed, by: agent, notes: "Independent of the link; its response time against a fast carrier closure is not stated."}
+  - {id: SG3, title: Surge relief PSV-5131 of the Berth 2 header into D-5101, kind: relief, refs: [PSV-5131], status: proposed, by: agent, notes: "Size from the surge analysis in detail engineering (special items); set 15.5 barg against a 15 barg design (D-023)."}
+  - {id: SG4, title: "LIC-5111 D-5101 level: starts and stops P-5101, high-high alarm", kind: control, refs: [LIC-5111, P-5101], status: proposed, by: agent}
+  - {id: SG5, title: "N2 leak test and purge to below 1 % O2 at the arm vents before cooldown (SEQ-LOAD S2, S-01)", kind: procedural, refs: [HV-5151, N-8001], status: proposed, by: agent}
+  - {id: SG6, title: PI-8121 N2 header pressure indication, kind: other, refs: [PI-8121], status: proposed, by: agent}
+  - {id: SG7, title: Check valve CV5151 on the N2 connection to LNG-5001, kind: check-valve, refs: [{sheet: P-05, object: CV5151}], status: proposed, by: agent}
+  - {id: SG8, title: "HV-5151 closed after the leak test (SEQ-LOAD S2)", kind: procedural, refs: [HV-5151], status: proposed, by: agent}
+  - {id: SG9, title: PDI-5102 strainer differential pressure, kind: other, refs: [PDI-5102], status: proposed, by: agent}
+  - {id: SG10, title: "Cooldown at 500 m3/h on FIC-4101 with TI-5104 and the ESD test after cooldown (SEQ-LOAD S3)", kind: procedural, refs: [FIC-4101, TI-5104], status: proposed, by: agent}
+  - {id: SG11, title: "Envelope monitoring ZS-5151..ZS-5154 pre-alarm (instrument list)", kind: alarm, refs: [ZS-5151, ZS-5152, ZS-5153, ZS-5154], status: proposed, by: agent}
+  - {id: SG12, title: "Interlock I-503: ESD-2 closes the ERS valves XV-5131..XV-5144 and XV-5101 and releases the couplers", kind: interlock, interlock: I-503, refs: [ZS-5151, XV-5131, XV-5141], status: proposed, by: agent}
+  - {id: SG13, title: "Loading permissives: carrier moored and mooring loads within limits, wind below 30 kn, waves below 1.5 m (SEQ-LOAD, S-01)", kind: procedural, refs: [XS-5100], status: proposed, by: agent}
+  - {id: SG14, title: "Link healthy as a loading permissive (SEQ-LOAD)", kind: procedural, refs: [XS-5100], status: proposed, by: agent}
+  - {id: SG15, title: "PI-5105 Berth 2 vapour line pressure indication", kind: other, refs: [PI-5105], status: proposed, by: agent}
+  - {id: SG16, title: "Hybrid arm LA-5103 as the spare vapour path (XV-5125)", kind: other, refs: [LA-5103, XV-5125], status: proposed, by: agent}
+  - {id: SG17, title: "N2 leak test of the liquid arms at 5 bar and the vapour arm at 2.5 bar before cooldown (SEQ-LOAD S1, S2)", kind: procedural, refs: [LA-5101, LA-5102], status: proposed, by: agent}
+  - {id: SG18, title: "Jetty sump T-8102 with low temperature alarm TSL-8104", kind: mechanical, refs: [T-8102, TSL-8104], status: proposed, by: agent}
+  - {id: SG19, title: "Drain to D-5101 and N2 purge to below 2 % hydrocarbons before disconnection (SEQ-LOAD S6)", kind: procedural, refs: [D-5101], status: proposed, by: agent}
+  - {id: SG20, title: "Interlock I-601: Berth 1 ESD-1", kind: interlock, interlock: I-601, refs: [XS-6100, XV-6101], status: proposed, by: agent}
+  - {id: SG21, title: "Interlock I-602: PZT-6103 back-pressure high-high", kind: interlock, interlock: I-602, refs: [PZT-6103], status: proposed, by: agent}
+  - {id: SG22, title: Surge relief PSV-6131 of the Berth 1 header into D-6101, kind: relief, refs: [PSV-6131], status: proposed, by: agent}
+  - {id: SG23, title: "LIC-6111 D-6101 level: starts and stops P-6101, high-high alarm", kind: control, refs: [LIC-6111, P-6101], status: proposed, by: agent}
+  - {id: SG24, title: "Interlock I-603: Berth 1 ESD-2 (ERS)", kind: interlock, interlock: I-603, refs: [ZS-6151, XV-6131], status: proposed, by: agent}
+actions:
+  - {id: A1, status: proposed, by: agent, text: "Complete the transient surge analysis of D-023 for the carrier-side closure (the ship's ESD valve closure time from the carrier data, SIGTTO/OCIMF practice) and for the ERS valve closure, and confirm the capacity of PSV-5131 / PSV-6131 and of D-5101 / D-6101 for the relieved volume; agree the maximum closure rate with each carrier at the pre-transfer meeting."}
+  - {id: A2, status: proposed, by: agent, text: "C&E change: record the XV-5101 / XV-6101 closure time (25-30 s, D-016) and the delay after the pump stop as effects parameters of I-501 / I-601 (and I-502 / I-602), and require a closure-time test at commissioning and in the proof test."}
+  - {id: A3, status: proposed, by: agent, text: "P&ID P-05 / P-06 change: add drain isolation on DR-5001 / DR-6001 (normally closed in cooldown and loading, double block where it opens to D-5101) with the PSV-5131 / PSV-6131 discharge tied in downstream of it, and state the drain line-up in SEQ-LOAD S6."}
+  - {id: A4, status: proposed, by: agent, text: "P&ID P-05 / P-06 change: add a check valve and an isolation valve on the P-5101 / P-6101 discharge LNG-5006 / LNG-6006 before the tie-in to LNG-4003."}
+  - {id: A5, status: proposed, by: agent, text: "P&ID P-05 / P-06 and C&E change: add an independent high-high level switch on D-5101 / D-6101 with a defined action (stop the drain line-up, alarm) separate from LIC-5111 / LIC-6111."}
+  - {id: A6, status: proposed, by: agent, text: "Provide a fixed O2 measurement (or a sample point on the arm vents drawn on P-05 / P-06) and make 'O2 below 1 %' and 'N2 header pressure healthy' (PI-8121) permissives of SEQ-LOAD S3 cooldown."}
+  - {id: A7, status: proposed, by: agent, text: "P&ID P-05 / P-06 change: make the N2 connection a removable spool or double block and bleed with HV-5151 / HV-6151 interlocked closed before cooldown, and state the material and design temperature of N-8001 / N-8002 in the line list."}
+  - {id: A8, status: proposed, by: agent, text: "State the arm cooldown rate limit (temperature change per hour from the arm vendor) and the TI-5104 / TI-6104 criterion in SEQ-LOAD S3."}
+  - {id: A9, status: proposed, by: agent, text: "Show the mooring load monitoring (quick-release hooks, S-01) and the wind measurement as signals of the loading permissive and of a pre-alarm / ESD-1 in the C&E; they are named in SEQ-LOAD only as text."}
+  - {id: A10, status: proposed, by: agent, text: "Ask the arm vendor for the envelope zones (pre-alarm, ESD-1, ESD-2) and their margins against the carrier drift speed; record them in the instrument list for ZS-5151..ZS-5154 / ZS-6151..ZS-6154."}
+  - {id: A11, status: proposed, by: agent, text: "C&E change: make I-503 / I-603 initiate I-501 / I-601 (pumps stopped, XV-5101 closing) before the ERS valves close, with the ERS closure time and the delay as effect parameters; consider voting of the envelope switches for the release step. Also reconcile the instrument list, which says UZ-5131..UZ-5144 close on ESD-1 (I-501), with I-501, whose effects do not include them."}
+  - {id: A12, status: proposed, by: agent, text: "C&E change: state that a fault of the ship-shore link XS-5100 / XS-6100 initiates ESD-1 (fail-safe) and give the link's power supply (UPS) in the files."}
+  - {id: A13, status: proposed, by: agent, text: "Interlock XV-5123 / XV-5125 (XV-6123 / XV-6125) so that the hybrid arm cannot be open to the liquid header and the vapour line at once (position feedback, C&E entry)."}
+  - {id: A14, status: proposed, by: agent, text: "Add a high pressure alarm on PI-5105 / PI-6105 with the response (rate reduction, hybrid arm to vapour duty), and state in SEQ-LOAD S4 when the hybrid arm is switched to vapour service; confirm the carrier's return against the arm capacity (D-023)."}
+  - {id: A15, status: proposed, by: agent, text: "P&ID P-05 / P-06 change: draw the drip trays under the arms and manifold and the spill route to T-8102, routed so that LNG cannot reach the sea water (rapid phase transition), and the cryogenic spill protection of the platform steel."}
+  - {id: A16, status: proposed, by: agent, text: "Make 'arm drained (D-5101 level steady) and hydrocarbons below 2 %' a measured permissive of the coupler release at disconnection (SEQ-LOAD S6), with the measuring point drawn."}
