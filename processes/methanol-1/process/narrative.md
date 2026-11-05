@@ -9,7 +9,7 @@ sections:
     blocks: [CMP, K101, E101]
     cases: [design]
     modes: [normal, startup, shutdown]
-    loops: [PIC-102, UIC-104]
+    loops: [PIC-102, SIC-113, UIC-104]
     interlocks: [I-101]
   - id: SYN
     title: Synthesis loop
@@ -18,7 +18,7 @@ sections:
     cases: [design]
     modes: [normal, startup, shutdown]
     loops: [UIC-203, TIC-205, PIC-207, LIC-209, PIC-308, FIC-303]
-    interlocks: [I-201, I-202]
+    interlocks: [I-201, I-202, I-302]
   - id: SEP
     title: Crude let-down and LP flash
     equipment: [V-101, V-102]
@@ -62,7 +62,8 @@ setpoints in `control/loops.yaml` and the trips in `control/cause-effect.yaml`.
 stream S3, on P-02).
 **Normal operation.** The gas passes the suction knock-out drum V-103, is compressed in K-101 and
 cooled in E-101 (design case). K-101 takes all the gas the front end delivers: PIC-102 holds its
-suction pressure on the drive speed; UIC-104 recycles cooled gas when the flow nears surge.
+suction pressure through the drive's speed controller SIC-113; UIC-104 recycles cooled gas when
+the flow nears surge. PSV-115 protects the suction side against settle-out through UV-104.
 **Modes.** Start-up on full recycle (UV-104 open), then loading by PIC-102. I-101 stops the
 machine on liquid in V-103.
 **Assumptions and open points.** Electric variable-speed drive, one casing (D-010, D-017);
@@ -72,14 +73,16 @@ surge control by the vendor.
 
 **Purpose.** Convert the make-up gas to methanol in the boiling-water converter R-101 and
 separate the crude methanol (P-02, P-03).
-**Boundaries.** From the circulator suction (SG-104) round the loop to the HP separator V-101;
+**Boundaries.** From the circulator suction (SG-110 after the make-up gas joins) round the loop
+to the HP separator V-101;
 out: the purge FG-111 and the crude CM-113.
 **Normal operation.** K-102 circulates the loop gas through E-102 to R-101; TIC-205 sets the
 converter inlet temperature on the E-102 bypass and PIC-207 the steam drum pressure, which fixes
 the converter temperature. LIC-209 feeds the drum. The effluent is cooled in E-102 and E-103 and
 separated in V-101; PIC-308 holds the loop pressure by the purge FIC-303.
 **Modes.** Start-up needs the catalyst reduced and the loop heated (outside this draft). I-201
-and I-202 cut the make-up gas on a hot converter or a low drum level.
+and I-202 cut the make-up gas on a hot converter or a low drum level; I-302 stops K-102 and the
+make-up gas on a high-high V-101 level.
 **Assumptions and open points.** Single-element drum level (three-element at basic
 engineering), uncooled spillback (D-018); purge on pressure or on inerts (D-019).
 

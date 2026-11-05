@@ -473,7 +473,8 @@ although the make-up gas is dry by D-004: a front-end upset or condensate carry-
 LZ-109 (level high-high) closes the battery-limit shutdown valve XV-110 and stops K-101 (C&E
 I-101). PSV-111 on the K-101 discharge upstream of CV-103 (blocked outlet, settle-out); PSV-112 on
 the E-101 cooling water side (tube rupture: 82 barg gas side against a 6 barg CW side, ASSUMED),
-both to the flare header.
+both to the HP flare header; PSV-115 on V-103 for the suction side, PIC-102 cascaded onto the
+drive's speed controller SIC-113 and a dedicated anti-surge suction transmitter PT-114 (D-022).
 Reason: control-loops guidance (a dynamic machine on speed, anti-surge with a cooled recycle);
 the check valve upstream of the loop means the loop PSV-302 does not cover the K-101 discharge.
 Rejected: suction throttling (losses on a 14 MW machine); a recycle returned upstream of V-103
@@ -529,7 +530,7 @@ leaves V-201 on PIC-404 / PV-404 (column pressure, fail open); LIC-405 returns a
 liquid as reflux (no liquid distillate, D-008; LV-405 fail open); TIC-402 on a column temperature
 moves the LP steam TV-402 (fail closed); LIC-408 sends the bottoms through P-202A/B (the pump D-008
 left open) on LV-408 (fail closed) to C-202. Refining column C-202 with a total condenser E-203
-(which also subcools the product, D-008) and reflux drum V-202 vented to the flare header on
+(which also subcools the product, D-008) and reflux drum V-202 vented to the LP flare header (D-022) on
 PIC-504 / PV-504; the reflux (156 t/h) is on the drum level LIC-505 / LV-505 and the product
 (104 t/h, the smaller branch) on flow FIC-507 / FV-507, taken off the reflux pump discharge;
 AI-509 (water) for Grade AA; TIC-502 / TV-502 on a stripping-section temperature; LIC-508 sends the
@@ -568,6 +569,47 @@ before a HAZOP.
 Open: start-up, shutdown and abnormal sequences (`control/sequences.yaml` empty); the K-102 trip to
 K-101 / XV-110 interlock; depressuring on I-201; a plant-wide air failure opens XV-304 and all vents
 at once (a simultaneous flare load for the relief study).
+
+## D-022 Protection added and deferred after the engineering review of PR #367 (2026-11-05)
+Decision, item by item (the independent review of PR #367; each item is either drawn now or
+deferred here with its reason and an open input):
+1. **K-101 suction side relief** (high): the suction side (V-103, SG-130, K-101 suction, 28 barg)
+   is tied to the 74.5 barg discharge through the fail-open UV-104 and CV-103 leak-back on a K-101
+   trip. PSV-115 on V-103 to the HP flare header is added (P-01, FL-136), set 28 barg ASSUMED;
+   cases: settle-out, fire. Whether designing the suction side for the settle-out pressure is the
+   better answer depends on the vendor's settle-out calculation (I-10).
+2. **V-101 high-high level** (high): LZ-313, own tap, stops K-102 and with it K-101 and XV-110
+   (C&E I-302): the loop must not keep receiving make-up gas without circulation. LIC-307's high
+   alarm stays the operator warning.
+3. **Column vacuum** (high): the column pressure loops can only release gas, so a loss of reboiler
+   heat with the condensers running pulls a vacuum. C-201, E-201 (process side), V-201, C-202,
+   E-203 (process side) and V-202 are designed for full vacuum (ASSUMED; the usual answer for
+   carbon-steel columns at 5 barg, cheaper than a vacuum relief on a large column); case F-HEAT in
+   the control philosophy. A nitrogen or fuel-gas make-up split range with PV-404 / PV-504 stays
+   the basic-engineering alternative (D-020).
+4. **Flare segregation** (medium): the HP loop (PSV-111, -112, -115, -302, -311, -312, XV-304)
+   discharges to an HP flare header, the columns (PSV-413, PSV-513 and the vent PV-504) to an LP
+   flare header, so loop gas depressured through XV-304 cannot back-flow into C-202 on a
+   simultaneous release; back pressures with the relief study (I-13).
+5. **Steam drum pressure over the catalyst life** (medium): the strategy text is dropped; PIC-207
+   stays at the D-003 value inside the 30 barg design of V-104 and the R-101 shell and below
+   PSV-208. Raising it needs the end-of-run drum pressure as the design basis (I-11).
+6. **V-104 high level** (medium): the independent high alarm LAH is put on LZ-211 (own tap, already
+   the low-low trip sensor). A high-high trip closing a BFW shutdown valve is deferred to the
+   HAZOP: the consequence is carry-over of boiler water into the MP steam header (an equipment and
+   steam-quality consequence, no process-safety one is identified at this stage), and a BFW trip
+   valve would itself remove the converter's cooling (I-12).
+7. **P-01 PIC-102 output** (medium): PIC-102 now cascades onto the drive's speed controller SIC-113
+   (signal drawn); the anti-surge controller UIC-104 gets its suction pressure from a dedicated
+   transmitter PT-114 instead of PIC-102, as anti-surge inputs usually are.
+8. **Line labels** (medium): every line carries its number (and DN where it fits) at least once on
+   its sheet; RF-433 and RF-534 show the number only (no room for the DN between the spare pump's
+   suction valves).
+Low items: the tags of XV-110, UV-104, UV-203, XV-304 and XV-306 are printed; the stale SG-104
+references are corrected; the PSV-302 case no longer claims K-101 into a blocked loop (PSV-111 at
+82 barg lifts first).
+Reason: concept-stage design, each protection either drawn or deferred explicitly with its open
+input, for the HAZOP to confirm.
 
 ## 3. Reaction and model evidence
 
@@ -637,3 +679,10 @@ ASSUMED (I-01, I-02). After the DWSIM run (D-014) the predictive checks pass exc
 - I-07 Read the current O-M-232 Grade AA limits.
 - I-08 Recycle ratio / purge / inerts trade-off and purge hydrogen recovery.
 - I-09 Closed 2026-11-01: the purge, which returns to the reformer fuel, is not a co-product (D-015).
+- I-10 K-101 settle-out pressure (casing, discharge, recycle volume) against the 28 barg suction
+  side: PSV-115 relief load, or design the suction side for settle-out (D-022, vendor).
+- I-11 End-of-run steam drum pressure: needed as the V-104 / R-101 shell design pressure and the
+  PSV-208 set before the drum pressure may be raised over the catalyst life (D-022).
+- I-12 V-104 high-high level with a BFW shutdown valve: deferred to the HAZOP (D-022).
+- I-13 Flare system: HP and LP headers, back pressure on each PSV and the simultaneous load on air
+  failure (D-021, D-022).

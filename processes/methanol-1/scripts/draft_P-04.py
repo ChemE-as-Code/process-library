@@ -18,6 +18,7 @@ from chemeascode.domains.piping.authoring import (  # noqa: E402
     Nozzle,
     Sheet,
     instrument,
+    label,
     offpage,
     tee,
     valve,
@@ -87,7 +88,7 @@ line(sheet, "CM-115", dn=250, fluid="Crude methanol", route=[
 psv413 = valve("PSV413", "GlobeValve", tag="PSV-413", at=(95, 60))
 line(sheet, "FL-443", dn=150, fluid="Relief gas", route=[
     c201["N7"], (95, 85), psv413,
-    offpage("out", at=(95, TOP), note="to flare header", rotation=270, note_at=(79, 20))],
+    offpage("out", at=(95, TOP), note="to LP flare header", rotation=270, note_at=(75, 20))],
     label_at=(83, 40))
 
 # ---- overhead, partial condenser on cooling water, reflux drum, off-gas to fuel
@@ -98,10 +99,10 @@ line(sheet, "PG-431", dn=500, fluid="Topping column overhead", route=[
 line(sheet, "CWR-441", dn=500, fluid="Cooling water return", route=[
     e201["S2"],
     offpage("out", at=(183, TOP), note="CW return", rotation=270, note_at=(169, 20))],
-    labels=False)
+    label_at=(171, 28))
 line(sheet, "CWS-440", dn=500, fluid="Cooling water", route=[
     offpage("in", at=(197, TOP), note="CW supply", rotation=90, note_at=(211, 20)),
-    e201["S1"]], labels=False)
+    e201["S1"]], label_at=(209, 28))
 pv404 = valve("PV404", "GlobeValve", tag="PV-404", at=(330, 40))
 line(sheet, "FG-116", dn=125, fluid="Fuel gas", route=[
     v201["N2"], (276, 40), pv404,
@@ -115,6 +116,7 @@ line(sheet, "RF-432", dn=150, fluid="Reflux", route=[
 line(sheet, "RF-433", dn=150, fluid="Reflux", route=[
     suction.branch, valve("HV433", "GateValve", at=(250, 174)),
     valve("SR433", "Strainer", at=(250, 167)), (250, 160), p201b["N1"]], labels=False)
+label(sheet, "Line_RF433", "LineNumber", at=(244, 177))
 join = tee("T435", at=(230, 132), branch="right", branch_dn=125)
 lv405 = valve("LV405", "GlobeValve", tag="LV-405", at=(180, REFLUX))
 line(sheet, "RF-434", dn=125, fluid="Reflux", route=[
@@ -123,7 +125,7 @@ line(sheet, "RF-434", dn=125, fluid="Reflux", route=[
     (150, 85), c201["N3"]], label_at=(200, 128))
 line(sheet, "RF-435", dn=125, fluid="Reflux", route=[
     p201b["N2"], valve("CV435", "SwingCheckValve", at=(265, 146)),
-    valve("HV435", "GateValve", at=(265, 140)), (265, 132), join.branch], labels=False)
+    valve("HV435", "GateValve", at=(265, 140)), (265, 132), join.branch], label_at=(247, 125))
 
 # ---- thermosyphon reboiler E-202 on LP steam, condensate to the header
 line(sheet, "CM-436", dn=250, fluid="Topping column bottoms", route=[
@@ -144,10 +146,10 @@ line(sheet, "CD-439", dn=100, fluid="Condensate", route=[
 bsuction = tee("T444", at=(128, 220), branch="down", branch_dn=300)
 line(sheet, "CM-444", dn=300, fluid="Stabilised methanol", route=[
     c201["N4"], (120, 220), bsuction, valve("HV444", "GateValve", at=(134, 220)),
-    valve("SR444", "Strainer", at=(141, 220)), p202a["N1"]], labels=False)
+    valve("SR444", "Strainer", at=(141, 220)), p202a["N1"]], label_at=(108, 208))
 line(sheet, "CM-445", dn=300, fluid="Stabilised methanol", route=[
     bsuction.branch, (128, 238), (175, 238), valve("HV445", "GateValve", at=(175, 232)),
-    valve("SR445", "Strainer", at=(175, 226)), (175, 220), p202b["N1"]], labels=False)
+    valve("SR445", "Strainer", at=(175, 226)), (175, 220), p202b["N1"]], label_at=(117, 229))
 bjoin = tee("T446", at=(155, 194), branch="right", branch_dn=250)
 lv408 = valve("LV408", "GlobeValve", tag="LV-408", at=(172, BOT))
 line(sheet, "CM-117", dn=250, fluid="Stabilised methanol", route=[
@@ -156,7 +158,7 @@ line(sheet, "CM-117", dn=250, fluid="Stabilised methanol", route=[
     offpage("out", at=(EDGE, BOT), note="to C-202, P-05")], label_at=(372, 196))
 line(sheet, "CM-446", dn=250, fluid="Stabilised methanol", route=[
     p202b["N2"], valve("CV446", "SwingCheckValve", at=(190, 206)),
-    valve("HV446", "GateValve", at=(190, 200)), (190, 194), bjoin.branch], labels=False)
+    valve("HV446", "GateValve", at=(190, 200)), (190, 194), bjoin.branch], label_at=(202, 202))
 make_safety_valve(sheet, "PSV413", label_at=(83, 60))
 
 # ---- instruments
@@ -182,7 +184,7 @@ notes(sheet,
       "off-gas PV-404. LIC-405: all condensed liquid is refluxed, on the V-201 level (D-020)",
       "LIC-408: sump level on the bottoms LV-408 to C-202. LZ-411: V-201 level low-low stops "
       "P-201A/B (C&E I-401). Pump minimum-flow protection with the pump vendor (D-020)",
-      "PSV-413: C-201 and V-201 (fire, cooling water failure, gas blow-by from V-101 through "
-      "V-102). Overhead, reflux and reboiler DN ASSUMED (D-016)")
+      "PSV-413: C-201 and V-201 (fire, CW failure, gas blow-by through V-102), to the LP flare "
+      "header. C-201, E-201, V-201 designed for full vacuum (loss of heat). DN ASSUMED (D-020)")
 
 save(sheet, target)

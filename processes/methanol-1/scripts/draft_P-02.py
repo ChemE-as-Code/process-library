@@ -33,6 +33,7 @@ from pid_common import (  # noqa: E402
     make_safety_valve,
     notes,
     save,
+    tag_label,
 )
 
 frame = Path(sys.argv[1])
@@ -57,13 +58,13 @@ r101 = equipment(sheet, "TubularHeatExchanger", "R-101", shape=HX, at=(300, 135)
                  nozzles=[Nozzle("T1", (0, -28), 900), Nozzle("T2", (0, 28), 900),
                           Nozzle("S1", (11.2, -20), 800), Nozzle("S2", (11.2, 20), 600)],
                  label_at=(279, 135))
-v104 = equipment(sheet, "Vessel", "V-104", shape=DRUM, at=(335, 45), scale=(1.0, 1.8),
+v104 = equipment(sheet, "Vessel", "V-104", shape=DRUM, at=(335, 55), scale=(1.0, 1.8),
                  rotation=90,
                  nozzles=[Nozzle("N1", (-19, -10), 500), Nozzle("N2", (-9, -10), 150),
-                          Nozzle("N3", (9, -10), 200), Nozzle("N4", (27, -3), 50),
+                          Nozzle("N3", (15, -10), 200), Nozzle("N4", (27, -3), 50),
                           Nozzle("N5", (-27, -5), 800), Nozzle("N6", (13, 10), 600),
                           Nozzle("N7", (23, 10), 50), Nozzle("N9", (27, 5), 50)],
-                 label_at=(335, 45))
+                 label_at=(335, 55))
 
 # ---- recycle gas from V-101 (P-03) and make-up gas from E-101 (P-01) to the circulator
 mix = tee("T104A", at=(40, Y), branch="up", branch_dn=350)
@@ -83,7 +84,7 @@ line(sheet, "SG-105", dn=700, fluid="Synthesis gas", route=[
     label_at=(172, 140))
 uv203 = valve("UV203", "GlobeValve", tag="UV-203", at=(110, ASR))
 line(sheet, "SG-231", dn=600, fluid="Synthesis gas", route=[
-    asr_out.branch, (145, ASR), uv203, (65, ASR), asr_in.branch], label_at=(125, 214))
+    asr_out.branch, (145, ASR), uv203, (65, ASR), asr_in.branch], label_at=(130, 214))
 
 # ---- converter feed: E-102 cold outlet, bypass return, R-101 tubes from the top
 byp_in = tee("T230B", at=(268, BYP), branch="left", branch_dn=350)
@@ -104,7 +105,7 @@ line(sheet, "PG-108", dn=900, fluid="Converter effluent", route=[
 # The riser enters the drum head above the normal liquid level (drum centre line); only the
 # downcomer leaves from the drum bottom. BFW, MP steam and the relief valve are on the drum top.
 line(sheet, "SW-232", dn=800, fluid="Steam-water mixture", route=[
-    r101["S1"], (318, 115), (318, 64), (298, 64), (298, 40), v104["N5"]],
+    r101["S1"], (318, 115), (318, 74), (298, 74), (298, 50), v104["N5"]],
     label_at=(333, 92))
 line(sheet, "BW-233", dn=600, fluid="Boiler water", route=[
     v104["N6"], (348, 155), r101["S2"]], label_at=(362, 118))
@@ -112,21 +113,21 @@ pv207 = valve("PV207", "GlobeValve", tag="PV-207", at=(316, 24))
 line(sheet, "MS-234", dn=500, fluid="MP steam", route=[
     v104["N1"], pv207,
     offpage("out", at=(316, TOP), note="MP steam header", rotation=270, note_at=(290, 17))],
-    labels=False)
-lv209 = valve("LV209", "GlobeValve", tag="LV-209", at=(344, 24))
+    label_at=(305, 39))
+lv209 = valve("LV209", "GlobeValve", tag="LV-209", at=(350, 24))
 line(sheet, "BF-235", dn=200, fluid="Boiler feed water", route=[
-    offpage("in", at=(344, TOP), note="BFW header", rotation=90, note_at=(366, 17)),
-    lv209, v104["N3"]], labels=False)
-psv208 = valve("PSV208", "GlobeValve", tag="PSV-208", at=(326, 26))
+    offpage("in", at=(350, TOP), note="BFW header", rotation=90, note_at=(370, 12)),
+    lv209, v104["N3"]], label_at=(361, 32))
+psv208 = valve("PSV208", "GlobeValve", tag="PSV-208", at=(326, 28))
 line(sheet, "MS-236", dn=150, fluid="MP steam", route=[
     v104["N2"], psv208,
-    offpage("out", at=(326, TOP), note="to atm", rotation=270, note_at=(333, 18))],
-    labels=False)
+    offpage("out", at=(326, TOP), note="to atm", rotation=270, note_at=(338, 19))],
+    label_at=(338, 37))
 line(sheet, "BD-237", dn=50, fluid="Blowdown", route=[
-    v104["N7"], (358, 68), valve("HV237", "GlobeValve", at=(382, 68)),
-    offpage("out", at=(EDGE, 68), note="to blowdown (B/L)", note_at=(392, 62))],
-    labels=False)
-make_safety_valve(sheet, "PSV208", label_at=(335, 30))
+    v104["N7"], (358, 78), valve("HV237", "GlobeValve", at=(382, 78)),
+    offpage("out", at=(EDGE, 78), note="to blowdown (B/L)", note_at=(392, 72))],
+    label_at=(372, 85))
+make_safety_valve(sheet, "PSV208", label_at=(338, 28))
 
 # ---- instruments
 uic = instrument(sheet, "UIC-203", at=(110, 190), signal_to=uv203, fail_action="FO")
@@ -140,13 +141,14 @@ instrument(sheet, "TI-206", at=(285, 198), sensing="Line_PG107_S1", sensing_at=(
 instrument(sheet, "TZ-210", at=(262, 198), sensing="Line_PG107_S1", sensing_at=(262, 180))
 instrument(sheet, "PIC-207", at=(298, 31), sensing="Line_MS234_S1", sensing_at=(316, 31),
            signal_to=pv207, signal_points=[(298, 24)], fail_action="FO")
-instrument(sheet, "LIC-209", at=(374, 31), sensing=v104["N4"], sensing_points=[(374, 42)],
-           signal_to=lv209, signal_points=[(358, 31), (358, 24)], fail_action="FO")
-instrument(sheet, "LZ-211", at=(386, 50), sensing=v104["N9"])
+instrument(sheet, "LIC-209", at=(378, 38), sensing=v104["N4"], sensing_points=[(378, 52)],
+           signal_to=lv209, signal_points=[(378, 24)], fail_action="FO")
+instrument(sheet, "LZ-211", at=(386, 60), sensing=v104["N9"])
 fail_label(sheet, "Inst_UIC203", (110, ASR), "up")
 fail_label(sheet, "Inst_TIC205", (232, BYP), "up")
 fail_label(sheet, "Inst_PIC207", (316, 24), "left")
-fail_label(sheet, "Inst_LIC209", (344, 24), "right")
+fail_label(sheet, "Inst_LIC209", (350, 24), "right")
+tag_label(sheet, "UV203", (110, 211))
 
 notes(sheet,
       "TIC-205: converter inlet temperature on the E-102 cold bypass TV-205. PIC-207: steam drum "

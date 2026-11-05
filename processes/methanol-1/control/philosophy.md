@@ -3,7 +3,7 @@
 # Skill control-narrative. D-021.
 schema: cheme/control_philosophy/v1
 objectives:
-  - {id: OBJ-1, title: Take all the make-up gas the front end delivers and keep both compressors out of surge, loops: [PIC-102, UIC-104, UIC-203]}
+  - {id: OBJ-1, title: Take all the make-up gas the front end delivers and keep both compressors out of surge, loops: [PIC-102, SIC-113, UIC-104, UIC-203]}
   - {id: OBJ-2, title: Hold the converter inside the catalyst window (inlet temperature and shell boiling temperature), loops: [TIC-205, PIC-207, LIC-209]}
   - {id: OBJ-3, title: Hold the loop pressure and its inerts by the purge, loops: [PIC-308, FIC-303]}
   - {id: OBJ-4, title: Keep the liquid seals between pressure levels, loops: [LIC-307, LIC-310, LIC-408, LIC-508]}
@@ -12,7 +12,7 @@ objectives:
 failures:
   - id: F-AIR
     title: Loss of instrument air
-    response: "Every actuated valve goes to the fail position drawn on the P&IDs and listed in control/instrument-list.yaml (D-021). Closed: the make-up gas shutdown valve XV-110, the purge FV-303, the crude let-down LV-307 and XV-306, LV-310, the column steam TV-402 and TV-502, the bottoms LV-408 and LV-508, the product FV-507. Open: the anti-surge UV-104 and UV-203, the converter bypass TV-205, the steam PV-207, the BFW LV-209, the depressuring XV-304, the vents PV-309, PV-404 and PV-504, the refluxes LV-405 and LV-505. The make-up gas stops, the loop depressures to the flare (XV-304 fail open), the converter cools, the columns lose their heat and stay on reflux. XV-304 and the vents open at the same moment: a plant-wide air failure is a simultaneous flare load for the relief study (D-021)."
+    response: "Every actuated valve goes to the fail position drawn on the P&IDs and listed in control/instrument-list.yaml (D-021). Closed: the make-up gas shutdown valve XV-110, the purge FV-303, the crude let-down LV-307 and XV-306, LV-310, the column steam TV-402 and TV-502, the bottoms LV-408 and LV-508, the product FV-507. Open: the anti-surge UV-104 and UV-203, the converter bypass TV-205, the steam PV-207, the BFW LV-209, the depressuring XV-304, the vents PV-309, PV-404 and PV-504, the refluxes LV-405 and LV-505. The make-up gas stops, the loop depressures to the HP flare header (XV-304 fail open), the converter cools, the columns lose their heat and stay on reflux. XV-304 and the vents open at the same moment: a plant-wide air failure is a simultaneous flare load for the relief study. The column vent PV-504 and the column PSVs go to the LP flare header, so the loop gas released through XV-304 cannot back-flow into C-202 (D-021)."
     loops: [PIC-102, UIC-104, UIC-203, TIC-205, PIC-207, LIC-209, FIC-303, LIC-307, TIC-402, TIC-502]
   - id: F-POWER
     title: Loss of electric power
@@ -29,8 +29,13 @@ failures:
     interlocks: [I-202]
   - id: F-K102
     title: Recycle circulator trip
-    response: "The loop flow stops; the make-up gas raises the loop pressure towards PSV-302 unless K-101 is stopped. A K-102 trip should stop K-101 and close XV-110 through the compressor packages' machine protection; that interlock is not in the C&E yet and is an open point for the HAZOP (D-021)."
+    response: "The loop flow stops; the make-up gas raises the loop pressure unless K-101 is stopped (PSV-111 on the K-101 discharge is the relief layer). The V-101 high-high level trip I-302 stops K-102 together with K-101 and XV-110; a K-102 machine trip from its own package should do the same, which is not in the C&E yet and is an open point for the HAZOP (D-021)."
     loops: [PIC-308, PIC-102]
+    interlocks: [I-302]
+  - id: F-HEAT
+    title: Loss of reboiler heat (LP steam failure, TV-402 or TV-502 closed) with the condensers running
+    response: "The column overheads condense faster than they are made and the column pressure falls; PV-404 and PV-504 can only release gas, so nothing holds the pressure up and the columns, condensers and reflux drums are pulled towards vacuum. C-201, E-201, V-201, C-202, E-203 and V-202 are designed for full vacuum (ASSUMED, D-020), so no vacuum breaker or gas make-up is drawn; the operator cuts the cooling water and the feed. A nitrogen or fuel-gas make-up split range with the vents is the basic-engineering alternative (D-020)."
+    loops: [TIC-402, TIC-502, PIC-404, PIC-504]
 unresolved:
   - "Start-up, shutdown and abnormal sequences (control/sequences.yaml) are not written in this first issue (D-021)."
   - "The K-102 trip to K-101 / XV-110 interlock and the depressuring on I-201 are questions for the HAZOP (D-021)."
@@ -65,8 +70,9 @@ is never counted as a safeguard.
 
 A change of the front-end rate moves the K-101 speed (PIC-102) and, after the loop has
 responded, the purge (PIC-308). A falling catalyst activity shows as a rising loop pressure and
-a falling converter duty; the operator raises the steam drum pressure (PIC-207) over the
-catalyst life. The inerts (AI-305) follow the purge. The columns follow their feed on level; the
+a falling converter duty; the steam drum pressure (PIC-207) stays at its D-003 value inside the
+V-104 design pressure, and raising it over the catalyst life is not part of this issue (D-018,
+I-11). The inerts (AI-305) follow the purge. The columns follow their feed on level; the
 product rate FIC-507 is set from the feed and corrected on the water analyser AI-509.
 
 ## Operator and automatic actions
@@ -79,8 +85,9 @@ AI-305), sets the product rate, starts and stops the spare pumps, depressures th
 ## Equipment and utility failures
 
 Loss of instrument air (F-AIR), power (F-POWER), cooling water (F-CW) and boiler feed water
-(F-BFW) and a circulator trip (F-K102) are described in the front matter with the loops and trips
-involved.
+(F-BFW), a circulator trip (F-K102) and a loss of reboiler heat with the condensers running
+(F-HEAT, the vacuum case of the columns) are described in the front matter with the loops and
+trips involved.
 
 ## Assumptions and open points
 

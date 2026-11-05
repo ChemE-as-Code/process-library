@@ -20,8 +20,6 @@ loops:
     measurement: [{tag: PIC-102}]
     controller: PIC-102
     action: direct
-    final_elements:
-      - {tag: K-101, kind: drive, actuator: electric, fail: stop}
     targets:
       - {kind: setpoint, value: 2600, unit: kPa(a), provenance: assumed, source: "process/flowsheet.yaml design case (S1 ASSUMED, D-004)", cases: [design], stream: S1, property: pressure}
     modes: [manual, auto]
@@ -29,15 +27,34 @@ loops:
     alarms:
       - {tag: PIC-102, condition: PAH, response: "K-101 at maximum speed: reduce the front-end production; check UV-104 for passing."}
       - {tag: PIC-102, condition: PAL, response: "Front end short of gas: reduce the K-101 speed in manual; the anti-surge UIC-104 protects the machine."}
-    rationale: "Level-to-feed in gas form: the front end sets the make-up rate, K-101 takes what arrives (D-017). Speed control of a centrifugal machine on a variable-speed drive saves the throttling loss; the anti-surge loop UIC-104 overrides at low flow by recycling."
+    rationale: "Level-to-feed in gas form: the front end sets the make-up rate, K-101 takes what arrives (D-017). The output is the set point of the speed controller SIC-113 of the variable-speed drive (cascade); speed control of a centrifugal machine saves the throttling loss; the anti-surge loop UIC-104 recycles at low flow."
     operator: Watches the make-up rate FI-101 against the loop pressure PIC-308; a rising loop pressure with a steady make-up rate points to a converter losing activity.
+  - id: SIC-113
+    title: K-101 speed (variable-speed drive)
+    purpose: Hold the K-101 speed at the set point PIC-102 gives.
+    section: CMP
+    cases: [design]
+    variable: speed
+    measurement: [{tag: SIC-113}]
+    controller: SIC-113
+    action: reverse
+    final_elements:
+      - {tag: K-101, kind: drive, actuator: electric, fail: stop}
+    targets:
+      - {kind: setpoint, unit: rpm, unresolved: "the speed range comes with the compressor and its drive (vendor)"}
+    modes: [manual, auto, cascade]
+    normal_mode: cascade
+    links:
+      - {type: cascade, loop: PIC-102}
+    interlocks: [I-101, I-201, I-202, I-302]
+    rationale: "The speed loop of the drive package; the trips stop the machine through the drive, so the loop and the trips share K-101 (a machine stop is the trip's final element by design; the HAZOP judges independence, D-021)."
   - id: UIC-104
     title: K-101 anti-surge
     purpose: Keep K-101 away from its surge line by recycling cooled gas from after E-101 to the suction.
     section: CMP
     cases: [design]
     variable: flow
-    measurement: [{tag: FT-103, role: suction flow}, {tag: PT-105, role: discharge pressure}, {tag: PIC-102, role: suction pressure}]
+    measurement: [{tag: FT-103, role: suction flow}, {tag: PT-114, role: suction pressure}, {tag: PT-105, role: discharge pressure}]
     controller: UIC-104
     action: reverse
     final_elements:
@@ -103,8 +120,8 @@ loops:
     alarms:
       - {tag: PIC-207, condition: PAH, response: "Check PV-207 and the MP steam header; PSV-208 is the layer behind."}
     interlocks: [I-201, I-202]
-    rationale: "In a boiling-water converter the shell temperature is the saturation temperature of the drum pressure (D-003, D-018); the operator raises the set point over the catalyst life to keep the activity. A cascade from the converter outlet temperature TI-206 onto PIC-207 is an option for basic engineering. PV-207 fails open (ASSUMED): the drum pressure and so the converter temperature fall on air failure; the level swell that follows is for the HAZOP."
-    operator: Moves the set point slowly over the catalyst life, watching TI-206 and AI-305.
+    rationale: "In a boiling-water converter the shell temperature is the saturation temperature of the drum pressure (D-003, D-018). The set point stays at the D-003 value, inside the 30 barg design of V-104 and the R-101 shell and below PSV-208; raising it over the catalyst life would need the end-of-run drum pressure as the design basis and is not part of this issue (D-018, I-11). A cascade from the converter outlet temperature TI-206 onto PIC-207 is an option for basic engineering. PV-207 fails open (ASSUMED): the drum pressure and so the converter temperature fall on air failure; the level swell that follows is for the HAZOP."
+    operator: Watches TI-206 and AI-305 for the catalyst activity; does not raise the set point beyond the D-003 value (D-018).
   - id: LIC-209
     title: Steam drum level (boiler feed water)
     purpose: Hold the water level in V-104 so the R-101 shell stays flooded.
@@ -123,6 +140,7 @@ loops:
     alarms:
       - {tag: LIC-209, condition: LAL, response: "Check the BFW supply and LV-209 before the low-low trip I-202 stops the make-up gas."}
       - {tag: LIC-209, condition: LAH, response: "Carry-over into the MP steam: check LV-209; reduce the BFW by hand."}
+      - {tag: LZ-211, condition: LAH, response: "Independent high level (LV-209 fails open, so LIC-209 alone cannot be trusted): close the BFW block valve by hand; a high-high BFW shutdown valve is deferred to the HAZOP (D-018, I-12)."}
     interlocks: [I-202]
     rationale: "Single element in this first issue; a steam drum normally uses three-element control (level with the steam and BFW flows) against the swell and shrink on load changes, at basic engineering (D-018). LV-209 fails open: losing water on a converter shell is worse than an overfilled drum."
   - id: PIC-308
@@ -180,7 +198,7 @@ loops:
     alarms:
       - {tag: LIC-307, condition: LAL, response: "Check LV-307 for passing before the low-low trip I-301 closes XV-306."}
       - {tag: LIC-307, condition: LAH, response: "Liquid towards the circulator: check LV-307 and V-102."}
-    interlocks: [I-301]
+    interlocks: [I-301, I-302]
     rationale: "LV-307 fails closed so that a failure does not blow loop gas into V-102 (10 barg design); the separate XV-306 on its own transmitter LZ-306 backs it up (D-019)."
   - id: PIC-309
     title: LP flash drum pressure
@@ -247,7 +265,7 @@ loops:
       - {kind: setpoint, value: 150, unit: kPa(a), provenance: assumed, source: "process/flowsheet.yaml design case (S16 ASSUMED, D-008)", cases: [design], stream: S16, property: pressure}
     modes: [manual, auto]
     normal_mode: auto
-    rationale: "A partial condenser with a non-condensable off-gas: the off-gas valve holds the pressure (D-020). PV-404 fails open."
+    rationale: "A partial condenser with a non-condensable off-gas: the off-gas valve holds the pressure (D-020). PV-404 fails open. It can only release gas: a loss of reboiler heat with the condenser running pulls a vacuum, which C-201, E-201 and V-201 are designed for (full vacuum, D-020)."
   - id: LIC-405
     title: Topping column reflux drum level (reflux)
     purpose: Return all the condensed liquid as reflux, on the V-201 level.
@@ -301,7 +319,7 @@ loops:
     unresolved: ["Control tray location and set point (rigorous column model)."]
   - id: PIC-504
     title: Refining column pressure (vent)
-    purpose: Hold the refining column pressure by venting the reflux drum to the flare header.
+    purpose: Hold the refining column pressure by venting the reflux drum to the LP flare header.
     section: REF
     cases: [design]
     variable: pressure
@@ -314,7 +332,7 @@ loops:
       - {kind: setpoint, value: 110, unit: kPa(a), provenance: assumed, source: "D-008: refining column top 110 kPa(a), ASSUMED"}
     modes: [manual, auto]
     normal_mode: auto
-    rationale: "A total condenser with almost no non-condensables: a vent alone holds the pressure only while the condenser has spare duty; a nitrogen make-up (split range with PV-504) or a flooded condenser is the basic-engineering choice (D-020)."
+    rationale: "A total condenser with almost no non-condensables: a vent alone holds the pressure only while the condenser has spare duty; a nitrogen make-up (split range with PV-504) or a flooded condenser is the basic-engineering choice (D-020). The vent goes to the LP flare header, not the HP one the loop depressures into, so loop gas cannot back-flow into C-202 (D-021). Pressure control can only release gas, so a loss of reboiler heat with the condenser running pulls a vacuum: C-202, E-203 and V-202 are designed for full vacuum (D-020)."
     unresolved: ["Pressure control scheme of a total condenser: nitrogen split range, hot-vapour bypass or flooded condenser (D-020)."]
   - id: LIC-505
     title: Refining column reflux drum level (reflux)

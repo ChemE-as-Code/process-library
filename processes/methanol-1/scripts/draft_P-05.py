@@ -19,6 +19,7 @@ from chemeascode.domains.piping.authoring import (  # noqa: E402
     Nozzle,
     Sheet,
     instrument,
+    label,
     offpage,
     tee,
     valve,
@@ -89,7 +90,7 @@ line(sheet, "CM-117", dn=250, fluid="Stabilised methanol", route=[
 psv513 = valve("PSV513", "GlobeValve", tag="PSV-513", at=(95, 55))
 line(sheet, "FL-543", dn=200, fluid="Relief gas", route=[
     c202["N7"], (95, 80), psv513,
-    offpage("out", at=(95, TOP), note="to flare header", rotation=270, note_at=(79, 20))],
+    offpage("out", at=(95, TOP), note="to LP flare header", rotation=270, note_at=(75, 20))],
     label_at=(83, 36))
 
 # ---- overhead, total condenser on cooling water, reflux drum, vent to the flare header
@@ -100,14 +101,14 @@ line(sheet, "ME-531", dn=300, fluid="Methanol condensate", route=[
 line(sheet, "CWR-541", dn=1400, fluid="Cooling water return", route=[
     e203["S2"],
     offpage("out", at=(183, TOP), note="CW return", rotation=270, note_at=(169, 20))],
-    labels=False)
+    label_at=(170, 25))
 line(sheet, "CWS-540", dn=1400, fluid="Cooling water", route=[
     offpage("in", at=(197, TOP), note="CW supply", rotation=90, note_at=(211, 20)),
-    e203["S1"]], labels=False)
+    e203["S1"]], label_at=(210, 25))
 pv504 = valve("PV504", "GlobeValve", tag="PV-504", at=(330, 35))
 line(sheet, "VG-532", dn=50, fluid="Vent gas", route=[
     v202["N2"], (276, 35), pv504,
-    offpage("out", at=(EDGE, 35), note="to flare header")], label_at=(372, 43))
+    offpage("out", at=(EDGE, 35), note="to LP flare header")], label_at=(372, 43))
 
 # ---- reflux on the V-202 level; product on flow, taken off the reflux below the pumps
 suction = tee("T533", at=(250, 175), branch="up", branch_dn=300)
@@ -117,6 +118,7 @@ line(sheet, "RF-533", dn=300, fluid="Methanol", route=[
 line(sheet, "RF-534", dn=300, fluid="Methanol", route=[
     suction.branch, valve("HV534", "GateValve", at=(250, 169)),
     valve("SR534", "Strainer", at=(250, 162)), (250, 155), p203b["N1"]], labels=False)
+label(sheet, "Line_RF534", "LineNumber", at=(244, 172))
 join = tee("T536", at=(230, 127), branch="right", branch_dn=300)
 product = tee("T118", at=(200, REFLUX), branch="down", branch_dn=200)
 lv505 = valve("LV505", "GlobeValve", tag="LV-505", at=(170, REFLUX))
@@ -126,7 +128,7 @@ line(sheet, "RF-535", dn=300, fluid="Methanol", route=[
     (150, REFLUX), (150, 80), c202["N3"]], label_at=(176, 122))
 line(sheet, "RF-536", dn=300, fluid="Methanol", route=[
     p203b["N2"], valve("CV536", "SwingCheckValve", at=(265, 141)),
-    valve("HV536", "GateValve", at=(265, 135)), (265, 127), join.branch], labels=False)
+    valve("HV536", "GateValve", at=(265, 135)), (265, 127), join.branch], label_at=(247, 120))
 fv507 = valve("FV507", "GlobeValve", tag="FV-507", at=(330, PRODUCT))
 line(sheet, "ME-118", dn=200, fluid="Methanol", route=[
     product.branch, (200, PRODUCT), fv507,
@@ -152,10 +154,10 @@ line(sheet, "CD-542", dn=200, fluid="Condensate", route=[
 bsuction = tee("T544", at=(128, 228), branch="down", branch_dn=80)
 line(sheet, "WW-544", dn=80, fluid="Process water", route=[
     c202["N4"], (120, 228), bsuction, valve("HV544", "GateValve", at=(134, 228)),
-    valve("SR544", "Strainer", at=(141, 228)), p204a["N1"]], labels=False)
+    valve("SR544", "Strainer", at=(141, 228)), p204a["N1"]], label_at=(108, 212))
 line(sheet, "WW-545", dn=80, fluid="Process water", route=[
     bsuction.branch, (128, 244), (175, 244), valve("HV545", "GateValve", at=(175, 238)),
-    valve("SR545", "Strainer", at=(175, 233)), (175, 228), p204b["N1"]], labels=False)
+    valve("SR545", "Strainer", at=(175, 233)), (175, 228), p204b["N1"]], label_at=(117, 235))
 bjoin = tee("T546", at=(155, 205), branch="right", branch_dn=65)
 lv508 = valve("LV508", "GlobeValve", tag="LV-508", at=(165, BOT))
 line(sheet, "WW-119", dn=65, fluid="Process water", route=[
@@ -164,7 +166,7 @@ line(sheet, "WW-119", dn=65, fluid="Process water", route=[
     offpage("out", at=(EDGE, BOT), note="to wastewater treatment (B/L)")], label_at=(380, 208))
 line(sheet, "WW-546", dn=65, fluid="Process water", route=[
     p204b["N2"], valve("CV546", "SwingCheckValve", at=(190, 215)),
-    valve("HV546", "GateValve", at=(190, 210)), (190, 205), bjoin.branch], labels=False)
+    valve("HV546", "GateValve", at=(190, 210)), (190, 205), bjoin.branch], label_at=(202, 212))
 make_safety_valve(sheet, "PSV513", label_at=(83, 55))
 
 # ---- instruments
@@ -194,7 +196,7 @@ notes(sheet,
       "FIC-507: product on flow, the smaller branch (D-020). AI-509: water in the Grade AA product",
       "PIC-504: column pressure on the vent PV-504. LIC-508: sump level on the bottoms LV-508. "
       "LZ-511: V-202 level low-low stops P-203A/B (C&E I-501). Fusel-oil draw not modelled (D-008)",
-      "PSV-513: C-202 and V-202 (fire, cooling water failure). E-203 also subcools the product "
-      "(D-008). Overhead, reflux and reboiler DN ASSUMED (D-016)")
+      "PSV-513: C-202 and V-202 (fire, cooling water failure), to the LP flare header like PV-504. "
+      "C-202, E-203, V-202 designed for full vacuum (loss of heat). DN ASSUMED (D-016, D-020)")
 
 save(sheet, target)

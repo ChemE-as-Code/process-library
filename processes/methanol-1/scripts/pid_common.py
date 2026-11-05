@@ -70,6 +70,11 @@ def fail_label(sheet, instrument_id, valve_at, side):
     sheet.find(label_id).set("type", "Plant/Diagram.FailActionLabel")
 
 
+def tag_label(sheet, valve_id, at):
+    """The tag (PipingComponentNumber) of a shutdown or anti-surge valve printed beside it."""
+    authoring.label(sheet, valve_id, "PipingComponentNumber", at=at)
+
+
 def notes(sheet, *texts):
     """The sheet notes, one per row below the drawing, left-aligned."""
     for text, y in zip(texts, NOTE_Y, strict=False):
