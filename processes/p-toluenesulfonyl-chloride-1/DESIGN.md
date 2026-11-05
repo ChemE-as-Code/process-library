@@ -30,6 +30,7 @@ the locator is the part of the document).
 | SRC-8 | processes/btx-1, chlor-alkali-1, asu-1 (this library) | toluene (a co-product of reformate extraction), caustic soda 50 wt%, gaseous nitrogen | library, internal | feed links (D-004, D-012) |
 | SRC-9 | Ullmann's Encyclopedia of Industrial Chemistry: Benzenesulfonic Acids and Their Derivatives (doi:10.1002/14356007.a03_507) and Chlorosulfuric Acid (doi:10.1002/14356007.a07_017.pub2) | - | not read (licensed); named by the route scouting and by Wikipedia | leads only, nothing taken |
 | SRC-10 | Harding, V. J. (1921) J. Chem. Soc., Trans. 119, 1261: the sulphonation of toluene with chlorosulphonic acid | - | not read (title and metadata only; named by SRC-1 as giving a favourable p:o ratio at higher temperature) | lead only |
+| SRC-11 | Property data of core's environment and the NIST WebBook: the `chemicals` 1.5.2 package (its packaged CRC Handbook tables: `chemicals.miscdata.CRC_inorganic_data` and `CRC_organic_data` for densities and boiling points, `chemicals.heat_capacity.CRC_standard_data` for heat capacities; `chemicals.phase_change.Tb`), CoolProp's IAPWS water (saturation, latent heat, viscosity, heat capacity), and the NIST Chemistry WebBook, SRD 69 (https://webbook.nist.gov: toluene and NH4Cl condensed-phase data, toluene and HCl phase-change data) | per component in `process/materials.yaml`; the dryer's latent heats (D-008); LP steam saturation; the wash filtrates' viscosity (D-007) | open data packages queried and WebBook pages read (2026-11-05); facts only. The CRC values come from the tables packaged in `chemicals`, not from the printed (licensed) handbook | materials, D-007, D-008, D-009 |
 
 Searched and not found openly (2026-11-05): kinetics or reaction calorimetry of the
 chlorosulfonation of toluene, a sourced formation enthalpy of liquid chlorosulfonic acid or a
@@ -71,9 +72,11 @@ process makes chlorosulfonic acid (SO3 + HCl; sulfuric-acid-1's SO3 is internal)
 chloride.
 
 ## D-002 Capacity, product and operating hours (2026-11-05)
-Decision: 1000 t/a dried p-TsCl, 7920 h/a (330 days of 24 h), ASSUMED. Product: 99.7 wt%
-p-TsCl, 0.2 wt% water, 0.06 wt% H2SO4, 0.02 wt% NH4HSO4, toluenesulfonic acids and o-TsCl below
-0.01 wt% each (D-007, D-008).
+Decision: 1000 t/a dried p-TsCl, 7920 h/a (330 days of 24 h), ASSUMED. Modelled product: 99.7
+wt% p-TsCl, 0.2 wt% water, 0.06 wt% H2SO4, 0.02 wt% NH4HSO4, toluenesulfonic acids and o-TsCl
+below 0.01 wt% each (D-007, D-008). **The 99.7 wt% is an upper bound, not a specification**:
+the cake's retention of the o-TsCl oil is not modelled (L-4), and the only source's crude (SRC-1,
+not washed free of the oil) is 90 % para. The product specification is an open input.
 Reason: no open market or plant figure was found; p-TsCl is a fine-chemical reagent and
 intermediate (tosylates, sulfonamides), larger than NBS (500 t/a) but still a batch product. The
 LCI is per kg and does not depend on the scale; the batch size does (D-003).
@@ -90,12 +93,12 @@ Decision: one batch makes 1748.95 kg of dried p-TsCl (stream S24); the recipe
 - QUENCH on Q-101 over E102, Q101 and CR101: dose 4 h and post-reaction 0.02 h (Q101's model),
   precipitation hold 1 h, slurry transfer 1 h, rinse 0.5 h, next heel 0.5 h, heel cooled
   298 -> 288 K 0.53 h (jacket): 7.55 h;
-- FILTER on F-101 over F101, W101, F102, W102 and F103: filtrations 5.59 h, 1.29 h and 1.26 h
+- FILTER on F-101 over F101, W101, F102, W102 and F103: filtrations 5.59 h, 1.34 h and 1.39 h
   (Ruth, from the filters' filtration data), two reslurry washes 0.5 h each, discharge 0.5 h,
-  rinse 0.5 h: 10.13 h;
+  rinse 0.5 h: 10.33 h;
 - DRY on DR-101: receive 0.5 h, dry 11.50 h (D101's drying rate on 15 m2), discharge 0.5 h:
   12.50 h.
-R-101 is the bottleneck: cycle 13.85 h, 571.8 batches in 7920 h; one batch takes 36.5 h from
+R-101 is the bottleneck: cycle 13.85 h, 571.8 batches in 7920 h; one batch takes 36.7 h from
 the purge to the dryer's discharge. The flowsheet's flows are the recipe's year averages:
 1748.95 kg x 571.8 / 7920 h = 126.26 kg/h of S24 (no `cheme.recipe-basis` finding). The batch
 size was found by fixed-point iteration (the heating and cooling times depend on the vessel, so
@@ -105,13 +108,14 @@ sets it: with 2.5 h R101's peak duty was 1.7 times what R-101's jacket removes a
 the salt is added over 1 h and the toluene over 6 h; the jacket (U 300 W/(m2 K) enamelled, 4.92
 m2 wetted at the charge, cooling water at 298 K) removes 59.0 kW against the model's peak 50.3
 kW. The quench is dosed over 4 h on brine at 258 K: the jacket (23.4 m2 at the charge) removes
-210 kW against the model's peak 135 kW plus the dilution heat the model leaves out (about 54 kW
-during the dosing, D-009, L-2), 189 kW in all.
+210 kW against the model's peak 135 kW plus the dilution heat the model leaves out, about 190.5
+kW in all: the dilution share of Q5, 16.03 kW as a year average (57694 kJ/h), is 799 MJ a batch
+(x 13.85 h), released over the 4 h of dosing: 799000 kJ / 14400 s = 55.5 kW (D-009, L-2).
 Vessels (fill 0.8, H/D 1.2 enamelled, 1.0 for the Nutsche, ASSUMED): R-101 4 m3, given and not
 sized (core sizes it from R101's model alone, 2.04 m3, while R102's second acid portion adds
 1.16 m3 in the same vessel: 3.11 m3 of reaction mass, 78 % of 4 m3; L-1); Q-101 20 m3 (14.95 m3
 of slurry, 75 %); F-101 20 m3 (sized by the slurry it takes in, D 2.94 m; its plate the filter
-area); DR-101 4 m3 (2.06 m3 of wet cake, 51 %), heated area 15 m2 (jacket and shaft of a paddle
+area); DR-101 4 m3 (2.06 m3 of wet cake, 52 %), heated area 15 m2 (jacket and shaft of a paddle
 dryer, ASSUMED).
 Reason: core ADR 0051 puts the batch basis in one place, so the balance, the LCI per kg and a
 later TEA share it; the dosing, reaction, heating, cooling, filtration and drying times come
@@ -143,10 +147,19 @@ Decision:
   toluene after the salt), so the rate slows at the end of the dosing; that is where the
   accumulation peaks (D-011).
 - R102 is a conversion step in the same vessel: 90 % of each sulfonic acid to its sulfonyl
-  chloride with the second acid portion (ASSUMED: the patent's crude after its solvent work-up is
-  84-85 % of theory, so the conversion in the mass is at least that; 90 % gives 89 % of the
-  toluene as sulfonyl chlorides and 78.8 % as dried para product). The rest stays as TsOH and
-  goes to the waste acid.
+  chloride with the second acid portion, ASSUMED. The rest stays as TsOH and goes to the waste
+  acid. 90 % gives 89.1 % of the toluene as sulfonyl chlorides in the mass (0.99 x 0.9), 88.5 %
+  after the quench's hydrolysis, and 78.8 % as dried, washed para product.
+  **The modelled yield is above the source's.** SRC-1's crude is 84-85 % of theory with 90 %
+  para, 77 % of theory as the para compound, and that crude has not been washed or filtered.
+  The 78.8 % here is after filtration and washing. It assumes that SRC-1's figures are after
+  its own solvent extraction and distillation, with their losses, and that the in-mass
+  conversion is higher than the isolated crude. Nothing measures that: it is an ASSUMED better
+  conversion, not a sourced one.
+  Calibrated to the source instead, the conversion would be about 0.87 (0.99 x 0.9 x c x 0.9932
+  = 0.77 para in the quenched mass) and the dried para product about 76 %. Every feed, waste and
+  utility per kg would then rise by about 3.5 % (0.788 / 0.761). This sensitivity is not
+  modelled. The second stage's conversion is an open input.
 - Q101 is a second vented semi-batch at 288.15 K: the water heel S10 charged, the mass S8 (at
   308 K) dosed over 4 h, then the post-reaction to 0.9999 conversion of the ClSO3H (0.02 h).
   HYD and AMH second order in the chloride and water, k 1e-3 m3/(kmol s) at 288 K (fast, about
@@ -193,17 +206,24 @@ Decision:
   0.33 % of the p-TsCl stays dissolved.
 - The ortho isomer o-TsCl (mp about 10 C) is carried as a liquid spectator: it divides between
   cake and filtrate with the liquor, and the two washes carry it on. The model's product holds
-  0.007 wt% of it. This is a lower bound: the oil wets the crystals and a real cake keeps more of
+  0.007 wt% of it. This is a lower bound, so the product's 99.7 wt% assay is an upper bound
+  (D-002): the oil wets the crystals and a real cake keeps more of
   it (SRC-1's crude, not washed free, has 10 % ortho; SRC-2 calls its product free of ortho after
   the isomerisation, which this route does not have). The crystallizer takes one crystallizing
   solute and no second liquid phase (L-4).
 - F101, F102, F103: specified splits, 99.8 % of the solid to the cake, 0.3 kg of liquor per kg of
   solid, ASSUMED; Ruth filtration times from ASSUMED cake data (specific cake resistance 1e10
   m/kg, medium 1e10 1/m, 200 kPa of nitrogen; the liquor 1.6 mPa s and 1100 kg/m3 at 288 K, the
-  wash filtrates 1.4 and 1.35 mPa s), on the Nutsche's plate.
-- W101, W102: two reslurry washes with 2 kg of ice water (278 K) per kg of solid, each a
-  crystallizer fed by the cake and the water (its crystals dissolving to saturation at 283 K),
-  then filtered. They take the H2SO4 in the cake liquor from 11.8 wt% to 0.2 wt% (0.06 wt% in the
+  wash filtrates 1.45 and 1.5 mPa s, water's at their temperatures (SRC-11), on the Nutsche's
+  plate.
+- W101, W102: two reslurry washes with 2 kg of ice water per kg of solid. The process water S31
+  is chilled from 298 to 278 K in the wash water tank T-101 on brine (E103, Q9) and split
+  equally to the two washes (SP201). Each wash is a crystallizer fed by the cake and the water,
+  its crystals dissolving to saturation, then filtered. The washes are adiabatic (D-009), so
+  their temperatures are the mixes of their inlets, with the liquid heat capacities of
+  `process/materials.yaml`: W101 280.24 K (the cake S14 at 288.15 K, 281.2 kJ/(K h), with
+  1063.8 kJ/(K h) of water at 278.15 K), W102 278.61 K (S18 at 280.24 K, 301.1 kJ/(K h)). The
+  solubility is the same at either temperature, so the balance does not depend on it. They take the H2SO4 in the cake liquor from 11.8 wt% to 0.2 wt% (0.06 wt% in the
   dried product). SRC-2 washes three times with ice water; two reslurry washes are ASSUMED to
   do the same work.
 - T-201 (S101): the vents S5 and S11 to a caustic scrubber, 0.999 of the HCl neutralised
@@ -224,8 +244,9 @@ Decision: vacuum drying at 308 K in the paddle dryer DR-101 to 0.2 wt% volatiles
 o-TsCl of the cake liquor dry onto the crystals. Energy: the wet cake 1.5 kJ/(kg K), latent
 heats water 2418 kJ/kg at 308 K (steam tables), HCl 443 kJ/kg (16.15 kJ/mol at its boiling
 point, NIST WebBook; its desorption from water is not counted) and toluene 412 kJ/kg (38.0
-kJ/mol, NIST WebBook), the dryer's metal 2500 kJ/K (about 5 t of steel, ASSUMED) heated from
-283 K each batch, 70 % efficiency. Drying rate 3 kg/(m2 h) on 15 m2 (ASSUMED, below NBS's 5 at
+kJ/mol, NIST WebBook; SRC-11), the dryer's metal 2500 kJ/K (about 5 t of steel, ASSUMED) heated
+each batch from the cake's 278.6 K (S22), 70 % efficiency. The vapour is condensed in the
+vacuum condenser on brine (Q8, D-009). Drying rate 3 kg/(m2 h) on 15 m2 (ASSUMED, below NBS's 5 at
 333 K for the smaller temperature difference), wet-cake density 1100 kg/m3 (ASSUMED from the
 crystal density 1.33 g/cm3, SRC-4). 517 kg of water per batch, 11.5 h. The product is cooled in
 DR-101 and leaves at 298 K.
@@ -235,24 +256,39 @@ warm, so a low drying temperature and a low residual moisture go together.
 ## D-009 Utilities and heat (2026-11-05)
 Decision (year averages, hand arithmetic from cheme's reports, given in the flowsheet's
 sources):
-- LP steam 350 kPa(a): R-101's heat-up Q1 2.10 kW; the dryer Q6 40.07 kW (core's dryer model:
-  evaporation 90.3 MJ/h, the cake 6.1, the vessel 4.5, over 70 %);
+- LP steam 350 kPa(a): R-101's heat-up Q1 2.10 kW; the dryer Q6 40.84 kW (core's dryer model:
+  evaporation 90.3 MJ/h, the cake 7.3, the vessel 5.3, over 70 %);
 - cooling water 298/308 K: the heat of sulfonation Q2 23.34 kW (R101's 90.6 MJ/h, the model's
   36610 kJ per kmol of charge and doses, less 6.5 MJ/h warming the doses); the cool-down and the
-  second portion Q3 3.72 kW; the scrubber Q7 43.87 kW (NEUT -132 kJ/mol: neutralisation and the
-  HCl's dissolution, less the liquor's 10 K rise);
-- chilled brine 258/263 K: the heel Q4 10.07 kW; the quench Q5 54.95 kW, of it 36.5 kW from
-  Q101's reactions, 16.0 kW the dilution of the H2SO4 and sulfonic acids dosed with the mass
-  (0.747 kmol/h x -75 kJ/mol and 0.083 x -20, ASSUMED; the semi-batch model counts no heat of
-  dilution of a dosed liquid, L-2), 2.4 kW the mass cooled from 308 to 288 K;
+  second portion Q3 3.72 kW; the scrubber Q7 49.87 kW. Q7 is NEUT at -132 kJ/mol
+  (neutralisation and the HCl's dissolution), less the liquor's 10 K rise, plus the dilution of
+  the 50 wt% caustic (-15 kJ/mol NaOH, 5.7 kW) and the vent gas cooled from 334.5 K (0.3 kW).
+  The caustic's dilution heat is an ASSUMED order of magnitude: no open table of NaOH's integral
+  heats of solution was read. It is to be confirmed (open input);
+- chilled brine 258/263 K:
+  - the heel Q4 10.07 kW;
+  - the quench Q5 54.95 kW. Of it, 36.5 kW is from Q101's reactions and 2.4 kW is the mass
+    cooled from 308 to 288 K. The other 16.0 kW is the dilution of the H2SO4 and sulfonic acids
+    dosed with the mass (0.747 kmol/h x -75 kJ/mol and 0.083 x -20, ASSUMED), which the
+    semi-batch model leaves out: it counts no heat of dilution of a dosed liquid (L-2);
+  - DR-101's vacuum condenser Q8 25.52 kW: the dryer's 37.35 kg/h of water vapour condensed
+    (2418 kJ/kg) and the condensate cooled from 308 to 298 K. It is on brine because condensing
+    at the dryer's vacuum (5.6 kPa at 308 K, 3.2 kPa at 298 K) needs a coolant colder than the
+    298 K cooling water;
+  - the wash water chilled from 298 to 278 K in T-101, Q9 11.82 kW (508.36 kg/h, E103);
 - electricity 24.4 kW: R-101 agitator 3 kW, Q-101 agitator 11 kW at 55 % occupancy (6 kW),
   Nutsche agitator 4 kW at 73 % and paddle drive 7.5 kW plus vacuum pump 3 kW at 90 % (12.4 kW),
   scrubber pump and fan 3 kW. All ASSUMED.
 The crystallizers CR101, W101 and W102 are adiabatic (`process/simulation.yaml`): the heat of
-crystallisation of p-TsCl is small and not known openly. The dryer's vacuum condenser and the
-dilution of the 50 wt% caustic in the scrubber are not counted.
-During R101's toluene dosing the jacket removes up to 50 kW (the model's peak), during the
-quench up to about 189 kW with the dilution heat (D-003).
+crystallisation of p-TsCl is small and not known openly. The temperatures of the washes and of
+the waste acid S26 (285.33 K) are therefore the mixes of their inlets (D-007). The vent mix S27
+is 334.53 K.
+Every energy flow of the batch is in the flowsheet and so in the LCI per kg (library ADR 0035).
+Still left out: the heat losses and gains of the vessels and tanks, and the heats of
+crystallisation.
+During R101's toluene dosing the jacket removes up to 50 kW (the model's peak). During the
+quench it removes up to about 190.5 kW: the model's 135 kW plus 55.5 kW of dilution heat over
+the 4 h of dosing (D-003).
 
 ## D-010 Wastes (2026-11-05)
 Decision: the mother liquor, the wash filtrates and the dryer condensate (12.6 kg per kg
@@ -317,7 +353,8 @@ Nm3: R-101's purge, F-101 pressed for three filtrations, DR-101's vacuum broken 
 wastewater treatment. R-101 is not rinsed: it is kept dry.
 Per kg p-TsCl: chlorosulfonic acid 2.32 kg, toluene 0.612 kg, ammonium chloride 0.160 kg,
 caustic soda 50 wt% 0.871 kg, water 12.66 kg (plus 1.14 kg of rinses), electricity 0.193 kWh,
-LP steam 0.334 kWh, cooling water 0.562 kWh removed, brine 0.515 kWh removed, waste acid 12.6 kg,
+LP steam 0.340 kWh, cooling water 0.609 kWh removed, brine 0.811 kWh removed (of it 0.202 kWh
+the dryer's vacuum condenser Q8 and 0.094 kWh the wash water's chilling Q9), waste acid 12.6 kg,
 scrubber liquor 3.02 kg. Not counted: the scrubbed vent's traces, the toluene vapour the HCl
 strips from R-101, the dryer's vacuum vent (emission_exclusions).
 
@@ -405,6 +442,6 @@ nothing is dosed as a gas.
 Kinetics, heats of reaction and the gas release rate (calorimetry), TD24 of the reaction mass and
 the product; the second stage's conversion against time and temperature; the solubility of
 p-TsCl in the acid liquor; how much of the ortho oil the cake keeps (the product's o-TsCl
-content); filtration and wash data and the drying rate from trials; the HCl's split between
+content and its assay, D-002); the heat of dilution of the 50 wt% caustic (D-009); filtration and wash data and the drying rate from trials; the HCl's split between
 vent and liquor in the quench; the product specification (assay, o-TsCl, TsOH, acidity, water);
 acid and HCl recovery (D-010); a TEA (`operation.batch: {recipe: true}`).

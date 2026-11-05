@@ -15,11 +15,15 @@ description: |
   the salt is added in portions (HCl escapes), toluene is dosed at 338 K, the mass is cooled to
   308 K, a second 1.5 mol of acid is added and held for 1 h, and the mass is drowned in water.
   The salt raises the para share of the sulfonation to 90 % (the patent's p-content). The
-  sulfonic acids go 90 % to the sulfonyl chlorides (ASSUMED from the patent's crude yield); the
-  rest stays in the waste acid. In the quench the excess acid and the ammonium chlorosulfate
-  hydrolyse, p-TsCl precipitates (assumed solubility 0.5 g per kg water), and the ortho isomer,
-  an oil above 10 C, stays with the liquor. Two reslurry washes with ice water and vacuum drying
-  at 308 K give 99.7 wt% p-TsCl; the yield is 78.8 % on toluene. The HCl of both vents (0.38 kg
+  sulfonic acids go 90 % to the sulfonyl chlorides (ASSUMED); the rest stays in the waste acid.
+  In the quench the excess acid and the ammonium chlorosulfate hydrolyse, p-TsCl precipitates
+  (assumed solubility 0.5 g per kg water), and the ortho isomer, an oil above 10 C, stays with
+  the liquor. Two reslurry washes with ice water and vacuum drying at 308 K give the product.
+  The modelled assay is 99.7 wt% p-TsCl, an upper bound: the cake's o-TsCl retention is not
+  modelled (DESIGN.md L-4), and the source's crude has 90 % para. The modelled yield is 78.8 % on
+  toluene. That is above the patent's 77 % of theory as para compound in its crude (an ASSUMED
+  better in-mass conversion, DESIGN.md D-005); calibrated to the patent, it would be about 76 %.
+  The HCl of both vents (0.38 kg
   per kg product) is neutralised in a caustic scrubber; 12.6 kg of dilute waste acid (8 wt%
   H2SO4, 2 wt% HCl) per kg product goes to neutralisation.
 
@@ -47,7 +51,7 @@ validation:
   status: unreviewed
   notes: >-
     Concept batch PFD with closed mass, component and element balances (cheme validate: 4 blocks,
-    15 steps). Every material stream is calculated by cheme process propagate from the feeds: the
+    17 steps). Every material stream is calculated by cheme process propagate from the feeds: the
     semi-batches R101 and Q101 from their ASSUMED rate laws with the HCl vented (core ADR 0054),
     R102 and the scrubber as conversion steps, the precipitation CR101 and the washes W101, W102
     as crystallizers with spectators on an ASSUMED solubility with no salting-out correction, the
@@ -73,14 +77,14 @@ chemistry:
     - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Quench heel and scrubber make-up, 8.64 kg/kg p-TsCl"}
     - {chemical: water, role: feedstock, inventory_key: "feed:WASHW", note: "Ice-cold cake washes, 4.03 kg/kg p-TsCl"}
   outputs:
-    - {chemical: p-toluenesulfonyl-chloride, role: main-product, inventory_key: "product:TSCL", note: "Dried p-TsCl crystals, 99.7 wt% p-TsCl, to packing"}
+    - {chemical: p-toluenesulfonyl-chloride, role: main-product, inventory_key: "product:TSCL", note: "Dried p-TsCl crystals to packing; modelled 99.7 wt% p-TsCl, an upper bound: the cake's o-TsCl retention is not modelled (DESIGN.md L-4), the source's crude has 90 % para"}
     - {chemical: wastewater, role: waste, inventory_key: "product:WA", note: "Waste acid (mother liquor, wash filtrates, dryer condensate), 12.6 kg/kg p-TsCl: 8 wt% H2SO4, 2 wt% HCl, 2.7 wt% NH4HSO4, toluenesulfonic acids and the o-TsCl oil, to neutralisation"}
     - {chemical: wastewater, role: waste, inventory_key: "product:WS", note: "Spent scrubber liquor, 3.02 kg/kg p-TsCl, 20 wt% NaCl with excess NaOH, to wastewater treatment"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.193 kWh/kg p-TsCl: agitators of R-101, Q-101 and F-101, the paddle dryer, vacuum pump, scrubber pump and fan (ASSUMED)"}
-    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.334 kWh (1.20 MJ)/kg p-TsCl of LP steam: R-101's heat-up and the dryer's hot-water circuit (cheme's dryer model, the vessel's heat each batch included)"}
-    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.562 kWh/kg p-TsCl removed by cooling water: the heat of sulfonation, the cool-down to 308 K and the scrubber"}
-    - {chemical: chilled-water, role: utility, inventory_key: "product:BRINE", note: "0.515 kWh/kg p-TsCl removed by brine at 258 K: the heel cooled and the quench heat, the dilution heat included (the registry has chilled water, not brine: closest entry)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.340 kWh (1.22 MJ)/kg p-TsCl of LP steam: R-101's heat-up and the dryer's hot-water circuit (cheme's dryer model, the vessel's heat each batch included)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.609 kWh/kg p-TsCl removed by cooling water: the heat of sulfonation, the cool-down to 308 K and the scrubber (the caustic's ASSUMED dilution heat included)"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:BRINE", note: "0.811 kWh/kg p-TsCl removed by brine at 258 K: the heel cooled, the quench heat with the dilution heat, the dryer's vacuum condenser (0.202 kWh) and the wash water chilled to 278 K (0.094 kWh) (the registry has chilled water, not brine: closest entry)"}
 basis:
   capacity: "1000 t/a dried p-TsCl: 571.8 batches/a of 1748.95 kg in 7920 h on a dedicated train (126.26 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-013)"
   operating_hours_per_year: 7920

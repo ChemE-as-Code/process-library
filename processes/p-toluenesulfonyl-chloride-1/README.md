@@ -21,6 +21,11 @@ jacket checks, the scrubber load per batch and the flowsheet's year-average flow
 (`cheme process recipe`, `cheme process reactor-hazards`, `cheme process crystallizers`).
 Needs cheme-as-code 1.8.0. DESIGN.md lists the core features used and the core limits hit.
 
+Two headline numbers carry caveats. The modelled product is 99.7 wt% p-TsCl, an upper bound:
+the cake's retention of the o-TsCl oil is not modelled (DESIGN.md L-4), and the source's crude
+has 90 % para. The modelled yield is 78.8 % on toluene, above the patent's 77 % para in its
+crude (an ASSUMED better conversion, D-005); calibrated to the patent, it would be about 76 %.
+
 | path | what |
 |---|---|
 | `plant.yaml` | name, stage, sheets |

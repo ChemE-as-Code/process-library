@@ -153,18 +153,17 @@ exchanges:
       H2O: H2O
     source: stream table (S9, S29)
 - key: feed:WASHW
-  title: Ice-cold process water (cake washes)
+  title: Process water for the cake washes (chilled in T-101)
   type: input
   amount: 508.36
   unit: kg
   link:
-    source: flowsheet streams S16 and S20 (D-007)
-    missing: 'not mapped yet (D-012); connect to: process water from the site water treatment, chilled
-      (its cooling is not counted)'
+    source: flowsheet stream S31, chilled in E103 and split to the washes S16 and S20 (D-007)
+    missing: 'not mapped yet (D-012); connect to: process water from the site water treatment (its chilling
+      in T-101 is product:BRINE, Q9)'
   streams:
-  - S16
-  - S20
-  source: flowsheet streams S16 and S20 (D-007)
+  - S31
+  source: flowsheet stream S31, chilled in E103 and split to the washes S16 and S20 (D-007)
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -174,7 +173,7 @@ exchanges:
       H2O: 1.0
     formulas:
       H2O: H2O
-    source: stream table (S16, S20)
+    source: stream table (S31)
 - key: feed:NAOH
   title: Caustic soda 50 wt% (chlor-alkali-1)
   type: input
@@ -226,7 +225,7 @@ exchanges:
 - key: feed:LPS
   title: LP steam 350 kPa(a) (R-101 heating, the dryer's hot-water circuit)
   type: input
-  amount: 42.1678
+  amount: 42.934200000000004
   unit: kWh
   link:
     source: flowsheet energy streams Q1 (R-101 heat-up) and Q6 (the dryer's hot-water circuit), D-009
@@ -380,7 +379,7 @@ exchanges:
 - key: product:CW
   title: Cooling water return
   type: output
-  amount: 70.925
+  amount: 76.928
   unit: kWh
   link:
     source: flowsheet energy streams Q2 (heat of sulfonation), Q3 (cool-down and second acid portion)
@@ -404,17 +403,21 @@ exchanges:
 - key: product:BRINE
   title: Chilled brine return (263 K)
   type: output
-  amount: 65.02
+  amount: 102.363
   unit: kWh
   link:
-    source: flowsheet energy streams Q4 (heel cooling) and Q5 (quench heat), D-009
+    source: flowsheet energy streams Q4 (heel cooling), Q5 (quench heat), Q8 (DR-101's vacuum condenser)
+      and Q9 (wash water chilling in T-101), D-009
     missing: 'not mapped yet (D-012); connect to: refrigeration at 258 K (brine) from an electric vapour-compression
       unit (e.g. processes/utility-chiller), per kWh of heat removed: compressor electricity at its COP,
       condenser cooling water, refrigerant losses'
   streams:
   - Q4
   - Q5
-  source: flowsheet energy streams Q4 (heel cooling) and Q5 (quench heat), D-009
+  - Q8
+  - Q9
+  source: flowsheet energy streams Q4 (heel cooling), Q5 (quench heat), Q8 (DR-101's vacuum condenser)
+    and Q9 (wash water chilling in T-101), D-009
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -484,9 +487,9 @@ provenance:
     (1000 t/a)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:6cbdb5f268c20ef05ca6af6c2b1d52400c715af0176020a1680d79c8992eb93c
-    lca/lca.yaml: sha256:4d71834a196cf2408537d558fcda8b47ab2b27433fb5df4ff7425bf32c544978
-    process.yaml: sha256:64a093078512d8b8eaa0c422a8cf4fb5fa43ec156af3a78d68b5662a1b99b442
-    process/flowsheet.yaml: sha256:685cd15e75f12e8a3f80c456dac0d523e33eaf5c5072522eea44049e22c6a308
-    process/materials.yaml: sha256:48fe1ccc3e803958fa373aa1e5ef14f7037c329e346601848ff9eba2a4dd5a72
+    equipment/equipment-list.yaml: sha256:7fdbd6998edf903a531ae98bee2a7fe00d38d57fe1facd1263a3cb7b5e407727
+    lca/lca.yaml: sha256:0efbc69bed332616eb4eb9199c36f74b38732361ec09c9f527aeadaee0202108
+    process.yaml: sha256:70b20cbc182e28919a352fc57b017a20cd0db54cc7dfd39cc2f74a82b01fd777
+    process/flowsheet.yaml: sha256:9da0eb63cc7510dce58829e1171778fec6c8b4a06e95852b7b8520b18eaa811c
+    process/materials.yaml: sha256:15ef9b0aecbd97b26ace8c7932515e5943e817d3f543af2d25ec7d2f673f846d
     process/simulation.yaml: sha256:6244c67a678dde5ab9641ec6ba6ceaf8cf5a232b380255e4893d5a2abb2fcc60
