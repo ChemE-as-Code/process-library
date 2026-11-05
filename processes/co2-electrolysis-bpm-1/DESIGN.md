@@ -865,8 +865,9 @@ has not been held (safety/README.md, safety/hazop/SESSION.md):
 - The risk matrix `safety/risk-matrix.yaml` is a proposal in asu-1's structure (5 x 5, four
   bands, one cell table, high and very-high require an action), the money one order below
   asu-1's for a pilot of two 20 ft skids, `status: proposed`.
-- Every node, deviation, scenario, safeguard, rating and action is `status: proposed, by:
-  agent`; the team is roles only. Bands come only from `cheme safety hazop rate --write`.
+- Every node, scenario, safeguard, rating and action is `status: proposed, by: agent` (a
+  deviation has no status field in the hazop-study schema; the scenarios under it carry it);
+  the team is roles only. Bands come only from `cheme safety hazop rate --write`.
 - The two studies were drafted apart, then integrated: the 58 pairs of scenarios on the hardware
   both skids share were compared, and the ratings brought onto one convention (SESSION.md
   section 3.2: the initial likelihood is that of the cause; a utility upset and a routine hose
@@ -876,6 +877,18 @@ has not been held (safety/README.md, safety/hazop/SESSION.md):
   the other found on the same hardware, two actions were added on each side, and H-02's
   actions got owner roles as H-01's have. Where a pair still differs, the design differs and
   the basis says why (SESSION.md section 3.4).
+- The integrated drafts were then reviewed against the plant as drawn and their own credit
+  rules, and the verified findings fixed (SESSION.md section 3.4, "What the review changed"):
+  12 scenarios added for hazards the drawings show and no scenario covered (the start-up purge
+  of SEQ-x-START S2 with no outlet, back-flow through the unguarded recycle CO2-x02 and its
+  loss, flashback along the tail gas, the oxidiser X-x32 as an ignition source the gas trips
+  leave running, and on Skid B the dosing pump with no isolation from its day tank and the
+  calibration of the shared AIC-201 probe), 7 deviations added, and 32 scenarios re-rated or
+  corrected where a residual credited a safeguard the cause defeats (the operator and I-x05
+  acting through the failed rectifier regulation, I-x04 against the motors it starts or leaves
+  running, the SEQ-B-GAS entry rule against a detector reading clear, an alarm with no time to
+  act), counted one final element twice, broke the utility-upset rule, or misdescribed the
+  plant or a sequence. Bands went from 67 to 89 high-residual scenarios; all have an action.
 - The analysed inputs are stamped: the P&ID, the equipment, line and instrument lists,
   control/cause-effect.yaml, loops.yaml, sequences.yaml, philosophy.md, layout/zones.yaml, the
   flowsheet, the design basis and the duties. The draft datasheets are read, not stamped. The
@@ -883,16 +896,24 @@ has not been held (safety/README.md, safety/hazop/SESSION.md):
   in a scratch copy, the equipment list, loops, flowsheet and duties differ, and its record
   (results/scenarios/10000h/record.json, regenerated) now lists the eight resulting
   hazop-input-changed warnings. They are true: the 10,000 h design has not been studied beyond
-  what the scenarios say about its 11,660 L reservoir (H01-S106).
+  what the scenarios say about its 11,660 L reservoir (H01-S106). Each warning carries the
+  study's file, line and recorded revision, so a re-stamp, or an edit that moves a study's
+  `analysed:` block (its header comment), changes the record: regenerate it
+  (`cheme run scripts/regen.py --duration 10000 --uncertainty --scratch <dir>`) and commit it
+  with the study, or `skid-regen-current` fails (SESSION.md section 4). They are not accepted
+  in checks/checks.yaml, since the same entry would be an unused acceptance in the 1,000 h
+  design itself.
 - The gate `hazop-current` (`kind: hazop`, `require: [inputs-current, no-example]`) passes on
   the drafts and fails once an analysed input changes until the touched nodes are reassessed and
-  re-stamped. The house gates for an assessed and reviewed HAZOP stay commented in
-  checks/checks.yaml until the session and a human review are recorded, as in asu-1.
+  re-stamped. It is new to this process: asu-1 has no HAZOP gate yet and its SESSION.md adds
+  the gates only after its session and review. Here the house gates for an assessed and
+  reviewed HAZOP (as in safety/README.md, with `reviewed`) are written out, commented, in
+  checks/checks.yaml, to be uncommented once the session and a human review are recorded.
 
 | Study | Nodes | Deviations | Scenarios | Worst band high / medium / low | Very-high initial | Actions |
 |---|---:|---:|---:|---|---:|---:|
-| H-01 | 8 | 58 | 72 | 29 / 33 / 10 | 1 | 47 |
-| H-02 | 9 | 72 | 85 | 38 / 28 / 19 | 1 | 47 |
+| H-01 | 8 | 62 | 77 | 39 / 30 / 8 | 1 | 52 |
+| H-02 | 9 | 79 | 92 | 50 / 28 / 14 | 1 | 55 |
 
 Both report `draft`, 0 errors and 0 warnings, every band current; no scenario is very-high
 after its safeguards and every high scenario has an action.
@@ -914,7 +935,7 @@ Assumptions: the matrix, its grades and the credit convention (all ASSUMED, for 
 skid enclosure and its fan, which every gas-in-enclosure rating rests on (ASSUMED, not sized).
 
 ## D-031 The HAZOP actions the drafting agents consider most important (2026-11-05)
-Decision: of the 94 proposed actions, these are the ones to decide first, for both skids at
+Decision: of the 107 proposed actions, these are the ones to decide first, for both skids at
 once where the hardware is shared (SESSION.md section 3.5 lists every high scenario with its
 action). Relief devices are named by their governing scenario only, never sized here (skill
 `relief-scenarios`).
@@ -957,6 +978,20 @@ action). Relief devices are named by their governing scenario only, never sized 
     H02-A902, H02-A206), an open owner decision of #330.
 13. **A SIL screening / LOPA** of every trip before any is credited beyond one order (H01-A112,
     H02-A104).
+14. **The oxidiser X-x32 as an ignition source** of the enclosure: stopped with its tail gas
+    by the gas trips, or moved outside the enclosure and zone; and the tail gas protected
+    against flashback (H01-A906, H02-A906, H01-A605, H02-A604; H01-S906, S610; H02-S906,
+    S613). Found in the review; a flame cannot be Ex-rated, so item 12 does not cover it.
+15. **The recycle CO2-x02 guarded** by a check valve and a shut-off closed by the trips, and
+    included in the gas-trip isolation: today X-x31 can blow down into the cathodes past the
+    only check valve (H01-A507, H02-A507; H01-S509, H02-S509).
+16. **A flow path for the start-up purge** of SEQ-x-START S2, which today pressurises the
+    cathodes at every start against the stopped K-x31 (H01-A307, H02-A307; H01-S309, H02-S309).
+17. **DC isolation independent of the rectifier**, so that a trip removes the current even
+    when the rectifier's regulation is the fault (H01-A205, H02-A207; H01-S201, H02-S201).
+18. **Maintainable dosing on Skid B**: an isolation valve between T-202 and P-202 and a
+    written AIC-201 calibration with I-201 on its own probe (H02-A709, H02-A710, H02-A701;
+    H02-S716, S717).
 
 Close behind: reverse current at every switch-off (H01-A201, H02-A201), PV-x21's fail-open
 letting K-x31 pull a vacuum (H01-A402, H02-A403), Skid A's back-flow from the PSA on its daily
@@ -981,6 +1016,12 @@ safeguard.
   On Skid A: one level instrument on T-101 for the alarm and the trip (H01-A107), no high level
   for the fill (H01-A801). On Skid B: no check valve on KOH-204, no high level alarm on LIA-203,
   no written refill of T-202, no flush step in SEQ-B-DRAIN.
+- Found in the review, on both skids: no valve or check valve on the recycle CO2-x02 and no
+  check valve on W-x01; no check valve, flame arrester or shut-off on the tail gas TG-x01; no
+  DC contactor or breaker independent of the rectifier; no trip that stops the oxidiser X-x32;
+  no outlet for the cathode purge of SEQ-x-START S2 while K-x31 is stopped; SEQ-A-DRAIN, like
+  SEQ-B-DRAIN, drains the tank only. On Skid B: no valve between T-202 and P-202 and no drain
+  on T-202; no written handling of the AIC-201 probe that I-201 shares.
 - Kept in the safeguard registers but credited by no scenario: the fail positions (they appear
   as causes), PIC-x31's low pressure alarm, I-207 (a permissive) and I-208 (it acts only when
   T-202 is already empty).

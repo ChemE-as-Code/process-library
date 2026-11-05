@@ -9,9 +9,9 @@ an agenda, the decisions to take first, and how to record what the team decides 
 
 | Study | Title | Sheet | Nodes | Scenarios | Worst band high | medium | low | Very-high initial | Actions | State |
 |---|---|---|---:|---:|---:|---:|---:|---:|---:|---|
-| H-01 | Skid A: one-fill anolyte reservoir | P-01 | 8 | 72 | 29 | 33 | 10 | 1 | 47 | draft |
-| H-02 | Skid B: KOH dosing, bleed and make-up | P-02 | 9 | 85 | 38 | 28 | 19 | 1 | 47 | draft |
-| **All** | | | **17** | **157** | **67** | **61** | **29** | **2** | **94** | |
+| H-01 | Skid A: one-fill anolyte reservoir | P-01 | 8 | 77 | 39 | 30 | 8 | 1 | 52 | draft |
+| H-02 | Skid B: KOH dosing, bleed and make-up | P-02 | 9 | 92 | 50 | 28 | 14 | 1 | 55 | draft |
+| **All** | | | **17** | **169** | **89** | **58** | **22** | **2** | **107** | |
 
 "Worst band" follows the matrix's action policy: the highest residual band of a scenario over its
 categories, or the initial band where no residual is rated. No scenario is very-high after its
@@ -20,8 +20,8 @@ action. Counted per rating instead (every category, initial and residual):
 
 | Study | Initial very-high / high / medium / low | Residual high / medium / low |
 |---|---|---|
-| H-01 (89 ratings) | 1 / 57 / 26 / 5 | 32 / 44 / 13 |
-| H-02 (107 ratings) | 1 / 62 / 29 / 15 | 42 / 39 / 26 |
+| H-01 (97 ratings) | 1 / 65 / 26 / 5 | 45 / 41 / 11 |
+| H-02 (118 ratings) | 1 / 73 / 29 / 15 | 56 / 43 / 19 |
 
 Both studies are current against their analysed inputs (`cheme safety hazop stamp`: the P&ID,
 the equipment, line and instrument lists, control/cause-effect.yaml, loops.yaml,
@@ -33,7 +33,10 @@ matrix is proposed; no human review record covers them.
 Several numbers here differ from what each drafting agent reported. The two studies were
 drafted apart and then integrated (D-030): the hardware the skids share is now examined alike
 and rated by one convention, and 13 scenarios were added so that each study covers what the
-other found on the same hardware (section 3.4).
+other found on the same hardware (section 3.4). A review of the integrated drafts then found
+plant-as-drawn hazards no scenario covered and residual ratings that broke the studies' own
+credit rules; 12 scenarios were added and 32 re-rated or corrected (section 3.4, "What the
+review changed").
 
 Reports to bring to the session (regenerate before it, `build/` is not committed):
 
@@ -62,7 +65,7 @@ No one is named here.
 
 Estimated, as for asu-1, at 5 minutes per node plus 4 minutes per scenario: the worksheet is
 pre-filled, so the team confirms, changes or deletes rows rather than brainstorming from blank.
-Add time for any deviation the team adds. About 12 hours of worksheet in all, plus the opening
+Add time for any deviation the team adds. About 13 hours of worksheet in all, plus the opening
 block of about 3 hours: plan five half-day sessions.
 
 ### Session 0: decisions first (about 3 hours)
@@ -86,28 +89,28 @@ H-01 and confirm only where Skid B differs; the estimate below does not count th
 |---|---|---|---:|---:|---:|
 | H-01 | H01-N1 | Anolyte loop: T-101, P-101, E-111, the stack anode side | 11 | 17 | 73 |
 | H-01 | H01-N2 | Stacks E-101A to D, rectifier U-101, the 48 V bus | 6 | 8 | 37 |
-| H-01 | H01-N3 | Cathode CO2 feed: FV-102, recycle CO2-102, humidification W-101 | 7 | 8 | 37 |
+| H-01 | H01-N3 | Cathode CO2 feed: FV-102, recycle CO2-102, humidification W-101 | 8 | 9 | 41 |
 | H-01 | H01-N4 | Cathode gas outlet: CG-101, separator V-121, condensate, PV-121 | 7 | 11 | 49 |
-| H-01 | H01-N5 | Gas conditioning: K-131, CG-103, PSA X-131, CO product, PV-131 | 9 | 8 | 37 |
-| H-01 | H01-N6 | Tail gas and vents: oxidiser X-132, reservoir vent O2V-101 | 8 | 9 | 41 |
+| H-01 | H01-N5 | Gas conditioning: K-131, CG-103, PSA X-131, CO product, PV-131 | 10 | 10 | 45 |
+| H-01 | H01-N6 | Tail gas and vents: oxidiser X-132, reservoir vent O2V-101 | 9 | 10 | 45 |
 | H-01 | H01-N8 | Anolyte fill and end-of-campaign drain at T-101 | 6 | 6 | 29 |
-| H-01 | H01-N9 | Enclosure: fan K-141, gas detection AIA-141 / AIA-142, zone Z-HAZ-A | 4 | 5 | 25 |
-| H-01 | | **study total** | **58** | **72** | **328** |
+| H-01 | H01-N9 | Enclosure: fan K-141, gas detection AIA-141 / AIA-142, zone Z-HAZ-A | 5 | 6 | 29 |
+| H-01 | | **study total** | **62** | **77** | **348** |
 | H-02 | H02-N1 | Anolyte loop: T-201, P-201, E-211, the stack anode side | 9 | 11 | 49 |
 | H-02 | H02-N2 | Stacks E-201A to D, rectifier U-201, the 48 V bus | 8 | 8 | 37 |
-| H-02 | H02-N3 | Cathode CO2 feed: FV-202, recycle CO2-202, humidification W-201 | 8 | 8 | 37 |
+| H-02 | H02-N3 | Cathode CO2 feed: FV-202, recycle CO2-202, humidification W-201 | 9 | 9 | 41 |
 | H-02 | H02-N4 | Cathode gas outlet: CG-201, separator V-221, condensate, PV-221 | 6 | 10 | 45 |
-| H-02 | H02-N5 | Gas conditioning: K-231, CG-203, PSA X-231, CO product, PV-231 | 7 | 8 | 37 |
-| H-02 | H02-N6 | Tail gas and vents: oxidiser X-232, O2V-201, breather KV-202 | 9 | 12 | 53 |
-| H-02 | H02-N7 | KOH dosing, bleed and make-up: T-202, P-202, BL-201 / FV-203, W-202 / LV-201 | 12 | 15 | 65 |
+| H-02 | H02-N5 | Gas conditioning: K-231, CG-203, PSA X-231, CO product, PV-231 | 10 | 10 | 45 |
+| H-02 | H02-N6 | Tail gas and vents: oxidiser X-232, O2V-201, breather KV-202 | 10 | 13 | 57 |
+| H-02 | H02-N7 | KOH dosing, bleed and make-up: T-202, P-202, BL-201 / FV-203, W-202 / LV-201 | 13 | 17 | 73 |
 | H-02 | H02-N8 | Anolyte fill and end-of-campaign drain at T-201 | 8 | 8 | 37 |
-| H-02 | H02-N9 | Enclosure: fan K-241, gas detection AIA-241 / AIA-242, zone Z-HAZ-B | 5 | 5 | 25 |
-| H-02 | | **study total** | **72** | **85** | **385** |
+| H-02 | H02-N9 | Enclosure: fan K-241, gas detection AIA-241 / AIA-242, zone Z-HAZ-B | 6 | 6 | 29 |
+| H-02 | | **study total** | **79** | **92** | **413** |
 
 A suggested split: session 0 the decisions (about 3 h); session 1 H01-N1 to N4 (about 3.3 h,
-with the stack vendor); session 2 H01-N5 to N9 and H02-N1 (about 3.0 h, with the package
-vendors); session 3 H02-N2 to N6 (about 3.5 h, shorter where H-01's decisions carry over);
-session 4 H02-N7 to N9 (about 2.1 h, with operations for the dosing and the refill).
+with the stack vendor); session 2 H01-N5 to N9 and H02-N1 (about 3.3 h, with the package
+vendors); session 3 H02-N2 to N6 (about 3.8 h, shorter where H-01's decisions carry over);
+session 4 H02-N7 to N9 (about 2.3 h, with operations for the dosing and the refill).
 
 ## 3. Decisions to take first
 
@@ -163,6 +166,20 @@ team confirms or changes each; a change applies to both studies.
   source**: it trips the DC output, not the cabinet's own supply (H01-S207, H02-S206).
 - **A switched-off rectifier is not an isolation**: the permissive `U-x01 off` of SEQ-x-DRAIN
   takes no credit for work at the DC terminals (H01-S205, H02-S208).
+- **A safeguard that acts through the failed device is not credited**: the operator answers the
+  TIC-x11 alarm through JIC-x01 and U-x01, and I-x05 trips the same U-x01, so neither counts
+  against a fault of the current regulation (H01-S201, H02-S201) until the DC can be removed
+  independently (H01-A205, H02-A207).
+- **A trip that leaves the ignition source live is not credited against it**: I-x04 starts
+  K-x41, leaves P-x01 and the oxidiser X-x32 running (H01-S903, S906; H02-S902, S906), as it
+  is not credited against the rectifier.
+- **Two trips on one final element count once**: I-102 and I-106 both act on U-101 through the
+  same unscreened logic (H01-S111, as H01-S101 counts I-105 once).
+- **A procedure that rests on the reading the cause falsifies is not credited**: the entry rule
+  of SEQ-B-GAS against a detector that reads clear (H02-S904).
+- **An alarm is credited only where the operator has the time and a written response**: the
+  LIC-201 low alarm on the 50 L reservoir that empties in minutes is not (H02-S109); the
+  TIC-111 alarm on the 1166 L T-101, which heats at about 1.7 K/h, is (H01-S107).
 
 ### 3.3 The very-high initial scenarios
 
@@ -181,17 +198,25 @@ first: the rating follows from it.
 
 ### 3.4 Where the two studies rate the same hazard differently
 
-After the integration every pair of scenarios on shared hardware has the same initial and
-residual band, except these, where the design differs and the basis says why:
+After the integration and the review every pair of scenarios on shared hardware has the same
+initial and residual band, except these, where the design or the cause differs and the basis
+says why:
 
-| Skid A | Skid B | Bands (residual) | Why they differ |
+| Skid A | Skid B | Bands (initial; residual) | Why they differ |
 |---|---|---|---|
-| H01-S308 | H02-S305 | medium / low | Back-flow into the supplies: on Skid A the humidification water W-101 path has no alarm and sets the rating; on the CO2 path alone both credit the FIC-x02 low flow alarm |
-| H01-S503 | H02-S503 | high / medium | Back-flow from the PSA through the stopped K-x31: Skid A stops daily in D-A-ONOFF (likelihood D), Skid B does not run that duty (C) |
-| H01-S802 | H02-S801 | medium / high | Wrong KOH delivered to the fill: SEQ-A-FILL S1 says "fresh 1 M KOH only", SEQ-B-FILL has no such step, and Skid B keeps 5 M KOH at the skid |
-| H01-S117 | H02-S807 | medium / high | Opening the anolyte side: SEQ-A-DRAIN rinses the loop (S3), SEQ-B-DRAIN does not |
-| H01-S403 | H02-S605 | high / high | Cathode above the anolyte, gas breakthrough: same band; Skid A's anolyte pressure drifts with the T-101 level (D), Skid B's level is held by LIC-201 (C) |
-| H01-S607, S608 | H02-S606, S607 | low / low | O2 at the vent and a blocked vent: same band, the codes differ with the vent detail |
+| H01-S503 | H02-S503 | high / high; high / medium | Back-flow from the PSA through the stopped K-x31: Skid A stops daily in D-A-ONOFF (likelihood D), Skid B does not run that duty (C) |
+| H01-S802 | H02-S801 | high / high; medium / high | Wrong KOH delivered to the fill: SEQ-A-FILL S1 fills one tank with "fresh 1 M KOH only" (one letter); SEQ-B-FILL S1 has a written instruction too ("Fresh 1 M KOH in T-201, 5 M KOH in T-202") but fills both tanks with both strengths in the same step, with 5 M KOH kept at the skid, so it is not credited |
+| H01-S806 | H02-S808 | medium / low; low / low | T-x01 under vacuum at the drain with the vent blocked: asset 3 for the 1166 L T-101, asset 2 for the 50 L T-201 |
+| H01-S905 | H02-S904 | high / high; medium / high | After a gas trip: H01-S905's cause is a continuing leak the detectors see, so the entry rule of SEQ-A-GAS takes one letter; H02-S904's cause is a detector reading clear while CO remains, which defeats the entry rule. The two causes apply to both skids: the team may want each on both |
+| H01-S607, S608 | H02-S606, S607 | medium / low; low / low | O2 at the vent and a blocked vent: the codes differ with the vent detail |
+
+Same band, different codes, for the team to note: H01-S509 / H02-S509 (back-flow through the
+recycle) and H01-S610 / H02-S613 (flashback along the tail gas) are D on Skid A for its daily
+stops and C on Skid B, high on both.
+
+H-02 also records, as H-01 does (H01-N5-D6), the CO product back-flow from the consumer as a
+deviation without a scenario (H02-N5-D8): no check valve is drawn on CO-x01 and the consumer's
+pressure is not stated, a question for the team.
 
 What the integration changed, for the team to check against the files:
 
@@ -216,9 +241,44 @@ What the integration changed, for the team to check against the files:
   H01-A505) and H02-A506; H02-A602 and A603 extended. H-02's actions now carry owner roles, as
   H-01's do.
 
+What the review of the drafts changed (DESIGN.md D-030), for the team to check against the
+files:
+
+- **Added, on both skids** (H01 / H02): S309, the start-up purge of SEQ-x-START S2 with K-x31
+  still stopped, which has no outlet and pressurises the cathodes at every start (actions
+  H01-A307, H02-A307); S509, back-flow from X-x31 through the recycle CO2-x02, which has no
+  valve and bypasses the check valve on CG-x03 (H01-A507, H02-A507); S510, a loss of the
+  recycle that the FIC-x02 alarm does not see (H01-A301, H02-A301 extended); H01-S610 /
+  H02-S613, flashback along the tail gas TG-x01 to the running oxidiser (H01-A605, H02-A604);
+  S906, the oxidiser X-x32 as an ignition source the gas trips leave running (H01-A906,
+  H02-A906).
+- **Added to H-02 only**: S716, P-202 opened with no isolation from the full day tank, and
+  S717, the AIC-201 probe calibrated with I-201 on the same probe (H02-A709, H02-A710); the CO
+  product back-flow deviation H02-N5-D8; the W-201 back-flow path in S305; the gas-trip purge
+  slug in S603; the trip with P-201 stopped in S605.
+- **Re-rated, residual no longer crediting a safeguard the cause defeats or one final element
+  twice**: H01-S111 (low to medium), S117 (medium to high), S201 (low to high, H01-A205), S903
+  (medium to high); H02-S109 asset (low to medium), S201 (low to high, H02-A207), S709 asset
+  (low to medium), S902 and S904 (medium to high).
+- **Re-rated on the utility-upset rule (E)**: H01-S308 and H02-S305 (a CO2 run-out, both now
+  high, with the W-x01 path), H01-S405 and H02-S405 (LV-x22 fails closed on air loss, both now
+  high), H02-S708 and S711 (FV-203 and LV-201 on air loss, low to medium).
+- **Re-rated otherwise**: H01-S603 and H02-S603 (the purge slug sets the rating: medium to
+  high, with a people rating); H02-S605 (the trip case, D as H01-S403); H02-S804 (D as Skid A,
+  with the environment category and action H02-A803); H01-S801 (the overfill path as drawn,
+  with an asset rating).
+- **Corrected text**: H01-S107 (about 1.7 K/h on the 1166 L, not 0.45 K/min); H01-S305 and
+  H02-S303 (FIC-x02 closes FV-x02 on a higher supply pressure: the cathode reaches it only with
+  FV-x02 already wide open, as at start-up, or a second failure); H01-S403 (the trip after
+  I-102 or I-106); H01-S503 and H02-S503 (the check valve does not guard CO2-x02); H01-S607
+  (no manway is drawn); H01-S905 (I-104 named); H02-S609 and S712 (the start-up fill of T-202
+  in SEQ-B-FILL S1); H02-S705 and the safeguard H02-SG-N7-SEQ-STOP-P202 (SEQ-B-STOP S1 does
+  not close FV-203); H02-S801 (SEQ-B-FILL S1 does have an instruction); the safeguard
+  H01-SG-N2-DRAIN-PERM (SEQ-A-DRAIN drains the tank only).
+
 ### 3.5 Every high-residual scenario and its proposed action
 
-The action policy requires an action for each of these 67. The team takes them node by node in
+The action policy requires an action for each of these 89. The team takes them node by node in
 sessions 1 to 4, and for each one either accepts the action (status `open`, with an owner and a
 due date), changes it, or rejects it with a reason (`rejected`, `response`). Many share an action
 (for example H01-A106 / H02-A706, the eyewash and shower; H01-A501 / H02-A501, the compressor
@@ -230,15 +290,20 @@ for both skids. The owners are roles the drafting agents proposed; the owner ass
 | H01-S105 | P-101 driven to full speed | high | high | H01-A103 | process engineer |
 | H01-S110 | Leak from the anolyte loop | high | high | H01-A106 | process safety / HSE |
 | H01-S115 | H2 crosses the bipolar membrane into the anolyte | high | high | H01-A110 | process safety / HSE |
+| H01-S117 | A stack's anolyte connections, the pump or the cooler undone with the loop not drained: SEQ-A-DRAIN empties T-101 only | high | high | H01-A106, H01-A111 | process safety / HSE; operations |
+| H01-S201 | JIC-101 or the rectifier U-101's regulation fails high (the alarm response and I-105 both act through U-101) | high | high | H01-A205 | electrical engineer |
 | H01-S202 | The current is switched off (daily in D-A-ONOFF, a trip, a power loss) with CO and H2 still at the cathodes | high | high | H01-A201 | electrical engineer |
 | H01-S203 | Short circuit across the stack terminals or the 48 V bus | high | high | H01-A202 | electrical engineer |
 | H01-S205 | A stack's DC connections undone with the bus live, or with the stacks still charged after the current off | high | high | H01-A202 | electrical engineer |
 | H01-S303 | W-101 lost at the battery limit, or HV-104 set too low or knocked | high | high | H01-A302 | process engineer |
-| H01-S305 | The CO2 supply's pressure regulation at the battery limit fails open and FV-102 opens further | high | high | H01-A303 | process safety / HSE |
+| H01-S305 | The CO2 supply's pressure regulation at the battery limit fails open while FV-102 stands wide open (the start-up purge, or a second failure in operation) | high | high | H01-A303 | process safety / HSE |
 | H01-S307 | A leak of the CO2 feed CO2-101 or of the recycle CO2-102 into the enclosure | high | high | H01-A305 | process safety / HSE |
+| H01-S308 | The CO2 supply runs empty or is isolated, or W-101 loses pressure, with FV-102 or HV-104 open (no check valves) | high | high | H01-A306 | process engineer |
+| H01-S309 | SEQ-A-START S2 purges the cathodes with K-131 stopped: no outlet, the cathodes pressurised at every start | high | high | H01-A307 | process engineer |
 | H01-S402 | The PIC-121 pressure transmitter fails low | high | high | H01-A401, H01-A303 | instrument and control engineer; process safety / HSE |
-| H01-S403 | The cathode back-pressure above the anolyte pressure at the stacks, which is not measured | high | high | H01-A103, H01-A110 | process engineer; process safety / HSE |
+| H01-S403 | The cathode back-pressure above the anolyte pressure at the stacks, which is not measured (also after I-102 or I-106 with P-101 stopped) | high | high | H01-A103, H01-A110 | process engineer; process safety / HSE |
 | H01-S404 | PV-121 goes to its fail-open position on loss of instrument air, or the PIC-121 transmitter fails high | high | high | H01-A402 | process engineer |
+| H01-S405 | LV-122 closes on loss of instrument air, sticks closed, or CD-101 is blocked | high | high | H01-A403 | instrument and control engineer |
 | H01-S406 | The LIC-122 level transmitter fails low | high | high | H01-A403 | instrument and control engineer |
 | H01-S407 | LV-122 sticks open or the LIC-122 transmitter fails high | high | high | H01-A404 | process engineer |
 | H01-S408 | More K+ crosses the bipolar membrane than assumed | high | high | H01-A302 | process engineer |
@@ -246,38 +311,50 @@ for both skids. The owners are roles the drafting agents proposed; the owner ass
 | H01-S502 | PV-131 goes to its proposed fail-closed position on loss of instrument air, with K-131 and X-131 running | very-high | high | H01-A501 | process safety / HSE |
 | H01-S503 | K-131 stops with X-131 at pressure | high | high | H01-A502 | mechanical / package engineer |
 | H01-S506 | A flange or fitting leak on CO-101, PV-131 or the product side of X-131 inside the enclosure | high | high | H01-A505, H01-A902 | instrument and control engineer; process safety / HSE |
+| H01-S509 | K-131 stops, or a PSA fault, with X-131 at pressure: back-flow through the unguarded recycle CO2-102 | high | high | H01-A507 | process engineer |
 | H01-S601 | X-132 flame-out, cold catalyst or ignition failure while X-131 sends tail gas | high | high | H01-A601 | mechanical / package engineer |
 | H01-S602 | X-132 relit, or its catalyst recovers, with an H2-rich mixture accumulated in its chamber after a flame-out | high | high | H01-A602 | mechanical / package engineer |
+| H01-S603 | H2-rich tail gas after a CO2 loss, or the SEQ-A-GAS S3 purge slug, to X-132 | high | high | H01-A601 | mechanical / package engineer |
 | H01-S604 | AIR-101 lost or reduced | high | high | H01-A601 | mechanical / package engineer |
 | H01-S606 | An H2-in-O2 mixture leaves O2V-101 and is ignited at the outlet | high | high | H01-A110, H01-A603 | process safety / HSE |
+| H01-S610 | The tail gas flow falls away with X-132 still burning: flashback along TG-101 | high | high | H01-A605 | mechanical / package engineer |
 | H01-S801 | The operator does not stop the fill at the working level; LIA-101 has no high alarm | high | high | H01-A801, H01-A106 | instrument and control engineer; process safety / HSE |
-| H01-S803 | A hose or coupling at KOH-101 or SP-101 fails, or is disconnected with liquid in it, during a transfer | high | high | H01-A106, H01-A803 | operations; process safety / HSE |
+| H01-S803 | A hose or coupling at KOH-101 or SP-101 fails, or is disconnected with liquid in it, during a transfer | high | high | H01-A106, H01-A803 | process safety / HSE; operations |
 | H01-S805 | SEQ-A-DRAIN drains the whole reservoir to the site effluent; its acceptance is not stated | high | high | H01-A805 | process safety / HSE |
 | H01-S901 | K-141 fails or trips after SEQ-A-START S1 started it, or is not started | high | high | H01-A901, H01-A112 | process safety / HSE |
 | H01-S902 | A cathode gas or CO leak away from the single AIA-141, or AIA-141 failed | high | high | H01-A902 | process safety / HSE |
+| H01-S903 | An H2-rich release ignited by the motor of K-141, P-101 or K-131 (I-104 starts K-141, leaves P-101 running) | high | high | H01-A903 | owner / electrical engineer |
 | H01-S904 | Loss of electric power | high | high | H01-A904 | process engineer |
-| H02-S108 | FIC-201 transmitter fails reading low | high | high | H02-A401, H02-A101 | instrument and control engineer; process engineer |
+| H01-S906 | An H2-rich release reaches the running oxidiser X-132, which the gas trips do not stop | high | high | H01-A906, H01-A204 | process safety / HSE |
+| H02-S108 | FIC-201 transmitter fails reading low | high | high | H02-A401, H02-A101 | process engineer; instrument and control engineer |
 | H02-S109 | Leak from the loop | high | high | H02-A706 | process safety / HSE |
-| H02-S110 | H2 crosses the bipolar membrane into the anolyte and degasses into the T-201 head space | high | high | H02-A601, H02-A102 | instrument and control engineer; process safety / HSE |
+| H02-S110 | H2 crosses the bipolar membrane into the anolyte and degasses into the T-201 head space | high | high | H02-A601, H02-A102 | process safety / HSE; instrument and control engineer |
+| H02-S201 | JIC-201 or the rectifier U-201's regulation fails high (the alarm response and I-205 both act through U-201) | high | high | H02-A207 | electrical engineer |
 | H02-S203 | U-201 is switched off (stop, trip, power loss) with H2 and CO still at the cathodes | high | high | H02-A201 | electrical engineer |
 | H02-S204 | A short across the bus or the stack terminals in operation | high | high | H02-A202 | electrical engineer |
 | H02-S208 | A stack is disconnected, or a terminal re-made, with U-201 only switched off and the stacks still charged | high | high | H02-A204 | electrical engineer |
 | H02-S303 | The CO2 supply's pressure regulator at the battery limit fails open with FV-202 open | high | high | H02-A302 | process safety / HSE |
+| H02-S305 | The CO2 supply runs out or is isolated, or W-201 loses pressure, with FV-202 or HV-204 open (no check valves) | high | high | H02-A303 | process engineer |
 | H02-S306 | HV-204 set too low or closed by hand, W-201 supply lost, or the rotameter FI-203 misread | high | high | H02-A305 | process engineer |
 | H02-S308 | A leak of CO2-201, FV-202 or its flanges, or of the supply hose at the frame, inside the skid enclosure | high | high | H02-A306 | process safety / HSE |
+| H02-S309 | SEQ-B-START S2 purges the cathodes with K-231 stopped: no outlet, the cathodes pressurised at every start | high | high | H02-A307 | process engineer |
 | H02-S402 | PIC-221 transmitter fails reading low | high | high | H02-A402, H02-A401 | instrument and control engineer; process engineer |
-| H02-S403 | PV-221 fails open on loss of instrument air or PIC-221 reads high | high | high | H02-A401, H02-A403 | mechanical / package engineer; process engineer |
+| H02-S403 | PV-221 fails open on loss of instrument air or PIC-221 reads high | high | high | H02-A401, H02-A403 | process engineer; mechanical / package engineer |
+| H02-S405 | LV-222 closes on loss of instrument air, sticks, or CD-201 is blocked | high | high | H02-A404 | instrument and control engineer |
 | H02-S409 | The LIC-222 level transmitter fails low | high | high | H02-A404 | instrument and control engineer |
 | H02-S406 | LV-222 sticks open or LIC-222 fails reading high | high | high | H02-A405 | process engineer |
 | H02-S407 | K+ crossing the bipolar membrane meets the CO2 at the cathode: K2CO3 / KHCO3 precipitate | high | high | H02-A406, H02-A401 | process engineer |
 | H02-S501 | PV-231 closes (air loss, PIC-231 fault) or the CO receiver is closed while K-231 runs | very-high | high | H02-A501 | process safety / HSE |
-| H02-S502 | The PSA package X-231 closes its outlets while K-231 runs | high | high | H02-A501, H02-A502 | mechanical / package engineer; process safety / HSE |
+| H02-S502 | The PSA package X-231 closes its outlets while K-231 runs | high | high | H02-A501, H02-A502 | process safety / HSE; mechanical / package engineer |
 | H02-S506 | A leak at a flange of X-231, PV-231 or CO-201 (0.99 CO at 5 bar(a)) inside the enclosure | high | high | H02-A505, H02-A901 | instrument and control engineer; process safety / HSE |
+| H02-S509 | K-231 stops, or a PSA fault, with X-231 at pressure: back-flow through the unguarded recycle CO2-202 | high | high | H02-A507 | process engineer |
 | H02-S601 | X-232 loses its flame or its catalyst stops working while the PSA sends the tail gas | high | high | H02-A602 | mechanical / package engineer |
 | H02-S610 | X-232 relit, or its catalyst recovers, with an H2-rich mixture accumulated in its chamber after a flame-out | high | high | H02-A602 | mechanical / package engineer |
 | H02-S602 | The combustion air AIR-201 is lost at the battery limit | high | high | H02-A602 | mechanical / package engineer |
+| H02-S603 | H2-rich tail gas after a CO2 loss, product CO to the tail, or the SEQ-B-GAS S3 purge slug, to X-232 | high | high | H02-A602 | mechanical / package engineer |
 | H02-S604 | H2 crosses the bipolar membrane and leaves with the anode O2 through O2V-201 | high | high | H02-A601 | process safety / HSE |
-| H02-S605 | The cathode is above the anolyte pressure and cathode gas breaks through into the anolyte | high | high | H02-A601, H02-A401 | process engineer; process safety / HSE |
+| H02-S605 | The cathode above the anolyte (K-231 stopped, PV-221 closed, or a trip that stops P-201 with the purge held at 1.1 bar(a)) | high | high | H02-A601, H02-A401, H02-A604 | process safety / HSE; process engineer; mechanical / package engineer |
+| H02-S613 | The tail gas flow falls away with X-232 still burning: flashback along TG-201 | high | high | H02-A604 | mechanical / package engineer |
 | H02-S702 | The AIC-201 probe drifts high | high | high | H02-A701, H02-A702 | instrument and control engineer; process engineer |
 | H02-S703 | The AIC-201 setpoint, alarm and trip set on the concentration basis while the probe reads activity pH | high | high | H02-A702 | process engineer |
 | H02-S704 | The AIC-201 probe reads low | high | high | H02-A701 | instrument and control engineer |
@@ -286,14 +363,19 @@ for both skids. The owners are roles the drafting agents proposed; the owner ass
 | H02-S710 | LV-201 sticks open or LIC-201 fails reading low | high | high | H02-A705, H02-A706 | instrument and control engineer; process safety / HSE |
 | H02-S712 | The weekly refill through KOH-202 / HV-205 from a drum or IBC pump is not stopped in time | high | high | H02-A707, H02-A706 | operations; process safety / HSE |
 | H02-S714 | The P-202 diaphragm ruptures, or a fitting of KOH-203 / KOH-204 leaks at up to 4 bar(a) | high | high | H02-A706 | process safety / HSE |
+| H02-S716 | P-202 or KOH-203 opened with no isolation from the 84.5 L of 5 M KOH in T-202 | high | high | H02-A709, H02-A706 | mechanical / package engineer; process safety / HSE |
+| H02-S717 | The AIC-201 probe pulled or calibrated with the current on: the dose trim and I-201 lost together | high | high | H02-A710, H02-A701 | instrument and control engineer |
 | H02-S801 | The fill through KOH-201 delivers 5 M KOH or the 45-50 wt% merchant grade instead of 1 M | high | high | H02-A801 | operations |
 | H02-S802 | The fill through HV-202 from a tanker or IBC pump is not stopped at the 50 L working volume | high | high | H02-A705, H02-A801 | instrument and control engineer; operations |
-| H02-S803 | A hose coupling at KOH-201 or SP-201 is disconnected with liquid in it, or the hose fails | high | high | H02-A706, H02-A801 | operations; process safety / HSE |
+| H02-S803 | A hose coupling at KOH-201 or SP-201 is disconnected with liquid in it, or the hose fails | high | high | H02-A706, H02-A801 | process safety / HSE; operations |
 | H02-S806 | SEQ-B-DRAIN sends the 50 L at pH 13.7 to the site effluent with no agreed acceptance | high | high | H02-A708 | process safety / HSE |
 | H02-S807 | SEQ-B-DRAIN empties T-201 only: no drains or flushing of the stacks, pump and cooler | high | high | H02-A802, H02-A706 | process engineer; process safety / HSE |
 | H02-S901 | A secondary-grade leak of cathode gas or tail gas at a flange inside the enclosure | high | high | H02-A901, H02-A104 | process safety / HSE |
+| H02-S902 | An H2-rich leak ignited by a motor in the zone that I-204 starts or leaves running | high | high | H02-A902, H02-A901 | owner / electrical engineer; process safety / HSE |
 | H02-S903 | K-241 stops during operation | high | high | H02-A903 | process safety / HSE |
+| H02-S904 | Entry after a gas trip when the single detector reads clear but CO remains at the leak | high | high | H02-A904 | operations |
 | H02-S905 | Loss of electric power | high | high | H02-A905 | process engineer |
+| H02-S906 | An H2-rich release reaches the running oxidiser X-232, which the gas trips do not stop | high | high | H02-A906, H02-A206 | process safety / HSE |
 
 The causes are shortened here; the study files and the reports hold the full text, the
 safeguards and the rating bases.
@@ -318,6 +400,10 @@ safeguards and the rating bases.
 - **The CO2 supply interface** at the battery limit (pressure regulation, relief, cold gas), not
   drawn (H01-A303, A304; H02-A302, A304).
 - **The site effluent** acceptance of the spent anolyte and Skid B's bleed (H01-A805, H02-A708).
+- **The oxidiser X-x32 inside the enclosure and zone**: stopped with its tail gas by the gas
+  trips, or moved outside (H01-A906, H02-A906); a flame cannot be Ex-rated.
+- **The DC isolation independent of the rectifier**, which every trip and the current-runaway
+  scenario rest on (H01-A205, H02-A207).
 
 ### 3.7 Hazards judged not applicable, or only partly
 
@@ -340,8 +426,10 @@ The spec's list of hazards to examine is covered in both studies, except:
 - **Back-flow through KOH-204** is not credible as drawn (the highest T-202 level, about 0.69 m,
   is below KOH-204's entry at the top of T-201, about 0.71 m); kept as a low scenario with an
   action to confirm (H02-S706, H02-A703).
-- **Deviations with no credible cause** say so in their `notes`: H-01 anolyte reverse flow, CO
-  product back-flow and the loss of the CO2-102 recycle (its consequence is H01-S301).
+- **Deviations with no credible cause** say so in their `notes`: the anolyte reverse flow on
+  Skid A (H01-N1-D4) and the CO product back-flow on both skids (H01-N5-D6, H02-N5-D8), which
+  waits for the consumer's pressure. The loss of the recycle CO2-x02, recorded without a cause
+  in the first draft, is now H01-S510 and H02-S510.
 
 ## 4. How to record acceptance in the files
 
@@ -350,7 +438,9 @@ Only the scribe edits, during or right after the session, and only what the team
 1. **Team.** In each study, fill `team:` with the people present and their roles, e.g.
    `- {name: <name>, role: facilitator}`, replacing the `to be named` entries. Replace the
    "Agent-prepared draft ... no session has been held" sentences in `notes:` (and the header
-   comment) with the session dates and the record of attendance.
+   comment) with the session dates and the record of attendance. Keep the header comment the
+   same number of lines, or regenerate the 10,000 h record afterwards (step 5): its
+   `hazop-input-changed` warnings carry the line numbers of the `analysed:` block.
 2. **Risk matrix.** In `safety/risk-matrix.yaml`, set `status: accepted` and
    `accepted_by: <who, and the procedure or session record>`, or replace the file with the
    company's matrix. Update the comment and `notes` that call it a proposal.
@@ -372,7 +462,15 @@ Only the scribe edits, during or right after the session, and only what the team
    ```
    A study is `assessed` when it is complete, current and every entry is accepted. If an analysed
    input changes before that, `check` reports `hazop-input-changed`: reassess the touched nodes,
-   then `cheme safety hazop stamp <id> --write`.
+   then `cheme safety hazop stamp <id> --write`. The 10,000 h scenario record
+   (`results/scenarios/10000h/record.json`) lists the studies' `hazop-input-changed` warnings in
+   that scenario's copy with their file, line and recorded revision, so after a re-stamp, or an
+   edit that moves the `analysed:` block, regenerate it and commit it with the studies, or the
+   gate `skid-regen-current` fails on a file the scribe did not touch:
+   ```sh
+   cheme run scripts/regen.py --duration 10000 --uncertainty --scratch /tmp/s10000   # the record
+   cheme run scripts/regen.py --check                                                # exit 0
+   ```
 6. **Human review.** A person who did not author the studies reviews them:
    ```sh
    cheme safety hazop review H-01 --write    # reviews/<date>-hazop-H-01.md, likewise H-02

@@ -12,21 +12,23 @@
 
 > **These are agent-prepared drafts for a HAZOP team session. They are not a HAZOP: no session
 > has been held, nobody has accepted anything in them, and no human has reviewed them.** Every
-> node, deviation, scenario, safeguard, rating and action is `status: proposed, by: agent`, the
-> risk matrix is proposed, and `cheme safety hazop check` reports both studies as `draft`. Do
+> node, scenario, safeguard, rating and action is `status: proposed, by: agent` (a deviation
+> carries no status of its own in the schema: it is a guide word applied to a parameter, and the
+> scenarios under it are proposed), the risk matrix is proposed, and `cheme safety hazop check` reports both studies as `draft`. Do
 > not use them for safety decisions, procurement or operation before the team session and a
 > human review (`safety/hazop/SESSION.md`).
 
 | study | what | sheet | nodes | scenarios | worst band high / medium / low | actions |
 |---|---|---|---:|---:|---|---:|
-| `H-01` | Skid A: one-fill anolyte reservoir | P-01 | 8 | 72 | 29 / 33 / 10 | 47 |
-| `H-02` | Skid B: KOH dosing, bleed and make-up | P-02 | 9 | 85 | 38 / 28 / 19 | 47 |
+| `H-01` | Skid A: one-fill anolyte reservoir | P-01 | 8 | 77 | 39 / 30 / 8 | 52 |
+| `H-02` | Skid B: KOH dosing, bleed and make-up | P-02 | 9 | 92 | 50 / 28 / 14 | 55 |
 
 The node numbers mean the same part of each skid (N1 anolyte loop, N2 stacks and DC supply, N3
 cathode CO2 feed, N4 cathode gas outlet, N5 gas conditioning, N6 tail gas and vents, N7 Skid B's
 dosing, bleed and make-up, N8 fill and drain, N9 the enclosure). The two studies were drafted
 apart and then integrated, so that the hardware both skids share is examined alike and rated by
-one convention (DESIGN.md D-030). The actions the drafting agent considers most important are
+one convention, and then reviewed against the plant as drawn and their own credit rules
+(DESIGN.md D-030). The actions the drafting agent considers most important are
 in DESIGN.md D-031; the hazards judged not applicable, and the gaps of the plant as drawn, in
 D-032. The studies do not change the plant: what they find is an action for the design team.
 
