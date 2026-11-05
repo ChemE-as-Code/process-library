@@ -45,9 +45,13 @@ Rerun the skids, from this folder (about 2 min at 1,000 h, 4 min at 10,000 h):
 
 ```sh
 cheme run scripts/regen.py --duration 1000 --uncertainty                         # the design, in place
-cheme run scripts/regen.py --duration 10000 --uncertainty --scratch build/s10000  # records and figures only
+cheme run scripts/regen.py --duration 10000 --uncertainty --scratch /tmp/s10000  # records and figures only
 cheme run scripts/regen.py --check                                               # both, compared (exit 3 on a difference)
 ```
+
+Keep the `--scratch` copy outside the git repository: inside it, `cheme validate` resolves the
+P&ID generators against the repository and reports them missing, and that finding lands in the
+record.
 
 The measured series and the bench cell:
 
@@ -62,6 +66,19 @@ Results (`results/scenarios/<H>h/record.json`; mean of the measured point P200; 
 written by `scripts/regen.py` from the records, and `regen.py --check` compares it):
 
 <!-- regen:results begin (scripts/regen.py step 17; do not edit) -->
+| | Skid A, 1,000 h | Skid A, 10,000 h | Skid B, 1,000 h | Skid B, 10,000 h |
+|---|---|---|---|---|
+| stacks | 4 x 7 cells, 37.6 V, 80 A | same | same | same |
+| DC power, CO formed / delivered | 3.005 kW, 0.1119 / 0.1007 kg/h | same | same | same |
+| electricity per kg CO formed (DC) | 26.85 kWh/kg | same | same | same |
+| anolyte reservoir | T-101 1,166 L, D 1.074 x H 1.611 m | T-101 11,660 L, D 2.313 x H 3.470 m | T-201 50 L, D 0.376 x H 0.564 m | same |
+| KOH dosing, bleed, make-up | none | same | 2.096 mol/h (0.419 L/h of 5 M), 1.866 L/h, 1.447 L/h | same |
+| anolyte at the end | pH 12.02, 0.40 mol/L carbon | same | pH 13.70, 0.25 mol/L carbon | same |
+| KOH per kg CO delivered | 0.649 | same | 1.195 | 1.170 |
+| fits the 20 ft frame (2.20 m usable height) | yes, 0.40 m left | **no**: 1.27 m too tall | yes, 0.40 m left | same |
+| WDE -1 sd (0.9585) | the 1,166 L reservoir reaches pH 12 at 804 h | the 11,660 L reservoir reaches pH 12 at 8,036 h | dose 2.61 mol/h | same |
+
+"Skid A cannot meet the 10,000 h duty within the skid envelope".
 <!-- regen:results end -->
 
 At the measured mean the longest campaign whose one-fill reservoir fits the frame is about

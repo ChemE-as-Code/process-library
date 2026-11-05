@@ -3,6 +3,15 @@
   1000.0,
   10000.0
  ],
+ "errata": [
+  {
+   "correction": "The duties do not run with the rounded 0.670. For a measured cell, core's duty takes the titration's carbon share, 0.6697790 at P200 (the regenerated records' skids.B.carbon_share_duty and measured_state.co_ion_carbon_share); only `cheme process cell` reports the membrane block's 0.670 (DESIGN.md D-010). The same statement is in tests/skid_formulas.py (stated_co_ion_carbon_fraction, hand_values), which compute the hand values at 0.670.",
+   "effect": "The frozen E2 and E3 hand values carry a one-signed bias against the regenerated ones, inside every frozen tolerance: Skid A's exact volume -1.3e-4 relative (1165.15 L against 1165.30 L), the Skid B bleed -3.3e-4 (1.86608 L/h against 1.86670 L/h, a third of E3's rel 1e-3), the dose -2.2e-4 (2.09589 mol/h against 2.09635 mol/h). The values and tolerances stand.",
+   "id": "X-1",
+   "item": "measurements.co_ion_split",
+   "statement": "process/cells.yaml membrane.co_ion_crossover HCO3- 0.670 (the P200 titration mean 0.6698 rounded): the split the duties run with"
+  }
+ ],
  "expected": "results/expected.yaml",
  "issue": 330,
  "records": [
@@ -37,7 +46,7 @@
   {
    "cause": "floor(48 V / U) in series, the cells shared evenly",
    "changed": false,
-   "label": "stacks on the 48 V bus",
+   "label": "stacks on the DC bus",
    "quantity": "stacks",
    "rule": "invariant-of-duration",
    "rule_holds": true,
@@ -171,7 +180,7 @@
    }
   },
   {
-   "cause": "x 10 for H x 10 (V = N I H (1 - WDE)((1 - Cx) + Cx g) / (F 0.99 mol/L): the one fill carries the campaign's co-ion charge)",
+   "cause": "x 10 for H x 10 (V = N I H (1 - WDE)((1 - Cx) + Cx g) / (F (c0 - Kw / h + h)) at pH 12: the one fill carries the campaign's co-ion charge)",
    "changed": true,
    "label": "reservoir T-101, exact volume to the horizon",
    "quantity": "reservoir_volume_exact_l",
@@ -1134,8 +1143,8 @@
     "unchanged": true
    },
    "pid/P-02.xml": {
-    "1000": "bd31a7025ad1bf7030f271b367a14180e46f4742c6cdf419b2f2c4c091c17a4a",
-    "10000": "bd31a7025ad1bf7030f271b367a14180e46f4742c6cdf419b2f2c4c091c17a4a",
+    "1000": "ad2691552f803e46013bcd2df32d44989dd1983723ce493445d46b3142302886",
+    "10000": "ad2691552f803e46013bcd2df32d44989dd1983723ce493445d46b3142302886",
     "unchanged": true
    }
   },
