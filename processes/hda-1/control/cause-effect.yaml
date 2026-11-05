@@ -1,7 +1,14 @@
 # Cause and effect list: interlocks and trips. Schema: `cheme schema interlocks`.
 # On a sheet, refer to an interlock ("see C&E I-01") instead of spelling out what it trips.
-# S3b (D-025): the trips the P&IDs draw, PROPOSED; SIL, voting, delays, resets and bypasses come
-# with the control and safeguarding work (S4) and the HAZOP / LOPA (S6).
+# PROPOSED, not approved for implementation. S3b (D-025): the nine trips the P&IDs draw. S4
+# (D-026): the trip delays, latching, reset and bypass of each, ASSUMED as usual practice for a
+# first issue, and two trips the loops need that act through packages: I-105 (burner management
+# of the H-101 package) and I-203 (K-101 machine protection of the compressor package); the review
+# of PR #357 added I-106 (loss of quench, TZ-128 on P-01) and I-301 (K-102 / PSA package trip, purge
+# shutdown valve XV-310 on P-03). The trip
+# setpoints are not set here (they need the design limits and the HAZOP); sensor voting and the
+# SIL are the HAZOP / LOPA's (S6): sil stays empty until then. No trip acts on a control valve of
+# control/loops.yaml: every effect is a trip valve (XV) or a machine stop.
 schema: cheme/interlocks/v1
 interlocks:
   - id: I-101
@@ -15,7 +22,11 @@ interlocks:
       - {tag: XV-121, action: close}
     sheet: P-01
     sil: null
-    notes: "D-025. Loss of process flow through the fired coil overheats the tubes: the fuel double block and bleed (US-112) stops the firing; the burner management of the H-101 package also stops the burners. Without coil flow the loop runs below the H2/aromatics ratio of 5 (D-007, coking), so US-122 also cuts the toluene feed (XV-120) and the make-up hydrogen (XV-121). SIL and sensor voting: S4/S6."
+    delay: {value: 3, unit: s}
+    latching: true
+    reset: manual   # from the control room once the coil flow is back above the trip point (K-101 running) and TIC-111, FIC-103 and FIC-108 are in manual with their valves closed
+    bypass: "Start-up only: bypassed until K-101 circulates gas through the coil (SEQ-START-RXN step S2); the bypass is removed before the burners are lit, so the firing never runs on a bypassed coil flow trip."
+    notes: "D-025, D-026. Loss of process flow through the fired coil overheats the tubes: the fuel double block and bleed (US-112) stops the firing; the burner management of the H-101 package (I-105) also stops the burners. Without coil flow the loop runs below the H2/aromatics ratio of 5 (D-007, coking), so US-122 also cuts the toluene feed (XV-120) and the make-up hydrogen (XV-121). Sensor voting and SIL: S6."
   - id: I-102
     title: R-101 outlet temperature high-high (reaction runaway)
     cause: {tag: TZ-113, condition: TAHH}
@@ -28,7 +39,11 @@ interlocks:
       - {tag: XV-209, action: open}
     sheet: P-01
     sil: null
-    notes: "D-025. Thermal HDA and the hydrocracking side reactions are exothermic: stopping the firing removes the heat input, and cutting the toluene feed (XV-120) and the make-up hydrogen (XV-121) removes the reactants the feed/effluent exchanger E-101 would keep preheating. The trip also opens the loop depressuring valve XV-209 (FL-233 to the flare, P-02) automatically, as API 521 recommends for a hot hydrogen reactor with a temperature runaway; HS-209 stays as the manual initiation. Rate and orifice: S8. A single sensor is drawn; the sensor voting (for example 2oo3 over TZ-113 and the bed temperatures TI-124) and the SIL come from S4/S6."
+    delay: {value: 1, unit: s}
+    latching: true
+    reset: manual   # once TZ-113 is back below the trip point and the loop is depressured or the cause is known; XV-209 is closed again by the operator from HS-209 after the reset
+    bypass: None.
+    notes: "D-025, D-026. Thermal HDA and the hydrocracking side reactions are exothermic: stopping the firing removes the heat input, and cutting the toluene feed (XV-120) and the make-up hydrogen (XV-121) removes the reactants the feed/effluent exchanger E-101 would keep preheating. The trip also opens the loop depressuring valve XV-209 (FL-233 to the flare, P-02): vapour depressuring of a hot hydrogen reactor in a temperature runaway, the practice API Std 521 7th ed. (2020) covers in its vapour depressuring section, 5.20 (the section number from the NeqSim documentation's index of the standard, equinor.github.io/neqsim/safety/depressurization_per_API_521; the standard itself was not read here, so the clause and its criteria are S8's to confirm); XV-209 fails open (D-026); HS-209 stays as the manual initiation. Rate and orifice: S8. A single sensor is drawn; the sensor voting (for example 2oo3 over TZ-113 and the bed temperatures TI-124) and the SIL are S6's. The short delay: a runaway develops in seconds to minutes, ASSUMED."
   - id: I-103
     title: V-100 level low-low (feed pumps running dry)
     cause: {tag: LZ-123, condition: LL}
@@ -37,17 +52,57 @@ interlocks:
       - {tag: P-101B, action: stop}
     sheet: P-01
     sil: null
-    notes: "D-025. Machine protection of the high-head multistage feed pumps (150 to 3600 kPa(a)), independent of the level loop LIC-102, as on the other pump suction drums (I-401, I-501, I-601). Losing the toluene feed lowers the coil flow and the reactor load; FZ-110 (I-101) covers the coil."
+    delay: {value: 5, unit: s}
+    latching: true
+    reset: manual   # once the level is back above the trip point; the pump is restarted by hand on minimum flow (FIC-106 in auto)
+    bypass: "Start-up only: bypassed while V-100 is first filled with the pumps stopped; removed before a pump is started."
+    notes: "D-025, D-026. Machine protection of the high-head multistage feed pumps (150 to 3600 kPa(a)), independent of the level loop LIC-102, as on the other pump suction drums (I-401, I-501, I-601). Losing the toluene feed lowers the coil flow and the reactor load; FZ-110 (I-101) covers the coil."
   - id: I-104
     title: H-101 fuel gas pressure low-low or high-high
     cause: {tag: PZ-127, condition: "PALL or PAHH"}
+    logic: {any: [{tag: PZ-127, state: PALL}, {tag: PZ-127, state: PAHH}]}
     effects:
       - {tag: XV-112, action: close}
       - {tag: XV-125, action: close}
       - {tag: XV-126, action: open}
     sheet: P-01
     sil: null
-    notes: "D-025. Low fuel pressure lets the flame lift off or go out (unburnt gas into the firebox); high pressure overfires the coil. Logic US-112 (double block and bleed). The pilot gas and the flame detection are in the heater package BMS (open item for the vendor). SIL: S4/S6."
+    delay: {value: 2, unit: s}
+    latching: true
+    reset: manual   # once the fuel pressure is back between the trip points; relighting only through the burner management purge (I-105, SEQ-START-RXN)
+    bypass: "Light-off only: the low-low leg is bypassed by the burner management for its light-off period; the high-high leg never."
+    notes: "D-025, D-026. Low fuel pressure lets the flame lift off or go out (unburnt gas into the firebox); high pressure overfires the coil. Logic US-112 (double block and bleed). The pilot gas and the flame detection are in the heater package BMS (I-105). SIL: S6."
+  - id: I-105
+    title: H-101 burner management trip (flame failure, purge not proven, combustion air lost)
+    cause: {tag: H-101, condition: "BMS trip (heater package)"}
+    logic: {text: "Any trip of the burner management system of the H-101 package: main flame failure, pilot failure, pre-purge not proven, combustion air or draft lost (the signals are inside the package, vendor)"}
+    effects:
+      - {tag: XV-112, action: close}
+      - {tag: XV-125, action: close}
+      - {tag: XV-126, action: open}
+    sheet: P-01
+    sil: null
+    latching: true
+    reset: manual   # only through the BMS: a proven pre-purge before any relight (SEQ-START-RXN step S3)
+    bypass: None.
+    notes: "D-026. Fired heater with an enclosed firebox: proven air pre-purge before light-off, flame proving and fuel trip valves are expected (skill control-safeguarding-and-interlocks). No burner management code was read for this trip: the skill names EN 746-2 and NFPA 86 for orientation only, and the code that applies to a process fired heater on this site (a refinery or petrochemical fired heater practice, or the local code) is for the heater vendor and S6 to set. The BMS acts on the plant's main fuel double block and bleed (US-112) as well as on its own pilot valves. The flame detectors, pilot train and the BMS signals are package scope and not on P-01 (D-025 open item); the trip is listed so that its effects on plant valves are recorded."
+  - id: I-106
+    title: Loss of quench (E-101 hot inlet temperature high-high, or both quench pumps stopped)
+    cause: {tag: TZ-128, condition: "TAHH, or P-102 and P-102B both stopped"}
+    logic: {any: [{tag: TZ-128, state: TAHH}, {all: [{tag: P-102, state: stopped}, {tag: P-102B, state: stopped}]}]}
+    effects:
+      - {tag: XV-112, action: close}
+      - {tag: XV-125, action: close}
+      - {tag: XV-126, action: open}
+      - {tag: XV-120, action: close}
+      - {tag: XV-121, action: close}
+    sheet: P-01
+    sil: null
+    delay: {value: 5, unit: s}
+    latching: true
+    reset: manual   # once TZ-128 is back below the trip point and a quench pump runs with TIC-115 in control; restart through SEQ-START-RXN
+    bypass: "The pumps-stopped leg only, in start-up: bypassed until SEQ-START-RXN step S6 runs P-102 (before then V-101 has no liquid to quench with); the TZ-128 leg is never bypassed, so it bounds the unquenched effluent of step S5 (D-026)."
+    notes: "Review of PR #357 (D-026). Without quench E-101 receives the reactor effluent at 936.2 K (S8, DWSIM) instead of 893.15 K (S9), above its design temperature of 645 degC = 918.15 K (equipment/equipment-list.yaml). The causes are a P-102/P-102B trip (I-201 stops both on V-101 level low-low), TV-115 failing or driven closed, or AR-117 blocked; TIC-115 is the control loop and cannot protect itself, so TZ-128 is a separate element on PG-108 after the quench point (P-01; its signal to US-112 is recorded here and in the DEXPI model, not drawn, to keep the sheet free of crossings). Effects: the firing (US-112) and the feed and make-up hydrogen (US-122), so the reaction heat and the reactor inlet heat both go; K-101 keeps circulating and the effluent falls towards the coil outlet temperature, which then falls with the firing off. The TAHH setpoint lies between the TIC-115 setpoint (893 K) and the E-101 design temperature (918 K); its value, the sensor voting and the SIL are S6's. Scenario for S6 (HAZOP / LOPA): loss of quench, E-101 above its design temperature in hot hydrogen."
   - id: I-201
     title: V-101 level low-low (gas blow-by to the stabiliser, quench pumps running dry)
     cause: {tag: LZ-203, condition: LL}
@@ -57,7 +112,11 @@ interlocks:
       - {tag: P-102B, action: stop}
     sheet: P-02
     sil: null
-    notes: "D-025. Losing the separator level would send loop gas at 32 barg into C-201 (design 9 barg) through LV-202; XV-204 is a separate shutdown valve, independent of the level loop LIC-202. PSV on C-201 (P-04) is the relief layer behind it; whether the blow-by is its governing case is for S8. The quench pumps P-102/P-102B take suction from the same drum bottom (AR-235) and are stopped too; losing the quench raises the E-101 inlet temperature, which TIC-115 alarms (S4)."
+    delay: {value: 3, unit: s}
+    latching: true
+    reset: manual   # once the level is back above the trip point with LIC-202 in manual and LV-202 closed
+    bypass: "Start-up only: bypassed until V-101 has liquid (SEQ-START-RXN step S5); XV-204 stays closed while bypassed, so the stabiliser is not open to the loop."
+    notes: "D-025, D-026. Losing the separator level would send loop gas at 32 barg into C-201 (design 9 barg) through LV-202; XV-204 is a separate shutdown valve, independent of the level loop LIC-202. PSV-413 on C-201 (P-04) is the relief layer behind it; whether the blow-by is its governing case is for S8. The quench pumps P-102/P-102B take suction from the same drum bottom (AR-235) and are stopped too. Losing the quench sends the unquenched effluent (936 K, S8) to E-101, which is rated for 918 K (645 degC): I-106 then cuts the firing and the feed (its pumps-stopped leg acts at once, TZ-128 behind it)."
   - id: I-202
     title: V-101 level high-high (liquid carry-over to K-101)
     cause: {tag: LZ-206, condition: HH}
@@ -67,7 +126,40 @@ interlocks:
       - {tag: XV-121, action: close}
     sheet: P-02
     sil: null
-    notes: "D-025. Liquid slugs damage the recycle compressor. Stopping K-101 stops the recycle gas and with it the coil flow, so FZ-110 then trips the firing (I-101); the feed cut-off (US-122, P-01) acts at once, so no toluene and make-up hydrogen enter a loop without recycle gas (below the H2/aromatics ratio of 5, D-007)."
+    delay: {value: 3, unit: s}
+    latching: true
+    reset: manual   # once the level is back below the trip point; K-101 restarts on full recycle (UIC-207) through SEQ-START-RXN
+    bypass: None.
+    notes: "D-025, D-026. Liquid slugs damage the recycle compressor. Stopping K-101 stops the recycle gas and with it the coil flow, so FZ-110 then trips the firing (I-101); the feed cut-off (US-122, P-01) acts at once, so no toluene and make-up hydrogen enter a loop without recycle gas (below the H2/aromatics ratio of 5, D-007)."
+  - id: I-203
+    title: K-101 machine protection trip (vibration, axial position, lube oil, discharge temperature)
+    cause: {tag: K-101, condition: "machine protection trip (compressor package)"}
+    logic: {text: "Any trip of the K-101 machine protection system of the compressor package: shaft vibration or axial position high-high, lube oil pressure low-low, seal failure, discharge temperature high-high, motor protection (the trip sensors and set points are the vendor's; VI-222 and TI-221 on P-02 are the plant's indication and alarm)"}
+    effects:
+      - {tag: K-101, action: stop}
+      - {tag: XV-120, action: close}
+      - {tag: XV-121, action: close}
+    sheet: P-02
+    sil: null
+    latching: true
+    reset: manual   # by the vendor's machine protection, after the cause is found; restart through SEQ-START-RXN
+    bypass: None.
+    notes: "D-026. The loop needs this trip as I-202 does: without K-101 there is no recycle gas, so the feed cut-off (US-122) acts at once and FZ-110 then trips the firing (I-101). The anti-surge controller UIC-207 opens its recycle UV-207 on the machine stop by its own function (vendor anti-surge system), not as an effect of this trip, so the trip does not share a valve with the loop. The machine protection itself is the vendor's scope (D-025 open item)."
+  - id: I-301
+    title: K-102 or PK-101 package trip (purge isolated from the PSA)
+    cause: {tag: K-102, condition: "machine protection trip (compressor package) or PSA package trip"}
+    logic: {any: [{tag: K-102, state: "machine protection trip (vendor: lube oil pressure low-low, vibration or rod load high-high, discharge temperature high-high, motor protection)"}, {tag: PK-101, state: "PSA package trip (vendor cycle control: switching valve fault, bed pressure out of sequence)"}]}
+    effects:
+      - {tag: K-102, action: stop}
+      - {tag: PK-101, action: stop}
+      - {tag: XV-310, action: close}
+    sheet: P-03
+    sil: null
+    delay: {value: 2, unit: s}
+    latching: true
+    reset: manual   # once the package trip is reset by its vendor logic; XV-310 is reopened only through SEQ-START-PSA with FIC-211 in manual and FV-211 closed
+    bypass: None.
+    notes: "Review of PR #357 (D-026). Without this trip a K-102 or PSA stop would leave the purge flowing into PK-101 at the loop pressure (about 36 bar(a)) against a blocked tail gas outlet, and the PSV-307 / PSV-308 relief would become the routine answer to a foreseeable machine trip. US-311 (P-03) stops K-102, holds the PSA cycle (PK-101 stop: the package's own valves close in their hold position, vendor) and closes the purge shutdown valve XV-310 on HG-113 at the PSA inlet (fails closed, D-026). XV-310 is a separate valve, so the trip does not act on FV-211 of the control loop FIC-211; SEQ-TRIP-PSA then puts FIC-211 and AIC-210 in manual. The loop then runs without purge (methane builds up over hours, SEQ-TRIP-PSA). K-102 machine protection sensors and set points are the vendor's (D-025 open item). Sensor voting and SIL: S6."
   - id: I-401
     title: V-201 level low-low (reflux pumps running dry)
     cause: {tag: LZ-411, condition: LL}
@@ -76,7 +168,11 @@ interlocks:
       - {tag: P-201B, action: stop}
     sheet: P-04
     sil: null
-    notes: "D-025. Machine protection of the reflux pumps, independent of the level loop LIC-405."
+    delay: {value: 5, unit: s}
+    latching: true
+    reset: manual   # once the level is back; the pump is restarted by hand
+    bypass: "Start-up only: while V-201 first collects condensate with the pumps stopped."
+    notes: "D-025, D-026. Machine protection of the reflux pumps, independent of the level loop LIC-405."
   - id: I-501
     title: V-202 level low-low (reflux and product pumps running dry)
     cause: {tag: LZ-512, condition: LL}
@@ -85,7 +181,11 @@ interlocks:
       - {tag: P-202B, action: stop}
     sheet: P-05
     sil: null
-    notes: "D-025. Machine protection, independent of the level loop LIC-506. Losing the reflux upsets the benzene purity; the operator's response is in S4."
+    delay: {value: 5, unit: s}
+    latching: true
+    reset: manual   # once the level is back; the pump is restarted by hand
+    bypass: "Start-up only: while V-202 first collects condensate with the pumps stopped."
+    notes: "D-025, D-026. Machine protection, independent of the level loop LIC-506. Losing the reflux upsets the benzene purity: the operator cuts the LP steam (TIC-502 to manual) and holds the product (SEQ-SD-PLANT)."
   - id: I-601
     title: V-203 level low-low (reflux and recycle pumps running dry)
     cause: {tag: LZ-612, condition: LL}
@@ -94,4 +194,8 @@ interlocks:
       - {tag: P-203B, action: stop}
     sheet: P-06
     sil: null
-    notes: "D-025. Machine protection, independent of the level loop LIC-606; the suction is from a drum under vacuum, so NPSH is tight."
+    delay: {value: 5, unit: s}
+    latching: true
+    reset: manual   # once the level is back; the pump is restarted by hand
+    bypass: "Start-up only: while V-203 first collects condensate with the pumps stopped."
+    notes: "D-025, D-026. Machine protection, independent of the level loop LIC-606; the suction is from a drum under vacuum, so NPSH is tight."
