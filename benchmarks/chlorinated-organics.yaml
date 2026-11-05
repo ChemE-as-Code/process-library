@@ -24,6 +24,15 @@
 # dataset takes its feed ratios and conditions from the same patent's Example 1, but its yield
 # comes from its own still and column (DESIGN.md D-007, D-008), so the range checks that result.
 # The stoichiometric floor of the benzotrichloride, 0.695 kg/kg, is a limit, not a range.
+#
+# p-Toluenesulfonyl chloride (p-toluenesulfonyl-chloride-1, #162): no open source gives a plant's
+# specific consumptions. The stoichiometric floors are 0.483 kg toluene and 1.222 kg
+# chlorosulfonic acid per kg p-TsCl (C7H8 + 2 HSO3Cl -> TsCl + H2SO4 + HCl); they are limits, not
+# ranges of real plants, so they are not recorded as references (docs/benchmarks.md: never invent
+# a range). The open yields (DE 1 912 956 A1: 77 % of theory as the para compound; PL 73685 B2:
+# above 80 %; CN 105503671 A from purchased TsOH: 81-88 %) are laboratory examples, one of them
+# the dataset's own basis (DESIGN.md D-001, D-005), so binding them would only check the
+# transcription.
 schema: cheme-as-code/benchmarks/v1
 family: chlorinated-organics
 
@@ -63,6 +72,14 @@ kpis:
     title: Distillation residue per kg of benzoyl chloride
     unit: kg/kg
     no_open_reference: "No open source with the residue of a benzoyl chloride distillation on the benzoic acid route without recycle found (searched 2026-11-05: Google Patents US 4 276 231 A read; its Example 1 gives no bottoms mass, its Example 2, the water variant, 210 g of bottoms on 3255 g of product before they are re-reacted, one value on other conditions; NIST WebBook and PubChem have no plant data)."
+  tscl-specific-toluene:
+    title: Toluene consumption per kg of p-toluenesulfonyl chloride
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's or a pilot's toluene use per kg p-TsCl found independent of the dataset (searched 2026-11-05: Google Patents DE 1 912 956 A1, the dataset's basis, PL 73685 B2 and CN 105503671 A, all laboratory examples; web search for p-toluenesulfonyl chloride production consumption figures, which gave only encyclopaedia summaries, not read where licensed). Only the stoichiometric floor, 0.483 kg/kg, is known."
+  tscl-specific-chlorosulfonic-acid:
+    title: Chlorosulfonic acid consumption per kg of p-toluenesulfonyl chloride
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's chlorosulfonic acid use per kg p-TsCl found (searched 2026-11-05 as for tscl-specific-toluene); the patents give laboratory ratios of about 3 (DE 1 912 956 A1) to 4 (PL 73685 B2) mol per mol toluene. Only the stoichiometric floor, 1.222 kg/kg, is known."
 
 datasets:
   - process: benzyl-chloroformate-1
@@ -83,3 +100,9 @@ datasets:
     kpis:
       bzcl-specific-benzotrichloride: {expression: feed:BTC / product:BZCL, per: product:BZCL, reference: us4276231-yield-btc}
       bzcl-specific-residue: {expression: product:RES / product:BZCL, per: product:BZCL}
+  - process: p-toluenesulfonyl-chloride-1
+    dataset: p-toluenesulfonyl-chloride-by-semi-batch-chlorosulfonation-of-toluene-with-a-drown-out-quench-1000-t-a
+    conditions: {technology: "salt-modified chlorosulfonation of toluene at 338 K, second acid portion at 308 K, drown-out quench in water, filtration, two reslurry washes, vacuum drying", basis: "concept balance, ratios from the patent's example and ASSUMED (DESIGN.md D-004, D-005)"}
+    kpis:
+      tscl-specific-toluene: {expression: feed:TOL / product:TSCL, per: product:TSCL}
+      tscl-specific-chlorosulfonic-acid: {expression: feed:CSA / product:TSCL, per: product:TSCL}

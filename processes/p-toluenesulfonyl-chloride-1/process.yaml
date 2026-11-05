@@ -1,0 +1,106 @@
+# Process Atlas manifest of p-toluenesulfonyl-chloride-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: p-toluenesulfonyl-chloride-1
+title: p-Toluenesulfonyl chloride by semi-batch chlorosulfonation of toluene with a drown-out quench (1000 t/a)
+summary: >-
+  A batch plant: toluene is dosed into chlorosulfonic acid with ammonium chloride (HCl vented to
+  a scrubber), a second acid portion gives the sulfonyl chlorides, and the mass is drowned in
+  cold water, where p-TsCl precipitates, is filtered, washed and vacuum-dried. Concept stage,
+  1749 kg per batch every 13.85 h on a dedicated train, preliminary gate-to-gate LCI.
+description: |
+  The route is the salt-modified chlorosulfonation of DE 1 912 956 A1 (Hoechst, 1969, Example 1):
+  per mol of toluene 1.5 mol of chlorosulfonic acid and 0.45 mol of ammonium chloride are charged,
+  the salt is added in portions (HCl escapes), toluene is dosed at 338 K, the mass is cooled to
+  308 K, a second 1.5 mol of acid is added and held for 1 h, and the mass is drowned in water.
+  The salt raises the para share of the sulfonation to 90 % (the patent's p-content). The
+  sulfonic acids go 90 % to the sulfonyl chlorides (ASSUMED); the rest stays in the waste acid.
+  In the quench the excess acid and the ammonium chlorosulfate hydrolyse, p-TsCl precipitates
+  (assumed solubility 0.5 g per kg water), and the ortho isomer, an oil above 10 C, stays with
+  the liquor. Two reslurry washes with ice water and vacuum drying at 308 K give the product.
+  The modelled assay is 99.7 wt% p-TsCl, an upper bound: the cake's o-TsCl retention is not
+  modelled (DESIGN.md L-4), and the source's crude has 90 % para. The modelled yield is 78.8 % on
+  toluene. That is above the patent's 77 % of theory as para compound in its crude (an ASSUMED
+  better in-mass conversion, DESIGN.md D-005); calibrated to the patent, it would be about 76 %.
+  The HCl of both vents (0.38 kg
+  per kg product) is neutralised in a caustic scrubber; 12.6 kg of dilute waste acid (8 wt%
+  H2SO4, 2 wt% HCl) per kg product goes to neutralisation.
+
+  The batch is modelled with cheme-as-code 1.8.0: the chlorosulfonator R101 and the quench Q101
+  are semi-batches (reactor: semibatch) with an HCl vent (batch.vent, core ADR 0054); the
+  precipitation and the two reslurry washes are crystallizers with the liquor's other solutes
+  as spectators (core ADR 0056); the Nutsche filter is one recipe vessel over five steps with
+  Ruth filtration times and the paddle dryer core's dryer to a residual moisture (core ADR 0057).
+  The recipe gives the cycle (13.85 h, R-101 the bottleneck, 571.8 batches a year), sizes the
+  vessels, checks the jackets and reports the scrubber load per batch (657 kg HCl). Kinetics and
+  heats of reaction are ASSUMED (no open data): the sulfonation accumulates 1.7 % of the toluene
+  and its cooling-failure temperature reaches 343.6 K against an MTT of 383.75 K (toluene's
+  boiling point); a 100 times slower rate would exceed it. See DESIGN.md for every assumption.
+families: [chlorinated-organics]
+keywords: [p-toluenesulfonyl chloride, tosyl chloride, TsCl, chlorosulfonic acid, toluene, chlorosulfonation, ammonium chloride, semi-batch, batch, dosing, HCl vent, quench, drown-out, precipitation, Nutsche filter, vacuum dryer, caustic scrubber, fine chemicals]
+facets:
+  feedstock_basis: [fossil, mineral, electricity]
+  product_classes: [chemicals]
+  unit_operations: [reaction, crystallization, filtration, drying, absorption]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Capacity, kinetics, heats of
+# reaction, solubility, filtration and drying are assumed (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept batch PFD with closed mass, component and element balances (cheme validate: 4 blocks,
+    17 steps). Every material stream is calculated by cheme process propagate from the feeds: the
+    semi-batches R101 and Q101 from their ASSUMED rate laws with the HCl vented (core ADR 0054),
+    R102 and the scrubber as conversion steps, the precipitation CR101 and the washes W101, W102
+    as crystallizers with spectators on an ASSUMED solubility with no salting-out correction, the
+    filters as specified splits, the dryer D101 to an ASSUMED residual moisture with its heat from
+    cheme's dryer model. The feeds are sized by hand for 1000 t/a (the outlets scale with them);
+    the other duties are hand arithmetic from cheme's reactor report and the stream table,
+    including the dilution heat in the quench that the model leaves out. The recipe takes the
+    dosing, post-reaction, heating, cooling, filtration and drying times from the models (cheme
+    process recipe, no cheme.recipe-basis or cheme.recipe-jacket finding). Thermal screening
+    (cheme process reactor-hazards): R101 dT_ad 238 K, accumulation 1.7 %, MTSR 343.6 K against
+    an MTT of 383.75 K; Q101 dT_ad 24.9 K, MTSR 298.2 K against 373.1 K; no criticality class
+    without a TD24 from calorimetry (never estimated). The kinetics are assumed: at k/100 the MTSR
+    of R101 is 420 K. Preliminary gate-to-gate LCI with nitrogen and rinses as per-batch
+    consumables; toluene, caustic soda and nitrogen linked to btx-1, chlor-alkali-1 and asu-1,
+    chlorosulfonic acid and ammonium chloride gaps with their proxy recorded. Not reviewed. Needs
+    cheme-as-code 1.8.0.
+chemistry:
+  inputs:
+    - {chemical: chlorosulfonic-acid, role: feedstock, note: "feed:CSA: technical chlorosulfonic acid (merchant), 2.32 kg/kg p-TsCl in two portions; no library process makes it (proxy SO3 + HCl recorded, D-012)"}
+    - {chemical: toluene, role: feedstock, note: "feed:TOL: dry toluene (btx-1), 0.612 kg/kg p-TsCl"}
+    - {chemical: ammonium-chloride, role: feedstock, note: "feed:NH4CL: technical ammonium chloride (merchant), 0.160 kg/kg p-TsCl; raises the para share (DE 1 912 956 A1)"}
+    - {chemical: sodium-hydroxide, role: feedstock, note: "feed:NAOH: caustic soda 50 wt% (chlor-alkali-1) to the HCl scrubber, 0.871 kg/kg p-TsCl, counted by mass of the solution"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Quench heel and scrubber make-up, 8.64 kg/kg p-TsCl"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:WASHW", note: "Ice-cold cake washes, 4.03 kg/kg p-TsCl"}
+  outputs:
+    - {chemical: p-toluenesulfonyl-chloride, role: main-product, inventory_key: "product:TSCL", note: "Dried p-TsCl crystals to packing; modelled 99.7 wt% p-TsCl, an upper bound: the cake's o-TsCl retention is not modelled (DESIGN.md L-4), the source's crude has 90 % para"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WA", note: "Waste acid (mother liquor, wash filtrates, dryer condensate), 12.6 kg/kg p-TsCl: 8 wt% H2SO4, 2 wt% HCl, 2.7 wt% NH4HSO4, toluenesulfonic acids and the o-TsCl oil, to neutralisation"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WS", note: "Spent scrubber liquor, 3.02 kg/kg p-TsCl, 20 wt% NaCl with excess NaOH, to wastewater treatment"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.193 kWh/kg p-TsCl: agitators of R-101, Q-101 and F-101, the paddle dryer, vacuum pump, scrubber pump and fan (ASSUMED)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.340 kWh (1.22 MJ)/kg p-TsCl of LP steam: R-101's heat-up and the dryer's hot-water circuit (cheme's dryer model, the vessel's heat each batch included)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.609 kWh/kg p-TsCl removed by cooling water: the heat of sulfonation, the cool-down to 308 K and the scrubber (the caustic's ASSUMED dilution heat included)"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:BRINE", note: "0.811 kWh/kg p-TsCl removed by brine at 258 K: the heel cooled, the quench heat with the dilution heat, the dryer's vacuum condenser (0.202 kWh) and the wash water chilled to 278 K (0.094 kWh) (the registry has chilled water, not brine: closest entry)"}
+basis:
+  capacity: "1000 t/a dried p-TsCl: 571.8 batches/a of 1748.95 kg in 7920 h on a dedicated train (126.26 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-013)"
+  operating_hours_per_year: 7920
+  location: generic fine-chemicals site with a chlorosulfonic acid supply (not chosen)
+references:
+  - {title: "Schaeffer, G.; Otten, J. (Farbwerke Hoechst, 1969/1970) DE1912956A1: Verfahren zur Herstellung von p-Toluolsulfochlorid (Example 1: ammonium chloride in chlorosulfonic acid, toluene at 60-70 C, second acid portion at 35 C, ice-water quench; crude 84-85 % of theory with 90 % p-content; prior art: a continuous process with about 69 % p-content)", url: "https://patents.google.com/patent/DE1912956A1/en"}
+  - {title: "Osrodek Badawczo-Rozwojowy Przemyslu Barwnikow (1971/1974) PL73685B2: Sposob wytwarzania p-toluenosulfochlorku (quench onto ice, filtration, three ice-water washes, vacuum drying at 30-40 C, yield above 80 %; a route via sulfuric acid sulfonation and isomerisation, not used)", url: "https://patents.google.com/patent/PL73685B2/en"}
+  - {title: "PubChem CID 7397, 4-Methylbenzenesulfonyl chloride (identity; mp 69-71 C, density 1.33 g/cm3, insoluble in water and reacting with it, HSDB record)", url: "https://pubchem.ncbi.nlm.nih.gov/compound/7397"}
+  - {title: "Stoessel, F. (2008) Thermal Safety of Chemical Processes, Wiley-VCH (accumulation and MTSR of a semi-batch; method reference, not data)", doi: 10.1002/9783527621606}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/p-toluenesulfonyl-chloride-1
+  access: public
+publication:
+  status: internal
