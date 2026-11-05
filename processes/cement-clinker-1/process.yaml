@@ -1,0 +1,33 @@
+# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
+# dataset is lca/datasets/*.yaml, Tier 1 form, so maturity stays at concept
+# (core's cheme.lci-tier-maturity). See README.md.
+schema: cheme-as-code/process/v1
+id: cement-clinker-1
+title: Portland cement clinker in a dry rotary kiln with cyclone preheater and precalciner
+summary: >-
+  Sourced conceptual inventory per tonne of grey clinker: raw meal and calcination CO2 from IPCC
+  default clinker chemistry, fuel and stack emissions from the EU CLM BREF, petroleum coke as the
+  fuel (ASSUMED). No flowsheet; not reviewed.
+families: [cement-lime]
+keywords: [cement, clinker, rotary kiln, precalciner, cyclone preheater, calcination, limestone, process CO2, petroleum coke]
+facets: {feedstock_basis: [mineral, fossil], product_classes: [materials], unit_operations: [grinding, calcination, kiln, cooling], region: EU}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: limestone, role: feedstock, inventory_key: "feed:limestone", note: "counted as its CaCO3 only (model)"}
+    - {chemical: clay, role: feedstock, inventory_key: "feed:clay", note: "clay, shale and correctives, counted as their oxides only (model)"}
+    - {chemical: petroleum-coke, role: utility, inventory_key: "feed:petroleum-coke", note: "kiln fuel in kWh by net calorific value; 100 % petroleum coke ASSUMED"}
+  outputs:
+    - {chemical: cement-clinker, role: main-product, inventory_key: "product:clinker"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "calcination CO2 in the kiln gas, about 0.52 t/t; with the fuel CO2 (emission:CO2-fuel) the stream a carbon capture unit would treat"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity", note: "raw meal and fuel grinding and the kiln line; CSI/ECRA reference plant"}
+basis: {capacity: "per tonne of clinker (the dataset's basis); no plant size"}
+publication: {status: public, license: CC-BY-4.0}
+references:
+  - {title: "Schorcht, F., Kourti, I., Scalet, B. M., Roudier, S., Delgado Sancho, L. (2013) Best Available Techniques (BAT) Reference Document for the Production of Cement, Lime and Magnesium Oxide. JRC Reference Report EUR 26129 EN (JRC83006), chapter 1 and BAT conclusions section 4.2", doi: 10.2788/12850}
+  - {title: "IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Vol. 3 Industrial Processes and Product Use, ch. 2 Mineral Industry Emissions, section 2.2 (cement)", url: "https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/3_Volume3/V3_2_Ch2_Mineral_Industry.pdf"}
+  - {title: "IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Vol. 2 Energy, ch. 1 Introduction (Tables 1.2 and 1.4) and ch. 2 Stationary Combustion (Table 2.3)", url: "https://www.ipcc-nggip.iges.or.jp/public/2006gl/vol2.html"}
+  - {title: "CSI and ECRA (2017) Development of State of the Art Techniques in Cement Manufacturing: Trying to Look Ahead (CSI/ECRA Technology Papers 2017), WBCSD Cement Sustainability Initiative and European Cement Research Academy, Annex II reference plant", url: "https://archive.wbcsd.org/contentwbc/download/3604/47080/1"}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/cement-clinker-1, access: public}

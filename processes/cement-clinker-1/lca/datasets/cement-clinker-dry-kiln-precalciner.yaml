@@ -1,0 +1,713 @@
+# Tier 1 form, without a flowsheet. Every amount is the formula of its parameters; core's
+# validator re-checks each. Written from the CLM BREF, IPCC 2006 and the CSI/ECRA papers (facts in our own form).
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: cement-clinker-dry-kiln-precalciner
+title: Portland cement clinker in a dry rotary kiln with cyclone preheater and precalciner
+description: Per 1 t of grey clinker, gate-to-gate, EU technology of the CLM BREF. Raw meal and calcination CO2
+  from IPCC default clinker chemistry, fuel energy and stack emissions from BREF ranges and BAT-AELs, petroleum
+  coke as the only fuel (ASSUMED), electricity from the CSI/ECRA GNR-2014 reference plant.
+basis: 1000 kg of cement clinker
+boundary: 'gate-to-gate: raw meal grinding and homogenisation, fuel grinding, preheater, precalciner, rotary kiln,
+  clinker cooler and kiln stack; quarrying in the raw-material backgrounds; cement grinding not included'
+technology: dry process, rotary kiln with four to six cyclone stages, precalciner and grate cooler; kiln gas filtered
+  (ESP or fabric filter); no carbon capture
+geography:
+  description: EU technology and emission levels (CLM BREF), IPCC default chemistry, electricity of a world-average
+    reference plant; no single site.
+classification:
+  isic: '2394'
+system_boundary:
+  included:
+  - carbonate and non-carbonate raw materials, as the oxides of the clinker
+  - kiln fuel, electricity
+  - calcination and fuel CO2, CH4 and N2O of fuel combustion
+  - kiln stack NOx, SO2, CO, dust in three size classes, mercury
+  - lost cement kiln dust
+  excluded:
+  - 'TODO combined water, organic carbon (1.5 to 6 g C/kg clinker, BREF 1.3.4.4.2) and sulfur of the raw materials:
+    not modelled, so the raw meal is low (see benchmarks) and the organic CO2 is missing (up to about 22 kg/t)'
+  - TODO a fuel mix with coal and waste fuels, and their biogenic share (BREF 1.3.3.3)
+  - TODO SNCR reagent (ammonia or urea) and its NH3 slip (BAT-AEL <30 to 50 mg/Nm3, Table 4.3)
+  - TODO TOC, HCl, HF, PCDD/F and metals other than mercury in the kiln gas (BREF Table 1.23)
+  - TODO dust of the clinker cooler and mills stacks and diffuse dust
+  - TODO refractory lining, grinding media, water for gas conditioning
+  - raw material moisture evaporated in the raw mill
+  - waste heat recovery or power generation from kiln gases (none credited)
+  - cement grinding, gypsum and mineral additions (a cement process, not clinker)
+  - infrastructure
+  cutoff: none applied; the excluded flows are not quantified
+  infrastructure: excluded
+  catalysts: excluded
+  non_routine: excluded
+location: RER
+year: 2013
+valid_until: 2018
+time:
+  start: 2004
+  description: CLM BREF published 2013 with data of about 2004 to 2008 and BAT conclusions of 2013; IPCC 2006 defaults;
+    electricity of the GNR-2014 reference plant. valid_until is the reference year + 5 (system-model section 6),
+    so it has already lapsed.
+modelling:
+  principle: attributional
+  multifunctionality: 'single output: no allocation (lost kiln dust is a waste)'
+uuid: 9fe50b71-d72c-594e-b762-66a98b354de2
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+technology_level: current
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: clk
+  value: 1000.0
+  unit: kg
+  description: Clinker leaving the cooler (the basis).
+  source: basis
+- name: n_Ca
+  value: 325.0
+  unit: mol/mol
+  description: 'Calcium atoms per formula unit of the model clinker Ca325Mg14Si109Al34Fe12O626: the clinker modelled
+    as its five main oxides.'
+  source: ASSUMED model formula, fitted with integer counts to 65 % CaO (IPCC default, IPCC (2006) Guidelines for
+    National GHG Inventories, Vol. 3, ch. 2 (Mineral Industry), section 2.2.1.2, p. 2.11), 2 % MgO (typical, EU
+    JRC (2013) CLM BREF, EUR 26129 EN, doi:10.2788/12850, Table 1.5, p. 7) and the rest as SiO2, Al2O3 and Fe2O3
+    in the ratio of the typical phases of the same table (C3S 65, C2S 15, C3A 10, C4AF 10 %); it gives 65.02 % CaO,
+    2.01 % MgO, 23.36 % SiO2, 6.18 % Al2O3, 3.42 % Fe2O3. Minor constituents (alkali sulfates, free lime split,
+    fuel ash) are not modelled
+- name: M_CLK
+  value: 28029.787
+  unit: g/mol
+  description: Molar mass of the model clinker formula Ca325Mg14Si109Al34Fe12O626.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_COR
+  value: 9804.762
+  unit: g/mol
+  description: Molar mass of the model non-carbonate raw materials Mg14Si109Al34Fe12O301 (the clinker's oxides other
+    than CaO).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_CaCO3
+  value: 100.086
+  unit: g/mol
+  description: Molar mass of calcium carbonate.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_CO2
+  value: 44.009
+  unit: g/mol
+  description: Molar mass of carbon dioxide.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: cf_ckd
+  value: 1.02
+  unit: '1'
+  description: 'Correction factor for cement kiln dust (CKD) not recycled to the kiln: the CO2 of lost, calcined
+    dust added to that of the clinker.'
+  source: IPCC (2006) Guidelines for National GHG Inventories, Vol. 3, ch. 2 (Mineral Industry), section 2.2.1.2,
+    pp. 2.12-2.13 (default 1.02 in the absence of data; about 1.015 for a modern plant). Modelling the lost dust
+    as 2 % of the clinker mass, fully calcined and of clinker composition, so that Equation 2.5 gives the same factor,
+    is ASSUMED
+- name: q_fuel
+  value: 3500.0
+  unit: MJ
+  description: 'Kiln fuel per t clinker, net calorific value: midpoint of 3000 to under 4000 MJ/t for dry kilns
+    with multistage cyclone preheaters and precalciner (EU, annual averages).'
+  source: EU JRC (2013) CLM BREF, EUR 26129 EN, doi:10.2788/12850, section 1.3.3.1, Table 1.18, p. 47 (range); the
+    midpoint is our choice. The same section names about 3000 to more than 3800 MJ/t in practice; 2900 to 3300 MJ/t
+    is reached under optimised conditions (section 1.4.2.1.1, p. 100)
+- name: ncv_pc
+  value: 32.5
+  unit: MJ/kg
+  description: Net calorific value of petroleum coke.
+  source: IPCC (2006) Guidelines for National GHG Inventories, Vol. 2, ch. 1 (Introduction), Table 1.2, p. 1.18
+    (default 32.5 TJ/Gg, 95 % interval 29.7 to 41.9). The fuel being 100 % petroleum coke is ASSUMED, as in the
+    CEMBUREAU mass balance example of EU JRC (2013) CLM BREF, EUR 26129 EN, doi:10.2788/12850, Figure 1.19, p. 44;
+    EU kilns burn coal, petroleum coke and waste fuels (section 1.3.3.3). TODO a fuel mix
+- name: ef_co2
+  value: 97500.0
+  unit: kg/TJ
+  description: CO2 per TJ of petroleum coke burnt (NCV basis), oxidation factor 1.
+  source: IPCC (2006) Guidelines for National GHG Inventories, Vol. 2, ch. 2 (Stationary Combustion), Table 2.3,
+    p. 2.18 (manufacturing industries; 95 % interval 82 900 to 115 000), equal to IPCC (2006) Guidelines for National
+    GHG Inventories, Vol. 2, ch. 1 (Introduction), Table 1.4
+- name: ef_ch4
+  value: 3.0
+  unit: kg/TJ
+  description: CH4 per TJ of petroleum coke burnt.
+  source: IPCC (2006) Guidelines for National GHG Inventories, Vol. 2, ch. 2 (Stationary Combustion), Table 2.3,
+    p. 2.18 (manufacturing industries; range 1 to 10)
+- name: ef_n2o
+  value: 0.6
+  unit: kg/TJ
+  description: N2O per TJ of petroleum coke burnt.
+  source: IPCC (2006) Guidelines for National GHG Inventories, Vol. 2, ch. 2 (Stationary Combustion), Table 2.3,
+    p. 2.18 (manufacturing industries; range 0.2 to 2)
+- name: elec
+  value: 70.0
+  unit: kWh
+  description: 'Electricity per t clinker for clinker production: raw meal preparation, fuel grinding and the kiln
+    line, 51 % of the reference plant''s electricity.'
+  source: 'CSI/ECRA (2017) Development of State of the Art Techniques in Cement Manufacturing: Trying to Look Ahead,
+    revision 2017 (WBCSD Cement Sustainability Initiative and ECRA), Annex II, p. 168 (reference plant of the GNR-2014
+    world average, 70 kWh/t clinker, stated as 51 % of 104 kWh/t cement at a clinker factor of 75.2 %); the source
+    does not say which steps the 51 % covers. Reading it as raw material preparation, fuel grinding and clinker
+    production is ASSUMED: the source''s split of the plant''s electricity (Paper No. 2, p. 11) gives 25, 3 and 25 %
+    for them, 53 % together, close to but not equal to the 51 %; quarrying (2 %) is in the limestone background'
+- name: v_fg
+  value: 2300.0
+  unit: Nm3
+  description: Kiln exhaust gas per t clinker, dry, 273 K, 101.3 kPa, for suspension preheater and precalciner kilns.
+  source: EU JRC (2013) CLM BREF, EUR 26129 EN, doi:10.2788/12850, section 1.3.4, p. 55 (the volume the source uses
+    to turn concentrations into kg/t)
+- name: c_nox
+  value: 325.0
+  unit: mg/Nm3
+  description: 'NOx (as NO2) in the kiln stack: midpoint of the BAT-AEL <200 to 450 mg/Nm3 for preheater kilns (daily
+    average).'
+  source: EU JRC (2013) CLM BREF, EUR 26129 EN, doi:10.2788/12850, BAT 19, Table 4.2, p. 349; the midpoint is our
+    choice, and that an EU kiln operates within the BAT-AEL (with SNCR where needed) is ASSUMED
+- name: c_so2
+  value: 225.0
+  unit: mg/Nm3
+  description: 'SOx (as SO2) in the kiln stack: midpoint of the BAT-AEL <50 to 400 mg/Nm3, which depends on the
+    sulfur in the raw materials.'
+  source: EU JRC (2013) CLM BREF, EUR 26129 EN, doi:10.2788/12850, BAT 21, Table 4.4, p. 351; the midpoint is our
+    choice
+- name: c_dust
+  value: 15.0
+  unit: mg/Nm3
+  description: 'Dust in the kiln stack: midpoint of the BAT-AEL <10 to 20 mg/Nm3.'
+  source: EU JRC (2013) CLM BREF, EUR 26129 EN, doi:10.2788/12850, BAT 17, p. 348; the midpoint is our choice
+- name: f_pm25
+  value: 0.5
+  unit: '1'
+  description: Share of the kiln dust below 2.5 um.
+  source: EU JRC (2013) CLM BREF, EUR 26129 EN, doi:10.2788/12850, section 1.3.4.1.2, p. 59 (about 50 % below 2.5
+    um and 90 % below 10 um behind ESPs, German examples); applying it to any filter is ASSUMED
+- name: f_pm10
+  value: 0.9
+  unit: '1'
+  description: Share of the kiln dust below 10 um.
+  source: EU JRC (2013) CLM BREF, EUR 26129 EN, doi:10.2788/12850, section 1.3.4.1.2, p. 59 (as f_pm25)
+- name: c_hg
+  value: 0.02
+  unit: mg/Nm3
+  description: 'Mercury in the kiln stack: the average of 306 spot measurements.'
+  source: EU JRC (2013) CLM BREF, EUR 26129 EN, doi:10.2788/12850, Table 1.23, note 7, p. 55 (BAT-AEL <0.05 mg/Nm3,
+    BAT 28, Table 4.5, p. 353)
+- name: co
+  value: 2.53
+  unit: kg
+  description: 'CO per t clinker: midpoint of 0.46 to 4.6 kg/t reported for EU kilns (200 to 2000 mg/Nm3 yearly
+    averages), mostly from organic carbon in the raw materials.'
+  source: EU JRC (2013) CLM BREF, EUR 26129 EN, doi:10.2788/12850, Table 1.23, p. 55, and section 1.3.4.4.2, p.
+    70; the midpoint is our choice
+exchanges:
+- key: product:clinker
+  title: Portland cement clinker (grey)
+  type: product
+  amount: 1000.0
+  unit: kg
+  formula: clk
+  provenance: given
+  source: the reference flow
+- key: feed:limestone
+  title: Limestone, as its calcium carbonate
+  type: input
+  amount: 1183.6875178537746
+  unit: kg
+  formula: clk * cf_ckd * n_Ca * M_CaCO3 / M_CLK
+  provenance: calculated
+  source: 'stoichiometry: the CaCO3 that gives the clinker''s and the lost dust''s CaO (IPCC Tier 2 basis: all CaO
+    from carbonate, full calcination, section 2.2.1.2); the limestone''s own impurities, moisture and organic carbon
+    are not modelled; compare 1.57 t/t of all raw materials (CLM BREF Table 1.15) and 1.55 (CSI/ECRA 2017, Annex
+    II) in benchmarks/cement-lime.yaml'
+  pedigree: &id001
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 5, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.1
+    source: 'ASSUMED: the CaO content of clinker is generally 60 to 67 % (IPCC Vol. 3, p. 2.12)'
+- key: feed:clay
+  title: Clay, shale and correctives, as their oxides
+  type: input
+  amount: 356.79390785238576
+  unit: kg
+  formula: clk * cf_ckd * M_COR / M_CLK
+  provenance: calculated
+  source: 'stoichiometry: the clinker''s MgO, SiO2, Al2O3 and Fe2O3 from the model formula; combined water of clay
+    minerals and other volatiles are not modelled (TODO)'
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.2
+    source: 'ASSUMED: model oxide composition, not a plant''s raw mix'
+- key: feed:petroleum-coke
+  title: Kiln fuel, petroleum coke, as heat by net calorific value
+  type: input
+  amount: 972.2222222222222
+  unit: kWh
+  formula: q_fuel / 3.6
+  provenance: given
+  origin: literature
+  carrier:
+    kind: fuel
+    lhv: 32.5
+    composition: petroleum coke, IPCC default NCV and carbon content 26.6 kg C/GJ (Vol. 2, Tables 1.2 and 1.4);
+      107.7 kg/t at 32.5 MJ/kg
+  source: EU JRC (2013) CLM BREF, EUR 26129 EN, doi:10.2788/12850, Table 1.18, p. 47 (midpoint); the fuel being
+    petroleum coke is ASSUMED; 3500 MJ/t counted in kWh (1 kWh = 3.6 MJ); outside the element balance (no sourced
+    composition beyond the IPCC carbon content)
+  pedigree: &id004
+    scores:
+    - 3
+    - 4
+    - 5
+    - 3
+    - 3
+    reason: 'from a value of the CLM BREF (EU plants, data of about 2004 to 2008): reliability 3, completeness 4,
+      temporal 5 (over 15 years old), geographical 3, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.155
+    source: 'fuel energy: range 3000 to 4000 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the
+      amount stays the arithmetic midpoint or the stated value)'
+- key: feed:electricity
+  title: Electricity
+  type: input
+  amount: 70.0
+  unit: kWh
+  formula: elec
+  provenance: given
+  origin: literature
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: 'CSI/ECRA (2017) Development of State of the Art Techniques in Cement Manufacturing: Trying to Look Ahead,
+    revision 2017 (WBCSD Cement Sustainability Initiative and ECRA), Annex II, p. 168'
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 4
+    - 4
+    - 3
+    reason: 'GNR-2014 world-average reference plant of the CSI/ECRA papers: reliability 3, completeness 4, temporal
+      4 (about 12 years old), geographical 4 (world average for an EU dataset), technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.291
+    source: 'the CLM BREF''s electricity per t cement (section 1.3.3.2, p. 49), its spread applied to this value:
+      range 90 to 150 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount stays the arithmetic
+      midpoint or the stated value)'
+- key: output:ckd
+  title: Cement kiln dust not recycled, to landfill
+  type: output
+  amount: 20.000000000000018
+  unit: kg
+  formula: clk * (cf_ckd - 1)
+  provenance: assumed
+  origin: estimate
+  source: follows the IPCC default CKD correction (see parameter cf_ckd); modelled as calcined dust of clinker composition
+    (ASSUMED). BAT 29 is to reuse it where practicable (CLM BREF p. 354), which would make it cut off
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: IPCC gives about 1.5 to 20 % extra CO2 from lost CKD'
+- key: emission:CO2
+  title: CO2 from calcination of the raw meal
+  type: emission
+  amount: 520.4814257061604
+  unit: kg
+  formula: clk * cf_ckd * n_Ca * M_CO2 / M_CLK
+  provenance: calculated
+  cas: 124-38-9
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: aa7cac3a-3625-41d4-bc54-33e2cf11ec46
+    name: Carbon dioxide, fossil
+    categories:
+    - air
+    - non-urban air or from high stacks
+    unit: kg
+  source: 'IPCC (2006) Guidelines for National GHG Inventories, Vol. 3, ch. 2 (Mineral Industry), Equations 2.2
+    and 2.4 with the Tier 1 defaults (65 % CaO from CaCO3, CF_ckd 1.02): 0.520 t/t, matching the IPCC''s rounded
+    0.52; geogenic carbon, reported as fossil; biosphere3 UUID, name and categories from core''s elementary-flow
+    crosswalk (data/elementary-flows.yaml)'
+  pedigree: &id002
+    scores:
+    - 3
+    - 4
+    - 5
+    - 3
+    - 3
+    reason: 'IPCC 2006 default factor on a sourced activity: reliability 3, completeness 4, temporal 5, geographical
+      3, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.05
+    source: 'ASSUMED: IPCC Tier 2 defaults; CaO 60 to 67 % moves it by -8 to +3 %'
+- key: emission:CO2-fuel
+  title: CO2 from burning the kiln fuel
+  type: emission
+  amount: 341.25
+  unit: kg
+  formula: q_fuel * ef_co2 / 1e6
+  provenance: calculated
+  cas: 124-38-9
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: aa7cac3a-3625-41d4-bc54-33e2cf11ec46
+    name: Carbon dioxide, fossil
+    categories:
+    - air
+    - non-urban air or from high stacks
+    unit: kg
+  source: IPCC (2006) Guidelines for National GHG Inventories, Vol. 2, ch. 2 (Stationary Combustion), Table 2.3
+    on the fuel energy; outside the element balance; biosphere3 UUID, name and categories from core's elementary-flow
+    crosswalk (data/elementary-flows.yaml)
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.178
+    source: 'IPCC CO2 factor of petroleum coke: range 82900 to 115000 read as a 95 % interval, gsd2 = sqrt(high
+      / low) (our convention; the amount stays the arithmetic midpoint or the stated value)'
+- key: emission:CH4
+  title: CH4 from fuel combustion
+  type: emission
+  amount: 0.0105
+  unit: kg
+  formula: q_fuel * ef_ch4 / 1e6
+  provenance: calculated
+  cas: 74-82-8
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 70ef743b-3ed5-4a6d-b192-fb6d62378555
+    name: Methane, fossil
+    categories:
+    - air
+    - non-urban air or from high stacks
+    unit: kg
+  source: IPCC (2006) Guidelines for National GHG Inventories, Vol. 2, ch. 2 (Stationary Combustion), Table 2.3;
+    outside the element balance; biosphere3 UUID, name and categories read from ecoinvent elementary flows 3.9 as
+    distributed with bw2io 0.9.17 (identifiers only), the list core's crosswalk is taken from
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.162
+    source: 'IPCC CH4 factor: range 1 to 10 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the
+      amount stays the arithmetic midpoint or the stated value)'
+- key: emission:N2O
+  title: N2O from fuel combustion
+  type: emission
+  amount: 0.0021
+  unit: kg
+  formula: q_fuel * ef_n2o / 1e6
+  provenance: calculated
+  cas: 10024-97-2
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: afd6d670-bbb0-4625-9730-04088a5b035e
+    name: Dinitrogen monoxide
+    categories:
+    - air
+    - non-urban air or from high stacks
+    unit: kg
+  source: IPCC (2006) Guidelines for National GHG Inventories, Vol. 2, ch. 2 (Stationary Combustion), Table 2.3;
+    outside the element balance; biosphere3 UUID, name and categories from core's elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.162
+    source: 'IPCC N2O factor: range 0.2 to 2 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the
+      amount stays the arithmetic midpoint or the stated value)'
+- key: emission:NOX
+  title: NOx (as NO2) from the kiln stack
+  type: emission
+  amount: 0.7475
+  unit: kg
+  formula: c_nox * v_fg / 1e6
+  provenance: given
+  origin: literature
+  cas: 10102-44-0
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 77357947-ccc5-438e-9996-95e65e1e1bce
+    name: Nitrogen oxides
+    categories:
+    - air
+    - non-urban air or from high stacks
+    unit: kg
+  source: EU JRC (2013) CLM BREF, EUR 26129 EN, doi:10.2788/12850, Table 4.2 midpoint times the source's 2300 Nm3/t;
+    outside the element balance; biosphere3 UUID, name and categories from core's elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree: &id003
+    scores:
+    - 4
+    - 4
+    - 5
+    - 3
+    - 3
+    reason: 'midpoint of a BAT-AEL range of the CLM BREF (2013), a permitted level, not a measured average: reliability
+      4, completeness 4, temporal 5, geographical 3, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'NOx BAT-AEL: range 200 to 450 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the
+      amount stays the arithmetic midpoint or the stated value)'
+- key: emission:SO2
+  title: SO2 from the kiln stack
+  type: emission
+  amount: 0.5175
+  unit: kg
+  formula: c_so2 * v_fg / 1e6
+  provenance: given
+  origin: literature
+  cas: 7446-09-5
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 78c3efe4-421c-4d30-82e4-b97ac5124993
+    name: Sulfur dioxide
+    categories:
+    - air
+    - non-urban air or from high stacks
+    unit: kg
+  source: EU JRC (2013) CLM BREF, EUR 26129 EN, doi:10.2788/12850, Table 4.4 midpoint times 2300 Nm3/t; sulfur of
+    the fuel and raw meal is not modelled, outside the element balance; biosphere3 UUID, name and categories from
+    core's elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree: *id003
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.828
+    source: 'SOx BAT-AEL: range 50 to 400 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the
+      amount stays the arithmetic midpoint or the stated value)'
+- key: emission:CO
+  title: CO from the kiln stack
+  type: emission
+  amount: 2.53
+  unit: kg
+  formula: co
+  provenance: given
+  origin: literature
+  cas: 630-08-0
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 099b36ab-4c03-4587-87f4-2f81e337afb8
+    name: Carbon monoxide, fossil
+    categories:
+    - air
+    - non-urban air or from high stacks
+    unit: kg
+  source: EU JRC (2013) CLM BREF, EUR 26129 EN, doi:10.2788/12850, Table 1.23, p. 55 (midpoint); its carbon is the
+    raw materials' organic carbon, which the model does not carry, so it is outside the element balance; biosphere3
+    UUID, name and categories read from ecoinvent elementary flows 3.9 as distributed with bw2io 0.9.17 (identifiers
+    only), the list core's crosswalk is taken from
+  pedigree: *id004
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.162
+    source: 'CO of EU kilns: range 0.46 to 4.6 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: emission:PM2.5
+  title: Kiln stack dust, below 2.5 um
+  type: emission
+  amount: 0.01725
+  unit: kg
+  formula: c_dust * v_fg / 1e6 * f_pm25
+  provenance: given
+  origin: literature
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 66f50b33-fd62-4fdd-a373-c5b0de7de00d
+    name: Particulate Matter, < 2.5 um
+    categories:
+    - air
+    - non-urban air or from high stacks
+    unit: kg
+  source: EU JRC (2013) CLM BREF, EUR 26129 EN, doi:10.2788/12850, BAT 17 midpoint times 2300 Nm3/t and the size
+    split of section 1.3.4.1.2; outside the element balance; biosphere3 UUID, name and categories from core's elementary-flow
+    crosswalk (data/elementary-flows.yaml)
+  pedigree: *id003
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.414
+    source: 'kiln dust BAT-AEL: range 10 to 20 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: emission:PM2.5-10
+  title: Kiln stack dust, 2.5 to 10 um
+  type: emission
+  amount: 0.013800000000000002
+  unit: kg
+  formula: c_dust * v_fg / 1e6 * (f_pm10 - f_pm25)
+  provenance: given
+  origin: literature
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 295c9740-6fdb-4676-9eb8-15e3786f713d
+    name: Particulate Matter, > 2.5 um and < 10um
+    categories:
+    - air
+    - non-urban air or from high stacks
+    unit: kg
+  source: EU JRC (2013) CLM BREF, EUR 26129 EN, doi:10.2788/12850, BAT 17 midpoint times 2300 Nm3/t and the size
+    split of section 1.3.4.1.2 (90 % minus 50 %), as for the fraction below 2.5 um; biosphere3 UUID, name and
+    categories read from ecoinvent elementary flows 3.9 as distributed with bw2io 0.9.17 (identifiers only), the
+    list core's crosswalk is taken from
+  pedigree: *id003
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.414
+    source: 'kiln dust BAT-AEL: range 10 to 20 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: emission:PM10-plus
+  title: Kiln stack dust, above 10 um
+  type: emission
+  amount: 0.0034499999999999995
+  unit: kg
+  formula: c_dust * v_fg / 1e6 * (1 - f_pm10)
+  provenance: given
+  origin: literature
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 7678cec7-b8e1-439d-8242-99cd452834b1
+    name: Particulate Matter, > 10 um
+    categories:
+    - air
+    - non-urban air or from high stacks
+    unit: kg
+  source: EU JRC (2013) CLM BREF, EUR 26129 EN, doi:10.2788/12850, BAT 17 midpoint times 2300 Nm3/t and the size
+    split of section 1.3.4.1.2 (100 % minus 90 %), as for the fraction below 2.5 um; biosphere3 UUID, name and
+    categories read from ecoinvent elementary flows 3.9 as distributed with bw2io 0.9.17 (identifiers only), the
+    list core's crosswalk is taken from
+  pedigree: *id003
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.414
+    source: 'kiln dust BAT-AEL: range 10 to 20 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: emission:Hg
+  title: Mercury from the kiln stack
+  type: emission
+  amount: 4.6e-05
+  unit: kg
+  formula: c_hg * v_fg / 1e6
+  provenance: given
+  origin: literature
+  cas: 7439-97-6
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 5ec9c16a-959d-44cd-be7d-a935727d2151
+    name: Mercury II
+    categories:
+    - air
+    - non-urban air or from high stacks
+    unit: kg
+  source: EU JRC (2013) CLM BREF, EUR 26129 EN, doi:10.2788/12850, Table 1.23, note 7 (average of spot measurements)
+    times 2300 Nm3/t; outside the element balance; the list's only mercury flow to air is Mercury II (CAS 14302-87-5,
+    the Hg2+ ion), used for the total mercury, which the source does not speciate (the cas above is that of mercury
+    as an element); biosphere3 UUID, name and categories read from ecoinvent elementary flows 3.9 as distributed with bw2io
+    0.9.17 (identifiers only), the list core's crosswalk is taken from
+  pedigree: *id004
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: spot measurements of 0 to 0.57 mg/Nm3 around an average of 0.02'
+provenance:
+  generator: hand-written model; amounts are the formulas of the parameters
+  notes: No value from a licensed database.
+generation:
+  tier: 1
+  method: 'sourced conceptual inventory: CLM BREF ranges and BAT-AELs, IPCC 2006 default factors and clinker chemistry,
+    CSI/ECRA electricity; every choice listed in parameters'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 3
+  - 4
+  - 3
+  - 3
+  - 3
+  dqr_floor: 3.0
+  components:
+    product:clinker: Ca325Mg14Si109Al34Fe12O626
+    feed:limestone: CaCO3
+    feed:clay: Mg14Si109Al34Fe12O301
+    output:ckd: Ca325Mg14Si109Al34Fe12O626
+    emission:CO2: CO2
+  formulas:
+    product:clinker: Ca325Mg14Si109Al34Fe12O626
+    feed:limestone: CaCO3
+    feed:clay: Mg14Si109Al34Fe12O301
+    output:ckd: Ca325Mg14Si109Al34Fe12O626
+    emission:CO2: CO2
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      Al:
+      - 33.383620075
+      - 33.383620075
+      C:
+      - 142.050544301
+      - 142.050544301
+      Ca:
+      - 473.990651445
+      - 473.990651445
+      Fe:
+      - 24.386300188
+      - 24.386300188
+      Mg:
+      - 12.382377362
+      - 12.382377362
+      O:
+      - 742.888930266
+      - 742.888930266
+      Si:
+      - 111.399002069
+      - 111.399002069
+    outside:
+    - emission:CH4
+    - emission:CO
+    - emission:CO2-fuel
+    - emission:Hg
+    - emission:N2O
+    - emission:NOX
+    - emission:PM10-plus
+    - emission:PM2.5
+    - emission:PM2.5-10
+    - emission:SO2
+    - feed:electricity
+    - feed:petroleum-coke

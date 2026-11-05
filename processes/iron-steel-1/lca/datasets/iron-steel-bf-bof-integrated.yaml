@@ -1,0 +1,1705 @@
+# Tier 1 form, without a flowsheet (as process-library#317). Every amount is the formula of its parameters;
+# core's validator re-checks each. Written from the Iron and Steel BREF and IPCC 2006 Vol. 3 ch. 4 (facts in our own form).
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: iron-steel-bf-bof-integrated
+title: Crude steel by the integrated blast furnace and basic oxygen furnace route
+description: Per 1 t of crude steel (liquid steel cast into semis), gate-to-gate, an integrated works
+  with coke ovens, sinter plant, blast furnace and BOF steel plant, from the EU Iron and Steel BREF data
+  collection (2004-2005). Batch steps (coke oven charges, converter heats) are taken as a time average
+  over the works. Process gases are burnt at the works; CO2 from an IPCC Tier 2 carbon balance.
+basis: 1000 kg of crude steel
+boundary: 'gate-to-gate: coke oven plant with gas treatment, sinter plant, blast furnace with hot stoves,
+  BOF steel plant with secondary metallurgy and continuous casting; the process gases are burnt at the
+  works (power plant, stoves, mills) and their CO2 is counted here; ore, coal, fluxes, scrap, oxygen,
+  nitrogen and purchased power from outside; hot rolling and finishing excluded'
+technology: coke ovens with by-product recovery, strand sintering, blast furnace with coal and oil injection
+  and oxygen enrichment, top-blown oxygen converter with scrap, continuous casting; pellets bought, no
+  pellet plant
+geography:
+  description: EU plants of the BREF data collection (EU-25, 2004-2005); no single site.
+classification:
+  isic: '2410'
+system_boundary:
+  included:
+  - coking coal, injected coal and oil, natural gas, iron ore, pellets, fluxes, lime, scrap, ferroalloys
+  - oxygen, nitrogen, argon; purchased electricity of the four plants (gross)
+  - CO2 of all carbon burnt at the works, by an IPCC Tier 2 carbon balance
+  - CO, CH4, SO2, NOx, dust, H2S, NH3, benzene, HCl, HF, NMVOC of the plants' main sources
+  - slags, coal tar, light oil, sulphur as by-product outputs; coke and sinter plant waste water
+  excluded:
+  - 'TODO energy exported by the works: process-gas surplus to the power plant and mills, BF top-gas turbine
+    power (40 to 91 MJ/t HM, BREF Table 6.2), recovered steam (Table 7.3): not quantified and not credited;
+    the purchased electricity is gross'
+  - TODO hot stove, power plant and coke underfiring stack emissions other than those in the BREF per-tonne
+    tables (Table 6.9 gives concentrations only)
+  - 'TODO heavy metals (As, Cd, Cr, Cu, Hg, Mn, Ni, Pb, Tl, V, Zn), PAH, PCDD/F and PCB to air: given
+    per tonne in BREF Tables 3.4, 5.2, 6.5, 7.3 and 7.4, not yet exchanges (no flow identity chosen)'
+  - TODO diffuse and fugitive dust and VOC (BREF Tables 3.5, 3.6, 5.4, 5.8)
+  - 'TODO process residues partly recycled to the sinter plant and partly landfilled: BF top gas dust
+    and sludge, BOF dusts and sludge, mill scale, spittings, refractories (BREF Tables 6.2 and 7.3); the
+    split is not given'
+  - 'TODO water intake and BF, BOF and casting waste water: the BREF ranges mix once-through and closed
+    systems'
+  - TODO other BF injectants (plastics, recovered oils, fats; 3.6 kg/t HM weighted average, Table 6.1),
+    compressed air, steam (made at the works from the process gases and waste heat)
+  - TODO ammonia and ammonium sulphate from the coke oven gas (alternative routes in BREF Table 5.2)
+  - pellet plant (pellets are bought), hot rolling and finishing
+  - infrastructure
+  cutoff: none applied; the excluded flows are not quantified
+  infrastructure: excluded
+  catalysts: excluded
+  non_routine: excluded
+location: RER
+year: 2004
+valid_until: 2009
+time:
+  start: 2004
+  description: 'BREF data collection: blast furnace, sinter and BOF data of 2004, coke ovens of 2005.
+    valid_until is the reference year + 5 (system-model section 6), so it has already lapsed.'
+modelling:
+  principle: attributional
+  multifunctionality: 'single product, crude steel; the works'' by-products (blast furnace and steelmaking
+    slags, coal tar, light oil, sulphur) are outputs without a share of the burdens, and its exported
+    energy is neither quantified nor credited. DEVIATION from system-model section 2, which would treat
+    them as co-products: no open prices and no curated rule exist yet, so the dataset stays unallocated
+    and every burden is on the steel (an upper view for steel).'
+uuid: d1bc5bb4-2888-57eb-bd00-49c3693bde56
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+technology_level: current
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: ls
+  value: 1000.0
+  unit: kg
+  description: 'Crude steel (liquid steel cast into semis) delivered: the basis.'
+  source: basis
+- name: hm
+  value: 859.5
+  unit: kg
+  description: 'Hot metal charged to the converter per t LS: midpoint of 788 to 931.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 7.3, p.
+    369 (21 EU basic oxygen steelmaking plants, yearly means 2004) (range); the midpoint is our choice
+- name: scrap
+  value: 220.5
+  unit: kg
+  description: 'Scrap charged per t LS: midpoint of 101 to 340.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 7.3, p.
+    369 (21 EU basic oxygen steelmaking plants, yearly means 2004) (range); the midpoint is our choice
+- name: ore_bof
+  value: 9.71
+  unit: kg
+  description: 'Iron ore charged to the converter per t LS: midpoint of 0.02 to 19.4.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 7.3, p.
+    369 (21 EU basic oxygen steelmaking plants, yearly means 2004) (range); the midpoint is our choice
+- name: ofe
+  value: 30.0
+  unit: kg
+  description: 'Other iron-bearing material charged per t LS: midpoint of 0 to 60.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 7.3, p.
+    369 (21 EU basic oxygen steelmaking plants, yearly means 2004) (range); the midpoint is our choice
+- name: coke_bof
+  value: 0.2
+  unit: kg
+  description: 'Coke charged to the converter per t LS: midpoint of 0 to 0.4.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 7.3, p.
+    369 (21 EU basic oxygen steelmaking plants, yearly means 2004) (range); the midpoint is our choice
+- name: lime_bof
+  value: 48.5
+  unit: kg
+  description: 'Lime per t LS: midpoint of 30 to 67.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 7.3, p.
+    369 (21 EU basic oxygen steelmaking plants, yearly means 2004) (range); the midpoint is our choice
+- name: dolo_bof
+  value: 14.2
+  unit: kg
+  description: 'Dolomite per t LS (taken as raw dolomite for its carbon: ASSUMED, the source does not
+    say): midpoint of 0 to 28.4.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 7.3, p.
+    369 (21 EU basic oxygen steelmaking plants, yearly means 2004) (range); the midpoint is our choice
+- name: alloys
+  value: 17.15
+  unit: kg
+  description: 'Alloying additions (ferroalloys) per t LS: midpoint of 1.3 to 33.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 7.3, p.
+    369 (21 EU basic oxygen steelmaking plants, yearly means 2004) (range); the midpoint is our choice
+- name: o2_bof
+  value: 59.75
+  unit: Nm3
+  description: 'Oxygen per t LS (m3 in the source, read as Nm3: ASSUMED): midpoint of 49.5 to 70.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 7.3, p.
+    369 (21 EU basic oxygen steelmaking plants, yearly means 2004) (range); the midpoint is our choice
+- name: ar_bof
+  value: 0.825
+  unit: Nm3
+  description: 'Argon per t LS (read as Nm3: ASSUMED): midpoint of 0.55 to 1.1.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 7.3, p.
+    369 (21 EU basic oxygen steelmaking plants, yearly means 2004) (range); the midpoint is our choice
+- name: n2_bof
+  value: 10.25
+  unit: Nm3
+  description: 'Nitrogen per t LS (read as Nm3: ASSUMED): midpoint of 2.3 to 18.2.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 7.3, p.
+    369 (21 EU basic oxygen steelmaking plants, yearly means 2004) (range); the midpoint is our choice
+- name: ng_bof
+  value: 387.0
+  unit: MJ
+  description: 'Natural gas per t LS: midpoint of 44 to 730.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 7.3, p.
+    369 (21 EU basic oxygen steelmaking plants, yearly means 2004) (range); the midpoint is our choice
+- name: el_bof
+  value: 125.5
+  unit: MJ
+  description: 'Electricity per t LS: midpoint of 35 to 216.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 7.3, p.
+    369 (21 EU basic oxygen steelmaking plants, yearly means 2004) (range); the midpoint is our choice
+- name: slag_bof
+  value: 125.0
+  unit: kg
+  description: 'BOF slag per t LS: midpoint of 85 to 165.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 7.3, p.
+    369 (21 EU basic oxygen steelmaking plants, yearly means 2004) (range); the midpoint is our choice
+- name: slag_ds
+  value: 21.5
+  unit: kg
+  description: 'Slag from hot metal desulphurisation per t LS: midpoint of 3 to 40.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 7.3, p.
+    369 (21 EU basic oxygen steelmaking plants, yearly means 2004) (range); the midpoint is our choice
+- name: slag_sm
+  value: 12.0
+  unit: kg
+  description: 'Slag from secondary metallurgy per t LS: midpoint of 9 to 15.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 7.3, p.
+    369 (21 EU basic oxygen steelmaking plants, yearly means 2004) (range); the midpoint is our choice
+- name: dust_bof
+  value: 0.0785
+  unit: kg
+  description: 'Dust to air per t LS (primary and secondary ventilation, after abatement): midpoint of
+    0.014 to 0.143.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 7.3, p.
+    369 (21 EU basic oxygen steelmaking plants, yearly means 2004) (range); the midpoint is our choice
+- name: nox_bof
+  value: 0.0316
+  unit: kg
+  description: 'NOx to air per t LS (the bracketed 100 g/t is an abnormal case, left out): midpoint of
+    0.0082 to 0.055.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 7.3, p.
+    369 (21 EU basic oxygen steelmaking plants, yearly means 2004) (range); the midpoint is our choice
+- name: co_bof
+  value: 3.7965
+  unit: kg
+  description: 'CO to air per t LS (the bracketed 18 000 g/t is an abnormal case, left out): midpoint
+    of 0.393 to 7.2.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 7.3, p.
+    369 (21 EU basic oxygen steelmaking plants, yearly means 2004) (range); the midpoint is our choice
+- name: sox_bof
+  value: 0.008595
+  unit: kg
+  description: 'SOx to air per t LS, counted as SO2 (ASSUMED); two installations only: midpoint of 0.00379
+    to 0.0134.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 7.4, p.
+    370 (range); the midpoint is our choice
+- name: sinter_hm
+  value: 1088.0
+  unit: kg
+  description: 'Sinter per t HM: the weighted average.'
+  source: 'EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 6.1, p.
+    304 (EU blast furnaces 2004, 73.4 Mt HM): weighted average'
+- name: ore_hm
+  value: 180.0
+  unit: kg
+  description: 'Lump iron ore per t HM: the weighted average.'
+  source: 'EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 6.1, p.
+    304 (EU blast furnaces 2004, 73.4 Mt HM): weighted average'
+- name: pel_hm
+  value: 358.0
+  unit: kg
+  description: 'Pellets per t HM: the weighted average.'
+  source: 'EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 6.1, p.
+    304 (EU blast furnaces 2004, 73.4 Mt HM): weighted average'
+- name: coke_hm
+  value: 359.0
+  unit: kg
+  description: 'Coke per t HM: the weighted average.'
+  source: 'EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 6.1, p.
+    304 (EU blast furnaces 2004, 73.4 Mt HM): weighted average'
+- name: lst_hm
+  value: 25.7
+  unit: kg
+  description: 'Limestone or lime per t HM: the weighted average. Counted as limestone (ASSUMED: the source
+    does not split it).'
+  source: 'EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 6.1, p.
+    304 (EU blast furnaces 2004, 73.4 Mt HM): weighted average'
+- name: oil_hm
+  value: 30.1
+  unit: kg
+  description: 'Oil injected at the tuyeres per t HM: the weighted average. Carbon content of fuel oil
+    from IPCC, see c_oil.'
+  source: 'EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 6.1, p.
+    304 (EU blast furnaces 2004, 73.4 Mt HM): weighted average'
+- name: pci_hm
+  value: 162.0
+  unit: kg
+  description: 'Coal injected at the tuyeres per t HM: the weighted average.'
+  source: 'EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 6.1, p.
+    304 (EU blast furnaces 2004, 73.4 Mt HM): weighted average'
+- name: ngt_hm
+  value: 2.2
+  unit: kg
+  description: 'Natural gas injected at the tuyeres per t HM: the weighted average.'
+  source: 'EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 6.1, p.
+    304 (EU blast furnaces 2004, 73.4 Mt HM): weighted average'
+- name: o2_hm
+  value: 54.4
+  unit: kg
+  description: 'Oxygen injected at the tuyeres per t HM: the weighted average. The table''s other oxygen
+    row (43 m3/t HM) is not added: it is taken as the same oxygen in volume (ASSUMED).'
+  source: 'EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 6.1, p.
+    304 (EU blast furnaces 2004, 73.4 Mt HM): weighted average'
+- name: ngs_hm
+  value: 168.0
+  unit: MJ
+  description: 'Natural gas to the hot stoves per t HM: the weighted average.'
+  source: 'EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 6.1, p.
+    304 (EU blast furnaces 2004, 73.4 Mt HM): weighted average'
+- name: el_hm
+  value: 268.0
+  unit: MJ
+  description: 'Electricity per t HM: the weighted average.'
+  source: 'EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 6.1, p.
+    304 (EU blast furnaces 2004, 73.4 Mt HM): weighted average'
+- name: n2_hm
+  value: 46.0
+  unit: Nm3
+  description: 'Nitrogen per t HM (m3 in the source, read as Nm3: ASSUMED): the weighted average.'
+  source: 'EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 6.1, p.
+    304 (EU blast furnaces 2004, 73.4 Mt HM): weighted average'
+- name: slag_t
+  value: 19562299.0
+  unit: t
+  description: BF slag reported for 2004 (data note), taken as the slag of the 18 installations of the
+    slag row (ASSUMED).
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 6.2, p.
+    305, data note
+- name: hm_t
+  value: 69223393.0
+  unit: t
+  description: 'Hot metal of the 18 installations that reported slag (2004). The table''s data note
+    gives 73 459 787 t HM for all installations and says no output was reported by all of them; the slag
+    tonnage is taken as that of the slag-reporting installations (ASSUMED), so it is divided by their
+    hot metal, not by the total.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 6.2, p.
+    305, slag row (tonnage HM column) and data note
+- name: dust_cast
+  value: 0.021185
+  unit: kg
+  description: 'Cast house dust to air per t HM: midpoint of 0.00042 to 0.04195.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 6.5, p.
+    306 (BF cast house, end-of-pipe) (range); the midpoint is our choice
+- name: so2_cast
+  value: 0.10057
+  unit: kg
+  description: 'Cast house SO2 to air per t HM: midpoint of 0.00734 to 0.1938.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 6.5, p.
+    306 (BF cast house, end-of-pipe) (range); the midpoint is our choice
+- name: nox_cast
+  value: 0.00208
+  unit: kg
+  description: 'Cast house NOx to air per t HM: the single value given.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 6.5, p.
+    306 (BF cast house, end-of-pipe)
+- name: co_cast
+  value: 0.028575
+  unit: kg
+  description: 'Cast house CO to air per t HM: midpoint of 0.02152 to 0.03563.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 6.5, p.
+    306 (BF cast house, end-of-pipe) (range); the midpoint is our choice
+- name: dust_chg
+  value: 0.04205
+  unit: kg
+  description: 'Charging zone dust to air per t HM: midpoint of 0.0027 to 0.0814.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 6.4, p.
+    305 (range); the midpoint is our choice
+- name: dust_pci
+  value: 0.012
+  unit: kg
+  description: 'Dust from coal preparation for injection per t HM: the mean of 15 values.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 6.3, p.
+    305
+- name: so2_gran
+  value: 0.031
+  unit: kg
+  description: 'SO2 from slag granulation per t HM: the mean given (range 1 to 142 g/t).'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 6.6, p.
+    306
+- name: h2s_gran
+  value: 0.063
+  unit: kg
+  description: 'H2S from slag granulation per t HM: the mean given (range 1 to 300 g/t).'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 6.6, p.
+    306
+- name: ore_si
+  value: 813.1
+  unit: kg
+  description: 'Iron ore per t sinter: the average.'
+  source: 'EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 3.2, p.
+    95 (EU-25 sinter plants 2004, 91 Mt sinter): average input'
+- name: lst_si
+  value: 131.1
+  unit: kg
+  description: 'Limestone or dolomite per t sinter: the average. Counted as limestone (ASSUMED).'
+  source: 'EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 3.2, p.
+    95 (EU-25 sinter plants 2004, 91 Mt sinter): average input'
+- name: lime_si
+  value: 10.2
+  unit: kg
+  description: 'Lime per t sinter: the average.'
+  source: 'EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 3.2, p.
+    95 (EU-25 sinter plants 2004, 91 Mt sinter): average input'
+- name: add_si
+  value: 26.4
+  unit: kg
+  description: 'Additives per t sinter: the average.'
+  source: 'EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 3.2, p.
+    95 (EU-25 sinter plants 2004, 91 Mt sinter): average input'
+- name: fuel_si
+  value: 1276.6
+  unit: MJ
+  description: 'Solid fuel per t sinter (coke breeze, anthracite): the average. Taken as coke breeze from
+    the site''s coke plant (ASSUMED).'
+  source: 'EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 3.2, p.
+    95 (EU-25 sinter plants 2004, 91 Mt sinter): average input'
+- name: el_si
+  value: 123.5
+  unit: MJ
+  description: 'Electricity per t sinter (the source gives no plausible average): midpoint of 92 to 155.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 3.2, p.
+    95 (range); the midpoint is our choice
+- name: dust_si
+  value: 0.30005
+  unit: kg
+  description: 'Dust to air per t sinter: midpoint of 0.0407 to 0.5594.'
+  source: 'EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 3.4, p.
+    96 (sinter strand main stack after abatement, EU-25 2004: averaged maxima and minima across plants)
+    (range); the midpoint is our choice'
+- name: so2_si
+  value: 0.5966
+  unit: kg
+  description: 'SO2 to air per t sinter: midpoint of 0.2199 to 0.9733.'
+  source: 'EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 3.4, p.
+    96 (sinter strand main stack after abatement, EU-25 2004: averaged maxima and minima across plants)
+    (range); the midpoint is our choice'
+- name: nox_si
+  value: 0.66665
+  unit: kg
+  description: 'NOx (as NO2) to air per t sinter: midpoint of 0.3021 to 1.0312.'
+  source: 'EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 3.4, p.
+    96 (sinter strand main stack after abatement, EU-25 2004: averaged maxima and minima across plants)
+    (range); the midpoint is our choice'
+- name: co_si
+  value: 22.8915
+  unit: kg
+  description: 'CO to air per t sinter: midpoint of 8.783 to 37.'
+  source: 'EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 3.4, p.
+    96 (sinter strand main stack after abatement, EU-25 2004: averaged maxima and minima across plants)
+    (range); the midpoint is our choice'
+- name: hcl_si
+  value: 0.4245
+  unit: kg
+  description: 'HCl to air per t sinter: midpoint of 0.0014 to 0.8476.'
+  source: 'EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 3.4, p.
+    96 (sinter strand main stack after abatement, EU-25 2004: averaged maxima and minima across plants)
+    (range); the midpoint is our choice'
+- name: hf_si
+  value: 0.0043
+  unit: kg
+  description: 'HF to air per t sinter: midpoint of 0.0004 to 0.0082.'
+  source: 'EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 3.4, p.
+    96 (sinter strand main stack after abatement, EU-25 2004: averaged maxima and minima across plants)
+    (range); the midpoint is our choice'
+- name: voc_si
+  value: 0.1312
+  unit: kg
+  description: 'NMVOC to air per t sinter: midpoint of 0.0015 to 0.2609.'
+  source: 'EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 3.4, p.
+    96 (sinter strand main stack after abatement, EU-25 2004: averaged maxima and minima across plants)
+    (range); the midpoint is our choice'
+- name: ww_si
+  value: 0.045
+  unit: m3
+  description: 'Waste water per t sinter: midpoint of 0.03 to 0.06.'
+  source: 'EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 3.4, p.
+    96 (sinter strand main stack after abatement, EU-25 2004: averaged maxima and minima across plants)
+    (range); the midpoint is our choice'
+- name: coal_ck
+  value: 1285.0
+  unit: kg
+  description: 'Coal (dry) per t coke: midpoint of 1220 to 1350.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 5.2, p.
+    224 (EU coke oven plants 2005, complemented by other references) (range); the midpoint is our choice
+- name: el_ck
+  value: 125.0
+  unit: MJ
+  description: 'Electricity per t coke: midpoint of 20 to 230.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 5.2, p.
+    224 (EU coke oven plants 2005, complemented by other references) (range); the midpoint is our choice
+- name: tar_ck
+  value: 37.0
+  unit: kg
+  description: 'Tar recovered per t coke: midpoint of 26 to 48.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 5.2, p.
+    224 (EU coke oven plants 2005, complemented by other references) (range); the midpoint is our choice
+- name: btx_ck
+  value: 11.55
+  unit: kg
+  description: 'Light oil (BTX, crude benzole) recovered per t coke (the benzene row, 5.3 to 14 kg/t,
+    is taken as part of it, not added): midpoint of 9.1 to 14.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 5.2, p.
+    224 (EU coke oven plants 2005, complemented by other references) (range); the midpoint is our choice
+- name: s_ck
+  value: 1.45
+  unit: kg
+  description: 'Elemental sulphur recovered per t coke (the source''s case of sulphur recovery; its sulphuric
+    acid and ammonium sulphate cases are alternatives, not modelled: ASSUMED): midpoint of 0.9 to 2.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 5.2, p.
+    224 (EU coke oven plants 2005, complemented by other references) (range); the midpoint is our choice
+- name: ww_ck
+  value: 0.3
+  unit: m3
+  description: 'Waste water per t coke: midpoint of 0.1 to 0.5.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 5.2, p.
+    224 (EU coke oven plants 2005, complemented by other references) (range); the midpoint is our choice
+- name: dust_ck
+  value: 0.15685
+  unit: kg
+  description: 'Dust to air per t coke (stacks and quenching): midpoint of 0.0157 to 0.298.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 5.2, p.
+    224 (EU coke oven plants 2005, complemented by other references) (range); the midpoint is our choice
+- name: sox_ck
+  value: 0.49
+  unit: kg
+  description: 'SOx to air per t coke, counted as SO2 (ASSUMED); the bracketed 2820 g/t (no desulphurisation)
+    left out: midpoint of 0.08 to 0.9.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 5.2, p.
+    224 (EU coke oven plants 2005, complemented by other references) (range); the midpoint is our choice
+- name: nox_ck
+  value: 1.0595
+  unit: kg
+  description: 'NOx to air per t coke: midpoint of 0.336 to 1.783.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 5.2, p.
+    224 (EU coke oven plants 2005, complemented by other references) (range); the midpoint is our choice
+- name: nh3_ck
+  value: 0.0126
+  unit: kg
+  description: 'NH3 to air per t coke: midpoint of 0.0005 to 0.0247.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 5.2, p.
+    224 (EU coke oven plants 2005, complemented by other references) (range); the midpoint is our choice
+- name: h2s_ck
+  value: 0.056
+  unit: kg
+  description: 'H2S to air per t coke: midpoint of 0.012 to 0.1.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 5.2, p.
+    224 (EU coke oven plants 2005, complemented by other references) (range); the midpoint is our choice
+- name: co_ck
+  value: 2.33
+  unit: kg
+  description: 'CO to air per t coke: midpoint of 0.2 to 4.46.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 5.2, p.
+    224 (EU coke oven plants 2005, complemented by other references) (range); the midpoint is our choice
+- name: bz_ck
+  value: 0.02255
+  unit: kg
+  description: 'Benzene to air per t coke: midpoint of 0.0001 to 0.045.'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 5.2, p.
+    224 (EU coke oven plants 2005, complemented by other references) (range); the midpoint is our choice
+- name: c_cc
+  value: 0.73
+  unit: kg/kg
+  description: Carbon content of coking coal.
+  source: IPCC (2006) Guidelines for National Greenhouse Gas Inventories, Vol. 3, ch. 4, Table 4.3, p.
+    4.27 (Tier 2 default carbon contents)
+- name: c_coal
+  value: 0.67
+  unit: kg/kg
+  description: Carbon content of coal (other bituminous), for the injected coal.
+  source: IPCC (2006) Guidelines for National Greenhouse Gas Inventories, Vol. 3, ch. 4, Table 4.3, p.
+    4.27 (Tier 2 default carbon contents)
+- name: c_oil
+  value: 0.86
+  unit: kg/kg
+  description: 'Carbon content of fuel oil (the table assumes gas/diesel oil; applied to the injected
+    oil: ASSUMED).'
+  source: IPCC (2006) Guidelines for National Greenhouse Gas Inventories, Vol. 3, ch. 4, Table 4.3, p.
+    4.27 (Tier 2 default carbon contents)
+- name: c_ng
+  value: 0.73
+  unit: kg/kg
+  description: Carbon content of natural gas.
+  source: IPCC (2006) Guidelines for National Greenhouse Gas Inventories, Vol. 3, ch. 4, Table 4.3, p.
+    4.27 (Tier 2 default carbon contents)
+- name: c_lst
+  value: 0.12
+  unit: kg/kg
+  description: Carbon content of limestone.
+  source: IPCC (2006) Guidelines for National Greenhouse Gas Inventories, Vol. 3, ch. 4, Table 4.3, p.
+    4.27 (Tier 2 default carbon contents)
+- name: c_dol
+  value: 0.13
+  unit: kg/kg
+  description: Carbon content of dolomite.
+  source: IPCC (2006) Guidelines for National Greenhouse Gas Inventories, Vol. 3, ch. 4, Table 4.3, p.
+    4.27 (Tier 2 default carbon contents)
+- name: c_scrap
+  value: 0.04
+  unit: kg/kg
+  description: 'Carbon content of scrap iron (applied to all scrap: ASSUMED).'
+  source: IPCC (2006) Guidelines for National Greenhouse Gas Inventories, Vol. 3, ch. 4, Table 4.3, p.
+    4.27 (Tier 2 default carbon contents)
+- name: c_steel
+  value: 0.01
+  unit: kg/kg
+  description: Carbon content of steel.
+  source: IPCC (2006) Guidelines for National Greenhouse Gas Inventories, Vol. 3, ch. 4, Table 4.3, p.
+    4.27 (Tier 2 default carbon contents)
+- name: c_tar
+  value: 0.62
+  unit: kg/kg
+  description: Carbon content of coal tar.
+  source: IPCC (2006) Guidelines for National Greenhouse Gas Inventories, Vol. 3, ch. 4, Table 4.3, p.
+    4.27 (Tier 2 default carbon contents)
+- name: ncv_coke
+  value: 28.2
+  unit: MJ/kg
+  description: Net calorific value of coke, to turn the sinter solid fuel into coke breeze.
+  source: IPCC (2006) Guidelines for National Greenhouse Gas Inventories, Vol. 3, ch. 4, section 4.2.2.3,
+    p. 4.26 (default 28.2 TJ/Gg coke)
+- name: ch4_si
+  value: 0.07
+  unit: kg
+  description: 'CH4 per t sinter: Tier 1 default (the BREF''s Table 3.4 gives 35.5 to 412.5 g/t across
+    plants).'
+  source: IPCC (2006) Guidelines for National Greenhouse Gas Inventories, Vol. 3, ch. 4, Table 4.2, p.
+    4.26
+- name: ch4_ck
+  value: 0.0001
+  unit: kg
+  description: 'CH4 per t coke: Tier 1 default 0.1 g/t (the BREF''s Table 5.2 gives 1 to 80 g/t, one plant).'
+  source: IPCC (2006) Guidelines for National Greenhouse Gas Inventories, Vol. 3, ch. 4, Table 4.2, p.
+    4.26
+- name: c_btx
+  value: 0.9226
+  unit: kg/kg
+  description: Carbon content of the light oil, taken as benzene (ASSUMED).
+  source: chemicals/chemicals.yaml benzene, elemental composition (IUPAC 2021 atomic weights)
+- name: M_C
+  value: 12.011
+  unit: g/mol
+  description: Molar mass of carbon.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573)
+- name: M_CO
+  value: 28.01
+  unit: g/mol
+  description: Molar mass of CO.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_CO2
+  value: 44.009
+  unit: g/mol
+  description: Molar mass of CO2.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_CH4
+  value: 16.043
+  unit: g/mol
+  description: Molar mass of CH4.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: rho_o2
+  value: 1.429
+  unit: kg/m3
+  description: Density of oxygen at 0 degC, 1.01325 bar.
+  source: chemicals/chemicals.yaml oxygen (NIST Chemistry WebBook, SRD 69)
+- name: rho_n2
+  value: 1.2504
+  unit: kg/m3
+  description: Density of nitrogen at 0 degC, 1.01325 bar.
+  source: chemicals/chemicals.yaml nitrogen (NIST Chemistry WebBook, SRD 69)
+- name: rho_ar
+  value: 1.784
+  unit: kg/m3
+  description: Density of argon at 0 degC, 1.01325 bar.
+  source: chemicals/chemicals.yaml argon (NIST Chemistry WebBook, SRD 69)
+- name: lhv_ng
+  value: 50.01
+  unit: MJ/kg
+  description: LHV of natural gas, taken as methane (library convention, ASSUMED).
+  source: chemicals/chemicals.yaml methane, lhv
+- name: rho_w
+  value: 1000.0
+  unit: kg/m3
+  description: Density of waste water (ASSUMED).
+  source: ASSUMED
+exchanges:
+- key: product:steel
+  title: Crude steel, cast semis (slabs, blooms, billets) from the BOF
+  type: product
+  amount: 1000.0
+  unit: kg
+  formula: ls
+  provenance: given
+  source: the reference flow; the BREF normalises BOF output to 1000 kg of cast products per t LS (Table
+    7.3, note 1)
+- key: feed:coking-coal
+  title: Coking coal (dry) to the coke ovens
+  type: input
+  amount: 451.15533057148934
+  unit: kg
+  formula: coal_ck * (coke_hm * hm / 1000 + fuel_si / ncv_coke * sinter_hm * hm / 1000 / 1000 + coke_bof)
+    / 1000
+  provenance: calculated
+  source: 'coke demand (BF coke, sinter coke breeze, converter coke; all coke made on site: ASSUMED, as
+    IPCC Tier 1) times coal per t coke; EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469,
+    Tables 3.2, 5.2, 6.1, 7.3'
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.2
+    source: 'ASSUMED: the coal and coke ranges combined'
+- key: feed:pci-coal
+  title: Coal injected at the blast furnace tuyeres
+  type: input
+  amount: 139.239
+  unit: kg
+  formula: pci_hm * hm / 1000
+  provenance: calculated
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 6.1 weighted
+    average times hot metal per t LS (Table 7.3)
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.3
+    source: 'ASSUMED: a weighted average (0 to 232 kg/t HM across furnaces) scaled by the hot metal range'
+- key: feed:fuel-oil
+  title: Oil injected at the blast furnace tuyeres
+  type: input
+  amount: 25.87095
+  unit: kg
+  formula: oil_hm * hm / 1000
+  provenance: calculated
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 6.1 weighted
+    average times hot metal per t LS
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: a weighted average of 0 to 116 kg/t HM across furnaces'
+- key: feed:natural-gas
+  title: Natural gas (tuyere injection, hot stoves, steel plant)
+  type: input
+  amount: 12.516694841031793
+  unit: kg
+  formula: ngt_hm * hm / 1000 + (ngs_hm * hm / 1000 + ng_bof) / lhv_ng
+  provenance: calculated
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 6.1 (tuyeres,
+    stoves) and Table 7.3 (steel plant); MJ to kg by the LHV of methane (library convention); combustion
+    counted in emission:CO2
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.8
+    source: 'ASSUMED: dominated by the steel plant''s 44 to 730 MJ/t LS'
+- key: feed:iron-ore-fines
+  title: Iron ore (sinter feed fines) to the sinter plant
+  type: input
+  amount: 760.3590816000001
+  unit: kg
+  formula: ore_si * sinter_hm * hm / 1000 / 1000
+  provenance: calculated
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 3.2 average
+    times sinter per t HM (Table 6.1) and hot metal per t LS (Table 7.3)
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.2
+    source: 'ASSUMED: averages scaled by the hot metal range'
+- key: feed:iron-ore-lump
+  title: Lump iron ore to the blast furnace and the converter
+  type: input
+  amount: 164.42000000000002
+  unit: kg
+  formula: ore_hm * hm / 1000 + ore_bof
+  provenance: calculated
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 6.1 weighted
+    average and Table 7.3
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: a weighted average of 0 to 684 kg/t HM across furnaces'
+- key: feed:pellets
+  title: Iron ore pellets (bought) to the blast furnace
+  type: input
+  amount: 307.701
+  unit: kg
+  formula: pel_hm * hm / 1000
+  provenance: calculated
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 6.1 weighted
+    average times hot metal per t LS
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: a weighted average of 0 to 972 kg/t HM across furnaces'
+- key: feed:limestone
+  title: Limestone (and dolomite) fluxes to the sinter plant and blast furnace
+  type: input
+  amount: 144.6854796
+  unit: kg
+  formula: lst_si * sinter_hm * hm / 1000 / 1000 + lst_hm * hm / 1000
+  provenance: calculated
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 3.2 and
+    Table 6.1; the dolomite share and the BF lime share are counted as limestone (ASSUMED)
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.3
+    source: 'ASSUMED: averages, flux type not split'
+- key: feed:lime
+  title: Burnt lime to the sinter plant and the converter
+  type: input
+  amount: 58.0383872
+  unit: kg
+  formula: lime_si * sinter_hm * hm / 1000 / 1000 + lime_bof
+  provenance: calculated
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 3.2 average
+    and Table 7.3 range midpoint
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.25
+    source: 'ASSUMED: dominated by the converter''s 30 to 67 kg/t LS'
+- key: feed:dolomite
+  title: Dolomite to the converter
+  type: input
+  amount: 14.2
+  unit: kg
+  formula: dolo_bof
+  provenance: given
+  origin: literature
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 7.3
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 5
+    - 3
+    - 3
+    reason: 'from values of the Iron and Steel BREF data collection (EU plants, 2004-2005): reliability
+      3, completeness 4, temporal 5 (over 15 years old), geographical 3, technological 3; the Tier 1 floor
+      otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: dolomite range 0 to 28.4 starts at or near zero, so sqrt(high / low) is not meaningful;
+      capped at 3'
+- key: feed:sinter-additives
+  title: Other sinter additives
+  type: input
+  amount: 24.687590399999998
+  unit: kg
+  formula: add_si * sinter_hm * hm / 1000 / 1000
+  provenance: calculated
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 3.2 average
+    (the source does not name them)
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: an unnamed average'
+- key: feed:scrap
+  title: Steel scrap to the converter
+  type: input
+  amount: 220.5
+  unit: kg
+  formula: scrap
+  provenance: given
+  origin: literature
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 7.3; under
+    cut-off scrap enters without the burden of its first life
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 5
+    - 3
+    - 3
+    reason: 'from values of the Iron and Steel BREF data collection (EU plants, 2004-2005): reliability
+      3, completeness 4, temporal 5 (over 15 years old), geographical 3, technological 3; the Tier 1 floor
+      otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.835
+    source: 'scrap: range 101 to 340 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: feed:other-iron
+  title: Other iron-bearing material to the converter
+  type: input
+  amount: 30.0
+  unit: kg
+  formula: ofe
+  provenance: given
+  origin: literature
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 7.3 (not
+    named in the source)
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 5
+    - 3
+    - 3
+    reason: 'from values of the Iron and Steel BREF data collection (EU plants, 2004-2005): reliability
+      3, completeness 4, temporal 5 (over 15 years old), geographical 3, technological 3; the Tier 1 floor
+      otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: other Fe material range 0 to 60 starts at or near zero, so sqrt(high / low) is not
+      meaningful; capped at 3'
+- key: feed:ferroalloys
+  title: Ferroalloys (Fe-Ti, Fe-W, Fe-Ni, Fe-V, Fe-Si, Fe-Mo)
+  type: input
+  amount: 17.15
+  unit: kg
+  formula: alloys
+  provenance: given
+  origin: literature
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 7.3 and
+    its note 5; the alloy mix depends on the grade
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 5
+    - 3
+    - 3
+    reason: 'from values of the Iron and Steel BREF data collection (EU plants, 2004-2005): reliability
+      3, completeness 4, temporal 5 (over 15 years old), geographical 3, technological 3; the Tier 1 floor
+      otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: alloys range 1.3 to 33 starts at or near zero, so sqrt(high / low) is not meaningful;
+      capped at 3'
+- key: feed:oxygen
+  title: Oxygen, 99.5 % or more, to the blast furnace and the converter
+  type: input
+  amount: 132.13954999999999
+  unit: kg
+  formula: o2_hm * hm / 1000 + o2_bof * rho_o2
+  provenance: calculated
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 6.1 (tuyeres,
+    kg) and Table 7.3 (converter, Nm3 at the registry density)
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.15
+    source: 'ASSUMED: the converter''s 49.5 to 70 Nm3/t LS dominates'
+- key: feed:nitrogen
+  title: Nitrogen to the blast furnace and the converter
+  type: input
+  amount: 62.253664799999996
+  unit: kg
+  formula: (n2_hm * hm / 1000 + n2_bof) * rho_n2
+  provenance: calculated
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 6.1 and
+    Table 7.3 (Nm3 at the registry density)
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.3
+    source: 'ASSUMED: a weighted average with the converter range'
+- key: feed:argon
+  title: Argon to the converter (stirring)
+  type: input
+  amount: 1.4718
+  unit: kg
+  formula: ar_bof * rho_ar
+  provenance: calculated
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 7.3 (Nm3
+    at the registry density)
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.414
+    source: 'argon: range 0.55 to 1.1 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: feed:electricity
+  title: 'Electricity, purchased (gross: the works'' own generation from process gases is not credited)'
+  type: input
+  amount: 143.11722258569742
+  unit: kWh
+  formula: (el_si * sinter_hm * hm / 1000 / 1000 + el_ck * (coke_hm * hm / 1000 + fuel_si / ncv_coke *
+    sinter_hm * hm / 1000 / 1000 + coke_bof) / 1000 + el_hm * hm / 1000 + el_bof) / 3.6
+  provenance: calculated
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: 'EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Tables 3.2,
+    5.2, 6.1 and 7.3: the four plants'' electricity per t LS, MJ / 3.6'
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.4
+    source: 'ASSUMED: sum of four plant ranges and averages'
+- key: output:bf-slag
+  title: Blast furnace slag (granulated or air-cooled, mostly sold to cement and road construction)
+  type: output
+  amount: 242.8918211290221
+  unit: kg
+  formula: slag_t / hm_t * hm
+  provenance: calculated
+  source: 'EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 6.2 data
+    note and slag row: 19.56 Mt slag over the 69.22 Mt HM of the 18 installations reporting slag (2004),
+    283 kg/t HM, times hot metal per t LS; a by-product, not allocated (see modelling)'
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.3
+    source: 'ASSUMED: the reported range is 150 to 346.6 kg/t HM'
+- key: output:bof-slag
+  title: 'Steelmaking slags: converter, desulphurisation and secondary metallurgy'
+  type: output
+  amount: 158.5
+  unit: kg
+  formula: slag_bof + slag_ds + slag_sm
+  provenance: given
+  origin: literature
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 7.3; a
+    by-product, not allocated (see modelling)
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 5
+    - 3
+    - 3
+    reason: 'from values of the Iron and Steel BREF data collection (EU plants, 2004-2005): reliability
+      3, completeness 4, temporal 5 (over 15 years old), geographical 3, technological 3; the Tier 1 floor
+      otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.35
+    source: 'ASSUMED: three ranges combined'
+- key: output:coal-tar
+  title: Coal tar from the coke oven gas treatment
+  type: output
+  amount: 12.990464771319148
+  unit: kg
+  formula: tar_ck * (coke_hm * hm / 1000 + fuel_si / ncv_coke * sinter_hm * hm / 1000 / 1000 + coke_bof)
+    / 1000
+  provenance: calculated
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 5.2 range
+    midpoint times coke per t LS; a by-product, not allocated
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.359
+    source: 'tar: range 26 to 48 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the
+      amount stays the arithmetic midpoint or the stated value)'
+- key: output:crude-benzole
+  title: Light oil (BTX, crude benzole) from the coke oven gas treatment
+  type: output
+  amount: 4.055131570506383
+  unit: kg
+  formula: btx_ck * (coke_hm * hm / 1000 + fuel_si / ncv_coke * sinter_hm * hm / 1000 / 1000 + coke_bof)
+    / 1000
+  provenance: calculated
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 5.2 range
+    midpoint times coke per t LS; a by-product, not allocated
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.24
+    source: 'light oil: range 9.1 to 14 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: output:recovered-sulphur
+  title: Elemental sulphur from coke oven gas desulphurisation
+  type: output
+  amount: 0.5090857815787233
+  unit: kg
+  formula: s_ck * (coke_hm * hm / 1000 + fuel_si / ncv_coke * sinter_hm * hm / 1000 / 1000 + coke_bof)
+    / 1000
+  provenance: calculated
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 5.2 (sulphur
+    recovery case, ASSUMED) times coke per t LS; a by-product, not allocated
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.491
+    source: 'sulphur: range 0.9 to 2 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: output:wastewater
+  title: Waste water of the coke oven and sinter plants to treatment
+  type: output
+  amount: 147.40921274042555
+  unit: kg
+  formula: (ww_ck * (coke_hm * hm / 1000 + fuel_si / ncv_coke * sinter_hm * hm / 1000 / 1000 + coke_bof)
+    / 1000 + ww_si * sinter_hm * hm / 1000 / 1000) * rho_w
+  provenance: calculated
+  link:
+    factor: wastewater
+    source: site wastewater treatment
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Tables 5.2 and
+    3.4; BF, BOF and casting waste water not counted (see system_boundary)
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.7
+    source: 'ASSUMED: the coke plant''s 0.1 to 0.5 m3/t coke dominates'
+- key: emission:CO2
+  title: CO2, fossil, of all carbon burnt at the works (IPCC Tier 2 carbon balance)
+  type: emission
+  amount: 1645.289814131956
+  unit: kg
+  formula: ((c_cc * coal_ck * (coke_hm * hm / 1000 + fuel_si / ncv_coke * sinter_hm * hm / 1000 / 1000
+    + coke_bof) / 1000 + c_coal * pci_hm * hm / 1000 + c_oil * oil_hm * hm / 1000 + c_ng * (ngt_hm * hm
+    / 1000 + (ngs_hm * hm / 1000 + ng_bof) / lhv_ng) + c_lst * (lst_si * sinter_hm * hm / 1000 / 1000
+    + lst_hm * hm / 1000) + c_dol * dolo_bof + c_scrap * scrap) - (c_steel * ls + c_tar * tar_ck * (coke_hm
+    * hm / 1000 + fuel_si / ncv_coke * sinter_hm * hm / 1000 / 1000 + coke_bof) / 1000 + c_btx * btx_ck
+    * (coke_hm * hm / 1000 + fuel_si / ncv_coke * sinter_hm * hm / 1000 / 1000 + coke_bof) / 1000 + (co_si
+    * sinter_hm * hm / 1000 / 1000 + co_ck * (coke_hm * hm / 1000 + fuel_si / ncv_coke * sinter_hm * hm
+    / 1000 / 1000 + coke_bof) / 1000 + co_cast * hm / 1000 + co_bof) * M_C / M_CO + (ch4_si * sinter_hm
+    * hm / 1000 / 1000 + ch4_ck * (coke_hm * hm / 1000 + fuel_si / ncv_coke * sinter_hm * hm / 1000 /
+    1000 + coke_bof) / 1000) * M_C / M_CH4)) * M_CO2 / M_C
+  provenance: calculated
+  cas: 124-38-9
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 349b29d1-3e58-4c66-98b9-9d1a076efd2e
+    name: Carbon dioxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: 'IPCC (2006) Guidelines for National Greenhouse Gas Inventories, Vol. 3, ch. 4, Equation 4.9
+    and Table 4.3 applied to the whole works (coke, sinter, iron and steel): carbon of coking coal, injected
+    coal, oil, natural gas, limestone, dolomite and scrap, less the carbon of the steel, tar, light oil
+    and the CO and CH4 emitted; every process gas is taken as burnt at the works (the IPCC Tier 1 assumption),
+    so its CO2 is here; biosphere3 UUID, name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml)'
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.2
+    source: 'ASSUMED: a carbon balance on default carbon contents; about +/- 15 % with the coal and coke
+      ranges'
+- key: emission:CO
+  title: CO, fossil (sinter strand, coke plant, cast house, converter)
+  type: emission
+  amount: 26.045774143450636
+  unit: kg
+  formula: co_si * sinter_hm * hm / 1000 / 1000 + co_ck * (coke_hm * hm / 1000 + fuel_si / ncv_coke *
+    sinter_hm * hm / 1000 / 1000 + coke_bof) / 1000 + co_cast * hm / 1000 + co_bof
+  provenance: calculated
+  cas: 630-08-0
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: ba2f3f82-c93a-47a5-822a-37ec97495275
+    name: Carbon monoxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Tables 3.4, 5.2,
+    6.5 and 7.3, range midpoints scaled per t LS; biosphere3 UUID, name and categories from core's elementary-flow
+    crosswalk (data/elementary-flows.yaml)
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: the sinter strand''s 8.8 to 37 kg/t dominates'
+- key: emission:CH4
+  title: CH4, fossil (sinter, coke plant)
+  type: emission
+  amount: 0.06549462936424681
+  unit: kg
+  formula: ch4_si * sinter_hm * hm / 1000 / 1000 + ch4_ck * (coke_hm * hm / 1000 + fuel_si / ncv_coke
+    * sinter_hm * hm / 1000 / 1000 + coke_bof) / 1000
+  provenance: calculated
+  cas: 74-82-8
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 0795345f-c7ae-410c-ad25-1845784c75f5
+    name: Methane, fossil
+    categories:
+    - air
+    unit: kg
+  source: IPCC (2006) Guidelines for National Greenhouse Gas Inventories, Vol. 3, ch. 4, Table 4.2 Tier
+    1 defaults per t sinter and per t coke; biosphere3 UUID, name and categories from core's elementary-flow
+    crosswalk (data/elementary-flows.yaml)
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: a Tier 1 default; the BREF''s plant range is 35.5 to 412.5 g/t sinter'
+- key: emission:SO2
+  title: SO2 (sinter strand, coke plant, cast house, slag granulation, converter)
+  type: emission
+  amount: 0.8516174374093618
+  unit: kg
+  formula: so2_si * sinter_hm * hm / 1000 / 1000 + sox_ck * (coke_hm * hm / 1000 + fuel_si / ncv_coke
+    * sinter_hm * hm / 1000 / 1000 + coke_bof) / 1000 + (so2_cast + so2_gran) * hm / 1000 + sox_bof
+  provenance: calculated
+  cas: 7446-09-5
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: fd7aa71c-508c-480d-81a6-8052aad92646
+    name: Sulfur dioxide
+    categories:
+    - air
+    unit: kg
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Tables 3.4, 5.2,
+    6.5, 6.6 and 7.4 (SOx counted as SO2); hot stoves and the power plant not counted; biosphere3 UUID,
+    name and categories from core's elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.8
+    source: 'ASSUMED: several plant ranges combined'
+- key: emission:NOX
+  title: NOx, as NO2 (sinter strand, coke plant, cast house, converter)
+  type: emission
+  amount: 1.0287798885949362
+  unit: kg
+  formula: nox_si * sinter_hm * hm / 1000 / 1000 + nox_ck * (coke_hm * hm / 1000 + fuel_si / ncv_coke
+    * sinter_hm * hm / 1000 / 1000 + coke_bof) / 1000 + nox_cast * hm / 1000 + nox_bof
+  provenance: calculated
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: c1b91234-6f24-417b-8309-46111d09c457
+    name: Nitrogen oxides
+    categories:
+    - air
+    unit: kg
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Tables 3.4, 5.2,
+    6.5 and 7.3; hot stoves and the power plant not counted; biosphere3 UUID, name and categories from
+    core's elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.7
+    source: 'ASSUMED: several plant ranges combined'
+- key: emission:PM
+  title: Dust, total particulates (sinter strand, coke plant, blast furnace, converter)
+  type: emission
+  amount: 0.47882107712111915
+  unit: kg
+  formula: dust_si * sinter_hm * hm / 1000 / 1000 + dust_ck * (coke_hm * hm / 1000 + fuel_si / ncv_coke
+    * sinter_hm * hm / 1000 / 1000 + coke_bof) / 1000 + (dust_cast + dust_chg + dust_pci) * hm / 1000
+    + dust_bof
+  provenance: calculated
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Tables 3.4, 5.2,
+    6.3, 6.4, 6.5 and 7.3, after abatement; diffuse and other secondary sources (Tables 3.5, 3.6) not
+    counted; size split not given
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.5
+    source: 'ASSUMED: plant ranges spanning more than a factor of ten'
+- key: emission:H2S
+  title: H2S (coke plant, slag granulation)
+  type: emission
+  amount: 0.07380974397821276
+  unit: kg
+  formula: h2s_ck * (coke_hm * hm / 1000 + fuel_si / ncv_coke * sinter_hm * hm / 1000 / 1000 + coke_bof)
+    / 1000 + h2s_gran * hm / 1000
+  provenance: calculated
+  cas: 7783-06-4
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Tables 5.2 and
+    6.6
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.5
+    source: 'ASSUMED: the granulation mean has a standard deviation of 95 g/t HM'
+- key: emission:NH3
+  title: NH3 (coke plant)
+  type: emission
+  amount: 0.004423779895097872
+  unit: kg
+  formula: nh3_ck * (coke_hm * hm / 1000 + fuel_si / ncv_coke * sinter_hm * hm / 1000 / 1000 + coke_bof)
+    / 1000
+  provenance: calculated
+  cas: 7664-41-7
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 87883a4e-1e3e-4c9d-90c0-f1bea36f8014
+    name: Ammonia
+    categories:
+    - air
+    unit: kg
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 5.2; biosphere3
+    UUID, name and categories from core's elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: NH3 range 0.0005 to 0.0247 starts at or near zero, so sqrt(high / low) is not meaningful;
+      capped at 3'
+- key: emission:C6H6
+  title: Benzene (coke plant)
+  type: emission
+  amount: 0.007917161637655318
+  unit: kg
+  formula: bz_ck * (coke_hm * hm / 1000 + fuel_si / ncv_coke * sinter_hm * hm / 1000 / 1000 + coke_bof)
+    / 1000
+  provenance: calculated
+  cas: 71-43-2
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 5.2 (stacks;
+    fugitive by-product plant emissions not counted)
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: benzene range 0.0001 to 0.045 starts at or near zero, so sqrt(high / low) is not
+      meaningful; capped at 3'
+- key: emission:HCl
+  title: HCl (sinter strand)
+  type: emission
+  amount: 0.396965232
+  unit: kg
+  formula: hcl_si * sinter_hm * hm / 1000 / 1000
+  provenance: calculated
+  cas: 7647-01-0
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 3.4
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: HCl range 0.0014 to 0.8476 starts at or near zero, so sqrt(high / low) is not meaningful;
+      capped at 3'
+- key: emission:HF
+  title: HF (sinter strand)
+  type: emission
+  amount: 0.0040210848
+  unit: kg
+  formula: hf_si * sinter_hm * hm / 1000 / 1000
+  provenance: calculated
+  cas: 7664-39-3
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 3.4
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 4.528
+    source: 'HF: range 0.0004 to 0.0082 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: emission:NMVOC
+  title: NMVOC (sinter strand)
+  type: emission
+  amount: 0.12268984320000001
+  unit: kg
+  formula: voc_si * sinter_hm * hm / 1000 / 1000
+  provenance: calculated
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: d3260d0e-8203-4cbb-a45a-6a13131a5108
+    name: NMVOC, non-methane volatile organic compounds
+    categories:
+    - air
+    unit: kg
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 3.4; biosphere3
+    UUID, name and categories from core's elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: NMVOC range 0.0015 to 0.2609 starts at or near zero, so sqrt(high / low) is not
+      meaningful; capped at 3'
+- key: emission:N2
+  title: Nitrogen fed for stirring, purging and inerting, released to air
+  type: emission
+  amount: 62.253664799999996
+  unit: kg
+  formula: (n2_hm * hm / 1000 + n2_bof) * rho_n2
+  provenance: calculated
+  free: true
+  cas: 7727-37-9
+  source: 'the nitrogen fed (feed:nitrogen) leaves with the off-gases: an atmospheric constituent, free
+    (lci/mappings.yaml pass_through)'
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.3
+    source: 'ASSUMED: as feed:nitrogen'
+- key: emission:AR
+  title: Argon fed for converter stirring, released to air
+  type: emission
+  amount: 1.4718
+  unit: kg
+  formula: ar_bof * rho_ar
+  provenance: calculated
+  free: true
+  cas: 7440-37-1
+  source: 'the argon fed (feed:argon) leaves with the converter off-gas: an atmospheric constituent, free
+    (lci/mappings.yaml pass_through)'
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), or several ranges combined: reliability 4, completeness
+      4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.414
+    source: 'argon: range 0.55 to 1.1 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+provenance:
+  generator: hand-written model; amounts are the formulas of the parameters
+  notes: No value from a licensed database. Facts and numbers from the Iron and Steel BREF and the IPCC
+    2006 Guidelines, in our own form.
+generation:
+  tier: 1
+  method: 'sourced conceptual inventory: Iron and Steel BREF per-tonne data of the coke, sinter, blast
+    furnace and BOF plants chained per t of crude steel, IPCC 2006 Tier 2 carbon balance for CO2; every
+    choice listed in parameters'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 3
+  - 4
+  - 3
+  - 3
+  - 3
+  dqr_floor: 3.0
+  components:
+    feed:nitrogen: N2
+    feed:argon: AR
+    emission:N2: N2
+    emission:AR: AR
+  formulas:
+    feed:nitrogen: N2
+    feed:argon: Ar
+    emission:N2: N2
+    emission:AR: Ar
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      Ar:
+      - 1.4718
+      - 1.4718
+      N:
+      - 62.2536648
+      - 62.2536648
+    outside:
+    - emission:C6H6
+    - emission:CH4
+    - emission:CO
+    - emission:CO2
+    - emission:H2S
+    - emission:HCl
+    - emission:HF
+    - emission:NH3
+    - emission:NMVOC
+    - emission:NOX
+    - emission:PM
+    - emission:SO2
+    - feed:coking-coal
+    - feed:dolomite
+    - feed:electricity
+    - feed:ferroalloys
+    - feed:fuel-oil
+    - feed:iron-ore-fines
+    - feed:iron-ore-lump
+    - feed:lime
+    - feed:limestone
+    - feed:natural-gas
+    - feed:other-iron
+    - feed:oxygen
+    - feed:pci-coal
+    - feed:pellets
+    - feed:scrap
+    - feed:sinter-additives
+    - output:bf-slag
+    - output:bof-slag
+    - output:coal-tar
+    - output:crude-benzole
+    - output:recovered-sulphur
+    - output:wastewater
+    - product:steel

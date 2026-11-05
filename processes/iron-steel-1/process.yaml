@@ -1,0 +1,47 @@
+# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
+# dataset is lca/datasets/*.yaml, Tier 1 form, so maturity stays at concept
+# (core's cheme.lci-tier-maturity). See README.md.
+schema: cheme-as-code/process/v1
+id: iron-steel-1
+title: Crude steel by the integrated blast furnace and basic oxygen furnace route
+summary: >-
+  Sourced conceptual inventory per tonne of crude steel from an integrated works (coke ovens,
+  sinter plant, blast furnace, BOF): EU Iron and Steel BREF per-tonne data chained, CO2 from an
+  IPCC 2006 Tier 2 carbon balance. Converter heats taken as a time average. No flowsheet; not reviewed.
+families: [iron-steel]
+keywords: [steel, crude steel, blast furnace, basic oxygen furnace, BOF, coke oven, sinter, hot metal, integrated steelworks]
+facets: {feedstock_basis: [fossil, mineral, recycled], product_classes: [materials], unit_operations: [reaction, agglomeration, smelting, casting], region: EU}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: iron-ore, role: feedstock, inventory_key: "feed:iron-ore-fines", note: "sinter feed fines"}
+    - {chemical: iron-ore, role: feedstock, inventory_key: "feed:iron-ore-lump", note: "lump ore to the blast furnace and the converter"}
+    - {chemical: iron-ore-pellets, role: feedstock, inventory_key: "feed:pellets", note: "bought pellets; no pellet plant in the boundary"}
+    - {chemical: coking-coal, role: feedstock, inventory_key: "feed:coking-coal", note: "all coke made on site (ASSUMED)"}
+    - {chemical: hard-coal, role: feedstock, inventory_key: "feed:pci-coal", note: "coal injected at the tuyeres"}
+    - {chemical: heavy-fuel-oil, role: feedstock, inventory_key: "feed:fuel-oil", note: "oil injected at the tuyeres"}
+    - {chemical: methane, role: feedstock, inventory_key: "feed:natural-gas", note: "pipeline natural gas, taken as methane (library convention)"}
+    - {chemical: limestone, role: feedstock, inventory_key: "feed:limestone", note: "sinter and blast furnace flux"}
+    - {chemical: calcium-oxide, role: feedstock, inventory_key: "feed:lime", note: "burnt lime to the sinter plant and the converter"}
+    - {chemical: dolomite, role: feedstock, inventory_key: "feed:dolomite", note: "converter flux"}
+    - {chemical: steel-scrap, role: feedstock, inventory_key: "feed:scrap", note: "converter scrap"}
+    - {chemical: oxygen, role: feedstock, inventory_key: "feed:oxygen", note: "tuyere enrichment and converter blowing"}
+    - {chemical: nitrogen, role: feedstock, inventory_key: "feed:nitrogen", note: "inerting, purging and stirring; released to air"}
+    - {chemical: argon, role: feedstock, inventory_key: "feed:argon", note: "converter stirring; released to air"}
+  outputs:
+    - {chemical: crude-steel, role: main-product, inventory_key: "product:steel", note: "crude steel, cast semis"}
+    - {chemical: blast-furnace-slag, role: by-product, inventory_key: "output:bf-slag", note: "not allocated (see the dataset's modelling)"}
+    - {chemical: steelmaking-slag, role: by-product, inventory_key: "output:bof-slag", note: "not allocated"}
+    - {chemical: coal-tar, role: by-product, inventory_key: "output:coal-tar", note: "not allocated"}
+    - {chemical: sulfur, role: by-product, note: "output:recovered-sulphur: sulphur from coke oven gas desulphurisation, not allocated; no inventory_key on purpose, since with one the build links this by-product output to the sulfur market as an ordinary technosphere exchange"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "fossil CO2 of all carbon burnt at the works, IPCC Tier 2 carbon balance"}
+    - {chemical: wastewater, role: waste, inventory_key: "output:wastewater"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity", note: "purchased, gross: the works' own generation from process gases is not credited"}
+basis: {capacity: "per tonne of crude steel (the dataset's basis); no plant size"}
+publication: {status: public, license: CC-BY-4.0}
+references:
+  - {title: "Remus, R., Aguado-Monsonet, M.A., Roudier, S., Delgado Sancho, L. (2013) Best Available Techniques (BAT) Reference Document for Iron and Steel Production. JRC Reference Report EUR 25521 EN, Tables 3.2, 3.4, 5.2, 6.1 to 6.6, 7.3 and 7.4", doi: 10.2791/97469}
+  - {title: "IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Vol. 3 Industrial Processes and Product Use, ch. 4 Metal Industry Emissions, section 4.2 (Equation 4.9, Tables 4.1 to 4.3)", url: "https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/3_Volume3/V3_4_Ch4_Metal_Industry.pdf"}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/iron-steel-1, access: public}

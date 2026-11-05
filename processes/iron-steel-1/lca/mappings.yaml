@@ -1,0 +1,17 @@
+# iron-steel-1's own exchange overrides for the Atlas LCI build (ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Oxygen and nitrogen link the Atlas producer
+# asu-1 explicitly, as acetylene-1 does for its oxygen, and burnt lime the Atlas producer lime-1.
+# Ores, coals, oil, scrap, ferroalloys, argon and the by-product outputs stay reported gaps: the
+# shared vocabulary has no entry for them yet, and no background is chosen here.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:oxygen": {dataset: {path: processes/asu-1/lca/dataset.yaml, product: "product:GOXP"}, source: "the Atlas producer asu-1, GOX (99.5 mol% O2 or more); its 31 bar(a) is not reduced to the blast furnace's and converter's delivery pressure"}
+  "feed:nitrogen": {dataset: {path: processes/asu-1/lca/dataset.yaml, product: "product:GANP"}, source: "the Atlas producer asu-1, GAN at 8 barg; the works' nitrogen purity is not stated by the BREF"}
+  "feed:natural-gas":
+    use: natural-gas
+    atlas: false
+    source: "Pipeline natural gas by mass, combustion counted in the dataset's CO2: the only Atlas producer of the slug methane is hda-1's fuel gas, which is not natural gas (as styrene-1)."
+  "feed:lime": {dataset: {path: processes/lime-1/lca/datasets/quicklime-pfrk-natural-gas.yaml, product: "product:quicklime"}, source: "the Atlas producer lime-1, burnt lime counted as CaO by mass, as this exchange counts it (Tier 1, EU natural-gas PFRK; steelworks also run their own lime kilns)"}
+  "feed:scrap":
+    atlas: false
+    source: "Steel scrap enters burden-free under cut-off apart from its collection and sorting (docs/system-model.md section 3); the sorting background is not chosen yet."

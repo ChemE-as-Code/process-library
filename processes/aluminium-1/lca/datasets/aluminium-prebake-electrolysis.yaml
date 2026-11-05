@@ -1,0 +1,663 @@
+# Tier 1 form, process-library#313 pilot without a flowsheet. Every amount is the formula of its parameters;
+# core's validator re-checks each. Written from the EU NFM BREF (2017) and the 2006 IPCC Guidelines
+# (facts in our own form).
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: aluminium-prebake-electrolysis
+title: Primary aluminium by Hall-Heroult electrolysis with prebaked anodes (point feed)
+description: Per 1 t of liquid primary aluminium tapped from the pots, gate-to-gate, EU point-feed prebake
+  (PFPB) smelters of the NFM BREF data collection. Alumina, net anode, aluminium fluoride and electricity
+  as midpoints of sourced ranges; process CO2 and SO2 from the anode by an IPCC Tier 2 type mass balance;
+  CF4 and C2F6 by the IPCC Tier 2 slope method with the BREF's anode effect performance.
+basis: 1000 kg of liquid primary aluminium
+boundary: 'gate-to-gate: potline electrolysis (cells, rectifiers, auxiliaries) and the dry alumina scrubber
+  of the cell gases, up to the tapped liquid metal; prebaked anodes, alumina and aluminium fluoride bought
+  in; anode plant and casthouse outside'
+technology: point-feed prebake cells (PFPB, about 90 % of EU capacity in the BREF); Soederberg cells and
+  the anode baking plant are not modelled
+geography:
+  description: EU smelters of the BREF data collection, with IPCC global default coefficients; no single site.
+classification:
+  isic: '2420'
+system_boundary:
+  included:
+  - alumina, net anode consumption, aluminium fluoride, electricity
+  - oxygen from air that burns the anode carbon beyond the electrolysis reaction
+  - process CO2 and SO2 from the anode, CF4 and C2F6 from anode effects
+  - gaseous fluoride, dust and NOx to air (stack and roof)
+  - spent pot lining, wastewater
+  excluded:
+  - 'TODO anode production (green anode forming and baking, with its fuel, pitch volatiles and packing
+    coke): a separate process; the anode is an input. The IPCC Tier 1 prebake factor includes baking CO2,
+    this dataset does not'
+  - 'TODO casthouse (holding, treatment and casting): fuel 300 to 2500 MJ/t, dross 10 to 50 kg/t (BREF
+    Table 4.10), not part of the tapped-metal basis'
+  - 'TODO fluorine balance: aluminium fluoride make-up and fluoride emissions are counted, but the fluoride
+    leaving as excess bath (sold) and in the spent lining is not stated per t; aluminium fluoride and
+    the fluoride flows stay outside the element balance'
+  - 'TODO cathode and lining materials (carbon blocks, refractories, steel bars) replaced every 5 to 8 years:
+    no input per t in the source; their waste is counted as spent pot lining'
+  - 'TODO particulate fluoride (the total fluoride less the gaseous part, about 0.06 to 0.3 kg F/t): no
+    separate flow, it is part of the dust'
+  - 'TODO CO before re-oxidation and COS: the source accounts them as CO2 and SO2, so does this dataset'
+  - 'TODO freshwater make-up: the source gives the discharge (about 1 m3/t) but no intake for the electrolysis'
+  - 'TODO other site wastes (7 to 15 kg/t hazardous, 12 to 14 kg/t non-hazardous, BREF Table 4.19): whole
+    smelter, not attributable to the potline alone'
+  - 'PAH and tar: negligible for prebake electrolysis with bought-in anodes (BREF 4.2.3.2.4)'
+  - infrastructure
+  cutoff: none applied; the excluded flows are not quantified
+  infrastructure: excluded
+  catalysts: excluded
+  non_routine: excluded
+location: RER
+year: 2012
+valid_until: 2017
+time:
+  start: 2005
+  description: 'BREF inputs from an industry submission of 2008 (Table 4.9) and dust and SO2 ranges from one
+    of 2012 (Table 4.13); the gaseous fluoride, NOx and anode effect figures are cited in the BREF from references
+    of 1997 and 1998; IPCC coefficients from measurements up to March 2005. valid_until is the reference year
+    + 5 (system-model section 6), so it has already lapsed.'
+modelling:
+  principle: attributional
+  multifunctionality: 'single output: no allocation (spent pot lining and the alumina residual are wastes)'
+uuid: 56fb57de-67e8-59a3-8b8d-01b55701f56f
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+technology_level: current
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: al
+  value: 1000.0
+  unit: kg
+  description: Liquid primary aluminium tapped (the basis).
+  source: basis
+- name: M_Al
+  value: 26.982
+  unit: g/mol
+  description: Atomic weight of aluminium.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573)
+- name: M_F
+  value: 18.998
+  unit: g/mol
+  description: Atomic weight of fluorine.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573)
+- name: M_Al2O3
+  value: 101.961
+  unit: g/mol
+  description: Molar mass of aluminium oxide.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_CO2
+  value: 44.009
+  unit: g/mol
+  description: Molar mass of carbon dioxide.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_SO2
+  value: 64.058
+  unit: g/mol
+  description: Molar mass of sulfur dioxide.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_O2
+  value: 31.998
+  unit: g/mol
+  description: Molar mass of oxygen.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_HF
+  value: 20.006
+  unit: g/mol
+  description: Molar mass of hydrogen fluoride.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_AN
+  value: 1593.49
+  unit: g/mol
+  description: 'Molar mass of the model anode C130S (130 x 12.011 + 32.06): 2.01 wt% sulfur, the rest carbon.'
+  source: 'ASSUMED model formula: it represents the IPCC Tier 2 default anode sulfur of 2 wt% (2006 IPCC
+    Guidelines Vol. 3, Table 4.11, p. 4.48) in integer counts; the default ash of 0.4 wt% is counted as
+    carbon, which raises CO2 by about 0.3 % against Equation 4.21'
+- name: alumina
+  value: 1935.0
+  unit: kg
+  description: 'Alumina per t Al, prebake: midpoint of 1910 to 1960 kg/t (stoichiometric minimum 1889 kg/t).'
+  source: EU JRC (2017) NFM BREF, EUR 28648 EN, doi:10.2760/8224, section 4.2.3.1, Table 4.9, p. 398 (range);
+    the midpoint is our choice
+- name: anode
+  value: 430.0
+  unit: kg
+  description: 'Net prebaked anode consumption per t Al: midpoint of 410 to 450 kg/t (the butts go back to
+    the anode plant and are not counted).'
+  source: EU JRC (2017) NFM BREF, EUR 28648 EN, doi:10.2760/8224, Table 4.9, p. 398 (range), and section
+    4.2.3.2.10, p. 404 ("about 0.43 t" for an efficient prebake plant); the midpoint is our choice
+- name: alf3
+  value: 21.5
+  unit: kg
+  description: 'Aluminium fluoride added per t Al, prebake: midpoint of 13 to 30 kg/t.'
+  source: EU JRC (2017) NFM BREF, EUR 28648 EN, doi:10.2760/8224, Table 4.9, p. 398 (range); the midpoint
+    is our choice
+- name: elec
+  value: 14650.0
+  unit: kWh
+  description: 'Total electrical power per t Al, prebake, including rectifier losses, pollution control
+    and auxiliaries: midpoint of 13.6 to 15.7 kWh/kg.'
+  source: EU JRC (2017) NFM BREF, EUR 28648 EN, doi:10.2760/8224, Table 4.9 and its note (3), p. 398 (range);
+    the midpoint is our choice
+- name: dust
+  value: 1.15
+  unit: kg
+  description: 'Dust to air per t Al, prebake, stack and roof, roof vents to atmosphere without wet scrubbing:
+    midpoint of 0.6 to 1.7 kg/t.'
+  source: EU JRC (2017) NFM BREF, EUR 28648 EN, doi:10.2760/8224, section 4.2.3.2.11, Table 4.13, p. 405
+    (range); the midpoint is our choice; counting it as alumina in the element balance is ASSUMED (the
+    source says mainly alumina and bath material)
+- name: f_gas
+  value: 0.6
+  unit: kg
+  description: 'Gaseous fluoride to air per t Al, as F, stack and roof, without roof scrubbing or boosted
+    suction: midpoint of 0.4 to 0.8 kg/t.'
+  source: EU JRC (2017) NFM BREF, EUR 28648 EN, doi:10.2760/8224, section 4.2.3.2.2, p. 400 (range); the
+    midpoint is our choice; counting all of it as HF is ASSUMED (the source says the gaseous fluoride is HF)
+- name: nox
+  value: 0.15
+  unit: kg
+  description: 'NOx to air per t Al, as NO2: midpoint of 0.1 to 0.2 kg/t measured at two prebake plants.'
+  source: EU JRC (2017) NFM BREF, EUR 28648 EN, doi:10.2760/8224, section 4.2.3.2.8, p. 404 (range of two
+    plants; the source also gives 0.5 to 2 kg/t if all anode nitrogen were converted); the midpoint is our
+    choice
+- name: aef
+  value: 0.3
+  unit: 1/d
+  description: 'Anode effects per pot and day in modern plants: midpoint of 0.1 to 0.5.'
+  source: EU JRC (2017) NFM BREF, EUR 28648 EN, doi:10.2760/8224, section 4.2.3.2.3, p. 401 ("< 0.1-0.5"
+    per pot per day, read as 0.1 to 0.5); the midpoint is our choice
+- name: aed
+  value: 1.25
+  unit: min
+  description: 'Anode effect duration in modern plants: midpoint of 0.5 to 2 min.'
+  source: EU JRC (2017) NFM BREF, EUR 28648 EN, doi:10.2760/8224, section 4.2.3.2.3, p. 401 (range); the
+    midpoint is our choice. aef x aed is the anode effect minutes per cell-day of the IPCC slope method
+- name: s_cf4
+  value: 0.143
+  unit: kg
+  description: 'Slope coefficient for CF4, centre-worked prebake (point feed included), in (kg CF4/t Al) per
+    (anode effect minute per cell-day).'
+  source: IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Vol. 3, ch. 4, section
+    4.4.2.4, Table 4.16, p. 4.54 (CWPB; the CWPB class includes point-feed prebake, footnote 3, p. 4.43),
+    used in Equation 4.26, p. 4.51
+- name: f_c2f6
+  value: 0.121
+  unit: kg/kg
+  description: Weight fraction of C2F6 to CF4, centre-worked prebake.
+  source: IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Vol. 3, ch. 4, Table 4.16,
+    p. 4.54 (CWPB)
+- name: spl
+  value: 35.0
+  unit: kg
+  description: 'Spent pot lining per t Al, cathode life 5 to 8 years: midpoint of 20 to 50 kg/t.'
+  source: EU JRC (2017) NFM BREF, EUR 28648 EN, doi:10.2760/8224, section 4.2.3.4.1, p. 407 (range); the
+    midpoint is our choice
+- name: ww
+  value: 1000.0
+  unit: kg
+  description: 'Water discharged per t Al by a modern smelter with dry alumina scrubbers: about 1 m3/t, taken
+    at 1000 kg/m3 (cooling water and run-off; up to 100 m3/t where cooling water is used once through).'
+  source: EU JRC (2017) NFM BREF, EUR 28648 EN, doi:10.2760/8224, section 4.2.3.3, p. 406 ("usually as
+    low as 1 m3"); the density and taking the low value are ASSUMED. TODO a measured discharge
+exchanges:
+- key: product:aluminium
+  title: Primary aluminium, liquid, tapped from the pots
+  type: product
+  amount: 1000.0
+  unit: kg
+  formula: al
+  provenance: given
+  source: the reference flow
+- key: feed:alumina
+  title: Alumina, smelter grade
+  type: input
+  amount: 1935.0
+  unit: kg
+  formula: alumina
+  provenance: given
+  origin: literature
+  source: EU JRC (2017) NFM BREF, EUR 28648 EN, doi:10.2760/8224, Table 4.9, p. 398; counted as Al2O3 in
+    the element balance (its moisture and impurities are in the residual output)
+  pedigree:
+    scores: &bref2008
+    - 3
+    - 4
+    - 5
+    - 3
+    - 3
+    reason: 'a range of the NFM BREF data collection (EU plants, industry submission of 2008): reliability
+      3, completeness 4, temporal 5 (about 18 years old), geographical 3, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.013
+    source: 'alumina: range 1910 to 1960 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint)'
+- key: feed:anode
+  title: Prebaked carbon anode, net consumption
+  type: input
+  amount: 430.0
+  unit: kg
+  formula: anode
+  provenance: given
+  origin: literature
+  source: EU JRC (2017) NFM BREF, EUR 28648 EN, doi:10.2760/8224, Table 4.9, p. 398; modelled as C130S
+    (2.01 wt% S, IPCC Table 4.11 default; ash counted as carbon, ASSUMED)
+  pedigree:
+    scores: *bref2008
+    reason: 'a range of the NFM BREF data collection (EU plants, industry submission of 2008): reliability
+      3, completeness 4, temporal 5 (about 18 years old), geographical 3, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.048
+    source: 'net anode: range 410 to 450 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint)'
+- key: feed:O2
+  title: Oxygen from ambient air (anode air burn and sulfur oxidation)
+  type: input
+  amount: 241.70559614866602
+  unit: kg
+  formula: anode * 131 * M_O2 / M_AN - al * 3 * M_O2 / (4 * M_Al)
+  provenance: calculated
+  origin: estimate
+  free: true
+  source: 'oxygen that closes the balance: the anode carbon and sulfur leave as CO2 and SO2, and the alumina
+    reduced to metal gives only the stoichiometric oxygen; the rest comes from air (CO burnt above the
+    bath and air burn of the anodes, NFM BREF 4.2.3.2.9 and 4.2.3.2.10). Ambient air is free and not inventoried'
+- key: feed:aluminium-fluoride
+  title: Aluminium fluoride (bath make-up)
+  type: input
+  amount: 21.5
+  unit: kg
+  formula: alf3
+  provenance: given
+  origin: literature
+  source: EU JRC (2017) NFM BREF, EUR 28648 EN, doi:10.2760/8224, Table 4.9, p. 398; outside the element
+    balance (the fluorine balance is not closed, see system_boundary)
+  pedigree:
+    scores: *bref2008
+    reason: 'a range of the NFM BREF data collection (EU plants, industry submission of 2008): reliability
+      3, completeness 4, temporal 5 (about 18 years old), geographical 3, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.519
+    source: 'aluminium fluoride: range 13 to 30 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint)'
+- key: feed:electricity
+  title: Electricity, potline total (AC, with rectifier losses and auxiliaries)
+  type: input
+  amount: 14650.0
+  unit: kWh
+  formula: elec
+  provenance: given
+  origin: literature
+  link:
+    factor: electricity
+    source: grid electricity; the supply voltage is not stated by the source (TODO a smelter supply is
+      usually high voltage)
+  carrier:
+    kind: electricity
+  source: EU JRC (2017) NFM BREF, EUR 28648 EN, doi:10.2760/8224, Table 4.9 and note (3), p. 398
+  pedigree:
+    scores: *bref2008
+    reason: 'a range of the NFM BREF data collection (EU plants, industry submission of 2008): reliability
+      3, completeness 4, temporal 5 (about 18 years old), geographical 3, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.074
+    source: 'electricity: range 13.6 to 15.7 kWh/kg read as a 95 % interval, gsd2 = sqrt(high / low) (our
+      convention; the amount stays the arithmetic midpoint)'
+- key: emission:CO2
+  title: CO2 from anode consumption (process emission)
+  type: emission
+  amount: 1543.845960752813
+  unit: kg
+  formula: anode * 130 * M_CO2 / M_AN
+  provenance: calculated
+  origin: estimate
+  cas: 124-38-9
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 349b29d1-3e58-4c66-98b9-9d1a076efd2e
+    name: Carbon dioxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: 'all anode carbon to CO2, as Equation 4.21 of the 2006 IPCC Guidelines (Vol. 3, p. 4.45) with the
+    net anode of the NFM BREF; the carbon of petroleum coke and pitch is fossil; biosphere3 UUID, name and
+    categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml)'
+  pedigree:
+    scores: *bref2008
+    reason: 'a range of the NFM BREF data collection (EU plants, industry submission of 2008): reliability
+      3, completeness 4, temporal 5 (about 18 years old), geographical 3, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.048
+    source: 'follows the net anode: range 410 to 450 kg/t, gsd2 = sqrt(high / low) (our convention)'
+- key: emission:SO2
+  title: SO2 from anode sulfur, cell gases and roof (no wet scrubber)
+  type: emission
+  amount: 17.285919585312744
+  unit: kg
+  formula: anode * M_SO2 / M_AN
+  provenance: calculated
+  origin: estimate
+  cas: 7446-09-5
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: fd7aa71c-508c-480d-81a6-8052aad92646
+    name: Sulfur dioxide
+    categories:
+    - air
+    unit: kg
+  source: 'all anode sulfur to SO2 (the anode sulfur mass balance the NFM BREF names, 4.2.3.2.5, p. 402);
+    sulfur of the IPCC Table 4.11 default (2 wt%); the COS share is counted as SO2; biosphere3 UUID, name
+    and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml)'
+  pedigree:
+    scores: &assumed
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.581
+    source: 'ASSUMED: the BREF''s SO2 range of 10 to 25 kg/t (Table 4.13) read as a 95 % interval, gsd2 =
+      sqrt(high / low) (our convention); it matches anode sulfur of about 1.2 to 2.9 wt% at 430 kg/t, inside
+      the 1 % to over 3.5 % the BREF gives for anodes (4.2.3.2.5)'
+- key: emission:CF4
+  title: Tetrafluoromethane (CF4) from anode effects
+  type: emission
+  amount: 0.05362499999999999
+  unit: kg
+  formula: aef * aed * s_cf4 * al / 1000
+  provenance: calculated
+  origin: estimate
+  cas: 75-73-0
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 33681770-a0e1-4ce8-93c3-941fd607fa5f
+    name: Methane, tetrafluoro-, R-14
+    categories:
+    - air
+    unit: kg
+  source: 'IPCC Tier 2 slope method (2006 IPCC Guidelines Vol. 3, Equation 4.26, p. 4.51; Table 4.16, p. 4.54)
+    with the anode effect frequency and duration of the NFM BREF (4.2.3.2.3, p. 401); high-voltage anode
+    effects only (low-voltage PFC, added in the 2019 Refinement, is not counted: not read); outside the
+    element balance; biosphere3 name and UUID from ecoinvent elementary exchanges 3.9 as shipped with bw2io
+    0.9.17 (air, unspecified)'
+  pedigree:
+    scores: &ipcc
+    - 4
+    - 4
+    - 5
+    - 3
+    - 3
+    reason: 'IPCC Tier 2 default coefficient (measurements to 2005) with midpoints of BREF ranges: reliability
+      4 (a calculated value), completeness 4, temporal 5, geographical 3, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 4.472
+    source: 'anode effect minutes per cell-day from 0.1 x 0.5 to 0.5 x 2 (0.05 to 1.0) read as a 95 % interval,
+      gsd2 = sqrt(high / low) (our convention); the slope coefficient adds +/- 6 % (Table 4.16)'
+- key: emission:C2F6
+  title: Hexafluoroethane (C2F6) from anode effects
+  type: emission
+  amount: 0.006488624999999999
+  unit: kg
+  formula: aef * aed * s_cf4 * f_c2f6 * al / 1000
+  provenance: calculated
+  origin: estimate
+  cas: 76-16-4
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: acc39720-dda7-4b3a-80c7-c6394cad4191
+    name: Ethane, hexafluoro-, HFC-116
+    categories:
+    - air
+    unit: kg
+  source: 'C2F6 as a weight fraction of the CF4 (2006 IPCC Guidelines Vol. 3, Equation 4.26 and Table 4.16);
+    outside the element balance; biosphere3 name and UUID from ecoinvent elementary exchanges 3.9 as shipped
+    with bw2io 0.9.17 (air, unspecified)'
+  pedigree:
+    scores: *ipcc
+    reason: 'IPCC Tier 2 default coefficient (measurements to 2005) with midpoints of BREF ranges: reliability
+      4 (a calculated value), completeness 4, temporal 5, geographical 3, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 4.472
+    source: 'follows the CF4 (anode effect minutes 0.05 to 1.0 per cell-day); the C2F6/CF4 fraction adds +/-
+      11 % (Table 4.16)'
+- key: emission:HF
+  title: Hydrogen fluoride (gaseous fluoride), stack and roof
+  type: emission
+  amount: 0.6318349299926308
+  unit: kg
+  formula: f_gas * M_HF / M_F
+  provenance: calculated
+  origin: literature
+  cas: 7664-39-3
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 24541c8c-9f11-49ae-9de5-456f238a3f5e
+    name: Hydrogen fluoride
+    categories:
+    - air
+    unit: kg
+  source: 'EU JRC (2017) NFM BREF, EUR 28648 EN, doi:10.2760/8224, 4.2.3.2.2, p. 400 (gaseous fluoride as F,
+    converted to HF by molar mass); outside the element balance; biosphere3 name and UUID from ecoinvent
+    elementary exchanges 3.9 as shipped with bw2io 0.9.17 (air, unspecified)'
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 5
+    - 3
+    - 3
+    reason: 'a range of the NFM BREF, cited there from a 1997 reference: reliability 3, completeness 4, temporal
+      5 (about 29 years old), geographical 3, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.414
+    source: 'gaseous fluoride: range 0.4 to 0.8 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint)'
+- key: emission:NOx
+  title: NOx from anode nitrogen, as NO2
+  type: emission
+  amount: 0.15
+  unit: kg
+  formula: nox
+  provenance: given
+  origin: literature
+  cas: 10102-44-0
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: c1b91234-6f24-417b-8309-46111d09c457
+    name: Nitrogen oxides
+    categories:
+    - air
+    unit: kg
+  source: 'EU JRC (2017) NFM BREF, EUR 28648 EN, doi:10.2760/8224, 4.2.3.2.8, p. 404 (two Norwegian prebake
+    plants); its nitrogen comes from the anode, outside the element balance; biosphere3 UUID, name and categories
+    from core''s elementary-flow crosswalk (data/elementary-flows.yaml)'
+  pedigree:
+    scores:
+    - 3
+    - 5
+    - 5
+    - 3
+    - 3
+    reason: 'control measurements at two Norwegian prebake plants, cited by the BREF from a 1998 reference:
+      reliability 3, completeness 5 (two plants), temporal 5 (about 28 years old), geographical 3, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.414
+    source: 'two plants, 0.1 to 0.2 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention); the source
+      says the true amount is still discussed'
+- key: emission:dust
+  title: Dust (alumina and bath material), stack and roof; size not stated
+  type: emission
+  amount: 1.15
+  unit: kg
+  formula: dust
+  provenance: given
+  origin: literature
+  source: 'EU JRC (2017) NFM BREF, EUR 28648 EN, doi:10.2760/8224, Table 4.13, p. 405 (prebake, roof vents
+    to atmosphere, no wet scrubbing); counted as Al2O3 in the element balance (ASSUMED). No elementary flow
+    is chosen: the source gives no particle size (TODO)'
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 4
+    - 3
+    - 3
+    reason: 'a range of the NFM BREF (industry submission of 2012): reliability 3, completeness 4, temporal 4,
+      geographical 3, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.683
+    source: 'dust: range 0.6 to 1.7 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the
+      amount stays the arithmetic midpoint)'
+- key: output:alumina-residual
+  title: Alumina not reduced to metal (moisture, impurities, handling and scrubber losses)
+  type: output
+  amount: 44.42371581054031
+  unit: kg
+  formula: alumina - al * M_Al2O3 / (2 * M_Al) - dust
+  provenance: assumed
+  origin: estimate
+  source: 'ASSUMED: closes the aluminium balance; it is the feed above the stoichiometric 1889 kg/t less the
+    dust. The source does not say where it goes (part is moisture and impurities of the alumina, part ends
+    in skimmings, spent lining and site wastes)'
+  pedigree:
+    scores: *assumed
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: a residual; the alumina range alone (1910 to 1960) moves it from about 20 to 70 kg/t'
+- key: output:spent-pot-lining
+  title: Spent pot lining (carbon and refractory cuts), hazardous waste
+  type: output
+  amount: 35.0
+  unit: kg
+  formula: spl
+  provenance: given
+  origin: literature
+  source: EU JRC (2017) NFM BREF, EUR 28648 EN, doi:10.2760/8224, 4.2.3.4.1, p. 407; outside the element balance
+    (carbon, fluorides, sodium, refractories; the lining input is not counted, see system_boundary)
+  pedigree:
+    scores: *bref2008
+    reason: 'a range of the NFM BREF data collection (EU plants, industry submission of 2008): reliability
+      3, completeness 4, temporal 5 (about 18 years old), geographical 3, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.581
+    source: 'spent pot lining: range 20 to 50 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint)'
+- key: output:wastewater
+  title: Water discharged (cooling water and run-off) to treatment
+  type: output
+  amount: 1000.0
+  unit: kg
+  formula: ww
+  provenance: given
+  origin: literature
+  link:
+    factor: wastewater
+    source: site wastewater treatment
+  source: EU JRC (2017) NFM BREF, EUR 28648 EN, doi:10.2760/8224, 4.2.3.3, p. 406 (about 1 m3/t for modern
+    smelters with dry scrubbers); outside the element balance (its intake is not stated, see system_boundary)
+  pedigree:
+    scores: *assumed
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: the low end of a range up to 100 m3/t (once-through cooling)'
+provenance:
+  generator: hand-written model; amounts are the formulas of the parameters
+  notes: No value from a licensed database (process-library#313). Elementary-flow names and UUIDs are nomenclature
+    from core's crosswalk or ecoinvent elementary exchanges 3.9 as shipped with bw2io 0.9.17.
+generation:
+  tier: 1
+  method: 'sourced conceptual inventory: NFM BREF section 4.2.3 ranges with stoichiometry and the IPCC 2006
+    Tier 2 equations for CO2 and PFC, every choice listed in parameters'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 3
+  - 4
+  - 3
+  - 3
+  - 3
+  dqr_floor: 3.0
+  components:
+    product:aluminium: Al
+    feed:alumina: Al2O3
+    feed:anode: C130S
+    feed:O2: O2
+    emission:CO2: CO2
+    emission:SO2: SO2
+    emission:dust: Al2O3
+    output:alumina-residual: Al2O3
+  formulas:
+    product:aluminium: Al
+    feed:alumina: Al2O3
+    feed:anode: C130S
+    feed:O2: O2
+    emission:CO2: CO2
+    emission:SO2: SO2
+    emission:dust: Al2O3
+    output:alumina-residual: Al2O3
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      Al:
+      - 1024.120398976
+      - 1024.120398976
+      C:
+      - 421.348674921
+      - 421.348674921
+      O:
+      - 1152.585197173
+      - 1152.585197173
+      S:
+      - 8.651325079
+      - 8.651325079
+    outside:
+    - emission:C2F6
+    - emission:CF4
+    - emission:HF
+    - emission:NOx
+    - feed:aluminium-fluoride
+    - feed:electricity
+    - output:spent-pot-lining
+    - output:wastewater
