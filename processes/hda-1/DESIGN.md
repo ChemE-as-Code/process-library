@@ -1182,6 +1182,260 @@ Open (basic engineering, not I-07):
 - whether the hydrogen returns to the make-up line instead of the K-101 suction;
 - a new optimisation of the purge H2 fraction of D-007 now that the purge is recovered.
 
+### D-025 P&IDs of the whole plant: sheet split, conventions and content (2026-11-04, S3b)
+Decision: the simulated PFD (D-024) is drawn on seven DEXPI 2.0.1 sheets, one per PFD section,
+declared in `plant.yaml`. Each sheet's first revision was written by `scripts/draft_P-0n.py`
+(authoring API of core v1.4.1, shared bits in `scripts/pid_common.py`); the sheets are
+hand-maintained from then on and the scripts are provenance only, as in ammonia-1.
+
+| sheet | section | equipment |
+|---|---|---|
+| P-01 | feed, heater and reactor | V-100, P-101, P-101B, E-101, H-101, R-101 |
+| P-02 | HP separator and recycle gas | E-102, V-101, P-102, P-102B, K-101 |
+| P-03 | purge PSA and tail gas | PK-101, K-102, E-103 |
+| P-04 | stabiliser | C-201, E-201, V-201, P-201A/B, E-202 |
+| P-05 | benzene column and product | C-202, E-203, V-202, P-202A/B, E-204, E-207 |
+| P-06 | toluene column, toluene recycle, biphenyl | C-203, E-205, V-203, P-203A/B, E-206, P-204A/B, PK-201 |
+| P-07 | flare, nitrogen and natural gas headers | (headers only) |
+| P-08 | cooling water and steam headers | (headers only) |
+
+The utility headers were planned on one sheet (P-07). With every consumer branch drawn on the
+header sheet (the off-page check asks the named sheet to carry the line), about 35 branches do
+not fit one A3 frame legibly, so they are split: P-07 for the flare, nitrogen and natural gas,
+P-08 for cooling water, steam and condensate (S3b, while drawing P-03).
+
+Conventions (all ASSUMED where they set a value):
+- Numbers. New lines n30 and up on sheet P-0n, headers on P-07 from 701 and on P-08 from 801;
+  instruments n01
+  and up on sheet P-0n. The PFD lines keep their numbers. A line that continues on another
+  sheet is drawn on both with the same number, and each off-page connector names the other
+  end and its sheet (`cheme.offpage-mismatch` checks it).
+- Junctions. The drafting API continues a line through a tee and lets a line start or end only
+  at a nozzle, a tee branch or an off-page connector, so the line number cannot change at a
+  mixing point. Two PFD lines that were the continuation of another after a junction are
+  therefore merged into the run they continue: PG-105 (S5, combined reactor feed) into HG-115,
+  and PG-109 (S9, quenched effluent) into PG-108. Their streams are named in the notes of the
+  run's line-list entry. HG-115 is DN300 over its whole length (the D-012 size of S5,
+  two-phase 10 m/s): the recycle gas alone needs DN250 at 15 m/s and runs at about 11 m/s in
+  DN300, ASSUMED.
+- Spares. Every process pump has an installed spare with its own suction and discharge
+  isolation, suction strainer and discharge check valve. P-101 and P-102 keep their tags for
+  the running pump (the flowsheet, estimate, plot plan and LCA use them); their spares are
+  P-101B and P-102B. New pumps are tagged A/B.
+- Control valves are drawn as the final element with their instrument; block and bypass
+  valves of the control valve stations are left to the detail P&IDs (S9) and listed as an
+  open item, as ammonia-1 did.
+- Relief. A relief valve is drawn wherever a credible overpressure exists; its set pressure is
+  the protected item's design pressure (D-012) and the case that makes it necessary is named
+  in `piping/special-items.yaml`; the governing case, the load and the orifice come from the
+  relief study (S8). Hydrocarbon relief and vents go to the flare header (P-07), and so do the
+  tube-rupture reliefs on cooling-water sides (PSV-215, PSV-414), which carry process gas;
+  steam-side and thermal-only cooling-water-side relief (PSV-309, PSV-515, PSV-516, PSV-616)
+  go to atmosphere at a safe location. The authoring API has no safety
+  valve class (core#132, filed in S3b): the draft draws a globe valve and `pid_common.make_safety_valve` changes its
+  class, tag property and symbol (the edit ammonia-1's D-027 made by hand).
+- Trips go into `control/cause-effect.yaml`; the sheet only names the interlock.
+- Vents and drains. Every vessel and column has a bottom drain with a block valve to the closed
+  drain system (DR-138, DR-240, DR-445, DR-446, DR-551, DR-552, DR-651, DR-652); the process
+  vents are the pressure-control vents to the flare (PV-104, PV-504, PK-201) and the relief
+  lines. Exchanger and pump vents and drains, high-point vents, column top maintenance vents,
+  sample points and the control valve block and bypass valves are left to the detail P&IDs
+  (S9), as ammonia-1 did.
+- Cooling water isolation. The CW inlet and outlet block valves of E-102, E-103, E-201, E-203,
+  E-205 and E-207 are not drawn yet; they are an S9 open item with the exchanger vents and
+  drains. They are what makes the blocked-in thermal relief case of PSV-309, PSV-515, PSV-516
+  and PSV-616 credible, and those PSVs stay for that reason.
+- Gas in the cooling water. A tube rupture in E-102 (loop gas) or E-201 (stabiliser overhead)
+  also carries gas with the CW return to the cooling tower. Hydrocarbon / hydrogen detection on
+  CWR-231 and CWR-441 (or a degassing point before the tower) is an open item for S6 (HAZOP)
+  and S9.
+
+P-01 (feed, heater and reactor):
+- V-100: fresh toluene on level control (LIC-102, LV-102), toluene recycle TO-123 from
+  P-203A/B (P-06), pressure by a nitrogen blanket through the self-acting regulator PCV-105 and
+  a vent PV-104 to the flare (PIC-104), relief PSV-118 (blanket regulator failed open, fire).
+- P-101/P-101B: the reactor toluene feed FIC-103/FV-103 sets the plant load; minimum flow
+  FIC-106/FV-106 back to V-100 (high-head multistage service).
+- M101: the make-up hydrogen (FIC-108, set point from the loop pressure PIC-205 on P-02) and
+  the toluene join the recycle gas HG-115 ahead of E-101.
+- Loop relief PSV-119 on the cold combined feed: from the E-101 inlet through the H-101 coil,
+  R-101, the E-101 tube side and E-102 to V-101 there is no isolation valve, so one device
+  protects the fired coil and the hot sections from the cold end (V-101 has its own, P-02).
+  The sources of overpressure are P-101 at shut-off and the make-up hydrogen against a blocked
+  loop, and fire.
+- H-101: outlet temperature TIC-111 on the fuel valve TV-111. The main fuel has double block
+  and bleed (XV-112 and XV-125 in series, bleed XV-126 on NG-139 to a safe location), closed by
+  US-112 on coil flow low-low FZ-110 (I-101), R-101 outlet temperature high-high TZ-113 (I-102)
+  or fuel pressure low-low / high-high PZ-127 (I-104). Pilot gas, flame detection and the
+  burner management system are the heater vendor's (open item); the sheet draws the main fuel
+  train outside the package.
+- Reactor feed cut-off: XV-120 on the toluene feed TO-103 and XV-121 on the make-up hydrogen
+  HG-104, both closed by US-122 on I-101, I-102 and I-202, so no toluene and hydrogen enter a
+  loop without firing control, without recycle gas (below the H2/aromatics ratio of 5 against
+  coking, D-007) or in a runaway, and E-101 has nothing left to preheat. HG-104 has a battery
+  limit block valve and a check valve against loop gas flowing back into the hydrogen supply.
+- I-102 also opens the depressuring valve XV-209 (P-02) automatically: a runaway of the
+  exothermic HDA and hydrocracking reactions in a refractory-lined hot-hydrogen vessel is the
+  case API 521 depressuring is meant for, and an operator action is too slow for it. The rate
+  (the API 521 target pressure and time), the restriction orifice and the flare load are S8;
+  the manual HS-209 stays for fire and leaks. R-101 bed/skin temperatures TI-124 (indication
+  and alarm) are added; one TZ-113 sensor is not the final basis of I-102: sensor redundancy and
+  voting (e.g. 2oo3), the SIL of every trip and the trip set points come from S4 (control and
+  safeguarding) and S6 (HAZOP / LOPA), as `control/cause-effect.yaml` says.
+- V-100: low-low level LZ-123 stops P-101/P-101B (I-103), as on every other pump suction drum.
+- Quench: TIC-115 on the quenched effluent sets the quench valve TV-115 on AR-117.
+
+P-02 (HP separator and recycle gas):
+- E-102: effluent to cooling water (CWS-230/CWR-231, DN350 for 5.07 MW at the design-basis
+  10 K range and 1.5 m/s, ASSUMED); TI-201 on the outlet. PSV-215 on the CW side (tube
+  rupture of the 42 barg loop into the CW side: the CW-side design, 6 barg, is below 10/13 of
+  the 42 barg process side, the API 521 criterion; blocked-in CW side), set at a 6 barg CW-side
+  design pressure, ASSUMED (the design basis gives no CW pressure). It discharges through
+  FL-238 into FL-234 and the flare, not to atmosphere: a tube-rupture relief carries hydrogen,
+  methane and benzene. Whether a bursting disc is needed for the fast tube-rupture transient is
+  for S8.
+- V-101: level LIC-202 on the let-down valve LV-202 to C-201; separate low-low trip LZ-203
+  closing the shutdown valve XV-204 (I-201: gas blow-by from the 32 barg separator into the
+  9 barg stabiliser), high-high LZ-206 stopping K-101 (I-202: liquid carry-over). AR-118 (S18)
+  is merged into AR-116, which keeps DN100 through the let-down (the liquid flashes after
+  LV-202), as PG-105 and PG-109 on P-01. Relief PSV-214 (fire; blocked gas outlet with the
+  make-up hydrogen and P-101 running), set 42 barg, to the flare.
+- K-101: loop pressure PIC-205 on the suction sets the make-up hydrogen FIC-108 (P-01); the PSA
+  hydrogen HG-125 joins the suction (M102). Anti-surge: UIC-207 with the recycle valve UV-207
+  on HG-232 (DN200, 70 % of the rated flow, ASSUMED) from the discharge ahead of the check valve
+  CV-115. HG-232 returns to PG-110 on P-01, upstream of the effluent cooler E-102, so the
+  recycled gas is cooled by E-102 and passes the suction drum V-101 (skill
+  pid-design-compressors, CCPS 4.4.11.2): a return straight into the suction would heat up on
+  every pass during long recycle (start-up, turndown). UIC-207 takes the suction flow FT-218,
+  the suction pressure PT-219 and the discharge pressure PT-220 (suction temperature from
+  TI-201); TI-221 (discharge temperature) and VI-222 (vibration) with alarms. Open items for
+  the compressor vendor: the surge line and the algorithm, the flow element type, the dead
+  volume of the longer recycle loop in the surge transient, shaft vibration, axial position,
+  lube oil, seals and the machine trips. No discharge PSV of its own: HG-115 has no isolation
+  valve from K-101 to PSV-119 (P-01), which protects it. The type of CV-115 (DN300, swing as
+  drawn) is chosen from the reverse-flow transient on a K-101 trip (usually a non-slam type),
+  with the vendor (S5/S8).
+- K-101 isolation: following the loop relief philosophy (no isolation valve between the loop
+  equipment and PSV-119 / PSV-214), K-101 has no suction or discharge block valve. It is
+  isolated for maintenance by depressuring the whole loop to the flare (XV-209), purging with
+  nitrogen and fitting spectacle blinds at its suction and discharge flanges; the blinds,
+  nitrogen purge connections and vents are drawn with the detail P&IDs (S9).
+- Ratio: FI-216 measures the recycle gas on HG-115; FFI-217 computes the H2/aromatics ratio at
+  the reactor inlet from FI-216, AIC-210, FIC-108 and FIC-103 with a low alarm at 5 mol/mol
+  (D-007). The ratio is indicated and alarmed, not controlled: the toluene sets the load
+  (FIC-103) and the make-up hydrogen holds the loop pressure (PIC-205 -> FIC-108), so the ratio
+  follows the K-101 throughput. Whether a low-low ratio trip into US-122 is needed, and the
+  ratio control intent of the loop register, are S4 items.
+- Depressuring: XV-209 (FL-233) opens on I-102 or by hand (HS-209), to the flare; rate and
+  orifice with S8.
+- Purge: AIC-210 (hydrogen in the recycle gas) sets the purge flow FIC-211 / FV-211 on HG-113 to
+  PK-101 (P-03): the purge holds the loop's 40 mol% H2 specification (D-007).
+- P-102/P-102B take the quench liquid off AR-116 (SPL2, AR-235); continuous minimum flow
+  AR-237 through the restriction globe valve HV-237 back to V-101, since TV-115 can close.
+
+P-03 (purge PSA and tail gas):
+- PK-101 is one package item (adsorber beds, switching valves, tail gas surge drum, cycle
+  control, the vendor's relief); the sheet draws its tie-ins with block valves (HV-330 purge
+  in, HV-331 hydrogen out, HV-332 tail gas out; HV-332 sits downstream of the PSV-307 take-off,
+  so no block valve isolates the tail gas side from its relief). PIC-301 holds the adsorption pressure on the
+  hydrogen product with PV-301 (step PV101 of the simulation, 3540 -> 3250 kPa(a)); AI-302
+  reads the product purity.
+- K-102: PIC-303 holds the tail gas pressure at the suction (the PSA desorption pressure,
+  140 kPa(a)) on the spillback PV-303 / FG-330, which returns cooled gas from downstream of
+  E-103 (DN150, full flow for start-up and PSA turndown, ASSUMED). Check valve CV-127 and the
+  block valve HV-327 on the discharge to the fuel gas header. K-102 is drawn as a reciprocating
+  compressor (DEXPI ReciprocatingCompressor), the positive-displacement machine D-024 assumes
+  and PSV-308 protects. Machine protection in its package. Whether the PSA package relief alone
+  covers the switching-valve-failed-open case is for the vendor (S8).
+- Relief: PSV-307 on the tail gas side FG-126 (a switching valve failed open puts 36 bar feed
+  gas into the 6 barg side; back-flow from the header on a K-102 trip); PSV-308 on the K-102
+  discharge (blocked outlet; the likely machine is positive displacement, D-024); both 6 barg
+  to the flare. PSV-309 thermal relief on the E-103 CW side to atmosphere; tube rupture is not
+  a case there (both sides 6 barg).
+- FG-128 leaves to the site fuel gas header at the battery limit (no header drawn: it is
+  outside the plant, D-009), with FI-306 for the export.
+
+P-04 (stabiliser):
+- The simulation lumps the column, partial condenser, drum and reboiler in step C201. The sheet
+  adds the reflux drum V-201 and the reflux pumps P-201A/B (equipment list, sizes ASSUMED). The
+  overhead and reboiler lines are sized on the vapour rates of `scripts/concept_sizing.py`
+  (top 350 kg/h, bottom 13.5 t/h); the reflux is about 175 kg/h, so the reflux lines are DN25.
+- Control: the column pressure PIC-404 on the off-gas valve PV-404 (FG-119 to the site fuel gas
+  header); V-201 level LIC-405 on the reflux LV-405, so all condensed liquid is refluxed and the
+  off-gas is the only distillate (D-008); tray temperature TIC-402 on the MP steam TV-402;
+  sump level LIC-408 on the bottoms LV-408 (AR-120 flows to C-202 by the pressure difference).
+  The reboiler is a thermosyphon (AR-437 / PG-438) with a steam trap ST-444 on the condensate.
+- Reflux pumps: continuous minimum flow AR-436 through HV-436 back to V-201; LZ-411 low-low
+  stops them (I-401).
+- Relief: PSV-413 on the column top protects C-201, the E-201 process side and V-201 (no
+  isolation valve between them), set 9 barg, to the flare; the gas blow-by from V-101 is the
+  likely governing case (S8), with I-201 on P-02 as the layer before it. PSV-414 on the E-201
+  CW side: tube rupture is a case, since the CW-side design (6 barg) is below 10/13 of the
+  9 barg process side (6/9 = 0.67 < 0.77); it discharges through FL-442 into FL-443 and the
+  flare, as PSV-215 does.
+- Steam lines are sized from saturated-vapour densities and latent heats of the NIST Chemistry
+  WebBook (SRD 69, water, IAPWS-95 formulation, isobaric data at 0.45, 1.5 and 4.2 MPa, the
+  saturation rows at 421.05, 471.44 and 526.41 K): vapour 2.416, 7.592 and 21.13 kg/m3, latent
+  heat 2120.3, 1946.4 and 1698.1 kJ/kg (looked up 2026-11-04, review of PR #328; the earlier
+  recalled values differed by less than 0.3 %, the DN stay LS-540 DN250, MS-439 DN100, HS-640
+  DN50). The condensate lines stay ASSUMED for the flash.
+
+P-05 (benzene column and product):
+- Added: reflux drum V-202 and reflux / product pumps P-202A/B (lumped in step C202). Total
+  condenser E-203; V-202 pressure by a nitrogen pad (self-acting PCV-505) and a vent PV-504 to
+  the flare (PIC-504). Reflux on flow FIC-507 / FV-507 (R 2.18, D-014); distillate on the drum
+  level LIC-506 / LV-506 through the product cooler E-207 to storage, with TI-509, the purity
+  analyser AI-510 and FI-511 on BZ-121 (S21). Tray temperature TIC-502 on the LP steam TV-502
+  (E-204 thermosyphon, steam trap ST-541); sump level LIC-508 on TO-122 to C-203.
+- Relief: PSV-514 on the C-202 top (C-202, E-203 process side, V-202), 3.5 barg, to the flare;
+  thermal relief PSV-515 / PSV-516 on the E-203 and E-207 CW sides. P-202A/B: minimum flow
+  BZ-536 (HV-536), low-low LZ-512 stops them (I-501).
+- E-207 benzene side and BZ-121 are rated for the P-202A/B shut-off (10 barg, the pump design)
+  rather than protected by a process-side PSV: they sit on the pump discharge behind LV-506,
+  and a closed storage inlet with LIC-506 opening blocks them in at the pump's shut-off head
+  (about 0.5 barg in V-202 plus 4 to 5 bar). Rating removes the case; a relief valve would
+  have to discharge benzene liquid to a closed system. The equipment list carries 10 barg
+  (was 3.5 barg as C-202); the BZ-121 pipe class follows (S9).
+- Layout: the DN450 overhead would have run 32 m from C-202 (set back from the rack, D-018) to
+  E-203 in the condenser row with no rack to carry it, so E-203, V-202, P-202A/B and E-207 are
+  placed beside C-202 (`layout/equipment-placement.yaml`, ASSUMED); the rack still carries the
+  product and the bottoms.
+
+P-06 (toluene column, toluene recycle, biphenyl):
+- Added (lumped in step C203): reflux drum V-203, vacuum package PK-201 (not sized, D-008:
+  load, type and power are vendor inputs), reflux and recycle pumps P-203A/B (the C-203
+  distillate pump of D-010) and biphenyl bottoms pumps P-204A/B.
+- Control: vacuum PIC-604 on the PK-201 suction PV-604; reflux FIC-607 / FV-607 (R 0.5);
+  V-203 level LIC-606 on the toluene recycle LV-606 (TO-123 to V-100 on P-01, FI-609); tray
+  temperature TIC-602 on the HP steam TV-602 (E-206 thermosyphon, steam trap ST-641); sump
+  level LIC-608 on the biphenyl LV-608 (DP-124, traced, to storage).
+- Relief: PSV-615 on the column top (C-203, E-205 process side, V-203), 3.5 barg, to the flare;
+  an E-206 tube rupture (HP steam at 41 barg into the 3.5 barg column) is likely to govern it
+  (S8). Loss of vacuum is not an overpressure case (full vacuum design). PSV-616 thermal relief
+  on the E-205 CW side. P-203A/B: minimum flow TO-636, low-low LZ-612 stops them (I-601).
+- Open: P-204A/B carry 352 kg/h, far below a centrifugal pump's best point; their type and
+  minimum-flow or relief protection are for the pump selection (S5). The reboiler return under
+  vacuum is DN700 by the D-012 two-phase velocity, to be checked with the reboiler design.
+
+P-07 (flare, nitrogen and natural gas headers) and P-08 (cooling water and steam headers):
+- Every utility or relief line that a process sheet sends to P-07 or P-08 is drawn there as a
+  branch on its header, with the same number and an off-page connector naming the source and
+  its sheet, so `cheme.offpage-mismatch` checks both ends.
+- Flare header FL-701 collects the ten relief and vent lines (PSV-118, PSV-119, PSV-214,
+  PSV-307, PSV-308, PSV-413, PSV-514, PV-504, PSV-615, PK-201) to the site flare at the battery
+  limit; DN300 is a placeholder until the relief loads (S8). The knock-out drum, seal and stack
+  are the site's; the header purge and slope are open (S8 / detail).
+- Nitrogen header N2-702 (to PCV-105 and PCV-505) and natural gas header NG-703 (to the H-101
+  burners) from the site networks, DN50 ASSUMED.
+- Cooling water headers CWS-801 / CWR-802, DN500 for 10.8 MW at the design-basis 10 K range and
+  1.5 m/s, with six users; LP, MP and HP steam headers LS-803, MS-804, HS-805 to the three
+  reboilers; condensate header CD-806 DN80 to the site return (flash recovery open).
+- The CW and flare branches to A-200 run along the main rack PR-1; to reach the benzene column
+  group (set back one column height from PR-1, D-018) a spur rack PR-2 (x 127, y 50 to 95,
+  one level at 6 m, ASSUMED) is added to `layout/site-plan.yaml`. The 3D model
+  (`layout/plant-model.yaml`) is left for S5: rebuilt now, it routes the new P&ID nozzles and
+  reports walkway-riser and escape-way findings that the 3D layout section resolves.
+
 ## LCI summary (lca/inventory.csv, per kg benzene)
 
 Regenerated in S3a (D-024) from the inventory with the purge hydrogen PSA (`cheme assess lca --write`,
