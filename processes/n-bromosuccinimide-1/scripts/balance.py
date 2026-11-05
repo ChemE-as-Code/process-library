@@ -1,13 +1,25 @@
-"""Independent balance of the N-bromosuccinimide plant (DESIGN.md D-006).
+"""Independent balance of the N-bromosuccinimide plant (DESIGN.md D-006, D-014).
 
 Year-average flows (kg/h, the recipe's basis, D-003) of the caustic bromination of
 succinimide: C4H5NO2 + NaOH + Br2 -> C4H4BrNO2 + NaBr + H2O, Br2 dosed into the cold alkaline
-succinimide solution, NBS precipitating, a reslurry wash, drying. Every step but the dryer is
-also computed by cheme process propagate from process/flowsheet.yaml (the semi-batch, the
-precipitation and the wash dissolution as conversion steps, the two filters as specified
-splits); this script repeats them so that the dryer's outlets and the duties follow from the
-same numbers. Run: `cheme run scripts/balance.py`. With BALANCE_OUTPUT set it writes the values
-the flowsheet cites (library ADR 0027).
+succinimide solution, NBS precipitating, a reslurry wash, drying.
+
+Since core 1.8.0 every step is calculated by cheme from process/flowsheet.yaml (`cheme process
+propagate --fill`): the semi-batch R101, the precipitation CR101 and the reslurry wash W101 as
+crystallizers with spectators (core ADR 0056), the filters F101 and F102 as specified splits,
+the dryer D101 to its residual moisture, and its heat Q3 (core ADR 0057, `cheme process
+crystallizers`). This script keeps only what core still lacks:
+
+- the feeds that make the 500 t/a of dried product (S1, S2, S3, S5, S10): core propagates from
+  the feeds and does not solve them for a product rate, so the script repeats the same algebra
+  (every flow is linear in the bromine) and scales it;
+- the duties Q1 (dissolver) and Q2 (brominator) from the ASSUMED heats of dilution,
+  deprotonation and bromination: no property package of core covers this liquor;
+- the temperature of S16 (the liquors mixed after the vacuum condenser).
+
+It prints the product, the yield and the other streams as a check against propagate. Run:
+`cheme run scripts/balance.py`. With BALANCE_OUTPUT set it writes the values the flowsheet
+cites (library ADR 0027).
 
 Every parameter below is ASSUMED unless its comment names a source.
 """
@@ -29,11 +41,14 @@ MW = {  # g/mol, IUPAC 2021 atomic weights applied to the formulas
 CAPACITY = 500_000.0 / 7920.0  # kg/h of dried product: 500 t/a in 7920 h (D-002)
 EXCESS = 1.02  # succinimide and NaOH per Br2 (D-004)
 WATER_PER_BR2 = 30.0  # kmol of water in the charge per kmol Br2 (D-004)
-SOLUBILITY = 0.0147  # kg NBS per kg water: 1.47 g/100 g at 25 C (PubChem CID 67184, HSDB; D-005)
+# kg NBS per kg water: 1.47 g/100 g at 25 C (PubChem CID 67184, HSDB; D-005), taken at 278 K
+# and in the mother liquor without a salting-out correction, as CR101 and W101 declare (D-014)
+SOLUBILITY = 0.0147
 RECOVERY = 0.998  # solid to the cake, each filtration (D-007)
 CAKE_LIQUID = 0.3  # kg liquid per kg dry solid in the cake (D-007)
 WASH = 1.5  # kg ice water per kg solid in the cake, reslurry wash (D-007)
-MOISTURE = 0.002  # water mass fraction of the dried product (D-008)
+MOISTURE = 0.002  # volatiles' mass fraction of the dried product, D101 (D-008)
+VOLATILES = ("H2O", "BR2")  # D101's volatiles, kept in their inlet ratio (core ADR 0057)
 CONVERSION = 0.999  # of the bromine, the post-reaction's target (R101's batch.target, D-005)
 # kJ/kmol, all ASSUMED (D-005, D-009): the overall heat of SUCC + NaOH + Br2 -> NBS + NaBr + H2O
 # is -80 kJ/mol; of it the imide's deprotonation by NaOH (-30 kJ/mol, a weak acid neutralised by
@@ -46,10 +61,7 @@ HEAT_OF_BROMINATION = HEAT_OF_REACTION - HEAT_OF_DEPROTONATION  # R101 (BROM's h
 HEAT_OF_DILUTION = -20_000.0
 CP_SOLUTION = 3.8  # kJ/(kg K) of the alkaline charge (D-009)
 CP_BR2 = 75.7 / MW["BR2"]  # kJ/(kg K), liquid bromine
-CP_CAKE = 1.6  # kJ/(kg K) of the wet cake, mostly NBS (D-009)
-LATENT = 2358.0  # kJ/kg of water at 333 K (steam tables)
-DRYER_EFFICIENCY = 0.7  # heat to the product over heat supplied (D-009)
-T_FEED, T_REACTOR, T_BR2, T_DRY = 298.15, 278.15, 293.15, 333.15
+T_FEED, T_REACTOR, T_BR2, T_CONDENSATE = 298.15, 278.15, 293.15, 303.15
 
 
 def kmol(mass: dict[str, float]) -> dict[str, float]:
@@ -78,6 +90,16 @@ def separate(slurry: dict[str, float]) -> tuple[dict[str, float], dict[str, floa
     return cake, filtrate
 
 
+def saturate(mixture: dict[str, float]) -> dict[str, float]:
+    """A crystallizer at equilibrium (CR101, W101): the liquid leaves holding SOLUBILITY kg of
+    NBS per kg of water, the rest of the NBS as crystals; the spectators pass unchanged."""
+    out = dict(mixture)
+    total = mixture.get("NBS", 0.0) + mixture.get("NBS_S", 0.0)
+    out["NBS"] = SOLUBILITY * mixture["H2O"]
+    out["NBS_S"] = total - out["NBS"]
+    return out
+
+
 def plant(br2: float) -> dict[str, dict[str, float]]:
     """kg/h of every stream for *br2* kmol/h of bromine dosed."""
     s = {}
@@ -96,35 +118,24 @@ def plant(br2: float) -> dict[str, dict[str, float]]:
     m["NABR"] = xi
     m["H2O"] += xi
     s["S6"] = {n: v * MW[n] for n, v in m.items() if v > 0}
-    # precipitation: the liquor leaves saturated
-    dissolved = SOLUBILITY * s["S6"]["H2O"]
-    s["S7"] = dict(s["S6"])
-    s["S7"]["NBS_S"] = s["S6"]["NBS"] - dissolved
-    s["S7"]["NBS"] = dissolved
-    s["S8"], s["S9"] = separate(s["S7"])
+    s["S7"] = saturate(s["S6"])  # CR101
+    s["S8"], s["S9"] = separate(s["S7"])  # F101
     s["S10"] = {"H2O": WASH * s["S8"]["NBS_S"]}
-    wash = add(s["S8"], s["S10"])
-    # the wash water dissolves NBS to saturation (the cake liquid is saturated already)
-    dissolve = SOLUBILITY * s["S10"]["H2O"]
-    wash["NBS_S"] -= dissolve
-    wash["NBS"] += dissolve
-    s["S11"] = wash
-    s["S12"], s["S13"] = separate(s["S11"])
+    s["S11"] = saturate(add(s["S8"], s["S10"]))  # W101
+    s["S12"], s["S13"] = separate(s["S11"])  # F102
     cake = s["S12"]
-    # the dryer: the water down to MOISTURE, the free bromine (boiling at 332 K) with the vapour
-    volatile = ("H2O", "BR2")
-    dry = sum(v for n, v in cake.items() if n not in volatile)
-    water_left = MOISTURE * dry / (1 - MOISTURE)
-    s["S14"] = {n: v for n, v in cake.items() if n not in volatile} | {"H2O": water_left}
-    s["S15"] = {"H2O": cake["H2O"] - water_left} | (
-        {"BR2": cake["BR2"]} if cake.get("BR2", 0.0) > 0 else {}
-    )
+    # D101: the volatiles down to MOISTURE of the product, kept in their inlet ratio
+    dry = sum(v for n, v in cake.items() if n not in VOLATILES)
+    wet = sum(cake.get(n, 0.0) for n in VOLATILES)
+    kept = MOISTURE / (1 - MOISTURE) * dry / wet
+    s["S14"] = {n: v * (kept if n in VOLATILES else 1.0) for n, v in cake.items()}
+    s["S15"] = {n: cake[n] * (1 - kept) for n in VOLATILES if cake.get(n, 0.0) > 0}
     s["S16"] = add(s["S9"], s["S13"], s["S15"])
     return s
 
 
 def duties(s: dict[str, dict[str, float]], br2: float) -> dict[str, float]:
-    """kW, year-average."""
+    """kW, year-average (Q3, the dryer's, is core's: `cheme process crystallizers`)."""
     charge = sum(s["S4"].values())
     imide = EXCESS * br2  # kmol/h of imide deprotonated, and of NaOH diluted
     return {
@@ -142,12 +153,6 @@ def duties(s: dict[str, dict[str, float]], br2: float) -> dict[str, float]:
             + s["S5"]["BR2"] * CP_BR2 * (T_BR2 - T_REACTOR)
         )
         / 3600.0,
-        # the dryer: the cake heated to 333 K and its water evaporated, over the efficiency
-        "Q3": (
-            sum(s["S12"].values()) * CP_CAKE * (T_DRY - T_REACTOR) + s["S15"]["H2O"] * LATENT
-        )
-        / DRYER_EFFICIENCY
-        / 3600.0,
     }
 
 
@@ -156,6 +161,14 @@ def solve() -> tuple[float, dict[str, dict[str, float]]]:
     unit = sum(plant(1.0)["S14"].values())
     br2 = CAPACITY / unit
     return br2, plant(br2)
+
+
+def mixed_temperature(s: dict[str, dict[str, float]]) -> float:
+    """K of S16: the mother liquor and wash filtrate (278.15 K) and the dryer's condensate
+    after the vacuum condenser (303.15 K) mixed adiabatically, equal heat capacities (D-008)."""
+    cold = sum(s["S9"].values()) + sum(s["S13"].values())
+    warm = sum(s["S15"].values())
+    return (cold * T_REACTOR + warm * T_CONDENSATE) / (cold + warm)
 
 
 def main() -> None:
@@ -170,9 +183,13 @@ def main() -> None:
         print(f"  {sid}: {tot:.3f} kg/h; {comp}")
     nbs = product.get("NBS_S", 0.0) + product.get("NBS", 0.0)
     print(f"  assay {nbs / total:.4f} NBS; yield on Br2 {nbs / MW['NBS'] / br2:.4f}")
-    s6 = kmol(s["S6"])
-    print(f"  PPT conversion {1 - (SOLUBILITY * s['S6']['H2O']) / s['S6']['NBS']:.5f}")
-    print(f"  S16 {mixed_temperature(s):.2f} K; free bromine in S6 {s6.get('BR2', 0):.6f} kmol/h")
+    lost = {
+        "mother liquor": s["S9"].get("NBS", 0.0) + s["S9"].get("NBS_S", 0.0),
+        "wash filtrate": s["S13"].get("NBS", 0.0) + s["S13"].get("NBS_S", 0.0),
+    }
+    made = s["S6"]["NBS"]
+    print("  NBS lost: " + ", ".join(f"{k} {v / made:.4f}" for k, v in lost.items()))
+    print(f"  S16 {mixed_temperature(s):.2f} K")
     for k, v in q.items():
         print(f"  {k}: {v:.3f} kW")
     per = {
@@ -185,25 +202,10 @@ def main() -> None:
     cases = {"design": {}}
     for sid in ("S1", "S2", "S3", "S5", "S10"):  # the feeds the flowsheet cites
         cases["design"][sid] = {"flow": round(sum(s[sid].values()), 4)}
-    for sid in ("S14", "S15"):
-        flow = s[sid]
-        tot = sum(flow.values())
-        cases["design"][sid] = {
-            "flow": round(tot, 4),
-            "composition": {n: round(v / tot, 6) for n, v in flow.items()},
-        }
     for k, v in q.items():
         cases["design"][k] = {"duty": round(v, 4)}
     cases["design"]["S16"] = {"temperature": round(mixed_temperature(s), 2)}
     write_balance_output(cases)
-
-
-def mixed_temperature(s: dict[str, dict[str, float]]) -> float:
-    """K of S16: the mother liquor and wash filtrate (278.15 K) and the dryer condensate
-    (303.15 K) mixed adiabatically, equal heat capacities (D-008)."""
-    cold = sum(s["S9"].values()) + sum(s["S13"].values())
-    warm = sum(s["S15"].values())
-    return (cold * T_REACTOR + warm * 303.15) / (cold + warm)
 
 
 def write_balance_output(cases):
