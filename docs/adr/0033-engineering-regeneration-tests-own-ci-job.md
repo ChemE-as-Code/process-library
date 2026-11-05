@@ -40,7 +40,8 @@ Options considered:
   -m "not engineering"`).
 - **A job `engineering` in `validate.yml` runs it**: the same pinned core commit as every other
   job (`tests/test_workflows.py`), with the extras `units,props,png`, `ATLAS_REQUIRE_CORE=1` (a
-  missing core fails, it does not skip), timeout 40 min, `pytest -q tests -m engineering`.
+  missing core fails, it does not skip), timeout 40 min, `pytest -q tests -m engineering` with
+  the library job's test dependencies (pytest collects every module of `tests/`).
 - The first such test is `tests/test_co2_electrolysis_bpm_skids.py` (#330).
 
 ## Consequences
