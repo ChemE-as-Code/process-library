@@ -1,0 +1,16 @@
+# sodium-azide-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or links a library producer's `dataset`.
+#
+# The preliminary LCI links every purchased feed that has a library producer (DESIGN.md D-013); the
+# utilities other than steam and every treatment stay gaps (lci/gaps.json).
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:NANO2": {dataset: {path: processes/sodium-nitrite-1/lca/dataset.yaml, product: "product:NANO2"}, source: "the Atlas producer sodium-nitrite-1, dried sodium nitrite 99.0 wt-%"}
+  "feed:ACID": {dataset: {path: processes/sulfuric-acid-1/lca/dataset.yaml, product: "product:ACID"}, source: "the Atlas producer sulfuric-acid-1, sulfuric acid 98.5 wt%, the grade this feed names"}
+  "feed:HH": {dataset: {path: processes/hydrazine-1/lca/dataset.yaml, product: "product:HH"}, source: "the Atlas producer hydrazine-1, hydrazine hydrate 64 wt% N2H4, per kg of hydrate as this exchange counts it"}
+  "feed:NAOH": {dataset: {path: processes/chlor-alkali-1/lca/dataset.yaml, product: "product:NAOH"}, source: "the Atlas producer chlor-alkali-1, caustic soda 50 wt-%, per kg of solution as this exchange counts it"}
+  "feed:MEOH": {dataset: {path: processes/methanol-1/lca/dataset.yaml, product: "product:MEOH"}, source: "the Atlas producer methanol-1, Grade AA methanol"}
+  "consumable:nitrogen": {dataset: {path: processes/asu-1/lca/dataset.yaml, product: "product:GANP"}, source: "the Atlas producer asu-1, gaseous nitrogen to the battery limit (99.97 mol% N2, 9 bar(a)); inerting and filtration need only a few hundred kPa"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 350 kPa(a) to the still (Q3) and the filter-dryer (Q7), counted as heat delivered (kWh), D-012"}

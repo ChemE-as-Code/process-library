@@ -1,0 +1,99 @@
+# Reactions of benzyl-chloroformate-1. Schema cheme/reactions/v1 (`cheme schema
+# process-reactions`).
+#
+# PHOSG, CARB, CLBN: the phosgenation of benzyl alcohol without base in the semi-batch R101 and
+# its two side reactions, as US 6 696 590 B2 (SNPE, 2004) describes the reduced-pressure batch
+# route and its impurities (Ex. 3: benzyl alcohol, benzyl chloride, dibenzyl carbonate;
+# DESIGN.md D-001, D-005). No open kinetics exist (searched 2026-11-05): every rate law is
+# ASSUMED, second order in the two reactants, fast enough for the main reaction to be
+# dosing-controlled, with the side reactions' constants set so that R101 makes the impurity
+# levels of Ex. 3 (D-005); reaction calorimetry must replace them.
+# Heats of reaction: on the gas basis of phosgene (dosed as a gas) and HCl and CO2 (vented as
+# they form), as core ADR 0054 asks: the liquid benzyl alcohol, benzyl chloroformate and benzyl
+# chloride, gaseous phosgene, HCl and CO2 at 298.15 K. Formation enthalpies: benzyl
+# chloroformate (liquid) -376.2 kJ/mol, solution calorimetry of Finch and Salem (1987), NIST
+# WebBook; benzyl alcohol (liquid) -160.7 and benzyl chloride (liquid) -32.5 kJ/mol, CRC and NIST
+# WebBook through chemicals 1.5.2; phosgene, HCl and CO2 (gas) ATcT through chemicals 1.5.2
+# (materials.yaml). Dibenzyl carbonate has no open formation enthalpy: CARB's heat is ASSUMED.
+# CLBN is the net of two steps the source names (benzyl alcohol + HCl -> benzyl chloride +
+# water; the water then hydrolyses phosgene to CO2 + 2 HCl), lumped so that no water is carried.
+#
+# NEUT_HCL, NEUT_PHOS, NEUT_CO2: the off-gas destroyed in the caustic scrubber S101 (conversion
+# step, as processes/phosgene-1's T201), conversions ASSUMED (D-007). Their heats are ASSUMED
+# orders of magnitude: S101 is not in the semi-batch's screening.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: PHOSG
+    title: Phosgenation of benzyl alcohol to benzyl chloroformate
+    equation: C7H8O + COCl2 -> C8H7ClO2 + HCl
+    stoichiometry: {BNOH: -1, COCL2: -1, BCF: 1, HCL: 1}
+    phase: liquid
+    heat_of_reaction: {value: -88643, provenance: given, source: "formation enthalpies at 298.15 K (header): -376.2 - 92.173 + 160.7 + 219.03 kJ/mol, phosgene and HCl as gas (core ADR 0054)"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # second order: k = 1.0e-3 m3/(kmol s) at 278.15 K, Ea 40 kJ/mol; at the neat alcohol's
+      # 9.8 kmol/m3 a dissolved phosgene lives about 100 s
+      k: {A: 32477, Ea: 40000}
+      orders: {BNOH: 1, COCL2: 1}
+      temperature_range: [268.15, 298.15]
+      provenance: assumed
+      source: "ASSUMED fast effective rate (D-005): no open kinetics found (2026-11-05); to be replaced by reaction calorimetry"
+    sources: ["US 6 696 590 B2 (Bonnard et al., SNPE, 2004), description and Ex. 3: benzyl alcohol phosgenated without base at 0-6 C and 500 mbar"]
+  - id: CARB
+    title: Dibenzyl carbonate from the chloroformate and the alcohol
+    equation: C8H7ClO2 + C7H8O -> C15H14O3 + HCl
+    stoichiometry: {BCF: -1, BNOH: -1, DBC: 1, HCL: 1}
+    phase: liquid
+    heat_of_reaction: {value: -30000, provenance: assumed, source: "ASSUMED (D-005): no open formation enthalpy of dibenzyl carbonate; an order of magnitude for an alcoholysis of a chloroformate with HCl leaving as gas"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      k: {A: 1.4, Ea: 40000}
+      orders: {BCF: 1, BNOH: 1}
+      temperature_range: [268.15, 298.15]
+      provenance: assumed
+      source: "ASSUMED (D-005): set so that R101 makes about the 0.26 wt% dibenzyl carbonate of US 6 696 590 B2 Ex. 3"
+    sources: ["US 6 696 590 B2, description: the carbonate as the side product a phosgene excess suppresses; Ex. 3 impurity"]
+  - id: CLBN
+    title: Benzyl chloride and CO2 (net of the alcohol's chlorination by HCl and the water's phosgene hydrolysis)
+    equation: C7H8O + COCl2 -> C7H7Cl + CO2 + HCl
+    stoichiometry: {BNOH: -1, COCL2: -1, BNCL: 1, CO2: 1, HCL: 1}
+    phase: liquid
+    heat_of_reaction: {value: -138417, provenance: given, source: "formation enthalpies at 298.15 K (header): -32.5 - 393.474 - 92.173 + 160.7 + 219.03 kJ/mol, phosgene, CO2 and HCl as gas"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      k: {A: 225, Ea: 40000}
+      orders: {BNOH: 1, COCL2: 1}
+      temperature_range: [268.15, 298.15]
+      provenance: assumed
+      source: "ASSUMED (D-005): set so that R101 makes about the 0.51 wt% benzyl chloride of US 6 696 590 B2 Ex. 3"
+    sources: ["US 6 696 590 B2 Ex. 3 impurity (benzyl chloride)"]
+  # Caustic scrubber S101 (D-007)
+  - id: NEUT_HCL
+    title: HCl absorbed in caustic soda
+    equation: HCl + NaOH -> NaCl + H2O
+    stoichiometry: {HCL: -1, NAOH: -1, NACL: 1, H2O: 1}
+    phase: liquid
+    conversion: {key: HCL, value: 0.9999, provenance: assumed, source: "D-007: absorption of HCl in the circulating caustic, ASSUMED"}
+    heat_of_reaction: {value: -130800, provenance: assumed, source: "ASSUMED (D-009): HCl gas into water about -75 kJ/mol (core ADR 0054) plus the neutralisation of a strong acid by a strong base, about -55.8 kJ/mol"}
+  - id: NEUT_PHOS
+    title: Phosgene destroyed in caustic soda
+    equation: COCl2 + 4 NaOH -> Na2CO3 + 2 NaCl + 2 H2O
+    stoichiometry: {COCL2: -1, NAOH: -4, NA2CO3: 1, NACL: 2, H2O: 2}
+    phase: liquid
+    conversion: {key: COCL2, value: 0.9999, provenance: assumed, source: "D-007: destruction efficiency of the caustic scrubber, ASSUMED (as processes/phosgene-1 D-008)"}
+    heat_of_reaction: {value: -444000, provenance: assumed, source: "ASSUMED (D-009): phosgene's gas-phase hydrolysis (-73 kJ/mol from the ATcT formation enthalpies), two HCl absorbed and neutralised (2 x -130.8) and the CO2 absorbed to carbonate (-109.5)"}
+    sources: ["Hughes, Rossi, Lennon (2023) React. Chem. Eng. 8, 3150-3161, doi:10.1039/D3RE00354J (CC BY 3.0), section 2.1.1: phosgene neutralised in aqueous NaOH to sodium carbonate and sodium chloride (cited as processes/phosgene-1 does)"]
+  - id: NEUT_CO2
+    title: CO2 absorbed in caustic soda
+    equation: CO2 + 2 NaOH -> Na2CO3 + H2O
+    stoichiometry: {CO2: -1, NAOH: -2, NA2CO3: 1, H2O: 1}
+    phase: liquid
+    conversion: {key: CO2, value: 0.99, provenance: assumed, source: "D-007: CO2 absorption in the circulating caustic with its excess, ASSUMED; the unabsorbed traces stay in the scrubber's one outlet (core has no component separator to split them to the stack, D-007)"}
+    heat_of_reaction: {value: -109500, provenance: assumed, source: "ASSUMED (D-009): CO2 absorbed and neutralised to carbonate, of the order of the heats of solution and neutralisation"}
