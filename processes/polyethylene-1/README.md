@@ -16,13 +16,14 @@ Manifest and LCI dataset only, with no flowsheet and no simulation. Per tonne of
 |---|---|---|
 | Electricity, net thermal energy, hydrogen, diluent make-up, CO2, CO, CH4, NOx, SO2, PM10, ethylene to air | Plastics Europe eco-profile of polyolefins (2026), Table 5, HDPE column | 12-month averages of 2011 from 19 European HDPE units, measured by the producers |
 | Effluent | same report, Table 8 | after the plants' own treatment |
-| 1-butene | branch count of HDPE in the same report (p. 6), 3 to 5 per 1000 C, midpoint 4 | 16 kg/t; 1-butene as the comonomer is ASSUMED (the BREF POL names butene-1 and hexene-1) |
-| Ethylene | stoichiometry | the polymer less the 1-butene units, plus ethylene to air, plus the ethylene whose carbon leaves as the sourced CO2, CO and CH4 once the burnt diluent is taken off |
+| 1-butene | branch count of HDPE in the same report (p. 6), 3 to 5 per 1000 C, midpoint 4 | 16 kg/t; 1-butene as the comonomer is ASSUMED (the POL BREF names butene-1 and hexene-1) |
+| Ethylene | same report, Table 5 | 1.00 kg/kg, rounded to two decimals in the source |
+| Ethylene not itemised by the source | carbon balance | the sourced ethylene less the polymer's ethylene units, ethylene to air and the ethylene whose carbon leaves as the sourced CO2, CO and CH4 once the burnt diluent is taken off: 10.2 kg/t, an output without a link |
 | Combustion oxygen and water | stoichiometry | complete combustion of the purge and vent gases at a flare or thermal oxidiser (ASSUMED) |
 
 The eco-profile is an open report (PDF) of Plastics Europe. Only its gate-to-gate polymerisation table was used. Its aggregated cradle-to-gate results and ILCD datasets were not used.
 
-The ethylene comes out at 989.8 kg/t, so ethylene plus 1-butene is 1005.8 kg/t. The eco-profile states 1.00 kg/kg ethylene, rounded to two decimals, so at least 995 kg/t. The stoichiometric figure is therefore 5 to 15 kg/t (0.5 to 1.5 %) below the source's own value: ethylene that leaves in ways the source does not itemise (wastes, hydrocarbons to air other than ethylene and methane). The BREF POL's 1999 data collection gives 1008 to 1066 kg/t for HDPE monomer consumption, so the dataset is 2 kg/t below that range (`benchmarks/polyolefins.yaml`, explained). Electricity and heat add up to 806 kWh/t, inside the BREF's 570 to 940 kWh/t direct energy. Both checks come from industry data collections with producers in common, and they cover a different period, so they are not checks against independent plants.
+The ethylene is the source's 1.00 kg/kg, so ethylene plus 1-butene is 1016 kg/t. The ethylene the model can place (polymer, ethylene to air and the carbon of the sourced CO2, CO and CH4) is 989.8 kg/t. The remaining 10.2 kg/t (5 to 15 kg/t within the source's rounding) is ethylene that leaves in ways the source does not itemise: its 2.2 kg/t of process wastes and hydrocarbons to air other than ethylene and methane. It is an output whose fate is not stated, modelled as ethylene (ASSUMED) and not linked, so it is a mapping gap. The POL BREF's 1999 data collection gives 1008 to 1066 kg/t for HDPE monomer consumption, and the dataset lies inside it (`benchmarks/polyolefins.yaml`). Electricity and heat add up to 806 kWh/t, inside the BREF's 570 to 940 kWh/t direct energy. Both checks come from industry data collections with producers in common, and they cover a different period, so they are not checks against independent plants.
 
 ## What is weak
 
@@ -37,7 +38,7 @@ The ethylene comes out at 989.8 kg/t, so ethylene plus 1-butene is 1005.8 kg/t. 
 
 ## Linking
 
-The product has the registry slug `polyethylene` (new, with no grade split yet). `feed:ethylene` links ethylene-1's polymer-grade ethylene explicitly, as ethanol-1 does. ethylene-1 cracks ethane, while the European plants behind this dataset are mostly fed by naphtha crackers. Hydrogen links the shared background entry (`atlas: false`): hydrogen-1 and chlor-alkali-1 both make it, and the supplier is not chosen here. 1-butene and isobutane are reported mapping gaps: no Atlas process makes them and the shared vocabulary has no entry (`lca/mappings.yaml`). PM10 is a gap too, because core's elementary-flow crosswalk has PM2.5 only.
+The product has the registry slug `polyethylene` (new, with no grade split yet). `feed:ethylene` links ethylene-1's fossil polymer-grade ethylene explicitly, as acetaldehyde-1, ethanol-1 and ethylene-glycol-1 do. The library's other ethylene producer, `bio-ethylene-1`, makes biogenic ethylene from bio-ethanol; the European plants behind this dataset take their ethylene from steam crackers (eco-profile), so ethylene-1 is the producer that matches, and the link is not left open as in ethylbenzene-1. ethylene-1 cracks ethane, while those plants are mostly fed by naphtha crackers. Hydrogen links the shared background entry (`atlas: false`): several Atlas processes make it (hydrogen-1 as its main product; chlor-alkali-1, catalytic-reforming-1 and hda-1 as a co-product), and the supplier is not chosen here. 1-butene and isobutane are reported mapping gaps: no Atlas process makes them and the shared vocabulary has no entry (`lca/mappings.yaml`). PM10 is a gap too, because core's elementary-flow crosswalk has PM2.5 only.
 
 ## Not counted yet (TODO)
 

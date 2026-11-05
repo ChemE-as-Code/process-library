@@ -8,7 +8,7 @@
 
 Manifest and LCI dataset only, with no flowsheet and no simulation. Per tonne of bottle-grade PET resin, made from purified terephthalic acid (PTA) and ethylene glycol (MEG). The plant esterifies the two continuously, polycondenses the melt, cuts chips and then raises the viscosity by continuous solid-state polycondensation (SSP).
 
-## Why this route
+## Route
 
 PTA-based continuous polycondensation is the main industrial route. The POL BREF (2007, section 10.2) describes it next to two others. The continuous DMT route releases methanol. The batch DMT process (DMT-BPU) runs in batch autoclaves. NAPCOR 2020 counts only PTA-based plants, because PET from DMT is a small share in North America. Its plants use melt phase with SSP, melt-to-resin (MTR, which reaches bottle-grade viscosity in the melt), or Integrex (integrated with PTA making). Every step of the modelled route is continuous: the BREF's continuous SSP reactors handle 20 to 400 t/d each, while batch SSP tumblers manage 1 to 4 kt/a.
 
@@ -31,10 +31,11 @@ The feeds come out at 0.873 t of diacids (850 kg PTA, 23 kg isophthalic acid) an
 - **Homopolymer model.** Diethylene glycol units, toners and other additives are left out. Isophthalic acid is counted with the terephthalic acid, since it has the same formula.
 - **Polymer waste** is the midpoint of 0.14 to 18 kg/t, a 128-fold range (gsd2 11.3).
 - **Effluent organics**: all of the BREF's COD before treatment is read as ethylene glycol (ASSUMED). Steam-ejector condensate is not counted, so the wastewater is only the reaction water.
-- **Natural gas** is converted from volume to mass at an ASSUMED 15.56 °C and 101.325 kPa, as pure methane. Heater NOx and CO are not in either source.
+- **Natural gas** is converted from volume to mass at an ASSUMED 15.56 °C (60 °F) and 101.325 kPa, as pure methane, the same reading as for the same consultant's PP report in `polypropylene-1`. The library's natural-gas proxy converts the mass back at 0 °C, so the background sees 5.6 % less gas volume than NAPCOR states. Heater NOx and CO are not in either source.
 - Acetaldehyde, glycol to air and hazardous waste are the BREF's upper bounds for EU plants. They are not conservative: NAPCOR's US plants report about five times the glycol to air (0.049 kg/t) and about ten times the hazardous waste (4.8 g/t), while its acetaldehyde (0.010 kg/t) is below the bound. NAPCOR's total solid waste (about 1.9 kg/t) is well below the BREF midpoints used here (about 13 kg/t of polymer and other waste). The "other waste" has no composition. It is outside the element balance, and the feeds do not supply its mass.
 - The gas use is not stated by NAPCOR. Firing it in the heat-transfer-medium heaters is our reading (ASSUMED).
-- The energy cannot be checked independently. The BREF gives only total energy per step. The dataset's 2930 MJ/t is inside the melt-phase range alone, and slightly below the sum of the lowest melt-phase and SSP values (about 2990 MJ/t). The BREF's single figure for TPA-based high-viscosity PET for food packaging, the grade nearest to bottle resin, is 18500 MJ/t, about six times higher, with no reason given.
+- **The heat may be low.** The IEA paper (Saygin et al. 2009) gives PET 4.1 GJ/t of fuel at best practice (Table 1, after Boustead 2008) and 4.9 GJ/t as the Western European average; the dataset's 42.0 kg of natural gas is 2.1 GJ/t, about half of the best practice. Its electricity, 0.7 to 0.8 GJ/t (194 to 222 kWh/t), is bound as a KPI: the dataset's 230 kWh/t is 4 % above it (`benchmarks/polymers.yaml`, explained). The heat cannot be bound, because the gas is counted in kg.
+- The total energy cannot be checked independently against the BREF, which gives only total energy per step. The dataset's 2930 MJ/t is inside the melt-phase range alone, and slightly below the sum of the lowest melt-phase and SSP values (about 2990 MJ/t). The BREF's single figure for TPA-based high-viscosity PET for food packaging, the grade nearest to bottle resin, is 18500 MJ/t, about six times higher, with no reason given.
 - The antimony catalyst and the phosphorus stabiliser are named in the BREF's DMT section. Their use in the TPA process is our reading.
 
 ## Linking

@@ -1,13 +1,13 @@
 # Tier 1 form, a manifest-only entry as process-library#317. Every amount is the formula of its
 # parameters; core's validator re-checks each. Written from the Plastics Europe eco-profile of
-# polyolefins (2026) with the BREF POL (2007) (facts in our own form).
+# polyolefins (2026) with the POL BREF (2007) (facts in our own form).
 schema: cheme/lci_dataset/v2
 kind: lci_dataset
 id: hdpe-low-pressure-eu-average
 title: High-density polyethylene by low-pressure catalytic polymerisation of ethylene, European average
 description: Per 1 t of HDPE pellets, gate-to-gate, average of European HDPE units (2011 data of the Plastics Europe
-  eco-profile), slurry and gas-phase plants together. Ethylene from stoichiometry with the sourced losses; 1-butene
-  from the branch count; utilities and direct emissions as the source's averages.
+  eco-profile), slurry and gas-phase plants together. Ethylene, utilities and direct emissions as the source's
+  averages; 1-butene from the branch count; the ethylene the source does not itemise closes the carbon balance.
 basis: 1000 kg of HDPE pellets
 boundary: 'gate-to-gate: feed purification, polymerisation, diluent and monomer recovery, drying, extrusion and
   pelletising, degassing; power and heat from outside; on-site energy production not in the plant data'
@@ -23,6 +23,7 @@ system_boundary:
   - ethylene, 1-butene, hydrogen, diluent make-up
   - electricity and net thermal energy
   - process water and effluent
+  - ethylene the source does not itemise (closes the carbon balance)
   - combustion of purge and vent gases (CO2, CO, water vapour) and the reported air emissions
   excluded:
   - 'TODO cooling water: 8.6 kg/kg withdrawn (eco-profile Table 7), but the duty in kWh, which the library''s cooling-water
@@ -31,11 +32,11 @@ system_boundary:
   - 'TODO other organic chemicals: the eco-profile''s 22 kg/t of organics less the modelled 1-butene (about 6 kg/t:
     additives, stabilisers, aluminium alkyls), identity not stated'
   - TODO propylene, 0.02 kg/t (eco-profile Table 5)
-  - TODO process wastes, about 2.2 kg/t to landfill, recovery and incineration (eco-profile Table 4), composition
-    not stated
+  - 'TODO process wastes, about 2.2 kg/t to landfill, recovery and incineration (eco-profile Table 4), composition
+    not stated: inside output:ethylene-unaccounted, whose treatment is not linked'
   - 'TODO nitrogen for purging and conveying: not quantified in the source'
   - 'TODO hydrocarbons to air other than ethylene and methane: for HDPE the eco-profile reports these two only (its
-    propylene to air is n/a), the BREF POL 0.65 to 5.75 kg/t VOC (Table 3.11); the model burns the diluent loss
+    propylene to air is n/a), the POL BREF 0.65 to 5.75 kg/t VOC (Table 3.11); the model burns the diluent loss
     instead'
   - 'COD of the effluent after on-site treatment (0.035 kg/t): the effluent is linked to a treatment activity instead'
   - 'on-site energy production: its fuels are behind the electricity and heat'
@@ -132,8 +133,15 @@ parameters:
   source: 'Plastics Europe (2026) Eco-profile of Polyolefins: HDPE, LDPE, LLDPE, PP (January 2026, ifeu; polymerisation
     data of 2011, 19 HDPE units), product description, p. 6 (3 to 5 ethyl or butyl side groups per 1000 C); the
     midpoint, that every branch comes from one comonomer molecule and that it is 1-butene (an ethyl branch) are
-    ASSUMED. The BREF POL names butene-1 and hexene-1 as the comonomers (section 3.2.3, p. 43) and prices every
+    ASSUMED. The POL BREF names butene-1 and hexene-1 as the comonomers (section 3.2.3, p. 43) and prices every
     HDPE process with butene-1 (Table 3.14, p. 67)'
+- name: eth
+  value: 1000.0
+  unit: kg
+  description: Ethylene per t HDPE (1.00 kg/kg, rounded to two decimals in the source).
+  source: 'Plastics Europe (2026) Eco-profile of Polyolefins: HDPE, LDPE, LLDPE, PP (January 2026, ifeu; polymerisation
+    data of 2011, 19 HDPE units), Table 5 (HDPE column, per kg, excluding on-site energy production); the
+    rounding (995 to 1005 kg/t) is the source''s'
 - name: h2
   value: 0.24
   unit: kg
@@ -147,7 +155,7 @@ parameters:
   description: Organic solvent (diluent) make-up per t HDPE (5.9E-03 kg/kg).
   source: 'Plastics Europe (2026) Eco-profile of Polyolefins: HDPE, LDPE, LLDPE, PP (January 2026, ifeu; polymerisation
     data of 2011, 19 HDPE units), Table 5 (HDPE column, per kg, excluding on-site energy production), ''solvent,
-    organic''. The source does not name it; isobutane, the diluent of the loop slurry process (BREF POL section
+    organic''. The source does not name it; isobutane, the diluent of the loop slurry process (POL BREF section
     3.2.3.1.2, p. 45), is ASSUMED, and so is that the loss is burnt'
 - name: org
   value: 22.0
@@ -239,30 +247,30 @@ exchanges:
   title: Ethylene, polymer grade
   type: input
   unit: kg
-  amount: 989.7548867126511
-  formula: pe - pe * n_br * M_BU / (1000 * M_E / 2) + e_eth + (e_co2 / M_CO2 + e_co / M_CO + e_ch4 / M_CH4 - 4 *
-    solv / M_IB) * M_E / 2
-  provenance: calculated
-  source: 'stoichiometry: ethylene into the polymer (the product less the 1-butene units) plus ethylene to air plus
-    the ethylene whose carbon leaves as the sourced CO2, CO and CH4 after the burnt diluent; compare 1.00 kg/kg
-    in the eco-profile''s Table 5 (rounded to two decimals, so 995 to 1005 kg/t): the stoichiometric figure is 5
-    to 15 kg/t below it, ethylene the source does not itemise (wastes, unreported hydrocarbons; the additives
-    counted here as polymer work the other way). Also compare the BREF POL monomer consumption
-    (benchmarks/polyolefins.yaml)'
-  pedigree: &id001
+  amount: 1000.0
+  formula: eth
+  provenance: given
+  origin: literature
+  source: 'Plastics Europe (2026) Eco-profile of Polyolefins: HDPE, LDPE, LLDPE, PP (January 2026, ifeu;
+    polymerisation data of 2011, 19 HDPE units), Table 5 (HDPE column, per kg, excluding on-site energy production),
+    1.00 kg/kg. The ethylene the model can place (the polymer less the 1-butene units, ethylene to air, and the
+    ethylene whose carbon leaves as the sourced CO2, CO and CH4 after the burnt diluent) is about 990 kg/t; the rest
+    is output:ethylene-unaccounted. Compare the POL BREF monomer consumption (benchmarks/polyolefins.yaml)'
+  pedigree:
     scores:
+    - 3
     - 4
     - 4
-    - 4
-    - 4
-    - 4
-    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
-      4, technological 4'
+    - 3
+    - 3
+    reason: 'from the Plastics Europe eco-profile''s averages of European HDPE plants (2011, measured, slurry and
+      gas-phase plants together): reliability 3, completeness 4, temporal 4 (about 15 years old), geographical 3,
+      technological 3 (not the slurry route alone); the Tier 1 floor otherwise'
   basic_uncertainty: 1.05
   uncertainty:
-    gsd2: 1.02
-    source: 'ASSUMED: the polymer term dominates and the modelled losses are about 1 % of the feed, but the result
-      is 0.5 to 1.5 % below the source''s rounded 1.00 kg/kg'
+    gsd2: 1.005
+    source: 'ethylene, the source''s rounding: range 995 to 1005 read as a 95 % interval, gsd2 = sqrt(high / low)
+      (our convention; the amount stays the stated value)'
 - key: feed:1-butene
   title: 1-Butene, comonomer
   type: input
@@ -272,7 +280,15 @@ exchanges:
   provenance: calculated
   source: the branch count of HDPE (see n_br) as 1-butene units in the product, all of the fed comonomer incorporated
     (ASSUMED); it lies inside the eco-profile's 22 kg/t of organic chemicals including comonomers
-  pedigree: *id001
+  pedigree: &id001
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
   basic_uncertainty: 1.05
   uncertainty:
     gsd2: 1.291
@@ -368,7 +384,7 @@ exchanges:
   basic_uncertainty: 1.05
   uncertainty:
     gsd2: 1.284
-    source: ASSUMED from the spread of the BREF POL's HDPE direct energy, 570 to 940 kWh/t (Table 3.11, averages
+    source: ASSUMED from the spread of the POL BREF's HDPE direct energy, 570 to 940 kWh/t (Table 3.11, averages
       of the top half and of the 4th quartile), read as a 95 % interval and applied to each carrier; the eco-profile
       gives no range
 - key: feed:steam
@@ -395,7 +411,7 @@ exchanges:
   basic_uncertainty: 1.05
   uncertainty:
     gsd2: 1.284
-    source: ASSUMED from the spread of the BREF POL's HDPE direct energy, 570 to 940 kWh/t (Table 3.11, averages
+    source: ASSUMED from the spread of the POL BREF's HDPE direct energy, 570 to 940 kWh/t (Table 3.11, averages
       of the top half and of the 4th quartile), read as a 95 % interval and applied to each carrier; the eco-profile
       gives no range
 - key: output:wastewater
@@ -418,6 +434,24 @@ exchanges:
     gsd2: 1.033
     source: 'effluent, withdrawal to effluent: range 1500 to 1600 read as a 95 % interval, gsd2 = sqrt(high / low)
       (our convention; the amount stays the stated value)'
+- key: output:ethylene-unaccounted
+  title: Ethylene the source does not itemise (process wastes, unreported hydrocarbons); fate not stated
+  type: output
+  unit: kg
+  amount: 10.245113287348886
+  formula: eth - (pe - pe * n_br * M_BU / (1000 * M_E / 2) + e_eth + (e_co2 / M_CO2 + e_co / M_CO + e_ch4 / M_CH4 -
+    4 * solv / M_IB) * M_E / 2)
+  provenance: calculated
+  source: 'closes the carbon balance: the sourced ethylene (1.00 kg/kg) less the ethylene in the polymer, to air and
+    behind the sourced CO2, CO and CH4. The eco-profile reports about 2.2 kg/t of process wastes (Table 4) and no
+    hydrocarbons to air but ethylene and methane, and the POL BREF gives 0.65 to 5.75 kg/t of VOC (Table 3.11), so
+    it is probably wastes and hydrocarbon losses; modelled as ethylene (ASSUMED), not linked to a treatment'
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.732
+    source: 'ASSUMED: a residual of the rounded 1.00 kg/kg; 995 to 1005 kg/t gives about 5 to 15 kg/t, read as a
+      95 % interval, gsd2 = sqrt(high / low)'
 - key: emission:CO2
   title: CO2 from the flare or thermal oxidiser
   type: emission
@@ -532,7 +566,7 @@ exchanges:
   basic_uncertainty: 1.5
   uncertainty:
     gsd2: 3.0
-    source: 'ASSUMED: the BREF POL''s HDPE VOC spans 0.65 to 5.75 kg/t (Table 3.11), so the true hydrocarbon release
+    source: 'ASSUMED: the POL BREF''s HDPE VOC spans 0.65 to 5.75 kg/t (Table 3.11), so the true hydrocarbon release
       is uncertain by a large factor'
 - key: emission:NOx
   title: NOx
@@ -595,7 +629,7 @@ exchanges:
   basic_uncertainty: 1.5
 provenance:
   generator: hand-written model; amounts are the formulas of the parameters
-  notes: Facts and numbers from the open Plastics Europe eco-profile report (PDF) and the BREF POL, in our own form.
+  notes: Facts and numbers from the open Plastics Europe eco-profile report (PDF) and the POL BREF, in our own form.
     No value from a licensed database; the eco-profile's aggregated ILCD datasets were not used.
 generation:
   tier: 1
@@ -618,6 +652,7 @@ generation:
     feed:O2: O2
     feed:water: H2O
     output:wastewater: H2O
+    output:ethylene-unaccounted: C2H4
     emission:CO2: CO2
     emission:H2O: H2O
     emission:CO: CO
@@ -632,6 +667,7 @@ generation:
     feed:O2: O2
     feed:water: H2O
     output:wastewater: H2O
+    output:ethylene-unaccounted: C2H4
     emission:CO2: CO2
     emission:H2O: H2O
     emission:CO: CO
@@ -642,11 +678,11 @@ generation:
     tolerance: 1.0e-06
     elements:
       C:
-      - 866.081766092
-      - 866.081766092
+      - 874.854422804
+      - 874.854422804
       H:
-      - 324.863911628
-      - 324.863911628
+      - 326.336368204
+      - 326.336368204
       O:
       - 1462.724731165
       - 1462.724731165

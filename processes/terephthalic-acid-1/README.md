@@ -21,7 +21,8 @@ p-Xylene is oxidised with air in acetic acid at about 200 °C and 20 bar, over a
 | p-Xylene, acetic acid, demineralised water | patent CN105001073A, background on a conventional 1.2 Mt/a plant | midpoints: 656 kg, 39 kg and 2.6 t per t |
 | p-Xylene lost to residue, pond solids and mother liquor | the same patent | 4.8 kg/t, modelled as p-toluic acid (ASSUMED) |
 | Cobalt; manganese | the same patent | 0.04 kg/t; 0.03 kg/t, the residue loss taken as the make-up (ASSUMED) |
-| Electricity, steam | MIDDEN report on Indorama Rotterdam (PBL and TNO 2021), Table 3 | 0.346 and 0.981 GJ/t, that is 96 and 273 kWh/t |
+| Electricity | MIDDEN report on Indorama Rotterdam (PBL and TNO 2021), Table 3 | 0.346 GJ/t, that is 96 kWh/t |
+| Steam | IEA information paper (Saygin et al. 2009), Table 1: best practice for PTA, final energy (after Meyers 2005) | 2.6 GJ/t, that is 722 kWh/t |
 | Vent VOC, CO, dust | US EPA AP-42 Table 6.11-1 (1983), less 99 % thermal oxidation (ASSUMED for every vent) | 0.20 kg VOC, 0.19 kg CO, 0.7 kg dust per t |
 | CO2, effluent, oxygen | element balances | 95 kg CO2, 2.85 t effluent, 659 kg O2 per t |
 
@@ -31,11 +32,11 @@ Two cross-checks use figures from outside the model, though neither is fully ind
 
 ## What is weak
 
-- **The energy data are thin.** Electricity and steam come from one plant estimate, built from published figures. The report does not say whether off-gas expander power and steam raised from the reaction heat are netted out. The patent gives 0.7 to 1.0 t of steam per t for Chinese plants at an unstated pressure, which suggests a higher steam figure. The MIDDEN plant also uses another technology: it is Eastman-based (GPT equipment), with post-oxidation, and the report describes no hydrogenation step. So the hydropurification section modelled here, with its slurry heating to about 285 °C and staged crystallisation, may be missing from the energy. The steam's uncertainty is therefore ASSUMED at gsd2 2.0, and the technological pedigree of both utilities is 4.
+- **The energy data are thin.** Electricity comes from one plant estimate, built from published figures. The report does not say whether off-gas expander power is netted out. The same report's steam, 0.981 GJ/t, is not used: the MIDDEN plant is Eastman-based (GPT equipment), with post-oxidation, and the report describes no hydrogenation step, so the hydropurification section modelled here (slurry heating to about 285 °C, staged crystallisation) would be missing. The steam is instead the IEA's best-practice value for PTA, 2.6 GJ/t of final energy (Table 1, after Meyers 2005). The paper does not name the route, so covering hydropurification is ASSUMED. The patent's 0.7 to 1.0 t of steam per t for conventional Chinese plants, at an unstated pressure, is about 1.4 to 2.2 GJ/t at an ASSUMED 2.0 to 2.2 GJ per t of steam. The IEA's Western European average (Table 13, after Boustead 2002) has 1.7 GJ/t of electricity, 1.7 GJ/t of steam and 1.6 GJ/t of fuel, so a plant that fires its hydropurification heaters would need more heat than the dataset counts. The steam's uncertainty is ASSUMED at gsd2 1.5, and the technological pedigree of both utilities is 4.
 - **All three benchmark KPIs fall outside their ranges**, each with a stated reason (`benchmarks/oxygenates.yaml`):
   - The yield is 97.4 %, against the MIDDEN report's 98.3 to 98.9 %.
   - Acetic acid is 0.039 t/t, against LBNL's 0.04 to 0.09.
-  - Electricity plus steam is 1.33 GJ/t, against LBNL's 5.3 to 9.7, whose basis is not stated.
+  - Electricity plus steam is 2.95 GJ/t, against LBNL's 5.3 to 9.7, whose basis is not stated; the IEA's figures in primary energy with fuel (7.6 GJ/t for the Western European average) fall inside it.
 - The sources mix regions and years: Chinese feeds from about 2015, Dutch utilities for 2016 and US vent factors from 1983. `location` is GLO. `valid_until` is the reference year + 5, 2021, so it has already lapsed.
 - The patent was read in Google's machine translation.
 - These parts of the model are ASSUMED: the residue compound, the vent control applied to every vent, VOC counted as acetic acid, all water to the effluent, and complete combustion. AP-42's crude-TPA vent factors are also applied per kg of PTA.
@@ -63,5 +64,6 @@ The full list is in the dataset's `system_boundary.excluded`.
 - US EPA AP-42 section 6.11.
 - LVOC BREF (2017), section 2.1.2.3.8.
 - Karali et al. (2024), LBNL-2001585, section 2.3.
+- Saygin et al. (2009), IEA information paper, Tables 1 and 13 (PTA rows).
 
 Two open-access MDPI papers on PTA from 2026 (*Sustainability* 18:10769 and *Clean Technologies* 8:78) could not be retrieved (HTTP 403), so they are not cited.

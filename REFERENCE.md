@@ -28,7 +28,7 @@ says how to add a process.
 
 ## Processes
 
-The table lists 75 public process folders: 45 engineering projects (a `plant.yaml` with a process
+The table lists 77 public process folders: 47 engineering projects (a `plant.yaml` with a process
 flowsheet), 24 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
 One more folder (`co2-electrolysis-bpm-1`) is internal and not listed. The table is generated
 from each folder's `process.yaml` and `checks/maturity.json`; `coverage.yaml` names the
@@ -89,10 +89,10 @@ coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
 | [`phosgene-1`](processes/phosgene-1/) | Phosgene from CO and chlorine over activated carbon (17.3 t/h liquid phosgene, captive) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`phosphorus-oxychloride-1`](processes/phosphorus-oxychloride-1/) | Phosphorus oxychloride from white phosphorus, chlorine and oxygen via PCl3 (4.0 t/h) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`phosphorus-tribromide-1`](processes/phosphorus-tribromide-1/) | Phosphorus tribromide by semi-batch bromination of white phosphorus in a PBr3 heel, red-phosphorus treatment and vacuum distillation (1000 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
-| [`polyethylene-1`](processes/polyethylene-1/) | High-density polyethylene by low-pressure polymerisation (Plastics Europe eco-profile averages, BREF POL checks) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
+| [`polyethylene-1`](processes/polyethylene-1/) | High-density polyethylene by low-pressure polymerisation (Plastics Europe eco-profile averages, POL BREF checks) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`polypropylene-1`](processes/polypropylene-1/) | Polypropylene by bulk loop and gas-phase polymerisation of propylene (US plant data, ACC 2021) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`potassium-permanganate-1`](processes/potassium-permanganate-1/) | Potassium permanganate from MnO2 ore by KOH roasting and electrolysis (1250 kg/h, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
-| [`propylene-oxide-1`](processes/propylene-oxide-1/) | Propylene oxide by the chlorohydrin process with lime (patent, ANL 1980 and LVOC BREF figures) | concept (Tier 0 form, stoichiometric screening with some sourced values; not reviewed) | no (manifest and LCI dataset only) |
+| [`propylene-oxide-1`](processes/propylene-oxide-1/) | Propylene oxide by the chlorohydrin process with lime (patent, ANL 1980, LVOC BREF and IEA figures) | concept (Tier 0 form, stoichiometric screening with some sourced values; not reviewed) | no (manifest and LCI dataset only) |
 | [`propylene-pdh-1`](processes/propylene-pdh-1/) | Propylene by catalytic propane dehydrogenation (one published Oleflex-type design, net gas burnt on site) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`refinery-distillation-1`](processes/refinery-distillation-1/) | Crude oil distillation, atmospheric and vacuum units (one crude assay, REF BREF ranges) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI datasets only) |
 | [`silicon-carbide-1`](processes/silicon-carbide-1/) | Silicon carbide by the Acheson process (5000 kg/h crude SiC, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
@@ -102,7 +102,7 @@ coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
 | [`styrene-1`](processes/styrene-1/) | Styrene by dehydrogenation of ethylbenzene (LVOC BREF ranges) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`sulfur-recovery-1`](processes/sulfur-recovery-1/) | Sulfur recovery by the modified Claus process with a catalytic oxidation tail gas unit (REF BREF ranges, EPA factors) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`sulfuric-acid-1`](processes/sulfuric-acid-1/) | Sulfuric acid from sulfur burning, double contact / double absorption (1000 t/d, 98.5 wt%) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
-| [`terephthalic-acid-1`](processes/terephthalic-acid-1/) | Purified terephthalic acid by air oxidation of p-xylene and hydropurification (patent, MIDDEN and AP-42 figures) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
+| [`terephthalic-acid-1`](processes/terephthalic-acid-1/) | Purified terephthalic acid by air oxidation of p-xylene and hydropurification (patent, MIDDEN, IEA and AP-42 figures) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`thf-1`](processes/thf-1/) | Tetrahydrofuran from 1,4-butanediol (50 kt/a, cyclodehydration and pressure-swing distillation) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`thionyl-chloride-1`](processes/thionyl-chloride-1/) | Thionyl chloride from sulfur, chlorine and SO2 over activated carbon (3.75 t/h) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`urea-1`](processes/urea-1/) | Urea by CO2 stripping, total recycle, prilling (2000 t/d, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, no LCI dataset yet) |

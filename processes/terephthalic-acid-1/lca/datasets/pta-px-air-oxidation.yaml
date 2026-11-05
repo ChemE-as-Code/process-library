@@ -7,8 +7,8 @@ id: pta-px-air-oxidation
 title: Purified terephthalic acid by liquid-phase air oxidation of p-xylene and hydropurification
 description: Per 1 t of purified terephthalic acid (PTA), gate-to-gate. p-Xylene is oxidised with air in acetic
   acid over a cobalt-manganese-bromide catalyst; the crude acid is hydrogenated over palladium and recrystallised
-  from water. Feeds from a patent's figures for conventional plants, utilities from one EU plant's estimate, vent
-  emissions from US EPA AP-42.
+  from water. Feeds from a patent's figures for conventional plants, electricity from one EU plant's estimate,
+  steam from the IEA's best-practice value for PTA, vent emissions from US EPA AP-42.
 basis: 1000 kg of purified terephthalic acid
 boundary: 'gate-to-gate: oxidation, crystallisation, filtration and drying of crude TPA, solvent and catalyst recovery,
   hydropurification, PTA crystallisation and drying, thermal oxidation of the vents; steam and power from outside'
@@ -213,15 +213,18 @@ parameters:
     TNO (MIDDEN), PBL publication 4617, Table 3, p. 17 (0.346 MJ/kg; the report cites CPME 2017, Port of Rotterdam
     2016 and Zein et al. 2010)
 - name: steam_gj
-  value: 0.981
+  value: 2.6
   unit: GJ
-  description: Steam per t PTA (useful energy, Indorama Rotterdam).
-  source: Tran, A. and West, K.J. (2021) Decarbonisation options for the Dutch bottle-grade PET industry. PBL and
-    TNO (MIDDEN), PBL publication 4617, Table 3, p. 17 (0.981 MJ/kg; same citations). Whether steam raised from
-    the reaction heat is netted out is not stated. The plant is the Eastman-based process (GPT equipment) with
-    post-oxidation, which the report describes without a hydrogenation step, so the steam of a hydropurification
-    section (slurry heating to about 285 C, staged crystallisation) may not be in this figure. TODO a gross
-    figure for a hydropurified plant
+  description: Steam per t PTA, final energy (heat delivered), best practice.
+  source: 'Saygin, D., Patel, M.K., Tam, C., Gielen, D.J. (2009) Chemical and Petrochemical Sector: Potential of
+    best practice technology and other measures for improving energy efficiency. IEA Information Paper, OECD/IEA,
+    Table 1, p. 15 (PTA, 2.6 GJ/t of steam in final energy terms, after Meyers 2005). That the figure covers the
+    hydropurification modelled here is ASSUMED: the paper does not name the route, and its Western European average
+    (Table 13, p. 51, after Boustead 2002) splits the heat into 1.7 GJ/t of steam and 1.6 GJ/t of fuel. The MIDDEN
+    figure for Indorama Rotterdam, 0.981 GJ/t (PBL publication 4617, Table 3, p. 17), is not used: that plant is
+    Eastman-based with post-oxidation and no hydrogenation step, and it may be net of steam raised from the
+    reaction heat. Patent CN105001073A gives 0.7 to 1.0 t of steam per t for conventional hydropurified plants,
+    pressure not stated, about 1.4 to 2.2 GJ/t at an ASSUMED 2.0 to 2.2 GJ of heat per t of steam'
 - name: co_cat
   value: 0.04
   unit: kg
@@ -388,16 +391,15 @@ exchanges:
 - key: feed:steam
   title: Steam, as heat delivered
   type: input
-  amount: 272.5
+  amount: 722.2222222222222
   unit: kWh
   formula: steam_gj * 1000 / 3.6
   provenance: given
   origin: literature
-  source: Tran, A. and West, K.J. (2021) Decarbonisation options for the Dutch bottle-grade PET industry. PBL and
-    TNO (MIDDEN), PBL publication 4617, Table 3, p. 17 (0.981 GJ/t at 3.6 GJ/MWh); compare 0.7 to 1.0 t steam per
-    t in the patent CN105001073A for conventional hydropurified plants, pressure not stated. The MIDDEN plant is
-    Eastman-based (GPT) with post-oxidation and no hydrogenation step in the report, so the steam of the
-    hydropurification section may be missing
+  source: 'IEA Information Paper (Saygin et al. 2009), Table 1, p. 15 (best practice for PTA, 2.6 GJ/t of steam in
+    final energy terms, after Meyers 2005; at 3.6 GJ/MWh); the route is not named, and covering the hydropurification
+    is ASSUMED. Compare 0.7 to 1.0 t steam per t in the patent CN105001073A for conventional hydropurified plants
+    (pressure not stated) and the MIDDEN estimate of 0.981 GJ/t for an Eastman-based plant without hydrogenation'
   pedigree:
     scores:
     - 3
@@ -405,14 +407,13 @@ exchanges:
     - 4
     - 3
     - 4
-    reason: 'from a government agency''s estimate for one EU plant (Indorama Rotterdam, 2016), built from published
-      figures: reliability 3, completeness 4, temporal 4, geographical 3, technological 4 (Eastman-based post-oxidation
-      plant, not the hydropurified route)'
+    reason: 'an IEA best-practice value (2009, after Meyers 2005) for an unnamed route: reliability 3, completeness
+      4, temporal 4, geographical 3, technological 4 (hydropurification ASSUMED)'
   basic_uncertainty: 1.05
   uncertainty:
-    gsd2: 2.0
-    source: 'ASSUMED: one plant''s estimate of another PTA technology; the patent''s 0.7 to 1.0 t/t for hydropurified
-      plants suggests a higher value'
+    gsd2: 1.5
+    source: 'ASSUMED: one best-practice value; the patent''s conventional plants convert to about 1.4 to 2.2 GJ/t
+      and the IEA''s Western European average is 1.7 GJ/t of steam plus 1.6 GJ/t of fuel'
 - key: input:cobalt-catalyst
   title: Cobalt oxidation catalyst (make-up)
   type: input
@@ -638,8 +639,9 @@ provenance:
   notes: No value from a licensed database and none from a DWSIM file (process-library#313).
 generation:
   tier: 1
-  method: 'sourced conceptual inventory: a patent''s unit consumptions, one EU plant''s utilities and US EPA vent
-    factors with stoichiometry and element balances, every choice listed in parameters'
+  method: 'sourced conceptual inventory: a patent''s unit consumptions, one EU plant''s electricity, the IEA''s
+    best-practice steam and US EPA vent factors with stoichiometry and element balances, every choice listed in
+    parameters'
   maturity_cap: sourced
   pedigree_floor:
   - 3

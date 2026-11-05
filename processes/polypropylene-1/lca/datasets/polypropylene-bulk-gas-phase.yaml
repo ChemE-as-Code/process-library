@@ -142,13 +142,15 @@ parameters:
     2.70 m3/t of natural gas the report counts as avoided by exported vent gas is not credited (cut-off,
     docs/system-model.md section 2)
 - name: rho_ng
-  value: 0.7175
+  value: 0.6772
   unit: kg/m3
-  description: Density of the natural gas, taken as methane at 0 degC and 1.01325 bar.
-  source: 'chemicals/chemicals.yaml methane density (NIST Chemistry WebBook, SRD 69). ASSUMED: pure methane,
-    and that the report''s m3 is at 0 degC (it does not state its reference state; at 15 degC the mass
-    would be 5 % lower). The library''s natural-gas proxy converts back with the same density, so the
-    background volume is the report''s 34.0 m3 either way'
+  description: Density of the natural gas, taken as methane, at 15.56 degC (60 degF) and 101.325 kPa (ideal
+    gas, p M / (R T)).
+  source: 'ASSUMED: the report states no reference state. Its m3 are its ft3 times 0.0283 (545 ft3 per 1000
+    lb, 34.0 m3 per 1000 kg), and the US standard state of gas volumes, 60 degF, is our reading, as for the
+    same consultant''s PET report in pet-1; natural gas as pure methane is ASSUMED. The library''s natural-gas
+    proxy (lci/mappings.yaml natural-gas-kg) converts the mass back at 0 degC, so the background sees about
+    32.1 m3, 5.6 % less than the report''s 34.0 m3 (the proxy''s own TODO)'
 - name: co2_p
   value: 10.0
   unit: kg
@@ -159,7 +161,7 @@ parameters:
     than the 3 producers reported it, and the figure protects their confidentiality). It is the CO2 of
     flaring: the report says flare combustion is included in the PP plants'' process emissions and that
     the plants'' process greenhouse gases come from flaring (report p. 24, PDF p. 29). It is not the
-    natural gas''s combustion, which gives about 67 kg/t and which the report counts separately. That
+    natural gas''s combustion, which gives about 63 kg/t and which the report counts separately. That
     the flared gas is propylene (for its O2 and H2O) is ASSUMED'
 - name: voc
   value: 0.11
@@ -343,7 +345,7 @@ exchanges:
 - key: feed:natural-gas
   title: Natural gas (as methane), burnt for process energy
   type: input
-  amount: 24.395
+  amount: 23.0248
   unit: kg
   formula: ng_m3 * rho_ng
   provenance: given
@@ -357,7 +359,7 @@ exchanges:
     composition: pure methane (ASSUMED for natural gas)
   source: Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin, final
     report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p. 43); 34.0
-    m3/t, by mass at the density of methane at 0 degC (ASSUMED, see parameter rho_ng); gross, the vent-gas
+    m3/t, by mass at the density of methane at 60 degF (ASSUMED, see parameter rho_ng); gross, the vent-gas
     export is not credited
   pedigree:
     scores:
@@ -376,7 +378,7 @@ exchanges:
 - key: feed:O2
   title: Combustion oxygen, from ambient air
   type: input
-  amount: 108.21855252593377
+  amount: 102.75278432796581
   unit: kg
   formula: ng_m3 * rho_ng * 2 * M_O2 / M_CH4 + co2_p * 1.5 * M_O2 / M_CO2
   provenance: assumed
@@ -387,7 +389,7 @@ exchanges:
 - key: emission:CO2
   title: CO2 from natural gas combustion and flaring
   type: emission
-  amount: 76.92012435330051
+  amount: 73.16140517359597
   unit: kg
   formula: ng_m3 * rho_ng * M_CO2 / M_CH4 + co2_p
   provenance: calculated
@@ -421,7 +423,7 @@ exchanges:
 - key: emission:H2O
   title: Water vapour from combustion
   type: emission
-  amount: 58.88073076982929
+  amount: 55.80348175156587
   unit: kg
   formula: ng_m3 * rho_ng * 2 * M_H2O / M_CH4 + co2_p * M_H2O / M_CO2
   provenance: calculated
@@ -913,17 +915,17 @@ generation:
     tolerance: 1.0e-06
     elements:
       C:
-      - 886.528997472
-      - 886.528997472
+      - 885.503162391
+      - 885.503162391
       H:
-      - 151.866002528
-      - 151.866002528
+      - 151.521637609
+      - 151.521637609
       N:
       - 64.0
       - 64.0
       O:
-      - 108.218552526
-      - 108.218552526
+      - 102.752784328
+      - 102.752784328
     outside:
     - emission:CH4
     - emission:CO

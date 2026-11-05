@@ -53,8 +53,10 @@ The feeds come out at 0.79 t cyclohexane and 1.45 t of 60 wt% nitric acid (0.87 
 - **Effluent and residues.** The effluent water closes the hydrogen balance. The KA-section
   residue and the dibasic acids (glutaric and succinic) close the carbon balance of each stage.
   They are modelled as C6H10O4 and glutaric acid, both ASSUMED.
-- **KA-section off-gas.** It is ASSUMED to be burned in process heaters, as AP-42 says it may
-  be. Its carbon is emitted as CO2.
+- **KA-section off-gas and residue.** Both are ASSUMED to be burned on site in process heaters,
+  as AP-42 (6.2.2) says they may be. Their carbon is emitted as CO2: the residue's 255 kg/t
+  (126 kg C/t) gives about 0.46 t CO2/t, so the direct CO2 is 0.62 t/t. The residue's heat is
+  not credited against the fuel or steam, which are taken as the energy bought in (ASSUMED).
 
 ## What is weak
 
@@ -85,11 +87,10 @@ The feeds come out at 0.79 t cyclohexane and 1.45 t of 60 wt% nitric acid (0.87 
   a reported gap: the library has no producer and the shared vocabulary has no entry.
 - The nitric acid links explicitly to `nitric-acid-1` (`lca/mappings.yaml`). Steam and fuel use
   the shared heat entries.
-- The residue and dibasic acids stay unlinked outputs, so they are gaps. Their carbon is large
-  against the direct CO2 of 0.16 t/t. The residue holds 126 kg C/t, which would be 0.46 t CO2/t
-  if it were burned, as AP-42 says it may be in process heaters. The dibasic acids hold 14 kg
-  C/t, or 0.05 t CO2/t. Neither is in the datasets' footprint until a treatment is linked. The
-  heat from burning the residue is not credited against the fuel either.
+- The KA-section residue is burned on site (above), so it is not an output. The dibasic acids
+  stay an unlinked output and a gap: some plants sell them (AP-42 6.2.2). They hold 14 kg C/t,
+  or 0.05 t CO2/t if burned, which is not in the datasets' footprint until a treatment or a sale
+  is chosen.
 
 ## Not counted yet (TODO)
 

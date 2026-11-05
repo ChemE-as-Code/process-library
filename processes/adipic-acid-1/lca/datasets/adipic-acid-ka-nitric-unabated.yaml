@@ -24,8 +24,9 @@ system_boundary:
   - cyclohexane, nitric acid make-up, process air oxygen
   - electricity, steam, fuel
   - N2O, unabated
-  - CO2, CO, NOx and organics to air; the KA-section off-gas burned
-  - residue, dibasic acids, effluent
+  - CO2, CO, NOx and organics to air; the KA-section off-gas and residue burned
+  - the KA-section residue, burned on site as fuel with the off-gas (ASSUMED, AP-42 6.2.3)
+  - dibasic acids, effluent
   excluded:
   - 'TODO N2 formed in the nitric acid oxidation (EPA 1991, 3.2.2.3, names N2 among the reduction products;
     not quantified in an open source): the nitric acid make-up is a lower bound'
@@ -40,8 +41,10 @@ system_boundary:
   - 'TODO organics in the effluent: the BREF gives < 3 kg TOC/t after biological treatment, which belongs to
     the treatment activity'
   - 'TODO heat recovered from the reaction: no credit in the cut-off model, so the steam is gross'
-  - storage and handling emissions (carboxylic acids, odour), and the KA-section residue's own treatment (an
-    output to treatment, not linked)
+  - storage and handling emissions (carboxylic acids, odour)
+  - 'heat of the residue burned on site (about 255 kg/t): not credited against the fuel or steam, which are
+    taken as the energy bought in (ASSUMED); NOx, CO and the cobalt and chromium compounds that AP-42 6.2.2 finds
+    in its flue gas are not counted'
   - the phenol hydrogenation and borate-promoted routes to KA, and thermal destruction or recycle of N2O
   - infrastructure
   cutoff: none applied; the excluded flows are not quantified
@@ -58,7 +61,8 @@ time:
 modelling:
   principle: attributional
   multifunctionality: 'single output: no allocation. The dibasic acids, which some plants sell (AP-42 6.2.2),
-    and the residue are outputs without a burden share; the cut-off model gives them no credit.'
+    are an output without a burden share; the cut-off model gives them no credit. The residue is burned on site
+    (its CO2 is counted here) and its heat is not credited.'
 uuid: 785edda7-106b-575d-822b-05524d37f493
 version: 0.1.0
 methodology_version: 1.0.0
@@ -330,23 +334,25 @@ exchanges:
 - key: feed:oxygen
   title: Oxygen from process air (stripping, NOx reabsorption and oxidation air)
   type: input
-  amount: 442.01659844464393
+  amount: 805.2336237484283
   unit: kg
-  formula: (4 * aa / M_AA + 4 * ((6 * (aa / (M_AA * y_aa * y_ka) - aa / (M_AA * y_aa)) - (co_1 / M_CO + co2_1
-    / M_CO2 + ch4_1 / M_CH4 + 4 * voc_1 / M_VOC)) / 6 * M_RES) / M_RES + 4 * ((6 * (aa / (M_AA * y_aa) - aa
-    / M_AA) - co2_2 / M_CO2 - co_2 / M_CO - 4 * voc_2 / M_VOC) / 5 * M_DBA) / M_DBA + 2 * ((co_1 / M_CO + co2_1
-    / M_CO2 + ch4_1 / M_CH4 + 4 * voc_1 / M_VOC) * M_CO2 + co2_2) / M_CO2 + co_2 / M_CO + 2 * nox / M_NO2 +
-    n2o_gen / M_N2O + ((2 * ch4_1 / M_CH4 + 5 * voc_1 / M_VOC) * M_H2O + (12 * aa / (M_AA * y_aa * y_ka) +
-    17 * (2 * n2o_gen / M_N2O + nox / M_NO2) / 3 - 10 * aa / M_AA - 10 * ((6 * (aa / (M_AA * y_aa * y_ka) -
-    aa / (M_AA * y_aa)) - (co_1 / M_CO + co2_1 / M_CO2 + ch4_1 / M_CH4 + 4 * voc_1 / M_VOC)) / 6 * M_RES) /
-    M_RES - 8 * ((6 * (aa / (M_AA * y_aa) - aa / M_AA) - co2_2 / M_CO2 - co_2 / M_CO - 4 * voc_2 / M_VOC) /
-    5 * M_DBA) / M_DBA - 2 * (2 * ch4_1 / M_CH4 + 5 * voc_1 / M_VOC) * M_H2O / M_H2O - 10 * voc_2 / M_VOC)
-    / 2 * M_H2O) / M_H2O - 16 * (2 * n2o_gen / M_N2O + nox / M_NO2) / 3) / 2 * M_O2
+  formula: (4 * aa / M_AA + 4 * ((6 * (aa / (M_AA * y_aa * y_ka) - aa / (M_AA * y_aa)) - (co_1 / M_CO + co2_1 /
+    M_CO2 + ch4_1 / M_CH4 + 4 * voc_1 / M_VOC)) / 6 * M_RES) / M_RES + 4 * ((6 * (aa / (M_AA * y_aa) - aa / M_AA) -
+    co2_2 / M_CO2 - co_2 / M_CO - 4 * voc_2 / M_VOC) / 5 * M_DBA) / M_DBA + 2 * ((co_1 / M_CO + co2_1 / M_CO2 +
+    ch4_1 / M_CH4 + 4 * voc_1 / M_VOC) * M_CO2 + co2_2) / M_CO2 + co_2 / M_CO + 2 * nox / M_NO2 + n2o_gen / M_N2O +
+    ((2 * ch4_1 / M_CH4 + 5 * voc_1 / M_VOC) * M_H2O + (12 * aa / (M_AA * y_aa * y_ka) + 17 * (2 * n2o_gen / M_N2O +
+    nox / M_NO2) / 3 - 10 * aa / M_AA - 10 * ((6 * (aa / (M_AA * y_aa * y_ka) - aa / (M_AA * y_aa)) - (co_1 / M_CO +
+    co2_1 / M_CO2 + ch4_1 / M_CH4 + 4 * voc_1 / M_VOC)) / 6 * M_RES) / M_RES - 8 * ((6 * (aa / (M_AA * y_aa) - aa /
+    M_AA) - co2_2 / M_CO2 - co_2 / M_CO - 4 * voc_2 / M_VOC) / 5 * M_DBA) / M_DBA - 2 * (2 * ch4_1 / M_CH4 + 5 *
+    voc_1 / M_VOC) * M_H2O / M_H2O - 10 * voc_2 / M_VOC) / 2 * M_H2O) / M_H2O - 16 * (2 * n2o_gen / M_N2O + nox /
+    M_NO2) / 3) / 2 * M_O2 + 6.5 * (6 * (aa / (M_AA * y_aa * y_ka) - aa / (M_AA * y_aa)) - (co_1 / M_CO + co2_1 /
+    M_CO2 + ch4_1 / M_CH4 + 4 * voc_1 / M_VOC)) / 6 * M_O2
   provenance: calculated
   origin: estimate
   free: true
-  source: closes the oxygen balance; ambient air carries no burden and its nitrogen passes through (not inventoried,
-    as core's tier convention)
+  source: 'closes the oxygen balance, including the combustion of the KA-section residue on site (C6H10O4 + 6.5 O2
+    -> 6 CO2 + 5 H2O); ambient air carries no burden and its nitrogen passes through (not inventoried, as core''s
+    tier convention)'
   pedigree:
     scores:
     - 4
@@ -434,30 +440,6 @@ exchanges:
     gsd2: 1.095
     source: 'fuel, from BPT to the Western European average: range 277.8 to 333.3 read as a 95 % interval,
       gsd2 = sqrt(high / low) (our convention; the amount stays the stated value)'
-- key: output:residue
-  title: Non-volatile residue and by-product acids of the KA section, to incineration or fuel use
-  type: output
-  amount: 255.21432835679948
-  unit: kg
-  formula: (6 * (aa / (M_AA * y_aa * y_ka) - aa / (M_AA * y_aa)) - (co_1 / M_CO + co2_1 / M_CO2 + ch4_1 / M_CH4
-    + 4 * voc_1 / M_VOC)) / 6 * M_RES
-  provenance: calculated
-  source: 'closes the carbon balance of the cyclohexane oxidation: what is converted but leaves neither as
-    KA nor in the off-gas. Modelled as C6H10O4 (ASSUMED; the BREF, 2.1.2.2.3, names adipic, glutaric and succinic
-    acids as by-products, and AP-42 names the non-volatile residue that may be burned as fuel)'
-  pedigree:
-    scores:
-    - 4
-    - 4
-    - 4
-    - 4
-    - 4
-    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
-      4, technological 4'
-  basic_uncertainty: 1.05
-  uncertainty:
-    gsd2: 1.5
-    source: 'ASSUMED: a residual of the KA yield; at 75 % and 80 % it moves by about +/- 15 %'
 - key: output:dibasic-acids
   title: Dibasic acids (glutaric and succinic) in the mother-liquor bleed, to recovery or treatment
   type: output
@@ -511,11 +493,11 @@ exchanges:
     gsd2: 1.2
     source: 'ASSUMED: follows the nitric acid make-up'
 - key: emission:CO2
-  title: 'CO2, fossil: KA-section off-gas burned, and the nitric acid oxidation'
+  title: 'CO2, fossil: KA-section off-gas and residue burned on site, and the nitric acid oxidation'
   type: emission
-  amount: 159.51751497702946
+  amount: 620.646856712645
   unit: kg
-  formula: (co_1 / M_CO + co2_1 / M_CO2 + ch4_1 / M_CH4 + 4 * voc_1 / M_VOC) * M_CO2 + co2_2
+  formula: 6 * (aa / (M_AA * y_aa * y_ka) - aa / (M_AA * y_aa)) * M_CO2 + co2_2
   provenance: calculated
   origin: literature
   cas: 124-38-9
@@ -528,10 +510,13 @@ exchanges:
     categories:
     - air
     unit: kg
-  source: 'the carbon of the KA-section off-gas (its CO, CO2, CH4 and organics, AP-42 Table 6.2-1) as CO2,
-    burning it in process heaters being ASSUMED (AP-42 6.2.3: it may be used as fuel), plus the CO2 of the
-    nitric acid oxidation (AP-42 Table 6.2-2); biosphere3 UUID, name and categories from core''s elementary-flow
-    crosswalk (data/elementary-flows.yaml: ecoinvent elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  source: 'the carbon converted in the cyclohexane oxidation that does not end in the KA, as CO2: the KA-section
+    off-gas (its CO, CO2, CH4 and organics, AP-42 Table 6.2-1) and the non-volatile residue (C6H10O4, the carbon
+    residual of the KA yield), both burned on site in process heaters (ASSUMED; AP-42 6.2.3: the off-gas and the
+    residue may be used as fuel), plus the CO2 of the nitric acid oxidation (AP-42 Table 6.2-2). The residue gives
+    about 461 of the 621 kg/t. Its heat is not credited against feed:fuel or feed:steam: the IEA averages are taken
+    as the energy bought in (ASSUMED). biosphere3 UUID, name and categories from core''s elementary-flow crosswalk
+    (data/elementary-flows.yaml: ecoinvent elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
   pedigree:
     scores:
     - 3
@@ -546,11 +531,12 @@ exchanges:
     gsd2: 2.0
     source: 'ASSUMED: factors of rating D and E from few plants'
 - key: emission:H2O
-  title: Water vapour from burning the KA-section off-gas
+  title: Water vapour from burning the KA-section off-gas and residue
   type: emission
-  amount: 13.309473389707732
+  amount: 170.611485314676
   unit: kg
-  formula: (2 * ch4_1 / M_CH4 + 5 * voc_1 / M_VOC) * M_H2O
+  formula: (2 * ch4_1 / M_CH4 + 5 * voc_1 / M_VOC) * M_H2O + 5 * (6 * (aa / (M_AA * y_aa * y_ka) - aa / (M_AA *
+    y_aa)) - (co_1 / M_CO + co2_1 / M_CO2 + ch4_1 / M_CH4 + 4 * voc_1 / M_VOC)) / 6 * M_H2O
   provenance: calculated
   origin: estimate
   cas: 7732-18-5
@@ -564,9 +550,9 @@ exchanges:
     - air
     unit: m3
     per_unit: 0.001
-  source: 'the hydrogen of the off-gas methane and organics burned (ASSUMED, as emission:CO2); biosphere3 UUID,
-    name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent elementary
-    exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  source: 'the hydrogen of the off-gas methane and organics and of the residue (C6H10O4), burned on site (ASSUMED,
+    as emission:CO2); biosphere3 UUID, name and categories from core''s elementary-flow crosswalk
+    (data/elementary-flows.yaml: ecoinvent elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
   pedigree:
     scores:
     - 4
@@ -722,7 +708,8 @@ provenance:
 generation:
   tier: 1
   method: 'sourced conceptual inventory: yields (US EPA 1991), energy (IEA 2009), N2O (IPCC 2006) and air emissions
-    (AP-42 1995) with stoichiometry; oxygen, water, residue and dibasic acids close the element balance'
+    (AP-42 1995) with stoichiometry; oxygen, water and dibasic acids close the element balance, and the
+    residue (the carbon residual of the KA yield) is burned on site'
   maturity_cap: sourced
   pedigree_floor:
   - 3
@@ -736,7 +723,6 @@ generation:
     feed:cyclohexane: C6H12
     feed:nitric-acid: (HNO3)3(H2O)7
     feed:oxygen: O2
-    output:residue: C6H10O4
     output:dibasic-acids: C5H8O4
     output:wastewater: H2O
     emission:CO2: CO2
@@ -750,7 +736,6 @@ generation:
     feed:cyclohexane: C6H12
     feed:nitric-acid: (HNO3)3(H2O)7
     feed:oxygen: O2
-    output:residue: C6H10O4
     output:dibasic-acids: C5H8O4
     output:wastewater: H2O
     emission:CO2: CO2
@@ -773,8 +758,8 @@ generation:
       - 193.417355568
       - 193.417355568
       O:
-      - 1620.278618569
-      - 1620.278618569
+      - 1983.495643873
+      - 1983.495643873
     outside:
     - feed:electricity
     - feed:steam

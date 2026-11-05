@@ -3,23 +3,27 @@
 # from the cited source, in our own form.
 #
 # terephthalic-acid-1:
-# These references are independent of the dataset's numbers (the dataset takes its feeds from
-# patent CN105001073A and its utilities from the MIDDEN report's Table 3), but all three values sit
-# outside their range, each with a reason. Read them as a statement of how far the open sources
-# disagree, not as a validation.
+# The bound references are independent of the dataset's numbers (the dataset takes its feeds from
+# patent CN105001073A, its electricity from the MIDDEN report's Table 3 and its steam from the IEA
+# paper's best-practice value), but all three values sit outside their range, each with a reason.
+# Read them as a statement of how far the open sources disagree, not as a validation. The IEA's PTA
+# figures are recorded beside the energy KPI and not bound, because the dataset's steam is one of them.
 #
 # adipic-acid-1:
 # Independence: the two N2O KPIs are bound to sources the datasets do not use (AP-42 for the
-# generation, the EU ETS benchmark study for the abated emission). The energy KPIs share the IEA
-# source with the datasets and only show where the datasets sit between best practice and the
-# average. No open source with a cyclohexane or nitric acid consumption per t was found.
+# generation, the EU ETS benchmark study for the abated emission). The energy KPIs record
+# no_open_reference: the only open figures found are the IEA paper's, which the datasets use, and a
+# check against a dataset's own source would pass by construction (as bref-lvoc-vcm-ethylene in
+# chlorinated-organics.yaml). No open source with a cyclohexane or nitric acid consumption per t was
+# found.
 #
 # propylene-oxide-1:
 # Independence: the chlorine and propylene references (ANL 1980) and the calcium chloride references
 # are not used by the dataset, which takes the feeds and the salt from stoichiometry with the patent's
 # DCP. The effluent is bound to the patent's 43 t, not to the BREF's 40 t that the dataset uses. The
-# DCP reference is the dataset's own source (transcription only). The electricity reference (ANL 1980)
-# is not used by the dataset, which takes core's Tier 0 default.
+# DCP and steam KPIs record no_open_reference: their only open figures are the dataset's own sources
+# (the patent's DCP range, the IEA paper's PO steam). The electricity reference (ANL 1980) is not used
+# by the dataset, which takes the IEA paper's Western European PO average.
 schema: cheme-as-code/benchmarks/v1
 family: oxygenates
 
@@ -82,6 +86,23 @@ kpis:
           locator: Section 2.3, p. 23
           kind: government
           accessed: "2026-11-05"
+      - id: iea-2009-pta-energy
+        range: [2.9, 3.4]
+        basis: unallocated
+        note: >-
+          Electricity plus steam in final energy terms, from the best-practice value (0.3 + 2.6 GJ/t,
+          Table 1, p. 15, after Meyers 2005) to the estimated current Western European average (1.7 +
+          1.7 GJ/t, Table 13, p. 51, after Boustead 2002), which also has 1.6 GJ/t of fuel that this KPI
+          does not count. The paper's footnote 1 to Table 1 converts final to primary energy at 90 %
+          for steam and 40 % for power; in primary terms with the fuel, the average is 7.6 GJ/t. The
+          route is not named. Not bound: the dataset's steam is the best-practice value.
+        conditions: {technology: "PTA production, route not named", region: Western Europe, year: 2009}
+        source:
+          citation: "Saygin, D., Patel, M.K., Tam, C., Gielen, D.J. (2009) Chemical and Petrochemical Sector: Potential of best practice technology and other measures for improving energy efficiency. IEA Information Paper, OECD/IEA, Paris"
+          url: https://iea.blob.core.windows.net/assets/c2d071e4-4142-44f1-8a41-88ece29be439/ChemicalandPetrochemicalSector.pdf
+          locator: Table 1, p. 15, and Table 13, p. 51
+          kind: iea
+          accessed: "2026-11-05"
   aa-n2o-generation:
     title: N2O generated per t of adipic acid, before abatement
     unit: kg/t
@@ -132,28 +153,22 @@ kpis:
   aa-specific-steam:
     title: Steam (as heat) per t of adipic acid
     unit: kWh/t
-    references:
-      - id: iea-2009-aa-steam
-        range: [5138.9, 7138.9]
-        basis: unallocated
-        note: From the best-practice value (18.5 GJ/t, Table 1, p. 14, which footnote 2 marks as estimated) to the estimated current Western European average (25.7 GJ/t, Table 13, p. 50), both after Chauvel and Lefebvre (1989), converted at 3.6 MJ/kWh. Not independent of the datasets, which take the average from the same paper.
-        conditions: {technology: adipic acid production, region: Western Europe, year: 2009}
-        source: &iea
-          citation: "Saygin, D., Patel, M.K., Tam, C., Gielen, D.J. (2009) Chemical and Petrochemical Sector: Potential of best practice technology and other measures for improving energy efficiency. IEA Information Paper, OECD/IEA, Paris"
-          url: https://iea.blob.core.windows.net/assets/c2d071e4-4142-44f1-8a41-88ece29be439/ChemicalandPetrochemicalSector.pdf
-          locator: Table 1, p. 14, and Table 13, p. 50
-          kind: iea
-          accessed: "2026-11-05"
+    no_open_reference: >-
+      No open source with an adipic acid steam figure independent of the datasets found (2026-11-05).
+      The IEA information paper (Saygin et al. 2009) gives 18.5 GJ/t at best practice (Table 1, p. 14,
+      estimated, footnote 2) and 25.7 GJ/t as the estimated current Western European average (Table 13,
+      p. 50), both after Chauvel and Lefebvre (1989), that is 5139 to 7139 kWh/t; the datasets take the
+      average, so binding it would be transcription only. Also read: LVOC BREF 2017 section 2.1.2.3.3, the
+      EU ETS benchmark study of 2009 chapter 6 (CO2 of the steam only), EPA-450/3-91-026 and AP-42 6.2 (no
+      energy figures).
   aa-specific-electricity:
     title: Electricity per t of adipic acid
     unit: kWh/t
-    references:
-      - id: iea-2009-aa-electricity
-        range: [138.9, 388.9]
-        basis: unallocated
-        note: From the best-practice value (0.5 GJ/t) to the estimated current Western European average (1.4 GJ/t), converted at 3.6 MJ/kWh. Not independent of the datasets.
-        conditions: {technology: adipic acid production, region: Western Europe, year: 2009}
-        source: *iea
+    no_open_reference: >-
+      No open source with an adipic acid electricity figure independent of the datasets found
+      (2026-11-05), in the same documents as aa-specific-steam. The IEA paper gives 0.5 GJ/t at best
+      practice and 1.4 GJ/t as the Western European average (139 to 389 kWh/t); the datasets take the
+      average.
   aa-specific-cyclohexane:
     title: Cyclohexane consumption per t of adipic acid
     unit: kg/t
@@ -240,13 +255,24 @@ kpis:
   po-chlorohydrin-dcp:
     title: 1,2-Dichloropropane by-product per t of propylene oxide
     unit: t/t
-    references:
-      - id: us4560451-po-dcp
-        range: [0.1, 0.2]
-        basis: unallocated
-        note: The dataset's own source, whose midpoint it takes; not an independent check.
-        conditions: {technology: "conventional chlorohydrin process with lime slurry", region: US, year: 1983}
-        source: *patent
+    no_open_reference: >-
+      No open source with a DCP figure independent of the dataset found (2026-11-05). US 4,560,451
+      (description of the prior art) gives 0.1 to 0.2 t per t for the conventional lime process, the
+      dataset's own source, whose midpoint it takes. ANL/CNSV-9 (1980, Fig. 4.58) states no by-product;
+      its chlorine and propylene figures imply about 0.58 t of by-products per t (README), which is a
+      reading, not a stated value. The LVOC BREF 2017 section 2.1.2.8 gives no DCP figure.
+  po-chlorohydrin-specific-steam:
+    title: Steam (as heat) per t of propylene oxide, chlorohydrin process
+    unit: kWh/t
+    no_open_reference: >-
+      No open source with a steam figure for the chlorohydrin process independent of the dataset found
+      (2026-11-05). The IEA information paper (Saygin et al. 2009) gives 18.0 GJ/t as the Western European
+      average for propylene oxide (Table 13, p. 51, route not named) and 14.2 GJ/t at best practice (Table
+      1, p. 15, estimated as 20 % below), that is 3944 to 5000 kWh/t; the dataset takes the average, so
+      binding it would be transcription only. ANL/CNSV-9 (1980, Fig. 4.58) shows no steam input (see
+      po-chlorohydrin-specific-electricity). The sensible heat of the brine, about 2322 kWh/t, is a lower
+      bound by first principles, not a reference. Also read: LVOC BREF 2017 section 2.1.2.8 and US 4,560,451
+      (no energy figures).
   po-chlorohydrin-specific-electricity:
     title: Electricity per t of propylene oxide, chlorohydrin process
     unit: kWh/t
@@ -276,7 +302,7 @@ datasets:
         expression: (feed:electricity + feed:steam) / product:terephthalic-acid
         per: product:terephthalic-acid
         reference: lbnl-pta-energy
-        out_of_range_reason: "The dataset's 1.33 GJ/t is one EU plant's useful electricity and steam (MIDDEN report Table 3), probably net of the off-gas expander's power and of steam raised from the reaction heat. The reference range is not stated on that basis and may be primary or gross energy, so the gap is mainly one of definition. The MIDDEN plant is also Eastman-based with post-oxidation and no hydrogenation step, so the energy of the hydropurification modelled here may be missing. The steam remains the main energy uncertainty of the dataset (README)."
+        out_of_range_reason: "The dataset's 2.95 GJ/t is final energy: one EU plant's electricity (MIDDEN report Table 3) and the IEA's best-practice steam for PTA (2.6 GJ/t; the IEA figures are recorded beside the range as iea-2009-pta-energy). LBNL does not state its basis. The IEA's Western European average in primary energy with its 1.6 GJ/t of fuel, 7.6 GJ/t, lies inside the range, so most of the gap is the primary basis and the fuel, which the dataset does not count (a plant that fires its hydropurification heaters would need it). The steam remains the main energy uncertainty of the dataset (README)."
   - process: adipic-acid-1
     dataset: adipic-acid-ka-nitric-catalytic-n2o-abatement
     conditions: {technology: "cobalt-catalysed cyclohexane oxidation, nitric acid oxidation, catalytic N2O decomposition at IPCC defaults", basis: conceptual inventory}
@@ -291,8 +317,8 @@ datasets:
         per: product:adipic-acid
         reference: ecofys-2009-de-aa-co2eq
         out_of_range_reason: "The dataset applies the IPCC defaults for catalytic destruction, 92.5 % destruction at 89 % utilisation, an overall 82 % removal; the German production of 2001 to 2007 removed about 86 to 94 % on the reading of the reference. Thermal destruction (IPCC 98.5 % at 97 %) or a higher utilisation would fall inside."
-      aa-specific-steam: {expression: feed:steam / product:adipic-acid, per: product:adipic-acid, reference: iea-2009-aa-steam}
-      aa-specific-electricity: {expression: feed:electricity / product:adipic-acid, per: product:adipic-acid, reference: iea-2009-aa-electricity}
+      aa-specific-steam: {expression: feed:steam / product:adipic-acid, per: product:adipic-acid}
+      aa-specific-electricity: {expression: feed:electricity / product:adipic-acid, per: product:adipic-acid}
       aa-specific-cyclohexane: {expression: feed:cyclohexane / product:adipic-acid, per: product:adipic-acid}
       aa-specific-nitric-acid: {expression: feed:nitric-acid * 0.59985 / product:adipic-acid, per: product:adipic-acid}
   - process: adipic-acid-1
@@ -304,8 +330,8 @@ datasets:
         per: product:adipic-acid
         reference: ap42-aa-n2o-uncontrolled
         out_of_range_reason: "The datasets take the IPCC default of 300 kg/t; AP-42's 291 kg/t from two US plants is 3 % lower and inside the IPCC's +/- 10 %."
-      aa-specific-steam: {expression: feed:steam / product:adipic-acid, per: product:adipic-acid, reference: iea-2009-aa-steam}
-      aa-specific-electricity: {expression: feed:electricity / product:adipic-acid, per: product:adipic-acid, reference: iea-2009-aa-electricity}
+      aa-specific-steam: {expression: feed:steam / product:adipic-acid, per: product:adipic-acid}
+      aa-specific-electricity: {expression: feed:electricity / product:adipic-acid, per: product:adipic-acid}
       aa-specific-cyclohexane: {expression: feed:cyclohexane / product:adipic-acid, per: product:adipic-acid}
       aa-specific-nitric-acid: {expression: feed:nitric-acid * 0.59985 / product:adipic-acid, per: product:adipic-acid}
   - process: propylene-oxide-1
@@ -332,9 +358,10 @@ datasets:
         per: product:propylene-oxide
         reference: us4560451-po-wastewater
         out_of_range_reason: "The dataset takes the LVOC BREF's newer 40 t/t (2017); the patent's 43 t of 1983 is the independent single value, 7 % higher."
-      po-chlorohydrin-dcp: {expression: output:dichloropropane / product:propylene-oxide, per: product:propylene-oxide, reference: us4560451-po-dcp}
+      po-chlorohydrin-dcp: {expression: output:dichloropropane / product:propylene-oxide, per: product:propylene-oxide}
+      po-chlorohydrin-specific-steam: {expression: feed:steam / product:propylene-oxide, per: product:propylene-oxide}
       po-chlorohydrin-specific-electricity:
         expression: feed:electricity / product:propylene-oxide
         per: product:propylene-oxide
         reference: anl-1980-po-chlorohydrin-energy
-        out_of_range_reason: "The dataset uses core's Tier 0 default (ASSUMED). ANL's single figure, read literally as electricity, is about 12 times higher; with no steam input shown beside it although the brine is steam-stripped, it is taken to cover all utilities, so it is not used (README)."
+        out_of_range_reason: "The dataset takes the IEA's Western European average for propylene oxide (1.0 GJ/t, route not named; ASSUMED to apply). ANL's single figure, read literally as electricity, is about 14 times higher; with no steam input shown beside it although the brine is steam-stripped, it is taken to cover all utilities, so it is not used (README)."

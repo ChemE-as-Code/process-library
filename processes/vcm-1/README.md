@@ -8,7 +8,7 @@
 
 This entry is a manifest and an LCI dataset only. It has no flowsheet and no simulation. The basis is one tonne of VCM. Ethylene is chlorinated directly with chlorine and oxychlorinated with the recycled HCl and oxygen. The EDC is purified and cracked thermally to VCM and HCl, and all of the HCl goes back to oxychlorination, so no EDC or HCl crosses the boundary.
 
-## Why this route
+## Route
 
 The LVOC BREF (section 11.2.2) says about 90 % of the world's plants run this balanced process. It is also the IPCC 2006 default for EDC/VCM (Table 3.11). The dataset assumes oxygen-based oxychlorination: about two thirds of the EU installations in the BREF data collection use pure oxygen, and nearly all built since 1990 do (section 11.4.1.1.2). Thermal cracking is the only cracking route used in Europe. The plants are large and highly automated (section 11.1), and all the reaction and separation steps run continuously. The periodic steps are furnace decoking, as seldom as once every one or two years (section 11.2.3.1), and, for fixed-bed oxychlorination only, the replacement of the catalyst charge (section 11.3.6); fluidised beds lose catalyst continuously.
 
@@ -39,7 +39,7 @@ Direct CO2 comes out at 0.240 t/t. That is below the IPCC default of 0.294 t/t, 
 
 ## What is weak
 
-- **All excess chlorine goes to the residues.** This is a modelling choice. Real plants also lose chlorine as HCl or NaCl in scrubber effluents, or sell hydrochloric acid. Many sites burn the residues on site and recycle the recovered HCl to oxychlorination (section 11.2.2.6). Our reading is that the source's 0.59 kg/kg is the plants' net chlorine use, so that recovery is already inside it: modelling it would move the excess chlorine from the organic residues to scrubber effluents, and would leave the chlorine feed unchanged. Here the residues are an output to treatment.
+- **All excess chlorine goes to the residues.** This is a modelling choice. Real plants also lose chlorine as HCl or NaCl in scrubber effluents, or sell hydrochloric acid. Many sites burn the residues on site and recycle the recovered HCl to oxychlorination (section 11.2.2.6). Our reading is that the source's 0.59 kg/kg is the plants' net chlorine use, so that recovery is already inside it: modelling it would move the excess chlorine from the organic residues to scrubber effluents, and would leave the chlorine feed unchanged. Here the residues are an output to treatment. No Atlas entry treats them yet, so they are a mapping gap, and the CO2 of burning them (about 19 kg/t, 8 % of the direct CO2) is not in the footprint; it is one part of the gap to the IPCC default (`benchmarks/chlorinated-organics.yaml`).
 - **The vent treatment's emissions are not counted.** The source gives concentrations (HCl, Cl2, PCDD/F, VOC) but no flows. The ethylene burnt there is a balance residual.
 - **Steam is gross.** The 0.43 to 3.5 GJ/t of heat recovery in the same section is not credited.
 - **Electricity may be high.** The source says oxygen-based plants use less, but the dataset takes the midpoint of all plants.
@@ -50,7 +50,7 @@ Direct CO2 comes out at 0.240 t/t. That is below the IPCC default of 0.294 t/t, 
 ## Linking
 
 - The product has the registry slug `vinyl-chloride`. A PVC entry would consume it, but none exists yet.
-- Ethylene links to `ethylene-1`, chlorine to `chlor-alkali-1` and oxygen to `asu-1` GOX (`lca/mappings.yaml`).
+- Ethylene links to `ethylene-1`, chlorine to `chlor-alkali-1` and oxygen to `asu-1` GOX (`lca/mappings.yaml`). The library's other ethylene producer, `bio-ethylene-1`, makes biogenic ethylene from bio-ethanol; the BREF's EU plants take fossil ethylene from crackers by pipeline, so ethylene-1 is the producer that matches, and the link is not left open as in ethylbenzene-1.
 - Residues, coke, sludge and catalyst are reported mapping gaps, because the library has no hazardous-waste treatment entry yet.
 
 ## Not counted yet (TODO)
