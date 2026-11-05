@@ -1,0 +1,151 @@
+# Equipment datasheet. Schema: `cheme schema datasheet`. Drafted by `cheme datasheets draft`,
+# completed by scripts/datasheet_values.py (D-022); maintained by hand from now on.
+tag: D-7101
+type: PressureVessel
+service: BOG compressor suction drum
+operating:
+  outlet_pressure:
+    value: 108.0
+    unit: kPa(a)
+    source: 'process/flowsheet.yaml stream S14 (case average), assumed: scripts/terminal_sizing.py: D-010'
+    assumed: true
+  outlet_temperature:
+    value: 133.14999999999998
+    unit: K
+    source: 'process/flowsheet.yaml stream S14 (case average), assumed: scripts/terminal_sizing.py: D-010'
+    assumed: true
+  outlet_flow:
+    value: 38980.3
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S14 (case average), assumed: scripts/terminal_sizing.py: D-010'
+    assumed: true
+  pressure:
+    value: 108.0
+    unit: kPa(a)
+    source: 'scripts/terminal_sizing.py: loading BOG 49.1 t/h + 10 % (D-010)'
+    assumed: true
+  temperature:
+    value: -140.0
+    unit: °C
+    source: 'scripts/terminal_sizing.py: loading BOG 49.1 t/h + 10 % (D-010)'
+    assumed: true
+  flow:
+    value: 54000
+    unit: kg/h
+    source: 'scripts/terminal_sizing.py: loading BOG 49.1 t/h + 10 % (D-010)'
+    assumed: true
+design:
+  pressure_barg:
+    value: 3.5
+    unit: barg
+    source: equipment/equipment-list.yaml
+  temperature_degc:
+    value: -170.0
+    unit: degC
+    source: equipment/equipment-list.yaml
+materials:
+  main:
+    value: SS
+    source: equipment/equipment-list.yaml
+dimensions:
+  orientation: vertical
+  outside_diameter:
+    value: 3.6
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.diameter
+  overall_height:
+    value: 9.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.height
+  head:
+    value: ellipsoidal_2_1
+    source: equipment/equipment-list.yaml dimensions.head
+  support:
+    type:
+      value: skirt
+      source: equipment/equipment-list.yaml dimensions.support
+    height:
+      value: 1.98
+      unit: m
+      source: 'layout/plant-model.yaml parts D-7101/shell, D-7101/skirt: the bottom tangent line above
+        the base (the 3D model''s proportions, not a design)'
+      assumed: true
+  tangent_length:
+    value: 6.12
+    unit: m
+    source: 'layout/plant-model.yaml part D-7101/shell: the generated shell between the heads (the 3D
+      model''s proportions, not a vessel design)'
+    assumed: true
+weights:
+  empty:
+    value: 22.0
+    unit: t
+    source: equipment/equipment-list.yaml dimensions.weight (empty)
+nozzles:
+- name: N1
+  dn: 750
+  lines:
+  - BOG-1001
+  source: pid/P-07.xml
+- name: N2
+  dn: 750
+  lines:
+  - BOG-7001
+  source: pid/P-07.xml
+- name: N3
+  dn: 50
+  lines:
+  - DR-7001
+  source: pid/P-07.xml
+- name: N4
+  dn: 50
+  lines: []
+  source: pid/P-07.xml
+- name: N5
+  dn: 50
+  lines: []
+  source: pid/P-07.xml
+type_specific:
+  diameter_m:
+    value: 3.6
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  height_m:
+    value: 9.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  weight_t:
+    value: 22.0
+    unit: t
+    source: equipment/equipment-list.yaml dimensions
+  volume_m3:
+    value: 91.609
+    unit: m3
+    source: 'equipment/equipment-list.yaml dimensions: pi/4 D^2 x height (overall, including heads and
+      skirt: an upper bound)'
+    assumed: true
+  process_streams:
+  - stream: S7
+    direction: in
+    title: LNG spray to the BOG desuperheater
+    source: process/flowsheet.yaml (case average)
+  - stream: S6
+    direction: in
+    title: Vapour return over the trestle
+    source: process/flowsheet.yaml (case average)
+  - stream: S8
+    direction: in
+    title: Tank boil-off and displaced vapour
+    source: process/flowsheet.yaml (case average)
+  - stream: S14
+    direction: out
+    title: BOG after the desuperheater to the compressors
+    source: process/flowsheet.yaml (case average)
+sizing_basis:
+- parameter: basis
+  value: scripts/terminal_sizing.py (GERG-2008 via CoolProp) and the assumptions of DESIGN.md D-007 to
+    D-018, ASSUMED where marked
+  reference: D-022
+notes: Knock-out of spray droplets and LNG carry-over from the vapour return and the tank BOG; ~54 t/h
+  at 108 kPa(a), -140 degC (~32,000 m3/h); diameter from a K value of 0.1 m/s with margin (ASSUMED, D-010).
+  Desuperheater spray upstream (TV-7103).

@@ -35,9 +35,7 @@ failures:
     title: Loss of the ship-shore link
     response: "ESD-1 of the berth (I-501 / I-601): loading pumps stop, the shore ESD valve closes against the surge limit, the carrier's ESD trips."
     interlocks: [I-501, I-601]
-unresolved:
-  - "Surge analysis of the 2.45 km loading lines against the ESD closure times (D-016)."
-  - "The vapour-return capacity of one 16 inch arm at the assumed ship return (D-014)."
+unresolved: []
 ---
 
 # Control philosophy
@@ -85,5 +83,7 @@ See F-AIR, F-POWER, F-BOG and F-LINK in the front matter.
 
 ## Assumptions and open points
 
-Setpoints are ASSUMED; the surge analysis and the vapour-arm capacity are open (front matter,
-`unresolved`).
+Setpoints are ASSUMED. The surge on an ESD closure and the vapour-arm capacity were estimated
+in DESIGN.md D-023: the 25 s closure keeps the surge inside the line design, and a return
+above one vapour arm's capacity is burnt on board or the loading rate is reduced; both are to
+be confirmed against supplier and carrier data.

@@ -1,0 +1,113 @@
+# Equipment datasheet. Schema: `cheme schema datasheet`. Drafted by `cheme datasheets draft`,
+# completed by scripts/datasheet_values.py (D-022); maintained by hand from now on.
+tag: LA-6101
+type: LoadingUnloadingSystem
+service: Berth 1 LNG loading arm 1 (liquid)
+operating:
+  fluid:
+    value: LNG
+    source: 'scripts/terminal_sizing.py: 12,000 m3/h over three liquid-capable arms, ~4,000 m3/h each;
+      350 kPa(a) at the manifold (D-011, D-014)'
+  pressure:
+    value: 350.0
+    unit: kPa(a)
+    source: 'scripts/terminal_sizing.py: 12,000 m3/h over three liquid-capable arms, ~4,000 m3/h each;
+      350 kPa(a) at the manifold (D-011, D-014)'
+    assumed: true
+  temperature:
+    value: -160.2
+    unit: °C
+    source: 'scripts/terminal_sizing.py: 12,000 m3/h over three liquid-capable arms, ~4,000 m3/h each;
+      350 kPa(a) at the manifold (D-011, D-014)'
+    assumed: true
+  flow:
+    value: 4000
+    unit: m3/h
+    source: 'scripts/terminal_sizing.py: 12,000 m3/h over three liquid-capable arms, ~4,000 m3/h each;
+      350 kPa(a) at the manifold (D-011, D-014)'
+    assumed: true
+design:
+  pressure_barg:
+    value: 15.0
+    unit: barg
+    source: equipment/equipment-list.yaml
+  temperature_degc:
+    value: -170.0
+    unit: degC
+    source: equipment/equipment-list.yaml
+materials:
+  main:
+    value: SS
+    source: equipment/equipment-list.yaml
+dimensions:
+  overall_length:
+    value: 4.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.length
+  overall_width:
+    value: 3.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.width
+  overall_height:
+    value: 22.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.height
+weights:
+  empty:
+    value: 45.0
+    unit: t
+    source: equipment/equipment-list.yaml dimensions.weight (empty)
+nozzles:
+- name: N1
+  dn: 400
+  lines:
+  - LNG-6002
+  source: pid/P-06.xml
+- name: N2
+  dn: 400
+  lines:
+  - LNG-6011
+  source: pid/P-06.xml
+type_specific:
+  height_m:
+    value: 22.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  length_m:
+    value: 4.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  width_m:
+    value: 3.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  weight_t:
+    value: 45.0
+    unit: t
+    source: equipment/equipment-list.yaml dimensions
+  process_streams:
+  - stream: S3
+    direction: in
+    title: LNG at the jetty (loading berth)
+    source: process/flowsheet.yaml (case average)
+  - stream: S4
+    direction: out
+    title: LNG to the carrier
+    source: process/flowsheet.yaml (case average)
+  - stream: S5
+    direction: in
+    title: Carrier return vapour
+    source: process/flowsheet.yaml (case average)
+  - stream: S6
+    direction: out
+    title: Vapour return over the trestle
+    source: process/flowsheet.yaml (case average)
+  vendor_data:
+    value: supplier
+    source: 'vendor package: curves, seals, motor, envelope (enquiry in detail engineering)'
+sizing_basis:
+- parameter: basis
+  value: scripts/terminal_sizing.py (GERG-2008 via CoolProp) and the assumptions of DESIGN.md D-007 to
+    D-018, ASSUMED where marked
+  reference: D-022
+notes: As LA-5101; Berth 1 assumed identical to Berth 2 (D-014, D-019).

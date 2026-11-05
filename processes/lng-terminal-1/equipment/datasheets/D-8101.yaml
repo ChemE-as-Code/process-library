@@ -1,0 +1,118 @@
+# Equipment datasheet. Schema: `cheme schema datasheet`. Drafted by `cheme datasheets draft`,
+# completed by scripts/datasheet_values.py (D-022); maintained by hand from now on.
+tag: D-8101
+type: PressureVessel
+service: Storage and loading flare knock-out drum
+operating:
+  pressure:
+    value: 105.0
+    unit: kPa(a)
+    source: 'D-017: design case the BOG compressor trip at loading, ASSUMED'
+    assumed: true
+  temperature:
+    value: -150.0
+    unit: °C
+    source: 'D-017: design case the BOG compressor trip at loading, ASSUMED'
+    assumed: true
+  flow:
+    value: 54000
+    unit: kg/h
+    source: 'D-017: design case the BOG compressor trip at loading, ASSUMED'
+    assumed: true
+design:
+  pressure_barg:
+    value: 3.5
+    unit: barg
+    source: equipment/equipment-list.yaml
+  temperature_degc:
+    value: -170.0
+    unit: degC
+    source: equipment/equipment-list.yaml
+materials:
+  main:
+    value: SS
+    source: equipment/equipment-list.yaml
+dimensions:
+  orientation: horizontal
+  outside_diameter:
+    value: 4.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.diameter
+  overall_length:
+    value: 14.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.length
+  head:
+    value: ellipsoidal_2_1
+    source: equipment/equipment-list.yaml dimensions.head
+  support:
+    type:
+      value: saddles
+      source: equipment/equipment-list.yaml dimensions.support
+  tangent_length:
+    value: 12.0
+    unit: m
+    source: 'layout/plant-model.yaml part D-8101/shell: the generated shell between the heads (the 3D
+      model''s proportions, not a vessel design)'
+    assumed: true
+  axis_deg:
+    value: 0.0
+    unit: deg
+    source: layout/plant-model.yaml D-8101 rotation_deg (layout/equipment-placement.yaml)
+weights:
+  empty:
+    value: 35.0
+    unit: t
+    source: equipment/equipment-list.yaml dimensions.weight (empty)
+nozzles:
+- name: N1
+  dn: 900
+  lines:
+  - FL-8001
+  source: pid/P-08.xml
+- name: N2
+  dn: 900
+  lines:
+  - FL-8002
+  source: pid/P-08.xml
+- name: N3
+  dn: 100
+  lines:
+  - LNG-8002
+  source: pid/P-08.xml
+- name: N4
+  dn: 50
+  lines: []
+  source: pid/P-08.xml
+- name: N5
+  dn: 50
+  lines:
+  - DR-7001
+  source: pid/P-08.xml
+type_specific:
+  diameter_m:
+    value: 4.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  length_m:
+    value: 14.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  weight_t:
+    value: 35.0
+    unit: t
+    source: equipment/equipment-list.yaml dimensions
+  volume_m3:
+    value: 175.929
+    unit: m3
+    source: 'equipment/equipment-list.yaml dimensions: pi/4 D^2 x length (overall, including heads and
+      skirt: an upper bound)'
+    assumed: true
+sizing_basis:
+- parameter: basis
+  value: scripts/terminal_sizing.py (GERG-2008 via CoolProp) and the assumptions of DESIGN.md D-007 to
+    D-018, ASSUMED where marked
+  reference: D-022
+notes: 'On the storage and loading flare header: tank pressure control (PV-2111/3111 to flare), BOG compressor
+  trip at loading (~54 t/h), carrier de-inerting (BCER air permit PA-110588). Size ASSUMED (D-017); liquid
+  to the liquid burner of the site (outside the battery limit) by P-8101A/B.'

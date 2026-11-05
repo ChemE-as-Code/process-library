@@ -192,6 +192,18 @@ def main():
     # trestle line velocities
     v_vap = (ship_return_kgh + spray_kgh) / 2 / rho_bs / 3600 / (math.pi / 4 * ID_VAP ** 2)
 
+    # surge on an ESD closure of the loading line (D-023): wave speed of LNG in a thin-walled
+    # steel pipe ~1,150 m/s (ASSUMED); a closure slower than the line period 2L/a gives the
+    # slow-closure estimate dP ~ 2 rho L v / t_close (Michaud), the instant one rho a v
+    a_wave, t_close = 1150.0, 25.0                                  # m/s, s (ASSUMED)
+    period = 2 * L_LOADING / a_wave
+    dp_instant = rho_l * a_wave * v_l
+    dp_slow = 2 * rho_l * L_LOADING * v_l / t_close
+    p_surge = P_TANK + dp_pump + dp_slow
+    # vapour arm (D-023): one 16 inch arm (ID ~0.381 m) at a 40 m/s limit (ASSUMED)
+    arm_area = math.pi / 4 * 0.381 ** 2
+    arm_cap_kgh = 40.0 * arm_area * rho_sv * 3600
+
     rows = [
         ("LNG composition (mol)", {k: round(v, 5) for k, v in x.items()}),
         ("LNG molar mass, kg/kmol", round(m_lng, 3)),
@@ -225,6 +237,10 @@ def main():
         ("net cargo, Mt/a", round(net_cargo_tpa, 2)),
         ("BOG compressor each (3 x 50 %), t/h", round(k_each / 1000, 1)),
         ("BOG compressor discharge, degC / power each, kW", (round(t_d - 273.15, 1), round(p_comp_kw))),
+        ("surge: line period 2L/a, s / closure, s", (round(period, 1), t_close)),
+        ("surge: instant / slow-closure dP, kPa", (round(dp_instant / 1000), round(dp_slow / 1000))),
+        ("surge: peak pressure at the ESD valve, kPa(a) / barg", (round(p_surge / 1000), round((p_surge - 101.3e3) / 1e5, 1))),
+        ("vapour arm capacity at 40 m/s, t/h", round(arm_cap_kgh / 1000, 1)),
     ]
     for k, v in rows:
         print(f"{k:52s} {v}")

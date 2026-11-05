@@ -203,6 +203,27 @@ Conventions:
 8. Each ERS is two ball valves with their own UZ functions either side of the coupler; the
    coupler and the quick connect/disconnect coupler are part of the arm (vendor package).
 
+**D-022 Datasheets (detail stage).** `cheme datasheets draft` wrote one datasheet per item;
+`cheme datasheets fill` cannot size them (no property package for LNG, D-006, and most items
+have no flowsheet stream of their own), so `scripts/datasheet_values.py` completed them once
+from `scripts/terminal_sizing.py` and D-007 to D-018, every value with its source and ASSUMED
+where it is: in-tank loading pumps 3,000 m3/h at 132 m, ~640 kW shaft (efficiency 0.75); the
+circulation pumps 500 m3/h at 60 m; the BOG compressors 27 t/h, 108 -> 600 kPa(a), 1,397 kW gas
+power, 1,426 kW shaft. Curves, seals, motors and the arm envelopes are `supplier`.
+
+**D-023 Surge and vapour arm capacity (closes the two open points of the control
+philosophy).** (1) Surge: the loading line period 2L/a is 4.3 s (a ~1,150 m/s, ASSUMED); an ESD
+closure in 25 s (ASSUMED, ESD-1 stops the pumps first) is slow, and the slow-closure estimate
+2 rho L v / t gives +299 kPa, a peak of ~990 kPa(a) (8.9 barg) at the shore ESD valve, inside
+the 15 barg design of the lines and the arms (instant closure would add 1,753 kPa: the closure
+time is a safety requirement, recorded in I-501). A transient analysis in the supplier's tool
+confirms it before construction. (2) Vapour arm: one 16 inch arm carries ~23.5 t/h of the
+-120 degC return at 40 m/s (ASSUMED limit); the balance's 45.6 t/h (D-009) is the conservative
+design case of the BOG system (85 % of the pump and line heat flashing on board). Above the
+arm's capacity the carrier keeps its tank pressure by burning gas on board (allowed during
+loading, S-01) or the loading rate is reduced; the hybrid arm is the spare vapour path. Both
+checked against carrier data in detail engineering.
+
 ## 3. Results (concept)
 
 `cheme run scripts/terminal_sizing.py` prints the sizing summary. Headline numbers:

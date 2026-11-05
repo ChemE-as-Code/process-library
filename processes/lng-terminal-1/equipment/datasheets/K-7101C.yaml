@@ -1,0 +1,155 @@
+# Equipment datasheet. Schema: `cheme schema datasheet`. Drafted by `cheme datasheets draft`,
+# completed by scripts/datasheet_values.py (D-022); maintained by hand from now on.
+tag: K-7101C
+type: CentrifugalCompressor
+service: BOG compressor C (spare)
+operating:
+  outlet_pressure:
+    value: 600.0
+    unit: kPa(a)
+    source: 'process/flowsheet.yaml stream S9 (case average), assumed: scripts/terminal_sizing.py: D-010'
+    assumed: true
+  outlet_temperature:
+    value: 224.02
+    unit: K
+    source: 'process/flowsheet.yaml stream S9 (case average), assumed: scripts/terminal_sizing.py: D-010'
+    assumed: true
+  outlet_flow:
+    value: 38980.3
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S9 (case average), assumed: scripts/terminal_sizing.py: D-010'
+    assumed: true
+  fluid:
+    value: Boil-off gas (CH4 92 %, N2 8 % mol)
+    source: scripts/terminal_sizing.py
+  suction_pressure:
+    value: 108.0
+    unit: kPa(a)
+    source: 'scripts/terminal_sizing.py: 27 t/h each (50 % of the loading BOG + 10 %), 108 -> 600 kPa(a),
+      -140 degC suction, polytropic 0.78, ideal gas (D-010)'
+    assumed: true
+  suction_temperature:
+    value: -140.0
+    unit: °C
+    source: 'scripts/terminal_sizing.py: 27 t/h each (50 % of the loading BOG + 10 %), 108 -> 600 kPa(a),
+      -140 degC suction, polytropic 0.78, ideal gas (D-010)'
+    assumed: true
+  discharge_pressure:
+    value: 600.0
+    unit: kPa(a)
+    source: 'scripts/terminal_sizing.py: 27 t/h each (50 % of the loading BOG + 10 %), 108 -> 600 kPa(a),
+      -140 degC suction, polytropic 0.78, ideal gas (D-010)'
+    assumed: true
+  discharge_temperature:
+    value: -49.1
+    unit: °C
+    source: 'scripts/terminal_sizing.py: 27 t/h each (50 % of the loading BOG + 10 %), 108 -> 600 kPa(a),
+      -140 degC suction, polytropic 0.78, ideal gas (D-010)'
+    assumed: true
+  flow:
+    value: 27000
+    unit: kg/h
+    source: 'scripts/terminal_sizing.py: 27 t/h each (50 % of the loading BOG + 10 %), 108 -> 600 kPa(a),
+      -140 degC suction, polytropic 0.78, ideal gas (D-010)'
+    assumed: true
+design:
+  pressure_barg:
+    value: 9.0
+    unit: barg
+    source: equipment/equipment-list.yaml
+  temperature_degc:
+    value: -170.0
+    unit: degC
+    source: equipment/equipment-list.yaml
+materials:
+  main:
+    value: Low-temperature SS / 9 % Ni casing
+    source: equipment/equipment-list.yaml
+dimensions:
+  overall_length:
+    value: 9.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.length
+  overall_width:
+    value: 4.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.width
+  overall_height:
+    value: 4.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.height
+  support:
+    type:
+      value: base_plate
+      source: equipment/equipment-list.yaml dimensions.support
+  axis_deg:
+    value: 0.0
+    unit: deg
+    source: layout/plant-model.yaml K-7101C rotation_deg (layout/equipment-placement.yaml)
+weights:
+  empty:
+    value: 45.0
+    unit: t
+    source: equipment/equipment-list.yaml dimensions.weight (empty)
+nozzles:
+- name: N1
+  dn: 500
+  lines:
+  - BOG-7001
+  source: pid/P-07.xml
+- name: N2
+  dn: 300
+  lines:
+  - BOG-7007
+  source: pid/P-07.xml
+type_specific:
+  height_m:
+    value: 4.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  length_m:
+    value: 9.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  width_m:
+    value: 4.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  weight_t:
+    value: 45.0
+    unit: t
+    source: equipment/equipment-list.yaml dimensions
+  fluid_power_kw:
+    value: 1397
+    unit: kW
+    source: 'scripts/terminal_sizing.py: 27 t/h each (50 % of the loading BOG + 10 %), 108 -> 600 kPa(a),
+      -140 degC suction, polytropic 0.78, ideal gas (D-010)'
+    assumed: true
+  shaft_power_kw:
+    value: 1426
+    unit: kW
+    source: 'scripts/terminal_sizing.py: 27 t/h each (50 % of the loading BOG + 10 %), 108 -> 600 kPa(a),
+      -140 degC suction, polytropic 0.78, ideal gas (D-010); mechanical efficiency 0.98 ASSUMED'
+    assumed: true
+  process_streams:
+  - stream: S14
+    direction: in
+    title: BOG after the desuperheater to the compressors
+    source: process/flowsheet.yaml (case average)
+  - stream: S9
+    direction: out
+    title: Compressed BOG to the trains
+    source: process/flowsheet.yaml (case average)
+  - stream: E2
+    direction: in
+    title: BOG compressor motors (electric)
+    source: process/flowsheet.yaml (case average)
+  vendor_data:
+    value: supplier
+    source: 'vendor package: curves, seals, motor, envelope (enquiry in detail engineering)'
+sizing_basis:
+- parameter: basis
+  value: scripts/terminal_sizing.py (GERG-2008 via CoolProp) and the assumptions of DESIGN.md D-007 to
+    D-018, ASSUMED where marked
+  reference: D-022
+notes: As K-7101A; the third machine is the installed spare. ASSUMED.

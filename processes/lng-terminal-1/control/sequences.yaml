@@ -83,7 +83,7 @@ sequences:
           - {sequence: SEQ-HOLD, action: run, by: operator}
         complete: {text: "arms stowed"}
     abort:
-      condition: {any: [{interlock: I-501}, {interlock: I-503}]}
+      condition: {any: [{interlock: I-501, state: tripped}, {interlock: I-503, state: tripped}]}
       actions:
         - {sequence: SEQ-ESD, action: run, by: automatic}
       notes: "Any ESD ends the loading; ESD-2 also releases the arms."
@@ -111,9 +111,10 @@ sequences:
         on_timeout: abort
         operator: "Circulation out on line A, back on line B (D-008); the vapour return lines stay cold through the tank vapour."
     abort:
-      condition: {interlock: I-202}
+      condition: {interlock: I-202, state: tripped}
       actions:
         - {tag: P-2102, action: stop, by: automatic}
+    reset: {latching: true, manual: true, condition: {tag: LZT-2102, state: above the low-low trip}, restart: {text: "operator restarts SEQ-HOLD from S1"}}
 
   - id: SEQ-BOG-START
     title: Start a BOG compressor
@@ -141,9 +142,10 @@ sequences:
           - {loop: PIC-7101, action: auto, by: operator}
         complete: {loop: PIC-7101, state: in auto}
     abort:
-      condition: {any: [{interlock: I-701}, {interlock: I-702}]}
+      condition: {any: [{interlock: I-701, state: tripped}, {interlock: I-702, state: tripped}]}
       actions:
         - {tag: K-7101A, action: stop, by: automatic}
+    reset: {latching: true, manual: true, condition: {tag: LZT-7106, state: below the high-high trip}, restart: {text: "operator restarts SEQ-BOG-START from S1"}}
 
   - id: SEQ-ESD
     title: Berth ESD-1 / ESD-2 response
@@ -165,3 +167,9 @@ sequences:
           - {loop: PIC-1110, action: auto, by: operator}
         complete: {text: "the cause found and cleared; the carrier informed"}
         operator: "After ESD-2 the arms are released (I-503): the outboard ERS valves stay on the carrier side; recover the arms before any restart."
+    abort:
+      condition: {text: "none: the ESD response runs to the end"}
+      actions:
+        - {text: "no abort: the trips latch until reset", by: automatic}
+      notes: "The ESD response itself cannot be aborted."
+    reset: {latching: true, manual: true, condition: {text: "cause cleared, ship-shore link healthy, arms recovered after ESD-2"}, restart: {text: "the loading restarts from SEQ-LOAD S3 (cooldown) after ESD-1, from S1 after ESD-2"}}
