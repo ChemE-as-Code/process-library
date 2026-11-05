@@ -172,6 +172,16 @@ carry the IPCC category NCV their dataset allocates by, in the same form. A typi
 first process that needs one. A mixture entry may go in
 without a composition (the schema allows it), but no composition is entered without a source.
 
+The olefins and aromatics entries follow the same rule. butadiene-1 brought its two co-products
+from `crude-c4`, `c4-raffinate` (raffinate-1; the slug avoids the `<name>-1` form of a process id)
+and `c4-acetylenes-purge`, and btx-1 brought `aromatics-raffinate`, `heavy-aromatics` and `xylenes`,
+all mixtures. `reformate` got its first composition with btx-1: one typical slate of US DOE
+(2000), Table 4-1, with its source and the ASSUMED wt% reading in the entry;
+catalytic-reforming-1 keeps its own pseudo-formula. `xylenes` has a composition from the same
+source (Table 4-2). A mixture may carry a `cas` when a CAS number names the mixture itself, as
+1330-20-7 does for mixed xylenes; it then has no `inchikey` or `pubchem_cid`, since those name a
+single structure, and the entry's note says so.
+
 The minerals and metals entries of cement-clinker-1, lime-1, iron-steel-1 and aluminium-1 follow
 the same rule, although most of them are not fuels: ores and raw materials (`iron-ore`,
 `iron-ore-pellets`, `clay`, `dolomite`), coals and oil (`coking-coal`, `hard-coal`,

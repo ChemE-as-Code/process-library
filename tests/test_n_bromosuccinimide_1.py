@@ -14,7 +14,7 @@ process-library#382):
   with F-101's hours per batch, not its number of units;
 - the 25 C solubility entered as a `value` at 278 K is recorded as a workaround of core's
   no-extrapolation rule (core ADR 0025, lesson L-8);
-- no core release is claimed that does not exist (core main 7334d7c is unreleased).
+- the core version the work-up rests on is the release the library pins (1.8.0).
 """
 
 from __future__ import annotations
@@ -137,8 +137,11 @@ def test_solubility_value_recorded_as_workaround():
 
 
 @pytest.mark.parametrize("rel", ["DESIGN.md", "scripts/balance.py"])
-def test_no_unreleased_core_claimed_as_released(rel):
-    # core main 7334d7c (ADRs 0056, 0057) is unreleased: "1.8.0 when released" until the tag
+def test_the_core_version_claimed_is_the_pinned_release(rel):
+    # the work-up rests on core 1.8.0 (ADRs 0056, 0057), the release the library pins; no
+    # unreleased core commit is named as its basis
     text = _text(rel)
-    for claim in ("released as 1.8.0", "Resolved in core 1.8.0", "Since core 1.8.0"):
+    for claim in ("when released", "unreleased", "core main 7334d7c"):
         assert claim not in text, f"{rel}: {claim!r}"
+    workflow = (KIT / ".github" / "workflows" / "validate.yml").read_text(encoding="utf-8")
+    assert "core v1.8.0" in workflow

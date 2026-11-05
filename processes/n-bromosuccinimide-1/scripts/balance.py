@@ -4,7 +4,7 @@ Year-average flows (kg/h, the recipe's basis, D-003) of the caustic bromination 
 succinimide: C4H5NO2 + NaOH + Br2 -> C4H4BrNO2 + NaBr + H2O, Br2 dosed into the cold alkaline
 succinimide solution, NBS precipitating, a reslurry wash, drying.
 
-Since core main 7334d7c (1.8.0 when released) every step is calculated by cheme from
+Since core 1.8.0 every step is calculated by cheme from
 process/flowsheet.yaml (`cheme process propagate --fill`): the semi-batch R101, the precipitation CR101 and the reslurry wash W101 as
 crystallizers with spectators (core ADR 0056), the filters F101 and F102 as specified splits,
 the dryer D101 to its residual moisture, and its heat Q3 (core ADR 0057, `cheme process

@@ -8,9 +8,9 @@ LCI. Out of scope here: P&IDs, layout, HAZOP, TEA, datasheets.
 
 Starting point (2026-11-05): library `main` at 256f1dc9; cheme-as-code 1.7.0 (core#158:
 `reactor: semibatch`, `process/recipe.yaml` with batch vessels, per-batch LCA consumables; core
-ADRs 0050 to 0053). Work-up re-expressed (D-014, 2026-11-05) on core main 7334d7c (unreleased;
-to be 1.8.0, core#165: the crystallizer with spectators, the dryer and recipe units over several
-steps; core ADRs 0056, 0057, still proposed).
+ADRs 0050 to 0053). Work-up re-expressed (D-014, 2026-11-05) on cheme-as-code 1.8.0
+(core#165: the crystallizer with spectators, the dryer and recipe units over several steps;
+core ADRs 0056, 0057).
 
 ## Source register
 
@@ -118,7 +118,7 @@ D-007 is conservative.
 confirmed by reaction calorimetry (heat flow during the dosing) before basic engineering.
 Rejected at first: core 1.7.0's crystallizer, which refused any component besides its one
 solute and solvent while the mother liquor holds NaBr, NaOH and succinimide (lesson L-2). Core
-main 7334d7c's crystallizer (1.8.0 when released) takes them as spectators: used since D-014.
+1.8.0's crystallizer takes them as spectators: used since D-014.
 
 ## D-006 Balance method and property gate (2026-11-05)
 Decision (as revised by D-014): cheme propagates every stream: the mixers, the semi-batch R101,
@@ -235,18 +235,17 @@ kWh (0.309 kWh before D-014), brine 0.255 kWh removed, wastewater 5.54 kg (plus 
   1.7.0 (core#161: energy streams are neither charge nor dose), and R101 now has its own
   agitator stream P2.
 - L-2: the crystallizer refused a mother liquor with other dissolved components; a batch
-  precipitation from a reaction liquor needs it (package 4). Resolved in core main 7334d7c
-  (1.8.0 when released; core#165, ADR 0056: `crystallizer.spectators`, a solubility `measured_in: mother_liquor` or
+  precipitation from a reaction liquor needs it (package 4). Resolved in core 1.8.0 (core#165, ADR 0056: `crystallizer.spectators`, a solubility `measured_in: mother_liquor` or
   corrected by `salting_out:`); CR101 and W101 use it (D-014).
 - L-3: a recipe's unit procedure named one flowsheet step; the filter-dryer F-101 spans four
   (F101, W101, F102, D101), so the recipe named D101 for it, and the drying time was a guess.
-  Resolved in core main 7334d7c (1.8.0 when released; core#165, ADR 0057: `units: [F101,
+  Resolved in core 1.8.0 (core#165, ADR 0057: `units: [F101,
   W101, F102, D101]`, `filter` and `dry` `from:` the filters' `filtration:` and the `dryer:`);
   the recipe uses it (D-014).
 - L-4: the reactor's volumes are per hour of the year average; the batch volume and the vessel
   were worked out by hand. Fixed in core 1.7.0: the recipe sizes the vessel (core ADR 0052).
 - L-5: the phase-change steps CR101 and W101 appeared in the thermal screening as reactors with
-  missing data (info findings). Resolved in core main 7334d7c (1.8.0 when released; ADR 0056:
+  missing data (info findings). Resolved in core 1.8.0 (ADR 0056:
   phase changes are not screened), and here by removing the conversion "reactions"
   altogether: `cheme process reactor-hazards` lists R101 alone (D-014).
 - L-6 (open, D-014): core propagates from the feeds and cannot solve them for a product rate,
@@ -276,8 +275,7 @@ idle time of a multipurpose train, shared tank farms and solvent recovery. NBS i
 multipurpose plants: there the burden per kg is higher, and this LCI is a lower bound for it.
 
 ## D-014 Precipitation, wash and filter-dryer on core's crystallizer and dryer models (2026-11-05)
-Decision: the work-up is written with core main 7334d7c's models (1.8.0 when released;
-core#165, core ADRs 0056 and 0057) instead of conversion "reactions" and a script:
+Decision: the work-up is written with core 1.8.0's models (core#165, core ADRs 0056 and 0057) instead of conversion "reactions" and a script:
 - CR101 (in R-101, block REACT with R101) and W101 (the reslurry wash, fed by the cake S8 and
   the wash water S10) are `crystallizer: basis: solubility` steps for NBS in water, crystal
   NBS_S, at 278.15 K, with the liquor's other solutes as `spectators: [NABR, NAOH, SUCC, BR2]`
