@@ -7,6 +7,12 @@
 # (docs/benchmarks.md: never invent a range). The one open yield, the 95.0 % on phosphorus of the
 # example of DE 1 281 414 / US 3 409 401, is the dataset's own basis (DESIGN.md D-008), so binding
 # it would only check the transcription.
+#
+# Methylmagnesium bromide (methylmagnesium-bromide-1, #157; the taxonomy has no organometallics
+# family, inorganic-chemicals is the nearest): no open source gives a plant's specific
+# consumptions. The stoichiometric floors per kg of 35 wt% solution are 0.279 kg methyl bromide
+# and 0.071 kg magnesium (Mg + CH3Br -> CH3MgBr); they are limits, not ranges of real plants, so
+# they are not recorded as ranges (docs/benchmarks.md: never invent a range).
 schema: cheme-as-code/benchmarks/v1
 family: inorganic-chemicals
 
@@ -19,6 +25,14 @@ kpis:
     title: Still residue to incineration per kg of phosphorus tribromide
     unit: kg/kg
     no_open_reference: "No open source with the residue of PBr3 distillation found (searched 2026-11-05 as for pbr3-specific-bromine); US 3 409 401 names the red-phosphorus addition before the vacuum distillation but no residue amount."
+  memgbr-specific-methyl-bromide:
+    title: Methyl bromide consumption per kg of methylmagnesium bromide solution (35 wt%)
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's or a pilot's methyl bromide use per kg of MeMgBr solution found (searched 2026-11-05: the Albemarle TDS 10000303 gives the product, not the process; the Fraunhofer IMM flyer on continuous Grignard formation (2020) names no MeMgBr figures; am Ende et al., OPRD 1999, 3, 319 seen as an abstract only). Only the stoichiometric floor, 0.279 kg/kg, is known."
+  memgbr-specific-magnesium:
+    title: Magnesium consumption per kg of methylmagnesium bromide solution (35 wt%)
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's magnesium excess or use per kg of MeMgBr solution found (searched 2026-11-05 as for memgbr-specific-methyl-bromide). Only the stoichiometric floor, 0.071 kg/kg, is known."
 
 datasets:
   - process: phosphorus-tribromide-1
@@ -27,3 +41,9 @@ datasets:
     kpis:
       pbr3-specific-bromine: {expression: feed:BR2 / product:PBR3, per: product:PBR3}
       pbr3-specific-residue: {expression: product:RES / product:PBR3, per: product:PBR3}
+  - process: methylmagnesium-bromide-1
+    dataset: methylmagnesium-bromide-in-2-methf-by-semi-batch-grignard-reaction-with-methyl-bromide-gas-dosing
+    conditions: {technology: "semi-batch Grignard reaction of magnesium turnings with methyl bromide gas in 2-MeTHF at 318 K, filtration of the excess magnesium", basis: "concept balance, ratios ASSUMED (DESIGN.md D-004, D-005)"}
+    kpis:
+      memgbr-specific-methyl-bromide: {expression: feed:MEBR / product:PROD, per: product:PROD}
+      memgbr-specific-magnesium: {expression: feed:MG / product:PROD, per: product:PROD}
