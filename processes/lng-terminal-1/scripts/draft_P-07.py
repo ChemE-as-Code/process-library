@@ -245,7 +245,8 @@ for s in KX:
     # open-position switch on the valve itself (sensor at XV-7121s, as ZSC-5123 on P-05)
     L.inst(sheet, f"ZSO-7121{s}", f"XV-7121{s} open position",
            f"C&E I-705{s}: a running machine stops when its suction valve leaves the open position.",
-           at=(SX[s] + 14, XS_Y + 9), sensing=xv[s].id, sensing_at=(SX[s], XS_Y))
+           at=(SX[s] + 14, XS_Y + 9), sensing=xv[s].id, sensing_at=(SX[s] + 3, XS_Y + 3),
+           sensing_points=[(SX[s] + 3, XS_Y + 9)])
     L.inst(sheet, f"UZ-7123{s}", f"K-7101{s} discharge isolation valve XV-7123{s}",
            "Fail closed; closes with XV-7121" + s + " on a compressor trip or stop, isolates the machine from "
            "the discharge header (review #11, H-04 A8/A9).",

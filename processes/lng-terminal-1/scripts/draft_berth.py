@@ -261,10 +261,12 @@ L.inst(sheet, f"HS-{n}125", f"LA-{n}103 vapour isolation XV-{n}125 (hybrid as va
 # closed-position switches on the valves themselves (sensor at XV-n123 / XV-n125, as ZSO-7121A on P-07)
 L.inst(sheet, f"ZSC-{n}123", f"XV-{n}123 closed position",
        f"Closed-position switch of the hybrid arm liquid isolation: start permissive of the other isolation, XV-{n}125 may open only with XV-{n}123 proven closed (C&E I-{n}05); never trips an open valve (review #3, H-03 A13, D-026).",
-       at=(244, 187), sensing=f"XV{n}123", sensing_at=(X["3"], 181))
+       at=(244, 187), sensing=f"XV{n}123", sensing_at=(X["3"], 181),
+       sensing_points=[(X["3"] + 5, 181), (X["3"] + 5, 187)])
 L.inst(sheet, f"ZSC-{n}125", f"XV-{n}125 closed position",
        f"Closed-position switch of the hybrid arm vapour isolation: start permissive of the other isolation, XV-{n}123 may open only with XV-{n}125 proven closed (C&E I-{n}04); never trips an open valve (review #3, H-03 A13, D-026).",
-       at=(278, 181), sensing=f"XV{n}125", sensing_at=(258, 172))
+       at=(278, 181), sensing=f"XV{n}125", sensing_at=(261, 175),
+       sensing_points=[(278, 175)])
 L.inst(sheet, f"HS-{n}122", f"LA-{n}102 vapour arm isolation XV-{n}122", at=(X["2"] + 15, 150),
        signal_to=f"XV{n}122", fail_action="FC")
 L.inst(sheet, f"HS-{n}161", f"Header drain isolation XV-{n}161 to D-{n}101",

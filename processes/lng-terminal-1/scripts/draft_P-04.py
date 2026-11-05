@@ -217,16 +217,19 @@ L.inst(sheet, "HS-4136", "Vapour return B to the tank vapour header XV-4136",
        at=(134, 224), signal_to=xv36, fail_action="FO")
 L.inst(sheet, "ZSO-4131", "XV-4131 open position",
        "Position switch on the flare valve XV-4131: XV-4135 may close only with XV-4131 proven open (C&E I-512, D-026).",
-       at=(162, 208), sensing=xv31.id, sensing_at=(176, 204))
+       at=(162, 208), sensing=xv31.id, sensing_at=(176, 204),
+       sensing_points=[(169, 204), (169, 208)])
 L.inst(sheet, "ZSO-4135", "XV-4135 open position",
        "Position switch on the tank-side valve XV-4135: XV-4131 may close only with XV-4135 proven open (C&E I-513, D-026).",
        at=(144, 205), sensing=xv35.id, sensing_at=(136, YVA))
 L.inst(sheet, "ZSO-4132", "XV-4132 open position",
        "Position switch on the flare valve XV-4132: XV-4136 may close only with XV-4132 proven open (C&E I-612, D-026).",
-       at=(196, 229), sensing=xv32.id, sensing_at=(210, 224))
+       at=(196, 229), sensing=xv32.id, sensing_at=(210, 224),
+       sensing_points=[(203, 224), (203, 229)])
 L.inst(sheet, "ZSO-4136", "XV-4136 open position",
        "Position switch on the tank-side valve XV-4136: XV-4132 may close only with XV-4136 proven open (C&E I-613, D-026).",
-       at=(106, 226), sensing=xv36.id, sensing_at=(120, YVB))
+       at=(108, YVB + 9), sensing=xv36.id, sensing_at=(120, YVB),
+       sensing_points=[(120, YVB + 9)])
 L.inst(sheet, "AI-4133", "Vapour return A composition at the tank end (N2 / O2 / CH4)",
        "Switches the carrier vapour make-before-break between the tank vapour header (XV-4135) and the flare (XV-4131) by C&E I-511..I-513: to the flare while N2 is high (de-inerting, gassing-up; to the flare only below 5 vol % O2), to the tanks once CH4 is on specification and O2 below 1 vol % (D-026).",
        at=(185, 182), sensing=va.segments[0], sensing_at=(185, YVA))
@@ -248,7 +251,7 @@ L.inst(sheet, "HS-4103", "Platform crossover XV-4103", "Open in holding (circula
 L.inst(sheet, "HS-4106", "Tank-end crossover XV-4106", "Operator selection (D-008).",
        at=(114, 95), signal_to=xv6, fail_action="FL")
 L.inst(sheet, "HS-4105", "Circulation return XV-4105", "Open in holding (D-008).",
-       at=(66, 141), signal_to=xv5, fail_action="FL")
+       at=(66, 140), signal_to=xv5, fail_action="FL")
 L.inst(sheet, "TI-4102", "Circulation return temperature at the tanks",
        "Holding: the loop is cold when the rise is under 3 K (D-008).",
        at=(66, 166), sensing=lr.segments[2], sensing_at=(80, 166))

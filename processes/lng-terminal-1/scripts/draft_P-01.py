@@ -119,10 +119,12 @@ L.inst(sheet, "UZ-1103", "T-3101 fill ESD valve XV-1103",
 # valves themselves (sensing the valve, as ZSO-7121A on P-07; D-026.11, D-026.14)
 L.inst(sheet, "ZSC-1102", "XV-1102 closed position",
        "Position switch on the T-2101 fill ESD valve XV-1102; with ZSC-1103 both closed: no tank can take the rundown (C&E I-102).",
-       at=(164, 168), sensing="XV1102", sensing_at=(150, 163))
+       at=(164, 168), sensing="XV1102", sensing_at=(150, 163),
+       sensing_points=[(156, 163), (156, 168)])
 L.inst(sheet, "ZSC-1103", "XV-1103 closed position",
        "Position switch on the T-3101 fill ESD valve XV-1103; with ZSC-1102 both closed: no tank can take the rundown (C&E I-102).",
-       at=(164, 140), sensing="XV1103", sensing_at=(180, 150))
+       at=(193, 158), sensing="XV1103", sensing_at=(180, 150),
+       sensing_points=[(180, 158)])
 for tag, vid, x, y in [("HS-1106", "XV1106", 135, 210), ("HS-1107", "XV1107", 187, 210),
                        ("HS-1109", "XV1109", 219, 210), ("HS-1108", "XV1108", 245, 198)]:
     L.inst(sheet, tag, f"Fill selection valve XV-{vid[2:]}",
