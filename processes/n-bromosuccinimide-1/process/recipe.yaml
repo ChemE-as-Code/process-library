@@ -1,14 +1,16 @@
 # The batch recipe of n-bromosuccinimide-1 (schema cheme/recipe/v1, `cheme process recipe`,
-# DESIGN.md D-003). One batch makes 315.66 kg of dried NBS (stream S14); the flowsheet's rates
-# are the year averages: 315.66 kg x 1584 batches / 7920 h = 63.13 kg/h. The dosing and the
-# post-reaction take their times from R101's semi-batch model (from: R101); every other duration
-# is ASSUMED (D-003). The brominator is the bottleneck; the agitated filter-dryer (filtration,
-# reslurry wash, second filtration and drying in one vessel, F-101) is installed twice and takes
-# the batches in turn. `cheme process recipe --svg build/gantt.svg` draws one batch.
+# DESIGN.md D-003). One batch makes 334.41 kg of dried NBS (stream S14); the flowsheet's rates
+# are the year averages: 334.41 kg x 1495.15 batches / 7920 h = 63.13 kg/h. The dosing and the
+# post-reaction (to 0.999 conversion of the bromine) take their times from R101's semi-batch
+# model (from: R101); every other duration is ASSUMED (D-003). The brominator is the
+# bottleneck; the agitated filter-dryer (filtration, reslurry wash, second filtration and drying
+# in one vessel, F-101) is installed twice and takes the batches in turn. R101's vessel is sized
+# from its model's content (core ADR 0052). `cheme process recipe --svg build/gantt.svg` draws
+# one batch.
 schema: cheme/recipe/v1
 kind: recipe
 title: NBS by semi-batch bromination
-batch_size: {value: 315.66, unit: kg, stream: S14, provenance: assumed, source: "one batch of dried NBS: 500 t/a over 1584 batches (D-002, D-003)"}
+batch_size: {value: 334.41, unit: kg, stream: S14, provenance: assumed, source: "one batch of dried NBS: 500 t/a over 1495.15 batches (D-002, D-003)"}
 hours_per_year: {value: 7920, provenance: assumed, source: "330 days of 24 h (D-002)"}
 unit_procedures:
   - id: DISSOLVE
@@ -17,11 +19,12 @@ unit_procedures:
     operations:
       - {id: charge, kind: charge, title: "Water, caustic and succinimide", duration: {value: 0.5, provenance: assumed, source: D-003}}
       - {id: dissolve, kind: other, title: Dissolve, duration: {value: 0.5, provenance: assumed, source: D-003}}
-      - {id: cool, kind: cool, title: Cool to 278 K on brine, duration: {value: 1.0, provenance: assumed, source: "D-003: 5.4 kW year average, 27 kW over the hour"}}
+      - {id: cool, kind: cool, title: Cool to 278 K on brine, duration: {value: 1.0, provenance: assumed, source: "D-003: 10.8 kW year average (Q1), 57 kW over the hour"}}
       - {id: transfer, kind: transfer, title: Charge the brominator, duration: {value: 0.5, provenance: assumed, source: D-003}}
   - id: BROMINATE
     unit: R101
     title: Bromination and precipitation (R-101)
+    vessel: {fill_fraction: 0.8, aspect_ratio: 1.2, provenance: assumed, source: "usual fill and proportions of a glass-lined stirred vessel (D-003)"}
     operations:
       - {id: receive, kind: charge, title: Receive the charge, duration: {value: 0.5, provenance: assumed, source: D-003}}
       - {id: dose, kind: dose, title: Dose the bromine, from: R101}

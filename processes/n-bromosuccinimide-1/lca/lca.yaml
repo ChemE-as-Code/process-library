@@ -4,11 +4,12 @@
 #
 # Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the batch
 # plant with its amount per kg of NBS, from the flowsheet's year averages of the recipe (D-003).
-# Per batch: multiply by 315.66 kg. The backgrounds are left unmapped (`missing:` with the
+# Per batch: multiply by 334.41 kg. The backgrounds are left unmapped (`missing:` with the
 # activity each should connect to), except where lca/mappings.yaml links a library producer:
 # a gap, never zero, and no values from licensed databases. The plant has no emission to air in
-# the balance: the bromine is dosed into a closed vessel and fully converted (D-005); vent
-# losses are not estimated (emission_exclusions).
+# the balance: the bromine is dosed into a closed vessel and converted to 0.999 (D-005), the
+# rest leaving with the dryer's vapour to the wastewater; vent losses are not estimated
+# (emission_exclusions).
 schema: cheme/lca/v1
 kind: lca
 goal: >-
@@ -24,7 +25,7 @@ boundary: cradle-to-gate
 case: design
 year: 2026
 location: GLO
-technology: "Batch plant: succinimide dissolved in caustic soda at 278 K, bromine dosed over 2 h (semi-batch), NBS precipitated, filtered, reslurry-washed with ice water and vacuum-dried at 333 K in an agitated filter-dryer; 315.66 kg per batch, 1584 batches a year"
+technology: "Batch plant: succinimide dissolved in caustic soda at 278 K, bromine dosed over 2 h (semi-batch), NBS precipitated, filtered, reslurry-washed with ice water and vacuum-dried at 333 K in an agitated filter-dryer; 334.41 kg per batch, 1495 batches a year on a dedicated train"
 rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
 flows:
   # raw materials
@@ -58,6 +59,21 @@ flows:
     treatment: {kind: waste, route: "site wastewater treatment of a saline bromide liquor: neutralisation, biological treatment of the dissolved succinimide and NBS, discharge of NaBr as dissolved salt (no bromide recovery, D-010)"}
     missing: "not mapped yet (D-012); connect to: treatment of a saline process effluent with sodium bromide and dissolved organics in an industrial wastewater treatment plant (e.g. processes/utility-wwtp), per kg; or bromide recovery to bromine (bromine-1), not modelled"
     source: "flowsheet stream S16 (D-010)"
+# What the batch plant uses per batch and the flowsheet does not carry (library ADR 0035, core
+# ADR 0053): the rinses of R-101 and F-101 between batches, converted with the recipe's batches
+# per year (process/recipe.yaml), and their water to the wastewater treatment.
+consumables:
+  - id: rinse-water
+    title: Rinse water of R-101 and F-101 between batches
+    unit: kg
+    per_batch: 1000
+    source: "2 rinses per batch (recipe operations clean of R-101 and F-101) x 0.5 m3 each, ASSUMED (D-003, D-012)"
+    missing: "not mapped yet (D-012); connect to: process water from the site water treatment"
+    disposal:
+      kind: waste
+      route: "site wastewater treatment of the rinse water, with the saline bromide liquor (D-010)"
+      source: "rinses to the wastewater treatment with the liquors (D-012)"
+      missing: "not mapped yet (D-012); connect to: treatment of a saline process effluent in an industrial wastewater treatment plant (e.g. processes/utility-wwtp), per kg"
 operation:
   hours_per_year: 7920
   life_years: 20
@@ -65,7 +81,6 @@ operation:
 emission_exclusions:
   - {id: bromine-vent, method: storage-tank, equipment: [M-101, R-101], reason: "No P&ID yet: the air displaced from M-101 and R-101 while charging and dosing (with bromine vapour from R-101) goes to a caustic scrubber not in the balance; not estimated (open for basic engineering, D-011)."}
   - {id: dryer-vent, method: equipment-leaks, reason: "NBS dust and bromine traces in the filter-dryer's vacuum vent are not estimated (D-008, D-011)."}
-  - {id: cleaning, method: non-routine, reason: "Vessel rinses between batches (recipe operations clean) are not in the flowsheet: their water and its treatment are not counted (per-batch exchanges, core#158 package 5; D-012)."}
 dataset:
   version: 0.1.0
   classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals

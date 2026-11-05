@@ -7,8 +7,9 @@ title: N-Bromosuccinimide by semi-batch bromination of succinimide in aqueous Na
 summary: >-
   A batch plant: bromine (bromine-1) is dosed over 2 h into succinimide in cold caustic soda,
   the N-bromosuccinimide precipitates, is filtered, washed with ice water and vacuum-dried; half
-  of the bromine leaves as NaBr in the mother liquor. Concept stage, assumed basis, 316 kg per
-  batch every 5 h, preliminary gate-to-gate LCI. The library's first batch entry.
+  of the bromine leaves as NaBr in the mother liquor. Concept stage, assumed basis, 334 kg per
+  batch every 5.3 h on a dedicated train, preliminary gate-to-gate LCI. The library's first
+  batch entry.
 description: |
   Succinimide and caustic soda (1.02 mol each per mol of bromine) are dissolved in water (30 mol
   per mol of bromine) and cooled to 278 K. Liquid bromine is dosed into the stirred charge over
@@ -17,16 +18,18 @@ description: |
   kg of water in solution. The slurry is filtered, the cake is reslurried with 1.5 kg of ice water per kg and
   filtered again, and dried at 333 K under vacuum in an agitated filter-dryer (two units, taking
   the batches in turn). The product is 99.0 wt% NBS with 0.75 wt% NaBr and 0.2 wt% water; the
-  yield is 93.3 % on bromine. The mother liquor (15 wt% NaBr), the wash filtrate and the dryer
+  yield is 93.2 % on bromine. The mother liquor (15 wt% NaBr), the wash filtrate and the dryer
   condensate go to wastewater treatment: the bromide is not recovered.
 
   The batch is modelled with cheme-as-code's semi-batch reactor (reactor: semibatch, core ADR
-  0048) and batch recipe (process/recipe.yaml, core ADR 0049): the dosing and post-reaction times
-  come from the model, the brominator is the bottleneck (cycle 5 h, 1584 batches a year), and the
-  flowsheet's flows are the recipe's year averages. The bromination's kinetics and heat of
-  reaction are ASSUMED (no open data): the reaction is fast, so the bromine hardly accumulates
-  (0.3 % at most) and the cooling-failure temperature stays at the process temperature; this
-  must be confirmed by reaction calorimetry. See DESIGN.md for every assumption.
+  0050) and batch recipe (process/recipe.yaml, core ADR 0051): the dosing and post-reaction times
+  come from the model, the brominator is the bottleneck (cycle 5.3 h, 1495 batches a year on a
+  dedicated train), the recipe sizes the brominator (2 m3), and the flowsheet's flows are the
+  recipe's year averages. The bromination's kinetics and heat of reaction are ASSUMED (no open
+  data): a fast second-order reaction, so the bromine accumulates little (3.75 % at most, at the
+  end of the dosing, as the imide's excess runs low) and the cooling-failure temperature stays
+  within 1 K of the process temperature; this must be confirmed by reaction calorimetry. See
+  DESIGN.md for every assumption.
 families: [nitrogen-organics]
 keywords: [N-bromosuccinimide, NBS, succinimide, bromine, bromination, semi-batch, batch, dosing, precipitation, filter-dryer, sodium bromide, fine chemicals, brominating agent]
 facets:
@@ -48,17 +51,17 @@ validation:
     the duties (no property package of core covers the alkaline bromide liquor, and core has no
     dryer). The recipe's year-average rate of the product agrees with the flowsheet (cheme
     process recipe, no cheme.recipe-basis finding). Thermal screening (cheme process
-    reactor-hazards): dT_ad 31.5 K, accumulation 0.28 %, MTSR 278.2 K against an MTT of 331.9 K
+    reactor-hazards): dT_ad 19.7 K, accumulation 3.75 %, MTSR 278.9 K against an MTT of 331.9 K
     (the bromine's boiling point); no criticality class without a TD24 from calorimetry. The
     kinetics are assumed: the low accumulation rests on that assumption. Preliminary gate-to-gate
-    LCI; bromine and caustic soda linked to bromine-1 and chlor-alkali-1, the other backgrounds
-    gaps. cheme maturity reaches no level (assumed feeds, kinetics and separations); the claim
+    LCI, the rinses between batches included (per-batch consumable); bromine and caustic soda
+    linked to bromine-1 and chlor-alkali-1, the other backgrounds gaps. cheme maturity reaches no level (assumed feeds, kinetics and separations); the claim
     `maturity: concept` is the lowest value of the schema, not an evidenced level. Not reviewed.
-    Needs core#161 and core#162 (reactor: semibatch, process/recipe.yaml).
+    Needs cheme-as-code 1.7.0 (reactor: semibatch, process/recipe.yaml; core#158).
 chemistry:
   inputs:
     - {chemical: succinimide, role: feedstock, note: "feed:SUCC: technical succinimide (merchant), 0.603 kg/kg NBS"}
-    - {chemical: bromine, role: feedstock, note: "feed:BR2: dry liquid bromine (bromine-1), 0.953 kg/kg NBS; half of it leaves as NaBr"}
+    - {chemical: bromine, role: feedstock, note: "feed:BR2: dry liquid bromine (bromine-1), 0.954 kg/kg NBS; half of it leaves as NaBr"}
     - {chemical: sodium-hydroxide, role: feedstock, note: "feed:NAOH: caustic soda 50 wt% (chlor-alkali-1), 0.487 kg/kg NBS, counted by mass of the solution"}
     - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Dissolution water, 2.98 kg/kg NBS"}
     - {chemical: water, role: feedstock, inventory_key: "feed:WASHW", note: "Ice-cold wash water, 1.52 kg/kg NBS"}
@@ -68,9 +71,9 @@ chemistry:
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.095 kWh/kg NBS: agitators of the dissolver, brominator and filter-dryers, vacuum pump (ASSUMED)"}
     - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.309 kWh (1.11 MJ)/kg NBS of LP steam to the filter-dryer's hot-water circuit"}
-    - {chemical: chilled-water, role: utility, inventory_key: "product:BRINE", note: "0.220 kWh/kg NBS removed by brine at 263 K: cooling the charge and the heat of bromination (the registry has chilled water, not brine: closest entry)"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:BRINE", note: "0.255 kWh/kg NBS removed by brine at 263 K: the caustic's dilution and the imide's deprotonation, cooling the charge, and the heat of bromination (the registry has chilled water, not brine: closest entry)"}
 basis:
-  capacity: "500 t/a dried NBS: 315.66 kg per batch, 1584 batches in 7920 h (63.13 kg/h year average), ASSUMED"
+  capacity: "500 t/a dried NBS: 1495 batches/a of 334.41 kg in 7920 h on a dedicated train (63.13 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-013)"
   operating_hours_per_year: 7920
   location: generic fine-chemicals site with a bromine supply (not chosen)
 references:

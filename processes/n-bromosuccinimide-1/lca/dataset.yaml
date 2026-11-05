@@ -14,7 +14,7 @@ year: 2026
 boundary: gate-to-gate foreground of the plant
 technology: 'Batch plant: succinimide dissolved in caustic soda at 278 K, bromine dosed over 2 h (semi-batch),
   NBS precipitated, filtered, reslurry-washed with ice water and vacuum-dried at 333 K in an agitated
-  filter-dryer; 315.66 kg per batch, 1584 batches a year'
+  filter-dryer; 334.41 kg per batch, 1495 batches a year on a dedicated train'
 rights: 'CC-BY-4.0: the ChemE-as-Code process library''s own concept design (LICENSE-DATA)'
 cutoff:
 - key: emission-excluded:bromine-vent
@@ -27,11 +27,6 @@ cutoff:
   title: equipment-leaks emissions of the plant
   direction: output
   reason: NBS dust and bromine traces in the filter-dryer's vacuum vent are not estimated (D-008, D-011).
-- key: emission-excluded:cleaning
-  title: non-routine emissions of the plant
-  direction: output
-  reason: 'Vessel rinses between batches (recipe operations clean) are not in the flowsheet: their water
-    and its treatment are not counted (per-batch exchanges, core#158 package 5; D-012).'
 uuid: 5ed669b2-a551-5295-af61-199050d0ea66
 version: 0.1.0
 geography:
@@ -56,7 +51,7 @@ exchanges:
 - key: feed:PW
   title: Process water (dissolution)
   type: input
-  amount: 188.1099
+  amount: 188.307
   unit: kg
   link:
     source: flowsheet stream S1 (D-004)
@@ -77,7 +72,7 @@ exchanges:
 - key: feed:NAOH
   title: Caustic soda 50 wt% (chlor-alkali-1)
   type: input
-  amount: 30.7186
+  amount: 30.7507
   unit: kg
   link:
     source: flowsheet stream S2 (D-004)
@@ -101,7 +96,7 @@ exchanges:
 - key: feed:SUCC
   title: Succinimide (merchant)
   type: input
-  amount: 38.0512
+  amount: 38.0911
   unit: kg
   link:
     source: flowsheet stream S3 (D-004)
@@ -123,7 +118,7 @@ exchanges:
 - key: feed:BR2
   title: Liquid bromine (bromine-1)
   type: input
-  amount: 60.1647
+  amount: 60.2277
   unit: kg
   link:
     source: flowsheet stream S5 (D-004)
@@ -145,7 +140,7 @@ exchanges:
 - key: feed:WASHW
   title: Ice-cold process water (cake wash)
   type: input
-  amount: 95.6842
+  amount: 95.6841
   unit: kg
   link:
     source: flowsheet stream S10 (D-007)
@@ -176,6 +171,7 @@ exchanges:
       site country'
   streams:
   - P1
+  - P2
   - P3
   source: flowsheet energy streams P1 (dissolver and brominator agitators) and P3 (filter-dryer agitator
     and vacuum pump), D-009
@@ -189,7 +185,7 @@ exchanges:
 - key: feed:LPS
   title: LP steam 350 kPa(a) (to the dryer's hot-water circuit)
   type: input
-  amount: 19.4858
+  amount: 19.4853
   unit: kWh
   link:
     source: flowsheet energy stream Q3 (filter-dryer hot-water circuit), D-009
@@ -204,7 +200,7 @@ exchanges:
   basic_uncertainty: 1.05
   carrier:
     kind: steam
-    temperature: 137.85
+    temperature: 138.85
     pressure: 3.5
     level: LP
     source: utility of LPS in process/flowsheet.yaml
@@ -222,17 +218,17 @@ exchanges:
   state:
     pressure: 1.01325
     temperature: 30.0
-    purity: 0.986169
+    purity: 0.986168
     basis: mass
     component: NBS_S
   composition:
     fractions:
-      H2O: 0.001999998
-      NAOH: 5.8e-05
-      SUCC: 0.000144
-      NBS: 0.004174996
-      NBS_S: 0.986168014
-      NABR: 0.007454993
+      H2O: 0.002
+      NAOH: 6.1e-05
+      SUCC: 0.000151
+      NBS: 0.004175
+      NBS_S: 0.986168
+      NABR: 0.007445
     formulas:
       H2O: H2O
       NAOH: NaOH
@@ -244,7 +240,7 @@ exchanges:
 - key: product:WW
   title: Mother liquor, wash filtrate and dryer condensate to wastewater treatment
   type: output
-  amount: 349.597
+  amount: 349.93
   unit: kg
   provenance: calculated
   link:
@@ -266,16 +262,18 @@ exchanges:
       D-010)'
   composition:
     fractions:
-      H2O: 0.874748527
-      NAOH: 0.000851135
-      SUCC: 0.002108277
-      NBS: 0.012109334
-      NBS_S: 0.000722548
-      NABR: 0.109460179
+      H2O: 0.874527155
+      NAOH: 0.000893662
+      SUCC: 0.002213969
+      BR2: 0.000172112
+      NBS: 0.012107863
+      NBS_S: 0.000721857
+      NABR: 0.109363383
     formulas:
       H2O: H2O
       NAOH: NaOH
       SUCC: C4H5NO2
+      BR2: Br2
       NBS: C4H4BrNO2
       NBS_S: C4H4BrNO2
       NABR: NaBr
@@ -283,7 +281,7 @@ exchanges:
 - key: product:BRINE
   title: Chilled brine return (263 K)
   type: output
-  amount: 13.907799999999998
+  amount: 16.1158
   unit: kWh
   link:
     source: flowsheet energy streams Q1 (charge cooling) and Q2 (heat of bromination), D-009
@@ -302,15 +300,51 @@ exchanges:
     kind: cold
     temperature: -10.0
     source: utility of BRINE in process/flowsheet.yaml
+- key: consumable:rinse-water
+  title: Rinse water of R-101 and F-101 between batches
+  type: input
+  amount: 188.78188943117817
+  unit: kg
+  link:
+    source: 2 rinses per batch (recipe operations clean of R-101 and F-101) x 0.5 m3 each, ASSUMED (D-003,
+      D-012)
+    missing: 'not mapped yet (D-012); connect to: process water from the site water treatment'
+  source: 2 rinses per batch (recipe operations clean of R-101 and F-101) x 0.5 m3 each, ASSUMED (D-003,
+    D-012); 1000 kg per batch x 1495.15 batches in 7920 h (process/recipe.yaml, case design, bottleneck
+    BROMINATE)
+  pedigree:
+    scores: [4, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+- key: disposal:consumable.rinse-water
+  title: 'Disposal: Rinse water of R-101 and F-101 between batches (site wastewater treatment of the rinse
+    water, with the saline bromide liquor (D-010))'
+  type: output
+  amount: 188.78188943117817
+  unit: kg
+  link:
+    source: rinses to the wastewater treatment with the liquors (D-012)
+    missing: 'not mapped yet (D-012); connect to: treatment of a saline process effluent in an industrial
+      wastewater treatment plant (e.g. processes/utility-wwtp), per kg'
+  streams:
+  - consumable:rinse-water
+  source: rinses to the wastewater treatment with the liquors (D-012)
+  pedigree:
+    scores: [4, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  treatment:
+    kind: waste
+    route: site wastewater treatment of the rinse water, with the saline bromide liquor (D-010)
 allocation: {}
 provenance:
   generator: cheme assess lca
   plant: N-Bromosuccinimide by semi-batch bromination of succinimide in aqueous NaOH (500 t/a)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:842536a70fbd2f3c9f7ed3986b231c904edb7a1fa44cdc28e44c795f1b522dbb
-    lca/lca.yaml: sha256:c98f77a6c040ff4db01bec2eba5ea235405bcabe037bdc2f97340205b8bf7e2a
-    process.yaml: sha256:595736fd3738784d772759c2b151f0dbc31b1d060cc56f0424822645b425ac1e
-    process/flowsheet.yaml: sha256:cb9a1bfce9f68dd86ecfa29d4b4ce2e2a3aea766dfad603ce74af1f17b716cb1
-    process/materials.yaml: sha256:c97b49ed64f2a609a92f25ba6f865de9ea7a472314bf55171a0d735d1645d58c
-    process/simulation.yaml: sha256:d6d084df6a967c7e53a05b7ba579d889b72640771f90ec3d2aaba14012a68fc2
+    equipment/equipment-list.yaml: sha256:457abf5a634935092ddbe408446bad02048e5b7934f7e121c5bab9f1cb6cd3a0
+    lca/lca.yaml: sha256:563e8d11cd45e4b1b0f3e324171a6ce1d8295b756961676004d7817be0888ad0
+    process.yaml: sha256:3a1bfbd0d0c134888bfd6899976d27d9ad085f8ce0b44742934f7eddbd478ebf
+    process/flowsheet.yaml: sha256:17216ea875eb900b8aa88ba680d89990ca8f81eb1db6d389b147c8d7e07d7b8b
+    process/materials.yaml: sha256:24977c3f4546312f6d69ae4c4f53a4c9a7fb24c612a193d73dd5c2697ce53e16
+    process/simulation.yaml: sha256:1cfccf0675391e49837d862f71d3b97781896fe7f7c56cd3447003d37b9d4546

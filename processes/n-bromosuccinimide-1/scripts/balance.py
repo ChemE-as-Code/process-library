@@ -34,7 +34,16 @@ RECOVERY = 0.998  # solid to the cake, each filtration (D-007)
 CAKE_LIQUID = 0.3  # kg liquid per kg dry solid in the cake (D-007)
 WASH = 1.5  # kg ice water per kg solid in the cake, reslurry wash (D-007)
 MOISTURE = 0.002  # water mass fraction of the dried product (D-008)
-HEAT_OF_REACTION = -80_000.0  # kJ/kmol (D-005)
+CONVERSION = 0.999  # of the bromine, the post-reaction's target (R101's batch.target, D-005)
+# kJ/kmol, all ASSUMED (D-005, D-009): the overall heat of SUCC + NaOH + Br2 -> NBS + NaBr + H2O
+# is -80 kJ/mol; of it the imide's deprotonation by NaOH (-30 kJ/mol, a weak acid neutralised by
+# a strong base) is released in the dissolver M101, the rest in the brominator R101
+HEAT_OF_REACTION = -80_000.0
+HEAT_OF_DEPROTONATION = -30_000.0  # per kmol of imide, in M101
+HEAT_OF_BROMINATION = HEAT_OF_REACTION - HEAT_OF_DEPROTONATION  # R101 (BROM's heat_of_reaction)
+# integral heat of diluting 50 wt% caustic soda to the charge's about 6 wt%, per kmol NaOH: of
+# the order published for NaOH's integral heats of solution, ASSUMED (D-009)
+HEAT_OF_DILUTION = -20_000.0
 CP_SOLUTION = 3.8  # kJ/(kg K) of the alkaline charge (D-009)
 CP_BR2 = 75.7 / MW["BR2"]  # kJ/(kg K), liquid bromine
 CP_CAKE = 1.6  # kJ/(kg K) of the wet cake, mostly NBS (D-009)
@@ -79,10 +88,10 @@ def plant(br2: float) -> dict[str, dict[str, float]]:
     s["S4"] = add(s["S1"], s["S2"], s["S3"])
     s["S5"] = {"BR2": br2 * MW["BR2"]}
     m = kmol(add(s["S4"], s["S5"]))
-    xi = m["BR2"]  # complete conversion of the bromine (D-005)
+    xi = CONVERSION * m["BR2"]  # the post-reaction's target conversion of the bromine (D-005)
     m["SUCC"] -= xi
     m["NAOH"] -= xi
-    m["BR2"] = 0.0
+    m["BR2"] -= xi
     m["NBS"] = xi
     m["NABR"] = xi
     m["H2O"] += xi
@@ -102,10 +111,14 @@ def plant(br2: float) -> dict[str, dict[str, float]]:
     s["S11"] = wash
     s["S12"], s["S13"] = separate(s["S11"])
     cake = s["S12"]
-    dry = sum(v for n, v in cake.items() if n != "H2O")
+    # the dryer: the water down to MOISTURE, the free bromine (boiling at 332 K) with the vapour
+    volatile = ("H2O", "BR2")
+    dry = sum(v for n, v in cake.items() if n not in volatile)
     water_left = MOISTURE * dry / (1 - MOISTURE)
-    s["S14"] = {n: v for n, v in cake.items() if n != "H2O"} | {"H2O": water_left}
-    s["S15"] = {"H2O": cake["H2O"] - water_left}
+    s["S14"] = {n: v for n, v in cake.items() if n not in volatile} | {"H2O": water_left}
+    s["S15"] = {"H2O": cake["H2O"] - water_left} | (
+        {"BR2": cake["BR2"]} if cake.get("BR2", 0.0) > 0 else {}
+    )
     s["S16"] = add(s["S9"], s["S13"], s["S15"])
     return s
 
@@ -113,11 +126,22 @@ def plant(br2: float) -> dict[str, dict[str, float]]:
 def duties(s: dict[str, dict[str, float]], br2: float) -> dict[str, float]:
     """kW, year-average."""
     charge = sum(s["S4"].values())
+    imide = EXCESS * br2  # kmol/h of imide deprotonated, and of NaOH diluted
     return {
-        # the charge cooled from the feeds' 298 K to 278 K in the dissolver (to brine)
-        "Q1": charge * CP_SOLUTION * (T_FEED - T_REACTOR) / 3600.0,
-        # the reaction's heat and the bromine cooled from 293 K, to brine
-        "Q2": (-HEAT_OF_REACTION * br2 + s["S5"]["BR2"] * CP_BR2 * (T_BR2 - T_REACTOR)) / 3600.0,
+        # the dissolver, to brine: the caustic's dilution and the imide's deprotonation, and the
+        # charge cooled from the feeds' 298 K to 278 K
+        "Q1": (
+            -(HEAT_OF_DILUTION + HEAT_OF_DEPROTONATION) * imide
+            + charge * CP_SOLUTION * (T_FEED - T_REACTOR)
+        )
+        / 3600.0,
+        # the brominator, to brine: the bromination of the converted bromine and the bromine
+        # cooled from 293 K
+        "Q2": (
+            -HEAT_OF_BROMINATION * CONVERSION * br2
+            + s["S5"]["BR2"] * CP_BR2 * (T_BR2 - T_REACTOR)
+        )
+        / 3600.0,
         # the dryer: the cake heated to 333 K and its water evaporated, over the efficiency
         "Q3": (
             sum(s["S12"].values()) * CP_CAKE * (T_DRY - T_REACTOR) + s["S15"]["H2O"] * LATENT
@@ -146,6 +170,9 @@ def main() -> None:
         print(f"  {sid}: {tot:.3f} kg/h; {comp}")
     nbs = product.get("NBS_S", 0.0) + product.get("NBS", 0.0)
     print(f"  assay {nbs / total:.4f} NBS; yield on Br2 {nbs / MW['NBS'] / br2:.4f}")
+    s6 = kmol(s["S6"])
+    print(f"  PPT conversion {1 - (SOLUBILITY * s['S6']['H2O']) / s['S6']['NBS']:.5f}")
+    print(f"  S16 {mixed_temperature(s):.2f} K; free bromine in S6 {s6.get('BR2', 0):.6f} kmol/h")
     for k, v in q.items():
         print(f"  {k}: {v:.3f} kW")
     per = {
@@ -167,7 +194,16 @@ def main() -> None:
         }
     for k, v in q.items():
         cases["design"][k] = {"duty": round(v, 4)}
+    cases["design"]["S16"] = {"temperature": round(mixed_temperature(s), 2)}
     write_balance_output(cases)
+
+
+def mixed_temperature(s: dict[str, dict[str, float]]) -> float:
+    """K of S16: the mother liquor and wash filtrate (278.15 K) and the dryer condensate
+    (303.15 K) mixed adiabatically, equal heat capacities (D-008)."""
+    cold = sum(s["S9"].values()) + sum(s["S13"].values())
+    warm = sum(s["S15"].values())
+    return (cold * T_REACTOR + warm * 303.15) / (cold + warm)
 
 
 def write_balance_output(cases):
