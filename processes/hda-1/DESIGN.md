@@ -1492,8 +1492,10 @@ overpressure), the refluxes LV-405, FV-507 and FV-607 (column tops kept cool). F
 to confirm.
 
 Trips (`control/cause-effect.yaml`): the nine S3b trips get a delay, latching, a manual reset
-condition and their bypass (start-up bypasses only on I-101, I-103, I-201, I-401, I-501, I-601,
-each removed at a named sequence step), all ASSUMED as usual practice for a first issue; no trip
+condition and their bypass (start-up bypasses removed by the operator only on I-101, I-103, I-201,
+I-401, I-501, I-601, each at a named sequence step, and since the review of PR #357 on the
+pumps-stopped leg of I-106; besides these, the burner management bypasses the low-low leg of I-104
+by itself for its light-off period, the high-high leg never), all ASSUMED as usual practice for a first issue; no trip
 setpoint is given (they need the design limits and S6). Added: I-105 burner management of the
 H-101 package (flame failure, purge, air; acts on the plant fuel double block and bleed) and I-203
 K-101 machine protection (stops K-101, cuts the feed as I-202 does). Both have the package item as
@@ -1521,13 +1523,70 @@ differential pressures ASSUMED from the P&ID routing): P-202A/B 8.5 kW, P-203A/B
 P-201A/B (0.03 kW) and P-204A/B (0.07 kW) at the correlation's 1 kW minimum. PK-201 is excluded
 from the correlation estimate (vendor package, no size, D-008) and stays in the 15 % uncovered
 allowance, whose text in `estimate/tea.yaml` now says so (the fraction is unchanged). K-102 is
-purchased cost only (the package FBM is centrifugal only), as are H-101 and the reflux drums
-V-201/V-202/V-203 (no horizontal vessel FBM); the K-102 and H-101 factors go to the class 4
-estimate (S5). `cheme assess equipment/tea/lca --write` at this commit: 36 items (28 bare module,
-5 purchased only, 2 the project's own cost, 1 excluded, 0 not covered); bare module total of the
-items with all factors 5.60 MUSD (6.12 before; K-102 lost its centrifugal FBM), fixed capital
-27.95 MEUR (27.36), LCOP 876.5 EUR/t (875.5), NPV -148.8 MEUR; the LCA result is unchanged (its
-dataset and manifest record the new list hashes).
+purchased cost only (the package FBM is centrifugal only), as is H-101; the K-102 and H-101
+factors go to the class 4 estimate (S5). The reflux drums V-201/V-202/V-203 were purchased-only in
+the first S4 commit; since the review of PR #357 they are priced like V-100 with the vertical vessel
+correlation and its bare module factor (D-019), so the ASSUMED `purchased_installation` factor 2.5
+of `estimate/tea.yaml` now multiplies only H-101 and K-102, and its source says why it is used for
+the reciprocating K-102 too (the same screening factor rather than a second unsourced number, likely
+low). `cheme assess equipment/tea/lca --write` after that fix: 36 items (31 bare module, 2 purchased
+only, 2 the project's own cost, 1 excluded, 0 not covered); bare module total of the items with all
+factors 5.74 MUSD (6.12 before S4), purchased-only items 1.42 MUSD x 2.5, fixed capital 28.06 MEUR
+(27.36 before S4), LCOP 876.6 EUR/t (875.5), NPV -148.9 MEUR; the LCA result is unchanged (its
+dataset and manifest record the new list hashes). The column pumps P-201..P-204 (about 10 kW shaft
+running, about 90 MWh/a) stay outside the flowsheet's power feed and so outside the TEA power cost
+(about 2 % of the plant's 4.5 GWh/a); the LCA covers them in its cut-off `small-pumps-power`
+(120 MWh/a upper estimate), whose reason now gives these numbers.
+
+Review of PR #357, round 1 (2026-11-05): protective functions and sequences made consistent.
+- Loss of quench, I-106 (new). Without quench E-101 receives the reactor effluent at 936.2 K (S8,
+  DWSIM) against its design temperature of 645 degC = 918.15 K; a P-102 trip, I-201 (which stops
+  both quench pumps), TV-115 closed or AR-117 blocked all lead there, and TIC-115 is the control
+  loop. I-106 trips on a new independent element TZ-128 on PG-108 after the quench point (P-01) or
+  on both quench pumps stopped, and acts like I-101 on the firing (US-112) and the feed and make-up
+  hydrogen (US-122). Its TAHH lies between the TIC-115 setpoint 893.15 K (S9) and 918.15 K; value,
+  voting and SIL are S6's. Scenario handed to S6: loss of quench, E-101 above its design
+  temperature in hot hydrogen. The TZ-128 signal to US-112 is in the DEXPI model and the C&E but
+  not drawn: any route from PG-108 to US-112 crosses PG-106 and NG-137, and the crossings were not
+  accepted; the P-01 note names the trip.
+- Start-up quench. The quench liquid is V-101 liquid, which exists only after the first toluene, so
+  SEQ-START-RXN keeps the quench in step S6 and states that E-101 takes the unquenched effluent in
+  step S5. Estimate (own, ASSUMED): at the 873.15 K inlet hold and 30 % toluene with the full
+  recycle gas the adiabatic rise is about 0.3 x 41.1 K (the design rise 936.2 - 895.15 K) / 0.95
+  (the lower heat capacity flow without 70 % of the toluene) = about 13 K, so the outlet is about
+  886 K, about 32 K below the E-101 design temperature and below the normal quenched 893 K (a lower
+  inlet temperature also lowers the conversion, so the estimate is an upper one). S5 completes only
+  with TZ-128 below its alarm, and the TZ-128 leg of I-106 is never bypassed. TIC-115's operator
+  note and the sequences header now say the same.
+- K-102 and PSA trip, I-301 (new). On a K-102 machine trip or a PSA package trip US-311 (P-03)
+  stops K-102, holds the PSA cycle and closes the new purge shutdown valve XV-310 (BallValve DN 80 on
+  HG-113 at the PSA inlet, fails closed); FV-211 stays the control valve of FIC-211 and is closed by
+  the operator behind it (SEQ-TRIP-PSA). PSV-307/PSV-308 are no longer the answer to a foreseeable
+  machine trip. SEQ-START-PSA aborts on I-301 and opens XV-310 only in step S2.
+- SEQ-TRIP-RXN step S1 now closes XV-120 and XV-121 by the operator, so after I-104 or I-105 (which
+  stop only the firing) the step completes and the toluene is stopped; I-104, I-105 and I-106 are
+  in the reset conditions of SEQ-TRIP-RXN and SEQ-START-RXN. Philosophy F-FUEL says the same.
+- SEQ-EDP keeps K-101 running during the depressuring (the recycle gas is the only heat sink of a
+  runaway reactor) and stops it in a new step S2 at the vendor's low suction pressure or surge
+  limit, or at once on I-203.
+- Relief and flare load case for S8: global instrument air failure, in which XV-209 depressures the
+  loop and the fail-open vents PV-104 and PV-504, the off-gas PV-404, the anti-surge UV-207 and the
+  spillback PV-303 open at the same time; likely a governing flare load case. Also for S8: the
+  PSV-413 blow-by case is now worded as LV-202 and XV-204 sticking open or passing (both fail
+  closed).
+- Practice citations: the depressuring practice is API Std 521, 7th ed. (2020), vapour
+  depressuring section 5.20; the section number is taken from the NeqSim documentation's index of
+  the standard (equinor.github.io/neqsim/safety/depressurization_per_API_521, read 2026-11-05), the
+  standard itself was not read, so S8 confirms the clause and its criteria. The burner management
+  codes EN 746-2 and NFPA 86 are named for orientation only (skill); the applicable code is the
+  heater vendor's and S6's to set.
+- Lists and sheets: TZ-128, US-311 and XV-310 added (instrument list; P-01, P-03); the sheet notes
+  and the US-112/US-122 services name I-105, I-106 and I-203; the P-02 note names I-203; TI-124 and
+  FFI-217 notes brought to the S4 state; LV-102 and XV-310 in F-AIR's closed list (now 22 closed
+  and 12 open of the 34 actuated valves). The LIC-506 rationale now says that the LV configuration
+  is chosen deliberately although the reflux is the larger outlet at R 2.18. The FIC-103 setpoint
+  source names the propagated provenance of S3. The stream links of the three flow setpoints are
+  open item I-13 (core#153).
 
 ## LCI summary (lca/inventory.csv, per kg benzene)
 
@@ -1638,6 +1697,10 @@ with the script's duties (D-022: core's rigorous partial condenser needs a liqui
 - I-11 Background datasets for every LCI exchange (all gaps) and the allocation decision.
 - I-12 A benzene product cooler step (S21 to 313 K) and a stabiliser model whose partial
   condenser DWSIM solves (a rigorous column with a vapour product), D-014.
+- I-13 Restore the `stream:` links of the flow setpoints FIC-103 (S3), FIC-108 (S4) and FIC-211
+  (S13) in `control/loops.yaml` once core compares identical units without Pint (core#153, open
+  since 2026-11-04); until then the setpoint-vs-case cross-check does not run for these three
+  loops and their values are checked by hand (D-026).
 
 ## Missing library registry entries (chemicals/chemicals.yaml, for the consolidated PR)
 
