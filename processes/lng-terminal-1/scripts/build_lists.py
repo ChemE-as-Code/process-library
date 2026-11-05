@@ -45,9 +45,13 @@ def main() -> None:
             if have["nominal_diameter"] != e["nominal_diameter"]:
                 print(f"DN differs for {e['number']}: {have['sheet']} {have['nominal_diameter']}, "
                       f"{s} {e['nominal_diameter']}")
-            if e["notes"].startswith("see ") or len(e["notes"]) <= len(have["notes"]):
-                continue
-            merged[e["number"]] = e
+            # the home sheet is the one its number names (LNG-4005 -> P-04); the fullest notes win
+            home = f"P-0{e['number'].split('-')[1][0]}"
+            notes = max((have["notes"], e["notes"]), key=lambda t: (not t.startswith("see "), len(t)))
+            if e["sheet"] == home:
+                merged[e["number"]] = {**e, "notes": notes}
+            else:
+                have["notes"] = notes
     for s in SHEETS:
         rows = [e for e in merged.values() if e["sheet"] == s]
         out.append(f"  # ---- {s}")
