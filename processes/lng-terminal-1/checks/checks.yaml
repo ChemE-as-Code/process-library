@@ -223,7 +223,39 @@ checks:
     stage: detail
     kind: issues
 
+  # ---- plant-specific content of the P&IDs (D-007, D-014, D-016, D-017)
+  - id: tank-protection-on-pid
+    title: Each tank has its independent level and pressure trips, PSVs and vacuum relief valves
+    stage: basic
+    kind: on-sheet
+    tags: [LZT-2102, PZT-2112, PSV-2131A, PSV-2131B, PSV-2133A, PSV-2133B,
+           LZT-3102, PZT-3112, PSV-3131A, PSV-3131B, PSV-3133A, PSV-3133B]
+    connected: true
+  - id: berth-arms-on-pid
+    title: Each berth has its four arms (2 liquid, hybrid, vapour) with ERS valves and the shore ESD valve
+    stage: basic
+    kind: on-sheet
+    tags: [LA-5101, LA-5102, LA-5103, LA-5104, XV-5101, XV-5131, XV-5141, XV-5134, XV-5144,
+           LA-6101, LA-6102, LA-6103, LA-6104, XV-6101, XV-6131, XV-6141, XV-6134, XV-6144]
+    connected: true
+  - id: bog-compressors-on-pid
+    title: The BOG compressors with anti-surge, the desuperheater and the suction drum
+    stage: basic
+    kind: on-sheet
+    sheets: [P-07]
+    tags: [K-7101A, K-7101B, K-7101C, UIC-7104A, UIC-7104B, UIC-7104C, TV-7103, D-7101]
+    connected: true
+
 # Findings accepted for every gate and for `cheme validate`, which then reports them as info
 # with the reason (an entry that names no finding is reported as cheme.accept-unused).
 # Only warnings and infos can be accepted; an error stays an error (cheme.accept-error).
-accept: []
+accept:
+  # The line number changes with the pipe size at these six sheet boundaries (D-021): the
+  # off-page note names the line it continues as on the other sheet.
+  - {id: "pid/P-02.xml#offpage-mismatch:Line_LNG2001_To:*", reason: "D-021: DN 450/800 pump header LNG-2001 continues as trestle line LNG-4001 (P-04)"}
+  - {id: "pid/P-03.xml#offpage-mismatch:Line_LNG3001_To:*", reason: "D-021: pump header LNG-3001 continues as trestle line LNG-4002 (P-04)"}
+  - {id: "pid/P-04.xml#offpage-mismatch:Line_LNG4001_*", reason: "D-021: trestle line LNG-4001 runs from header LNG-2001 (P-02) to the Berth 2 header LNG-5001 (P-05, DN 800/400)"}
+  - {id: "pid/P-04.xml#offpage-mismatch:Line_LNG4002_*", reason: "D-021: trestle line LNG-4002 runs from header LNG-3001 (P-03) to the Berth 1 header LNG-6001 (P-06)"}
+  - {id: "pid/P-04.xml#offpage-mismatch:Line_BOG400?_From:*", reason: "D-021: DN 400 berth vapour lines BOG-5001 / BOG-6001 continue as the DN 750 trestle vapour returns"}
+  - {id: "pid/P-0[56].xml#offpage-mismatch:Line_LNG[56]001_From:*", reason: "D-021: the berth header continues the trestle loading line at a new number (DN 800/400 segments)"}
+  - {id: "pid/P-0[56].xml#offpage-mismatch:Line_BOG[56]001_To:*", reason: "D-021: the DN 400 berth vapour line continues as the DN 750 trestle vapour return"}

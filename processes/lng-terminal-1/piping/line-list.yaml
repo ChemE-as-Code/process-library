@@ -1,57 +1,118 @@
 # Line list. Schema: `cheme schema lines`.
-# Numbers per DESIGN.md D-015 (<fluid>-<sheet digit><nnn>), DN per D-008 and the sizing script
-# (concept estimates, ASSUMED). BL = battery limit. Pressure classes ASME (Class 150 for the
-# LNG and vapour systems, ASSUMED). Concept stage: the main process lines; the P&IDs add the
-# rest.
+# Written from the P&ID drafts by scripts/build_lists.py (D-021), then kept with the
+# sheets (skill lists-sync). Numbers per D-015 (<fluid>-<sheet digit><nnn>); DN per D-008
+# and the sizing script (concept estimates, ASSUMED). Pressure class ASME Class 150
+# (ASSUMED) for the LNG and vapour systems. BL = battery limit.
 schema: cheme/lines/v1
 lines:
-  # ---- P-01 rundown and tank fill
-  - {number: LNG-1001, from: BL (trains 1-4), to: LNG-1002, nominal_diameter: DN900, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-01,
-     notes: "Rundown header from the four trains, 3,365 t/h (~7,560 m3/h), 3.4 m/s at DN 900 (S1)."}
-  - {number: LNG-1002, from: LNG-1001, to: T-2101, nominal_diameter: DN900, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-01,
-     notes: "Fill to T-2101: top fill (rollover protection, heavier rundown) or bottom fill, switched by XV valves (D-007)."}
-  - {number: LNG-1003, from: LNG-1001, to: T-3101, nominal_diameter: DN900, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-01,
-     notes: "Fill to T-3101, as LNG-1002."}
-  - {number: BOG-1001, from: T-2101, to: D-7101, nominal_diameter: DN750, pressure_class: Class 150, fluid: Boil-off gas, insulation: cold (PIR), sheet: P-01,
-     notes: "Tank vapour header from both tanks to the BOG suction drum; holding 21.9 t/h (S8)."}
-  # ---- P-02 / P-03 tanks and in-tank pumps
-  - {number: LNG-2001, from: P-2101A, to: LNG-4001, nominal_diameter: DN800, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-02,
-     notes: "T-2101 loading pump discharge header (4 x DN 450 pump columns), up to 12,000 m3/h."}
-  - {number: LNG-2002, from: P-2102, to: LNG-4001, nominal_diameter: DN250, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-02,
-     notes: "T-2101 circulation pump discharge, ~314 m3/h in holding (S2 holding), and the desuperheater spray (S7)."}
-  - {number: LNG-3001, from: P-3101A, to: LNG-4002, nominal_diameter: DN800, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-03,
-     notes: "T-3101 loading pump discharge header, as LNG-2001."}
-  - {number: LNG-3002, from: P-3102, to: LNG-4002, nominal_diameter: DN250, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-03,
-     notes: "T-3101 circulation pump discharge, as LNG-2002."}
-  # ---- P-04 trestle
-  - {number: LNG-4001, from: LNG-2001, to: LNG-5001, nominal_diameter: DN800, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR 200 mm), sheet: P-04,
-     notes: "Loading line A over the trestle, ~2.45 km, 6,000 m3/h at 3.4 m/s, ~91 kPa (D-008, D-011)."}
-  - {number: LNG-4002, from: LNG-3001, to: LNG-5001, nominal_diameter: DN800, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR 200 mm), sheet: P-04,
-     notes: "Loading line B, as LNG-4001; circulation return in holding through the platform crossover LNG-4003 (D-008)."}
-  - {number: LNG-4003, from: LNG-4001, to: LNG-4002, nominal_diameter: DN250, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-04,
-     notes: "Circulation crossover at the loading platform (holding), ~314 m3/h (S10)."}
-  - {number: BOG-4001, from: LNG-5005, to: BOG-1001, nominal_diameter: DN750, pressure_class: Class 150, fluid: Boil-off gas, insulation: cold (PIR 150 mm), sheet: P-04,
-     notes: "Vapour return line A over the trestle (Berth 2), 45.6 t/h at loading (S6), ~9 m/s (D-009)."}
-  - {number: BOG-4002, from: LNG-6005, to: BOG-1001, nominal_diameter: DN750, pressure_class: Class 150, fluid: Boil-off gas, insulation: cold (PIR 150 mm), sheet: P-04,
-     notes: "Vapour return line B (Berth 1), as BOG-4001."}
-  # ---- P-05 / P-06 berths
-  - {number: LNG-5001, from: LNG-4001, to: LA-5101, nominal_diameter: DN800, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-05,
-     notes: "Berth 2 liquid header to the arms LA-5101, LA-5103, LA-5104, with the shore ESD valve."}
-  - {number: BOG-5001, from: LA-5102, to: BOG-4001, nominal_diameter: DN400, pressure_class: Class 150, fluid: Boil-off gas, insulation: cold (PIR), sheet: P-05,
-     notes: "Berth 2 vapour arm line to the vapour return line A."}
-  - {number: LNG-6001, from: LNG-4002, to: LA-6101, nominal_diameter: DN800, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-06,
-     notes: "Berth 1 liquid header, as LNG-5001."}
-  - {number: BOG-6001, from: LA-6102, to: BOG-4002, nominal_diameter: DN400, pressure_class: Class 150, fluid: Boil-off gas, insulation: cold (PIR), sheet: P-06,
-     notes: "Berth 1 vapour arm line, as BOG-5001."}
-  # ---- P-07 BOG
-  - {number: BOG-7001, from: D-7101, to: K-7101A, nominal_diameter: DN750, pressure_class: Class 150, fluid: Boil-off gas, insulation: cold (PIR), sheet: P-07,
-     notes: "Compressor suction header, 49.1 t/h at loading, -140 degC (S14)."}
-  - {number: BOG-7002, from: K-7101A, to: BL (trains), nominal_diameter: DN500, pressure_class: Class 150, fluid: Boil-off gas, insulation: cold (PIR), sheet: P-07,
-     notes: "Compressed BOG to the trains' end-flash / fuel gas system, 600 kPa(a), ~-49 degC (S9)."}
-  - {number: LNG-7001, from: LNG-2002, to: D-7101, nominal_diameter: DN80, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-07,
-     notes: "Desuperheater spray, 3.5 t/h at loading (S7), TV-7103."}
-  # ---- P-08 flare
-  - {number: FL-8001, from: BOG-1001, to: D-8101, nominal_diameter: DN900, pressure_class: Class 150, fluid: Flare gas, insulation: none, sheet: P-08,
-     notes: "Storage and loading flare header: tank PV to flare, BOG compressor trip, carrier de-inerting (D-017)."}
-  - {number: FL-8002, from: D-8101, to: FL-8101, nominal_diameter: DN900, pressure_class: Class 150, fluid: Flare gas, insulation: none, sheet: P-08,
-     notes: "KO drum to the storage and loading flare stack (inner diameter 1.42 m at the stack, S-02)."}
+  # ---- P-01
+  - {number: LNG-1001, from: BL (train 1), to: T-3101 (top fill), nominal_diameter: DN900, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-01, notes: 'Rundown header from the four trains, 3,365 t/h (~7,560 m3/h), 3.4 m/s at DN 900 (S1, D-005); train 1 ties in at the battery limit (D-021); ends as the T-3101 top fill.'}
+  - {number: LNG-1012, from: BL (train 2), to: LNG-1001, nominal_diameter: DN500, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-01, notes: 'Train 2 rundown, ~841 t/h (~1,890 m3/h), 2.7 m/s at DN 500 (D-003).'}
+  - {number: LNG-1013, from: BL (train 3), to: LNG-1001, nominal_diameter: DN500, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-01, notes: 'Train 3 rundown, ~841 t/h (~1,890 m3/h), 2.7 m/s at DN 500 (D-003).'}
+  - {number: LNG-1014, from: BL (train 4), to: LNG-1001, nominal_diameter: DN500, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-01, notes: 'Train 4 rundown, ~841 t/h (~1,890 m3/h), 2.7 m/s at DN 500 (D-003).'}
+  - {number: BOG-1004, from: LNG-1001 (PSV-1121), to: BOG-1001, nominal_diameter: DN25, pressure_class: Class 150, fluid: Boil-off gas, insulation: cold (PIR), sheet: P-01, notes: Thermal relief outlet to the tank vapour header.}
+  - {number: BOG-1001, from: T-2101, to: D-7101, nominal_diameter: DN750, pressure_class: Class 150, fluid: Boil-off gas, insulation: cold (PIR), sheet: P-01, notes: 'Tank vapour header from T-2101 (P-02) with T-3101, the vapour return lines and the make-up (P-01) to the BOG suction drum with the desuperheater spray (P-07); holding 21.9 t/h (S8), loading 49.1 t/h with the return (S6) (D-009). Drawn on P-02, P-01 and P-07.'}
+  - {number: BOG-1003, from: T-3101, to: BOG-1001, nominal_diameter: DN600, pressure_class: Class 150, fluid: Boil-off gas, insulation: cold (PIR), sheet: P-01, notes: T-3101 vapour outlet to the tank vapour header. Drawn on P-03 and P-01.}
+  - {number: BOG-4001, from: BOG-5001 (Berth 2), to: BOG-1001, nominal_diameter: DN750, pressure_class: Class 150, fluid: Boil-off gas, insulation: cold (PIR 150 mm), sheet: P-01, notes: 'Vapour return line A over the trestle (Berth 2) into the tank vapour header; 45.6 t/h at loading (S6), ~9 m/s (D-009, D-012). Drawn on P-04 and P-01.'}
+  - {number: BOG-4002, from: BOG-6001 (Berth 1), to: BOG-1001, nominal_diameter: DN750, pressure_class: Class 150, fluid: Boil-off gas, insulation: cold (PIR 150 mm), sheet: P-01, notes: 'Vapour return line B over the trestle (Berth 1) into the tank vapour header; 45.6 t/h at loading (S6), ~9 m/s (D-009, D-012). Drawn on P-04 and P-01.'}
+  - {number: BOG-1009, from: BOG-7002, to: BOG-1001, nominal_diameter: DN150, pressure_class: Class 150, fluid: Boil-off gas, insulation: cold (PIR), sheet: P-01, notes: 'Make-up gas from the compressor discharge against tank vacuum, PV-1111 (D-017). Drawn on P-07 and P-01.'}
+  - {number: FL-8001, from: BOG-1001 (PV-1110), to: D-8101, nominal_diameter: DN900, pressure_class: Class 150, fluid: Flare gas, insulation: none, sheet: P-01, notes: 'Storage and loading flare header from the tank pressure control valve PV-1110 (ahead of the tank PSVs) to the knock-out drum, with the BOG relief valves, the purge and carrier de-inerting joining on P-08; design case the BOG compressor trip at loading, ~54 t/h (D-017). Drawn on P-01 and P-08.'}
+  # ---- P-02
+  - {number: LNG-1002, from: LNG-1001, to: T-2101, nominal_diameter: DN900, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-02, notes: 'Fill to T-2101; top fill (spray ring under the deck) or bottom fill via LNG-1004, chosen from AI-1102 against LTD-2103 (rollover, D-007). Drawn on P-01 and P-02.'}
+  - {number: LNG-1004, from: LNG-1002, to: T-2101, nominal_diameter: DN900, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-02, notes: T-2101 bottom fill (internal down-comer to the tank bottom) (D-007). Drawn on P-01 and P-02.}
+  - {number: LNG-2001, from: P-2101A, to: LNG-4001, nominal_diameter: DN800, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-02, notes: 'T-2101 loading pump discharge header to loading line A, up to 12,000 m3/h (D-011); segment S1 is the DN 450 column of P-2101A, where the header starts (D-021).', segments: [{number: S1, nominal_diameter: DN450, notes: P-2101A pump column}]}
+  - {number: LNG-2012, from: P-2101B, to: LNG-2001, nominal_diameter: DN450, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-02, notes: 'P-2101B pump column (3,000 m3/h, D-011).'}
+  - {number: LNG-2013, from: P-2101C, to: LNG-2001, nominal_diameter: DN450, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-02, notes: 'P-2101C pump column (3,000 m3/h, D-011).'}
+  - {number: LNG-2014, from: P-2101D, to: LNG-2001, nominal_diameter: DN450, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-02, notes: 'P-2101D pump column (3,000 m3/h, D-011).'}
+  - {number: LNG-2002, from: P-2102, to: LNG-4001, nominal_diameter: DN250, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-02, notes: 'T-2101 circulation pump discharge and circulation header into loading line A, with the desuperheater spray take-off; holding ~314 m3/h (D-008, D-010). Drawn on P-02 and P-04.'}
+  - {number: LNG-2021, from: P-2101A, to: T-2101, nominal_diameter: DN150, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-02, notes: 'P-2101A minimum-flow return into T-2101 (ASSUMED ~30 % of rated flow, D-011); number and size in the sheet note (no room for labels between the columns).'}
+  - {number: LNG-2022, from: P-2101B, to: T-2101, nominal_diameter: DN150, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-02, notes: 'P-2101B minimum-flow return into T-2101 (ASSUMED ~30 % of rated flow, D-011); number and size in the sheet note (no room for labels between the columns).'}
+  - {number: LNG-2023, from: P-2101C, to: T-2101, nominal_diameter: DN150, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-02, notes: 'P-2101C minimum-flow return into T-2101 (ASSUMED ~30 % of rated flow, D-011); number and size in the sheet note (no room for labels between the columns).'}
+  - {number: LNG-2024, from: P-2101D, to: T-2101, nominal_diameter: DN150, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-02, notes: 'P-2101D minimum-flow return into T-2101 (ASSUMED ~30 % of rated flow, D-011); number and size in the sheet note (no room for labels between the columns).'}
+  - {number: LNG-2025, from: P-2102, to: T-2101, nominal_diameter: DN100, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-02, notes: 'P-2102 minimum-flow return into T-2101 (ASSUMED ~30 % of rated flow, D-011); number and size in the sheet note (no room for labels between the columns).'}
+  - {number: LNG-4005, from: LNG-4002, to: T-2101, nominal_diameter: DN250, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-02, notes: 'Circulation return from line B to the tanks (holding, S10); to T-2101 or, via LNG-4009, T-3101 (D-008). Drawn on P-04 and P-02.'}
+  - {number: BOG-2002, from: T-2101, to: atmosphere, nominal_diameter: DN250, pressure_class: Class 150, fluid: Boil-off gas, insulation: none, sheet: P-02, notes: PSV-2131A inlet and tailpipe to atmosphere.}
+  - {number: BOG-2003, from: T-2101, to: atmosphere, nominal_diameter: DN250, pressure_class: Class 150, fluid: Boil-off gas, insulation: none, sheet: P-02, notes: PSV-2131B inlet and tailpipe to atmosphere.}
+  - {number: A-2001, from: atmosphere, to: T-2101, nominal_diameter: DN250, pressure_class: Class 150, fluid: Air, insulation: none, sheet: P-02, notes: Vacuum relief inlet of T-2101 (PSV-2133A).}
+  - {number: A-2002, from: atmosphere, to: T-2101, nominal_diameter: DN250, pressure_class: Class 150, fluid: Air, insulation: none, sheet: P-02, notes: Vacuum relief inlet of T-2101 (PSV-2133B).}
+  # ---- P-03
+  - {number: LNG-1003, from: LNG-1001, to: T-3101, nominal_diameter: DN900, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-03, notes: T-3101 bottom fill (internal down-comer to the tank bottom) (D-007). Drawn on P-01 and P-03.}
+  - {number: LNG-3001, from: P-3101A, to: LNG-4002, nominal_diameter: DN800, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-03, notes: 'T-3101 loading pump discharge header to loading line B, up to 12,000 m3/h (D-011); segment S1 is the DN 450 column of P-3101A, where the header starts (D-021).', segments: [{number: S1, nominal_diameter: DN450, notes: P-3101A pump column}]}
+  - {number: LNG-3012, from: P-3101B, to: LNG-3001, nominal_diameter: DN450, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-03, notes: 'P-3101B pump column (3,000 m3/h, D-011).'}
+  - {number: LNG-3013, from: P-3101C, to: LNG-3001, nominal_diameter: DN450, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-03, notes: 'P-3101C pump column (3,000 m3/h, D-011).'}
+  - {number: LNG-3014, from: P-3101D, to: LNG-3001, nominal_diameter: DN450, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-03, notes: 'P-3101D pump column (3,000 m3/h, D-011).'}
+  - {number: LNG-3002, from: P-3102, to: LNG-2002, nominal_diameter: DN250, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-03, notes: T-3101 circulation pump discharge into the circulation header LNG-2002. Drawn on P-03 and P-04.}
+  - {number: LNG-3021, from: P-3101A, to: T-3101, nominal_diameter: DN150, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-03, notes: 'P-3101A minimum-flow return into T-3101 (ASSUMED ~30 % of rated flow, D-011); number and size in the sheet note (no room for labels between the columns).'}
+  - {number: LNG-3022, from: P-3101B, to: T-3101, nominal_diameter: DN150, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-03, notes: 'P-3101B minimum-flow return into T-3101 (ASSUMED ~30 % of rated flow, D-011); number and size in the sheet note (no room for labels between the columns).'}
+  - {number: LNG-3023, from: P-3101C, to: T-3101, nominal_diameter: DN150, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-03, notes: 'P-3101C minimum-flow return into T-3101 (ASSUMED ~30 % of rated flow, D-011); number and size in the sheet note (no room for labels between the columns).'}
+  - {number: LNG-3024, from: P-3101D, to: T-3101, nominal_diameter: DN150, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-03, notes: 'P-3101D minimum-flow return into T-3101 (ASSUMED ~30 % of rated flow, D-011); number and size in the sheet note (no room for labels between the columns).'}
+  - {number: LNG-3025, from: P-3102, to: T-3101, nominal_diameter: DN100, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-03, notes: 'P-3102 minimum-flow return into T-3101 (ASSUMED ~30 % of rated flow, D-011); number and size in the sheet note (no room for labels between the columns).'}
+  - {number: LNG-4009, from: LNG-4005, to: T-3101, nominal_diameter: DN250, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-03, notes: Circulation return branch to T-3101. Drawn on P-04 and P-03.}
+  - {number: BOG-3002, from: T-3101, to: atmosphere, nominal_diameter: DN250, pressure_class: Class 150, fluid: Boil-off gas, insulation: none, sheet: P-03, notes: PSV-3131A inlet and tailpipe to atmosphere.}
+  - {number: BOG-3003, from: T-3101, to: atmosphere, nominal_diameter: DN250, pressure_class: Class 150, fluid: Boil-off gas, insulation: none, sheet: P-03, notes: PSV-3131B inlet and tailpipe to atmosphere.}
+  - {number: A-3001, from: atmosphere, to: T-3101, nominal_diameter: DN250, pressure_class: Class 150, fluid: Air, insulation: none, sheet: P-03, notes: Vacuum relief inlet of T-3101 (PSV-3133A).}
+  - {number: A-3002, from: atmosphere, to: T-3101, nominal_diameter: DN250, pressure_class: Class 150, fluid: Air, insulation: none, sheet: P-03, notes: Vacuum relief inlet of T-3101 (PSV-3133B).}
+  # ---- P-04
+  - {number: LNG-4001, from: LNG-2001, to: LNG-5001, nominal_diameter: DN800, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR 200 mm), sheet: P-04, notes: 'Loading line A over the trestle, ~2.45 km; 6,000 m3/h at 3.4 m/s with both lines loading, ~91 kPa (S3, D-008, D-011); out-leg of the circulation loop in holding (S2 holding).'}
+  - {number: LNG-4002, from: LNG-3001, to: LNG-6001, nominal_diameter: DN800, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR 200 mm), sheet: P-04, notes: 'Loading line B, as LNG-4001; return leg of the circulation loop in holding through the platform crossover LNG-4003 (D-008).'}
+  - {number: LNG-4003, from: LNG-4001, to: LNG-4002, nominal_diameter: DN250, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-04, notes: 'Platform crossover: circulation loop in holding (~314 m3/h, S10); open while loading so both lines reach the loading berth (D-008); receives the jetty drain pumps.'}
+  - {number: LNG-5006, from: P-5101, to: LNG-4003, nominal_diameter: DN80, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-04, notes: 'Jetty drain pump P-5101 discharge into the platform crossover, ~60 m3/h (D-016). Drawn on P-05 and P-04.'}
+  - {number: LNG-6006, from: P-6101, to: LNG-4003, nominal_diameter: DN80, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-04, notes: 'Jetty drain pump P-6101 discharge into the platform crossover, ~60 m3/h (D-016). Drawn on P-06 and P-04.'}
+  - {number: LNG-4006, from: LNG-4001, to: LNG-4002, nominal_diameter: DN800, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-04, notes: 'Tank-end crossover: either tank''s pumps load through both lines (D-008, D-011).'}
+  - {number: LNG-4008, from: LNG-2002, to: BOG-1001 (TV-7103), nominal_diameter: DN80, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-04, notes: 'Spray LNG to the BOG desuperheater TV-7103 (S7, 3.5 t/h at loading, D-010). Drawn on P-04 and P-07.'}
+  - {number: BOG-4011, from: LNG-4001 (PSV-4111), to: BOG-4001, nominal_diameter: DN25, pressure_class: Class 150, fluid: Boil-off gas, insulation: cold (PIR), sheet: P-04, notes: Thermal relief outlet of loading line A to vapour return line A.}
+  - {number: BOG-4012, from: LNG-4002 (PSV-4112), to: BOG-4002, nominal_diameter: DN25, pressure_class: Class 150, fluid: Boil-off gas, insulation: cold (PIR), sheet: P-04, notes: Thermal relief outlet of loading line B to vapour return line B.}
+  # ---- P-05
+  - {number: LNG-5001, from: LNG-4001, to: LA-5103, nominal_diameter: DN800, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-05, notes: 'Berth 2 liquid header on the loading platform, 12,000 m3/h at loading (S3); shore ESD valve XV-5101 and strainer SR-5102 (S-01: shore strainers; D-016).', segments: [{number: S6, nominal_diameter: DN400, notes: 'to the hybrid arm, after the LA-n104 tee'}, {number: S7, nominal_diameter: DN400, notes: hybrid arm connection}]}
+  - {number: LNG-5002, from: LNG-5001, to: LA-5101, nominal_diameter: DN400, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-05, notes: Liquid arm LA-5101 shore connection with its isolation valve.}
+  - {number: LNG-5003, from: LNG-5001, to: LA-5104, nominal_diameter: DN400, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-05, notes: Liquid arm LA-5104 shore connection with its isolation valve.}
+  - {number: BOG-5001, from: LA-5102, to: BOG-4001, nominal_diameter: DN400, pressure_class: Class 150, fluid: Boil-off gas, insulation: cold (PIR), sheet: P-05, notes: 'Berth 2 vapour line from the vapour arm (and the hybrid arm) to vapour return line A; 45.6 t/h at loading (S5/S6) is ~70 m/s in one 16 inch arm, so the hybrid arm is the second vapour path at high return (D-014).'}
+  - {number: BOG-5003, from: LA-5103, to: BOG-5001, nominal_diameter: DN400, pressure_class: Class 150, fluid: Boil-off gas, insulation: cold (PIR), sheet: P-05, notes: Hybrid arm to the vapour line (hybrid used as a vapour arm).}
+  - {number: LNG-5011, from: LA-5101, to: carrier manifold, nominal_diameter: DN400, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-05, notes: 'Liquid arm outboard: arm, ERS (XV-5131, emergency release coupler, XV-5141), quick connect/disconnect coupler, carrier manifold (D-014).'}
+  - {number: LNG-5014, from: LA-5104, to: carrier manifold, nominal_diameter: DN400, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-05, notes: 'Liquid arm outboard: arm, ERS (XV-5134, emergency release coupler, XV-5144), quick connect/disconnect coupler, carrier manifold (D-014).'}
+  - {number: LNG-5013, from: LA-5103, to: carrier manifold, nominal_diameter: DN400, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-05, notes: 'Hybrid arm outboard: arm, ERS (XV-5133, emergency release coupler, XV-5143), quick connect/disconnect coupler, carrier manifold (D-014).'}
+  - {number: BOG-5012, from: carrier vapour manifold, to: LA-5102, nominal_diameter: DN400, pressure_class: Class 150, fluid: Boil-off gas, insulation: cold (PIR), sheet: P-05, notes: 'Vapour arm outboard: carrier manifold, ERS (XV-5142, coupler, XV-5132), arm.'}
+  - {number: DR-5001, from: LNG-5001, to: D-5101, nominal_diameter: DN100, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-05, notes: Header and arm drain to the jetty drain drum after loading; receives the surge relief (D-016).}
+  - {number: DR-5002, from: LNG-5001 (PSV-5131), to: DR-5001, nominal_diameter: DN150, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-05, notes: Surge relief discharge of PSV-5131 into the drain line.}
+  - {number: BOG-5002, from: D-5101, to: BOG-5001, nominal_diameter: DN100, pressure_class: Class 150, fluid: Boil-off gas, insulation: cold (PIR), sheet: P-05, notes: Drain drum vent to the vapour line.}
+  - {number: LNG-5005, from: D-5101, to: P-5101, nominal_diameter: DN100, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-05, notes: Drain pump suction.}
+  # ---- P-06
+  - {number: LNG-6001, from: LNG-4002, to: LA-6103, nominal_diameter: DN800, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-06, notes: 'Berth 1 liquid header on the loading platform, 12,000 m3/h at loading (S3); shore ESD valve XV-6101 and strainer SR-6102 (S-01: shore strainers; D-016).', segments: [{number: S6, nominal_diameter: DN400, notes: 'to the hybrid arm, after the LA-n104 tee'}, {number: S7, nominal_diameter: DN400, notes: hybrid arm connection}]}
+  - {number: LNG-6002, from: LNG-6001, to: LA-6101, nominal_diameter: DN400, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-06, notes: Liquid arm LA-6101 shore connection with its isolation valve.}
+  - {number: LNG-6003, from: LNG-6001, to: LA-6104, nominal_diameter: DN400, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-06, notes: Liquid arm LA-6104 shore connection with its isolation valve.}
+  - {number: BOG-6001, from: LA-6102, to: BOG-4002, nominal_diameter: DN400, pressure_class: Class 150, fluid: Boil-off gas, insulation: cold (PIR), sheet: P-06, notes: 'Berth 1 vapour line from the vapour arm (and the hybrid arm) to vapour return line B; 45.6 t/h at loading (S5/S6) is ~70 m/s in one 16 inch arm, so the hybrid arm is the second vapour path at high return (D-014).'}
+  - {number: BOG-6003, from: LA-6103, to: BOG-6001, nominal_diameter: DN400, pressure_class: Class 150, fluid: Boil-off gas, insulation: cold (PIR), sheet: P-06, notes: Hybrid arm to the vapour line (hybrid used as a vapour arm).}
+  - {number: LNG-6011, from: LA-6101, to: carrier manifold, nominal_diameter: DN400, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-06, notes: 'Liquid arm outboard: arm, ERS (XV-6131, emergency release coupler, XV-6141), quick connect/disconnect coupler, carrier manifold (D-014).'}
+  - {number: LNG-6014, from: LA-6104, to: carrier manifold, nominal_diameter: DN400, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-06, notes: 'Liquid arm outboard: arm, ERS (XV-6134, emergency release coupler, XV-6144), quick connect/disconnect coupler, carrier manifold (D-014).'}
+  - {number: LNG-6013, from: LA-6103, to: carrier manifold, nominal_diameter: DN400, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-06, notes: 'Hybrid arm outboard: arm, ERS (XV-6133, emergency release coupler, XV-6143), quick connect/disconnect coupler, carrier manifold (D-014).'}
+  - {number: BOG-6012, from: carrier vapour manifold, to: LA-6102, nominal_diameter: DN400, pressure_class: Class 150, fluid: Boil-off gas, insulation: cold (PIR), sheet: P-06, notes: 'Vapour arm outboard: carrier manifold, ERS (XV-6142, coupler, XV-6132), arm.'}
+  - {number: DR-6001, from: LNG-6001, to: D-6101, nominal_diameter: DN100, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-06, notes: Header and arm drain to the jetty drain drum after loading; receives the surge relief (D-016).}
+  - {number: DR-6002, from: LNG-6001 (PSV-6131), to: DR-6001, nominal_diameter: DN150, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-06, notes: Surge relief discharge of PSV-6131 into the drain line.}
+  - {number: BOG-6002, from: D-6101, to: BOG-6001, nominal_diameter: DN100, pressure_class: Class 150, fluid: Boil-off gas, insulation: cold (PIR), sheet: P-06, notes: Drain drum vent to the vapour line.}
+  - {number: LNG-6005, from: D-6101, to: P-6101, nominal_diameter: DN100, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-06, notes: Drain pump suction.}
+  # ---- P-07
+  - {number: FL-7001, from: BOG-1001 (PSV-7105), to: FL-8001, nominal_diameter: DN200, pressure_class: Class 150, fluid: Flare gas, insulation: none, sheet: P-07, notes: PSV-7105 outlet to the storage and loading flare header. Drawn on P-07 and P-08.}
+  - {number: BOG-7001, from: D-7101, to: K-7101C, nominal_diameter: DN750, pressure_class: Class 150, fluid: Boil-off gas, insulation: cold (PIR), sheet: P-07, notes: 'Compressor suction header, 49.1 t/h at loading, -140 degC, 108 kPa(a) (S14, D-010); ends as the K-7101C suction.', segments: [{number: S3, nominal_diameter: DN500, notes: K-7101C suction branch}, {number: S4, nominal_diameter: DN500, notes: K-7101C suction after the recycle tee}]}
+  - {number: BOG-7004, from: BOG-7001, to: K-7101A, nominal_diameter: DN500, pressure_class: Class 150, fluid: Boil-off gas, insulation: cold (PIR), sheet: P-07, notes: 'K-7101A suction, 27 t/h design (D-010).'}
+  - {number: BOG-7005, from: BOG-7001, to: K-7101B, nominal_diameter: DN500, pressure_class: Class 150, fluid: Boil-off gas, insulation: cold (PIR), sheet: P-07, notes: 'K-7101B suction, 27 t/h design (D-010).'}
+  - {number: BOG-7002, from: K-7101A, to: BL (trains), nominal_diameter: DN500, pressure_class: Class 150, fluid: Boil-off gas, insulation: cold (PIR), sheet: P-07, notes: 'Compressed BOG to the trains'' end-flash / fuel gas system, 600 kPa(a), about -49 degC (S9, D-010); segment S1 is the DN 300 discharge of K-7101A, where the header starts.', segments: [{number: S1, nominal_diameter: DN300, notes: K-7101A discharge}, {number: S2, nominal_diameter: DN300, notes: K-7101A discharge after the recycle tee}]}
+  - {number: BOG-7006, from: K-7101B, to: BOG-7002, nominal_diameter: DN300, pressure_class: Class 150, fluid: Boil-off gas, insulation: cold (PIR), sheet: P-07, notes: K-7101B discharge.}
+  - {number: BOG-7007, from: K-7101C, to: BOG-7002, nominal_diameter: DN300, pressure_class: Class 150, fluid: Boil-off gas, insulation: cold (PIR), sheet: P-07, notes: K-7101C discharge.}
+  - {number: BOG-7008, from: K-7101A discharge, to: K-7101A suction, nominal_diameter: DN250, pressure_class: Class 150, fluid: Boil-off gas, insulation: cold (PIR), sheet: P-07, notes: K-7101A anti-surge recycle (UV-7104A) to its suction downstream of the drum (D-010).}
+  - {number: BOG-7009, from: K-7101B discharge, to: K-7101B suction, nominal_diameter: DN250, pressure_class: Class 150, fluid: Boil-off gas, insulation: cold (PIR), sheet: P-07, notes: K-7101B anti-surge recycle (UV-7104B) to its suction downstream of the drum (D-010).}
+  - {number: BOG-7010, from: K-7101C discharge, to: K-7101C suction, nominal_diameter: DN250, pressure_class: Class 150, fluid: Boil-off gas, insulation: cold (PIR), sheet: P-07, notes: K-7101C anti-surge recycle (UV-7104C) to its suction downstream of the drum (D-010).}
+  - {number: FL-7002, from: BOG-7002 (PSV-7111), to: FL-8001, nominal_diameter: DN200, pressure_class: Class 150, fluid: Flare gas, insulation: none, sheet: P-07, notes: PSV-7111 outlet to the flare header. Drawn on P-07 and P-08.}
+  - {number: DR-7001, from: D-7101, to: D-8101, nominal_diameter: DN50, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-07, notes: D-7101 liquid (spray carry-over) to the flare knock-out drum. Drawn on P-07 and P-08.}
+  # ---- P-08
+  - {number: N-8001, from: BL (site N2), to: LNG-5001, nominal_diameter: DN80, pressure_class: Class 150, fluid: Nitrogen, insulation: none, sheet: P-08, notes: 'Terminal N2 header from the site system, 7 barg, to Berth 2 (and via N-8002 to Berth 1): purging the arms and headers to < 1 % O2 before and < 2 % HC after loading, the leak test at 5 bar (liquid) / 2.5 bar (vapour arm) (S-01), seal gas, blanketing (D-020). Drawn on P-08 and P-05.'}
+  - {number: N-8002, from: N-8001, to: LNG-6001, nominal_diameter: DN50, pressure_class: Class 150, fluid: Nitrogen, insulation: none, sheet: P-08, notes: N2 to Berth 1. Drawn on P-08 and P-06.}
+  - {number: FG-8001, from: BL (fuel gas), to: FL-8001, nominal_diameter: DN50, pressure_class: Class 150, fluid: Fuel gas, insulation: none, sheet: P-08, notes: 'Continuous purge of the flare header (part of the 6.0 m3/min routine limit with pilots and seal gas, S-02).'}
+  - {number: FL-8002, from: D-8101, to: FL-8101, nominal_diameter: DN900, pressure_class: Class 150, fluid: Flare gas, insulation: none, sheet: P-08, notes: 'Knock-out drum to the storage and loading flare stack on the 122 m derrick (stack inner diameter 1.42 m, S-02).'}
+  - {number: FG-8002, from: BL (fuel gas), to: FL-8101, nominal_diameter: DN50, pressure_class: Class 150, fluid: Fuel gas, insulation: none, sheet: P-08, notes: Pilot gas to the flare tip.}
+  - {number: LNG-8002, from: D-8101, to: P-8101A, nominal_diameter: DN100, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-08, notes: Knock-out drum pump suction header.}
+  - {number: LNG-8003, from: LNG-8002, to: P-8101B, nominal_diameter: DN100, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-08, notes: P-8101B suction.}
+  - {number: LNG-8001, from: P-8101A, to: BL (liquid burner), nominal_diameter: DN80, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-08, notes: 'Liquids to the 60 m liquid burner derrick of the site (9 burners, S-02), 30 m3/h.'}
+  - {number: LNG-8004, from: P-8101B, to: LNG-8001, nominal_diameter: DN80, pressure_class: Class 150, fluid: LNG, insulation: cold (PIR), sheet: P-08, notes: P-8101B discharge.}
+  - {number: W-8001, from: T-8101, to: P-8102, nominal_diameter: DN150, pressure_class: Class 150, fluid: Rainwater, insulation: none, sheet: P-08, notes: Sump rainwater to the pump.}
+  - {number: W-8002, from: P-8102, to: BL (oily water), nominal_diameter: DN100, pressure_class: Class 150, fluid: Rainwater, insulation: none, sheet: P-08, notes: Rainwater from the tank-area sump to the site oily water system; interlocked off on LNG in the sump (C&E I-801).}
+  - {number: IA-8001, from: BL (site instrument air), to: instrument users, nominal_diameter: DN50, pressure_class: Class 150, fluid: Instrument air, insulation: none, sheet: P-08, notes: 'Instrument-air header of the terminal, 7 barg (D-020).'}

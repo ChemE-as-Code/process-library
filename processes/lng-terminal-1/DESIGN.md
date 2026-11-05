@@ -173,6 +173,36 @@ counterparts. The Phase 1 subset can be read off the sheets: P-02, P-05 and K-71
 pumps and the BOG compressors, 400 V otherwise (ASSUMED). N2 for arm purge and leak test,
 seal gas and blanketing, and instrument air, from the site systems at the battery limit.
 
+**D-021 P&ID drafting conventions (basic stage).** The eight sheets (A3, DEXPI 2.0.1) were
+written once by generator scripts on cheme-as-code's authoring API (`scripts/draft_P-01.py`,
+`draft_tank.py` for P-02/P-03, `draft_P-04.py`, `draft_berth.py` for P-05/P-06,
+`draft_P-07.py`, `draft_P-08.py`, helpers in `scripts/lng_pid.py`); they are hand-maintained
+from now on and the scripts are provenance. Each draft recorded the lines, instruments and
+relief devices it drew, and `scripts/build_lists.py` wrote the line list, instrument list and
+special items from them, so the lists and the sheets started from the same values.
+Conventions:
+1. Two symbols the catalogue lacks are our own drawings: the full-containment tank
+   (concrete outer tank with dome, dashed 9 % Ni inner tank, suspended deck) and the marine
+   loading arm (riser, inboard and outboard arm, counterweight, swivel).
+2. Relief valves are drawn as globe valves and turned into `SpringLoadedGlobeSafetyValve` (the
+   vacuum relief valves `BreatherValve`) with the spring-loaded symbol, as ammonia-1 does.
+3. All nozzles of a full-containment tank pass through the roof; the sheets draw the bottom
+   fill, the circulation return, the relief valves and the instrument connections on the shell
+   for legibility.
+4. A line keeps its number across sheets (e.g. BOG-1001 on P-02, P-01 and P-07). Where the
+   pipe size changes at a sheet boundary the number changes with it: pump header LNG-2001 /
+   LNG-3001 -> trestle LNG-4001 / LNG-4002 -> berth header LNG-5001 / LNG-6001, and berth
+   vapour BOG-5001 / BOG-6001 -> trestle BOG-4001 / BOG-4002; the off-page note names the line
+   on the other sheet and the finding is accepted with this reason (`checks/checks.yaml`).
+5. A header that starts at its first pump (LNG-2001, LNG-3001) or compressor (BOG-7002) has
+   that machine's column or discharge as segment S1 at the smaller size, listed as such.
+6. The berth sheets draw the arms left to right L, L, H, V (the platform order south to north
+   is L, V, H, L, S-01) so that the vapour line leaves the sheet without crossings.
+7. Not drawn at basic: expansion loops, supports and drip trays of the trestle, low-point
+   drains and vents of the long lines, instrument root valves, the fire and gas system.
+8. Each ERS is two ball valves with their own UZ functions either side of the coupler; the
+   coupler and the quick connect/disconnect coupler are part of the arm (vendor package).
+
 ## 3. Results (concept)
 
 `cheme run scripts/terminal_sizing.py` prints the sizing summary. Headline numbers:
