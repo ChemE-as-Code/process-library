@@ -1,0 +1,113 @@
+# Goal and scope of the sodium-azide-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme assess lca
+# --write` (lca/inventory.csv, gaps.csv, dataset.yaml, manifest.json, results); never edit those by
+# hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-013): every exchange of the batch plant
+# with its amount per kg of dried NaN3, from the flowsheet's year averages of the recipe (D-003).
+# The purchased feeds are linked to their library producers where one exists (lca/mappings.yaml:
+# sodium-nitrite-1, sulfuric-acid-1, hydrazine-1, chlor-alkali-1, methanol-1, asu-1 for the
+# nitrogen); every other background is a gap with the activity it should connect to, never zero,
+# and no values from licensed databases. The off-gas of R-102 goes to a thermal oxidiser outside the
+# boundary, a treatment gap: it carries N2O from the side reaction (D-005, D-013), whose fate in
+# the oxidiser is open.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of sodium azide made by the batch hydrazine /
+  methyl nitrite route (methyl nitrite from sodium nitrite, methanol and sulfuric acid, absorbed
+  into hydrazine and caustic soda; NaN3 precipitated from the concentrated liquor, filtered,
+  washed with methanol and dried, the mother liquor recycled) at the concept stage: which raw
+  materials, utilities and wastes the batch plant exchanges per kg of dried NaN3, as the foreground
+  for a later cradle-to-gate study. No impact results: most utility and treatment backgrounds are
+  not mapped yet (D-013).
+functional_unit: {product: NAN3P, amount: 1, unit: kg, source: "1 kg of dried sodium azide (99.6 wt% NaN3) at the plant gate to packing, stream S26 (D-002, D-013)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps or links
+# instead of being mapped free (the schema's gate-to-gate maps every feed free), as
+# n-bromosuccinimide-1 and phosphorus-tribromide-1 do.
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Batch plant on a dedicated train: methyl nitrite generated from sodium nitrite, methanol and 98.5 % sulfuric acid at 298 K (R-101) and absorbed over 10 h into hydrazine hydrate and caustic soda with the recycled mother liquor at 313 K (R-102, semi-batch); methanol stripped and the liquor concentrated at 10 kPa(a) (C-101), NaN3 precipitated at 303 K, filtered, washed with methanol and vacuum-dried at 333 K (filter-dryer F-101); 1027.6 kg per batch, 652.6 batches a year"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+flows:
+  # raw materials
+  - key: feed:NANO2
+    missing: "linked to processes/sodium-nitrite-1 (lca/mappings.yaml): dried sodium nitrite by NOx absorption in soda ash"
+    source: "flowsheet stream S1 (D-004)"
+  - key: feed:ACID
+    missing: "linked to processes/sulfuric-acid-1 (lca/mappings.yaml): sulfuric acid 98.5 wt% by the double-contact process"
+    source: "flowsheet stream S5 (D-004)"
+  - key: feed:HH
+    missing: "linked to processes/hydrazine-1 (lca/mappings.yaml): hydrazine hydrate 64 wt% N2H4 by the peroxide (ketazine) process"
+    source: "flowsheet stream S8 (D-004)"
+  - key: feed:NAOH
+    missing: "linked to processes/chlor-alkali-1 (lca/mappings.yaml): caustic soda 50 wt% from membrane chlor-alkali electrolysis"
+    source: "flowsheet stream S9 (D-004)"
+  - key: feed:MEOH
+    missing: "linked to processes/methanol-1 (lca/mappings.yaml): Grade AA methanol from natural gas"
+    source: "flowsheet stream S22, the make-up of the methanol loop (D-009)"
+  - key: feed:PW1
+    missing: "not mapped yet (D-013); connect to: process (demineralised) water from the site water treatment"
+    source: "flowsheet stream S2 (D-004)"
+  - key: feed:PW2
+    missing: "not mapped yet (D-013); connect to: process (demineralised) water from the site water treatment"
+    source: "flowsheet stream S10 (D-004)"
+  # utilities
+  - key: feed:POWER
+    missing: "not mapped yet (D-013); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy streams P1-P4 (agitators, gas dispersion, vacuum pumps), D-012"
+  - key: feed:LPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 350 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
+    source: "flowsheet energy streams Q3 (still boil-up) and Q7 (filter-dryer), D-012"
+  - key: product:CHW
+    missing: "not mapped yet (D-013); connect to: chilled water at 278 K from an electric vapour-compression unit (e.g. processes/utility-chiller), per kWh of heat removed: compressor electricity at its COP, condenser cooling water, refrigerant losses"
+    source: "flowsheet energy streams Q1 (R-101), Q2 (R-102), Q4 (methanol condenser) and Q8 (dryer condenser), D-012"
+  - key: product:CW
+    missing: "not mapped yet (D-013); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
+    source: "flowsheet energy streams Q5 (water-cut condenser) and Q6 (crystallizer), D-012"
+  # wastes
+  - key: product:SULF
+    treatment: {kind: waste, route: "site wastewater treatment of the sodium sulfate liquor of the nitrite generator (sulfate discharged as dissolved salt; the traces of methanol, nitrite and acid neutralised and treated biologically)"}
+    missing: "not mapped yet (D-013); connect to: treatment of a saline process effluent with sodium sulfate in an industrial wastewater treatment plant (e.g. processes/utility-wwtp), per kg"
+    source: "flowsheet stream S6 (D-014)"
+  - key: product:COND
+    treatment: {kind: waste, route: "site wastewater treatment of the evaporator condensate (water with 0.1 wt% methanol; its reuse as process water is open, D-007)"}
+    missing: "not mapped yet (D-013); connect to: treatment of a lightly loaded organic process effluent in an industrial wastewater treatment plant (e.g. processes/utility-wwtp), per kg"
+    source: "flowsheet stream S16 (D-007)"
+  - key: product:PURGE
+    treatment: {kind: waste, route: "azide destruction (nitrous acid from nitrite and acid, to N2 and N2O) and oxidation of the hydrazine, then neutralisation and the site wastewater treatment (D-015, D-016)"}
+    missing: "not mapped yet (D-013); connect to: chemical destruction of an azide- and hydrazine-bearing caustic liquor (nitrite, acid, oxidant), with its N2O emission, then treatment in an industrial wastewater treatment plant, per kg; no background or library process covers it"
+    source: "flowsheet stream S29 (D-016)"
+  - key: product:OFFGAS
+    treatment: {kind: waste, route: "thermal oxidiser of the site: methyl nitrite and ammonia burned, N2O partly decomposed; flue gas to air (D-015)"}
+    missing: "not mapped yet (D-013); connect to: thermal oxidation of a nitrogenous process off-gas (methyl nitrite 64, N2O 26, NH3 10 wt%) with its fuel and its residual N2O and NOx emissions, per kg; the N2O, 0.036 kg per kg NaN3, is the open item of the climate result"
+    source: "flowsheet stream S14 (D-005, D-013)"
+# What the batch plant uses per batch and the flowsheet does not carry (library ADR 0035, core ADR
+# 0053): the nitrogen for inerting and pressure filtration, converted with the recipe's batches per
+# year (process/recipe.yaml). The train is dedicated and not rinsed between batches (D-003).
+consumables:
+  - id: nitrogen
+    title: Nitrogen for inerting R-101 and R-102, breaking C-101's vacuum and the pressure filtrations of F-101
+    unit: kg
+    per_batch: 50
+    source: "40 Nm3 per batch (vapour-space purges of R-101 and R-102 before the methyl nitrite, the vacuum of C-101 and F-101 broken, two filtrations at 200 kPa in F-101) x 1.2506 kg/Nm3, ASSUMED (D-013)"
+    missing: "linked to processes/asu-1 (lca/mappings.yaml): gaseous nitrogen to the battery limit"
+operation:
+  hours_per_year: 7920
+  life_years: 20
+  source: "design basis operating_hours_per_year 7920 (ASSUMED, the recipe's hours); 20 a service life ASSUMED"
+emission_exclusions:
+  - {id: vacuum-vents, method: equipment-leaks, equipment: [C-101, F-101], reason: "No P&ID yet: the vacuum pumps' exhaust of C-101 and F-101 (nitrogen, air in-leakage, methanol and traces of methyl nitrite and hydrazine) goes to the thermal oxidiser and is not estimated (D-013, D-015)."}
+  - {id: nitrogen-vents, method: storage-tank, equipment: [R-101, R-102], reason: "The nitrogen of the purges leaves with R-102's off-gas to the thermal oxidiser; the off-gas itself is the treated product:OFFGAS. Not estimated separately (D-013)."}
+  - {id: liquor-receiver, method: storage-tank, equipment: [T-101], reason: "The mother-liquor receiver T-101 breathes nitrogen with traces of methanol and hydrazine over a cold caustic liquor (303 K) to the thermal oxidiser; not estimated (no P&ID yet, D-013, D-016)."}
+  - {id: fugitive-leaks, method: equipment-leaks, reason: "Fugitive methanol, methyl nitrite and hydrazine from flanges, valves and pumps are not estimated: an estimate needs the P&ID component counts (D-013)."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals
+  modelling: {principle: attributional}
+  geography: {description: "Generic fine-chemicals site, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #167, unreviewed"
