@@ -1,0 +1,36 @@
+# Site plan. Schema: `cheme schema site_plan`. Metres, x east, y north, origin at the site's
+# south-west corner (53.990 N, 128.700 W). The reference points (tank 1, the flare, the trains,
+# the trestle and Berth 2) are measured positions of the LNG Canada site at Kitimat
+# (scripts/site_frame.py, D-013); tank 2, Berth 1, the roads and the area outlines are
+# ASSUMED (D-019). One datum: z = 0 is grade everywhere, the jetty deck included (D-013).
+site: {name: "lng-terminal-1, Kitimat BC (LNG Canada reference geometry)", width: 1800, depth: 4050}
+areas:
+  - {id: A1, title: "LNG tanks T-2101 (Phase 1) and T-3101 (Phase 2), impoundment sump (P-02, P-03, P-08)", box: [720, 2955, 1005, 3100], kind: storage}
+  - {id: A2, title: "BOG compressors and suction drum (P-07)", box: [1010, 2960, 1085, 3060], kind: process}
+  - {id: A3, title: "Storage and loading flare, knock-out drum (P-08); sterile radiation area", box: [1425, 3055, 1535, 3155], kind: reserved}
+  - {id: A4, title: "Loading platform, Berth 2 (west, as built) and Berth 1 (east, Phase 2) (P-05, P-06)", box: [1130, 855, 1180, 925], kind: process}
+  - {id: A5, title: "Liquefaction trains 1-4 (outside the battery limit; OSM train blocks, D-001)", box: [560, 3630, 1372, 4015], kind: reserved}
+roads:
+  - {id: R1, title: "South road of the tank area", points: [[700, 2930], [1119, 2930]], width: 8}
+  - {id: R2, title: "North road of the tank area, to the flare", points: [[700, 3120], [1420, 3120]], width: 8}
+  - {id: R3, title: "East road (BOG area, trestle head)", points: [[1115, 2930], [1115, 3120]], width: 8}
+  - {id: R4, title: "West road of the tank area", points: [[704, 2930], [704, 3120]], width: 8}
+  - {id: R5, title: "Jetty road along the trestle (west side)", points: [[1083, 2930], [1083, 2872], [1141, 925]], width: 6}
+racks:
+  - {id: PR1, title: "Tank-area rack south of the tanks: loading, vapour return, circulation and BOG lines (P-02 to P-04, P-07)", points: [[760, 2945], [1095, 2945]], width: 10, levels: [6, 9]}
+  - {id: PR2, title: "Trestle to the loading platform, ~1.98 km at 178 deg (measured, D-013): 2 x DN 800 loading, 2 x DN 750 vapour return, circulation, N2, drains", points: [[1095, 2945], [1095, 2872], [1154, 890]], width: 10, levels: [6, 9]}
+  - {id: PR3, title: "Rundown and BOG rack to the trains (north), and the flare header to A3", points: [[1095, 2945], [1095, 3110], [1430, 3110]], width: 8, levels: [6, 9]}
+rack_reach: 60
+separations:
+  - {from: T-2101, to: T-3101, min_m: 46, reason: "full-containment tanks: shell to shell at least a quarter of the sum of the diameters", basis: "NFPA 59A practice (cited only), ASSUMED (D-018)"}
+  - {from: T-2101, to: K-7101A, min_m: 30, reason: "tank to the BOG compressors (ignition source, fire exposure)", basis: "D-018, ASSUMED"}
+  - {from: T-2101, to: R1, min_m: 15, reason: "tank to roads", basis: "D-018, ASSUMED"}
+  - {from: T-2101, to: FL-8101, min_m: 300, reason: "flare radiation at the tank roof (fence-line limit 5.0 kW/m2: LNG Canada flaring factsheet)", basis: "D-017, D-018, ASSUMED"}
+  - {from: T-3101, to: site-boundary, min_m: 30, reason: "tank to the site boundary", basis: "D-018, ASSUMED"}
+  - {from: LA-5101, to: T-2101, min_m: 500, reason: "loading point far from storage: 200 m ignition-free radius around the loading point (EA application 2014 §2) and the 200 m safety zone around the vapour arm (TIG Rev 3)", basis: "D-018"}
+notes: >-
+  Measured reference geometry (scripts/site_frame.py, D-013): tank 1 to the flare 561 m at 82
+  deg; tank 1 to the Berth 2 loading platform 2,147 m at 174 deg; trestle from the plant's
+  south edge 1,982 m at 178 deg; berth face 375 m at 173.5 deg. Tank 2 140 m west of tank 1
+  (centre to centre) and Berth 1 on the east side of the loading platform are ASSUMED: the
+  Phase 2 positions are not public (D-019).

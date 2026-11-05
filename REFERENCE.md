@@ -28,7 +28,7 @@ says how to add a process.
 
 ## Processes
 
-The library has 50 process folders: 44 engineering projects (a `plant.yaml` with a process
+The library has 51 process folders: 45 engineering projects (a `plant.yaml` with a process
 flowsheet) and 6 library utilities (manifest and LCI dataset only). The table is generated
 from each folder's `process.yaml` and `checks/maturity.json`; `coverage.yaml` names the
 coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
@@ -74,6 +74,7 @@ coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
 | [`isobutene-1`](processes/isobutene-1/) | Isobutene by MTBE cracking (50 kt/a, gas-phase cleavage) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`kraft-pulp-1`](processes/kraft-pulp-1/) | Bleached softwood kraft pulp with chemical recovery (1000 ADt/d market pulp, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`lime-1`](processes/lime-1/) | Quicklime by calcination of limestone in a natural-gas-fired parallel flow regenerative kiln (CLM BREF ranges) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
+| [`lng-terminal-1`](processes/lng-terminal-1/) | LNG export marine terminal (2 x 225,000 m3 tanks, 2 berths, 28 MTPA; LNG Canada reference) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, plot plan; P&IDs and 3D in progress, #362) |
 | [`methanol-1`](processes/methanol-1/) | Methanol synthesis loop and purification (2500 t/d Grade AA, natural-gas syngas) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, no LCI dataset yet) |
 | [`methylamines-1`](processes/methylamines-1/) | Methylamines (MMA, DMA, TMA) from methanol and ammonia | concept (calculation maturity: balanced, report from core 0.8.0, re-checked with core v1.2.1; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`n-bromosuccinimide-1`](processes/n-bromosuccinimide-1/) | N-Bromosuccinimide by semi-batch bromination of succinimide in aqueous NaOH (500 t/a, the first batch entry) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |

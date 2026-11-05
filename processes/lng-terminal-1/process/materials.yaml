@@ -1,0 +1,21 @@
+# Components and templates of the process. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol,
+# normal_boiling_point in K at 101.325 kPa.
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: CH4, name: Methane, formula: CH4, cas: 74-82-8, molar_mass: 16.043, normal_boiling_point: 111.67}
+  - {id: C2H6, name: Ethane, formula: C2H6, cas: 74-84-0, molar_mass: 30.069, normal_boiling_point: 184.57}
+  - {id: C3H8, name: Propane, formula: C3H8, cas: 74-98-6, molar_mass: 44.096, normal_boiling_point: 231.04}
+  - {id: IC4, name: Isobutane, formula: C4H10, cas: 75-28-5, molar_mass: 58.122, normal_boiling_point: 261.40}
+  - {id: NC4, name: n-Butane, formula: C4H10, cas: 106-97-8, molar_mass: 58.122, normal_boiling_point: 272.66}
+  - {id: N2, name: Nitrogen, formula: N2, cas: 7727-37-9, molar_mass: 28.014, normal_boiling_point: 77.36}
+templates:
+  - {id: lng, title: LNG, components: [CH4, C2H6, C3H8, IC4, NC4, N2]}
+  - {id: bog, title: Boil-off gas, components: [CH4, C2H6, C3H8, IC4, NC4, N2]}
+# No benchmarked package of cheme covers LNG or methane-rich vapour at these conditions (`cheme
+# process props --coverage`); the stream values come from scripts/terminal_sizing.py with the
+# GERG-2008 reference equation of state through CoolProp (DESIGN.md D-006).
+property_method:
+  adapter: thermo
+  status: placeholder

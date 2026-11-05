@@ -1,0 +1,69 @@
+# Cause and effect list: interlocks and trips. Schema: `cheme schema interlocks`.
+# On a sheet, refer to an interlock ("see C&E I-201") instead of spelling out what it trips.
+# Concept stage: the trips known so far (D-007, D-016, D-017); SIL from a later screening.
+schema: cheme/interlocks/v1
+interlocks:
+  - id: I-201
+    title: T-2101 level high-high
+    cause: {tag: LZT-2102, condition: LAHH}
+    effects:
+      - {tag: XV-1102, action: close}
+    sheet: P-02
+    sil: null
+    notes: "Closes the T-2101 fill valves; the rundown goes to T-3101 or the trains turn down (D-007)."
+  - id: I-202
+    title: T-2101 level low-low
+    cause: {tag: LZT-2102, condition: LALL}
+    effects:
+      - {tag: P-2101A, action: stop}
+      - {tag: P-2101B, action: stop}
+      - {tag: P-2101C, action: stop}
+      - {tag: P-2101D, action: stop}
+      - {tag: P-2102, action: stop}
+    sheet: P-02
+    sil: null
+    notes: "Protects the submerged-motor pumps (minimum submergence)."
+  - id: I-203
+    title: T-2101 pressure high-high
+    cause: {tag: PZT-2112, condition: PAHH}
+    effects:
+      - {tag: XV-1102, action: close}
+      - {tag: PV-2111, action: open}
+    sheet: P-02
+    sil: null
+    notes: "Stops the fill and opens the tank to the flare ahead of the PSVs (D-017)."
+  - id: I-204
+    title: T-2101 pressure low-low
+    cause: {tag: PZT-2112, condition: PALL}
+    effects:
+      - {tag: P-2101A, action: stop}
+      - {tag: P-2101B, action: stop}
+      - {tag: P-2101C, action: stop}
+      - {tag: P-2101D, action: stop}
+      - {tag: K-7101A, action: stop}
+      - {tag: K-7101B, action: stop}
+      - {tag: K-7101C, action: stop}
+    sheet: P-02
+    sil: null
+    notes: "Vacuum protection ahead of the vacuum valves: stops the withdrawal and the BOG compressors; make-up gas opens (D-017)."
+  - id: I-501
+    title: Berth 2 ESD-1 (ship-shore link, manual, fire and gas, high back-pressure)
+    cause: {tag: XS-5101, condition: trip}
+    effects:
+      - {tag: P-2101A, action: stop}
+      - {tag: P-2101B, action: stop}
+      - {tag: P-2101C, action: stop}
+      - {tag: P-2101D, action: stop}
+      - {tag: XV-5101, action: close}
+    sheet: P-05
+    sil: null
+    notes: "Stops the loading and closes the shore ESD valve at the platform with the closure time set against surge (D-016); trips the carrier's ESD through the link (S-01)."
+  - id: I-503
+    title: Berth 2 ESD-2 (arm envelope limit, 35 kn disconnect)
+    cause: {tag: ZS-5102, condition: ZAHH}
+    effects:
+      - {tag: XV-5101, action: close}
+      - {tag: XV-5111, action: close}
+    sheet: P-05
+    sil: null
+    notes: "After ESD-1: closes the ERS ball valves and releases the emergency release coupler (dry break) (D-014, D-016)."
