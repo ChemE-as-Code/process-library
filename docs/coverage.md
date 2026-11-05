@@ -118,8 +118,8 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 7 | `urea` **next** | Urea | fertilizers | n/a, to be sourced | medium | co2-stripping, nh3-stripping | - | 1 | urea-1 (T2) |
 | 8 | `chlor-alkali` **next** | Chlorine, caustic soda and hydrogen (chlor-alkali) | chlor-alkali | n/a, to be sourced | medium | membrane, diaphragm, mercury | vcm, propylene-oxide, mdi-tdi, hydrogen | 2 | chlor-alkali-1 (T2) |
 | 9 | `sulfuric-acid` | Sulfuric acid | sulfuric-acid | n/a, to be sourced | low | sulfur-burning, metallurgical | phosphoric-acid, ammonium-sulfate, titanium-dioxide, caprolactam | 1 | sulfuric-acid-1 (T2) |
-| 10 | `cement-clinker` | Cement clinker | cement-lime | 1000-10000 (usgs-mcs-2024) | high | dry-kiln, dry-kiln-ccs | carbon-capture | 1 | - |
-| 11 | `iron-steel` | Iron and steel | iron-steel | 1000-10000 (usgs-mcs-2024) | high | bf-bof, dri-gas-eaf, dri-h2-eaf, scrap-eaf | - | 1 | - |
+| 10 | `cement-clinker` | Cement clinker | cement-lime | 1000-10000 (usgs-mcs-2024) | high | dry-kiln, dry-kiln-ccs | carbon-capture | 1 | cement-clinker-1 (T1) |
+| 11 | `iron-steel` | Iron and steel | iron-steel | 1000-10000 (usgs-mcs-2024) | high | bf-bof, dri-gas-eaf, dri-h2-eaf, scrap-eaf | - | 1 | iron-steel-1 (T1) |
 | 12 | `refinery-distillation` | Crude oil distillation (atmospheric and vacuum) | refining | n/a, to be sourced | high | - | catalytic-reforming, hydrotreating, fcc, hydrocracking, ethylene | 1 | refinery-distillation-1 (T1) |
 | 13 | `steam-generation` **next** | Steam generation (boiler, CHP) | steam-and-heat | n/a, to be sourced | high | gas-boiler, chp, electric-boiler, heat-pump | ammonia, methanol, ethylene-oxide, styrene, bioethanol | 2 | utility-steam-ng-boiler (T1) |
 | 14 | `ethylene-oxide` | Ethylene oxide and ethylene glycols | oxygenates | n/a, to be sourced | medium | oxygen-based, air-based, omega | pet | 1 | ethylene-glycol-1 (T2) |
@@ -148,8 +148,8 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 37 | `butadiene` | Butadiene (C4 extraction) | olefins | n/a, to be sourced | low | - | - | 0 | - |
 | 38 | `cumene-phenol` | Cumene, phenol and acetone | oxygenates | n/a, to be sourced | low | - | - | 0 | acetone-1 (T2) |
 | 39 | `carbon-capture` | CO2 capture and conditioning | carbon-capture | n/a, to be sourced | high | high-purity, amine-post-combustion, dac | e-fuels, methanol, urea | 1 | - |
-| 40 | `lime` | Lime | cement-lime | 100-1000 (usgs-mcs-2024) | high | - | soda-ash, iron-steel | 0 | - |
-| 41 | `aluminium` | Primary aluminium | aluminium | 10-100 (usgs-mcs-2024) | high | - | - | 0 | - |
+| 40 | `lime` | Lime | cement-lime | 100-1000 (usgs-mcs-2024) | high | - | soda-ash, iron-steel | 0 | lime-1 (T1) |
+| 41 | `aluminium` | Primary aluminium | aluminium | 10-100 (usgs-mcs-2024) | high | - | - | 0 | aluminium-1 (T1) |
 | 42 | `npk-fertilizers` | NPK fertilisers | fertilizers | n/a, to be sourced | medium | nitrophosphate, mixed-acid | - | 0 | - |
 | 43 | `ammonium-sulfate` | Ammonium sulfate | fertilizers | n/a, to be sourced | low | - | - | 0 | - |
 | 44 | `toluene-hda` **next** | Benzene by toluene hydrodealkylation | aromatics | n/a, to be sourced | low | - | - | 2 | hda-1 (T2) |
