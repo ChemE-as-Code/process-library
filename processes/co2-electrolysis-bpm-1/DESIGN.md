@@ -1567,3 +1567,58 @@ isolation (D-031 items 9 and 17), the UPS (item 7); the skid's own cabling, whic
 runs inside the frame or under the deck within the envelope (core routes every branch at
 `branch_elevation_m` and cannot run a tray under a deck); the host site's real supply point and
 control room; the junction boxes' and detectors' final locations.
+
+## D-046 The 3D results in the record, the regeneration of the 3D artefacts, their tests (2026-11-05)
+Decision: regen step 25 (after step 13, numbered after the existing steps) writes the scenario's
+3D results into the record's `layout` block, at every duration: from `cheme layout report
+--json` the process lines of DN 25 and above routed, skipped with their reason or unrouted (a
+warning), the smaller lines by status, the route methods (a `direct` fallback is a warning), the
+model rule finding counts and the generated / pinned / declared counts; from step 13's `cheme
+validate --json` every `cheme.layout-clash*` finding with its level and whether
+`checks/checks.yaml` accepts it; and per skid the items' top against the envelope. With the
+record's `lifting` (step 23) and `cabling` (step 24) these are the scenario's clashes, heights
+and lifts; at 10,000 h they are reported for the infeasible Skid A and never fail the run (exit
+0). The record was so far the only place where the 10,000 h model's results survive (its model
+files stay in the `--scratch` copy, D-021), and its clashes were only in finding texts.
+- **Every generated 3D artefact is regenerated and compared** (audit of steps 10 and 21 to 25):
+  the model `layout/plant-model.yaml`, the take-off `estimate/mto.*`, both lifting studies
+  `layout/lifting-study*.*` and the cable schedule `electrical/cable-schedule.*` are written by
+  `--duration H` and compared by `--check` at the design duration (`MODEL_FILES`); the plot
+  plan, plans and sections (`figures/skids/<H>h/`) and the record at both durations. A drift
+  test in a copy (a line appended to `estimate/mto.md` and to the cable schedule, a value of the
+  record's `layout` block changed) made `regen.py --check --duration 1000` report exactly those
+  three files (exit 3). The hand-authored intent (`layout/*.yaml` but the model,
+  `piping/routing.yaml` with its pins, `layout/lifting-basis.yaml`, the electrical list and the
+  tray rules) is input: hashed in the record (`inputs_sha256`), never written.
+- **Results.** 1,000 h: 28 of 28 DN 25 lines routed (0 skipped, 0 unrouted; the 42 DN 15 lines
+  skipped, D-019), methods 36 pinned, 3 astar, 1 via, 1 open end, no direct; 0 clash findings;
+  both skids' items top 1.95 m against the 2.35 m envelope. 10,000 h (scratch): 28 of 28 routed,
+  no direct (two segments on core's coarse grid, one of them through its via); 3 clash findings, none accepted (T-101's ladder
+  rail through the SKID-A deck handrail, an error; trays IT-JB-101 through T-101's shell and
+  PT-M-P-101 through AN-101, warnings); Skid A's top 3.62 m, 1.27 m above the envelope; Skid B
+  unchanged; the lifts as in D-043 (Skid A no laydown, 18.18 t with T-101 full).
+- **Tests** (`tests/test_co2_electrolysis_bpm_skids.py`): E8 now names what it covers (T-101,
+  T-201, T-202 and the eight stacks, at both durations). `assert_layout` checks the records'
+  layout block: at 1,000 h every DN 25+ line of the line list routed, no direct route, no clash
+  finding (accepted or not), both skids inside the envelope height, every permitted unit lift
+  with a clear lane and a laydown; at 10,000 h Skid A's clash, height and missing laydown
+  reported. It runs on the committed records (fast) and on the regenerated ones (marker
+  `engineering`). The engineering run also runs core's gates `layout-3d`, `lifting-study`
+  (`lifting-current`), `mto` (`mto-current`) and `electrical` on the regenerated 1,000 h folder
+  and compares the model, take-off, lifting studies and cable schedule with the committed bytes.
+
+Deviation: `cheme check` 1.5.0 has no option to run chosen gates, so the test writes a
+`checks/checks.yaml` holding one gate (with the file's own acceptances) into its temporary copy
+and runs `cheme check --no-write` once per gate. The `drawings` requirement of `layout-3d` is
+left out there: it needs a layout review record (spec item 9, gate `layout-review`), which an
+independent reviewer writes; once that record is committed the requirement can be put back.
+
+HAZOP: this change touches no analysed input of H-01 or H-02 (only scripts, the records and the
+documentation); `cheme safety hazop check` reports no `hazop-input-changed` at 1,000 h, so the
+studies are not re-stamped. The 10,000 h scratch run reports `hazop-input-changed` for the
+equipment list, loops, flowsheet and duties, as before: the studies analyse the 1,000 h design.
+
+Rejected: failing the 10,000 h run on its clashes (the infeasible scenario is a result, D-023);
+a separate 3D results file per scenario (the record is already the scenario's calculation
+record, compared by `--check`); counting only unaccepted clashes as clashes at 1,000 h (an
+accepted clash is still a clash; there are none).
