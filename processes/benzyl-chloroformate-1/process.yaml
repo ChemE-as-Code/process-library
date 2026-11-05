@@ -30,9 +30,11 @@ description: |
   a dedicated train), the recipe sizes the vessel and checks its jacket, and gives the vent's peak
   gas rate and the scrubber's load per batch (429 kg of vent gas, 233 kg of degassing gas). The
   kinetics are ASSUMED (no open data): a fast second-order reaction, dosing-controlled. Thermal
-  screening: dT_ad 475 K for the neat batch, accumulation at most 17 % (the deliberate phosgene
-  excess, at the end of the dosing), MTSR 356 K against an MTT of 281 K (the boiling point of
-  phosgene, which the excess would boil off): the screening sets the vent and scrubber as the
+  screening: dT_ad 475 K (the side reaction to benzyl chloride run on all the alcohol; 303.9 K for
+  the main reaction alone), accumulation at most 17 % (the deliberate phosgene excess, at the end
+  of the dosing), MTSR 356 K (set by the side reaction to dibenzyl carbonate; 300.1 K for the main
+  reaction alone) against an MTT of 281 K (the boiling point of phosgene, which the excess would
+  boil off): the screening sets the vent and scrubber as the
   safety-critical path; no class without a TD24. See DESIGN.md for every assumption.
 families: [chlorinated-organics]
 keywords: [benzyl chloroformate, Cbz-Cl, Z-Cl, chloroformate, benzyl alcohol, phosgene, phosgenation, semi-batch, batch, dosing, gas evolution, HCl vent, degassing, caustic scrubber, fine chemicals, protecting group reagent]
@@ -55,7 +57,10 @@ validation:
     The recipe's year-average rate of the product agrees with the flowsheet (cheme process
     recipe, no cheme.recipe-basis finding), and the jacket removes the model's peak duty (31.4 kW
     of 34.4 kW). Thermal screening (cheme process reactor-hazards): dT_ad 474.6 K, accumulation
-    0.173, MTSR 355.7 K against an MTT of 280.65 K (phosgene's boiling point, hazard.mtt); no
+    0.173, MTSR 355.7 K against an MTT of 280.65 K (phosgene's boiling point, hazard.mtt), all
+    set by the side reactions, as core takes the largest single reaction (CLBN's heat for the
+    dT_ad, CARB for the MTSR); the main reaction PHOSG alone gives dT_ad 303.9 K and MTSR 300.1 K,
+    still above the MTT (DESIGN.md D-011, core limit L-1); no
     criticality class without a TD24 from calorimetry. The kinetics are assumed: the
     accumulation rests on that assumption (k/10 and k/100 in DESIGN.md D-011). Preliminary
     gate-to-gate LCI with the nitrogen purges as a per-batch consumable; phosgene, caustic soda
@@ -77,7 +82,7 @@ chemistry:
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.051 kWh/kg BCF: R-101 agitator, vacuum pump, scrubber pump (ASSUMED)"}
     - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.069 kWh/kg BCF of LP steam to the tempered water of the phosgene evaporator and the degassing"}
-    - {chemical: chilled-water, role: utility, inventory_key: "product:BRINE", note: "0.155 kWh/kg BCF removed by brine at 248 K: the charge's cool-down and the heat of phosgenation (the registry has chilled water, not brine: closest entry)"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:BRINE", note: "0.164 kWh/kg BCF removed by brine at 248 K: the charge's cool-down, the heat of phosgenation and the heat of absorption of the phosgene and HCl left dissolved (the registry has chilled water, not brine: closest entry)"}
     - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.354 kWh/kg BCF: the scrubber's heat of neutralisation and phosgene destruction (ASSUMED heats)"}
 basis:
   capacity: "1000 t/a neat benzyl chloroformate: 565 batches/a of 1770 kg in 7920 h on a dedicated train (126.3 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-013)"
