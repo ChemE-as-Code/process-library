@@ -1588,6 +1588,230 @@ Review of PR #357, round 1 (2026-11-05): protective functions and sequences made
   source names the propagated provenance of S3. The stream links of the three flow setpoints are
   open item I-13 (core#153).
 
+### D-027 3D layout, lifting study, MTO and class 4 estimate (2026-11-05, S5)
+
+Section S5 of runs/plan.md (issue #302), with processes/ammonia-1 (its D-036 to D-048) as the
+worked example. Core: `cheme` 1.4.1 (core main ab9d91e). Every layout choice below is ASSUMED:
+no site survey, no owner's standard, no structural, stress or area classification study.
+
+**Weights (lifting).** `scripts/s5_weights.py` gives screening empty weights from the list
+dimensions and design pressures (thin-wall shell thickness at S 138 MPa, E 0.85, 3 mm corrosion
+allowance, at least 8 mm; 2:1 heads; +15 % attachments; trays 60 kg/m2 every 0.6 m; exchangers
+2.5 x shell; R-101 with a 150 mm castable lining; machines and packages by footprint), all
+ASSUMED until the vendors' weights. Eleven items reach the 5 t heavy-lift rule: R-101 56.8 t,
+E-101 36.2 t (one shell, the heaviest single lift; stacked height 3.6 m), C-202 34.8 t, H-101
+33.1 t, PK-101 30.0 t, K-101 24.0 t, K-102 15.0 t, E-102 13.7 t, C-203 8.7 t, V-101 6.6 t,
+E-204 5.2 t.
+
+**Structures and elevated items.** One overhead structure per column (layout/structures.yaml):
+the condenser on the upper deck drains by gravity into the reflux drum on the lower deck, the
+drum high enough over its pumps at grade for their suction head (NPSH not calculated):
+S-201 (6 x 12 m, decks 6.0 / 9.8 m: V-201, E-201), S-202 (12 x 8 m, 6.5 / 11.5 m: V-202, E-203;
+E-207 at grade under it), S-203 (12 x 6 m, 6.0 / 10.0 m: V-203, E-205; PK-201 moved to grade
+south of it). Each has a stair to each deck (decks in regular use) and a caged ladder as the
+second way down (the build's proposals, pinned). The lower decks stand above the 4.5 m pipe-way
+so local pipes pass under them. The deck exchangers take cooling water from below (shell
+nozzles on the shell bottom or side) and the condensate drops through the deck, so no line
+crosses a deck below the 2.1 m headroom. Every elevated item is mounted (gate requirement
+`mounted`).
+
+**Access of the vertical items.** R-101, V-101 and C-201..C-203 declare their platforms
+(layout/equipment-placement.yaml): the build's proposals at their elevations, each arc cut to
+the part no pipe crosses below the headroom (`scripts/s5_platform_arcs.py`, the same test as the
+`layout-headroom` rule). Dropped: C-201 3.81 m (N6 reached from the 6.0 m platform), C-202
+3.96 m (N8 from the 1.52 or 6.79 m platform; the reboiler lines TO-538/PG-539 cross it), V-101
+3.64 and 5.0 m (XV-209 is worked from HS-209; PSV-214 and the top nozzles from a mobile elevating
+work platform for maintenance). These are review questions for S5r, not results.
+
+**Buildings.** The substation and control building ECB-1 (28 x 14 x 5 m) at the west end of
+A-900, the end farthest from the hydrogen machinery. The compressors K-101 and K-102 stand in
+the open: natural ventilation keeps a hydrogen leak from accumulating and keeps their zones
+zone 2 of limited extent; a closed house would need forced ventilation and gas detection. No
+HVAC is declared yet (gate `hvac` is detail).
+
+**Racks and routing (piping/routing.yaml).** PR-2 widened from 4 to 6 m with tiers at 7 and
+9 m (it carried 93 % of one 4 m tier and its lines lay on each other). Pipe-way 4.5 m (bottom
+of pipe) instead of the package's 3.5 m, inside the usual 3.0 to 4.5 m: local runs pass 2.1 m
+over the lowest column platforms and under the lower decks. Battery limits: site utilities and
+the make-up hydrogen at the west end of PR-1; flare, cooling water and condensate returns, fuel
+gas, products and the toluene feed (from the tank interface A-300) at its east end. Headers on
+PR-1 between their battery limit and a dead end just past their last user, clear of the bents:
+large lines (FL-701, CWS-801, CWR-802, LS-803) on the 6 m tier, small utilities on the 8 m tier.
+The header entries in the line list name their users ("CW users", "relief users", ...) instead
+of one branch line, which the router had read as the header's end and so routed nothing of the
+P-07/P-08 networks. The eight equipment drains (DR-138 ... DR-652) are skipped with the reason
+that they end in closed-drain hubs at grade beside their items and the underground closed-drain
+network is a detail-engineering item. Via and elevation intent keep lines out of the lift lanes
+(TO-122 south of E-204) and over decks with the headroom (BZ-531, BZ-536, FL-549, PG-430,
+PG-647, TO-123, FG-119, CWS-440, CWR-441, CWS-542, BZ-121, HG-115, NG-137, MS-439, CD-444).
+Result: 232 of 240 segments routed, 8 skipped with reason, 0 unrouted; no clash, steel clash,
+equipment clash or headroom finding. Warnings left (not in the gate, for S5r and detail):
+free span 49 (no support design), operability 55 (valves out of reach without a declared
+operator), access-blocked 11, ladder clearance 8, walkway riser 7, vent outlet 2.
+
+**Zones (layout/zones.yaml).** Zone 2 volumes from the indicative radius table (ASSUMED,
+screening only): K-101 seals (hydrogen), K-102 rod packings (methane), PK-101 switching valves
+(hydrogen), PK-201 seal (toluene vapour), and the seals of every pump (toluene, benzene;
+biphenyl as a flammable liquid since it is pumped above its flash point). Relief valves
+discharge to the flare and atmospheric vents are cooling water only, so no relief outlet is a
+flammable source. Crane pads CP-101 to CP-107 and CP-201 to CP-203, laydowns LD-101, LD-102,
+LD-201, LD-202, and maintenance volumes over E-101 and E-102 that keep their lift lanes free of
+pipes. The site's area classification (IEC 60079-10-1 or EI 15) replaces the zones.
+
+**Lifting study (layout/lifting-study.md).** All eleven heavy lifts have a crane pad within
+reach, a clear lane and a laydown; none needs an owner's acceptance, so no
+build/lifting-acceptance-proposal.md is written. Lanes were cleared by design: pads beside E-101,
+E-102, V-101 and E-204 (found with `scripts/pad_search.py`, ammonia-1's search aid), the E-101
+shell inlet on the side instead of the top, the E-102 return on the north side, TO-122 rerouted.
+The crane is not selected (no load chart): the largest need is R-101 at 87.5 t capacity at
+13.8 m radius from CP-107 (study table, at the 75 % chart utilisation of the package's
+criteria). CP-102 serves no lift in the final study and stays as a spare pad west of the
+exchanger row.
+
+**Material take-off (estimate/mto.md).** 4 869 m of pipe (DN 25 to DN 700), 731 elbows, 78 tees,
+333 flanges and gaskets, 98 valves, 15 in-line items, 154 t of steel, 639 m2 of grating, 32 m3
+of concrete. All pipe is bare: no pipe-specs file yet (insulation and classes at detail).
+
+**Bulk unit rates.** Searched on 2026-11-05 for openly published, citable bulk rates (pipe by DN,
+fittings, valves, steel per tonne, grating, concrete, erection factors): vendor lists, consumer
+guides and dated regional rate sheets only, none a citable estimating source for this scope; the
+Matches equipment cost pages have no piping, steel or insulation category. No rate is invented:
+`estimate/rates.yaml` keeps `example: true` and `cheme assess estimate` prices nothing (not
+written). The take-off is the check of the bulk quantities.
+
+**Class 4 capital estimate.** Equipment factored, as ammonia-1 (D-045): bare module costs of all
+36 items (estimate/equipment-cost.md). Two gaps of the package (core#129) closed from a readable
+source, Guthrie's module method as given in the Universidad de Cantabria OpenCourseWare course
+Chemical Process Design (Viguri Fuente and Cifrian Bemposta, CC BY-NC-SA 4.0):
+- H-101 (topic 5.3, slides 10-11): direct fired heater, MPF = Fm + Fp + Fd = 0.50 (stainless
+  radiant tubes, hot hydrogen) + 0.15 (up to 1000 psig) + 1.00 (cylindrical); module factor
+  2.23 (lowest band; 2.10 highest); BMC = BC (MPF + MF - 1), so FBM 2.88 on the package's base
+  cost (2.75 to 2.88 over the bands; 2.83 with Cr-Mo tubes). Slide 11 prints MPF = Fm (Fp + Fd)
+  under the cost table, which gives 0 for carbon steel; the additive form of slide 10 is taken.
+- K-102 (topic 5.5, slides 4-5): reciprocating compressor with motor Fd 1.29 (centrifugal with
+  motor 1.00, the base); module factor 3.11 (2.93 highest band); FBM 3.40 (3.22 to 3.40).
+Both combine Turton's purchased cost (taken as Guthrie's base cost) with Guthrie's factors,
+ASSUMED. They replace the screening factor 2.5 (`purchased_installation`, removed from
+estimate/tea.yaml): no item is priced at purchased cost any more. Bare module total 9.99 MUSD
+2023 (was 5.74 MUSD with H-101 and K-102 at purchased cost only), CEPCI 797.9 (2023 annual).
+Class: AACE RP 18R-97 (Rev. 2020) Table 1 class 4 (study or feasibility, 1 % to 15 % definition,
+equipment factored), accuracy -15 % to -30 % low, +20 % to +50 % high; ASSUMED within it: the
+equipment sizes are still the concept sizes of D-017 until the datasheets (S7), so the high end
+applies; PK-101 is a scaled reference cost (D-024); PK-201 is excluded and in the 15 %
+uncovered allowance with trays, lining and drives.
+
+**TEA.** ISBL 17.59 MEUR 2025 (16.81 before), fixed capital 29.36 MEUR (28.06), class 4 range
+20.6 to 25.0 (low end) and 35.2 to 44.0 MEUR (high end); LCOP 878.7 EUR/t (876.6), NPV
+-150.4 MEUR, P(LCOP at most 673.6 EUR/t) 4.8 %. The decision still turns on the benzene-toluene
+spread (D-019), not on the capital. Scenarios capex-class4-high (x 1.5) and capex-class4-low
+(x 0.7) replace capex-class5-high; the PSA scenario multipliers are taken on the new ISBL. The
+template gate `tea` is enabled (`[prices, no-example, tea-current]`) and passes. `cheme assess
+tea` warns `tea-class-stage` (class 4 claimed while plant.yaml is at the concept stage): the
+warning clears with the basic sign-off (S5r).
+
+**Review of PR #364, round 1 (S5 fix).** Engineering changes to the layout, estimate and
+zones; each value below is ASSUMED unless a source is named.
+- *Elevations.* Items whose bottom outlet feeds a pump or whose bottom nozzles lay below grade
+  stand on concrete foundations (`plinth`): V-100 2.5 m (its outlet N3 moved to the low south
+  side, the foundation being under the bottom), V-101 2.0 m, C-203 2.5 m (standing for a
+  longer skirt), E-102 0.8 m, the reboilers E-202, E-204, E-206 1.0 m. Static head over the
+  pump suctions: P-101 about 2.2 m, P-102 2.4 m, P-201 5.5 m, P-202 5.8 m, P-203 5.4 m,
+  P-204 3.7 m (vessel outlet to pump suction centre, own reading of the model). NPSH is not
+  calculated (pump datasheets, S7). No process line runs below grade (checked in the model);
+  no trench is declared.
+- *Pockets.* PG-630 (C-203 overhead, 30 kPa(a)) rises 0.45 m from the column top, then falls
+  continuously at 12.8 m over S-203 (2.8 m over its upper deck) onto the E-205 channel: no
+  liquid pocket. PG-530 (C-202 overhead) drops 2.8 m from the column axis outside its platforms
+  (clips and guides off the shell carry it, a support design item) and crosses at 14.2 m to
+  E-203. Every pump suction falls continuously from its vessel to the pump (checked point by
+  point in the model); the quench pump take-off T235 on AR-116 is at 1.2 m beside V-101, and
+  AR-116 rises to the rack only after it and its valves. DP-649 runs level. The reboiler draws
+  AR-437, TO-538, TO-638 fall from turned draw nozzles to a low point beside the reboiler and
+  rise only into its bottom inlet (a liquid-full low point with its drain, no high point).
+- *Valve stations.* The reflux/product pump discharges no longer rise to the reflux nozzle
+  before their tees: the tees, the minimum-flow take-offs and the control valves LV-405,
+  FV-507, LV-506, FV-607, LV-606, LV-202 and XV-204 stand at 1.1 to 1.7 m beside the pumps
+  (handwheels 1.8 to 2.3 m); each reflux line rises 2.5 m or more from its column axis outside
+  the platforms and ladder cages. Operability warnings 55 -> 46: the rest are valves on rack
+  and pipe-way drops (FV-108, LV-102, PCV-105, XV-112, XV-121, PV-301, PV-303, HV-331, TV-502,
+  PV-504, PCV-505, TV-402, TV-602, PV-404, PV-604, UV-207, XV-209, FV-211, XV-310, HV-327,
+  HV-330, HV-332, LV-608, PV-104) and pump-area valves 0.1 to 0.5 m above the 1.8 m reach
+  criterion. The router places in-line items in P&ID order along the route; bringing these
+  stations to grade or onto the build's valve platform proposals (VP-*) is an open item for
+  S5r and detail piping, listed here, not accepted.
+- *Access.* Channel nozzles of E-101, E-102, E-103, E-201, E-203, E-205, E-207 on the top or
+  side of the channel, so no line crosses a bundle pull space; K-102 discharge N2 on the south
+  side, clear of the motor removal space; P-202B and P-203B moved (south and north of their
+  running pumps) and every suction tee set outside the pump access spaces; the PR-2 bent no
+  longer stands in P-202B's space. Deck condensers (under 5 t, not in the lifting study): each
+  bundle is pulled onto its deck with a portable puller and lifted off by the mobile crane from
+  CP-103 (E-201), CP-203 (E-203) or CP-202 (E-205); maintenance zones MZ-E201, MZ-E203,
+  MZ-E205 keep the volume over the pulled bundle free of pipes. Access-blocked 11 -> 0, ladder
+  clearance 8 -> 0, walkway riser 7 -> 0, vent outlet 2 -> 0 (vents rule for CWR-547 and
+  CWS-644). Remaining warnings: operability 46 (above), free span 44 and support-missing 108
+  (info): no support design (S5r, detail).
+- *Hot-line flexibility (screening, not a stress analysis).* Thermal growth of the hot hydrogen
+  runs, own calculation with ASSUMED values (mean expansion coefficient 14e-6 /K for a Cr-Mo or
+  similar alloy, temperature rise about 600 to 640 K): PG-108 (DN450, 936 K, about 19.5 m)
+  about 0.17 m; PG-107 (DN400, 895 K, about 16.8 m) about 0.14 m; PG-106 (DN400, about 29 m
+  between E-101 and H-101) of the same order. The guided-cantilever relation (bending stress
+  about 3 E D d / L^2, E about 150 GPa hot, allowable displacement stress about 150 MPa
+  ASSUMED) asks for legs of about 13 to 17 m to take such growth; the routed legs are 1 to 5.5
+  m. The routes are therefore not flexible as drawn: expansion loops or offsets (or spring
+  supports with nozzle-load checks on H-101, R-101 and E-101) are needed. Plot space it may
+  take: a loop of about 8 x 8 m in plan between H-101 and R-101 north of PG-107 (y 95 to 101,
+  free of items between x 44 and 58) and an offset of about 6 m in PG-108 east of R-101. Open
+  item for S5r: the hot-line stress check with these reservations; not designed here.
+- *Zones.* Zone 2 flange sources added for the hot hydrogen loop (E-101 T1, T2, S1, S2;
+  R-101 N1, N2; V-101 N1, N2: Z-HAZ-H2LOOP) and the column overheads (C-201, C-202, C-203 N2;
+  E-201, E-203, E-205 T1: Z-HAZ-OVHD). The H-101 coil connections are left out (H-101 is the
+  ignition source the separations are measured from). Escape routes Z-ESC-A100-N, Z-ESC-A100-E,
+  Z-ESC-S201, Z-ESC-S202, Z-ESC-S203 to the roads, away from H-101; keep-clear KC-R5-FIRE
+  (fire-fighting strip beside R-5), KC-H101 (burner and tube access), KC-ECB1 (building
+  approach). Generated pipe supports may still stand in an escape route (they move with their
+  pipe); their placement is a support-design item.
+- *Separations.* Searched on 2026-11-05 for an openly readable spacing standard: OISD-STD-118
+  (Layouts for oil and gas installations, Table 1 inter-distances) is sold by the Oil Industry
+  Safety Directorate (oisd.gov.in, purchase or customer login); only third-party re-uploads were
+  found, which are not a first-hand source. The values therefore stay ASSUMED as D-018 until
+  the owner's standard and a QRA. Added (all pass in the build): H-101 to PK-201 30 m, to P-102
+  15 m, to S-201, S-202, S-203 30 m, to Z-HAZ-H2LOOP 15 m; ECB-1 to Z-HAZ-PUMPS-A100 15 m and to
+  Z-HAZ-H2LOOP 30 m.
+- *Estimate factors.* rates.yaml: design and engineering 0.30 (Towler and Sinnott 2013,
+  Table 6.3), contractor's fee 0.03 and contingency 0.15 (Turton et al. 2012, section 7.3) are
+  now sourced, as ammonia-1; the bulk unit rates and the two erection factors stay placeholders
+  (no citable source found), so `example: true` stays and the bulk take-off is unpriced.
+- *H-101 factor.* The source writes the fired heater MPF as Fm + Fp + Fd (slide 10) and as
+  Fm (Fp + Fd) (slide 11). The product form gives FBM 1.805, the additive 2.88; the product
+  form gives MPF 0 for carbon steel tubes, so the additive form is taken as the intended one,
+  but no second readable source settled it: FBM 1.81 to 2.88 ASSUMED, 2.88 in the base case,
+  1.805 in TEA scenario h101-fbm-low (ISBL x 0.923455: LCOP 875.1 against 878.7 EUR/t, fixed
+  capital 27.11 MEUR). MF 2.23 (lowest band): the bands are on Guthrie's base cost
+  C = C0 (S/S0)^0.77 of slide 11, about 35 kUSD at 10.38 MMBtu/h, below the 200 kUSD limit.
+- *K-102 driver.* Turton's compressor correlation is for the machine without its driver;
+  Guthrie's factors are for a machine with motor. The factor is applied to the machine-only
+  cost (ASSUMED) and the motor is counted once, in the 15 % uncovered allowance.
+- *Allowance.* The 15 % uncovered allowance is unchanged from class 5: trays, lining, motors
+  and PK-201 have no readable price or size before the datasheets (S7) and the PK-201 vendor.
+- *Like-for-like change.* Against S4, ISBL 16.81 -> 17.59 MEUR (+4.6 %) and LCOP 876.6 ->
+  878.7 EUR/t; H-101 and K-102 were priced at purchased x 2.5 before, so the bare module
+  subtotal change (5.74 -> 9.99 MUSD) is not like for like.
+- *Take-off.* After the fix: 4 656 m of pipe, 764 elbows, 154 t of steel, 633 m2 of grating,
+  87 m3 of concrete (now with the new foundations). The concrete is only the model's equipment
+  foundations and plinths, not a foundation design: the R-101, column and reciprocating K-102
+  foundations are detail engineering. All pipe rows are bare with no class (no pipe-specs).
+- *Drains.* The eight equipment drains stay skipped with their reason (closed-drain hub at
+  grade, underground network at detail); routing each to a declared hub point is offered to
+  S5r, not done.
+
+**Carry-overs.** P-204A/B (review 2026-11-04-basic-pids#11): selected as a sealless rotary
+external gear pump with an integral casing relief valve back to the suction (about 0.4 m3/h at
+4 bar, 457 K biphenyl), ASSUMED until the vendor; the class stays CentrifugalPump on P-06 and in
+the list until the sheet is revised (RotaryPump and the relief drawn), so the finding stays open
+with that action. I-106 reset text (review 2026-11-04-basic-control-lists#18): reworded in
+control/cause-effect.yaml and SEQ-SD-PLANT step S4 (TZ-128 below the trip point and a quench
+pump running or the pumps-stopped leg in its start-up bypass).
+
 ## LCI summary (lca/inventory.csv, per kg benzene)
 
 Regenerated in S3a (D-024) from the inventory with the purge hydrogen PSA (`cheme assess lca --write`,
@@ -1646,6 +1870,9 @@ representativeness), primary data share 0 %. No impact result is claimed.
 | NETL (2022), Comparison of Commercial, State-of-the-Art, Fossil-Based Hydrogen Production Technologies, DOE/NETL-2022/3241 | Section 3.3.5.1 (p. 54); Exhibit 3-4, Case 1 streams 10, 11, 13 (p. 61); Exhibit 3-13, account 7.1 (p. 73) | full text (PDF at netl.doe.gov), 2026-11-04 | US government report (public domain), facts cited only | PSA pressure loss and tail gas pressure, PSA package cost scaled (D-024) |
 | NETL (2019), QGESS Capital Cost Scaling Methodology, Revision 4 | exhibits of scaling exponents | full text (PDF at netl.doe.gov), 2026-11-04 | US government report | checked for a PSA exponent: none listed (D-024) |
 | Chemical Engineering, Economic Indicators, Sept. 2024, p. 45 | CEPCI annual index 2018 = 603.1, 2023 = 797.9 | full text (PDF at chemengonline.com), 2026-11-04 | magazine, facts cited only | escalation of the PSA cost (D-024) |
+| Viguri Fuente and Cifrian Bemposta, Chemical Process Design, topic 5.3 Heat transfer equipment, Universidad de Cantabria OpenCourseWare (2018) | slide 10 (Guthrie MPF for direct fired heaters), slide 11 (module factors, BMC formula) | full text (PDF at ocw.unican.es), 2026-11-05 | CC BY-NC-SA 4.0, facts cited only | H-101 bare module factor (D-027) |
+| Viguri Fuente and Cifrian Bemposta, Chemical Process Design, topic 5.5 Compressors and turbines, Universidad de Cantabria OpenCourseWare | slide 4 (Guthrie MPF for compressors), slide 5 (module factors, BMC formula) | full text (PDF at ocw.unican.es), 2026-11-05 | CC BY-NC-SA 4.0, facts cited only | K-102 bare module factor (D-027) |
+| AACE International RP 18R-97, Cost Estimate Classification System (Rev. August 7, 2020) | Table 1, class 4 and 5 rows | sample pages (PDF at web.aacei.org/docs/default-source/toc/toc_18r-97.pdf), 2026-11-05 | recommended practice, facts cited only | estimate class and accuracy (D-027) |
 | Hutabarat et al. (2026), J. Chem. Eng. Res. Prog. 3(1) 88-93, doi:10.9767/jcerp.20563 | eqs. 4 and 6 | full text, 2026-11-03 | CC BY-SA 4.0 | none (kinetics rejected, D-021) |
 | Speight (2011) Handbook of Industrial Hydrocarbon Processes, Elsevier | Ch. 11 | via the library skill tech-petchem-aromatics | facts cited only | HDA temperature/pressure range |
 | `chemicals`/`thermo` Python packages (bundled with cheme) | ATcT, CRC, Yaws, HEOS, IUPAC, TRC ideal-gas, ChemSep PR kij | used | MIT; underlying data facts | formation data, critical constants, PR flash |
