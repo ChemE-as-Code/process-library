@@ -1,0 +1,46 @@
+# Reactions of n-bromosuccinimide-1. Schema cheme/reactions/v1 (`cheme schema
+# process-reactions`).
+#
+# BROM: the caustic bromination of succinimide, the route US 2 971 960 describes as the usual
+# one (background: bromine with an N-hydrogen imide in water with a strong base; half of the
+# bromine leaves as the alkali bromide). Its kinetics are not published openly: the rate law is
+# a fast effective one, first order in dissolved bromine, ASSUMED (D-005), so that the
+# semi-batch is dosing-controlled; calorimetry must confirm it. The heat of reaction is
+# ASSUMED as well (D-005): no open calorimetric value was found.
+# PPT and DISS: the precipitation of NBS from the cold liquor and the dissolution of NBS in the
+# wash water, both a phase change written as a reaction so that cheme balances and propagates
+# them as conversion steps; the conversions follow from the solubility of NBS in water
+# (D-005, scripts/balance.py). Core's crystallizer is not used: it refuses the NaBr, NaOH and
+# succinimide of the mother liquor (one solute in one solvent only, DESIGN.md D-006).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: BROM
+    title: Bromination of succinimide in aqueous NaOH
+    equation: C4H5NO2 + NaOH + Br2 -> C4H4BrNO2 + NaBr + H2O
+    stoichiometry: {SUCC: -1, NAOH: -1, BR2: -1, NBS: 1, NABR: 1, H2O: 1}
+    phase: liquid
+    heat_of_reaction: {value: -80000, provenance: assumed, source: "ASSUMED order of magnitude (D-005): neutralisation of the HBr formed by NaOH (about -57 kJ/mol) plus the N-bromination; no open calorimetric value found"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # k = 0.05 1/s at 278 K: a half-life of 14 s against a 2 h dosing
+      k: {A: 1.62e6, Ea: 40000}
+      orders: {BR2: 1}
+      temperature_range: [273.15, 303.15]
+      provenance: assumed
+      source: "ASSUMED fast effective rate (D-005): the ionic bromination of the imide anion is fast at 0-10 C; no open kinetics; to be replaced by reaction calorimetry"
+    sources: ["US 2 971 960 (Waugh and Waugh, 1961), column 1: the caustic route and its NaBr by-product"]
+  - id: PPT
+    title: Precipitation of NBS from the cold liquor
+    equation: C4H4BrNO2(aq) -> C4H4BrNO2(s)
+    stoichiometry: {NBS: -1, NBS_S: 1}
+    phase: liquid
+    conversion: {key: NBS, value: 0.95388, provenance: assumed, source: "scripts/balance.py: the liquor leaves saturated, 14.7 g NBS per kg water (D-005)"}
+  - id: DISS
+    title: Dissolution of NBS in the wash water
+    equation: C4H4BrNO2(s) -> C4H4BrNO2(aq)
+    stoichiometry: {NBS_S: -1, NBS: 1}
+    phase: liquid
+    conversion: {key: NBS_S, value: 0.02205, provenance: assumed, source: "scripts/balance.py: the wash water leaves saturated, 14.7 g NBS per kg water (D-005, D-007)"}
