@@ -1,0 +1,29 @@
+# Benchmarks of other inorganic chemicals. Schema: schemas/benchmarks.schema.json; rules:
+# docs/benchmarks.md. Ranges are facts from the cited source, in our own form.
+#
+# Phosphorus tribromide (phosphorus-tribromide-1, #134): no open source gives a plant's specific
+# consumptions. The stoichiometric floor of the bromine is 0.886 kg/kg PBr3 (P4 + 6 Br2 -> 4
+# PBr3); it is a limit, not a range of real plants, so it is not recorded as one
+# (docs/benchmarks.md: never invent a range). The one open yield, the 95.0 % on phosphorus of the
+# example of DE 1 281 414 / US 3 409 401, is the dataset's own basis (DESIGN.md D-008), so binding
+# it would only check the transcription.
+schema: cheme-as-code/benchmarks/v1
+family: inorganic-chemicals
+
+kpis:
+  pbr3-specific-bromine:
+    title: Bromine consumption per kg of phosphorus tribromide
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's or a pilot's bromine use per kg PBr3 found independent of the dataset (searched 2026-11-05: Google Patents DE 1 281 414 B / US 3 409 401 A read, the dataset's own basis; web search for PBr3 production consumption and yields, which gave only laboratory preparations and encyclopaedia summaries without plant figures). Only the stoichiometric floor, 0.886 kg/kg, is known."
+  pbr3-specific-residue:
+    title: Still residue to incineration per kg of phosphorus tribromide
+    unit: kg/kg
+    no_open_reference: "No open source with the residue of PBr3 distillation found (searched 2026-11-05 as for pbr3-specific-bromine); US 3 409 401 names the red-phosphorus addition before the vacuum distillation but no residue amount."
+
+datasets:
+  - process: phosphorus-tribromide-1
+    dataset: phosphorus-tribromide-by-semi-batch-bromination-of-white-phosphorus-in-a-pbr3-heel-1000-t-a
+    conditions: {technology: "bromination of white phosphorus in a PBr3 heel at 398 K, red-phosphorus treatment, batch vacuum distillation", basis: "concept balance, ratios from the patent's example and ASSUMED (DESIGN.md D-004, D-008)"}
+    kpis:
+      pbr3-specific-bromine: {expression: feed:BR2 / product:PBR3, per: product:PBR3}
+      pbr3-specific-residue: {expression: product:RES / product:PBR3, per: product:PBR3}

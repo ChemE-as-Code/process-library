@@ -1,0 +1,85 @@
+# Goal and scope of the phosphorus-tribromide-1 LCI. Schema: `cheme schema lca`. Outputs:
+# `cheme assess lca --write` (lca/inventory.csv, gaps.csv, dataset.yaml, manifest.json, results);
+# never edit those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the batch
+# plant with its amount per kg of distilled PBr3, from the flowsheet's year averages of the
+# recipe (D-003). Per batch: multiply by 1421.23 kg. The backgrounds are left unmapped
+# (`missing:` with the activity each should connect to), except where lca/mappings.yaml links a
+# library producer: a gap, never zero, and no values from licensed databases. The plant has no
+# emission to air in the balance: the doses go into a closed vessel under nitrogen and react to
+# 0.9999, the free bromine is taken up by red phosphorus; vent losses are not estimated
+# (emission_exclusions).
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of phosphorus tribromide made by the semi-batch
+  bromination of molten white phosphorus in a PBr3 heel, red-phosphorus treatment and vacuum
+  distillation at the concept stage: which raw materials, utilities and wastes the batch plant
+  exchanges per kg of distilled PBr3, as the foreground for a later cradle-to-gate study. No
+  impact results: most backgrounds are not mapped yet (D-012).
+functional_unit: {product: PBR3, amount: 1, unit: kg, source: "1 kg of distilled phosphorus tribromide at the plant gate to storage, stream S8 (D-002, D-012)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
+# being mapped free (the schema's gate-to-gate maps every feed free), as n-bromosuccinimide-1 and
+# phosphorus-oxychloride-1 do.
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Batch plant: molten white phosphorus and bromine dosed together over 10 h into a PBr3 heel at 398 K (semi-batch, 0.4 % bromine excess), the heel kept for the next batch, the crude treated with red phosphorus and distilled at 4 kPa(a); 1421 kg per batch, 704 batches a year on a dedicated train"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+flows:
+  # raw materials
+  - key: feed:P4
+    missing: "not mapped yet (D-012); connect to: white (yellow) phosphorus, molten, from the electrothermal reduction of phosphate rock with coke and silica in a submerged-arc furnace, delivered liquid under water; no library process makes phosphorus yet"
+    source: "flowsheet stream S1 (D-004)"
+  - key: feed:BR2
+    missing: "linked to processes/bromine-1 (lca/mappings.yaml): dry liquid bromine by the chlorination and steaming-out of a bromide brine"
+    source: "flowsheet stream S2 (D-004)"
+  - key: feed:REDP
+    missing: "not mapped yet (D-012); connect to: red phosphorus, made from white phosphorus by thermal conversion; no library process makes it (1.2 g/kg PBr3, below the cut-off's 1 % by mass, kept as a gap)"
+    source: "flowsheet stream S6 (D-007)"
+  # utilities
+  - key: feed:POWER
+    missing: "not mapped yet (D-012); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy streams P1 (R-101 agitator) and P2 (still agitator and vacuum pump), D-009"
+  - key: feed:LPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 350 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
+    source: "flowsheet energy stream Q2 (still reboiler), D-009"
+  - key: product:CW
+    missing: "not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed; R-101's heat passes through a tempered-water loop at 333 K first"
+    source: "flowsheet energy streams Q1 (R-101) and Q3 (still condenser and product cooler), D-009, D-010"
+  # waste
+  - key: product:RES
+    treatment: {kind: waste, route: "hazardous-waste incineration of the still residue (PBr3 with red and white phosphorus) with flue-gas scrubbing (HBr and phosphoric acid captured); not a sold co-product"}
+    missing: "not mapped yet (D-012); connect to: incineration of hazardous liquid halogenated waste (phosphorus bromides, phosphorus), per kg"
+    source: "flowsheet stream S9 (D-008)"
+# What the batch plant uses per batch and the flowsheet does not carry (library ADR 0035, core
+# ADR 0053): the nitrogen that inerts R-101 and C-101 and breaks the still's vacuum, converted
+# with the recipe's batches per year (process/recipe.yaml). It leaves through the vent scrubber
+# to air (nitrogen: no burden, no disposal exchange). There is no rinse between batches: the
+# train is dry (PBr3 hydrolyses), the heel stays and the still is drained of its residue.
+consumables:
+  - id: nitrogen
+    title: Nitrogen for inerting R-101 and C-101 and breaking the still's vacuum
+    unit: kg
+    per_batch: 7.5
+    source: "6 Nm3 per batch (purges of R-101's and the still's vapour spaces, the vacuum broken once) x 1.2506 kg/Nm3, ASSUMED (D-012)"
+    missing: "linked to processes/asu-1 (lca/mappings.yaml): gaseous nitrogen to the battery limit"
+operation:
+  hours_per_year: 7920
+  life_years: 20
+  source: "design basis operating_hours_per_year 7920 (ASSUMED, the recipe's hours); 20 a service life ASSUMED"
+emission_exclusions:
+  - {id: reactor-vent, method: storage-tank, equipment: [R-101], reason: "No P&ID yet: the nitrogen displaced from R-101 while dosing (with bromine and HBr traces from the reflux condenser) goes to a caustic scrubber not in the balance; not estimated (open for basic engineering, D-011)."}
+  - {id: vacuum-vent, method: equipment-leaks, equipment: [C-101], reason: "The vacuum pump's exhaust (nitrogen, air in-leakage, PBr3 and bromine traces) to the scrubber is not estimated (D-008, D-011)."}
+  - {id: phosphorus-water, method: equipment-leaks, reason: "The water layer over the molten white phosphorus in its storage (phosphorus-contaminated water) is outside the boundary and not estimated (D-004)."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals
+  modelling: {principle: attributional}
+  geography: {description: "Generic fine-chemicals site with a bromine supply, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #134, unreviewed"
