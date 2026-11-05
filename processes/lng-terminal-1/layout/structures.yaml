@@ -3,30 +3,101 @@
 schema: cheme/structures/v1
 structures:
   # Tank-top pump platforms (D-027): the grated steel platform on the dome around the pump
-  # column heads, with its edge handrails, the pump-removal gantry crane over the pump wells
-  # and the set-down space for a pulled pump, carrying the relief and vacuum valves and the
+  # column heads, with its edge handrails, carrying the relief and vacuum valves and the
   # column-head valves within reach of its floor (57.4 m, 1.4 m above the column head base
-  # plates). Part of the tank supply, resting on the roof steel (ASSUMED). In the model a
-  # structure stands on grade, so the platform is the one level of a frame spanning the whole
-  # tank: its four corner columns outside the shell are a modelling artefact (the real platform
-  # has no columns to grade), and its ways off are the roof walkways (escape zones
-  # Z-ESC-Tn-ROOF-*) to the tank's spiral stair and to the north stair tower S-ESC-Tn.
+  # plates). Part of the tank supply, resting on the roof steel (ASSUMED). The in-tank pumps
+  # are pulled through the column heads by a mobile crane on the pad north of the tank
+  # (Z-PAD-Tn101N, D-029), not by a platform crane. In the model a structure stands on grade,
+  # so the platform is the one level of a frame spanning the whole tank: its four corner
+  # columns outside the shell are a modelling artefact (the real platform has no columns to
+  # grade), and its ways off are the roof walkways (escape zones Z-ESC-Tn-ROOF-*) to the
+  # tank's spiral stair and to the north stair tower S-ESC-Tn.
+  # The frame's columns and perimeter beams are the artefact: they take the light section
+  # HEA100, used nowhere else, so the take-off shows them as their own row (steel, HEA100,
+  # structure) and the estimate prices that row at nothing with the reason (estimate/rates.yaml,
+  # review 2026-11-05-basic-layout-2 #11); the platform's real steel (deck beams, roof stools,
+  # handrails) is in the tank supply, and its grating stays in the MTO.
   - id: S-T2101-TOP
     title: "T-2101 tank-top pump platform (pump column heads P-2101A-D, P-2102, relief and vacuum valves), tank supply, ASSUMED"
     origin: [881.4, 2977.8]
     spans_x: [96.0]
     spans_y: [96.0]
+    column_section: HEA100
+    beam_section: HEA100
     levels:
       - {id: PP, title: "Pump platform floor", elevation: 57.4, kind: platform, extent: [49.1, 38.7, 79.6, 66.2], use: regular}
-    notes: "Deck x 930.5-961.0, y 3016.5-3044 (site); corner columns are a modelling artefact (D-027)."
+    notes: "Deck x 930.5-961.0, y 3016.5-3044 (site); corner columns and perimeter beams are a modelling artefact, taken off as their own HEA100 row and priced at nothing in the estimate (D-027, D-029)."
   - id: S-T3101-TOP
     title: "T-3101 tank-top pump platform (P-3101A-D, P-3102, relief and vacuum valves), as S-T2101-TOP, ASSUMED"
     origin: [741.4, 2977.8]
     spans_x: [96.0]
     spans_y: [96.0]
+    column_section: HEA100
+    beam_section: HEA100
     levels:
       - {id: PP, title: "Pump platform floor", elevation: 57.4, kind: platform, extent: [49.1, 38.7, 79.6, 66.2], use: regular}
-    notes: "Deck x 790.5-821.0, y 3016.5-3044 (site); corner columns are a modelling artefact (D-027)."
+    notes: "Deck x 790.5-821.0, y 3016.5-3044 (site); corner columns and perimeter beams are a modelling artefact, taken off as their own HEA100 row and priced at nothing in the estimate (D-027, D-029)."
+  # Riser towers (D-029, adversarial check of review 2026-11-05-basic-layout-2): the tank roof
+  # piping (DN 800 pump header, DN 900 fill line, DN 750 / 600 vapour header, circulation and
+  # crossover lines) and the in-tank pump motor trays drop 36-48 m beside each shell to the
+  # riser rack. Each tower stands from grade between the shell and the riser rack and over the
+  # rack (its columns west of the drops and east of the rack's east columns), with guide and
+  # support levels every 8 m above the rack's tray tier (22, 30, 38, 46 m) carrying the risers
+  # and the tray risers on the beams of its grid; the grid lines (y) are chosen clear of the
+  # drops. A 2 m inspection walkway on the east side of each level, stacked stairs at
+  # mid-length on the east face and caged ladders at both ends. Sizes ASSUMED; the piping
+  # stress engineer sets the guide and anchor levels and the structural engineer the members
+  # (terminal scope).
+  - id: S-RT2101
+    title: "T-2101 riser tower beside the shell over PR6 (roof piping drops and pump motor trays), ASSUMED"
+    origin: [976.0, 3008.0]
+    spans_x: [20.5]
+    spans_y: [11.5, 15.1, 9.4]
+    levels:
+      - {id: L22, title: "Guide level 22 m", elevation: 22.0, kind: platform, extent: [18.5, 0.0, 20.5, 36.0]}
+      - {id: L30, title: "Guide level 30 m", elevation: 30.0, kind: platform, extent: [18.5, 0.0, 20.5, 36.0]}
+      - {id: L38, title: "Guide level 38 m", elevation: 38.0, kind: platform, extent: [18.5, 0.0, 20.5, 36.0]}
+      - {id: L46, title: "Support level 46 m (top)", elevation: 46.0, kind: platform, extent: [18.5, 0.0, 20.5, 36.0]}
+    stairs:
+      - {id: stair-to-L22, from: grade, to: L22, side: east, offset: 15.5, width: 0.9}
+      - {id: stair-to-L30, from: L22, to: L30, side: east, offset: 15.5, width: 0.9}
+      - {id: stair-to-L38, from: L30, to: L38, side: east, offset: 15.5, width: 0.9}
+      - {id: stair-to-L46, from: L38, to: L46, side: east, offset: 15.5, width: 0.9}
+    ladders:
+      - {id: ladder-to-L22, from: grade, to: L22, at: [19.5, 35.5], facing: west}
+      - {id: ladder-to-L30, from: L22, to: L30, at: [19.5, 34.5], facing: west}
+      - {id: ladder-to-L38, from: L30, to: L38, at: [19.5, 35.5], facing: west}
+      - {id: ladder-to-L46, from: L38, to: L46, at: [19.5, 34.5], facing: west}
+      - {id: ladder-s-to-L22, from: grade, to: L22, at: [19.5, 0.5], facing: west}
+      - {id: ladder-s-to-L30, from: L22, to: L30, at: [19.5, 1.5], facing: west}
+      - {id: ladder-s-to-L38, from: L30, to: L38, at: [19.5, 0.5], facing: west}
+      - {id: ladder-s-to-L46, from: L38, to: L46, at: [19.5, 1.5], facing: west}
+    notes: "x 976.0-996.5, y 3008-3044; stairs at mid-length, caged ladders at both ends (no dead end, travel to the stair within 25 m); grid lines y 3008 / 3019.5 / 3034.6 / 3044 clear of the drops at y 3012.3, 3017.8, 3030.9, 3039, 3042 and the tray risers at y 3016.7-3018.7, 3033.8, 3041.6 (D-029)."
+  - id: S-RT3101
+    title: "T-3101 riser tower beside the shell over PR5 (roof piping drops and pump motor trays), ASSUMED"
+    origin: [836.0, 3008.0]
+    spans_x: [20.5]
+    spans_y: [11.5, 15.1, 11.9]
+    levels:
+      - {id: L22, title: "Guide level 22 m", elevation: 22.0, kind: platform, extent: [18.5, 0.0, 20.5, 38.5]}
+      - {id: L30, title: "Guide level 30 m", elevation: 30.0, kind: platform, extent: [18.5, 0.0, 20.5, 38.5]}
+      - {id: L38, title: "Guide level 38 m", elevation: 38.0, kind: platform, extent: [18.5, 0.0, 20.5, 38.5]}
+      - {id: L46, title: "Support level 46 m (top)", elevation: 46.0, kind: platform, extent: [18.5, 0.0, 20.5, 38.5]}
+    stairs:
+      - {id: stair-to-L22, from: grade, to: L22, side: east, offset: 16.5, width: 0.9}
+      - {id: stair-to-L30, from: L22, to: L30, side: east, offset: 16.5, width: 0.9}
+      - {id: stair-to-L38, from: L30, to: L38, side: east, offset: 16.5, width: 0.9}
+      - {id: stair-to-L46, from: L38, to: L46, side: east, offset: 16.5, width: 0.9}
+    ladders:
+      - {id: ladder-to-L22, from: grade, to: L22, at: [19.5, 38.0], facing: west}
+      - {id: ladder-to-L30, from: L22, to: L30, at: [19.5, 37.0], facing: west}
+      - {id: ladder-to-L38, from: L30, to: L38, at: [19.5, 38.0], facing: west}
+      - {id: ladder-to-L46, from: L38, to: L46, at: [19.5, 37.0], facing: west}
+      - {id: ladder-s-to-L22, from: grade, to: L22, at: [19.5, 0.5], facing: west}
+      - {id: ladder-s-to-L30, from: L22, to: L30, at: [19.5, 1.5], facing: west}
+      - {id: ladder-s-to-L38, from: L30, to: L38, at: [19.5, 0.5], facing: west}
+      - {id: ladder-s-to-L46, from: L38, to: L46, at: [19.5, 1.5], facing: west}
+    notes: "x 836.0-856.5, y 3008-3046.5; stairs at mid-length, caged ladders at both ends; grid lines y 3008 / 3019.5 / 3034.6 / 3046.5 clear of the drops (BOG-1003 at y 3045 inside the north bay) (D-029)."
   # Second way off each tank roof (D-027): a stair tower from grade to a landing at the roof
   # edge (42.2 m, the top of the shell) on the north side, remote from the tank's spiral stair
   # at the south-west and from the relief valves on the pump platform, reached from the pump
@@ -39,7 +110,7 @@ structures:
     levels:
       - {id: L42, title: "Roof-edge landing", elevation: 42.2, kind: platform, use: regular}
     bracing: {east: x, west: x}
-    notes: "The landing meets the roof edge handrail ring at the north; the roof walkway from the pump platform arrives here (D-027)."
+    notes: "The landing meets the roof edge handrail ring at the north; the roof walkway from the pump platform arrives here (D-027, D-029)."
     stairs: [{id: stair-to-L42, from: grade, to: L42, side: east, offset: -4.723, width: 0.9}]
     ladders: [{id: ladder-to-L42, from: grade, to: L42, at: [0.5, 3.5], facing: north}]
   - id: S-ESC-T3101
@@ -53,15 +124,169 @@ structures:
     notes: "As S-ESC-T2101 (D-027)."
     stairs: [{id: stair-to-L42, from: grade, to: L42, side: east, offset: -4.723, width: 0.9}]
     ladders: [{id: ladder-to-L42, from: grade, to: L42, at: [0.5, 3.5], facing: north}]
-# Supports of the tank-roof headers (D-027, review #7): posts on the pump platform and from
-# grade between the shell and the riser racks; sizes ASSUMED. The roof stools on the dome
-# between the platform edge and the shell (tank supply) are not modelled: a post standing on
-# the dome intersects the tank's solid in the model (D-027), so those spans are accepted
-# findings in checks/checks.yaml.
+# Supports of the tank-roof headers (D-027, review #7): posts on the pump platform and on the
+# riser towers; sizes ASSUMED. The roof stools on the dome between the platform edge and the
+# shell (tank supply) are not modelled: a post standing on the dome intersects the tank's
+# solid in the model (D-027), so those spans are accepted findings in checks/checks.yaml.
+# A post or T-post under an east-west run takes rotation_deg 90, so its cap or crossbar
+# crosses under the pipe (D-029).
 pipe_supports:
   - {id: RS-T2101-3, kind: post, at: [958.0, 3040.0], top: 59.78, from: steel, base: 57.4, serves: [LNG-2002], notes: "Post on the pump platform under the circulation header (ASSUMED)"}
   - {id: RS-T3101-3, kind: post, at: [818.0, 3040.0], top: 59.78, from: steel, base: 57.4, serves: [LNG-3002], notes: "Post on the pump platform under the circulation header (ASSUMED)"}
-  - {id: RS-T3101-4, kind: t_post, at: [838.3, 3040.0], top: 59.78, from: grade, serves: [LNG-3002], notes: "Post from grade between the shell and the PR5 riser rack under the circulation header (ASSUMED)"}
+  # Riser tower supports (D-029): posts on the west perimeter beam of each riser tower's top
+  # level (46 m) under the roof runs where they leave the dome edge (pipe bottom less a 0.1 m
+  # shoe); they replace the 50-60 m posts from grade the build proposed (and RS-T3101-4)
+  - {id: RS-T2101-LNG2001, kind: post, at: [976.0, 3030.87], top: 59.413, from: steel, base: 46.0, rotation_deg: 90, serves: [P-02/Line_LNG2001_S7], notes: "DN 800 pump header off the dome edge, on the riser tower S-RT2101 (ASSUMED)"}
+  - {id: RS-T2101-LNG2002, kind: post, at: [976.0, 3040.0], top: 59.683, from: steel, base: 46.0, rotation_deg: 90, serves: [P-04/Line_LNG2002_S1], notes: "Circulation header, on S-RT2101 (ASSUMED)"}
+  - {id: RS-T2101-BOG1001, kind: post, at: [976.0, 3043.8], top: 49.733, from: steel, base: 46.0, rotation_deg: 90, serves: [P-01/Line_BOG1001_S1], notes: "Tank vapour header, on S-RT2101 (ASSUMED)"}
+  - {id: RS-T2101-LNG4005, kind: post, at: [976.0, 3017.8], top: 50.683, from: steel, base: 46.0, rotation_deg: 90, serves: [P-04/Line_LNG4005_S3], notes: "Circulation return, on S-RT2101 (ASSUMED)"}
+  - {id: RS-T3101-LNG3001, kind: post, at: [836.0, 3030.87], top: 59.413, from: steel, base: 46.0, rotation_deg: 90, serves: [P-03/Line_LNG3001_S7], notes: "DN 800 pump header off the dome edge, on the riser tower S-RT3101 (ASSUMED)"}
+  - {id: RS-T3101-LNG3002, kind: post, at: [836.0, 3040.0], top: 59.683, from: steel, base: 46.0, rotation_deg: 90, serves: [P-03/Line_LNG3002_S4], notes: "Circulation header, on S-RT3101 (ASSUMED)"}
+  - {id: RS-T3101-BOG1003, kind: post, at: [836.0, 3043.8], top: 49.805, from: steel, base: 46.0, rotation_deg: 90, serves: [P-03/Line_BOG1003_S1], notes: "Tank vapour header, on S-RT3101 (ASSUMED)"}
+  - {id: RS-T3101-LNG4009, kind: post, at: [836.0, 3017.8], top: 50.553, from: steel, base: 46.0, rotation_deg: 90, serves: [P-03/Line_LNG4009_S1], notes: "Circulation return, on S-RT3101 (ASSUMED)"}
+  # Supports of the long level runs off the racks (D-029, the disputed closure of review
+  # 2026-11-05-basic-layout#7): the build's proposals (T-posts from grade, stubs on the rack
+  # steel), reviewed and declared; left out are proposals in the crane strips Z-PAD-A4W /
+  # -A4E / -A3, in the spill troughs, in an item or in an escape route, those clashing with a
+  # neighbouring pipe, and those on the tank roofs, whose runs stay accepted residuals in
+  # checks/checks.yaml. Sizes ASSUMED (HEB200 default); the support design is detail
+  # engineering's. Tank area and riser racks:
+  - {id: P-01/Line_BOG1001_S7/SP-7.0, kind: t_post, at: [981.641, 3058.489], top: 13.97, from: grade, serves: [P-01/Line_BOG1001_S7]}
+  - {id: P-01/Line_BOG1004_S1/SP-163.1, kind: t_post, at: [985.554, 3053.5], top: 13.9, from: grade, rotation_deg: 90, serves: [P-01/Line_BOG1004_S1]}
+  - {id: P-01/Line_BOG1004_S1/SP-169.8, kind: stub, at: [983.0, 3050.65], top: 15.403, from: steel, base: 14.0, serves: [P-01/Line_BOG1004_S1]}
+  - {id: P-01/Line_BOG1004_S1/SP-172.4, kind: stub, at: [983.0, 3048.05], top: 15.403, from: steel, base: 14.0, serves: [P-01/Line_BOG1004_S1]}
+  - {id: P-01/Line_BOG1004_S1/SP-175.0, kind: t_post, at: [983.0, 3045.7], top: 15.403, from: grade, serves: [P-01/Line_BOG1004_S1]}
+  - {id: P-01/Line_BOG1011_S1/SP-3.6, kind: t_post, at: [900.0, 2949.31], top: 8.803, from: grade, serves: [P-01/Line_BOG1011_S1]}
+  - {id: P-01/Line_BOG1011_S1/SP-5.7, kind: t_post, at: [900.0, 2947.207], top: 8.803, from: grade, serves: [P-01/Line_BOG1011_S1]}
+  - {id: P-01/Line_BOG1011_S1/SP-208.0, kind: t_post, at: [986.437, 3044.2], top: 14.334, from: grade, rotation_deg: 90, serves: [P-01/Line_BOG1011_S1]}
+  - {id: P-01/Line_BOG1011_S1/SP-210.4, kind: t_post, at: [983.974, 3044.2], top: 14.334, from: grade, rotation_deg: 90, serves: [P-01/Line_BOG1011_S1]}
+  - {id: P-01/Line_FL1001_S1/SP-10.7, kind: t_post, at: [1089.781, 3056.9], top: 14.056, from: grade, rotation_deg: 90, serves: [P-01/Line_FL1001_S1]}
+  - {id: P-04/Line_BOG4011_S1/SP-5.8, kind: t_post, at: [1070.0, 2942.0], top: 11.203, from: grade, serves: [P-04/Line_BOG4011_S1]}
+  # loading platform (outside the crane strips)
+  - {id: P-04/Line_LNG5006_S1/SP-7.1, kind: t_post, at: [1149.048, 904.866], top: 5.651, from: grade, rotation_deg: 90, serves: [P-04/Line_LNG5006_S1]}
+  - {id: P-04/Line_LNG6006_S1/SP-3.5, kind: stub, at: [1153.675, 897.97], top: 7.382, from: steel, base: 7.0, serves: [P-04/Line_LNG6006_S1]}
+  - {id: P-04/Line_LNG6006_S1/SP-7.0, kind: t_post, at: [1153.675, 901.485], top: 7.382, from: grade, serves: [P-04/Line_LNG6006_S1]}
+  - {id: P-05/Line_BOG5002_S1/SP-11.0, kind: t_post, at: [1148.967, 878.397], top: 3.4, from: grade, serves: [P-05/Line_BOG5002_S1]}
+  - {id: P-05/Line_DR5006_S1/SP-4.4, kind: t_post, at: [1147.586, 888.305], top: 5.428, from: grade, serves: [P-05/Line_DR5006_S1]}
+  - {id: P-05/Line_DR5006_S1/SP-6.8, kind: t_post, at: [1147.586, 885.388], top: 5.428, from: grade, serves: [P-05/Line_DR5006_S1]}
+  - {id: P-05/Line_DR5006_S1/SP-9.2, kind: t_post, at: [1147.586, 882.971], top: 5.428, from: grade, serves: [P-05/Line_DR5006_S1]}
+  - {id: P-05/Line_DR5006_S1/SP-11.7, kind: t_post, at: [1147.586, 880.555], top: 5.428, from: grade, serves: [P-05/Line_DR5006_S1]}
+  - {id: P-05/Line_DR5006_S1/SP-14.1, kind: t_post, at: [1147.586, 878.138], top: 5.428, from: grade, serves: [P-05/Line_DR5006_S1]}
+  - {id: P-05/Line_LNG5007_S1/SP-6.5, kind: t_post, at: [1153.645, 873.32], top: 3.4, from: grade, rotation_deg: 90, serves: [P-05/Line_LNG5007_S1]}
+  - {id: P-05/Line_LNG5007_S1/SP-9.7, kind: t_post, at: [1154.73, 871.203], top: 3.4, from: grade, serves: [P-05/Line_LNG5007_S1]}
+  - {id: P-06/Line_BOG6001_S2/SP-5.4, kind: t_post, at: [1155.582, 884.0], top: 3.4, from: grade, rotation_deg: 90, serves: [P-06/Line_BOG6001_S2]}
+  - {id: P-06/Line_BOG6002_S1/SP-10.6, kind: t_post, at: [1160.967, 878.0], top: 3.4, from: grade, serves: [P-06/Line_BOG6002_S1]}
+  - {id: P-06/Line_DR6006_S1/SP-9.7, kind: t_post, at: [1160.515, 886.2], top: 4.793, from: grade, rotation_deg: 90, serves: [P-06/Line_DR6006_S1]}
+  - {id: P-06/Line_DR6007_S1/SP-2.5, kind: t_post, at: [1161.55, 880.503], top: 5.423, from: grade, rotation_deg: 90, serves: [P-06/Line_DR6007_S1]}
+  - {id: P-06/Line_LNG6006_S3/SP-4.0, kind: t_post, at: [1158.8, 884.502], top: 5.396, from: grade, serves: [P-06/Line_LNG6006_S3]}
+  - {id: P-06/Line_LNG6006_S4/SP-7.6, kind: t_post, at: [1153.675, 891.477], top: 7.382, from: grade, serves: [P-06/Line_LNG6006_S4]}
+  - {id: P-06/Line_LNG6007_S1/SP-4.8, kind: t_post, at: [1158.8, 871.554], top: 3.4, from: grade, serves: [P-06/Line_LNG6007_S1]}
+  - {id: P-06/Line_N8002_S2/SP-2.5, kind: t_post, at: [1156.096, 889.952], top: 1.37, from: grade, serves: [P-06/Line_N8002_S2]}
+  - {id: P-08/Line_N8002_S1/SP-1282.8, kind: t_post, at: [1151.066, 893.187], top: 11.76, from: grade, rotation_deg: 90, serves: [P-08/Line_N8002_S1]}
+  - {id: P-08/Line_N8002_S1/SP-1286.1, kind: t_post, at: [1154.15, 893.187], top: 11.76, from: grade, rotation_deg: 90, serves: [P-08/Line_N8002_S1]}
+  # BOG area A2 (suction header, recycles, discharge header, compressor vents to the flare)
+  - {id: P-07/Line_BOG7001_S1/SP-14.1, kind: t_post, at: [1040.0, 3038.04], top: 10.939, from: grade, serves: [P-07/Line_BOG7001_S1]}
+  - {id: P-07/Line_BOG7001_S1/SP-26.0, kind: t_post, at: [1040.0, 3026.08], top: 10.939, from: grade, serves: [P-07/Line_BOG7001_S1]}
+  - {id: P-07/Line_BOG7001_S2/SP-7.5, kind: t_post, at: [1040.0, 3006.62], top: 10.939, from: grade, serves: [P-07/Line_BOG7001_S2]}
+  - {id: P-07/Line_BOG7001_S3/SP-7.5, kind: t_post, at: [1040.0, 2991.61], top: 11.066, from: grade, serves: [P-07/Line_BOG7001_S3]}
+  - {id: P-07/Line_BOG7002_S5/SP-9.5, kind: t_post, at: [1059.5, 2989.5], top: 3.166, from: grade, serves: [P-07/Line_BOG7002_S5]}
+  - {id: P-07/Line_BOG7002_S6/SP-9.0, kind: t_post, at: [1063.462, 2977.95], top: 2.166, from: grade, rotation_deg: 90, serves: [P-07/Line_BOG7002_S6]}
+  - {id: P-07/Line_BOG7002_S6/SP-18.0, kind: t_post, at: [1072.475, 2977.95], top: 2.166, from: grade, rotation_deg: 90, serves: [P-07/Line_BOG7002_S6]}
+  - {id: P-07/Line_BOG7002_S6/SP-27.0, kind: t_post, at: [1081.487, 2977.95], top: 2.166, from: grade, rotation_deg: 90, serves: [P-07/Line_BOG7002_S6]}
+  - {id: P-07/Line_BOG7008_S1/SP-10.2, kind: t_post, at: [1047.25, 3011.0], top: 2.683, from: grade, rotation_deg: 90, serves: [P-07/Line_BOG7008_S1]}
+  - {id: P-07/Line_BOG7008_S1/SP-34.9, kind: t_post, at: [1042.5, 3018.012], top: 15.684, from: grade, serves: [P-07/Line_BOG7008_S1]}
+  - {id: P-07/Line_BOG7008_S1/SP-41.9, kind: t_post, at: [1042.5, 3025.024], top: 15.684, from: grade, serves: [P-07/Line_BOG7008_S1]}
+  - {id: P-07/Line_BOG7008_S1/SP-49.0, kind: t_post, at: [1042.5, 3032.036], top: 15.684, from: grade, serves: [P-07/Line_BOG7008_S1]}
+  - {id: P-07/Line_BOG7008_S1/SP-56.0, kind: t_post, at: [1042.5, 3039.048], top: 15.684, from: grade, serves: [P-07/Line_BOG7008_S1]}
+  - {id: P-07/Line_BOG7008_S1/SP-69.4, kind: t_post, at: [1036.25, 3046.06], top: 15.864, from: grade, rotation_deg: 90, serves: [P-07/Line_BOG7008_S1]}
+  - {id: P-07/Line_BOG7009_S1/SP-27.9, kind: t_post, at: [1044.6, 3000.933], top: 15.684, from: grade, serves: [P-07/Line_BOG7009_S1]}
+  - {id: P-07/Line_BOG7009_S1/SP-32.8, kind: t_post, at: [1044.6, 3005.867], top: 15.684, from: grade, serves: [P-07/Line_BOG7009_S1]}
+  - {id: P-07/Line_BOG7012_S1/SP-8.1, kind: t_post, at: [1046.5, 2981.0], top: 2.683, from: grade, rotation_deg: 90, serves: [P-07/Line_BOG7012_S1]}
+  - {id: P-07/Line_BOG7012_S1/SP-21.3, kind: t_post, at: [1043.5, 2990.75], top: 3.183, from: grade, serves: [P-07/Line_BOG7012_S1]}
+  - {id: P-07/Line_BOG7012_S1/SP-35.1, kind: t_post, at: [1043.5, 3003.5], top: 2.183, from: grade, serves: [P-07/Line_BOG7012_S1]}
+  - {id: P-07/Line_BOG7012_S2/SP-8.2, kind: t_post, at: [1043.5, 3017.916], top: 15.658, from: grade, serves: [P-07/Line_BOG7012_S2]}
+  - {id: P-07/Line_BOG7012_S2/SP-16.4, kind: t_post, at: [1043.5, 3026.132], top: 15.658, from: grade, serves: [P-07/Line_BOG7012_S2]}
+  - {id: P-07/Line_BOG7012_S2/SP-24.6, kind: t_post, at: [1043.5, 3034.348], top: 15.658, from: grade, serves: [P-07/Line_BOG7012_S2]}
+  - {id: P-07/Line_BOG7012_S2/SP-32.9, kind: t_post, at: [1043.5, 3042.564], top: 15.658, from: grade, serves: [P-07/Line_BOG7012_S2]}
+  - {id: P-07/Line_BOG7012_S2/SP-48.0, kind: t_post, at: [1036.75, 3050.78], top: 15.838, from: grade, rotation_deg: 90, serves: [P-07/Line_BOG7012_S2]}
+  - {id: P-07/Line_DR7001_S1/SP-3.0, kind: t_post, at: [1032.43, 3040.285], top: 0.39, from: grade, serves: [P-07/Line_DR7001_S1]}
+  # (plain posts with a cap, not T-posts: FL-7003 runs 0.6 m west of FL-7002 lower down)
+  - {id: P-07/Line_FL7002_S1/SP-7.7, kind: post, at: [1061.6, 2999.523], top: 3.39, from: grade, serves: [P-07/Line_FL7002_S1]}
+  - {id: P-07/Line_FL7002_S1/SP-14.4, kind: post, at: [1061.6, 2992.82], top: 3.39, from: grade, serves: [P-07/Line_FL7002_S1]}
+  - {id: P-07/Line_FL7002_S1/SP-21.1, kind: post, at: [1061.6, 2986.117], top: 3.39, from: grade, serves: [P-07/Line_FL7002_S1]}
+  - {id: P-07/Line_FL7002_S1/SP-27.8, kind: post, at: [1061.6, 2979.415], top: 3.39, from: grade, serves: [P-07/Line_FL7002_S1]}
+  - {id: P-07/Line_FL7002_S1/SP-34.5, kind: t_post, at: [1064.987, 2976.1], top: 3.39, from: grade, rotation_deg: 90, serves: [P-07/Line_FL7002_S1]}
+  - {id: P-07/Line_FL7002_S1/SP-41.2, kind: t_post, at: [1071.69, 2976.1], top: 3.39, from: grade, rotation_deg: 90, serves: [P-07/Line_FL7002_S1]}
+  - {id: P-07/Line_FL7002_S1/SP-47.9, kind: t_post, at: [1078.392, 2976.1], top: 3.39, from: grade, rotation_deg: 90, serves: [P-07/Line_FL7002_S1]}
+  - {id: P-07/Line_FL7002_S1/SP-54.6, kind: t_post, at: [1085.095, 2976.1], top: 3.39, from: grade, rotation_deg: 90, serves: [P-07/Line_FL7002_S1]}
+  - {id: P-07/Line_FL7002_S1/SP-61.3, kind: t_post, at: [1091.797, 2976.1], top: 3.39, from: grade, rotation_deg: 90, serves: [P-07/Line_FL7002_S1]}
+  - {id: P-07/Line_FL7003_S1/SP-6.5, kind: t_post, at: [1061.0, 3005.95], top: 3.156, from: grade, serves: [P-07/Line_FL7003_S1]}
+  - {id: P-07/Line_FL7003_S1/SP-10.8, kind: t_post, at: [1061.0, 3001.65], top: 3.156, from: grade, serves: [P-07/Line_FL7003_S1]}
+  - {id: P-07/Line_FL7003_S2/SP-4.5, kind: t_post, at: [1061.0, 2992.815], top: 3.156, from: grade, serves: [P-07/Line_FL7003_S2]}
+  - {id: P-07/Line_FL7003_S2/SP-9.1, kind: t_post, at: [1061.0, 2988.281], top: 3.156, from: grade, serves: [P-07/Line_FL7003_S2]}
+  - {id: P-07/Line_FL7003_S2/SP-13.6, kind: t_post, at: [1061.0, 2983.746], top: 3.156, from: grade, serves: [P-07/Line_FL7003_S2]}
+  - {id: P-07/Line_FL7003_S2/SP-18.1, kind: t_post, at: [1061.0, 2979.212], top: 3.156, from: grade, serves: [P-07/Line_FL7003_S2]}
+  - {id: P-07/Line_FL7003_S2/SP-22.7, kind: t_post, at: [1061.523, 2975.2], top: 3.156, from: grade, rotation_deg: 90, serves: [P-07/Line_FL7003_S2]}
+  - {id: P-07/Line_FL7003_S2/SP-27.2, kind: t_post, at: [1066.058, 2975.2], top: 3.156, from: grade, rotation_deg: 90, serves: [P-07/Line_FL7003_S2]}
+  - {id: P-07/Line_FL7003_S2/SP-31.7, kind: t_post, at: [1070.592, 2975.2], top: 3.156, from: grade, rotation_deg: 90, serves: [P-07/Line_FL7003_S2]}
+  - {id: P-07/Line_FL7003_S2/SP-36.3, kind: t_post, at: [1075.127, 2975.2], top: 3.156, from: grade, rotation_deg: 90, serves: [P-07/Line_FL7003_S2]}
+  - {id: P-07/Line_FL7003_S2/SP-40.8, kind: t_post, at: [1079.662, 2975.2], top: 3.156, from: grade, rotation_deg: 90, serves: [P-07/Line_FL7003_S2]}
+  - {id: P-07/Line_FL7003_S2/SP-45.3, kind: t_post, at: [1084.196, 2975.2], top: 3.156, from: grade, rotation_deg: 90, serves: [P-07/Line_FL7003_S2]}
+  - {id: P-07/Line_FL7003_S2/SP-49.9, kind: t_post, at: [1088.731, 2975.2], top: 3.156, from: grade, rotation_deg: 90, serves: [P-07/Line_FL7003_S2]}
+  - {id: P-07/Line_FL7003_S2/SP-54.4, kind: t_post, at: [1093.265, 2975.2], top: 3.156, from: grade, rotation_deg: 90, serves: [P-07/Line_FL7003_S2]}
+  - {id: P-07/Line_FL7005_S1/SP-5.5, kind: t_post, at: [1058.5, 2984.334], top: 1.87, from: grade, serves: [P-07/Line_FL7005_S1]}
+  - {id: P-07/Line_FL7005_S1/SP-9.3, kind: t_post, at: [1058.5, 2988.088], top: 1.87, from: grade, serves: [P-07/Line_FL7005_S1]}
+  - {id: P-07/Line_FL7005_S1/SP-13.0, kind: t_post, at: [1058.5, 2991.842], top: 1.87, from: grade, serves: [P-07/Line_FL7005_S1]}
+  # flare area A3 (sterile: posts at grade, ASSUMED) and the basin services
+  - {id: P-08/Line_DR7001_S1/SP-233.8, kind: t_post, at: [1430.6, 3102.825], top: 6.9, from: grade, serves: [P-08/Line_DR7001_S1]}
+  - {id: P-08/Line_DR7001_S1/SP-237.6, kind: t_post, at: [1430.6, 3099.05], top: 6.9, from: grade, serves: [P-08/Line_DR7001_S1]}
+  - {id: P-08/Line_DR7001_S1/SP-241.3, kind: t_post, at: [1430.6, 3095.275], top: 6.9, from: grade, serves: [P-08/Line_DR7001_S1]}
+  - {id: P-08/Line_DR7001_S1/SP-245.1, kind: t_post, at: [1430.6, 3091.5], top: 6.9, from: grade, serves: [P-08/Line_DR7001_S1]}
+  - {id: P-08/Line_DR7001_S1/SP-248.9, kind: t_post, at: [1430.6, 3087.725], top: 6.9, from: grade, serves: [P-08/Line_DR7001_S1]}
+  - {id: P-08/Line_DR7001_S1/SP-252.7, kind: t_post, at: [1430.6, 3083.949], top: 6.9, from: grade, serves: [P-08/Line_DR7001_S1]}
+  - {id: P-08/Line_DR7001_S1/SP-256.4, kind: t_post, at: [1430.6, 3080.174], top: 6.9, from: grade, serves: [P-08/Line_DR7001_S1]}
+  - {id: P-08/Line_DR7001_S1/SP-260.2, kind: t_post, at: [1430.6, 3076.399], top: 6.9, from: grade, serves: [P-08/Line_DR7001_S1]}
+  - {id: P-08/Line_DR7001_S1/SP-264.0, kind: t_post, at: [1433.137, 3075.161], top: 6.9, from: grade, rotation_deg: 90, serves: [P-08/Line_DR7001_S1]}
+  - {id: P-08/Line_DR7001_S1/SP-267.8, kind: t_post, at: [1436.912, 3075.161], top: 6.9, from: grade, rotation_deg: 90, serves: [P-08/Line_DR7001_S1]}
+  - {id: P-08/Line_FG8002_S1/SP-5.4, kind: t_post, at: [1433.91, 3103.27], top: 10.76, from: grade, rotation_deg: 90, serves: [P-08/Line_FG8002_S1]}
+  - {id: P-08/Line_FG8002_S1/SP-9.3, kind: t_post, at: [1437.82, 3103.27], top: 10.76, from: grade, rotation_deg: 90, serves: [P-08/Line_FG8002_S1]}
+  - {id: P-08/Line_FG8002_S1/SP-13.3, kind: t_post, at: [1441.73, 3103.27], top: 10.76, from: grade, rotation_deg: 90, serves: [P-08/Line_FG8002_S1]}
+  - {id: P-08/Line_FG8002_S1/SP-17.2, kind: t_post, at: [1445.64, 3103.27], top: 10.76, from: grade, rotation_deg: 90, serves: [P-08/Line_FG8002_S1]}
+  - {id: P-08/Line_FG8002_S1/SP-21.1, kind: t_post, at: [1449.55, 3103.27], top: 10.76, from: grade, rotation_deg: 90, serves: [P-08/Line_FG8002_S1]}
+  - {id: P-08/Line_FG8002_S1/SP-25.0, kind: t_post, at: [1453.46, 3103.27], top: 10.76, from: grade, rotation_deg: 90, serves: [P-08/Line_FG8002_S1]}
+  - {id: P-08/Line_FG8002_S1/SP-28.9, kind: t_post, at: [1457.37, 3103.27], top: 10.76, from: grade, rotation_deg: 90, serves: [P-08/Line_FG8002_S1]}
+  - {id: P-08/Line_FG8002_S1/SP-32.8, kind: t_post, at: [1461.28, 3103.27], top: 10.76, from: grade, rotation_deg: 90, serves: [P-08/Line_FG8002_S1]}
+  - {id: P-08/Line_FG8002_S1/SP-36.7, kind: t_post, at: [1465.19, 3103.27], top: 10.76, from: grade, rotation_deg: 90, serves: [P-08/Line_FG8002_S1]}
+  - {id: P-08/Line_FG8002_S1/SP-40.6, kind: t_post, at: [1469.1, 3103.27], top: 10.76, from: grade, rotation_deg: 90, serves: [P-08/Line_FG8002_S1]}
+  - {id: P-08/Line_FG8002_S1/SP-44.5, kind: t_post, at: [1473.01, 3103.27], top: 10.76, from: grade, rotation_deg: 90, serves: [P-08/Line_FG8002_S1]}
+  - {id: P-08/Line_FG8002_S1/SP-48.4, kind: t_post, at: [1476.92, 3103.27], top: 10.76, from: grade, rotation_deg: 90, serves: [P-08/Line_FG8002_S1]}
+  - {id: P-08/Line_FG8002_S1/SP-52.4, kind: t_post, at: [1480.83, 3103.27], top: 10.76, from: grade, rotation_deg: 90, serves: [P-08/Line_FG8002_S1]}
+  - {id: P-08/Line_FL8001_S5/SP-121.2, kind: t_post, at: [1429.243, 3104.879], top: 11.614, from: grade, serves: [P-08/Line_FL8001_S5]}
+  - {id: P-08/Line_FL8001_S5/SP-132.9, kind: t_post, at: [1429.243, 3093.266], top: 11.614, from: grade, serves: [P-08/Line_FL8001_S5]}
+  - {id: P-08/Line_FL8001_S5/SP-144.5, kind: t_post, at: [1429.243, 3081.652], top: 11.614, from: grade, serves: [P-08/Line_FL8001_S5]}
+  - {id: P-08/Line_FL8002_S1/SP-18.3, kind: t_post, at: [1461.845, 3077.5], top: 3.4, from: grade, rotation_deg: 90, serves: [P-08/Line_FL8002_S1]}
+  - {id: P-08/Line_FL8002_S1/SP-29.9, kind: t_post, at: [1473.509, 3077.5], top: 3.4, from: grade, rotation_deg: 90, serves: [P-08/Line_FL8002_S1]}
+  - {id: P-08/Line_FL8002_S1/SP-41.6, kind: t_post, at: [1484.9, 3077.773], top: 3.4, from: grade, serves: [P-08/Line_FL8002_S1]}
+  - {id: P-08/Line_FL8002_S1/SP-53.3, kind: t_post, at: [1484.9, 3089.436], top: 3.4, from: grade, serves: [P-08/Line_FL8002_S1]}
+  - {id: P-08/Line_LNG8001_S1/SP-5.0, kind: t_post, at: [1440.442, 3064.82], top: 3.4, from: grade, rotation_deg: 90, serves: [P-08/Line_LNG8001_S1]}
+  - {id: P-08/Line_LNG8001_S2/SP-3.9, kind: t_post, at: [1447.353, 3064.82], top: 3.4, from: grade, rotation_deg: 90, serves: [P-08/Line_LNG8001_S2]}
+  - {id: P-08/Line_LNG8001_S2/SP-7.8, kind: t_post, at: [1451.263, 3064.82], top: 3.4, from: grade, rotation_deg: 90, serves: [P-08/Line_LNG8001_S2]}
+  - {id: P-08/Line_LNG8001_S4/SP-17.5, kind: t_post, at: [1474.631, 3064.82], top: 3.4, from: grade, rotation_deg: 90, serves: [P-08/Line_LNG8001_S4]}
+  - {id: P-08/Line_LNG8001_S4/SP-21.8, kind: t_post, at: [1478.995, 3064.82], top: 3.4, from: grade, rotation_deg: 90, serves: [P-08/Line_LNG8001_S4]}
+  - {id: P-08/Line_LNG8001_S4/SP-26.2, kind: t_post, at: [1483.359, 3064.82], top: 3.4, from: grade, rotation_deg: 90, serves: [P-08/Line_LNG8001_S4]}
+  - {id: P-08/Line_LNG8001_S4/SP-30.5, kind: t_post, at: [1487.723, 3064.82], top: 3.4, from: grade, rotation_deg: 90, serves: [P-08/Line_LNG8001_S4]}
+  - {id: P-08/Line_LNG8001_S4/SP-34.9, kind: t_post, at: [1492.087, 3064.82], top: 3.4, from: grade, rotation_deg: 90, serves: [P-08/Line_LNG8001_S4]}
+  - {id: P-08/Line_LNG8001_S4/SP-39.3, kind: t_post, at: [1496.452, 3064.82], top: 3.4, from: grade, rotation_deg: 90, serves: [P-08/Line_LNG8001_S4]}
+  - {id: P-08/Line_LNG8001_S4/SP-43.6, kind: t_post, at: [1500.0, 3065.636], top: 3.4, from: grade, serves: [P-08/Line_LNG8001_S4]}
+  - {id: P-08/Line_LNG8005_S1/SP-3.5, kind: t_post, at: [1455.174, 3068.313], top: 3.4, from: grade, serves: [P-08/Line_LNG8005_S1]}
+  - {id: P-08/Line_LNG8005_S1/SP-7.0, kind: t_post, at: [1455.174, 3071.807], top: 3.4, from: grade, serves: [P-08/Line_LNG8005_S1]}
+  - {id: P-08/Line_LNG8006_S1/SP-7.4, kind: t_post, at: [1453.5, 3067.365], top: 4.27, from: grade, serves: [P-08/Line_LNG8006_S1]}
+  - {id: P-08/Line_LNG8006_S1/SP-9.9, kind: t_post, at: [1453.5, 3069.91], top: 4.27, from: grade, serves: [P-08/Line_LNG8006_S1]}
+  - {id: P-08/Line_LNG8006_S1/SP-12.5, kind: t_post, at: [1453.5, 3072.455], top: 4.27, from: grade, serves: [P-08/Line_LNG8006_S1]}
+  - {id: P-08/Line_W8002_S1/SP-10.1, kind: t_post, at: [975.0, 3176.125], top: 7.814, from: grade, serves: [P-08/Line_W8002_S1]}
 notes: >-
-  The tank-top pump platforms are modelled as unclad building levels (layout/building.yaml,
-  D-027): a structure here stands on grade and cannot stand on the tank roof.
+  The tank-top pump platforms are the single platform level of a frame spanning each tank
+  (S-Tn101-TOP above, D-027): a cheme-as-code structure stands on grade and cannot stand on the
+  tank roof, so the frame's corner columns outside the shell are a modelling artefact, taken
+  off as their own HEA100 row and priced at nothing in the estimate (D-029). The riser towers
+  S-RTn101 are real terminal steel (D-029).

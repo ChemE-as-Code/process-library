@@ -13,6 +13,8 @@ areas:
   - {id: A5, title: "Liquefaction trains 1-4 (outside the battery limit; OSM train blocks, D-001)", box: [560, 3630, 1372, 4015], kind: reserved}
   - {id: A6, title: "Terminal substation and control building B-SUB, east of road R3, 60 m or more from the racks, the analyser house and the spill troughs (D-027, ASSUMED)", box: [1160, 2950, 1200, 2984], kind: building}
   - {id: A7, title: "Jetty substation B-JET on a piled deck west of the trestle road, outside the 200 m vapour-arm safety zone of both berths (D-018, D-027, ASSUMED)", box: [1112, 1100, 1132, 1120], kind: building}
+  - {id: A8, title: "LNG spill impoundment basin T-8101 north of road R2, at the pool fire screening distances of D-018 (D-029, ASSUMED)", box: [950, 3160, 1010, 3220], kind: storage}
+  - {id: A9, title: "Jetty spill sump deck T-8102 on piles south of the loading platform, between the carriers' bows (D-018, D-029, ASSUMED)", box: [1150, 800, 1172, 824], kind: process}
 roads:
   # one network (D-027): R1 / R4 / R2 round the tank area, R3 east of the BOG area from R6 to
   # R2 (under the PR3 east leg between its bents at x 1111.8 / 1120.9), R6 from the jetty road
@@ -55,7 +57,15 @@ racks:
   # (its east end 1 m off B-SUB's west wall; bents at x 1108.8 / 1122.6 either side of R3; the
   # trays at 15.5 m on their own steel above its level, power and instrument 8.6 m apart)
   - {id: PR6, title: "Riser rack east of T-2101: tank roof piping down to PR1 (D-013), turning east along the north edge of the BOG area to PR3 (tank vapour header to D-7101, flare header and drains to PR3, ASSUMED); tiers 12 / 14 m, over PR1's and PR3's steel at the joints", points: [[988, 2945], [988, 3052], [1095, 3052]], width: 14, levels: [12, 14], bent_spacing_m: 8, intermediate_supports: {spacing_m: 3}}
+  # the impoundment basin's own services (D-029): its oily water line W-8002 and the cables of
+  # its rainwater pump and instruments, from PR4 west north of road R2 (between PR4's bents at
+  # y 3144 / 3161); it carries nothing else, so it is not held to the basin's rack separation
+  - {id: PR8, title: "Basin services rack from PR4 west to the impoundment basin T-8101: oily water W-8002, the basin pump and instrument cables (ASSUMED)", points: [[1095, 3150], [975, 3150], [975, 3175]], width: 6, levels: [7], bent_spacing_m: 8, intermediate_supports: {spacing_m: 3}}
 rack_reach: 60
+# the in-tank pump removal crane on the pads north of the tanks works at up to ~75 m radius
+# (D-029, ASSUMED until the lifting contractor's crane selection); every pad still states its
+# own reach_m
+criteria: {crane_reach_m: 80}
 separations:
   - {from: T-2101, to: T-3101, min_m: 46, reason: "full-containment tanks: shell to shell at least a quarter of the sum of the diameters", basis: "NFPA 59A practice (cited only), ASSUMED (D-018)"}
   - {from: T-2101, to: K-7101A, min_m: 30, reason: "tank to the BOG compressors (ignition source, fire exposure)", basis: "D-018, ASSUMED"}
@@ -84,10 +94,41 @@ separations:
   - {from: B-SUB, to: PR2, min_m: 60, reason: "occupied building to the trestle rack's north end (the vapour switch valve station XV-4131/4132/4135/4136, the trough)", basis: "D-027, ASSUMED; CSA Z276 / NFPA 59A exclusion zones to be calculated"}
   - {from: B-SUB, to: PR3, min_m: 45, reason: "occupied building to the BOG area rack (flare header, BOG discharge, drains)", basis: "D-027, ASSUMED"}
   - {from: B-SUB, to: B-ANA, min_m: 60, reason: "occupied building to the analyser house of AI-4133/4134 (carrier vapour samples, vent)", basis: "D-027, ASSUMED"}
-  - {from: B-SUB, to: T-8101, min_m: 150, reason: "occupied building to the LNG spill impoundment sump (pool fire radiation, cold vapour cloud)", basis: "D-018, D-027, ASSUMED; CSA Z276 / NFPA 59A exclusion zones to be calculated"}
   - {from: B-SUB, to: K-7101C, min_m: 90, reason: "occupied building to the nearest BOG compressor (seal releases, machine fire)", basis: "D-027, ASSUMED"}
   - {from: B-SUB, to: T-2101, min_m: 150, reason: "occupied building to the nearest LNG tank", basis: "D-027, ASSUMED"}
   - {from: B-JET, to: PR2, min_m: 8, reason: "jetty substation west of the trestle road, clear of the trestle rack and its drip trays", basis: "D-027, ASSUMED"}
+  # siting of the LNG spill sumps (D-018, D-029; review 2026-11-05-basic-layout-2 #2 and the
+  # jetty sump of its adversarial check): screening criteria for a pool fire over the full
+  # sump (point source, ASSUMED): 8 kW/m2 at racks with LNG or vapour lines, tanks, the arms,
+  # the moored carriers and the crane / fire roads, 5 kW/m2 at the occupied building, the
+  # muster point and escape routes. Basin T-8101 (16 m): 8 kW/m2 at 52.2 m and 5 kW/m2 at
+  # 66.1 m from the pool centre, i.e. 45 m / 59 m from its edge. Jetty sump T-8102 (8 m):
+  # 26.1 m / 33.0 m from the centre, 23 m / 30 m from its edge. The CSA Z276 / NFPA 59A
+  # thermal radiation and vapour dispersion exclusion zones of the siting study replace them.
+  - {from: T-8101, to: T-2101, min_m: 45, reason: "impoundment basin pool fire: tank 1 outer tank and roof piping at 8 kW/m2 or less", basis: "D-018 pool fire screening, D-029, ASSUMED"}
+  - {from: T-8101, to: T-3101, min_m: 45, reason: "impoundment basin pool fire: tank 2 at 8 kW/m2 or less", basis: "D-018, D-029, ASSUMED"}
+  - {from: T-8101, to: PR1, min_m: 45, reason: "impoundment basin pool fire: tank-area rack (loading, vapour return, circulation lines) at 8 kW/m2 or less", basis: "D-018, D-029, ASSUMED"}
+  - {from: T-8101, to: PR4, min_m: 45, reason: "impoundment basin pool fire: rundown and BOG rack to the trains at 8 kW/m2 or less", basis: "D-018, D-029, ASSUMED"}
+  - {from: T-8101, to: PR5, min_m: 45, reason: "impoundment basin pool fire: T-3101 riser rack at 8 kW/m2 or less", basis: "D-018, D-029, ASSUMED"}
+  - {from: T-8101, to: PR6, min_m: 45, reason: "impoundment basin pool fire: T-2101 riser rack and its east leg at 8 kW/m2 or less", basis: "D-018, D-029, ASSUMED"}
+  - {from: T-8101, to: R2, min_m: 45, reason: "impoundment basin pool fire: the north road (fire and crane access to both tanks) usable at 8 kW/m2 or less", basis: "D-018, D-029, ASSUMED"}
+  - {from: T-8101, to: B-SUB, min_m: 150, reason: "occupied building: 59 m for 5 kW/m2 by the radiation screening; 150 m kept for the cold vapour cloud until the dispersion study", basis: "D-018, D-027, D-029, ASSUMED"}
+  - {from: T-8102, to: Z-SHIP-B1-M, min_m: 23, reason: "jetty sump pool fire: Berth 1 carrier hull alongside (middle third) at 8 kW/m2 or less, so the fire neither damages the moored carrier nor stops it leaving", basis: "D-018 pool fire screening, D-029, ASSUMED; NFPA 59A marine transfer siting (cited only)"}
+  - {from: T-8102, to: Z-SHIP-B1-S, min_m: 23, reason: "jetty sump pool fire: Berth 1 carrier (south third, bow) at 8 kW/m2 or less", basis: "D-018, D-029, ASSUMED"}
+  - {from: T-8102, to: Z-SHIP-B2-M, min_m: 23, reason: "jetty sump pool fire: Berth 2 carrier (middle third) at 8 kW/m2 or less", basis: "D-018, D-029, ASSUMED"}
+  - {from: T-8102, to: Z-SHIP-B2-S, min_m: 23, reason: "jetty sump pool fire: Berth 2 carrier (south third, bow) at 8 kW/m2 or less", basis: "D-018, D-029, ASSUMED"}
+  - {from: T-8102, to: PR2, min_m: 23, reason: "jetty sump pool fire: the trestle end with both loading lines and vapour returns at 8 kW/m2 or less", basis: "D-018, D-029, ASSUMED"}
+  - {from: T-8102, to: LA-5101, min_m: 23, reason: "jetty sump pool fire: loading arm at 8 kW/m2 or less", basis: "D-018, D-029, ASSUMED"}
+  - {from: T-8102, to: LA-5104, min_m: 23, reason: "jetty sump pool fire: loading arm at 8 kW/m2 or less", basis: "D-018, D-029, ASSUMED"}
+  - {from: T-8102, to: LA-6101, min_m: 23, reason: "jetty sump pool fire: loading arm at 8 kW/m2 or less", basis: "D-018, D-029, ASSUMED"}
+  - {from: T-8102, to: LA-6104, min_m: 23, reason: "jetty sump pool fire: loading arm at 8 kW/m2 or less", basis: "D-018, D-029, ASSUMED"}
+  - {from: T-8102, to: D-6101, min_m: 23, reason: "jetty sump pool fire: Berth 1 drain drum at 8 kW/m2 or less", basis: "D-018, D-029, ASSUMED"}
+  - {from: T-8102, to: R10, min_m: 23, reason: "jetty sump pool fire: the Berth 1 crane roadway at 8 kW/m2 or less, and no open pit beside it", basis: "D-018, D-029, ASSUMED"}
+  - {from: T-8102, to: Z-ESC-A4S, min_m: 30, reason: "jetty sump pool fire: muster point and escape-to-sea station at 5 kW/m2 or less", basis: "D-018, D-029, ASSUMED"}
+  # flare radiation at the occupied building (review 2026-11-05-basic-layout-2 #3): the fence
+  # line sees 5.0 kW/m2 at 314.3 m from the derrick (S-10, measured distance); B-SUB stays at
+  # least as far from the derrick as the fence, ASSUMED until the derrick owner's contour
+  - {from: B-SUB, to: FL-8101, min_m: 314, reason: "occupied building no nearer the flare derrick than the fence line, where the radiation is 5.0 kW/m2 (S-10); the derrick's contour of all four flares at the governing case confirms or moves it", basis: "D-018, D-029, ASSUMED"}
 notes: >-
   Measured reference geometry (scripts/site_frame.py, D-013): tank 1 to the flare 561 m at 82
   deg; tank 1 to the Berth 2 loading platform 2,147 m at 174 deg; trestle from the plant's

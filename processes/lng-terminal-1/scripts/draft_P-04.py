@@ -27,6 +27,10 @@ Revision after review 2026-11-05-basic-design-3 (#1, D-026.1 and D-026.14): the 
 XV-4131 / XV-4132 fail closed again (HS-4131 / HS-4132), the tank-side valves XV-4135 / XV-4136
 stay fail open; ZSO-4131 / ZSO-4132 / ZSO-4135 / ZSO-4136 sense their valves themselves, as
 ZSO-7121A on P-07, instead of the pipe segment beside them.
+
+Revision after review 2026-11-05-basic-design-4 (D-028): notes only. AI-4133 / AI-4134 name their
+O2 reject I-514 / I-614; the ZSO notes define "proven open" with the command discrepancy check
+(review 3 #4); UZ-4101 / UZ-4102 carry the closure time and the air accumulator (#1).
 """
 
 import sys
@@ -216,24 +220,25 @@ L.inst(sheet, "HS-4136", "Vapour return B to the tank vapour header XV-4136",
        "As HS-4135, with ZSO-4132 (C&E I-612) and ESD-1 of Berth 1 (I-601); fail open (D-026).",
        at=(134, 224), signal_to=xv36, fail_action="FO")
 L.inst(sheet, "ZSO-4131", "XV-4131 open position",
-       "Position switch on the flare valve XV-4131: XV-4135 may close only with XV-4131 proven open (C&E I-512, D-026).",
+       "Position switch on the flare valve XV-4131: XV-4135 may close only with XV-4131 proven open (C&E I-512, D-026). " + (ZDISC := "Proven open means the switch reads open and has no standing discrepancy: a switch that reads open while its valve has been commanded closed for longer than the stroke time raises a discrepancy alarm and blocks the interlock, so a switch stuck open cannot fake the open state (review 2026-11-05-basic-design-3#4, D-028)."),
        at=(162, 208), sensing=xv31.id, sensing_at=(176, 204),
        sensing_points=[(169, 204), (169, 208)])
 L.inst(sheet, "ZSO-4135", "XV-4135 open position",
-       "Position switch on the tank-side valve XV-4135: XV-4131 may close only with XV-4135 proven open (C&E I-513, D-026).",
+       "Position switch on the tank-side valve XV-4135: XV-4131 may close only with XV-4135 proven open (C&E I-513, D-026). " + ZDISC,
        at=(144, 205), sensing=xv35.id, sensing_at=(136, YVA))
 L.inst(sheet, "ZSO-4132", "XV-4132 open position",
-       "Position switch on the flare valve XV-4132: XV-4136 may close only with XV-4132 proven open (C&E I-612, D-026).",
+       "Position switch on the flare valve XV-4132: XV-4136 may close only with XV-4132 proven open (C&E I-612, D-026). " + ZDISC,
        at=(196, 229), sensing=xv32.id, sensing_at=(210, 224),
        sensing_points=[(203, 224), (203, 229)])
 L.inst(sheet, "ZSO-4136", "XV-4136 open position",
-       "Position switch on the tank-side valve XV-4136: XV-4132 may close only with XV-4136 proven open (C&E I-613, D-026).",
+       "Position switch on the tank-side valve XV-4136: XV-4132 may close only with XV-4136 proven open (C&E I-613, D-026). " + ZDISC,
        at=(108, YVB + 9), sensing=xv36.id, sensing_at=(120, YVB),
        sensing_points=[(120, YVB + 9)])
 L.inst(sheet, "AI-4133", "Vapour return A composition at the tank end (N2 / O2 / CH4)",
-       "Switches the carrier vapour make-before-break between the tank vapour header (XV-4135) and the flare (XV-4131) by C&E I-511..I-513: to the flare while N2 is high (de-inerting, gassing-up; to the flare only below 5 vol % O2), to the tanks once CH4 is on specification and O2 below 1 vol % (D-026).",
+       "Switches the carrier vapour make-before-break between the tank vapour header (XV-4135) and the flare (XV-4131) by C&E I-511..I-513: to the flare while N2 is high (de-inerting, gassing-up; to the flare only below 5 vol % O2), to the tanks once CH4 is on specification and O2 below 1 vol % (D-026). Two O2 cells (ASSUMED, analyser vendor), voted 2oo2 with a discrepancy alarm: above 5 vol % O2 the O2 reject C&E I-514 closes the Berth 2 vapour arm XV-5122 and the hybrid vapour isolation XV-5125, armed only in SEQ-LOAD S1 to S3 (no liquid transfer); during the transfer an alarm only (D-026.7, D-028).",
        at=(185, 182), sensing=va.segments[0], sensing_at=(185, YVA))
-L.inst(sheet, "AI-4134", "Vapour return B composition at the tank end (N2 / O2 / CH4)", "As AI-4133, with XV-4136 and XV-4132.",
+L.inst(sheet, "AI-4134", "Vapour return B composition at the tank end (N2 / O2 / CH4)",
+       "As AI-4133, with XV-4136 and XV-4132; its O2 reject is C&E I-614 on XV-6122 and XV-6125 (Berth 1, D-028).",
        at=(262, 222), sensing=vb.segments[0], sensing_at=(262, YVB))
 
 # ---- instruments ----------------------------------------------------------------------------------
@@ -242,9 +247,13 @@ L.inst(sheet, "FIC-4101", "Loading line A flow (loading rate)",
        at=(170, 84), sensing=la.segments[2], sensing_at=(170, YA), signal_to=fv1, fail_action="FL")
 L.inst(sheet, "FIC-4102", "Loading line B flow (loading rate)", "As FIC-4101.",
        at=(170, 134), sensing=lb.segments[2], sensing_at=(170, YB), signal_to=fv2, fail_action="FL")
-L.inst(sheet, "UZ-4101", "Loading line A tank-end ESD valve XV-4101", "ESD-1 closes (C&E I-501, I-601).",
+TANK_END = ("ESD-1 closes it after the pumps have been stopped (C&E I-501, I-601), in 25-30 s (ASSUMED, D-023); "
+            "non-return valve and local air accumulator on the actuator supply and a speed controller on its exhaust, so "
+            "on an instrument-air failure it holds until the air-header trip I-804 has initiated ESD-1 and then closes "
+            "no faster than its set speed (D-016, D-028).")
+L.inst(sheet, "UZ-4101", "Loading line A tank-end ESD valve XV-4101", TANK_END,
        at=(150, 57), signal_to=xv1, fail_action="FC")
-L.inst(sheet, "UZ-4102", "Loading line B tank-end ESD valve XV-4102", "ESD-1 closes (C&E I-501, I-601).",
+L.inst(sheet, "UZ-4102", "Loading line B tank-end ESD valve XV-4102", TANK_END,
        at=(150, 107), signal_to=xv2, fail_action="FC")
 L.inst(sheet, "HS-4103", "Platform crossover XV-4103", "Open in holding (circulation) and while loading (D-008).",
        at=(346, 95), signal_to=xv3, fail_action="FL")

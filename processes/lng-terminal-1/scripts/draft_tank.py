@@ -19,7 +19,9 @@ pressure-equalising hole in the check valve disc (sheet note), the relief valve 
 printed. Follow-up review (reviews/2026-11-05-basic-design-2.md, D-026): the locked-open inlet
 isolation HV-n134A..C / HV-n135A..C of every pressure PSV and vacuum valve is drawn, with the
 mechanical interlock in a sheet note (D-026.11); the column vent procedure of D-026.9; TI-n105
-is monitoring only (bottom heating not done at basic, D-025).
+is monitoring only (bottom heating not done at basic, D-025). Review 2026-11-05-basic-design-4
+(adversarial check, D-028): the circulation return valve XV-n123 fails closed (was fail last), as
+the final element of the high-high level trip I-n01.
 """
 
 import sys
@@ -211,8 +213,12 @@ L.line(sheet, "LNG-4005" if n == "2" else "LNG-4009", dn=250, fluid="LNG",
                       rotation=180), xvr, tank["N8"]],
        label_at=(210, RET_Y + 8))
 L.inst(sheet, f"HS-{n}123", f"{TK} circulation return valve XV-{n}123",
-       "Opened for the tank that receives the circulation (D-008).",
-       at=(232, RET_Y - 13), signal_to=xvr.id, fail_action="FL")
+       f"Opened by the operator for the tank that receives the circulation (D-008). Fail closed, and closed by "
+       f"the {TK} high-high level trip I-{n}01 as its final element with the fill ESD valve; I-{n}01 also stops "
+       f"the sources of the return, the circulation pumps P-2102 / P-3102 and the jetty drain pumps P-5101 / "
+       f"P-6101 (review 2026-11-05-basic-design-4, adversarial check; D-028). On an instrument-air failure the "
+       f"circulation stops: the pumps run on their fail-open minimum flow and PSV-4114 relieves the return.",
+       at=(232, RET_Y - 13), signal_to=xvr.id, fail_action="FC")
 L.line(sheet, "BOG-1001" if n == "2" else "BOG-1003", dn=750 if n == "2" else 600,
        fluid="Boil-off gas", frm=TK, to="D-7101" if n == "2" else "BOG-1001",
        notes=("see P-01" if n == "2" else "T-3101 vapour outlet to the tank vapour header. Drawn on P-03 and P-01."),

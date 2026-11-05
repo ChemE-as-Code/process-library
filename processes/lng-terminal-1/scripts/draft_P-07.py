@@ -19,6 +19,8 @@ the hand valves HV-7125A..C; the vent tees moved between CV-7122x and XV-7123x (
 the casing through the check valve and the CV/XV pocket); the vent header runs below the
 discharge header, the K-7101B/C recycle BOG-7012 along the top of the sheet, the K-7101A
 recycle BOG-7008 to its own return tee on BOG-1001.
+Rev D (review 2026-11-05-basic-design-4 #8, D-028): the ZSO-7121A..C measuring lines start on the
+valve symbols; UZ-7125C sits straight under its actuator so its signal line meets the bubble edge.
 
 Generator of P-07 (plant.yaml `generator:`, frame pid/frames/P-07.xml): `cheme regen P-07`
 rebuilds the sheet; change this script, never the XML (D-021).
@@ -238,15 +240,16 @@ for s in KX:
            f"Fail open and open in operation and on a trip: the recycle keeps the tripped machine open to the tank "
            f"system (its relief path) and the anti-surge path open on a utility failure; closed by the operator "
            f"(HS) only to isolate K-7101{s} for maintenance (D-025).",
-           at=(XRX[s] + (2 if s == "C" else 0), REC_Y + 12), signal_to=xv_r[s], fail_action="FO")
+           at=(XRX[s], REC_Y + 12), signal_to=xv_r[s], fail_action="FO")  # under its actuator (review 4 #8b)
     L.inst(sheet, f"UZ-7121{s}", f"K-7101{s} suction ESD valve XV-7121{s}",
            "Closes on a compressor trip (C&E I-701, I-702) and on every compressor stop (H-04 A9).",
            at=(SX[s] + 14, XS_Y), signal_to=xv[s], fail_action="FC")
-    # open-position switch on the valve itself (sensor at XV-7121s, as ZSC-5123 on P-05)
+    # open-position switch on the valve itself (sensor at XV-7121s, as ZSC-5123 on P-05): the measuring
+    # line starts on the lower right corner of the valve symbol, below its actuator (review 4 #8a)
     L.inst(sheet, f"ZSO-7121{s}", f"XV-7121{s} open position",
            f"C&E I-705{s}: a running machine stops when its suction valve leaves the open position.",
-           at=(SX[s] + 14, XS_Y + 9), sensing=xv[s].id, sensing_at=(SX[s] + 3, XS_Y + 3),
-           sensing_points=[(SX[s] + 3, XS_Y + 9)])
+           at=(SX[s] + 14, XS_Y + 9), sensing=xv[s].id, sensing_at=(SX[s] + 1, XS_Y + 2),
+           sensing_points=[(SX[s] + 3, XS_Y + 2), (SX[s] + 3, XS_Y + 9)])
     L.inst(sheet, f"UZ-7123{s}", f"K-7101{s} discharge isolation valve XV-7123{s}",
            "Fail closed; closes with XV-7121" + s + " on a compressor trip or stop, isolates the machine from "
            "the discharge header (review #11, H-04 A8/A9).",

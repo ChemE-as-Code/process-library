@@ -31,6 +31,15 @@ Round 4 (reviews/2026-11-05-basic-design-3.md, D-026.14): ZSC-n123 / ZSC-n125 se
 XV-n123 / XV-n125 themselves (as ZSO-7121A on P-07), not the pipe beside them; HS-n123 / HS-n125
 note that their open command is blocked by I-n04 / I-n05 and never closes an open valve; HS-n161
 notes that XV-n161 is also open for the N2 purge after loading (D-026.13).
+
+Round 5 (reviews/2026-11-05-basic-design-4.md #1, #2, #8 and its adversarial check, D-028): the
+closure of the jetty valves on an instrument-air failure. XV-n101 and the liquid arm isolations hold
+on a non-return valve and a local air accumulator, with a speed controller setting the same closure
+time for a commanded closure and one on air loss; the ERS valves are hydraulic from the arm
+vendor's power unit and do not move on an air failure; the air-header trip I-804 (P-08) initiates
+ESD-1 first. PSV-n131 takes the air-failure closure in its relief case. The O2 reject I-n14 is named
+in the HS-n122 notes and a sheet note. ZSC-n125 senses XV-n125 from the valve's lower corner, and
+HS-n125 sits under its actuator so its signal line meets the bubble edge (#8a, #8b).
 """
 
 import sys
@@ -127,7 +136,11 @@ for k, x in X.items():
                labels=False)
     for v, y in [(f"XV{n}13{k}", 125), (f"XV{n}14{k}", 140)]:
         L.inst(sheet, f"UZ-{v[2:]}", f"LA-{n}10{k} ERS valve XV-{v[2:]}",
-               f"Closes on ESD-2 by C&E I-{n}07 (5 s after I-{n}03), not on ESD-1; I-{n}07 also releases the coupler (D-016, D-026).",
+               f"Closes on ESD-2 by C&E I-{n}07 (5 s after I-{n}03), not on ESD-1; I-{n}07 also releases the coupler (D-016, D-026). "
+               f"Hydraulic actuator on the arm vendor's hydraulic power unit with its accumulator (ASSUMED, vendor): instrument air "
+               f"does not move it, so an air failure does not close it; it closes only on I-{n}07, de-energise-to-trip, from the "
+               f"accumulator also on a loss of the power unit, in a closure time set with the arm vendor against the surge of the arm "
+               f"(ASSUMED 5 s, D-023, D-028).",
                at=(sx - 13, y), signal_to=v, fail_action="FC")
     L.inst(sheet, f"ZS-{n}15{k}", f"LA-{n}10{k} envelope monitoring (position of the outboard arm)",
            f"Pre-alarm, ESD-1 at stage 1 (C&E I-{n}01), ESD-2 at stage 2 (C&E I-{n}03, ERS by I-{n}07).", at=(x + 8, 56))
@@ -172,7 +185,9 @@ L.line(sheet, f"DR-{n}001", dn=150, fluid="LNG", frm=f"LNG-{n}001", to=f"D-{n}10
        route=[t_dr.branch, xv_dr, t_ps, t_r1, t_rp, t_rv, t_rr, (DRX, 30), (58, 30), drum["N1"]],
        label_at=(DRX + 11, 115))
 psv = L.relief(f"PSV{n}131", f"PSV-{n}131", f"DR-{n}002", 15.0,
-               "surge on a fast ERS / ESD-2 closure and thermal expansion of the blocked-in header",
+               "surge on a fast closure: the ERS valves on ESD-2, and XV-%s101 or an arm isolation closing on an instrument-air "
+               "failure faster than commanded (non-return valve or accumulator failed, header lost faster than the I-804 trip); "
+               "thermal expansion of the blocked-in header (D-023, D-028)" % n,
                f"Surge and thermal relief of the Berth {berth} header into D-{n}101 through DR-{n}001 downstream of XV-{n}161 (D-016, D-023); set at the 15 barg design of the header and arms; size from the surge analysis in detail engineering.",
                label_at=(74, 171.5))
 L.line(sheet, f"DR-{n}002", dn=150, fluid="LNG", frm=f"LNG-{n}001 (PSV-{n}131)", to=f"DR-{n}001",
@@ -238,8 +253,14 @@ L.line(sheet, f"LNG-{n}007", dn=50, fluid="LNG", frm=f"LNG-{n}006", to=f"D-{n}10
        labels=False)
 
 # ---- instruments --------------------------------------------------------------------------
+AIR_HOLD = ("non-return valve and local air accumulator on the actuator supply (one closing stroke and a hold of at "
+            "least 5 min after a loss of the air header, ASSUMED) and a speed controller on the actuator exhaust that "
+            "sets the same closure time for a commanded closure and for one on air loss; on an instrument-air failure "
+            "the valve holds until the air-header trip I-804 has stopped the pumps and tripped the carrier through "
+            "ESD-1; it closes afterwards, on its command or as the accumulator decays, never faster than its set "
+            "speed (D-016, D-028)")
 L.inst(sheet, f"UZ-{n}101", f"Berth {berth} shore ESD valve XV-{n}101",
-       f"ESD-1 closes with the closure time set against surge (C&E I-{n}01, D-016).",
+       f"ESD-1 closes it in 25-30 s (ASSUMED, D-023) after the pumps have been stopped (C&E I-{n}01, D-016); {AIR_HOLD}.",
        at=(28, 178), signal_to=xv_esd, fail_action="FC")
 L.inst(sheet, f"PDI-{n}102", f"Strainer SR-{n}102 differential pressure", at=(46, 202),
        sensing=hdr.segments[0], sensing_at=(52, HDR_Y))
@@ -248,32 +269,45 @@ L.inst(sheet, f"PZT-{n}103", f"Berth {berth} header pressure (high back-pressure
        at=(124, 202), sensing=hdr.segments[4], sensing_at=(124, HDR_Y))
 L.inst(sheet, f"TI-{n}104", f"Berth {berth} header temperature (cooldown)", at=(146, 202),
        sensing=hdr.segments[4], sensing_at=(146, HDR_Y))
-L.inst(sheet, f"HS-{n}121", f"LA-{n}101 isolation XV-{n}121", at=(X["1"] + 14, 168),
+ARM_HOLD = ("Fail closed; closure time at least 25 s (ASSUMED, D-023) with the " + AIR_HOLD.replace(
+    "the valve holds until", "it holds until"))
+L.inst(sheet, f"HS-{n}121", f"LA-{n}101 isolation XV-{n}121", ARM_HOLD + ".", at=(X["1"] + 14, 168),
        signal_to=f"XV{n}121", fail_action="FC")
-L.inst(sheet, f"HS-{n}124", f"LA-{n}104 isolation XV-{n}124", at=(X["4"] - 15, 168),
+L.inst(sheet, f"HS-{n}124", f"LA-{n}104 isolation XV-{n}124", ARM_HOLD + ".", at=(X["4"] - 15, 168),
        signal_to=f"XV{n}124", fail_action="FC")
 L.inst(sheet, f"HS-{n}123", f"LA-{n}103 liquid isolation XV-{n}123",
-       f"Open command blocked by C&E I-{n}04 unless the other isolation XV-{n}125 is proven closed (ZSC-{n}125); an open valve is never closed by it (D-026.3, D-026.14).",
+       f"Open command blocked by C&E I-{n}04 unless the other isolation XV-{n}125 is proven closed (ZSC-{n}125) and XV-{n}123 itself is proven closed (ZSC-{n}123); an open valve is never closed by it (D-026.3, D-026.14, D-028). {ARM_HOLD}.",
        at=(X["3"] - 15, 181), signal_to=f"XV{n}123", fail_action="FC")
+# HS-n125 straight under its actuator (the actuator of XV-n125 hangs below the valve at x 258), so
+# the signal line meets the bubble edge (review 2026-11-05-basic-design-4 #8b)
 L.inst(sheet, f"HS-{n}125", f"LA-{n}103 vapour isolation XV-{n}125 (hybrid as vapour arm)",
-       f"Open command blocked by C&E I-{n}05 unless the other isolation XV-{n}123 is proven closed (ZSC-{n}123); an open valve is never closed by it (D-026.3, D-026.14).",
-       at=(260, 185), signal_to=f"XV{n}125", fail_action="FC")
+       f"Open command blocked by C&E I-{n}05 unless the other isolation XV-{n}123 is proven closed (ZSC-{n}123) and XV-{n}125 itself is proven closed (ZSC-{n}125); an open valve is never closed by it (D-026.3, D-026.14, D-028). The O2 reject I-{n}14 closes it with XV-{n}122 in gassing-up and cool-down (D-028).",
+       at=(258, 186), signal_to=f"XV{n}125", fail_action="FC")
 # closed-position switches on the valves themselves (sensor at XV-n123 / XV-n125, as ZSO-7121A on P-07)
 L.inst(sheet, f"ZSC-{n}123", f"XV-{n}123 closed position",
        f"Closed-position switch of the hybrid arm liquid isolation: start permissive of the other isolation, XV-{n}125 may open only with XV-{n}123 proven closed (C&E I-{n}05); never trips an open valve (review #3, H-03 A13, D-026).",
-       at=(244, 187), sensing=f"XV{n}123", sensing_at=(X["3"], 181),
+       at=(242, 187), sensing=f"XV{n}123", sensing_at=(X["3"], 181),
        sensing_points=[(X["3"] + 5, 181), (X["3"] + 5, 187)])
+# ZSC-n125 starts on the lower right corner of the XV-n125 symbol (valve at (258, 172), its actuator
+# below), stays below BOG-n003 and clear of the actuator (review 2026-11-05-basic-design-4 #8a)
 L.inst(sheet, f"ZSC-{n}125", f"XV-{n}125 closed position",
        f"Closed-position switch of the hybrid arm vapour isolation: start permissive of the other isolation, XV-{n}123 may open only with XV-{n}125 proven closed (C&E I-{n}04); never trips an open valve (review #3, H-03 A13, D-026).",
-       at=(278, 181), sensing=f"XV{n}125", sensing_at=(261, 175),
-       sensing_points=[(278, 175)])
-L.inst(sheet, f"HS-{n}122", f"LA-{n}102 vapour arm isolation XV-{n}122", at=(X["2"] + 15, 150),
-       signal_to=f"XV{n}122", fail_action="FC")
+       at=(278, 181), sensing=f"XV{n}125", sensing_at=(260, 173),
+       sensing_points=[(260, 175), (278, 175)])
+ai_o2 = "AI-4133" if n == "5" else "AI-4134"
+L.inst(sheet, f"HS-{n}122", f"LA-{n}102 vapour arm isolation XV-{n}122",
+       f"Fail closed. Closed, latching, with XV-{n}125 by the O2 reject I-{n}14 when {ai_o2} reads above 5 vol % O2 "
+       f"during gassing-up and cool-down (SEQ-LOAD S1 to S3); during the transfer the O2 high-high is an alarm and "
+       f"the operator stops the loading by ESD-1 (D-026.7, D-028). The drum vent BOG-{n}002 joins downstream of it, "
+       f"so the jetty relief path stays open.",
+       at=(X["2"] + 15, 150), signal_to=f"XV{n}122", fail_action="FC")
 L.inst(sheet, f"HS-{n}161", f"Header drain isolation XV-{n}161 to D-{n}101",
        f"Opened for the header and arm drain and for the N2 purge after loading (SEQ-LOAD S6, D-026.13); fail closed (review #1, H-03 A3).",
        at=(DRX + 12, 183), signal_to=xv_dr, fail_action="FC")
 L.inst(sheet, f"XS-{n}100", f"Berth {berth} ship-shore ESD link",
-       f"Fibre-optic link (S-01): ESD-1 both ways (C&E I-{n}01).", at=(22, 28))
+       f"Fibre-optic link (S-01): ESD-1 both ways: a carrier ESD trips I-{n}01 (cause), and I-{n}01, also when "
+       f"initiated by ESD-2 (I-{n}03) or the air-header trip (I-804), trips the carrier's ESD through it (effect; "
+       f"D-028).", at=(22, 28))
 L.inst(sheet, f"PI-{n}105", f"Berth {berth} vapour line pressure", at=(352, 170),
        sensing=vap.segments[-1], sensing_at=(352, 182))
 L.inst(sheet, f"TI-{n}106", f"Berth {berth} vapour line temperature", at=(374, 170),
@@ -299,6 +333,9 @@ NOTES = [
     f"Arm purge (D-026): before loading the N2 goes into the carrier's manifold (S-01); after loading the arms drain to D-{n}101 and the purge N2 leaves by the drum vent BOG-{n}002 into the vapour return.",
     f"HV-{n}119 normally closed (pump vent/drain). BOG-{n}003, DR-{n}002 to DR-{n}007, LNG-{n}005, LNG-{n}007, N-{n}001: see the line list.",
     "Arm vents, drains and the O2 sample point are part of the arm package (vendor).",
+    # Round 5 (D-028), after the existing notes so their ids are kept
+    f"Air failure: PZT-8123A/B/C (P-08, C&E I-804) trip ESD-1 first; XV-{n}101 and the arm isolations hold on accumulators, closing at their set speed; ERS valves hydraulic (HPU).",
+    f"HS-{n}122 / HS-{n}125: O2 reject C&E I-{n}14 closes XV-{n}122 and XV-{n}125 above 5 vol % O2 in gassing-up and cool-down (SEQ-LOAD S1 to S3, D-026.7, D-028).",
 ]
 for i, text in enumerate(NOTES):
     note(sheet, text, at=(12, 252.5 + 3.6 * i))

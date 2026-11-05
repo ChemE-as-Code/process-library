@@ -263,6 +263,19 @@ checks:
            ZSC-5123, ZSC-5125, ZSC-6123, ZSC-6125, ZSO-7121A, ZSO-7121B, ZSO-7121C, PZT-7113,
            LZT-8105, HV-8108A, HV-8108B]
     connected: true
+  # ---- closures of the review 2026-11-05-basic-design-4 (D-028)
+  - id: air-header-trip-on-pid
+    title: The instrument-air header low-low trip (2oo3, C&E I-804) is drawn on IA-8001
+    stage: basic
+    kind: on-sheet
+    sheets: [P-08]
+    tags: [PZT-8123A, PZT-8123B, PZT-8123C, IA-8001]
+    connected: true
+  - id: rundown-trip-link-on-pid
+    title: The rundown trip link to the trains (XS-1100, C&E I-101 / I-102) and the ship-shore links are drawn
+    stage: basic
+    kind: on-sheet
+    tags: [XS-1100, XS-5100, XS-6100]
 
 # Findings accepted for every gate and for `cheme validate`, which then reports them as info
 # with the reason (an entry that names no finding is reported as cheme.accept-unused).
@@ -282,18 +295,27 @@ accept:
   - {id: "pid/P-04.xml#offpage-mismatch:Line_BOG400?_From:*", reason: "D-021: DN 400 berth vapour lines BOG-5001 / BOG-6001 continue as the DN 750 trestle vapour returns"}
   - {id: "pid/P-0[56].xml#offpage-mismatch:Line_LNG[56]001_From:*", reason: "D-021: the berth header continues the trestle loading line at a new number (DN 800/400 segments)"}
   - {id: "pid/P-0[56].xml#offpage-mismatch:Line_BOG[56]001_To:*", reason: "D-021: the DN 400 berth vapour line continues as the DN 750 trestle vapour return"}
-  # ---- layout accepts after the layout review 2026-11-05-basic-layout (D-027): each names its
-  # findings by id or by a prefix limited to the reviewed objects, with the reason
-  # ---- lifting study (cheme layout lifting): items with no mobile-crane lift of their own
-  - {id: "layout/plant-model.yaml#layout-lifting:T-[23]101", reason: "Field-erected full-containment tank (concrete outer tank slip-formed, steel roof air-raised, 9 % Ni inner tank welded in place, D-007): never lifted as a whole; its 12 t lift_weight is the in-tank pump, lifted by the pump-removal gantry crane of the tank-top pump platform S-Tn101-TOP (D-027). The construction lifting plan sets the erection cranes"}
-  - {id: "layout/plant-model.yaml#layout-laydown:laydown-T-[23]101", reason: "Field-erected tank, never laid down; the in-tank pumps are set down on the tank-top pump platform S-Tn101-TOP (D-027)"}
-  - {id: "layout/plant-model.yaml#layout-lifting:P-[23]101?", reason: "In-tank pump (D-011): pulled out of its column with its power cable by the 10 t pump-removal gantry crane over the pump wells of the tank-top pump platform S-Tn101-TOP (tank supply, ASSUMED, D-027) after its column-head spool is removed, set down on the platform and lowered to grade with the same crane; no mobile crane pad at grade (a structure crane is not modelled by cheme-as-code, only a building's)"}
-  - {id: "layout/plant-model.yaml#layout-laydown:laydown-P-[23]101?", reason: "In-tank pump set down on the tank-top pump platform S-Tn101-TOP (57.4 m) beside its column for the cable reel and cleaning, then lowered to grade by the platform crane (D-027); a laydown zone on a structure level counts as pad-overlap in the model, so none is declared there"}
-  - {id: "layout/plant-model.yaml#layout-lifting:FL-8101", reason: "The flare stack is part of the site derrick (D-017): erected with the derrick, its tip changed with the derrick's own maintenance hoist (D-027, ASSUMED); no mobile crane lift of the stack"}
+  # ---- layout accepts after the layout reviews 2026-11-05-basic-layout (D-027) and
+  # 2026-11-05-basic-layout-2 (D-029): each names its findings by id, or by a pattern limited
+  # to named items, with the reason
+  # ---- lifting study (cheme layout lifting)
+  - {id: "layout/plant-model.yaml#layout-lifting:T-2101", reason: "Field-erected full-containment tank (D-007), never lifted as a whole. Its 12 t lift_weight is an in-tank pump lifted together with its cable reel, which the rule takes to the tank centre over the whole roof (69.7 m from Z-PAD-T2101N); the real pump lifts are the P-2101A-D rows, from the same pad north of the tank (D-029). The erection cranes are the construction lifting plan's"}
+  - {id: "layout/plant-model.yaml#layout-lifting:T-3101", reason: "As T-2101: the 12 t pump-and-reel lift is made at each column from Z-PAD-T3101N (rows P-3101A-D, D-029); the tank is field-erected"}
+  - {id: "layout/plant-model.yaml#layout-laydown:laydown-T-2101", reason: "Field-erected tank, never laid down; a pulled pump and its cable reel go to the laydown Z-LAY-T2101N beside the crane pad (D-029)"}
+  - {id: "layout/plant-model.yaml#layout-laydown:laydown-T-3101", reason: "As T-2101, laydown Z-LAY-T3101N (D-029)"}
+  - {id: "layout/plant-model.yaml#layout-lifting:P-2101[A-D]", reason: "In-tank pump (6 t alone, 12 t with its cable reel): after its column head spool (LNG-2001 S1-S5 at the head) and column vent spool (BOG-2011..2014) are removed, the mobile crane on Z-PAD-T2101N (61-73 m radius, 9.24 t needed for the pump, ~66 m hook; 18.5 t for pump and reel) pulls it vertically out of its column above the 60 m column-head piping and the deck handrail, then slews north to the laydown Z-LAY-T2101N; the lane rule counts every pipe above the head plate as a blocker, so the lane stays a finding (D-029, ASSUMED until the lift plan of the crane contractor and the pump vendor)"}
+  - {id: "layout/plant-model.yaml#layout-lifting:P-3101[A-D]", reason: "As P-2101A-D, from Z-PAD-T3101N to Z-LAY-T3101N (D-029, ASSUMED)"}
   - {id: "layout/plant-model.yaml#layout-lifting:D-5101", reason: "Jetty drain drum (18 t) is inspected in place; a replacement lift from Z-PAD-A4W is made after the flanged drain header spools at its inlet (DR-5001 / DR-5003 / DR-5007, the only lines in the lane) are removed (D-016, ASSUMED)"}
   # ---- operability (layout-operability): valves that no floor reaches and whose declared
   # operator (piping/routing.yaml operators:) does not reach a floor within 6 m
-  - {id: "layout/plant-model.yaml#layout-operability:P-0?/XV*", reason: "Actuated on/off and ESD valves (incl. the arm ERS valves XV-n13k / XV-n14k, which move with the arm, and the tank-roof fill and circulation valves at the dome edge): operated from the DCS / SIS, no manual duty (remote operator declared); maintained from the rack, the platform or a mobile elevating work platform (D-027, ASSUMED)"}
+  # actuated valves by where they are maintained (review 2026-11-05-basic-layout-2 #8)
+  - {id: "layout/plant-model.yaml#layout-operability:P-01/XV110[23]", reason: "Rundown selection valves XV-1102 / XV-1103 on PR1: actuated, operated from the DCS / SIS (remote operator declared); maintained from the rack walkway or a mobile elevating work platform (D-027, ASSUMED)"}
+  - {id: "layout/plant-model.yaml#layout-operability:P-01/XV111[1-5]", reason: "Rundown battery limit valves XV-1111..1114 on PR4 and the SIS vent valve XV-1115 at the PR6 / PR3 joint: actuated, operated from the DCS / SIS; maintained from the rack (D-027, ASSUMED)"}
+  - {id: "layout/plant-model.yaml#layout-operability:P-04/XV41??", reason: "Loading line and vapour switch valves XV-4101..4106 on PR1 / at the platform and XV-4131..4136 on PR2: actuated ESD and switching valves, operated from the DCS / SIS; maintained from the rack (D-027, ASSUMED)"}
+  - {id: "layout/plant-model.yaml#layout-operability:P-07/XV7121?", reason: "BOG compressor isolation valves XV-7121A-C: actuated, operated from the DCS / SIS; maintained from the crane pad Z-PAD-A2E with a mobile elevating work platform (ASSUMED)"}
+  - {id: "layout/plant-model.yaml#layout-operability:P-0[56]/XV[56]1[34]?", reason: "Arm ERS valves XV-n13k / XV-n14k: part of the loading arm, they move with it (D-014, D-021 item 8); operated by the ERS hydraulics and maintained with the arm by the arm vendor's procedure"}
+  - {id: "layout/plant-model.yaml#layout-operability:P-01/XV110[6-9]", reason: "Tank fill and bottom-fill valves XV-1106..1109 at the T-2101 / T-3101 dome edge (51-52 m): actuated, no manual duty; maintained from a roof nozzle platform on the dome edge reached from the roof walkway, tank supply (ASSUMED, D-029). A cheme-as-code structure cannot stand on the tank, so that platform is not in the model (as the tank-top platform, D-027.7); open with the tank contractor"}
+  - {id: "layout/plant-model.yaml#layout-operability:P-0[23]/XV[23]123", reason: "Circulation return valves XV-2123 (T-2101 dome edge, 51 m) and XV-3123 (on PR5 at 12.7 m): actuated, no manual duty; XV-2123 from the roof nozzle platform as XV-1106..1109, XV-3123 from the PR5 rack. The two sit differently because P-02 and P-03 put the valve on different segments of LNG-4005 / LNG-4009, a P&ID matter left to the design agent (D-029)"}
   - {id: "layout/plant-model.yaml#layout-operability:P-0?/FV*", reason: "Actuated loading-line flow control valves FV-4101 / FV-4102 on PR1: operated from the DCS; maintained from the rack (D-027, ASSUMED)"}
   - {id: "layout/plant-model.yaml#layout-operability:P-0?/TV*", reason: "Actuated desuperheater spray valve TV-7103 on the PR6 east leg, operated from the DCS (ASSUMED)"}
   - {id: "layout/plant-model.yaml#layout-operability:P-01/PV1110", reason: "Actuated tank pressure control valve to the flare, operated from the DCS (ASSUMED)"}
@@ -304,21 +326,61 @@ accept:
   - {id: "layout/plant-model.yaml#layout-operability:P-08/HV8106?", reason: "Flare KO drum pump suction isolation valves at the drum outlet, lever at deck/grade level, worked from grade (ASSUMED)"}
   # ---- line-route (layout-line-route): the validate estimate puts a line-to-line end on the
   # straight chord between the parent line's tank and berth ends, off the curved trestle
-  - {id: "piping/line-list.yaml#layout-line-route:*", reason: "Line-to-line ends are estimated on the straight chord between the parent line's tank and berth ends, well off the trestle, which bends at its north end; the router carries each of these lines on PR2 (cheme layout report: routed)"}
-  # ---- free spans (layout-free-span), one entry per finding (review #10); the span table
-  # screens every line, LNG included, as gas (D-027: a limitation of cheme-as-code)
-  - {id: "layout/plant-model.yaml#layout-free-span:P-01/Line_BOG1001_S7", reason: "Tank vapour header BOG-1001 (DN 750) round the PR6 corner from the north leg onto the east leg (14.0 m against 12.8 m): corner steel at the PR6 joint, detail support design (D-027)"}
+  # (one entry per line instead of the rule wildcard, review 2026-11-05-basic-layout-2 #7)
+  - {id: "piping/line-list.yaml#layout-line-route:BOG-4001", reason: "Vapour return A: its line-to-line end is estimated on the straight chord between the parent line's tank and berth ends, off the trestle, which bends at its north end; routed on PR2 (cheme layout report)"}
+  - {id: "piping/line-list.yaml#layout-line-route:BOG-4012", reason: "Trestle thermal relief tailpipe: line-to-line end estimated on the chord off the curved trestle; routed on PR2 (cheme layout report)"}
+  - {id: "piping/line-list.yaml#layout-line-route:BOG-4014", reason: "Trestle thermal relief tailpipe: line-to-line end estimated on the chord off the curved trestle; routed on PR2 (cheme layout report)"}
+  - {id: "piping/line-list.yaml#layout-line-route:BOG-4016", reason: "Trestle thermal relief tailpipe: line-to-line end estimated on the chord off the curved trestle; routed on PR2 (cheme layout report)"}
+  - {id: "piping/line-list.yaml#layout-line-route:LNG-4003", reason: "Platform crossover between the loading lines: line-to-line ends estimated on the chord off the curved trestle; routed at the PR2 platform end (cheme layout report)"}
+  - {id: "piping/line-list.yaml#layout-line-route:LNG-4006", reason: "Tank-end crossover between the loading lines: line-to-line ends estimated on the chord off the curved trestle; routed on PR1 / PR2 (cheme layout report)"}
+  - {id: "piping/line-list.yaml#layout-line-route:LNG-5006", reason: "Berth 2 drain pump discharge into loading line A: line-to-line end estimated on the chord off the trestle; routed on the PR2 platform end (cheme layout report)"}
+  - {id: "piping/line-list.yaml#layout-line-route:LNG-6006", reason: "Berth 1 drain pump discharge into loading line B: line-to-line end estimated on the chord off the trestle; routed on the PR2 platform end (cheme layout report)"}
+  # ---- spans (layout-free-span warnings, layout-support-missing infos), one entry per finding
+  # (review 2026-11-05-basic-layout#7 disputed closure, D-029): the long runs off the racks now
+  # stand on declared posts (layout/structures.yaml pipe_supports); what is left are the true
+  # residuals below, each with its reason. The span table screens every line, LNG included,
+  # as gas (D-027.10, D-029: a known cheme-as-code limitation, condition open)
+  # rack corners and joints
   - {id: "layout/plant-model.yaml#layout-free-span:P-01/Line_BOG4002_S1", reason: "Vapour return B (DN 750) at the PR6 corner (13.0 m against 12.8 m): corner steel at the joint, detail support design (D-027)"}
   - {id: "layout/plant-model.yaml#layout-free-span:P-04/Line_LNG4002_S4", reason: "Loading line B (DN 800) turning from PR1 onto PR2 at the PR1 / PR2 / PR3 junction (19.1 m): the junction corner steel and the cold contraction anchors there are detail support and stress design (D-027)"}
-  - {id: "layout/plant-model.yaml#layout-free-span:P-01/Line_BOG10[01]?_S1", reason: "DN 25 thermal relief tailpipes BOG-1004 / BOG-1011 on the racks (spans longer than the DN 25 table value): clipped to the larger lines and the intermediate rack steel, small-bore supports at detail engineering (D-027)"}
-  - {id: "layout/plant-model.yaml#layout-free-span:P-01/Line_FG1001_S1", reason: "Make-up gas FG-1001 (DN 150) at its rise from PR3 onto the PR6 east leg (9.9 m): riser guide on the PR3 column, detail support design"}
-  - {id: "layout/plant-model.yaml#layout-free-span:P-04/Line_LNG4008_S1", reason: "Desuperheater spray LNG-4008 (DN 80) at its rise up PR6 (5.6 m): guide on the PR6 column, detail support design"}
-  - {id: "layout/plant-model.yaml#layout-free-span:P-0[78]/Line_DR7001_S1", reason: "D-7101 drain DR-7001 (DN 50): its rise beside the drum and its run from the PR3 east end to the KO drum D-8101 on posts in the flare area (A3, sterile, posts at detail engineering, ASSUMED)"}
   - {id: "layout/plant-model.yaml#layout-free-span:P-08/Line_BOG4013_S1", reason: "De-inerting line BOG-4013 (DN 300) at the PR3 corner onto the east leg (17.1 m): corner steel, detail support design"}
-  - {id: "layout/plant-model.yaml#layout-free-span:P-08/Line_FL700[23]_S1", reason: "BOG compressor relief and vent lines FL-7002 / FL-7003 at the PR3 corner onto the east leg and their tees on the flare header: corner steel, detail support design"}
-  - {id: "layout/plant-model.yaml#layout-free-span:P-08/Line_FG8002_S1", reason: "Fuel gas FG-8002 (DN 50) from the PR3 east end up the flare derrick to the pilots (58.6 m): clamped to the derrick (site derrick steel, D-001)"}
-  - {id: "layout/plant-model.yaml#layout-free-span:P-08/Line_[IN]*8001_S1", reason: "Site instrument air and N2 mains IA-8001 / N-8001 at the PR3 rack end and its corner (9.1 m): rack-end and corner steel, detail support design"}
-  - {id: "layout/plant-model.yaml#layout-free-span:P-08/Line_W8002_S1", reason: "Oily water W-8002 (DN 100) from the sump pump P-8102 up onto PR1 (15.5 m): riser guide on the PR1 column, detail support design"}
+  - {id: "layout/plant-model.yaml#layout-free-span:P-01/Line_FG1001_S1", reason: "Make-up gas FG-1001 (DN 150) at its rise from PR3 onto the PR6 east leg (9.9 m): the proposed post clashes with the rundown header LNG-1001, so a riser guide on the PR3 column carries it, detail support design"}
+  - {id: "layout/plant-model.yaml#layout-free-span:P-04/Line_LNG4008_S1", reason: "Desuperheater spray LNG-4008 (DN 80) at its rise up PR6 (5.6 m): the proposed post stands in the spill trough under PR6, so a guide on the PR6 column carries it"}
+  - {id: "layout/plant-model.yaml#layout-free-span:P-08/Line_IA8001_S1", reason: "Site instrument air main IA-8001 at the PR3 rack end and its corner (9.1 m): rack-end and corner steel, detail support design"}
+  - {id: "layout/plant-model.yaml#layout-free-span:P-08/Line_N8001_S1", reason: "Site N2 main N-8001 at the PR1 / PR2 / PR3 junction (9.1 m): the proposed posts stand in the spill trough Z-KC-TROUGH-PR1, so the junction corner steel carries it"}
+  - {id: "layout/plant-model.yaml#layout-free-span:P-08/Line_FL7002_S1", reason: "Compressor relief line FL-7002 at the PR3 corner onto the east leg (8.6 m): corner steel, detail support design"}
+  - {id: "layout/plant-model.yaml#layout-free-span:P-08/Line_FL7003_S1", reason: "Compressor vent line FL-7003 at the PR3 corner onto the east leg (10.3 m): corner steel, detail support design"}
+  - {id: "layout/plant-model.yaml#layout-free-span:P-08/Line_W8002_S1", reason: "Oily water W-8002 (DN 100) at the corner of the basin services rack PR8 (7.9 m): corner steel of PR8, detail support design (D-029)"}
+  # DN 25-50 small bore, clipped to the larger lines or the rack steel (field-run)
+  - {id: "layout/plant-model.yaml#layout-free-span:P-01/Line_BOG1004_S1", reason: "DN 25 thermal relief tailpipe BOG-1004 on PR6 (3.8 m against 2.7 m): clipped to the vapour header and the intermediate rack steel; its last proposed post stands in the spill trough (D-027, D-029)"}
+  - {id: "layout/plant-model.yaml#layout-free-span:P-01/Line_BOG1011_S1", reason: "DN 25 thermal relief tailpipe BOG-1011 on PR1 (4.6 m): clipped to the larger lines; the proposed post stands in the spill trough Z-KC-TROUGH-PR1"}
+  - {id: "layout/plant-model.yaml#layout-free-span:P-05/Line_DR5006_S1", reason: "DN 25 drain DR-5006 at the PR2 end (2.9 m against 2.7 m): no place clear of the other pipes; clipped to the drain pump discharge"}
+  - {id: "layout/plant-model.yaml#layout-free-span:P-05/Line_BOG5002_S1", reason: "DN 100 Berth 2 drum vent BOG-5002 (10.4 m): its second post stood in the crane lane of D-5101 from Z-PAD-A4W and is left out; bracket off the PR2 end bent"}
+  - {id: "layout/plant-model.yaml#layout-free-span:P-06/Line_DR6007_S1", reason: "DN 25 drain DR-6007 (7.2 m): its other posts stand in the Berth 1 crane strip Z-PAD-A4E; clipped to the arm riser steel"}
+  - {id: "layout/plant-model.yaml#layout-free-span:P-06/Line_LNG6007_S1", reason: "DN 50 Berth 1 drum line LNG-6007 (13.2 m) over the drain drum D-6101: the proposed posts stand in the drum; carried on brackets off the drum saddles"}
+  - {id: "layout/plant-model.yaml#layout-free-span:P-07/Line_DR7001_S1", reason: "D-7101 drain DR-7001 (DN 50) at its rise beside the drum (7.7 m): clipped to the drum skirt steel"}
+  - {id: "layout/plant-model.yaml#layout-free-span:P-07/Line_FL7005_S1", reason: "DN 50 K-7101C vent FL-7005 (7.5 m) where it crosses the east escape route Z-ESC-A2E: no post in the escape route; clipped to the discharge header's T-posts"}
+  - {id: "layout/plant-model.yaml#layout-free-span:P-08/Line_FG8002_S1", reason: "Fuel gas FG-8002 (DN 50) at the derrick foot (7.8 m): the last post would stand at the derrick; clamped to the derrick (site derrick steel, D-001)"}
+  - {id: "layout/plant-model.yaml#layout-free-span:P-06/Line_BOG6002_S1", reason: "DN 100 Berth 1 drum vent BOG-6002 (10.0 m): its second post blocks the drain pump P-6101's access space; bracket off the PR2 end bent"}
+  - {id: "layout/plant-model.yaml#layout-free-span:P-08/Line_LNG8001_S4", reason: "KO drum pump-out LNG-8001 (DN 80) across the crane pad Z-PAD-A3 (17.5 m): no post in the pad; a sleeper trench across the pad at detail engineering (ASSUMED)"}
+  - {id: "layout/plant-model.yaml#layout-free-span:P-08/Line_FL8001_S5", reason: "Storage flare header FL-8001 (DN 900) from the PR3 east end down to the KO drum (23.2 m): no place clear of the other pipes for a post; the KO drum inlet support and an anchor block at detail engineering"}
+  # tank roofs: spans over the dome edge between the pump platform and the riser tower posts
+  - {id: "layout/plant-model.yaml#layout-free-span:P-03/Line_BOG1003_S1", reason: "T-3101 vapour header BOG-1003 (DN 600) over the dome edge from the roof nozzle to the riser tower post RS-T3101-BOG1003 (14.3 m): a roof stool on the dome (tank supply) halves it; a post on the dome intersects the tank solid in the model (D-027.7, D-029)"}
+  - {id: "layout/plant-model.yaml#layout-free-span:P-03/Line_LNG3002_S4", reason: "T-3101 circulation header (DN 250) from the pump platform over the dome edge to the riser tower (22.0 m): roof stools on the dome (tank supply, D-027.7, D-029)"}
+  - {id: "layout/plant-model.yaml#layout-free-span:P-03/Line_LNG4009_S1", reason: "T-3101 circulation return (DN 250) over the dome edge to its nozzle (9.6 m): roof stool on the dome (tank supply, D-029)"}
+  - {id: "layout/plant-model.yaml#layout-free-span:P-04/Line_LNG2002_S1", reason: "T-2101 circulation header (DN 250) over the dome edge between the platform post RS-T2101-3 and the riser tower post (10.6 m): roof stool on the dome (tank supply, D-029)"}
+  - {id: "layout/plant-model.yaml#layout-free-span:P-04/Line_LNG4005_S3", reason: "T-2101 circulation return (DN 250) over the dome edge to its nozzle (11.3 m): roof stool on the dome (tank supply, D-029)"}
+  - {id: "layout/plant-model.yaml#layout-support-missing:P-02/Line_LNG2002_S4", reason: "T-2101 circulation header over the pump platform deck and the dome edge (11.4 m): RS-T2101-3 on the deck and roof stools on the dome (tank supply); a post on the dome intersects the tank solid (D-027.7, D-029)"}
+  - {id: "layout/plant-model.yaml#layout-support-missing:P-0[23]/Line_LNG[23]03[12]_S1", reason: "DN 25 thermal relief returns LNG-n031 / n032 at the column heads on the pump platform: clipped to the column-head piping and the deck steel (field-run small bore, tank supply)"}
+  # platform drains and drum lines in or beside the crane strips (no post in a crane strip)
+  - {id: "layout/plant-model.yaml#layout-support-missing:P-05/Line_DR500[3457]_S?", reason: "DN 25 Berth 2 drains DR-5003 / 5004 / 5005 / 5007 low over the crane strip Z-PAD-A4W: clipped to the arm riser steel and the drain pump discharge, no post in the crane strip (field-run small bore, D-029)"}
+  - {id: "layout/plant-model.yaml#layout-support-missing:P-06/Line_DR600[3456]_S?", reason: "DN 25 Berth 1 drains DR-6003 / 6004 / 6005 / 6006 over the crane strip Z-PAD-A4E: clipped to the arm riser steel, no post in the crane strip (field-run small bore, D-029)"}
+  - {id: "layout/plant-model.yaml#layout-support-missing:P-05/Line_LNG5006_S[23]", reason: "Berth 2 drain pump discharge LNG-5006 (DN 80) inside the crane strip Z-PAD-A4W: brackets off the arm riser steel, no post in the strip (D-029)"}
+  - {id: "layout/plant-model.yaml#layout-support-missing:P-06/Line_BOG6003_S1", reason: "Berth 1 vapour line BOG-6003 (DN 400) across the crane strip Z-PAD-A4E (11.5 m against 10.7 m): bracket off the vapour arm riser, no post in the strip (D-029)"}
+  - {id: "layout/plant-model.yaml#layout-support-missing:P-0[56]/Line_LNG[56]005_S1", reason: "Jetty drain drum outlet LNG-n005 (DN 100) between the drum and its pump: no place clear of the other pipes; carried on the drum saddle and the pump baseplate steel"}
+  # flare knock-out drum pumps
+  - {id: "layout/plant-model.yaml#layout-support-missing:P-08/Line_LNG8002_S[12]", reason: "KO drum pump line LNG-8002 (DN 100) between the drum and its pumps: no place clear of the other pipes; supports off the drum foundation and the pump plinths at detail engineering"}
+  - {id: "layout/plant-model.yaml#layout-support-missing:P-08/Line_LNG8006_S1", reason: "DN 25 thermal relief LNG-8006 (3.7 m): the proposed post clashes with LNG-8001 / LNG-8005; clipped to the pump discharge"}
   # ---- lifting: the Berth 1 drain drum (as D-5101)
   - {id: "layout/plant-model.yaml#layout-lifting:D-6101", reason: "Jetty drain drum D-6101 (18 t) is inspected in place; a replacement lift from Z-PAD-A4E is made after the flanged drain header spool at its inlet (DR-6001, the only line in the lane, 4.7 m over the deck) is removed, as for D-5101 (D-016, ASSUMED)"}
   # ---- tiers
@@ -329,7 +391,7 @@ accept:
   # ---- escape from the tank-top pump platforms (D-027): the ways off are the roof walkways
   # to the tank's spiral stair and to the north stair tower, which cheme-as-code cannot connect
   # to a structure level standing over a tank
-  - {id: "layout/plant-model.yaml#layout-escape-ways:S-T[23]101-TOP/PP", reason: "Tank-top pump platform: its two ways down are the roof walkway south-west to the tank's spiral stair (Z-ESC-Tn-ROOF-S/-SE) and the roof walkway north to the stair tower S-ESC-Tn (Z-ESC-Tn-ROOF-N), on the dome; the model counts only stairs and ladders of the platform's own frame, whose corner columns are a modelling artefact (D-027)"}
+  - {id: "layout/plant-model.yaml#layout-escape-ways:S-T[23]101-TOP/PP", reason: "Tank-top pump platform: its two ways down are the roof walkway south-west to the tank's spiral stair (Z-ESC-Tn-ROOF-S/-SE, overlapping the deck's south-west corner by 1 m) and the roof walkway north onto the 42.2 m landing of the stair tower S-ESC-Tn (Z-ESC-Tn-ROOF-N, overlapping the deck and the landing), on the dome (D-029); the model counts only stairs and ladders of the platform's own frame, whose corner columns are a modelling artefact, and cannot count an escape zone as a way down (D-027)"}
   - {id: "layout/plant-model.yaml#layout-escape-travel:S-T[23]101-TOP/PP", reason: "As the escape-ways finding: the platform's stairs are the tank's spiral stair and the north stair tower S-ESC-Tn, reached over the roof walkways, two ways remote from each other; the travel from the platform's far corner to either stair is longer than the 25 m structure criterion, as on any tank roof (ASSUMED acceptable for the tank roof, to be confirmed against the site standard, D-027)"}
   # ---- cable trays (gate electrical, skill electrical-cabling)
   - {id: "layout/plant-model.yaml#layout-tray-separation:PT-PR1-*+IT-PR[56]-1", reason: "At PR1's joints with the riser racks PR5 / PR6 the PR1 power trunk passes over the start of the riser rack's instrument tray on the same 17 m tray level: a steel cover plate (metal divider, EN 50174-2 practice) separates the two trays where they cross (ASSUMED); elsewhere power and instrument trays are 12 m apart"}
@@ -338,10 +400,24 @@ accept:
   - {id: "layout/plant-model.yaml#layout-tray-zone:PT-M-P-8101?+Z-HA-FLARE-KO", reason: "The flare KO drum pump motors stand in the zone 2 around their seals and the drum flanges (Z-HA-FLARE-KO): the branch tray's last metres inside the zone carry armoured cables with Ex-rated glands to the Ex motor terminal boxes (zone 2 equipment, ASSUMED)"}
   - {id: "layout/plant-model.yaml#layout-tray-zone:IT-JB-PR1+Z-HA-PR1-VALVES", reason: "The instrument tray from PR1's tray tier down to JB-PR1 passes through the zone 2 envelope of the PR1 valve stations: armoured instrument cables with Ex glands, the junction box outside the zone (ASSUMED, D-027)"}
   - {id: "layout/plant-model.yaml#layout-tray-zone:IT-JB-TR-N+Z-HA-PR2-VALVES", reason: "The instrument tray from PR2's tray tier down to JB-TR-N passes through the zone 2 envelope of the vapour switch valve station: armoured instrument cables with Ex glands, the junction box outside the zone and the analyser house zone (ASSUMED, D-027)"}
-  # tray spans (layout-tray-span), by tray family instead of one wildcard (review #10): the
-  # trunks on the racks rest on their tray tiers; these trays leave the racks
-  - {id: "layout/plant-model.yaml#layout-tray-span:IT-JB-*", reason: "Instrument branch trays from the rack tray tiers down to the junction boxes at grade (tank feet, BOG area, flare area, platform, battery limit): on brackets off the rack and riser columns and short posts at the box, placed at detail engineering with the cable route design (ASSUMED)"}
-  - {id: "layout/plant-model.yaml#layout-tray-span:PT-M-*", reason: "Motor branch trays from the rack tray tiers to the cable entries (up the riser racks and over the tank roof to the pump platform, across the BOG area, to the flare, sump and jetty drain pumps): brackets off the riser and rack columns, the pump platform steel and short posts, placed at detail engineering (ASSUMED)"}
+  - {id: "layout/plant-model.yaml#layout-tray-zone:PT-M-P-[23]10[12]*+Z-HA-T[23]101-COLHEADS", reason: "The in-tank pump cables end at the column head junction boxes inside the column-head zone 2 (Z-HA-Tn101-COLHEADS, D-029): armoured 6.6 kV / 400 V cables with Ex-rated glands and terminations at the head plate (zone 2 equipment, ASSUMED until the area classification)"}
+  # tray spans (layout-tray-span), one entry per tray (review 2026-11-05-basic-layout-2 #7,
+  # D-029): the trunks on the racks rest on their tray tiers; these trays leave the racks
+  - {id: "layout/plant-model.yaml#layout-tray-span:IT-JB-A1-1", reason: "Drop from the PR1 tray tier to JB-A1-1 at grade south of T-2101 (18 m level at the tier): on brackets off the PR1 columns (ASSUMED)"}
+  - {id: "layout/plant-model.yaml#layout-tray-span:IT-JB-A2-2", reason: "Branch from the PR6 east leg / PR3 joint to JB-A2-2 (16.9 m): on brackets off the PR3 columns (ASSUMED)"}
+  - {id: "layout/plant-model.yaml#layout-tray-span:IT-JB-A3-1", reason: "Branch from the PR3 east end across the sterile flare area A3 to JB-A3-1 (29 m): buried cable duct across A3 (radiation), not a tray (ASSUMED, D-029)"}
+  - {id: "layout/plant-model.yaml#layout-tray-span:IT-JB-A4-1", reason: "Branch from the PR2 end to JB-A4-1 on the platform (8.5 m): hangers from the PR2 end bents (ASSUMED)"}
+  - {id: "layout/plant-model.yaml#layout-tray-span:IT-JB-A4-2", reason: "Branch from the PR2 end to JB-A4-2 on the platform (10 m): hangers from the PR2 end bents (ASSUMED)"}
+  - {id: "layout/plant-model.yaml#layout-tray-span:IT-JB-BL", reason: "Drop from the PR4 north end to JB-BL at the battery limit (15.5 m): brackets off the PR4 end bent (ASSUMED)"}
+  - {id: "layout/plant-model.yaml#layout-tray-span:IT-JB-K7101", reason: "Branch from PR6 / PR3 across the BOG area to JB-K7101 west of the machines (41 m at the tray level): buried cable duct bank across A2 to the box, not a tray (ASSUMED, D-029)"}
+  - {id: "layout/plant-model.yaml#layout-tray-span:IT-JB-PR1", reason: "Drop from the PR1 tray tier to JB-PR1 north of the rack (9.6 m): brackets off the PR1 columns (ASSUMED)"}
+  - {id: "layout/plant-model.yaml#layout-tray-span:IT-JB-T2101", reason: "Drop from the PR6 tray tier to JB-T2101 at the foot of the riser tower (16 m): on the riser tower S-RT2101 and PR6 columns (D-029, ASSUMED)"}
+  - {id: "layout/plant-model.yaml#layout-tray-span:IT-JB-T3101", reason: "Drop from the PR5 tray tier to JB-T3101 at the foot of the riser tower (13.2 m): on the riser tower S-RT3101 and PR5 columns (D-029, ASSUMED)"}
+  - {id: "layout/plant-model.yaml#layout-tray-span:IT-JB-TR-N", reason: "Drop from the PR2 tray tier to JB-TR-N east of PR2 (11 m): brackets off the PR2 bents (ASSUMED)"}
+  - {id: "layout/plant-model.yaml#layout-tray-span:PT-M-K-7101[ABC]", reason: "BOG compressor 6.6 kV feeders across A2: buried cable duct bank from the PR6 / PR3 tray risers across the BOG area to the cable entries west of the packages, not trays at the rack tray level (ASSUMED, D-029; the model has no buried cable route)"}
+  - {id: "layout/plant-model.yaml#layout-tray-span:PT-M-P-8101[AB]", reason: "KO drum pump feeders across the sterile flare area A3: buried cable duct, which the flare radiation favours, not trays (ASSUMED, D-029)"}
+  - {id: "layout/plant-model.yaml#layout-tray-span:PT-M-P-[23]10[12]*", reason: "In-tank pump feeders: up the riser tower S-RTn101 (tray riser on its guide levels) and under the pump platform grating to the column heads: hung from the platform deck steel, which is tank supply and not modelled (the platform frame is the artefact of D-027.7) (D-029, ASSUMED)"}
+  - {id: "layout/plant-model.yaml#layout-tray-span:PT-M-P-[56]101", reason: "Jetty drain pump feeders from the PR2 end to the pumps: hangers from the PR2 end bents and the platform deck steel (ASSUMED)"}
   - {id: "layout/plant-model.yaml#layout-tray-span:PT-HPU-5100", reason: "Berth 2 arm HPU feeder branch across the platform deck: hangers from the platform steel at detail engineering (ASSUMED)"}
   - {id: "layout/plant-model.yaml#layout-tray-span:PT-F-SS2-?", reason: "The two 6.6 kV incomers of the jetty substation B-JET from the PR2 tray across the trestle road R5 into its east wall: a cable bridge over the road, clear of the road headroom, at detail engineering (D-027, ASSUMED)"}
   - {id: "layout/plant-model.yaml#layout-tray-span:PT-MCC-2", reason: "MCC-2 link tray from B-JET across the trestle road R5 onto the PR2 tray: the same cable bridge over the road as the incomers (D-027, ASSUMED)"}

@@ -20,6 +20,14 @@ maintenance), with a "cavity vent: drum side" text at each valve; the I-802 note
 starts both pumps (whichever is not running) and yields to I-803, not "the standby". The left
 note column starts one row higher (y 252) to take the extra line; the new notes come after the
 existing ones, so the ids Note1 to Note11 are kept.
+
+Rev E (review 2026-11-05-basic-design-4 #1, #5, #9, D-028): the instrument-air header low-low trip
+PZT-8123A/B/C (2oo3, C&E I-804) on IA-8001, which initiates ESD-1 of both berths and the rundown
+trip before any fail-closed valve moves; IA-8001 starts further left (x 178) to take the three
+transmitters beside PI-8122. CV-8102A/B get a disc with a pressure-equalising hole, so the spool
+between the check valve and HV-8108x relieves back to the pump side and through the HV-8106x cavity
+vent into D-8101 (the note is corrected). N-8001: purge and leak test only, no blanketing (D-020).
+The new notes come after the existing ones (ids kept).
 """
 
 import sys
@@ -118,8 +126,10 @@ t_r = tee("T8D3", at=(RX, 190), branch="up", branch_dn=25)
 L.line(sheet, "LNG-8001", dn=80, fluid="LNG", frm="P-8101A", to="BL (liquid burner)",
        notes="Liquids to the 60 m liquid burner derrick of the site (9 burners, S-02), 30 m3/h. P-8101A "
              "discharge: check valve CV-8102A, then the discharge isolation HV-8108A (review 2 #7). Thermal relief "
-             "PSV-8109 (LNG-8006) to D-8101 on the common section downstream of HV-8108A/B (H-05 A3).",
-       route=[pa["N2"], (145, 165), valve("CV8102A", "SwingCheckValve", at=(145, 172)),
+             "PSV-8109 (LNG-8006) to D-8101 on the common section downstream of HV-8108A/B (H-05 A3); the spool "
+             "between CV-8102A and HV-8108A relieves back through the pressure-equalising hole of the check valve "
+             "disc and the HV-8106A cavity vent into D-8101 (review 2026-11-05-basic-design-4 #5, D-028).",
+       route=[pa["N2"], (145, 165), valve("CV8102A", "SwingCheckValve", tag="CV-8102A", at=(145, 172)),
               valve("HV8108A", "BallValve", tag="HV-8108A", at=(145, 182)), (145, 190), t_d, t_m,
               t_r, offpage("out", at=(285, 190), note="to liquid burner (BL)", note_at=(268, 196))],
        label_at=(257, 184))
@@ -131,8 +141,10 @@ psv8109 = L.relief("PSV8109", "PSV-8109", "LNG-8006", 15.0,
                    "through LNG-8006 (HAZOP H-05 A3); DN 25, set at the 15 barg design of the line.",
                    label_at=(RX + 12, 166))
 L.line(sheet, "LNG-8004", dn=80, fluid="LNG", frm="P-8101B", to="LNG-8001",
-       notes="P-8101B discharge: check valve CV-8102B, then the discharge isolation HV-8108B (review 2 #7).",
-       route=[pb["N2"], (205, 165), valve("CV8102B", "SwingCheckValve", at=(205, 172)),
+       notes="P-8101B discharge: check valve CV-8102B, then the discharge isolation HV-8108B (review 2 #7); the "
+             "spool between them relieves back through the pressure-equalising hole of the CV-8102B disc and the "
+             "HV-8106B cavity vent into D-8101 (D-028).",
+       route=[pb["N2"], (205, 165), valve("CV8102B", "SwingCheckValve", tag="CV-8102B", at=(205, 172)),
               valve("HV8108B", "BallValve", tag="HV-8108B", at=(205, 182)), t_d.branch], labels=False)
 L.line(sheet, "LNG-8005", dn=50, fluid="LNG", frm="LNG-8001", to="D-8101",
        notes="Minimum-flow return of the running knock-out drum pump P-8101A/B to D-8101 through the "
@@ -169,7 +181,7 @@ jsump = equipment(sheet, "Tank", "T-8102", shape="TANK_OPEN_SHAPE", at=(160, 225
 # ---- N2 and instrument-air headers ----------------------------------------------------------------
 tn = tee("T8N1", at=(240, 210), branch="down", branch_dn=50)
 n2 = L.line(sheet, "N-8001", dn=80, fluid="Nitrogen", frm="BL (site N2)", to="LNG-5001", insulation="none",
-            notes="Terminal N2 header from the site system, 7 barg, to Berth 2 (and via N-8002 to Berth 1): purging the arms and headers to < 1 % O2 before and < 2 % HC after loading, the leak test at 5 bar (liquid) / 2.5 bar (vapour arm) (S-01), seal gas, blanketing (D-020). Drawn on P-08 and P-05.",
+            notes="Terminal N2 header from the site system, 7 barg, to Berth 2 (and via N-8002 to Berth 1): purging the arms and headers to < 1 % O2 before and < 2 % HC after loading and the leak test at 5 bar (liquid) / 2.5 bar (vapour arm) (S-01); these are its only users (D-020, D-028). Drawn on P-08 and P-05.",
             route=[offpage("in", at=(205, 210), note="N2 (BL)", note_at=(210, 204)), tn,
                    offpage("out", at=(285, 210), note="to Berth 2 (P-05)", note_at=(270, 204))],
             label_at=(260, 216))
@@ -177,11 +189,15 @@ L.line(sheet, "N-8002", dn=50, fluid="Nitrogen", frm="N-8001", to="LNG-6001", in
        notes="N2 to Berth 1. Drawn on P-08 and P-06.", route=[tn.branch, (240, 228),
                                      offpage("out", at=(285, 228), note="to Berth 1 (P-06)", note_at=(270, 234))],
        labels=False)
+IA_X = 178  # IA-8001 starts left of the N2 header to take PI-8122 and PZT-8123A/B/C (D-028)
 ia = L.line(sheet, "IA-8001", dn=50, fluid="Instrument air", frm="BL (site instrument air)", to="instrument users",
-            insulation="none", notes="Instrument-air header of the terminal, 7 barg (D-020).",
-            route=[offpage("in", at=(205, 246), note="IA (BL)", note_at=(210, 240)),
-                   offpage("out", at=(285, 246), note="to users", note_at=(276, 240))],
-            label_at=(245, 240))
+            insulation="none",
+            notes="Instrument-air header of the terminal, 7 barg (D-020); low-low pressure trip PZT-8123A/B/C (2oo3, "
+                  "C&E I-804) initiates ESD-1 of both berths and the rundown trip before the fail-closed valves "
+                  "move (D-016, D-028).",
+            route=[offpage("in", at=(IA_X, 246), note="IA (BL)", note_at=(IA_X + 5, 240)),
+                   offpage("out", at=(285, 246), note="to users", note_at=(280, 240))],
+            label_at=(264, 240))
 
 # ---- instruments ----------------------------------------------------------------------------------
 L.inst(sheet, "PI-8112", "Flare header pressure", at=(105, 74), sensing=hdr.segments[-1], sensing_at=(105, HY))
@@ -242,8 +258,18 @@ L.inst(sheet, "LI-8103", "Tank-area sump level", "Starts and stops P-8102.", at=
 L.inst(sheet, "TSL-8104", "Jetty sump low temperature (LNG in the sump)",
        "Alarm and high-expansion foam on the platform (D-018).", at=(130, 240), sensing=jsump["N1"])
 L.inst(sheet, "PI-8121", "N2 header pressure", at=(225, 220), sensing=n2.segments[0], sensing_at=(225, 210))
-L.inst(sheet, "PI-8122", "Instrument-air header pressure", at=(232, 236),
-       sensing=ia.segments[0], sensing_at=(232, 246))
+L.inst(sheet, "PI-8122", "Instrument-air header pressure",
+       "Indication and low alarm only; the trip is PZT-8123A/B/C (C&E I-804, D-028).", at=(199, 236),
+       sensing=ia.segments[0], sensing_at=(199, 246))
+# instrument-air header low-low trip (review 2026-11-05-basic-design-4 #1, D-028): three transmitters on
+# their own tappings, 2oo3, set above the pressure at which the spring-return actuators start to stroke
+for s, x in zip("ABC", (215, 231, 247)):
+    L.inst(sheet, f"PZT-8123{s}", f"Instrument-air header pressure low-low (I-804), transmitter {s} of 2oo3",
+           "Own tapping on IA-8001, independent of PI-8122; 2oo3 with the other two: at 4.5 barg (ASSUMED; header "
+           "7 barg, the fail-closed spring-return actuators start to stroke below about 3.5 barg, ASSUMED) it "
+           "initiates ESD-1 of both berths (pumps stopped, carriers tripped) and the rundown trip (trains tripped, "
+           "battery-limit valves closed) before the valves move (C&E I-804, D-016, D-028).",
+           at=(x, 236), sensing=ia.segments[0], sensing_at=(x, 246))
 
 note(sheet, "FL-8101: the storage and loading flare, one of four flares on the site's 122 m vapour flare derrick", at=(12, 252))
 note(sheet, "(warm/wet, cold/dry, storage and loading, spare); derrick and liquid burner are site scope (S-02, D-001, D-017).", at=(12, 258))
@@ -262,11 +288,14 @@ note(sheet, "I-803 at low-low stops P-8101A/B (D-026.14). HS-8101A/B: motor cont
 # title block, and a text at each valve on its drum (upstream, upper) side.
 VN = (300, 236)
 for i, txt in enumerate([
-        "HV-8106A/B: cryogenic ball valves with the cavity vented to the drum side, so a pump",
-        "blocked in between HV-8106x and HV-8108x relieves into D-8101; drain the pump to the",
-        "drum before maintenance (D-026.14)."]):
+        "HV-8106A/B: cryogenic ball valves, cavity vented to the drum side; CV-8102A/B have a",
+        "pressure-equalising hole in the disc, so a pump blocked in between HV-8106x and",
+        "HV-8108x relieves into D-8101; drain the pump to the drum first (D-026.14, D-028)."]):
     note(sheet, txt, at=(VN[0], VN[1] + 6 * i))
 for x in (116, 176):  # HV-8106A, HV-8106B
     note(sheet, "cavity vent: drum side", at=(x + 3, 146))
+# Rev E notes (D-028), after the existing ones
+note(sheet, "PZT-8123A/B/C: instrument-air header low-low, 2oo3, see C&E I-804 (ESD-1 of both berths, rundown trip).",
+     at=(12, 288))
 
 L.finish(sheet, target)

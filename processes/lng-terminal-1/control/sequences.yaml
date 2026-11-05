@@ -17,7 +17,7 @@ sequences:
       - {tag: LZT-2102, state: above the low-low trip}
       - {loop: PIC-1110, state: in auto}
       - {tag: K-7101A, state: running}
-    interlocks: [I-501, I-502, I-503, I-507, I-504, I-505, I-511, I-512, I-513, I-514, I-202, I-204]
+    interlocks: [I-501, I-502, I-503, I-507, I-504, I-505, I-511, I-512, I-513, I-514, I-202, I-204, I-804]
     steps:
       - id: S0
         title: Line up from holding
@@ -59,20 +59,28 @@ sequences:
         timeout: {value: 2, unit: h}
         on_timeout: abort
       - id: S3
-        title: ESD test and cooldown of the arms and the carrier manifold
+        title: ESD test, cooldown of the arms and the carrier manifold, ESD test repeated
         actions:
-          - {text: "ESD-1 test through the ship-shore link before cooldown (S-01), in test mode: the sequence abort on I-501 is inhibited for the test only", by: operator}
-          - {text: "reset I-501 once the test is complete and the link is healthy", by: operator}
+          - {text: "first ESD-1 test through the ship-shore link before cooldown (S-01), in test mode: the sequence abort on I-501 is inhibited for the test only; the test mode ends automatically with the reset of I-501 or 15 min after it was set (ASSUMED), whichever comes first", by: operator}
+          - {text: "reset I-501 once the test is complete and the link is healthy (this ends the test mode)", by: operator}
           - {tag: XV-4101, action: open, by: operator}
           - {tag: XV-4102, action: open, by: operator}
           - {tag: XV-5101, action: open, by: operator}
           - {tag: XV-5121, action: open, by: operator}
           - {loop: FIC-4101, action: setpoint, setpoint: {kind: setpoint, value: 500, unit: m3/h, provenance: assumed, source: "D-016: cooldown rate, ASSUMED"}, by: operator}
           - {loop: FIC-4101, action: auto, by: operator}
-        complete: {text: "arm and manifold temperatures at LNG temperature; ESD test repeated after cooldown (S-01)"}
+          - {text: "cool the arms and the carrier manifold to LNG temperature", by: operator}
+          - {text: "second ESD-1 test after cooldown (S-01), in test mode as for the first test (ends with the reset of I-501 or after 15 min)", by: operator}
+          - {text: "reset I-501 once the repeated test is complete and the link is healthy (this ends the test mode)", by: operator}
+          - {tag: XV-4101, action: open, by: operator}
+          - {tag: XV-4102, action: open, by: operator}
+          - {tag: XV-5101, action: open, by: operator}
+          - {tag: XV-5121, action: open, by: operator}
+          - {loop: FIC-4101, action: auto, by: operator}
+        complete: {all: [{text: "arm and manifold temperatures at LNG temperature"}, {text: "ESD-1 test repeated after cooldown (S-01)"}, {interlock: I-501, state: reset}, {tag: XV-4101, state: open}, {tag: XV-4102, state: open}, {tag: XV-5101, state: open}, {loop: FIC-4101, state: in auto}]}
         timeout: {value: 2, unit: h}
         on_timeout: abort
-        operator: "Cool slowly to avoid thermal shock on the arms; the circulation pump P-2102 (500 m3/h, D-008) gives the cooldown flow through line A. The cooldown vapour returns through the vapour arm, to the flare while AI-4133 reads off-specification. The ESD-1 test opens XV-4135 (I-501) and XV-4131 closes only once XV-4135 is proven open (I-513), so the test never closes the vapour return (review 2026-11-05-basic-design-2#1)."
+        operator: "Cool slowly to avoid thermal shock on the arms; the circulation pump P-2102 (500 m3/h, D-008) gives the cooldown flow through line A. The cooldown vapour returns through the vapour arm, to the flare while AI-4133 reads off-specification. Each ESD-1 test opens XV-4135 (I-501) and XV-4131 closes only once XV-4135 is proven open (I-513), so the test never closes the vapour return (review 2026-11-05-basic-design-2#1); with off-specification vapour only the residual line pack of the return reaches the tanks, which D-026.1 shows to stay well below their 1 vol % O2 limit (review 2026-11-05-basic-design-4 #4). After each test the reset of I-501 and the reopening of XV-4101 / XV-4102 / XV-5101 / XV-5121 restore the line-up, so S4 starts against open valves (review 2026-11-05-basic-design-4 #3, D-028)."
       - id: S4
         title: Ramp up to the full loading rate (arm line-up from the cargo plan, D-026.6)
         actions:
@@ -106,7 +114,7 @@ sequences:
           - {sequence: SEQ-HOLD, action: run, by: operator}
         complete: {text: "arms stowed"}
     abort:
-      condition: {any: [{all: [{interlock: I-501, state: tripped}, {text: "not the ESD-1 test of S3 (test mode)"}]}, {interlock: I-503, state: tripped}]}
+      condition: {any: [{all: [{interlock: I-501, state: tripped}, {text: "not one of the two ESD-1 tests of S3 (test mode, ended by the reset of I-501 or after 15 min)"}]}, {interlock: I-503, state: tripped}, {interlock: I-804, state: tripped}]}
       actions:
         - {sequence: SEQ-ESD, action: run, by: automatic}
       notes: "Any ESD ends the loading; ESD-2 also releases the arms."
@@ -147,16 +155,16 @@ sequences:
     reset: {latching: true, manual: true, condition: {tag: LZT-2102, state: above the low-low trip}, restart: {text: "operator restarts SEQ-HOLD from S1"}}
 
   - id: SEQ-BOG-START
-    title: Start a BOG compressor
+    title: Start a BOG compressor (run per machine; K-7101A shown, K-7101B and K-7101C the same with their tags)
     mode: startup
     section: BOG
     cases: [holding, loading]
-    equipment: [K-7101A]
+    equipment: [K-7101A, XV-7121A, XV-7123A, XV-7130]
     permissives:
       - {tag: LZT-7106, state: below the high-high trip}
       - {loop: TIC-7103, state: in auto}
       - {loop: UIC-7104A, state: in auto}
-    interlocks: [I-701, I-702, I-703A, I-705A]
+    interlocks: [I-701, I-702, I-703A, I-705A, I-704]
     steps:
       - id: S1
         title: Open the suction and start on full recycle
@@ -168,10 +176,17 @@ sequences:
         timeout: {value: 30, unit: min}
         on_timeout: abort
       - id: S2
-        title: Load the machine
+        title: Open the discharge and the battery limit, then load the machine
         actions:
+          - {tag: XV-7123A, action: open, by: operator}
+          - {text: "XV-7123A proven open (the position feedback of its actuator, vendor; no position switch drawn at basic): after any trip it was closed, latching, by I-701, I-702, I-703A or I-705A", by: operator}
+          - {tag: XV-7130, action: open, by: operator}
+          - {text: "XV-7130 proven open: I-704 has reset by itself now that K-7101A runs, but the valve stays closed until opened here", by: operator}
           - {loop: PIC-7101, action: auto, by: operator}
-        complete: {loop: PIC-7101, state: in auto}
+        complete: {all: [{tag: XV-7123A, state: open}, {tag: XV-7130, state: open}, {loop: PIC-7101, state: in auto}]}
+        timeout: {value: 30, unit: min}
+        on_timeout: abort
+        operator: "Review 2026-11-05-basic-design-4 #6: without the discharge isolation open the restarted machine would stay on full recycle and PIC-7101 could not load it."
     abort:
       condition: {any: [{interlock: I-701, state: tripped}, {interlock: I-702, state: tripped}, {interlock: I-703A, state: tripped}, {interlock: I-705A, state: tripped}]}
       actions:
@@ -184,12 +199,12 @@ sequences:
     section: JETTY
     cases: [loading]
     equipment: [XV-5101, XV-4101, XV-4102]
-    interlocks: [I-501, I-503, I-507, I-513]
+    interlocks: [I-501, I-503, I-507, I-513, I-804]
     steps:
       - id: S1
         title: Loading stopped and the line isolated
         actions:
-          - {text: "I-501 (directly, or through I-503 on ESD-2) stops the loading pumps, then closes XV-5101 (25-30 s) and XV-4101/4102, and opens XV-4135 so the vapour return stays open to the tanks (I-513 then closes XV-4131); on ESD-2, I-507 closes the ERS valves 5 s later", by: automatic}
+          - {text: "I-501 (directly, through I-503 on ESD-2, or through the air-header trip I-804) stops the loading pumps and trips the carrier's ESD through XS-5100, then closes XV-5101 (25-30 s) and XV-4101/4102, and opens XV-4135 so the vapour return stays open to the tanks (I-513 then closes XV-4131); on ESD-2, I-507 closes the ERS valves 5 s later; on an air failure the ESD valves hold on their accumulators until the pumps are stopped and close at their set speed (D-028)", by: automatic}
         complete: {all: [{tag: XV-5101, state: closed}]}
       - id: S2
         title: Pressure the isolated header is under
@@ -204,3 +219,34 @@ sequences:
         - {text: "no abort: the trips latch until reset", by: automatic}
       notes: "The ESD response itself cannot be aborted."
     reset: {latching: true, manual: true, condition: {text: "cause cleared, ship-shore link healthy, arms recovered after ESD-2"}, restart: {text: "the loading restarts from SEQ-LOAD S3 (cooldown) after ESD-1, from S1 after ESD-2"}}
+
+  - id: SEQ-FILL-CHANGE
+    title: Change the fill of a tank between top and bottom fill (make-before-break)
+    mode: normal
+    section: STORAGE
+    cases: [holding, loading, average]
+    equipment: [XV-1106, XV-1107, XV-1108, XV-1109]
+    permissives:
+      - {text: "AI-1102 against LTD-2103 / LTD-3103 calls for the other fill point (rollover, D-007)"}
+      - {tag: PZT-1105, state: below the high-high trip}
+    interlocks: [I-102, I-201, I-301]
+    steps:
+      - id: S1
+        title: Open the new fill selection valve first
+        actions:
+          - {text: "open the selection valve of the new fill point (T-2101: XV-1106 top / XV-1107 bottom; T-3101: XV-1108 top / XV-1109 bottom) from its HS", by: operator}
+        complete: {all: [{text: "the new selection valve open for at least its stroke time (fail last, no position switch: proven by the open command held for the stroke time and a local check)"}, {tag: PI-1104, state: "steady, not rising"}]}
+        timeout: {value: 10, unit: min}
+        on_timeout: abort
+      - id: S2
+        title: Close the old fill selection valve
+        actions:
+          - {text: "close the selection valve of the old fill point", by: operator}
+        complete: {all: [{tag: PI-1104, state: "steady, not rising"}, {tag: PZT-1105, state: below the high-high trip}]}
+        operator: "Review 2026-11-05-basic-design-3#8, D-026.4: make-before-break, the new branch is open before the old one closes, so the rundown always has a way into the tank. A change that closes both trips I-102 through PZT-1105 (trains tripped, battery limit closed). The fill ESD valve XV-1102 / XV-1103 of a tank that is not lined up is kept closed, so ZSC-1102 / ZSC-1103 show which tank can take the rundown (I-102, D-028)."
+    abort:
+      condition: {tag: PZT-1105, state: rising towards the high-high trip}
+      actions:
+        - {text: "reopen the old selection valve (or keep it open) and stop the change", by: operator}
+      notes: "I-102 acts on its own at high-high header pressure."
+    reset: {latching: false, manual: true, restart: {text: "operator restarts SEQ-FILL-CHANGE from S1"}}

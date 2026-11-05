@@ -16,6 +16,14 @@ S4-S9).
 Revision after review 2026-11-05-basic-design-3 (D-026.14): ZSC-1102 / ZSC-1103 sense their
 valves XV-1102 / XV-1103 themselves, as ZSO-7121A on P-07, instead of the pipe segment beside
 them.
+
+Revision after review 2026-11-05-basic-design-4 and its adversarial check (D-028): the rundown
+surge. XS-1100, the hard-wired rundown trip link to the trains at the battery limit, is drawn; the
+UZ notes of XV-1102 / XV-1103 / XV-1111..1114 carry their closure-time requirement (at least 30 s,
+speed controller, non-return valve and air accumulator) and the closure order (the trains are
+tripped through XS-1100 as the closure starts, C&E I-101 / I-102); PSV-1121..1123 are restated as
+thermal relief only. XV-1115 and UZ-1115 move down (y 77) clear of the PIC-1111 signal line, with
+the FL-1001 label below the bypass (review #8c).
 """
 
 import sys
@@ -54,8 +62,13 @@ for k in (2, 3, 4):
                   valve(f"XV111{k}", "BallValve", tag=f"XV-111{k}", at=(40, y)),
                   valve(f"CV111{k}", "SwingCheckValve", at=(58, y)), tt[k].branch],
            label_at=(80, y + 6))
+# the rundown closures are not relief cases: their surge is limited by the closure order and the
+# closure time of the ESD valves (D-023.3, D-028), so the three PSVs stay thermal relief only
+NOT_SURGE = ("; not a surge relief device: the surge of a rundown closure is limited by the closure order (trains "
+             "tripped through XS-1100 as the closure starts) and the closure of at least 30 s of XV-1102 / XV-1103 / "
+             "XV-1111..1114 (D-023.3, D-028)")
 psv1121 = L.relief("PSV1121", "PSV-1121", "BOG-1004", 15.0,
-                   "thermal expansion of the blocked-in rundown header",
+                   "thermal expansion of the blocked-in rundown header" + NOT_SURGE,
                    "Thermal relief of LNG-1001 between XV-1111..1114 and XV-1102/1103, to the BOG header (D-017).",
                    label_at=(107, 116))
 
@@ -70,7 +83,7 @@ L.line(sheet, "LNG-1002", dn=900, fluid="LNG", frm="LNG-1001", to="T-2101 (top f
                       rotation=DOWN)],
        label_at=(139, 196))
 psv1122 = L.relief("PSV1122", "PSV-1122", "BOG-1010", 15.0,
-                   "thermal expansion of the blocked-in fill branch",
+                   "thermal expansion of the blocked-in fill branch" + NOT_SURGE,
                    "Thermal relief of the T-2101 fill branch LNG-1002 / LNG-1004 between XV-1102 and XV-1106 / XV-1107, to the BOG header (D-017; review 2026-11-05 #5).",
                    label_at=(127, 180))
 L.line(sheet, "LNG-1004", dn=900, fluid="LNG", frm="LNG-1002", to="T-2101 (bottom fill)",
@@ -86,7 +99,7 @@ L.line(sheet, "LNG-1003", dn=900, fluid="LNG", frm="LNG-1001", to="T-3101 (botto
                       rotation=DOWN)],
        label_at=(214, 174))
 psv1123 = L.relief("PSV1123", "PSV-1123", "BOG-1011", 15.0,
-                   "thermal expansion of the blocked-in fill branch",
+                   "thermal expansion of the blocked-in fill branch" + NOT_SURGE,
                    "Thermal relief of the T-3101 fill branch LNG-1001 / LNG-1003 between XV-1103 and XV-1108 / XV-1109, to the BOG header (D-017; review 2026-11-05 #5).",
                    label_at=(182, 130))
 
@@ -96,7 +109,11 @@ for k, y in ROWS.items():
     L.inst(sheet, f"FI-111{k}", f"Train {k} rundown flow", "Ultrasonic; tank inventory balance.",
            at=(76, y - 9), sensing=seg, sensing_at=(76, y))
     L.inst(sheet, f"UZ-111{k}", f"Train {k} rundown battery-limit ESD valve XV-111{k}",
-           "ESD-1 of the terminal closes the rundown; the train turns down (C&E I-101).",
+           "Closes on I-101 / I-102 (also on the air-header trip I-804 through I-102) at the same instant as "
+           "XS-1100 trips the trains' rundown; closure time at least 30 s (ASSUMED, about 15 times 2L/a of the "
+           "rundown, D-023.3), set by a speed controller on the actuator exhaust, with a non-return valve and a "
+           "local air accumulator on the supply, so a closure on an instrument-air failure is no faster than the "
+           "commanded one (D-028).",
            at=(40, y - 10), signal_to=f"XV111{k}", fail_action="FC")
 for tag, service, x in [("AI-1102", "LNG rundown density / composition", 108),
                         ("TI-1103", "LNG rundown temperature", 123),
@@ -109,12 +126,26 @@ for tag, service, x in [("AI-1102", "LNG rundown density / composition", 108),
 L.inst(sheet, "PZT-1105", "LNG rundown header pressure high-high (I-102)",
        "Own tapping on LNG-1001, independent of PI-1104; at high-high header pressure (also a fill branch closed by its selection valves XV-1106..1109) it closes the battery-limit valves XV-1111..1114 and trips the trains (C&E I-102, D-026).",
        at=(80, 136), sensing=hdr.segments[4], sensing_at=(95, 136))
+CLOSE_REQ = ("closure time at least 30 s (ASSUMED, about 15 times 2L/a of the rundown, D-023.3), set by a speed "
+             "controller on the actuator exhaust, with a non-return valve and a local air accumulator on the supply, "
+             "so a closure on an instrument-air failure is no faster than the commanded one")
 L.inst(sheet, "UZ-1102", "T-2101 fill ESD valve XV-1102",
-       "Closes on T-2101 high-high level or pressure (C&E I-201, I-203).",
+       "Closes on T-2101 high-high level or pressure (C&E I-201, I-203); " + CLOSE_REQ + "; with XV-1103 closed "
+       "(ZSC-1103) I-102 trips the trains through XS-1100 as the closure starts, before the rundown is stopped "
+       "(D-028).",
        at=(135, 163), signal_to="XV1102", fail_action="FC")
 L.inst(sheet, "UZ-1103", "T-3101 fill ESD valve XV-1103",
-       "Closes on T-3101 high-high level or pressure (C&E I-301, I-303).",
+       "Closes on T-3101 high-high level or pressure (C&E I-301, I-303); " + CLOSE_REQ + "; with XV-1102 closed "
+       "(ZSC-1102) I-102 trips the trains through XS-1100 as the closure starts, before the rundown is stopped "
+       "(D-028).",
        at=(180, 140), signal_to="XV1103", fail_action="FC")
+# rundown trip link to the trains (D-028): the effect that trips the trains' rundown in the C&E
+L.inst(sheet, "XS-1100", "Rundown battery-limit ESD link to the trains (hard-wired)",
+       "Trip signal between the terminal SIS and the trains' SIS at the battery limit (D-001): it trips the "
+       "trains' rundown (rundown pumps stopped or recycled inside the trains) at the instant the terminal starts "
+       "to close XV-1111..1114, or XV-1102 / XV-1103 with the other tank's fill valve closed (C&E I-101, I-102; "
+       "D-023.3, D-028).",
+       at=(40, 140))
 # closed-position switches of the fill ESD valves (review #8, interlock I-102), tied to their
 # valves themselves (sensing the valve, as ZSO-7121A on P-07; D-026.11, D-026.14)
 L.inst(sheet, "ZSC-1102", "XV-1102 closed position",
@@ -193,12 +224,13 @@ fl = L.line(sheet, "FL-8001", dn=900, fluid="Flare gas", frm="BOG-1001 (PV-1110)
                    offpage("out", at=(380, 100), note="to D-8101 (P-08)", note_at=(395, 104),
                            rotation=DOWN)],
             label_at=(395, 80))
-xv1115 = valve("XV1115", "BallValve", tag="XV-1115", at=(366, 70))
+XV15_Y = 77  # below the PIC-1111 signal to PV-1111 (y 66), review 2026-11-05-basic-design-4 #8c
+xv1115 = valve("XV1115", "BallValve", tag="XV-1115", at=(366, XV15_Y))
 L.line(sheet, "FL-1001", dn=600, fluid="Flare gas", frm="FL-8001 (upstream of PV-1110)",
        to="FL-8001 (downstream of PV-1110)", insulation="none",
        notes="SIS vent bypass around PV-1110 with XV-1115 (fails closed: SIS, energise-to-trip with its own air accumulator, D-017), opened by the tank high-high pressure trip I-203 / I-303 independently of the regulatory valve PV-1110 (review 2026-11-05 #14).",
        route=[fb1.branch, (366, 50), xv1115, (366, 84), fb2.branch],
-       label_at=(356, 82))
+       label_at=(358, 92))
 L.inst(sheet, "TI-1112", "BOG header temperature", at=(275, 28), sensing=bog.segments[3],
        sensing_at=(275, 40))
 L.inst(sheet, "PIC-1111", "Tank vapour header pressure, low split: make-up gas PV-1111",
@@ -207,7 +239,7 @@ L.inst(sheet, "PIC-1111", "Tank vapour header pressure, low split: make-up gas P
        fail_action="FC")
 L.inst(sheet, "UZ-1115", "Tank vapour header SIS vent valve XV-1115 to the flare",
        "Opens on tank high-high pressure (C&E I-203, I-303), independent of PIC-1110 / PV-1110; energise-to-trip with its own air accumulator, fails closed (a fail-open vent with the fail-closed make-up PV-1111 would depressurise the tanks on an air or power failure; the tank PSVs stay the last protection, D-017).",
-       at=(353, 70), signal_to=xv1115, fail_action="FC")
+       at=(350, XV15_Y), signal_to=xv1115, fail_action="FC")
 L.inst(sheet, "PIC-1110", "Tank vapour header pressure, high split: BOG compressors then PV-1110 to the flare",
        "Output 1 sets the BOG compressor load (PIC-7101, P-07); output 2 opens PV-1110 (D-017).",
        at=(396, 56), sensing=bog.segments[8], sensing_at=(396, 40), signal_to=pv1110,
@@ -215,10 +247,13 @@ L.inst(sheet, "PIC-1110", "Tank vapour header pressure, high split: BOG compress
 
 note(sheet, "Rundown subcooled -161.5 degC, 215 kPa(a) at the tanks (D-005). Top or bottom fill", at=(12, 254))
 note(sheet, "from AI-1102 against the tank's density profile LTD-2103 / LTD-3103 (rollover, D-007).", at=(12, 259.5))
-note(sheet, "UZ-111x: see C&E I-101. UZ-1102: C&E I-201, I-203. UZ-1103: C&E I-301, I-303.", at=(12, 265))
+note(sheet, "UZ-111x: see C&E I-101, I-102. UZ-1102: C&E I-201, I-203. UZ-1103: C&E I-301, I-303.", at=(12, 265))
 note(sheet, "ZSC-1102 / ZSC-1103 (both closed) and PZT-1105 (header high-high): C&E I-102. UZ-1115 (SIS vent): C&E I-203, I-303.", at=(12, 270.5))
 note(sheet, "XV-1115: SIS, energise-to-trip with its own air accumulator (D-017). Thermal relief BOG-1004 / -1010 / -1011 into BOG-1001.", at=(12, 276))
 note(sheet, "PIC-1110 / PIC-1111: split-range tank pressure control (D-017).", at=(275, 118))
 note(sheet, "FO-1117: restriction orifice limiting the make-up flow (H-04 A1).", at=(275, 124))
+# rundown closure order and closure time (D-023.3, D-028), after the existing notes (ids kept)
+note(sheet, "XV-1102, XV-1103, XV-1111..1114: closure at least 30 s (speed controller, non-return valve, air accumulator);", at=(12, 281.5))
+note(sheet, "XS-1100 trips the trains' rundown as the closure starts (C&E I-101, I-102; D-023.3, D-028).", at=(12, 287))
 
 L.finish(sheet, target)

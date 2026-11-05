@@ -47,7 +47,9 @@ rules:
     # site systems
     - {id: BL-liquid-burner, lines: [LNG-8001], point: [1500.0, 3070.0, 1.0]}
     - {id: BL-fuel-gas, lines: [FG-8001, FG-8002], rack: PR3, rack_end: end}
-    - {id: BL-oily-water, lines: [W-8002], point: [1000.0, 2952.0, 0.5]}
+    # the basin's rainwater to the site oily water system: tie-in at the PR4 west edge at the
+    # east end of the basin services rack PR8 (D-029, ASSUMED)
+    - {id: BL-oily-water, lines: [W-8002], point: [1087.0, 3150.0, 7.057]}
     - {id: BL-site-N2, lines: [N-8001], rack: PR3, rack_end: end}
     - {id: BL-site-IA, lines: [IA-8001], rack: PR3, rack_end: end}
     # sheet junctions where the line number changes with the size (D-021); the DN 800 trestle
@@ -86,12 +88,14 @@ lines:
   # machines, clear of the motor removal space (discharge nozzles on their south sides), and
   # leaves south of K-7101C for PR3 (ASSUMED arrangement).
   - {line: BOG-7001, via: [[1030.0, 3040.0, 11.5], [1040.0, 3040.0, 11.5], [1040.0, 2984.1, 11.5]]}
-  # discharge header low along x 1059.5 (west of the crane pad Z-PAD-A2E, x 1062), out south of
+  # discharge header along x 1059.5 (west of the crane pad Z-PAD-A2E, x 1062), out south of
   # K-7101C in the low corridor y 2975-2978 (between its crane lane and the moved laydown
   # Z-LAY-A2E) to PR3, up between PR3's beams (y 2977.95) to the top tier, lane x 1090.5, then
-  # north on PR3 / PR4 to the trains
-  - {line: BOG-7002, via: [[1059.5, 3011.5, 2.0], [1059.5, 2981.5, 2.0]]}
-  - {line: BOG-7002, segment: P-07/Line_BOG7002_S6, route: [[1059.5, 2983.0, 2.0], [1059.5, 2977.95, 2.0], [1090.5, 2977.95, 2.0], [1090.5, 2977.95, 10.34], [1090.5, 3620.0, 10.34]]}
+  # north on PR3 / PR4 to the trains. At 2.6 m centreline (underside 2.27 m with its 80 mm
+  # insulation) it keeps the 2.2 m walkway headroom over the east escape route Z-ESC-A2E to
+  # road R7 (review 2026-11-05-basic-layout-2 #4, D-029, ASSUMED)
+  - {line: BOG-7002, via: [[1059.5, 3011.5, 2.6], [1059.5, 2981.5, 2.6]]}
+  - {line: BOG-7002, segment: P-07/Line_BOG7002_S6, route: [[1059.5, 2983.0, 2.6], [1059.5, 2977.95, 2.6], [1090.5, 2977.95, 2.6], [1090.5, 2977.95, 10.34], [1090.5, 3620.0, 10.34]]}
   # anti-surge recycles from each discharge back to D-7101: low (3 m, under the suction
   # branches) west along each machine's south side to x 1042.5 / 1043.5, west of the machines
   # and so out of the crane lanes from Z-PAD-A2E, then up and north to the BOG-1001 drop at
@@ -106,10 +110,13 @@ lines:
   # their tees (T8F2, T8F4); the K-7101B/C vents FL-7004 / FL-7005 tee into FL-7003 on its low
   # run (no intent: the router keeps them low)
   # (pinned: a via route keeps clear of the rack beams instead of resting on them)
-  - {line: FL-7002, segment: P-07/Line_FL7002_S1, route: [[1059.5, 3004.125, 2.0], [1059.5, 3004.125, 3.6], [1061.6, 3004.125, 3.6], [1061.6, 2976.1, 3.6], [1098.5, 2976.1, 3.6], [1098.5, 2976.1, 10.11], [1098.5, 3078.0, 10.11]]}
+  # (D-029: the tees on BOG-7002 are at its raised 2.6 m centreline; FL-7003 and the K-7101B/C
+  # vents FL-7004 / FL-7005 at 3.3 m cross over it, below the compressors' tops and the lanes)
+  - {line: FL-7002, segment: P-07/Line_FL7002_S1, route: [[1059.5, 3004.125, 2.6], [1059.5, 3004.125, 3.6], [1061.6, 3004.125, 3.6], [1061.6, 2976.1, 3.6], [1098.5, 2976.1, 3.6], [1098.5, 2976.1, 10.11], [1098.5, 3078.0, 10.11]]}
   - {line: FL-7002, segment: P-08/Line_FL7002_S1, route: [[1098.5, 3078.0, 10.11], [1098.5, 3113.0, 10.11], [1145.0, 3113.0, 10.11], [1145.0, 3113.0, 10.457], [1145.0, 3110.77, 10.457]]}
-  - {line: FL-7003, segment: P-07/Line_FL7003_S1, route: [[1059.5, 3010.25, 2.0], [1061.0, 3010.25, 2.0], [1061.0, 3010.25, 3.0], [1061.0, 2997.35, 3.0]]}
-  - {line: FL-7003, segment: P-07/Line_FL7003_S2, route: [[1061.0, 2997.35, 3.0], [1061.0, 2975.2, 3.0], [1097.8, 2975.2, 3.0], [1097.8, 2975.2, 10.045], [1097.8, 3078.0, 10.045]]}
+  - {line: FL-7003, segment: P-07/Line_FL7003_S1, route: [[1059.5, 3010.25, 2.6], [1061.0, 3010.25, 2.6], [1061.0, 3010.25, 3.3], [1061.0, 2997.35, 3.3]]}
+  - {line: FL-7003, segment: P-07/Line_FL7003_S2, route: [[1061.0, 2997.35, 3.3], [1061.0, 2975.2, 3.3], [1097.8, 2975.2, 3.3], [1097.8, 2975.2, 10.045], [1097.8, 3078.0, 10.045]]}
+  - {line: FL-7004, via: [[1057.73, 2998.35, 3.3], [1061.0, 2998.35, 3.3]]}
   - {line: FL-7003, segment: P-08/Line_FL7003_S1, route: [[1097.8, 3078.0, 10.045], [1097.8, 3114.0, 10.045], [1150.0, 3114.0, 10.045], [1150.0, 3114.0, 10.457], [1150.0, 3110.77, 10.457]]}
   # de-inerting / cool-down vapour on to the flare header: north on PR2 / PR3 (lane x 1096.6),
   # east on the outer lane of the PR3 east leg to T8F5
@@ -157,7 +164,7 @@ lines:
   # the vapour and flare tier
   - {line: IA-8001, tier: 7}
   # the K-7101C vent under the K-7101B discharge (3 m), out of the crane lane from Z-PAD-A2E
-  - {line: FL-7005, via: [[1058.3, 2982.35, 3.0], [1058.3, 2998.85, 3.0]]}
+  - {line: FL-7005, via: [[1057.5, 2982.35, 2.0], [1057.5, 2998.35, 2.0], [1057.5, 2998.35, 3.3]]}
   # rundown header on PR4's west lane with the trains' rundown lines joining from their own
   # lanes, each turning west at its tee (T1012..T1014) once the lanes west of it are free
   - {line: LNG-1001, segment: P-01/Line_LNG1001_S1, route: [[1088.587, 3620.0, 7.537], [1088.587, 3458.47, 7.537]]}
