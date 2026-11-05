@@ -3,7 +3,9 @@
 # hazop-study; workflow: safety/README.md and the skill hazop-study.
 # Drafted by an agent from the plant as drawn (P-05, P-06, P-04 rev A, C&E, loops,
 # sequences, special items) and revised by an agent to the P&IDs, C&E and sequences of
-# commit 589c9ca7 (DESIGN.md D-025). Every entry is a proposal for the team: status proposed.
+# commit 589c9ca7 (DESIGN.md D-025), then to those of commit fac0bbb5 (DESIGN.md D-026: ESD-2
+# trips ESD-1 at once and I-507 / I-607 close the ERS 5 s later, hybrid arm permissives on the
+# open command, two arm line-ups, the arm purge steps). Every entry is a proposal for the team.
 schema: cheme/hazop-study/v1
 kind: hazop-study
 id: H-03
@@ -28,13 +30,13 @@ modes:
   - {id: cooldown, title: Cooldown, description: "Arms and carrier manifold cooled at 500 m3/h with ESD tests before and after (SEQ-LOAD S3)."}
   - {id: startup, title: Connection and disconnection, description: "Connect, N2 leak test and purge (SEQ-LOAD S1, S2); drain, purge and disconnect (S6); ESD response (SEQ-ESD)."}
 analysed:
-  - {path: pid/P-05.xml, revision: 'sha256:2a0553b1dea9ede524be40898d5641a4967b09c6180c1c769eeda8912ba79a83', relation: analyses}
-  - {path: pid/P-06.xml, revision: 'sha256:bf2a9e3e90d482ed0785a8fef5b357ab7fbe83e994a98b4f68852db70d518d93', relation: analyses}
-  - {path: pid/P-04.xml, revision: 'sha256:f62bf2a3e0784c4237fd071923fbe54e8963acba50edc4046fb514a6fa58bfef', relation: analyses}
-  - {path: control/cause-effect.yaml, revision: 'sha256:20820468dff474bd4d438fb857b9413f131c6f12c5d8eb850a33dba685e43e5f', relation: analyses}
-  - {path: control/loops.yaml, revision: 'sha256:87745b629db15e255aec60ffb28bd670c9148c30788e2a72a7c7919016cdaf3a', relation: analyses}
-  - {path: control/sequences.yaml, revision: 'sha256:f6f9a91cade93cb42bfb48a3cb02a12444f111f79f015efcad58220b0c4013dd', relation: analyses}
-  - {path: piping/special-items.yaml, revision: 'sha256:8643b4bed3c6157111224c76178739de67f5f55dac066e5a114942d57644e2a0', relation: analyses}
+  - {path: pid/P-05.xml, revision: 'sha256:52f02f3d02b80d452ebfa7d7c271fc6576954fd1772fe7f7a93107febe2b3203', relation: analyses}
+  - {path: pid/P-06.xml, revision: 'sha256:a7192f8f95c6825224eec3988ff9a38f99c186a72e7b9831cfc3c3e1df850c82', relation: analyses}
+  - {path: pid/P-04.xml, revision: 'sha256:68b6129405f60cc9e0b5c74762ee60d1597cce8558fb93e5ff111f1bccf05f90', relation: analyses}
+  - {path: control/cause-effect.yaml, revision: 'sha256:3dafae048f21f5bb56be8d9dae94d68c51819d80d877c8f398373afa57e418fd', relation: analyses}
+  - {path: control/loops.yaml, revision: 'sha256:a7417294d1288704b77fac600cc7963a95b21a3dcaa295aef23e52e0cf9a7b30', relation: analyses}
+  - {path: control/sequences.yaml, revision: 'sha256:ce66ee0f13b94e083a963b9d4caeb2e2ccad48994a6b31e025e90c819c085197', relation: analyses}
+  - {path: piping/special-items.yaml, revision: 'sha256:b9489a725f836d0ee9559fdf36e8b3c31f9d4333d79f53b2f1b5f4880fd987c9', relation: analyses}
 risk_matrix: safety/risk-matrix.yaml
 assessment_basis: >-
   Each scenario is rated per category before its safeguards (initial): severity is the credible
@@ -292,7 +294,13 @@ nodes:
       ESD-2 initiates ESD-1 first and closes the ERS valves after 5 s (I-503); envelope stage 1
       initiates ESD-1 (I-501); the hybrid arm's XV-5123 and XV-5125 are mutually inhibited by
       ZSC-5123 / ZSC-5125 (I-504, I-505) and a key interlock (vendor); each liquid arm section has
-      thermal relief PSV-5171 / PSV-5173 / PSV-5174 into D-5101.
+      thermal relief PSV-5171 / PSV-5173 / PSV-5174 into D-5101. Since fac0bbb5 (D-026 items 2, 3,
+      6): I-501 takes I-503 tripped as a cause, so ESD-2 trips ESD-1 at once (pumps, XV-5101,
+      tank-end valves, the carrier's ESD), and I-507 closes the ERS valves and releases the
+      couplers 5 s after I-503; I-504 / I-505 are start permissives on the open command and never
+      close an open isolation; the arm line-up is chosen from the cargo plan, L-V-H-L with the
+      hybrid as third liquid arm (return within one vapour arm) or the hybrid as second vapour arm
+      on two liquid arms.
     members: [LA-5101, LA-5102, LA-5103, LA-5104, XV-5121, XV-5122, XV-5123, XV-5124, XV-5125, XV-5131, XV-5132, XV-5133, XV-5134, XV-5141, XV-5142, XV-5143, XV-5144, ZS-5151, ZS-5152, ZS-5153, ZS-5154, XS-5100, BOG-5001, BOG-5003, PI-5105, TI-5106, ZSC-5123, ZSC-5125, PSV-5171, PSV-5173, PSV-5174, DR-5003, DR-5004, DR-5005]
     status: proposed
     by: agent
@@ -326,9 +334,11 @@ nodes:
               ESD-2 initiated (ZS-5151 fault, spurious or justified envelope trip) while LNG is still
               flowing at the full rate. Before 589c9ca7 the I-503 effects closed the ERS valves and
               XV-5101 without stopping the loading pumps; since 589c9ca7 I-503 stops the pumps,
-              starts the XV-5101 closure (ESD-1 first) and closes the ERS valves after 5 s; the
-              cause that remains is the ERS closing while the line still flows (5 s against the
-              25 s closure of XV-5101 and the run-down of the pumps).
+              starts the XV-5101 closure (ESD-1 first) and closes the ERS valves after 5 s; since
+              fac0bbb5 ESD-2 trips ESD-1 through I-501 (I-503 tripped is an I-501 cause) and the
+              ERS closure sits in I-507, 5 s after I-503. The cause that remains is the ERS closing
+              while the line still flows (5 s against the 25 s closure of XV-5101 and the run-down
+              of the pumps).
             consequence: >-
               The ERS ball valves close against ~4,000 m3/h per arm: surge in the arms and header
               (closure time of the ERS valves not in the files); the couplers release with a
@@ -343,11 +353,11 @@ nodes:
               initial:
                 - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "LNG release at the manifold; matrix 4.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
               residual:
-                - {category: people, severity: "4", likelihood: A, status: proposed, by: agent, basis: "Agent proposal for the team: one layer credited, the ESD-1 actions within I-503 since 589c9ca7 (loading pumps stopped and XV-5101 closing before the ERS valves close after 5 s), which reduce the flow the ERS valves close against. Severity kept: the ERS closure time and the surge are not analysed yet (A1, D-025 not done at basic). Same logic as the cause (I-503); SIL null.", evidence: [control/cause-effect.yaml, DESIGN.md D-025], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ddcedc61b5d20d1a, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: A}}}
+                - {category: people, severity: "4", likelihood: A, status: proposed, by: agent, basis: "Agent proposal for the team: one layer credited, ESD-1 ahead of the ERS closure: since fac0bbb5 I-501, tripped at once by I-503, stops the loading pumps and starts the XV-5101 closure, and I-507 closes the ERS valves only 5 s after I-503 (D-026 item 2; before, the same actions sat inside I-503, 589c9ca7), which reduces the flow the ERS valves close against. Severity kept: the ERS closure time and the surge are not analysed yet (A1, D-025 not done at basic). Initiated by the same envelope switches as the cause; SIL null.", evidence: [control/cause-effect.yaml, DESIGN.md D-025, DESIGN.md D-026], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ddcedc61b5d20d1a, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: A}}}
             notes: >-
               I-503 is driven by any one of four position switches (logic any); a single switch
-              fault gives a spurious release (no voting added in 589c9ca7). Whether the 5 s delay
-              lets the flow fall far enough is for the surge analysis (A1).
+              fault gives a spurious release (no voting added in 589c9ca7 or fac0bbb5). Whether the
+              5 s delay of I-507 lets the flow fall far enough is for the surge analysis (A1).
       - id: N2-NF
         guide_word: "no"
         parameter: signal (ship-shore link)
@@ -395,7 +405,13 @@ nodes:
               residual:
                 - {category: asset, severity: "3", likelihood: B, status: proposed, by: agent, basis: "Agent proposal for the team: one layer credited, the mutual inhibition I-504 / I-505 on the position switches ZSC-5123 / ZSC-5125 (589c9ca7), independent of the operator's switches that are the cause; the vendor key interlock named in the C&E notes is not drawn and not counted.", evidence: [control/cause-effect.yaml, control/instrument-list.yaml], band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 579975b5e9fe3f0e, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '3', likelihood: B}}}
                 - {category: people, severity: "3", likelihood: B, status: proposed, by: agent, basis: "As the asset residual.", evidence: [control/cause-effect.yaml], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: aa86891dd127d418, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: B}}}
-            notes: Revised for 589c9ca7 (D-025 item 4); I-504 / I-505 answer A13.
+            notes: >-
+              Revised for 589c9ca7 (D-025 item 4); I-504 / I-505 answer A13. Since fac0bbb5 (D-026
+              item 3) they are start permissives on the open command: the second isolation cannot
+              be opened unless the switch proves the first closed, and an open isolation is never
+              closed by them, so a failed ZSC signal cannot close an arm in service. A ZSC-5123 or
+              ZSC-5125 falsely showing 'closed' defeats the permissive (the vendor key interlock
+              is then the only barrier); the residual keeps its code.
       - id: N2-HP
         guide_word: more
         parameter: pressure (vapour return back-pressure)
@@ -548,7 +564,8 @@ nodes:
             actions: [A9, A11, A12]
             notes: >-
               Since 589c9ca7 I-603 initiates I-601 first and closes the ERS valves after 5 s, and
-              envelope stage 1 initiates I-601 (as S10, S11 for Berth 2). The scenario combines
+              envelope stage 1 initiates I-601 (as S10, S11 for Berth 2); since fac0bbb5 the ERS
+              closure is I-607, 5 s after I-603, and I-603 is a cause of I-601 (D-026 item 2). The scenario combines
               three causes; no residual is proposed for the combined row (see S10 to S12).
             status: proposed
             by: agent
@@ -586,7 +603,7 @@ safeguards:
   - {id: SG9, title: PDI-5102 strainer differential pressure, kind: other, refs: [PDI-5102], status: proposed, by: agent}
   - {id: SG10, title: "Cooldown at 500 m3/h on FIC-4101 with TI-5104 and the ESD test after cooldown (SEQ-LOAD S3)", kind: procedural, refs: [FIC-4101, TI-5104], status: proposed, by: agent}
   - {id: SG11, title: "Envelope monitoring ZS-5151..ZS-5154 pre-alarm (instrument list)", kind: alarm, refs: [ZS-5151, ZS-5152, ZS-5153, ZS-5154], status: proposed, by: agent}
-  - {id: SG12, title: "Interlock I-503: ESD-2 initiates ESD-1 (pumps stopped, XV-5101 closing), closes the ERS valves XV-5131..XV-5144 after 5 s and releases the couplers", kind: interlock, interlock: I-503, refs: [ZS-5151, XV-5131, XV-5141, XV-5101], status: proposed, by: agent, notes: "ESD-1 first and the 5 s delay since 589c9ca7 (D-025 item 4)."}
+  - {id: SG12, title: "ESD-2 of Berth 2: I-503 on the envelope switches trips ESD-1 (I-501) at once; I-507 closes the ERS valves XV-5131..XV-5134 / XV-5141..XV-5144 and releases the couplers 5 s after I-503", kind: interlock, interlock: I-507, refs: [ZS-5151, XV-5131, XV-5141, XV-5101], status: proposed, by: agent, notes: "ESD-1 first and the 5 s delay since 589c9ca7 (D-025 item 4); since fac0bbb5 the ERS closure and release are the separate interlock I-507 (delay 5 s, latching, manual reset) and ESD-2 reaches ESD-1 as a cause of I-501 (D-026 item 2). SIL null."}
   - {id: SG13, title: "Loading permissives: carrier moored and mooring loads within limits, wind below 30 kn, waves below 1.5 m (SEQ-LOAD, S-01)", kind: procedural, refs: [XS-5100], status: proposed, by: agent}
   - {id: SG14, title: "Link healthy as a loading permissive (SEQ-LOAD)", kind: procedural, refs: [XS-5100], status: proposed, by: agent}
   - {id: SG15, title: "PI-5105 Berth 2 vapour line pressure indication", kind: other, refs: [PI-5105], status: proposed, by: agent}
@@ -598,7 +615,7 @@ safeguards:
   - {id: SG21, title: "Interlock I-602: PZT-6103 back-pressure high-high", kind: interlock, interlock: I-602, refs: [PZT-6103], status: proposed, by: agent}
   - {id: SG22, title: Surge relief PSV-6131 of the Berth 1 header into D-6101, kind: relief, refs: [PSV-6131], status: proposed, by: agent}
   - {id: SG23, title: "LIC-6111 D-6101 level: starts and stops P-6101, high-high alarm", kind: control, refs: [LIC-6111, P-6101], status: proposed, by: agent}
-  - {id: SG24, title: "Interlock I-603: Berth 1 ESD-2 (ERS)", kind: interlock, interlock: I-603, refs: [ZS-6151, XV-6131], status: proposed, by: agent}
+  - {id: SG24, title: "ESD-2 of Berth 1: I-603 trips ESD-1 (I-601) at once; I-607 closes the ERS valves XV-6131..XV-6144 and releases the couplers 5 s after I-603", kind: interlock, interlock: I-607, refs: [ZS-6151, XV-6131], status: proposed, by: agent, notes: "As SG12 for Berth 1; ERS closure in I-607 since fac0bbb5 (D-026 item 2). SIL null."}
   - {id: SG25, title: "Interlock I-506: independent D-5101 high-high level LZT-5112 closes the header drain XV-5161", kind: interlock, interlock: I-506, refs: [LZT-5112, XV-5161], status: proposed, by: agent, notes: "Added in 589c9ca7 (D-025 item 4); does not stop the relief inflow downstream of XV-5161 (S21); SIL null."}
   - {id: SG26, title: "Header drain XV-5161 fail closed, closed in cooldown and loading (SEQ-LOAD S0 completion) and by ESD-1 (I-501)", kind: procedural, refs: [XV-5161, HS-5161], status: proposed, by: agent, notes: "Added in 589c9ca7; prevents the S3 cause, opened only in SEQ-LOAD S6."}
   - {id: SG27, title: "Check valve CV-5116 and isolation HV-5117 on the P-5101 discharge LNG-5006", kind: check-valve, refs: [CV-5116, HV-5117], status: proposed, by: agent, notes: "Added in 589c9ca7 (D-025 item 4)."}
@@ -610,19 +627,19 @@ safeguards:
   - {id: SG33, title: "Check valve CV-6116 and isolation HV-6117 on the P-6101 discharge LNG-6006", kind: check-valve, refs: [CV-6116, HV-6117], status: proposed, by: agent, notes: "Added in 589c9ca7."}
 actions:
   - {id: A1, status: proposed, by: agent, text: "Complete the transient surge analysis of D-023 for the carrier-side closure (the ship's ESD valve closure time from the carrier data, SIGTTO/OCIMF practice) and for the ERS valve closure, and confirm the capacity of PSV-5131 / PSV-6131 and of D-5101 / D-6101 for the relieved volume; agree the maximum closure rate with each carrier at the pre-transfer meeting."}
-  - {id: A2, status: proposed, by: agent, text: "C&E change: record the XV-5101 / XV-6101 closure time (25-30 s, D-016) and the delay after the pump stop as effects parameters of I-501 / I-601 (and I-502 / I-602), and require a closure-time test at commissioning and in the proof test.", response: "Partly answered by commit 589c9ca7: the I-501 / I-601 notes state the order (loading pumps first, then XV-5101 / XV-6101 in 25 s) and that the closure time is a safety requirement (D-023). Still open: closure time and delay as effect parameters of I-501 / I-601 and I-502 / I-602 (the C&E has a delay field, not used there), and the closure-time test."}
+  - {id: A2, status: proposed, by: agent, text: "C&E change: record the XV-5101 / XV-6101 closure time (25-30 s, D-016) and the delay after the pump stop as effects parameters of I-501 / I-601 (and I-502 / I-602), and require a closure-time test at commissioning and in the proof test.", response: "Partly answered by commit 589c9ca7: the I-501 / I-601 notes state the order (loading pumps first, then XV-5101 / XV-6101 in 25 s) and that the closure time is a safety requirement (D-023). Still open: closure time and delay as effect parameters of I-501 / I-601 and I-502 / I-602 (the C&E has a delay field, not used there), and the closure-time test. Commit fac0bbb5 (D-026 item 2) uses the delay field for the ERS closure: I-507 / I-607 close the ERS valves 5 s after ESD-2 (I-503 / I-603), which now trips ESD-1 at once; the XV-5101 / XV-6101 closure time is still only in the I-501 / I-601 notes. Still proposed."}
   - {id: A3, status: proposed, by: agent, text: "P&ID P-05 / P-06 change: add drain isolation on DR-5001 / DR-6001 (normally closed in cooldown and loading, double block where it opens to D-5101) with the PSV-5131 / PSV-6131 discharge tied in downstream of it, and state the drain line-up in SEQ-LOAD S6.", response: "Answered in the design by commit 589c9ca7 (D-025 item 4; review 2026-11-05 critical #1): header drain valve XV-5161 / XV-6161 (fail closed, HS-5161 / HS-6161), closed in SEQ-LOAD S0 and by I-501 / I-601 and I-506 / I-606, opened and closed again in SEQ-LOAD S6; PSV-5131 / PSV-6131 and the arm and pump relief valves join DR-5001 / DR-6001 downstream of it. A single valve, not a double block: for the team to judge, verify and close; S3, S18 re-rated, the relief inflow with the drum high is S21."}
   - {id: A4, status: proposed, by: agent, text: "P&ID P-05 / P-06 change: add a check valve and an isolation valve on the P-5101 / P-6101 discharge LNG-5006 / LNG-6006 before the tie-in to LNG-4003.", response: "Answered in the design by commit 589c9ca7 (D-025 item 4): check valve CV-5116 / CV-6116 and isolation HV-5117 / HV-6117 on LNG-5006 / LNG-6006, with suction isolation HV-5115 / HV-6115, minimum flow LNG-5007 / LNG-6007 through FO-5118 / FO-6118, vent HV-5119 / HV-6119 and thermal relief PSV-5118 / PSV-6118. For the team to verify and close; S4, S18 re-rated."}
   - {id: A5, status: proposed, by: agent, text: "P&ID P-05 / P-06 and C&E change: add an independent high-high level switch on D-5101 / D-6101 with a defined action (stop the drain line-up, alarm) separate from LIC-5111 / LIC-6111.", response: "Answered in the design by commit 589c9ca7 (D-025 item 4): independent high-high level LZT-5112 / LZT-6112 on its own nozzle; I-506 / I-606 close the header drain XV-5161 / XV-6161. For the team to verify and close; S5, S18 re-rated."}
   - {id: A6, status: proposed, by: agent, text: "Provide a fixed O2 measurement (or a sample point on the arm vents drawn on P-05 / P-06) and make 'O2 below 1 %' and 'N2 header pressure healthy' (PI-8121) permissives of SEQ-LOAD S3 cooldown."}
-  - {id: A7, status: proposed, by: agent, text: "P&ID P-05 / P-06 change: make the N2 connection a removable spool or double block and bleed with HV-5151 / HV-6151 interlocked closed before cooldown, and state the material and design temperature of N-8001 / N-8002 in the line list.", response: "Partly answered by commit 589c9ca7 (D-025 item 4; review #18): double block and bleed HV-5151 / HV-5153 / HV-5152 with the bleed N-5001 (Berth 1: HV-6151 / HV-6153 / HV-6152, N-6001). Still open: the interlock of the N2 tie-in closed before cooldown, and the material and design temperature of N-8001 / N-8002 (not in the line list)."}
+  - {id: A7, status: proposed, by: agent, text: "P&ID P-05 / P-06 change: make the N2 connection a removable spool or double block and bleed with HV-5151 / HV-6151 interlocked closed before cooldown, and state the material and design temperature of N-8001 / N-8002 in the line list.", response: "Partly answered by commit 589c9ca7 (D-025 item 4; review #18): double block and bleed HV-5151 / HV-5153 / HV-5152 with the bleed N-5001 (Berth 1: HV-6151 / HV-6153 / HV-6152, N-6001). Still open: the interlock of the N2 tie-in closed before cooldown, and the material and design temperature of N-8001 / N-8002 (not in the line list). Commit fac0bbb5 writes the block and bleed line-up into SEQ-LOAD S2 and S6 (bleed HV-5153 closed while HV-5151 / HV-5152 are open for the leak test and purge, both blocks closed and the bleed opened after); still procedural, no interlock. Still proposed."}
   - {id: A8, status: proposed, by: agent, text: "State the arm cooldown rate limit (temperature change per hour from the arm vendor) and the TI-5104 / TI-6104 criterion in SEQ-LOAD S3."}
   - {id: A9, status: proposed, by: agent, text: "Show the mooring load monitoring (quick-release hooks, S-01) and the wind measurement as signals of the loading permissive and of a pre-alarm / ESD-1 in the C&E; they are named in SEQ-LOAD only as text."}
   - {id: A10, status: proposed, by: agent, text: "Ask the arm vendor for the envelope zones (pre-alarm, ESD-1, ESD-2) and their margins against the carrier drift speed; record them in the instrument list for ZS-5151..ZS-5154 / ZS-6151..ZS-6154.", response: "Partly answered by commit 589c9ca7: envelope stage 1 of ZS-5151..ZS-5154 (ZS-6151..ZS-6154) now initiates ESD-1 (I-501 / I-601) and stage 2 ESD-2 (I-503 / I-603). Still open: the vendor's zones and their margins against the drift speed in the instrument list."}
-  - {id: A11, status: proposed, by: agent, text: "C&E change: make I-503 / I-603 initiate I-501 / I-601 (pumps stopped, XV-5101 closing) before the ERS valves close, with the ERS closure time and the delay as effect parameters; consider voting of the envelope switches for the release step. Also reconcile the instrument list, which says UZ-5131..UZ-5144 close on ESD-1 (I-501), with I-501, whose effects do not include them.", response: "Mostly answered by commit 589c9ca7 (D-025 item 4): I-503 / I-603 initiate ESD-1 first and close the ERS valves after a 5 s delay (C&E delay field); the instrument list now says UZ-5131 closes on ESD-2, not ESD-1. Still open for the team: the ERS closure time (vendor, D-023) and the voting of the envelope switches (logic any, unchanged). S11 re-rated."}
+  - {id: A11, status: proposed, by: agent, text: "C&E change: make I-503 / I-603 initiate I-501 / I-601 (pumps stopped, XV-5101 closing) before the ERS valves close, with the ERS closure time and the delay as effect parameters; consider voting of the envelope switches for the release step. Also reconcile the instrument list, which says UZ-5131..UZ-5144 close on ESD-1 (I-501), with I-501, whose effects do not include them.", response: "Mostly answered by commit 589c9ca7 (D-025 item 4): I-503 / I-603 initiate ESD-1 first and close the ERS valves after a 5 s delay (C&E delay field); the instrument list now says UZ-5131 closes on ESD-2, not ESD-1. Still open for the team: the ERS closure time (vendor, D-023) and the voting of the envelope switches (logic any, unchanged). S11 re-rated. Commit fac0bbb5 (DESIGN.md D-026 item 2; review 2026-11-05-basic-design-2#4) restructures it as asked: I-501 / I-601 take I-503 / I-603 tripped as a cause, so ESD-2 trips ESD-1 with no delay, and the ERS closure and coupler release are the separate interlocks I-507 / I-607 with the 5 s delay after I-503 / I-603; SG12 / SG24 credit I-507 / I-607. The ERS closure time and the voting remain open. Still proposed."}
   - {id: A12, status: proposed, by: agent, text: "C&E change: state that a fault of the ship-shore link XS-5100 / XS-6100 initiates ESD-1 (fail-safe) and give the link's power supply (UPS) in the files."}
   - {id: A13, status: proposed, by: agent, text: "Interlock XV-5123 / XV-5125 (XV-6123 / XV-6125) so that the hybrid arm cannot be open to the liquid header and the vapour line at once (position feedback, C&E entry).", response: "Answered in the design by commit 589c9ca7 (D-025 item 4; review #3): position switches ZSC-5123 / ZSC-5125 (ZSC-6123 / ZSC-6125) and the permissives I-504 / I-505 (I-604 / I-605), plus a vendor key interlock at the arm. For the team to verify and close; S13, S20 re-rated."}
-  - {id: A14, status: proposed, by: agent, text: "Add a high pressure alarm on PI-5105 / PI-6105 with the response (rate reduction, hybrid arm to vapour duty), and state in SEQ-LOAD S4 when the hybrid arm is switched to vapour service; confirm the carrier's return against the arm capacity (D-023)."}
+  - {id: A14, status: proposed, by: agent, text: "Add a high pressure alarm on PI-5105 / PI-6105 with the response (rate reduction, hybrid arm to vapour duty), and state in SEQ-LOAD S4 when the hybrid arm is switched to vapour service; confirm the carrier's return against the arm capacity (D-023).", response: "Partly answered by commit fac0bbb5 (DESIGN.md D-026 item 6; SEQ-LOAD S4 operator text): two arm line-ups chosen from the cargo plan, (a) L-V-H-L with the hybrid as third liquid arm at 12,000 m3/h and the return limited to one vapour arm (~23.5 t/h, the carrier burns the balance on board, S-01), (b) the hybrid as second vapour arm on two liquid arms at ~8,000 m3/h (ASSUMED) with up to ~47 t/h of return; to be checked against carrier data in detail engineering. Still open: the high pressure alarm on PI-5105 / PI-6105 with its response. Still proposed."}
   - {id: A15, status: proposed, by: agent, text: "P&ID P-05 / P-06 change: draw the drip trays under the arms and manifold and the spill route to T-8102, routed so that LNG cannot reach the sea water (rapid phase transition), and the cryogenic spill protection of the platform steel."}
   - {id: A16, status: proposed, by: agent, text: "Make 'arm drained (D-5101 level steady) and hydrocarbons below 2 %' a measured permissive of the coupler release at disconnection (SEQ-LOAD S6), with the measuring point drawn."}
   - {id: A17, status: proposed, by: agent, text: "Confirm the D-5101 / D-6101 hold-up for the largest relieved volume (surge relief PSV-5131 / PSV-6131 and the arm thermal relief) with the drain XV-5161 / XV-6161 closed by I-506 / I-606, and give LZT-5112 / LZT-6112 a defined response for the relief case (alarm, P-5101 / P-6101 start, ESD-1 during loading), since the relief outlets join downstream of the drain valve."}

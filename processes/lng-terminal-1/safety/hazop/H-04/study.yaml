@@ -3,7 +3,9 @@
 # hazop-study; workflow: safety/README.md and the skill hazop-study.
 # Drafted by an agent from the plant as drawn (P-07, P-01 rev A, C&E, loops,
 # sequences, special items) and revised by an agent to the P&IDs, C&E and sequences of
-# commit 589c9ca7 (DESIGN.md D-025). Every entry is a proposal for the team: status proposed.
+# commit 589c9ca7 (DESIGN.md D-025), then to those of commit fac0bbb5 (DESIGN.md D-026:
+# PSV-7105 and FL-7001 removed, ZSO-7121A-C and PZT-7113 with I-705A-C, the vendor trips in
+# I-702, XV-7125x proven open in SEQ-BOG-START). Every entry is a proposal for the team.
 schema: cheme/hazop-study/v1
 kind: hazop-study
 id: H-04
@@ -14,11 +16,14 @@ scope: >-
   header FL-8001, since 589c9ca7 the SIS vent XV-1115 in its bypass FL-1001, and the make-up
   PIC-1111 / PV-1111, since 589c9ca7 from the trains' fuel gas FG-1001 through FO-1117 instead of
   BOG-1009, removed) and of the BOG system on P-07: desuperheater TV-7103 (TIC-7103), suction
-  drum D-7101 (LIC-7102 / LV-7102, LZT-7106, PSV-7105), compressors K-7101A/B/C with anti-surge
+  drum D-7101 (LIC-7102 / LV-7102, LZT-7106; open to the tanks without a relief valve of its own
+  since fac0bbb5, D-026 item 12), compressors K-7101A/B/C with anti-surge
   UIC-7104A..C / UV-7104A..C and, since 589c9ca7, the recycle isolation XV-7125A..C (fail open)
   returning upstream of the desuperheater (BOG-7008, BOG-7009, BOG-7012), suction ESD valves
-  XV-7121A..C, discharge isolation XV-7123A..C, depressurising vents HV-7124A..C (FL-7003..FL-7005),
-  machine protection VZ-7110A..C (I-702, I-702B, I-702C), discharge temperature trips
+  XV-7121A..C with, since fac0bbb5, their open-position switches ZSO-7121A..C and the suction
+  header low-low PZT-7113 (I-705A..C), discharge isolation XV-7123A..C, depressurising vents
+  HV-7124A..C (FL-7003..FL-7005), machine protection VZ-7110A..C (vendor unit control panel
+  trips, I-702, I-702B, I-702C), discharge temperature trips
   TZT-7112A..C (I-703A..C), discharge header BOG-7002 with PSV-7111 and the battery-limit ESD
   valve XV-7130 (I-704) to the trains. The tank pressure deviations as seen by the tanks are in
   H-01; the carrier de-inerting switch on P-04 in H-02; the flare and KO drum in H-05. Not covered: the trains' end-flash / fuel gas system beyond the battery limit, the
@@ -29,12 +34,12 @@ modes:
   - {id: cooldown, title: Cooldown, description: "Carrier and arm cooldown vapour, warmer and variable, through the vapour return."}
   - {id: startup, title: Start-up and shutdown, description: "Compressor start on full recycle and loading (SEQ-BOG-START), stop and trip."}
 analysed:
-  - {path: pid/P-07.xml, revision: 'sha256:b8fc197d1f90adc2ffddeaa2d39bb80411de24f786dd1738d80c513207677e14', relation: analyses}
-  - {path: pid/P-01.xml, revision: 'sha256:5c6fb47d5843e41da968c010b842db61b6180d53a81a7b9f5697cd9f8b78da09', relation: analyses}
-  - {path: control/cause-effect.yaml, revision: 'sha256:20820468dff474bd4d438fb857b9413f131c6f12c5d8eb850a33dba685e43e5f', relation: analyses}
-  - {path: control/loops.yaml, revision: 'sha256:87745b629db15e255aec60ffb28bd670c9148c30788e2a72a7c7919016cdaf3a', relation: analyses}
-  - {path: control/sequences.yaml, revision: 'sha256:f6f9a91cade93cb42bfb48a3cb02a12444f111f79f015efcad58220b0c4013dd', relation: analyses}
-  - {path: piping/special-items.yaml, revision: 'sha256:8643b4bed3c6157111224c76178739de67f5f55dac066e5a114942d57644e2a0', relation: analyses}
+  - {path: pid/P-07.xml, revision: 'sha256:ecbbaa7e74fdfa9ff5ace77cfe0b2a37a61dcd9427d4b1bba758f5d0e863f202', relation: analyses}
+  - {path: pid/P-01.xml, revision: 'sha256:dc74a740c6ee6e748a6cf5cae72dcc09e7f49368eb21a3970a3f9c6277be3d58', relation: analyses}
+  - {path: control/cause-effect.yaml, revision: 'sha256:3dafae048f21f5bb56be8d9dae94d68c51819d80d877c8f398373afa57e418fd', relation: analyses}
+  - {path: control/loops.yaml, revision: 'sha256:a7417294d1288704b77fac600cc7963a95b21a3dcaa295aef23e52e0cf9a7b30', relation: analyses}
+  - {path: control/sequences.yaml, revision: 'sha256:ce66ee0f13b94e083a963b9d4caeb2e2ccad48994a6b31e025e90c819c085197', relation: analyses}
+  - {path: piping/special-items.yaml, revision: 'sha256:b9489a725f836d0ee9559fdf36e8b3c31f9d4333d79f53b2f1b5f4880fd987c9', relation: analyses}
 risk_matrix: safety/risk-matrix.yaml
 assessment_basis: >-
   Each scenario is rated per category before its safeguards (initial): severity is the credible
@@ -53,7 +58,9 @@ notes: >-
   safeguard-crediting). K-7101B and K-7101C are identical to K-7101A: scenarios name the A
   machine. Fail positions are those of control/loops.yaml and, for the valves added in
   589c9ca7, of the instrument list (XV-1115, XV-7123A..C and XV-7130 fail closed, XV-7125A..C
-  fail open); the fail position of XV-7121A..C is not in the files.
+  fail open); the fail position of XV-7121A..C was not in the files at 589c9ca7 and is given as
+  fail closed by D-026 item 5 (fac0bbb5). The fac0bbb5 revision rates the new scenario S25 before
+  safeguards only; S13 and S14 keep their ids and are re-described without the removed D-7101 relief valve.
 nodes:
   - id: N1
     title: Tank vapour header BOG-1001 with pressure control to the flare and make-up gas
@@ -64,8 +71,10 @@ nodes:
       trips I-203 / I-303 open the SIS vent XV-1115 (fail closed, energise-to-trip, own air
       accumulator) in the bypass FL-1001 of PV-1110; PIC-1111 admits fuel gas from the trains
       (FG-1001, through the restriction orifice FO-1117 and PV-1111, fails closed) below 6 kPa(g)
-      (D-017, D-025 item 1). No isolation valve is drawn between the tanks, the header and D-7101;
-      no check valve or battery-limit isolation is drawn on FG-1001.
+      (D-017, D-025 item 1). No isolation valve is drawn between the tanks, the header and D-7101
+      (BOG-1001, DN 750), so the tank relief valves PSV-2131A/B/C / PSV-3131A/B/C also protect
+      D-7101 and its suction header (D-026 item 12); no check valve or battery-limit isolation is
+      drawn on FG-1001.
     members: [BOG-1001, BOG-1003, BOG-4001, BOG-4002, PIC-1110, PV-1110, FL-8001, PIC-1111, PV-1111, FG-1001, FO-1117, XV-1115, UZ-1115, FL-1001, TI-1112]
     status: proposed
     by: agent
@@ -99,8 +108,11 @@ nodes:
                 - {category: people, severity: "4", likelihood: A, status: proposed, by: agent, basis: "Agent proposal for the team: one layer credited, I-203 / I-303 opening the SIS vent XV-1115 (589c9ca7), independent of PIC-1111 / PV-1111 (the cause) and of PV-1110. FO-1117 is not credited until its size and the fuel-gas pressure are stated (A1).", evidence: [control/cause-effect.yaml, piping/line-list.yaml, DESIGN.md D-025], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ddcedc61b5d20d1a, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: A}}}
                 - {category: asset, severity: "4", likelihood: A, status: proposed, by: agent, basis: "As the people residual: XV-1115 credited as one layer.", evidence: [control/cause-effect.yaml], band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: eca0767de9ee2296, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: A}}}
             notes: >-
-              The relief case 'control valve failure open' (skill relief-scenarios) is not among
-              the relief cases of PSV-2131A/B/C in the special items. Revised for 589c9ca7.
+              At 589c9ca7 the relief case 'control valve failure open' (skill relief-scenarios)
+              was not among the relief cases of PSV-2131A/B/C. Since fac0bbb5 (D-026 item 8) the
+              fuel gas blow-by through FO-1117 with PV-1111 failed open is a relief case of
+              PSV-2131A/B/C and PSV-3131A/B/C (special items) and on the detail-stage relief sizing
+              list; the PSVs are not credited until sized (A1).
           - id: S2
             cause: >-
               Carrier's return above the design (warm carrier tanks, carrier cooldown, the
@@ -321,9 +333,14 @@ nodes:
       Cool the return vapour from about -120 degC to -140 degC by spraying LNG (3.5 t/h at loading,
       from LNG-2002 / LNG-4008) through TV-7103 (fails closed) on TIC-7103; knock out droplets and
       carry-over in D-7101 (normally dry); LIC-7102 drains liquid through LV-7102 (fails closed) and
-      DR-7001 to D-8101; LZT-7106 high-high trips the compressors (I-701); PSV-7105 (2.5 barg) on
-      the inlet to the flare (D-010).
-    members: [TV-7103, TIC-7103, LNG-4008, D-7101, LIC-7102, LV-7102, LZT-7106, DR-7001, PSV-7105, FL-7001, PIC-7101]
+      DR-7001 to D-8101; LZT-7106 high-high trips the compressors (I-701) (D-010). Since fac0bbb5
+      the drum has no relief valve of its own: the suction relief valve and its flare line of
+      589c9ca7 are removed because D-7101 and its suction header are open to the tanks through
+      BOG-1001 (DN 750) with no valve between, so neither a blocked outlet nor a fire can raise
+      them above the tank pressure; fire vapour vents back to the tank vapour space and the tank
+      relief valves PSV-2131A/B/C / PSV-3131A/B/C protect the drum, designed for 3.5 barg (D-026
+      item 12).
+    members: [TV-7103, TIC-7103, LNG-4008, D-7101, LIC-7102, LV-7102, LZT-7106, DR-7001, PIC-7101, BOG-1001]
     status: proposed
     by: agent
     deviations:
@@ -440,9 +457,10 @@ nodes:
               UV-7104A and BOG-7008 into BOG-1001.
             consequence: >-
               Gas at 600 kPa(a) into D-7101 (3.5 barg design) and, through BOG-1001 without any
-              isolation, into the tanks (+29 kPa(g) design): PSV-7105 (2.5 barg) cannot protect the
-              tanks; tank PSVs vent to atmosphere; tank roof overpressure beyond their capacity.
-            refs: [K-7101A, UV-7104A, XV-7125A, BOG-7008, {sheet: P-07, object: CV7122A}, XV-7121A, XV-7123A, XV-7130, BOG-7002, D-7101, PSV-7105]
+              isolation, into the tanks (+29 kPa(g) design): the tank PSVs, the only relief of the
+              tanks, the header and D-7101 since fac0bbb5 (D-026 item 12), vent to atmosphere; tank
+              roof overpressure beyond their capacity.
+            refs: [K-7101A, UV-7104A, XV-7125A, BOG-7008, {sheet: P-07, object: CV7122A}, XV-7121A, XV-7123A, XV-7130, BOG-7002, D-7101, PSV-2131A]
             modes: [startup, holding, loading]
             safeguards: [SG21, SG25, SG26, SG2, SG3]
             actions: [A8, A9]
@@ -458,21 +476,27 @@ nodes:
             notes: >-
               Revised for 589c9ca7: A8 is answered (check valves downstream of the recycle tees,
               discharge isolation XV-7123A..C, battery-limit XV-7130 with I-704); A9 only in part.
+              Revised for fac0bbb5: the suction relief valve named in the earlier consequence is
+              removed (D-026 item 12); it was not credited, so the ratings keep their codes.
           - id: S14
             cause: >-
               Header blocked toward the compressors (all XV-7121A..C closed after I-701) with
               PV-1110 failed closed; fire at D-7101.
             consequence: >-
               The header pressure rises; because D-7101 cannot be isolated from the tanks, the tank
-              PSVs at +29 kPa(g) lift long before PSV-7105 at 2.5 barg: the stated blocked-outlet
-              case of PSV-7105 does not occur as written; the fire case of D-7101 remains.
-            refs: [PSV-7105, D-7101, XV-7121A, PV-1110, XV-1115, PSV-2131A]
-            safeguards: [SG3, SG16, SG2]
+              PSVs at +29 kPa(g) lift long before the 3.5 barg drum design is reached; fire vapour
+              from D-7101 vents back through BOG-1001 into the tank vapour space and leaves by
+              PV-1110, XV-1115 or the tank PSVs (D-026 item 12). Fire on D-7101 adds to the tank
+              relief load.
+            refs: [D-7101, BOG-1001, XV-7121A, PV-1110, XV-1115, PSV-2131A, PSV-3131A]
+            safeguards: [SG3, SG2]
             actions: [A10]
             notes: >-
-              Since 589c9ca7 the relief case of PSV-7105 is restated as fire on D-7101 and the
-              suction header, the inlet being open to the tanks (special items): answers A10. The
-              tank-side outlet is now also XV-1115 (I-203 / I-303).
+              At 589c9ca7 the relief case of the suction relief valve was restated as fire on
+              D-7101 and the suction header. fac0bbb5 removes that valve and its flare line (D-026
+              item 12): the drum is protected by the tank relief valves through the open BOG-1001;
+              whether the D-7101 fire case is in the tank PSV relief cases is for the relief study
+              (A10). The tank-side outlet is also XV-1115 (I-203 / I-303). Ratings kept.
             status: proposed
             by: agent
             risk:
@@ -491,7 +515,14 @@ nodes:
       the discharge isolation XV-7123A..C (fail closed); trips I-701, I-702 / I-702B / I-702C,
       I-703A..C on TZT-7112A..C; relief PSV-7111 (7.5 barg) to the flare; battery-limit ESD valve
       XV-7130 (fail closed) closed by I-704 when all machines have stopped (D-010, D-025 item 5).
-    members: [K-7101A, K-7101B, K-7101C, UIC-7104A, UV-7104A, UIC-7104B, UV-7104B, UIC-7104C, UV-7104C, XV-7121A, XV-7121B, XV-7121C, VZ-7110A, VZ-7110B, VZ-7110C, BOG-7001, BOG-7002, BOG-7008, BOG-7009, BOG-7012, PSV-7111, PI-7108, TI-7107, FI-7109, XV-7123A, XV-7123B, XV-7123C, XV-7125A, XV-7125B, XV-7125C, HV-7124A, HV-7124B, HV-7124C, FL-7003, FL-7004, FL-7005, TZT-7112A, TZT-7112B, TZT-7112C, XV-7130]
+      Since fac0bbb5 (D-026 item 5): I-702 / I-702B / I-702C name the vendor unit control panel
+      trips (vibration and bearings, dry gas seal, lube oil, motor protection, discharge pressure
+      high-high below PSV-7111), to be confirmed with the vendor; I-705A..C stop a running
+      machine and close its XV-7123x when ZSO-7121x loses the open position of the fail-closed
+      suction valve or PZT-7113 reads the common suction header BOG-7001 low-low (bypassed in
+      SEQ-BOG-START S1 until XV-7121x is open); SEQ-BOG-START S1 has XV-7125x proven open before
+      the start.
+    members: [K-7101A, K-7101B, K-7101C, UIC-7104A, UV-7104A, UIC-7104B, UV-7104B, UIC-7104C, UV-7104C, XV-7121A, XV-7121B, XV-7121C, VZ-7110A, VZ-7110B, VZ-7110C, BOG-7001, BOG-7002, BOG-7008, BOG-7009, BOG-7012, PSV-7111, PI-7108, TI-7107, FI-7109, XV-7123A, XV-7123B, XV-7123C, XV-7125A, XV-7125B, XV-7125C, HV-7124A, HV-7124B, HV-7124C, FL-7003, FL-7004, FL-7005, TZT-7112A, TZT-7112B, TZT-7112C, XV-7130, ZSO-7121A, ZSO-7121B, ZSO-7121C, PZT-7113]
     status: proposed
     by: agent
     deviations:
@@ -503,17 +534,23 @@ nodes:
             cause: >-
               Suction flow below the surge line: low boil-off in holding (one 27 t/h machine for
               21.9 t/h), the end of a loading when the carrier's return stops, a compressor started
-              with PIC-7101 in auto, or UIC-7104A / UV-7104A failing to open (stuck).
+              with PIC-7101 in auto, or UIC-7104A / UV-7104A failing to open (stuck); or (added for
+              fac0bbb5) the fail-closed suction valve XV-7121A closing on a running machine
+              (instrument air failure, spurious closure) or the suction header pressure falling.
             consequence: Surge with flow reversal, vibration, thrust bearing and seal damage; repeated surge can destroy the machine.
-            refs: [K-7101A, UIC-7104A, UV-7104A, VZ-7110A]
-            safeguards: [SG17, SG18]
+            refs: [K-7101A, UIC-7104A, UV-7104A, VZ-7110A, XV-7121A, ZSO-7121A, PZT-7113]
+            safeguards: [SG17, SG18, SG28]
             actions: [A16]
             status: proposed
             by: agent
             risk:
               initial:
                 - {category: asset, severity: "4", likelihood: C, status: proposed, by: agent, basis: "Compressor damage; matrix 4 = loss of the unit (machine). C: low-flow events are routine in holding.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 93e154c44de9f515, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: C}}}
-            notes: VZ-7110A / I-702 stops the machine after damage has begun; the team to judge what it protects.
+            notes: >-
+              VZ-7110A / I-702 stops the machine after damage has begun; the team to judge what it
+              protects. Since fac0bbb5 I-705A (ZSO-7121A, PZT-7113) stops the machine when its
+              suction valve leaves the open position or the suction header is low-low (D-026 item
+              5), for the suction-side causes only; no residual is proposed for the combined row.
           - id: S23
             cause: >-
               The recycle isolation XV-7125A (fail open, closed by the operator only to isolate
@@ -533,8 +570,11 @@ nodes:
               initial:
                 - {category: asset, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Compressor damage by surge; matrix 4 = loss of the unit (machine). B: a maintenance isolation not removed, once in the plant life.", evidence: [control/instrument-list.yaml, control/sequences.yaml], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: f33c22768a8b83e6, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: B}}}
             notes: >-
-              New scenario for 589c9ca7 (D-025 item 5). SEQ-BOG-START has UIC-7104A in auto as a
-              permissive but not XV-7125A open, nor the opening of XV-7123A to load the machine.
+              New scenario for 589c9ca7 (D-025 item 5). Since fac0bbb5 SEQ-BOG-START S1 begins
+              with 'XV-7125A (recycle isolation) proven open' by the operator before XV-7121A
+              opens and K-7101A starts (A19 in part): a procedural check, no position switch on
+              XV-7125A is drawn and it is not a permissive of the sequence, so no residual is
+              proposed. The opening of XV-7123A is still not a step.
       - id: N3-HT
         guide_word: more
         parameter: temperature
@@ -638,6 +678,41 @@ nodes:
               initial:
                 - {category: environment, severity: "2", likelihood: C, status: proposed, by: agent, basis: "Continuous flaring; matrix 2 = minor release off site. C: a manual valve left open, several times in the plant life.", evidence: [piping/line-list.yaml], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 286f676bb8108832, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '2', likelihood: C}}}
             notes: New scenario for 589c9ca7 (D-025 item 5).
+      - id: N3-NS
+        guide_word: "no"
+        parameter: flow (spurious machine stop on the suction trips)
+        description: Created by I-705A..C on ZSO-7121A..C and PZT-7113 added in fac0bbb5.
+        scenarios:
+          - id: S25
+            cause: >-
+              Spurious I-705A (I-705B, I-705C): ZSO-7121A loses its 'open' signal while XV-7121A is
+              open (switch stuck, cam slipped, wiring or a transient on the solenoid air), or the
+              single transmitter PZT-7113 on the common suction header BOG-7001 reads low-low
+              (transmitter or impulse line fault); a PZT-7113 fault stops every running machine
+              at once.
+            consequence: >-
+              The running machine stops and its discharge isolation XV-7123A closes (latching,
+              manual reset); in holding with one machine, or at loading with both on a PZT-7113
+              fault, all BOG compression is lost: the tank and carrier BOG go to the flare through
+              PV-1110 and, at high-high pressure, XV-1115 (H-01 S11, unplanned flaring above the
+              routine limit, S-02); I-704 closes XV-7130 when all machines have stopped. The
+              standby K-7101C must be started through SEQ-BOG-START.
+            refs: [ZSO-7121A, ZSO-7121B, ZSO-7121C, PZT-7113, XV-7121A, XV-7123A, K-7101A, K-7101B, BOG-7001, PV-1110]
+            modes: [holding, loading]
+            safeguards: [SG1, SG2]
+            actions: [A22]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: environment, severity: "2", likelihood: C, status: proposed, by: agent, basis: "Flaring of the BOG while the compressors are restarted; matrix 2 = minor release off site. C: a single position switch or transmitter on a trip, several spurious trips possible in the plant life.", evidence: [control/cause-effect.yaml, control/instrument-list.yaml], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 286f676bb8108832, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '2', likelihood: C}}}
+                - {category: asset, severity: "2", likelihood: C, status: proposed, by: agent, basis: "Loss of BOG compression until restart, BOG not returned to the trains; matrix 2 = plant down for days.", evidence: [control/cause-effect.yaml], band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b67377b30017f4a1, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '2', likelihood: C}}}
+            notes: >-
+              New scenario for fac0bbb5 (D-026 item 5). The demand case of I-705 (suction valve
+              closing on a running machine, instrument air failure) is the one it answers; with
+              PV-1110 failed as well the scenario becomes H-01 S11 / S12. The I-705 bypass in
+              SEQ-BOG-START S1 must be removed once XV-7121x is open: how it is removed is not in
+              the files.
 safeguards:
   - {id: SG1, title: "PIC-1110 / PV-1110 vent of the header to the storage and loading flare", kind: control, refs: [PIC-1110, PV-1110], status: proposed, by: agent}
   - {id: SG2, title: "Interlocks I-203 / I-303: tank PAHH opens the SIS vent XV-1115 to the flare and stops the fill", kind: interlock, interlock: I-203, refs: [PZT-2112, XV-1115], status: proposed, by: agent, notes: "Since 589c9ca7 its own final element XV-1115 (fail closed, energise-to-trip, own air accumulator), independent of PIC-1110 / PV-1110; I-303 alike for T-3101."}
@@ -654,9 +729,8 @@ safeguards:
   - {id: SG13, title: TI-7107 discharge temperature indication, kind: other, refs: [TI-7107], status: proposed, by: agent}
   - {id: SG14, title: "LIC-8101 KO drum level and the flare (D-8101 designed for the drum pressure)", kind: mechanical, refs: [D-8101, LIC-8101], status: proposed, by: agent}
   - {id: SG15, title: "XV-7121A suction ESD valve, closed by I-701 / I-702 / I-703A", kind: interlock, interlock: I-702, refs: [XV-7121A, VZ-7110A], status: proposed, by: agent, notes: "Not closed on a normal stop according to the C&E and SEQ-BOG-START; no longer used in S13 since 589c9ca7 (the back flow path now runs through the recycle upstream of the check valve)."}
-  - {id: SG16, title: PSV-7105 suction system relief to the flare (2.5 barg), kind: relief, refs: [PSV-7105], status: proposed, by: agent}
   - {id: SG17, title: "UIC-7104A..C anti-surge control, UV-7104A..C fail open", kind: control, refs: [UIC-7104A, UIC-7104B, UIC-7104C, UV-7104A], status: proposed, by: agent}
-  - {id: SG18, title: "Interlock I-702: VZ-7110A machine protection (vibration, bearings) stops K-7101A", kind: interlock, interlock: I-702, refs: [VZ-7110A, K-7101A], status: proposed, by: agent}
+  - {id: SG18, title: "Interlock I-702: VZ-7110A machine protection (vendor unit control panel trips) stops K-7101A", kind: interlock, interlock: I-702, refs: [VZ-7110A, K-7101A], status: proposed, by: agent, notes: "Since fac0bbb5 the C&E names the vendor trips summarised as VZ-7110x: vibration and bearing temperature, dry gas seal, lube oil, motor protection, discharge pressure high-high below PSV-7111 (D-026 item 5), to be confirmed with the vendor; a surge detection is not among them."}
   - {id: SG19, title: PSV-7111 BOG discharge relief to the flare (7.5 barg), kind: relief, refs: [PSV-7111], status: proposed, by: agent}
   - {id: SG20, title: PI-8121 N2 header pressure indication, kind: other, refs: [PI-8121], status: proposed, by: agent}
   - {id: SG21, title: Discharge check valves CV7122A..C, kind: check-valve, refs: [{sheet: P-07, object: CV7122A}, {sheet: P-07, object: CV7122B}, {sheet: P-07, object: CV7122C}], status: proposed, by: agent, notes: "Since 589c9ca7 downstream of the recycle tees (D-025 item 5)."}
@@ -666,8 +740,9 @@ safeguards:
   - {id: SG25, title: "Discharge isolation XV-7123A..C (fail closed), closed with XV-7121A..C on a trip (I-701, I-702 / I-702B / I-702C, I-703A..C)", kind: interlock, interlock: I-703A, refs: [XV-7123A, XV-7123B, XV-7123C], status: proposed, by: agent, notes: "Added in 589c9ca7; the instrument list says it closes on a stop too, the C&E only on trips (A9)."}
   - {id: SG26, title: "Interlock I-704: all BOG compressors stopped close the battery-limit ESD valve XV-7130", kind: interlock, interlock: I-704, refs: [K-7101A, K-7101B, K-7101C, XV-7130], status: proposed, by: agent, notes: "Added in 589c9ca7 (D-025 item 5): keeps the trains' system from back-feeding the stopped machines and the tanks."}
   - {id: SG27, title: "Interlocks I-703A..C: discharge temperature high-high TZT-7112A..C stops the machine and closes XV-7121x / XV-7123x", kind: interlock, interlock: I-703A, refs: [TZT-7112A, TZT-7112B, TZT-7112C], status: proposed, by: agent, notes: "Added in 589c9ca7 (D-025 item 5), independent of TIC-7103 and TI-7107."}
+  - {id: SG28, title: "Interlocks I-705A..C: ZSO-7121x not open or PZT-7113 suction header low-low stops the running machine and closes XV-7123x", kind: interlock, interlock: I-705A, refs: [ZSO-7121A, ZSO-7121B, ZSO-7121C, PZT-7113, XV-7123A], status: proposed, by: agent, notes: "Added in fac0bbb5 (D-026 item 5); the recycle XV-7125x stays open; bypassed in SEQ-BOG-START S1 until XV-7121x is open; SIL null. Its spurious action is S25."}
 actions:
-  - {id: A1, status: proposed, by: agent, text: "Relief study / P&ID P-01 change: add 'PV-1111 fully open with the BOG-7002 and trains' pressure behind it' as a relief case of the tanks and the header, or limit the make-up flow below the PV-1110 and PSV capacity (restriction orifice on BOG-1009, smaller trim), and consider a high-high header pressure trip that closes a separate make-up ESD valve.", response: "Partly answered by commit 589c9ca7 (D-025 item 1): the make-up source is now the trains' fuel gas FG-1001 with a restriction orifice FO-1117 ahead of PV-1111 (BOG-1009 removed), and I-203 / I-303 open the SIS vent XV-1115 independent of PV-1110. Still open: the size of FO-1117 and the fuel-gas pressure against the PV-1110 / XV-1115 and PSV capacity, the relief case 'PV-1111 fully open', and a trip that closes the make-up on high-high pressure (I-203 does not act on PV-1111)."}
+  - {id: A1, status: proposed, by: agent, text: "Relief study / P&ID P-01 change: add 'PV-1111 fully open with the BOG-7002 and trains' pressure behind it' as a relief case of the tanks and the header, or limit the make-up flow below the PV-1110 and PSV capacity (restriction orifice on BOG-1009, smaller trim), and consider a high-high header pressure trip that closes a separate make-up ESD valve.", response: "Partly answered by commit 589c9ca7 (D-025 item 1): the make-up source is now the trains' fuel gas FG-1001 with a restriction orifice FO-1117 ahead of PV-1111 (BOG-1009 removed), and I-203 / I-303 open the SIS vent XV-1115 independent of PV-1110. Still open: the size of FO-1117 and the fuel-gas pressure against the PV-1110 / XV-1115 and PSV capacity, the relief case 'PV-1111 fully open', and a trip that closes the make-up on high-high pressure (I-203 does not act on PV-1111). Commit fac0bbb5 (DESIGN.md D-026 item 8) adds the fuel gas blow-by through FO-1117 with PV-1111 failed open to the relief cases of PSV-2131A/B/C and PSV-3131A/B/C (special items) and to the detail-stage relief sizing list. Still open: the FO-1117 size and fuel-gas pressure, the sizing itself, and a make-up trip on high-high pressure. Still proposed."}
   - {id: A2, status: proposed, by: agent, text: "Utility failure review: give PV-1110 and the anti-surge valves an assured action on loss of instrument air (air receivers or accumulators, or review the PV-1110 fail position) so that the BOG keeps an outlet other than the tank PSVs; add a low instrument-air pressure alarm and action on PI-8122 to the C&E.", response: "Partly answered by commit 589c9ca7 (D-025 item 1, control/philosophy.md F-AIR): the SIS vent XV-1115 opens on I-203 / I-303 from its own air accumulator, PV-1110 stays fail closed on purpose (a fail-open vent with the fail-closed make-up would depressurise the tanks), the recycle isolation XV-7125A..C fails open. Still open: the accumulator duration, the PSV relief case for the utility failure (named, sizing not done, D-025), and a low instrument-air alarm and action on PI-8122."}
   - {id: A3, status: proposed, by: agent, text: "Flare study: size FL-8001 / D-8101 / FL-8101 for the cumulative load of the common-cause cases (power failure at loading: carrier return, boil-off, line flash, cooldown vapour, PSV-7111), not only the ~54 t/h compressor trip (D-017), and list which loads are on UPS (control system, PV-1110 solenoid, ship-shore link)."}
   - {id: A4, status: proposed, by: agent, text: "P&ID P-07 / P-01 change: give the make-up a source that does not depend on the running compressors (e.g. from the trains' fuel gas header through a pressure reducing station, with the battery-limit connection drawn), or show and confirm that BOG-7002 stays pressurised from the trains after I-204 / I-304; record the answer in DESIGN.md D-017.", response: "Answered in the design by commit 589c9ca7 (D-025 item 1; review #13): the make-up comes from the trains' fuel gas FG-1001 (battery-limit off-page drawn on P-01) through FO-1117 and PV-1111, independent of the BOG compressors; BOG-1009 removed; recorded in DESIGN.md D-025. For the team to verify and close; the fuel-gas capacity and availability are followed in A17."}
@@ -675,16 +750,17 @@ actions:
   - {id: A6, status: proposed, by: agent, text: "Determine the required integrity of I-701 (single LZT-7106) as the only layer against carry-over to all three machines; consider a high-high spray / low suction temperature cut-out that closes TV-7103 independently of TIC-7103."}
   - {id: A7, status: proposed, by: agent, text: "State the spray source during loading (circulation pump running, or the loading header back-feeding LNG-2002) in SEQ-LOAD and SEQ-BOG-START, and add a high suction temperature alarm / trip on the compressor inlet independent of TIC-7103.", response: "Mostly answered by commit 589c9ca7: SEQ-LOAD S0 starts the circulation pump P-2102 and states that it keeps the desuperheater spray during loading; the discharge temperature trips TZT-7112A..C / I-703A..C act independently of TIC-7103 (D-025 item 5). Not done: a suction temperature alarm; SEQ-BOG-START does not name the spray source. For the team to judge whether the discharge trip suffices and to close."}
   - {id: A8, status: proposed, by: agent, text: "P&ID P-07 change: move the anti-surge take-off upstream of the discharge check valve CV7122A..C, or add a discharge ESD valve / second check valve downstream of the recycle tee, so that the discharge header cannot back-flow through an open UV-7104 into the suction; add an ESD valve or check valve at the battery limit on BOG-7002.", response: "Answered in the design by commit 589c9ca7 (D-025 item 5; review #10, #11): each discharge check valve CV7122A..C is downstream of its recycle tee, the discharge isolation XV-7123A..C (fail closed) follows it, and the battery-limit ESD valve XV-7130 (fail closed) on BOG-7002 is closed by I-704 when all machines have stopped. For the team to verify and close; S13, S19 re-rated."}
-  - {id: A9, status: proposed, by: agent, text: "C&E / sequence change: close XV-7121A..C (and a discharge isolation, if added) on every compressor stop, not only on I-701 / I-702, and add the normal stop to SEQ-BOG-START or a stop sequence.", response: "Partly answered by commit 589c9ca7: XV-7123A..C close with XV-7121A..C on every trip (I-701, I-702 / I-702B / I-702C, I-703A..C), and the instrument list (UZ-7123A..C) says they close on a stop as well. Still open: the normal stop in the C&E or a stop sequence, and the opening of XV-7123A..C in SEQ-BOG-START."}
-  - {id: A10, status: proposed, by: agent, text: "Relief study: restate the relief case and set pressure of PSV-7105 (2.5 barg) for a suction system that cannot be isolated from tanks designed for +29 kPa(g): fire on D-7101 and back flow from the discharge (S13) are the credible cases.", response: "Answered by commit 589c9ca7 (review #26): the relief case of PSV-7105 is restated in piping/special-items.yaml as fire on D-7101 and the suction header, the inlet being open to the tanks; the back flow of S13 is removed by the check valve position (A8). Set pressure still ASSUMED (2.5 barg against a 3.5 barg design). For the team to verify and close."}
+  - {id: A9, status: proposed, by: agent, text: "C&E / sequence change: close XV-7121A..C (and a discharge isolation, if added) on every compressor stop, not only on I-701 / I-702, and add the normal stop to SEQ-BOG-START or a stop sequence.", response: "Partly answered by commit 589c9ca7: XV-7123A..C close with XV-7121A..C on every trip (I-701, I-702 / I-702B / I-702C, I-703A..C), and the instrument list (UZ-7123A..C) says they close on a stop as well. Still open: the normal stop in the C&E or a stop sequence, and the opening of XV-7123A..C in SEQ-BOG-START. Commit fac0bbb5 (D-026 item 5) adds I-705A..C: a running machine stops and its XV-7123x closes when ZSO-7121x loses the open position of the fail-closed suction valve or PZT-7113 reads the suction header low-low, so a suction valve closing on a running machine now has its own trip (S15; spurious action S25). The normal stop is still not in the C&E or a stop sequence, and SEQ-BOG-START still does not open XV-7123x. Still proposed."}
+  - {id: A10, status: proposed, by: agent, text: "Relief study: restate the relief case and set pressure of the D-7101 suction system relief valve (2.5 barg at the revision analysed; removed in fac0bbb5) for a suction system that cannot be isolated from tanks designed for +29 kPa(g): fire on D-7101 and back flow from the discharge (S13) are the credible cases.", response: "Answered by commit 589c9ca7 (review #26) with the relief case restated as fire on D-7101 and the suction header. Commit fac0bbb5 (DESIGN.md D-026 item 12; review 2026-11-05-basic-design-2, previous #26) removes that relief valve and its flare line from P-07, P-08 and the special items: D-7101 and BOG-1001 (DN 750) have no valve to the tanks, so neither a blocked outlet nor a fire raises them above the tank pressure; fire vapour vents back to the tank vapour space and PSV-2131A/B/C / PSV-3131A/B/C protect the drum (3.5 barg design). Still open for the team: whether the D-7101 fire load is in the tank PSV relief cases (not named in the special items) and the S13 back flow, which the tank PSVs alone face. Still proposed."}
   - {id: A11, status: proposed, by: agent, text: "P&ID P-07 change: route the anti-surge recycle upstream of the desuperheater (or add a recycle cooler), and add a high discharge temperature alarm and trip (TI-7107 is an indication) to the C&E.", response: "Answered in the design by commit 589c9ca7 (D-025 item 5; review #9): the recycles BOG-7008 / BOG-7009 / BOG-7012 return to BOG-1001 upstream of the spray TV-7103; discharge temperature trips TZT-7112A..C with I-703A..C. For the team to verify and close; S10, S16 re-rated."}
-  - {id: A12, status: proposed, by: agent, text: "Consider a high discharge pressure alarm / trip on PI-7108 that unloads or stops the compressors before PSV-7111 lifts, with the trains informing the terminal of a stop of their BOG intake."}
-  - {id: A13, status: proposed, by: agent, text: "Show the compressor seal gas supply (N2), its low-pressure trip and the seal vent destination on P-07, or reference the vendor P&ID in the sheet notes."}
+  - {id: A12, status: proposed, by: agent, text: "Consider a high discharge pressure alarm / trip on PI-7108 that unloads or stops the compressors before PSV-7111 lifts, with the trains informing the terminal of a stop of their BOG intake.", response: "Partly answered by commit fac0bbb5 (D-026 item 5): the vendor unit control panel trips summarised as VZ-7110x in I-702 / I-702B / I-702C include a discharge pressure high-high below the PSV-7111 set point, to be confirmed with the vendor. Still open: the trip point, whether it is a vendor or a terminal function, and the trains' signal of a stop of their BOG intake. Still proposed."}
+  - {id: A13, status: proposed, by: agent, text: "Show the compressor seal gas supply (N2), its low-pressure trip and the seal vent destination on P-07, or reference the vendor P&ID in the sheet notes.", response: "Partly answered by commit fac0bbb5 (D-026 items 5, 9): I-702 / I-702B / I-702C name dry gas seal leakage and seal gas low differential pressure among the vendor trips; the seal gas and N2 purge points stay in the vendor package and are not drawn at basic (D-020 lists them as N2 users). Still open: the seal vent destination and a reference to the vendor P&ID on P-07. Still proposed."}
   - {id: A14, status: proposed, by: agent, text: "Determine the required integrity of I-204 / I-304 (SIL null in the C&E) for the compressor over-draw case, and consider a minimum suction pressure limit on the inlet guide vanes that does not depend on PIC-7101 or its PIC-1110 setpoint."}
   - {id: A15, status: proposed, by: agent, text: "Size the D-7101 liquid hold-up and the drain LV-7102 / DR-7001 (DN 50) for the largest credible liquid slug from the vapour return (D-5101 overflow, hybrid arm misline-up, thermal relief discharges), or show that these sources are removed by the H-03 actions.", response: "Partly answered by commit 589c9ca7 (D-025 item 4): of the sources, the open header drain is replaced by XV-5161 / XV-6161 with I-506 / I-606, and the hybrid arm misline-up by I-504 / I-505 (I-604 / I-605). Still open: the D-7101 hold-up and the LV-7102 / DR-7001 drain capacity for the remaining sources (thermal relief discharges now also from PSV-1122 / 1123 / 4113 / 4114, tank overfill, D-5101 relief inflow H-03 S21)."}
-  - {id: A16, status: proposed, by: agent, text: "Confirm with the compressor vendor the anti-surge response time and a surge detection / trip independent of UIC-7104A..C, the turndown of one 27 t/h machine against the 21.9 t/h holding BOG, and add the vendor trips to the C&E (I-702 lists only vibration and bearings)."}
+  - {id: A16, status: proposed, by: agent, text: "Confirm with the compressor vendor the anti-surge response time and a surge detection / trip independent of UIC-7104A..C, the turndown of one 27 t/h machine against the 21.9 t/h holding BOG, and add the vendor trips to the C&E (I-702 lists only vibration and bearings).", response: "Partly answered by commit fac0bbb5 (D-026 item 5): I-702 / I-702B / I-702C now name the vendor unit control panel trips (vibration and bearing temperature, dry gas seal, lube oil, motor protection, discharge pressure high-high), to be confirmed with the vendor in detail engineering. Still open: the anti-surge response time, a surge detection or trip independent of UIC-7104A..C, and the turndown of one machine against the holding BOG. Still proposed."}
   - {id: A17, status: proposed, by: agent, text: "Confirm with the trains the fuel-gas supply to FG-1001: pressure, capacity against the largest withdrawal (full loading rate from one tank, compressor draw), availability when I-101 / I-102 trip the trains, and the size of FO-1117 (D-025 lists the fuel-gas capacity as not done at basic); if the make-up can be lost with the trains, state which layer protects the tanks then (I-204 / I-304, the vacuum valves)."}
   - {id: A18, status: proposed, by: agent, text: "P&ID P-01 change / interface: consider a check valve and a battery-limit isolation on FG-1001 so that tank vapour cannot back-flow into a depressurised fuel gas system, and state the composition and temperature of the make-up fuel gas at the battery limit (S21, S22)."}
-  - {id: A19, status: proposed, by: agent, text: "Sequence / C&E change: make 'recycle isolation XV-7125A..C open' (a position switch) a start permissive of SEQ-BOG-START, and add the opening of the discharge isolation XV-7123A..C and the trip I-703A..C to its steps and abort conditions."}
+  - {id: A19, status: proposed, by: agent, text: "Sequence / C&E change: make 'recycle isolation XV-7125A..C open' (a position switch) a start permissive of SEQ-BOG-START, and add the opening of the discharge isolation XV-7123A..C and the trip I-703A..C to its steps and abort conditions.", response: "Partly answered by commit fac0bbb5 (control/sequences.yaml SEQ-BOG-START): S1 now begins with 'XV-7125A (recycle isolation) proven open' by the operator before XV-7121A opens and K-7101A starts, and I-703A and I-705A are in its interlocks and abort condition. Still open: the check is procedural (no position switch on XV-7125A..C is drawn, and it is not a permissive), and the opening of XV-7123A..C is not a step. Still proposed."}
+  - {id: A22, status: proposed, by: agent, text: "C&E / instrument list: consider voting the suction header low-low of I-705A..C (two or three transmitters instead of the single PZT-7113, which stops every running machine on one fault), a short confirmation delay on the ZSO-7121x 'not open' signal against contact bounce, and state how the SEQ-BOG-START S1 bypass of I-705x is removed (automatically once ZSO-7121x proves open) (S25)."}
   - {id: A20, status: proposed, by: agent, text: "Lock or car-seal the depressurising vents HV-7124A..C closed in operation and put them on the maintenance isolation list of each machine."}
   - {id: A21, status: proposed, by: agent, text: "C&E / relief study: limit the consequence of a spurious opening of XV-1115 - close XV-1115 on low tank pressure (I-204 / I-304 overriding I-203) or limit its capacity, consider 2oo3 transmitters for I-203 / I-303 against spurious trips, and include 'XV-1115 open with the make-up limited by FO-1117' in the vacuum relief case of PSV-2133A/B/C / PSV-3133A/B/C (H-01 A13)."}
