@@ -310,12 +310,34 @@ checks:
 # with the reason (an entry that names no finding is reported as cheme.accept-unused).
 # Only warnings and infos can be accepted; an error stays an error (cheme.accept-error).
 accept:
+  # Core 3377715 (core#155, the drawing rules) places the tag labels of LIC-x22, PIC-x21 and
+  # PV-x21 differently from the committed sheets when it runs scripts/draft_P-0x.py; the
+  # committed placement is the one drawing-clean passes (a forced cheme regen P-0x gives
+  # cheme.line-through-valve/-label findings). The sheets are kept; moving the placement into
+  # the draft scripts is a follow-up for the design review
+  - {id: "pid/P-01.xml#generated-sheet-drift:", reason: "core 3377715 re-places three tag labels (LIC-122, PIC-121, PV-121); the committed placement passes drawing-clean, the regenerated one does not; label placement only, no item, line or tag changed"}
+  - {id: "pid/P-02.xml#generated-sheet-drift:", reason: "as P-01: LIC-222, PIC-221, PV-221"}
   # The skid layout (#330, DESIGN.md D-019), for the layout review: a 20 ft skid is worked from
   # grade along its long sides; its 0.15 m deck is stepped onto, not a walkway with 2.1 m
   # headroom under a 2.20 m envelope, and the plot-plan pump access space (1 m all round) does
   # not fit inside a 2.44 m frame (agent draft #330, to be confirmed by the layout review).
-  - {id: "layout/plant-model.yaml#layout-access-blocked:P-101/access", reason: "D-019: skid pump, maintained from the frame's south side at grade (agent draft #330, for the layout review)"}
-  - {id: "layout/plant-model.yaml#layout-access-blocked:P-201/access", reason: "D-019: skid pump, maintained from the frame's south side at grade (agent draft #330, for the layout review)"}
-  - {id: "layout/plant-model.yaml#layout-access-blocked:P-202/access", reason: "D-019: skid metering pump, maintained from the frame's south side at grade (agent draft #330, for the layout review)"}
-  - {id: "layout/plant-model.yaml#layout-headroom:P-01/Line_AN104_S4+SKID-A/DECK", reason: "D-019: anolyte return to the reservoir top inside the 2.20 m skid envelope; the deck is not a walkway (agent draft #330, for the layout review)"}
-  - {id: "layout/plant-model.yaml#layout-headroom:P-01/Line_KOH101_S1+SKID-A/DECK", reason: "D-019: KOH fill line to the hose connection at the frame's west end, at the deck edge (agent draft #330, for the layout review)"}
+  - {id: "layout/plant-model.yaml#layout-access-blocked:P-101/access", reason: "D-019, D-047: skid pump 0.18 m inside the frame's south edge, maintained from grade there; its 1 m access box holds the cooler, the first stack and the headers (agreed by the layout review 2026-11-05-layout for the pumps at the south edge)"}
+  - {id: "layout/plant-model.yaml#layout-access-blocked:P-201/access", reason: "D-019, D-047: as P-101, Skid B"}
+  - {id: "layout/plant-model.yaml#layout-access-blocked:P-202/access", reason: "D-019, D-047: skid metering pump 0.4 m inside the frame's west end, north of its day tank T-202, maintained from grade at the west end; its 1 m access box holds the tanks, the frame's corner post and the spent anolyte drain"}
+  # AN-104 S4 runs at 0.6 m and at 2.10 to 2.23 m over Skid A's deck (0.43 m and about 1.9 m
+  # clear, under the 2.1 m headroom). Core 1.5.0 does not report it while it proposes a
+  # step-over on that pipe (step-over-13), which D-040 does not adopt: the acceptance is kept,
+  # so the finding stays accepted with its reason if the proposal goes
+  - {id: "layout/plant-model.yaml#layout-headroom:P-01/Line_AN104_S4+SKID-A/DECK", reason: "D-019, D-040: anolyte return to the reservoir top, along the header at 0.6 m and over T-101 at 2.10 to 2.23 m inside the 2.35 m skid envelope; the deck is not a walkway (agent draft #330, for the layout review; not reported while core proposes step-over-13, not adopted)"}
+  - {id: "layout/plant-model.yaml#layout-headroom:P-01/Line_KOH101_S1+SKID-A/DECK", reason: "D-019, D-040, D-047: KOH fill line from T-101's fill nozzle N3 (1.32 m) down to its hose coupling at the working height 1.0 m, 0.15 m inside the frame's west edge; the deck is not a walkway (agreed by the layout review 2026-11-05-layout)"}
+  # The cable trays that drop into the zone 2 of their skid to a load that stands in it (stage
+  # 3 of the 3D model, DESIGN.md D-045): a load in the zone cannot be cabled from outside it.
+  # Since the rearrangement of D-047 only the compressor motors' trays do: the DC trays end
+  # 1.5 m above grade, over the top of the stacks' 1 m zone spheres (1.24 m), and the fans' trays
+  # outside the zone.
+  # ASSUMED (no certification claimed, the Ex rating is the owner's open decision of #330,
+  # D-031 item 12): the cables in the zone armoured, entering through glands certified for the
+  # zone, the loads there of equipment group II, gas group IIC (H2), category 3G. For the
+  # area classification and the electrical design, then the layout review.
+  - {id: "layout/plant-model.yaml#layout-tray-zone:PT-M-K-131+Z-HAZ-A", reason: "D-045: the compressor motor stands in Z-HAZ-A; armoured cable and a gland for zone 2, ASSUMED (Ex rating open, D-031 item 12)"}
+  - {id: "layout/plant-model.yaml#layout-tray-zone:PT-M-K-231+Z-HAZ-B", reason: "D-045: as PT-M-K-131, Skid B"}

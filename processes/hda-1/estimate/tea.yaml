@@ -30,20 +30,23 @@ basis:
   location: NL (Rotterdam area, notional, D-016 I-05)
 case: design
 capex:
-  # Equipment-factored estimate: bare module costs of the 21 listed items (18 + the purge
-  # hydrogen recovery PK-101, K-102 and E-103 of D-024), Turton et al. CAPCOST
-  # correlations of the package at the concept sizes of D-017 (estimate/equipment-cost.md),
-  # AACE class 5 (estimate/cost-basis.yaml). D-019.
+  # Equipment-factored estimate: bare module costs of the 36 listed items (Turton et al.
+  # CAPCOST correlations of the package at the concept sizes of D-017; H-101 and K-102 with
+  # Guthrie bare module factors since S5; PK-101 its own scaled cost; PK-201 excluded, in the
+  # allowance) (estimate/equipment-cost.md), AACE class 4 since S5 (estimate/cost-basis.yaml):
+  # the basic design with its P&IDs, lists, 3D layout and take-off. D-019, D-027.
   isbl:
     source: equipment
     exchange_rate: {value: 0.92481, source: "Eurostat ert_bil_eur_a, euro/ecu exchange rates, annual average 2023: 1.0813 USD per EUR, read 2026-11-03; 1 / 1.0813 EUR per USD", year: 2023}
     escalation: {value: 1.0520, source: "Eurostat sts_inppd_a, domestic producer prices, NL, NACE C28 (machinery and equipment), index 2021 = 100: 121.4 (2025) / 115.4 (2023), read 2026-11-03; a proxy for plant cost escalation from the CEPCI year 2023 to 2025, ASSUMED (the same proxy as processes/ammonia-1/estimate/tea.yaml)"}
-    location_factor: {value: 1.0, status: ASSUMED, source: "no open location factor from the US Gulf Coast basis of the correlations to the Netherlands was found; 1.0 kept and the class 5 range applied (D-019)"}
-    purchased_installation: {value: 2.5, status: ASSUMED, source: "installed cost of H-101 over its purchased cost: the package's fired-heater correlation has no bare module, pressure or material factor (a core limit, D-019), and the printed Turton et al. Appendix A tables that hold them could not be read here; a screening factor chosen in this design, likely low for alloy tubes at 42 barg in hot hydrogen (D-019). Since S4 it is also applied to the reciprocating tail gas compressor K-102, the only other purchased-only item (the package compressor bare module factor is for a centrifugal machine): the same screening factor rather than a second unsourced number, likely low for a reciprocating machine with its pulsation dampers, heavy foundation and package piping; both factors are replaced by read bare module factors in the class 4 estimate (S5). The reflux drums V-201..V-203 are priced like V-100 with the vertical vessel correlation and its bare module factor, not with this factor (D-026)"}
-    uncovered_allowance: {value: 0.15, status: ASSUMED, source: "items the correlations leave out: column trays and internals of C-201/C-202/C-203 (82 trays at the D-017 sizes), the R-101 refractory lining, the C-203 vacuum package PK-201 (excluded in the cost basis, vendor input; since S4 the reflux, distillate and bottoms pumps and the installed spares are priced in the cost basis, D-026), and the electric drives of K-101 and K-102 (explosion-proof motors of about 350 and 300 kW, ASSUMED: the 279 and 249 kW shaft powers with a margin, and their starters: the package's compressor correlation excludes the driver and holds no electric-drive correlation); a screening fraction chosen in this design (D-019); the benzene product cooler, in this list until S2, is now priced as E-207 and the fraction is kept (D-022); the fraction is also applied to the PSA package PK-101 (D-024), whose price already holds its internals: an upper estimate there"}
+    location_factor: {value: 1.0, status: ASSUMED, source: "no open location factor from the US Gulf Coast basis of the correlations to the Netherlands was found; 1.0 kept and the class range applied (D-019; class 4 since S5, D-027)"}
+    # purchased_installation (2.5, ASSUMED, D-019) is gone since S5: H-101 and K-102, the only
+    # purchased-only items, now carry Guthrie bare module factors in estimate/cost-basis.yaml
+    # (2.88 and 3.40, D-027), so no item is priced at purchased cost.
+    uncovered_allowance: {value: 0.15, status: ASSUMED, source: "items the correlations leave out: column trays and internals of C-201/C-202/C-203 (82 trays at the D-017 sizes), the R-101 refractory lining, the C-203 vacuum package PK-201 (excluded in the cost basis, vendor input; since S4 the reflux, distillate and bottoms pumps and the installed spares are priced in the cost basis, D-026), and the electric drives of K-101 and K-102 (explosion-proof motors of about 350 and 300 kW, ASSUMED: the 279 and 249 kW shaft powers with a margin, and their starters: the package's compressor correlation excludes the driver and holds no electric-drive correlation); a screening fraction chosen in this design (D-019); the benzene product cooler, in this list until S2, is now priced as E-207 and the fraction is kept (D-022); the fraction is also applied to the PSA package PK-101 (D-024), whose price already holds its internals: an upper estimate there. Unchanged from class 5 at the class 4 estimate (S5, D-027): the items it holds have no openly readable price or size yet (tray count and diameters, lining and motor ratings come with the datasheets, S7; PK-201 with its vendor), so the fraction is not re-derived; the K-102 and K-101 motors are counted here only (the compressor correlation is for the machine without its driver)"}
   osbl: {value: 0.30, status: ASSUMED, source: "offsites and utility connections (rack to the site headers, tie-ins to the site's storage, fuel gas, flare and cooling water) as a fraction of ISBL, a screening value chosen in this design for a unit on an existing chemical site (D-019)"}
   owners_cost: {value: 0.07, status: ASSUMED, source: "IEAGHG Technical Report 2017-03, section 2.8.1: owner's cost 7 % of the total plant cost (an ammonia study, used here as an analogue, as in processes/ammonia-1/estimate/tea.yaml)"}
-  contingency: {value: 0.20, status: ASSUMED, source: "IEAGHG Technical Report 2017-03, section 2.8.1: 20 % contingency (used here as an analogue); the class 5 range of the estimate is applied in the uncertainty"}
+  contingency: {value: 0.20, status: ASSUMED, source: "IEAGHG Technical Report 2017-03, section 2.8.1: 20 % contingency (used here as an analogue); the class range of the estimate (class 4 since S5, D-027) is applied in the uncertainty"}
 operation:
   hours_per_year: 8000
   life_years: 25
@@ -176,12 +179,20 @@ scenarios:
   - {id: prices-2025-imports, prices: {product:BENZENE: 706.7}, source: "Comext DS-045409, 2025, both prices from import flows: NL benzene imports 176 964 321 EUR / 250 423 t = 706.7 EUR/t, against the baseline toluene imports 668.1 EUR/t (spread 38.6 EUR/t)"}
   - {id: prices-2025-exports, prices: {feed:TOLF: 808.3}, source: "Comext DS-045409, 2025, both prices from export flows: NL toluene exports 47 756 669 EUR / 59 084 t = 808.3 EUR/t, against the baseline benzene exports 673.6 EUR/t (spread -134.7 EUR/t)"}
   - {id: no-carbon-price, prices: {carbon: 0}, source: "full free allocation or no carbon price: the lower bound of the carbon cost"}
-  - {id: capex-class5-high, scale: {capex:isbl: 2.0}, source: "AACE 18R-97 class 5 upper bound +100 % on the ISBL"}
+  - {id: capex-class4-high, scale: {capex:isbl: 1.5}, source: "AACE RP 18R-97 (Rev. 2020), Table 1, class 4 upper bound +50 % on the ISBL (S5, D-027; was capex-class5-high, +100 %)"}
+  - {id: capex-class4-low, scale: {capex:isbl: 0.7}, source: "AACE RP 18R-97 (Rev. 2020), Table 1, class 4 lower bound -30 % on the ISBL (S5, D-027)"}
   # D-024: the PSA package's cost range as ISBL multipliers (the scenarios scale the whole ISBL,
-  # so the PSA's own share is converted): PK-101 at 4 056 500 USD 2023 is 4 538 554 EUR of the
-  # 16 390 151 EUR ISBL (x 0.97290 EUR 2025 per USD 2023, x 1.15 allowance). Own calculation.
-  - {id: psa-capex-high, scale: {capex:isbl: 1.104455}, source: "PK-101 at 5 586 700 USD 2023 (the NETL PSA scaled on the adsorbed flow with exponent 0.5 instead of 0.6, D-024): ISBL + 1 712 041 EUR, ASSUMED"}
-  - {id: psa-capex-low, scale: {capex:isbl: 0.887571}, source: "PK-101 at 2 409 500 USD 2023 (the NETL PSA scaled on the total feed flow, exponent 0.6, D-024): ISBL - 1 842 720 EUR, ASSUMED"}
+  # so the PSA's own share is converted): PK-101 at 4 056 500 USD 2023 is 4 538 554 EUR
+  # (x 0.97290 EUR 2025 per USD 2023, x 1.15 allowance); the multipliers are taken on the class 4
+  # ISBL of 17 588 092 EUR (S5, D-027; they were on 16 390 151 EUR). Own calculation.
+  - {id: psa-capex-high, scale: {capex:isbl: 1.097341}, source: "PK-101 at 5 586 700 USD 2023 (the NETL PSA scaled on the adsorbed flow with exponent 0.5 instead of 0.6, D-024): ISBL + 1 712 041 EUR, ASSUMED"}
+  - {id: psa-capex-low, scale: {capex:isbl: 0.895229}, source: "PK-101 at 2 409 500 USD 2023 (the NETL PSA scaled on the total feed flow, exponent 0.6, D-024): ISBL - 1 842 720 EUR, ASSUMED"}
+  # H-101 bare module factor (S5 fix, review of PR #364, D-027): the Guthrie source writes the
+  # fired heater's MPF both as Fm + Fp + Fd (slide 10, FBM 2.88, the base case) and as
+  # Fm (Fp + Fd) (slide 11, FBM 1.805). Own calculation: H-101 purchased 1 119 330 USD 2023 x
+  # (2.88 - 1.805) = 1 203 280 USD, x 0.97290 EUR 2025 per USD 2023 x 1.15 allowance =
+  # 1 346 271 EUR on the class 4 ISBL of 17 588 092 EUR.
+  - {id: h101-fbm-low, scale: {capex:isbl: 0.923455}, source: "H-101 at FBM 1.805 (the product form MPF = Fm (Fp + Fd) of slide 11, topic 5.3, Viguri Fuente and Cifrian Bemposta) instead of 2.88: ISBL - 1 346 271 EUR, ASSUMED (D-027)"}
   # Benzene selectivity (D-021, review of PR #326): the model's 0.9734 bounds only the biphenyl
   # make; heavier polyaromatics and hydrocracking are excluded, so it is optimistic. US 3,607,960
   # Example 1 reports 94.5 % for its primary reactors at 85 % conversion per pass
