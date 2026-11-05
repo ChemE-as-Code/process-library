@@ -312,8 +312,9 @@ def _dn25_lines(root: Path) -> set[str]:
 def assert_layout(root: Path, records: dict[int, dict]) -> None:
     """At 1,000 h every process line of DN 25 and above routed or skipped with a reason, no
     route fallen back to direct, no clash finding (accepted or not), both skids inside the
-    envelope height and every permitted unit lift with a clear lane and a laydown; at 10,000 h
-    the infeasible Skid A's clash, height and lifts reported in the record, not failed."""
+    envelope height and every permitted unit lift with a clear crane lane or a hoist carry
+    within the carry limit, and a laydown; at 10,000 h the infeasible Skid A's clash, height
+    and lifts reported in the record, not failed."""
     big = _dn25_lines(root)
     for h, rec in records.items():
         lay = rec["layout"]
@@ -331,9 +332,16 @@ def assert_layout(root: Path, records: dict[int, dict]) -> None:
         hgt = d["height"][key]
         assert hgt["envelope_feasible"] and hgt["above_envelope_m"] == 0.0, (key, hgt)
         assert hgt["items_top_m"] <= hgt["envelope_top_m"], (key, hgt)
+    # a crane lift's lane is clear; a hoist or forklift carry stays at or under the basis's
+    # carry limit (above it scripts/_lifting.py marks the lane blocked); every lift a laydown
+    limit = records[1000]["lifting"]["carry_limit_m"]
+    assert limit, records[1000]["lifting"]
     for lift in records[1000]["lifting"]["unit_lifts"]:
         if "not permitted" not in lift["status"]:
-            assert lift["lane"] == "clear" or lift["carry_height_m"], lift
+            if lift["method"].startswith("mobile crane"):
+                assert lift["lane"] == "clear", lift
+            else:
+                assert lift["carry_height_m"] and float(lift["carry_height_m"]) <= float(limit), lift
             assert lift["laydown"] and "blocked" not in lift["status"] and "no " not in lift["status"], lift
     # 10,000 h: reported in the record, the run not failed (its record exists)
     t = records[10000]["layout"]
@@ -343,6 +351,10 @@ def assert_layout(root: Path, records: dict[int, dict]) -> None:
     assert t["clashes_open"] >= 1
     skid_a = {u["id"]: u for u in records[10000]["lifting"]["unit_lifts"]}["SKID-A"]
     assert "no laydown" in skid_a["status"], skid_a
+    # the grown T-101 drained is carried over the trays at 3.45 m: above the carry limit, its
+    # lane reported blocked (a crane lift), not failed
+    t101 = {u["id"]: u for u in records[10000]["lifting"]["unit_lifts"]}["T-101"]
+    assert "lane blocked" in t101["status"], t101
 
 
 def _lca_items() -> dict[str, dict]:

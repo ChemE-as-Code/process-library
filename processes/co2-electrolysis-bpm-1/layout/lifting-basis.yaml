@@ -29,12 +29,29 @@ contents:
   - {tag: T-201, density_from: "pump P-201", basis: "the anolyte density of the stack sizing (cheme process stack: P-201 density_kg_m3, ASSUMED about 1 M KOH)"}
   - {tag: T-202, density_from: "duty D-B dosing", basis: "duty D-B dosing.density (process/duties.yaml, ASSUMED about 5 M KOH)"}
 units:
-  # what a skid weighs beyond its items: the frame's own members (core's take-off mass per metre
-  # of each section) and deck grating, and an allowance on items and frame for what neither
-  # the list nor the model weighs (piping, valves, instruments, cable, bolting, drip tray)
+  # what a skid weighs beyond its items: the frame's own members as core draws them (core's
+  # take-off mass per metre of each section) and deck grating, the base frame's structure core
+  # does not draw, and an allowance on the items and the drawn frame for what neither the list
+  # nor the model weighs (piping, valves, instruments, cable, bolting, drip tray)
   grating_kg_m2: 35
+  # core draws a skid frame as its perimeter channels, corner posts and guard rail only: a
+  # 2.44 m wide deck carrying about 1.15 t cannot span between the long sides on its grating,
+  # and a 6 m frame lifted as a unit needs lifting points
+  base_frame_kg_m2: 40
+  base_frame_basis: "ASSUMED: cross-members and grating bearers about every 0.7 m (9 x UPN140 x 2.44 m at 16 kg/m, 0.35 t on a 6.06 x 2.44 m frame, about 24 kg/m2), lifting lugs or corner fittings and the stiffening of a perimeter lifted at its corners (about 16 kg/m2); the fabricator's structural design replaces it"
   allowance_fraction: 0.15
-  allowance_basis: "ASSUMED: piping, valves, instruments, cable, bolting and drip tray, 15 % of the items and frame"
+  allowance_basis: "ASSUMED: piping, valves, instruments, cable, bolting and drip tray, 15 % of the items and the drawn frame"
+  # a load below heavy_lift_t that is not a skid is carried by hoist or forklift: above this
+  # carry height its lane is blocked for that method (a crane lift instead)
+  carry_limit_m: 2.1
+  carry_limit_basis: "ASSUMED: a forklift or a hoist on a portable gantry at the skid carries a load at most to the 2.1 m walkway headroom (core's headroom_walkway_m); a load that has to clear a tray, pipe or rack above it is a crane lift"
+  # a drained tank keeps its heel: the liquid below the highest point of its drain line, or of
+  # its lowest outlet where it has no drain (regen reads the levels from the model); no pump-out
+  # or bottom drain is on the P&IDs (open, D-043)
+  heels:
+    - {tag: T-101, drain_line: SP-101, basis: "drained by gravity through N5 and HV-103 to its hose coupling (SP-101, level at 0.30 m)"}
+    - {tag: T-201, drain_line: SP-201, basis: "drained by gravity through N5 and HV-203 to its hose coupling (SP-201, level at 0.25 m)"}
+    - {tag: T-202, nozzle: N2, basis: "no drain on P-02: it empties at best down to its outlet N2 to P-202 (KOH-203, DN 15)"}
   # the access steps ST-x1 and ST-x2 stand on grade beside the frame: delivered loose, not in
   # the unit lift
   lifts:

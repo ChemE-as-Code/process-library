@@ -8,8 +8,11 @@ core's lifting rule and ``cheme layout lifting`` read it.
 
 Step 23, :func:`unit_study`: the lifts core's study cannot express, because it lifts listed
 items only and each at its one empty weight: each skid as a 20 ft unit (its items, its frame's
-own members and deck grating, an allowance for what neither the list nor the model weighs), dry
-and with its tanks full, and the reservoir T-101 alone, drained and full. Each lift is worked
+own members and deck grating, the base frame's structure core does not draw, an allowance for
+what neither the list nor the model weighs), drained and with its tanks full, and the reservoir
+T-101 alone, drained and full. A drained tank keeps its heel: what stands below the highest
+point of its drain line (or of its lowest outlet where it has no drain), which gravity cannot
+empty. Each lift is worked
 out with core's criteria and core's arithmetic (``cheme layout lifting --json``: dynamic factor,
 rigging, chart utilisation, clearance, lane margin, crane reach, heavy-lift threshold) on the
 committed model: the nearest crane pad within reach whose lane is clear (else the nearest), the
@@ -18,7 +21,8 @@ direction of travel plus the lane margin each side, and the laydown. What the lo
 skid's items, in-line items, pipes, frame; a tank's own pipes and supports, disconnected first)
 is not in its own lane. A load below ``heavy_lift_t`` that is not a skid is moved by hoist or forklift: its
 carry lane runs from the laydown over it, and the carry height is the highest top in it plus the
-clearance. Written into layout/lifting-study-units.csv and .md, deterministic.
+clearance; above the basis's ``carry_limit_m`` the lane is blocked for that method (a crane
+lift). Written into layout/lifting-study-units.csv and .md, deterministic.
 
 Core is reached through scripts/_core.py only (the model through its model_* readers, the take-
 off's mass per metre of each section through ``cheme assess mto --json``).
@@ -42,6 +46,7 @@ COLUMNS = (
     "frame_t",
     "allowance_t",
     "contents_t",
+    "heel_t",
     "weight_t",
     "gross_t",
     "pad",
@@ -230,6 +235,29 @@ def _section_masses(take_off: dict[str, Any]) -> dict[str, float]:
     return out
 
 
+def heel(model: dict[str, Any], tag: str, entry: dict[str, Any], density_kg_m3: float) -> dict[str, Any]:
+    """A drained tank's heel: the liquid below the drain's highest point (its drain line's
+    centreline, the line rising to its coupling included, or the named outlet nozzle), which
+    gravity cannot empty; ``level_m`` above the tank floor (clipped to the tank), t."""
+    item = next(e for e in model.get("equipment") or [] if e["tag"] == tag)
+    dims = item.get("dimensions") or {}
+    floor, top = float(item["bbox"][2]), float(item["bbox"][5])
+    if entry.get("drain_line"):
+        zs = [float(pt[2]) for p in model.get("pipes") or [] if p.get("line") == entry["drain_line"] for pt in p["points"]]
+        if not zs:
+            raise BasisError(f"{BASIS}: heel of {tag}: no routed pipe of {entry['drain_line']} in the model")
+        z, how = max(zs), f"the highest point of {entry['drain_line']}"
+    else:
+        noz = next((n for n in item.get("nozzles") or [] if n.get("name") == entry.get("nozzle")), None)
+        if noz is None:
+            raise BasisError(f"{BASIS}: heel of {tag}: no nozzle {entry.get('nozzle')} in the model")
+        z, how = float(noz["point"][2]), f"its outlet {entry['nozzle']}"
+    level = min(max(z - floor, 0.0), top - floor)
+    d = float(dims["diameter"])
+    volume = math.pi / 4 * d * d * level
+    return {"tag": tag, "level_m": level, "how": how, "volume_m3": volume, "t": volume * density_kg_m3 / 1000.0, "basis": entry.get("basis", "")}
+
+
 def _frame_mass(model, frame_id, masses, grating_kg_m2) -> tuple[float, float, list[str]]:
     """The frame's own members (not its access steps) and deck grating, t."""
     entry = next(s for s in model.get("structures") or [] if s.get("id") == frame_id)
@@ -259,7 +287,10 @@ def unit_study(
     c = {name: float(criteria[name]["value"]) for name in CRITERIA}
     units = basis.get("units") or {}
     grating_kg_m2 = float(units.get("grating_kg_m2") or 0.0)
+    base_kg_m2 = float(units.get("base_frame_kg_m2") or 0.0)
     allowance = float(units.get("allowance_fraction") or 0.0)
+    carry_limit = units.get("carry_limit_m")
+    heel_basis = {h["tag"]: h for h in units.get("heels") or []}
     masses = _section_masses(take_off)
     solids = _core.model_solids(model)
     pads, laydowns = [], []
@@ -273,14 +304,25 @@ def unit_study(
             elif zone["kind"] == "laydown":
                 laydowns.append((zone["id"], (x0, y0, x1, y1)))
     equipment = {e["tag"]: e for e in model.get("equipment") or []}
-    rows, build, findings = [], [], []
+    rows, build, findings, heels = [], [], [], []
     for lift in units.get("lifts") or []:
         lid, kind = lift["id"], lift["kind"]
         contents = 0.0
-        for tag in lift.get("full") or []:
+        full = set(lift.get("full") or [])
+        for tag in sorted(full):
             if tag not in densities:
                 raise BasisError(f"{BASIS}: no contents density for {tag}")
             contents += tank_contents_t(equipment[tag]["dimensions"], densities[tag])
+        on_lift = (
+            {i["tag"] for i in _core.model_items_on(model, lift["frame"])} if kind == "skid" else {lift["tag"]}
+        )
+        heel_t = 0.0
+        for tag in sorted(t for t in on_lift if t in heel_basis and t not in full):
+            if tag not in densities:
+                raise BasisError(f"{BASIS}: no contents density for the heel of {tag}")
+            h = heel(model, tag, heel_basis[tag], densities[tag])
+            heel_t += h["t"]
+            heels.append({"lift": lid, **h})
         frame_t = allowance_t = 0.0
         if kind == "skid":
             frame = lift["frame"]
@@ -320,8 +362,12 @@ def unit_study(
             steel_t, grating_t, unknown = _frame_mass(model, frame, masses, grating_kg_m2)
             if unknown:
                 findings.append(f"{lid}: no mass per metre in the take-off for {', '.join(unknown)}")
-            frame_t = steel_t + grating_t
-            allowance_t = allowance * (items_t + frame_t)
+            # the base frame's structure core does not draw (cross-members, grating bearers,
+            # lifting lugs or corner fittings), per m2 of the frame's footprint; not in the
+            # allowance's base (the allowance is for what the items and the drawn frame carry)
+            base_t = base_kg_m2 * (fp[2] - fp[0]) * (fp[3] - fp[1]) / 1000.0
+            allowance_t = allowance * (items_t + steel_t + grating_t)
+            frame_t = steel_t + grating_t + base_t
             build.append(
                 {
                     "id": lid,
@@ -329,8 +375,10 @@ def unit_study(
                     "items_t": items_t,
                     "steel_t": steel_t,
                     "grating_t": grating_t,
+                    "base_t": base_t,
                     "allowance_t": allowance_t,
                     "contents_t": contents,
+                    "heel_t": heel_t,
                     "plan": plan,
                     "height_m": z1 - z0,
                 }
@@ -354,7 +402,7 @@ def unit_study(
             items_t = float((item.get("dimensions") or {}).get("weight") or 0.0)
             if not items_t:
                 findings.append(f"{lid}: no weight in the equipment list for {tag}")
-        weight = items_t + frame_t + allowance_t + contents
+        weight = items_t + frame_t + allowance_t + contents + heel_t
         crane = kind == "skid" or weight >= c["heavy_lift_t"] - 1e-9
         row = {k: "" for k in COLUMNS}
         row.update(
@@ -364,6 +412,7 @@ def unit_study(
             frame_t=_num(frame_t) if kind == "skid" else "",
             allowance_t=_num(allowance_t) if kind == "skid" else "",
             contents_t=_num(contents) if contents else "",
+            heel_t=_num(heel_t) if heel_t else "",
             weight_t=_num(weight),
         )
         status = [] if lift.get("permitted", True) else ["not permitted (drain first)"]
@@ -429,10 +478,16 @@ def unit_study(
                     carry_height_m=_num(carry),
                     lane=" ".join(f"{n} {_num(t)}" for n, t in highest) if highest else "clear",
                 )
-                status.append(f"carried to {ld} over {_num(carry)} m")
+                if carry_limit is not None and carry > float(carry_limit) + _EPS:
+                    status.append(
+                        f"lane blocked: carry {_num(carry)} m above the hoist or forklift limit "
+                        f"{_num(float(carry_limit))} m (a crane lift)"
+                    )
+                else:
+                    status.append(f"carried to {ld} over {_num(carry)} m")
         row["status"] = ", ".join(status)
         rows.append(row)
-    return {"rows": rows, "build": build, "criteria": c, "findings": findings}
+    return {"rows": rows, "build": build, "heels": heels, "criteria": c, "findings": findings}
 
 
 def study_csv(result: dict[str, Any]) -> str:
@@ -477,11 +532,14 @@ def study_markdown(
         "than the load's top "
         "plus the clearance blocks it. A load below `heavy_lift_t` that is not a skid is moved "
         "by hoist or forklift to its laydown: the carry height is the highest top in the lane "
-        "from the laydown over it plus the clearance (the three highest in the lane column).",
+        "from the laydown over it plus the clearance (the three highest in the lane column); "
+        f"above {_num(units.get('carry_limit_m'))} m the lane is blocked for that method "
+        f"({units.get('carry_limit_basis', '')}).",
         "",
         "Every weight is ASSUMED (no vendor weight exists): see the build-up below. A lift "
         "marked not permitted is the bound of a lift that is not made: a tank is drained "
-        "before it or its skid is moved.",
+        "before it or its skid is moved. A drained tank keeps its heel (below), which is in "
+        "the drained lifts' weight.",
         "",
         "| lift | method | weight t | gross t | pad | radius m | moment t m | needed t | lift "
         "height m | hook height m | lane | laydown | carry height m | status |",
@@ -501,20 +559,46 @@ def study_markdown(
         f"Items: the equipment list's `dimensions.weight` (regen step 21, table below). Frame: "
         f"the frame's own members at core's take-off mass per metre of each section "
         f"(`estimate/mto.csv`; the access steps ST-x1 and ST-x2 stand on grade and travel "
-        f"loose) and its deck grating at {units.get('grating_kg_m2'):g} kg/m2 (ASSUMED). "
-        f"Allowance: {units.get('allowance_basis', '')}.",
+        f"loose) and its deck grating at {units.get('grating_kg_m2'):g} kg/m2 (ASSUMED): core "
+        f"draws only the frame's perimeter members, corner posts and guard rail, so the drawn "
+        f"frame steel is not the skid's structure. Base frame: "
+        f"{units.get('base_frame_kg_m2'):g} kg/m2 of the frame's footprint, "
+        f"{units.get('base_frame_basis', '')}. Allowance: {units.get('allowance_basis', '')} "
+        f"(on the items, the drawn frame steel and the grating). Heel: what a drained tank keeps "
+        f"(below).",
         "",
-        "| lift | items | items t | frame steel t | deck grating t | allowance t | contents t "
-        "| total t | plan m | height m |",
-        "|---|---:|---:|---:|---:|---:|---:|---:|---|---:|",
+        "| lift | items | items t | drawn frame steel t | deck grating t | base frame (not drawn) t "
+        "| allowance t | contents t | heel t | total t | plan m | height m |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---:|",
     ]
     for b in result["build"]:
         x0, y0, x1, y1 = b["plan"]
-        total = b["items_t"] + b["steel_t"] + b["grating_t"] + b["allowance_t"] + b["contents_t"]
+        total = (
+            b["items_t"] + b["steel_t"] + b["grating_t"] + b["base_t"] + b["allowance_t"]
+            + b["contents_t"] + b["heel_t"]
+        )
         out.append(
             f"| {b['id']} | {b['items']} | {_num(b['items_t'])} | {_num(b['steel_t'])} | "
-            f"{_num(b['grating_t'])} | {_num(b['allowance_t'])} | {_num(b['contents_t'])} | "
+            f"{_num(b['grating_t'])} | {_num(b['base_t'])} | {_num(b['allowance_t'])} | "
+            f"{_num(b['contents_t'])} | {_num(b['heel_t'])} | "
             f"{_num(total)} | {_num(x1 - x0)} x {_num(y1 - y0)} | {_num(b['height_m'])} |"
+        )
+    out += [
+        "",
+        "## Heels of the drained tanks (ASSUMED)",
+        "",
+        "A drained tank empties by gravity only down to the highest point of its drain line (a "
+        "line that rises to its hose coupling keeps the tank full to that level) or, with no "
+        "drain, to its lowest outlet; what stands below stays in the tank and is lifted with "
+        "it. Pumping or siphoning it out is not on the P&IDs (open, DESIGN.md D-043).",
+        "",
+        "| lift | tank | drains to | level above the floor m | volume m3 | heel t | basis |",
+        "|---|---|---|---:|---:|---:|---|",
+    ]
+    for h in result.get("heels") or []:
+        out.append(
+            f"| {h['lift']} | {h['tag']} | {h['how']} | {_num(h['level_m'])} | "
+            f"{_num(h['volume_m3'])} | {_num(h['t'])} | {h['basis']} |"
         )
     contents = basis.get("contents") or []
     out += [
@@ -553,6 +637,6 @@ def study_markdown(
 
 def summary(result: dict[str, Any]) -> list[dict[str, Any]]:
     """The rows the calculation record keeps (results/scenarios/<H>h/record.json)."""
-    keep = ("id", "method", "weight_t", "pad", "required_t", "hook_height_m", "lane", "laydown",
-            "carry_height_m", "status")  # fmt: skip
+    keep = ("id", "method", "weight_t", "heel_t", "pad", "required_t", "hook_height_m", "lane",
+            "laydown", "carry_height_m", "status")  # fmt: skip
     return [{k: r[k] for k in keep} for r in result["rows"]]
