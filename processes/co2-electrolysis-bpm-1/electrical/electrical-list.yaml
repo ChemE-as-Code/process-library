@@ -16,11 +16,17 @@ rooms:
   # The 48 V DC bus of each skid (D-008: four stacks of seven cells, JIC-x01 4 x 20 A) is its own
   # cable class (D-045): one radial DC cable per stack from its own outgoing DC breaker in the
   # rectifier cabinet (overcurrent protection per stack, HAZOP action D-031 item 9), never on the
-  # AC trays. Core has no DC room kind: each breaker's output is a room of kind mcc at 48 V, its
-  # point where its tray leaves the top of the cabinet's north side at 3.1 m (above the AC
-  # branches at 2.85 m), 0.25 m apart on the router's grid so each tray lines up with its stack
-  # (one room for all four would start the four trays at one point, where the router lets each
-  # detour round the ones before it). The points stand more than rack_reach_m (5.1 m,
+  # AC trays. Core has no DC room kind: each breaker's output is a room of kind mcc at 48 V. Its
+  # point is NOT on the cabinet: it is the top of a riser that is not modelled, 1.75 m above
+  # the cabinet top (1.35 m) and 0.05 m north of its north face (y 9.75), DC-x01A also 0.25 m
+  # west of it, at 3.1 m (above the 2.5 m AC branches and the 2.85 m rack tier), 0.25 m apart
+  # on the router's grid so each tray lines up with its stack (one room for all four would
+  # start the four trays at one point, where the router lets each detour round the ones
+  # before it). Points at the cabinet top (1.35 m) were tried: core then runs the direct-fed
+  # DC trays at 1.35 to 2.35 m over the deck and beyond the frame's north edge, under the
+  # walkway headroom, so the riser stays out of the model; its length is added to each DC
+  # cable by regen step 24 (record `cabling.dc_riser_m`, D-045) and the clash, fill and
+  # separation checks do not see it. The points stand more than rack_reach_m (5.1 m,
   # electrical/tray-rules.yaml) from PR-1, so the DC cables are fed directly from the rectifier
   # and never reach the rack's AC power tray. All ASSUMED (no rectifier vendor yet).
   - {id: DC-101A, kind: mcc, title: "U-101 DC output to E-101A, 48 V (ASSUMED)", point: [10.65, 9.75, 3.1], voltage_v: 48}
@@ -59,14 +65,18 @@ motors:
 feeders:
   # AC consumers that are not motors of the list, from SDB-1 at 400 V; a feeder's point is its
   # terminal (cabinet top, package top) where the item's own top centre holds its nozzles
-  - {tag: F-U101, point: [11.05, 9.45, 1.35], power_kw: 3.2, power_factor: 0.95, assumed: true,
-     source: "flowsheet Q101 3.164 kW AC (DC 3.005 kW over the rectifier efficiency 0.95, ASSUMED); power factor 0.95 ASSUMED (an active front end)"}
+  # the rectifier's AC input is rated on the same basis as its DC outputs below (4 x 48 V x
+  # 20 A = 3.84 kW DC over the efficiency 0.95 of process/cells.yaml = 4.04 kW, rounded up),
+  # not on the operating duty (flowsheet Q101 3.164 kW AC at 37.6 V a stack), so the feeder is
+  # not below the DC rating the stack cables carry (D-045)
+  - {tag: F-U101, point: [11.05, 9.45, 1.35], power_kw: 4.1, power_factor: 0.95, assumed: true,
+     source: "the DC output rating 4 x 0.96 kW (48 V bus x 20 A, the DC cables' basis) over the rectifier efficiency 0.95 (process/cells.yaml) = 4.04 kW AC, rounded up; operating duty flowsheet Q101 3.164 kW; power factor 0.95 ASSUMED (an active front end)"}
   - {tag: F-X131, point: [8.6, 9.6, 1.95], power_kw: 0.1, power_factor: 0.8, assumed: true,
      source: "flowsheet Q104 0.050 kW (0.5 kWh/kg CO, ESTIMATE, TBD vendor), rounded up; power factor 0.8 ASSUMED (valve actuators and controller)"}
   - {tag: F-X132, item: X-132, power_kw: 0.5, power_factor: 0.8, assumed: true,
      source: "ASSUMED: no power in the flowsheet; the oxidiser's combustion air fan, igniter and burner management (D-031 item 10), TBD vendor"}
-  - {tag: F-U201, point: [26.05, 9.45, 1.35], power_kw: 3.2, power_factor: 0.95, assumed: true,
-     source: "flowsheet Q201 3.164 kW AC, as F-U101"}
+  - {tag: F-U201, point: [26.05, 9.45, 1.35], power_kw: 4.1, power_factor: 0.95, assumed: true,
+     source: "the DC output rating over the efficiency, as F-U101 (operating duty flowsheet Q201 3.164 kW)"}
   - {tag: F-X231, point: [23.6, 9.6, 1.95], power_kw: 0.1, power_factor: 0.8, assumed: true,
      source: "flowsheet Q204 0.050 kW, as F-X131"}
   - {tag: F-X232, item: X-232, power_kw: 0.5, power_factor: 0.8, assumed: true,
@@ -111,7 +121,10 @@ instruments:
   # transmitter). The gas detectors' locations are the gas detection study's (D-031 item 5,
   # open): here the CO detector at breathing height by the compressor and the H2 detector high
   # over the stack row. JIC-x01 is the rectifier's current signal and its run and trip
-  # command: a cable from the rectifier to its skid's junction box.
+  # command: core gives it one single-pair cable to its skid's junction box, which cannot
+  # carry a 4-20 mA signal and two discrete commands; the real interface needs at least three
+  # pairs, and the trip from the safety I/O of every interlock (I-x01 to I-x06) may need its
+  # own cable apart from the BPCS junction box (open, D-045).
   # Skid A
   - {tag: TV-111, point: [8.95, 7.65, 0.5], notes: "cooling water to E-111 (CWS-101, DN 15)"}
   - {tag: FIC-102, point: [7.75, 8.45, 0.4], notes: "fresh CO2 CO2-101 (DN 15), west of the stack row"}
@@ -123,7 +136,7 @@ instruments:
   - {tag: PV-131, point: [7.85, 9.75, 0.8], notes: "CO product CO-101 (DN 15)"}
   - {tag: AIA-141, point: [10.0, 8.95, 1.0], notes: "CO detector, ASSUMED location (gas detection study open, D-031 item 5)"}
   - {tag: AIA-142, point: [9.15, 8.95, 2.0], notes: "H2 detector, ASSUMED location high over the stack row (gas detection study open)"}
-  - {tag: JIC-101, point: [11.2, 9.15, 0.9], notes: "U-101 current signal, run and trip command (south face of the cabinet)"}
+  - {tag: JIC-101, point: [11.2, 9.15, 0.9], notes: "U-101 current signal, run and trip command (south face of the cabinet); modelled as one pair, needs three or more (open, D-045)"}
   # Skid B
   - {tag: TV-211, point: [23.95, 7.65, 0.5], notes: "cooling water to E-211 (CWS-201, DN 15)"}
   - {tag: FIC-202, point: [22.75, 8.45, 0.4], notes: "fresh CO2 CO2-201 (DN 15), west of the stack row"}
@@ -138,7 +151,7 @@ instruments:
   - {tag: LV-201, point: [22.4, 9.55, 0.9], notes: "make-up water to T-201 (DN 15), north of the tank"}
   - {tag: AIA-241, point: [25.0, 8.95, 1.0], notes: "CO detector, ASSUMED location (as AIA-141)"}
   - {tag: AIA-242, point: [24.15, 8.95, 2.0], notes: "H2 detector, ASSUMED location (as AIA-142)"}
-  - {tag: JIC-201, point: [26.2, 9.15, 0.9], notes: "U-201 current signal, run and trip command"}
+  - {tag: JIC-201, point: [26.2, 9.15, 0.9], notes: "U-201 current signal, run and trip command; modelled as one pair, as JIC-101 (open, D-045)"}
 notes: >-
   ASSUMED (D-045): the host site's 400 V board SDB-1 and control room CR-1 off the plot to the
   east, the cables along PR-1; one junction box per skid; the 48 V DC bus of each skid its own

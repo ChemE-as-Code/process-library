@@ -789,6 +789,7 @@ class Run:
                 if " warning cheme." in line or " error cheme." in line:
                     self.note("10", "warning", line.split(" -- ")[0])
             filled[skid["case"]] = tags
+        flagged = self.flag_assumed_weights(equipment)
         model = _core.plant_model(self.root)
         out = self.root / SCENARIO_FIGURES[0].format(h=f"{self.h:g}")
         _fresh(out)
@@ -867,12 +868,55 @@ class Run:
             "build_findings": model_findings,
             "datasheets_redrafted": redrafted,
             "datasheets_filled": filled,
+            "datasheets_weight_assumed": flagged,
             "figures": figures,
         }
         print(
             f"[10] {written or 'layout built'} ({model_findings} model finding(s), accepted or not: step 13); datasheets filled per case "
             f"({', '.join(f'{c}: {len(t)}' for c, t in filled.items())}); {len(figures)} figure(s) in {out.relative_to(self.root)}"
         )
+
+    def flag_assumed_weights(self, equipment: list[dict]) -> list[str]:
+        """Mark the empty weight of a draft datasheet `assumed: true` where the equipment list
+        marks the item's dimensions assumed (every weight of step 21 is, D-043). Core 1.5.0's
+        draft copies `dimensions.weight` into `weights.empty` and `type_specific.weight_t`
+        with the flag off (it carries the list's flag to the other dimensions only), so those
+        two entries are flagged here: a line added to each, checked to change nothing else."""
+        ds = self.root / "equipment" / "datasheets"
+        flagged = []
+        for item in equipment:
+            dims = item.get("dimensions") or {}
+            path = ds / f"{item['tag']}.yaml"
+            if not (dims.get("assumed") and dims.get("weight") is not None and path.exists()):
+                continue
+            text = path.read_text(encoding="utf-8")
+            before = yaml.safe_load(text) or {}
+            if not before.get("draft"):
+                continue
+            lines = text.split("\n")
+            want = []
+            for parent, key in (("weights", "empty"), ("type_specific", "weight_t")):
+                if key not in (before.get(parent) or {}) or (before[parent][key] or {}).get("assumed"):
+                    continue
+                top = lines.index(f"{parent}:")
+                at = next(i for i in range(top + 1, len(lines)) if lines[i] == f"  {key}:")
+                end = at + 1
+                while end < len(lines) and lines[end].startswith("    "):
+                    end += 1
+                lines.insert(end, "    assumed: true")
+                want.append((parent, key))
+            if not want:
+                continue
+            new = "\n".join(lines)
+            expect = before
+            for parent, key in want:
+                expect[parent][key]["assumed"] = True
+            if yaml.safe_load(new) != expect:
+                raise _core.CoreError(f"{path.name}: flagging the weight assumed would change more")
+            path.write_text(new, encoding="utf-8")
+            flagged.append(item["tag"])
+        print(f"[10] {len(flagged)} datasheet(s): the empty weight flagged assumed (core drafts it unflagged)")
+        return flagged
 
     def redraft_datasheets(self, equipment: list[dict]) -> list[str]:
         """Redraw every draft datasheet from the model as it now is, each from its own case.
@@ -1304,6 +1348,7 @@ class Run:
         )
         self.summary["lifting"] = {
             "heavy_lift_t": float(study["criteria"]["heavy_lift_t"]["value"]),
+            "carry_limit_m": (basis.get("units") or {}).get("carry_limit_m"),
             "core_lifts": [
                 {k: lift.get(k) for k in ("tag", "weight_t", "pad", "required_t", "status")}
                 for lift in study["lifts"]
@@ -1327,6 +1372,7 @@ class Run:
         for c in cables:
             by_room[c["from"]] = by_room.get(c["from"], 0) + 1
         dc = [c for c in cables if c["system"] == "power" and float(c["voltage_v"] or 0) <= 120]
+        risers = self.dc_risers(dc)
         review = sorted(c["tag"] for c in cables if c.get("review_needed"))
         for m in cabling.get("missing") or []:
             self.note("24", "warning", f"no cable: {m['tag']} ({m['kind']}): {m['reason']}")
@@ -1344,6 +1390,12 @@ class Run:
             "tray_length_m": cabling["tray_length_m"],
             "cable_length_m": cabling["cable_length_m"],
             "dc_cable_length_m": sum(int(c["length_m"]) for c in dc),
+            # the riser from the rectifier's cabinet top to each DC output's point, which core
+            # neither models nor counts (D-045): per cable, m, and the route with it
+            "dc_riser_m": risers,
+            "dc_route_with_riser_m": {
+                c["tag"]: round(float(c["route_length_m"]) + risers[c["tag"]], 3) for c in dc
+            },
             "missing": cabling.get("missing") or [],
             "review_needed": review,
         }
@@ -1351,8 +1403,24 @@ class Run:
             f"[24] cheme layout cables --write: {cabling['cables']} cables ({cabling['power']} power, "
             f"{len(dc)} of them 48 V DC, {cabling['instrument']} instrument), {cabling['trays']} trays "
             f"{cabling['tray_length_m']:g} m, cable {cabling['cable_length_m']:g} m, "
-            f"{len(cabling.get('missing') or [])} without a cable"
+            f"{len(cabling.get('missing') or [])} without a cable; DC risers not modelled "
+            f"{sum(risers.values()):.2f} m"
         )
+
+    def dc_risers(self, dc: list[dict]) -> dict[str, float]:
+        """Per DC cable: the length of the riser that is not modelled, from its rectifier's
+        cabinet top (U-x01's model bbox) to its DC output's room point: the plan distance from
+        the cabinet's top face plus the rise (electrical/electrical-list.yaml, D-045)."""
+        rooms = {r["id"]: r for r in self.load("electrical/electrical-list.yaml")["rooms"]}
+        boxes = {e["tag"]: e["bbox"] for e in _core.plant_model(self.root).get("equipment") or []}
+        out = {}
+        for c in dc:
+            room = rooms[c["from"]]
+            x0, y0, _, x1, y1, top = (float(v) for v in boxes["U-" + c["from"][3:6]])
+            x, y, z = (float(v) for v in room["point"])
+            plan = math.hypot(max(x0 - x, 0.0, x - x1), max(y0 - y, 0.0, y - y1))
+            out[c["tag"]] = round(plan + max(z - top, 0.0), 3)
+        return out
 
     # -- 25 ---------------------------------------------------------------------------------
     def layout_results(self) -> None:
