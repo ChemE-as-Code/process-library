@@ -6,9 +6,9 @@
 > safety decisions and comes with no warranty. Check the design maturity and review status in
 > `process.yaml` before relying on any number.
 
-Manifest and LCI dataset only, with no flowsheet and no simulation. Per tonne of 1,3-butadiene, recovered from the crude C4 cut of a naphtha steam cracker by continuous extractive distillation with a polar solvent. Raffinate-1 (butenes and butanes) is a co-product.
+Manifest and LCI dataset only, with no flowsheet and no simulation. Per tonne of 1,3-butadiene, recovered from the crude C4 cut of a naphtha steam cracker by continuous extractive distillation with a polar solvent. Raffinate-1 (butenes and butanes) and a purge of C3 and C4 acetylenes to fuel use are co-products.
 
-## Why this route
+## Route
 
 Almost all butadiene is a co-product of steam cracking, recovered from the C4 cut. US DOE (2000, p. 34) puts it at over 95 %, and Neelis et al. (2007, Table A1) give the route from steam cracking a 100 % share in Western Europe. Butadiene and butane form an azeotrope, so it is recovered by extractive distillation or extraction with a polar solvent (LVOC BREF 2017, section 3.2.2.4). BASF says about a third of the world's extraction plants use its NMP process; US EPA (2025) names acetonitrile, DMF, furfural and others as well, and US EPA (1996, p. 4-6) calls furfural the typical solvent of the US plants it describes. The plants run continuously; BASF cites four to eight years between turnarounds. On-purpose dehydrogenation of butane or butenes is a minor route and is not modelled.
 
@@ -30,15 +30,15 @@ Benchmarks (`benchmarks/olefins.yaml`) compare the electricity and steam with Ne
 ## What is weak
 
 - **The crude C4 is one typical cut** from a 1996 document. Real cuts range from about 39 to 44 % butadiene for naphtha (LVOC BREF Table 3.3 gives about 44 % for light naphtha) and US EPA (2025, section 3.1, p. 46) names crude butadiene streams of up to 75 %. The feed and raffinate per t scale with it.
-- **The recovery is the licensor's bound.** That all unrecovered butadiene leaves in the purge, and that the purge goes to fuel use, are ASSUMED.
+- **The recovery is the licensor's bound.** That all unrecovered butadiene leaves in the purge, and that the purge goes to fuel use, are ASSUMED. As an exported fuel, the purge is a co-product (`docs/system-model.md`, section 2) and takes 2.3 % of the burdens by mass. Where it is burnt, and its CO2 (about 190 kg/t butadiene if burnt completely, our arithmetic), are outside this boundary. A plant that flares it or hydrogenates it selectively would need another model.
 - The energy figures do not name the solvent. They are averages from about 2006 (valid_until 2011, lapsed) and gross: no heat export is stated.
 - The butadiene emissions are US data of 1984, rated E. The wastewater mean sits on a range of four orders of magnitude.
-- Mass allocation between butadiene and raffinate-1 is a preliminary deviation, since no sourced prices exist (dataset `allocation`).
+- Mass allocation between butadiene, raffinate-1 and the purge is a preliminary deviation, since no sourced prices exist (dataset `allocation`).
 - Uncertainty is ASSUMED from the spread between sources and Neelis et al.'s stated range.
 
 ## Linking
 
-The product has the registry slug `butadiene` and the co-product `raffinate-1`, both new. `feed:crude-c4` is not linked: `ethylene-1` makes an ethane-cracker cut of about 80 mol% butadiene, another grade (`lca/mappings.yaml`). It stays a reported gap, as does the purge. The butadiene emission links to the biosphere flow Butadiene (air, unspecified) through the shared `C4H6` entry in `lci/mappings.yaml`.
+The product has the registry slug `butadiene`, the co-products `c4-raffinate` (raffinate-1) and `c4-acetylenes-purge`, all new. `feed:crude-c4` is not linked: `ethylene-1` makes an ethane-cracker cut of about 80 mol% butadiene, another grade (`lca/mappings.yaml`). It stays a reported gap. The purge is a co-product, so it needs no link. The butadiene emission links to the biosphere flow Butadiene (air, unspecified) through the shared `C4H6` entry in `lci/mappings.yaml`.
 
 ## Not counted yet (TODO)
 

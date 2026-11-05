@@ -33,7 +33,7 @@ system_boundary:
   - 'TODO cooling-water make-up, evaporation and chemicals: the source counts only the cooling-water pumps'' electricity
     (in feed:electricity); a cooling-water exchange would count that power twice'
   - 'TODO furnace NOx and CO, and unburnt by-products: not given in the source'
-  - 'TODO wash water of the caustic tower and the water of the 50 wt% caustic: not given in the source'
+  - 'TODO wash water of the caustic tower: not given in the source (the water of the 50 wt% caustic is counted)'
   - 'TODO ethylene lost in the stripper vent: not quantified (all unrecovered ethylene taken as fired)'
   - 'the water of the hydrated ethanol feed (7 wt%): enters and leaves with the effluent, not counted'
   - 'LP steam the reactor effluent could raise (25.6 MW in the source): not used in the stand-alone case, no credit
@@ -276,6 +276,11 @@ parameters:
   unit: '1'
   description: Furnace efficiency.
   source: Arvidsson and Lundin (2011), Chalmers MSc thesis, section 4.2.2, p. 50 (an assumption of the source)
+- name: w_caustic
+  value: 0.5
+  unit: kg/kg
+  description: NaOH mass fraction of the caustic solution bought for the caustic tower.
+  source: Arvidsson and Lundin (2011), Chalmers MSc thesis, sections 2.2.5 and 3.2.5, pp. 20 and 34 (50 wt% NaOH)
 - name: Q_cold
   value: 8500.0
   unit: kW
@@ -353,16 +358,17 @@ exchanges:
   uncertainty:
     gsd2: 1.5
     source: 'ASSUMED: one design''s dilution ratio; plants dilute to different extents'
-- key: feed:NaOH
-  title: Sodium hydroxide for the caustic tower, counted as NaOH (the source uses 50 wt%)
+- key: feed:caustic-50
+  title: Caustic soda, 50 wt% solution, for the caustic tower (counted per kg of solution)
   type: input
-  amount: 3.2034998435332644
+  amount: 6.406999687066529
   unit: kg
-  formula: 2 * s8 * eth / (rec * s1 * M_E) * M_NaOH
+  formula: 2 * s8 * eth / (rec * s1 * M_E) * M_NaOH / w_caustic
   provenance: calculated
-  source: stoichiometry 2 NaOH + CO2 -> Na2CO3 + H2O on the CO2 of reaction s8; no excess (ASSUMED). The caustic
-    tower and its 50 wt% NaOH are in Arvidsson and Lundin (2011), Chalmers MSc thesis, sections 2.2.5 and 3.2.5,
-    pp. 20 and 34
+  source: stoichiometry 2 NaOH + CO2 -> Na2CO3 + H2O on the CO2 of reaction s8, no excess (ASSUMED), over the
+    NaOH fraction of the solution (w_caustic). The caustic tower and its 50 wt% NaOH are in Arvidsson and Lundin
+    (2011), Chalmers MSc thesis, sections 2.2.5 and 3.2.5, pp. 20 and 34. The water of the solution leaves with
+    output:wastewater
   pedigree:
     scores: &id001
     - 4
@@ -472,14 +478,16 @@ exchanges:
 - key: output:wastewater
   title: Effluent water to wastewater treatment (injected steam and reaction water)
   type: output
-  amount: 2527.399272269787
+  amount: 2530.6027721133205
   unit: kg
-  formula: r_steam * m_feed / m_rate * eth + (s1 + 0.5 * s2 + s4 + s5 + s6) * eth / (rec * s1 * M_E) * M_W
+  formula: r_steam * m_feed / m_rate * eth + (s1 + 0.5 * s2 + s4 + s5 + s6) * eth / (rec * s1 * M_E) * M_W + 2
+    * s8 * eth / (rec * s1 * M_E) * M_NaOH * (1 - w_caustic) / w_caustic
   provenance: calculated
   link:
     factor: wastewater
     source: site wastewater treatment
-  source: the injected steam and the water of the reactions leave in the quench tower, knock-out drums and dryer
+  source: the injected steam and the water of the reactions leave in the quench tower, knock-out drums and dryer,
+    and the water of the 50 wt% caustic with the spent caustic
     (Arvidsson and Lundin (2011), Chalmers MSc thesis, sections 2.2.3 to 2.2.6); all of it to treatment is ASSUMED
     (the source notes water may be recycled to the reactor, which would cut both the steam and this effluent)
   pedigree:
@@ -668,7 +676,8 @@ exchanges:
     source: 'ASSUMED: a trace selectivity of a model'
 provenance:
   generator: hand-written model; amounts are the formulas of the parameters
-  notes: No value from a licensed database. Facts and numbers from the cited open sources, in our own form.
+  notes: 'No value from a licensed database. Facts and numbers from the cited open sources, in our own form. The
+    lumped formula of feed:caustic-50 in generation.formulas follows w_caustic: recompute it when that changes.'
 generation:
   tier: 1
   method: 'sourced conceptual inventory: a published simulation''s ethanol and ethylene flows, the stoichiometry of
@@ -682,11 +691,11 @@ generation:
   - 3
   - 3
   dqr_floor: 3.0
-  components: &id003
+  components:
     product:ethylene: C2H4
     feed:ethanol: C2H6O
     feed:steam: H2O
-    feed:NaOH: NaOH
+    feed:caustic-50: 'caustic soda 50 wt% (lumped: NaOH and H2O in the mass fractions of w_caustic)'
     feed:O2: O2
     output:wastewater: H2O
     output:ethanol-effluent: C2H6O
@@ -696,7 +705,20 @@ generation:
     emission:CH4: CH4
     emission:CO: CO
     emission:H2: H2
-  formulas: *id003
+  formulas:
+    product:ethylene: C2H4
+    feed:ethanol: C2H6O
+    feed:steam: H2O
+    feed:caustic-50: Na1000000H5440411O3220205
+    feed:O2: O2
+    output:wastewater: H2O
+    output:ethanol-effluent: C2H6O
+    output:spent-caustic: Na2CO3
+    emission:CO2: CO2
+    emission:H2O: H2O
+    emission:CH4: CH4
+    emission:CO: CO
+    emission:H2: H2
   balance:
     closed: true
     tolerance: 1.0e-06
@@ -705,14 +727,14 @@ generation:
       - 908.670216134
       - 908.670216134
       H:
-      - 438.54664671
-      - 438.54664671
+      - 438.905139999
+      - 438.905139948
       Na:
-      - 1.841349636
+      - 1.841349772
       - 1.841349636
       O:
-      - 2339.873706927
-      - 2339.873706927
+      - 2342.718713345
+      - 2342.718713532
     outside:
     - feed:electricity
     - feed:fired-heat

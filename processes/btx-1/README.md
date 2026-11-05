@@ -40,6 +40,7 @@ The dataset has no allocation of its own: all five products are co-products. The
 ## What is weak
 
 - **The feed slate is a single, old, US figure.** It sets the split of the basis into benzene, toluene and xylenes, and how much reformate is needed. Reformates vary with the reformer's feed and severity: CCR reformates exceed 70 % v/v aromatics (REF BREF 2015, section 2.6). No open EU reformate composition was found.
+- **No independent energy check.** Both bound benchmarks (`benchmarks/aromatics.yaml`) are the LVOC BREF table whose midpoints the dataset takes, so "inside" is true by construction. The independent references are recorded but not bound: US DOE (2000) includes the reformer, and a UOP patent (US 5,176,821) gives 388 to 582 kWh per t of extract for the extraction, about half the dataset's 1130 kWh/t, which adds the benzene, toluene and xylene columns. The patent does not say which steps it covers.
 - **The energy covers the extraction unit only (BB2).** The reformate splitter that removes the C9+ cut is usually a refinery column, and its energy is left out (TODO). The source does not say whether its "per tonne of product" means the extract or one product. Its fuel range is wide (149 to 875 kWh/t), and the plants differ in configuration and heat integration.
 - **Nothing is counted for:**
   - solvent make-up;
@@ -53,7 +54,9 @@ The dataset has no allocation of its own: all five products are co-products. The
 
 ## Linking
 
-The main product has the registry slug `benzene`. Toluene, `xylenes`, `aromatics-raffinate` and `heavy-aromatics` are co-products. The reformate (`reformate`) links the Atlas producer `catalytic-reforming-1` explicitly (`lca/mappings.yaml`). No existing consumer of benzene or toluene links to this dataset yet. `ethylbenzene-1` and `cumene-1` (benzene) and `hda-1` (toluene) each choose their supplier in their own `lca/mappings.yaml`.
+The main product has the registry slug `benzene`. Toluene, `xylenes`, `aromatics-raffinate` and `heavy-aromatics` are co-products. The reformate (`reformate`) links the Atlas producer `catalytic-reforming-1` explicitly (`lca/mappings.yaml`). The link is by mass, and the two datasets model the reformate differently: `catalytic-reforming-1` as C9H15 (0.877 kg C/kg), this one as the DOE slate (0.891 kg C/kg). So the linked system supplies about 22 kg less carbon per t of BTX than this dataset consumes (1.5 %, our arithmetic); it is not closed in carbon. Clay, spent clay and the solvent-regenerator sludge are reported gaps.
+
+No existing consumer of benzene or toluene links to this dataset yet. `ethylbenzene-1` and `cumene-1` (benzene) and `hda-1` (toluene) each choose their supplier in their own `lca/mappings.yaml`. The products have no grade of their own, and the build takes the first producer by process id, so an unpinned consumer of benzene or toluene added later would get `btx-1` (before `hda-1` and `styrene-1`). A new consumer should pin its supplier.
 
 ## Not counted yet (TODO)
 

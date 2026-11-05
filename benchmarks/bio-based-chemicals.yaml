@@ -10,6 +10,17 @@
 # about +/- 8 % of rounding. Case study 1 of that table is not used: its ethanol and ethylene
 # columns do not fit together (53.2 t/h of ethanol for 38.9 t/h of ethylene is above the
 # stoichiometric yield).
+#
+# Cases 3 and 4 are integrated biomass-to-ethylene plants: the ethanol synthesis is inside their
+# system boundary (Haro et al., section 2.1, p. 3, and section 4.1, p. 17), and the table's footnote
+# "ethanol production is not included" is attached only to the electricity and natural gas of cases
+# 1 and 2. So the 3 and 6 MW of electricity and the 6 and 11 MW of natural gas of cases 3 and 4 may
+# be the net imports of the whole integrated plant, not of the dehydration alone. The
+# dehydration-only case 2 gives similar ratios (our arithmetic: 8/20.5 and 26/68.2 MW per t/h, 381 to
+# 390 kWh/t of electricity; 15/20.5 and 49/68.2, 718 to 732 kWh/t of natural gas), but it is not
+# bound either: its ethylene per ethanol (20.5/33.8 = 0.607 kg/kg) is near the stoichiometric 0.609
+# and above what Table 4's 96.5 % carbon selectivity allows. The ethanol ratio of cases 3 and 4 is
+# the dehydration plant's own feed and is not affected.
 schema: cheme-as-code/benchmarks/v1
 family: bio-based-chemicals
 
@@ -47,7 +58,7 @@ kpis:
       - id: haro-2013-electricity
         range: [353, 397]
         basis: unallocated
-        note: "Our ratios of Table 10, case studies 3 and 4 (3 MW for 8.5 t/h and 6 MW for 15.1 t/h); the MW are rounded to whole numbers. The model has a cryogenic system for the ethylene recovery (Table 6)."
+        note: "Our ratios of Table 10, case studies 3 and 4 (3 MW for 8.5 t/h and 6 MW for 15.1 t/h); the MW are rounded to whole numbers. The model has a cryogenic system for the ethylene recovery (Table 6). Cases 3 and 4 are integrated plants with the ethanol synthesis inside their boundary, so the figure may include more than the dehydration; the dehydration-only case 2 gives 381 to 390 kWh/t (see the file header)."
         conditions: {technology: "ethanol dehydration with cryogenic ethylene recovery", region: generic, year: 2013}
         source: *haro
   bioethylene-external-fuel:
@@ -57,7 +68,7 @@ kpis:
       - id: haro-2013-natural-gas
         range: [706, 728]
         basis: unallocated
-        note: "Our ratios of Table 10, case studies 3 and 4 (6 MW for 8.5 t/h and 11 MW for 15.1 t/h, HHV); the recovered hydrocarbons are fired in the plant first (section 2.1.5), as in the dataset."
+        note: "Our ratios of Table 10, case studies 3 and 4 (6 MW for 8.5 t/h and 11 MW for 15.1 t/h, HHV); the recovered hydrocarbons are fired in the plant first (section 2.1.5), as in the dataset. Cases 3 and 4 are integrated plants with the ethanol synthesis inside their boundary, so the figure may include more than the dehydration; the dehydration-only case 2 gives 718 to 732 kWh/t (see the file header)."
         conditions: {technology: "ethanol dehydration, by-products fired in a gas combustor", region: generic, year: 2013}
         source: *haro
 
@@ -75,7 +86,7 @@ datasets:
         expression: feed:electricity / product:ethylene
         per: product:ethylene
         reference: haro-2013-electricity
-        out_of_range_reason: "The dataset's 4.4 MW (Arvidsson and Lundin 2011) covers the simulated process units (3.4 MW) and the cooling-water supply (1.0 MW), but not the refrigeration of the -25 degC C2-splitter condenser: the source assumes a refrigeration medium is available. That duty (363 kWh of cold per t) is a separate, still unlinked exchange (feed:refrigeration); its machine power would close much of the difference."
+        out_of_range_reason: "The dataset's 4.4 MW (Arvidsson and Lundin 2011) covers the simulated process units (3.4 MW) and the cooling-water supply (1.0 MW), but not the refrigeration of the -25 degC C2-splitter condenser: the source assumes a refrigeration medium is available. That duty (363 kWh of cold per t) is a separate, still unlinked exchange (feed:refrigeration). At an ASSUMED coefficient of performance of 1.7 to 2.5 (Carnot about 4.1 between -25 and +35 degC) its machine power is 145 to 214 kWh/t, which brings the total to 333 to 401 kWh/t, against 353 to 397 (our arithmetic): the difference is that omission, not the two models. The power is not added to feed:electricity because the cold has its own exchange, a reported gap until a -25 degC refrigeration background exists."
       bioethylene-external-fuel:
         expression: feed:fired-heat / 0.8 / product:ethylene
         per: product:ethylene

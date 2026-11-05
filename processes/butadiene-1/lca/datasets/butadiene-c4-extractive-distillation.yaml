@@ -6,8 +6,8 @@ kind: lci_dataset
 id: butadiene-c4-extractive-distillation
 title: 1,3-Butadiene by extractive distillation of a steam-cracker crude C4 cut
 description: Per 1 t of 1,3-butadiene, gate-to-gate, from the crude C4 cut of a naphtha steam cracker. Raffinate-1
-  (butenes and butanes) is a co-product; the C3 and C4 acetylenes leave as a purge to fuel use. Feed from a
-  typical cut and a recovery bound; utilities as Western European averages.
+  (butenes and butanes) and the purge of C3 and C4 acetylenes to fuel use are co-products. Feed from a typical
+  cut and a recovery bound; utilities as Western European averages.
 basis: 1000 kg of 1,3-butadiene
 boundary: 'gate-to-gate: extractive distillation with a polar solvent, solvent degassing, propyne and finishing
   columns; crude C4, steam and power from outside'
@@ -24,7 +24,7 @@ system_boundary:
   - crude C4 feed
   - electricity and steam
   - co-product raffinate-1
-  - acetylenes purge
+  - co-product acetylenes purge, to fuel use outside the unit
   - butadiene to air from process vents and wastewater
   excluded:
   - 'TODO solvent make-up (NMP or another polar solvent): no open figure read; the licensor calls the losses
@@ -50,16 +50,20 @@ time:
     section 6), so it has already lapsed.'
 modelling:
   principle: attributional
-  multifunctionality: 'unallocated in the exchanges: butadiene and raffinate-1 are listed as products; the
-    build allocates by mass (see allocation)'
+  multifunctionality: 'unallocated in the exchanges: butadiene, raffinate-1 and the acetylenes purge (a fuel
+    exported to the site, so a co-product, docs/system-model.md section 2) are listed as products; the build
+    allocates by mass (see allocation)'
 allocation:
   method: mass
   coproducts:
   - butadiene
-  - raffinate-1
-  deviation: No sourced prices, so the WBCSD price ratio of butadiene and raffinate-1 cannot be computed. Both
-    leave one physical separation as liquefied C4 hydrocarbons; mass is the preliminary choice. The purge to
-    fuel use is an output, not a co-product.
+  - c4-raffinate
+  - c4-purge
+  deviation: No sourced prices, so the WBCSD price ratio of butadiene, raffinate-1 and the purge cannot be computed.
+    All three leave one physical separation as C3 and C4 hydrocarbons; mass is the preliminary choice. The purge
+    goes to fuel use, so it is an exported fuel and a co-product (docs/system-model.md section 2), not an
+    unlinked output; energy allocation (LHV) is not used because butadiene and raffinate-1 are not fuels. At
+    2.3 % of the product mass it takes 2.3 % of the burdens.
 uuid: 53807271-3c3f-5a24-89ae-dc517d868e93
 version: 0.1.0
 methodology_version: 1.0.0
@@ -193,7 +197,7 @@ exchanges:
   source: the reference flow, modelled as pure C4H6; purity above 99.7 % (BASF SE, Butadiene extraction technology,
     web page (manufacturer), basf.com/cn/en/products/chemicals/Intermediates/solutions/butadiene-extraction,
     read 2026-11-05); the impurities are not modelled
-- key: product:raffinate-1
+- key: product:c4-raffinate
   title: Raffinate-1 (butenes and butanes, with the isobutene)
   type: product
   amount: 1537.1033909747107
@@ -201,7 +205,7 @@ exchanges:
   formula: bd / (x_bd * rec) * (x_be + x_ba)
   provenance: calculated
   source: the butenes and butanes of the feed; that all of them leave in the raffinate and none of the unrecovered
-    butadiene does is ASSUMED (see output:c4-purge). A co-product, unallocated in the dataset
+    butadiene does is ASSUMED (see product:c4-purge). A co-product, unallocated in the dataset
   pedigree: &id001
     scores:
     - 4
@@ -278,9 +282,9 @@ exchanges:
     gsd2: 1.3
     source: 'ASSUMED: Neelis et al. (2007, section 5.1) rate their C4 separation figure at 10 to 30 % uncertainty;
       30 % read as the 95 % half-width'
-- key: output:c4-purge
-  title: C3 and C4 acetylenes and heavies purge, to fuel use
-  type: output
+- key: product:c4-purge
+  title: C3 and C4 acetylenes and heavies purge, to fuel use (co-product)
+  type: product
   amount: 58.87133972581401
   unit: kg
   formula: bd / (x_bd * rec) * (x_c3 + x_va + x_c4o) + bd * (1 - rec) / rec - (e_vent + e_ww) * bd / 1000
@@ -288,7 +292,8 @@ exchanges:
   source: propadiene, propyne, vinylacetylene and the other C4H6 isomers of the feed, with the unrecovered
     1,3-butadiene less what is emitted. That the unrecovered butadiene leaves here and that the stream goes
     to fuel use are ASSUMED (the LVOC BREF 2017, section 3.2.2.4, p. 131, names the extractive distillation,
-    and EPA 1996, p. 4-8, names the alkyne removal; neither gives its amount or fate)
+    and EPA 1996, p. 4-8, names the alkyne removal; neither gives its amount or fate). A fuel that leaves the
+    unit, so a co-product (docs/system-model.md section 2); where it is burnt is outside this boundary
   pedigree: *id001
   basic_uncertainty: 1.05
   uncertainty:
@@ -338,17 +343,17 @@ generation:
   dqr_floor: 3.0
   components:
     product:butadiene: C4H6
-    product:raffinate-1: 'raffinate-1 (lumped: C4H8 butenes and C4H10 butanes in the mass fractions of the
+    product:c4-raffinate: 'raffinate-1 (lumped: C4H8 butenes and C4H10 butanes in the mass fractions of the
       parameters)'
     feed:crude-c4: 'crude C4 (lumped: C4H6, C4H8, C4H10, C3H4 and C4H4 in the mass fractions of the parameters)'
-    output:c4-purge: 'C3 and C4 acetylenes, 1,2-butadiene and the unrecovered 1,3-butadiene (lumped: C4H6,
+    product:c4-purge: 'C3 and C4 acetylenes, 1,2-butadiene and the unrecovered 1,3-butadiene (lumped: C4H6,
       C3H4, C4H4)'
     emission:C4H6: C4H6
   formulas:
     product:butadiene: C4H6
-    product:raffinate-1: C1000000H2068824
+    product:c4-raffinate: C1000000H2068824
     feed:crude-c4: C1000000H1828327
-    output:c4-purge: C1000000H1387919
+    product:c4-purge: C1000000H1387919
     emission:C4H6: C4H6
   balance:
     closed: true
