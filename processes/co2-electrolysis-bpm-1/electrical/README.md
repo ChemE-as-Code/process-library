@@ -31,9 +31,12 @@ the schedule by hand.
   P-202) with ASSUMED IEC ratings; the AC feeders of the rectifiers U-x01, the PSA packages
   X-x31 and the oxidisers X-x32; the **48 V DC bus** as its own cable class: one radial cable
   per stack from its own DC output on the rectifier (rooms `DC-x01A` to `D`, kind `mcc` at
-  48 V, since core has no DC kind), fed directly, never on the rack's AC tray; one junction box
+  48 V, since core has no DC kind, at 3.1 m: the riser from the cabinet top at 1.35 m is not
+  modelled, regen step 24 adds its length to the record, D-045), fed directly, never on the
+  rack's AC tray; one junction box
   per skid (JB-101, JB-201) outside the zone 2; the points of the actuated valves, the
-  transmitters on the skipped DN 15 lines, the gas detectors and the rectifier current signals.
+  transmitters on the skipped DN 15 lines, the gas detectors and the rectifier current signals
+  (each one pair in core's model; the rectifier interface needs three or more, open, D-045).
   Every value ASSUMED; no Ex certification is claimed (the Ex rating is the owner's open
   decision, D-031 item 12).
 - `tray-rules.yaml`: the PR-1 tray tier at 2.85 m, branches at 2.5 m or higher, `rack_reach_m`

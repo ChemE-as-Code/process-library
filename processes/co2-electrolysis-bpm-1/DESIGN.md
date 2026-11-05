@@ -1244,9 +1244,21 @@ here.
 - The hose couplings (battery-limit points of KOH-x01 and SP-x01) move from 0.2 m outside the
   frame's west edge to 0.15 m inside it: the hose valves HV-102, HV-103 and HV-203 then stand
   inside the frame in plan (HV-203 stood 0.43 m beyond it, at 20.066 m against the edge at
-  20.5 m). The coupling sits behind the deck's guard rail at 0.9 m (KOH) and 0.4 m (drain), between its
-  mid rail (0.7 m above the deck) and top rail, or below the mid rail: reached through the rail from grade. Whether the
-  skid has a removable rail section there is the fabricator's (open, D-042).
+  20.5 m). On Skid A both couplings stand where the router leaves T-101's fill and drain
+  nozzles (0.3 m out along their 145 degree axis, y 9.296 m) and at their elevations, so each
+  line runs straight west to its coupling: KOH-101 at 1.324 m (generated with the coupling at
+  0.9 m it doubled back over the deck, 2.19 m of pipe for a 0.9 m run, with 1.1 m of pipe on
+  the hose side of HV-102; now 0.58 m, HV-102 0.29 m from the coupling) and SP-101 level at
+  0.30 m. T-101's drain N5 and pump suction N4 stand 0.15 m above its floor (overrides in
+  `layout/equipment-placement.yaml`; N4 from the P&ID side stood 0.011 m above P-101's suction),
+  T-201's drain N5 0.10 m (0.25 m above grade, so HV-203's flanges clear the deck), and Skid
+  B's drain coupling stands on the drain's level run at 0.25 m: neither drain line rises to
+  its coupling any more (SP-101 rose 0.09 m to 0.4 m, SP-201 0.2 m, so the tanks could not
+  drain by gravity below that; the heel that stays: D-043). The couplings sit behind the deck's
+  guard rail (top rail 1.25 m above grade, mid rail 0.85 m): the KOH fill couplings above it
+  (Skid A, 1.324 m) or between the rails (Skid B, 0.9 m), the drains below the mid rail;
+  reached through or over the rail from grade. Whether the skid has a removable rail section
+  there is the fabricator's (open, D-042).
 - Transmitter stands: core puts an instrument connection's transmitter on a stand 0.6 m out
   from its flange. From the P&ID side, LT-201 (LIC-201) stood 0.24 m beyond the frame's north
   edge, LT-203 (LIA-203) on the metering pump P-202, AT-201 and LT-202 on one spot, LT-101 and
@@ -1265,19 +1277,25 @@ here.
 - Proposals of the build, decided: the two ladders at the free ends of the utility rack PR-1
   (to its 2.8 m tier) are pinned (`layout/site-plan.yaml`). No platform, no valve access
   platform and no support steel is proposed (no nozzle or valve above 2.5 m, no free span over
-  the DN 25 span); the one shoe the build places (SP-201 S2 on Skid B's deck beam) is generated
-  with the route. The 29 step-overs the build proposes over the low DN 25 runs on the decks are
-  **not adopted**: the skid is worked from grade along its long sides and its 0.15 m deck is
+  the DN 25 span); the build places no pipe support (`supports: []`: the shoe the base model
+  had on SP-201 S2 went with that route's reroute, and no other run needs one), so the skid
+  piping's supports are the fabricator's. The 30 step-overs the build proposes over the low DN
+  25 runs on the decks (14 on SKID-A, 16 on SKID-B; step-over-28 and -29 of KOH-201 and SP-201
+  share one point) are **not adopted**: the skid is worked from grade along its long sides and its 0.15 m deck is
   stepped onto, not walked across between the rows (D-019); a 0.8 m wide stair over each 0.2 m
   manifold would itself block the stack and pump access. Core 1.5.0 proposes a step-over wherever
   a pipe whose top is within 0.75 m crosses a grating and has no way to decline one, so they stay
   in the model as generated proposals (`review_needed`), drawn dashed; the take-off's
-  `step-over` group is therefore not skid steel (for the MTO, spec item 4). Core counts a
-  crossing with a proposed step-over as reviewed for the deck headroom; the crossings it does
-  not cover remain the accepted findings of D-019: KOH-101 to its hose coupling (0.73 m over
-  the deck); AN-104 S4, rerouted (D-042) to run at 2.10 m from its riser west of the stacks over
-  T-101's top, is no longer reported by core's headroom rule, so its acceptance is removed from
-  `checks/checks.yaml`.
+  `step-over` group is therefore not skid steel (for the MTO, spec item 4). Core's headroom
+  rule skips a pipe on a deck altogether while a step-over is proposed on it, so the step-overs
+  this record does not adopt hide headroom findings. Two runs are under the 2.1 m headroom
+  over Skid A's deck and accepted in `checks/checks.yaml` with the reason of D-019 (the deck is
+  not a walkway): KOH-101 at 1.32 m to its hose coupling (1.16 m clear, reported), and AN-104
+  S4, rerouted (D-042) along the header at 0.6 m (0.43 m clear) and over T-101's top at 2.10 to
+  2.23 m (about 1.9 m clear). AN-104 S4 is not reported by core 1.5.0 only because its low leg
+  makes core propose step-over-13 on it (box 7.74 to 8.54 x 7.63 to 9.26 m, in front of
+  E-101A); deleting that proposal from the model makes core report it (checked on a copy). Its
+  acceptance is kept, so the finding stays accepted with its reason if the proposal goes.
 - Structures and access (skill `structures-access`), checked on the model: each frame has two
   ways off its deck, the steps ST-x1 (south side, west end) and ST-x2 (east end), remote and
   outside the zone (no `layout-escape-*` finding); core draws a 1.1 m guard rail with mid rail
@@ -1293,8 +1311,9 @@ Rejected: pinning the routes that end on T-101 (they would break at 10,000 h); s
 step-overs by raising the manifolds above 0.9 m (the stack connections sit at 0.20 and 0.28 m);
 an enclosure round the frame (D-019).
 
-Assumptions: the hose coupling points, the transmitter positions, the rack ladders and the
-decline of the step-overs (all ASSUMED, for the layout review).
+Assumptions: the hose coupling points, the drain and suction nozzle elevations, the
+transmitter positions, the rack ladders and the decline of the step-overs (all ASSUMED, for
+the layout review).
 
 ## D-041 The plans and sections of the skids: core's A1 sheet cropped to the drawing (2026-11-05)
 Decision: `scripts/regen.py` step 10 renders per scenario into `figures/skids/<H>h/` the plot
@@ -1347,10 +1366,11 @@ along the header first and rise outside the lane. The stand of T-101's pH transm
 (N7) is turned out of that lane too (D-040). At 10,000 h (scratch) the grown T-101 (D 2.313 m)
 adds two reasons to Skid A's infeasibility: its anchor chair stands in E-101A's side access,
 and T-101, HV-101 and AN-101 cross E-101A's lift column; Skid B is unchanged.
-Open (for the layout review and the fabricator): whether a person at grade can hand a stack of
-its (unknown) weight over a 1.275 m rail at about 1.1 m reach, or the rail needs a removable
-section at the stack row, or the stacks are lifted from the deck; the stack weight (no vendor
-data: no `weight` in the equipment list).
+Open (for the layout review and the fabricator): whether a person at grade can hand a stack
+over a 1.275 m rail at about 1.1 m reach, or the rail needs a removable section at the stack
+row, or the stacks are lifted from the deck. The stack's mass is the estimate of D-043 only:
+17.1 kg (outline 0.0057 m3 x 3000 kg/m3, ASSUMED), carried as 0.02 t in the equipment list,
+the model and the datasheets (rounded up to 5 kg); the vendor's stack mass is still needed.
 
 Reason: core sizes a stack's footprint with its access but models no lift envelope; the hand
 lift of D-023 was asserted, not checked.
@@ -1368,21 +1388,37 @@ by `--check`:
   `-laydown` finding, the study current).
 - `layout/lifting-study-units.csv` and `.md` (step 23, `scripts/_lifting.py`): the lifts core's
   study cannot express, worked out with core's criteria and arithmetic (read from `cheme layout
-  lifting --json`) on the committed model: each skid as a 20 ft unit, dry and with its tanks
-  full, and T-101 alone, drained and full.
+  lifting --json`) on the committed model: each skid as a 20 ft unit, drained and with its
+  tanks full, and T-101 alone, drained and full.
 
 Weights (regen step 21, `layout/lifting-basis.yaml`, all ASSUMED: no vendor weight exists).
 Every listed item's empty weight is written into the equipment list's `dimensions.weight`
 (the key once by hand, its value by regen), so the model, core's study and the datasheets
-carry it: the outline volume of the list times a bulk density per kind (stacks 3000, pumps and
+carry it (core 1.5.0's datasheet draft copies the weight into `weights.empty` and
+`type_specific.weight_t` without the list's `assumed` flag; regen step 10 sets
+`assumed: true` on both in every draft datasheet whose list dimensions are assumed, all 28):
+the outline volume of the list times a bulk density per kind (stacks 3000, pumps and
 compressors with motor 1000, plate packs 1500, the separator pot 600, the fans and the rectifier
 cabinet 500, the gas packages 400 kg/m3), a tank's shell, bottom and flat roof at 10 mm of PP
-(905 kg/m3) plus 25 % for fittings, rounded up to 5 kg. A unit lift adds the frame's own
-members at core's take-off mass per metre of each section, its deck grating at 35 kg/m2 and
-15 % of items and frame for what neither the list nor the model weighs (piping, valves,
-instruments, cable, bolting, drip tray); the access steps ST-x1/x2 travel loose. A full tank
+(905 kg/m3) plus 25 % for fittings, rounded up to 5 kg (a stack 17.1 kg, listed as 0.02 t). A
+unit lift adds the frame's members as core draws them (its perimeter UPN140, corner posts and
+guard rail, 0.53 t) at core's take-off mass per metre of each section, its deck grating at
+35 kg/m2, a **base frame** that core does not draw at 40 kg/m2 of the footprint (0.59 t a
+skid: cross-members and grating bearers about every 0.7 m, which a 2.44 m deck needs, lifting
+lugs or corner fittings, the stiffening of a perimeter lifted at its corners; ASSUMED, the
+fabricator's structural design replaces it; the first study had none, so the drawn perimeter
+and rails stood for the frame) and 15 % of the items, the drawn frame and the grating for
+what neither the list nor the model weighs (piping, valves, instruments, cable, bolting, drip
+tray); the access steps ST-x1/x2 travel loose. A full tank
 holds its outline volume (pi/4 D^2 H) at the anolyte density of the stack sizing (1050 kg/m3,
-P-x01) or the dosing density of D-B (1.22 kg/L, T-202).
+P-x01) or the dosing density of D-B (1.22 kg/L, T-202). A **drained** tank keeps its heel:
+gravity empties it only down to the highest point of its drain line (regen reads it from the
+model) or, with no drain, to its lowest outlet, and the heel is in every drained lift. T-101
+drains through N5 at 0.15 m above its floor, level to its coupling: 0.136 m3, 0.143 t; T-201
+through N5 at 0.10 m: 0.012 t; T-202 has no drain on P-02 and empties at best to its outlet N2
+to P-202 (0.054 m): 0.010 t. (In the first study the drain lines rose to couplings at 0.4 m,
+which would have left 0.25 m in each tank, 0.24 t in T-101, and the drained weights carried no
+heel at all; D-040.)
 
 Lift method and places (`layout/zones.yaml`, ASSUMED): the only vehicle access is the road R-1,
 and the utility rack PR-1 (2.8 m tier) runs between the road and both skids along the whole
@@ -1390,7 +1426,10 @@ plot, so the skids are set and removed by a mobile crane standing on the road: c
 and CP-B opposite each skid (reach the package default 30 m), the laydown LD-R on the road
 between them (a skid's trailer bed, 6.6 x 3 m), and LD-A1 at grade west of Skid A for T-101
 (3.1 x 2.8 m, it also holds the 10,000 h tank). A load below `heavy_lift_t` that is not a skid
-(T-101 alone) goes by hoist or forklift over the frame's west end onto LD-A1. Core draws the
+(T-101 alone) goes by hoist or forklift over the frame's west end onto LD-A1, carried at most
+at 2.1 m (`carry_limit_m`, ASSUMED: the walkway headroom; a forklift or a hoist on a portable
+gantry). Above it the study marks the lane blocked for that method (a crane lift), regen
+warns, and the library test fails at 1,000 h; the first study only reported the carry height. Core draws the
 road over the zones on the plot plan; regen step 10 now draws the road group first (only the
 order of core's two SVG groups changes, `scripts/_figures.py roads_under_zones`), so the pads
 and LD-R show on `layout-plan.png`.
@@ -1399,28 +1438,34 @@ Results at 1,000 h (`layout/lifting-study-units.md`):
 
 | lift | weight t | method | needed t (radius) | lift / hook height m | lane, laydown |
 |---|---:|---|---:|---:|---|
-| Skid A unit, T-101 drained | 2.527 | mobile crane from CP-A | 3.89 (7.22 m) | 3.30 / 9.75 | clear (over PR-1 at 2.8 m), LD-R |
-| Skid A unit, T-101 full (not permitted) | 4.060 | mobile crane from CP-A | 6.25 (7.22 m) | 3.30 / 9.75 | clear, LD-R |
-| T-101 drained | 0.085 | hoist or forklift | | carry 1.775 | over the deck rail (1.275 m), HV-102, HV-103; LD-A1 |
-| T-101 full (not permitted) | 1.617 | hoist or forklift | | carry 1.775 | as drained |
-| Skid B unit, tanks drained | 2.498 | mobile crane from CP-B | 3.85 (7.22 m) | 3.30 / 9.73 | clear, LD-R |
-| Skid B unit, tanks full (not permitted) | 2.668 | mobile crane from CP-B | 4.11 (7.22 m) | 3.30 / 9.73 | clear, LD-R |
+| Skid A unit, T-101 drained | 3.261 | mobile crane from CP-A | 5.02 (7.22 m) | 3.95 / 10.395 | clear (over PR-1 and its trays), LD-R |
+| Skid A unit, T-101 full (not permitted) | 4.651 | mobile crane from CP-A | 7.16 (7.22 m) | 3.95 / 10.395 | clear, LD-R |
+| T-101 drained (heel 0.143 t) | 0.228 | hoist or forklift | | carry 1.936 (limit 2.1) | over HV-102 (1.436 m), the deck rail (1.275 m), JB-101 (1.2 m); LD-A1 |
+| T-101 full (not permitted) | 1.617 | hoist or forklift | | carry 1.936 | as drained |
+| Skid B unit, tanks drained | 3.112 | mobile crane from CP-B | 4.79 (7.22 m) | 3.95 / 10.384 | clear, LD-R |
+| Skid B unit, tanks full (not permitted) | 3.259 | mobile crane from CP-B | 5.02 (7.22 m) | 3.95 / 10.384 | clear, LD-R |
 
-A dry skid is about 2.5 t (items 1.13 to 1.15 t, frame steel 0.53 t, deck grating 0.52 t,
-allowance 0.33 t): below `heavy_lift_t`, but a 6 m frame is lifted as a unit, so a crane (or a
-truck-mounted crane of that class) is named for it. Every lift passes over the utility rack,
-which sets the lift height (2.8 m + 0.5 m clearance); the vent and flue risers (to 3.43 m, fitted
-at site, D-040) set the skid's height in the hook height. Full lifts are the bound, not a lift:
+A drained skid is about 3.1 to 3.3 t (items 1.13 to 1.15 t, drawn frame steel 0.53 t, deck
+grating 0.52 t, base frame 0.59 t, allowance 0.33 t, heel 0.02 to 0.14 t): below
+`heavy_lift_t`, but a 6 m frame is lifted as a unit, so a crane (or a truck-mounted crane of
+that class) is named for it. Every lift passes over the utility rack and the cable trays on it
+and between it and the frames (D-045), which set the lift height (3.45 m + 0.5 m clearance;
+3.3 m over the bare rack before the trays); the vent and flue risers (to 3.43 m, fitted at
+site, D-040) set the skid's height in the hook height. Full lifts are the bound, not a lift:
 the tanks are drained before a skid or T-101 is moved (procedure ASSUMED, for the lifting
-plan). With every weight doubled, a dry skid would still need less than 8 t of chart capacity at
-7.2 m at 1,000 h.
+plan). With every weight doubled, a drained skid would still need about 10 t of chart
+capacity at 7.2 m at 1,000 h. T-101's drained carry rose from 1.775 to 1.936 m when its fill
+line was straightened to run at the nozzle's 1.324 m (HV-102's lever, D-040).
 
-At 10,000 h (scratch, `results/scenarios/10000h/record.json` key `lifting`): Skid A dry 2.872 t
-(T-101 empty 0.385 t), with T-101 full **18.18 t** (15.31 t of anolyte; 28 t chart capacity at
-7.89 m, hook 11.40 m); T-101 alone full 15.69 t, a crane lift (24.2 t needed); and the dry skid
-has **no laydown**: with T-101's ladder and details beyond the frame it is 6.81 x 4.16 m in plan,
-larger than LD-R. Another reason the 10,000 h Skid A is not a 20 ft unit (D-015); reported, not
-fixed. Skid B is unchanged.
+At 10,000 h (scratch, `results/scenarios/10000h/record.json` key `lifting`): Skid A drained
+4.125 t (T-101 empty 0.385 t and its heel 0.662 t: 0.15 m of a 2.313 m tank), with T-101 full
+**18.77 t** (15.31 t of anolyte; 28.9 t chart capacity at 7.23 m, hook 12.054 m); T-101 alone
+drained 1.047 t, its carry to LD-A1 over the trays PT-M-P-101 (2.95 m) and IT-JB-101 at 3.45 m,
+**lane blocked** for a hoist or forklift (above the 2.1 m limit); T-101 alone full 15.69 t, a
+crane lift (24.2 t needed, hook 10.67 m); and the drained skid has **no laydown**: with T-101's
+ladder and details beyond the frame it is 6.81 x 2.83 m in plan (the plan of its own solids,
+the cable tray runs taken off), larger than LD-R. Other reasons the 10,000 h Skid A is not a
+20 ft unit (D-015); reported, not fixed. Skid B is unchanged.
 
 HAZOP: the equipment list (weights only) and `layout/zones.yaml` (the pads and laydowns, outside
 the hazardous zones) are analysed inputs of H-01 and H-02. `cheme safety hazop check` showed
@@ -1439,31 +1484,50 @@ Open (lifting plan, fabricator, owner): the crane and its load chart (no
 `layout/crane-chart.yaml`), outrigger spread and ground bearing on the 3 m road, the skid's
 lifting points and spreader, the road closure, lifts over the live rack; the deck rail at the
 west end, which T-101 must clear (removable section, as for the stacks, D-042); vendor weights
-for every item.
+for every item; the skid's structural base frame and its weight (the 40 kg/m2 above); for the
+P&IDs (not changed here): a bottom drain or a pump-out connection on T-101, T-201 and T-202
+(none is drawn; a heel stays below each outlet, and T-202 has no drain at all), the
+drain-before-lift sequence (SEQ-x-DRAIN ends on "LIA-x01 empty", which the drain cannot reach).
 
-Assumptions: every weight and density above, the pads, laydowns and their sizes, the 15 %
-allowance, the drain-before-lift rule (all ASSUMED).
+Assumptions: every weight and density above, the base frame, the heels, the pads, laydowns
+and their sizes, the 15 % allowance, the 2.1 m carry limit, the drain-before-lift rule (all
+ASSUMED).
 
 ## D-044 The material take-off of the 1,000 h model; no estimate (2026-11-05)
 Decision: `cheme assess mto --write` (regen step 22) writes `estimate/mto.csv` and `.md` from the
 committed model; the gate `mto` (`mto-current`) passes. Totals at 1,000 h, as core counts them:
-pipe 40.675 m (all DN 25, bare, 41 pipes), 51 elbows (49 x 90 deg, one 125 deg and one 20 deg
-bend), 12 tees, 48 weld-neck flanges and 48 gasket sets, 6 DN 25 ball valves, steel 7.71 t,
-grating 74.949 m2. At 10,000 h (record key `take_off`): pipe 49.82 m, 53 elbows, steel
-7.716 t, grating 75.349 m2.
+pipe 38.624 m (all DN 25, bare, 41 pipes), 40 elbows (37 x 90 deg, two 35 deg and one 20 deg
+bend), 12 tees, 48 weld-neck flanges and 48 gasket sets, 6 DN 25 ball valves, steel 7.72 t,
+grating 75.749 m2. At 10,000 h (record key `take_off`): pipe 45.577 m, 48 elbows, steel
+7.72 t, grating 75.749 m2.
+- **Every elbow can be built.** Core counts each bend of a route as a weld-in fitting. A DN 25
+  long-radius elbow is 38 mm centre to end, so a leg needs 38 mm at a route's end and 76 mm
+  between two elbows. The routes of the first take-off had 8 elbows on legs shorter than
+  that (AN-102 and AN-202: a 25 mm jog and a 17 mm rise into the cooler's top nozzle, from
+  below; AN-101: an 11 mm step between T-101's suction nozzle and P-101's; SP-101: 46 and
+  89 mm legs and a 125 deg bend where the drain rose to its coupling), which inflated the
+  count to 51. AN-102 and AN-202 are now pinned over the nozzle and down into it (one run
+  with the 25 mm offset as a 2.3 deg skew, the fabricator's single offset), T-101's N4 and N5
+  stand at P-101's suction level and the couplings on the lines' axes (D-040): every leg is
+  81 mm or longer between elbows and 70 mm or longer at an end (regen's model, checked on
+  every pipe). Core 1.5.0 has no minimum-leg rule: a route change can bring a short leg back,
+  so the layout review should look for one.
 
 How to read it:
 - **Step-overs are not skid steel.** The `step-over` group (0.421 t of RHS50x50, 32.416 m2 of
-  grating) is the 29 proposed step-overs that are not adopted (D-040); core 1.5.0 counts them
+  grating) is the 30 proposed step-overs that are not adopted (D-040); core 1.5.0 counts them
   and has no way to decline them. Without them: steel 7.289 t, grating 42.533 m2.
 - **The rack dominates the steel**: PR-1's eight bents (HEB300 columns 5.242 t, HEB200 beams
   0.736 t) are core's default sections by span (ASSUMED placeholders, skill structures-access)
   for a notional one-tier rack that carries no modelled pipe; the skid frames are 1.06 t
   (UPN140 0.544, HEB140 posts 0.04, toe plates 0.127, guard rails 0.349 t), the access steps
-  0.148 t and the rack ladders 0.103 t.
+  0.148 t and the rack ladders 0.103 t. The skid frames are what core draws: the perimeter,
+  the corner posts and the guard rail; the cross-members, grating bearers and lifting points
+  are not drawn and not counted (the lifting study carries them as an ASSUMED base frame,
+  D-043).
 - **What it leaves out**: the 42 DN 15 lines (skipped, D-019), the hose couplings, small-bore
   vents, drains and instrument connections, the in-line items on DN 15 lines (control valves
-  among them), olets, supports beyond the one generated shoe, cable and trays (core's take-off
+  among them), olets, all pipe supports (the build places none, D-040), cable and trays (core's take-off
   counts neither; the cables and trays are D-045's), the packages' own internals and all concrete (the skids stand on the plot without
   modelled foundations). The 48 flanges are core's count at the valves and the piped nozzles.
 
@@ -1475,6 +1539,15 @@ equipment` (CAPCOST) is not run either: it needs a CEPCI value with its source i
 `estimate/cost-basis.yaml`, and most items (stacks, packages, rectifier) have no correlation.
 When a cost basis exists, add the rates with their source and status and the gate's `rates`
 and `estimate-current` requirements.
+
+The LCA now depends on the take-off: core's `cheme assess lca` lists `estimate/mto.csv` among
+its report inputs once the file exists, so both LCA datasets (`lca/dataset.yaml` and Skid B's
+`lca/datasets/*-skid-b.yaml`) record its sha256 in their provenance, beside the equipment
+list's. The screening does not use the take-off (construction is cut off in `lca/lca.yaml`),
+but any change of the take-off makes the gates `lca` and `lca-case-dataset-current` stale
+(checked on a copy: one line appended to `mto.csv` made both report `cheme.lca-dataset-stale`).
+Regen runs the LCA (step 20) after the take-off (step 22), so a regenerated folder is current;
+a hand edit of the model or the take-off needs a regen run, not only `cheme assess mto`.
 
 Assumptions: the take-off's quantities are the model's (ASSUMED sections and outlines, D-019,
 D-040); none added here.
@@ -1491,7 +1564,11 @@ vendor data, no host-site standard).
   east end like the site tie-ins.
 - **Loads**: seven motors (P-x01 0.18 kW, K-x31 0.37 kW, K-x41 0.25 kW, P-202 0.12 kW: the next
   IEC size above the flowsheet's estimates Q102/Q103, or assumed where nothing is sized; no
-  datasheet gives a rating); AC feeders U-x01 3.2 kW (Q101, power factor 0.95), X-x31 0.1 kW
+  datasheet gives a rating); AC feeders U-x01 4.1 kW (power factor 0.95: the rectifier's AC
+  input on the same basis as its DC outputs, 4 x 48 V x 20 A = 3.84 kW DC over the efficiency
+  0.95 of `process/cells.yaml` = 4.04 kW, rounded up; its operating duty is flowsheet Q101,
+  3.164 kW, at about 37.6 V a stack; first written as 3.2 kW from Q101, below the DC rating
+  the stack cables carry; 6.2 A, the cable size unchanged), X-x31 0.1 kW
   (Q104, 0.8), X-x32 0.5 kW (no flowsheet power: fan, igniter, burner management, 0.8). No heater
   exists (TIC-x11 only cools, D-032). Cable entries beside P-x01 (west) and K-x41 (south), so
   no tray drops into a stack's carry lane (D-042).
@@ -1499,7 +1576,17 @@ vendor data, no host-site standard).
   on the rectifier (overcurrent protection per stack in the cabinet, the HAZOP's D-031 item 9),
   rated 20 A (the stack current) at the 48 V bus rating. Core 1.5.0 has no DC class, so it is
   expressed with what core has: each output is a room of kind `mcc` at 48 V (`DC-x01A` to `D`,
-  at the cabinet top 3.1 m, 0.25 m apart on the router grid); each stack is a feeder at 48 V
+  0.25 m apart on the router grid). Their points are **not on the cabinet**: they stand at
+  3.1 m, 1.75 m above the cabinet top (1.35 m), 0.05 m north of its north face, DC-x01A also
+  0.25 m west of it (first described as "at the cabinet top"). Points at the cabinet top were
+  tried: core then runs the direct-fed DC trays at 1.35 to 2.35 m over the deck and out beyond
+  the frame's north edge, under the walkway headroom. So the riser from the cabinet to 3.1 m
+  (one tray for the four cables on a real skid) is not modelled: core's clash, fill and
+  separation checks do not see it, and core's cable lengths leave it out. Regen step 24 adds
+  it from the model (the plan distance from the cabinet's top face to the point plus the
+  rise; record `cabling.dc_riser_m` and `dc_route_with_riser_m`): 1.80 m a cable, 2.005 m for
+  DC-x01A, 14.81 m over the eight, so the DC cable is about 96 m rather than core's 81 m. Each
+  stack is a feeder at 48 V
   with `power_kw` 0.96 (48 V x 20 A) and `power_factor` 0.57735 = 1/sqrt(3), which turns core's
   three-phase current P / (sqrt(3) U pf) into the DC current P / U = 20 A (it is no power
   factor); `rack_reach_m` 5.1 m reaches every AC load (the farthest terminal 4.95 m from PR-1)
@@ -1507,15 +1594,25 @@ vendor data, no host-site standard).
   ("no rack in reach" in the schedule) and they never share the rack's AC power tray. Each DC
   cable has a tray of its own (core gives every branch its own tray; on a real skid the four
   would share one). The size core prints, 4C x 2.5 mm2 of its 0.6/1 kV AC table, is a tray-fill
-  placeholder: a DC cable is two-core or two single cores, and at 48 V the voltage drop governs
-  (2 x 10 m x 7.41 ohm/km x 20 A is about 3 V, 6 %, at 2.5 mm2): the size is the electrical
-  design's.
+  placeholder: a DC cable is two-core or two single cores, and at 48 V the voltage drop governs:
+  the longest, C-DC-E201B, runs 7.5 m in its tray and 1.8 m up the riser, 13 m with core's
+  slack and terminations (route x 1.05 + 2 x 1.5 m), and 2 x 13 m x 7.41 ohm/km x 20 A is
+  3.9 V, 8.0 % of 48 V at 2.5 mm2 (6 % on core's 10 m without the riser): the size is the
+  electrical design's.
 - **Instruments**: 39 field devices (17 on JB-101, 22 on JB-201), each a single-pair field
   cable; 14 placed from what their P&ID functions measure, 25 by points in the list: the
   actuated valves and transmitters on the DN 15 lines (skipped in the routing, D-019, so the
   model places neither their segments nor their in-line valves), the CO and H2 detectors
   (locations open with the gas detection study, D-031 item 5) and JIC-x01, the rectifier's
-  current signal and run/trip command. One junction box per skid on the frame's south edge west
+  current signal and run/trip command. Core gives every field device one pair; for JIC-x01
+  that undercounts: one pair cannot carry the 4-20 mA current signal, the run command and the
+  trip, and the trip is the final element of every interlock of its skid (I-x01 to I-x06),
+  which the safety I/O may need on its own cable, apart from the BPCS junction box (CR-1 is
+  "PLC and safety I/O", every interlock `sil: null`). With three pairs for each rectifier and
+  the 20 % spare, JB-101 needs about 23 pairs and JB-201 about 29: the 24- and 36-pair home
+  runs still hold, only the field cable count and its pairs are low (open, below). Motor start
+  and stop and P-101's speed reference are wired at the host site's board SDB-1 and its drive,
+  off the plot, so no field control cable is listed for them. One junction box per skid on the frame's south edge west
   of the stack row (0.8 m, outside the zone 2, the stacks' carry lanes and below the rail
   T-101 is lifted over), a 24-pair and a 36-pair home run to CR-1 along PR-1's instrument lane.
 - **Trays**: PR-1 carries no modelled pipe, so the trays use its 2.8 m tier: tier 2.85 m (core
@@ -1528,7 +1625,7 @@ vendor data, no host-site standard).
 
 Results at 1,000 h: 62 cables (21 power: 7 motors, 6 AC feeders, 8 DC; 41 instrument: 39 field,
 2 multipair), 0 without a cable, 0 unrouted, 40 trays 182.0 m, cable 731 m (436 m of power
-cable, 81 m of it DC; 295 m instrument). At 10,000 h (scratch): 62 cables, 739 m; the grown
+cable, 81 m of it DC, without the 14.81 m of DC riser core does not count; 295 m instrument). At 10,000 h (scratch): 62 cables, 739 m; the grown
 T-101 now meets the cabling too: IT-JB-101 runs through T-101's shell (JB-101 stands in the
 grown tank) and PT-M-P-101 through AN-101 (reported in the record, not fixed).
 
@@ -1545,14 +1642,23 @@ is a flame and cannot be Ex-rated (D-031 item 14).
 What the trays change in the layout (regen steps 13 and 23):
 - The trays over the frames run at 2.5 to 3.95 m, above the 2.35 m envelope: like the vent
   risers they are site-fitted (11 on Skid A, 12 on Skid B, reported by step 13, not counted in
-  the envelope). Two DC trays leave a frame's edge by up to 0.1 m (east) and 0.06 m (north),
-  and IT-JB-201's last 0.25 m to its box runs at 2.1 m at the frame's south edge.
+  the envelope). Two DC trays leave a frame's edge by up to 0.1 m (east) and 0.06 m (north).
+  IT-JB-201, Skid B's instrument home run, drops at PR-1 to 2.1 m (bottom; core keeps it 0.3 m
+  below the 2.5 m power branches) and runs at 2.1 m from the rack across the grade aisle
+  between PR-1 and Skid B (y 4.2 to 7.45 m, 2.75 m along with a 0.25 m jog): the aisle where
+  the stacks are carried out (D-042) and the pumps are maintained from grade (D-019), at
+  exactly the 2.1 m headroom with no margin. It rises to 2.5 m only for its last 0.25 m over
+  the frame, so step 13, which looks at the trays over a frame only, does not see the aisle
+  run. For the layout review (open, below): accept 2.1 m there or raise the run above the
+  power branches (2.9 m). IT-JB-101 crosses Skid A's aisle at 2.35 m, the power trays at
+  2.85 or 3.35 m.
 - The stacks' hand lift (D-042) passes under what hangs over its lane above the envelope top
   (the trays); the carry height stays 1.125 m above the deck and every lift column is clear.
 - A skid's unit lift takes the tray runs over its frame off first (their cables disconnected
   at the frame edge); the runs between PR-1 and the frame and the trays on the rack stay, so
   the lift height over PR-1 rises from 3.3 to 3.95 m and the hook height to 10.395 m (Skid A)
-  and 10.384 m (Skid B); both lanes stay clear. T-101's drained carry stays 1.775 m.
+  and 10.384 m (Skid B); both lanes stay clear. The trays do not change T-101's drained carry
+  (1.936 m, set by HV-102 on its fill line, D-043).
 
 Rejected: a building or container for an electrical room on the plot (no basis for one on a
 notional plot, and it would change the plot plan, the lifting lanes and the take-off); the DC
@@ -1566,7 +1672,10 @@ cable sizing (voltage drop at 48 V first), protection, earthing, the DC bus desi
 isolation (D-031 items 9 and 17), the UPS (item 7); the skid's own cabling, which a fabricator
 runs inside the frame or under the deck within the envelope (core routes every branch at
 `branch_elevation_m` and cannot run a tray under a deck); the host site's real supply point and
-control room; the junction boxes' and detectors' final locations.
+control room; the junction boxes' and detectors' final locations; the DC riser from each
+rectifier cabinet (not modelled, above) and the rectifier's rating and nameplate; the
+rectifier interface JIC-x01 (at least three pairs, the trip possibly on its own cable to the
+safety I/O, above); IT-JB-201's 2.1 m run over the south grade aisle (for the layout review).
 
 ## D-046 The 3D results in the record, the regeneration of the 3D artefacts, their tests (2026-11-05)
 Decision: regen step 25 (after step 13, numbered after the existing steps) writes the scenario's
@@ -1593,15 +1702,19 @@ files stay in the `--scratch` copy, D-021), and its clashes were only in finding
 - **Results.** 1,000 h: 28 of 28 DN 25 lines routed (0 skipped, 0 unrouted; the 42 DN 15 lines
   skipped, D-019), methods 36 pinned, 3 astar, 1 via, 1 open end, no direct; 0 clash findings;
   both skids' items top 1.95 m against the 2.35 m envelope. 10,000 h (scratch): 28 of 28 routed,
-  no direct (two segments on core's coarse grid, one of them through its via); 3 clash findings, none accepted (T-101's ladder
-  rail through the SKID-A deck handrail, an error; trays IT-JB-101 through T-101's shell and
+  no direct (two segments on core's coarse grid, one of them through its via); 4 clash findings, none accepted (T-101's ladder
+  rail through the SKID-A deck handrail, an error; AN-101 through E-101A, whose suction nozzle
+  N4 the grown tank brings to 0.24 m from the stack; trays IT-JB-101 through T-101's shell and
   PT-M-P-101 through AN-101, warnings); Skid A's top 3.62 m, 1.27 m above the envelope; Skid B
-  unchanged; the lifts as in D-043 (Skid A no laydown, 18.18 t with T-101 full).
+  unchanged; the lifts as in D-043 (Skid A no laydown, 18.77 t with T-101 full, T-101 drained
+  lane blocked for a hoist or forklift).
 - **Tests** (`tests/test_co2_electrolysis_bpm_skids.py`): E8 now names what it covers (T-101,
   T-201, T-202 and the eight stacks, at both durations). `assert_layout` checks the records'
   layout block: at 1,000 h every DN 25+ line of the line list routed, no direct route, no clash
   finding (accepted or not), both skids inside the envelope height, every permitted unit lift
-  with a clear lane and a laydown; at 10,000 h Skid A's clash, height and missing laydown
+  with a laydown and either a clear crane lane or a hoist or forklift carry no higher than the
+  basis's carry limit (the first test accepted any carry height, so a blocked carry could not
+  fail it); at 10,000 h Skid A's clash, height, missing laydown and T-101's blocked carry
   reported. It runs on the committed records (fast) and on the regenerated ones (marker
   `engineering`). The engineering run also runs core's gates `layout-3d`, `lifting-study`
   (`lifting-current`), `mto` (`mto-current`) and `electrical` on the regenerated 1,000 h folder
