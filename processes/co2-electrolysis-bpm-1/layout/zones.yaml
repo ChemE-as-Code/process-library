@@ -8,8 +8,16 @@
 schema: cheme/zones/v1
 zones:
   # ---- hydrogen and carbon monoxide, secondary grade sources: zone 2
+  # The tail-gas oxidiser X-x32 is an open flame and stands off the frame outside the zone
+  # (D-047, layout review 2026-11-05-layout#2): it is no source here. Its tail gas TG-x01
+  # (DN 15) leaves the PSA through a flame arrester at X-x31's outlet, inside X-x31's zone, and
+  # is all-welded from there to the burner, so no flanged joint of it stands outside this zone
+  # (ASSUMED; the flame arrester is a P&ID item, open, D-047). The ignition sources (U-x01,
+  # X-x32) keep the zone radius plus 0.5 m to the outline of every source item, because core
+  # centres each sphere on the item, not on its flanges (layout/layout-checks.yaml, regen
+  # step 13; review finding 2026-11-05-layout#3).
   - id: Z-HAZ-A
-    title: "Skid A cathode gas train: stacks, separator, compressor, PSA and tail-gas oxidiser"
+    title: "Skid A cathode gas train: stacks, separator, compressor and PSA"
     kind: hazardous
     zone: 2
     sources:
@@ -21,10 +29,9 @@ zones:
       # a diaphragm compressor has no shaft seal on the gas side: its flanges and valve heads
       - {item: K-131, release_grade: secondary, substance: hydrogen, source_kind: flange}
       - {item: X-131, release_grade: secondary, substance: carbon monoxide, source_kind: flange, substance_class: flammable_gas}
-      - {item: X-132, release_grade: secondary, substance: hydrogen, source_kind: flange}
     basis: "Flanged and sealed parts of the H2-rich cathode gas and of the CO product leak only on failure (secondary grade); screening radius of the package table, ASSUMED (D-019)."
   - id: Z-HAZ-B
-    title: "Skid B cathode gas train: stacks, separator, compressor, PSA and tail-gas oxidiser"
+    title: "Skid B cathode gas train: stacks, separator, compressor and PSA"
     kind: hazardous
     zone: 2
     sources:
@@ -35,5 +42,16 @@ zones:
       - {item: V-221, release_grade: secondary, substance: hydrogen, source_kind: flange}
       - {item: K-231, release_grade: secondary, substance: hydrogen, source_kind: flange}
       - {item: X-231, release_grade: secondary, substance: carbon monoxide, source_kind: flange, substance_class: flammable_gas}
-      - {item: X-232, release_grade: secondary, substance: hydrogen, source_kind: flange}
     basis: "As Z-HAZ-A, for Skid B (D-019)."
+  # ---- crane pads and laydown areas of the lifting study (DESIGN.md D-043, D-047), ASSUMED
+  # The skids are set and removed as 20 ft units, and T-101 alone, by a mobile crane standing on
+  # hardstanding between the access road R-1 and each skid: the road (3 m) plus 3.5 m of
+  # hardstanding north of it, clear of the access steps ST-x1 (to 1 m from the frame), 8 x 6.5 m, room for the outriggers of a
+  # small truck-mounted or city crane of the class the study needs (about 5 t of chart capacity
+  # at 5.2 m radius, ASSUMED; the crane's own outrigger spread and ground bearing are the
+  # lifting plan's). The utility rack PR-1 runs north of the skids (D-047), so no lift passes
+  # over it. The pads' reach is the package default (crane_reach_m 30 m, ASSUMED). A pad on the
+  # road and the road laydown close the road while a lift is made.
+  - {id: CP-A, title: "Crane hardstanding south of Skid A (road and 3.5 m beside it)", kind: crane_pad, shape: box, box: [4.5, 0.0, 0.0, 12.5, 6.5, 0.3], basis: "ASSUMED: the mobile crane on 8 x 6.5 m of hardstanding between the road R-1 and Skid A, no rack between (D-047)."}
+  - {id: CP-B, title: "Crane hardstanding south of Skid B (road and 3.5 m beside it)", kind: crane_pad, shape: box, box: [19.5, 0.0, 0.0, 27.5, 6.5, 0.3], basis: "ASSUMED: the mobile crane on 8 x 6.5 m of hardstanding between the road R-1 and Skid B, no rack between (D-047)."}
+  - {id: LD-R, title: "Laydown on the road between the pads (the trailer bed of a skid or tank delivery)", kind: laydown, shape: box, box: [12.7, 0.0, 0.0, 19.3, 3.0, 0.3], basis: "ASSUMED: holds a 20 ft skid (6.06 x 2.44 m) or the reservoir T-101 on its trailer or on the road, within reach of both pads; the load leaves the plot by the road (D-043, D-047)."}

@@ -1,0 +1,58 @@
+# Layout checks of the pilot skids that core 1.5.0 does not make (DESIGN.md D-047), after the
+# layout review 2026-11-05-layout (findings #1, #2, #3, #5, #8). A project file read by
+# scripts/regen.py step 13 (no core schema); hand-authored intent, hashed in the record's
+# inputs, never written. Every value is ASSUMED until the host site's standards, the area
+# classification and the vendors give them.
+schema: co2-bpm-1/layout-checks/v1
+
+# The stacks' replacement by hand (review #1). A stack is reached from grade at the frame's long
+# side nearest to it: the person stands at the frame edge (no guard rail on the 0.15 m deck,
+# below), the standing position taken `ankle_m` behind the edge (the midpoint between the
+# ankles, from which the revised NIOSH lifting equation measures the horizontal distance; its
+# horizontal multiplier is 25/H cm and zero beyond 63 cm, Waters et al., Ergonomics 36 (1993)
+# 749-776, as the review cites it, not re-checked against the published text here). The far
+# face of the stack, where its anolyte connections are undone, must be within `reach_m` of that
+# position. The stack is not lifted by hand: its connections undone, it slides out over the
+# frame edge at deck level onto a trolley or lift table set at the deck height (ASSUMED
+# handling aid, its procedure the fabricator's), so its slide lane, from the stack to beyond
+# the edge and from the deck to the stack's top plus `lane_clearance_m`, must hold no solid but
+# the stack's own parts.
+stack_removal:
+  side: south
+  reach_m: 0.6
+  ankle_m: 0.15
+  lane_clearance_m: 0.05
+  lane_beyond_edge_m: 0.3
+  basis: "ASSUMED: reach about 0.6 m from the standing position (the review's criterion); a slide at deck level onto a deck-height trolley instead of a hand lift of a stack of about 17 kg (D-043, estimate) at 0.15 to 0.33 m above grade; the vendor's stack mass and handling instruction replace it"
+
+# Steel core 1.5.0 draws that the design deletes (review #8). Core draws a guard rail (top
+# rail, mid rail, toe plate and posts, ids <frame>/<level>/handrail-*) on every edge of every
+# deck and has no option to leave it out. A 0.15 m deck needs none (a guard rail is required
+# above 0.5 m of fall height, EN ISO 14122-3 as the review cites it, to be confirmed by the host
+# site's standard): the skids have no rail and no toe plate, so the stacks slide out and the
+# hose couplings at the west end are worked from grade without reaching through a rail. The
+# checks of regen (stack removal, lifts) and the take-off's reading in DESIGN.md D-047 leave
+# these solids out; they stay in the model and its drawings as core draws them.
+deleted_steel:
+  - {pattern: "SKID-*/DECK/handrail-*", reason: "no guard rail or toe plate on the 0.15 m skid deck (fall height under 0.5 m, D-047)"}
+
+# Ignition sources and the hazardous zones (review #2, #3). Core centres each zone sphere on its
+# source item, not on the item's flanges, whose positions on the packages are not known: so
+# each ignition source keeps the sphere's radius plus `margin_m` from the OUTLINE of every
+# source item of every hazardous zone (from a declared nozzle source, from its point).
+ignition_sources:
+  margin_m: 0.5
+  items:
+    - {tag: U-101, kind: "rectifier cabinet, non-Ex (D-019)"}
+    - {tag: U-201, kind: "rectifier cabinet, non-Ex (D-019)"}
+    - {tag: X-132, kind: "tail-gas oxidiser, an open flame (D-047)"}
+    - {tag: X-232, kind: "tail-gas oxidiser, an open flame (D-047)"}
+  basis: "ASSUMED: zone radius plus 0.5 m to the source outlines, the review's proposal, until the area classification (IEC 60079-10-1, by a competent person) gives the zones from the real release points"
+
+# Cable trays and hot or possibly flammable vent outlets (review #5, #10). No tray may come
+# within `clearance_m` of the open end of a listed vent or flue line, nor run above it within
+# `clearance_m` in plan (its plume).
+vent_tray_clearance:
+  lines: ["FG-*", "O2V-*"]
+  clearance_m: 1.0
+  basis: "ASSUMED: the vent sphere radius of piping/routing.yaml (1 m) around the oxidiser flue outlets (150 degC flue, ASSUMED, flowsheet S111; the oxidiser's design temperature is TBD with its vendor) and the reservoir O2 vents (H2 crossover open, piping/line-list.yaml)"

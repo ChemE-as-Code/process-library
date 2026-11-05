@@ -50,9 +50,12 @@ Steps (design spec #330, section 6):
     route` without --line); the draft datasheets drafted again from the model as it now is,
     train B's from case skid-b (D-020), and `cheme process stack --write` into them;
     `cheme datasheets fill --case skid-a` for the 1xx tags and
-    `--case skid-b` for the 2xx tags, then per skid `cheme layout render` of the frame's
-    plan, a section across the reservoir (x) and one along the frame (y), SVG and PNG, copied
-    to figures/skids/<H>h/.
+    `--case skid-b` for the 2xx tags, then `cheme layout render` of the plot plan (core's A1
+    sheet, figures/skids/<H>h/layout-plan.{svg,png}) and per skid of the frame's plan, a
+    section across the reservoir and one across the first stack (x), one along the stack row
+    and one along the whole frame (y), each sheet cropped to its drawing at core's scale and
+    rasterised (scripts/_figures.py, DESIGN.md D-041), as
+    figures/skids/<H>h/layout-plan-skid-<k>.{svg,png} and layout-section-<x|y>-skid-<k>-<what>.
 11. `cheme control report --json` (into build/control/): the loop and sequence findings.
 12. Duty plots and comparisons: `cheme process duty D-A D-B D-A-ONOFF D-A-PART --plot
     figures/duty/<H>h/`; `--compare D-A,D-A-ONOFF,D-A-PART` at half the campaign's CO,
@@ -64,9 +67,14 @@ Steps (design spec #330, section 6):
     (process/design-basis.yaml skid_envelope), plus core's "is not inside structure"
     findings of `cheme validate --json`, and the stacks' maintenance access (process/cells.yaml
     stacks[].access: the clear space at the ends and sides of each stack, which core does not
-    model as an envelope) against the other items; the generated details (tank roof
-    handrails, ladders, hose valves) above the envelope or outside the frame in plan and the
-    pipes above it are reported apart. Then the validate findings.
+    model as an envelope) against the other items and their generated parts, and each stack's
+    replacement by hand (D-047, layout/layout-checks.yaml stack_removal): its far end plate
+    within reach of a person at grade at the frame's south side and its slide lane at deck
+    level out over that edge clear (each a reason when it fails); the ignition sources U-x01 and
+    X-x32 against every hazardous zone source's outline (sphere radius plus a margin, an error
+    finding when short) and the cable trays against the vent and flue outlets (a warning); the
+    generated details (tank roof handrails, ladders, hose valves) above the envelope or outside
+    the frame in plan and the pipes above it are reported apart. Then the validate findings.
 
 14. Conditional invariants: per skid, from the duty's series, the hours outside the measured
     current density (core's time_outside_measured_range_h), temperature (the cooler duty
@@ -116,8 +124,37 @@ Steps (design spec #330, section 6):
     outside its band, the run not traced) fails the run (exit 4): the committed LCA would
     otherwise stay as an earlier design left it. When the LCA cannot be made at all, the
     scenario's lca.json is removed (it would describe another design).
+21. Item weights (run before step 10, numbered after the existing steps; scripts/_lifting.py,
+    DESIGN.md D-043): every listed item's empty weight from layout/lifting-basis.yaml (ASSUMED:
+    the outline volume times a bulk density, a tank's shell, bottom and roof at one wall
+    thickness, or a vendor's weight) into the equipment list's dimensions.weight, so the model
+    and core's lifting study carry it; the tanks' weights follow their sizes with H.
+22. Material take-off (after step 12, before step 13, whose validate then reads it current):
+    `cheme assess mto --write` (estimate/mto.csv, .md) of the model as built; its totals into
+    the record. No estimate: the project has no rates of its own (D-044).
+23. Lifting study (after step 22, before step 13): `cheme layout lifting --write`
+    (layout/lifting-study.csv, .md: every listed item of heavy_lift_t or more), then the lifts
+    core cannot express, worked
+    out with its criteria on the model (scripts/_lifting.py): each skid as a 20 ft unit, dry and
+    with its tanks full, and T-101 alone, drained and full, into
+    layout/lifting-study-units.csv and .md; both into the record (at 10,000 h the infeasible
+    Skid A's lifts are reported there, never fixed).
+24. Cable schedule (after step 23, before step 13; DESIGN.md D-045): the model step 10 built
+    holds the trays and cables of electrical/electrical-list.yaml and electrical/tray-rules.yaml
+    (hand-authored intent); `cheme layout cables --write` writes electrical/cable-schedule.csv
+    and .md, its summary (cables, trays, lengths, what has no cable) and the tray and cable
+    findings of step 13's validate go into the record. Step 13 also reports, per skid, the
+    trays over the frame above the envelope (site-fitted, as the vent risers) and any level
+    tray run lower than the walkway headroom over the deck.
+25. The 3D results into the record (after step 13; DESIGN.md D-046): `cheme layout report
+    --json` gives every line's status, so the record's layout block holds the process lines of
+    DN 25 and above routed, skipped with their reason or unrouted (a warning), the smaller
+    lines by status, the route methods (a direct fallback is a warning), the model rule
+    finding counts, the clashes of step 13's validate (each accepted in checks/checks.yaml or
+    not) and per skid the items' top against the envelope. With the record's lifting (step 23)
+    these are the 3D results of each scenario; at 10,000 h they are reported, never fatal.
 
-Findings of steps 1 to 17 are collected, never fatal: an infeasible skid is a result. The exit
+Findings of steps 1 to 17, 21 to 25 are collected, never fatal: an infeasible skid is a result. The exit
 code is non-zero on a tool error (1), on refused input (2), on a --check difference (3) or on a
 step 20 error (4; --check counts it as a difference too, and requires the scratch run to have
 written the scenario's lca.json).
@@ -126,6 +163,7 @@ written the scenario's lca.json).
 from __future__ import annotations
 
 import argparse
+import fnmatch
 import hashlib
 import json
 import math
@@ -135,13 +173,27 @@ import tempfile
 from pathlib import Path
 
 import _core
+import _figures
 import _lca
+import _lifting
 import _results as res
 import _yamledit as ye
 import lca_sensitivity
 import yaml
 
 SCRIPT = "scripts/regen.py"
+#: the cable schedule `cheme layout cables --write` writes (step 24)
+CABLE_CSV = "electrical/cable-schedule.csv"
+CABLE_MD = "electrical/cable-schedule.md"
+#: the walkway headroom over a deck that a level tray run should keep, m (core's routing
+#: default headroom_walkway_m; core checks pipes against it, not trays: step 13 reports them)
+TRAY_HEADROOM_M = 2.1
+#: the project's own layout checks of step 13 (D-047): stack removal, ignition sources, vent
+#: outlets against the trays, the steel core draws that the design deletes
+LAYOUT_CHECKS = "layout/layout-checks.yaml"
+#: the smallest nominal diameter whose process lines must be routed or skipped with a reason
+#: (the layout-3d gate; step 25): the DN 15 skid small bore is the fabricator's (D-019)
+ROUTED_DN = 25
 #: the hand-maintained inputs that regen reads and never writes (hashed in step 1); the files
 #: it writes in part are hashed after the run (MODEL_FILES, the record's model_sha256)
 INPUTS = (
@@ -150,8 +202,15 @@ INPUTS = (
     "process/reactions.yaml",
     "experiments/electrochemistry/rbpm-1m-koh.yaml",
     "layout/equipment-placement.yaml",
+    "layout/site-plan.yaml",
     "layout/structures.yaml",
     "layout/zones.yaml",
+    "layout/lifting-basis.yaml",
+    LAYOUT_CHECKS,
+    "piping/routing.yaml",
+    # the electrical intent (step 24, D-045): rooms, motors, feeders, junction boxes, points
+    "electrical/electrical-list.yaml",
+    "electrical/tray-rules.yaml",
     "control/cause-effect.yaml",
     "control/sequences.yaml",
     # the LCA's own inputs (step 20, #331); lca/lca.yaml is written in part by step 20
@@ -168,6 +227,16 @@ MODEL_FILES = (
     "equipment/equipment-list.yaml",
     "layout/plant-model.yaml",
     "control/loops.yaml",
+    # the take-off (step 22) and the lifting studies (step 23) of the model
+    "estimate/mto.csv",
+    "estimate/mto.md",
+    "layout/lifting-study.csv",
+    "layout/lifting-study.md",
+    _lifting.UNITS_CSV,
+    _lifting.UNITS_MD,
+    # the cable schedule of the model (step 24)
+    CABLE_CSV,
+    CABLE_MD,
 )
 #: what --check also compares at the design duration: the LCA (step 20) and the files and
 #: folders core's LCA writes (scripts/_lca.py)
@@ -209,8 +278,9 @@ COMPARISONS = (
     ("skid-a-vs-b-half", ("D-A", "D-B"), 0.5),
 )
 COMPARE_TOLERANCE = 1e-3
-#: margins of the rendered views around a frame, m (the access steps stand outside it)
-VIEW_MARGIN = {"west": 0.6, "south": 2.1, "east": 2.1, "north": 0.8}
+#: margins of the rendered views around a frame, m (the access steps stand outside it, the
+#: tail-gas oxidiser east of it, D-047)
+VIEW_MARGIN = {"west": 0.6, "south": 2.1, "east": 3.9, "north": 0.8}
 IGNORED = ("build", ".venv", "__pycache__", ".DS_Store", ".claude", "runs")
 COPY_IGNORE = shutil.ignore_patterns(*IGNORED)
 STACKS = {"A": "STK-A", "B": "STK-B"}
@@ -237,6 +307,8 @@ class Run:
         self.with_uncertainty = uncertainty
         self.findings: list[dict] = []
         self.summary: dict = {"duration_h": self.h}
+        #: step 13's `cheme validate --json` findings (step 25 reads its clashes)
+        self.validate_findings: list[dict] = []
 
     # -- helpers --------------------------------------------------------------------------
     def note(self, step: str, level: str, message: str) -> None:
@@ -726,16 +798,30 @@ class Run:
                 if " warning cheme." in line or " error cheme." in line:
                     self.note("10", "warning", line.split(" -- ")[0])
             filled[skid["case"]] = tags
+        flagged = self.flag_assumed_weights(equipment)
         model = _core.plant_model(self.root)
         out = self.root / SCENARIO_FIGURES[0].format(h=f"{self.h:g}")
         _fresh(out)
         figures = []
+        # the plot plan of the whole plot: core's A1 sheet (1:50 fits the 32 m plot), its roads
+        # drawn under its zones so the crane pads and the laydown on the road show (D-043),
+        # rasterised at core's own resolution
+        for path in _core.render(self.root, "--plan"):
+            svg = _figures.roads_under_zones(path.read_text(encoding="utf-8"))
+            (out / "layout-plan.svg").write_text(svg, encoding="utf-8", newline="")
+            (out / "layout-plan.png").write_bytes(_figures.svg_to_png(svg, _figures.CORE_PX_PER_MM))
+            figures += [f"{out.relative_to(self.root)}/layout-plan{s}" for s in (".svg", ".png")]
+        cells = self.load("process/cells.yaml")
+        scenario = f"{self.h:,.0f} h campaign"
         for key, skid in SKIDS.items():
             frame = _core.model_structure(model, skid["frame"])
             x0, y0, x1, y1 = frame["footprint"]
             deck = max(frame["levels"].values())
             items = _core.model_items_on(model, skid["frame"])
             reservoir = next(i for i in items if i["tag"] == skid["reservoir"])
+            stack_cfg = next(s for s in cells["stacks"] if s["id"] == STACKS[key])
+            access = {k: float(v["value"]) for k, v in (stack_cfg.get("access") or {}).items()}
+            stacks = [i for i in items if i["tag"] in stack_cfg["tags"]]
             tops = [i["bbox"][5] for i in items] + [
                 p["top_m"] for p in _core.model_pipes_over(model, frame["footprint"])
             ]
@@ -744,42 +830,102 @@ class Run:
             py0, py1 = y0 - VIEW_MARGIN["south"], y1 + VIEW_MARGIN["north"]
             x_res = (reservoir["bbox"][0] + reservoir["bbox"][3]) / 2
             y_mid = (y0 + y1) / 2
+            # the first stack across (its slide lane to the south side, D-047) and the
+            # stack row along the frame, each as deep as the stacks with their hand room
+            first = min(stacks, key=lambda i: i["tag"])
+            x_stk = (first["bbox"][0] + first["bbox"][3]) / 2
+            y_stk = (min(i["bbox"][1] for i in stacks) + max(i["bbox"][4] for i in stacks)) / 2
+            stk_dx = first["bbox"][3] - first["bbox"][0] + 2 * access.get("side", 0.0)
+            stk_dy = max(i["bbox"][4] for i in stacks) - min(i["bbox"][1] for i in stacks)
+            stk_dy += 2 * access.get("end", 0.0)
+            name = f"Skid {key}"
+            section_x_crop = _crop(y0 - 1.0, 0.0, y1 + 1.0, z_top)
             views = {
-                "plan": ["--plan", "--crop", _crop(px0, py0, px1, py1)],
-                "section-x": [
-                    "--section",
-                    f"x={_r(x_res)}",
-                    "--depth",
-                    _r(reservoir["bbox"][3] - reservoir["bbox"][0] + 0.3),
-                    "--crop",
-                    _crop(y0 - 1.0, 0.0, y1 + 1.0, z_top),
-                ],
-                "section-y": [
-                    "--section",
-                    f"y={_r(y_mid)}",
-                    "--depth",
-                    _r(y1 - y0 + 0.4),
-                    "--crop",
-                    _crop(px0, 0.0, px1, z_top),
-                ],
-            }
-            for view, args in views.items():
-                for fmt in ([], ["--png"]):
-                    for path in _core.render(self.root, *args, *fmt):
-                        target = out / f"skid-{key.lower()}-{view}{path.suffix}"
-                        shutil.copyfile(path, target)
-                        figures.append(str(target.relative_to(self.root)))
+                f"layout-plan-skid-{key.lower()}": (
+                    f"{name} plan ({scenario})",
+                    ["--plan", "--crop", _crop(px0, py0, px1, py1)],
+                ),
+                f"layout-section-x-skid-{key.lower()}-reservoir": (
+                    f"{name} section x = {_r(x_res)} m through {skid['reservoir']}, looking west ({scenario})",
+                    ["--section", f"x={_r(x_res)}", "--depth",
+                     _r(reservoir["bbox"][3] - reservoir["bbox"][0] + 0.3), "--crop", section_x_crop],
+                ),
+                f"layout-section-x-skid-{key.lower()}-stack": (
+                    f"{name} section x = {_r(x_stk)} m through {first['tag']}, looking west ({scenario})",
+                    ["--section", f"x={_r(x_stk)}", "--depth", _r(stk_dx), "--crop", section_x_crop],
+                ),
+                f"layout-section-y-skid-{key.lower()}-stacks": (
+                    f"{name} section y = {_r(y_stk)} m along the stacks, looking north ({scenario})",
+                    ["--section", f"y={_r(y_stk)}", "--depth", _r(stk_dy), "--crop",
+                     _crop(px0, 0.0, px1, z_top)],
+                ),
+                f"layout-section-y-skid-{key.lower()}-frame": (
+                    f"{name} section y = {_r(y_mid)} m, the whole frame, looking north ({scenario})",
+                    ["--section", f"y={_r(y_mid)}", "--depth", _r(y1 - y0 + 0.4), "--crop",
+                     _crop(px0, 0.0, px1, z_top)],
+                ),
+            }  # fmt: skip
+            for stem, (title, args) in views.items():
+                for path in _core.render(self.root, *args):
+                    # core's A1 sheet cropped to the drawing, at its scale (D-041)
+                    svg = _figures.crop_sheet(path.read_text(encoding="utf-8"), title)
+                    (out / f"{stem}.svg").write_text(svg, encoding="utf-8", newline="")
+                    (out / f"{stem}.png").write_bytes(_figures.svg_to_png(svg))
+                    figures += [f"{out.relative_to(self.root)}/{stem}{s}" for s in (".svg", ".png")]
         self.summary["layout"] = {
             "build": written,
             "build_findings": model_findings,
             "datasheets_redrafted": redrafted,
             "datasheets_filled": filled,
+            "datasheets_weight_assumed": flagged,
             "figures": figures,
         }
         print(
             f"[10] {written or 'layout built'} ({model_findings} model finding(s), accepted or not: step 13); datasheets filled per case "
             f"({', '.join(f'{c}: {len(t)}' for c, t in filled.items())}); {len(figures)} figure(s) in {out.relative_to(self.root)}"
         )
+
+    def flag_assumed_weights(self, equipment: list[dict]) -> list[str]:
+        """Mark the empty weight of a draft datasheet `assumed: true` where the equipment list
+        marks the item's dimensions assumed (every weight of step 21 is, D-043). Core 1.5.0's
+        draft copies `dimensions.weight` into `weights.empty` and `type_specific.weight_t`
+        with the flag off (it carries the list's flag to the other dimensions only), so those
+        two entries are flagged here: a line added to each, checked to change nothing else."""
+        ds = self.root / "equipment" / "datasheets"
+        flagged = []
+        for item in equipment:
+            dims = item.get("dimensions") or {}
+            path = ds / f"{item['tag']}.yaml"
+            if not (dims.get("assumed") and dims.get("weight") is not None and path.exists()):
+                continue
+            text = path.read_text(encoding="utf-8")
+            before = yaml.safe_load(text) or {}
+            if not before.get("draft"):
+                continue
+            lines = text.split("\n")
+            want = []
+            for parent, key in (("weights", "empty"), ("type_specific", "weight_t")):
+                if key not in (before.get(parent) or {}) or (before[parent][key] or {}).get("assumed"):
+                    continue
+                top = lines.index(f"{parent}:")
+                at = next(i for i in range(top + 1, len(lines)) if lines[i] == f"  {key}:")
+                end = at + 1
+                while end < len(lines) and lines[end].startswith("    "):
+                    end += 1
+                lines.insert(end, "    assumed: true")
+                want.append((parent, key))
+            if not want:
+                continue
+            new = "\n".join(lines)
+            expect = before
+            for parent, key in want:
+                expect[parent][key]["assumed"] = True
+            if yaml.safe_load(new) != expect:
+                raise _core.CoreError(f"{path.name}: flagging the weight assumed would change more")
+            path.write_text(new, encoding="utf-8")
+            flagged.append(item["tag"])
+        print(f"[10] {len(flagged)} datasheet(s): the empty weight flagged assumed (core drafts it unflagged)")
+        return flagged
 
     def redraft_datasheets(self, equipment: list[dict]) -> list[str]:
         """Redraw every draft datasheet from the model as it now is, each from its own case.
@@ -896,7 +1042,23 @@ class Run:
     def envelope_check(self) -> None:
         env = self.envelope()
         model = _core.plant_model(self.root)
+        solids = _core.model_solids(model)
         validate = _core.validate_findings(_core.validate(self.root))
+        # step 25 reads the clashes of this validate
+        self.validate_findings = validate
+        # the project's own layout checks (D-047): stack removal, ignition sources, vent
+        # outlets against the trays, the steel core draws that the design deletes
+        checks = self.load(LAYOUT_CHECKS)
+        deleted = [d["pattern"] for d in checks.get("deleted_steel") or []]
+        vents = _vent_tray_clearance(model, checks["vent_tray_clearance"])
+        for v in vents:
+            self.note(
+                "13",
+                "warning",
+                f"tray {v['tray']} is {v['distance_m']:.3f} m from the outlet of {v['line']} at "
+                f"{v['outlet'][2]:.3f} m{' and runs above it' if v['above'] else ''}, under the "
+                f"{v['clearance_m']:g} m clearance of layout/layout-checks.yaml (D-047)",
+            )
         result = {}
         for key, skid in SKIDS.items():
             frame = _core.model_structure(model, skid["frame"])
@@ -957,8 +1119,42 @@ class Run:
             cells = self.load("process/cells.yaml")
             stack_cfg = next(s for s in cells["stacks"] if s["id"] == STACKS[key])
             access = {k: float(v["value"]) for k, v in (stack_cfg.get("access") or {}).items()}
-            access_clear = _stack_access(items, stack_cfg["tags"], access)
+            access_clear = _stack_access(items, stack_cfg["tags"], access, solids)
             reasons += access_clear
+            # the replacement of each stack by hand (D-047, layout/layout-checks.yaml, review
+            # 2026-11-05-layout#1): its far end plate within reach of a person at grade at the
+            # frame's long side, and its slide lane at deck level out over that edge clear
+            # (each a reason when it fails: a stack that cannot be replaced is not a skid)
+            by_tag = {i["tag"]: i for i in items}
+            removal_cfg = checks["stack_removal"]
+            removals = [
+                _stack_removal(solids, by_tag[t], frame["footprint"], deck, removal_cfg, deleted)
+                for t in stack_cfg["tags"]
+                if t in by_tag
+            ]
+            for r in removals:
+                if not r["reach_ok"]:
+                    reasons.append(
+                        f"stack removal: the far end plate of {r['tag']} is {r['reach_m']:.3f} m from the "
+                        f"standing position at the frame's {r['side']} side, beyond the {r['reach_limit_m']:g} m reach"
+                    )
+                if r["lane_blocked_by"]:
+                    reasons.append(
+                        f"stack removal: {', '.join(r['lane_blocked_by'])} in the slide lane of {r['tag']} "
+                        f"to the frame's {r['side']} side"
+                    )
+            # the ignition sources against the hazardous zones (D-047, review #2, #3): the
+            # sphere's radius plus the margin to every source item's outline
+            ignition = _ignition_clearance(model, checks["ignition_sources"], {i["tag"] for i in items})
+            for g in ignition:
+                if not g["ok"]:
+                    self.note(
+                        "13",
+                        "error",
+                        f"Skid {key}: ignition source {g['tag']} ({g['kind']}) is {g['clearance_m']:.3f} m from "
+                        f"the outline of zone source {g['nearest_source']} ({g['zone']}), under the "
+                        f"{g['required_m']:.3f} m of its sphere radius plus the margin",
+                    )
             # generated details outside the frame in plan (ladders, nozzles, hose valves):
             # reported, not counted, as the details above the envelope
             outside = []
@@ -987,6 +1183,22 @@ class Run:
                 ),
                 key=lambda p: p["id"],
             )
+            # the cable trays over the frame (step 24, D-045): those above the envelope are
+            # site-fitted like the vent risers (reported, not counted); a level run under the
+            # walkway headroom over the deck is reported (core checks pipes against it, not trays)
+            trays = _core.model_trays_over(model, frame["footprint"])
+            trays_above = sorted(
+                ({"id": t["id"], "system": t["system"], "top_m": round(t["top_m"], 3)} for t in trays if t["top_m"] > limit + tol),
+                key=lambda t: t["id"],
+            )
+            trays_low = sorted(
+                (
+                    {"id": t["id"], "level_low_m": round(t["level_low_m"], 3)}
+                    for t in trays
+                    if t["level_low_m"] is not None and t["level_low_m"] < deck + TRAY_HEADROOM_M - tol
+                ),
+                key=lambda t: t["id"],
+            )
             feasible = not reasons
             duty_ok = self.summary.get(f"skid_{key.lower()}", {}).get("feasible", True)
             result[key] = {
@@ -1003,7 +1215,11 @@ class Run:
                 "details_above_envelope": details,
                 "details_outside_plan": outside,
                 "stack_access_m": access,
+                "stack_removal": removals,
+                "ignition_clearance": ignition,
                 "pipes_above_envelope": [{"id": p["id"], "line": p["line"], "top_m": p["top_m"]} for p in pipes],
+                "trays_above_envelope": trays_above,
+                "trays_under_headroom": trays_low,
                 "skid_feasible": feasible and bool(duty_ok),
             }
             if feasible:
@@ -1018,6 +1234,20 @@ class Run:
                     f"Skid {key} cannot meet the {self.h:,.0f} h duty within the skid envelope: "
                     + "; ".join(reasons),
                 )
+            if removals:
+                worst = max(removals, key=lambda d: d["reach_m"])
+                print(
+                    f"[13] Skid {key}: stack removal from the {worst['side']} side, reach at most "
+                    f"{worst['reach_m']:.3f} m ({worst['tag']}, limit {worst['reach_limit_m']:g} m), slide lanes "
+                    f"{'clear' if not any(d['lane_blocked_by'] for d in removals) else 'blocked'}"
+                )
+            if ignition:
+                tight = min(ignition, key=lambda g: g["clearance_m"] - g["required_m"])
+                print(
+                    f"[13] Skid {key}: ignition sources {', '.join(g['tag'] for g in ignition)}: least clearance "
+                    f"{tight['clearance_m']:.3f} m ({tight['tag']} to {tight['nearest_source']}, "
+                    f"{tight['required_m']:.3f} m required)"
+                )
             if details or pipes:
                 self.note(
                     "13",
@@ -1028,6 +1258,21 @@ class Run:
                         [f"{d['tag']} details to {d['parts_top_m']:.3f} m" for d in details]
                         + [f"{p['line']} to {p['top_m']:.3f} m" for p in pipes]
                     ),
+                )
+            if trays_above:
+                self.note(
+                    "13",
+                    "info",
+                    f"Skid {key}: {len(trays_above)} cable tray(s) over the frame above the {limit:.3f} m "
+                    f"envelope, site-fitted, not counted (D-045): up to "
+                    f"{max(t['top_m'] for t in trays_above):.3f} m",
+                )
+            for t in trays_low:
+                self.note(
+                    "13",
+                    "info",
+                    f"Skid {key}: tray {t['id']} runs level at {t['level_low_m']:.3f} m over the frame, "
+                    f"under the {TRAY_HEADROOM_M:g} m walkway headroom over the {deck:g} m deck (the deck is stepped onto, not a walkway, D-019)",
                 )
             if outside:
                 self.note(
@@ -1042,19 +1287,282 @@ class Run:
                     ),
                 )
         accepted = _accepted_ids(self.root)
+        # the review records' own bookkeeping (cheme.review-*) is not a result of this run, and
+        # it depends on git: without history (a --scratch or --check copy) core orders records of
+        # one date by file name, so the scenario record would differ between the folder and a copy
         problems = [
             f
             for f in validate
-            if f.get("level") in ("error", "warning") and f.get("id") not in accepted
+            if f.get("level") in ("error", "warning")
+            and f.get("id") not in accepted
+            and not str(f.get("rule") or "").startswith("cheme.review-")
         ]
         for f in problems:
             self.note(
                 "13", f["level"], f"{f.get('file')}:{f.get('line')} {f.get('rule')}: {f.get('message')}"
             )
-        self.summary["envelope"] = {"basis": env, "skids": result}
+        self.summary["envelope"] = {"basis": env, "skids": result, "vent_tray_clearance": vents}
+        print(f"[13] vent outlets: {len(vents)} tray(s) within the clearance of layout/layout-checks.yaml")
         print(
             f"[13] validate: {len(problems)} error/warning finding(s) not accepted in "
             "checks/checks.yaml"
+        )
+
+    # -- 21 ---------------------------------------------------------------------------------
+    def weights(self) -> None:
+        """Step 21 (before step 10, numbered after the existing steps): every listed item's
+        empty weight from layout/lifting-basis.yaml into the equipment list's
+        dimensions.weight (a targeted edit of the value; the key is written by hand once), so
+        the model and core's lifting study carry it. The tanks' weights follow their sizes."""
+        basis = self.load(_lifting.BASIS)
+        equipment = self.load("equipment/equipment-list.yaml")["equipment"]
+        try:
+            weights = _lifting.item_weights(equipment, basis)
+        except _lifting.BasisError as exc:
+            raise Refused(str(exc)) from exc
+        changes = []
+        for item in equipment:
+            dims = item.get("dimensions") or {}
+            if "weight" not in dims:
+                raise Refused(
+                    f"equipment/equipment-list.yaml: {item['tag']} has no dimensions.weight: "
+                    "add the key once (step 21 keeps its value)"
+                )
+            want = weights[item["tag"]]["weight_t"]
+            if not _same(dims["weight"], want):
+                changes.append((["equipment", ("tag", item["tag"]), "dimensions", "weight"], want))
+        self.edit("equipment/equipment-list.yaml", changes)
+        self.summary["weights"] = weights
+        print(f"[21] item weights from {_lifting.BASIS}: {len(changes)} written into the equipment list")
+
+    # -- 22 ---------------------------------------------------------------------------------
+    def take_off(self) -> None:
+        """Step 22: `cheme assess mto --write` of the model as built (estimate/mto.csv, .md)."""
+        report = _core.take_off(self.root, write=True)
+        for f in report.get("findings") or []:
+            self.note("22", "warning", f"{f.get('rule')}: {f.get('message')}")
+        self.summary["take_off"] = report
+        totals = ", ".join(
+            f"{cat} {_num(round(q, 3))} {unit}"
+            for cat, units in report["totals"].items()
+            for unit, q in units.items()
+        )
+        print(f"[22] cheme assess mto --write: {totals}")
+
+    # -- 23 ---------------------------------------------------------------------------------
+    def lifting(self) -> None:
+        """Step 23: core's lifting study (`cheme layout lifting --write`: every listed item of
+        heavy_lift_t or more) and the unit lifts it cannot express (scripts/_lifting.py: the
+        skids as 20 ft units, T-101 drained and full) into layout/lifting-study-units.csv/.md."""
+        study = _core.lifting_study(self.root, write=True)
+        for f in study.get("findings") or []:
+            self.note("23", "warning", f"{f.get('rule')}: {f.get('message')}")
+        basis = self.load(_lifting.BASIS)
+        densities: dict[str, float] = {}
+        duties = {d["id"]: d for d in self.load("process/duties.yaml")["duties"]}
+        stacks = self.summary["stacks"]
+        for entry in basis.get("contents") or []:
+            kind, ref = entry["density_from"].split(" ", 1)
+            if kind == "pump":
+                rho = next(
+                    (
+                        e["values"].get("density_kg_m3")
+                        for st in stacks.values()
+                        for e in st["equipment"]
+                        if e["tag"] == ref
+                    ),
+                    None,
+                )
+            else:
+                did = ref.split()[0]
+                q = duties[did]["dosing"]["density"]
+                rho = float(q["value"]) * (1000.0 if q["unit"] in ("kg/L", "g/mL") else 1.0)
+            if rho is None:
+                raise Refused(f"{_lifting.BASIS}: no density for {entry['tag']} ({entry['density_from']})")
+            densities[entry["tag"]] = float(rho)
+        model = _core.plant_model(self.root)
+        try:
+            result = _lifting.unit_study(
+                model, basis, study["criteria"], self.summary["take_off"], densities
+            )
+        except _lifting.BasisError as exc:
+            raise Refused(str(exc)) from exc
+        for message in result["findings"]:
+            self.note("23", "warning", message)
+        for row in result["rows"]:
+            permitted = "not permitted" not in row["status"]
+            if permitted and ("blocked" in row["status"] or "no " in row["status"]):
+                self.note("23", "warning", f"unit lift {row['id']} ({row['weight_t']} t): {row['status']}")
+        (self.root / _lifting.UNITS_CSV).write_text(_lifting.study_csv(result), encoding="utf-8")
+        (self.root / _lifting.UNITS_MD).write_text(
+            _lifting.study_markdown(
+                result, basis, self.summary["weights"], study["criteria"], study["model_sha256"], self.h
+            ),
+            encoding="utf-8",
+        )
+        self.summary["lifting"] = {
+            "heavy_lift_t": float(study["criteria"]["heavy_lift_t"]["value"]),
+            "carry_limit_m": (basis.get("units") or {}).get("carry_limit_m"),
+            "core_lifts": [
+                {k: lift.get(k) for k in ("tag", "weight_t", "pad", "required_t", "status")}
+                for lift in study["lifts"]
+            ],
+            "unit_lifts": _lifting.summary(result),
+        }
+        rows = {r["id"]: r for r in result["rows"]}
+        print(
+            f"[23] cheme layout lifting --write: {len(study['lifts'])} heavy item(s); unit lifts: "
+            + "; ".join(f"{k} {r['weight_t']} t {r['status']}" for k, r in rows.items())
+        )
+
+    # -- 24 ---------------------------------------------------------------------------------
+    def cables(self) -> None:
+        """Step 24: `cheme layout cables --write` of the model as built (electrical/
+        cable-schedule.csv, .md); its summary into the record (D-045)."""
+        report = _core.cable_schedule(self.root, write=True)
+        cabling = report["cabling"]
+        cables = report["cables"]
+        by_room: dict[str, int] = {}
+        for c in cables:
+            by_room[c["from"]] = by_room.get(c["from"], 0) + 1
+        dc = [c for c in cables if c["system"] == "power" and float(c["voltage_v"] or 0) <= 120]
+        risers = self.dc_risers(dc)
+        review = sorted(c["tag"] for c in cables if c.get("review_needed"))
+        for m in cabling.get("missing") or []:
+            self.note("24", "warning", f"no cable: {m['tag']} ({m['kind']}): {m['reason']}")
+        for tag in review:
+            self.note("24", "warning", f"cable {tag} review_needed")
+        self.summary["cabling"] = {
+            "cables": cabling["cables"],
+            "power": cabling["power"],
+            "instrument": cabling["instrument"],
+            "dc_48v": len(dc),
+            "motors": cabling["motors"],
+            "instruments": cabling["instruments"],
+            "junction_boxes": cabling["junction_boxes"],
+            "trays": cabling["trays"],
+            "tray_length_m": cabling["tray_length_m"],
+            "cable_length_m": cabling["cable_length_m"],
+            "dc_cable_length_m": sum(int(c["length_m"]) for c in dc),
+            # the riser from the rectifier's cabinet top to each DC output's point, which core
+            # neither models nor counts (D-045): per cable, m, and the route with it
+            "dc_riser_m": risers,
+            "dc_route_with_riser_m": {
+                c["tag"]: round(float(c["route_length_m"]) + risers[c["tag"]], 3) for c in dc
+            },
+            "missing": cabling.get("missing") or [],
+            "review_needed": review,
+        }
+        print(
+            f"[24] cheme layout cables --write: {cabling['cables']} cables ({cabling['power']} power, "
+            f"{len(dc)} of them 48 V DC, {cabling['instrument']} instrument), {cabling['trays']} trays "
+            f"{cabling['tray_length_m']:g} m, cable {cabling['cable_length_m']:g} m, "
+            f"{len(cabling.get('missing') or [])} without a cable; DC risers not modelled "
+            f"{sum(risers.values()):.2f} m"
+        )
+
+    def dc_risers(self, dc: list[dict]) -> dict[str, float]:
+        """Per DC cable: the length of the riser that is not modelled, from its rectifier's
+        cabinet top (U-x01's model bbox) to its DC output's room point: the plan distance from
+        the cabinet's top face plus the rise (electrical/electrical-list.yaml, D-045)."""
+        rooms = {r["id"]: r for r in self.load("electrical/electrical-list.yaml")["rooms"]}
+        boxes = {e["tag"]: e["bbox"] for e in _core.plant_model(self.root).get("equipment") or []}
+        out = {}
+        for c in dc:
+            room = rooms[c["from"]]
+            x0, y0, _, x1, y1, top = (float(v) for v in boxes["U-" + c["from"][3:6]])
+            x, y, z = (float(v) for v in room["point"])
+            plan = math.hypot(max(x0 - x, 0.0, x - x1), max(y0 - y, 0.0, y - y1))
+            out[c["tag"]] = round(plan + max(z - top, 0.0), 3)
+        return out
+
+    # -- 25 ---------------------------------------------------------------------------------
+    def layout_results(self) -> None:
+        """Step 25 (after step 13): the 3D results of the model as built, for the record at
+        every duration (at 10,000 h those of the infeasible Skid A: reported, never fatal).
+        From `cheme layout report --json`: the process lines of DN 25 and above routed, skipped
+        with their reason or unrouted, the smaller lines by status and the route methods; from
+        step 13's validate, the clashes (accepted in checks/checks.yaml or not); per skid, the
+        items' top against the envelope. The lifts are step 23's (the record's lifting)."""
+        report = _core.layout_report(self.root)
+        dn = {
+            line["number"]: _dn(line.get("nominal_diameter"))
+            for line in self.load("piping/line-list.yaml")["lines"]
+        }
+        big, small = [], {}
+        for line in report["lines"]:
+            size = dn.get(line["line"])
+            if size is not None and size >= ROUTED_DN:
+                big.append(line)
+            else:
+                small[line["status"]] = small.get(line["status"], 0) + 1
+        routed = sorted(line["line"] for line in big if line["status"] == "routed")
+        skipped = {
+            line["line"]: sorted({u["reason"] for u in line["unrouted"]})
+            for line in big
+            if line["status"] == "skipped"
+        }
+        unrouted = {
+            line["line"]: sorted({u["reason"] for u in line["unrouted"]})
+            for line in big
+            if line["status"] not in ("routed", "skipped")
+        }
+        for lid, why in unrouted.items():
+            self.note("25", "warning", f"line {lid} (DN {dn[lid]}) is not routed: {'; '.join(why)}")
+        methods = dict(sorted(report["methods"].items()))
+        if methods.get("direct"):
+            self.note("25", "warning", f"{methods['direct']} segment(s) fell back to a direct route")
+        clashes = sorted(
+            (
+                {
+                    "rule": f["rule"],
+                    "level": f["level"],
+                    "message": f["message"],
+                    "accepted": f.get("accepted") or None,
+                }
+                for f in self.validate_findings
+                if str(f.get("rule", "")).startswith("cheme.layout-clash")
+            ),
+            key=lambda c: (c["rule"], c["message"]),
+        )
+        open_clashes = [c for c in clashes if not c["accepted"]]
+        heights = {
+            key: {
+                "items_top_m": e["items_top_m"],
+                "envelope_top_m": e["envelope_top_m"],
+                "above_envelope_m": max(0.0, e["items_top_m"] - e["envelope_top_m"]),
+                "envelope_feasible": e["feasible"],
+            }
+            for key, e in self.summary["envelope"]["skids"].items()
+        }
+        self.summary["layout"] = {
+            "routed_dn_min": ROUTED_DN,
+            "lines": {
+                "listed": len(big),
+                "routed": routed,
+                "skipped": skipped,
+                "unrouted": unrouted,
+                "smaller_by_status": dict(sorted(small.items())),
+            },
+            "methods": methods,
+            "clashes": clashes,
+            "clashes_open": len(open_clashes),
+            "model_findings": dict(sorted(report["findings"].items())),
+            "sources": dict(sorted(report["sources"].items())),
+            "height": heights,
+            # the cable trays within the clearance of a vent or flue outlet (step 13, D-047)
+            "vent_tray_clearance": self.summary["envelope"].get("vent_tray_clearance", []),
+        }
+        print(
+            f"[25] lines of DN {ROUTED_DN} and above: {len(routed)} of {len(big)} routed, "
+            f"{len(skipped)} skipped, {len(unrouted)} unrouted (smaller: "
+            + ", ".join(f"{n} {s}" for s, n in sorted(small.items()))
+            + f"); methods {methods}; {len(clashes)} clash finding(s), {len(open_clashes)} not "
+            "accepted; "
+            + "; ".join(
+                f"Skid {k} top {h['items_top_m']:.3f} m (envelope {h['envelope_top_m']:.3f} m)"
+                for k, h in heights.items()
+            )
         )
 
     # -- 14 ---------------------------------------------------------------------------------
@@ -1358,6 +1866,8 @@ class Run:
             "details_above_envelope": env["details_above_envelope"],
             "details_outside_plan": env["details_outside_plan"],
             "stack_access_m": env["stack_access_m"],
+            "stack_removal": env["stack_removal"],
+            "ignition_clearance": env["ignition_clearance"],
             "invariants": s["invariants"][key],
             "duty_result": final["duty"],
         }
@@ -1427,7 +1937,15 @@ class Run:
             "comparisons": s["comparisons"],
             "envelope_basis": s["envelope"]["basis"],
             "control": s["control"],
-            "findings": [f for f in self.findings if f["level"] in ("error", "warning")],
+            # steps 22 and 23: the take-off's totals and the lifts (core's heavy items and the
+            # unit lifts of layout/lifting-study-units.md), reported at every duration
+            "take_off": {"totals": s["take_off"]["totals"], "findings": len(s["take_off"].get("findings") or [])},
+            "lifting": s["lifting"],
+            # step 24: the cable schedule's summary (D-045)
+            "cabling": s["cabling"],
+            # step 25: the routed lines, clashes and heights of the model as built
+            "layout": s["layout"],
+            "findings":[f for f in self.findings if f["level"] in ("error", "warning")],
         }
         if "uncertainty" in s:
             record["uncertainty"] = {
@@ -1498,10 +2016,17 @@ class Run:
         self.datasheets_and_stacks()
         self.balance_and_build()
         self.control_setpoints()
+        self.weights()
         self.layout_and_datasheets()
         self.control()
         self.duty_plots()
+        # steps 22 and 23 before step 13: its validate then reads the take-off and the lifting
+        # study of the model as built (cheme.layout-lifting-study-outdated otherwise)
+        self.take_off()
+        self.lifting()
+        self.cables()
         self.envelope_check()
+        self.layout_results()
         self.invariants()
         if self.with_uncertainty:
             self.uncertainty()
@@ -1513,6 +2038,12 @@ class Run:
                 print(f"[15] {stale.relative_to(self.root)} removed (run without --uncertainty)")
         self.write_record()
         self.lca()
+
+
+def _dn(text) -> int | None:
+    """A line list nominal diameter ("DN25") as a number, None when it has none."""
+    s = str(text or "").strip().upper()
+    return int(s[2:]) if s.startswith("DN") and s[2:].isdigit() else None
 
 
 def _num(x: float):
@@ -1640,10 +2171,13 @@ def _molar(q: dict) -> float:
     return float(q["value"]) * factor
 
 
-def _stack_access(items: list[dict], tags: list[str], access: dict[str, float]) -> list[str]:
+def _stack_access(
+    items: list[dict], tags: list[str], access: dict[str, float], parts: list[dict] | None = None
+) -> list[str]:
     """The clear space at the ends (along the stack axis, the item's own x) and sides of each
     stack (process/cells.yaml stacks[].access) against the bodies of the other items on the
-    frame, at the stack's height; beyond the frame is the access aisle at grade."""
+    frame and their generated parts (*parts*: the model's solids), at the stack's height; beyond
+    the frame is the access aisle at grade."""
     end, side = access.get("end", 0.0), access.get("side", 0.0)
     by_tag = {i["tag"]: i for i in items}
     problems = []
@@ -1676,7 +2210,185 @@ def _stack_access(items: list[dict], tags: list[str], access: dict[str, float]) 
                         problems.append(
                             f"stack access: {other['tag']} stands in the {clear:g} m {kind} access of {tag}"
                         )
+                # the generated parts of the other items too (a transmitter stand, D-040)
+                for s in parts or []:
+                    if s["owner"] == tag or s["owner"] not in by_tag:
+                        continue
+                    p, z = s["plan"], s["z"]
+                    tol = 1e-6
+                    if (
+                        p[0] < ax1 - tol and p[2] > ax0 + tol and p[1] < ay1 - tol and p[3] > ay0 + tol
+                        and z[0] < z1 - tol and z[1] > z0 + tol
+                    ):  # fmt: skip
+                        problems.append(
+                            f"stack access: {s['id']} stands in the {clear:g} m {kind} access of {tag}"
+                        )
     return sorted(set(problems))
+
+
+def _deleted(solid: dict, patterns: list[str]) -> bool:
+    """Whether a model solid is steel core draws that the design deletes (D-047)."""
+    return any(fnmatch.fnmatchcase(solid["id"], p) for p in patterns)
+
+
+def _stack_removal(
+    solids: list[dict], stack: dict, frame: list[float], deck: float, cfg: dict, deleted: list[str]
+) -> dict:
+    """The replacement of one stack by hand (D-047, layout/layout-checks.yaml stack_removal):
+    the person stands at grade at the frame's long side (``side``), the standing position
+    ``ankle_m`` behind its edge; the stack's far face (its connection end plate) must be within
+    ``reach_m`` of it. The stack, its connections undone, slides out over that edge at deck level
+    onto a deck-height trolley: its lane, as wide as the stack, from the stack to
+    ``lane_beyond_edge_m`` beyond the edge and from the deck to the stack's top plus
+    ``lane_clearance_m``, must hold no solid but the stack's own parts and the deleted steel
+    (the deck rail core draws, D-047)."""
+    x0, y0, z0, x1, y1, z1 = stack["bbox"]
+    side = cfg.get("side", "south")
+    fx0, fy0, fx1, fy1 = frame
+    beyond = float(cfg.get("lane_beyond_edge_m", 0.3))
+    if side == "south":
+        far, near = y1 - fy0, y0 - fy0
+        lane = (x0, fy0 - beyond, x1, y0)
+    elif side == "north":
+        far, near = fy1 - y0, fy1 - y1
+        lane = (x0, y1, x1, fy1 + beyond)
+    else:
+        raise ValueError(f"{LAYOUT_CHECKS}: stack_removal side {side!r} (south or north)")
+    reach = far + float(cfg["ankle_m"])
+    top = z1 + float(cfg.get("lane_clearance_m", 0.0))
+    tol = 1e-6
+    own = stack["tag"]
+
+    def meets(plan, box):
+        return plan[0] < box[2] - tol and plan[2] > box[0] + tol and plan[1] < box[3] - tol and plan[3] > box[1] + tol
+
+    blockers = sorted(
+        {
+            s["id"] if s["owner"].startswith(("SKID-", "PR-")) else s["owner"]
+            for s in solids
+            if s["owner"] != own
+            and not s["owner"].startswith(f"{own}/")
+            and not _deleted(s, deleted)
+            and meets(s["plan"], lane)
+            and s["z"][1] > deck + tol
+            and s["z"][0] < top - tol
+        }
+    )
+    return {
+        "tag": own,
+        "side": side,
+        "near_face_from_edge_m": round(near, 3),
+        "far_face_from_edge_m": round(far, 3),
+        "reach_m": round(reach, 3),
+        "reach_limit_m": float(cfg["reach_m"]),
+        "reach_ok": reach <= float(cfg["reach_m"]) + tol,
+        "lane_top_m": round(top, 3),
+        "lane_blocked_by": blockers,
+    }
+
+
+def _box_gap(a: list[float], b: list[float]) -> float:
+    """The shortest distance between two axis-aligned boxes [x0, y0, z0, x1, y1, z1] (0 when
+    they touch or overlap)."""
+    d = [max(a[k] - b[k + 3], b[k] - a[k + 3], 0.0) for k in range(3)]
+    return math.sqrt(sum(v * v for v in d))
+
+
+def _ignition_clearance(model: dict, cfg: dict, on_frame: set[str]) -> list[dict]:
+    """Per ignition source of layout/layout-checks.yaml on this frame or standing beside it
+    (the items of *on_frame*, or a tag of the frame's train standing off it): the least
+    clearance from its outline to the outline of any source item of a hazardous zone (to the
+    point of a nozzle source), against that sphere's radius plus ``margin_m`` (D-047)."""
+    equipment = {e["tag"]: e for e in model.get("equipment") or []}
+    nozzles = {n["id"]: n for e in equipment.values() for n in e.get("nozzles") or []}
+    trains = {t[2] for t in on_frame if len(t) > 2}
+    margin = float(cfg.get("margin_m", 0.0))
+    found = []
+    for entry in cfg.get("items") or []:
+        tag = entry["tag"]
+        if tag not in equipment or not (tag in on_frame or (len(tag) > 2 and tag[2] in trains)):
+            continue
+        box = [float(v) for v in equipment[tag]["bbox"]]
+        best = None
+        for zone in model.get("zones") or []:
+            if zone.get("kind") != "hazardous":
+                continue
+            for v in zone.get("volumes") or []:
+                if v.get("shape") != "sphere" or v.get("item") in (None, tag):
+                    continue
+                src = v["item"]
+                if src in equipment:
+                    other = [float(x) for x in equipment[src]["bbox"]]
+                elif src in nozzles:
+                    p = [float(x) for x in nozzles[src]["point"]]
+                    other = p + p
+                else:
+                    c = [float(x) for x in v["centre"]]
+                    other = c + c
+                gap = _box_gap(box, other)
+                need = float(v["radius"]) + margin
+                if best is None or gap - need < best["clearance_m"] - best["required_m"]:
+                    best = {
+                        "tag": tag,
+                        "kind": entry.get("kind", ""),
+                        "zone": zone["id"],
+                        "nearest_source": src,
+                        "clearance_m": round(gap, 3),
+                        "required_m": round(need, 3),
+                    }
+        if best is not None:
+            best["ok"] = best["clearance_m"] >= best["required_m"] - 1e-6
+            found.append(best)
+    return found
+
+
+def _segment_point_distance(a, b, p) -> tuple[float, list[float]]:
+    """The distance from point *p* to segment *ab* (3D) and the nearest point on it."""
+    ab = [b[k] - a[k] for k in range(3)]
+    ap = [p[k] - a[k] for k in range(3)]
+    ll = sum(v * v for v in ab)
+    t = 0.0 if ll < 1e-12 else max(0.0, min(1.0, sum(ab[k] * ap[k] for k in range(3)) / ll))
+    q = [a[k] + t * ab[k] for k in range(3)]
+    return math.dist(q, p), q
+
+
+def _vent_tray_clearance(model: dict, cfg: dict) -> list[dict]:
+    """Every cable tray within ``clearance_m`` of the open end of a vent or flue line of
+    layout/layout-checks.yaml, or above that outlet within ``clearance_m`` in plan (its plume;
+    D-047, review 2026-11-05-layout#5). A tray is its centreline at mid-depth less half its
+    larger cross dimension."""
+    patterns = cfg.get("lines") or []
+    clearance = float(cfg["clearance_m"])
+    outlets = []
+    for pipe in model.get("pipes") or []:
+        if not any(fnmatch.fnmatchcase(pipe.get("line", ""), p) for p in patterns):
+            continue
+        if "end" not in (pipe.get("open_ends") or []):
+            continue
+        outlets.append((pipe["line"], [float(v) for v in pipe["points"][-1]]))
+    found = []
+    for tray in model.get("trays") or []:
+        half = max(float(tray.get("width") or 0.0), float(tray.get("depth") or 0.0)) / 2
+        lift = float(tray.get("depth") or 0.0) / 2
+        pts = [[float(p[0]), float(p[1]), float(p[2]) + lift] for p in tray.get("points") or []]
+        for line, outlet in outlets:
+            best, above = None, False
+            for a, b in zip(pts, pts[1:]):
+                d, q = _segment_point_distance(a, b, outlet)
+                d = max(d - half, 0.0)
+                best = d if best is None else min(best, d)
+                # above the outlet within the clearance in plan: sample the run
+                n = max(1, int(math.dist(a, b) / 0.05))
+                for k in range(n + 1):
+                    x = [a[j] + (b[j] - a[j]) * k / n for j in range(3)]
+                    if x[2] - lift > outlet[2] and math.hypot(x[0] - outlet[0], x[1] - outlet[1]) < clearance + half:
+                        above = True
+            if best is not None and (best < clearance - 1e-6 or above):
+                found.append(
+                    {"tray": tray["id"], "line": line, "outlet": outlet, "distance_m": round(best, 3),
+                     "above": above, "clearance_m": clearance}
+                )
+    return sorted(found, key=lambda v: (v["line"], v["tray"]))
 
 
 def _infeasible_sentences(key: str, h: float, did: str, duty: dict, envelope_ok: bool) -> list[str]:
