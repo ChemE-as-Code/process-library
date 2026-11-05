@@ -1,0 +1,84 @@
+# Pipe routing intent of the basic 3D layout (S5, D-027). Schema: `cheme schema routing`.
+# Router defaults apply where nothing is said here (local_max_m 15, spacing 0.1 m, road
+# headroom 6 m: each an ASSUMED package value). The battery limit points are ASSUMED (D-027):
+# the site's utilities (cooling water, steam, nitrogen, natural gas) and the make-up hydrogen
+# come from the utility interface A-800 south of PR-1 and enter at the west end of PR-1; the
+# flare header, the cooling water and condensate returns, the fuel gas, the products and the
+# toluene feed from the tank interface A-300 (south-east) meet the site at its east end (the
+# flare, the cooling water plant, the boiler house and the tank farm are site facilities
+# outside the boundary, D-001, D-025). Each header runs along PR-1 between its battery limit
+# and its dead end just past its last user, its tees where its branches leave.
+schema: cheme/routing/v1
+rules:
+  # pipe-way 4.5 m (bottom of pipe) instead of the package's 3.5 m: the local runs then pass
+  # 2.1 m or more over the lowest access platforms of the columns and vessels (at about 1.5 to
+  # 2.4 m), and under the lower decks of the overhead structures (6 to 6.5 m); within the usual
+  # 3.0 to 4.5 m (ASSUMED, D-027)
+  local_elevation_m: 4.5
+  tiers:
+    # large lines on the lower tier, small utilities on the upper (ASSUMED, D-027)
+    - {rack: PR-1, elevation: 6, lines: ["FL-701", "CWS-801", "CWR-802", "LS-803"]}
+    - {rack: PR-1, elevation: 8, lines: ["N2-702", "NG-703", "MS-804", "HS-805", "CD-806"]}
+  battery_limits:
+    - {id: BL-west-utilities, lines: [CWS-801, N2-702, NG-703, LS-803, MS-804, HS-805, HG-104], rack: PR-1, rack_end: start}
+    - {id: BL-east, lines: [FL-701, CWR-802, CD-806, TO-101, FG-119, BZ-121, DP-124, FG-128, NG-139], rack: PR-1, rack_end: end}
+    # dead ends of the headers, just past their last tee and clear of the rack bents (every
+    # 10 m from x 20) (ASSUMED, D-027)
+    - {id: FL-dead-end, lines: [FL-701], point: [22, 50, 6.0]}
+    - {id: CWS-dead-end, lines: [CWS-801], point: [158, 50, 6.0]}
+    - {id: CWR-dead-end, lines: [CWR-802], point: [72, 50, 6.0]}
+    - {id: N2-dead-end, lines: [N2-702], point: [125, 50, 8.1]}
+    - {id: NG-dead-end, lines: [NG-703], point: [46, 50, 8.0]}
+    - {id: LS-dead-end, lines: [LS-803], point: [142, 50, 6.0]}
+    - {id: MS-dead-end, lines: [MS-804], point: [122, 50, 8.0]}
+    - {id: HS-dead-end, lines: [HS-805], point: [158, 50, 8.1]}
+    - {id: CD-dead-end, lines: [CD-806], point: [112, 50, 8.0]}
+lines:
+  # equipment drains: each vessel and column drain goes down to a closed-drain hub at grade
+  # beside its item; the underground closed-drain network (to the site's slop system) is a
+  # civil and detail-engineering item, not a pipe route of this model (D-027)
+  - {line: DR-138, skip: "V-100 drain to the closed-drain hub at grade beside V-100; the underground closed-drain network is designed at detail engineering (D-027)"}
+  - {line: DR-240, skip: "V-101 drain to the closed-drain hub at grade beside V-101; the underground closed-drain network is designed at detail engineering (D-027)"}
+  - {line: DR-445, skip: "C-201 drain to the closed-drain hub at grade beside C-201; the underground closed-drain network is designed at detail engineering (D-027)"}
+  - {line: DR-446, skip: "V-201 drain down from S-201 to the closed-drain hub at grade; the underground closed-drain network is designed at detail engineering (D-027)"}
+  - {line: DR-551, skip: "C-202 drain to the closed-drain hub at grade beside C-202; the underground closed-drain network is designed at detail engineering (D-027)"}
+  - {line: DR-552, skip: "V-202 drain down from S-202 to the closed-drain hub at grade; the underground closed-drain network is designed at detail engineering (D-027)"}
+  - {line: DR-651, skip: "C-203 drain to the closed-drain hub at grade beside C-203 (traced); the underground closed-drain network is designed at detail engineering (D-027)"}
+  - {line: DR-652, skip: "V-203 drain down from S-203 to the closed-drain hub at grade; the underground closed-drain network is designed at detail engineering (D-027)"}
+  # TO-122 (C-202 bottoms to C-203) south of the reboiler E-204, so that E-204's lift lane
+  # from CP-203 (east) stays clear (D-027)
+  # leaves the C-202 bottom east, through the gap of the 1.52 m platform's arc, before rising
+  - {line: TO-122, segment: P-05/Line_TO122_S1, via: [[134.0, 100.0, 2.5], [134.0, 100.0, 4.5], [134.0, 92.0, 4.5], [148.7, 92.0, 4.5]]}
+  # BZ-531 (E-203 condensate) drops through the upper deck and reaches the V-202 top nozzle
+  # between the decks, 2.1 m or more over the lower deck
+  - {line: BZ-531, via: [[122.0, 102.6, 8.8], [117.0, 102.6, 8.8], [117.0, 101.4, 8.8]]}
+  # the E-201 cooling water drops through the lower deck of S-201 and runs under it
+  - {line: CWS-440, elevation: 5.0}
+  - {line: CWR-441, elevation: 5.0}
+  # PG-430 (C-201 overhead) south at 13 m to E-201, over the S-201 top deck and stair with the
+  # headroom, instead of round PR-2
+  - {line: PG-430, via: [[107.5, 80.0, 13.0], [107.5, 62.0, 13.0]]}
+  # FG-119 (V-201 off-gas) straight up from the drum top to between the decks of S-201
+  - {line: FG-119, segment: P-04/Line_FG119_S1, via: [[103.0, 60.0, 8.4], [103.0, 54.6, 8.4]]}
+  # HG-115 reaches the PSV-119 tee from the north in a straight run, apart from its drop to
+  # the E-101 shell inlet
+  - {line: HG-115, segment: P-01/Line_HG115_S2, via: [[64.0, 76.0, 4.7], [63.5, 76.0, 4.7]]}
+  # the steam and condensate of the stabiliser reboiler E-202 run locally at the pipe-way from
+  # their header tees on PR-1, not round the PR-1/PR-2 junction
+  - {line: MS-439, elevation: 4.5}
+  - {line: CD-444, elevation: 4.0}
+  # NG-137 leaves its header tee north at the tier, clear of the bent at x 40, before it drops
+  - {line: NG-137, segment: P-07/Line_NG137_S1, via: [[40.0, 54.6, 8.1]]}
+  # overhead structures: lines over a deck run at least the 2.1 m headroom above it, or pass
+  # between the decks (D-027)
+  - {line: BZ-536, elevation: 9.5}
+  # BZ-121 (benzene product from E-207 under S-202) leaves the frame south at low level and
+  # rises outside it, not through the decks
+  - {line: BZ-121, segment: P-05/Line_BZ121_S1, via: [[115.5, 95.0, 0.5], [115.5, 95.0, 4.5], [124.7, 95.0, 4.5]]}
+  - {line: FL-549, segment: P-05/Line_FL549_S1, elevation: 9.0}
+  - {line: PG-647, via: [[144.0, 65.0, 8.2], [144.0, 61.0, 8.2]]}
+  - {line: TO-123, segment: P-06/Line_TO123_S1, via: [[153.6, 72.4, 8.5], [153.6, 56.0, 8.5]]}
+notes: >-
+  ASSUMED (D-027): battery limit points at the PR-1 ends, header dead ends just past the last
+  user, tier allocation by size, pipe-way 4.5 m. Stress, drainage and the flare header's slope
+  are not designed.

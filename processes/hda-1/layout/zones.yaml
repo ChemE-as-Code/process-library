@@ -1,0 +1,84 @@
+# Zones of the basic 3D layout (S5, D-027). Schema: `cheme schema zones`.
+# Screening only: the hazardous volumes from sources are sized by cheme-as-code's indicative
+# radius table (ASSUMED), not by an area classification. The site's classification (IEC
+# 60079-10-1 or EI 15 for hydrogen, methane and the aromatics) must replace them, made or
+# reviewed by a competent person; no Ex rating may rest on these volumes. Crane pads, laydown
+# areas, their reach and the escape routes are ASSUMED choices of this design for the lifting
+# study and the layout review (no crane has been selected, no load chart is given: a 40 m
+# working radius stands for a large mobile crane).
+schema: cheme/zones/v1
+zones:
+  # ---- hazardous areas, secondary grade sources (release only on failure): zone 2
+  - id: Z-HAZ-K101
+    title: "Recycle gas compressor K-101 seals (hydrogen-rich recycle gas, 36 bar)"
+    kind: hazardous
+    zone: 2
+    sources:
+      - {item: K-101, release_grade: secondary, substance: hydrogen, source_kind: compressor_seal}
+    basis: "Dry gas seals of a hydrogen-rich recycle compressor leak only on failure (secondary grade), D-027."
+  - id: Z-HAZ-K102
+    title: "Tail-gas compressor K-102 rod packings (methane-rich PSA tail gas)"
+    kind: hazardous
+    zone: 2
+    sources:
+      - {item: K-102, release_grade: secondary, substance: methane, source_kind: compressor_seal}
+    basis: "Rod packings of a reciprocating machine vent to a closed distance piece; a leak to atmosphere only on failure (secondary), D-027. A packing vent to atmosphere would be primary grade: the packing vents go to the flare (P&ID, S8)."
+  - id: Z-HAZ-PK101
+    title: "Purge hydrogen PSA PK-101 switching valves"
+    kind: hazardous
+    zone: 2
+    sources:
+      - {item: PK-101, release_grade: secondary, substance: hydrogen, source_kind: valve}
+    basis: "The PSA's switching valves cycle hydrogen-rich gas every few minutes; their stem seals leak only on failure (secondary), D-027. The vendor's own classification of the skid replaces this."
+  - id: Z-HAZ-PK201
+    title: "Toluene column vacuum package PK-201"
+    kind: hazardous
+    zone: 2
+    sources:
+      - {item: PK-201, release_grade: secondary, substance: toluene, source_kind: compressor_seal, substance_class: flammable_gas}
+    basis: "The vacuum pump draws toluene vapour and inerts from V-203; its shaft seal leaks only on failure (secondary), D-027."
+  - id: Z-HAZ-PUMPS-A100
+    title: "Toluene feed and quench pump seals (P-101, P-101B, P-102, P-102B)"
+    kind: hazardous
+    zone: 2
+    sources:
+      - {item: P-101, release_grade: secondary, substance: toluene, source_kind: pump_seal}
+      - {item: P-101B, release_grade: secondary, substance: toluene, source_kind: pump_seal}
+      - {item: P-102, release_grade: secondary, substance: benzene, source_kind: pump_seal}
+      - {item: P-102B, release_grade: secondary, substance: benzene, source_kind: pump_seal}
+    basis: "Mechanical seals on toluene and crude aromatics (mostly benzene, with dissolved hydrogen and methane): secondary grade, D-027."
+  - id: Z-HAZ-PUMPS-A200
+    title: "Column pump seals (P-201A/B, P-202A/B, P-203A/B, P-204A/B)"
+    kind: hazardous
+    zone: 2
+    sources:
+      - {item: P-201A, release_grade: secondary, substance: benzene, source_kind: pump_seal}
+      - {item: P-201B, release_grade: secondary, substance: benzene, source_kind: pump_seal}
+      - {item: P-202A, release_grade: secondary, substance: benzene, source_kind: pump_seal}
+      - {item: P-202B, release_grade: secondary, substance: benzene, source_kind: pump_seal}
+      - {item: P-203A, release_grade: secondary, substance: toluene, source_kind: pump_seal}
+      - {item: P-203B, release_grade: secondary, substance: toluene, source_kind: pump_seal}
+      - {item: P-204A, release_grade: secondary, substance: biphenyl, source_kind: pump_seal, substance_class: flammable_liquid}
+      - {item: P-204B, release_grade: secondary, substance: biphenyl, source_kind: pump_seal, substance_class: flammable_liquid}
+    basis: "Seals on benzene, toluene and biphenyl; biphenyl is pumped at about 457 K, above its flash point, so it counts as a flammable liquid (D-027)."
+  # ---- crane pads (where the mobile crane stands) and laydown areas, ASSUMED (D-027)
+  - {id: CP-101, title: "Crane pad A-100 north (H-101, R-101)", kind: crane_pad, shape: box, box: [45, 101, 0, 56, 111, 0.3], reach_m: 40, basis: "ASSUMED pad between the fired heater and the reactor, from the north road R-2 (D-027)."}
+  - {id: CP-102, title: "Crane pad A-100 centre (E-101, E-102, V-101)", kind: crane_pad, shape: box, box: [47, 74, 0, 57, 84, 0.3], reach_m: 40, basis: "ASSUMED pad west of the exchanger row (D-027)."}
+  - {id: CP-103, title: "Crane pad on road R-5 (PK-101, K-102, K-101)", kind: crane_pad, shape: box, box: [92, 70, 0, 98, 92, 0.3], reach_m: 40, basis: "ASSUMED: the crane stands on the access road R-5 beside the PSA and the tail-gas compressor; the road is closed for the lift (D-027)."}
+  - {id: CP-104, title: "Crane pad A-100 north-east (K-101)", kind: crane_pad, shape: box, box: [76, 104, 0, 86, 112, 0.3], reach_m: 40, basis: "ASSUMED pad north of the recycle compressor, from R-2 (D-027)."}
+  - {id: CP-201, title: "Crane pad A-200 north (C-202, E-204)", kind: crane_pad, shape: box, box: [127, 104.5, 0, 137, 112, 0.3], reach_m: 40, basis: "ASSUMED pad north of the benzene column, from R-2 (D-027)."}
+  - {id: CP-202, title: "Crane pad A-200 east (C-203)", kind: crane_pad, shape: box, box: [155, 85, 0, 165, 93, 0.3], reach_m: 40, basis: "ASSUMED pad north-east of the toluene column, from R-4 (D-027)."}
+  - {id: CP-203, title: "Crane pad E-204 (east of the benzene column reboiler)", kind: crane_pad, shape: box, box: [138.6, 94, 0, 146.6, 102, 0.3], reach_m: 40, basis: "ASSUMED pad east of E-204, its lane clear of TO-122 (found with scripts/pad_search.py, D-027)."}
+  - {id: CP-105, title: "Crane pad E-101 (south of the feed/effluent exchanger)", kind: crane_pad, shape: box, box: [59.5, 56.5, 0, 68.5, 63.0, 0.3], reach_m: 40, basis: "ASSUMED pad between PR-1 and E-101 (D-027)."}
+  - {id: CP-106, title: "Crane pad E-102 (south of the trim cooler)", kind: crane_pad, shape: box, box: [72, 56.5, 0, 80, 61.5, 0.3], reach_m: 40, basis: "ASSUMED pad between PR-1 and E-102 (D-027)."}
+  - {id: CP-107, title: "Crane pad V-101 (west of the high-pressure separator)", kind: crane_pad, shape: box, box: [65.3, 76, 0, 72.3, 84, 0.3], reach_m: 40, basis: "ASSUMED pad west of V-101, its lane clear (found with scripts/pad_search.py, D-027)."}
+  # lift lanes kept free of pipes by design: maintenance volumes from the pad over the
+  # exchangers whose shells and bundles are lifted out, from just above their tops; the router
+  # keeps pipes out of them (D-027)
+  - {id: MZ-E101, title: "Lift lane CP-105 to the feed/effluent exchanger E-101 (both shells)", kind: maintenance, shape: box, box: [58.5, 63.0, 4.0, 69.5, 71.8, 25], basis: "ASSUMED: E-101 shells are lifted from CP-105 (D-027)."}
+  - {id: MZ-E102, title: "Lift lane CP-106 to the trim cooler E-102", kind: maintenance, shape: box, box: [71.5, 61.5, 1.65, 80.5, 65.5, 25], basis: "ASSUMED: E-102 is lifted from CP-106 (D-027)."}
+  # laydowns: within the crane's reach of their pad, at most 0.1 m high
+  - {id: LD-101, title: "Laydown A-100 north-west (heater modules, reactor)", kind: laydown, shape: box, box: [20, 98, 0, 34, 112, 0.1], basis: "ASSUMED (D-027)."}
+  - {id: LD-102, title: "Laydown A-100 south-west (exchanger bundles)", kind: laydown, shape: box, box: [44, 58, 0, 56, 70, 0.1], basis: "ASSUMED (D-027)."}
+  - {id: LD-201, title: "Laydown A-200 west (PSA, compressors)", kind: laydown, shape: box, box: [100, 86, 0, 112, 110, 0.1], basis: "ASSUMED (D-027)."}
+  - {id: LD-202, title: "Laydown A-200 north-east (column sections, reboiler bundles)", kind: laydown, shape: box, box: [150, 96, 0, 162, 110, 0.1], basis: "ASSUMED (D-027)."}
