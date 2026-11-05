@@ -850,3 +850,153 @@ stale without a check, a result reported wrongly, or a design error (control, la
 
 Assumptions: cp 3.95 kJ/(kg K) of the anolyte, the PSA pressure loss 1 bar, the 0.3 m stack
 access, the fan's Ex rating (all ASSUMED).
+
+## D-024 LCA scope: functional unit, CO the only product, the H2, O2 and CO2 dispositions (2026-11-05)
+Decision: `lca/lca.yaml` (#331, part of it; the spec's D-016) is a climate-change-only screening
+and an LCI of both skids per kg CO delivered, for the 1,000 h design campaign:
+- functional unit 1 kg of CO contained in the product at >= 0.99 mol/mol dry (the rest H2) and
+  5.0 bar(a) at the skid boundary; `kg_per_unit` 1.000727 kg of product gas per kg of CO, 1 / w_CO
+  of the product stream that `scripts/skid_balance.py` writes (regen step 20 syncs it);
+- cradle to gate, NL (ASSUMED, design basis `site`), 2026; `case: skid-a` (Skid A is the study's
+  dataset `lca/dataset.yaml`; Skid B is its own case dataset and the `skid-b` scenarios, D-027);
+  operation 8,000 h/a (the design basis' operating hours) and a 10 year life (ASSUMED);
+- **allocation none**: the cathode's H2 is burnt with the PSA tail gas in the oxidiser X-x32
+  (D-012) and the anode O2 is vented, so CO is the only product. The O2 is an emission without
+  burden and, under cut-off, without credit;
+- the CO2 is merchant liquefied CO2 of fossil origin (D-016, ASSUMED): the feed is a
+  `fossil-point-source` without an open factor (a gap), and the vented CO2 is a fossil emission
+  characterised by ipcc2021-gwp100;
+- the oxidisers X-132 and X-232 are adiabatic (`process/simulation.yaml`): the heat of COX and
+  HOX leaves with the flue gas, no utility serves them (core's boundary check asked for this or
+  an energy stream); the tanks' emissions are excluded (aqueous KOH and K2CO3, not volatile);
+- the replaced stack parts are study-level consumables, the same for both skids (identical
+  stacks): 28 x 100 cm2 every 4,000 h (`stacks[].replacement.interval`, ASSUMED), so every 0.5
+  years at 8,000 h/a, as the bipolar membrane (0.20 kg/m2 ASSUMED), the cathode's Ag (100 nm,
+  the design basis' reference cell, at the bulk density 10.49 g/cm3: 1.049 g/m2, ASSUMED dense
+  film) and the Ni foam anode (0.35 kg/m2 ASSUMED), each with a disposal (membrane to
+  incineration, a gap; Ag to a refiner and Ni to scrap recycling, burden-free under cut-off).
+  The carbon paper of the GDE is not counted (open). regen writes their amounts from the stack
+  report and `process/cells.yaml`.
+
+Reason: the comparison of the skids needs both inventories on one functional unit, and the
+H2 and O2 leave the skids as no product.
+
+Rejected: an H2 co-product (allocation by mass or LHV): no H2 separation is designed (D-026
+reports the shares as a sensitivity); counting the product gas, not the contained CO (the 0.07 %
+H2 would be counted as CO).
+
+Assumptions: the life, the areal masses, the replacement interval, the site (ASSUMED).
+
+## D-025 Reconciliation of the LCI with the duty run (E10) (2026-11-05)
+Decision: every operating amount of both datasets comes from the flowsheet values
+`scripts/skid_balance.py` writes from the same duty run that sized the equipment, and regen
+step 20 (`scripts/_lca.py`) checks it into `results/scenarios/<H>h/lca.json` at both durations
+(the spec's D-017):
+- the sources of every flowsheet value the duty fills now cite the run, "duty D-A (run
+  72329dd4b8605abe)": the fingerprint the duty-sized tanks T-101, T-201 and T-202 carry and the
+  record's `run_fingerprint`; `lca/manifest.json` fingerprints `process/flowsheet.yaml`;
+- per kg CO, the datasets equal the record's duty totals over the CO delivered (rel 1e-6):
+  energy over the rectifier efficiency plus the auxiliaries, the fill and the dose (KOH 100 %, from
+  the exchanges' compositions), the dosing solution, the bleed's and the final inventory's K and C,
+  the condensate's K and Skid B's make-up water (its water less Skid A's); `cheme assess
+  lca-cases` agrees within its six printed digits (rel 1e-5);
+- K closes (fill + dose = bleed + spent + condensate) and C by origin (CO2 fed = C in the CO +
+  the anolyte + the condensate + the vent) on the datasets' compositions, and in core's
+  `cheme assess lca --balance --json` (Skid B's in a copy that studies case skid-b);
+- the hand values of `results/expected-lca.yaml` (frozen in their own commit before the LCA was
+  first computed, `tests/lca_formulas.py`): per kg CO 34.558 kWh (Skid A; 31.405 of it the
+  stacks' AC) and 34.562 kWh (Skid B, with the dosing pump), 3.537 kg CO2 fed and 1.712 kg vented,
+  the carbon fed 0.444 to the product, 0.058 to the anolyte, 0.014 to the condensate and 0.484
+  to the vent; KOH 0.649 (A), 0.0278 + 1.167 (B, 1,000 h);
+- the replaced membrane area is the 28 cells times 100 cm2, at `stacks[].replacement.interval`.
+`results/expected.yaml` stays as frozen (ADR 0030); E10 is the new file. Tests: E10 in
+`tests/test_co2_electrolysis_bpm_skids.py` (fast on the committed records, `engineering` on a
+regeneration).
+
+Results: both skids reconcile at 1,000 h and 10,000 h, the largest relative difference 1.6e-8
+(the flowsheet's 10 significant figures); K and C close to below 2e-8.
+
+Reason: the LCA rests on the design only if its amounts are the design's, traceably.
+
+Deviation from the spec: the KOH exchanges count the solutions, as the flowsheet carries them
+(core counts a feed by its stream); the KOH 100 % basis is their composition, compared with the
+duty totals, and the Atlas mapping converts by the mass fraction (D-027). Core reports the element
+and carbon balances `not-assessable` while the replaced parts have no composition (a consumable
+takes none): K and C are asserted on the exchanges that have one.
+
+Assumptions: none beyond the design's.
+
+## D-026 Backgrounds, scenarios, sensitivities and the ranking rule (2026-11-05)
+Decision (the spec's D-018): open backgrounds only, no ecoinvent:
+- `lca/factors.yaml` includes `ember-2025` (Ember Yearly Electricity Data, release 2026-09-15,
+  data 2025, CC BY 4.0; life cycle, generation-based, no T&D, mixed GWP basis) and
+  `desnz-ghg-2026` (2026 v1.2, OGL-3.0, GB, AR4/AR5); one category, climate change, with the
+  plant's CO2 by ipcc2021-gwp100 (AR6). The NL grid is `ember-2025:electricity-nl` (a proxy for
+  the supply at the consumer). The water is DESNZ's mains water per m3 over 1000 kg/m3, a proxy
+  for NL demineralised water (`water-supply-gb-kg`). Mixed vintages: a screening, partial carbon
+  footprint (core: "partial screening carbon footprint");
+- `missing:` with the reason for the merchant CO2, KOH, the neutralisation of the spent anolyte,
+  the bleed and the condensate, the cooling water service, the membrane and its incineration,
+  the Ag and the Ni foam (DESNZ's construction metals factor is steel-dominated: not used for
+  nickel); construction is cut off (D-027). 11 gaps per skid, listed with their quantities;
+- scenarios: `skid-b` (case skid-b); the Ember grids of the EU-27, DE, FR and the world for
+  Skid A and, with `case: skid-b`, Skid B (core accepts `case` with `factors`); the DESNZ UK grid
+  as a cross-basis check;
+- sensitivities by `scripts/lca_sensitivity.py` into `lca/`: the membrane life (1,000, 4,000,
+  20,000 h, ASSUMED levels; inventory only), the H2 co-product, the electricity mix, the duration;
+- **ranking rule**: Skid A is ranked against Skid B only if every flow that distinguishes them
+  has a documented factor (ADR 0029). They are KOH, the alkaline wastes and construction, and
+  none has one: "ranking not determined" (`lca/ranking.json`), with the break-even KOH factor.
+
+Results (1,000 h, per kg CO, kg CO2e characterised, the gaps excluded): Skid A 10.479 (electricity
+8.766, vent CO2 1.712, water 0.0005), Skid B 10.482 (8.767, 1.712, 0.003). Electricity mixes A / B:
+EU-27 8.99 / 8.99, DE 13.26 / 13.26, FR 3.14 / 3.14, world 17.61 / 17.62; DESNZ UK 8.08 (not
+comparable). The Ember electricity pairs differ in no scope dimension; the verdicts read "proxy"
+only through the UK water factor. Electricity is the largest characterised flow (84 %), the
+vented CO2 the second (16 %): the spec expected the vent possibly largest; at 34.6 kWh/kg it is
+not. Membrane life: 0.0028, 0.00069 and 0.00014 m2 of membrane per kg CO (0.0029, 0.00073 and
+0.00015 g Ag; 0.97, 0.24 and 0.049 g Ni), impact not computable (gaps; core's scenarios cannot vary
+a consumable's amount, gap C4). H2: the tail gas carries 0.116 kg H2 per kg CO; recovered, it would
+take 10.4 % of the burden by mass or 58.0 % by LHV (CODATA: CO 282.98 kJ/mol, H2 241.826 kJ/mol);
+substitution missing. Duration: Skid B's KOH 1.195 kg/kg at 1,000 h and 1.170 at 10,000 h, Skid
+A's 0.649 at both; the totals do not change. Ranking: Skid B is higher in every characterised flow
+(+0.0036 kg CO2e/kg: its dosing pump and make-up water) and uses 1.84 times the KOH and 1.57 times
+the alkaline waste, so the break-even KOH factor is negative (-0.0066 kg CO2e/kg KOH): no KOH or
+treatment factor reverses the order; only Skid A's larger reservoir (construction, not stated per
+case) could.
+
+Reason: an open, publishable screening that states what it cannot rank.
+
+Deviation from the spec: the electricity-mix verdicts are "proxy", not "like-for-like" (the water
+background); the Ni foam has no proxy (a steel-dominated factor would understate nickel).
+
+Assumptions: the Ember factor at generation stands in for the consumer's; the water proxy.
+
+## D-027 Exports: both designs' datasets, the mappings, construction (2026-11-05)
+Decision:
+- Skid B's dataset is core's `cheme assess lca --write --case skid-b` (core ADR 0045), in
+  `lca/datasets/co2-electrolysis-to-co-two-0.1-kg-h-pilot-skids-reverse-bias-bpm-28-cells-of-100-cm2-each-skid-b.yaml`
+  (its id, title "..., case skid-b" and uuid name the case, `parent` the study dataset's uuid);
+  regen step 20 writes it, the gate `lca-case-dataset-current` checks it (library ADR 0034);
+- the Atlas build exports both (workbook, openLCA JSON-LD, multifunctional): the case dataset's
+  activity is named "<title>, case skid-b" (library ADR 0034, `scripts/build_lci.py`); the
+  replaced parts are exported unlinked, so Brightway's `install()` refuses the database until
+  they are mapped;
+- `lca/mappings.yaml` overrides (ADR 0022): CO2 to `carbon-dioxide-liquid`, the KOH fill and
+  dose to the solution proxies `potassium-hydroxide-1m` and `-5m` (registry slug
+  `potassium-hydroxide`), the spent anolyte, bleed and condensate to `wastewater` (their
+  neutralisation not represented); the new shared entries in `lci/mappings.yaml` carry ecoinvent
+  3.11 names, recorded "not checked: no ecoinvent licence" (ADR 0017); `process.yaml` gives the
+  inventory keys;
+- construction is a `cutoff:` entry, open: core 1.5.0 selects construction by equipment tag,
+  not by case, so Skid B's dataset would carry Skid A's frames and its 1.46 m3 reservoir.
+`publication.status` stays internal: `build_lci.py --public` leaves the process out.
+
+Deviation from the spec: the file is named by core's dataset id (from the flowsheet title), not
+`co2-electrolysis-bpm-1-skid-b.yaml`; the spec's fallback (a scratch copy with `case: skid-b`) is
+not used, core does it.
+
+Open (#331 stays open): multi-category impacts; the ecoinvent 3.11 run and the mapping check; the
+A against B ranking (factors for KOH, CO2 supply, membrane, Ag, Ni, PP, caustic treatment);
+construction impacts; the H2 co-product alternative; the biogenic CO2 or higher-recycle case; the
+membrane-life impact; the GDE's carbon paper; the CPC code of the dataset.
