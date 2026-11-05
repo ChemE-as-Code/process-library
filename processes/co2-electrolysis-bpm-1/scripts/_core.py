@@ -157,6 +157,15 @@ def layout_build(root: Path) -> str:
     return result.stdout
 
 
+def layout_report(root: Path) -> dict[str, Any]:
+    """``cheme layout report --json`` of the committed model: every line's status (routed,
+    skipped, unrouted) with its segments and reasons, the route methods, the model rule
+    finding counts and the generated / pinned / declared counts."""
+    report = cheme(root, "layout", "report", "--json").json()
+    _require(report, ("lines", "methods", "findings", "sources"), "cheme layout report --json")
+    return report
+
+
 def render(root: Path, *args: str) -> list[Path]:
     """``cheme layout render ARGS``: the files it wrote (under build/), from its output."""
     out = cheme(root, "layout", "render", *args).stdout

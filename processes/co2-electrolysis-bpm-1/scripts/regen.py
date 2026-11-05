@@ -143,8 +143,15 @@ Steps (design spec #330, section 6):
     findings of step 13's validate go into the record. Step 13 also reports, per skid, the
     trays over the frame above the envelope (site-fitted, as the vent risers) and any level
     tray run lower than the walkway headroom over the deck.
+25. The 3D results into the record (after step 13; DESIGN.md D-046): `cheme layout report
+    --json` gives every line's status, so the record's layout block holds the process lines of
+    DN 25 and above routed, skipped with their reason or unrouted (a warning), the smaller
+    lines by status, the route methods (a direct fallback is a warning), the model rule
+    finding counts, the clashes of step 13's validate (each accepted in checks/checks.yaml or
+    not) and per skid the items' top against the envelope. With the record's lifting (step 23)
+    these are the 3D results of each scenario; at 10,000 h they are reported, never fatal.
 
-Findings of steps 1 to 17, 21 to 24 are collected, never fatal: an infeasible skid is a result. The exit
+Findings of steps 1 to 17, 21 to 25 are collected, never fatal: an infeasible skid is a result. The exit
 code is non-zero on a tool error (1), on refused input (2), on a --check difference (3) or on a
 step 20 error (4; --check counts it as a difference too, and requires the scratch run to have
 written the scenario's lca.json).
@@ -177,6 +184,9 @@ CABLE_MD = "electrical/cable-schedule.md"
 #: the walkway headroom over a deck that a level tray run should keep, m (core's routing
 #: default headroom_walkway_m; core checks pipes against it, not trays: step 13 reports them)
 TRAY_HEADROOM_M = 2.1
+#: the smallest nominal diameter whose process lines must be routed or skipped with a reason
+#: (the layout-3d gate; step 25): the DN 15 skid small bore is the fabricator's (D-019)
+ROUTED_DN = 25
 #: the hand-maintained inputs that regen reads and never writes (hashed in step 1); the files
 #: it writes in part are hashed after the run (MODEL_FILES, the record's model_sha256)
 INPUTS = (
@@ -288,6 +298,8 @@ class Run:
         self.with_uncertainty = uncertainty
         self.findings: list[dict] = []
         self.summary: dict = {"duration_h": self.h}
+        #: step 13's `cheme validate --json` findings (step 25 reads its clashes)
+        self.validate_findings: list[dict] = []
 
     # -- helpers --------------------------------------------------------------------------
     def note(self, step: str, level: str, message: str) -> None:
@@ -979,6 +991,8 @@ class Run:
         model = _core.plant_model(self.root)
         solids = _core.model_solids(model)
         validate = _core.validate_findings(_core.validate(self.root))
+        # step 25 reads the clashes of this validate
+        self.validate_findings = validate
         result = {}
         for key, skid in SKIDS.items():
             frame = _core.model_structure(model, skid["frame"])
@@ -1338,6 +1352,93 @@ class Run:
             f"{len(dc)} of them 48 V DC, {cabling['instrument']} instrument), {cabling['trays']} trays "
             f"{cabling['tray_length_m']:g} m, cable {cabling['cable_length_m']:g} m, "
             f"{len(cabling.get('missing') or [])} without a cable"
+        )
+
+    # -- 25 ---------------------------------------------------------------------------------
+    def layout_results(self) -> None:
+        """Step 25 (after step 13): the 3D results of the model as built, for the record at
+        every duration (at 10,000 h those of the infeasible Skid A: reported, never fatal).
+        From `cheme layout report --json`: the process lines of DN 25 and above routed, skipped
+        with their reason or unrouted, the smaller lines by status and the route methods; from
+        step 13's validate, the clashes (accepted in checks/checks.yaml or not); per skid, the
+        items' top against the envelope. The lifts are step 23's (the record's lifting)."""
+        report = _core.layout_report(self.root)
+        dn = {
+            line["number"]: _dn(line.get("nominal_diameter"))
+            for line in self.load("piping/line-list.yaml")["lines"]
+        }
+        big, small = [], {}
+        for line in report["lines"]:
+            size = dn.get(line["line"])
+            if size is not None and size >= ROUTED_DN:
+                big.append(line)
+            else:
+                small[line["status"]] = small.get(line["status"], 0) + 1
+        routed = sorted(line["line"] for line in big if line["status"] == "routed")
+        skipped = {
+            line["line"]: sorted({u["reason"] for u in line["unrouted"]})
+            for line in big
+            if line["status"] == "skipped"
+        }
+        unrouted = {
+            line["line"]: sorted({u["reason"] for u in line["unrouted"]})
+            for line in big
+            if line["status"] not in ("routed", "skipped")
+        }
+        for lid, why in unrouted.items():
+            self.note("25", "warning", f"line {lid} (DN {dn[lid]}) is not routed: {'; '.join(why)}")
+        methods = dict(sorted(report["methods"].items()))
+        if methods.get("direct"):
+            self.note("25", "warning", f"{methods['direct']} segment(s) fell back to a direct route")
+        clashes = sorted(
+            (
+                {
+                    "rule": f["rule"],
+                    "level": f["level"],
+                    "message": f["message"],
+                    "accepted": f.get("accepted") or None,
+                }
+                for f in self.validate_findings
+                if str(f.get("rule", "")).startswith("cheme.layout-clash")
+            ),
+            key=lambda c: (c["rule"], c["message"]),
+        )
+        open_clashes = [c for c in clashes if not c["accepted"]]
+        heights = {
+            key: {
+                "items_top_m": e["items_top_m"],
+                "envelope_top_m": e["envelope_top_m"],
+                "above_envelope_m": max(0.0, e["items_top_m"] - e["envelope_top_m"]),
+                "envelope_feasible": e["feasible"],
+            }
+            for key, e in self.summary["envelope"]["skids"].items()
+        }
+        self.summary["layout"] = {
+            "routed_dn_min": ROUTED_DN,
+            "lines": {
+                "listed": len(big),
+                "routed": routed,
+                "skipped": skipped,
+                "unrouted": unrouted,
+                "smaller_by_status": dict(sorted(small.items())),
+            },
+            "methods": methods,
+            "clashes": clashes,
+            "clashes_open": len(open_clashes),
+            "model_findings": dict(sorted(report["findings"].items())),
+            "sources": dict(sorted(report["sources"].items())),
+            "height": heights,
+        }
+        print(
+            f"[25] lines of DN {ROUTED_DN} and above: {len(routed)} of {len(big)} routed, "
+            f"{len(skipped)} skipped, {len(unrouted)} unrouted (smaller: "
+            + ", ".join(f"{n} {s}" for s, n in sorted(small.items()))
+            + f"); methods {methods}; {len(clashes)} clash finding(s), {len(open_clashes)} not "
+            "accepted; "
+            + "; ".join(
+                f"Skid {k} top {h['items_top_m']:.3f} m (envelope {h['envelope_top_m']:.3f} m)"
+                for k, h in heights.items()
+            )
         )
 
     # -- 14 ---------------------------------------------------------------------------------
@@ -1717,7 +1818,9 @@ class Run:
             "lifting": s["lifting"],
             # step 24: the cable schedule's summary (D-045)
             "cabling": s["cabling"],
-            "findings": [f for f in self.findings if f["level"] in ("error", "warning")],
+            # step 25: the routed lines, clashes and heights of the model as built
+            "layout": s["layout"],
+            "findings":[f for f in self.findings if f["level"] in ("error", "warning")],
         }
         if "uncertainty" in s:
             record["uncertainty"] = {
@@ -1798,6 +1901,7 @@ class Run:
         self.lifting()
         self.cables()
         self.envelope_check()
+        self.layout_results()
         self.invariants()
         if self.with_uncertainty:
             self.uncertainty()
@@ -1809,6 +1913,12 @@ class Run:
                 print(f"[15] {stale.relative_to(self.root)} removed (run without --uncertainty)")
         self.write_record()
         self.lca()
+
+
+def _dn(text) -> int | None:
+    """A line list nominal diameter ("DN25") as a number, None when it has none."""
+    s = str(text or "").strip().upper()
+    return int(s[2:]) if s.startswith("DN") and s[2:].isdigit() else None
 
 
 def _num(x: float):

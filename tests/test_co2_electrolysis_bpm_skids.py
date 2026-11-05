@@ -17,6 +17,15 @@ E10 (#331) is the LCI of both skids (results/scenarios/<H>h/lca.json, regen step
 datasets reconciled with the duty totals of the calculation record, the K and C balances, the
 duty run traced, and the hand values frozen in results/expected-lca.yaml (tests/lca_formulas.py)
 before the LCA was first computed; fast on the committed files, slow on a regeneration.
+
+The 3D model (DESIGN.md D-040 to D-046): E8 holds at both durations for T-101, T-201, T-202 and
+the eight stacks; the record's layout block (regen step 25) has, at 1,000 h, every process line
+of DN 25 and above routed or skipped with a reason, no clash, both skids inside the envelope
+height and every permitted lift with a clear lane and a laydown, and at 10,000 h the infeasible
+Skid A's clash, height and lifts reported; fast on the committed records, slow on a
+regeneration, which also runs core's gates layout-3d (without the review-record drawings),
+lifting-study, mto and electrical and compares the model, take-off, lifting studies and cable
+schedule with the committed bytes.
 """
 
 from __future__ import annotations
@@ -243,14 +252,18 @@ def assert_e9(records: dict[int, dict], items: dict) -> None:
 
 
 def assert_e8(root: Path, record: dict) -> None:
-    """The layout and the datasheets carry the sizes `cheme process stack --write` wrote."""
+    """The layout and the datasheets carry the sizes `cheme process stack --write` wrote: the
+    plant-model geometry of T-101, T-201, T-202 and every stack is the calculated one."""
     listed = {e["tag"]: e for e in _yaml(root / "equipment" / "equipment-list.yaml")["equipment"]}
     model = {e["tag"]: e for e in _yaml(root / "layout" / "plant-model.yaml")["equipment"]}
+    stacks = {t for t in listed if t[:5] in ("E-101", "E-201")}  # E-101A to D, E-201A to D
+    checked = set()
     for skid, s in record["skids"].items():
         for e in s["equipment"]:
             if e["role"] not in ("stack", "reservoir", "dosing_tank"):
                 continue
             tag, dims = e["tag"], e["values"]
+            checked.add(tag)
             at = f"E8 {tag} at {record['duration_h']:g} h"
             ld = listed[tag]["dimensions"]
             for k, v in dims.items():
@@ -274,6 +287,62 @@ def assert_e8(root: Path, record: dict) -> None:
                 assert ds["overall_height"]["value"] == dims["height"], at
                 # the duty-sized tanks carry the duty run's fingerprint
                 assert e["fingerprint"] == s["run_fingerprint"] == listed[tag]["dimensions"]["fingerprint"], at
+    want = {"T-101", "T-201", "T-202"} | stacks
+    assert len(stacks) == 8 and want <= checked, f"E8 at {record['duration_h']:g} h: not checked {sorted(want - checked)}"
+
+
+# -- the 3D model: routed lines, clashes, heights, lifts (regen step 25, DESIGN.md D-046) -------
+
+#: the gates of the 3D model that must pass at the design duration (checks/checks.yaml); the
+#: drawings requirement of layout-3d rests on the layout review record (gate layout-review)
+MODEL_GATES = ("layout-3d", "lifting-study", "mto", "electrical")
+#: what regen writes from the model and --check compares at the design duration
+MODEL_OUTPUTS = (
+    "layout/plant-model.yaml", "estimate/mto.csv", "estimate/mto.md", "layout/lifting-study.csv",
+    "layout/lifting-study.md", "layout/lifting-study-units.csv", "layout/lifting-study-units.md",
+    "electrical/cable-schedule.csv", "electrical/cable-schedule.md",
+)  # fmt: skip
+
+
+def _dn25_lines(root: Path) -> set[str]:
+    lines = _yaml(root / "piping" / "line-list.yaml")["lines"]
+    return {ln["number"] for ln in lines if int(str(ln["nominal_diameter"]).upper().removeprefix("DN")) >= 25}
+
+
+def assert_layout(root: Path, records: dict[int, dict]) -> None:
+    """At 1,000 h every process line of DN 25 and above routed or skipped with a reason, no
+    route fallen back to direct, no clash finding (accepted or not), both skids inside the
+    envelope height and every permitted unit lift with a clear lane and a laydown; at 10,000 h
+    the infeasible Skid A's clash, height and lifts reported in the record, not failed."""
+    big = _dn25_lines(root)
+    for h, rec in records.items():
+        lay = rec["layout"]
+        assert lay["routed_dn_min"] == 25, h
+        lines = lay["lines"]
+        assert lines["listed"] == len(big), f"{h} h: {lines['listed']} lines of DN 25+, the list has {len(big)}"
+        assert set(lines["routed"]) | set(lines["skipped"]) | set(lines["unrouted"]) == big, h
+        assert all(lines["skipped"][k] for k in lines["skipped"]), f"{h} h: a skip without a reason"
+        assert {u["id"] for u in rec["lifting"]["unit_lifts"]} >= {"SKID-A", "SKID-B", "T-101", "T-101-full"}, h
+    d = records[1000]["layout"]
+    assert d["lines"]["unrouted"] == {} and sorted(d["lines"]["routed"]) == sorted(big), d["lines"]
+    assert not d["methods"].get("direct"), d["methods"]
+    assert d["clashes"] == [] and d["clashes_open"] == 0, d["clashes"]
+    for key in ("A", "B"):
+        hgt = d["height"][key]
+        assert hgt["envelope_feasible"] and hgt["above_envelope_m"] == 0.0, (key, hgt)
+        assert hgt["items_top_m"] <= hgt["envelope_top_m"], (key, hgt)
+    for lift in records[1000]["lifting"]["unit_lifts"]:
+        if "not permitted" not in lift["status"]:
+            assert lift["lane"] == "clear" or lift["carry_height_m"], lift
+            assert lift["laydown"] and "blocked" not in lift["status"] and "no " not in lift["status"], lift
+    # 10,000 h: reported in the record, the run not failed (its record exists)
+    t = records[10000]["layout"]
+    assert t["height"]["A"]["above_envelope_m"] > 1.0 and not t["height"]["A"]["envelope_feasible"], t["height"]
+    assert t["height"]["B"]["envelope_feasible"], t["height"]["B"]
+    assert any(c["level"] == "error" and "T-101" in c["message"] for c in t["clashes"]), t["clashes"]
+    assert t["clashes_open"] >= 1
+    skid_a = {u["id"]: u for u in records[10000]["lifting"]["unit_lifts"]}["SKID-A"]
+    assert "no laydown" in skid_a["status"], skid_a
 
 
 def _lca_items() -> dict[str, dict]:
@@ -592,6 +661,11 @@ def test_lci_frozen_expectations_precede_the_lca_commits():
     assert not changed, f"frozen files changed since the freezing commit {frozen[:9]}: {changed}"
 
 
+def test_committed_layout_is_routed_clear_and_lifted():
+    """The committed records' 3D results (regen step 25): see assert_layout."""
+    assert_layout(PROCESS, _committed_records())
+
+
 def test_committed_lca_meets_e10():
     assert_e10(PROCESS, _committed_records(), _committed_lca())
 
@@ -647,11 +721,38 @@ def test_committed_lca_reports_are_the_records():
 # -- slow: regenerate in a copy ---------------------------------------------------------------
 
 
+def _model_gates(root: Path) -> dict[str, str]:
+    """`cheme check --no-write` of the 3D model's gates alone (MODEL_GATES, layout-3d without
+    its drawings requirement) in the folder *root*: {gate: "ok" or the gate's output}."""
+    path = root / "checks" / "checks.yaml"
+    text = path.read_text(encoding="utf-8")
+    checks = yaml.safe_load(text)
+    gates = [dict(c) for c in checks["checks"] if c["id"] in MODEL_GATES]
+    assert {c["id"] for c in gates} == set(MODEL_GATES), [c["id"] for c in gates]
+    for c in gates:
+        if c["id"] == "layout-3d":
+            c["require"] = [r for r in c["require"] if r != "drawings"]
+    out = {}
+    try:
+        for c in gates:
+            # one gate at a time, with the file's own acceptances (its top-level accept)
+            path.write_text(yaml.safe_dump({**checks, "checks": [c]}), encoding="utf-8")
+            proc = subprocess.run(
+                [sys.executable, "-m", "chemeascode", "check", "--no-write"],
+                cwd=root, capture_output=True, text=True, check=False, timeout=900,
+            )  # fmt: skip
+            out[c["id"]] = "ok" if proc.returncode == 0 else (proc.stdout + proc.stderr)[-2000:]
+    finally:
+        path.write_text(text, encoding="utf-8")
+    return out
+
+
 @pytest.fixture(scope="module")
-def regenerated(tmp_path_factory) -> tuple[dict[int, dict], dict[int, str], dict[int, str]]:
+def regenerated(tmp_path_factory) -> tuple[dict[int, dict], dict[int, str], dict[int, str], dict]:
     root = tmp_path_factory.mktemp("skids") / PROCESS.name
     shutil.copytree(PROCESS, root, ignore=shutil.ignore_patterns("build", ".claude", "runs", "__pycache__", ".venv"))
     records, e8, lca, e10 = {}, {}, {}, {}
+    model: dict = {}
     for h in DURATIONS:
         proc = subprocess.run(
             [sys.executable, "-m", "chemeascode", "run", "scripts/regen.py", "--duration", str(h)],
@@ -660,6 +761,9 @@ def regenerated(tmp_path_factory) -> tuple[dict[int, dict], dict[int, str], dict
         assert proc.returncode == 0, f"regen {h} h exited {proc.returncode}: {proc.stderr[-2000:]}"
         records[h] = json.loads((root / "results" / "scenarios" / f"{h}h" / "record.json").read_text())
         lca[h] = json.loads((root / "results" / "scenarios" / f"{h}h" / "lca.json").read_text())
+        if h == 1000:  # the design duration: the model's gates and its outputs as committed
+            model["gates"] = _model_gates(root)
+            model["differ"] = [r for r in MODEL_OUTPUTS if (root / r).read_bytes() != (PROCESS / r).read_bytes()]
         try:  # E8 on the model as this run left it (the folder then holds the 10000 h model)
             assert_e8(root, records[h])
             e8[h] = "ok"
@@ -670,7 +774,7 @@ def regenerated(tmp_path_factory) -> tuple[dict[int, dict], dict[int, str], dict
             e10[h] = "ok"
         except AssertionError as exc:
             e10[h] = str(exc)
-    return records, e8, e10
+    return records, e8, e10, model
 
 
 @engineering
@@ -695,3 +799,22 @@ def test_regenerated_infeasibility_and_ranges_are_reported_e9(regenerated, items
 @needs_core
 def test_regenerated_lca_is_reconciled_e10(regenerated):
     assert regenerated[2] == {1000: "ok", 10000: "ok"}
+
+
+@engineering
+@needs_core
+def test_regenerated_layout_is_routed_clear_and_lifted(regenerated):
+    """0 clashes and every DN 25+ process line routed or skipped at 1,000 h; the 10,000 h
+    clash, height and lifts reported (assert_layout), from the regenerated records."""
+    assert_layout(PROCESS, regenerated[0])
+
+
+@engineering
+@needs_core
+def test_regenerated_model_gates_pass_and_outputs_are_current(regenerated):
+    """At 1,000 h core's gates layout-3d (without drawings: the review record), lifting-study
+    (lifting-current), mto (mto-current) and electrical pass on the regenerated folder, and the
+    model, take-off, lifting studies and cable schedule regenerate to the committed bytes."""
+    model = regenerated[3]
+    assert model["gates"] == dict.fromkeys(MODEL_GATES, "ok"), model["gates"]
+    assert model["differ"] == [], f"regenerated differently from the committed: {model['differ']}"
