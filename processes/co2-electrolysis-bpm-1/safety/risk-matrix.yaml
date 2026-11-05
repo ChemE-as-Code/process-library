@@ -1,48 +1,82 @@
-# EXAMPLE DATA: an illustrative risk matrix to try the HAZOP workflow with. It is not anyone's
-# risk criteria and must not be used to assess a real plant: replace it with your company's
-# matrix (its procedure under source:) and remove `example: true`.
+# PROPOSED risk matrix for the co2-electrolysis-bpm-1 HAZOP studies (safety/hazop/H-01, H-02:
+# the two pilot skids of #330). Drafted by an agent at the concept stage (ASSUMED), in the
+# structure of the library's asu-1 matrix (5 x 5, four bands, one shared cell table): the
+# grades, the cell bands and the action policy are a proposal for the owner's HAZOP team to
+# accept, change or replace with the operating company's own risk matrix procedure. Until then
+# every rating against it is a proposal too. It replaces the example matrix `cheme init` wrote.
 # Schema: cheme schema risk-matrix. Bands: lowest risk first (that list is the band order).
 schema: cheme/risk-matrix/v1
 kind: risk-matrix
-id: example-4x4
-title: Illustrative 4x4 risk matrix
-example: true
+id: co2-bpm-1-5x5-proposed
+title: CO2 electrolysis pilot skids 5x5 risk matrix (proposed, ASSUMED)
+example: false
 status: proposed  # the team accepts its matrix: status: accepted, accepted_by: <who, procedure>
-source: illustrative only; not derived from any standard or company procedure
+source: >-
+  ASSUMED: proposed by an agent for the co2-electrolysis-bpm-1 pilot skids at the concept stage,
+  in the usual 5x5 form of process-industry HAZOP risk ranking and in the structure of the
+  library's asu-1 matrix (IEC 61882 leaves the criteria to the organisation; ISO 31000 for risk
+  criteria). The money values are scaled to a pilot of two 20 ft skids (about 3 kW DC each).
+  Not derived from a company procedure: the owner's team must accept it, or replace it with the
+  company's matrix and its revision, before any study is assessed.
 bands:
-  - {id: low, title: Low, description: Acceptable; no further action needed}
-  - {id: medium, title: Medium, description: Tolerable; reduce as low as reasonably practicable}
-  - {id: high, title: High, description: Not tolerable; an action is required, requires_action: true}
-likelihood:  # least likely first
-  - {code: A, title: Remote, description: Not expected in the life of the plant}
-  - {code: B, title: Unlikely, description: Could happen once in the life of the plant}
-  - {code: C, title: Possible, description: Could happen several times in the life of the plant}
-  - {code: D, title: Likely, description: Expected about once a year or more often}
+  - {id: low, title: Low, description: "Broadly acceptable. No action required; keep the safeguards as they are."}
+  - {id: medium, title: Medium, description: "Tolerable if as low as reasonably practicable. No action is required by the policy; the team records why the risk is ALARP or proposes an improvement."}
+  - {id: high, title: High, description: "Not tolerable as it stands. An action is required: an added or upgraded independent safeguard, a design change, or a LOPA / SIL study that shows the residual risk is medium or lower.", requires_action: true}
+  - {id: very-high, title: Very high, description: "Intolerable. An action is required before start-up: a design change or an independent protection layer; operation in this band is not accepted.", requires_action: true}
+likelihood:  # least likely first; frequency of the cause (initial) or of the outcome with the credited safeguards (residual)
+  - {code: A, title: Remote, description: "Below about 1e-4 per year: not known to have happened with comparable electrolysis, gas or caustic equipment, or would need several independent failures."}
+  - {code: B, title: Unlikely, description: "About 1e-4 to 1e-3 per year: has happened in the industry, not expected at this pilot in its life."}
+  - {code: C, title: Possible, description: "About 1e-3 to 1e-2 per year: could happen once in the life of the pilot."}
+  - {code: D, title: Likely, description: "About 1e-2 to 1e-1 per year: expected a few times in the life of the pilot (e.g. a single control loop, instrument or equipment failure)."}
+  - {code: E, title: Frequent, description: "Above about 1e-1 per year: expected about once a year or more often (e.g. an operating error in a routine task such as a fill, a refill or a drain, a utility upset)."}
 severity:  # least severe first
   - code: "1"
-    title: Minor
-    descriptions: {people: First aid case, environment: Release contained on site, asset: Repair within a shift}
+    title: Negligible
+    descriptions:
+      people: "First aid case at most: a brief CO or CO2 exposure below the occupational limits, a drop of dilute KOH on skin washed off at once."
+      environment: "Release of CO2, water or dilute anolyte contained on the skid or the plot; no effect off site, not reportable."
+      asset: "Damage below about 1 kEUR, or a lost shift of the campaign."
   - code: "2"
-    title: Moderate
-    descriptions: {people: Recordable injury, environment: Minor release off site, asset: Plant down for days}
+    title: Minor
+    descriptions:
+      people: "Medical treatment or restricted work case (a minor caustic burn, headache from CO exposure, a minor handling injury); no lost time."
+      environment: "Small on-site release needing clean-up (anolyte or 5 M KOH spill on the plot, condensate to the wrong drain); not reportable."
+      asset: "Damage about 1 to 10 kEUR (a pump, an instrument, a membrane set of one stack), or the campaign stopped for days."
   - code: "3"
     title: Serious
-    descriptions: {people: Lost-time injury, environment: Reportable release, asset: Plant down for weeks}
+    descriptions:
+      people: "Lost-time injury or reversible health effect (a caustic eye or skin burn, CO poisoning with recovery, a flash fire burn without lasting harm, a DC shock with recovery)."
+      environment: "Reportable release or permit breach (spent anolyte or KOH to the site effluent outside its permit, CO or H2 vented)."
+      asset: "Damage about 10 to 100 kEUR (the four stacks of a skid, the PSA or oxidiser package, the rectifier), or the campaign lost."
   - code: "4"
     title: Major
-    descriptions: {people: Permanent injury or fatality, environment: Lasting damage off site, asset: Loss of the unit}
+    descriptions:
+      people: "One fatality or a permanent disability (CO poisoning or CO2 asphyxiation in the enclosure, an H2 explosion in the enclosure, loss of sight from 5 M KOH, an electric arc on the DC bus)."
+      environment: "Significant release off site with remediation, or a lasting local effect; notification of the authority."
+      asset: "Damage about 100 kEUR to 1 MEUR: loss of a skid (fire or explosion in its enclosure), or the pilot programme stopped for months."
+  - code: "5"
+    title: Catastrophic
+    descriptions:
+      people: "Several fatalities, or harm to the public off site (an explosion that involves both skids or the neighbouring buildings, a CO release reaching an occupied building)."
+      environment: "Major, lasting damage off site."
+      asset: "Damage above about 1 MEUR, or the loss of the pilot plot and both skids."
 categories:
-  - {id: people, title: People}
+  - {id: people, title: People (workers and public)}
   - {id: environment, title: Environment}
-  - id: asset
-    title: Asset
-    cells:  # the asset category's own cells
-      "1": {A: low, B: low, C: low, D: low}
-      "2": {A: low, B: low, C: low, D: medium}
-      "3": {A: low, B: low, C: medium, D: high}
-      "4": {A: low, B: medium, C: high, D: high}
-cells:  # severity -> likelihood -> band, for the categories without their own
-  "1": {A: low, B: low, C: low, D: medium}
-  "2": {A: low, B: low, C: medium, D: medium}
-  "3": {A: low, B: medium, C: high, D: high}
-  "4": {A: medium, B: high, C: high, D: high}
+  - {id: asset, title: Asset and production loss}
+cells:  # severity -> likelihood -> band, shared by all categories
+  "1": {A: low, B: low, C: low, D: low, E: medium}
+  "2": {A: low, B: low, C: low, D: medium, E: medium}
+  "3": {A: low, B: low, C: medium, D: high, E: high}
+  "4": {A: low, B: medium, C: high, D: high, E: very-high}
+  "5": {A: medium, B: high, C: high, D: very-high, E: very-high}
+notes: >-
+  PROPOSED by an agent (ASSUMED), status proposed: the HAZOP team or the owner accepts it before
+  any rating counts. Action policy: a scenario whose worst band (residual where rated, else
+  initial, over its categories) is high or very-high requires an action (requires_action:
+  true); very-high is not accepted for start-up; medium needs the team's ALARP statement,
+  without a mandatory action; low needs nothing. Likelihood in the initial rating is the cause
+  frequency without safeguards; a residual rating credits only the safeguards the team names,
+  and since no trip of control/cause-effect.yaml is SIL-screened (sil: null), a LOPA, not this
+  matrix, sets the credit a trip may take. Money values in EUR at 2026 prices, order of
+  magnitude only, scaled to a pilot (one order below asu-1's).

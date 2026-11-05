@@ -1,0 +1,230 @@
+# HAZOP study H-02: a DRAFT until the team has accepted every entry and a
+# human review record covers it (cheme safety hazop check). Schema: cheme schema
+# hazop-study; workflow: safety/README.md and the skill hazop-study.
+#
+# AGENT-PREPARED DRAFT for a team session (#330 pilot skids). No HAZOP session has been held:
+# every node, scenario, safeguard, rating and action below is a proposal by an agent
+# (status proposed, by agent) for the team to accept, change or reject.
+#
+# Id conventions (stable, never renumbered or reused; the list order is display order only):
+#   nodes H02-N<k>; deviations H02-N<k>-D<j>; scenarios H02-S<k><nn> (node k, nn 01..99);
+#   safeguards H02-SG-<tag or interlock, without the hyphen> for the shared register below,
+#   H02-SG-N<k>-<name> for a node's own; actions H02-A<k><nn> (node k). The node numbers are
+#   those of H-01 (H01-N<k> is the same part of Skid A); N7, the dosing, bleed and make-up, is
+#   Skid B's own.
+schema: cheme/hazop-study/v1
+kind: hazop-study
+id: H-02
+title: 'Skid B: KOH dosing, bleed and make-up'
+scope: >-
+  Sheet P-02 (pid/P-02.xml) as drawn, Skid B of #330 (2xx tags, case skid-b, DESIGN.md D-007,
+  D-010): the anolyte loop T-201 / P-201 / E-211 with the supply and return manifolds
+  AN-201 to AN-204C and the anode side of the four stacks E-201A to D; the stacks and their DC
+  supply, the rectifier U-201 (the 48 V DC bus is not drawn); the cathode CO2 feed CO2-201 to
+  CO2-201D with FV-202, the PSA recycle CO2-202 and the humidification water W-201 / HV-204;
+  the cathode gas outlet CG-201 to CG-201D, the separator V-221 with its condensate CD-201 /
+  LV-222 and the back-pressure valve PV-221 on CG-202; the gas conditioning, the diaphragm
+  compressor K-231, CG-203 with its check valve, the CO PSA package X-231 and the CO product
+  CO-201 / PV-231 to the battery limit; the tail-gas oxidiser X-232 (TG-201, AIR-201, FG-201),
+  the anolyte reservoir vent O2V-201 and the day tank breather KV-202; Skid B's own dosing,
+  bleed and make-up: the 5 M KOH day tank T-202 with its weekly refill KOH-202 / HV-205, the
+  metering pump P-202 (KOH-203, KOH-204) under AIC-201, the bleed BL-201 / FV-203 (FIC-203)
+  and the make-up water W-202 / LV-201 (LIC-201); the initial fill KOH-201 / HV-202 and the
+  end-of-run drain SP-201 / HV-203; the skid enclosure with its extract fan K-241 and the gas
+  detectors AIA-241 (CO) and AIA-242 (H2). The trips are those of control/cause-effect.yaml
+  I-201 to I-208, the sequences SEQ-B-FILL, -START, -STOP, -TRIP, -GAS and -DRAIN of
+  control/sequences.yaml. Battery limits: the CO2 supply (merchant liquefied CO2, D-016, not
+  studied beyond the CO2-201 tie-in), the cooling water CWS-201 / CWR-201, the demineralised
+  water W-201 and W-202, the combustion air AIR-201, the 1 M and 5 M KOH deliveries to the
+  KOH-201 and KOH-202 connections, the receivers of the spent anolyte, the bleed, the
+  condensate and the CO product, instrument air and power. Not covered: the internals of the
+  black-box packages X-231 and X-232 (D-012), the stack vendor's internal design, the site's
+  area classification (screening only, D-019), relief device sizing (only the governing
+  scenario is named) and Skid A, which is H-01. Where Skid B's hardware and control are the
+  same as Skid A's (nodes N2 to N6, N9: the same packages, compressor, separator, stacks and
+  trips with 2xx tags), a scenario may refer to the H-01 analysis by its id (H01-S...) in its
+  notes, but it is written here with Skid B's own tags; what differs on Skid B (the 50 L
+  reservoir, the dosing, bleed and make-up, the 5 M KOH, I-201 at pH 12.2, I-207, I-208) is
+  analysed in full.
+modes:
+  - {id: startup, title: 'Start-up: fill, purge, energise', description: "SEQ-B-FILL (fresh 1 M KOH through HV-202, circulate) and SEQ-B-START (ventilate K-241, cool TIC-211, purge and humidify the cathodes with CO2, start K-231, X-232 then X-231, ramp JIC-201 to 80 A, then P-202, AIC-201 and FIC-203 in automatic once I-207 is reset)."}
+  - {id: normal, title: Normal steady operation, description: "Duty D-B: 200 mA/cm2 constant current (80 A, 4 x 20 A, 28 cells of 100 cm2, about 3 kW DC on the 48 V bus) on 50 L held at the steady state pH 13.7 (concentration basis), 0.5 mol/L OH- and 0.25 mol/L carbon."}
+  - {id: dosing, title: 'KOH dosing, bleed and make-up', description: "Continuous with the current on (D-010): 5 M KOH dosed by P-202 at about 0.42 L/h (AIC-201 trim, feedforward from JIC-201), bleed by gravity through FV-203 at about 1.87 L/h (FIC-203), make-up water on level through LV-201 at about 1.45 L/h (LIC-201); the dose and the bleed are off with the current off (I-207); the day tank T-202 (84.5 L) is refilled weekly by hand through HV-205 (no sequence written)."}
+  - {id: exchange, title: 'Anolyte drain and fresh fill at the end of the campaign', description: "SEQ-B-STOP or a trip, then SEQ-B-DRAIN (P-201 stopped, LV-201 closed, the 50 L drained through HV-203 to the site effluent) and a new SEQ-B-FILL."}
+  - {id: stop, title: Normal stop, description: "SEQ-B-STOP at H: ramp the current down (I-207 stops the dose and the bleed), purge the cathodes with CO2 to the oxidiser, stop K-231, X-231, X-232."}
+  - {id: trip, title: Trip and gas trip, description: "SEQ-B-TRIP after I-201, I-202, I-205 or I-206 (current off, dosing and bleed off, CO2 purge kept); SEQ-B-GAS after I-203 or I-204 (current off, FV-202 closed, K-231 stopped, K-241 started, the cathode gas train isolated with its CO and H2 until the leak is found, then purged to X-232)."}
+  - {id: utility-fail, title: 'Loss of power, instrument air or cooling water', description: "control/philosophy.md F-POWER, F-AIR, F-CW: the pneumatic valves TV-211, FV-202, PV-221, LV-222, PV-231, LV-201, FV-203 go to their fail positions; on power loss the rectifier, pumps (P-201, P-202), compressor and fan stop."}
+  - {id: maintenance, title: Maintenance, description: "Isolation, draining and opening of the anolyte, the 5 M KOH and the cathode gas lines, probe calibration of AIC-201, instrument work, and the replacement of a stack (4000 h interval, ASSUMED) by a vertical hand lift of the 0.18 m stack with 0.3 m of hand room (D-019, D-023)."}
+analysed:
+  - {path: pid/P-02.xml, revision: 'sha256:ad2691552f803e46013bcd2df32d44989dd1983723ce493445d46b3142302886', relation: analyses}
+  - {path: equipment/equipment-list.yaml, revision: 'sha256:4513f4c7cbe38830a4864a40123c8b2c54acba2486462a645165202c3c20f8be', relation: analyses}
+  - {path: piping/line-list.yaml, revision: 'sha256:6f19c79dc9d74dc112023fa40e33bad13b49102638613fa155d562623a379e91', relation: analyses}
+  - {path: control/instrument-list.yaml, revision: 'sha256:e7660e0aa03b77e0342e389d30a745f1922ed7707563bac9ce6f93a960524b5d', relation: analyses}
+  - {path: control/cause-effect.yaml, revision: 'sha256:7f13b4b24d107bca16f068284082e372e3c7f1c602acc4f3abbd767e2f2d50d6', relation: analyses}
+  - {path: control/loops.yaml, revision: 'sha256:ef4e910c5b8bf82089649ecbbc77f915de4b33c9a01477864a4f31811f18d4cb', relation: analyses}
+  - {path: control/sequences.yaml, revision: 'sha256:0db970a6e6047d9613aa2f6ad3593cb44a35bcc81a1eceedf7ee3f0dd0f10457', relation: analyses}
+  - {path: control/philosophy.md, revision: 'sha256:58ed819f642a004b686de1ce5ab3a606e59b8712ab6f882e46d3e78dbec75a3f', relation: analyses}
+  - {path: layout/zones.yaml, revision: 'sha256:1843f0c41bc47d508bdba770fa0784150c38286e39ab2b9cd95ba7d7c7dd435d', relation: analyses}
+  - {path: process/flowsheet.yaml, revision: 'sha256:6fd61b5a5f176c76170ff5b0611a98c6cb1442c3bd7574e5829b9f21ba4a67b2', relation: analyses}
+  - {path: process/design-basis.yaml, revision: 'sha256:62a2cfaa02fdaf7f0c3be3d9652fc485b4a3b97ab93ce6cb1662db55e42a2ade', relation: analyses}
+  - {path: process/duties.yaml, revision: 'sha256:edb6f5c8d3e72e0d8f1a46882df2b7bf9d0a19d1763eae78214bd23a87fecce0', relation: analyses}
+risk_matrix: safety/risk-matrix.yaml
+assessment_basis: >-
+  As H-01: IEC 61882 guide words applied to the parameters of each node's design intent (flow,
+  pressure, pressure difference across the gas diffusion electrode, temperature, level,
+  composition incl. pH and carbonate, current and voltage), in every mode that applies. Each
+  scenario (one cause, one consequence) is rated per category of safety/risk-matrix.yaml
+  (people, environment, asset incl. production loss): initial with no safeguard credited
+  (likelihood of the cause), residual with only the safeguards named in the scenario that exist
+  in the files (an alarm with operator response, an interlock of control/cause-effect.yaml, a
+  check valve on the P&ID, a fail position or another recorded mechanical design feature, a
+  written sequence step); a regulatory loop of control/loops.yaml is never counted as a
+  safeguard (control/philosophy.md), only its alarm with the operator's response. Ratings are proposed by an agent at the concept stage from the files
+  and DESIGN.md, with basis and evidence, for the team to accept or change; no frequency is
+  calculated and no LOPA credit is taken here. The matrix itself is a proposal (ASSUMED).
+  Credit convention for the residual likelihood (one matrix letter is one order of magnitude;
+  a proposal for the team, not a LOPA): a passive feature that removes the path (an open vent
+  without a valve, an item placed outside its zone), up to two orders; an alarm with operator
+  response (counted toward mitigation, not an independent layer: safeguard-crediting skill), a
+  check valve, a fail position, a sequence step or procedure, a trip of the C&E whose SIL is not
+  confirmed (every trip here, sil: null), one order each; nothing for a safeguard
+  that shares a transmitter, valve or logic with the cause or that the cause defeats (e.g. I-201
+  shares the AIC-201 probe with the dosing trim, I-206 shares FIC-201 with the flow loop), nor
+  for a relief device, since none is drawn on P-02. I-207 is a permissive (latching false,
+  automatic reset), not a safety trip: it is credited, if at all, as a control function.
+team:  # roles only: the owner names the people; no session has been held
+  - {name: to be named, role: "HAZOP facilitator (independent of the design)"}
+  - {name: to be named, role: "scribe"}
+  - {name: to be named, role: "process engineer (electrolysis and anolyte chemistry)"}
+  - {name: to be named, role: "instrument and control engineer (incl. the pH measurement)"}
+  - {name: to be named, role: "electrical engineer (DC supply and Ex equipment)"}
+  - {name: to be named, role: "mechanical / package engineer (compressor, PSA, oxidiser and metering pump vendors as needed)"}
+  - {name: to be named, role: "operations / pilot plant operator (incl. the weekly KOH refill)"}
+  - {name: to be named, role: "process safety / HSE (gas detection, area classification, chemical handling)"}
+  - {name: to be named, role: "stack (MEA) vendor representative, as needed"}
+notes: >-
+  Agent-prepared draft for a team session; it is not a HAZOP and no session has been held. The
+  team (roles above) is not named yet: the owner names the facilitator, scribe and members.
+  Every node, scenario, safeguard, rating and action is a proposal by an agent (status
+  proposed, by agent). The plant is studied as drawn: the P&ID has no relief device, no H2-in-O2
+  measurement on O2V-201, no pressure measurement on the anolyte side (no pressure difference
+  across the GDE), no heater (TIC-211 cools only), no eyewash or safety shower at the 5 M KOH
+  day tank or the bleed, no check valve on the dosing line KOH-204 and no detector at the vents;
+  where the analysis needs one, it is an action, never a safeguard. The on/off and part-load
+  duties are not a mode of Skid B: they run on Skid A's hardware only (D-013; dosing would run
+  while off).
+nodes:
+  # ---------------------------------------------------------------- N1 anolyte loop
+  - id: H02-N1
+    title: Anolyte loop - reservoir T-201, pump P-201, cooler E-211 and the stack anode side (AN-201 to AN-204C)
+    design_intent: "Circulate the anolyte, held by dosing, bleed and make-up at the steady state pH 13.7 (concentration basis), 0.5 mol/L OH-, 0.25 mol/L carbon, ionic strength about 1.25 mol/L (D-010), from the PP reservoir T-201 (50 L, D 0.376 x H 0.564 m, about 4.5 min hold-up for O2 disengagement; atmospheric, vented by O2V-201) through AN-201 / HV-201 to the sealless pump P-201 (FIC-201 speed, 705.6 kg/h, about 11.2 L/min, 1.51 bar(a) discharge), through the plate cooler E-211 (about 2.2 kW to cooling water by TV-211 under TIC-211, stack inlet about 22.1 degC) and the supply manifold AN-203 / AN-203A to C to the anode side of E-201A to D (1.41 bar(a)), and back with the anode O2 (about 0.16 kg/h) through AN-204A to C / AN-204 (TSHH-212, about 25 degC) to the reservoir top. Level controlled by LIC-201 (make-up, H02-N7) and protected by the independent LIA-202 (I-202); pH on AIC-201 (trip I-201 at 12.2)."
+    members: [T-201, HV-201, AN-201, P-201, AN-202, FIC-201, E-211, TV-211, TIC-211, CWS-201, CWR-201, AN-203, AN-203A, AN-203B, AN-203C, E-201A, E-201B, E-201C, E-201D, AN-204A, AN-204B, AN-204C, AN-204, TSHH-212, LIC-201, LIA-202, AIC-201]
+    modes: [startup, normal, dosing, stop, trip, utility-fail, maintenance]
+    status: proposed
+    by: agent
+    notes: "No heater is drawn (TIC-211 cools only). The 50 L reservoir is 1/23 of Skid A's: a loss of level or a dosing upset moves the anolyte within minutes to hours, not days. The dose, bleed and make-up themselves are node H02-N7, the fill and drain H02-N8, the vent O2V-201 H02-N6."
+  # ---------------------------------------------------------------- N2 stacks and DC supply
+  - id: H02-N2
+    title: Stacks E-201A to D and their DC supply, rectifier U-201 (48 V bus)
+    design_intent: "As H01-N2 for Skid B: four stacks of seven 100 cm2 bipolar-membrane cells (28 cells) at 200 mA/cm2: 80 A from U-201 under JIC-201 (4 x 20 A, 48 V DC bus, about 3 kW DC; the bus is not drawn), about 2.2 kW of heat to the anolyte; JIC-201 current off also stops the dosing and the bleed (I-207). U-201 is the final element of the trips I-201 to I-206 and stands outside zone Z-HAZ-B at the east end (non-Ex cabinet, D-019). Stack replacement every 4000 h (ASSUMED) by a vertical hand lift (D-023)."
+    members: [U-201, JIC-201, E-201A, E-201B, E-201C, E-201D]
+    modes: [startup, normal, dosing, stop, trip, utility-fail, maintenance]
+    status: proposed
+    by: agent
+    notes: "The DC bus, its cabling, earthing, isolation and the stack voltage measurement are not drawn (D-017). The anolyte at Skid B is at pH 13.7 throughout, not drifting to 12 as on Skid A: the Ni anode sees a steadier electrolyte, but higher carbonate (0.25 mol/L) from the start."
+  # ---------------------------------------------------------------- N3 cathode CO2 feed
+  - id: H02-N3
+    title: Cathode CO2 feed - fresh CO2 FV-202, PSA recycle CO2-202, humidification W-201, the cathode side of E-201A to D
+    design_intent: "As H01-N3 for Skid B: the fresh CO2 0.356 kg/h under FIC-202 / FV-202 (fail closed) at 1.2 bar(a) and 25 degC from the merchant liquefied CO2 supply (D-016), plus the PSA recycle CO2-202 (2.94 kg/h), humidified with 0.261 kg/h of demineralised water (W-201 at 3 bar(a), HV-204 / FI-203 by hand), through CO2-201 / CO2-201B to D to the four stacks at 10 sccm/cm2, the cathode held at about 1.1 bar(a) by PIC-221 (H02-N4)."
+    members: [CO2-201, FV-202, FIC-202, W-201, HV-204, FI-203, CO2-201B, CO2-201C, CO2-201D, CO2-202, E-201A, E-201B, E-201C, E-201D]
+    modes: [startup, normal, stop, trip, utility-fail, maintenance]
+    status: proposed
+    by: agent
+  # ---------------------------------------------------------------- N4 cathode gas outlet
+  - id: H02-N4
+    title: Cathode gas outlet - manifold CG-201 to CG-201D, separator V-221, condensate CD-201 / LV-222, back-pressure PV-221
+    design_intent: "As H01-N4 for Skid B: collect the cathode gas with its condensate (CG-201B to D into CG-201, 3.39 kg/h at 1.1 bar(a), 25 degC: CO2 about 85, H2 7.1, CO 4.8, H2O 2.9 mol% of the gas), separate in V-221 the condensate (0.131 kg/h with K2CO3, about 1 mol/kg ASSUMED) to the site effluent on level (LIC-222 / LV-222, fail closed), and pass the gas through CG-202 with the cathode back-pressure held by PIC-221 / PV-221 (direct, fail open) to K-231."
+    members: [CG-201B, CG-201C, CG-201D, CG-201, V-221, LIC-222, LV-222, CD-201, CG-202, PIC-221, PV-221, E-201A, E-201B, E-201C, E-201D]
+    modes: [startup, normal, stop, trip, utility-fail, maintenance]
+    status: proposed
+    by: agent
+    notes: "The cathode sees the K+ crossover of an anolyte held at 0.5 mol/L OH- and 0.25 mol/L carbon (Skid A: 1 M falling to about 0.4 M carbonate): the carbonate precipitation and GDE flooding question is the same, the anolyte state behind it differs."
+  # ---------------------------------------------------------------- N5 gas conditioning
+  - id: H02-N5
+    title: Gas conditioning - compressor K-231, CG-203 and its check valve, CO PSA X-231, CO product CO-201 / PV-231, CO2 recycle CO2-202
+    design_intent: "As H01-N5 for Skid B: compress the cathode gas in the diaphragm compressor K-231 from about 1.1 to 6 bar(a) (40 degC) through CG-203 and its check valve to the PSA package X-231 (black box), which delivers 0.1008 kg/h CO at 0.99 mol/mol dry at 5.0 bar(a) through PV-231 under PIC-231 (fail closed, open point), returns 0.95 of the unreacted CO2 through CO2-202 and sends the tail gas to X-232 (H02-N6). K-231 is stopped by I-203 and I-204."
+    members: [K-231, CG-203, {sheet: P-02, object: CV231}, X-231, CO-201, PV-231, PIC-231, CO2-202]
+    modes: [startup, normal, stop, trip, utility-fail, maintenance]
+    status: proposed
+    by: agent
+    notes: "No relief device is drawn on CG-203 or on the PSA (D-017)."
+  # ---------------------------------------------------------------- N6 tail gas and vents
+  - id: H02-N6
+    title: Tail gas and vents - oxidiser X-232 (TG-201, AIR-201, FG-201), the reservoir vent O2V-201 and the day tank breather KV-202
+    design_intent: "As H01-N6 for Skid B: burn the PSA tail gas TG-201 (0.221 kg/h, H2 about 48, CO2 29, H2O 20, CO 3.3 mol%) in X-232 with twice the stoichiometric air AIR-201 (0.854 kg/h), no CO or H2 vented, the flue gas FG-201 (about 150 degC) to atmosphere above the walking levels; vent the anode O2 (about 0.16 kg/h, and any H2 crossed) from the 50 L T-201 head space through the open vent O2V-201; and let the 5 M KOH day tank T-202 breathe through KV-202 (DN 15, air in on the continuous draw by P-202, air with caustic mist out on the weekly fill; the breather type is the vendor's, D-023)."
+    members: [TG-201, X-232, AIR-201, FG-201, O2V-201, T-201, KV-202, T-202]
+    modes: [startup, normal, dosing, stop, trip, utility-fail, maintenance]
+    status: proposed
+    by: agent
+    notes: "The 50 L reservoir has a small head space: the H2 that crosses into the anolyte reaches O2V-201 with a shorter residence than in T-101 (H01-N6)."
+  # ---------------------------------------------------------------- N7 dosing, bleed, make-up
+  - id: H02-N7
+    title: KOH dosing, bleed and make-up - day tank T-202, metering pump P-202 (AIC-201), bleed BL-201 / FV-203, make-up W-202 / LV-201
+    design_intent: "Hold the 50 L anolyte at its steady state (D-010) with the current on: dose 5 M KOH (1.22 kg/L ASSUMED; 0.511 kg/h, about 0.42 L/h at 80 A) from the PP day tank T-202 (84.5 L, refilled weekly by hand through KOH-202 / HV-205, level LIA-203 with LAL and low-low I-208) through KOH-203 with the diaphragm metering pump P-202 (about 4 bar(a) discharge, base rate fed forward from JIC-201, trimmed by AIC-201 around pH 13.7, AAL 13.5) and KOH-204 into the reservoir top; bleed the anolyte by gravity from the reservoir bottom through the BL-201 branch of SP-201 (upstream of HV-203) and FV-203 (fail closed) at about 1.87 L/h (1.96 kg/h, FIC-203) to the site effluent; make up demineralised water W-202 (3 bar(a)) on level through LV-201 (fail closed, LIC-201) at about 1.45 L/h. P-202 stops and FV-203 closes with the current off (I-207), on the reservoir low-low level (I-202) and P-202 on the day tank low-low (I-208)."
+    members: [T-202, LIA-203, KOH-202, HV-205, KOH-203, P-202, KOH-204, AIC-201, JIC-201, BL-201, FV-203, FIC-203, SP-201, W-202, LV-201, LIC-201, LIA-202, T-201]
+    modes: [startup, dosing, stop, trip, utility-fail, maintenance]
+    status: proposed
+    by: agent
+    notes: "The pH probe reads activity pH; the setpoint 13.7, the alarm 13.5 and the trip 12.2 are concentration-basis values that need an offset or a calibration before use (control/philosophy.md). The gravity bleed of about 1.9 L/h through a control valve is at the edge of controllability; a metering pump is the alternative (D-017). The weekly refill of T-202 has no written sequence."
+  # ---------------------------------------------------------------- N8 fill and drain
+  - id: H02-N8
+    title: Anolyte fill and end-of-campaign drain - KOH-201 / HV-202 and SP-201 / HV-203 at T-201
+    design_intent: "Fill T-201 with fresh 1 M KOH (50 L) through KOH-201 / HV-202 to the working level (SEQ-B-FILL, U-201 off, HV-203 closed); at the end of the campaign drain the anolyte at its steady state (pH about 13.7, 0.5 mol/L OH-, 0.25 mol/L carbon) by gravity through SP-201 / HV-203 to the site effluent with P-201 stopped and LV-201 closed (SEQ-B-DRAIN)."
+    members: [KOH-201, HV-202, T-201, LIC-201, LIA-202, SP-201, HV-203]
+    modes: [startup, exchange, maintenance]
+    status: proposed
+    by: agent
+  # ---------------------------------------------------------------- N9 enclosure
+  - id: H02-N9
+    title: Skid B enclosure - extract fan K-241, gas detection AIA-241 (CO) and AIA-242 (H2), zone Z-HAZ-B
+    design_intent: "As H01-N9 for Skid B: keep the (ASSUMED) enclosed Skid B free of CO, H2 and excess CO2: K-241 runs from start-up (SEQ-B-START S1) and is started by the gas trips; AIA-241 (CO, I-203) and AIA-242 (H2, I-204), at ASSUMED locations and set points, trip U-201, close FV-202, stop K-231 and start K-241 (SEQ-B-GAS). The release sources of zone 2 Z-HAZ-B are the flanges of E-201A to D, V-221, K-231, X-231 and X-232 (screening only); U-201 stands outside it (D-019). Skid B adds the 5 M KOH day tank T-202 and P-202 at the west end."
+    members: [K-241, AIA-241, AIA-242, U-201, E-201A, E-201B, E-201C, E-201D, V-221, K-231, X-231, X-232, T-202, P-202]
+    modes: [startup, normal, dosing, exchange, stop, trip, utility-fail, maintenance]
+    status: proposed
+    by: agent
+    notes: "The enclosure is an assumption of the control (D-017, D-019), not drawn or sized. No CO2 or O2 detector is drawn."
+# shared register of what P-02 and the C&E have (proposed); a node adds its own as H02-SG-N<k>-<name>
+safeguards:
+  - {id: H02-SG-I201, title: "I-201 anolyte pH low-low (AIC-201 AALL, pH 12.2 concentration basis) trips U-201", kind: interlock, interlock: I-201, refs: [AIC-201, U-201], status: proposed, by: agent, notes: "Shares its probe with the AIC-201 dose trim (a probe drift is both the cause and the defeat of the trip). sil: null."}
+  - {id: H02-SG-I202, title: "I-202 anolyte level low-low (LIA-202 LALL) trips U-201, stops P-201 and P-202, closes FV-203", kind: interlock, interlock: I-202, refs: [LIA-202, U-201, P-201, P-202, FV-203], status: proposed, by: agent, notes: "LIA-202 is independent of the make-up control LIC-201. sil: null."}
+  - {id: H02-SG-I203, title: "I-203 CO detected in the enclosure (AIA-241 AHH) trips U-201, closes FV-202, stops K-231, starts K-241", kind: interlock, interlock: I-203, refs: [AIA-241, U-201, FV-202, K-231, K-241], status: proposed, by: agent, notes: "One detector, location and set point ASSUMED (gas detection study not made). sil: null."}
+  - {id: H02-SG-I204, title: "I-204 H2 detected in the enclosure (AIA-242 AHH) trips U-201, closes FV-202, stops K-231, starts K-241", kind: interlock, interlock: I-204, refs: [AIA-242, U-201, FV-202, K-231, K-241], status: proposed, by: agent, notes: "One detector, location and set point ASSUMED. sil: null."}
+  - {id: H02-SG-I205, title: "I-205 anolyte temperature high-high at the stack outlet (TSHH-212) trips U-201", kind: interlock, interlock: I-205, refs: [TSHH-212, U-201], status: proposed, by: agent, notes: "TSHH-212 is a separate element from TIC-211 (stack inlet). Trip value ASSUMED. sil: null."}
+  - {id: H02-SG-I206, title: "I-206 anolyte recirculation flow low-low (FIC-201 FALL, 5 s delay) trips U-201", kind: interlock, interlock: I-206, refs: [FIC-201, U-201], status: proposed, by: agent, notes: "Shares its transmitter with the flow loop FIC-201 (C&E note: HAZOP to judge): no credit against a FIC-201 transmitter fault. sil: null."}
+  - {id: H02-SG-I207, title: "I-207 dosing and bleed off with the current off (JIC-201 below 5 % of setpoint): stops P-202, closes FV-203", kind: interlock, interlock: I-207, refs: [JIC-201, P-202, FV-203], status: proposed, by: agent, notes: "A permissive, not a safety trip (latching false, automatic reset)."}
+  - {id: H02-SG-I208, title: "I-208 5 M KOH day tank level low-low (LIA-203 LALL) stops P-202", kind: interlock, interlock: I-208, refs: [LIA-203, P-202], status: proposed, by: agent, notes: "Dry-run protection of the metering pump; AIC-201 then alarms as the pH falls. sil: null."}
+  - {id: H02-SG-FIC201-FAL, title: "FIC-201 low anolyte flow alarm (operator checks P-201 and the manifold)", kind: alarm, refs: [FIC-201], status: proposed, by: agent, notes: "Same transmitter as the loop and I-206."}
+  - {id: H02-SG-TIC211-TAH, title: "TIC-211 high anolyte temperature alarm at the stack inlet (operator checks the cooling water and TV-211)", kind: alarm, refs: [TIC-211], status: proposed, by: agent}
+  - {id: H02-SG-FIC202-FAL, title: "FIC-202 low fresh CO2 flow alarm (operator reduces the current: without CO2 the stacks make H2 only)", kind: alarm, refs: [FIC-202], status: proposed, by: agent}
+  - {id: H02-SG-PIC221-PAH, title: "PIC-221 high cathode back-pressure alarm (operator checks K-231 and PV-221; membrane pressure difference limited, vendor)", kind: alarm, refs: [PIC-221], status: proposed, by: agent}
+  - {id: H02-SG-LIC222-LAH, title: "LIC-222 high condensate level alarm in V-221 (operator checks LV-222: liquid must not reach K-231)", kind: alarm, refs: [LIC-222], status: proposed, by: agent}
+  - {id: H02-SG-PIC231-PAL, title: "PIC-231 low CO product pressure alarm (operator checks X-231)", kind: alarm, refs: [PIC-231], status: proposed, by: agent}
+  - {id: H02-SG-AIC201-AAL, title: "AIC-201 low pH alarm at 13.5 (operator checks P-202, T-202 and the probe)", kind: alarm, refs: [AIC-201], status: proposed, by: agent, notes: "Same probe as the dose trim and I-201."}
+  - {id: H02-SG-LIA202-LAL, title: "LIA-202 low anolyte level alarm in T-201 (independent of LIC-201)", kind: alarm, refs: [LIA-202], status: proposed, by: agent, notes: "Same transmitter as I-202."}
+  - {id: H02-SG-LIC201-LAL, title: "LIC-201 low anolyte level alarm in T-201 (make-up loop)", kind: alarm, refs: [LIC-201], status: proposed, by: agent}
+  - {id: H02-SG-LIA203-LAL, title: "LIA-203 low 5 M KOH level alarm in T-202: refill (weekly, ASSUMED)", kind: alarm, refs: [LIA-203], status: proposed, by: agent, notes: "Same transmitter as I-208."}
+  - {id: H02-SG-FIC203-FAL, title: "FIC-203 low bleed flow alarm (operator checks FV-203 and the bleed line)", kind: alarm, refs: [FIC-203], status: proposed, by: agent}
+  - {id: H02-SG-CV231, title: "Check valve on the K-231 discharge CG-203 (against back-flow from X-231)", kind: check-valve, refs: [CG-203, K-231], status: proposed, by: agent, notes: "Untagged on P-02 (DEXPI object CV231, a node member as {sheet: P-02, object: CV231})."}
+  - {id: H02-SG-FAIL-FV202, title: "FV-202 fails closed on loss of air or signal (no CO2 to the cathodes)", kind: mechanical, refs: [FV-202], status: proposed, by: agent, notes: "Fail position proposed in control/loops.yaml (D-018)."}
+  - {id: H02-SG-FAIL-PV221, title: "PV-221 fails open on loss of air or signal (the cathode is not pressurised against the compressor)", kind: mechanical, refs: [PV-221], status: proposed, by: agent, notes: "Fail position proposed in control/loops.yaml (D-018)."}
+  - {id: H02-SG-FAIL-TV211, title: "TV-211 fails open on loss of air or signal (full cooling water to E-211)", kind: mechanical, refs: [TV-211], status: proposed, by: agent, notes: "Fail position proposed in control/loops.yaml (D-018)."}
+  - {id: H02-SG-FAIL-LV222, title: "LV-222 fails closed on loss of air or signal (no cathode gas to the effluent)", kind: mechanical, refs: [LV-222], status: proposed, by: agent, notes: "Fail position proposed in control/loops.yaml (D-018)."}
+  - {id: H02-SG-FAIL-LV201, title: "LV-201 fails closed on loss of air or signal (no make-up water)", kind: mechanical, refs: [LV-201], status: proposed, by: agent, notes: "Fail position proposed in control/loops.yaml (D-018)."}
+  - {id: H02-SG-FAIL-FV203, title: "FV-203 fails closed on loss of air or signal (no bleed)", kind: mechanical, refs: [FV-203], status: proposed, by: agent, notes: "Fail position proposed in control/loops.yaml (D-018)."}
+  - {id: H02-SG-U201-OUTZONE, title: "Rectifier U-201 (non-Ex) placed outside zone Z-HAZ-B, more than 1 m from the zone sources X-232, E-201D and K-231", kind: mechanical, refs: [U-201], status: proposed, by: agent, notes: "Layout feature (D-019); the zones are a screening, not an area classification."}
+  - {id: H02-SG-O2V201-OPEN, title: "Open reservoir vent O2V-201 (DN 25, no valve) to a safe location above the walking levels", kind: mechanical, refs: [O2V-201, T-201], status: proposed, by: agent, notes: "Keeps T-201 at atmospheric pressure; the vent outlet height (about 3.4 m) is a layout assumption (D-019); vent sizing open (D-017)."}
+  - {id: H02-SG-SEQ-B-START-VENT, title: "SEQ-B-START S1: the extract fan K-241 runs before the cathodes are purged and the current is ramped", kind: procedural, refs: [K-241], status: proposed, by: agent, notes: "control/sequences.yaml SEQ-B-START."}
+  - {id: H02-SG-SEQ-B-GAS, title: "SEQ-B-GAS: no entry to the enclosure until AIA-241 and AIA-242 are clear; leak found and isolated before reset; purge to X-232 with the oxidiser running first", kind: procedural, refs: [AIA-241, AIA-242, X-232], status: proposed, by: agent, notes: "control/sequences.yaml."}
+  - {id: H02-SG-SEQ-B-PURGE, title: "SEQ-B-STOP / SEQ-B-TRIP: CO2 purge of the cathodes to the oxidiser X-232 until the cathode gas is free of CO and H2 (sampled) before K-231, X-231 and X-232 stop", kind: procedural, refs: [FIC-202, X-232], status: proposed, by: agent, notes: "control/sequences.yaml; needs power and CO2 (F-POWER open point)."}
+  - {id: H02-SG-SEQ-B-FILL-PERM, title: "SEQ-B-FILL permissives: drain HV-203 closed and U-201 off before the fill", kind: procedural, refs: [HV-203, U-201], status: proposed, by: agent, notes: "control/sequences.yaml."}
+actions: []

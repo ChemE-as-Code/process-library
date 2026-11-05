@@ -1,0 +1,202 @@
+# HAZOP study H-01: a DRAFT until the team has accepted every entry and a
+# human review record covers it (cheme safety hazop check). Schema: cheme schema
+# hazop-study; workflow: safety/README.md and the skill hazop-study.
+#
+# AGENT-PREPARED DRAFT for a team session (#330 pilot skids). No HAZOP session has been held:
+# every node, scenario, safeguard, rating and action below is a proposal by an agent
+# (status proposed, by agent) for the team to accept, change or reject.
+#
+# Id conventions (stable, never renumbered or reused; the list order is display order only):
+#   nodes H01-N<k>; deviations H01-N<k>-D<j>; scenarios H01-S<k><nn> (node k, nn 01..99);
+#   safeguards H01-SG-<tag or interlock, without the hyphen> for the shared register below,
+#   H01-SG-N<k>-<name> for a node's own; actions H01-A<k><nn> (node k). N7 is Skid B's dosing
+#   node (H-02): it is not used here, so a node number means the same part of the plant in both
+#   studies.
+schema: cheme/hazop-study/v1
+kind: hazop-study
+id: H-01
+title: 'Skid A: one-fill anolyte reservoir'
+scope: >-
+  Sheet P-01 (pid/P-01.xml) as drawn, Skid A of #330 (1xx tags, case skid-a, DESIGN.md D-007,
+  D-009): the anolyte loop T-101 / P-101 / E-111 with the supply and return manifolds
+  AN-101 to AN-104C and the anode side of the four stacks E-101A to D; the stacks and their DC
+  supply, the rectifier U-101 (the 48 V DC bus is not drawn); the cathode CO2 feed CO2-101 to
+  CO2-101D with FV-102, the PSA recycle CO2-102 and the humidification water W-101 / HV-104;
+  the cathode gas outlet CG-101 to CG-101D, the separator V-121 with its condensate CD-101 /
+  LV-122 and the back-pressure valve PV-121 on CG-102; the gas conditioning, the diaphragm
+  compressor K-131, CG-103 with its check valve, the CO PSA package X-131 and the CO product
+  CO-101 / PV-131 to the battery limit; the tail-gas oxidiser X-132 (TG-101, AIR-101, FG-101)
+  and the anolyte reservoir vent O2V-101; the one fill KOH-101 / HV-102 and the end-of-run
+  drain SP-101 / HV-103; the skid enclosure with its extract fan K-141 and the gas detectors
+  AIA-141 (CO) and AIA-142 (H2). The trips are those of control/cause-effect.yaml I-101 to
+  I-106, the sequences SEQ-A-FILL, -START, -STOP, -TRIP, -GAS and -DRAIN of
+  control/sequences.yaml. Battery limits: the CO2 supply (merchant liquefied CO2, D-016, its
+  storage and vaporiser are not drawn and not studied beyond the CO2-101 tie-in), the cooling
+  water CWS-101 / CWR-101, the demineralised water W-101, the combustion air AIR-101, the
+  1 M KOH delivery to the KOH-101 hose connection, the spent anolyte, condensate and CO product
+  receivers (site effluent, CO-101 consumer), instrument air and power. Not covered: the
+  internals of the black-box packages X-131 and X-132 (D-012; the vendor's package HAZOP), the
+  stack vendor's internal design beyond the drawn connections, the site's area classification
+  (layout/zones.yaml is a screening only, D-019), relief device sizing (only the governing
+  scenario is named) and Skid B, which is H-02.
+modes:
+  - {id: startup, title: 'Start-up: fill, purge, energise', description: "SEQ-A-FILL (fresh 1 M KOH through HV-102 to the working level, circulate) and SEQ-A-START (ventilate K-141, cool TIC-111, purge and humidify the cathodes with CO2, start K-131, X-132 then X-131, ramp JIC-101 to 80 A)."}
+  - {id: normal, title: Normal steady operation, description: "Duty D-A: 200 mA/cm2 constant current (80 A, 4 x 20 A, 28 cells of 100 cm2, about 3 kW DC on the 48 V bus) on one fill, the anolyte drifting from fresh 1 M KOH to pH 12.0 (concentration basis) at the end of the campaign H (1000 h design, 10,000 h scenario)."}
+  - {id: onoff-partload, title: On/off and part-load duties on the same hardware, description: "D-A-ONOFF (24 h period, half on, current switched off and on daily) and D-A-PART (12 h at 200 and 12 h at 100 mA/cm2, current steps) on STK-A and T-101 as for D-A (D-013): the same hardware, more current transitions."}
+  - {id: exchange, title: 'Anolyte refill / exchange at the end of the campaign', description: "SEQ-A-STOP or a trip, then SEQ-A-DRAIN (P-101 stopped, the spent anolyte drained through HV-103 to the site effluent, rinse) and a new SEQ-A-FILL; the 1166 L (1000 h) or 11,660 L (10,000 h) of T-101 handled as hose transfers at the frame's west end (D-019)."}
+  - {id: stop, title: Normal stop, description: "SEQ-A-STOP at H: ramp the current down, purge the cathodes with CO2 to the oxidiser, stop K-131, X-131, X-132."}
+  - {id: trip, title: Trip and gas trip, description: "SEQ-A-TRIP after I-101, I-102, I-105 or I-106 (current off, CO2 purge kept, P-101 runs unless I-102 stopped it); SEQ-A-GAS after I-103 or I-104 (current off, FV-102 closed, K-131 stopped, K-141 started, the cathode gas train isolated with its CO and H2 until the leak is found, then purged to X-132)."}
+  - {id: utility-fail, title: 'Loss of power, instrument air or cooling water', description: "control/philosophy.md F-POWER, F-AIR, F-CW: the pneumatic valves TV-111, FV-102, PV-121, LV-122, PV-131 go to their fail positions; on power loss the rectifier, pumps, compressor and fan stop."}
+  - {id: maintenance, title: Maintenance, description: "Isolation, draining and opening of the anolyte and the cathode gas lines, instrument work, and the replacement of a stack (4000 h interval, ASSUMED): a vertical hand lift of the 0.18 m stack out of the frame once its connections are undone, with 0.3 m of hand room (D-019, D-023)."}
+analysed:
+  - {path: pid/P-01.xml, revision: 'sha256:c7a1ac44087a6869f92fbcf895c4f2cc31ac5076df7f32180176d99adec0f931', relation: analyses}
+  - {path: equipment/equipment-list.yaml, revision: 'sha256:4513f4c7cbe38830a4864a40123c8b2c54acba2486462a645165202c3c20f8be', relation: analyses}
+  - {path: piping/line-list.yaml, revision: 'sha256:6f19c79dc9d74dc112023fa40e33bad13b49102638613fa155d562623a379e91', relation: analyses}
+  - {path: control/instrument-list.yaml, revision: 'sha256:e7660e0aa03b77e0342e389d30a745f1922ed7707563bac9ce6f93a960524b5d', relation: analyses}
+  - {path: control/cause-effect.yaml, revision: 'sha256:7f13b4b24d107bca16f068284082e372e3c7f1c602acc4f3abbd767e2f2d50d6', relation: analyses}
+  - {path: control/loops.yaml, revision: 'sha256:ef4e910c5b8bf82089649ecbbc77f915de4b33c9a01477864a4f31811f18d4cb', relation: analyses}
+  - {path: control/sequences.yaml, revision: 'sha256:0db970a6e6047d9613aa2f6ad3593cb44a35bcc81a1eceedf7ee3f0dd0f10457', relation: analyses}
+  - {path: control/philosophy.md, revision: 'sha256:58ed819f642a004b686de1ce5ab3a606e59b8712ab6f882e46d3e78dbec75a3f', relation: analyses}
+  - {path: layout/zones.yaml, revision: 'sha256:1843f0c41bc47d508bdba770fa0784150c38286e39ab2b9cd95ba7d7c7dd435d', relation: analyses}
+  - {path: process/flowsheet.yaml, revision: 'sha256:6fd61b5a5f176c76170ff5b0611a98c6cb1442c3bd7574e5829b9f21ba4a67b2', relation: analyses}
+  - {path: process/design-basis.yaml, revision: 'sha256:62a2cfaa02fdaf7f0c3be3d9652fc485b4a3b97ab93ce6cb1662db55e42a2ade', relation: analyses}
+  - {path: process/duties.yaml, revision: 'sha256:edb6f5c8d3e72e0d8f1a46882df2b7bf9d0a19d1763eae78214bd23a87fecce0', relation: analyses}
+risk_matrix: safety/risk-matrix.yaml
+assessment_basis: >-
+  IEC 61882 guide words applied to the parameters of each node's design intent (flow,
+  pressure, pressure difference across the gas diffusion electrode, temperature, level,
+  composition incl. pH and carbonate, current and voltage), in every mode that applies. Each
+  scenario (one cause, one consequence) is rated per category of safety/risk-matrix.yaml
+  (people, environment, asset incl. production loss): initial with no safeguard credited
+  (likelihood of the cause), residual with only the safeguards named in the scenario that exist
+  in the files (an alarm with operator response, an interlock of control/cause-effect.yaml, a
+  check valve on the P&ID, a fail position or another recorded mechanical design feature, a
+  written sequence step); a regulatory loop of control/loops.yaml is never counted as a
+  safeguard (control/philosophy.md), only its alarm with the operator's response. Ratings are proposed by an agent at the concept stage from the files
+  and DESIGN.md, with basis and evidence, for the team to accept or change; no frequency is
+  calculated and no LOPA credit is taken here. The matrix itself is a proposal (ASSUMED).
+  Credit convention for the residual likelihood (one matrix letter is one order of magnitude;
+  a proposal for the team, not a LOPA): a passive feature that removes the path (an open vent
+  without a valve, an item placed outside its zone), up to two orders; an alarm with operator
+  response (counted toward mitigation, not an independent layer: safeguard-crediting skill), a
+  check valve, a fail position, a sequence step or procedure, a trip of the C&E whose SIL is not
+  confirmed (every trip here, sil: null), one order each; nothing for a safeguard
+  that shares a transmitter, valve or logic with the cause or that the cause defeats (e.g. I-106
+  shares FIC-101 with the flow loop), nor for a relief device, since none is drawn on P-01.
+team:  # roles only: the owner names the people; no session has been held
+  - {name: to be named, role: "HAZOP facilitator (independent of the design)"}
+  - {name: to be named, role: "scribe"}
+  - {name: to be named, role: "process engineer (electrolysis and anolyte chemistry)"}
+  - {name: to be named, role: "instrument and control engineer"}
+  - {name: to be named, role: "electrical engineer (DC supply and Ex equipment)"}
+  - {name: to be named, role: "mechanical / package engineer (compressor, PSA and oxidiser vendors as needed)"}
+  - {name: to be named, role: "operations / pilot plant operator"}
+  - {name: to be named, role: "process safety / HSE (gas detection, area classification)"}
+  - {name: to be named, role: "stack (MEA) vendor representative, as needed"}
+notes: >-
+  Agent-prepared draft for a team session; it is not a HAZOP and no session has been held. The
+  team (roles above) is not named yet: the owner names the facilitator, scribe and members.
+  Every node, scenario, safeguard, rating and action is a proposal by an agent (status
+  proposed, by agent). The plant is studied as drawn: the P&ID has no relief device, no H2-in-O2
+  measurement on O2V-101, no pressure measurement on the anolyte side (no pressure difference
+  across the GDE), no heater (TIC-111 cools only), no eyewash or safety shower and no
+  detector at the vents; where the analysis needs one, it is an action, never a safeguard.
+nodes:
+  # ---------------------------------------------------------------- N1 anolyte loop
+  - id: H01-N1
+    title: Anolyte loop - reservoir T-101, pump P-101, cooler E-111 and the stack anode side (AN-101 to AN-104C)
+    design_intent: "Circulate the anolyte (fresh 1 M KOH at the fill, drifting to pH 12.0 concentration basis, about 0.40 mol/L carbon and 0.80 mol/L K+ at H; D-009) from the PP reservoir T-101 (1166 L working volume at 1000 h, D 1.074 x H 1.611 m; 11,660 L, D 2.313 x H 3.470 m at 10,000 h; atmospheric, vented by O2V-101) through AN-101 / HV-101 to the sealless recirculation pump P-101 (FIC-101 speed, 705.6 kg/h, about 11.2 L/min, 1.51 bar(a) discharge), through the plate cooler E-111 (about 2.2 kW to cooling water by TV-111 under TIC-111, stack inlet about 22.1 degC) and the supply manifold AN-103 / AN-103A to C to the anode side of E-101A to D (1.41 bar(a)), and back with the anode O2 (about 0.16 kg/h) through the return manifold AN-104A to C / AN-104 (TSHH-112, about 25 degC) to the reservoir top, where the O2 disengages. Level on LIA-101, pH on AI-101 (AAL about 12.5, trip I-101 at 12.0); nothing is dosed during the run."
+    members: [T-101, HV-101, AN-101, P-101, AN-102, FIC-101, E-111, TV-111, TIC-111, CWS-101, CWR-101, AN-103, AN-103A, AN-103B, AN-103C, E-101A, E-101B, E-101C, E-101D, AN-104A, AN-104B, AN-104C, AN-104, TSHH-112, LIA-101, AI-101]
+    modes: [startup, normal, onoff-partload, stop, trip, utility-fail, maintenance]
+    status: proposed
+    by: agent
+    notes: "No heater is drawn: TIC-111 can only cool, so the anolyte runs at ambient (the 25 degC of the measured series is ASSUMED, D-007). The reservoir's own fill and drain (KOH-101, SP-101) are node H01-N8; its vent O2V-101 is node H01-N6. The O2 that disengages in T-101 carries any H2 that crossed the bipolar membrane (control/philosophy.md unresolved)."
+  # ---------------------------------------------------------------- N2 stacks and DC supply
+  - id: H01-N2
+    title: Stacks E-101A to D and their DC supply, rectifier U-101 (48 V bus)
+    design_intent: "Electrolyse CO2 to CO in four stacks of seven 100 cm2 bipolar-membrane cells (reverse bias, Ag GDE cathode, Ni anode; 28 cells) at 200 mA/cm2 constant current: 80 A from the rectifier U-101 under JIC-101 (4 x 20 A, on a 48 V DC bus, about 3 kW DC, efficiency 0.95 ASSUMED; the bus is not drawn), with about 2.2 kW of heat to the anolyte, at the measured operating point (FE and voltage of the measured series, ASSUMED to transfer from 5 to 100 cm2, D-007, D-014). U-101 is the final element of every trip I-101 to I-106 and stands outside zone Z-HAZ-A at the east end (a non-Ex cabinet, D-019). A stack is replaced every 4000 h (ASSUMED) by a vertical hand lift (D-023)."
+    members: [U-101, JIC-101, E-101A, E-101B, E-101C, E-101D]
+    modes: [startup, normal, onoff-partload, stop, trip, utility-fail, maintenance]
+    status: proposed
+    by: agent
+    notes: "The DC bus, its cabling, earthing, isolation and the stack voltage measurement are not drawn (D-017; electrical/README.md). The cell's internal parameters (pressure difference across the GDE, crossover through the membrane) are studied with the nodes that set them: the anolyte pressure in H01-N1, the cathode pressure in H01-N3 / H01-N4."
+  # ---------------------------------------------------------------- N3 cathode CO2 feed
+  - id: H01-N3
+    title: Cathode CO2 feed - fresh CO2 FV-102, PSA recycle CO2-102, humidification W-101, the cathode side of E-101A to D
+    design_intent: "Feed the cathodes with CO2 at the measured ratio of 10 sccm/cm2 (the fresh CO2 0.356 kg/h under FIC-102 / FV-102, fail closed, at 1.2 bar(a) and 25 degC from the merchant liquefied CO2 supply at the battery limit, D-016; plus the PSA recycle CO2-102, 2.94 kg/h), humidified with 0.261 kg/h of demineralised water (W-101 at 3 bar(a), set by hand on HV-104 / FI-103), through the feed manifold CO2-101 / CO2-101B to D to the four stacks, the cathode held at about 1.1 bar(a) by PIC-121 downstream (H01-N4)."
+    members: [CO2-101, FV-102, FIC-102, W-101, HV-104, FI-103, CO2-101B, CO2-101C, CO2-101D, CO2-102, E-101A, E-101B, E-101C, E-101D]
+    modes: [startup, normal, onoff-partload, stop, trip, utility-fail, maintenance]
+    status: proposed
+    by: agent
+    notes: "The CO2 supply's storage, vaporiser and pressure reduction are beyond the battery limit and not drawn: a cold or liquid CO2 carry-over and the supply pressure are causes from outside the node; the team names the supply's own protection."
+  # ---------------------------------------------------------------- N4 cathode gas outlet
+  - id: H01-N4
+    title: Cathode gas outlet - manifold CG-101 to CG-101D, separator V-121, condensate CD-101 / LV-122, back-pressure PV-121
+    design_intent: "Collect the cathode gas with its condensate from the four stacks (CG-101B to D into CG-101, 3.39 kg/h at 1.1 bar(a) and 25 degC: CO2 about 85, H2 7.1, CO 4.8, H2O 2.9 mol% of the gas), separate in V-121 the condensate (0.131 kg/h, the K+ that crossed to the cathode as K2CO3 at about 1 mol/kg ASSUMED, D-012) to the site effluent on level (LIC-122 / LV-122, fail closed), and pass the saturated gas through CG-102 with the cathode back-pressure held by PIC-121 / PV-121 (direct acting, fail open, D-018) to the compressor suction."
+    members: [CG-101B, CG-101C, CG-101D, CG-101, V-121, LIC-122, LV-122, CD-101, CG-102, PIC-121, PV-121, E-101A, E-101B, E-101C, E-101D]
+    modes: [startup, normal, onoff-partload, stop, trip, utility-fail, maintenance]
+    status: proposed
+    by: agent
+  # ---------------------------------------------------------------- N5 gas conditioning
+  - id: H01-N5
+    title: Gas conditioning - compressor K-131, CG-103 and its check valve, CO PSA X-131, CO product CO-101 / PV-131, CO2 recycle CO2-102
+    design_intent: "Compress the cathode gas in the diaphragm compressor K-131 (positive displacement) from about 1.1 to 6 bar(a) (40 degC) through CG-103 and its check valve to the PSA package X-131 (black box, D-012), which delivers 0.1008 kg/h CO at 0.99 mol/mol dry (H2 the rest) at 5.0 bar(a) through PV-131 under PIC-131 (fail closed, open point) to the battery limit, returns 0.95 of the unreacted CO2 (2.94 kg/h) to the cathode feed through CO2-102, and sends the rest with the H2 and water as tail gas to X-132 (H01-N6). K-131 is stopped by I-103 and I-104."
+    members: [K-131, CG-103, {sheet: P-01, object: CV131}, X-131, CO-101, PV-131, PIC-131, CO2-102]
+    modes: [startup, normal, onoff-partload, stop, trip, utility-fail, maintenance]
+    status: proposed
+    by: agent
+    notes: "No relief device is drawn on K-131's discharge CG-103 or on the PSA (D-017; control/philosophy.md unresolved): the governing relief scenario is named in the actions, not sized. The PSA's own pressure protection is the vendor's (open point)."
+  # ---------------------------------------------------------------- N6 tail gas and vents
+  - id: H01-N6
+    title: Tail gas and vents - oxidiser X-132 (TG-101, AIR-101, FG-101) and the reservoir vent O2V-101
+    design_intent: "Burn the PSA tail gas TG-101 (0.221 kg/h at 1.1 bar(a): H2 about 48, CO2 29, H2O 20, CO 3.3 mol%) completely in the oxidiser package X-132 with twice the stoichiometric air AIR-101 (0.854 kg/h), so that no CO or H2 is vented (D-012), and vent the flue gas FG-101 (about 150 degC, CO2, H2O, N2, 8 mol% O2) to atmosphere above the walking levels (about 3.4 m, D-019); vent the anode O2 (about 0.16 kg/h with water vapour, and any H2 crossed through the membrane) from the T-101 head space through the open DN 25 vent O2V-101 to a safe location at atmospheric pressure."
+    members: [TG-101, X-132, AIR-101, FG-101, O2V-101, T-101]
+    modes: [startup, normal, onoff-partload, stop, trip, utility-fail, maintenance]
+    status: proposed
+    by: agent
+    notes: "X-132 is a black box (D-012): its flame or catalyst supervision, air flow and temperature protection are not drawn and are the vendor's. Skid A has no KOH day tank: the KV-202 breather is Skid B's (H02-N6)."
+  # ---------------------------------------------------------------- N8 fill and drain
+  - id: H01-N8
+    title: Anolyte fill and end-of-campaign drain - KOH-101 / HV-102 and SP-101 / HV-103 at T-101
+    design_intent: "Fill T-101 once per campaign with fresh 1 M KOH from a tanker or IBCs at the hose connection at the frame's west end through KOH-101 / HV-102 to the working level on LIA-101 (1166 L at 1000 h; 11,660 L at 10,000 h, D-009), with U-101 off and HV-103 closed (SEQ-A-FILL permissives); at the end of the campaign drain the spent anolyte (pH about 12, about 0.4 mol/L carbonate) by gravity through SP-101 / HV-103 to the site effluent, then rinse (SEQ-A-DRAIN), with U-101 off and P-101 stopped."
+    members: [KOH-101, HV-102, T-101, LIA-101, SP-101, HV-103]
+    modes: [startup, exchange, maintenance]
+    status: proposed
+    by: agent
+  # ---------------------------------------------------------------- N9 enclosure
+  - id: H01-N9
+    title: Skid A enclosure - extract fan K-141, gas detection AIA-141 (CO) and AIA-142 (H2), zone Z-HAZ-A
+    design_intent: "Keep the atmosphere of the (ASSUMED) enclosed Skid A free of CO, H2 and excess CO2: the extract fan K-141 runs from start-up (SEQ-A-START S1) and is started by the gas trips; the CO detector AIA-141 (I-103) and the H2 detector AIA-142 (I-104), at ASSUMED locations with set points from a gas detection study not yet made, trip U-101, close FV-102, stop K-131 and start K-141, isolating the cathode gas train (SEQ-A-GAS). The release sources of zone 2 Z-HAZ-A are the flanges of E-101A to D, V-121, K-131, X-131 and X-132 (layout/zones.yaml, screening only); the rectifier U-101, the main ignition source, stands outside it (D-019)."
+    members: [K-141, AIA-141, AIA-142, U-101, E-101A, E-101B, E-101C, E-101D, V-121, K-131, X-131, X-132]
+    modes: [startup, normal, onoff-partload, exchange, stop, trip, utility-fail, maintenance]
+    status: proposed
+    by: agent
+    notes: "The enclosure itself is an assumption of the control (D-017, D-019): it is not drawn and its volume, air changes and the fan duty are not sized. No CO2 or O2 detector is drawn. The releases inside the frame are studied here from every node (the causes stay with their node, the detection and ventilation here)."
+# shared register of what P-01 and the C&E have (proposed); a node adds its own as H01-SG-N<k>-<name>
+safeguards:
+  - {id: H01-SG-I101, title: "I-101 anolyte pH low-low (AI-101 AALL, pH 12.0 concentration basis) trips U-101", kind: interlock, interlock: I-101, refs: [AI-101, U-101], status: proposed, by: agent, notes: "At the threshold itself (D-009, D-018): it does not end a normal campaign and gives no margin below pH 12. Single probe shared with the AI-101 alarm; the activity / concentration pH offset is open (control/philosophy.md). sil: null."}
+  - {id: H01-SG-I102, title: "I-102 anolyte level low-low (LIA-101 LALL) trips U-101 and stops P-101", kind: interlock, interlock: I-102, refs: [LIA-101, U-101, P-101], status: proposed, by: agent, notes: "LIA-101 is the only level instrument of T-101 (it also carries the LAL alarm). sil: null."}
+  - {id: H01-SG-I103, title: "I-103 CO detected in the enclosure (AIA-141 AHH) trips U-101, closes FV-102, stops K-131, starts K-141", kind: interlock, interlock: I-103, refs: [AIA-141, U-101, FV-102, K-131, K-141], status: proposed, by: agent, notes: "One detector, location and set point ASSUMED (gas detection study not made). sil: null."}
+  - {id: H01-SG-I104, title: "I-104 H2 detected in the enclosure (AIA-142 AHH) trips U-101, closes FV-102, stops K-131, starts K-141", kind: interlock, interlock: I-104, refs: [AIA-142, U-101, FV-102, K-131, K-141], status: proposed, by: agent, notes: "One detector, location and set point ASSUMED. sil: null."}
+  - {id: H01-SG-I105, title: "I-105 anolyte temperature high-high at the stack outlet (TSHH-112) trips U-101", kind: interlock, interlock: I-105, refs: [TSHH-112, U-101], status: proposed, by: agent, notes: "TSHH-112 is a separate element from TIC-111 (stack inlet). Trip value ASSUMED. sil: null."}
+  - {id: H01-SG-I106, title: "I-106 anolyte recirculation flow low-low (FIC-101 FALL, 5 s delay) trips U-101", kind: interlock, interlock: I-106, refs: [FIC-101, U-101], status: proposed, by: agent, notes: "Shares its transmitter with the flow loop FIC-101 (C&E note: HAZOP to judge): no credit against a FIC-101 transmitter fault. sil: null."}
+  - {id: H01-SG-FIC101-FAL, title: "FIC-101 low anolyte flow alarm (operator checks P-101 and the manifold)", kind: alarm, refs: [FIC-101], status: proposed, by: agent, notes: "Same transmitter as the loop and I-106."}
+  - {id: H01-SG-TIC111-TAH, title: "TIC-111 high anolyte temperature alarm at the stack inlet (operator checks the cooling water and TV-111)", kind: alarm, refs: [TIC-111], status: proposed, by: agent}
+  - {id: H01-SG-FIC102-FAL, title: "FIC-102 low fresh CO2 flow alarm (operator reduces the current: without CO2 the stacks make H2 only)", kind: alarm, refs: [FIC-102], status: proposed, by: agent}
+  - {id: H01-SG-PIC121-PAH, title: "PIC-121 high cathode back-pressure alarm (operator checks K-131 and PV-121; membrane pressure difference limited, vendor)", kind: alarm, refs: [PIC-121], status: proposed, by: agent}
+  - {id: H01-SG-LIC122-LAH, title: "LIC-122 high condensate level alarm in V-121 (operator checks LV-122: liquid must not reach K-131)", kind: alarm, refs: [LIC-122], status: proposed, by: agent}
+  - {id: H01-SG-PIC131-PAL, title: "PIC-131 low CO product pressure alarm (operator checks X-131)", kind: alarm, refs: [PIC-131], status: proposed, by: agent}
+  - {id: H01-SG-AI101-AAL, title: "AI-101 low pH alarm at 12.5 (about 27 h before H): notice to plan SEQ-A-STOP", kind: alarm, refs: [AI-101], status: proposed, by: agent, notes: "Same probe as I-101."}
+  - {id: H01-SG-LIA101-LAL, title: "LIA-101 low anolyte level alarm in T-101", kind: alarm, refs: [LIA-101], status: proposed, by: agent, notes: "Same transmitter as I-102."}
+  - {id: H01-SG-CV131, title: "Check valve on the K-131 discharge CG-103 (against back-flow from X-131)", kind: check-valve, refs: [CG-103, K-131], status: proposed, by: agent, notes: "Untagged on P-01 (DEXPI object CV131, a node member as {sheet: P-01, object: CV131})."}
+  - {id: H01-SG-FAIL-FV102, title: "FV-102 fails closed on loss of air or signal (no CO2 to the cathodes)", kind: mechanical, refs: [FV-102], status: proposed, by: agent, notes: "Fail position proposed in control/loops.yaml (D-018)."}
+  - {id: H01-SG-FAIL-PV121, title: "PV-121 fails open on loss of air or signal (the cathode is not pressurised against the compressor)", kind: mechanical, refs: [PV-121], status: proposed, by: agent, notes: "Fail position proposed in control/loops.yaml (D-018)."}
+  - {id: H01-SG-FAIL-TV111, title: "TV-111 fails open on loss of air or signal (full cooling water to E-111)", kind: mechanical, refs: [TV-111], status: proposed, by: agent, notes: "Fail position proposed in control/loops.yaml (D-018)."}
+  - {id: H01-SG-FAIL-LV122, title: "LV-122 fails closed on loss of air or signal (no cathode gas to the effluent)", kind: mechanical, refs: [LV-122], status: proposed, by: agent, notes: "Fail position proposed in control/loops.yaml (D-018)."}
+  - {id: H01-SG-U101-OUTZONE, title: "Rectifier U-101 (non-Ex) placed outside zone Z-HAZ-A, more than 1 m from the zone sources X-132, E-101D and K-131", kind: mechanical, refs: [U-101], status: proposed, by: agent, notes: "Layout feature (D-019); the zones are a screening, not an area classification."}
+  - {id: H01-SG-O2V101-OPEN, title: "Open reservoir vent O2V-101 (DN 25, no valve) to a safe location above the walking levels", kind: mechanical, refs: [O2V-101, T-101], status: proposed, by: agent, notes: "Keeps T-101 at atmospheric pressure; the vent outlet height (about 3.4 m) is a layout assumption (D-019); vent sizing open (D-017)."}
+  - {id: H01-SG-SEQ-A-START-VENT, title: "SEQ-A-START S1: the extract fan K-141 runs before the cathodes are purged and the current is ramped", kind: procedural, refs: [K-141], status: proposed, by: agent, notes: "control/sequences.yaml SEQ-A-START."}
+  - {id: H01-SG-SEQ-A-GAS, title: "SEQ-A-GAS: no entry to the enclosure until AIA-141 and AIA-142 are clear; leak found and isolated before reset; purge to X-132 with the oxidiser running first", kind: procedural, refs: [AIA-141, AIA-142, X-132], status: proposed, by: agent, notes: "control/sequences.yaml."}
+  - {id: H01-SG-SEQ-A-PURGE, title: "SEQ-A-STOP / SEQ-A-TRIP: CO2 purge of the cathodes to the oxidiser X-132 until the cathode gas is free of CO and H2 (sampled) before K-131, X-131 and X-132 stop", kind: procedural, refs: [FIC-102, X-132], status: proposed, by: agent, notes: "control/sequences.yaml; needs power and CO2 (F-POWER open point)."}
+  - {id: H01-SG-SEQ-A-FILL-PERM, title: "SEQ-A-FILL permissives: drain HV-103 closed and U-101 off before the fill", kind: procedural, refs: [HV-103, U-101], status: proposed, by: agent, notes: "control/sequences.yaml."}
+actions: []
