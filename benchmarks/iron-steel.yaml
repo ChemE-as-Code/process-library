@@ -1,0 +1,63 @@
+# Benchmarks of iron and steel: for now the integrated BF-BOF route. Schema:
+# schemas/benchmarks.schema.json; rules: docs/benchmarks.md. Ranges are facts from the cited
+# source, in our own form.
+#
+# Independence: none of the three KPIs tests iron-steel-1. The CO2 and the electricity have no open
+# reference with the dataset's boundary (no_open_reference, with the context the sources do give),
+# and the scrap reference is the BREF range whose midpoint the dataset takes: transcription only,
+# not a check. The dataset is unvalidated (its README says so).
+schema: cheme-as-code/benchmarks/v1
+family: iron-steel
+
+kpis:
+  bf-bof-direct-co2:
+    title: Direct fossil CO2 per t of crude steel, integrated BF-BOF works (coke ovens, sinter, BF, BOF; all process gas burnt at the works)
+    unit: kg/t
+    no_open_reference: >-
+      No open source with a works-level figure for this boundary found (2026-11-05). Read: IPCC
+      2006 Vol. 3 ch. 4 (Table 4.1, p. 4.25) gives a Tier 1 factor of 1.46 t CO2/t for BOF
+      steelmaking with blast furnace iron making (world data of 2003, expert consensus), but it
+      leaves out the coke ovens and the sinter plant, which the Tier 1 method adds with factors of
+      their own (0.56 t/t coke, Equation 4.1; 0.20 t/t sinter, Equation 4.7); Pardo, Moya and
+      Vatopoulos (2012), JRC EUR 25543 EN, doi:10.2790/64264, Table 2, p. 13, give direct CO2 per
+      plant (coke 0.794, sinter 0.200, BF 1.219, BOS 0.181 t/t), and their route figures (Figure
+      19, about 1.8 t/t for the best integrated performers) leave out the works' power plants; the
+      Iron and Steel BREF (EUR 25521 EN) gives no works-level CO2 per t. For context only (our
+      arithmetic, not a range of any source): the IPCC Tier 1 factors at this dataset's 935 kg
+      sinter and 351 kg coke per t give about 1840 kg/t, and Pardo et al.'s per-plant values at
+      the same ratios about 1690 kg/t (without the power plants).
+  bf-bof-scrap-charge:
+    title: Scrap charged to the converter per t of liquid steel
+    unit: kg/t
+    references:
+      - id: bref-is-bof-scrap
+        range: [101, 340]
+        basis: unallocated
+        note: Not independent of the dataset, which takes the midpoint of this range.
+        conditions: {technology: basic oxygen steelmaking, region: EU, year: 2004}
+        source:
+          citation: "Remus, R. et al. (2013) Best Available Techniques (BAT) Reference Document for Iron and Steel Production. JRC Reference Report EUR 25521 EN, doi:10.2791/97469"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/IS_Adopted_03_2012.pdf
+          locator: Section 7.2.1, Table 7.3, p. 369
+          kind: bref
+          accessed: "2026-11-05"
+  bf-bof-purchased-electricity:
+    title: Purchased electricity per t of crude steel, integrated BF-BOF route
+    unit: kWh/t
+    no_open_reference: >-
+      No open source with a site-level electricity figure per t of crude steel for integrated
+      works found (2026-11-05). Read: the Iron and Steel BREF (EUR 25521 EN) gives electricity per
+      plant only (Tables 3.2, 5.2, 6.1, 7.3), which the dataset sums, and its section 7.2.2.4
+      estimate for the converter alone; Pardo, Moya and Vatopoulos (2012), JRC EUR 25543 EN,
+      Table 2, gives direct and primary energy per plant, not electricity; IPCC 2006 Vol. 3 ch. 4
+      gives none. The dataset's value is gross: the works' own generation from process gases is
+      not credited.
+
+datasets:
+  - process: iron-steel-1
+    dataset: iron-steel-bf-bof-integrated
+    conditions: {technology: "coke ovens, sinter, blast furnace, BOF; every process gas burnt at the works", basis: conceptual inventory, region: EU, year: 2004}
+    kpis:
+      bf-bof-direct-co2: {expression: emission:CO2 / product:steel, per: product:steel}
+      bf-bof-scrap-charge: {expression: feed:scrap / product:steel, per: product:steel, reference: bref-is-bof-scrap}
+      bf-bof-purchased-electricity: {expression: feed:electricity / product:steel, per: product:steel}

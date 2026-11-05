@@ -172,6 +172,15 @@ carry the IPCC category NCV their dataset allocates by, in the same form. A typi
 first process that needs one. A mixture entry may go in
 without a composition (the schema allows it), but no composition is entered without a source.
 
+The minerals and metals entries of cement-clinker-1, lime-1, iron-steel-1 and aluminium-1 follow
+the same rule, although most of them are not fuels: ores and raw materials (`iron-ore`,
+`iron-ore-pellets`, `clay`, `dolomite`), coals and oil (`coking-coal`, `hard-coal`,
+`heavy-fuel-oil`), metals and alloys (`crude-steel`, `steel-scrap`, `ferroalloys`), slags and
+by-products (`blast-furnace-slag`, `steelmaking-slag`, `coal-tar`) and the `prebaked-anode` are
+mixtures without a composition and without an `lhv`, and so is `cement-clinker`. Their datasets keep them outside the element
+balance or use a model formula of their own with its sources (the clinker in cement-clinker-1,
+the anode in aluminium-1).
+
 ## Identities and how they are verified
 
 A substance's identity is its `cas`, `inchikey`, `formula` and, where checked, `chebi` and
