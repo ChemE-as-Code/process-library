@@ -1107,7 +1107,8 @@ class Linker:
         or wastewater treatment), unless its override in the mappings says ``atlas: false``.
         Plants are the producers of the exchange's chemical in other processes, a producer of the
         grade the input names first (then only producers of that grade compete), then by process
-        id and name (deterministic; the other candidates are reported, so that a second producer
+        id, the study's dataset before a design case's own within one process (ADR 0034), and
+        name (deterministic; the other candidates are reported, so that a second producer
         never replaces the first silently). A producer of another grade than the one the input
         names is refused."""
         chemical = _chemical(process, exchange, self.mappings, self.registry)
@@ -1125,10 +1126,10 @@ class Linker:
                 refused.append(f"{pid}: {row['name']} | {row['reference product']} (grade {chemical}/{row['grade']}, the input is {chemical}/{wanted})")
                 continue
             candidates.append((pid, row))
-        # a current producer of the grade the input names comes first (a deprecated dataset's last, a design case's own
-        # dataset after its study's, ADR 0034), then by process id and name
-        candidates.sort(key=lambda c: (c[1].get("deprecated", False), c[1].get("design_case") is not None,
-                                       not wanted or c[1].get("grade") != wanted, c[0], c[1]["name"]))  # fmt: skip
+        # a current producer of the grade the input names comes first (a deprecated dataset's last), then by process
+        # id; within one process the study's dataset before a design case's own (ADR 0034), then by name
+        candidates.sort(key=lambda c: (c[1].get("deprecated", False), not wanted or c[1].get("grade") != wanted,
+                                       c[0], c[1].get("design_case") is not None, c[1]["name"]))  # fmt: skip
         if not candidates:
             return AtlasChoice(None, None, [], refused) if refused else None
         if wanted and candidates[0][1].get("grade") == wanted:

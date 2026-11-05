@@ -4,8 +4,10 @@
 the study's ``lca/dataset.yaml``. The LCI build exports both: the case's activity is named after
 the case (else the two designs would share name, reference product, location and unit), only
 the study's dataset carries the study's allocation and data quality, and both are in the
-workbook and the openLCA JSON-LD package with their own amounts. The fixture library's
-electrolyser gets a case dataset here; co2-electrolysis-bpm-1 (#331) is the real one.
+workbook, the openLCA JSON-LD package and the multifunctional JSON with their own amounts. The
+fixture library's electrolyser gets a case dataset here; co2-electrolysis-bpm-1 (#331) is the
+real one, whose KOH solution proxies in lci/mappings.yaml must convert by its datasets'
+compositions.
 """
 
 from __future__ import annotations
@@ -103,6 +105,27 @@ def test_a_hand_written_twin_is_still_refused(tmp_path: Path) -> None:
     assert any("cannot tell them apart" in e and "ADR 0034" in e for e in errors), errors
 
 
+def test_the_wanted_grade_comes_before_the_study_dataset_across_processes() -> None:
+    """A producer of the grade an input names wins over an ungraded one of another process, even
+    when the graded one offers the product through a design case's dataset only; the study's
+    dataset comes before a case's within one process (ADR 0034)."""
+    linker = build_lci.Linker(mappings={"exchanges": {}, "technosphere": {}, "cutoff_exclusions": {}}, db_name="db", registry={"x"})
+    process = build_lci.Process(pid="consumer", manifest={}, study=None, factors=None, datasets=[], chemicals={"feed:X": "x"}, grades={"feed:X": "g"})
+    exchange = {"key": "feed:X", "type": "input", "name": "X"}
+    linker.producers = {"x": [
+        ("z-proc", {"name": "z study", "unit": "kilogram"}),
+        ("a-proc", {"name": "a case", "unit": "kilogram", "grade": "g", "design_case": "b"}),
+    ]}  # fmt: skip
+    choice = linker.atlas_alternative(process, exchange, "kilogram")
+    assert choice.target["name"] == "a case" and choice.others == [], choice
+    linker.producers = {"x": [
+        ("a-proc", {"name": "a case", "unit": "kilogram", "grade": "g", "design_case": "b"}),
+        ("a-proc", {"name": "a study", "unit": "kilogram", "grade": "g"}),
+    ]}  # fmt: skip
+    choice = linker.atlas_alternative(process, exchange, "kilogram")
+    assert choice.target["name"] == "a study" and [r["name"] for _, r in choice.others] == ["a case"], choice
+
+
 @pytest.fixture(scope="module")
 def skids_build(tmp_path_factory) -> tuple[Path, dict[str, dict]]:
     """The library's two pilot-skid datasets (#331) in a library of their own."""
@@ -160,6 +183,48 @@ def test_both_skids_are_in_the_jsonld_package_with_their_dataset_amounts(skids_b
                    for e in p["exchanges"])
         ]  # fmt: skip
         assert len(match) == 1, (skid, [p["name"] for p in processes])
+
+
+def test_both_skids_are_in_the_multifunctional_json_with_their_dataset_amounts(skids_build) -> None:
+    out, datasets = skids_build
+    data = json.loads((out / "lci" / f"{DB}-multifunctional.json").read_text())
+    processes = {p["atlas dataset"]: p for p in data["processes"] if p.get("atlas process") == SKIDS}
+    assert set(processes) == {ds["id"] for ds in datasets.values()}, sorted(processes)
+    for skid, ds in datasets.items():
+        p = processes[ds["id"]]
+        production = next(e for e in p["exchanges"] if e.get("type") == "production")
+        assert production["atlas key"] == "product:CO" and production["desired_code"] == f"{SKIDS}:{ds['id']}:product:CO", skid
+        mine = {e["key"]: e["amount"] for e in ds["exchanges"]}
+        exported = {e["atlas key"]: e["amount"] for e in p["exchanges"] if e.get("type") != "production" and e.get("atlas key")}
+        assert {"feed:KOH-FILL", "feed:CO2", "feed:POWER", "emission:CO2"} <= set(exported), skid
+        for key, amount in exported.items():
+            if key in mine:
+                assert amount / production["amount"] == pytest.approx(mine[key] / mine["product:CO"], rel=1e-9), (skid, key)
+    assert processes[datasets["B"]["id"]]["name"].endswith(", case skid-b")
+
+
+def test_the_koh_solution_proxies_convert_by_the_datasets_compositions() -> None:
+    """lci/mappings.yaml's potassium-hydroxide-1m and -5m turn the skids' solutions into KOH
+    100 % and their dilution water by typed-in fractions: they must be the datasets' (the
+    density and molarity behind them are design inputs that regen keeps current)."""
+    proxies = yaml.safe_load((KIT / "lci" / "mappings.yaml").read_text())["proxies"]
+    folder = KIT / "processes" / SKIDS / "lca"
+    datasets = [yaml.safe_load((folder / "dataset.yaml").read_text())]
+    datasets += [yaml.safe_load(p.read_text()) for p in sorted((folder / "datasets").glob("*.yaml"))]
+    mapped = yaml.safe_load((folder / "mappings.yaml").read_text())["exchanges"]
+    seen = set()
+    for ds in datasets:
+        for e in ds["exchanges"]:
+            if e["key"] not in ("feed:KOH-FILL", "feed:KOH-DOSE") or not e.get("composition"):
+                continue
+            fractions = e["composition"]["fractions"]
+            assert set(fractions) == {"KOH", "H2O"}, (ds["id"], e["key"], fractions)
+            inputs = {i["use"]: i["amount"] for i in proxies[mapped[e["key"]]["use"]]["inputs"]}
+            assert set(inputs) == {"potassium-hydroxide", "water"}, inputs
+            assert inputs["potassium-hydroxide"] == pytest.approx(fractions["KOH"], rel=1e-6), (ds["id"], e["key"])
+            assert inputs["water"] == pytest.approx(fractions["H2O"], rel=1e-6), (ds["id"], e["key"])
+            seen.add(e["key"])
+    assert seen == {"feed:KOH-FILL", "feed:KOH-DOSE"}, seen
 
 
 def test_the_public_build_leaves_the_internal_skids_out(tmp_path: Path) -> None:

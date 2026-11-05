@@ -53,7 +53,9 @@ activities of one supplier.
   `<process title>, case <case>`; a hand-written dataset gets no such name, so a hand-written
   twin of the study's dataset is still refused. Where a market or a consumer's Atlas link must
   choose between the two, the study's dataset comes first: it is the process's default
-  producer.
+  producer. This holds within one process only: the grade a consumer names still decides
+  first, so a producer of that grade wins over another process's ungraded study dataset even
+  when it offers the product through a case dataset alone.
 
 ## Consequences
 
@@ -71,9 +73,12 @@ activities of one supplier.
 ## Evidence
 
 - `scripts/build_lci.py` (`design_case`, `_product_rows`, the market and plant choices),
-  `tests/test_lci_case_datasets.py` (a fixture library with both files; the two skids in the
-  workbook and the JSON-LD package with their datasets' amounts; the public build leaves the
-  internal process out), `tests/test_lci_dataset_v2.py` (a hand-written twin is refused).
+  `tests/test_lci_case_datasets.py` (a fixture library with both files; a hand-written twin is
+  still refused, `test_a_hand_written_twin_is_still_refused`; the grade before the study's
+  dataset across processes; the two skids in the workbook, the JSON-LD package and the
+  multifunctional JSON with their datasets' amounts; the KOH solution proxies against the
+  datasets' compositions; the public build leaves the internal process out),
+  `tests/test_lci_dataset_v2.py` (two activities the installer cannot tell apart are an error).
 - `processes/co2-electrolysis-bpm-1/lca/datasets/`, its `checks/checks.yaml` gate
   `lca-case-dataset-current`, DESIGN.md D-024 to D-027; issue #331.
 - Core ADR 0045 and `docs/framework/lci-scenarios.md` of core ("A design case's own dataset").
