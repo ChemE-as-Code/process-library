@@ -9,11 +9,10 @@
 # must confirm it. The heat of reaction is ASSUMED as well (D-005): no open calorimetric value
 # was found. BROM's heat is that of the step in R101; the imide's deprotonation by NaOH is
 # released in the dissolver M101 (scripts/balance.py, D-009).
-# PPT and DISS: the precipitation of NBS from the cold liquor and the dissolution of NBS in the
-# wash water, both a phase change written as a reaction so that cheme balances and propagates
-# them as conversion steps; the conversions follow from the solubility of NBS in water
-# (D-005, scripts/balance.py). Core's crystallizer is not used: it refuses the NaBr, NaOH and
-# succinimide of the mother liquor (one solute in one solvent only, DESIGN.md D-006).
+# The precipitation of NBS from the cold liquor (CR101) and its dissolution in the wash water
+# (W101) are no reactions here: both are core's crystallizer with the liquor's NaBr, NaOH,
+# succinimide and bromine as spectators and the solubility of NBS in the flowsheet (core ADR
+# 0056, DESIGN.md D-014; until then the conversion steps PPT and DISS).
 schema: cheme/reactions/v1
 kind: reactions
 reactions:
@@ -35,15 +34,3 @@ reactions:
       provenance: assumed
       source: "ASSUMED fast effective rate (D-005): no open kinetics found (2026-11-05); to be replaced by reaction calorimetry"
     sources: ["US 2 971 960 (Waugh and Waugh, 1961), column 1: the caustic route and its NaBr by-product"]
-  - id: PPT
-    title: Precipitation of NBS from the cold liquor
-    equation: C4H4BrNO2(aq) -> C4H4BrNO2(s)
-    stoichiometry: {NBS: -1, NBS_S: 1}
-    phase: liquid
-    conversion: {key: NBS, value: 0.95383, provenance: assumed, source: "scripts/balance.py: the liquor leaves saturated, 14.7 g NBS per kg water (D-005)"}
-  - id: DISS
-    title: Dissolution of NBS in the wash water
-    equation: C4H4BrNO2(s) -> C4H4BrNO2(aq)
-    stoichiometry: {NBS_S: -1, NBS: 1}
-    phase: liquid
-    conversion: {key: NBS_S, value: 0.02205, provenance: assumed, source: "scripts/balance.py: the wash water leaves saturated, 14.7 g NBS per kg water (D-005, D-007)"}

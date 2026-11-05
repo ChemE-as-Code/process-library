@@ -1,0 +1,9 @@
+# btx-1's own exchange overrides for the Atlas LCI build (ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. The reformate links the Atlas producer
+# catalytic-reforming-1 explicitly: aromatics plants take their reformate from the site's CCR.
+# Clay, spent clay and the solvent-regenerator sludge are reported gaps.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:steam": {use: steam-heat, source: "steam counted as heat delivered (kWh), as hda-1 and ethylbenzene-1 do"}
+  "feed:fuel-heat": {use: heat-natural-gas, source: "the BREF's fuel for fired reboilers, counted as heat from natural gas delivered (kWh), as hda-1 counts its feed heater; the background includes the combustion"}
+  "feed:reformate": {dataset: {path: processes/catalytic-reforming-1/lca/datasets/catalytic-reforming-ccr.yaml, product: "product:reformate"}, source: "the Atlas producer catalytic-reforming-1, stabilised C5+ CCR reformate, the debutanised reformate this feed names; its pseudo-formula composition is not this dataset's typical slate (registry reformate). The link is by mass, so the linked system does not close in carbon: catalytic-reforming-1's C9H15 is 0.877 kg C/kg, this dataset's lumped reformate 0.891 kg C/kg, about 22 kg C (1.5 %) per t of BTX less supplied than consumed (our arithmetic)"}

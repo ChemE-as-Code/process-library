@@ -2,11 +2,13 @@
 # DESIGN.md D-003). One batch makes 334.41 kg of dried NBS (stream S14); the flowsheet's rates
 # are the year averages: 334.41 kg x 1495.15 batches / 7920 h = 63.13 kg/h. The dosing and the
 # post-reaction (to 0.999 conversion of the bromine) take their times from R101's semi-batch
-# model (from: R101); every other duration is ASSUMED (D-003). The brominator is the
-# bottleneck; the agitated filter-dryer (filtration, reslurry wash, second filtration and drying
-# in one vessel, F-101) is installed twice and takes the batches in turn. R101's vessel is sized
-# from its model's content (core ADR 0052). `cheme process recipe --svg build/gantt.svg` draws
-# one batch.
+# model (from: R101). The agitated filter-dryer F-101 is one vessel over four steps (units:
+# F101, W101, F102, D101; core ADR 0057): its filtrations take Ruth's time from F101's and
+# F102's filtration data and its drying the time D101's drying rate gives on the heated area the
+# cake wets (D-014); every other duration is ASSUMED (D-003). The brominator is the bottleneck;
+# F-101 is installed three times and takes the batches in turn (two no longer keep up with the
+# calculated drying time, D-014). R101's and F-101's vessels are sized from one batch's content
+# (core ADR 0052, 0057). `cheme process recipe --svg build/gantt.svg` draws one batch.
 schema: cheme/recipe/v1
 kind: recipe
 title: NBS by semi-batch bromination
@@ -33,12 +35,14 @@ unit_procedures:
       - {id: transfer, kind: transfer, title: Slurry to the filter-dryer, duration: {value: 0.5, provenance: assumed, source: D-003}}
       - {id: clean, kind: clean, title: Rinse, duration: {value: 1.0, provenance: assumed, source: D-003}}
   - id: ISOLATE
-    unit: D101
-    title: Filtration, reslurry wash and drying in the agitated filter-dryer (F-101, two units)
-    parallel: 2
+    units: [F101, W101, F102, D101]
+    title: Filtration, reslurry wash and drying in the agitated filter-dryer (F-101, three units)
+    parallel: 3
+    vessel: {fill_fraction: 0.8, aspect_ratio: 1.0, provenance: assumed, source: "a squat agitated filter-dryer, its filter plate the bottom (D-014)"}
     operations:
-      - {id: filter, kind: filter, title: Filter the mother liquor (F101), duration: {value: 1.0, provenance: assumed, source: D-003}}
-      - {id: wash, kind: other, title: "Reslurry wash with ice water and filter (W101, F102)", duration: {value: 1.0, provenance: assumed, source: D-003}}
-      - {id: dry, kind: dry, title: Vacuum drying at 333 K (D101), duration: {value: 5.0, provenance: assumed, source: "D-003, D-008"}}
-      - {id: discharge, kind: transfer, title: Discharge to packing, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: filter, kind: filter, title: Filter the mother liquor (F101), from: F101}
+      - {id: wash, kind: other, title: Reslurry the cake in ice water (W101), duration: {value: 0.5, provenance: assumed, source: D-014}}
+      - {id: refilter, kind: filter, title: Filter the wash (F102), from: F102}
+      - {id: dry, kind: dry, title: Vacuum drying at 333 K (D101), from: D101}
+      - {id: discharge, kind: transfer, title: Cool and discharge to packing, duration: {value: 0.5, provenance: assumed, source: D-003}}
       - {id: clean, kind: clean, title: Rinse, duration: {value: 1.0, provenance: assumed, source: D-003}}

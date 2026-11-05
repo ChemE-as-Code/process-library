@@ -28,8 +28,9 @@ says how to add a process.
 
 ## Processes
 
-The library has 50 process folders: 44 engineering projects (a `plant.yaml` with a process
-flowsheet) and 6 library utilities (manifest and LCI dataset only). The table is generated
+The table lists 68 public process folders: 45 engineering projects (a `plant.yaml` with a process
+flowsheet), 17 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
+One more folder (`co2-electrolysis-bpm-1`) is internal and not listed. The table is generated
 from each folder's `process.yaml` and `checks/maturity.json`; `coverage.yaml` names the
 coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
 
@@ -46,7 +47,10 @@ coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
 | [`aniline-1`](processes/aniline-1/) | Aniline by adiabatic gas-phase hydrogenation of nitrobenzene (25 t/h) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`asu-1`](processes/asu-1/) | Cryogenic air separation unit, 500 t/d GOX | screening (calculation maturity: balanced; not independently reviewed) | yes (DEXPI P&IDs, BFD/PFD, 3D layout, MTO, LCA, DWSIM checks) |
 | [`benzyl-chloroformate-1`](processes/benzyl-chloroformate-1/) | Benzyl chloroformate by semi-batch phosgenation of benzyl alcohol at reduced pressure (1000 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
+| [`bio-ethylene-1`](processes/bio-ethylene-1/) | Bio-ethylene by catalytic dehydration of ethanol (open process model, adiabatic fixed beds) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`bromine-1`](processes/bromine-1/) | Bromine from bromide brine by chlorine oxidation and steaming-out (Smackover-type brine) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`btx-1`](processes/btx-1/) | Benzene, toluene and mixed xylenes by solvent extraction of catalytic reformate (LVOC BREF ranges, DOE reformate slate) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
+| [`butadiene-1`](processes/butadiene-1/) | 1,3-Butadiene by extractive distillation of a crude C4 cut (EPA cut, IEA energy averages) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`catalytic-reforming-1`](processes/catalytic-reforming-1/) | Catalytic reforming of naphtha with continuous catalyst regeneration (REF BREF ranges; reformate, hydrogen, LPG, fuel gas) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`cement-clinker-1`](processes/cement-clinker-1/) | Portland cement clinker in a dry kiln with preheater and precalciner (CLM BREF ranges, IPCC defaults) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`chlor-alkali-1`](processes/chlor-alkali-1/) | Chlor-alkali by membrane-cell electrolysis (100 kt/a Cl2, 50 wt-% caustic soda, hydrogen) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
@@ -84,6 +88,7 @@ coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
 | [`phosphorus-oxychloride-1`](processes/phosphorus-oxychloride-1/) | Phosphorus oxychloride from white phosphorus, chlorine and oxygen via PCl3 (4.0 t/h) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`phosphorus-tribromide-1`](processes/phosphorus-tribromide-1/) | Phosphorus tribromide by semi-batch bromination of white phosphorus in a PBr3 heel, red-phosphorus treatment and vacuum distillation (1000 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`potassium-permanganate-1`](processes/potassium-permanganate-1/) | Potassium permanganate from MnO2 ore by KOH roasting and electrolysis (1250 kg/h, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`propylene-pdh-1`](processes/propylene-pdh-1/) | Propylene by catalytic propane dehydrogenation (one published Oleflex-type design, net gas burnt on site) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`refinery-distillation-1`](processes/refinery-distillation-1/) | Crude oil distillation, atmospheric and vacuum units (one crude assay, REF BREF ranges) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI datasets only) |
 | [`silicon-carbide-1`](processes/silicon-carbide-1/) | Silicon carbide by the Acheson process (5000 kg/h crude SiC, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`soda-ash-1`](processes/soda-ash-1/) | Soda ash by the Solvay ammonia-soda process (1000 t/d light ash, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |

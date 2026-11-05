@@ -13,6 +13,11 @@ checked by [`cheme-as-code`](https://github.com/ChemE-as-Code/core).
 A batch plant: the brominator R101 is a semi-batch (`reactor: semibatch`, bromine dosed into the
 charge) and `process/recipe.yaml` holds the batch recipe the cycle time and the flowsheet's
 year-average flows come from (`cheme process recipe`, `cheme process reactor-hazards`; core#158).
+The work-up runs on cheme's solids models (core#165): the precipitation CR101 and the reslurry
+wash W101 are crystallizers with the liquor's other solutes as spectators, the filter-dryer F-101
+is one recipe vessel over the steps F101, W101, F102 and D101, and its filtration and drying
+times and its steam come from the filter and dryer models (`cheme process crystallizers`;
+DESIGN.md D-014). Needs cheme-as-code 1.8.0.
 
 | path | what |
 |---|---|
@@ -29,7 +34,7 @@ year-average flows come from (`cheme process recipe`, `cheme process reactor-haz
 | `reviews/` | review records |
 | `runs/` | one record per design session, written by `cheme runs record` (`runs/README.md`); never edited |
 | `DESIGN.md`, `PROGRESS.md`, `STAGES.md` | decisions, change log, stage definitions |
-| `scripts/` | generator scripts and `balance.py`, the dryer's balance and the duties (D-006) |
+| `scripts/` | generator scripts and `balance.py`, the feeds for 500 t/a and the dissolver's and brominator's duties (D-006, D-014) |
 | `.claude/skills/` | how an agent works here (not in git: run `cheme skills update` once after cloning) |
 
 ## How this repository works
@@ -61,5 +66,6 @@ cheme process build             # BFD and PFD from process/*.yaml
 cheme process streams           # stream table with provenance, block balances
 cheme process recipe            # batch cycle: occupancy, bottleneck, batches per year (--svg)
 cheme process reactor-hazards   # thermal screening, with the semi-batch's accumulation
-cheme run scripts/balance.py    # the dryer's balance and the duties
+cheme process crystallizers     # precipitation, wash, filters and dryer: solubility, crystals, moisture, steam
+cheme run scripts/balance.py    # the feeds for 500 t/a and the duties Q1, Q2
 ```
