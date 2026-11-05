@@ -1221,3 +1221,138 @@ a hazard the skid cannot have is recorded with its reason rather than left out s
 
 Assumptions: the drawn levels of T-202 and the KOH-204 entry (about 0.69 m and 0.71 m), the
 vent outlet heights of D-019, the zone screening of layout/zones.yaml (all ASSUMED).
+
+## D-040 The 3D model of the 1,000 h design to the layout-3d gate: routes, pins, proposals, details (2026-11-05)
+Decision: the committed model (`layout/plant-model.yaml`, `cheme layout build`, core 1.5.0)
+meets every requirement of gate `layout-3d` that the model itself can meet: model current,
+nozzles resolved (93 nozzles: 41 from the P&ID side, 52 overridden, none by default), every
+item above grade mounted on its frame's deck, routed or skipped, no clash, zones declared. The
+`drawings` requirement is met by a layout review record that cites the plot plan and two
+sections; that record is written by a reviewer who did not build the model (spec item 9), not
+here.
+- Routes: all 28 DN 25 lines of the line list (the process lines of the gate's `min_dn: 25`)
+  are routed, 41 of the 99 P&ID segments; the 42 DN 15 lines (58 segments) are skipped with the
+  reason of D-019 (skid small bore, run by the fabricator). 0 unrouted, 0 `direct` fallbacks.
+- Pins (`cheme layout pin`, `piping/routing.yaml`): every route of Skid B (its equipment, T-201
+  and T-202 included, is the same at both durations: the resize report's rows "invariant of
+  duration" and "fixed by setpoint"), and on Skid A every route that does not end on T-101 (the
+  manifolds of D-019, AN-102, FG-101): 36 pinned chains. The five routes that end on T-101
+  (AN-101, AN-104 S4, KOH-101, SP-101, O2V-101) stay generated, because the reservoir and its
+  nozzles change with the campaign (D-009, D-019): a pinned route would stay where the 1,000 h
+  tank had its nozzle and break at 10,000 h (`layout-pipe-disconnected`). AN-104 S4 takes a via
+  point instead (D-042).
+- The hose couplings (battery-limit points of KOH-x01 and SP-x01) move from 0.2 m outside the
+  frame's west edge to 0.15 m inside it: the hose valves HV-102, HV-103 and HV-203 then stand
+  inside the frame in plan (HV-203 stood 0.43 m beyond it, at 20.066 m against the edge at
+  20.5 m). The coupling sits behind the deck's guard rail at 0.9 m (KOH) and 0.4 m (drain), between its
+  mid rail (0.7 m above the deck) and top rail, or below the mid rail: reached through the rail from grade. Whether the
+  skid has a removable rail section there is the fabricator's (open, D-042).
+- Transmitter stands: core puts an instrument connection's transmitter on a stand 0.6 m out
+  from its flange. From the P&ID side, LT-201 (LIC-201) stood 0.24 m beyond the frame's north
+  edge, LT-203 (LIA-203) on the metering pump P-202, AT-201 and LT-202 on one spot, LT-101 and
+  AT-101 on one spot inside the 0.3 m side access of E-101A. Nozzle overrides in
+  `layout/equipment-placement.yaml` (T-101 N6 40 deg, N7 320 deg; T-201 N6 315, N7 0, N10 270;
+  T-202 N3 90; angles in each tank's own frame, elevations from the P&ID) put every stand inside
+  its frame, on its own spot, clear of the items, pipes and stack access. No P&ID change.
+- At 1,000 h no generated detail stands beyond a frame in plan any more (the record's
+  `details_outside_plan` is empty for both skids). What stays above the 2.35 m envelope top, and
+  may: the roof handrail and the ladder of T-101 to 2.886 m (core's tank family draws them on any
+  tank, also on a 1.07 m skid tank that has no roof walkway; the fabricator's tank has none, or a
+  removable rail, D-019), and the open vent and flue risers O2V-101 3.428 m, O2V-201 3.381 m,
+  FG-101 and FG-201 3.417 m, raised by the ASSUMED 1 m vent sphere (D-019), fitted at site. At
+  10,000 h the infeasible Skid A keeps its details beyond the frame (T-101 D 2.313 m): a result,
+  reported in the record, not fixed (D-015, D-021).
+- Proposals of the build, decided: the two ladders at the free ends of the utility rack PR-1
+  (to its 2.8 m tier) are pinned (`layout/site-plan.yaml`). No platform, no valve access
+  platform and no support steel is proposed (no nozzle or valve above 2.5 m, no free span over
+  the DN 25 span); the one shoe the build places (SP-201 S2 on Skid B's deck beam) is generated
+  with the route. The 29 step-overs the build proposes over the low DN 25 runs on the decks are
+  **not adopted**: the skid is worked from grade along its long sides and its 0.15 m deck is
+  stepped onto, not walked across between the rows (D-019); a 0.8 m wide stair over each 0.2 m
+  manifold would itself block the stack and pump access. Core 1.5.0 proposes a step-over wherever
+  a pipe whose top is within 0.75 m crosses a grating and has no way to decline one, so they stay
+  in the model as generated proposals (`review_needed`), drawn dashed; the take-off's
+  `step-over` group is therefore not skid steel (for the MTO, spec item 4). Core counts a
+  crossing with a proposed step-over as reviewed for the deck headroom; the crossings it does
+  not cover remain the accepted findings of D-019: KOH-101 to its hose coupling (0.73 m over
+  the deck); AN-104 S4, rerouted (D-042) to run at 2.10 m from its riser west of the stacks over
+  T-101's top, is no longer reported by core's headroom rule, so its acceptance is removed from
+  `checks/checks.yaml`.
+- Structures and access (skill `structures-access`), checked on the model: each frame has two
+  ways off its deck, the steps ST-x1 (south side, west end) and ST-x2 (east end), remote and
+  outside the zone (no `layout-escape-*` finding); core draws a 1.1 m guard rail with mid rail
+  and toe plate round each deck, broken at the steps (at 0.15 m a fall needs no guard rail by
+  the usual rule of 0.5 m, to be confirmed by the site standard: the rails are kept as drawn); every manual
+  valve (HV-x01 at 0.30 m, HV-x02 at 0.90 m, HV-x03 at 0.27 to 0.32 m above grade) and every
+  transmitter (1.35 m) is within reach of the deck or of grade (no `layout-operability`
+  finding); the motor removal envelopes of P-x01, K-x31, K-x41 and P-202 are free; the pump access
+  boxes of P-101, P-201 and P-202 stay accepted as in D-019 (a 1 m box round a pump does not fit a
+  2.44 m frame). The stack hand lift: D-042.
+
+Rejected: pinning the routes that end on T-101 (they would break at 10,000 h); suppressing the
+step-overs by raising the manifolds above 0.9 m (the stack connections sit at 0.20 and 0.28 m);
+an enclosure round the frame (D-019).
+
+Assumptions: the hose coupling points, the transmitter positions, the rack ladders and the
+decline of the step-overs (all ASSUMED, for the layout review).
+
+## D-041 The plans and sections of the skids: core's A1 sheet cropped to the drawing (2026-11-05)
+Decision: `scripts/regen.py` step 10 renders per scenario into `figures/skids/<H>h/` the plot
+plan of the whole plot (`layout-plan.svg/.png`, core's A1 sheet as written: the 32 x 16 m plot
+fills it at 1:50) and per skid its plan and four sections: across the reservoir and across the
+first stack (x, looking west; the stack's hand-lift lane to the south side, D-042), along the
+stack row and along the whole frame (y, looking north), named
+`layout-plan-skid-<k>` and `layout-section-<x|y>-skid-<k>-<reservoir|stack|stacks|frame>` so
+that a layout review record can cite them by the names core's `drawings` requirement looks for.
+Each is core's `cheme layout render --crop` sheet with only its frame changed
+(`scripts/_figures.py`): the viewBox cut to the drawing's clip region plus a margin, the grid
+bubbles of the lines through the drawing moved along their line to its edge, the scale bar,
+north arrow and title block moved into a strip under it, the title naming the view and saying
+"A1 sheet cropped to the drawing", and the PNG rasterised from that SVG by resvg (the library
+core's `--png` uses) at 10 px per sheet millimetre.
+
+Deviation from the spec (item 7, "crop to the skid so the drawing fills the sheet"): core 1.5.0
+draws every view on an A1 sheet at the largest standard scale that fits, and its largest is
+1:50, so a 9 x 5 m skid view fills about a fifth of the sheet's width however tight the `--crop`;
+there is no option for a larger scale or a smaller sheet. Cropping the sheet keeps the drawing
+exactly as core drew it, at a true 1:50 (one SVG unit is one sheet millimetre, the scale bar is
+core's), on a sheet that fits it. No `.glb` is committed: core 1.5.0 exports glTF and STL only
+from the viewer's Layout 3D page in a browser, not headless; README says how to open the model
+(`cheme serve`, `cheme export-static build/snapshot`).
+
+Rejected: rasterising core's PNG and cutting it (4 px per mm, too coarse); redrawing the views
+in the script (a second drawing code).
+
+Assumptions: none (presentation only).
+
+## D-042 The stacks' hand lift: column and carry lane checked by regen (2026-11-05)
+Decision: a stack (0.18 x 0.176 x 0.18 m, top 0.33 m above grade) is replaced by hand: its
+connections undone, it rises out of its seat and is carried across the frame to its south long
+side, the aisle at grade where the access step ST-x1 is (the north side holds the 1.95 m gas
+packages). `scripts/regen.py` step 13 checks per stack, against every solid of the model
+(item bodies and their generated parts, pipes with their outside diameter, steel, trays,
+supports; not the deck grating and not the step-overs, D-040):
+- the **lift column**, the stack's plan grown by the side hand room of `process/cells.yaml`
+  (0.3 m, ASSUMED, D-023) across its axis, from the stack's top up to the carry height plus the
+  stack's height: nothing may cross it (an envelope reason, the skid infeasible otherwise);
+- the **carry lane**, as wide as the column, from the column to just beyond the frame's south
+  edge: the carry height is the top of the highest solid in it, reported with the next ones
+  (record `skids.<k>.stack_lift`).
+Results at 1,000 h, both skids: every lift column clear. The carry height is 1.125 m above the
+deck (1.275 m above grade) for every stack, set by the deck's guard rail on the south edge
+(D-040); without it, by the supply header AN-x03 S1 at 0.767 m (stacks A to C) and the separator
+V-x21 at 0.761 m (stack D). The return riser AN-104 S4 rose at the tee 0.17 m in front of
+E-101A to 1.93 m, in that stack's lane (carry 1.97 m); a via point at x 7.95 m makes it run west
+along the header first and rise outside the lane. The stand of T-101's pH transmitter AT-101
+(N7) is turned out of that lane too (D-040). At 10,000 h (scratch) the grown T-101 (D 2.313 m)
+adds two reasons to Skid A's infeasibility: its anchor chair stands in E-101A's side access,
+and T-101, HV-101 and AN-101 cross E-101A's lift column; Skid B is unchanged.
+Open (for the layout review and the fabricator): whether a person at grade can hand a stack of
+its (unknown) weight over a 1.275 m rail at about 1.1 m reach, or the rail needs a removable
+section at the stack row, or the stacks are lifted from the deck; the stack weight (no vendor
+data: no `weight` in the equipment list).
+
+Reason: core sizes a stack's footprint with its access but models no lift envelope; the hand
+lift of D-023 was asserted, not checked.
+
+Assumptions: the hand room 0.3 m (D-023), the carry to the south side (all ASSUMED).

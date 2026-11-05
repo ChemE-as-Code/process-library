@@ -299,6 +299,74 @@ def model_pipes_over(model: dict[str, Any], footprint: list[float]) -> list[dict
     return found
 
 
+#: the model collections whose parts are solids a hand lift can meet (DESIGN.md D-042); the
+#: proposed step-overs are left out (not adopted, D-040), as are the deck gratings (the floor)
+SOLID_COLLECTIONS = (
+    "equipment",
+    "inline",
+    "structures",
+    "racks",
+    "trays",
+    "junction_boxes",
+    "platforms",
+    "support_steel",
+    "supports",
+)
+
+
+def model_solids(model: dict[str, Any]) -> list[dict[str, Any]]:
+    """Every solid of the model as ``{id, owner, plan: [x0, y0, x1, y1], z: [bottom, top]}``:
+    the parts of the items, in-line items, steel, trays and supports, and each straight run of
+    every pipe (padded by its outside radius and insulation). Deck gratings are floors, not
+    obstacles, and are left out."""
+    found = []
+    for key in SOLID_COLLECTIONS:
+        for owner in model.get(key) or []:
+            name = owner.get("tag") or owner.get("id")
+            for part in owner.get("parts") or []:
+                if part.get("material") == "grating":
+                    continue
+                plan, z = _part_plan(part), _part_z(part)
+                pid = part.get("id", name)
+                # steel by its member group (SKID-A/DECK: the deck's beams and handrail)
+                who = "/".join(pid.split("/")[:2]) if key in ("structures", "racks") else name
+                if plan is not None and z is not None:
+                    found.append({"id": pid, "owner": who, "plan": plan, "z": z})
+    for pipe in model.get("pipes") or []:
+        r = float(pipe.get("od") or 0.0) / 2 + float(pipe.get("insulation_mm") or 0.0) / 1000
+        points = pipe.get("points") or []
+        for k, (a, b) in enumerate(zip(points, points[1:])):
+            found.append(
+                {
+                    "id": f"{pipe['id']}#{k}",
+                    "owner": pipe["id"],
+                    "plan": [min(a[0], b[0]) - r, min(a[1], b[1]) - r, max(a[0], b[0]) + r, max(a[1], b[1]) + r],
+                    "z": [min(a[2], b[2]) - r, max(a[2], b[2]) + r],
+                }
+            )
+    return found
+
+
+def _part_z(part: dict[str, Any]) -> list[float] | None:
+    """A generated part's bottom and top elevation."""
+    kind = part.get("kind")
+    if kind == "box" and "centre" in part and "size" in part:
+        c, h = float(part["centre"][2]), float(part["size"][2]) / 2
+        return [c - h, c + h]
+    if kind == "annulus" and "centre" in part:
+        c, h = float(part["centre"][2]), float(part.get("depth", 0.0)) / 2
+        return [c - h, c + h]
+    points = [part[k] for k in ("start", "end", "centre", "point") if k in part]
+    if not points:
+        return None
+    pad = max(float(part.get("radius", 0.0)), float(part.get("radius_end", 0.0)))
+    if kind == "member" and part.get("profile"):
+        pad = max(float(v) for v in part["profile"]) / 2
+    zs = [float(p[2]) for p in points]
+    vertical = len(points) == 2 and abs(points[0][0] - points[1][0]) < 1e-9 and abs(points[0][1] - points[1][1]) < 1e-9
+    return [min(zs), max(zs)] if vertical else [min(zs) - pad, max(zs) + pad]
+
+
 def _part_top(part: dict[str, Any]) -> float | None:
     kind = part.get("kind")
     if kind == "cylinder" and "start" in part and "end" in part:

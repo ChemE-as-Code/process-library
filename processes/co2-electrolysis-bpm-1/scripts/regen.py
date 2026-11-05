@@ -50,9 +50,12 @@ Steps (design spec #330, section 6):
     route` without --line); the draft datasheets drafted again from the model as it now is,
     train B's from case skid-b (D-020), and `cheme process stack --write` into them;
     `cheme datasheets fill --case skid-a` for the 1xx tags and
-    `--case skid-b` for the 2xx tags, then per skid `cheme layout render` of the frame's
-    plan, a section across the reservoir (x) and one along the frame (y), SVG and PNG, copied
-    to figures/skids/<H>h/.
+    `--case skid-b` for the 2xx tags, then `cheme layout render` of the plot plan (core's A1
+    sheet, figures/skids/<H>h/layout-plan.{svg,png}) and per skid of the frame's plan, a
+    section across the reservoir and one across the first stack (x), one along the stack row
+    and one along the whole frame (y), each sheet cropped to its drawing at core's scale and
+    rasterised (scripts/_figures.py, DESIGN.md D-041), as
+    figures/skids/<H>h/layout-plan-skid-<k>.{svg,png} and layout-section-<x|y>-skid-<k>-<what>.
 11. `cheme control report --json` (into build/control/): the loop and sequence findings.
 12. Duty plots and comparisons: `cheme process duty D-A D-B D-A-ONOFF D-A-PART --plot
     figures/duty/<H>h/`; `--compare D-A,D-A-ONOFF,D-A-PART` at half the campaign's CO,
@@ -64,7 +67,9 @@ Steps (design spec #330, section 6):
     (process/design-basis.yaml skid_envelope), plus core's "is not inside structure"
     findings of `cheme validate --json`, and the stacks' maintenance access (process/cells.yaml
     stacks[].access: the clear space at the ends and sides of each stack, which core does not
-    model as an envelope) against the other items; the generated details (tank roof
+    model as an envelope) against the other items and their generated parts, and each stack's
+    hand lift (D-042): a lift column above it that nothing may cross, and the carry height over
+    the lane to the frame's south side, reported; the generated details (tank roof
     handrails, ladders, hose valves) above the envelope or outside the frame in plan and the
     pipes above it are reported apart. Then the validate findings.
 
@@ -135,6 +140,7 @@ import tempfile
 from pathlib import Path
 
 import _core
+import _figures
 import _lca
 import _results as res
 import _yamledit as ye
@@ -150,8 +156,10 @@ INPUTS = (
     "process/reactions.yaml",
     "experiments/electrochemistry/rbpm-1m-koh.yaml",
     "layout/equipment-placement.yaml",
+    "layout/site-plan.yaml",
     "layout/structures.yaml",
     "layout/zones.yaml",
+    "piping/routing.yaml",
     "control/cause-effect.yaml",
     "control/sequences.yaml",
     # the LCA's own inputs (step 20, #331); lca/lca.yaml is written in part by step 20
@@ -730,12 +738,23 @@ class Run:
         out = self.root / SCENARIO_FIGURES[0].format(h=f"{self.h:g}")
         _fresh(out)
         figures = []
+        # the plot plan of the whole plot: core's A1 sheet as it is (1:50 fits the 32 m plot)
+        for fmt in ([], ["--png"]):
+            for path in _core.render(self.root, "--plan", *fmt):
+                target = out / f"layout-plan{path.suffix}"
+                shutil.copyfile(path, target)
+                figures.append(str(target.relative_to(self.root)))
+        cells = self.load("process/cells.yaml")
+        scenario = f"{self.h:,.0f} h campaign"
         for key, skid in SKIDS.items():
             frame = _core.model_structure(model, skid["frame"])
             x0, y0, x1, y1 = frame["footprint"]
             deck = max(frame["levels"].values())
             items = _core.model_items_on(model, skid["frame"])
             reservoir = next(i for i in items if i["tag"] == skid["reservoir"])
+            stack_cfg = next(s for s in cells["stacks"] if s["id"] == STACKS[key])
+            access = {k: float(v["value"]) for k, v in (stack_cfg.get("access") or {}).items()}
+            stacks = [i for i in items if i["tag"] in stack_cfg["tags"]]
             tops = [i["bbox"][5] for i in items] + [
                 p["top_m"] for p in _core.model_pipes_over(model, frame["footprint"])
             ]
@@ -744,31 +763,48 @@ class Run:
             py0, py1 = y0 - VIEW_MARGIN["south"], y1 + VIEW_MARGIN["north"]
             x_res = (reservoir["bbox"][0] + reservoir["bbox"][3]) / 2
             y_mid = (y0 + y1) / 2
+            # the first stack across (its hand-lift lane to the south side, D-042) and the
+            # stack row along the frame, each as deep as the stacks with their hand room
+            first = min(stacks, key=lambda i: i["tag"])
+            x_stk = (first["bbox"][0] + first["bbox"][3]) / 2
+            y_stk = (min(i["bbox"][1] for i in stacks) + max(i["bbox"][4] for i in stacks)) / 2
+            stk_dx = first["bbox"][3] - first["bbox"][0] + 2 * access.get("side", 0.0)
+            stk_dy = max(i["bbox"][4] for i in stacks) - min(i["bbox"][1] for i in stacks)
+            stk_dy += 2 * access.get("end", 0.0)
+            name = f"Skid {key}"
+            section_x_crop = _crop(y0 - 1.0, 0.0, y1 + 1.0, z_top)
             views = {
-                "plan": ["--plan", "--crop", _crop(px0, py0, px1, py1)],
-                "section-x": [
-                    "--section",
-                    f"x={_r(x_res)}",
-                    "--depth",
-                    _r(reservoir["bbox"][3] - reservoir["bbox"][0] + 0.3),
-                    "--crop",
-                    _crop(y0 - 1.0, 0.0, y1 + 1.0, z_top),
-                ],
-                "section-y": [
-                    "--section",
-                    f"y={_r(y_mid)}",
-                    "--depth",
-                    _r(y1 - y0 + 0.4),
-                    "--crop",
-                    _crop(px0, 0.0, px1, z_top),
-                ],
-            }
-            for view, args in views.items():
-                for fmt in ([], ["--png"]):
-                    for path in _core.render(self.root, *args, *fmt):
-                        target = out / f"skid-{key.lower()}-{view}{path.suffix}"
-                        shutil.copyfile(path, target)
-                        figures.append(str(target.relative_to(self.root)))
+                f"layout-plan-skid-{key.lower()}": (
+                    f"{name} plan ({scenario})",
+                    ["--plan", "--crop", _crop(px0, py0, px1, py1)],
+                ),
+                f"layout-section-x-skid-{key.lower()}-reservoir": (
+                    f"{name} section x = {_r(x_res)} m through {skid['reservoir']}, looking west ({scenario})",
+                    ["--section", f"x={_r(x_res)}", "--depth",
+                     _r(reservoir["bbox"][3] - reservoir["bbox"][0] + 0.3), "--crop", section_x_crop],
+                ),
+                f"layout-section-x-skid-{key.lower()}-stack": (
+                    f"{name} section x = {_r(x_stk)} m through {first['tag']}, looking west ({scenario})",
+                    ["--section", f"x={_r(x_stk)}", "--depth", _r(stk_dx), "--crop", section_x_crop],
+                ),
+                f"layout-section-y-skid-{key.lower()}-stacks": (
+                    f"{name} section y = {_r(y_stk)} m along the stacks, looking north ({scenario})",
+                    ["--section", f"y={_r(y_stk)}", "--depth", _r(stk_dy), "--crop",
+                     _crop(px0, 0.0, px1, z_top)],
+                ),
+                f"layout-section-y-skid-{key.lower()}-frame": (
+                    f"{name} section y = {_r(y_mid)} m, the whole frame, looking north ({scenario})",
+                    ["--section", f"y={_r(y_mid)}", "--depth", _r(y1 - y0 + 0.4), "--crop",
+                     _crop(px0, 0.0, px1, z_top)],
+                ),
+            }  # fmt: skip
+            for stem, (title, args) in views.items():
+                for path in _core.render(self.root, *args):
+                    # core's A1 sheet cropped to the drawing, at its scale (D-041)
+                    svg = _figures.crop_sheet(path.read_text(encoding="utf-8"), title)
+                    (out / f"{stem}.svg").write_text(svg, encoding="utf-8", newline="")
+                    (out / f"{stem}.png").write_bytes(_figures.svg_to_png(svg))
+                    figures += [f"{out.relative_to(self.root)}/{stem}{s}" for s in (".svg", ".png")]
         self.summary["layout"] = {
             "build": written,
             "build_findings": model_findings,
@@ -896,6 +932,7 @@ class Run:
     def envelope_check(self) -> None:
         env = self.envelope()
         model = _core.plant_model(self.root)
+        solids = _core.model_solids(model)
         validate = _core.validate_findings(_core.validate(self.root))
         result = {}
         for key, skid in SKIDS.items():
@@ -957,8 +994,23 @@ class Run:
             cells = self.load("process/cells.yaml")
             stack_cfg = next(s for s in cells["stacks"] if s["id"] == STACKS[key])
             access = {k: float(v["value"]) for k, v in (stack_cfg.get("access") or {}).items()}
-            access_clear = _stack_access(items, stack_cfg["tags"], access)
+            access_clear = _stack_access(items, stack_cfg["tags"], access, solids)
             reasons += access_clear
+            # the hand lift of each stack out of the frame (D-023, D-042): a column above it that
+            # nothing crosses (a reason when it does), and the carry height over the lane to the
+            # frame's south side (reported)
+            by_tag = {i["tag"]: i for i in items}
+            lifts = [
+                _stack_lift(solids, by_tag[t], access.get("side", 0.0), frame["footprint"], deck, limit)
+                for t in stack_cfg["tags"]
+                if t in by_tag
+            ]
+            for lift in lifts:
+                if lift["column_blocked_by"]:
+                    reasons.append(
+                        f"stack lift: {', '.join(lift['column_blocked_by'])} over the lift column of "
+                        f"{lift['tag']} (up to {lift['column_top_m']:.3f} m)"
+                    )
             # generated details outside the frame in plan (ladders, nozzles, hose valves):
             # reported, not counted, as the details above the envelope
             outside = []
@@ -1003,6 +1055,7 @@ class Run:
                 "details_above_envelope": details,
                 "details_outside_plan": outside,
                 "stack_access_m": access,
+                "stack_lift": lifts,
                 "pipes_above_envelope": [{"id": p["id"], "line": p["line"], "top_m": p["top_m"]} for p in pipes],
                 "skid_feasible": feasible and bool(duty_ok),
             }
@@ -1017,6 +1070,14 @@ class Run:
                     "error",
                     f"Skid {key} cannot meet the {self.h:,.0f} h duty within the skid envelope: "
                     + "; ".join(reasons),
+                )
+            if lifts:
+                worst = max(lifts, key=lambda d: d["carry_height_above_deck_m"])
+                print(
+                    f"[13] Skid {key}: stack hand lift to the south side over at most "
+                    f"{worst['carry_height_above_deck_m']:.3f} m above the deck ({worst['tag']}, set by "
+                    f"{', '.join(worst['carry_set_by'])}); lift columns "
+                    f"{'clear' if not any(d['column_blocked_by'] for d in lifts) else 'blocked'}"
                 )
             if details or pipes:
                 self.note(
@@ -1358,6 +1419,7 @@ class Run:
             "details_above_envelope": env["details_above_envelope"],
             "details_outside_plan": env["details_outside_plan"],
             "stack_access_m": env["stack_access_m"],
+            "stack_lift": env["stack_lift"],
             "invariants": s["invariants"][key],
             "duty_result": final["duty"],
         }
@@ -1640,10 +1702,13 @@ def _molar(q: dict) -> float:
     return float(q["value"]) * factor
 
 
-def _stack_access(items: list[dict], tags: list[str], access: dict[str, float]) -> list[str]:
+def _stack_access(
+    items: list[dict], tags: list[str], access: dict[str, float], parts: list[dict] | None = None
+) -> list[str]:
     """The clear space at the ends (along the stack axis, the item's own x) and sides of each
     stack (process/cells.yaml stacks[].access) against the bodies of the other items on the
-    frame, at the stack's height; beyond the frame is the access aisle at grade."""
+    frame and their generated parts (*parts*: the model's solids), at the stack's height; beyond
+    the frame is the access aisle at grade."""
     end, side = access.get("end", 0.0), access.get("side", 0.0)
     by_tag = {i["tag"]: i for i in items}
     problems = []
@@ -1676,7 +1741,77 @@ def _stack_access(items: list[dict], tags: list[str], access: dict[str, float]) 
                         problems.append(
                             f"stack access: {other['tag']} stands in the {clear:g} m {kind} access of {tag}"
                         )
+                # the generated parts of the other items too (a transmitter stand, D-040)
+                for s in parts or []:
+                    if s["owner"] == tag or s["owner"] not in by_tag:
+                        continue
+                    p, z = s["plan"], s["z"]
+                    tol = 1e-6
+                    if (
+                        p[0] < ax1 - tol and p[2] > ax0 + tol and p[1] < ay1 - tol and p[3] > ay0 + tol
+                        and z[0] < z1 - tol and z[1] > z0 + tol
+                    ):  # fmt: skip
+                        problems.append(
+                            f"stack access: {s['id']} stands in the {clear:g} m {kind} access of {tag}"
+                        )
     return sorted(set(problems))
+
+
+def _stack_lift(
+    solids: list[dict], stack: dict, side: float, frame: list[float], deck: float, limit: float
+) -> dict:
+    """The hand lift of one stack (D-023, D-042): the stack, its connections undone, rises out
+    of its seat and is carried by hand across the frame to its south long side, the aisle at
+    grade (the north side holds the 1.95 m gas packages). The lift envelope is the stack's plan
+    grown by the side hand room across its axis; its column rises from the stack's top, its lane
+    runs from the stack to the frame's south edge. The carry height is the lowest the stack's
+    bottom can pass over everything in the lane (items and their parts, pipes, steel, trays);
+    the column must be clear from the stack's top up to that height plus the stack's own height,
+    and that top must stay under the envelope. Returns the column's blockers, the carry height
+    above the deck and what sets it."""
+    x0, y0, z0, x1, y1, z1 = stack["bbox"]
+    axis_y = round(stack["rotation_deg"] / 90.0) % 2 == 1  # the axis runs north-south
+    gx, gy = (side, 0.0) if axis_y else (0.0, side)
+    col = (x0 - gx, y0 - gy, x1 + gx, y1 + gy)
+    # from just beyond the frame's south edge (its deck handrail stands on the edge) to the column
+    lane = (col[0], frame[1] - 0.1, col[2], col[1])
+    tol = 1e-6
+    own = stack["tag"]
+
+    def meets(plan, box):
+        return plan[0] < box[2] - tol and plan[2] > box[0] + tol and plan[1] < box[3] - tol and plan[3] > box[1] + tol
+
+    in_lane = [s for s in solids if s["owner"] != own and meets(s["plan"], lane) and s["z"][1] > deck + tol]
+    lane_top = max((s["z"][1] for s in in_lane), default=z0)
+    setters = sorted({s["owner"] for s in in_lane if s["z"][1] >= lane_top - 0.005})
+    carry = max(lane_top, z0)
+    column_top = carry + (z1 - z0)
+    blockers = sorted(
+        {
+            s["owner"]
+            for s in solids
+            if s["owner"] != own
+            and not s["owner"].startswith(f"{own}/")
+            and meets(s["plan"], col)
+            and s["z"][1] > z1 + tol
+            and s["z"][0] < column_top - tol
+        }
+    )
+    tops: dict[str, float] = {}
+    for s in in_lane:
+        tops[s["owner"]] = max(tops.get(s["owner"], deck), s["z"][1])
+    return {
+        "tag": own,
+        "carry_height_above_deck_m": round(carry - deck, 3),
+        "carry_set_by": setters,
+        "lane": [
+            {"what": k, "top_above_deck_m": round(v - deck, 3)}
+            for k, v in sorted(tops.items(), key=lambda kv: (-kv[1], kv[0]))
+        ],
+        "column_top_m": round(column_top, 3),
+        "column_blocked_by": blockers,
+        "above_envelope": column_top > limit + tol,
+    }
 
 
 def _infeasible_sentences(key: str, h: float, did: str, duty: dict, envelope_ok: bool) -> list[str]:
