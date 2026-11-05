@@ -20,8 +20,8 @@
 
 | study | what | sheet | nodes | scenarios | worst band high / medium / low | actions |
 |---|---|---|---:|---:|---|---:|
-| `H-01` | Skid A: one-fill anolyte reservoir | P-01 | 8 | 77 | 39 / 30 / 8 | 52 |
-| `H-02` | Skid B: KOH dosing, bleed and make-up | P-02 | 9 | 92 | 50 / 28 / 14 | 55 |
+| `H-01` | Skid A: one-fill anolyte reservoir | P-01 | 8 | 77 | 39 / 30 / 8 | 54 |
+| `H-02` | Skid B: KOH dosing, bleed and make-up | P-02 | 9 | 92 | 50 / 28 / 14 | 57 |
 
 The node numbers mean the same part of each skid (N1 anolyte loop, N2 stacks and DC supply, N3
 cathode CO2 feed, N4 cathode gas outlet, N5 gas conditioning, N6 tail gas and vents, N7 Skid B's
