@@ -21,4 +21,32 @@ edit the XML (skill `pid-edit`). To move back, put the hand edits into the scrip
 A generator takes the sheet file as its argument and edits it in place, starting from the
 frame (for a new sheet: the one `cheme sheet new` wrote).
 
+The pilot skids of #330 (DESIGN.md D-007 to D-023):
+
+- `regen.py`: the single rerun command, `cheme run scripts/regen.py --duration H
+  [--scratch DIR] [--uncertainty] [--record]` or `--check [--duration H]`. It carries the design
+  basis through `cheme process cell`, `duty`, `stack --write`, `datasheets draft`, the balance
+  and `process build`, `layout build`, `datasheets fill` per case, `layout render`, `control
+  report`, the duty plots and comparisons and the envelope check into every value and figure that
+  depends on the campaign duration (steps 1 to 13), then checks the conditional invariants,
+  writes the calculation record `results/scenarios/<H>h/record.json` and, once both scenarios
+  have one, the resize report `results/resize-1000h-10000h.{json,md}` and README.md's results
+  table (steps 14 to 17). It also writes the calculated setpoints of `control/loops.yaml`
+  (step 9). An infeasible skid is a result, recorded with its reasons, never a tool error
+  (DESIGN.md D-023).
+  `--uncertainty` adds the bounding runs (step 15), `--record` the session record (step 18). It
+  owns the draft datasheets (D-020). `--check` regenerates every design scenario in a temporary
+  copy and reports any record, figure, model file or datasheet that differs (exit 3). `--scratch
+  DIR` runs in a copy and copies the scenario's figures and records back (D-021, D-022).
+- `_results.py`: the arithmetic of steps 14 to 17 (invariants, record, resize report) and the
+  uncertainty figures, plain SVG; no core import.
+- `skid_balance.py`: the flowsheet's stream values of both cases from core's stack and duty
+  results (library ADR 0027, contract `balance-output/1`).
+- `_core.py`: the one coupling to cheme-as-code (its commands' `--json` output only); the duty
+  and comparison fields the scripts read are mapped and checked there.
+- `_yamledit.py`: targeted edits of hand-maintained YAML that refuse any other change.
+- `draft_P-01.py`, `draft_P-02.py`: the generators of the skid P&IDs P-01 (Skid A) and P-02
+  (Skid B), both drawing with `_skid_pid.py` from the frames `pid/frames/P-0x.xml` (generated
+  sheets, DESIGN.md D-017): change them, then `cheme regen P-01 P-02`.
+
 `agent-run/` holds the runner and prompts of a staged agent design run (see its README).

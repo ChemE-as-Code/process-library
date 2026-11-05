@@ -23,8 +23,48 @@ capacity:
       run_duration: 1 h (WDE runs); one 5 h pH record in 20 mL 0.1 M KOH at 100 mA/cm2 (Fig. 3c source data); the Ni anode failed within 4 h (caption)
     measured_data: data/measured/wde-1m-koh.yaml (WDE, 1 M KOH, 25-250 mA/cm2) and experiments/electrochemistry/rbpm-1m-koh.yaml (cell voltage, CO and H2 Faradaic efficiency, WDE per run); scripts/adapt_4tu.py, DESIGN.md D-002, D-005
     cell_temperature: not stated by the paper or the dataset; 25 °C ASSUMED (room temperature, DESIGN.md D-005)
+  # The pilot-skid duty of #330 (DESIGN.md D-007 to D-015). Every value is a design choice,
+  # ASSUMED unless its source says otherwise; scripts/regen.py copies the product duty into
+  # process/cells.yaml (stacks[].product) and the duration into process/duties.yaml.
   pilot_skid:
-    status: not set (#330)
+    product:
+      component: CO
+      rate: {value: 0.100, unit: kg/h, provenance: assumed, source: "DESIGN.md D-008: ASSUMED pilot duty, CO delivered at the skid boundary; 28 cells of 100 cm2 on a 48 V bus (about 3.0 kW DC)"}
+      recovery: {value: 0.90, provenance: assumed, source: "DESIGN.md D-008, D-012: ASSUMED share of the CO formed that the gas conditioning (PSA X-x31) delivers"}
+      purity: {value: 0.99, unit: mol/mol, basis: dry, provenance: assumed, source: "DESIGN.md D-008: ASSUMED >= 0.99 mol CO dry, reached by the black-box PSA X-x31"}
+      pressure: {value: 5.0, unit: bar(a), provenance: assumed, source: "DESIGN.md D-008: ASSUMED; the feed compressor K-x31 delivers it plus psa_pressure_loss"}
+    # the pressure loss across the PSA X-x31: the compressor K-x31 discharges at the product
+    # pressure plus this (scripts/skid_balance.py writes both into process/flowsheet.yaml)
+    psa_pressure_loss: {value: 1.0, unit: bar, provenance: assumed, source: "ASSUMED pressure loss of the PSA package (DESIGN.md D-012); TBD vendor"}
+    threshold:
+      ph: 12
+      basis: concentration
+      source: "DESIGN.md D-003 and core ADR 0043: the time to a specified pH threshold (a design criterion, not a corrosion onset)"
+    duration:
+      design: {value: 1000, unit: h}
+      scenarios: [1000, 10000]
+      unit: h
+      source: "DESIGN.md D-009: design scenarios of the campaign length, not targets"
+    operating_hours: {value: 8000, unit: h/a, provenance: assumed, source: "ASSUMED pilot availability; scripts/regen.py copies it into process/cells.yaml stacks[].replacement"}
+    # Skid B's steady state (DESIGN.md D-010): scripts/regen.py sets D-B's dosing, bleed and
+    # make-up rates so that the anolyte holds these; ionic strength about 1.25 mol/L, inside
+    # the anolyte model's 1.5
+    skid_b_setpoints:
+      hydroxide_mol_l: {value: 0.5, unit: mol/L, provenance: assumed, source: "ASSUMED OH- setpoint of Skid B, concentration basis (DESIGN.md D-010)"}
+      carbon_mol_l: {value: 0.25, unit: mol/L, provenance: assumed, source: "ASSUMED dissolved-carbon setpoint of Skid B (DESIGN.md D-010)"}
+    skid_envelope:
+      frame: "one 20 ft frame per skid"
+      length: {value: 6.06, unit: m, provenance: assumed, source: "ASSUMED 20 ft frame plan, DESIGN.md D-015"}
+      width: {value: 2.44, unit: m, provenance: assumed, source: "ASSUMED 20 ft frame plan, DESIGN.md D-015"}
+      usable_height: {value: 2.20, unit: m, provenance: assumed, source: "ASSUMED usable height above the frame deck, DESIGN.md D-015"}
+    measured_electrolyte_state:
+      composition: "fresh 1 M KOH, 90 mL, 1 h at 1 A (the measured series)"
+      carbon_max: "computed by scripts/regen.py from the measured WDE and carbon share (about 0.01 mol/L)"
+      time_on_stream: {value: 1, unit: h, provenance: given, source: "experiments/electrochemistry/rbpm-1m-koh.yaml: 1 h runs"}
+    site: {value: NL, provenance: assumed, source: "ASSUMED, for the LCA (#331)"}
+    co2_source: {value: "merchant liquefied CO2, fossil industrial by-product", provenance: assumed, source: "ASSUMED, conservative; an owner decision (DESIGN.md D-016, #331)"}
+    co2_feed_per_area: {value: 10, unit: sccm/cm2, provenance: given, source: "the bench ratio, 50 sccm on 5 cm2 (capacity.reference_cell): the FE was measured at it"}
+    co2_recycle: {value: 0.95, provenance: assumed, source: "DESIGN.md D-012: ASSUMED share of the unreacted CO2 the PSA returns to the cathode feed"}
 feeds:
   - {name: carbon dioxide, state: humidified gas, note: "reference cell feed; pilot-skid source and purity in #330"}
   - {name: potassium hydroxide, state: aqueous anolyte, note: "initial fill and make-up in #330"}

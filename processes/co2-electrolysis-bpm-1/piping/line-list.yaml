@@ -1,3 +1,81 @@
 # Line list. Schema: `cheme schema lines`.
+# The lines of the two pilot skids of #330 on P-01 (Skid A, 1xx) and P-02 (Skid B, 2xx), drawn
+# by scripts/draft_P-01.py and draft_P-02.py (generated sheets). Each PFD stream of
+# process/flowsheet.yaml is one line (its `links`); a manifold to the four stacks is one line to
+# the last stack with a branch line to each of the others. Nominal diameters ASSUMED at the
+# concept stage (D-017): the anolyte loop DN 25 (11.2 L/min, about 0.3 m/s), the gas and the
+# small liquid lines DN 15, the vents DN 25.
 schema: cheme/lines/v1
-lines: []
+lines:
+  # -- Skid A (P-01) ----------------------------------------------------------------------
+  - {number: AN-101, from: "T-101", to: "P-101", nominal_diameter: DN25, fluid: Anolyte, sheet: P-01, notes: "recirculation pump suction; HV-101"}
+  - {number: AN-102, from: "P-101", to: "E-111", nominal_diameter: DN25, fluid: Anolyte, sheet: P-01, notes: "FIC-101 flow element"}
+  - {number: AN-103, from: "E-111", to: "E-101D", nominal_diameter: DN25, fluid: Anolyte, sheet: P-01, notes: "supply manifold under the stacks; branches AN-103A to C; TIC-111"}
+  - {number: AN-103A, from: "AN-103", to: "E-101A", nominal_diameter: DN25, fluid: Anolyte, sheet: P-01, notes: "supply manifold branch"}
+  - {number: AN-103B, from: "AN-103", to: "E-101B", nominal_diameter: DN25, fluid: Anolyte, sheet: P-01, notes: "supply manifold branch"}
+  - {number: AN-103C, from: "AN-103", to: "E-101C", nominal_diameter: DN25, fluid: Anolyte, sheet: P-01, notes: "supply manifold branch"}
+  - {number: AN-104, from: "E-101D", to: "T-101", nominal_diameter: DN25, fluid: Anolyte, sheet: P-01, notes: "return manifold with the anode O2; branches AN-104A to C; TSHH-112"}
+  - {number: AN-104A, from: "E-101A", to: "AN-104", nominal_diameter: DN25, fluid: Anolyte, sheet: P-01, notes: "return manifold branch"}
+  - {number: AN-104B, from: "E-101B", to: "AN-104", nominal_diameter: DN25, fluid: Anolyte, sheet: P-01, notes: "return manifold branch"}
+  - {number: AN-104C, from: "E-101C", to: "AN-104", nominal_diameter: DN25, fluid: Anolyte, sheet: P-01, notes: "return manifold branch"}
+  - {number: O2V-101, from: "T-101", to: "atmosphere (safe location)", nominal_diameter: DN25, fluid: Oxygen, sheet: P-01, notes: "reservoir vent, anode O2 and vapour; vent sizing and H2 crossover open (D-017)"}
+  - {number: KOH-101, from: "battery limit (1 M KOH fill)", to: "T-101", nominal_diameter: DN25, fluid: KOH solution, sheet: P-01, notes: "initial fill, once per campaign; HV-102"}
+  - {number: SP-101, from: "T-101", to: "site effluent (spent anolyte)", nominal_diameter: DN25, fluid: Anolyte, sheet: P-01, notes: "end-of-run drain; HV-103"}
+  - {number: CWS-101, from: "battery limit (cooling water)", to: "E-111", nominal_diameter: DN15, fluid: Cooling water, sheet: P-01, notes: "TV-111"}
+  - {number: CWR-101, from: "E-111", to: "battery limit (cooling water return)", nominal_diameter: DN15, fluid: Cooling water return, sheet: P-01}
+  - {number: CO2-101, from: "battery limit (CO2 supply)", to: "E-101A", nominal_diameter: DN15, fluid: CO2, sheet: P-01, notes: "FV-102 on the fresh CO2, then the recycle CO2-102 and the humidification water W-101 join; feed manifold under the stacks; branches CO2-101B to D"}
+  - {number: CO2-101B, from: "CO2-101", to: "E-101B", nominal_diameter: DN15, fluid: CO2, sheet: P-01, notes: "feed manifold branch"}
+  - {number: CO2-101C, from: "CO2-101", to: "E-101C", nominal_diameter: DN15, fluid: CO2, sheet: P-01, notes: "feed manifold branch"}
+  - {number: CO2-101D, from: "CO2-101", to: "E-101D", nominal_diameter: DN15, fluid: CO2, sheet: P-01, notes: "feed manifold branch"}
+  - {number: CO2-102, from: "X-131", to: "CO2-101", nominal_diameter: DN15, fluid: CO2, sheet: P-01, notes: "PSA CO2 recycle to the cathode feed"}
+  - {number: W-101, from: "battery limit (demineralised water)", to: "CO2-101", nominal_diameter: DN15, fluid: Water, sheet: P-01, notes: "cathode feed humidification; HV-104, FI-103"}
+  - {number: CG-101, from: "E-101A", to: "V-121", nominal_diameter: DN15, fluid: Cathode gas, sheet: P-01, notes: "cathode outlet manifold above the stacks; branches CG-101B to D"}
+  - {number: CG-101B, from: "E-101B", to: "CG-101", nominal_diameter: DN15, fluid: Cathode gas, sheet: P-01, notes: "cathode outlet manifold branch"}
+  - {number: CG-101C, from: "E-101C", to: "CG-101", nominal_diameter: DN15, fluid: Cathode gas, sheet: P-01, notes: "cathode outlet manifold branch"}
+  - {number: CG-101D, from: "E-101D", to: "CG-101", nominal_diameter: DN15, fluid: Cathode gas, sheet: P-01, notes: "cathode outlet manifold branch"}
+  - {number: CG-102, from: "V-121", to: "K-131", nominal_diameter: DN15, fluid: Cathode gas, sheet: P-01, notes: "cathode back-pressure PV-121 (PIC-121)"}
+  - {number: CG-103, from: "K-131", to: "X-131", nominal_diameter: DN15, fluid: Cathode gas, sheet: P-01, notes: "check valve on the discharge; relief of K-131 not sized (D-017)"}
+  - {number: CD-101, from: "V-121", to: "site effluent (condensate)", nominal_diameter: DN15, fluid: Cathode condensate, sheet: P-01, notes: "LV-122 (LIC-122)"}
+  - {number: CO-101, from: "X-131", to: "battery limit (CO product)", nominal_diameter: DN15, fluid: CO, sheet: P-01, notes: "product pressure PV-131 (PIC-131)"}
+  - {number: TG-101, from: "X-131", to: "X-132", nominal_diameter: DN15, fluid: Tail gas, sheet: P-01}
+  - {number: AIR-101, from: "battery limit (air)", to: "X-132", nominal_diameter: DN15, fluid: Air, sheet: P-01}
+  - {number: FG-101, from: "X-132", to: "atmosphere", nominal_diameter: DN25, fluid: Flue gas, sheet: P-01}
+  # -- Skid B (P-02) ----------------------------------------------------------------------
+  - {number: AN-201, from: "T-201", to: "P-201", nominal_diameter: DN25, fluid: Anolyte, sheet: P-02, notes: "recirculation pump suction; HV-201"}
+  - {number: AN-202, from: "P-201", to: "E-211", nominal_diameter: DN25, fluid: Anolyte, sheet: P-02, notes: "FIC-201 flow element"}
+  - {number: AN-203, from: "E-211", to: "E-201D", nominal_diameter: DN25, fluid: Anolyte, sheet: P-02, notes: "supply manifold under the stacks; branches AN-203A to C; TIC-211"}
+  - {number: AN-203A, from: "AN-203", to: "E-201A", nominal_diameter: DN25, fluid: Anolyte, sheet: P-02, notes: "supply manifold branch"}
+  - {number: AN-203B, from: "AN-203", to: "E-201B", nominal_diameter: DN25, fluid: Anolyte, sheet: P-02, notes: "supply manifold branch"}
+  - {number: AN-203C, from: "AN-203", to: "E-201C", nominal_diameter: DN25, fluid: Anolyte, sheet: P-02, notes: "supply manifold branch"}
+  - {number: AN-204, from: "E-201D", to: "T-201", nominal_diameter: DN25, fluid: Anolyte, sheet: P-02, notes: "return manifold with the anode O2; branches AN-204A to C; TSHH-212"}
+  - {number: AN-204A, from: "E-201A", to: "AN-204", nominal_diameter: DN25, fluid: Anolyte, sheet: P-02, notes: "return manifold branch"}
+  - {number: AN-204B, from: "E-201B", to: "AN-204", nominal_diameter: DN25, fluid: Anolyte, sheet: P-02, notes: "return manifold branch"}
+  - {number: AN-204C, from: "E-201C", to: "AN-204", nominal_diameter: DN25, fluid: Anolyte, sheet: P-02, notes: "return manifold branch"}
+  - {number: O2V-201, from: "T-201", to: "atmosphere (safe location)", nominal_diameter: DN25, fluid: Oxygen, sheet: P-02, notes: "reservoir vent, anode O2 and vapour; vent sizing and H2 crossover open (D-017)"}
+  - {number: KOH-201, from: "battery limit (1 M KOH fill)", to: "T-201", nominal_diameter: DN25, fluid: KOH solution, sheet: P-02, notes: "initial fill, once per campaign; HV-202"}
+  - {number: SP-201, from: "T-201", to: "site effluent (spent anolyte)", nominal_diameter: DN25, fluid: Anolyte, sheet: P-02, notes: "end-of-run drain; HV-203; the bleed BL-201 branches off upstream of HV-203 (DN 15 branch)"}
+  - {number: CWS-201, from: "battery limit (cooling water)", to: "E-211", nominal_diameter: DN15, fluid: Cooling water, sheet: P-02, notes: "TV-211"}
+  - {number: CWR-201, from: "E-211", to: "battery limit (cooling water return)", nominal_diameter: DN15, fluid: Cooling water return, sheet: P-02}
+  - {number: CO2-201, from: "battery limit (CO2 supply)", to: "E-201A", nominal_diameter: DN15, fluid: CO2, sheet: P-02, notes: "FV-202 on the fresh CO2, then the recycle CO2-202 and the humidification water W-201 join; feed manifold under the stacks; branches CO2-201B to D"}
+  - {number: CO2-201B, from: "CO2-201", to: "E-201B", nominal_diameter: DN15, fluid: CO2, sheet: P-02, notes: "feed manifold branch"}
+  - {number: CO2-201C, from: "CO2-201", to: "E-201C", nominal_diameter: DN15, fluid: CO2, sheet: P-02, notes: "feed manifold branch"}
+  - {number: CO2-201D, from: "CO2-201", to: "E-201D", nominal_diameter: DN15, fluid: CO2, sheet: P-02, notes: "feed manifold branch"}
+  - {number: CO2-202, from: "X-231", to: "CO2-201", nominal_diameter: DN15, fluid: CO2, sheet: P-02, notes: "PSA CO2 recycle to the cathode feed"}
+  - {number: W-201, from: "battery limit (demineralised water)", to: "CO2-201", nominal_diameter: DN15, fluid: Water, sheet: P-02, notes: "cathode feed humidification; HV-204, FI-203"}
+  - {number: CG-201, from: "E-201A", to: "V-221", nominal_diameter: DN15, fluid: Cathode gas, sheet: P-02, notes: "cathode outlet manifold above the stacks; branches CG-201B to D"}
+  - {number: CG-201B, from: "E-201B", to: "CG-201", nominal_diameter: DN15, fluid: Cathode gas, sheet: P-02, notes: "cathode outlet manifold branch"}
+  - {number: CG-201C, from: "E-201C", to: "CG-201", nominal_diameter: DN15, fluid: Cathode gas, sheet: P-02, notes: "cathode outlet manifold branch"}
+  - {number: CG-201D, from: "E-201D", to: "CG-201", nominal_diameter: DN15, fluid: Cathode gas, sheet: P-02, notes: "cathode outlet manifold branch"}
+  - {number: CG-202, from: "V-221", to: "K-231", nominal_diameter: DN15, fluid: Cathode gas, sheet: P-02, notes: "cathode back-pressure PV-221 (PIC-221)"}
+  - {number: CG-203, from: "K-231", to: "X-231", nominal_diameter: DN15, fluid: Cathode gas, sheet: P-02, notes: "check valve on the discharge; relief of K-231 not sized (D-017)"}
+  - {number: CD-201, from: "V-221", to: "site effluent (condensate)", nominal_diameter: DN15, fluid: Cathode condensate, sheet: P-02, notes: "LV-222 (LIC-222)"}
+  - {number: CO-201, from: "X-231", to: "battery limit (CO product)", nominal_diameter: DN15, fluid: CO, sheet: P-02, notes: "product pressure PV-231 (PIC-231)"}
+  - {number: TG-201, from: "X-231", to: "X-232", nominal_diameter: DN15, fluid: Tail gas, sheet: P-02}
+  - {number: AIR-201, from: "battery limit (air)", to: "X-232", nominal_diameter: DN15, fluid: Air, sheet: P-02}
+  - {number: FG-201, from: "X-232", to: "atmosphere", nominal_diameter: DN25, fluid: Flue gas, sheet: P-02}
+  - {number: KOH-202, from: "battery limit (5 M KOH)", to: "T-202", nominal_diameter: DN15, fluid: KOH solution, sheet: P-02, notes: "weekly refill of the day tank; HV-205"}
+  - {number: KOH-203, from: "T-202", to: "P-202", nominal_diameter: DN15, fluid: KOH solution, sheet: P-02}
+  - {number: KV-202, from: "T-202", to: "atmosphere (safe location)", nominal_diameter: DN15, fluid: Air, sheet: P-02, notes: "breather of the 5 M KOH day tank: the weekly fill and the continuous draw by P-202 (caustic mist; the breather type with the vendor)"}
+  - {number: KOH-204, from: "P-202", to: "T-201", nominal_diameter: DN15, fluid: KOH solution, sheet: P-02, notes: "continuous 5 M KOH dose (duty D-B)"}
+  - {number: W-202, from: "battery limit (demineralised water)", to: "T-201", nominal_diameter: DN15, fluid: Water, sheet: P-02, notes: "make-up water on level, LV-201 (LIC-201)"}
+  - {number: BL-201, from: "SP-201", to: "site effluent (bleed)", nominal_diameter: DN15, fluid: Anolyte, sheet: P-02, notes: "continuous bleed from the reservoir bottom, FV-203 (FIC-203); gravity flow at about 1.9 L/h, a metering pump is the alternative (D-017)"}
