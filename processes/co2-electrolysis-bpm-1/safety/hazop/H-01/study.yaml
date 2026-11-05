@@ -101,6 +101,12 @@ notes: >-
   measurement on O2V-101, no pressure measurement on the anolyte side (no pressure difference
   across the GDE), no heater (TIC-111 cools only), no eyewash or safety shower and no
   detector at the vents; where the analysis needs one, it is an action, never a safeguard.
+  H-01 and H-02 were drafted apart and then integrated (DESIGN.md D-030): the hardware the two
+  skids share is examined alike and rated by one convention (a utility upset or a routine
+  hose task E, a single failure D; the initial likelihood is that of the cause; an alarm seen
+  only after the damage is not credited). H01-S208, S410, S411, S507 and S508 mirror
+  H-02's analysis; where the two studies still rate the same hazard differently, the design
+  differs and the basis says why (safety/hazop/SESSION.md section 3.4).
 nodes:
   # ---------------------------------------------------------------- N1 anolyte loop
   - id: H01-N1
@@ -123,7 +129,7 @@ nodes:
             refs: [P-101, FIC-101, U-101, E-101A, E-101B, E-101C, E-101D]
             modes: [startup, normal, onoff-partload]
             safeguards: [H01-SG-I106, H01-SG-FIC101-FAL, H01-SG-I105]
-            actions: []
+            actions: [H01-A112]
             status: proposed
             by: agent
             risk:
@@ -192,7 +198,7 @@ nodes:
               initial:
                 - {category: asset, severity: "3", likelihood: D, basis: "Four GDEs flooded, the campaign lost (matrix 3); a single loop or drive failure (D).", evidence: [FIC-101, "benchmarks/reproductions/baumgartner-gde-pressure-window", D-018], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 0897883ced07f447, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: D}}}
               residual:
-                - {category: asset, severity: "3", likelihood: C, basis: "The LIC-122 high level alarm sees the extra liquid in V-121 and the operator reduces the flow and the current: one letter (an alarm with operator response, late for the GDE). No anolyte pressure and no pressure difference is measured.", evidence: [LIC-122], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 0a42b546bff60f53, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: C}}}
+                - {category: asset, severity: "3", likelihood: D, basis: "The LIC-122 high level alarm sees the anolyte in V-121 only after the GDEs have flooded: not credited for the flooding (as H02-S108). No anolyte pressure and no pressure difference is measured: nothing is credited.", evidence: [LIC-122], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 0897883ced07f447, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: D}}}
       - id: H01-N1-D3
         guide_word: more
         parameter: pressure (static head of T-101)
@@ -409,9 +415,9 @@ nodes:
             by: agent
             risk:
               initial:
-                - {category: people, severity: "3", likelihood: E, basis: "A caustic eye or skin burn, lost time (matrix 3 people); opening the loop is a routine maintenance task (E).", evidence: [D-019, D-023], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 0add4d78c6d857a7, inputs: {matrix: 0e87818000ffd702, category: people, severity: '3', likelihood: E}}}
+                - {category: people, severity: "3", likelihood: D, basis: "A caustic eye or skin burn, lost time (matrix 3 people); the loop is opened at every stack change and repair, an error a few times in the pilot's life (D, as H02-S807).", evidence: [D-019, D-023], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 407f2fd3a41b6ad0, inputs: {matrix: 0e87818000ffd702, category: people, severity: '3', likelihood: D}}}
               residual:
-                - {category: people, severity: "3", likelihood: D, basis: "SEQ-A-DRAIN drains and rinses the loop before the stacks are replaced (its S3): one letter (procedure). No per-stack isolation, no eyewash or shower is drawn.", evidence: [SEQ-A-DRAIN], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 407f2fd3a41b6ad0, inputs: {matrix: 0e87818000ffd702, category: people, severity: '3', likelihood: D}}}
+                - {category: people, severity: "3", likelihood: C, basis: "SEQ-A-DRAIN drains and rinses the loop before the stacks are replaced (its S3): one letter (procedure; SEQ-B-DRAIN has no rinse step, so H02-S807 keeps D). No per-stack isolation, no eyewash or shower is drawn.", evidence: [SEQ-A-DRAIN], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 227f8bc24e20e848, inputs: {matrix: 0e87818000ffd702, category: people, severity: '3', likelihood: C}}}
   # ---------------------------------------------------------------- N2 stacks and DC supply
   - id: H01-N2
     title: Stacks E-101A to D and their DC supply, rectifier U-101 (48 V bus)
@@ -476,9 +482,9 @@ nodes:
             by: agent
             risk:
               initial:
-                - {category: people, severity: "3", likelihood: D, basis: "A burn from a DC arc with recovery (matrix 3 people; a fatal arc on the 48 V bus is matrix 4, judged less likely at about 3 kW); KOH on the terminals over a pilot's life is expected (D).", evidence: [D-017, "layout/zones.yaml Z-HAZ-A"], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 407f2fd3a41b6ad0, inputs: {matrix: 0e87818000ffd702, category: people, severity: '3', likelihood: D}}}
+                - {category: people, severity: "4", likelihood: C, basis: "An electric arc on the DC bus with a person at the stacks (matrix 4 names it; a burn with recovery is the more frequent outcome); a short of the bus or the terminals once in the pilot's life (C), ASSUMED with no bus design yet (as H02-S204).", evidence: [D-017, layout/zones.yaml Z-HAZ-A], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
               residual:
-                - {category: people, severity: "3", likelihood: D, basis: "No fuse, DC breaker, shrouding or drip protection is drawn: nothing is credited.", evidence: [D-017], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 407f2fd3a41b6ad0, inputs: {matrix: 0e87818000ffd702, category: people, severity: '3', likelihood: D}}}
+                - {category: people, severity: "4", likelihood: C, basis: "No fuse, DC breaker, shrouding or drip protection is drawn: nothing is credited.", evidence: [D-017], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
           - id: H01-S204
             cause: "Earth fault: a KOH leak or the conductive anolyte connecting a stack terminal to the earthed frame, the SS316 cooler E-111 or P-101."
             consequence: "A leakage current through the anolyte to earth: a touch voltage on the frame, stray-current corrosion of E-111 and of the stack end plates; undetected without earth-fault monitoring, so a second fault becomes a short (H01-S203)."
@@ -505,7 +511,7 @@ nodes:
             consequence: "An arc on disconnecting under load or charge: burns to the hands and face; an ignition source at the stack flanges if the cathode gas train is not yet purged."
             refs: [U-101, JIC-101, E-101A, E-101B, E-101C, E-101D]
             modes: [maintenance]
-            safeguards: [H01-SG-N2-DRAIN-PERM]
+            safeguards: []
             actions: [H01-A202]
             status: proposed
             by: agent
@@ -513,7 +519,7 @@ nodes:
               initial:
                 - {category: people, severity: "3", likelihood: D, basis: "An arc burn with recovery (matrix 3 people); an isolation error in a task every 4000 h on four stacks (D).", evidence: [D-023], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 407f2fd3a41b6ad0, inputs: {matrix: 0e87818000ffd702, category: people, severity: '3', likelihood: D}}}
               residual:
-                - {category: people, severity: "3", likelihood: C, basis: "SEQ-A-DRAIN has U-101 off as its permissive before the drain and the stack work: one letter (procedure). No DC isolator, lock-out point or discharge is drawn.", evidence: [SEQ-A-DRAIN], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 227f8bc24e20e848, inputs: {matrix: 0e87818000ffd702, category: people, severity: '3', likelihood: C}}}
+                - {category: people, severity: "3", likelihood: D, basis: "The SEQ-A-DRAIN permissive 'U-101 off' is a switched-off rectifier, not an isolation: no lockable DC isolator, earthing or discharge point is drawn and the stacks keep their own charge, so nothing is credited (as H02-S208).", evidence: [SEQ-A-DRAIN, D-017], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 407f2fd3a41b6ad0, inputs: {matrix: 0e87818000ffd702, category: people, severity: '3', likelihood: D}}}
           - id: H01-S206
             cause: "The 0.18 m stack lifted out vertically by hand with 0.3 m of hand room (the spec's 1.0 m and 0.8 m cannot be met in the frame, D-019, D-023); stack mass not stated (vendor)."
             consequence: "A back or hand injury, the stack dropped onto the deck or the manifolds (KOH residue splashed, a manifold broken)."
@@ -525,9 +531,9 @@ nodes:
             by: agent
             risk:
               initial:
-                - {category: people, severity: "2", likelihood: E, basis: "A minor handling injury, restricted work (matrix 2 people); four stacks lifted at every interval, a routine task (E).", evidence: [D-019, D-023], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: b2ed0f03cb2b53eb, inputs: {matrix: 0e87818000ffd702, category: people, severity: '2', likelihood: E}}}
+                - {category: people, severity: "2", likelihood: D, basis: "A minor handling injury, restricted work (matrix 2 people); a lift at every stack interval (4000 h, ASSUMED) on four stacks, a few injuries in the pilot's life (D, as H02-S207).", evidence: [D-019, D-023], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5e99598f1645e00d, inputs: {matrix: 0e87818000ffd702, category: people, severity: '2', likelihood: D}}}
               residual:
-                - {category: people, severity: "2", likelihood: E, basis: "No lifting aid or manual-handling assessment exists: nothing is credited.", evidence: [D-023], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: b2ed0f03cb2b53eb, inputs: {matrix: 0e87818000ffd702, category: people, severity: '2', likelihood: E}}}
+                - {category: people, severity: "2", likelihood: D, basis: "No lifting aid or manual-handling assessment exists: nothing is credited.", evidence: [D-023], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5e99598f1645e00d, inputs: {matrix: 0e87818000ffd702, category: people, severity: '2', likelihood: D}}}
       - id: H01-N2-D5
         guide_word: other-than
         parameter: location (rectifier and the hazardous zone)
@@ -549,6 +555,26 @@ nodes:
               residual:
                 - {category: people, severity: "4", likelihood: B, basis: "U-101 stands outside Z-HAZ-A, more than 1 m from the zone sources: one letter, not two, because in an enclosure the zone radius does not remove the path. I-104 stops the DC output but not the cabinet's own supply, so it does not remove the ignition source: not credited here.", evidence: [D-019, I-104], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 19c20d626e6f11bf, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: B}}}
                 - {category: asset, severity: "4", likelihood: B, basis: "As for people.", evidence: [D-019], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: af9a4e7fb863e19d, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '4', likelihood: B}}}
+      - id: H01-N2-D6
+        guide_word: part-of
+        parameter: current
+        description: "Uneven share of the 80 A among the four parallel stacks."
+        scenarios:
+          - id: H01-S208
+            cause: "One stack's resistance changes (a shorted cell, a dried membrane, a flooded GDE in another stack): on the common bus the four stacks in parallel no longer take 20 A each."
+            consequence: "One stack carries well above 20 A at constant total current: local heating, hot spots and a membrane burn-through in that stack (H2 into the anolyte, H01-S115); nothing on P-01 measures the current or voltage per stack."
+            refs: [U-101, JIC-101, E-101A, E-101B, E-101C, E-101D]
+            modes: [normal, onoff-partload]
+            safeguards: []
+            actions: [H01-A102]
+            status: proposed
+            by: agent
+            notes: "Added when H-01 and H-02 were integrated: the same hardware is examined in H-02 as H02-S202."
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: C, basis: "A stack lost (matrix 3); an uneven share large enough to damage once in the pilot's life (C), as H02-S202.", evidence: [D-017], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 0a42b546bff60f53, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: C}}}
+              residual:
+                - {category: asset, severity: "3", likelihood: C, basis: "No per-stack current or voltage measurement: nothing is credited.", evidence: [D-017], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 0a42b546bff60f53, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: C}}}
   # ---------------------------------------------------------------- N3 cathode CO2 feed
   - id: H01-N3
     title: Cathode CO2 feed - fresh CO2 FV-102, PSA recycle CO2-102, humidification W-101, the cathode side of E-101A to D
@@ -575,9 +601,9 @@ nodes:
             by: agent
             risk:
               initial:
-                - {category: asset, severity: "3", likelihood: D, basis: "The four stacks' GDEs degraded and the PSA and oxidiser overloaded, the campaign lost (matrix 3); a supply interruption or an air loss a few times in the pilot's life (D).", evidence: [D-016, "control/philosophy.md F-AIR"], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 0897883ced07f447, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: D}}}
+                - {category: asset, severity: "2", likelihood: E, basis: "The GDEs of the four stacks starved for the minutes until the operator acts (recoverable), the PSA and the oxidiser upset, the campaign stopped for days (matrix 2, as H02-S301; the H2-rich gas to X-132 is H01-S603); a supply run-out or a loss of instrument air is a utility upset, about once a year (E).", evidence: [D-016, control/philosophy.md F-AIR], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: bf0b9e1abb3d1724, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '2', likelihood: E}}}
               residual:
-                - {category: asset, severity: "3", likelihood: C, basis: "The FIC-102 low flow alarm with the operator reducing the current (loops.yaml): one letter; it is independent of a supply loss. No automatic trip on low CO2 exists (F-AIR leaves the current trip to the operator).", evidence: [FIC-102, "control/loops.yaml FIC-102"], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 0a42b546bff60f53, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: C}}}
+                - {category: asset, severity: "2", likelihood: D, basis: "The FIC-102 low flow alarm with the operator reducing the current (loops.yaml): one letter; it is independent of a supply loss. No automatic trip on low CO2 exists (F-AIR leaves the current trip to the operator).", evidence: [FIC-102, control/loops.yaml FIC-102], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9fee79cac88fcd1e, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '2', likelihood: D}}}
           - id: H01-S302
             cause: "The FIC-102 flow transmitter fails high: the loop closes FV-102 while the current stays on."
             consequence: "As H01-S301: H2-rich cathode gas, starved GDEs, the PSA and oxidiser overloaded with H2; the FIC-102 low alarm reads the failed transmitter and does not act."
@@ -589,9 +615,9 @@ nodes:
             by: agent
             risk:
               initial:
-                - {category: asset, severity: "3", likelihood: D, basis: "As H01-S301 (matrix 3); a single transmitter failure (D).", evidence: [FIC-102], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 0897883ced07f447, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: D}}}
+                - {category: asset, severity: "2", likelihood: D, basis: "As H01-S301 (matrix 2); a single transmitter failure (D).", evidence: [FIC-102], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9fee79cac88fcd1e, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '2', likelihood: D}}}
               residual:
-                - {category: asset, severity: "3", likelihood: D, basis: "The only alarm shares the failed transmitter; no trip acts on the CO2 feed: nothing is credited.", evidence: [FIC-102], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 0897883ced07f447, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: D}}}
+                - {category: asset, severity: "2", likelihood: D, basis: "The only alarm shares the failed transmitter; no trip acts on the CO2 feed: nothing is credited.", evidence: [FIC-102], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9fee79cac88fcd1e, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '2', likelihood: D}}}
       - id: H01-N3-D2
         guide_word: less
         parameter: flow (humidification water)
@@ -646,11 +672,11 @@ nodes:
             by: agent
             risk:
               initial:
-                - {category: people, severity: "3", likelihood: C, basis: "CO and CO2 exposure from a stack seal blow-out, reversible (matrix 3 people); a supply regulator failure together with FV-102 wide open could happen once in the pilot's life (C).", evidence: [D-016, D-017], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 227f8bc24e20e848, inputs: {matrix: 0e87818000ffd702, category: people, severity: '3', likelihood: C}}}
+                - {category: people, severity: "4", likelihood: C, basis: "CO2 asphyxiation or CO poisoning in the enclosure from a stack seal blow-out, a fatality (matrix 4 people, as every release of cathode gas or CO2 into the enclosure in H-01 and H-02, and as H02-S303); a supply regulator failure together with FV-102 wide open could happen once in the pilot's life (C).", evidence: [D-016, D-017], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
                 - {category: asset, severity: "3", likelihood: C, basis: "Four stacks lost (matrix 3).", evidence: [D-017], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 0a42b546bff60f53, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: C}}}
               residual:
-                - {category: people, severity: "3", likelihood: B, basis: "The PIC-121 high alarm (the cathode pressure, independent of FV-102 and of the supply) with the operator closing FV-102 by hand: one letter; it is late if the rise is fast. No relief device is credited (none drawn).", evidence: [PIC-121], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: c82e4ae0a81c19f1, inputs: {matrix: 0e87818000ffd702, category: people, severity: '3', likelihood: B}}}
-                - {category: asset, severity: "3", likelihood: B, basis: "As for people.", evidence: [PIC-121], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 73f70cb6a6a112aa, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: B}}}
+                - {category: people, severity: "4", likelihood: C, basis: "The PIC-121 high alarm is too slow for a pressurisation from the supply pressure through a wide-open FV-102 (seconds on the small cathode volume) and is not credited (as H02-S303); no relief device is drawn: nothing is credited.", evidence: [PIC-121], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
+                - {category: asset, severity: "3", likelihood: C, basis: "As for people.", evidence: [PIC-121], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 0a42b546bff60f53, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: C}}}
       - id: H01-N3-D5
         guide_word: less
         parameter: temperature (CO2 feed)
@@ -709,7 +735,7 @@ nodes:
               initial:
                 - {category: people, severity: "3", likelihood: C, basis: "CO poisoning with recovery at another user of the supply (matrix 3 people); a supply pressure loss with the valves open could happen once (C).", evidence: [CO2-101, W-101], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 227f8bc24e20e848, inputs: {matrix: 0e87818000ffd702, category: people, severity: '3', likelihood: C}}}
               residual:
-                - {category: people, severity: "3", likelihood: C, basis: "No check valve on CO2-101 or W-101 and no low supply pressure alarm: nothing is credited.", evidence: [D-017], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 227f8bc24e20e848, inputs: {matrix: 0e87818000ffd702, category: people, severity: '3', likelihood: C}}}
+                - {category: people, severity: "3", likelihood: C, basis: "No check valve on CO2-101 or W-101 and no low supply pressure alarm: nothing is credited. On the CO2 path alone the FIC-102 low flow alarm would take one letter (as H02-S305); the W-101 path has no alarm and sets the rating.", evidence: [D-017], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 227f8bc24e20e848, inputs: {matrix: 0e87818000ffd702, category: people, severity: '3', likelihood: C}}}
   # ---------------------------------------------------------------- N4 cathode gas outlet
   - id: H01-N4
     title: Cathode gas outlet - manifold CG-101 to CG-101D, separator V-121, condensate CD-101 / LV-122, back-pressure PV-121
@@ -752,6 +778,23 @@ nodes:
                 - {category: people, severity: "4", likelihood: D, basis: "CO poisoning in the enclosure, a fatality (matrix 4); a single transmitter failure (D).", evidence: [PIC-121], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 758dc1fcaab66e9f, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: D}}}
               residual:
                 - {category: people, severity: "4", likelihood: C, basis: "Only I-103 on the CO detector, after the release: one letter. The alarm shares the failed transmitter; no independent pressure trip and no relief device on the cathode side.", evidence: [I-103], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
+          - id: H01-S411
+            cause: "K-131 stops (motor fault, its own protection, a local power fault) while U-101 keeps the current on: the gas made at the cathodes has nowhere to go (no bypass or vent of the cathode gas train)."
+            consequence: "The cathode pressure rises at the gas production: reverse pressure difference across the GDE and the membrane, cathode gas (H2, CO) pushed into the anolyte (to O2V-101, H01-S403), stack seals leak H2 and CO into the enclosure, membranes damaged."
+            refs: [K-131, CG-102, PIC-121, PV-121, E-101A, E-101B, E-101C, E-101D, U-101]
+            modes: [startup, normal, onoff-partload]
+            safeguards: [H01-SG-PIC121-PAH, H01-SG-I103, H01-SG-I104]
+            actions: [H01-A401]
+            status: proposed
+            by: agent
+            notes: "Added when H-01 and H-02 were integrated: the same hardware is examined in H-02 as H02-S401. Only the gas trips I-103 and I-104 stop K-131 and trip U-101 together; a K-131 stop by itself does not trip U-101 in the C&E."
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: D, basis: "Membranes and seals of the four stacks (matrix 3); a compressor stop a few times in the pilot's life (D).", evidence: [K-131, control/cause-effect.yaml], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 0897883ced07f447, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: D}}}
+                - {category: people, severity: "4", likelihood: D, basis: "H2 and CO released at the stack seals in the enclosure, CO poisoning or ignition (matrix 4 people); a compressor stop with the cathode outlet blocked a few times in the pilot's life (D, as H01-S401).", evidence: [layout/zones.yaml, K-131], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 758dc1fcaab66e9f, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: D}}}
+              residual:
+                - {category: asset, severity: "3", likelihood: C, basis: "The PIC-121 high alarm with the operator tripping U-101: its transmitter does not share the compressor cause, one letter.", evidence: [PIC-121], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 0a42b546bff60f53, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: C}}}
+                - {category: people, severity: "4", likelihood: B, basis: "The PIC-121 high alarm (one letter); I-103 and I-104 trip U-101 once gas is released: one letter for the pair (single detectors at ASSUMED locations, sil null), as H01-S401.", evidence: [PIC-121, I-103, I-104], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 19c20d626e6f11bf, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: B}}}
       - id: H01-N4-D2
         guide_word: more
         parameter: pressure difference across the GDE (cathode over anolyte)
@@ -789,7 +832,24 @@ nodes:
               initial:
                 - {category: asset, severity: "3", likelihood: E, basis: "Four GDEs flooded and K-131 damaged, the campaign lost (matrix 3); an instrument air upset about once a year (E).", evidence: ["control/philosophy.md F-AIR", "control/loops.yaml PIC-121", D-018], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d1dca7692e91dd35, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: E}}}
               residual:
-                - {category: asset, severity: "3", likelihood: D, basis: "The LIC-122 high level alarm sees the KOH in V-121 and the operator stops K-131 and the current: one letter (LV-122 also fails closed on air loss, so the level rises). PIC-121 has no low alarm; the fail-open PV-121 protects against pressurising, not against K-131 pulling a vacuum.", evidence: [LIC-122], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 0897883ced07f447, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: D}}}
+                - {category: asset, severity: "3", likelihood: E, basis: "The LIC-122 high level alarm sees the KOH in V-121 only after the GDEs have flooded: it protects K-131 against the carried-over liquid but is not credited for the flooding, the larger part of the loss (as H02-S403). PIC-121 has no low alarm; the fail-open PV-121 protects against pressurising, not against K-131 pulling a vacuum: nothing is credited.", evidence: [LIC-122], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d1dca7692e91dd35, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: E}}}
+          - id: H01-S410
+            cause: "The PIC-121 transmitter reads high and K-131 pulls the cathode gas train below atmospheric pressure: air drawn in at the flanges of CG-101, CG-102, V-121 and the K-131 suction, or back through CD-101 from the effluent while LV-122 is open."
+            consequence: "O2 in the H2 and CO cathode gas compressed by K-131 to 6 bar(a): a flammable mixture in K-131, CG-103 and the PSA X-131, ignited by compression heat or in the PSA: explosion in the gas train."
+            refs: [PIC-121, PV-121, K-131, CG-101, CG-102, V-121, CD-101, CG-103, X-131]
+            modes: [normal, onoff-partload]
+            safeguards: []
+            actions: [H01-A402]
+            status: proposed
+            by: agent
+            notes: "Added when H-01 and H-02 were integrated: the same hardware is examined in H-02 as H02-S404. No O2 measurement in the cathode gas is drawn."
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, basis: "An explosion in the gas train at the skid (matrix 4 people); needs the vacuum and an air path (B), as H02-S404.", evidence: [K-131, X-131], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 19c20d626e6f11bf, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: B}}}
+                - {category: asset, severity: "4", likelihood: B, basis: "Loss of the skid's gas train and enclosure (matrix 4 asset).", evidence: [X-131], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: af9a4e7fb863e19d, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '4', likelihood: B}}}
+              residual:
+                - {category: people, severity: "4", likelihood: B, basis: "Nothing independent is drawn: nothing is credited.", evidence: [PIC-121], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 19c20d626e6f11bf, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: B}}}
+                - {category: asset, severity: "4", likelihood: B, basis: "As for people.", evidence: [PIC-121], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: af9a4e7fb863e19d, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '4', likelihood: B}}}
       - id: H01-N4-D4
         guide_word: more
         parameter: level (V-121)
@@ -925,8 +985,10 @@ nodes:
             risk:
               initial:
                 - {category: people, severity: "4", likelihood: E, basis: "A CO release in the enclosure, a fatality (matrix 4 people); an instrument air upset about once a year (E).", evidence: ["control/philosophy.md F-AIR", "control/loops.yaml PIC-131 unresolved"], status: proposed, by: agent, band: {value: very-high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 4b32f6ddf7935923, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: E}}}
+                - {category: asset, severity: "3", likelihood: E, basis: "K-131 or X-131 destroyed, 10 to 100 kEUR (matrix 3, as H01-S501 and H02-S501).", evidence: [K-131, X-131], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d1dca7692e91dd35, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: E}}}
               residual:
                 - {category: people, severity: "4", likelihood: D, basis: "Only I-103 after the release: one letter. The PSA's pressure protection and its response to a closed product valve are not known (vendor).", evidence: [I-103], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 758dc1fcaab66e9f, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: D}}}
+                - {category: asset, severity: "3", likelihood: E, basis: "Nothing limits the pressure: nothing is credited for the asset.", evidence: [K-131], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d1dca7692e91dd35, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: E}}}
       - id: H01-N5-D2
         guide_word: reverse
         parameter: flow (X-131 to K-131)
@@ -1015,6 +1077,46 @@ nodes:
         description: "Less PSA recycle CO2 to the cathode feed."
         notes: "A loss of the recycle is a loss of most of the cathode CO2 (2.94 of 3.3 kg/h): the consequence is that of H01-S301 (H2-rich cathode gas), and FIC-102 controls only the fresh CO2 (loops.yaml unresolved). Studied there."
         scenarios: []
+      - id: H01-N5-D8
+        guide_word: other-than
+        parameter: maintenance (PSA and compressor)
+        description: "Opening X-131 or the K-131 heads."
+        scenarios:
+          - id: H01-S507
+            cause: "X-131 or K-131 opened for maintenance: the PSA beds hold adsorbed CO at 5 to 6 bar(a), more than the lines; only a CO2 purge is drawn."
+            consequence: "CO desorbs and is released at the opened package: CO poisoning of the fitter."
+            refs: [X-131, K-131]
+            modes: [maintenance]
+            safeguards: [H01-SG-SEQ-A-PURGE]
+            actions: [H01-A506]
+            status: proposed
+            by: agent
+            notes: "Added when H-01 and H-02 were integrated: the same hardware is examined in H-02 as H02-S507."
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, basis: "CO poisoning at the package (matrix 4 people); package maintenance with residual CO once in the pilot's life (C), as H02-S507.", evidence: [D-012], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
+              residual:
+                - {category: people, severity: "4", likelihood: B, basis: "The CO2 purge of SEQ-A-STOP to CO- and H2-free cathode gas (sampled): one letter as a procedure; it does not test the beds.", evidence: [SEQ-A-STOP], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 19c20d626e6f11bf, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: B}}}
+      - id: H01-N5-D9
+        guide_word: more
+        parameter: temperature (K-131 discharge)
+        description: "K-131 discharge above 40 degC."
+        scenarios:
+          - id: H01-S508
+            cause: "The cooling of the diaphragm compressor K-131 (part of the package) fails."
+            consequence: "Hot gas at about 6 bar(a) to X-131: adsorbent and polymer seal damage of the PSA, shorter diaphragm life."
+            refs: [K-131, CG-103, X-131]
+            modes: [normal, onoff-partload]
+            safeguards: []
+            actions: [H01-A503]
+            status: proposed
+            by: agent
+            notes: "Added when H-01 and H-02 were integrated: the same hardware is examined in H-02 as H02-S504."
+            risk:
+              initial:
+                - {category: asset, severity: "2", likelihood: C, basis: "Adsorbent or seals, 1 to 10 kEUR (matrix 2); once in the pilot's life (C), as H02-S504.", evidence: [K-131], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ce030c1c53acc8f1, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '2', likelihood: C}}}
+              residual:
+                - {category: asset, severity: "2", likelihood: C, basis: "Nothing drawn (the package's own): nothing is credited.", evidence: [K-131], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ce030c1c53acc8f1, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '2', likelihood: C}}}
   # ---------------------------------------------------------------- N6 tail gas and vents
   - id: H01-N6
     title: Tail gas and vents - oxidiser X-132 (TG-101, AIR-101, FG-101) and the reservoir vent O2V-101
@@ -1345,7 +1447,7 @@ nodes:
             refs: [K-141, AIA-141, E-101A, E-101B, E-101C, E-101D, V-121, K-131, X-131]
             modes: [startup, normal, onoff-partload, stop, trip]
             safeguards: [H01-SG-I103]
-            actions: [H01-A901]
+            actions: [H01-A901, H01-A112]
             status: proposed
             by: agent
             risk:
@@ -1463,7 +1565,7 @@ safeguards:
 actions:
   # N1 anolyte loop
   - {id: H01-A101, text: "Give I-106 a flow measurement independent of the FIC-101 loop transmitter: a separate low-low flow element on AN-102 / AN-103, or a pressure difference across the stack supply and return manifolds; and confirm with the stack vendor that TSHH-112 in the common return AN-104 sees a stack overheating at low or no flow (H01-S102). Update control/cause-effect.yaml I-106 and the SIL screening.", owner: instrument and control engineer, status: proposed, by: agent}
-  - {id: H01-A102, text: "Add per-stack monitoring so that one starved stack is seen: the voltage of each stack E-101A to D (with the DC bus, H01-A202) and an anolyte outlet temperature on each return branch AN-104A to C and AN-104, with an alarm on a stack that deviates from the others (H01-S104).", owner: instrument and control engineer, status: proposed, by: agent}
+  - {id: H01-A102, text: "Add per-stack monitoring so that one starved stack is seen: the voltage of each stack E-101A to D (with the DC bus, H01-A202) and an anolyte outlet temperature on each return branch AN-104A to C and AN-104, with an alarm on a stack that deviates from the others, and the current of each stack for an uneven share on the parallel bus (H01-S104, H01-S208; as H02-A102).", owner: instrument and control engineer, status: proposed, by: agent}
   - {id: H01-A103, text: "Measure the anolyte pressure at the stack inlet (AN-103) and alarm, and trip U-101, on the pressure difference to the cathode (PIC-121) outside the GDE window; take the window from the stack vendor and from benchmarks/reproductions/baumgartner-gde-pressure-window (#332). Covers the anolyte over the cathode (flooding, H01-S105) and the cathode over the anolyte (breakthrough, H01-S403).", owner: process engineer, status: proposed, by: agent}
   - {id: H01-A104, text: "State the largest static head of T-101 the stacks accept on their anode side against the cathode's 1.1 bar(a) (the GDE window, #332, and the vendor), and make it a limit on the reservoir height; record that the 10,000 h reservoir (3.47 m, D-015) fails it as well as the envelope (H01-S106).", owner: process engineer, status: proposed, by: agent}
   - {id: H01-A105, text: "Add a low temperature alarm to TIC-111 and decide whether the anolyte needs a heater to hold the measured 25 degC in winter or after a loss of air (TV-111 fails open); none is drawn and TIC-111 can only cool (H01-S109).", owner: process engineer, status: proposed, by: agent}
@@ -1473,6 +1575,7 @@ actions:
   - {id: H01-A109, text: "Calibrate AI-101 against titrated anolyte (hydroxide and carbonate) and set the activity-to-concentration offset before any alarm or trip value is set (control/philosophy.md); take titrated grab samples at intervals during the campaign; consider an end-of-run on the charge passed (Ah) as a measure independent of the probe (H01-S114).", owner: process engineer, status: proposed, by: agent}
   - {id: H01-A110, text: "Add an H2-in-O2 analyser on the reservoir vent O2V-101 (or the T-101 head space) with an alarm and a trip of U-101, at limits the team sets well below the lower flammability limit of H2 in O2 (about 4 vol%); decide on a sweep or dilution of the T-101 head space; bond and earth T-101 and its vent against static. No H2-in-O2 measurement is drawn (H01-S115, H01-S403, H01-S606).", owner: process safety / HSE, status: proposed, by: agent}
   - {id: H01-A111, text: "Write the procedure for opening the anolyte side (stack replacement, pump or cooler work): SEQ-A-DRAIN and rinse first, then a check that the connection is empty; consider isolation and drain valves per stack, none are drawn (H01-S117).", owner: operations, status: proposed, by: agent}
+  - {id: H01-A112, text: "Carry out a SIL screening / LOPA of the trips I-101 to I-106 (all sil null), including the sharing of FIC-101 with I-106 and of AI-101 and LIA-101 with their alarms, before any trip is credited beyond the one-letter convention of this draft (H01-S101, H01-S901; as H02-A104).", owner: process safety / HSE, status: proposed, by: agent}
   # N2 stacks and DC supply
   - {id: H01-A201, text: "Protect the stacks against reverse current at every switch-off (a blocking diode in the rectifier output, a protective minimum current, or a controlled discharge of the stacks, per the stack vendor), and write the switch-off procedure for the daily cycle of D-A-ONOFF and the current steps of D-A-PART (H01-S202).", owner: electrical engineer, status: proposed, by: agent}
   - {id: H01-A202, text: "Draw and design the 48 V DC bus (not drawn, D-017): a fuse or DC breaker per stack, shrouded stack terminals kept clear of KOH drips and condensate, an unearthed (IT) bus with insulation monitoring for earth faults, stray-current paths through the anolyte manifolds and E-111, and a DC isolator with lock-out and a check for residual stack voltage before stack work (H01-S203, H01-S204, H01-S205).", owner: electrical engineer, status: proposed, by: agent}
@@ -1486,17 +1589,18 @@ actions:
   - {id: H01-A305, text: "Add CO2 and O2-depletion detection in the enclosure (at low points) with an alarm and the fan start, and an entry rule; no CO2 or O2 detector is drawn and AIA-141 / AIA-142 do not see a CO2-only leak (H01-S307).", owner: process safety / HSE, status: proposed, by: agent}
   - {id: H01-A306, text: "Add check valves on the CO2 feed CO2-101 downstream of FV-102 and on the humidification water W-101, and a low supply pressure alarm, so that cathode gas with CO cannot flow back into the supplies (H01-S308).", owner: process engineer, status: proposed, by: agent}
   # N4 cathode gas outlet
-  - {id: H01-A401, text: "Add a cathode pressure high-high on CG-101, independent of PIC-121, that trips U-101 and closes FV-102, and set the PIC-121 alarm and trip values from the stack vendor's allowed pressure (H01-S401, H01-S402, H01-S503).", owner: instrument and control engineer, status: proposed, by: agent}
-  - {id: H01-A402, text: "Add a low pressure alarm to PIC-121 and stop K-131 on a low cathode pressure; review the fail-open PV-121 for the loss of instrument air with K-131 still running, against the GDE window (#332) (H01-S404).", owner: process engineer, status: proposed, by: agent}
+  - {id: H01-A401, text: "Add a cathode pressure high-high on CG-101, independent of PIC-121, that trips U-101 and closes FV-102, and set the PIC-121 alarm and trip values from the stack vendor's allowed pressure, and trip U-101 when K-131 stops (H01-S401, H01-S402, H01-S411, H01-S503; as H02-A402).", owner: instrument and control engineer, status: proposed, by: agent}
+  - {id: H01-A402, text: "Add a low pressure alarm to PIC-121 and stop K-131 on a low cathode pressure; review the fail-open PV-121 for the loss of instrument air with K-131 still running, against the GDE window (#332) (H01-S404); consider an O2 measurement in the cathode gas against air drawn in under vacuum (H01-S410, as H02-A403).", owner: process engineer, status: proposed, by: agent}
   - {id: H01-A403, text: "Add a high-high level in V-121 independent of LIC-122 that stops K-131 (H01-S406).", owner: instrument and control engineer, status: proposed, by: agent}
   - {id: H01-A404, text: "Protect the condensate drain against gas blow-by: a low level alarm and an independent low-low that closes a tight-shut valve on CD-101, or a liquid seal; route the condensate to a vented collection away from people (H01-S407).", owner: process engineer, status: proposed, by: agent}
   - {id: H01-A405, text: "Draw a sample point on the cathode gas train for the 'cathode gas free of CO and H2 (sampled)' steps of SEQ-A-STOP, -TRIP and -GAS, and write a gas-free test with a portable CO and H2 meter into a permit-to-work before the train is opened (H01-S409).", owner: operations, status: proposed, by: agent}
   # N5 gas conditioning
   - {id: H01-A501, text: "Relief of the K-131 discharge (none drawn): the governing scenario to be checked by the relief study is the blocked outlet with K-131 (positive displacement) at full stroke, by X-131 closing its feed (H01-S501) or PV-131 closing on loss of air (H01-S502); the device would sit on CG-103 upstream of the check valve. Also add a discharge pressure high-high that stops K-131, interlock K-131 with the X-131 package, and decide the PV-131 fail position with the PSA vendor. No sizing here.", owner: process safety / HSE, status: proposed, by: agent}
   - {id: H01-A502, text: "Add a second protection against back-flow from X-131 when K-131 stops: a tight-shut valve on CG-103 closed with K-131's stop, or the PSA's own inlet isolation confirmed by the vendor; the check valve on CG-103 is the only one today (H01-S503).", owner: mechanical / package engineer, status: proposed, by: agent}
-  - {id: H01-A503, text: "Get from the K-131 vendor the diaphragm leak detection (to trip K-131), the discharge temperature protection and the route of the hydraulic-oil-side vent, and bring the trips into control/cause-effect.yaml (H01-S504).", owner: mechanical / package engineer, status: proposed, by: agent}
+  - {id: H01-A503, text: "Get from the K-131 vendor the diaphragm leak detection (to trip K-131), the discharge temperature protection and the route of the hydraulic-oil-side vent, and bring the trips into control/cause-effect.yaml (H01-S504, H01-S508; as H02-A506).", owner: mechanical / package engineer, status: proposed, by: agent}
   - {id: H01-A504, text: "Add a CO product analyser (CO purity, H2) on CO-101 with an alarm and a diversion of off-specification product to X-132 (D-008) (H01-S505).", owner: process engineer, status: proposed, by: agent}
   - {id: H01-A505, text: "Extend I-103 and I-104 to isolate the PSA X-131 (its package stop and PV-131 closed, or an isolation valve on CO-101), so that the CO inventory of the PSA is not left connected to a leak (H01-S506).", owner: instrument and control engineer, status: proposed, by: agent}
+  - {id: H01-A506, text: "Get the PSA and compressor vendors' depressurisation and purge procedure for maintenance (the beds of X-131 hold adsorbed CO) and decide the purge medium; only CO2 is drawn (H01-S507, as H02-A504).", owner: mechanical / package engineer, status: proposed, by: agent}
   # N6 tail gas and vents
   - {id: H01-A601, text: "Bring the oxidiser's supervision into the C&E: flame or catalyst temperature low and combustion air flow low stop the tail gas (stop K-131 and X-131, or isolate TG-101), with a flue temperature or CO measurement on FG-101; size the air for the H2-rich tail gas after a CO2 loss and for the gas-trip purge (H01-S601, H01-S603, H01-S604).", owner: mechanical / package engineer, status: proposed, by: agent}
   - {id: H01-A602, text: "Require from the X-132 vendor a burner or oxidiser management system (pre-purge before every light-off or re-light, flame failure, air flow proving, EN 746-2 or the equivalent) and a package HAZOP; bring its trips into control/cause-effect.yaml (H01-S602).", owner: mechanical / package engineer, status: proposed, by: agent}
