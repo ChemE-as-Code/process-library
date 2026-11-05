@@ -1,17 +1,22 @@
 # Equipment placement of the concept plot plan (D-018). Schema: `cheme schema placement`.
 # position: centre of the footprint and bottom elevation, m (x east, y north); sizes from
 # equipment/equipment-list.yaml (ASSUMED, D-017). Every position is an ASSUMED concept choice
-# (D-018). All items stand at grade at this stage; condensers, reboilers and the column
-# structures are placed at basic engineering (layout-3d).
+# (D-018). Elevations (S5, D-027): the condensers and reflux drums are mounted on the column
+# structures; items whose bottom outlet feeds a pump suction or whose bottom nozzles would
+# otherwise lie below grade stand on concrete foundations (`plinth`, ASSUMED heights, review of
+# PR #364): V-100 2.5 m, V-101 2.0 m, C-203 2.5 m (standing for a longer skirt), E-102 0.8 m,
+# the reboilers E-202, E-204 and E-206 1.0 m. NPSH is not calculated: the heights give 1.1 to
+# 3.6 m of static head over the pump suctions, ASSUMED until the pump datasheets (S7).
 schema: cheme/placement/v1
 equipment:
   # ---- A-100 reaction and gas recycle: H-101 at the west end, away from the hydrogen machinery
   - {tag: H-101, position: [40, 92, 0]}
-  - {tag: V-100, position: [30, 64, 0]}
+  - {tag: V-100, position: [30, 64, 2.5], plinth: 2.5, nozzles: [{id: N3, face: south, offset: [0.8, -0.6]}],
+     notes: "on a 2.5 m concrete foundation (saddle pedestals) and its liquid outlet N3, moved from the bottom to the low south side (the foundation is under the bottom), stands about 2.2 m over the P-101/P-101B suctions for their NPSH (S5 fix, D-027), ASSUMED"}
   - {tag: P-101, position: [40, 62, 0], notes: "beside V-100, its suction source"}
   - {tag: P-101B, position: [40, 59.5, 0], notes: "installed spare beside P-101 (S3b, D-025), ASSUMED"}
-  - {tag: E-101, position: [64, 70, 0], nozzles: [{id: S1, face: north}],
-     notes: "bundle pull to the east (x); the shell inlet S1 on the north side of the upper shell instead of its top, so that no pipe rises over the shells in their lift lane from CP-105 (S5, D-027)"}
+  - {tag: E-101, position: [64, 70, 0], nozzles: [{id: S1, face: north}, {id: T1, along: 0.4, angle_deg: 90}],
+     notes: "bundle pull to the east (x); the shell inlet S1 on the north side of the upper shell instead of its top, so that no pipe rises over the shells in their lift lane from CP-105 (S5, D-027); the channel nozzle T1 on the north side of the channel instead of its end, so that PG-110 stays out of the bundle pull space (S5 fix, D-027)"}
   # access (S5, D-027): the platforms the build proposed for the nozzles and valves above
   # 2.5 m, kept at their elevations with each arc cut to the part no pipe crosses below the
   # 2.1 m headroom (scripts/s5_platform_arcs.py); a proposal with no such part is dropped and
@@ -19,57 +24,60 @@ equipment:
   # elevating work platform (ASSUMED, a question for the layout review)
   - {tag: R-101, position: [62, 92, 0],
      access: {platforms: [{elevation: 2.52, arc_deg: [13, 166]}, {elevation: 4.04, arc_deg: [13, 92]}, {elevation: 8.35, arc_deg: [330, 30]}]}}
-  - {tag: E-102, position: [76, 64, 0], nozzles: [{id: S2, face: north}],
-     notes: "cooling water return S2 on the north side instead of the top, so that no pipe rises over the shell in its lift lane from CP-106 (S5, D-027)"}
-  - {tag: V-101, position: [78, 80, 0], nozzles: [{id: N4, face: top, offset: [0.45, 0]}],
+  - {tag: E-102, position: [76, 64, 0.8], plinth: 0.8, nozzles: [{id: S2, face: north}, {id: T1, along: 0.4, angle_deg: 90}],
+     notes: "cooling water return S2 on the north side instead of the top, so that no pipe rises over the shell in its lift lane from CP-106 (S5, D-027); on 0.8 m saddle pedestals so that the cooling water inlet S1 on the shell bottom stands above grade, and T1 on the north side of the channel so that PG-110 stays out of the bundle pull space (S5 fix, D-027), ASSUMED"}
+  - {tag: V-101, position: [78, 80, 2.0], plinth: 2.0, nozzles: [{id: N4, face: top, offset: [0.45, 0]}],
      access: {platforms: [{elevation: 1.85, arc_deg: [190, 349]}],
               notes: "the proposals at 3.64 m (N2, N4, XV-209) and 5.0 m (PSV-214) dropped: the lines round the separator top cross every arc; XV-209 is worked from HS-209, PSV-214 and the top nozzles are reached from a mobile elevating work platform for maintenance (ASSUMED, D-027)"}}
-  - {tag: P-102, position: [78, 74, 0], notes: "beside V-101, its suction source"}
+  - {tag: P-102, position: [78, 74, 0], notes: "beside V-101, its suction source; V-101 stands on a 2.0 m foundation so that its bottom outlet N3 is about 2.4 m over the pump suction, and the suction falls all the way from V-101 (S5 fix, D-027), ASSUMED"}
   - {tag: P-102B, position: [78, 72, 0], notes: "installed spare beside P-102 (S3b, D-025), ASSUMED"}
   - {tag: K-101, position: [80, 100, 0]}
   # ---- A-200 stabilisation and distillation: C-201 and C-203 near the rack, C-202 (38 m) set back
   # one height from it; reboilers beside their columns, condensers in a row next to the rack
-  - {tag: C-201, position: [110, 80, 0], notes: "within 30 m of PR-1 for its lines (D-018)",
+  - {tag: C-201, position: [110, 80, 0], notes: "within 30 m of PR-1 for its lines (D-018); reboiler draw N5 on the east side towards E-202, relief N7 on the south-west side so that FL-443 drops outside the platforms (S5 fix, D-027)",
+     nozzles: [{id: N5, angle_deg: 0, elevation: 3.06}, {id: N7, angle_deg: 225, elevation: 11.38}],
      access: {platforms: [{elevation: 2.06, arc_deg: [150, 294.7]}, {elevation: 6.0, arc_deg: [150, 210]}, {elevation: 8.36, arc_deg: [101, 167]}, {elevation: 10.2, arc_deg: [10, 201]}], ladder_side: 160,
               notes: "the 3.81 m proposal (N6) dropped: N6 is reached from the 6.0 m platform (D-027)"}}
   # the deck exchangers take their cooling water from below, through the deck (nozzles S1, S2
   # on the bottom of the shell), so no cooling-water line crosses a deck below the headroom
   # (S5, D-027)
   - {tag: E-201, position: [103, 65, 9.8], rotation_deg: 90, mount: {structure: S-201, level: L2},
-     nozzles: [{id: S1, face: bottom, offset: [-0.5, 0]}, {id: S2, face: bottom, offset: [0.8, 0]}],
+     nozzles: [{id: S1, face: bottom, offset: [-0.5, 0]}, {id: S2, face: bottom, offset: [0.8, 0]}, {id: T1, along: 0.25, angle_deg: 0}],
      notes: "on the upper deck of S-201, drains to V-201 (S5, D-027)"}
-  - {tag: E-202, position: [116, 80, 0], rotation_deg: 90}
+  - {tag: E-202, position: [116, 80, 1.0], rotation_deg: 90, plinth: 1.0, notes: "on 1.0 m saddle pedestals: the bottom inlet T1 and the condensate outlet S2 above grade (S5 fix, D-027), ASSUMED"}
   - {tag: V-201, position: [103, 60, 6.0], rotation_deg: 90, mount: {structure: S-201, level: L1}, notes: "stabiliser reflux drum on the lower deck of S-201 under E-201 (S5, D-027), ASSUMED"}
   - {tag: P-201A, position: [103, 72, 0], notes: "reflux pumps below V-201 (S3b, D-025), ASSUMED"}
   - {tag: P-201B, position: [103, 74.5, 0], notes: "installed spare beside P-201A (S3b, D-025), ASSUMED"}
-  - {tag: C-202, position: [130, 100, 0], notes: "38 m tall: kept one height from PR-1 (toppling, D-018)",
+  - {tag: C-202, position: [130, 100, 0], notes: "38 m tall: kept one height from PR-1 (toppling, D-018); reboiler draw N5 on the north-east side towards E-204, relief N7 on the south-west side so that FL-548 drops outside the platforms, feed N1 turned clear of the platform-6 ladder head (S5 fix, D-027)",
+     nozzles: [{id: N5, angle_deg: 45, elevation: 7.79}, {id: N7, angle_deg: 225, elevation: 34.62}, {id: N1, angle_deg: 150, elevation: 28.13}],
      access: {platforms: [{elevation: 1.52, arc_deg: [20, 180]}, {elevation: 1.52, arc_deg: [180, 340]}, {elevation: 6.79, arc_deg: [84.6, 210]}, {elevation: 12.44, arc_deg: [150, 275.4]}, {elevation: 19.5, arc_deg: [84.6, 210]}, {elevation: 27.13, arc_deg: [191, 275]}, {elevation: 32.46, arc_deg: [11, 210]}, {elevation: 37.38, arc_deg: [330, 30]}],
               notes: "the 3.96 m proposal (N8) dropped: the reboiler lines TO-538 and PG-539 cross it; N8 is reached from the 1.52 m or the 6.79 m platform (D-027)"}}
   - {tag: E-203, position: [122, 100, 11.5], rotation_deg: 90, mount: {structure: S-202, level: L2},
-     nozzles: [{id: S1, face: north, offset: [-0.8, 0]}, {id: S2, face: bottom, offset: [1.2, 0]}, {id: T2, face: bottom, offset: [2.6, 0]}],
+     nozzles: [{id: S1, face: north, offset: [-0.8, 0]}, {id: S2, face: bottom, offset: [1.2, 0]}, {id: T2, face: bottom, offset: [2.6, 0]}, {id: T1, along: 0.3, angle_deg: 0}],
      notes: "on the upper deck of S-202 beside C-202 (S5, D-027; beside C-202 since S3b, D-025), drains to V-202"}
-  - {tag: E-207, position: [115.5, 100, 0], rotation_deg: 90, notes: "product cooler at grade under S-202 (S5, D-027; beside V-202 since S3b, D-025)"}
-  - {tag: E-204, position: [137, 98, 0], rotation_deg: 90}
+  - {tag: E-207, position: [115.5, 100, 0], rotation_deg: 90, nozzles: [{id: T1, along: 0.25, angle_deg: 0}], notes: "product cooler at grade under S-202 (S5, D-027; beside V-202 since S3b, D-025)"}
+  - {tag: E-204, position: [137, 98, 1.0], rotation_deg: 90, plinth: 1.0, notes: "on 1.0 m saddle pedestals: the bottom inlet T1 and the condensate outlet S2 above grade (S5 fix, D-027), ASSUMED"}
   - {tag: V-202, position: [117, 100, 6.5], rotation_deg: 90, mount: {structure: S-202, level: L1},
      nozzles: [{id: N1, face: top, offset: [1.4, 0]}],
      notes: "benzene reflux drum on the lower deck of S-202 (S5, D-027), ASSUMED"}
   - {tag: P-202A, position: [119, 94, 0], notes: "reflux and product pumps below V-202 (S3b, D-025), ASSUMED"}
-  - {tag: P-202B, position: [122, 94, 0], notes: "installed spare beside P-202A (S3b, D-025), ASSUMED"}
-  - {tag: C-203, position: [152, 80, 0], notes: "within 30 m of PR-1 for the toluene recycle TO-123 (D-018)",
+  - {tag: P-202B, position: [119, 90.8, 0], notes: "installed spare south of P-202A (S3b, D-025; moved from beside it in the S5 fix so that its suction does not cross the P-202A access space and its own access space is clear of the PR-2 bent, D-027), ASSUMED"}
+  - {tag: C-203, position: [152, 80, 2.5], plinth: 2.5, notes: "within 30 m of PR-1 for the toluene recycle TO-123 (D-018); on a 2.5 m foundation pedestal (standing for a longer skirt) so that the boiling biphenyl bottoms at N4 stand about 3.6 m over the P-204A/B suctions and the overhead PG-630 falls to E-205; reboiler draw N5 and vapour return N6 on the east side towards E-206, feed N1 and relief N7 turned so that TO-122 and FL-645 stay clear of the ladder cages and platforms (S5 fix, D-027), ASSUMED",
+     nozzles: [{id: N5, angle_deg: 0, elevation: 3.48}, {id: N6, angle_deg: 30, elevation: 6.87}, {id: N1, angle_deg: 120, elevation: 10.45}, {id: N7, angle_deg: 290, elevation: 12.68}],
      access: {platforms: [{elevation: 1.51, arc_deg: [192, 330]}, {elevation: 5.87}, {elevation: 9.45, arc_deg: [193, 330]}, {elevation: 11.49, arc_deg: [10, 210]}, {elevation: 13.35, arc_deg: [330, 30]}]}}
   - {tag: E-205, position: [150, 65, 10.0], mount: {structure: S-203, level: L2},
-     nozzles: [{id: S1, face: bottom, offset: [-0.6, 0]}, {id: S2, face: bottom, offset: [1.0, 0]}],
+     nozzles: [{id: S1, face: bottom, offset: [-0.6, 0]}, {id: S2, face: bottom, offset: [1.0, 0]}, {id: T1, along: 0.3, angle_deg: 0}],
      notes: "on the upper deck of S-203, drains to V-203 (S5, D-027)"}
-  - {tag: E-206, position: [158, 80, 0], rotation_deg: 90}
+  - {tag: E-206, position: [158, 80, 1.0], rotation_deg: 90, plinth: 1.0, notes: "on 1.0 m saddle pedestals: the bottom inlet T1 and the condensate outlet S2 above grade (S5 fix, D-027), ASSUMED"}
   - {tag: V-203, position: [144, 65, 6.0], mount: {structure: S-203, level: L1}, notes: "toluene column reflux drum on the lower deck of S-203 (S5, D-027), ASSUMED"}
   - {tag: PK-201, position: [147, 59, 0], notes: "vacuum package at grade south of S-203 (S5, D-027; beside V-203 since S3b, D-025), ASSUMED"}
   - {tag: P-203A, position: [144, 72, 0], notes: "reflux and recycle pumps below V-203 (S3b, D-025), ASSUMED"}
-  - {tag: P-203B, position: [146.5, 72, 0], notes: "installed spare beside P-203A (S3b, D-025), ASSUMED"}
+  - {tag: P-203B, position: [144, 74.6, 0], notes: "installed spare north of P-203A (S3b, D-025; moved from beside it in the S5 fix so that its suction does not cross the P-203A access space, D-027), ASSUMED"}
   - {tag: P-204A, position: [152, 86, 0], notes: "biphenyl bottoms pumps beside C-203 (S3b, D-025), ASSUMED"}
   - {tag: P-204B, position: [154.5, 86, 0], notes: "installed spare beside P-204A (S3b, D-025), ASSUMED"}
   # ---- purge hydrogen recovery (D-024): at the east edge of A-100 between V-101 and road R-5,
   # within the rack's reach for its lines, 30 m from H-101 and 45 m from the A-900 plot
   - {tag: PK-101, position: [86, 85, 0], rotation_deg: 90, shape: box, notes: "PSA package plot 10 x 6 m, long side north-south: inside A-100 (x 83-89) and 3 m from road R-5 (D-024)"}
-  - {tag: K-102, position: [86, 74, 0], notes: "tail-gas compressor south of the PSA (D-024)"}
-  - {tag: E-103, position: [86, 68, 0], notes: "aftercooler south of K-102 (D-024)"}
+  - {tag: K-102, position: [86, 74, 0], nozzles: [{id: N2, face: south, offset: [1.2, 0]}], notes: "tail-gas compressor south of the PSA (D-024); discharge N2 on the south side towards E-103 instead of the motor end, so that FG-127 stays out of the motor removal space (S5 fix, D-027)"}
+  - {tag: E-103, position: [86, 68, 0], nozzles: [{id: T1, along: 0.3, angle_deg: 0}], notes: "aftercooler south of K-102 (D-024); gas inlet T1 on the top of the channel so that FG-127 stays out of the bundle pull space (S5 fix, D-027)"}
 notes: "ASSUMED concept positions (D-018); nozzles come with the P&IDs."
