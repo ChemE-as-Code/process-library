@@ -232,6 +232,46 @@ zero over the year. The rundown and the BC grid electricity are gaps until a liq
 a BC Hydro background are linked; fugitive methane, the flare pilots and purge and the
 construction phase are not in the foreground yet (a screening carbon footprint, `lca/results.md`).
 
+**D-025 Response to the design review 2026-11-05-basic-design and the HAZOP H-01..H-05.**
+Two fix rounds on the generator scripts, each checked on the drawn sheets by an independent
+verifier, changed the P&IDs, the C&E and the sequences:
+1. Rundown (P-01): thermal relief on both fill branches (PSV-1122/1123); position switches
+   ZSC-1102/1103 and I-102 close the battery limit and trip the trains when no tank can take
+   the rundown; the high-high tank pressure trip acts on its own SIS vent XV-1115 in a bypass of
+   PV-1110 (fail closed, energise-to-trip with its own air accumulator: a fail-open vent with the
+   fail-closed make-up would depressurise the tanks on a utility failure); the make-up gas comes
+   from the trains' fuel gas (FG-1001, independent of the terminal's compressors) through a
+   restriction orifice FO-1117 and PV-1111, which is regulatory only (the vacuum trip stops the
+   withdrawal and the compressors; the vacuum valves are the last protection).
+2. Tanks (P-02/P-03): N+1 pressure PSVs and vacuum valves (A/B/C), vacuum set -0.3 kPa(g); a
+   second independent level LZT-n106, I-n01 now 1oo2 and also closing the circulation return;
+   thermal relief of the pump and circulation headers (PSV-n141/n142); an isolation valve and a
+   vent per pump column, the column check valves with a pressure-equalising hole (vendor).
+3. Trestle (P-04): thermal relief of the crossover and the circulation return (PSV-4113/4114);
+   carrier de-inerting and cool-down vapour to the flare (BOG-4013/4014, XV-4131/4132 with the
+   analysers AI-4133/4134, I-511/I-611, make-before-break with XV-4135/4136 so the vapour
+   return, the relief path of the jetty PSVs, is never closed).
+4. Berths (P-05/P-06): the header drain is valved (XV-n161), the drum vent stays open as its
+   relief path; the drain pump has suction and discharge isolation, a check valve, a minimum
+   flow, a vent and thermal relief; thermal relief per liquid arm section (PSV-n171/173/174); the
+   hybrid arm's liquid and vapour isolations are mutually inhibited (ZSC-n123/n125, I-n04/n05,
+   plus a key interlock); ESD-2 now initiates ESD-1 first and closes the ERS valves after 5 s
+   (I-n03); an independent drum high-high level (LZT-n112, I-n06); a double block and bleed on
+   the N2 tie-in; all relief valves at 15.0 barg (the line design).
+5. BOG (P-07): each discharge check valve downstream of its recycle tee; the recycles return
+   upstream of the desuperheater spray; high discharge temperature trips (TZT-7112x, I-703x);
+   discharge isolation XV-7123x and a depressurising vent per machine to the flare (FL-7003..7005);
+   the recycle isolation XV-7125x fails open and is closed only for maintenance (on a trip the
+   recycle keeps the machine open to the tank system, its relief path, and keeps the
+   anti-surge path on a utility failure); a battery-limit ESD valve XV-7130 (I-704).
+6. Flare (P-08): an independent high-high level on D-8101 (LZT-8105, I-802), pump suction
+   isolation, minimum flow and thermal relief (PSV-8109); the de-inerting and vent lines join
+   FL-8001.
+Not done at basic, recorded for detail engineering: relief sizing (tank fire, rollover,
+utility-failure case with both vents closed), the ERS closure time and the transient surge
+analysis, the trains' fuel-gas capacity for the make-up, seal gas, arm vents and sample points
+(vendor packages), tank bottom heating.
+
 ## 3. Results (concept)
 
 `cheme run scripts/terminal_sizing.py` prints the sizing summary. Headline numbers:

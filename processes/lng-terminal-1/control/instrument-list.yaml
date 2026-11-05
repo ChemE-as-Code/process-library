@@ -18,12 +18,15 @@ instruments:
   - {tag: PI-1104, service: LNG rundown header pressure, sheet: P-01}
   - {tag: UZ-1102, service: T-2101 fill ESD valve XV-1102, sheet: P-01, notes: 'Closes on T-2101 high-high level or pressure (C&E I-201, I-203).'}
   - {tag: UZ-1103, service: T-3101 fill ESD valve XV-1103, sheet: P-01, notes: 'Closes on T-3101 high-high level or pressure (C&E I-301, I-303).'}
+  - {tag: ZSC-1102, service: T-2101 fill ESD valve XV-1102 closed position, sheet: P-01, notes: 'Both XV-1102 and XV-1103 closed: no tank can take the rundown (C&E I-102).'}
+  - {tag: ZSC-1103, service: T-3101 fill ESD valve XV-1103 closed position, sheet: P-01, notes: 'Both XV-1102 and XV-1103 closed: no tank can take the rundown (C&E I-102).'}
   - {tag: HS-1106, service: Fill selection valve XV-1106, sheet: P-01, notes: 'Operator selection (DCS), top or bottom fill.'}
   - {tag: HS-1107, service: Fill selection valve XV-1107, sheet: P-01, notes: 'Operator selection (DCS), top or bottom fill.'}
   - {tag: HS-1109, service: Fill selection valve XV-1109, sheet: P-01, notes: 'Operator selection (DCS), top or bottom fill.'}
   - {tag: HS-1108, service: Fill selection valve XV-1108, sheet: P-01, notes: 'Operator selection (DCS), top or bottom fill.'}
   - {tag: TI-1112, service: BOG header temperature, sheet: P-01}
   - {tag: PIC-1111, service: 'Tank vapour header pressure, low split: make-up gas PV-1111', sheet: P-01, notes: Holds the tanks above their vacuum set point (D-017).}
+  - {tag: UZ-1115, service: Tank vapour header SIS vent valve XV-1115 to the flare, sheet: P-01, notes: 'Opens on tank high-high pressure (C&E I-203, I-303), independent of PIC-1110 / PV-1110; energise-to-trip with its own air accumulator, fails closed (a fail-open vent with the fail-closed make-up PV-1111 would depressurise the tanks on an air or power failure; the tank PSVs stay the last protection, D-017).'}
   - {tag: PIC-1110, service: 'Tank vapour header pressure, high split: BOG compressors then PV-1110 to the flare', sheet: P-01, notes: 'Output 1 sets the BOG compressor load (PIC-7101, P-07); output 2 opens PV-1110 (D-017).'}
   # ---- P-02
   - {tag: FIC-2111A, service: P-2101A minimum flow, sheet: P-02, notes: Opens the minimum-flow return below the pump's minimum continuous flow (D-011).}
@@ -35,6 +38,7 @@ instruments:
   - {tag: HS-2123, service: T-2101 circulation return valve XV-2123, sheet: P-02, notes: Opened for the tank that receives the circulation (D-008).}
   - {tag: LT-2101, service: 'T-2101 level (radar, primary)', sheet: P-02, notes: Inventory and level control of the fill.}
   - {tag: LZT-2102, service: 'T-2101 level (independent servo, high-high and low-low)', sheet: P-02, notes: 'C&E I-201, I-202.'}
+  - {tag: LZT-2106, service: 'T-2101 level (second independent high-high, own nozzle)', sheet: P-02, notes: 'Independent of LZT-2102 and LT-2101; 1oo2 high-high with LZT-2102 (either trips), C&E I-201 (review 2026-11-05 #16).'}
   - {tag: LTD-2103, service: T-2101 level-temperature-density profile, sheet: P-02, notes: Stratification and rollover warning (D-007).}
   - {tag: TI-2104, service: T-2101 liquid and vapour temperatures (multipoint), sheet: P-02, notes: Cooldown and stratification.}
   - {tag: PI-2111, service: T-2101 pressure, sheet: P-02, notes: 'Split-range pressure control is on the header, PIC-1110 / PIC-1111 (P-01).'}
@@ -50,12 +54,19 @@ instruments:
   - {tag: HS-3123, service: T-3101 circulation return valve XV-3123, sheet: P-03, notes: Opened for the tank that receives the circulation (D-008).}
   - {tag: LT-3101, service: 'T-3101 level (radar, primary)', sheet: P-03, notes: Inventory and level control of the fill.}
   - {tag: LZT-3102, service: 'T-3101 level (independent servo, high-high and low-low)', sheet: P-03, notes: 'C&E I-301, I-302.'}
+  - {tag: LZT-3106, service: 'T-3101 level (second independent high-high, own nozzle)', sheet: P-03, notes: 'Independent of LZT-3102 and LT-3101; 1oo2 high-high with LZT-3102 (either trips), C&E I-301 (review 2026-11-05 #16).'}
   - {tag: LTD-3103, service: T-3101 level-temperature-density profile, sheet: P-03, notes: Stratification and rollover warning (D-007).}
   - {tag: TI-3104, service: T-3101 liquid and vapour temperatures (multipoint), sheet: P-03, notes: Cooldown and stratification.}
   - {tag: PI-3111, service: T-3101 pressure, sheet: P-03, notes: 'Split-range pressure control is on the header, PIC-1110 / PIC-1111 (P-01).'}
   - {tag: PZT-3112, service: 'T-3101 pressure (independent, high-high and low-low)', sheet: P-03, notes: 'C&E I-303, I-304.'}
   - {tag: TI-3105, service: T-3101 annular space and bottom temperatures, sheet: P-03, notes: Inner tank leak detection; bottom heating control.}
   # ---- P-04
+  - {tag: HS-4131, service: De-inerting vapour A to the flare XV-4131, sheet: P-04, notes: 'Opened while AI-4133 shows N2 / O2 or warm vapour from the carrier, XV-4135 closed; closed when the vapour is on specification (CH4), then XV-4135 opens (D-017, review #19).'}
+  - {tag: HS-4132, service: De-inerting vapour B to the flare XV-4132, sheet: P-04, notes: 'As HS-4131, with XV-4136 and AI-4134.'}
+  - {tag: HS-4135, service: Vapour return A to the tank vapour header XV-4135, sheet: P-04, notes: 'Closed while the vapour goes to the flare (HS-4131); fail open keeps the carrier vapour return (review #19).'}
+  - {tag: HS-4136, service: Vapour return B to the tank vapour header XV-4136, sheet: P-04, notes: 'As HS-4135, with HS-4132.'}
+  - {tag: AI-4133, service: Vapour return A composition at the tank end (N2 / O2 / CH4), sheet: P-04, notes: 'Switches the carrier vapour between the tank vapour header (XV-4135) and the flare (XV-4131): to the flare while O2 or N2 is high (de-inerting, gassing-up), to the tanks once CH4 is on specification (review #19).'}
+  - {tag: AI-4134, service: Vapour return B composition at the tank end (N2 / O2 / CH4), sheet: P-04, notes: 'As AI-4133, with XV-4136 and XV-4132.'}
   - {tag: FIC-4101, service: Loading line A flow (loading rate), sheet: P-04, notes: Ramps the loading up and down to the carrier's cargo plan; FV-4101 butterfly (D-011).}
   - {tag: FIC-4102, service: Loading line B flow (loading rate), sheet: P-04, notes: As FIC-4101.}
   - {tag: UZ-4101, service: Loading line A tank-end ESD valve XV-4101, sheet: P-04, notes: 'ESD-1 closes (C&E I-501, I-601).'}
@@ -73,17 +84,17 @@ instruments:
   - {tag: PI-4123, service: Vapour return B pressure at the platform, sheet: P-04}
   - {tag: TI-4124, service: Vapour return B temperature at the platform, sheet: P-04}
   # ---- P-05
-  - {tag: UZ-5131, service: LA-5101 ERS valve XV-5131, sheet: P-05, notes: 'Closes on ESD-1 / ESD-2 (C&E I-501, I-503); ESD-2 then releases the coupler (D-016).'}
-  - {tag: UZ-5141, service: LA-5101 ERS valve XV-5141, sheet: P-05, notes: 'Closes on ESD-1 / ESD-2 (C&E I-501, I-503); ESD-2 then releases the coupler (D-016).'}
+  - {tag: UZ-5131, service: LA-5101 ERS valve XV-5131, sheet: P-05, notes: 'Closes on ESD-2 (C&E I-503), not on ESD-1; ESD-2 then releases the coupler (D-016).'}
+  - {tag: UZ-5141, service: LA-5101 ERS valve XV-5141, sheet: P-05, notes: 'Closes on ESD-2 (C&E I-503), not on ESD-1; ESD-2 then releases the coupler (D-016).'}
   - {tag: ZS-5151, service: LA-5101 envelope monitoring (position of the outboard arm), sheet: P-05, notes: 'Pre-alarm, ESD-1, ESD-2 (C&E I-503).'}
-  - {tag: UZ-5134, service: LA-5104 ERS valve XV-5134, sheet: P-05, notes: 'Closes on ESD-1 / ESD-2 (C&E I-501, I-503); ESD-2 then releases the coupler (D-016).'}
-  - {tag: UZ-5144, service: LA-5104 ERS valve XV-5144, sheet: P-05, notes: 'Closes on ESD-1 / ESD-2 (C&E I-501, I-503); ESD-2 then releases the coupler (D-016).'}
+  - {tag: UZ-5134, service: LA-5104 ERS valve XV-5134, sheet: P-05, notes: 'Closes on ESD-2 (C&E I-503), not on ESD-1; ESD-2 then releases the coupler (D-016).'}
+  - {tag: UZ-5144, service: LA-5104 ERS valve XV-5144, sheet: P-05, notes: 'Closes on ESD-2 (C&E I-503), not on ESD-1; ESD-2 then releases the coupler (D-016).'}
   - {tag: ZS-5154, service: LA-5104 envelope monitoring (position of the outboard arm), sheet: P-05, notes: 'Pre-alarm, ESD-1, ESD-2 (C&E I-503).'}
-  - {tag: UZ-5133, service: LA-5103 ERS valve XV-5133, sheet: P-05, notes: 'Closes on ESD-1 / ESD-2 (C&E I-501, I-503); ESD-2 then releases the coupler (D-016).'}
-  - {tag: UZ-5143, service: LA-5103 ERS valve XV-5143, sheet: P-05, notes: 'Closes on ESD-1 / ESD-2 (C&E I-501, I-503); ESD-2 then releases the coupler (D-016).'}
+  - {tag: UZ-5133, service: LA-5103 ERS valve XV-5133, sheet: P-05, notes: 'Closes on ESD-2 (C&E I-503), not on ESD-1; ESD-2 then releases the coupler (D-016).'}
+  - {tag: UZ-5143, service: LA-5103 ERS valve XV-5143, sheet: P-05, notes: 'Closes on ESD-2 (C&E I-503), not on ESD-1; ESD-2 then releases the coupler (D-016).'}
   - {tag: ZS-5153, service: LA-5103 envelope monitoring (position of the outboard arm), sheet: P-05, notes: 'Pre-alarm, ESD-1, ESD-2 (C&E I-503).'}
-  - {tag: UZ-5132, service: LA-5102 ERS valve XV-5132, sheet: P-05, notes: 'Closes on ESD-1 / ESD-2 (C&E I-501, I-503); ESD-2 then releases the coupler (D-016).'}
-  - {tag: UZ-5142, service: LA-5102 ERS valve XV-5142, sheet: P-05, notes: 'Closes on ESD-1 / ESD-2 (C&E I-501, I-503); ESD-2 then releases the coupler (D-016).'}
+  - {tag: UZ-5132, service: LA-5102 ERS valve XV-5132, sheet: P-05, notes: 'Closes on ESD-2 (C&E I-503), not on ESD-1; ESD-2 then releases the coupler (D-016).'}
+  - {tag: UZ-5142, service: LA-5102 ERS valve XV-5142, sheet: P-05, notes: 'Closes on ESD-2 (C&E I-503), not on ESD-1; ESD-2 then releases the coupler (D-016).'}
   - {tag: ZS-5152, service: LA-5102 envelope monitoring (position of the outboard arm), sheet: P-05, notes: 'Pre-alarm, ESD-1, ESD-2 (C&E I-503).'}
   - {tag: UZ-5101, service: Berth 2 shore ESD valve XV-5101, sheet: P-05, notes: 'ESD-1 closes with the closure time set against surge (C&E I-501, D-016).'}
   - {tag: PDI-5102, service: Strainer SR-5102 differential pressure, sheet: P-05}
@@ -93,23 +104,27 @@ instruments:
   - {tag: HS-5124, service: LA-5104 isolation XV-5124, sheet: P-05}
   - {tag: HS-5123, service: LA-5103 liquid isolation XV-5123, sheet: P-05}
   - {tag: HS-5125, service: LA-5103 vapour isolation XV-5125 (hybrid as vapour arm), sheet: P-05}
+  - {tag: ZSC-5123, service: XV-5123 open (hybrid arm LA-5103 on liquid), sheet: P-05, notes: 'Position switch; with ZSC-5125 the permissive that XV-5123 and XV-5125 are never open together (review #3, H-03 A13).'}
+  - {tag: ZSC-5125, service: XV-5125 open (hybrid arm LA-5103 on vapour), sheet: P-05, notes: 'Position switch; with ZSC-5123 the permissive that XV-5123 and XV-5125 are never open together (review #3, H-03 A13).'}
   - {tag: HS-5122, service: LA-5102 vapour arm isolation XV-5122, sheet: P-05}
+  - {tag: HS-5161, service: Header drain isolation XV-5161 to D-5101, sheet: P-05, notes: 'Opened only for the header and arm drain after loading (SEQ-LOAD S6); fail closed (review #1, H-03 A3).'}
   - {tag: XS-5100, service: Berth 2 ship-shore ESD link, sheet: P-05, notes: 'Fibre-optic link (S-01): ESD-1 both ways (C&E I-501).'}
   - {tag: PI-5105, service: Berth 2 vapour line pressure, sheet: P-05}
   - {tag: TI-5106, service: Berth 2 vapour line temperature, sheet: P-05}
-  - {tag: LIC-5111, service: Jetty drain drum D-5101 level, sheet: P-05, notes: Starts and stops P-5101; high-high level alarm (D-016).}
+  - {tag: LIC-5111, service: Jetty drain drum D-5101 level, sheet: P-05, notes: 'Starts and stops P-5101 (level control, D-016); the high-high level is the independent LZT-5112.'}
+  - {tag: LZT-5112, service: Jetty drain drum D-5101 independent high-high level, sheet: P-05, notes: 'Own nozzle, independent of LIC-5111: stops the drain (closes XV-5161) and alarms (C&E; review #21, H-03 A5).'}
   # ---- P-06
-  - {tag: UZ-6131, service: LA-6101 ERS valve XV-6131, sheet: P-06, notes: 'Closes on ESD-1 / ESD-2 (C&E I-601, I-603); ESD-2 then releases the coupler (D-016).'}
-  - {tag: UZ-6141, service: LA-6101 ERS valve XV-6141, sheet: P-06, notes: 'Closes on ESD-1 / ESD-2 (C&E I-601, I-603); ESD-2 then releases the coupler (D-016).'}
+  - {tag: UZ-6131, service: LA-6101 ERS valve XV-6131, sheet: P-06, notes: 'Closes on ESD-2 (C&E I-603), not on ESD-1; ESD-2 then releases the coupler (D-016).'}
+  - {tag: UZ-6141, service: LA-6101 ERS valve XV-6141, sheet: P-06, notes: 'Closes on ESD-2 (C&E I-603), not on ESD-1; ESD-2 then releases the coupler (D-016).'}
   - {tag: ZS-6151, service: LA-6101 envelope monitoring (position of the outboard arm), sheet: P-06, notes: 'Pre-alarm, ESD-1, ESD-2 (C&E I-603).'}
-  - {tag: UZ-6134, service: LA-6104 ERS valve XV-6134, sheet: P-06, notes: 'Closes on ESD-1 / ESD-2 (C&E I-601, I-603); ESD-2 then releases the coupler (D-016).'}
-  - {tag: UZ-6144, service: LA-6104 ERS valve XV-6144, sheet: P-06, notes: 'Closes on ESD-1 / ESD-2 (C&E I-601, I-603); ESD-2 then releases the coupler (D-016).'}
+  - {tag: UZ-6134, service: LA-6104 ERS valve XV-6134, sheet: P-06, notes: 'Closes on ESD-2 (C&E I-603), not on ESD-1; ESD-2 then releases the coupler (D-016).'}
+  - {tag: UZ-6144, service: LA-6104 ERS valve XV-6144, sheet: P-06, notes: 'Closes on ESD-2 (C&E I-603), not on ESD-1; ESD-2 then releases the coupler (D-016).'}
   - {tag: ZS-6154, service: LA-6104 envelope monitoring (position of the outboard arm), sheet: P-06, notes: 'Pre-alarm, ESD-1, ESD-2 (C&E I-603).'}
-  - {tag: UZ-6133, service: LA-6103 ERS valve XV-6133, sheet: P-06, notes: 'Closes on ESD-1 / ESD-2 (C&E I-601, I-603); ESD-2 then releases the coupler (D-016).'}
-  - {tag: UZ-6143, service: LA-6103 ERS valve XV-6143, sheet: P-06, notes: 'Closes on ESD-1 / ESD-2 (C&E I-601, I-603); ESD-2 then releases the coupler (D-016).'}
+  - {tag: UZ-6133, service: LA-6103 ERS valve XV-6133, sheet: P-06, notes: 'Closes on ESD-2 (C&E I-603), not on ESD-1; ESD-2 then releases the coupler (D-016).'}
+  - {tag: UZ-6143, service: LA-6103 ERS valve XV-6143, sheet: P-06, notes: 'Closes on ESD-2 (C&E I-603), not on ESD-1; ESD-2 then releases the coupler (D-016).'}
   - {tag: ZS-6153, service: LA-6103 envelope monitoring (position of the outboard arm), sheet: P-06, notes: 'Pre-alarm, ESD-1, ESD-2 (C&E I-603).'}
-  - {tag: UZ-6132, service: LA-6102 ERS valve XV-6132, sheet: P-06, notes: 'Closes on ESD-1 / ESD-2 (C&E I-601, I-603); ESD-2 then releases the coupler (D-016).'}
-  - {tag: UZ-6142, service: LA-6102 ERS valve XV-6142, sheet: P-06, notes: 'Closes on ESD-1 / ESD-2 (C&E I-601, I-603); ESD-2 then releases the coupler (D-016).'}
+  - {tag: UZ-6132, service: LA-6102 ERS valve XV-6132, sheet: P-06, notes: 'Closes on ESD-2 (C&E I-603), not on ESD-1; ESD-2 then releases the coupler (D-016).'}
+  - {tag: UZ-6142, service: LA-6102 ERS valve XV-6142, sheet: P-06, notes: 'Closes on ESD-2 (C&E I-603), not on ESD-1; ESD-2 then releases the coupler (D-016).'}
   - {tag: ZS-6152, service: LA-6102 envelope monitoring (position of the outboard arm), sheet: P-06, notes: 'Pre-alarm, ESD-1, ESD-2 (C&E I-603).'}
   - {tag: UZ-6101, service: Berth 1 shore ESD valve XV-6101, sheet: P-06, notes: 'ESD-1 closes with the closure time set against surge (C&E I-601, D-016).'}
   - {tag: PDI-6102, service: Strainer SR-6102 differential pressure, sheet: P-06}
@@ -119,32 +134,47 @@ instruments:
   - {tag: HS-6124, service: LA-6104 isolation XV-6124, sheet: P-06}
   - {tag: HS-6123, service: LA-6103 liquid isolation XV-6123, sheet: P-06}
   - {tag: HS-6125, service: LA-6103 vapour isolation XV-6125 (hybrid as vapour arm), sheet: P-06}
+  - {tag: ZSC-6123, service: XV-6123 open (hybrid arm LA-6103 on liquid), sheet: P-06, notes: 'Position switch; with ZSC-6125 the permissive that XV-6123 and XV-6125 are never open together (review #3, H-03 A13).'}
+  - {tag: ZSC-6125, service: XV-6125 open (hybrid arm LA-6103 on vapour), sheet: P-06, notes: 'Position switch; with ZSC-6123 the permissive that XV-6123 and XV-6125 are never open together (review #3, H-03 A13).'}
   - {tag: HS-6122, service: LA-6102 vapour arm isolation XV-6122, sheet: P-06}
+  - {tag: HS-6161, service: Header drain isolation XV-6161 to D-6101, sheet: P-06, notes: 'Opened only for the header and arm drain after loading (SEQ-LOAD S6); fail closed (review #1, H-03 A3).'}
   - {tag: XS-6100, service: Berth 1 ship-shore ESD link, sheet: P-06, notes: 'Fibre-optic link (S-01): ESD-1 both ways (C&E I-601).'}
   - {tag: PI-6105, service: Berth 1 vapour line pressure, sheet: P-06}
   - {tag: TI-6106, service: Berth 1 vapour line temperature, sheet: P-06}
-  - {tag: LIC-6111, service: Jetty drain drum D-6101 level, sheet: P-06, notes: Starts and stops P-6101; high-high level alarm (D-016).}
+  - {tag: LIC-6111, service: Jetty drain drum D-6101 level, sheet: P-06, notes: 'Starts and stops P-6101 (level control, D-016); the high-high level is the independent LZT-6112.'}
+  - {tag: LZT-6112, service: Jetty drain drum D-6101 independent high-high level, sheet: P-06, notes: 'Own nozzle, independent of LIC-6111: stops the drain (closes XV-6161) and alarms (C&E; review #21, H-03 A5).'}
   # ---- P-07
-  - {tag: TIC-7103, service: BOG temperature after the desuperheater, sheet: P-07, notes: LNG spray TV-7103 to -140 degC at the drum inlet (D-010).}
+  - {tag: TIC-7103, service: BOG temperature after the desuperheater, sheet: P-07, notes: 'LNG spray TV-7103 to -140 degC at the drum inlet, also quenching the anti-surge recycles BOG-7012 and BOG-7008 (D-010).'}
   - {tag: PIC-7101, service: BOG suction header pressure, sheet: P-07, notes: Acts on the inlet guide vanes of K-7101A/B/C; setpoint from PIC-1110 (P-01) (D-010).}
   - {tag: LIC-7102, service: D-7101 level, sheet: P-07, notes: Drains carry-over to D-8101 by LV-7102.}
   - {tag: LZT-7106, service: D-7101 level high-high, sheet: P-07, notes: Trips the BOG compressors (C&E I-701).}
-  - {tag: UIC-7104A, service: K-7101A anti-surge control, sheet: P-07, notes: Vendor anti-surge system; opens UV on the surge line (D-010).}
-  - {tag: UZ-7121A, service: K-7101A suction ESD valve XV-7121A, sheet: P-07, notes: 'Closes on a compressor trip (C&E I-701, I-702).'}
+  - {tag: UIC-7104A, service: K-7101A anti-surge control, sheet: P-07, notes: Vendor anti-surge system; opens UV on the recycle (D-010).}
+  - {tag: UZ-7125A, service: K-7101A recycle isolation valve XV-7125A, sheet: P-07, notes: 'Fail open and open in operation and on a trip: the recycle keeps the tripped machine open to the tank system (its relief path) and the anti-surge path open on a utility failure; closed by the operator (HS) only to isolate K-7101A for maintenance (D-025).'}
+  - {tag: UZ-7121A, service: K-7101A suction ESD valve XV-7121A, sheet: P-07, notes: 'Closes on a compressor trip (C&E I-701, I-702) and on every compressor stop (H-04 A9).'}
+  - {tag: UZ-7123A, service: K-7101A discharge isolation valve XV-7123A, sheet: P-07, notes: 'Fail closed; closes with XV-7121A on a compressor trip or stop, isolates the machine from the discharge header (review #11, H-04 A8/A9).'}
   - {tag: VZ-7110A, service: K-7101A vibration and bearing monitoring, sheet: P-07, notes: Machine protection (C&E I-702).}
-  - {tag: UIC-7104B, service: K-7101B anti-surge control, sheet: P-07, notes: Vendor anti-surge system; opens UV on the surge line (D-010).}
-  - {tag: UZ-7121B, service: K-7101B suction ESD valve XV-7121B, sheet: P-07, notes: 'Closes on a compressor trip (C&E I-701, I-702).'}
+  - {tag: UIC-7104B, service: K-7101B anti-surge control, sheet: P-07, notes: Vendor anti-surge system; opens UV on the recycle (D-010).}
+  - {tag: UZ-7125B, service: K-7101B recycle isolation valve XV-7125B, sheet: P-07, notes: 'Fail open and open in operation and on a trip: the recycle keeps the tripped machine open to the tank system (its relief path) and the anti-surge path open on a utility failure; closed by the operator (HS) only to isolate K-7101B for maintenance (D-025).'}
+  - {tag: UZ-7121B, service: K-7101B suction ESD valve XV-7121B, sheet: P-07, notes: 'Closes on a compressor trip (C&E I-701, I-702) and on every compressor stop (H-04 A9).'}
+  - {tag: UZ-7123B, service: K-7101B discharge isolation valve XV-7123B, sheet: P-07, notes: 'Fail closed; closes with XV-7121B on a compressor trip or stop, isolates the machine from the discharge header (review #11, H-04 A8/A9).'}
   - {tag: VZ-7110B, service: K-7101B vibration and bearing monitoring, sheet: P-07, notes: Machine protection (C&E I-702).}
-  - {tag: UIC-7104C, service: K-7101C anti-surge control, sheet: P-07, notes: Vendor anti-surge system; opens UV on the surge line (D-010).}
-  - {tag: UZ-7121C, service: K-7101C suction ESD valve XV-7121C, sheet: P-07, notes: 'Closes on a compressor trip (C&E I-701, I-702).'}
+  - {tag: UIC-7104C, service: K-7101C anti-surge control, sheet: P-07, notes: Vendor anti-surge system; opens UV on the recycle (D-010).}
+  - {tag: UZ-7125C, service: K-7101C recycle isolation valve XV-7125C, sheet: P-07, notes: 'Fail open and open in operation and on a trip: the recycle keeps the tripped machine open to the tank system (its relief path) and the anti-surge path open on a utility failure; closed by the operator (HS) only to isolate K-7101C for maintenance (D-025).'}
+  - {tag: UZ-7121C, service: K-7101C suction ESD valve XV-7121C, sheet: P-07, notes: 'Closes on a compressor trip (C&E I-701, I-702) and on every compressor stop (H-04 A9).'}
+  - {tag: UZ-7123C, service: K-7101C discharge isolation valve XV-7123C, sheet: P-07, notes: 'Fail closed; closes with XV-7121C on a compressor trip or stop, isolates the machine from the discharge header (review #11, H-04 A8/A9).'}
   - {tag: VZ-7110C, service: K-7101C vibration and bearing monitoring, sheet: P-07, notes: Machine protection (C&E I-702).}
+  - {tag: TZT-7112A, service: K-7101A discharge temperature high-high, sheet: P-07, notes: 'Trips K-7101A on high discharge temperature (review #9, H-04 A11; C&E entry by the orchestrator).'}
+  - {tag: TZT-7112B, service: K-7101B discharge temperature high-high, sheet: P-07, notes: 'Trips K-7101B on high discharge temperature (review #9, H-04 A11; C&E entry by the orchestrator).'}
+  - {tag: TZT-7112C, service: K-7101C discharge temperature high-high, sheet: P-07, notes: 'Trips K-7101C on high discharge temperature (review #9, H-04 A11; C&E entry by the orchestrator).'}
+  - {tag: UZ-7130, service: BOG-7002 battery-limit ESD valve XV-7130, sheet: P-07, notes: 'Fail closed; closes on ESD and on a trip of all compressors (review #11, H-04 A8).'}
   - {tag: PI-7108, service: BOG discharge pressure, sheet: P-07}
   - {tag: TI-7107, service: BOG discharge temperature, sheet: P-07}
   - {tag: FI-7109, service: BOG to the trains, sheet: P-07}
   # ---- P-08
   - {tag: PI-8112, service: Flare header pressure, sheet: P-08}
   - {tag: FI-8111, service: Flare header purge gas flow, sheet: P-08, notes: Purge set by the orifice FO-8111.}
-  - {tag: LIC-8101, service: Flare knock-out drum level, sheet: P-08, notes: Starts and stops P-8101A/B; high-high alarm.}
+  - {tag: LIC-8101, service: Flare knock-out drum level, sheet: P-08, notes: Starts and stops P-8101A/B; high level alarm (the high-high trip is the independent LZT-8105).}
+  - {tag: LZT-8105, service: Flare knock-out drum level high-high (independent of LIC-8101), sheet: P-08, notes: Own nozzle N6 on D-8101; high-high level trip against liquid carry-over to FL-8101 (C&E).}
   - {tag: FI-8133, service: Flare flow (ultrasonic), sheet: P-08, notes: Monthly-average routine flow against the permit limit (S-02).}
   - {tag: TI-8131, service: Pilot flame temperature (thermocouples), sheet: P-08, notes: Pilot failure alarm.}
   - {tag: TSL-8102, service: Tank-area sump low temperature (LNG in the sump), sheet: P-08, notes: Stops P-8102 and starts the high-expansion foam (C&E I-801).}

@@ -1,0 +1,85 @@
+# Pipe routing intent. Schema: `cheme schema routing` (skill pipe-routing).
+# Racks: PR1 tank area, PR2 the ~2 km trestle, PR3 to the BOG area and the flare, PR4 north
+# to the trains (layout/site-plan.yaml). Liquid on the lower tier, vapour and utilities on the
+# upper (D-013, ASSUMED). Battery-limit points: the trains (north end of PR4), the liquid
+# burner, fuel gas and oily water at their areas; the six sheet junctions where a line changes
+# its number with its size (D-021) are fixed points so both lines meet there.
+rules:
+  tiers:
+    # main racks PR1-PR4 at 7 / 10 m, riser racks PR5 / PR6 at 12 / 14 m (layout/site-plan.yaml)
+    - {rack: PR1, elevation: 7, fluids: [LNG, Water]}
+    - {rack: PR1, elevation: 10, fluids: [Boil-off gas, Flare gas, Nitrogen, Instrument air, Fuel gas]}
+    # on the trestle the small utilities ride on the bottom tier, so the two DN 750 vapour
+    # returns have the top tier to themselves
+    - {rack: PR2, elevation: 7, fluids: [LNG, Nitrogen, Instrument air]}
+    - {rack: PR2, elevation: 10, fluids: [Boil-off gas]}
+    - {rack: PR3, elevation: 7, fluids: [LNG, Nitrogen, Instrument air]}
+    - {rack: PR3, elevation: 10, fluids: [Boil-off gas, Flare gas, Fuel gas]}
+    - {rack: PR4, elevation: 7, fluids: [LNG]}
+    - {rack: PR4, elevation: 10, fluids: [Boil-off gas]}
+    - {rack: PR5, elevation: 12, fluids: [LNG]}
+    - {rack: PR5, elevation: 14, fluids: [Boil-off gas, Air, Flare gas]}
+    - {rack: PR6, elevation: 12, fluids: [LNG]}
+    - {rack: PR6, elevation: 14, fluids: [Boil-off gas, Air, Flare gas]}
+  local_max_m: 20
+  battery_limits:
+    # trains 1-4 (north end of PR4): rundown in, compressed BOG out
+    # points are pipe centrelines resting on the tier (tier + outside radius with insulation)
+    - {id: BL-train-1, lines: [LNG-1001], point: [1090.0, 3620.0, 7.54]}
+    - {id: BL-train-2, lines: [LNG-1012], point: [1093.0, 3620.0, 7.34]}
+    - {id: BL-train-3, lines: [LNG-1013], point: [1096.0, 3620.0, 7.34]}
+    - {id: BL-train-4, lines: [LNG-1014], point: [1099.0, 3620.0, 7.34]}
+    - {id: BL-train-BOG, lines: [BOG-7002], point: [1100.5, 3620.0, 10.34]}
+    # site systems
+    - {id: BL-liquid-burner, lines: [LNG-8001], point: [1500.0, 3070.0, 1.0]}
+    - {id: BL-fuel-gas, lines: [FG-8001, FG-8002], rack: PR3, rack_end: end}
+    - {id: BL-oily-water, lines: [W-8002], point: [1000.0, 2952.0, 0.5]}
+    - {id: BL-site-N2, lines: [N-8001], rack: PR3, rack_end: end}
+    - {id: BL-site-IA, lines: [IA-8001], rack: PR3, rack_end: end}
+    # sheet junctions where the line number changes with the size (D-021)
+    # on PR1 east of the riser racks, where each tank's pump header has come down (ASSUMED)
+    - {id: J-T2101-header, lines: [LNG-2001, LNG-4001], point: [1005.0, 2940.0, 7.487]}
+    - {id: J-T3101-header, lines: [LNG-3001, LNG-4002], point: [865.0, 2949.0, 7.49]}
+    # 2.5 m off the platform end of PR2 (y 890), each in line with its trestle lane, line A
+    # west of line B, so the lines leave the rack straight and the berth headers fan out to
+    # their face from there (ASSUMED).
+    - {id: J-Berth2-liquid, lines: [LNG-4001, LNG-5001], point: [1149.56, 887.5, 7.49]}
+    - {id: J-Berth1-liquid, lines: [LNG-4002, LNG-6001], point: [1150.634, 887.5, 7.49]}
+    - {id: J-Berth2-vapour, lines: [BOG-5001, BOG-4001], point: [1148.0, 887.5, 10.47]}
+    - {id: J-Berth1-vapour, lines: [BOG-6001, BOG-4002], point: [1149.1, 887.5, 10.47]}
+lines:
+  # BOG area (A2), so the crane lanes over the compressors stay clear (layout/zones.yaml
+  # Z-PAD-A2E): the suction header from the top of D-7101 runs high along x 1040, west of the
+  # machines, with a drop to each suction; the discharge header collects low east of the
+  # machines, clear of the motor removal space (discharge nozzles on their south sides), and
+  # leaves south of K-7101C for PR3 (ASSUMED arrangement).
+  - {line: BOG-7001, via: [[1030.0, 3040.0, 11.5], [1040.0, 3040.0, 11.5], [1040.0, 2984.1, 11.5]]}
+  - {line: BOG-7002, via: [[1059.5, 3011.5, 2.0], [1059.5, 2981.5, 2.0], [1059.5, 2977.0, 2.0]]}
+  # anti-surge recycles from each discharge back to its suction, low along the machine's south
+  # side (between the machines), not over them
+  - {line: BOG-7008, via: [[1052.0, 3011.0, 3.0], [1042.5, 3011.0, 3.0]]}
+  - {line: BOG-7009, via: [[1052.0, 2996.0, 3.0], [1042.5, 2996.0, 3.0]]}
+  - {line: BOG-7010, via: [[1052.0, 2981.0, 3.0], [1042.5, 2981.0, 3.0]]}
+  # make-up gas from the discharge header: low along the header to north of K-7101A, then up
+  # to the PR6 east leg (out of the compressor crane lanes)
+  - {line: BOG-1009, via: [[1059.5, 3022.5, 3.0], [1059.5, 3022.5, 14.2]]}
+  # compressor relief / vent lines to the flare (P-07 of 2026-11-05): low east of the machines
+  # alongside the discharge header, leaving south of K-7101C for PR3
+  - {line: FL-7002, via: [[1062.5, 2990.5, 4.0], [1062.5, 2976.0, 4.0]]}
+  # (FL-7003 is drawn on P-07 but not yet in the line list: layout-routing-unknown-line until
+  # the lists are synced; without this intent its branch tees come out 0.07 m off on PR3)
+  - {line: FL-7003, via: [[1061.0, 3012.0, 3.0], [1061.0, 2976.5, 3.0]]}
+  - {line: FL-7004, via: [[1056.0, 2997.4, 3.7]]}
+  - {line: FL-7005, via: [[1056.0, 2982.4, 3.7]]}
+  # ---- tank area (A1), ASSUMED arrangement, checked in plan and section x=929.
+  # T-2101 loading header: down its PR6 lane at x 983.8 between PR6's beams (y 3030.9), over
+  # PR1 at 12.5 m, dropping to the bottom tier at y 2940 between PR1's beams (x 983.3 / 986.0)
+  # to the sheet junction.
+  - {line: LNG-2001, segment: S5, via: [[983.784, 3030.87, 60.208], [983.784, 3030.87, 12.486], [983.784, 2940.0, 12.486], [984.66, 2940.0, 12.486], [984.66, 2940.0, 7.487]]}
+  # T-3101 vapour outlet into the tank vapour header: the router puts its tie-in at the start
+  # of BOG-1001 on the T-2101 roof, so instead of spanning between the roofs it goes down PR5
+  # (top tier, x 846.5), along PR1 at 10 m (y 2942), up PR6 (x 992) and over to the tie-in.
+  # LNG-3002 and LNG-4009 still run roof to roof for the same reason: to be pinned down the
+  # racks with tie-ins at rack level once the P&ID rework of 2026-11-05 has settled.
+  - {line: BOG-1003, via: [[846.5, 3043.8, 51.0], [846.5, 3043.8, 14.385], [846.5, 2942.0, 14.385], [846.5, 2942.0, 10.385], [992.0, 2942.0, 10.385], [992.0, 2942.0, 14.385], [992.0, 3043.8, 14.385], [992.0, 3043.8, 52.3], [968.9, 3043.8, 52.3]]}
+  - {line: BOG-1004, skip: "DN 25 thermal relief tailpipe of PSV-1121 from the rundown header into the tank vapour header: small bore, field-run beside the rundown line at detail engineering"}

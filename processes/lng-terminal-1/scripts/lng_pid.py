@@ -19,6 +19,7 @@ from pathlib import Path
 from chemeascode.domains.piping import authoring
 from chemeascode.domains.piping.authoring import (  # noqa: F401  (re-exported for the drafts)
     Nozzle,
+    label,
     Sheet,
     instrument,
     note,
@@ -111,7 +112,7 @@ class Lists:
         self.lines: list[dict] = []
         self.instruments: list[dict] = []
         self.items: list[dict] = []
-        self.psvs: list[str] = []
+        self.psvs: list[tuple[str, str, tuple | None]] = []
 
     def line(self, sheet, number, *, dn, fluid, route, frm, to, notes="", insulation="cold (PIR)",
              pclass="Class 150", label_at=None, labels=True, segments=None):
@@ -133,15 +134,19 @@ class Lists:
         self.instruments.append(entry)
         return made
 
-    def relief(self, vid, tag, line_no, set_barg, case, notes, cls="SpringLoadedGlobeSafetyValve"):
-        self.psvs.append((vid, cls))
+    def relief(self, vid, tag, line_no, set_barg, case, notes, cls="SpringLoadedGlobeSafetyValve",
+               label_at=None):
+        """A relief valve drawn as a globe valve, turned into a safety valve by finish(); its tag
+        is printed at *label_at* (default 6 mm above the symbol)."""
+        self.psvs.append((vid, cls, label_at))
         self.items.append({"tag": tag, "type": cls, "line": line_no, "sheet": self.sheet_id,
                            "set_pressure_barg": set_barg, "relief_case": case, "notes": notes})
         return valve(vid, "GlobeValve", tag=tag)
 
     def finish(self, sheet: Sheet, target: Path) -> None:
-        for vid, cls in self.psvs:
+        for vid, cls, at in self.psvs:
             to_safety_valve(sheet, vid, cls)
+            label(sheet, vid, "PositionNumber", at=at)
         sheet.save(target)
         out = Path("build") / f"lists_{self.sheet_id}.json"
         out.parent.mkdir(exist_ok=True)

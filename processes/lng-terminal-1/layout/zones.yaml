@@ -1,0 +1,220 @@
+# Zones of the 3D layout. Schema: `cheme schema zones`. Skill area-classification.
+# SCREENING ONLY, every zone ASSUMED: the hazardous volumes from sources take cheme-as-code's
+# indicative radius table (domains/safety/data/release-radii.yaml); no dispersion is modelled.
+# The terminal's area classification (CSA C22.1 / IEC 60079-10-1, by a competent person) and
+# the marine terminal safety zones of the TERMPOL / TIG review replace or confirm each one.
+# Substance: LNG and boil-off gas, taken as methane (flammable gas, lighter than air once warm;
+# cold vapour from a liquid release is denser than air and spreads at grade).
+zones:
+  # ---- hazardous areas (flammable releases)
+  - id: Z-HA-TANK-PSV
+    title: Tank roof relief valve outlets PSV-2131A/B (T-2101) and PSV-3131A/B (T-3101)
+    kind: hazardous
+    zone: 1
+    sources:
+      - {item: BOG-2002, release_grade: secondary, substance: methane, source_kind: psv_outlet}   # PSV-2131A tailpipe
+      - {item: BOG-2003, release_grade: secondary, substance: methane, source_kind: psv_outlet}   # PSV-2131B tailpipe
+      - {item: BOG-3002, release_grade: secondary, substance: methane, source_kind: psv_outlet}   # PSV-3131A tailpipe
+      - {item: BOG-3003, release_grade: secondary, substance: methane, source_kind: psv_outlet}   # PSV-3131B tailpipe
+    basis: "Tank overpressure relief to atmosphere above the roof, only when PV-1110 to the flare and the BOG compressors have failed (D-017): secondary grade; table row psv_outlet/secondary/flammable_gas, zone 1 within 3 m of the outlet (ASSUMED)"
+  - id: Z-HA-BOG-SEALS
+    title: BOG compressor shaft seals K-7101A/B/C
+    kind: hazardous
+    zone: 2
+    sources:
+      - {item: K-7101A, release_grade: secondary, substance: methane, source_kind: compressor_seal}
+      - {item: K-7101B, release_grade: secondary, substance: methane, source_kind: compressor_seal}
+      - {item: K-7101C, release_grade: secondary, substance: methane, source_kind: compressor_seal}
+    basis: "Dry gas seals with their vents to the flare: leakage only on seal failure, secondary grade; table row compressor_seal/secondary/flammable_gas, zone 2 within 3 m (ASSUMED)"
+  - id: Z-HA-ARMS-B2
+    title: Berth 2 loading arms LA-5101 to LA-5104 (coupling flanges, swivels)
+    kind: hazardous
+    zone: 2
+    sources:
+      - {item: LA-5101, release_grade: secondary, substance: methane, source_kind: flange}
+      - {item: LA-5102, release_grade: secondary, substance: methane, source_kind: flange}
+      - {item: LA-5103, release_grade: secondary, substance: methane, source_kind: flange}
+      - {item: LA-5104, release_grade: secondary, substance: methane, source_kind: flange}
+    basis: "Swivel joints and the arm base flanges: secondary grade; table row flange/secondary/flammable_gas, zone 2 within 1 m (ASSUMED)"
+  - id: Z-HA-ARMS-B1
+    title: Berth 1 loading arms LA-6101 to LA-6104 (coupling flanges, swivels)
+    kind: hazardous
+    zone: 2
+    sources:
+      - {item: LA-6101, release_grade: secondary, substance: methane, source_kind: flange}
+      - {item: LA-6102, release_grade: secondary, substance: methane, source_kind: flange}
+      - {item: LA-6103, release_grade: secondary, substance: methane, source_kind: flange}
+      - {item: LA-6104, release_grade: secondary, substance: methane, source_kind: flange}
+    basis: "As Z-HA-ARMS-B2 (ASSUMED)"
+  - id: Z-HA-MANIFOLD-B2
+    title: Berth 2 arm envelope and ship manifold area (couplings opened at every connection, purged)
+    kind: hazardous
+    zone: 1
+    shape: box
+    box: [1120, 872, 0, 1142, 902, 24]
+    basis: "The arm couplings (QCDC, ERC) are connected, purged with nitrogen and drained at every transfer: a primary release a few times a month; zone 1 over the arm envelope from the west face to 10 m outboard, up to the arm apex (ASSUMED screening; the table has no row for a loading coupling)"
+  - id: Z-HA-MANIFOLD-B1
+    title: Berth 1 arm envelope and ship manifold area
+    kind: hazardous
+    zone: 1
+    shape: box
+    box: [1168, 872, 0, 1190, 902, 24]
+    basis: "As Z-HA-MANIFOLD-B2, on the east face (ASSUMED)"
+  - id: Z-HA-FLARE-KO
+    title: Flare knock-out drum D-8101 flanges and its pump seals P-8101A/B
+    kind: hazardous
+    zone: 2
+    sources:
+      - {item: D-8101/N1, release_grade: secondary, substance: methane, source_kind: flange}
+      - {item: D-8101/N2, release_grade: secondary, substance: methane, source_kind: flange}
+      - {item: D-8101/N3, release_grade: secondary, substance: methane, source_kind: flange}
+      - {item: P-8101A, release_grade: secondary, substance: methane, source_kind: pump_seal}
+      - {item: P-8101B, release_grade: secondary, substance: methane, source_kind: pump_seal}
+    basis: "Inlet, outlet and drain flanges of the KO drum and the seals of its LNG pump-out pumps: secondary grade; table rows flange (1 m) and pump_seal (3 m cylinder from grade), zone 2 (ASSUMED)"
+  - id: Z-HA-JETTY-DRAIN
+    title: Jetty drain pump seals P-5101 and P-6101
+    kind: hazardous
+    zone: 2
+    sources:
+      - {item: P-5101, release_grade: secondary, substance: methane, source_kind: pump_seal}
+      - {item: P-6101, release_grade: secondary, substance: methane, source_kind: pump_seal}
+    basis: "LNG pump seals, secondary grade; table row pump_seal/secondary/flammable_gas (ASSUMED)"
+  # ---- marine safety zones during transfer (LNG Canada TIG Rev 3: 200 m around the vapour
+  # arm while a carrier is alongside and transferring; no other vessel, no ignition source).
+  # Drawn on the water, below the jetty deck (z -30 .. -6), so the deck and its piping above
+  # stay free; a keep-clear volume for the vessel traffic plan, not an electrical zone.
+  - id: Z-SZ-B2
+    title: Berth 2 marine safety zone, 200 m around the vapour arm LA-5102 during transfer
+    kind: keep_clear
+    shape: cylinder
+    centre: [1137.0, 884.0, -30.0]
+    radius: 200
+    height: 24
+    basis: "LNG Canada TIG Rev 3: 200 m marine safety zone around the vapour arm during transfer (cited); centre the measured Berth 2 vapour arm position (D-013, D-014); vertical extent on the water ASSUMED"
+  - id: Z-SZ-B1
+    title: Berth 1 marine safety zone, 200 m around the vapour arm LA-6102 during transfer
+    kind: keep_clear
+    shape: cylinder
+    centre: [1173.0, 884.0, -30.0]
+    radius: 200
+    height: 24
+    basis: "As Z-SZ-B2 for the Phase 2 berth on the east face (position ASSUMED, D-019)"
+  # ---- ship envelopes at the berths (carrier up to 315 m x 55 m, ASSUMED Q-Max-class limit),
+  # the hull alongside the berth line at 173.5 deg with ~3 m fender stand-off; the turned hull
+  # approximated by three axis-parallel boxes along its length, kept off the platform.
+  - id: Z-SHIP-B2-N
+    title: Berth 2 carrier envelope, north third
+    kind: keep_clear
+    shape: box
+    box: [1054, 939, -12, 1121, 1044, 40]
+    basis: "315 x 55 m carrier west of the west face, centre ~(1099, 887), heading 173.5 deg (berth face measured, D-013); waterline -12 m to the top of the accommodation +40 m relative to the deck (ASSUMED)"
+  - id: Z-SHIP-B2-M
+    title: Berth 2 carrier envelope, middle third (at the loading platform)
+    kind: keep_clear
+    shape: box
+    box: [1066, 834, -12, 1129, 939, 40]
+    basis: "As Z-SHIP-B2-N; east edge 1 m off the platform's west face (ASSUMED)"
+  - id: Z-SHIP-B2-S
+    title: Berth 2 carrier envelope, south third
+    kind: keep_clear
+    shape: box
+    box: [1078, 729, -12, 1133, 834, 40]
+    basis: "As Z-SHIP-B2-N (ASSUMED)"
+  - id: Z-SHIP-B1-N
+    title: Berth 1 carrier envelope, north third
+    kind: keep_clear
+    shape: box
+    box: [1166, 939, -12, 1233, 1044, 40]
+    basis: "315 x 55 m carrier east of the east face, parallel to Berth 2 (Phase 2 berth position ASSUMED, D-019); clear of the trestle PR2 (ASSUMED)"
+  - id: Z-SHIP-B1-M
+    title: Berth 1 carrier envelope, middle third (at the loading platform)
+    kind: keep_clear
+    shape: box
+    box: [1181, 834, -12, 1245, 939, 40]
+    basis: "As Z-SHIP-B1-N; west edge 1 m off the platform's east face (ASSUMED)"
+  - id: Z-SHIP-B1-S
+    title: Berth 1 carrier envelope, south third
+    kind: keep_clear
+    shape: box
+    box: [1189, 729, -12, 1257, 834, 40]
+    basis: "As Z-SHIP-B1-N (ASSUMED)"
+  # ---- crane pads and laydown for the heavy items (weights in the equipment list; lifting
+  # rule: a pad within reach, the lane from the pad over the item clear, a laydown that holds
+  # the item). All ASSUMED: the lifting study with the crane contractor replaces them.
+  - id: Z-PAD-A2E
+    title: Crane pad east of the BOG compressors, west of PR3
+    kind: crane_pad
+    shape: box
+    box: [1062, 2988, 0, 1082, 3012, 1]
+    reach_m: 30
+    basis: "Mobile crane for the K-7101A/B/C casings, coolers and motors (8 t heaviest maintenance lift, ASSUMED); reached from road R3 under PR3 (ASSUMED)"
+  - id: Z-LAY-A2E
+    title: Laydown south-east of the BOG compressors
+    kind: laydown
+    shape: box
+    box: [1062, 2964, 0, 1084, 2984, 1]
+    basis: "Compressor casing or motor set down for transport (9 x 4 m, ASSUMED)"
+  - id: Z-PAD-A2W
+    title: Crane pad south of the BOG suction drum
+    kind: crane_pad
+    shape: box
+    box: [1024, 3020, 0, 1036, 3030, 1]
+    reach_m: 12
+    basis: "D-7101 (22 t) erection and removal, internals, at about 14 m radius (ASSUMED); the compressors are lifted from Z-PAD-A2E"
+  - id: Z-LAY-A2W
+    title: Laydown in the west of the BOG area
+    kind: laydown
+    shape: box
+    box: [1012, 2995, 0, 1030, 3014, 1]
+    basis: "D-7101 laid down, compressor parts (ASSUMED)"
+  - id: Z-PAD-A3
+    title: Crane pad east of the flare knock-out drum
+    kind: crane_pad
+    shape: box
+    box: [1460, 3062, 0, 1478, 3082, 1]
+    reach_m: 18
+    basis: "D-8101 (35 t) erection and removal, its pumps (ASSUMED); only with the flare out of service or at a radiation level the flare study allows (D-017)"
+  - id: Z-LAY-A3
+    title: Laydown north-east of the flare knock-out drum
+    kind: laydown
+    shape: box
+    box: [1458, 3084, 0, 1478, 3096, 1]
+    basis: "D-8101 laid down (14 x 4 m) (ASSUMED)"
+  - id: Z-PAD-A4W
+    title: Crane strip on the platform between the Berth 2 arms and the trestle rack
+    kind: crane_pad
+    shape: box
+    box: [1140, 870, 0, 1146.5, 900, 1]
+    reach_m: 30
+    basis: "Deck crane position for an arm (40-45 t) or its counterweight and swivels, and the jetty drain drum D-5101 (ASSUMED); a crane on the deck or a floating crane, per the arm vendor's maintenance plan"
+  - id: Z-PAD-A4E
+    title: Crane strip on the platform between the trestle rack and the Berth 1 arms
+    kind: crane_pad
+    shape: box
+    box: [1162, 870, 0, 1170, 900, 1]
+    reach_m: 30
+    basis: "As Z-PAD-A4W, for the Berth 1 arms and D-6101 (ASSUMED)"
+  - id: Z-LAY-A4SW
+    title: Laydown at the south-west corner of the platform
+    kind: laydown
+    shape: box
+    box: [1131, 856, 0, 1145, 865, 1]
+    basis: "Arm parts, drain drum D-5101 (8.5 x 2.8 m) set down (ASSUMED)"
+  - id: Z-LAY-A4SE
+    title: Laydown at the south-east corner of the platform
+    kind: laydown
+    shape: box
+    box: [1167, 856, 0, 1179, 865, 1]
+    basis: "Arm parts, drain drum D-6101 set down (ASSUMED)"
+  - id: Z-LAY-A4NW
+    title: Laydown at the north-west corner of the platform
+    kind: laydown
+    shape: box
+    box: [1131, 902, 0, 1146, 924, 1]
+    basis: "Arm parts of LA-5103 / LA-5104 set down (ASSUMED)"
+  - id: Z-LAY-A4NE
+    title: Laydown at the north-east corner of the platform, beside the spill sump
+    kind: laydown
+    shape: box
+    box: [1173, 902, 0, 1179.5, 912, 1]
+    basis: "Arm parts of LA-6103 / LA-6104 set down (ASSUMED)"

@@ -11,15 +11,28 @@ areas:
   - {id: A4, title: "Loading platform, Berth 2 (west, as built) and Berth 1 (east, Phase 2) (P-05, P-06)", box: [1130, 855, 1180, 925], kind: process}
   - {id: A5, title: "Liquefaction trains 1-4 (outside the battery limit; OSM train blocks, D-001)", box: [560, 3630, 1372, 4015], kind: reserved}
 roads:
-  - {id: R1, title: "South road of the tank area", points: [[700, 2930], [1119, 2930]], width: 8}
-  - {id: R2, title: "North road of the tank area, to the flare", points: [[700, 3120], [1420, 3120]], width: 8}
-  - {id: R3, title: "East road (BOG area, trestle head)", points: [[1115, 2930], [1115, 3120]], width: 8}
-  - {id: R4, title: "West road of the tank area", points: [[704, 2930], [704, 3120]], width: 8}
+  - {id: R1, title: "South road of the tank area (ends at the jetty road, west of the trestle rack)", points: [[700, 2930], [1080, 2930]], width: 8}
+  - {id: R2, title: "North road of the tank area, to the flare (2 m north of the PR3 east leg's columns, ASSUMED)", points: [[700, 3122], [1420, 3122]], width: 8}
+  - {id: R3, title: "East road of the BOG area (south of the PR3 east leg)", points: [[1115, 2955], [1115, 3098]], width: 8}
+  - {id: R4, title: "West road of the tank area", points: [[704, 2930], [704, 3122]], width: 8}
   - {id: R5, title: "Jetty road along the trestle (west side)", points: [[1083, 2930], [1083, 2872], [1141, 925]], width: 6}
+# All racks 14 m wide so the lanes line up where they join (PR1/PR2/PR3 at x 1095, y 2945;
+# PR3/PR4 at y 3110). Bents about 8 m apart on PR1, PR2, PR5 and PR6 and 9.1 m on PR3, so the
+# first bent of a branch rack and the last bent of PR1 stand clear of the rack they join (and
+# no PR3 bent stands in PR4 at their corner); PR4 17 m apart so its portal over road R2 spans
+# the road (bent at y 3127, road 3118-3126). Main racks PR1 to PR4 with tiers at 7 / 10 m, so
+# the steel under the bottom tier clears the 6 m road headroom where PR4 crosses R2 and all
+# main racks join level. The riser racks PR5 and PR6 have their tiers at 12 / 14 m, above the
+# 10 m top tier of PR1 and PR3, so their lines cross those racks' columns above them and drop
+# onto their tiers. Intermediate steel every 3 m on every tier for the small lines
+# (all ASSUMED, D-013).
 racks:
-  - {id: PR1, title: "Tank-area rack south of the tanks: loading, vapour return, circulation and BOG lines (P-02 to P-04, P-07)", points: [[760, 2945], [1095, 2945]], width: 10, levels: [6, 9]}
-  - {id: PR2, title: "Trestle to the loading platform, ~1.98 km at 178 deg (measured, D-013): 2 x DN 800 loading, 2 x DN 750 vapour return, circulation, N2, drains", points: [[1095, 2945], [1095, 2872], [1154, 890]], width: 10, levels: [6, 9]}
-  - {id: PR3, title: "Rundown and BOG rack to the trains (north), and the flare header to A3", points: [[1095, 2945], [1095, 3110], [1430, 3110]], width: 8, levels: [6, 9]}
+  - {id: PR1, title: "Tank-area rack south of the tanks: loading, vapour return, circulation and BOG lines (P-02 to P-04, P-07)", points: [[760, 2945], [1095, 2945]], width: 14, levels: [7, 10], bent_spacing_m: 8, intermediate_supports: {spacing_m: 3}}
+  - {id: PR2, title: "Trestle to the loading platform, ~1.98 km at 178 deg (measured, D-013): 2 x DN 800 loading, 2 x DN 750 vapour return, circulation, N2, drains", points: [[1095, 2945], [1095, 2872], [1154, 890]], width: 14, levels: [7, 10], bent_spacing_m: 8, intermediate_supports: {spacing_m: 3}}
+  - {id: PR3, title: "BOG area rack and the flare header to A3; fuel gas, N2 and instrument air from the site at its east end", points: [[1095, 2945], [1095, 3110], [1430, 3110]], width: 14, levels: [7, 10], bent_spacing_m: 9.1, intermediate_supports: {spacing_m: 3}}
+  - {id: PR4, title: "Rundown and BOG rack north to the trains (battery limit at its north end); portal frame over road R2", points: [[1095, 3110], [1095, 3625]], width: 14, levels: [7, 10], bent_spacing_m: 17, intermediate_supports: {spacing_m: 3}}
+  - {id: PR5, title: "Riser rack beside the T-3101 east shell: tank roof piping down to PR1 (D-013; moved from x 859 to the shell, ASSUMED); tiers 12 / 14 m, over PR1's steel at the joint", points: [[846, 2945], [846, 3060]], width: 14, levels: [12, 14], bent_spacing_m: 8, intermediate_supports: {spacing_m: 3}}
+  - {id: PR6, title: "Riser rack east of T-2101: tank roof piping down to PR1 (D-013), turning east along the north edge of the BOG area to PR3 (tank vapour header to D-7101, flare header and drains to PR3, ASSUMED); tiers 12 / 14 m, over PR1's and PR3's steel at the joints", points: [[988, 2945], [988, 3052], [1095, 3052]], width: 14, levels: [12, 14], bent_spacing_m: 8, intermediate_supports: {spacing_m: 3}}
 rack_reach: 60
 separations:
   - {from: T-2101, to: T-3101, min_m: 46, reason: "full-containment tanks: shell to shell at least a quarter of the sum of the diameters", basis: "NFPA 59A practice (cited only), ASSUMED (D-018)"}

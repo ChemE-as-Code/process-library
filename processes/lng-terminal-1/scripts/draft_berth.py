@@ -1,20 +1,33 @@
 """Draft of a berth sheet (P-05: Berth 2, as built; P-06: Berth 1, Phase 2): the platform
 liquid header with the shore ESD valve, strainer and surge relief, the four 16 inch arms (two
-liquid, one hybrid, one vapour) with their emergency release systems, the vapour line to the
-trestle, the jetty drain drum and pump, and the N2 purge.
+liquid, one hybrid, one vapour) with their emergency release systems and thermal relief, the
+vapour line to the trestle, the jetty drain drum and pump, and the N2 purge.
 
 Provenance only: the sheets are hand-maintained after this first revision. Run:
 cheme run scripts/draft_berth.py pid/P-05.xml 5   (or pid/P-06.xml 6), on the empty A3 frame.
 Arm arrangement and procedures from the LNG Canada Terminal Information Guide (S-01): south to
 north liquid, vapour, hybrid, liquid; vapour arm connected first; N2 leak test 5 / 2.5 bar.
-Decisions D-014, D-016, D-017, D-021. The sheet draws the arms left to right L1, L2, H, V (the
-platform order is in the note) so that the vapour line leaves the sheet without crossings.
+Decisions D-014, D-016, D-017, D-021, D-023. The sheet draws the arms left to right L1, L2, H, V
+(the platform order is in the note) so that the vapour line leaves the sheet without crossings.
+
+Revision after the basic-design review (reviews/2026-11-05-basic-design.md #1, #2, #3, #7, #17,
+#18, #21, #23, #25) and HAZOP H-03 (A3, A4, A5, A7, A13): the drain DR-n001 has its block valve
+XV-n161 with the relief outlets downstream of it; the drain drum D-n101 is drawn above the
+header (it sits at the platform low point) so that the arm thermal relief reaches it without
+crossing the header; drain pump isolation, check valve and minimum flow; position switches on
+the hybrid arm valves; N2 double block and bleed; an independent high-high level on D-n101.
+
+Round 2: thermal relief PSV-n118 of the drain pump discharge between CV-n116 and HV-n117 (DR-n006
+into DR-n001); the drain pump vent/drain HV-n119 between its isolation valves (DR-n007 into
+DR-n001); DR-n001 at DN 150 throughout (it receives the DN 150 surge relief DR-n002); the tags
+of all relief valves printed; sheet notes on the hybrid arm key interlock and the arm package.
 """
 
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from chemeascode.domains.piping.authoring import label  # noqa: E402
 from lng_pid import (  # noqa: E402
     Lists, Nozzle, Sheet, arm_shape, equipment, note, offpage, set_dn, tee, valve)
 
@@ -26,6 +39,11 @@ UP, DOWN, LEFT = 270, 90, 180
 HDR_Y, ARM_Y, SC = 190, 100, 2.0
 X = {"1": 110, "4": 170, "3": 230, "2": 290}      # LA-n101 L1, LA-n104 L2, LA-n103 H, LA-n102 V
 KIND = {"1": "liquid", "4": "liquid", "3": "hybrid", "2": "vapour"}
+RLF_Y = 150                                       # thermal relief tees on the arm risers
+DRX = 88                                          # drain / relief line DR-n001 (up to the drum)
+TOP_R, TOP_V = 40, 20                             # relief header and drum vent above the arms
+CHAN = {"4": X["4"] - 21.5, "3": X["3"] - 21.5}   # relief risers between two arms
+VCH = X["2"] - 21.5                               # drum vent down between the hybrid and vapour arm
 
 arms = {}
 for k, x in X.items():
@@ -34,43 +52,50 @@ for k, x in X.items():
                         nozzles=[Nozzle("N1", (0, 28), 400), Nozzle("N2", (32, 16), 400)],
                         label_at=(x - 2, 66))
 
-# ---- liquid header: shore ESD valve, strainer, surge relief, N2, drain --------------------
-t_srg = tee(f"T{n}0S", at=(70, HDR_Y), branch="down", branch_dn=150)
-t_n2 = tee(f"T{n}0N", at=(85, HDR_Y), branch="up", branch_dn=80 if n == "5" else 50)
-t_dr = tee(f"T{n}0D", at=(98, HDR_Y), branch="down", branch_dn=100)
+# ---- liquid header: shore ESD valve, strainer, N2, surge relief, drain ---------------------
+t_n2 = tee(f"T{n}0N", at=(62, HDR_Y), branch="up", branch_dn=80 if n == "5" else 50)
+t_srg = tee(f"T{n}0S", at=(74, HDR_Y), branch="up", branch_dn=150)
+t_dr = tee(f"T{n}0D", at=(DRX, HDR_Y), branch="up", branch_dn=150)
 t_l1 = tee(f"T{n}01", at=(X["1"], HDR_Y), branch="up", branch_dn=400)
 t_l2 = tee(f"T{n}04", at=(X["4"], HDR_Y), branch="up", branch_dn=400)
+t_rh = tee(f"T{n}R3", at=(X["3"], RLF_Y), branch="left", branch_dn=25)
 xv_esd = valve(f"XV{n}101", "BallValve", tag=f"XV-{n}101", at=(28, HDR_Y))
-hdr = L.line(sheet, f"LNG-{n}001", dn=800, fluid="LNG", frm=line_in, to=f"LA-{n}103",
+hdr = L.line(sheet, f"LNG-{n}001", dn=800, fluid="LNG", frm=f"{line_in} (P-04)", to=f"LA-{n}103",
              notes=f"Berth {berth} liquid header on the loading platform, 12,000 m3/h at loading (S3); shore ESD valve XV-{n}101 and strainer SR-{n}102 (S-01: shore strainers; D-016).",
-             route=[offpage("in", at=(12, HDR_Y), note=f"from {line_in} (P-04)", note_at=(24, HDR_Y + 7)), xv_esd,
-                    valve(f"SR{n}102", "ConicalStrainer", tag=f"SR-{n}102", at=(46, HDR_Y)), t_srg, t_n2,
+             route=[offpage("in", at=(12, HDR_Y), note=f"from trestle line {'A' if n == '5' else 'B'} (P-04)", note_at=(24, HDR_Y + 7)), xv_esd,
+                    valve(f"SR{n}102", "ConicalStrainer", tag=f"SR-{n}102", at=(46, HDR_Y)), t_n2, t_srg,
                     t_dr, t_l1, t_l2, (X["3"], HDR_Y),
                     valve(f"XV{n}123", "BallValve", tag=f"XV-{n}123", at=(X["3"], 181)),
-                    tee(f"T{n}0H", at=(X["3"], 172), branch="right", branch_dn=400), arms["3"]["N1"]],
+                    tee(f"T{n}0H", at=(X["3"], 172), branch="right", branch_dn=400), t_rh,
+                    arms["3"]["N1"]],
              label_at=(192, HDR_Y + 8),
              segments=[{"number": "S6", "nominal_diameter": "DN400", "notes": "to the hybrid arm, after the LA-n104 tee"},
-                       {"number": "S7", "nominal_diameter": "DN400", "notes": "hybrid arm connection"}])
-set_dn(sheet, [f"T{n}04_N2", f"XV{n}123_N1", f"XV{n}123_N2", f"T{n}0H_N1", f"T{n}0H_N2"], 400,
-       segments=[f"Line_LNG{n}001_S6", f"Line_LNG{n}001_S7"])
+                       {"number": "S7", "nominal_diameter": "DN400", "notes": "hybrid arm connection, to the thermal relief tee"},
+                       {"number": "S8", "nominal_diameter": "DN400", "notes": "hybrid arm connection, thermal relief tee to the arm"}])
+set_dn(sheet, [f"T{n}04_N2", f"XV{n}123_N1", f"XV{n}123_N2", f"T{n}0H_N1", f"T{n}0H_N2",
+               f"T{n}R3_N1", f"T{n}R3_N2"], 400,
+       segments=[f"Line_LNG{n}001_S6", f"Line_LNG{n}001_S7", f"Line_LNG{n}001_S8"])
+t_rl = {}
 for k, tt in [("1", t_l1), ("4", t_l2)]:
+    t_rl[k] = tee(f"T{n}R{k}", at=(X[k], RLF_Y), branch="left", branch_dn=25)
     L.line(sheet, f"LNG-{n}00{'2' if k == '1' else '3'}", dn=400, fluid="LNG", frm=f"LNG-{n}001",
-           to=f"LA-{n}10{k}", notes=f"Liquid arm LA-{n}10{k} shore connection with its isolation valve.",
+           to=f"LA-{n}10{k}", notes=f"Liquid arm LA-{n}10{k} shore connection with its isolation valve and the thermal relief tee of the arm section.",
            route=[tt.branch, valve(f"XV{n}12{k}", "BallValve", tag=f"XV-{n}12{k}", at=(X[k], 168)),
-                  arms[k]["N1"]],
-           label_at=(X[k] - 12, 150))
+                  t_rl[k], arms[k]["N1"]],
+           label_at=(X[k] + 14, 150))
+t_rl["3"] = t_rh
 
 # ---- vapour arm, hybrid vapour connection, vapour line to the trestle ---------------------------
+t_vw = tee(f"T{n}0W", at=(X["2"], 165), branch="left", branch_dn=100)
 t_vh = tee(f"T{n}0V", at=(X["2"], 172), branch="left", branch_dn=400)
-t_vd = tee(f"T{n}0W", at=(330, 182), branch="down", branch_dn=100)
-vap = L.line(sheet, f"BOG-{n}001", dn=400, fluid="Boil-off gas", frm=f"LA-{n}102", to=vap_out,
-             notes=f"Berth {berth} vapour line from the vapour arm (and the hybrid arm) to vapour return line {'A' if n == '5' else 'B'}; 45.6 t/h at loading (S5/S6) is ~70 m/s in one 16 inch arm, so the hybrid arm is the second vapour path at high return (D-014).",
+vap = L.line(sheet, f"BOG-{n}001", dn=400, fluid="Boil-off gas", frm=f"LA-{n}102", to=f"{vap_out} (P-04)",
+             notes=f"Berth {berth} vapour line from the vapour arm (and the hybrid arm) to vapour return line {'A' if n == '5' else 'B'}; one 16 inch vapour arm carries ~23.5 t/h of the -120 degC return at 40 m/s (D-023). The hybrid arm normally runs as the third liquid arm; above the vapour arm's capacity the carrier burns gas on board or the loading rate is reduced; the hybrid arm is the spare vapour path (D-014, D-023). Receives the drain drum vent BOG-{n}002.",
              route=[arms["2"]["N1"], valve(f"XV{n}122", "BallValve", tag=f"XV-{n}122", at=(X["2"], 150)),
-                    t_vh, (X["2"], 182), t_vd,
-                    offpage("out", at=(405, 182), note=f"to {vap_out} (P-04)", note_at=(388, 176))],
+                    t_vw, t_vh, (X["2"], 182),
+                    offpage("out", at=(405, 182), note=f"to vapour return {'A' if n == '5' else 'B'} (P-04)", note_at=(388, 176))],
              label_at=(370, 190))
 L.line(sheet, f"BOG-{n}003", dn=400, fluid="Boil-off gas", frm=f"LA-{n}103", to=f"BOG-{n}001",
-       notes="Hybrid arm to the vapour line (hybrid used as a vapour arm).",
+       notes="Hybrid arm to the vapour line: the spare vapour path (D-023); XV-%s125 opens only with XV-%s123 closed (ZSC-%s123 / ZSC-%s125)." % (n, n, n, n),
        route=[f"T{n}0H:T{n}0H_N3", valve(f"XV{n}125", "BallValve", tag=f"XV-{n}125", at=(258, 172)),
               t_vh.branch], labels=False)
 
@@ -88,51 +113,119 @@ for k, x in X.items():
         L.line(sheet, f"LNG-{n}01{k}", dn=400, fluid="LNG", frm=f"LA-{n}10{k}", to="carrier manifold",
                notes=f"{KIND[k].capitalize()} arm outboard: arm, ERS (XV-{n}13{k}, emergency release coupler, XV-{n}14{k}), quick connect/disconnect coupler, carrier manifold (D-014).",
                route=[arms[k]["N2"], *ers,
-                      offpage("out", at=(sx, 156), note="to carrier", note_at=(sx + 11, 160), rotation=DOWN)],
+                      offpage("out", at=(sx, 156), note="to carrier", note_at=(sx - 11 if k == "3" else sx + 11, 160), rotation=DOWN)],
                labels=False)
     for v, y in [(f"XV{n}13{k}", 125), (f"XV{n}14{k}", 140)]:
         L.inst(sheet, f"UZ-{v[2:]}", f"LA-{n}10{k} ERS valve XV-{v[2:]}",
-               f"Closes on ESD-1 / ESD-2 (C&E I-{n}01, I-{n}03); ESD-2 then releases the coupler (D-016).",
-               at=(sx + 13, y), signal_to=v, fail_action="FC")
+               f"Closes on ESD-2 (C&E I-{n}03), not on ESD-1; ESD-2 then releases the coupler (D-016).",
+               at=(sx - 13, y), signal_to=v, fail_action="FC")
     L.inst(sheet, f"ZS-{n}15{k}", f"LA-{n}10{k} envelope monitoring (position of the outboard arm)",
            f"Pre-alarm, ESD-1, ESD-2 (C&E I-{n}03).", at=(x + 8, 56))
 
-# ---- N2 purge and leak test, surge relief, drains, drain drum and pump -------------------------
+# ---- N2 purge and leak test: double block and bleed into the header ---------------------------
+t_bl = tee(f"T{n}0B", at=(32, 160), branch="up", branch_dn=25)
 L.line(sheet, "N-8001" if n == "5" else "N-8002", dn=80 if n == "5" else 50, fluid="Nitrogen",
        frm="BL (site N2)" if n == "5" else "N-8001", to=f"LNG-{n}001",
        insulation="none", pclass="Class 150",
        notes="see P-08",
-       route=[offpage("in", at=(12, 160), note="N2 (P-08)", note_at=(16, 154)),
-              valve(f"HV{n}151", "BallValve", tag=f"HV-{n}151", at=(32, 160)),
-              valve(f"CV{n}151", "SwingCheckValve", at=(55, 160)), (85, 160), t_n2.branch],
-       label_at=(55, 168))
+       route=[offpage("in", at=(12, 160), note="N2 (P-08)", note_at=(14, 154)),
+              valve(f"HV{n}151", "BallValve", tag=f"HV-{n}151", at=(20, 160)), t_bl,
+              valve(f"HV{n}152", "BallValve", tag=f"HV-{n}152", at=(42, 160)),
+              valve(f"CV{n}151", "SwingCheckValve", at=(52, 160)), (62, 160), t_n2.branch],
+       label_at=(48, 174))
+L.line(sheet, f"N-{n}001", dn=25, fluid="Nitrogen", frm=f"N-800{'1' if n == '5' else '2'} (between HV-{n}151 and HV-{n}152)",
+       to="atmosphere", insulation="none", pclass="Class 150",
+       notes=f"Bleed of the N2 double block and bleed HV-{n}151 / HV-{n}153 / HV-{n}152: open to atmosphere while the N2 tie-in is isolated, so that LNG cannot reach the N2 system (review #18, H-03 A7).",
+       route=[t_bl.branch, valve(f"HV{n}153", "BallValve", tag=f"HV-{n}153", at=(32, 150)),
+              offpage("out", at=(32, 141), note="to atmosphere", note_at=(46, 138), rotation=UP)],
+       labels=False)
+
+# ---- jetty drain drum (drawn above the header) and drain pump ----------------------------------
 drum = equipment(sheet, "PressureVessel", f"D-{n}101", shape="VESSEL_WITH_DISHED_HEADS_SHAPE",
-                 at=(180, 235), rotation=90,
-                 nozzles=[Nozzle("N1", (-10, -10), 100), Nozzle("N2", (10, -10), 100),
-                          Nozzle("N3", (15, 0), 100), Nozzle("N4", (-15, 0), 50)],
-                 label_at=(180, 251))
-pump = equipment(sheet, "CentrifugalPump", f"P-{n}101", shape="CENTRIFUGAL_PUMP_SHAPE", at=(225, 245),
-                 nozzles=[Nozzle("N1", (-7.5, 0), 100), Nozzle("N2", (0, -7.5), 80)], label_at=(240, 250))
-t_ps = tee(f"T{n}0P", at=(98, 208), branch="left", branch_dn=150)
-L.line(sheet, f"DR-{n}001", dn=100, fluid="LNG", frm=f"LNG-{n}001", to=f"D-{n}101",
-       notes="Header and arm drain to the jetty drain drum after loading; receives the surge relief (D-016).",
-       route=[t_dr.branch, t_ps, (98, 216), (170, 216), drum["N1"]], label_at=(135, 211))
-psv = L.relief(f"PSV{n}131", f"PSV-{n}131", f"DR-{n}002", 15.5,
-               "surge on an ESD closure at the full loading rate; thermal expansion of the blocked-in header",
-               f"Surge relief of the Berth {berth} header into D-{n}101 (D-016); size from the surge analysis in detail engineering.")
+                 at=(50, 55), rotation=90,
+                 nozzles=[Nozzle("N1", (8, -10), 150), Nozzle("N2", (-8, -10), 100),
+                          Nozzle("N3", (-5, 10), 100), Nozzle("N4", (-15, 4), 50),
+                          Nozzle("N5", (-15, -4), 50), Nozzle("N6", (15, 0), 50)],
+                 label_at=(50, 56))
+pump = equipment(sheet, "CentrifugalPump", f"P-{n}101", shape="CENTRIFUGAL_PUMP_SHAPE", at=(65, 92),
+                 nozzles=[Nozzle("N1", (-7.5, 0), 100), Nozzle("N2", (0, -7.5), 80)], label_at=(56, 104))
+
+# ---- header drain with its block valve, surge and thermal relief downstream of it -------------
+t_ps = tee(f"T{n}0P", at=(DRX, 175), branch="left", branch_dn=150)
+t_r1 = tee(f"T{n}0Q", at=(DRX, RLF_Y), branch="right", branch_dn=25)
+t_rp = tee(f"T{n}0U", at=(DRX, 95), branch="left", branch_dn=25)    # PSV-n118 outlet
+t_rv = tee(f"T{n}0X", at=(DRX, 72), branch="left", branch_dn=25)    # drain pump vent HV-n119
+t_rr = tee(f"T{n}0R", at=(DRX, TOP_R), branch="right", branch_dn=25)
+xv_dr = valve(f"XV{n}161", "BallValve", tag=f"XV-{n}161", at=(DRX, 183))
+L.line(sheet, f"DR-{n}001", dn=150, fluid="LNG", frm=f"LNG-{n}001", to=f"D-{n}101",
+       notes=f"Header and arm drain to the jetty drain drum after loading through XV-{n}161 (fail closed, closed in cooldown and loading, opened for the drain in SEQ-LOAD S6). Downstream of XV-{n}161 it receives the surge relief PSV-{n}131 (DR-{n}002, DN 150, so DR-{n}001 is DN 150 throughout), the arm thermal relief PSV-{n}171 (DR-{n}004), PSV-{n}173 and PSV-{n}174 (DR-{n}003, DR-{n}005), the drain pump thermal relief PSV-{n}118 (DR-{n}006) and the drain pump vent/drain HV-{n}119 (DR-{n}007), so the relief outlets stay open to D-{n}101 (D-016, review #1).",
+       route=[t_dr.branch, xv_dr, t_ps, t_r1, t_rp, t_rv, t_rr, (DRX, 30), (58, 30), drum["N1"]],
+       label_at=(DRX + 11, 115))
+psv = L.relief(f"PSV{n}131", f"PSV-{n}131", f"DR-{n}002", 15.0,
+               "surge on a fast ERS / ESD-2 closure and thermal expansion of the blocked-in header",
+               f"Surge and thermal relief of the Berth {berth} header into D-{n}101 through DR-{n}001 downstream of XV-{n}161 (D-016, D-023); set at the 15 barg design of the header and arms; size from the surge analysis in detail engineering.",
+               label_at=(74, 171.5))
 L.line(sheet, f"DR-{n}002", dn=150, fluid="LNG", frm=f"LNG-{n}001 (PSV-{n}131)", to=f"DR-{n}001",
-       notes=f"Surge relief discharge of PSV-{n}131 into the drain line.",
-       route=[t_srg.branch, psv, (70, 208), t_ps.branch], labels=False)
+       notes=f"Surge relief discharge of PSV-{n}131 into the drain line downstream of XV-{n}161.",
+       route=[t_srg.branch, psv, (74, 175), t_ps.branch], labels=False)
+
+# thermal relief of each liquid arm section (arm isolation valve to inboard ERS valve), DN 25
+ARM_VALVES = {"1": ("121", "131"), "4": ("124", "134"), "3": ("123", "133")}
+psv_arm = {}
+for k in ("1", "4", "3"):
+    iso, ers = ARM_VALVES[k]
+    extra = f", XV-{n}125" if k == "3" else ""
+    psv_arm[k] = L.relief(
+        f"PSV{n}17{k}", f"PSV-{n}17{k}", {"1": f"DR-{n}004", "4": f"DR-{n}005", "3": f"DR-{n}003"}[k], 15.0,
+        f"thermal expansion of LNG blocked in LA-{n}10{k} between XV-{n}{iso}{extra} and the inboard ERS valve XV-{n}{ers} (instrument air failure, isolated arm after ESD-2)",
+        f"Thermal relief of the {KIND[k]} arm section LA-{n}10{k} into D-{n}101 (review #7); DN 25, set at the 15 barg design of the arm; cavity relief of the ERS ball valves to be confirmed with the arm vendor.",
+        label_at={"1": (99, 144), "4": (159.25, 144), "3": (219.25, 144)}[k])
+L.line(sheet, f"DR-{n}004", dn=25, fluid="LNG", frm=f"LNG-{n}002 (PSV-{n}171)", to=f"DR-{n}001",
+       notes=f"Thermal relief of LA-{n}101 through PSV-{n}171 into DR-{n}001 downstream of XV-{n}161.",
+       route=[t_rl["1"].branch, psv_arm["1"], t_r1.branch], labels=False)
+t_r4 = tee(f"T{n}0T", at=(CHAN["4"], TOP_R), branch="down", branch_dn=25)
+L.line(sheet, f"DR-{n}003", dn=25, fluid="LNG", frm=f"LNG-{n}001 (PSV-{n}173)", to=f"DR-{n}001",
+       notes=f"Thermal relief header of the arms: PSV-{n}173 (hybrid arm LA-{n}103) and PSV-{n}174 (DR-{n}005, LA-{n}104) into DR-{n}001 downstream of XV-{n}161, to D-{n}101; drawn above the arms.",
+       route=[t_rl["3"].branch, psv_arm["3"], (CHAN["3"], RLF_Y), (CHAN["3"], TOP_R), t_r4, t_rr.branch],
+       label_at=(178, TOP_R - 6))
+L.line(sheet, f"DR-{n}005", dn=25, fluid="LNG", frm=f"LNG-{n}003 (PSV-{n}174)", to=f"DR-{n}003",
+       notes=f"Thermal relief of LA-{n}104 through PSV-{n}174 into the relief header DR-{n}003.",
+       route=[t_rl["4"].branch, psv_arm["4"], (CHAN["4"], RLF_Y), t_r4.branch], labels=False)
+
+# ---- drum vent (no valve: the relief path of the drum), pump suction, discharge, minimum flow --
 L.line(sheet, f"BOG-{n}002", dn=100, fluid="Boil-off gas", frm=f"D-{n}101", to=f"BOG-{n}001",
-       notes="Drain drum vent to the vapour line.",
-       route=[drum["N2"], (190, 210), (330, 210), t_vd.branch], label_at=(300, 204))
+       notes=f"Drain drum vent to the vapour line, downstream of XV-{n}122; no valve: it is the relief path of D-{n}101 and stays open (review #1).",
+       route=[drum["N2"], (42, TOP_V), (VCH, TOP_V), (VCH, 165), t_vw.branch], label_at=(230, TOP_V + 5))
 L.line(sheet, f"LNG-{n}005", dn=100, fluid="LNG", frm=f"D-{n}101", to=f"P-{n}101",
-       notes="Drain pump suction.", route=[drum["N3"], (205, 235), (205, 245), pump["N1"]], labels=False)
+       notes=f"Drain pump suction with its isolation valve HV-{n}115.",
+       route=[drum["N3"], valve(f"HV{n}115", "BallValve", tag=f"HV-{n}115", at=(45, 79)), (45, 92), pump["N1"]],
+       labels=False)
+t_mf = tee(f"T{n}0M", at=(72, 78), branch="up", branch_dn=50)
+t_vd = tee(f"T{n}0Z", at=(76, 78), branch="up", branch_dn=25)    # vent/drain HV-n119
+t_pd = tee(f"T{n}0Y", at=(80, 95), branch="right", branch_dn=25)  # thermal relief PSV-n118
 L.line(sheet, f"LNG-{n}006", dn=80, fluid="LNG", frm=f"P-{n}101", to="LNG-4003",
-       notes="Drain pump discharge into the platform crossover / circulation (P-04), ~60 m3/h.",
-       route=[pump["N2"], (225, 230), (380, 230),
-              offpage("out", at=(405, 230), note="to LNG-4003 (P-04)", note_at=(390, 224))],
-       label_at=(300, 236))
+       notes=f"Drain pump discharge into the platform crossover / circulation (P-04), ~60 m3/h; minimum-flow take-off and the vent/drain HV-{n}119 upstream of the check valve CV-{n}116, then the thermal relief PSV-{n}118 and the isolation valve HV-{n}117 (review #2, H-03 A4).",
+       route=[pump["N2"], (65, 78), t_mf, t_vd, (80, 78),
+              valve(f"CV{n}116", "SwingCheckValve", tag=f"CV-{n}116", at=(80, 87)),
+              t_pd,
+              valve(f"HV{n}117", "BallValve", tag=f"HV-{n}117", at=(80, 102.5)), (80, 110),
+              offpage("out", at=(12, 110), note="to platform crossover", note_at=(28, 104), rotation=LEFT)],
+       label_at=(48, 117))
+psv_dp = L.relief(f"PSV{n}118", f"PSV-{n}118", f"DR-{n}006", 15.0,
+                  "thermal expansion of the blocked-in drain pump discharge",
+                  f"Thermal relief of the drain pump P-{n}101 discharge between the check valve CV-{n}116 and the isolation valve HV-{n}117 into DR-{n}001 downstream of XV-{n}161, to D-{n}101; DN 25, set at the 15 barg design.",
+                  label_at=(97, 97.5))
+L.line(sheet, f"DR-{n}006", dn=25, fluid="LNG", frm=f"LNG-{n}006 (PSV-{n}118)", to=f"DR-{n}001",
+       notes=f"Thermal relief of the drain pump discharge through PSV-{n}118 into DR-{n}001 downstream of XV-{n}161.",
+       route=[t_pd.branch, psv_dp, t_rp.branch], labels=False)
+L.line(sheet, f"DR-{n}007", dn=25, fluid="LNG", frm=f"LNG-{n}006 (HV-{n}119)", to=f"DR-{n}001",
+       notes=f"Vent/drain of the drain pump P-{n}101 between its suction isolation HV-{n}115 and discharge isolation HV-{n}117, through the normally closed HV-{n}119 into DR-{n}001 downstream of XV-{n}161, to D-{n}101 (review #2).",
+       route=[t_vd.branch, (76, 72), valve(f"HV{n}119", "BallValve", tag=f"HV-{n}119", at=(82, 72)),
+              t_rv.branch], labels=False)
+L.line(sheet, f"LNG-{n}007", dn=50, fluid="LNG", frm=f"LNG-{n}006", to=f"D-{n}101",
+       notes=f"Drain pump minimum flow back to D-{n}101 through the restriction orifice FO-{n}118 (review #2).",
+       route=[t_mf.branch, valve(f"FO{n}118", "GlobeValve", tag=f"FO-{n}118", at=(72, 66)), (72, 55), drum["N6"]],
+       labels=False)
 
 # ---- instruments --------------------------------------------------------------------------
 L.inst(sheet, f"UZ-{n}101", f"Berth {berth} shore ESD valve XV-{n}101",
@@ -142,32 +235,56 @@ L.inst(sheet, f"PDI-{n}102", f"Strainer SR-{n}102 differential pressure", at=(46
        sensing=hdr.segments[0], sensing_at=(52, HDR_Y))
 L.inst(sheet, f"PZT-{n}103", f"Berth {berth} header pressure (high back-pressure)",
        f"High-high back-pressure at the shore manifold stops the loading (S-01; C&E I-{n}02).",
-       at=(124, 202), sensing=hdr.segments[-2] if len(hdr.segments) > 2 else hdr.segments[0],
-       sensing_at=(124, HDR_Y))
+       at=(124, 202), sensing=hdr.segments[4], sensing_at=(124, HDR_Y))
 L.inst(sheet, f"TI-{n}104", f"Berth {berth} header temperature (cooldown)", at=(146, 202),
-       sensing=hdr.segments[-2] if len(hdr.segments) > 2 else hdr.segments[0], sensing_at=(146, HDR_Y))
-L.inst(sheet, f"HS-{n}121", f"LA-{n}101 isolation XV-{n}121", at=(X["1"] - 15, 168),
+       sensing=hdr.segments[4], sensing_at=(146, HDR_Y))
+L.inst(sheet, f"HS-{n}121", f"LA-{n}101 isolation XV-{n}121", at=(X["1"] + 14, 168),
        signal_to=f"XV{n}121", fail_action="FC")
 L.inst(sheet, f"HS-{n}124", f"LA-{n}104 isolation XV-{n}124", at=(X["4"] - 15, 168),
        signal_to=f"XV{n}124", fail_action="FC")
 L.inst(sheet, f"HS-{n}123", f"LA-{n}103 liquid isolation XV-{n}123", at=(X["3"] - 15, 181),
        signal_to=f"XV{n}123", fail_action="FC")
 L.inst(sheet, f"HS-{n}125", f"LA-{n}103 vapour isolation XV-{n}125 (hybrid as vapour arm)",
-       at=(258, 184), signal_to=f"XV{n}125", fail_action="FC")
+       at=(260, 185), signal_to=f"XV{n}125", fail_action="FC")
+L.inst(sheet, f"ZSC-{n}123", f"XV-{n}123 open (hybrid arm LA-{n}103 on liquid)",
+       f"Position switch; with ZSC-{n}125 the permissive that XV-{n}123 and XV-{n}125 are never open together (review #3, H-03 A13).",
+       at=(244, 187), sensing=f"Line_LNG{n}001_S6", sensing_at=(X["3"], 184))
+L.inst(sheet, f"ZSC-{n}125", f"XV-{n}125 open (hybrid arm LA-{n}103 on vapour)",
+       f"Position switch; with ZSC-{n}123 the permissive that XV-{n}123 and XV-{n}125 are never open together (review #3, H-03 A13).",
+       at=(278, 181), sensing=f"Line_BOG{n}003_S1", sensing_at=(264, 172))
 L.inst(sheet, f"HS-{n}122", f"LA-{n}102 vapour arm isolation XV-{n}122", at=(X["2"] + 15, 150),
        signal_to=f"XV{n}122", fail_action="FC")
+L.inst(sheet, f"HS-{n}161", f"Header drain isolation XV-{n}161 to D-{n}101",
+       f"Opened only for the header and arm drain after loading (SEQ-LOAD S6); fail closed (review #1, H-03 A3).",
+       at=(DRX + 12, 183), signal_to=xv_dr, fail_action="FC")
 L.inst(sheet, f"XS-{n}100", f"Berth {berth} ship-shore ESD link",
-       f"Fibre-optic link (S-01): ESD-1 both ways (C&E I-{n}01).", at=(40, 56))
+       f"Fibre-optic link (S-01): ESD-1 both ways (C&E I-{n}01).", at=(22, 28))
 L.inst(sheet, f"PI-{n}105", f"Berth {berth} vapour line pressure", at=(352, 170),
        sensing=vap.segments[-1], sensing_at=(352, 182))
 L.inst(sheet, f"TI-{n}106", f"Berth {berth} vapour line temperature", at=(374, 170),
        sensing=vap.segments[-1], sensing_at=(374, 182))
 L.inst(sheet, f"LIC-{n}111", f"Jetty drain drum D-{n}101 level",
-       f"Starts and stops P-{n}101; high-high level alarm (D-016).", at=(150, 240), sensing=drum["N4"])
+       f"Starts and stops P-{n}101 (level control, D-016); the high-high level is the independent LZT-{n}112.",
+       at=(20, 66), sensing=drum["N4"])
+L.inst(sheet, f"LZT-{n}112", f"Jetty drain drum D-{n}101 independent high-high level",
+       f"Own nozzle, independent of LIC-{n}111: stops the drain (closes XV-{n}161) and alarms (C&E; review #21, H-03 A5).",
+       at=(20, 44), sensing=drum["N5"])
 
-note(sheet, f"Berth {berth} arms on the platform, south to north: LA-{n}101 liquid, LA-{n}102 vapour, LA-{n}103 hybrid, LA-{n}104 liquid", at=(12, 258))
-note(sheet, "(S-01); drawn left to right L, L, H, V. 16 inch, ~4,000 m3/h per liquid arm; the hybrid runs as the third liquid arm (D-014).", at=(12, 264))
-note(sheet, f"ERS per arm: two ball valves either side of the emergency release coupler. UZ: see C&E I-{n}01 (ESD-1), I-{n}03 (ESD-2).", at=(12, 270))
-note(sheet, f"Vapour arm connected first and disconnected last (S-01). BOG-{n}003, DR-{n}002, LNG-{n}005: see the line list.", at=(12, 276))
+for vid, at in [(f"HV{n}151", (20, 165)), (f"HV{n}152", (42, 165)), (f"HV{n}153", (24, 149)),
+                (f"HV{n}115", (36, 79)), (f"FO{n}118", (63, 70)), (f"HV{n}119", (97, 72))]:
+    label(sheet, vid, "PipingComponentNumber", at=at)
+
+NOTES = [
+    f"Berth {berth} arms on the platform, south to north: LA-{n}101 liquid, LA-{n}102 vapour, LA-{n}103 hybrid, LA-{n}104 liquid (S-01); drawn left to right L, L, H, V.",
+    "16 inch, ~4,000 m3/h per liquid arm; the hybrid runs as the third liquid arm and is the spare vapour path (D-014, D-023).",
+    f"ERS per arm: two ball valves either side of the emergency release coupler; UZ close on ESD-2 (C&E I-{n}03), not on ESD-1.",
+    f"Thermal relief (15.0 barg) to D-{n}101: PSV-{n}171 / {n}173 / {n}174 per liquid arm section, PSV-{n}118 on the drain pump discharge. Vapour arm connected first, disconnected last (S-01).",
+    f"D-{n}101 sits at the platform low point (drawn above the header). Its vent BOG-{n}002 has no valve: it is the drum's relief path and stays open.",
+    f"XV-{n}123 / XV-{n}125: also mechanically interlocked (key interlock) at the hybrid arm (vendor).",
+    "Arm vents, drains, the purge outlet and the O2 sample point are part of the arm package (vendor).",
+    f"HV-{n}119 normally closed (pump vent/drain). BOG-{n}003, DR-{n}002 to DR-{n}007, LNG-{n}005, LNG-{n}007, N-{n}001: see the line list.",
+]
+for i, text in enumerate(NOTES):
+    note(sheet, text, at=(12, 252.5 + 3.6 * i))
 
 L.finish(sheet, target)

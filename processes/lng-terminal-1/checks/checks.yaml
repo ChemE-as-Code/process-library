@@ -101,7 +101,7 @@ checks:
     min_dn: 25                      # smaller lines are field-run at basic engineering
     # utilities are routed at detail engineering (gate layout-detail)
     exclude_fluids: [Cooling water, Cooling water return, Chilled water, Instrument air,
-                     Plant air, Utility nitrogen, Steam, Condensate]
+                     Plant air, Utility nitrogen, Steam, Condensate, Nitrogen, Fuel gas, Rainwater]
     sections: 2                     # the layout review cites the plot plan and two sections
     # A clash or headroom finding that stays is accepted here with a reason, by its id:
     # accept:
@@ -250,6 +250,8 @@ checks:
 # with the reason (an entry that names no finding is reported as cheme.accept-unused).
 # Only warnings and infos can be accepted; an error stays an error (cheme.accept-error).
 accept:
+  - {id: "pid/P-07.xml#line-crossing:Line_BOG7001_S2_P1+Line_BOG7009_S1_P3", reason: "D-025: each machine path joins the suction and discharge headers; the K-7101B recycle must cross one header (topological minimum of two crossings on P-07)"}
+  - {id: "pid/P-07.xml#line-crossing:Line_BOG7002_S5_P1+Line_FL7004_S2_P1", reason: "D-025: the K-7101B/C vent must cross the discharge header to reach the vent header (topological minimum of two crossings on P-07)"}
   # The line number changes with the pipe size at these six sheet boundaries (D-021): the
   # off-page note names the line it continues as on the other sheet.
   - {id: "pid/P-02.xml#offpage-mismatch:Line_LNG2001_To:*", reason: "D-021: DN 450/800 pump header LNG-2001 continues as trestle line LNG-4001 (P-04)"}
@@ -259,3 +261,30 @@ accept:
   - {id: "pid/P-04.xml#offpage-mismatch:Line_BOG400?_From:*", reason: "D-021: DN 400 berth vapour lines BOG-5001 / BOG-6001 continue as the DN 750 trestle vapour returns"}
   - {id: "pid/P-0[56].xml#offpage-mismatch:Line_LNG[56]001_From:*", reason: "D-021: the berth header continues the trestle loading line at a new number (DN 800/400 segments)"}
   - {id: "pid/P-0[56].xml#offpage-mismatch:Line_BOG[56]001_To:*", reason: "D-021: the DN 400 berth vapour line continues as the DN 750 trestle vapour return"}
+  # ---- lifting study (cheme layout lifting): items with no mobile-crane lift of their own
+  - {id: "layout/plant-model.yaml#layout-lifting:T-[23]101", reason: "Field-erected full-containment tank (concrete outer tank slip-formed, steel roof air-raised, 9 % Ni inner tank welded in place, D-007): never lifted as a whole; the 12 t lift_weight is the in-tank pump, removed by the tank-top pump-removal crane. The construction lifting plan sets the erection cranes"}
+  - {id: "layout/plant-model.yaml#layout-laydown:laydown-T-[23]101", reason: "Field-erected tank, never laid down; the in-tank pumps are laid down on the tank-top pump platform and lowered by the tank-top crane (D-007, D-011)"}
+  - {id: "layout/plant-model.yaml#layout-lifting:P-[23]101?", reason: "In-tank pump (D-011): pulled out of its column with its power cable by the tank-top pump-removal crane / davit supplied with the tank, set on the roof pump platform and lowered to grade by that crane; no mobile crane pad at grade"}
+  - {id: "layout/plant-model.yaml#layout-laydown:laydown-P-[23]101?", reason: "In-tank pump laid down on the tank-top pump platform (cleaning, cable reel) and lowered by the tank-top crane (D-011); no laydown at grade within 30 m of the roof is needed"}
+  - {id: "layout/plant-model.yaml#layout-lifting:FL-8101", reason: "The flare stack is part of the site derrick (D-017): erected with the derrick, its tip changed with the derrick's own hoist; no mobile crane lift of the stack"}
+  - {id: "layout/plant-model.yaml#layout-laydown:laydown-FL-8101", reason: "Flare tip lowered by the derrick hoist to the derrick base; the stack is never laid down (D-017)"}
+  - {id: "layout/plant-model.yaml#layout-lifting:D-5101", reason: "Jetty drain drum (18 t) is inspected in place; a replacement lift from Z-PAD-A4W is made after the flanged drain header spools at its inlet (DR-5001 / DR-5003, the only lines in the lane) are removed (D-016, ASSUMED)"}
+  # ---- operability (layout-operability): valves out of reach of a floor in the model
+  - {id: "layout/plant-model.yaml#layout-operability:P-0?/XV*", reason: "Actuated on/off and ESD valves (incl. the arm ERS valves XV-n13k / XV-n14k and the tank-roof isolation valves): operated from the DCS / SIS, no handwheel duty; maintained from the tank-roof platform, the rack or a mobile elevating work platform (ASSUMED)"}
+  - {id: "layout/plant-model.yaml#layout-operability:P-0?/FV*", reason: "Actuated flow control valves (pump minimum-flow and loading-line flow control): operated from the DCS; maintained from the tank-top pump platform or the rack (ASSUMED)"}
+  - {id: "layout/plant-model.yaml#layout-operability:P-0?/UV*", reason: "Actuated anti-surge valves of the BOG compressors, operated by the compressor control system (ASSUMED)"}
+  - {id: "layout/plant-model.yaml#layout-operability:P-0?/TV*", reason: "Actuated desuperheater spray valve TV-7103, operated from the DCS (ASSUMED)"}
+  - {id: "layout/plant-model.yaml#layout-operability:P-01/PV1110", reason: "Actuated tank pressure control valve to the flare, operated from the DCS (ASSUMED)"}
+  - {id: "layout/plant-model.yaml#layout-operability:P-01/PV1111", reason: "Actuated make-up gas pressure control valve, operated from the DCS (ASSUMED)"}
+  - {id: "layout/plant-model.yaml#layout-operability:P-08/PV8132", reason: "PCV-8132 is a self-acting pilot gas regulator set at commissioning, no routine handwheel duty; reached from the flare derrick base / PR3 end ladder for maintenance (ASSUMED)"}
+  - {id: "layout/plant-model.yaml#layout-operability:P-0[23]/PSV*", reason: "Tank vacuum relief valves PSV-n133A/B on the tank roof: no handwheel, tested and maintained from the tank-roof platform (part of the tank supply, not modelled as a floor in the layout; D-007)"}
+  - {id: "layout/plant-model.yaml#layout-operability:P-0[23]/HV?15*", reason: "Manual isolation valves of the in-tank pump discharges and the circulation pump at the column heads on the tank roof: operated from the tank-top pump platform around the column heads (part of the tank supply, not modelled as a floor in the layout; D-011)"}
+  - {id: "layout/plant-model.yaml#layout-operability:P-0?/FO*", reason: "FO tags are restriction orifices: no operator, nothing to work"}
+  - {id: "layout/plant-model.yaml#layout-operability:P-0[56]/HV??5[12]", reason: "N2 purge isolation valves on the trestle headers N-8001 / N-8002: used only before and after a loading campaign (infrequent), reached with a mobile elevating work platform from the jetty road R5 alongside PR2 (ASSUMED); their position along the header is set at detail engineering"}
+  - {id: "layout/plant-model.yaml#layout-operability:P-0[56]/HV??1[57]", reason: "Jetty drain pump suction and discharge isolation valves: at detail engineering they sit at the pump nozzles at deck level (the router places in-line items along the generated route; ASSUMED)"}
+  - {id: "layout/plant-model.yaml#layout-operability:P-08/HV8106?", reason: "Flare KO drum pump suction isolation valves at the drum outlet, lever at deck/grade level, worked from grade (ASSUMED)"}
+  # ---- line-route (layout-line-route): the validate estimate puts a line-to-line end on the
+  # straight chord between the parent line's tank and berth ends, off the curved trestle
+  - {id: "piping/line-list.yaml#layout-line-route:*", reason: "Line-to-line ends are estimated on the straight chord between the parent line's tank and berth ends, well off the trestle, which bends at its north end; the router carries each of these lines on PR2 (cheme layout report: routed)"}
+  # ---- free spans (layout-free-span): local runs, rack corners and the flare riser
+  - {id: "layout/plant-model.yaml#layout-free-span:*", reason: "Local runs off the racks, rack corners and joints, the platform piping and the fuel gas riser on the flare derrick: the pipe supports (shoes, guides, corner steel, platform stanchions, derrick riser clamps) are added at detail engineering (support design); the straight rack runs rest on the bents and the intermediate rack steel"}

@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lng_pid import Lists, Sheet, note, offpage, tee, valve  # noqa: E402
+from lng_pid import Lists, Sheet, label, note, offpage, tee, valve  # noqa: E402
 
 target = Path(sys.argv[1])
 sheet = Sheet.load(target)
@@ -23,15 +23,16 @@ tt = {k: tee(f"T101{k}", at=(95, ROWS[k]), branch="left", branch_dn=500) for k i
 trv = tee("T1021", at=(95, 122), branch="right", branch_dn=25)
 tk1 = tee("T1002", at=(150, 150), branch="down", branch_dn=900)
 tk2b = tee("T1003", at=(205, 150), branch="down", branch_dn=900)
+trv3 = tee("T1023", at=(193, 150), branch="up", branch_dn=25)  # PSV-1123 (review #5)
 hdr = L.line(sheet, "LNG-1001", dn=900, fluid="LNG", frm="BL (train 1)", to="T-3101 (top fill)",
              notes="Rundown header from the four trains, 3,365 t/h (~7,560 m3/h), 3.4 m/s at DN 900 (S1, D-005); train 1 ties in at the battery limit (D-021); ends as the T-3101 top fill.",
              route=[offpage("in", at=(14, 35), note="from train 1 rundown (BL)", note_at=(27, 41)),
                     valve("XV1111", "BallValve", tag="XV-1111", at=(40, 35)),
                     valve("CV1111", "SwingCheckValve", at=(58, 35)), (95, 35), tt[2], tt[3], tt[4],
                     trv, (95, 150), tk1, valve("XV1103", "BallValve", tag="XV-1103", at=(180, 150)),
-                    tk2b, (230, 150), valve("XV1108", "BallValve", tag="XV-1108", at=(230, 198)),
+                    trv3, tk2b, (230, 150), valve("XV1108", "BallValve", tag="XV-1108", at=(230, 198)),
                     offpage("out", at=(230, 226), note="to T-3101 top fill (P-03)",
-                            note_at=(222, 234), rotation=DOWN)],
+                            note_at=(232, 242), rotation=DOWN)],
              label_at=(120, 158))
 for k in (2, 3, 4):
     y = ROWS[k]
@@ -41,9 +42,10 @@ for k in (2, 3, 4):
                   valve(f"XV111{k}", "BallValve", tag=f"XV-111{k}", at=(40, y)),
                   valve(f"CV111{k}", "SwingCheckValve", at=(58, y)), tt[k].branch],
            label_at=(80, y + 6))
-psv1121 = L.relief("PSV1121", "PSV-1121", "BOG-1004", 15.5,
+psv1121 = L.relief("PSV1121", "PSV-1121", "BOG-1004", 15.0,
                    "thermal expansion of the blocked-in rundown header",
-                   "Thermal relief of LNG-1001 between XV-1111..1114 and XV-1102/1103, to the BOG header (D-017).")
+                   "Thermal relief of LNG-1001 between XV-1111..1114 and XV-1102/1103, to the BOG header (D-017).",
+                   label_at=(107, 116))
 L.line(sheet, "BOG-1004", dn=25, fluid="Boil-off gas", frm="LNG-1001 (PSV-1121)", to="BOG-1001",
        notes="Thermal relief outlet to the tank vapour header.",
        route=[trv.branch, psv1121, offpage("out", at=(130, 122), note="to BOG header",
@@ -51,26 +53,47 @@ L.line(sheet, "BOG-1004", dn=25, fluid="Boil-off gas", frm="LNG-1001 (PSV-1121)"
        label_at=(112, 129))
 
 # T-2101 fill: ESD valve, then top or bottom fill
-tsplit = tee("T1004", at=(150, 182), branch="right", branch_dn=900)
+tsplit = tee("T1004", at=(150, 188), branch="right", branch_dn=900)
+trv2 = tee("T1022", at=(150, 175), branch="left", branch_dn=25)  # PSV-1122 (review #5)
 L.line(sheet, "LNG-1002", dn=900, fluid="LNG", frm="LNG-1001", to="T-2101 (top fill)",
        notes="Fill to T-2101; top fill (rundown heavier than the tank's top layer) or bottom fill via LNG-1004, chosen from AI-1102 against LTD-2103 (rollover, D-007).",
-       route=[tk1.branch, valve("XV1102", "BallValve", tag="XV-1102", at=(150, 166)), tsplit,
-              valve("XV1106", "BallValve", tag="XV-1106", at=(150, 200)),
+       route=[tk1.branch, valve("XV1102", "BallValve", tag="XV-1102", at=(150, 163)), trv2,
+              tsplit, valve("XV1106", "BallValve", tag="XV-1106", at=(150, 210)),
               offpage("out", at=(150, 226), note="to T-2101 top fill (P-02)", note_at=(120, 234),
                       rotation=DOWN)],
-       label_at=(132, 186))
+       label_at=(139, 196))
+psv1122 = L.relief("PSV1122", "PSV-1122", "BOG-1010", 15.0,
+                   "thermal expansion of the blocked-in fill branch",
+                   "Thermal relief of the T-2101 fill branch LNG-1002 / LNG-1004 between XV-1102 and XV-1106 / XV-1107, to the BOG header (D-017; review 2026-11-05 #5).",
+                   label_at=(137, 180))
+L.line(sheet, "BOG-1010", dn=25, fluid="Boil-off gas", frm="LNG-1002 (PSV-1122)", to="BOG-1001",
+       notes="Thermal relief outlet of the T-2101 fill branch to the tank vapour header.",
+       route=[trv2.branch, psv1122,
+              offpage("out", at=(124, 175), note="to BOG header", note_at=(108, 175),
+                      rotation=180)],
+       label_at=(124, 185))
 L.line(sheet, "LNG-1004", dn=900, fluid="LNG", frm="LNG-1002", to="T-2101 (bottom fill)",
        notes="T-2101 bottom fill (D-007).",
-       route=[tsplit.branch, (172, 182), valve("XV1107", "BallValve", tag="XV-1107", at=(172, 200)),
+       route=[tsplit.branch, (172, 188), valve("XV1107", "BallValve", tag="XV-1107", at=(172, 210)),
               offpage("out", at=(172, 226), note="to T-2101 bottom fill (P-02)", note_at=(160, 242),
                       rotation=DOWN)],
        label_at=(181, 174))
 L.line(sheet, "LNG-1003", dn=900, fluid="LNG", frm="LNG-1001", to="T-3101 (bottom fill)",
        notes="T-3101 bottom fill (D-007); the top fill is the end of LNG-1001.",
-       route=[tk2b.branch, valve("XV1109", "BallValve", tag="XV-1109", at=(205, 200)),
+       route=[tk2b.branch, valve("XV1109", "BallValve", tag="XV-1109", at=(205, 210)),
               offpage("out", at=(205, 226), note="to T-3101 bottom fill (P-03)", note_at=(196, 242),
                       rotation=DOWN)],
        label_at=(214, 174))
+psv1123 = L.relief("PSV1123", "PSV-1123", "BOG-1011", 15.0,
+                   "thermal expansion of the blocked-in fill branch",
+                   "Thermal relief of the T-3101 fill branch LNG-1001 / LNG-1003 between XV-1103 and XV-1108 / XV-1109, to the BOG header (D-017; review 2026-11-05 #5).",
+                   label_at=(182, 130))
+L.line(sheet, "BOG-1011", dn=25, fluid="Boil-off gas", frm="LNG-1001 (PSV-1123)", to="BOG-1001",
+       notes="Thermal relief outlet of the T-3101 fill branch to the tank vapour header.",
+       route=[trv3.branch, psv1123,
+              offpage("out", at=(193, 124), note="to BOG header", note_at=(193, 112),
+                      rotation=UP)],
+       label_at=(204, 134))
 
 # instruments of the rundown
 for k, y in ROWS.items():
@@ -88,11 +111,18 @@ for tag, service, x in [("AI-1102", "LNG rundown density / composition", 108),
            if tag == "AI-1102" else "", at=(x, 141), sensing=hdr.segments[4], sensing_at=(x, 150))
 L.inst(sheet, "UZ-1102", "T-2101 fill ESD valve XV-1102",
        "Closes on T-2101 high-high level or pressure (C&E I-201, I-203).",
-       at=(135, 166), signal_to="XV1102", fail_action="FC")
+       at=(135, 163), signal_to="XV1102", fail_action="FC")
 L.inst(sheet, "UZ-1103", "T-3101 fill ESD valve XV-1103",
        "Closes on T-3101 high-high level or pressure (C&E I-301, I-303).",
        at=(180, 140), signal_to="XV1103", fail_action="FC")
-for tag, vid, x, y in [("HS-1106", "XV1106", 135, 200), ("HS-1107", "XV1107", 187, 200),
+# closed-position switches of the fill ESD valves (review #8, interlock I-102)
+L.inst(sheet, "ZSC-1102", "T-2101 fill ESD valve XV-1102 closed position",
+       "Both XV-1102 and XV-1103 closed: no tank can take the rundown (C&E I-102).",
+       at=(164, 163))
+L.inst(sheet, "ZSC-1103", "T-3101 fill ESD valve XV-1103 closed position",
+       "Both XV-1102 and XV-1103 closed: no tank can take the rundown (C&E I-102).",
+       at=(164, 140))
+for tag, vid, x, y in [("HS-1106", "XV1106", 135, 210), ("HS-1107", "XV1107", 187, 210),
                        ("HS-1109", "XV1109", 219, 210), ("HS-1108", "XV1108", 245, 198)]:
     L.inst(sheet, tag, f"Fill selection valve XV-{vid[2:]}",
            "Operator selection (DCS), top or bottom fill.", at=(x, y), signal_to=vid,
@@ -102,14 +132,14 @@ for tag, vid, x, y in [("HS-1106", "XV1106", 135, 200), ("HS-1107", "XV1107", 18
 b3 = tee("T1103", at=(285, 40), branch="down", branch_dn=600)
 b6 = tee("T1106", at=(305, 40), branch="up", branch_dn=750)
 b7 = tee("T1107", at=(320, 40), branch="up", branch_dn=750)
-bm = tee("T1109", at=(345, 40), branch="down", branch_dn=150)
+bm = tee("T1109", at=(340, 40), branch="down", branch_dn=150)
 bf = tee("T1108", at=(380, 40), branch="down", branch_dn=900)
 bog = L.line(sheet, "BOG-1001", dn=750, fluid="Boil-off gas", frm="T-2101", to="D-7101",
              notes="Tank vapour header from T-2101 (P-02) with T-3101, the vapour return lines and the make-up (P-01) to the BOG suction drum with the desuperheater spray (P-07); holding 21.9 t/h (S8), loading 49.1 t/h with the return (S6) (D-009). Drawn on P-02, P-01 and P-07.",
              route=[offpage("in", at=(250, 40), note="from T-2101 (P-02)", note_at=(258, 32)),
                     b3, b6, b7, bm, bf,
                     offpage("out", at=(405, 40), note="to D-7101 (P-07)", note_at=(390, 33))],
-             label_at=(332, 52))
+             label_at=(305, 52))
 L.line(sheet, "BOG-1003", dn=600, fluid="Boil-off gas", frm="T-3101", to="BOG-1001",
        notes="T-3101 vapour outlet to the tank vapour header. Drawn on P-03 and P-01.",
        route=[offpage("in", at=(285, 92), note="from T-3101 (P-03)", note_at=(262, 100),
@@ -122,25 +152,42 @@ for k, tb, x, side, nx in [("6", b6, 305, "A", 282), ("7", b7, 320, "B", 344)]:
            route=[offpage("in", at=(x, 14), note=f"from vapour return {side} (P-04)",
                           note_at=(nx, 9), rotation=DOWN), tb.branch],
            label_at=(x - 10 if side == "A" else x + 10, 25))
-pv1111 = valve("PV1111", "GlobeValve", tag="PV-1111", at=(345, 66))
-L.line(sheet, "BOG-1009", dn=150, fluid="Boil-off gas", frm="BOG-7002", to="BOG-1001",
-       notes="Make-up gas from the compressor discharge against tank vacuum, PV-1111 (D-017). Drawn on P-07 and P-01.",
-       route=[offpage("in", at=(345, 92), note="from BOG compressors (P-07)", note_at=(332, 100),
-                      rotation=UP), pv1111, bm.branch],
-       label_at=(335, 80))
+# make-up gas against tank vacuum from an independent source: the trains' fuel gas (review #13)
+pv1111 = valve("PV1111", "GlobeValve", tag="PV-1111", at=(340, 66))
+# restriction orifice ahead of PV-1111: limits the make-up if PV-1111 fails open (HAZOP H-04 A1)
+fo1117 = valve("FO1117", "GlobeValve", tag="FO-1117", at=(340, 82))
+L.line(sheet, "FG-1001", dn=150, fluid="Fuel gas", frm="BL (trains' fuel gas system)", to="BOG-1001",
+       notes="Make-up fuel gas from the trains' fuel gas system (BL) against tank vacuum, PV-1111 under PIC-1111; independent of the BOG compressors, which I-204 / I-304 stop (D-017; review 2026-11-05 #13).",
+       route=[offpage("in", at=(340, 92), note="from trains' fuel gas (BL)", note_at=(322, 100),
+                      rotation=UP), fo1117, pv1111, bm.branch],
+       label_at=(326, 72))
+label(sheet, "FO1117", "PipingComponentNumber", at=(331, 84))
+# flare branch: PV-1110 regulates; the high-high pressure trip opens its own SIS valve XV-1115
+# in a bypass FL-1001 around PV-1110 (review #14)
+fb1 = tee("T1110", at=(380, 50), branch="left", branch_dn=600)
+fb2 = tee("T1111", at=(380, 84), branch="left", branch_dn=600)
 pv1110 = valve("PV1110", "GlobeValve", tag="PV-1110", at=(380, 66))
-L.line(sheet, "FL-8001", dn=900, fluid="Flare gas", frm="BOG-1001 (PV-1110)", to="D-8101", insulation="none",
-       notes="Storage and loading flare header from the tank pressure control valve PV-1110 (ahead of the tank PSVs) to the knock-out drum, with the BOG relief valves, the purge and carrier de-inerting joining on P-08; design case the BOG compressor trip at loading, ~54 t/h (D-017). Drawn on P-01 and P-08.",
-       route=[bf.branch, pv1110,
-              offpage("out", at=(380, 92), note="to D-8101 (P-08)", note_at=(378, 100),
-                      rotation=DOWN)],
-       label_at=(370, 80))
+fl = L.line(sheet, "FL-8001", dn=900, fluid="Flare gas", frm="BOG-1001 (PV-1110)", to="D-8101", insulation="none",
+            notes="Storage and loading flare header from the tank pressure control valve PV-1110 (ahead of the tank PSVs) and its SIS bypass XV-1115 (FL-1001) to the knock-out drum, with the BOG relief valves, the purge and carrier de-inerting joining on P-08; design case the BOG compressor trip at loading, ~54 t/h (D-017). Drawn on P-01 and P-08.",
+            route=[bf.branch, fb1, pv1110, fb2,
+                   offpage("out", at=(380, 100), note="to D-8101 (P-08)", note_at=(395, 104),
+                           rotation=DOWN)],
+            label_at=(395, 80))
+xv1115 = valve("XV1115", "BallValve", tag="XV-1115", at=(366, 70))
+L.line(sheet, "FL-1001", dn=600, fluid="Flare gas", frm="FL-8001 (upstream of PV-1110)",
+       to="FL-8001 (downstream of PV-1110)", insulation="none",
+       notes="SIS vent bypass around PV-1110 with XV-1115 (fails closed: SIS, energise-to-trip with its own air accumulator, D-017), opened by the tank high-high pressure trip I-203 / I-303 independently of the regulatory valve PV-1110 (review 2026-11-05 #14).",
+       route=[fb1.branch, (366, 50), xv1115, (366, 84), fb2.branch],
+       label_at=(356, 82))
 L.inst(sheet, "TI-1112", "BOG header temperature", at=(268, 54), sensing=bog.segments[0],
        sensing_at=(268, 40))
 L.inst(sheet, "PIC-1111", "Tank vapour header pressure, low split: make-up gas PV-1111",
        "Holds the tanks above their vacuum set point (D-017).",
-       at=(360, 56), sensing=bog.segments[4], sensing_at=(360, 40), signal_to=pv1111,
+       at=(354, 54), sensing=bog.segments[4], sensing_at=(354, 40), signal_to=pv1111,
        fail_action="FC")
+L.inst(sheet, "UZ-1115", "Tank vapour header SIS vent valve XV-1115 to the flare",
+       "Opens on tank high-high pressure (C&E I-203, I-303), independent of PIC-1110 / PV-1110; energise-to-trip with its own air accumulator, fails closed (a fail-open vent with the fail-closed make-up PV-1111 would depressurise the tanks on an air or power failure; the tank PSVs stay the last protection, D-017).",
+       at=(353, 70), signal_to=xv1115, fail_action="FC")
 L.inst(sheet, "PIC-1110", "Tank vapour header pressure, high split: BOG compressors then PV-1110 to the flare",
        "Output 1 sets the BOG compressor load (PIC-7101, P-07); output 2 opens PV-1110 (D-017).",
        at=(396, 56), sensing=bog.segments[5], sensing_at=(396, 40), signal_to=pv1110,
@@ -149,6 +196,9 @@ L.inst(sheet, "PIC-1110", "Tank vapour header pressure, high split: BOG compress
 note(sheet, "Rundown subcooled -161.5 degC, 215 kPa(a) at the tanks (D-005). Top or bottom fill", at=(12, 252))
 note(sheet, "from AI-1102 against the tank's density profile LTD-2103 / LTD-3103 (rollover, D-007).", at=(12, 258))
 note(sheet, "UZ-111x: see C&E I-101. UZ-1102: C&E I-201, I-203. UZ-1103: C&E I-301, I-303.", at=(12, 264))
+note(sheet, "ZSC-1102 / ZSC-1103: C&E I-102. UZ-1115 (SIS vent): C&E I-203, I-303.", at=(12, 270))
+note(sheet, "XV-1115: SIS, energise-to-trip with its own air accumulator (D-017).", at=(12, 276))
 note(sheet, "PIC-1110 / PIC-1111: split-range tank pressure control (D-017).", at=(250, 120))
+note(sheet, "FO-1117: restriction orifice limiting the make-up flow (H-04 A1).", at=(250, 126))
 
 L.finish(sheet, target)

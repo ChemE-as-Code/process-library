@@ -18,7 +18,7 @@ objectives:
 failures:
   - id: F-AIR
     title: Loss of instrument air
-    response: "Every actuated valve goes to its fail position (control/loops.yaml, the P&IDs): the ESD and ERS valves and the fill valves close (loading and filling stop), PV-1110 and PV-1111 close, the minimum-flow and anti-surge valves open, FV-4101/4102 stay where they are. The tank pressure then rises on the boil-off: the compressors keep running on their guide vanes until the high-high trip I-203 / I-303 acts, and PSV-2131A/B / PSV-3131A/B are the last protection."
+    response: "Every actuated valve goes to its fail position (control/loops.yaml, the P&IDs): the ESD and ERS valves and the fill valves close (loading and filling stop), PV-1110, PV-1111 and the SIS vent XV-1115 close (XV-1115 opens on I-203 / I-303 from its own air accumulator, energise-to-trip), the minimum-flow, anti-surge and recycle isolation valves open, FV-4101/4102 stay where they are. No vent opens on the failure itself, so the tanks are not depressurised; the tank pressure rises on the boil-off, the compressors keep running on their guide vanes, and PSV-2131A/B/C / PSV-3131A/B/C are the last protection (their relief case includes this utility failure, D-025)."
     loops: [PIC-1110, PIC-1111, FIC-4101, FIC-4102, UIC-7104A]
     interlocks: [I-203, I-303, I-501]
   - id: F-POWER

@@ -1,252 +1,830 @@
 # Cause and effect list: interlocks and trips. Schema: `cheme schema interlocks`.
 # On a sheet, refer to an interlock ("see C&E I-201") instead of spelling out what it trips.
-# Basic stage: the trips drawn on P-01 to P-08 (D-007, D-010, D-016, D-017). SIL from the
-# screening in detail engineering (null until then).
+# Revised after the design review 2026-11-05-basic-design and the HAZOP H-01..H-05 (D-025).
+# SIL from the screening in detail engineering (null until then).
 schema: cheme/interlocks/v1
 interlocks:
-  # ---- rundown (P-01)
-  - id: I-101
-    title: Both tanks high-high level - rundown stopped at the battery limit
-    cause: {tag: LZT-2102, condition: LAHH}
-    logic: {all: [{tag: LZT-2102, state: LAHH}, {tag: LZT-3102, state: LAHH}]}
-    latching: true
-    reset: manual
-    effects:
-      - {tag: XV-1111, action: close}
-      - {tag: XV-1112, action: close}
-      - {tag: XV-1113, action: close}
-      - {tag: XV-1114, action: close}
-    sheet: P-01
-    sil: null
-    notes: "The trains turn down or recycle on the closure (outside the battery limit, D-001)."
-  # ---- T-2101 (P-02)
-  - id: I-201
-    title: T-2101 level high-high
-    cause: {tag: LZT-2102, condition: LAHH}
-    effects:
-      - {tag: XV-1102, action: close}
-    sheet: P-02
-    sil: null
-    notes: "Closes the T-2101 fill; the rundown goes to T-3101 (D-007)."
-  - id: I-202
-    title: T-2101 level low-low
-    cause: {tag: LZT-2102, condition: LALL}
-    effects:
-      - {tag: P-2101A, action: stop}
-      - {tag: P-2101B, action: stop}
-      - {tag: P-2101C, action: stop}
-      - {tag: P-2101D, action: stop}
-      - {tag: P-2102, action: stop}
-    sheet: P-02
-    sil: null
-    notes: "Minimum submergence of the submerged-motor pumps (D-011)."
-  - id: I-203
-    title: T-2101 pressure high-high
-    cause: {tag: PZT-2112, condition: PAHH}
-    effects:
-      - {tag: XV-1102, action: close}
-      - {tag: PV-1110, action: open}
-    sheet: P-02
-    sil: null
-    notes: "Stops the fill and opens the vapour header to the flare ahead of PSV-2131A/B (D-017)."
-  - id: I-204
-    title: T-2101 pressure low-low
-    cause: {tag: PZT-2112, condition: PALL}
-    effects:
-      - {tag: P-2101A, action: stop}
-      - {tag: P-2101B, action: stop}
-      - {tag: P-2101C, action: stop}
-      - {tag: P-2101D, action: stop}
-      - {tag: K-7101A, action: stop}
-      - {tag: K-7101B, action: stop}
-      - {tag: K-7101C, action: stop}
-      - {tag: PV-1111, action: open}
-    sheet: P-02
-    sil: null
-    notes: "Vacuum protection ahead of the vacuum relief valves PSV-2133A/B: stops the withdrawal and the BOG compressors, opens the make-up gas (D-017)."
-  # ---- T-3101 (P-03)
-  - id: I-301
-    title: T-3101 level high-high
-    cause: {tag: LZT-3102, condition: LAHH}
-    effects:
-      - {tag: XV-1103, action: close}
-    sheet: P-03
-    sil: null
-    notes: "As I-201."
-  - id: I-302
-    title: T-3101 level low-low
-    cause: {tag: LZT-3102, condition: LALL}
-    effects:
-      - {tag: P-3101A, action: stop}
-      - {tag: P-3101B, action: stop}
-      - {tag: P-3101C, action: stop}
-      - {tag: P-3101D, action: stop}
-      - {tag: P-3102, action: stop}
-    sheet: P-03
-    sil: null
-    notes: "As I-202."
-  - id: I-303
-    title: T-3101 pressure high-high
-    cause: {tag: PZT-3112, condition: PAHH}
-    effects:
-      - {tag: XV-1103, action: close}
-      - {tag: PV-1110, action: open}
-    sheet: P-03
-    sil: null
-    notes: "As I-203."
-  - id: I-304
-    title: T-3101 pressure low-low
-    cause: {tag: PZT-3112, condition: PALL}
-    effects:
-      - {tag: P-3101A, action: stop}
-      - {tag: P-3101B, action: stop}
-      - {tag: P-3101C, action: stop}
-      - {tag: P-3101D, action: stop}
-      - {tag: K-7101A, action: stop}
-      - {tag: K-7101B, action: stop}
-      - {tag: K-7101C, action: stop}
-      - {tag: PV-1111, action: open}
-    sheet: P-03
-    sil: null
-    notes: "As I-204."
-  # ---- Berth 2 (P-05) and Berth 1 (P-06)
-  - id: I-501
-    title: Berth 2 ESD-1 (ship-shore link, manual, fire and gas)
-    cause: {tag: XS-5100, condition: trip}
-    effects:
-      - {tag: P-2101A, action: stop}
-      - {tag: P-2101B, action: stop}
-      - {tag: P-2101C, action: stop}
-      - {tag: P-2101D, action: stop}
-      - {tag: P-3101A, action: stop}
-      - {tag: P-3101B, action: stop}
-      - {tag: P-3101C, action: stop}
-      - {tag: P-3101D, action: stop}
-      - {tag: XV-5101, action: close}
-      - {tag: XV-4101, action: close}
-      - {tag: XV-4102, action: close}
-    sheet: P-05
-    sil: null
-    latching: true
-    reset: manual
-    notes: "Stops the loading and trips the carrier's ESD through the link both ways (S-01, D-016); pumps stopped first, XV-5101 closing in 25-30 s against surge (ASSUMED, D-016). Manual push buttons and the platform fire and gas detection also initiate it."
-  - id: I-502
-    title: Berth 2 header back-pressure high-high
-    cause: {tag: PZT-5103, condition: PAHH}
-    effects:
-      - {tag: P-2101A, action: stop}
-      - {tag: P-2101B, action: stop}
-      - {tag: P-2101C, action: stop}
-      - {tag: P-2101D, action: stop}
-      - {tag: P-3101A, action: stop}
-      - {tag: P-3101B, action: stop}
-      - {tag: P-3101C, action: stop}
-      - {tag: P-3101D, action: stop}
-      - {tag: XV-5101, action: close}
-    sheet: P-05
-    sil: null
-    notes: "Rising back-pressure at the shore manifold stops the loading (S-01): carrier valves closing against the flow."
-  - id: I-503
-    title: Berth 2 ESD-2 (arm envelope limit, 35 kn disconnect)
-    cause: {tag: ZS-5151, condition: ZAHH}
-    logic: {any: [{tag: ZS-5151, state: ZAHH}, {tag: ZS-5152, state: ZAHH}, {tag: ZS-5153, state: ZAHH}, {tag: ZS-5154, state: ZAHH}, {text: "manual ESD-2 push button"}]}
-    latching: true
-    reset: manual
-    effects:
-      - {tag: XV-5101, action: close}
-      - {tag: XV-5131, action: close}
-      - {tag: XV-5132, action: close}
-      - {tag: XV-5133, action: close}
-      - {tag: XV-5134, action: close}
-      - {tag: XV-5141, action: close}
-      - {tag: XV-5142, action: close}
-      - {tag: XV-5143, action: close}
-      - {tag: XV-5144, action: close}
-    sheet: P-05
-    sil: null
-    notes: "After ESD-1 (I-501): closes both ball valves of every ERS, then releases the emergency release couplers (dry break) (D-014, D-016); 35 kn disconnect limit (S-01)."
-  - id: I-601
-    title: Berth 1 ESD-1 (ship-shore link, manual, fire and gas)
-    cause: {tag: XS-6100, condition: trip}
-    effects:
-      - {tag: P-2101A, action: stop}
-      - {tag: P-2101B, action: stop}
-      - {tag: P-2101C, action: stop}
-      - {tag: P-2101D, action: stop}
-      - {tag: P-3101A, action: stop}
-      - {tag: P-3101B, action: stop}
-      - {tag: P-3101C, action: stop}
-      - {tag: P-3101D, action: stop}
-      - {tag: XV-6101, action: close}
-      - {tag: XV-4101, action: close}
-      - {tag: XV-4102, action: close}
-    sheet: P-06
-    sil: null
-    notes: "As I-501 for Berth 1."
-  - id: I-602
-    title: Berth 1 header back-pressure high-high
-    cause: {tag: PZT-6103, condition: PAHH}
-    effects:
-      - {tag: P-2101A, action: stop}
-      - {tag: P-2101B, action: stop}
-      - {tag: P-2101C, action: stop}
-      - {tag: P-2101D, action: stop}
-      - {tag: P-3101A, action: stop}
-      - {tag: P-3101B, action: stop}
-      - {tag: P-3101C, action: stop}
-      - {tag: P-3101D, action: stop}
-      - {tag: XV-6101, action: close}
-    sheet: P-06
-    sil: null
-    notes: "As I-502."
-  - id: I-603
-    title: Berth 1 ESD-2 (arm envelope limit, 35 kn disconnect)
-    cause: {tag: ZS-6151, condition: ZAHH}
-    logic: {any: [{tag: ZS-6151, state: ZAHH}, {tag: ZS-6152, state: ZAHH}, {tag: ZS-6153, state: ZAHH}, {tag: ZS-6154, state: ZAHH}, {text: "manual ESD-2 push button"}]}
-    latching: true
-    reset: manual
-    effects:
-      - {tag: XV-6101, action: close}
-      - {tag: XV-6131, action: close}
-      - {tag: XV-6132, action: close}
-      - {tag: XV-6133, action: close}
-      - {tag: XV-6134, action: close}
-      - {tag: XV-6141, action: close}
-      - {tag: XV-6142, action: close}
-      - {tag: XV-6143, action: close}
-      - {tag: XV-6144, action: close}
-    sheet: P-06
-    sil: null
-    notes: "As I-503."
-  # ---- BOG compressors (P-07)
-  - id: I-701
-    title: BOG suction drum level high-high
-    cause: {tag: LZT-7106, condition: LAHH}
-    effects:
-      - {tag: K-7101A, action: stop}
-      - {tag: K-7101B, action: stop}
-      - {tag: K-7101C, action: stop}
-      - {tag: XV-7121A, action: close}
-      - {tag: XV-7121B, action: close}
-      - {tag: XV-7121C, action: close}
-    sheet: P-07
-    sil: null
-    notes: "Liquid carry-over (spray failure) would damage the machines; tank pressure then goes to the flare by PV-1110 (D-010, D-017)."
-  - id: I-702
-    title: K-7101A machine protection (vibration, bearings)
-    cause: {tag: VZ-7110A, condition: trip}
-    effects:
-      - {tag: K-7101A, action: stop}
-      - {tag: XV-7121A, action: close}
-    sheet: P-07
-    sil: null
-    notes: "Vendor API 670 system; K-7101B and C alike with VZ-7110B/C, XV-7121B/C (D-010)."
-  # ---- impoundment (P-08)
-  - id: I-801
-    title: Tank-area sump low temperature (LNG in the sump)
-    cause: {tag: TSL-8102, condition: TSL}
-    effects:
-      - {tag: P-8102, action: stop}
-    sheet: P-08
-    sil: null
-    notes: "Keeps LNG out of the oily water system; starts the high-expansion foam (D-018)."
+- id: I-101
+  title: Both tanks high-high level - rundown stopped at the battery limit
+  cause:
+    tag: LZT-2102
+    condition: LAHH
+  logic:
+    any:
+    - all:
+      - tag: LZT-2102
+        state: LAHH
+      - tag: LZT-3102
+        state: LAHH
+    - all:
+      - tag: LZT-2106
+        state: LAHH
+      - tag: LZT-3106
+        state: LAHH
+  effects:
+  - tag: XV-1111
+    action: close
+  - tag: XV-1112
+    action: close
+  - tag: XV-1113
+    action: close
+  - tag: XV-1114
+    action: close
+  sheet: P-01
+  sil: null
+  latching: true
+  reset: manual
+  notes: The trains turn down or recycle on the closure (outside the battery limit, D-001); the trains get the trip signal
+    through the BL interface (D-025).
+- id: I-102
+  title: No tank can take the rundown (both fill ESD valves closed)
+  cause:
+    tag: ZSC-1102
+    condition: closed
+  logic:
+    all:
+    - tag: ZSC-1102
+      state: closed
+    - tag: ZSC-1103
+      state: closed
+  effects:
+  - tag: XV-1111
+    action: close
+  - tag: XV-1112
+    action: close
+  - tag: XV-1113
+    action: close
+  - tag: XV-1114
+    action: close
+  sheet: P-01
+  sil: null
+  latching: true
+  reset: manual
+  notes: 'Review 2026-11-05-basic-design#8, H-01 A1: with both XV-1102 and XV-1103 closed the rundown header would be dead-headed
+    against the trains; the battery-limit valves close and the trains are tripped through the BL interface (D-025).'
+- id: I-201
+  title: T-2101 level high-high (1oo2)
+  cause:
+    tag: LZT-2102
+    condition: LAHH
+  logic:
+    any:
+    - tag: LZT-2102
+      state: LAHH
+    - tag: LZT-2106
+      state: LAHH
+  effects:
+  - tag: XV-1102
+    action: close
+  - tag: XV-2123
+    action: close
+  sheet: P-02
+  sil: null
+  latching: true
+  reset: manual
+  notes: 'Either independent gauge trips (1oo2, review #16, H-01 A5); closes the fill and the circulation return into T-2101
+    (D-007, D-025).'
+- id: I-202
+  title: T-2101 level low-low
+  cause:
+    tag: LZT-2102
+    condition: LALL
+  effects:
+  - tag: P-2101A
+    action: stop
+  - tag: P-2101B
+    action: stop
+  - tag: P-2101C
+    action: stop
+  - tag: P-2101D
+    action: stop
+  - tag: P-2102
+    action: stop
+  sheet: P-02
+  sil: null
+  latching: true
+  reset: manual
+  notes: Minimum submergence of the submerged-motor pumps (D-011).
+- id: I-203
+  title: T-2101 pressure high-high
+  cause:
+    tag: PZT-2112
+    condition: PAHH
+  effects:
+  - tag: XV-1102
+    action: close
+  - tag: XV-1115
+    action: open
+  sheet: P-02
+  sil: null
+  latching: true
+  reset: manual
+  notes: 'Stops the fill and opens the SIS vent XV-1115 to the storage and loading flare, independent of PIC-1110 / PV-1110
+    (review #14, D-025); the PSVs PSV-2131A/B/C are the last protection (D-017).'
+- id: I-204
+  title: T-2101 pressure low-low
+  cause:
+    tag: PZT-2112
+    condition: PALL
+  effects:
+  - tag: P-2101A
+    action: stop
+  - tag: P-2101B
+    action: stop
+  - tag: P-2101C
+    action: stop
+  - tag: P-2101D
+    action: stop
+  - tag: P-3101A
+    action: stop
+  - tag: P-3101B
+    action: stop
+  - tag: P-3101C
+    action: stop
+  - tag: P-3101D
+    action: stop
+  - tag: K-7101A
+    action: stop
+  - tag: K-7101B
+    action: stop
+  - tag: K-7101C
+    action: stop
+  sheet: P-02
+  sil: null
+  latching: true
+  reset: manual
+  notes: 'Vacuum protection: stops the withdrawal and the BOG compressors; the make-up PV-1111 (PIC-1111, fuel gas FG-1001)
+    is regulatory and not credited; the vacuum relief valves PSV-2133A/B/C are the last protection (D-017, D-025).'
+- id: I-301
+  title: T-3101 level high-high (1oo2)
+  cause:
+    tag: LZT-3102
+    condition: LAHH
+  logic:
+    any:
+    - tag: LZT-3102
+      state: LAHH
+    - tag: LZT-3106
+      state: LAHH
+  effects:
+  - tag: XV-1103
+    action: close
+  - tag: XV-3123
+    action: close
+  sheet: P-03
+  sil: null
+  latching: true
+  reset: manual
+  notes: 'Either independent gauge trips (1oo2, review #16, H-01 A5); closes the fill and the circulation return into T-3101
+    (D-007, D-025).'
+- id: I-302
+  title: T-3101 level low-low
+  cause:
+    tag: LZT-3102
+    condition: LALL
+  effects:
+  - tag: P-3101A
+    action: stop
+  - tag: P-3101B
+    action: stop
+  - tag: P-3101C
+    action: stop
+  - tag: P-3101D
+    action: stop
+  - tag: P-3102
+    action: stop
+  sheet: P-03
+  sil: null
+  latching: true
+  reset: manual
+  notes: Minimum submergence of the submerged-motor pumps (D-011).
+- id: I-303
+  title: T-3101 pressure high-high
+  cause:
+    tag: PZT-3112
+    condition: PAHH
+  effects:
+  - tag: XV-1103
+    action: close
+  - tag: XV-1115
+    action: open
+  sheet: P-03
+  sil: null
+  latching: true
+  reset: manual
+  notes: 'Stops the fill and opens the SIS vent XV-1115 to the storage and loading flare, independent of PIC-1110 / PV-1110
+    (review #14, D-025); the PSVs PSV-3131A/B/C are the last protection (D-017).'
+- id: I-304
+  title: T-3101 pressure low-low
+  cause:
+    tag: PZT-3112
+    condition: PALL
+  effects:
+  - tag: P-2101A
+    action: stop
+  - tag: P-2101B
+    action: stop
+  - tag: P-2101C
+    action: stop
+  - tag: P-2101D
+    action: stop
+  - tag: P-3101A
+    action: stop
+  - tag: P-3101B
+    action: stop
+  - tag: P-3101C
+    action: stop
+  - tag: P-3101D
+    action: stop
+  - tag: K-7101A
+    action: stop
+  - tag: K-7101B
+    action: stop
+  - tag: K-7101C
+    action: stop
+  sheet: P-03
+  sil: null
+  latching: true
+  reset: manual
+  notes: 'Vacuum protection: stops the withdrawal and the BOG compressors; the make-up PV-1111 (PIC-1111, fuel gas FG-1001)
+    is regulatory and not credited; the vacuum relief valves PSV-3133A/B/C are the last protection (D-017, D-025).'
+- id: I-501
+  title: Berth 2 ESD-1 (ship-shore link, arm envelope stage 1, manual, fire and gas)
+  cause:
+    tag: XS-5100
+    condition: trip
+  logic:
+    any:
+    - tag: XS-5100
+      state: trip
+    - tag: ZS-5151
+      state: ZAH (stage 1)
+    - tag: ZS-5152
+      state: ZAH (stage 1)
+    - tag: ZS-5153
+      state: ZAH (stage 1)
+    - tag: ZS-5154
+      state: ZAH (stage 1)
+  effects:
+  - tag: P-2101A
+    action: stop
+  - tag: P-2101B
+    action: stop
+  - tag: P-2101C
+    action: stop
+  - tag: P-2101D
+    action: stop
+  - tag: P-3101A
+    action: stop
+  - tag: P-3101B
+    action: stop
+  - tag: P-3101C
+    action: stop
+  - tag: P-3101D
+    action: stop
+  - tag: XV-5101
+    action: close
+  - tag: XV-4101
+    action: close
+  - tag: XV-4102
+    action: close
+  - tag: XV-5161
+    action: close
+  - tag: XV-4131
+    action: close
+  sheet: P-05
+  sil: null
+  latching: true
+  reset: manual
+  notes: 'Stops the loading pumps first, then closes the shore ESD valve XV-5101 in 25 s (surge, D-023) and the tank-end XV-4101/4102;
+    trips the carrier''s ESD through the link both ways (S-01); manual push buttons and the platform fire and gas also initiate
+    it (review #4).'
+- id: I-502
+  title: Berth 2 header back-pressure high-high
+  cause:
+    tag: PZT-5103
+    condition: PAHH
+  effects:
+  - tag: P-2101A
+    action: stop
+  - tag: P-2101B
+    action: stop
+  - tag: P-2101C
+    action: stop
+  - tag: P-2101D
+    action: stop
+  - tag: P-3101A
+    action: stop
+  - tag: P-3101B
+    action: stop
+  - tag: P-3101C
+    action: stop
+  - tag: P-3101D
+    action: stop
+  - tag: XV-5101
+    action: close
+  sheet: P-05
+  sil: null
+  latching: true
+  reset: manual
+  notes: Rising back-pressure at the shore manifold stops the loading (S-01).
+- id: I-503
+  title: Berth 2 ESD-2 (arm envelope stage 2, 35 kn disconnect)
+  cause:
+    tag: ZS-5151
+    condition: ZAHH
+  logic:
+    any:
+    - tag: ZS-5151
+      state: ZAHH (stage 2)
+    - tag: ZS-5152
+      state: ZAHH (stage 2)
+    - tag: ZS-5153
+      state: ZAHH (stage 2)
+    - tag: ZS-5154
+      state: ZAHH (stage 2)
+    - text: manual ESD-2 push button
+  effects:
+  - tag: P-2101A
+    action: stop
+  - tag: P-2101B
+    action: stop
+  - tag: P-2101C
+    action: stop
+  - tag: P-2101D
+    action: stop
+  - tag: P-3101A
+    action: stop
+  - tag: P-3101B
+    action: stop
+  - tag: P-3101C
+    action: stop
+  - tag: P-3101D
+    action: stop
+  - tag: XV-5101
+    action: close
+  - tag: XV-5131
+    action: close
+  - tag: XV-5132
+    action: close
+  - tag: XV-5133
+    action: close
+  - tag: XV-5134
+    action: close
+  - tag: XV-5141
+    action: close
+  - tag: XV-5142
+    action: close
+  - tag: XV-5143
+    action: close
+  - tag: XV-5144
+    action: close
+  sheet: P-05
+  sil: null
+  delay:
+    value: 5
+    unit: s
+  latching: true
+  reset: manual
+  notes: 'ESD-2 initiates ESD-1 (I-501) first: the loading pumps stop and XV-5101 starts to close; the eight ERS ball valves
+    close after the delay and the emergency release couplers release (review #4, D-016, D-025). The ERS closure time is set
+    with the arm vendor so the surge stays inside the arm design (D-023).'
+- id: I-504
+  title: 'Berth 2 hybrid arm: liquid isolation inhibited while the vapour isolation is open'
+  cause:
+    tag: ZSC-5125
+    condition: open
+  effects:
+  - tag: XV-5123
+    action: close
+  sheet: P-05
+  sil: null
+  latching: false
+  reset: automatic
+  notes: 'Permissive (review #3, H-03 A13): XV-5123 cannot open while XV-5125 is open; also key-interlocked at the arm (vendor).'
+- id: I-505
+  title: 'Berth 2 hybrid arm: vapour isolation inhibited while the liquid isolation is open'
+  cause:
+    tag: ZSC-5123
+    condition: open
+  effects:
+  - tag: XV-5125
+    action: close
+  sheet: P-05
+  sil: null
+  latching: false
+  reset: automatic
+  notes: 'Permissive (review #3): XV-5125 cannot open while XV-5123 is open.'
+- id: I-506
+  title: D-5101 jetty drain drum level high-high
+  cause:
+    tag: LZT-5112
+    condition: LAHH
+  effects:
+  - tag: XV-5161
+    action: close
+  sheet: P-05
+  sil: null
+  latching: true
+  reset: manual
+  notes: 'Stops the header drain into the drum (review #21, H-03 A5); P-5101 empties it (LIC-5111).'
+- id: I-511
+  title: 'Vapour return A: off-specification vapour to the flare (make-before-break)'
+  cause:
+    tag: AI-4133
+    condition: AAH
+  effects:
+  - tag: XV-4131
+    action: open
+  - tag: XV-4135
+    action: close
+  sheet: P-04
+  sil: null
+  latching: false
+  reset: automatic
+  notes: 'Carrier de-inerting and cool-down vapour (high N2/O2, low CH4) goes to the storage and loading flare through BOG-4013
+    (review #19, D-017). XV-4131 opens first and XV-4135 closes only when XV-4131 is open: the vapour return, the relief path
+    of the Berth 2 PSVs, is never closed at both valves while the berth loads (D-025).'
+- id: I-601
+  title: Berth 1 ESD-1 (ship-shore link, arm envelope stage 1, manual, fire and gas)
+  cause:
+    tag: XS-6100
+    condition: trip
+  logic:
+    any:
+    - tag: XS-6100
+      state: trip
+    - tag: ZS-6151
+      state: ZAH (stage 1)
+    - tag: ZS-6152
+      state: ZAH (stage 1)
+    - tag: ZS-6153
+      state: ZAH (stage 1)
+    - tag: ZS-6154
+      state: ZAH (stage 1)
+  effects:
+  - tag: P-2101A
+    action: stop
+  - tag: P-2101B
+    action: stop
+  - tag: P-2101C
+    action: stop
+  - tag: P-2101D
+    action: stop
+  - tag: P-3101A
+    action: stop
+  - tag: P-3101B
+    action: stop
+  - tag: P-3101C
+    action: stop
+  - tag: P-3101D
+    action: stop
+  - tag: XV-6101
+    action: close
+  - tag: XV-4101
+    action: close
+  - tag: XV-4102
+    action: close
+  - tag: XV-6161
+    action: close
+  - tag: XV-4132
+    action: close
+  sheet: P-06
+  sil: null
+  latching: true
+  reset: manual
+  notes: 'Stops the loading pumps first, then closes the shore ESD valve XV-6101 in 25 s (surge, D-023) and the tank-end XV-4101/4102;
+    trips the carrier''s ESD through the link both ways (S-01); manual push buttons and the platform fire and gas also initiate
+    it (review #4).'
+- id: I-602
+  title: Berth 1 header back-pressure high-high
+  cause:
+    tag: PZT-6103
+    condition: PAHH
+  effects:
+  - tag: P-2101A
+    action: stop
+  - tag: P-2101B
+    action: stop
+  - tag: P-2101C
+    action: stop
+  - tag: P-2101D
+    action: stop
+  - tag: P-3101A
+    action: stop
+  - tag: P-3101B
+    action: stop
+  - tag: P-3101C
+    action: stop
+  - tag: P-3101D
+    action: stop
+  - tag: XV-6101
+    action: close
+  sheet: P-06
+  sil: null
+  latching: true
+  reset: manual
+  notes: Rising back-pressure at the shore manifold stops the loading (S-01).
+- id: I-603
+  title: Berth 1 ESD-2 (arm envelope stage 2, 35 kn disconnect)
+  cause:
+    tag: ZS-6151
+    condition: ZAHH
+  logic:
+    any:
+    - tag: ZS-6151
+      state: ZAHH (stage 2)
+    - tag: ZS-6152
+      state: ZAHH (stage 2)
+    - tag: ZS-6153
+      state: ZAHH (stage 2)
+    - tag: ZS-6154
+      state: ZAHH (stage 2)
+    - text: manual ESD-2 push button
+  effects:
+  - tag: P-2101A
+    action: stop
+  - tag: P-2101B
+    action: stop
+  - tag: P-2101C
+    action: stop
+  - tag: P-2101D
+    action: stop
+  - tag: P-3101A
+    action: stop
+  - tag: P-3101B
+    action: stop
+  - tag: P-3101C
+    action: stop
+  - tag: P-3101D
+    action: stop
+  - tag: XV-6101
+    action: close
+  - tag: XV-6131
+    action: close
+  - tag: XV-6132
+    action: close
+  - tag: XV-6133
+    action: close
+  - tag: XV-6134
+    action: close
+  - tag: XV-6141
+    action: close
+  - tag: XV-6142
+    action: close
+  - tag: XV-6143
+    action: close
+  - tag: XV-6144
+    action: close
+  sheet: P-06
+  sil: null
+  delay:
+    value: 5
+    unit: s
+  latching: true
+  reset: manual
+  notes: 'ESD-2 initiates ESD-1 (I-601) first: the loading pumps stop and XV-6101 starts to close; the eight ERS ball valves
+    close after the delay and the emergency release couplers release (review #4, D-016, D-025). The ERS closure time is set
+    with the arm vendor so the surge stays inside the arm design (D-023).'
+- id: I-604
+  title: 'Berth 1 hybrid arm: liquid isolation inhibited while the vapour isolation is open'
+  cause:
+    tag: ZSC-6125
+    condition: open
+  effects:
+  - tag: XV-6123
+    action: close
+  sheet: P-06
+  sil: null
+  latching: false
+  reset: automatic
+  notes: 'Permissive (review #3, H-03 A13): XV-6123 cannot open while XV-6125 is open; also key-interlocked at the arm (vendor).'
+- id: I-605
+  title: 'Berth 1 hybrid arm: vapour isolation inhibited while the liquid isolation is open'
+  cause:
+    tag: ZSC-6123
+    condition: open
+  effects:
+  - tag: XV-6125
+    action: close
+  sheet: P-06
+  sil: null
+  latching: false
+  reset: automatic
+  notes: 'Permissive (review #3): XV-6125 cannot open while XV-6123 is open.'
+- id: I-606
+  title: D-6101 jetty drain drum level high-high
+  cause:
+    tag: LZT-6112
+    condition: LAHH
+  effects:
+  - tag: XV-6161
+    action: close
+  sheet: P-06
+  sil: null
+  latching: true
+  reset: manual
+  notes: 'Stops the header drain into the drum (review #21, H-03 A5); P-6101 empties it (LIC-6111).'
+- id: I-611
+  title: 'Vapour return B: off-specification vapour to the flare (make-before-break)'
+  cause:
+    tag: AI-4134
+    condition: AAH
+  effects:
+  - tag: XV-4132
+    action: open
+  - tag: XV-4136
+    action: close
+  sheet: P-04
+  sil: null
+  latching: false
+  reset: automatic
+  notes: 'Carrier de-inerting and cool-down vapour (high N2/O2, low CH4) goes to the storage and loading flare through BOG-4013
+    (review #19, D-017). XV-4132 opens first and XV-4136 closes only when XV-4132 is open: the vapour return, the relief path
+    of the Berth 1 PSVs, is never closed at both valves while the berth loads (D-025).'
+- id: I-701
+  title: BOG suction drum level high-high
+  cause:
+    tag: LZT-7106
+    condition: LAHH
+  effects:
+  - tag: K-7101A
+    action: stop
+  - tag: K-7101B
+    action: stop
+  - tag: K-7101C
+    action: stop
+  - tag: XV-7121A
+    action: close
+  - tag: XV-7121B
+    action: close
+  - tag: XV-7121C
+    action: close
+  - tag: XV-7123A
+    action: close
+  - tag: XV-7123B
+    action: close
+  - tag: XV-7123C
+    action: close
+  sheet: P-07
+  sil: null
+  latching: true
+  reset: manual
+  notes: Liquid carry-over (spray failure) would damage the machines; tank pressure then goes to the flare by PV-1110 / XV-1115
+    (D-010, D-017). The recycle XV-7125x stays open (D-025).
+- id: I-702
+  title: K-7101A machine protection (vibration, bearings)
+  cause:
+    tag: VZ-7110A
+    condition: trip
+  effects:
+  - tag: K-7101A
+    action: stop
+  - tag: XV-7121A
+    action: close
+  - tag: XV-7123A
+    action: close
+  sheet: P-07
+  sil: null
+  latching: true
+  reset: manual
+  notes: 'Vendor API 670 system (review #12). Suction and discharge isolated; the recycle XV-7125x stays open so the machine
+    keeps its relief path to the tank system (D-025).'
+- id: I-703A
+  title: K-7101A discharge temperature high-high
+  cause:
+    tag: TZT-7112A
+    condition: TAHH
+  effects:
+  - tag: K-7101A
+    action: stop
+  - tag: XV-7121A
+    action: close
+  - tag: XV-7123A
+    action: close
+  sheet: P-07
+  sil: null
+  latching: true
+  reset: manual
+  notes: 'Warm recycle or loss of the desuperheater (review #9, D-010).'
+- id: I-702B
+  title: K-7101B machine protection (vibration, bearings)
+  cause:
+    tag: VZ-7110B
+    condition: trip
+  effects:
+  - tag: K-7101B
+    action: stop
+  - tag: XV-7121B
+    action: close
+  - tag: XV-7123B
+    action: close
+  sheet: P-07
+  sil: null
+  latching: true
+  reset: manual
+  notes: 'Vendor API 670 system (review #12). Suction and discharge isolated; the recycle XV-7125x stays open so the machine
+    keeps its relief path to the tank system (D-025).'
+- id: I-703B
+  title: K-7101B discharge temperature high-high
+  cause:
+    tag: TZT-7112B
+    condition: TAHH
+  effects:
+  - tag: K-7101B
+    action: stop
+  - tag: XV-7121B
+    action: close
+  - tag: XV-7123B
+    action: close
+  sheet: P-07
+  sil: null
+  latching: true
+  reset: manual
+  notes: 'Warm recycle or loss of the desuperheater (review #9, D-010).'
+- id: I-702C
+  title: K-7101C machine protection (vibration, bearings)
+  cause:
+    tag: VZ-7110C
+    condition: trip
+  effects:
+  - tag: K-7101C
+    action: stop
+  - tag: XV-7121C
+    action: close
+  - tag: XV-7123C
+    action: close
+  sheet: P-07
+  sil: null
+  latching: true
+  reset: manual
+  notes: 'Vendor API 670 system (review #12). Suction and discharge isolated; the recycle XV-7125x stays open so the machine
+    keeps its relief path to the tank system (D-025).'
+- id: I-703C
+  title: K-7101C discharge temperature high-high
+  cause:
+    tag: TZT-7112C
+    condition: TAHH
+  effects:
+  - tag: K-7101C
+    action: stop
+  - tag: XV-7121C
+    action: close
+  - tag: XV-7123C
+    action: close
+  sheet: P-07
+  sil: null
+  latching: true
+  reset: manual
+  notes: 'Warm recycle or loss of the desuperheater (review #9, D-010).'
+- id: I-704
+  title: All BOG compressors stopped - battery-limit ESD valve closed
+  cause:
+    tag: K-7101A
+    condition: stopped
+  logic:
+    all:
+    - tag: K-7101A
+      state: stopped
+    - tag: K-7101B
+      state: stopped
+    - tag: K-7101C
+      state: stopped
+  effects:
+  - tag: XV-7130
+    action: close
+  sheet: P-07
+  sil: null
+  latching: false
+  reset: automatic
+  notes: 'Prevents back-flow from the trains'' fuel gas system into the stopped machines and the tanks (HAZOP H-04 A8/A9,
+    review #11).'
+- id: I-801
+  title: Tank-area sump low temperature (LNG in the sump)
+  cause:
+    tag: TSL-8102
+    condition: TSL
+  effects:
+  - tag: P-8102
+    action: stop
+  sheet: P-08
+  sil: null
+  latching: true
+  reset: manual
+  notes: Keeps LNG out of the oily water system; starts the high-expansion foam (D-018).
+- id: I-802
+  title: Flare knock-out drum level high-high
+  cause:
+    tag: LZT-8105
+    condition: LAHH
+  effects:
+  - tag: P-8101B
+    action: start
+  - tag: LV-7102
+    action: close
+  sheet: P-08
+  sil: null
+  latching: true
+  reset: manual
+  notes: 'Independent of LIC-8101 (review #20, H-05 A1): starts the standby pump and stops the D-7101 drain into the drum;
+    carry-over to FL-8101 is the hazard.'
