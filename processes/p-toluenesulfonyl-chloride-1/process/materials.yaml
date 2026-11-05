@@ -1,0 +1,51 @@
+# Components and templates of p-toluenesulfonyl-chloride-1. Schema cheme/process/v1 (`cheme
+# schema process-materials`). Every component has a stable id; molar_mass in kg/kmol (IUPAC 2021
+# standard atomic weights applied to the formula), normal_boiling_point in K at 101.325 kPa.
+#
+# The reaction mass and the aqueous acid liquor are carried as molecular pseudo-components
+# (ClSO3H, H2SO4, HCl, the ammonium salts, the sulfonic acids and the sulfonyl chlorides
+# dissolved), an inventory basis, not a speciation: core has no property package for these
+# liquors (DESIGN.md D-006). The p-TsCl crystals are a separate solid component, PTSCL_S
+# (phase: solid). The ortho isomer o-TsCl (mp about 10 C) is carried as a liquid, the
+# crystallizer's spectator (D-007).
+# The liquid data the semi-batch models need (D-005), all ASSUMED unless a source is named:
+# - liquid_molar_volume, m3/kmol, from densities near 298 K taken as the volume in the mixture
+#   (ideal mixing, no partial molar volumes): ClSO3H 1.753 g/cm3 (Wikipedia, Chlorosulfuric acid,
+#   infobox), toluene 0.867 (CRC Handbook), water 0.999 at 288 K, H2SO4 1.8305 (CRC Handbook),
+#   p-TsCl 1.33 (PubChem CID 7397, HSDB), o-TsCl 1.338 (ASSUMED as the para isomer's), NH4Cl
+#   1.519 and NH4HSO4 1.78 (the solids', CRC Handbook), the toluenesulfonic acids 1.24 and the
+#   ammonium chlorosulfate 1.8 (ASSUMED: no open value found); dissolved HCl 0.0185 (about its
+#   partial molar volume in water, ASSUMED);
+# - liquid_heat_capacity, kJ/(kmol K): water 75.4 and toluene 157.1 (NIST WebBook), H2SO4 138.9
+#   (NIST WebBook, liquid), NH4Cl 84.1 (NIST WebBook, solid, standing for the dissolved salt);
+#   ClSO3H 150, NH4SO3Cl 160, NH4HSO4 130, the toluenesulfonic acids 230 and the sulfonyl
+#   chlorides 220 estimated (about 1.2-1.4 kJ/(kg K), no open measured value found); dissolved
+#   HCl 29.1 (the ideal gas's, its apparent molar heat capacity in water is negative; ASSUMED).
+#   NaOH and NaCl appear only in the scrubber (a conversion step) and need no liquid data.
+# - normal boiling points: water 373.12 K, toluene 383.75 K, ClSO3H 425.15 K (it decomposes),
+#   H2SO4 610.15 K, HCl 188.17 K (chemicals 1.5.2, CRC). The salts, the sulfonic acids and the
+#   sulfonyl chlorides boil only under vacuum or decompose: no normal boiling point is given.
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.015, normal_boiling_point: 373.12, liquid_molar_volume: 0.01803, liquid_heat_capacity: 75.4}
+  - {id: CSA, name: Chlorosulfonic acid, formula: ClHO3S, cas: 7790-94-5, molar_mass: 116.52, normal_boiling_point: 425.15, liquid_molar_volume: 0.06647, liquid_heat_capacity: 150.0}
+  - {id: TOL, name: Toluene, formula: C7H8, cas: 108-88-3, molar_mass: 92.141, normal_boiling_point: 383.75, liquid_molar_volume: 0.1063, liquid_heat_capacity: 157.1}
+  - {id: NH4CL, name: Ammonium chloride (dissolved), formula: NH4Cl, cas: 12125-02-9, molar_mass: 53.491, liquid_molar_volume: 0.03521, liquid_heat_capacity: 84.1}
+  - {id: AMCS, name: Ammonium chlorosulfate (dissolved), formula: NH4SO3Cl, molar_mass: 133.55, liquid_molar_volume: 0.0742, liquid_heat_capacity: 160.0}
+  - {id: HCL, name: Hydrogen chloride, formula: HCl, cas: 7647-01-0, molar_mass: 36.458, normal_boiling_point: 188.17, liquid_molar_volume: 0.0185, liquid_heat_capacity: 29.1}
+  - {id: PTSA, name: p-Toluenesulfonic acid (dissolved), formula: C7H8O3S, cas: 104-15-4, molar_mass: 172.20, liquid_molar_volume: 0.1389, liquid_heat_capacity: 230.0}
+  - {id: OTSA, name: o-Toluenesulfonic acid (dissolved), formula: C7H8O3S, cas: 88-20-0, molar_mass: 172.20, liquid_molar_volume: 0.1389, liquid_heat_capacity: 230.0}
+  - {id: H2SO4, name: Sulfuric acid, formula: H2SO4, cas: 7664-93-9, molar_mass: 98.078, normal_boiling_point: 610.15, liquid_molar_volume: 0.05358, liquid_heat_capacity: 138.9}
+  - {id: PTSCL, name: p-Toluenesulfonyl chloride (dissolved), formula: C7H7ClO2S, cas: 98-59-9, molar_mass: 190.64, liquid_molar_volume: 0.1433, liquid_heat_capacity: 220.0}
+  - {id: PTSCL_S, name: p-Toluenesulfonyl chloride (crystals), formula: C7H7ClO2S, cas: 98-59-9, molar_mass: 190.64, phase: solid, liquid_molar_volume: 0.1433, liquid_heat_capacity: 220.0}
+  - {id: OTSCL, name: o-Toluenesulfonyl chloride (oil), formula: C7H7ClO2S, cas: 133-59-5, molar_mass: 190.64, liquid_molar_volume: 0.1425, liquid_heat_capacity: 220.0}
+  - {id: AMBS, name: Ammonium hydrogen sulfate (dissolved), formula: NH5O4S, cas: 7803-63-6, molar_mass: 115.10, liquid_molar_volume: 0.06466, liquid_heat_capacity: 130.0}
+  - {id: NAOH, name: Sodium hydroxide (dissolved), formula: NaOH, cas: 1310-73-2, molar_mass: 39.997}
+  - {id: NACL, name: Sodium chloride (dissolved), formula: NaCl, cas: 7647-14-5, molar_mass: 58.440}
+templates:
+  - {id: mass, title: "Reaction mass, aqueous acid liquor and slurry", components: [H2O, CSA, TOL, NH4CL, AMCS, HCL, PTSA, OTSA, H2SO4, PTSCL, PTSCL_S, OTSCL, AMBS]}
+  - {id: scrub, title: Off-gas and scrubber liquor, components: [HCL, H2O, NAOH, NACL]}
+property_method:
+  adapter: thermo
+  status: placeholder

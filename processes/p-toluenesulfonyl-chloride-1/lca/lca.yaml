@@ -1,0 +1,113 @@
+# Goal and scope of the p-toluenesulfonyl-chloride-1 LCI. Schema: `cheme schema lca`. Outputs:
+# `cheme assess lca --inventory --write` and `--coverage` (lca/inventory.csv, gaps.csv,
+# dataset.yaml, manifest.json); never edit those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the batch
+# plant with its amount per kg of dried p-TsCl, from the flowsheet's year averages of the recipe
+# (D-003). Per batch: multiply by 1748.95 kg. The backgrounds are left unmapped (`missing:` with
+# the activity each should connect to), except where lca/mappings.yaml links a library producer:
+# a gap, never zero, and no values from licensed databases. The HCl of the two vents is
+# neutralised in the caustic scrubber S101 (0.999 of it); the spent liquor carries the rest.
+# The plant has no emission to air in the balance: the scrubbed vent's traces, the toluene vapour
+# the HCl strips from R-101 and the dryer's vacuum vent are not estimated (emission_exclusions).
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of p-toluenesulfonyl chloride made by the
+  salt-modified semi-batch chlorosulfonation of toluene, a drown-out quench in water,
+  filtration, washing and vacuum drying, with the HCl off-gas neutralised in a caustic
+  scrubber, at the concept stage: which raw materials, utilities and wastes the batch plant
+  exchanges per kg of dried p-TsCl, as the foreground for a later cradle-to-gate study. No impact
+  results: most backgrounds are not mapped yet (D-012).
+functional_unit: {product: TSCL, amount: 1, unit: kg, source: "1 kg of dried p-toluenesulfonyl chloride (99.7 wt% p-TsCl) at the plant gate to packing, stream S24 (D-002, D-012)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
+# being mapped free (the schema's gate-to-gate maps every feed free), as n-bromosuccinimide-1 does.
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Batch plant: ammonium chloride and then toluene dosed into chlorosulfonic acid at 338 K (semi-batch, HCl vented as it forms), a second acid portion at 308 K, the mass dosed into a water heel at 288 K (drown-out quench, semi-batch), p-TsCl precipitated, filtered, reslurry-washed twice with ice water and vacuum-dried at 308 K; the HCl neutralised in a caustic scrubber; 1748.95 kg per batch, 571.8 batches a year on a dedicated train"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+flows:
+  # raw materials
+  - key: feed:CSA
+    missing: "not mapped yet (D-012); connect to: chlorosulfonic acid from SO3 and anhydrous HCl (the industrial route: HCl into SO3 dissolved in oleum); no library process makes it; the stoichiometric proxy would be 0.687 kg SO3 (sulfuric-acid-1's converter gas, internal there) and 0.313 kg HCl (hydrogen-chloride-1) per kg, recorded, not linked (D-004, D-012)"
+    source: "flowsheet streams S1 and S7 (D-004)"
+  - key: feed:NH4CL
+    missing: "not mapped yet (D-012); connect to: ammonium chloride, technical grade (e.g. from ammonia and hydrogen chloride, or a by-product of the dual soda-ash process); no library process makes it"
+    source: "flowsheet stream S3 (D-004)"
+  - key: feed:TOL
+    missing: "linked to processes/btx-1 (lca/mappings.yaml): toluene, a co-product of the solvent extraction of catalytic reformate (mass allocation of that dataset)"
+    source: "flowsheet stream S4 (D-004)"
+  - key: feed:NAOH
+    missing: "linked to processes/chlor-alkali-1 (lca/mappings.yaml): caustic soda 50 wt% from membrane chlor-alkali electrolysis"
+    source: "flowsheet stream S28 (D-007)"
+  - key: feed:PW
+    missing: "not mapped yet (D-012); connect to: process water from the site water treatment"
+    source: "flowsheet streams S9 (quench heel) and S29 (scrubber make-up), D-006, D-007"
+  - key: feed:WASHW
+    missing: "not mapped yet (D-012); connect to: process water from the site water treatment, chilled (its cooling is not counted)"
+    source: "flowsheet streams S16 and S20 (D-007)"
+  # utilities
+  - key: feed:POWER
+    missing: "not mapped yet (D-012); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy streams P1 (R-101 agitator), P2 (Q-101 agitator), P3 (Nutsche agitator, paddle dryer, vacuum pump) and P4 (scrubber pump and fan), D-009"
+  - key: feed:LPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 350 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
+    source: "flowsheet energy streams Q1 (R-101 heat-up) and Q6 (the dryer's hot-water circuit), D-009"
+  - key: product:CW
+    missing: "not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
+    source: "flowsheet energy streams Q2 (heat of sulfonation), Q3 (cool-down and second acid portion) and Q7 (scrubber), D-009"
+  - key: product:BRINE
+    missing: "not mapped yet (D-012); connect to: refrigeration at 258 K (brine) from an electric vapour-compression unit (e.g. processes/utility-chiller), per kWh of heat removed: compressor electricity at its COP, condenser cooling water, refrigerant losses"
+    source: "flowsheet energy streams Q4 (heel cooling) and Q5 (quench heat), D-009"
+  # waste
+  - key: product:WA
+    treatment: {kind: waste, route: "neutralisation of a dilute waste acid (about 8 wt% H2SO4, 2 wt% HCl, ammonium hydrogen sulfate, toluenesulfonic acids and o-TsCl oil) with lime or caustic, separation of the oil, biological treatment of the dissolved organics (D-010)"}
+    missing: "not mapped yet (D-012); connect to: treatment of a spent sulfuric/hydrochloric acid with dissolved aromatic sulfonic acids (neutralisation, gypsum or sulfate salt, an industrial wastewater treatment plant, e.g. processes/utility-wwtp), per kg; or acid recovery, not modelled"
+    source: "flowsheet stream S26 (D-010)"
+  - key: product:WS
+    treatment: {kind: waste, route: "site wastewater treatment of a saline effluent (about 20 wt% NaCl with excess NaOH), neutralised and discharged as dissolved salt (D-010)"}
+    missing: "not mapped yet (D-012); connect to: treatment of a saline process effluent (sodium chloride) in an industrial wastewater treatment plant (e.g. processes/utility-wwtp), per kg"
+    source: "flowsheet stream S30 (D-007, D-010)"
+# What the batch plant uses per batch and the flowsheet does not carry (library ADR 0035, core
+# ADR 0053), converted with the recipe's batches per year (process/recipe.yaml): the nitrogen
+# that inerts R-101, presses the Nutsche filtrations and breaks the dryer's vacuum (it leaves
+# through the scrubber or the vacuum pump to air: no burden, no disposal exchange), and the
+# rinses of Q-101 and F-101 between batches, with their water to the wastewater treatment.
+# R-101 is not rinsed: chlorosulfonic acid reacts violently with water, the vessel is kept dry.
+consumables:
+  - id: nitrogen
+    title: Nitrogen for inerting R-101, pressing the Nutsche filtrations and breaking the dryer's vacuum
+    unit: kg
+    per_batch: 175.0
+    source: "about 140 Nm3 per batch x 1.2506 kg/Nm3, ASSUMED (D-012): R-101 purged with 3 volumes of its 4 m3 (12 Nm3), F-101's 20 m3 brought to 300 kPa(a) for each of its three filtrations (120 Nm3), DR-101's 4 m3 vacuum broken twice (8 Nm3)"
+    missing: "linked to processes/asu-1 (lca/mappings.yaml): gaseous nitrogen to the battery limit"
+  - id: rinse-water
+    title: Rinse water of Q-101 and F-101 between batches
+    unit: kg
+    per_batch: 2000
+    source: "2 rinses per batch (recipe operations clean of Q-101 and F-101) x 1 m3 each, ASSUMED (D-003, D-012)"
+    missing: "not mapped yet (D-012); connect to: process water from the site water treatment"
+    disposal:
+      kind: waste
+      route: "site wastewater treatment of the acidic rinse water, with the waste acid (D-010)"
+      source: "rinses to the neutralisation with the waste acid (D-012)"
+      missing: "not mapped yet (D-012); connect to: treatment of an acidic process effluent in an industrial wastewater treatment plant (e.g. processes/utility-wwtp), per kg"
+operation:
+  hours_per_year: 7920
+  life_years: 20
+  source: "design basis operating_hours_per_year 7920 (ASSUMED, the recipe's hours); 20 a service life ASSUMED"
+emission_exclusions:
+  - {id: vessel-vents, method: storage-tank, equipment: [R-101, Q-101], reason: "No P&ID yet: R-101's and Q-101's vents, the HCl they give off included (S5, S11), go to the caustic scrubber T-201 and are in the balance; the nitrogen and air displaced while charging and dosing, with toluene and water vapour, go the same way and are not estimated (open for basic engineering, D-007, D-011)."}
+  - {id: scrubber-vent, method: storage-tank, equipment: [T-201], reason: "The scrubbed vent (nitrogen of the purges, 0.1 % of the HCl and the toluene vapour the HCl strips from R-101) is not split from the liquor in the balance: core's conversion step has one outlet and its vent carries no solvent vapour (core ADR 0054); not estimated (open for basic engineering, D-007, D-011)."}
+  - {id: dryer-vent, method: equipment-leaks, equipment: [DR-101], reason: "p-TsCl dust and HCl traces in the paddle dryer's vacuum vent are not estimated (D-008, D-011)."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals
+  modelling: {principle: attributional}
+  geography: {description: "Generic fine-chemicals site with a chlorosulfonic acid supply, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #162, unreviewed"
