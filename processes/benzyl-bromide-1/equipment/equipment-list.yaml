@@ -1,0 +1,21 @@
+# Equipment list. Schema: `cheme schema equipment`.
+# As far as the PFD requires (concept stage): tags, types and services of the flowsheet steps.
+# Sizes per batch from the recipe (D-003) and the models of R101, ST101 and ST102; design
+# pressures, temperatures and materials are not set yet (basic engineering); the materials named
+# are usual choices for wet HBr, bromine and hot benzyl bromide, to be confirmed (open input).
+# All values ASSUMED. Peak duties are per batch from the year averages (kW x 7.046 h a batch,
+# over the hours the item works), the arithmetic in DESIGN.md D-009.
+schema: cheme/equipment/v1
+equipment:
+  - {tag: R-101, type: StirredTankReactor, service: "Photoreactor: toluene charge heated to 363 K, bromine dosed under the lamps, HBr vented as it forms",
+     notes: "2.98 m3 of crude per batch at the end of the dosing; 4 m3 (R10 preferred size, 75 % full, D 1.62 m) as the recipe sizes it from R101's semi-batch model (core ADR 0052), glass-lined, with immersion lamp wells (LED about 420 nm, 20 kW electric, about 6 kW of light, ASSUMED; the wells cooled on cooling water, about 14 kW while lit, D-005); jacket: LP steam 450 kPa(a) for the 0.3 h heat-up, then a tempered-water loop on cooling water (mean 303 K, U 300 W/(m2 K)): 166.9 kW removable against the model's 10.3 kW peak plus the 6 kW of absorbed light; agitator 3 kW; bromine dosing interlocked with the lamps' power and light (no light: no reaction, bromine accumulates), the temperature, the agitator, the HBr off-gas flow and A-101's water flow (D-011); a nitrogen-padded seal pot or vacuum breaker against suck-back from A-101 (D-011)."}
+  - {tag: E-102, type: HeatExchanger, service: "Reflux condenser on R-101's off-gas (cooling water): returns the toluene and bromine the HBr carries",
+     notes: "About 0.8 mol of toluene vapour per mol of HBr leaves R-101 at 363 K (Raoult, D-008); gas out at 303 K; 8.2 kW year average, about 11 kW over the 5.25 h of gas and about 14 kW at the off-gas peak (0.32 mol/s HBr near the start, 0.98 mol of organics per mol, 0.93 of it condensed); glass or graphite; the condensate returns to R-101 by a liquid seal (D-008, D-009)."}
+  - {tag: E-103, type: HeatExchanger, service: "Vent condenser on the off-gas (brine, gas out at 268 K)",
+     notes: "Condenses the toluene left at 303 K (0.051 mol per mol of HBr) down to 0.0064 mol per mol; 0.65 kW year average on brine 258/263 K; bromine freezes at 266 K (CRC table in chemicals), so the gas outlet stays at 268 K and the condensate drains to R-101 as a toluene solution (D-008)."}
+  - {tag: A-101, type: Column, service: "HBr absorber: falling-film absorber with a water tail scrubber, 48 wt% hydrobromic acid",
+     notes: "Takes the off-gas while R-101 doses and reacts: 467 kg of HBr a batch, at most 0.32 mol/s (34 m3/h at 363 K, 101 kPa(a), cheme process recipe); 14.8 kW year average to cooling water, about 21 kW at the off-gas peak (0.32 mol/s x 65.2 kJ/mol: the heat of solution less the gas's and the water's warming, D-008); graphite (impregnated) with PTFE linings; a caustic guard scrubber after the water tail scrubber for HBr and bromine breakthrough (D-011); the absorber's vacuum on cooling is a suck-back path to R-101 (D-011)."}
+  - {tag: C-101, type: StirredTankReactor, service: "Batch still: toluene strip at 15 kPa(a) (ST101), then forerun and main cut at 2 kPa(a) (ST102)",
+     notes: "Receives one batch of crude, 2924 kg, about 3.0 m3 at 363 K: 4 m3, glass-lined, jacket on LP steam 450 kPa(a) (421 K, above the pot's 336-377 K): boil-up 150 kW for 1.15 h (strip), 80 kW for 1.20 h (vacuum distillation), cheme process stills; the jacket's wetted area falls as the pot empties (0.3 m3 left at the end of ST102), so the end of the main cut is slower than the constant boil-up the model takes (core limit L-6); agitator 1.5 kW; dry vacuum pump 4 kW; condensers: the strip's on cooling water (about 167 kW over the strip), the forerun's on brine (about 90 kW over its 0.34 h), the main cut's and the product cooler on cooling water (D-007, D-009)."}
+  - {tag: T-201, type: Tank, service: "Recovered toluene (strip distillate and forerun): recycle to R-101, 2 % purged",
+     notes: "Holds one batch's 1966 kg (about 2.3 m3) under nitrogen: 4 m3 (D-007)."}
