@@ -39,7 +39,8 @@ assumption, not supported by measurement: the measured runs last 1 h in fresh 1 
 | `results/resize-1000h-10000h.md` | what changes from 1,000 to 10,000 h, why, and against the hand values |
 | `figures/duty/<H>h/`, `figures/compare/<H>h/` | the duty transients, operating maps and comparisons |
 | `scripts/regen.py` | the single rerun command of the skids (`scripts/README.md`) |
-| `DESIGN.md` | decisions D-001 to D-023 |
+| `safety/hazop/H-01/`, `safety/hazop/H-02/`, `safety/hazop/SESSION.md` | HAZOP drafts of Skid A and Skid B, **agent-prepared for a team session that has not been held** (every entry proposed, the risk matrix proposed), and the session pack; `safety/README.md` |
+| `DESIGN.md` | decisions D-001 to D-023 and D-030 to D-032 (the HAZOP drafts; D-024 to D-029 are #331's) |
 
 Rerun the skids, from this folder (about 2 min at 1,000 h, 4 min at 10,000 h):
 

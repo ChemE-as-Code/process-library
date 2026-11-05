@@ -850,3 +850,149 @@ stale without a check, a result reported wrongly, or a design error (control, la
 
 Assumptions: cp 3.95 kJ/(kg K) of the anolyte, the PSA pressure loss 1 bar, the 0.3 m stack
 access, the fan's Ex rating (all ASSUMED).
+
+## D-030 HAZOP of the pilot skids: two agent-prepared drafts, integrated (2026-11-05)
+Decision: the skids of #330 get two HAZOP studies, drafted by agents for a team session that
+has not been held (safety/README.md, safety/hazop/SESSION.md):
+- **H-01 "Skid A: one-fill anolyte reservoir"** on P-01 and **H-02 "Skid B: KOH dosing, bleed
+  and make-up"** on P-02, each started with `cheme safety hazop init`. A node number means the
+  same part of either skid: N1 anolyte loop, N2 stacks and DC supply, N3 cathode CO2 feed, N4
+  cathode gas outlet, N5 gas conditioning, N6 tail gas and vents, N7 Skid B's dosing, bleed and
+  make-up (none on Skid A), N8 fill and drain, N9 the enclosure. The modes come from the
+  sequences and the duties (start-up, normal, Skid A's on/off and part-load duties, Skid B's
+  dosing, the end-of-campaign exchange, stop, trip and gas trip, utility failure, maintenance
+  with the hand lift of D-023).
+- The risk matrix `safety/risk-matrix.yaml` is a proposal in asu-1's structure (5 x 5, four
+  bands, one cell table, high and very-high require an action), the money one order below
+  asu-1's for a pilot of two 20 ft skids, `status: proposed`.
+- Every node, deviation, scenario, safeguard, rating and action is `status: proposed, by:
+  agent`; the team is roles only. Bands come only from `cheme safety hazop rate --write`.
+- The two studies were drafted apart, then integrated: the 58 pairs of scenarios on the hardware
+  both skids share were compared, and the ratings brought onto one convention (SESSION.md
+  section 3.2: the initial likelihood is that of the cause; a utility upset and a routine hose
+  task E, a single failure D; a release into the enclosure people 4; an alarm seen only after
+  the damage not credited; the gas trip one order; I-x04 not credited against the rectifier; a
+  switched-off rectifier no isolation). 13 scenarios were added so that each study covers what
+  the other found on the same hardware, two actions were added on each side, and H-02's
+  actions got owner roles as H-01's have. Where a pair still differs, the design differs and
+  the basis says why (SESSION.md section 3.4).
+- The analysed inputs are stamped: the P&ID, the equipment, line and instrument lists,
+  control/cause-effect.yaml, loops.yaml, sequences.yaml, philosophy.md, layout/zones.yaml, the
+  flowsheet, the design basis and the duties. The draft datasheets are read, not stamped. The
+  studies analyse the design in place, at 1,000 h: in the 10,000 h scenario, which regen builds
+  in a scratch copy, the equipment list, loops, flowsheet and duties differ, and its record
+  (results/scenarios/10000h/record.json, regenerated) now lists the eight resulting
+  hazop-input-changed warnings. They are true: the 10,000 h design has not been studied beyond
+  what the scenarios say about its 11,660 L reservoir (H01-S106).
+- The gate `hazop-current` (`kind: hazop`, `require: [inputs-current, no-example]`) passes on
+  the drafts and fails once an analysed input changes until the touched nodes are reassessed and
+  re-stamped. The house gates for an assessed and reviewed HAZOP stay commented in
+  checks/checks.yaml until the session and a human review are recorded, as in asu-1.
+
+| Study | Nodes | Deviations | Scenarios | Worst band high / medium / low | Very-high initial | Actions |
+|---|---:|---:|---:|---|---:|---:|
+| H-01 | 8 | 58 | 72 | 29 / 33 / 10 | 1 | 47 |
+| H-02 | 9 | 72 | 85 | 38 / 28 / 19 | 1 | 47 |
+
+Both report `draft`, 0 errors and 0 warnings, every band current; no scenario is very-high
+after its safeguards and every high scenario has an action.
+
+Reason: the skids differ in their tags, their sheet and Skid B's dosing, so one study per
+sheet keeps each study's stamps, report and acceptance with its skid; the same hazard on the
+same hardware must not be rated two ways. Before the integration, for example, the CO2 supply
+regulator failing open was rated people 3/C, low after an alarm, on Skid A and 4/C, high, on
+Skid B, and an enclosure leak D on Skid A and C on Skid B.
+
+Rejected:
+- One study for both skids: two sheets, two sets of tags and inputs in one file, and Skid B's
+  node N7 without a counterpart; the team would accept for both skids at once.
+- H-02 referring to H-01 for the shared nodes instead of analysing them: each skid's tags must
+  resolve, and the team accepts each skid's scenarios.
+- Leaving the two drafts' ratings as written: contradictory ratings of the same hazard.
+
+Assumptions: the matrix, its grades and the credit convention (all ASSUMED, for the team); the
+skid enclosure and its fan, which every gas-in-enclosure rating rests on (ASSUMED, not sized).
+
+## D-031 The HAZOP actions the drafting agents consider most important (2026-11-05)
+Decision: of the 94 proposed actions, these are the ones to decide first, for both skids at
+once where the hardware is shared (SESSION.md section 3.5 lists every high scenario with its
+action). Relief devices are named by their governing scenario only, never sized here (skill
+`relief-scenarios`).
+1. **Relief and pressure protection of the compressor discharge** (H01-A501, H02-A501,
+   H02-A502): governing scenario the blocked outlet with the positive-displacement K-x31 at full
+   stroke, PV-x31 failing closed on the loss of instrument air (H01-S502, H02-S501, the two
+   very-high initial scenarios) or X-x31 closing its feed (H01-S501, H02-S502). Also a discharge
+   high-high pressure trip, a trip on low instrument air, K-x31 interlocked with X-x31, and
+   PV-x31's fail position decided with the PSA vendor.
+2. **Overpressure of the cathode side and the CO2 supply interface** (H01-A303, H01-A401,
+   H02-A302, H02-A402): governing scenario the supply regulator at the battery limit failing
+   open with FV-x02 open (H01-S305, H02-S303); a cathode high-high trip independent of PIC-x21,
+   and U-x01 tripped when K-x31 stops (H01-S411, H02-S401).
+3. **An H2-in-O2 analyser on the reservoir vent O2V-x01** that trips U-x01, a decision on
+   sweeping the head space, a flame arrester, earthing of the PP tank (H01-A110, H01-A603,
+   H02-A601): H2 crossing the membrane or cathode gas breaking through ends in the reservoir
+   head space (H01-S115, S403, S606; H02-S110, S604, S605).
+4. **The pressure difference across the GDE** measured at the stack inlet against PIC-x21, with
+   alarm and trip at the window of #332 (H01-A103, H02-A401; H01-S105, S403; H02-S108, S403).
+5. **The gas detection study**: number, location, set points and voting of the CO and H2
+   detectors, the vents and the CO product side, personal monitors; and the gas trips made to
+   isolate the PSA, whose CO inventory stays connected to a leak today (H01-A902, H01-A505,
+   H02-A901, H02-A505).
+6. **KOH exposure**: an eyewash and safety shower at the west-end hose connections and the
+   stack row, PPE, a written hose transfer procedure; on Skid B spray shields and a bund at
+   T-202 / P-202 and the written weekly refill with a high level alarm on LIA-203 (H01-A106,
+   H01-A803, H02-A706, H02-A707).
+7. **The safe state on a loss of power**: a UPS for the gas detection, the fan and the alarms,
+   and a purge or vent of the cathode gas train without power (H01-A904, H02-A905).
+8. **The enclosure ventilation** proven (running or air-flow signal as a permissive) and sized,
+   and CO2 / O2-depletion detection at low level (H01-A901, H01-A305, H02-A903, H02-A306).
+9. **The 48 V DC bus** designed and drawn: overcurrent protection per stack, shrouded and
+   drip-protected terminals, an unearthed bus with insulation monitoring, lockable isolation
+   and a discharge point (H01-A202, H02-A202 to A204).
+10. **Oxidiser supervision and burner management** with a pre-purge before every light-off or
+    re-light (H01-A601, H01-A602, H02-A602).
+11. **The pH trips**: I-201 its own probe, AIC-201 calibrated against titration (H02-A701,
+    H02-A702); Skid A's I-101 margin, an owner decision (H01-A108).
+12. **The Ex rating** of the items in zone 2 with an area classification (H01-A903, H01-A204,
+    H02-A902, H02-A206), an open owner decision of #330.
+13. **A SIL screening / LOPA** of every trip before any is credited beyond one order (H01-A112,
+    H02-A104).
+
+Close behind: reverse current at every switch-off (H01-A201, H02-A201), PV-x21's fail-open
+letting K-x31 pull a vacuum (H01-A402, H02-A403), Skid A's back-flow from the PSA on its daily
+stops (H01-A502), the dosing line's check valve and P-202's relief (H02-A703), an independent
+high-high level in V-x21 (H01-A403, H02-A404).
+
+Reason: these answer the scenarios that stay high with people severity 4, the two very-high
+initial ones, and the gaps that recur across many scenarios.
+
+The plant is not changed: the P&IDs, control and layout stay as #330 drew them, and these are
+actions for the design team after the team session (spec of the HAZOP stage).
+
+Assumptions: the ranking is the drafting agents' judgement for the team, not a LOPA result.
+
+## D-032 What the HAZOP drafts found missing, and what they judged not applicable (2026-11-05)
+Decision: the studies analyse the plant as drawn; what it does not have is an action, never a
+safeguard.
+- Not drawn on either skid: a relief device; an H2-in-O2 measurement on O2V-x01; a pressure on
+  the anolyte side (the pressure difference across the GDE is not known); a heater (TIC-x11 only
+  cools); an eyewash or safety shower; a detector at the vents; CO2 or O2-depletion detection;
+  a running signal of the fan K-x41; a UPS; the 48 V DC bus; a per-stack current or voltage.
+  On Skid A: one level instrument on T-101 for the alarm and the trip (H01-A107), no high level
+  for the fill (H01-A801). On Skid B: no check valve on KOH-204, no high level alarm on LIA-203,
+  no written refill of T-202, no flush step in SEQ-B-DRAIN.
+- Kept in the safeguard registers but credited by no scenario: the fail positions (they appear
+  as causes), PIC-x31's low pressure alarm, I-207 (a permissive) and I-208 (it acts only when
+  T-202 is already empty).
+- Not applicable, or only partly (SESSION.md section 3.7): the dosing, bleed, make-up and the
+  5 M KOH on Skid A (only as a wrong delivery, H01-S802); an anolyte heater; CO2 vaporisation
+  inside the skid (beyond the battery limit, D-016; cold gas at the tie-in only); the tank
+  height at long campaigns on Skid B (T-201 stays 50 L, D-010); the on/off and part-load duties
+  on Skid B (D-013); back-flow through KOH-204 as drawn (a low scenario with an action to
+  confirm, H02-S706).
+
+Reason: a safeguard the files do not show cannot be credited (skill `safeguard-crediting`), and
+a hazard the skid cannot have is recorded with its reason rather than left out silently.
+
+Assumptions: the drawn levels of T-202 and the KOH-204 entry (about 0.69 m and 0.71 m), the
+vent outlet heights of D-019, the zone screening of layout/zones.yaml (all ASSUMED).
