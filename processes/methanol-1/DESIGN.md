@@ -458,6 +458,9 @@ outside the boundary, D-001).
 Drawing: flow left to right, inflows on the left edge, outflows on the right edge, utilities and
 relief on the top and bottom edges; the drawing-clean gate passes with no finding and no accepted
 crossing. Every sheet's notes name the decisions behind it.
+Title blocks: project methanol-1 (`project:` in `plant.yaml`), plant section = the sheet's
+narrative section, created by "Process engineering"; no client or site is chosen (design basis,
+D-001), so both read "Client (ASSUMED)" and "Generic site (ASSUMED)", as asu-1 does.
 
 ## D-017 Make-up compression: control, protection and relief (2026-11-05)
 Decision: K-101 takes all the gas the front end delivers: PIC-102 holds the suction pressure on
@@ -484,7 +487,9 @@ CV-105 to the suction, uncooled: the circulator's rise is about 10 K (S4 -> S5),
 spillback is acceptable (ASSUMED; a long turndown may need a cooled recycle). Converter inlet
 temperature TIC-205 on a cold bypass TV-205 (fail open) round E-102, which keeps the full loop flow
 through the converter. The R-101 shell runs on natural circulation with a steam drum V-104
-(added, riser SW-232 and downcomer BW-233 drawn as one line each for their sets): PIC-207 holds the
+(added, riser SW-232 and downcomer BW-233 drawn as one line each for their sets; the riser enters
+the drum head above the normal liquid level, only the downcomer leaves from the drum bottom; BFW,
+MP steam and PSV-208 are on the drum top, review of PR #367): PIC-207 holds the
 drum pressure on the MP steam valve PV-207 (fail open, ASSUMED) and so the boiling temperature and
 the converter temperature (D-003); LIC-209 feeds BFW on LV-209 (fail open: dry-out is worse than
 overfilling), single element in this issue and three-element at basic engineering; continuous
