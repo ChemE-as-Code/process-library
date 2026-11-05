@@ -1,0 +1,46 @@
+# The batch recipe of acetyl-chloride-1 (schema cheme/recipe/v1, `cheme process recipe`,
+# DESIGN.md D-003). One batch makes BATCH kg of distilled acetyl chloride (stream S10); the
+# flowsheet's rates are the year averages.
+# - R-101 is one vessel over E101 (the acetic acid warmed), R101 (the semi-batch: PCl3 dosed,
+#   HCl vented) and D101 (the two liquid phases settle and are drained): `units`, core ADR
+#   0057. The dosing and the post-reaction (to 0.95 conversion of the PCl3) take their times
+#   from R101's model (from: R101), the warming from the jacket (temperatures); the vessel is
+#   sized from R101's model and its jacket checked against the model's peak cooling duty
+#   (core ADR 0052).
+# - C-101, the still with its column K-101, is one vessel over ST101, K101, M102 and E102: the
+#   distillation takes its boil-up time from ST101 (from: ST101).
+# Every other duration is ASSUMED (D-003). The vent condenser E-103 and the scrubber A-101 run
+# while R-101 doses and are no batch units. `cheme process recipe --svg build/gantt.svg` draws
+# one batch.
+schema: cheme/recipe/v1
+kind: recipe
+title: Acetyl chloride by semi-batch reaction of acetic acid with PCl3
+batch_size: {value: 1459.9, unit: kg, stream: S10, provenance: assumed, source: "one batch of distilled acetyl chloride: 2000 t/a over the 1439.1 batches the 5.503 h cycle allows, 252.525 kg/h x 5.503 h (D-002, D-003)"}
+hours_per_year: {value: 7920, provenance: assumed, source: "330 days of 24 h (D-002)"}
+unit_procedures:
+  - id: REACT
+    units: [E101, R101, D101]
+    title: Charge and warm the acetic acid, dose PCl3, settle and drain the two phases (R-101)
+    vessel:
+      fill_fraction: 0.8
+      aspect_ratio: 1.2
+      jacket: {u: 300, coolant_temperature: 304.05, heating_temperature: 320.15, provenance: assumed, source: "enamelled (glass-lined) steel vessel; cooling water enters the jacket at 298.15 K and leaves at 308.15 K (design basis, D-009), so the reaction mass at 313.15 K sees a log-mean driving force of (15 - 5) / ln(15/5) = 9.10 K: core takes the coolant temperature as constant, so the equivalent 313.15 - 9.10 = 304.05 K is entered, not the supply temperature; warming on a tempered-water loop at 322/318 K (mean 320.15 K) heated by LP steam, below acetyl chloride's 324.15 K boiling point, R101's MTT (D-003, D-009)"}
+      provenance: assumed
+      source: "usual fill and proportions of an enamelled stirred vessel (D-003)"
+    operations:
+      - {id: inert, kind: other, title: Nitrogen purge of the dry vessel, duration: {value: 0.25, provenance: assumed, source: D-003}}
+      - {id: charge, kind: charge, title: Charge the acetic acid, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: heat, kind: heat, title: Warm to 313 K (E101), temperatures: [298.15, 313.15]}
+      - {id: dose, kind: dose, title: Dose the PCl3, from: R101}
+      - {id: react, kind: react, title: Post-reaction at 313 K, from: R101}
+      - {id: settle, kind: hold, title: Stop the agitator and let the phases settle (D101), duration: {value: 1.0, provenance: assumed, source: "D-003, D-006: CS 272 248 B2 separates the phases by settling; no settling time given"}}
+      - {id: drain, kind: other, title: Drain the lower phase to the crude phosphorous acid tank, duration: {value: 0.5, provenance: assumed, source: "D-003 (kind other, so that the still starts with the upper phase's transfer)"}}
+      - {id: transfer, kind: transfer, title: Upper phase to the still, duration: {value: 0.5, provenance: assumed, source: D-003}}
+  - id: DISTIL
+    units: [ST101, K101, M102, E102]
+    title: Batch distillation at atmospheric pressure in the still with its column (C-101, K-101)
+    operations:
+      - {id: receive, kind: charge, title: Receive the upper phase, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: distil, kind: distil, title: Distil acetyl chloride off the PCl3-rich residue, from: ST101}
+      - {id: cool, kind: cool, title: Cool the residue to 303 K on cooling water (E102), duration: {value: 0.5, provenance: assumed, source: "D-003, D-009"}}
+      - {id: drain, kind: transfer, title: Drain the residue to the waste drum under nitrogen, duration: {value: 0.5, provenance: assumed, source: D-003}}
