@@ -1,0 +1,486 @@
+# Tier 1 form, a manifest-only entry without a flowsheet (as process-library#313/#317). Every amount is
+# the formula of its parameters; core's validator re-checks each. Written from one published design LCA
+# and stoichiometry (facts in our own form, each with its locator in `parameters`).
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: propylene-propane-dehydrogenation
+title: Propylene by catalytic propane dehydrogenation, net gas burnt on site
+description: Per 1 t of polymer-grade propylene, gate-to-gate, moving-bed platinum catalyst with continuous
+  regeneration (Oleflex type). Propane, electricity and consumables from one published 2022 design; the
+  hydrogen-rich net gas and light ends are burnt in the unit's fired heaters and the site boilers, as that
+  design does, so propylene is the only product. Combustion CO2 from the carbon balance.
+basis: 1000 kg of propylene
+boundary: 'gate-to-gate: depropaniser, reactor section with fired heaters, continuous catalyst regeneration,
+  effluent compression, cold-box product recovery, deethaniser and propane-propylene splitter, plus the
+  combustion of the whole net gas; electricity from outside; site utilities and off-sites excluded'
+technology: catalytic dehydrogenation of propane over a platinum catalyst in moving-bed reactors with continuous
+  catalyst regeneration and interstage fired heaters; the cyclic fixed-bed (chromium oxide) route and the
+  hydrogen-export variant are not modelled
+geography:
+  description: 'One design: a planned PDH-PP complex in Ceyhan, Turkey (preliminary design data of 2022).
+    No plant data and no average over plants.'
+classification:
+  isic: '2011'
+system_boundary:
+  included:
+  - propane, and the combustion oxygen (free)
+  - electricity of the PDH unit
+  - Oleflex catalyst, activated alumina, dimethyl disulfide, caustic soda, phosphate and chlorine of the PDH unit
+  - spent alumina adsorbent
+  - CO2 and water vapour of burning the net gas and light ends
+  excluded:
+  - 'TODO utilities and off-sites shared with the polypropylene plant (the source''s U&O unit: 269 kWh electricity,
+    2.0 m3 raw water and water-treatment chemicals per t PP, Table 4.1), not split between PDH and PP'
+  - 'TODO raw water of the PDH unit (6.613 m3 per t PP, Table 4.1, estimated): cooling and steam make-up;
+    its fate (evaporation, blowdown, effluent) is not stated, and the library has no raw-water background'
+  - 'TODO natural-gas make-up: 288.96 Nm3/h for the whole PDH-PP site in normal operation (section 3.1),
+    none listed for the PDH unit in Table 4.1'
+  - 'TODO NOx, CO, SO2 (from the injected sulfur), HCl (from the chloride of the regeneration) and VOC to
+    air, and the spent caustic: named in the design''s BAT evaluation, not quantified per t'
+  - 'TODO fugitive propane and propylene; flaring'
+  - 'TODO heat of the burnt net gas that the site boilers deliver to the polypropylene plant: not credited
+    (cut-off), so the dataset carries all of the combustion CO2'
+  - 'hydrogen to the polypropylene plant for molecular-weight control: small, not stated, not counted'
+  - 'spent platinum catalyst: sent to platinum recovery, which the cut-off model leaves to the recycler'
+  - 'feed impurities (ethane, butanes in the C3 LPG): the feed is taken as pure propane'
+  - infrastructure
+  cutoff: none applied; the excluded flows are not quantified
+  infrastructure: excluded
+  catalysts: included
+  non_routine: excluded
+location: GLO
+year: 2022
+valid_until: 2027
+time:
+  start: 2022
+  description: Preliminary design data of an LCA report dated August to September 2022 (published 2023). valid_until
+    is the reference year + 5 (system-model section 6).
+modelling:
+  principle: attributional
+  multifunctionality: 'single output: no allocation. The hydrogen and light ends are burnt on site as the
+    source design does, so no co-product leaves the unit; a design that exports hydrogen would be a
+    multi-output dataset of its own.'
+uuid: 77112cd9-8b25-55cb-8b49-47b616bd7eb0
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+technology_level: current
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: pp
+  value: 1000.0
+  unit: kg
+  description: Propylene delivered (the basis).
+  source: basis
+- name: M_C3H8
+  value: 44.097
+  unit: g/mol
+  description: Molar mass of propane.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_C3H6
+  value: 42.081
+  unit: g/mol
+  description: Molar mass of propylene.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_O2
+  value: 31.998
+  unit: g/mol
+  description: Molar mass of oxygen.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_CO2
+  value: 44.009
+  unit: g/mol
+  description: Molar mass of carbon dioxide.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_H2O
+  value: 18.015
+  unit: g/mol
+  description: Molar mass of water.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: f_c3h6
+  value: 59.981
+  unit: t/h
+  description: Propylene production of the source design's PDH unit.
+  source: RINA Consulting (2022) Ceyhan PDH-PP Project, Life Cycle Assessment Report (ESIA Annex S), Doc.
+    P0031918-1-H2 Rev. 1, section 3.1, p. 11, printed as "59,981 t/h"; read as 59,981 kg/h, the unit being
+    a misprint, since the same section's "59,062.5 t/h" of polypropylene gives its 472,500 t/a only in kg/h
+- name: f_pp
+  value: 59.0625
+  unit: t/h
+  description: Polypropylene production of the same design, the basis of its Table 4.1.
+  source: RINA Consulting (2022) Ceyhan PDH-PP LCA Report (ESIA Annex S), section 3.1, p. 12, printed as
+    "59,062.5 t/h" and read as kg/h (unit misprint); equals the 472,500 t/a over the about 8000 h/a of p. 11
+- name: c3_lca
+  value: 1236.0
+  unit: kg
+  description: Propane per t of polypropylene, the design's LCA input.
+  source: RINA Consulting (2022) Ceyhan PDH-PP LCA Report (ESIA Annex S), Table 4.1, p. 15 (foreground data
+    marked primary). A design figure, not plant data
+- name: c3_year
+  value: 556000.0
+  unit: t/a
+  description: Propane processed per year by the same design.
+  source: RINA Consulting (2022) Ceyhan PDH-PP LCA Report (ESIA Annex S), section 3.1, p. 11
+- name: hours
+  value: 8000.0
+  unit: h/a
+  description: Operating hours per year of the same design.
+  source: RINA Consulting (2022) Ceyhan PDH-PP LCA Report (ESIA Annex S), section 3.1, p. 11 ("about")
+- name: elec_lca
+  value: 860.0
+  unit: kWh
+  description: Electricity of the PDH unit per t of polypropylene (renewable supply in the design).
+  source: RINA Consulting (2022) Ceyhan PDH-PP LCA Report (ESIA Annex S), Table 4.1, p. 15 (0.860 MWh/t
+    PP, primary). One design figure; TODO a second source
+- name: cat_lca
+  value: 0.026
+  unit: kg
+  description: Oleflex (platinum) catalyst per t of polypropylene.
+  source: RINA Consulting (2022) Ceyhan PDH-PP LCA Report (ESIA Annex S), Table 4.1, p. 15
+- name: alu_lca
+  value: 1.85
+  unit: kg
+  description: Activated alumina per t of polypropylene.
+  source: RINA Consulting (2022) Ceyhan PDH-PP LCA Report (ESIA Annex S), Table 4.1, p. 15
+- name: dmds_lca
+  value: 0.462
+  unit: kg
+  description: Dimethyl disulfide (sulfur injection) per t of polypropylene.
+  source: RINA Consulting (2022) Ceyhan PDH-PP LCA Report (ESIA Annex S), Table 4.1, p. 15
+- name: naoh_lca
+  value: 2.16
+  unit: kg
+  description: Caustic solution 50 % per t of polypropylene, by mass of solution.
+  source: RINA Consulting (2022) Ceyhan PDH-PP LCA Report (ESIA Annex S), Table 4.1, p. 15
+- name: phos_lca
+  value: 0.134
+  unit: kg
+  description: Phosphate per t of polypropylene (PDH unit).
+  source: RINA Consulting (2022) Ceyhan PDH-PP LCA Report (ESIA Annex S), Table 4.1, p. 15
+- name: cl2_lca
+  value: 0.161
+  unit: kg
+  description: Chlorine per t of polypropylene (PDH unit).
+  source: RINA Consulting (2022) Ceyhan PDH-PP LCA Report (ESIA Annex S), Table 4.1, p. 15
+exchanges:
+- key: product:propylene
+  title: Propylene, polymer grade
+  type: product
+  amount: 1000.0
+  unit: kg
+  formula: pp
+  provenance: given
+  source: the reference flow
+- key: feed:propane
+  title: Propane (C3 LPG, taken as pure propane)
+  type: input
+  amount: 1187.886580750571
+  unit: kg
+  formula: (c3_lca * f_pp / f_c3h6 + c3_year * 1000 / (f_c3h6 * hours)) / 2 * pp / 1000
+  provenance: calculated
+  origin: literature
+  source: 'midpoint of the two figures of one design, converted to propylene with its production rates:
+    Table 4.1 gives 1217.1 kg/t, section 3.1 gives 1158.7 kg/t (RINA Consulting 2022, Ceyhan PDH-PP LCA
+    Report, ESIA Annex S); the midpoint is our choice. Compare a mass yield of 85 % (Honeywell UOP 2019,
+    benchmarks/olefins.yaml)'
+  pedigree:
+    scores: &id001
+    - 4
+    - 4
+    - 3
+    - 3
+    - 3
+    reason: 'one preliminary design of 2022 (design data validated by the project promoters, not plant data):
+      reliability 4, completeness 4, temporal 3, geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.025
+    source: 'propane: the two figures 1158.7 and 1217.1 kg/t read as a 95 % interval, gsd2 = sqrt(high /
+      low) (our convention; the amount stays the arithmetic midpoint)'
+- key: feed:O2
+  title: Combustion oxygen, from ambient air
+  type: input
+  amount: 888.0583679056601
+  unit: kg
+  formula: (pp / M_C3H6 * 0.5 + ((c3_lca * f_pp / f_c3h6 + c3_year * 1000 / (f_c3h6 * hours)) / 2 * pp
+    / 1000 - pp * M_C3H8 / M_C3H6) / M_C3H8 * 5) * M_O2
+  provenance: assumed
+  origin: estimate
+  free: true
+  source: complete combustion of the net gas (ASSUMED complete), with the light ends modelled as methane and
+    ethylene from C3H8 -> CH4 + C2H4 (ASSUMED); ambient air is free
+- key: feed:electricity
+  title: Electricity
+  type: input
+  amount: 846.830663043297
+  unit: kWh
+  formula: elec_lca * f_pp / f_c3h6 * pp / 1000
+  provenance: given
+  origin: literature
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: RINA Consulting (2022) Ceyhan PDH-PP LCA Report (ESIA Annex S), Table 4.1, p. 15 (PDH unit), converted
+    to propylene with the production rates of section 3.1; the design's renewable supply contract is not
+    modelled
+  pedigree:
+    scores: *id001
+    reason: 'one preliminary design of 2022 (design data validated by the project promoters, not plant data):
+      reliability 4, completeness 4, temporal 3, geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: a single design value; drivers (motor or steam turbine) and integration change it'
+- key: input:catalyst
+  title: Platinum dehydrogenation catalyst (Oleflex type)
+  type: input
+  amount: 0.025601857254797352
+  unit: kg
+  formula: cat_lca * f_pp / f_c3h6 * pp / 1000
+  provenance: given
+  origin: literature
+  source: RINA Consulting (2022) Ceyhan PDH-PP LCA Report (ESIA Annex S), Table 4.1, p. 15; mass outside the
+    element balance; a precious-metal catalyst, never cut (system-model section 4)
+  pedigree:
+    scores: *id001
+    reason: 'one preliminary design of 2022 (design data validated by the project promoters, not plant data):
+      reliability 4, completeness 4, temporal 3, geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: a single design value'
+- key: input:alumina
+  title: Activated alumina (adsorbent)
+  type: input
+  amount: 1.821670612360581
+  unit: kg
+  formula: alu_lca * f_pp / f_c3h6 * pp / 1000
+  provenance: given
+  origin: literature
+  source: RINA Consulting (2022) Ceyhan PDH-PP LCA Report (ESIA Annex S), Table 4.1, p. 15; mass outside the
+    element balance
+  pedigree:
+    scores: *id001
+    reason: 'one preliminary design of 2022 (design data validated by the project promoters, not plant data):
+      reliability 4, completeness 4, temporal 3, geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: a single design value'
+- key: input:dmds
+  title: Dimethyl disulfide (sulfur injection)
+  type: input
+  amount: 0.45492530968139916
+  unit: kg
+  formula: dmds_lca * f_pp / f_c3h6 * pp / 1000
+  provenance: given
+  origin: literature
+  cas: 624-92-0
+  source: RINA Consulting (2022) Ceyhan PDH-PP LCA Report (ESIA Annex S), Table 4.1, p. 15; mass outside the
+    element balance (its sulfur leaves as SO2 or H2S, TODO)
+  pedigree:
+    scores: *id001
+    reason: 'one preliminary design of 2022 (design data validated by the project promoters, not plant data):
+      reliability 4, completeness 4, temporal 3, geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: a single design value'
+- key: feed:caustic-50
+  title: Caustic soda, 50 wt-% solution
+  type: input
+  amount: 2.1269235257831647
+  unit: kg
+  formula: naoh_lca * f_pp / f_c3h6 * pp / 1000
+  provenance: given
+  origin: literature
+  source: RINA Consulting (2022) Ceyhan PDH-PP LCA Report (ESIA Annex S), Table 4.1, p. 15, by mass of solution;
+    mass outside the element balance (spent caustic, TODO)
+  pedigree:
+    scores: *id001
+    reason: 'one preliminary design of 2022 (design data validated by the project promoters, not plant data):
+      reliability 4, completeness 4, temporal 3, geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: a single design value'
+- key: input:phosphate
+  title: Phosphate (PDH unit; its use, probably boiler-water treatment, is our reading)
+  type: input
+  amount: 0.1319480335439556
+  unit: kg
+  formula: phos_lca * f_pp / f_c3h6 * pp / 1000
+  provenance: given
+  origin: literature
+  source: RINA Consulting (2022) Ceyhan PDH-PP LCA Report (ESIA Annex S), Table 4.1, p. 15 (the salt is not
+    named); mass outside the element balance
+  pedigree:
+    scores: *id001
+    reason: 'one preliminary design of 2022 (design data validated by the project promoters, not plant data):
+      reliability 4, completeness 4, temporal 3, geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: a single design value'
+- key: feed:chlorine
+  title: Chlorine (chloride make-up of the catalyst regeneration)
+  type: input
+  amount: 0.15853457761624515
+  unit: kg
+  formula: cl2_lca * f_pp / f_c3h6 * pp / 1000
+  provenance: given
+  origin: literature
+  source: RINA Consulting (2022) Ceyhan PDH-PP LCA Report (ESIA Annex S), Table 4.1, p. 15; its use in the
+    regeneration is our reading; mass outside the element balance (HCl to the vent scrubber, TODO)
+  pedigree:
+    scores: *id001
+    reason: 'one preliminary design of 2022 (design data validated by the project promoters, not plant data):
+      reliability 4, completeness 4, temporal 3, geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: a single design value'
+- key: output:spent-alumina
+  title: Spent activated alumina, to disposal
+  type: output
+  amount: 1.821670612360581
+  unit: kg
+  formula: alu_lca * f_pp / f_c3h6 * pp / 1000
+  provenance: assumed
+  origin: estimate
+  source: ASSUMED equal to the make-up (RINA Consulting 2022, Table 4.1, p. 15, gives the input only); mass
+    outside the element balance
+  pedigree:
+    scores: &id002
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: as the alumina input'
+- key: emission:CO2
+  title: CO2 from burning the light ends of the net gas
+  type: emission
+  amount: 419.09889559981644
+  unit: kg
+  formula: ((c3_lca * f_pp / f_c3h6 + c3_year * 1000 / (f_c3h6 * hours)) / 2 * pp / 1000 - pp * M_C3H8
+    / M_C3H6) / M_C3H8 * 3 * M_CO2
+  provenance: calculated
+  origin: estimate
+  cas: 124-38-9
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 349b29d1-3e58-4c66-98b9-9d1a076efd2e
+    name: Carbon dioxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: 'carbon balance: all propane not converted to propylene leaves as light ends (and coke) that are
+    burnt completely in the fired heaters, regenerator and site boilers, as the design burns its fuel gas
+    (RINA Consulting 2022, section 3.1, pp. 11-13); biosphere3 UUID, name and categories from core''s elementary-flow
+    crosswalk (data/elementary-flows.yaml)'
+  pedigree:
+    scores: *id002
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: follows the propane figures, about 332 to 506 kg/t; complete combustion and no C4+ by-product
+      are ASSUMED'
+- key: emission:H2O
+  title: Water vapour from burning the net gas
+  type: emission
+  amount: 656.8460530564149
+  unit: kg
+  formula: (pp / M_C3H6 + ((c3_lca * f_pp / f_c3h6 + c3_year * 1000 / (f_c3h6 * hours)) / 2 * pp / 1000
+    - pp * M_C3H8 / M_C3H6) / M_C3H8 * 4) * M_H2O
+  provenance: calculated
+  origin: estimate
+  cas: 7732-18-5
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 075e433b-4be4-448e-9510-9a5029c1ce94
+    name: Water
+    categories:
+    - air
+    unit: m3
+    per_unit: 0.001
+  source: 'combustion water of the dehydrogenation hydrogen (C3H8 -> C3H6 + H2) and of the light ends; biosphere3
+    UUID, name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml)'
+  pedigree:
+    scores: *id002
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.08
+    source: 'ASSUMED: follows the propane figures, about 609 to 705 kg/t'
+provenance:
+  generator: hand-written model; amounts are the formulas of the parameters
+  notes: No value from a licensed database. The source report's own background modelling (ecoinvent in GaBi)
+    and its impact results are not used; only its foreground design inputs are.
+generation:
+  tier: 1
+  method: 'sourced conceptual inventory: propane, electricity and consumables of one published design, with
+    stoichiometry and a carbon balance for the burnt net gas; every choice listed in parameters'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 3
+  - 4
+  - 3
+  - 3
+  - 3
+  dqr_floor: 3.0
+  components:
+    product:propylene: C3H6
+    feed:propane: C3H8
+    feed:O2: O2
+    emission:CO2: CO2
+    emission:H2O: H2O
+  formulas:
+    product:propylene: C3H6
+    feed:propane: C3H8
+    feed:O2: O2
+    emission:CO2: CO2
+    emission:H2O: H2O
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      C:
+      - 970.658257119
+      - 970.658257119
+      H:
+      - 217.228323631
+      - 217.228323631
+      O:
+      - 888.058367906
+      - 888.058367906
+    outside:
+    - feed:caustic-50
+    - feed:chlorine
+    - feed:electricity
+    - input:alumina
+    - input:catalyst
+    - input:dmds
+    - input:phosphate
+    - output:spent-alumina

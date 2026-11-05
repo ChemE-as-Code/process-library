@@ -1,0 +1,35 @@
+# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
+# dataset is lca/datasets/*.yaml, Tier 1 form, so maturity stays at concept
+# (core's cheme.lci-tier-maturity). See README.md.
+schema: cheme-as-code/process/v1
+id: propylene-pdh-1
+title: Propylene by catalytic propane dehydrogenation (moving bed with continuous catalyst regeneration)
+summary: >-
+  Sourced conceptual inventory per tonne of propylene: propane and electricity from one published
+  2022 design (Oleflex type), the hydrogen-rich net gas and light ends burnt on site, combustion
+  CO2 from the carbon balance. No flowsheet; not reviewed.
+families: [olefins]
+keywords: [propylene, propene, propane dehydrogenation, PDH, Oleflex, continuous catalyst regeneration, platinum catalyst, on-purpose propylene]
+facets: {feedstock_basis: [fossil], product_classes: [chemicals], unit_operations: [reaction, compression, distillation, combustion], region: generic}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: propane, role: feedstock, inventory_key: "feed:propane", note: "C3 LPG taken as pure propane (ASSUMED)"}
+    - {chemical: air, role: feedstock, note: "combustion air, free; its O2 is feed:O2"}
+    - {chemical: sodium-hydroxide, role: feedstock, inventory_key: "feed:caustic-50", note: "caustic soda 50 wt-%, per kg of solution; linked to chlor-alkali-1 (lca/mappings.yaml)"}
+    - {chemical: chlorine, role: feedstock, inventory_key: "feed:chlorine", note: "chloride make-up of the catalyst regeneration; linked to chlor-alkali-1 (lca/mappings.yaml)"}
+  outputs:
+    - {chemical: propylene, role: main-product, inventory_key: "product:propylene"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "from burning the light ends of the net gas"}
+    - {chemical: water, role: emission, inventory_key: "emission:H2O", note: "combustion water vapour"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity", note: "the design's PDH-unit electricity; its renewable supply contract is not modelled (grid at the site)"}
+basis: {capacity: "per tonne of propylene (the dataset's basis); the source design is about 480 kt/a propylene"}
+publication: {status: public, license: CC-BY-4.0}
+references:
+  - {title: "RINA Consulting for Ceyhan Polipropilen Uretim A.S. (2022) Ceyhan Propane Dehydrogenation - Polypropylene Production Project, Life Cycle Assessment Report (ESIA Annex S), Doc. No. P0031918-1-H2 Rev. 1, sections 3.1 and 4.1, Table 4.1 (published by the US International Development Finance Corporation, February 2023)", url: "https://www3.dfc.gov/environment/eia/ceyhan_turkey/Annexes/ANNEX-S%20Life%20Cycle%20Assessment%20Report_final.pdf"}
+  - {title: "RINA Consulting for Ceyhan Polipropilen Uretim A.S. (2022) Ceyhan PDH-PP Project, BAT-BREF Evaluation (ESIA Annex P): air emission sources of the PDH unit named, not quantified per t", url: "https://www3.dfc.gov/environment/eia/ceyhan_turkey/Annexes/ANNEX-P%20BAT-BREF%20Evaluation_final.pdf"}
+  - {title: "Marsh, M., Wery, J. (2019) Filling the propylene gap: shaping the future with on-purpose technologies. Honeywell UOP white paper UOP8395 (manufacturer literature)", url: "https://pages2.honeywell.com/rs/828-DHL-685/images/Filling%20the%20Propylene%20Gap%20On%20purpose%20technologies.pdf"}
+  - {title: "Falcke, H. et al. (2017) Best Available Techniques (BAT) Reference Document for the Production of Large Volume Organic Chemicals. JRC Science for Policy Report EUR 28882 EN (JRC109279), sections 2.2.7 and 3.2.1 (PDH named, not described)", doi: 10.2760/77304}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/propylene-pdh-1, access: public}

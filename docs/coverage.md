@@ -125,8 +125,8 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 14 | `ethylene-oxide` | Ethylene oxide and ethylene glycols | oxygenates | n/a, to be sourced | medium | oxygen-based, air-based, omega | pet | 1 | ethylene-glycol-1 (T2) |
 | 15 | `polyethylene` | Polyethylene (HDPE, LLDPE, LDPE) | polyolefins | n/a, to be sourced | medium | hdpe-slurry, lldpe-gas-phase, ldpe-high-pressure | plastic-pyrolysis | 1 | - |
 | 16 | `polypropylene` | Polypropylene | polyolefins | n/a, to be sourced | medium | - | plastic-pyrolysis | 1 | - |
-| 17 | `propylene-pdh` | Propylene by propane dehydrogenation | olefins | n/a, to be sourced | medium | pdh, fcc, metathesis | polypropylene, propylene-oxide, acrylonitrile, cumene-phenol | 1 | - |
-| 18 | `btx` | Benzene, toluene and xylenes | aromatics | n/a, to be sourced | medium | reformate, pygas, hda | styrene, cumene-phenol, terephthalic-acid, caprolactam, mdi-tdi | 1 | - |
+| 17 | `propylene-pdh` | Propylene by propane dehydrogenation | olefins | n/a, to be sourced | medium | pdh, fcc, metathesis | polypropylene, propylene-oxide, acrylonitrile, cumene-phenol | 1 | propylene-pdh-1 (T1) |
+| 18 | `btx` | Benzene, toluene and xylenes | aromatics | n/a, to be sourced | medium | reformate, pygas, hda | styrene, cumene-phenol, terephthalic-acid, caprolactam, mdi-tdi | 1 | btx-1 (T1) |
 | 19 | `soda-ash` | Soda ash | soda-ash | 10-100 (usgs-mcs-2024) | medium | solvay, trona, hou | - | 1 | soda-ash-1 (T2) |
 | 20 | `terephthalic-acid` | Purified terephthalic acid | oxygenates | n/a, to be sourced | medium | - | pet | 1 | - |
 | 21 | `ammonium-nitrate` | Ammonium nitrate and calcium ammonium nitrate | fertilizers | n/a, to be sourced | medium | - | npk-fertilizers | 1 | - |
@@ -145,7 +145,7 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 34 | `acetic-acid` | Acetic acid (methanol carbonylation) | oxygenates | n/a, to be sourced | low | - | - | 1 | acetic-acid-1 (T2) |
 | 35 | `formaldehyde` | Formaldehyde | oxygenates | n/a, to be sourced | low | silver, metal-oxide | mdi-tdi | 1 | formaldehyde-1 (T2) |
 | 36 | `propylene-oxide` | Propylene oxide | oxygenates | n/a, to be sourced | medium | chlorohydrin, hppo, po-sm | - | 1 | - |
-| 37 | `butadiene` | Butadiene (C4 extraction) | olefins | n/a, to be sourced | low | - | - | 0 | - |
+| 37 | `butadiene` | Butadiene (C4 extraction) | olefins | n/a, to be sourced | low | - | - | 0 | butadiene-1 (T1) |
 | 38 | `cumene-phenol` | Cumene, phenol and acetone | oxygenates | n/a, to be sourced | low | - | - | 0 | acetone-1 (T2) |
 | 39 | `carbon-capture` | CO2 capture and conditioning | carbon-capture | n/a, to be sourced | high | high-purity, amine-post-combustion, dac | e-fuels, methanol, urea | 1 | - |
 | 40 | `lime` | Lime | cement-lime | 100-1000 (usgs-mcs-2024) | high | - | soda-ash, iron-steel | 0 | lime-1 (T1) |
@@ -157,7 +157,7 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 46 | `plastic-pyrolysis` | Plastic waste pyrolysis | chemical-recycling | n/a, to be sourced | medium | - | ethylene | 1 | - |
 | 47 | `hydrocracking` | Hydrocracking | refining | n/a, to be sourced | medium | - | - | 0 | hydrocracking-1 (T1) |
 | 48 | `sulfur-recovery` | Sulfur recovery (Claus) | sulfuric-acid | 10-100 (usgs-mcs-2024) | low | - | sulfuric-acid | 0 | sulfur-recovery-1 (T1) |
-| 49 | `bio-ethylene` | Bio-ethylene by ethanol dehydration | bio-based-chemicals | n/a, to be sourced | medium | - | polyethylene | 0 | - |
+| 49 | `bio-ethylene` | Bio-ethylene by ethanol dehydration | bio-based-chemicals | n/a, to be sourced | medium | - | polyethylene | 0 | bio-ethylene-1 (T1) |
 | 50 | `waste-incineration` | Waste incineration with energy recovery | waste-treatment | n/a, to be sourced | medium | - | steam-generation | 1 | - |
 | 51 | `caprolactam` | Caprolactam | nitrogen-organics | n/a, to be sourced | medium | - | - | 0 | - |
 | 52 | `acrylonitrile` | Acrylonitrile (propylene ammoxidation) | nitrogen-organics | n/a, to be sourced | low | - | - | 0 | - |

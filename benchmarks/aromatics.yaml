@@ -27,6 +27,58 @@ kpis:
       2.1.1.5 (no utility data), the Versalis brochure (net steam only), the US EPA dataset
       doi:10.23719/1503030 (fuel, no electricity). Not readable: Luyben 2010, doi:10.1021/ie9011535
       (HTTP 403). The dataset's value is core's Tier 0 default, ASSUMED.
+  btx-extraction-total-energy:
+    title: Electricity, steam and fired heat per t of benzene, toluene and xylenes extracted
+    unit: kWh/t
+    references:
+      - id: bref-lvoc-btx-extraction-energy
+        range: [633, 1564]
+        basis: unallocated
+        note: The source's total for BTX extraction units (BB2), per tonne of product; reading the product as the extracted benzene, toluene and xylenes is ours. Not independent of btx-1, whose electricity, steam and fuel are midpoints of the same table.
+        conditions: {technology: "aromatics extraction and benzene/toluene fractionation (BB2)", region: EU, year: 2012}
+        source:
+          citation: "Falcke, H. et al. (2017) Best Available Techniques (BAT) Reference Document for the Production of Large Volume Organic Chemicals. JRC Science for Policy Report EUR 28882 EN, doi:10.2760/77304"
+          url: https://bureau-industrial-transformation.jrc.ec.europa.eu/sites/default/files/2019-11/JRC109279_LVOC_Bref.pdf
+          locator: Table 4.3, p. 217
+          kind: bref
+          accessed: "2026-11-05"
+      - id: doe-2000-reforming-btx-energy
+        range: [662, 662]
+        basis: unallocated
+        note: "One value, 1025 Btu/lb process energy for naphtha reforming to produce BTX, converted at 2.326 kJ/kg per Btu/lb and 3.6 MJ/kWh; recorded as a zero-width range and not widened. Independent of the BREF, but its boundary includes the catalytic reformer and it does not say per which product, so it is not bound."
+        conditions: {technology: "catalytic reforming with solvent extraction and fractionation", region: US, year: 1999}
+        source:
+          citation: "US Department of Energy, Office of Industrial Technologies (2000) Energy and Environmental Profile of the U.S. Chemical Industry"
+          url: https://www.energy.gov/sites/prod/files/2013/11/f4/profile_full.pdf
+          locator: Chapter 4, key facts box under Figure 4-2, p. 108
+          kind: government
+          accessed: "2026-11-05"
+      - id: uop-us5176821-extraction-energy
+        range: [388, 582]
+        basis: unallocated
+        note: "The patent's background gives 600 to 900 Btu per lb of aromatics extracted for commercial aromatics extraction processes, converted at 2.326 kJ/kg per Btu/lb and 3.6 MJ/kWh. Independent of the BREF and on the same basis (per mass of extract), but it does not say which steps the figure covers, and a licensor's patent of 1991 is not a survey, so it is not bound. If it covers the extraction and solvent recovery only, the dataset's 1130 kWh/t, which adds the benzene, toluene and xylene columns, is consistent with it."
+        conditions: {technology: "commercial aromatics extraction (sulfolane-type), steps covered not stated", region: US, year: 1991}
+        source:
+          citation: "Forte, P. (1993) Process for the separation of aromatic hydrocarbons with energy redistribution. US Patent 5,176,821, assigned to UOP"
+          url: https://patents.google.com/patent/US5176821A/en
+          locator: Background of the Invention
+          kind: other
+          accessed: "2026-11-05"
+  btx-extraction-electricity:
+    title: Electricity per t of benzene, toluene and xylenes extracted
+    unit: kWh/t
+    references:
+      - id: bref-lvoc-btx-extraction-electricity
+        range: [11, 72]
+        basis: unallocated
+        note: Not independent of btx-1, whose electricity is the midpoint of this range.
+        conditions: {technology: "aromatics extraction and benzene/toluene fractionation (BB2)", region: EU, year: 2012}
+        source:
+          citation: "Falcke, H. et al. (2017) Best Available Techniques (BAT) Reference Document for the Production of Large Volume Organic Chemicals. JRC Science for Policy Report EUR 28882 EN, doi:10.2760/77304"
+          url: https://bureau-industrial-transformation.jrc.ec.europa.eu/sites/default/files/2019-11/JRC109279_LVOC_Bref.pdf
+          locator: Table 4.3, p. 217
+          kind: bref
+          accessed: "2026-11-05"
 
 datasets:
   - process: cumene-1
@@ -38,3 +90,13 @@ datasets:
         reference: bref-lvoc-cumene-zeolite-yield
         out_of_range_reason: "The dataset's feeds are a licensor's figures (Versalis brochure 2018, which states 99.7 wt% or higher), newer and more optimistic than the BREF's general value."
       cumene-specific-electricity: {expression: feed:electricity / product:cumene, per: product:cumene}
+  - process: btx-1
+    dataset: btx-reformate-extraction
+    conditions: {technology: sulfolane-type extraction of reformate with B/T/X fractionation, basis: conceptual inventory}
+    kpis:
+      btx-extraction-total-energy:
+        expression: (feed:electricity + feed:steam + feed:fuel-heat) / (product:benzene + product:toluene + product:xylenes)
+        reference: bref-lvoc-btx-extraction-energy
+      btx-extraction-electricity:
+        expression: feed:electricity / (product:benzene + product:toluene + product:xylenes)
+        reference: bref-lvoc-btx-extraction-electricity

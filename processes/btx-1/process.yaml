@@ -1,0 +1,37 @@
+# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
+# dataset is lca/datasets/*.yaml, Tier 1 form, so maturity stays at concept
+# (core's cheme.lci-tier-maturity). See README.md.
+schema: cheme-as-code/process/v1
+id: btx-1
+title: Benzene, toluene and mixed xylenes by solvent extraction of catalytic reformate
+summary: >-
+  Sourced conceptual inventory per tonne of benzene, toluene and mixed xylenes together, with raffinate
+  and C9+ aromatics as co-products: a typical reformate slate (US DOE 2000) and midpoints of the EU
+  LVOC BREF utility ranges for BTX extraction units. No flowsheet; not reviewed.
+families: [aromatics]
+keywords: [benzene, toluene, xylenes, BTX, aromatics extraction, sulfolane, reformate, raffinate, clay treatment]
+facets: {feedstock_basis: [fossil], product_classes: [chemicals], unit_operations: [extraction, distillation], region: EU}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: reformate, role: feedstock, inventory_key: "feed:reformate", note: "debutanised C5+ reformate; its supplier is not chosen (lca/mappings.yaml)"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:water", note: "ASSUMED equal to the water drained"}
+  outputs:
+    - {chemical: benzene, role: main-product, inventory_key: "product:benzene"}
+    - {chemical: toluene, role: co-product, inventory_key: "product:toluene"}
+    - {chemical: xylenes, role: co-product, inventory_key: "product:xylenes", note: "mixed xylenes with ethylbenzene"}
+    - {chemical: aromatics-raffinate, role: co-product, inventory_key: "product:raffinate"}
+    - {chemical: heavy-aromatics, role: co-product, inventory_key: "product:c9-aromatics"}
+    - {chemical: wastewater, role: waste, inventory_key: "output:wastewater"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity"}
+    - {chemical: steam, role: utility, inventory_key: "feed:steam", note: "counted as heat delivered, gross of heat recovery"}
+basis: {capacity: "per tonne of benzene, toluene and mixed xylenes together (the dataset's basis); no plant size"}
+publication: {status: public, license: CC-BY-4.0}
+references:
+  - {title: "Falcke, H. et al. (2017) Best Available Techniques (BAT) Reference Document for the Production of Large Volume Organic Chemicals. JRC Science for Policy Report EUR 28882 EN (JRC109279), chapter 4", doi: 10.2760/77304}
+  - {title: "US Department of Energy, Office of Industrial Technologies (2000) Energy and Environmental Profile of the U.S. Chemical Industry, chapter 4 (BTX chain), Table 4-1", url: "https://www.energy.gov/sites/prod/files/2013/11/f4/profile_full.pdf"}
+  - {title: "Barthe, P. et al. (2015) Best Available Techniques (BAT) Reference Document for the Refining of Mineral Oil and Gas. JRC Science and Policy Report EUR 27140 EN, section 2.6", url: "https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/REF_BREF_2015.pdf"}
+  - {title: "Honeywell UOP, Aromatics recovery (ED Sulfolane process), web page, accessed 2026-11-05 (manufacturer literature)", url: "https://uop.honeywell.com/en/industry-solutions/petrochemicals/aromatics-recovery"}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/btx-1, access: public}

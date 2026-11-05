@@ -1,0 +1,719 @@
+# Tier 1 form without a flowsheet, as ethylbenzene-1 (process-library#313, #317). Every amount is the formula
+# of its parameters; core's validator re-checks each. Written from Arvidsson and Lundin (2011), facts in our own form.
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: bio-ethylene-ethanol-dehydration
+title: Bio-ethylene by catalytic dehydration of ethanol (four-bed adiabatic, steam-diluted)
+description: Per 1 t of polymer-grade ethylene, gate-to-gate, from bought hydrated bio-ethanol. Ethanol feed from a
+  published simulation's ethanol and ethylene flows (its yield of 0.57 kg/kg), by-products from the stoichiometry of
+  its conversion, selectivities and recovery; steam, fired heat, electricity and refrigeration from the same study
+  (a stand-alone 200 kt/a plant).
+basis: 1000 kg of ethylene
+boundary: 'gate-to-gate: feed vaporisation, steam dilution, four adiabatic reactors with interheating, quench, compression,
+  caustic wash, drying, C2 splitter and stripper; steam, fuel, power and refrigeration from outside'
+technology: ethanol dehydration over alumina (SynDol type) in four adiabatic fixed beds in series at 450 degC inlet
+  and 11.4 bar with steam dilution (Chematur / Halcon SD type), cryogenic purification; isothermal multitubular
+  reactors are not modelled
+geography:
+  description: 'No single site: the energy figures are a Swedish case study''s (Stenungsund, 2011) of a stand-alone
+    plant; industrial plants run in Brazil.'
+classification:
+  isic: '2011'
+system_boundary:
+  included:
+  - ethanol (as ethanol) and its conversion by eight reactions to ethylene and by-products
+  - dilution steam, fired heat from natural gas, electricity, refrigeration
+  - firing of the C2-splitter bottoms in the reactor furnace (biogenic CO2 and water)
+  - vented CO, CH4 and H2; caustic wash; effluent
+  excluded:
+  - 'TODO dehydration catalyst (alumina) make-up and its regeneration (coke burn-off): not quantified in the source'
+  - 'TODO molecular-sieve adsorbent and its regeneration: the source leaves regeneration out'
+  - 'TODO the electricity of the -25 degC refrigeration: the duty is feed:refrigeration, which has no background
+    yet'
+  - 'TODO cooling-water make-up, evaporation and chemicals: the source counts only the cooling-water pumps'' electricity
+    (in feed:electricity); a cooling-water exchange would count that power twice'
+  - 'TODO furnace NOx and CO, and unburnt by-products: not given in the source'
+  - 'TODO wash water of the caustic tower and the water of the 50 wt% caustic: not given in the source'
+  - 'TODO ethylene lost in the stripper vent: not quantified (all unrecovered ethylene taken as fired)'
+  - 'the water of the hydrated ethanol feed (7 wt%): enters and leaves with the effluent, not counted'
+  - 'LP steam the reactor effluent could raise (25.6 MW in the source): not used in the stand-alone case, no credit
+    in the cut-off model'
+  - ethylene storage and compression to pipeline pressure; infrastructure
+  cutoff: none applied; the excluded flows are not quantified
+  infrastructure: excluded
+  catalysts: excluded
+  non_routine: excluded
+location: GLO
+year: 2011
+valid_until: 2016
+time:
+  start: 2010
+  description: Simulation study completed in 2011 on literature of 1981 to 2010. valid_until is the reference year
+    + 5 (system-model section 6), so it has already lapsed.
+modelling:
+  principle: attributional
+  multifunctionality: 'single output: no allocation. The by-products are fired inside the plant and the effluent
+    heat is not exported, so there is no co-product.'
+uuid: 2fe8888d-1a97-5434-8cdb-0b2c4ff49567
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+technology_level: current
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: eth
+  value: 1000.0
+  unit: kg
+  description: Ethylene delivered, polymer grade (the basis).
+  source: basis
+- name: M_EtOH
+  value: 46.069
+  unit: g/mol
+  description: Molar mass of ethanol (C2H6O).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_E
+  value: 28.054
+  unit: g/mol
+  description: Molar mass of ethylene (C2H4).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_W
+  value: 18.015
+  unit: g/mol
+  description: Molar mass of water (H2O).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_C2H6
+  value: 30.07
+  unit: g/mol
+  description: Molar mass of ethane (C2H6).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_C3H6
+  value: 42.081
+  unit: g/mol
+  description: Molar mass of propylene (C3H6).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_C4H8
+  value: 56.108
+  unit: g/mol
+  description: Molar mass of 1-butene (the source's C4 by-product, see s6) (C4H8).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_DEE
+  value: 74.123
+  unit: g/mol
+  description: Molar mass of diethyl ether (C4H10O).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_AcH
+  value: 44.053
+  unit: g/mol
+  description: Molar mass of acetaldehyde (C2H4O).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_CO
+  value: 28.01
+  unit: g/mol
+  description: Molar mass of carbon monoxide (CO).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_CH4
+  value: 16.043
+  unit: g/mol
+  description: Molar mass of methane (CH4).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_H2
+  value: 2.016
+  unit: g/mol
+  description: Molar mass of hydrogen (H2).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_CO2
+  value: 44.009
+  unit: g/mol
+  description: Molar mass of carbon dioxide (CO2).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_O2
+  value: 31.998
+  unit: g/mol
+  description: Molar mass of oxygen (O2).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_NaOH
+  value: 39.997
+  unit: g/mol
+  description: Molar mass of sodium hydroxide (NaOH).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_Na2CO3
+  value: 105.988
+  unit: g/mol
+  description: Molar mass of sodium carbonate (Na2CO3).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: X
+  value: 0.995
+  unit: '1'
+  description: Overall ethanol conversion over the four adiabatic beds.
+  source: Arvidsson and Lundin (2011), Chalmers MSc thesis, section 3.2.2, p. 32 (about 99.5 %, the model's assumption).
+    The source's literature review (section 2.2.2.1, p. 18) gives conversions up to 99.9 %
+- name: s1
+  value: 0.988
+  unit: '1'
+  description: Ethanol converted by C2H5OH -> C2H4 + H2O.
+  source: Arvidsson and Lundin (2011), Chalmers MSc thesis, Appendix D, Table D1, p. 90 (selectivities of the model's
+    stoichiometric reactor, set within the literature limits it cites). Read as the fraction of the converted ethanol
+    that goes by each reaction (ASSUMED reading; the table does not define the basis)
+- name: s2
+  value: 0.00052
+  unit: '1'
+  description: Ethanol converted by 2 C2H5OH -> (C2H5)2O + H2O.
+  source: Arvidsson and Lundin (2011), Chalmers MSc thesis, Appendix D, Table D1, p. 90 (selectivities of the model's
+    stoichiometric reactor, set within the literature limits it cites). Read as the fraction of the converted ethanol
+    that goes by each reaction (ASSUMED reading; the table does not define the basis)
+- name: s3
+  value: 0.002
+  unit: '1'
+  description: Ethanol converted by C2H5OH -> CH3CHO + H2.
+  source: Arvidsson and Lundin (2011), Chalmers MSc thesis, Appendix D, Table D1, p. 90 (selectivities of the model's
+    stoichiometric reactor, set within the literature limits it cites). Read as the fraction of the converted ethanol
+    that goes by each reaction (ASSUMED reading; the table does not define the basis)
+- name: s4
+  value: 0.0027
+  unit: '1'
+  description: Ethanol converted to ethane, balanced here as C2H5OH + H2 -> C2H6 + H2O.
+  source: Arvidsson and Lundin (2011), Chalmers MSc thesis, Appendix D, Table D1, p. 90 (selectivities of the model's
+    stoichiometric reactor, set within the literature limits it cites). Read as the fraction of the converted ethanol
+    that goes by each reaction (ASSUMED reading; the table does not define the basis); the table prints 2 C2H5OH
+    + H2 -> 2 C2H6 + 2 H2O, which does not balance in H, so one H2 per ethanol is ASSUMED
+- name: s5
+  value: 0.0006
+  unit: '1'
+  description: Ethanol converted to propylene, balanced here as 3 C2H5OH -> 2 C3H6 + 3 H2O.
+  source: Arvidsson and Lundin (2011), Chalmers MSc thesis, Appendix D, Table D1, p. 90 (selectivities of the model's
+    stoichiometric reactor, set within the literature limits it cites). Read as the fraction of the converted ethanol
+    that goes by each reaction (ASSUMED reading; the table does not define the basis); the table prints one propylene,
+    which does not balance, so two are ASSUMED
+- name: s6
+  value: 0.005
+  unit: '1'
+  description: Ethanol converted to the C4 by-product, 2 C2H5OH -> C4H8 + 2 H2O.
+  source: Arvidsson and Lundin (2011), Chalmers MSc thesis, Appendix D, Table D1, p. 90 (selectivities of the model's
+    stoichiometric reactor, set within the literature limits it cites). Read as the fraction of the converted ethanol
+    that goes by each reaction (ASSUMED reading; the table does not define the basis); the table names butadiene
+    but prints a stoichiometry that balances only for butene, which the text (section 2.2.2.1, p. 18) also names,
+    so C4H8 is ASSUMED
+- name: s7
+  value: 7.0e-05
+  unit: '1'
+  description: Ethanol converted by C2H5OH -> CO + CH4 + H2.
+  source: Arvidsson and Lundin (2011), Chalmers MSc thesis, Appendix D, Table D1, p. 90 (selectivities of the model's
+    stoichiometric reactor, set within the literature limits it cites). Read as the fraction of the converted ethanol
+    that goes by each reaction (ASSUMED reading; the table does not define the basis)
+- name: s8
+  value: 0.0011
+  unit: '1'
+  description: Ethanol converted to CO2, balanced here as C2H5OH + H2O -> CO2 + CH4 + 2 H2.
+  source: Arvidsson and Lundin (2011), Chalmers MSc thesis, Appendix D, Table D1, p. 90 (selectivities of the model's
+    stoichiometric reactor, set within the literature limits it cites). Read as the fraction of the converted ethanol
+    that goes by each reaction (ASSUMED reading; the table does not define the basis); the table prints one H2,
+    which does not balance, so two are ASSUMED
+- name: rec
+  value: 0.991
+  unit: '1'
+  description: Mass recovery of ethylene in the C2 splitter; the rest leaves with its bottoms, which are fired.
+  source: Arvidsson and Lundin (2011), Chalmers MSc thesis, section 3.2.7, p. 35 (column specification); that all
+    unrecovered ethylene goes to the fired bottoms (none to the stripper vent) is ASSUMED
+- name: w_feed
+  value: 0.93
+  unit: kg/kg
+  description: Ethanol mass fraction of the purchased (hydrated) ethanol.
+  source: 'Arvidsson and Lundin (2011), Chalmers MSc thesis, sections 2.2.1, p. 17, 3.2.2, p. 32, and Table 4.2, p.
+    46 (93 wt%). Used to count the feed as ethanol; the water of the hydrated feed is not counted'
+- name: m_feed
+  value: 43875.0
+  unit: kg/h
+  description: Hydrated ethanol (93 wt%) fed to the source's ethylene plant.
+  source: 'Arvidsson and Lundin (2011), Chalmers MSc thesis: Table 4.2, p. 46 (the ethanol plant makes 43 875 kg/h of
+    93 wt% ethanol), all of which goes to the ethylene plant (sections 4.2.5, p. 55, and 4.3.2.2, p. 68), which makes
+    m_rate. Cross-checks: the source''s own yield of 0.57 kg ethylene per kg ethanol (Table 4.4, p. 47, and chapter
+    5, p. 75) is 23 415 / (43 875 x 0.93) = 0.574 on the water-free basis; the stand-alone operating cost (Tables 4.14
+    and 4.15, pp. 67-68) leaves about 41 t/h of bought ethanol at 497 EUR/t after the other items (our arithmetic)'
+- name: r_steam
+  value: 1.0
+  unit: kg/kg
+  description: Steam injected into the reactor feed per kg of hydrated ethanol feed.
+  source: Arvidsson and Lundin (2011), Chalmers MSc thesis, section 2.2.1, p. 17 (superheated steam at 11.4 bar,
+    1:1 by weight); taking the hydrated feed (not pure ethanol) as the reference of the ratio is ASSUMED
+- name: m_rate
+  value: 23415.0
+  unit: kg/h
+  description: Ethylene production rate of the source's plant (200 kt/a).
+  source: Arvidsson and Lundin (2011), Chalmers MSc thesis, section 4.1.2, Table 4.4, p. 47
+- name: P_el
+  value: 4400.0
+  unit: kW
+  description: 'Electricity demand: 3.4 MW from the simulation results and 1.0 MW for providing cooling water.'
+  source: Arvidsson and Lundin (2011), Chalmers MSc thesis, section 4.2, p. 48, and Table 4.4, p. 47. Refrigeration
+    for the -25 degC condenser is not in it (the source assumes a refrigeration medium is available), see Q_cold
+- name: Q_fuel
+  value: 15900.0
+  unit: kW
+  description: External fuel to the reactor furnace after firing the C2-splitter bottoms, with feed-effluent heat
+    exchange (furnace duty 18.7 MW, the pinch target, against 31.6 MW without it).
+  source: Arvidsson and Lundin (2011), Chalmers MSc thesis, section 4.2.2, p. 50, and Table 4.6, p. 51. The source's
+    fuel is natural gas (its cost basis); it is a pinch target, so a real plant needs more. It is on the HHV basis
+    of the fired by-products (7.5 MW, section 4.2, p. 48, footnote 4), as 18.7 / 0.8 - 7.5 = 15.9 MW (our arithmetic)
+- name: eta_f
+  value: 0.8
+  unit: '1'
+  description: Furnace efficiency.
+  source: Arvidsson and Lundin (2011), Chalmers MSc thesis, section 4.2.2, p. 50 (an assumption of the source)
+- name: Q_cold
+  value: 8500.0
+  unit: kW
+  description: Refrigeration duty of the C2-splitter condenser at -25 degC.
+  source: Arvidsson and Lundin (2011), Chalmers MSc thesis, section 4.2.2, p. 50
+exchanges:
+- key: product:ethylene
+  title: Ethylene, polymer grade (99.95 vol%)
+  type: product
+  amount: 1000.0
+  unit: kg
+  formula: eth
+  provenance: given
+  state:
+    phase: gas
+    purity: 0.9995
+    basis: mole
+    component: C2H4
+    grade: polymer grade, 99.95 vol%
+  source: the reference flow; purity from Arvidsson and Lundin (2011), Chalmers MSc thesis, section 2.2.7 and Table
+    2.3, p. 21
+- key: feed:ethanol
+  title: Ethanol, counted as ethanol (bought as hydrated ethanol; its water is not counted)
+  type: input
+  amount: 1742.6329276105062
+  unit: kg
+  formula: m_feed * w_feed / m_rate * eth
+  provenance: given
+  origin: simulated
+  carbon:
+    total: 0.5214
+    biogenic_fraction: 1.0
+    source: carbon content from the formula and the IUPAC 2021 atomic weights (chemicals/chemicals.yaml); biogenic
+      because the route is defined by a bio-ethanol feed (fermentation ethanol), ASSUMED for the market ethanol
+      bought
+  source: 'Arvidsson and Lundin (2011), Chalmers MSc thesis: the simulated ethanol and ethylene flows (m_feed, w_feed,
+    m_rate), 1.743 t/t, the source''s yield of 0.57 kg/kg. The stoichiometry of its conversion, selectivities and
+    recovery (parameters X, s1 to s8, rec) needs only 1.686 t/t; the source does not say where the other 3.4 % goes,
+    see output:ethanol-effluent. Compare benchmarks/bio-based-chemicals.yaml'
+  pedigree:
+    scores: &id002
+    - 4
+    - 4
+    - 4
+    - 4
+    - 3
+    reason: 'from a published process simulation (Aspen Plus, Chematur-type four-bed adiabatic design, Swedish case
+      of 2011): reliability 4 (a model, not plant data), completeness 4, temporal 4 (15 years old), geographical
+      4 (one site case), technological 3 (the same technology)'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.05
+    source: 'ASSUMED: one simulated yield; the open figures for this ratio span about 1.70 to 1.75 t/t (benchmarks/bio-based-chemicals.yaml)'
+- key: feed:steam
+  title: Steam, superheated, 11.4 bar, injected into the reactor feed (by mass)
+  type: input
+  amount: 1873.7988468930173
+  unit: kg
+  formula: r_steam * m_feed / m_rate * eth
+  provenance: calculated
+  carrier:
+    kind: steam
+    pressure: 11.4
+    level: MP, superheated
+    source: Arvidsson and Lundin (2011), Chalmers MSc thesis, section 2.2.1, p. 17
+  source: Arvidsson and Lundin (2011), Chalmers MSc thesis, section 2.2.1, p. 17 (1:1 by weight with the feed);
+    the source puts this steam at 25.1 MW (section 4.2, p. 48), outside its pinch analysis because it is mixed with
+    the feed
+  pedigree:
+    scores: *id002
+    reason: 'from a published process simulation (Aspen Plus, Chematur-type four-bed adiabatic design, Swedish case
+      of 2011): reliability 4 (a model, not plant data), completeness 4, temporal 4 (15 years old), geographical
+      4 (one site case), technological 3 (the same technology)'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: one design''s dilution ratio; plants dilute to different extents'
+- key: feed:NaOH
+  title: Sodium hydroxide for the caustic tower, counted as NaOH (the source uses 50 wt%)
+  type: input
+  amount: 3.2034998435332644
+  unit: kg
+  formula: 2 * s8 * eth / (rec * s1 * M_E) * M_NaOH
+  provenance: calculated
+  source: stoichiometry 2 NaOH + CO2 -> Na2CO3 + H2O on the CO2 of reaction s8; no excess (ASSUMED). The caustic
+    tower and its 50 wt% NaOH are in Arvidsson and Lundin (2011), Chalmers MSc thesis, sections 2.2.5 and 3.2.5,
+    pp. 20 and 34
+  pedigree:
+    scores: &id001
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: the stoichiometric minimum; a real wash uses an excess'
+- key: feed:O2
+  title: Combustion oxygen for firing the C2-splitter bottoms, from ambient air
+  type: input
+  amount: 69.29664505944822
+  unit: kg
+  formula: ((2 * (1 - rec) * s1 + 2 * s2 + 2 * s3 + 2 * s4 + 2 * s5 + 2 * s6) + (2 * (1 - rec) * s1 + 2.5 * s2 +
+    2 * s3 + 3 * s4 + 2 * s5 + 2 * s6) / 2 - (0.5 * s2 + s3) / 2) * eth / (rec * s1 * M_E) * M_O2
+  provenance: calculated
+  origin: estimate
+  free: true
+  source: oxygen for complete combustion of the fired by-products (ASSUMED complete); ambient air is free and not
+    inventoried (its nitrogen and excess oxygen pass through)
+  pedigree:
+    scores: *id001
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: follows the by-product slate'
+- key: feed:electricity
+  title: Electricity (simulated process units and cooling-water supply)
+  type: input
+  amount: 187.91373051462736
+  unit: kWh
+  formula: P_el / m_rate * eth
+  provenance: given
+  origin: simulated
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: Arvidsson and Lundin (2011), Chalmers MSc thesis, section 4.2, p. 48, and Table 4.4, p. 47 (4.4 MW at
+    23.4 t/h of ethylene)
+  pedigree:
+    scores: *id002
+    reason: 'from a published process simulation (Aspen Plus, Chematur-type four-bed adiabatic design, Swedish case
+      of 2011): reliability 4 (a model, not plant data), completeness 4, temporal 4 (15 years old), geographical
+      4 (one site case), technological 3 (the same technology)'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: one simulated design without refrigeration power; an open plant model gives about twice this
+      figure (benchmarks/bio-based-chemicals.yaml)'
+- key: feed:fired-heat
+  title: Fired heat from natural gas, as heat absorbed by the reactor feed (external fuel x furnace efficiency)
+  type: input
+  amount: 543.2415118513774
+  unit: kWh
+  formula: eta_f * Q_fuel / m_rate * eth
+  provenance: given
+  origin: simulated
+  carrier:
+    kind: heat
+    temperature: 450.0
+    source: Arvidsson and Lundin (2011), Chalmers MSc thesis, section 3.2.2, p. 32 (reactor inlet 450 degC)
+  source: 'Arvidsson and Lundin (2011), Chalmers MSc thesis, section 4.2.2, p. 50, and Table 4.6, p. 51: 15.9 MW
+    of external fuel at 80 % efficiency. The rest of the furnace duty comes from firing the C2-splitter bottoms,
+    whose CO2 is emission:CO2'
+  pedigree:
+    scores: *id002
+    reason: 'from a published process simulation (Aspen Plus, Chematur-type four-bed adiabatic design, Swedish case
+      of 2011): reliability 4 (a model, not plant data), completeness 4, temporal 4 (15 years old), geographical
+      4 (one site case), technological 3 (the same technology)'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: a pinch target; the furnace duty without feed-effluent exchange is 1.7 times higher (31.6
+      against 18.7 MW)'
+- key: feed:refrigeration
+  title: Refrigeration at -25 degC for the C2-splitter condenser (cold delivered)
+  type: input
+  amount: 363.01516122143926
+  unit: kWh
+  formula: Q_cold / m_rate * eth
+  provenance: given
+  origin: simulated
+  carrier:
+    kind: cold
+    temperature: -25.0
+    source: Arvidsson and Lundin (2011), Chalmers MSc thesis, section 3.2.7, p. 35
+  source: Arvidsson and Lundin (2011), Chalmers MSc thesis, section 4.2.2, p. 50 (8.5 MW); the electricity of the
+    refrigeration machine is not in feed:electricity
+  pedigree:
+    scores: *id002
+    reason: 'from a published process simulation (Aspen Plus, Chematur-type four-bed adiabatic design, Swedish case
+      of 2011): reliability 4 (a model, not plant data), completeness 4, temporal 4 (15 years old), geographical
+      4 (one site case), technological 3 (the same technology)'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: one simulated design'
+- key: output:wastewater
+  title: Effluent water to wastewater treatment (injected steam and reaction water)
+  type: output
+  amount: 2527.399272269787
+  unit: kg
+  formula: r_steam * m_feed / m_rate * eth + (s1 + 0.5 * s2 + s4 + s5 + s6) * eth / (rec * s1 * M_E) * M_W
+  provenance: calculated
+  link:
+    factor: wastewater
+    source: site wastewater treatment
+  source: the injected steam and the water of the reactions leave in the quench tower, knock-out drums and dryer
+    (Arvidsson and Lundin (2011), Chalmers MSc thesis, sections 2.2.3 to 2.2.6); all of it to treatment is ASSUMED
+    (the source notes water may be recycled to the reactor, which would cut both the steam and this effluent)
+  pedigree:
+    scores: *id001
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: follows the dilution steam'
+- key: output:ethanol-effluent
+  title: Ethanol not converted to the modelled products (unconverted, and the rest of the source's lower yield), to
+    wastewater treatment
+  type: output
+  amount: 65.45533848005925
+  unit: kg
+  formula: m_feed * w_feed / m_rate * eth - eth / (rec * s1 * M_E) * (s1 + s2 + s3 + s4 + s5 + s6 + s7 + s8) * M_EtOH
+  provenance: calculated
+  source: 'feed:ethanol minus the ethanol the reactions s1 to s8 convert: the unconverted ethanol (1 - X, about 8 kg)
+    and the difference between the source''s simulated yield and its reconstructed stoichiometry (about 57 kg). The
+    source sends the quench-tower bottoms to treatment (Arvidsson and Lundin (2011), Chalmers MSc thesis, section 2.2.3,
+    p. 20) but does not say where the difference goes; that all of it leaves as ethanol with the effluent, none recycled,
+    is ASSUMED (it may be partly ethylene in the stripper vent or ethanol in the fired bottoms, section 2.2.7, p. 21)'
+  pedigree:
+    scores: *id001
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: plants may recover it'
+- key: output:spent-caustic
+  title: Sodium carbonate in the spent caustic, to wastewater treatment
+  type: output
+  amount: 4.244475103337796
+  unit: kg
+  formula: s8 * eth / (rec * s1 * M_E) * M_Na2CO3
+  provenance: calculated
+  source: the CO2 of reaction s8 absorbed in the caustic tower (2 NaOH + CO2 -> Na2CO3 + H2O)
+  pedigree:
+    scores: *id001
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: follows reaction s8'
+- key: emission:CO2
+  title: CO2, biogenic, from firing the C2-splitter bottoms in the reactor furnace
+  type: emission
+  amount: 63.16504280530726
+  unit: kg
+  formula: (2 * (1 - rec) * s1 + 2 * s2 + 2 * s3 + 2 * s4 + 2 * s5 + 2 * s6) * eth / (rec * s1 * M_E) * M_CO2
+  provenance: calculated
+  origin: estimate
+  cas: 124-38-9
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: eba59fd6-f37e-41dc-9ca3-c7ea22d602c7
+    name: Carbon dioxide, non-fossil
+    categories:
+    - air
+    unit: kg
+  source: 'carbon of the unrecovered ethylene, ethane, propylene, butene, diethyl ether and acetaldehyde, fired
+    in the furnace (Arvidsson and Lundin (2011), Chalmers MSc thesis, sections 2.2.1, p. 17, and 4.2, p. 48); complete
+    combustion ASSUMED; biogenic because it is ethanol carbon; biosphere3 UUID, name and categories from core''s
+    elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent elementary exchanges 3.9 via bw2io 0.9.17,
+    BSD-3-Clause)'
+  pedigree:
+    scores: *id001
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: follows the by-product slate'
+- key: emission:H2O
+  title: Water vapour from firing the C2-splitter bottoms
+  type: emission
+  amount: 27.797824946986662
+  unit: kg
+  formula: (2 * (1 - rec) * s1 + 2.5 * s2 + 2 * s3 + 3 * s4 + 2 * s5 + 2 * s6) * eth / (rec * s1 * M_E) * M_W
+  provenance: calculated
+  origin: estimate
+  cas: 7732-18-5
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 075e433b-4be4-448e-9510-9a5029c1ce94
+    name: Water
+    categories:
+    - air
+    unit: m3
+    per_unit: 0.001
+  source: 'hydrogen of the fired by-products; complete combustion ASSUMED; biosphere3 UUID, name and categories
+    from core''s elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent elementary exchanges 3.9 via bw2io
+    0.9.17, BSD-3-Clause)'
+  pedigree:
+    scores: *id001
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: follows the by-product slate'
+- key: emission:CH4
+  title: Methane, biogenic, vented from the joint condenser
+  type: emission
+  amount: 0.68335449190588
+  unit: kg
+  formula: (s7 + s8) * eth / (rec * s1 * M_E) * M_CH4
+  provenance: calculated
+  origin: estimate
+  cas: 74-82-8
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: da1157e2-7593-4dfd-80dd-a3449b37a4d8
+    name: Methane, non-fossil
+    categories:
+    - air
+    unit: kg
+  source: 'reactions s7 and s8; the light by-products separated in the stripper are vented to air (Arvidsson and
+    Lundin (2011), Chalmers MSc thesis, section 2.2.7, p. 21); biogenic because it is ethanol carbon; biosphere3
+    UUID, name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent elementary
+    exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree:
+    scores: *id001
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: a trace selectivity of a model; vent treatment (a flare) is not stated'
+- key: emission:CO
+  title: Carbon monoxide, biogenic, vented from the joint condenser
+  type: emission
+  amount: 0.0713815143319348
+  unit: kg
+  formula: s7 * eth / (rec * s1 * M_E) * M_CO
+  provenance: calculated
+  origin: estimate
+  cas: 630-08-0
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 2cb2333c-1599-46cf-8435-3dffce627524
+    name: Carbon monoxide, non-fossil
+    categories:
+    - air
+    unit: kg
+  source: 'reaction s7; vented to air with the light by-products (Arvidsson and Lundin (2011), Chalmers MSc thesis,
+    section 2.2.7, p. 21); biosphere3 UUID, name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml:
+    ecoinvent elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree:
+    scores: *id001
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: a trace selectivity of a model'
+- key: emission:H2
+  title: Hydrogen vented from the joint condenser
+  type: emission
+  amount: 0.1152297947887456
+  unit: kg
+  formula: (s3 - s4 + s7 + 2 * s8) * eth / (rec * s1 * M_E) * M_H2
+  provenance: calculated
+  origin: estimate
+  cas: 1333-74-0
+  source: net hydrogen of reactions s3, s4, s7 and s8; vented with the light by-products (Arvidsson and Lundin (2011),
+    Chalmers MSc thesis, section 2.2.7, p. 21)
+  pedigree:
+    scores: *id001
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: a trace selectivity of a model'
+provenance:
+  generator: hand-written model; amounts are the formulas of the parameters
+  notes: No value from a licensed database. Facts and numbers from the cited open sources, in our own form.
+generation:
+  tier: 1
+  method: 'sourced conceptual inventory: a published simulation''s ethanol and ethylene flows, the stoichiometry of
+    its eight reactions with its conversion, selectivities and recovery for the by-products, and its utilities; every
+    choice listed in parameters'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 3
+  - 4
+  - 3
+  - 3
+  - 3
+  dqr_floor: 3.0
+  components: &id003
+    product:ethylene: C2H4
+    feed:ethanol: C2H6O
+    feed:steam: H2O
+    feed:NaOH: NaOH
+    feed:O2: O2
+    output:wastewater: H2O
+    output:ethanol-effluent: C2H6O
+    output:spent-caustic: Na2CO3
+    emission:CO2: CO2
+    emission:H2O: H2O
+    emission:CH4: CH4
+    emission:CO: CO
+    emission:H2: H2
+  formulas: *id003
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      C:
+      - 908.670216134
+      - 908.670216134
+      H:
+      - 438.54664671
+      - 438.54664671
+      Na:
+      - 1.841349636
+      - 1.841349636
+      O:
+      - 2339.873706927
+      - 2339.873706927
+    outside:
+    - feed:electricity
+    - feed:fired-heat
+    - feed:refrigeration

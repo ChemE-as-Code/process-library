@@ -1,0 +1,83 @@
+# Benchmarks of bio-based chemicals: for now bio-ethylene by ethanol dehydration. Schema:
+# schemas/benchmarks.schema.json; rules: docs/benchmarks.md. Ranges are facts from the cited
+# source, in our own form.
+#
+# The references are independent of the dataset: bio-ethylene-1 takes its numbers from Arvidsson
+# and Lundin (2011), these from Haro et al. (2013), another process model of the same technology
+# (Aspen Plus, reactor yields from a commercial design). Both are models, not plant data; no open
+# plant figure per tonne was found. The ranges are our ratios of Haro et al.'s Table 10, whose
+# flows are rounded to 0.1 t/h and to whole MW, so the electricity and fuel ranges carry up to
+# about +/- 8 % of rounding. Case study 1 of that table is not used: its ethanol and ethylene
+# columns do not fit together (53.2 t/h of ethanol for 38.9 t/h of ethylene is above the
+# stoichiometric yield).
+schema: cheme-as-code/benchmarks/v1
+family: bio-based-chemicals
+
+kpis:
+  bioethylene-specific-ethanol:
+    title: Ethanol (counted as ethanol) per t of bio-ethylene
+    unit: t/t
+    references:
+      - id: haro-2013-ethanol
+        range: [1.706, 1.715]
+        basis: unallocated
+        note: "Our ratios of Table 10, case studies 3 and 4 (14.5 t/h for 8.5 t/h and 25.9 t/h for 15.1 t/h). The feed is commercial fuel-grade or anhydrous ethanol (section 2.1), with full conversion and 96.5 % carbon selectivity to ethylene (Table 4)."
+        conditions: {technology: "ethanol dehydration, fixed bed at 613 K and 0.48 MPa, design based on a commercial technology", region: generic, year: 2013}
+        source: &haro
+          citation: "Haro, P., Ollero, P., Trippe, F. (2013) Technoeconomic assessment of potential processes for bio-ethylene production. Fuel Processing Technology 114:35-48, doi:10.1016/j.fuproc.2013.03.024 (accepted manuscript)"
+          url: https://idus.us.es/xmlui/bitstream/11441/34971/1/Technoeconomic%20assessment%20of%20potential%20processes%20for%20bio-Ethylene%20production.pdf
+          locator: Table 10, p. 18 of the manuscript; Table 4, p. 10
+          kind: peer-reviewed
+          accessed: "2026-11-05"
+      - id: irena-etsap-2013-ethanol
+        range: [1.74, 1.74]
+        basis: unallocated
+        note: "One value, recorded as a zero-width range and not widened: 1.74 t of hydrated bio-ethanol per t (the brief cites Kochar et al. 1981). The water content of the hydrated ethanol is not stated, so it is not on this KPI's ethanol basis and is not bound; it would be at least about 94 wt% ethanol to stay above the stoichiometric 1.642 t/t."
+        conditions: {technology: "ethanol dehydration over alumina or silica-alumina", region: generic}
+        source:
+          citation: "IEA-ETSAP and IRENA (2013) Production of Bio-ethylene. Technology Brief I13, January 2013"
+          url: https://www.irena.org/-/media/Files/IRENA/Agency/Publication/2013/IRENA-ETSAP-Tech-Brief-I13-Production_of_Bio-ethylene.pdf
+          locator: Process and technology status, p. 6 (PDF p. 8)
+          kind: iea
+          accessed: "2026-11-05"
+  bioethylene-specific-electricity:
+    title: Electricity per t of bio-ethylene
+    unit: kWh/t
+    references:
+      - id: haro-2013-electricity
+        range: [353, 397]
+        basis: unallocated
+        note: "Our ratios of Table 10, case studies 3 and 4 (3 MW for 8.5 t/h and 6 MW for 15.1 t/h); the MW are rounded to whole numbers. The model has a cryogenic system for the ethylene recovery (Table 6)."
+        conditions: {technology: "ethanol dehydration with cryogenic ethylene recovery", region: generic, year: 2013}
+        source: *haro
+  bioethylene-external-fuel:
+    title: External natural gas fired per t of bio-ethylene (fuel energy)
+    unit: kWh/t
+    references:
+      - id: haro-2013-natural-gas
+        range: [706, 728]
+        basis: unallocated
+        note: "Our ratios of Table 10, case studies 3 and 4 (6 MW for 8.5 t/h and 11 MW for 15.1 t/h, HHV); the recovered hydrocarbons are fired in the plant first (section 2.1.5), as in the dataset."
+        conditions: {technology: "ethanol dehydration, by-products fired in a gas combustor", region: generic, year: 2013}
+        source: *haro
+
+datasets:
+  - process: bio-ethylene-1
+    dataset: bio-ethylene-ethanol-dehydration
+    conditions: {technology: "four adiabatic beds at 450 degC and 11.4 bar, steam-diluted, after Arvidsson and Lundin (2011)", basis: conceptual inventory}
+    kpis:
+      bioethylene-specific-ethanol:
+        expression: feed:ethanol / product:ethylene
+        per: product:ethylene
+        reference: haro-2013-ethanol
+        out_of_range_reason: "The dataset takes its source's simulated ethanol and ethylene flows (Arvidsson and Lundin 2011, Tables 4.2 and 4.4: 0.57 kg ethylene per kg ethanol), 1.743 t/t, 1.6 to 2.1 % above Haro et al. The source's overall carbon yield is about 94 %, below Haro et al.'s 96.5 % carbon selectivity at full conversion, although its reaction table (98.8 % selectivity, 99.5 % conversion, 99.1 % recovery) alone would need only 1.686 t/t; the source does not explain the difference. The 1.74 t/t of hydrated ethanol that the IEA-ETSAP and IRENA brief cites is close to the dataset's value."
+      bioethylene-specific-electricity:
+        expression: feed:electricity / product:ethylene
+        per: product:ethylene
+        reference: haro-2013-electricity
+        out_of_range_reason: "The dataset's 4.4 MW (Arvidsson and Lundin 2011) covers the simulated process units (3.4 MW) and the cooling-water supply (1.0 MW), but not the refrigeration of the -25 degC C2-splitter condenser: the source assumes a refrigeration medium is available. That duty (363 kWh of cold per t) is a separate, still unlinked exchange (feed:refrigeration); its machine power would close much of the difference."
+      bioethylene-external-fuel:
+        expression: feed:fired-heat / 0.8 / product:ethylene
+        per: product:ethylene
+        reference: haro-2013-natural-gas
+        out_of_range_reason: "The dataset counts fired heat absorbed; the expression divides by its source's 80 % furnace efficiency to compare fuel energy. 679 kWh/t is a pinch target with feed-effluent heat exchange (Arvidsson and Lundin 2011, section 4.2.2), 4 to 7 % below Haro et al.; the two models also differ in reactor temperature, pressure and steam dilution. Both are on an HHV basis (Arvidsson and Lundin's 15.9 MW is the 18.7 MW furnace duty at 80 % less the 7.5 MW HHV of the fired by-products)."
