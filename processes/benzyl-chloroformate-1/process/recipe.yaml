@@ -1,0 +1,33 @@
+# The batch recipe of benzyl-chloroformate-1 (schema cheme/recipe/v1, `cheme process recipe`,
+# DESIGN.md D-003). One batch makes BATCH kg of neat benzyl chloroformate (stream S8); the
+# flowsheet's rates are the year averages. R-101 holds three steps in one vessel (`units`, core
+# ADR 0057): the charge cooling E101, the semi-batch R101 (dosing and post-reaction from its
+# model, `from: R101`) and the degassing T101 (its boil-up time, `from: T101`, core ADR 0055);
+# every other duration is ASSUMED (D-003). R-101 is sized from R101's model and its jacket checked
+# against the model's peak cooling duty (core ADR 0052); the cool-down takes its time from the
+# jacket. `cheme process recipe` also gives the vent's peak gas rate and what one batch sends to
+# the scrubber (core ADR 0054). `cheme process recipe --svg build/gantt.svg` draws one batch.
+schema: cheme/recipe/v1
+kind: recipe
+title: Benzyl chloroformate by semi-batch phosgenation
+batch_size: {value: 1770, unit: kg, stream: S8, provenance: assumed, source: "one batch of neat benzyl chloroformate (D-002, D-003)"}
+hours_per_year: {value: 7920, provenance: assumed, source: "330 days of 24 h (D-002)"}
+unit_procedures:
+  - id: PHOSGENATE
+    units: [E101, R101, T101]
+    title: Charge, cool, phosgenate and degas (R-101)
+    vessel:
+      fill_fraction: 0.8
+      aspect_ratio: 1.2
+      jacket: {u: 250, coolant_temperature: 248.15, provenance: assumed, source: "enamelled (glass-lined) steel vessel, brine at 248 K in the jacket (D-003, D-009)"}
+      provenance: assumed
+      source: "usual fill and proportions of an enamelled stirred vessel (D-003)"
+    operations:
+      - {id: inert, kind: other, title: "Nitrogen purge, evacuate to 50 kPa(a)", duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: charge, kind: charge, title: Charge the benzyl alcohol, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: cool, kind: cool, title: Cool to 278 K on brine (E101), temperatures: [298.15, 278.15]}
+      - {id: dose, kind: dose, title: Dose phosgene gas, from: R101}
+      - {id: react, kind: react, title: Post-reaction, from: R101}
+      - {id: degas, kind: distil, title: Degas at 20 kPa(a) (T101), from: T101}
+      - {id: hold, kind: hold, title: "Break the vacuum with nitrogen, sample (free phosgene, HCl, assay)", duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: transfer, kind: transfer, title: Product to the cold storage tank, duration: {value: 0.5, provenance: assumed, source: D-003}}
