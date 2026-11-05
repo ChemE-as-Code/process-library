@@ -1,0 +1,51 @@
+# Ventilation of the clad buildings. Schema: `cheme schema hvac`. Skill hvac-ducts.
+# Every air change, capacity and size ASSUMED until the HVAC engineer's heat load calculation
+# replaces it; duct sizes come from cheme-as-code's velocity table (ASSUMED).
+units:
+  - id: AHU-1
+    title: "Substation and control building air handling unit (filtered, overpressure)"
+    building: B-SUB
+    position: [1128.0, 2902.0]
+    rotation_deg: 180
+    size: [5.0, 2.0, 2.5]
+    capacity_m3h: 20000
+    intake: LV1
+    exhaust: LV2
+    notes: "North-east part of B-SUB, turned so its outdoor-air port faces LV1 in the east wall and its supply port the rooms to the west; exhaust through LV2 at the east end of the south wall, 13 m from the intake (ASSUMED size)"
+  - id: AHU-2
+    title: "Platform substation and rack room air handling unit (filtered, overpressure)"
+    building: B-PLAT
+    position: [1144.8, 915.0]
+    rotation_deg: 90
+    size: [3.0, 1.5, 2.0]
+    capacity_m3h: 4000
+    intake: LV1
+    exhaust: LV2
+    notes: "Along the east wall of B-PLAT, between the west intake louvre LV1 (north end) and the exhaust louvre LV2 in the south wall (ASSUMED size)"
+rooms:
+  - id: B-SUB-ROOMS
+    title: "6.6 kV switchgear, 400 V MCC, control room and rack room"
+    building: B-SUB
+    air_changes_per_h: 6
+    extract_fraction: 0.8
+    unit: AHU-1
+    # supply along the north and middle of the building, extract along the south wall, both
+    # west of the unit, so neither main crosses the outdoor-air duct from LV1 east of it
+    supply: [[1123.0, 2905.5], [1119.0, 2905.5], [1115.0, 2905.5], [1111.0, 2905.5], [1108.0, 2905.5], [1108.0, 2899.0], [1112.0, 2899.0], [1116.0, 2899.0]]
+    extract: [[1124.0, 2891.0], [1120.0, 2891.0], [1116.0, 2891.0], [1112.0, 2891.0], [1108.0, 2891.0], [1108.0, 2894.5]]
+    basis: "Switchgear, MCC, soft starters / VSDs, UPS and DCS / SIS cabinets ~60 kW to the room air at a 10 K rise need ~18,000 m3/h = 6 air changes of the 3,000 m3 building; 20 % kept as overpressure against the plant air (ASSUMED); the control room's air conditioning and gas-tight intakes are detail engineering"
+  - id: B-PLAT-ROOMS
+    title: "Platform transformer, MCC-2 and rack room RR-2"
+    building: B-PLAT
+    air_changes_per_h: 8
+    extract_fraction: 0.8
+    unit: AHU-2
+    # supply at the north end and the middle, extract along the west wall, clear of the
+    # exhaust duct from the unit south to LV2
+    supply: [[1142.5, 921.5], [1142.5, 912.5]]
+    extract: [[1140.5, 918.0], [1140.5, 911.0]]
+    basis: "TR-5 losses (~6 kW), MCC-2 and the remote I/O ~10 kW at a 10 K rise need ~3,000 m3/h = ~8 air changes of the 410 m3 room; overpressure against the jetty atmosphere (ASSUMED; a pressurised room if the jetty's area classification requires it)"
+notes: >-
+  Supply air is outdoor air (no recirculation, no cooling coil modelled). Air conditioning,
+  fire dampers, gas detection at the intakes and the pressurisation of the platform room are
+  detail engineering (ASSUMED).

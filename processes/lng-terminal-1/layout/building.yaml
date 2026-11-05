@@ -1,0 +1,56 @@
+# Buildings. Schema: `cheme schema building`. Metres, site frame of layout/site-plan.yaml.
+# Electrical buildings of the terminal (electrical/electrical-list.yaml); sizes and positions
+# ASSUMED at this stage, to be replaced by the electrical and civil design.
+buildings:
+  - id: B-SUB
+    title: "Terminal substation and control building: 6.6 kV switchgear SWG-1, 400 V MCC-1, control room CR-1 and its instrument rack room (ASSUMED)"
+    # east of PR2's straight north end, 4 m off the rack, so the cables leave the west side
+    # straight onto the rack; > 100 m from the BOG compressors and the tanks, outside every
+    # hazardous zone of layout/zones.yaml; road access by the spur R6 from R3 (ASSUMED)
+    origin: [1106, 2888]
+    width: 30
+    depth: 20
+    use: substation
+    levels:
+      - {id: L0, title: "Ground floor on a 1.5 m cable cellar (not modelled)", elevation: 0, height: 5, kind: floor}
+      - {id: RF, title: "Roof", elevation: 5, kind: roof}
+    frame:
+      grid_x: [0, 6, 12, 18, 24, 30]
+      grid_y: [0, 10, 20]
+    walls: all
+    wall_material: cladding
+    # offsets from the left end of the side seen from outside
+    openings:
+      - {id: N1, side: north, offset: 9, width: 3.0, height: 3.5, kind: roller_door}   # switchgear delivery from R6
+      - {id: N2, side: north, offset: 20, width: 1.2, height: 2.2, kind: door}         # control room entrance / escape
+      - {id: S1, side: south, offset: 15, width: 1.2, height: 2.2, kind: door}         # escape
+      # ventilation louvres of AHU-1 (layout/hvac.yaml): outdoor air in from the east (away
+      # from the racks and the plant), exhaust out of the south wall
+      - {id: LV1, side: east, offset: 12.5, width: 3.0, height: 2.0, sill: 2.5, kind: louvre}
+      - {id: LV2, side: south, offset: 26, width: 3.0, height: 2.0, sill: 2.5, kind: louvre}
+  - id: B-PLAT
+    title: "Loading platform substation and instrument room: 6.6/0.4 kV transformer TR-5, 400 V MCC-2, rack room RR-2 (ASSUMED)"
+    # at the north-west corner of the loading platform beside the PR2 trestle rack (its cables
+    # leave the east wall straight onto the rack), 7 m north of the Berth 2 manifold hazardous
+    # zone (y 872-902) and 11 m north of the northernmost arm, out of the crane strips and the
+    # drain drums' crane lanes; the north-west laydown is shortened to make room (ASSUMED; the
+    # jetty's classification by a competent person may require a pressurised room)
+    origin: [1139.5, 909]
+    width: 6.5
+    depth: 14
+    use: substation
+    levels:
+      - {id: L0, title: "Deck floor", elevation: 0, height: 4.5, kind: floor}
+      - {id: RF, title: "Roof", elevation: 4.5, kind: roof}
+    frame:
+      grid_x: [0, 6.5]
+      grid_y: [0, 7, 14]
+    walls: all
+    wall_material: cladding
+    openings:
+      - {id: W1, side: west, offset: 6, width: 2.4, height: 3.0, kind: roller_door}
+      - {id: S1, side: south, offset: 3, width: 1.2, height: 2.2, kind: door}
+      # ventilation louvres of AHU-2: outdoor air in at the north end of the west wall (away
+      # from the manifold zones to the south), exhaust out of the south wall
+      - {id: LV1, side: west, offset: 0.8, width: 2.0, height: 1.5, sill: 2.5, kind: louvre}
+      - {id: LV2, side: south, offset: 4.5, width: 1.5, height: 1.5, sill: 2.5, kind: louvre}
