@@ -224,6 +224,14 @@ arm's capacity the carrier keeps its tank pressure by burning gas on board (allo
 loading, S-01) or the loading rate is reduced; the hybrid arm is the spare vapour path. Both
 checked against carrier data in detail engineering.
 
+**D-024 LCA scope.** Gate-to-gate inventory per tonne of LNG loaded, in the annual-average
+case (`lca/lca.yaml`): 0.993 t of rundown and 1.13 kWh of electricity per tonne loaded; the
+returned BOG is a co-product allocated by lower heating value (LNG 49.3, BOG 43.6 MJ/kg). The
+carrier's return vapour is part of the cargo and carries no burden; the inventory change is
+zero over the year. The rundown and the BC grid electricity are gaps until a liquefaction and
+a BC Hydro background are linked; fugitive methane, the flare pilots and purge and the
+construction phase are not in the foreground yet (a screening carbon footprint, `lca/results.md`).
+
 ## 3. Results (concept)
 
 `cheme run scripts/terminal_sizing.py` prints the sizing summary. Headline numbers:
