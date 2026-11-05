@@ -1,0 +1,34 @@
+# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
+# dataset is lca/datasets/*.yaml, Tier 1 form, so maturity stays at concept
+# (core's cheme.lci-tier-maturity). See README.md.
+schema: cheme-as-code/process/v1
+id: lime-1
+title: Quicklime by calcination of limestone in a natural-gas-fired parallel flow regenerative kiln
+summary: >-
+  Sourced conceptual inventory per tonne of high-calcium quicklime: limestone and process CO2 from
+  stoichiometry, fuel heat, electricity and kiln emissions from EU CLM BREF ranges for the PFRK.
+  No flowsheet; not reviewed.
+families: [cement-lime]
+keywords: [lime, quicklime, burnt lime, calcium oxide, limestone, calcination, lime kiln, PFRK, process CO2]
+facets: {feedstock_basis: [mineral, fossil], product_classes: [materials], unit_operations: [calcination, combustion], region: EU}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: limestone, role: feedstock, inventory_key: "feed:limestone", note: "counted as its CaCO3 (impurities not modelled)"}
+    - {chemical: methane, role: feedstock, inventory_key: "feed:natural-gas", note: "natural gas, taken as pure methane (ASSUMED)"}
+    - {chemical: air, role: feedstock, note: "combustion air, free; its O2 is feed:O2"}
+  outputs:
+    - {chemical: calcium-oxide, role: main-product, inventory_key: "product:quicklime"}
+    - {chemical: calcium-oxide, role: co-product, note: "product:byproduct-lime: off-specification lime and filter dust, sold for other uses; allocated by mass with the quicklime (the dataset's allocation). No inventory_key, so that it is never taken as an Atlas producer of calcium-oxide"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2-calcination", note: "process CO2 of the carbonate"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2-combustion", note: "fuel CO2"}
+    - {chemical: water, role: emission, inventory_key: "emission:H2O", note: "combustion water vapour"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity", note: "kiln only"}
+basis: {capacity: "per tonne of quicklime (the dataset's basis); no plant size (PFRKs are built for 100 to 600 t/d)"}
+publication: {status: public, license: CC-BY-4.0}
+references:
+  - {title: "Schorcht, F., Kourti, I., Scalet, B.M., Roudier, S., Delgado Sancho, L. (2013) Best Available Techniques (BAT) Reference Document for the Production of Cement, Lime and Magnesium Oxide. JRC Reference Report EUR 26129 EN, chapter 2 (lime) and section 4.3 (BAT conclusions for lime)", doi: 10.2788/12850}
+  - {title: "IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Volume 3: Industrial Processes and Product Use, chapter 2 (Mineral Industry Emissions), section 2.3 (Lime production)", url: "https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/3_Volume3/V3_2_Ch2_Mineral_Industry.pdf"}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/lime-1, access: public}
