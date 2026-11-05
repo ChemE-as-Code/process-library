@@ -34,12 +34,14 @@ the schedule by hand.
   48 V, since core has no DC kind, at 3.1 m: the riser from the cabinet top at 1.35 m is not
   modelled, regen step 24 adds its length to the record, D-045), fed directly, never on the
   rack's AC tray; one junction box
-  per skid (JB-101, JB-201) outside the zone 2; the points of the actuated valves, the
+  per skid (JB-101, JB-201) at grade north of its frame, outside the zone 2 (D-047); the points of the actuated valves, the
   transmitters on the skipped DN 15 lines, the gas detectors and the rectifier current signals
   (each one pair in core's model; the rectifier interface needs three or more, open, D-045).
   Every value ASSUMED; no Ex certification is claimed (the Ex rating is the owner's open
   decision, D-031 item 12).
-- `tray-rules.yaml`: the PR-1 tray tier at 2.85 m, branches at 2.5 m or higher, `rack_reach_m`
-  5.1 m (keeps the DC cables off the rack), router grid 0.25 m; the rest package defaults.
+- `tray-rules.yaml`: the PR-1 tray tier at 3.25 m (the rack north of the skids since D-047),
+  branches at 2.5 m or higher, `rack_reach_m` 5.5 m (keeps the DC cables off the rack), router
+  grid 0.25 m; the rest package defaults. Regen step 13 keeps every tray 1 m from the vent and
+  flue outlets (`layout/layout-checks.yaml`, D-047).
 - `cable-schedule.csv`, `.md`: written by `scripts/regen.py` step 24 (`cheme layout cables
   --write`); at 1,000 h 62 cables (21 power, 8 of them 48 V DC; 41 instrument), 40 trays.

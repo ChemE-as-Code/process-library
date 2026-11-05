@@ -1,19 +1,29 @@
-# Equipment placement of the pilot skids (#330, DESIGN.md D-019). Schema: `cheme schema placement`.
-# Every item stands on the deck of its skid frame (layout/structures.yaml, z 0.15 m). No item
-# states a size here: shape and size come from the equipment list (the tool-written stacks and
-# tanks of `cheme process stack --write`, the ASSUMED outlines of the others), so a regenerated
-# tank is drawn at its new size without an edit here (the model's size_from: list).
+# Equipment placement of the pilot skids (#330, DESIGN.md D-019, D-047). Schema: `cheme schema placement`.
+# Every item but the tail-gas oxidisers stands on the deck of its skid frame
+# (layout/structures.yaml, z 0.15 m). No item states a size here: shape and size come from the
+# equipment list (the tool-written stacks and tanks of `cheme process stack --write`, the
+# ASSUMED outlines of the others), so a regenerated tank is drawn at its new size without an
+# edit here (the model's size_from: list).
 # Skid A keeps its west end (frame x 0 to 2.44 m) for the reservoir T-101 alone: at 10,000 h
 # the tank grows to D 2.31 m (D-009), which still fits the frame width, and no other item
-# stands inside that circle. Rows across the frame (ASSUMED arrangement, D-019): south the
-# anolyte pump, cooler, separator and compressor; the middle the four stacks; north the gas
-# packages, the extract fan and, at the east end outside the zone, the rectifier. Access is
-# from the long sides of the frame; the stacks are lifted out by hand, with the clear space
-# of process/cells.yaml stacks[].access at their ends and sides (checked by regen, step 13).
-# The stacks are turned 90 degrees (their axis north-south): the anolyte connections on the
-# south end plate, towards the pump and the cooler, the gas connections on the north end
-# plate, towards the gas packages (nozzle overrides: the P&ID draws them on the stack's
-# sides, which would put the anolyte inlet under the stack, through the deck).
+# stands inside that circle.
+# Arrangement (ASSUMED, D-047, after the layout review 2026-11-05-layout #1 to #3):
+# - the four stacks stand in one row along the frame's SOUTH long side, 0.11 m in from its
+#   edge, so that each is reached from grade at the frame edge (its connection end plate 0.29 m
+#   from the edge, regen step 13's reach criterion of layout/layout-checks.yaml) and slides out
+#   south at deck level onto a deck-height trolley, no hand lift (the deck has no guard rail,
+#   D-047). Every stack connection is on its north end plate (anolyte in and out) or on its top
+#   (the DN 15 CO2 inlet and cathode gas outlet), so nothing stands between the stack and the
+#   person at the edge;
+# - west of them on the same south edge the anolyte pump and the cooler (reached from grade, as
+#   before), the anolyte headers between the stacks and the middle of the frame;
+# - the flammable gas train behind them: separator in the middle, PSA and compressor on the
+#   north side;
+# - the ignition sources outside zone 2 with the zone radius plus a 0.5 m margin to every source
+#   item's outline (regen step 13, layout/layout-checks.yaml): the rectifier U-x01 at the
+#   frame's north-east corner, the tail-gas oxidiser X-x32 (an open flame) OFF the frame, on its
+#   own plinth at grade east of it (no position on the frame meets that clearance beside the
+#   stack row, D-047); the extract fan K-x41 (Ex-rated, ASSUMED) between them.
 schema: cheme/placement/v1
 equipment:
   # -- Skid A (frame SKID-A, origin [5.5, 7.5]) --------------------------------------------
@@ -21,85 +31,92 @@ equipment:
   # frame's west end and clear of the tank's ladder (at 200 degrees). The level (N6, LT-101 of
   # LIA-101) and pH (N7, AT-101 of AI-101) connections face north-east and south-east: their
   # transmitter stands, which the model puts 0.6 m out from the flange, stand apart (from the
-  # P&ID side both stood on one spot), inside the frame, clear of X-131, P-101 and AN-101, and
-  # outside the side access and the hand-lift lane of E-101A (D-040, D-042). The drain (N5)
-  # and the pump suction (N4, east to P-101) stand 0.15 m above the tank floor, at the pump
-  # suction's 0.30 m: the suction and the drain line then run level (no 11 mm step between
-  # two elbows, D-044) and the drain empties by gravity to its hose coupling down to that
-  # level; what stays below it is the heel of the drained lifts (D-043)
+  # P&ID side both stood on one spot), inside the frame, clear of X-131, P-101 and the pump
+  # suction (D-040). The drain (N5) and the pump suction (N4, east to P-101) stand 0.15 m above
+  # the tank floor, at the pump suction's 0.30 m: the suction and the drain line run level and
+  # the drain empties by gravity to its hose coupling down to that level; what stays below it
+  # is the heel of the drained lifts (D-043)
   - {tag: T-101, position: [6.75, 8.72, 0.15], mount: {structure: SKID-A, level: DECK},
      nozzles: [{id: N3, angle_deg: 145, elevation: 1.174}, {id: N5, angle_deg: 145, elevation: 0.15},
                {id: N4, angle_deg: 0, elevation: 0.15},
                {id: N6, angle_deg: 40}, {id: N7, angle_deg: 320}]}
-  - {tag: P-101, position: [8.35, 7.90, 0.15], mount: {structure: SKID-A, level: DECK}}
-  # both anolyte connections on top, so the pump discharge does not drop through the pump
-  - {tag: E-111, position: [8.95, 7.90, 0.15], mount: {structure: SKID-A, level: DECK},
-     nozzles: [{id: N1, face: top, offset: [-0.08, 0]}, {id: N2, face: top, offset: [0.08, 0]}]}
-  - {tag: V-121, position: [9.70, 7.90, 0.15], mount: {structure: SKID-A, level: DECK}}
-  - {tag: K-131, position: [10.50, 7.90, 0.15], mount: {structure: SKID-A, level: DECK}}
-  - {tag: E-101A, position: [8.40, 8.70, 0.15], rotation_deg: 90, mount: {structure: SKID-A, level: DECK},
-     nozzles: [{id: N1, face: front, offset: [-0.07, -0.04]}, {id: N2, face: front, offset: [0.07, 0.04]},
-               {id: N3, face: back, offset: [-0.07, -0.04]}, {id: N4, face: back, offset: [0.07, 0.04]}]}
-  - {tag: E-101B, position: [8.90, 8.70, 0.15], rotation_deg: 90, mount: {structure: SKID-A, level: DECK},
-     nozzles: [{id: N1, face: front, offset: [-0.07, -0.04]}, {id: N2, face: front, offset: [0.07, 0.04]},
-               {id: N3, face: back, offset: [-0.07, -0.04]}, {id: N4, face: back, offset: [0.07, 0.04]}]}
-  - {tag: E-101C, position: [9.40, 8.70, 0.15], rotation_deg: 90, mount: {structure: SKID-A, level: DECK},
-     nozzles: [{id: N1, face: front, offset: [-0.07, -0.04]}, {id: N2, face: front, offset: [0.07, 0.04]},
-               {id: N3, face: back, offset: [-0.07, -0.04]}, {id: N4, face: back, offset: [0.07, 0.04]}]}
-  - {tag: E-101D, position: [9.90, 8.70, 0.15], rotation_deg: 90, mount: {structure: SKID-A, level: DECK},
-     nozzles: [{id: N1, face: front, offset: [-0.07, -0.04]}, {id: N2, face: front, offset: [0.07, 0.04]},
-               {id: N3, face: back, offset: [-0.07, -0.04]}, {id: N4, face: back, offset: [0.07, 0.04]}]}
-  - {tag: X-131, position: [8.60, 9.45, 0.15], mount: {structure: SKID-A, level: DECK}}
-  # the flue leaves the oxidiser's top, straight up to its outlet (not across the rectifier)
-  - {tag: X-132, position: [9.60, 9.45, 0.15], mount: {structure: SKID-A, level: DECK},
+  - {tag: P-101, position: [7.93, 7.80, 0.15], mount: {structure: SKID-A, level: DECK}}
+  # the anolyte enters the cooler at its upper west connection (N1) and leaves at its lower
+  # east connection (N2) at the supply header's 0.225 m: no pipe of the supply rises above the
+  # cooler (its top channel is the loop's high point, a vent there is a P&ID item, D-047)
+  - {tag: E-111, position: [8.53, 7.80, 0.15], mount: {structure: SKID-A, level: DECK},
+     nozzles: [{id: N1, face: front, offset: [0, 0.15]}, {id: N2, face: back, offset: [0, -0.15]}]}
+  - {tag: E-101A, position: [9.30, 7.70, 0.15], rotation_deg: 90, mount: {structure: SKID-A, level: DECK},
+     nozzles: [{id: N1, face: back, offset: [0.07, -0.015]}, {id: N2, face: back, offset: [-0.07, 0.04]},
+               {id: N3, face: top, offset: [-0.04, 0]}, {id: N4, face: top, offset: [0.04, 0]}]}
+  - {tag: E-101B, position: [9.78, 7.70, 0.15], rotation_deg: 90, mount: {structure: SKID-A, level: DECK},
+     nozzles: [{id: N1, face: back, offset: [0.07, -0.015]}, {id: N2, face: back, offset: [-0.07, 0.04]},
+               {id: N3, face: top, offset: [-0.04, 0]}, {id: N4, face: top, offset: [0.04, 0]}]}
+  - {tag: E-101C, position: [10.26, 7.70, 0.15], rotation_deg: 90, mount: {structure: SKID-A, level: DECK},
+     nozzles: [{id: N1, face: back, offset: [0.07, -0.015]}, {id: N2, face: back, offset: [-0.07, 0.04]},
+               {id: N3, face: top, offset: [-0.04, 0]}, {id: N4, face: top, offset: [0.04, 0]}]}
+  - {tag: E-101D, position: [10.74, 7.70, 0.15], rotation_deg: 90, mount: {structure: SKID-A, level: DECK},
+     nozzles: [{id: N1, face: back, offset: [0.07, -0.015]}, {id: N2, face: back, offset: [-0.07, 0.04]},
+               {id: N3, face: top, offset: [-0.04, 0]}, {id: N4, face: top, offset: [0.04, 0]}]}
+  - {tag: V-121, position: [9.35, 8.65, 0.15], mount: {structure: SKID-A, level: DECK}}
+  # the PSA turned with its long side north-south along the reserved circle of T-101
+  - {tag: X-131, position: [8.35, 9.40, 0.15], rotation_deg: 90, mount: {structure: SKID-A, level: DECK}}
+  - {tag: K-131, position: [9.05, 9.62, 0.15], mount: {structure: SKID-A, level: DECK}}
+  - {tag: K-141, position: [10.15, 9.62, 0.15], mount: {structure: SKID-A, level: DECK}}
+  # the rectifier, a non-Ex cabinet and the skid's main ignition source, at the frame's north-
+  # east corner: 1.5 m or more (zone radius 1 m plus the 0.5 m margin) from every source item's
+  # outline (K-131 1.55 m, V-121 1.57 m, E-101D 1.58 m; regen step 13)
+  - {tag: U-101, position: [11.20, 9.62, 0.15], mount: {structure: SKID-A, level: DECK}}
+  # the tail-gas oxidiser, an open flame: off the frame on a 0.15 m plinth at grade east of it,
+  # beyond the east access step ST-A2 and 3 m or more from every source item (D-047); its flue
+  # leaves its top, straight up
+  - {tag: X-132, position: [14.00, 8.30, 0.15], plinth: 0.15,
      nozzles: [{id: N3, face: top, offset: [0.15, 0]}]}
-  # the rectifier, a non-Ex cabinet and the skid's main ignition source, stands at the frame's
-  # east end outside zone 2 Z-HAZ-A (more than 1 m from X-132, E-101D and K-131); the extract
-  # fan, Ex-rated for the enclosure it ventilates (ASSUMED), takes the place inside the zone
-  - {tag: K-141, position: [10.45, 9.45, 0.15], mount: {structure: SKID-A, level: DECK}}
-  - {tag: U-101, position: [11.20, 9.45, 0.15], mount: {structure: SKID-A, level: DECK}}
   # -- Skid B (frame SKID-B, origin [20.5, 7.5]) --------------------------------------------
   # the small reservoir, turned 270 degrees so that its ladder faces north-west, away from the
   # pump and the stacks: fill (N3) and drain (N5) face west to the hose connections, the pump
-  # suction (N4) east to P-201 (angles in the tank's own frame); return (N1), vent (N2) and
-  # dose (N8) spread over its top. The instrument connections keep their transmitter stands
+  # suction (N4) east towards P-201 (angles in the tank's own frame); return (N1), vent (N2) and
+  # dose (N8) spread over its top, the O2 vent at its west edge so that its outlet keeps the
+  # vent clearance of layout/layout-checks.yaml from the pump motor trays (D-047). The instrument connections keep their transmitter stands
   # (0.6 m out from the flange) inside the frame and apart (D-040): the level N6 (LT-201 of
-  # LIC-201, the P&ID's north side put its stand 0.24 m beyond the frame) faces south-west,
-  # the pH N7 (AT-201) south and the level N10 (LT-202) west, towards the hose connections.
-  # The drain N5 stands 0.10 m above the tank floor (0.25 m above grade), so that its line runs
-  # level to the hose coupling with HV-203's flanges clear of the deck (at 0.20 m they would
-  # cut the 0.15 m grating): the tank drains by gravity down to it (D-043)
+  # LIC-201) faces south-west, the pH N7 (AT-201) south and the level N10 (LT-202) west,
+  # towards the hose connections. The drain N5 stands 0.10 m above the tank floor (0.25 m above
+  # grade), so that its line runs level to the hose coupling with HV-203's flanges clear of the
+  # deck: the tank drains by gravity down to it (D-043)
   - {tag: T-201, position: [22.40, 9.10, 0.15], rotation_deg: 270, mount: {structure: SKID-B, level: DECK},
-     nozzles: [{id: N1, face: top, offset: [0, 0.10]}, {id: N2, face: top, offset: [0.08, -0.08]},
+     nozzles: [{id: N1, face: top, offset: [0, 0.10]}, {id: N2, face: top, offset: [0.08, -0.125]},
                {id: N8, face: top, offset: [-0.08, -0.08]},
                {id: N3, angle_deg: 290, elevation: 0.40}, {id: N5, angle_deg: 290, elevation: 0.10},
                {id: N4, angle_deg: 90, elevation: 0.056},
                {id: N6, angle_deg: 315}, {id: N7, angle_deg: 0}, {id: N10, angle_deg: 270}]}
-  # the level connection N3 (LT-203 of LIA-203) faces north: from the P&ID's east side its
-  # transmitter stand stood on the metering pump P-202 (D-040)
+  # the level connection N3 (LT-203 of LIA-203) faces east, its transmitter stand clear of the
+  # metering pump P-202 north of the tank (D-040, D-047)
   - {tag: T-202, position: [21.10, 8.10, 0.15], mount: {structure: SKID-B, level: DECK},
-     nozzles: [{id: N3, angle_deg: 90}]}
-  - {tag: P-202, position: [22.00, 7.95, 0.15], mount: {structure: SKID-B, level: DECK}}
-  - {tag: P-201, position: [23.35, 7.90, 0.15], mount: {structure: SKID-B, level: DECK}}
-  - {tag: E-211, position: [23.95, 7.90, 0.15], mount: {structure: SKID-B, level: DECK},
-     nozzles: [{id: N1, face: top, offset: [-0.08, 0]}, {id: N2, face: top, offset: [0.08, 0]}]}
-  - {tag: V-221, position: [24.70, 7.90, 0.15], mount: {structure: SKID-B, level: DECK}}
-  - {tag: K-231, position: [25.50, 7.90, 0.15], mount: {structure: SKID-B, level: DECK}}
-  - {tag: E-201A, position: [23.40, 8.70, 0.15], rotation_deg: 90, mount: {structure: SKID-B, level: DECK},
-     nozzles: [{id: N1, face: front, offset: [-0.07, -0.04]}, {id: N2, face: front, offset: [0.07, 0.04]},
-               {id: N3, face: back, offset: [-0.07, -0.04]}, {id: N4, face: back, offset: [0.07, 0.04]}]}
-  - {tag: E-201B, position: [23.90, 8.70, 0.15], rotation_deg: 90, mount: {structure: SKID-B, level: DECK},
-     nozzles: [{id: N1, face: front, offset: [-0.07, -0.04]}, {id: N2, face: front, offset: [0.07, 0.04]},
-               {id: N3, face: back, offset: [-0.07, -0.04]}, {id: N4, face: back, offset: [0.07, 0.04]}]}
-  - {tag: E-201C, position: [24.40, 8.70, 0.15], rotation_deg: 90, mount: {structure: SKID-B, level: DECK},
-     nozzles: [{id: N1, face: front, offset: [-0.07, -0.04]}, {id: N2, face: front, offset: [0.07, 0.04]},
-               {id: N3, face: back, offset: [-0.07, -0.04]}, {id: N4, face: back, offset: [0.07, 0.04]}]}
-  - {tag: E-201D, position: [24.90, 8.70, 0.15], rotation_deg: 90, mount: {structure: SKID-B, level: DECK},
-     nozzles: [{id: N1, face: front, offset: [-0.07, -0.04]}, {id: N2, face: front, offset: [0.07, 0.04]},
-               {id: N3, face: back, offset: [-0.07, -0.04]}, {id: N4, face: back, offset: [0.07, 0.04]}]}
-  - {tag: X-231, position: [23.60, 9.45, 0.15], mount: {structure: SKID-B, level: DECK}}
-  - {tag: X-232, position: [24.60, 9.45, 0.15], mount: {structure: SKID-B, level: DECK},
+     nozzles: [{id: N3, angle_deg: 0}]}
+  # the metering pump north of its day tank: its motor cable comes down 1.2 m from T-201's O2
+  # vent outlet, outside the vent clearance of layout/layout-checks.yaml (D-047)
+  - {tag: P-202, position: [21.10, 8.55, 0.15], mount: {structure: SKID-B, level: DECK}}
+  # as Skid A, shifted 15 m east (the cooler and the stacks 0.15 m further, so that the pump's
+  # motor keeps its removal space with the suction pinned round T-201)
+  - {tag: P-201, position: [23.10, 7.80, 0.15], mount: {structure: SKID-B, level: DECK}}
+  - {tag: E-211, position: [23.70, 7.80, 0.15], mount: {structure: SKID-B, level: DECK},
+     nozzles: [{id: N1, face: front, offset: [0, 0.15]}, {id: N2, face: back, offset: [0, -0.15]}]}
+  - {tag: E-201A, position: [24.45, 7.70, 0.15], rotation_deg: 90, mount: {structure: SKID-B, level: DECK},
+     nozzles: [{id: N1, face: back, offset: [0.07, -0.015]}, {id: N2, face: back, offset: [-0.07, 0.04]},
+               {id: N3, face: top, offset: [-0.04, 0]}, {id: N4, face: top, offset: [0.04, 0]}]}
+  - {tag: E-201B, position: [24.93, 7.70, 0.15], rotation_deg: 90, mount: {structure: SKID-B, level: DECK},
+     nozzles: [{id: N1, face: back, offset: [0.07, -0.015]}, {id: N2, face: back, offset: [-0.07, 0.04]},
+               {id: N3, face: top, offset: [-0.04, 0]}, {id: N4, face: top, offset: [0.04, 0]}]}
+  - {tag: E-201C, position: [25.41, 7.70, 0.15], rotation_deg: 90, mount: {structure: SKID-B, level: DECK},
+     nozzles: [{id: N1, face: back, offset: [0.07, -0.015]}, {id: N2, face: back, offset: [-0.07, 0.04]},
+               {id: N3, face: top, offset: [-0.04, 0]}, {id: N4, face: top, offset: [0.04, 0]}]}
+  - {tag: E-201D, position: [25.89, 7.70, 0.15], rotation_deg: 90, mount: {structure: SKID-B, level: DECK},
+     nozzles: [{id: N1, face: back, offset: [0.07, -0.015]}, {id: N2, face: back, offset: [-0.07, 0.04]},
+               {id: N3, face: top, offset: [-0.04, 0]}, {id: N4, face: top, offset: [0.04, 0]}]}
+  - {tag: V-221, position: [24.35, 8.65, 0.15], mount: {structure: SKID-B, level: DECK}}
+  - {tag: X-231, position: [23.35, 9.40, 0.15], rotation_deg: 90, mount: {structure: SKID-B, level: DECK}}
+  - {tag: K-231, position: [24.05, 9.62, 0.15], mount: {structure: SKID-B, level: DECK}}
+  - {tag: K-241, position: [25.15, 9.62, 0.15], mount: {structure: SKID-B, level: DECK}}
+  - {tag: U-201, position: [26.20, 9.62, 0.15], mount: {structure: SKID-B, level: DECK}}
+  - {tag: X-232, position: [29.00, 8.30, 0.15], plinth: 0.15,
      nozzles: [{id: N3, face: top, offset: [0.15, 0]}]}
-  # as Skid A: the rectifier at the east end, outside zone 2 Z-HAZ-B
-  - {tag: K-241, position: [25.45, 9.45, 0.15], mount: {structure: SKID-B, level: DECK}}
-  - {tag: U-201, position: [26.20, 9.45, 0.15], mount: {structure: SKID-B, level: DECK}}
