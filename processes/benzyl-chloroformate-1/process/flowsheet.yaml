@@ -1,0 +1,370 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Benzyl chloroformate by the phosgenation of benzyl alcohol without base at reduced pressure
+# (DESIGN.md D-001), a batch plant: benzyl alcohol is charged to the enamelled reactor R-101 and
+# cooled to 278 K, phosgene (liquid from phosgene-1, evaporated) is dosed as a gas at 50 kPa(a);
+# the HCl leaves as it forms by the reactor's vent (batch.vent, core ADR 0054), a share of the
+# dosed phosgene passes straight through (dosing.absorbed); the crude is then degassed in the
+# same vessel at 20 kPa(a) (a batch still, core ADR 0055) and leaves neat, without distillation,
+# as the product. Vent and degassing gas go through the vacuum pump to a caustic scrubber.
+# The flows are the year averages of the batch recipe (process/recipe.yaml, `cheme process
+# recipe`, D-003).
+# Where the values come from:
+# - feeds, temperatures, pressures, ratios: design basis and D-002..D-007, ASSUMED;
+# - R101: cheme's semi-batch model with its vent (the rate laws of PHOSG, CARB, CLBN, D-005),
+#   to 0.994 conversion of the alcohol; T101: cheme's batch still (constant relative
+#   volatility, D-006); E101, E102: pass-through; M201, M202: mixers; S101: conversion step (all
+#   calculated by `cheme process propagate --fill`);
+# - the duties: hand arithmetic from cheme's reports (`cheme process reactors`, `cheme process
+#   stills`) and the stream table, given as ASSUMED with the arithmetic in the source (D-009);
+#   no property package of core covers the reaction mass or the caustic liquor.
+schema: cheme/process/v1
+kind: flowsheet
+title: Benzyl chloroformate by semi-batch phosgenation of benzyl alcohol (1000 t/a)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: 1000 t/a neat benzyl chloroformate, year averages of the batches in 7920 h on a dedicated train (D-002, D-003)", default: true}
+tolerance: {abs: 0.05, rel: 0.002}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - {id: BNOH, title: Benzyl alcohol (merchant), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: PHOS, title: Liquid phosgene (phosgene-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: NAOH, title: Caustic soda 50 wt% (chlor-alkali-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: PW, title: Process water (caustic dilution), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: r101, direction: out, kind: energy}
+      - {id: m201, direction: out, kind: energy}
+      - {id: s101, direction: out, kind: energy}
+  - id: LPS
+    title: LP steam 350 kPa(a) (to the tempered-water circuits of the phosgene evaporator and the degassing)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 350, provenance: assumed, source: "design basis (D-009)"}
+      supply_temperature: {value: 412.0, provenance: given, source: "saturation at 350 kPa(a), IAPWS-IF97"}
+      min_approach: {value: 10, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: e102, direction: out, kind: energy}
+      - {id: t101, direction: out, kind: energy}
+products:
+  - {id: BCF, title: Benzyl chloroformate (neat) to cold storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: WW, title: Spent scrubber liquor to wastewater treatment, category: wastewater, ports: [{id: in, direction: in}]}
+  - id: BRINE
+    title: Chilled brine return (253 K)
+    category: utility
+    utility:
+      kind: refrigerant
+      supply_temperature: {value: 248.15, provenance: assumed, source: "design basis (D-009)"}
+      return_temperature: {value: 253.15, provenance: assumed, source: "design basis (D-009)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: e101, direction: in, kind: energy}
+      - {id: r101, direction: in, kind: energy}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis (D-009)"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis (D-009)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: s101, direction: in, kind: energy}
+
+blocks:
+  - id: PREP
+    title: Feed preparation
+    class: ExchangingThermalEnergy
+    ports:
+      - {id: bnoh, direction: in}
+      - {id: phos, direction: in}
+      - {id: charge, direction: out}
+      - {id: dose, direction: out}
+      - {id: brine, direction: out, kind: energy}
+      - {id: steam, direction: in, kind: energy}
+  - id: REACT
+    title: Phosgenation and degassing (R-101)
+    class: ReactingChemicals
+    ports:
+      - {id: charge, direction: in}
+      - {id: dose, direction: in}
+      - {id: product, direction: out}
+      - {id: vent, direction: out}
+      - {id: degas, direction: out}
+      - {id: brine, direction: out, kind: energy}
+      - {id: steam, direction: in, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: SCRUB
+    title: Off-gas destruction (caustic scrubber)
+    class: ReactingChemicals
+    ports:
+      - {id: vent, direction: in}
+      - {id: degas, direction: in}
+      - {id: naoh, direction: in}
+      - {id: pw, direction: in}
+      - {id: liquor, direction: out}
+      - {id: cw, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+      - {id: power_pump, direction: in, kind: energy}
+
+steps:
+  - id: E101
+    block: PREP
+    title: Charge cooling to 278 K (R-101 jacket)
+    class: Cooling
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in, delegates: bnoh}
+      - {id: out, direction: out, delegates: charge}
+      - {id: q, direction: out, kind: energy, delegates: brine}
+  - id: E102
+    block: PREP
+    title: Phosgene evaporator
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-102}]
+    ports:
+      - {id: in, direction: in, delegates: phos}
+      - {id: out, direction: out, delegates: dose}
+      - {id: q, direction: in, kind: energy, delegates: steam}
+  - id: R101
+    block: REACT
+    title: Phosgenation (phosgene gas dosed into the cold alcohol at 50 kPa(a), HCl vented)
+    class: ReactingChemicals
+    reactions: [PHOSG, CARB, CLBN]
+    reactor: semibatch
+    batch:
+      dosing: [{stream: S4, time: 36000, absorbed: 0.95}]
+      target: {key: BNOH, conversion: 0.994}
+      heat: isothermal
+      vent: {stream: S6, components: [HCL, CO2], fraction: {HCL: 0.95}}
+      provenance: assumed
+      source: "phosgene gas dosed over 8 h at 278 K and 50 kPa(a), 95 % of it taken up and 95 % of the HCl leaving as it forms, then the post-reaction to 0.994 conversion of the alcohol (D-005)"
+    hazard: {mtt: 280.65, provenance: assumed, source: "D-011: phosgene's normal boiling point; above it the dissolved excess phosgene boils off and the vent and scrubber, not the jacket, set the limit (the default, the lowest boiling point of the liquid, would be the dissolved HCl's 188 K); no TD24 (never estimated)"}
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: charge, direction: in, delegates: charge}
+      - {id: dose, direction: in, delegates: dose}
+      - {id: out, direction: out}
+      - {id: gas, direction: out, delegates: vent}
+      - {id: q, direction: out, kind: energy, delegates: brine}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: T101
+    block: REACT
+    title: Degassing of the crude at 20 kPa(a) (R-101)
+    class: Distilling
+    still:
+      pressure: 20
+      volatility:
+        model: constant
+        alpha: {HCL: 30, COCL2: 1, CO2: 100}
+        provenance: assumed
+        source: "D-006: the vapour pressures of HCl and phosgene at 278 K stand in for their unknown solubilities in the crude (about 2940 and 92 kPa, chemicals 1.5.2); the benzyl compounds are non-volatile (below 0.01 kPa)"
+      nonvolatile: [BNOH, BCF, DBC, BNCL]
+      boilup: {value: 1.5, unit: kmol/h, provenance: assumed, source: "D-006: gas drawn off by the vacuum pump, about 190 m3/h at 20 kPa(a) and 278 K"}
+      end: {residue: {key: COCL2, mole_fraction: 0.0005}}
+      outlets: {distillate: gas, residue: crude}
+      provenance: assumed
+      source: "degassing under vacuum at the reaction temperature, no distillation of the product (D-006, D-008)"
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out, delegates: degas}
+      - {id: crude, direction: out, delegates: product}
+      - {id: q, direction: in, kind: energy, delegates: steam}
+  - id: M201
+    block: SCRUB
+    title: Off-gas header and vacuum pump
+    class: Mixing
+    links: [{target: equipment, ref: K-201}]
+    ports:
+      - {id: vent, direction: in, delegates: vent}
+      - {id: degas, direction: in, delegates: degas}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: M202
+    block: SCRUB
+    title: Caustic dilution
+    class: Mixing
+    links: [{target: equipment, ref: T-201}]
+    ports:
+      - {id: naoh, direction: in, delegates: naoh}
+      - {id: pw, direction: in, delegates: pw}
+      - {id: out, direction: out}
+  - id: S101
+    block: SCRUB
+    title: Caustic scrubber (HCl absorbed, phosgene destroyed)
+    class: ReactingChemicals
+    reactions: [NEUT_HCL, NEUT_PHOS, NEUT_CO2]
+    reactor: conversion
+    links: [{target: equipment, ref: T-201}]
+    ports:
+      - {id: gas, direction: in}
+      - {id: caustic, direction: in}
+      - {id: out, direction: out, delegates: liquor}
+      - {id: q, direction: out, kind: energy, delegates: cw}
+      - {id: power, direction: in, kind: energy, delegates: power_pump}
+
+streams:
+  - id: S1
+    title: Benzyl alcohol
+    from: BNOH.out
+    to: E101.in
+    template: alcohol
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "storage (D-004)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 80.274, provenance: assumed, source: "D-002: the alcohol that makes 1000 t/a"}
+        composition: {basis: mass_fraction, values: {BNOH: 1.0}, provenance: assumed, source: "dry benzyl alcohol, impurities and water not modelled (D-004)"}
+  - id: S2
+    title: Cooled charge (278 K)
+    from: E101.out
+    to: R101.charge
+    template: process
+    state:
+      design:
+        temperature: {value: 278.15, provenance: assumed, source: "cooled in R-101 before the dosing (D-005)"}
+        pressure: {value: 50.0, provenance: assumed, source: "US 6 696 590 B2 Ex. 3: 500 mbar (D-005)"}
+        flow: {value: 80.274, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S1', fingerprint: 44709b3e276c3a05}
+        composition: {basis: mass_fraction, values: {BNOH: 1.0}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S1', fingerprint: 44709b3e276c3a05}
+  - id: S3
+    title: Liquid phosgene
+    from: PHOS.out
+    to: E102.in
+    template: phosgene
+    state:
+      design:
+        temperature: {value: 253.15, provenance: assumed, source: "as delivered by phosgene-1 (its stream S7)"}
+        pressure: {value: 340.0, provenance: assumed, source: "as delivered by phosgene-1 (its stream S7)"}
+        flow: {value: 93.251, provenance: assumed, source: "D-004: 1.27 mol per mol of benzyl alcohol (US 6 696 590 B2 Ex. 3)"}
+        composition: {basis: mass_fraction, values: {COCL2: 1.0}, provenance: assumed, source: "phosgene-1's liquid phosgene (35 ppm(wt) Cl2 not modelled)"}
+  - id: S4
+    title: Phosgene gas (dosed)
+    from: E102.out
+    to: R101.dose
+    template: phosgene
+    state:
+      design:
+        temperature: {value: 293.15, provenance: assumed, source: "evaporated with tempered water (D-004)"}
+        pressure: {value: 150.0, provenance: assumed, source: "evaporator pressure (D-004)"}
+        flow: {value: 93.251, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S3', fingerprint: 86a09827df999b0e}
+        composition: {basis: mass_fraction, values: {COCL2: 1.0}, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S3', fingerprint: 86a09827df999b0e}
+  - id: S5
+    title: Crude benzyl chloroformate (reacted)
+    from: R101.out
+    to: T101.in
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {BNOH: 0.000296378, COCL2: 0.166038, HCL: 0.0397671, BCF: 0.786991, DBC: 0.0014446, BNCL: 0.00546227, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S4', fingerprint: 9d6914463a40ec56}
+        flow: {value: 142.934, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S4', fingerprint: 9d6914463a40ec56}
+        temperature: {value: 278.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S4', fingerprint: 9d6914463a40ec56}
+        pressure: {value: 50.0, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S4', fingerprint: 9d6914463a40ec56}
+  - id: S6
+    title: Reactor vent (HCl, passing phosgene, CO2)
+    from: R101.gas
+    to: M201.vent
+    template: offgas
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {HCL: 0.931015, CO2: 0.00673057, COCL2: 0.0622541}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S4', fingerprint: 9d6914463a40ec56}
+        flow: {value: 30.5874, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S4', fingerprint: 9d6914463a40ec56}
+        temperature: {value: 278.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S4', fingerprint: 9d6914463a40ec56}
+        pressure: {value: 50.0, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S4', fingerprint: 9d6914463a40ec56}
+  - id: S7
+    title: Degassing gas (HCl and phosgene)
+    from: T101.gas
+    to: M201.degas
+    template: offgas
+    state:
+      design:
+        temperature: {value: 278.15, provenance: assumed, source: "degassing at the reaction temperature (D-006)"}
+        pressure: {value: 20.0, provenance: assumed, source: "D-006"}
+        flow: {value: 16.639, provenance: calculated, source: 'cheme process propagate: still T101 from S5', fingerprint: 35a82ed967a39320}
+        composition: {basis: mole_fraction, values: {BNOH: 0.0, COCL2: 0.806399, HCL: 0.193601, BCF: 0.0, DBC: 0.0, BNCL: 0.0}, provenance: calculated, source: 'cheme process propagate: still T101 from S5', fingerprint: 35a82ed967a39320}
+  - id: S8
+    title: Benzyl chloroformate (degassed, neat)
+    from: T101.crude
+    to: BCF.in
+    template: process
+    state:
+      design:
+        temperature: {value: 278.15, provenance: assumed, source: "kept cold (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "vacuum broken with nitrogen (D-006)"}
+        flow: {value: 126.295, provenance: calculated, source: 'cheme process propagate: still T101 from S5', fingerprint: 35a82ed967a39320}
+        composition: {basis: mole_fraction, values: {BNOH: 0.000372994, COCL2: 0.0005, HCL: 0.0, BCF: 0.990435, DBC: 0.00181804, BNCL: 0.00687431}, provenance: calculated, source: 'cheme process propagate: still T101 from S5', fingerprint: 35a82ed967a39320}
+  - id: S9
+    title: Off-gas to the scrubber
+    from: M201.out
+    to: S101.gas
+    template: offgas
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: "vacuum pump discharge (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "D-007"}
+        flow: {value: 47.2264, provenance: calculated, source: 'cheme process propagate: mixer M201 from S6 S7', fingerprint: 546f4acfd1f1160b}
+        composition: {basis: mole_fraction, values: {HCL: 0.782071, COCL2: 0.212557, CO2: 0.00537112, BNOH: 0.0, BCF: 0.0, DBC: 0.0, BNCL: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M201 from S6 S7', fingerprint: 27a2af4e344720ec}
+  - id: S10
+    title: Caustic soda 50 wt%
+    from: NAOH.out
+    to: M202.naoh
+    template: caustic
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 137.12, provenance: assumed, source: "D-007: 1.1 times the NaOH the off-gas takes"}
+        composition: {basis: mass_fraction, values: {NAOH: 0.5, H2O: 0.5}, provenance: given, source: "membrane-cell caustic soda 50 wt% (chlor-alkali-1)"}
+  - id: S11
+    title: Process water
+    from: PW.out
+    to: M202.pw
+    template: water
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 548.48, provenance: assumed, source: "D-007: the caustic diluted to 10 wt% NaOH"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "pure water"}
+  - id: S12
+    title: Dilute caustic (10 wt%)
+    from: M202.out
+    to: S101.caustic
+    template: caustic
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 685.6, provenance: calculated, source: 'cheme process propagate: mixer M202 from S10 S11', fingerprint: 5603305ce6ddd6ee}
+        composition: {basis: mole_fraction, values: {NAOH: 0.0476602, H2O: 0.95234}, provenance: calculated, source: 'cheme process propagate: mixer M202 from S10 S11', fingerprint: b2233b14d5466ebc}
+  - id: S13
+    title: Spent scrubber liquor
+    from: S101.out
+    to: WW.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 308.15, provenance: assumed, source: "scrubber circulation cooled with cooling water (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 732.826, provenance: calculated, source: 'cheme process propagate: reactor S101 from S9 S12', fingerprint: 17fa7489157428cb}
+        composition: {basis: mole_fraction, values: {HCL: 2.01044e-06, COCL2: 5.46411e-07, CO2: 1.38073e-06, BNOH: 0.0, BCF: 0.0, DBC: 0.0, BNCL: 0.0, NAOH: 0.00421153, H2O: 0.959155, NACL: 0.0310295, NA2CO3: 0.00560026}, provenance: calculated, source: 'cheme process propagate: reactor S101 from S9 S12', fingerprint: d6ecc525a9dddb13}
+  # energy
+  - {id: Q1, title: Charge cooling to brine, kind: energy, from: E101.q, to: BRINE.e101, state: {design: {duty: {value: 0.705, provenance: assumed, source: "D-009: S1 0.74232 kmol/h x 171.0 kJ/(kmol K) x 20 K = 2539 kJ/h"}}}}
+  - {id: Q2, title: Heat of phosgenation to brine, kind: energy, from: R101.q, to: BRINE.r101, state: {design: {duty: {value: 18.85, provenance: assumed, source: "D-009: cheme process reactors, R101 heat released 40265 kJ per kmol of charge and doses x (0.74232 + 0.94274) kmol/h = 67850 kJ/h (the reactions on the gas basis and the doses' sensible heat)"}}}}
+  - {id: Q3, title: Phosgene evaporator heat, kind: energy, from: LPS.e102, to: E102.q, state: {design: {duty: {value: 7.54, provenance: assumed, source: "D-009: S3 0.94274 kmol/h x (100 kJ/(kmol K) x 40 K + 24800 kJ/kmol) = 27151 kJ/h"}}}}
+  - {id: Q4, title: Degassing heat, kind: energy, from: LPS.t101, to: T101.q, state: {design: {duty: {value: 1.178, provenance: assumed, source: "D-006, D-009: cheme process stills, T101 16.50 kWh per batch (9.21 kW over 1.79 h) x 565.3 batches / 7920 h"}}}}
+  - {id: Q5, title: Scrubber heat to cooling water, kind: energy, from: S101.q, to: CW.s101, state: {design: {duty: {value: 44.65, provenance: assumed, source: "D-007, D-009: extents of S101 (cheme process streams) x the heats of reactions.yaml: 0.74193 x 130.8 + 0.20166 x 444 + 0.00503 x 109.5 = 187134 kJ/h, less the liquor warmed 10 K (732.8 kg/h x 3.6 kJ/(kg K)) = 160752 kJ/h"}}}}
+  - {id: P1, title: R-101 agitator, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 3.0, provenance: assumed, source: "year average, about 1.2 kW/m3 of the 2.5 m3 vessel (D-009)"}}}}
+  - {id: P2, title: Vacuum pump, kind: energy, from: POWER.m201, to: M201.power, state: {design: {duty: {value: 2.0, provenance: assumed, source: "year average of a dry-running vacuum pump for the vent and the degassing (D-009)"}}}}
+  - {id: P3, title: Scrubber circulation pump, kind: energy, from: POWER.s101, to: S101.power, state: {design: {duty: {value: 1.5, provenance: assumed, source: "year average of the scrubber's circulation pump and fan (D-009)"}}}}
