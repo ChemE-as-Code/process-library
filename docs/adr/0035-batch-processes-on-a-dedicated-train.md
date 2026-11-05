@@ -25,11 +25,11 @@ What the library and core already do:
 - `co2-electrolysis-bpm-1` DESIGN.md D-011 rejected a per-campaign batch flowsheet because
   the LCA has no case structure for it, and averaged the campaign's fill and spent anolyte
   instead.
-- Core#161 and core#162 (core#158; core ADR 0048 and ADR 0049; in the core release after 1.5.0) add `reactor: semibatch` and a batch recipe
+- Core 1.7.0 (core#158; core ADR 0050 to 0053) adds `reactor: semibatch` and a batch recipe
   `process/recipe.yaml`. The recipe states the batch size and the unit procedures, derives the
-  cycle time and the batches per year, and checks that the flowsheet holds the recipe's year
-  averages (`cheme.recipe-basis`). Per-batch LCA exchanges (`per: batch`) are core#158 package
-  5, not yet available.
+  cycle time and the batches per year, sizes batch vessels and checks their jackets, and checks
+  that the flowsheet holds the recipe's year averages (`cheme.recipe-basis`). LCA consumables
+  may be given `per_batch` (core ADR 0053), converted with the recipe's batches per year.
 
 Options considered:
 
@@ -54,19 +54,18 @@ The library takes option 3.
   in `basis` (for example `capacity: "... in N batches/a of M kg on a dedicated train
   (ASSUMED)"`).
 - **The batch basis is stated.** A Tier 2 batch entry gives its batch size and recipe in
-  `process/recipe.yaml` (core ADR 0049). Its flowsheet holds the recipe's year averages, and
+  `process/recipe.yaml` (core ADR 0051). Its flowsheet holds the recipe's year averages, and
   `cheme validate` shows no `cheme.recipe-basis` warning. A Tier 0/1 batch entry needs no
   recipe. Its flows are time averages as in `silicon-carbide-1` D-003, and its `basis` states
   the operation as batch.
 - **What enters the LCI per kg**:
   - every material and energy flow of a batch, including the cleaning and rinsing between its
-    own batches, the nitrogen purges, the washes and the off-spec or rework share. Until core's
-    per-batch exchanges (core#158 package 5) are released, each of these is a flowsheet stream
-    (a feed or a product) at its year-average rate: per-batch amount x batches per year /
-    hours. The source of that amount and the batches per year are named in the stream's
-    `source` (for example "per batch 0.5 m3 rinse water (ASSUMED) x 1320 batches/a"). Once
-    `per: batch` exchanges exist, they may replace those streams, and the dataset must not
-    change by more than rounding;
+    own batches, the nitrogen purges, the washes and the off-spec or rework share. What the
+    flowsheet does not carry is an `lca/lca.yaml` consumable with `per_batch` (core ADR 0053),
+    so its batch count follows the recipe. What the flowsheet carries (a wash the balance
+    needs) is a stream at its year-average rate: per-batch amount x batches per year / hours,
+    with that arithmetic in the stream's `source` (for example "per batch 0.5 m3 rinse water
+    (ASSUMED) x 1320 batches/a");
   - the capital goods as for any other folder: the dedicated train's equipment (if the folder
     states them), with no share of other products' equipment.
 - **What does not enter**: changeover cleaning between campaigns of different products, idle
@@ -88,14 +87,13 @@ The library takes option 3.
 - Negative: a product that in reality shares a multipurpose train gets no share of the
   changeovers and of the idle capital. Its burden per kg is a lower bound for that plant.
   DESIGN.md says so.
-- Negative: until core's per-batch exchanges exist, per-batch flows are written as year-average
-  streams by hand (amount x batches / hours), with their arithmetic in the `source`.
-- Follow-ups: a campaign ADR once core#158 package 6 exists; replace hand-averaged per-batch
-  streams with `per: batch` exchanges once core#158 package 5 is released.
+- Negative: a per-batch flow the balance needs is still a year-average stream written by hand
+  (amount x batches / hours), and does not follow a change of the cycle by itself.
+- Follow-ups: a campaign ADR once core#166 (core#158 package 6) exists.
 
 ## Evidence
 
-- core#158 (the batch plan), core ADR 0048 (semi-batch), core ADR 0049 (batch recipe).
+- core#158 (the batch plan), core ADR 0050 (semi-batch), core ADR 0051 (batch recipe).
 - `processes/silicon-carbide-1/DESIGN.md` D-003 (time-averaged batch furnaces),
   `processes/co2-electrolysis-bpm-1/DESIGN.md` D-011 (campaign flowsheet rejected).
 - The NBS pilot `processes/n-bromosuccinimide-1` (#140) is the first entry under this rule.

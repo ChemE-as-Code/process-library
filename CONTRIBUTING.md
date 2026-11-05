@@ -80,8 +80,9 @@ A Tier 2 batch entry states its batch size and recipe in `process/recipe.yaml` (
 recipe`), and its flowsheet holds the recipe's year averages, with no `cheme.recipe-basis`
 warning. A dosed exothermic step is `reactor: semibatch`, so that `cheme process
 reactor-hazards` screens its accumulation. Cleaning, rinses and purges between its own batches
-are streams at their year-average rate (per-batch amount x batches / hours, the arithmetic in
-the `source`); changeovers between products are outside the boundary.
+that the flowsheet does not carry are `lca/lca.yaml` consumables with `per_batch`; those it
+carries are streams at their year-average rate (per-batch amount x batches / hours, the
+arithmetic in the `source`). Changeovers between products are outside the boundary.
 
 #### A balance script whose numbers go into the flowsheet
 
