@@ -1,0 +1,512 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Carbon tetrabromide by the aqueous haloform route of CN 101 885 665 A (DESIGN.md D-001), a
+# batch plant: caustic soda is diluted with water, the phase-transfer catalyst added and the
+# charge cooled to 5 C; bromine is dosed into it (a semi-batch, M101) to sodium hypobromite and
+# bromide; the cold hypobromite goes to R-101, where acetone is dosed into it (a semi-batch,
+# R101); CBr4 precipitates (CR101), is filtered, reslurry-washed with water, filtered again and
+# dried at 35 C under vacuum in an agitated filter-dryer; the mother liquor (NaBr, sodium
+# acetate, NaOH) and the wash filtrate go to wastewater treatment.
+# The flows are the year averages of the batch recipe (process/recipe.yaml, `cheme process
+# recipe`, D-003).
+# Where the values come from:
+# - feeds, temperatures, pressures, ratios: design basis and D-002..D-009, from the patent's
+#   examples where it gives them, otherwise ASSUMED;
+# - M101 and R101: cheme's semi-batch model (the rate laws of HYPO, DISP and HALO, D-005);
+#   CR101 and W101: core's crystallizer with the liquor's other solutes as spectators and the
+#   solubility of CBr4 (core ADR 0056, D-007); F101, F102: specified filters with a Ruth
+#   filtration time; D101: core's dryer to a residual moisture (core ADR 0057, D-008); M100,
+#   M103: mixers (all calculated by `cheme process propagate --fill`);
+# - the dryer's heat Q4: core's dryer model (`cheme process crystallizers`), compared with Q4;
+# - Q2 and Q3: the heat released in M101's and R101's isothermal models (`cheme process
+#   reactors`) plus the doses' cooling, worked out in the stream's source (D-009);
+# - Q1 (the caustic's dilution and the charge's cooling) and the agitator powers: ASSUMED hand
+#   estimates (D-009); core has no enthalpy model of this liquor, so no balance script is used:
+#   the arithmetic is in the source.
+schema: cheme/process/v1
+kind: flowsheet
+title: Carbon tetrabromide by semi-batch haloform bromination of acetone in aqueous hypobromite (325 t/a)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: dried CBr4 crystals, year averages of the batches in 7920 h on a dedicated train (D-002, D-003)", default: true}
+tolerance: {abs: 0.05, rel: 0.002}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - {id: PW, title: Process water (dilution), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: NAOH, title: Caustic soda 50 wt% (chlor-alkali-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: TBAB, title: "Tetrabutylammonium bromide (phase-transfer catalyst, merchant)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: BR2, title: Liquid bromine (bromine-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: ACET, title: Acetone (acetone-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: WASHW, title: Process water (cake wash), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: m101, direction: out, kind: energy}
+      - {id: r101, direction: out, kind: energy}
+      - {id: d101, direction: out, kind: energy}
+  - id: LPS
+    title: LP steam 350 kPa(a) (to the dryer's hot-water circuit)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 350, provenance: assumed, source: "design basis (D-009)"}
+      supply_temperature: {value: 412.0, provenance: given, source: "saturation at 350 kPa(a), IAPWS-IF97"}
+      min_approach: {value: 10, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: d101, direction: out, kind: energy}
+products:
+  - {id: CBR4P, title: Carbon tetrabromide crystals to packing, category: product, ports: [{id: in, direction: in}]}
+  - {id: WW, title: "Mother liquor, wash filtrate and dryer condensate to wastewater treatment", category: wastewater, ports: [{id: in, direction: in}]}
+  - id: BRINE
+    title: Chilled brine return (263 K)
+    category: utility
+    utility:
+      kind: refrigerant
+      supply_temperature: {value: 258.15, provenance: assumed, source: "design basis (D-009)"}
+      return_temperature: {value: 263.15, provenance: assumed, source: "design basis (D-009)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: m100, direction: in, kind: energy}
+      - {id: m101, direction: in, kind: energy}
+      - {id: r101, direction: in, kind: energy}
+
+blocks:
+  - id: HYPO
+    title: Hypobromite preparation
+    class: ReactingChemicals
+    ports:
+      - {id: pw, direction: in}
+      - {id: naoh, direction: in}
+      - {id: tbab, direction: in}
+      - {id: br2, direction: in}
+      - {id: out, direction: out}
+      - {id: q1, direction: out, kind: energy}
+      - {id: q2, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: REACT
+    title: Haloform reaction and precipitation
+    class: ReactingChemicals
+    ports:
+      - {id: in, direction: in}
+      - {id: acet, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: ISOL
+    title: Filtration, washing and drying
+    class: SeparatingMechanically
+    ports:
+      - {id: in, direction: in}
+      - {id: wash, direction: in}
+      - {id: product, direction: out}
+      - {id: ww, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: power, direction: in, kind: energy}
+
+steps:
+  - id: M100
+    block: HYPO
+    title: Caustic diluted, catalyst added, cooled to 278 K (M-101)
+    class: Mixing
+    links: [{target: equipment, ref: M-101}]
+    ports:
+      - {id: pw, direction: in, delegates: pw}
+      - {id: naoh, direction: in, delegates: naoh}
+      - {id: tbab, direction: in, delegates: tbab}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: q1}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: M101
+    block: HYPO
+    title: Hypobromite reactor (bromine dosed into the cold caustic, M-101)
+    class: ReactingChemicals
+    reactions: [HYPO, DISP]
+    reactor: semibatch
+    batch:
+      dosing: [{stream: S5, time: 5400}]
+      target: {key: BR2, conversion: 0.9999}
+      heat: isothermal
+      provenance: assumed
+      source: "bromine dosed over 1.5 h into the caustic at 278 K, then the post-reaction to 0.9999 conversion of the bromine (D-005; the patent keeps 0-5 C and stirs 20 min after the addition)"
+    hazard:
+      mtt: 331.9
+      provenance: given
+      source: "the normal boiling point of bromine (CRC Handbook), the lowest of the liquor's components: M-101 runs at atmospheric pressure with a vent to the caustic scrubber (D-011); the hypobromite's own decomposition has no TD24 (never estimated)"
+    links: [{target: equipment, ref: M-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: br2, direction: in, delegates: br2}
+      - {id: out, direction: out, delegates: out}
+      - {id: q, direction: out, kind: energy, delegates: q2}
+  - id: R101
+    block: REACT
+    title: Haloform reactor (acetone dosed into the cold hypobromite, R-101)
+    class: ReactingChemicals
+    reactions: [HALO, DISP]
+    reactor: semibatch
+    batch:
+      dosing: [{stream: S7, time: 14400}]
+      target: {key: NAOBR, conversion: 0.999}
+      heat: isothermal
+      provenance: assumed
+      source: "acetone dosed over 4 h into the hypobromite at 278 K, then the post-reaction to 0.999 conversion of the hypobromite (D-005; the patent keeps 0-5 C and stirs 3-5 h after the addition)"
+    hazard:
+      mtt: 329.3
+      provenance: given
+      source: "the normal boiling point of acetone (NIST WebBook), the dose and the lowest-boiling component of the liquor: R-101 runs at atmospheric pressure under nitrogen with a vent condenser (D-011); conservative, since a few wt% of acetone in the brine boil far higher"
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: acet, direction: in, delegates: acet}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: q}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: CR101
+    block: REACT
+    title: Precipitation hold (CBr4 crystallises from the cold liquor)
+    class: Crystallizing
+    crystallizer:
+      solute: CBR4
+      solvent: H2O
+      crystal: CBR4_S
+      basis: solubility
+      temperature: 278.15
+      solubility:
+        unit: kg/kg_solvent
+        value: 0.00024
+        provenance: assumed
+        source: "0.024 g per 100 mL water at 30 C (Wikipedia, Carbon tetrabromide, infobox, read 2026-11-05), taken per kg of water and at 278 K as well: no value at 0-10 C found (D-007). Entered as `value` because core refuses a single 303.15 K point at 278.15 K (ADR 0025, no extrapolation): a known workaround, the figure is not at the operating conditions (lesson L-4)"
+        salting_out:
+          coefficients: {NAOH: 0.0, BR2: 0.0, NAOBR: 0.0, NABR: 0.0, NABRO3: 0.0, ACET: 0.0, TBAB: 0.0, NAOAC: 0.0}
+          provenance: assumed
+          source: "no open salting-out data of CBr4 in a NaBr/NaOH/acetate liquor; no correction taken (a nonelectrolyte is salted out, so the pure-water value overstates the loss; D-007)"
+      spectators: [NAOH, BR2, NAOBR, NABR, NABRO3, ACET, TBAB, NAOAC]
+      outlets: {slurry: out}
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: out}
+  - id: F101
+    block: ISOL
+    title: Filtration (filter-dryer)
+    class: Filtering
+    solid_separation:
+      solid_recovery: 0.998
+      cake_liquid: {value: 0.15, basis: per_kg_solid}
+      outlets: {cake: cake, filtrate: filtrate}
+      provenance: assumed
+      source: "agitated filter-dryer, cake 0.15 kg of liquor per kg of dense CBr4 crystals (3.42 g/cm3) (D-007)"
+      filtration:
+        specific_cake_resistance: 1.0e+10
+        medium_resistance: 1.0e+10
+        pressure_difference: 200
+        viscosity: 1.8
+        filtrate_density: 1250
+        provenance: assumed
+        source: "ASSUMED (D-007): a free-filtering crystalline cake, a cloth medium, 200 kPa of nitrogen on the cake; the liquor at 278 K (about 28 wt% NaBr, NaOH and sodium acetate) estimated from water's; to be replaced by a filtration trial"
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: cake, direction: out}
+      - {id: filtrate, direction: out}
+  - id: W101
+    block: ISOL
+    title: Reslurry wash with process water (CBr4 dissolves to saturation)
+    class: Crystallizing
+    crystallizer:
+      solute: CBR4
+      solvent: H2O
+      crystal: CBR4_S
+      basis: solubility
+      temperature: 291.15
+      solubility:
+        unit: kg/kg_solvent
+        value: 0.00024
+        provenance: assumed
+        source: "as CR101 (Wikipedia, 30 C, taken at 291 K; D-007). Entered as `value` because core refuses the single 303.15 K point at 291.15 K (ADR 0025, no extrapolation): a known workaround (lesson L-4)"
+        salting_out:
+          coefficients: {NAOH: 0.0, BR2: 0.0, NAOBR: 0.0, NABR: 0.0, NABRO3: 0.0, ACET: 0.0, TBAB: 0.0, NAOAC: 0.0}
+          provenance: assumed
+          source: "as CR101: no correction (D-007)"
+      spectators: [NAOH, BR2, NAOBR, NABR, NABRO3, ACET, TBAB, NAOAC]
+      outlets: {slurry: out}
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: cake, direction: in}
+      - {id: wash, direction: in, delegates: wash}
+      - {id: out, direction: out}
+  - id: F102
+    block: ISOL
+    title: Filtration of the washed cake
+    class: Filtering
+    solid_separation:
+      solid_recovery: 0.998
+      cake_liquid: {value: 0.15, basis: per_kg_solid}
+      outlets: {cake: cake, filtrate: filtrate}
+      provenance: assumed
+      source: "as F101 (D-007)"
+      filtration:
+        specific_cake_resistance: 1.0e+10
+        medium_resistance: 1.0e+10
+        pressure_difference: 200
+        viscosity: 1.1
+        filtrate_density: 1030
+        provenance: assumed
+        source: "as F101, the wash filtrate a dilute liquor at 291 K (D-007)"
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: cake, direction: out}
+      - {id: filtrate, direction: out}
+  - id: D101
+    block: ISOL
+    title: Vacuum drying at 308 K (filter-dryer)
+    class: Drying
+    dryer:
+      volatiles: [H2O, ACET, BR2]
+      residual_moisture: {value: 0.001, basis: mass_fraction, provenance: assumed, source: "0.1 wt% volatiles in the dried product (D-008)"}
+      temperature: 308.15
+      energy:
+        heat_capacity: 0.9
+        latent_heat: {H2O: 2418.0, ACET: 549.0, BR2: 187.5}
+        vessel_heat_capacity: 1000
+        efficiency: 0.7
+        port: steam
+        provenance: assumed
+        source: "wet cake 0.9 kJ/(kg K) (CBr4 0.44 kJ/(kg K), NIST WebBook, with 0.15 kg of liquor at about 3.9), 70 % efficiency (D-009); latent heats: water at 308 K (steam tables), acetone 31.9 kJ/mol at 300 K (NIST WebBook, read 2026-11-05), bromine 29.96 kJ/mol at its boiling point (CRC Handbook); the filter-dryer's metal, about 2 t of steel at 0.5 kJ/(kg K), heated from 291 K each batch, ASSUMED (D-008)"
+      drying_rate: {value: 2.5, provenance: assumed, source: "ASSUMED mean rate of a jacketed agitated filter-dryer under vacuum at a low wall temperature: a wall flux of about 1.7 kW/m2 (U 110 W/(m2 K) at a 15 K approach) over 2418 kJ/kg (D-008)"}
+      cake_density: {value: 2000, provenance: assumed, source: "ASSUMED bulk density of the wet cake: CBr4 crystals 3.42 g/cm3 (Wikipedia) with 0.15 kg of liquor per kg and the voids (D-008)"}
+      outlets: {product: product, vapour: vapour}
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: product, direction: out, delegates: product}
+      - {id: vapour, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: M103
+    block: ISOL
+    title: Liquor collection to wastewater
+    class: Mixing
+    ports:
+      - {id: ml, direction: in}
+      - {id: wf, direction: in}
+      - {id: cond, direction: in}
+      - {id: out, direction: out, delegates: ww}
+
+streams:
+  - id: S1
+    title: Process water
+    from: PW.out
+    to: M100.pw
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 155.950, provenance: assumed, source: "2.5 kg of water per kg of bromine in the charge, the caustic's included (the patent's 500 mL per 200 g), less the caustic's 44.050 kg/h (D-004)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "pure water"}
+  - id: S2
+    title: Caustic soda 50 wt%
+    from: NAOH.out
+    to: M100.naoh
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 88.101, provenance: assumed, source: "NaOH 2.2 mol per mol of bromine: 80 kg/h / 159.808 x 2.2 x 39.997 = 44.050 kg/h of NaOH (the patent's 100-140 g per 200 g of bromine, D-004)"}
+        composition: {basis: mass_fraction, values: {NAOH: 0.5, H2O: 0.5}, provenance: given, source: "membrane-cell caustic soda 50 wt% (chlor-alkali-1)"}
+  - id: S3
+    title: Tetrabutylammonium bromide
+    from: TBAB.out
+    to: M100.tbab
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 0.400, provenance: assumed, source: "5 g per kg of bromine, the patent's 1 g per 200 g (D-004)"}
+        composition: {basis: mass_fraction, values: {TBAB: 1.0}, provenance: assumed, source: "technical TBAB, impurities not modelled (D-004)"}
+  - id: S4
+    title: Charge (dilute caustic with the catalyst, 278 K)
+    from: M100.out
+    to: M101.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 278.15, provenance: assumed, source: "cooled in M-101 (D-005)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 244.451, provenance: calculated, source: 'cheme process propagate: mixer M100 from S1 S2 S3', fingerprint: 59abce39a5edddfe}
+        composition: {basis: mole_fraction, values: {H2O: 0.909657, NAOH: 0.0902411, BR2: 0.0, NAOBR: 0.0, NABR: 0.0, NABRO3: 0.0, ACET: 0.0, TBAB: 0.000101667, NAOAC: 0.0, CBR4: 0.0, CBR4_S: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M100 from S1 S2 S3', fingerprint: b2967a8ec92da0b1}
+  - id: S5
+    title: Liquid bromine (dosed)
+    from: BR2.out
+    to: M101.br2
+    template: liquor
+    state:
+      design:
+        temperature: {value: 293.15, provenance: assumed, source: "bromine storage (D-005)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 80.0, provenance: assumed, source: "the bromine of the design basis, 80 kg per hour of the cycle (D-002, D-003)"}
+        composition: {basis: mass_fraction, values: {BR2: 1.0}, provenance: assumed, source: "dry bromine 99.9 %+ (bromine-1), impurities not modelled"}
+  - id: S6
+    title: Hypobromite solution (278 K)
+    from: M101.out
+    to: R101.in
+    template: liquor
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.913213, NAOH: 0.00789008, BR2: 3.94016e-06, NAOBR: 0.0393064, NABR: 0.0394586, NABRO3: 3.0426e-05, ACET: 0.0, TBAB: 9.76612e-05, NAOAC: 0.0, CBR4: 0.0, CBR4_S: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor M101 from S4 S5', fingerprint: 47f142fb2f65e4db}
+        flow: {value: 324.451, provenance: calculated, source: 'cheme process propagate: reactor M101 from S4 S5', fingerprint: 5d2805329f9496e8}
+        temperature: {value: 278.15, provenance: calculated, source: 'cheme process propagate: reactor M101 from S4 S5', fingerprint: 47f142fb2f65e4db}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor M101 from S4 S5', fingerprint: 47f142fb2f65e4db}
+  - id: S7
+    title: Acetone (dosed)
+    from: ACET.out
+    to: R101.acet
+    template: liquor
+    state:
+      design:
+        temperature: {value: 293.15, provenance: assumed, source: "acetone storage (D-005)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 7.6322, provenance: assumed, source: "acetone 1.05 mol per 4 mol of bromine: 80 / 159.808 / 4 x 1.05 x 58.080 kg/h (the patent's 10:1 bromine to acetone by mass is 1.10, D-004)"}
+        composition: {basis: mass_fraction, values: {ACET: 1.0}, provenance: assumed, source: "technical acetone 99.5 %+ (acetone-1), impurities not modelled"}
+  - id: S8
+    title: Reacted liquor
+    from: R101.out
+    to: CR101.in
+    template: liquor
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.903864, NAOH: 0.0367864, BR2: 3.89982e-06, NAOBR: 3.8904e-05, NABR: 0.0392073, NABRO3: 0.000106421, ACET: 0.000578057, TBAB: 9.66614e-05, NAOAC: 0.00965905, CBR4: 0.00965905, CBR4_S: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S6 S7', fingerprint: d994a8c1406b5d58}
+        flow: {value: 332.083, provenance: calculated, source: 'cheme process propagate: reactor R101 from S6 S7', fingerprint: 2808c436f8bf45c2}
+        temperature: {value: 278.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S6 S7', fingerprint: d994a8c1406b5d58}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S6 S7', fingerprint: d994a8c1406b5d58}
+  - id: S9
+    title: CBr4 slurry
+    from: CR101.out
+    to: F101.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 278.15, provenance: assumed, source: "held at 278 K (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 332.083, provenance: calculated, source: 'cheme process propagate: crystallizer CR101 from S8', fingerprint: 2d2663fce22b8769}
+        composition: {basis: mole_fraction, values: {CBR4: 1.17842e-05, H2O: 0.903864, CBR4_S: 0.00964727, NAOH: 0.0367864, BR2: 3.89982e-06, NAOBR: 3.8904e-05, NABR: 0.0392073, NABRO3: 0.000106421, ACET: 0.000578057, TBAB: 9.66614e-05, NAOAC: 0.00965905}, provenance: calculated, source: 'cheme process propagate: crystallizer CR101 from S8', fingerprint: 2d2663fce22b8769}
+  - id: S10
+    title: Filter cake
+    from: F101.cake
+    to: W101.cake
+    template: liquor
+    state:
+      design:
+        temperature: {value: 278.15, provenance: assumed, source: "D-007"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 47.1334, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S9', fingerprint: 953ed036a342fb3c}
+        composition: {basis: mole_fraction, values: {CBR4_S: 0.315159, H2O: 0.625033, NAOH: 0.0254383, BR2: 2.69678e-06, NAOBR: 2.69026e-05, NABR: 0.0271123, NABRO3: 7.35915e-05, ACET: 0.000399734, TBAB: 6.68426e-05, NAOAC: 0.00667936, CBR4: 8.14892e-06}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S9', fingerprint: 953ed036a342fb3c}
+  - id: S11
+    title: Mother liquor
+    from: F101.filtrate
+    to: M103.ml
+    template: liquor
+    state:
+      design:
+        temperature: {value: 278.15, provenance: assumed, source: "D-007"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 284.95, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S9', fingerprint: 953ed036a342fb3c}
+        composition: {basis: mole_fraction, values: {H2O: 0.912651, NAOH: 0.037144, BR2: 3.93773e-06, NAOBR: 3.92822e-05, NABR: 0.0395885, NABRO3: 0.000107456, ACET: 0.000583677, TBAB: 9.76011e-05, NAOAC: 0.00975295, CBR4: 1.18988e-05, CBR4_S: 1.99026e-05}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S9', fingerprint: 953ed036a342fb3c}
+  - id: S12
+    title: Wash water
+    from: WASHW.out
+    to: W101.wash
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "process water (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 80.0, provenance: assumed, source: "about 2 kg of water per kg of CBr4 in the cake (D-007)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "pure water"}
+  - id: S13
+    title: Wash slurry
+    from: W101.out
+    to: F102.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 291.15, provenance: assumed, source: "the cold cake mixed with the wash water (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 127.133, provenance: calculated, source: 'cheme process propagate: crystallizer W101 from S10 S12', fingerprint: 377f3e5b11f847c5}
+        composition: {basis: mole_fraction, values: {CBR4: 1.26409e-05, H2O: 0.969575, CBR4_S: 0.0255606, NAOH: 0.00206411, BR2: 2.18821e-07, NAOBR: 2.18292e-06, NABR: 0.00219994, NABRO3: 5.97134e-06, ACET: 3.24351e-05, TBAB: 5.42372e-06, NAOAC: 0.000541975}, provenance: calculated, source: 'cheme process propagate: crystallizer W101 from S10 S12', fingerprint: 377f3e5b11f847c5}
+  - id: S14
+    title: Washed cake
+    from: F102.cake
+    to: D101.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 291.15, provenance: assumed, source: "D-007"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 47.017, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S13', fingerprint: 0b487559bbc25b80}
+        composition: {basis: mole_fraction, values: {CBR4_S: 0.268911, H2O: 0.727439, NAOH: 0.00154863, BR2: 1.64174e-07, NAOBR: 1.63777e-06, NABR: 0.00165054, NABRO3: 4.48009e-06, ACET: 2.4335e-05, TBAB: 4.06923e-06, NAOAC: 0.000406625, CBR4: 9.48404e-06}, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S13', fingerprint: 0b487559bbc25b80}
+  - id: S15
+    title: Wash filtrate
+    from: F102.filtrate
+    to: M103.wf
+    template: liquor
+    state:
+      design:
+        temperature: {value: 291.15, provenance: assumed, source: "D-007"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 80.116, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S13', fingerprint: 0b487559bbc25b80}
+        composition: {basis: mole_fraction, values: {H2O: 0.994951, NAOH: 0.00211813, BR2: 2.24548e-07, NAOBR: 2.24005e-06, NABR: 0.00225752, NABRO3: 6.12763e-06, ACET: 3.3284e-05, TBAB: 5.56567e-06, NAOAC: 0.00055616, CBR4: 1.29717e-05, CBR4_S: 5.64789e-05}, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S13', fingerprint: 0b487559bbc25b80}
+  - id: S16
+    title: Dried CBr4
+    from: D101.product
+    to: CBR4P.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: "cooled in F-101 before discharge (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 41.0494, provenance: calculated, source: 'cheme process propagate: dryer D101 from S14', fingerprint: 4d3d5bc68af0ccd4}
+        composition: {basis: mole_fraction, values: {H2O: 0.0179083, NAOH: 0.00558052, BR2: 4.04167e-09, NAOBR: 5.90174e-06, NABR: 0.00594776, NABRO3: 1.61441e-05, ACET: 5.99084e-07, TBAB: 1.46636e-05, NAOAC: 0.00146528, CBR4: 3.41759e-05, CBR4_S: 0.969027}, provenance: calculated, source: 'cheme process propagate: dryer D101 from S14', fingerprint: 4d3d5bc68af0ccd4}
+  - id: S17
+    title: Dryer vapour (condensed in the vacuum condenser, not modelled)
+    from: D101.vapour
+    to: M103.cond
+    template: liquor
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: "condensate of the vacuum condenser (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 5.96761, provenance: calculated, source: 'cheme process propagate: dryer D101 from S14', fingerprint: 4d3d5bc68af0ccd4}
+        composition: {basis: mole_fraction, values: {H2O: 0.999966, BR2: 2.2568e-07, ACET: 3.34519e-05}, provenance: calculated, source: 'cheme process propagate: dryer D101 from S14', fingerprint: 4d3d5bc68af0ccd4}
+  - id: S18
+    title: Liquors to wastewater treatment
+    from: M103.out
+    to: WW.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 284.0, provenance: assumed, source: "about the mass-weighted mean of S11 (278 K), S15 (291 K) and S17 (303 K), equal heat capacities (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 371.034, provenance: calculated, source: 'cheme process propagate: mixer M103 from S11 S15 S17', fingerprint: 4701da2a40497b3e}
+        composition: {basis: mole_fraction, values: {H2O: 0.935329, NAOH: 0.0274926, BR2: 2.91892e-06, NAOBR: 2.90752e-05, NABR: 0.0293019, NABRO3: 7.95349e-05, ACET: 0.000432662, TBAB: 7.22407e-05, NAOAC: 0.00721877, CBR4: 1.19427e-05, CBR4_S: 2.88477e-05}, provenance: calculated, source: 'cheme process propagate: mixer M103 from S11 S15 S17', fingerprint: 4f3c09f8012da081}
+  # energy
+  - {id: Q1, title: Dilution and charge cooling to brine, kind: energy, from: M100.q, to: BRINE.m100, state: {design: {duty: {value: 8.560, provenance: assumed, source: "ASSUMED hand estimate (D-009): the caustic diluted from 50 to 18 wt%, -12 kJ/mol x 1.10135 kmol/h NaOH = 3.671 kW, and the charge S4 from 298 to 278 K, 244.451 kg/h x 3.6 kJ/(kg K) x 20 K = 4.889 kW"}}}}
+  - {id: Q2, title: Heat of hypobromite formation to brine, kind: energy, from: M101.q, to: BRINE.m101, state: {design: {duty: {value: 5.848, provenance: assumed, source: "cheme process reactors: M101 releases 1612.22 kJ per kmol of charge and dose x 12.70507 kmol/h (S4 + S5) = 5.690 kW (HYPO and DISP at 278 K), plus the bromine S5 cooled from 293 to 278 K, 0.158 kW (D-009)"}}}}
+  - {id: Q3, title: Heat of the haloform reaction to brine, kind: energy, from: R101.q, to: BRINE.r101, state: {design: {duty: {value: 18.013, provenance: assumed, source: "cheme process reactors: R101 releases 5032.57 kJ per kmol of charge and dose x 12.83648 kmol/h (S6 + S7) = 17.945 kW (HALO and DISP at 278 K), plus the acetone S7 cooled from 293 to 278 K, 0.069 kW (D-009)"}}}}
+  - {id: Q4, title: Dryer heat, kind: energy, from: LPS.d101, to: D101.steam, state: {design: {duty: {value: 6.625, provenance: assumed, source: "cheme process crystallizers: D101's dryer model, the cake to 308 K, the water, acetone and bromine evaporated, the vessel heated each batch, 70 % efficiency (D-008, D-009)"}}}}
+  - {id: P1, title: Hypobromite reactor agitator, kind: energy, from: POWER.m101, to: M100.power, state: {design: {duty: {value: 1.1, provenance: assumed, source: "year average (D-009): 3 kW while M-101 is occupied, 4.11 h of the 10.98 h cycle"}}}}
+  - {id: P2, title: Haloform reactor agitator, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 3.0, provenance: assumed, source: "year average (D-009): 3 kW, R-101 occupied the whole cycle"}}}}
+  - {id: P3, title: Filter-dryer agitators and vacuum pump, kind: energy, from: POWER.d101, to: D101.power, state: {design: {duty: {value: 3.9, provenance: assumed, source: "year average (D-009): 3 kW while a batch is in F-101, 14.14 h a batch over the 10.98 h cycle"}}}}

@@ -1,0 +1,16 @@
+# carbon-tetrabromide-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# The preliminary LCI leaves most backgrounds unmapped (DESIGN.md D-012): the build reports each
+# as a gap (lci/gaps.json). Linked here: the bromine, the caustic soda, the acetone and the
+# nitrogen to their library producers, and the LP steam counted as heat delivered (kWh), as
+# n-bromosuccinimide-1 does.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:BR2": {dataset: {path: processes/bromine-1/lca/dataset.yaml, product: "product:BR2"}, source: "the Atlas producer bromine-1, dry bromine 99.96 wt-%"}
+  "feed:NAOH": {dataset: {path: processes/chlor-alkali-1/lca/dataset.yaml, product: "product:NAOH"}, source: "the Atlas producer chlor-alkali-1, caustic soda 50 wt-%, per kg of solution as this exchange counts it"}
+  "feed:ACET": {dataset: {path: processes/acetone-1/lca/dataset.yaml, product: "product:ACETONE"}, source: "the Atlas producer acetone-1, acetone from the cumene process (co-product phenol, allocated there)"}
+  "consumable:nitrogen": {dataset: {path: processes/asu-1/lca/dataset.yaml, product: "product:GANP"}, source: "the Atlas producer asu-1, gaseous nitrogen to the battery limit (99.97 mol% N2, 9 bar(a)); the purge and the filtrations need only a few hundred kPa"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 350 kPa(a) to the filter-dryers' hot-water circuit (Q4), counted as heat delivered (kWh), D-009"}

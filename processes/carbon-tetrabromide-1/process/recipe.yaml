@@ -1,0 +1,61 @@
+# The batch recipe of carbon-tetrabromide-1 (schema cheme/recipe/v1, `cheme process recipe`,
+# DESIGN.md D-003). One batch makes BATCH kg of dried CBr4 (stream S16); the flowsheet's rates
+# are the year averages. The dosings and post-reactions take their times from M101's and R101's
+# semi-batch models (from: M101, from: R101). The agitated filter-dryer F-101 is one vessel over
+# four steps (units: F101, W101, F102, D101; core ADR 0057): its filtrations take Ruth's time
+# from F101's and F102's filtration data and its drying the time D101's drying rate gives on the
+# heated area the cake wets (D-008); every other duration is ASSUMED (D-003). M-101's and R-101's
+# vessels are sized from their models' content and their jackets checked against the models'
+# peak cooling duty (core ADR 0052); F-101 is sized from one batch's slurry (core ADR 0057).
+# `cheme process recipe --svg build/gantt.svg` draws one batch.
+schema: cheme/recipe/v1
+kind: recipe
+title: CBr4 by semi-batch haloform bromination
+batch_size: {value: 450.91, unit: kg, stream: S16, provenance: assumed, source: "one batch of dried CBr4 (D-002, D-003)"}
+hours_per_year: {value: 7920, provenance: assumed, source: "330 days of 24 h (D-002)"}
+unit_procedures:
+  - id: HYPOBROMITE
+    units: [M100, M101]
+    title: Caustic diluted and cooled, bromine dosed to hypobromite (M-101)
+    vessel:
+      fill_fraction: 0.8
+      aspect_ratio: 1.2
+      jacket: {u: 300, coolant_temperature: 258.15, provenance: assumed, source: "glass-lined steel vessel, brine at 258 K in the jacket (D-009)"}
+      provenance: assumed
+      source: "usual fill and proportions of a glass-lined stirred vessel (D-003)"
+    operations:
+      - {id: charge, kind: charge, title: "Water, caustic and catalyst", duration: {value: 0.75, provenance: assumed, source: D-003}}
+      - {id: cool, kind: cool, title: Cool to 278 K on brine, duration: {value: 1.0, provenance: assumed, source: "D-003, D-009"}}
+      - {id: dose, kind: dose, title: Dose the bromine, from: M101}
+      - {id: react, kind: react, title: Post-reaction, from: M101}
+      - {id: hold, kind: hold, title: "Stir 20 min (the patent's), sample the active bromine", duration: {value: 0.33, provenance: assumed, source: "D-003; CN 101 885 665 A, claim 1"}}
+      - {id: transfer, kind: transfer, title: Hypobromite to R-101, duration: {value: 0.5, provenance: assumed, source: D-003}}
+  - id: HALOFORM
+    unit: R101
+    title: Haloform reaction and precipitation (R-101)
+    vessel:
+      fill_fraction: 0.8
+      aspect_ratio: 1.2
+      jacket: {u: 300, coolant_temperature: 258.15, provenance: assumed, source: "glass-lined steel vessel, brine at 258 K in the jacket (D-009)"}
+      provenance: assumed
+      source: "usual fill and proportions of a glass-lined stirred vessel (D-003)"
+    operations:
+      - {id: inert, kind: other, title: "Nitrogen purge of the vapour space", duration: {value: 0.25, provenance: assumed, source: "D-003, D-012"}}
+      - {id: receive, kind: charge, title: Receive the hypobromite, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: dose, kind: dose, title: Dose the acetone, from: R101}
+      - {id: react, kind: react, title: Post-reaction, from: R101}
+      - {id: hold, kind: hold, title: Precipitation hold at 278 K (CR101), duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: transfer, kind: transfer, title: Slurry to the filter-dryer, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: clean, kind: clean, title: Rinse, duration: {value: 1.0, provenance: assumed, source: D-003}}
+  - id: ISOLATE
+    units: [F101, W101, F102, D101]
+    title: Filtration, reslurry wash and drying in the agitated filter-dryer (F-101, two units)
+    parallel: 2
+    vessel: {fill_fraction: 0.8, aspect_ratio: 1.0, provenance: assumed, source: "a squat agitated filter-dryer, its filter plate the bottom (D-008)"}
+    operations:
+      - {id: filter, kind: filter, title: Filter the mother liquor (F101), from: F101}
+      - {id: wash, kind: other, title: Reslurry the cake in process water (W101), duration: {value: 0.5, provenance: assumed, source: D-007}}
+      - {id: refilter, kind: filter, title: Filter the wash (F102), from: F102}
+      - {id: dry, kind: dry, title: Vacuum drying at 308 K (D101), from: D101}
+      - {id: discharge, kind: transfer, title: Cool and discharge to packing, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: clean, kind: clean, title: Rinse, duration: {value: 1.0, provenance: assumed, source: D-003}}
