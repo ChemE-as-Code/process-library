@@ -25,7 +25,7 @@ in this session, or in the route scouting of the same day where said.
 | SRC-1 | Albemarle Corporation, Technical Data Sheet, Methylmagnesium Bromide, typ. 35 % solution in 2-Methyl-THF (typ. 3.2 M), product number 10000303, date of issue 2025-02-24, https://www.albemarle.com/sites/default/files/2026-01/_TDS_00000191_TDS_ALB_E.PDF | pp. 1-3: specification 34.0-36.0 % MeMgBr, assay as total base by acidimetric titration after hydrolysis; dark brown liquid, crystallises below -10 C; density about 1.1 g/cm3 at 25 C; boiling point and flash point of the solvent 78 C and -10 C; handle under nitrogen or argon, never with water, acids or oxidisers; UN 3399, class 4.3 PG I; steel bottles of 125-2500 L filled to at most 90 %, drums of 30 and 200 L | read in full (PDF text); vendor document, facts only | D-001, D-002, D-006, D-011 |
 | SRC-2 | NIST Chemistry WebBook, Methylmagnesium bromide, CAS 75-16-1 (C75161), reaction thermochemistry, https://webbook.nist.gov/cgi/cbook.cgi?ID=C75161&Mask=8 | Mg(cr) + CH3Br(l) -> CH3MgBr (solution, diethyl ether), -267.8 +/- 4.4 kJ/mol, and HBr(g) + CH3MgBr -> CH4 + MgBr2 (solution), -274.5 +/- 2.2 kJ/mol, both Holm (1981), J. Chem. Soc. Perkin Trans. 2, 464 (the WebBook notes possible side reactions in the first) | read; US government data | D-005 |
 | SRC-3 | PubChem CID 6349, Methylmagnesium bromide, https://pubchem.ncbi.nlm.nih.gov/compound/6349 | identity (CH3BrMg, InChIKey NXPHGHWWQRMDIA-UHFFFAOYSA-M); HSDB Methods of Manufacturing: reaction of magnesium and methyl bromide | read (PUG REST and PUG View) | D-001, chemicals registry |
-| SRC-4 | PubChem CID 6323 (bromomethane), 7301 (2-methyltetrahydrofuran), 5462224 (magnesium) | identities; HSDB densities: 2-MeTHF 0.853 g/cm3 at 20 C, magnesium 1.738 g/cm3 at 20 C; methyl bromide made from methanol and hydrogen bromide (Methods of Manufacturing, read by the scouting session) | read (PUG REST and PUG View) | D-006, D-012, chemicals registry |
+| SRC-4 | PubChem CID 6323 (bromomethane), 7301 (2-methyltetrahydrofuran), 5462224 (magnesium) | identities; HSDB densities: 2-MeTHF 0.853 g/cm3 at 20 C, magnesium 1.738 g/cm3 at 20 C; methyl bromide made from methanol and hydrogen bromide (Methods of Manufacturing, read by the scouting session); methyl bromide's safety: GHS classification (H331 toxic if inhaled, H330 fatal if inhaled in a part of the notifications, flammable gas) and the NIOSH IDLH of 250 ppm (PUG View headings "GHS Classification" and "Immediately Dangerous to Life or Health (IDLH)", read 2026-11-05) | read (PUG REST and PUG View) | D-006, D-011, D-012, chemicals registry |
 | SRC-5 | Fraunhofer IMM, Scalable continuous Grignard reagent formation (flyer), https://www.imm.fraunhofer.de/content/dam/imm/de/documents/PDFs-neu2018/E-und-C/IMM-Scalable-Continuous-Grignard-Reagent-Formation.pdf | in batch the exothermic formation is dosing-controlled to remove the heat and often needs long reaction times; the Wurtz coupling is the main side reaction; the continuous packed-magnesium-bed process is demonstrated at pilot scale for PhMgBr, allyl-MgCl and EtMgBr in THF, not for MeMgBr | read by the scouting session (2026-11-05), the summary rechecked by search here | D-001, D-005 |
 | SRC-6 | am Ende, D. J. et al. (1999) Org. Process Res. Dev. 3, 319, doi:10.1021/op9901801 | Grignard initiation monitored by in-situ FTIR: a small part of the halide charged and the initiation confirmed before the rest is dosed | abstract only (and a vendor note on it), no design numbers taken | D-004 (practice only) |
 | SRC-7 | chemicals and thermo packages (the open data of core's environment: CRC Handbook tables, NIST WebBook / JANAF, DIPPR fits, estimates) | printed per component in process/materials.yaml: methyl bromide gas formation enthalpy -36.38 kJ/mol, S0 246.4 J/(mol K), heat of vaporisation 23.3 kJ/mol at 298 K and 23.5 at 293 K, normal boiling point 276.55 K, liquid density 1.663 g/cm3, liquid and ideal-gas heat capacities; 2-MeTHF liquid heat capacity 173.2 kJ/(kmol K) at 318 K; gas formation enthalpies of HBr, methane and ethane | open data packages | D-005, D-006, D-009 |
@@ -175,8 +175,9 @@ no balance script. The liquid data are declared by hand in materials.yaml: densi
 the TDS density, about 1.1 g/cm3 for 35 wt% in 2-MeTHF (SRC-1), with ideal mixing; MeMgBr's heat
 capacity 95.9 kJ/(kmol K) by Kopp's rule (solid Mg plus liquid methyl bromide, ASSUMED); MgBr2
 from the solid's density and heat capacity (ASSUMED as dissolved). The product's heat capacity is
-then 1.66 kJ/(kg K), lower than the 1.9-2.0 an ether solution would have: conservative for the
-adiabatic rise. The Schlenk equilibrium does not change the balance and is not modelled.
+then 1.58 kJ/(kg K) (S9's composition, my arithmetic; the slurry S6 also 1.58: 4.37 GJ per batch
+over 5052 kg x 1.58 kJ/(kg K) is the screening's 548 K, D-011), lower than the 1.9-2.0 an ether
+solution would have: conservative for the adiabatic rise. The Schlenk equilibrium does not change the balance and is not modelled.
 Reason: no property package of core covers an organomagnesium solution; core's semi-batch needs
 only the liquid molar volumes and heat capacities.
 
@@ -188,6 +189,13 @@ specific cake resistance of 5e9 m/kg (coarse metal fines), a medium resistance o
 viscosity of 2 mPa s (all ASSUMED): 0.93 h per batch. The cake (51.1 kg per batch: 25.6 kg of
 magnesium and 25.6 kg of solution) is blown with nitrogen and
 discharged wet into a quench drum; it is a waste (D-012).
+Hazard of the quench: the cake is killed with an alcohol and then water (lca.yaml). Each mol of
+magnesium gives one mol of hydrogen (Mg + 2 ROH or 2 H2O -> Mg(OR)2 or Mg(OH)2 + H2): 25.6 kg of
+magnesium is about 1.05 kmol, 2.1 kg or 24 Nm3 of hydrogen per batch (my arithmetic), with about
+0.075 kmol of methane from the MeMgBr in the cake's liquor (9 kg), and the quench's heat. The
+quench drum must be inerted with nitrogen and vented to a safe place (flammable gas, no air in
+the head space), and the alcohol and water dosed against the gas rate; its sizing and the vent's
+route are open inputs for basic engineering.
 Reason: the product is sold as a clear solution (SRC-1: no isolation); the excess magnesium must
 be removed before filling. Settling and decanting would leave more liquor with the magnesium; a
 filter is the conservative choice for the loss.
@@ -227,6 +235,17 @@ Reason: the heat release of 4.3 GJ per batch has to leave through the jacket; th
 was set by hand to the jacket's limit (L-10). Cooling water at 298 K would give only about 90 kW
 at the charge and a 14 h dosing. Reflux cooling of the boiling solvent (the plant's usual
 emergency and often normal heat sink) is not credited: core checks only a jacket or a coil.
+Heating medium above the MTT: the warm-up's hot water at 353.15 K (fed from LP steam at about
+412 K) lies 2 K above the MTT of 351.15 K (D-011), and an uninitiated 5 % initiation charge
+already reaches 349.5 K. A jacket left on hot water when the dosing starts, or a failed hot-water
+temperature control, can take the content past the MTT by itself, and with a starting reaction
+both heats add. Kept here at 353.15 K, with two safeguards recorded as open (next to the dosing
+interlocks of D-011): the heating isolated (steam to the hot-water loop shut, the jacket switched
+to brine) is a permissive for the dosing, and a high-temperature trip of the hot-water supply
+cuts the steam. Rejected for now: lowering the hot water to 343.15 K, below the MTT. It lengthens
+the warm-up from 0.19 to 0.25 h, the cycle to 9.06 h and the year to 873.9 batches (a scratch copy
+of `cheme process recipe`, not in the files), a choice for basic engineering together with the
+interlocks.
 
 ## D-011 Thermal screening: initiation and accumulation (2026-11-05)
 Result (`cheme process reactor-hazards`, core ADRs 0050 and 0054): adiabatic temperature rise of
@@ -260,10 +279,24 @@ follow and stay open for the next stage: the initiation charge must not exceed a
 uninitiated 5 % already takes the charge to 349.5 K), and the main dosing must be interlocked on
 a positive initiation signal and stopped on low heat flow, high temperature, loss of brine or of
 the agitator. Dissolved methyl bromide also lowers the liquor's boiling point, so the MTT is
-optimistic for an accumulating batch. Open: calorimetry (heat of reaction in 2-MeTHF with gas
-dosing, heat-flow profile, the induction time, TD24 of the solution and of the wet magnesium
-cake), the relief of R-101 for the boiling-solvent case, the vent's pressure case. Screening
-values only, not a reaction-hazard assessment.
+optimistic for an accumulating batch.
+Toxic gas release: what accumulates is dissolved methyl bromide, which boils at 276.55 K, 42 K
+below the process temperature. A cooling failure with accumulated dose therefore first drives the
+methyl bromide out of the liquor, before and with the solvent, through the vent or the relief.
+Methyl bromide is acutely toxic by inhalation (GHS H331 toxic if inhaled, notified by some
+suppliers as H330 fatal if inhaled; NIOSH IDLH 250 ppm, a potential occupational carcinogen;
+SRC-4) and is also classed as a flammable gas. The amounts at the worst moment (my arithmetic,
+accumulation x 1441 kg dosed per batch): about 9 kg at the base rate (0.615 %), 62 kg at k/10,
+about 300 kg at k/100 (21.1 %), and about 72 kg for an uninitiated 5 % initiation charge (99.8 %
+of 72 kg). The relief and vent case of R-101 is therefore not solvent vapour only: it must be
+sized for methyl bromide plus 2-MeTHF and routed to a containment or the thermal oxidiser, never
+to atmosphere, and the toxicity of methyl bromide is a HAZOP and consequence item (release
+from the vent, the relief, the vaporiser E-101 and the liquefied store).
+Open: calorimetry (heat of reaction in 2-MeTHF with gas dosing, heat-flow profile, the induction
+time, TD24 of the solution and of the wet magnesium cake), the relief of R-101 for the
+boiling-solvent case with its methyl bromide release and its routing, the vent's pressure case,
+the toxic-release consequence of methyl bromide, the heating-medium safeguards of D-010.
+Screening values only, not a reaction-hazard assessment.
 
 ## D-012 Preliminary gate-to-gate LCI (2026-11-05)
 Decision: `cheme assess lca --write` per kg of the 35 wt% solution from the flowsheet's year
@@ -377,6 +410,8 @@ the thermal oxidiser and the filling station.
 Kinetics, induction time and heat of reaction in 2-MeTHF with gas dosing (calorimetry, in-situ
 IR); TD24 of the solution and of the wet magnesium cake; methyl bromide's solubility in 2-MeTHF
 and the real slip to the vent; the Wurtz selectivity; R-101's cooling arrangement and U (D-010)
-and its relief for the boiling-solvent case; the filter cake's resistance and liquor (D-007); a
+and its relief for the boiling-solvent case, sized and routed for the methyl bromide it releases
+(D-011); the heating-medium safeguards or a hot water below the MTT (D-010); the quench drum's
+inerting and hydrogen vent (D-007); the filter cake's resistance and liquor (D-007); a
 magnesium heel as an alternative (D-007); the product specification beyond the assay; the
 oxidiser and scrubber; a TEA (`operation.batch: {recipe: true}`).
