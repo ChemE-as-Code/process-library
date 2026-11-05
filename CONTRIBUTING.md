@@ -72,6 +72,17 @@ the slugs other processes already use:
 Start one with `cheme init`, then add P&IDs, the process YAML, the layout and the LCA. The
 catalog derives its sheets, gates, design basis and LCA results.
 
+#### A batch process
+
+A batch or semi-batch process folder describes one dedicated train (campaigns on a
+multipurpose plant are out of scope; [ADR 0035](docs/adr/0035-batch-processes-on-a-dedicated-train.md)).
+A Tier 2 batch entry states its batch size and recipe in `process/recipe.yaml` (`cheme process
+recipe`), and its flowsheet holds the recipe's year averages, with no `cheme.recipe-basis`
+warning. A dosed exothermic step is `reactor: semibatch`, so that `cheme process
+reactor-hazards` screens its accumulation. Cleaning, rinses and purges between its own batches
+are streams at their year-average rate (per-batch amount x batches / hours, the arithmetic in
+the `source`); changeovers between products are outside the boundary.
+
 #### A balance script whose numbers go into the flowsheet
 
 When core cannot calculate the flowsheet yet, a standalone script
