@@ -401,8 +401,10 @@ def draw(sheet: Sheet, skid: str) -> None:
             at=(30.0, 40.0),
             scale=0.8,
             label_at=(30.0, 42.0),
+            # N4: the breather on the roof, so the weekly fill does not pressurise the tank and
+            # the dosing pump does not pull a vacuum on it (an atmospheric tank, as T-x01)
             nozzles=[Nozzle("N1", (0, -10), DN_SMALL), Nozzle("N2", (0, 10), DN_SMALL),
-                     Nozzle("N3", (8, 0), None)],
+                     Nozzle("N3", (8, 0), None), Nozzle("N4", (-5, -8), DN_SMALL)],
         )
         doser = equipment(
             sheet,
@@ -418,7 +420,12 @@ def draw(sheet: Sheet, skid: str) -> None:
                             note_at=(44.0, 10.0)),
                     valve(vid("HV", 5), "BallValve", at=(30.0, 23.0), tag=t("HV", 5)),
                     day["N1"]],
-             label_at=(16.0, 22.0))
+             label_at=(40.0, 22.0))
+        line(sheet, t("KV", 2), dn=DN_SMALL, fluid="Air",
+             route=[day["N4"], (12.0, day["N4"].xy[1]),
+                    offpage("out", at=(12.0, 18.0), note="to atmosphere",
+                            note_at=(14.5, 9.5))],
+             label_at=(19.0, 26.0))
         line(sheet, t("KOH", 3), dn=DN_SMALL, fluid="KOH solution",
              route=[day["N2"], doser["N1"]], label_at=(42.0, 56.0))
         line(sheet, t("KOH", 4), dn=DN_SMALL, fluid="KOH solution",
