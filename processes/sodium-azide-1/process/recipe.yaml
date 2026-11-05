@@ -1,0 +1,68 @@
+# The batch recipe of sodium-azide-1 (schema cheme/recipe/v1, `cheme process recipe`, DESIGN.md
+# D-003). One batch makes 1027.6 kg of dried NaN3 (stream S26); the flowsheet's rates are the year
+# averages. One unit procedure per vessel, each over the flowsheet steps it holds (`units:`, core
+# ADR 0057). R-102 absorbs the methyl nitrite while R-101 makes it: AZIDE starts with GENERATE's
+# charge, and both dose over the same 10 h (D-010). The dosing and post-reaction times come from
+# the semi-batch models (from: R101, R102), the distillation from the still (from: ST101), the
+# filtrations (Ruth) and the drying from F101, F102 and D101; every other duration is ASSUMED.
+# R-101 and R-102 are sized from their models' content and their jackets checked against the
+# models' peak cooling duty (core ADR 0052); F-101 from the slurry and the cake (ADR 0057).
+# `cheme process recipe --svg build/gantt.svg` draws one batch.
+schema: cheme/recipe/v1
+kind: recipe
+title: Sodium azide by the hydrazine / methyl nitrite route
+batch_size: {value: 1027.6, unit: kg, stream: S26, provenance: assumed, source: "one batch of dried NaN3 (D-002, D-003)"}
+hours_per_year: {value: 7920, provenance: assumed, source: "330 days of 24 h (D-002)"}
+unit_procedures:
+  - id: GENERATE
+    units: [M101, R101]
+    title: Methyl nitrite generation (R-101)
+    vessel:
+      fill_fraction: 0.8
+      aspect_ratio: 1.2
+      jacket: {u: 400, coolant_temperature: 280.65, provenance: assumed, source: "D-010"}
+      provenance: assumed
+      source: "D-003"
+    operations:
+      - {id: charge, kind: charge, title: "Charge nitrite, water and recovered methanol", duration: {value: 1.0, provenance: assumed, source: D-003}}
+      - {id: dose, kind: dose, title: Dose sulfuric acid; methyl nitrite gas to R-102, from: R101}
+      - {id: react, kind: react, title: Post-reaction, from: R101}
+      - {id: transfer, kind: transfer, title: Drain the sulfate liquor, duration: {value: 0.5, provenance: assumed, source: D-003}}
+  - id: AZIDE
+    units: [M102, R102]
+    title: Azide reaction (R-102)
+    start: {after: GENERATE, operation: charge}
+    vessel:
+      fill_fraction: 0.8
+      aspect_ratio: 1.2
+      jacket: {u: 400, coolant_temperature: 280.65, provenance: assumed, source: "D-010"}
+      provenance: assumed
+      source: "D-003"
+    operations:
+      - {id: charge, kind: charge, title: "Charge hydrazine hydrate, caustic, water and the recycled mother liquor", duration: {value: 1.0, provenance: assumed, source: D-003}}
+      - {id: dose, kind: dose, title: Absorb the methyl nitrite, from: R102}
+      - {id: react, kind: react, title: Post-reaction, from: R102}
+      - {id: transfer, kind: transfer, title: Transfer the liquor to C-101, duration: {value: 0.5, provenance: assumed, source: D-003}}
+  - id: CONCENTRATE
+    units: [ST101, X102, CR101]
+    title: Methanol strip, concentration and precipitation (C-101)
+    operations:
+      - {id: receive, kind: charge, title: Receive the liquor, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: distil, kind: distil, title: "Strip methanol, then concentrate under vacuum", from: ST101}
+      - {id: cool, kind: cool, title: Cool to 303 K and crystallise, duration: {value: 2.0, provenance: assumed, source: D-003}}
+      - {id: transfer, kind: transfer, title: Slurry to the filter-dryer, duration: {value: 0.5, provenance: assumed, source: D-003}}
+  - id: ISOLATE
+    units: [F101, W101, F102, D101]
+    title: Filter, wash and dry (F-101)
+    vessel:
+      fill_fraction: 0.8
+      aspect_ratio: 0.8
+      provenance: assumed
+      source: "an agitated filter-dryer, sized from the slurry and the cake (D-009)"
+    operations:
+      - {id: charge, kind: charge, title: Receive the slurry, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: filter, kind: filter, title: Filter off the mother liquor, from: F101}
+      - {id: wash, kind: other, title: Reslurry the cake in methanol, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: filter2, kind: filter, title: Filter off the wash, from: F102}
+      - {id: dry, kind: dry, title: Vacuum-dry at 333 K, from: D101}
+      - {id: discharge, kind: transfer, title: Cool and discharge to packing, duration: {value: 1.0, provenance: assumed, source: D-003}}
