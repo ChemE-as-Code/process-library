@@ -202,6 +202,7 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 91 | `carbon-monoxide-co2-electrolysis` | Carbon monoxide by CO2 electrolysis | electrolysis | n/a, to be sourced | n/a | rbpm-mea | - | 2 | co2-electrolysis-bpm-1 (T2) |
 | 92 | `n-bromosuccinimide` | N-Bromosuccinimide | nitrogen-organics | n/a, to be sourced | n/a | - | - | 2 | n-bromosuccinimide-1 (T2) |
 | 93 | `phosphorus-tribromide` | Phosphorus tribromide | inorganic-chemicals | n/a, to be sourced | n/a | - | - | 2 | phosphorus-tribromide-1 (T2) |
+| 94 | `benzoyl-chloride` | Benzoyl chloride | chlorinated-organics | n/a, to be sourced | n/a | - | - | 2 | benzoyl-chloride-1 (T2) |
 
 Volume sources (ids as in `coverage.yaml` `sources:`): `usgs-mcs-2024` U.S. Geological Survey,
 Mineral Commodity Summaries 2024; `iea-ammonia-2021` IEA, Ammonia Technology Roadmap (2021);

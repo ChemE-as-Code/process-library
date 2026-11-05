@@ -1,0 +1,41 @@
+# Benchmarks of chlorinated organics. Schema: schemas/benchmarks.schema.json; rules:
+# docs/benchmarks.md. Ranges are facts from the cited source, in our own form.
+#
+# Benzoyl chloride (benzoyl-chloride-1, #156): the one open source with yields is US 4 276 231 A,
+# whose description states 96-98 % of theory for its process (batch and continuous, with and
+# without the bottoms recycle). Converted to the benzotrichloride per kg of benzoyl chloride (two
+# per mol in the benzoic acid variant) it is a range. It is not independent of the dataset: the
+# dataset takes its feed ratios and conditions from the same patent's Example 1, but its yield
+# comes from its own still and column (DESIGN.md D-007, D-008), so the range checks that result.
+# The stoichiometric floor of the benzotrichloride, 0.695 kg/kg, is a limit, not a range.
+schema: cheme-as-code/benchmarks/v1
+family: chlorinated-organics
+
+kpis:
+  bzcl-specific-benzotrichloride:
+    title: Benzotrichloride consumption per kg of benzoyl chloride (benzoic acid variant)
+    unit: kg/kg
+    references:
+      - id: us4276231-yield-btc
+        range: [0.7095, 0.7243]
+        basis: unallocated
+        note: "The patent's 96-98 % of theory converted at 2 mol of benzoyl chloride per mol of benzotrichloride (C7H5Cl3 + C7H6O2 -> 2 C7H5ClO + HCl): 195.467 / (2 x 140.566) = 0.6953 kg/kg at 100 %, divided by 0.98 and 0.96. The patent's yields include its water variant and runs with the bottoms re-reacted; its batch Example 1 without the recycle gives 96.7 % (0.719 kg/kg). Not independent of benzoyl-chloride-1, which takes its feed ratios from the same patent."
+        conditions: {technology: "benzotrichloride partly hydrolysed with benzoic acid and/or water over a Lewis-acid or protic catalyst, 120-160 C, vacuum distillation; batch and continuous", region: DE, year: 1981}
+        source:
+          citation: "Bockmann, W.; Lipper, K.-A.; Bruhne, F. (Bayer AG) (1981) Process for preparing optionally substituted benzoyl chloride. US Patent 4,276,231 A"
+          url: https://patents.google.com/patent/US4276231A/en
+          locator: "Description (yields and purity of the process) and Example 1"
+          kind: other
+          accessed: "2026-11-05"
+  bzcl-specific-residue:
+    title: Distillation residue per kg of benzoyl chloride
+    unit: kg/kg
+    no_open_reference: "No open source with the residue of a benzoyl chloride distillation on the benzoic acid route without recycle found (searched 2026-11-05: Google Patents US 4 276 231 A read; its Example 1 gives no bottoms mass, its Example 2, the water variant, 210 g of bottoms on 3255 g of product before they are re-reacted, one value on other conditions; NIST WebBook and PubChem have no plant data)."
+
+datasets:
+  - process: benzoyl-chloride-1
+    dataset: benzoyl-chloride-by-semi-batch-reaction-of-benzotrichloride-with-benzoic-acid-and-batch-vacuum-distillation-2000-t-a
+    conditions: {technology: "benzotrichloride dosed into molten benzoic acid with ZnCl2 at 140 C (semi-batch), HCl vent to absorption, batch vacuum distillation at 50 mbar, residue not recycled", basis: "concept balance, the patent's Example 1 ratios and ASSUMED kinetics, still end and column split (DESIGN.md D-004, D-007, D-008)"}
+    kpis:
+      bzcl-specific-benzotrichloride: {expression: feed:BTC / product:BZCL, per: product:BZCL, reference: us4276231-yield-btc}
+      bzcl-specific-residue: {expression: product:RES / product:BZCL, per: product:BZCL}

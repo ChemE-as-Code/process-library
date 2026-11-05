@@ -1,0 +1,46 @@
+# The batch recipe of benzoyl-chloride-1 (schema cheme/recipe/v1, `cheme process recipe`,
+# DESIGN.md D-003). One batch makes 1229.47 kg of distilled benzoyl chloride (stream S11); the
+# flowsheet's rates are the year averages. The dosing and the post-reaction (to 0.999
+# conversion of the benzotrichloride) take their times from R101's semi-batch model (from:
+# R101), the distillation its boil-up time from the still ST101 (from: ST101); every other
+# duration is ASSUMED (D-003). R101's vessel is sized from its model's content and its jacket
+# checked against the model's peak cooling duty (core ADR 0052). The absorber A-101 runs while
+# R-101 doses and is no batch unit. `cheme process recipe --svg build/gantt.svg` draws one batch.
+schema: cheme/recipe/v1
+kind: recipe
+title: Benzoyl chloride by semi-batch reaction of benzotrichloride with benzoic acid
+batch_size: {value: 1229.47, unit: kg, stream: S11, provenance: assumed, source: "one batch of distilled benzoyl chloride: 2000 t/a over the 1626.7 batches the 4.869 h cycle allows (D-002, D-003)"}
+hours_per_year: {value: 7920, provenance: assumed, source: "330 days of 24 h (D-002)"}
+unit_procedures:
+  - id: MELT
+    unit: M101
+    title: Benzoic acid melted with the catalyst (M-101)
+    operations:
+      - {id: charge, kind: charge, title: Benzoic acid flakes and zinc chloride, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: melt, kind: heat, title: Melt and heat to 413 K on MP steam, duration: {value: 2.0, provenance: assumed, source: "D-003, D-009: the melter's heat, Q1 x the cycle, over 2 h"}}
+      - {id: transfer, kind: transfer, title: Melt to the reactor, duration: {value: 0.5, provenance: assumed, source: D-003}}
+  - id: REACT
+    unit: R101
+    title: Semi-batch reaction with the HCl off-gas to the absorber (R-101)
+    vessel:
+      fill_fraction: 0.8
+      aspect_ratio: 1.2
+      jacket: {u: 300, coolant_temperature: 363.15, provenance: assumed, source: "enamelled (glass-lined) steel vessel, a pressurised tempered-water loop at 363 K in the jacket (D-009)"}
+      provenance: assumed
+      source: "usual fill and proportions of a glass-lined stirred vessel (D-003)"
+    operations:
+      - {id: inert, kind: other, title: Nitrogen purge of the vapour space, duration: {value: 0.25, provenance: assumed, source: D-003}}
+      - {id: receive, kind: charge, title: Receive the melt, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: dose, kind: dose, title: Dose the benzotrichloride, from: R101}
+      - {id: react, kind: react, title: Post-reaction, from: R101}
+      - {id: hold, kind: hold, title: "Sample the crude (benzotrichloride, acid)", duration: {value: 0.25, provenance: assumed, source: D-003}}
+      - {id: transfer, kind: transfer, title: Crude to the still, duration: {value: 0.5, provenance: assumed, source: D-003}}
+  - id: DISTIL
+    units: [ST101, K101, M102]
+    title: Vacuum distillation at 5 kPa(a) in the still with its column (C-101, K-101)
+    operations:
+      - {id: receive, kind: charge, title: Receive the crude, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: evacuate, kind: other, title: Evacuate to 5 kPa(a), duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: distil, kind: distil, title: Distil benzoyl chloride off the residue, from: ST101}
+      - {id: cool, kind: cool, title: Cool and break the vacuum with nitrogen, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: drain, kind: transfer, title: Drain the residue warm to the waste drum, duration: {value: 0.5, provenance: assumed, source: D-003}}
