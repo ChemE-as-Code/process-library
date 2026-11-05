@@ -42,8 +42,14 @@ The pilot skids of #330 (DESIGN.md D-007 to D-023):
   the equipment list (before step 10), `cheme assess mto --write` and `cheme layout lifting
   --write` with the unit lifts of `layout/lifting-study-units.*` (before step 13's validate);
   their totals and lifts go into the record at both durations.
+  Step 24 (DESIGN.md D-045): the model of step 10 holds the trays and cables of
+  `electrical/electrical-list.yaml` and `tray-rules.yaml` (hand-authored, hashed inputs);
+  `cheme layout cables --write` writes `electrical/cable-schedule.csv` and `.md` (compared by
+  `--check`), its summary goes into the record (`cabling`), and step 13 reports the trays over
+  each frame above the envelope and any level run under the walkway headroom.
 - `_lifting.py`: steps 21 and 23, the item weights and the unit lifts (each skid as a 20 ft
-  unit, T-101 drained and full) with core's lifting criteria and arithmetic on the model.
+  unit, T-101 drained and full) with core's lifting criteria and arithmetic on the model; the
+  cable tray runs over a skid's frame are taken off before its unit lift (D-045).
 - `_results.py`: the arithmetic of steps 14 to 17 (invariants, record, resize report) and the
   uncertainty figures, plain SVG; no core import.
 - `_lca.py`: regen step 20, the LCA of both skids (#331, DESIGN.md D-024 to D-027): the values

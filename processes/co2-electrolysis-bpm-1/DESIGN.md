@@ -1463,8 +1463,8 @@ How to read it:
   0.148 t and the rack ladders 0.103 t.
 - **What it leaves out**: the 42 DN 15 lines (skipped, D-019), the hose couplings, small-bore
   vents, drains and instrument connections, the in-line items on DN 15 lines (control valves
-  among them), olets, supports beyond the one generated shoe, cable and trays (no electrical
-  list yet), the packages' own internals and all concrete (the skids stand on the plot without
+  among them), olets, supports beyond the one generated shoe, cable and trays (core's take-off
+  counts neither; the cables and trays are D-045's), the packages' own internals and all concrete (the skids stand on the plot without
   modelled foundations). The 48 flanges are core's count at the valves and the piped nozzles.
 
 No estimate: `estimate/rates.yaml` is still core's example (`example: true`, currency XXX) and
@@ -1478,3 +1478,92 @@ and `estimate-current` requirements.
 
 Assumptions: the take-off's quantities are the model's (ASSUMED sections and outlines, D-019,
 D-040); none added here.
+
+## D-045 Electrical: the electrical list, tray rules, cables in trays, the 48 V DC bus, the Ex assumption (2026-11-05)
+Decision: `electrical/electrical-list.yaml` and `electrical/tray-rules.yaml` (hand-authored,
+hashed regen inputs) give the plant's cabling to `cheme layout build` (regen step 10); regen
+step 24 writes the cable schedule `electrical/cable-schedule.csv` and `.md` with `cheme layout
+cables --write` and puts its summary into the record (`cabling`). The gate `electrical`
+(`model-current`, `cables`, `trays`) passes. All values ASSUMED (no electrical load list, no
+vendor data, no host-site standard).
+- **Rooms**: the host site's 400 V board `SDB-1` and control room `CR-1`, off the notional plot
+  east of PR-1 (`point`s, no building: the plot has none, D-019), the cables along PR-1 from its
+  east end like the site tie-ins.
+- **Loads**: seven motors (P-x01 0.18 kW, K-x31 0.37 kW, K-x41 0.25 kW, P-202 0.12 kW: the next
+  IEC size above the flowsheet's estimates Q102/Q103, or assumed where nothing is sized; no
+  datasheet gives a rating); AC feeders U-x01 3.2 kW (Q101, power factor 0.95), X-x31 0.1 kW
+  (Q104, 0.8), X-x32 0.5 kW (no flowsheet power: fan, igniter, burner management, 0.8). No heater
+  exists (TIC-x11 only cools, D-032). Cable entries beside P-x01 (west) and K-x41 (south), so
+  no tray drops into a stack's carry lane (D-042).
+- **48 V DC bus, its own cable class**: one radial cable per stack (8) from its own DC output
+  on the rectifier (overcurrent protection per stack in the cabinet, the HAZOP's D-031 item 9),
+  rated 20 A (the stack current) at the 48 V bus rating. Core 1.5.0 has no DC class, so it is
+  expressed with what core has: each output is a room of kind `mcc` at 48 V (`DC-x01A` to `D`,
+  at the cabinet top 3.1 m, 0.25 m apart on the router grid); each stack is a feeder at 48 V
+  with `power_kw` 0.96 (48 V x 20 A) and `power_factor` 0.57735 = 1/sqrt(3), which turns core's
+  three-phase current P / (sqrt(3) U pf) into the DC current P / U = 20 A (it is no power
+  factor); `rack_reach_m` 5.1 m reaches every AC load (the farthest terminal 4.95 m from PR-1)
+  but not the DC outputs (5.25 m), so core feeds the DC cables directly from the rectifier
+  ("no rack in reach" in the schedule) and they never share the rack's AC power tray. Each DC
+  cable has a tray of its own (core gives every branch its own tray; on a real skid the four
+  would share one). The size core prints, 4C x 2.5 mm2 of its 0.6/1 kV AC table, is a tray-fill
+  placeholder: a DC cable is two-core or two single cores, and at 48 V the voltage drop governs
+  (2 x 10 m x 7.41 ohm/km x 20 A is about 3 V, 6 %, at 2.5 mm2): the size is the electrical
+  design's.
+- **Instruments**: 39 field devices (17 on JB-101, 22 on JB-201), each a single-pair field
+  cable; 14 placed from what their P&ID functions measure, 25 by points in the list: the
+  actuated valves and transmitters on the DN 15 lines (skipped in the routing, D-019, so the
+  model places neither their segments nor their in-line valves), the CO and H2 detectors
+  (locations open with the gas detection study, D-031 item 5) and JIC-x01, the rectifier's
+  current signal and run/trip command. One junction box per skid on the frame's south edge west
+  of the stack row (0.8 m, outside the zone 2, the stacks' carry lanes and below the rail
+  T-101 is lifted over), a 24-pair and a 36-pair home run to CR-1 along PR-1's instrument lane.
+- **Trays**: PR-1 carries no modelled pipe, so the trays use its 2.8 m tier: tier 2.85 m (core
+  checks a tray as a capsule of half its width round its bottom centreline, so a tray resting
+  on the beam at 2.8 m reads as a clash: 2.85 m is the lowest tier that does not; core then
+  generates a 50 mm column stub and a second HEB200 beam per bent overlapping the rack's own, a
+  model artefact core's take-off does not count); branches at 2.5 m or higher; router grid
+  0.25 m. Every tray is 100 mm wide (fill 2 % to 23 %), power and instrument trays keep 0.3 m,
+  no tray-fill, -separation, -voltage, -span or clash finding.
+
+Results at 1,000 h: 62 cables (21 power: 7 motors, 6 AC feeders, 8 DC; 41 instrument: 39 field,
+2 multipair), 0 without a cable, 0 unrouted, 40 trays 182.0 m, cable 731 m (436 m of power
+cable, 81 m of it DC; 295 m instrument). At 10,000 h (scratch): 62 cables, 739 m; the grown
+T-101 now meets the cabling too: IT-JB-101 runs through T-101's shell (JB-101 stands in the
+grown tank) and PT-M-P-101 through AN-101 (reported in the record, not fixed).
+
+Ex assumption (ASSUMED; no certification is claimed): the electrical items in each skid's zone 2
+(the motors of P-x01, K-x31, K-x41, the PSA package X-x31, the stacks' DC terminals, the
+transmitters, valves and gas detectors there) are of equipment group II, gas group IIC (H2),
+category 3G, and the cables entering the zone are armoured with glands certified for it; the
+rectifiers and the junction boxes stand outside the zone. The 12 trays that drop into the zone
+to a load in it (`layout-tray-zone`: the K-x31 and K-x41 branches and the eight DC trays; the
+PSA's tray ends 1.5 m above its zone source, over the package top) are accepted in `checks/checks.yaml` with that assumption. The Ex rating stays the
+owner's open decision of #330 (D-031 item 12) with the area classification; the oxidiser X-x32
+is a flame and cannot be Ex-rated (D-031 item 14).
+
+What the trays change in the layout (regen steps 13 and 23):
+- The trays over the frames run at 2.5 to 3.95 m, above the 2.35 m envelope: like the vent
+  risers they are site-fitted (11 on Skid A, 12 on Skid B, reported by step 13, not counted in
+  the envelope). Two DC trays leave a frame's edge by up to 0.1 m (east) and 0.06 m (north),
+  and IT-JB-201's last 0.25 m to its box runs at 2.1 m at the frame's south edge.
+- The stacks' hand lift (D-042) passes under what hangs over its lane above the envelope top
+  (the trays); the carry height stays 1.125 m above the deck and every lift column is clear.
+- A skid's unit lift takes the tray runs over its frame off first (their cables disconnected
+  at the frame edge); the runs between PR-1 and the frame and the trays on the rack stay, so
+  the lift height over PR-1 rises from 3.3 to 3.95 m and the hook height to 10.395 m (Skid A)
+  and 10.384 m (Skid B); both lanes stay clear. T-101's drained carry stays 1.775 m.
+
+Rejected: a building or container for an electrical room on the plot (no basis for one on a
+notional plot, and it would change the plot plan, the lifting lanes and the take-off); the DC
+cables as ordinary 400 V feeders (they would run on the rack's AC tray); `power_trays` classes
+for the DC bus (core's classes are by the 1 kV LV/HV limit: 48 V and 400 V are both `lv`); one
+DC cable per skid to a DC box at the stack row (the per-stack protection would stand in the
+zone 2).
+
+Open (for the electrical engineer, with the HAZOP actions): the load list and every rating;
+cable sizing (voltage drop at 48 V first), protection, earthing, the DC bus design and
+isolation (D-031 items 9 and 17), the UPS (item 7); the skid's own cabling, which a fabricator
+runs inside the frame or under the deck within the envelope (core routes every branch at
+`branch_elevation_m` and cannot run a tray under a deck); the host site's real supply point and
+control room; the junction boxes' and detectors' final locations.
