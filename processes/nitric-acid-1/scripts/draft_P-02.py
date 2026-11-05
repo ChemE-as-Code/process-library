@@ -53,7 +53,7 @@ m101 = equipment(sheet, "StaticMixer", "M-101", shape="STATIC_MIXER_SHAPE", at=(
                  label_at=(165, 170))
 r101 = equipment(sheet, "Vessel", "R-101", shape=DRUM, at=(250, 150), scale=(1.2, 1.6),
                  nozzles=[Nozzle("N1", (0, -24), 1000), Nozzle("N2", (0, 24), 1400),
-                          Nozzle("N3", (12, -15), 50), Nozzle("N4", (-12, 15), 50)],
+                          Nozzle("N3", (12, -15), 50), Nozzle("N4", (-12, 5), 50)],
                  label_at=(268, 178))
 e102 = equipment(sheet, "TubularHeatExchanger", "E-102", shape=HX, at=(300, GAS), scale=1.4,
                  nozzles=[Nozzle("T1", (-24.5, 0), 1400), Nozzle("T2", (24.5, 0), 1400),
@@ -93,7 +93,7 @@ psv215 = valve("PSV215", "GlobeValve", tag="PSV-215", at=(315, 60))
 line(sheet, "HS-206", dn=150, fluid="HP steam", route=[
     psv_tee.branch, psv215, (335, 60),
     offpage("out", at=(335, TOP), note="to atmosphere (silencer)", rotation=270,
-            note_at=(360, 12))], labels=False)
+            note_at=(360, 12))], label_at=(318, 68))
 line(sheet, "BW-313", dn=100, fluid="Boiler feed water", route=[
     offpage("in", at=(309.8, BOTTOM), note="BFW from E-104, P-03", rotation=270,
             note_at=(335, 252)),
@@ -112,7 +112,7 @@ instrument(sheet, "FZ-206", at=(55, 125), sensing="Line_PA105_S1", sensing_at=(5
            signal_to="Inst_US209")
 instrument(sheet, "TZ-207", at=(190, 90), sensing=r101["N3"],
            sensing_points=[(275, 135), (275, 90)], signal_to=xv204, fail_action="FC")
-instrument(sheet, "TI-208", at=(225, 185), sensing=r101["N4"])
+instrument(sheet, "TI-208", at=(222, 155), sensing=r101["N4"])
 instrument(sheet, "AI-210", at=(190, 170), sensing="Line_AM201_S1", sensing_at=(190, AIR))
 instrument(sheet, "PI-211", at=(228, 128), sensing="Line_AM201_S1", sensing_at=(228, 110),
            location="field")
@@ -131,7 +131,7 @@ note(sheet, "Burner trips (C&E I-201 to I-204): US-209 closes XV-203, TZ-207 clo
 note(sheet, "R-101 and E-102 in one vessel (vendor); ignition burner and start-up purge: "
      "SEQ-START-BURNER. E-102 steam drum, circulation and BFW level control: boiler package (D-020)",
      at=(20, 269))
-note(sheet, "R-101 / E-102 process side protected by PSV-111 (P-01): no isolation valve from K-101 "
-     "to K-102. " + TRAIN.split(";")[0], at=(20, 276))
+note(sheet, "Relief: air side to the gauze PSV-111 (P-01); nitrous gas side from the gauze to K-102, "
+     "incl. E-102 tube rupture, PSV-316 (P-03), D-021. " + TRAIN.split(";")[0], at=(20, 276))
 
 save(sheet, target)

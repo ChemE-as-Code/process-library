@@ -82,7 +82,7 @@ psv404 = valve("PSV404", "GlobeValve", tag="PSV-404", at=(146, 80))
 line(sheet, "RL-405", dn=300, fluid="Nitrous gas", route=[
     relief.branch, psv404,
     offpage("out", at=(146, TOP), note="to NOx vent stack", rotation=270, note_at=(128, 12))],
-    labels=False)
+    label_at=(134, 55))
 make_safety_valve(sheet, "PSV404", label_at=(158, 80))
 
 # ---- E-106 hot side -> E-107 -> C-101 (P-05)

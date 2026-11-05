@@ -490,8 +490,9 @@ Decision:
 - The weak-acid pump is spared: P-101A (the PFD's P-101) and P-101B, one running.
 - Relief (`piping/special-items.yaml`): one valve per pressure system, set at the lowest design
   pressure of the system (D-013), ASSUMED until the MAWPs are known: PSV-105 on the evaporator
-  (17 barg, to the ammonia relief header), PSV-111 on the K-101 discharge for the whole low-pressure
-  system from K-101 to the K-102 suction including C-102 (6 barg, air to atmosphere), PSV-404 on the
+  (17 barg, to the ammonia relief header), PSV-111 on the K-101 discharge for the air side of the
+  low-pressure system up to the gauze (6 barg, air to atmosphere; narrowed by D-021, which adds
+  PSV-316 for the nitrous gas side and PSV-616 for E-108), PSV-404 on the
   K-102 discharge for the whole high-pressure system to the X-101 inlet (12 barg, nitrous gas to a
   NOx vent stack, never to grade), PSV-215 on the HP steam (44 barg). These systems have no
   isolation valve inside them other than check valves and the trip valves at their ends. The
@@ -544,15 +545,52 @@ hot nitrous gas around E-103 (an alloy valve at 793 K).
 Decision: the E-102 steam side is a boiler package (steam drum, circulation, BFW level control,
 drum and superheater relief); the sheets show its interfaces (BFW from E-104, HP steam to export,
 PSV-215). The chilled-water loop between the C-101 upper coils and the E-101 tubes (D-011) has its
-circulation pump and expansion in a chilled-water package, not drawn; its lines CHS-111/CHR-112 run
-C-101 -> E-101 -> C-101. C-101 coil connections are ASSUMED: cooling water on the lower trays
+circulation pump and expansion in a chilled-water package, not drawn; the cold supply CHS-111 runs
+E-101 -> C-101 coils and the warm return CHR-112 C-101 coils -> E-101 (codes as corrected by D-021). C-101 coil connections are ASSUMED: cooling water on the lower trays
 (CWS-506/CWR-507), chilled water on the upper trays. The C-102 acid cooling (Q10, 1.6 MW) has no
 exchanger in the equipment list yet and is not drawn. A heat source for E-101 at start-up, before
 the absorber makes heat, is open.
 Reason: keep the first issue to the equipment of the PFD; packages and utilities come with their
 vendors (S2-type open inputs).
 
+## D-021 Corrections from the engineering review of PR #368 (2026-11-05)
+Decision (all PROPOSED; drawn on the sheets unless said deferred):
+1. Start-up air path (SEQ-START-BURNER). With no expander bypass the only path from K-101 to the
+   stack runs through X-101, so step S1 now opens XV-610 and puts PIC-611 in auto at a reduced
+   absorber pressure (600 kPa(a), ASSUMED) before the air is raised, and UIC-401 in auto is a
+   permissive. An expander bypass (start-up, expander trip, holding the absorber pressure) is
+   deferred to the train vendor: open point O-9.
+2. E-108 relief and temperature. PSV-616 (17 barg, to the ammonia relief header) on NV-601
+   upstream of XV-602 for a blocked outlet with LP steam on and for fire; E-108 design temperature
+   raised from 75 to 175 degC (LP steam saturated at about 148 degC + 25 K, ASSUMED). A steam
+   shutoff on I-601/I-602 is deferred, not added: TV-604 is a control valve (no trip acts on a
+   control valve, D-019) and a separate steam block valve with its own trip is for the HAZOP to
+   decide against the PSV (O-9).
+3. Relief of the low-pressure system. The cases are listed per device in
+   `piping/special-items.yaml`. PSV-111 keeps only the air side to the gauze (blocked outlet of
+   K-101). PSV-316 (6 barg, NX-304 on P-03, to the NOx vent stack) protects the nitrous gas side
+   from the gauze to the K-102 suction, C-102 included through BG-503, against: E-102 tube rupture
+   (44 barg steam side against 6 barg, the 10/13 rule is not met, so it is credible), E-104 tube
+   rupture (BFW 44 barg), E-103 tube leak (12 barg tail gas, 12 > 6 x 13/10), gas blow-by from
+   C-101 into C-102 (I-501 is the trip, PSV-316 the relief), back flow from the HP system past a
+   passing CV401 on a K-102 trip, and fire on V-101. No relief is counted through the gauze or a
+   control valve. Whether the E-102 rupture needs a second device close to E-102 (rupture
+   dynamics) and the loads are for the relief study (O-8).
+4. Chilled-water codes corrected: CHS-111 is the cold supply E-101 -> C-101 coils, CHR-112 the
+   warm return C-101 coils -> E-101 (through PV-104); sheets, lists and connector texts follow.
+5. Every drawn line carries its number and DN label; the P-06 connector of NL-103 names its
+   source (storage via P-01).
+6. Low findings: I-301 and I-601 latch with manual reset like every other trip; the measuring
+   lines of PI-503, LIC-510 and TI-208 leave their vessels level with the bubble; P-101A/B
+   discharge from the side nozzle of the pump symbol; title blocks give 6 sheets and one plant
+   section name per PFD block. Thermal relief of liquid ammonia blocked in between fail-closed
+   valves (NL-101 between XV-101 and LV-102; NL-103 between the P-01 battery limit and E-108) is
+   deferred to the relief study and the HAZOP (O-8, O-9), not drawn.
+Reason: findings of the independent review of PR #368, each reproduced by two reviewers.
+
 ## Open inputs
+- O-8 (relief study): loads and orifices of all PSVs; the governing case of PSV-316 (E-102 tube rupture) and whether it needs a device close to E-102; K-101 shut-off pressure against the 6 barg set of PSV-111; thermal relief of blocked-in liquid NH3 (NL-101 between XV-101 and LV-102, NL-103) (D-021).
+- O-9 (HAZOP / vendors): expander bypass for start-up and expander trip (train vendor); X-101 on cold air during SEQ-START-BURNER S1; LP steam shutoff to E-108 on I-601/I-602 against PSV-616; sensor voting and SIL of I-101 to I-602 (D-019, D-021).
 - O-7: lower flammability limit of NH3 in air (and with the water vapour of the feed) at the burner inlet conditions, 520 kPa(a) and 462 K, with its source: the trip point of I-201 and the clamp of FFIC-201 (D-019).
 - O-1: check D-005, D-008, D-011 against the BREF consumption and emission ranges (S2 sections 3.3, 3.4) with exact locators: NH3 per t HNO3 (here 0.285 t/t), steam export, power, cooling water, tail-gas NOx.
 - O-2: a sourced NO selectivity for medium-pressure gauzes (with catalyst age), replacing 0.955.

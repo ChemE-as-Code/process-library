@@ -52,7 +52,7 @@ failures:
 unresolved:
   - "Ignition burner of R-101 and its fuel (hydrogen torch), and the purge volume of SEQ-START-BURNER: vendor (D-019)"
   - "Flammability limit of NH3 in air at 520 kPa(a) and 462 K for the I-201 trip point (open input O-7)"
-  - "Expander bypass for start-up and on an expander trip (D-018)"
+  - "Expander bypass for start-up and on an expander trip; until then SEQ-START-BURNER starts through X-101 (D-018, D-021, O-9)"
 ---
 
 # Control philosophy
@@ -75,8 +75,8 @@ pressure levels intact (OBJ-6).
 
 Regulatory control (15 loops) holds the operating point; the burner start-up runs as a sequence
 (SEQ-START-BURNER); nine trips (I-101 to I-602) act on dedicated trip valves (XV) and machine
-stops, never on a control valve, and the relief devices PSV-105, PSV-111, PSV-215 and PSV-404
-are the layer behind them. The machine protection of the train is the package's and reaches the
+stops, never on a control valve, and the relief devices PSV-105, PSV-111, PSV-215, PSV-316, PSV-404 and
+PSV-616 are the layer behind them (cases per device in `piping/special-items.yaml`, D-021). The machine protection of the train is the package's and reaches the
 plant as one trip (I-602). A regulatory loop is never counted as a safeguard.
 
 ## Normal operation and disturbances

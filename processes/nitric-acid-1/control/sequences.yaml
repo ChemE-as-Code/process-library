@@ -20,18 +20,21 @@ sequences:
       - {interlock: I-204, state: reset}
       - {interlock: I-602, state: reset}
       - {all: [{tag: XV-203, state: closed}, {tag: XV-204, state: closed}, {loop: FFIC-201, state: in manual}]}
-      - {all: [{tag: K-101, state: running}, {loop: UIC-110, state: in auto}, {loop: FIC-107, state: in auto}]}
+      - {all: [{tag: K-101, state: running}, {loop: UIC-110, state: in auto}, {loop: UIC-401, state: in auto}, {loop: FIC-107, state: in auto}]}
       - {tag: E-102, state: "boiler package ready (drum level in range, BFW in service)"}
     interlocks: [I-101, I-201, I-202, I-203, I-204, I-602]
     steps:
       - id: S1
-        title: Air through the train at the start-up rate
+        title: Open the air path through the train and the expander, air at the start-up rate
         actions:
+          - {tag: XV-610, action: open, by: operator}
+          - {loop: PIC-611, action: setpoint, setpoint: {kind: setpoint, value: 600, unit: kPa(a), provenance: assumed, source: "D-021: a reduced absorber pressure for the air purge, ASSUMED until the train vendor's start-up curve"}, by: operator}
+          - {loop: PIC-611, action: auto, by: operator}
           - {loop: FIC-107, action: setpoint, setpoint: {kind: setpoint, value: 120000, unit: kg/h, provenance: assumed, source: "D-019: about 55 % of the design air, the start-up rate, ASSUMED"}, by: operator}
-        complete: {all: [{tag: FZ-206, state: above the trip point}, {tag: FIC-107, state: at setpoint}]}
+        complete: {all: [{tag: XV-610, state: open}, {loop: PIC-611, state: in auto}, {tag: FZ-206, state: above the trip point}, {tag: FIC-107, state: at setpoint}]}
         timeout: {value: 30, unit: min}
         on_timeout: abort
-        operator: "The train starts on the motor with the expander inlet XV-610 closed (vendor's procedure); the absorber pressure builds as K-102 runs on its recycle UV-401."
+        operator: "The train is started on its motor (vendor's procedure, a permissive of this sequence). The only path from K-101 to the stack is through K-102, the absorber, R-102 and X-101 (no expander bypass in this issue, D-021), so XV-610 is opened before the air is raised and PIC-611 holds a reduced absorber pressure on PV-611; the air then purges the whole train to the stack. K-102 runs on its anti-surge recycle UV-401 until the air rate is above its surge flow. Whether the expander may run on cold air at this rate, or a bypass is needed, is the train vendor's (O-9)."
       - id: S2
         title: Purge the mixer, the burner and the boiler with air
         actions:

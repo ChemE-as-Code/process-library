@@ -32,6 +32,7 @@ from pid_common import (  # noqa: E402
     TURBINE,
     equipment,
     line,
+    make_safety_valve,
     save,
     valve_marks,
 )
@@ -64,23 +65,32 @@ line(sheet, "TG-310", dn=900, fluid="Tail gas", route=[
     dosing, (240, TAIL), r102["N1"]], label_at=(170, 118))
 
 # ---- SCR ammonia: liquid NH3 (P-01) -> E-108 -> XV-602 -> FV-603 -> into the tail gas
-xv602 = valve("XV602", "BallValve", tag="XV-602", at=(135, NH3))
-fv603 = valve("FV603", "GlobeValve", tag="FV-603", at=(185, NH3))
+xv602 = valve("XV602", "BallValve", tag="XV-602", at=(145, NH3))
+fv603 = valve("FV603", "GlobeValve", tag="FV-603", at=(188, NH3))
 line(sheet, "NL-103", dn=25, fluid="Ammonia", route=[
-    offpage("in", at=(LEFT, NH3), note="liquid NH3 from NL-101, P-01"), e108["T1"]],
-    labels=False)
+    offpage("in", at=(LEFT, NH3), note="liquid NH3 from storage via P-01"), e108["T1"]],
+    label_at=(38, 62))
+# E-108 relief (D-021): blocked outlet with LP steam on, fire; upstream of XV-602, to the
+# ammonia relief header
+vaporiser_relief = tee("T602", at=(125, NH3), branch="up", branch_dn=25)
 line(sheet, "NV-601", dn=25, fluid="Ammonia", route=[
-    e108["T2"], xv602, fv603, (215, NH3), dosing.branch], label_at=(228, 82))
+    e108["T2"], vaporiser_relief, xv602, fv603, (215, NH3), dosing.branch], label_at=(228, 82))
+psv616 = valve("PSV616", "GlobeValve", tag="PSV-616", at=(125, 40))
+line(sheet, "RL-617", dn=25, fluid="Ammonia", route=[
+    vaporiser_relief.branch, psv616,
+    offpage("out", at=(125, TOP), note="to NH3 relief header (B/L)", rotation=270,
+            note_at=(150, 12))], label_at=(137, 26))
+make_safety_valve(sheet, "PSV616", label_at=(137, 40))
 
 # ---- LP steam to E-108 with the vapour temperature control, condensate return
 tv604 = valve("TV604", "GlobeValve", tag="TV-604", at=(76.6, 32))
 line(sheet, "LS-604", dn=25, fluid="LP steam", route=[
     offpage("in", at=(76.6, TOP), note="LP steam (B/L)", rotation=90, note_at=(58, 12)),
-    tv604, e108["S1"]], labels=False)
+    tv604, e108["S1"]], label_at=(66, 21))
 line(sheet, "CD-605", dn=25, fluid="Condensate", route=[
     e108["S3"], (93.4, 85), valve("ST605", "SteamTrap", at=(55, 85)),
     offpage("out", at=(LEFT, 85), note="condensate return (B/L)", rotation=180)],
-    labels=False)
+    label_at=(75, 93))
 
 # ---- R-102 -> trip valve XV-610 -> absorber pressure valve PV-611 -> X-101 -> stack
 xv610 = valve("XV610", "BallValve", tag="XV-610", at=(255, EXP))
@@ -92,11 +102,11 @@ line(sheet, "TG-607", dn=2000, fluid="Tail gas", route=[
     label_at=(338, 205))
 
 # ---- instruments
-instrument(sheet, "TIC-604", at=(115, 32), sensing="Line_NV601_S1", sensing_at=(115, NH3),
+instrument(sheet, "TIC-604", at=(110, 32), sensing="Line_NV601_S1", sensing_at=(110, NH3),
            signal_to=tv604, fail_action="FC")
-instrument(sheet, "FIC-603", at=(170, 78), sensing="Line_NV601_S1", sensing_at=(170, NH3),
+instrument(sheet, "FIC-603", at=(172, 78), sensing="Line_NV601_S2", sensing_at=(172, NH3),
            signal_to=fv603, fail_action="FC")
-instrument(sheet, "TZ-605", at=(135, 85), sensing="Line_TG310_S1", sensing_at=(135, TAIL),
+instrument(sheet, "TZ-605", at=(145, 85), sensing="Line_TG310_S1", sensing_at=(145, TAIL),
            signal_to=xv602, fail_action="FC")
 instrument(sheet, "TI-608", at=(275, 173), sensing=r102["N3"])
 instrument(sheet, "US-612", at=(255, 195), signal_to=xv610, fail_action="FC")
@@ -107,17 +117,18 @@ instrument(sheet, "AI-614", at=(360, 235), sensing="Line_TG607_S1", sensing_at=(
 instrument(sheet, "AI-615", at=(385, 235), sensing="Line_TG607_S1", sensing_at=(385, EXP))
 
 valve_marks(sheet, "Inst_TIC604", "TV604", (76.6, 32), "right")
-valve_marks(sheet, "Inst_FIC603", "FV603", (185, NH3), "down")
-valve_marks(sheet, "Inst_TZ605", "XV602", (135, NH3), "down")
+valve_marks(sheet, "Inst_FIC603", "FV603", (188, NH3), "down")
+valve_marks(sheet, "Inst_TZ605", "XV602", (145, NH3), "down")
 valve_marks(sheet, "Inst_US612", "XV610", (255, EXP), "up")
 valve_marks(sheet, "Inst_PIC611", "PV611", (278, EXP), "down")
 
 note(sheet, "TZ-605 stops the SCR ammonia below the R-102 inlet temperature limit (ammonium "
      "nitrate deposits, NH3 slip): C&E I-601. FIC-603 set from AI-614 by the operator (D-019)",
      at=(20, 262))
-note(sheet, "PIC-611 holds the absorber pressure (C-101) at the X-101 inlet; US-612 (train trip, "
-     "C&E I-602) closes XV-610. Expander bypass for start-up: open (D-018)", at=(20, 269))
+note(sheet, "PIC-611 holds the absorber pressure at the X-101 inlet; US-612 (train trip, C&E I-602) "
+     "closes XV-610; start-up runs through X-101 (SEQ-START-BURNER S1), no bypass yet (D-021)",
+     at=(20, 269))
 note(sheet, "AI-614 (NOx), AI-615 (N2O): stack emission monitoring. R-102 protected by PSV-404 "
-     "(P-04). " + TRAIN.split(";")[0], at=(20, 276))
+     "(P-04); E-108 by PSV-616 (D-021). " + TRAIN.split(";")[0], at=(20, 276))
 
 save(sheet, target)

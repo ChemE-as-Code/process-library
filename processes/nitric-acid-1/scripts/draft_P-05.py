@@ -50,14 +50,14 @@ c101 = equipment(sheet, "ProcessColumn", "C-101", shape=COLUMN, at=(170, 135), s
                           Nozzle("N5", (-14, -7), 80), Nozzle("N6", (-14, -47), 300),
                           Nozzle("N7", (-14, -29), 300), Nozzle("N8", (14, 15), 50),
                           Nozzle("N9", (-14, 15), 450), Nozzle("N10", (14, 45), 50),
-                          Nozzle("N11", (14, 58), 50), Nozzle("N12", (14, -65), 50),
+                          Nozzle("N11", (14, 58), 50), Nozzle("N12", (14, -50), 50),
                           Nozzle("N13", (-14, 33), 450)],
                  label_at=(198, 120))
 c102 = equipment(sheet, "ProcessColumn", "C-102", shape=COLUMN, at=(270, 180), scale=(1.2, 1.6),
                  markers=[Marker("COLUMN_TRAY_SHAPE", dy) for dy in (-20, 0, 20)],
                  nozzles=[Nozzle("N1", (-12, 30), 400), Nozzle("N2", (0, -40), 350),
                           Nozzle("N3", (0, 40), 150), Nozzle("N4", (-12, -28), 150),
-                          Nozzle("N5", (12, 20), 50)],
+                          Nozzle("N5", (12, 10), 50)],
                  label_at=(296, 160))
 
 # ---- feeds to C-101 from the left: process water, chilled-water coils, weak acid, CW coils,
@@ -67,14 +67,14 @@ line(sheet, "PW-505", dn=65, fluid="Process water", route=[
     offpage("in", at=(140, TOP), note="process water (demin., B/L)", rotation=90,
             note_at=(162, 12)),
     fv505, (140, 70), c101["N4"]], label_at=(152, 30))
-line(sheet, "CHR-112", dn=300, fluid="Chilled water", route=[
-    offpage("in", at=(80, TOP), note="chilled water from E-101, P-01", rotation=90,
-            note_at=(101, 12)),
-    (80, 88), c101["N6"]], label_at=(118, 81))
 line(sheet, "CHS-111", dn=300, fluid="Chilled water", route=[
+    offpage("in", at=(80, TOP), note="chilled water supply from E-101, P-01", rotation=90,
+            note_at=(105, 12)),
+    (80, 88), c101["N6"]], label_at=(118, 81))
+line(sheet, "CHR-112", dn=300, fluid="Chilled water", route=[
     c101["N7"], (65, 106),
-    offpage("out", at=(65, TOP), note="chilled water to E-101, P-01", rotation=270,
-            note_at=(42, 12))], label_at=(118, 99))
+    offpage("out", at=(65, TOP), note="chilled water return to E-101", rotation=270,
+            note_at=(41, 12))], label_at=(118, 99))
 line(sheet, "WA-306", dn=80, fluid="Weak acid", route=[
     offpage("in", at=(LEFT, 128), note="weak acid from P-101A/B, P-03"), c101["N5"]],
     label_at=(110, 121))
@@ -120,14 +120,14 @@ instrument(sheet, "LIC-506", at=(225, 180), sensing=c101["N10"], signal_to=lv506
            fail_action="FC")
 instrument(sheet, "LZ-507", at=(200, 200), sensing=c101["N11"], sensing_points=[(200, 193)],
            signal_to=xv507, fail_action="FC")
-instrument(sheet, "PI-503", at=(205, 80), sensing=c101["N12"])
+instrument(sheet, "PI-503", at=(205, 85), sensing=c101["N12"])
 instrument(sheet, "TI-508", at=(205, 150), sensing=c101["N8"])
 instrument(sheet, "AI-511", at=(215, 50), sensing="Line_TG501_S1", sensing_at=(215, 35))
 instrument(sheet, "AI-512", at=(240, 50), sensing="Line_TG501_S1", sensing_at=(240, 35))
 instrument(sheet, "TI-513", at=(300, 48), sensing="Line_TG501_S1", sensing_at=(300, 35))
 instrument(sheet, "FIC-509", at=(205, 233), sensing="Line_PA106_S1", sensing_at=(205, AIR),
            signal_to=fv509, fail_action="FO")
-instrument(sheet, "LIC-510", at=(320, 210), sensing=c102["N5"], signal_to=lv510,
+instrument(sheet, "LIC-510", at=(320, 190), sensing=c102["N5"], signal_to=lv510,
            fail_action="FC")
 instrument(sheet, "AI-514", at=(343, 216), sensing="Line_AC504_S1", sensing_at=(343, PRODUCT))
 instrument(sheet, "FI-515", at=(364, 216), sensing="Line_AC504_S1", sensing_at=(364, PRODUCT))
@@ -141,7 +141,7 @@ valve_marks(sheet, "Inst_LIC510", "LV510", (320, PRODUCT), "up")
 note(sheet, "FIC-505 (process water) sets the acid strength (AI-514); FIC-509 (secondary air) "
      "holds the tail-gas O2 (AI-512); set points by the operator (D-019)", at=(20, 262))
 note(sheet, "LZ-507 closes XV-507 against gas blow-by from C-101 into C-102: C&E I-501. C-101 "
-     "protected by PSV-404 (P-04); C-102 by PSV-111 (P-01) via the K-102 suction", at=(20, 269))
+     "protected by PSV-404 (P-04); C-102 by PSV-316 (P-03) via the K-102 suction, D-021", at=(20, 269))
 note(sheet, "C-101 coils: CW on the lower trays, chilled water (loop to E-101, circulation in the "
      "chilled-water package) on the upper trays; C-102 acid cooling: open (D-020)", at=(20, 276))
 

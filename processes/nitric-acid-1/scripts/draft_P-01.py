@@ -77,12 +77,12 @@ uv110 = valve("UV110", "GlobeValve", tag="UV-110", at=(185, 45))
 line(sheet, "PA-107", dn=400, fluid="Air", route=[
     blowoff.branch, uv110, valve("SL114", "Silencer", tag="SL-114", at=(185, 28)),
     offpage("out", at=(185, TOP), note="to atmosphere", rotation=270, note_at=(171, 12))],
-    labels=False)
+    label_at=(173, 32))
 psv111 = valve("PSV111", "GlobeValve", tag="PSV-111", at=(245, 45))
 line(sheet, "PA-108", dn=300, fluid="Air", route=[
     relief.branch, psv111,
     offpage("out", at=(245, TOP), note="to atmosphere", rotation=270, note_at=(231, 12))],
-    labels=False)
+    label_at=(234, 30))
 
 # ---- liquid ammonia: trip valve, evaporator level valve, evaporator, SCR branch
 scr = tee("T103", at=(40, NH3), branch="down", branch_dn=25)
@@ -112,13 +112,14 @@ line(sheet, "DR-110", dn=50, fluid="Ammonia", route=[
     offpage("out", at=(EDGE, 168.4), note="blowdown to NH3 drain pot (B/L)")],
     label_at=(300, 160))
 
-# ---- chilled water from the absorber cooling coils (heat source of the evaporator)
+# ---- chilled water: the warm return from the absorber coils heats the evaporator (CHR-112)
+# and leaves it cold as the supply to the coils (CHS-111)
 pv104 = valve("PV104", "GlobeValve", tag="PV-104", at=(100, 164.2))
-line(sheet, "CHS-111", dn=300, fluid="Chilled water", route=[
-    offpage("in", at=(LEFT, 164.2), note="chilled water from C-101 coils, P-05"),
-    pv104, e101["T1"]], label_at=(125, 158))
 line(sheet, "CHR-112", dn=300, fluid="Chilled water", route=[
-    e101["T2"], offpage("out", at=(LEFT, 172.6), note="chilled water to C-101 coils, P-05",
+    offpage("in", at=(LEFT, 164.2), note="chilled water return from C-101, P-05"),
+    pv104, e101["T1"]], label_at=(125, 158))
+line(sheet, "CHS-111", dn=300, fluid="Chilled water", route=[
+    e101["T2"], offpage("out", at=(LEFT, 172.6), note="chilled water supply to C-101, P-05",
                          rotation=180, note_at=(38, 178))], label_at=(125, 178))
 
 # ---- relief valves: placeholders made safety valves (pid_common.make_safety_valve)
