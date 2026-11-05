@@ -19,6 +19,9 @@ What it does (DESIGN.md D-007, D-011, D-012):
    fill and final inventory, each divided by H (KOH-FILL and SPENT are campaign-averaged,
    D-011). A duty that ends before its horizon (threshold, minimum inventory) is a result,
    not a stop: its rates are over the hours it ran, and the output says so (``notes``).
+   Each value's source names the duty and its run fingerprint (``cheme process stack``: the
+   fingerprint the duty-sized tanks carry), so the LCA's operating flows trace to the run that
+   sized the equipment (#331, DESIGN.md D-025).
    The conditions that follow the inputs: the anolyte temperatures (the cell temperature, less
    the stack heat over the loop flow across the cooler), the compressor discharge and the
    product pressure (design basis).
@@ -211,7 +214,15 @@ def train(t: str, stack_rep: dict, duty_rep: dict, cell_pt: dict, basis: dict) -
         raise BalanceError(
             f"duty {info['duty']} runs {cells} cells, stack {info['stack']} has another"
         )
-    src = f"{SCRIPT}: duty {info['duty']} at {du['cells_in_series']} x {du['stacks']} over {h:g} h"
+    # the sources cite the duty run (its fingerprint, the one the duty-sized tanks carry), so
+    # that the LCA's operating flows can be traced to the run that sized the equipment (#331)
+    run = _core.stack_duty(st).get("run_fingerprint")
+    if not run:
+        raise BalanceError(f"stack {info['stack']}: cheme process stack gives no duty run fingerprint")
+    src = (
+        f"{SCRIPT}: duty {info['duty']} (run {run}) at {du['cells_in_series']} x {du['stacks']} "
+        f"over {h:g} h"
+    )
     rho_anolyte = _core.equipment_number(st, f"P-{n}01", "density_kg_m3") / 1000.0  # kg/L
 
     # the route balances (core ADR 0044 amendment): K and C close on their own
@@ -493,6 +504,7 @@ def train(t: str, stack_rep: dict, duty_rep: dict, cell_pt: dict, basis: dict) -
         "streams": s,
         "energy": {k: {"duty": v, "source": src_} for k, (v, src_) in q.items()},
         "horizon_h": h,
+        "run_fingerprint": run,
         "check": {"k": (k_in, k_out), "c": (c_in, c_out)},
         "notes": notes,
     }

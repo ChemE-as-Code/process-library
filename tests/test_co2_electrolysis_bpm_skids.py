@@ -12,11 +12,17 @@ their own commit before the first regeneration, ADR 0030). Three kinds of test:
   10000 h (``cheme run scripts/regen.py --duration H``), its records asserted against E1 to E9 and
   the layout and datasheets against E8 after each run. Skipped without cheme-as-code; CI sets
   ATLAS_REQUIRE_CORE, so a missing core fails there.
+
+E10 (#331) is the LCI of both skids (results/scenarios/<H>h/lca.json, regen step 20): its
+datasets reconciled with the duty totals of the calculation record, the K and C balances, the
+duty run traced, and the hand values frozen in results/expected-lca.yaml (tests/lca_formulas.py)
+before the LCA was first computed; fast on the committed files, slow on a regeneration.
 """
 
 from __future__ import annotations
 
 import ast
+import hashlib
 import json
 import math
 import os
@@ -25,6 +31,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+import lca_formulas as lf
 import pytest
 import skid_formulas as f
 import yaml
@@ -44,6 +51,21 @@ REGEN_OUTPUTS = (
     f"{REL}/process/duties.yaml", f"{REL}/process/BFD.xml", f"{REL}/process/PFD.xml",
     f"{REL}/results/scenarios", f"{REL}/results/resize-1000h-10000h.json", f"{REL}/figures/skids",
 )  # fmt: skip
+#: #331: the files the LCI hand-expectations commit may touch, and the LCA outputs that come
+#: after it (E10)
+LCA_FROZEN_FILES = {f"{REL}/results/expected-lca.yaml", "tests/lca_formulas.py", "tests/test_lca_formulas.py"}
+LCA_OUTPUTS = (
+    f"{REL}/lca/dataset.yaml", f"{REL}/lca/datasets", f"{REL}/lca/scenarios", f"{REL}/lca/results.csv",
+    f"{REL}/results/scenarios/1000h/lca.json", f"{REL}/results/scenarios/10000h/lca.json",
+)  # fmt: skip
+#: what core's --balance may not assess (the replaced parts have no composition; Skid A's zero
+#: dose and bleed)
+UNASSESSED = {
+    "consumable:anode-ni-foam", "consumable:cathode-gde-ag", "consumable:cathode-gdl-carbon", "consumable:membrane-bpm",
+    "disposal:consumable.anode-ni-foam", "disposal:consumable.cathode-gde-ag", "disposal:consumable.cathode-gdl-carbon",
+    "disposal:consumable.membrane-bpm",
+    "feed:KOH-DOSE", "product:BLEED",
+}  # fmt: skip
 
 try:
     import chemeascode  # noqa: F401
@@ -254,6 +276,151 @@ def assert_e8(root: Path, record: dict) -> None:
                 assert e["fingerprint"] == s["run_fingerprint"] == listed[tag]["dimensions"]["fingerprint"], at
 
 
+def _lca_items() -> dict[str, dict]:
+    return {i["key"]: i for i in lf.load_expected()["expectations"]["E10"]["items"]}
+
+
+def _lca_close(value: float, items: dict, key: str, where: str) -> None:
+    item = items[key]
+    assert lf.close(value, item["value"], item["tolerance"]), f"E10 {where} {key}: {value} vs {item['value']} {item['tolerance']}"
+
+
+#: the auxiliary power streams of each skid (the pumps, compressors, PSA; Skid B's dosing pump)
+AUX = {"A": ("Q102", "Q103", "Q104"), "B": ("Q202", "Q203", "Q204", "Q206")}
+#: the band of an anolyte's mass over its volume, kg/L (scripts/_lca.py DENSITY_BAND_KG_L)
+DENSITY_BAND = (0.997, 1.35)
+
+
+def _duty_side(root: Path, rec: dict, skid: str) -> dict[str, float]:
+    """E10's duty side per kg CO, recomputed here from the calculation record's duty totals (and
+    the inputs regen reads): what the dataset must equal, by the reconciliation's quantity. The
+    auxiliary power comes from the flowsheet the dataset is built from, so only the frozen
+    electricity values of results/expected-lca.yaml check it independently."""
+    stack = {"A": "STK-A", "B": "STK-B"}[skid]
+    cfg = {s["id"]: s for s in _yaml(root / "process" / "cells.yaml")["stacks"]}[stack]
+    flowsheet = {s["id"]: s for s in _yaml(root / "process" / "flowsheet.yaml")["streams"]}
+    m_koh = next(float(c["molar_mass"]) for c in _yaml(root / "process" / "materials.yaml")["components"] if c["id"] == "KOH")
+    s = rec["skids"][skid]
+    t = rec["duties"][s["duty"]]["totals"]
+    delivered = float(s["totals_delivered_kg"])
+    hours = float(s["duty_result"]["operating_time_h"])
+    eta = float(cfg["electrical"]["rectifier_efficiency"]["value"])
+    aux_kw = sum(float(flowsheet[q]["state"][s["case"]]["duty"]["value"]) for q in AUX[skid])
+    rho_fill = float(cfg["equipment"]["recirculation_pump"]["density"]["value"]) / 1000.0
+    out_l = t["final_volume_l"] + t["bleed_l"]
+    want = {
+        "electricity: DC / rectifier efficiency + auxiliaries": (t["energy_kwh"] / eta + aux_kw * hours) / delivered,
+        "KOH fill (KOH 100 %)": t["initial_cation_mol"] * m_koh / 1000.0 / delivered,
+        "fill solution (initial volume x anolyte density)": t["initial_volume_l"] * rho_fill / delivered,
+        "KOH dosed (KOH 100 %)": t["dosing_hydroxide_kg"] / delivered,
+        "dosing solution": (t["dosing_solution_kg"] or 0.0) / delivered,
+        "bleed K": t["bleed_cation_mol"] / delivered,
+        "bleed C": t["bleed_carbon_mol"] / delivered,
+        "final inventory K": t["final_cation_mol"] / delivered,
+        "final inventory C": t["final_carbon_mol"] / delivered,
+        "condensate K (the K+ through the membrane)": t["membrane_cation_mol"] / delivered,
+        "spent inventory's share of the anolyte water out (final volume over final volume + bleed)": t["final_volume_l"] / out_l if out_l else 0.0,
+        "CO delivered": delivered,
+    }  # fmt: skip
+    if skid == "B":
+        want["make-up water (Skid B's water less Skid A's)"] = t["makeup_water_l"] * 0.997 / delivered
+    return want
+
+
+def assert_e10(root: Path, records: dict[int, dict], docs: dict[int, dict]) -> None:
+    """E10 (#331): the LCI of both skids per kg CO, reconciled with the duty totals of the
+    scenario's calculation record, its K and C balances closed, the run that sized the
+    equipment traced, and the frozen hand values of results/expected-lca.yaml met."""
+    items = _lca_items()
+    cells_cfg = {s["id"]: s for s in _yaml(root / "process" / "cells.yaml")["stacks"]}
+    listed = {e["tag"]: e for e in _yaml(root / "equipment" / "equipment-list.yaml")["equipment"]}
+    for h, doc in docs.items():
+        rec = records[h]
+        assert doc["duration_h"] == h and doc["schema"] == "process-library/skid-lca/1"
+        assert doc["manifest_fingerprints_flowsheet"], f"E10 {h} h: lca/manifest.json does not fingerprint the flowsheet"
+        assert doc["label"] == "partial screening carbon footprint", doc["label"]
+        _lca_close(doc["kg_per_unit"], items, "functional_unit.kg_product_per_kg_co", f"{h} h")
+        # the replaced parts: the cells times the cell area, at the stacks' interval
+        p = doc["parts"]
+        for skid, stack in (("A", "STK-A"), ("B", "STK-B")):
+            s = rec["skids"][skid]
+            stack_tags = [t for t in listed if t.startswith(f"E-{1 if skid == 'A' else 2}01")]
+            assert p["cells"] == s["cells"] == len(stack_tags) * s["cells_per_stack"], f"E10 {h} h {skid} cells"
+            assert p["interval_h"] == cells_cfg[stack]["replacement"]["interval"]["value"], f"E10 {h} h {skid} interval"
+        assert math.isclose(p["replaced_m2"], p["cells"] * p["cell_area_m2"], rel_tol=1e-12)
+        _lca_close(p["replaced_m2"], items, "parts.area_m2", f"{h} h")
+        for skid in ("A", "B"):
+            s = doc["skids"][skid]
+            at = f"{h} h Skid {skid}"
+            # the reconciliation with the duty totals (rel 1e-6): its duty side recomputed here from
+            # the calculation record, not taken from lca.json
+            want = _duty_side(root, rec, skid)
+            assert {r["quantity"] for r in s["reconciliation"]} == set(want), f"E10 {at}: {[r['quantity'] for r in s['reconciliation']]}"
+            for r in s["reconciliation"]:
+                duty = want[r["quantity"]]
+                assert rel(r["duty"], duty, 1e-9) or r["duty"] == duty == 0.0, f"E10 {at}: stored duty {r} against {duty}"
+                assert rel(r["lca"], duty, 1e-6) or r["lca"] == duty == 0.0, f"E10 {at}: {r} against {duty}"
+            # the masses the balance writes over the duty's volumes: a plausible anolyte density
+            t = rec["duties"][rec["skids"][skid]["duty"]]["totals"]
+            delivered = float(rec["skids"][skid]["totals_delivered_kg"])
+            for key, litres in (("product:SPENT", t["final_volume_l"]), ("product:BLEED", t["bleed_l"])):
+                if litres:
+                    kg_l = s["exchanges"][key]["amount"] * delivered / litres
+                    assert DENSITY_BAND[0] <= kg_l <= DENSITY_BAND[1], f"E10 {at}: {key} {kg_l} kg/L"
+            assert s["densities_plausible"] and len(s["densities"]) == (2 if t["bleed_l"] else 1), f"E10 {at}: {s['densities']}"
+            assert s["reconciled"] and s["lca_cases_agree"], at
+            assert all(r["rel"] <= 1e-5 or r["dataset"] == r["lca_cases"] == 0.0 for r in s["lca_cases"]), at
+            # K and C close by route (the dataset's compositions) and in core's --balance
+            b = s["balance"]
+            assert rel(b["k_in_mol"], b["k_out_mol"], 1e-6) and rel(b["c_fed_mol"], sum(b["c_routes_mol"].values()), 1e-6), at
+            cb = s["core_balance"]
+            assert cb["k_closed"] and cb["c_closed"] and cb["carbon_by_origin_closed"] and cb["mass_closed"], f"E10 {at}: {cb}"
+            assert set(cb["no_composition"]) <= UNASSESSED, f"E10 {at}: {cb['no_composition']}"
+            # the run that sized the equipment
+            assert s["run_fingerprint"] == rec["skids"][skid]["run_fingerprint"], at
+            assert s["tanks_carry_run"] and s["sources_uncited"] == [], f"E10 {at}: {s['tank_fingerprints']} {s['sources_uncited']}"
+            # the frozen hand values
+            ex = s["exchanges"]
+            _lca_close(ex["feed:POWER"]["amount"], items, f"electricity.skid_{skid.lower()}_kwh_per_kg", at)
+            _lca_close(ex["feed:CO2"]["amount"], items, "co2.fresh_kg_per_kg", at)
+            _lca_close(ex["emission:CO2"]["amount"], items, "co2.vented_kg_per_kg", at)
+            for route, share in b["c_shares"].items():
+                _lca_close(share, items, f"co2.carbon_share.{route}", at)
+            for key, field, item in (
+                ("feed:KOH-FILL", "KOH", "koh_fill_kg_per_kg"), ("feed:KOH-DOSE", "KOH", "koh_dose_kg_per_kg"),
+            ):  # fmt: skip
+                if f"routes.{h}.{skid}.{item}" in items:
+                    _lca_close(ex[key]["components_kg"].get(field, 0.0) if ex[key].get("components_kg") else 0.0,
+                               items, f"routes.{h}.{skid}.{item}", at)  # fmt: skip
+            for key, field, item in (
+                ("feed:KOH-FILL", "k_mol", "fill_k"), ("product:CONDENSATE", "k_mol", "condensate_k"),
+                ("product:SPENT", "k_mol", "spent_k"), ("product:SPENT", "c_mol", "spent_c"),
+                ("product:BLEED", "k_mol", "bleed_k"), ("product:BLEED", "c_mol", "bleed_c"),
+            ):  # fmt: skip
+                if f"routes.{h}.{skid}.{item}" in items:
+                    _lca_close(ex[key].get(field, 0.0), items, f"routes.{h}.{skid}.{item}", at)
+            _lca_close(s["h2_tail_kg_per_kg"], items, "h2_coproduct.h2_kg_per_kg_co", at)
+            life = int(p["interval_h"])
+            _lca_close(ex["consumable:membrane-bpm"]["amount"] * 1e3, items, f"parts.{life}.membrane_g_per_kg", at)
+            _lca_close(ex["consumable:cathode-gde-ag"]["amount"] * 1e3, items, f"parts.{life}.ag_g_per_kg", at)
+            _lca_close(ex["consumable:anode-ni-foam"]["amount"] * 1e3, items, f"parts.{life}.ni_g_per_kg", at)
+            # the gaps are listed with their quantities, never zero-filled (ADR 0029)
+            gaps = s["impacts"]["gaps"]
+            for key in ("feed:CO2", "feed:KOH-FILL", "product:SPENT", "product:CONDENSATE", "product:CW", "consumable:membrane-bpm", "consumable:cathode-gdl-carbon"):
+                assert key in gaps and key not in s["impacts"]["contributions"], f"E10 {at}: {key}"
+        _lca_close(doc["skids"]["A"]["impacts"]["contributions"]["feed:POWER"]["value"], items, "electricity.skid_a_kg_co2e_per_kg_nl", f"{h} h")
+        # the electricity mixes come from one profile: the electricity pair differs in no dimension
+        for sid, sc in doc["scenarios"].items():
+            for pair in sc["compared"]:
+                if pair["baseline"].startswith("ember-2025:") and pair["scenario"].startswith("ember-2025:"):
+                    assert pair["differences"] == [], (sid, pair)
+        assert doc["scenarios"]["desnz-gb"]["verdict"] == "not comparable"
+
+
+def _committed_lca() -> dict[int, dict]:
+    return {h: json.loads((PROCESS / "results" / "scenarios" / f"{h}h" / "lca.json").read_text()) for h in DURATIONS}
+
+
 def _committed_records() -> dict[int, dict]:
     return {h: json.loads((PROCESS / "results" / "scenarios" / f"{h}h" / "record.json").read_text()) for h in DURATIONS}
 
@@ -404,14 +571,87 @@ def test_committed_resize_report_is_clean():
     assert all(v["unchanged"] for v in u["stack_dimensions_m"].values())
 
 
+def test_lci_frozen_expectations_precede_the_lca_commits():
+    """#331: results/expected-lca.yaml was frozen in its own commit before any LCA output, and
+    the frozen files are unchanged since (ADR 0030)."""
+    try:
+        if _git("rev-parse", "--is-shallow-repository").strip() == "true":
+            pytest.skip("shallow clone: no history to compare")
+    except (OSError, subprocess.CalledProcessError):
+        pytest.skip("no git history")
+    added = _git("log", "--diff-filter=A", "--format=%H", "--", f"{REL}/results/expected-lca.yaml").split()
+    assert added, "results/expected-lca.yaml has no commit that adds it"
+    frozen = added[-1]
+    touched = set(_git("show", "--format=", "--name-only", frozen).split())
+    assert touched <= LCA_FROZEN_FILES, f"the LCI freezing commit also touches {touched - LCA_FROZEN_FILES}"
+    for commit in _git("log", "--format=%H", "--", *LCA_OUTPUTS).split():
+        assert commit != frozen
+        ancestor = subprocess.run(["git", "merge-base", "--is-ancestor", frozen, commit], cwd=KIT, check=False)
+        assert ancestor.returncode == 0, f"LCA commit {commit[:9]} does not come after the frozen {frozen[:9]}"
+    changed = _git("diff", "--name-only", frozen, "HEAD", "--", *sorted(LCA_FROZEN_FILES)).split()
+    assert not changed, f"frozen files changed since the freezing commit {frozen[:9]}: {changed}"
+
+
+def test_committed_lca_meets_e10():
+    assert_e10(PROCESS, _committed_records(), _committed_lca())
+
+
+def test_committed_lca_datasets_are_the_design():
+    """The committed datasets are the design's: per kg CO they are the 1,000 h LCA record's
+    exchanges, they were derived from the committed flowsheet, and Skid B's names its case."""
+    doc = _committed_lca()[1000]
+    datasets = {"A": _yaml(PROCESS / "lca" / "dataset.yaml")}
+    case = sorted((PROCESS / "lca" / "datasets").glob("*-skid-b.yaml"))
+    assert len(case) == 1, case
+    datasets["B"] = _yaml(case[0])
+    flowsheet = "sha256:" + hashlib.sha256((PROCESS / "process" / "flowsheet.yaml").read_bytes()).hexdigest()
+    for skid, ds in datasets.items():
+        s = doc["skids"][skid]
+        assert ds["id"] == s["dataset"] and ds["provenance"]["files"]["process/flowsheet.yaml"] == flowsheet, skid
+        product = next(e for e in ds["exchanges"] if e["key"] == "product:CO")
+        co = product["amount"] / doc["kg_per_unit"]
+        for e in ds["exchanges"]:
+            if e["key"] != "product:CO":
+                assert rel(e["amount"] / co, s["exchanges"][e["key"]]["amount"], 1e-9) or e["amount"] == 0.0, (skid, e["key"])
+    b, a = datasets["B"], datasets["A"]
+    assert b["provenance"]["case"] == "skid-b" and a["provenance"]["case"] == "skid-a"
+    assert b["title"].endswith(", case skid-b") and b["id"] == f"{a['id']}-skid-b"
+    assert b["uuid"] != a["uuid"] and b["parent"] == a["uuid"]
+    process = _yaml(PROCESS / "process.yaml")
+    assert process["publication"]["status"] == "internal"  # build_lci --public leaves it out
+    keys = {i.get("inventory_key") for g in process["chemistry"].values() for i in g}
+    assert {"feed:CO2", "feed:KOH-FILL", "feed:KOH-DOSE", "feed:POWER", "product:CO"} <= keys
+
+
+def test_committed_lca_reports_are_the_records():
+    """The sensitivities, the ranking and lca/README.md's tables are what
+    scripts/lca_sensitivity.py writes from the committed LCA records; the ranking is not
+    determined while a distinguishing flow has no factor."""
+    sys.path.insert(0, str(PROCESS / "scripts"))
+    try:
+        import lca_sensitivity
+    finally:
+        sys.path.pop(0)
+    texts = lca_sensitivity.texts(PROCESS)
+    assert set(texts) >= {"lca/README.md", "lca/ranking.json", "lca/sensitivity-membrane-life.json"}
+    for rel_path, text in texts.items():
+        assert (PROCESS / rel_path).read_text(encoding="utf-8") == text, rel_path
+    ranking = json.loads((PROCESS / "lca" / "ranking.json").read_text())
+    assert ranking["verdict"] == "ranking not determined"
+    assert {"feed:KOH-FILL", "feed:KOH-DOSE", "product:SPENT", "product:BLEED", "construction"} <= set(ranking["undocumented"])
+    life = json.loads((PROCESS / "lca" / "sensitivity-membrane-life.json").read_text())
+    assert life["impact"].startswith("not computable: gap") and life["datasets_match"]
+    assert [r["membrane_life_h"] for r in life["rows"]] == [1000.0, 4000.0, 20000.0]
+
+
 # -- slow: regenerate in a copy ---------------------------------------------------------------
 
 
 @pytest.fixture(scope="module")
-def regenerated(tmp_path_factory) -> tuple[dict[int, dict], dict[int, str]]:
+def regenerated(tmp_path_factory) -> tuple[dict[int, dict], dict[int, str], dict[int, str]]:
     root = tmp_path_factory.mktemp("skids") / PROCESS.name
     shutil.copytree(PROCESS, root, ignore=shutil.ignore_patterns("build", ".claude", "runs", "__pycache__", ".venv"))
-    records, e8 = {}, {}
+    records, e8, lca, e10 = {}, {}, {}, {}
     for h in DURATIONS:
         proc = subprocess.run(
             [sys.executable, "-m", "chemeascode", "run", "scripts/regen.py", "--duration", str(h)],
@@ -419,12 +659,18 @@ def regenerated(tmp_path_factory) -> tuple[dict[int, dict], dict[int, str]]:
         )  # fmt: skip
         assert proc.returncode == 0, f"regen {h} h exited {proc.returncode}: {proc.stderr[-2000:]}"
         records[h] = json.loads((root / "results" / "scenarios" / f"{h}h" / "record.json").read_text())
+        lca[h] = json.loads((root / "results" / "scenarios" / f"{h}h" / "lca.json").read_text())
         try:  # E8 on the model as this run left it (the folder then holds the 10000 h model)
             assert_e8(root, records[h])
             e8[h] = "ok"
         except AssertionError as exc:
             e8[h] = str(exc)
-    return records, e8
+        try:  # E10 (#331) on the LCA this run wrote (its datasets are this duration's)
+            assert_e10(root, {h: records[h]}, {h: lca[h]})
+            e10[h] = "ok"
+        except AssertionError as exc:
+            e10[h] = str(exc)
+    return records, e8, e10
 
 
 @engineering
@@ -443,3 +689,9 @@ def test_regenerated_layout_carries_the_sizes_e8(regenerated):
 @needs_core
 def test_regenerated_infeasibility_and_ranges_are_reported_e9(regenerated, items):
     assert_e9(regenerated[0], items)
+
+
+@engineering
+@needs_core
+def test_regenerated_lca_is_reconciled_e10(regenerated):
+    assert regenerated[2] == {1000: "ok", 10000: "ok"}

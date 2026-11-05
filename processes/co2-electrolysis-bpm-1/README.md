@@ -38,9 +38,11 @@ assumption, not supported by measurement: the measured runs last 1 h in fresh 1 
 | `results/scenarios/<H>h/record.json`, `uncertainty.json` | the calculation record and the bounding runs of each scenario |
 | `results/resize-1000h-10000h.md` | what changes from 1,000 to 10,000 h, why, and against the hand values |
 | `figures/duty/<H>h/`, `figures/compare/<H>h/` | the duty transients, operating maps and comparisons |
-| `scripts/regen.py` | the single rerun command of the skids (`scripts/README.md`) |
+| `results/expected-lca.yaml`, `results/scenarios/<H>h/lca.json` | the LCI hand expectations E10 (frozen before the LCA was first computed) and each scenario's LCA record (#331) |
+| `lca/` | the LCA of both skids: scope, open factors, Skid A's and Skid B's datasets, scenarios, sensitivities, ranking (`lca/README.md`) |
+| `scripts/regen.py` | the single rerun command of the skids, the LCA included (`scripts/README.md`) |
 | `safety/hazop/H-01/`, `safety/hazop/H-02/`, `safety/hazop/SESSION.md` | HAZOP drafts of Skid A and Skid B, **agent-prepared for a team session that has not been held** (every entry proposed, the risk matrix proposed), and the session pack; `safety/README.md` |
-| `DESIGN.md` | decisions D-001 to D-023 and D-030 to D-032 (the HAZOP drafts; D-024 to D-029 are #331's) |
+| `DESIGN.md` | decisions D-001 to D-027 and D-030 to D-032 (D-030 to D-032: the HAZOP drafts) |
 
 Rerun the skids, from this folder (about 2 min at 1,000 h, 4 min at 10,000 h):
 
@@ -91,8 +93,17 @@ Skid A's continuous duty, and part load (12 h at 200, 12 h at 100 mA/cm2) 7.6 % 
 and 1.47 times the hydroxide deficit (`DESIGN.md` D-013).
 
 The comparison with the published results is held out in
-`benchmarks/reproductions/vermaas-rbpm-wde/` and is not used here (ADR 0032). The life-cycle
-inventory and assessment of both skids follows in #331.
+`benchmarks/reproductions/vermaas-rbpm-wde/` and is not used here (ADR 0032).
+
+The life cycle inventory of both skids (#331, `lca/README.md`, `DESIGN.md` D-024 to D-027) is
+reconciled with the duty totals at both durations: per kg CO delivered about 34.6 kWh of AC
+power, 3.54 kg of CO2 fed and 1.71 kg vented, and KOH 0.65 kg (Skid A) or 1.20 kg (Skid B). Its
+climate screening on the Ember 2025 NL grid gives about 10.5 kg CO2e per kg CO for either skid,
+a partial screening carbon footprint: the CO2 supply, KOH (with the dilution water of its
+solutions), the alkaline wastes (whose carbonate releases about 0.25 kg of fossil CO2 per kg CO
+when neutralised), the cooling water service, the stack parts (membrane, Ag, carbon paper, Ni
+foam) and construction have no open factor and are listed as gaps, so which skid is lower is not
+determined.
 
 <p align="center">
   <a href="https://cheme-as-code.org"><img src="https://img.shields.io/badge/built_with-ChemE--as--Code-0b7285" alt="Built with ChemE-as-Code"></a>

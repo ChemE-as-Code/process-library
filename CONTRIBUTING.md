@@ -95,7 +95,12 @@ fails the `balance-scripts` job.
 #### An LCI dataset, its mappings, gaps and allocation
 
 - The dataset is `lca/dataset.yaml`, written by `cheme assess lca --write`, or hand-written
-  `lca/datasets/*.yaml`.
+  `lca/datasets/*.yaml` (a manifest-only process). An engineering project with a second
+  computed design (another flowsheet case) also commits that case's own dataset,
+  `lca/datasets/<dataset id>-<case>.yaml`, written by `cheme assess lca --write --case <case>` and
+  never edited; a `kind: command` gate `cheme assess lca --check --case <case>` keeps it current,
+  and the build names its activities `<title>, case <case>`
+  ([ADR 0034](docs/adr/0034-design-case-lci-datasets.md)).
 - **Overrides for this process's exchanges** go in its own `lca/mappings.yaml`, not in the shared
   file: `use` an existing technosphere entry, a `chemical` slug, a `dataset` (an Atlas producer),
   `atlas: false`, a `properties_reason`.

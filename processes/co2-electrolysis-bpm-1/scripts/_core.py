@@ -15,7 +15,9 @@ Commands used: ``cheme process cell --json``, ``cheme process stack [--write] --
 ``cheme process duty IDS --json [--plot DIR]``, ``cheme process duty --compare``,
 ``cheme datasheets draft``, ``cheme datasheets fill --case C --tag T``, ``cheme process build``,
 ``cheme process streams``, ``cheme layout build``, ``cheme layout render``,
-``cheme control report --json``, ``cheme validate --json``, ``cheme run``. The generated layout
+``cheme control report --json``, ``cheme validate --json``, ``cheme run``, and for the LCA
+(scripts/_lca.py, #331) ``cheme assess lca --write [--case C]``, ``--json``, ``--balance
+--json``, ``cheme assess lca-scenarios --write`` and ``cheme assess lca-cases --json``. The generated layout
 model ``layout/plant-model.yaml`` (schema ``cheme schema layout_model``) is read here too, for
 the envelope check: core checks containment in a structure in plan only.
 """

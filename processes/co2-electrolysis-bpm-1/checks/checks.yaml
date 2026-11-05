@@ -170,13 +170,28 @@ checks:
     stage: basic
     kind: mto
     require: [mto-current]
-  # The LCA of the operation (lca/): once lca/lca.yaml exists, uncomment; add factors once the
-  # project's own replace the example.
-  # - id: lca
-  #   title: LCA mapped and current with the flowsheet
-  #   stage: basic
-  #   kind: lca
-  #   require: [mapped, lca-current]
+  # The LCA of the two skids (#331, lca/, DESIGN.md D-024 to D-027): every flow mapped or
+  # declared missing, the factors the project's own (open profiles, no example), the outputs
+  # current, the dataset's mass balance closed. Not required: no-gaps and factors-published (a
+  # partial screening footprint, the gaps are listed: ADR 0029) and the element and carbon-origin
+  # balances (not assessable while the replaced stack parts have no composition; K and C close
+  # on every exchange that has one, results/scenarios/<H>h/lca.json).
+  - id: lca
+    title: LCA of Skid A mapped, its factors the project's, current with the flowsheet, mass balance closed
+    stage: concept
+    kind: lca
+    require: [mapped, factors, lca-current, lci-mass-balance]
+  # Skid B's own dataset (core ADR 0045) and the scenario records are current (library ADR 0034)
+  - id: lca-case-dataset-current
+    title: "Skid B's dataset lca/datasets/*-skid-b.yaml is current (cheme assess lca --check --case skid-b)"
+    stage: concept
+    kind: command
+    command: cheme assess lca --check --case skid-b
+  - id: lca-scenarios-current
+    title: The LCA scenario records lca/scenarios/*.json are current
+    stage: concept
+    kind: command
+    command: cheme assess lca-scenarios --check
   # The techno-economic analysis (estimate/tea.yaml, skill tea): once the project prices its
   # plant, uncomment; add class-stage (the estimate class the stage expects) and decision (the
   # baseline meets the decision's threshold) before the stage's investment decision.

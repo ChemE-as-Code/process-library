@@ -40,6 +40,13 @@ The pilot skids of #330 (DESIGN.md D-007 to D-023):
   DIR` runs in a copy and copies the scenario's figures and records back (D-021, D-022).
 - `_results.py`: the arithmetic of steps 14 to 17 (invariants, record, resize report) and the
   uncertainty figures, plain SVG; no core import.
+- `_lca.py`: regen step 20, the LCA of both skids (#331, DESIGN.md D-024 to D-027): the values
+  `lca/lca.yaml` takes from the design, `cheme assess lca --write` (and `--case skid-b`),
+  `lca-scenarios --write`, and the scenario's LCA record `results/scenarios/<H>h/lca.json` with the
+  reconciliation against the duty totals (E10).
+- `lca_sensitivity.py`: `cheme run scripts/lca_sensitivity.py [--check]`, the membrane-life,
+  H2 co-product, electricity-mix and duration sensitivities, the ranking rule and the tables of
+  `lca/README.md`, from both scenarios' LCA records (regen runs it in step 17).
 - `skid_balance.py`: the flowsheet's stream values of both cases from core's stack and duty
   results (library ADR 0027, contract `balance-output/1`).
 - `_core.py`: the one coupling to cheme-as-code (its commands' `--json` output only); the duty
