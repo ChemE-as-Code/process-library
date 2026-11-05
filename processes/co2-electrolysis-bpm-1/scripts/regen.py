@@ -111,10 +111,16 @@ Steps (design spec #330, section 6):
     skid-b) and `lca-cases --json`, then the scenario's LCA record
     results/scenarios/<H>h/lca.json: every exchange per kg CO, the reconciliation with the duty
     totals of the record (E10), the K and C balances, the run fingerprints and their citations,
-    the scenario totals and the gaps. A dataset that does not reconcile is a finding (error).
+    the scenario totals and the gaps. A step 20 error (the LCA cannot be made, a dataset that
+    does not reconcile, lca-cases disagreeing, an open K or C balance, a spent or bleed density
+    outside its band, the run not traced) fails the run (exit 4): the committed LCA would
+    otherwise stay as an earlier design left it. When the LCA cannot be made at all, the
+    scenario's lca.json is removed (it would describe another design).
 
-Findings are collected, never fatal: an infeasible skid is a result. The exit code is non-zero
-only on a tool error (1), on refused input (2) or on a --check difference (3).
+Findings of steps 1 to 17 are collected, never fatal: an infeasible skid is a result. The exit
+code is non-zero on a tool error (1), on refused input (2), on a --check difference (3) or on a
+step 20 error (4; --check counts it as a difference too, and requires the scratch run to have
+written the scenario's lca.json).
 """
 
 from __future__ import annotations
@@ -1448,6 +1454,10 @@ class Run:
             out = _lca.step(self.root, self.h, record, stacks)
         except _lca.LcaError as exc:
             self.note("20", "error", f"the LCA cannot be made: {exc}")
+            stale = self.root / _lca.SCENARIO_LCA.format(h=f"{self.h:g}")
+            if stale.exists():
+                stale.unlink()
+                print(f"[20] {stale.relative_to(self.root)} removed: it described an earlier design")
             return
         doc = out["doc"]
         for key, s in doc["skids"].items():
@@ -1458,6 +1468,9 @@ class Run:
                 self.note("20", "error", f"Skid {key}: cheme assess lca-cases differs from the dataset")
             if not (s["balance"]["k_closed"] and s["balance"]["c_closed"]):
                 self.note("20", "error", f"Skid {key}: the K or C balance of the dataset does not close")
+            if not s["densities_plausible"]:
+                bad = [f"{r['quantity']} {r['kg_l']:.4g} kg/L" for r in s["densities"] if not r["ok"]]
+                self.note("20", "error", f"Skid {key}: mass over the duty's volume outside {_lca.DENSITY_BAND_KG_L} kg/L: {', '.join(bad)}")
             if not s["tanks_carry_run"] or s["sources_uncited"]:
                 self.note("20", "error", f"Skid {key}: run {s['run_fingerprint']} not on {s['tank_fingerprints']} or not cited by {s['sources_uncited']}")
         if not doc["manifest_fingerprints_flowsheet"]:
@@ -1469,6 +1482,10 @@ class Run:
             f"({len(a['impacts']['gaps'])} and {len(b['impacts']['gaps'])} gaps); reconciled A {a['reconciled']}, "
             f"B {b['reconciled']}{'; lca/lca.yaml synced' if out['scope_changed'] else ''}"
         )
+
+    def lca_errors(self) -> list[dict]:
+        """The step 20 errors: each fails the run (exit 4) and --check."""
+        return [f for f in self.findings if f["step"] == "20" and f["level"] == "error"]
 
     def run(self) -> None:
         self.preflight()
@@ -1806,6 +1823,7 @@ def _check(root: Path, durations: list[float]) -> int:
     """Step 19: every scenario regenerated in a temporary copy and compared."""
     design, scenarios = _scenarios(root)
     differ: list[str] = []
+    failed: list[str] = []
     records: dict[float, dict] = {}
     uncertainty: dict[float, dict] = {}
     lca_docs: dict[float, dict] = {}
@@ -1815,7 +1833,16 @@ def _check(root: Path, durations: list[float]) -> int:
             shutil.copytree(root, scratch, ignore=COPY_IGNORE)
             with_unc = (root / UNCERTAINTY.format(h=f"{h:g}")).exists()
             print(f"[check] regenerating {h:g} h{' with --uncertainty' if with_unc else ''}")
-            Run(scratch, h, uncertainty=with_unc).run()
+            # the scratch run must write the LCA record itself: a copied one would compare clean
+            copied = scratch / _lca.SCENARIO_LCA.format(h=f"{h:g}")
+            if copied.exists():
+                copied.unlink()
+            run = Run(scratch, h, uncertainty=with_unc)
+            run.run()
+            for finding in run.lca_errors():
+                failed.append(f"{h:g} h step 20: {finding['message']}")
+            if not copied.exists():
+                failed.append(f"{h:g} h: step 20 wrote no {_lca.SCENARIO_LCA.format(h=f'{h:g}')}")
             rel_files = []
             if h == design:
                 rel_files += [*MODEL_FILES, *LCA_COMPARE]
@@ -1840,9 +1867,8 @@ def _check(root: Path, durations: list[float]) -> int:
             unc = scratch / UNCERTAINTY.format(h=f"{h:g}")
             if unc.exists():
                 uncertainty[h] = json.loads(unc.read_text(encoding="utf-8"))
-            lca = scratch / _lca.SCENARIO_LCA.format(h=f"{h:g}")
-            if lca.exists():
-                lca_docs[h] = json.loads(lca.read_text(encoding="utf-8"))
+            if copied.exists():
+                lca_docs[h] = json.loads(copied.read_text(encoding="utf-8"))
     if len(scenarios) == 2 and set(scenarios) <= set(records):
         texts = _resize_texts(
             root,
@@ -1855,8 +1881,13 @@ def _check(root: Path, durations: list[float]) -> int:
                 differ.append(rel)
     for rel in differ:
         print(f"[check] differs from a regeneration: {rel}")
-    print(f"[check] {'clean' if not differ else str(len(differ)) + ' file(s) differ'}")
-    return 3 if differ else 0
+    for message in failed:
+        print(f"[check] failed: {message}")
+    if not differ and not failed:
+        print("[check] clean")
+        return 0
+    print(f"[check] {len(differ)} file(s) differ, {len(failed)} step 20 failure(s)")
+    return 3
 
 
 def main(argv: list[str]) -> int:
@@ -1934,6 +1965,11 @@ def main(argv: list[str]) -> int:
     print(
         f"regen: H = {args.duration:g} h done; {len(run.findings)} finding(s), {len(errors)} error(s) (results, not tool failures); summary {summary.relative_to(root)}"
     )
+    lca_errors = run.lca_errors()
+    if lca_errors:
+        for finding in lca_errors:
+            print(f"regen: step 20 failed: {finding['message']}", file=sys.stderr)
+        return 4
     return 0
 
 

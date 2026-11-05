@@ -1,16 +1,48 @@
 {
- "break_even_koh_kg_co2e_per_kg": -0.006631352615,
- "break_even_reading": "none: -0.006631 kg CO2e per kg KOH, below zero. Skid B is higher in every characterised flow (0.003619 kg CO2e/kg CO: its dosing pump and make-up water) and uses 1.84 times the KOH and 1.57 times the alkaline waste per kg CO, so no KOH or treatment factor reverses the order; only the flows Skid A carries more of could: construction (the reservoirs), which core 1.5.0 cannot state per case (cut off)",
+ "break_even_basis": "the KOH factor per kg KOH 100 % at which the totals with the KOH solutions' water are equal: (B - A) / (KOH of A - KOH of B)",
+ "break_even_koh_kg_co2e_per_kg": -0.004142073618,
+ "break_even_reading": "none: -0.004142 kg CO2e per kg KOH, below zero. Skid B has the higher characterised total (0.002261 kg CO2e/kg CO more with the KOH solutions' water; higher in electricity and water; lower in water in the KOH solutions; equal in vent CO2) and uses 1.84 times the KOH per kg CO, so no KOH factor reverses the order; it makes 1.57 times the alkaline waste too, so no treatment factor does either; of the flows without a factor only those Skid A carries more of could: construction (the duty-sized tanks), which core 1.5.0 cannot state per case (cut off)",
  "carried_more_by": {
   "KOH (fill and dose, KOH 100 %)": "B",
   "alkaline wastes to neutralisation (spent anolyte, bleed, condensate)": "B",
-  "construction (the reservoirs)": "A"
+  "construction (the duty-sized tanks)": "A"
  },
  "characterised": {
   "A": 10.4785677,
   "B": 10.48218675,
   "B_minus_A": 0.00361905,
-  "note": "electricity, the vent CO2 and the water only; the gaps excluded"
+  "by_flow": {
+   "A": {
+    "electricity": 8.766238026,
+    "vent CO2": 1.711833625,
+    "water": 0.0004960503088,
+    "water in the KOH solutions": 0.002200728489
+   },
+   "B": {
+    "electricity": 8.767117634,
+    "vent CO2": 1.711833625,
+    "water": 0.003235487145,
+    "water in the KOH solutions": 0.0008422159472
+   }
+  },
+  "higher": {
+   "A": [
+    "water in the KOH solutions"
+   ],
+   "B": [
+    "electricity",
+    "water"
+   ],
+   "equal": [
+    "vent CO2"
+   ]
+  },
+  "note": "core's totals: electricity, the vent CO2 and the water, the gaps excluded; with_solution_water adds the KOH solutions' dilution water at the water factor (inside the KOH gaps in core's totals), the basis of the break-even",
+  "with_solution_water": {
+   "A": 10.48076843,
+   "B": 10.48302896,
+   "B_minus_A": 0.00226053
+  }
  },
  "distinguishing_flows": [
   {
@@ -86,15 +118,16 @@
    "unit": "kg/kg CO"
   },
   {
-   "A": null,
-   "B": null,
+   "A": 1.4575,
+   "B": 0.1470063872,
    "documented_factor": false,
    "key": "construction",
-   "note": "construction (cut off: not expressible per case in core 1.5.0; Skid A's 1.46 m3 reservoir T-101 against Skid B's 0.06 m3 T-201 and 0.08 m3 day tank T-202)",
+   "note": "construction (cut off: not expressible per case in core 1.5.0; Skid A's tanks 1.46 m3 T-101 against Skid B's 0.0625 m3 T-201 and 0.0845 m3 T-202)",
    "status": {
     "A": "cutoff",
     "B": "cutoff"
-   }
+   },
+   "unit": "m3 of duty-sized tanks"
   }
  ],
  "duration_h": 1000.0,
@@ -105,6 +138,10 @@
  },
  "rule": "A is ranked against B only if every flow that distinguishes them has a documented factor (library ADR 0029: gaps are listed, never stubbed)",
  "schema": "process-library/skid-lca-sensitivity/1",
+ "tanks_m3": {
+  "A": 1.4575,
+  "B": 0.1470063872
+ },
  "undocumented": [
   "feed:KOH-DOSE",
   "feed:KOH-FILL",

@@ -43,7 +43,7 @@ flows:
   # -- feeds ------------------------------------------------------------------------------------
   - key: feed:POWER
     factor: ember-2025:electricity-nl
-    proxy: "Ember's life-cycle intensity of NL gross generation (no T&D losses) stands in for the AC grid supply at the skid (at the consumer); the same profile for every electricity-mix scenario, so they compare like for like (DESIGN.md D-026)"
+    proxy: "Ember's life-cycle intensity of NL gross generation (no T&D losses) stands in for the AC grid supply at the skid (at the consumer); the same profile for every electricity-mix scenario, so the electricity pair of each differs in no dimension (their verdict is proxy through the water background, DESIGN.md D-026)"
     source: "the rectifiers' AC (the stacks' DC over 0.95), the recirculation pumps, the compressors, the PSA and Skid B's dosing pump (Q101 to Q104, Q201 to Q204, Q206; scripts/skid_balance.py, ESTIMATES for the auxiliaries until the datasheets give them, D-012)"
   - key: feed:CO2
     co2_source: fossil-point-source
@@ -52,15 +52,16 @@ flows:
   - key: feed:WATER
     factor: water-supply-gb-kg
     proxy: "UK mains water supply stands in for demineralised water in NL: the demineralisation (ion exchange or reverse osmosis) is not counted (DESIGN.md D-026)"
-    source: "humidification water and Skid B's anolyte make-up (S102, S202, S222)"
+    source: "humidification water and Skid B's anolyte make-up (S102, S202, S222); the dilution water of the KOH fill and dose solutions is not in it: it is part of the KOH exchanges (gaps), and results/scenarios/<H>h/lca.json states it at this factor (DESIGN.md D-025)"
   - {key: feed:AIR, free: true, source: "ambient air to the tail-gas oxidiser (S110, S210): a resource without burden; its N2 and O2 leave with the flue gas"}
   # the KOH: the exchange counts the solution (a 1 M fill, the 5 M dose); its KOH 100 % is the
-  # exchange's composition (DESIGN.md D-025)
+  # exchange's composition. Core counts the solution as one flow, so its dilution water is inside
+  # this gap and not in feed:WATER (DESIGN.md D-025)
   - key: feed:KOH-FILL
-    missing: "no open factor for potassium hydroxide (KOH 100 %, membrane-cell electrolysis of KCl); the exchange counts the 1 M fill solution, its KOH mass fraction in the composition"
+    missing: "no open factor for potassium hydroxide (KOH 100 %, membrane-cell electrolysis of KCl); the exchange counts the 1 M fill solution, its KOH mass fraction in the composition; its dilution water (about 95 % of the mass) is inside this gap, not in feed:WATER"
     source: "the reservoir's initial 1 M KOH fill over the campaign (S117, S217; campaign-averaged, D-011): Skid A's whole fill, Skid B's 50 L"
   - key: feed:KOH-DOSE
-    missing: "no open factor for potassium hydroxide (KOH 100 %); the exchange counts the 5 M dosing solution, its KOH mass fraction in the composition"
+    missing: "no open factor for potassium hydroxide (KOH 100 %); the exchange counts the 5 M dosing solution, its KOH mass fraction in the composition; its dilution water (about 77 % of the mass) is inside this gap, not in feed:WATER"
     source: "Skid B's continuous 5 M KOH dosing (S219; D-010); zero in case skid-a"
   # -- emissions ----------------------------------------------------------------------------
   - key: product:VENT
@@ -76,17 +77,20 @@ flows:
   - {key: emission:N2, free: true, source: "the oxidiser air's nitrogen, returned to the atmosphere unchanged"}
   - {key: emission:O2, free: true, source: "the excess oxidiser air's O2 and the anode O2: returned to the atmosphere, no burden and no credit"}
   # -- wastes ---------------------------------------------------------------------------------
+  # Neutralising a carbonate solution with acid releases its carbon as CO2: fossil carbon of the
+  # CO2 feed, known by stoichiometry (results/scenarios/<H>h/lca.json carbonate_co2), but part of
+  # the treatment gap, not counted (DESIGN.md D-026)
   - key: product:SPENT
     treatment: {kind: waste, route: "neutralisation of alkaline carbonate solution", hazardous: true}
-    missing: "no open factor for the neutralisation of a spent alkaline potassium carbonate solution"
+    missing: "no open factor for the neutralisation of a spent alkaline potassium carbonate solution; its K2CO3 carbon (fossil, from the CO2 feed) is released as CO2 when it is neutralised and is not counted"
     source: "the anolyte left at the end of the campaign (S118, S218; campaign-averaged, D-011): KOH and K2CO3 in water, pH about 12 (Skid A) or 13.7 (Skid B)"
   - key: product:BLEED
     treatment: {kind: waste, route: "neutralisation of alkaline carbonate solution", hazardous: true}
-    missing: "no open factor for the neutralisation of an alkaline potassium carbonate solution"
+    missing: "no open factor for the neutralisation of an alkaline potassium carbonate solution; its K2CO3 carbon (fossil, from the CO2 feed) is released as CO2 when it is neutralised and is not counted"
     source: "Skid B's anolyte bleed to the site effluent (S223, D-010); zero in case skid-a"
   - key: product:CONDENSATE
     treatment: {kind: waste, route: "neutralisation of alkaline carbonate solution", hazardous: true}
-    missing: "no open factor for the neutralisation of the cathode's potassium carbonate condensate"
+    missing: "no open factor for the neutralisation of the cathode's potassium carbonate condensate; its K2CO3 carbon (fossil, from the CO2 feed) is released as CO2 when it is neutralised and is not counted"
     source: "the cathode condensate with the K+ that crossed the membrane as K2CO3 at 1 mol/kg, ASSUMED (S105, S205; D-012)"
   # -- utilities ------------------------------------------------------------------------------
   - key: product:CW
@@ -113,8 +117,16 @@ consumables:
     catalyst: true
     metals: {Ag: 1.0}
     missing: "no open factor for silver sputtered on a carbon gas-diffusion layer"
-    source: "28 cells x 100 cm2 x 100 nm of Ag (process/design-basis.yaml capacity.reference_cell, given) at the bulk density 10.49 g/cm3 (ASSUMED dense film): 1.049 g/m2; the carbon paper (Sigracet 39BB) is not counted (an open item, DESIGN.md D-026)"
+    source: "28 cells x 100 cm2 x 100 nm of Ag (process/design-basis.yaml capacity.reference_cell, given) at the bulk density 10.49 g/cm3 (ASSUMED dense film): 1.049 g/m2; its carbon paper is the consumable cathode-gdl-carbon"
     disposal: {kind: recyclable, route: "silver recovery by a precious-metal refiner", source: "ASSUMED: the spent cathodes go to silver recovery; cut-off: burden-free, no credit"}
+  - id: cathode-gdl-carbon
+    title: "Carbon-paper gas-diffusion layers of the cathodes (Sigracet 39BB), 28 x 100 cm2"
+    unit: kg
+    per_replacement: 0.028
+    every_years: 0.5
+    missing: "no open factor for a carbon-fibre paper gas-diffusion layer with a microporous layer"
+    source: "28 cells x 100 cm2 at 0.10 kg/m2 (ASSUMED: about 0.3 mm of carbon paper with its microporous layer; no datasheet value is used), the substrate of the Ag cathode (process/design-basis.yaml capacity.reference_cell), replaced with it every 4000 h; DESIGN.md D-024"
+    disposal: {kind: waste, route: "burnt off by the precious-metal refiner in the silver recovery", missing: "no open factor for burning carbon-fibre paper; its fossil carbon leaves as CO2 and is not counted", source: "ASSUMED: the carbon paper goes with the cathodes to silver recovery, where it is burnt off"}
   - id: anode-ni-foam
     title: "Nickel foam anodes, 28 x 100 cm2"
     unit: kg
@@ -129,13 +141,13 @@ consumables:
 cutoff:
   - id: construction
     title: "Skid construction (frames, tanks, stacks, packages, piping)"
-    reason: "not expressible per case in core 1.5.0 (construction entries select equipment by tag, not by case): an open item of #331, not a cut-off by mass; Skid A's 1.46 m3 reservoir against Skid B's 0.06 m3 is one of the flows that distinguish the skids (DESIGN.md D-026, D-027)"
+    reason: "not expressible per case in core 1.5.0 (construction entries select equipment by tag, not by case): an open item of #331, not a cut-off by mass; Skid A's duty-sized reservoir against Skid B's small reservoir and day tank (their volumes in lca/ranking.json) is one of the flows that distinguish the skids (DESIGN.md D-026, D-027)"
 emission_exclusions:
   - {id: anolyte-tanks, method: storage-tank, equipment: [T-101, T-201, T-202], reason: "the reservoirs and the day tank hold aqueous KOH and K2CO3 at 25 degC, which are not volatile; the anode O2 they vent is the exchange product:O2VENT", source: "DESIGN.md D-024"}
 # The background sensitivities and the design case (lca/scenarios/<id>.json). The electricity
-# mixes all come from one profile (ember-2025), so their verdict against the baseline is
-# like-for-like where only the grid factor changes (library ADR 0016); desnz-gb is a labelled
-# cross-basis check
+# mixes all come from one profile (ember-2025), so their electricity pair differs in no dimension
+# (library ADR 0016); each also declares the UK water a proxy for its geography, so core's
+# verdict is "proxy" (DESIGN.md D-026). desnz-gb is a labelled cross-basis check
 scenarios:
   - {id: skid-b, title: "Skid B (continuous KOH dosing), NL grid", case: skid-b, source: "flowsheet case skid-b: duty D-B (DESIGN.md D-010)"}
   - {id: mix-eu27, title: "Skid A, EU-27 grid", factors: {"ember-2025:electricity-nl": "ember-2025:electricity-eu27"}, location: EU27, year: 2025, electricity: grid-average, proxy: {"feed:WATER": "UK mains water stands in for demineralised water in the EU-27 too"}, source: "Ember 2025, EU-27 gross generation, life cycle"}

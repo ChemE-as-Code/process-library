@@ -873,9 +873,11 @@ and an LCI of both skids per kg CO delivered, for the 1,000 h design campaign:
   stacks): 28 x 100 cm2 every 4,000 h (`stacks[].replacement.interval`, ASSUMED), so every 0.5
   years at 8,000 h/a, as the bipolar membrane (0.20 kg/m2 ASSUMED), the cathode's Ag (100 nm,
   the design basis' reference cell, at the bulk density 10.49 g/cm3: 1.049 g/m2, ASSUMED dense
-  film) and the Ni foam anode (0.35 kg/m2 ASSUMED), each with a disposal (membrane to
-  incineration, a gap; Ag to a refiner and Ni to scrap recycling, burden-free under cut-off).
-  The carbon paper of the GDE is not counted (open). regen writes their amounts from the stack
+  film), the cathode's carbon-paper gas-diffusion layer (Sigracet 39BB, 0.10 kg/m2 ASSUMED:
+  about 0.3 mm with its microporous layer, no datasheet value used) and the Ni foam anode
+  (0.35 kg/m2 ASSUMED), each with a disposal (membrane to incineration, a gap; Ag to a refiner
+  and Ni to scrap recycling, burden-free under cut-off; the carbon paper burnt off at the
+  refiner, a gap whose fossil carbon is not counted). regen writes their amounts from the stack
   report and `process/cells.yaml`.
 
 Reason: the comparison of the skids needs both inventories on one functional unit, and the
@@ -897,9 +899,18 @@ step 20 (`scripts/_lca.py`) checks it into `results/scenarios/<H>h/lca.json` at 
   record's `run_fingerprint`; `lca/manifest.json` fingerprints `process/flowsheet.yaml`;
 - per kg CO, the datasets equal the record's duty totals over the CO delivered (rel 1e-6):
   energy over the rectifier efficiency plus the auxiliaries, the fill and the dose (KOH 100 %, from
-  the exchanges' compositions), the dosing solution, the bleed's and the final inventory's K and C,
-  the condensate's K and Skid B's make-up water (its water less Skid A's); `cheme assess
-  lca-cases` agrees within its six printed digits (rel 1e-5);
+  the exchanges' compositions), the fill solution's mass (the initial volume at the
+  recirculation pump's density), the dosing solution, the bleed's and the final inventory's K
+  and C, the spent inventory's share of the anolyte water that leaves (the final volume over the
+  final volume and the bleed), the condensate's K and Skid B's make-up water (its water less
+  Skid A's); `cheme assess lca-cases` agrees within its six printed digits (rel 1e-5). The fast
+  test recomputes every duty value from the record, not from `lca.json`;
+- the spent inventory's and the bleed's mass over the duty's volumes lie between 0.997 and
+  1.35 kg/L (ASSUMED band, water to a concentrated KOH and K2CO3 solution): 1.057 (Skid A) and
+  1.051 kg/L (Skid B). The water balance, not the volume, sets those masses, so this is where a
+  density or volume error would show;
+- a run stream whose flow (or a Q stream's duty) has no source, or a source without the run, is
+  uncited; a step 20 error fails regen (exit 4) and `--check`;
 - K closes (fill + dose = bleed + spent + condensate) and C by origin (CO2 fed = C in the CO +
   the anolyte + the condensate + the vent) on the datasets' compositions, and in core's
   `cheme assess lca --balance --json` (Skid B's in a copy that studies case skid-b);
@@ -920,7 +931,13 @@ Reason: the LCA rests on the design only if its amounts are the design's, tracea
 
 Deviation from the spec: the KOH exchanges count the solutions, as the flowsheet carries them
 (core counts a feed by its stream); the KOH 100 % basis is their composition, compared with the
-duty totals, and the Atlas mapping converts by the mass fraction (D-027). Core reports the element
+duty totals, and the Atlas mapping converts by the mass fraction (D-027). The spec puts the fill
+water in `feed:WATER`: here the solutions' dilution water (11.50 kg per kg CO in Skid A's fill,
+0.49 + 3.91 kg in Skid B's fill and dose at 1,000 h) is part of the KOH gaps, because core counts
+each solution as one exchange, and splitting the fill into KOH and water would change the #330
+flowsheet. `lca.json` states it at the water factor (`solution_water`: 0.0022 and 0.0008 kg CO2e
+per kg CO) and the ranking uses the totals with it (D-026); the Atlas proxies count it as
+deionised water. Core reports the element
 and carbon balances `not-assessable` while the replaced parts have no composition (a consumable
 takes none): K and C are asserted on the exchanges that have one.
 
@@ -937,16 +954,26 @@ Decision (the spec's D-018): open backgrounds only, no ecoinvent:
   footprint (core: "partial screening carbon footprint");
 - `missing:` with the reason for the merchant CO2, KOH, the neutralisation of the spent anolyte,
   the bleed and the condensate, the cooling water service, the membrane and its incineration,
-  the Ag and the Ni foam (DESNZ's construction metals factor is steel-dominated: not used for
-  nickel); construction is cut off (D-027). 11 gaps per skid, listed with their quantities;
+  the Ag, the carbon paper and its burning at the refiner, and the Ni foam (DESNZ's construction
+  metals factor is steel-dominated: not used for nickel); construction is cut off (D-027). 13
+  gaps per skid, listed with their quantities (Skid A's dose and bleed at 0, so 11 non-zero);
+- the neutralisation of the carbonate wastes releases their carbon as CO2: 7.2 % of the fossil
+  CO2 fed, 0.254 kg CO2 per kg CO for either skid (15 % on top of the vent's 1.712 kg, 2.4 % of
+  the total). It is fixed by stoichiometry but part of the treatment gaps, stated in their
+  reasons and in `lca.json` (`carbonate_co2`), not counted;
 - scenarios: `skid-b` (case skid-b); the Ember grids of the EU-27, DE, FR and the world for
   Skid A and, with `case: skid-b`, Skid B (core accepts `case` with `factors`); the DESNZ UK grid
-  as a cross-basis check;
+  as a cross-basis check. The Ember pairs differ in no dimension, but every mix scenario also
+  declares the UK water a proxy for its geography, so core's verdict is "proxy" (the texts in
+  `lca.yaml` and `factors.yaml` say so);
 - sensitivities by `scripts/lca_sensitivity.py` into `lca/`: the membrane life (1,000, 4,000,
   20,000 h, ASSUMED levels; inventory only), the H2 co-product, the electricity mix, the duration;
 - **ranking rule**: Skid A is ranked against Skid B only if every flow that distinguishes them
   has a documented factor (ADR 0029). They are KOH, the alkaline wastes and construction, and
-  none has one: "ranking not determined" (`lca/ranking.json`), with the break-even KOH factor.
+  none has one: "ranking not determined" (`lca/ranking.json`), with the break-even KOH factor
+  on the totals with the solutions' water. The reading is built from the signs (which skid has
+  the higher total, more KOH, more waste, the larger tanks) and the tank volumes from the
+  record, not typed in.
 
 Results (1,000 h, per kg CO, kg CO2e characterised, the gaps excluded): Skid A 10.479 (electricity
 8.766, vent CO2 1.712, water 0.0005), Skid B 10.482 (8.767, 1.712, 0.003). Electricity mixes A / B:
@@ -955,14 +982,17 @@ comparable). The Ember electricity pairs differ in no scope dimension; the verdi
 only through the UK water factor. Electricity is the largest characterised flow (84 %), the
 vented CO2 the second (16 %): the spec expected the vent possibly largest; at 34.6 kWh/kg it is
 not. Membrane life: 0.0028, 0.00069 and 0.00014 m2 of membrane per kg CO (0.0029, 0.00073 and
-0.00015 g Ag; 0.97, 0.24 and 0.049 g Ni), impact not computable (gaps; core's scenarios cannot vary
+0.00015 g Ag; 0.28, 0.069 and 0.014 g carbon paper; 0.97, 0.24 and 0.049 g Ni), impact not
+computable (gaps; core's scenarios cannot vary
 a consumable's amount, gap C4). H2: the tail gas carries 0.116 kg H2 per kg CO; recovered, it would
 take 10.4 % of the burden by mass or 58.0 % by LHV (CODATA: CO 282.98 kJ/mol, H2 241.826 kJ/mol);
 substitution missing. Duration: Skid B's KOH 1.195 kg/kg at 1,000 h and 1.170 at 10,000 h, Skid
-A's 0.649 at both; the totals do not change. Ranking: Skid B is higher in every characterised flow
-(+0.0036 kg CO2e/kg: its dosing pump and make-up water) and uses 1.84 times the KOH and 1.57 times
-the alkaline waste, so the break-even KOH factor is negative (-0.0066 kg CO2e/kg KOH): no KOH or
-treatment factor reverses the order; only Skid A's larger reservoir (construction, not stated per
+A's 0.649 at both; the totals do not change. Ranking: with the solutions' water, Skid A totals
+10.4808 and Skid B 10.4830 kg CO2e/kg (B higher by 0.0023: higher in electricity and the
+separately fed water, lower in the solutions' water, equal in the vent CO2; core's totals alone
+differ by 0.0036). Skid B uses 1.84 times the KOH and 1.57 times the alkaline waste, so the
+break-even KOH factor is negative (-0.0041 kg CO2e/kg KOH): no KOH or treatment factor reverses
+the order; only Skid A's larger tanks (1.46 m3 against 0.15 m3; construction, not stated per
 case) could.
 
 Reason: an open, publishable screening that states what it cannot rank.
@@ -989,7 +1019,10 @@ Decision:
   3.11 names, recorded "not checked: no ecoinvent licence" (ADR 0017); `process.yaml` gives the
   inventory keys;
 - construction is a `cutoff:` entry, open: core 1.5.0 selects construction by equipment tag,
-  not by case, so Skid B's dataset would carry Skid A's frames and its 1.46 m3 reservoir.
+  not by case, so Skid B's dataset would carry Skid A's frames and its duty-sized reservoir;
+- the KOH proxies count the solution as KOH 100 % and deionised water (`water`) by the
+  datasets' compositions, which `tests/test_lci_case_datasets.py` compares (rel 1e-6); the
+  multifunctional JSON is tested for both datasets like the workbook and the JSON-LD package;
 `publication.status` stays internal: `build_lci.py --public` leaves the process out.
 
 Deviation from the spec: the file is named by core's dataset id (from the flowsheet title), not
@@ -999,4 +1032,5 @@ not used, core does it.
 Open (#331 stays open): multi-category impacts; the ecoinvent 3.11 run and the mapping check; the
 A against B ranking (factors for KOH, CO2 supply, membrane, Ag, Ni, PP, caustic treatment);
 construction impacts; the H2 co-product alternative; the biogenic CO2 or higher-recycle case; the
-membrane-life impact; the GDE's carbon paper; the CPC code of the dataset.
+membrane-life impact; a factor for the GDE's carbon paper; the fossil CO2 of the neutralised
+carbonate wastes (counted once the treatment has a factor); the CPC code of the dataset.

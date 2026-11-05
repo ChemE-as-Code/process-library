@@ -15,8 +15,9 @@ step 17, beside the resize report; DESIGN.md D-026):
   designed) recovered it as a co-product: its share of the burden by mass and by lower heating
   value; substitution has no open factor (missing);
 - lca/sensitivity-electricity-mix.json: both skids on the Ember 2025 grids of NL, the EU-27, DE,
-  FR and the world (one profile: the electricity pairs compare like for like) and the DESNZ UK
-  grid (another basis: not comparable), from the scenario records;
+  FR and the world (one profile: the electricity pairs differ in no dimension; the verdict is
+  "proxy" through the UK water factor) and the DESNZ UK grid (another basis: not comparable),
+  from the scenario records;
 - lca/sensitivity-duration.json: the KOH, the spent anolyte and the bleed per kg CO at 1,000 and
   10,000 h, by exchange;
 - lca/ranking.json: the flows that distinguish Skid A from Skid B, whether each has a documented
@@ -59,10 +60,23 @@ MIXES = (
 KOH = ("feed:KOH-FILL", "feed:KOH-DOSE")
 WASTES = ("product:SPENT", "product:BLEED", "product:CONDENSATE")
 NOT_DETERMINED = "ranking not determined"
-CONSTRUCTION = (
-    "construction (cut off: not expressible per case in core 1.5.0; Skid A's 1.46 m3 reservoir T-101 "
-    "against Skid B's 0.06 m3 T-201 and 0.08 m3 day tank T-202)"
-)
+#: the characterised flows of the totals (core's contributions) and the solutions' water the
+#: record adds at the water factor (scripts/_lca.py solution_water)
+CHARACTERISED = {"feed:POWER": "electricity", "emission:CO2": "vent CO2", "feed:WATER": "water"}
+SOLUTION_WATER = "water in the KOH solutions"
+
+
+def _tanks(doc: dict, skid: str) -> str:
+    tanks = doc["skids"][skid]["tanks_m3"]
+    return " and ".join(f"{v:.3g} m3 {tag}" for tag, v in sorted(tanks.items()))
+
+
+def construction(doc: dict) -> str:
+    """The construction cut-off with the duty-sized tanks of this scenario's record."""
+    return (
+        "construction (cut off: not expressible per case in core 1.5.0; Skid A's tanks "
+        f"{_tanks(doc, 'A')} against Skid B's {_tanks(doc, 'B')})"
+    )
 
 
 def _scenarios(root: Path) -> tuple[float, list[float]]:
@@ -110,6 +124,7 @@ def membrane_life(doc: dict) -> dict[str, Any]:
                 "membrane_m2_per_kg": m2,
                 "membrane_g_per_kg": m2 * p["areal_kg_m2"]["membrane-bpm"] * 1e3,
                 "ag_g_per_kg": m2 * p["areal_kg_m2"]["cathode-gde-ag"] * 1e3,
+                "carbon_paper_g_per_kg": m2 * p["areal_kg_m2"]["cathode-gdl-carbon"] * 1e3,
                 "ni_g_per_kg": m2 * p["areal_kg_m2"]["anode-ni-foam"] * 1e3,
             }
         )
@@ -118,7 +133,7 @@ def membrane_life(doc: dict) -> dict[str, Any]:
     check = {
         skid: {
             cid: _ex(doc, skid, f"consumable:{cid}") * 1e3
-            for cid in ("membrane-bpm", "cathode-gde-ag", "anode-ni-foam")
+            for cid in ("membrane-bpm", "cathode-gde-ag", "cathode-gdl-carbon", "anode-ni-foam")
         }
         for skid in ("A", "B")
     }
@@ -138,7 +153,7 @@ def membrane_life(doc: dict) -> dict[str, Any]:
             abs(check[s]["membrane-bpm"] - design["membrane_g_per_kg"]) <= 1e-6 * design["membrane_g_per_kg"]
             for s in check
         ),
-        "impact": "not computable: gap (no open factor for the bipolar membrane, the Ag cathode or the Ni foam; core's scenarios cannot vary a consumable's amount, design core gap C4)",
+        "impact": "not computable: gap (no open factor for the bipolar membrane, the Ag cathode, its carbon paper or the Ni foam; core's scenarios cannot vary a consumable's amount, design core gap C4)",
         "same_for_both_skids": True,
     }
 
@@ -244,6 +259,20 @@ def duration(docs: dict[float, dict]) -> dict[str, Any]:
     }
 
 
+def characterised(doc: dict, skid: str) -> dict[str, float]:
+    """kg CO2e per kg CO by characterised flow: core's contributions, and the KOH solutions'
+    water at the feed:WATER factor (inside the KOH gaps in core's total)."""
+    s = doc["skids"][skid]
+    c = s["impacts"]["contributions"]
+    out = {label: float((c.get(k) or {}).get("value") or 0.0) for k, label in CHARACTERISED.items()}
+    out[SOLUTION_WATER] = float(s["solution_water"]["kg_co2e"] or 0.0)
+    return out
+
+
+def _names(items: list[str]) -> str:
+    return items[0] if len(items) == 1 else ", ".join(items[:-1]) + " and " + items[-1]
+
+
 def ranking(doc: dict) -> dict[str, Any]:
     a, b = doc["skids"]["A"], doc["skids"]["B"]
     keys = sorted(set(a["exchanges"]) | set(b["exchanges"]))
@@ -257,30 +286,57 @@ def ranking(doc: dict) -> dict[str, Any]:
         documented = all(s not in (None, "gap") for s in (sa, sb))
         flows.append({"key": k, "A": qa, "B": qb, "B_minus_A": qb - qa, "unit": (a["exchanges"].get(k) or b["exchanges"][k])["unit"],
                       "status": {"A": sa, "B": sb}, "documented_factor": documented})  # fmt: skip
-    flows.append({"key": "construction", "A": None, "B": None, "status": {"A": "cutoff", "B": "cutoff"},
-                  "documented_factor": False, "note": CONSTRUCTION})  # fmt: skip
+    tanks = {s: sum(doc["skids"][s]["tanks_m3"].values()) for s in ("A", "B")}
+    flows.append({"key": "construction", "A": tanks["A"], "B": tanks["B"], "unit": "m3 of duty-sized tanks",
+                  "status": {"A": "cutoff", "B": "cutoff"}, "documented_factor": False, "note": construction(doc)})  # fmt: skip
     undocumented = [f["key"] for f in flows if not f["documented_factor"]]
     ta, tb = a["impacts"]["total"], b["impacts"]["total"]
-    koh_a, koh_b = _koh(doc, "A"), _koh(doc, "B")
+    wa, wb = a["solution_water"]["total_with_it"], b["solution_water"]["total_with_it"]
+    koh = {"A": _koh(doc, "A"), "B": _koh(doc, "B")}
     waste = {s: sum(_ex(doc, s, k) for k in WASTES) for s in ("A", "B")}
-    diff = None if ta is None or tb is None else tb - ta
-    break_even = None if diff is None or koh_a == koh_b else diff / (koh_a - koh_b)
+    # the difference with the KOH solutions' water at the water factor: the KOH factor is then
+    # per kg KOH 100 % (the water no longer inside it)
+    diff = None if wa is None or wb is None else wb - wa
+    break_even = None if diff is None or koh["A"] == koh["B"] else diff / (koh["A"] - koh["B"])
+    by_flow = {s: characterised(doc, s) for s in ("A", "B")}
+    side: dict[str, list[str]] = {"A": [], "B": [], "equal": []}
+    for label in by_flow["A"]:
+        va, vb = by_flow["A"][label], by_flow["B"][label]
+        side["equal" if abs(va - vb) <= 1e-9 * max(abs(va), abs(vb), 1e-300) else ("B" if vb > va else "A")].append(label)
     # which skid carries more of each group of undocumented flows (the wastes share one route)
+    groups = {"KOH": "KOH (fill and dose, KOH 100 %)", "wastes": "alkaline wastes to neutralisation (spent anolyte, bleed, condensate)",
+              "construction": "construction (the duty-sized tanks)"}  # fmt: skip
     more = {
-        "KOH (fill and dose, KOH 100 %)": "B" if koh_b > koh_a else "A",
-        "alkaline wastes to neutralisation (spent anolyte, bleed, condensate)": "B" if waste["B"] > waste["A"] else "A",
-        "construction (the reservoirs)": "A",
+        groups["KOH"]: "B" if koh["B"] > koh["A"] else "A",
+        groups["wastes"]: "B" if waste["B"] > waste["A"] else "A",
+        groups["construction"]: "B" if tanks["B"] > tanks["A"] else "A",
     }
     if break_even is None:
         reading = "not computable"
     elif break_even < 0:
-        a_more = [g for g, s in more.items() if s == "A"]
+        # the skid with the higher characterised total also uses more KOH: no KOH factor reverses
+        hi = "B" if diff > 0 else "A"
+        lo = "A" if hi == "B" else "B"
+        parts = [f"higher in {_names(side[hi])}"] if side[hi] else []
+        parts += [f"lower in {_names(side[lo])}"] if side[lo] else []
+        parts += [f"equal in {_names(side['equal'])}"] if side["equal"] else []
+        wastes_too = more[groups["wastes"]] == hi
+        lo_groups = [g for g, s in more.items() if s == lo]
         reading = (
-            f"none: {break_even:.4g} kg CO2e per kg KOH, below zero. Skid B is higher in every characterised flow "
-            f"({diff:.4g} kg CO2e/kg CO: its dosing pump and make-up water) and uses {koh_b / koh_a:.3g} times the "
-            f"KOH and {waste['B'] / waste['A']:.3g} times the alkaline waste per kg CO, so no KOH or treatment factor "
-            f"reverses the order; only the flows Skid A carries more of could: {', '.join(a_more)}, which core "
-            "1.5.0 cannot state per case (cut off)"
+            f"none: {break_even:.4g} kg CO2e per kg KOH, below zero. Skid {hi} has the higher characterised total "
+            f"({abs(diff):.4g} kg CO2e/kg CO more with the KOH solutions' water; {'; '.join(parts)}) and uses "
+            f"{koh[hi] / koh[lo]:.3g} times the KOH per kg CO, so no KOH factor reverses the order"
+            + (
+                f"; it makes {waste[hi] / waste[lo]:.3g} times the alkaline waste too, so no treatment factor does either"
+                if wastes_too and waste[lo]
+                else f"; Skid {lo} makes more alkaline waste, so a treatment factor could"
+            )
+            + (
+                f"; of the flows without a factor only those Skid {lo} carries more of could: {_names(lo_groups)}"
+                + (", which core 1.5.0 cannot state per case (cut off)" if groups["construction"] in lo_groups else "")
+                if lo_groups
+                else f"; Skid {lo} carries more of no flow without a factor"
+            )
         )
     else:
         reading = f"{break_even:.4g} kg CO2e per kg KOH: above it the skid with less KOH is lower"
@@ -292,11 +348,19 @@ def ranking(doc: dict) -> dict[str, Any]:
         "distinguishing_flows": flows,
         "undocumented": undocumented,
         "verdict": NOT_DETERMINED if undocumented else "ranked",
-        "characterised": {"A": ta, "B": tb, "B_minus_A": diff, "note": "electricity, the vent CO2 and the water only; the gaps excluded"},
-        "koh_kg_per_kg": {"A": koh_a, "B": koh_b},
+        "characterised": {
+            "A": ta, "B": tb, "B_minus_A": None if ta is None or tb is None else tb - ta,
+            "with_solution_water": {"A": wa, "B": wb, "B_minus_A": diff},
+            "by_flow": by_flow,
+            "higher": side,
+            "note": "core's totals: electricity, the vent CO2 and the water, the gaps excluded; with_solution_water adds the KOH solutions' dilution water at the water factor (inside the KOH gaps in core's totals), the basis of the break-even",
+        },  # fmt: skip
+        "koh_kg_per_kg": koh,
         "break_even_koh_kg_co2e_per_kg": break_even,
+        "break_even_basis": "the KOH factor per kg KOH 100 % at which the totals with the KOH solutions' water are equal: (B - A) / (KOH of A - KOH of B)",
         "break_even_reading": reading,
         "wastes_kg_per_kg": waste,
+        "tanks_m3": tanks,
         "carried_more_by": more,
         "inventory_comparison": "lca/README.md and results/scenarios/<H>h/lca.json, per kg CO",
     }
@@ -336,7 +400,20 @@ def readme_tables(docs: dict[float, dict], design: float) -> str:
         vb = (d["skids"]["B"]["impacts"]["contributions"].get(k) or {}).get("value")
         lines.append(f"| {label} | {_f(va)} | {_f(vb)} |")
     lines.append(f"| characterised total | {_f(d['skids']['A']['impacts']['total'])} | {_f(d['skids']['B']['impacts']['total'])} |")
-    lines.append(f"| gaps (exchanges without a factor) | {len(d['skids']['A']['impacts']['gaps'])} | {len(d['skids']['B']['impacts']['gaps'])} |")
+    sw = {s: d["skids"][s]["solution_water"] for s in ("A", "B")}
+    lines.append(f"| water in the KOH solutions (inside the KOH gaps; at the water factor) | {_f(sw['A']['kg_co2e'])} | {_f(sw['B']['kg_co2e'])} |")
+    lines.append(f"| total with that water (the ranking's basis) | {_f(sw['A']['total_with_it'], 7)} | {_f(sw['B']['total_with_it'], 7)} |")
+    cc = {s: d["skids"][s]["carbonate_co2"] for s in ("A", "B")}
+    lines.append(
+        f"| not counted: fossil CO2 of the carbonate wastes, released when neutralised (inside the waste gaps; "
+        f"{cc['A']['share_of_co2_fed'] * 100:.1f} % of the CO2 fed) | {_f(cc['A']['kg_co2_per_kg'])} | {_f(cc['B']['kg_co2_per_kg'])} |"
+    )
+    gaps = {s: (len(d["skids"][s]["impacts"]["gaps"]), len(d["skids"][s]["gaps_nonzero"])) for s in ("A", "B")}
+    lines.append(
+        "| gaps (exchanges without a factor; of them non-zero) | "
+        + " | ".join(f"{n} ({nz} non-zero)" for n, nz in (gaps["A"], gaps["B"]))
+        + " |"
+    )
     lines.append("")
     # electricity mix
     mix = electricity_mix(d)
@@ -358,10 +435,10 @@ def readme_tables(docs: dict[float, dict], design: float) -> str:
     # membrane life
     mem = membrane_life(d)
     lines += ["**Membrane life** (inventory only; impact not computable: gap)", "",
-              "| life | m2 BPM | g membrane | g Ag | g Ni |", "|---|---|---|---|---|"]  # fmt: skip
+              "| life | m2 BPM | g membrane | g Ag | g carbon paper | g Ni |", "|---|---|---|---|---|---|"]  # fmt: skip
     for r in mem["rows"]:
         tag = " (design)" if r["design"] else ""
-        lines.append(f"| {r['membrane_life_h']:,.0f} h{tag} | {_f(r['membrane_m2_per_kg'])} | {_f(r['membrane_g_per_kg'])} | {_f(r['ag_g_per_kg'])} | {_f(r['ni_g_per_kg'])} |")
+        lines.append(f"| {r['membrane_life_h']:,.0f} h{tag} | {_f(r['membrane_m2_per_kg'])} | {_f(r['membrane_g_per_kg'])} | {_f(r['ag_g_per_kg'])} | {_f(r['carbon_paper_g_per_kg'])} | {_f(r['ni_g_per_kg'])} |")
     lines.append("")
     # H2 co-product
     h2 = h2_coproduct(d)["skids"]["A"]

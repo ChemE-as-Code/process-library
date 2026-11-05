@@ -61,8 +61,9 @@ LCA_OUTPUTS = (
 #: what core's --balance may not assess (the replaced parts have no composition; Skid A's zero
 #: dose and bleed)
 UNASSESSED = {
-    "consumable:anode-ni-foam", "consumable:cathode-gde-ag", "consumable:membrane-bpm",
-    "disposal:consumable.anode-ni-foam", "disposal:consumable.cathode-gde-ag", "disposal:consumable.membrane-bpm",
+    "consumable:anode-ni-foam", "consumable:cathode-gde-ag", "consumable:cathode-gdl-carbon", "consumable:membrane-bpm",
+    "disposal:consumable.anode-ni-foam", "disposal:consumable.cathode-gde-ag", "disposal:consumable.cathode-gdl-carbon",
+    "disposal:consumable.membrane-bpm",
     "feed:KOH-DOSE", "product:BLEED",
 }  # fmt: skip
 
@@ -284,6 +285,48 @@ def _lca_close(value: float, items: dict, key: str, where: str) -> None:
     assert lf.close(value, item["value"], item["tolerance"]), f"E10 {where} {key}: {value} vs {item['value']} {item['tolerance']}"
 
 
+#: the auxiliary power streams of each skid (the pumps, compressors, PSA; Skid B's dosing pump)
+AUX = {"A": ("Q102", "Q103", "Q104"), "B": ("Q202", "Q203", "Q204", "Q206")}
+#: the band of an anolyte's mass over its volume, kg/L (scripts/_lca.py DENSITY_BAND_KG_L)
+DENSITY_BAND = (0.997, 1.35)
+
+
+def _duty_side(root: Path, rec: dict, skid: str) -> dict[str, float]:
+    """E10's duty side per kg CO, recomputed here from the calculation record's duty totals (and
+    the inputs regen reads): what the dataset must equal, by the reconciliation's quantity. The
+    auxiliary power comes from the flowsheet the dataset is built from, so only the frozen
+    electricity values of results/expected-lca.yaml check it independently."""
+    stack = {"A": "STK-A", "B": "STK-B"}[skid]
+    cfg = {s["id"]: s for s in _yaml(root / "process" / "cells.yaml")["stacks"]}[stack]
+    flowsheet = {s["id"]: s for s in _yaml(root / "process" / "flowsheet.yaml")["streams"]}
+    m_koh = next(float(c["molar_mass"]) for c in _yaml(root / "process" / "materials.yaml")["components"] if c["id"] == "KOH")
+    s = rec["skids"][skid]
+    t = rec["duties"][s["duty"]]["totals"]
+    delivered = float(s["totals_delivered_kg"])
+    hours = float(s["duty_result"]["operating_time_h"])
+    eta = float(cfg["electrical"]["rectifier_efficiency"]["value"])
+    aux_kw = sum(float(flowsheet[q]["state"][s["case"]]["duty"]["value"]) for q in AUX[skid])
+    rho_fill = float(cfg["equipment"]["recirculation_pump"]["density"]["value"]) / 1000.0
+    out_l = t["final_volume_l"] + t["bleed_l"]
+    want = {
+        "electricity: DC / rectifier efficiency + auxiliaries": (t["energy_kwh"] / eta + aux_kw * hours) / delivered,
+        "KOH fill (KOH 100 %)": t["initial_cation_mol"] * m_koh / 1000.0 / delivered,
+        "fill solution (initial volume x anolyte density)": t["initial_volume_l"] * rho_fill / delivered,
+        "KOH dosed (KOH 100 %)": t["dosing_hydroxide_kg"] / delivered,
+        "dosing solution": (t["dosing_solution_kg"] or 0.0) / delivered,
+        "bleed K": t["bleed_cation_mol"] / delivered,
+        "bleed C": t["bleed_carbon_mol"] / delivered,
+        "final inventory K": t["final_cation_mol"] / delivered,
+        "final inventory C": t["final_carbon_mol"] / delivered,
+        "condensate K (the K+ through the membrane)": t["membrane_cation_mol"] / delivered,
+        "spent inventory's share of the anolyte water out (final volume over final volume + bleed)": t["final_volume_l"] / out_l if out_l else 0.0,
+        "CO delivered": delivered,
+    }  # fmt: skip
+    if skid == "B":
+        want["make-up water (Skid B's water less Skid A's)"] = t["makeup_water_l"] * 0.997 / delivered
+    return want
+
+
 def assert_e10(root: Path, records: dict[int, dict], docs: dict[int, dict]) -> None:
     """E10 (#331): the LCI of both skids per kg CO, reconciled with the duty totals of the
     scenario's calculation record, its K and C balances closed, the run that sized the
@@ -309,12 +352,22 @@ def assert_e10(root: Path, records: dict[int, dict], docs: dict[int, dict]) -> N
         for skid in ("A", "B"):
             s = doc["skids"][skid]
             at = f"{h} h Skid {skid}"
-            # the reconciliation with the duty totals (rel 1e-6), recomputed from its values
-            names = {r["quantity"].split(" (")[0] for r in s["reconciliation"]}
-            assert {"electricity: DC / rectifier efficiency + auxiliaries", "KOH fill", "KOH dosed", "bleed K", "bleed C",
-                    "final inventory K", "final inventory C", "condensate K"} <= names, names  # fmt: skip
+            # the reconciliation with the duty totals (rel 1e-6): its duty side recomputed here from
+            # the calculation record, not taken from lca.json
+            want = _duty_side(root, rec, skid)
+            assert {r["quantity"] for r in s["reconciliation"]} == set(want), f"E10 {at}: {[r['quantity'] for r in s['reconciliation']]}"
             for r in s["reconciliation"]:
-                assert rel(r["lca"], r["duty"], 1e-6) or r["lca"] == r["duty"] == 0.0, f"E10 {at}: {r}"
+                duty = want[r["quantity"]]
+                assert rel(r["duty"], duty, 1e-9) or r["duty"] == duty == 0.0, f"E10 {at}: stored duty {r} against {duty}"
+                assert rel(r["lca"], duty, 1e-6) or r["lca"] == duty == 0.0, f"E10 {at}: {r} against {duty}"
+            # the masses the balance writes over the duty's volumes: a plausible anolyte density
+            t = rec["duties"][rec["skids"][skid]["duty"]]["totals"]
+            delivered = float(rec["skids"][skid]["totals_delivered_kg"])
+            for key, litres in (("product:SPENT", t["final_volume_l"]), ("product:BLEED", t["bleed_l"])):
+                if litres:
+                    kg_l = s["exchanges"][key]["amount"] * delivered / litres
+                    assert DENSITY_BAND[0] <= kg_l <= DENSITY_BAND[1], f"E10 {at}: {key} {kg_l} kg/L"
+            assert s["densities_plausible"] and len(s["densities"]) == (2 if t["bleed_l"] else 1), f"E10 {at}: {s['densities']}"
             assert s["reconciled"] and s["lca_cases_agree"], at
             assert all(r["rel"] <= 1e-5 or r["dataset"] == r["lca_cases"] == 0.0 for r in s["lca_cases"]), at
             # K and C close by route (the dataset's compositions) and in core's --balance
@@ -353,7 +406,7 @@ def assert_e10(root: Path, records: dict[int, dict], docs: dict[int, dict]) -> N
             _lca_close(ex["consumable:anode-ni-foam"]["amount"] * 1e3, items, f"parts.{life}.ni_g_per_kg", at)
             # the gaps are listed with their quantities, never zero-filled (ADR 0029)
             gaps = s["impacts"]["gaps"]
-            for key in ("feed:CO2", "feed:KOH-FILL", "product:SPENT", "product:CONDENSATE", "product:CW", "consumable:membrane-bpm"):
+            for key in ("feed:CO2", "feed:KOH-FILL", "product:SPENT", "product:CONDENSATE", "product:CW", "consumable:membrane-bpm", "consumable:cathode-gdl-carbon"):
                 assert key in gaps and key not in s["impacts"]["contributions"], f"E10 {at}: {key}"
         _lca_close(doc["skids"]["A"]["impacts"]["contributions"]["feed:POWER"]["value"], items, "electricity.skid_a_kg_co2e_per_kg_nl", f"{h} h")
         # the electricity mixes come from one profile: the electricity pair differs in no dimension

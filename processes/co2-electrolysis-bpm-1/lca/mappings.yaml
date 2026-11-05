@@ -9,10 +9,11 @@
 schema: cheme-as-code/lci-process-mappings/v1
 exchanges:
   "feed:CO2": {use: carbon-dioxide-liquid, chemical: carbon-dioxide, source: "merchant liquefied CO2, a fossil industrial by-product (ASSUMED, D-016); not checked: no ecoinvent licence"}
-  # the KOH exchanges count the solutions; the proxies convert them to KOH 100 % by the
-  # dataset's composition (registry slug potassium-hydroxide, so a future Atlas producer links)
-  "feed:KOH-FILL": {use: potassium-hydroxide-1m, chemical: potassium-hydroxide, source: "1 M KOH fill counted by mass of solution (KOH mass fraction 0.0534333); not checked: no ecoinvent licence"}
-  "feed:KOH-DOSE": {use: potassium-hydroxide-5m, chemical: potassium-hydroxide, source: "5 M KOH dose counted by mass of solution (KOH mass fraction 0.229939); not checked: no ecoinvent licence"}
+  # the KOH exchanges count the solutions; the proxies convert them to KOH 100 % and the
+  # dilution water by the dataset's composition (registry slug potassium-hydroxide, so a future
+  # Atlas producer links; tests/test_lci_case_datasets.py compares the fractions)
+  "feed:KOH-FILL": {use: potassium-hydroxide-1m, chemical: potassium-hydroxide, source: "1 M KOH fill counted by mass of solution: KOH 100 % and its dilution water by the dataset's composition; not checked: no ecoinvent licence"}
+  "feed:KOH-DOSE": {use: potassium-hydroxide-5m, chemical: potassium-hydroxide, source: "5 M KOH dose counted by mass of solution: KOH 100 % and its dilution water by the dataset's composition; not checked: no ecoinvent licence"}
   # the anolyte wastes: alkaline KOH and K2CO3 solutions. Screening link to the wastewater entry
   # (average treatment); their neutralisation is not represented (DESIGN.md D-027)
   "product:SPENT": {use: wastewater, source: "spent anolyte (KOH, K2CO3) to treatment by mass; the neutralisation of the alkaline solution is not represented (screening); not checked: no ecoinvent licence"}

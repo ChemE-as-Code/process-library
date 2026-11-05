@@ -22,9 +22,18 @@ DESIGN.md D-024 to D-027; the tables at the end are regenerated with the design.
 | `../results/scenarios/<H>h/lca.json` | per scenario: every exchange per kg CO for both skids, the reconciliation (E10), the balances, the run fingerprints, the totals and the gaps | `scripts/regen.py` step 20 (`scripts/_lca.py`) |
 
 Never edit a generated file: change the design or `lca.yaml` and run
-`cheme run scripts/regen.py --duration 1000` (the 10,000 h scenario with `--scratch`); CI and the
-gate `skid-regen-current` run `--check`. The LCA alone: `cheme assess lca --check`,
+`cheme run scripts/regen.py --duration 1000` (the 10,000 h scenario with `--scratch`); a step 20
+error fails the run (exit 4). `cheme run scripts/regen.py --check` regenerates both scenarios and
+compares (the gate `skid-regen-current`). The LCA alone: `cheme assess lca --check`,
 `cheme assess lca --check --case skid-b`, `cheme assess lca-scenarios --check`.
+
+What CI enforces (`.github/workflows/validate.yml`): `cheme assess lca-scenarios --check`
+(blocking), the fast E10 tests on the committed records (`tests/test_co2_electrolysis_bpm_skids.py`,
+library job) and the regeneration of both scenarios with E1 to E10 asserted (engineering job,
+which does not compare with the committed files). The gates `lca`, `lca-case-dataset-current`
+and `skid-regen-current` run in CI only inside `cheme check --no-write`, which is informational
+(`continue-on-error`): run `cheme run scripts/regen.py --check` and the two `cheme assess lca
+--check` commands before committing.
 
 ## Scope
 
@@ -62,7 +71,9 @@ gate `skid-regen-current` run `--check`. The LCA alone: `cheme assess lca --chec
 - **Mixed vintages**: AR4/AR5 (DESNZ), AR6 (the plant's CO2) and Ember's mixed basis in one
   total (`cheme.lca-method-mix`): read the result as a screening, partial carbon footprint.
 - No ecoinvent or other licensed data. The calculation is core's factors backend
-  (`cheme assess lca --write`, `cheme assess lca-scenarios --write`); CI runs `--check`.
+  (`cheme assess lca --write`, `cheme assess lca-scenarios --write`); CI runs
+  `cheme assess lca-scenarios --check` (blocking) and the gates with `cheme assess lca --check`
+  only informationally (above).
 
 ## Data classes
 
@@ -75,7 +86,7 @@ gate `skid-regen-current` run `--check`. The LCA alone: `cheme assess lca --chec
 | emission:CO2 (vent) | FE CO | recovery 0.90, recycle 0.95, oxidiser | ipcc2021-gwp100 (published) |
 | product:SPENT, product:BLEED, product:CONDENSATE | WDE, Cx | the duty's routes; condensate at 1 mol/kg | gap |
 | product:CW | U, FE (stack heat) | isothermal by assumption | gap |
-| consumables (membrane, Ag, Ni foam) | - | cells x area x ASSUMED areal mass, 4,000 h interval | gap |
+| consumables (membrane, Ag, carbon paper, Ni foam) | - | cells x area x ASSUMED areal mass, 4,000 h interval | gap |
 
 Every measured value is a 1 h bench measurement in fresh 1 M KOH held constant over the
 campaign by assumption (D-014). `results/scenarios/<H>h/lca.json` labels every exchange.
@@ -84,13 +95,27 @@ campaign by assumption (D-014). `results/scenarios/<H>h/lca.json` labels every e
 
 No open factor exists for: the merchant CO2, KOH (fill and dose), the neutralisation of the
 spent anolyte, the bleed and the condensate, the heat rejected to cooling water, the bipolar
-membrane and its incineration, the Ag of the cathode and the Ni foam (the DESNZ construction
-metals factor is not used for nickel). Each stays in the inventory with its quantity and is
-excluded from the totals. Construction is cut off (above). The flows that distinguish the two
-skids are KOH, the alkaline wastes and construction, and none has a factor: **ranking not
-determined** (`ranking.json`). Skid B is higher in every characterised flow and uses more KOH
-and makes more alkaline waste per kg CO; only Skid A's larger reservoir (construction) could
-reverse that, and it cannot be stated per case yet.
+membrane and its incineration, the Ag of the cathode, its carbon paper and the burning of it at
+the silver refiner, and the Ni foam (the DESNZ construction metals factor is not used for
+nickel). Each stays in the inventory with its quantity and is excluded from the totals; Skid A's
+dose and bleed are listed at 0 (the table counts the non-zero gaps apart). Construction is cut
+off (above). Two quantities sit inside these gaps and are stated, not counted:
+
+- **the dilution water of the KOH solutions** (Skid A's fill 11.5 kg, Skid B's fill and dose
+  4.4 kg per kg CO at 1,000 h): core counts each solution as one exchange, so its water is part
+  of the KOH gap and not in `feed:WATER`. The table gives it at the water factor; the ranking's
+  difference and break-even use the totals with it (DESIGN.md D-025);
+- **the fossil CO2 of the carbonate wastes**: the spent anolyte, the bleed and the condensate
+  carry about 7 % of the CO2 fed as K2CO3, which neutralisation with acid releases as fossil CO2
+  (about 0.25 kg per kg CO for either skid, some 15 % on top of the vent's). It is part of the
+  treatment gaps (DESIGN.md D-026).
+
+The flows that distinguish the two skids are KOH, the alkaline wastes and construction, and none
+has a factor: **ranking not determined** (`ranking.json`). With the solutions' water counted,
+Skid B is higher in electricity and the separately fed water, lower in the solutions' water and
+equal in the vent CO2, higher in total, and it uses more KOH and makes more alkaline waste per kg
+CO; only Skid A's larger reservoir (construction) could reverse that, and it cannot be stated per
+case yet.
 
 ## Sensitivities
 
@@ -110,8 +135,12 @@ reverse that, and it cannot be stated per case yet.
 ## What core 1.5.0 does not do, and the alternative used
 
 - The KOH exchanges count the solutions (the flowsheet's streams), not KOH 100 %: the KOH is
-  their composition, and the reconciliation compares that with the duty totals; the Atlas
-  mapping converts by the mass fraction (proxies `potassium-hydroxide-1m`, `-5m`).
+  their composition, and the reconciliation compares that with the duty totals. Their dilution
+  water is therefore inside the KOH gaps, not in `feed:WATER` (core counts an exchange as one
+  flow): `results/scenarios/<H>h/lca.json` states it at the water factor (`solution_water`) and
+  the ranking uses it. The Atlas proxies `potassium-hydroxide-1m` and `-5m` convert each solution
+  into KOH 100 % and deionised water by its composition, which a test compares with the
+  datasets.
 - `cheme assess lca --balance` takes no `--case`: Skid B's balance runs in a temporary copy
   whose `lca.yaml` studies case skid-b (regen step 20).
 - Core reports the element and carbon balances `not-assessable` while the replaced parts have
@@ -138,6 +167,7 @@ Generated from results/scenarios/<H>h/lca.json (design campaign 1000 h unless st
 |---|---|---|---|---|
 | consumable:anode-ni-foam | 0.0002432 | 0.0002432 | kg | gap |
 | consumable:cathode-gde-ag | 7.289e-07 | 7.289e-07 | kg | gap |
+| consumable:cathode-gdl-carbon | 6.949e-05 | 6.949e-05 | kg | gap |
 | consumable:membrane-bpm | 0.000139 | 0.000139 | kg | gap |
 | emission:CO2 | 1.712 | 1.712 | kg | PUBLISHED |
 | emission:H2O | 1.465 | 1.465 | kg | none |
@@ -164,7 +194,10 @@ Generated from results/scenarios/<H>h/lca.json (design campaign 1000 h unless st
 | vent CO2 (fossil) | 1.712 | 1.712 |
 | water (DESNZ, proxy) | 0.0004961 | 0.003235 |
 | characterised total | 10.48 | 10.48 |
-| gaps (exchanges without a factor) | 11 | 11 |
+| water in the KOH solutions (inside the KOH gaps; at the water factor) | 0.002201 | 0.0008422 |
+| total with that water (the ranking's basis) | 10.48077 | 10.48303 |
+| not counted: fossil CO2 of the carbonate wastes, released when neutralised (inside the waste gaps; 7.2 % of the CO2 fed) | 0.2541 | 0.2541 |
+| gaps (exchanges without a factor; of them non-zero) | 13 (11 non-zero) | 13 (13 non-zero) |
 
 **Electricity mix** (characterised total, kg CO2e per kg CO; verdict against the baseline)
 
@@ -190,15 +223,15 @@ Generated from results/scenarios/<H>h/lca.json (design campaign 1000 h unless st
 
 **Membrane life** (inventory only; impact not computable: gap)
 
-| life | m2 BPM | g membrane | g Ag | g Ni |
-|---|---|---|---|---|
-| 1,000 h | 0.00278 | 0.5559 | 0.002916 | 0.9728 |
-| 4,000 h (design) | 0.0006949 | 0.139 | 0.0007289 | 0.2432 |
-| 20,000 h | 0.000139 | 0.0278 | 0.0001458 | 0.04864 |
+| life | m2 BPM | g membrane | g Ag | g carbon paper | g Ni |
+|---|---|---|---|---|---|
+| 1,000 h | 0.00278 | 0.5559 | 0.002916 | 0.278 | 0.9728 |
+| 4,000 h (design) | 0.0006949 | 0.139 | 0.0007289 | 0.06949 | 0.2432 |
+| 20,000 h | 0.000139 | 0.0278 | 0.0001458 | 0.0139 | 0.04864 |
 
 **H2 as a co-product** (not designed): 0.116 kg H2 per kg CO would carry 10.4 % of the burden by mass or 58.0 % by LHV; substitution missing.
 
-**Skid A against Skid B: ranking not determined.** Distinguishing flows without a documented factor: feed:KOH-DOSE, feed:KOH-FILL, product:BLEED, product:SPENT, construction. Break-even KOH factor: -0.006631 kg CO2e/kg KOH (none).
+**Skid A against Skid B: ranking not determined.** Distinguishing flows without a documented factor: feed:KOH-DOSE, feed:KOH-FILL, product:BLEED, product:SPENT, construction. Break-even KOH factor: -0.004142 kg CO2e/kg KOH (none).
 
 **Reconciliation (E10)**: the datasets equal the duty totals per kg CO at 1000 h yes, 10000 h yes (largest relative difference 1.6e-08, tolerance 1e-6).
 <!-- regen:lca end -->

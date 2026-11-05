@@ -16,9 +16,15 @@ After the calculation record (step 16), one regeneration also keeps the LCA of t
 3. the scenario's LCA record results/scenarios/<H>h/lca.json: per skid every exchange per kg CO
    delivered (with its KOH, K and C where it has a composition), its data class and background
    status, the reconciliation of the datasets against the duty totals of the calculation record
-   (E10), the K and C balances, the run fingerprints and the flowsheet sources that cite them,
-   the scenario totals and contributions, the gaps, and the inputs of the sensitivities
-   (scripts/lca_sensitivity.py writes those into lca/ once both design scenarios have a record).
+   (E10: the fill, dose, bleed, final inventory and condensate by KOH, K, C and mass, the
+   spent inventory's share of the anolyte water, the power and the CO), the spent inventory's
+   and the bleed's mass over the duty's volumes against a density band, the K and C balances,
+   the run fingerprints and the flowsheet sources that cite them (a run value without a source
+   is uncited), the scenario totals and contributions, the gaps (and which are non-zero), the
+   KOH solutions' dilution water at the water factor (inside the KOH gaps in core's totals), the
+   fossil CO2 the carbonate wastes release when neutralised (inside the waste gaps), the
+   duty-sized tanks' volumes, and the inputs of the sensitivities (scripts/lca_sensitivity.py
+   writes those into lca/ once both design scenarios have a record).
 
 Reads core only through scripts/_core.py (its commands' --json output); writes nothing outside
 lca/ and the scenario's record folder.
@@ -55,12 +61,12 @@ LCA_TREES = ("lca/datasets", "lca/scenarios")
 #: run fills (their sources cite the run) and the auxiliary power streams
 SKIDS = {
     "A": {
-        "case": "skid-a", "duty": "D-A", "stack": "STK-A", "product": "S108", "tail": "S109",
+        "case": "skid-a", "duty": "D-A", "stack": "STK-A", "pump": "P-101", "product": "S108", "tail": "S109",
         "run_streams": [f"S1{i:02d}" for i in range(1, 19)] + ["Q101", "Q105"],
         "aux": ["Q102", "Q103", "Q104"], "tanks": ["T-101"],
     },
     "B": {
-        "case": "skid-b", "duty": "D-B", "stack": "STK-B", "product": "S208", "tail": "S209",
+        "case": "skid-b", "duty": "D-B", "stack": "STK-B", "pump": "P-201", "product": "S208", "tail": "S209",
         "run_streams": [f"S2{i:02d}" for i in range(1, 24)] + ["Q201", "Q205"],
         "aux": ["Q202", "Q203", "Q204", "Q206"], "tanks": ["T-201", "T-202"],
     },
@@ -69,10 +75,18 @@ CASE_B = "skid-b"
 #: the replaced stack parts (lca/lca.yaml consumables) and their areal mass, kg/m2, all ASSUMED
 #: (DESIGN.md D-026): the bipolar membrane about 0.15 mm of ion-exchange polymer; the cathode's
 #: 100 nm of Ag (process/design-basis.yaml capacity.reference_cell.cathode) at the bulk density
-#: 10.49 g/cm3; a nickel foam anode
-AREAL_KG_M2 = {"membrane-bpm": 0.20, "cathode-gde-ag": 100e-9 * 10.49e3, "anode-ni-foam": 0.35}
+#: 10.49 g/cm3; the cathode's carbon-paper gas-diffusion layer (Sigracet 39BB, about 0.3 mm with
+#: its microporous layer; no datasheet value is used); a nickel foam anode
+AREAL_KG_M2 = {
+    "membrane-bpm": 0.20, "cathode-gde-ag": 100e-9 * 10.49e3, "cathode-gdl-carbon": 0.10,
+    "anode-ni-foam": 0.35,
+}  # fmt: skip
 #: the make-up water's density, kg/L (scripts/skid_balance.py RHO_WATER)
 RHO_WATER = 0.997
+#: the band an anolyte leaving the reservoir (spent inventory, bleed) must lie in, kg/L: from
+#: water to a concentrated KOH and K2CO3 solution (the 5 M dose is 1.22 kg/L); ASSUMED bounds of a
+#: plausibility check of the volumes the duty gives against the masses the balance writes
+DENSITY_BAND_KG_L = (RHO_WATER, 1.35)
 #: lower heating values, kJ/mol: CO 282.98 (process/reactions.yaml COX, CODATA), H2 241.826
 #: (CODATA Key Values, Cox, Wagman, Medvedev 1989: dfH(H2O, g) = -241.826 kJ/mol)
 LHV_KJ_MOL = {"CO": 282.98, "H2": 241.826}
@@ -158,11 +172,16 @@ def scope_values(root: Path, stacks: dict[str, dict]) -> dict[str, Any]:
         raise LcaError(f"the CO products differ: w_CO {w['A']} (S108) and {w['B']} (S208)")
     cells_cfg = {s["id"]: s for s in _load(root, "process/cells.yaml")["stacks"]}
     per_skid = []
+    rho_anolyte: dict[str, float] = {}
     for key, skid in SKIDS.items():
         st = stacks[skid["stack"]]
         rep = cells_cfg[skid["stack"]]["replacement"]
         if rep["interval"]["unit"] != "h" or rep["operating_hours"]["unit"] != "h/a":
             raise LcaError(f"{skid['stack']}: replacement units {rep['interval']['unit']}, {rep['operating_hours']['unit']}")
+        rho = _core.equipment_number(st, skid["pump"], "density_kg_m3")
+        if rho is None:
+            raise LcaError(f"{skid['stack']}: the stack report gives no density of {skid['pump']}")
+        rho_anolyte[key] = float(rho) / 1000.0
         per_skid.append(
             (
                 int(_core.stack_value(st, "cells_total")),
@@ -183,6 +202,7 @@ def scope_values(root: Path, stacks: dict[str, dict]) -> dict[str, Any]:
         "replaced_m2": replaced_m2,
         "interval_h": interval_h,
         "hours_per_year": hours,
+        "rho_anolyte_kg_l": rho_anolyte,
         "consumables": {
             cid: {
                 "per_replacement": replaced_m2 * kg_m2,
@@ -221,6 +241,9 @@ def _json(result: _core.Result) -> Any:
 def run_core(root: Path) -> dict[str, Any]:
     """Write the LCA outputs and read core's JSON (the study's case, Skid B's balance)."""
     _core.cheme(root, "assess", "lca", "--write")
+    # a case dataset of an earlier flowsheet title would be left beside the new one: remove it
+    for stale in (root / "lca" / "datasets").glob(f"*-{CASE_B}.yaml"):
+        stale.unlink()
     _core.cheme(root, "assess", "lca", "--write", "--case", CASE_B)
     _core.cheme(root, "assess", "lca-scenarios", "--write")
     out = {
@@ -279,8 +302,16 @@ def _get(rows: dict, key: str, field: str = "amount") -> float:
     return float(row.get(field) or 0.0)
 
 
-def reconcile(rows: dict, record: dict, key: str, aux_kw: float, eta: float, molar: dict) -> list[dict]:
-    """The dataset per kg CO against the duty totals over the CO delivered (E10, rel 1e-6)."""
+def _water_share(ex: dict) -> float:
+    """The spent inventory's share of the water that leaves the reservoir as liquid."""
+    spent, bleed = _get(ex, "product:SPENT", "components_kg.H2O"), _get(ex, "product:BLEED", "components_kg.H2O")
+    return spent / (spent + bleed) if spent + bleed else 0.0
+
+
+def reconcile(rows: dict, record: dict, key: str, aux_kw: float, eta: float, molar: dict, rho_fill: float) -> list[dict]:
+    """The dataset per kg CO against the duty totals over the CO delivered (E10, rel 1e-6).
+
+    *rho_fill*: the anolyte density the fill is made at, kg/L (the recirculation pump's)."""
     s = record["skids"][key]
     did = SKIDS[key]["duty"]
     t = record["duties"][did]["totals"]
@@ -291,6 +322,7 @@ def reconcile(rows: dict, record: dict, key: str, aux_kw: float, eta: float, mol
     pairs = (
         ("electricity: DC / rectifier efficiency + auxiliaries", _get(ex, "feed:POWER"), (t["energy_kwh"] / eta + aux_kw * hours) / delivered, "kWh"),
         ("KOH fill (KOH 100 %)", _get(ex, "feed:KOH-FILL", "components_kg.KOH"), t["initial_cation_mol"] * m_koh / delivered, "kg"),
+        ("fill solution (initial volume x anolyte density)", _get(ex, "feed:KOH-FILL"), t["initial_volume_l"] * rho_fill / delivered, "kg"),
         ("KOH dosed (KOH 100 %)", _get(ex, "feed:KOH-DOSE", "components_kg.KOH"), t["dosing_hydroxide_kg"] / delivered, "kg"),
         ("dosing solution", _get(ex, "feed:KOH-DOSE"), (t["dosing_solution_kg"] or 0.0) / delivered, "kg"),
         ("bleed K", _get(ex, "product:BLEED", "k_mol"), t["bleed_cation_mol"] / delivered, "mol"),
@@ -298,12 +330,31 @@ def reconcile(rows: dict, record: dict, key: str, aux_kw: float, eta: float, mol
         ("final inventory K", _get(ex, "product:SPENT", "k_mol"), t["final_cation_mol"] / delivered, "mol"),
         ("final inventory C", _get(ex, "product:SPENT", "c_mol"), t["final_carbon_mol"] / delivered, "mol"),
         ("condensate K (the K+ through the membrane)", _get(ex, "product:CONDENSATE", "k_mol"), t["membrane_cation_mol"] / delivered, "mol"),
+        ("spent inventory's share of the anolyte water out (final volume over final volume + bleed)", _water_share(ex),
+         t["final_volume_l"] / (t["final_volume_l"] + t["bleed_l"]) if t["final_volume_l"] + t["bleed_l"] else 0.0, "1"),
         ("CO delivered", rows["co_kg_h"] * hours, delivered, "kg per campaign"),
     )  # fmt: skip
     out = []
     for what, lca, duty, unit in pairs:
         r = _rel(lca, duty)
-        out.append({"quantity": what, "lca": lca, "duty": duty, "unit": f"{unit}/kg CO" if "campaign" not in unit else unit, "rel": r, "ok": r <= REL})
+        shown = unit if "campaign" in unit or unit == "1" else f"{unit}/kg CO"
+        out.append({"quantity": what, "lca": lca, "duty": duty, "unit": shown, "rel": r, "ok": r <= REL})
+    return out
+
+
+def densities(rows: dict, record: dict, key: str) -> list[dict]:
+    """The spent inventory's and the bleed's mass over the duty's volumes, kg/L, against
+    DENSITY_BAND_KG_L: the masses come from the water balance (scripts/skid_balance.py), the
+    volumes from the duty, so a volume or density error shows here."""
+    t = record["duties"][SKIDS[key]["duty"]]["totals"]
+    delivered = float(record["skids"][key]["totals_delivered_kg"])
+    lo, hi = DENSITY_BAND_KG_L
+    out = []
+    for what, ex_key, litres in (("spent inventory", "product:SPENT", t["final_volume_l"]), ("bleed", "product:BLEED", t["bleed_l"])):
+        if not litres:
+            continue
+        kg_l = _get(rows["exchanges"], ex_key) * delivered / float(litres)
+        out.append({"quantity": what, "exchange": ex_key, "litres": float(litres), "kg_l": kg_l, "band_kg_l": [lo, hi], "ok": lo <= kg_l <= hi})
     return out
 
 
@@ -375,6 +426,67 @@ def _impacts(lca: dict, scenario: str) -> dict[str, Any]:
     }
 
 
+def _cites(state: dict, sid: str, cite: str) -> bool:
+    """True when the stream's run value (a Q stream's duty, a material stream's flow) is there
+    and its source cites the run; so does any other of the two the stream has."""
+    own = "duty" if sid.startswith("Q") else "flow"
+    if not isinstance(state.get(own), dict):
+        return False
+    for q in ("flow", "duty"):
+        if q in state:
+            source = (state[q] or {}).get("source") if isinstance(state[q], dict) else None
+            if not source or cite not in str(source):
+                return False
+    return True
+
+
+#: the KOH solutions' exchanges, whose dilution water core counts inside the KOH gap
+SOLUTIONS = ("feed:KOH-FILL", "feed:KOH-DOSE")
+
+
+def solution_water(rows: dict, impacts: dict) -> dict[str, Any]:
+    """The dilution water of the KOH solutions per kg CO, and what it would add at the factor of
+    feed:WATER. Core counts an exchange as one flow, so the solutions (KOH and their water) are
+    one gap each and their water is not in feed:WATER (DESIGN.md D-025)."""
+    ex = rows["exchanges"]
+    water = {k: _get(ex, k, "components_kg.H2O") for k in SOLUTIONS}
+    contrib = (impacts["contributions"].get("feed:WATER") or {}).get("value")
+    amount = _get(ex, "feed:WATER")
+    factor = None if contrib is None or not amount else float(contrib) / amount
+    total = sum(water.values())
+    return {
+        "kg_per_kg": water,
+        "kg": total,
+        "water_factor_kg_co2e_per_kg": factor,
+        "kg_co2e": None if factor is None else total * factor,
+        "total_with_it": None if factor is None or impacts["total"] is None else impacts["total"] + total * factor,
+        "note": "the KOH solutions' dilution water: inside the KOH gaps (core counts each solution as one exchange), not in feed:WATER; here at the feed:WATER factor",
+    }
+
+
+def carbonate_co2(bal: dict, molar: dict[str, float]) -> dict[str, Any]:
+    """The fossil carbon the alkaline wastes carry as carbonate (spent anolyte, bleed,
+    condensate): released as CO2 when they are neutralised with acid, inside the waste gaps."""
+    c = bal["c_routes_mol"]["anolyte"] + bal["c_routes_mol"]["condensate"]
+    return {
+        "c_mol_per_kg": c,
+        "kg_co2_per_kg": c * molar["CO2"] / 1000.0,
+        "share_of_co2_fed": c / bal["c_fed_mol"] if bal["c_fed_mol"] else None,
+        "note": "fossil CO2 the carbonate wastes release when neutralised (acidified): inside the waste gaps, not counted (no open factor for the treatment)",
+    }
+
+
+def _tanks_m3(skid_record: dict, tags: list[str]) -> dict[str, float]:
+    """The duty-sized tanks' held volumes, m3 (the reservoir; Skid B's dosing day tank)."""
+    out = {skid_record["reservoir_tag"]: float(skid_record["reservoir_held_m3"])}
+    if skid_record.get("dosing_tank_held_l") is not None:
+        day = [t for t in tags if t != skid_record["reservoir_tag"]]
+        if len(day) != 1:
+            raise LcaError(f"the dosing tank of {tags} cannot be told apart from the reservoir")
+        out[day[0]] = float(skid_record["dosing_tank_held_l"]) / 1000.0
+    return out
+
+
 def build(root: Path, record: dict, scope: dict[str, Any], core: dict[str, Any]) -> dict[str, Any]:
     """The scenario's LCA record (results/scenarios/<H>h/lca.json)."""
     molar = _molar_masses(root)
@@ -393,7 +505,8 @@ def build(root: Path, record: dict, scope: dict[str, Any], core: dict[str, Any])
         rows = per_kg(datasets[key], scope["kg_per_unit"], molar)
         eta = float(cells_cfg[skid["stack"]]["electrical"]["rectifier_efficiency"]["value"])
         aux = sum(float(_state(flowsheet, q, case)["duty"]["value"]) for q in skid["aux"])
-        rec = reconcile(rows, record, key, aux, eta, molar)
+        rec = reconcile(rows, record, key, aux, eta, molar, scope["rho_anolyte_kg_l"][key])
+        dens = densities(rows, record, key)
         # core's lca-cases rows (per kg of product gas, 6 significant figures) per kg CO
         case_row = cases_rows[case]["per_unit"]
         cases_check = []
@@ -407,14 +520,12 @@ def build(root: Path, record: dict, scope: dict[str, Any], core: dict[str, Any])
         fp = record["skids"][key]["run_fingerprint"]
         tanks = {tag: listed[tag]["dimensions"].get("fingerprint") for tag in skid["tanks"]}
         cite = f"(run {fp})"
-        uncited = [
-            sid for sid in skid["run_streams"]
-            if any(cite not in str(((_state(flowsheet, sid, case).get(q) or {}).get("source")) or cite)
-                   for q in ("flow", "duty"))
-        ]  # fmt: skip
+        uncited = [sid for sid in skid["run_streams"] if not _cites(_state(flowsheet, sid, case), sid, cite)]
         h2_kg_h = float(_state(flowsheet, skid["tail"], case)["flow"]["value"]) * float(
             _state(flowsheet, skid["tail"], case)["composition"]["values"].get("H2", 0.0)
         )
+        impacts = _impacts(lca, scenario_of[key])
+        bal = balances(rows, molar)
         skids[key] = {
             "case": case,
             "dataset": datasets[key]["id"],
@@ -428,16 +539,22 @@ def build(root: Path, record: dict, scope: dict[str, Any], core: dict[str, Any])
             },
             "reconciliation": rec,
             "reconciled": all(r["ok"] for r in rec),
+            "densities": dens,
+            "densities_plausible": all(r["ok"] for r in dens),
             "lca_cases": cases_check,
             "lca_cases_agree": all(r["ok"] for r in cases_check),
-            "balance": balances(rows, molar),
+            "balance": bal,
             "core_balance": _core_balance(core["balance"][key]),
             "run_fingerprint": fp,
             "tank_fingerprints": tanks,
             "tanks_carry_run": all(v == fp for v in tanks.values()),
             "sources_uncited": uncited,
             "h2_tail_kg_per_kg": h2_kg_h / rows["co_kg_h"],
-            "impacts": _impacts(lca, scenario_of[key]),
+            "impacts": impacts,
+            "gaps_nonzero": sorted(k for k, g in impacts["gaps"].items() if g["quantity"]),
+            "solution_water": solution_water(rows, impacts),
+            "carbonate_co2": carbonate_co2(bal, molar),
+            "tanks_m3": _tanks_m3(record["skids"][key], skid["tanks"]),
         }
     a, b = (skids[k]["exchanges"] for k in ("A", "B"))
     makeup = _get(b, "feed:WATER") - _get(a, "feed:WATER")
@@ -469,6 +586,7 @@ def build(root: Path, record: dict, scope: dict[str, Any], core: dict[str, Any])
             "interval_h": scope["interval_h"],
             "hours_per_year": scope["hours_per_year"],
             "areal_kg_m2": dict(AREAL_KG_M2),
+            "rho_anolyte_kg_l": dict(scope["rho_anolyte_kg_l"]),
         },
         "lhv_kj_mol": dict(LHV_KJ_MOL),
         "molar_mass": {c: molar[c] for c in ("CO", "H2", "KOH", "CO2")},
