@@ -1,0 +1,17 @@
+# benzyl-chloroformate-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR
+# 0022). Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# The preliminary LCI leaves most backgrounds unmapped (DESIGN.md D-012): the build reports each
+# as a gap (lci/gaps.json). Linked here: the phosgene to phosgene-1, the caustic soda to
+# chlor-alkali-1, the nitrogen consumable to asu-1's gaseous nitrogen, and the LP steam counted as
+# heat delivered (kWh), as n-bromosuccinimide-1 does. Benzyl alcohol stays a gap: no library
+# process makes it yet (benzyl-alcohol-1, #154, is pending), and the shared vocabulary has no
+# entry for it; a proxy would be a guess (CONTRIBUTING, "Gaps").
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:PHOS": {dataset: {path: processes/phosgene-1/lca/dataset.yaml, product: "product:PHOSGENE"}, source: "the Atlas producer phosgene-1, liquid phosgene (35 ppm(wt) Cl2), a captive supply; its 17.3 t/h basis is a scale far above this plant's 0.093 t/h, the burden per kg is what is linked"}
+  "feed:NAOH": {dataset: {path: processes/chlor-alkali-1/lca/dataset.yaml, product: "product:NAOH"}, source: "the Atlas producer chlor-alkali-1, caustic soda 50 wt-%, per kg of solution as this exchange counts it"}
+  "consumable:nitrogen": {dataset: {path: processes/asu-1/lca/dataset.yaml, product: "product:GANP"}, source: "the Atlas producer asu-1, gaseous nitrogen to the battery limit (99.97 mol% N2, 9 bar(a)); the purge needs only a few hundred kPa"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 350 kPa(a) to the tempered-water circuits of the phosgene evaporator (Q3) and the degassing (Q4), counted as heat delivered (kWh), D-009"}
