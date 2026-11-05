@@ -567,9 +567,11 @@ Decision (all PROPOSED; drawn on the sheets unless said deferred):
    control valve, D-019) and a separate steam block valve with its own trip is for the HAZOP to
    decide against the PSV (O-9).
 3. Relief of the low-pressure system. The cases are listed per device in
-   `piping/special-items.yaml`. PSV-111 keeps only the air side to the gauze (blocked outlet of
-   K-101). PSV-316 (6 barg, NX-304 on P-03, to the NOx vent stack) protects the nitrous gas side
-   from the gauze to the K-102 suction, C-102 included through BG-503, against: E-102 tube rupture
+   `piping/special-items.yaml`. PSV-111 keeps only the K-101 discharge up to the check valve
+   CV105 (blocked outlet of K-101); its take-off was moved upstream of CV105 in D-022. PSV-316
+   (6 barg, NX-304 on P-03, to the NOx vent stack) protects everything downstream of CV105 (the
+   air piping PA-105 after CV105, PA-106, M-101, R-101) and the nitrous gas side from the gauze to
+   the K-102 suction, C-102 included through BG-503, against: E-102 tube rupture
    (44 barg steam side against 6 barg, the 10/13 rule is not met, so it is credible), E-104 tube
    rupture (BFW 44 barg), E-103 tube leak (12 barg tail gas, 12 > 6 x 13/10), gas blow-by from
    C-101 into C-102 (I-501 is the trip, PSV-316 the relief), back flow from the HP system past a
@@ -588,9 +590,34 @@ Decision (all PROPOSED; drawn on the sheets unless said deferred):
    deferred to the relief study and the HAZOP (O-8, O-9), not drawn.
 Reason: findings of the independent review of PR #368, each reproduced by two reviewers.
 
+## D-022 Second review round of PR #368: PSV-111 boundary, start-up order, E-108 rupture (2026-11-05)
+Decision (PROPOSED):
+1. PSV-111 takes off between K-101 and the check valve CV105 (P-01), so CV105 separates it from
+   the nitrous gas side; it protects the K-101 discharge up to CV105 only, against a blocked
+   outlet. Everything downstream of CV105 (PA-105, PA-106 to C-102, M-101, R-101) belongs to the
+   PSV-316 system, set at the same 6 barg, so a nitrous gas case is relieved by PSV-316 to the NOx
+   vent stack. A passing CV105 that would let nitrous gas back to PSV-111 (air to atmosphere) is
+   a HAZOP question (O-9); routing PSV-111 to the NOx vent stack is the alternative if the HAZOP
+   does not accept the check valve as the boundary.
+2. SEQ-START-BURNER reordered: S1 sets PIC-611 (X-101 inlet pressure, 600 kPa(a) ASSUMED) in
+   auto with XV-610 closed and PIC-611 in manual as permissives; S2 opens XV-610 and raises the
+   air, and FZ-206 above its trip point is the S2 -> S3 transition. I-202 is no start permissive:
+   it is bypassed automatically during S1-S2 (timer 15 min, ASSUMED; C&E bypass field) and is in
+   the abort only once S2 is complete. K-102 runs on full hot recycle at most 15 min from train
+   start (ASSUMED, vendor), held by the S1/S2 timeouts. S6 ramps PIC-611 back to its design
+   1040 kPa(a) and completes only there. The abort now also trips on I-101 and I-602 and closes
+   XV-101; the scope lists K-102, X-101, C-101 and R-102.
+3. E-108 tube rupture (NH3 at up to 17 barg into the LP steam shell, LP header about 3.5 barg):
+   the 17 barg design pressure is taken for both sides of E-108 (ASSUMED), so the 10/13 rule is
+   met for the exchanger. NH3 entering the LP steam header (back through TV-604) and the condensate
+   return (through ST605) on a rupture is not protected yet: a check valve on LS-604, NH3
+   detection on CD-605 with an isolation valve, or a shell-side relief are the options for the
+   relief study and the HAZOP (O-8, O-9). Not drawn in this issue.
+Reason: findings of the round-3 independent review of PR #368, each confirmed by two reviewers.
+
 ## Open inputs
-- O-8 (relief study): loads and orifices of all PSVs; the governing case of PSV-316 (E-102 tube rupture) and whether it needs a device close to E-102; K-101 shut-off pressure against the 6 barg set of PSV-111; thermal relief of blocked-in liquid NH3 (NL-101 between XV-101 and LV-102, NL-103) (D-021).
-- O-9 (HAZOP / vendors): expander bypass for start-up and expander trip (train vendor); X-101 on cold air during SEQ-START-BURNER S1; LP steam shutoff to E-108 on I-601/I-602 against PSV-616; sensor voting and SIL of I-101 to I-602 (D-019, D-021).
+- O-8 (relief study): loads and orifices of all PSVs; the governing case of PSV-316 (E-102 tube rupture) and whether it needs a device close to E-102; K-101 shut-off pressure against the 6 barg set of PSV-111; thermal relief of blocked-in liquid NH3 (NL-101 between XV-101 and LV-102, NL-103) (D-021); E-108 tube rupture: NH3 into the LP steam header and condensate return (D-022).
+- O-9 (HAZOP / vendors): expander bypass for start-up and expander trip (train vendor); X-101 on cold air during SEQ-START-BURNER S1; LP steam shutoff to E-108 on I-601/I-602 against PSV-616; NH3 detection and isolation on the E-108 condensate (D-022); CV105 as the boundary between PSV-111 (air to atmosphere) and the PSV-316 system, or PSV-111 to the NOx vent stack (D-022); K-102 full hot recycle time at start-up (D-022); sensor voting and SIL of I-101 to I-602 (D-019, D-021).
 - O-7: lower flammability limit of NH3 in air (and with the water vapour of the feed) at the burner inlet conditions, 520 kPa(a) and 462 K, with its source: the trip point of I-201 and the clamp of FFIC-201 (D-019).
 - O-1: check D-005, D-008, D-011 against the BREF consumption and emission ranges (S2 sections 3.3, 3.4) with exact locators: NH3 per t HNO3 (here 0.285 t/t), steam export, power, cooling water, tail-gas NOx.
 - O-2: a sourced NO selectivity for medium-pressure gauzes (with catalyst age), replacing 0.955.

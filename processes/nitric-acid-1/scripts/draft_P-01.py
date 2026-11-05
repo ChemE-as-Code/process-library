@@ -63,10 +63,12 @@ line(sheet, "PA-104", dn=1800, fluid="Air", route=[
     offpage("in", at=(LEFT, AIR), note="from air intake filter (atmosphere)"),
     fv107, k101["N1"]], label_at=(105, 62))
 blowoff = tee("T107", at=(185, AIR), branch="up", branch_dn=400)
-relief = tee("T108", at=(245, AIR), branch="up", branch_dn=300)
+# PSV-111 takes off upstream of the check valve CV105, which separates it from the nitrous gas
+# side (D-021): downstream of CV105 the air piping belongs to the PSV-316 system (P-03)
+relief = tee("T108", at=(228, AIR), branch="up", branch_dn=300)
 secondary = tee("T106", at=(310, AIR), branch="down", branch_dn=400)
 line(sheet, "PA-105", dn=1100, fluid="Air", route=[
-    k101["N2"], blowoff, valve("CV105", "SwingCheckValve", at=(225, AIR)), relief, secondary,
+    k101["N2"], blowoff, relief, valve("CV105", "SwingCheckValve", at=(248, AIR)), secondary,
     offpage("out", at=(EDGE, AIR), note="primary air to M-101, P-02")],
     label_at=(345, 62))
 line(sheet, "PA-106", dn=400, fluid="Air", route=[
@@ -78,11 +80,11 @@ line(sheet, "PA-107", dn=400, fluid="Air", route=[
     blowoff.branch, uv110, valve("SL114", "Silencer", tag="SL-114", at=(185, 28)),
     offpage("out", at=(185, TOP), note="to atmosphere", rotation=270, note_at=(171, 12))],
     label_at=(173, 32))
-psv111 = valve("PSV111", "GlobeValve", tag="PSV-111", at=(245, 45))
+psv111 = valve("PSV111", "GlobeValve", tag="PSV-111", at=(228, 45))
 line(sheet, "PA-108", dn=300, fluid="Air", route=[
     relief.branch, psv111,
-    offpage("out", at=(245, TOP), note="to atmosphere", rotation=270, note_at=(231, 12))],
-    label_at=(234, 30))
+    offpage("out", at=(228, TOP), note="to atmosphere", rotation=270, note_at=(245, 12))],
+    label_at=(240, 30))
 
 # ---- liquid ammonia: trip valve, evaporator level valve, evaporator, SCR branch
 scr = tee("T103", at=(40, NH3), branch="down", branch_dn=25)
@@ -124,7 +126,7 @@ line(sheet, "CHS-111", dn=300, fluid="Chilled water", route=[
 
 # ---- relief valves: placeholders made safety valves (pid_common.make_safety_valve)
 make_safety_valve(sheet, "PSV105", label_at=(226, 128))
-make_safety_valve(sheet, "PSV111", label_at=(256, 45))
+make_safety_valve(sheet, "PSV111", label_at=(240, 45))
 
 # ---- instruments
 instrument(sheet, "FIC-107", at=(50, 48), sensing="Line_PA104_S1", sensing_at=(50, AIR),
@@ -154,7 +156,7 @@ authoring.label(sheet, "SL114", "PipingComponentNumber", at=(195, 28))
 note(sheet, "LZ-103, the burner trips and the train trip close XV-101: C&E I-101, I-201 to I-204, "
      "I-602. FIC-107 sets the plant air rate (load); UIC-110: K-101 anti-surge blow-off (D-018)",
      at=(20, 269))
-note(sheet, "PSV-105 and PSV-111: set pressure and relief case in piping/special-items.yaml; "
-     "load open (relief study). DN and spec: D-017", at=(20, 276))
+note(sheet, "PSV-111: K-101 discharge up to CV105 only; downstream air piping, M-101 and PA-106 to "
+     "PSV-316 (P-03). Sets, cases: piping/special-items.yaml (D-021)", at=(20, 276))
 
 save(sheet, target)

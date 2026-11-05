@@ -6,36 +6,46 @@
 # the gauze with air, ignition of the gauze, then ammonia below the start ratio). Times, rates
 # and the purge volume are ASSUMED until the burner and train vendors' procedures are known; the
 # ignition burner (hydrogen torch) and its supply are not drawn yet (open point of D-019).
+# D-021/D-022: without an expander bypass the air reaches the stack only through X-101, so the
+# X-101 inlet pressure control is set first (S1), then XV-610 is opened and the air raised (S2);
+# I-202 is bypassed automatically until S2 has established the air (C&E bypass field).
 schema: cheme/sequences/v1
 sequences:
   - id: SEQ-START-BURNER
-    title: Light the ammonia burner (air on, purge, ignite the gauze, ammonia in)
+    title: Light the ammonia burner (air path, purge, ignite the gauze, ammonia in)
     mode: startup
     cases: [design]
-    equipment: [K-101, M-101, R-101, E-102, E-101]
+    equipment: [K-101, K-102, X-101, M-101, R-101, E-102, E-101, C-101, R-102]
     permissives:
       - {interlock: I-101, state: reset}
       - {interlock: I-201, state: reset}
-      - {interlock: I-202, state: reset}
       - {interlock: I-204, state: reset}
       - {interlock: I-602, state: reset}
       - {all: [{tag: XV-203, state: closed}, {tag: XV-204, state: closed}, {loop: FFIC-201, state: in manual}]}
+      - {all: [{tag: XV-610, state: closed}, {loop: PIC-611, state: in manual}]}
       - {all: [{tag: K-101, state: running}, {loop: UIC-110, state: in auto}, {loop: UIC-401, state: in auto}, {loop: FIC-107, state: in auto}]}
       - {tag: E-102, state: "boiler package ready (drum level in range, BFW in service)"}
     interlocks: [I-101, I-201, I-202, I-203, I-204, I-602]
     steps:
       - id: S1
-        title: Open the air path through the train and the expander, air at the start-up rate
+        title: Set the X-101 inlet pressure control before the expander path is opened
+        actions:
+          - {loop: PIC-611, action: setpoint, setpoint: {kind: setpoint, value: 600, unit: kPa(a), provenance: assumed, source: "D-022: reduced X-101 inlet pressure for the air purge, ASSUMED until the train vendor's start-up curve"}, by: operator}
+          - {loop: PIC-611, action: auto, by: operator}
+        complete: {all: [{loop: PIC-611, state: in auto}, {tag: PV-611, state: "at the position PIC-611 asks (not fail-open)"}]}
+        timeout: {value: 5, unit: min}
+        on_timeout: abort
+        operator: "The train has been started on its motor (vendor's procedure, a permissive). Until S2 opens XV-610, K-102 runs on full hot recycle through UV-401: this is limited to 15 min from train start (ASSUMED, vendor) and TI-402 must stay below its alarm, or the operator trips the train; the timeouts of S1 and S2 keep inside it."
+      - id: S2
+        title: Open the expander inlet and raise the air to the start-up rate
         actions:
           - {tag: XV-610, action: open, by: operator}
-          - {loop: PIC-611, action: setpoint, setpoint: {kind: setpoint, value: 600, unit: kPa(a), provenance: assumed, source: "D-021: a reduced absorber pressure for the air purge, ASSUMED until the train vendor's start-up curve"}, by: operator}
-          - {loop: PIC-611, action: auto, by: operator}
           - {loop: FIC-107, action: setpoint, setpoint: {kind: setpoint, value: 120000, unit: kg/h, provenance: assumed, source: "D-019: about 55 % of the design air, the start-up rate, ASSUMED"}, by: operator}
-        complete: {all: [{tag: XV-610, state: open}, {loop: PIC-611, state: in auto}, {tag: FZ-206, state: above the trip point}, {tag: FIC-107, state: at setpoint}]}
-        timeout: {value: 30, unit: min}
+        complete: {all: [{tag: XV-610, state: open}, {tag: FZ-206, state: above the trip point}, {tag: FIC-107, state: at setpoint}]}
+        timeout: {value: 10, unit: min}
         on_timeout: abort
-        operator: "The train is started on its motor (vendor's procedure, a permissive of this sequence). The only path from K-101 to the stack is through K-102, the absorber, R-102 and X-101 (no expander bypass in this issue, D-021), so XV-610 is opened before the air is raised and PIC-611 holds a reduced absorber pressure on PV-611; the air then purges the whole train to the stack. K-102 runs on its anti-surge recycle UV-401 until the air rate is above its surge flow. Whether the expander may run on cold air at this rate, or a bypass is needed, is the train vendor's (O-9)."
-      - id: S2
+        operator: "The only path from K-101 to the stack runs through K-102, the absorber, R-102 and X-101 (no expander bypass in this issue, D-021); XV-610 opens only with PIC-611 in control, so the HP system cannot dump through X-101. The automatic start-up bypass of I-202 ends when FZ-206 is above its trip point (this step complete) or after its timer. Whether X-101 may run on cold air at this rate is the train vendor's (O-9)."
+      - id: S3
         title: Purge the mixer, the burner and the boiler with air
         actions:
           - {loop: FIC-107, action: auto, by: operator}
@@ -43,7 +53,7 @@ sequences:
         timeout: {value: 20, unit: min}
         on_timeout: abort
         operator: "The purge clears any ammonia left from a trip before the gauze is ignited (skill control-safeguarding-and-interlocks, burner management). The purge volume is the vendor's."
-      - id: S3
+      - id: S4
         title: Ignite the gauze
         actions:
           - {tag: R-101, action: start, by: operator}
@@ -51,7 +61,7 @@ sequences:
         timeout: {value: 15, unit: min}
         on_timeout: abort
         operator: "The gauze is heated with the ignition burner of the R-101 package (hydrogen torch, not drawn yet, D-019) until it glows."
-      - id: S4
+      - id: S5
         title: Admit ammonia below the start ratio and raise it
         actions:
           - {tag: XV-203, action: open, by: operator}
@@ -62,18 +72,27 @@ sequences:
         timeout: {value: 10, unit: min}
         on_timeout: abort
         operator: "The start-up bypass of I-203 is removed once TZ-207 is above its trip point. The ratio is raised in steps to the design value while the gauze temperature follows (TI-208)."
-      - id: S5
-        title: Load up to the design rate
+      - id: S6
+        title: Load up to the design rate and the design pressure
         actions:
           - {loop: FFIC-201, action: setpoint, setpoint: {kind: setpoint, value: 0.0656, unit: "kg/kg", provenance: calculated, source: "the FFIC-201 design target (control/loops.yaml)"}, by: operator}
           - {loop: FIC-107, action: setpoint, setpoint: {kind: setpoint, value: 213343, unit: kg/h, provenance: assumed, source: "the FIC-107 design target (control/loops.yaml)"}, by: operator}
-        complete: {all: [{tag: FIC-107, state: at setpoint}, {tag: FFIC-201, state: at setpoint}]}
+          - {loop: PIC-611, action: setpoint, setpoint: {kind: setpoint, value: 1040, unit: kPa(a), provenance: assumed, source: "the PIC-611 design target (control/loops.yaml): S28 pressure, D-003"}, by: operator}
+        complete: {all: [{tag: FIC-107, state: at setpoint}, {tag: FFIC-201, state: at setpoint}, {tag: PIC-611, state: "at the design setpoint 1040 kPa(a)"}]}
         timeout: {value: 4, unit: h}
         on_timeout: abort
-        operator: "Air leads on every load step. The absorber, the bleacher and the tail-gas train are put in service in the order of their own procedures (not written yet)."
+        operator: "Air leads on every load step. PIC-611 is ramped from 600 to 1040 kPa(a) with the air (ramp rate the train vendor's, ASSUMED about 20 kPa/min), watching the K-102 surge margin UIC-401. The absorber, the bleacher and the tail-gas train are put in service in the order of their own procedures (not written yet)."
     abort:
-      condition: {any: [{interlock: I-201, state: tripped}, {interlock: I-202, state: tripped}, {interlock: I-203, state: tripped}, {interlock: I-204, state: tripped}]}
+      condition:
+        any:
+          - {interlock: I-101, state: tripped}
+          - {interlock: I-201, state: tripped}
+          - {interlock: I-203, state: tripped}
+          - {interlock: I-204, state: tripped}
+          - {interlock: I-602, state: tripped}
+          - {all: [{step: S2, state: complete}, {interlock: I-202, state: tripped}]}
       actions:
         - {tag: XV-203, action: close}
         - {tag: XV-204, action: close}
-    reset: {latching: true, manual: true, condition: {all: [{interlock: I-201, state: reset}, {interlock: I-202, state: reset}, {interlock: I-203, state: reset}, {interlock: I-204, state: reset}]}}
+        - {tag: XV-101, action: close}
+    reset: {latching: true, manual: true, condition: {all: [{interlock: I-101, state: reset}, {interlock: I-201, state: reset}, {interlock: I-203, state: reset}, {interlock: I-204, state: reset}, {interlock: I-602, state: reset}]}}

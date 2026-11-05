@@ -126,7 +126,7 @@ note(sheet, "TZ-605 stops the SCR ammonia below the R-102 inlet temperature limi
      "nitrate deposits, NH3 slip): C&E I-601. FIC-603 set from AI-614 by the operator (D-019)",
      at=(20, 262))
 note(sheet, "PIC-611 holds the absorber pressure at the X-101 inlet; US-612 (train trip, C&E I-602) "
-     "closes XV-610; start-up runs through X-101 (SEQ-START-BURNER S1), no bypass yet (D-021)",
+     "closes XV-610; start-up runs through X-101 (SEQ-START-BURNER S1, S2), no bypass yet (D-022)",
      at=(20, 269))
 note(sheet, "AI-614 (NOx), AI-615 (N2O): stack emission monitoring. R-102 protected by PSV-404 "
      "(P-04); E-108 by PSV-616 (D-021). " + TRAIN.split(";")[0], at=(20, 276))
