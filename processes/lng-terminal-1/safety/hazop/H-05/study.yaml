@@ -5,7 +5,11 @@
 # special items) and revised by an agent to the P&IDs, C&E and sequences of commit
 # 589c9ca7 (DESIGN.md D-025), then to those of commit fac0bbb5 (DESIGN.md D-026: FL-7001 removed,
 # HV-8108A/B, LIC-8101 start/stop by signal, I-803 low-low stop, the O2 limits of the carrier
-# vapour). Every entry is a proposal for the team: status proposed.
+# vapour), then to those of commit 54648679 (the response to review 2026-11-05-basic-design-3 in
+# commit 886b0ad5: I-802 starts both KO drum pumps, non-latching, yielding to I-803; HV-8106A/B
+# cryogenic ball valves with the cavity vented to the drum side; I-514/614 on O2 above 5 vol %;
+# XV-4131/4132 fail closed; the core 1.7.0 regeneration in 54648679 changed the drawing only).
+# Every entry is a proposal for the team: status proposed.
 schema: cheme/hazop-study/v1
 kind: hazop-study
 id: H-05
@@ -28,11 +32,11 @@ modes:
   - {id: cooldown, title: Cooldown, description: "Carrier cooldown and de-inerting vapour to the flare (D-017, S-02)."}
   - {id: startup, title: Start-up and shutdown, description: "Flare header purge and pilot light-off, KO drum pump-out, sump draining after rain."}
 analysed:
-  - {path: pid/P-08.xml, revision: 'sha256:ed2ebb9d78a0af1d0b29f5cb90e28ee633003c3b138bf6bdf39a37464759ae3c', relation: analyses}
-  - {path: control/cause-effect.yaml, revision: 'sha256:3dafae048f21f5bb56be8d9dae94d68c51819d80d877c8f398373afa57e418fd', relation: analyses}
+  - {path: pid/P-08.xml, revision: 'sha256:dc722abb9757a08f4222c98c293ea285aad463e3deaf85ea2c585c089be2c705', relation: analyses}
+  - {path: control/cause-effect.yaml, revision: 'sha256:56338e6b57bed4aad2f36ebdc22826f74c813571f3e27cde39ae9cdfb06163dd', relation: analyses}
   - {path: control/loops.yaml, revision: 'sha256:a7417294d1288704b77fac600cc7963a95b21a3dcaa295aef23e52e0cf9a7b30', relation: analyses}
-  - {path: control/sequences.yaml, revision: 'sha256:ce66ee0f13b94e083a963b9d4caeb2e2ccad48994a6b31e025e90c819c085197', relation: analyses}
-  - {path: piping/special-items.yaml, revision: 'sha256:b9489a725f836d0ee9559fdf36e8b3c31f9d4333d79f53b2f1b5f4880fd987c9', relation: analyses}
+  - {path: control/sequences.yaml, revision: 'sha256:814578c5b2fecbf8edbba4f50952b2db10b90b64b6cc5b8deb0faef32bd7942d', relation: analyses}
+  - {path: piping/special-items.yaml, revision: 'sha256:88f34e587f31dce11ce1fcb54163d053f1a67066f32bc78f185c49baf13ea9f4', relation: analyses}
 risk_matrix: safety/risk-matrix.yaml
 assessment_basis: >-
   Each scenario is rated per category before its safeguards (initial): severity is the credible
@@ -45,7 +49,10 @@ assessment_basis: >-
   remains the team's judgement (and a LOPA's where needed). The matrix is the example matrix of
   cheme init (example: true), so the bands are illustrative. In the revision for commit fac0bbb5
   (D-026) the new scenario S20 is rated before safeguards only, and S2 gets a residual for the
-  new low-low stop I-803, independent of LIC-8101.
+  new low-low stop I-803, independent of LIC-8101. In the revision for commit 54648679
+  (886b0ad5) the new scenario S21 is rated before safeguards only, S18 gets a residual for the
+  new O2 rejection I-514 / I-614 and S20 one for the HV-8106A/B cavity vent, both independent of
+  their causes.
 team: []            # to be named by the project; no team has sat on this draft yet
 notes: >-
   Drafted by an agent (skills hazop-study, hazop-equipment-causes, relief-scenarios,
@@ -70,7 +77,11 @@ nodes:
       isolation HV-8108A/B downstream of its check valve, PSV-8109 sits on the common discharge
       downstream of HV-8108A/B; LIC-8101 starts and stops the duty pump by signal lines through
       the motor control functions HS-8101A -> HS-8101B, and I-803 stops both pumps at low-low
-      level on LZT-8105.
+      level on LZT-8105. Since 886b0ad5 (D-026 item 14): I-802 starts both pumps (whichever is
+      not running starts), is non-latching (clears below high-high) and yields to I-803, which has
+      priority over I-802 and LIC-8101; HV-8106A/B are cryogenic ball valves with the cavity
+      vented to the drum side, so a pump blocked in between HV-8106x and HV-8108x relieves into
+      D-8101, and the pump is drained to the drum before maintenance (P-08 note).
     members: [FL-8001, PI-8112, D-8101, LIC-8101, P-8101A, P-8101B, LNG-8002, LNG-8003, LNG-8001, LNG-8004, FL-8002, FL-8101, FI-8133, FG-8001, FO-8111, FI-8111, FG-8002, PCV-8132, TI-8131, DR-7001, FL-7002, LZT-8105, HV-8106A, HV-8106B, LNG-8005, FO-8107, LNG-8006, PSV-8109, BOG-4013, FL-7003, HV-8108A, HV-8108B, HS-8101A, HS-8101B]
     status: proposed
     by: agent
@@ -98,11 +109,15 @@ nodes:
                 - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Burning liquid falling around the derrick; matrix 4 = permanent injury or fatality. B: needs a liquid source and failed pump-out, once in the plant life.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
                 - {category: asset, severity: "3", likelihood: B, status: proposed, by: agent, basis: "Stack tip and derrick damage; matrix 3 = plant down for weeks.", band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 579975b5e9fe3f0e, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '3', likelihood: B}}}
               residual:
-                - {category: people, severity: "4", likelihood: A, status: proposed, by: agent, basis: "Agent proposal for the team: one layer credited, I-802 on the independent LZT-8105 (own nozzle, independent of LIC-8101) starting the standby pump P-8101B and closing LV-7102 (589c9ca7). It covers the LIC-8101 fault, a tripped duty pump and the D-7101 drain; it does not help when the site liquid burner is unavailable or the liquid comes through PV-1110 / XV-1115, and the KO drum hold-up is not confirmed (A1): the team to judge whether one code is justified.", evidence: [control/cause-effect.yaml, control/instrument-list.yaml, DESIGN.md D-025], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ddcedc61b5d20d1a, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: A}}}
+                - {category: people, severity: "4", likelihood: A, status: proposed, by: agent, basis: "Agent proposal for the team: one layer credited, I-802 on the independent LZT-8105 (own nozzle, independent of LIC-8101) starting the pumps (since 886b0ad5 both, whichever is not running) and closing LV-7102 (589c9ca7). It covers the LIC-8101 fault, a tripped duty pump and the D-7101 drain; it does not help when the site liquid burner is unavailable or the liquid comes through PV-1110 / XV-1115, and the KO drum hold-up is not confirmed (A1): the team to judge whether one code is justified.", evidence: [control/cause-effect.yaml, control/instrument-list.yaml, DESIGN.md D-025], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ddcedc61b5d20d1a, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: A}}}
             notes: >-
               Before 589c9ca7 LIC-8101 carried both the pump control and the high-high alarm.
               Since 589c9ca7 the independent LZT-8105 and I-802 (D-025 item 6) answer A1 in part.
-              I-802 closing LV-7102 has its own consequence in D-7101 (S19).
+              I-802 closing LV-7102 has its own consequence in D-7101 (S19). Revised for 54648679
+              (886b0ad5): I-802 now starts both pumps, so a fault of the motor control HS-8101A that
+              cuts the LIC-8101 chain to HS-8101B (review 2026-11-05-basic-design-3#5, the chain
+              kept) is met at high-high by starting P-8101B directly; it is non-latching and yields
+              to I-803. Running both pumps in parallel is S21. Codes kept.
       - id: N1-LL
         guide_word: less
         parameter: level
@@ -117,7 +132,8 @@ nodes:
               589c9ca7 added no low-level protection independent of LIC-8101. Since fac0bbb5
               (D-026 item 11) LIC-8101 starts and stops the duty pump by signal lines through
               HS-8101A / HS-8101B, and I-803 on the independent LZT-8105 (low-low) stops both
-              pumps: answers A2 for this cause.
+              pumps: answers A2 for this cause. Since 886b0ad5 I-803 has priority over I-802 and
+              LIC-8101 (C&E notes), so a high-high start cannot hold a pump running below low-low.
             status: proposed
             by: agent
             risk:
@@ -287,9 +303,9 @@ nodes:
               O2 and hydrocarbon mix in the KO drum and the flare header: a flammable mixture inside
               the flare system, flashback from the tip, internal deflagration of D-8101 or FL-8001
               (as S6).
-            refs: [BOG-4013, D-8101, FL-8001, FL-8002, FL-8101]
+            refs: [BOG-4013, D-8101, FL-8001, FL-8002, FL-8101, AI-4133, XV-5122]
             modes: [cooldown]
-            safeguards: [SG4]
+            safeguards: [SG4, SG17]
             actions: [A5, A17]
             status: proposed
             by: agent
@@ -297,13 +313,22 @@ nodes:
               initial:
                 - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Flashback and deflagration in the flare system (as S6); matrix 4. B: an O2-bearing carrier return to the flare, once in the plant life.", evidence: [control/cause-effect.yaml, piping/line-list.yaml], band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
                 - {category: asset, severity: "4", likelihood: B, status: proposed, by: agent, basis: "KO drum or header rupture; matrix 4 = loss of the unit.", evidence: [piping/line-list.yaml], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: f33c22768a8b83e6, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: B}}}
+              residual:
+                - {category: people, severity: "4", likelihood: A, status: proposed, by: agent, basis: "Agent proposal for the team: one layer credited, I-514 / I-614 (886b0ad5) closing the vapour arm isolation XV-5122 / XV-6122 on AI-4133 / AI-4134 O2 above 5 vol % for 10 s, independent of the cause (the carrier's O2-bearing vapour) and of I-511, which only routes the vapour. Not credited for vapour below the 5 vol % limit, which goes to the flare by design (A17). The analyser is single and also drives I-511; SIL null; severity kept.", evidence: [control/cause-effect.yaml, DESIGN.md D-026], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ddcedc61b5d20d1a, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: A}}}
+                - {category: asset, severity: "4", likelihood: A, status: proposed, by: agent, basis: "As the people residual: I-514 / I-614 credited as one layer.", evidence: [control/cause-effect.yaml], band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: eca0767de9ee2296, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: A}}}
             notes: >-
               New scenario for 589c9ca7 (D-025 items 3, 6). Since fac0bbb5 (D-026 item 7) the
               terminal sends carrier vapour to the flare only below 5 vol % O2 and does not take
               vapour above it (the carrier vents on board under the terminal rules), ASSUMED; the
               limit rests on the single analyser AI-4133 / AI-4134 and the switch I-511 (H-02 S17),
               and whether 5 vol % O2 is safe for the flare system with its purge is for the team
-              (A17). Ratings kept: no new independent layer.
+              (A17). Ratings kept: no new independent layer. Revised for 54648679 (886b0ad5; review
+              2026-11-05-basic-design-2#11): I-514 / I-614 now implement the rejection - AI-4133 /
+              AI-4134 O2 above 5 vol % for 10 s closes the vapour arm isolation XV-5122 / XV-6122
+              (latching, manual reset), so vapour above the limit no longer reaches BOG-4013. A
+              residual is proposed for that; vapour below 5 vol % O2 still goes to the flare by
+              design (A17), and the vapour in the line during the 10 s and the stroke of XV-5122
+              reaches the flare.
       - id: N1-HL2
         guide_word: more
         parameter: level (D-7101, when I-802 acts)
@@ -327,7 +352,12 @@ nodes:
               initial:
                 - {category: environment, severity: "2", likelihood: B, status: proposed, by: agent, basis: "Additional flaring after the compressor trip; matrix 2 = minor release off site. B: needs a liquid event that fills both drums, once in the plant life.", evidence: [control/cause-effect.yaml], band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 25054c63559f6161, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '2', likelihood: B}}}
                 - {category: asset, severity: "2", likelihood: B, status: proposed, by: agent, basis: "Loss of BOG compression until the drums are emptied; matrix 2 = plant down for days.", evidence: [control/cause-effect.yaml], band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c0d4218f7f2f3b3d, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '2', likelihood: B}}}
-            notes: New scenario for 589c9ca7 (D-025 item 6); the cascade is by design (I-701 protects the machines), the team to confirm it is intended.
+            notes: >-
+              New scenario for 589c9ca7 (D-025 item 6); the cascade is by design (I-701 protects the
+              machines), the team to confirm it is intended. Since 886b0ad5 I-802 is non-latching:
+              LV-7102 is released to LIC-7102 as soon as the D-8101 level falls below high-high, so
+              with both KO pumps running the D-7101 drain may cycle around the high-high point
+              rather than stay closed until a manual reset. Codes kept.
       - id: N1-HPI
         guide_word: more
         parameter: pressure (isolated KO pump)
@@ -339,9 +369,13 @@ nodes:
               isolation HV-8106A (HV-8106B) and its discharge isolation HV-8108A (HV-8108B) while
               the casing, CV-8102A (CV-8102B) and the pipe between them are full of LNG at about
               -160 degC; or HV-8108x alone is closed on a stopped pump, which traps the section
-              between the check valve and HV-8108x. No relief device protects these sections:
-              PSV-8109 relieves only the common discharge downstream of HV-8108A/B (special
-              items), and no casing vent or drain is drawn.
+              between the check valve and HV-8108x. At fac0bbb5 no relief device protected these
+              sections: PSV-8109 relieves only the common discharge downstream of HV-8108A/B
+              (special items), and no casing vent or drain is drawn. Since 886b0ad5 (D-026 item 14,
+              P-08 note) HV-8106A/B are cryogenic ball valves with the cavity vented to the drum
+              side, so the casing side relieves back into D-8101; the remaining cause is the piece
+              between CV-8102x and a closed HV-8108x, which the check valve separates from the
+              pump, or a pump not drained before maintenance.
             consequence: >-
               Ambient heat warms the trapped LNG: thermal expansion and vaporisation overpressure
               the pump casing, its seal and the DN 80 / DN 100 pipe and flanges beyond the Class 150
@@ -349,6 +383,7 @@ nodes:
               flare header.
             refs: [P-8101A, P-8101B, HV-8106A, HV-8106B, HV-8108A, HV-8108B, {sheet: P-08, object: CV8102A}, {sheet: P-08, object: CV8102B}, LNG-8001, LNG-8004, PSV-8109]
             modes: [holding, startup]
+            safeguards: [SG16]
             actions: [A18]
             status: proposed
             by: agent
@@ -356,11 +391,48 @@ nodes:
               initial:
                 - {category: people, severity: "3", likelihood: C, status: proposed, by: agent, basis: "Cold LNG release at the pump seal or a flange with a maintenance crew nearby; matrix 3 = lost-time injury. C: isolating the standby or a pump for maintenance is routine, several times in the plant life.", evidence: [piping/special-items.yaml, piping/line-list.yaml, DESIGN.md D-026], band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b6fe1208a949a698, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: C}}}
                 - {category: asset, severity: "2", likelihood: C, status: proposed, by: agent, basis: "Pump seal or casing damage; P-8101B remains; matrix 2 = plant down for days.", evidence: [piping/line-list.yaml], band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b67377b30017f4a1, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '2', likelihood: C}}}
+              residual:
+                - {category: people, severity: "3", likelihood: B, status: proposed, by: agent, basis: "Agent proposal for the team: one layer credited, the cavity vent of HV-8106A/B to the drum side (886b0ad5, P-08 note, line list), a passive path from the pump casing back to D-8101 independent of the isolation that is the cause. Severity kept: the piece between CV-8102x and a closed HV-8108x is not covered by it, and the valve's relief pressure against the casing and Class 150 rating is a vendor item; the team to judge the credit.", evidence: [pid/P-08.xml, piping/line-list.yaml, DESIGN.md D-026], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: aa86891dd127d418, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: B}}}
             notes: >-
               New scenario for fac0bbb5 (D-026 item 9): before, a stopped pump stayed open to
-              D-8101 through its suction and to PSV-8109 through its discharge check valve. No
-              safeguard is listed: the files give no thermal relief, vent or drain of the
-              isolated section and no isolation procedure.
+              D-8101 through its suction and to PSV-8109 through its discharge check valve. At
+              fac0bbb5 no safeguard was listed: the files gave no thermal relief, vent or drain of
+              the isolated section and no isolation procedure. Revised for 54648679 (886b0ad5;
+              review 2026-11-05-basic-design-3#3): the HV-8106A/B cavity vent (SG16) and the rule
+              'drain the pump to the drum before maintenance' (P-08 note, equipment list) answer
+              A18 in part.
+      - id: N1-MF
+        guide_word: more
+        parameter: flow (KO pumps to the liquid burner)
+        description: Created by I-802 starting both KO drum pumps since 886b0ad5.
+        scenarios:
+          - id: S21
+            cause: >-
+              D-8101 reaches high-high on LZT-8105 while the duty pump runs: I-802 starts the pump
+              that is not running, so P-8101A and P-8101B run in parallel into LNG-8001 until the
+              level falls below high-high; the pump started by I-802 then keeps running on LIC-8101
+              or until I-803 stops both at low-low.
+            consequence: >-
+              Up to twice the 30 m3/h of one pump (ASSUMED, equipment list) to the site liquid
+              burner on the 60 m derrick (9 burners, S-02), whose capacity for two pumps is not in
+              the files: liquid not fully burned, burning liquid falling at the derrick, or the
+              burner's own trip shutting LNG-8001 against both pumps (deadhead, S3, with the minimum
+              flow FO-8107 sized for one pump).
+            refs: [LZT-8105, P-8101A, P-8101B, LNG-8001, LNG-8004, FO-8107, LNG-8005, HS-8101A, HS-8101B]
+            modes: [loading, holding]
+            safeguards: [SG15]
+            actions: [A19]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: B, status: proposed, by: agent, basis: "Burning liquid fallout or a pump seal failure at the derrick and the KO pumps; matrix 3 = lost-time injury. B: an I-802 demand with the duty pump running and a burner that cannot take two pumps, once in the plant life.", evidence: [control/cause-effect.yaml, equipment/equipment-list.yaml], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: aa86891dd127d418, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: B}}}
+                - {category: environment, severity: "2", likelihood: B, status: proposed, by: agent, basis: "Smoky or incomplete combustion at the liquid burner; matrix 2 = minor release off site.", evidence: [control/cause-effect.yaml], band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 25054c63559f6161, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '2', likelihood: B}}}
+            notes: >-
+              New scenario for 54648679 (886b0ad5, D-026 item 14). Starting both pumps answers the
+              chained motor control of review 2026-11-05-basic-design-3#5 at high-high; the liquid
+              burner is site scope (D-001), so its capacity and its interface trip are for the team
+              to confirm. I-803 (priority over I-802) is the only automatic stop of the second pump.
   - id: N2
     title: Spill impoundment sumps T-8101 (tank area and trestle) and T-8102 (jetty)
     design_intent: >-
@@ -486,8 +558,11 @@ nodes:
               XV-7123A..C and XV-7130 fail closed, XV-7125A..C and XV-4135 / XV-4136 fail open, and
               control/philosophy.md F-AIR says the ESD, ERS and fill valves close; XV-1115 can still
               open on I-203 / I-303 from its own air accumulator. BOG compression and the PV-1110
-              route are lost together (H-04 S3): XV-1115, then the tank PSVs; the fail position of
-              the other XVs (e.g. XV-7121A..C, XV-4131 / XV-4132) is not in the files.
+              route are lost together (H-04 S3): XV-1115, then the tank PSVs. Since fac0bbb5 /
+              886b0ad5 the files also give XV-7121A..C fail closed (D-026 item 5) and the flare
+              valves XV-4131 / XV-4132 fail closed (D-026 item 1): the carrier vapour return goes to
+              the tanks, de-inerting vapour included (H-02 S21), and the tank vapour header is not
+              opened to the flare through BOG-4013 / BOG-4014.
             refs: [IA-8001, PI-8122, PV-1110, UV-7104A, FV-4101, XV-1115]
             safeguards: [SG11]
             actions: [A15]
@@ -527,12 +602,14 @@ safeguards:
   - {id: SG9, title: TSL-8104 jetty sump low temperature alarm, kind: alarm, refs: [TSL-8104], status: proposed, by: agent}
   - {id: SG10, title: PI-8121 N2 header pressure indication, kind: other, refs: [PI-8121], status: proposed, by: agent}
   - {id: SG11, title: PI-8122 instrument-air header pressure indication, kind: other, refs: [PI-8122], status: proposed, by: agent}
-  - {id: SG12, title: "Interlock I-802: independent KO drum high-high LZT-8105 starts P-8101B and closes LV-7102", kind: interlock, interlock: I-802, refs: [LZT-8105, P-8101B, LV-7102], status: proposed, by: agent, notes: "Added in 589c9ca7 (D-025 item 6); SIL null."}
+  - {id: SG12, title: "Interlock I-802: independent KO drum high-high LZT-8105 starts P-8101A/B (whichever is not running) and closes LV-7102", kind: interlock, interlock: I-802, refs: [LZT-8105, P-8101A, P-8101B, LV-7102], status: proposed, by: agent, notes: "Added in 589c9ca7 (D-025 item 6); since 886b0ad5 it starts both pumps, is non-latching (reset automatic) and yields to I-803 (D-026 item 14); SIL null."}
   - {id: SG13, title: "KO pump minimum flow LNG-8005 through FO-8107 back to D-8101", kind: mechanical, refs: [LNG-8005, FO-8107], status: proposed, by: agent, notes: "Added in 589c9ca7; continuous, sized with the pump vendor (TBD)."}
   - {id: SG14, title: "Thermal relief PSV-8109 of LNG-8001 / LNG-8004 back to D-8101 (LNG-8006)", kind: relief, refs: [PSV-8109, LNG-8006], status: proposed, by: agent, notes: "Added in 589c9ca7, 15.0 barg; since fac0bbb5 on the common discharge downstream of HV-8108A/B."}
-  - {id: SG15, title: "Interlock I-803: KO drum low-low on LZT-8105 stops P-8101A/B", kind: interlock, interlock: I-803, refs: [LZT-8105, P-8101A, P-8101B], status: proposed, by: agent, notes: "Added in fac0bbb5 (D-026 item 11), independent of LIC-8101; latching false, reset automatic, SIL null."}
+  - {id: SG15, title: "Interlock I-803: KO drum low-low on LZT-8105 stops P-8101A/B", kind: interlock, interlock: I-803, refs: [LZT-8105, P-8101A, P-8101B], status: proposed, by: agent, notes: "Added in fac0bbb5 (D-026 item 11), independent of LIC-8101; latching false, reset automatic, SIL null; since 886b0ad5 priority over I-802 and LIC-8101."}
+  - {id: SG16, title: "HV-8106A/B cryogenic ball valves with the cavity vented to the drum side", kind: mechanical, refs: [HV-8106A, HV-8106B, D-8101], status: proposed, by: agent, notes: "Added in 886b0ad5 (D-026 item 14; P-08 note, line list LNG-8002 / LNG-8003): an isolated pump relieves its thermal expansion back into D-8101; the piece between CV-8102x and HV-8108x is not covered; the relief pressure of the seat is a vendor item."}
+  - {id: SG17, title: "Interlocks I-514 / I-614: AI-4133 / AI-4134 O2 above 5 vol % for 10 s closes the vapour arm isolation XV-5122 / XV-6122", kind: interlock, interlock: I-514, refs: [AI-4133, AI-4134, XV-5122, XV-6122], status: proposed, by: agent, notes: "Added in 886b0ad5 (D-026 item 7; review 2026-11-05-basic-design-2#11); latching, manual reset, SIL null; on the same single analyser as I-511 / I-611; its spurious action is a cause of H-03 S14."}
 actions:
-  - {id: A1, status: proposed, by: agent, text: "P&ID P-08 and C&E change: add an independent high-high level switch on D-8101 (separate from LIC-8101) with a defined action (start the spare pump, alarm, close LV-7102), and confirm the KO drum liquid hold-up for the largest credible liquid slug (H-01 S6, H-04 S9).", response: "Partly answered by commit 589c9ca7 (D-025 item 6; review #20): independent high-high LZT-8105 on its own nozzle; I-802 starts the standby pump P-8101B and closes LV-7102 (the D-7101 drain). Still open: the KO drum hold-up for the largest liquid slug; I-802's own consequence is S19."}
+  - {id: A1, status: proposed, by: agent, text: "P&ID P-08 and C&E change: add an independent high-high level switch on D-8101 (separate from LIC-8101) with a defined action (start the spare pump, alarm, close LV-7102), and confirm the KO drum liquid hold-up for the largest credible liquid slug (H-01 S6, H-04 S9).", response: "Partly answered by commit 589c9ca7 (D-025 item 6; review #20): independent high-high LZT-8105 on its own nozzle; I-802 starts the standby pump P-8101B and closes LV-7102 (the D-7101 drain). Still open: the KO drum hold-up for the largest liquid slug; I-802's own consequence is S19. Commit 886b0ad5 (D-026 item 14) has I-802 start both pumps, non-latching and yielding to I-803; the hold-up is still not confirmed, and the parallel running is S21 (A19). Still proposed."}
   - {id: A2, status: proposed, by: agent, text: "P&ID P-08 change: add a low-level pump trip on D-8101 independent of LIC-8101 and a minimum-flow return for P-8101A/B to D-8101; state the response when the site liquid burner is unavailable.", response: "Partly answered by commit 589c9ca7 (D-025 item 6): a continuous minimum flow LNG-8005 through FO-8107 to D-8101 for either pump, and suction isolation HV-8106A/B. Still open: a low-level pump trip independent of LIC-8101 and the response when the site liquid burner is unavailable. Commit fac0bbb5 (DESIGN.md D-026 items 9, 11) adds the low-level trip: I-803 on LZT-8105 (own nozzle, independent of LIC-8101) stops P-8101A/B at low-low level, LIC-8101 drives the pumps by signal lines through HS-8101A / HS-8101B, and HV-8108A/B isolate the discharges. Still open: the response when the site liquid burner is unavailable; the discharge isolations create S20 (A18). Still proposed."}
   - {id: A3, status: proposed, by: agent, text: "P&ID P-08 change: thermal relief on LNG-8001 / LNG-8004 between the pump check valves and the battery limit (or show the battery-limit arrangement that relieves it), listed in piping/special-items.yaml.", response: "Answered in the design by commit 589c9ca7 (D-025 item 6): PSV-8109 on LNG-8001 / LNG-8004 downstream of CV-8102A/B, back to D-8101 through LNG-8006 (own nozzle N8), 15.0 barg, in piping/special-items.yaml. For the team to verify and close; S4 re-rated."}
   - {id: A4, status: proposed, by: agent, text: "Flare study: cumulative relief load of the common-cause cases (power failure and instrument-air failure at loading) on FL-8001 / D-8101 / FL-8101, the back-pressure at PV-1110 and the PSVs, and the radiation at the fence (S-10); see H-04 A3."}
@@ -546,7 +623,8 @@ actions:
   - {id: A12, status: proposed, by: agent, text: "P&ID P-08 change: give T-8102 a level measurement and a water removal (pump or drain with LNG interlock as I-801), and show its foam system."}
   - {id: A13, status: proposed, by: agent, text: "Add a low-pressure alarm on PI-8121 and make 'N2 header healthy' a permissive of SEQ-LOAD S1 / S2; consider a back-up N2 supply for purge and seal gas."}
   - {id: A14, status: proposed, by: agent, text: "P&ID P-05 / P-06 / P-08 change: show the N2 connection for the vapour arm leak test and purge with a pressure regulator and a relief valve set below the 3.5 barg design of LA-5102 / LA-6102."}
-  - {id: A15, status: proposed, by: agent, text: "Record the fail position of every ESD and switching valve (XV) in the instrument list or the C&E, add a low instrument-air pressure alarm and action (ESD-1 at a set pressure) on PI-8122, and size air receivers for the ESD valves and PV-1110 (see H-04 A2).", response: "Partly answered by commit 589c9ca7: the fail positions of the valves it added are in the instrument list (XV-1115, XV-5161 / XV-6161, XV-7123A..C, XV-7130 closed; XV-7125A..C, XV-4135 / XV-4136 open), control/philosophy.md F-AIR states the ESD, ERS and fill valves close, and XV-1115 has its own air accumulator. Still open: the fail position of every other XV (e.g. XV-7121A..C, XV-4131 / XV-4132), the low instrument-air alarm and action on PI-8122, and the air receivers."}
-  - {id: A17, status: proposed, by: agent, text: "Agree with the carrier operators the maximum O2 content of the de-inerting and gassing-up vapour, and confirm that the flare system may receive it (O2 limit, purge rate, the O2 analyser on FL-8001 / D-8101 of A5); otherwise state where vapour above that O2 content goes.", response: "Partly answered by commit fac0bbb5 (DESIGN.md D-026 item 7): vapour goes to the flare only below 5 vol % O2 (inert gas quality, ASSUMED) and to the tanks only below 1 vol % O2 and on hydrocarbon specification (S-01 purge limit); above 5 % the berth does not take the vapour and the carrier vents on board under the terminal rules; AI-4133 / AI-4134 measure CH4, N2 and O2. Still open: agreement of the limit with the carrier operators, confirmation that the flare system may receive vapour at up to 5 vol % O2 with its purge, and the O2 analyser on FL-8001 / D-8101 (A5). Still proposed."}
-  - {id: A18, status: proposed, by: agent, text: "P&ID P-08 / special items: give each KO pump section between HV-8106x and HV-8108x (including the piece between CV-8102x and HV-8108x) a thermal relief to D-8101, or a casing vent and drain with a written isolation procedure that drains the pump to D-8101 before both isolations are closed; list the device in piping/special-items.yaml (S20)."}
+  - {id: A15, status: proposed, by: agent, text: "Record the fail position of every ESD and switching valve (XV) in the instrument list or the C&E, add a low instrument-air pressure alarm and action (ESD-1 at a set pressure) on PI-8122, and size air receivers for the ESD valves and PV-1110 (see H-04 A2).", response: "Partly answered by commit 589c9ca7: the fail positions of the valves it added are in the instrument list (XV-1115, XV-5161 / XV-6161, XV-7123A..C, XV-7130 closed; XV-7125A..C, XV-4135 / XV-4136 open), control/philosophy.md F-AIR states the ESD, ERS and fill valves close, and XV-1115 has its own air accumulator. Still open: the fail position of every other XV (e.g. XV-7121A..C, XV-4131 / XV-4132), the low instrument-air alarm and action on PI-8122, and the air receivers. Since fac0bbb5 / 886b0ad5 XV-7121A..C are given fail closed (D-026 item 5) and XV-4131 / XV-4132 fail closed (D-026 item 1, P-04, instrument list). Still open: the low instrument-air alarm and action on PI-8122 and the air receivers. Still proposed."}
+  - {id: A17, status: proposed, by: agent, text: "Agree with the carrier operators the maximum O2 content of the de-inerting and gassing-up vapour, and confirm that the flare system may receive it (O2 limit, purge rate, the O2 analyser on FL-8001 / D-8101 of A5); otherwise state where vapour above that O2 content goes.", response: "Partly answered by commit fac0bbb5 (DESIGN.md D-026 item 7): vapour goes to the flare only below 5 vol % O2 (inert gas quality, ASSUMED) and to the tanks only below 1 vol % O2 and on hydrocarbon specification (S-01 purge limit); above 5 % the berth does not take the vapour and the carrier vents on board under the terminal rules; AI-4133 / AI-4134 measure CH4, N2 and O2. Still open: agreement of the limit with the carrier operators, confirmation that the flare system may receive vapour at up to 5 vol % O2 with its purge, and the O2 analyser on FL-8001 / D-8101 (A5). Commit 886b0ad5 implements the rejection above 5 vol %: I-514 / I-614 close XV-5122 / XV-6122 (S18 residual). The other open items are unchanged. Still proposed."}
+  - {id: A18, status: proposed, by: agent, text: "P&ID P-08 / special items: give each KO pump section between HV-8106x and HV-8108x (including the piece between CV-8102x and HV-8108x) a thermal relief to D-8101, or a casing vent and drain with a written isolation procedure that drains the pump to D-8101 before both isolations are closed; list the device in piping/special-items.yaml (S20).", response: "Partly answered by commit 886b0ad5 (D-026 item 14; review 2026-11-05-basic-design-3#3): HV-8106A/B are cryogenic ball valves with the cavity vented to the drum side, so a pump blocked in between HV-8106x and HV-8108x relieves into D-8101, and the P-08 note and the equipment list say to drain the pump to the drum before maintenance. Still open: the piece between CV-8102x and a closed HV-8108x (the check valve separates it from the pump and the vent), the seat relief pressure from the valve vendor, and a written isolation procedure. Still proposed."}
+  - {id: A19, status: proposed, by: agent, text: "Confirm with the site the capacity of the liquid burner and of LNG-8001 for both KO pumps in parallel (I-802 starts the pump that is not running, S21), and the burner's interface trip; otherwise have I-802 start the standby only when the duty pump is not running (run feedback), and size FO-8107 for two pumps or give each pump its own minimum flow."}
   - {id: A16, status: proposed, by: agent, text: "Write the power-failure case: which loads are on UPS (ESD logic, ship-shore link XS-5100 / XS-6100, ERS hydraulic accumulators, PV-1110 solenoid, flare pilots ignition), and the resulting flare load (A4)."}
