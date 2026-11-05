@@ -1,0 +1,122 @@
+# Process Atlas manifest of sodium-azide-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: sodium-azide-1
+title: Sodium azide by the hydrazine / methyl nitrite route, batch, with precipitation from the reaction liquor (670 t/a)
+summary: >-
+  A batch plant: methyl nitrite from sodium nitrite, methanol and sulfuric acid is absorbed into
+  hydrazine and caustic soda; sodium azide precipitates from the concentrated liquor and is
+  filtered, washed and dried in a filter-dryer, the mother liquor recycled. Concept stage, 1028
+  kg per batch every 12.1 h, thermal screening, preliminary LCI.
+description: |
+  The route of US 5 208 002 A (Nippon Carbide, 1993): in R-101, 98.5 % sulfuric acid is dosed
+  over 10 h into aqueous sodium nitrite with an equimolar amount of methanol at 298 K, and the
+  methyl nitrite gas formed passes straight into R-102. There it is absorbed (91.8 %, the share
+  the patent's Example 1 balance accounts for) into hydrazine hydrate and caustic soda (1.20 mol
+  NaOH per mol hydrazine) together with the mother liquor of the previous batch at 313 K, and
+  gives sodium azide and methanol; about 5 % of the hydrazine consumed is lost to ammonia and
+  nitrous oxide (95 % selectivity at the patent's 70 % conversion). The acid side and the azide
+  side never share a vessel or a liquor, so the azide never meets acid; hydrazine carried in the
+  recovered methanol would form HN3 in R-101, so that methanol has a hydrazine limit (D-015). The
+  liquor is stripped of
+  methanol and concentrated at 10 kPa(a) in the batch still C-101 (the methanol cut, 88 wt%,
+  goes back to R-101 and to the cake wash; the residue ends at about 360 K, estimated with the
+  caustic liquor's boiling-point elevation, an open reaction-hazard item), NaN3 precipitates at 303
+  K from the concentrated
+  caustic liquor (39 wt% NaOH, 17 wt% hydrazine), and the agitated filter-dryer F-101 filters
+  it, washes it with methanol (0.43 kg/kg) and dries it at 333 K under vacuum. The mother
+  liquor, the wash filtrate and the dryer condensate go back to R-102, less a 5 % purge to azide
+  destruction (the hydrazine oxidised first, then the azide with nitrite and acid). Product 99.6 wt% NaN3; yield 92.3 % on hydrazine. Per kg NaN3: sodium nitrite
+  1.222 kg, sulfuric acid 0.883 kg, hydrazine hydrate (64 %) 0.831 kg, caustic soda (50 %)
+  1.287 kg, methanol 0.074 kg; 0.036 kg N2O leaves in the off-gas to the thermal oxidiser.
+
+  It is the library's first entry on core's batch work-up models: R-101 and R-102 are
+  semi-batches with their gas vents (batch.vent, dosing.absorbed; core ADR 0054), C-101 a batch
+  Rayleigh still with two cuts (ADR 0055), the precipitation a crystallizer with spectator
+  solutes and a solubility measured in the patent's mother liquor (ADR 0056), and F-101 a
+  filter-dryer over four steps with its filtration and drying times (ADR 0057). R-102's jacket
+  sets the 10 h dosing; R-102 is the bottleneck (cycle 12.14 h, 652.6 batches a year). The
+  kinetics are ASSUMED (no open data): the dissolved methyl nitrite accumulates to 2.0 % and the
+  cooling-failure temperature stays at 318.9 K, below the 337.6 K boiling point of methanol, but
+  a ten times slower reaction would exceed it. See DESIGN.md for every assumption, the process
+  safety notes (azide toxicity, hydrazoic acid from azide and from hydrazine, heavy-metal azides,
+  methyl nitrite, the hot concentrated liquor) and the core
+  limits met.
+families: [inorganic-chemicals]
+keywords: [sodium azide, NaN3, hydrazine, methyl nitrite, alkyl nitrite, sodium nitrite, azide, semi-batch, batch, gas dosing, vent, batch distillation, precipitation, filter-dryer, mother-liquor recycle, thermal screening]
+facets:
+  feedstock_basis: [fossil, mineral, electricity]
+  product_classes: [chemicals]
+  unit_operations: [reaction, absorption, distillation, crystallization, filtration, drying]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Capacity, kinetics, purge, the
+# still's volatility and the filter-dryer's data are assumed; ratios from the patent's examples
+# (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept batch PFD with closed mass, component and element balances (cheme validate: 4 blocks
+    and 13 steps within tolerance). Calculated by cheme process propagate with core main (to be
+    released as 1.8.0): the two vented semi-batches R101 and R102 from their ASSUMED rate laws,
+    the batch still ST101 (constant relative volatility, ASSUMED), the precipitation CR101 from a
+    solubility measured in the patent's mother liquor, the specified filters and the dryer; the
+    two recycles (methanol to R-101, mother liquor to R-102) are assumed tear streams converged
+    over propagate. The recipe's year-average product rate agrees with the flowsheet (no
+    cheme.recipe-basis finding); the recipe sizes R-101 (6.3 m3), R-102 (8 m3) and F-101 (2 m3),
+    both jacket checks pass. Thermal screening (cheme process reactor-hazards): R-102 dT_ad
+    307 K, accumulation 1.97 %, MTSR 318.9 K against an MTT of 337.63 K (hazard.mtt: methanol's
+    boiling point); R-101 dT_ad 43 K, MTSR 298.6 K; no criticality class without a TD24 from
+    calorimetry (none estimated). Preliminary gate-to-gate LCI with the per-batch nitrogen; the
+    purchased feeds linked to their library producers, utilities and treatments gaps. cheme
+    maturity reaches no level (assumed feeds, kinetics and separations); the claim `maturity:
+    concept` is the lowest value of the schema, not an evidenced level. Not reviewed. Needs
+    cheme-as-code 1.8.
+chemistry:
+  inputs:
+    - {chemical: sodium-nitrite, role: feedstock, inventory_key: "feed:NANO2", note: "Dried sodium nitrite (sodium-nitrite-1), dissolved in R-101's charge, 1.222 kg/kg NaN3"}
+    - {chemical: sulfuric-acid, role: feedstock, inventory_key: "feed:ACID", note: "Sulfuric acid 98.5 wt% (sulfuric-acid-1), dosed into R-101, 0.883 kg/kg NaN3"}
+    - {chemical: hydrazine, role: feedstock, inventory_key: "feed:HH", note: "Hydrazine hydrate 64 wt% N2H4 (hydrazine-1), 0.831 kg/kg NaN3 as hydrate"}
+    - {chemical: sodium-hydroxide, role: feedstock, inventory_key: "feed:NAOH", note: "Caustic soda 50 wt% (chlor-alkali-1), 1.287 kg/kg NaN3 as solution"}
+    - {chemical: methanol, role: feedstock, inventory_key: "feed:MEOH", note: "Methanol make-up (methanol-1) of the methanol loop, 0.074 kg/kg NaN3; the methanol itself is recovered and reused"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW1", note: "Process water to R-101's charge, 3.05 kg/kg NaN3"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW2", note: "Process water to R-102's charge, 1.38 kg/kg NaN3"}
+    - {chemical: nitrogen, role: feedstock, inventory_key: "consumable:nitrogen", note: "Nitrogen (asu-1) for inerting, vacuum breaks and pressure filtration, 50 kg per batch, 0.049 kg/kg NaN3 (ASSUMED)"}
+  outputs:
+    - {chemical: sodium-azide, role: main-product, inventory_key: "product:NAN3P", note: "Dried sodium azide, 99.6 wt% NaN3, to packing"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:SULF", note: "Sodium sulfate liquor of the nitrite generator, 4.72 kg/kg NaN3, to wastewater treatment"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:COND", note: "Evaporator condensate (water, 0.12 wt% methanol), 2.78 kg/kg NaN3, to wastewater treatment"}
+    # No inventory_key for the purge either: no background covers its treatment (the hydrazine
+    # oxidised, then the azide destroyed with nitrite and acid, with N2O released; lca/lca.yaml,
+    # DESIGN.md D-013, D-015), and the wastewater slug would link it to average wastewater
+    # treatment in the Atlas. It stays a gap (product:PURGE).
+    - {chemical: wastewater, role: waste, note: "Mother-liquor purge (product:PURGE: NaOH, hydrazine, 8 wt% NaN3), 0.086 kg/kg NaN3, to azide destruction (hydrazine oxidised first) and wastewater treatment; an LCI gap"}
+    # No inventory_key with a chemical slug for the off-gas: it is a treated waste stream
+    # (product:OFFGAS, thermal oxidiser), not an emission of one substance.
+    - {chemical: nitrous-oxide, role: emission, note: "R-102's off-gas (product:OFFGAS, 0.138 kg/kg NaN3) to the thermal oxidiser: methyl nitrite 64, N2O 26, NH3 10 wt%; 0.036 kg N2O per kg NaN3, whose fate in the oxidiser is open (DESIGN.md D-013)"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.154 kWh/kg NaN3: agitators, gas dispersion, vacuum pumps (ASSUMED)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "2.30 kWh/kg NaN3 of LP steam 350 kPa(a), through tempered hot water: the still's boil-up and the filter-dryer"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:CHW", note: "2.09 kWh/kg NaN3 removed by chilled water at 278-283 K: R-101, R-102 and the methanol condensers"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "1.98 kWh/kg NaN3: the still's water condenser and the crystallizer, 25/35 C (ASSUMED)"}
+basis:
+  capacity: "670.6 t/a dried NaN3: 652.6 batches/a of 1027.6 kg in 7920 h on a dedicated train (84.68 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-014)"
+  operating_hours_per_year: 7920
+  location: generic fine-chemicals site with a thermal oxidiser and an azide-capable wastewater treatment (not chosen)
+references:
+  - {title: "Sasaki, M.; Shibafuchi, H.; Imai, Y.; Yoshida, M.; Miyata, K. (Nippon Carbide Industries, 1993) US 5 208 002 A, Method of producing alkali metal azides (family EP 0 514 143 B1; priority 1991-05-17): claims, Examples 1-4 and Tables 1-3 (charges, conditions, conversion and selectivity, work-up, filtrate composition, recycle, yields)", url: "https://patents.google.com/patent/US5208002A/en"}
+  - {title: "US 5 098 597 A (Olin, 1992), continuous process for sodium azide with ethyl nitrite generated apart from the azide reactor (alternative read for the route choice)", url: "https://patents.google.com/patent/US5098597A/en"}
+  - {title: "PubChem CID 33557, Sodium azide (identity)", url: "https://pubchem.ncbi.nlm.nih.gov/compound/33557"}
+  - {title: "NIST Chemistry WebBook, SRD 69: Antoine parameters of water (Stull 1947) and methanol", url: "https://webbook.nist.gov/chemistry/"}
+  - {title: "Stoessel, F. (2008) Thermal Safety of Chemical Processes, Wiley-VCH (accumulation and MTSR of a semi-batch; method reference, not data)", doi: 10.1002/9783527621606}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/sodium-azide-1
+  access: public
+publication:
+  status: internal

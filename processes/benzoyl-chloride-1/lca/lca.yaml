@@ -1,0 +1,111 @@
+# Goal and scope of the benzoyl-chloride-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme
+# assess lca --write` (lca/inventory.csv, gaps.csv, dataset.yaml, manifest.json, results);
+# never edit those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the batch
+# plant with its amount per kg of distilled benzoyl chloride, from the flowsheet's year averages
+# of the recipe (D-003). Per batch: multiply by 1229.47 kg. The backgrounds are left unmapped
+# (`missing:` with the activity each should connect to), except where lca/mappings.yaml links a
+# library producer or a shared entry: a gap, never zero, and no values from licensed databases.
+# Benzotrichloride and benzoic acid have no library producer: each is a gap that names the
+# proxy route it should connect to (D-004, D-012). The HCl off-gas is absorbed whole in the
+# balance; the absorber's tail gas and the vacuum pump's exhaust are not estimated
+# (emission_exclusions).
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of benzoyl chloride made by the semi-batch
+  reaction of benzotrichloride with molten benzoic acid over zinc chloride, the HCl off-gas
+  absorbed to 30 wt% hydrochloric acid and the crude distilled under vacuum, at the concept
+  stage: which raw materials, utilities and wastes the batch plant exchanges per kg of distilled
+  benzoyl chloride, as the foreground for a later cradle-to-gate study. No impact results: most
+  backgrounds are not mapped yet (D-012).
+functional_unit: {product: BZCL, amount: 1, unit: kg, source: "1 kg of distilled benzoyl chloride (99.99 wt%) at the plant gate to storage, stream S11 (D-002, D-012)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
+# being mapped free (the schema's gate-to-gate maps every feed free), as n-bromosuccinimide-1 and
+# phosphorus-tribromide-1 do.
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Batch plant: benzotrichloride dosed over 2 h into molten benzoic acid with zinc chloride at 413 K (semi-batch, 7 % acid excess), the HCl vented as it forms and absorbed to 30 wt% acid, the crude distilled at 5 kPa(a) in a batch still with a short column; 1229 kg per batch, 1627 batches a year on a dedicated train"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+system_model: cutoff
+allocation:
+  method: shares
+  coproducts: [BZCL, HCLAQ]
+  shares: {BZCL: 1.0, HCLAQ: 0.0}
+  source: >-
+    D-012 (agent proposal, for the LCA practitioner to confirm): the 30 wt% hydrochloric acid
+    (0.444 kg per kg of benzoyl chloride, 0.133 kg of HCl) is a by-product of fixed stoichiometry
+    (one HCl per two benzoyl chloride). All burdens are given to the benzoyl chloride, the
+    acid leaves without a burden and without a credit (conservative for the main product).
+  deviation: >-
+    The library hierarchy (docs/system-model.md) has no physical relationship here (the acid
+    carries no energy content; no exergy, since no property package covers HCl-water), so the
+    WBCSD rule applies. Merchant hydrochloric acid is priced well over five times below a fine
+    acid chloride per kg, so the rule gives economic allocation, which would leave the acid a
+    share of a few per cent. No prices are set at the concept stage (none sourced), so shares
+    1/0 stand for it until prices are; the acid's share is then small, not zero.
+flows:
+  # raw materials
+  - key: feed:BTC
+    missing: "not mapped yet (D-004, D-012); no library process makes benzotrichloride. Connect to: benzotrichloride by the side-chain photochlorination of toluene with chlorine (3 Cl2 per mol, 3 HCl off; leads US 5 514 254, US 3 816 287, not read), whose main burdens are chlorine (processes/chlor-alkali-1) and toluene"
+    source: "flowsheet stream S4 (D-004)"
+  - key: feed:BA
+    missing: "not mapped yet (D-004, D-012); no library process makes benzoic acid. Connect to: benzoic acid by the liquid-phase air oxidation of toluene over a cobalt catalyst, technical grade"
+    source: "flowsheet stream S1 (D-004)"
+  - key: feed:ZNCL2
+    missing: "not mapped yet (D-012); connect to: zinc chloride, anhydrous, from zinc and hydrochloric acid or chlorine (3.6 g/kg benzoyl chloride, below the cut-off's 1 % by mass, kept as a gap)"
+    source: "flowsheet stream S2 (D-004)"
+  - key: feed:PW
+    missing: "not mapped yet (D-012); connect to: process (demineralised) water from the site water treatment, for the HCl absorber"
+    source: "flowsheet stream S7 (D-010)"
+  # utilities
+  - key: feed:POWER
+    missing: "not mapped yet (D-012); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy streams P1 (melter and reactor agitators) and P2 (still agitator and vacuum pump), D-009"
+  - key: feed:MPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 1100 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
+    source: "flowsheet energy stream Q1 (melter), D-009"
+  - key: feed:LPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 450 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
+    source: "flowsheet energy stream Q4 (still reboiler), D-009"
+  - key: product:CW
+    missing: "not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed; R-101's heat passes through a tempered-water loop at 363 K first"
+    source: "flowsheet energy streams Q2 (R-101), Q3 (absorber) and Q5 (condenser and product cooler), D-009, D-010"
+  # waste
+  - key: product:RES
+    treatment: {kind: waste, route: "hazardous-waste incineration of the still residue (benzoic acid, benzoyl chloride, zinc chloride, benzotrichloride traces) with flue-gas scrubbing (HCl captured); not recycled in this concept (D-008)"}
+    missing: "not mapped yet (D-012); connect to: incineration of hazardous liquid chlorinated organic waste, per kg"
+    source: "flowsheet stream S13 (D-008)"
+# What the batch plant uses per batch and the flowsheet does not carry (library ADR 0035, core
+# ADR 0053): the nitrogen that inerts R-101 and the still and breaks the still's vacuum,
+# converted with the recipe's batches per year (process/recipe.yaml). It leaves through the
+# absorber's tail scrubber and the vacuum pump to air (nitrogen: no burden, no disposal
+# exchange). There is no rinse between batches: the train is kept dry (benzoyl chloride and
+# benzotrichloride hydrolyse) and the still is drained of its residue.
+consumables:
+  - id: nitrogen
+    title: Nitrogen for inerting R-101 and the still and breaking the still's vacuum
+    unit: kg
+    per_batch: 10.0
+    source: "8 Nm3 per batch (purges of R-101's and the still's vapour spaces, the vacuum broken once, the crude transfer) x 1.2506 kg/Nm3, ASSUMED (D-012)"
+    missing: "linked to processes/asu-1 (lca/mappings.yaml): gaseous nitrogen to the battery limit"
+operation:
+  hours_per_year: 7920
+  life_years: 20
+  source: "design basis operating_hours_per_year 7920 (ASSUMED, the recipe's hours); 20 a service life ASSUMED"
+emission_exclusions:
+  - {id: melter-vent, method: storage-tank, equipment: [M-101], reason: "No P&ID yet: the melter's breathing (nitrogen with benzoic acid vapour, which sublimes and deposits) goes to the vent scrubber; not estimated (open for basic engineering, D-009)."}
+  - {id: absorber-tail-gas, method: storage-tank, equipment: [R-101, A-101], reason: "No P&ID yet: R-101 vents only through the absorber; its tail gas (nitrogen of the purges with HCl, benzotrichloride and benzoyl chloride traces) goes through a water tail scrubber to air. The balance absorbs all HCl and core's vent carries no organic vapour (D-010, L-2); not estimated (open for basic engineering)."}
+  - {id: vacuum-vent, method: storage-tank, equipment: [C-101, K-101], reason: "The vacuum pump's exhaust (nitrogen, air in-leakage, the HCl the crude still holds dissolved and benzoyl chloride traces) to the vent scrubber is not estimated (D-007, D-010)."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals
+  modelling: {principle: attributional}
+  geography: {description: "Generic fine-chemicals site with a chlorine and toluene chemistry, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #156, unreviewed"

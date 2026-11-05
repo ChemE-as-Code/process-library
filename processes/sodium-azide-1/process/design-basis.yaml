@@ -1,0 +1,67 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Sodium azide by the hydrazine / methyl nitrite route, a batch plant, issue
+# ChemE-as-Code/process-library#167 (the first library entry on core's batch work-up models:
+# vents, batch still, precipitation from a mixed liquor, filter-dryer; core#165). Values marked
+# ASSUMED are engineering choices of this concept study, not client or licensor data; every
+# decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: dried sodium azide to packing at the battery limit
+  nan3_t_per_year: 670.6                # 1027.6 kg x 652.6 batches; ASSUMED scale (D-002)
+  operating_hours_per_year: 7920        # ASSUMED (D-002): 330 days of 24 h, batch operation
+  batch_kg: 1027.6                      # ASSUMED (D-003): one batch of dried NaN3 every 12.14 h
+  batches_per_year: 652.6               # from the recipe (process/recipe.yaml, D-003)
+feeds:
+  - name: Sodium nitrite, dried (sodium-nitrite-1)
+    source_of_values: ASSUMED (D-004)
+    composition: "NaNO2 100 % in the model (99.0 wt% product of sodium-nitrite-1; its nitrate and moisture not modelled)"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Sulfuric acid 98.5 wt% (sulfuric-acid-1)
+    source_of_values: ASSUMED (D-004)
+    composition: "H2SO4 98.5 wt%, water 1.5 wt%"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Hydrazine hydrate 64 wt% N2H4 (hydrazine-1)
+    source_of_values: ASSUMED (D-004)
+    composition: "N2H4 64 wt%, water 36 wt%"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Caustic soda 50 wt% (chlor-alkali-1)
+    source_of_values: ASSUMED (D-004)
+    composition: "NaOH 50 wt%, water 50 wt%"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Methanol, Grade AA (methanol-1), make-up of the methanol loop
+    source_of_values: ASSUMED (D-009)
+  - name: Process water (demineralised)
+    source_of_values: ASSUMED (D-004)
+  - name: Nitrogen (asu-1), per batch for inerting, vacuum breaks and pressure filtration
+    source_of_values: ASSUMED (D-013)
+products:
+  - name: Sodium azide, dried
+    purity: "99.6 wt% NaN3 in the model; NaOH 0.20, hydrazine 0.09, methanol 0.09, water 0.01 wt% (D-009); the patent's single batches give 99.5-99.8 %"
+    delivery: {temperature_K: 333.15, pressure_kPa_a: 101.325, battery_limit: closed drum or big-bag packing (not in the boundary)}
+  - name: Sodium sulfate liquor to wastewater treatment
+    note: "the nitrite generator's liquor, 26.6 wt% Na2SO4 (D-014)"
+  - name: Evaporator condensate to wastewater treatment
+    note: "water with 0.12 wt% methanol (D-007)"
+  - name: Mother-liquor purge to azide destruction
+    note: "5 % of the recycled liquor: NaOH, hydrazine, NaN3, methanol; the hydrazine (about 3 mol per mol azide) oxidised first in the alkaline liquor, then the azide destroyed with nitrite and acid (D-015, D-016)"
+  - name: Off-gas to the thermal oxidiser
+    note: "unabsorbed methyl nitrite, N2O and NH3 from R-102 (D-005, D-015)"
+utilities:
+  - {name: Electric power, use: "agitators, R-102's gas dispersion, vacuum pumps (D-012)"}
+  - {name: LP steam, pressure_kPa_a: 350, use: "the still's boil-up and the filter-dryer (D-012)", note: ASSUMED}
+  - {name: Chilled water, supply_K: 278.15, return_K: 283.15, use: "R-101 and R-102 jackets, the methanol and dryer-vapour condensers (D-010, D-012)", note: ASSUMED}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "the still's water condenser and the crystallizer (D-012)", note: ASSUMED}
+  - {name: Nitrogen, use: "inerting, vacuum breaks, pressure filtration (D-013)", note: ASSUMED}
+site:
+  location: ASSUMED generic fine-chemicals site with a thermal oxidiser and a wastewater treatment able to take an azide-destruction effluent, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Route: methyl nitrite generated from sodium nitrite, methanol and sulfuric acid in its own vessel and absorbed into aqueous hydrazine and caustic soda; NaN3 crystallised from the concentrated liquor, methanol recovered, the filtrate recycled (US 5 208 002 A, D-001)."
+  - "Charge ratios from US 5 208 002 Example 1 (D-004): 1.20 mol NaOH, 0.769 mol NaNO2 and 6.63 mol water per mol hydrazine; 0.501 mol H2SO4 and 1.002 mol methanol per mol NaNO2; 91.8 % of the methyl nitrite absorbed; 95 % selectivity on hydrazine (D-005)."
+  - "ASSUMED fast effective rate laws for both semi-batches (D-005): no open kinetics; the low accumulation follows from them (D-011)."
+  - "Heats of reaction from pure-substance formation enthalpies (chemicals: CRC, ATcT, NIST WebBook), heats of solution not counted (D-005)."
+  - "ASSUMED jackets: U 400 W/(m2 K) on chilled water at 278-283 K; R-102's jacket sets the 10 h dosing (D-010)."
+  - "Effective relative volatility of methanol to water 150 in the one-stage still, calibrated to the patent's 90 wt% methanol cut (D-007); NaN3 solubility measured in the patent's mother liquor (D-008)."
+  - "5 % of the mother liquor purged per batch (D-016)."
+  - "All flows are year averages of the recipe (D-003); duties from core's models, power ASSUMED (D-012); accuracy +/-30 % not demonstrated."

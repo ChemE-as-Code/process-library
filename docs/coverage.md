@@ -203,6 +203,10 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 92 | `n-bromosuccinimide` | N-Bromosuccinimide | nitrogen-organics | n/a, to be sourced | n/a | - | - | 2 | n-bromosuccinimide-1 (T2) |
 | 93 | `phosphorus-tribromide` | Phosphorus tribromide | inorganic-chemicals | n/a, to be sourced | n/a | - | - | 2 | phosphorus-tribromide-1 (T2) |
 | 94 | `benzyl-chloroformate` | Benzyl chloroformate | chlorinated-organics | n/a, to be sourced | n/a | - | - | 2 | benzyl-chloroformate-1 (T2) |
+| 95 | `methylmagnesium-bromide` | Methylmagnesium bromide | inorganic-chemicals | n/a, to be sourced | n/a | - | - | 2 | methylmagnesium-bromide-1 (T2) |
+| 96 | `sodium-azide` | Sodium azide | inorganic-chemicals | n/a, to be sourced | n/a | - | - | 2 | sodium-azide-1 (T2) |
+| 97 | `carbon-tetrabromide` | Carbon tetrabromide | chlorinated-organics | n/a, to be sourced | n/a | - | - | 2 | carbon-tetrabromide-1 (T2) |
+| 98 | `benzoyl-chloride` | Benzoyl chloride | chlorinated-organics | n/a, to be sourced | n/a | - | - | 2 | benzoyl-chloride-1 (T2) |
 
 Volume sources (ids as in `coverage.yaml` `sources:`): `usgs-mcs-2024` U.S. Geological Survey,
 Mineral Commodity Summaries 2024; `iea-ammonia-2021` IEA, Ammonia Technology Roadmap (2021);
