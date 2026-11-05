@@ -7,7 +7,9 @@
 # sheet P-01), the 2xx loops Skid B (case skid-b, sheet P-02); each skid has the same loops,
 # Skid B adds the pH trim of the dosing (AIC-201), the bleed (FIC-203) and the make-up on level
 # (LIC-201). Setpoints that are a stream value of the case name it (`stream:`), so validate
-# keeps them in step with process/flowsheet.yaml. The pH is measured on an activity basis; the
+# keeps them in step with process/flowsheet.yaml; scripts/regen.py (step 9) writes their values
+# from the flowsheet, the stack currents (JIC-x01) from `cheme process stack` and the AIC-201
+# pH setpoint from D-B, so a calculated setpoint is never a hand copy. The pH is measured on an activity basis; the
 # duty model's pH is concentration-basis (control/philosophy.md): the pH values here are the
 # model's and need the probe offset before use (open, `unresolved`). Fail positions and
 # actions are proposals for the HAZOP (D-018).
@@ -44,7 +46,7 @@ loops:
     final_elements:
       - {tag: TV-111, kind: valve, actuator: pneumatic, fail: open}
     targets:
-      - {kind: setpoint, value: 296.15, unit: K, provenance: assumed, source: "process/flowsheet.yaml S114: 2 K below the 25 degC stack (D-012), ASSUMED", cases: [skid-a], stream: S114, property: temperature}
+      - {kind: setpoint, value: 296.15, unit: K, provenance: assumed, source: "process/flowsheet.yaml S114 (scripts/regen.py step 9): the cell temperature less the stack heat over the loop flow (scripts/skid_balance.py, cp ASSUMED, D-012)", cases: [skid-a], stream: S114, property: temperature}
     modes: [manual, auto]
     normal_mode: auto
     alarms:
@@ -62,12 +64,12 @@ loops:
     final_elements:
       - {tag: U-101, kind: other, actuator: electric, fail: off}
     targets:
-      - {kind: setpoint, value: 80, unit: A, provenance: calculated, source: "cheme process stack STK-A: 4 stacks of 7 cells in parallel, 20 A per stack (200 mA/cm2 on 100 cm2)", cases: [skid-a]}
+      - {kind: setpoint, value: 80, unit: A, provenance: calculated, source: "cheme process stack STK-A bus_current_a, written by scripts/regen.py step 9 (the stacks in parallel at 200 mA/cm2 on 100 cm2)", cases: [skid-a]}
     modes: [manual, auto]
     normal_mode: auto
     interlocks: [I-101, I-102, I-103, I-104, I-105, I-106]
     rationale: "The current sets the CO rate (Faraday); the rectifier runs constant current, its voltage follows the stacks (37.6 V at the measured point)."
-    operator: "Ramp the current up only with the permissives of SEQ-A-START met; end the campaign at the pH threshold."
+    operator: "Ramp the current up only with the permissives of SEQ-A-START met; end the campaign at H with SEQ-A-STOP."
     notes: "J: the electrical quantity at the rectifier output, as the spec of #330 names it."
   - id: FIC-102
     title: Skid A fresh CO2 feed
@@ -95,7 +97,8 @@ loops:
     variable: pressure
     measurement: [{tag: PIC-121}]
     controller: PIC-121
-    action: reverse
+    # back-pressure: a rising cathode pressure opens PV-121 (output rises with the measurement)
+    action: direct
     final_elements:
       - {tag: PV-121, kind: valve, actuator: pneumatic, fail: open}
     targets:
@@ -148,11 +151,11 @@ loops:
     variable: other
     measurement: [{tag: AI-101}]
     targets:
-      - {kind: low, value: 12.5, unit: pH, provenance: assumed, source: "ASSUMED alarm margin above the pH 12 threshold (D-003), concentration basis", cases: [skid-a]}
+      - {kind: low, value: 12.5, unit: pH, provenance: assumed, source: "ASSUMED notice ahead of the pH 12 threshold (D-003), concentration basis: about 27 h before H at the measured WDE (D-018)", cases: [skid-a]}
     modes: [manual]
     normal_mode: manual
     alarms:
-      - {tag: AI-101, condition: AAL, response: "the campaign approaches its pH threshold: plan the end of run (SEQ-A-DRAIN); the low-low pH trip I-101 stops the current"}
+      - {tag: AI-101, condition: AAL, response: "the campaign approaches its pH threshold: plan the end of run at H (SEQ-A-STOP, then SEQ-A-DRAIN); the low-low pH trip I-101 stops the current at the threshold itself"}
     interlocks: [I-101]
     rationale: "Skid A has no dosing: nothing is manipulated on pH, the end of the run is the operator's (D-009). The duty's threshold is the design criterion, not a corrosion limit (D-003)."
     unresolved: ["indication with an alarm only: no controller action and no final element, since Skid A has nothing to manipulate on pH (D-009)", "probe (activity) pH against the model's concentration-basis pH: offset or calibration before the alarm and trip values are set"]
@@ -187,7 +190,7 @@ loops:
     final_elements:
       - {tag: TV-211, kind: valve, actuator: pneumatic, fail: open}
     targets:
-      - {kind: setpoint, value: 296.15, unit: K, provenance: assumed, source: "process/flowsheet.yaml S214: 2 K below the 25 degC stack (D-012), ASSUMED", cases: [skid-b], stream: S214, property: temperature}
+      - {kind: setpoint, value: 296.15, unit: K, provenance: assumed, source: "process/flowsheet.yaml S214 (scripts/regen.py step 9): the cell temperature less the stack heat over the loop flow (scripts/skid_balance.py, cp ASSUMED, D-012)", cases: [skid-b], stream: S214, property: temperature}
     modes: [manual, auto]
     normal_mode: auto
     alarms:
@@ -205,7 +208,7 @@ loops:
     final_elements:
       - {tag: U-201, kind: other, actuator: electric, fail: off}
     targets:
-      - {kind: setpoint, value: 80, unit: A, provenance: calculated, source: "cheme process stack STK-B: 4 stacks of 7 cells in parallel, 20 A per stack (200 mA/cm2 on 100 cm2)", cases: [skid-b]}
+      - {kind: setpoint, value: 80, unit: A, provenance: calculated, source: "cheme process stack STK-B bus_current_a, written by scripts/regen.py step 9 (the stacks in parallel at 200 mA/cm2 on 100 cm2)", cases: [skid-b]}
     modes: [manual, auto]
     normal_mode: auto
     interlocks: [I-201, I-202, I-203, I-204, I-205, I-206, I-207]
@@ -237,7 +240,8 @@ loops:
     variable: pressure
     measurement: [{tag: PIC-221}]
     controller: PIC-221
-    action: reverse
+    # back-pressure: a rising cathode pressure opens PV-221 (output rises with the measurement)
+    action: direct
     final_elements:
       - {tag: PV-221, kind: valve, actuator: pneumatic, fail: open}
     targets:
@@ -294,7 +298,7 @@ loops:
     final_elements:
       - {tag: P-202, kind: drive, actuator: electric, fail: stop}
     targets:
-      - {kind: setpoint, value: 13.7, unit: pH, provenance: calculated, source: "duty D-B steady state at the ASSUMED 0.5 mol/L OH- and 0.25 mol/L carbon (scripts/regen.py step 6; results/expected.yaml E3: pH 13.699, concentration basis)", cases: [skid-b]}
+      - {kind: setpoint, value: 13.7, unit: pH, provenance: calculated, source: "duty D-B's pH at H at the ASSUMED setpoints of process/design-basis.yaml skid_b_setpoints, to 2 decimals, written by scripts/regen.py step 9 (concentration basis)", cases: [skid-b]}
       - {kind: low, value: 13.5, unit: pH, provenance: assumed, source: "ASSUMED alarm margin below the setpoint, concentration basis", cases: [skid-b]}
     modes: [manual, auto]
     normal_mode: auto

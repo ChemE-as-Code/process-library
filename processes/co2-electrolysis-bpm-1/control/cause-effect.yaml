@@ -7,20 +7,22 @@
 # concentration basis (D-003); the probe reads activity pH, so the trip value needs the offset
 # of control/philosophy.md before it is set. A trip of the rectifier (U-x01) stops the current,
 # and with it the CO, H2 and O2 production; the anolyte pump and the CO2 purge keep running
-# unless the trip says otherwise (SEQ-x-TRIP in control/sequences.yaml).
+# unless the trip says otherwise (SEQ-x-TRIP in control/sequences.yaml). A gas detection trip
+# (I-x03, I-x04) also closes the CO2 feed and stops the compressor: the cathode gas train stays
+# isolated until the leak is found and the trip reset (SEQ-x-GAS).
 schema: cheme/interlocks/v1
 interlocks:
   # -- Skid A (P-01) ----------------------------------------------------------------------
   - id: I-101
-    title: Skid A anolyte pH low-low (end of the campaign)
-    cause: {tag: AI-101, condition: "AALL: pH 12.2, concentration basis (ASSUMED margin above the pH 12 threshold, D-003)"}
+    title: Skid A anolyte pH low-low (the threshold reached before the end of the campaign)
+    cause: {tag: AI-101, condition: "AALL: pH 12.0, concentration basis (the pH 12 threshold itself, D-003; ASSUMED)"}
     effects:
       - {tag: U-101, action: trip}
     sheet: P-01
     sil: null
     latching: true
     reset: manual
-    notes: "The duty sizes T-101 to reach pH 12 at the end of the campaign (D-009); the trip ends the run before the threshold is crossed. D-018."
+    notes: "The duty sizes T-101 to reach pH 12 at H with no time margin (D-009): at the measured WDE the anolyte is at pH 12.02 at H, so the campaign ends normally by SEQ-A-STOP and the trip does not act. It stops the current at the threshold if the WDE is lower than measured or the run overruns H. A trip value above 12 would end every campaign early: at pH 12.2 the 1,166 L reservoir trips at about 992 h (0.8 % of the CO lost); a margin above the threshold needs the reservoir sized to the trip value (1,176 L for 12.2). D-018."
   - id: I-102
     title: Skid A anolyte level low-low
     cause: {tag: LIA-101, condition: LALL}
@@ -82,7 +84,7 @@ interlocks:
   # -- Skid B (P-02) ----------------------------------------------------------------------
   - id: I-201
     title: Skid B anolyte pH low-low
-    cause: {tag: AIC-201, condition: "AALL: pH 12.2, concentration basis (ASSUMED, as I-101)"}
+    cause: {tag: AIC-201, condition: "AALL: pH 12.2, concentration basis (ASSUMED: far below the 13.7 setpoint, above the pH 12 threshold)"}
     effects:
       - {tag: U-201, action: trip}
     sheet: P-02

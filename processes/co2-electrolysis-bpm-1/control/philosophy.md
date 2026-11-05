@@ -6,7 +6,7 @@ objectives:
   - {id: OBJ-1, title: "Hold the stacks at the measured operating point (current density, anolyte flow and temperature)", loops: [JIC-101, JIC-201, FIC-101, FIC-201, TIC-111, TIC-211]}
   - {id: OBJ-2, title: Feed the cathodes with CO2 at the measured feed ratio and hold their back-pressure, loops: [FIC-102, FIC-202, PIC-121, PIC-221, LIC-122, LIC-222]}
   - {id: OBJ-3, title: Deliver the CO at the boundary pressure, loops: [PIC-131, PIC-231]}
-  - {id: OBJ-4, title: "Skid A: run the campaign on one fill and end it at the pH threshold", loops: [AI-101]}
+  - {id: OBJ-4, title: "Skid A: run the campaign on one fill and end it at H, as the anolyte reaches the pH threshold", loops: [AI-101]}
   - {id: OBJ-5, title: "Skid B: hold the anolyte at its hydroxide and carbonate setpoints by dosing, bleed and make-up", loops: [AIC-201, FIC-203, LIC-201]}
 failures:
   - id: F-AIR
@@ -31,8 +31,9 @@ failures:
     interlocks: [I-106, I-206, I-102, I-202]
   - id: F-GAS
     title: CO or H2 released into a skid enclosure
-    response: The detector trips the current, closes the CO2 feed, stops the compressor and starts the extract fan (I-103, I-104, I-203, I-204).
+    response: The detector trips the current, closes the CO2 feed, stops the compressor and starts the extract fan (I-103, I-104, I-203, I-204). The cathode gas train stays isolated with its CO and H2 until the leak is found and the trips are reset; then it is purged to the oxidiser (SEQ-A-GAS, SEQ-B-GAS).
     interlocks: [I-103, I-104, I-203, I-204]
+    sequences: [SEQ-A-GAS, SEQ-B-GAS]
   - id: F-DOSE
     title: "Skid B: loss of the KOH dose"
     response: AIC-201 alarms as the pH falls; the day tank's low-low level stops P-202 (I-208); at pH 12.2 the current trips (I-201).
@@ -103,8 +104,8 @@ carbonate, as the measured series was) or an offset is determined; until then th
 
 Automatic: the loops in their normal modes, the trips, the dosing and bleed permissive I-207.
 Operator: the fill, the start-up steps and the current ramp (SEQ-x-START), the humidification
-water by hand (FI-x03), the reset of a trip once its cause is found, the decision to end a
-campaign (SEQ-x-DRAIN), the weekly refill of the Skid B day tank.
+water by hand (FI-x03), the reset of a trip once its cause is found, the end of a campaign at H
+(SEQ-x-STOP, then SEQ-x-DRAIN), the weekly refill of the Skid B day tank.
 
 ## Equipment and utility failures
 
