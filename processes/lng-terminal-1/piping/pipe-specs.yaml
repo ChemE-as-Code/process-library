@@ -1,0 +1,27 @@
+# Pipe classes and insulation. Schema: `cheme schema pipe_specs` (skill pipe-routing).
+# The insulation types are the line list's `insulation` values (piping/line-list.yaml); the
+# thicknesses size the outside diameters of the 3D model, the rack lanes, the clearances and
+# the take-off. Basis D-012 and D-027.
+schema: cheme/pipe_specs/v1
+classes:
+  - code: Class 150
+    material: "Austenitic stainless steel for the LNG and cold vapour service, carbon steel for the warm flare, fuel gas and utility lines (ASSUMED; the material selection and the piping class specification are detail engineering)"
+    rating: "ASME Class 150 (line list, ASSUMED)"
+    colour: "#8a9bb0"
+    notes: "The only pressure class of the line list."
+insulation:
+  - type: cold (PIR 200 mm)
+    thickness_mm: 200
+    notes: "D-012: PIR/PUF 200 mm on the DN 800 loading lines LNG-4001 / LNG-4002 over the trestle (the line list names the thickness)."
+  - type: cold (PIR 150 mm)
+    thickness_mm: 150
+    notes: "D-012: PIR/PUF 150 mm on the DN 750 vapour return lines BOG-4001 / BOG-4002 over the trestle (the line list names the thickness)."
+  - type: cold (PIR)
+    thickness_mm: 80
+    notes: "Every other cold line: the line list gives no thickness. 80 mm for every DN, the package default the model was built with so far (ASSUMED until the insulation specification of detail engineering sizes each DN against condensation and heat ingress, D-027)."
+  - type: none
+    thickness_mm: 0
+notes: >-
+  The thicknesses are concept values (D-012, ASSUMED where the line list names none). The span
+  screening of cheme-as-code takes liquid or gas from the fluid's name and screens the LNG lines
+  as gas; this file has no field for it (D-027).

@@ -5,18 +5,21 @@
 # the marine terminal safety zones of the TERMPOL / TIG review replace or confirm each one.
 # Substance: LNG and boil-off gas, taken as methane (flammable gas, lighter than air once warm;
 # cold vapour from a liquid release is denser than air and spreads at grade).
+# Layout basis of the escape routes, keep-clear volumes and the tank-top platforms: D-027.
 zones:
   # ---- hazardous areas (flammable releases)
   - id: Z-HA-TANK-PSV
-    title: Tank roof relief valve outlets PSV-2131A/B (T-2101) and PSV-3131A/B (T-3101)
+    title: Tank roof relief valve outlets PSV-2131A/B/C (T-2101) and PSV-3131A/B/C (T-3101)
     kind: hazardous
     zone: 1
     sources:
       - {item: BOG-2002, release_grade: secondary, substance: methane, source_kind: psv_outlet}   # PSV-2131A tailpipe
       - {item: BOG-2003, release_grade: secondary, substance: methane, source_kind: psv_outlet}   # PSV-2131B tailpipe
+      - {item: BOG-2004, release_grade: secondary, substance: methane, source_kind: psv_outlet}   # PSV-2131C tailpipe
       - {item: BOG-3002, release_grade: secondary, substance: methane, source_kind: psv_outlet}   # PSV-3131A tailpipe
       - {item: BOG-3003, release_grade: secondary, substance: methane, source_kind: psv_outlet}   # PSV-3131B tailpipe
-    basis: "Tank overpressure relief to atmosphere above the roof, only when PV-1110 to the flare and the BOG compressors have failed (D-017): secondary grade; table row psv_outlet/secondary/flammable_gas, zone 1 within 3 m of the outlet (ASSUMED)"
+      - {item: BOG-3004, release_grade: secondary, substance: methane, source_kind: psv_outlet}   # PSV-3131C tailpipe
+    basis: "Tank overpressure relief to atmosphere above the pump platform, only when PV-1110 to the flare and the BOG compressors have failed (D-017): secondary grade; table row psv_outlet/secondary/flammable_gas, zone 1 within 3 m of the outlet (ASSUMED); the tailpipes rise so the zone clears the platform's walking level and headroom (piping/routing.yaml vents rule, D-027)"
   - id: Z-HA-BOG-SEALS
     title: BOG compressor shaft seals K-7101A/B/C
     kind: hazardous
@@ -79,10 +82,76 @@ zones:
       - {item: P-5101, release_grade: secondary, substance: methane, source_kind: pump_seal}
       - {item: P-6101, release_grade: secondary, substance: methane, source_kind: pump_seal}
     basis: "LNG pump seals, secondary grade; table row pump_seal/secondary/flammable_gas (ASSUMED)"
+  # rack valve stations, the analyser house and the LNG spill collection (review
+  # 2026-11-05-basic-layout #3, #17; D-027)
+  - id: Z-HA-PR2-VALVES
+    title: Vapour switch valve station at the tank end of the trestle (XV-4131/4132/4135/4136, flanged valves on PR2's straight north end)
+    kind: hazardous
+    zone: 2
+    shape: box
+    box: [1086, 2880, 6.0, 1104, 2950, 12.5]
+    basis: "Flanged butterfly and ball valves on the vapour returns and the de-inerting lines: stem packing and flange leaks, secondary grade; table rows valve and flange, zone 2 within 1 m, drawn as one envelope over the station from the bottom tier to above the top tier (ASSUMED)"
+  - id: Z-HA-PR1-VALVES
+    title: Tank-end valve stations on PR1 (loading line and circulation valves XV-4101/4102/4105/4106, FV-4101/4102, the rundown selection valves XV-1102/1103)
+    kind: hazardous
+    zone: 2
+    shape: box
+    box: [975, 2936, 6.0, 1104, 2954, 12.5]
+    basis: "Flanged valves and their stem packings on the LNG and vapour lines of PR1 east of the riser racks: secondary grade, zone 2 within 1 m, drawn as one envelope over the rack (ASSUMED)"
+  - id: Z-HA-ANALYSER
+    title: Analyser house B-ANA of AI-4133 / AI-4134 (sample conditioning, analyser vent)
+    kind: hazardous
+    zone: 2
+    shape: box
+    box: [1100.5, 2885.0, 0.0, 1110.5, 2896.0, 6.0]
+    basis: "Carrier vapour sample lines, the sample conditioning and the analyser vent: secondary grade around the house, zone 2 within 3 m of it (ASSUMED; inside the house the analyser vendor's purge and gas detection, D-027)"
+  - id: Z-HA-SUMP-T8101
+    title: LNG spill impoundment sump T-8101 (tank area and trestle)
+    kind: hazardous
+    zone: 2
+    shape: cylinder
+    centre: [968.0, 2968.0, -6.0]
+    radius: 11.0
+    height: 7.0
+    basis: "Collects cold flashing LNG from the troughs only on a spill: secondary grade; the cold vapour is denser than air and spreads at grade, zone 2 inside the pit and 3 m around it to 1 m above grade (ASSUMED; the CSA Z276 / NFPA 59A vapour dispersion exclusion zone replaces it)"
+  - id: Z-HA-SUMP-T8102
+    title: Jetty LNG spill sump T-8102 (platform drip trays)
+    kind: hazardous
+    zone: 2
+    shape: cylinder
+    centre: [1170.0, 916.0, -4.0]
+    radius: 7.0
+    height: 5.0
+    basis: "As Z-HA-SUMP-T8101 for the jetty sump (ASSUMED)"
+  # ---- spill collection (D-018): troughs at grade under the racks to the impoundment sump
+  # T-8101; the trestle drip trays are part of the trestle steel under the bottom tier
+  # (D-027). Keep-clear volumes: no pipe, post or tray at grade in them.
+  - id: Z-KC-TROUGH-PR1
+    title: Spill trough under PR1 (tank-area rack) to the sump T-8101
+    kind: keep_clear
+    shape: box
+    box: [760.0, 2944.2, -0.8, 1095.8, 2945.8, 0.3]
+    basis: "Concrete trough 1.6 m wide along the rack centreline, falling to the sump branch at x 968 (D-018, ASSUMED size)"
+  - id: Z-KC-TROUGH-PR2
+    title: Spill trough under PR2's straight north end, from the trestle drip trays to the PR1 trough
+    kind: keep_clear
+    shape: box
+    box: [1094.2, 2872.0, -0.8, 1095.8, 2944.2, 0.3]
+    basis: "As Z-KC-TROUGH-PR1; it receives the trestle drip trays at the shore end and passes under road R6 in a covered culvert (D-018, D-027, ASSUMED)"
+  - id: Z-KC-TROUGH-SUMP
+    title: Spill trough branch from PR1 into the sump T-8101
+    kind: keep_clear
+    shape: box
+    box: [967.2, 2945.8, -0.8, 968.8, 2960.0, 0.3]
+    basis: "Trough from the PR1 trough north into the sump pit (D-018, ASSUMED)"
   # ---- marine safety zones during transfer (LNG Canada TIG Rev 3: 200 m around the vapour
   # arm while a carrier is alongside and transferring; no other vessel, no ignition source).
-  # Drawn on the water, below the jetty deck (z -30 .. -6), so the deck and its piping above
-  # stay free; a keep-clear volume for the vessel traffic plan, not an electrical zone.
+  # Drawn on the water, below the jetty deck (z -30 .. -6), as the vessel traffic keep-clear
+  # volume; at deck level the 200 m no-ignition radius is measured as separations of every arm
+  # to the jetty substation B-JET in layout/site-plan.yaml (the only non-Ex building of the
+  # jetty), since a keep-clear volume over the deck would bar the platform's own piping.
+  # Both berths' carriers are inside each other's zone: simultaneous berthing with one carrier
+  # transferring is the design basis (D-027).
   - id: Z-SZ-B2
     title: Berth 2 marine safety zone, 200 m around the vapour arm LA-5102 during transfer
     kind: keep_clear
@@ -90,7 +159,7 @@ zones:
     centre: [1137.0, 884.0, -30.0]
     radius: 200
     height: 24
-    basis: "LNG Canada TIG Rev 3: 200 m marine safety zone around the vapour arm during transfer (cited); centre the measured Berth 2 vapour arm position (D-013, D-014); vertical extent on the water ASSUMED"
+    basis: "LNG Canada TIG Rev 3: 200 m marine safety zone around the vapour arm during transfer (cited); centre the measured Berth 2 vapour arm position (D-013, D-014); vertical extent on the water ASSUMED; the carrier at the other berth is under terminal control inside it (D-027, ASSUMED)"
   - id: Z-SZ-B1
     title: Berth 1 marine safety zone, 200 m around the vapour arm LA-6102 during transfer
     kind: keep_clear
@@ -98,7 +167,88 @@ zones:
     centre: [1173.0, 884.0, -30.0]
     radius: 200
     height: 24
-    basis: "As Z-SZ-B2 for the Phase 2 berth on the east face (position ASSUMED, D-019)"
+    basis: "As Z-SZ-B2 for the Phase 2 berth on the east face (position ASSUMED, D-019, D-027)"
+  # ---- loading arm operating envelopes (D-014: 22 m envelope ASSUMED until the arm vendor's):
+  # the volume the outboard arms swing through between the riser and the carrier, kept free of
+  # fixed steel and platforms (the ERS valves move with the arm, D-021 item 8); below the arm
+  # apex lines to the carrier manifolds
+  - id: Z-KC-ARMS-B2
+    title: Berth 2 loading arm operating envelope (LA-5101 to LA-5104), outboard of the risers
+    kind: keep_clear
+    shape: box
+    box: [1129.0, 872.0, 0.0, 1134.6, 902.0, 18.0]
+    basis: "Arm envelope from the risers' outboard face to the ship envelope (Z-SHIP-B2-M), the four arms' width plus 3 m, up to below the apex (D-014, ASSUMED until the vendor's envelope drawing)"
+  - id: Z-KC-ARMS-B1
+    title: Berth 1 loading arm operating envelope (LA-6101 to LA-6104), outboard of the risers
+    kind: keep_clear
+    shape: box
+    box: [1175.4, 872.0, 0.0, 1181.0, 902.0, 18.0]
+    basis: "As Z-KC-ARMS-B2 on the east face (ASSUMED)"
+  # ---- expansion loop bays of the trestle lines (D-027): the cold contraction of the four
+  # DN 800 / DN 750 lines (~2.9 mm/m from ambient to -162 degC, ~7 m over a 2.45 km line,
+  # ASSUMED stainless steel) is taken by loops in plan every ~150 m (ASSUMED), each bay 16 m
+  # along the trestle and 16 m out from its east edge over the tier elevations
+  - {id: Z-LOOP-01, title: "Expansion loop bay 1 east of the trestle (y 2784-2800)", kind: keep_clear, shape: box, box: [1105.1, 2784, 6.0, 1121.1, 2800, 12.5], basis: "Loop bay of the four trestle lines, ASSUMED ~150 m spacing (D-027)"}
+  - {id: Z-LOOP-02, title: "Expansion loop bay 2 east of the trestle (y 2634-2650)", kind: keep_clear, shape: box, box: [1109.6, 2634, 6.0, 1125.6, 2650, 12.5], basis: "Loop bay of the four trestle lines, ASSUMED ~150 m spacing (D-027)"}
+  - {id: Z-LOOP-03, title: "Expansion loop bay 3 east of the trestle (y 2484-2500)", kind: keep_clear, shape: box, box: [1114.0, 2484, 6.0, 1130.0, 2500, 12.5], basis: "Loop bay of the four trestle lines, ASSUMED ~150 m spacing (D-027)"}
+  - {id: Z-LOOP-04, title: "Expansion loop bay 4 east of the trestle (y 2334-2350)", kind: keep_clear, shape: box, box: [1118.5, 2334, 6.0, 1134.5, 2350, 12.5], basis: "Loop bay of the four trestle lines, ASSUMED ~150 m spacing (D-027)"}
+  - {id: Z-LOOP-05, title: "Expansion loop bay 5 east of the trestle (y 2184-2200)", kind: keep_clear, shape: box, box: [1123.0, 2184, 6.0, 1139.0, 2200, 12.5], basis: "Loop bay of the four trestle lines, ASSUMED ~150 m spacing (D-027)"}
+  - {id: Z-LOOP-06, title: "Expansion loop bay 6 east of the trestle (y 2034-2050)", kind: keep_clear, shape: box, box: [1127.4, 2034, 6.0, 1143.4, 2050, 12.5], basis: "Loop bay of the four trestle lines, ASSUMED ~150 m spacing (D-027)"}
+  - {id: Z-LOOP-07, title: "Expansion loop bay 7 east of the trestle (y 1884-1900)", kind: keep_clear, shape: box, box: [1131.9, 1884, 6.0, 1147.9, 1900, 12.5], basis: "Loop bay of the four trestle lines, ASSUMED ~150 m spacing (D-027)"}
+  - {id: Z-LOOP-08, title: "Expansion loop bay 8 east of the trestle (y 1734-1750)", kind: keep_clear, shape: box, box: [1136.4, 1734, 6.0, 1152.4, 1750, 12.5], basis: "Loop bay of the four trestle lines, ASSUMED ~150 m spacing (D-027)"}
+  - {id: Z-LOOP-09, title: "Expansion loop bay 9 east of the trestle (y 1584-1600)", kind: keep_clear, shape: box, box: [1140.8, 1584, 6.0, 1156.8, 1600, 12.5], basis: "Loop bay of the four trestle lines, ASSUMED ~150 m spacing (D-027)"}
+  - {id: Z-LOOP-10, title: "Expansion loop bay 10 east of the trestle (y 1434-1450)", kind: keep_clear, shape: box, box: [1145.3, 1434, 6.0, 1161.3, 1450, 12.5], basis: "Loop bay of the four trestle lines, ASSUMED ~150 m spacing (D-027)"}
+  - {id: Z-LOOP-11, title: "Expansion loop bay 11 east of the trestle (y 1284-1300)", kind: keep_clear, shape: box, box: [1149.8, 1284, 6.0, 1165.8, 1300, 12.5], basis: "Loop bay of the four trestle lines, ASSUMED ~150 m spacing (D-027)"}
+  - {id: Z-LOOP-12, title: "Expansion loop bay 12 east of the trestle (y 1134-1150)", kind: keep_clear, shape: box, box: [1154.2, 1134, 6.0, 1170.2, 1150, 12.5], basis: "Loop bay of the four trestle lines, ASSUMED ~150 m spacing (D-027)"}
+  # ---- escape routes (D-027), kept clear of pipes up to the walkway headroom
+  - id: Z-ESC-A2S
+    title: BOG area escape route south, under PR1 (between its bents at x 1015.2 / 1023.2) to road R1
+    kind: escape
+    shape: box
+    box: [1016.4, 2934.0, 0.0, 1022.0, 2995.0, 2.2]
+    basis: "Second way out of A2, remote from the east exit by road R7 to R3; west of the low pipe corridor y 2975-2979, which is a no-walk strip (D-027, ASSUMED)"
+  - id: Z-ESC-A4S
+    title: Loading platform muster point and escape-to-sea station at the south edge
+    kind: escape
+    shape: box
+    box: [1145.5, 855.5, 0.0, 1166.5, 863.5, 2.2]
+    basis: "Second way off the platform besides the trestle road: muster point with life rafts and an escape ladder to a rescue boat landing at the south edge, remote from the trestle end (D-027, ASSUMED)"
+  - id: Z-ESC-T2101-ROOF-S
+    title: T-2101 roof walkway from the spiral stair head (south-west) north along the dome to the pump platform
+    kind: escape
+    shape: box
+    box: [918.0, 2981.0, 44.0, 921.0, 3013.0, 58.5]
+    basis: "Roof walkway with handrails on the dome (tank supply), the main way between the stair head and the pump platform (D-027, ASSUMED)"
+  - id: Z-ESC-T2101-ROOF-SE
+    title: T-2101 roof walkway, east leg to the pump platform's south-west corner
+    kind: escape
+    shape: box
+    box: [918.0, 3010.0, 50.0, 930.5, 3013.0, 59.2]
+    basis: "As Z-ESC-T2101-ROOF-S (D-027, ASSUMED)"
+  - id: Z-ESC-T2101-ROOF-N
+    title: T-2101 roof walkway from the pump platform's north-west corner north to the escape stair tower S-ESC-T2101
+    kind: escape
+    shape: box
+    box: [927.0, 3044.0, 44.0, 930.0, 3071.5, 59.2]
+    basis: "Second way off the roof, remote from the spiral stair (D-027, ASSUMED)"
+  - id: Z-ESC-T3101-ROOF-S
+    title: T-3101 roof walkway from the spiral stair head north along the dome to the pump platform
+    kind: escape
+    shape: box
+    box: [778.0, 2981.0, 44.0, 781.0, 3013.0, 58.5]
+    basis: "As Z-ESC-T2101-ROOF-S (D-027, ASSUMED)"
+  - id: Z-ESC-T3101-ROOF-SE
+    title: T-3101 roof walkway, east leg to the pump platform
+    kind: escape
+    shape: box
+    box: [778.0, 3010.0, 50.0, 790.5, 3013.0, 59.2]
+    basis: "As Z-ESC-T2101-ROOF-SE (D-027, ASSUMED)"
+  - id: Z-ESC-T3101-ROOF-N
+    title: T-3101 roof walkway north to the escape stair tower S-ESC-T3101
+    kind: escape
+    shape: box
+    box: [787.0, 3044.0, 44.0, 790.0, 3071.5, 59.2]
+    basis: "As Z-ESC-T2101-ROOF-N (D-027, ASSUMED)"
   # ---- ship envelopes at the berths (carrier up to 315 m x 55 m, ASSUMED Q-Max-class limit),
   # the hull alongside the berth line at 173.5 deg with ~3 m fender stand-off; the turned hull
   # approximated by three axis-parallel boxes along its length, kept off the platform.
@@ -147,7 +297,7 @@ zones:
     shape: box
     box: [1062, 2988, 0, 1082, 3012, 1]
     reach_m: 30
-    basis: "Mobile crane for the K-7101A/B/C casings, coolers and motors (8 t heaviest maintenance lift, ASSUMED); reached from road R3 under PR3 (ASSUMED)"
+    basis: "Mobile crane for the K-7101A/B/C casings, coolers and motors (8 t heaviest maintenance lift, ASSUMED); reached from road R3 by the A2 access road R7 under PR3 (D-027, ASSUMED)"
   - id: Z-LAY-A2E
     title: Laydown south-east of the BOG compressors
     kind: laydown
@@ -173,7 +323,7 @@ zones:
     shape: box
     box: [1458, 3060, 0, 1472, 3072, 1]
     reach_m: 12
-    basis: "D-8101 (35 t) erection and removal, its pumps (ASSUMED); only with the flare out of service or at a radiation level the flare study allows (D-017). Kept south-east of the drum and its reach limited to the drum, so the flare stack FL-8101 is not given a mobile-crane lift from here: the stack and its tip are handled by the derrick's own hoist (D-017, accepted lifting finding)"
+    basis: "D-8101 (35 t) erection and removal, its pumps (ASSUMED); only with the flare out of service or at a radiation level the flare study allows (D-017). Kept south-east of the drum and its reach limited to the drum, so the flare stack FL-8101 is not given a mobile-crane lift from here: the stack and its tip are handled with the derrick's own maintenance hoist (D-027, ASSUMED; accepted lifting finding)"
   - id: Z-LAY-A3
     title: Laydown north-east of the flare knock-out drum
     kind: laydown
@@ -186,14 +336,14 @@ zones:
     shape: box
     box: [1140, 870, 0, 1146.5, 900, 1]
     reach_m: 30
-    basis: "Deck crane position for an arm (40-45 t) or its counterweight and swivels, and the jetty drain drum D-5101 (ASSUMED); a crane on the deck or a floating crane, per the arm vendor's maintenance plan"
+    basis: "Deck crane position for an arm (40-45 t) or its counterweight and swivels, and the jetty drain drum D-5101 (ASSUMED); a crane on the deck or a floating crane, per the arm vendor's maintenance plan; reached by the platform roadway R9 from the trestle road (D-027)"
   - id: Z-PAD-A4E
     title: Crane strip on the platform between the trestle rack and the Berth 1 arms
     kind: crane_pad
     shape: box
     box: [1162, 870, 0, 1170, 900, 1]
     reach_m: 30
-    basis: "As Z-PAD-A4W, for the Berth 1 arms and D-6101 (ASSUMED)"
+    basis: "As Z-PAD-A4W, for the Berth 1 arms and D-6101 (ASSUMED); reached by the platform roadway R10 under the PR2 end (D-027)"
   - id: Z-LAY-A4SW
     title: Laydown at the south-west corner of the platform
     kind: laydown
@@ -211,10 +361,10 @@ zones:
     kind: laydown
     shape: box
     box: [1131, 902, 0, 1139, 924, 1]
-    basis: "Arm parts of LA-5103 / LA-5104 set down (ASSUMED); west of the platform substation building B-PLAT"
+    basis: "Arm parts of LA-5103 / LA-5104 set down (ASSUMED); west of the platform roadway R9"
   - id: Z-LAY-A4NE
     title: Laydown at the north-east corner of the platform, beside the spill sump
     kind: laydown
     shape: box
-    box: [1173, 902, 0, 1179.5, 912, 1]
+    box: [1174, 902, 0, 1179.5, 911, 1]
     basis: "Arm parts of LA-6103 / LA-6104 set down (ASSUMED)"

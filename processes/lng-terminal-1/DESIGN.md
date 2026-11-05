@@ -377,6 +377,124 @@ analysis, the trains' fuel-gas capacity for the make-up, seal gas, arm vents and
    commands HS-n123 / HS-n125, never on the valves; the position switches are tied to their
    valves, not to the pipe beside them.
 
+**D-027 Layout pass on the revised P&IDs and response to the layout review
+2026-11-05-basic-layout.** The 3D model (`layout/`, `piping/routing.yaml`,
+`piping/pipe-specs.yaml`, `electrical/`) follows the P&IDs of the D-026 round and answers the
+review's 18 findings. Distances quoted are `cheme show <tag> --layout` or `separations:` of
+`layout/site-plan.yaml`; every size, position and distance criterion not named with a source
+is ASSUMED.
+1. P&ID changes. The resegmented lines are re-pinned: BOG-1001 drops to PR6's top tier at
+   y 3042 and carries the thermal relief tees T1112 (BOG-1004), T1113 (BOG-1011), T1114
+   (BOG-1010) 1.1 m apart; BOG-4001 runs off the trestle, turns west along PR1's top tier and
+   carries the four trestle relief tees T4V4..T4V7 above their PSVs; the relief tailpipes
+   BOG-1004/1010/1011 and BOG-4011/4012/4015/4016 are pinned to those tees (BOG-1004 is routed
+   now, no longer skipped); FL-8001 and BOG-1001 on P-07/P-08 follow the removed tees; FL-7001,
+   PSV-7105, T7P1 and T8F1 are gone from the routing. The new instruments are cabled to their
+   junction boxes (PZT-1105, ZSC-1102/1103 to JB-PR1; ZSO-4131..4136 to JB-TR-N; HS-8101A/B
+   to JB-A3-1; ZSO-7121A-C and PZT-7113 to JB-K7101).
+2. Insulation (review #8). `piping/pipe-specs.yaml` gives the line list's types their
+   thickness: 200 mm on LNG-4001/4002 and 150 mm on BOG-4001/4002 (D-012), 80 mm on every
+   other cold line (the line list names none; ASSUMED until the insulation specification).
+   The trestle lines rest on their tiers at the new outside radius (7.6065 m and 10.531 m);
+   the vapour returns take lanes 5.7 m and 4.4 m west of the trestle centreline so they keep
+   0.24 m apart; the tank pump headers meet the trestle lines at the foot of the riser rack
+   drops; BOG-1001 runs on PR6's top tier on 70 mm raised shoes so the vapour returns tee in
+   at their own centreline (accepted tier finding).
+3. Jetty substation (review #1, #2). B-PLAT on the loading platform is removed. Its
+   transformer TR-5, MCC-2 and the rack room RR-2 move to B-JET, a building on a piled deck
+   west of the trestle road R5, 206.6 m from the nearest arm LA-5104, 210.5 m from LA-6104 and
+   218.6 m from the vapour arm LA-5102: outside the 200 m ignition-free radius (S-05) and the
+   200 m vapour-arm safety zone (S-01) of both berths. The site plan measures 200 m from all
+   eight arms to B-JET; that is how the zone is checked at deck level (a keep-clear volume over
+   the deck would bar the platform piping; the marine zones stay on the water). No hazardous
+   zone reaches B-JET, so it is an ordinary ventilated room (AHU-2, intake on the west wall),
+   no pressurised room. The platform loads are fed over ~220-240 m of 400 V cable on the PR2
+   tray (cable schedule); voltage drop and cable sizing are the electrical engineer's. The
+   deck is free for the platform roadway R9 / R10 from the trestle road to both crane strips
+   (R10 under the PR2 end between its bents); the north-west laydown is back to full size.
+4. Substation and control building (review #3, #15). B-SUB (occupied) moves east of road R3:
+   63.0 m from PR3, 63.8 m from PR2, 70.1 m from PR1 (rack valves, flanges and the spill
+   troughs under them), 84.6 m from the analyser house B-ANA, 110.8 m from the nearest BOG
+   compressor K-7101C (the earlier "> 100 m" read 91.0 m) and 189.0 m from the impoundment
+   sump T-8101 (measured). The site plan's minimums (60 m to PR1 / PR2 / B-ANA, 45 m to PR3,
+   90 m to K-7101C, 150 m to T-8101 and T-2101) are ASSUMED screening values: the CSA Z276 /
+   NFPA 59A thermal radiation and vapour dispersion exclusion zones and a building siting study
+   by a competent person set the real ones. AI-4133/4134 stand in an analyser house B-ANA
+   beside the vapour switch station (vendor ventilation and gas detection). Zones are now
+   declared for the PR2 vapour switch station and the PR1 valve stations (zone 2 envelopes),
+   the analyser house, both sumps (zone 2, cold vapour at grade) and the troughs under PR1 and
+   PR2 to T-8101 (keep-clear volumes; the trestle drip trays are part of the trestle steel and
+   are not modelled, an axis-parallel zone cannot follow the 178 deg trestle). The cables leave
+   B-SUB's west wall over a cable bridge PR7 to PR3.
+5. Simultaneous berths (review #6). Two carriers may lie alongside at once, only one
+   transferring. Each berth's 200 m zone (S-01) is then a no-ignition, no-unauthorised-traffic
+   zone that contains the other berth's carrier, which is moored under terminal control and
+   observes the terminal's rules for the zone (ASSUMED reading of S-01; the TERMPOL / TIG
+   review confirms or limits it to one carrier alongside during transfer).
+6. Roads and fire access (review #5). One network: R1 / R4 / R2 round the tanks, R3 from
+   R6 under the PR3 east leg (between its bents) to R2, R6 from the jetty road R5 under PR2's
+   north end to R3, R7 from R3 under PR3 into the BOG area to the crane pad Z-PAD-A2E, R8 to
+   B-SUB. The BOG area has fire access from the east (R7) and from the south (R1, with the
+   escape route Z-ESC-A2S under PR1).
+7. Tank roofs (review #4, #7). Each tank has a pump platform S-Tn101-TOP at 57.4 m over the
+   pump column heads (31 x 27.5 m, with handrails), part of the tank supply (ASSUMED). The
+   relief and vacuum valves are moved onto it near the crown, so their inlet isolations
+   HV-n134x / HV-n135x and the vacuum valves are within 1.8 m of its floor; the column-head
+   piping runs at 60.0 m to keep the 2.1 m headroom over the floor, so the column-head
+   isolations HV-n151x / HV-n152 take chain wheels and the column vents HV-n16x extension
+   spindles to the floor (infrequent duty, within 6 m; `operators:` in `piping/routing.yaml`).
+   A 10 t pump-removal gantry crane over the pump wells pulls a pump, sets it down on the
+   platform and lowers it to grade (ASSUMED, tank supply; the lifting and laydown accepts cite
+   it). Roof walkways (escape zones Z-ESC-Tn-ROOF-S/-SE) lead from the tank's spiral stair head
+   to the platform; the second way off each roof is a walkway north (Z-ESC-Tn-ROOF-N) to a
+   stair tower S-ESC-Tn from grade to the roof edge, with a caged ladder. Model limits: a
+   cheme-as-code structure stands on grade, so the platform is one level of a frame spanning
+   the whole tank whose four corner columns outside the shell are an artefact, its escape
+   findings are accepted, and the roof stools on the dome cannot be declared (a post on the
+   dome intersects the tank solid), so the roof headers' spans over the dome edge stay
+   support-missing infos; posts on the platform and from grade outside the shell are
+   declared. The proposed valve platforms on stairs from grade inside the tanks are gone.
+8. Valve platforms and arm envelopes (review #13). No valve access platform is proposed any
+   more: the manual valves are reached from floors or take a declared chain wheel or extension
+   spindle; the actuated valves, the restriction orifices and the self-acting regulator are
+   declared remote-operated (no manual duty), the arm ERS valves as part of the arm. The arms'
+   operating envelopes are keep-clear zones Z-KC-ARMS-B1 / -B2 below the apex (22 m envelope
+   ASSUMED, D-014, until the vendor's drawing).
+9. Fallback routes (review #7). No `direct` chain is left; BOG-6003 (was via+direct) and the
+   T-3101 fill lines and roof piping are pinned; the N2 tie-ins drop off the PR2 end so their
+   double block and bleed stands on the deck.
+10. Span screening (review #9). cheme-as-code's span rule takes liquid or gas from the fluid's
+   name and screens LNG as gas, so it shows longer allowed spans than a liquid line has; the
+   pipe-specs schema has no field to change it. Recorded here as a limitation of
+   cheme-as-code; the support design at detail engineering spans the LNG lines as liquid.
+11. Accepted findings (review #10). The wildcard accepts of free spans and tray spans are
+   replaced by one entry per free-span finding and by tray-family prefixes (junction box
+   branches, motor branches, the B-JET links over the trestle road, rack joints), each with its
+   reason; the unused accepts are removed.
+12. Escape (review #11). Escape zones: out of A2 to the south under PR1 (the east way is R7);
+   the platform muster point and escape-to-sea station at its south edge (life rafts, a ladder
+   to a rescue boat landing, ASSUMED) besides the trestle road; the tank roof walkways. The low
+   pipe corridor y 2975-2979 east of the compressors (BOG-7002 at 2.0 m) is a fenced no-walk
+   strip, not an escape route (ASSUMED).
+13. Cold contraction (review #12). About 2.9 mm/m between ambient and -162 degC for austenitic
+   stainless steel (ASSUMED material), some 7 m over a 2.45 km line, taken by expansion loops in
+   plan about every 150 m on the trestle (ASSUMED); twelve 16 x 16 m loop bays east of the
+   trestle are reserved as keep-clear zones Z-LOOP-01..12, the tank area and the platform end
+   take theirs in the rack corners. Bellows and low-expansion pipe are not chosen at concept.
+   Loop sizes, anchors and guides are the stress engineer's.
+14. Flare tip maintenance (review #16). The stack and its tip are handled with the derrick's
+   own maintenance hoist (ASSUMED; S-02 gives the derrick, not its maintenance means).
+15. Basis of the layout files (review #14), all ASSUMED: supply by two 69 kV incomers into
+   SS-1 in B-SUB (6.6 kV SWG-1, 400 V MCC-1), the jetty fed by two 6.6 kV feeders to SS-2 in
+   B-JET (the electrical list's header); the rack lane plan per tier in `piping/routing.yaml`;
+   battery limits at the trains (north end of PR4, rundown, compressed BOG and the make-up gas
+   FG-1001), at the carrier manifolds 3.15 m outboard of each arm apex, and the six sheet
+   junctions where a line changes its number with its size (D-021); ventilation by AHU-1 in
+   B-SUB (6 air changes, 20 % overpressure) and AHU-2 in B-JET (4 air changes), the analyser
+   house by its vendor.
+16. Escape travel, operator limits, crane and loop sizes above are package defaults or
+   estimates (ASSUMED) until the site standard and the vendors replace them.
+
 ## 3. Results (concept)
 
 `cheme run scripts/terminal_sizing.py` prints the sizing summary. Headline numbers:

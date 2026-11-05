@@ -1,8 +1,9 @@
 # Site plan. Schema: `cheme schema site_plan`. Metres, x east, y north, origin at the site's
 # south-west corner (53.990 N, 128.700 W). The reference points (tank 1, the flare, the trains,
 # the trestle and Berth 2) are measured positions of the LNG Canada site at Kitimat
-# (scripts/site_frame.py, D-013); tank 2, Berth 1, the roads and the area outlines are
-# ASSUMED (D-019). One datum: z = 0 is grade everywhere, the jetty deck included (D-013).
+# (scripts/site_frame.py, D-013); tank 2, Berth 1, the roads, the buildings and the area
+# outlines are ASSUMED (D-019, D-027). One datum: z = 0 is grade everywhere, the jetty deck
+# included (D-013).
 site: {name: "lng-terminal-1, Kitimat BC (LNG Canada reference geometry)", width: 1800, depth: 4050}
 areas:
   - {id: A1, title: "LNG tanks T-2101 (Phase 1) and T-3101 (Phase 2), impoundment sump (P-02, P-03, P-08)", box: [720, 2955, 1005, 3100], kind: storage}
@@ -10,14 +11,24 @@ areas:
   - {id: A3, title: "Storage and loading flare, knock-out drum (P-08); sterile radiation area", box: [1425, 3055, 1535, 3155], kind: reserved}
   - {id: A4, title: "Loading platform, Berth 2 (west, as built) and Berth 1 (east, Phase 2) (P-05, P-06)", box: [1130, 855, 1180, 925], kind: process}
   - {id: A5, title: "Liquefaction trains 1-4 (outside the battery limit; OSM train blocks, D-001)", box: [560, 3630, 1372, 4015], kind: reserved}
-  - {id: A6, title: "Terminal substation and control building B-SUB, east of the PR1/PR2/PR3 junction, outside every hazardous zone (ASSUMED)", box: [1104, 2884, 1142, 2916], kind: building}
+  - {id: A6, title: "Terminal substation and control building B-SUB, east of road R3, 60 m or more from the racks, the analyser house and the spill troughs (D-027, ASSUMED)", box: [1160, 2950, 1200, 2984], kind: building}
+  - {id: A7, title: "Jetty substation B-JET on a piled deck west of the trestle road, outside the 200 m vapour-arm safety zone of both berths (D-018, D-027, ASSUMED)", box: [1112, 1100, 1132, 1120], kind: building}
 roads:
+  # one network (D-027): R1 / R4 / R2 round the tank area, R3 east of the BOG area from R6 to
+  # R2 (under the PR3 east leg between its bents at x 1111.8 / 1120.9), R6 from the jetty road
+  # R5 under PR2's straight north end (between its bents at y 2921 / 2929) to R3, R7 into the
+  # BOG area under PR3 (between its bents at y 2990.5 / 2999.6) to the crane pad Z-PAD-A2E, R8
+  # to B-SUB, R5 down the trestle and R9 / R10 on the loading platform deck to both crane strips
   - {id: R1, title: "South road of the tank area (ends at the jetty road, west of the trestle rack)", points: [[700, 2930], [1080, 2930]], width: 8}
   - {id: R2, title: "North road of the tank area, to the flare (2 m north of the PR3 east leg's columns, ASSUMED)", points: [[700, 3122], [1420, 3122]], width: 8}
-  - {id: R3, title: "East road of the BOG area (south of the PR3 east leg)", points: [[1115, 2955], [1115, 3098]], width: 8}
+  - {id: R3, title: "East road of the BOG area, from R6 north under the PR3 east leg to R2 (ASSUMED)", points: [[1116.4, 2925], [1116.4, 3122]], width: 7}
   - {id: R4, title: "West road of the tank area", points: [[704, 2930], [704, 3122]], width: 8}
   - {id: R5, title: "Jetty road along the trestle (west side)", points: [[1083, 2930], [1083, 2872], [1141, 925]], width: 6}
-  - {id: R6, title: "Spur from road R3 south to the substation and control building B-SUB (ASSUMED)", points: [[1115, 2955], [1115, 2912]], width: 6}
+  - {id: R6, title: "Link from the jetty road R5 under PR2's straight north end to R3 (ASSUMED)", points: [[1083, 2925], [1116.4, 2925]], width: 6}
+  - {id: R7, title: "BOG area access from R3 under PR3 to the crane pad Z-PAD-A2E (fire and crane access from the east, ASSUMED)", points: [[1116.4, 2995], [1082, 2995]], width: 6}
+  - {id: R8, title: "Spur from R3 along the north side of the substation and control building B-SUB (ASSUMED)", points: [[1116.4, 2980], [1196, 2980]], width: 6}
+  - {id: R9, title: "Loading platform roadway from the trestle road onto the deck to the Berth 2 crane strip Z-PAD-A4W (ASSUMED)", points: [[1140.5, 925], [1142, 912], [1142, 901]], width: 6}
+  - {id: R10, title: "Loading platform roadway under the PR2 end (between its bents at y 906 / 914) to the Berth 1 crane strip Z-PAD-A4E (ASSUMED)", points: [[1142, 910], [1164, 910], [1164, 901]], width: 6}
 # All racks 14 m wide so the lanes line up where they join (PR1/PR2/PR3 at x 1095, y 2945;
 # PR3/PR4 at y 3110). Bents about 8 m apart on PR1, PR2, PR5 and PR6 and 9.1 m on PR3, so the
 # first bent of a branch rack and the last bent of PR1 stand clear of the rack they join (and
@@ -28,12 +39,21 @@ roads:
 # 10 m top tier of PR1 and PR3, so their lines cross those racks' columns above them and drop
 # onto their tiers. Intermediate steel every 3 m on every tier for the small lines
 # (all ASSUMED, D-013).
+# Cold contraction of the 2.45 km loading and vapour return lines (D-027, ASSUMED): expansion
+# loops in plan on the trestle every ~150 m, each a 14 m wide loop bay beside the rack; the
+# loop bays are keep-clear zones Z-LOOP-* in layout/zones.yaml (the first bays at the trestle
+# north end), the rest are reserved along the trestle every ~150 m on the east side.
 racks:
   - {id: PR1, title: "Tank-area rack south of the tanks: loading, vapour return, circulation and BOG lines (P-02 to P-04, P-07)", points: [[760, 2945], [1095, 2945]], width: 14, levels: [7, 10], bent_spacing_m: 8, intermediate_supports: {spacing_m: 3}}
   - {id: PR2, title: "Trestle to the loading platform, ~1.98 km at 178 deg (measured, D-013): 2 x DN 800 loading, 2 x DN 750 vapour return, circulation, N2, drains", points: [[1095, 2945], [1095, 2872], [1154, 890]], width: 14, levels: [7, 10], bent_spacing_m: 8, intermediate_supports: {spacing_m: 3}}
   - {id: PR3, title: "BOG area rack and the flare header to A3; fuel gas, N2 and instrument air from the site at its east end", points: [[1095, 2945], [1095, 3110], [1430, 3110]], width: 14, levels: [7, 10], bent_spacing_m: 9.1, intermediate_supports: {spacing_m: 3}}
   - {id: PR4, title: "Rundown and BOG rack north to the trains (battery limit at its north end); portal frame over road R2", points: [[1095, 3110], [1095, 3625]], width: 14, levels: [7, 10], bent_spacing_m: 17, intermediate_supports: {spacing_m: 3}}
   - {id: PR5, title: "Riser rack beside the T-3101 east shell: tank roof piping down to PR1 (D-013; moved from x 859 to the shell, ASSUMED); tiers 12 / 14 m, over PR1's steel at the joint", points: [[846, 2945], [846, 3060]], width: 14, levels: [12, 14], bent_spacing_m: 8, intermediate_supports: {spacing_m: 3}}
+  # cable bridge from B-SUB's west wall to PR3 (trays only, D-027): one level at 15 m under the
+  # PR3 tray tier, bents 14 m apart so none stands in road R3 (x 1112.9-1119.9)
+  - {id: PR7, title: "Cable bridge from the substation and control building B-SUB to PR3 (power and instrument trays only, ASSUMED)", points: [[1095, 2968], [1164, 2968]], width: 10, levels: [12.0], bent_spacing_m: 13.8, ladders: []}
+  # (its east end 1 m off B-SUB's west wall; bents at x 1108.8 / 1122.6 either side of R3; the
+  # trays at 15.5 m on their own steel above its level, power and instrument 8.6 m apart)
   - {id: PR6, title: "Riser rack east of T-2101: tank roof piping down to PR1 (D-013), turning east along the north edge of the BOG area to PR3 (tank vapour header to D-7101, flare header and drains to PR3, ASSUMED); tiers 12 / 14 m, over PR1's and PR3's steel at the joints", points: [[988, 2945], [988, 3052], [1095, 3052]], width: 14, levels: [12, 14], bent_spacing_m: 8, intermediate_supports: {spacing_m: 3}}
 rack_reach: 60
 separations:
@@ -43,9 +63,35 @@ separations:
   - {from: T-2101, to: FL-8101, min_m: 300, reason: "flare radiation at the tank roof (fence-line limit 5.0 kW/m2: LNG Canada flaring factsheet)", basis: "D-017, D-018, ASSUMED"}
   - {from: T-3101, to: site-boundary, min_m: 30, reason: "tank to the site boundary", basis: "D-018, ASSUMED"}
   - {from: LA-5101, to: T-2101, min_m: 500, reason: "loading point far from storage: 200 m ignition-free radius around the loading point (EA application 2014 §2) and the 200 m safety zone around the vapour arm (TIG Rev 3)", basis: "D-018"}
+  # 200 m ignition-free radius around the loading point (EA application 2014 §2) and the 200 m
+  # vapour-arm safety zone (TIG Rev 3), measured from every arm of both berths to the jetty
+  # substation B-JET with its transformer and MCC, the only non-Ex building on the jetty
+  # (D-018, D-027)
+  - {from: LA-5101, to: B-JET, min_m: 200, reason: "200 m ignition-free radius around the loading point: no transformer, MCC or non-Ex building inside it", basis: "D-018 (S-05, S-01), D-027"}
+  - {from: LA-5102, to: B-JET, min_m: 200, reason: "200 m vapour-arm safety zone (Berth 2 vapour arm) and ignition-free radius", basis: "D-018 (S-01, S-05), D-027"}
+  - {from: LA-5103, to: B-JET, min_m: 200, reason: "200 m ignition-free radius (Berth 2 hybrid arm, the spare vapour arm)", basis: "D-018, D-026.6, D-027"}
+  - {from: LA-5104, to: B-JET, min_m: 200, reason: "200 m ignition-free radius around the loading point", basis: "D-018, D-027"}
+  - {from: LA-6101, to: B-JET, min_m: 200, reason: "200 m ignition-free radius around the loading point (Berth 1)", basis: "D-018, D-027"}
+  - {from: LA-6102, to: B-JET, min_m: 200, reason: "200 m vapour-arm safety zone (Berth 1 vapour arm) and ignition-free radius", basis: "D-018 (S-01, S-05), D-027"}
+  - {from: LA-6103, to: B-JET, min_m: 200, reason: "200 m ignition-free radius (Berth 1 hybrid arm)", basis: "D-018, D-027"}
+  - {from: LA-6104, to: B-JET, min_m: 200, reason: "200 m ignition-free radius around the loading point", basis: "D-018, D-027"}
+  # siting of the occupied substation and control building B-SUB (D-027): away from the
+  # release points of the tank area (rack valves and flanges, the vapour switch station, the
+  # analyser house, the spill troughs under PR1 / PR2 and the impoundment sump); the distances
+  # are ASSUMED screening values until the CSA Z276 / NFPA 59A thermal radiation and vapour
+  # dispersion exclusion zones and a building siting study by a competent person set them
+  - {from: B-SUB, to: PR1, min_m: 60, reason: "occupied building to the tank-area rack (valves, flanges, the spill trough under it)", basis: "D-027, ASSUMED; CSA Z276 / NFPA 59A exclusion zones to be calculated"}
+  - {from: B-SUB, to: PR2, min_m: 60, reason: "occupied building to the trestle rack's north end (the vapour switch valve station XV-4131/4132/4135/4136, the trough)", basis: "D-027, ASSUMED; CSA Z276 / NFPA 59A exclusion zones to be calculated"}
+  - {from: B-SUB, to: PR3, min_m: 45, reason: "occupied building to the BOG area rack (flare header, BOG discharge, drains)", basis: "D-027, ASSUMED"}
+  - {from: B-SUB, to: B-ANA, min_m: 60, reason: "occupied building to the analyser house of AI-4133/4134 (carrier vapour samples, vent)", basis: "D-027, ASSUMED"}
+  - {from: B-SUB, to: T-8101, min_m: 150, reason: "occupied building to the LNG spill impoundment sump (pool fire radiation, cold vapour cloud)", basis: "D-018, D-027, ASSUMED; CSA Z276 / NFPA 59A exclusion zones to be calculated"}
+  - {from: B-SUB, to: K-7101C, min_m: 90, reason: "occupied building to the nearest BOG compressor (seal releases, machine fire)", basis: "D-027, ASSUMED"}
+  - {from: B-SUB, to: T-2101, min_m: 150, reason: "occupied building to the nearest LNG tank", basis: "D-027, ASSUMED"}
+  - {from: B-JET, to: PR2, min_m: 8, reason: "jetty substation west of the trestle road, clear of the trestle rack and its drip trays", basis: "D-027, ASSUMED"}
 notes: >-
   Measured reference geometry (scripts/site_frame.py, D-013): tank 1 to the flare 561 m at 82
   deg; tank 1 to the Berth 2 loading platform 2,147 m at 174 deg; trestle from the plant's
   south edge 1,982 m at 178 deg; berth face 375 m at 173.5 deg. Tank 2 140 m west of tank 1
   (centre to centre) and Berth 1 on the east side of the loading platform are ASSUMED: the
-  Phase 2 positions are not public (D-019).
+  Phase 2 positions are not public (D-019). Roads, buildings, the loop bays and the platform
+  roadway are ASSUMED (D-027).

@@ -1,0 +1,67 @@
+# Steel structures and declared pipe supports. Schema: `cheme schema structures` (skill
+# structures-access). Every size ASSUMED (D-027); sections are cheme-as-code's defaults by span.
+schema: cheme/structures/v1
+structures:
+  # Tank-top pump platforms (D-027): the grated steel platform on the dome around the pump
+  # column heads, with its edge handrails, the pump-removal gantry crane over the pump wells
+  # and the set-down space for a pulled pump, carrying the relief and vacuum valves and the
+  # column-head valves within reach of its floor (57.4 m, 1.4 m above the column head base
+  # plates). Part of the tank supply, resting on the roof steel (ASSUMED). In the model a
+  # structure stands on grade, so the platform is the one level of a frame spanning the whole
+  # tank: its four corner columns outside the shell are a modelling artefact (the real platform
+  # has no columns to grade), and its ways off are the roof walkways (escape zones
+  # Z-ESC-Tn-ROOF-*) to the tank's spiral stair and to the north stair tower S-ESC-Tn.
+  - id: S-T2101-TOP
+    title: "T-2101 tank-top pump platform (pump column heads P-2101A-D, P-2102, relief and vacuum valves), tank supply, ASSUMED"
+    origin: [881.4, 2977.8]
+    spans_x: [96.0]
+    spans_y: [96.0]
+    levels:
+      - {id: PP, title: "Pump platform floor", elevation: 57.4, kind: platform, extent: [49.1, 38.7, 79.6, 66.2], use: regular}
+    notes: "Deck x 930.5-961.0, y 3016.5-3044 (site); corner columns are a modelling artefact (D-027)."
+  - id: S-T3101-TOP
+    title: "T-3101 tank-top pump platform (P-3101A-D, P-3102, relief and vacuum valves), as S-T2101-TOP, ASSUMED"
+    origin: [741.4, 2977.8]
+    spans_x: [96.0]
+    spans_y: [96.0]
+    levels:
+      - {id: PP, title: "Pump platform floor", elevation: 57.4, kind: platform, extent: [49.1, 38.7, 79.6, 66.2], use: regular}
+    notes: "Deck x 790.5-821.0, y 3016.5-3044 (site); corner columns are a modelling artefact (D-027)."
+  # Second way off each tank roof (D-027): a stair tower from grade to a landing at the roof
+  # edge (42.2 m, the top of the shell) on the north side, remote from the tank's spiral stair
+  # at the south-west and from the relief valves on the pump platform, reached from the pump
+  # platform by the north roof walkway (escape zone Z-ESC-Tn-ROOF-N). Tank supply (ASSUMED).
+  - id: S-ESC-T2101
+    title: "T-2101 north escape stair tower to the roof edge (ASSUMED)"
+    origin: [927.4, 3072.2]
+    spans_x: [4.0]
+    spans_y: [4.0]
+    levels:
+      - {id: L42, title: "Roof-edge landing", elevation: 42.2, kind: platform, use: regular}
+    bracing: {east: x, west: x}
+    notes: "The landing meets the roof edge handrail ring at the north; the roof walkway from the pump platform arrives here (D-027)."
+    stairs: [{id: stair-to-L42, from: grade, to: L42, side: east, offset: -4.723, width: 0.9}]
+    ladders: [{id: ladder-to-L42, from: grade, to: L42, at: [0.5, 3.5], facing: north}]
+  - id: S-ESC-T3101
+    title: "T-3101 north escape stair tower to the roof edge (ASSUMED)"
+    origin: [787.4, 3072.2]
+    spans_x: [4.0]
+    spans_y: [4.0]
+    levels:
+      - {id: L42, title: "Roof-edge landing", elevation: 42.2, kind: platform, use: regular}
+    bracing: {east: x, west: x}
+    notes: "As S-ESC-T2101 (D-027)."
+    stairs: [{id: stair-to-L42, from: grade, to: L42, side: east, offset: -4.723, width: 0.9}]
+    ladders: [{id: ladder-to-L42, from: grade, to: L42, at: [0.5, 3.5], facing: north}]
+# Supports of the tank-roof headers (D-027, review #7): posts on the pump platform and from
+# grade between the shell and the riser racks; sizes ASSUMED. The roof stools on the dome
+# between the platform edge and the shell (tank supply) are not modelled: a post standing on
+# the dome intersects the tank's solid in the model (D-027), so those spans are accepted
+# findings in checks/checks.yaml.
+pipe_supports:
+  - {id: RS-T2101-3, kind: post, at: [958.0, 3040.0], top: 59.78, from: steel, base: 57.4, serves: [LNG-2002], notes: "Post on the pump platform under the circulation header (ASSUMED)"}
+  - {id: RS-T3101-3, kind: post, at: [818.0, 3040.0], top: 59.78, from: steel, base: 57.4, serves: [LNG-3002], notes: "Post on the pump platform under the circulation header (ASSUMED)"}
+  - {id: RS-T3101-4, kind: t_post, at: [838.3, 3040.0], top: 59.78, from: grade, serves: [LNG-3002], notes: "Post from grade between the shell and the PR5 riser rack under the circulation header (ASSUMED)"}
+notes: >-
+  The tank-top pump platforms are modelled as unclad building levels (layout/building.yaml,
+  D-027): a structure here stands on grade and cannot stand on the tank roof.
