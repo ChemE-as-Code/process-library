@@ -5,10 +5,10 @@
 schema: cheme/design_basis/v1
 capacity:
   basis: dried carbon tetrabromide crystals to packing at the battery limit
-  cbr4_t_per_year: 325                  # ASSUMED (D-002): a fine-chemical scale, no open market figure; the result of 80 kg/h of bromine over the cycle
+  cbr4_t_per_year: 314                  # ASSUMED (D-002): a fine-chemical scale, no open market figure; the result of 879.6 kg of bromine per batch (77.31 kg/h) over the cycle
   operating_hours_per_year: 7920        # ASSUMED (D-002): 330 days of 24 h, batch operation
-  batch_kg: 450.91                      # from the recipe (D-003): one batch of dried product every 10.98 h
-  batches_per_year: 721                 # from the recipe (process/recipe.yaml, D-003)
+  batch_kg: 450.91                      # from the recipe (D-003): one batch of dried product every 11.38 h
+  batches_per_year: 696                 # from the recipe (process/recipe.yaml, D-003)
 feeds:
   - name: Liquid bromine (bromine-1)
     source_of_values: ASSUMED (D-004)
@@ -31,10 +31,10 @@ products:
     note: "mother liquor (NaBr 18 wt%, NaOH, sodium acetate, traces of bromate, acetone and catalyst), wash filtrate and dryer condensate; the bromide is not recovered (D-010)"
 utilities:
   - {name: Electric power, use: "agitators of M-101, R-101 and F-101, vacuum pump (D-009)"}
-  - {name: LP steam, pressure_kPa_a: 350, use: "the filter-dryers' hot-water circuit (D-009)", note: ASSUMED}
-  - {name: Chilled brine, supply_K: 258.15, return_K: 263.15, use: "cooling the charge and removing the heats of hypobromite formation and of the haloform reaction at 278 K", note: "ASSUMED; from a refrigeration unit outside the boundary (D-009)"}
+  - {name: LP steam, pressure_kPa_a: 350, use: "the filter-dryers' hot-water circuit (D-009)", note: "ASSUMED; the hot water to the filter-dryers' jackets is held at 318.15 K at most, below CBr4's polymorph transition at 320.05 K (D-008)"}
+  - {name: Chilled brine, supply_K: 258.15, return_K: 263.15, use: "cooling the charge and removing the heats of hypobromite formation and of the haloform reaction at 278 K", note: "ASSUMED; from a refrigeration unit outside the boundary; the jackets are checked at the mean brine temperature, 260.77 K, the log-mean equivalent of the supply and return against 278.15 K (D-003, D-009)"}
   - {name: Nitrogen, use: "inerting R-101 while the acetone is dosed, pressing the filtrations (per batch, lca/lca.yaml)", note: ASSUMED}
-  - {name: Cooling water, use: "the dryer's vacuum condenser and the vent condenser (not counted: small, D-009)"}
+  - {name: Cooling water, supply_K: 298.15, return_K: 303.15, use: "the filter-dryers' vacuum condenser, Q5 3.90 kW year average (the latent heat of the dryer vapour, D-009); the reactors' vent condensers carry no modelled vapour and are not counted", note: ASSUMED}
 site:
   location: ASSUMED generic fine-chemicals site with a bromine supply (bromine-1), not chosen
   design_ambient_K: 298.15            # ASSUMED
@@ -45,5 +45,5 @@ assumptions:
   - "ASSUMED rate laws of the hypobromite formation, the haloform reaction (lumped) and the hypobromite's disproportionation; heats of reaction from tabulated formation enthalpies (D-005): the low accumulation rests on them."
   - "Solubility of CBr4 0.24 g per kg water, the 30 C value (Wikipedia), taken at 278 and 291 K and in the mother liquor without a salting-out correction (ASSUMED, D-007)."
   - "ASSUMED filters: 99.8 % solid recovery, 0.15 kg liquor per kg cake solid, specific cake resistance 1e10 m/kg at 200 kPa; reslurry wash with about 2 kg water per kg solid (D-007)."
-  - "ASSUMED vacuum drying at 308 K (below the 320 K polymorph transition) to 0.1 wt% volatiles, 70 % thermal efficiency, a mean drying rate of 2.5 kg/(m2 h); two filter-dryers (D-008)."
+  - "ASSUMED vacuum drying at 308 K (below the 320 K polymorph transition) to 0.1 wt% volatiles, 70 % thermal efficiency, the jacket's hot water at 318 K at most, a mean drying rate of 1.64 kg/(m2 h) (U 110 W/(m2 K) at the 10 K approach); two filter-dryers (D-008)."
   - "All flows are year averages of the recipe (D-003); the reactor duties from cheme's semi-batch models, the dryer's from cheme's dryer model, the dilution heat and power concept estimates (D-009); accuracy +/-30 % not demonstrated."
