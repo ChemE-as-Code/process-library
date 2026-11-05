@@ -34,8 +34,8 @@ jobs:
       PREVIOUS_REF: ${{ inputs.previous_ref }}
       PREVIOUS_VERSION: ${{ inputs.previous_version }}
       # benchmarks convert units through core's foundation.units (validate.yml, docs/benchmarks.md)
-      # core main ab9d91e, pinned with validate.yml (same commit; tests/test_workflows.py)
-      CORE: "cheme-as-code[units] @ git+https://github.com/ChemE-as-Code/core.git@ab9d91edc9949d63413516eaaf0df1834ca51bb4"
+      # core v1.5.0 (a59e1a9), pinned with validate.yml (same commit; tests/test_workflows.py)
+      CORE: "cheme-as-code[units] @ git+https://github.com/ChemE-as-Code/core.git@a59e1a983348c98c6cee528d489fa030310876ff"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
@@ -51,7 +51,7 @@ jobs:
             || { echo "version '$VERSION' is not MAJOR.MINOR.PATCH"; exit 1; }
           if [ -n "$PREVIOUS_REF" ] && [ -z "$PREVIOUS_VERSION" ]; then echo "previous_ref needs previous_version"; exit 1; fi
       - name: tooling tests
-        run: uv run --python 3.12 --with pytest --with pyyaml --with jsonschema --with openpyxl --with ./python --with bw2calc --with olca-schema==2.6.2 --with multifunctional==1.1.2 --with chemicals==1.5.2 --with "$CORE" pytest -q tests
+        run: uv run --python 3.12 --with pytest --with pyyaml --with jsonschema --with openpyxl --with ./python --with bw2calc --with olca-schema==2.6.2 --with multifunctional==1.1.2 --with chemicals==1.5.2 --with "$CORE" pytest -q tests -m "not engineering"
         env:
           ATLAS_REQUIRE_BRIGHTWAY: "1"
           ATLAS_REQUIRE_CORE: "1"

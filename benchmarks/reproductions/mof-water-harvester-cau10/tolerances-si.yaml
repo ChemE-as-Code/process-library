@@ -1,0 +1,100 @@
+# Tolerances for the comparison of sample 8 against Table S7 of the Supporting Information (#334;
+# ADR 0030). FROZEN 2026-11-04, committed in its own commit before run.py computes the Henry
+# constant or reads any value below. A NEW FILE, not a revision of tolerances.yaml: that file
+# (frozen in d25eee1, unchanged) keeps its verdict against our digitisation of Figure 7. This
+# file adds a second comparison, against the values the authors tabulate for the same sample.
+#
+# Reason. The Supporting Information (adma202210050-sup-0001-SuppMat.pdf) was not obtainable by
+# scripted requests (HTTP 403). The repository owner obtained it on 2026-11-04 and handed it to
+# this case; it is not committed (publisher file, licence not stated in it), its sha256 is below.
+# It supplies what the first comparison lacked: the sample list (Table S7), the definitions of
+# total capacity and of the Henry constant (Section 7), and the descriptor values per sample.
+#
+# Disclosure. Before this file was written: (1) Table S7 and Section 7 were read; (2) the alpha
+# (0.19719), delta_p_75_25 (0.00739) and total capacity (16.5041 mmol/g, 0.2973 g/g) of sample 8
+# were already computed and published in results/comparison.json under tolerances.yaml, so the
+# alpha and delta_p_75_25 checks below are NOT blind: their outcome was foreseeable from those
+# numbers; (3) it was noticed by arithmetic that 16.5041 / 18.015 = 0.916, close to the 0.92
+# "g/g" of Table S7 (see context below). The Henry-constant slope and K_H of sample 8 had NOT
+# been computed by us; those two checks are blind. Tolerances are set from the stated rounding
+# and the stated method, not from a computed deviation.
+frozen: "2026-11-04"
+supporting_information:
+  file: adma202210050-sup-0001-SuppMat.pdf (37 pages; obtained by the owner, not committed)
+  sha256: e906a0672c76ed9b03c9ac6d7c7ecd83c6cb7a81b31ddb71e581657b2fe7b59b
+  other_file: >-
+    adma202210050-sup-0003-SuppMat.zip (sha256 6d880ac47f053409c43ea47e79a591deaffc9f9dc6390dc10aa4741bac9fa800):
+    seven crystal structures (CIF) and one CheckCIF report; no isotherm data; not used
+reference:
+  locator: Table S7, p. 31 of the SI (row 8 of 28), method in Section 7, p. 30
+  row: 8
+  row_identity: {source: "https://doi.org/10.4121/22009211", mof: CAU-10-H, temperature_K: 313}
+  values:  # restated as facts; decimal commas of the SI written as points
+    total_capacity_stated_g_per_g: 0.92
+    alpha: 0.197
+    delta_p_75_25: 0.007
+    henry_slope_mmol_per_g: 6.14
+    r2: 0.9562
+    K_H_cm3_per_g: 2166
+  method_stated:
+    total_capacity: taken at p/p0 0.85, "as most isotherms don't extend further" (Section 7)
+    alpha_and_delta_p: trace interpolation of the isotherm with 10 000 points, linear method (Section 7)
+    henry_constant: >-
+      C = (K_H p0 / (R T)) (p/p0), C in mmol/g; linear fit of the isotherm for p/p0 from 0 to 0.1
+      with at least 3 points; K_H = slope x R T / p0 (Section 7)
+method_ours:
+  henry_fit: >-
+    least squares through the origin (the stated equation has no intercept) on the adsorption
+    branch points with 0 < p/p0 <= 0.1; K_H = slope x R T / p0 with T = 313.000 K (bath
+    temperature, Metadata.txt) and p0 = IAPWS-IF97 p_sat(T), result in cm3/g (1 mmol m3/(g mol) =
+    1000 cm3/g). Variants reported beside it, outside the pass rule: fit with intercept; bound
+    p/p0 < 0.1; p0 implied by the SI row (R T slope / K_H).
+  total_capacity: uptake at the highest measured adsorption p/p0 (0.4246), as under tolerances.yaml; sample 8 does not reach 0.85
+checks:
+  sample_identity:
+    rule: >-
+      Table S7 row 8 names the dataset 10.4121/22009211, CAU-10-H and 313 K, consistent with
+      Metadata.txt entry 8 (CAU-10-H pellets, bath 313.000 K) and the dataset's rule that the
+      file number is the Table S7 position
+    reason: replaces the identification by nearest alpha of tolerances.yaml with the authors' label
+  alpha:
+    abs: 0.001
+    reason: >-
+      0.197 is stated to 3 decimals (±0.0005); the stated method is linear interpolation, as ours;
+      a 10 000-point trace on 0 to 0.85 adds below 1e-4; ±0.0005 for the unstated detail of where
+      the capacity was read for a series that ends at 0.4246. NOT blind (disclosure item 2)
+  delta_p_75_25:
+    abs: 0.001
+    reason: same budget as alpha (stated to 3 decimals). NOT blind (disclosure item 2)
+  henry_slope:
+    rel: 0.03
+    reason: >-
+      6.14 is stated to 3 s.f. (±0.08 %); ±3 % for unstated fit details (through the origin or not,
+      whether p/p0 = 0.1 is included, weighting). The 3 % is a judgement, stated as such; the
+      variants are reported so its size can be judged. Blind
+  henry_constant:
+    rel: 0.04
+    reason: >-
+      slope budget (3 %) plus the p0 basis: R T slope / K_H from the row gives 7377 Pa, against
+      7325.6 Pa for IF97 at 313.000 K (0.7 %), taken as 1 %. Blind
+  digitisation_check:
+    rule: >-
+      the digitised marker H5 (source.yaml) lies within its stated digitisation uncertainty plus
+      the table rounding of row 8: alpha ±(0.0013 + 0.0005), delta_p_75_25 ±(0.0032 + 0.0005)
+      (H5 is partly covered in panel a), log10 K_H ±(0.017 + 0.0001)
+    reason: tests our Figure 7 digitisation against the authors' numbers; NOT blind (H5 values and row 8 were both read before freezing)
+pass_rule: >-
+  verdict against Table S7: pass if sample_identity, alpha, delta_p_75_25, henry_slope and
+  henry_constant all pass; partial if sample_identity, alpha and delta_p_75_25 pass and at least
+  one Henry check fails; fail otherwise. digitisation_check is reported beside the verdict and
+  does not enter it. The verdict under tolerances.yaml is reported unchanged next to this one.
+context_not_in_pass_rule:
+  total_capacity_unit:
+    reference: 0.92 g/g (row 8)
+    reported_as: >-
+      ours in mmol/g, in g/g (x 18.015 g/mol / 1000) and as mmol/g divided by 18.015, beside the
+      stated value, without a verdict; the apparent factor is a question to the authors, not a
+      finding
+  r2:
+    reference: 0.9562
+    reported_as: our R2 of the fit through the origin (uncentred) and with intercept (centred); the SI does not state which
