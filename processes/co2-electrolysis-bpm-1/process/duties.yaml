@@ -6,8 +6,9 @@
 # - D-A reservoir.volume: `cheme process stack --write` (reservoir.size: to_horizon, core ADR
 #   0044 amendment): the exact volume that reaches the horizon at the pH threshold, rounded up
 #   to 4 significant figures;
-# - every horizon (D-A, D-B: the campaign H; the comparison duties: 3 H), the D-B dosing, bleed
-#   and make-up rates, the comparison duties' reservoir volume and the D-A-PART points:
+# - every horizon (D-A, D-B: the campaign H; the comparison duties: 3 H), every pH threshold
+#   (process/design-basis.yaml capacity.pilot_skid.threshold), the D-B dosing, bleed and
+#   make-up rates, the comparison duties' reservoir volume and the D-A-PART points:
 #   `cheme run scripts/regen.py --duration H` (targeted edits that refuse any other change).
 # No YAML anchors: the values are repeated, and scripts/regen.py and the tests assert equality.
 #
@@ -34,10 +35,11 @@ duties:
     horizon: {value: 1000, unit: h}
     operating_map: {wde: [0.95, 0.99], volume: [10, 20000], volume_unit: L}
     sources: ["DESIGN.md D-009"]
-  # Skid B (DESIGN.md D-010): 50 L held at the ASSUMED setpoints 0.5 mol/L OH- and 0.25 mol/L
-  # carbon by continuous 5 M KOH dosing, a bleed and make-up water; the rates follow from the
-  # steady-state balance (scripts/regen.py). Dosing and bleed are open-loop in the model (the
-  # AIC-201 trim is not simulated) and run while the current is on.
+  # Skid B (DESIGN.md D-010): 50 L held at the ASSUMED setpoints of process/design-basis.yaml
+  # (capacity.pilot_skid.skid_b_setpoints) by continuous 5 M KOH dosing, a bleed and make-up
+  # water; the rates follow from the steady-state balance (scripts/regen.py). Dosing and bleed
+  # are open-loop in the model (the AIC-201 trim is not simulated) and run while the current
+  # is on.
   - id: D-B
     title: Skid B, 200 mA/cm2 on 50 L, continuous 5 M KOH dosing, bleed and make-up
     cell: pilot-cell
@@ -50,7 +52,7 @@ duties:
       model: well-mixed-carbonate
     dosing:
       kind: continuous
-      concentration: {value: 5, unit: mol/L}
+      concentration: {value: 5, unit: mol/L, source: "ASSUMED 5 M KOH as bought for the day tank T-202 (DESIGN.md D-010)"}
       rate: {value: 0.419178508, unit: L/h}
       density: {value: 1.22, unit: kg/L, source: "ASSUMED about 5 M KOH at 25 °C"}
     bleed: {rate: {value: 1.8660792, unit: L/h}}

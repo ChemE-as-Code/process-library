@@ -58,22 +58,14 @@ cheme process cell
 cheme run scripts/cell_section.py
 ```
 
-Results (`results/scenarios/<H>h/record.json`; mean of the measured point P200):
+Results (`results/scenarios/<H>h/record.json`; mean of the measured point P200; the table is
+written by `scripts/regen.py` from the records, and `regen.py --check` compares it):
 
-| | Skid A, 1,000 h | Skid A, 10,000 h | Skid B, 1,000 h | Skid B, 10,000 h |
-|---|---|---|---|---|
-| stacks | 4 x 7 cells, 37.6 V, 80 A | same | same | same |
-| DC power, CO formed / delivered | 3.005 kW, 0.1119 / 0.1007 kg/h | same | same | same |
-| electricity per kg CO formed (DC) | 26.85 kWh/kg | same | same | same |
-| anolyte reservoir | T-101 1,166 L, D 1.074 x H 1.611 m | T-101 11,660 L, D 2.313 x H 3.470 m | T-201 50 L, D 0.376 x H 0.564 m | same |
-| KOH dosing, bleed, make-up | none | none | 2.096 mol/h (0.419 L/h of 5 M), 1.866 L/h, 1.447 L/h | same |
-| anolyte at the end | pH 12.02, 0.40 mol/L carbon | same | pH 13.70, 0.25 mol/L carbon | same |
-| KOH per kg CO delivered | 0.649 | 0.649 | 1.195 | 1.170 |
-| fits the 20 ft frame (2.20 m usable height) | yes, 0.40 m left | **no**: T-101 1.27 m too tall | yes | yes |
-| WDE -1 sd (0.9585) | the 1,166 L reservoir reaches pH 12 at 804 h | 11,660 L at 8,036 h | dose 2.61 mol/h | same |
+<!-- regen:results begin (scripts/regen.py step 17; do not edit) -->
+<!-- regen:results end -->
 
-"Skid A cannot meet the 10,000 h duty within the skid envelope"; at the measured mean the
-longest campaign whose one-fill reservoir fits the frame is about 2,550 h. Skid B does not grow
+At the measured mean the longest campaign whose one-fill reservoir fits the frame is about
+2,550 h (rounded from E2 of `results/expected.yaml`). Skid B does not grow
 with the campaign, but its continuous dosing uses 1.8 times the KOH of Skid A per kg CO
 (the floor is 0.648 kg per kg delivered). The FE at the meter's 20 degC basis would need
 4 x 8 cells. At equal CO, on/off operation (24 h, half on) uses the same charge and KOH as

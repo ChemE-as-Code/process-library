@@ -1,0 +1,27 @@
+# Errata of the frozen hand expectations results/expected.yaml (process-library#330).
+# ADR 0030: a frozen file is not edited after the regeneration has run; a correction is a new
+# file with a reason. This file corrects statements of the frozen record. It changes no frozen
+# value or tolerance: tests/test_co2_electrolysis_bpm_skids.py compares the regenerated results
+# with results/expected.yaml as frozen, and asserts that the frozen files are unchanged since
+# their freezing commit. scripts/regen.py (step 17) prints these errata in the resize report.
+schema: process-library/skid-expectations-errata/1
+issue: 330
+frozen_file: results/expected.yaml
+errata:
+  - id: X-1
+    item: measurements.co_ion_split
+    statement: "process/cells.yaml membrane.co_ion_crossover HCO3- 0.670 (the P200 titration mean 0.6698 rounded): the split the duties run with"
+    correction: >-
+      The duties do not run with the rounded 0.670. For a measured cell, core's duty takes the
+      titration's carbon share, 0.6697790 at P200 (the regenerated records'
+      skids.B.carbon_share_duty and measured_state.co_ion_carbon_share); only `cheme process
+      cell` reports the membrane block's 0.670 (DESIGN.md D-010). The same statement is in
+      tests/skid_formulas.py (stated_co_ion_carbon_fraction, hand_values), which compute the
+      hand values at 0.670.
+    effect: >-
+      The frozen E2 and E3 hand values carry a one-signed bias against the regenerated ones,
+      inside every frozen tolerance: Skid A's exact volume -1.3e-4 relative (1165.15 L against
+      1165.30 L), the Skid B bleed -3.3e-4 (1.86608 L/h against 1.86670 L/h, a third of E3's rel
+      1e-3), the dose -2.2e-4 (2.09589 mol/h against 2.09635 mol/h). The values and tolerances
+      stand.
+    found: "review of #330, 2026-11-05 (stage 2 noted the share; the frozen wording was not corrected)"

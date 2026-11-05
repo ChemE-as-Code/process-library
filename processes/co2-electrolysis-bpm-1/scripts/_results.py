@@ -40,28 +40,47 @@ RULES = (
 # -- step 14: conditional invariants -----------------------------------------------------------
 
 
-def hours_outside(t_h: list[float], margin: list[float]) -> tuple[float, float | None]:
-    """Hours with *margin* < 0 (outside), linear between the samples; and the first such hour."""
-    total, first = 0.0, None
+def outside_intervals(t_h: list[float], margin: list[float]) -> list[tuple[float, float]]:
+    """The intervals with *margin* < 0 (outside), the margin linear between the samples."""
+    out: list[tuple[float, float]] = []
     for i in range(len(t_h) - 1):
         t0, t1, m0, m1 = t_h[i], t_h[i + 1], margin[i], margin[i + 1]
         dt = t1 - t0
-        if dt <= 0:
-            continue
-        if m0 >= 0 and m1 >= 0:
+        if dt <= 0 or (m0 >= 0 and m1 >= 0):
             continue
         if m0 < 0 and m1 < 0:
-            total += dt
-            first = t0 if first is None else first
-            continue
-        cross = t0 + dt * m0 / (m0 - m1)  # where the margin is zero
-        if m0 < 0:
-            total += cross - t0
-            first = t0 if first is None else first
+            a, b = t0, t1
         else:
-            total += t1 - cross
-            first = cross if first is None else first
+            cross = t0 + dt * m0 / (m0 - m1)  # where the margin is zero
+            a, b = (t0, cross) if m0 < 0 else (cross, t1)
+        if out and a <= out[-1][1]:
+            out[-1] = (out[-1][0], max(out[-1][1], b))
+        else:
+            out.append((a, b))
+    return out
+
+
+def union_hours(*intervals: list[tuple[float, float]]) -> tuple[float, float | None]:
+    """The hours in the union of interval lists, and the first hour of it."""
+    spans = sorted(span for spans in intervals for span in spans)
+    total, first, end = 0.0, None, None
+    for a, b in spans:
+        first = a if first is None else first
+        if end is None or a > end:
+            total += b - a
+            end = b
+        elif b > end:
+            total += b - end
+            end = b
     return total, first
+
+
+def hours_outside(t_h: list[float], margin: list[float]) -> tuple[float, float | None]:
+    """Hours with *margin* < 0 (outside), linear between the samples; and the first such hour.
+    For a condition of several margins, interpolate each one on its own and take the union
+    (:func:`union_hours` of :func:`outside_intervals`): the minimum of two margins is not
+    linear between the samples, and interpolating it puts the crossing early."""
+    return union_hours(outside_intervals(t_h, margin))
 
 
 def carbon_series(species: dict[str, list[float]]) -> list[float]:
@@ -94,11 +113,11 @@ def conditions(
     oh = [float(x) for x in species["OH-"]]
     carbon = carbon_series(species)
     tol = 1e-9
-    margin = [
-        min(o - measured["hydroxide_min_mol_l"] + tol, measured["carbon_max_mol_l"] - c + tol)
-        for o, c in zip(oh, carbon, strict=True)
-    ]
-    electrolyte_h, electrolyte_first = hours_outside(t_h, margin)
+    # each margin interpolated on its own, then the union of the hours outside either
+    oh_margin = [o - measured["hydroxide_min_mol_l"] + tol for o in oh]
+    carbon_margin = [measured["carbon_max_mol_l"] - c + tol for c in carbon]
+    oh_out, carbon_out = outside_intervals(t_h, oh_margin), outside_intervals(t_h, carbon_margin)
+    electrolyte_h, electrolyte_first = union_hours(oh_out, carbon_out)
     hours = float(duty.get("operating_time_h") or duty["simulated_h"])
     outside_j = float(duty.get("time_outside_measured_range_h") or 0.0)
     cooled = cooler_kw >= stack_heat_kw * (1 - 1e-9)
@@ -136,6 +155,10 @@ def conditions(
             },
             "hours_outside": electrolyte_h,
             "first_outside_h": electrolyte_first,
+            "first_outside_by": {
+                "hydroxide_h": oh_out[0][0] if oh_out else None,
+                "carbon_h": carbon_out[0][0] if carbon_out else None,
+            },
             "holds": electrolyte_h == 0.0,
         },
         "time_on_stream": {
@@ -184,15 +207,15 @@ def dump(obj: Any) -> str:
 #: exponent of the duration a proportional quantity follows)
 ROWS: tuple[tuple, ...] = (
     ("A", "cells", "cells", "-", "invariant-of-duration", "the stacks are sized on the product rate, not the campaign", "E1.cells_required", None),
-    ("A", "stacks", "stacks on the 48 V bus", "-", "invariant-of-duration", "floor(48 V / U) in series, the cells shared evenly", "E1.stacks", None),
+    ("A", "stacks", "stacks on the DC bus", "-", "invariant-of-duration", "floor({max_stack_voltage_v:g} V / U) in series, the cells shared evenly", "E1.stacks", None),
     ("A", "dc_power_kw", "DC power", "kW", "invariant-of-duration", "N U I at the measured point", "E1.dc_power_kw", None),
     ("A", "co_formed_kg_h", "CO formed", "kg/h", "invariant-of-duration", "N I FE M / (2 F)", "E1.co_formed_kg_h", None),
     ("A", "kwh_per_kg_formed", "electricity per kg CO formed (DC)", "kWh/kg", "invariant-of-duration", "2 F U / (FE M): U and FE held constant by assumption (D-014)", "E1.kwh_per_kg_formed", None),
     ("A", "stack_heat_kw", "stack heat (cooler E-111)", "kW", "invariant-of-duration", "N I (U - sum FE U_tn)", "E1.stack_heat_kw", None),
-    ("A", "reservoir_volume_exact_l", "reservoir T-101, exact volume to the horizon", "L", "proportional-to-duration", "V = N I H (1 - WDE)((1 - Cx) + Cx g) / (F 0.99 mol/L): the one fill carries the campaign's co-ion charge", "E2.{h}.volume_exact_l", 1.0),
+    ("A", "reservoir_volume_exact_l", "reservoir T-101, exact volume to the horizon", "L", "proportional-to-duration", "V = N I H (1 - WDE)((1 - Cx) + Cx g) / (F (c0 - Kw / h + h)) at pH {threshold_ph:g}: the one fill carries the campaign's co-ion charge", "E2.{h}.volume_exact_l", 1.0),
     ("A", "reservoir_volume_l", "reservoir T-101, working volume written", "L", "proportional-to-duration", "the exact volume rounded up to 4 significant figures (reservoir.size: to_horizon)", "E2.{h}.volume_written_l", 1.0),
-    ("A", "reservoir_diameter_m", "reservoir T-101 diameter", "m", "proportional-to-duration", "D = (4 V (1 + 0.25) / (pi 1.5))^(1/3): the cube root of the volume", "E2.{h}.tank.diameter", 1.0 / 3.0),
-    ("A", "reservoir_height_m", "reservoir T-101 height", "m", "proportional-to-duration", "H = 1.5 D", "E2.{h}.tank.height", 1.0 / 3.0),
+    ("A", "reservoir_diameter_m", "reservoir T-101 diameter", "m", "proportional-to-duration", "D = (4 V (1 + {reservoir_margin:g}) / (pi {reservoir_aspect_ratio:g}))^(1/3): the cube root of the volume", "E2.{h}.tank.diameter", 1.0 / 3.0),
+    ("A", "reservoir_height_m", "reservoir T-101 height", "m", "proportional-to-duration", "H = {reservoir_aspect_ratio:g} D", "E2.{h}.tank.height", 1.0 / 3.0),
     ("A", "final_carbon_mol_l", "anolyte carbon at the end", "mol/L", "invariant-of-duration", "the fill reaches the threshold at the horizon whatever H is", "E2.{h}.final.carbon", None),
     ("A", "final_cation_mol_l", "anolyte K+ at the end", "mol/L", "invariant-of-duration", "as the carbon", "E2.{h}.final.cation", None),
     ("A", "koh_per_kg_delivered", "KOH per kg CO delivered", "kg/kg", "invariant-of-duration", "the fill and the CO both scale with H", "E4.skid_a.{h}", None),
@@ -200,29 +223,29 @@ ROWS: tuple[tuple, ...] = (
     ("A", "totals_charge_c", "charge over the campaign", "C", "proportional-to-duration", "constant current over H", None, 1.0),
     ("A", "totals_product_kg", "CO formed over the campaign", "kg", "proportional-to-duration", "constant output over H", None, 1.0),
     ("A", "items_top_m", "highest item on the frame (top above grade)", "m", "infeasible", "the reservoir grows as the cube root of H; the frame does not", None, None),
-    ("A", "feasible", "skid feasible (duty and envelope)", "-", "infeasible", "the reservoir no longer fits the 2.20 m usable height (D-015)", "E2.{h}.fits_height", None),
+    ("A", "feasible", "skid feasible (duty and envelope)", "-", "infeasible", "the reservoir no longer fits the {usable_height_m:.2f} m usable height (D-015)", "E2.{h}.fits_height", None),
     ("B", "cells", "cells", "-", "invariant-of-duration", "the stacks are sized on the product rate, not the campaign", "E1.cells_required", None),
     ("B", "dc_power_kw", "DC power", "kW", "invariant-of-duration", "N U I at the measured point", "E1.dc_power_kw", None),
     ("B", "kwh_per_kg_formed", "electricity per kg CO formed (DC)", "kWh/kg", "invariant-of-duration", "2 F U / (FE M): U and FE held constant by assumption (D-014)", "E1.kwh_per_kg_formed", None),
-    ("B", "bleed_l_h", "bleed rate", "L/h", "fixed-by-setpoint", "b = Cx (1 - WDE) N I / (F C_T) at the carbon setpoint 0.25 mol/L", "E3.bleed_l_h", None),
+    ("B", "bleed_l_h", "bleed rate", "L/h", "fixed-by-setpoint", "b = Cx (1 - WDE) N I / (F C_T) at the carbon setpoint {setpoint_carbon_mol_l:g} mol/L", "E3.bleed_l_h", None),
     ("B", "dose_mol_h", "KOH dose", "mol/h", "fixed-by-setpoint", "b [K+] + (1 - Cx)(1 - WDE) N I / F at the setpoints", "E3.dose_mol_h", None),
-    ("B", "dose_l_h", "5 M KOH dosed", "L/h", "fixed-by-setpoint", "the dose over 5 mol/L", "E3.dose_solution_l_h", None),
+    ("B", "dose_l_h", "5 M KOH dosed", "L/h", "fixed-by-setpoint", "the dose over {dose_concentration_mol_l:g} mol/L", "E3.dose_solution_l_h", None),
     ("B", "makeup_l_h", "make-up water", "L/h", "fixed-by-setpoint", "b - dose (constant volume)", "E3.makeup_water_l_h", None),
-    ("B", "residence_h", "residence time V / b", "h", "fixed-by-setpoint", "50 L over the bleed", "E3.residence_h", None),
-    ("B", "final_ph", "anolyte pH at the end", "-", "fixed-by-setpoint", "the steady state at 0.5 mol/L OH-", "E3.ph", None),
+    ("B", "residence_h", "residence time V / b", "h", "fixed-by-setpoint", "{reservoir_volume_l:g} L over the bleed", "E3.residence_h", None),
+    ("B", "final_ph", "anolyte pH at the end", "-", "fixed-by-setpoint", "the steady state at {setpoint_hydroxide_mol_l:g} mol/L OH-", "E3.ph", None),
     ("B", "final_cation_mol_l", "anolyte K+ at the end", "mol/L", "fixed-by-setpoint", "the setpoints' charge balance", "E3.cation_mol_l", None),
-    ("B", "reservoir_volume_l", "reservoir T-201 working volume", "L", "fixed-by-setpoint", "the ASSUMED 50 L hold-up, held by the make-up", None, None),
-    ("B", "reservoir_diameter_m", "reservoir T-201 diameter", "m", "invariant-of-duration", "sized on the 50 L working volume", None, None),
-    ("B", "dosing_pump_kg_h", "dosing pump P-202 capacity", "kg/h", "invariant-of-duration", "the dose rate x (1 + 0.5) x 1.22 kg/L", "E3.dosing_pump_kg_h", None),
-    ("B", "dosing_tank_held_l", "day tank T-202 held volume", "L", "invariant-of-duration", "sized over the refill interval 168 h (core refill_interval), not the campaign", "E3.dosing_tank_held_l", None),
+    ("B", "reservoir_volume_l", "reservoir T-201 working volume", "L", "fixed-by-setpoint", "the ASSUMED {reservoir_volume_l:g} L hold-up, held by the make-up", None, None),
+    ("B", "reservoir_diameter_m", "reservoir T-201 diameter", "m", "invariant-of-duration", "sized on the {reservoir_volume_l:g} L working volume", None, None),
+    ("B", "dosing_pump_kg_h", "dosing pump P-202 capacity", "kg/h", "invariant-of-duration", "the dose rate x (1 + {dosing_pump_margin:g}) x {dose_density_kg_l:g} kg/L", "E3.dosing_pump_kg_h", None),
+    ("B", "dosing_tank_held_l", "day tank T-202 held volume", "L", "invariant-of-duration", "sized over the refill interval {refill_interval_h:g} h (core refill_interval), not the campaign", "E3.dosing_tank_held_l", None),
     ("B", "dosing_tank_diameter_m", "day tank T-202 diameter", "m", "invariant-of-duration", "as its volume", "E3.dosing_tank.diameter", None),
-    ("B", "dosing_tank_fills", "day tank fills per campaign", "-", "proportional-to-duration", "ceil(H / 168 h)", "E3.refills.{h}", 1.0),
+    ("B", "dosing_tank_fills", "day tank fills per campaign", "-", "proportional-to-duration", "ceil(H / {refill_interval_h:g} h)", "E3.refills.{h}", 1.0),
     ("B", "dosed_solution_l", "5 M KOH dosed over the campaign", "L", "proportional-to-duration", "rate x H", "E3.totals.{h}.dosed_solution_l", 1.0),
     ("B", "bleed_l", "bleed over the campaign", "L", "proportional-to-duration", "rate x H", "E3.totals.{h}.bleed_l", 1.0),
     ("B", "makeup_water_l", "make-up water over the campaign", "L", "proportional-to-duration", "rate x H", "E3.totals.{h}.makeup_water_l", 1.0),
     ("B", "koh_dosed_per_kg_delivered", "KOH dosed per kg CO delivered", "kg/kg", "invariant-of-duration", "the dose and the CO both scale with H", "E4.skid_b_makeup", None),
     ("B", "koh_fill_per_kg_delivered", "KOH of the 50 L fill per kg CO delivered", "kg/kg", "amortisation", "one fill over H", "E4.skid_b_fill_share.{h}", -1.0),
-    ("B", "koh_fill_kg_h", "KOH-FILL, campaign-averaged", "kg KOH/h", "amortisation", "50 L / H (D-011)", None, -1.0),
+    ("B", "koh_fill_kg_h", "KOH-FILL, campaign-averaged", "kg KOH/h", "amortisation", "{reservoir_volume_l:g} L / H (D-011)", None, -1.0),
     ("B", "feasible", "skid feasible (duty and envelope)", "-", "invariant-of-duration", "nothing on Skid B grows with H", None, None),
 )  # fmt: skip
 
@@ -261,13 +284,31 @@ def _changed(a, b) -> bool:
     return abs(a - b) > 1e-6 * scale
 
 
-def resize_report(records: dict[float, dict], expected: dict) -> dict[str, Any]:
-    """The rows between the two scenario records (keys: the durations)."""
+def _cause(template: str, records: dict[float, dict], skid: str) -> str:
+    """A cause with its inputs from the records' sizing_basis (both durations' when they
+    differ), so the text follows the inputs the runs used."""
+    lo, hi = sorted(records)
+    texts = []
+    for h in (lo, hi):
+        basis = records[h]["skids"][skid].get("sizing_basis") or {}
+        try:
+            texts.append(template.format_map(basis))
+        except KeyError as exc:
+            raise KeyError(f"resize cause {template!r}: the record has no sizing_basis {exc}") from exc
+    return texts[0] if texts[0] == texts[1] else f"{texts[0]} (at {hi:g} h: {texts[1]})"
+
+
+def resize_report(
+    records: dict[float, dict], expected: dict, errata: dict | None = None
+) -> dict[str, Any]:
+    """The rows between the two scenario records (keys: the durations); *errata*: the
+    corrections of the frozen file (results/expected-errata.yaml), reported, never applied."""
     lo, hi = sorted(records)
     index = _expected_index(expected)
     ratio = hi / lo
     rows = []
-    for skid, key, label, unit, rule, cause, hand, exponent in ROWS:
+    for skid, key, label, unit, rule, template, hand, exponent in ROWS:
+        cause = _cause(template, records, skid)
         a = records[lo]["skids"][skid].get(key)
         b = records[hi]["skids"][skid].get(key)
         changed = _changed(a, b)
@@ -337,6 +378,10 @@ def resize_report(records: dict[float, dict], expected: dict) -> dict[str, Any]:
         "durations_h": [lo, hi],
         "records": [f"results/scenarios/{h:g}h/record.json" for h in (lo, hi)],
         "expected": "results/expected.yaml",
+        "errata": [
+            {k: e.get(k) for k in ("id", "item", "statement", "correction", "effect")}
+            for e in (errata or {}).get("errata") or []
+        ],
         "rows": rows,
         "unchanged_artefacts": unchanged,
         "summary": {
@@ -404,6 +449,18 @@ def resize_markdown(report: dict[str, Any]) -> str:
             f"| {r['skid']} | {r['label']} | {r['unit']} | {_fmt(a['value'])} | {_fmt(b['value'])} | "
             f"{_fmt(r['changed'])} | {rule} | {r['cause']} | {_fmt(a['hand'])} | {_fmt(b['hand'])} | {status} |"
         )
+    if report.get("errata"):
+        out += [
+            "",
+            "Errata of the frozen file (`results/expected-errata.yaml`; the frozen values and "
+            "tolerances stand, ADR 0030):",
+            "",
+        ]
+        for e in report["errata"]:
+            out.append(
+                f"- {e['id']} (`{e['item']}`): the frozen file says \"{e['statement']}\". "
+                f"{e['correction']} {e['effect']}"
+            )
     u = report["unchanged_artefacts"]
     out += ["", "Unchanged artefacts:", ""]
     for name, v in u["pid_sha256"].items():
@@ -422,6 +479,94 @@ def resize_markdown(report: dict[str, Any]) -> str:
         "",
     ]
     return "\n".join(out)
+
+
+def readme_table(records: dict[float, dict], uncertainty: dict[float, dict] | None = None) -> str:
+    """The results table of README.md (regen step 17), from the scenario records and their
+    uncertainty runs: one column per skid and duration, "same" where a cell repeats the one
+    before it in its row."""
+    hs = sorted(records)
+    cols = [(skid, h) for skid in ("A", "B") for h in hs]
+
+    def cell(row: str, skid: str, h: float) -> str | None:
+        s = records[h]["skids"][skid]
+        b = s.get("sizing_basis") or {}
+        if row == "stacks":
+            return f"{s['stacks']} x {s['cells_per_stack']} cells, {s['stack_voltage_v']:.1f} V, {s['bus_current_a']:g} A"
+        if row == "power":
+            return f"{s['dc_power_kw']:.3f} kW, {s['co_formed_kg_h']:.4f} / {s['co_delivered_kg_h']:.4f} kg/h"
+        if row == "kwh":
+            return f"{s['kwh_per_kg_formed']:.2f} kWh/kg"
+        if row == "reservoir":
+            return (
+                f"{s['reservoir_tag']} {s['reservoir_volume_l']:,.0f} L, D {s['reservoir_diameter_m']:.3f}"
+                f" x H {s['reservoir_height_m']:.3f} m"
+            )
+        if row == "dosing":
+            if not s.get("dose_mol_h"):
+                return "none"
+            return (
+                f"{s['dose_mol_h']:.3f} mol/h ({s['dose_l_h']:.3f} L/h of "
+                f"{b.get('dose_concentration_mol_l', 0):g} M), {s['bleed_l_h']:.3f} L/h, {s['makeup_l_h']:.3f} L/h"
+            )
+        if row == "end":
+            return f"pH {s['final_ph']:.2f}, {s['final_carbon_mol_l']:.2f} mol/L carbon"
+        if row == "koh":
+            return f"{s['koh_per_kg_delivered']:.3f}"
+        if row == "fits":
+            if s["envelope_feasible"]:
+                return f"yes, {s['headroom_left_m']:.2f} m left"
+            if s["headroom_left_m"] < 0:
+                return f"**no**: {-s['headroom_left_m']:.2f} m too tall"
+            return "**no** (the record's reasons)"
+        if row == "wde":
+            doc = (uncertainty or {}).get(h)
+            case = next((c for c in (doc or {}).get("cases", []) if c["case"] == "WDE -1 sd"), None)
+            if case is None:
+                return None
+            if skid == "A":
+                lasts = case["skid_a_design_volume_lasts_h"]
+                return f"the {records[h]['skids']['A']['reservoir_volume_l']:,.0f} L reservoir reaches pH {b.get('threshold_ph', 12):g} at {lasts:,.0f} h"
+            return f"dose {case['skid_b_dose_mol_h']:.2f} mol/h"
+        raise KeyError(row)
+
+    wde_label = "WDE -1 sd"
+    for h in hs:
+        doc = (uncertainty or {}).get(h)
+        case = next((c for c in (doc or {}).get("cases", []) if c["case"] == "WDE -1 sd"), None)
+        if case:
+            wde_label = f"WDE -1 sd ({case['cell']['wde']:.4f})"
+            break
+    usable = records[hs[0]]["skids"]["A"].get("sizing_basis", {}).get("usable_height_m", 0.0)
+    rows = (
+        ("stacks", "stacks"),
+        ("power", "DC power, CO formed / delivered"),
+        ("kwh", "electricity per kg CO formed (DC)"),
+        ("reservoir", "anolyte reservoir"),
+        ("dosing", "KOH dosing, bleed, make-up"),
+        ("end", "anolyte at the end"),
+        ("koh", "KOH per kg CO delivered"),
+        ("fits", f"fits the 20 ft frame ({usable:.2f} m usable height)"),
+        ("wde", wde_label),
+    )
+    out = [
+        "| | " + " | ".join(f"Skid {skid}, {h:,.0f} h" for skid, h in cols) + " |",
+        "|---|" + "---|" * len(cols),
+    ]
+    for row, label in rows:
+        cells = [cell(row, skid, h) for skid, h in cols]
+        if all(c is None for c in cells):
+            continue
+        shown, before = [], None
+        for c in cells:
+            shown.append("same" if c is not None and c == before else (c or "-"))
+            before = c
+        out.append(f"| {label} | " + " | ".join(shown) + " |")
+    sentences = sorted({x for h in hs for sk in ("A", "B") for x in records[h]["skids"][sk]["sentences"]})
+    out.append("")
+    for sentence in sentences:
+        out.append(f'"{sentence}".')
+    return "\n".join(out) + "\n"
 
 
 # -- step 15: the uncertainty figures ------------------------------------------------------------

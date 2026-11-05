@@ -269,16 +269,47 @@ def test_design_basis_is_what_the_stacks_and_duties_carry():
         for key in ("rate", "recovery", "purity", "pressure"):
             assert stack["product"][key]["value"] == basis["product"][key]["value"], f"{stack['id']} {key}"
         assert stack["product"]["component"] == basis["product"]["component"]
+        hours = stack["replacement"]["operating_hours"]
+        assert (hours["value"], hours["unit"]) == (basis["operating_hours"]["value"], basis["operating_hours"]["unit"])
     design = basis["duration"]["design"]["value"]
     assert design in basis["duration"]["scenarios"]
     for did in ("D-A", "D-B"):
         assert duties[did]["horizon"] == {"value": design, "unit": "h"}, did
-        assert duties[did]["threshold"]["ph"] == basis["threshold"]["ph"], did
+    # every duty, the comparison duties too, ends at the same criterion (E5 and E6 compare them)
+    for did, duty in duties.items():
+        assert duty["threshold"]["ph"] == basis["threshold"]["ph"], did
     for did in ("D-A-ONOFF", "D-A-PART"):
         assert duties[did]["horizon"] == {"value": 3 * design, "unit": "h"}, did
         assert duties[did]["stack"] == "STK-A", did
         assert duties[did]["reservoir"]["volume"]["value"] == duties["D-A"]["reservoir"]["volume"]["value"], did
     assert duties["D-A"]["reservoir"]["size"] == "to_horizon"
+    # the product and compressor discharge pressures of the flowsheet follow the design basis
+    flowsheet = {s["id"]: s for s in _yaml(PROCESS / "process" / "flowsheet.yaml")["streams"]}
+    to_kpa = {"bar(a)": 100.0, "bar": 100.0, "kPa(a)": 1.0, "kPa": 1.0}
+    product = basis["product"]["pressure"]["value"] * to_kpa[basis["product"]["pressure"]["unit"]]
+    loss = basis["psa_pressure_loss"]["value"] * to_kpa[basis["psa_pressure_loss"]["unit"]]
+    for n in (1, 2):
+        for case in ("skid-a", "skid-b"):
+            state = {sid: flowsheet[sid]["state"][case] for sid in (f"S{n}07", f"S{n}08")}
+            assert math.isclose(state[f"S{n}08"]["pressure"]["value"], product), (n, case)
+            assert math.isclose(state[f"S{n}07"]["pressure"]["value"], product + loss), (n, case)
+
+
+def test_calculated_setpoints_follow_the_model():
+    """Every setpoint linked to a stream equals the stream's value, and the stack currents and
+    the Skid B pH setpoint equal the design record's (regen step 9 writes them)."""
+    loops = {lp["id"]: lp for lp in _yaml(PROCESS / "control" / "loops.yaml")["loops"]}
+    flowsheet = {s["id"]: s for s in _yaml(PROCESS / "process" / "flowsheet.yaml")["streams"]}
+    for lp in loops.values():
+        for target in lp.get("targets") or []:
+            if target.get("stream") and target.get("property"):
+                case = (target.get("cases") or lp.get("cases"))[0]
+                want = flowsheet[target["stream"]]["state"][case][target["property"]]["value"]
+                assert math.isclose(target["value"], want, rel_tol=1e-9), f"{lp['id']}: {target['value']} != {want}"
+    rec = _committed_records()[1000]
+    for key, loop in (("A", "JIC-101"), ("B", "JIC-201")):
+        assert loops[loop]["targets"][0]["value"] == rec["skids"][key]["bus_current_a"], loop
+    assert loops["AIC-201"]["targets"][0]["value"] == round(rec["skids"]["B"]["final_ph"], 2)
 
 
 def _docstrings(tree: ast.AST) -> set[int]:
@@ -322,6 +353,12 @@ def test_frozen_expectations_precede_the_regen_commits():
         assert commit != frozen
         ancestor = subprocess.run(["git", "merge-base", "--is-ancestor", frozen, commit], cwd=KIT, check=False)
         assert ancestor.returncode == 0, f"regeneration commit {commit[:9]} does not come after the frozen {frozen[:9]}"
+    # ADR 0030: the frozen files are not edited afterwards (a correction is a new file,
+    # results/expected-errata.yaml); `git diff` also sees an edit made in a merge commit
+    changed = _git("diff", "--name-only", frozen, "HEAD", "--", *sorted(FROZEN_FILES)).split()
+    assert not changed, f"frozen files changed since the freezing commit {frozen[:9]}: {changed}"
+    dirty = _git("status", "--porcelain", "--", *sorted(FROZEN_FILES)).split("\n")
+    assert not [d for d in dirty if d.strip()], f"uncommitted changes to the frozen files: {dirty}"
 
 
 def test_committed_records_meet_the_frozen_expectations(items, hand):
@@ -332,6 +369,26 @@ def test_committed_records_meet_the_frozen_expectations(items, hand):
     assert_e8(PROCESS, records[1000])
     for h, rec in records.items():
         assert rec["duration_h"] == h and not rec["ad_hoc"]
+
+
+def test_committed_readme_table_is_the_records():
+    """README.md's results table is the one regen writes from the committed records."""
+    sys.path.insert(0, str(PROCESS / "scripts"))
+    try:
+        import _results
+    finally:
+        sys.path.pop(0)
+    records = {float(h): r for h, r in _committed_records().items()}
+    unc = {}
+    for h in records:
+        path = PROCESS / "results" / "scenarios" / f"{h:g}h" / "uncertainty.json"
+        if path.exists():
+            unc[h] = json.loads(path.read_text())
+    text = (PROCESS / "README.md").read_text(encoding="utf-8")
+    begin, end = "<!-- regen:results begin (scripts/regen.py step 17; do not edit) -->", "<!-- regen:results end -->"
+    assert begin in text and end in text
+    block = text.split(begin, 1)[1].split(end, 1)[0]
+    assert block == "\n" + _results.readme_table(records, unc)
 
 
 def test_committed_resize_report_is_clean():

@@ -12,28 +12,39 @@ It reads only this process folder, never the library's held-out reproductions (A
 
 Steps (design spec #330, section 6):
 
-1. Preflight: core version and commit, sha256 of the inputs; H in the design basis
-   scenarios, else the run is labelled ad hoc.
-2. Sync stacks[].product (rate, recovery, purity, pressure) from the design basis.
-3. Write the horizons: D-A and D-B to H, the comparison duties to 3 H, and D-A-PART's step
-   points (12 h at 200, 12 h at 100 mA/cm2) over 3 H.
+1. Preflight: core version (and, printed only, the commit its installer recorded), sha256 of
+   the inputs regen never writes (the model files it writes are hashed after the run, in the
+   record's model_sha256); H in the design basis scenarios, else the run is labelled ad hoc.
+2. Sync from the design basis: stacks[].product (rate, recovery, purity, pressure) and
+   stacks[].replacement.operating_hours.
+3. Write the horizons and thresholds: D-A and D-B to H, the comparison duties to 3 H, every
+   duty's pH threshold from the design basis, and D-A-PART's step points (12 h at 200, 12 h
+   at 100 mA/cm2) over 3 H.
 4. Check the cell: `cheme process cell --json`; a refused cell stops the run.
 5. Size Skid A: `cheme process stack --write` writes D-A's reservoir volume (core's
    `reservoir.size: to_horizon`, exact: V = V0 Q(H) / Q*, rounded up to 4 significant
    figures) and the tanks from the duty at it; D-A then runs at that volume, asserted to reach
    its horizon (feasible) with no dosing, bleed, make-up or degassing.
-6. Set Skid B: the bleed b = Cx (1 - WDE) N I / (F C_T) at the setpoint carbon C_T, the dose
-   [b [K+] + (1 - Cx)(1 - WDE) N I / F] / 5 M with [K+] from the setpoints' charge balance,
-   and the make-up b - dose, corrected once from the probe run's volume drift; asserted:
-   |V_end - V0| / V0 <= 1 % and the species at H at the setpoints within 1e-3 mol/L.
+6. Set Skid B at the design basis' setpoints (capacity.pilot_skid.skid_b_setpoints): the bleed
+   b = Cx (1 - WDE) N I / (F C_T) at the setpoint carbon C_T, the dose
+   [b [K+] + (1 - Cx)(1 - WDE) N I / F] / c_dose with [K+] from the setpoints' charge balance
+   and c_dose D-B's dosing concentration, and the make-up b - dose, corrected once from the
+   probe run's volume drift (N I from the probe's charge over its operating time, so a probe
+   that ends early still gives the right rates); asserted: |V_end - V0| / V0 <= 1 % and the
+   species at H at the setpoints within 1e-3 mol/L.
 7. Copy D-A's volume into the comparison duties (they run at STK-A's arrangement through
    `stack: STK-A`; asserted equal to the stack's).
 8. `cheme datasheets draft` (new tags only), then `cheme process stack --write` again: the
    tanks and the pumps' type_specific from the duties as they now are. The tool owns those
    values; never hand-edit them.
-9. `cheme run scripts/skid_balance.py` (contract balance-output/1), its values applied to
-   process/flowsheet.yaml (targeted edit), then `cheme process build` (BFD, PFD) and
-   `cheme process streams` for both cases.
+9. `cheme run scripts/skid_balance.py` (contract balance-output/1), its values (flows,
+   compositions, duties, the anolyte temperatures and the compressor and product pressures)
+   applied to process/flowsheet.yaml (targeted edit), then `cheme process build` (BFD, PFD)
+   and `cheme process streams` for both cases. A duty that ends before H is a finding: the
+   balance is then over its operating time; a balance that cannot be made is a finding too,
+   and the flowsheet is left as it was. Then the calculated setpoints of control/loops.yaml:
+   every target linked to a stream (`stream:`, `property:`) from the flowsheet, the stack
+   current (JIC-x01) from `cheme process stack` and the pH setpoint of AIC-201 from D-B.
 10. Layout and datasheets: `cheme layout build` (the 3D model from layout/*.yaml, the
     equipment list's sizes and the P&IDs; routing every line, so the same as `cheme layout
     route` without --line); the draft datasheets drafted again from the model as it now is,
@@ -51,8 +62,11 @@ Steps (design spec #330, section 6):
 13. Envelope check: per skid, the union of the layout model's bounding boxes of the items on
     frame SKID-A or SKID-B against the frame's plan and the deck plus the usable height
     (process/design-basis.yaml skid_envelope), plus core's "is not inside structure"
-    findings of `cheme validate --json`; the generated details (tank roof handrails, ladders)
-    and the pipes above the envelope are reported apart. Then the validate findings.
+    findings of `cheme validate --json`, and the stacks' maintenance access (process/cells.yaml
+    stacks[].access: the clear space at the ends and sides of each stack, which core does not
+    model as an envelope) against the other items; the generated details (tank roof
+    handrails, ladders, hose valves) above the envelope or outside the frame in plan and the
+    pipes above it are reported apart. Then the validate findings.
 
 14. Conditional invariants: per skid, from the duty's series, the hours outside the measured
     current density (core's time_outside_measured_range_h), temperature (the cooler duty
@@ -73,15 +87,18 @@ Steps (design spec #330, section 6):
 17. The resize report results/resize-1000h-10000h.{json,md} once both scenarios' records exist:
     one row per quantity and skid with both values, changed or not, its rule
     (invariant-of-duration, proportional-to-duration, fixed-by-setpoint, amortisation,
-    infeasible), the calculated cause and the frozen hand value of results/expected.yaml with
-    its tolerance and status; and the unchanged artefacts (P&ID sha256, stack dimensions).
+    infeasible), the calculated cause (its inputs taken from the records) and the frozen hand
+    value of results/expected.yaml with its tolerance and status, and the errata of the frozen
+    file (results/expected-errata.yaml); the unchanged artefacts (P&ID sha256, stack
+    dimensions); and the results table of README.md (between its regen markers).
 18. --record: `cheme runs record --kind manual --slug regen-<H>h --report-file
     results/resize-1000h-10000h.md` (the session record of ADR 0020, not the calculation
     record).
 19. --check: every scenario (or only --duration H) regenerated in a temporary copy and compared
-    with the committed records, the resize report, the scenario's figures and, for the design
-    duration, the model files and datasheets (exit 3 on a difference). The uncertainty runs are
-    repeated for a scenario whose uncertainty.json is committed.
+    with the committed records, the resize report, the README results table, the scenario's
+    figures and, for the design duration, the model files (with control/loops.yaml) and
+    datasheets (exit 3 on a difference). The uncertainty runs are repeated for a scenario whose
+    uncertainty.json is committed.
 
 Findings are collected, never fatal: an infeasible skid is a result. The exit code is non-zero
 only on a tool error (1), on refused input (2) or on a --check difference (3).
@@ -104,17 +121,20 @@ import _yamledit as ye
 import yaml
 
 SCRIPT = "scripts/regen.py"
+#: the hand-maintained inputs that regen reads and never writes (hashed in step 1); the files
+#: it writes in part are hashed after the run (MODEL_FILES, the record's model_sha256)
 INPUTS = (
     "process/design-basis.yaml",
-    "process/cells.yaml",
-    "process/duties.yaml",
-    "process/flowsheet.yaml",
     "process/materials.yaml",
     "process/reactions.yaml",
-    "equipment/equipment-list.yaml",
     "experiments/electrochemistry/rbpm-1m-koh.yaml",
+    "layout/equipment-placement.yaml",
+    "layout/structures.yaml",
+    "layout/zones.yaml",
+    "control/cause-effect.yaml",
+    "control/sequences.yaml",
 )
-#: what --check compares (the model files this stage writes)
+#: what --check compares (the model files this stage writes); hashed after the run
 MODEL_FILES = (
     "process/cells.yaml",
     "process/duties.yaml",
@@ -123,7 +143,12 @@ MODEL_FILES = (
     "process/PFD.xml",
     "equipment/equipment-list.yaml",
     "layout/plant-model.yaml",
+    "control/loops.yaml",
 )
+README = "README.md"
+README_BEGIN = "<!-- regen:results begin (scripts/regen.py step 17; do not edit) -->"
+README_END = "<!-- regen:results end -->"
+ERRATA = "results/expected-errata.yaml"
 #: the figure folders of one scenario (H substituted), written by steps 10, 12 and 15
 SCENARIO_FIGURES = ("figures/skids/{h}h", "figures/duty/{h}h", "figures/compare/{h}h")
 #: the records of one scenario (steps 15 and 16)
@@ -165,9 +190,13 @@ STACKS = {"A": "STK-A", "B": "STK-B"}
 SKID_DUTIES = {"A": "D-A", "B": "D-B"}
 COMPARISON = ("D-A-ONOFF", "D-A-PART")
 PART_LOAD = ((12.0, 200.0), (12.0, 100.0))  # (h, mA/cm2): both measured points
-#: Skid B's ASSUMED steady state (DESIGN.md D-010): ionic strength about 1.25 mol/L, inside the
-#: anolyte model's 1.5
-SKID_B_SETPOINTS = {"hydroxide_mol_l": 0.5, "carbon_mol_l": 0.25}
+#: the loops whose setpoint regen calculates without a stream link: {loop: (what, skid)}
+CALCULATED_SETPOINTS = {
+    "JIC-101": ("bus_current", "A"),
+    "JIC-201": ("bus_current", "B"),
+    "AIC-201": ("steady_ph", "B"),
+    "LIC-201": ("working_level", "B"),
+}
 
 
 class Refused(RuntimeError):
@@ -195,6 +224,14 @@ class Run:
             return False
         return ye.edit_file(self.root / rel, changes)
 
+    def basis(self) -> dict:
+        return self.load("process/design-basis.yaml")["capacity"]["pilot_skid"]
+
+    def setpoints(self) -> dict[str, float]:
+        """Skid B's ASSUMED steady state (design basis skid_b_setpoints, DESIGN.md D-010)."""
+        sp = self.basis()["skid_b_setpoints"]
+        return {k: float(sp[k]["value"]) for k in ("hydroxide_mol_l", "carbon_mol_l")}
+
     # -- 1 ----------------------------------------------------------------------------------
     def preflight(self) -> None:
         core = _core.core_info()
@@ -202,7 +239,7 @@ class Run:
         for rel in INPUTS:
             path = self.root / rel
             shas[rel] = hashlib.sha256(path.read_bytes()).hexdigest() if path.exists() else None
-        basis = self.load("process/design-basis.yaml")["capacity"]["pilot_skid"]
+        basis = self.basis()
         scenarios = [float(x) for x in basis["duration"]["scenarios"]]
         ad_hoc = self.h not in scenarios
         if ad_hoc:
@@ -211,14 +248,30 @@ class Run:
                 "warning",
                 f"duration {self.h:g} h is not a design scenario {scenarios}: the run is ad hoc",
             )
-        self.summary.update(core=core, inputs_sha256=shas, ad_hoc=ad_hoc, scenarios_h=scenarios)
+        frozen = (self.load(EXPECTED) or {}).get("core") or {}
+        if frozen.get("version") and frozen["version"] != core["version"]:
+            self.note(
+                "1",
+                "warning",
+                f"core {core['version']} is not the {frozen['version']} the expectations were frozen for",
+            )
+        # the record carries the version only: the commit depends on how core was installed
+        self.summary.update(
+            core={"version": core["version"]},
+            core_install_commit=core["commit"],
+            inputs_sha256=shas,
+            ad_hoc=ad_hoc,
+            scenarios_h=scenarios,
+        )
         print(
-            f"[1] core {core['version']} ({core['commit'] or 'commit not recorded'}), H = {self.h:g} h"
+            f"[1] core {core['version']} (installed from {core['commit'] or 'a local tree, commit not recorded'}), H = {self.h:g} h"
         )
 
     # -- 2 ----------------------------------------------------------------------------------
     def sync_product(self) -> None:
-        product = self.load("process/design-basis.yaml")["capacity"]["pilot_skid"]["product"]
+        basis = self.basis()
+        product = basis["product"]
+        hours = basis["operating_hours"]
         cells = self.load("process/cells.yaml")
         changes = []
         for sid in STACKS.values():
@@ -235,14 +288,21 @@ class Run:
                 unit_want, unit_have = product[key].get("unit"), stack["product"][key].get("unit")
                 if key in ("rate", "pressure") and unit_have != unit_want:
                     changes.append((["stacks", ("id", sid), "product", key, "unit"], unit_want))
+            have = stack["replacement"]["operating_hours"]
+            for key in ("value", "unit"):
+                if have.get(key) != hours[key]:
+                    path = ["stacks", ("id", sid), "replacement", "operating_hours", key]
+                    changes.append((path, hours[key]))
         changed = self.edit("process/cells.yaml", changes)
         print(
-            f"[2] stacks[].product {'synced (' + str(len(changes)) + ' values)' if changed else 'current'}"
+            f"[2] stacks[].product and replacement.operating_hours "
+            f"{'synced (' + str(len(changes)) + ' values)' if changed else 'current'}"
         )
 
     # -- 3 ----------------------------------------------------------------------------------
     def horizons(self) -> None:
         duties = self.load("process/duties.yaml")
+        threshold = self.basis()["threshold"]["ph"]
         changes = []
         for did, h in [(d, self.h) for d in SKID_DUTIES.values()] + [
             (d, 3 * self.h) for d in COMPARISON
@@ -251,6 +311,8 @@ class Run:
             want = {"value": h, "unit": "h"}
             if duty["horizon"] != want:
                 changes.append((["duties", ("id", did), "horizon"], want))
+            if duty["threshold"]["ph"] != threshold:
+                changes.append((["duties", ("id", did), "threshold", "ph"], threshold))
         points = []
         t = 0.0
         while t < 3 * self.h:
@@ -306,6 +368,8 @@ class Run:
         volume = next(d for d in self.load("process/duties.yaml")["duties"] if d["id"] == "D-A")[
             "reservoir"
         ]["volume"]
+        if da["refused"]:
+            raise Refused(f"D-A refused by cheme process duty: {da['reasons']}")
         ok = da["ended"] == "horizon" and da["feasible"] and math.isclose(da["horizon_h"], self.h)
         if not ok:
             self.note(
@@ -319,7 +383,7 @@ class Run:
         self.summary["skid_a"] = {
             "volume_exact_l": required,
             "volume_written_l": volume["value"],
-            "limited_by": (da.get("required_volume") or {}).get("limited_by"),
+            "limited_by": da["required_volume_limited_by"],
             "ended": da["ended"],
             "feasible": da["feasible"],
         }
@@ -329,23 +393,21 @@ class Run:
         duties = self.load("process/duties.yaml")
         db = next(d for d in duties["duties"] if d["id"] == "D-B")
         v0 = _litres(db["reservoir"]["volume"])
-        c_dose = float(db["dosing"]["concentration"]["value"])
-        oh_set, ct_set = SKID_B_SETPOINTS["hydroxide_mol_l"], SKID_B_SETPOINTS["carbon_mol_l"]
+        c_dose = _molar(db["dosing"]["concentration"])
+        setpoints = self.setpoints()
+        oh_set, ct_set = setpoints["hydroxide_mol_l"], setpoints["carbon_mol_l"]
         probe = _core.duty(_core.duty_report(self.root, ["D-B"]), "D-B")
+        if probe["refused"]:
+            raise Refused(f"D-B refused by cheme process duty: {probe['reasons']}")
         tot = _core.totals(probe)
         n_cells = int(probe["cells_in_series"]) * int(probe["stacks"])
-        consts = probe["anolyte_model"]["constants"]
-        e_mol_h = tot["charge_c"] / float(probe["horizon_h"]) / _core.FARADAY
+        # the electrons per hour over the time the probe ran, not over H: a probe at stale rates
+        # may end early (threshold, minimum inventory), and its charge covers only that time
+        e_mol_h = tot["charge_c"] / _hours_run(probe) / _core.FARADAY
         co_ion = tot["membrane_cation_mol"] + tot["membrane_carbon_mol"]
         cx = tot["membrane_carbon_mol"] / co_ion  # the duty's carbon share (the titration's)
-        wde = point["wde"]
-        h_conc = consts["Kw"] / oh_set
-        k1, k2 = 10.0 ** -consts["pK1"], 10.0 ** -consts["pK2"]
-        g = (k1 * h_conc + 2 * k1 * k2) / (h_conc**2 + k1 * h_conc + k1 * k2)
-        k_set = oh_set + ct_set * g - h_conc
-        bleed = cx * (1 - wde) * e_mol_h / ct_set
-        dose_mol = bleed * k_set + (1 - cx) * (1 - wde) * e_mol_h
-        dose_l = dose_mol / c_dose
+        b = _steady_b(point["wde"], cx, e_mol_h, setpoints, probe, c_dose)
+        k_set, bleed, dose_mol, dose_l = b["cation_mol_l"], b["bleed_l_h"], b["dose_mol_h"], b["dose_l_h"]
         makeup = bleed - dose_l
 
         def write(makeup_l_h: float) -> None:
@@ -369,7 +431,7 @@ class Run:
 
         write(makeup)
         run = _core.duty(_core.duty_report(self.root, ["D-B"]), "D-B")
-        drift = (v0 - _core.totals(run)["final_volume_l"]) / self.h
+        drift = (v0 - _core.totals(run)["final_volume_l"]) / _hours_run(run)
         makeup += drift
         write(makeup)
         run = _core.duty(_core.duty_report(self.root, ["D-B"]), "D-B")
@@ -403,6 +465,7 @@ class Run:
             "cation_setpoint_mol_l": k_set,
             "final_species_mol_l": species,
             "final_volume_l": v_end,
+            "final_ph": t2["final_ph"],
             "cells": n_cells,
             "ended": run["ended"],
             "feasible": run["feasible"],
@@ -477,12 +540,31 @@ class Run:
     def balance_and_build(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / "balance.json"
-            _core.cheme(
-                self.root, "run", "scripts/skid_balance.py", env={"BALANCE_OUTPUT": str(out)}
+            result = _core.cheme(
+                self.root,
+                "run",
+                "scripts/skid_balance.py",
+                env={"BALANCE_OUTPUT": str(out)},
+                ok=(0, 1),
             )
-            doc = json.loads(out.read_text(encoding="utf-8"))
+            doc = json.loads(out.read_text(encoding="utf-8")) if out.exists() else None
+        if result.returncode != 0 or doc is None:
+            # no balance (a refused duty, a route balance that does not close): a finding; the
+            # flowsheet keeps its values and the record says why
+            message = (result.stderr or result.stdout).strip().splitlines()
+            self.note(
+                "9",
+                "error",
+                "scripts/skid_balance.py made no balance, process/flowsheet.yaml left as it was: "
+                + (message[-1] if message else f"exit {result.returncode}"),
+            )
+            self.summary["balance"] = {"changed_values": 0, "balances": {}, "made": False}
+            _core.cheme(self.root, "process", "build")
+            return
         if doc.get("contract") != "balance-output/1":
             raise _core.CoreError("scripts/skid_balance.py wrote no balance-output/1")
+        for message in doc.get("notes") or []:
+            self.note("9", "error", f"scripts/skid_balance.py: {message}")
         flowsheet = self.load("process/flowsheet.yaml")
         ids = {s["id"] for s in flowsheet["streams"]}
         changes = []
@@ -499,6 +581,18 @@ class Run:
                     want = {"value": values["duty"], "provenance": "assumed", "source": src}
                     if not _same(state.get("duty"), want):
                         changes.append((["streams", ("id", sid), "state", case, "duty"], want))
+                    continue
+                for quantity in ("pressure", "temperature"):
+                    if quantity not in values:
+                        continue
+                    want = {
+                        "value": values[quantity],
+                        "provenance": "assumed",
+                        "source": doc["condition_sources"][case][sid][quantity],
+                    }
+                    if not _same(state.get(quantity), want):
+                        changes.append((["streams", ("id", sid), "state", case, quantity], want))
+                if "flow" not in values:
                     continue
                 want_flow = {
                     "value": values["flow"],
@@ -524,8 +618,61 @@ class Run:
         for case in doc["cases"]:
             table = _core.cheme(self.root, "process", "streams", "--case", case, "--json").json()
             balances[case] = table.get("balances")
-        self.summary["balance"] = {"changed_values": len(changes), "balances": balances}
+        self.summary["balance"] = {"changed_values": len(changes), "balances": balances, "made": True}
         print(f"[9] flowsheet: {len(changes)} value(s) applied; BFD and PFD built")
+
+    def control_setpoints(self) -> None:
+        """The calculated setpoints of control/loops.yaml: a target linked to a stream from the
+        flowsheet (its case's value), the stack current from `cheme process stack`, the Skid B
+        pH setpoint from D-B's steady state (2 decimals) and its level setpoint from the
+        reservoir margin (CALCULATED_SETPOINTS)."""
+        loops = self.load("control/loops.yaml")
+        flowsheet = self.load("process/flowsheet.yaml")
+        streams = {s["id"]: s for s in flowsheet["streams"]}
+        units = flowsheet.get("units") or {}
+        changes = []
+        for loop in loops.get("loops") or []:
+            for i, target in enumerate(loop.get("targets") or []):
+                want = None
+                if target.get("stream") and target.get("property"):
+                    case = (target.get("cases") or loop.get("cases") or [None])[0]
+                    state = ((streams.get(target["stream"]) or {}).get("state") or {}).get(case) or {}
+                    quantity = state.get(target["property"]) or {}
+                    if "value" not in quantity:
+                        self.note(
+                            "9", "warning",
+                            f"{loop['id']}: {target['stream']} {target['property']} has no value in case {case}",
+                        )  # fmt: skip
+                        continue
+                    unit = units.get(target["property"])
+                    if unit and target.get("unit") and target["unit"] != unit:
+                        self.note(
+                            "9", "warning",
+                            f"{loop['id']}: setpoint in {target['unit']}, the flowsheet in {unit}: not synced",
+                        )  # fmt: skip
+                        continue
+                    want = float(quantity["value"])
+                elif target.get("kind") == "setpoint" and loop["id"] in CALCULATED_SETPOINTS:
+                    what, key = CALCULATED_SETPOINTS[loop["id"]]
+                    if what == "bus_current":
+                        want = float(self.summary["stacks"][STACKS[key]]["values"]["bus_current_a"])
+                    elif what == "working_level":
+                        # the working volume in the tank's held volume (its margin), flat ends
+                        stack = next(
+                            s for s in self.load("process/cells.yaml")["stacks"] if s["id"] == STACKS[key]
+                        )
+                        margin = float(stack["equipment"]["reservoir"]["margin"]["value"])
+                        want = round(100.0 / (1.0 + margin), 1)
+                    else:
+                        want = round(float(self.summary["skid_b"]["final_ph"]), 2)
+                if want is None:
+                    continue
+                want = _num(want) if float(want).is_integer() else want
+                if not _same(target.get("value"), want):
+                    changes.append((["loops", ("id", loop["id"]), "targets", i, "value"], want))
+        self.edit("control/loops.yaml", changes)
+        self.summary["control_setpoints"] = {"changed_values": len(changes)}
+        print(f"[9] control/loops.yaml: {len(changes)} calculated setpoint(s) written")
 
     # -- 10 ---------------------------------------------------------------------------------
     def layout_and_datasheets(self) -> None:
@@ -677,7 +824,7 @@ class Run:
         ids = [*SKID_DUTIES.values(), *COMPARISON]
         run = _core.duty_plots(self.root, ids, duty_dir)
         da = _core.duty(run, "D-A")
-        co_rate = _core.totals(da)["product_kg"] / float(da["horizon_h"])
+        co_rate = _core.totals(da)["product_kg"] / _hours_run(da)
         compare_dir = self.root / SCENARIO_FIGURES[2].format(h=h)
         _fresh(compare_dir)
         results = {}
@@ -689,16 +836,9 @@ class Run:
                 self.root, list(duties), target, COMPARE_TOLERANCE, plot=plot
             )
             rows = {
-                r["id"]: {
-                    k: r.get(k)
-                    for k in (
-                        "reached", "ended", "delivered_kg", "elapsed_h", "charge_c",
-                        "energy_kwh", "final_ph", "dosing_hydroxide_kg",
-                        "hydroxide_deficit_mol", "feasible", "reason",
-                    )
-                }
+                r["id"]: {k: v for k, v in r.items() if k != "id"}
                 for r in _core.compare_rows(report)
-            }  # fmt: skip
+            }
             rules = sorted({f.get("rule") for f in _core.findings(report) if f.get("rule")})
             results[name] = {"duties": list(duties), "target_kg": target, "rows": rows, "rules": rules}
             print(
@@ -716,7 +856,7 @@ class Run:
                 "horizon_h": d["horizon_h"],
                 "totals": _core.totals(d),
             }
-            for d in run.get("duties", [])
+            for d in _core.duties(run)
         }
         self.summary["comparisons"] = {"co_rate_kg_h": co_rate, "results": results}
         print(f"[12] duty plots of {', '.join(ids)} in {duty_dir.relative_to(self.root)}")
@@ -785,6 +925,25 @@ class Run:
                 and tags & set(f.get("ids") or [])
             ]
             reasons += [f"core: {m}" for m in clashes]
+            # the stacks' maintenance access (process/cells.yaml stacks[].access): core sizes
+            # the stack footprint with it but draws no envelope for it, so it is checked here
+            cells = self.load("process/cells.yaml")
+            stack_cfg = next(s for s in cells["stacks"] if s["id"] == STACKS[key])
+            access = {k: float(v["value"]) for k, v in (stack_cfg.get("access") or {}).items()}
+            access_clear = _stack_access(items, stack_cfg["tags"], access)
+            reasons += access_clear
+            # generated details outside the frame in plan (ladders, nozzles, hose valves):
+            # reported, not counted, as the details above the envelope
+            outside = []
+            for i in items:
+                p = i["parts_plan"]
+                if p and (p[0] < x0 - tol or p[1] < y0 - tol or p[2] > x1 + tol or p[3] > y1 + tol):
+                    outside.append({"tag": i["tag"], "kind": "parts", "plan": p})
+            for i in _core.model_inline_of(model, f"pid/{skid['sheet']}.xml"):
+                p = i["plan"]
+                if p and (p[0] < x0 - tol or p[1] < y0 - tol or p[2] > x1 + tol or p[3] > y1 + tol):
+                    outside.append({"tag": i["tag"], "kind": "inline", "plan": p})
+            outside.sort(key=lambda d: (d["kind"], d["tag"]))
             details = sorted(
                 (
                     {"tag": i["tag"], "parts_top_m": i["parts_top_m"]}
@@ -815,6 +974,8 @@ class Run:
                 "reasons": reasons,
                 "core_not_inside": core,
                 "details_above_envelope": details,
+                "details_outside_plan": outside,
+                "stack_access_m": access,
                 "pipes_above_envelope": [{"id": p["id"], "line": p["line"], "top_m": p["top_m"]} for p in pipes],
                 "skid_feasible": feasible and bool(duty_ok),
             }
@@ -839,6 +1000,18 @@ class Run:
                     + ", ".join(
                         [f"{d['tag']} details to {d['parts_top_m']:.3f} m" for d in details]
                         + [f"{p['line']} to {p['top_m']:.3f} m" for p in pipes]
+                    ),
+                )
+            if outside:
+                self.note(
+                    "13",
+                    "info",
+                    f"Skid {key}: generated details beyond the frame {skid['frame']} in plan, not "
+                    "counted (ladders, nozzles and hose valves at its edge): "
+                    + ", ".join(
+                        f"{d['tag']} {'details' if d['kind'] == 'parts' else 'inline'} "
+                        f"[{d['plan'][0]:.3f}, {d['plan'][1]:.3f}, {d['plan'][2]:.3f}, {d['plan'][3]:.3f}]"
+                        for d in outside
                     ),
                 )
         accepted = _accepted_ids(self.root)
@@ -939,7 +1112,9 @@ class Run:
         da = next(d for d in self.load("process/duties.yaml")["duties"] if d["id"] == "D-A")
         design_l = _litres(da["reservoir"]["volume"])
         threshold = float(da["threshold"]["ph"])
-        setpoints = SKID_B_SETPOINTS
+        setpoints = self.setpoints()
+        db = next(d for d in self.load("process/duties.yaml")["duties"] if d["id"] == "D-B")
+        c_dose = _molar(db["dosing"]["concentration"])
         rows, band = [], []
         with tempfile.TemporaryDirectory() as tmp:
             for i, (name, shift) in enumerate(UNCERTAINTY_CASES):
@@ -955,10 +1130,15 @@ class Run:
                 d = _core.duty(run, "D-A")
                 if d.get("refused"):
                     raise _core.CoreError(f"--uncertainty {name}: D-A refused: {d.get('reasons')}")
-                required = (d.get("required_volume") or {}).get("volume_l")
+                required = d["required_volume_l"]
                 lasts = d["time_to_threshold_h"] if d["ended"] == "threshold" else self.h
                 e_mol_h = v["cells_total"] * v["stack_current_a"] * 3600.0 / _core.FARADAY
-                b = _steady_b(cell["wde"], cell["cx"], e_mol_h, setpoints, d)
+                tot = _core.totals(d)
+                # the carbon share the specified cell's duty ran at (its membrane block)
+                cell["cx"] = tot["membrane_carbon_mol"] / (
+                    tot["membrane_cation_mol"] + tot["membrane_carbon_mol"]
+                )
+                b = _steady_b(cell["wde"], cell["cx"], e_mol_h, setpoints, d, c_dose)
                 rows.append(
                     {
                         "case": name,
@@ -1018,8 +1198,10 @@ class Run:
                 "pilot-cell as performance: specified at the measured mean and at mean +- 1 sd of "
                 "one parameter at a time (the sample sd over the replicates of P200), and at the "
                 "20 degC meter basis (FE x 273.15 / 293.15, DESIGN.md D-005); the co-ion split "
-                "the membrane block's 0.670; Skid B's rates from the closed-form steady state at "
-                "the setpoints"
+                f"the membrane block's (carbon share {base['cell']['cx']:.4g}, the share the "
+                "bounding duties ran at); Skid B's rates from the closed-form steady state at "
+                f"the setpoints ({setpoints['hydroxide_mol_l']:g} mol/L OH-, "
+                f"{setpoints['carbon_mol_l']:g} mol/L carbon) and D-B's {c_dose:g} mol/L dose"
             ),
             "cases": rows,
             "ranges": ranges,
@@ -1053,8 +1235,8 @@ class Run:
                 threshold,
                 self.h,
                 f"Skid A design reservoir ({design_l:,.0f} L) against WDE +- 1 sd",
-                "Duty D-A at 200 mA/cm2; the reservoir sized at the mean reaches pH 12 early at "
-                "WDE - 1 sd (no time margin, D-009)",
+                f"Duty D-A at 200 mA/cm2; the reservoir sized at the mean reaches pH {threshold:g} "
+                "early at WDE - 1 sd (no time margin, D-009)",
             ),
             encoding="utf-8",
         )
@@ -1145,11 +1327,21 @@ class Run:
             "duty_feasible": duty_ok,
             "feasible": feasible,
             "reasons": reasons,
-            "sentences": []
-            if feasible
-            else [f"Skid {key} cannot meet the {self.h:,.0f} h duty within the skid envelope"],
+            "sentences": _infeasible_sentences(key, self.h, did, s["duties"][did], env["feasible"]),
+            "details_above_envelope": env["details_above_envelope"],
+            "details_outside_plan": env["details_outside_plan"],
+            "stack_access_m": env["stack_access_m"],
             "invariants": s["invariants"][key],
             "duty_result": final["duty"],
+        }
+        reservoir_cfg = stacks_cfg["equipment"]["reservoir"]
+        # the inputs of the resize report's calculated causes (step 17)
+        basis = {
+            "reservoir_margin": margin,
+            "reservoir_aspect_ratio": float(reservoir_cfg["aspect_ratio"]["value"]),
+            "usable_height_m": s["envelope"]["basis"]["usable_height"],
+            "threshold_ph": float(self.basis()["threshold"]["ph"]),
+            "max_stack_voltage_v": float(stacks_cfg["electrical"]["max_stack_voltage"]["value"]),
         }
         if key == "A":
             block["reservoir_volume_exact_l"] = s["skid_a"]["volume_exact_l"]
@@ -1157,6 +1349,16 @@ class Run:
         else:
             b = s["skid_b"]
             tank_cfg = stacks_cfg["equipment"]["dosing_tank"]
+            pump_cfg = stacks_cfg["equipment"]["dosing_pump"]
+            db = next(d for d in self.load("process/duties.yaml")["duties"] if d["id"] == did)
+            basis.update(
+                {f"setpoint_{k}": v for k, v in self.setpoints().items()},
+                dose_concentration_mol_l=_molar(db["dosing"]["concentration"]),
+                dose_density_kg_l=float(db["dosing"]["density"]["value"]),
+                dosing_pump_margin=float(pump_cfg["margin"]["value"]),
+                refill_interval_h=float(tank_cfg["refill_interval"]["value"]),
+                reservoir_volume_l=_litres(db["reservoir"]["volume"]),
+            )
             block.update(
                 bleed_l_h=b["bleed_l_h"],
                 dose_mol_h=b["dose_mol_h"],
@@ -1173,6 +1375,7 @@ class Run:
                 dosing_tank_held_l=v["dosing_solution_per_fill_l"]
                 * (1 + float(tank_cfg["margin"]["value"])),
             )
+        block["sizing_basis"] = basis
         return block
 
     def write_record(self) -> None:
@@ -1186,6 +1389,7 @@ class Run:
             "ad_hoc": s["ad_hoc"],
             "scenarios_h": s["scenarios_h"],
             "core": s["core"],
+            # the hand-maintained inputs regen never writes; the files it writes, after the run
             "inputs_sha256": s["inputs_sha256"],
             "model_sha256": {rel: _sha(root / rel) for rel in MODEL_FILES},
             "pid_sha256": {rel: _sha(root / rel) for rel in PIDS},
@@ -1223,6 +1427,7 @@ class Run:
         self.copy_comparison()
         self.datasheets_and_stacks()
         self.balance_and_build()
+        self.control_setpoints()
         self.layout_and_datasheets()
         self.control()
         self.duty_plots()
@@ -1335,14 +1540,84 @@ def _accepted_ids(root: Path) -> set[str]:
 
 
 def _bounding_cell(point: dict, shift: dict) -> dict:
-    """The specified values of one bounding run: the measured mean of P200 moved by whole sd."""
+    """The specified values of one bounding run: the measured mean of P200 moved by whole sd.
+    The co-ion split is the membrane block's of process/cells.yaml, which _write_specified
+    leaves as it is (a specified cell's duty runs at it); the run reports the share it used."""
     u = point["voltage_v"] + shift.get("u", 0) * point["voltage_sd_v"]
     fe = dict(point["fe"])
     fe["CO"] += shift.get("fe", 0) * point["fe_sd"]["CO"]
     if "meter_k" in shift:  # the flow meter's 0 degC standard basis read at another temperature
         fe = {k: x * 273.15 / shift["meter_k"] for k, x in fe.items()}
     wde = point["wde"] + shift.get("wde", 0) * point["wde_sd"]
-    return {"voltage_v": u, "fe_co": fe["CO"], "fe_h2": fe["H2"], "wde": wde, "cx": 0.670}
+    return {"voltage_v": u, "fe_co": fe["CO"], "fe_h2": fe["H2"], "wde": wde}
+
+
+def _hours_run(duty: dict) -> float:
+    """The hours a duty ran (its operating time; the simulated time without one)."""
+    hours = duty.get("operating_time_h") or duty.get("simulated_h")
+    if not hours:
+        raise _core.CoreError(f"duty {duty.get('id')}: no operating or simulated time")
+    return float(hours)
+
+
+def _molar(q: dict) -> float:
+    """A concentration in mol/L."""
+    unit = q.get("unit", "mol/L")
+    factor = {"mol/L": 1.0, "M": 1.0, "mmol/L": 1e-3, "mol/m3": 1e-3}.get(unit)
+    if factor is None:
+        raise Refused(f"concentration unit {unit} is not known to scripts/regen.py")
+    return float(q["value"]) * factor
+
+
+def _stack_access(items: list[dict], tags: list[str], access: dict[str, float]) -> list[str]:
+    """The clear space at the ends (along the stack axis, the item's own x) and sides of each
+    stack (process/cells.yaml stacks[].access) against the bodies of the other items on the
+    frame, at the stack's height; beyond the frame is the access aisle at grade."""
+    end, side = access.get("end", 0.0), access.get("side", 0.0)
+    by_tag = {i["tag"]: i for i in items}
+    problems = []
+    for tag in tags:
+        stack = by_tag.get(tag)
+        if stack is None:
+            continue
+        x0, y0, z0, x1, y1, z1 = stack["bbox"]
+        axis_y = round(stack["rotation_deg"] / 90.0) % 2 == 1  # the axis runs north-south
+        ex, ey = (0.0, end) if axis_y else (end, 0.0)
+        sx, sy = (side, 0.0) if axis_y else (0.0, side)
+        zones = {
+            "end": [(x0 - ex, y0 - ey, x0 if ex else x1, y0 if ey else y1),
+                    (x1 if ex else x0, y1 if ey else y0, x1 + ex, y1 + ey)],
+            "side": [(x0 - sx, y0 - sy, x0 if sx else x1, y0 if sy else y1),
+                     (x1 if sx else x0, y1 if sy else y0, x1 + sx, y1 + sy)],
+        }  # fmt: skip
+        for kind, boxes in zones.items():
+            clear = end if kind == "end" else side
+            for ax0, ay0, ax1, ay1 in boxes:
+                for other in items:
+                    if other["tag"] == tag:
+                        continue
+                    b = other["bbox"]
+                    tol = 1e-6
+                    if (
+                        b[0] < ax1 - tol and b[3] > ax0 + tol and b[1] < ay1 - tol and b[4] > ay0 + tol
+                        and b[2] < z1 - tol and b[5] > z0 + tol
+                    ):  # fmt: skip
+                        problems.append(
+                            f"stack access: {other['tag']} stands in the {clear:g} m {kind} access of {tag}"
+                        )
+    return sorted(set(problems))
+
+
+def _infeasible_sentences(key: str, h: float, did: str, duty: dict, envelope_ok: bool) -> list[str]:
+    """The sentences of an infeasible skid, one per check that failed."""
+    out = []
+    if not envelope_ok:
+        out.append(f"Skid {key} cannot meet the {h:,.0f} h duty within the skid envelope")
+    if not duty["feasible"] or duty["ended"] != "horizon":
+        out.append(
+            f"Skid {key} cannot meet the {h:,.0f} h duty: duty {did} ended by {duty['ended']}"
+        )
+    return out
 
 
 def _write_specified(process: Path, cell: dict, case: str) -> None:
@@ -1378,9 +1653,13 @@ def _write_specified(process: Path, cell: dict, case: str) -> None:
     path.write_text(yaml.safe_dump(data, sort_keys=False, allow_unicode=True), encoding="utf-8")
 
 
-def _steady_b(wde: float, cx: float, e_mol_h: float, setpoints: dict, duty: dict) -> dict:
-    """Skid B's bleed and dose at the setpoints (step 6's closed form, no probe run)."""
-    consts = duty["anolyte_model"]["constants"]
+def _steady_b(
+    wde: float, cx: float, e_mol_h: float, setpoints: dict, duty: dict, c_dose: float
+) -> dict:
+    """Skid B's bleed and dose at the setpoints, the closed form of step 6: the duty's anolyte
+    constants, the carbon share Cx, the electrons per hour N I / F and the dosing
+    concentration c_dose (mol/L)."""
+    consts = duty["anolyte_constants"]
     oh, ct = setpoints["hydroxide_mol_l"], setpoints["carbon_mol_l"]
     h = consts["Kw"] / oh
     k1, k2 = 10.0 ** -consts["pK1"], 10.0 ** -consts["pK2"]
@@ -1388,7 +1667,12 @@ def _steady_b(wde: float, cx: float, e_mol_h: float, setpoints: dict, duty: dict
     cation = oh + ct * g - h
     bleed = cx * (1 - wde) * e_mol_h / ct
     dose = bleed * cation + (1 - cx) * (1 - wde) * e_mol_h
-    return {"bleed_l_h": bleed, "dose_mol_h": dose, "dose_l_h": dose / 5.0}
+    return {
+        "cation_mol_l": cation,
+        "bleed_l_h": bleed,
+        "dose_mol_h": dose,
+        "dose_l_h": dose / c_dose,
+    }
 
 
 def _scenarios(root: Path) -> tuple[float, list[float]]:
@@ -1397,13 +1681,34 @@ def _scenarios(root: Path) -> tuple[float, list[float]]:
     return float(duration["design"]["value"]), [float(x) for x in duration["scenarios"]]
 
 
-def _resize_texts(root: Path, records: dict[float, dict]) -> dict[str, str]:
+def _resize_texts(
+    root: Path, records: dict[float, dict], uncertainty: dict[float, dict] | None = None
+) -> dict[str, str]:
+    """The resize report (JSON, Markdown) and README.md with its results table regenerated;
+    *uncertainty*: the scenarios' uncertainty.json (default: those in *root*)."""
+    if uncertainty is None:
+        uncertainty = {}
+        for h in records:
+            path = root / UNCERTAINTY.format(h=f"{h:g}")
+            if path.exists():
+                uncertainty[h] = json.loads(path.read_text(encoding="utf-8"))
     expected = yaml.safe_load((root / EXPECTED).read_text(encoding="utf-8"))
-    report = res.resize_report(records, expected)
-    return {
+    errata_path = root / ERRATA
+    errata = yaml.safe_load(errata_path.read_text(encoding="utf-8")) if errata_path.exists() else None
+    report = res.resize_report(records, expected, errata)
+    texts = {
         f"{RESIZE}.json": res.dump(report),
         f"{RESIZE}.md": res.resize_markdown(res.tidy(report)),
     }
+    readme = root / README
+    if readme.exists():
+        text = readme.read_text(encoding="utf-8")
+        if README_BEGIN in text and README_END in text:
+            head, rest = text.split(README_BEGIN, 1)
+            _, tail = rest.split(README_END, 1)
+            table = res.readme_table(records, uncertainty)
+            texts[README] = f"{head}{README_BEGIN}\n{table}{README_END}{tail}"
+    return texts
 
 
 def write_resize(root: Path) -> list[str]:
@@ -1414,6 +1719,10 @@ def write_resize(root: Path) -> list[str]:
         print("[17] resize report: waits for the record of every design scenario")
         return []
     records = {h: json.loads(p.read_text(encoding="utf-8")) for h, p in paths.items()}
+    stale = [f"{h:g} h" for h, r in records.items() if "sizing_basis" not in r["skids"]["A"]]
+    if stale:
+        print(f"[17] resize report: waits for the record of {', '.join(stale)} from this regen.py")
+        return []
     written = []
     for rel, text in _resize_texts(root, records).items():
         (root / rel).parent.mkdir(parents=True, exist_ok=True)
@@ -1424,6 +1733,7 @@ def write_resize(root: Path) -> list[str]:
     print(
         f"[17] {RESIZE}.md: {s['rows']} rows, hand checks failed {s['hand_checks_failed']}, "
         f"rules broken {s['rules_broken'] or 'none'}"
+        + ("; README.md results table" if README in written else "")
     )
     return written
 
@@ -1437,6 +1747,7 @@ def _check(root: Path, durations: list[float]) -> int:
     design, scenarios = _scenarios(root)
     differ: list[str] = []
     records: dict[float, dict] = {}
+    uncertainty: dict[float, dict] = {}
     with tempfile.TemporaryDirectory() as tmp:
         for h in durations:
             scratch = Path(tmp) / f"{h:g}h" / root.name
@@ -1462,8 +1773,12 @@ def _check(root: Path, durations: list[float]) -> int:
                         differ.append(name)
             path = scratch / RECORD.format(h=f"{h:g}")
             records[h] = json.loads(path.read_text(encoding="utf-8"))
+            unc = scratch / UNCERTAINTY.format(h=f"{h:g}")
+            if unc.exists():
+                uncertainty[h] = json.loads(unc.read_text(encoding="utf-8"))
     if len(scenarios) == 2 and set(scenarios) <= set(records):
-        for rel, text in _resize_texts(root, {h: records[h] for h in scenarios}).items():
+        texts = _resize_texts(root, {h: records[h] for h in scenarios}, uncertainty)
+        for rel, text in texts.items():
             if not (root / rel).exists() or (root / rel).read_text(encoding="utf-8") != text:
                 differ.append(rel)
     for rel in differ:

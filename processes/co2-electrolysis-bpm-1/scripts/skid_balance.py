@@ -17,7 +17,11 @@ What it does (DESIGN.md D-007, D-011, D-012):
    the anolyte through the membrane and the cation and carbon bled (core's totals by route,
    ADR 0044 amendment), the dosed solution, the make-up water, and the reservoir's initial
    fill and final inventory, each divided by H (KOH-FILL and SPENT are campaign-averaged,
-   D-011).
+   D-011). A duty that ends before its horizon (threshold, minimum inventory) is a result,
+   not a stop: its rates are over the hours it ran, and the output says so (``notes``).
+   The conditions that follow the inputs: the anolyte temperatures (the cell temperature, less
+   the stack heat over the loop flow across the cooler), the compressor discharge and the
+   product pressure (design basis).
 3. The cation and the carbon balances of each duty close by route to 1e-9 relative (else the
    script stops): initial + dosed - bled - membrane = final for K, initial + membrane - bled -
    degassed = final for C. Every flowsheet step's mass and component balance then closes by
@@ -65,14 +69,19 @@ FORMULA = {
 M = {c: sum(ATOMIC[e] * n for e, n in f.items()) for c, f in FORMULA.items()}  # g/mol
 GAS_CONSTANT = 8.314462618  # J/(mol K)
 
-# -- ASSUMED inputs of the balance (DESIGN.md D-011, D-012); every one is marked in the sources
-#: density of the 1 M KOH fill and the anolyte, kg/L (as the pump density of process/cells.yaml)
-RHO_ANOLYTE = 1.05
+# -- ASSUMED inputs of the balance (DESIGN.md D-011, D-012); every one is marked in the sources.
+# The density of the 1 M KOH fill and the anolyte is the recirculation pump's of process/cells.yaml
+# (read from cheme process stack), the cell temperature pilot-cell thermal.temperature, the
+# product pressure and the PSA's pressure loss the design basis' (capacity.pilot_skid).
 #: density of the make-up water, kg/L (25 degC)
 RHO_WATER = 0.997
-#: the cathode separator V-x21 and the gas it passes on: 25 degC and 110 kPa(a), saturated
+#: the cathode separator V-x21 and the gas it passes on: 25 degC and 110 kPa(a), saturated (its
+#: own design condition, D-012, not the anolyte's temperature)
 P_CATHODE_KPA = 110.0
 T_CATHODE_K = 298.15
+#: heat capacity of the anolyte (about 1 M KOH with its carbonate), kJ/(kg K): ASSUMED, a few %
+#: below water's 4.18; it sets the cooler's temperature drop at the stack heat (D-012)
+CP_ANOLYTE = 3.95
 #: saturation pressure of water at 25 degC, kPa (IAPWS-95, Wagner and Pruss 2002)
 P_SAT_25C_KPA = 3.1699
 #: the K+ that crosses to the cathode leaves as K2CO3 in its condensate at this molality, mol/kg
@@ -85,9 +94,9 @@ P_STD_PA = 101325.0
 #: tail-gas oxidiser: air over the stoichiometric O2 (ASSUMED), air composition (mol)
 AIR_RATIO = 2.0
 AIR = {"N2": 0.79, "O2": 0.21}
-#: the compressor K-x31 (ESTIMATE until its datasheet is filled): 110 to 600 kPa(a)
-#: adiabatic from 25 degC, kappa 1.3, efficiency 0.5 (a small diaphragm machine)
-P_DISCHARGE_KPA = 600.0
+#: the compressor K-x31 (ESTIMATE until its datasheet is filled): from 110 kPa(a) to the product
+#: pressure plus the PSA's loss (design basis), adiabatic from 25 degC, kappa 1.3, efficiency
+#: 0.5 (a small diaphragm machine)
 KAPPA = 1.3
 ETA_COMPRESSOR = 0.5
 #: the pumps (ESTIMATE until their datasheets are filled): hydraulic power over efficiency
@@ -107,14 +116,36 @@ def _rel_close(a: float, b: float, rel: float) -> bool:
     return abs(a - b) <= rel * max(abs(a), abs(b), 1e-300)
 
 
+#: pressures to kPa
+KPA = {"bar(a)": 100.0, "bar": 100.0, "kPa(a)": 1.0, "kPa": 1.0, "MPa(a)": 1000.0}
+
+
+def _kpa(q: dict, what: str) -> float:
+    unit = q.get("unit")
+    if unit not in KPA:
+        raise BalanceError(f"{what}: pressure unit {unit} is not known to {SCRIPT}")
+    return float(q["value"]) * KPA[unit]
+
+
 def design_basis() -> dict:
     data = yaml.safe_load((ROOT / "process/design-basis.yaml").read_text(encoding="utf-8"))
     skid = data["capacity"]["pilot_skid"]
+    cells = yaml.safe_load((ROOT / "process/cells.yaml").read_text(encoding="utf-8"))
+    pilot = next(c for c in cells["cells"] if c["id"] == "pilot-cell")
+    temperature = pilot["thermal"]["temperature"]
+    if temperature.get("unit") not in ("°C", "degC", "K"):
+        raise BalanceError(f"pilot-cell temperature unit {temperature.get('unit')} is not known")
+    t_cell = float(temperature["value"]) + (0.0 if temperature["unit"] == "K" else 273.15)
+    product_kpa = _kpa(skid["product"]["pressure"], "capacity.pilot_skid.product.pressure")
     return {
         "recovery": float(skid["product"]["recovery"]["value"]),
         "purity": float(skid["product"]["purity"]["value"]),
         "co2_feed_sccm_cm2": float(skid["co2_feed_per_area"]["value"]),
         "co2_recycle": float(skid["co2_recycle"]["value"]),
+        "product_kpa": product_kpa,
+        "discharge_kpa": product_kpa
+        + _kpa(skid["psa_pressure_loss"], "capacity.pilot_skid.psa_pressure_loss"),
+        "cell_temperature_k": t_cell,
     }
 
 
@@ -160,12 +191,20 @@ def train(t: str, stack_rep: dict, duty_rep: dict, cell_pt: dict, basis: dict) -
     n = info["n"]
     st = _core.stack(stack_rep, info["stack"])
     du = _core.duty(duty_rep, info["duty"])
+    if du["refused"]:
+        raise BalanceError(f"duty {info['duty']} is refused by core: {du['reasons']}")
     tot = _core.totals(du)
-    h = float(du["horizon_h"])
-    if du.get("ended") != "horizon" or not du.get("feasible"):
-        raise BalanceError(
-            f"duty {info['duty']} does not run to its horizon (ended {du.get('ended')}, "
-            f"feasible {du.get('feasible')}): no campaign balance"
+    # the rates per hour over the time the duty ran: H when it reaches its horizon, else its
+    # operating time (an infeasible duty is a result, reported, not a stop: DESIGN.md D-023)
+    h = float(du["operating_time_h"] or du["simulated_h"] or 0.0)
+    if h <= 0:
+        raise BalanceError(f"duty {info['duty']} ran no time: no balance")
+    notes = []
+    if du["ended"] != "horizon" or not du["feasible"]:
+        notes.append(
+            f"duty {info['duty']} ended by {du['ended']} after {h:g} h of the "
+            f"{float(du['horizon_h']):g} h horizon (feasible {du['feasible']}): train {t}'s "
+            f"rates are over its {h:g} h of operation, not a campaign of H"
         )
     cells = int(du["cells_in_series"]) * int(du["stacks"])
     if cells != int(_core.stack_value(st, "cells_total")):
@@ -173,6 +212,7 @@ def train(t: str, stack_rep: dict, duty_rep: dict, cell_pt: dict, basis: dict) -
             f"duty {info['duty']} runs {cells} cells, stack {info['stack']} has another"
         )
     src = f"{SCRIPT}: duty {info['duty']} at {du['cells_in_series']} x {du['stacks']} over {h:g} h"
+    rho_anolyte = _core.equipment_number(st, f"P-{n}01", "density_kg_m3") / 1000.0  # kg/L
 
     # the route balances (core ADR 0044 amendment): K and C close on their own
     k_in = tot["initial_cation_mol"] + tot["dosing_cation_mol"]
@@ -244,7 +284,7 @@ def train(t: str, stack_rep: dict, duty_rep: dict, cell_pt: dict, basis: dict) -
             tot["initial_cation_mol"],
             tot["initial_carbon_mol"],
             tot["initial_volume_l"],
-            RHO_ANOLYTE,
+            rho_anolyte,
         ).items()
     }
     dose_mol = tot["dosing_mol"] / h
@@ -279,7 +319,7 @@ def train(t: str, stack_rep: dict, duty_rep: dict, cell_pt: dict, basis: dict) -
         mean_c = tot["final_carbon_mol"] / tot["final_volume_l"]
         state_note = "the steady state at H"
     loop_flow = _core.equipment_number(st, f"P-{n}01", "mass_flow_kg_h")
-    per_l = solution(mean_k, mean_c, 1.0, RHO_ANOLYTE)
+    per_l = solution(mean_k, mean_c, 1.0, rho_anolyte)
     scale = loop_flow / mass(per_l)
     loop = {c: v * scale for c, v in per_l.items()}
     ret = {
@@ -292,7 +332,8 @@ def train(t: str, stack_rep: dict, duty_rep: dict, cell_pt: dict, basis: dict) -
     s: dict[str, dict] = {}
     p = f"S{n}"
     s[f"{p}01"] = stream(
-        {"CO2": fresh}, f"{src}: CO2 fed {feed:.6g} mol/h (10 sccm/cm2) less the recycle"
+        {"CO2": fresh},
+        f"{src}: CO2 fed {feed:.6g} mol/h ({basis['co2_feed_sccm_cm2']:g} sccm/cm2) less the recycle",
     )
     s[f"{p}02"] = stream(
         {"H2O": humid},
@@ -318,6 +359,23 @@ def train(t: str, stack_rep: dict, duty_rep: dict, cell_pt: dict, basis: dict) -
         {"CO": co_del, "H2": h2_prod},
         f"{src}: recovery {basis['recovery']:g} of the CO formed at {basis['purity']:g} mol/mol dry (ASSUMED, D-008)",
     )
+    # the conditions that follow the design basis (D-012): the compressor discharge is the
+    # product pressure plus the PSA's loss
+    s[f"{p}07"]["conditions"] = {
+        "pressure": (
+            basis["discharge_kpa"],
+            f"{SCRIPT}: the product pressure {basis['product_kpa']:g} kPa(a) plus the PSA loss "
+            f"{basis['discharge_kpa'] - basis['product_kpa']:g} kPa (process/design-basis.yaml "
+            "capacity.pilot_skid, ASSUMED, D-012)",
+        )
+    }
+    s[f"{p}08"]["conditions"] = {
+        "pressure": (
+            basis["product_kpa"],
+            f"{SCRIPT}: the product pressure of process/design-basis.yaml capacity.pilot_skid "
+            "(ASSUMED, D-008)",
+        )
+    }
     s[f"{p}09"] = stream(tail, f"{src}: the PSA's rest")
     s[f"{p}10"] = stream(
         air, f"{src}: {AIR_RATIO:g} x the stoichiometric O2 of the tail gas (ASSUMED)"
@@ -332,6 +390,25 @@ def train(t: str, stack_rep: dict, duty_rep: dict, cell_pt: dict, basis: dict) -
         ret,
         f"{src}: the loop with the membrane's K+ out, carbon in (core totals by route) and the anode O2",
     )
+    # the anolyte temperatures: the stacks return it at the cell temperature, and the cooler
+    # E-x11 takes the stack heat out of the loop flow ahead of them (D-012)
+    heat_kw = _core.stack_value(st, "heat_duty_kw")
+    t_cell = basis["cell_temperature_k"]
+    drop = heat_kw / (loop_flow / 3600.0 * CP_ANOLYTE)
+    t_src = (
+        f"{SCRIPT}: the pilot-cell temperature (process/cells.yaml, ASSUMED); the stacks return the "
+        "anolyte at it"
+    )
+    s[f"{p}13"]["conditions"] = {"temperature": (t_cell, t_src)}
+    s[f"{p}15"]["conditions"] = {"temperature": (t_cell, t_src)}
+    s[f"{p}14"]["conditions"] = {
+        "temperature": (
+            t_cell - drop,
+            f"{SCRIPT}: the cell temperature less the stack heat {heat_kw:.4g} kW over "
+            f"{loop_flow:g} kg/h at cp {CP_ANOLYTE:g} kJ/(kg K) (ASSUMED): {drop:.3f} K across "
+            f"the cooler E-{n}11",
+        )
+    }
     s[f"{p}16"] = stream({"O2": o2}, f"{src}: the anode O2 (overall reactions), dry (ASSUMED)")
     s[f"{p}17"] = stream(
         fill,
@@ -341,9 +418,7 @@ def train(t: str, stack_rep: dict, duty_rep: dict, cell_pt: dict, basis: dict) -
         liquid["spent"], f"{src}: the final inventory over H (campaign-averaged, D-011)"
     )
     if t == "B":
-        s["S219"] = stream(
-            dose, f"{src}: the 5 M KOH dosed, {tot['dosing_solution_l'] / h:.6g} L/h"
-        )
+        s["S219"] = stream(dose, f"{src}: the KOH dosed, {tot['dosing_solution_l'] / h:.6g} L/h")
         s["S220"] = dict(s["S219"])
         s["S221"] = dict(s["S219"])
         s["S222"] = stream(
@@ -374,13 +449,13 @@ def train(t: str, stack_rep: dict, duty_rep: dict, cell_pt: dict, basis: dict) -
     comp = datasheet_power(f"K-{n}31")
     comp_src = f"equipment/datasheets/K-{n}31.yaml"
     if comp is None:
-        ratio = P_DISCHARGE_KPA / P_CATHODE_KPA
+        ratio = basis["discharge_kpa"] / P_CATHODE_KPA
         comp = (
             gas_mol_s * GAS_CONSTANT * T_CATHODE_K * KAPPA / (KAPPA - 1.0)
             * (ratio ** ((KAPPA - 1.0) / KAPPA) - 1.0) / ETA_COMPRESSOR / 1000.0
         )  # fmt: skip
         comp_src = (
-            f"ESTIMATE adiabatic {P_CATHODE_KPA:g} to {P_DISCHARGE_KPA:g} kPa(a), kappa {KAPPA:g}, "
+            f"ESTIMATE adiabatic {P_CATHODE_KPA:g} to {basis['discharge_kpa']:g} kPa(a), kappa {KAPPA:g}, "
             f"efficiency {ETA_COMPRESSOR:g} until the datasheet fill"
         )
     psa = PSA_KWH_PER_KG * mass({"CO": co_del})
@@ -396,7 +471,7 @@ def train(t: str, stack_rep: dict, duty_rep: dict, cell_pt: dict, basis: dict) -
             f"{SCRIPT}: X-{n}31 ESTIMATE {PSA_KWH_PER_KG:g} kWh/kg CO delivered, TBD vendor",
         ),
         f"Q{n}05": (
-            _core.stack_value(st, "heat_duty_kw"),
+            heat_kw,
             f"{src}: the stacks' heat (cheme process stack), removed by E-{n}11 (isothermal by assumption)",
         ),
     }
@@ -419,6 +494,7 @@ def train(t: str, stack_rep: dict, duty_rep: dict, cell_pt: dict, basis: dict) -
         "energy": {k: {"duty": v, "source": src_} for k, (v, src_) in q.items()},
         "horizon_h": h,
         "check": {"k": (k_in, k_out), "c": (c_in, c_out)},
+        "notes": notes,
     }
 
 
@@ -446,6 +522,7 @@ def compute() -> dict:
     trains = {t: train(t, stack_rep, duty_rep, cell_pt, basis) for t in TRAINS}
     cases: dict[str, dict] = {}
     sources: dict[str, dict] = {}
+    conditions: dict[str, dict] = {}
     for case, running in CASES.items():
         values: dict[str, dict] = {}
         for t, result in trains.items():
@@ -453,11 +530,22 @@ def compute() -> dict:
             for sid, v in use["streams"].items():
                 values[sid] = {"flow": v["flow"], "composition": v["composition"]}
                 sources.setdefault(case, {})[sid] = v["source"]
+                # the design conditions hold in both cases (an idle train keeps them)
+                for quantity, (value, src) in (result["streams"][sid].get("conditions") or {}).items():
+                    values[sid][quantity] = value
+                    conditions.setdefault(case, {}).setdefault(sid, {})[quantity] = src
             for qid, v in use["energy"].items():
                 values[qid] = {"duty": v["duty"]}
                 sources.setdefault(case, {})[qid] = v["source"]
         cases[case] = values
-    return {"cases": cases, "sources": sources, "trains": trains}
+    notes = [n for r in trains.values() for n in r["notes"]]
+    return {
+        "cases": cases,
+        "sources": sources,
+        "condition_sources": conditions,
+        "notes": notes,
+        "trains": trains,
+    }
 
 
 def main() -> int:
@@ -472,7 +560,11 @@ def main() -> int:
         "script": SCRIPT,
         "cases": result["cases"],
         "sources": result["sources"],
+        "condition_sources": result["condition_sources"],
+        "notes": result["notes"],
     }
+    for note in result["notes"]:
+        print(f"skid_balance: {note}", file=sys.stderr)
     if target:
         Path(target).write_text(json.dumps(doc, indent=1, sort_keys=True), encoding="utf-8")
     for t, r in result["trains"].items():
