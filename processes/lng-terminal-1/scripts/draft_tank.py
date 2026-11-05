@@ -16,7 +16,10 @@ vacuum (#15), an independent second high-high level LZT-n106 on its own nozzle, 
 LZT-n102 (#16), an isolation valve and a vent / N2 purge connection on every pump column
 (#24, H-02 A3). Round 2: the CV/HV spool of each column is relieved to the column by a
 pressure-equalising hole in the check valve disc (sheet note), the relief valve tags are
-printed.
+printed. Follow-up review (reviews/2026-11-05-basic-design-2.md, D-026): the locked-open inlet
+isolation HV-n134A..C / HV-n135A..C of every pressure PSV and vacuum valve is drawn, with the
+mechanical interlock in a sheet note (D-026.11); the column vent procedure of D-026.9; TI-n105
+is monitoring only (bottom heating not done at basic, D-025).
 """
 
 import sys
@@ -82,7 +85,7 @@ INSTS = [  # (nozzle, tag, service, notes)
     ("I4", f"TI-{n}104", f"{TK} liquid and vapour temperatures (multipoint)", "Cooldown and stratification."),
     ("I5", f"PI-{n}111", f"{TK} pressure", "Split-range pressure control is on the header, PIC-1110 / PIC-1111 (P-01)."),
     ("I6", f"PZT-{n}112", f"{TK} pressure (independent, high-high and low-low)", f"C&E I-{n}03, I-{n}04."),
-    ("I7", f"TI-{n}105", f"{TK} annular space and bottom temperatures", "Inner tank leak detection; bottom heating control.")]
+    ("I7", f"TI-{n}105", f"{TK} annular space and bottom temperatures", "Inner tank leak detection; bottom / foundation temperature monitoring (tank bottom heating is not done at basic, recorded for detail engineering, D-025).")]
 inst_y = [139 + 10 * i for i in range(len(INSTS))]
 noz += [Nozzle(nz, (-72, y - CY), 50) for (nz, *_), y in zip(INSTS, inst_y)]
 tank = equipment(sheet, "Tank", TK, shape=tank_shape(sheet), at=(CX, CY), scale=SC, nozzles=noz,
@@ -163,7 +166,7 @@ for k in "ABCDR":
     j = "12345"["ABCDR".index(k)]
     L.line(sheet, f"BOG-{n}01{j}", dn=25, fluid="Boil-off gas",
            frm=pump_tag, to="atmosphere (roof) / N2 hose", insulation="none", labels=False,
-           notes=f"{pump_tag} column vent and N2 purge connection HV-{n}16{j} (ball valve, blind-flanged, to atmosphere at the roof; N2 hose for purging before the pump is lifted; vendor to confirm, H-02 A3). Number and size in the sheet note.",
+           notes=f"{pump_tag} column vent and N2 purge connection HV-{n}16{j} (ball valve, blind-flanged). Opened only after the column has been displaced with N2 into {TK} through the hose connection (foot valve open, pump lowered on its seat); it then releases N2 with traces of methane at the tank roof, inside the roof hazardous area; the vendor's lifting procedure governs (D-026.9, H-02 A3). Number and size in the sheet note.",
            route=[vents[k].branch,
                   valve(f"HV{n}16{j}", "BallValve", tag=f"HV-{n}16{j}", at=(x + 5, VENT_Y)),
                   offpage("out", at=(x + 10, VENT_Y))])
@@ -218,33 +221,60 @@ L.line(sheet, "BOG-1001" if n == "2" else "BOG-1003", dn=750 if n == "2" else 60
        label_at=(212, 93))
 
 # ---- relief: 3 PSVs to atmosphere, 3 vacuum relief valves, N+1 each (D-017, review #15) -------
-N1_NOTE = "N+1, interlocked locked-open inlet isolation (vendor)"
+ISO_X = 217  # the locked-open inlet isolation of every relief device (D-026.11)
+
+
+def n1_note(iso):
+    return (f"N+1; inlet isolation {iso} locked open, mechanically interlocked with the other two "
+            f"so that two of the three devices are always in service (D-026.11, review #15)")
+
+
+def relief_isolation(tag, y):
+    """The locked-open inlet isolation between the tank nozzle and a relief device (D-026.11):
+    a ball valve, its tag below the line and LO above the symbol."""
+    iso = valve(tag.replace("-", ""), "BallValve", tag=tag, at=(ISO_X, y))
+    return iso, lambda: (label(sheet, iso.id, "PipingComponentNumber", at=(ISO_X, y + 4)),
+                         note(sheet, "LO", at=(ISO_X, y - 3.5), size=2.2, align="CenterCenter",
+                              id=f"NoteLO_{iso.id}"))
+
+
+after = []  # labels of the isolation valves, once their lines exist
 for i, (nz, y) in enumerate(zip(["N4", "N5", "N11"], PSV_Y)):
     s = "ABC"[i]
     riser = 236 + 12 * i
+    iso_tag = f"HV-{n}134{s}"
+    iso, labels_ = relief_isolation(iso_tag, y)
     v = L.relief(f"PSV{n}131{s}", f"PSV-{n}131{s}", f"BOG-{n}00{2 + i}", 0.29,
-                 "loss of the BOG compressors at loading (45.6 t/h return plus the rundown displacement), fire, rollover as a check case",
-                 f"{TK} pressure relief to atmosphere through an elevated tailpipe; last resort after PV-1110 (D-017). Set at the design pressure +29 kPa(g), ASSUMED. {N1_NOTE} (review #15).",
+                 "loss of the BOG compressors at loading (45.6 t/h return plus the rundown displacement), fire, rollover as a check case, fuel gas blow-by through FO-1117 with PV-1111 failed open (D-026)",
+                 f"{TK} pressure relief to atmosphere through an elevated tailpipe; last resort after PV-1110 (D-017). Set at the design pressure +29 kPa(g), ASSUMED. {n1_note(iso_tag)}.",
                  label_at=(PSV_X, y - 4))
     v.at = (PSV_X, y)
     L.line(sheet, f"BOG-{n}00{2 + i}", dn=250, fluid="Boil-off gas", frm=TK, to="atmosphere",
-           notes=f"PSV-{n}131{s} inlet and tailpipe to atmosphere.", insulation="none",
-           route=[tank[nz], (205, y), v, (riser, y),
+           notes=f"PSV-{n}131{s} inlet, with the locked-open inlet isolation {iso_tag} (D-026.11), and tailpipe to atmosphere.",
+           insulation="none",
+           route=[tank[nz], (205, y), iso, v, (riser, y),
                   offpage("out", at=(riser, 125), note="to atmosphere" if i == 0 else None,
                           note_at=(248, 116), rotation=UP)],
-           label_at=(206, y - 7))
+           label_at=(202, y - 7))
+    after.append(labels_)
 for i, (nz, y) in enumerate(zip(["N6", "N7", "N12"], VAC_Y)):
     s = "ABC"[i]
+    iso_tag = f"HV-{n}135{s}"
+    iso, labels_ = relief_isolation(iso_tag, y)
     v = L.relief(f"PSV{n}133{s}", f"PSV-{n}133{s}", f"A-{n}00{1 + i}", -0.003,
                  "vacuum: withdrawal at the full loading rate with the make-up gas failed",
-                 f"{TK} vacuum relief valve admitting air; last resort after PIC-1111 make-up and the I-{n}04 trip (D-017). Set -0.3 kPa(g), less negative than the -0.5 kPa(g) design vacuum, ASSUMED. {N1_NOTE} (review #15).",
+                 f"{TK} vacuum relief valve admitting air; last resort after PIC-1111 make-up and the I-{n}04 trip (D-017). Set -0.3 kPa(g), less negative than the -0.5 kPa(g) design vacuum, ASSUMED. {n1_note(iso_tag)}.",
                  cls="BreatherValve", label_at=(VAC_X, y - 4))
     v.at = (VAC_X, y)
     L.line(sheet, f"A-{n}00{1 + i}", dn=250, fluid="Air", frm="atmosphere", to=TK,
-           notes=f"Vacuum relief inlet of {TK} (PSV-{n}133{s}).", insulation="none",
+           notes=f"Vacuum relief inlet of {TK} (PSV-{n}133{s}), with the locked-open isolation {iso_tag} between the valve and the tank nozzle (D-026.11).",
+           insulation="none",
            route=[offpage("in", at=(285, y), note="from atmosphere" if i == 0 else None,
-                          note_at=(276, y - 6), rotation=180), v, tank[nz]],
+                          note_at=(276, y - 6), rotation=180), v, iso, tank[nz]],
            label_at=(256, y - 7))
+    after.append(labels_)
+for labels_ in after:
+    labels_()
 
 # ---- tank instrumentation (D-007) -------------------------------------------------------------
 for (nz, tag, service, notes_), y in zip(INSTS, inst_y):
@@ -253,11 +283,12 @@ for (nz, tag, service, notes_), y in zip(INSTS, inst_y):
 NOTES = [
     f"{TK}: full containment, 225,000 m3 working, {phase} (D-007). In-tank pumps hang in their pump columns with foot valves; every nozzle passes through the roof (drawn on the shell for clarity, D-021).",
     f"Minimum-flow returns FV-{n}111A..D: LNG-{n}021..{n}024 DN 150; FV-{n}112: LNG-{n}025 DN 100.",
-    f"Column isolation HV-{n}151A..D, HV-{n}152 above the check valves; column vent / N2 purge BOG-{n}011..{n}015 DN 25 with HV-{n}161..{n}165 (blind-flanged, to atmosphere at the roof).",
+    f"Column isolation HV-{n}151A..D, HV-{n}152 above the check valves; column vent / N2 purge BOG-{n}011..{n}015 DN 25 with HV-{n}161..{n}165 (blind-flanged; opened only after N2 displacement of the column into the tank, D-026.9).",
     # the spool between the column check valve and HV-n151 / HV-n152 is blockable (round 2)
     f"CV-{n}121A..D, CV-{n}122: disc with a pressure-equalising hole, relieving the CV/HV spool to the pump column (thermal relief; vendor, D-021).",
     f"Thermal relief to {TK} (roof nozzles), set 15.0 barg: PSV-{n}141 on LNG-{n}001 via LNG-{n}031, PSV-{n}142 on LNG-{n}002 via LNG-{n}032, DN 25.",
-    f"PSV-{n}131A..C (0.29 barg) and vacuum relief PSV-{n}133A..C (-0.3 kPa(g)): {N1_NOTE}.",
+    f"PSV-{n}131A..C (0.29 barg) and vacuum relief PSV-{n}133A..C (-0.3 kPa(g)): N+1 each, inlet isolation HV-{n}134A..C / HV-{n}135A..C.",
+    f"HV-{n}134A-C / HV-{n}135A-C locked open, mechanically interlocked so that N of the N+1 devices are always in service (D-026.11).",
     f"LZT-{n}102: see C&E I-{n}01, I-{n}02. LZT-{n}106: independent high-high, 1oo2 with LZT-{n}102 (C&E I-{n}01). PZT-{n}112: see C&E I-{n}03, I-{n}04."]
 for i, text in enumerate(NOTES):
     note(sheet, text, at=(12, 252 + 4.6 * i))

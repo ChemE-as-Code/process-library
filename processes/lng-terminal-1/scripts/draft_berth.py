@@ -21,6 +21,11 @@ Round 2: thermal relief PSV-n118 of the drain pump discharge between CV-n116 and
 into DR-n001); the drain pump vent/drain HV-n119 between its isolation valves (DR-n007 into
 DR-n001); DR-n001 at DN 150 throughout (it receives the DN 150 surge relief DR-n002); the tags
 of all relief valves printed; sheet notes on the hybrid arm key interlock and the arm package.
+
+Round 3 (reviews/2026-11-05-basic-design-2.md, D-026.2, .3, .13): ZSC-n123/n125 are closed-position
+switches, the start permissives of the other isolation (C&E I-n04/I-n05); ESD-2 (I-n03) trips ESD-1
+at once and the ERS valves close 5 s later by I-n07; the arm purge outlet (before loading into the
+carrier's manifold, after loading through D-n101 and its vent BOG-n002 into the vapour return).
 """
 
 import sys
@@ -117,10 +122,10 @@ for k, x in X.items():
                labels=False)
     for v, y in [(f"XV{n}13{k}", 125), (f"XV{n}14{k}", 140)]:
         L.inst(sheet, f"UZ-{v[2:]}", f"LA-{n}10{k} ERS valve XV-{v[2:]}",
-               f"Closes on ESD-2 (C&E I-{n}03), not on ESD-1; ESD-2 then releases the coupler (D-016).",
+               f"Closes on ESD-2 by C&E I-{n}07 (5 s after I-{n}03), not on ESD-1; I-{n}07 also releases the coupler (D-016, D-026).",
                at=(sx - 13, y), signal_to=v, fail_action="FC")
     L.inst(sheet, f"ZS-{n}15{k}", f"LA-{n}10{k} envelope monitoring (position of the outboard arm)",
-           f"Pre-alarm, ESD-1, ESD-2 (C&E I-{n}03).", at=(x + 8, 56))
+           f"Pre-alarm, ESD-1 at stage 1 (C&E I-{n}01), ESD-2 at stage 2 (C&E I-{n}03, ERS by I-{n}07).", at=(x + 8, 56))
 
 # ---- N2 purge and leak test: double block and bleed into the header ---------------------------
 t_bl = tee(f"T{n}0B", at=(32, 160), branch="up", branch_dn=25)
@@ -194,7 +199,7 @@ L.line(sheet, f"DR-{n}005", dn=25, fluid="LNG", frm=f"LNG-{n}003 (PSV-{n}174)", 
 
 # ---- drum vent (no valve: the relief path of the drum), pump suction, discharge, minimum flow --
 L.line(sheet, f"BOG-{n}002", dn=100, fluid="Boil-off gas", frm=f"D-{n}101", to=f"BOG-{n}001",
-       notes=f"Drain drum vent to the vapour line, downstream of XV-{n}122; no valve: it is the relief path of D-{n}101 and stays open (review #1).",
+       notes=f"Drain drum vent to the vapour line, downstream of XV-{n}122; no valve: it is the relief path of D-{n}101 and stays open (review #1). After loading it also carries the hydrocarbon purge N2 of the arms, drained to D-{n}101, into the vapour return (to the flare while AI-413{'3' if n == '5' else '4'} reads off-specification; D-026.13).",
        route=[drum["N2"], (42, TOP_V), (VCH, TOP_V), (VCH, 165), t_vw.branch], label_at=(230, TOP_V + 5))
 L.line(sheet, f"LNG-{n}005", dn=100, fluid="LNG", frm=f"D-{n}101", to=f"P-{n}101",
        notes=f"Drain pump suction with its isolation valve HV-{n}115.",
@@ -246,11 +251,11 @@ L.inst(sheet, f"HS-{n}123", f"LA-{n}103 liquid isolation XV-{n}123", at=(X["3"] 
        signal_to=f"XV{n}123", fail_action="FC")
 L.inst(sheet, f"HS-{n}125", f"LA-{n}103 vapour isolation XV-{n}125 (hybrid as vapour arm)",
        at=(260, 185), signal_to=f"XV{n}125", fail_action="FC")
-L.inst(sheet, f"ZSC-{n}123", f"XV-{n}123 open (hybrid arm LA-{n}103 on liquid)",
-       f"Position switch; with ZSC-{n}125 the permissive that XV-{n}123 and XV-{n}125 are never open together (review #3, H-03 A13).",
+L.inst(sheet, f"ZSC-{n}123", f"XV-{n}123 closed position",
+       f"Closed-position switch of the hybrid arm liquid isolation: start permissive of the other isolation, XV-{n}125 may open only with XV-{n}123 proven closed (C&E I-{n}05); never trips an open valve (review #3, H-03 A13, D-026).",
        at=(244, 187), sensing=f"Line_LNG{n}001_S6", sensing_at=(X["3"], 184))
-L.inst(sheet, f"ZSC-{n}125", f"XV-{n}125 open (hybrid arm LA-{n}103 on vapour)",
-       f"Position switch; with ZSC-{n}123 the permissive that XV-{n}123 and XV-{n}125 are never open together (review #3, H-03 A13).",
+L.inst(sheet, f"ZSC-{n}125", f"XV-{n}125 closed position",
+       f"Closed-position switch of the hybrid arm vapour isolation: start permissive of the other isolation, XV-{n}123 may open only with XV-{n}125 proven closed (C&E I-{n}04); never trips an open valve (review #3, H-03 A13, D-026).",
        at=(278, 181), sensing=f"Line_BOG{n}003_S1", sensing_at=(264, 172))
 L.inst(sheet, f"HS-{n}122", f"LA-{n}102 vapour arm isolation XV-{n}122", at=(X["2"] + 15, 150),
        signal_to=f"XV{n}122", fail_action="FC")
@@ -277,12 +282,13 @@ for vid, at in [(f"HV{n}151", (20, 165)), (f"HV{n}152", (42, 165)), (f"HV{n}153"
 NOTES = [
     f"Berth {berth} arms on the platform, south to north: LA-{n}101 liquid, LA-{n}102 vapour, LA-{n}103 hybrid, LA-{n}104 liquid (S-01); drawn left to right L, L, H, V.",
     "16 inch, ~4,000 m3/h per liquid arm; the hybrid runs as the third liquid arm and is the spare vapour path (D-014, D-023).",
-    f"ERS per arm: two ball valves either side of the emergency release coupler; UZ close on ESD-2 (C&E I-{n}03), not on ESD-1.",
+    f"ESD-2 trips ESD-1 at once (C&E I-{n}03 into I-{n}01); the ERS valves (two ball valves either side of the emergency release coupler) close 5 s later by I-{n}07, not on ESD-1.",
     f"Thermal relief (15.0 barg) to D-{n}101: PSV-{n}171 / {n}173 / {n}174 per liquid arm section, PSV-{n}118 on the drain pump discharge. Vapour arm connected first, disconnected last (S-01).",
     f"D-{n}101 sits at the platform low point (drawn above the header). Its vent BOG-{n}002 has no valve: it is the drum's relief path and stays open.",
-    f"XV-{n}123 / XV-{n}125: also mechanically interlocked (key interlock) at the hybrid arm (vendor).",
-    "Arm vents, drains, the purge outlet and the O2 sample point are part of the arm package (vendor).",
+    f"XV-{n}123 / XV-{n}125: open-command permissives, each opens only with the other proven closed (ZSC-{n}123 / ZSC-{n}125, C&E I-{n}04 / I-{n}05), never trip an open valve; key interlock at the arm (vendor).",
+    f"Arm purge (D-026): before loading the N2 goes into the carrier's manifold (S-01); after loading the arms drain to D-{n}101 and the purge N2 leaves by the drum vent BOG-{n}002 into the vapour return.",
     f"HV-{n}119 normally closed (pump vent/drain). BOG-{n}003, DR-{n}002 to DR-{n}007, LNG-{n}005, LNG-{n}007, N-{n}001: see the line list.",
+    "Arm vents, drains and the O2 sample point are part of the arm package (vendor).",
 ]
 for i, text in enumerate(NOTES):
     note(sheet, text, at=(12, 252.5 + 3.6 * i))

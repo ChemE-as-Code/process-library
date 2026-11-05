@@ -47,8 +47,8 @@ loops:
     and the high-high trips I-203 / I-303 remain.'
 - id: PIC-1111
   title: Tank vapour header pressure, low split (make-up gas)
-  purpose: Hold the tanks above their vacuum set point by admitting compressed BOG through PV-1111 when the pressure
-    falls (fast withdrawal at loading, barometric rise).
+  purpose: Hold the tanks above their vacuum set point by admitting make-up gas from the trains' fuel gas (FG-1001,
+    through FO-1117) through PV-1111 when the pressure falls (fast withdrawal at loading, barometric rise).
   section: BOG
   cases:
   - average
@@ -69,7 +69,7 @@ loops:
     value: 6
     unit: kPa(g)
     provenance: assumed
-    source: 'D-017: make-up below ~6 kPa(g), well above the vacuum relief at -0.5 kPa(g), ASSUMED'
+    source: 'D-017, D-025: make-up below ~6 kPa(g), well above the vacuum relief at -0.3 kPa(g), ASSUMED'
   modes:
   - manual
   - auto
@@ -77,12 +77,13 @@ loops:
   alarms:
   - tag: PIC-1111
     condition: PAL
-    response: Check the compressor discharge pressure (make-up source) and PV-1111; reduce the loading rate; the
-      low-low trips I-204 / I-304 stop the withdrawal.
+    response: Check the fuel gas supply pressure at FG-1001 (make-up source) and PV-1111; reduce the loading rate;
+      the low-low trips I-204 / I-304 stop the withdrawal.
   interlocks:
   - I-204
   - I-304
-  rationale: Make-up from the compressor discharge closes the vacuum gap without admitting air; PV-1111 fails closed
+  rationale: Make-up from the trains' fuel gas, independent of the BOG compressors that I-204 / I-304 stop (D-025),
+    closes the vacuum gap without admitting air; FO-1117 limits the flow if PV-1111 fails open; PV-1111 fails closed
     (no gas into a tank on a failure) and the low-low trips and the vacuum relief valves stay.
 - id: FIC-2111A
   title: P-2101A minimum flow

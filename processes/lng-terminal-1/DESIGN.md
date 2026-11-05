@@ -129,7 +129,8 @@ attribution here and in `scripts/site_frame.py`).
 **D-014 Berths and arms.** Two berths on a T-head loading platform: Berth 2 (as built, S-01)
 on the west face, Berth 1 (Phase 2) on the east face (ASSUMED, D-019). Each berth has 4 x 16
 inch arms south to north liquid, vapour, hybrid, liquid (S-01); the hybrid arm normally runs
-as the third liquid arm (3 x ~4,000 m3/h = 12,000 m3/h) and is the spare vapour arm. Each arm
+as the third liquid arm (3 x ~4,000 m3/h = 12,000 m3/h) and is the spare vapour arm (line-ups
+in D-026). Each arm
 has an ERS (two ball valves and a powered emergency release coupler) and a quick
 connect/disconnect coupler (EN 1474 practice); the arm envelope (22 m, 45 t) is ASSUMED.
 Design carrier 217,000 m3 (terminal maximum, S-01); the certified envelope is 345 m (S-04).
@@ -151,8 +152,8 @@ D-5101 / D-6101 (ASSUMED). Cause and effect in `control/cause-effect.yaml`.
 **D-017 Relief and flare philosophy.** Tank overpressure: pressure control to the BOG
 compressors, then PV to the storage and loading flare FL-8101 via the KO drum D-8101 (S-02:
 a storage and loading flare exists), then tank PSVs to atmosphere (last resort, sized for
-fire and loss of the BOG system). Tank vacuum: make-up from the BOG discharge, then vacuum
-valves. Thermal relief valves on every blocked-in cryogenic section, discharging to the
+fire and loss of the BOG system). Tank vacuum: make-up from the trains' fuel gas (FG-1001,
+FO-1117, PV-1111; D-025), then vacuum valves. Thermal relief valves on every blocked-in cryogenic section, discharging to the
 vapour system. Carrier de-inerting and cool-down vapour to the storage and loading flare
 (S-02).
 
@@ -202,6 +203,13 @@ Conventions:
    drains and vents of the long lines, instrument root valves, the fire and gas system.
 8. Each ERS is two ball valves with their own UZ functions either side of the coupler; the
    coupler and the quick connect/disconnect coupler are part of the arm (vendor package).
+9. A pump started and stopped by a controller is drawn with a motor control function HS at the
+   pump, tied to it by a measuring line (run feedback), and a signal line from the controller
+   to the HS (the authoring API signals only valves and instrument functions); a duty/standby
+   pair is driven as a chain (LIC-8101 -> HS-8101A -> HS-8101B on P-08, D-026.11).
+Since the D-026 round every sheet is rebuilt from its script on the empty frame
+`build/P-0N-frame.xml` (frame, `cheme run`, `cheme fmt`), so the scripts carry the current state
+of the sheets, although `plant.yaml` does not declare them as generators yet.
 
 **D-022 Datasheets (detail stage).** `cheme datasheets draft` wrote one datasheet per item;
 `cheme datasheets fill` cannot size them (no property package for LNG, D-006, and most items
@@ -221,8 +229,8 @@ confirms it before construction. (2) Vapour arm: one 16 inch arm carries ~23.5 t
 -120 degC return at 40 m/s (ASSUMED limit); the balance's 45.6 t/h (D-009) is the conservative
 design case of the BOG system (85 % of the pump and line heat flashing on board). Above the
 arm's capacity the carrier keeps its tank pressure by burning gas on board (allowed during
-loading, S-01) or the loading rate is reduced; the hybrid arm is the spare vapour path. Both
-checked against carrier data in detail engineering.
+loading, S-01) or the loading rate is reduced; the hybrid arm is the spare vapour path (the two
+arm line-ups of D-026). Both checked against carrier data in detail engineering.
 
 **D-024 LCA scope.** Gate-to-gate inventory per tonne of LNG loaded, in the annual-average
 case (`lca/lca.yaml`): 0.993 t of rundown and 1.13 kWh of electricity per tonne loaded; the
@@ -256,7 +264,7 @@ verifier, changed the P&IDs, the C&E and the sequences:
    flow, a vent and thermal relief; thermal relief per liquid arm section (PSV-n171/173/174); the
    hybrid arm's liquid and vapour isolations are mutually inhibited (ZSC-n123/n125, I-n04/n05,
    plus a key interlock); ESD-2 now initiates ESD-1 first and closes the ERS valves after 5 s
-   (I-n03); an independent drum high-high level (LZT-n112, I-n06); a double block and bleed on
+   (I-n03; the delayed ERS closure now sits in I-n07, D-026.2); an independent drum high-high level (LZT-n112, I-n06); a double block and bleed on
    the N2 tie-in; all relief valves at 15.0 barg (the line design).
 5. BOG (P-07): each discharge check valve downstream of its recycle tee; the recycles return
    upstream of the desuperheater spray; high discharge temperature trips (TZT-7112x, I-703x);
@@ -271,6 +279,73 @@ Not done at basic, recorded for detail engineering: relief sizing (tank fire, ro
 utility-failure case with both vents closed), the ERS closure time and the transient surge
 analysis, the trains' fuel-gas capacity for the make-up, seal gas, arm vents and sample points
 (vendor packages), tank bottom heating.
+
+**D-026 Response to the follow-up review 2026-11-05-basic-design-2.**
+1. Vapour return switch (#1). The de-inerting switch is make-before-break in both directions
+   and proven by open-position switches ZSO-4131/4132/4135/4136 (P-04): I-511 opens the flare
+   valve on off-specification vapour, I-512 closes the tank-side valve only with the flare
+   valve proven open, I-513 closes the flare valve only with the tank-side valve proven open.
+   ESD-1 (I-501 / I-601) opens the tank-side valve and does not act on the flare valve, so an
+   ESD-1, including the test of SEQ-LOAD S3, never closes the vapour return, the relief path of
+   the berth. Both valves fail open.
+2. ESD-2 (previous #4). I-501 / I-601 take I-503 / I-603 tripped as a cause, so ESD-2 trips
+   ESD-1 at once (pumps, shore ESD valve, tank-end valves, the carrier's ESD). The 5 s delay is
+   moved to I-507 / I-607, which closes the ERS valves and releases the couplers.
+3. Hybrid arm (#2). I-504/505 (I-604/605) are start permissives on the open command; an open
+   isolation is never closed by them.
+4. Rundown (#4). PZT-1105 on LNG-1001 (P-01) trips I-102 at high-high header pressure, which
+   also covers a fill branch closed by its selection valves. The top/bottom fill change is made
+   by opening the new selection valve before closing the old one (operator, SEQ text in the
+   narrative).
+5. BOG compressors (previous #12). I-702/702B/C name the vendor unit control panel trips
+   (vibration and bearings, dry gas seal, lube oil, motor protection, discharge pressure
+   high-high below PSV-7111), to be confirmed with the vendor. I-705A/B/C stop a running
+   machine when ZSO-7121x loses the open position of its fail-closed suction valve (instrument
+   air failure) or PZT-7113 reads the suction header low-low (P-07).
+6. Vapour arm against the design return (previous #23). Two arm line-ups per berth, chosen from
+   the cargo plan: (a) L-V-H-L with the hybrid as the third liquid arm, 12,000 m3/h, the return
+   limited to one vapour arm (~23.5 t/h, D-023): the carrier controls its return-gas
+   compressor and burns the balance on board (S-01); (b) the hybrid as the second vapour arm,
+   two liquid arms at ~8,000 m3/h (2 x ~4,000 m3/h, D-014, ASSUMED) and up to ~47 t/h of
+   return. The 45.6 t/h of D-009 is the conservative envelope of the BOG compressors and the
+   trestle vapour lines; it occurs only in line-up (b). Checked against carrier data in detail
+   engineering.
+7. Oxygen in the carrier's vapour (#11). Vapour goes to the flare only below 5 vol % O2 (inert
+   gas quality, ASSUMED) and to the tanks only below 1 vol % O2 and on hydrocarbon
+   specification (S-01 purge limit); above 5 % the berth does not take the vapour and the
+   carrier vents on board under the terminal rules. AI-4133/4134 measure CH4, N2 and O2.
+8. Relief cases (#10, accepted). Fuel gas blow-by through FO-1117 with PV-1111 failed open is
+   added to the PSV-2131/3131 relief cases and to the detail-stage relief sizing list (D-025).
+9. Small items: P-8101A/B get discharge isolation HV-8108A/B downstream of their check valves
+   (#7). The pump-column vents (#8) are opened only after the column has been displaced with N2
+   through the hose connection into the tank (the foot valve open, the pump lowered on its
+   seat); they release N2 with traces of methane at the tank roof, inside the roof hazardous
+   area; the vendor's lifting procedure governs. Not drawn at basic (#9): the N2 purge points
+   of the BOG compressors (vendor package), the tank inerting points (tank contractor) and the
+   trestle purge points; D-020 lists them as users of the site N2 system.
+10. Text left over after D-025 (#5, previous #27): PIC-1111, D-017, the TZT-7112x and ZS-515x
+   notes and the D-8101 datasheet are corrected.
+11. Closures disputed by the adversarial check of the follow-up review, now drawn:
+   ZSC-1102/1103 are tied to XV-1102/1103 (P-01); each tank PSV and vacuum valve has its
+   locked-open inlet isolation drawn, with the mechanical interlock that keeps N of N+1 in
+   service (P-02/P-03); the four trestle thermal relief outlets (PSV-4111..4114: BOG-4011,
+   BOG-4012, BOG-4015, BOG-4016) all tie into vapour return line A, BOG-4001, on the tank side
+   of XV-4135 (P-04), so they never depend on the switch (line B, BOG-4002, cannot be reached on
+   the sheet without crossing BOG-4001; BOG-4011 and BOG-4015 cross loading line B once, accepted
+   in `checks/checks.yaml`); the P-01 thermal relief outlets tie into BOG-1001 on the sheet;
+   LIC-8101 drives P-8101A/B by signal lines through their motor control functions HS-8101A/B,
+   each tied to its pump (LIC-8101 -> HS-8101A -> HS-8101B, D-021.9), and I-803 stops them at
+   low-low level (P-08).
+12. PSV-7105 is removed (previous #26). D-7101 and its suction header have no valve between
+   them and the tanks (BOG-1001, DN 750), so neither a blocked outlet nor a fire can raise them
+   above the tank pressure: fire vapour vents back to the tank vapour space and the tank PSVs
+   PSV-2131/3131 protect the drum. The drum design pressure (3.5 barg) is far above that.
+13. Arm purge outlet (previous #18). Before loading, the N2 of the leak test and the O2 purge
+   goes into the carrier's manifold and is vented by the carrier (S-01); after loading, the
+   arms drain to D-5101 / D-6101 and the hydrocarbon purge N2 goes from the drum through its
+   vent BOG-5002 / BOG-6002 into the vapour return and, while AI-4133/4134 reads
+   off-specification, to the flare. The arm vents and the O2 sample point stay in the arm
+   package (vendor).
 
 ## 3. Results (concept)
 

@@ -2,14 +2,18 @@
 (3 x 50 %) with their suction ESD valves, anti-surge recycles (taken upstream of the discharge
 check valves, returned to BOG-1001 upstream of the spray TV-7103), discharge check and isolation
 valves, high discharge temperature trips, depressurising vents to the flare (FL-7003), the
-discharge header to the trains with its battery-limit ESD valve XV-7130, relief to the flare and
-the drum drain.
+discharge header to the trains with its battery-limit ESD valve XV-7130, the discharge relief to
+the flare and the drum drain.
 
 Rev B (review 2026-11-05-basic-design #9, #10, #11, #12, #13, #26; HAZOP H-04 A8, A9, A11): the
 check valves moved downstream of the recycle tees, the recycles returned upstream of the
 desuperheater, TZT-7112A..C, XV-7123A..C with UZ-7123A..C, vents HV-7124A..C into FL-7003,
 XV-7130 / UZ-7130; the make-up take-off BOG-1009 removed (the make-up now comes from the
 trains' fuel gas FG-1001 on P-01).
+Rev C (review 2026-11-05-basic-design-2, D-026.5 and .12): open-position switches ZSO-7121A..C
+tied to the suction ESD valves XV-7121A..C and the suction header low-low PZT-7113 (C&E
+I-705A..C); PSV-7105 and its outlet FL-7001 removed (D-7101 cannot be isolated from the tanks,
+whose PSVs protect it), so the BOG-1001 tee T7P1 goes and BOG-1001 has four segments on P-07.
 Rev B round 2: recycle isolation actuated, XV-7125A..C (fail closed, UZ-7125A..C) instead of
 the hand valves HV-7125A..C; the vent tees moved between CV-7122x and XV-7123x (venting empties
 the casing through the check valve and the CV/XV pocket); the vent header runs below the
@@ -65,15 +69,16 @@ k = {s: equipment(sheet, "CentrifugalCompressor", f"K-7101{s}", shape="COMPRESSO
                   nozzles=[Nozzle("N1", (-11.25, 0), 500), Nozzle("N2", (11.25, 0), 300)],
                   label_at=(x, K_Y + 17)) for s, x in KX.items()}
 
-# ---- inlet: recycle returns, relief tee, spray desuperheater, suction drum ---------------------
+# ---- inlet: recycle returns, spray desuperheater, suction drum -----------------------------------
+# No relief valve on D-7101 (D-026.12): the drum and its suction header have no valve between them
+# and the tanks (BOG-1001, DN 750), so the tank PSVs PSV-2131/3131 protect them.
 t_rec = tee("T7R0", at=(28, 120), branch="up", branch_dn=300)     # BOG-7012 (K-7101B/C)
 t_reca = tee("T7R1", at=(38, 120), branch="down", branch_dn=250)  # BOG-7008 (K-7101A)
-t_psv = tee("T7P1", at=(50, 120), branch="up", branch_dn=200)
 t_spr = tee("T7S1", at=(72, 120), branch="up", branch_dn=80)
 inlet = L.line(sheet, "BOG-1001", dn=750, fluid="Boil-off gas", frm="T-2101", to="D-7101",
                notes="see P-01; receives the anti-surge recycles BOG-7012 (K-7101B/C) and BOG-7008 (K-7101A) "
                      "upstream of the spray TV-7103.",
-               route=[offpage("in", at=(12, 120), note="from P-01", note_at=(18, 113)), t_rec, t_reca, t_psv,
+               route=[offpage("in", at=(12, 120), note="from P-01", note_at=(18, 113)), t_rec, t_reca,
                       t_spr, (82, 120), (82, 128), drum["N1"]],
                label_at=(22, 132))
 tv = valve("TV7103", "GlobeValve", tag="TV-7103", at=(72, 80))
@@ -81,16 +86,6 @@ L.line(sheet, "LNG-4008", dn=80, fluid="LNG", frm="LNG-2002", to="BOG-1001 (TV-7
        notes="see P-04",
        route=[offpage("in", at=(72, 40), note="spray from P-04", note_at=(86, 36), rotation=DOWN),
               tv, t_spr.branch], label_at=(86, 60))
-psv5 = L.relief("PSV7105", "PSV-7105", "FL-7001", 2.5,
-                "fire on D-7101 and the suction header (the inlet is open to the tanks, so a blocked "
-                "outlet cannot pressurise it)",
-                "D-7101 / suction system fire relief to the storage and loading flare (D-017); review "
-                "2026-11-05-basic-design #26. Set ASSUMED (design 3.5 barg).",
-                label_at=(62, 99))
-L.line(sheet, "FL-7001", dn=200, fluid="Flare gas", frm="BOG-1001 (PSV-7105)", to="FL-8001",
-       notes="PSV-7105 outlet to the storage and loading flare header. Drawn on P-07 and P-08.", insulation="none",
-       route=[t_psv.branch, psv5, offpage("out", at=(50, 80), note="to flare (P-08)", note_at=(50, 69), rotation=UP)],
-       labels=False)
 
 # ---- suction header and branches -----------------------------------------------------------------
 tsa = tee("T7HA", at=(SX["A"], HDR_Y), branch="down", branch_dn=500)
@@ -223,10 +218,14 @@ label(sheet, hv_v["C"].id, "PipingComponentNumber", at=(340, V_Y["C"] - 6))
 L.inst(sheet, "TIC-7103", "BOG temperature after the desuperheater",
        "LNG spray TV-7103 to -140 degC at the drum inlet, also quenching the anti-surge recycles BOG-7012 and "
        "BOG-7008 (D-010).",
-       at=(88, 100), sensing=inlet.segments[4], sensing_at=(77, 120), signal_to=tv, fail_action="FC")
+       at=(88, 100), sensing=inlet.segments[3], sensing_at=(77, 120), signal_to=tv, fail_action="FC")
 L.inst(sheet, "PIC-7101", "BOG suction header pressure",
        "Acts on the inlet guide vanes of K-7101A/B/C; setpoint from PIC-1110 (P-01) (D-010).",
        at=(120, 54), sensing=suct.segments[0], sensing_at=(120, HDR_Y))
+L.inst(sheet, "PZT-7113", "BOG compressor suction header pressure low-low (I-705A-C)",
+       "Own tapping on the common suction header BOG-7001 between D-7101 and the machines, independent of "
+       "PIC-7101: at low-low suction pressure a running machine stops (C&E I-705A/B/C, D-026.5).",
+       at=(132, 31), sensing=suct.segments[0], sensing_at=(132, HDR_Y))
 L.inst(sheet, "LIC-7102", "D-7101 level", "Drains carry-over to D-8101 by LV-7102.",
        at=(70, 188), sensing=drum["N5"], signal_to=lv, fail_action="FC")
 L.inst(sheet, "LZT-7106", "D-7101 level high-high", "Trips the BOG compressors (C&E I-701).",
@@ -243,18 +242,24 @@ for s in KX:
     L.inst(sheet, f"UZ-7121{s}", f"K-7101{s} suction ESD valve XV-7121{s}",
            "Closes on a compressor trip (C&E I-701, I-702) and on every compressor stop (H-04 A9).",
            at=(SX[s] + 14, XS_Y), signal_to=xv[s], fail_action="FC")
+    # open-position switch on the valve itself (sensor at XV-7121s, as ZSC-5123 on P-05)
+    L.inst(sheet, f"ZSO-7121{s}", f"XV-7121{s} open position",
+           f"C&E I-705{s}: a running machine stops when its suction valve leaves the open position.",
+           at=(SX[s] + 14, XS_Y + 9), sensing=xv[s].id, sensing_at=(SX[s], XS_Y))
     L.inst(sheet, f"UZ-7123{s}", f"K-7101{s} discharge isolation valve XV-7123{s}",
            "Fail closed; closes with XV-7121" + s + " on a compressor trip or stop, isolates the machine from "
            "the discharge header (review #11, H-04 A8/A9).",
            at=(DX[s] + (-13 if s in "AB" else 13), XV_Y), signal_to=xvd[s], fail_action="FC")
     L.inst(sheet, f"VZ-7110{s}", f"K-7101{s} vibration and bearing monitoring",
-           "Machine protection (C&E I-702).", at=(KX[s] + 16, 97))
+           f"Vendor unit control panel trips of K-7101{s} (C&E I-702{'' if s == 'A' else s}): vibration and "
+           "bearings, dry gas seal, lube oil, motor protection, discharge pressure high-high below PSV-7111 "
+           "(D-026.5; to be confirmed with the vendor).", at=(KX[s] + 16, 97))
 L.inst(sheet, "TZT-7112A", "K-7101A discharge temperature high-high",
-       "Trips K-7101A on high discharge temperature (review #9, H-04 A11; C&E entry by the orchestrator).",
+       "Trips K-7101A on high discharge temperature (review #9, H-04 A11; C&E I-703A/B/C).",
        at=(DX["A"] + 13, 122), sensing=dis.segments[0], sensing_at=(DX["A"], 122))
 for s, number in [("B", "BOG-7006"), ("C", "BOG-7007")]:
     L.inst(sheet, f"TZT-7112{s}", f"K-7101{s} discharge temperature high-high",
-           f"Trips K-7101{s} on high discharge temperature (review #9, H-04 A11; C&E entry by the orchestrator).",
+           f"Trips K-7101{s} on high discharge temperature (review #9, H-04 A11; C&E I-703A/B/C).",
            at=(DX[s] + 13, 122), sensing=f"Line_{number.replace('-', '')}_S1", sensing_at=(DX[s], 122))
 L.inst(sheet, "UZ-7130", "BOG-7002 battery-limit ESD valve XV-7130",
        "Fail closed; closes on ESD and on a trip of all compressors (review #11, H-04 A8).",
@@ -269,7 +274,10 @@ note(sheet, "K-7101A/B/C: 3 x 50 % centrifugal (C the installed spare), 27 t/h e
 note(sheet, "Anti-surge recycles (DN 250): BOG-7008 to BOG-1001; BOG-7009, BOG-7012 S1 via BOG-7012 (DN 300) "
             "to BOG-1001; both upstream of the spray TV-7103. Discharges BOG-7006, BOG-7007 (DN 300).", at=(12, 258))
 note(sheet, "HV-7124A/B/C normally closed (depressurising to FL-7003); XV-7125A/B/C fail open, closed only for "
-            "maintenance (D-025). N2 purge connections per machine, detail engineering.", at=(12, 264))
-note(sheet, "LZT-7106: see C&E I-701; VZ-7110x: see C&E I-702.", at=(12, 270))
+            "maintenance (D-025). N2 purge connections per machine: vendor package, not drawn (D-026.9).", at=(12, 264))
+note(sheet, "LZT-7106: C&E I-701. VZ-7110x: vendor unit control panel trips I-702/702B/C (vibration and bearings, "
+            "dry gas seal, lube oil, motor, discharge pressure high-high).", at=(12, 270))
+note(sheet, "ZSO-7121x, PZT-7113: I-705A-C stop a running machine when its suction valve XV-7121x leaves the open "
+            "position or the suction header is low-low. TZT-7112x: I-703A-C.", at=(12, 276))
 
 L.finish(sheet, target)

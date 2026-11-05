@@ -245,6 +245,24 @@ checks:
     sheets: [P-07]
     tags: [K-7101A, K-7101B, K-7101C, UIC-7104A, UIC-7104B, UIC-7104C, TV-7103, D-7101]
     connected: true
+  # ---- closures of the follow-up review 2026-11-05-basic-design-2 (D-026)
+  - id: relief-inlet-isolation-on-pid
+    title: Each tank PSV and vacuum valve has its locked-open inlet isolation drawn (D-026.11)
+    stage: basic
+    kind: on-sheet
+    tags: [PSV-2131A, PSV-2131B, PSV-2131C, HV-2134A, HV-2134B, HV-2134C,
+           PSV-2133A, PSV-2133B, PSV-2133C, HV-2135A, HV-2135B, HV-2135C,
+           PSV-3131A, PSV-3131B, PSV-3131C, HV-3134A, HV-3134B, HV-3134C,
+           PSV-3133A, PSV-3133B, PSV-3133C, HV-3135A, HV-3135B, HV-3135C]
+    connected: true
+  - id: trip-sensors-on-pid
+    title: The D-026 trip and permissive sensors are drawn and tied to their valve or line
+    stage: basic
+    kind: on-sheet
+    tags: [PZT-1105, ZSC-1102, ZSC-1103, ZSO-4131, ZSO-4132, ZSO-4135, ZSO-4136,
+           ZSC-5123, ZSC-5125, ZSC-6123, ZSC-6125, ZSO-7121A, ZSO-7121B, ZSO-7121C, PZT-7113,
+           LZT-8105, HV-8108A, HV-8108B]
+    connected: true
 
 # Findings accepted for every gate and for `cheme validate`, which then reports them as info
 # with the reason (an entry that names no finding is reported as cheme.accept-unused).
@@ -252,6 +270,9 @@ checks:
 accept:
   - {id: "pid/P-07.xml#line-crossing:Line_BOG7001_S2_P1+Line_BOG7009_S1_P3", reason: "D-025: each machine path joins the suction and discharge headers; the K-7101B recycle must cross one header (topological minimum of two crossings on P-07)"}
   - {id: "pid/P-07.xml#line-crossing:Line_BOG7002_S5_P1+Line_FL7004_S2_P1", reason: "D-025: the K-7101B/C vent must cross the discharge header to reach the vent header (topological minimum of two crossings on P-07)"}
+  - {id: "pid/P-04.xml#line-crossing:Line_BOG4011_S1_P2+Line_LNG4002_S3_P3", reason: "D-026.11: the PSV-4111 outlet BOG-4011 ties into BOG-4001 on the tank side of XV-4135; loading line B runs across the whole sheet between off-page connectors, so a relief from line A must cross it once (topological minimum)"}
+  - {id: "pid/P-04.xml#line-crossing:Line_BOG4015_S1_P2+Line_LNG4002_S2_P1", reason: "D-026.11: the PSV-4113 outlet BOG-4015 from the tank-end crossover between lines A and B ties into BOG-4001 on the tank side of XV-4135 and must cross line B once (topological minimum)"}
+  - {id: "pid/P-08.xml#line-crossing:Line_LNG8001_S1_P3+Inst_HS8101B_MeasuringLine", reason: "D-026.11: P-8101B lies inside the loops drum - pumps - minimum flow LNG-8005 / thermal relief LNG-8006, so the measuring line tying its motor control HS-8101B to the pump crosses the discharge header LNG-8001 once (topological minimum; LIC-8101 reaches HS-8101A and HS-8101B without a crossing)"}
   # The line number changes with the pipe size at these six sheet boundaries (D-021): the
   # off-page note names the line it continues as on the other sheet.
   - {id: "pid/P-02.xml#offpage-mismatch:Line_LNG2001_To:*", reason: "D-021: DN 450/800 pump header LNG-2001 continues as trestle line LNG-4001 (P-04)"}
