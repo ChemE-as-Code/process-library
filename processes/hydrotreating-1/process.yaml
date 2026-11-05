@@ -1,0 +1,42 @@
+# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
+# dataset is lca/datasets/*.yaml, Tier 1 form, so maturity stays at concept
+# (core's cheme.lci-tier-maturity). See README.md.
+schema: cheme-as-code/process/v1
+id: hydrotreating-1
+title: Gas oil hydrodesulfurisation to ultra-low-sulfur diesel (fixed-bed CoMo hydrotreater)
+summary: >-
+  Sourced conceptual inventory per tonne of desulfurised gas oil: feed, hydrogen and H2S from model
+  formulas fitted to the linked crude's gas oil sulfur, one operating unit's make-up hydrogen and
+  PRELIM's product hydrogen; utilities and heater emissions from EU REF BREF ranges and two
+  installations. No flowsheet; not reviewed.
+families: [refining]
+keywords: [hydrotreating, hydrodesulfurisation, HDS, gas oil, diesel, ULSD, hydrogen, hydrogen sulfide, CoMo catalyst]
+facets: {feedstock_basis: [fossil], product_classes: [fuels], unit_operations: [reaction, compression, flash, stripping, combustion], region: EU}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: gas-oil, role: feedstock, inventory_key: "feed:gas-oil", note: "straight-run gas oil, 0.49 wt-% S (the Johan Sverdrup assay's gas oil, as refinery-distillation-1), modelled as C470H848S (ASSUMED)"}
+    - {chemical: hydrogen, role: reactant, inventory_key: "feed:hydrogen", note: "linked to hydrogen-1 (lca/mappings.yaml)"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:water", note: "wash water injected into the reactor effluent"}
+    - {chemical: methane, role: feedstock, inventory_key: "feed:natural-gas", note: "heater fuel: refinery fuel gas taken as pure methane (ASSUMED)"}
+    - {chemical: air, role: feedstock, note: "combustion air, free; its O2 is feed:O2"}
+  outputs:
+    - {chemical: diesel, role: main-product, inventory_key: "product:diesel"}
+    - {chemical: hydrogen-sulfide, role: by-product, inventory_key: "output:hydrogen-sulfide", note: "in the sour gas, to amine treatment and sulfur recovery"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2"}
+    - {chemical: water, role: emission, inventory_key: "emission:H2O", note: "combustion water vapour"}
+    - {chemical: wastewater, role: waste, inventory_key: "output:wastewater", note: "sour water to the sour water stripper"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity"}
+    - {chemical: steam, role: utility, inventory_key: "feed:steam", note: "by mass; pressure not stated by the source"}
+    - {chemical: cooling-water, role: utility, inventory_key: "output:cooling-water", note: "heat rejected, kWh"}
+basis: {capacity: "per tonne of desulfurised gas oil (the dataset's basis); no plant size"}
+publication: {status: public, license: CC-BY-4.0}
+references:
+  - {title: "Barthe, P., Chaugny, M., Roudier, S., Delgado Sancho, L. (2015) Best Available Techniques (BAT) Reference Document for the Refining of Mineral Oil and Gas. JRC Science and Policy Report EUR 27140 EN, sections 2.13 and 3.13.1", doi: 10.2791/010758}
+  - {title: "Tian, R., Xu, W., Li, Y., Tian, J., Wu, L. (2022) Energy Consumption Analysis of a Diesel Hydrotreating Unit Using an Aspen Simulation. Processes 10, 2055 (make-up hydrogen, Tables 2 and 3)", doi: 10.3390/pr10102055}
+  - {title: "TotalEnergies, crude oil data sheet Johan Sverdrup (assay of 1 April 2021, sheet July 2021), properties of TBP cuts, gas oil sulfur; manufacturer literature", url: "https://trading.totalenergies.com/wp-content/uploads/2025/11/JOHAN-SVERDRUP.pdf"}
+  - {title: "Abella, J.P., Motazedi, K., Bergerson, J.A. (2015) Petroleum Refinery Life Cycle Inventory Model (PRELIM) v1.0, user guide and technical documentation, University of Calgary, Table 8 (p. 53)", url: "https://www.ucalgary.ca/sites/default/files/teams/477/prelim-v1-0-documentation.pdf"}
+  - {title: "IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Volume 2: Energy, chapter 1, Tables 1.2 to 1.4", url: "https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/2_Volume2/V2_1_Ch1_Introduction.pdf"}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/hydrotreating-1, access: public}

@@ -1,0 +1,123 @@
+# Benchmarks of the sulfuric acid and sulfur family: for now sulfur recovery (Claus).
+# Schema: schemas/benchmarks.schema.json; rules: docs/benchmarks.md. Ranges are facts from the
+# cited source, in our own form.
+#
+# Which checks are independent of sulfur-recovery-1's dataset:
+# - sulfur recovery: bound to US EPA AP-42, which the dataset does not use for its recovery (the
+#   recovery comes from the REF BREF, recorded here as a second reference).
+# - NOx: bound to the REF BREF's site example, while the dataset's NOx is AP-42's factor.
+# - electricity and steam: no_open_reference. The only open figures found are the BREF table the
+#   dataset takes its midpoints from, which would only check the transcription (review of
+#   2026-11-05).
+schema: cheme-as-code/benchmarks/v1
+family: sulfuric-acid
+
+kpis:
+  sru-sulfur-recovery:
+    title: Sulfur recovery efficiency of a sulfur recovery unit (S recovered per S in the H2S feed)
+    unit: "%"
+    description: >-
+      The share of the sulfur entering with the acid gas that reaches the sulfur pit, over the
+      whole chain (Claus unit and any tail gas unit). The rest leaves the incinerator stack,
+      mostly as SO2.
+    references:
+      - id: ap42-claus-with-tail-gas-treatment
+        range: [99, 99.9]
+        basis: unallocated
+        note: >-
+          The text's range for Claus plants with tail gas treatment; without it, 92 to 97 %. Its
+          default factors for a plant with a unit that extends the Claus reaction take 99 %. It
+          does not separate catalytic direct oxidation (SuperClaus type) from amine-based units.
+        conditions: {technology: "Claus plant with tail gas treatment, followed by a thermal incinerator; acid gas of high H2S content", region: US, year: 2015}
+        source:
+          citation: "US EPA (2015) AP-42, Compilation of Air Pollutant Emission Factors, 5th ed., Vol. I, section 8.13 Sulfur Recovery (revision 4/15)"
+          url: https://www.epa.gov/sites/default/files/2020-09/documents/8.13_sulfur_recovery.pdf
+          locator: Section 8.13.3, p. 8.13-2, and Table 8.13-1, p. 8.13-3
+          kind: government
+          accessed: "2026-11-05"
+      - id: bref-ref-catalytic-direct-oxidation
+        range: [95.5, 99.3]
+        basis: unallocated
+        note: >-
+          Observed range of 26 daily-average data sets (median 98.5 %, typical 98 to 99 %). The
+          dataset takes its recovery, the median, from this table, so this reference is not an
+          independent check. The BAT-AEPL (Table 5.17, p. 625, monthly average) is 99.5 to above
+          99.9 % for a new unit and at least 98.5 % for an existing one.
+        conditions: {technology: "Claus with a catalytic direct oxidation tail gas unit, daily averages of the whole SRU and TGTU", region: EU, year: 2008}
+        source:
+          citation: "Barthe, P., Chaugny, M., Roudier, S., Delgado Sancho, L. (2015) Best Available Techniques (BAT) Reference Document for the Refining of Mineral Oil and Gas. JRC Science and Policy Report EUR 27140 EN, doi:10.2791/010758"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/REF_BREF_2015.pdf
+          locator: Section 4.23.5.2.2, Table 4.89, p. 491
+          kind: bref
+          accessed: "2026-11-05"
+  sru-specific-electricity:
+    title: Electricity per t of sulfur recovered
+    unit: kWh/t
+    no_open_reference: >-
+      No open source independent of the dataset found (2026-11-05). The only open figure read is
+      the REF BREF's 60 to 75 kWh/t for a 20 000 t/yr SRU (section 4.23.5.2.1, Table 4.85, p. 485),
+      and the dataset takes its midpoint from that table, so binding it would only check the
+      transcription. Read without a usable figure: US EPA AP-42 section 8.13 (no utilities), the
+      REF BREF Table 3.88 site example (fuel only). Not readable: the JEAS Claus/THIOPAQ
+      comparison doi:10.1186/s44147-023-00356-9 (download blocked; a search result shows only a
+      plant-level 0.8 MW without the sulfur throughput).
+  sru-steam-export:
+    title: Steam produced per t of sulfur recovered
+    unit: t/t
+    no_open_reference: >-
+      No open source independent of the dataset found (2026-11-05). The REF BREF's 1500 to 2000
+      kg/t (section 4.23.5.2.1, Table 4.85, p. 485) is the dataset's own source. AP-42 section
+      8.13.2 (p. 8.13-1) says only that the waste heat boiler raises high- to medium-pressure
+      steam and that about 80 % of the heat released could be recovered, with no amount per t.
+      As a plausibility check only (not a range): the overall Claus reaction releases about 6.9
+      GJ per t of sulfur (H2S(g) + 1/2 O2 to S + H2O(g), standard enthalpies of formation), so 80 %
+      of it raises at most roughly 2.4 t of steam per t (about 2.3 GJ per t of steam from boiler
+      feed water), a rough upper bound that the dataset's 1.75 t/t stays below.
+  sru-specific-nox:
+    title: NOx (as NO2) to air per t of sulfur recovered
+    unit: kg/t
+    references:
+      - id: bref-ref-sru-nox-site
+        range: [0.58, 0.58]
+        basis: unallocated
+        note: >-
+          One installation (Mitteldeutschland, 90 000 t/yr of sulfur), recorded as a zero-width
+          range and not widened. The source says only limit values were given for it and the loads
+          were calculated from them, so it is an upper view rather than a measurement.
+        conditions: {technology: "refinery SRU with incineration, yearly average from limit values", capacity: 90 000 t/yr of sulfur, region: EU}
+        source:
+          citation: "Barthe, P., Chaugny, M., Roudier, S., Delgado Sancho, L. (2015) Best Available Techniques (BAT) Reference Document for the Refining of Mineral Oil and Gas. JRC Science and Policy Report EUR 27140 EN, doi:10.2791/010758"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/REF_BREF_2015.pdf
+          locator: Section 3.23.2, Table 3.88, p. 217
+          kind: bref
+          accessed: "2026-11-05"
+
+datasets:
+  - process: sulfur-recovery-1
+    dataset: sulfur-claus-catalytic-oxidation-tgtu
+    conditions: {technology: "modified Claus with a catalytic direct oxidation tail gas unit and incinerator", feed: H2S only, basis: conceptual inventory}
+    kpis:
+      sru-sulfur-recovery:
+        # S in the feed: the H2S times 32.06 / 34.076 = 0.940838, the sulfur mass fraction of H2S
+        # (IUPAC 2021 abridged atomic weights, as chemicals/chemicals.yaml hydrogen-sulfide).
+        expression: product:sulfur / (feed:hydrogen-sulfide * 0.940838)
+        reference: ap42-claus-with-tail-gas-treatment
+        out_of_range_reason: >-
+          The dataset models the largest tail gas category of the BREF's measurements, catalytic
+          direct oxidation, at the median of the BREF's measurements for it (98.5 %, REF BREF Table
+          4.89), which is also the median of the EU installed base (section 3.23.2). AP-42's 99 to
+          99.9 % is for US plants with tail gas treatment, whose new source performance standards are
+          comparable to 99.8 to 99.9 % above 20 t/d (AP-42 p. 8.13-4), and it does not single out
+          catalytic direct oxidation. AP-42 itself gives 98 to 99 % for the processes that extend
+          the Claus reaction (p. 8.13-4), and the BREF's own range for the modelled category (95.5
+          to 99.3 %) contains the value.
+      sru-specific-electricity: {expression: feed:electricity / product:sulfur, per: product:sulfur}
+      sru-steam-export: {expression: product:steam / product:sulfur, per: product:sulfur}
+      sru-specific-nox:
+        expression: emission:NOX / product:sulfur
+        per: product:sulfur
+        reference: bref-ref-sru-nox-site
+        out_of_range_reason: >-
+          The dataset's NOx is AP-42's average of US incinerator source tests (0.11 kg/t, Table
+          8.13-2), a measurement-based factor. The BREF's 0.58 kg/t is one site's load computed from
+          its limit values, so it sits above a measured average.
