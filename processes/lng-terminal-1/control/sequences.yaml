@@ -1,28 +1,167 @@
-# Operating sequences: startup, shutdown and abnormal modes. Schema: `cheme schema sequences`.
-# PROPOSED operating intent, not approved for implementation; the review status comes from reviews/.
-# Start permissives are not trips: trips stay in control/cause-effect.yaml, named by id here.
-# Skill control-sequences.
+# Operating sequences. Schema: `cheme schema sequences` (skill control-sequences).
+# PROPOSED, not approved for implementation. Trips by C&E id; setpoints ASSUMED. The loading
+# sequence follows the order of the LNG Canada Terminal Information Guide (S-01): vapour arm
+# connected first, N2 leak test, purge, cooldown, ramp-up, topping-off, drain and purge,
+# disconnect. Berth 2 shown; Berth 1 runs the same with the 6xxx tags.
 schema: cheme/sequences/v1
-sequences: []
-#  - id: SEQ-START
-#    title: Start up the feed section
-#    mode: startup                      # startup, shutdown, abnormal, normal, other
-#    section: FEED
-#    permissives:
-#      - {interlock: I-01, state: reset}
-#      - {all: [{loop: FIC-101, state: in manual}, {tag: XV-107, state: open}]}
-#    interlocks: [I-01]
-#    steps:
-#      - id: S1
-#        title: Admit feed
-#        actions:
-#          - {loop: FIC-101, action: setpoint, setpoint: {value: 1200, unit: kg/h, provenance: assumed}}
-#          - {loop: FIC-101, action: auto, by: operator}
-#        complete: {tag: LT-102, state: "> 30 %", delay: {value: 30, unit: s}}
-#        timeout: {value: 30, unit: min}
-#        on_timeout: abort
-#    abort:
-#      condition: {interlock: I-01, state: tripped}
-#      actions: [{tag: FV-101, action: close}]
-#      then: SEQ-STOP
-#    reset: {latching: true, manual: true, condition: {interlock: I-01, state: reset}}
+sequences:
+  - id: SEQ-LOAD
+    title: Load a carrier at Berth 2
+    mode: normal
+    section: JETTY
+    cases: [loading]
+    equipment: [LA-5101, LA-5102, LA-5103, LA-5104, P-2101A, P-2101B, P-2101C, P-2101D, K-7101A, K-7101B]
+    permissives:
+      - {tag: XS-5100, state: healthy}
+      - {text: "carrier moored and the mooring loads within limits; wind below 30 kn sustained, waves below 1.5 m (S-01)"}
+      - {tag: LZT-2102, state: above the low-low trip}
+      - {loop: PIC-1110, state: in auto}
+      - {tag: K-7101A, state: running}
+    interlocks: [I-501, I-502, I-503, I-202, I-204]
+    steps:
+      - id: S1
+        title: Connect the vapour arm and leak test it
+        actions:
+          - {text: "connect LA-5102 to the carrier's vapour manifold", by: operator}
+          - {text: "N2 leak test of the vapour arm at 2.5 bar (S-01)", by: operator}
+        complete: {all: [{tag: XV-5132, state: open}, {tag: XV-5142, state: open}]}
+        timeout: {value: 1, unit: h}
+        on_timeout: abort
+        operator: "The vapour arm first and disconnected last (S-01); the carrier's return then runs free to the tank vapour header."
+      - id: S2
+        title: Connect the liquid arms, leak test and purge
+        actions:
+          - {text: "connect LA-5101, LA-5103, LA-5104", by: operator}
+          - {tag: HV-5151, action: open, by: operator}
+          - {text: "N2 leak test of the liquid arms at 5 bar, then purge to below 1 % O2 (S-01)", by: operator}
+          - {tag: HV-5151, action: close, by: operator}
+        complete: {text: "O2 below 1 % at the arm vents"}
+        timeout: {value: 2, unit: h}
+        on_timeout: abort
+      - id: S3
+        title: ESD test and cooldown of the arms and the carrier manifold
+        actions:
+          - {text: "ESD-1 test through the ship-shore link before cooldown (S-01)", by: operator}
+          - {tag: XV-5101, action: open, by: operator}
+          - {tag: XV-5121, action: open, by: operator}
+          - {loop: FIC-4101, action: setpoint, setpoint: {kind: setpoint, value: 500, unit: m3/h, provenance: assumed, source: "D-016: cooldown rate, ASSUMED"}, by: operator}
+          - {loop: FIC-4101, action: auto, by: operator}
+        complete: {text: "arm and manifold temperatures at LNG temperature; ESD test repeated after cooldown (S-01)"}
+        timeout: {value: 2, unit: h}
+        on_timeout: abort
+        operator: "Cool slowly to avoid thermal shock on the arms; the vapour from the cooldown returns through the vapour arm."
+      - id: S4
+        title: Ramp up to the full loading rate
+        actions:
+          - {tag: XV-5123, action: open, by: operator}
+          - {tag: XV-5124, action: open, by: operator}
+          - {tag: P-2101B, action: start, by: operator}
+          - {tag: P-2101C, action: start, by: operator}
+          - {tag: P-2101D, action: start, by: operator}
+          - {tag: K-7101B, action: start, by: operator}
+          - {loop: FIC-4101, action: setpoint, setpoint: {kind: setpoint, value: 6000, unit: m3/h, provenance: assumed, source: "D-008: half of 12,000 m3/h per line"}, by: operator}
+          - {loop: FIC-4102, action: setpoint, setpoint: {kind: setpoint, value: 6000, unit: m3/h, provenance: assumed, source: "D-008"}, by: operator}
+        complete: {all: [{loop: FIC-4101, state: at setpoint}, {loop: FIC-4102, state: at setpoint}]}
+        timeout: {value: 2, unit: h}
+        on_timeout: abort
+        operator: "Ramp in steps on the carrier's request; the carrier ramps its return-gas compressor over at least 1 h (S-01); start the second BOG compressor before the return reaches one machine's capacity."
+      - id: S5
+        title: Topping off and stop
+        actions:
+          - {text: "reduce the rate on the carrier's request for topping off", by: operator}
+          - {tag: P-2101D, action: stop, by: operator}
+          - {tag: P-2101C, action: stop, by: operator}
+          - {tag: P-2101B, action: stop, by: operator}
+          - {tag: P-2101A, action: stop, by: operator}
+          - {tag: XV-5101, action: close, by: operator}
+        complete: {text: "carrier reports the cargo loaded"}
+      - id: S6
+        title: Drain, purge and disconnect
+        actions:
+          - {text: "drain the arms and the header to D-5101; P-5101 returns it to the platform crossover", by: operator}
+          - {text: "N2 purge to below 2 % hydrocarbons (S-01); disconnect the liquid arms, then the vapour arm", by: operator}
+          - {sequence: SEQ-HOLD, action: run, by: operator}
+        complete: {text: "arms stowed"}
+    abort:
+      condition: {any: [{interlock: I-501}, {interlock: I-503}]}
+      actions:
+        - {sequence: SEQ-ESD, action: run, by: automatic}
+      notes: "Any ESD ends the loading; ESD-2 also releases the arms."
+    reset: {latching: true, manual: true}
+
+  - id: SEQ-HOLD
+    title: Holding - circulate the loading lines
+    mode: normal
+    section: TRANSFER
+    cases: [holding]
+    equipment: [P-2102, XV-4103, XV-4105]
+    permissives:
+      - {tag: LZT-2102, state: above the low-low trip}
+    interlocks: [I-202]
+    steps:
+      - id: S1
+        title: Open the loop and start the circulation pump
+        actions:
+          - {tag: XV-4103, action: open, by: operator}
+          - {tag: XV-4105, action: open, by: operator}
+          - {tag: XV-2123, action: open, by: operator}
+          - {tag: P-2102, action: start, by: operator}
+        complete: {tag: TI-4102, state: "< 3 K above the tank liquid"}
+        timeout: {value: 4, unit: h}
+        on_timeout: abort
+        operator: "Circulation out on line A, back on line B (D-008); the vapour return lines stay cold through the tank vapour."
+    abort:
+      condition: {interlock: I-202}
+      actions:
+        - {tag: P-2102, action: stop, by: automatic}
+
+  - id: SEQ-BOG-START
+    title: Start a BOG compressor
+    mode: startup
+    section: BOG
+    cases: [holding, loading]
+    equipment: [K-7101A]
+    permissives:
+      - {tag: LZT-7106, state: below the high-high trip}
+      - {loop: TIC-7103, state: in auto}
+      - {loop: UIC-7104A, state: in auto}
+    interlocks: [I-701, I-702]
+    steps:
+      - id: S1
+        title: Open the suction and start on full recycle
+        actions:
+          - {tag: XV-7121A, action: open, by: operator}
+          - {tag: K-7101A, action: start, by: operator}
+        complete: {tag: K-7101A, state: running}
+        timeout: {value: 30, unit: min}
+        on_timeout: abort
+      - id: S2
+        title: Load the machine
+        actions:
+          - {loop: PIC-7101, action: auto, by: operator}
+        complete: {loop: PIC-7101, state: in auto}
+    abort:
+      condition: {any: [{interlock: I-701}, {interlock: I-702}]}
+      actions:
+        - {tag: K-7101A, action: stop, by: automatic}
+
+  - id: SEQ-ESD
+    title: Berth ESD-1 / ESD-2 response
+    mode: abnormal
+    section: JETTY
+    cases: [loading]
+    equipment: [XV-5101, XV-4101, XV-4102]
+    interlocks: [I-501, I-503]
+    steps:
+      - id: S1
+        title: Loading stopped and the line isolated
+        actions:
+          - {text: "I-501 stops the loading pumps, then closes XV-5101 (25-30 s) and XV-4101/4102", by: automatic}
+        complete: {all: [{tag: XV-5101, state: closed}]}
+      - id: S2
+        title: Pressure the isolated header is under
+        actions:
+          - {text: "watch PZT-5103; PSV-5131 relieves surge or thermal expansion into D-5101", by: operator}
+          - {loop: PIC-1110, action: auto, by: operator}
+        complete: {text: "the cause found and cleared; the carrier informed"}
+        operator: "After ESD-2 the arms are released (I-503): the outboard ERS valves stay on the carrier side; recover the arms before any restart."
