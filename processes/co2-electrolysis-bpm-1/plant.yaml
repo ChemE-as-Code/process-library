@@ -2,7 +2,7 @@
 schema: cheme/plant/v1
 name: "co2-electrolysis-bpm-1"
 # The oldest cheme-as-code this repository works with; an older one stops with an upgrade hint.
-requires: cheme-as-code>=1.4
+requires: cheme-as-code>=1.5
 description: "CO2 electrolysis to CO in a reverse-bias bipolar-membrane cell: measured bench cell (#329), pilot skids planned (#330, tracker core#136)"
 units: SI
 stage: concept
@@ -19,7 +19,16 @@ stages:
 # project: {number: "24-017", client: "", site: "", revision: A}
 # P&ID sheets, DEXPI 2.0.1 XML. Empty: every pid/*.xml. A sheet not drawn yet is
 # `status: planned` (no file needed); `cheme sheet new P-01` starts it.
-sheets: []
+sheets:
+  - {id: BFD, kind: bfd, file: process/BFD.xml, title: "Block flow diagram, pilot skids A and B (#330)"}
+  - {id: PFD, kind: pfd, file: process/PFD.xml, title: "Process flow diagram, pilot skids A and B (#330)"}
+  # The skid P&IDs are generated (#330, DESIGN.md D-017): the scripts are the source, the frame
+  # is a committed file (the empty sheet `cheme sheet new` wrote), so `cheme regen` also works
+  # in a copy without git. Change the script, then `cheme regen P-01`; never edit the XML.
+  - {id: P-01, file: pid/P-01.xml, title: "Pilot skid A, one KOH fill",
+     generator: {script: scripts/draft_P-01.py, frame: pid/frames/P-01.xml}}
+  - {id: P-02, file: pid/P-02.xml, title: "Pilot skid B, KOH dosing",
+     generator: {script: scripts/draft_P-02.py, frame: pid/frames/P-02.xml}}
 #  - {id: P-01, file: pid/P-01.xml, title: Feed and reaction, status: planned}
 # The block and process flow diagrams are generated from process/flowsheet.yaml by
 # `cheme process build` (skill `process-design`); declare them by kind:

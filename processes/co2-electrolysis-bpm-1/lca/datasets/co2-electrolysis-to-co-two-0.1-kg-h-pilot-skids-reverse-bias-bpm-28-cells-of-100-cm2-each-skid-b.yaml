@@ -1,0 +1,674 @@
+# The unallocated LCI dataset of design case skid-b (kind lci_dataset): generated
+# by cheme assess lca --write --case skid-b from the flowsheet and lca/lca.yaml; do
+# not edit (cheme assess lca --check --case skid-b finds it stale). Its id, title
+# and uuid name the case (ADR 0045); the study's own case is lca/dataset.yaml.
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: co2-electrolysis-to-co-two-0.1-kg-h-pilot-skids-reverse-bias-bpm-28-cells-of-100-cm2-each-skid-b
+title: CO2 electrolysis to CO, two 0.1 kg/h pilot skids (reverse-bias BPM, 28 cells of 100 cm2 each),
+  case skid-b
+description: Unallocated foreground LCI of CO2 electrolysis to CO, two 0.1 kg/h pilot skids (reverse-bias
+  BPM, 28 cells of 100 cm2 each), case skid-b, derived from the flowsheet by cheme assess lca.
+scope: foreground
+basis: 1 h of operation
+location: NL
+year: 2026
+boundary: gate-to-gate foreground of the plant
+technology: CO2 electrolysis to CO in reverse-bias bipolar-membrane cells (Ag gas-diffusion cathode, Ni
+  foam anode, KOH anolyte), 28 cells of 100 cm2 in four stacks on a 48 V DC bus at 200 mA/cm2, PSA gas
+  conditioning with 0.95 CO2 recycle and tail-gas oxidation; Skid A one 1 M KOH fill per campaign, Skid
+  B continuous 5 M KOH dosing, bleed and make-up
+rights: 'CC-BY-4.0: the ChemE-as-Code process library''s own concept design (LICENSE-DATA); the measured
+  cell data are 4TU.ResearchData CC BY 4.0 (NOTICE.md)'
+cutoff:
+- key: cutoff:construction
+  title: Skid construction (frames, tanks, stacks, packages, piping)
+  reason: 'not expressible per case in core 1.5.0 (construction entries select equipment by tag, not by
+    case): an open item of #331, not a cut-off by mass; Skid A''s duty-sized reservoir against Skid B''s
+    small reservoir and day tank (their volumes in lca/ranking.json) is one of the flows that distinguish
+    the skids (DESIGN.md D-026, D-027)'
+- key: emission-excluded:anolyte-tanks
+  title: storage-tank emissions of T-101, T-201, T-202
+  direction: output
+  reason: the reservoirs and the day tank hold aqueous KOH and K2CO3 at 25 degC, which are not volatile;
+    the anode O2 they vent is the exchange product:O2VENT
+  source: DESIGN.md D-024
+uuid: e873dd44-5669-5073-a2d5-964113cb168b
+version: 0.1.0
+parent: ea88817f-87a4-5e6b-b12c-f063bfb59b13
+geography:
+  description: One concept design of a pilot skid, sited in the Netherlands (ASSUMED, design basis capacity.pilot_skid.site);
+    NL grid electricity; the cell data are 5 cm2 bench measurements scaled to 100 cm2 (ASSUMED)
+  site: a notional 32 x 16 m pilot plot (layout/site-plan.yaml, ASSUMED)
+time:
+  start: 2026
+valid_until: 2031
+system_model: cutoff
+technology_level: new
+production_volume:
+  amount: 806.4792
+  unit: kg/a
+  source: product:CO per hour x operation.hours_per_year (8000 h/a)
+classification:
+  isic: '2011'
+modelling:
+  principle: attributional
+  sampling: one pilot design per case at the measured 200 mA/cm2 point; 1 h bench measurements held constant
+    over the campaign by assumption (DESIGN.md D-014)
+review:
+- type: none
+data_generator: 'ChemE-as-Code process library, co2-electrolysis-bpm-1 concept design of the #330 pilot
+  skids (agent-drafted, not reviewed)'
+exchanges:
+- key: feed:CO2
+  title: Liquefied CO2 (merchant, ASSUMED fossil by-product, D-016)
+  type: input
+  amount: 0.3563130156
+  unit: kg
+  link:
+    source: the fresh CO2 after the PSA recycle (S101, S201); merchant liquefied CO2 from a fossil industrial
+      by-product, ASSUMED (DESIGN.md D-016)
+    missing: no open factor for merchant liquefied CO2 (capture, purification, liquefaction and delivery
+      of a fossil industrial by-product CO2)
+  streams:
+  - S101
+  - S201
+  source: the fresh CO2 after the PSA recycle (S101, S201); merchant liquefied CO2 from a fossil industrial
+    by-product, ASSUMED (DESIGN.md D-016)
+  pedigree:
+    scores: [4, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  co2_source: fossil-point-source
+  composition:
+    fractions:
+      CO2: 1.0
+    formulas:
+      CO2: CO2
+    source: stream table (S101, S201)
+- key: feed:KOH-FILL
+  title: 1 M KOH fill (campaign-averaged, D-011)
+  type: input
+  amount: 0.0525
+  unit: kg
+  link:
+    source: 'the reservoir''s initial 1 M KOH fill over the campaign (S117, S217; campaign-averaged, D-011):
+      Skid A''s whole fill, Skid B''s 50 L'
+    missing: no open factor for potassium hydroxide (KOH 100 %, membrane-cell electrolysis of KCl); the
+      exchange counts the 1 M fill solution, its KOH mass fraction in the composition; its dilution water
+      (about 95 % of the mass) is inside this gap, not in feed:WATER
+  streams:
+  - S117
+  - S217
+  source: 'the reservoir''s initial 1 M KOH fill over the campaign (S117, S217; campaign-averaged, D-011):
+    Skid A''s whole fill, Skid B''s 50 L'
+  pedigree:
+    scores: [4, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  composition:
+    fractions:
+      KOH: 0.053433333
+      H2O: 0.946566667
+    formulas:
+      KOH: KOH
+      H2O: H2O
+    source: stream table (S117, S217)
+- key: feed:KOH-DOSE
+  title: 5 M KOH solution (Skid B dosing)
+  type: input
+  amount: 0.5113977798
+  unit: kg
+  link:
+    source: Skid B's continuous 5 M KOH dosing (S219; D-010); zero in case skid-a
+    missing: no open factor for potassium hydroxide (KOH 100 %); the exchange counts the 5 M dosing solution,
+      its KOH mass fraction in the composition; its dilution water (about 77 % of the mass) is inside
+      this gap, not in feed:WATER
+  streams:
+  - S219
+  source: Skid B's continuous 5 M KOH dosing (S219; D-010); zero in case skid-a
+  pedigree:
+    scores: [4, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  composition:
+    fractions:
+      KOH: 0.229938525
+      H2O: 0.770061475
+    formulas:
+      KOH: KOH
+      H2O: H2O
+    source: stream table (S219)
+- key: feed:WATER
+  title: Demineralised water (humidification, make-up)
+  type: input
+  amount: 1.7037751101
+  unit: kg
+  link:
+    factor: water-supply-gb-kg
+    source: 'humidification water and Skid B''s anolyte make-up (S102, S202, S222); the dilution water
+      of the KOH fill and dose solutions is not in it: it is part of the KOH exchanges (gaps), and results/scenarios/<H>h/lca.json
+      states it at this factor (DESIGN.md D-025)'
+    proxy: 'UK mains water supply stands in for demineralised water in NL: the demineralisation (ion exchange
+      or reverse osmosis) is not counted (DESIGN.md D-026)'
+  streams:
+  - S102
+  - S202
+  - S222
+  source: 'humidification water and Skid B''s anolyte make-up (S102, S202, S222); the dilution water of
+    the KOH fill and dose solutions is not in it: it is part of the KOH exchanges (gaps), and results/scenarios/<H>h/lca.json
+    states it at this factor (DESIGN.md D-025)'
+  pedigree:
+    scores: [4, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  composition:
+    fractions:
+      H2O: 1.0
+    formulas:
+      H2O: H2O
+    source: stream table (S102, S202, S222)
+- key: feed:AIR
+  title: Air to the tail-gas oxidiser
+  type: input
+  amount: 0.8536994739
+  unit: kg
+  free: true
+  streams:
+  - S110
+  - S210
+  source: 'ambient air to the tail-gas oxidiser (S110, S210): a resource without burden; its N2 and O2
+    leave with the flue gas'
+  pedigree:
+    scores: [4, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  composition:
+    fractions:
+      N2: 0.767090782
+      O2: 0.232909218
+    formulas:
+      N2: N2
+      O2: O2
+    source: stream table (S110, S210)
+- key: feed:POWER
+  title: Electric power (AC, grid)
+  type: input
+  amount: 3.4816535880133
+  unit: kWh
+  link:
+    factor: ember-2025:electricity-nl
+    source: the rectifiers' AC (the stacks' DC over 0.95), the recirculation pumps, the compressors, the
+      PSA and Skid B's dosing pump (Q101 to Q104, Q201 to Q204, Q206; scripts/skid_balance.py, ESTIMATES
+      for the auxiliaries until the datasheets give them, D-012)
+    proxy: Ember's life-cycle intensity of NL gross generation (no T&D losses) stands in for the AC grid
+      supply at the skid (at the consumer); the same profile for every electricity-mix scenario, so the
+      electricity pair of each differs in no dimension (their verdict is proxy through the water background,
+      DESIGN.md D-026)
+  streams:
+  - Q101
+  - Q102
+  - Q103
+  - Q104
+  - Q201
+  - Q202
+  - Q203
+  - Q204
+  - Q206
+  source: the rectifiers' AC (the stacks' DC over 0.95), the recirculation pumps, the compressors, the
+    PSA and Skid B's dosing pump (Q101 to Q104, Q201 to Q204, Q206; scripts/skid_balance.py, ESTIMATES
+    for the auxiliaries until the datasheets give them, D-012)
+  pedigree:
+    scores: [4, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  carrier:
+    kind: electricity
+    source: utility of POWER in process/flowsheet.yaml
+- key: product:CO
+  title: CO product, >=0.99 mol/mol dry, 5.0 bar(a)
+  type: product
+  amount: 0.1008099
+  unit: kg
+  streams:
+  - S108
+  - S208
+  pedigree:
+    scores: [4, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  state:
+    pressure: 5.0
+    temperature: 25.0
+    purity: 0.9992735151
+    basis: mass
+    component: CO
+  composition:
+    fractions:
+      CO: 0.999273515
+      H2: 0.000726485
+    formulas:
+      CO: CO
+      H2: H2
+    source: stream table (S108, S208)
+- key: product:VENT
+  title: Oxidiser flue gas to air
+  type: output
+  amount: 1.074355018
+  unit: kg
+  streams:
+  - S111
+  - S211
+  source: 'released to the environment: counted by its emission:* exchanges'
+  pedigree:
+    scores: [4, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  composition:
+    fractions:
+      N2: 0.609542457
+      O2: 0.092536672
+      CO2: 0.160509705
+      H2O: 0.137411166
+    formulas:
+      N2: N2
+      O2: O2
+      CO2: CO2
+      H2O: H2O
+    source: stream table (S111, S211)
+- key: product:O2VENT
+  title: Anode O2 vented from the reservoir
+  type: output
+  amount: 0.157538107
+  unit: kg
+  streams:
+  - S116
+  - S216
+  source: 'released to the environment: counted by its emission:* exchanges'
+  pedigree:
+    scores: [4, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  composition:
+    fractions:
+      O2: 1.0
+    formulas:
+      O2: O2
+    source: stream table (S116, S216)
+- key: product:BLEED
+  title: Anolyte bleed to the site effluent (Skid B)
+  type: output
+  amount: 1.961518322
+  unit: kg
+  link:
+    source: Skid B's anolyte bleed to the site effluent (S223, D-010); zero in case skid-a
+    missing: no open factor for the neutralisation of an alkaline potassium carbonate solution; its K2CO3
+      carbon (fossil, from the CO2 feed) is released as CO2 when it is neutralised and is not counted
+  streams:
+  - S223
+  source: Skid B's anolyte bleed to the site effluent (S223, D-010); zero in case skid-a
+  pedigree:
+    scores: [4, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  treatment:
+    kind: waste
+    route: neutralisation of alkaline carbonate solution
+    hazardous: true
+  composition:
+    fractions:
+      KOH: 0.027397232
+      K2CO3: 0.031989175
+      H2O: 0.940613593
+    formulas:
+      KOH: KOH
+      K2CO3: K2CO3
+      H2O: H2O
+    source: stream table (S223)
+- key: product:SPENT
+  title: Spent anolyte at the end of the campaign (campaign-averaged, D-011)
+  type: output
+  amount: 0.05256590597
+  unit: kg
+  link:
+    source: 'the anolyte left at the end of the campaign (S118, S218; campaign-averaged, D-011): KOH and
+      K2CO3 in water, pH about 12 (Skid A) or 13.7 (Skid B)'
+    missing: no open factor for the neutralisation of a spent alkaline potassium carbonate solution; its
+      K2CO3 carbon (fossil, from the CO2 feed) is released as CO2 when it is neutralised and is not counted
+  streams:
+  - S118
+  - S218
+  source: 'the anolyte left at the end of the campaign (S118, S218; campaign-averaged, D-011): KOH and
+    K2CO3 in water, pH about 12 (Skid A) or 13.7 (Skid B)'
+  pedigree:
+    scores: [4, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  treatment:
+    kind: waste
+    route: neutralisation of alkaline carbonate solution
+    hazardous: true
+  composition:
+    fractions:
+      KOH: 0.026677596
+      K2CO3: 0.032864456
+      H2O: 0.940457947
+    formulas:
+      KOH: KOH
+      K2CO3: K2CO3
+      H2O: H2O
+    source: stream table (S118, S218)
+- key: product:CONDENSATE
+  title: Cathode condensate with carbonate to the site effluent
+  type: output
+  amount: 0.1308981266
+  unit: kg
+  link:
+    source: the cathode condensate with the K+ that crossed the membrane as K2CO3 at 1 mol/kg, ASSUMED
+      (S105, S205; D-012)
+    missing: no open factor for the neutralisation of the cathode's potassium carbonate condensate; its
+      K2CO3 carbon (fossil, from the CO2 feed) is released as CO2 when it is neutralised and is not counted
+  streams:
+  - S105
+  - S205
+  source: the cathode condensate with the K+ that crossed the membrane as K2CO3 at 1 mol/kg, ASSUMED (S105,
+    S205; D-012)
+  pedigree:
+    scores: [4, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  treatment:
+    kind: waste
+    route: neutralisation of alkaline carbonate solution
+    hazardous: true
+  composition:
+    fractions:
+      K2CO3: 0.121422873
+      H2O: 0.878577127
+    formulas:
+      K2CO3: K2CO3
+      H2O: H2O
+    source: stream table (S105, S205)
+- key: product:CW
+  title: Cooling water return
+  type: output
+  amount: 2.226785845
+  unit: kWh
+  link:
+    source: the stack heat removed by the coolers E-111 and E-211 (Q105, Q205; cheme process stack, isothermal
+      by assumption, D-012)
+    missing: 'heat rejected to the site cooling water: no open factor for the circuit''s pumps, fans,
+      make-up water and treatment; the skids'' own power counts the anolyte pump only'
+  streams:
+  - Q105
+  - Q205
+  source: the stack heat removed by the coolers E-111 and E-211 (Q105, Q205; cheme process stack, isothermal
+    by assumption, D-012)
+  pedigree:
+    scores: [4, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  carrier:
+    kind: cold
+    temperature: 20.0
+    source: utility of CW in process/flowsheet.yaml
+- key: emission:CO2
+  title: CO2 to the environment
+  type: emission
+  amount: 0.1724444072193207
+  unit: kg
+  link:
+    elementary: {}
+    source: 'CO2 to air from the oxidiser vent: the carbon of the fossil CO2 feed (D-016); characterised
+      by ipcc2021-gwp100. The 0.95 recycle that sets it is ASSUMED (D-012)'
+  cas: 124-38-9
+  flow:
+  - list: ef-3.1
+  - list: biosphere3
+    uuid: 349b29d1-3e58-4c66-98b9-9d1a076efd2e
+    name: Carbon dioxide, fossil
+    categories:
+    - air
+    unit: kg
+  streams:
+  - S111
+  - S211
+  source: 'CO2 to air from the oxidiser vent: the carbon of the fossil CO2 feed (D-016); characterised
+    by ipcc2021-gwp100. The 0.95 recycle that sets it is ASSUMED (D-012)'
+  pedigree:
+    scores: [4, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  composition:
+    fractions:
+      CO2: 1.0
+    formulas:
+      CO2: CO2
+    source: stream table (S111, S211)
+- key: emission:H2O
+  title: H2O to the environment
+  type: emission
+  amount: 0.14762837539902451
+  unit: kg
+  free: true
+  cas: 7732-18-5
+  streams:
+  - S111
+  - S211
+  source: 'water vapour of the flue gas (from the cathode gas and the H2 burnt): no climate burden at
+    ground level'
+  pedigree:
+    scores: [4, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.5
+  composition:
+    fractions:
+      H2O: 1.0
+    formulas:
+      H2O: H2O
+    source: stream table (S111, S211)
+- key: emission:N2
+  title: N2 to the environment
+  type: emission
+  amount: 0.6548649969322572
+  unit: kg
+  free: true
+  cas: 7727-37-9
+  streams:
+  - S111
+  - S211
+  source: the oxidiser air's nitrogen, returned to the atmosphere unchanged
+  pedigree:
+    scores: [4, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.5
+  composition:
+    fractions:
+      N2: 1.0
+    formulas:
+      N2: N2
+    source: stream table (S111, S211)
+- key: emission:O2
+  title: O2 to the environment
+  type: emission
+  amount: 0.2569553454064234
+  unit: kg
+  free: true
+  cas: 7782-44-7
+  streams:
+  - S111
+  - S211
+  - S116
+  - S216
+  source: 'the excess oxidiser air''s O2 and the anode O2: returned to the atmosphere, no burden and no
+    credit'
+  pedigree:
+    scores: [4, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.5
+  composition:
+    fractions:
+      O2: 1.0
+    formulas:
+      O2: O2
+    source: stream table (S111, S211, S116, S216)
+- key: consumable:membrane-bpm
+  title: Bipolar membranes (Fumasep FBM), 28 x 100 cm2
+  type: input
+  amount: 1.4e-05
+  unit: kg
+  link:
+    source: '28 cells x 100 cm2 at 0.20 kg/m2 (ASSUMED: about 0.15 mm of ion-exchange polymer; no datasheet
+      value is used), replaced with the stacks every 4000 h (process/cells.yaml stacks[].replacement.interval,
+      ASSUMED); DESIGN.md D-026'
+    missing: no open factor for a bipolar ion-exchange membrane
+  source: '28 cells x 100 cm2 at 0.20 kg/m2 (ASSUMED: about 0.15 mm of ion-exchange polymer; no datasheet
+    value is used), replaced with the stacks every 4000 h (process/cells.yaml stacks[].replacement.interval,
+    ASSUMED); DESIGN.md D-026'
+  pedigree:
+    scores: [4, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+- key: disposal:consumable.membrane-bpm
+  title: 'Disposal: Bipolar membranes (Fumasep FBM), 28 x 100 cm2 (incineration of spent ion-exchange
+    membrane)'
+  type: output
+  amount: 1.4e-05
+  unit: kg
+  link:
+    source: 'ASSUMED: the membranes leave as waste with the stack refurbishment'
+    missing: no open factor for the incineration of a spent ion-exchange membrane
+  streams:
+  - consumable:membrane-bpm
+  source: 'ASSUMED: the membranes leave as waste with the stack refurbishment'
+  pedigree:
+    scores: [4, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  treatment:
+    kind: waste
+    route: incineration of spent ion-exchange membrane
+- key: consumable:cathode-gde-ag
+  title: Silver of the gas-diffusion cathodes, 28 x 100 cm2
+  type: input
+  amount: 7.343e-08
+  unit: kg
+  link:
+    source: '28 cells x 100 cm2 x 100 nm of Ag (process/design-basis.yaml capacity.reference_cell, given)
+      at the bulk density 10.49 g/cm3 (ASSUMED dense film): 1.049 g/m2; its carbon paper is the consumable
+      cathode-gdl-carbon'
+    missing: no open factor for silver sputtered on a carbon gas-diffusion layer
+  source: '28 cells x 100 cm2 x 100 nm of Ag (process/design-basis.yaml capacity.reference_cell, given)
+    at the bulk density 10.49 g/cm3 (ASSUMED dense film): 1.049 g/m2; its carbon paper is the consumable
+    cathode-gdl-carbon'
+  pedigree:
+    scores: [4, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  metals:
+    Ag: 1.0
+- key: disposal:consumable.cathode-gde-ag
+  title: 'Disposal: Silver of the gas-diffusion cathodes, 28 x 100 cm2 (silver recovery by a precious-metal
+    refiner)'
+  type: output
+  amount: 7.343e-08
+  unit: kg
+  free: true
+  streams:
+  - consumable:cathode-gde-ag
+  source: 'ASSUMED: the spent cathodes go to silver recovery; cut-off: burden-free, no credit'
+  pedigree:
+    scores: [4, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  treatment:
+    kind: recyclable
+    route: silver recovery by a precious-metal refiner
+  metals:
+    Ag: 1.0
+- key: consumable:cathode-gdl-carbon
+  title: Carbon-paper gas-diffusion layers of the cathodes (Sigracet 39BB), 28 x 100 cm2
+  type: input
+  amount: 7.0e-06
+  unit: kg
+  link:
+    source: '28 cells x 100 cm2 at 0.10 kg/m2 (ASSUMED: about 0.3 mm of carbon paper with its microporous
+      layer; no datasheet value is used), the substrate of the Ag cathode (process/design-basis.yaml capacity.reference_cell),
+      replaced with it every 4000 h; DESIGN.md D-024'
+    missing: no open factor for a carbon-fibre paper gas-diffusion layer with a microporous layer
+  source: '28 cells x 100 cm2 at 0.10 kg/m2 (ASSUMED: about 0.3 mm of carbon paper with its microporous
+    layer; no datasheet value is used), the substrate of the Ag cathode (process/design-basis.yaml capacity.reference_cell),
+    replaced with it every 4000 h; DESIGN.md D-024'
+  pedigree:
+    scores: [4, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+- key: disposal:consumable.cathode-gdl-carbon
+  title: 'Disposal: Carbon-paper gas-diffusion layers of the cathodes (Sigracet 39BB), 28 x 100 cm2 (burnt
+    off by the precious-metal refiner in the silver recovery)'
+  type: output
+  amount: 7.0e-06
+  unit: kg
+  link:
+    source: 'ASSUMED: the carbon paper goes with the cathodes to silver recovery, where it is burnt off'
+    missing: no open factor for burning carbon-fibre paper; its fossil carbon leaves as CO2 and is not
+      counted
+  streams:
+  - consumable:cathode-gdl-carbon
+  source: 'ASSUMED: the carbon paper goes with the cathodes to silver recovery, where it is burnt off'
+  pedigree:
+    scores: [4, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  treatment:
+    kind: waste
+    route: burnt off by the precious-metal refiner in the silver recovery
+- key: consumable:anode-ni-foam
+  title: Nickel foam anodes, 28 x 100 cm2
+  type: input
+  amount: 2.4500000000000003e-05
+  unit: kg
+  link:
+    source: 28 cells x 100 cm2 at 0.35 kg/m2 (ASSUMED areal mass of a nickel foam; the paper does not
+      state the grade)
+    missing: no open factor for nickel foam; the packaged desnz-ghg-2026 construction metals factor is
+      steel-dominated and is not used for nickel (DESIGN.md D-026)
+  source: 28 cells x 100 cm2 at 0.35 kg/m2 (ASSUMED areal mass of a nickel foam; the paper does not state
+    the grade)
+  pedigree:
+    scores: [4, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+- key: disposal:consumable.anode-ni-foam
+  title: 'Disposal: Nickel foam anodes, 28 x 100 cm2 (nickel scrap to recycling)'
+  type: output
+  amount: 2.4500000000000003e-05
+  unit: kg
+  free: true
+  streams:
+  - consumable:anode-ni-foam
+  source: 'ASSUMED: the spent foam goes to metal recycling; cut-off: burden-free, no credit'
+  pedigree:
+    scores: [4, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  treatment:
+    kind: recyclable
+    route: nickel scrap to recycling
+allocation:
+  method: none
+  source: 'DESIGN.md D-024: CO is the only product. The H2 the cathode makes is burnt with the PSA tail
+    gas in the oxidiser X-x32 and the anode O2 is vented, so neither leaves as a product; the H2 co-product
+    alternative (recovered, allocated by mass or LHV) is a sensitivity (lca/sensitivity-h2-coproduct.json),
+    not designed.'
+provenance:
+  generator: cheme assess lca
+  plant: CO2 electrolysis to CO, two 0.1 kg/h pilot skids (reverse-bias BPM, 28 cells of 100 cm2 each)
+  case: skid-b
+  files:
+    equipment/equipment-list.yaml: sha256:4513f4c7cbe38830a4864a40123c8b2c54acba2486462a645165202c3c20f8be
+    lca/lca.yaml: sha256:4c5e3e31ca10a34135471adf0298b77c08318c5184aec1d1e4695af387cb82a2
+    process.yaml: sha256:52010595367edae5384f674b914ce7349f37b8816c04a85b4e9837399aace918
+    process/flowsheet.yaml: sha256:c7a257ec57729a24700201f72950732c6a358588f50ce433f819fcec67235659
+    process/materials.yaml: sha256:f4fcaf1692ea4236a641ed45061cb4ef90b3259df0810399698bd5f48fd842da
+    process/simulation.yaml: sha256:fb9598b96af585655c7444e1ffd4b8882548bba000affad5b6d5a20836ee2ff1

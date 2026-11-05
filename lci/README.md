@@ -115,7 +115,12 @@ build); governance (versions, change reports, releases, review) is
   (technosphere entries and proxies). Never mix it with the cut-off database in one study.
 - **Source.** Core's unallocated LCI dataset of each process (`kind: lci_dataset`):
   `processes/<id>/lca/dataset.yaml` of a plantcode project (`cheme assess lca --write`), or
-  hand-written `processes/<id>/lca/datasets/*.yaml` of a manifest-only process. The builder
+  hand-written `processes/<id>/lca/datasets/*.yaml` of a manifest-only process, and a design
+  case's own dataset `lca/datasets/<dataset id>-<case>.yaml` of a project with a second computed
+  design (`cheme assess lca --write --case <case>`, core ADR 0045). A case dataset's activities
+  are named `<title>, case <case>`; the study's allocation and data quality apply to
+  `lca/dataset.yaml` only, and a market or an Atlas link takes the study's dataset first
+  ([ADR 0034](../docs/adr/0034-design-case-lci-datasets.md)). The builder
   reads `schema: cheme/lci_dataset/v2` and the v1 files (`cheme/lca/v1`,
   `plantcode/lca/v1`); `cheme migrate --write` rewrites a hand-written v1 dataset to v2.
 - **Co-products.** One single-output activity per co-product, per 1 unit (kg) of it, allocated

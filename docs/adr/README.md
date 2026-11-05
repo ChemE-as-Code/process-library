@@ -71,3 +71,5 @@ with an ADR in the same pull request.
 | [0030](0030-reference-reproduction-benchmarks.md) | Keep reference reproductions in benchmarks/reproductions/, tolerances committed before the run | **Proposed**, 2026-11-01 |
 | [0031](0031-case-studies-reproduction-plus-design-extension.md) | A case study is a reference reproduction plus one labelled design extension, rerun by one command | **Proposed**, 2026-11-04 |
 | [0032](0032-measured-series-as-design-inputs.md) | A process may use measured series from a pinned dataset; reproduction results stay held out | **Proposed**, 2026-11-04 |
+| [0033](0033-engineering-regeneration-tests-own-ci-job.md) | A process's regeneration test runs in its own CI job, marked `engineering` | **Proposed**, 2026-11-05 |
+| [0034](0034-design-case-lci-datasets.md) | An engineering project may export a design case's own LCI dataset beside its study's | **Proposed**, 2026-11-05 |
