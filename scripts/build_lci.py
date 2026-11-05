@@ -5,8 +5,10 @@
 """Build the Atlas LCI export: a Brightway foreground database from a process library.
 
 Input, per process (``processes/<id>/``): core's unallocated LCI datasets (``kind:
-lci_dataset``; schema ``cheme/lci_dataset/v2``, and the v1 files), ``lca/dataset.yaml`` of a plantcode project (``cheme assess lca --write``) and
-any hand-written ``lca/datasets/*.yaml`` of a manifest-only process; ``process.yaml`` for the
+lci_dataset``; schema ``cheme/lci_dataset/v2``, and the v1 files), ``lca/dataset.yaml`` of a plantcode project (``cheme assess lca --write``),
+a design case's own ``lca/datasets/<dataset id>-<case>.yaml`` beside it (``--write --case``, ADR 0034: its
+activities are named ``<title>, case <case>``) and any hand-written ``lca/datasets/*.yaml`` of a
+manifest-only process; ``process.yaml`` for the
 title, maturity and the chemical slug of each inventory key; ``lca/lca.yaml`` for the study's
 allocation and functional unit. Linking comes from ``lci/mappings.yaml`` (library root, else the
 process library's own beside this script; schema ``schemas/lci-mappings.schema.json``), the shared
@@ -1123,8 +1125,10 @@ class Linker:
                 refused.append(f"{pid}: {row['name']} | {row['reference product']} (grade {chemical}/{row['grade']}, the input is {chemical}/{wanted})")
                 continue
             candidates.append((pid, row))
-        # a current producer of the grade the input names comes first (a deprecated dataset's last), then by process id and name
-        candidates.sort(key=lambda c: (c[1].get("deprecated", False), not wanted or c[1].get("grade") != wanted, c[0], c[1]["name"]))
+        # a current producer of the grade the input names comes first (a deprecated dataset's last, a design case's own
+        # dataset after its study's, ADR 0034), then by process id and name
+        candidates.sort(key=lambda c: (c[1].get("deprecated", False), c[1].get("design_case") is not None,
+                                       not wanted or c[1].get("grade") != wanted, c[0], c[1]["name"]))  # fmt: skip
         if not candidates:
             return AtlasChoice(None, None, [], refused) if refused else None
         if wanted and candidates[0][1].get("grade") == wanted:
@@ -1310,12 +1314,29 @@ def _state_text(state: dict | None) -> str:
     return ", ".join(parts)
 
 
+def design_case(dataset: Dataset) -> str | None:
+    """The design case of a dataset that ``cheme assess lca --write --case <case>`` generated
+    into ``lca/datasets/`` (ADR 0034: core ADR 0045's ``provenance.case``), else None. The
+    study's own ``lca/dataset.yaml`` is never a case dataset, whatever case it was derived from."""
+    if PurePath(dataset.path).name == "dataset.yaml" and PurePath(dataset.path).parent.name == "lca":
+        return None
+    provenance = dataset.data.get("provenance") or {}
+    if provenance.get("generator") != "cheme assess lca":
+        return None
+    case = provenance.get("case")
+    return str(case) if case else None
+
+
 def _product_rows(process: Process, dataset: Dataset, products: reg.Registry, all_products: bool = False) -> list[dict]:
     """One row per allocated product (with *all_products*, also those with a share of 0, for the
     multi-output formats). Its reference product is the registry grade's name when the flow has
-    a grade, else the substance's name with the exchange title."""
+    a grade, else the substance's name with the exchange title. The activity's name is the
+    process's title, with ", case <case>" for a design case's own dataset (ADR 0034), so that two
+    designs of one process never share a name, reference product, location and unit."""
     rows = []
     location = dataset.data.get("location") or "GLO"
+    case = design_case(dataset)
+    title_of_process = process.manifest["title"] + (f", case {case}" if case else "")
     for exchange in dataset.data["exchanges"]:
         if exchange["type"] != "product" or (dataset.shares.get(exchange["key"], 0.0) <= 0 and not all_products):
             continue
@@ -1331,7 +1352,7 @@ def _product_rows(process: Process, dataset: Dataset, products: reg.Registry, al
         rows.append(
             {
                 "code": f"{process.pid}:{dataset.data['id']}:{exchange['key']}",
-                "name": process.manifest["title"] + (f" [superseded by {dataset.successor['id']} {dataset.successor['version']}]" if dataset.successor else ""),
+                "name": title_of_process + (f" [superseded by {dataset.successor['id']} {dataset.successor['version']}]" if dataset.successor else ""),
                 "reference product": product,
                 "unit": BW_UNITS[exchange["unit"]],
                 "location": location,
@@ -1342,6 +1363,8 @@ def _product_rows(process: Process, dataset: Dataset, products: reg.Registry, al
                 "state": _state_text(exchange.get("state")),
                 "carrier": exchange.get("carrier"),
                 "deprecated": bool(dataset.data.get("superseded_by")),
+                # a design case's own dataset (ADR 0034): never the default Atlas link of its product
+                "design_case": case,
                 "superseded_by": _successor_text(dataset.successor, exchange["key"]) if dataset.successor else None,
             }
         )
@@ -1584,7 +1607,9 @@ def build_activities(processes: list[Process], mappings: dict, products: reg.Reg
                 report.error(
                     dataset.path,
                     f"{row['code']} has the name, reference product, location and unit of {identities[identity]}: "
-                    "the installer cannot tell them apart (a second dataset of one process for the same product needs its own title or location)",
+                    "the installer cannot tell them apart (a second dataset of one process for the same product needs its own "
+                    "location, or must be a design case's dataset written by cheme assess lca --write --case, whose activity "
+                    "name carries the case: ADR 0034)",
                 )
             identities[identity] = row["code"]
             linker.datasets[row["code"]] = dataset
@@ -1823,6 +1848,9 @@ def build_markets(linker: Linker, products: reg.Registry, db_name: str, commit: 
             if len(found) > 1:  # a deprecated dataset beside its successor: the market takes the current one
                 current = [r for r in found if not r.get("deprecated")]
                 found = current if len(current) == 1 else found
+            if len(found) > 1:  # a design case's own dataset beside the study's: the study's (ADR 0034)
+                study = [r for r in found if not r.get("design_case")]
+                found = study if len(study) == 1 else found
             if len(found) == 1:
                 suppliers.append(found[0])
             elif found:
