@@ -1,7 +1,8 @@
-# Benchmarks of chlorinated organics: for now VCM by the balanced EDC process. Schema:
-# schemas/benchmarks.schema.json; rules: docs/benchmarks.md. Ranges are facts from the cited
-# source, in our own form.
+# Benchmarks of chlorinated organics: VCM by the balanced EDC process, and benzyl chloroformate.
+# Schema: schemas/benchmarks.schema.json; rules: docs/benchmarks.md. Ranges are facts from the
+# cited source, in our own form.
 #
+# vcm-1:
 # Independence: the oxygen and residue KPIs come from the dataset's own document (LVOC BREF 2017),
 # but neither value is transcribed: both are calculated from the chlorine and ethylene figures by
 # stoichiometry, so they test the model's closure, not new plant data. The ethylene and CO2 KPIs are
@@ -9,6 +10,15 @@
 # different data collection, though not a fully independent one. The EU ETS benchmark is the most
 # independent figure (verified 2016-2017 emissions of EU installations), but it is the mean of the
 # 10 % best plants, not a range, so it is recorded and not bound.
+#
+# Benzyl chloroformate (benzyl-chloroformate-1, #153): no open source gives a plant's specific
+# consumptions. The stoichiometric floors are 0.634 kg benzyl alcohol and 0.580 kg phosgene per
+# kg (one of each per chloroformate); they are limits, not ranges of real plants, so they are not
+# recorded as ones (docs/benchmarks.md: never invent a range). The open yields are laboratory
+# examples of one patent (US 6 696 590 B2 Ex. 3 and 4: 81 % at 500 mbar and 75 % at 250 mbar,
+# isolated, on 2 mol of alcohol), single values at different conditions, and Ex. 3 is the
+# dataset's own basis of conditions (DESIGN.md D-001, D-005); they are discussed in D-008, not
+# bound here.
 schema: cheme-as-code/benchmarks/v1
 family: chlorinated-organics
 
@@ -99,6 +109,15 @@ kpis:
           kind: government
           accessed: "2026-11-05"
 
+  bcf-specific-benzyl-alcohol:
+    title: Benzyl alcohol consumption per kg of benzyl chloroformate
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's or a pilot's benzyl alcohol use per kg of benzyl chloroformate found (searched 2026-11-05: Google Patents US 6 696 590 B2 and US 3 966 786 A read, laboratory and continuous examples only; web search for benzyl chloroformate production yields and consumption). US 6 696 590 B2 Ex. 3 implies 0.79 kg/kg (217 g of alcohol for 275 g of product, an 81 % isolated laboratory yield), a single value and the dataset's own basis of conditions; the stoichiometric floor is 0.634 kg/kg."
+  bcf-specific-phosgene:
+    title: Phosgene consumption per kg of benzyl chloroformate
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's phosgene use per kg of benzyl chloroformate found (searched 2026-11-05 as for bcf-specific-benzyl-alcohol); US 6 696 590 B2 states a preferred excess of 1.5 to 2.5 mol per mol of alcohol and uses 1.27 in Ex. 3 (the dataset's ratio), no plant figure; the stoichiometric floor is 0.580 kg/kg."
+
 datasets:
   - process: vcm-1
     dataset: vcm-balanced-oxygen
@@ -116,3 +135,9 @@ datasets:
         per: product:vinyl-chloride
         reference: ipcc-2006-vcm-balanced-co2
         out_of_range_reason: "The dataset burns the 2017 BREF's fuel midpoint (3.8 GJ/t) and only the ethylene left unconverted; the IPCC default averages older plants (2003 BREF data) and includes support fuel of the waste-gas incinerators, which is not counted separately here (see the dataset's parameter fuel). The value lies between it and the EU ETS mean of the 10 % best plants (0.171 t/t, which also counts steam and hydrogen fuel), recorded beside it."
+  - process: benzyl-chloroformate-1
+    dataset: benzyl-chloroformate-by-semi-batch-phosgenation-of-benzyl-alcohol-1000-t-a
+    conditions: {technology: "phosgenation of neat benzyl alcohol with phosgene gas at 278 K and 50 kPa(a), semi-batch, degassed, not distilled, caustic off-gas scrubber", basis: "concept balance, ratios from the patent's Ex. 3 and ASSUMED kinetics (DESIGN.md D-004, D-005)"}
+    kpis:
+      bcf-specific-benzyl-alcohol: {expression: feed:BNOH / product:BCF, per: product:BCF}
+      bcf-specific-phosgene: {expression: feed:PHOS / product:BCF, per: product:BCF}
