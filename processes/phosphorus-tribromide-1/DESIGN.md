@@ -41,11 +41,12 @@ of the crude treated with red phosphorus and distilled under vacuum in a batch s
 dedicated train (D-013). Boundary feeds: molten white phosphorus, bromine, red phosphorus,
 nitrogen (per batch), electricity, LP steam; returns: cooling water; outputs: distilled PBr3,
 the still residue to hazardous-waste incineration.
-Reason: it is the industrial route of the one open process source (SRC-1); the bromine excess
-avoids the free phosphorus and the PBr5 deposits of the older practice that SRC-1 describes. It
-uses the library's bromine (bromine-1). All three reactants are liquid at the reaction
-temperature and the reaction gives no gas, so the one-liquid-phase semi-batch of core 1.7.0
-holds it (unlike the gas-evolving routes of #144, #159 and #160).
+Reason: it is the industrial route of the one open process source (SRC-1); the small bromine
+excess keeps free phosphorus out of the product, while the reaction temperature above 100 C
+avoids the solid PBr5 that the older low-temperature practice suppressed with excess phosphorus
+(SRC-1). It uses the library's bromine (bromine-1). All three reactants are liquid at the
+reaction temperature and the reaction gives no gas, so the one-liquid-phase semi-batch of core
+1.7.0 holds it (unlike the gas-evolving routes of #144, #159 and #160).
 Rejected: bromine into a heel holding all the phosphorus (SRC-1 claim 2): the same chemistry,
 but the whole phosphorus inventory is in the vessel when the cooling fails; co-feeding is the
 mode of the patent's example. The older low-temperature route with excess phosphorus in a
@@ -144,7 +145,10 @@ Decision: 1 kg of red phosphorus per 100 kg of white phosphorus dosed (the examp
 200 kg, 0.1 wt% of the crude; within claim 5's 0.05-5 wt%) is stirred into the crude in the still
 pot for 1 h before the distillation (T101); it takes up 99.9 % of the free bromine (2 P + 3 Br2
 -> 2 PBr3, conversion ASSUMED). About 41 % of the red phosphorus reacts; the rest stays in the
-residue. T101 is adiabatic (`process/simulation.yaml`): its heat is about 3 J per kg of product.
+residue. T101 is adiabatic (`process/simulation.yaml`): its heat, about 3 kJ per kg of product
+(2 P + 3 Br2 -> 2 PBr3 at -334 to -369 kJ/mol, red phosphorus at -17.6 kJ/mol (CRC) or 0, on
+0.0010 kmol/h: about 0.1 kW year average, an adiabatic rise of about 5 K in the still pot), is
+not counted: S7 is kept at 398.15 K, so Q2 is about 0.1 kW (about 1 %) high.
 Reason: SRC-1 adds red phosphorus before the vacuum distillation to get a colourless product;
 the example's dose is enough for the 0.4 % excess.
 
