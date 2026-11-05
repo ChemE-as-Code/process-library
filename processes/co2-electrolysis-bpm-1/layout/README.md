@@ -16,6 +16,9 @@ zones, and ventilation.
 | `hvac.yaml` | `cheme schema hvac` | air handling units (in a building, `intake` and `exhaust` louvres), ventilated rooms (`air_changes_per_h` or `flow_m3h`, the unit, optional terminals), duct rules (velocity limits, sides, ceiling gap, spacing; defaults ASSUMED); optional, skill `hvac-ducts` |
 | `../piping/routing.yaml` | `cheme schema routing` | router rules (rack tiers by fluid or line prefix, battery limits, pipe-way elevation, `local_max_m`, spacing, headroom, grid) and intent per line (`rack`, `tier`, `via`, `elevation`, pinned `route`, `skip`) |
 | `../piping/pipe-specs.yaml` | `cheme schema pipe_specs` | pipe classes (material, colour) and insulation thickness by type and DN (optional) |
+| `lifting-basis.yaml` | project file (no core schema) | this process's item weights (ASSUMED) and unit lifts, read by `scripts/regen.py` steps 21 and 23 (DESIGN.md D-043) |
+| `lifting-study.csv`, `.md` (generated) | `cheme layout lifting` | core's lifting study: every listed item of 5 t or more (none here) |
+| `lifting-study-units.csv`, `.md` (generated) | `scripts/regen.py` step 23 | the skids as 20 ft units and T-101 drained and full, with core's criteria (D-043) |
 | `plant-model.yaml` (generated) | `cheme schema layout_model` | the 3D model `cheme layout build` derives: parts, nozzles, envelopes, steel, platforms, zones, pipe routes, in-line items |
 
 Coordinates are metres in the site frame: **x east, y north, z up**, origin at the south-west

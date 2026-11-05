@@ -38,6 +38,12 @@ The pilot skids of #330 (DESIGN.md D-007 to D-023):
   owns the draft datasheets (D-020). `--check` regenerates every design scenario in a temporary
   copy and reports any record, figure, model file or datasheet that differs (exit 3). `--scratch
   DIR` runs in a copy and copies the scenario's figures and records back (D-021, D-022).
+  Steps 21 to 23 (DESIGN.md D-043, D-044): the item weights from `layout/lifting-basis.yaml` into
+  the equipment list (before step 10), `cheme assess mto --write` and `cheme layout lifting
+  --write` with the unit lifts of `layout/lifting-study-units.*` (before step 13's validate);
+  their totals and lifts go into the record at both durations.
+- `_lifting.py`: steps 21 and 23, the item weights and the unit lifts (each skid as a 20 ft
+  unit, T-101 drained and full) with core's lifting criteria and arithmetic on the model.
 - `_results.py`: the arithmetic of steps 14 to 17 (invariants, record, resize report) and the
   uncertainty figures, plain SVG; no core import.
 - `_lca.py`: regen step 20, the LCA of both skids (#331, DESIGN.md D-024 to D-027): the values
@@ -55,7 +61,8 @@ The pilot skids of #330 (DESIGN.md D-007 to D-023):
 - `_yamledit.py`: targeted edits of hand-maintained YAML that refuse any other change.
 - `_figures.py`: the skid plans and sections of step 10, core's A1 sheets (`cheme layout
   render`) cropped to the drawing at their scale, the grid bubbles, scale bar, north arrow and
-  title block moved beside it, rasterised by resvg (DESIGN.md D-041); no core import.
+  title block moved beside it, rasterised by resvg (DESIGN.md D-041); the plot plan with core's
+  road drawn under its zones, so the crane pads on the road show (D-043); no core import.
 - `draft_P-01.py`, `draft_P-02.py`: the generators of the skid P&IDs P-01 (Skid A) and P-02
   (Skid B), both drawing with `_skid_pid.py` from the frames `pid/frames/P-0x.xml` (generated
   sheets, DESIGN.md D-017): change them, then `cheme regen P-01 P-02`.
