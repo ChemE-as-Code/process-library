@@ -1709,6 +1709,101 @@ template gate `tea` is enabled (`[prices, no-example, tea-current]`) and passes.
 tea` warns `tea-class-stage` (class 4 claimed while plant.yaml is at the concept stage): the
 warning clears with the basic sign-off (S5r).
 
+**Review of PR #364, round 1 (S5 fix).** Engineering changes to the layout, estimate and
+zones; each value below is ASSUMED unless a source is named.
+- *Elevations.* Items whose bottom outlet feeds a pump or whose bottom nozzles lay below grade
+  stand on concrete foundations (`plinth`): V-100 2.5 m (its outlet N3 moved to the low south
+  side, the foundation being under the bottom), V-101 2.0 m, C-203 2.5 m (standing for a
+  longer skirt), E-102 0.8 m, the reboilers E-202, E-204, E-206 1.0 m. Static head over the
+  pump suctions: P-101 about 2.2 m, P-102 2.4 m, P-201 5.5 m, P-202 5.8 m, P-203 5.4 m,
+  P-204 3.7 m (vessel outlet to pump suction centre, own reading of the model). NPSH is not
+  calculated (pump datasheets, S7). No process line runs below grade (checked in the model);
+  no trench is declared.
+- *Pockets.* PG-630 (C-203 overhead, 30 kPa(a)) rises 0.45 m from the column top, then falls
+  continuously at 12.8 m over S-203 (2.8 m over its upper deck) onto the E-205 channel: no
+  liquid pocket. PG-530 (C-202 overhead) drops 2.8 m from the column axis outside its platforms
+  (clips and guides off the shell carry it, a support design item) and crosses at 14.2 m to
+  E-203. Every pump suction falls continuously from its vessel to the pump (checked point by
+  point in the model); the quench pump take-off T235 on AR-116 is at 1.2 m beside V-101, and
+  AR-116 rises to the rack only after it and its valves. DP-649 runs level. The reboiler draws
+  AR-437, TO-538, TO-638 fall from turned draw nozzles to a low point beside the reboiler and
+  rise only into its bottom inlet (a liquid-full low point with its drain, no high point).
+- *Valve stations.* The reflux/product pump discharges no longer rise to the reflux nozzle
+  before their tees: the tees, the minimum-flow take-offs and the control valves LV-405,
+  FV-507, LV-506, FV-607, LV-606, LV-202 and XV-204 stand at 1.1 to 1.7 m beside the pumps
+  (handwheels 1.8 to 2.3 m); each reflux line rises 2.5 m or more from its column axis outside
+  the platforms and ladder cages. Operability warnings 55 -> 46: the rest are valves on rack
+  and pipe-way drops (FV-108, LV-102, PCV-105, XV-112, XV-121, PV-301, PV-303, HV-331, TV-502,
+  PV-504, PCV-505, TV-402, TV-602, PV-404, PV-604, UV-207, XV-209, FV-211, XV-310, HV-327,
+  HV-330, HV-332, LV-608, PV-104) and pump-area valves 0.1 to 0.5 m above the 1.8 m reach
+  criterion. The router places in-line items in P&ID order along the route; bringing these
+  stations to grade or onto the build's valve platform proposals (VP-*) is an open item for
+  S5r and detail piping, listed here, not accepted.
+- *Access.* Channel nozzles of E-101, E-102, E-103, E-201, E-203, E-205, E-207 on the top or
+  side of the channel, so no line crosses a bundle pull space; K-102 discharge N2 on the south
+  side, clear of the motor removal space; P-202B and P-203B moved (south and north of their
+  running pumps) and every suction tee set outside the pump access spaces; the PR-2 bent no
+  longer stands in P-202B's space. Deck condensers (under 5 t, not in the lifting study): each
+  bundle is pulled onto its deck with a portable puller and lifted off by the mobile crane from
+  CP-103 (E-201), CP-203 (E-203) or CP-202 (E-205); maintenance zones MZ-E201, MZ-E203,
+  MZ-E205 keep the volume over the pulled bundle free of pipes. Access-blocked 11 -> 0, ladder
+  clearance 8 -> 0, walkway riser 7 -> 0, vent outlet 2 -> 0 (vents rule for CWR-547 and
+  CWS-644). Remaining warnings: operability 46 (above), free span 44 and support-missing 108
+  (info): no support design (S5r, detail).
+- *Hot-line flexibility (screening, not a stress analysis).* Thermal growth of the hot hydrogen
+  runs, own calculation with ASSUMED values (mean expansion coefficient 14e-6 /K for a Cr-Mo or
+  similar alloy, temperature rise about 600 to 640 K): PG-108 (DN450, 936 K, about 19.5 m)
+  about 0.17 m; PG-107 (DN400, 895 K, about 16.8 m) about 0.14 m; PG-106 (DN400, about 29 m
+  between E-101 and H-101) of the same order. The guided-cantilever relation (bending stress
+  about 3 E D d / L^2, E about 150 GPa hot, allowable displacement stress about 150 MPa
+  ASSUMED) asks for legs of about 13 to 17 m to take such growth; the routed legs are 1 to 5.5
+  m. The routes are therefore not flexible as drawn: expansion loops or offsets (or spring
+  supports with nozzle-load checks on H-101, R-101 and E-101) are needed. Plot space it may
+  take: a loop of about 8 x 8 m in plan between H-101 and R-101 north of PG-107 (y 95 to 101,
+  free of items between x 44 and 58) and an offset of about 6 m in PG-108 east of R-101. Open
+  item for S5r: the hot-line stress check with these reservations; not designed here.
+- *Zones.* Zone 2 flange sources added for the hot hydrogen loop (E-101 T1, T2, S1, S2;
+  R-101 N1, N2; V-101 N1, N2: Z-HAZ-H2LOOP) and the column overheads (C-201, C-202, C-203 N2;
+  E-201, E-203, E-205 T1: Z-HAZ-OVHD). The H-101 coil connections are left out (H-101 is the
+  ignition source the separations are measured from). Escape routes Z-ESC-A100-N, Z-ESC-A100-E,
+  Z-ESC-S201, Z-ESC-S202, Z-ESC-S203 to the roads, away from H-101; keep-clear KC-R5-FIRE
+  (fire-fighting strip beside R-5), KC-H101 (burner and tube access), KC-ECB1 (building
+  approach). Generated pipe supports may still stand in an escape route (they move with their
+  pipe); their placement is a support-design item.
+- *Separations.* Searched on 2026-11-05 for an openly readable spacing standard: OISD-STD-118
+  (Layouts for oil and gas installations, Table 1 inter-distances) is sold by the Oil Industry
+  Safety Directorate (oisd.gov.in, purchase or customer login); only third-party re-uploads were
+  found, which are not a first-hand source. The values therefore stay ASSUMED as D-018 until
+  the owner's standard and a QRA. Added (all pass in the build): H-101 to PK-201 30 m, to P-102
+  15 m, to S-201, S-202, S-203 30 m, to Z-HAZ-H2LOOP 15 m; ECB-1 to Z-HAZ-PUMPS-A100 15 m and to
+  Z-HAZ-H2LOOP 30 m.
+- *Estimate factors.* rates.yaml: design and engineering 0.30 (Towler and Sinnott 2013,
+  Table 6.3), contractor's fee 0.03 and contingency 0.15 (Turton et al. 2012, section 7.3) are
+  now sourced, as ammonia-1; the bulk unit rates and the two erection factors stay placeholders
+  (no citable source found), so `example: true` stays and the bulk take-off is unpriced.
+- *H-101 factor.* The source writes the fired heater MPF as Fm + Fp + Fd (slide 10) and as
+  Fm (Fp + Fd) (slide 11). The product form gives FBM 1.805, the additive 2.88; the product
+  form gives MPF 0 for carbon steel tubes, so the additive form is taken as the intended one,
+  but no second readable source settled it: FBM 1.81 to 2.88 ASSUMED, 2.88 in the base case,
+  1.805 in TEA scenario h101-fbm-low (ISBL x 0.923455: LCOP 875.1 against 878.7 EUR/t, fixed
+  capital 27.11 MEUR). MF 2.23 (lowest band): the bands are on Guthrie's base cost
+  C = C0 (S/S0)^0.77 of slide 11, about 35 kUSD at 10.38 MMBtu/h, below the 200 kUSD limit.
+- *K-102 driver.* Turton's compressor correlation is for the machine without its driver;
+  Guthrie's factors are for a machine with motor. The factor is applied to the machine-only
+  cost (ASSUMED) and the motor is counted once, in the 15 % uncovered allowance.
+- *Allowance.* The 15 % uncovered allowance is unchanged from class 5: trays, lining, motors
+  and PK-201 have no readable price or size before the datasheets (S7) and the PK-201 vendor.
+- *Like-for-like change.* Against S4, ISBL 16.81 -> 17.59 MEUR (+4.6 %) and LCOP 876.6 ->
+  878.7 EUR/t; H-101 and K-102 were priced at purchased x 2.5 before, so the bare module
+  subtotal change (5.74 -> 9.99 MUSD) is not like for like.
+- *Take-off.* After the fix: 4 656 m of pipe, 764 elbows, 154 t of steel, 633 m2 of grating,
+  87 m3 of concrete (now with the new foundations). The concrete is only the model's equipment
+  foundations and plinths, not a foundation design: the R-101, column and reciprocating K-102
+  foundations are detail engineering. All pipe rows are bare with no class (no pipe-specs).
+- *Drains.* The eight equipment drains stay skipped with their reason (closed-drain hub at
+  grade, underground network at detail); routing each to a declared hub point is offered to
+  S5r, not done.
+
 **Carry-overs.** P-204A/B (review 2026-11-04-basic-pids#11): selected as a sealless rotary
 external gear pump with an integral casing relief valve back to the suction (about 0.4 m3/h at
 4 bar, 457 K biphenyl), ASSUMED until the vendor; the class stays CentrifugalPump on P-06 and in

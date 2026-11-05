@@ -7,12 +7,17 @@
 # sheets of unknown basis (none a citable estimating source for a Dutch process unit), and the
 # Matches equipment cost pages (matche.com/equipcost) hold no piping, steel or insulation
 # category. No rate is therefore written here: none is invented. As in processes/ammonia-1
-# (its D-045), the class 4 capital estimate is the equipment-factored estimate of
+# (its decision 45 in that plant's DESIGN.md), the class 4 capital estimate is the equipment-factored estimate of
 # estimate/equipment-cost.md, whose bare module factors (Turton et al.; Guthrie for H-101 and
 # K-102) hold each item's piping, instruments, electrical, foundations, steel, insulation,
-# paint, erection and indirects; estimate/mto.md is the bulk quantity check (4 869 m of pipe,
-# 154 t of steel, 639 m2 of grating, 32 m3 of concrete at S5). Pricing the take-off needs the
+# paint, erection and indirects; estimate/mto.md is the bulk quantity check (4 656 m of pipe,
+# 154 t of steel, 633 m2 of grating, 87 m3 of concrete after the S5 fix). Pricing the take-off needs the
 # owner's or a contractor's rates. `example: true` stays.
+#
+# S5 fix (review of PR #364, D-027): the indirect and contingency factors are now published
+# values with their sources (design and engineering 0.30, contractor's fee 0.03, contingency
+# 0.15, as processes/ammonia-1). The bulk unit rates and the two erection factors stay
+# placeholders for the reason above.
 #
 # This file shows the shape of the project's unit rates and estimate factors. The numbers are
 # round placeholders in no currency (XXX, ISO 4217 "no currency"), not prices: cheme-as-code holds
@@ -50,6 +55,10 @@ factors:
   # direct: factor x the material cost of the categories in applies_to (all when empty)
   - {id: piping-erection, title: "Piping erection and testing", kind: direct, factor: 1, applies_to: [pipe, elbow, tee, reducer, flange, gasket, valve, inline, insulation], status: ASSUMED, source: "EXAMPLE placeholder, not a factor", year: 2026}
   - {id: steel-erection, title: "Steel and grating erection", kind: direct, factor: 1, applies_to: [steel, grating], status: ASSUMED, source: "EXAMPLE placeholder, not a factor", year: 2026}
+  # The two erection factors above stay placeholders: no published factor for erection labour
+  # as a multiple of the bulk material cost was found; they need the contractor's labour norms.
+  # The indirect and contingency factors below are published values (S5 fix, D-027).
   # indirect: factor x the direct cost; contingency: factor x direct plus indirect cost
-  - {id: indirects, title: "Engineering and construction management", kind: indirect, factor: 0.1, status: ASSUMED, source: "EXAMPLE placeholder, not a factor", year: 2026}
-  - {id: contingency, title: "Contingency", kind: contingency, factor: 0.1, status: ASSUMED, source: "EXAMPLE placeholder, not a factor", year: 2026}
+  - {id: design-engineering, title: "Design and engineering", kind: indirect, factor: 0.30, status: ASSUMED, source: "Towler and Sinnott, Chemical Engineering Design, 2nd ed. (Butterworth-Heinemann, 2013), Table 6.3 'Typical factors for estimation of project fixed capital cost', design and engineering for fluids processing: 0.30 of ISBL plus OSBL", year: 2013, notes: "applied here to the direct bulk cost; the table's fluids value kept (ASSUMED reading); smaller shares apply to large projects"}
+  - {id: contractor-fee, title: "Contractor's fee", kind: indirect, factor: 0.03, status: ASSUMED, source: "Turton, Bailie, Whiting, Shaeiwitz and Bhattacharyya, Analysis, Synthesis, and Design of Chemical Processes, 4th ed. (Prentice Hall, 2012), section 7.3, total module cost: fee 0.03 of the bare module cost", year: 2012}
+  - {id: contingency, title: "Contingency", kind: contingency, factor: 0.15, status: ASSUMED, source: "Turton et al. (2012), section 7.3, total module cost: contingency 0.15 of the bare module cost; above the minimum of 0.10 in Towler and Sinnott (2013), Table 6.3", year: 2012}

@@ -70,6 +70,33 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 ## Responses to reviews
 
+### Review of PR #364, round 1 (2026-11-05)
+
+| finding | response | commit |
+|---|---|---|
+| (high) PG-630 liquid pocket under S-203 | C-203 on a 2.5 m foundation; PG-630 rises 0.45 m off the top, then falls continuously at 12.8 m over S-203 onto the E-205 channel (checked point by point; section x=150 rendered and looked at). Closed. | 64d0bd67 |
+| (high) quench pump suction high point on AR-116 | V-101 on a 2.0 m foundation; T235 at 1.2 m beside V-101, AR-235/AR-239 at 1.2 m to P-102/P-102B; AR-116 rises to the rack only after the tee and XV-204/LV-202. Falls 2.79 -> 0.39 m with no rise. Closed. | 64d0bd67 |
+| (medium) hot-line flexibility | Screening estimate in D-027 (growth 0.14 to 0.17 m, guided-cantilever legs 13 to 17 m against 1 to 5.5 m routed), plot reservations named (8 x 8 m loop north of PG-107, about 6 m offset in PG-108); stress check carried to S5r as an open item, not designed. | this round |
+| (medium) 11 access-blocked warnings | Channel nozzles turned to the top or side (E-101, E-102, E-103, E-201, E-203, E-205, E-207), K-102 discharge on the south side, P-202B and P-203B moved, suction tees outside the access spaces; bundle removal of the deck condensers by puller and crane with maintenance zones MZ-E201/E203/E205. 11 -> 0. Closed. | 64d0bd67, 773f6ede |
+| (medium) operability, ladder clearance, walkway risers | Reflux/product stations at grade (LV-405, FV-507, LV-506, FV-607, LV-606 now at handwheel 1.8 to 2.3 m instead of 11 to 35 m); AR-120, TO-122, PG-639, AR-437, FL-443, FL-548, FL-645, FG-119, BZ-121 rerouted or nozzles turned. Ladder 8 -> 0, risers 7 -> 0. Operability 55 -> 46: the rack/pipe-way drops listed in D-027 stay an open item for S5r and detail piping (not accepted). Partly closed. | 64d0bd67 |
+| (medium) no item elevations, lines below grade | Foundations (plinth) for V-100, V-101, C-203, E-102 and the reboilers; no process line below grade; static heads in D-027; NPSH to S7. Closed. | 64d0bd67 |
+| (medium) zones: no escape, keep-clear, flange sources (layout and integrity lenses) | Z-ESC-A100-N/E, Z-ESC-S201/S202/S203; KC-R5-FIRE, KC-H101, KC-ECB1; Z-HAZ-H2LOOP (E-101, R-101, V-101 flanges) and Z-HAZ-OVHD (column and condenser overhead flanges); H-101 to Z-HAZ-H2LOOP separation passes. Closed. | 773f6ede |
+| (medium) no spacing basis; new items without separations | OISD-STD-118 searched: sold by OISD, only third-party copies found, so not citable first-hand; values stay ASSUMED (D-027). Separations added for PK-201, P-102, S-201..S-203, the hydrogen loop zone and ECB-1; all pass. Closed with the search recorded. | 773f6ede |
+| (low) PG-530 free-standing riser | Runs down 2.8 m from the C-202 axis outside the platforms (clips and guides off the shell), across at 14.2 m. Closed. | 64d0bd67 |
+| (low) DP-649 high point | DP-648/DP-649 level at 1.7 m to the pumps. Closed. | 64d0bd67 |
+| (low) cooling water vent outlets | vents rule in routing.yaml for CWR-547 and CWS-644; vent-outlet 2 -> 0. Closed. | 64d0bd67 |
+| (low) support-missing count not in PR body | Named in the PR body open items (108 info after the fix, with 44 free spans). Closed. | this round |
+| (medium) indirect and contingency factors not sourced | design and engineering 0.30 (Towler and Sinnott 2013, Table 6.3), fee 0.03 and contingency 0.15 (Turton et al. 2012, 7.3) as ammonia-1; bulk rates and erection factors stay placeholders with the search; stated in D-027 and the PR body. Closed. | this round |
+| (medium) rates.yaml example values (integrity) | Left to the owner as disclosed; factors now sourced; kept in the PR open items for S5r. Carried. | this round |
+| (medium) H-101 factor source contradicts itself | Both forms stated in cost-basis.yaml and D-027; FBM 1.81 to 2.88 ASSUMED, scenario h101-fbm-low in the TEA (LCOP 875.1 EUR/t); lowest MF band justified from slide 11 (C about 35 kUSD below 200 kUSD). Closed. | this round |
+| (low) K-102 driver counted two ways | factor_source reworded: Turton's correlation is machine-only, the factor applied to it ASSUMED, the motor only in the allowance. Closed. | this round |
+| (low) stale class 5 text, allowance not reviewed | cost-basis header and PK-201 exclusion updated to S5; allowance stated unchanged from class 5 with the reason. Closed. | this round |
+| (low) dangling D-045 | Written as "its decision 45 in that plant's DESIGN.md". Closed. | this round |
+| (low) concrete understated | D-027 says the concrete is the model's foundations and plinths only (now 87 m3), not a foundation design. Closed. | this round |
+| (low) bare module change overstated | PR body and D-027 lead with ISBL 16.81 -> 17.59 MEUR and LCOP; H-101/K-102 were at purchased x 2.5 before. Closed. | this round |
+| (low) tea-class-stage warning | No action in S5; S5r and the basic sign-off confirm it clears. Carried to S5r. | - |
+| (low) drains skipped without hub routes | Kept skipped with the reason; offered to S5r. Carried. | - |
+
 ### Review of PR #357, round 1 (2026-11-05)
 
 | finding | response | commit |
