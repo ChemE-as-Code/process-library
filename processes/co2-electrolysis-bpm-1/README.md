@@ -41,7 +41,8 @@ assumption, not supported by measurement: the measured runs last 1 h in fresh 1 
 | `results/expected-lca.yaml`, `results/scenarios/<H>h/lca.json` | the LCI hand expectations E10 (frozen before the LCA was first computed) and each scenario's LCA record (#331) |
 | `lca/` | the LCA of both skids: scope, open factors, Skid A's and Skid B's datasets, scenarios, sensitivities, ranking (`lca/README.md`) |
 | `scripts/regen.py` | the single rerun command of the skids, the LCA included (`scripts/README.md`) |
-| `DESIGN.md` | decisions D-001 to D-027 |
+| `safety/hazop/H-01/`, `safety/hazop/H-02/`, `safety/hazop/SESSION.md` | HAZOP drafts of Skid A and Skid B, **agent-prepared for a team session that has not been held** (every entry proposed, the risk matrix proposed), and the session pack; `safety/README.md` |
+| `DESIGN.md` | decisions D-001 to D-027 and D-030 to D-032 (D-030 to D-032: the HAZOP drafts) |
 
 Rerun the skids, from this folder (about 2 min at 1,000 h, 4 min at 10,000 h):
 

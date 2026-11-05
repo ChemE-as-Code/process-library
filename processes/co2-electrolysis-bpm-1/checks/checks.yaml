@@ -268,6 +268,24 @@ checks:
   #   classes: [SafetyValve]    # at least min_count (1) of each class
   #   connected: true           # piped, on a segment, with a measuring/signal line
 
+  # The HAZOP drafts of the skids (safety/, DESIGN.md D-030 to D-032): agent-prepared for a team
+  # session that has not been held, every entry proposed. This gate passes on the drafts: each
+  # study is current against its analysed inputs (P&IDs, lists, C&E, loops, sequences,
+  # philosophy, zones, flowsheet, design basis, duties) and neither study nor matrix is example
+  # data. A changed input fails it until the touched nodes are reassessed and re-stamped
+  # (cheme safety hazop stamp <id> --write).
+  - id: hazop-current
+    title: HAZOP drafts H-01 and H-02 current against their analysed inputs, no example data
+    stage: basic
+    kind: hazop
+    require: [inputs-current, no-example]
+  # After the team session and a human review (safety/hazop/SESSION.md section 4), the house
+  # gates replace it; they fail on the drafts by design and stay commented until then:
+  # - {id: hazop-basic, title: HAZOP assessed and reviewed, stage: basic, kind: hazop,
+  #    require: [assessed, reviewed, inputs-current, no-example]}
+  # - {id: hazop-review, title: HAZOP human review, stage: basic, kind: review, topic: hazop,
+  #    require_kind: [human]}
+
   # Open items (plant.yaml issues:): every action, engineering hold, technical query and design
   # change labelled gate:<stage> (or an earlier stage) is closed out before the stage is signed
   # off, as an action tracker. n/a until plant.yaml declares issues; without a GitHub token the
