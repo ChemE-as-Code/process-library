@@ -1,28 +1,432 @@
 # Operating sequences: startup, shutdown and abnormal modes. Schema: `cheme schema sequences`.
 # PROPOSED operating intent, not approved for implementation; the review status comes from reviews/.
 # Start permissives are not trips: trips stay in control/cause-effect.yaml, named by id here.
-# Skill control-sequences.
+# Skill control-sequences. S4 (D-026): the order follows the usual practice of a hydrogen
+# reaction loop with a fired heater (purge with nitrogen, pressure up with hydrogen, circulate
+# before firing, fire before feed, columns on total reflux before product is drawn). The quench
+# liquid is V-101 liquid, which exists only once toluene has been fed: during SEQ-START-RXN step S5
+# E-101 takes the unquenched effluent, held below its design temperature by the reduced TIC-111
+# hold (873 K) and the reduced feed, and bounded by the never-bypassed TZ-128 leg of I-106; the
+# quench is put in service in step S6 (review of PR #357, D-026). Start-up rates, temperatures and step times are ASSUMED (D-026) until
+# the vendors' procedures (heater BMS, K-101, PSA, vacuum package) are known. Connections a step
+# needs that the P&IDs do not show yet (nitrogen purge points, loop vents, start-up and
+# off-specification routing of the products) are named in the step and are S9 items (D-026).
 schema: cheme/sequences/v1
-sequences: []
-#  - id: SEQ-START
-#    title: Start up the feed section
-#    mode: startup                      # startup, shutdown, abnormal, normal, other
-#    section: FEED
-#    permissives:
-#      - {interlock: I-01, state: reset}
-#      - {all: [{loop: FIC-101, state: in manual}, {tag: XV-107, state: open}]}
-#    interlocks: [I-01]
-#    steps:
-#      - id: S1
-#        title: Admit feed
-#        actions:
-#          - {loop: FIC-101, action: setpoint, setpoint: {value: 1200, unit: kg/h, provenance: assumed}}
-#          - {loop: FIC-101, action: auto, by: operator}
-#        complete: {tag: LT-102, state: "> 30 %", delay: {value: 30, unit: s}}
-#        timeout: {value: 30, unit: min}
-#        on_timeout: abort
-#    abort:
-#      condition: {interlock: I-01, state: tripped}
-#      actions: [{tag: FV-101, action: close}]
-#      then: SEQ-STOP
-#    reset: {latching: true, manual: true, condition: {interlock: I-01, state: reset}}
+sequences:
+  # ---------------------------------------------------------------- reaction loop
+  - id: SEQ-START-RXN
+    title: Start up the reaction loop (purge, pressure up, circulate, fire, feed)
+    mode: startup
+    section: RXN
+    cases: [design]
+    equipment: [V-100, P-101, P-101B, E-101, H-101, R-101, E-102, V-101, K-101, P-102, P-102B]
+    permissives:
+      - {interlock: I-102, state: reset}
+      - {interlock: I-104, state: reset}
+      - {interlock: I-105, state: reset}
+      - {interlock: I-106, state: reset}
+      - {interlock: I-202, state: reset}
+      - {interlock: I-203, state: reset}
+      - {all: [{tag: XV-120, state: closed}, {tag: XV-121, state: closed}, {tag: XV-209, state: closed}, {tag: XV-204, state: closed}]}
+      - {all: [{loop: FIC-103, state: in manual}, {loop: FIC-108, state: in manual}, {loop: TIC-111, state: in manual}, {loop: PIC-205, state: in manual}]}
+      - {all: [{tag: PI-701, state: nitrogen header in service}, {tag: PI-703, state: flare header in service}, {tag: TI-801, state: cooling water in service}]}
+    interlocks: [I-101, I-102, I-103, I-104, I-105, I-106, I-201, I-202, I-203]
+    steps:
+      - id: S1
+        title: Purge the loop with nitrogen
+        actions:
+          - {loop: PIC-205, action: manual, by: operator}
+        complete: {tag: PIC-205, state: "loop purged, oxygen at the loop vents below the site procedure's limit (portable analyser)"}
+        timeout: {value: 8, unit: h}
+        on_timeout: abort
+        operator: "Purge V-101, E-102, E-101, the H-101 coil, R-101 and K-101 with nitrogen to the flare and test for leaks at a nitrogen pressure (purge points and vents not drawn, S9 item, D-026). The purge limit and the leak test pressure come from the site procedure; no hydrogen is admitted before the purge is complete."
+      - id: S2
+        title: Pressure the loop with hydrogen and start K-101 on full recycle
+        actions:
+          - {tag: XV-121, action: open, by: operator}
+          - {loop: FIC-108, action: setpoint, setpoint: {kind: setpoint, value: 100, unit: kg/h, provenance: assumed, source: "D-026: about a quarter of the design make-up (S4), a slow pressure-up, ASSUMED"}, by: operator}
+          - {loop: FIC-108, action: auto, by: operator}
+          - {loop: UIC-207, action: auto, by: operator}
+          - {tag: K-101, action: start, by: operator}
+        complete: {all: [{tag: K-101, state: running}, {tag: FZ-110, state: above the trip point}, {tag: PIC-205, state: "> 3000 kPa(a)"}]}
+        timeout: {value: 4, unit: h}
+        on_timeout: abort
+        operator: "K-101 starts on full anti-surge recycle (UIC-207 in auto), as the vendor's start procedure asks. Remove the start-up bypass of I-101 once FZ-110 reads the coil flow; the bypass is gone before any burner is lit."
+      - id: S3
+        title: Light H-101 and heat the loop on circulating hydrogen
+        actions:
+          - {tag: H-101, action: start, by: operator}
+          - {loop: TIC-111, action: setpoint, setpoint: {kind: setpoint, value: 873.15, unit: K, provenance: assumed, source: "D-026: 22 K below the design reactor inlet (S7), the start-up hold before toluene, ASSUMED"}, by: operator}
+          - {loop: TIC-111, action: auto, by: operator}
+        complete: {all: [{loop: TIC-111, state: in auto}, {tag: TIC-111, state: at setpoint, delay: {value: 30, unit: min}}, {tag: TI-124, state: below its alarm}]}
+        timeout: {value: 12, unit: h}
+        on_timeout: abort
+        operator: The burner management of the H-101 package runs the pre-purge and the light-off (I-105). The heat-up rate is the refractory supplier's for R-101 and the heater vendor's for the coil; E-101 heats with the loop.
+      - id: S4
+        title: Fill V-100 and start the feed pump on minimum flow
+        actions:
+          - {loop: LIC-102, action: auto, by: operator}
+          - {loop: PIC-104, action: auto, by: operator}
+          - {tag: P-101, action: start, by: operator}
+          - {loop: FIC-106, action: auto, by: operator}
+        complete: {all: [{loop: LIC-102, state: in auto}, {loop: FIC-106, state: in auto}, {tag: P-101, state: running}]}
+        timeout: {value: 2, unit: h}
+        on_timeout: abort
+        operator: Remove the start-up bypass of I-103 once LZ-123 is above its trip point, before P-101 is started.
+      - id: S5
+        title: Admit toluene at a reduced rate
+        actions:
+          - {tag: XV-120, action: open, by: operator}
+          - {loop: FIC-103, action: setpoint, setpoint: {kind: setpoint, value: 6100, unit: kg/h, provenance: assumed, source: "D-026: 30 % of the design toluene feed (S3), ASSUMED"}, by: operator}
+          - {loop: FIC-103, action: auto, by: operator}
+        complete: {all: [{loop: FIC-103, state: in auto}, {tag: FFI-217, state: above its alarm}, {tag: LIC-202, state: "> 30 %"}, {tag: TZ-128, state: below its alarm}]}
+        timeout: {value: 2, unit: h}
+        on_timeout: abort
+        operator: "At the reduced rate the ratio of recycle gas to toluene is high (no coking). The quench is not yet in service (no V-101 liquid): E-101 takes the unquenched effluent, about 886 K at the 873 K hold and 30 % feed (D-026 estimate), below its 918 K design temperature. Watch TZ-113, TZ-128 and TI-124 for the onset of the reaction; hold the toluene rate if TZ-128 approaches its alarm. The TZ-128 leg of I-106 is not bypassed and trips the firing and the feed before E-101 reaches its design temperature."
+      - id: S6
+        title: Bring the quench and the let-down into line
+        actions:
+          - {tag: P-102, action: start, by: operator}
+          - {loop: TIC-115, action: auto, by: operator}
+          - {tag: XV-204, action: open, by: operator}
+          - {loop: LIC-202, action: auto, by: operator}
+        complete: {all: [{loop: TIC-115, state: in auto}, {loop: LIC-202, state: in auto}, {tag: XV-204, state: open}]}
+        timeout: {value: 1, unit: h}
+        on_timeout: abort
+        operator: "Remove the start-up bypass of I-201 once LZ-203 is above its trip point, before XV-204 is opened, and the bypass of the pumps-stopped leg of I-106 once P-102 runs. The stabiliser must be ready to take the let-down (SEQ-START-DIST step S1 under way)."
+      - id: S7
+        title: Raise to the design load and put the loop pressure and purge in automatic
+        actions:
+          - {loop: TIC-111, action: setpoint, setpoint: {kind: setpoint, value: 895.15, unit: K, provenance: assumed, source: "process/flowsheet.yaml design case (S7 ASSUMED, D-004)"}, by: operator}
+          - {loop: PIC-205, action: auto, by: operator}
+          - {loop: FIC-108, action: cascade, by: operator}
+          - {sequence: SEQ-START-PSA, action: run, by: operator}
+          - {loop: FIC-103, action: setpoint, setpoint: {kind: setpoint, value: 20311.9, unit: kg/h, provenance: calculated, source: "process/flowsheet.yaml design case, stream S3 (calculated, cheme process propagate: pass-through P101 from S2, D-024)"}, by: operator}
+        complete: {all: [{loop: FIC-108, state: in cascade}, {tag: FIC-103, state: at setpoint}, {tag: FFI-217, state: above its alarm}]}
+        timeout: {value: 8, unit: h}
+        on_timeout: S7
+        operator: Raise the toluene in steps, watching the ratio FFI-217, the reactor outlet TZ-113 and the loop pressure; hold a step when the ratio approaches its alarm.
+    abort:
+      condition: {any: [{interlock: I-101, state: tripped}, {interlock: I-102, state: tripped}, {interlock: I-104, state: tripped}, {interlock: I-105, state: tripped}, {interlock: I-106, state: tripped}, {interlock: I-202, state: tripped}, {interlock: I-203, state: tripped}]}
+      actions:
+        - {tag: XV-120, action: close}
+        - {loop: FIC-103, action: manual}
+        - {loop: TIC-111, action: manual}
+      then: SEQ-TRIP-RXN
+    reset:
+      latching: true
+      manual: true
+      condition: {all: [{interlock: I-101, state: reset}, {interlock: I-102, state: reset}, {interlock: I-104, state: reset}, {interlock: I-105, state: reset}, {interlock: I-106, state: reset}, {interlock: I-202, state: reset}, {interlock: I-203, state: reset}]}
+      restart: {all: [{loop: FIC-103, state: in manual}, {loop: TIC-111, state: in manual}, {tag: XV-120, state: closed}]}
+  # ---------------------------------------------------------------- purge hydrogen recovery
+  - id: SEQ-START-PSA
+    title: Start the tail gas compressor and the PSA and take the purge into line
+    mode: startup
+    section: PSA
+    cases: [design]
+    equipment: [PK-101, K-102, E-103]
+    permissives:
+      - {all: [{loop: FIC-211, state: in manual}, {tag: FV-211, state: closed}, {tag: XV-310, state: closed}]}
+      - {interlock: I-301, state: reset}
+      - {loop: PIC-205, state: in auto}
+      - {tag: PI-703, state: flare header in service}
+    interlocks: [I-202, I-203, I-301]
+    steps:
+      - id: S1
+        title: Start K-102 on full spillback
+        actions:
+          - {loop: PIC-303, action: auto, by: operator}
+          - {tag: K-102, action: start, by: operator}
+        complete: {all: [{tag: K-102, state: running}, {loop: PIC-303, state: in auto}]}
+        timeout: {value: 30, unit: min}
+        on_timeout: abort
+        operator: The machine protection and the start procedure are the K-102 vendor's.
+      - id: S2
+        title: Start the PSA cycle and admit purge gas
+        actions:
+          - {tag: PK-101, action: start, by: operator}
+          - {loop: PIC-301, action: auto, by: operator}
+          - {tag: XV-310, action: open, by: operator}
+          - {loop: FIC-211, action: setpoint, setpoint: {kind: setpoint, value: 1000, unit: kg/h, provenance: assumed, source: "D-026: about a third of the design purge (S13), ASSUMED until the PSA vendor's start-up rate"}, by: operator}
+          - {loop: FIC-211, action: auto, by: operator}
+        complete: {all: [{tag: AI-302, state: at the product purity of D-024}, {loop: PIC-301, state: in auto}]}
+        timeout: {value: 4, unit: h}
+        on_timeout: abort
+        operator: Until the product is on specification it stays on the PSA vendor's start-up routing (not drawn, S9 item); off-specification hydrogen is not sent to K-101.
+      - id: S3
+        title: Hand the purge to the hydrogen controller
+        actions:
+          - {loop: AIC-210, action: auto, by: operator}
+          - {loop: FIC-211, action: cascade, by: operator}
+        complete: {loop: FIC-211, state: in cascade}
+        timeout: {value: 1, unit: h}
+        on_timeout: abort
+    abort:
+      condition: {interlock: I-301, state: tripped}
+      actions:
+        - {loop: FIC-211, action: manual}
+        - {tag: FV-211, action: close}
+      then: SEQ-TRIP-PSA
+    reset:
+      latching: true
+      manual: true
+      condition: {all: [{interlock: I-301, state: reset}, {tag: K-102, state: ready to start}, {tag: PK-101, state: ready to start}]}
+      restart: {all: [{loop: FIC-211, state: in manual}, {tag: FV-211, state: closed}, {tag: XV-310, state: closed}]}
+  - id: SEQ-TRIP-PSA
+    title: PSA or tail gas compressor trip
+    mode: abnormal
+    section: PSA
+    cases: [design]
+    equipment: [PK-101, K-102]
+    interlocks: [I-301]
+    steps:
+      - id: S1
+        title: Isolate the purge and hold the loop on its own
+        actions:
+          - {loop: AIC-210, action: manual, by: operator}
+          - {loop: FIC-211, action: manual, by: operator}
+          - {tag: FV-211, action: close, by: operator}
+        complete: {all: [{tag: XV-310, state: closed}, {tag: FV-211, state: closed}, {loop: AIC-210, state: in manual}]}
+        timeout: {value: 15, unit: min}
+        on_timeout: abort
+        operator: "After a package trip I-301 has already closed XV-310 and stopped K-102 and the PSA cycle; the operator closes FV-211 behind it so that the purge stays isolated by two valves. On a normal stop (SEQ-SD-PLANT) the operator closes XV-310 from US-311. Without purge, methane builds up in the loop over hours: watch AIC-210 and reduce the load FIC-103 if the hydrogen falls towards the ratio alarm FFI-217. The PSA tail gas side is protected by PSV-307, the K-102 discharge by PSV-308."
+      - id: S2
+        title: Restart or shut down
+        actions:
+          - {sequence: SEQ-START-PSA, action: run, by: operator}
+        complete: {any: [{sequence: SEQ-START-PSA, state: running}, {sequence: SEQ-SD-PLANT, state: running}]}
+        timeout: {value: 8, unit: h}
+        on_timeout: abort
+        operator: Restart through SEQ-START-PSA once the cause is cleared, or shut the plant down (SEQ-SD-PLANT) if the hydrogen cannot be held.
+    abort:
+      condition: {interlock: I-101, state: tripped}
+      actions:
+        - {loop: FIC-211, action: manual}
+      then: SEQ-TRIP-RXN
+    reset:
+      latching: false
+      manual: true
+      condition: {all: [{tag: FV-211, state: closed}, {tag: XV-310, state: closed}]}
+      restart: {loop: FIC-211, state: in manual}
+  # ---------------------------------------------------------------- distillation
+  - id: SEQ-START-DIST
+    title: Start the stabiliser, the benzene column and the toluene column
+    mode: startup
+    section: STAB
+    cases: [design]
+    equipment: [C-201, E-201, V-201, P-201A, P-201B, E-202, C-202, E-203, V-202, P-202A, P-202B, E-204, E-207, C-203, E-205, V-203, PK-201, P-203A, P-203B, E-206, P-204A, P-204B]
+    permissives:
+      - {all: [{tag: TI-801, state: cooling water in service}, {tag: PI-802, state: cooling water in service}]}
+      - {all: [{loop: TIC-402, state: in manual}, {loop: TIC-502, state: in manual}, {loop: TIC-602, state: in manual}]}
+      - {all: [{tag: PI-701, state: nitrogen header in service}, {tag: PI-703, state: flare header in service}]}
+    interlocks: [I-401, I-501, I-601]
+    steps:
+      - id: S1
+        title: Stabiliser C-201 on reflux with the first let-down
+        actions:
+          - {loop: PIC-404, action: auto, by: operator}
+          - {loop: LIC-408, action: manual, by: operator}
+          - {tag: P-201A, action: start, by: operator}
+          - {loop: LIC-405, action: auto, by: operator}
+          - {loop: TIC-402, action: auto, by: operator}
+        complete: {all: [{loop: TIC-402, state: in auto}, {loop: LIC-405, state: in auto}, {tag: LIC-408, state: "> 30 %"}]}
+        timeout: {value: 4, unit: h}
+        on_timeout: abort
+        operator: "C-201 receives liquid only once SEQ-START-RXN step S6 opens XV-204; until then it is held under nitrogen at its operating pressure. Remove the start-up bypass of I-401 once V-201 holds condensate, before P-201A is started."
+      - id: S2
+        title: Benzene column C-202 on total reflux, then product
+        actions:
+          - {loop: LIC-408, action: auto, by: operator}
+          - {loop: PIC-504, action: auto, by: operator}
+          - {tag: P-202A, action: start, by: operator}
+          - {loop: FIC-507, action: auto, by: operator}
+          - {loop: TIC-502, action: auto, by: operator}
+          - {loop: LIC-506, action: auto, by: operator}
+        complete: {all: [{loop: FIC-507, state: in auto}, {loop: LIC-506, state: in auto}, {tag: AI-510, state: at the product purity of the design basis}]}
+        timeout: {value: 8, unit: h}
+        on_timeout: abort
+        operator: Remove the start-up bypass of I-501 once V-202 holds condensate, before P-202A is started. The distillate goes to the off-specification tank of the tank farm (routing not drawn, S9 item) until AI-510 shows the product purity of D-002.
+      - id: S3
+        title: Toluene column C-203 under vacuum, recycle and biphenyl
+        actions:
+          - {loop: LIC-508, action: auto, by: operator}
+          - {tag: PK-201, action: start, by: operator}
+          - {loop: PIC-604, action: auto, by: operator}
+          - {tag: P-203A, action: start, by: operator}
+          - {loop: FIC-607, action: auto, by: operator}
+          - {loop: TIC-602, action: auto, by: operator}
+          - {loop: LIC-606, action: auto, by: operator}
+          - {tag: P-204A, action: start, by: operator}
+          - {loop: LIC-608, action: auto, by: operator}
+        complete: {all: [{loop: PIC-604, state: in auto}, {loop: LIC-606, state: in auto}, {loop: LIC-608, state: in auto}]}
+        timeout: {value: 8, unit: h}
+        on_timeout: abort
+        operator: Remove the start-up bypass of I-601 once V-203 holds condensate, before P-203A is started. The vacuum package start is the vendor's; the DP-124 tracing is on before the biphenyl pumps start.
+    abort:
+      condition: {any: [{interlock: I-401, state: tripped}, {interlock: I-501, state: tripped}, {interlock: I-601, state: tripped}]}
+      actions:
+        - {loop: TIC-402, action: manual}
+        - {loop: TIC-502, action: manual}
+        - {loop: TIC-602, action: manual}
+      then: SEQ-SD-PLANT
+    reset:
+      latching: true
+      manual: true
+      condition: {all: [{interlock: I-401, state: reset}, {interlock: I-501, state: reset}, {interlock: I-601, state: reset}]}
+      restart: {all: [{loop: TIC-402, state: in manual}, {loop: TIC-502, state: in manual}, {loop: TIC-602, state: in manual}]}
+  # ---------------------------------------------------------------- shutdown and abnormal modes
+  - id: SEQ-SD-PLANT
+    title: Normal shutdown of the plant
+    mode: shutdown
+    section: RXN
+    cases: [design]
+    equipment: [V-100, P-101, H-101, R-101, V-101, K-101, P-102, PK-101, K-102, C-201, C-202, C-203, PK-201]
+    interlocks: [I-101, I-102, I-202, I-203]
+    steps:
+      - id: S1
+        title: Reduce the load
+        actions:
+          - {loop: FIC-103, action: setpoint, setpoint: {kind: setpoint, value: 6100, unit: kg/h, provenance: assumed, source: "D-026: 30 % of the design toluene feed (S3), ASSUMED"}, by: operator}
+        complete: {tag: FIC-103, state: at setpoint}
+        timeout: {value: 4, unit: h}
+        on_timeout: S2
+      - id: S2
+        title: Stop the toluene feed and sweep the reactor with hydrogen
+        actions:
+          - {loop: FIC-103, action: manual, by: operator}
+          - {tag: XV-120, action: close, by: operator}
+          - {tag: P-101, action: stop, by: operator}
+          - {loop: PIC-205, action: manual, by: operator}
+        complete: {tag: XV-120, state: closed, delay: {value: 1, unit: h}}
+        timeout: {value: 2, unit: h}
+        on_timeout: S3
+        operator: K-101 keeps circulating so that the hydrocarbons are swept out of R-101 and E-101 before the firing stops.
+      - id: S3
+        title: Stop the firing and cool the loop on circulation
+        actions:
+          - {loop: TIC-111, action: manual, by: operator}
+          - {tag: H-101, action: stop, by: operator}
+          - {sequence: SEQ-TRIP-PSA, action: run, by: operator}
+          - {tag: XV-310, action: close, by: operator}
+          - {tag: K-102, action: stop, by: operator}
+          - {tag: PK-101, action: stop, by: operator}
+        complete: {tag: TIC-111, state: "< 473 K"}
+        timeout: {value: 24, unit: h}
+        on_timeout: S4
+        operator: The cooling rate is the refractory supplier's; the PSA is stopped with the purge isolated.
+      - id: S4
+        title: Stop K-101 and depressure the loop to the flare
+        actions:
+          - {tag: P-102, action: stop, by: operator}
+          - {tag: K-101, action: stop, by: operator}
+          - {tag: XV-121, action: close, by: operator}
+          - {tag: XV-209, action: open, by: operator}
+        complete: {tag: PIC-205, state: "< 150 kPa(a)"}
+        timeout: {value: 4, unit: h}
+        on_timeout: abort
+        operator: "A normal depressuring through XV-209 (HS-209) at the rate its restriction orifice sets (S8); then nitrogen purge of the loop before any opening (S9 item). Stopping P-102 trips I-106 by its pumps-stopped leg; the firing and the feed are already off, so the trip changes nothing and is reset before the next start."
+      - id: S5
+        title: Take the columns off line
+        actions:
+          - {loop: TIC-402, action: manual, by: operator}
+          - {loop: TIC-502, action: manual, by: operator}
+          - {loop: TIC-602, action: manual, by: operator}
+          - {tag: PK-201, action: stop, by: operator}
+        complete: {all: [{loop: TIC-402, state: in manual}, {loop: TIC-502, state: in manual}, {loop: TIC-602, state: in manual}, {tag: PIC-604, state: "> 100 kPa(a)"}]}
+        timeout: {value: 12, unit: h}
+        on_timeout: abort
+        operator: "Close the steam to E-202, E-204 and E-206 (the TIC loops in manual at 0 %), run the columns on total reflux until the reboilers are cold, pump the inventories out to the tank farm; break the C-203 vacuum with nitrogen (PV-604 closed with PK-201 stopped; nitrogen connection not drawn, S9 item)."
+    abort:
+      condition: {any: [{interlock: I-102, state: tripped}, {interlock: I-203, state: tripped}]}
+      actions:
+        - {tag: XV-120, action: close}
+        - {tag: XV-121, action: close}
+      then: SEQ-TRIP-RXN
+    reset:
+      latching: false
+      manual: true
+      condition: {all: [{interlock: I-102, state: reset}, {interlock: I-203, state: reset}]}
+      restart: {all: [{tag: XV-120, state: closed}, {tag: XV-121, state: closed}]}
+  - id: SEQ-TRIP-RXN
+    title: Reaction loop trip and hold (after I-101, I-102, I-104, I-105, I-106, I-202 or I-203)
+    mode: abnormal
+    section: RXN
+    cases: [design]
+    equipment: [H-101, R-101, K-101, V-101, C-201, C-202, C-203]
+    interlocks: [I-101, I-102, I-104, I-105, I-106, I-202, I-203]
+    steps:
+      - id: S1
+        title: Confirm the trip effects, put the loops in manual and stop the feed
+        actions:
+          - {loop: FIC-103, action: manual, by: operator}
+          - {loop: FIC-108, action: manual, by: operator}
+          - {loop: TIC-111, action: manual, by: operator}
+          - {loop: PIC-205, action: manual, by: operator}
+          - {tag: XV-120, action: close, by: operator}
+          - {tag: XV-121, action: close, by: operator}
+        complete: {all: [{tag: XV-120, state: closed}, {tag: XV-121, state: closed}, {tag: XV-112, state: closed}, {tag: XV-125, state: closed}, {tag: XV-126, state: open}]}
+        timeout: {value: 5, unit: min}
+        on_timeout: abort
+        operator: "Read the first-out cause; the valves are confirmed from their position feedback (limit switches on the XV valves, S9 item), not from the command. After I-101, I-102, I-106, I-202 or I-203 the trip has closed XV-120 and XV-121 already; after a fuel or BMS trip (I-104, I-105), which stops only the firing, the operator closes them from US-122 (FIC-103 and FIC-108 in manual first), so that no toluene enters a reactor without heat input (philosophy F-FUEL). After I-202 or I-203 the firing is cut by I-101 once the coil flow falls."
+      - id: S2
+        title: Hold the loop and the columns
+        actions:
+          - {loop: TIC-402, action: setpoint, setpoint: {kind: setpoint, value: 447.75, unit: K, provenance: assumed, source: "D-026: the design tray setpoint (S20) held, ASSUMED"}, by: operator}
+        complete: {any: [{tag: TZ-113, state: falling}, {tag: XV-209, state: open}]}
+        timeout: {value: 30, unit: min}
+        on_timeout: abort
+        operator: "Keep K-101 circulating if it runs (cools R-101 and sweeps it); let V-101 down to the stabiliser until LIC-202 is low; hold C-202 and C-203 on total reflux, product to the off-specification tank. Decide: restart (SEQ-START-RXN from step S2 once the cause is cleared and the trips are reset), normal shutdown (SEQ-SD-PLANT from step S3), or depressuring (SEQ-EDP) if the reactor temperature does not fall."
+    abort:
+      condition: {any: [{interlock: I-102, state: tripped}, {tag: TZ-113, state: rising after the trip}]}
+      actions:
+        - {tag: XV-209, action: open}
+      then: SEQ-EDP
+    reset:
+      latching: true
+      manual: true
+      condition: {all: [{interlock: I-101, state: reset}, {interlock: I-102, state: reset}, {interlock: I-104, state: reset}, {interlock: I-105, state: reset}, {interlock: I-106, state: reset}, {interlock: I-202, state: reset}, {interlock: I-203, state: reset}]}
+      restart: {all: [{loop: FIC-103, state: in manual}, {loop: TIC-111, state: in manual}]}
+  - id: SEQ-EDP
+    title: Emergency depressuring of the reaction loop (I-102 or HS-209)
+    mode: abnormal
+    section: SEPG
+    cases: [design]
+    equipment: [R-101, E-101, H-101, V-101, K-101]
+    interlocks: [I-102, I-203]
+    steps:
+      - id: S1
+        title: Depressure the loop to the flare with K-101 circulating
+        actions:
+          - {tag: XV-209, action: open, by: automatic}
+          - {loop: FIC-108, action: manual, by: operator}
+          - {loop: FIC-211, action: manual, by: operator}
+        complete: {any: [{tag: PIC-205, state: at the depressuring target pressure of the relief study (S8)}, {tag: PT-219, state: "at the K-101 vendor's minimum suction pressure"}]}
+        timeout: {value: 30, unit: min}
+        on_timeout: abort
+        operator: "I-102 opens XV-209 by itself; HS-209 opens it by hand (fire, a leak). K-101 keeps running: in a temperature runaway the circulating recycle gas is the only heat sink of R-101 (through E-101 and E-102), as in SEQ-TRIP-RXN S2 and SEQ-SD-PLANT S2/S3; UIC-207 opens its recycle as the suction pressure falls. The target pressure, the time and the orifice are S8's (API Std 521 7th ed., section 5.20, D-026). Keep the columns on hold (SEQ-TRIP-RXN step S2)."
+      - id: S2
+        title: Stop K-101 at its minimum suction pressure
+        actions:
+          - {tag: K-101, action: stop, by: operator}
+        complete: {tag: K-101, state: stopped}
+        timeout: {value: 30, unit: min}
+        on_timeout: abort
+        operator: "Stop K-101 when the suction pressure PT-219 reaches the vendor's low suction pressure or surge limit (UIC-207 holding the full recycle until then), or at once on a K-101 fault (I-203). The depressuring continues through XV-209."
+      - id: S3
+        title: Purge with nitrogen and hold
+        actions:
+          - {tag: XV-209, action: open, by: operator}
+        complete: {tag: PIC-205, state: "loop under nitrogen, hydrogen and hydrocarbons at the loop vents below the site procedure's limit"}
+        timeout: {value: 8, unit: h}
+        on_timeout: abort
+        operator: Once at the flare pressure, purge the loop with nitrogen through XV-209 to the flare (purge connections S9) and keep it under a small nitrogen pressure.
+    abort:
+      condition: {tag: PI-703, state: flare header pressure high}
+      actions:
+        - {tag: XV-209, action: open}
+      notes: Inform the site flare operator; XV-209 stays open (it is the safe state).
+    reset:
+      latching: true
+      manual: true
+      condition: {interlock: I-102, state: reset}
+      restart: {all: [{tag: XV-209, state: closed}, {loop: FIC-108, state: in manual}]}
