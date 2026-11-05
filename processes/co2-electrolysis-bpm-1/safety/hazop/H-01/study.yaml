@@ -57,7 +57,7 @@ analysed:
   - {path: control/loops.yaml, revision: 'sha256:ef4e910c5b8bf82089649ecbbc77f915de4b33c9a01477864a4f31811f18d4cb', relation: analyses}
   - {path: control/sequences.yaml, revision: 'sha256:0db970a6e6047d9613aa2f6ad3593cb44a35bcc81a1eceedf7ee3f0dd0f10457', relation: analyses}
   - {path: control/philosophy.md, revision: 'sha256:58ed819f642a004b686de1ce5ab3a606e59b8712ab6f882e46d3e78dbec75a3f', relation: analyses}
-  - {path: layout/zones.yaml, revision: 'sha256:8c5cb0941628a135ec6633657423975060dce4b98628c52a3a20c7ea024ebf0d', relation: analyses}
+  - {path: layout/zones.yaml, revision: 'sha256:57167cbdaee0f3f8a9ca5219fb8d57a11e2f8e9685f71bb441f5a4bb85aef341', relation: analyses}
   - {path: process/flowsheet.yaml, revision: 'sha256:c7a257ec57729a24700201f72950732c6a358588f50ce433f819fcec67235659', relation: analyses}
   - {path: process/design-basis.yaml, revision: 'sha256:62a2cfaa02fdaf7f0c3be3d9652fc485b4a3b97ab93ce6cb1662db55e42a2ade', relation: analyses}
   - {path: process/duties.yaml, revision: 'sha256:edb6f5c8d3e72e0d8f1a46882df2b7bf9d0a19d1763eae78214bd23a87fecce0', relation: analyses}
@@ -531,7 +531,7 @@ nodes:
             refs: [E-101A, E-101B, E-101C, E-101D]
             modes: [maintenance]
             safeguards: []
-            actions: [H01-A203]
+            actions: [H01-A203, H01-A206]
             status: proposed
             by: agent
             risk:
@@ -1625,7 +1625,7 @@ nodes:
             refs: [X-132, TG-101, X-131, AIA-142, K-141, FG-101]
             modes: [startup, normal, onoff-partload, stop, trip]
             safeguards: [H01-SG-I104]
-            actions: [H01-A906, H01-A204]
+            actions: [H01-A906, H01-A907, H01-A204]
             status: proposed
             by: agent
             notes: "Found in review of the draft; the same hardware is examined in H-02 as H02-S906. The draft moved the rectifier U-101 more than 1 m from X-132 (H01-SG-U101-OUTZONE) but never studied X-132 itself as an ignition source; a flame cannot be Ex-rated, so H01-A903 does not cover it."
@@ -1690,6 +1690,7 @@ actions:
   - {id: H01-A203, text: "Make a manual-handling assessment of the stack lift with the stack mass from the vendor and the 0.3 m of hand room (D-023); provide a lifting aid if needed, and drain and rinse the stack before it is lifted (H01-S206).", owner: mechanical / package engineer, status: proposed, by: agent}
   - {id: H01-A204, text: "Have the area classification of the skid made by a competent person (IEC 60079-10-1), with the enclosure and its ventilation, to replace the zone screening; confirm the rectifier U-101's position outside the zone, and isolate the rectifier cabinet's own supply on gas detection or move it out of the enclosure (H01-S207, H01-S906).", owner: process safety / HSE, status: proposed, by: agent}
   - {id: H01-A205, text: "Remove the DC on every trip independently of the rectifier's regulation: a DC contactor or breaker in the U-101 output opened by I-101 to I-106 and by the stop, and an over-current alarm and trip on a current measurement independent of JIC-101; then I-105 can be credited against a regulation or output-stage fault of U-101 (H01-S201; as H02-A207).", owner: electrical engineer, status: proposed, by: agent}
+  - {id: H01-A206, text: "The layout review 2026-11-05-layout (#1) found the stacks out of reach for the vertical hand lift of D-023; the layout now stands them along the frame's south edge with all their connections on the north end plate and the top, within 0.6 m of a person at grade, and replaces them by a slide at deck level onto a deck-height trolley, no lift (D-047). Assess that handling (push and pull force, the trolley, the stack mass from the vendor) in H01-A203, and drain and flush the loop first (H01-A111): the supply header's low point at the east end of the stack row has no drain on P-01 yet (D-047) (H01-S206, H01-S117).", owner: mechanical / package engineer, status: proposed, by: agent}
   # N3 cathode CO2 feed
   - {id: H01-A301, text: "Trip U-101 on a low-low CO2 feed flow measured independently of FIC-102 (or on the cathode feed pressure, or a CO2-to-current ratio), so that the stacks do not run on H2 evolution when the CO2 is lost; today the operator trips the current (F-AIR); measure the PSA recycle CO2-102 or the total cathode CO2 feed as well, since FIC-102 sees only the fresh CO2 and a loss of the 2.94 kg/h recycle goes unseen (H01-S301, H01-S302, H01-S510).", owner: instrument and control engineer, status: proposed, by: agent}
   - {id: H01-A302, text: "Manage the cathode water and salt: an alarm on the humidification water (or a controlled flow instead of the hand-set HV-104 / FI-103), a pressure measurement on the cathode feed upstream of the stacks to see a blocked flow field, and a salt rinse procedure with the vendor's limits on K+ crossover (H01-S303, H01-S304, H01-S408).", owner: process engineer, status: proposed, by: agent}
@@ -1731,3 +1732,4 @@ actions:
   - {id: H01-A904, text: "Define the safe state on a loss of power (F-POWER, open): a UPS for the gas detectors, the fan K-141 and the alarms, a purge source and route that work without power (or a passive vent of the cathode gas train to a safe location), and an entry rule after a power loss (H01-S904).", owner: process engineer, status: proposed, by: agent}
   - {id: H01-A905, text: "Depressurise the isolated cathode gas train after a gas trip (to X-132 once it is safe, or to a safe vent), and write the leak search with breathing apparatus or a personal CO monitor (H01-S905).", owner: operations, status: proposed, by: agent}
   - {id: H01-A906, text: "Remove the oxidiser X-132 as an ignition source of the enclosure: stop X-132 and isolate the tail gas TG-101 (stop X-131) from I-103 and I-104 and in SEQ-A-GAS S1, or place X-132 outside the enclosure and outside zone Z-HAZ-A; have the area classification (H01-A204) treat X-132 as a permanent ignition source and get its surface temperatures from the vendor (H01-S906; as H02-A906).", owner: process safety / HSE, status: proposed, by: agent}
+  - {id: H01-A907, text: "The layout (D-047, review 2026-11-05-layout#2) now places X-132 off the frame on its own plinth east of Skid A, 3 m or more from every source of Z-HAZ-A and outside the enclosure, as the second option of H01-A906. Draw on P-01 what that position assumes: a flame arrester on TG-101 at X-131's outlet (inside X-131's zone) and TG-101 all-welded from there to the burner; then reassess H01-S906 with X-132 outside the zone and confirm the position and the tail-gas line's release points by the area classification (H01-A204).", owner: process engineer, status: proposed, by: agent}
