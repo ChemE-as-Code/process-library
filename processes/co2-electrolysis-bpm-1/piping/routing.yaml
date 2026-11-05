@@ -12,11 +12,14 @@ rules:
   battery_limits:
     # the KOH fill (once per campaign) and the spent anolyte drain (at the end of the run) are
     # hose connections at the west end of each frame, beside the reservoir, for a road tanker
-    # or IBCs on the access road (ASSUMED, D-019); not on the utility rack
-    - {id: BL-A-fill, lines: [KOH-101], point: [5.3, 9.55, 0.9]}
-    - {id: BL-A-drain, lines: [SP-101], point: [5.3, 9.25, 0.4]}
-    - {id: BL-B-fill, lines: [KOH-201], point: [20.3, 9.55, 0.9]}
-    - {id: BL-B-drain, lines: [SP-201], point: [20.3, 9.25, 0.4]}
+    # or IBCs on the access road (ASSUMED, D-019); not on the utility rack. The hose couplings
+    # stand 0.15 m inside the frame's west edge (x 5.5 and 20.5), so that the hose valves
+    # HV-102, HV-103 and HV-203 (0.11 m from their axis to the flange rim) stay inside the
+    # frame in plan (D-040; the points stood 0.2 m outside the frame before)
+    - {id: BL-A-fill, lines: [KOH-101], point: [5.65, 9.55, 0.9]}
+    - {id: BL-A-drain, lines: [SP-101], point: [5.65, 9.25, 0.4]}
+    - {id: BL-B-fill, lines: [KOH-201], point: [20.65, 9.55, 0.9]}
+    - {id: BL-B-drain, lines: [SP-201], point: [20.65, 9.25, 0.4]}
   vents:
     # the O2 vents of the reservoirs and the oxidiser flues rise until a 1 m sphere around the
     # outlet clears every walking level up to the headroom (ASSUMED radius, until the vent study)
@@ -42,6 +45,10 @@ lines:
   - {line: AN-104C, segment: Line_AN104C_S1, route: [[9.33, 8.445, 0.28], [9.33, 8.445, 0.6]]}
   - {line: AN-104B, segment: Line_AN104B_S1, route: [[8.83, 8.445, 0.28], [8.83, 8.445, 0.6]]}
   - {line: AN-104A, segment: Line_AN104A_S1, route: [[8.33, 8.445, 0.28], [8.33, 8.445, 0.6]]}
+  # the return to the reservoir top (generated: it ends on T-101) runs west along the header's
+  # level first and rises at x 7.95, west of the hand-lift lane of E-101A (x 8.01 to 8.79,
+  # D-042); generated as it was, it rose at the tee in front of the stack to 1.93 m
+  - {line: AN-104, segment: Line_AN104_S4, via: [[7.95, 8.445, 0.6]]}
   - {line: AN-203, segment: Line_AN203_S1, route: [[24.03, 7.9, 0.767], [24.03, 7.9, 0.9], [24.03, 8.3, 0.9], [23.2, 8.3, 0.9], [23.2, 8.3, 0.2], [23.47, 8.3, 0.2]]}
   - {line: AN-203, segment: Line_AN203_S2, route: [[23.47, 8.3, 0.2], [23.97, 8.3, 0.2]]}
   - {line: AN-203, segment: Line_AN203_S3, route: [[23.97, 8.3, 0.2], [24.47, 8.3, 0.2]]}
@@ -99,4 +106,14 @@ lines:
   - {line: KOH-204, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
   - {line: W-202, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
   - {line: BL-201, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: AN-201, segment: Line_AN201_S1, route: [[22.755, 9.1, 0.206], [22.825, 9.1, 0.206], [22.825, 9.1, 0.3], [22.825, 7.9, 0.3], [23.125, 7.9, 0.3]]}
+  - {line: AN-202, segment: Line_AN202_S1, route: [[23.242, 7.875, 0.45], [23.242, 7.875, 0.75], [23.87, 7.875, 0.75], [23.87, 7.9, 0.75], [23.87, 7.9, 0.767]]}
+  - {line: AN-204, segment: Line_AN204_S4, route: [[23.33, 8.445, 0.6], [22.83, 8.445, 0.6], [22.83, 8.945, 0.6], [22.83, 8.945, 1.1], [22.83, 9.1, 1.1], [22.83, 9.1, 1.181], [22.5, 9.1, 1.181], [22.5, 9.1, 0.881]]}
+  - {line: KOH-201, segment: Line_KOH201_S1, route: [[20.65, 9.55, 0.9], [21.65, 9.55, 0.9], [21.65, 9.05, 0.9], [21.785, 9.05, 0.9], [21.785, 8.876, 0.9], [21.785, 8.876, 0.55], [22.067, 8.979, 0.55]]}
+  - {line: SP-201, segment: Line_SP201_S1, route: [[22.067, 8.979, 0.2], [21.785, 8.876, 0.2], [21.08, 8.876, 0.2]]}
+  - {line: SP-201, segment: Line_SP201_S2, route: [[21.08, 8.876, 0.2], [20.65, 8.876, 0.2], [20.65, 8.876, 0.4], [20.65, 9.25, 0.4]]}
+  - {line: O2V-201, segment: Line_O2V201_S1, route: [[22.32, 9.02, 0.881], [22.32, 9.02, 3.381]]}
+  - {line: FG-201, segment: Line_FG201_S1, route: [[24.75, 9.45, 1.517], [24.75, 9.45, 3.417]]}
+  - {line: AN-102, segment: Line_AN102_S1, route: [[8.242, 7.875, 0.45], [8.242, 7.875, 0.75], [8.87, 7.875, 0.75], [8.87, 7.9, 0.75], [8.87, 7.9, 0.767]]}
+  - {line: FG-101, segment: Line_FG101_S1, route: [[9.75, 9.45, 1.517], [9.75, 9.45, 3.417]]}
 notes: "ASSUMED: the skid pipe-way elevation, the rack tier and the battery limit point (D-019)."
