@@ -37,8 +37,10 @@ description: |
   the 1 h measurements in fresh 1 M KOH held over the whole campaign by assumption.
 
   The independent reproduction of the published series and model is a separate, held-out
-  benchmark (benchmarks/reproductions/vermaas-rbpm-wde, ADR 0030 and 0032). The LCA follows
-  with #331 (tracker core#136).
+  benchmark (benchmarks/reproductions/vermaas-rbpm-wde, ADR 0030 and 0032). The LCI and a
+  climate-change screening of both skids per kg CO delivered (#331, part of it; tracker core#136)
+  are in lca/: the unallocated datasets of both designs, reconciled with the duty totals, and the
+  gaps that leave the comparison of the skids open.
 families: [electrolysis]
 keywords: [CO2 electrolysis, CO2 reduction, carbon monoxide, bipolar membrane, reverse bias, water dissociation efficiency, MEA, gas diffusion electrode, silver catalyst, KOH anolyte, nickel anode, anolyte acidification]
 facets:
@@ -65,20 +67,30 @@ validation:
     Not reviewed.
 chemistry:
   inputs:
-    - {chemical: carbon-dioxide, role: feedstock, note: "humidified CO2 to the cathode at 10 sccm/cm2; pilot skids: merchant liquefied CO2, fossil by-product (ASSUMED, D-016), 0.95 of the unreacted CO2 recycled by the PSA"}
-    - {chemical: potassium-hydroxide, role: feedstock, note: "anolyte: Skid A one 1 M KOH fill per campaign (0.65 kg per kg CO), Skid B continuous 5 M KOH dosing (1.17 kg per kg CO plus the 50 L fill)"}
-    - {chemical: water, role: feedstock, note: "humidification and anolyte make-up"}
+    - {chemical: carbon-dioxide, role: feedstock, inventory_key: "feed:CO2", note: "humidified CO2 to the cathode at 10 sccm/cm2; pilot skids: merchant liquefied CO2, fossil by-product (ASSUMED, D-016), 0.95 of the unreacted CO2 recycled by the PSA: 3.54 kg fed per kg CO"}
+    - {chemical: potassium-hydroxide, role: feedstock, inventory_key: "feed:KOH-FILL", note: "anolyte fill, counted as 1 M KOH solution (lca/mappings.yaml): Skid A one fill per campaign (0.65 kg KOH per kg CO), Skid B its 50 L (0.028 kg per kg CO at 1,000 h)"}
+    - {chemical: potassium-hydroxide, role: feedstock, inventory_key: "feed:KOH-DOSE", note: "Skid B's continuous dosing, counted as 5 M KOH solution (lca/mappings.yaml): 1.17 kg KOH per kg CO"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:WATER", note: "humidification and Skid B's anolyte make-up"}
   outputs:
-    - {chemical: carbon-monoxide, role: main-product, note: "0.100 kg/h at >= 0.99 mol/mol dry and 5.0 bar(a) at the skid boundary (ASSUMED pilot duty, D-008)"}
-    - {chemical: hydrogen, role: co-product, note: "competing hydrogen evolution at the cathode; burnt with the PSA tail gas in the skids' oxidiser (D-012)"}
-    - {chemical: oxygen, role: co-product, note: "anode product, vented from the anolyte reservoir in the skids; disposition for the LCA in #331"}
+    - {chemical: carbon-monoxide, role: main-product, inventory_key: "product:CO", note: "0.100 kg/h at >= 0.99 mol/mol dry and 5.0 bar(a) at the skid boundary (ASSUMED pilot duty, D-008); the LCA's functional unit is 1 kg of the contained CO (D-024)"}
+    - {chemical: hydrogen, role: co-product, note: "competing hydrogen evolution at the cathode; burnt with the PSA tail gas in the skids' oxidiser (D-012), so no product in the LCA (allocation none, D-024; recovering it is a sensitivity)"}
+    - {chemical: oxygen, role: co-product, note: "anode product, vented from the anolyte reservoir: an emission without burden or credit in the LCA (D-024)"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:SPENT", note: "the spent anolyte at the end of a campaign (KOH and K2CO3), hazardous alkaline waste to neutralisation (D-024)"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:BLEED", note: "Skid B's anolyte bleed (KOH and K2CO3) to the site effluent after neutralisation (D-024)"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:CONDENSATE", note: "the cathode condensate with the K+ crossed as K2CO3 (D-024)"}
   utilities:
-    - {chemical: electricity, role: utility, note: "DC to the cell"}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "AC to the rectifiers (DC to the cells over 0.95) and the auxiliaries: 34.6 kWh per kg CO"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "the stack heat to the site cooling water (kWh)"}
 references:
   - {title: "Prats Vergel, G., Mu, H., Kolobov, N., Biemolt, J., Vermaas, D.A., Burdyny, T. (2025) Water dissociation efficiencies control the viability of reverse-bias bipolar membranes for CO2 electrolysis. Nature Chemical Engineering", doi: 10.1038/s44286-025-00306-7}
   - {title: "Prats Vergel, G. et al. (2025) Data underlying the publication: Water Dissociation Efficiencies control the viability of reverse-bias bipolar membranes for CO2 electrolysis. 4TU.ResearchData, version 1 (CC BY 4.0)", doi: 10.4121/5c4fc325-a71b-4ca8-9c1b-01c0405936a2.v1}
 lca:
-  source: none
+  source: auto
+  notes: >-
+    #331: a partial screening carbon footprint (climate change only) of Skid A (lca/dataset.yaml)
+    and Skid B (lca/datasets/, case skid-b) per kg CO delivered, on open profiles (Ember 2025 NL
+    grid, DESNZ 2026 water); KOH, CO2 supply, the anolyte wastes, the stack parts and construction
+    are gaps, so the A against B ranking is not determined (DESIGN.md D-024 to D-027).
 maintainers:
   - {name: Artur Schweidtmann}
 repository:

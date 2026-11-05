@@ -1,0 +1,162 @@
+# Goal and scope of the LCA of the two CO2 pilot skids (#331). Schema: `cheme schema lca`.
+# Outputs, all generated, never edited: `cheme assess lca --write` (inventory.csv, results.*,
+# gaps.csv, manifest.json, dataset.yaml), `cheme assess lca --write --case skid-b` (Skid B's own
+# dataset in datasets/), `cheme assess lca-scenarios --write` (scenarios/*.json). scripts/regen.py
+# runs them after every regeneration (step 20) and writes the values this file takes from the
+# design: functional_unit.kg_per_unit (the product's composition) and the consumables'
+# per_replacement and every_years (the stacks' cells and replacement interval). Do not edit those
+# three by hand.
+#
+# A climate-change-only screening: a partial carbon footprint, never a full LCA (DESIGN.md D-024
+# to D-027). Every flow without an open, documented background is declared `missing:` with the
+# reason: a gap with its quantity, never 0 (library ADR 0029). No ecoinvent or other licensed
+# data is used.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Screening carbon footprint (climate change only) and a reconciled life cycle inventory of the
+  two CO2-to-CO pilot skids of #330 per kg of CO delivered, for the 1,000 h design campaign: Skid A
+  on one 1 M KOH fill (case skid-a, this study's case) and Skid B on continuous 5 M KOH dosing
+  (case skid-b, its own dataset and scenarios). It serves the comparison of the two anolyte
+  regimes and shows which flows decide it; it is no comparative assertion (ISO 14044 6, no
+  critical review), and the ranking stays undetermined while the flows that distinguish the
+  skids have no factor (DESIGN.md D-026).
+# 1 kg of CO contained in the product at >= 0.99 mol/mol dry (the rest H2) and 5.0 bar(a) at
+# the skid boundary. kg_per_unit is the kg of product gas per kg of contained CO, 1 / w_CO of the
+# product stream S108 (written by scripts/regen.py step 20 from the flowsheet, which
+# scripts/skid_balance.py fills)
+functional_unit: {product: CO, amount: 1, unit: kg, kg_per_unit: 1.000727013, source: "scripts/regen.py step 20: 1 / w_CO of the CO product S108 (skid-a) as scripts/skid_balance.py writes it, 0.99 mol/mol CO dry with H2 (DESIGN.md D-008, D-024)"}
+boundary: cradle-to-gate
+year: 2026
+location: NL
+technology: "CO2 electrolysis to CO in reverse-bias bipolar-membrane cells (Ag gas-diffusion cathode, Ni foam anode, KOH anolyte), 28 cells of 100 cm2 in four stacks on a 48 V DC bus at 200 mA/cm2, PSA gas conditioning with 0.95 CO2 recycle and tail-gas oxidation; Skid A one 1 M KOH fill per campaign, Skid B continuous 5 M KOH dosing, bleed and make-up"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA); the measured cell data are 4TU.ResearchData CC BY 4.0 (NOTICE.md)"
+case: skid-a
+allocation:
+  method: none
+  source: >-
+    DESIGN.md D-024: CO is the only product. The H2 the cathode makes is burnt with the PSA tail
+    gas in the oxidiser X-x32 and the anode O2 is vented, so neither leaves as a product; the
+    H2 co-product alternative (recovered, allocated by mass or LHV) is a sensitivity
+    (lca/sensitivity-h2-coproduct.json), not designed.
+flows:
+  # -- feeds ------------------------------------------------------------------------------------
+  - key: feed:POWER
+    factor: ember-2025:electricity-nl
+    proxy: "Ember's life-cycle intensity of NL gross generation (no T&D losses) stands in for the AC grid supply at the skid (at the consumer); the same profile for every electricity-mix scenario, so they compare like for like (DESIGN.md D-026)"
+    source: "the rectifiers' AC (the stacks' DC over 0.95), the recirculation pumps, the compressors, the PSA and Skid B's dosing pump (Q101 to Q104, Q201 to Q204, Q206; scripts/skid_balance.py, ESTIMATES for the auxiliaries until the datasheets give them, D-012)"
+  - key: feed:CO2
+    co2_source: fossil-point-source
+    missing: "no open factor for merchant liquefied CO2 (capture, purification, liquefaction and delivery of a fossil industrial by-product CO2)"
+    source: "the fresh CO2 after the PSA recycle (S101, S201); merchant liquefied CO2 from a fossil industrial by-product, ASSUMED (DESIGN.md D-016)"
+  - key: feed:WATER
+    factor: water-supply-gb-kg
+    proxy: "UK mains water supply stands in for demineralised water in NL: the demineralisation (ion exchange or reverse osmosis) is not counted (DESIGN.md D-026)"
+    source: "humidification water and Skid B's anolyte make-up (S102, S202, S222)"
+  - {key: feed:AIR, free: true, source: "ambient air to the tail-gas oxidiser (S110, S210): a resource without burden; its N2 and O2 leave with the flue gas"}
+  # the KOH: the exchange counts the solution (a 1 M fill, the 5 M dose); its KOH 100 % is the
+  # exchange's composition (DESIGN.md D-025)
+  - key: feed:KOH-FILL
+    missing: "no open factor for potassium hydroxide (KOH 100 %, membrane-cell electrolysis of KCl); the exchange counts the 1 M fill solution, its KOH mass fraction in the composition"
+    source: "the reservoir's initial 1 M KOH fill over the campaign (S117, S217; campaign-averaged, D-011): Skid A's whole fill, Skid B's 50 L"
+  - key: feed:KOH-DOSE
+    missing: "no open factor for potassium hydroxide (KOH 100 %); the exchange counts the 5 M dosing solution, its KOH mass fraction in the composition"
+    source: "Skid B's continuous 5 M KOH dosing (S219; D-010); zero in case skid-a"
+  # -- emissions ----------------------------------------------------------------------------
+  - key: product:VENT
+    emission: true
+    source: "the oxidiser flue gas to air (S111, S211): the 0.05 of the unreacted CO2 the PSA does not recycle, the CO it does not recover burnt to CO2, the water and the air's N2 and O2 (D-012)"
+  - key: product:O2VENT
+    emission: true
+    source: "the anode O2 vented from the reservoir (S116, S216): burden-free, no credit under cut-off"
+  - key: emission:CO2
+    elementary: {compartment: air, origin: fossil}
+    source: "CO2 to air from the oxidiser vent: the carbon of the fossil CO2 feed (D-016); characterised by ipcc2021-gwp100. The 0.95 recycle that sets it is ASSUMED (D-012)"
+  - {key: emission:H2O, free: true, source: "water vapour of the flue gas (from the cathode gas and the H2 burnt): no climate burden at ground level"}
+  - {key: emission:N2, free: true, source: "the oxidiser air's nitrogen, returned to the atmosphere unchanged"}
+  - {key: emission:O2, free: true, source: "the excess oxidiser air's O2 and the anode O2: returned to the atmosphere, no burden and no credit"}
+  # -- wastes ---------------------------------------------------------------------------------
+  - key: product:SPENT
+    treatment: {kind: waste, route: "neutralisation of alkaline carbonate solution", hazardous: true}
+    missing: "no open factor for the neutralisation of a spent alkaline potassium carbonate solution"
+    source: "the anolyte left at the end of the campaign (S118, S218; campaign-averaged, D-011): KOH and K2CO3 in water, pH about 12 (Skid A) or 13.7 (Skid B)"
+  - key: product:BLEED
+    treatment: {kind: waste, route: "neutralisation of alkaline carbonate solution", hazardous: true}
+    missing: "no open factor for the neutralisation of an alkaline potassium carbonate solution"
+    source: "Skid B's anolyte bleed to the site effluent (S223, D-010); zero in case skid-a"
+  - key: product:CONDENSATE
+    treatment: {kind: waste, route: "neutralisation of alkaline carbonate solution", hazardous: true}
+    missing: "no open factor for the neutralisation of the cathode's potassium carbonate condensate"
+    source: "the cathode condensate with the K+ that crossed the membrane as K2CO3 at 1 mol/kg, ASSUMED (S105, S205; D-012)"
+  # -- utilities ------------------------------------------------------------------------------
+  - key: product:CW
+    missing: "heat rejected to the site cooling water: no open factor for the circuit's pumps, fans, make-up water and treatment; the skids' own power counts the anolyte pump only"
+    source: "the stack heat removed by the coolers E-111 and E-211 (Q105, Q205; cheme process stack, isothermal by assumption, D-012)"
+operation: {hours_per_year: 8000, life_years: 10, source: "operating hours: process/design-basis.yaml capacity.pilot_skid.operating_hours (ASSUMED); life 10 years ASSUMED for a pilot skid (DESIGN.md D-024)"}
+# The stack parts replaced at stacks[].replacement.interval (4000 h, ASSUMED: no life data), the
+# same for both skids (identical stacks): 28 cells x 100 cm2 per replacement. regen writes
+# per_replacement (cells x cell area x areal mass) and every_years (interval / hours_per_year)
+consumables:
+  - id: membrane-bpm
+    title: "Bipolar membranes (Fumasep FBM), 28 x 100 cm2"
+    unit: kg
+    per_replacement: 0.056
+    every_years: 0.5
+    missing: "no open factor for a bipolar ion-exchange membrane"
+    source: "28 cells x 100 cm2 at 0.20 kg/m2 (ASSUMED: about 0.15 mm of ion-exchange polymer; no datasheet value is used), replaced with the stacks every 4000 h (process/cells.yaml stacks[].replacement.interval, ASSUMED); DESIGN.md D-026"
+    disposal: {kind: waste, route: "incineration of spent ion-exchange membrane", missing: "no open factor for the incineration of a spent ion-exchange membrane", source: "ASSUMED: the membranes leave as waste with the stack refurbishment"}
+  - id: cathode-gde-ag
+    title: "Silver of the gas-diffusion cathodes, 28 x 100 cm2"
+    unit: kg
+    per_replacement: 0.00029372
+    every_years: 0.5
+    catalyst: true
+    metals: {Ag: 1.0}
+    missing: "no open factor for silver sputtered on a carbon gas-diffusion layer"
+    source: "28 cells x 100 cm2 x 100 nm of Ag (process/design-basis.yaml capacity.reference_cell, given) at the bulk density 10.49 g/cm3 (ASSUMED dense film): 1.049 g/m2; the carbon paper (Sigracet 39BB) is not counted (an open item, DESIGN.md D-026)"
+    disposal: {kind: recyclable, route: "silver recovery by a precious-metal refiner", source: "ASSUMED: the spent cathodes go to silver recovery; cut-off: burden-free, no credit"}
+  - id: anode-ni-foam
+    title: "Nickel foam anodes, 28 x 100 cm2"
+    unit: kg
+    per_replacement: 0.098
+    every_years: 0.5
+    missing: "no open factor for nickel foam; the packaged desnz-ghg-2026 construction metals factor is steel-dominated and is not used for nickel (DESIGN.md D-026)"
+    source: "28 cells x 100 cm2 at 0.35 kg/m2 (ASSUMED areal mass of a nickel foam; the paper does not state the grade)"
+    disposal: {kind: recyclable, route: "nickel scrap to recycling", source: "ASSUMED: the spent foam goes to metal recycling; cut-off: burden-free, no credit"}
+# Per-case construction cannot be stated: construction entries select equipment by tag
+# (EquipmentWhere has a tag glob but no case), so Skid B's dataset would carry Skid A's frames
+# and tanks. Left out, and open (DESIGN.md D-027)
+cutoff:
+  - id: construction
+    title: "Skid construction (frames, tanks, stacks, packages, piping)"
+    reason: "not expressible per case in core 1.5.0 (construction entries select equipment by tag, not by case): an open item of #331, not a cut-off by mass; Skid A's 1.46 m3 reservoir against Skid B's 0.06 m3 is one of the flows that distinguish the skids (DESIGN.md D-026, D-027)"
+emission_exclusions:
+  - {id: anolyte-tanks, method: storage-tank, equipment: [T-101, T-201, T-202], reason: "the reservoirs and the day tank hold aqueous KOH and K2CO3 at 25 degC, which are not volatile; the anode O2 they vent is the exchange product:O2VENT", source: "DESIGN.md D-024"}
+# The background sensitivities and the design case (lca/scenarios/<id>.json). The electricity
+# mixes all come from one profile (ember-2025), so their verdict against the baseline is
+# like-for-like where only the grid factor changes (library ADR 0016); desnz-gb is a labelled
+# cross-basis check
+scenarios:
+  - {id: skid-b, title: "Skid B (continuous KOH dosing), NL grid", case: skid-b, source: "flowsheet case skid-b: duty D-B (DESIGN.md D-010)"}
+  - {id: mix-eu27, title: "Skid A, EU-27 grid", factors: {"ember-2025:electricity-nl": "ember-2025:electricity-eu27"}, location: EU27, year: 2025, electricity: grid-average, proxy: {"feed:WATER": "UK mains water stands in for demineralised water in the EU-27 too"}, source: "Ember 2025, EU-27 gross generation, life cycle"}
+  - {id: mix-de, title: "Skid A, German grid", factors: {"ember-2025:electricity-nl": "ember-2025:electricity-de"}, location: DE, year: 2025, electricity: grid-average, proxy: {"feed:WATER": "UK mains water stands in for demineralised water in DE too"}, source: "Ember 2025, Germany gross generation, life cycle"}
+  - {id: mix-fr, title: "Skid A, French grid", factors: {"ember-2025:electricity-nl": "ember-2025:electricity-fr"}, location: FR, year: 2025, electricity: grid-average, proxy: {"feed:WATER": "UK mains water stands in for demineralised water in FR too"}, source: "Ember 2025, France gross generation, life cycle"}
+  - {id: mix-glo, title: "Skid A, world average grid", factors: {"ember-2025:electricity-nl": "ember-2025:electricity-glo"}, location: GLO, year: 2025, electricity: grid-average, proxy: {"feed:WATER": "UK mains water stands in for demineralised water anywhere"}, source: "Ember 2025, world gross generation, life cycle (estimated by Ember)"}
+  - {id: skid-b-mix-eu27, title: "Skid B, EU-27 grid", case: skid-b, factors: {"ember-2025:electricity-nl": "ember-2025:electricity-eu27"}, location: EU27, year: 2025, electricity: grid-average, proxy: {"feed:WATER": "UK mains water stands in for demineralised water in the EU-27 too"}, source: "flowsheet case skid-b; Ember 2025, EU-27"}
+  - {id: skid-b-mix-de, title: "Skid B, German grid", case: skid-b, factors: {"ember-2025:electricity-nl": "ember-2025:electricity-de"}, location: DE, year: 2025, electricity: grid-average, proxy: {"feed:WATER": "UK mains water stands in for demineralised water in DE too"}, source: "flowsheet case skid-b; Ember 2025, Germany"}
+  - {id: skid-b-mix-fr, title: "Skid B, French grid", case: skid-b, factors: {"ember-2025:electricity-nl": "ember-2025:electricity-fr"}, location: FR, year: 2025, electricity: grid-average, proxy: {"feed:WATER": "UK mains water stands in for demineralised water in FR too"}, source: "flowsheet case skid-b; Ember 2025, France"}
+  - {id: skid-b-mix-glo, title: "Skid B, world average grid", case: skid-b, factors: {"ember-2025:electricity-nl": "ember-2025:electricity-glo"}, location: GLO, year: 2025, electricity: grid-average, proxy: {"feed:WATER": "UK mains water stands in for demineralised water anywhere"}, source: "flowsheet case skid-b; Ember 2025, world"}
+  - {id: desnz-gb, title: "Skid A, UK grid at the consumer (DESNZ): cross-basis check", factors: {"ember-2025:electricity-nl": "desnz-ghg-2026:electricity-gb"}, location: GB, year: 2025, electricity: grid-average, source: "DESNZ 2026 UK electricity at the consumer (generation, T&D and well-to-tank, AR5): another basis than Ember's, so the verdict is not comparable; it shows the size of the basis difference only"}
+dataset:
+  version: 0.1.0
+  geography:
+    description: "One concept design of a pilot skid, sited in the Netherlands (ASSUMED, design basis capacity.pilot_skid.site); NL grid electricity; the cell data are 5 cm2 bench measurements scaled to 100 cm2 (ASSUMED)"
+    site: "a notional 32 x 16 m pilot plot (layout/site-plan.yaml, ASSUMED)"
+  system_model: cutoff
+  technology_level: new
+  # ISIC Rev.4 2011 Manufacture of basic chemicals; the CPC 2.1 code of carbon monoxide is not
+  # looked up yet (open)
+  classification: {isic: "2011"}
+  modelling: {principle: attributional, sampling: "one pilot design per case at the measured 200 mA/cm2 point; 1 h bench measurements held constant over the campaign by assumption (DESIGN.md D-014)"}
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library, co2-electrolysis-bpm-1 concept design of the #330 pilot skids (agent-drafted, not reviewed)"

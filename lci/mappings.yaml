@@ -180,6 +180,30 @@ technosphere:
   sodium-sulfite:
     activity: {name: "market for sodium sulfite", reference_product: "sodium sulfite", unit: kilogram, location: GLO}
     source: Sodium sulfite for brine dechlorination (chlor-alkali-1 feed:NA2SO3).
+  # co2-electrolysis-bpm-1 (#331): the KOH anolyte and the merchant CO2 of the pilot skids. The
+  # names follow ecoinvent 3.11 and are not checked: no ecoinvent licence (ADR 0017); install()
+  # reports one that does not link.
+  potassium-hydroxide:
+    activity: {name: "market for potassium hydroxide", reference_product: "potassium hydroxide", unit: kilogram, location: GLO}
+    source: >-
+      Potassium hydroxide counted as KOH 100 % (the background's basis); used by the
+      potassium-hydroxide-1m and -5m proxies, which count the solutions.
+    notes: "not checked: no ecoinvent licence (scripts/check_mappings.py has not run against a licensed copy)"
+  potassium-hydroxide-1m:
+    proxy: potassium-hydroxide-1m
+    source: 1 M KOH solution counted by mass (co2-electrolysis-bpm-1 feed:KOH-FILL).
+    notes: "not checked: no ecoinvent licence"
+  potassium-hydroxide-5m:
+    proxy: potassium-hydroxide-5m
+    source: 5 M KOH solution counted by mass (co2-electrolysis-bpm-1 feed:KOH-DOSE).
+    notes: "not checked: no ecoinvent licence"
+  carbon-dioxide-liquid:
+    activity: {name: "market for carbon dioxide, liquid", reference_product: "carbon dioxide, liquid", unit: kilogram, location: RER}
+    source: >-
+      Merchant liquefied CO2 (co2-electrolysis-bpm-1 feed:CO2, a fossil industrial by-product,
+      ASSUMED in its DESIGN.md D-016). ASSUMED that the background's CO2 includes the capture,
+      purification and liquefaction but not the delivery to the site.
+    notes: "not checked: no ecoinvent licence"
   sulfuric-acid:
     activity: {name: "market for sulfuric acid", reference_product: "sulfuric acid", unit: kilogram, location: RER}
     source: >-
@@ -422,6 +446,26 @@ proxies:
     source: >-
       Converts the brine's mass to the background's NaCl; the brine water and the brine
       purification (Ca/Mg removal, soda-ash-1 D-003) are not counted (screening).
+  potassium-hydroxide-1m:
+    name: "potassium hydroxide, 1 M in water, per kg of solution (Atlas unit proxy)"
+    reference_product: "potassium hydroxide, 1 M solution"
+    unit: kilogram
+    location: GLO
+    inputs:
+      - {use: potassium-hydroxide, amount: 0.0534333, source: "KOH mass fraction of the 1 M fill, 56.105 g/mol / 1.05 kg/L (co2-electrolysis-bpm-1 dataset composition of feed:KOH-FILL; the density ASSUMED there)"}
+    source: >-
+      Converts the solution's mass to the background's KOH 100 %; the dilution water is not
+      counted (screening).
+  potassium-hydroxide-5m:
+    name: "potassium hydroxide, 5 M in water, per kg of solution (Atlas unit proxy)"
+    reference_product: "potassium hydroxide, 5 M solution"
+    unit: kilogram
+    location: GLO
+    inputs:
+      - {use: potassium-hydroxide, amount: 0.229939, source: "KOH mass fraction of the 5 M dose, 5 x 56.105 g/mol / 1.22 kg/L (co2-electrolysis-bpm-1 dataset composition of feed:KOH-DOSE; the density ASSUMED there)"}
+    source: >-
+      Converts the solution's mass to the background's KOH 100 %; the dilution water is not
+      counted (screening).
 
 # Flows the cut-off model leaves out of the producer's system (docs/system-model.md, "Wastes and
 # recyclables"): material sent to recycling leaves burden-free, the recycler carries the
