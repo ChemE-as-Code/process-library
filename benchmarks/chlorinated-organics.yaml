@@ -10,6 +10,13 @@
 # dataset's own basis of conditions (DESIGN.md D-001, D-005); they are discussed in D-008, not
 # bound here.
 #
+# Carbon tetrabromide (carbon-tetrabromide-1, #152; the family also takes the brominated
+# organics): no open source gives a plant's specific consumptions. The stoichiometric floor of
+# the bromine on the haloform route is 1.928 kg/kg CBr4 (C3H6O + 4 Br2 + 5 NaOH -> CBr4 +
+# CH3COONa + 4 NaBr + 4 H2O); it is a limit, not a range of real plants, so it is not recorded as
+# one (docs/benchmarks.md: never invent a range). The route's one open source, CN 101 885 665 A,
+# gives charges but no yield.
+#
 # Benzoyl chloride (benzoyl-chloride-1, #156): the one open source with yields is US 4 276 231 A,
 # whose description states 96-98 % of theory for its process (batch and continuous, with and
 # without the bottoms recycle). Converted to the benzotrichloride per kg of benzoyl chloride (two
@@ -29,6 +36,14 @@ kpis:
     title: Phosgene consumption per kg of benzyl chloroformate
     unit: kg/kg
     no_open_reference: "No open source with a plant's phosgene use per kg of benzyl chloroformate found (searched 2026-11-05 as for bcf-specific-benzyl-alcohol); US 6 696 590 B2 states a preferred excess of 1.5 to 2.5 mol per mol of alcohol and uses 1.27 in Ex. 3 (the dataset's ratio), no plant figure; the stoichiometric floor is 0.580 kg/kg."
+  cbr4-specific-bromine:
+    title: Bromine consumption per kg of carbon tetrabromide
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's or a pilot's bromine use per kg CBr4 found (searched 2026-11-05: Google Patents CN 101 885 665 A read, charges only and no yield; Wikipedia, Carbon tetrabromide, which names the CCl4 + AlBr3 exchange and methane bromination without figures; web search for CBr4 production yields, which gave only market-report pages). Only the stoichiometric floor, 1.928 kg/kg, is known."
+  cbr4-specific-wastewater:
+    title: Wastewater (mother liquor, wash and condensate) per kg of carbon tetrabromide
+    unit: kg/kg
+    no_open_reference: "No open source with the effluent of CBr4 production found (searched 2026-11-05 as for cbr4-specific-bromine); CN 101 885 665 A separates the solid from the liquor but states no liquor amount or washing."
   bzcl-specific-benzotrichloride:
     title: Benzotrichloride consumption per kg of benzoyl chloride (benzoic acid variant)
     unit: kg/kg
@@ -56,6 +71,12 @@ datasets:
     kpis:
       bcf-specific-benzyl-alcohol: {expression: feed:BNOH / product:BCF, per: product:BCF}
       bcf-specific-phosgene: {expression: feed:PHOS / product:BCF, per: product:BCF}
+  - process: carbon-tetrabromide-1
+    dataset: carbon-tetrabromide-by-semi-batch-haloform-bromination-of-acetone-in-aqueous-hypobromite-314-t-a
+    conditions: {technology: "aqueous haloform route: hypobromite from bromine and caustic, acetone dosed at 278 K with a phase-transfer catalyst, CBr4 precipitated, filtered, washed and vacuum-dried", basis: "concept balance, ratios after the patent's examples and ASSUMED (DESIGN.md D-004, D-005)"}
+    kpis:
+      cbr4-specific-bromine: {expression: feed:BR2 / product:CBR4P, per: product:CBR4P}
+      cbr4-specific-wastewater: {expression: product:WW / product:CBR4P, per: product:CBR4P}
   - process: benzoyl-chloride-1
     dataset: benzoyl-chloride-by-semi-batch-reaction-of-benzotrichloride-with-benzoic-acid-and-batch-vacuum-distillation-2000-t-a
     conditions: {technology: "benzotrichloride dosed into molten benzoic acid with ZnCl2 at 140 C (semi-batch), HCl vent to absorption, batch vacuum distillation at 50 mbar, residue not recycled", basis: "concept balance, the patent's Example 1 ratios and ASSUMED kinetics, still end and column split (DESIGN.md D-004, D-007, D-008)"}
