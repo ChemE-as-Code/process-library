@@ -6,10 +6,10 @@ ChemE-as-Code/process-library#153. Concept stage: design basis, batch recipe, ba
 thermal screening and a preliminary gate-to-gate LCI. Out of scope here: P&IDs, layout, HAZOP,
 TEA, datasheets.
 
-Starting point (2026-11-05): library `main` at 77fa11c2; cheme-as-code core `main` at 7334d7c
-(to be released as 1.8.0; `cheme --version` still prints 1.7.0 there). The entry uses core
-features that 1.7.0 does not have (batch.vent, dosing.absorbed, still:, recipe units:; see
-"Core features used"): the library's CI, pinned to 1.7.0, may refuse them until the pin moves.
+Starting point (2026-11-05): library `main` at 77fa11c2; built on cheme-as-code core
+`main` at 7334d7c and rechecked on the release, 1.8.0 (4e8fd80), which the library pins. The
+entry uses core features that 1.7.0 does not have (batch.vent, dosing.absorbed, still:, recipe
+units:; see "Core features used").
 
 ## Source register
 
@@ -271,7 +271,7 @@ idle time of a multipurpose train, shared tank farms. Chloroformates are often m
 on a multipurpose phosgenation plant: there the burden per kg is higher, and this LCI is a lower
 bound for it.
 
-## Core features used (core main 7334d7c, to be 1.8.0)
+## Core features used (core 1.8.0)
 
 - `batch.vent: {stream, components, fraction}` (ADR 0054): HCl and CO2 leave R101 as they form,
   95 % and 100 %, by the vent stream S6; the liquid's volume and concentrations are without them.
