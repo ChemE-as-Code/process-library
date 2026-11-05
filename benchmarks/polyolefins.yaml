@@ -1,0 +1,123 @@
+# Benchmarks of polyolefins: high-density polyethylene (KPI ids hdpe-) and polypropylene (pp-).
+# Schema: schemas/benchmarks.schema.json; rules: docs/benchmarks.md. Ranges are facts from the
+# cited source, in our own form.
+#
+# HDPE: the references are the BREF POL's 1999 data collection (APME, 24 HDPE plants); the dataset
+# takes its numbers from Plastics Europe's 2011 data collection (19 HDPE units). Both are industry
+# averages of European plants with producers in common, so the checks are of a different period,
+# not of fully independent plants. Each Table 3.11 range spans the source's group averages (the
+# top half and the 4th quartile), not single plants' extremes.
+#
+# PP: the POL BREF reports no PP plant data. Its section 3.3.5 (p. 66) says PP plants can be compared
+# with PE plants (gas-phase PP with LLDPE, bulk PP with modern PE gas phase), and suspension PP
+# (slurry or bulk) with the HDPE slurry process for energy; the HDPE figures are bound to
+# polypropylene-1 on that basis, with the LLDPE figures noted. They are independent of the
+# dataset, whose numbers come from US plant data (ACC/Franklin 2021).
+# A direct-energy KPI (electricity and natural gas) is not bound for PP: the fuel is in kg, and an
+# expression cannot add kg to kWh (docs/benchmarks.md). By hand, 300 kWh plus 24.4 kg at
+# 50.01 MJ/kg gives about 640 kWh/t, inside the BREF's HDPE direct energy of 570 to 940 kWh/t
+# (Table 3.11, p. 64: the top-50 % and the 4th-quartile averages of 1999).
+schema: cheme-as-code/benchmarks/v1
+family: polyolefins
+
+kpis:
+  hdpe-specific-monomer:
+    title: Monomer (ethylene and comonomer) consumption per t of HDPE
+    unit: kg/t
+    references:
+      - id: bref-pol-hdpe-monomer
+        range: [1008, 1066]
+        basis: unallocated
+        note: From the average of the better half of the plants to the average of the 4th quartile; the European average is 1027 kg/t, raised by a few plants of the 4th quartile. That the figure includes the comonomer is our reading of "monomer consumption".
+        conditions: {technology: "HDPE plants, slurry and gas phase not separated; 24 plants, average age 15 years, average capacity 161 kt/a", region: EU, year: 1999}
+        source: &bref-pol-hdpe
+          citation: "European Commission, JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers (BREF POL), August 2007"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/pol_bref_0807.pdf
+          locator: Section 3.3.3, Table 3.11, p. 64
+          kind: bref
+          accessed: "2026-11-05"
+      - id: bref-pol-hdpe-monomer-bat
+        range: [1008, 1008]
+        basis: unallocated
+        note: The BAT-associated level, one value recorded as a zero-width range and not widened.
+        conditions: {technology: HDPE, region: EU}
+        source:
+          citation: "European Commission, JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers (BREF POL), August 2007"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/pol_bref_0807.pdf
+          locator: Section 13.2, Table 13.4, p. 260
+          kind: bref
+          accessed: "2026-11-05"
+  hdpe-direct-energy:
+    title: Electricity and heat as delivered per t of HDPE
+    unit: kWh/t
+    references:
+      - id: bref-pol-hdpe-direct-energy
+        range: [570, 940]
+        basis: unallocated
+        note: "Direct energy, the energy consumption as delivered. The BAT-associated levels of Table 13.4 (p. 260) are 2.05 GJ/t for new and 2.05 to 2.52 GJ/t for existing installations, 569 to 700 kWh/t at 3.6 MJ/kWh. The source notes that bimodal and high molecular weight grades can deviate strongly."
+        conditions: {technology: "HDPE plants, slurry and gas phase not separated", region: EU, year: 1999}
+        source: *bref-pol-hdpe
+  hdpe-voc-air:
+    title: Hydrocarbons to air (VOC, point sources and fugitives) per t of HDPE
+    unit: kg/t
+    references:
+      - id: bref-pol-hdpe-voc
+        range: [0.65, 5.75]
+        basis: unallocated
+        note: "Converted from g/t. The source's VOC includes all hydrocarbons and other organics, fugitives included. Germany reports 0.64 to 0.67 kg/t (Table 3.12); the BAT-associated levels are 0.3 to 0.5 kg/t for new and 0.5 to 1.8 kg/t for existing installations (Table 13.4)."
+        conditions: {technology: "HDPE plants, slurry and gas phase not separated", region: EU, year: 1999}
+        source: *bref-pol-hdpe
+  pp-specific-propylene:
+    title: Propylene consumption per t of polypropylene
+    unit: kg/t
+    references:
+      - id: bref-pol-hdpe-monomer
+        range: [1008, 1066]
+        basis: unallocated
+        note: >-
+          HDPE plants, applied to PP by the BREF's own comparison (section 3.3.5, which adds that PP
+          monomer use differs slightly from these HDPE figures with the purity of the propylene). The
+          ends are the average of the top 50 % of plants and the average of the 4th quartile, not
+          single-plant extremes; the European average is 1027 kg/t. Section 3.3.5 pairs gas-phase PP with
+          LLDPE and bulk PP with modern PE gas-phase plants process by process; the LLDPE range (Table
+          3.13: 1015 to 1043 kg/t) would put the dataset's 1014 kg/t 1 kg/t below its top-50 % average.
+        conditions: {technology: "HDPE plants (24 reporting, average age 15 years, average capacity 161 kt/a)", region: EU, year: 1999}
+        source:
+          citation: "European Commission JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers, August 2007"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/pol_bref_0807.pdf
+          locator: Section 3.3.3, Table 3.11, p. 64; section 3.3.5, p. 66
+          kind: bref
+          accessed: "2026-11-05"
+  pp-specific-electricity:
+    title: Electricity per t of polypropylene
+    unit: kWh/t
+    no_open_reference: >-
+      No open source with a PP electricity figure independent of the dataset found (2026-11-05).
+      Read: POL BREF 2007 sections 3.3.3 to 3.3.5 and 13.2 (direct energy only, not split into
+      electricity and steam, and no PP data); the PlasticsEurope PP eco-profile of 2005 (Boustead;
+      cradle-to-gate only, no polymerisation step). Not readable: plasticseurope.org (HTTP 403);
+      licensor figures and Intratec cost reports (not open). The dataset's 300 kWh/t is the ACC
+      report's own figure, so binding it to that report would not be a check.
+
+datasets:
+  - process: polyethylene-1
+    dataset: hdpe-low-pressure-eu-average
+    conditions: {technology: "HDPE, slurry and gas-phase plants averaged by the source", region: EU, year: 2011, basis: conceptual inventory}
+    kpis:
+      hdpe-specific-monomer:
+        expression: (feed:ethylene + feed:1-butene) / product:polyethylene
+        per: product:polyethylene
+        reference: bref-pol-hdpe-monomer
+        out_of_range_reason: "The dataset's ethylene is stoichiometry with the sourced losses of 2011 (ethylene to air and the carbon of the reported CO2, CO and CH4); returned monomer counts as internal in that source, and the hydrocarbon losses it does not report (other VOC, wastes of about 2 kg/t) are TODO excludes, so the feed is a lower view. The source's own figure, 1.00 kg/kg ethylene (rounded) plus the comonomer inside its 22 kg/t of organics, would lie inside."
+      hdpe-direct-energy: {expression: (feed:electricity + feed:steam) / product:polyethylene, per: product:polyethylene, reference: bref-pol-hdpe-direct-energy}
+      hdpe-voc-air:
+        expression: (emission:C2H4 + emission:CH4) / product:polyethylene
+        per: product:polyethylene
+        reference: bref-pol-hdpe-voc
+        out_of_range_reason: "The eco-profile reports ethylene and methane only; the diluent and comonomer the plants release are not stated there, and the dataset burns the diluent loss instead (ASSUMED). The value is a lower bound: TODO in the dataset's system_boundary.excluded."
+  - process: polypropylene-1
+    dataset: polypropylene-bulk-gas-phase
+    conditions: {technology: "bulk loop and gas phase, two-thirds bulk", region: US, year: "2015-2016", basis: published unit process}
+    kpis:
+      pp-specific-propylene: {expression: feed:propylene / product:polypropylene, per: product:polypropylene, reference: bref-pol-hdpe-monomer}
+      pp-specific-electricity: {expression: feed:electricity / product:polypropylene, per: product:polypropylene}

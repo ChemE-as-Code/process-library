@@ -1,0 +1,340 @@
+# Benchmarks of oxygenated intermediates: purified terephthalic acid, adipic acid and propylene
+# oxide. Schema: schemas/benchmarks.schema.json; rules: docs/benchmarks.md. Ranges are facts
+# from the cited source, in our own form.
+#
+# terephthalic-acid-1:
+# These references are independent of the dataset's numbers (the dataset takes its feeds from
+# patent CN105001073A and its utilities from the MIDDEN report's Table 3), but all three values sit
+# outside their range, each with a reason. Read them as a statement of how far the open sources
+# disagree, not as a validation.
+#
+# adipic-acid-1:
+# Independence: the two N2O KPIs are bound to sources the datasets do not use (AP-42 for the
+# generation, the EU ETS benchmark study for the abated emission). The energy KPIs share the IEA
+# source with the datasets and only show where the datasets sit between best practice and the
+# average. No open source with a cyclohexane or nitric acid consumption per t was found.
+#
+# propylene-oxide-1:
+# Independence: the chlorine and propylene references (ANL 1980) and the calcium chloride references
+# are not used by the dataset, which takes the feeds and the salt from stoichiometry with the patent's
+# DCP. The effluent is bound to the patent's 43 t, not to the BREF's 40 t that the dataset uses. The
+# DCP reference is the dataset's own source (transcription only). The electricity reference (ANL 1980)
+# is not used by the dataset, which takes core's Tier 0 default.
+schema: cheme-as-code/benchmarks/v1
+family: oxygenates
+
+kpis:
+  pta-px-yield:
+    title: Terephthalic acid per p-xylene fed, as a share of the stoichiometric maximum
+    unit: "%"
+    description: >-
+      Moles of terephthalic acid per mole of p-xylene, computed from the masses (166.132 and
+      106.168 g/mol). A low value means p-xylene lost to residues and burnt to CO2.
+    references:
+      - id: midden-pta-yield
+        range: [98.3, 98.9]
+        basis: unallocated
+        note: >-
+          The report gives 98.3 % after oxidation and 98.9 % after post-oxidation, citing Zein et
+          al. (2010, a Cairo University student report). It calls the first a conversion factor and
+          does not say whether either is molar; the molar reading is ours. It is a yield of the
+          reaction steps, not a plant's unit consumption. The same report supplies the dataset's
+          electricity and steam, but not its p-xylene, so this reference is independent of the
+          value it checks but not of the dataset as a whole.
+        conditions: {technology: "air oxidation of p-xylene in acetic acid (Eastman-based, GPT equipment), with post-oxidation", region: EU, year: 2016}
+        source:
+          citation: "Tran, A. and West, K.J. (2021) Decarbonisation options for the Dutch bottle-grade PET industry. PBL Netherlands Environmental Assessment Agency and TNO (MIDDEN), PBL publication 4617"
+          url: https://pbl.nl/downloads/pbl-2021-decarbonisation-options-for-the-dutch-bottle-grade-pet-industry-4617pdf
+          locator: Section 2.3, pp. 13-14
+          kind: government
+          accessed: "2026-11-05"
+  pta-specific-acetic-acid:
+    title: Acetic acid consumption per t of purified terephthalic acid
+    unit: t/t
+    references:
+      - id: lbnl-pta-acetic-acid
+        range: [0.04, 0.09]
+        basis: unallocated
+        note: The report's literature range (its references 86 to 88, among them AP-42 6.11 and Xu and Zhu 2008); it assumes 0.05 t/t itself.
+        conditions: {technology: p-xylene oxidation in acetic acid, region: global}
+        source:
+          citation: "Karali, N., Khanna, N., Shah, N. (2024) Climate Impact of Primary Plastic Production. Lawrence Berkeley National Laboratory, LBNL-2001585"
+          url: https://eta-publications.lbl.gov/sites/default/files/climate_and_plastic_report_final.pdf
+          locator: Section 2.3, p. 23
+          kind: government
+          accessed: "2026-11-05"
+  pta-specific-energy:
+    title: Electricity and steam per t of purified terephthalic acid
+    unit: GJ/t
+    references:
+      - id: lbnl-pta-energy
+        range: [5.3, 9.7]
+        basis: unallocated
+        note: >-
+          The report's estimate of the energy intensity of PTA plants from its references 51, 82 and
+          83 (IEA 2013, Azarpour et al. 2022, Marczak 2022); it assumes 7.4 GJ/t itself. It does not
+          say whether the range is final or primary energy, gross or net of recovered heat, or
+          whether fuel is included, so it is a loose comparison for electricity plus steam.
+        conditions: {technology: PTA plants, region: global}
+        source:
+          citation: "Karali, N., Khanna, N., Shah, N. (2024) Climate Impact of Primary Plastic Production. Lawrence Berkeley National Laboratory, LBNL-2001585"
+          url: https://eta-publications.lbl.gov/sites/default/files/climate_and_plastic_report_final.pdf
+          locator: Section 2.3, p. 23
+          kind: government
+          accessed: "2026-11-05"
+  aa-n2o-generation:
+    title: N2O generated per t of adipic acid, before abatement
+    unit: kg/t
+    references:
+      - id: ipcc-2006-aa-n2o-generation
+        range: [270, 330]
+        basis: unallocated
+        note: The default of 300 kg/t with its stated +/- 10 %, which covers feeds from pure ketone to pure alcohol. The datasets take the 300 kg/t from this source, so it is not an independent check.
+        conditions: {technology: "nitric acid oxidation of cyclohexanone and cyclohexanol; generation factor, before any abatement", region: global, year: 2006}
+        source:
+          citation: "IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Volume 3 Industrial Processes and Product Use, Chapter 3 Chemical Industry Emissions"
+          url: https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/3_Volume3/V3_3_Ch3_Chemical_Industry.pdf
+          locator: Section 3.4.2.2, Table 3.4, p. 3.30
+          kind: government
+          accessed: "2026-11-05"
+      - id: ap42-aa-n2o-uncontrolled
+        range: [291.3, 291.3]
+        basis: unallocated
+        note: The sum of two uncontrolled factors, the oxidation reactor (290 kg/t, from gas analyses at two plants, rating D) and the nitric acid tank fume sweep (1.3 kg/t, one stack test, rating E). A single value, recorded as a zero-width range and not widened.
+        conditions: {technology: "nitric acid oxidation of KA; uncontrolled", region: US, year: 1995}
+        source:
+          citation: "US EPA (1995) Compilation of Air Pollutant Emission Factors (AP-42), Fifth Edition, Volume I, Chapter 6 Organic Chemical Process Industry, Section 6.2 Adipic Acid, final section January 1995"
+          url: https://19january2021snapshot.epa.gov/sites/static/files/2020-10/documents/c06s02.pdf
+          locator: Table 6.2-2, p. 6.2-5
+          kind: government
+          accessed: "2026-11-05"
+  aa-n2o-emission-abated:
+    title: N2O emitted per t of adipic acid by a plant with N2O abatement
+    unit: kg/t
+    references:
+      - id: ecofys-2009-de-aa-co2eq
+        range: [18.1, 41.0]
+        basis: unallocated
+        note: >-
+          The source gives 5.6 to 12.7 t CO2-eq per t adipic acid for the German adipic acid
+          production of 2001 to 2007, with abatement (national emissions over national output).
+          The text calls it one plant, but its Table 8 lists three German sites. Converted with the GWP of 310 for N2O that the same chapter uses, reading all of
+          the CO2-eq as N2O, so the range is an upper bound of the N2O. The same chapter gives an
+          EU-27 weighted average of 10.27 t CO2-eq/t for 2007/08 without steam and electricity
+          (Table 9), about 33 kg N2O/t on the same reading.
+        conditions: {technology: "KA oil oxidation with nitric acid, N2O abatement installed; yearly values 2001 to 2007", region: DE, year: 2007}
+        source:
+          citation: "Ecofys, Fraunhofer ISI, Öko-Institut (2009) Methodology for the free allocation of emission allowances in the EU ETS post 2012: Sector report for the chemical industry, by order of the European Commission (study contract 07.0307/2008/515770/ETU/C2)"
+          url: https://climate.ec.europa.eu/document/download/b5e9cb5a-ff10-4a89-a083-e69663b708d3_en
+          locator: Chapter 6, section 6.3.2, Table 10, p. 46 (GWP 310 on p. 47)
+          kind: government
+          accessed: "2026-11-05"
+  aa-specific-steam:
+    title: Steam (as heat) per t of adipic acid
+    unit: kWh/t
+    references:
+      - id: iea-2009-aa-steam
+        range: [5138.9, 7138.9]
+        basis: unallocated
+        note: From the best-practice value (18.5 GJ/t, Table 1, p. 14, which footnote 2 marks as estimated) to the estimated current Western European average (25.7 GJ/t, Table 13, p. 50), both after Chauvel and Lefebvre (1989), converted at 3.6 MJ/kWh. Not independent of the datasets, which take the average from the same paper.
+        conditions: {technology: adipic acid production, region: Western Europe, year: 2009}
+        source: &iea
+          citation: "Saygin, D., Patel, M.K., Tam, C., Gielen, D.J. (2009) Chemical and Petrochemical Sector: Potential of best practice technology and other measures for improving energy efficiency. IEA Information Paper, OECD/IEA, Paris"
+          url: https://iea.blob.core.windows.net/assets/c2d071e4-4142-44f1-8a41-88ece29be439/ChemicalandPetrochemicalSector.pdf
+          locator: Table 1, p. 14, and Table 13, p. 50
+          kind: iea
+          accessed: "2026-11-05"
+  aa-specific-electricity:
+    title: Electricity per t of adipic acid
+    unit: kWh/t
+    references:
+      - id: iea-2009-aa-electricity
+        range: [138.9, 388.9]
+        basis: unallocated
+        note: From the best-practice value (0.5 GJ/t) to the estimated current Western European average (1.4 GJ/t), converted at 3.6 MJ/kWh. Not independent of the datasets.
+        conditions: {technology: adipic acid production, region: Western Europe, year: 2009}
+        source: *iea
+  aa-specific-cyclohexane:
+    title: Cyclohexane consumption per t of adipic acid
+    unit: kg/t
+    no_open_reference: >-
+      No open source with a cyclohexane or KA consumption per t of adipic acid found (2026-11-05).
+      Read: LVOC BREF 2017 section 2.1.2.3.3 (no consumption data), US EPA EPA-450/3-91-026
+      section 3.2.2 (yield ranges only, which the datasets use), AP-42 section 6.2 (emission factors
+      only), the EU ETS benchmark study of 2009 chapter 6 (emissions only), the IEA information
+      paper of 2009 (energy only). Kirk-Othmer and Ullmann's are not open access and were not read.
+  aa-specific-nitric-acid:
+    title: Nitric acid (100 % HNO3) consumption per t of adipic acid
+    unit: kg/t
+    no_open_reference: >-
+      No open source with a nitric acid consumption per t of adipic acid found (2026-11-05), in the
+      same documents as aa-specific-cyclohexane. The datasets' make-up is the nitrogen of the N2O
+      and NOx only, a lower bound.
+  po-chlorohydrin-specific-chlorine:
+    title: Chlorine consumption per t of propylene oxide, chlorohydrin process
+    unit: t/t
+    references:
+      - id: anl-1980-po-chlorohydrin-chlorine
+        range: [1.59, 1.59]
+        basis: unallocated
+        note: One value, 1.59 lb per lb of PO, recorded as a zero-width range and not widened. The report takes it from Brownstein (1976).
+        conditions: {technology: "chlorohydrin process with lime", region: US, year: 1976}
+        source: &anl
+          citation: "Gaines, L.L. and Shen, S.Y. (1980) Energy and Materials Flows in the Production of Olefins and Their Derivatives. Argonne National Laboratory, ANL/CNSV-9, for the US Department of Energy"
+          url: https://www.osti.gov/servlets/purl/7013430
+          locator: Section 4.3.2.2, Fig. 4.58, p. 154
+          kind: government
+          accessed: "2026-11-05"
+  po-chlorohydrin-specific-propylene:
+    title: Propylene consumption per t of propylene oxide, chlorohydrin process
+    unit: t/t
+    references:
+      - id: anl-1980-po-chlorohydrin-propylene
+        range: [0.94, 0.94]
+        basis: unallocated
+        note: One value, 0.94 lb per lb of PO, recorded as a zero-width range and not widened. The report takes it from Brownstein (1976).
+        conditions: {technology: "chlorohydrin process with lime", region: US, year: 1976}
+        source: *anl
+  po-chlorohydrin-calcium-chloride:
+    title: Calcium chloride in the effluent per t of propylene oxide
+    unit: t/t
+    references:
+      - id: us4560451-po-cacl2
+        range: [2.0, 2.0]
+        basis: unallocated
+        note: "'Typically 2 tons' per ton of PO, a rounded value, recorded as a zero-width range."
+        conditions: {technology: "conventional chlorohydrin process with lime slurry", region: US, year: 1983}
+        source: &patent
+          citation: "Nielsen, K.A. (Union Carbide Corp.) Electrolytic process for the production of alkene oxides. US patent 4,560,451, granted 1985-12-24"
+          url: https://patents.google.com/patent/US4560451A/en
+          locator: Description of the prior art
+          kind: other
+          accessed: "2026-11-05"
+      - id: bref-lvoc-po-chloride-salts
+        range: [2.0, 2.0]
+        basis: unallocated
+        note: "'Approximately 2 tonnes of chloride salts' per tonne of PO; the salt is not named, CaCl2 is our reading for the lime process."
+        conditions: {technology: chlorohydrin process, region: EU}
+        source: &bref
+          citation: "Falcke, H. et al. (2017) Best Available Techniques (BAT) Reference Document for the Production of Large Volume Organic Chemicals. JRC Science for Policy Report EUR 28882 EN, doi:10.2760/77304"
+          url: https://bureau-industrial-transformation.jrc.ec.europa.eu/sites/default/files/2019-11/JRC109279_LVOC_Bref.pdf
+          locator: Section 2.1.2.8, p. 29
+          kind: bref
+          accessed: "2026-11-05"
+  po-chlorohydrin-wastewater:
+    title: Waste water per t of propylene oxide, chlorohydrin process
+    unit: t/t
+    references:
+      - id: us4560451-po-wastewater
+        range: [43, 43]
+        basis: unallocated
+        note: "'Typically' 43 tons per ton of PO, carrying the 2 t of calcium chloride; a single value."
+        conditions: {technology: "conventional chlorohydrin process with lime slurry", region: US, year: 1983}
+        source: *patent
+      - id: bref-lvoc-po-wastewater
+        range: [40, 40]
+        basis: unallocated
+        note: "'Approximately 40 tonnes', the dataset's own source, so not an independent check. Table 2.5 (p. 67) puts the 2011 installations in the class above 10 m3/t."
+        conditions: {technology: chlorohydrin process, region: EU}
+        source: *bref
+  po-chlorohydrin-dcp:
+    title: 1,2-Dichloropropane by-product per t of propylene oxide
+    unit: t/t
+    references:
+      - id: us4560451-po-dcp
+        range: [0.1, 0.2]
+        basis: unallocated
+        note: The dataset's own source, whose midpoint it takes; not an independent check.
+        conditions: {technology: "conventional chlorohydrin process with lime slurry", region: US, year: 1983}
+        source: *patent
+  po-chlorohydrin-specific-electricity:
+    title: Electricity per t of propylene oxide, chlorohydrin process
+    unit: kWh/t
+    references:
+      - id: anl-1980-po-chlorohydrin-energy
+        range: [3990, 3990]
+        basis: unallocated
+        note: "One value, 18,700 Btu per lb of PO, the figure's only process-energy input, labelled electricity, in primary terms at the report's 33 % generating efficiency (section 4.1, p. 71). Converted to delivered electricity: 18,700 x 0.33 Btu/lb x 2.326 kJ/kg per Btu/lb / 3.6 MJ/kWh = about 3,990 kWh/t, rounded. The figure shows no separate steam input although the process is steam-heated and steam-stripped (p. 151), so it may cover all utilities. The report takes it from Brownstein (1976)."
+        conditions: {technology: "chlorohydrin process with lime", region: US, year: 1976}
+        source: *anl
+
+datasets:
+  - process: terephthalic-acid-1
+    dataset: pta-px-air-oxidation
+    conditions: {technology: "air oxidation in acetic acid with hydropurification", basis: conceptual inventory}
+    kpis:
+      pta-px-yield:
+        expression: product:terephthalic-acid / feed:p-xylene * 106.168 / 166.132
+        reference: midden-pta-yield
+        out_of_range_reason: "The dataset's p-xylene is a whole plant's unit consumption (655 to 657 kg/t, patent CN105001073A), which includes the losses to the oxidation residue, pond solids and mother liquor and the p-xylene burnt to CO2. The reference is the yield of the reaction steps only."
+      pta-specific-acetic-acid:
+        expression: feed:acetic-acid / product:terephthalic-acid
+        per: product:terephthalic-acid
+        reference: lbnl-pta-acetic-acid
+        out_of_range_reason: "The dataset takes 38 to 40 kg/t from patent CN105001073A, stated for a conventional 1.2 Mt/a plant of about 2015. That is at or just below the low end of the older literature range."
+      pta-specific-energy:
+        expression: (feed:electricity + feed:steam) / product:terephthalic-acid
+        per: product:terephthalic-acid
+        reference: lbnl-pta-energy
+        out_of_range_reason: "The dataset's 1.33 GJ/t is one EU plant's useful electricity and steam (MIDDEN report Table 3), probably net of the off-gas expander's power and of steam raised from the reaction heat. The reference range is not stated on that basis and may be primary or gross energy, so the gap is mainly one of definition. The MIDDEN plant is also Eastman-based with post-oxidation and no hydrogenation step, so the energy of the hydropurification modelled here may be missing. The steam remains the main energy uncertainty of the dataset (README)."
+  - process: adipic-acid-1
+    dataset: adipic-acid-ka-nitric-catalytic-n2o-abatement
+    conditions: {technology: "cobalt-catalysed cyclohexane oxidation, nitric acid oxidation, catalytic N2O decomposition at IPCC defaults", basis: conceptual inventory}
+    kpis:
+      aa-n2o-generation:
+        expression: (emission:N2O + emission:N2 * 1.57111) / product:adipic-acid
+        per: product:adipic-acid
+        reference: ap42-aa-n2o-uncontrolled
+        out_of_range_reason: "The datasets take the IPCC default of 300 kg/t; AP-42's 291 kg/t from two US plants is 3 % lower and inside the IPCC's +/- 10 %. The N2O destroyed is counted back from the N2 of its decomposition (44.013 / 28.014)."
+      aa-n2o-emission-abated:
+        expression: emission:N2O / product:adipic-acid
+        per: product:adipic-acid
+        reference: ecofys-2009-de-aa-co2eq
+        out_of_range_reason: "The dataset applies the IPCC defaults for catalytic destruction, 92.5 % destruction at 89 % utilisation, an overall 82 % removal; the German production of 2001 to 2007 removed about 86 to 94 % on the reading of the reference. Thermal destruction (IPCC 98.5 % at 97 %) or a higher utilisation would fall inside."
+      aa-specific-steam: {expression: feed:steam / product:adipic-acid, per: product:adipic-acid, reference: iea-2009-aa-steam}
+      aa-specific-electricity: {expression: feed:electricity / product:adipic-acid, per: product:adipic-acid, reference: iea-2009-aa-electricity}
+      aa-specific-cyclohexane: {expression: feed:cyclohexane / product:adipic-acid, per: product:adipic-acid}
+      aa-specific-nitric-acid: {expression: feed:nitric-acid * 0.59985 / product:adipic-acid, per: product:adipic-acid}
+  - process: adipic-acid-1
+    dataset: adipic-acid-ka-nitric-unabated
+    conditions: {technology: "cobalt-catalysed cyclohexane oxidation, nitric acid oxidation, no N2O abatement", basis: conceptual inventory}
+    kpis:
+      aa-n2o-generation:
+        expression: emission:N2O / product:adipic-acid
+        per: product:adipic-acid
+        reference: ap42-aa-n2o-uncontrolled
+        out_of_range_reason: "The datasets take the IPCC default of 300 kg/t; AP-42's 291 kg/t from two US plants is 3 % lower and inside the IPCC's +/- 10 %."
+      aa-specific-steam: {expression: feed:steam / product:adipic-acid, per: product:adipic-acid, reference: iea-2009-aa-steam}
+      aa-specific-electricity: {expression: feed:electricity / product:adipic-acid, per: product:adipic-acid, reference: iea-2009-aa-electricity}
+      aa-specific-cyclohexane: {expression: feed:cyclohexane / product:adipic-acid, per: product:adipic-acid}
+      aa-specific-nitric-acid: {expression: feed:nitric-acid * 0.59985 / product:adipic-acid, per: product:adipic-acid}
+  - process: propylene-oxide-1
+    dataset: propylene-oxide-chlorohydrin-lime
+    conditions: {technology: chlorohydrin with lime, basis: Tier 0 screening}
+    kpis:
+      po-chlorohydrin-specific-chlorine:
+        expression: feed:chlorine / product:propylene-oxide
+        per: product:propylene-oxide
+        reference: anl-1980-po-chlorohydrin-chlorine
+        out_of_range_reason: "The dataset takes the by-product from US 4,560,451 (0.1 to 0.2 t DCP per t), newer than ANL's 1976 figures, which imply about 0.58 t of by-product per t PO (README)."
+      po-chlorohydrin-specific-propylene:
+        expression: feed:propylene / product:propylene-oxide
+        per: product:propylene-oxide
+        reference: anl-1980-po-chlorohydrin-propylene
+        out_of_range_reason: "As for chlorine: the dataset's DCP of 0.15 t/t is the patent's, ANL's 1976 feeds imply about four times as much by-product."
+      po-chlorohydrin-calcium-chloride:
+        expression: emission:CaCl2 / product:propylene-oxide
+        per: product:propylene-oxide
+        reference: us4560451-po-cacl2
+        out_of_range_reason: "The dataset's 1.91 t/t is the stoichiometric 1 mol CaCl2 per mol PO; the source's 2 t is a rounded typical value."
+      po-chlorohydrin-wastewater:
+        expression: output:wastewater / product:propylene-oxide
+        per: product:propylene-oxide
+        reference: us4560451-po-wastewater
+        out_of_range_reason: "The dataset takes the LVOC BREF's newer 40 t/t (2017); the patent's 43 t of 1983 is the independent single value, 7 % higher."
+      po-chlorohydrin-dcp: {expression: output:dichloropropane / product:propylene-oxide, per: product:propylene-oxide, reference: us4560451-po-dcp}
+      po-chlorohydrin-specific-electricity:
+        expression: feed:electricity / product:propylene-oxide
+        per: product:propylene-oxide
+        reference: anl-1980-po-chlorohydrin-energy
+        out_of_range_reason: "The dataset uses core's Tier 0 default (ASSUMED). ANL's single figure, read literally as electricity, is about 12 times higher; with no steam input shown beside it although the brine is steam-stripped, it is taken to cover all utilities, so it is not used (README)."

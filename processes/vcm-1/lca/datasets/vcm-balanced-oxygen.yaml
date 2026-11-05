@@ -1,0 +1,770 @@
+# Tier 1 form, a manifest-only entry without a flowsheet (as process-library#317). Every amount is the
+# formula of its parameters; core's validator re-checks each. Written from the LVOC BREF chapter 11
+# and IPCC 2006 Vol. 3 section 3.9 (facts in our own form).
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: vcm-balanced-oxygen
+title: Vinyl chloride monomer by the balanced EDC process (oxygen-based oxychlorination)
+description: Per 1 t of VCM, gate-to-gate, EU plants of the LVOC BREF data collection. Direct chlorination
+  and oxygen-based oxychlorination of ethylene, thermal EDC cracking, all HCl recycled. Feeds and utilities
+  from the BREF, oxygen and residues from stoichiometry, vent CO2 and combustion CH4 from IPCC 2006.
+basis: 1000 kg of vinyl chloride monomer
+boundary: 'gate-to-gate: direct chlorination, oxychlorination, EDC purification, EDC cracking, VCM purification,
+  vent treatment and wastewater pretreatment; ethylene, chlorine, oxygen, steam and power from outside'
+technology: 'balanced EDC/VCM unit: direct chlorination (low- or high-temperature) and oxygen-based oxychlorination,
+  thermal cracking of EDC in natural-gas-fired furnaces; air-based oxychlorination, unbalanced units and the
+  acetylene route are not modelled'
+geography:
+  description: EU plants of the BREF data collection; no single site.
+classification:
+  isic: '2011'
+system_boundary:
+  included:
+  - ethylene, chlorine and oxygen; furnace natural gas and its combustion
+  - electricity and gross steam
+  - residues of EDC purification, coke, spent catalyst, pretreatment sludge, effluent
+  - CO2 of the furnaces, the vent treatment and the oxychlorination vent; furnace NOx, CO, CH4
+  - fugitive EDC and VCM
+  excluded:
+  - 'TODO heat recovered from oxychlorination and the incinerators (0.43 to 3.5 GJ/t in the source): not credited
+    in the cut-off model, so the gross steam is an upper view'
+  - 'TODO on-site incineration of the residues with HCl recovery (many sites, 11.2.2.6): the residues are an
+    output to treatment here. The chlorine feed is the source''s net use (our reading), so the recovery would
+    move the excess chlorine from the residues to scrubber effluents, not lower the feed'
+  - 'TODO emissions of the combined vent treatment (HCl, Cl2, PCDD/F, NOx, EDC, VCM): the source gives concentrations
+    only (Table 11.4), no flow'
+  - 'TODO sodium hydroxide for washes and scrubbers, ferric chloride, hydrogen for acetylene hydrogenation,
+    nitrogen for inerting: named by the source (11.3.3), not quantified'
+  - 'TODO pollutants carried by the effluent (EDC, VCM, Cu, PCDD/F, COD after pretreatment, Tables 11.8 and
+    11.9): they go with output:wastewater to the shared biological treatment'
+  - 'TODO chlorine and HCl losses other than the residues (scrubber effluents, hydrochloric acid sold): all
+    excess chlorine is put in the residues'
+  - decoking emissions, refrigerant losses, storage emissions
+  - cooling water and chilled water
+  - infrastructure
+  cutoff: none applied; the excluded flows are not quantified
+  infrastructure: excluded
+  catalysts: included
+  non_routine: excluded
+location: RER
+year: 2013
+valid_until: 2018
+time:
+  start: 2009
+  description: 'LVOC BREF data collection: capacities of 2013 and monitoring of one to five years (11.3.2);
+    the reference year 2013 is ASSUMED from these. valid_until is the reference year + 5 (system-model section
+    6), so it has already lapsed. The IPCC factors rest on the 2003 BREF data.'
+modelling:
+  principle: attributional
+  multifunctionality: 'single output: no allocation (all HCl is recycled in a balanced unit; residues, coke
+    and sludge are wastes)'
+uuid: bc0cd832-14ce-5b79-b376-9a3b1e169113
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+technology_level: current
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: vcm
+  value: 1000.0
+  unit: kg
+  description: Vinyl chloride delivered (the basis).
+  source: basis
+- name: M_VCM
+  value: 62.496
+  unit: g/mol
+  description: Molar mass of vinyl chloride (C2H3Cl).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_E
+  value: 28.054
+  unit: g/mol
+  description: Molar mass of ethylene (C2H4).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_CL2
+  value: 70.9
+  unit: g/mol
+  description: Molar mass of chlorine (Cl2).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_O2
+  value: 31.998
+  unit: g/mol
+  description: Molar mass of oxygen (O2).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_EDC
+  value: 98.954
+  unit: g/mol
+  description: Molar mass of 1,2-dichloroethane (C2H4Cl2).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_TCE
+  value: 133.396
+  unit: g/mol
+  description: Molar mass of 1,1,2-trichloroethane (C2H3Cl3), the model compound of the residues.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_CO2
+  value: 44.009
+  unit: g/mol
+  description: Molar mass of carbon dioxide.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_H2O
+  value: 18.015
+  unit: g/mol
+  description: Molar mass of water.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_CH4
+  value: 16.043
+  unit: g/mol
+  description: Molar mass of methane.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: e_feed
+  value: 465.0
+  unit: kg
+  description: 'Ethylene per t VCM: midpoint of 0.46 to 0.47 kg/kg.'
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, Table 11.12, p. 506 (range; balanced unit);
+    the midpoint is our choice. The unconverted rest after VCM, residues, fugitives and the vent CO2 is burnt
+    in the vent treatment (ASSUMED, see feed:O2)
+- name: cl_feed
+  value: 590.0
+  unit: kg
+  description: 'Chlorine per t VCM: the single value of the source.'
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, Table 11.12, p. 506 (one value, balanced
+    unit)
+- name: co2_vent
+  value: 8.3
+  unit: kg
+  description: 'Non-combustion CO2 of the process vent per t VCM, balanced process: 0.0083 t/t, from the deep
+    oxidation of ethylene in oxychlorination.'
+  source: IPCC (2006) Guidelines for National Greenhouse Gas Inventories, Vol. 3, ch. 3, section 3.9.2, Table
+    3.17, p. 3.77 (Tier 1 default, balanced process; averaged from the 2003 LVOC BREF plant data)
+- name: fug_edc
+  value: 0.008
+  unit: kg
+  description: 'Fugitive EDC per t VCM: the median, 8 g/t (range 0.01 to 93 g/t).'
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, section 11.3.1.4, Table 11.7, p. 503; taking
+    the median is our choice
+- name: fug_vcm
+  value: 0.007
+  unit: kg
+  description: 'Fugitive VCM per t VCM: the median, 7 g/t (range 0.01 to 93 g/t).'
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, section 11.3.1.4, Table 11.7, p. 503; taking
+    the median is our choice
+- name: ww
+  value: 750.0
+  unit: kg
+  description: 'Effluent per t VCM: midpoint of 0.5 to 1 m3/t at 1000 kg/m3.'
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, section 11.3.2, p. 504 (range); the midpoint
+    and the density are our choices
+- name: elec
+  value: 160.0
+  unit: kWh
+  description: 'Electricity per t VCM: midpoint of 0.11 to 0.21 MWh/t. The source notes that oxygen-based oxychlorination
+    uses less, so the midpoint may be high for this route.'
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, section 11.3.5, Table 11.13, p. 507 (range);
+    the midpoint is our choice
+- name: steam_gj
+  value: 1.0
+  unit: GJ
+  description: 'Steam per t VCM: midpoint of 0.3 to 1.7 GJ/t (distillations and wastewater strippers). Gross:
+    the recovery of 0.43 to 3.5 GJ/t in the same section is not credited.'
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, section 11.3.5, Table 11.13, p. 507 (range);
+    the midpoint and not crediting recovery are our choices (cut-off model)
+- name: fuel
+  value: 3.8
+  unit: GJ
+  description: 'Fuel per t VCM, mainly the EDC cracker furnaces: midpoint of 3.4 to 4.2 GJ/t, read as lower
+    heating value of natural gas.'
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, section 11.3.5, Table 11.13, p. 507 (range)
+    and 11.2.2.4, p. 496 (most EU plants fire natural gas); the midpoint is our choice; the LHV basis and that
+    the vent incinerator's support fuel is inside the figure are ASSUMED. TODO confirm. As a cross-check, IPCC (2006)
+    Vol. 3, ch. 3, p. 3.77 gives 118.3 Nm3 natural gas per t VCM (mean of two plants), about 4.2 GJ at the
+    LHV of methane, the top of the range
+- name: lhv_ng
+  value: 50.01
+  unit: MJ/kg
+  description: LHV of the fuel, taken as methane.
+  source: chemicals/chemicals.yaml methane lhv; natural gas as pure methane is ASSUMED (some plants also burn
+    hydrogen from the chlor-alkali unit, BREF 11.2.2.4). TODO a fuel mix
+- name: x_o2
+  value: 0.209476
+  unit: mol/mol
+  description: O2 mole fraction of dry combustion air.
+  source: chemicals/chemicals.yaml air composition (U.S. Standard Atmosphere 1976)
+- name: o2_ref
+  value: 0.03
+  unit: mol/mol
+  description: Reference O2 content of the cracker flue gas concentrations (dry, 3 % O2).
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, Table 11.2, p. 499 (reference state of
+    the concentrations)
+- name: V_m
+  value: 22.414
+  unit: m3/kmol
+  description: Molar volume of an ideal gas at 0 degC and 101.325 kPa (Nm3).
+  source: core foundation.units MOLAR_VOLUME_NORMAL (22.41397), rounded
+- name: c_nox
+  value: 70.0
+  unit: mg/Nm3
+  description: 'NOx in the cracker flue gas: the median, 70 mg/Nm3 (range 30 to 181).'
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, section 11.3.1.1, Table 11.2, p. 499; the
+    median is our choice. Turned into kg with the dry flue gas of methane burnt to 3 % O2 (our calculation,
+    ASSUMED complete combustion of pure methane)
+- name: c_co
+  value: 8.0
+  unit: mg/Nm3
+  description: 'CO in the cracker flue gas: the median, 8 mg/Nm3 (range 0.3 to 396).'
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, section 11.3.1.1, Table 11.2, p. 499; the
+    median is our choice; converted as c_nox
+- name: ef_ch4
+  value: 5.0
+  unit: g/GJ
+  description: CH4 per GJ of natural gas burnt in the EDC/VCM plant.
+  source: IPCC (2006) Guidelines for National Greenhouse Gas Inventories, Vol. 3, ch. 3, section 3.9.2, Methane
+    emissions, p. 3.77 (the factor behind Table 3.19; the source finds non-combustion CH4 negligible)
+- name: coke
+  value: 0.15
+  unit: kg
+  description: 'Coke from EDC cracking per t VCM, quench and decoking: midpoint of the total 100 to 200 g/t.'
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, section 11.3.6, p. 508 (range); the midpoint
+    is our choice
+- name: cat
+  value: 0.091
+  unit: kg
+  description: 'Spent copper oxychlorination catalyst per t VCM: midpoint of 12 to 170 g/t, taken as the make-up.'
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, section 11.3.6, p. 508 (range); the midpoint
+    and make-up = spent are our choices
+- name: sludge
+  value: 1.085
+  unit: kg
+  description: 'Sludge of the wastewater pretreatment per t VCM: midpoint of 0.07 to 2.1 kg/t.'
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, section 11.3.6, p. 508 (range); the midpoint
+    is our choice
+exchanges:
+- key: product:vinyl-chloride
+  title: Vinyl chloride monomer
+  type: product
+  amount: 1000.0
+  unit: kg
+  formula: vcm
+  provenance: given
+  source: the reference flow
+- key: feed:ethylene
+  title: Ethylene
+  type: input
+  amount: 465.0
+  unit: kg
+  formula: e_feed
+  provenance: given
+  origin: literature
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, Table 11.12, p. 506 (midpoint of 0.46 to
+    0.47 kg/kg); stoichiometry alone needs 0.449 kg/kg
+  pedigree: &id001
+    scores:
+    - 3
+    - 4
+    - 4
+    - 3
+    - 3
+    reason: 'from a value of the LVOC BREF data collection (EU plants, about 2010-2014): reliability 3, completeness
+      4, temporal 4 (more than 10 years old), geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.011
+    source: 'ethylene: range 460 to 470 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the
+      amount stays the arithmetic midpoint or the stated value)'
+- key: feed:chlorine
+  title: Chlorine
+  type: input
+  amount: 590.0
+  unit: kg
+  formula: cl_feed
+  provenance: given
+  origin: literature
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, Table 11.12, p. 506 (one value); stoichiometry
+    alone needs 0.567 kg/kg, the rest leaves in the residues (see output:residues)
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.05
+    source: 'ASSUMED: a single value; the stoichiometric 567 kg/t bounds it below'
+- key: feed:oxygen
+  title: Oxygen to oxychlorination
+  type: input
+  amount: 138.764739984942
+  unit: kg
+  formula: ((vcm + fug_vcm) / M_VCM * 0.25 + (cl_feed / M_CL2 - (vcm + fug_vcm) / M_VCM * 0.5 - fug_edc / M_EDC)
+    / 1.5 * 0.25 + co2_vent / M_CO2 / 2 * 3) * M_O2
+  provenance: calculated
+  source: stoichiometry of the balanced process 2 C2H4 + Cl2 + 1/2 O2 -> 2 C2H3Cl + H2O, of the residues and
+    of the vent CO2 (C2H4 + 3 O2 -> 2 CO2 + 2 H2O); compare 0.13 to 0.14 kg/kg (LVOC BREF Table 11.12, benchmarks/chlorinated-organics.yaml)
+  pedigree: &id002
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.1
+    source: 'ASSUMED: follows the chlorine, residue and vent CO2 assumptions'
+- key: feed:natural-gas
+  title: Natural gas (as methane) to the EDC cracker furnaces
+  type: input
+  amount: 75.98480303939212
+  unit: kg
+  formula: fuel * 1000 / lhv_ng
+  provenance: calculated
+  link:
+    factor: natural-gas
+    source: natural gas, by mass
+  carrier:
+    kind: fuel
+    lhv: 50.01
+    composition: pure methane (ASSUMED)
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, Table 11.13, p. 507 (fuel midpoint) over
+    the LHV of methane
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.111
+    source: 'fuel: range 3.4 to 4.2 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: feed:O2
+  title: Combustion oxygen, from ambient air
+  type: input
+  amount: 328.61187450227675
+  unit: kg
+  formula: (fuel * 1000 / lhv_ng / M_CH4 * 2 + (e_feed / M_E - (vcm + fug_vcm) / M_VCM - fug_edc / M_EDC -
+    (cl_feed / M_CL2 - (vcm + fug_vcm) / M_VCM * 0.5 - fug_edc / M_EDC) / 1.5 - co2_vent / M_CO2 / 2) * 3)
+    * M_O2
+  provenance: assumed
+  origin: estimate
+  free: true
+  source: complete combustion of the furnace fuel and of the unconverted ethylene in the vent treatment (ASSUMED
+    complete); ambient air is free
+- key: feed:water
+  title: Process water (washes, quench, scrubbers)
+  type: input
+  amount: 600.544988195318
+  unit: kg
+  formula: ww - ((vcm + fug_vcm) / M_VCM * 0.5 + (cl_feed / M_CL2 - (vcm + fug_vcm) / M_VCM * 0.5 - fug_edc
+    / M_EDC) / 1.5 * 0.5 + co2_vent / M_CO2 / 2 * 2) * M_H2O
+  provenance: assumed
+  origin: estimate
+  link:
+    factor: water
+    source: process water, by mass
+  source: 'ASSUMED: the effluent less the water formed by oxychlorination, so that the water balance closes.
+    TODO source the water input'
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.414
+    source: 'water, taken as the effluent: range 500 to 1000 read as a 95 % interval, gsd2 = sqrt(high / low)
+      (our convention; the amount stays the arithmetic midpoint or the stated value)'
+- key: feed:electricity
+  title: Electricity
+  type: input
+  amount: 160.0
+  unit: kWh
+  formula: elec
+  provenance: given
+  origin: literature
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, 11.3.5, Table 11.13, p. 507
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.382
+    source: 'electricity: range 110 to 210 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: feed:steam
+  title: Steam, as heat delivered
+  type: input
+  amount: 277.77777777777777
+  unit: kWh
+  formula: steam_gj * 1000 / 3.6
+  provenance: given
+  origin: literature
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, 11.3.5, Table 11.13, p. 507 (1.0 GJ/t);
+    gross, heat recovery not credited
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.38
+    source: 'steam: range 0.3 to 1.7 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the
+      amount stays the arithmetic midpoint or the stated value)'
+- key: input:catalyst
+  title: Copper chloride oxychlorination catalyst (make-up)
+  type: input
+  amount: 0.091
+  unit: kg
+  formula: cat
+  provenance: given
+  origin: literature
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, 11.3.6, p. 508 (spent catalyst per t, taken
+    as the make-up); mass outside the element balance
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.764
+    source: 'catalyst: range 0.012 to 0.17 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: output:spent-catalyst
+  title: Spent oxychlorination catalyst (with adsorbed PCDD/F), to hazardous waste
+  type: output
+  amount: 0.091
+  unit: kg
+  formula: cat
+  provenance: given
+  origin: literature
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, 11.3.6, p. 508; mass outside the element
+    balance
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.764
+    source: 'spent catalyst: range 0.012 to 0.17 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: output:residues
+  title: Light and heavy ends of EDC purification, to incineration
+  type: output
+  amount: 28.5405906829912
+  unit: kg
+  formula: (cl_feed / M_CL2 - (vcm + fug_vcm) / M_VCM * 0.5 - fug_edc / M_EDC) / 1.5 * M_TCE
+  provenance: calculated
+  source: the chlorine in excess of the VCM and the fugitives, as 1,1,2-trichloroethane (model compound ASSUMED;
+    the source names it among the main by-products, 11.3.3); compare 20 to 62 kg/t (LVOC BREF 11.3.6, p. 508,
+    benchmarks/chlorinated-organics.yaml)
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: follows the chlorine figure; the source''s range is 20 to 62 kg/t'
+- key: output:cracker-coke
+  title: Coke from EDC cracking and decoking, to hazardous waste
+  type: output
+  amount: 0.15
+  unit: kg
+  formula: coke
+  provenance: given
+  origin: literature
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, 11.3.6, p. 508; carbon with a few wt% chlorinated
+    hydrocarbons, mass outside the element balance
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.414
+    source: 'coke: range 0.1 to 0.2 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: output:sludge
+  title: Sludge of the wastewater pretreatment (copper, PCDD/F), to hazardous waste
+  type: output
+  amount: 1.085
+  unit: kg
+  formula: sludge
+  provenance: given
+  origin: literature
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, 11.3.6, p. 508; mass outside the element
+    balance
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 5.477
+    source: 'sludge: range 0.07 to 2.1 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the
+      amount stays the arithmetic midpoint or the stated value)'
+- key: output:wastewater
+  title: Pretreated effluent to biological treatment
+  type: output
+  amount: 750.0
+  unit: kg
+  formula: ww
+  provenance: given
+  origin: literature
+  link:
+    factor: wastewater
+    source: site wastewater treatment
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, 11.3.2, p. 504 (0.5 to 1 m3/t; stripped
+    and pretreated at the plant, then a shared biological treatment)
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.414
+    source: 'effluent: range 500 to 1000 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: emission:CO2
+  title: CO2 from the cracker furnaces, the vent treatment and the oxychlorination vent
+  type: emission
+  amount: 240.12774301896448
+  unit: kg
+  formula: (fuel * 1000 / lhv_ng / M_CH4 + (e_feed / M_E - (vcm + fug_vcm) / M_VCM - fug_edc / M_EDC - (cl_feed
+    / M_CL2 - (vcm + fug_vcm) / M_VCM * 0.5 - fug_edc / M_EDC) / 1.5 - co2_vent / M_CO2 / 2) * 2 + co2_vent
+    / M_CO2 / 2 * 2) * M_CO2
+  provenance: calculated
+  cas: 124-38-9
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 349b29d1-3e58-4c66-98b9-9d1a076efd2e
+    name: Carbon dioxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: complete combustion of the furnace natural gas and of the unconverted ethylene, plus the IPCC vent
+    factor; compare 0.294 t/t (IPCC (2006) Guidelines for National Greenhouse Gas Inventories, Vol. 3, ch.
+    3, section 3.9.2, Table 3.17, benchmarks/chlorinated-organics.yaml); biosphere3 UUID, name and categories
+    from core's elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.15
+    source: 'ASSUMED: mostly follows the fuel range 3.4 to 4.2 GJ/t'
+- key: emission:H2O
+  title: Water vapour from the furnaces and the vent treatment
+  type: emission
+  amount: 180.22307201997313
+  unit: kg
+  formula: (fuel * 1000 / lhv_ng / M_CH4 * 2 + (e_feed / M_E - (vcm + fug_vcm) / M_VCM - fug_edc / M_EDC -
+    (cl_feed / M_CL2 - (vcm + fug_vcm) / M_VCM * 0.5 - fug_edc / M_EDC) / 1.5 - co2_vent / M_CO2 / 2) * 2)
+    * M_H2O
+  provenance: calculated
+  cas: 7732-18-5
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 075e433b-4be4-448e-9510-9a5029c1ce94
+    name: Water
+    categories:
+    - air
+    unit: m3
+    per_unit: 0.001
+  source: combustion water; biosphere3 UUID, name and categories from core's elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.15
+    source: 'ASSUMED: follows the fuel range'
+- key: emission:NOX
+  title: NOx from the EDC cracker furnaces
+  type: emission
+  amount: 0.074136543011079
+  unit: kg
+  formula: fuel * 1000 / lhv_ng / M_CH4 * (1 + 2 * (1 - x_o2) / x_o2) * x_o2 / (x_o2 - o2_ref) * V_m * c_nox
+    / 1000000
+  provenance: calculated
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: c1b91234-6f24-417b-8309-46111d09c457
+    name: Nitrogen oxides
+    categories:
+    - air
+    unit: kg
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, Table 11.2, p. 499 (median concentration)
+    times the dry flue gas of the fuel at 3 % O2 (our calculation); mass outside the element balance; biosphere3
+    UUID, name and categories from core's elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.456
+    source: 'NOx concentration: range 30 to 181 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: emission:CO
+  title: CO from the EDC cracker furnaces
+  type: emission
+  amount: 0.008472747772694744
+  unit: kg
+  formula: fuel * 1000 / lhv_ng / M_CH4 * (1 + 2 * (1 - x_o2) / x_o2) * x_o2 / (x_o2 - o2_ref) * V_m * c_co
+    / 1000000
+  provenance: calculated
+  cas: 630-08-0
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: ba2f3f82-c93a-47a5-822a-37ec97495275
+    name: Carbon monoxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, Table 11.2, p. 499 (median concentration),
+    converted as NOx; mass outside the element balance; biosphere3 UUID, name and categories from core's elementary-flow
+    crosswalk (data/elementary-flows.yaml)
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 5.0
+    source: 'ASSUMED: the concentrations span 0.3 to 396 mg/Nm3; the convention would give 36, which we judge
+      too wide for a median'
+- key: emission:CH4
+  title: CH4 from natural gas combustion
+  type: emission
+  amount: 0.019
+  unit: kg
+  formula: fuel * ef_ch4 / 1000
+  provenance: calculated
+  cas: 74-82-8
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 0795345f-c7ae-410c-ad25-1845784c75f5
+    name: Methane, fossil
+    categories:
+    - air
+    unit: kg
+  source: IPCC (2006) Guidelines for National Greenhouse Gas Inventories, Vol. 3, ch. 3, section 3.9.2, p.
+    3.77 (5 g CH4/GJ) times the fuel; mass outside the element balance; biosphere3 UUID, name and categories
+    from core's elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 5
+    - 3
+    - 3
+    reason: 'IPCC Tier 1 default averaged from the 2003 LVOC BREF plant data: reliability 3, completeness 4,
+      temporal 5 (data of about 2000), geographical 3, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: an emission factor, not a measurement'
+- key: emission:C2H4Cl2
+  title: 1,2-Dichloroethane (EDC), fugitive
+  type: emission
+  amount: 0.008
+  unit: kg
+  formula: fug_edc
+  provenance: given
+  origin: literature
+  cas: 107-06-2
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 03758df7-503a-400e-bc7b-ec05825761a5
+    name: Ethane, 1,2-dichloro-
+    categories:
+    - air
+    unit: kg
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, 11.3.1.4, Table 11.7, p. 503 (median);
+    biosphere3 UUID, name and categories read from 'ecoinvent elementary flows 3.9.xml' as shipped with bw2io
+    0.9.17 (air, unspecified); not yet in core's crosswalk
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 10.0
+    source: 'ASSUMED: the plants span 0.01 to 93 g/t; the convention would give 96, we use 10 around the median'
+- key: emission:C2H3Cl
+  title: Vinyl chloride, fugitive
+  type: emission
+  amount: 0.007
+  unit: kg
+  formula: fug_vcm
+  provenance: given
+  origin: literature
+  cas: 75-01-4
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 2a51889e-9264-45df-9753-64c25a755d9e
+    name: Chloroethylene
+    categories:
+    - air
+    unit: kg
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, 11.3.1.4, Table 11.7, p. 503 (median);
+    biosphere3 UUID, name and categories read from 'ecoinvent elementary flows 3.9.xml' as shipped with bw2io
+    0.9.17 (air, unspecified); not yet in core's crosswalk
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 10.0
+    source: 'ASSUMED: the plants span 0.01 to 93 g/t; the convention would give 96, we use 10 around the median'
+provenance:
+  generator: hand-written model; amounts are the formulas of the parameters
+  notes: No value from a licensed database and none from a DWSIM file.
+generation:
+  tier: 1
+  method: 'sourced conceptual inventory: LVOC BREF chapter 11 ranges and IPCC 2006 factors with stoichiometry,
+    every choice listed in parameters'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 3
+  - 4
+  - 3
+  - 3
+  - 3
+  dqr_floor: 3.0
+  components:
+    product:vinyl-chloride: C2H3Cl
+    feed:ethylene: C2H4
+    feed:chlorine: Cl2
+    feed:oxygen: O2
+    feed:natural-gas: CH4
+    feed:O2: O2
+    feed:water: H2O
+    output:residues: C2H3Cl3
+    output:wastewater: H2O
+    emission:CO2: CO2
+    emission:H2O: H2O
+    emission:C2H4Cl2: C2H4Cl2
+    emission:C2H3Cl: C2H3Cl
+  formulas:
+    product:vinyl-chloride: C2H3Cl
+    feed:ethylene: C2H4
+    feed:chlorine: Cl2
+    feed:oxygen: O2
+    feed:natural-gas: CH4
+    feed:O2: O2
+    feed:water: H2O
+    output:residues: C2H3Cl3
+    output:wastewater: H2O
+    emission:CO2: CO2
+    emission:H2O: H2O
+    emission:C2H4Cl2: C2H4Cl2
+    emission:C2H3Cl: C2H3Cl
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      C:
+      - 455.056844023
+      - 455.056844023
+      Cl:
+      - 590.0
+      - 590.0
+      H:
+      - 153.132993498
+      - 153.132993498
+      O:
+      - 1000.7165682
+      - 1000.7165682
+    outside:
+    - emission:CH4
+    - emission:CO
+    - emission:NOX
+    - feed:electricity
+    - feed:steam
+    - input:catalyst
+    - output:cracker-coke
+    - output:sludge
+    - output:spent-catalyst

@@ -1,0 +1,37 @@
+# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
+# dataset is lca/datasets/*.yaml, Tier 1 form, so maturity stays at concept
+# (core's cheme.lci-tier-maturity). See README.md.
+schema: cheme-as-code/process/v1
+id: terephthalic-acid-1
+title: Purified terephthalic acid by air oxidation of p-xylene in acetic acid and hydropurification
+summary: >-
+  Sourced conceptual inventory per tonne of PTA: feeds from a patent's figures for conventional
+  plants, electricity and steam from one EU plant's estimate, vent emissions from US EPA AP-42,
+  CO2, water and oxygen from element balances. No flowsheet; not reviewed.
+families: [oxygenates]
+keywords: [terephthalic acid, PTA, p-xylene, air oxidation, acetic acid, hydropurification, PET]
+facets: {feedstock_basis: [fossil], product_classes: [chemicals], unit_operations: [reaction, crystallization, filtration, drying, distillation], region: generic}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: p-xylene, role: feedstock, inventory_key: "feed:p-xylene"}
+    - {chemical: acetic-acid, role: feedstock, inventory_key: "feed:acetic-acid", note: "solvent make-up; linked to acetic-acid-1 (lca/mappings.yaml)"}
+    - {chemical: air, role: feedstock, note: "process air, free; its O2 is feed:O2"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:water", note: "demineralised water"}
+  outputs:
+    - {chemical: terephthalic-acid, role: main-product, inventory_key: "product:terephthalic-acid"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "burnt p-xylene and acetic acid, from the carbon balance"}
+    - {chemical: wastewater, role: waste, inventory_key: "output:wastewater"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity"}
+    - {chemical: steam, role: utility, inventory_key: "feed:steam", note: "counted as heat delivered; one plant's estimate"}
+basis: {capacity: "per tonne of PTA (the dataset's basis); no plant size"}
+publication: {status: public, license: CC-BY-4.0}
+references:
+  - {title: "CNPC and China Kunlun Contracting and Engineering Corp. (2015) PTA production method with low energy consumption, low material consumption and low refuse discharge. Patent CN105001073A, published 2015-10-28", url: "https://patents.google.com/patent/CN105001073A/en"}
+  - {title: "Tran, A. and West, K.J. (2021) Decarbonisation options for the Dutch bottle-grade PET industry. PBL Netherlands Environmental Assessment Agency and TNO (MIDDEN), PBL publication 4617", url: "https://www.pbl.nl/en/publications/decarbonisation-options-for-the-dutch-bottle-grade-pet-industry"}
+  - {title: "US EPA (1983, reformatted 1995) AP-42, Compilation of Air Pollutant Emission Factors, 5th ed., section 6.11 Terephthalic Acid", url: "https://www.epa.gov/sites/default/files/2020-10/documents/c06s11.pdf"}
+  - {title: "Falcke, H. et al. (2017) Best Available Techniques (BAT) Reference Document for the Production of Large Volume Organic Chemicals. JRC Science for Policy Report EUR 28882 EN (JRC109279), section 2.1.2.3.8", doi: 10.2760/77304}
+  - {title: "Karali, N., Khanna, N., Shah, N. (2024) Climate Impact of Primary Plastic Production. Lawrence Berkeley National Laboratory, LBNL-2001585", url: "https://eta-publications.lbl.gov/sites/default/files/climate_and_plastic_report_final.pdf"}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/terephthalic-acid-1, access: public}

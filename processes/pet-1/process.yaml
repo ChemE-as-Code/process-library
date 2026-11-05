@@ -1,0 +1,37 @@
+# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
+# dataset is lca/datasets/*.yaml, Tier 1 form, so maturity stays at concept
+# (core's cheme.lci-tier-maturity). See README.md.
+schema: cheme-as-code/process/v1
+id: pet-1
+title: Polyethylene terephthalate by continuous PTA esterification, melt polycondensation and SSP
+summary: >-
+  Sourced conceptual inventory per tonne of bottle-grade PET resin: feeds from stoichiometry with POL
+  BREF losses, electricity, natural gas and water from a US industry average (NAPCOR 2020). No
+  flowsheet; not reviewed.
+families: [polymers]
+keywords: [polyethylene terephthalate, PET, polyester, PTA, terephthalic acid, ethylene glycol, polycondensation, solid-state polycondensation, SSP]
+facets: {feedstock_basis: [fossil], product_classes: [polymers], unit_operations: [reaction, distillation, combustion], region: generic}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: terephthalic-acid, role: feedstock, inventory_key: "feed:terephthalic-acid", note: "purified terephthalic acid (PTA); supplier not linked yet (lca/mappings.yaml)"}
+    - {chemical: isophthalic-acid, role: feedstock, inventory_key: "feed:isophthalic-acid", note: "comonomer of bottle grade"}
+    - {chemical: ethylene-glycol, role: feedstock, inventory_key: "feed:ethylene-glycol", note: "linked to ethylene-glycol-1 (lca/mappings.yaml)"}
+    - {chemical: methane, role: feedstock, inventory_key: "feed:natural-gas", note: "natural gas for the heat-transfer-medium heaters, taken as pure methane (ASSUMED)"}
+    - {chemical: air, role: feedstock, note: "combustion air, free; its O2 is feed:O2"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:water", note: "water consumed (withdrawn and not returned)"}
+  outputs:
+    - {chemical: polyethylene-terephthalate, role: main-product, inventory_key: "product:pet", note: "bottle-grade resin after solid-state polycondensation"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "from the natural gas fired in the heaters"}
+    - {chemical: water, role: emission, inventory_key: "emission:H2O", note: "combustion water vapour"}
+    - {chemical: acetaldehyde, role: emission, inventory_key: "emission:CH3CHO"}
+    - {chemical: wastewater, role: waste, inventory_key: "output:wastewater", note: "reaction water"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity"}
+basis: {capacity: "per tonne of PET resin (the dataset's basis); no plant size"}
+publication: {status: public, license: CC-BY-4.0}
+references:
+  - {title: "European Commission JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers (POL BREF), August 2007, chapter 10", url: "https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/pol_bref_0807.pdf"}
+  - {title: "Franklin Associates (2020) Cradle-to-resin life cycle analysis of polyethylene terephthalate resin, prepared for NAPCOR (revised 3.2.20), Table 36", url: "https://napcor.com/wp-content/uploads/2020/05/Final-Revised-Virgin-PET-Resin-LCA.pdf"}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/pet-1, access: public}
