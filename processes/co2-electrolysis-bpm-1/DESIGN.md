@@ -318,8 +318,9 @@ balance-script check) assume one plant root per process. Two cases give each ski
 functional unit for the LCA (#331).
 
 Rejected:
-- Nested plant roots per skid (library ADR 0033 structure): every library tool would need to
-  change, and the measured series would be referenced across folders.
+- Nested plant roots per skid (`skids/<x>/plant.yaml`, an alternative of the #330 design that
+  no library ADR records; library ADR 0033 is the engineering CI job): every library tool would
+  need to change, and the measured series would be referenced across folders.
 - Two top-level process folders: the cell, the series and the product specification would be
   duplicated.
 - Two trains in one case: one LCA dataset would mix both skids.
@@ -349,6 +350,8 @@ of the campaign H. The duty D-A states `reservoir.size: to_horizon`: `cheme proc
 --write` writes the exact volume that reaches H (V = V0 Q(H) / Q*, rounded up to 4
 significant figures, core ADR 0044 amendment), so V is proportional to H. No time margin is
 added; the uncertainty of WDE is reported as a band instead (`regen.py --uncertainty`, D-022).
+With no time margin the pH low-low trip I-101 sits at the threshold itself, so that it does not
+end the campaign before H (D-018).
 
 Results (`results/scenarios/<H>h/record.json`): 1165.15 L exact, 1166 L written at 1,000 h
 (T-101 D 1.074 x H 1.611 m); 11651.5 L, 11660 L at 10,000 h (D 2.313 x H 3.470 m); the end
@@ -368,8 +371,9 @@ changing electrolyte (not supported by measurement, D-014).
 
 ## D-010 Skid B: continuous KOH dosing, bleed and make-up at a steady state (2026-11-04)
 Decision: Skid B holds 50 L (ASSUMED: about 4.5 min hold-up at the 11.2 L/min recirculation,
-for O2 disengagement) at the ASSUMED setpoints 0.5 mol/L OH- and 0.25 mol/L carbon by
-continuous dosing of 5 M KOH (density 1.22 kg/L ASSUMED), a bleed to the site effluent and
+for O2 disengagement) at the ASSUMED setpoints 0.5 mol/L OH- and 0.25 mol/L carbon (design
+basis `capacity.pilot_skid.skid_b_setpoints`, with provenance; regen reads them there) by
+continuous dosing of 5 M KOH (concentration and density 1.22 kg/L ASSUMED), a bleed to the site effluent and
 make-up water. `scripts/regen.py` (step 6) sets the rates from the steady-state balance:
 - bleed b = Cx (1 - WDE) N I / (F C_T), so the carbon that enters leaves with the bleed;
 - dose = [b [K+] + (1 - Cx)(1 - WDE) N I / F] / 5 M, with [K+] from the setpoints' charge
@@ -429,17 +433,24 @@ Decision: the cathode gas conditioning is a black box at the concept stage:
 - V-x21 separates the condensate, which carries the K+ that crossed to the cathode as K2CO3 at
   an ASSUMED 1 mol/kg (the salt precipitation risk of the cathode is not modelled), and passes
   the gas saturated at 25 °C and 110 kPa(a);
-- K-x31 compresses to 600 kPa(a); the PSA X-x31 delivers 0.90 of the CO formed at 0.99 mol/mol
-  dry (H2 the rest) at 500 kPa(a), returns 0.95 of the unreacted CO2 to the cathode feed and
+- K-x31 compresses to the product pressure plus the PSA's loss (design basis
+  `psa_pressure_loss`, 1 bar ASSUMED): 600 kPa(a); the PSA X-x31 delivers 0.90 of the CO
+  formed at 0.99 mol/mol dry (H2 the rest) at the design basis' 500 kPa(a) (both pressures
+  written into the flowsheet by `scripts/skid_balance.py`, and the compressor power estimate
+  from them), returns 0.95 of the unreacted CO2 to the cathode feed and
   sends the rest with the water to the oxidiser X-x32, which burns CO and H2 with twice the
   stoichiometric air (reactions COX, HOX): no CO or H2 is vented;
 - the stack heat (cheme process stack) is removed by the cooler E-x11 to cooling water
-  (isothermal model);
+  (isothermal model); the stacks return the anolyte at the cell temperature (25 degC,
+  `process/cells.yaml`), and the cooler outlet S114 / S214 is the cell temperature less the
+  stack heat over the loop flow at cp 3.95 kJ/(kg K) (ASSUMED, about 1 M KOH): 2.9 K at
+  2.23 kW and 705.6 kg/h, so TIC-x11 holds 295.27 K. The stated 2 K before did not balance
+  the cooler duty (1.5 kW at 2 K);
 - the power: the stacks' AC power (DC over the rectifier efficiency 0.95, ASSUMED), and
   ESTIMATES until `cheme datasheets fill` gives the pump and compressor powers: the pumps at
   efficiency 0.3 (dosing 0.1, 300 kPa), the compressor adiabatic (kappa 1.3, efficiency 0.5),
   the PSA 0.5 kWh per kg CO delivered (TBD vendor);
-- the temperatures and pressures of the streams are design conditions, ASSUMED.
+- the other temperatures and pressures of the streams are design conditions, ASSUMED.
 - The cooling water terminal CW is a product-side utility terminal (heat leaves the process
   to it), as core's energy streams run; the spec listed it with the feeds.
 
@@ -488,9 +499,14 @@ scripts/regen.py's (step 14): core does not check the electrolyte state.
 - Time on stream: the duty's hours against the 1 h runs.
 
 Results: the current density and the temperature hold; the electrolyte and the time on stream
-fail on both skids (Skid A outside from 22 h, 978 h of 1,000; Skid B 999 h; 999 h beyond the
-measured hour), so FE, WDE, U and kWh/kg are "held constant by assumption, not supported by
-measurement" in every record and report.
+fail on both skids (Skid A outside from 23.1 h, 976.9 h of 1,000, and from 231 h at 10,000 h,
+the closed form's 23.1 h x 10; Skid B from about 1.1 h, 999 h, its crossing inside the first
+sample interval, so at 10,000 h, sampled every 42 h, it reads 2.0 h; 999 h beyond the
+measured hour), so FE, WDE, U and kWh/kg are "held constant by assumption,
+not supported by measurement" in every record and report. Each margin (OH- and carbon) is
+interpolated between the samples on its own and the hours outside either are united: the
+minimum of the two is not linear between the samples, and interpolating it put Skid A's exit
+about 1 h early and made it depend on the sampling (D-023).
 
 Reason: both skids run far beyond the measured 1 h and electrolyte.
 
@@ -503,9 +519,10 @@ the height is checked by scripts/regen.py from the layout model (step 13, D-021)
 core's layout checks containment in plan only.
 
 Results: Skid A is feasible at 1,000 h and not at 10,000 h ("Skid A cannot meet the 10,000 h
-duty within the skid envelope": T-101 tops out 1.27 m above the envelope, though it still fits
-the frame in plan). At the measured mean the longest campaign whose reservoir fits 2.20 m is
-about 2,550 h. Skid B is feasible at both.
+duty within the skid envelope": T-101 tops out 1.27 m above the envelope; its shell still fits
+the frame in plan, while its ladder cage and the hose valves HV-102, HV-103 stand beyond the
+frame's west edge, reported as details, D-021). At the measured mean the longest campaign
+whose reservoir fits 2.20 m is about 2,550 h. Skid B is feasible at both.
 
 Reason: the tank of Skid A grows with the campaign (V proportional to H, D-009).
 
@@ -571,14 +588,32 @@ case skid-b), PROPOSED for the HAZOP:
   Skid A, which has nothing to manipulate on pH); Skid B adds AIC-201 trimming the P-202 dose
   around the duty's rate (feedforward from the current), FIC-203 bleed and LIC-201 make-up;
 - setpoints that are a case value name their stream, so validate keeps them in step with the
-  flowsheet; the current is 80 A (4 x 20 A, cheme process stack);
-- trips per skid: pH low-low at 12.2 (concentration basis) trips the rectifier (the end of the
-  campaign on Skid A), level low-low trips the rectifier and stops the pump (Skid B on an
-  independent LIA-202), CO or H2 detected trips the rectifier, closes the CO2, stops the
-  compressor and starts the fan, the stack outlet temperature high-high and the recirculation
-  flow low-low trip the rectifier; on Skid B the dose and the bleed are interlocked off with the
-  current off (I-207, a permissive) and the day tank's low-low level stops the dosing pump;
-- sequences per skid: fill, start-up, the response to a trip, the end-of-run drain;
+  flowsheet; `scripts/regen.py` (step 9) writes them, the stack currents (JIC-x01, from `cheme
+  process stack`: 80 A, 4 x 20 A) and the AIC-201 pH setpoint (D-B at H, pH 13.70), so no
+  calculated setpoint is a hand copy;
+- the back-pressure loops PIC-x21 and PIC-x31 act direct: a rising pressure upstream of the
+  valve opens it (PIC-x21 was reverse, which would close the fail-open PV-x21 as the cathode
+  pressure rose);
+- trips per skid: pH low-low trips the rectifier: on Skid A at the pH 12 threshold itself
+  (I-101, concentration basis), on Skid B at 12.2 (far below its 13.7 setpoint); level low-low
+  trips the rectifier and stops the pump (Skid B on an independent LIA-202), CO or H2 detected
+  trips the rectifier, closes the CO2, stops the compressor and starts the fan, the stack
+  outlet temperature high-high and the recirculation flow low-low trip the rectifier; on
+  Skid B the dose and the bleed are interlocked off with the current off (I-207, a permissive)
+  and the day tank's low-low level stops the dosing pump;
+- Skid A's pH trip is at the threshold, not above it: T-101 is sized to reach pH 12 at H with no
+  time margin (D-009), so a trip at 12.2 would end every campaign early (at about 992 h of
+  1,000 h by the closed form, 0.8 % of the CO lost; 9,918 h of 10,000 h). A campaign ends
+  normally at H (SEQ-A-STOP, pH 12.02 at the measured WDE); the trip acts only when the WDE is
+  below the measured one or the run overruns H. A margin above the threshold would need the
+  reservoir sized to the trip value (about 1,176 L for 12.2), which changes the frozen sizing
+  basis (E2); left as an owner decision for the HAZOP. AI-101's low alarm at 12.5 (about 27 h
+  before H) is the notice to plan the stop;
+- sequences per skid: fill, start-up, the normal stop at H (SEQ-x-STOP), the response to a
+  process trip (SEQ-x-TRIP: current off, the CO2 purge kept), the response to a gas detection
+  trip (SEQ-x-GAS: the gas trips close FV-x02 and stop K-x31, so the cathode gas train stays
+  isolated with its CO and H2 until the leak is found and the trips reset, then it is purged to
+  the oxidiser), the end-of-run drain after any of the three;
 - fail positions proposed: cooling water open, CO2 closed, cathode back-pressure open,
   condensate, make-up and bleed closed, product closed (open point).
 
@@ -605,8 +640,22 @@ deliveries, and a one-tier utility rack PR-1 (2.8 m) along the skids for the sit
   in that circle; the growth then fails on height (D-015). Rows across the frame: south the
   anolyte pump, cooler, separator and compressor; the middle the four stacks, turned so that
   their anolyte connections face south (to the pump and cooler) and their gas connections
-  north (to the gas packages); north the PSA, the oxidiser, the rectifier and the fan. Skid B
-  the same, with the day tank T-202 and the metering pump P-202 at the west end.
+  north (to the gas packages); north the PSA, the oxidiser, the fan and, at the east end, the
+  rectifier. Skid B the same, with the day tank T-202 and the metering pump P-202 at the west
+  end.
+- The rectifier U-x01 (a non-Ex cabinet of about 3 kW, the skid's main ignition source) stands
+  outside its skid's zone 2: at the east end, more than 1 m from the zone sources X-x32,
+  E-x01D and K-x31 (it stood 0.55 m from X-x32 before, inside the zone). The extract fan K-x41
+  took its place inside the zone: as the fan of a hazardous enclosure it is Ex-rated for zone 2
+  (ASSUMED), as are the motors of P-x01, K-x31 and P-202 there. Open with the area
+  classification.
+- Stack access: the stacks are 0.18 m units lifted out upwards by hand once their connections
+  are undone; `process/cells.yaml` stacks[].access gives 0.3 m of hand room at their ends and
+  sides (ASSUMED), and regen (step 13) checks that no other item stands in it, because core
+  sizes the stack footprint with the access but draws no envelope for it. The spec's 1.0 m at
+  the ends (removal along the axis) and 0.8 m at the sides cannot be met in a 20 ft frame by any
+  arrangement: four stacks with those clearances need 15.5 m2, more than the 14.8 m2 frame
+  (deviation from the spec, D-023).
 - Outlines of the items `cheme process stack` does not size (pumps, cooler, separator,
   compressor, packages, rectifier, fan) are ASSUMED in the equipment list (`assumed: true`),
   until vendor drawings; the stacks' and tanks' are the tool's.
@@ -679,8 +728,14 @@ stays at the 1,000 h design.
 
 Results: at 1,000 h both skids fit (items top 1.95 m under 2.35 m, 0.40 m left; the tank
 T-101 D 1.074 x H 1.611 m). At 10,000 h Skid A does not: T-101 (D 2.313 x H 3.47 m) stands
-1.27 m above the envelope and its ladder meets the deck's handrail (it still fits the frame in
-plan); Skid B is unchanged.
+1.27 m above the envelope and its ladder meets the deck's handrail; its shell still fits the
+frame in plan, but its ladder cage and the hose valves HV-102 and HV-103 stand beyond the
+frame's west edge (listed in the record's `details_outside_plan`, not counted, as the details
+above the envelope); Skid B is unchanged (at both durations the ladder cage of T-201 reaches
+0.34 m beyond the frame's north edge and the hose valve HV-203 its west edge, details). The
+generated details are checked in plan too: the
+parts of each item (their own extent, not the item's bounding box) and the inline items of the
+skid's sheet against the frame.
 
 Reason: core checks containment in a structure in plan only (D-015).
 
@@ -689,16 +744,21 @@ Assumptions: the envelope and the tanks' H/D (D-015).
 ## D-022 Results, records, resize report and uncertainty of the skids (2026-11-05)
 Decision: `scripts/regen.py` ends every run with its results as files (steps 14 to 19, scripts
 `_results.py` for the arithmetic and the figures):
-- `results/scenarios/<H>h/record.json`, the calculation record of one scenario: the inputs'
-  sha256, core's version, the condensed duty, stack and comparison results, per skid the
-  values, the duty `run_fingerprint`, the feasibility with its reasons and the invariants
-  (D-014). Deterministic (no time stamp or git HEAD; floats to 10 significant figures), so
-  `--check` compares bytes.
+- `results/scenarios/<H>h/record.json`, the calculation record of one scenario: the sha256 of
+  the hand-maintained inputs regen never writes (`inputs_sha256`) and of the model files after
+  the run (`model_sha256`), core's version, the condensed duty, stack and comparison results,
+  per skid the values, the duty `run_fingerprint`, the sizing inputs of the resize causes
+  (`sizing_basis`), the feasibility with its reasons and sentences, the details beyond the
+  envelope, and the invariants (D-014). Deterministic (no time stamp or git HEAD, no
+  install-dependent core commit; floats to 10 significant figures), so `--check` compares
+  bytes.
 - `results/resize-1000h-10000h.{json,md}`, written once both design scenarios have a record:
   41 rows (quantity and skid) with both values, changed or not, its rule, the calculated cause
-  and the frozen hand value of `results/expected.yaml` with tolerance and status; the P&IDs'
-  sha256 and the stack dimensions as the unchanged artefacts. Result: 0 hand checks failed, no
-  rule broken.
+  (its inputs from the records' `sizing_basis`, so it follows an input change) and the frozen
+  hand value of `results/expected.yaml` with tolerance and status; the errata of the frozen file
+  (`results/expected-errata.yaml`); the P&IDs' sha256 and the stack dimensions as the unchanged
+  artefacts; and README.md's results table (between its regen markers). Result: 0 hand checks
+  failed, no rule broken.
 - `--uncertainty`: core propagates no measurement scatter (design core gap C2), so in temporary
   copies only the pilot cell becomes `performance: specified` at the P200 mean, at mean +- 1 sd
   of WDE, of FE CO and of U one at a time (the sample sd over the replicates), and at the 20 degC
@@ -707,15 +767,16 @@ Decision: `scripts/regen.py` ends every run with its results as files (steps 14 
   and Skid B's rates follow from the step-6 closed form. A specified cell's duty must name its
   product, so the copies add `product: CO` to the duties. The co-ion split is the membrane
   block's 0.670 there (the measured cell's duty uses the titration's 0.66978), so the bounding
-  runs are compared with the specified mean, not with the measured run. Written to
+  runs are compared with the specified mean, not with the measured run; Skid B's rates take
+  the carbon share each bounding duty ran at and D-B's dosing concentration, not literals. Written to
   `results/scenarios/<H>h/uncertainty.json` and two figures drawn by the script
   (`figures/skids/<H>h/uncertainty-ranges.svg`, `uncertainty-ph-band.svg`). A run without
   `--uncertainty` removes a stale `uncertainty.json` (step 10 has removed its figures).
 - `--record` writes the ADR 0020 session record (`cheme runs record --kind manual --slug
   regen-<H>h --report-file results/resize-1000h-10000h.md`), apart from the calculation record.
 - `--check` (gate `skid-regen-current`) regenerates every design scenario in a temporary copy
-  and compares the records, the resize report, the scenario's figures and, at the design
-  duration, the model files and datasheets.
+  and compares the records, the resize report, the README table, the scenario's figures and,
+  at the design duration, the model files (with `control/loops.yaml`) and datasheets.
 - Step 13 now leaves out the validate findings that `checks/checks.yaml` accepts with a reason
   (the twelve P&ID manifold crossings), as `cheme check` does.
 
@@ -741,3 +802,51 @@ margin on Skid A (D-009: the band is reported instead).
 
 Assumptions: the sd over three (U, WDE) or two (FE) replicates is a weak estimate of the scatter;
 one parameter at a time leaves out their combination.
+
+## D-023 Review of #330: what the regeneration now derives, checks and records (2026-11-05)
+Decision: the verified review findings of #330 are fixed in the design, not around it:
+- Infeasible is a result, never a tool error: a skid duty that ends before H (threshold,
+  minimum inventory) or is infeasible no longer stops `scripts/skid_balance.py`; its rates are
+  over the hours it ran and the output's `notes` say so, which regen records as errors (step 9);
+  a balance that cannot be made at all (a refused duty) is a finding too, the flowsheet left as
+  it was. The infeasibility sentences name the check that failed (the envelope, or the duty).
+- Step 6 takes N I from the probe's charge over its operating time, not over H: a probe at stale
+  rates that ends early gave rates too low by the ratio and never recovered (checked: from a dose
+  of 0.05 L/h, one run writes the rates of the committed design).
+- The record hashes only the hand-maintained inputs regen never writes (`inputs_sha256`); the
+  files it writes are hashed after the run (`model_sha256`), so a fresh regeneration is its own
+  fixed point and `--check` is clean right after it. The record carries core's version, not
+  the commit: a local and a git install of the same core gave different bytes. The installed
+  commit is printed and kept in the run summary (build/), and a version other than the one the
+  expectations were frozen for is a warning.
+- Single sources: the pH threshold of every duty (the comparison duties too) and the stacks'
+  operating hours are synced from the design basis (steps 2, 3); the product pressure and the
+  PSA's pressure loss give the compressor discharge and the product pressure of the flowsheet
+  and the compressor power estimate (skid_balance); Skid B's setpoints are design-basis values
+  with provenance; the anolyte density is the recirculation pump's of `process/cells.yaml`; the
+  anolyte temperatures follow the cell temperature and the stack heat (D-012); the calculated
+  setpoints of `control/loops.yaml` and README's results table are written by regen; the
+  resize causes and the uncertainty runs take their inputs from the run, not from literals.
+- The scripts read core's duty and comparison JSON through mapped, checked fields in
+  `scripts/_core.py` (a renamed field stops the run with a message naming it).
+- The frozen file `results/expected.yaml` states that the duties run at the rounded Cx 0.670;
+  they run at the titration's 0.66978. ADR 0030 forbids editing a frozen file, so the
+  correction is a new file, `results/expected-errata.yaml`, printed in the resize report; the
+  values and tolerances stand (the bias is inside every tolerance). The library test now also
+  asserts that the frozen files are unchanged since their freezing commit.
+- Control: PIC-x21 direct; Skid A's pH trip at the threshold; the normal stop and the gas-trip
+  path as sequences (D-018). P-02: the day tank T-202 has a breather KV-202 (an atmospheric tank
+  filled weekly and drawn continuously). Layout: the rectifiers outside the zone, the stack
+  access checked (D-019); details beyond the frame in plan reported (D-021).
+
+Deviation from the spec: the stack access of `process/cells.yaml` is 0.3 m at the ends and sides
+(a vertical hand lift of the 0.18 m stack), not the spec's 1.0 m and 0.8 m, which no arrangement
+of four stacks in a 20 ft frame can give (D-019). Owner decisions left open: a trip margin above
+Skid A's threshold (it needs a larger reservoir than the frozen sizing basis), the Ex rating of
+the electrical items inside the zones (area classification).
+
+Reason: each finding was a value restated by hand that a change of its source would leave
+stale without a check, a result reported wrongly, or a design error (control, layout, P&ID).
+
+Assumptions: cp 3.95 kJ/(kg K) of the anolyte, the PSA pressure loss 1 bar, the 0.3 m stack
+access, the fan's Ex rating (all ASSUMED).
