@@ -1,8 +1,8 @@
 """Draft of P-01: LNG rundown from trains 1-4 and the top / bottom fill of both tanks; the tank
 vapour header with the vapour return lines, the make-up gas and the branch to the flare.
 
-Provenance only: P-01 is hand-maintained after this first revision (no `generator:` in
-plant.yaml). Run: cheme run scripts/draft_P-01.py pid/P-01.xml (on the empty A3 frame).
+Generator of P-01 (plant.yaml `generator:`, frame pid/frames/P-01.xml): `cheme regen P-01`
+rebuilds the sheet; change this script, never the XML (D-021).
 Streams S1, S6, S8 of process/flowsheet.yaml; decisions D-005, D-007, D-009, D-017, D-021.
 
 Revision after the follow-up review 2026-11-05-basic-design-2 (#4, D-026.4 and D-026.11):
@@ -12,6 +12,10 @@ segment, as ZSC-5123 on P-05); the thermal relief outlets BOG-1004, BOG-1010 and
 tie into BOG-1001 on this sheet with their own tees (T1112, T1113, T1114) instead of ending at
 off-page connectors. BOG-1001 is resegmented by the three tees (S1-S3 new, old S1-S6 now
 S4-S9).
+
+Revision after review 2026-11-05-basic-design-3 (D-026.14): ZSC-1102 / ZSC-1103 sense their
+valves XV-1102 / XV-1103 themselves, as ZSO-7121A on P-07, instead of the pipe segment beside
+them.
 """
 
 import sys
@@ -112,13 +116,13 @@ L.inst(sheet, "UZ-1103", "T-3101 fill ESD valve XV-1103",
        "Closes on T-3101 high-high level or pressure (C&E I-301, I-303).",
        at=(180, 140), signal_to="XV1103", fail_action="FC")
 # closed-position switches of the fill ESD valves (review #8, interlock I-102), tied to their
-# valves by a sensor on the valve's segment next to the valve, as ZSC-5123 on P-05 (D-026.11)
+# valves themselves (sensing the valve, as ZSO-7121A on P-07; D-026.11, D-026.14)
 L.inst(sheet, "ZSC-1102", "XV-1102 closed position",
        "Position switch on the T-2101 fill ESD valve XV-1102; with ZSC-1103 both closed: no tank can take the rundown (C&E I-102).",
-       at=(164, 168), sensing="Line_LNG1002_S1", sensing_at=(150, 167))
+       at=(164, 168), sensing="XV1102", sensing_at=(150, 163))
 L.inst(sheet, "ZSC-1103", "XV-1103 closed position",
        "Position switch on the T-3101 fill ESD valve XV-1103; with ZSC-1102 both closed: no tank can take the rundown (C&E I-102).",
-       at=(164, 140), sensing=hdr.segments[5], sensing_at=(174, 150))
+       at=(164, 140), sensing="XV1103", sensing_at=(180, 150))
 for tag, vid, x, y in [("HS-1106", "XV1106", 135, 210), ("HS-1107", "XV1107", 187, 210),
                        ("HS-1109", "XV1109", 219, 210), ("HS-1108", "XV1108", 245, 198)]:
     L.inst(sheet, tag, f"Fill selection valve XV-{vid[2:]}",

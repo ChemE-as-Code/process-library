@@ -3,8 +3,8 @@ four in-tank loading pumps and the circulation pump, their discharge header, min
 returns, the fill and circulation-return lines, the vapour outlet, the PSVs and vacuum relief
 valves and the tank instrumentation.
 
-Provenance only: the sheets are hand-maintained after this first revision. Run:
-cheme run scripts/draft_tank.py pid/P-02.xml 2   (or pid/P-03.xml 3), on the empty A3 frame.
+Generator of P-02 and P-03 through scripts/draft_P-02.py / draft_P-03.py, which pass the digit
+(frames pid/frames/P-02.xml, P-03.xml): `cheme regen P-02 P-03` rebuilds them (D-021).
 Decisions D-007, D-008, D-011, D-017, D-021. All nozzles of a full-containment tank pass
 through the roof; the sheet draws the bottom fill, the circulation return, the relief valves
 and the instrument connections on the shell for clarity (D-021).
@@ -245,7 +245,7 @@ for i, (nz, y) in enumerate(zip(["N4", "N5", "N11"], PSV_Y)):
     iso_tag = f"HV-{n}134{s}"
     iso, labels_ = relief_isolation(iso_tag, y)
     v = L.relief(f"PSV{n}131{s}", f"PSV-{n}131{s}", f"BOG-{n}00{2 + i}", 0.29,
-                 "loss of the BOG compressors at loading (45.6 t/h return plus the rundown displacement), fire, rollover as a check case, fuel gas blow-by through FO-1117 with PV-1111 failed open (D-026)",
+                 "loss of the BOG compressors at loading (45.6 t/h return plus the rundown displacement), fire, rollover as a check case, fuel gas blow-by through FO-1117 with PV-1111 failed open (D-026), fire on D-7101 and the BOG suction header (D-026.12)",
                  f"{TK} pressure relief to atmosphere through an elevated tailpipe; last resort after PV-1110 (D-017). Set at the design pressure +29 kPa(g), ASSUMED. {n1_note(iso_tag)}.",
                  label_at=(PSV_X, y - 4))
     v.at = (PSV_X, y)

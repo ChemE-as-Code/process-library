@@ -17,7 +17,7 @@ sequences:
       - {tag: LZT-2102, state: above the low-low trip}
       - {loop: PIC-1110, state: in auto}
       - {tag: K-7101A, state: running}
-    interlocks: [I-501, I-502, I-503, I-507, I-504, I-505, I-511, I-512, I-513, I-202, I-204]
+    interlocks: [I-501, I-502, I-503, I-507, I-504, I-505, I-511, I-512, I-513, I-514, I-202, I-204]
     steps:
       - id: S0
         title: Line up from holding
@@ -61,7 +61,10 @@ sequences:
       - id: S3
         title: ESD test and cooldown of the arms and the carrier manifold
         actions:
-          - {text: "ESD-1 test through the ship-shore link before cooldown (S-01)", by: operator}
+          - {text: "ESD-1 test through the ship-shore link before cooldown (S-01), in test mode: the sequence abort on I-501 is inhibited for the test only", by: operator}
+          - {text: "reset I-501 once the test is complete and the link is healthy", by: operator}
+          - {tag: XV-4101, action: open, by: operator}
+          - {tag: XV-4102, action: open, by: operator}
           - {tag: XV-5101, action: open, by: operator}
           - {tag: XV-5121, action: open, by: operator}
           - {loop: FIC-4101, action: setpoint, setpoint: {kind: setpoint, value: 500, unit: m3/h, provenance: assumed, source: "D-016: cooldown rate, ASSUMED"}, by: operator}
@@ -71,21 +74,16 @@ sequences:
         on_timeout: abort
         operator: "Cool slowly to avoid thermal shock on the arms; the circulation pump P-2102 (500 m3/h, D-008) gives the cooldown flow through line A. The cooldown vapour returns through the vapour arm, to the flare while AI-4133 reads off-specification. The ESD-1 test opens XV-4135 (I-501) and XV-4131 closes only once XV-4135 is proven open (I-513), so the test never closes the vapour return (review 2026-11-05-basic-design-2#1)."
       - id: S4
-        title: Ramp up to the full loading rate
+        title: Ramp up to the full loading rate (arm line-up from the cargo plan, D-026.6)
         actions:
-          - {tag: XV-5123, action: open, by: operator}
           - {tag: XV-5124, action: open, by: operator}
-          - {tag: P-2101A, action: start, by: operator}
-          - {tag: P-2101B, action: start, by: operator}
-          - {tag: P-2101C, action: start, by: operator}
-          - {tag: P-2101D, action: start, by: operator}
+          - {text: "line-up (a), the normal one: open XV-5123 (the hybrid arm as the third liquid arm; I-504 permits it with XV-5125 proven closed), start P-2101A/B/C/D, FIC-4101 and FIC-4102 to 6,000 m3/h each (12,000 m3/h)", by: operator}
+          - {text: "line-up (b), a carrier that needs more return: open XV-5125 (the hybrid arm as the second vapour arm; I-505 permits it with XV-5123 proven closed), start P-2101A/B/C, FIC-4101 and FIC-4102 to 4,000 m3/h each (8,000 m3/h)", by: operator}
           - {tag: K-7101B, action: start, by: operator}
-          - {loop: FIC-4101, action: setpoint, setpoint: {kind: setpoint, value: 6000, unit: m3/h, provenance: assumed, source: "D-008: half of 12,000 m3/h per line"}, by: operator}
-          - {loop: FIC-4102, action: setpoint, setpoint: {kind: setpoint, value: 6000, unit: m3/h, provenance: assumed, source: "D-008"}, by: operator}
         complete: {all: [{loop: FIC-4101, state: at setpoint}, {loop: FIC-4102, state: at setpoint}]}
         timeout: {value: 2, unit: h}
         on_timeout: abort
-        operator: "Ramp in steps on the carrier's request; the carrier ramps its return-gas compressor over at least 1 h (S-01); start the second BOG compressor before the return reaches one machine's capacity. Four pumps make the 12,000 m3/h (D-011). The arm line-up comes from the cargo plan (D-026): with the hybrid arm as the third liquid arm the carrier keeps its return within one vapour arm (~23.5 t/h) and burns the balance on board; a carrier that needs more return is loaded with the hybrid arm as the second vapour arm on two liquid arms, at the lower rate of D-026."
+        operator: "Ramp in steps on the carrier's request; the carrier ramps its return-gas compressor over at least 1 h (S-01); start the second BOG compressor before the return reaches one machine's capacity. Four pumps make the 12,000 m3/h (D-011). In line-up (a) the carrier keeps its return within one vapour arm (~23.5 t/h) and burns the balance on board; line-up (b) gives two vapour paths at 8,000 m3/h (D-026.6)."
       - id: S5
         title: Topping off and stop
         actions:
@@ -101,13 +99,14 @@ sequences:
         actions:
           - {tag: XV-5161, action: open, by: operator}
           - {text: "drain the arms and the header to D-5101; P-5101 returns it to the platform crossover", by: operator}
+          - {text: "N2 purge to below 2 % hydrocarbons (S-01) through HV-5151 and HV-5152 with the bleed HV-5153 closed; the purge N2 leaves through XV-5161, D-5101 and its vent BOG-5002 into the vapour return (D-026.13); then both blocks closed and the bleed opened", by: operator}
           - {tag: XV-5161, action: close, by: operator}
-          - {text: "N2 purge to below 2 % hydrocarbons (S-01) through HV-5151 and HV-5152 with the bleed HV-5153 closed, then both blocks closed and the bleed opened; disconnect the liquid arms, then the vapour arm", by: operator}
+          - {text: "disconnect the liquid arms, then the vapour arm", by: operator}
           - {tag: XV-4106, action: close, by: operator}
           - {sequence: SEQ-HOLD, action: run, by: operator}
         complete: {text: "arms stowed"}
     abort:
-      condition: {any: [{interlock: I-501, state: tripped}, {interlock: I-503, state: tripped}]}
+      condition: {any: [{all: [{interlock: I-501, state: tripped}, {text: "not the ESD-1 test of S3 (test mode)"}]}, {interlock: I-503, state: tripped}]}
       actions:
         - {sequence: SEQ-ESD, action: run, by: automatic}
       notes: "Any ESD ends the loading; ESD-2 also releases the arms."
@@ -118,20 +117,26 @@ sequences:
     mode: normal
     section: TRANSFER
     cases: [holding]
-    equipment: [P-2102, XV-4103, XV-4105, XV-4106]
+    equipment: [P-2102, XV-4101, XV-4102, XV-4103, XV-4105, XV-4106]
     permissives:
       - {tag: LZT-2102, state: above the low-low trip}
+      - {all: [{interlock: I-501, state: reset}, {interlock: I-601, state: reset}]}
     interlocks: [I-202]
     steps:
       - id: S1
         title: Open the loop and start the circulation pump
         actions:
           - {tag: XV-4106, action: close, by: operator}
+          - {tag: XV-4101, action: open, by: operator}
+          - {tag: XV-4102, action: open, by: operator}
+          - {loop: FIC-4101, action: manual, by: operator}
+          - {loop: FIC-4102, action: manual, by: operator}
+          - {text: "FV-4101 and FV-4102 fully open in manual (the circulation flow is set by P-2102)", by: operator}
           - {tag: XV-4103, action: open, by: operator}
           - {tag: XV-4105, action: open, by: operator}
           - {tag: XV-2123, action: open, by: operator}
           - {tag: P-2102, action: start, by: operator}
-        complete: {all: [{tag: XV-4106, state: closed}, {tag: TI-4102, state: "< 3 K above the tank liquid"}]}
+        complete: {all: [{tag: XV-4106, state: closed}, {tag: XV-4101, state: open}, {tag: XV-4102, state: open}, {tag: TI-4102, state: "< 3 K above the tank liquid"}]}
         timeout: {value: 4, unit: h}
         on_timeout: abort
         operator: "Circulation out on line A, back on line B (D-008); the tank-end crossover XV-4106 closed so the flow runs the whole trestle loop (review 2026-11-05-basic-design-2#3); the vapour return lines stay cold through the tank vapour."

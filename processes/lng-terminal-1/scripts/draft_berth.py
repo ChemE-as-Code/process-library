@@ -3,8 +3,8 @@ liquid header with the shore ESD valve, strainer and surge relief, the four 16 i
 liquid, one hybrid, one vapour) with their emergency release systems and thermal relief, the
 vapour line to the trestle, the jetty drain drum and pump, and the N2 purge.
 
-Provenance only: the sheets are hand-maintained after this first revision. Run:
-cheme run scripts/draft_berth.py pid/P-05.xml 5   (or pid/P-06.xml 6), on the empty A3 frame.
+Generator of P-05 and P-06 through scripts/draft_P-05.py / draft_P-06.py, which pass the digit
+(frames pid/frames/P-05.xml, P-06.xml): `cheme regen P-05 P-06` rebuilds them (D-021).
 Arm arrangement and procedures from the LNG Canada Terminal Information Guide (S-01): south to
 north liquid, vapour, hybrid, liquid; vapour arm connected first; N2 leak test 5 / 2.5 bar.
 Decisions D-014, D-016, D-017, D-021, D-023. The sheet draws the arms left to right L1, L2, H, V
@@ -26,6 +26,11 @@ Round 3 (reviews/2026-11-05-basic-design-2.md, D-026.2, .3, .13): ZSC-n123/n125 
 switches, the start permissives of the other isolation (C&E I-n04/I-n05); ESD-2 (I-n03) trips ESD-1
 at once and the ERS valves close 5 s later by I-n07; the arm purge outlet (before loading into the
 carrier's manifold, after loading through D-n101 and its vent BOG-n002 into the vapour return).
+
+Round 4 (reviews/2026-11-05-basic-design-3.md, D-026.14): ZSC-n123 / ZSC-n125 sense the valves
+XV-n123 / XV-n125 themselves (as ZSO-7121A on P-07), not the pipe beside them; HS-n123 / HS-n125
+note that their open command is blocked by I-n04 / I-n05 and never closes an open valve; HS-n161
+notes that XV-n161 is also open for the N2 purge after loading (D-026.13).
 """
 
 import sys
@@ -247,20 +252,23 @@ L.inst(sheet, f"HS-{n}121", f"LA-{n}101 isolation XV-{n}121", at=(X["1"] + 14, 1
        signal_to=f"XV{n}121", fail_action="FC")
 L.inst(sheet, f"HS-{n}124", f"LA-{n}104 isolation XV-{n}124", at=(X["4"] - 15, 168),
        signal_to=f"XV{n}124", fail_action="FC")
-L.inst(sheet, f"HS-{n}123", f"LA-{n}103 liquid isolation XV-{n}123", at=(X["3"] - 15, 181),
-       signal_to=f"XV{n}123", fail_action="FC")
+L.inst(sheet, f"HS-{n}123", f"LA-{n}103 liquid isolation XV-{n}123",
+       f"Open command blocked by C&E I-{n}04 unless the other isolation XV-{n}125 is proven closed (ZSC-{n}125); an open valve is never closed by it (D-026.3, D-026.14).",
+       at=(X["3"] - 15, 181), signal_to=f"XV{n}123", fail_action="FC")
 L.inst(sheet, f"HS-{n}125", f"LA-{n}103 vapour isolation XV-{n}125 (hybrid as vapour arm)",
+       f"Open command blocked by C&E I-{n}05 unless the other isolation XV-{n}123 is proven closed (ZSC-{n}123); an open valve is never closed by it (D-026.3, D-026.14).",
        at=(260, 185), signal_to=f"XV{n}125", fail_action="FC")
+# closed-position switches on the valves themselves (sensor at XV-n123 / XV-n125, as ZSO-7121A on P-07)
 L.inst(sheet, f"ZSC-{n}123", f"XV-{n}123 closed position",
        f"Closed-position switch of the hybrid arm liquid isolation: start permissive of the other isolation, XV-{n}125 may open only with XV-{n}123 proven closed (C&E I-{n}05); never trips an open valve (review #3, H-03 A13, D-026).",
-       at=(244, 187), sensing=f"Line_LNG{n}001_S6", sensing_at=(X["3"], 184))
+       at=(244, 187), sensing=f"XV{n}123", sensing_at=(X["3"], 181))
 L.inst(sheet, f"ZSC-{n}125", f"XV-{n}125 closed position",
        f"Closed-position switch of the hybrid arm vapour isolation: start permissive of the other isolation, XV-{n}123 may open only with XV-{n}125 proven closed (C&E I-{n}04); never trips an open valve (review #3, H-03 A13, D-026).",
-       at=(278, 181), sensing=f"Line_BOG{n}003_S1", sensing_at=(264, 172))
+       at=(278, 181), sensing=f"XV{n}125", sensing_at=(258, 172))
 L.inst(sheet, f"HS-{n}122", f"LA-{n}102 vapour arm isolation XV-{n}122", at=(X["2"] + 15, 150),
        signal_to=f"XV{n}122", fail_action="FC")
 L.inst(sheet, f"HS-{n}161", f"Header drain isolation XV-{n}161 to D-{n}101",
-       f"Opened only for the header and arm drain after loading (SEQ-LOAD S6); fail closed (review #1, H-03 A3).",
+       f"Opened for the header and arm drain and for the N2 purge after loading (SEQ-LOAD S6, D-026.13); fail closed (review #1, H-03 A3).",
        at=(DRX + 12, 183), signal_to=xv_dr, fail_action="FC")
 L.inst(sheet, f"XS-{n}100", f"Berth {berth} ship-shore ESD link",
        f"Fibre-optic link (S-01): ESD-1 both ways (C&E I-{n}01).", at=(22, 28))

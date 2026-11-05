@@ -172,13 +172,17 @@ counterparts. The Phase 1 subset can be read off the sheets: P-02, P-05 and K-71
 
 **D-020 Utilities.** Electric drives throughout (grid supply, S-05); 6.6 kV for the in-tank
 pumps and the BOG compressors, 400 V otherwise (ASSUMED). N2 for arm purge and leak test,
-seal gas and blanketing, and instrument air, from the site systems at the battery limit.
+seal gas and blanketing, and instrument air, from the site systems at the battery limit. Drawn
+at basic: the berth N2 tie-ins N-8001 / N-8002 (P-05, P-06, P-08) and the pump-column N2 hose
+connections (P-02, P-03); not drawn at basic (D-026.9): the compressor seal gas and purge
+(vendor package), the tank inerting points (tank contractor) and the trestle purge points.
 
-**D-021 P&ID drafting conventions (basic stage).** The eight sheets (A3, DEXPI 2.0.1) were
-written once by generator scripts on cheme-as-code's authoring API (`scripts/draft_P-01.py`,
-`draft_tank.py` for P-02/P-03, `draft_P-04.py`, `draft_berth.py` for P-05/P-06,
-`draft_P-07.py`, `draft_P-08.py`, helpers in `scripts/lng_pid.py`); they are hand-maintained
-from now on and the scripts are provenance. Each draft recorded the lines, instruments and
+**D-021 P&ID drafting conventions (basic stage).** The eight sheets (A3, DEXPI 2.0.1) are
+generated sheets: each is built by its script on cheme-as-code's authoring API
+(`scripts/draft_P-01.py` ... `draft_P-08.py`; P-02/P-03 run `draft_tank.py` and P-05/P-06
+`draft_berth.py` with the sheet digit; helpers in `scripts/lng_pid.py`) on its empty frame in
+`pid/frames/`, declared with `generator:` in `plant.yaml` and rebuilt with `cheme regen`; the
+scripts are the source, the XML is never edited by hand. Each draft recorded the lines, instruments and
 relief devices it drew, and `scripts/build_lists.py` wrote the line list, instrument list and
 special items from them, so the lists and the sheets started from the same values.
 Conventions:
@@ -207,9 +211,8 @@ Conventions:
    pump, tied to it by a measuring line (run feedback), and a signal line from the controller
    to the HS (the authoring API signals only valves and instrument functions); a duty/standby
    pair is driven as a chain (LIC-8101 -> HS-8101A -> HS-8101B on P-08, D-026.11).
-Since the D-026 round every sheet is rebuilt from its script on the empty frame
-`build/P-0N-frame.xml` (frame, `cheme run`, `cheme fmt`), so the scripts carry the current state
-of the sheets, although `plant.yaml` does not declare them as generators yet.
+Since review 2026-11-05-basic-design-3 (#10) the frames are committed in `pid/frames/` and
+`cheme validate` reports a hand edit that the script would lose as `generated-sheet-drift`.
 
 **D-022 Datasheets (detail stage).** `cheme datasheets draft` wrote one datasheet per item;
 `cheme datasheets fill` cannot size them (no property package for LNG, D-006, and most items
@@ -287,7 +290,11 @@ analysis, the trains' fuel-gas capacity for the make-up, seal gas, arm vents and
    valve proven open, I-513 closes the flare valve only with the tank-side valve proven open.
    ESD-1 (I-501 / I-601) opens the tank-side valve and does not act on the flare valve, so an
    ESD-1, including the test of SEQ-LOAD S3, never closes the vapour return, the relief path of
-   the berth. Both valves fail open.
+   the berth. The tank-side valves XV-4135/4136 fail open and the flare valves XV-4131/4132
+   fail closed (review 2026-11-05-basic-design-3#1): on an instrument-air failure the return
+   goes to the tanks and the tank vapour header is never opened to the flare through the
+   switch (the reason XV-1115 fails closed, D-025). I-511 does not open the flare valve while
+   ESD-1 is tripped, so I-511 and I-513 never command it against each other (review 3 #2).
 2. ESD-2 (previous #4). I-501 / I-601 take I-503 / I-603 tripped as a cause, so ESD-2 trips
    ESD-1 at once (pumps, shore ESD valve, tank-end valves, the carrier's ESD). The 5 s delay is
    moved to I-507 / I-607, which closes the ERS valves and releases the couplers.
@@ -295,8 +302,8 @@ analysis, the trains' fuel-gas capacity for the make-up, seal gas, arm vents and
    isolation is never closed by them.
 4. Rundown (#4). PZT-1105 on LNG-1001 (P-01) trips I-102 at high-high header pressure, which
    also covers a fill branch closed by its selection valves. The top/bottom fill change is made
-   by opening the new selection valve before closing the old one (operator, SEQ text in the
-   narrative).
+   by the operator, opening the new selection valve (XV-1106..1109) before closing the old one;
+   a change that closes both trips I-102 through PZT-1105 (review 3 #8).
 5. BOG compressors (previous #12). I-702/702B/C name the vendor unit control panel trips
    (vibration and bearings, dry gas seal, lube oil, motor protection, discharge pressure
    high-high below PSV-7111), to be confirmed with the vendor. I-705A/B/C stop a running
@@ -306,14 +313,20 @@ analysis, the trains' fuel-gas capacity for the make-up, seal gas, arm vents and
    the cargo plan: (a) L-V-H-L with the hybrid as the third liquid arm, 12,000 m3/h, the return
    limited to one vapour arm (~23.5 t/h, D-023): the carrier controls its return-gas
    compressor and burns the balance on board (S-01); (b) the hybrid as the second vapour arm,
-   two liquid arms at ~8,000 m3/h (2 x ~4,000 m3/h, D-014, ASSUMED) and up to ~47 t/h of
-   return. The 45.6 t/h of D-009 is the conservative envelope of the BOG compressors and the
-   trestle vapour lines; it occurs only in line-up (b). Checked against carrier data in detail
-   engineering.
+   two liquid arms at ~8,000 m3/h (2 x ~4,000 m3/h, D-014, ASSUMED) and two vapour paths for
+   up to ~47 t/h. The 45.6 t/h of D-009 is derived at 12,000 m3/h with 85 % of the pump and line
+   heat flashing on board, a conservative envelope that no line-up returns through the arms:
+   in (a) the arm limits the return to ~23.5 t/h and the carrier burns the balance; in (b) the
+   same assumptions give ~34 t/h (the rate-dependent part scaled to 8,000 m3/h, the carrier's
+   1.5 MW cargo-tank heat-in, ~10.6 t/h, kept). The BOG compressors (D-010) and the trestle
+   vapour lines keep the 45.6 t/h envelope as margin; their sizing is revisited with carrier
+   data in detail engineering (review 3, previous #23). SEQ-LOAD S4 carries both line-ups.
 7. Oxygen in the carrier's vapour (#11). Vapour goes to the flare only below 5 vol % O2 (inert
    gas quality, ASSUMED) and to the tanks only below 1 vol % O2 and on hydrocarbon
    specification (S-01 purge limit); above 5 % the berth does not take the vapour and the
-   carrier vents on board under the terminal rules. AI-4133/4134 measure CH4, N2 and O2.
+   carrier vents on board under the terminal rules. AI-4133/4134 measure CH4, N2 and O2; above
+   5 vol % O2, I-514 / I-614 close the vapour arm isolation XV-5122 / XV-6122 (the jetty relief
+   path stays open through the drum vent, which joins downstream of it; review 2 #11).
 8. Relief cases (#10, accepted). Fuel gas blow-by through FO-1117 with PV-1111 failed open is
    added to the PSV-2131/3131 relief cases and to the detail-stage relief sizing list (D-025).
 9. Small items: P-8101A/B get discharge isolation HV-8108A/B downstream of their check valves
@@ -345,7 +358,24 @@ analysis, the trains' fuel-gas capacity for the make-up, seal gas, arm vents and
    arms drain to D-5101 / D-6101 and the hydrocarbon purge N2 goes from the drum through its
    vent BOG-5002 / BOG-6002 into the vapour return and, while AI-4133/4134 reads
    off-specification, to the flare. The arm vents and the O2 sample point stay in the arm
-   package (vendor).
+   package (vendor). XV-5161 / XV-6161 stay open during that purge (SEQ-LOAD S6).
+14. Response to review 2026-11-05-basic-design-3 and its adversarial check. XV-4131/4132 back
+   to fail closed (#1); I-511 not on ESD-1 (#2); the KO drum pump suction isolations
+   HV-8106A/B are cryogenic ball valves with the cavity vented to the drum side, so a pump
+   blocked in between HV-8106x and HV-8108x relieves its thermal expansion into D-8101, and
+   the pump is drained to the drum before maintenance (#3); one open-position switch per
+   switching valve is enough because only the proven-open state is used (#4); LIC-8101 drives
+   the duty pump selected at HS-8101A, which passes the command to HS-8101B when B is duty
+   (#5); PZT-7113 1oo1 with a 5 s on-delay, its voting set in the SIL screening (#6); the purge
+   with XV-5161 open (#7); D-026.4 states the fill change (#8); fire on D-7101 and its suction
+   header added to the PSV-2131/3131 relief cases (#9); the eight sheets are declared generated
+   sheets in plant.yaml with their frames in pid/frames/ (#10, D-021). From the adversarial
+   check: I-802 starts both KO drum pumps (whichever is not running starts), is non-latching
+   and yields to I-803; the S3 ESD-1 test is run in test mode without aborting SEQ-LOAD, and
+   I-501 is reset and XV-4101/4102 reopened afterwards; SEQ-HOLD opens XV-4101/4102 and puts
+   FIC-4101/4102 in manual with FV-4101/4102 open; the hybrid-arm permissives act on the open
+   commands HS-n123 / HS-n125, never on the valves; the position switches are tied to their
+   valves, not to the pipe beside them.
 
 ## 3. Results (concept)
 

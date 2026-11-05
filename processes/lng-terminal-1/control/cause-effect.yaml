@@ -425,15 +425,16 @@ interlocks:
     - tag: ZSC-5125
       state: not closed
   effects:
-  - tag: XV-5123
-    action: close
+  - tag: HS-5123
+    action: trip
   sheet: P-05
   sil: null
   latching: false
   reset: automatic
-  notes: 'Start permissive on the open command, not a trip (review #3, H-03 A13, review 2026-11-05-basic-design-2#2): the
-    open command of XV-5123 is blocked while ZSC-5125 does not prove XV-5125 closed; an XV-5123 already open is never closed
-    by it, so a failed ZSC-5125 signal cannot close the arm in service. Also key-interlocked at the arm (vendor).'
+  notes: 'Start permissive on the open command, not a trip: the effect blocks the open command of HS-5123 and never acts on
+    the valve itself (review #3, H-03 A13, review 2026-11-05-basic-design-2#2): the open command of XV-5123 is blocked while
+    ZSC-5125 does not prove XV-5125 closed; an XV-5123 already open is never closed by it, so a failed ZSC-5125 signal cannot
+    close the arm in service. Also key-interlocked at the arm (vendor).'
 - id: I-505
   title: 'Berth 2 hybrid arm: vapour isolation may open only with the liquid isolation proven closed'
   cause:
@@ -446,14 +447,15 @@ interlocks:
     - tag: ZSC-5123
       state: not closed
   effects:
-  - tag: XV-5125
-    action: close
+  - tag: HS-5125
+    action: trip
   sheet: P-05
   sil: null
   latching: false
   reset: automatic
-  notes: 'Start permissive on the open command (review #3, review 2026-11-05-basic-design-2#2): the open command of XV-5125
-    is blocked while ZSC-5123 does not prove XV-5123 closed; an open XV-5125 is never closed by it.'
+  notes: 'Start permissive on the open command, the effect blocks the open command of HS-5125 and never acts on the valve
+    itself (review #3, review 2026-11-05-basic-design-2#2): the open command of XV-5125 is blocked while ZSC-5123 does not
+    prove XV-5123 closed; an open XV-5125 is never closed by it.'
 - id: I-506
   title: D-5101 jetty drain drum level high-high
   cause:
@@ -472,6 +474,12 @@ interlocks:
   cause:
     tag: AI-4133
     condition: AAH
+  logic:
+    all:
+    - tag: AI-4133
+      state: AAH
+    - interlock: I-501
+      state: not tripped
   effects:
   - tag: XV-4131
     action: open
@@ -480,8 +488,9 @@ interlocks:
   latching: false
   reset: automatic
   notes: 'Carrier de-inerting and cool-down vapour (high N2, low CH4) goes to the storage and loading flare through BOG-4013
-    (review #19, D-017); first half of the make-before-break switch, the tank side closes by I-512. Vapour above the O2 limit
-    of D-026 is not taken by the terminal at all (S-01 terminal rules).'
+    (review #19, D-017); first half of the make-before-break switch, the tank side closes by I-512. Not while ESD-1 of the
+    berth is tripped: then the return goes to the tanks (I-501 opens XV-4135, I-513 closes XV-4131), so the two never command
+    XV-4131 against each other (review 2026-11-05-basic-design-3#2). Vapour above the O2 limit is rejected by I-514.'
 - id: I-512
   title: 'Vapour return A: tank-side valve XV-4135 closes only with XV-4131 proven open'
   cause:
@@ -529,6 +538,28 @@ interlocks:
   notes: 'Make-before-break back to the tanks (review 2026-11-05-basic-design-2#1, D-026): on on-specification vapour, or
     on ESD-1 (I-501 opens XV-4135), XV-4131 closes only once ZSO-4135 proves XV-4135 open. The vapour return is never closed
     at both valves.'
+- id: I-514
+  title: 'Vapour return A: oxygen above 5 vol % - carrier vapour rejected'
+  cause:
+    tag: AI-4133
+    condition: O2 AHH (5 vol %)
+  logic:
+    tag: AI-4133
+    state: O2 AHH (5 vol %)
+    delay:
+      value: 10
+      unit: s
+  effects:
+  - tag: XV-5122
+    action: close
+  sheet: P-05
+  sil: null
+  latching: true
+  reset: manual
+  notes: 'Review 2026-11-05-basic-design-2#11, D-026.7: vapour above 5 vol % O2 is taken neither by the flare nor by the tanks;
+    the vapour arm isolation XV-5122 closes and the carrier vents on board under the terminal rules (S-01). The jetty relief
+    path stays open: the drain drum vent BOG-5002 joins BOG-5001 downstream of XV-5122. Only during gassing-up and cool-down;
+    loading does not start until the oxygen is below 1 vol %.'
 - id: I-601
   title: Berth 1 ESD-1 (ship-shore link, arm envelope stage 1, ESD-2, manual, fire and gas)
   cause:
@@ -701,15 +732,16 @@ interlocks:
     - tag: ZSC-6125
       state: not closed
   effects:
-  - tag: XV-6123
-    action: close
+  - tag: HS-6123
+    action: trip
   sheet: P-06
   sil: null
   latching: false
   reset: automatic
-  notes: 'Start permissive on the open command, not a trip (review #3, H-03 A13, review 2026-11-05-basic-design-2#2): the
-    open command of XV-6123 is blocked while ZSC-6125 does not prove XV-6125 closed; an XV-6123 already open is never closed
-    by it, so a failed ZSC-6125 signal cannot close the arm in service. Also key-interlocked at the arm (vendor).'
+  notes: 'Start permissive on the open command, not a trip: the effect blocks the open command of HS-6123 and never acts on
+    the valve itself (review #3, H-03 A13, review 2026-11-05-basic-design-2#2): the open command of XV-6123 is blocked while
+    ZSC-6125 does not prove XV-6125 closed; an XV-6123 already open is never closed by it, so a failed ZSC-6125 signal cannot
+    close the arm in service. Also key-interlocked at the arm (vendor).'
 - id: I-605
   title: 'Berth 1 hybrid arm: vapour isolation may open only with the liquid isolation proven closed'
   cause:
@@ -722,14 +754,15 @@ interlocks:
     - tag: ZSC-6123
       state: not closed
   effects:
-  - tag: XV-6125
-    action: close
+  - tag: HS-6125
+    action: trip
   sheet: P-06
   sil: null
   latching: false
   reset: automatic
-  notes: 'Start permissive on the open command (review #3, review 2026-11-05-basic-design-2#2): the open command of XV-6125
-    is blocked while ZSC-6123 does not prove XV-6123 closed; an open XV-6125 is never closed by it.'
+  notes: 'Start permissive on the open command, the effect blocks the open command of HS-6125 and never acts on the valve
+    itself (review #3, review 2026-11-05-basic-design-2#2): the open command of XV-6125 is blocked while ZSC-6123 does not
+    prove XV-6123 closed; an open XV-6125 is never closed by it.'
 - id: I-606
   title: D-6101 jetty drain drum level high-high
   cause:
@@ -748,6 +781,12 @@ interlocks:
   cause:
     tag: AI-4134
     condition: AAH
+  logic:
+    all:
+    - tag: AI-4134
+      state: AAH
+    - interlock: I-601
+      state: not tripped
   effects:
   - tag: XV-4132
     action: open
@@ -755,9 +794,10 @@ interlocks:
   sil: null
   latching: false
   reset: automatic
-  notes: 'Carrier de-inerting and cool-down vapour (high N2, low CH4) goes to the storage and loading flare through BOG-4013
-    (review #19, D-017); first half of the make-before-break switch, the tank side closes by I-612. Vapour above the O2 limit
-    of D-026 is not taken by the terminal at all (S-01 terminal rules).'
+  notes: 'Carrier de-inerting and cool-down vapour (high N2, low CH4) goes to the storage and loading flare through BOG-4014
+    (review #19, D-017); first half of the make-before-break switch, the tank side closes by I-612. Not while ESD-1 of the
+    berth is tripped: then the return goes to the tanks (I-601 opens XV-4136, I-613 closes XV-4132), so the two never command
+    XV-4132 against each other (review 2026-11-05-basic-design-3#2). Vapour above the O2 limit is rejected by I-614.'
 - id: I-612
   title: 'Vapour return B: tank-side valve XV-4136 closes only with XV-4132 proven open'
   cause:
@@ -805,6 +845,28 @@ interlocks:
   notes: 'Make-before-break back to the tanks (review 2026-11-05-basic-design-2#1, D-026): on on-specification vapour, or
     on ESD-1 (I-601 opens XV-4136), XV-4132 closes only once ZSO-4136 proves XV-4136 open. The vapour return is never closed
     at both valves.'
+- id: I-614
+  title: 'Vapour return B: oxygen above 5 vol % - carrier vapour rejected'
+  cause:
+    tag: AI-4134
+    condition: O2 AHH (5 vol %)
+  logic:
+    tag: AI-4134
+    state: O2 AHH (5 vol %)
+    delay:
+      value: 10
+      unit: s
+  effects:
+  - tag: XV-6122
+    action: close
+  sheet: P-06
+  sil: null
+  latching: true
+  reset: manual
+  notes: 'Review 2026-11-05-basic-design-2#11, D-026.7: vapour above 5 vol % O2 is taken neither by the flare nor by the tanks;
+    the vapour arm isolation XV-6122 closes and the carrier vents on board under the terminal rules (S-01). The jetty relief
+    path stays open: the drain drum vent BOG-6002 joins BOG-6001 downstream of XV-6122. Only during gassing-up and cool-down;
+    loading does not start until the oxygen is below 1 vol %.'
 - id: I-701
   title: BOG suction drum level high-high
   cause:
@@ -872,6 +934,9 @@ interlocks:
         state: not open
       - tag: PZT-7113
         state: PALL
+        delay:
+          value: 5
+          unit: s
   effects:
   - tag: K-7101A
     action: stop
@@ -883,7 +948,10 @@ interlocks:
   reset: manual
   notes: 'Review #12, D-026: a running machine stops when ZSO-7121A loses the open position of its fail-closed suction valve
     (instrument air failure, spurious closure) or PZT-7113 reads the common suction header low-low; the recycle XV-7125A stays
-    open. Bypassed by SEQ-BOG-START S1 until XV-7121A is open.'
+    open. A machine that is not running is not tripped (the logic includes K-7101A running), so no start bypass is needed.
+    PZT-7113 is a single transmitter on the common header (1oo1, 5 s on-delay): a spurious trip stops all three machines and
+    sends the BOG to the flare through PV-1110, a production loss and not a hazard; its voting is set in the SIL screening
+    (review 2026-11-05-basic-design-3#6).'
 - id: I-703A
   title: K-7101A discharge temperature high-high
   cause:
@@ -938,6 +1006,9 @@ interlocks:
         state: not open
       - tag: PZT-7113
         state: PALL
+        delay:
+          value: 5
+          unit: s
   effects:
   - tag: K-7101B
     action: stop
@@ -949,7 +1020,10 @@ interlocks:
   reset: manual
   notes: 'Review #12, D-026: a running machine stops when ZSO-7121B loses the open position of its fail-closed suction valve
     (instrument air failure, spurious closure) or PZT-7113 reads the common suction header low-low; the recycle XV-7125B stays
-    open. Bypassed by SEQ-BOG-START S1 until XV-7121B is open.'
+    open. A machine that is not running is not tripped (the logic includes K-7101B running), so no start bypass is needed.
+    PZT-7113 is a single transmitter on the common header (1oo1, 5 s on-delay): a spurious trip stops all three machines and
+    sends the BOG to the flare through PV-1110, a production loss and not a hazard; its voting is set in the SIL screening
+    (review 2026-11-05-basic-design-3#6).'
 - id: I-703B
   title: K-7101B discharge temperature high-high
   cause:
@@ -1004,6 +1078,9 @@ interlocks:
         state: not open
       - tag: PZT-7113
         state: PALL
+        delay:
+          value: 5
+          unit: s
   effects:
   - tag: K-7101C
     action: stop
@@ -1015,7 +1092,10 @@ interlocks:
   reset: manual
   notes: 'Review #12, D-026: a running machine stops when ZSO-7121C loses the open position of its fail-closed suction valve
     (instrument air failure, spurious closure) or PZT-7113 reads the common suction header low-low; the recycle XV-7125C stays
-    open. Bypassed by SEQ-BOG-START S1 until XV-7121C is open.'
+    open. A machine that is not running is not tripped (the logic includes K-7101C running), so no start bypass is needed.
+    PZT-7113 is a single transmitter on the common header (1oo1, 5 s on-delay): a spurious trip stops all three machines and
+    sends the BOG to the flare through PV-1110, a production loss and not a hazard; its voting is set in the SIL screening
+    (review 2026-11-05-basic-design-3#6).'
 - id: I-703C
   title: K-7101C discharge temperature high-high
   cause:
@@ -1074,16 +1154,19 @@ interlocks:
     tag: LZT-8105
     condition: LAHH
   effects:
+  - tag: P-8101A
+    action: start
   - tag: P-8101B
     action: start
   - tag: LV-7102
     action: close
   sheet: P-08
   sil: null
-  latching: true
-  reset: manual
-  notes: 'Independent of LIC-8101 (review #20, H-05 A1): starts the standby pump and stops the D-7101 drain into the drum;
-    carry-over to FL-8101 is the hazard.'
+  latching: false
+  reset: automatic
+  notes: 'Independent of LIC-8101 (review #20, H-05 A1): starts both pumps (whichever is not running starts, whichever is
+    duty), and stops the D-7101 drain into the drum; carry-over to FL-8101 is the hazard. Non-latching: it clears when the
+    level falls below high-high, and I-803 (low-low stop) has priority, so the pumps never cycle at low level.'
 - id: I-803
   title: Flare knock-out drum level low-low - KO drum pumps stop
   cause:
@@ -1098,5 +1181,5 @@ interlocks:
   sil: null
   latching: false
   reset: automatic
-  notes: Dry-running protection of P-8101A/B, independent of LIC-8101, which starts and stops the duty pump on its own level
-    band (signal lines on P-08; review 2026-11-05-basic-design#20, H-05 A2, D-026).
+  notes: Dry-running protection of P-8101A/B, priority over I-802 and LIC-8101, independent of LIC-8101, which starts and
+    stops the duty pump on its own level band (signal lines on P-08; review 2026-11-05-basic-design#20, H-05 A2, D-026).

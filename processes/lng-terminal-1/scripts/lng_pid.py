@@ -1,6 +1,6 @@
 """Shared helpers of the P&ID generators scripts/draft_P-0n.py of lng-terminal-1.
 
-Provenance only (the sheets are hand-maintained after their first run, AGENTS.md). Builders
+Shared by the generators of the eight generated sheets (plant.yaml, D-021). Builders
 from cheme-as-code's authoring API with ISO 6708 sizes (DIN 2448 in DEXPI stops at DN 200);
 two shapes the catalogue lacks (a full-containment LNG tank, a marine loading arm), built from
 cheme-as-code's own XML element helpers; the relief valves drawn as globe valves and turned

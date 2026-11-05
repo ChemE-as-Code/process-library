@@ -2,8 +2,8 @@
 the liquid burner, the storage and loading flare FL-8101 with purge and pilot gas; the LNG
 spill impoundment sumps of the tank area and the jetty; the N2 and instrument-air headers.
 
-Provenance only: P-08 is hand-maintained after this first revision. Run:
-cheme run scripts/draft_P-08.py pid/P-08.xml (on the empty A3 frame).
+Generator of P-08 (plant.yaml `generator:`, frame pid/frames/P-08.xml): `cheme regen P-08`
+rebuilds the sheet; change this script, never the XML (D-021).
 Decisions D-017, D-018, D-020, D-021; flares from BCER air permit PA-110588 (S-02).
 
 Rev C (review 2026-11-05-basic-design-2 #7, D-026.9, .11, .12): discharge isolation HV-8108A/B
@@ -12,6 +12,14 @@ section LNG-8001; the pumps' motor start/stop functions HS-8101A/B, each tied to
 measuring line, are driven by the signal chain LIC-8101 -> HS-8101A -> HS-8101B (the authoring API
 draws one signal per function, to a valve or to an instrument function, not to a pump); FL-7001 (PSV-7105, removed on P-07) and its flare header tee T8F1 removed, so FL-8001 on P-08
 starts with the FL-7002 tee and has one segment fewer.
+
+Rev D (review 2026-11-05-basic-design-3 #3 and its adversarial check, D-026.14): sheet note on the
+suction isolations HV-8106A/B (cryogenic ball valves, cavity vented to the drum side, so a pump
+blocked in between HV-8106x and HV-8108x relieves into D-8101; drain to the drum before
+maintenance), with a "cavity vent: drum side" text at each valve; the I-802 notes say that it
+starts both pumps (whichever is not running) and yields to I-803, not "the standby". The left
+note column starts one row higher (y 252) to take the extra line; the new notes come after the
+existing ones, so the ids Note1 to Note11 are kept.
 """
 
 import sys
@@ -95,12 +103,12 @@ L.line(sheet, "DR-7001", dn=50, fluid="LNG", frm="D-7101", to="D-8101",
 # ---- knock-out drum pumps to the liquid burner ---------------------------------------------------
 t_s = tee("T8S1", at=(150, 126), branch="right", branch_dn=100)
 L.line(sheet, "LNG-8002", dn=100, fluid="LNG", frm="D-8101", to="P-8101A",
-       notes="Knock-out drum pump suction header; HV-8106A isolates P-8101A.",
+       notes="Knock-out drum pump suction header; HV-8106A isolates P-8101A (cryogenic ball valve, cavity vented to the drum side, D-026.14).",
        route=[drum["N3"], t_s, (150, 135), (116, 135),
               valve("HV8106A", "BallValve", tag="HV-8106A", at=(116, 150)), (116, 165), pa["N1"]],
        label_at=(104, 141))
 L.line(sheet, "LNG-8003", dn=100, fluid="LNG", frm="LNG-8002", to="P-8101B",
-       notes="P-8101B suction; HV-8106B isolates P-8101B.",
+       notes="P-8101B suction; HV-8106B isolates P-8101B (cryogenic ball valve, cavity vented to the drum side, D-026.14).",
        route=[t_s.branch, (176, 126), valve("HV8106B", "BallValve", tag="HV-8106B", at=(176, 150)), (176, 165),
               pb["N1"]], labels=False)
 t_d = tee("T8D1", at=(205, 190), branch="up", branch_dn=80)
@@ -184,8 +192,8 @@ L.inst(sheet, "FI-8111", "Flare header purge gas flow", "Purge set by the orific
 # authoring API takes a nozzle as the sensing location of a machine, here the discharge nozzle N2),
 # as ZSO-7121x is tied to its valve. The API draws one signal per instrument function, ending at a
 # valve or at another function, so the drive is a chain: LIC-8101 -> HS-8101A -> HS-8101B (the
-# duty/standby selection passes the start/stop command on to P-8101B). I-802 (start the standby) and
-# I-803 (stop both) act on the pumps from the C&E.
+# duty/standby selection passes the start/stop command on to P-8101B). I-802 (start both, whichever
+# is not running; yields to I-803, D-026.14) and I-803 (stop both) act on the pumps from the C&E.
 # LIC-8101 sits below DR-7001 on its nozzle N4 under the drum; its signal line reaches HS-8101A
 # round the left of P-8101A without crossing a pipe (the pumps, the minimum flow and the thermal
 # relief each close a loop with the drum). HS-8101B sits below the discharge header, reached from
@@ -206,20 +214,22 @@ HS_ROLE = {
 pumps = {"A": pa, "B": pb}
 for s in "BA":  # HS-8101B first: HS-8101A's signal line ends at it
     L.inst(sheet, f"HS-8101{s}", f"P-8101{s} motor start/stop (DCS)",
-           f"Tied to P-8101{s} (run feedback). {HS_ROLE[s]}; I-802 starts the standby at high-high level, "
-           f"I-803 stops both at low-low level (LZT-8105). Hand-off-auto selector at the MCC, local stop at "
-           f"the pump (D-026.11).",
+           f"Tied to P-8101{s} (run feedback). {HS_ROLE[s]}; I-802 starts both pumps at high-high level "
+           f"(whichever is not running) and yields to I-803, which stops both at low-low level (LZT-8105, "
+           f"D-026.14). Hand-off-auto selector at the MCC, local stop at the pump (D-026.11).",
            at=HS_AT[s], sensing=pumps[s]["N2"], sensing_at=HS_SENSE[s],
            **({"signal_to": "Inst_HS8101B", "signal_points": [(HS_AT["A"][0], HS_AT["B"][1])]} if s == "A"
               else {}))
 L.inst(sheet, "LIC-8101", "Flare knock-out drum level",
        "Starts and stops the duty pump on its level band (signal line to HS-8101A, on to HS-8101B); I-803 "
-       "stops both at low-low level (LZT-8105), I-802 starts the standby at high-high.",
+       "stops both at low-low level (LZT-8105); I-802 starts both at high-high (whichever is not running) "
+       "and yields to I-803 (D-026.14).",
        at=LIC_AT, sensing=drum["N4"], signal_to="Inst_HS8101A",
        signal_points=[(TRUNK_X, LIC_AT[1]), (TRUNK_X, HS_AT["A"][1])])
 L.inst(sheet, "LZT-8105", "Flare knock-out drum level high-high and low-low (independent of LIC-8101)",
-       "Own nozzle N6 on D-8101, independent of LIC-8101: high-high (LAHH, C&E I-802) starts the standby pump "
-       "and closes LV-7102 against liquid carry-over to FL-8101; low-low (LALL, C&E I-803) stops P-8101A/B.",
+       "Own nozzle N6 on D-8101, independent of LIC-8101: high-high (LAHH, C&E I-802) starts both pumps "
+       "P-8101A/B (whichever is not running) and closes LV-7102 against liquid carry-over to FL-8101, "
+       "non-latching and yielding to I-803; low-low (LALL, C&E I-803) stops P-8101A/B (D-026.14).",
        at=LZT_AT, sensing=drum["N6"])
 L.inst(sheet, "FI-8133", "Flare flow (ultrasonic)", "Monthly-average routine flow against the permit limit (S-02).",
        at=(255, 128), sensing="Line_FL8002_S1", sensing_at=(240, 128))
@@ -235,16 +245,28 @@ L.inst(sheet, "PI-8121", "N2 header pressure", at=(225, 220), sensing=n2.segment
 L.inst(sheet, "PI-8122", "Instrument-air header pressure", at=(232, 236),
        sensing=ia.segments[0], sensing_at=(232, 246))
 
-note(sheet, "FL-8101: the storage and loading flare, one of four flares on the site's 122 m vapour flare derrick", at=(12, 258))
-note(sheet, "(warm/wet, cold/dry, storage and loading, spare); derrick and liquid burner are site scope (S-02, D-001, D-017).", at=(12, 264))
-note(sheet, "T-8101 / T-8102: LNG spill impoundment sumps, tank area and trestle troughs / loading platform (D-018).", at=(12, 270))
-note(sheet, "TSL-8102: see C&E I-801. LZT-8105 (independent of LIC-8101): I-802 at high-high starts the", at=(12, 276))
-note(sheet, "standby pump and closes LV-7102; I-803 at low-low stops P-8101A/B. HS-8101A/B: motor control.", at=(12, 282))
+note(sheet, "FL-8101: the storage and loading flare, one of four flares on the site's 122 m vapour flare derrick", at=(12, 252))
+note(sheet, "(warm/wet, cold/dry, storage and loading, spare); derrick and liquid burner are site scope (S-02, D-001, D-017).", at=(12, 258))
+note(sheet, "T-8101 / T-8102: LNG spill impoundment sumps, tank area and trestle troughs / loading platform (D-018).", at=(12, 264))
+note(sheet, "TSL-8102: see C&E I-801. LZT-8105 (independent of LIC-8101): I-802 at high-high starts both pumps", at=(12, 270))
+note(sheet, "P-8101A/B (whichever is not running) and closes LV-7102; non-latching, it yields to I-803.", at=(12, 276))
 note(sheet, "FL-8001 also receives BOG-4013 (carrier de-inerting and cool-down vapour, P-04) and FL-7003", at=(150, 252))
 note(sheet, "(BOG compressor depressurising vents, P-07). FO-8107: minimum-flow orifice of P-8101A/B.", at=(150, 258))
 note(sheet, "T-8102: no fixed pump; rainwater is removed by a portable pump once TSL-8104 confirms no LNG", at=(150, 264))
 note(sheet, "in the sump (D-018). FL-8101 pilot ignition (flame-front generator) and re-ignition on pilot", at=(150, 270))
 note(sheet, "failure (TI-8131) are part of the site's flare derrick package (S-02).", at=(150, 276))
 note(sheet, "HV-8106A/B, HV-8108A/B: suction and discharge isolation of P-8101A/B for maintenance.", at=(150, 282))
+# Rev D notes after the existing ones (ids Note12 on). The third I-802/I-803 line of the left column:
+note(sheet, "I-803 at low-low stops P-8101A/B (D-026.14). HS-8101A/B: motor control.", at=(12, 282))
+# HV-8106A/B cavity vent (D-026.14): in the free field right of the outgoing headers, above the
+# title block, and a text at each valve on its drum (upstream, upper) side.
+VN = (300, 236)
+for i, txt in enumerate([
+        "HV-8106A/B: cryogenic ball valves with the cavity vented to the drum side, so a pump",
+        "blocked in between HV-8106x and HV-8108x relieves into D-8101; drain the pump to the",
+        "drum before maintenance (D-026.14)."]):
+    note(sheet, txt, at=(VN[0], VN[1] + 6 * i))
+for x in (116, 176):  # HV-8106A, HV-8106B
+    note(sheet, "cavity vent: drum side", at=(x + 3, 146))
 
 L.finish(sheet, target)

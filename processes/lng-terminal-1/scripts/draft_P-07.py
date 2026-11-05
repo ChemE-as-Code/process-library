@@ -20,8 +20,8 @@ the casing through the check valve and the CV/XV pocket); the vent header runs b
 discharge header, the K-7101B/C recycle BOG-7012 along the top of the sheet, the K-7101A
 recycle BOG-7008 to its own return tee on BOG-1001.
 
-Provenance only: P-07 is hand-maintained. Run:
-cheme run scripts/draft_P-07.py pid/P-07.xml (on the empty A3 frame build/P-07-frame.xml).
+Generator of P-07 (plant.yaml `generator:`, frame pid/frames/P-07.xml): `cheme regen P-07`
+rebuilds the sheet; change this script, never the XML (D-021).
 Streams S7, S8, S9, S14; decisions D-010, D-017, D-021.
 
 Crossings: each machine is a path from the suction header to the discharge header with its

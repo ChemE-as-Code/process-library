@@ -6,8 +6,8 @@ carrier de-inerting and cool-down vapour to the storage and loading flare (BOG-4
 review 2026-11-05 #19); thermal relief of the tank-end crossover and the circulation return
 (PSV-4113, PSV-4114, review #6, HAZOP H-02 A2); PSV-4111 / PSV-4112 at 15.0 barg (H-02 A11).
 
-Provenance only: P-04 is hand-maintained after this first revision. Run:
-cheme run scripts/draft_P-04.py pid/P-04.xml (on the empty A3 frame).
+Generator of P-04 (plant.yaml `generator:`, frame pid/frames/P-04.xml): `cheme regen P-04`
+rebuilds the sheet; change this script, never the XML (D-021).
 Streams S2, S3, S6, S7, S10; decisions D-008, D-009, D-012, D-013, D-016, D-017, D-021.
 
 Revision after the follow-up review 2026-11-05-basic-design-2 (#1, D-026.1 and D-026.11):
@@ -22,6 +22,11 @@ could only be reached by crossing BOG-4001 as well; BOG-4011 and BOG-4015 cross 
 B once each (the topological minimum for a relief from line A or the tank-end crossover).
 XV-4135 / HS-4135 and the de-inerting tee T4V1 / XV-4131 / HS-4131 are drawn further right to
 make room; BOG-4001 is resegmented (S1 unchanged, old S2 now S2-S6).
+
+Revision after review 2026-11-05-basic-design-3 (#1, D-026.1 and D-026.14): the flare valves
+XV-4131 / XV-4132 fail closed again (HS-4131 / HS-4132), the tank-side valves XV-4135 / XV-4136
+stay fail open; ZSO-4131 / ZSO-4132 / ZSO-4135 / ZSO-4136 sense their valves themselves, as
+ZSO-7121A on P-07, instead of the pipe segment beside them.
 """
 
 import sys
@@ -197,13 +202,13 @@ L.line(sheet, "BOG-4014", dn=300, fluid="Boil-off gas", frm="BOG-4002", to="BOG-
        route=[tvb.branch, xv32, tvj.branch], label_at=(194, 219))
 
 # make-before-break switch of each vapour return (C&E I-511..I-513, I-611..I-613; D-026.1): the
-# open-position switches are tied to their valves (sensor on the valve's segment, as ZSC-5123)
+# open-position switches sense their valves themselves (sensing the valve, as ZSO-7121A on P-07)
 L.inst(sheet, "HS-4131", "De-inerting vapour A to the flare XV-4131",
-       "Flare valve of the make-before-break switch: I-511 opens it while AI-4133 reads off-specification vapour; I-513 closes it only once ZSO-4135 proves XV-4135 open; fail open (D-017, D-026).",
-       at=(190, 204), signal_to=xv31, fail_action="FO")
+       "Flare valve of the make-before-break switch: I-511 opens it while AI-4133 reads off-specification vapour (not while ESD-1, I-501, is tripped); I-513 closes it only once ZSO-4135 proves XV-4135 open; fail closed: on an instrument-air failure the return goes to the tanks, never from the tank header to the flare (D-017; D-026.1, review 2026-11-05-basic-design-3#1).",
+       at=(190, 204), signal_to=xv31, fail_action="FC")
 L.inst(sheet, "HS-4132", "De-inerting vapour B to the flare XV-4132",
-       "As HS-4131, with AI-4134, ZSO-4136 and XV-4136 (C&E I-611, I-613); fail open (D-026).",
-       at=(224, 224), signal_to=xv32, fail_action="FO")
+       "As HS-4131, with AI-4134, ZSO-4136 and XV-4136 (C&E I-611, I-613); fail closed: on an instrument-air failure the return goes to the tanks, never from the tank header to the flare (D-026.1, review 2026-11-05-basic-design-3#1).",
+       at=(224, 224), signal_to=xv32, fail_action="FC")
 L.inst(sheet, "HS-4135", "Vapour return A to the tank vapour header XV-4135",
        "Tank-side valve of the switch: I-512 closes it only while ZSO-4131 proves XV-4131 open; ESD-1 (I-501) opens it; fail open keeps the carrier vapour return (D-026).",
        at=(150, 183), signal_to=xv35, fail_action="FO")
@@ -212,16 +217,16 @@ L.inst(sheet, "HS-4136", "Vapour return B to the tank vapour header XV-4136",
        at=(134, 224), signal_to=xv36, fail_action="FO")
 L.inst(sheet, "ZSO-4131", "XV-4131 open position",
        "Position switch on the flare valve XV-4131: XV-4135 may close only with XV-4131 proven open (C&E I-512, D-026).",
-       at=(162, 208), sensing="Line_BOG4013_S1", sensing_at=(176, 208))
+       at=(162, 208), sensing=xv31.id, sensing_at=(176, 204))
 L.inst(sheet, "ZSO-4135", "XV-4135 open position",
        "Position switch on the tank-side valve XV-4135: XV-4131 may close only with XV-4135 proven open (C&E I-513, D-026).",
-       at=(144, 205), sensing=va.segments[1], sensing_at=(140, YVA))
+       at=(144, 205), sensing=xv35.id, sensing_at=(136, YVA))
 L.inst(sheet, "ZSO-4132", "XV-4132 open position",
        "Position switch on the flare valve XV-4132: XV-4136 may close only with XV-4132 proven open (C&E I-612, D-026).",
-       at=(196, 229), sensing="Line_BOG4014_S1", sensing_at=(210, 229))
+       at=(196, 229), sensing=xv32.id, sensing_at=(210, 224))
 L.inst(sheet, "ZSO-4136", "XV-4136 open position",
        "Position switch on the tank-side valve XV-4136: XV-4132 may close only with XV-4136 proven open (C&E I-613, D-026).",
-       at=(106, 226), sensing=vb.segments[1], sensing_at=(116, YVB))
+       at=(106, 226), sensing=xv36.id, sensing_at=(120, YVB))
 L.inst(sheet, "AI-4133", "Vapour return A composition at the tank end (N2 / O2 / CH4)",
        "Switches the carrier vapour make-before-break between the tank vapour header (XV-4135) and the flare (XV-4131) by C&E I-511..I-513: to the flare while N2 is high (de-inerting, gassing-up; to the flare only below 5 vol % O2), to the tanks once CH4 is on specification and O2 below 1 vol % (D-026).",
        at=(185, 182), sensing=va.segments[0], sensing_at=(185, YVA))
@@ -268,6 +273,6 @@ note(sheet, "BOG-4011 / -4012 / -4015 / -4016 (DN 25): thermal relief PSV-4111 /
 note(sheet, "BOG-4013 / BOG-4014 (DN 300): carrier de-inerting and cool-down vapour to the flare; AI-4133 / AI-4134 (N2, O2, CH4) switch each vapour return", at=(12, 267))
 note(sheet, "make-before-break between the tank vapour header (XV-4135 / XV-4136) and the flare (XV-4131 / XV-4132): C&E I-511..I-513 with ZSO-4131 / ZSO-4135,", at=(12, 272))
 note(sheet, "I-611..I-613 with ZSO-4132 / ZSO-4136. ESD-1 (I-501 / I-601) opens XV-4135 / XV-4136 and never closes the vapour return, the relief path", at=(12, 277))
-note(sheet, "of the berth; XV-4131 / XV-4132 close only once XV-4135 / XV-4136 are proven open (I-513 / I-613). All four switching valves fail open (D-026).", at=(12, 282))
+note(sheet, "of the berth; XV-4131 / XV-4132 close only once XV-4135 / XV-4136 are proven open (I-513 / I-613). XV-4135 / -4136 fail open, XV-4131 / -4132 fail closed (D-026.1).", at=(12, 282))
 
 L.finish(sheet, target)
