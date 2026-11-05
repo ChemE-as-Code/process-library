@@ -105,7 +105,7 @@ line(sheet, "CWS-440", dn=500, fluid="Cooling water", route=[
     e201["S1"]], label_at=(209, 28))
 pv404 = valve("PV404", "GlobeValve", tag="PV-404", at=(330, 40))
 line(sheet, "FG-116", dn=125, fluid="Fuel gas", route=[
-    v201["N2"], (276, 40), pv404,
+    v201["N2"], (276, 40), pv404, valve("CV116", "SwingCheckValve", at=(352, 40)),
     offpage("out", at=(EDGE, 40), note="to fuel gas header (B/L)")], label_at=(372, 48))
 
 # ---- reflux: V-201 -> P-201A/B -> C-201 on the drum level
@@ -184,7 +184,7 @@ notes(sheet,
       "off-gas PV-404. LIC-405: all condensed liquid is refluxed, on the V-201 level (D-020)",
       "LIC-408: sump level on the bottoms LV-408 to C-202. LZ-411: V-201 level low-low stops "
       "P-201A/B (C&E I-401). Pump minimum-flow protection with the pump vendor (D-020)",
-      "PSV-413: C-201 and V-201 (fire, CW failure, gas blow-by through V-102), to the LP flare "
-      "header. C-201, E-201, V-201 designed for full vacuum (loss of heat). DN ASSUMED (D-020)")
+      "PSV-413 (LP flare header): C-201, V-201 (fire, CW failure). C-201, E-201, E-202 (both sides), "
+      "V-201 and their piping full vacuum; CV-116 stops back-flow from the header (D-022)")
 
 save(sheet, target)

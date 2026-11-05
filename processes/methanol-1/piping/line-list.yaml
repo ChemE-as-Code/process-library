@@ -6,13 +6,15 @@
 # scripts/loop_balance.py (PR underestimates liquid density by ~15 %: the liquid lines are
 # conservative); inside diameter taken as the DN. The lines the P&IDs add are sized the same way
 # on the flows and duties of process/flowsheet.yaml; circulation, relief, drain and utility
-# lines are ASSUMED (D-016). Pressure classes come with the pipe specs.
+# lines are ASSUMED (D-016). Pressure classes come with the pipe specs. The column systems of P-04
+# and P-05 (overhead, condensate, reflux, reboiler circulation and LP steam / condensate lines of
+# the reboilers) are designed for full vacuum like the equipment they connect (D-022).
 lines:
   # ---- P-01 make-up gas compression
   - {number: SG-101, from: B/L, to: V-103, nominal_diameter: DN600, fluid: Synthesis gas, sheet: P-01, notes: "S1 make-up gas, 2600 kPa(a); shutdown valve XV-110 (C&E I-101, I-201, I-202), into the suction knock-out drum V-103 (D-017)"}
   - {number: SG-130, from: V-103, to: K-101, nominal_diameter: DN600, fluid: Synthesis gas, sheet: P-01, notes: "S1 from V-103 to the K-101 suction; the anti-surge recycle SG-131 joins it (D-017)"}
   - {number: SG-102, from: K-101, to: E-101, nominal_diameter: DN400, fluid: Synthesis gas, sheet: P-01, notes: "S2; relief take-off to PSV-111 (D-017)"}
-  - {number: SG-103, from: E-101, to: SG-110, nominal_diameter: DN350, fluid: Synthesis gas, sheet: P-01, notes: "S3; anti-surge take-off SG-131, check valve CV-103; continues on P-02 and joins the recycle gas SG-110 at the circulator suction (M101). Was 'to SG-104' (SG-104 merged into SG-110, D-016)"}
+  - {number: SG-103, from: E-101, to: SG-110, nominal_diameter: DN350, fluid: Synthesis gas, sheet: P-01, notes: "S3; anti-surge take-off SG-131, check valve CV-103 and discharge shutdown valve XV-116 (closes on every K-101 trip, D-022); continues on P-02 and joins the recycle gas SG-110 at the circulator suction (M101). Was 'to SG-104' (SG-104 merged into SG-110, D-016)"}
   - {number: SG-131, from: SG-103, to: SG-130, nominal_diameter: DN300, fluid: Synthesis gas, sheet: P-01, notes: "K-101 anti-surge recycle on UV-104 (UIC-104), cooled by E-101 (taken after it), back to the suction downstream of V-103. Sized for 70 % of the K-101 flow at the E-101 outlet (about 32 kg/m3), 15 m/s: 0.26 m, ASSUMED surge margin until the compressor curve is known (D-016, D-017)"}
   - {number: FL-132, from: SG-102, to: B/L, nominal_diameter: DN150, fluid: Relief gas, sheet: P-01, notes: "PSV-111 outlet to the HP flare header; FL-134 joins it. DN ASSUMED until the relief load is known (D-016)"}
   - {number: CWS-132, from: B/L, to: E-101, nominal_diameter: DN600, fluid: Cooling water, sheet: P-01, notes: "Q2 14.5 MW at 10 K rise (D-009): 347 kg/s, 0.54 m at 1.5 m/s (D-016)"}
@@ -47,7 +49,7 @@ lines:
   - {number: FL-334, from: CWR-331, to: B/L, nominal_diameter: DN80, fluid: Relief gas, sheet: P-03, notes: "PSV-312 on the E-103 cooling water side (tube rupture) to the HP flare header; DN ASSUMED (D-019)"}
   - {number: FL-335, from: V-102, to: B/L, nominal_diameter: DN100, fluid: Relief gas, sheet: P-03, notes: "PSV-311 outlet (V-102: gas blow-by from V-101, fire) to the HP flare header; DN ASSUMED until the blow-by load is known (D-019)"}
   # ---- P-04 topping column
-  - {number: FG-116, from: V-201, to: B/L, nominal_diameter: DN125, fluid: Fuel gas, sheet: P-04, notes: "S16 topping column off-gas, from the reflux drum V-201 on PV-404 (PIC-404)"}
+  - {number: FG-116, from: V-201, to: B/L, nominal_diameter: DN125, fluid: Fuel gas, sheet: P-04, notes: "S16 topping column off-gas, from the reflux drum V-201 on PV-404 (PIC-404), check valve CV-116 against fuel gas drawn back into a column under vacuum (D-022)"}
   - {number: CM-117, from: P-202A, to: C-202, nominal_diameter: DN250, fluid: Stabilised methanol, sheet: P-04, notes: "S17 from the bottoms pumps P-202A/B (the pump D-008 left open) on LV-408 (LIC-408); continues on P-05. Was 'from C-201': the column bottoms run C-201 -> CM-444 -> P-202A/B -> CM-117 (D-016)"}
   - {number: PG-430, from: C-201, to: E-201, nominal_diameter: DN700, fluid: Topping column overhead, sheet: P-04, notes: "Overhead vapour: reflux 1230 kmol/h plus off-gas at 150 kPa(a), about 340 K: 6.8 m3/s, 0.66 m at 20 m/s, ASSUMED (D-016)"}
   - {number: PG-431, from: E-201, to: V-201, nominal_diameter: DN500, fluid: Topping column overhead, sheet: P-04, notes: "Partial condenser outlet (liquid and off-gas); DN ASSUMED (D-016); TI-407"}
@@ -61,7 +63,7 @@ lines:
   - {number: CD-439, from: E-202, to: B/L, nominal_diameter: DN100, fluid: Condensate, sheet: P-04, notes: "Condensate on the steam trap ST-439 (a condensate pot with level control at basic engineering), ASSUMED"}
   - {number: CWS-440, from: B/L, to: E-201, nominal_diameter: DN500, fluid: Cooling water, sheet: P-04, notes: "Q7 12.9 MW at 10 K rise: 308 kg/s, 0.51 m at 1.5 m/s (D-016)"}
   - {number: CWR-441, from: E-201, to: B/L, nominal_diameter: DN500, fluid: Cooling water return, sheet: P-04, notes: "As CWS-440"}
-  - {number: FL-443, from: C-201, to: B/L, nominal_diameter: DN150, fluid: Relief gas, sheet: P-04, notes: "PSV-413 outlet to the LP flare header (separate from the HP loop's, D-021); DN ASSUMED (D-020)"}
+  - {number: FL-443, from: C-201, to: B/L, nominal_diameter: DN150, fluid: Relief gas, sheet: P-04, notes: "PSV-413 outlet to the LP flare header (separate from the HP loop's, D-022); DN ASSUMED (D-020)"}
   - {number: CM-444, from: C-201, to: P-202A, nominal_diameter: DN300, fluid: Stabilised methanol, sheet: P-04, notes: "Bottoms pump suction, one size above the discharge, ASSUMED (D-016)"}
   - {number: CM-445, from: CM-444, to: P-202B, nominal_diameter: DN300, fluid: Stabilised methanol, sheet: P-04, notes: "Suction of the spare P-202B"}
   - {number: CM-446, from: P-202B, to: CM-117, nominal_diameter: DN250, fluid: Stabilised methanol, sheet: P-04, notes: "Discharge of the spare P-202B"}
@@ -70,7 +72,7 @@ lines:
   - {number: WW-119, from: P-204A, to: B/L, nominal_diameter: DN65, fluid: Process water, sheet: P-05, notes: "S19 bottoms water from P-204A/B on LV-508 (LIC-508) to wastewater treatment; about 394 K at the battery limit, cooling is open (D-020). Was 'from C-202' (D-016)"}
   - {number: PG-530, from: C-202, to: E-203, nominal_diameter: DN1800, fluid: Refining column overhead, sheet: P-05, notes: "Overhead vapour at reflux ratio 1.5: 259 t/h methanol at 110 kPa(a), about 338 K: 57 m3/s, 1.9 m at 20 m/s; DN1800 at about 22 m/s, ASSUMED (D-016)"}
   - {number: ME-531, from: E-203, to: V-202, nominal_diameter: DN300, fluid: Methanol condensate, sheet: P-05, notes: "Total condenser outlet to V-202 (259 t/h liquid, 0.28 m at 1.5 m/s), ASSUMED (D-016); TI-512"}
-  - {number: VG-532, from: V-202, to: B/L, nominal_diameter: DN50, fluid: Vent gas, sheet: P-05, notes: "V-202 vent to the LP flare header (not the HP one: no back-flow of loop gas on depressuring, D-021) on PV-504 (PIC-504); DN ASSUMED (D-020)"}
+  - {number: VG-532, from: V-202, to: B/L, nominal_diameter: DN50, fluid: Vent gas, sheet: P-05, notes: "V-202 vent to the LP flare header (not the HP one the loop depressures into) on PV-504 (PIC-504) and the check valve CV-532 against back-flow from the header (other LP reliefs, or a column under vacuum with PV-504 failed open, D-022); DN ASSUMED (D-020)"}
   - {number: RF-533, from: V-202, to: P-203A, nominal_diameter: DN300, fluid: Methanol, sheet: P-05, notes: "Reflux and product pump suction, 259 t/h: 0.28 m at 1.5 m/s (D-016)"}
   - {number: RF-534, from: RF-533, to: P-203B, nominal_diameter: DN300, fluid: Methanol, sheet: P-05, notes: "Suction of the spare P-203B"}
   - {number: RF-535, from: P-203A, to: C-202, nominal_diameter: DN300, fluid: Methanol, sheet: P-05, notes: "Reflux and product until the product take-off ME-118, then the reflux (156 t/h, 0.22 m) on LV-505 (LIC-505) to C-202; one DN for the whole line, ASSUMED (D-016, D-020)"}
@@ -81,7 +83,7 @@ lines:
   - {number: CWS-540, from: B/L, to: E-203, nominal_diameter: DN1400, fluid: Cooling water, sheet: P-05, notes: "Q9 84.5 MW at 10 K rise: 2020 kg/s, 1.31 m at 1.5 m/s (D-016)"}
   - {number: CWR-541, from: E-203, to: B/L, nominal_diameter: DN1400, fluid: Cooling water return, sheet: P-05, notes: "As CWS-540"}
   - {number: CD-542, from: E-204, to: B/L, nominal_diameter: DN200, fluid: Condensate, sheet: P-05, notes: "39 kg/s condensate, 0.19 m at 1.5 m/s; steam trap ST-542 stands for a condensate pot with level control at basic engineering, ASSUMED"}
-  - {number: FL-543, from: C-202, to: B/L, nominal_diameter: DN200, fluid: Relief gas, sheet: P-05, notes: "PSV-513 outlet to the LP flare header (D-021); DN ASSUMED (D-020)"}
+  - {number: FL-543, from: C-202, to: B/L, nominal_diameter: DN200, fluid: Relief gas, sheet: P-05, notes: "PSV-513 outlet to the LP flare header (D-022); DN ASSUMED (D-020)"}
   - {number: WW-544, from: C-202, to: P-204A, nominal_diameter: DN80, fluid: Process water, sheet: P-05, notes: "Bottoms pump suction, one size above the discharge, ASSUMED"}
   - {number: WW-545, from: WW-544, to: P-204B, nominal_diameter: DN80, fluid: Process water, sheet: P-05, notes: "Suction of the spare P-204B"}
   - {number: WW-546, from: P-204B, to: WW-119, nominal_diameter: DN65, fluid: Process water, sheet: P-05, notes: "Discharge of the spare P-204B"}

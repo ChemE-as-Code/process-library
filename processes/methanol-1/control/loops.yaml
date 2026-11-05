@@ -47,7 +47,7 @@ loops:
     links:
       - {type: cascade, loop: PIC-102}
     interlocks: [I-101, I-201, I-202, I-302]
-    rationale: "The speed loop of the drive package; the trips stop the machine through the drive, so the loop and the trips share K-101 (a machine stop is the trip's final element by design; the HAZOP judges independence, D-021)."
+    rationale: "The speed loop of the drive package: speed measured at the K-101 shaft (the connection drawn to K-101 on P-01), output to the variable-speed drive inside the package (not drawn). The trips stop the machine through the drive, so the loop and the trips share K-101 (a machine stop is the trip's final element by design; the HAZOP judges independence, D-021)."
   - id: UIC-104
     title: K-101 anti-surge
     purpose: Keep K-101 away from its surge line by recycling cooled gas from after E-101 to the suction.
@@ -140,7 +140,7 @@ loops:
     alarms:
       - {tag: LIC-209, condition: LAL, response: "Check the BFW supply and LV-209 before the low-low trip I-202 stops the make-up gas."}
       - {tag: LIC-209, condition: LAH, response: "Carry-over into the MP steam: check LV-209; reduce the BFW by hand."}
-      - {tag: LZ-211, condition: LAH, response: "Independent high level (LV-209 fails open, so LIC-209 alone cannot be trusted): close the BFW block valve by hand; a high-high BFW shutdown valve is deferred to the HAZOP (D-018, I-12)."}
+      - {tag: LZ-211, condition: LAH, response: "Independent high level (LV-209 fails open, so LIC-209 alone cannot be trusted): put LIC-209 in manual and close LV-209; if it does not close, have the BFW supply isolated at its header outside the boundary (BF-235 has no block valve of its own in this issue). A high-high BFW shutdown valve is deferred to the HAZOP (D-022, I-12)."}
     interlocks: [I-202]
     rationale: "Single element in this first issue; a steam drum normally uses three-element control (level with the steam and BFW flows) against the swell and shrink on load changes, at basic engineering (D-018). LV-209 fails open: losing water on a converter shell is worse than an overfilled drum."
   - id: PIC-308
@@ -265,7 +265,7 @@ loops:
       - {kind: setpoint, value: 150, unit: kPa(a), provenance: assumed, source: "process/flowsheet.yaml design case (S16 ASSUMED, D-008)", cases: [design], stream: S16, property: pressure}
     modes: [manual, auto]
     normal_mode: auto
-    rationale: "A partial condenser with a non-condensable off-gas: the off-gas valve holds the pressure (D-020). PV-404 fails open. It can only release gas: a loss of reboiler heat with the condenser running pulls a vacuum, which C-201, E-201 and V-201 are designed for (full vacuum, D-020)."
+    rationale: "A partial condenser with a non-condensable off-gas: the off-gas valve holds the pressure (D-020). PV-404 fails open. The loop has no gas make-up: a loss of reboiler heat with the condenser running pulls a vacuum, which C-201, E-201, E-202 (both sides), V-201 and their piping are designed for (full vacuum, D-022); the check valve CV-116 keeps the open PV-404 from drawing fuel gas back into the column."
   - id: LIC-405
     title: Topping column reflux drum level (reflux)
     purpose: Return all the condensed liquid as reflux, on the V-201 level.
@@ -332,7 +332,7 @@ loops:
       - {kind: setpoint, value: 110, unit: kPa(a), provenance: assumed, source: "D-008: refining column top 110 kPa(a), ASSUMED"}
     modes: [manual, auto]
     normal_mode: auto
-    rationale: "A total condenser with almost no non-condensables: a vent alone holds the pressure only while the condenser has spare duty; a nitrogen make-up (split range with PV-504) or a flooded condenser is the basic-engineering choice (D-020). The vent goes to the LP flare header, not the HP one the loop depressures into, so loop gas cannot back-flow into C-202 (D-021). Pressure control can only release gas, so a loss of reboiler heat with the condenser running pulls a vacuum: C-202, E-203 and V-202 are designed for full vacuum (D-020)."
+    rationale: "A total condenser with almost no non-condensables: a vent alone holds the pressure only while the condenser has spare duty; a nitrogen make-up (split range with PV-504) or a flooded condenser is the basic-engineering choice (D-020). The vent goes to the LP flare header, not the HP one the loop depressures into, and through the check valve CV-532, so neither the LP header (PSV-413's blow-by gas, other reliefs) nor a column under vacuum draws gas back through it; the LP header's back pressure against the 0.1 barg vent is for the flare study (D-022, I-13). The loop has no gas make-up, so a loss of reboiler heat with the condenser running pulls a vacuum: C-202, E-203, E-204 (both sides), V-202 and their piping are designed for full vacuum (D-022)."
     unresolved: ["Pressure control scheme of a total condenser: nitrogen split range, hot-vapour bypass or flooded condenser (D-020)."]
   - id: LIC-505
     title: Refining column reflux drum level (reflux)

@@ -153,7 +153,7 @@ notes(sheet,
       "of the loop gas (inerts, stoichiometric number). HS-304 opens XV-304: loop depressuring",
       "LZ-306: V-101 level low-low closes XV-306 against gas blow-by into V-102 (C&E I-301). LZ-313: "
       "V-101 level high-high stops K-102 and K-101 (C&E I-302). LIC-307, LIC-310: level let-down",
-      "PSV-302: V-101 and the HP loop (fire, blocked recycle); PSV-311: V-102 (gas blow-by from "
-      "V-101, fire); PSV-312: E-103 CW side (tube rupture); all to the HP flare header (D-019)")
+      "PSV-302: V-101 and the HP loop (fire, thermal); PSV-311: V-102 (gas blow-by from V-101, "
+      "fire); PSV-312: E-103 CW side (tube rupture); all to the HP flare header (D-019, D-022)")
 
 save(sheet, target)

@@ -575,22 +575,39 @@ Decision, item by item (the independent review of PR #367; each item is either d
 deferred here with its reason and an open input):
 1. **K-101 suction side relief** (high): the suction side (V-103, SG-130, K-101 suction, 28 barg)
    is tied to the 74.5 barg discharge through the fail-open UV-104 and CV-103 leak-back on a K-101
-   trip. PSV-115 on V-103 to the HP flare header is added (P-01, FL-136), set 28 barg ASSUMED;
-   cases: settle-out, fire. Whether designing the suction side for the settle-out pressure is the
-   better answer depends on the vendor's settle-out calculation (I-10).
+   trip. PSV-115 on V-103 to the HP flare header is added (P-01, FL-136), set 28 barg ASSUMED.
+   Its cases: settle-out of the K-101 discharge volume through UV-104; leak-back from the loop,
+   which the whole loop inventory at about 74.5 barg would feed; fire. Choice (round 3 of the
+   review): a discharge shutdown valve XV-116 on SG-103 downstream of CV-103 closes on every K-101
+   trip (US-116; C&E I-101, I-201, I-202, I-302), the usual practice, so the loop inventory is
+   isolated and PSV-115 is sized for the settle-out of the discharge volume plus the seat leakage
+   of CV-103 and XV-116 in series, not for an open leak-back path. Whether designing the suction
+   side for the settle-out pressure is the better answer depends on the vendor's settle-out
+   calculation (I-10).
 2. **V-101 high-high level** (high): LZ-313, own tap, stops K-102 and with it K-101 and XV-110
    (C&E I-302): the loop must not keep receiving make-up gas without circulation. LIC-307's high
    alarm stays the operator warning.
-3. **Column vacuum** (high): the column pressure loops can only release gas, so a loss of reboiler
-   heat with the condensers running pulls a vacuum. C-201, E-201 (process side), V-201, C-202,
-   E-203 (process side) and V-202 are designed for full vacuum (ASSUMED; the usual answer for
-   carbon-steel columns at 5 barg, cheaper than a vacuum relief on a large column); case F-HEAT in
-   the control philosophy. A nitrogen or fuel-gas make-up split range with PV-404 / PV-504 stays
-   the basic-engineering alternative (D-020).
+3. **Column vacuum** (high): the column pressure loops have no gas make-up (the vents only release
+   gas, and their check valves stop any back-flow), so a loss of reboiler heat with the condensers
+   running pulls a vacuum. Designed for full vacuum (ASSUMED; the usual answer for carbon-steel
+   columns at 5 barg, cheaper than a vacuum relief on a large column): C-201, E-201 (process side),
+   V-201, C-202, E-203 (process side), V-202; the reboilers E-202 and E-204 on both sides (the
+   process side is open to the sump without isolation; the LP steam side condenses to vacuum when
+   TV-402 / TV-502 close, which is the F-HEAT trigger itself and happens on air failure, both valves
+   failing closed; the condensate drains through the steam traps ST-439 / ST-542); and the
+   connected overhead, condensate, reflux, reboiler circulation and reboiler steam / condensate
+   piping (line list header). Case F-HEAT in the control philosophy. A nitrogen or fuel-gas
+   make-up split range with PV-404 / PV-504, or a vacuum breaker on the reboiler steam side, stays
+   the basic-engineering alternative.
 4. **Flare segregation** (medium): the HP loop (PSV-111, -112, -115, -302, -311, -312, XV-304)
    discharges to an HP flare header, the columns (PSV-413, PSV-513 and the vent PV-504) to an LP
-   flare header, so loop gas depressured through XV-304 cannot back-flow into C-202 on a
-   simultaneous release; back pressures with the relief study (I-13).
+   flare header, so loop gas depressured through XV-304 does not reach the column vent. The LP
+   header still receives HP loop gas from PSV-413's blow-by case; the C-202 vent PV-504 (about
+   0.1 barg, fail open) is therefore given the check valve CV-532 on VG-532 against back-flow, and
+   the off-gas PV-404 the check valve CV-116 on FG-116 against fuel gas drawn back into a column
+   under vacuum (with the vents open and the steam closed on air failure, F-AIR). The back
+   pressure of the LP header against the 0.1 barg vent and the simultaneous loads are for the
+   flare study (I-13).
 5. **Steam drum pressure over the catalyst life** (medium): the strategy text is dropped; PIC-207
    stays at the D-003 value inside the 30 barg design of V-104 and the R-101 shell and below
    PSV-208. Raising it needs the end-of-run drum pressure as the design basis (I-11).
@@ -598,16 +615,20 @@ deferred here with its reason and an open input):
    the low-low trip sensor). A high-high trip closing a BFW shutdown valve is deferred to the
    HAZOP: the consequence is carry-over of boiler water into the MP steam header (an equipment and
    steam-quality consequence, no process-safety one is identified at this stage), and a BFW trip
-   valve would itself remove the converter's cooling (I-12).
+   valve would itself remove the converter's cooling (I-12). BF-235 has no block valve of its own
+   in this issue: the LZ-211 response is to close LV-209 in manual and, failing that, to isolate
+   the BFW supply at its header outside the boundary.
 7. **P-01 PIC-102 output** (medium): PIC-102 now cascades onto the drive's speed controller SIC-113
    (signal drawn); the anti-surge controller UIC-104 gets its suction pressure from a dedicated
-   transmitter PT-114 instead of PIC-102, as anti-surge inputs usually are.
+   transmitter PT-114 instead of PIC-102, as anti-surge inputs usually are. SIC-113 is part of the
+   drive package: its speed measurement is drawn as a connection to K-101, its output goes to the
+   variable-speed drive inside the package (not drawn).
 8. **Line labels** (medium): every line carries its number (and DN where it fits) at least once on
    its sheet; RF-433 and RF-534 show the number only (no room for the DN between the spare pump's
    suction valves).
 Low items: the tags of XV-110, UV-104, UV-203, XV-304 and XV-306 are printed; the stale SG-104
 references are corrected; the PSV-302 case no longer claims K-101 into a blocked loop (PSV-111 at
-82 barg lifts first).
+82 barg lifts first), and the same stale text is gone from the P-03 note and I-302 (round 3).
 Reason: concept-stage design, each protection either drawn or deferred explicitly with its open
 input, for the HAZOP to confirm.
 
@@ -685,4 +706,6 @@ ASSUMED (I-01, I-02). After the DWSIM run (D-014) the predictive checks pass exc
   PSV-208 set before the drum pressure may be raised over the catalyst life (D-022).
 - I-12 V-104 high-high level with a BFW shutdown valve: deferred to the HAZOP (D-022).
 - I-13 Flare system: HP and LP headers, back pressure on each PSV and the simultaneous load on air
-  failure (D-021, D-022).
+  failure (D-021, D-022); the LP header's back pressure against the 0.1 barg C-202 vent with
+  PSV-413's blow-by gas in it; columns under vacuum with the vents open on air failure (check
+  valves CV-116, CV-532; D-022).

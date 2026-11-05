@@ -211,6 +211,29 @@
               <String>XV-110</String>
             </Data>
           </Object>
+          <Object id="Inst_US116_System" type="Plant/Instrumentation.ActuatingSystem">
+            <Components property="ControlledActuator">
+              <Object id="Inst_US116_Actuator" type="Plant/Instrumentation.ControlledActuator">
+                <Data property="DeviceTypeName">
+                  <String>general</String>
+                </Data>
+                <Data property="FailAction">
+                  <DataReference data="Plant/Enumerations.FailActionClassification.FailClose"/>
+                </Data>
+                <Data property="FailActionRepresentation">
+                  <String>F.C.</String>
+                </Data>
+              </Object>
+            </Components>
+            <Components property="OperatedValveReference">
+              <Object id="Inst_US116_ValveRef" type="Plant/Instrumentation.OperatedValveReference">
+                <References objects="#XV116" property="Valve"/>
+              </Object>
+            </Components>
+            <Data property="ActuatingSystemNumber">
+              <String>XV-116</String>
+            </Data>
+          </Object>
           <Object id="Inst_UIC104_System" type="Plant/Instrumentation.ActuatingSystem">
             <Components property="ControlledActuator">
               <Object id="Inst_UIC104_Actuator" type="Plant/Instrumentation.ControlledActuator">
@@ -900,6 +923,12 @@
                   <Object id="Line_SG103_S2_P2" type="Plant/Piping.Pipe">
                     <References objects="#CV103" property="SourceItem"/>
                     <References objects="#CV103_N2" property="SourceNode"/>
+                    <References objects="#XV116" property="TargetItem"/>
+                    <References objects="#XV116_N1" property="TargetNode"/>
+                  </Object>
+                  <Object id="Line_SG103_S2_P3" type="Plant/Piping.Pipe">
+                    <References objects="#XV116" property="SourceItem"/>
+                    <References objects="#XV116_N2" property="SourceNode"/>
                     <References objects="#Line_SG103_To" property="TargetItem"/>
                     <References objects="#Line_SG103_To_N1" property="TargetNode"/>
                   </Object>
@@ -936,6 +965,41 @@
                         </Data>
                       </Object>
                     </Components>
+                  </Object>
+                  <Object id="XV116" type="Plant/Piping.BallValve">
+                    <Components property="Nodes">
+                      <Object id="XV116_N1" type="Plant/Piping.PipingNode">
+                        <Data property="NominalDiameterNumericalValueRepresentation">
+                          <String>350</String>
+                        </Data>
+                        <Data property="NominalDiameterRepresentation">
+                          <String>DN 350</String>
+                        </Data>
+                        <Data property="NominalDiameterStandard">
+                          <DataReference data="Plant/Enumerations.NominalDiameterStandardClassification.Iso6708ObjectDn350"/>
+                        </Data>
+                        <Data property="NominalDiameterTypeRepresentation">
+                          <String>DN</String>
+                        </Data>
+                      </Object>
+                      <Object id="XV116_N2" type="Plant/Piping.PipingNode">
+                        <Data property="NominalDiameterNumericalValueRepresentation">
+                          <String>350</String>
+                        </Data>
+                        <Data property="NominalDiameterRepresentation">
+                          <String>DN 350</String>
+                        </Data>
+                        <Data property="NominalDiameterStandard">
+                          <DataReference data="Plant/Enumerations.NominalDiameterStandardClassification.Iso6708ObjectDn350"/>
+                        </Data>
+                        <Data property="NominalDiameterTypeRepresentation">
+                          <String>DN</String>
+                        </Data>
+                      </Object>
+                    </Components>
+                    <Data property="PipingComponentNumber">
+                      <String>XV-116</String>
+                    </Data>
                   </Object>
                   <Object id="Line_SG103_To" type="Plant/Piping.FlowOutPipeOffPageConnector">
                     <Components property="Nodes">
@@ -1663,6 +1727,20 @@
             </Data>
           </Object>
           <Object id="Inst_SIC113" type="Plant/Instrumentation.ProcessInstrumentationFunction">
+            <Components property="ProcessSignalGeneratingFunctions">
+              <Object id="Inst_SIC113_Sensor" type="Plant/Instrumentation.ProcessSignalGeneratingFunction">
+                <References objects="#K101_N3" property="SensingLocation"/>
+                <Data property="ProcessSignalGeneratingFunctionNumber">
+                  <String>ST113</String>
+                </Data>
+              </Object>
+            </Components>
+            <Components property="SignalConveyingFunctions">
+              <Object id="Inst_SIC113_MeasuringLine" type="Plant/Instrumentation.MeasuringLineFunction">
+                <References objects="#Inst_SIC113_Sensor" property="Source"/>
+                <References objects="#Inst_SIC113" property="Target"/>
+              </Object>
+            </Components>
             <Data property="Location">
               <DataReference data="Plant/Enumerations.LocationClassification.CentralLocation"/>
             </Data>
@@ -1674,6 +1752,34 @@
             </Data>
             <Data property="ProcessInstrumentationFunctions">
               <String>IC</String>
+            </Data>
+          </Object>
+          <Object id="Inst_US116" type="Plant/Instrumentation.ProcessInstrumentationFunction">
+            <Components property="ActuatingFunctions">
+              <Object id="Inst_US116_Actuating" type="Plant/Instrumentation.ActuatingFunction">
+                <References objects="#Inst_US116_System" property="Systems"/>
+                <Data property="ActuatingFunctionNumber">
+                  <String>XV-116</String>
+                </Data>
+              </Object>
+            </Components>
+            <Components property="SignalConveyingFunctions">
+              <Object id="Inst_US116_Signal" type="Plant/Instrumentation.SignalConveyingFunction">
+                <References objects="#Inst_US116" property="Source"/>
+                <References objects="#Inst_US116_Actuating" property="Target"/>
+              </Object>
+            </Components>
+            <Data property="Location">
+              <DataReference data="Plant/Enumerations.LocationClassification.CentralLocation"/>
+            </Data>
+            <Data property="ProcessInstrumentationFunctionCategory">
+              <String>U</String>
+            </Data>
+            <Data property="ProcessInstrumentationFunctionNumber">
+              <String>116</String>
+            </Data>
+            <Data property="ProcessInstrumentationFunctions">
+              <String>S</String>
             </Data>
           </Object>
           <Object id="Inst_PIC102" type="Plant/Instrumentation.ProcessInstrumentationFunction">
@@ -2071,6 +2177,14 @@
                 </Components>
                 <Data property="SubTagName">
                   <String>N2</String>
+                </Data>
+              </Object>
+              <Object id="K101_N3" type="Plant/ProcessEquipment.ProcessNozzle">
+                <Components property="Nodes">
+                  <Object id="K101_N3_Node" type="Plant/Piping.PipingNode"/>
+                </Components>
+                <Data property="SubTagName">
+                  <String>N3</String>
                 </Data>
               </Object>
             </Components>
@@ -9008,6 +9122,29 @@
                 </Components>
                 <References objects="#K101_N2" property="Represents"/>
               </Object>
+              <Object id="K101_N3_Drawing" type="Core/Diagram.RepresentationGroup">
+                <Components property="Groups">
+                  <Object id="K101_N3_Node_Drawing" type="Core/Diagram.RepresentationGroup">
+                    <Components property="NodePositions">
+                      <Object id="K101_N3_Node_Position" type="Plant/Diagram.PipingNodePosition">
+                        <References objects="#K101_N3_Node" property="Node"/>
+                        <Data property="Position">
+                          <AggregatedDataValue type="Core/Diagram.Point">
+                            <Data property="X">
+                              <Double>195.0</Double>
+                            </Data>
+                            <Data property="Y">
+                              <Double>105.0</Double>
+                            </Data>
+                          </AggregatedDataValue>
+                        </Data>
+                      </Object>
+                    </Components>
+                    <References objects="#K101_N3_Node" property="Represents"/>
+                  </Object>
+                </Components>
+                <References objects="#K101_N3" property="Represents"/>
+              </Object>
               <Object id="K101_TagLabel" type="Plant/Diagram.EquipmentTagNameLabel">
                 <Components property="Elements">
                   <Object id="K101_TagLabel_Text" type="Core/Diagram.Text">
@@ -11242,7 +11379,7 @@
                         <Components property="Elements">
                           <Object id="Line_SG103_S2_P2_LineShape" type="Core/Diagram.ConnectorLine">
                             <References objects="#CV103_N2_Position" property="Source"/>
-                            <References objects="#Line_SG103_To_N1_Position" property="Target"/>
+                            <References objects="#XV116_N1_Position" property="Target"/>
                             <Data property="Stroke">
                               <AggregatedDataValue type="Core/Diagram.Stroke">
                                 <Data property="Color">
@@ -11272,6 +11409,42 @@
                     </Components>
                     <References objects="#Line_SG103_S2_P2" property="Represents"/>
                   </Object>
+                  <Object id="Line_SG103_S2_P3_Drawing" type="Core/Diagram.RepresentationGroup">
+                    <Components property="Groups">
+                      <Object id="Line_SG103_S2_P3_Line" type="Core/Diagram.Static">
+                        <Components property="Elements">
+                          <Object id="Line_SG103_S2_P3_LineShape" type="Core/Diagram.ConnectorLine">
+                            <References objects="#XV116_N2_Position" property="Source"/>
+                            <References objects="#Line_SG103_To_N1_Position" property="Target"/>
+                            <Data property="Stroke">
+                              <AggregatedDataValue type="Core/Diagram.Stroke">
+                                <Data property="Color">
+                                  <AggregatedDataValue type="Core/Diagram.Color">
+                                    <Data property="B">
+                                      <Integer>0</Integer>
+                                    </Data>
+                                    <Data property="G">
+                                      <Integer>128</Integer>
+                                    </Data>
+                                    <Data property="R">
+                                      <Integer>128</Integer>
+                                    </Data>
+                                  </AggregatedDataValue>
+                                </Data>
+                                <Data property="DashStyle">
+                                  <DataReference data="Core/Diagram.DashStyle.Solid"/>
+                                </Data>
+                                <Data property="Width">
+                                  <Double>0.5</Double>
+                                </Data>
+                              </AggregatedDataValue>
+                            </Data>
+                          </Object>
+                        </Components>
+                      </Object>
+                    </Components>
+                    <References objects="#Line_SG103_S2_P3" property="Represents"/>
+                  </Object>
                   <Object id="CV103_Drawing" type="Core/Diagram.RepresentationGroup">
                     <Components property="Groups">
                       <Object id="CV103_N1_Drawing" type="Core/Diagram.RepresentationGroup">
@@ -11281,7 +11454,7 @@
                             <Data property="Position">
                               <AggregatedDataValue type="Core/Diagram.Point">
                                 <Data property="X">
-                                  <Double>363.0</Double>
+                                  <Double>361.0</Double>
                                 </Data>
                                 <Data property="Y">
                                   <Double>120.0</Double>
@@ -11299,7 +11472,7 @@
                             <Data property="Position">
                               <AggregatedDataValue type="Core/Diagram.Point">
                                 <Data property="X">
-                                  <Double>367.0</Double>
+                                  <Double>365.0</Double>
                                 </Data>
                                 <Data property="Y">
                                   <Double>120.0</Double>
@@ -11320,7 +11493,7 @@
                             <Data property="Position">
                               <AggregatedDataValue type="Core/Diagram.Point">
                                 <Data property="X">
-                                  <Double>365.0</Double>
+                                  <Double>363.0</Double>
                                 </Data>
                                 <Data property="Y">
                                   <Double>120.0</Double>
@@ -11341,6 +11514,135 @@
                       </Object>
                     </Components>
                     <References objects="#CV103" property="Represents"/>
+                  </Object>
+                  <Object id="XV116_Drawing" type="Core/Diagram.RepresentationGroup">
+                    <Components property="Groups">
+                      <Object id="XV116_N1_Drawing" type="Core/Diagram.RepresentationGroup">
+                        <Components property="NodePositions">
+                          <Object id="XV116_N1_Position" type="Plant/Diagram.PipingNodePosition">
+                            <References objects="#XV116_N1" property="Node"/>
+                            <Data property="Position">
+                              <AggregatedDataValue type="Core/Diagram.Point">
+                                <Data property="X">
+                                  <Double>378.0</Double>
+                                </Data>
+                                <Data property="Y">
+                                  <Double>120.0</Double>
+                                </Data>
+                              </AggregatedDataValue>
+                            </Data>
+                          </Object>
+                        </Components>
+                        <References objects="#XV116_N1" property="Represents"/>
+                      </Object>
+                      <Object id="XV116_N2_Drawing" type="Core/Diagram.RepresentationGroup">
+                        <Components property="NodePositions">
+                          <Object id="XV116_N2_Position" type="Plant/Diagram.PipingNodePosition">
+                            <References objects="#XV116_N2" property="Node"/>
+                            <Data property="Position">
+                              <AggregatedDataValue type="Core/Diagram.Point">
+                                <Data property="X">
+                                  <Double>382.0</Double>
+                                </Data>
+                                <Data property="Y">
+                                  <Double>120.0</Double>
+                                </Data>
+                              </AggregatedDataValue>
+                            </Data>
+                          </Object>
+                        </Components>
+                        <References objects="#XV116_N2" property="Represents"/>
+                      </Object>
+                      <Object id="XV116_Symbol" type="Core/Diagram.Static">
+                        <Components property="Elements">
+                          <Object id="XV116_SymbolShape" type="Core/Diagram.ShapeUsage">
+                            <References objects="#Shape8" property="Shape"/>
+                            <Data property="IsMirrored">
+                              <Boolean>false</Boolean>
+                            </Data>
+                            <Data property="Position">
+                              <AggregatedDataValue type="Core/Diagram.Point">
+                                <Data property="X">
+                                  <Double>380.0</Double>
+                                </Data>
+                                <Data property="Y">
+                                  <Double>120.0</Double>
+                                </Data>
+                              </AggregatedDataValue>
+                            </Data>
+                            <Data property="Rotation">
+                              <Double>0.0</Double>
+                            </Data>
+                            <Data property="ScaleX">
+                              <Double>0.4</Double>
+                            </Data>
+                            <Data property="ScaleY">
+                              <Double>0.4</Double>
+                            </Data>
+                          </Object>
+                        </Components>
+                      </Object>
+                      <Object id="XV116_PipingComponentNumberLabel" type="Plant/Diagram.ValveLabel">
+                        <Components property="Elements">
+                          <Object id="XV116_PipingComponentNumberLabel_Text" type="Core/Diagram.Text">
+                            <Components property="Template">
+                              <Object id="XV116_PipingComponentNumberLabel_Template" type="Core/Diagram.TextTemplate">
+                                <Components property="Fragments">
+                                  <Object id="XV116_PipingComponentNumberLabel_Fragment" type="Core/Diagram.AttributeRepresentation">
+                                    <References objects="#XV116" property="Object"/>
+                                    <Data property="AttributeName">
+                                      <String>PipingComponentNumber</String>
+                                    </Data>
+                                    <Data property="Type">
+                                      <DataReference data="Core/Diagram.AttributeRepresentationType.Value"/>
+                                    </Data>
+                                  </Object>
+                                </Components>
+                              </Object>
+                            </Components>
+                            <Data property="Alignment">
+                              <DataReference data="Core/Diagram.TextAlignment.CenterCenter"/>
+                            </Data>
+                            <Data property="Color">
+                              <AggregatedDataValue type="Core/Diagram.Color">
+                                <Data property="B">
+                                  <Integer>0</Integer>
+                                </Data>
+                                <Data property="G">
+                                  <Integer>0</Integer>
+                                </Data>
+                                <Data property="R">
+                                  <Integer>0</Integer>
+                                </Data>
+                              </AggregatedDataValue>
+                            </Data>
+                            <Data property="Font">
+                              <String>Calibri</String>
+                            </Data>
+                            <Data property="Position">
+                              <AggregatedDataValue type="Core/Diagram.Point">
+                                <Data property="X">
+                                  <Double>391.0</Double>
+                                </Data>
+                                <Data property="Y">
+                                  <Double>128.0</Double>
+                                </Data>
+                              </AggregatedDataValue>
+                            </Data>
+                            <Data property="Rotation">
+                              <Double>0.0</Double>
+                            </Data>
+                            <Data property="Size">
+                              <Double>3.0</Double>
+                            </Data>
+                            <Data property="Text">
+                              <String>XV-116</String>
+                            </Data>
+                          </Object>
+                        </Components>
+                      </Object>
+                    </Components>
+                    <References objects="#XV116" property="Represents"/>
                   </Object>
                   <Object id="Line_SG103_To_Drawing" type="Core/Diagram.RepresentationGroup">
                     <Components property="Groups">
@@ -11481,7 +11783,7 @@
                     <Data property="Position">
                       <AggregatedDataValue type="Core/Diagram.Point">
                         <Data property="X">
-                          <Double>385.0</Double>
+                          <Double>356.0</Double>
                         </Data>
                         <Data property="Y">
                           <Double>128.0</Double>
@@ -11540,7 +11842,7 @@
                     <Data property="Position">
                       <AggregatedDataValue type="Core/Diagram.Point">
                         <Data property="X">
-                          <Double>385.0</Double>
+                          <Double>356.0</Double>
                         </Data>
                         <Data property="Y">
                           <Double>132.0</Double>
@@ -14296,6 +14598,42 @@
                   </Object>
                 </Components>
               </Object>
+              <Object id="Inst_SIC113_MeasuringLine_Drawing" type="Core/Diagram.RepresentationGroup">
+                <Components property="Groups">
+                  <Object id="Inst_SIC113_MeasuringLine_Line" type="Core/Diagram.Static">
+                    <Components property="Elements">
+                      <Object id="Inst_SIC113_MeasuringLine_Shape" type="Core/Diagram.ConnectorLine">
+                        <References objects="#Inst_SIC113_SensePosition" property="Source"/>
+                        <References objects="#Inst_SIC113_BubblePosition" property="Target"/>
+                        <Data property="Stroke">
+                          <AggregatedDataValue type="Core/Diagram.Stroke">
+                            <Data property="Color">
+                              <AggregatedDataValue type="Core/Diagram.Color">
+                                <Data property="B">
+                                  <Integer>0</Integer>
+                                </Data>
+                                <Data property="G">
+                                  <Integer>128</Integer>
+                                </Data>
+                                <Data property="R">
+                                  <Integer>0</Integer>
+                                </Data>
+                              </AggregatedDataValue>
+                            </Data>
+                            <Data property="DashStyle">
+                              <DataReference data="Core/Diagram.DashStyle.Solid"/>
+                            </Data>
+                            <Data property="Width">
+                              <Double>0.25</Double>
+                            </Data>
+                          </AggregatedDataValue>
+                        </Data>
+                      </Object>
+                    </Components>
+                  </Object>
+                </Components>
+                <References objects="#Inst_SIC113_MeasuringLine" property="Represents"/>
+              </Object>
               <Object id="Inst_SIC113_Label" type="Plant/Diagram.ProcessInstrumentationFunctionLabel">
                 <Components property="Elements">
                   <Object id="Inst_SIC113_Letters" type="Core/Diagram.Text">
@@ -14420,7 +14758,335 @@
                 </Components>
               </Object>
             </Components>
+            <Components property="NodePositions">
+              <Object id="Inst_SIC113_SensePosition" type="Plant/Diagram.InstrumentationNodePosition">
+                <Data property="Position">
+                  <AggregatedDataValue type="Core/Diagram.Point">
+                    <Data property="X">
+                      <Double>195.0</Double>
+                    </Data>
+                    <Data property="Y">
+                      <Double>105.0</Double>
+                    </Data>
+                  </AggregatedDataValue>
+                </Data>
+              </Object>
+              <Object id="Inst_SIC113_BubblePosition" type="Plant/Diagram.InstrumentationNodePosition">
+                <Data property="Position">
+                  <AggregatedDataValue type="Core/Diagram.Point">
+                    <Data property="X">
+                      <Double>195.0</Double>
+                    </Data>
+                    <Data property="Y">
+                      <Double>101.75</Double>
+                    </Data>
+                  </AggregatedDataValue>
+                </Data>
+              </Object>
+            </Components>
             <References objects="#Inst_SIC113" property="Represents"/>
+          </Object>
+          <Object id="Inst_US116_Drawing" type="Core/Diagram.RepresentationGroup">
+            <Components property="Groups">
+              <Object id="Inst_US116_Bubble" type="Core/Diagram.Static">
+                <Components property="Elements">
+                  <Object id="Inst_US116_BubbleShape" type="Core/Diagram.ShapeUsage">
+                    <References objects="#Shape17" property="Shape"/>
+                    <Data property="IsMirrored">
+                      <Boolean>false</Boolean>
+                    </Data>
+                    <Data property="Position">
+                      <AggregatedDataValue type="Core/Diagram.Point">
+                        <Data property="X">
+                          <Double>380.0</Double>
+                        </Data>
+                        <Data property="Y">
+                          <Double>140.0</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                    <Data property="Rotation">
+                      <Double>0.0</Double>
+                    </Data>
+                    <Data property="ScaleX">
+                      <Double>1.0</Double>
+                    </Data>
+                    <Data property="ScaleY">
+                      <Double>1.0</Double>
+                    </Data>
+                  </Object>
+                </Components>
+              </Object>
+              <Object id="Inst_US116_Signal_Drawing" type="Core/Diagram.RepresentationGroup">
+                <Components property="Groups">
+                  <Object id="Inst_US116_Signal_Line" type="Core/Diagram.Static">
+                    <Components property="Elements">
+                      <Object id="Inst_US116_Signal_Shape" type="Core/Diagram.PolyLine">
+                        <Data property="Points">
+                          <AggregatedDataValue type="Core/Diagram.Point">
+                            <Data property="X">
+                              <Double>380.0</Double>
+                            </Data>
+                            <Data property="Y">
+                              <Double>136.25</Double>
+                            </Data>
+                          </AggregatedDataValue>
+                          <AggregatedDataValue type="Core/Diagram.Point">
+                            <Data property="X">
+                              <Double>380.0</Double>
+                            </Data>
+                            <Data property="Y">
+                              <Double>127.2</Double>
+                            </Data>
+                          </AggregatedDataValue>
+                        </Data>
+                        <Data property="Stroke">
+                          <AggregatedDataValue type="Core/Diagram.Stroke">
+                            <Data property="Color">
+                              <AggregatedDataValue type="Core/Diagram.Color">
+                                <Data property="B">
+                                  <Integer>0</Integer>
+                                </Data>
+                                <Data property="G">
+                                  <Integer>0</Integer>
+                                </Data>
+                                <Data property="R">
+                                  <Integer>0</Integer>
+                                </Data>
+                              </AggregatedDataValue>
+                            </Data>
+                            <Data property="DashStyle">
+                              <DataReference data="Core/Diagram.DashStyle.Dash"/>
+                            </Data>
+                            <Data property="Width">
+                              <Double>0.25</Double>
+                            </Data>
+                          </AggregatedDataValue>
+                        </Data>
+                      </Object>
+                    </Components>
+                  </Object>
+                </Components>
+                <References objects="#Inst_US116_Signal" property="Represents"/>
+              </Object>
+              <Object id="Inst_US116_Label" type="Plant/Diagram.ProcessInstrumentationFunctionLabel">
+                <Components property="Elements">
+                  <Object id="Inst_US116_Letters" type="Core/Diagram.Text">
+                    <Components property="Template">
+                      <Object id="Inst_US116_Letters_Template" type="Core/Diagram.TextTemplate">
+                        <Components property="Fragments">
+                          <Object id="Inst_US116_Letters_Fragment1" type="Core/Diagram.AttributeRepresentation">
+                            <References objects="#Inst_US116" property="Object"/>
+                            <Data property="AttributeName">
+                              <String>ProcessInstrumentationFunctionCategory</String>
+                            </Data>
+                            <Data property="Type">
+                              <DataReference data="Core/Diagram.AttributeRepresentationType.Value"/>
+                            </Data>
+                          </Object>
+                          <Object id="Inst_US116_Letters_Fragment2" type="Core/Diagram.AttributeRepresentation">
+                            <References objects="#Inst_US116" property="Object"/>
+                            <Data property="AttributeName">
+                              <String>ProcessInstrumentationFunctions</String>
+                            </Data>
+                            <Data property="Type">
+                              <DataReference data="Core/Diagram.AttributeRepresentationType.Value"/>
+                            </Data>
+                          </Object>
+                        </Components>
+                      </Object>
+                    </Components>
+                    <Data property="Alignment">
+                      <DataReference data="Core/Diagram.TextAlignment.CenterCenter"/>
+                    </Data>
+                    <Data property="Color">
+                      <AggregatedDataValue type="Core/Diagram.Color">
+                        <Data property="B">
+                          <Integer>0</Integer>
+                        </Data>
+                        <Data property="G">
+                          <Integer>0</Integer>
+                        </Data>
+                        <Data property="R">
+                          <Integer>0</Integer>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                    <Data property="Font">
+                      <String>Calibri</String>
+                    </Data>
+                    <Data property="Position">
+                      <AggregatedDataValue type="Core/Diagram.Point">
+                        <Data property="X">
+                          <Double>380.0</Double>
+                        </Data>
+                        <Data property="Y">
+                          <Double>138.6</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                    <Data property="Rotation">
+                      <Double>0.0</Double>
+                    </Data>
+                    <Data property="Size">
+                      <Double>2.5</Double>
+                    </Data>
+                    <Data property="Text">
+                      <String>US</String>
+                    </Data>
+                  </Object>
+                  <Object id="Inst_US116_Number" type="Core/Diagram.Text">
+                    <Components property="Template">
+                      <Object id="Inst_US116_Number_Template" type="Core/Diagram.TextTemplate">
+                        <Components property="Fragments">
+                          <Object id="Inst_US116_Number_Fragment" type="Core/Diagram.AttributeRepresentation">
+                            <References objects="#Inst_US116" property="Object"/>
+                            <Data property="AttributeName">
+                              <String>ProcessInstrumentationFunctionNumber</String>
+                            </Data>
+                            <Data property="Type">
+                              <DataReference data="Core/Diagram.AttributeRepresentationType.Value"/>
+                            </Data>
+                          </Object>
+                        </Components>
+                      </Object>
+                    </Components>
+                    <Data property="Alignment">
+                      <DataReference data="Core/Diagram.TextAlignment.CenterCenter"/>
+                    </Data>
+                    <Data property="Color">
+                      <AggregatedDataValue type="Core/Diagram.Color">
+                        <Data property="B">
+                          <Integer>0</Integer>
+                        </Data>
+                        <Data property="G">
+                          <Integer>0</Integer>
+                        </Data>
+                        <Data property="R">
+                          <Integer>0</Integer>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                    <Data property="Font">
+                      <String>Calibri</String>
+                    </Data>
+                    <Data property="Position">
+                      <AggregatedDataValue type="Core/Diagram.Point">
+                        <Data property="X">
+                          <Double>380.0</Double>
+                        </Data>
+                        <Data property="Y">
+                          <Double>141.6</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                    <Data property="Rotation">
+                      <Double>0.0</Double>
+                    </Data>
+                    <Data property="Size">
+                      <Double>2.5</Double>
+                    </Data>
+                    <Data property="Text">
+                      <String>116</String>
+                    </Data>
+                  </Object>
+                </Components>
+              </Object>
+            </Components>
+            <References objects="#Inst_US116" property="Represents"/>
+          </Object>
+          <Object id="Inst_US116_Actuator_Drawing" type="Core/Diagram.RepresentationGroup">
+            <Components property="Groups">
+              <Object id="Inst_US116_Actuator_Symbol" type="Core/Diagram.Static">
+                <Components property="Elements">
+                  <Object id="Inst_US116_Actuator_SymbolShape" type="Core/Diagram.ShapeUsage">
+                    <References objects="#Shape1" property="Shape"/>
+                    <Data property="IsMirrored">
+                      <Boolean>false</Boolean>
+                    </Data>
+                    <Data property="Position">
+                      <AggregatedDataValue type="Core/Diagram.Point">
+                        <Data property="X">
+                          <Double>380.0</Double>
+                        </Data>
+                        <Data property="Y">
+                          <Double>120.0</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                    <Data property="Rotation">
+                      <Double>90.0</Double>
+                    </Data>
+                    <Data property="ScaleX">
+                      <Double>0.4</Double>
+                    </Data>
+                    <Data property="ScaleY">
+                      <Double>0.4</Double>
+                    </Data>
+                  </Object>
+                </Components>
+              </Object>
+              <Object id="Inst_US116_Actuator_FailActionRepresentationLabel" type="Plant/Diagram.FailActionLabel">
+                <Components property="Elements">
+                  <Object id="Inst_US116_Actuator_FailActionRepresentationLabel_Text" type="Core/Diagram.Text">
+                    <Components property="Template">
+                      <Object id="Inst_US116_Actuator_FailActionRepresentationLabel_Template" type="Core/Diagram.TextTemplate">
+                        <Components property="Fragments">
+                          <Object id="Inst_US116_Actuator_FailActionRepresentationLabel_Fragment" type="Core/Diagram.AttributeRepresentation">
+                            <References objects="#Inst_US116_Actuator" property="Object"/>
+                            <Data property="AttributeName">
+                              <String>FailActionRepresentation</String>
+                            </Data>
+                            <Data property="Type">
+                              <DataReference data="Core/Diagram.AttributeRepresentationType.Value"/>
+                            </Data>
+                          </Object>
+                        </Components>
+                      </Object>
+                    </Components>
+                    <Data property="Alignment">
+                      <DataReference data="Core/Diagram.TextAlignment.CenterCenter"/>
+                    </Data>
+                    <Data property="Color">
+                      <AggregatedDataValue type="Core/Diagram.Color">
+                        <Data property="B">
+                          <Integer>0</Integer>
+                        </Data>
+                        <Data property="G">
+                          <Integer>0</Integer>
+                        </Data>
+                        <Data property="R">
+                          <Integer>0</Integer>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                    <Data property="Font">
+                      <String>Calibri</String>
+                    </Data>
+                    <Data property="Position">
+                      <AggregatedDataValue type="Core/Diagram.Point">
+                        <Data property="X">
+                          <Double>375.5</Double>
+                        </Data>
+                        <Data property="Y">
+                          <Double>127.2</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                    <Data property="Rotation">
+                      <Double>0.0</Double>
+                    </Data>
+                    <Data property="Size">
+                      <Double>3.0</Double>
+                    </Data>
+                    <Data property="Text">
+                      <String>F.C.</String>
+                    </Data>
+                  </Object>
+                </Components>
+              </Object>
+            </Components>
+            <References objects="#Inst_US116_Actuator" property="Represents"/>
           </Object>
           <Object id="Inst_PIC102_Drawing" type="Core/Diagram.RepresentationGroup">
             <Components property="Groups">
@@ -16317,7 +16983,7 @@
                   <Double>2.5</Double>
                 </Data>
                 <Data property="Text">
-                  <String>PIC-102: K-101 suction pressure (the front end's back pressure), cascaded onto the speed controller SIC-113 of the variable-speed drive. UIC-104: anti-surge on UV-104 from FT-103, PT-114, PT-105 (D-017)</String>
+                  <String>PIC-102 sets the speed controller SIC-113 (drive package, speed measured at K-101, output to its variable-speed drive). UIC-104: anti-surge on UV-104 from FT-103, PT-114, PT-105 (D-017)</String>
                 </Data>
               </Object>
             </Components>
@@ -16361,7 +17027,7 @@
                   <Double>2.5</Double>
                 </Data>
                 <Data property="Text">
-                  <String>LZ-109: V-103 level high-high closes XV-110 and stops K-101 (C&amp;E I-101). K-101 lube oil, seals, vibration and machine trips are in the compressor package (D-017)</String>
+                  <String>LZ-109: V-103 level high-high closes XV-110 and stops K-101 (C&amp;E I-101). US-116: every K-101 trip closes XV-116 (C&amp;E I-101, I-201, I-202, I-302). Machine protection in the package</String>
                 </Data>
               </Object>
             </Components>
@@ -16405,7 +17071,7 @@
                   <Double>2.5</Double>
                 </Data>
                 <Data property="Text">
-                  <String>PSV-115: suction side (settle-out through UV-104, fire); PSV-111: K-101 discharge; PSV-112: E-101 cooling water side (tube rupture). To the HP flare header; loads open (D-017)</String>
+                  <String>PSV-115: suction side (settle-out through UV-104, leak-back past XV-116, fire); PSV-111: K-101 discharge; PSV-112: E-101 CW side (tube rupture). To the HP flare header (D-022)</String>
                 </Data>
               </Object>
             </Components>

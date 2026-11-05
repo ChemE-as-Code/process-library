@@ -3,14 +3,14 @@
 # (equipment list, D-012), ASSUMED until the MAWP is known; relief_case = the case that makes the
 # device necessary, named here; the governing case, its load and the orifice come with the relief
 # study (basic engineering). The HP equipment (P-01 to P-03) discharges to the HP flare header, the
-# columns (P-04, P-05) to the LP flare header, both outside the boundary (D-021), unless it says
+# columns (P-04, P-05) to the LP flare header, both outside the boundary (D-022), unless it says
 # otherwise.
 schema: cheme/piping_items/v1
 piping_items:
   # ---- P-01
   - {tag: PSV-115, type: SpringLoadedGlobeSafetyValve, line: FL-136, sheet: P-01, set_pressure_barg: 28,
-     relief_case: "K-101 suction side (V-103, SG-130, K-101 suction, 28 barg design): settle-out of the K-101 discharge (74.5 barg operating) through the fail-open anti-surge UV-104 and leak-back through CV-103 on a K-101 trip with XV-110 closed; fire on V-103",
-     notes: "Set ASSUMED = V-103 design pressure 28 barg (D-012). If the settle-out pressure of the K-101 casing and recycle volume exceeds 28 barg the load may be large, and designing the suction side for the settle-out pressure (PSV-115 kept for fire) is the alternative; decided with the compressor vendor's settle-out calculation (D-017, I-10). HP flare header."}
+     relief_case: "K-101 suction side (V-103, SG-130, K-101 suction, 28 barg design), three cases: (1) settle-out of the K-101 discharge volume (SG-102, E-101, SG-103 up to XV-116) through the fail-open UV-104 on a K-101 trip with XV-110 closed; (2) leak-back from the loop (whole loop inventory at about 74.5 barg) past CV-103 and the discharge shutdown valve XV-116, which closes on every K-101 trip (C&E I-101, I-201, I-202, I-302), so only the seat leakage of the two valves in series remains; (3) fire on V-103",
+     notes: "Set ASSUMED = V-103 design pressure 28 barg (D-012). Choice (D-022 item 1): XV-116 isolates the loop inventory on every K-101 trip (usual practice), so PSV-115 is sized for case (1) and the seat leakage of case (2), not for the loop's leak-back through an open path. If the settle-out pressure of case (1) exceeds 28 barg, designing the suction side for it (PSV-115 kept for fire) is the alternative; decided with the compressor vendor's settle-out calculation (I-10). HP flare header."}
   - {tag: PSV-111, type: SpringLoadedGlobeSafetyValve, line: FL-132, sheet: P-01, set_pressure_barg: 82,
      relief_case: "K-101 discharge blocked (CV-103 and the loop downstream closed, or K-102 tripped with K-101 running); settle-out of the loop into the discharge; fire on E-101",
      notes: "Set ASSUMED = K-101 / E-101 design pressure 82 barg (D-012). Upstream of the check valve CV-103, so the loop PSV-302 (89 barg) does not cover the K-101 discharge (D-017). Load open."}
@@ -34,8 +34,8 @@ piping_items:
   # ---- P-04
   - {tag: PSV-413, type: SpringLoadedGlobeSafetyValve, line: FL-443, sheet: P-04, set_pressure_barg: 5,
      relief_case: "C-201 and V-201: fire; cooling water failure with the reboiler running; PV-404 blocked; gas blow-by from V-101 through V-102 if both let-downs fail open",
-     notes: "Set ASSUMED = C-201 design pressure 5 barg (D-012). Protects V-201 too (no isolation valve between them, D-020). LP flare header (D-021). Vacuum (loss of reboiler heat with the condenser running) is met by a full-vacuum design of C-201, E-201 and V-201, not by a device (D-020). Load open."}
+     notes: "Set ASSUMED = C-201 design pressure 5 barg (D-012). Protects V-201 too (no isolation valve between them, D-020). LP flare header (D-022). The blow-by case puts HP loop gas into the LP flare header: the back pressure it builds against the low-pressure vents on that header (PV-504 at about 0.1 barg, protected by the check valve CV-532) is for the flare study (I-13). Vacuum (loss of reboiler heat with the condenser running) is met by a full-vacuum design of C-201, E-201, E-202 (both sides), V-201 and their piping, not by a device (D-022). Load open."}
   # ---- P-05
   - {tag: PSV-513, type: SpringLoadedGlobeSafetyValve, line: FL-543, sheet: P-05, set_pressure_barg: 5,
      relief_case: "C-202 and V-202: fire; cooling water failure with the reboiler running (the E-203 duty is the largest of the plant); PV-504 blocked",
-     notes: "Set ASSUMED = C-202 design pressure 5 barg (D-012). Protects V-202 too (D-020). LP flare header (D-021). Vacuum is met by a full-vacuum design of C-202, E-203 and V-202 (D-020). The cooling water failure load is large (about 84 MW of vapour): the relief study may prefer a high-integrity steam cut-off; this register claims none. Load open."}
+     notes: "Set ASSUMED = C-202 design pressure 5 barg (D-012). Protects V-202 too (D-020). LP flare header (D-022). Vacuum is met by a full-vacuum design of C-202, E-203, E-204 (both sides), V-202 and their piping (D-022). The cooling water failure load is large (about 84 MW of vapour): the relief study may prefer a high-integrity steam cut-off; this register claims none. Load open."}

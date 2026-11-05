@@ -5,7 +5,9 @@
 # reset are ASSUMED as usual practice for a first issue; sensor voting and the SIL are for the
 # HAZOP / LOPA: sil stays empty until then. No trip acts on a control valve of control/loops.yaml:
 # every effect is a shutdown valve (XV) or a machine stop. Machine protection of K-101 and K-102
-# (vibration, axial position, lube oil, seals) is in the compressor packages (D-017, D-018).
+# (vibration, axial position, lube oil, seals) is in the compressor packages (D-017, D-018). Every
+# trip that stops K-101 also closes its discharge shutdown valve XV-116 (US-116), isolating the loop
+# inventory from the K-101 suction side (D-022).
 schema: cheme/interlocks/v1
 interlocks:
   - id: I-101
@@ -13,6 +15,7 @@ interlocks:
     cause: {tag: LZ-109, condition: LAHH}
     effects:
       - {tag: XV-110, action: close}
+      - {tag: XV-116, action: close}
       - {tag: K-101, action: stop}
     sheet: P-01
     sil: null
@@ -25,6 +28,7 @@ interlocks:
     cause: {tag: TZ-210, condition: TAHH}
     effects:
       - {tag: XV-110, action: close}
+      - {tag: XV-116, action: close}
       - {tag: K-101, action: stop}
     sheet: P-02
     sil: null
@@ -37,6 +41,7 @@ interlocks:
     cause: {tag: LZ-211, condition: LALL}
     effects:
       - {tag: XV-110, action: close}
+      - {tag: XV-116, action: close}
       - {tag: K-101, action: stop}
     sheet: P-02
     sil: null
@@ -62,12 +67,13 @@ interlocks:
       - {tag: K-102, action: stop}
       - {tag: K-101, action: stop}
       - {tag: XV-110, action: close}
+      - {tag: XV-116, action: close}
     sheet: P-03
     sil: null
     delay: {value: 2, unit: s}
     latching: true
     reset: manual
-    notes: "D-019, review of PR #367. Crude methanol carried with the recycle gas into K-102 damages the circulator. With K-102 stopped the loop has no flow, so the make-up gas is stopped too (K-101, XV-110) before it raises the loop pressure towards PSV-302. Own tap, separate from LIC-307 (which drives the fail-closed LV-307). Delay ASSUMED (D-021)."
+    notes: "D-019, review of PR #367. Crude methanol carried with the recycle gas into K-102 damages the circulator. With K-102 stopped the loop has no flow, so the make-up gas is stopped too (K-101, XV-110) and the K-101 discharge is isolated from the loop (XV-116); K-101 against a blocked loop is PSV-111's case (82 barg), not PSV-302's. Own tap, separate from LIC-307 (which drives the fail-closed LV-307). Delay ASSUMED (D-021)."
   - id: I-401
     title: V-201 level low-low (topping column reflux pumps run dry)
     cause: {tag: LZ-411, condition: LALL}

@@ -51,7 +51,8 @@ v103 = equipment(sheet, "Vessel", "V-103", shape=DRUM, at=(100, 170), scale=(1.4
                  label_at=(100, 170))
 k101 = equipment(sheet, "CentrifugalCompressor", "K-101", shape=COMPRESSOR, at=(195, Y),
                  scale=2.0,
-                 nozzles=[Nozzle("N1", (-15, 0), 600), Nozzle("N2", (15, 0), 400)],
+                 nozzles=[Nozzle("N1", (-15, 0), 600), Nozzle("N2", (15, 0), 400),
+                          Nozzle("N3", (0, -15))],
                  label_at=(195, 143))
 e101 = equipment(sheet, "TubularHeatExchanger", "E-101", shape=HX, at=(300, Y), scale=1.2,
                  nozzles=[Nozzle("T1", (-21, 0), 400), Nozzle("T2", (21, 0), 350),
@@ -86,10 +87,11 @@ psv_out = tee("T111", at=(248, Y), branch="up", branch_dn=150)
 line(sheet, "SG-102", dn=400, fluid="Synthesis gas", route=[
     k101["N2"], psv_out, e101["T1"]], label_at=(264, 126))
 asr_out = tee("T131B", at=(345, Y), branch="down", branch_dn=300)
+xv116 = valve("XV116", "BallValve", tag="XV-116", at=(380, Y))
 line(sheet, "SG-103", dn=350, fluid="Synthesis gas", route=[
-    e101["T2"], asr_out, valve("CV103", "SwingCheckValve", at=(365, Y)),
+    e101["T2"], asr_out, valve("CV103", "SwingCheckValve", at=(363, Y)), xv116,
     offpage("out", at=(EDGE, Y), note="to K-102 suction, P-02", note_at=(386, 113))],
-    label_at=(385, 128))
+    label_at=(356, 128))
 uv104 = valve("UV104", "GlobeValve", tag="UV-104", at=(195, ASR))
 line(sheet, "SG-131", dn=300, fluid="Synthesis gas", route=[
     asr_out.branch, (345, ASR), uv104, (150, ASR), asr_in.branch], label_at=(290, 208))
@@ -119,7 +121,9 @@ make_safety_valve(sheet, "PSV112", label_at=(259, 55))
 instrument(sheet, "FI-101", at=(32, 146), sensing="Line_SG101_S1", sensing_at=(32, FEED))
 instrument(sheet, "LZ-109", at=(62, 184), sensing=v103["N4"], signal_to=xv110, fail_action="FC")
 instrument(sheet, "LI-108", at=(134, 178), sensing=v103["N5"])
-sic = instrument(sheet, "SIC-113", at=(195, 98))
+sic = instrument(sheet, "SIC-113", at=(195, 98), sensing=k101["N3"])
+instrument(sheet, "US-116", at=(380, 140), signal_to=xv116, fail_action="FC")
+fail_label(sheet, "Inst_US116", (380, Y), "down-left")
 instrument(sheet, "PIC-102", at=(120, 98), sensing="Line_SG130_S1", sensing_at=(120, Y),
            signal_to=sic)
 uic = instrument(sheet, "UIC-104", at=(195, 170), signal_to=uv104, fail_action="FO")
@@ -135,14 +139,14 @@ fail_label(sheet, "Inst_LZ109", (62, FEED), "down")
 fail_label(sheet, "Inst_UIC104", (195, ASR), "up")
 tag_label(sheet, "XV110", (62, 158))
 tag_label(sheet, "UV104", (195, 206))
+tag_label(sheet, "XV116", (391, 128))
 
 notes(sheet,
-      "PIC-102: K-101 suction pressure (the front end's back pressure), cascaded onto the speed "
-      "controller SIC-113 of the variable-speed drive. UIC-104: anti-surge on UV-104 from FT-103, "
-      "PT-114, PT-105 (D-017)",
-      "LZ-109: V-103 level high-high closes XV-110 and stops K-101 (C&E I-101). K-101 lube oil, "
-      "seals, vibration and machine trips are in the compressor package (D-017)",
-      "PSV-115: suction side (settle-out through UV-104, fire); PSV-111: K-101 discharge; PSV-112: "
-      "E-101 cooling water side (tube rupture). To the HP flare header; loads open (D-017)")
+      "PIC-102 sets the speed controller SIC-113 (drive package, speed measured at K-101, output to "
+      "its variable-speed drive). UIC-104: anti-surge on UV-104 from FT-103, PT-114, PT-105 (D-017)",
+      "LZ-109: V-103 level high-high closes XV-110 and stops K-101 (C&E I-101). US-116: every K-101 "
+      "trip closes XV-116 (C&E I-101, I-201, I-202, I-302). Machine protection in the package",
+      "PSV-115: suction side (settle-out through UV-104, leak-back past XV-116, fire); PSV-111: K-101 "
+      "discharge; PSV-112: E-101 CW side (tube rupture). To the HP flare header (D-022)")
 
 save(sheet, target)
