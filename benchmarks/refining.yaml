@@ -1,0 +1,470 @@
+# Benchmarks of petroleum refining units. Schema: schemas/benchmarks.schema.json; rules:
+# docs/benchmarks.md. Ranges are facts from the cited source, in our own form.
+#
+# Crude and vacuum distillation (refinery-distillation-1), independence:
+# - The DOE 2007 energy and electricity figures are independent of the datasets (US, licensed
+#   technologies, 2005). They are per barrel of unit feed; the conversion to per t needs a density,
+#   which is a modelling step: we use the crude assay's 7.137 bbl/t for the crude unit and 969 kg/m3
+#   (the assay's residue above 375 degC, 6.491 bbl/t) for the vacuum unit. DOE does not state the
+#   density of its crude slate.
+# - The REF BREF fuel ranges are the datasets' own source (Table 3.77): transcription only.
+# - The REF BREF CO2 values (Table 3.78) are one plant's loads, calculated by the source (it gives only
+#   limit values for that plant, and none for CO2); the datasets compute CO2 from the fuel and IPCC's
+#   refinery gas default instead.
+# The expressions cannot add the steam (kg) to fuel and electricity (kWh) (docs/benchmarks.md), so the
+# energy KPIs leave out the fuel that raises the stripping steam.
+#
+# How independent the checks of catalytic-reforming-1 are:
+# - Hydrogen: the dataset takes the REF BREF's CCR figure (350 Nm3/t); UOP's range is a separate source.
+# - C5+ yield: the dataset's reformate pseudo-formula (C10H14) was chosen for a hydrogen content that
+#   gives a yield near the middle of UOP's range, so "inside" is not an independent check. The patent's
+#   run 1 is independent but at a higher pressure (1300 kPa) than a modern CCR.
+# - Electricity and fuel: the midpoints of the same BREF ranges, so transcription only.
+# Not bound: the US DOE bandwidth study (2015, Table 4-2) gives 263 900 Btu/bbl onsite for US catalytic
+# reforming in 2010 (current typical). Per t it needs a naphtha density, a modelling step (docs/benchmarks.md):
+# at an ASSUMED 0.75 t/m3 it is about 2 340 MJ/t, against the dataset's 2 150 MJ/t fuel plus 135 MJ/t
+# electricity.
+#
+# Hydrotreating (hydrotreating-1):
+# - Hydrogen: the dataset is bound to an independent value, the make-up hydrogen of one operating
+#   Chinese diesel hydrotreater (Tian et al. 2022, open access, CC BY). The REF BREF range stays
+#   as a second reference, but it is not independent: the dataset takes its hydrogen from the same
+#   section.
+# - Electricity: the dataset takes its number from the same REF BREF table, so "inside" is
+#   transcription, not a check. Tian et al. (2022) give only the three main drives (see the note).
+# - Heater CO2: the reference is the two middle-distillate units of REF BREF Table 3.65, a
+#   different data set (installation figures) from the Table 3.63 utility ranges the dataset uses.
+#   Same document, though.
+# Searched for an independent per-tonne figure on 2026-11-05: US DOE (1998) Energy and
+# Environmental Profile of the U.S. Petroleum Refining Industry, Table 7-1, and Worrell and
+# Galitsky (2005, LBNL-56183) Table 3 give hydrotreater energy and hydrogen per barrel for all
+# hydrotreaters together (naphtha to residue); converting per barrel to per tonne needs a density,
+# a modelling step, so they are not recorded as ranges. An open-access paper on ULSD units
+# (Sustainability 11:2184, 2019) could not be downloaded.
+#
+# Fluid catalytic cracking (fcc-1), independence per KPI:
+# - fcc-specific-co2 is the one independent check: the dataset's CO2 follows from the coke yield of
+#   a worked example of textbook correlations (Jechura 2019) and PRELIM's coke hydrogen, not from
+#   the BREF's CO2 table.
+# - fcc-liquid-yield shares its document with the dataset's yields (a general statement checked
+#   against a worked example in the same course notes). Because LCO and heavy cycle oil close the
+#   mass balance, the dataset's liquid yield is 1 minus its sourced dry-gas and coke yields: the KPI
+#   checks those two numbers against the notes' rule of thumb, not the LCO/HCO split.
+# - fcc-specific-electricity and fcc-specific-particulates take the dataset's own source: transcription only.
+# Not bound: US DOE (2007) Table 4-9 states FCC electricity per barrel (12.5 x 10^3 Btu/bbl) and
+# PRELIM v1.0 (note h of its energy table) 6.9 kWh/bbl; turning either into kWh/t needs a feed
+# density, a modelling step (docs/benchmarks.md, Units). At the example's 25 degAPI feed they would
+# be about 25 and 48 kWh/t.
+#
+# hydrocracking-1:
+# No hydrocracking KPI has a reference range yet. A range must be independent of the dataset
+# (docs/benchmarks.md), and the only open per-tonne ranges found are those of the REF BREF that
+# hydrocracking-1 takes its midpoints from, so binding them would show "inside" by construction.
+# The KPIs are still computed and shown (status no-reference). The KPIs are per t of fresh feed
+# (no `per`), the basis the source states them on.
+# - Transcription check by hand, not a reference: REF BREF (Barthe et al. 2015, EUR 27140 EN,
+#   doi:10.2791/010758) Table 3.62 p. 192 gives 260 to 400 Nm3 H2/t of VGO feed (23.4 to 36.0 kg/t
+#   at 22.414 Nm3/kmol), Table 3.66 p. 195 gives 20 to 150 kWh/t and 400 to 1200 MJ/t of fuel, and
+#   section 3.13.2 p. 195 gives 50 to 110 l/t of waste water. The dataset gives 29.7 kg/t, 85 kWh/t,
+#   800 MJ/t and 80 kg/t.
+# - A fuel KPI is not bound: the dataset counts the fuel in kg of methane, and an expression cannot
+#   turn kg into MJ (docs/benchmarks.md).
+# - Cross-check by hand, not a reference: the US DOE profile of 1998 (Energetics, "Energy and
+#   Environmental Profile of the U.S. Petroleum Refining Industry", section 4.1.4 and Table 4-8)
+#   gives 1000 to 2500 scf of hydrogen per bbl of feed and about 120 thousand Btu of fuel per bbl.
+#   Per t they need a feed density, a modelling step (docs/benchmarks.md, Units): at 911 kg/m3
+#   (the VGO of Sadighi et al. 2018, Int. J. Technol. 9:99, Table 1) they are about 17 to 42 kg/t of
+#   hydrogen and about 870 MJ/t of fuel, against 29.7 kg and 800 MJ per t of feed in the dataset.
+#   Both sources cite Meyers (1997) among others, so even this is not fully independent.
+schema: cheme-as-code/benchmarks/v1
+family: refining
+
+kpis:
+  cdu-heat-and-power:
+    title: Furnace fuel and electricity per t of crude oil, atmospheric unit
+    unit: kWh/t
+    references:
+      - id: doe-2007-atmospheric-distillation-energy
+        range: [171.5, 389.0]
+        basis: unallocated
+        note: >-
+          The source gives 82 to 186 thousand Btu per barrel of oil, gross (electricity counted with
+          its generation and grid losses at 10 500 Btu/kWh), desalting included, fuel for steam
+          included. Converted at 7.137 bbl/t (the dataset's crude, ASSUMED for the US slate) and
+          3412.14 Btu/kWh.
+        conditions: {technology: "atmospheric crude distillation, several licensed technologies, desalting included", region: US, year: 2005}
+        source: &doe2007
+          citation: "U.S. Department of Energy, Industrial Technologies Program (2007) Energy and Environmental Profile of the U.S. Petroleum Refining Industry, prepared by Energetics Inc."
+          url: https://www.energy.gov/sites/prod/files/2013/11/f4/profile.pdf
+          locator: Table 2-2, p. 42
+          kind: government
+          accessed: "2026-11-05"
+  cdu-specific-fuel:
+    title: Furnace fuel (LHV) per t of crude oil, atmospheric unit
+    unit: kWh/t
+    references:
+      - id: bref-ref-atmospheric-fuel
+        range: [111.1, 188.9]
+        basis: unallocated
+        note: The source gives 400 to 680 MJ/t, converted at 3.6 MJ/kWh. Not independent of the dataset, which takes the midpoint of the same range.
+        conditions: {technology: atmospheric crude distillation, region: EU}
+        source: &bref-ref
+          citation: "Barthe, P., Chaugny, M., Roudier, S., Delgado Sancho, L. (2015) Best Available Techniques (BAT) Reference Document for the Refining of Mineral Oil and Gas. JRC Science and Policy Report EUR 27140 EN, doi:10.2791/010758"
+          url: https://aida.ineris.fr/sites/default/files/documents-bref/REF_BREF_2015.pdf
+          locator: Section 3.19, Table 3.77, p. 207
+          kind: bref
+          accessed: "2026-11-05"
+  cdu-specific-electricity:
+    title: Electricity per t of crude oil, atmospheric unit
+    unit: kWh/t
+    references:
+      - id: doe-2007-atmospheric-distillation-electricity
+        range: [4.81, 4.81]
+        basis: unallocated
+        note: >-
+          One value: 2.3 thousand Btu per barrel of oil, net of generation losses, desalting included;
+          recorded as a zero-width range and not widened. Converted at 7.137 bbl/t (ASSUMED, as above)
+          and 3412.14 Btu/kWh.
+        conditions: {technology: "atmospheric crude distillation, several licensed technologies, desalting included", region: US, year: 2005}
+        source:
+          <<: *doe2007
+          locator: Table 3-5, p. 53
+  cdu-specific-co2:
+    title: Direct CO2 per t of crude oil, atmospheric unit
+    unit: kg/t
+    references:
+      - id: bref-ref-cdu-co2-plant
+        range: [26, 26]
+        basis: unallocated
+        note: One EU plant's load (TOTAL Mitteldeutschland, 8.5 Mt/yr, 220 927 t/yr CO2), calculated by the source, which gives only limit values for this plant and none for CO2; a zero-width range, not widened.
+        conditions: {technology: atmospheric crude distillation, region: EU}
+        source:
+          <<: *bref-ref
+          locator: Section 3.19, Table 3.78, p. 208
+  vdu-heat-and-power:
+    title: Furnace fuel and electricity per t of vacuum feed, vacuum unit
+    unit: kWh/t
+    references:
+      - id: doe-2007-vacuum-distillation-energy
+        range: [97.0, 215.0]
+        basis: unallocated
+        note: >-
+          The source gives 51 to 113 thousand Btu per barrel of vacuum feed, gross (as above), fuel
+          for steam included. Converted at 6.491 bbl/t (969 kg/m3, the dataset crude's residue above
+          375 degC, ASSUMED for the US vacuum feed) and 3412.14 Btu/kWh.
+        conditions: {technology: "vacuum distillation, several licensed technologies", region: US, year: 2005}
+        source:
+          <<: *doe2007
+          locator: Table 2-2, p. 42
+  vdu-specific-electricity:
+    title: Electricity per t of vacuum feed, vacuum unit
+    unit: kWh/t
+    references:
+      - id: doe-2007-vacuum-distillation-electricity
+        range: [2.28, 2.28]
+        basis: unallocated
+        note: One value, 1.2 thousand Btu per barrel of vacuum feed, net of generation losses; a zero-width range, not widened. Converted at 6.491 bbl/t (ASSUMED, as above) and 3412.14 Btu/kWh.
+        conditions: {technology: "vacuum distillation, several licensed technologies", region: US, year: 2005}
+        source:
+          <<: *doe2007
+          locator: Table 3-6, p. 53
+  vdu-specific-co2:
+    title: Direct CO2 per t of vacuum feed, vacuum unit
+    unit: kg/t
+    references:
+      - id: bref-ref-vdu-co2-plant
+        range: [41, 41]
+        basis: unallocated
+        note: One EU plant's load (TOTAL Mitteldeutschland, 4.5 Mt/yr of atmospheric residue, 182 252 t/yr CO2), calculated by the source, which gives only limit values for this plant and none for CO2; a zero-width range, not widened.
+        conditions: {technology: vacuum distillation, region: EU}
+        source:
+          <<: *bref-ref
+          locator: Section 3.19, Table 3.78, p. 208
+  reforming-hydrogen-yield:
+    title: Net hydrogen per t of reformer feed
+    unit: kg/t
+    references:
+      - id: uop-ccr-platforming-hydrogen
+        range: [26.98, 53.97]
+        basis: unallocated
+        note: >-
+          300 to 600 Nm3 per t of feed, converted at 2.016 kg/kmol and 22.414 m3/kmol (ideal gas at 0 degC,
+          1.01325 bar; a pure gas, so no density is assumed). Manufacturer figures, compiled by a third party
+          (ppPLUS) from Honeywell UOP's datasheet and articles; no BREF, IEA or peer-reviewed range for CCR was
+          found. The REF BREF's semi-regenerative 130 to 200 Nm3/t is another technology.
+        conditions: {technology: "CCR Platforming (moving bed, continuous regeneration), 480 to 525 degC", pressure: 3 to 10 barg}
+        source:
+          citation: "ppPLUS (2025) UOP CCR Platforming, technology #T280, Technical specifications (citing Honeywell UOP datasheet UOP4523-2b, 2016, and Morgan, E.R., Fifty years of CCR platforming, Honeywell UOP, 2021)"
+          url: https://portfolio-pplus.com/Technologies/Details/280
+          locator: Technical specifications table
+          kind: manufacturer
+          accessed: "2026-11-05"
+  reforming-c5-yield:
+    title: C5+ reformate per mass of reformer feed
+    unit: kg/kg
+    references:
+      - id: uop-ccr-platforming-c5
+        range: [0.82, 0.86]
+        basis: unallocated
+        note: Reformate yield of 82 to 86 wt% on feed. Manufacturer figures compiled by a third party. Not independent of the dataset (see the file comment).
+        conditions: {technology: "CCR Platforming (moving bed, continuous regeneration)", product: reformate of RON 100 to 106, pressure: 3 to 10 barg}
+        source:
+          citation: "ppPLUS (2025) UOP CCR Platforming, technology #T280, Technical specifications (citing Honeywell UOP datasheet UOP4523-2b, 2016)"
+          url: https://portfolio-pplus.com/Technologies/Details/280
+          locator: Technical specifications table
+          kind: manufacturer
+          accessed: "2026-11-05"
+      - id: us8668824-run1-c5
+        range: [0.874, 0.874]
+        basis: unallocated
+        note: One simulated value (from pilot plant data) for standard CCR conditions, recorded as a zero-width range and not widened. The table does not say on which basis the wt% is stated; per feed is our reading.
+        conditions: {technology: "standard CCR conditions, H2/HC 4.5 mol/mol, LHSV 1 per h (simulated from pilot plant data)", product: reformate of RON 100, pressure: 1300 kPa}
+        source:
+          citation: "ExxonMobil Research and Engineering (2014) Rapid cycle reforming process. US Patent 8,668,824 B2"
+          url: https://patents.google.com/patent/US8668824B2/en
+          locator: Example, Tables A and B, run 1
+          kind: other
+          accessed: "2026-11-05"
+  reforming-specific-electricity:
+    title: Electricity per t of reformer feed
+    unit: kWh/t
+    references:
+      - id: bref-ref-reforming-electricity
+        range: [25, 50]
+        basis: unallocated
+        note: The range for all reformer types. Not independent of the dataset, which takes its midpoint.
+        conditions: {technology: "catalytic reformers, all types", region: EU}
+        source: &bref-ref-cr
+          citation: "Barthe, P., Chaugny, M., Roudier, S., Delgado Sancho, L. (2015) Best Available Techniques (BAT) Reference Document for the Refining of Mineral Oil and Gas. JRC Science and Policy Report EUR 27140 EN, doi:10.2791/010758"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/REF_BREF_2015.pdf
+          locator: Section 3.6, Table 3.42, p. 171
+          kind: bref
+          accessed: "2026-11-05"
+  reforming-specific-fuel:
+    title: Fuel fired per t of reformer feed
+    unit: MJ/t
+    references:
+      - id: bref-ref-reforming-fuel
+        range: [1400, 2900]
+        basis: unallocated
+        note: The range for all reformer types. Not independent of the dataset, which takes its midpoint and counts it as heat.
+        conditions: {technology: "catalytic reformers, all types", region: EU}
+        source: *bref-ref-cr
+  ht-distillate-hydrogen:
+    title: Hydrogen consumption per t of distillate feed hydrotreated
+    unit: kg/t
+    references:
+      - id: bref-ref-ht-distillate-hydrogen
+        range: [1, 15]
+        basis: unallocated
+        note: Per t of feed processed, not per t of product. The same section states 0.3 % H2 on feed for distillate hydrotreating as the typical figure. Not independent of hydrotreating-1, which realises that 0.3 %.
+        conditions: {technology: "hydrotreatment of distillates (kerosene to vacuum gas oil); source data Sema/Sofres 1991 and VROM 1999", region: EU}
+        source: &bref-ref-ht
+          citation: "Barthe, P., Chaugny, M., Roudier, S., Delgado Sancho, L. (2015) Best Available Techniques (BAT) Reference Document for the Refining of Mineral Oil and Gas. JRC Science and Policy Report EUR 27140 EN, doi:10.2791/010758"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/REF_BREF_2015.pdf
+          locator: Section 3.13.1, Table 3.63, p. 192
+          kind: bref
+          accessed: "2026-11-05"
+      - id: tian-2022-diesel-hdt-makeup-hydrogen
+        range: [7.9, 7.9]
+        basis: unallocated
+        note: >-
+          A single unit, not a range: the measured ("actual") make-up hydrogen of the diesel
+          hydrotreater the paper simulates, 33,443 Nm3/h over 380.9 t/h of total feed (283.2 diesel,
+          40.9 naphtha-range and 56.8 t/h of a 2.6 wt-% S stream), product at 40 mg/kg S. Our
+          conversion: 87.8 Nm3/t at 2.016/22.414 kg/Nm3 (0 degC and 101.325 kPa ASSUMED; purity of the
+          make-up gas not stated) gives 7.9 kg/t feed.
+        conditions: {technology: "fixed-bed diesel hydrotreater, 6 to 8 MPa, 318 to 355 degC, mixed feed with cracked and naphtha-range streams, product 40 mg/kg S", region: CN, capacity: "about 3.2 Mt/yr"}
+        source:
+          citation: "Tian, R., Xu, W., Li, Y., Tian, J., Wu, L. (2022) Energy Consumption Analysis of a Diesel Hydrotreating Unit Using an Aspen Simulation. Processes 10(10), 2055, doi:10.3390/pr10102055 (CC BY 4.0)"
+          url: https://doi.org/10.3390/pr10102055
+          locator: Section 3, Table 2 (make-up H2, actuals) and Table 3 (feed flow rates, actuals)
+          kind: peer-reviewed
+          accessed: "2026-11-05"
+  ht-distillate-electricity:
+    title: Electricity per t of distillate feed hydrotreated
+    unit: kWh/t
+    references:
+      - id: bref-ref-ht-distillate-electricity
+        range: [10, 20]
+        basis: unallocated
+        note: >-
+          Per t of feed processed. Not independent of hydrotreating-1, whose electricity is the
+          midpoint of this range. An independent partial figure, not recorded as a range: the three
+          main drives (recycle and make-up hydrogen compressors, feed pump) of the diesel
+          hydrotreater in Tian et al. (2022, Processes 10:2055, Table 4, actuals) draw 7104 kW over
+          380.9 t/h of feed, 18.7 kWh/t (our arithmetic), so a whole-unit figure is at least that.
+        conditions: {technology: "hydrotreatment of distillates; source data Sema/Sofres 1991 and VROM 1999", region: EU}
+        source: *bref-ref-ht
+  ht-distillate-heater-co2:
+    title: Heater CO2 per t of middle distillate feed hydrotreated
+    unit: kg/t
+    references:
+      - id: bref-ref-ht-middle-distillate-co2-units
+        range: [13, 15]
+        basis: unallocated
+        note: The two middle-distillate hydrotreaters of the source's examples, 13 kg/t (TOTAL Mitteldeutschland, loads calculated from limit values) and 15 kg/t (OMV Schwechat, 2007, updated 2010). Two values, not a statistical range. They include the combustion of the unit's fuel. The TOTAL middle-distillate row has the same fuel (205.9 GWh/yr) and the same annual loads as the naphtha hydrotreater row above it, so it may repeat that row; only its throughput differs.
+        conditions: {technology: "middle distillate (kerosene, gas oil) hydrotreaters, about 1.8 and 3.0 Mt/yr", region: "AT, DE", year: 2010}
+        source:
+          citation: "Barthe, P., Chaugny, M., Roudier, S., Delgado Sancho, L. (2015) Best Available Techniques (BAT) Reference Document for the Refining of Mineral Oil and Gas. JRC Science and Policy Report EUR 27140 EN, doi:10.2791/010758"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/REF_BREF_2015.pdf
+          locator: Section 3.13.1, Table 3.65, p. 194
+          kind: bref
+          accessed: "2026-11-05"
+  fcc-specific-co2:
+    title: CO2 from the regenerator per t of FCC fresh feed
+    unit: kg/t
+    references:
+      - id: bref-ref-fcc-co2
+        range: [160, 220]
+        basis: unallocated
+        note: The source's range; it says high Conradson carbon feeds can lead to higher values. Two example units give 207 and 212 kg/t.
+        conditions: {technology: "catalytic crackers (FCC), regenerator flue gas", region: EU}
+        source: &bref-ref-fcc
+          citation: "Barthe, P., Chaugny, M., Roudier, S., Delgado Sancho, L. (2015) Best Available Techniques (BAT) Reference Document for the Refining of Mineral Oil and Gas. JRC Science and Policy Report EUR 27140 EN, doi:10.2791/010758"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/REF_BREF_2015.pdf
+          locator: Section 3.5.2.1, Table 3.35, p. 165
+          kind: bref
+          accessed: "2026-11-05"
+  fcc-liquid-yield:
+    title: Liquid products (C3/C4 cut, gasoline, light and heavy cycle oil) per mass of FCC fresh feed
+    unit: kg/kg
+    references:
+      - id: jechura-fcc-liquid-yield
+        range: [0.90, 0.93]
+        basis: unallocated
+        note: "The notes say mass liquid yields are usually 90 to 93 %, the rest split between gas and coke. That LPG counts as liquid is our reading: it does in the notes' own worked example, whose liquids add up to 90.2 wt%. Same document as the dataset's yields, so not independent."
+        conditions: {technology: "fluid catalytic cracking, gas oil feeds (a rule of thumb in course notes)"}
+        source:
+          citation: "Jechura, J. (2019) Catalytic Cracking, CBEN 409 Petroleum Refining Processes course notes, Colorado School of Mines"
+          url: https://people.mines.edu/jjechura/wp-content/uploads/sites/120/2019/02/CBEN409_07_Catalytic_Cracking.pdf
+          locator: Slide 15 (Product Yields)
+          kind: other
+          accessed: "2026-11-05"
+  fcc-specific-electricity:
+    title: Electricity per t of FCC fresh feed
+    unit: kWh/t
+    references:
+      - id: bref-ref-fcc-electricity
+        range: [8, 50]
+        basis: unallocated
+        note: FCC column of the source's table (the RCC column is 2 to 60). Not independent of the dataset, whose electricity is its midpoint.
+        conditions: {technology: "fluid catalytic cracking (FCC, not RCC)", region: EU}
+        source:
+          <<: *bref-ref-fcc
+          locator: Section 3.5.1, Table 3.33, p. 164
+  fcc-specific-particulates:
+    title: Particulates from the regenerator per t of FCC fresh feed
+    unit: kg/t
+    references:
+      - id: bref-ref-fcc-pm
+        range: [0.015, 0.100]
+        basis: unallocated
+        note: A sample of 20 European FCC units, specific values estimated by the source from unit capacity; average 0.040. Not independent of the dataset, which takes the average.
+        conditions: {technology: "FCC regenerators with and without particulate abatement", region: EU, year: 2008}
+        source:
+          <<: *bref-ref-fcc
+          locator: Section 3.5.2.1, Table 3.37, p. 167
+  hc-hydrogen-consumption:
+    title: Hydrogen chemically consumed per t of fresh feed, vacuum gas oil hydrocracking
+    unit: kg/t
+    no_open_reference: >-
+      No open per-mass range independent of the dataset found (2026-11-05). The REF BREF range
+      (Table 3.62, 260 to 400 Nm3/t) is the dataset's own source. Per-barrel figures (US DOE 1998,
+      Energetics, section 4.1.4: 1000 to 2500 scf/bbl) need a feed density to become kg/t, a
+      modelling step. Searched: open reviews and course notes on VGO hydrocracking (only scf/bbl or
+      single pilot-test values, e.g. Peng et al. 2018, Front. Chem. Sci. Eng. 12:867).
+  hc-specific-electricity:
+    title: Electricity per t of fresh feed, hydrocracking
+    unit: kWh/t
+    no_open_reference: >-
+      No open range independent of the dataset found (2026-11-05). The REF BREF range (Table 3.66,
+      20 to 150 kWh/t, after Sema, Sofres 1991 and VROM 1999) is the dataset's own source. Read and
+      not usable: US DOE 1998 (Energetics, Table 4-8, per bbl), DOE 2006 Energy Bandwidth (no
+      hydrocracking section), PRELIM v1.5 documentation (no values printed).
+  hc-sour-water:
+    title: Sour water per t of fresh feed, hydrocracking
+    unit: kg/t
+    no_open_reference: >-
+      No open range independent of the dataset found (2026-11-05). The REF BREF range (section
+      3.13.2, 50 to 110 l/t) is the dataset's own source; no other open source read for this entry
+      states a hydrocracker waste-water flow.
+
+datasets:
+  - process: refinery-distillation-1
+    dataset: crude-atmospheric-distillation
+    conditions: {technology: "atmospheric crude distillation, desalting not included", feed: "Johan Sverdrup type crude, 28.7 API", basis: conceptual inventory}
+    kpis:
+      cdu-heat-and-power:
+        expression: (feed:fuel + feed:electricity) / feed:crude-oil
+        reference: doe-2007-atmospheric-distillation-energy
+        out_of_range_reason: "Below the DOE range because the expression leaves out what DOE counts: the boiler fuel for the 27.5 kg/t of stripping steam (about 20 to 25 kWh/t at a usual boiler efficiency), the grid losses of the electricity and desalting. With them the dataset would sit at the range's low end. The dataset's fuel is the midpoint of the EU REF BREF range."
+      cdu-specific-fuel: {expression: feed:fuel / feed:crude-oil, reference: bref-ref-atmospheric-fuel}
+      cdu-specific-electricity:
+        expression: feed:electricity / feed:crude-oil
+        reference: doe-2007-atmospheric-distillation-electricity
+        out_of_range_reason: "The dataset takes the midpoint, 5 kWh/t, of the EU REF BREF range 4 to 6 kWh/t, which contains the DOE value; a zero-width reference makes any midpoint outside."
+      cdu-specific-co2:
+        expression: emission:CO2 / feed:crude-oil
+        reference: bref-ref-cdu-co2-plant
+        out_of_range_reason: "The plant's value is calculated by the source for its own fuel of 482 MJ/t (1138.8 GWh/yr over 8.5 Mt/yr, Table 3.78), an implied 54 kg/GJ; the dataset burns the REF BREF midpoint of 540 MJ/t at IPCC's refinery gas default of 57.6 kg/GJ (the BREF's own hydrogen-rich fuel gas factor is 43 kg/GJ, Table 3.59). Both are about 20 % apart from one plant, not a range."
+  - process: refinery-distillation-1
+    dataset: atmospheric-residue-vacuum-distillation
+    conditions: {technology: "vacuum distillation with steam ejectors", feed: "atmospheric residue above 360 degC of the same crude", basis: conceptual inventory}
+    kpis:
+      vdu-heat-and-power: {expression: (feed:fuel + feed:electricity) / feed:atmospheric-residue, reference: doe-2007-vacuum-distillation-energy}
+      vdu-specific-electricity:
+        expression: feed:electricity / feed:atmospheric-residue
+        reference: doe-2007-vacuum-distillation-electricity
+        out_of_range_reason: "The dataset takes the midpoint, 3 kWh/t, of the EU REF BREF range 1.5 to 4.5 kWh/t, which contains the DOE value; a zero-width reference makes any midpoint outside."
+      vdu-specific-co2:
+        expression: emission:CO2 / feed:atmospheric-residue
+        reference: bref-ref-vdu-co2-plant
+        out_of_range_reason: "The plant's value is calculated by the source for its own fuel of 512 MJ/t (639.5 GWh/yr over 4.5 Mt/yr, Table 3.78); the dataset burns the REF BREF midpoint of 600 MJ/t at IPCC's refinery gas default of 57.6 kg/GJ, so 34.6 kg/t. The plant's implied factor, about 80 kg/GJ, suggests a liquid fuel; one plant, not a range."
+  - process: catalytic-reforming-1
+    dataset: catalytic-reforming-ccr
+    conditions: {technology: CCR, basis: conceptual inventory with pseudo-components}
+    kpis:
+      reforming-hydrogen-yield: {expression: product:hydrogen / feed:naphtha, reference: uop-ccr-platforming-hydrogen}
+      reforming-c5-yield: {expression: product:reformate / feed:naphtha, reference: uop-ccr-platforming-c5}
+      reforming-specific-electricity: {expression: feed:electricity / feed:naphtha, reference: bref-ref-reforming-electricity}
+      reforming-specific-fuel: {expression: feed:fuel / feed:naphtha, reference: bref-ref-reforming-fuel}
+  - process: hydrotreating-1
+    dataset: gas-oil-hydrodesulfurisation
+    conditions: {technology: "fixed-bed CoMo gas oil HDS to about 10 mg/kg S, feed 0.92 wt-% S", basis: conceptual inventory, per: t of feed}
+    kpis:
+      ht-distillate-hydrogen:
+        expression: feed:hydrogen / feed:gas-oil
+        reference: tian-2022-diesel-hdt-makeup-hydrogen
+        out_of_range_reason: >-
+          3.04 kg/t against 7.9 kg/t: the dataset uses the REF BREF's typical 0.3 % H2 for
+          distillates (1991 and 1999 data, before 10 mg/kg diesel), and its feed is straight-run gas
+          oil only. The reference unit also treats a 2.6 wt-% S stream and naphtha-range feed, and
+          counts all make-up gas. The BREF's own Table 3.62 lists 44 Nm3/t (about 4 kg/t) for
+          high-sulfur gas oil to 0.2 % S, so the dataset's hydrogen for 10 mg/kg is probably low.
+          Kept at the sourced figure until a source for deep HDS of straight-run gas oil is found
+          (parameter nu_H2 in processes/hydrotreating-1/lca/datasets/gas-oil-hydrodesulfurisation.yaml).
+      ht-distillate-electricity: {expression: feed:electricity / feed:gas-oil, reference: bref-ref-ht-distillate-electricity}
+      ht-distillate-heater-co2:
+        expression: emission:CO2 / feed:gas-oil
+        reference: bref-ref-ht-middle-distillate-co2-units
+        out_of_range_reason: >-
+          16.5 kg/t: the dataset burns 300 MJ/t, the lower bound of the Table 3.63 range, as methane
+          (54.9 g CO2/MJ). The two reference units burn about 275 and 247 MJ/t (their fuel over
+          throughput), below that range, so their CO2 is lower. The dataset keeps the range's bound
+          (parameter fuel in processes/hydrotreating-1/lca/datasets/gas-oil-hydrodesulfurisation.yaml).
+  - process: fcc-1
+    dataset: fcc-vgo-full-combustion
+    conditions: {technology: "FCC, full combustion, gas oil feed of 25 degAPI", basis: conceptual inventory}
+    kpis:
+      fcc-specific-co2: {expression: emission:CO2 / feed:vacuum-gas-oil, reference: bref-ref-fcc-co2}
+      fcc-liquid-yield: {expression: (product:lpg + product:gasoline + product:light-cycle-oil + product:heavy-cycle-oil) / feed:vacuum-gas-oil, reference: jechura-fcc-liquid-yield}
+      fcc-specific-electricity: {expression: feed:electricity / feed:vacuum-gas-oil, reference: bref-ref-fcc-electricity}
+      fcc-specific-particulates: {expression: emission:PM / feed:vacuum-gas-oil, reference: bref-ref-fcc-pm}
+  - process: hydrocracking-1
+    dataset: hydrocracking-vgo-single-stage-recycle
+    conditions: {technology: "single-stage recycle, high pressure", feed: "vacuum gas oil, 2.5 % S w/w (surrogate)", basis: conceptual inventory}
+    kpis:
+      hc-hydrogen-consumption: {expression: feed:hydrogen / feed:vacuum-gas-oil}
+      hc-specific-electricity: {expression: feed:electricity / feed:vacuum-gas-oil}
+      hc-sour-water: {expression: output:wastewater / feed:vacuum-gas-oil}

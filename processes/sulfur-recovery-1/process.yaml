@@ -1,0 +1,36 @@
+# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
+# dataset is lca/datasets/*.yaml, Tier 1 form, so maturity stays at concept
+# (core's cheme.lci-tier-maturity). See README.md.
+schema: cheme-as-code/process/v1
+id: sulfur-recovery-1
+title: Sulfur recovery from acid gas by the modified Claus process with a catalytic oxidation tail gas unit
+summary: >-
+  Sourced conceptual inventory per tonne of liquid sulfur from refinery acid gas: recovery, fuel,
+  electricity, steam and cooling water from the EU REF BREF, incinerator NOx, CO and hydrocarbons
+  from US EPA AP-42. Steam exported as a co-product. No flowsheet; not reviewed.
+families: [sulfuric-acid]
+keywords: [sulfur recovery, SRU, Claus process, modified Claus, tail gas treatment, SuperClaus, acid gas, hydrogen sulfide, incinerator, SO2 emissions]
+facets: {feedstock_basis: [fossil], product_classes: [chemicals], unit_operations: [combustion, reaction, condensation, heat-exchange], region: EU}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: hydrogen-sulfide, role: feedstock, inventory_key: "feed:hydrogen-sulfide", note: "H2S of the amine acid gas; the other acid gas components are left out (dataset system_boundary)"}
+    - {chemical: methane, role: feedstock, inventory_key: "feed:natural-gas", note: "fuel of the line burners and the incinerator, natural gas taken as methane (ASSUMED)"}
+    - {chemical: air, role: feedstock, note: "Claus furnace and incinerator air, free; its O2 is feed:O2"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:boiler-feed-water", note: "boiler feed water, ASSUMED equal to the steam raised"}
+  outputs:
+    - {chemical: sulfur, role: main-product, note: "product:sulfur: liquid sulfur to the pit, dissolved H2S counted as sulfur. No inventory_key on purpose: with one, the LCI build would link the sulfur feeds of sulfuric-acid-1 and thionyl-chloride-1 to this plant gate (no sulfur market yet, and the H2S feed is still a gap), a change those processes decide in their own lca/mappings.yaml"}
+    - {chemical: steam, role: co-product, note: "product:steam: steam produced, 1.75 t/t, all taken as exported (ASSUMED), pressure not stated by the source; all burdens to the sulfur (dataset allocation)"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "fuel combustion; acid gas CO2 left out"}
+    - {chemical: sulfur-dioxide, role: emission, inventory_key: "emission:SO2", note: "sulfur not recovered, burnt to SO2 in the incinerator"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity"}
+    - {chemical: cooling-water, role: utility, inventory_key: "output:heat-rejected", note: "counted as heat rejected (kWh) at the source's 10 K rise"}
+basis: {capacity: "per tonne of sulfur (the dataset's basis); no plant size"}
+publication: {status: public, license: CC-BY-4.0}
+references:
+  - {title: "Barthe, P., Chaugny, M., Roudier, S., Delgado Sancho, L. (2015) Best Available Techniques (BAT) Reference Document for the Refining of Mineral Oil and Gas. JRC Science and Policy Report EUR 27140 EN (JRC94879), sections 3.23.2, 4.23.5.2 and 5.17", doi: 10.2791/010758}
+  - {title: "US EPA (2015) AP-42, Compilation of Air Pollutant Emission Factors, 5th ed., Vol. I, chapter 8.13 Sulfur Recovery (revision 4/15)", url: "https://www.epa.gov/sites/default/files/2020-09/documents/8.13_sulfur_recovery.pdf"}
+  - {title: "U.S. Geological Survey (2024) Mineral Commodity Summaries 2024, Sulfur, pp. 172-173 (sources of recovered sulfur; route dominance)", url: "https://pubs.usgs.gov/periodicals/mcs2024/mcs2024-sulfur.pdf"}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/sulfur-recovery-1, access: public}

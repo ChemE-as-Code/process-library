@@ -1,0 +1,38 @@
+# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
+# dataset is lca/datasets/*.yaml, Tier 1 form, so maturity stays at concept
+# (core's cheme.lci-tier-maturity). See README.md.
+schema: cheme-as-code/process/v1
+id: hydrocracking-1
+title: Hydrocracking of vacuum gas oil, single-stage recycle
+summary: >-
+  Sourced conceptual inventory per tonne of hydrocracked products (LPG to diesel range, unsplit):
+  conversion, bleed, hydrogen, fuel, power, water and catalyst from EU REF BREF ranges, closed by
+  surrogate-compound element balances. No flowsheet; not reviewed.
+families: [refining]
+keywords: [hydrocracking, vacuum gas oil, VGO, hydrogen, middle distillates, diesel, kerosene, naphtha, refinery]
+facets: {feedstock_basis: [fossil], product_classes: [fuels], unit_operations: [reaction, distillation], region: EU}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: vacuum-gas-oil, role: feedstock, inventory_key: "feed:vacuum-gas-oil"}
+    - {chemical: hydrogen, role: reactant, inventory_key: "feed:hydrogen", note: "chemical consumption; linked to hydrogen-1 (lca/mappings.yaml)"}
+    - {chemical: methane, role: feedstock, inventory_key: "feed:natural-gas", note: "heater fuel, natural gas taken as pure methane (ASSUMED; a refinery fires mostly its own fuel gas)"}
+    - {chemical: air, role: feedstock, note: "combustion air, free; its O2 is feed:O2"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:water", note: "wash water, ASSUMED equal to the sour water"}
+  outputs:
+    - {chemical: hydrocracked-products, role: main-product, inventory_key: "product:hydrocracked-products"}
+    - {chemical: refinery-fuel-gas, role: co-product, inventory_key: "product:fuel-gas", note: "C1-C2 gas from the LP separator, to the refinery fuel system after amine treating; modelled as ethane"}
+    - {chemical: unconverted-oil, role: co-product, inventory_key: "product:unconverted-oil", note: "bleed of 2 to 3 % on fresh feed; modelled as triacontane"}
+    - {chemical: hydrogen-sulfide, role: by-product, inventory_key: "output:H2S", note: "in the sour gas, to amine treating and sulphur recovery"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2"}
+    - {chemical: water, role: emission, inventory_key: "emission:H2O", note: "combustion water vapour"}
+    - {chemical: wastewater, role: waste, inventory_key: "output:wastewater", note: "sour water, via the sour water stripper"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity"}
+basis: {capacity: "per tonne of hydrocracked products (the dataset's basis); no plant size"}
+publication: {status: public, license: CC-BY-4.0}
+references:
+  - {title: "Barthe, P., Chaugny, M., Roudier, S., Delgado Sancho, L. (2015) Best Available Techniques (BAT) Reference Document for the Refining of Mineral Oil and Gas. JRC Science and Policy Report EUR 27140 EN (JRC94879), sections 2.13, 3.13 and 3.13.2", doi: 10.2791/010758}
+  - {title: "IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Volume 2: Energy, chapter 1 (Table 1.2) and chapter 2 (Table 2.2)", url: "https://www.ipcc-nggip.iges.or.jp/public/2006gl/vol2.html"}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/hydrocracking-1, access: public}

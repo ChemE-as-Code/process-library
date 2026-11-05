@@ -159,9 +159,14 @@ owner against a licensed copy.
 
 Raw natural gas (`raw-natural-gas`) and pyrolysis gasoline are in the registry as mixtures
 without a composition. Sales gas is not a separate entry: natural-gas-processing-1 and the
-library's natural-gas consumers take it as `methane`. Naphtha and fuel gas are not in the
-registry yet. A typical composition is added, with its source, with the first process that
-needs one. A mixture entry may go in
+library's natural-gas consumers take it as `methane`. Crude oil and the crude distillation cuts
+(`refinery-fuel-gas`, `liquefied-petroleum-gas`, `naphtha`, `kerosene`, `gas-oil`,
+`atmospheric-residue`, `vacuum-gas-oil`, `vacuum-residue`) came with refinery-distillation-1,
+without a composition and with the IPCC 2006 default net calorific value of their fuel category as
+`lhv` (a category default, not a value of the cut). Catalytic-reforming-1 and fcc-1 use the same
+naphtha, liquefied petroleum gas and refinery fuel gas entries (catalytic-reforming-1's dataset
+uses ASSUMED pseudo-formulas of its own). A typical composition is added, with its source, with the
+first process that needs one. A mixture entry may go in
 without a composition (the schema allows it), but no composition is entered without a source.
 
 ## Identities and how they are verified

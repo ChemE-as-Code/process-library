@@ -1,0 +1,39 @@
+# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
+# dataset is lca/datasets/*.yaml, Tier 1 form, so maturity stays at concept
+# (core's cheme.lci-tier-maturity). See README.md.
+schema: cheme-as-code/process/v1
+id: catalytic-reforming-1
+title: Catalytic reforming of naphtha with continuous catalyst regeneration (CCR)
+summary: >-
+  Sourced conceptual inventory per tonne of C5+ reformate, with hydrogen, LPG and fuel gas as
+  co-products: utilities from EU REF BREF ranges, a mass and hydrogen balance over pseudo-components.
+  No flowsheet; not reviewed.
+families: [refining]
+keywords: [catalytic reforming, CCR, continuous catalyst regeneration, platforming, reformate, naphtha, refinery hydrogen, aromatics]
+facets: {feedstock_basis: [fossil], product_classes: [fuels, chemicals], unit_operations: [reaction, combustion, distillation], region: EU}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: naphtha, role: feedstock, inventory_key: "feed:naphtha", note: "hydrotreated heavy naphtha, modelled as C7H14 (ASSUMED); its supplier is not linked"}
+    - {chemical: air, role: feedstock, note: "regeneration air, free; its O2 is feed:O2"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:water", note: "scrubber water, ASSUMED equal to the waste water"}
+  outputs:
+    - {chemical: reformate, role: main-product, inventory_key: "product:reformate"}
+    - {chemical: hydrogen, role: co-product, inventory_key: "product:hydrogen", note: "net gas counted as pure H2 (ASSUMED)"}
+    - {chemical: liquefied-petroleum-gas, role: co-product, inventory_key: "product:lpg", note: "closes the mass balance"}
+    - {chemical: refinery-fuel-gas, role: co-product, inventory_key: "product:fuel-gas", note: "C1 and C2 to the refinery fuel system"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "coke burn-off in the regenerator"}
+    - {chemical: wastewater, role: waste, inventory_key: "output:wastewater"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity"}
+    - {chemical: cooling-water, role: utility, inventory_key: "output:cooling-water", note: "heat rejected, kWh"}
+basis: {capacity: "per tonne of C5+ reformate (the dataset's basis); no plant size"}
+publication: {status: public, license: CC-BY-4.0}
+references:
+  - {title: "Barthe, P., Chaugny, M., Roudier, S., Delgado Sancho, L. (2015) Best Available Techniques (BAT) Reference Document for the Refining of Mineral Oil and Gas. JRC Science and Policy Report EUR 27140 EN (JRC94879), sections 2.6 and 3.6", doi: 10.2791/010758}
+  - {title: "ExxonMobil Research and Engineering (2014) Rapid cycle reforming process, US Patent 8,668,824 B2, Example (Tables A and B, run 1: standard CCR conditions)", url: "https://patents.google.com/patent/US8668824B2/en"}
+  - {title: "ppPLUS (2025) UOP CCR Platforming, technology #T280 (third-party compilation of Honeywell UOP figures; manufacturer data)", url: "https://portfolio-pplus.com/Technologies/Details/280"}
+  - {title: "Hameed, S.A. (2017) Improving of design parameters of an industrial continuous catalytic reforming reactors. Iraqi Journal of Chemical and Petroleum Engineering 18(2):109-123, Table 1", url: "https://distantreader.org/stacks/journals/ijcpe/ijcpe-207.pdf"}
+  - {title: "IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Volume 2 Energy, chapter 1, Table 1.2 (net calorific values)", url: "https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/2_Volume2/V2_1_Ch1_Introduction.pdf"}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/catalytic-reforming-1, access: public}

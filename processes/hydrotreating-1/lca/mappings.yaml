@@ -1,0 +1,17 @@
+# hydrotreating-1's own exchange overrides for the Atlas LCI build (ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. The gas oil feed links the Atlas producer
+# refinery-distillation-1 explicitly. The catalyst, the spent catalyst and the H2S stay reported
+# gaps: the shared vocabulary has no entry for them, and the H2S to sulfur-recovery-1 waits for the
+# cut-off rule of acid gas (burden-free residue or not).
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:hydrogen": {dataset: {path: processes/hydrogen-1/lca/dataset.yaml, product: "product:H2"}, source: "the Atlas producer hydrogen-1 (SMR with PSA, 99.9 mol% H2), as hydrogen-bromide-1 links it; refinery hydrotreaters also take reformer hydrogen, which the library does not make yet"}
+  "feed:natural-gas":
+    use: natural-gas
+    atlas: false
+    source: "Heater fuel, refinery fuel gas taken as pipeline natural gas by mass; its combustion is in the dataset's own emissions. Not hda-1's fuel gas, which shares the slug methane."
+  "feed:steam":
+    use: steam
+    atlas: false
+    source: "Steam by mass, pressure not stated by the source: the shared background entry, not one Atlas producer's pressure level (as cumene-1)."
+  "feed:gas-oil": {dataset: {path: processes/refinery-distillation-1/lca/datasets/crude-atmospheric-distillation.yaml, product: "product:gas-oil"}, source: "the Atlas producer refinery-distillation-1, straight-run gas oil (240 to 360 degC) of the crude unit, the grade this feed names; its sulfur is that of one assay crude, not this feed's 0.9 wt-% (not corrected)"}

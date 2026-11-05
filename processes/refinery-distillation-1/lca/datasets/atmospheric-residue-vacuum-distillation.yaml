@@ -1,0 +1,587 @@
+# Tier 1 form, without a flowsheet. Every amount is the formula of its parameters; core's validator
+# re-checks each. Written from the REF BREF, one public crude assay and IPCC 2006 (facts in our own form).
+# The element balance counts every hydrocarbon stream as the pseudo-component CH2 (ASSUMED): it checks
+# the mass balance of the cuts, not how carbon, hydrogen and sulfur split between them.
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: atmospheric-residue-vacuum-distillation
+title: Vacuum distillation of atmospheric residue
+description: 'Per 1 t of atmospheric residue, gate-to-gate, high vacuum unit (HVU). Cut yields of the same
+  crude as the atmospheric dataset; utilities as midpoints of the REF BREF''s ranges; furnace CO2, CH4 and
+  N2O from IPCC defaults. Unallocated: vacuum gas oil and vacuum residue are co-products.'
+basis: 1000 kg of atmospheric residue distilled
+boundary: 'gate-to-gate: vacuum furnace, vacuum column at 40 to 100 mbar, ejectors or vacuum pumps, overhead
+  condensing; sour water stripping is outside; steam and power from outside'
+technology: vacuum distillation with steam injection and steam ejectors (REF BREF 2.19); one crude assay
+geography:
+  description: EU utility data of the REF BREF; the crude is a Norwegian North Sea grade refined in Europe;
+    no single site.
+classification:
+  isic: '1920'
+system_boundary:
+  included:
+  - atmospheric residue feed and the two vacuum cuts
+  - furnace fuel and its combustion emissions
+  - electricity, steam, cooling water
+  - sour water
+  excluded:
+  - 'TODO non-condensables of the ejector condensers (50 to 200 kg/h of hydrocarbons and H2S, REF BREF 3.19):
+    routed to the sour fuel gas system or a heater, not quantified per t'
+  - 'TODO oily water of barometric condensers (about 10 m3/h, REF BREF 3.19): not per t, and the dataset assumes
+    surface condensers'
+  - 'fugitive hydrocarbons: booked in the atmospheric dataset for both units'
+  - 'TODO wash oil and slop recycle: internal'
+  - infrastructure
+  - storage emissions
+  cutoff: none applied; the excluded flows are not quantified
+  infrastructure: excluded
+  catalysts: excluded
+  non_routine: excluded
+location: RER
+year: 2001
+valid_until: 2006
+time:
+  start: 1999
+  description: Utilities from the REF BREF table, whose sources date from 1999 to 2001 (the 2015 BREF still
+    gives them); cut yields from an assay of 2021; combustion factors of IPCC 2006. valid_until is the reference
+    year + 5 (system-model section 6), so it has long lapsed.
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+technology_level: current
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+modelling:
+  principle: attributional
+  multifunctionality: 'unallocated: every cut is a co-product. Default allocation for the export: energy (LHV,
+    IPCC 2006 default NCVs), hierarchy step 2 for co-produced fuels (see allocation)'
+  sampling: One crude (Johan Sverdrup), vacuum cut at 560 degC (ASSUMED). EU utility ranges of 1999 to 2001.
+allocation:
+  method: energy
+  coproducts:
+  - vacuum-gas-oil
+  - vacuum-residue
+  source: 'docs/system-model.md section 2, step 2: the cuts are co-produced fuels and refinery feedstocks,
+    so energy content (LHV) is the physical relationship'
+  deviation: 'Not a departure in substance: energy (LHV) is the hierarchy''s step 2 for co-produced fuels.
+    It is stated here because no curated rule (physical-energy) for refinery-distillation-1 is in lci/mappings.yaml
+    allocation yet; once one is added the build records rule physical-energy. The LHVs are IPCC 2006 category
+    defaults (Vol. 2, Table 1.2), not measured per cut.'
+uuid: 2be2543e-1948-5185-8baf-cee34fe1a86c
+parameters:
+- name: ar
+  value: 1000.0
+  unit: kg
+  description: Atmospheric residue to the vacuum unit (the basis).
+  source: basis
+- name: tbp_360
+  value: 0.474
+  unit: kg/kg
+  description: 'Mass of the crude distilled up to 360 degC: the start of the atmospheric residue.'
+  source: TotalEnergies crude oil data sheet Johan Sverdrup (assay of 01-Apr-2021, sheet Jul-21), TBP distillation
+    table (manufacturer literature; the sheet gives no guarantee of accuracy), TBP curve; cut point from EU
+    JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 2.19, p. 101
+- name: tbp_560
+  value: 0.791
+  unit: kg/kg
+  description: 'Mass of the crude distilled up to 560 degC: the vacuum gas oil end point.'
+  source: TotalEnergies crude oil data sheet Johan Sverdrup (assay of 01-Apr-2021, sheet Jul-21), TBP distillation
+    table (manufacturer literature; the sheet gives no guarantee of accuracy), TBP curve; the cut point is
+    ASSUMED (the BREF names none; the sheet's residues above 550 and 565 degC bracket it)
+- name: fuel_v
+  value: 600.0
+  unit: MJ
+  description: 'Fuel per t of vacuum feed: midpoint of 400 to 800 MJ/t.'
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.77,
+    p. 207 (sources VROM 1999, Canales 2000, TWG 2001); the midpoint is our choice
+- name: elec_v
+  value: 3.0
+  unit: kWh
+  description: 'Electricity per t of vacuum feed: midpoint of 1.5 to 4.5 kWh/t.'
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.77,
+    p. 207 (sources VROM 1999, Canales 2000, TWG 2001); the midpoint is our choice
+- name: steam_v
+  value: 40.0
+  unit: kg
+  description: 'Steam consumed per t of vacuum feed: midpoint of 20 to 60 kg/t (stripping and ejector steam).'
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.77,
+    p. 207 (sources VROM 1999, Canales 2000, TWG 2001); the midpoint is our choice; pressure not stated
+- name: cw_v
+  value: 4.0
+  unit: m3
+  description: 'Cooling water per t of vacuum feed at a 17 K rise: midpoint of 3 to 5 m3/t.'
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.77,
+    p. 207 (sources VROM 1999, Canales 2000, TWG 2001); the midpoint is our choice
+- name: dt_cw
+  value: 17.0
+  unit: K
+  description: Temperature rise of the cooling water.
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.77,
+    p. 207 (sources VROM 1999, Canales 2000, TWG 2001)
+- name: v_nox
+  value: 0.01258
+  unit: kg
+  description: "NOx per t of vacuum feed: the plant's load of 56.6 t/yr over 4 500 000 t/yr of atmospheric residue (the table's kg/t row rounds it to 0.013)."
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.78,
+    p. 208 (TOTAL Mitteldeutschland, loads calculated by the source from permit limit values, yearly average,
+    3 % O2 dry)
+- name: v_so2
+  value: 0.0044
+  unit: kg
+  description: "SO2 per t of vacuum feed (the plant's flue gas passes FGD): the plant's load of 19.8 t/yr over 4 500 000 t/yr of atmospheric residue (the table's kg/t row rounds it to 0.004)."
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.78,
+    p. 208 (TOTAL Mitteldeutschland, loads calculated by the source from permit limit values, yearly average,
+    3 % O2 dry)
+- name: v_co
+  value: 0.01258
+  unit: kg
+  description: "CO per t of vacuum feed: the plant's load of 56.6 t/yr over 4 500 000 t/yr of atmospheric residue (the table's kg/t row rounds it to 0.013)."
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.78,
+    p. 208 (TOTAL Mitteldeutschland, loads calculated by the source from permit limit values, yearly average,
+    3 % O2 dry)
+- name: v_pm
+  value: 0.000622
+  unit: kg
+  description: "Particulates per t of vacuum feed: the plant's load of 2.8 t/yr over 4 500 000 t/yr of atmospheric residue (the table's kg/t row rounds it to 0.001)."
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.78,
+    p. 208 (TOTAL Mitteldeutschland, loads calculated by the source from permit limit values, yearly average,
+    3 % O2 dry)
+- name: ef_co2
+  value: 57.6
+  unit: g/MJ
+  description: 'CO2 per MJ (LHV) of refinery gas burned: 57 600 kg/TJ, 95 % interval 48 200 to 69 000.'
+  source: IPCC (2006) Guidelines, Vol. 2 Energy, ch. 1, Table 1.4, p. 1.23 (refinery gas) and IPCC (2006) Guidelines,
+    Vol. 2 Energy, ch. 2, Table 2.2, p. 2.16 (energy industries, refinery gas); that the furnace burns refinery
+    gas only is ASSUMED (EU refineries also fire natural gas and fuel oil, which IPCC puts at 56 100 and 77
+    400 kg/TJ)
+- name: ef_ch4
+  value: 0.001
+  unit: g/MJ
+  description: 'CH4 per MJ (LHV) of refinery gas burned: 1 kg/TJ, range 0.3 to 3.'
+  source: IPCC (2006) Guidelines, Vol. 2 Energy, ch. 2, Table 2.2, p. 2.16 (energy industries, refinery gas)
+- name: ef_n2o
+  value: 0.0001
+  unit: g/MJ
+  description: 'N2O per MJ (LHV) of refinery gas burned: 0.1 kg/TJ, range 0.03 to 0.3.'
+  source: IPCC (2006) Guidelines, Vol. 2 Energy, ch. 2, Table 2.2, p. 2.16 (energy industries, refinery gas)
+- name: cp_w
+  value: 4.18
+  unit: kJ/(kg K)
+  description: Specific heat of liquid cooling water.
+  source: 'ASSUMED: the common value of liquid water near 25 degC (not read in a source here)'
+exchanges:
+- key: feed:atmospheric-residue
+  title: Atmospheric residue (above 360 degC)
+  type: input
+  amount: 1000.0
+  unit: kg
+  formula: ar
+  provenance: given
+  source: the basis; from the atmospheric dataset of this process (lca/mappings.yaml)
+- key: feed:steam
+  title: Stripping and ejector steam (pressure not stated)
+  type: input
+  amount: 40.0
+  unit: kg
+  formula: steam_v
+  provenance: given
+  origin: literature
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.77,
+    p. 207 (sources VROM 1999, Canales 2000, TWG 2001)
+  pedigree: &id001
+    scores:
+    - 3
+    - 4
+    - 5
+    - 3
+    - 3
+    reason: 'from a range of the REF BREF utility table (EU, sources of 1999 to 2001): reliability 3, completeness
+      4, temporal 5 (about 25 years old), geographical 3, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.732
+    source: 'steam: range 20 to 60 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: feed:electricity
+  title: Electricity
+  type: input
+  amount: 3.0
+  unit: kWh
+  formula: elec_v
+  provenance: given
+  origin: literature
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.77,
+    p. 207 (sources VROM 1999, Canales 2000, TWG 2001)
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.732
+    source: 'electricity: range 1.5 to 4.5 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: feed:fuel
+  title: Refinery fuel gas fired in the vacuum unit furnace (LHV)
+  type: input
+  amount: 166.66666666666666
+  unit: kWh
+  formula: fuel_v / 3.6
+  provenance: given
+  origin: literature
+  carrier:
+    kind: fuel
+    composition: refinery fuel gas (ASSUMED)
+    source: 'REF BREF 3.19: fuel to heat the feed'
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.77,
+    p. 207 (sources VROM 1999, Canales 2000, TWG 2001); the source gives MJ/t, converted at 3.6 MJ/kWh
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.414
+    source: 'fuel: range 400 to 800 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: emission:CO2
+  title: CO2 from the vacuum unit furnace
+  type: emission
+  amount: 34.56
+  unit: kg
+  formula: fuel_v * ef_co2 / 1000
+  provenance: calculated
+  origin: literature
+  cas: 124-38-9
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 349b29d1-3e58-4c66-98b9-9d1a076efd2e
+    name: Carbon dioxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: fuel times the IPCC default for refinery gas (IPCC (2006) Guidelines, Vol. 2 Energy, ch. 1, Table
+    1.4, p. 1.23 (refinery gas)); compare REF BREF Table 3.78; biosphere3 UUID, name and categories from core's
+    elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree: &id002
+    scores:
+    - 4
+    - 4
+    - 4
+    - 3
+    - 4
+    reason: 'an IPCC 2006 default factor applied to the sourced fuel, the fuel taken as refinery gas (ASSUMED):
+      reliability 4, completeness 4, temporal 4, geographical 3, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.477
+    source: fuel range and the IPCC 95 % interval 48 200 to 69 000 kg/TJ, each read as gsd2 = sqrt(high / low)
+      and combined in the log (our convention)
+- key: emission:CH4
+  title: CH4 from the vacuum unit furnace
+  type: emission
+  amount: 0.0006
+  unit: kg
+  formula: fuel_v * ef_ch4 / 1000
+  provenance: calculated
+  origin: literature
+  cas: 74-82-8
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 0795345f-c7ae-410c-ad25-1845784c75f5
+    name: Methane, fossil
+    categories:
+    - air
+    unit: kg
+  source: IPCC (2006) Guidelines, Vol. 2 Energy, ch. 2, Table 2.2, p. 2.16 (energy industries, refinery gas);
+    biosphere3 UUID, name and categories from core's elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.162
+    source: 'IPCC CH4 factor: range 0.3 to 3 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: emission:N2O
+  title: N2O from the vacuum unit furnace
+  type: emission
+  amount: 6.0e-05
+  unit: kg
+  formula: fuel_v * ef_n2o / 1000
+  provenance: calculated
+  origin: literature
+  cas: 10024-97-2
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 20185046-64bb-4c09-a8e7-e8a9e144ca98
+    name: Dinitrogen monoxide
+    categories:
+    - air
+    unit: kg
+  source: IPCC (2006) Guidelines, Vol. 2 Energy, ch. 2, Table 2.2, p. 2.16 (energy industries, refinery gas);
+    biosphere3 UUID, name and categories from core's elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.162
+    source: 'IPCC N2O factor: range 0.03 to 0.3 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: product:vacuum-gas-oil
+  title: Vacuum gas oil (360 to 560 degC, light and heavy)
+  type: product
+  amount: 602.661596958175
+  unit: kg
+  formula: ar * (tbp_560 - tbp_360) / (1 - tbp_360)
+  provenance: calculated
+  origin: literature
+  properties:
+    energy: 43000.0
+    source: 'IPCC (2006) Guidelines, Vol. 2 Energy, ch. 1, Table 1.2, p. 1.18 (default NCV): Refinery Feedstocks,
+      43.0 MJ/kg; the category is ASSUMED for the cut'
+  source: TotalEnergies crude oil data sheet Johan Sverdrup (assay of 01-Apr-2021, sheet Jul-21), TBP distillation
+    table (manufacturer literature; the sheet gives no guarantee of accuracy)
+  pedigree: &id003
+    scores:
+    - 4
+    - 4
+    - 3
+    - 3
+    - 4
+    reason: 'TBP yields of one crude (assay of 2021) taken as plant yields at the cut points (ASSUMED): reliability
+      4, completeness 4, temporal 3, geographical 3, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty: &id004
+    gsd2: 1.2
+    source: 'ASSUMED: TBP yields of one crude at sharp cut points; a plant''s cuts overlap and its crude slate
+      differs'
+- key: product:vacuum-residue
+  title: Vacuum residue (above 560 degC)
+  type: product
+  amount: 397.338403041825
+  unit: kg
+  formula: ar * (1 - tbp_560) / (1 - tbp_360)
+  provenance: calculated
+  origin: literature
+  properties:
+    energy: 40400.0
+    source: 'IPCC (2006) Guidelines, Vol. 2 Energy, ch. 1, Table 1.2, p. 1.18 (default NCV): Residual Fuel
+      Oil, 40.4 MJ/kg; the category is ASSUMED for the cut'
+  source: TotalEnergies crude oil data sheet Johan Sverdrup (assay of 01-Apr-2021, sheet Jul-21), TBP distillation
+    table (manufacturer literature; the sheet gives no guarantee of accuracy)
+  pedigree: *id003
+  basic_uncertainty: 1.05
+  uncertainty: *id004
+- key: output:wastewater
+  title: Sour water from steam injection and ejectors
+  type: output
+  amount: 40.0
+  unit: kg
+  formula: steam_v
+  provenance: assumed
+  origin: estimate
+  link:
+    factor: wastewater
+    source: site wastewater treatment
+  source: 'ASSUMED: all steam consumed condenses into sour water (EU JRC (2015) REF BREF, Barthe et al., EUR
+    27140 EN, doi:10.2791/010758, section 3.19, p. 208, names the stream but gives no amount per t)'
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.732
+    source: 'steam: range 20 to 60 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: output:cooling-water
+  title: Heat rejected to cooling water
+  type: output
+  amount: 78.95555555555555
+  unit: kWh
+  formula: cw_v * 1000 * cp_w * dt_cw / 3600
+  provenance: calculated
+  origin: literature
+  source: 'EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.77,
+    p. 207 (sources VROM 1999, Canales 2000, TWG 2001): m3 per t at 17 K, times cp (ASSUMED)'
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.291
+    source: 'cooling water: range 3 to 5 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: emission:NOX
+  title: NOx from the vacuum unit furnace
+  type: emission
+  amount: 0.01258
+  unit: kg
+  formula: v_nox
+  provenance: calculated
+  origin: literature
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: c1b91234-6f24-417b-8309-46111d09c457
+    name: Nitrogen oxides
+    categories:
+    - air
+    unit: kg
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.78,
+    p. 208 (TOTAL Mitteldeutschland, loads calculated by the source from permit limit values, yearly average,
+    3 % O2 dry); mass outside the element balance; biosphere3 UUID, name and categories from core's elementary-flow
+    crosswalk (data/elementary-flows.yaml)
+  pedigree: &id005
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 3
+    reason: 'one EU plant''s loads, which the source calculates from permit limit values: reliability 4, completeness
+      4, temporal 5 (about 25 years old), geographical 4, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: one plant''s loads from permit limit values, not measurements'
+- key: emission:SO2
+  title: SO2 from the vacuum unit furnace
+  type: emission
+  amount: 0.0044
+  unit: kg
+  formula: v_so2
+  provenance: calculated
+  origin: literature
+  cas: 7446-09-5
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: fd7aa71c-508c-480d-81a6-8052aad92646
+    name: Sulfur dioxide
+    categories:
+    - air
+    unit: kg
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.78,
+    p. 208 (TOTAL Mitteldeutschland, loads calculated by the source from permit limit values, yearly average,
+    3 % O2 dry); mass outside the element balance; biosphere3 UUID, name and categories from core's elementary-flow
+    crosswalk (data/elementary-flows.yaml)
+  pedigree: *id005
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: one plant''s loads from permit limit values, not measurements'
+- key: emission:CO
+  title: CO from the vacuum unit furnace
+  type: emission
+  amount: 0.01258
+  unit: kg
+  formula: v_co
+  provenance: calculated
+  origin: literature
+  cas: 630-08-0
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: ba2f3f82-c93a-47a5-822a-37ec97495275
+    name: Carbon monoxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.78,
+    p. 208 (TOTAL Mitteldeutschland, loads calculated by the source from permit limit values, yearly average,
+    3 % O2 dry); mass outside the element balance; biosphere3 UUID, name and categories from core's elementary-flow
+    crosswalk (data/elementary-flows.yaml)
+  pedigree: *id005
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: one plant''s loads from permit limit values, not measurements'
+- key: emission:PM
+  title: Particulates (all sizes, counted as PM2.5) from the vacuum unit furnace
+  type: emission
+  amount: 0.000622
+  unit: kg
+  formula: v_pm
+  provenance: calculated
+  origin: literature
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 21e46cb8-6233-4c99-bac3-c41d2ab99498
+    name: Particulate Matter, < 2.5 um
+    categories:
+    - air
+    unit: kg
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.78,
+    p. 208 (TOTAL Mitteldeutschland, loads calculated by the source from permit limit values, yearly average,
+    3 % O2 dry); mass outside the element balance; biosphere3 UUID, name and categories from core's elementary-flow
+    crosswalk (data/elementary-flows.yaml)
+  pedigree: *id005
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: one plant''s loads from permit limit values, not measurements'
+provenance:
+  generator: hand-written model; amounts are the formulas of the parameters
+  notes: No value from a licensed database. Yields from a public crude data sheet (manufacturer literature),
+    utilities from the REF BREF, combustion factors and NCVs from IPCC 2006.
+generation:
+  tier: 1
+  method: 'sourced conceptual inventory: REF BREF utility ranges, cut yields from one crude''s TBP curve at
+    the BREF''s cut points, IPCC 2006 combustion defaults; every choice listed in parameters'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 3
+  - 4
+  - 3
+  - 3
+  - 3
+  dqr_floor: 3.0
+  components:
+    feed:atmospheric-residue: hydrocarbon
+    product:vacuum-gas-oil: hydrocarbon
+    product:vacuum-residue: hydrocarbon
+    feed:steam: H2O
+    output:wastewater: H2O
+  formulas:
+    feed:atmospheric-residue: CH2
+    product:vacuum-gas-oil: CH2
+    product:vacuum-residue: CH2
+    feed:steam: H2O
+    output:wastewater: H2O
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      C:
+      - 856.277179725
+      - 856.277179725
+      H:
+      - 148.19909005
+      - 148.19909005
+      O:
+      - 35.523730225
+      - 35.523730225
+    outside:
+    - emission:CH4
+    - emission:CO
+    - emission:CO2
+    - emission:N2O
+    - emission:NOX
+    - emission:PM
+    - emission:SO2
+    - feed:electricity
+    - feed:fuel
+    - output:cooling-water

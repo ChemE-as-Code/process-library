@@ -1,0 +1,43 @@
+# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its two LCI
+# datasets are lca/datasets/*.yaml, Tier 1 form, so maturity stays at concept
+# (core's cheme.lci-tier-maturity). See README.md.
+schema: cheme-as-code/process/v1
+id: refinery-distillation-1
+title: Crude oil distillation, atmospheric and vacuum (crude and high vacuum units)
+summary: >-
+  Sourced conceptual inventory per tonne of crude oil (atmospheric unit) and per tonne of atmospheric
+  residue (vacuum unit): cut yields from one public crude assay, utilities as midpoints of REF BREF
+  ranges, furnace emissions from IPCC defaults. All cuts unallocated co-products. No flowsheet; not reviewed.
+families: [refining]
+keywords: [crude oil, crude distillation unit, CDU, vacuum distillation, high vacuum unit, HVU, naphtha, kerosene, gas oil, vacuum gas oil, atmospheric residue, vacuum residue, refinery]
+facets: {feedstock_basis: [fossil], product_classes: [fuels, chemicals], unit_operations: [distillation, combustion], region: EU}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: crude-oil, role: feedstock, inventory_key: "feed:crude-oil", note: "desalted; Johan Sverdrup type (28.7 API, 0.81 wt% S), the crude of the assay"}
+    - {chemical: atmospheric-residue, role: feedstock, inventory_key: "feed:atmospheric-residue", note: "the vacuum dataset's feed, linked to this process's atmospheric dataset (lca/mappings.yaml)"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:water", note: "ASSUMED: the sourced wastewater less the stripping steam"}
+  outputs:
+    - {chemical: gas-oil, role: main-product, inventory_key: "product:gas-oil", note: "240 to 360 degC, light and heavy gas oil. Main product for the catalog label only: every cut is an unallocated co-product"}
+    - {chemical: refinery-fuel-gas, role: co-product, inventory_key: "product:refinery-gas"}
+    - {chemical: liquefied-petroleum-gas, role: co-product, inventory_key: "product:lpg"}
+    - {chemical: naphtha, role: co-product, inventory_key: "product:naphtha", note: "C5 to 180 degC, unstabilised"}
+    - {chemical: kerosene, role: co-product, inventory_key: "product:kerosene", note: "180 to 240 degC"}
+    - {chemical: atmospheric-residue, role: co-product, inventory_key: "product:atmospheric-residue", note: "above 360 degC, the vacuum unit's feed"}
+    - {chemical: vacuum-gas-oil, role: co-product, inventory_key: "product:vacuum-gas-oil", note: "360 to 560 degC (cut point ASSUMED)"}
+    - {chemical: vacuum-residue, role: co-product, inventory_key: "product:vacuum-residue", note: "above 560 degC"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "furnace flue gas, IPCC refinery gas default"}
+    - {chemical: wastewater, role: waste, inventory_key: "output:wastewater", note: "sour water"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity"}
+    - {chemical: steam, role: utility, inventory_key: "feed:steam", note: "stripping and ejector steam by mass; pressure not stated by the source"}
+    - {chemical: cooling-water, role: utility, inventory_key: "output:cooling-water", note: "heat rejected, from the sourced flow at a 17 K rise"}
+basis: {capacity: "per tonne of crude oil (atmospheric dataset) and per tonne of atmospheric residue (vacuum dataset); no plant size"}
+publication: {status: public, license: CC-BY-4.0}
+references:
+  - {title: "Barthe, P., Chaugny, M., Roudier, S., Delgado Sancho, L. (2015) Best Available Techniques (BAT) Reference Document for the Refining of Mineral Oil and Gas. JRC Science and Policy Report EUR 27140 EN (JRC94879), sections 2.19 and 3.19", doi: 10.2791/010758}
+  - {title: "TotalEnergies, crude oil data sheet Johan Sverdrup (assay of 1 April 2021, sheet July 2021), manufacturer literature", url: "https://trading.totalenergies.com/wp-content/uploads/2025/11/JOHAN-SVERDRUP.pdf"}
+  - {title: "IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Vol. 2 Energy, ch. 1 (Tables 1.2 and 1.4) and ch. 2 (Table 2.2)", url: "https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/2_Volume2/V2_2_Ch2_Stationary_Combustion.pdf"}
+  - {title: "US DOE (2007) Energy and Environmental Profile of the U.S. Petroleum Refining Industry, prepared by Energetics, Tables 2-2, 3-5 and 3-6 (benchmarks only)", url: "https://www.energy.gov/sites/prod/files/2013/11/f4/profile.pdf"}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/refinery-distillation-1, access: public}
