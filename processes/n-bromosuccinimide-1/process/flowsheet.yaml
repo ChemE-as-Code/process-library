@@ -1,0 +1,391 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# N-Bromosuccinimide by the caustic bromination of succinimide (DESIGN.md D-001), a batch plant:
+# succinimide is dissolved in water with caustic soda and cooled to 5 C, bromine is dosed into
+# the charge over 2 h (a semi-batch, reactor: semibatch), the NBS precipitates, is filtered,
+# reslurry-washed with ice water, filtered again and dried at 60 C under vacuum; the mother
+# liquor (NaBr) and the wash filtrate go to wastewater treatment.
+# The flows are the year averages of the batch recipe (process/recipe.yaml, `cheme process
+# recipe`, D-003): a batch of 334 kg of dried NBS every 5.3 h, 1495 batches and 500 t in 7920 h.
+# Where the values come from:
+# - feeds, temperatures, pressures, ratios: design basis and D-002..D-009, ASSUMED;
+# - R101: cheme's semi-batch model (the rate law of BROM, D-005), to 0.999 conversion of the
+#   bromine; CR101 and W101: conversion
+#   steps from the solubility of NBS; F101, F102: specified filters; M101, M103: mixers (all
+#   calculated by `cheme process propagate --fill`);
+# - the dryer's outlets and every duty: the independent balance scripts/balance.py (D-006,
+#   ADR 0027 of the library), given here as ASSUMED: no property package of core is qualified
+#   for this liquor, and core has no dryer model.
+schema: cheme/process/v1
+kind: flowsheet
+title: N-Bromosuccinimide by semi-batch bromination of succinimide in aqueous NaOH (500 t/a)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: 500 t/a dried NBS (98.6 wt% crystals, 99.0 wt% NBS), year averages of 1495 batches in 7920 h (D-002, D-003)", default: true}
+tolerance: {abs: 0.05, rel: 0.002}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - {id: PW, title: Process water (dissolution), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: NAOH, title: Caustic soda 50 wt% (chlor-alkali-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: SUCC, title: Succinimide (merchant), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: BR2, title: Liquid bromine (bromine-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: WASHW, title: Ice-cold process water (cake wash), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: m101, direction: out, kind: energy}
+      - {id: r101, direction: out, kind: energy}
+      - {id: d101, direction: out, kind: energy}
+  - id: LPS
+    title: LP steam 350 kPa(a) (to the dryer's hot-water circuit)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 350, provenance: assumed, source: "design basis (D-009)"}
+      supply_temperature: {value: 412.0, provenance: given, source: "saturation at 350 kPa(a), IAPWS-IF97"}
+      min_approach: {value: 10, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: d101, direction: out, kind: energy}
+products:
+  - {id: NBS, title: N-Bromosuccinimide crystals to packing, category: product, ports: [{id: in, direction: in}]}
+  - {id: WW, title: "Mother liquor, wash filtrate and dryer condensate to wastewater treatment", category: wastewater, ports: [{id: in, direction: in}]}
+  - id: BRINE
+    title: Chilled brine return (263 K)
+    category: utility
+    utility:
+      kind: refrigerant
+      supply_temperature: {value: 263.15, provenance: assumed, source: "design basis (D-009)"}
+      return_temperature: {value: 268.15, provenance: assumed, source: "design basis (D-009)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: m101, direction: in, kind: energy}
+      - {id: r101, direction: in, kind: energy}
+
+blocks:
+  - id: PREP
+    title: Charge preparation
+    class: Mixing
+    ports:
+      - {id: pw, direction: in}
+      - {id: naoh, direction: in}
+      - {id: succ, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: REACT
+    title: Bromination and precipitation
+    class: ReactingChemicals
+    ports:
+      - {id: in, direction: in}
+      - {id: br2, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: ISOL
+    title: Filtration, washing and drying
+    class: SeparatingMechanically
+    ports:
+      - {id: in, direction: in}
+      - {id: wash, direction: in}
+      - {id: product, direction: out}
+      - {id: ww, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: power, direction: in, kind: energy}
+
+steps:
+  - id: M101
+    block: PREP
+    title: Dissolver (succinimide in caustic, cooled to 278 K)
+    class: Mixing
+    links: [{target: equipment, ref: M-101}]
+    ports:
+      - {id: pw, direction: in, delegates: pw}
+      - {id: naoh, direction: in, delegates: naoh}
+      - {id: succ, direction: in, delegates: succ}
+      - {id: out, direction: out, delegates: out}
+      - {id: q, direction: out, kind: energy, delegates: q}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: R101
+    block: REACT
+    title: Brominator (bromine dosed into the cold charge)
+    class: ReactingChemicals
+    reactions: [BROM]
+    reactor: semibatch
+    batch:
+      dosing: [{stream: S5, time: 7200}]
+      target: {key: BR2, conversion: 0.999}
+      heat: isothermal
+      provenance: assumed
+      source: "bromine dosed over 2 h, 30 min post-reaction at 278 K (D-005)"
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: br2, direction: in, delegates: br2}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: q}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: CR101
+    block: REACT
+    title: Precipitation hold (NBS crystallises from the cold liquor)
+    class: ReactingChemicals
+    reactions: [PPT]
+    reactor: conversion
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: out}
+  - id: F101
+    block: ISOL
+    title: Filtration (filter-dryer)
+    class: Filtering
+    solid_separation:
+      solid_recovery: 0.998
+      cake_liquid: {value: 0.3, basis: per_kg_solid}
+      outlets: {cake: cake, filtrate: filtrate}
+      provenance: assumed
+      source: "agitated filter-dryer, cake 0.3 kg liquor per kg NBS (D-007)"
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: cake, direction: out}
+      - {id: filtrate, direction: out}
+  - id: W101
+    block: ISOL
+    title: Reslurry wash with ice water (NBS dissolves to saturation)
+    class: Mixing
+    reactions: [DISS]
+    reactor: conversion
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: cake, direction: in}
+      - {id: wash, direction: in, delegates: wash}
+      - {id: out, direction: out}
+  - id: F102
+    block: ISOL
+    title: Filtration of the washed cake
+    class: Filtering
+    solid_separation:
+      solid_recovery: 0.998
+      cake_liquid: {value: 0.3, basis: per_kg_solid}
+      outlets: {cake: cake, filtrate: filtrate}
+      provenance: assumed
+      source: "as F101 (D-007)"
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: cake, direction: out}
+      - {id: filtrate, direction: out}
+  - id: D101
+    block: ISOL
+    title: Vacuum drying at 333 K (filter-dryer)
+    class: Drying
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: product, direction: out, delegates: product}
+      - {id: vapour, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: M103
+    block: ISOL
+    title: Liquor collection to wastewater
+    class: Mixing
+    ports:
+      - {id: ml, direction: in}
+      - {id: wf, direction: in}
+      - {id: cond, direction: in}
+      - {id: out, direction: out, delegates: ww}
+
+streams:
+  - id: S1
+    title: Process water
+    from: PW.out
+    to: M101.pw
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 188.307, provenance: assumed, source: "scripts/balance.py: 30 kmol water per kmol Br2 in the charge (D-004)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "pure water"}
+  - id: S2
+    title: Caustic soda 50 wt%
+    from: NAOH.out
+    to: M101.naoh
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 30.7507, provenance: assumed, source: "scripts/balance.py: NaOH 1.02 per Br2 (D-004)"}
+        composition: {basis: mass_fraction, values: {NAOH: 0.5, H2O: 0.5}, provenance: given, source: "membrane-cell caustic soda 50 wt% (chlor-alkali-1)"}
+  - id: S3
+    title: Succinimide
+    from: SUCC.out
+    to: M101.succ
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 38.0911, provenance: assumed, source: "scripts/balance.py: succinimide 1.02 per Br2 (D-004)"}
+        composition: {basis: mass_fraction, values: {SUCC: 1.0}, provenance: assumed, source: "technical succinimide, impurities not modelled (D-004)"}
+  - id: S4
+    title: Charge (alkaline succinimide solution, 278 K)
+    from: M101.out
+    to: R101.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 278.15, provenance: assumed, source: "cooled in M101 (D-005)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 257.149, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3', fingerprint: eb8e3c26dbd5cec8}
+        composition: {basis: mole_fraction, values: {H2O: 0.93633, NAOH: 0.0318352, SUCC: 0.0318352, BR2: 0.0, NBS: 0.0, NBS_S: 0.0, NABR: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3', fingerprint: da09579b3100733d}
+  - id: S5
+    title: Liquid bromine (dosed)
+    from: BR2.out
+    to: R101.br2
+    template: liquor
+    state:
+      design:
+        temperature: {value: 293.15, provenance: assumed, source: "bromine storage (D-005)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 60.2277, provenance: assumed, source: "scripts/balance.py: the bromine that makes 500 t/a (D-002)"}
+        composition: {basis: mass_fraction, values: {BR2: 1.0}, provenance: assumed, source: "dry bromine 99.9 %+ (bromine-1), impurities not modelled"}
+  - id: S6
+    title: Reacted liquor
+    from: R101.out
+    to: CR101.in
+    template: liquor
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.938226, NAOH: 0.000635608, SUCC: 0.000635608, BR2: 3.02663e-05, NBS: 0.030236, NBS_S: 0.0, NABR: 0.030236}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: fa40ecd90ee9ec9d}
+        flow: {value: 317.377, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: acbc8d52cefda5c3}
+        temperature: {value: 278.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: fa40ecd90ee9ec9d}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: fa40ecd90ee9ec9d}
+  - id: S7
+    title: NBS slurry
+    from: CR101.out
+    to: F101.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 278.15, provenance: assumed, source: "held at 278 K (D-005)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 317.377, provenance: calculated, source: 'cheme process propagate: reactor CR101 from S6', fingerprint: 34ada4cda08129a5}
+        composition: {basis: mole_fraction, values: {H2O: 0.938226, NAOH: 0.000635608, SUCC: 0.000635608, BR2: 3.02663e-05, NBS: 0.001396, NBS_S: 0.02884, NABR: 0.030236}, provenance: calculated, source: 'cheme process propagate: reactor CR101 from S6', fingerprint: 5c3ad36109622c5b}
+  - id: S8
+    title: Filter cake
+    from: F101.cake
+    to: W101.cake
+    template: liquor
+    state:
+      design:
+        temperature: {value: 278.15, provenance: assumed, source: "D-007"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 82.9262, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S7', fingerprint: 56d5483820e2ea11}
+        composition: {basis: mole_fraction, values: {NBS_S: 0.281884, H2O: 0.693764, NAOH: 0.000469995, SUCC: 0.000469995, BR2: 2.23802e-05, NBS: 0.00103226, NABR: 0.0223578}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S7', fingerprint: 56d5483820e2ea11}
+  - id: S9
+    title: Mother liquor
+    from: F101.filtrate
+    to: M103.ml
+    template: liquor
+    state:
+      design:
+        temperature: {value: 278.15, provenance: assumed, source: "D-007"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 234.451, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S7', fingerprint: 56d5483820e2ea11}
+        composition: {basis: mole_fraction, values: {H2O: 0.966026, NAOH: 0.000654442, SUCC: 0.000654442, BR2: 3.11631e-05, NBS: 0.00143736, NBS_S: 6.42393e-05, NABR: 0.0311319}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S7', fingerprint: 56d5483820e2ea11}
+  - id: S10
+    title: Wash water
+    from: WASHW.out
+    to: W101.wash
+    template: liquor
+    state:
+      design:
+        temperature: {value: 278.15, provenance: assumed, source: "ice-cold water (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 95.6841, provenance: assumed, source: "scripts/balance.py: 1.5 kg per kg NBS in the cake (D-007)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "pure water"}
+  - id: S11
+    title: Wash slurry
+    from: W101.out
+    to: F102.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 278.15, provenance: assumed, source: "D-007"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 178.61, provenance: calculated, source: 'cheme process propagate: reactor W101 from S8 S10', fingerprint: d31bee260dbee1d9}
+        composition: {basis: mole_fraction, values: {H2O: 0.940852, NAOH: 9.07774e-05, SUCC: 9.07774e-05, BR2: 4.32263e-06, NBS: 0.00139988, NBS_S: 0.0532441, NABR: 0.00431831}, provenance: calculated, source: 'cheme process propagate: reactor W101 from S8 S10', fingerprint: e9c4236912f726db}
+  - id: S12
+    title: Washed cake
+    from: F102.cake
+    to: D101.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 278.15, provenance: assumed, source: "D-007"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 80.9354, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S11', fingerprint: 8a7a005f58212956}
+        composition: {basis: mole_fraction, values: {NBS_S: 0.258856, H2O: 0.736522, NAOH: 7.10628e-05, SUCC: 7.10628e-05, BR2: 3.38386e-06, NBS: 0.00109586, NABR: 0.00338048}, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S11', fingerprint: 8a7a005f58212956}
+  - id: S13
+    title: Wash filtrate
+    from: F102.filtrate
+    to: M103.wf
+    template: liquor
+    state:
+      design:
+        temperature: {value: 278.15, provenance: assumed, source: "D-007"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 97.6746, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S11', fingerprint: 8a7a005f58212956}
+        composition: {basis: mole_fraction, values: {H2O: 0.993631, NAOH: 9.58697e-05, SUCC: 9.58697e-05, BR2: 4.56512e-06, NBS: 0.00147841, NBS_S: 0.000133994, NABR: 0.00456055}, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S11', fingerprint: 8a7a005f58212956}
+  - id: S14
+    title: Dried NBS
+    from: D101.product
+    to: NBS.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: "discharged after cooling (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 63.1313, provenance: assumed, source: "scripts/balance.py: 0.2 wt% moisture left, the cake's dissolved salts dried onto the crystals (D-008)"}
+        composition: {basis: mass_fraction, values: {NAOH: 6.1e-05, SUCC: 0.000151, NBS: 0.004175, NABR: 0.007445, NBS_S: 0.986168, H2O: 0.002}, provenance: assumed, source: "scripts/balance.py (D-008)"}
+  - id: S15
+    title: Dryer condensate
+    from: D101.vapour
+    to: M103.cond
+    template: liquor
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: "vacuum condenser (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 17.8042, provenance: assumed, source: "scripts/balance.py (D-008)"}
+        composition: {basis: mass_fraction, values: {H2O: 0.999959, BR2: 4.1e-05}, provenance: assumed, source: "scripts/balance.py: water only (D-008)"}
+  - id: S16
+    title: Liquors to wastewater treatment
+    from: M103.out
+    to: WW.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 279.42, provenance: assumed, source: "scripts/balance.py: adiabatic mixing of S9, S13 (278.15 K) and S15 (303.15 K), equal heat capacities (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 349.93, provenance: calculated, source: 'cheme process propagate: mixer M103 from S9 S13 S15', fingerprint: 20fd15bc004f5b7a}
+        composition: {basis: mole_fraction, values: {H2O: 0.976255, NAOH: 0.000449335, SUCC: 0.000449335, BR2: 2.16589e-05, NBS: 0.00136807, NBS_S: 8.15628e-05, NABR: 0.021375}, provenance: calculated, source: 'cheme process propagate: mixer M103 from S9 S13 S15', fingerprint: 4c7bcf58ba7b7f47}
+  # energy
+  - {id: Q1, title: Charge cooling to brine, kind: energy, from: M101.q, to: BRINE.m101, state: {design: {duty: {value: 10.7678, provenance: assumed, source: "scripts/balance.py: the caustic's dilution and the imide's deprotonation, and the charge from 298 to 278 K (D-009)"}}}}
+  - {id: Q2, title: Heat of bromination to brine, kind: energy, from: R101.q, to: BRINE.r101, state: {design: {duty: {value: 5.348, provenance: assumed, source: "scripts/balance.py: the bromination of the imide anion (-50 kJ/mol) at 0.999 conversion and the bromine cooled from 293 K (D-005, D-009)"}}}}
+  - {id: Q3, title: Dryer heat, kind: energy, from: LPS.d101, to: D101.steam, state: {design: {duty: {value: 19.4853, provenance: assumed, source: "scripts/balance.py: cake to 333 K, water evaporated, 70 % efficiency (D-009)"}}}}
+  - {id: P1, title: Dissolver agitator, kind: energy, from: POWER.m101, to: M101.power, state: {design: {duty: {value: 1.0, provenance: assumed, source: "year average (D-009)"}}}}
+  - {id: P2, title: Brominator agitator, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 2.0, provenance: assumed, source: "year average (D-009)"}}}}
+  - {id: P3, title: Filter-dryer agitator and vacuum pump, kind: energy, from: POWER.d101, to: D101.power, state: {design: {duty: {value: 3.0, provenance: assumed, source: "year average (D-009)"}}}}

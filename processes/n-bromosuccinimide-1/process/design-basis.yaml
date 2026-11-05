@@ -1,0 +1,48 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# N-Bromosuccinimide by the caustic bromination of succinimide, a batch plant, issue
+# ChemE-as-Code/process-library#140 (the batch pilot of core#158). Values marked ASSUMED are
+# engineering choices of this concept study, not client or licensor data; every decision is in
+# DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: dried N-bromosuccinimide crystals to packing at the battery limit
+  nbs_t_per_year: 500                   # ASSUMED (D-002): a fine-chemical scale, no open market figure
+  operating_hours_per_year: 7920        # ASSUMED (D-002): 330 days of 24 h, batch operation
+  batch_kg: 334.41                      # ASSUMED (D-003): one batch of dried product every 5.30 h
+  batches_per_year: 1495                # from the recipe (process/recipe.yaml, D-003)
+feeds:
+  - name: Succinimide (merchant, technical grade)
+    source_of_values: ASSUMED (D-004)
+    composition: "succinimide 100 % (impurities not modelled)"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Liquid bromine (bromine-1)
+    source_of_values: ASSUMED (D-004)
+    composition: "Br2 100 % (dry bromine of bromine-1, 99.96 wt%)"
+    conditions: {temperature_K: 293.15, pressure_kPa_a: 101.325}
+  - name: Caustic soda 50 wt% (chlor-alkali-1)
+    source_of_values: ASSUMED (D-004)
+  - name: Process water (dissolution and an ice-cold cake wash)
+    source_of_values: ASSUMED (D-004, D-007)
+products:
+  - name: N-Bromosuccinimide
+    purity: "99.0 wt% NBS (98.6 wt% crystals and the NBS of the dried cake liquor), 0.75 wt% NaBr, 0.2 wt% water (ASSUMED, D-008); colour, free bromine and succinimide assay not modelled"
+    delivery: {temperature_K: 303.15, pressure_kPa_a: 101.325, battery_limit: packing (drums or bags; not in the boundary)}
+  - name: Liquors to wastewater treatment
+    note: "mother liquor (NaBr 15 wt%, dissolved NBS), wash filtrate and dryer condensate; the bromide is not recovered (D-010)"
+utilities:
+  - {name: Electric power, use: "agitators of M-101, R-101 and F-101, vacuum pump (D-009)"}
+  - {name: LP steam, pressure_kPa_a: 350, use: "the filter-dryer's hot-water circuit (D-009)", note: ASSUMED}
+  - {name: Chilled brine, supply_K: 263.15, return_K: 268.15, use: "cooling the charge and removing the heat of bromination at 278 K", note: "ASSUMED; from a refrigeration unit outside the boundary (D-009)"}
+  - {name: Cooling water, use: "the dryer's vacuum condenser (not counted: small, D-009)"}
+site:
+  location: ASSUMED generic fine-chemicals site with a bromine supply (bromine-1), not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "ASSUMED route: bromine into an alkaline succinimide solution at 278 K, NBS precipitating (D-001), the caustic route US 2 971 960 describes; half of the bromine leaves as NaBr."
+  - "ASSUMED succinimide and NaOH 1.02 per Br2, 30 kmol water per kmol Br2 in the charge (D-004)."
+  - "ASSUMED fast effective rate law, first order in bromine and in the imide, and a heat of reaction of -80 kJ/mol overall (-30 in the dissolver, -50 in the brominator; D-005, D-009): no open kinetics or calorimetry; the low accumulation follows from them."
+  - "Solubility of NBS 14.7 g per kg water, the 25 C value (PubChem CID 67184, HSDB: 1.47 g/100 g water), taken at 278 K as well: the liquors leave saturated (D-005)."
+  - "ASSUMED filters: 99.8 % solid recovery, 0.3 kg liquor per kg cake solid; reslurry wash with 1.5 kg ice water per kg solid (D-007)."
+  - "ASSUMED vacuum drying at 333 K to 0.2 wt% moisture, 70 % thermal efficiency (D-008, D-009)."
+  - "All flows are year averages of the recipe (D-003); duties and power concept estimates (scripts/balance.py, D-006, D-009); accuracy +/-30 % not demonstrated."
