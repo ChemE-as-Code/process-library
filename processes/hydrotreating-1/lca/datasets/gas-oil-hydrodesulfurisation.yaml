@@ -1,11 +1,13 @@
 # Tier 1 form, without a flowsheet (as ethylbenzene-1). Every amount is the formula of its parameters;
-# core's validator re-checks each. Written from the REF BREF and IPCC 2006 (facts in our own form).
+# core's validator re-checks each. Written from the REF BREF, IPCC 2006, one crude assay, Tian et al.
+# (2022) and PRELIM v1.0 (facts in our own form).
 schema: cheme/lci_dataset/v2
 kind: lci_dataset
 id: gas-oil-hydrodesulfurisation
 title: Gas oil hydrodesulfurisation to ultra-low-sulfur diesel blendstock
 description: Per 1 t of desulfurised gas oil, gate-to-gate, EU refinery hydrotreaters of the REF BREF. Feed, hydrogen
-  and H2S from model formulas fitted to the sourced feed sulfur, hydrogen use and product carbon content; utilities
+  and H2S from model formulas fitted to the feed sulfur of the crude assay that refinery-distillation-1 uses, the
+  make-up hydrogen of one operating diesel hydrotreater and PRELIM's hydrogen content of hydrotreated diesel; utilities
   and heater emissions from sourced ranges and two installations.
 basis: 1000 kg of desulfurised gas oil
 boundary: 'gate-to-gate: feed heater, fixed-bed reactor, high- and low-pressure separators, recycle gas, stripper
@@ -26,14 +28,14 @@ system_boundary:
   excluded:
   - 'TODO light ends and wild naphtha from cracking (off-gas to refinery fuel gas, stripper naphtha to the crude
     unit): not quantified in the source; the model gives the whole feed carbon to the product'
-  - 'TODO hydrogen purge and solution losses to fuel gas: the source''s hydrogen figure is counted as consumed'
+  - 'TODO hydrogen purge and solution losses to fuel gas: the source''s make-up hydrogen is counted as consumed'
   - 'TODO nitrogen of the feed and the NH3 it forms (to sour water): not quantified in the source'
   - TODO H2S, NH3, phenols and hydrocarbons dissolved in the sour water
   - TODO fugitive hydrocarbon and sulfur emissions from valves, flanges, seals and sour lines
   - TODO molecular sieve or vacuum drier adsorbents
   - amine treatment and sulfur recovery (downstream units that take the H2S)
   - catalyst regeneration, done off site
-  - product sulfur (about 10 mg/kg, 0.1 % of the feed sulfur, see parameter nu_S)
+  - product sulfur (about 10 mg/kg, 0.2 % of the feed sulfur, see parameter nu_S)
   - infrastructure
   cutoff: none applied; the excluded flows are not quantified
   infrastructure: excluded
@@ -45,8 +47,8 @@ valid_until: 2015
 time:
   start: 1991
   description: 'REF BREF (2015): utility ranges from 1991 and 1999 sources (Table 3.63), installation emissions
-    of 2007 updated 2010 (Table 3.65). valid_until is the reference year + 5 (system-model section 6), so it has
-    already lapsed.'
+    of 2007 updated 2010 (Table 3.65); hydrogen from an operating unit reported in 2022 (Tian et al.); feed sulfur
+    from an assay of 2021. valid_until is the reference year + 5 (system-model section 6), so it has already lapsed.'
 modelling:
   principle: attributional
   multifunctionality: 'single output: no allocation (H2S and sour water leave as outputs to treatment)'
@@ -65,47 +67,55 @@ parameters:
   description: Desulfurised gas oil delivered (the basis).
   source: basis
 - name: M_F
-  value: 13948.6
+  value: 6532.014
   unit: g/mol
-  description: Molar mass of the model feed C1000H1795S4 (one formula unit of straight-run gas oil).
-  source: ASSUMED model formula, chosen so that its sulfur is 0.919 wt-% (see s_feed) and the product's carbon content
-    matches IPCC's gas/diesel oil (see M_P); masses from IUPAC 2021 abridged standard atomic weights (Prohaska et
-    al. 2022, Pure Appl. Chem. 94:573), applied to the formula
+  description: Molar mass of the model feed C470H848S (one formula unit of straight-run gas oil).
+  source: 'ASSUMED model formula: its sulfur is 0.491 wt-% (see s_feed), and its hydrogen (13.09 wt-%) follows from
+    the product formula and nu_H2; masses from IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022,
+    Pure Appl. Chem. 94:573), applied to the formula'
 - name: M_P
-  value: 13854.632
+  value: 6549.346
   unit: g/mol
-  description: Molar mass of the model product C1000H1829 (desulfurised gas oil, sulfur-free in the model).
-  source: 'ASSUMED model formula: its carbon fraction 0.867 kg/kg lies within IPCC''s gas/diesel oil carbon content
-    (20.2 kg C/GJ at 43.0 GJ/t is 0.869 kg/kg; the 95 % limits 19.8 to 20.4 kg C/GJ give 0.851 to 0.877), IPCC (2006)
-    Guidelines for National Greenhouse Gas Inventories, Vol. 2, chapter 1, Tables 1.2 and 1.3; its hydrogen follows
-    from nu_H2. Masses from IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem.
+  description: Molar mass of the model product C470H897 (desulfurised gas oil, sulfur-free in the model).
+  source: 'ASSUMED model formula: 13.81 wt-% H, PRELIM''s hydrogen content of hydrotreated diesel (Abella, J.P.,
+    Motazedi, K., Bergerson, J.A. (2015) PRELIM v1.0 user guide and technical documentation, University of Calgary,
+    Table 8, p. 53 (hydrotreated diesel 13.8 wt% H, 11 ppm S)); its carbon fraction 0.862 kg/kg lies within IPCC''s
+    gas/diesel oil carbon content (20.2 kg C/GJ at 43.0 GJ/t is 0.869 kg/kg; the 95 % limits 19.8 to 20.4 kg C/GJ
+    give 0.851 to 0.877), IPCC (2006) Guidelines for National Greenhouse Gas Inventories, Vol. 2, chapter 1, Tables
+    1.2 and 1.3; masses from IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem.
     94:573), applied to the formula'
 - name: s_feed
-  value: 0.919
+  value: 0.49
   unit: wt-%
-  description: Sulfur in the feed as the model formula realises it (4 S per formula unit); not used in a formula.
-  source: 'EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 2.13, Table 2.3, p. 80: 0.05 to 1.8
-    % w/w S is given for the kerosene/jet and diesel products of the vacuum gas oil feedstock group; the atmospheric
-    gas oil rows carry no sulfur range. Reading it as the feed sulfur of straight-run (atmospheric) gas oil is ASSUMED;
-    so is the midpoint 0.925 %, our choice (the formula''s integer atoms give 0.919 %). Table 3.62, p. 192, lists
-    0.1 to 0.35 % S for its gas oil HDS rows under a column layout we could not interpret, so it is not used'
+  description: 'Sulfur in the feed: 0.49 wt-% (the formula''s integer atoms give 0.491 %); not used in a formula.'
+  source: TotalEnergies crude oil data sheet Johan Sverdrup (assay of 01-Apr-2021, sheet Jul-21, manufacturer literature;
+    the sheet gives no guarantee of accuracy), properties of TBP cuts, gas oil cut 230 to 375 degC (0.49 wt% S;
+    the 175 to 400 and 230 to 400 degC cuts give 0.44 and 0.54). The linked producer, refinery-distillation-1, cuts
+    this crude's gas oil at 240 to 360 degC, so the 230 to 375 degC cut is the nearest the sheet gives (ASSUMED).
+    The REF BREF's 0.05 to 1.8 % w/w (Table 2.3, p. 80) belongs to its vacuum gas oil feedstock group and is not
+    used
 - name: nu_H2
-  value: 21.0
+  value: 25.5
   unit: mol/mol
-  description: 'Hydrogen consumed per formula unit of feed: 8 mol for the 4 S, 13 mol for saturation.'
-  source: 'realises the source''s distillate hydrogen use of 0.3 % H2 on feed (EU JRC (2015) REF BREF, EUR 27140
-    EN, doi:10.2791/010758, section 3.13.1, p. 192; Table 3.63 range 1 to 15 kg/t): 3.035 kg/t feed with these formulas.
-    All make-up hydrogen counted as consumed (purge and solution losses not separated, ASSUMED). Probably low for
-    10 mg/kg: the 0.3 % rests on 1991 and 1999 data, Table 3.62 (p. 192) lists 44 Nm3/t (about 4 kg/t) for high-sulfur
-    gas oil to 0.2 % S, and an operating diesel hydrotreater to 40 mg/kg takes 7.9 kg/t feed of make-up gas (Tian
-    et al. 2022, Processes 10:2055, Tables 2 and 3, mixed feed; benchmarks/refining.yaml). TODO a source for deep
-    HDS of straight-run gas oil, and a sourced consumed/purge split'
+  description: 'Hydrogen taken up per formula unit of feed: 1 mol for the S as H2S, 24.5 mol to raise the liquid
+    to the product''s hydrogen content.'
+  source: 'realises 7.87 kg H2 per t feed with these formulas, the make-up hydrogen of one operating diesel hydrotreater
+    to 40 mg/kg S, 87.8 Nm3/t or 7.9 kg/t at 2.016/22.414 kg/Nm3 (our arithmetic; Tian, R., Xu, W., Li, Y., Tian,
+    J., Wu, L. (2022) Processes 10(10), 2055, doi:10.3390/pr10102055 (CC BY 4.0), Table 2 (make-up H2, actuals:
+    33,443 Nm3/h) and Table 3 (feeds, actuals: 380.9 t/h in all)). Transferring it to straight-run gas oil is ASSUMED:
+    that unit''s main feed carries 1.49 wt% S and it also treats a 2.6 wt% S stream and naphtha-range feed, so for
+    this 0.49 % S feed it is an upper view. All make-up hydrogen is counted as consumed (purge and solution losses
+    not separated, ASSUMED). The REF BREF''s typical 0.3 % H2 on feed for distillates (section 3.13.1, p. 192, data
+    of 1991 and 1999) is a lower view for 10 mg/kg diesel; its Table 3.62 (p. 192) gives 44 Nm3/t for high-sulfur
+    gas oil to 0.2 % S and 200 Nm3/t to 0.05 % S (only its H2 column is read: the order of its two sulfur columns
+    does not fit their values). TODO a source for deep HDS of straight-run gas oil, and a sourced consumed/purge
+    split'
 - name: nu_S
-  value: 4.0
+  value: 1.0
   unit: mol/mol
   description: 'H2S formed per formula unit of feed: all feed sulfur, the product counted sulfur-free.'
   source: stoichiometry of the model formulas; product sulfur of about 10 mg/kg (EU JRC (2015) REF BREF, EUR 27140
-    EN, doi:10.2791/010758, section 2.13, Table 2.6 and the hydrofining text, pp. 82-83) is about 0.1 % of the feed
+    EN, doi:10.2791/010758, section 2.13, Table 2.6 and the hydrofining text, pp. 82-83) is about 0.2 % of the feed
     sulfur and is neglected (ASSUMED)
 - name: M_H2
   value: 2.016
@@ -144,14 +154,14 @@ parameters:
   source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
     the formula
 - name: fuel
-  value: 300.0
+  value: 400.0
   unit: MJ/t
-  description: 'Heater fuel per t feed, distillate: the lower bound of 300 to 500 MJ/t.'
-  source: 'EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 3.13.1, Table 3.63, p. 192 (range;
-    Sema/Sofres 1991, VROM 1999). The lower bound is our choice: the two middle-distillate units of Table 3.65,
-    p. 194, burn about 275 and 247 MJ/t (fuel GWh/yr over throughput, our arithmetic), below the whole range.
-    The 247 MJ/t unit (TOTAL Mitteldeutschland) shows the same fuel and loads as that site''s naphtha hydrotreater
-    row, so it may be a repeated row'
+  description: 'Heater fuel per t feed, distillate: midpoint of 300 to 500 MJ/t.'
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 3.13.1, Table 3.63, p. 192 (range; Sema/Sofres
+    1991, VROM 1999); the midpoint is our choice, as for the other utilities. The two middle-distillate units of
+    Table 3.65, p. 194, burn about 275 and 247 MJ/t (fuel GWh/yr over throughput, our arithmetic), below the whole
+    range; they are the benchmark of the heater CO2 (benchmarks/refining.yaml), so they are not used to set the
+    value
 - name: lhv_ng
   value: 50.01
   unit: MJ/kg
@@ -189,8 +199,10 @@ parameters:
   unit: kg/t
   description: Sour water per t feed, taken equal to the wash water; inside the 30 to 55 l/t of hydrotreatment effluent.
   source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 3.13.1, p. 194 (30 to 55 l/t); equal
-    to the wash water so that the water balance closes is ASSUMED (condensed stripping steam belongs to the steam
-    exchange). TODO source the sour water
+    to the wash water so that the water balance closes is ASSUMED. The steam (60 to 150 kg/t, stripping and heating,
+    not split by the source) is counted by mass outside the element balance; since the sourced sour water is less
+    than the steam, the steam is taken to leave as condensate to the boiler house, not as sour water (ASSUMED).
+    TODO source the sour water
 - name: cat
   value: 0.046
   unit: kg/t
@@ -226,14 +238,14 @@ exchanges:
   provenance: given
   source: the reference flow
 - key: feed:gas-oil
-  title: Straight-run gas oil, about 0.9 wt-% sulfur
+  title: Straight-run gas oil, about 0.5 wt-% sulfur
   type: input
-  amount: 1006.782424823698
+  amount: 997.3536288966868
   unit: kg
   formula: p * M_F / M_P
   provenance: calculated
-  source: 'carbon balance of the model formulas C1000H1795S4 -> C1000H1829: the liquid yield is 100 % by carbon
-    (light ends and wild naphtha excluded, see system_boundary)'
+  source: 'carbon balance of the model formulas C470H848S -> C470H897: the liquid yield is 100 % by carbon (light
+    ends and wild naphtha excluded, see system_boundary)'
   pedigree: &id001
     scores:
     - 3
@@ -241,28 +253,28 @@ exchanges:
     - 5
     - 3
     - 3
-    reason: 'stoichiometry of ASSUMED model formulas on the REF BREF hydrogen figure: reliability 3, completeness
-      4, temporal 5, geographical 3, technological 3'
+    reason: 'stoichiometry of ASSUMED model formulas on the assay''s sulfur, one unit''s hydrogen and PRELIM''s
+      product hydrogen: reliability 3, completeness 4, temporal 5, geographical 3, technological 3'
   basic_uncertainty: 1.05
 - key: feed:hydrogen
   title: Hydrogen make-up
   type: input
-  amount: 3.0557289432155255
+  amount: 7.849333353284435
   unit: kg
   formula: p * nu_H2 * M_H2 / M_P
   provenance: calculated
-  source: 'model reaction C1000H1795S4 + 21 H2 -> C1000H1829 + 4 H2S: 3.035 kg per t feed, the source''s 0.3 % H2
-    for distillates (REF BREF 3.13.1, p. 192)'
+  source: 'model reaction C470H848S + 25.5 H2 -> C470H897 + H2S: 7.87 kg per t feed, one operating diesel hydrotreater''s
+    make-up hydrogen (Tian et al. 2022, see parameter nu_H2)'
   pedigree: *id001
   basic_uncertainty: 1.05
   uncertainty:
     gsd2: 3.873
-    source: 'hydrogen, distillate hydrotreating (Table 3.63): range 1 to 15 read as a 95 % interval, gsd2 = sqrt(high
-      / low) (our convention; the amount stays the arithmetic midpoint or the stated value)'
+    source: 'ASSUMED: one unit transferred to another feed; the REF BREF''s distillate range 1 to 15 kg/t (Table
+      3.63) read as a 95 % interval gives gsd2 = sqrt(high / low) (our convention; the amount stays the stated value)'
 - key: feed:water
   title: Wash water injected into the reactor effluent
   type: input
-  amount: 35.23738486882943
+  amount: 34.907377011384035
   unit: kg
   formula: wash * p * M_F / M_P / 1000
   provenance: given
@@ -288,7 +300,7 @@ exchanges:
 - key: feed:natural-gas
   title: Fuel to the reactor feed heater (refinery fuel gas, taken as methane)
   type: input
-  amount: 6.039486651611866
+  amount: 7.977233584456604
   unit: kg
   formula: fuel * p * M_F / M_P / 1000 / lhv_ng
   provenance: assumed
@@ -300,7 +312,7 @@ exchanges:
     kind: fuel
     lhv: 50.01
     composition: pure methane (ASSUMED)
-  source: heater fuel of Table 3.63 (lower bound, see parameter fuel) over the LHV of methane
+  source: heater fuel of Table 3.63 (midpoint, see parameter fuel) over the LHV of methane
   pedigree: &id003
     scores:
     - 4
@@ -318,7 +330,7 @@ exchanges:
 - key: feed:O2
   title: Combustion oxygen, from ambient air
   type: input
-  amount: 24.09169031705747
+  amount: 31.821419963278995
   unit: kg
   formula: fuel * p * M_F / M_P / 1000 / lhv_ng * 2 / M_CH4 * M_O2
   provenance: assumed
@@ -328,7 +340,7 @@ exchanges:
 - key: feed:electricity
   title: Electricity
   type: input
-  amount: 15.10173637235547
+  amount: 14.960304433450302
   unit: kWh
   formula: elec * p * M_F / M_P / 1000
   provenance: given
@@ -348,7 +360,7 @@ exchanges:
 - key: feed:steam
   title: Steam (stripping and heating), by mass
   type: input
-  amount: 105.71215460648828
+  amount: 104.72213103415211
   unit: kg
   formula: steam * p * M_F / M_P / 1000
   provenance: given
@@ -364,7 +376,7 @@ exchanges:
 - key: input:catalyst
   title: CoMo/alumina hydrodesulfurisation catalyst
   type: input
-  amount: 0.046311991541890106
+  amount: 0.0458782669292476
   unit: kg
   formula: cat * p * M_F / M_P / 1000
   provenance: given
@@ -379,7 +391,7 @@ exchanges:
 - key: output:spent-catalyst
   title: Spent CoMo catalyst, to regeneration or metal recovery off site
   type: output
-  amount: 0.046311991541890106
+  amount: 0.0458782669292476
   unit: kg
   formula: cat * p * M_F / M_P / 1000
   provenance: given
@@ -394,7 +406,7 @@ exchanges:
 - key: output:hydrogen-sulfide
   title: Hydrogen sulfide in the sour gas, to amine treatment and sulfur recovery
   type: output
-  amount: 9.838153766913477
+  amount: 5.202962249971219
   unit: kg
   formula: p * nu_S * M_H2S / M_P
   provenance: calculated
@@ -403,14 +415,13 @@ exchanges:
   pedigree: *id001
   basic_uncertainty: 1.05
   uncertainty:
-    gsd2: 6.0
-    source: 'feed sulfur (Table 2.3, vacuum gas oil group, applied to straight-run gas oil): range 0.05 to 1.8 read
-      as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
-      the amount stays the arithmetic midpoint or the stated value)'
+    gsd2: 1.5
+    source: 'ASSUMED: the assay''s gas oil cuts give 0.44 to 0.54 wt% S; a factor of 1.5 allows for the cut points
+      and for other crudes'
 - key: output:wastewater
   title: Sour water, to the sour water stripper and wastewater treatment
   type: output
-  amount: 35.23738486882943
+  amount: 34.907377011384035
   unit: kg
   formula: ww * p * M_F / M_P / 1000
   provenance: given
@@ -429,7 +440,7 @@ exchanges:
 - key: output:cooling-water
   title: Heat rejected to cooling water
   type: output
-  amount: 29.266605766055548
+  amount: 28.992515906677298
   unit: kWh
   formula: cw * p * M_F / M_P / 1000
   provenance: given
@@ -448,7 +459,7 @@ exchanges:
 - key: emission:CO2
   title: CO2 from the feed heater
   type: emission
-  amount: 16.56746045320617
+  amount: 21.883068803736876
   unit: kg
   formula: fuel * p * M_F / M_P / 1000 / lhv_ng / M_CH4 * M_CO2
   provenance: assumed
@@ -474,7 +485,7 @@ exchanges:
 - key: emission:H2O
   title: Water vapour from the feed heater
   type: emission
-  amount: 13.563716515463163
+  amount: 17.91558474399872
   unit: kg
   formula: fuel * p * M_F / M_P / 1000 / lhv_ng * 2 / M_CH4 * M_H2O
   provenance: assumed
@@ -500,7 +511,7 @@ exchanges:
 - key: emission:NOx
   title: NOx (as NO2) from the feed heater
   type: emission
-  amount: 0.013088171522708076
+  amount: 0.01296559717565693
   unit: kg
   formula: nox * p * M_F / M_P / 1000
   provenance: given
@@ -535,7 +546,7 @@ exchanges:
 - key: emission:SO2
   title: SO2 from the feed heater
   type: emission
-  amount: 0.0035237384868829426
+  amount: 0.003490737701138404
   unit: kg
   formula: so2 * p * M_F / M_P / 1000
   provenance: given
@@ -563,7 +574,7 @@ exchanges:
 - key: emission:CO
   title: CO from the feed heater
   type: emission
-  amount: 0.0035237384868829426
+  amount: 0.003490737701138404
   unit: kg
   formula: co * p * M_F / M_P / 1000
   provenance: given
@@ -588,11 +599,12 @@ exchanges:
     source: 'ASSUMED: one unit reports 0 (rounded), the other a limit value; a factor of 3 either way'
 provenance:
   generator: hand-written model; amounts are the formulas of the parameters
-  notes: No value from a licensed database. Facts from the REF BREF and IPCC 2006 in our own form.
+  notes: No value from a licensed database. Facts from the REF BREF, IPCC 2006, the Johan Sverdrup assay, Tian et
+    al. (2022, CC BY 4.0) and PRELIM v1.0 in our own form.
 generation:
   tier: 1
-  method: 'sourced conceptual inventory: REF BREF sections 2.13 and 3.13.1 ranges with model formulas, every choice
-    listed in parameters'
+  method: 'sourced conceptual inventory: REF BREF sections 2.13 and 3.13.1 ranges, the assay''s feed sulfur, one
+    unit''s make-up hydrogen and PRELIM''s product hydrogen with model formulas, every choice listed in parameters'
   maturity_cap: sourced
   pedigree_floor:
   - 3
@@ -602,8 +614,8 @@ generation:
   - 3
   dqr_floor: 3.0
   components:
-    product:diesel: C1000H1829
-    feed:gas-oil: C1000H1795S4
+    product:diesel: C470H897
+    feed:gas-oil: C470H848S
     feed:hydrogen: H2
     feed:water: H2O
     feed:natural-gas: CH4
@@ -613,8 +625,8 @@ generation:
     emission:CO2: CO2
     emission:H2O: H2O
   formulas:
-    product:diesel: C1000H1829
-    feed:gas-oil: C1000H1795S4
+    product:diesel: C470H897
+    feed:gas-oil: C470H848S
     feed:hydrogen: H2
     feed:water: H2O
     feed:natural-gas: CH4
@@ -628,17 +640,17 @@ generation:
     tolerance: 1.0e-06
     elements:
       C:
-      - 871.451895363
-      - 871.451895363
+      - 867.916436903
+      - 867.916436903
       H:
-      - 139.112935918
-      - 139.112935918
+      - 144.274984592
+      - 144.274984592
       O:
-      - 55.385774165
-      - 55.385774165
+      - 62.822426058
+      - 62.822426058
       S:
-      - 9.256110159
-      - 9.256110159
+      - 4.895145256
+      - 4.895145256
     outside:
     - emission:CO
     - emission:NOx

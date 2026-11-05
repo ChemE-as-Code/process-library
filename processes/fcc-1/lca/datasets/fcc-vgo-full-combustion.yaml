@@ -59,8 +59,8 @@ time:
 modelling:
   principle: attributional
   multifunctionality: 'unallocated multi-output dataset; default allocation energy: the five co-products are fuels
-    and fuel blendstocks, so burdens are shared by lower heating value (hierarchy step 2b), with IPCC default NCVs
-    (see allocation)'
+    and fuel blendstocks, so burdens are shared by lower heating value (hierarchy step 2, the curated rule in lci/mappings.yaml),
+    with IPCC default NCVs (see allocation)'
 allocation:
   method: energy
   coproducts:
@@ -80,13 +80,12 @@ allocation:
       energy: 43000.0
     heavy-cycle-oil:
       energy: 40400.0
-  source: 'Lower heating values in kJ/kg (the MJ/kg defaults times 1000), IPCC 2006 Vol. 2, ch. 1, Table 1.2, p. 1.18 defaults: motor gasoline 44.3
-    (gasoline), LPG 47.3 (C3/C4 cut), refinery gas 49.5 (dry gas), gas/diesel oil 43.0 (LCO), residual fuel oil
-    40.4 (heavy cycle oil and slurry); the matching of FCC streams to IPCC fuel types is ASSUMED.'
-  deviation: No curated rule in lci/mappings.yaml and no sourced prices, so the WBCSD price ratio (hierarchy step
-    3) cannot be computed. Energy (LHV) is used because every co-product is a fuel or fuel blendstock (hierarchy
-    step 2b). The LHVs differ by under 20 %, so energy and mass allocation give similar shares. To be revisited
-    with open prices.
+  source: 'lci/mappings.yaml allocation.fcc-1 (rule physical-energy): the five co-products are fuels and fuel blendstocks,
+    so energy content (LHV) is the physical relationship, docs/system-model.md section 2, step 2. Lower heating
+    values in kJ/kg (the MJ/kg defaults times 1000), IPCC 2006 Vol. 2, ch. 1, Table 1.2, p. 1.18 defaults: motor
+    gasoline 44.3 (gasoline), LPG 47.3 (C3/C4 cut), refinery gas 49.5 (dry gas), gas/diesel oil 43.0 (LCO), residual
+    fuel oil 40.4 (heavy cycle oil and slurry); the matching of FCC streams to IPCC fuel types is ASSUMED. The LHVs
+    differ by under 20 %, so energy and mass allocation give similar shares.'
 uuid: 3fc9bfd7-0744-51db-a247-a7978c2f80fa
 version: 0.1.0
 methodology_version: 1.0.0
@@ -223,9 +222,9 @@ parameters:
 - name: e_co_t
   value: 0.255
   unit: kg/t
-  description: 'CO per t fresh feed: midpoint of the two example units, 0.08 and 0.43 kg/t. The table does not
-    state their combustion mode; reading them as full combustion is ASSUMED (their 125 to 814 mg/Nm3 lies inside
-    the 50 to 1200 mg/Nm3 the BREF gives for full combustion on the same page).'
+  description: 'CO per t fresh feed: midpoint of the two example units, 0.08 and 0.43 kg/t. The table does not state
+    their combustion mode; reading them as full combustion is ASSUMED (their 125 to 814 mg/Nm3 lies inside the 50
+    to 1200 mg/Nm3 the BREF gives for full combustion on the same page).'
   source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 3.5.2.1, Table 3.36, p. 166 (yearly
     averages of two units); the midpoint is our choice
 - name: ncv_coke
@@ -277,8 +276,11 @@ parameters:
   value: 1060.0
   unit: MJ/t
   description: 'Fuel per t fresh feed: midpoint of 120 to 2000 MJ/t (FCC column).'
-  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 3.5.1, Table 3.33, p. 164; the midpoint
-    is our choice
+  source: 'EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 3.5.1, Table 3.33, p. 164; the midpoint
+    is our choice, as for every range in the refining datasets. Probably a high view for a full-combustion unit:
+    the same page says that virtually all the heat an FCC needs is generated in the regenerator, and the range is
+    given alike for FCC and RCC units. The coke burn releases about 1 900 MJ/t here (y_coke times ncv_coke). TODO
+    a sourced feed-heater duty'
 - name: steam_t
   value: 60.0
   unit: kg/t
@@ -415,10 +417,11 @@ exchanges:
     F * y_coke * 4 / M_COKE) - 17 * (F * 73 / M_VGO - F * y_dg * 6 / M_DG - F * y_lpg * 20 / M_LPG - F * y_gas *
     14 / M_GAS - F * y_coke * 3 / M_COKE)) / 108
   provenance: calculated
-  source: 'closes the carbon and hydrogen balances with the LCO (C25H26, 8.0 wt% H as PRELIM Table 8 gives for FCC
-    HGO); compare 7.84 wt% in the example (Jechura, J. (2019) Catalytic Cracking, CBEN 409 course notes, Colorado
-    School of Mines (open web PDF, updated 1 July 2019), slide 16: worked example of Gary et al. zeolite-catalyst
-    yield correlations at 72 vol% conversion, 25 degAPI feed, Watson K 12.0, 0.50 wt% S)'
+  source: 'closes the carbon and hydrogen balances together with the LCO; heavy cycle oil modelled as C25H26 (8.0
+    wt% H, PRELIM Table 8, FCC HGO); compare 7.84 wt% in the example (Jechura, J. (2019) Catalytic Cracking, CBEN
+    409 course notes, Colorado School of Mines (open web PDF, updated 1 July 2019), slide 16: worked example of
+    Gary et al. zeolite-catalyst yield correlations at 72 vol% conversion, 25 degAPI feed, Watson K 12.0, 0.50 wt%
+    S)'
   pedigree: *id002
   basic_uncertainty: 1.05
   uncertainty:
@@ -562,7 +565,9 @@ exchanges:
     factor: wastewater
     source: site wastewater treatment
   source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 3.5.2.2, p. 170 (midpoint); mostly condensed
-    process steam, so outside the element balance as the steam is
+    process steam, so outside the element balance as the steam is. It exceeds the steam input by 15 kg/t; the rest
+    of the water (wash water injected into the main fractionator overhead, in practice) has no input in the inventory.
+    TODO source the water input
   pedigree: *id003
   basic_uncertainty: 1.05
   uncertainty:

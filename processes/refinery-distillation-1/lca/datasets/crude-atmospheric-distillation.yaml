@@ -58,7 +58,8 @@ data_generator: ChemE-as-Code process library
 modelling:
   principle: attributional
   multifunctionality: 'unallocated: every cut is a co-product. Default allocation for the export: energy (LHV,
-    IPCC 2006 default NCVs), hierarchy step 2 for co-produced fuels (see allocation)'
+    IPCC 2006 default NCVs), hierarchy step 2 for co-produced fuels, the curated rule in lci/mappings.yaml
+    (see allocation)'
   sampling: One crude (Johan Sverdrup); a lighter or heavier crude shifts every cut. EU utility ranges of 1999
     to 2001.
 allocation:
@@ -70,12 +71,9 @@ allocation:
   - kerosene
   - gas-oil
   - atmospheric-residue
-  source: 'docs/system-model.md section 2, step 2: the cuts are co-produced fuels and refinery feedstocks,
-    so energy content (LHV) is the physical relationship'
-  deviation: 'Not a departure in substance: energy (LHV) is the hierarchy''s step 2 for co-produced fuels.
-    It is stated here because no curated rule (physical-energy) for refinery-distillation-1 is in lci/mappings.yaml
-    allocation yet; once one is added the build records rule physical-energy. The LHVs are IPCC 2006 category
-    defaults (Vol. 2, Table 1.2), not measured per cut.'
+  source: 'lci/mappings.yaml allocation.refinery-distillation-1 (rule physical-energy): the cuts are co-produced
+    fuels and refinery feedstocks, so energy content (LHV) is the physical relationship, docs/system-model.md
+    section 2, step 2. The LHVs are IPCC 2006 category defaults (Vol. 2, Table 1.2), not measured per cut.'
 uuid: 0d4d6ddb-1be7-5599-a036-73edd76f2fec
 parameters:
 - name: crude
@@ -154,11 +152,16 @@ parameters:
   source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.77,
     p. 207 (sources VROM 1999, Canales 2000, TWG 2001)
 - name: ww_a
-  value: 415.0
-  unit: kg
-  description: 'Process wastewater (sour water) per t crude: midpoint of 0.08 to 0.75 m3/t, at 1000 kg/m3.'
-  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, p. 208; the
-    midpoint and the density are ASSUMED
+  value: 0.005
+  unit: kg/kg
+  description: 'Water that comes in with the desalted crude and leaves in the overhead reflux drum: 0.5 % on
+    crude. The drum''s sour water is this water plus the stripping steam.'
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 3.19, p. 208 (the overhead reflux
+    drum generates 0.5 % water on crude plus 1.5 % steam on feed); taking all the stripping steam of Table
+    3.77 (27.5 kg/t, more than the 1.5 %) to the drum is ASSUMED. The same page gives 0.08 to 0.75 m3/t of
+    process waste water for the whole atmospheric unit; it is not used, because the rest of that water has
+    no stated source in the unit and may include the desalter's (desalting is outside the boundary). TODO the
+    unit's other waste water
 - name: sludge
   value: 0.5517
   unit: kg
@@ -169,28 +172,32 @@ parameters:
 - name: a_nox
   value: 0.01181
   unit: kg
-  description: "NOx per t crude, atmospheric unit: the plant's load of 100.4 t/yr over 8 500 000 t/yr of crude (the table's kg/t row rounds it to 0.012)."
+  description: 'NOx per t crude, atmospheric unit: the plant''s load of 100.4 t/yr over 8 500 000 t/yr of crude
+    (the table''s kg/t row rounds it to 0.012).'
   source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.78,
     p. 208 (TOTAL Mitteldeutschland, loads calculated by the source from permit limit values, yearly average,
     3 % O2 dry)
 - name: a_so2
   value: 0.00414
   unit: kg
-  description: "SO2 per t crude, atmospheric unit (the plant's flue gas passes FGD): the plant's load of 35.2 t/yr over 8 500 000 t/yr of crude (the table's kg/t row rounds it to 0.004)."
+  description: 'SO2 per t crude, atmospheric unit (the plant''s flue gas passes FGD): the plant''s load of
+    35.2 t/yr over 8 500 000 t/yr of crude (the table''s kg/t row rounds it to 0.004).'
   source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.78,
     p. 208 (TOTAL Mitteldeutschland, loads calculated by the source from permit limit values, yearly average,
     3 % O2 dry)
 - name: a_co
   value: 0.01181
   unit: kg
-  description: "CO per t crude, atmospheric unit: the plant's load of 100.4 t/yr over 8 500 000 t/yr of crude (the table's kg/t row rounds it to 0.012)."
+  description: 'CO per t crude, atmospheric unit: the plant''s load of 100.4 t/yr over 8 500 000 t/yr of crude
+    (the table''s kg/t row rounds it to 0.012).'
   source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.78,
     p. 208 (TOTAL Mitteldeutschland, loads calculated by the source from permit limit values, yearly average,
     3 % O2 dry)
 - name: a_pm
   value: 0.000588
   unit: kg
-  description: "Particulates per t crude, atmospheric unit: the plant's load of 5 t/yr over 8 500 000 t/yr of crude (the table's kg/t row rounds it to 0.001)."
+  description: 'Particulates per t crude, atmospheric unit: the plant''s load of 5 t/yr over 8 500 000 t/yr
+    of crude (the table''s kg/t row rounds it to 0.001).'
   source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.78,
     p. 208 (TOTAL Mitteldeutschland, loads calculated by the source from permit limit values, yearly average,
     3 % O2 dry)
@@ -252,18 +259,18 @@ exchanges:
     source: 'steam: range 25 to 30 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
       stays the arithmetic midpoint or the stated value)'
 - key: feed:water
-  title: Water to the process (overhead wash water and water carried with the crude)
+  title: Water carried with the desalted crude (residual desalter water)
   type: input
-  amount: 387.5
+  amount: 5.0
   unit: kg
-  formula: ww_a - steam_a
-  provenance: assumed
-  origin: estimate
+  formula: crude * ww_a
+  provenance: given
+  origin: literature
   link:
     factor: water
     source: process water, by mass
-  source: 'ASSUMED: the sourced wastewater less the steam, so that the water balance closes. TODO source the
-    water input'
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 3.19, p. 208 (0.5 % water on crude
+    in the overhead reflux drum); counted on top of the 1 t of dry crude whose TBP yields the cuts follow (ASSUMED)
   pedigree: &id007
     scores:
     - 4
@@ -275,9 +282,8 @@ exchanges:
       4, technological 4'
   basic_uncertainty: 1.05
   uncertainty:
-    gsd2: 3.062
-    source: 'water, taken from the wastewater: range 0.08 to 0.75 read as a 95 % interval, gsd2 = sqrt(high
-      / low) (our convention; the amount stays the arithmetic midpoint or the stated value)'
+    gsd2: 2.0
+    source: 'ASSUMED: one figure without a range; residual water varies with the desalter'
 - key: feed:electricity
   title: Electricity
   type: input
@@ -526,22 +532,22 @@ exchanges:
 - key: output:wastewater
   title: Sour water to stripping and wastewater treatment
   type: output
-  amount: 415.0
+  amount: 32.5
   unit: kg
-  formula: ww_a
+  formula: crude * ww_a + steam_a
   provenance: given
   origin: literature
   link:
     factor: wastewater
     source: site wastewater treatment
-  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, p. 208 (contains
-    oil, H2S, NH3, chlorides, phenol; sour water stripping not counted)
+  source: 'EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 3.19, p. 208: the overhead reflux
+    drum''s sour water, the water carried with the crude plus the stripping steam (see parameter ww_a); contains
+    oil, H2S, NH3, chlorides, phenol; sour water stripping not counted'
   pedigree: *id001
   basic_uncertainty: 1.05
   uncertainty:
-    gsd2: 3.062
-    source: 'wastewater: range 0.08 to 0.75 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
-      the amount stays the arithmetic midpoint or the stated value)'
+    gsd2: 1.5
+    source: 'ASSUMED: the stripping steam (25 to 30 kg/t) plus one figure for the water on crude'
 - key: output:cooling-water
   title: Heat rejected to cooling water
   type: output
@@ -761,11 +767,11 @@ generation:
       - 856.277179725
       - 856.277179725
       H:
-      - 190.164119193
-      - 190.164119193
+      - 147.359789468
+      - 147.359789468
       O:
-      - 368.558701082
-      - 368.558701082
+      - 28.863030808
+      - 28.863030808
     outside:
     - emission:CH4
     - emission:CO

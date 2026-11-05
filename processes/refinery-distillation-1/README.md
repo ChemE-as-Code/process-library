@@ -23,7 +23,7 @@ The vacuum dataset's feed links to the atmospheric dataset's residue (`lca/mappi
 |---|---|---|
 | Cut yields | TotalEnergies data sheet of Johan Sverdrup crude (assay of 2021), TBP curve, read at the REF BREF's cut points (180, 240, 360 degC) and at 560 degC for the vacuum cut (ASSUMED) | one crude, manufacturer literature; TBP yields taken as plant yields (ASSUMED) |
 | Fuel, electricity, steam, cooling water | REF BREF 2015, Table 3.77 (section 3.19), midpoints of the ranges | EU data whose sources date from 1999 to 2001 |
-| Sour water | REF BREF 3.19: 0.08 to 0.75 m3/t for the CDU (midpoint); for the HVU, the steam (ASSUMED) | the water input of the CDU closes the balance (ASSUMED) |
+| Sour water | REF BREF 3.19: the CDU's overhead reflux drum gives 0.5 % water on crude plus the stripping steam; for the HVU, the steam (ASSUMED) | the 0.5 % comes in with the desalted crude; the BREF's 0.08 to 0.75 m3/t for the whole unit is not used (its other sources are not stated, and it may hold desalter water) |
 | Furnace CO2, CH4, N2O | IPCC 2006 Vol. 2, Tables 1.4 and 2.2, refinery gas defaults, times the fuel | the fuel is ASSUMED to be refinery gas |
 | NOx, SO2, CO, particulates | REF BREF Table 3.78, one plant's loads calculated from permit limits | upper-bound character |
 | Fugitive hydrocarbons | REF BREF 3.19: 5 to 190 t/yr for an 8.7 Mt/yr refinery, midpoint | booked in the CDU dataset for both units |
@@ -32,20 +32,22 @@ The vacuum dataset's feed links to the atmospheric dataset's residue (`lca/mappi
 
 **Element balance.** Every hydrocarbon stream is counted as the pseudo-component CH2 (ASSUMED), so the recorded balance is a mass balance of the cuts and the water. It says nothing about how carbon, hydrogen and sulfur split between the cuts. The fuel is counted in kWh, so its combustion emissions are outside the balance (core warns `cheme.lci-mass-outside-balance` for them).
 
-**Allocation.** The datasets stay unallocated. For the export they name energy (LHV), the system model's step 2 for co-produced fuels. It is written as a dataset `allocation.deviation` because there is no curated rule for this process in `lci/mappings.yaml` yet; a `physical-energy` entry there would record it as the hierarchy's rule.
+**Allocation.** The datasets stay unallocated. For the export they use energy (LHV), the system model's step 2 for co-produced fuels, from the curated rule `allocation.refinery-distillation-1` in `lci/mappings.yaml` (rule physical-energy). The IPCC categories give the vacuum unit's two cuts 3.9 % more energy than its feed, which shifts about 1.5 points of its burden to the vacuum gas oil (stated in the dataset).
 
 ## Benchmarks
 
-`benchmarks/refining.yaml`, seven KPIs. The independent ones are from US DOE (2007), converted from per barrel with the assay's densities (ASSUMED for the US slate). Fuel plus power is inside DOE's range for the HVU. For the CDU it is below DOE's range, because the expression cannot count the boiler fuel for steam, grid losses and desalting, all of which DOE includes. The electricity and CO2 references are single values, so the midpoints sit just outside them, with the reasons recorded. The REF BREF fuel range is the dataset's own source.
+`benchmarks/refining.yaml`, seven KPIs. Only the two CO2 KPIs are bound to a reference, one plant of REF BREF Table 3.78, and both sit outside it with the reasons recorded. The fuel, power and electricity KPIs record `no_open_reference`: the REF BREF ranges are the datasets' own source, and the US DOE (2007) figures are per barrel, which needs a density, a modelling step. The DOE figures are kept in that file's header as a cross-check by hand: at the assay's densities the vacuum unit sits inside DOE's range, and the crude unit below it, because DOE also counts the boiler fuel for steam, grid losses and desalting.
 
 ## What is weak
 
 - **One crude.** Johan Sverdrup is a medium, slightly sour North Sea crude (28.7 API, 0.81 wt% S) refined in Europe. A light crude gives more naphtha and less residue, and a heavy one the opposite. Every cut moves with the crude.
 - **The utility data are old**: the REF BREF table cites sources of 1999 to 2001. `valid_until` (reference year + 5) lapsed in 2006.
 - **Steam pressure is not stated.** Steam is counted by mass and linked to the shared background, not to an Atlas boiler.
-- Midpoints of ranges are our choice; the source does not recommend them. The CDU wastewater range is ninefold, and its midpoint dominates the water input.
+- Midpoints of ranges are our choice; the source does not recommend them. The CDU's sour water is the reflux drum's (about 33 kg/t), below the BREF's 80 to 750 kg/t for the whole unit, whose other contributions are not quantified (TODO).
 - **Furnace fuel** is ASSUMED to be refinery gas at IPCC's 57.6 kg CO2/GJ. The REF BREF gives 43 kg/GJ for a hydrogen-rich fuel gas, and 74 to 79 kg/GJ for liquid fuels (Table 3.59).
 - The fuel input stays a mapping gap: refinery fuel gas comes from the site's own units, and the library has no producer of it. The sludge's treatment is a gap too.
+- **Heater fuel is counted differently across the refining entries.** Here refinery gas is in kWh with IPCC's refinery gas factors in the dataset and no supply; `catalytic-reforming-1` and `fcc-1` map fuel in kWh to natural-gas heat (combustion in the background); `hydrotreating-1`, `hydrocracking-1` and `sulfur-recovery-1` burn methane in the dataset and take natural gas by mass. No family rule (a refinery fuel gas entry) is decided yet.
+- **The cuts carry no sulfur here.** Every stream is CH2 in the balance. The assay's sulfur of the linked cuts is what `hydrotreating-1` (gas oil, 0.49 wt%) and `hydrocracking-1` (vacuum gas oil, 1.00 wt%) take for their feeds; `fcc-1` does not balance sulfur.
 
 ## Linking
 

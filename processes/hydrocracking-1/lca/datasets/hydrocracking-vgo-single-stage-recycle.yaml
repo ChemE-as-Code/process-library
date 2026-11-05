@@ -9,7 +9,7 @@ description: Per 1 t of hydrocracked products (LPG to diesel range, unsplit), ga
   the unconverted oil to 97 to 98 % conversion. The C1-C2 gas and the unconverted-oil bleed are co-products.
 basis: 1000 kg of hydrocracked products (LPG to diesel range, unsplit)
 boundary: 'gate-to-gate: feed heater, reactors, HP and LP separators, fractionation; hydrogen, fuel and power
-  from outside; amine treating, sulphur recovery and sour water stripping outside'
+  from outside; amine treating, sulfur recovery and sour water stripping outside'
 technology: high-pressure fixed-bed hydrocracking (100 to 200 barg, 340 to 425 degC, REF BREF Table 2.9), single-stage
   with recycle of the unconverted oil; once-through, two-stage, mild and residue hydrocracking are not modelled
 geography:
@@ -23,7 +23,7 @@ system_boundary:
   - electricity
   - wash water and sour water
   - catalyst make-up and spent catalyst
-  - co-products C1-C2 gas and unconverted-oil bleed; H2S to sulphur recovery
+  - co-products C1-C2 gas and unconverted-oil bleed; H2S to sulfur recovery
   excluded:
   - 'TODO steam produced, 30 to 300 kg/t of feed (REF BREF Table 3.66): an exported co-product under cut-off,
     but its pressure is not stated, so it has no energy content for allocation; leaving it out gives the products
@@ -59,10 +59,10 @@ allocation:
   - hydrocracked-products
   - fuel-gas
   - unconverted-oil
-  deviation: 'Co-produced fuels: energy content (LHV) is step 2b of the hierarchy (docs/system-model.md, section
-    2), stated here because the build records a physical rule only from a curated entry in lci/mappings.yaml,
-    which this entry does not add. The LHVs are IPCC defaults per cut, and the main product''s is ASSUMED for
-    an unsplit mix (parameters lhv_hcp, lhv_gas, lhv_uco).'
+  source: 'lci/mappings.yaml allocation.hydrocracking-1 (rule physical-energy): the three co-products are fuels
+    and fuel blendstocks, so energy content (LHV) is the physical relationship, docs/system-model.md section
+    2, step 2. The LHVs are IPCC defaults per cut, and the main product''s is ASSUMED for an unsplit mix (parameters
+    lhv_hcp, lhv_gas, lhv_uco).'
 uuid: 7bffe138-3bbc-5c3a-9755-82b7c16fe4d2
 version: 0.1.0
 methodology_version: 1.0.0
@@ -78,9 +78,9 @@ parameters:
   description: Hydrocracked products delivered, LPG to diesel range, unsplit (the basis).
   source: basis
 - name: M_VGO
-  value: 1272.314
+  value: 3132.695
   unit: g/mol
-  description: Molar mass of the vacuum gas oil surrogate C90H158S (ASSUMED model compound, see feed:vacuum-gas-oil).
+  description: Molar mass of the vacuum gas oil surrogate C225H395S (ASSUMED model compound, see feed:vacuum-gas-oil).
   source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
     to the formula
 - name: M_HCP
@@ -149,7 +149,9 @@ parameters:
   source: 'EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.13, Table 3.62,
     p. 192 (hydrocracking vacuum gas oil, 2 to 3 % S w/w in the feed; the table cites Meyers 1997 and VROM
     1999); the midpoint is our choice. Make-up beyond the chemical consumption (solution and purge losses)
-    is not in the figure: TODO'
+    is not in the figure: TODO. The table''s row is for feeds of 2 to 3 % S w/w; this feed has 1.0 % (the linked
+    crude''s vacuum gas oil), which needs about 2 kg/t less hydrogen for the sulfur alone, well inside the
+    range (ASSUMED unchanged)'
 - name: gas
   value: 0.01
   unit: kg/kg
@@ -234,7 +236,7 @@ exchanges:
   unit: kg
   formula: hcp
   provenance: given
-  source: the reference flow; LPG, naphtha, kerosene and diesel together, practically sulphur-free (REF BREF
+  source: the reference flow; LPG, naphtha, kerosene and diesel together, practically sulfur-free (REF BREF
     section 2.13, p. 80). The split between the cuts is not in the source and is not modelled
   properties:
     energy: 44100.0
@@ -242,9 +244,9 @@ exchanges:
 - key: product:fuel-gas
   title: C1-C2 gas to the refinery fuel system (after amine treating)
   type: product
-  amount: 10.332114719974356
+  amount: 10.170413537313234
   unit: kg
-  formula: (hcp * 14 / M_HCP / (90 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)) * gas
+  formula: (hcp * 14 / M_HCP / (225 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)) * gas
   provenance: calculated
   origin: literature
   source: REF BREF section 2.13, p. 80 (methane and ethane normally below 1 % of the feed; the bound is taken)
@@ -253,7 +255,7 @@ exchanges:
     energy: 49500.0
     source: 'lhv_gas: IPCC 2006 Vol. 2 Table 1.2, refinery gas NCV (kJ per kg)'
   pedigree:
-    scores: &id001
+    scores:
     - 4
     - 4
     - 4
@@ -268,9 +270,9 @@ exchanges:
 - key: product:unconverted-oil
   title: Unconverted-oil bleed (to FCC, fuel oil or lube base oil)
   type: product
-  amount: 25.83028679993589
+  amount: 25.426033843283083
   unit: kg
-  formula: (hcp * 14 / M_HCP / (90 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)) * bleed
+  formula: (hcp * 14 / M_HCP / (225 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)) * bleed
   provenance: calculated
   origin: literature
   source: REF BREF section 2.13, p. 85 (bleed of 2 to 3 % on fresh feed against polyaromatics build-up); modelled
@@ -279,7 +281,7 @@ exchanges:
     energy: 43000.0
     source: 'lhv_uco: IPCC 2006 Vol. 2 Table 1.2, gas/diesel oil NCV (ASSUMED proxy) (kJ per kg)'
   pedigree:
-    scores: &id002
+    scores:
     - 3
     - 4
     - 5
@@ -293,26 +295,35 @@ exchanges:
     source: 'bleed: range 2 to 3 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
       stays the arithmetic midpoint or the stated value)'
 - key: feed:vacuum-gas-oil
-  title: Vacuum gas oil, fresh feed (about 2.5 % S w/w)
+  title: Vacuum gas oil, fresh feed (about 1.0 % S w/w)
   type: input
-  amount: 1033.2114719974356
+  amount: 1017.0413537313233
   unit: kg
-  formula: hcp * 14 / M_HCP / (90 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)
+  formula: hcp * 14 / M_HCP / (225 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)
   provenance: calculated
   source: 'carbon balance over the surrogates: the feed whose carbon leaves as the product, the C1-C2 gas and
-    the bleed. Feed modelled as C90H158S (ASSUMED): 2.52 % S w/w, inside the 2 to 3 % of REF BREF Table 3.62,
-    and 12.5 % H w/w (ASSUMED, a typical VGO). Feed nitrogen is not modelled (TODO)'
+    the bleed. Feed modelled as C225H395S (ASSUMED): 1.02 % S w/w, the sulfur of the linked crude''s vacuum
+    gas oil (TotalEnergies crude oil data sheet Johan Sverdrup (assay of 01-Apr-2021, sheet Jul-21, manufacturer
+    literature; the sheet gives no guarantee of accuracy), properties of TBP cuts, vacuum distillate 375 to
+    565 degC: 1.00 wt% S, 931 kg/m3, UOP K 11.8), and 12.7 % H w/w (ASSUMED, a typical VGO; the assay gives
+    no hydrogen). The REF BREF''s hydrocracker feeds of Table 3.62 carry 2 to 3 % S. Feed nitrogen is not modelled
+    (TODO)'
   pedigree:
-    scores: *id001
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
     reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
       4, technological 4'
   basic_uncertainty: 1.05
 - key: feed:hydrogen
   title: Hydrogen, chemical consumption
   type: input
-  amount: 30.667213709755238
+  amount: 30.18726116759055
   unit: kg
-  formula: (hcp * 14 / M_HCP / (90 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)) * h2_nm3 / 1000 / V_m *
+  formula: (hcp * 14 / M_HCP / (225 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)) * h2_nm3 / 1000 / V_m *
     M_H2
   provenance: calculated
   origin: literature
@@ -322,7 +333,12 @@ exchanges:
   source: REF BREF Table 3.62, p. 192 (midpoint of 260 to 400 Nm3/t, chemical consumption) at 0 degC and 101.325
     kPa; make-up for solution and purge losses not included (TODO)
   pedigree:
-    scores: *id002
+    scores:
+    - 3
+    - 4
+    - 5
+    - 3
+    - 3
     reason: 'from a range of the REF BREF (EU, data of 1991 to 1999): reliability 3, completeness 4, temporal
       5 (more than 15 years old), geographical 3, technological 3'
   basic_uncertainty: 1.05
@@ -333,9 +349,9 @@ exchanges:
 - key: feed:natural-gas
   title: Fuel to the reactor and fractionator heaters (as natural gas, methane)
   type: input
-  amount: 16.528077936371698
+  amount: 16.269407778145546
   unit: kg
-  formula: (hcp * 14 / M_HCP / (90 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)) * fuel / 1000 / lhv_ng
+  formula: (hcp * 14 / M_HCP / (225 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)) * fuel / 1000 / lhv_ng
   provenance: calculated
   origin: literature
   link:
@@ -348,7 +364,12 @@ exchanges:
   source: REF BREF Table 3.66, p. 195 (fuel 400 to 1200 MJ/t, midpoint, read as LHV) over the LHV of methane;
     a refinery fires mostly its own fuel gas, natural gas is the proxy (ASSUMED)
   pedigree:
-    scores: *id002
+    scores:
+    - 3
+    - 4
+    - 5
+    - 3
+    - 3
     reason: 'from a range of the REF BREF (EU, data of 1991 to 1999): reliability 3, completeness 4, temporal
       5 (more than 15 years old), geographical 3, technological 3'
   basic_uncertainty: 1.05
@@ -359,10 +380,10 @@ exchanges:
 - key: feed:O2
   title: Combustion oxygen, from ambient air
   type: input
-  amount: 65.93099018986744
+  amount: 64.89914730226282
   unit: kg
-  formula: (hcp * 14 / M_HCP / (90 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)) * fuel / 1000 / lhv_ng /
-    M_CH4 * 2 * M_O2
+  formula: (hcp * 14 / M_HCP / (225 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)) * fuel / 1000 / lhv_ng
+    / M_CH4 * 2 * M_O2
   provenance: assumed
   origin: estimate
   free: true
@@ -370,9 +391,9 @@ exchanges:
 - key: feed:water
   title: Wash water to the reactor effluent
   type: input
-  amount: 82.65691775979487
+  amount: 81.36330829850586
   unit: kg
-  formula: (hcp * 14 / M_HCP / (90 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)) * ww / 1000
+  formula: (hcp * 14 / M_HCP / (225 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)) * ww / 1000
   provenance: assumed
   origin: estimate
   link:
@@ -380,7 +401,12 @@ exchanges:
     source: process wash water, by mass
   source: ASSUMED equal to the sour water, so that the water balance closes
   pedigree:
-    scores: *id001
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
     reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
       4, technological 4'
   basic_uncertainty: 1.05
@@ -391,9 +417,9 @@ exchanges:
 - key: feed:electricity
   title: Electricity
   type: input
-  amount: 87.82297511978203
+  amount: 86.44851506716248
   unit: kWh
-  formula: (hcp * 14 / M_HCP / (90 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)) * elec / 1000
+  formula: (hcp * 14 / M_HCP / (225 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)) * elec / 1000
   provenance: calculated
   origin: literature
   link:
@@ -403,7 +429,12 @@ exchanges:
     kind: electricity
   source: REF BREF Table 3.66, p. 195 (20 to 150 kWh/t of feed, midpoint) per t of feed
   pedigree:
-    scores: *id002
+    scores:
+    - 3
+    - 4
+    - 5
+    - 3
+    - 3
     reason: 'from a range of the REF BREF (EU, data of 1991 to 1999): reliability 3, completeness 4, temporal
       5 (more than 15 years old), geographical 3, technological 3'
   basic_uncertainty: 1.05
@@ -414,15 +445,20 @@ exchanges:
 - key: input:catalyst
   title: Hydrocracking catalyst (Ni, Mo, Co or W oxides on alumina, silica-alumina or zeolite)
   type: input
-  amount: 0.05930633849265281
+  amount: 0.05837817370417795
   unit: kg
-  formula: (hcp * 14 / M_HCP / (90 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)) * cat / 1000
+  formula: (hcp * 14 / M_HCP / (225 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)) * cat / 1000
   provenance: calculated
   origin: literature
   source: REF BREF section 3.13.2, p. 195 (57.4 t per Mt of feedstock, average), taken as the make-up; mass
     outside the element balance
   pedigree:
-    scores: *id002
+    scores:
+    - 3
+    - 4
+    - 5
+    - 3
+    - 3
     reason: 'from a range of the REF BREF (EU, data of 1991 to 1999): reliability 3, completeness 4, temporal
       5 (more than 15 years old), geographical 3, technological 3'
   basic_uncertainty: 1.05
@@ -432,16 +468,21 @@ exchanges:
 - key: output:spent-catalyst
   title: Spent hydrocracking catalyst (to regeneration or metals recovery)
   type: output
-  amount: 0.05930633849265281
+  amount: 0.05837817370417795
   unit: kg
-  formula: (hcp * 14 / M_HCP / (90 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)) * cat / 1000
+  formula: (hcp * 14 / M_HCP / (225 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)) * cat / 1000
   provenance: calculated
   origin: literature
   source: REF BREF section 3.13.2, p. 195 (spent catalyst fines with metals from the crude and hydrocarbons;
     supplier take-back for regeneration is common, p. 194); taken equal to the make-up; mass outside the element
     balance
   pedigree:
-    scores: *id002
+    scores:
+    - 3
+    - 4
+    - 5
+    - 3
+    - 3
     reason: 'from a range of the REF BREF (EU, data of 1991 to 1999): reliability 3, completeness 4, temporal
       5 (more than 15 years old), geographical 3, technological 3'
   basic_uncertainty: 1.05
@@ -449,36 +490,46 @@ exchanges:
     gsd2: 2.0
     source: 'ASSUMED: a single average; replacement every one to three years'
 - key: output:H2S
-  title: Hydrogen sulfide in the sour gas, to amine treating and sulphur recovery
+  title: Hydrogen sulfide in the sour gas, to amine treating and sulfur recovery
   type: output
-  amount: 27.672189506509095
+  amount: 11.06290308177099
   unit: kg
-  formula: (hcp * 14 / M_HCP / (90 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)) / M_VGO * M_H2S
+  formula: (hcp * 14 / M_HCP / (225 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)) / M_VGO * M_H2S
   provenance: calculated
-  source: all feed sulphur leaves as H2S (the products are practically sulphur-free, REF BREF section 2.13,
-    p. 80); the share dissolved in the sour water is counted here too (ASSUMED)
+  source: all feed sulfur leaves as H2S (the products are practically sulfur-free, REF BREF section 2.13, p.
+    80); the share dissolved in the sour water is counted here too (ASSUMED)
   pedigree:
-    scores: *id001
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
     reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
       4, technological 4'
   basic_uncertainty: 1.05
   uncertainty:
-    gsd2: 1.225
-    source: 'feed sulphur, % w/w: range 2 to 3 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
-      the amount stays the arithmetic midpoint or the stated value)'
+    gsd2: 1.5
+    source: 'ASSUMED: one assay''s vacuum distillate (0.98 to 1.05 wt% S over its cuts); a factor of 1.5 allows
+      for other crudes'
 - key: output:offgas
   title: Hydrogen balance residual, to the refinery fuel gas
   type: output
-  amount: 0.04409468077148358
+  amount: 0.5692644365465717
   unit: kg
-  formula: ((hcp * 14 / M_HCP / (90 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)) * (79 / M_VGO + h2_nm3
+  formula: ((hcp * 14 / M_HCP / (225 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)) * (197.5 / M_VGO + h2_nm3
     / 1000 / V_m - 1 / M_VGO - 3 * gas / M_C2 - 31 * bleed / M_UCO) - hcp * 15 / M_HCP) * M_H2
   provenance: assumed
   origin: estimate
   source: closes the hydrogen balance of the surrogates with the sourced consumption; near zero by the choice
     of surrogates (README, What is weak); not a measured purge
   pedigree:
-    scores: *id001
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
     reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
       4, technological 4'
   basic_uncertainty: 1.05
@@ -488,9 +539,9 @@ exchanges:
 - key: output:wastewater
   title: Sour water, to the sour water stripper and wastewater treatment
   type: output
-  amount: 82.65691775979487
+  amount: 81.36330829850586
   unit: kg
-  formula: (hcp * 14 / M_HCP / (90 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)) * ww / 1000
+  formula: (hcp * 14 / M_HCP / (225 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)) * ww / 1000
   provenance: calculated
   origin: literature
   link:
@@ -499,7 +550,12 @@ exchanges:
   source: REF BREF section 3.13.2, p. 195 (50 to 110 l/t, midpoint, taken at 1 kg/l); high COD, H2S, NH3; its
     H2S and NH3 are not counted here (TODO)
   pedigree:
-    scores: *id002
+    scores:
+    - 3
+    - 4
+    - 5
+    - 3
+    - 3
     reason: 'from a range of the REF BREF (EU, data of 1991 to 1999): reliability 3, completeness 4, temporal
       5 (more than 15 years old), geographical 3, technological 3'
   basic_uncertainty: 1.05
@@ -510,10 +566,10 @@ exchanges:
 - key: emission:CO2
   title: CO2 from the heaters
   type: emission
-  amount: 45.339661029843676
+  amount: 44.63007959286962
   unit: kg
-  formula: (hcp * 14 / M_HCP / (90 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)) * fuel / 1000 / lhv_ng /
-    M_CH4 * M_CO2
+  formula: (hcp * 14 / M_HCP / (225 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)) * fuel / 1000 / lhv_ng
+    / M_CH4 * M_CO2
   provenance: calculated
   origin: estimate
   cas: 124-38-9
@@ -530,7 +586,12 @@ exchanges:
     natural gas and 57.6 for refinery gas, Vol. 2 Table 2.2); biosphere3 UUID, name and categories from core's
     elementary-flow crosswalk (data/elementary-flows.yaml)
   pedigree:
-    scores: *id002
+    scores:
+    - 3
+    - 4
+    - 5
+    - 3
+    - 3
     reason: 'from a range of the REF BREF (EU, data of 1991 to 1999): reliability 3, completeness 4, temporal
       5 (more than 15 years old), geographical 3, technological 3'
   basic_uncertainty: 1.05
@@ -541,10 +602,10 @@ exchanges:
 - key: emission:H2O
   title: Water vapour from the heaters
   type: emission
-  amount: 37.119407096395456
+  amount: 36.53847548753874
   unit: kg
-  formula: (hcp * 14 / M_HCP / (90 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)) * fuel / 1000 / lhv_ng /
-    M_CH4 * 2 * M_H2O
+  formula: (hcp * 14 / M_HCP / (225 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)) * fuel / 1000 / lhv_ng
+    / M_CH4 * 2 * M_H2O
   provenance: calculated
   origin: estimate
   cas: 7732-18-5
@@ -560,17 +621,22 @@ exchanges:
     per_unit: 0.001
   source: combustion water; biosphere3 UUID, name and categories from core's elementary-flow crosswalk (data/elementary-flows.yaml)
   pedigree:
-    scores: *id002
+    scores:
+    - 3
+    - 4
+    - 5
+    - 3
+    - 3
     reason: 'from a range of the REF BREF (EU, data of 1991 to 1999): reliability 3, completeness 4, temporal
       5 (more than 15 years old), geographical 3, technological 3'
   basic_uncertainty: 1.05
 - key: emission:CH4
   title: CH4 from the heaters
   type: emission
-  amount: 0.0008265691775979485
+  amount: 0.0008136330829850586
   unit: kg
-  formula: (hcp * 14 / M_HCP / (90 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)) * fuel / 1000 * ef_ch4 /
-    1000000
+  formula: (hcp * 14 / M_HCP / (225 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)) * fuel / 1000 * ef_ch4
+    / 1000000
   provenance: calculated
   origin: literature
   cas: 74-82-8
@@ -587,7 +653,7 @@ exchanges:
     default per TJ of fuel; mass outside the element balance; biosphere3 UUID, name and categories from core's
     elementary-flow crosswalk (data/elementary-flows.yaml)
   pedigree:
-    scores: &id003
+    scores:
     - 4
     - 4
     - 4
@@ -603,10 +669,10 @@ exchanges:
 - key: emission:N2O
   title: N2O from the heaters
   type: emission
-  amount: 8.265691775979485e-05
+  amount: 8.136330829850587e-05
   unit: kg
-  formula: (hcp * 14 / M_HCP / (90 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)) * fuel / 1000 * ef_n2o /
-    1000000
+  formula: (hcp * 14 / M_HCP / (225 / M_VGO - 2 * gas / M_C2 - 30 * bleed / M_UCO)) * fuel / 1000 * ef_n2o
+    / 1000000
   provenance: calculated
   origin: literature
   cas: 10024-97-2
@@ -623,7 +689,12 @@ exchanges:
     default per TJ of fuel; mass outside the element balance; biosphere3 UUID, name and categories from core's
     elementary-flow crosswalk (data/elementary-flows.yaml)
   pedigree:
-    scores: *id003
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
     reason: 'an IPCC default factor on a sourced fuel: reliability 4, completeness 4, temporal 4, geographical
       4, technological 4'
   basic_uncertainty: 1.05
@@ -650,7 +721,7 @@ generation:
     product:hydrocracked-products: C14H30
     product:fuel-gas: C2H6
     product:unconverted-oil: C30H62
-    feed:vacuum-gas-oil: C90H158S
+    feed:vacuum-gas-oil: C225H395S
     feed:hydrogen: H2
     feed:natural-gas: CH4
     feed:O2: O2
@@ -664,7 +735,7 @@ generation:
     product:hydrocracked-products: C14H30
     product:fuel-gas: C2H6
     product:unconverted-oil: C30H62
-    feed:vacuum-gas-oil: C90H158S
+    feed:vacuum-gas-oil: C225H395S
     feed:hydrogen: H2
     feed:natural-gas: CH4
     feed:O2: O2
@@ -679,17 +750,17 @@ generation:
     tolerance: 1.0e-06
     elements:
       C:
-      - 890.21663966
-      - 890.21663966
+      - 889.549299401
+      - 889.549299401
       H:
-      - 173.404939618
-      - 173.404939618
+      - 172.64542521
+      - 172.64542521
       O:
-      - 139.338041383
-      - 139.338041383
+      - 137.157352657
+      - 137.157352657
       S:
-      - 26.035050933
-      - 26.035050933
+      - 10.40840101
+      - 10.40840101
     outside:
     - emission:CH4
     - emission:N2O

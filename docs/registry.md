@@ -163,9 +163,12 @@ library's natural-gas consumers take it as `methane`. Crude oil and the crude di
 (`refinery-fuel-gas`, `liquefied-petroleum-gas`, `naphtha`, `kerosene`, `gas-oil`,
 `atmospheric-residue`, `vacuum-gas-oil`, `vacuum-residue`) came with refinery-distillation-1,
 without a composition and with the IPCC 2006 default net calorific value of their fuel category as
-`lhv` (a category default, not a value of the cut). Catalytic-reforming-1 and fcc-1 use the same
-naphtha, liquefied petroleum gas and refinery fuel gas entries (catalytic-reforming-1's dataset
-uses ASSUMED pseudo-formulas of its own). A typical composition is added, with its source, with the
+`lhv` (a category default, not a value of the cut). Catalytic-reforming-1 uses the same naphtha,
+liquefied petroleum gas and refinery fuel gas entries, and fcc-1 the liquefied petroleum gas and
+refinery fuel gas entries (their datasets use ASSUMED pseudo-formulas of their own). The products
+of hydrotreating-1, catalytic-reforming-1, fcc-1 and hydrocracking-1 (`diesel`, `reformate`,
+`fcc-gasoline`, `light-cycle-oil`, `heavy-cycle-oil`, `hydrocracked-products`, `unconverted-oil`)
+carry the IPCC category NCV their dataset allocates by, in the same form. A typical composition is added, with its source, with the
 first process that needs one. A mixture entry may go in
 without a composition (the schema allows it), but no composition is entered without a source.
 

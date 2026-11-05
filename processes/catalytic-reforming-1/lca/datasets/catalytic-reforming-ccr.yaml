@@ -1,14 +1,15 @@
 # Tier 1 form, without a flowsheet (as process-library#317). Every amount is the formula of its parameters;
 # core's validator re-checks each. Written from the REF BREF and the other open sources named in the
-# parameters (facts in our own form). Pseudo-components: naphtha C7H14, reformate C10H14, LPG C7H18
-# (C3H8 + C4H10), fuel gas C3H10 (CH4 + C2H6), all ASSUMED lumps for the element balance.
+# parameters (facts in our own form). Pseudo-components: naphtha C9H20 and reformate C9H15 (the hydrogen
+# contents of PRELIM v1.0 Table 8), LPG C7H18 (C3H8 + C4H10), fuel gas C3H10 (CH4 + C2H6), all ASSUMED
+# lumps for the element balance.
 schema: cheme/lci_dataset/v2
 kind: lci_dataset
 id: catalytic-reforming-ccr
 title: Catalytic reforming of naphtha with continuous catalyst regeneration (CCR)
 description: Per 1 t of C5+ reformate, gate-to-gate. Hydrogen, LPG and fuel gas are co-products. Utilities from
   the ranges of the EU REF BREF, hydrogen from its CCR figure, fuel gas from a patent's standard-CCR case; the feed
-  and the LPG close the mass and hydrogen balances over pseudo-components.
+  and the LPG close the mass and hydrogen balances over pseudo-components with PRELIM's hydrogen contents.
 basis: 1000 kg of C5+ reformate
 boundary: 'gate-to-gate: charge heater and interheaters, three to four moving-bed reactors, continuous regenerator,
   separators, recontacting and debutaniser; naphtha hydrotreating upstream is not included; fuel and power from
@@ -78,9 +79,8 @@ allocation:
     fuel-gas:
       energy: 49500.0
       source: IPCC (2006) Vol. 2, ch. 1, Table 1.2, refinery gas 49.5 TJ/Gg
-  deviation: All four products are fuels or hydrogen, so docs/system-model.md section 2 step 2 (energy content,
-    physical-energy) applies; no curated rule for this process is in lci/mappings.yaml yet, so the choice is stated
-    here. No sourced prices, so the WBCSD price ratio cannot be computed either.
+  source: 'lci/mappings.yaml allocation.catalytic-reforming-1 (rule physical-energy): all four products are fuels
+    or hydrogen, docs/system-model.md section 2 step 2; LHVs as given per product'
 uuid: 9548469c-970d-5de0-ab5c-e5b51619a267
 version: 0.1.0
 methodology_version: 1.0.0
@@ -127,13 +127,13 @@ parameters:
   unit: kg/kg
   description: 'C1 + C2 (fuel gas) per kg of feed under standard CCR conditions: 3.18 wt%.'
   source: US 8,668,824 B2 (2014), Example, Table B, run 1 (computer simulation based on pilot plant data, RON 100,
-    1300 kPa, H2/HC 4.5); the basis taken as wt% of feed is ASSUMED (the table does not say). TODO a plant figure
-    at low pressure
+    1300 kPa, H2/HC 4.5); the description states the [C1+C2] concentration on a total product weight basis, and
+    the total product equals the feed by mass, so it is per kg of feed. TODO a plant figure at low pressure
 - name: y_c5
   value: 0.84
   unit: kg/kg
   description: 'C5+ reformate per kg of feed, CCR: midpoint of 82 to 86 wt%. Not used in a formula: the yield the
-    hydrogen balance gives (0.842) is checked against it.'
+    hydrogen balance gives (0.866) is compared with it.'
   source: 'Honeywell UOP CCR Platforming figures as compiled by ppPLUS, technology #T280 (accessed 2026-11-05),
     Technical specifications (manufacturer data compiled by a third party); the midpoint is our choice'
 - name: coke
@@ -156,9 +156,9 @@ parameters:
   unit: MJ/t
   description: 'Fuel fired in the heaters per t of feed: midpoint of 1 400 to 2 900 MJ/t (all reformer types).'
   source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, Table 3.42, p. 171 (range); the midpoint is
-    our choice. The table's CCR example (232 GJ at 2 351 t/d) would give about 2 370 MJ/t if read per hour,
-    our reading, close to the midpoint; it is not used. Counting the fuel fired as heat delivered (no furnace
-    efficiency) is ASSUMED and overstates the heat. TODO a furnace efficiency
+    our choice. The table's CCR example (232 GJ at 2 351 t/d) would give about 2 370 MJ/t if read per hour, our
+    reading, close to the midpoint; it is not used. Counting the fuel fired as heat delivered (no furnace efficiency)
+    is ASSUMED and overstates the heat. TODO a furnace efficiency
 - name: cw
   value: 2.0
   unit: m3/t
@@ -239,11 +239,11 @@ exchanges:
 - key: product:hydrogen
   title: Hydrogen, net gas of the reformer (counted as pure H2)
   type: product
-  amount: 37.387746706424956
+  amount: 36.33700276212172
   unit: kg
-  formula: (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 14 * M_H / (10 * M_C + 14 * M_H)) / ((1 - h2_nm3 * 2 * M_H
-    / V_m / 1000 - y_fg - coke / 1000) * 18 * M_H / (7 * M_C + 18 * M_H) + h2_nm3 * 2 * M_H / V_m / 1000 + y_fg
-    * 10 * M_H / (3 * M_C + 10 * M_H) - 14 * M_H / (7 * M_C + 14 * M_H))) * h2_nm3 * 2 * M_H / V_m / 1000
+  formula: (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 15 * M_H / (9 * M_C + 15 * M_H)) / ((1 - h2_nm3 * 2 * M_H /
+    V_m / 1000 - y_fg - coke / 1000) * 18 * M_H / (7 * M_C + 18 * M_H) + h2_nm3 * 2 * M_H / V_m / 1000 + y_fg *
+    10 * M_H / (3 * M_C + 10 * M_H) - 20 * M_H / (9 * M_C + 20 * M_H))) * h2_nm3 * 2 * M_H / V_m / 1000
   provenance: given
   origin: literature
   source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, 2.6, p. 57 (around 350 Nm3/t feed for a continuous
@@ -264,15 +264,16 @@ exchanges:
 - key: product:lpg
   title: C3 and C4 from the debutaniser
   type: product
-  amount: 112.17108996272236
+  amount: 80.91467199820681
   unit: kg
-  formula: (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 14 * M_H / (10 * M_C + 14 * M_H)) / ((1 - h2_nm3 * 2 * M_H
-    / V_m / 1000 - y_fg - coke / 1000) * 18 * M_H / (7 * M_C + 18 * M_H) + h2_nm3 * 2 * M_H / V_m / 1000 + y_fg
-    * 10 * M_H / (3 * M_C + 10 * M_H) - 14 * M_H / (7 * M_C + 14 * M_H))) * (1 - h2_nm3 * 2 * M_H / V_m / 1000 -
-    y_fg - coke / 1000) - ref
+  formula: (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 15 * M_H / (9 * M_C + 15 * M_H)) / ((1 - h2_nm3 * 2 * M_H /
+    V_m / 1000 - y_fg - coke / 1000) * 18 * M_H / (7 * M_C + 18 * M_H) + h2_nm3 * 2 * M_H / V_m / 1000 + y_fg *
+    10 * M_H / (3 * M_C + 10 * M_H) - 20 * M_H / (9 * M_C + 20 * M_H))) * (1 - h2_nm3 * 2 * M_H / V_m / 1000 - y_fg
+    - coke / 1000) - ref
   provenance: calculated
   origin: estimate
-  source: the rest of the feed mass after reformate, hydrogen, fuel gas and coke; no source gives the LPG
+  source: the rest of the feed mass after reformate, hydrogen, fuel gas and coke; no source gives the LPG (7.0 wt%
+    of the feed with these pseudo-formulas)
   pedigree:
     scores: &id001
     - 4
@@ -289,11 +290,11 @@ exchanges:
 - key: product:fuel-gas
   title: C1 and C2 to the refinery fuel system
   type: product
-  amount: 37.76735904752836
+  amount: 36.705946491079835
   unit: kg
-  formula: (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 14 * M_H / (10 * M_C + 14 * M_H)) / ((1 - h2_nm3 * 2 * M_H
-    / V_m / 1000 - y_fg - coke / 1000) * 18 * M_H / (7 * M_C + 18 * M_H) + h2_nm3 * 2 * M_H / V_m / 1000 + y_fg
-    * 10 * M_H / (3 * M_C + 10 * M_H) - 14 * M_H / (7 * M_C + 14 * M_H))) * y_fg
+  formula: (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 15 * M_H / (9 * M_C + 15 * M_H)) / ((1 - h2_nm3 * 2 * M_H /
+    V_m / 1000 - y_fg - coke / 1000) * 18 * M_H / (7 * M_C + 18 * M_H) + h2_nm3 * 2 * M_H / V_m / 1000 + y_fg *
+    10 * M_H / (3 * M_C + 10 * M_H) - 20 * M_H / (9 * M_C + 20 * M_H))) * y_fg
   provenance: given
   origin: literature
   source: US 8,668,824 B2 (2014), Example, Table B, run 1 (C1 + C2 wt%, simulated from pilot plant data under standard
@@ -309,15 +310,19 @@ exchanges:
 - key: feed:naphtha
   title: Hydrotreated heavy naphtha
   type: input
-  amount: 1187.6528002367409
+  amount: 1154.275046889303
   unit: kg
-  formula: (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 14 * M_H / (10 * M_C + 14 * M_H)) / ((1 - h2_nm3 * 2 * M_H
-    / V_m / 1000 - y_fg - coke / 1000) * 18 * M_H / (7 * M_C + 18 * M_H) + h2_nm3 * 2 * M_H / V_m / 1000 + y_fg
-    * 10 * M_H / (3 * M_C + 10 * M_H) - 14 * M_H / (7 * M_C + 14 * M_H)))
+  formula: (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 15 * M_H / (9 * M_C + 15 * M_H)) / ((1 - h2_nm3 * 2 * M_H /
+    V_m / 1000 - y_fg - coke / 1000) * 18 * M_H / (7 * M_C + 18 * M_H) + h2_nm3 * 2 * M_H / V_m / 1000 + y_fg *
+    10 * M_H / (3 * M_C + 10 * M_H) - 20 * M_H / (9 * M_C + 20 * M_H)))
   provenance: calculated
   origin: estimate
-  source: closes the hydrogen balance between the naphtha (C7H14) and the products (pseudo-formulas, ASSUMED); the
-    C5+ yield this gives, 0.842 kg/kg, is inside UOP's 82 to 86 wt% (benchmarks/refining.yaml)
+  source: 'closes the hydrogen balance between the naphtha and the products over pseudo-formulas (ASSUMED): naphtha
+    C9H20 (15.7 wt% H) and reformate C9H15 (12.3 wt% H) carry the hydrogen contents PRELIM assumes for hydrotreated
+    naphtha and reformate (Abella, J.P., Motazedi, K., Bergerson, J.A. (2015) PRELIM v1.0 user guide and technical
+    documentation, University of Calgary, Table 8, p. 53). The C5+ yield this gives, 0.866 kg/kg, is just above
+    UOP''s 82 to 86 wt% and below the patent''s 87.4 wt% at RON 100 (benchmarks/refining.yaml). The LPG stays positive
+    only while the reformate holds less than about 12.7 wt% H (README)'
   pedigree:
     scores: *id001
     reason: 'a closure of the element balance over pseudo-components (ASSUMED formulas) and sourced yields: reliability
@@ -329,11 +334,11 @@ exchanges:
 - key: feed:O2
   title: Oxygen of the regeneration air (coke burn-off)
   type: input
-  amount: 0.8700933671670296
+  amount: 0.8456402931770942
   unit: kg
-  formula: (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 14 * M_H / (10 * M_C + 14 * M_H)) / ((1 - h2_nm3 * 2 * M_H
-    / V_m / 1000 - y_fg - coke / 1000) * 18 * M_H / (7 * M_C + 18 * M_H) + h2_nm3 * 2 * M_H / V_m / 1000 + y_fg
-    * 10 * M_H / (3 * M_C + 10 * M_H) - 14 * M_H / (7 * M_C + 14 * M_H))) * coke / 1000 * 2 * M_O / M_C
+  formula: (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 15 * M_H / (9 * M_C + 15 * M_H)) / ((1 - h2_nm3 * 2 * M_H /
+    V_m / 1000 - y_fg - coke / 1000) * 18 * M_H / (7 * M_C + 18 * M_H) + h2_nm3 * 2 * M_H / V_m / 1000 + y_fg *
+    10 * M_H / (3 * M_C + 10 * M_H) - 20 * M_H / (9 * M_C + 20 * M_H))) * coke / 1000 * 2 * M_O / M_C
   provenance: calculated
   origin: estimate
   free: true
@@ -342,11 +347,11 @@ exchanges:
 - key: emission:CO2
   title: CO2 from the coke burn-off in the CCR regenerator
   type: emission
-  amount: 1.1966978872321332
+  amount: 1.1630659310716527
   unit: kg
-  formula: (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 14 * M_H / (10 * M_C + 14 * M_H)) / ((1 - h2_nm3 * 2 * M_H
-    / V_m / 1000 - y_fg - coke / 1000) * 18 * M_H / (7 * M_C + 18 * M_H) + h2_nm3 * 2 * M_H / V_m / 1000 + y_fg
-    * 10 * M_H / (3 * M_C + 10 * M_H) - 14 * M_H / (7 * M_C + 14 * M_H))) * coke / 1000 * (M_C + 2 * M_O) / M_C
+  formula: (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 15 * M_H / (9 * M_C + 15 * M_H)) / ((1 - h2_nm3 * 2 * M_H /
+    V_m / 1000 - y_fg - coke / 1000) * 18 * M_H / (7 * M_C + 18 * M_H) + h2_nm3 * 2 * M_H / V_m / 1000 + y_fg *
+    10 * M_H / (3 * M_C + 10 * M_H) - 20 * M_H / (9 * M_C + 20 * M_H))) * coke / 1000 * (M_C + 2 * M_O) / M_C
   provenance: calculated
   origin: literature
   cas: 124-38-9
@@ -378,11 +383,11 @@ exchanges:
 - key: feed:electricity
   title: Electricity
   type: input
-  amount: 44.536980008877784
+  amount: 43.28531425834886
   unit: kWh
-  formula: elec * (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 14 * M_H / (10 * M_C + 14 * M_H)) / ((1 - h2_nm3 * 2
+  formula: elec * (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 15 * M_H / (9 * M_C + 15 * M_H)) / ((1 - h2_nm3 * 2
     * M_H / V_m / 1000 - y_fg - coke / 1000) * 18 * M_H / (7 * M_C + 18 * M_H) + h2_nm3 * 2 * M_H / V_m / 1000 +
-    y_fg * 10 * M_H / (3 * M_C + 10 * M_H) - 14 * M_H / (7 * M_C + 14 * M_H))) / 1000
+    y_fg * 10 * M_H / (3 * M_C + 10 * M_H) - 20 * M_H / (9 * M_C + 20 * M_H))) / 1000
   provenance: given
   origin: literature
   link:
@@ -408,11 +413,11 @@ exchanges:
 - key: feed:fuel
   title: Fired heat of the charge heater and interheaters (fuel fired, counted as heat)
   type: input
-  amount: 709.2926445858313
+  amount: 689.3587085588892
   unit: kWh
-  formula: fuel / 3.6 * (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 14 * M_H / (10 * M_C + 14 * M_H)) / ((1 - h2_nm3
+  formula: fuel / 3.6 * (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 15 * M_H / (9 * M_C + 15 * M_H)) / ((1 - h2_nm3
     * 2 * M_H / V_m / 1000 - y_fg - coke / 1000) * 18 * M_H / (7 * M_C + 18 * M_H) + h2_nm3 * 2 * M_H / V_m / 1000
-    + y_fg * 10 * M_H / (3 * M_C + 10 * M_H) - 14 * M_H / (7 * M_C + 14 * M_H))) / 1000
+    + y_fg * 10 * M_H / (3 * M_C + 10 * M_H) - 20 * M_H / (9 * M_C + 20 * M_H))) / 1000
   provenance: given
   origin: literature
   carrier:
@@ -433,11 +438,11 @@ exchanges:
 - key: output:cooling-water
   title: Heat rejected to cooling water
   type: output
-  amount: 27.579937249942095
+  amount: 26.804831644429367
   unit: kWh
-  formula: cw * rho_w * cp_w * dT_cw / 3600 * (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 14 * M_H / (10 * M_C + 14
+  formula: cw * rho_w * cp_w * dT_cw / 3600 * (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 15 * M_H / (9 * M_C + 15
     * M_H)) / ((1 - h2_nm3 * 2 * M_H / V_m / 1000 - y_fg - coke / 1000) * 18 * M_H / (7 * M_C + 18 * M_H) + h2_nm3
-    * 2 * M_H / V_m / 1000 + y_fg * 10 * M_H / (3 * M_C + 10 * M_H) - 14 * M_H / (7 * M_C + 14 * M_H))) / 1000
+    * 2 * M_H / V_m / 1000 + y_fg * 10 * M_H / (3 * M_C + 10 * M_H) - 20 * M_H / (9 * M_C + 20 * M_H))) / 1000
   provenance: calculated
   origin: literature
   carrier:
@@ -457,11 +462,11 @@ exchanges:
 - key: feed:water
   title: Water to the regeneration vent scrubber
   type: input
-  amount: 2.3753056004734816
+  amount: 2.308550093778606
   unit: kg
-  formula: ww * (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 14 * M_H / (10 * M_C + 14 * M_H)) / ((1 - h2_nm3 * 2 *
+  formula: ww * (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 15 * M_H / (9 * M_C + 15 * M_H)) / ((1 - h2_nm3 * 2 *
     M_H / V_m / 1000 - y_fg - coke / 1000) * 18 * M_H / (7 * M_C + 18 * M_H) + h2_nm3 * 2 * M_H / V_m / 1000 + y_fg
-    * 10 * M_H / (3 * M_C + 10 * M_H) - 14 * M_H / (7 * M_C + 14 * M_H))) / 1000
+    * 10 * M_H / (3 * M_C + 10 * M_H) - 20 * M_H / (9 * M_C + 20 * M_H))) / 1000
   provenance: assumed
   origin: estimate
   link:
@@ -480,11 +485,11 @@ exchanges:
 - key: output:wastewater
   title: Waste water of the scrubber to treatment
   type: output
-  amount: 2.3753056004734816
+  amount: 2.308550093778606
   unit: kg
-  formula: ww * (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 14 * M_H / (10 * M_C + 14 * M_H)) / ((1 - h2_nm3 * 2 *
+  formula: ww * (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 15 * M_H / (9 * M_C + 15 * M_H)) / ((1 - h2_nm3 * 2 *
     M_H / V_m / 1000 - y_fg - coke / 1000) * 18 * M_H / (7 * M_C + 18 * M_H) + h2_nm3 * 2 * M_H / V_m / 1000 + y_fg
-    * 10 * M_H / (3 * M_C + 10 * M_H) - 14 * M_H / (7 * M_C + 14 * M_H))) / 1000
+    * 10 * M_H / (3 * M_C + 10 * M_H) - 20 * M_H / (9 * M_C + 20 * M_H))) / 1000
   provenance: given
   origin: literature
   link:
@@ -504,11 +509,11 @@ exchanges:
 - key: input:catalyst
   title: Pt-Sn on alumina reforming catalyst, make-up
   type: input
-  amount: 0.0016033312803196002
+  amount: 0.001558271313300559
   unit: kg
-  formula: cat / 1000 * (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 14 * M_H / (10 * M_C + 14 * M_H)) / ((1 - h2_nm3
+  formula: cat / 1000 * (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 15 * M_H / (9 * M_C + 15 * M_H)) / ((1 - h2_nm3
     * 2 * M_H / V_m / 1000 - y_fg - coke / 1000) * 18 * M_H / (7 * M_C + 18 * M_H) + h2_nm3 * 2 * M_H / V_m / 1000
-    + y_fg * 10 * M_H / (3 * M_C + 10 * M_H) - 14 * M_H / (7 * M_C + 14 * M_H))) / 1000
+    + y_fg * 10 * M_H / (3 * M_C + 10 * M_H) - 20 * M_H / (9 * M_C + 20 * M_H))) / 1000
   provenance: given
   origin: literature
   metals:
@@ -527,11 +532,11 @@ exchanges:
 - key: output:spent-catalyst
   title: Spent reforming catalyst and fines, to platinum reclamation
   type: output
-  amount: 0.0016033312803196002
+  amount: 0.001558271313300559
   unit: kg
-  formula: cat / 1000 * (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 14 * M_H / (10 * M_C + 14 * M_H)) / ((1 - h2_nm3
+  formula: cat / 1000 * (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 15 * M_H / (9 * M_C + 15 * M_H)) / ((1 - h2_nm3
     * 2 * M_H / V_m / 1000 - y_fg - coke / 1000) * 18 * M_H / (7 * M_C + 18 * M_H) + h2_nm3 * 2 * M_H / V_m / 1000
-    + y_fg * 10 * M_H / (3 * M_C + 10 * M_H) - 14 * M_H / (7 * M_C + 14 * M_H))) / 1000
+    + y_fg * 10 * M_H / (3 * M_C + 10 * M_H) - 20 * M_H / (9 * M_C + 20 * M_H))) / 1000
   provenance: given
   origin: literature
   metals:
@@ -549,12 +554,12 @@ exchanges:
     source: 'ASSUMED: as the make-up'
 provenance:
   generator: hand-written model; amounts are the formulas of the parameters
-  notes: 'No value from a licensed database. Sources read: REF BREF 2015 sections 2.6 and 3.6; US 8,668,824 B2 Example;
-    ppPLUS #T280; Hameed 2017; IPCC 2006 Vol. 2 ch. 1.'
+  notes: 'No value from a licensed database. Sources read: REF BREF 2015 sections 2.6 and 3.6; US 8,668,824 B2 Example
+    and description; ppPLUS #T280; Hameed 2017; PRELIM v1.0 Table 8; IPCC 2006 Vol. 2 ch. 1.'
 generation:
   tier: 1
   method: 'sourced conceptual inventory: REF BREF ranges, a patent''s standard-CCR yields and a mass and hydrogen
-    balance over pseudo-components, every choice listed in parameters'
+    balance over pseudo-components with PRELIM''s hydrogen contents, every choice listed in parameters'
   maturity_cap: sourced
   pedigree_floor:
   - 3
@@ -564,21 +569,21 @@ generation:
   - 3
   dqr_floor: 3.0
   components:
-    product:reformate: C10H14
+    product:reformate: C9H15
     product:hydrogen: H2
     product:lpg: C7H18
     product:fuel-gas: C3H10
-    feed:naphtha: C7H14
+    feed:naphtha: C9H20
     feed:O2: O2
     emission:CO2: CO2
     feed:water: H2O
     output:wastewater: H2O
   formulas:
-    product:reformate: C10H14
+    product:reformate: C9H15
     product:hydrogen: H2
     product:lpg: C7H18
     product:fuel-gas: C3H10
-    feed:naphtha: C7H14
+    feed:naphtha: C9H20
     feed:O2: O2
     emission:CO2: CO2
     feed:water: H2O
@@ -588,14 +593,14 @@ generation:
     tolerance: 1.0e-06
     elements:
       C:
-      - 1016.959990279
-      - 1016.959990279
+      - 972.843841708
+      - 972.843841708
       H:
-      - 170.958622674
-      - 170.958622674
+      - 181.689547506
+      - 181.689547506
       O:
-      - 2.979586251
-      - 2.979586251
+      - 2.895848062
+      - 2.895848062
     outside:
     - feed:electricity
     - feed:fuel

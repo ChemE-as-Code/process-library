@@ -34,6 +34,7 @@ Every sulfur atom that misses the pit leaves the incinerator as SO2, as AP-42 as
 - The utility ranges are for one 20 000 t/yr SRU whose configuration the BREF does not state. Midpoints are our choice. AP-42's NOx, CO and hydrocarbon factors are US source tests, not EU data.
 - The recovery is a daily-average median. Units differ widely: 95.5 to 99.3 % for this tail gas category. The SO2 moves by about 7 times across that range.
 - The data are from 2004 to 2012. `valid_until` is the reference year + 5, 2015, so it has already lapsed.
+- **Heater fuel is counted differently across the refining entries.** Here, in `hydrotreating-1` and in `hydrocracking-1` it is methane burnt in the dataset, with natural gas by mass as the supply; `catalytic-reforming-1` and `fcc-1` map fuel in kWh to natural-gas heat (combustion in the background); `refinery-distillation-1` keeps refinery gas a gap with its combustion in the dataset. No family rule (a refinery fuel gas entry) is decided yet. This entry, like `hydrotreating-1`, leaves out the IPCC CH4 and N2O of the fuel, which `hydrocracking-1` includes (TODO).
 - Uncertainty is `gsd2 = sqrt(high / low)` where the source gives a range (our convention), and ASSUMED elsewhere.
 
 ## Linking
