@@ -93,8 +93,10 @@ cells:
 # The stacks of the two pilot skids (#330, DESIGN.md D-007 to D-010), sized by `cheme process
 # stack` (core ADR 0044). STK-A and STK-B are identical but for their tags and their duty: Skid A
 # runs one fill of 1 M KOH to the pH threshold (duty D-A), Skid B doses 5 M KOH continuously and
-# bleeds (duty D-B). `product` is written by scripts/regen.py from process/design-basis.yaml
-# (capacity.pilot_skid.product); do not edit it here. The equipment-list dimensions of the stack
+# bleeds (duty D-B). `product` and `replacement.operating_hours` are written by scripts/regen.py
+# from process/design-basis.yaml (capacity.pilot_skid.product, .operating_hours); do not edit
+# them here. `access` is checked by regen against the layout model (step 13): core sizes the
+# stack footprint with it but draws no envelope for it. The equipment-list dimensions of the stack
 # and tank tags, and the pumps' datasheet inputs, are written by `cheme process stack --write`.
 stacks:
   - id: STK-A
@@ -115,9 +117,12 @@ stacks:
       cell_pitch: {value: 8, unit: mm, provenance: assumed, source: "ASSUMED bipolar plate, frames, gaskets and membrane per cell; TBD vendor"}
       end_plates: {value: 120, unit: mm, provenance: assumed, source: "ASSUMED both end plate assemblies; TBD vendor"}
       frame_margin: {value: 40, unit: mm, provenance: assumed, source: "ASSUMED frame and manifolds beyond the active area; TBD vendor"}
+    # The 0.18 m stack is lifted out upwards by hand once its connections are undone: the
+    # clearances are hand room for its end-plate connections and tie rods, not a pull along its
+    # axis (DESIGN.md D-019; the spec's 1.0 m and 0.8 m cannot be met in the 20 ft frame)
     access:
-      end: {value: 1.0, unit: m, provenance: assumed, source: "ASSUMED stack removal along its axis"}
-      side: {value: 0.8, unit: m, provenance: assumed, source: "ASSUMED maintenance access"}
+      end: {value: 0.3, unit: m, provenance: assumed, source: "ASSUMED hand room at the end plates for the anolyte and gas connections; removal is a vertical hand lift of the 0.18 m stack (D-019); TBD vendor"}
+      side: {value: 0.3, unit: m, provenance: assumed, source: "ASSUMED hand room at the sides for the tie rods and the busbar (D-019); TBD vendor"}
     replacement:
       interval: {value: 4000, unit: h, provenance: assumed, source: "ASSUMED: no life data (1 h runs; the Ni anode failed within 4 h in 0.1 M KOH, design basis)"}
       operating_hours: {value: 8000, unit: h/a, provenance: assumed, source: "process/design-basis.yaml capacity.pilot_skid.operating_hours"}
@@ -154,8 +159,8 @@ stacks:
       end_plates: {value: 120, unit: mm, provenance: assumed, source: "ASSUMED both end plate assemblies; TBD vendor"}
       frame_margin: {value: 40, unit: mm, provenance: assumed, source: "ASSUMED frame and manifolds beyond the active area; TBD vendor"}
     access:
-      end: {value: 1.0, unit: m, provenance: assumed, source: "ASSUMED stack removal along its axis"}
-      side: {value: 0.8, unit: m, provenance: assumed, source: "ASSUMED maintenance access"}
+      end: {value: 0.3, unit: m, provenance: assumed, source: "ASSUMED hand room at the end plates for the anolyte and gas connections; removal is a vertical hand lift of the 0.18 m stack (D-019); TBD vendor"}
+      side: {value: 0.3, unit: m, provenance: assumed, source: "ASSUMED hand room at the sides for the tie rods and the busbar (D-019); TBD vendor"}
     replacement:
       interval: {value: 4000, unit: h, provenance: assumed, source: "ASSUMED: no life data (1 h runs; the Ni anode failed within 4 h in 0.1 M KOH, design basis)"}
       operating_hours: {value: 8000, unit: h/a, provenance: assumed, source: "process/design-basis.yaml capacity.pilot_skid.operating_hours"}
