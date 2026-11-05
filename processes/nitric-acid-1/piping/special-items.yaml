@@ -1,0 +1,21 @@
+# Special piping items: relief devices and silencers. Schema: `cheme schema piping_items`.
+# Drawn on the first P&IDs (D-017, D-018). Set pressure = the lowest design pressure of the
+# equipment the device protects (equipment list, D-013), ASSUMED until the MAWPs are known;
+# relief_case = the case that makes the device necessary, named here; the governing case, its
+# load and the orifice come with the relief study. Discharge points are ASSUMED (D-018).
+schema: cheme/piping_items/v1
+piping_items:
+  - {tag: PSV-105, type: SpringLoadedGlobeSafetyValve, line: RL-109, sheet: P-01, set_pressure_barg: 17,
+     relief_case: "E-101 shell: external fire on the liquid ammonia inventory; vapour outlet blocked (XV-203/XV-204 closed) with chilled-water heat input continuing (PV-104 failed open)",
+     notes: "Set ASSUMED = E-101 design pressure. Discharges to the ammonia relief header (B/L): no ammonia to atmosphere (D-018). Load open."}
+  - {tag: PSV-111, type: SpringLoadedGlobeSafetyValve, line: PA-108, sheet: P-01, set_pressure_barg: 6,
+     relief_case: "Low-pressure system K-101 discharge to K-102 suction (PA-105, M-101, R-101, E-102 process side, E-103 hot side, E-104, E-105, V-101 and, through the bleacher gas, C-102): blocked outlet (K-102 trip) with K-101 at its maximum discharge pressure; no isolation valve in this system other than the check valves",
+     notes: "Set ASSUMED = 6 barg, the lowest design pressure of the system (R-101, E-105, V-101, C-102); K-101 is designed for 6.5 barg, so its settle-out and shut-off pressure must be checked against it (open). Air side, discharges to atmosphere. Load open."}
+  - {tag: SL-114, type: Silencer, line: PA-107, sheet: P-01,
+     notes: "Silencer of the K-101 anti-surge blow-off to atmosphere (D-018)."}
+  - {tag: PSV-215, type: SpringLoadedGlobeSafetyValve, line: HS-206, sheet: P-02, set_pressure_barg: 44,
+     relief_case: "E-102 steam side: blocked steam outlet with the burner at full rate",
+     notes: "Set ASSUMED = E-102 steam-side design pressure. The boiler code may require the drum and superheater valves of the boiler package instead (D-020). Load open."}
+  - {tag: PSV-404, type: SpringLoadedGlobeSafetyValve, line: RL-405, sheet: P-04, set_pressure_barg: 12,
+     relief_case: "High-pressure system K-102 discharge to the X-101 inlet (E-106, E-107, C-101, the tail-gas side of E-106 and E-103, R-102): blocked outlet (XV-610 or PV-611 closed) with K-102 running; external fire",
+     notes: "Set ASSUMED = 12 barg, the lowest design pressure of the system (E-103 tail-gas side, R-102, X-101; C-101 12.5, K-102 13). Discharges nitrous gas to the NOx vent stack (B/L), never to grade (D-018). Load open."}

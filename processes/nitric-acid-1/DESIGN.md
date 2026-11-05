@@ -445,7 +445,115 @@ so its file hash differs from the input fingerprint in `process/simulation-run.j
 semantic model fingerprint is unchanged (`cheme validate` reports no stale run).
 Follow-ups: the open items above, and F-1 to F-3 of D-015 for the excluded part.
 
+## D-017 First P&IDs: sheet split, numbering, line sizes (2026-11-05)
+Decision: six P&ID sheets drafted from the PFD, one per section of the flowsheet with the
+burner and the absorber kept apart from their machines:
+P-01 ammonia and air supply (E-101, K-101), P-02 burner and steam raising (M-101, R-101, E-102),
+P-03 heat recovery and condenser (E-103, E-104, E-105, V-101, P-101A/B), P-04 NOx gas compression
+(K-102, E-106, E-107), P-05 absorption and bleaching (C-101, C-102), P-06 tail gas and expander
+(E-108, R-102, X-101). E-108 is drawn on P-06 with the SCR dosing it feeds. Every sheet is
+hand-maintained; `scripts/draft_P-0n.py` (with `scripts/pid_common.py`, authoring API) wrote the
+first revision and is provenance only, as in hda-1.
+Numbering: equipment tags of the PFD; lines `<fluid code>-<n><nn>` and instruments `<letters>-<n><nn>`
+with n the sheet the item starts on (codes in the header of `piping/line-list.yaml`); a line on two
+sheets keeps its number and is listed once.
+Line sizes: `scripts/line_sizing.py` (run with `cheme run`) sizes every PFD stream by velocity on
+the design case, ASSUMED first-pass values: gas 20 m/s below 1000 kPa(a) and 15 m/s above (ideal
+gas), the burner gas 30 m/s, liquids 1.5 m/s (1.0 m/s on letdown) at round ASSUMED densities
+(liquid NH3 617, 42 % acid 1260, 60 % acid 1360 kg/m3); utilities at 2-2.5 m/s (water) and
+30 m/s (steam); relief, blow-off and vent lines are placeholders. The air intake (DN1800) and the
+stack line (DN2000) are ducts in practice.
+Drawing: the sheets meet the drawing standard of the `drawing-clean` gate with no accepted
+finding (no crossing at all: the sheet split and the connector edges were chosen for it);
+off-page connectors sit on the sheet edges, process inflows left and outflows right, except the
+tail gas leaving P-04 to the right and entering P-03 from the top, and the process water and
+chilled water of P-05, which enter from the top so that the six absorber connections on the left
+keep their spacing.
+Reason: the PFD blocks are a first guess for the split (skill `pid-draft`); one sheet for the
+absorber and the NOx compressor together forms a closed loop on the sheet (K-102 -> C-101 -> C-102
+-> bleacher gas back to K-102) that cannot be drawn without crossings, so K-102 has its own sheet.
+Supersedes the last sentence of D-013 (no line or instrument list yet).
+Rejected: a utilities sheet (the interfaces are few and drawn as battery-limit connectors on each
+sheet; the cooling-water, chilled-water, steam and BFW systems are outside the boundary, D-001).
+
+## D-018 Machines, spares and relief on the first P&IDs (2026-11-05)
+Decision:
+- The machine train (K-101, K-102, X-101, motor; D-011) is one vendor package: machine
+  protection, lube oil, seals and the surge maps are the package's; the plant sees one train trip
+  (C&E I-602) and the two anti-surge controllers. K-101 has inlet guide vanes (FV-107, the load
+  setter) and an anti-surge blow-off to atmosphere through a silencer (UV-110, SL-114): air is not
+  worth recycling. K-102 has an anti-surge recycle (UV-401) taken before E-106 (a hot bypass),
+  suited to start-up and trips; continuous turndown recycle should be cooled (open point).
+- The expander has an inlet trip valve XV-610 (train trip, against overspeed) and the absorber
+  pressure valve PV-611 in front of it (D-019). An expander bypass for start-up is not drawn yet
+  (open point with the train vendor).
+- The weak-acid pump is spared: P-101A (the PFD's P-101) and P-101B, one running.
+- Relief (`piping/special-items.yaml`): one valve per pressure system, set at the lowest design
+  pressure of the system (D-013), ASSUMED until the MAWPs are known: PSV-105 on the evaporator
+  (17 barg, to the ammonia relief header), PSV-111 on the K-101 discharge for the whole low-pressure
+  system from K-101 to the K-102 suction including C-102 (6 barg, air to atmosphere), PSV-404 on the
+  K-102 discharge for the whole high-pressure system to the X-101 inlet (12 barg, nitrous gas to a
+  NOx vent stack, never to grade), PSV-215 on the HP steam (44 barg). These systems have no
+  isolation valve inside them other than check valves and the trip valves at their ends. The
+  relief study (cases, loads, orifices, the K-101 settle-out pressure against the 6 barg set) is open.
+Reason: usual practice for a dual-pressure plant on one train (skill `control-loops`, gas movers);
+ammonia and nitrous gas are toxic, so their relief goes to a header or vent stack.
+Rejected: a PSV per item (the systems have no isolation valves; a valve per item would be
+unprotected by nothing it adds).
+
+## D-019 Control and safeguarding design of the first P&IDs (2026-11-05)
+Decision (all PROPOSED, for the HAZOP; files: `control/loops.yaml`, `control/cause-effect.yaml`,
+`control/sequences.yaml`, `control/philosophy.md`):
+- Air leads, ammonia follows: the load is set on the air (FIC-107); the ammonia vapour is ratioed
+  to the primary air (FFIC-201 with FI-202 as the wild flow, design ratio 0.0656 kg/kg = 10.0 mol%
+  NH3, D-005; setpoint clamp 0.07 kg/kg ASSUMED).
+- The ammonia-air mixture is protected by trips independent of the ratio loop: FFZ-205 (ratio
+  high-high on its own NH3 flow element, with FZ-206 on its own air flow element), FZ-206 (air
+  low-low), TZ-207 (gauze temperature low-low: flame-out with NH3 slip, ammonium nitrate in the cold
+  end; and high-high), and the train trip; each closes two ammonia trip valves XV-203 and XV-204
+  (in series, through US-209 and TZ-207 on the drawing; the C&E gives the full effects) and the
+  liquid ammonia XV-101. The NH3 analyser AI-210 is a cross-check only (composition analysers are
+  avoided in safety functions). The trip point of I-201 is not stated: it needs the lower
+  flammability limit of NH3 in air at 520 kPa(a) and 462 K (open input O-7).
+- Other trips: I-101 E-101 level high-high (liquid carry-over), I-301 V-101 level low-low (stops
+  P-101A/B), I-501 C-101 sump level low-low (XV-507 against gas blow-by from 1130 to 500 kPa(a)
+  into C-102), I-601 R-102 inlet temperature low-low (stops the SCR ammonia, XV-602). No trip acts
+  on a control valve; every trip has its own sensor. Delays, latching and reset ASSUMED; SILs and
+  voting are the HAZOP / LOPA's.
+- R-102 inlet temperature by a bypass of the E-103 tail-gas side (TIC-301, TV-301): the hot gas
+  flow through E-103 stays constant. The absorber pressure by back-pressure control at the X-101
+  inlet (PIC-611), the acid strength by the process water (FIC-505) and the tail-gas O2 by the
+  secondary air (FIC-509), trimmed by the operator from AI-514 and AI-512; the SCR ammonia on flow
+  (FIC-603), trimmed from the stack NOx AI-614. Analyser cascades are left for detail design.
+- Fail positions (drawn F.C./F.O. on the sheets): closed for every ammonia valve (XV-101, LV-102,
+  FV-201, XV-203, XV-204, XV-602, FV-603), the chilled-water PV-104 (the evaporator pressure falls,
+  lean), the level valves between pressure levels (LV-305, LV-506, LV-510, XV-507), TV-301 (all
+  tail gas through E-103, away from the SCR low-temperature limit), TV-604 and XV-610; open for the
+  air guide vanes FV-107 (full air dilutes the mixture), the anti-surge valves UV-110 and UV-401,
+  the process water FV-505 and secondary air FV-509 (absorption kept, the safe side) and PV-611
+  (no pressuring of the HP system against PSV-404).
+- Setpoints that are a design-case value quote the stream (S03, S05, S06, S09, S24, S27, S28); the
+  levels (50-60 %), surge margins (10 %) and start-up rates are ASSUMED.
+Reason: the ammonia-air ratio and burner safety are the hazards the tech skill
+(`tech-heavy-chem-nitric-acid-and-fertilizers`) names first; the layers follow skill
+`control-safeguarding-and-interlocks` (basic control, alarm, trip, relief).
+Rejected: a ratio trip from the analyser (less reliable than flow measurements); throttling the
+hot nitrous gas around E-103 (an alloy valve at 793 K).
+
+## D-020 Utility interfaces and packages on the first P&IDs (2026-11-05)
+Decision: the E-102 steam side is a boiler package (steam drum, circulation, BFW level control,
+drum and superheater relief); the sheets show its interfaces (BFW from E-104, HP steam to export,
+PSV-215). The chilled-water loop between the C-101 upper coils and the E-101 tubes (D-011) has its
+circulation pump and expansion in a chilled-water package, not drawn; its lines CHS-111/CHR-112 run
+C-101 -> E-101 -> C-101. C-101 coil connections are ASSUMED: cooling water on the lower trays
+(CWS-506/CWR-507), chilled water on the upper trays. The C-102 acid cooling (Q10, 1.6 MW) has no
+exchanger in the equipment list yet and is not drawn. A heat source for E-101 at start-up, before
+the absorber makes heat, is open.
+Reason: keep the first issue to the equipment of the PFD; packages and utilities come with their
+vendors (S2-type open inputs).
+
 ## Open inputs
+- O-7: lower flammability limit of NH3 in air (and with the water vapour of the feed) at the burner inlet conditions, 520 kPa(a) and 462 K, with its source: the trip point of I-201 and the clamp of FFIC-201 (D-019).
 - O-1: check D-005, D-008, D-011 against the BREF consumption and emission ranges (S2 sections 3.3, 3.4) with exact locators: NH3 per t HNO3 (here 0.285 t/t), steam export, power, cooling water, tail-gas NOx.
 - O-2: a sourced NO selectivity for medium-pressure gauzes (with catalyst age), replacing 0.955.
 - O-3: Pt/Rh loss per t HNO3 and gauze recovery (a precious-metal flow, never cut off).

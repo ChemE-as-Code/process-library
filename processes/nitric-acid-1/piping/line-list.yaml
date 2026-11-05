@@ -1,3 +1,73 @@
 # Line list. Schema: `cheme schema lines`.
+# First P&IDs (D-017): every line drawn on P-01 to P-06, each with the sheet it starts on; a
+# line on two sheets is listed once and its notes say where it continues. A PFD stream's line
+# names the stream id in the notes.
+# Numbers: <fluid code>-<n><nn>, n the sheet it starts on. Fluid codes: NL liquid ammonia,
+# NV ammonia vapour, PA air, AM ammonia-air mixture, NX nitrous gas, WA weak acid, AC nitric
+# acid, BG bleacher gas, TG tail gas, PW process water, BW boiler feed water, HS HP steam,
+# LS LP steam, CD condensate, CWS/CWR cooling water, CHS/CHR chilled water, RL relief, DR drain.
+# DN: first-pass size from velocity (scripts/line_sizing.py, D-017, ASSUMED): gas 20 m/s below
+# 1000 kPa(a) and 15 m/s above (ideal-gas density of the design case), the burner gas 30 m/s,
+# liquids 1.5 m/s (1.0 m/s on letdown and gravity legs) at round ASSUMED densities, inside
+# diameter taken as the DN. Utilities: cooling water 2.5 m/s, chilled water 2 m/s at an
+# ASSUMED 8 K range, steam 30 m/s. Relief, blow-off and vent lines are placeholders until the
+# relief study sizes them. Pressure classes and materials come with the pipe specs.
 schema: cheme/lines/v1
-lines: []
+lines:
+  # ---- P-01 ammonia and air supply
+  - {number: NL-101, from: B/L, to: E-101, nominal_diameter: DN80, fluid: Ammonia, sheet: P-01, notes: "S01 liquid NH3 from storage; S02 after the SCR take-off T103 (NL-103); trip valve XV-101 (C&E I-101, I-201 to I-204, I-602) and the evaporator level valve LV-102 (LIC-102). 67 mm at 1.5 m/s"}
+  - {number: NL-103, from: NL-101, to: E-108, nominal_diameter: DN25, fluid: Ammonia, sheet: P-01, notes: "S04 liquid NH3 to the SCR vaporiser; continues on P-06. 4 mm calculated, DN25 the smallest size"}
+  - {number: NV-102, from: E-101, to: M-101, nominal_diameter: DN250, fluid: Ammonia, sheet: P-01, notes: "S03 NH3 vapour, 600 kPa(a); relief take-off T102 (RL-109); continues on P-02 with the trip valves XV-203, XV-204, the ratio valve FV-201 and the check valve CV202. 222 mm at 20 m/s"}
+  - {number: RL-109, from: NV-102, to: B/L, nominal_diameter: DN80, fluid: Ammonia, sheet: P-01, notes: "PSV-105 inlet and discharge to the ammonia relief header (B/L); DN placeholder until the relief study"}
+  - {number: DR-110, from: E-101, to: B/L, nominal_diameter: DN50, fluid: Ammonia, sheet: P-01, notes: "E-101 blowdown (oil and water) to the ammonia drain pot (B/L), hand valve HV110; DN ASSUMED"}
+  - {number: PA-104, from: B/L, to: K-101, nominal_diameter: DN1800, fluid: Air, sheet: P-01, notes: "S06 ambient air from the intake filter (B/L) through the inlet guide vanes FV-107 (FIC-107); 1758 mm at 20 m/s (an intake duct)"}
+  - {number: PA-105, from: K-101, to: M-101, nominal_diameter: DN1100, fluid: Air, sheet: P-01, notes: "S07 compressed air with the blow-off take-off (PA-107), check valve CV105 and the relief take-off (PA-108); S08 primary air after the secondary-air take-off T106 (PA-106); continues on P-02 to M-101. 1010 mm at 20 m/s (S07); S08 needs DN1000, the line stays DN1100"}
+  - {number: PA-106, from: PA-105, to: C-102, nominal_diameter: DN400, fluid: Air, sheet: P-01, notes: "S09 secondary air; continues on P-05 with FV-509 (FIC-509) to the C-102 bottom. 396 mm at 20 m/s"}
+  - {number: PA-107, from: PA-105, to: ATM, nominal_diameter: DN400, fluid: Air, sheet: P-01, notes: "K-101 anti-surge blow-off UV-110 (UIC-110) with the silencer SL-114 to atmosphere; DN placeholder (one secondary-air rate, ASSUMED) until the surge study"}
+  - {number: PA-108, from: PA-105, to: ATM, nominal_diameter: DN300, fluid: Air, sheet: P-01, notes: "PSV-111 inlet and discharge to atmosphere; DN placeholder until the relief study"}
+  - {number: CHS-111, from: C-101, to: E-101, nominal_diameter: DN300, fluid: Chilled water, sheet: P-01, notes: "Chilled water from the C-101 coils (P-05) to the E-101 tubes, PV-104 (PIC-104); energy stream Q11. 4.1 MW at an ASSUMED 8 K range, 280 mm at 2 m/s. The loop's circulation pump is in the chilled-water package (D-020)"}
+  - {number: CHR-112, from: E-101, to: C-101, nominal_diameter: DN300, fluid: Chilled water, sheet: P-01, notes: "Chilled water from the E-101 tubes back to the C-101 coils (P-05)"}
+  # ---- P-02 burner and steam raising
+  - {number: AM-201, from: M-101, to: R-101, nominal_diameter: DN1000, fluid: Ammonia-air mixture, sheet: P-02, notes: "S10 ammonia-air mixture, 10 mol% NH3, 462 K; 953 mm at 20 m/s"}
+  - {number: NX-202, from: R-101, to: E-102, nominal_diameter: DN1400, fluid: Nitrous gas, sheet: P-02, notes: "S11 burner gas, 1144 K; 1277 mm at 30 m/s (refractory-lined; in practice R-101 and E-102 are one vessel)"}
+  - {number: NX-203, from: E-102, to: E-103, nominal_diameter: DN1400, fluid: Nitrous gas, sheet: P-02, notes: "S12 nitrous gas from the boiler, 793 K; continues on P-03 to the E-103 tubes. 1309 mm at 20 m/s"}
+  - {number: HS-204, from: E-102, to: B/L, nominal_diameter: DN200, fluid: HP steam, sheet: P-02, notes: "HP steam export, 4000 kPa(a), 673 K, about 38 t/h (Q05 + Q06, D-011); relief take-off T204 (HS-206); 182 mm at 30 m/s"}
+  - {number: HS-206, from: HS-204, to: ATM, nominal_diameter: DN150, fluid: HP steam, sheet: P-02, notes: "PSV-215 inlet and discharge to atmosphere (silencer in the boiler package); DN placeholder"}
+  # ---- P-03 heat recovery, condenser
+  - {number: NX-301, from: E-103, to: E-104, nominal_diameter: DN1100, fluid: Nitrous gas, sheet: P-03, notes: "S13, 550 K; 1096 mm at 20 m/s"}
+  - {number: NX-302, from: E-104, to: E-105, nominal_diameter: DN1000, fluid: Nitrous gas, sheet: P-03, notes: "S14, 453 K; 1000 mm at 20 m/s"}
+  - {number: NX-303, from: E-105, to: V-101, nominal_diameter: DN900, fluid: Nitrous gas and weak acid, sheet: P-03, notes: "S15 two-phase, 313 K; 818 mm at 20 m/s on the whole flow as gas"}
+  - {number: NX-304, from: V-101, to: K-102, nominal_diameter: DN900, fluid: Nitrous gas, sheet: P-03, notes: "S16 separator gas; continues on P-04, where the bleacher gas BG-503 joins it (T401, M102) and it carries S20 to the K-102 suction. S16 needs DN800 (745 mm), S20 DN900 (818 mm): DN900 for the whole line"}
+  - {number: WA-305, from: V-101, to: P-101A, nominal_diameter: DN100, fluid: Weak acid, sheet: P-03, notes: "S17 weak acid (42 wt%) to the pump suction header; branch WA-307 to the spare. 91 mm at 1.0 m/s"}
+  - {number: WA-306, from: P-101A, to: C-101, nominal_diameter: DN80, fluid: Weak acid, sheet: P-03, notes: "S18 pumped weak acid through LV-305 (LIC-305, V-101 level); continues on P-05 to C-101. 75 mm at 1.5 m/s"}
+  - {number: WA-307, from: WA-305, to: P-101B, nominal_diameter: DN100, fluid: Weak acid, sheet: P-03, notes: "Suction of the spare P-101B, DN of WA-305"}
+  - {number: WA-308, from: P-101B, to: WA-306, nominal_diameter: DN80, fluid: Weak acid, sheet: P-03, notes: "Discharge of the spare P-101B, DN of WA-306"}
+  - {number: TG-310, from: E-103, to: R-102, nominal_diameter: DN900, fluid: Tail gas, sheet: P-03, notes: "S27 hot tail gas, 703 K, after the bypass TG-311 joins (T302); TIC-301 on it; continues on P-06, where the SCR ammonia NV-601 joins (T601). 880 mm at 15 m/s"}
+  - {number: TG-311, from: TG-402, to: TG-310, nominal_diameter: DN400, fluid: Tail gas, sheet: P-03, notes: "E-103 tail-gas bypass with TV-301 (TIC-301, D-019); DN ASSUMED for up to a fifth of the tail gas"}
+  - {number: BW-312, from: B/L, to: E-104, nominal_diameter: DN100, fluid: Boiler feed water, sheet: P-03, notes: "BFW from the BFW pumps (B/L) to the economiser, 378 K, about 38 t/h; 84 mm at 2 m/s"}
+  - {number: BW-313, from: E-104, to: E-102, nominal_diameter: DN100, fluid: Boiler feed water, sheet: P-03, notes: "Preheated BFW from the economiser to the boiler package of E-102 (P-02)"}
+  - {number: CWS-314, from: B/L, to: E-105, nominal_diameter: DN700, fluid: Cooling water, sheet: P-03, notes: "Q07 32.7 MW at the 10 K range of D-011: 782 kg/s, 630 mm at 2.5 m/s"}
+  - {number: CWR-315, from: E-105, to: B/L, nominal_diameter: DN700, fluid: Cooling water return, sheet: P-03, notes: "E-105 cooling water return"}
+  # ---- P-04 NOx gas compression
+  - {number: NX-401, from: K-102, to: E-106, nominal_diameter: DN800, fluid: Nitrous gas, sheet: P-04, notes: "S21 compressed nitrous gas, 1150 kPa(a), 428 K, with the anti-surge take-off T403 (NX-404), check valve CV401 and the relief take-off T404 (RL-405); 702 mm at 15 m/s"}
+  - {number: NX-402, from: E-106, to: E-107, nominal_diameter: DN700, fluid: Nitrous gas, sheet: P-04, notes: "S22, 345 K; 632 mm at 15 m/s"}
+  - {number: NX-403, from: E-107, to: C-101, nominal_diameter: DN700, fluid: Nitrous gas, sheet: P-04, notes: "S23 to the C-101 bottom; continues on P-05. 606 mm at 15 m/s. Carries the E-107 condensate (D-016)"}
+  - {number: NX-404, from: NX-401, to: NX-304, nominal_diameter: DN300, fluid: Nitrous gas, sheet: P-04, notes: "K-102 anti-surge recycle UV-401 (UIC-401), hot bypass to the suction (D-018); DN placeholder until the surge study"}
+  - {number: RL-405, from: NX-401, to: B/L, nominal_diameter: DN300, fluid: Nitrous gas, sheet: P-04, notes: "PSV-404 inlet and discharge to the NOx vent stack (B/L, D-018); DN placeholder until the relief study"}
+  - {number: CWS-406, from: B/L, to: E-107, nominal_diameter: DN200, fluid: Cooling water, sheet: P-04, notes: "Q08 2.0 MW at 10 K: 49 kg/s, 158 mm at 2.5 m/s"}
+  - {number: CWR-407, from: E-107, to: B/L, nominal_diameter: DN200, fluid: Cooling water return, sheet: P-04, notes: "E-107 cooling water return"}
+  - {number: TG-402, from: E-106, to: E-103, nominal_diameter: DN700, fluid: Tail gas, sheet: P-04, notes: "S26 tail gas, 398 K, to the E-103 shell (P-03) with the bypass take-off T301 (TG-311) there; 656 mm at 15 m/s"}
+  # ---- P-05 absorption and bleaching
+  - {number: TG-501, from: C-101, to: E-106, nominal_diameter: DN600, fluid: Tail gas, sheet: P-05, notes: "S25 absorber tail gas, 303 K, with AI-511 (NOx), AI-512 (O2) and TI-513; continues on P-04 to the E-106 shell. 570 mm at 15 m/s"}
+  - {number: AC-502, from: C-101, to: C-102, nominal_diameter: DN150, fluid: Nitric acid, sheet: P-05, notes: "S30 raw acid from the C-101 sump through the shutdown valve XV-507 (C&E I-501) and the level valve LV-506 (LIC-506), 1130 -> 500 kPa(a); 135 mm at 1.0 m/s"}
+  - {number: BG-503, from: C-102, to: NX-304, nominal_diameter: DN350, fluid: Bleacher gas, sheet: P-05, notes: "S19 bleacher gas (secondary air with the stripped NOx) to the K-102 suction (T401 on NX-304, P-04); 334 mm at 20 m/s"}
+  - {number: AC-504, from: C-102, to: B/L, nominal_diameter: DN150, fluid: Nitric acid, sheet: P-05, notes: "S31 product acid 60 wt% to storage, LV-510 (LIC-510), AI-514 (strength), FI-515; 134 mm at 1.0 m/s"}
+  - {number: PW-505, from: B/L, to: C-101, nominal_diameter: DN65, fluid: Process water, sheet: P-05, notes: "S24 demineralised process water to the top tray, FV-505 (FIC-505); 58 mm at 1.5 m/s"}
+  - {number: CWS-506, from: B/L, to: C-101, nominal_diameter: DN450, fluid: Cooling water, sheet: P-05, notes: "C-101 cooling coils, Q09 10.6 MW at 10 K: 254 kg/s, 360 mm at 2.5 m/s, DN450 for the coil headers (ASSUMED)"}
+  - {number: CWR-507, from: C-101, to: B/L, nominal_diameter: DN450, fluid: Cooling water return, sheet: P-05, notes: "C-101 cooling coil return"}
+  # ---- P-06 tail gas and expander
+  - {number: NV-601, from: E-108, to: TG-310, nominal_diameter: DN25, fluid: Ammonia, sheet: P-06, notes: "S05 SCR ammonia vapour through the trip valve XV-602 (C&E I-601, I-602) and FV-603 (FIC-603) into the tail gas (T601); 11 mm calculated, DN25 the smallest size"}
+  - {number: LS-604, from: B/L, to: E-108, nominal_diameter: DN25, fluid: LP steam, sheet: P-06, notes: "LP steam 450 kPa(a) to E-108 through TV-604 (TIC-604); Q12 17 kW, about 30 kg/h"}
+  - {number: CD-605, from: E-108, to: B/L, nominal_diameter: DN25, fluid: Condensate, sheet: P-06, notes: "E-108 condensate through the steam trap ST605 to the condensate return (B/L)"}
+  - {number: TG-606, from: R-102, to: X-101, nominal_diameter: DN900, fluid: Tail gas, sheet: P-06, notes: "S28 treated tail gas, 711 K, through the trip valve XV-610 (US-612, C&E I-602) and the absorber pressure valve PV-611 (PIC-611); 898 mm at 15 m/s"}
+  - {number: TG-607, from: X-101, to: B/L, nominal_diameter: DN2000, fluid: Tail gas, sheet: P-06, notes: "S29 expanded tail gas to the stack (B/L), 105 kPa(a), 426 K, with TI-613, AI-614 (NOx) and AI-615 (N2O); 1894 mm at 20 m/s"}

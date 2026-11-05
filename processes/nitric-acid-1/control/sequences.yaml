@@ -1,28 +1,76 @@
 # Operating sequences: startup, shutdown and abnormal modes. Schema: `cheme schema sequences`.
 # PROPOSED operating intent, not approved for implementation; the review status comes from reviews/.
 # Start permissives are not trips: trips stay in control/cause-effect.yaml, named by id here.
-# Skill control-sequences.
+# Skill control-sequences. D-019: the burner light-off the P&IDs refer to (SEQ-START-BURNER),
+# in the order usual for an ammonia burner (air through the train first, purge of the mixer and
+# the gauze with air, ignition of the gauze, then ammonia below the start ratio). Times, rates
+# and the purge volume are ASSUMED until the burner and train vendors' procedures are known; the
+# ignition burner (hydrogen torch) and its supply are not drawn yet (open point of D-019).
 schema: cheme/sequences/v1
-sequences: []
-#  - id: SEQ-START
-#    title: Start up the feed section
-#    mode: startup                      # startup, shutdown, abnormal, normal, other
-#    section: FEED
-#    permissives:
-#      - {interlock: I-01, state: reset}
-#      - {all: [{loop: FIC-101, state: in manual}, {tag: XV-107, state: open}]}
-#    interlocks: [I-01]
-#    steps:
-#      - id: S1
-#        title: Admit feed
-#        actions:
-#          - {loop: FIC-101, action: setpoint, setpoint: {value: 1200, unit: kg/h, provenance: assumed}}
-#          - {loop: FIC-101, action: auto, by: operator}
-#        complete: {tag: LT-102, state: "> 30 %", delay: {value: 30, unit: s}}
-#        timeout: {value: 30, unit: min}
-#        on_timeout: abort
-#    abort:
-#      condition: {interlock: I-01, state: tripped}
-#      actions: [{tag: FV-101, action: close}]
-#      then: SEQ-STOP
-#    reset: {latching: true, manual: true, condition: {interlock: I-01, state: reset}}
+sequences:
+  - id: SEQ-START-BURNER
+    title: Light the ammonia burner (air on, purge, ignite the gauze, ammonia in)
+    mode: startup
+    cases: [design]
+    equipment: [K-101, M-101, R-101, E-102, E-101]
+    permissives:
+      - {interlock: I-101, state: reset}
+      - {interlock: I-201, state: reset}
+      - {interlock: I-202, state: reset}
+      - {interlock: I-204, state: reset}
+      - {interlock: I-602, state: reset}
+      - {all: [{tag: XV-203, state: closed}, {tag: XV-204, state: closed}, {loop: FFIC-201, state: in manual}]}
+      - {all: [{tag: K-101, state: running}, {loop: UIC-110, state: in auto}, {loop: FIC-107, state: in auto}]}
+      - {tag: E-102, state: "boiler package ready (drum level in range, BFW in service)"}
+    interlocks: [I-101, I-201, I-202, I-203, I-204, I-602]
+    steps:
+      - id: S1
+        title: Air through the train at the start-up rate
+        actions:
+          - {loop: FIC-107, action: setpoint, setpoint: {kind: setpoint, value: 120000, unit: kg/h, provenance: assumed, source: "D-019: about 55 % of the design air, the start-up rate, ASSUMED"}, by: operator}
+        complete: {all: [{tag: FZ-206, state: above the trip point}, {tag: FIC-107, state: at setpoint}]}
+        timeout: {value: 30, unit: min}
+        on_timeout: abort
+        operator: "The train starts on the motor with the expander inlet XV-610 closed (vendor's procedure); the absorber pressure builds as K-102 runs on its recycle UV-401."
+      - id: S2
+        title: Purge the mixer, the burner and the boiler with air
+        actions:
+          - {loop: FIC-107, action: auto, by: operator}
+        complete: {tag: FIC-107, state: "purge volume passed (five volumes of M-101 to E-104, ASSUMED)", delay: {value: 5, unit: min}}
+        timeout: {value: 20, unit: min}
+        on_timeout: abort
+        operator: "The purge clears any ammonia left from a trip before the gauze is ignited (skill control-safeguarding-and-interlocks, burner management). The purge volume is the vendor's."
+      - id: S3
+        title: Ignite the gauze
+        actions:
+          - {tag: R-101, action: start, by: operator}
+        complete: {tag: TI-208, state: "gauze glowing over its whole area (ignition burner)"}
+        timeout: {value: 15, unit: min}
+        on_timeout: abort
+        operator: "The gauze is heated with the ignition burner of the R-101 package (hydrogen torch, not drawn yet, D-019) until it glows."
+      - id: S4
+        title: Admit ammonia below the start ratio and raise it
+        actions:
+          - {tag: XV-203, action: open, by: operator}
+          - {tag: XV-204, action: open, by: operator}
+          - {loop: FFIC-201, action: setpoint, setpoint: {kind: setpoint, value: 0.04, unit: "kg/kg", provenance: assumed, source: "D-019: about 6 mol% NH3, the start ratio, ASSUMED"}, by: operator}
+          - {loop: FFIC-201, action: auto, by: operator}
+        complete: {all: [{tag: TZ-207, state: above the low-low trip point}, {loop: FFIC-201, state: in auto}]}
+        timeout: {value: 10, unit: min}
+        on_timeout: abort
+        operator: "The start-up bypass of I-203 is removed once TZ-207 is above its trip point. The ratio is raised in steps to the design value while the gauze temperature follows (TI-208)."
+      - id: S5
+        title: Load up to the design rate
+        actions:
+          - {loop: FFIC-201, action: setpoint, setpoint: {kind: setpoint, value: 0.0656, unit: "kg/kg", provenance: calculated, source: "the FFIC-201 design target (control/loops.yaml)"}, by: operator}
+          - {loop: FIC-107, action: setpoint, setpoint: {kind: setpoint, value: 213343, unit: kg/h, provenance: assumed, source: "the FIC-107 design target (control/loops.yaml)"}, by: operator}
+        complete: {all: [{tag: FIC-107, state: at setpoint}, {tag: FFIC-201, state: at setpoint}]}
+        timeout: {value: 4, unit: h}
+        on_timeout: abort
+        operator: "Air leads on every load step. The absorber, the bleacher and the tail-gas train are put in service in the order of their own procedures (not written yet)."
+    abort:
+      condition: {any: [{interlock: I-201, state: tripped}, {interlock: I-202, state: tripped}, {interlock: I-203, state: tripped}, {interlock: I-204, state: tripped}]}
+      actions:
+        - {tag: XV-203, action: close}
+        - {tag: XV-204, action: close}
+    reset: {latching: true, manual: true, condition: {all: [{interlock: I-201, state: reset}, {interlock: I-202, state: reset}, {interlock: I-203, state: reset}, {interlock: I-204, state: reset}]}}

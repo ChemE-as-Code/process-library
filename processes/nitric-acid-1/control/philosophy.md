@@ -1,16 +1,58 @@
 ---
 # Control philosophy. Schema of this front matter: `cheme schema control_philosophy`.
-# Skill control-narrative.
+# Skill control-narrative. D-019 (first P&IDs, 2026-11-05).
 schema: cheme/control_philosophy/v1
-objectives: []
-#  - {id: OBJ-1, title: Feed the plant at the rate of the operating case, loops: [FIC-101]}
-failures: []
-#  - id: F-AIR
-#    title: Loss of instrument air
-#    response: The control valves go to their fail positions; ...
-#    loops: [FIC-101]
-#    interlocks: [I-01]
-unresolved: []
+objectives:
+  - id: OBJ-1
+    title: Make the acid of the operating case at the load the operator sets on the air
+    loops: [FIC-107, FFIC-201, LIC-102, PIC-104]
+  - id: OBJ-2
+    title: Keep the ammonia-air mixture at its design strength, never rich
+    loops: [FFIC-201, FIC-107]
+  - id: OBJ-3
+    title: Absorb the NOx at the design pressure and acid strength
+    loops: [PIC-611, FIC-505, FIC-509, LIC-506, LIC-510]
+  - id: OBJ-4
+    title: Meet the tail-gas N2O and NOx limits (tertiary reactor window, SCR dosing)
+    loops: [TIC-301, FIC-603, TIC-604]
+  - id: OBJ-5
+    title: Keep the machine train inside its operating range
+    loops: [UIC-110, UIC-401]
+  - id: OBJ-6
+    title: Keep the liquid seals between pressure levels and the liquids out of the machines
+    loops: [LIC-305, LIC-506, LIC-510]
+failures:
+  - id: F-AIR
+    title: Loss of instrument air
+    response: "Every actuated valve goes to the fail position drawn on the P&IDs (control/instrument-list.yaml, D-019). Closed: the ammonia trip valves XV-101, XV-203, XV-204 and the ratio valve FV-201 (the burner goes out), the evaporator valves LV-102 and PV-104, the level valves LV-305, LV-506 and LV-510 and the shutdown valve XV-507 (the liquid seals hold), the SCR ammonia XV-602 and FV-603, the LP steam TV-604, the bypass TV-301 and the expander trip valve XV-610. Open: the air guide vanes FV-107 and the anti-surge valves UV-110 and UV-401 (the machines are protected), the process water FV-505, the secondary air FV-509 and the absorber pressure valve PV-611. With XV-610 closed and PV-611 open the high-pressure system is held by XV-610; the train is tripped on its own protection (I-602). Restart follows SEQ-START-BURNER once air is back."
+    loops: [FFIC-201, FIC-107, UIC-110, UIC-401, PIC-611]
+    sequences: [SEQ-START-BURNER]
+    interlocks: [I-201, I-602]
+  - id: F-POWER
+    title: Loss of electric power
+    response: "The train motor stops: the train trips (I-602), the ammonia is cut (XV-101, XV-203, XV-204) and XV-610 isolates the expander. P-101A/B stop; V-101 fills from what is left in the gas train. The control system and the trip logic are on an uninterruptible supply (ASSUMED, D-019). The HP system settles out behind the check valve CV401 and XV-610; the low-pressure system behind CV105. Restart: SEQ-START-BURNER."
+    loops: [LIC-305, PIC-611]
+    sequences: [SEQ-START-BURNER]
+    interlocks: [I-602]
+  - id: F-CW
+    title: Loss of cooling water
+    response: "E-105 and E-107 lose their duty and C-101 its lower coils: the gas to K-102 and the absorber runs hot and wet, the absorption falls and the stack NOx rises (AI-614). The operator cuts the ammonia (load down on FIC-107 and FFIC-201) and shuts the burner down if the water is not back; a cooling-water low-pressure trip of the burner is a question for the HAZOP (D-019)."
+    loops: [FIC-107, FFIC-201]
+  - id: F-CHW
+    title: Loss of the chilled-water loop (C-101 upper coils and E-101)
+    response: "E-101 loses its heat source: PIC-104 falls, the ammonia vapour to the burner falls and FFIC-201 opens FV-201 to its limit; the mixture goes lean, the gauze cools and TZ-207 trips the burner (I-203) if the ammonia is not restored. The absorber upper trays run warm (more NOx in the tail gas). The circulation pump of the loop is in the chilled-water package (D-020)."
+    loops: [PIC-104, FFIC-201]
+    interlocks: [I-203]
+  - id: F-TRAIN
+    title: Machine train trip
+    response: "I-602: XV-610 closes (no expander overspeed), the ammonia trip valves close and the burner goes out; the anti-surge valves open. The absorber stays pressurised; PSV-404 protects it if XV-610 and PV-611 are closed with K-102 coasting down."
+    loops: [UIC-110, UIC-401, PIC-611]
+    interlocks: [I-602]
+    sequences: [SEQ-START-BURNER]
+unresolved:
+  - "Ignition burner of R-101 and its fuel (hydrogen torch), and the purge volume of SEQ-START-BURNER: vendor (D-019)"
+  - "Flammability limit of NH3 in air at 520 kPa(a) and 462 K for the I-201 trip point (open input O-7)"
+  - "Expander bypass for start-up and on an expander trip (D-018)"
 ---
 
 # Control philosophy
@@ -21,27 +63,52 @@ unresolved: []
 
 ## Operating objectives
 
-<!-- What the control must achieve (throughput, product quality, energy, availability), by id
-(OBJ-1, ...) as in the front matter. -->
+The plant makes the acid of the design case (OBJ-1) at a load the operator sets on the air
+(FIC-107); everything else follows the air. The first safety objective is the ammonia-air
+mixture (OBJ-2): it is held at its design strength by a ratio controller and kept away from the
+flammable range by trips that do not share an instrument with that controller. The absorption
+is held at its design pressure and strength (OBJ-3), the tail gas inside the tertiary reactor's
+window (OBJ-4), the machine train inside its map (OBJ-5) and the liquid seals between the two
+pressure levels intact (OBJ-6).
 
 ## Control hierarchy
 
-<!-- Regulatory control (the loops), sequences between modes, protective functions (the C&E).
-A regulatory loop is never counted as a safeguard. -->
+Regulatory control (15 loops) holds the operating point; the burner start-up runs as a sequence
+(SEQ-START-BURNER); nine trips (I-101 to I-602) act on dedicated trip valves (XV) and machine
+stops, never on a control valve, and the relief devices PSV-105, PSV-111, PSV-215 and PSV-404
+are the layer behind them. The machine protection of the train is the package's and reaches the
+plant as one trip (I-602). A regulatory loop is never counted as a safeguard.
 
 ## Normal operation and disturbances
 
-<!-- How the loops hold the operating point, and what each expected disturbance does. -->
+Air leads, ammonia follows: FIC-107 moves the air and FFIC-201 brings the ammonia with it at the
+design ratio, so a load change never passes through a richer mixture. The evaporator makes the
+vapour on its level (LIC-102) and pressure (PIC-104) loops. The heat-recovery train runs
+uncontrolled except for the tertiary reactor inlet temperature (TIC-301 on the E-103 tail-gas
+bypass). The absorber pressure is held by back-pressure control at the expander inlet
+(PIC-611); the acid strength by the process water (FIC-505) and the tail-gas oxygen by the
+secondary air (FIC-509), both trimmed by the operator from the analysers. The SCR ammonia is
+dosed on flow (FIC-603) and trimmed from the stack NOx.
 
 ## Operator and automatic actions
 
-<!-- What runs automatically, what the operator sets, decides and resets. -->
+Automatic: the loops, the trips and the anti-surge controls. The operator sets the load and the
+ratio, trims the process water, the secondary air and the SCR ammonia from the analysers
+(AI-514, AI-512, AI-614), blows down the evaporator, runs SEQ-START-BURNER and resets every
+latched trip after the cause is cleared. Cascades of the analysers onto FIC-505, FIC-509 and
+FIC-603 are left for detail design (D-019).
 
 ## Equipment and utility failures
 
-<!-- Loss of instrument air, power, cooling water, steam, a machine trip: the designed
-response, by id (F-AIR, ...) as in the front matter. -->
+The designed responses are F-AIR (instrument air), F-POWER (electric power), F-CW (cooling
+water), F-CHW (the chilled-water loop between the absorber and the evaporator) and F-TRAIN (a
+machine train trip) in the front matter. Loss of LP steam only stops the SCR ammonia vaporiser
+(TIC-604 low, FIC-603 falls); loss of boiler feed water is the boiler package's.
 
 ## Assumptions and open points
 
-<!-- What is assumed or not decided yet. -->
+Fail positions, setpoints that are not a design-case value, trip delays and the start-up rates
+are ASSUMED (D-019). Open: the trip point of I-201 (O-7), the ignition burner, the expander
+bypass, the K-102 recycle (hot or cooled), a V-101 high-high level protection, the start-up
+heat source of E-101 and the C-102 acid cooling (D-018 to D-020); sensor voting and SILs are the
+HAZOP / LOPA's.
