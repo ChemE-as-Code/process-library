@@ -52,8 +52,9 @@ purge (to azide destruction) and R-102's off-gas (to the thermal oxidiser).
 Reason: the best-documented open route (SRC-1 gives charges, conversions, the filtrate's
 composition and an 11-batch recycle), and every feed has a library producer (sodium-nitrite-1,
 sulfuric-acid-1, hydrazine-1, chlor-alkali-1, methanol-1). It runs batchwise in the patent. The
-nitrite vessel apart from the azide vessel keeps acid away from the azide (SRC-1, SRC-2), so no
-hydrazoic acid can form (D-015).
+nitrite vessel apart from the azide vessel keeps acid away from the azide (SRC-1, SRC-2), so the
+azide never meets acid; hydrazine carried in the recovered methanol would still form hydrazoic
+acid in R-101, so the methanol has a hydrazine limit (D-015).
 Rejected: the Wislicenus route (molten sodium amide with N2O at about 230 C, SRC-3): it needs
 sodium metal (no library entry), gas-melt reactions that core cannot model, and has a history
 of fires. Ethyl nitrite in ethanol (SRC-2): the same chemistry; the patent with the open
@@ -187,10 +188,19 @@ and the trace of methyl nitrite are non-volatile.
   composition of the patent's filtrate, the basis of the solubility (D-008): 39.0 wt% NaOH, 17.4
   wt% hydrazine, 10.8 wt% NaN3, 32.5 wt% water against the patent's 40.0, 17.7, 10.8 and 31.5
   wt%.
-- The residue leaves at 335 K (S17), the bubble point an ideal Raoult trial run gives at 10
-  kPa(a); the constant-volatility still gives no temperature (L-4). The patent concentrates at 40
-  C or below in Example 4 and warns that heat lowers the azide's stability in solution; 10 kPa(a)
-  keeps the still below about 65 C (open: a lower pressure).
+- The residue leaves at about 360 K (S17), ESTIMATED: the constant-volatility still gives no
+  temperature (L-4). An ideal Raoult trial run gave 335 K at 10 kPa(a), but it counts NaOH as one
+  molecular particle and misses the caustic liquor's boiling-point elevation. At the end the
+  liquor holds 54.5 wt% NaOH on a NaOH-plus-water basis; a 50 wt% NaOH solution alone boils about
+  40 K above water (Duhring lines of NaOH solutions, about 415 K at 1 atm), so at 10 kPa(a), where
+  water boils at 319 K, the residue boils at about 355-370 K; 360 K is taken. The patent
+  concentrates at 40 C or below in Example 4 and warns that heat lowers the azide's stability in
+  solution: the design is well above that. A lower pressure does not reach it either: the
+  elevation stays, so even 2-3 kPa(a) (water at 290-297 K) ends at about 325-340 K, and the water
+  cut would then need a refrigerated condenser instead of cooling water. Kept: 10 kPa(a), with
+  C-101 heated by tempered hot water (at most about 390 K, from LP steam, as F-101) instead of
+  steam on the wall (412 K), and the hot concentrated azide / hydrazine liquor an open
+  reaction-hazard item (D-011, D-015).
 - The methanol cut is condensed on chilled water (Q4) and goes to R-101 (S3, 1.002 mol per mol
   nitrite) and the rest to the cake wash (S18); the water cut is condensed on cooling water (Q5)
   and goes to wastewater treatment (its reuse as process water is open).
@@ -205,7 +215,8 @@ filtrate's composition (D-007), so the value is used at the liquor it was measur
 not check that (L-6). 84.3 kg/h of crystals form (87 % of the NaN3 in the liquor); the rest stays
 in the mother liquor and is recycled (D-016).
 Energy (lumped, ASSUMED): heat capacity 2.8 kJ/(kg K) of the liquor, heat of crystallization
--200 kJ/kg (about -13 kJ/mol; no open value read): 9.4 kW year average to cooling water (Q6).
+-200 kJ/kg (about -13 kJ/mol; no open value read): 13.1 kW year average to cooling water (Q6),
+the liquor cooled from the still's estimated 360 K (D-007).
 Rejected: the phase change as a conversion "reaction" (the NBS pilot's workaround, its L-2): core
 now models it, and the screening no longer counts it.
 
@@ -269,7 +280,9 @@ nitrite adds about 3 K, so above about 8 % the liquor's methanol boils on a cool
 times slower reaction than assumed would already do so, and would also double the cycle. A
 slow absorption also sends more methyl nitrite (toxic, flammable) to the vent. Open for the next
 stage: reaction calorimetry with gas dosing (heat of reaction, heat-flow and gas-uptake profile),
-the TD24 of the azide liquor and the mother liquor, the dosing (acid feed of R-101) interlocked
+the TD24 of the azide liquor and the mother liquor, and of the concentrated liquor at the end of
+the still (about 360 K at 10 kPa(a), D-007; with the steam kept off C-101's wall), the dosing (acid
+feed of R-101) interlocked
 with R-102's temperature, its agitator and the off-gas methyl nitrite. Screening values only, not
 a reaction-hazard assessment.
 
@@ -278,21 +291,31 @@ Decision (year averages; core's models; power ASSUMED): R-101's heat to chilled 
 (Q1, NTG's extent x its heat); R-102's 126.7 kW (Q2, AZ and SIDE; the warming of the dosed gas,
 about 0.3 %, not counted); the still's boil-up 186.2 kW of LP steam (Q3, `process stills`: 2260
 kWh per batch); its methanol condenser 31.4 kW on chilled water (Q4) and its water condenser
-154.9 kW on cooling water (Q5); the crystallizer 9.4 kW to cooling water (Q6); the dryer 8.26 kW
+154.9 kW on cooling water (Q5); the crystallizer 13.1 kW to cooling water (Q6); the dryer 8.26 kW
 of LP steam (Q7) and its vapour condenser 1.45 kW on chilled water (Q8); power 13 kW (agitators
 2 + 4 + 4 + 3 kW, R-102's gas dispersion, the vacuum pumps; P1-P4). Per kg NaN3: LP steam 2.30
-kWh, chilled water 2.09 kWh, cooling water 1.94 kWh, electricity 0.154 kWh.
-Not counted: the sensible heat of the still's content as it heats from 313 to 335 K (about 0.3
-GJ per batch, 3-4 % of the boil-up), the heating of R-102's charge to 313 K, heat losses.
+kWh, chilled water 2.09 kWh, cooling water 1.98 kWh, electricity 0.154 kWh. The still's boil-up
+and the dryer take their LP steam through tempered hot-water loops (D-007, D-009); the steam is
+counted as the heat delivered.
+Not counted: the sensible heat of the still's content as it heats from 313 to about 360 K (D-007;
+about 0.6 GJ per batch, about 8 % of the boil-up), the heating of R-102's charge to 313 K, heat
+losses.
 
 ## D-013 Preliminary gate-to-gate LCI (2026-11-05)
 Decision: `cheme assess lca --write` per kg of dried NaN3 from the flowsheet's year averages. The
 purchased feeds are linked to their library producers (`lca/mappings.yaml`): sodium nitrite to
 sodium-nitrite-1, sulfuric acid to sulfuric-acid-1, hydrazine hydrate to hydrazine-1, caustic soda
 to chlor-alkali-1, methanol to methanol-1, the nitrogen consumable to asu-1's gaseous nitrogen; the
-LP steam counted as heat (kWh). Gaps with the activity they should connect to: process water,
-electricity, chilled and cooling water, the sulfate liquor, the condensate, the purge (azide
-destruction, no background) and R-102's off-gas (thermal oxidation).
+LP steam counted as heat (kWh). Gaps in `cheme assess lca`, each with the activity it should
+connect to: process water, electricity, chilled and cooling water, the sulfate liquor, the
+condensate, the purge (azide destruction, no background) and R-102's off-gas (thermal
+oxidation). The Atlas build (`scripts/build_lci.py`) links some of them through the library's
+shared mappings (`lci/mappings.yaml`, by the chemical slugs of process.yaml): process water to
+deionised water, electricity, cooling water, and the sulfate liquor and the condensate to average
+(municipal) wastewater treatment, a proxy for these effluents. It leaves three gaps: chilled
+water, the off-gas and the purge. The purge and the off-gas carry no chemical slug in process.yaml
+on purpose, so that no generic treatment stands in for the azide destruction (its nitrite, acid
+and oxidant and the N2O it releases) or for the thermal oxidation.
 The nitrogen is an `lca.yaml` consumable `per_batch` (core ADR 0053, library ADR 0035): 40 Nm3
 (50 kg) per batch, ASSUMED: 0.049 kg per kg NaN3 at 652.6 batches a year; it leaves with the
 off-gas and the vents (no disposal exchange).
@@ -325,15 +348,31 @@ study of the next stage:
   cytochrome oxidase, as cyanide does). The dry product is a dust hazard: closed filter-dryer,
   closed discharge, no open handling. Hydrazine (toxic, a carcinogen, corrosive) and methyl
   nitrite (toxic gas) need the same containment.
-- **Hydrazoic acid (HN3)**: any acid turns azide into HN3, a volatile (bp 309 K), very toxic and
-  explosive acid (SRC-1 names the prior art that distilled it as dangerous). The design keeps acid
-  and azide apart: the acid is only in R-101, which never receives an azide liquor; the methyl
-  nitrite is the only stream from R-101 to R-102; the recovered methanol to R-101 is distilled
-  from the alkaline liquor and holds no azide (NaN3 is non-volatile), but a carry-over of liquor
-  by entrainment or a wrong line-up would put azide into the acid vessel: a HAZOP item. The azide
-  side (R-102, C-101, F-101, T-101) stays strongly alkaline. The purge must be destroyed with
-  nitrous acid only in a controlled step with off-gas treatment (it releases N2O and, if
-  mishandled, HN3).
+- **Hydrazoic acid (HN3)**: HN3 is a volatile (bp 309 K), very toxic and explosive acid (SRC-1
+  names the prior art that distilled it as dangerous). It forms in two ways here: any acid turns
+  azide into HN3, and hydrazine nitrosated by nitrous acid in acid gives HN3 directly (the
+  N-nitrosohydrazine path at high acidity, SRC-4). The design keeps acid and azide apart: the acid
+  is only in R-101, which never receives an azide liquor; the methyl nitrite is the only stream
+  from R-101 to R-102; the azide side (R-102, C-101, F-101, T-101) stays strongly alkaline. The
+  one stream back to the acid side is the recovered methanol S3, distilled from the alkaline
+  liquor: it holds no azide (NaN3 is non-volatile), and the model takes hydrazine as non-volatile
+  (ASSUMED, D-007). But hydrazine has a vapour pressure, ammonia is expected in that cut (D-005),
+  and liquor can be entrained; hydrazine in S3 meets nitrous acid in R-101, which is acidic, and
+  forms HN3 there, which then rides with the methyl nitrite into the gas line (or stays in the
+  sulfate liquor S6). Hence a limit on S3, ASSUMED: at most 10 mg/kg hydrazine and no azide, each
+  receiver charge analysed before it goes to R-101 (off-spec methanol back to the still); at that
+  limit one charge (about 660 kg) carries about 7 g hydrazine, at most about 0.2 mol HN3 per
+  batch. HAZOP items: hydrazine and liquor carry-over into S3 (entrainment, foaming, a wrong
+  line-up), and azide in the sulfate liquor S6 before it goes to wastewater.
+- **Purge destruction** (outside the boundary, not designed; the order matters): the purge S29
+  holds about 3 mol hydrazine per mol azide (mole fractions N2H4 0.113, NaN3 0.036). Nitrite and
+  acid added first would turn that hydrazine into more HN3, about three times the azide being
+  destroyed. So, first the hydrazine is oxidised in the alkaline liquor (hypochlorite, kept
+  alkaline, since chlorine azide forms in acid; or hydrogen peroxide without the usual copper
+  catalyst, which would give copper azide) and checked hydrazine-free by analysis; only then is
+  the azide destroyed with nitrite and acid (nitrous acid, to N2 and N2O) in a controlled, vented
+  step with HN3 and N2O off-gas treatment, and checked azide-free before neutralisation and
+  discharge.
 - **Heavy-metal azides**: azide forms shock-sensitive azides with copper, lead, zinc, brass and
   their alloys, notoriously in drains (SRC-3): no copper alloys, lead or zinc on the azide side
   (stainless steel, glass-lined), and no azide to drains before destruction.
@@ -344,15 +383,20 @@ study of the next stage:
   off-gas (`process recipe`); with the vent blocked, both pressurise their vessels, which the
   thermal screening does not assess (ADR 0054).
 - **Thermal**: dry NaN3 decomposes at high temperature to sodium and nitrogen; no TD24 of the
-  liquors or the solid was found and none is estimated (D-011). The still and the dryer stay at
-  or below 335 K.
+  liquors or the solid was found and none is estimated (D-011). The still's residue (about 44 wt%
+  NaN3 at the end, crystals once it precipitates), a concentrated azide / hydrazine caustic liquor, reaches about 360 K at
+  10 kPa(a) (D-007), well above the patent's 40 C; C-101's jacket and coil take tempered hot water
+  (at most about 390 K) instead of LP steam (412 K) on the wall. The hot concentrated liquor and its
+  wall temperature are an open reaction-hazard item: its TD24 is needed before the still's pressure
+  and heating medium are fixed. The dryer runs at 333 K on hot water.
 - **Off-gas**: N2O (an oxidiser and a greenhouse gas), NH3 and methyl nitrite to the thermal
   oxidiser (D-013).
 
 ## D-016 Mother-liquor recycle and purge (2026-11-05)
 Decision: the mother liquor, the wash filtrate and the dryer condensate are collected in T-101
 (M103) and 95 % goes to the next batch's charge in R-102 (S11); 5 % is purged (S29, 88.6 kg per
-batch) to azide destruction, ASSUMED.
+batch) to azide destruction, ASSUMED: the hydrazine oxidised first in the alkaline liquor, then the
+azide destroyed with nitrite and acid (D-015).
 Reason: SRC-1 Example 2 recycles the whole filtrate over 11 batches, and its steady batches give
 41.0 mol NaN3 for 43.2 mol fresh hydrazine (94.9 %); a purge keeps the impurities the model does
 not carry (nitrite, carbonate from the air, decomposition products, metals) from building up. The
@@ -394,9 +438,12 @@ core main still reports 1.7.0, so `>=1.8` would stop it.
 - L-3: **the still is one ideal stage.** The patent's 90 wt% methanol cut needs a short column
   with reflux (core#173) and the salting-out of methanol by the caustic liquor (no activity
   model, no electrolyte); an effective relative volatility of 150 had to be calibrated (D-007).
-- L-4: **a constant-volatility still gives no temperatures**, so the residue's temperature is a
-  value from a Raoult trial run; Raoult's law with salts counts their boiling-point elevation only
-  ideally (D-007).
+- L-4: **a constant-volatility still gives no temperatures**, so the residue's temperature is an
+  estimate typed in: an ideal Raoult trial run counts NaOH as one molecular particle and gave
+  335 K, about 25 K short of the caustic liquor's boiling-point elevation, so the 360 K of S17 is
+  estimated from Duhring data of NaOH solutions (D-007). A still that reports its pot temperature
+  from an electrolyte (or a declared boiling-point elevation) model would give it and the wall's
+  approach.
 - L-5: **no evaporative crystallization with spectators in the still.** NaN3 stays dissolved,
   supersaturated, in the still's residue, and precipitates in the next step; an evaporating
   crystallizer with spectators (or a still that lets a solute crystallize) would be one step. The
@@ -442,6 +489,7 @@ core main still reports 1.7.0, so `>=1.8` would stop it.
 Kinetics, heats of reaction and gas uptake (calorimetry with gas dosing), TD24 of the liquors and
 of NaN3; the side reactions' products (N2O and NH3 or N2) and the off-gas analysis; NaN3
 solubility in the mother liquor over temperature and composition; the still's column and
-pressure; filtration and drying data of the cake; the purge from impurity build-up; the jackets'
-U; the product specification; the fate of N2O in the thermal oxidiser; the azide-destruction
-step; a TEA (`operation.batch: {recipe: true}`).
+pressure and the boiling point of the concentrated liquor (about 360 K estimated, D-007), its
+TD24; the hydrazine in the recovered methanol (its limit, D-015); filtration and drying data of
+the cake; the purge from impurity build-up; the jackets' U; the product specification; the fate
+of N2O in the thermal oxidiser; the azide-destruction step (hydrazine oxidised first, D-015); a TEA (`operation.batch: {recipe: true}`).

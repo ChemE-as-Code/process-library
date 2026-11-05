@@ -22,8 +22,11 @@ streams converged over `cheme process propagate` (DESIGN.md D-006). **It needs c
 its vents, still, spectators and dryer.
 
 **Hazards.** Sodium azide, hydrazine and methyl nitrite are highly toxic; any acid turns azide
-into hydrazoic acid (toxic, explosive), and azide forms explosive heavy-metal azides with copper
-and lead. DESIGN.md D-015 lists what the design rests on.
+into hydrazoic acid (toxic, explosive), and so does hydrazine with nitrous acid in acid (hence a
+hydrazine limit on the methanol recycled to the acid vessel, and the purge's hydrazine oxidised
+before its azide is destroyed); azide forms explosive heavy-metal azides with copper and lead.
+The still's concentrated azide / hydrazine liquor ends at about 360 K, its TD24 unknown. DESIGN.md
+D-015 lists what the design rests on.
 
 | path | what |
 |---|---|

@@ -17,13 +17,17 @@ description: |
   NaOH per mol hydrazine) together with the mother liquor of the previous batch at 313 K, and
   gives sodium azide and methanol; about 5 % of the hydrazine consumed is lost to ammonia and
   nitrous oxide (95 % selectivity at the patent's 70 % conversion). The acid side and the azide
-  side never share a vessel or a liquor, so no hydrazoic acid can form. The liquor is stripped of
+  side never share a vessel or a liquor, so the azide never meets acid; hydrazine carried in the
+  recovered methanol would form HN3 in R-101, so that methanol has a hydrazine limit (D-015). The
+  liquor is stripped of
   methanol and concentrated at 10 kPa(a) in the batch still C-101 (the methanol cut, 88 wt%,
-  goes back to R-101 and to the cake wash), NaN3 precipitates at 303 K from the concentrated
+  goes back to R-101 and to the cake wash; the residue ends at about 360 K, estimated with the
+  caustic liquor's boiling-point elevation, an open reaction-hazard item), NaN3 precipitates at 303
+  K from the concentrated
   caustic liquor (39 wt% NaOH, 17 wt% hydrazine), and the agitated filter-dryer F-101 filters
   it, washes it with methanol (0.43 kg/kg) and dries it at 333 K under vacuum. The mother
   liquor, the wash filtrate and the dryer condensate go back to R-102, less a 5 % purge to azide
-  destruction. Product 99.6 wt% NaN3; yield 92.3 % on hydrazine. Per kg NaN3: sodium nitrite
+  destruction (the hydrazine oxidised first, then the azide with nitrite and acid). Product 99.6 wt% NaN3; yield 92.3 % on hydrazine. Per kg NaN3: sodium nitrite
   1.222 kg, sulfuric acid 0.883 kg, hydrazine hydrate (64 %) 0.831 kg, caustic soda (50 %)
   1.287 kg, methanol 0.074 kg; 0.036 kg N2O leaves in the off-gas to the thermal oxidiser.
 
@@ -36,7 +40,8 @@ description: |
   kinetics are ASSUMED (no open data): the dissolved methyl nitrite accumulates to 2.0 % and the
   cooling-failure temperature stays at 318.9 K, below the 337.6 K boiling point of methanol, but
   a ten times slower reaction would exceed it. See DESIGN.md for every assumption, the process
-  safety notes (azide toxicity, hydrazoic acid, heavy-metal azides, methyl nitrite) and the core
+  safety notes (azide toxicity, hydrazoic acid from azide and from hydrazine, heavy-metal azides,
+  methyl nitrite, the hot concentrated liquor) and the core
   limits met.
 families: [inorganic-chemicals]
 keywords: [sodium azide, NaN3, hydrazine, methyl nitrite, alkyl nitrite, sodium nitrite, azide, semi-batch, batch, gas dosing, vent, batch distillation, precipitation, filter-dryer, mother-liquor recycle, thermal screening]
@@ -82,15 +87,19 @@ chemistry:
     - {chemical: sodium-azide, role: main-product, inventory_key: "product:NAN3P", note: "Dried sodium azide, 99.6 wt% NaN3, to packing"}
     - {chemical: wastewater, role: waste, inventory_key: "product:SULF", note: "Sodium sulfate liquor of the nitrite generator, 4.72 kg/kg NaN3, to wastewater treatment"}
     - {chemical: wastewater, role: waste, inventory_key: "product:COND", note: "Evaporator condensate (water, 0.12 wt% methanol), 2.78 kg/kg NaN3, to wastewater treatment"}
-    - {chemical: wastewater, role: waste, inventory_key: "product:PURGE", note: "Mother-liquor purge (NaOH, hydrazine, 8 wt% NaN3), 0.086 kg/kg NaN3, to azide destruction and wastewater treatment"}
+    # No inventory_key for the purge either: no background covers its treatment (the hydrazine
+    # oxidised, then the azide destroyed with nitrite and acid, with N2O released; lca/lca.yaml,
+    # DESIGN.md D-013, D-015), and the wastewater slug would link it to average wastewater
+    # treatment in the Atlas. It stays a gap (product:PURGE).
+    - {chemical: wastewater, role: waste, note: "Mother-liquor purge (product:PURGE: NaOH, hydrazine, 8 wt% NaN3), 0.086 kg/kg NaN3, to azide destruction (hydrazine oxidised first) and wastewater treatment; an LCI gap"}
     # No inventory_key with a chemical slug for the off-gas: it is a treated waste stream
     # (product:OFFGAS, thermal oxidiser), not an emission of one substance.
     - {chemical: nitrous-oxide, role: emission, note: "R-102's off-gas (product:OFFGAS, 0.138 kg/kg NaN3) to the thermal oxidiser: methyl nitrite 64, N2O 26, NH3 10 wt%; 0.036 kg N2O per kg NaN3, whose fate in the oxidiser is open (DESIGN.md D-013)"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.154 kWh/kg NaN3: agitators, gas dispersion, vacuum pumps (ASSUMED)"}
-    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "2.30 kWh/kg NaN3 of LP steam 350 kPa(a): the still's boil-up and the filter-dryer"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "2.30 kWh/kg NaN3 of LP steam 350 kPa(a), through tempered hot water: the still's boil-up and the filter-dryer"}
     - {chemical: chilled-water, role: utility, inventory_key: "product:CHW", note: "2.09 kWh/kg NaN3 removed by chilled water at 278-283 K: R-101, R-102 and the methanol condensers"}
-    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "1.94 kWh/kg NaN3: the still's water condenser and the crystallizer, 25/35 C (ASSUMED)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "1.98 kWh/kg NaN3: the still's water condenser and the crystallizer, 25/35 C (ASSUMED)"}
 basis:
   capacity: "670.6 t/a dried NaN3: 652.6 batches/a of 1027.6 kg in 7920 h on a dedicated train (84.68 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-014)"
   operating_hours_per_year: 7920

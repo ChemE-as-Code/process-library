@@ -13,7 +13,8 @@
 # core ADR 0056) and is filtered, washed with methanol and vacuum-dried in the filter-dryer F-101
 # (F101, W101, F102, D101; core ADR 0057). The mother liquor and the wash filtrate go back to R-102
 # for the next batch, less a 5 % purge to azide destruction. The acid side (R-101) and the azide
-# side never share a vessel or a liquor (D-015).
+# side never share a vessel or a liquor, so the azide never meets acid; hydrazine carried in the
+# recovered methanol S3 would form HN3 in R-101 (a limit and an analysis on S3, D-015).
 # The flows are the year averages of the batch recipe (process/recipe.yaml, `cheme process
 # recipe`, D-003).
 # Where the values come from:
@@ -238,7 +239,7 @@ steps:
       pressure: 10
       volatility: {model: constant, alpha: {MEOH: 150.0, H2O: 1.0}, provenance: assumed, source: "effective relative volatility of methanol to water, ASSUMED so that the first cut is about the 90 wt% methanol of US 5 208 002 Example 1: it stands for the short column on the still and the salting-out of methanol by the caustic liquor, which a one-stage ideal still (core ADR 0055) cannot give (D-007)"}
       nonvolatile: [N2H4, NAOH, NAN3, MEONO]
-      boilup: {value: 500.0, unit: kW, provenance: assumed, source: "LP steam to C-101's jacket and coil (D-007, D-012)"}
+      boilup: {value: 500.0, unit: kW, provenance: assumed, source: "tempered hot water (heated by LP steam) to C-101's jacket and coil (D-007, D-012)"}
       cuts:
         - {outlet: meoh, end: {residue: {key: MEOH, mole_fraction: 0.0005}}}
         - {outlet: cond, end: {distilled: 0.63, basis: mass}}
@@ -554,7 +555,7 @@ streams:
     template: liquor
     state:
       design:
-        temperature: {value: 335.15, provenance: assumed, source: "the end of the boil-up at 10 kPa(a): Raoult's law with the NIST Antoine data gives 335 K (a trial run); the constant-volatility still gives no temperature (D-007)"}
+        temperature: {value: 360.0, provenance: assumed, source: "the end of the boil-up at 10 kPa(a), ESTIMATED 355-370 K, 360 K taken: water boils at 319 K there, and the residue (54.5 wt% NaOH on a NaOH-plus-water basis) adds the boiling-point elevation of a 50-55 wt% caustic liquor, about 40 K (Duhring lines of NaOH solutions); an ideal Raoult trial run with NaOH as one molecular particle gave only 335 K; the constant-volatility still gives no temperature (D-007, L-4)"}
         pressure: {value: 101.325, provenance: assumed, source: "the vacuum broken with nitrogen (D-007)"}
         flow: {value: 190.337, provenance: calculated, source: 'cheme process propagate: still ST101 from S13', fingerprint: b1a6053b28159f9d}
         composition: {basis: mole_fraction, values: {H2O: 0.38268, MEOH: 0.0, N2H4: 0.114965, NAOH: 0.20671, NAN3: 0.294629, NAN3S: 0.000740778, MEONO: 0.000275281}, provenance: calculated, source: 'cheme process propagate: still ST101 from S13', fingerprint: b1a6053b28159f9d}
@@ -693,10 +694,10 @@ streams:
   # energy (year averages, kW)
   - {id: Q1, title: Heat of the methyl nitrite generation, kind: energy, from: R101.q, to: CHW.r101, state: {design: {duty: {value: 17.2171, provenance: assumed, source: "cheme process reactors: R101's extent of NTG x 82.75 MJ/kmol, the acid dosed at the vessel's temperature (D-005, D-012)"}}}}
   - {id: Q2, title: Heat of the azide reaction, kind: energy, from: R102.q, to: CHW.r102, state: {design: {duty: {value: 126.6799, provenance: assumed, source: "cheme process reactors: R102's extents of AZ and SIDE x 339.7 and 178.5 MJ/kmol; the warming of the dosed gas (about 0.3 %) not counted (D-005, D-012)"}}}}
-  - {id: Q3, title: Still boil-up (LP steam), kind: energy, from: LPS.c101, to: ST101.steam, state: {design: {duty: {value: 186.2351, provenance: assumed, source: "cheme process stills: ST101's energy per batch over the batch's hours of flows; the heat-up to the boil not counted (D-007, D-012)"}}}}
+  - {id: Q3, title: Still boil-up (LP steam via tempered hot water), kind: energy, from: LPS.c101, to: ST101.steam, state: {design: {duty: {value: 186.2351, provenance: assumed, source: "cheme process stills: ST101's energy per batch over the batch's hours of flows; the heat-up to the boil not counted (D-007, D-012)"}}}}
   - {id: Q4, title: Methanol-cut condenser (chilled water), kind: energy, from: ST101.qchw, to: CHW.c101, state: {design: {duty: {value: 31.3727, provenance: assumed, source: "cheme process stills: the first cut's energy per batch over the batch's hours of flows, condensed at 10 kPa(a) (D-007, D-012)"}}}}
   - {id: Q5, title: Water-cut condenser (cooling water), kind: energy, from: ST101.qcw, to: CW.c101, state: {design: {duty: {value: 154.8624, provenance: assumed, source: "cheme process stills: the second cut's energy per batch over the batch's hours of flows (D-007, D-012)"}}}}
-  - {id: Q6, title: Crystallizer cooling to 303 K, kind: energy, from: CR101.q, to: CW.cr101, state: {design: {duty: {value: 9.4211, provenance: assumed, source: "cheme process crystallizers: CR101's lumped duty, the liquor from 335 to 303 K and the heat of crystallization (D-008, D-012)"}}}}
+  - {id: Q6, title: Crystallizer cooling to 303 K, kind: energy, from: CR101.q, to: CW.cr101, state: {design: {duty: {value: 13.0999, provenance: assumed, source: "cheme process crystallizers: CR101's lumped duty, the liquor from 360 K (S17, ESTIMATED with the caustic liquor's boiling-point elevation, D-007) to 303 K and the heat of crystallization (D-008, D-012)"}}}}
   - {id: Q7, title: Filter-dryer heating (LP steam), kind: energy, from: LPS.f101, to: D101.steam, state: {design: {duty: {value: 8.2567, provenance: assumed, source: "cheme process crystallizers: D101's duty, compared with this stream (dryer energy port, D-009)"}}}}
   - {id: Q8, title: Dryer vapour condenser (chilled water), kind: energy, from: D101.q, to: CHW.f101, state: {design: {duty: {value: 1.4536, provenance: assumed, source: "D101's vapour condensed at the latent heats of the dryer's energy data (D-009, D-012)"}}}}
   - {id: P1, title: R-101 agitator, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 2.0, provenance: assumed, source: "year average (D-012)"}}}}
