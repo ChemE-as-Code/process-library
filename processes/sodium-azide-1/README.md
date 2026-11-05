@@ -18,8 +18,7 @@ spectator solutes, and the filter-dryer F-101 four steps in one vessel (F101, W1
 the filtration and drying times and the flowsheet's year-average flows come from (`cheme process
 recipe`, `cheme process reactor-hazards`). The mother-liquor and methanol recycles are tear
 streams converged over `cheme process propagate` (DESIGN.md D-006). **It needs cheme-as-code
-1.8** (core main 7334d7c or later; core ADRs 0054 to 0057): the library's pinned 1.7.0 rejects
-its vents, still, spectators and dryer.
+1.8** (core ADRs 0054 to 0057), which the library pins.
 
 **Hazards.** Sodium azide, hydrazine and methyl nitrite are highly toxic; any acid turns azide
 into hydrazoic acid (toxic, explosive), and so does hydrazine with nitrous acid in acid (hence a

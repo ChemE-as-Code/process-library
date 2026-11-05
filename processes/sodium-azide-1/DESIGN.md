@@ -8,11 +8,11 @@ design basis, batch recipe with the reactors' vessels and jackets and the filter
 BFD/PFD with the mother-liquor and methanol recycles, thermal screening and a preliminary
 gate-to-gate LCI. Out of scope here: P&IDs, layout, HAZOP, TEA, datasheets.
 
-Starting point (2026-11-05): library `main` at fcde3262; cheme-as-code **core main 7334d7c**
-(to be released as 1.8.0; it still reports 1.7.0), with the batch work-up of core#165: gas vents
+Starting point (2026-11-05): library `main` at fcde3262; cheme-as-code core main 7334d7c,
+rechecked on the release **1.8.0** (4e8fd80), with the batch work-up of core#165: gas vents
 and gas dosing (ADR 0054), the batch still (ADR 0055), precipitation from a mixed liquor (ADR
 0056) and the filter-dryer with recipe units over several steps (ADR 0057). The library pins
-core 1.7.0, which refuses these fields: the folder needs 1.8 (see "Core features used").
+core 1.8.0; 1.7.0 refuses these fields, so the folder requires 1.8 (see "Core features used").
 
 ## Source register
 
@@ -406,7 +406,7 @@ up to the charge ratios of D-004, so the purge sets the fresh caustic (1.05 mol 
 NaN3).
 Open: the purge from measured impurity build-up; the yield of the methanol wash.
 
-## Core features used (core main 7334d7c, to be released as 1.8.0)
+## Core features used (core 1.8.0)
 
 | feature | ADR | used for |
 |---|---|---|
@@ -467,8 +467,8 @@ core main still reports 1.7.0, so `>=1.8` would stop it.
 - L-11: **two coupled vessels.** R-101 makes the dose of R-102; the recipe aligns them with
   `start.after`, but nothing checks that the two dosing times are equal or that the generator's
   gas rate profile is the absorber's dose profile (both constant here by construction).
-- L-12: **`requires: cheme-as-code>=1.8`** cannot be written before the release: core main
-  reports 1.7.0.
+- L-12 (resolved): `requires: cheme-as-code>=1.8` could not be written before the release (core
+  main reported 1.7.0); core 1.8.0 is released and pinned, and plant.yaml requires it.
 
 ## Method and dependency table
 
