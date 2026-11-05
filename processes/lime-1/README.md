@@ -27,13 +27,15 @@ A PFRK runs in production campaigns of several years. It has two shafts that swa
 | CO | 0.75 kg/t, the midpoint of the PFRK range 0.3 to 1.2 kg/t (100 to 400 mg/Nm3 at 3000 Nm3/t) | CLM BREF 2.3.3.4.2, p. 236 |
 | Dust | 10 mg/Nm3 (fabric-filter BAT-AEL upper bound) at 3000 Nm3/t | CLM BREF Table 4.8, 2.3.3.2 |
 
-The results per t are 1840 kg of limestone, 74 kg of natural gas, 809 kg of calcination CO2 and 203 kg of combustion CO2. The total CO2 is 1.012 t/t, inside the BREF's 0.987 to 1.210 t/t for PFRK lime. That agreement is partly by construction, because the heat range comes from the same document. The calcination CO2 of 0.809 t/t is above the IPCC Tier 1 default of 0.75 t/t. There are two reasons. The product is counted as pure CaO, while IPCC assumes 95 % CaO, and the by-product lime is calcined too. All four KPIs are in `benchmarks/cement-lime.yaml`.
+The results per t are 1840 kg of limestone, 74 kg of natural gas, 809 kg of calcination CO2 and 203 kg of combustion CO2. The total CO2 is 1.012 t/t, inside the BREF's 0.987 to 1.210 t/t for PFRK lime. That agreement is partly by construction, because the heat range comes from the same document. The calcination CO2 of 0.809 t/t is above the IPCC Tier 1 default of 0.75 t/t. There are two reasons. The product is counted as pure CaO, while IPCC assumes 95 % CaO, and the by-product lime is calcined too. All four KPIs are in `benchmarks/cement-lime.yaml`. They are unallocated: under the dataset's mass allocation the quicklime carries 97 % of the burdens, 0.785 t/t of calcination CO2.
 
 ## What is weak
 
 - **The product and the stone are treated as pure.** Quicklime is counted as CaO and limestone as CaCO3. In reality, limestone is above 90 % CaCO3 and carries silica, alumina and iron (BREF Table 2.10). As a result, the rock mass bought is understated by a few per cent, and the residual CO2 in the lime (0.5 to 5 %) is left out.
 - **One fuel only.** Natural gas, taken as methane, stands in for the whole PFRK fuel mix. Coal, petcoke, oil and waste fuels raise the combustion CO2, and with them SO2 and metals.
-- Midpoints of ranges are our choice; the source does not recommend them. SO2 at the low end (for gas firing) and the fabric filter for dust are ASSUMED readings.
+- **The by-product lime is allocated by mass.** The kiln's off-specification lime and filter dust (3 % of the lime, sold for other uses) is a co-product, and with no open prices the WBCSD price ratio is unknown, so mass allocation is a deviation recorded in the dataset's `allocation.deviation`. The heat, electricity and stack emissions are the BREF's per t of lime and are not scaled up for the by-product (ASSUMED).
+- **Little independent checking.** Of the four KPIs, only the IPCC process CO2 is independent of the BREF numbers, and the dataset lies outside it (explained). The total CO2 agrees partly by construction, and the limestone and electricity share their source with the dataset.
+- Midpoints of ranges are our choice; the source does not recommend them. SO2 at the low end (for gas firing), its uncertainty (gsd2 2) and the fabric filter for dust are ASSUMED readings.
 - The data are EU kilns of 2004 to 2008. `valid_until` is the reference year + 5, 2012, so it has already lapsed.
 - Uncertainty: `gsd2 = sqrt(high / low)` where the source gives a range (our convention), ASSUMED values elsewhere.
 
@@ -41,7 +43,7 @@ The results per t are 1840 kg of limestone, 74 kg of natural gas, 809 kg of calc
 
 The product has the registry slug `calcium-oxide` and is counted per kg CaO. `alumina-1` (`feed:LIME`) and `kraft-pulp-1` (`feed:CAO`) count their lime in the same way, and both now link to this dataset in their own `lca/mappings.yaml`, as does `iron-steel-1` (`feed:lime`). `soda-ash-1` runs its own lime kiln and does not buy lime. Limestone links to the shared background `limestone` entry. Natural gas goes to the shared by-mass proxy and is not linked to an Atlas producer.
 
-The build reports two mapping gaps. The first is the by-product lime, which has no cut-off decision for lime sent to other uses. The second is the kiln dust, because the source states no particle size.
+The build reports one mapping gap: the kiln dust, because the source states no particle size. The by-product lime is the dataset's second product. The consumers link kg for kg: alumina-1 and kraft-pulp-1 count CaO, while iron-steel-1 counts commercial burnt lime, so its lime burden is overstated by the lime's impurities (its `lca/mappings.yaml`).
 
 ## Not counted yet (TODO)
 

@@ -33,6 +33,8 @@ system_boundary:
   - TODO dust of the clinker cooler and mills stacks and diffuse dust
   - TODO refractory lining, grinding media, water for gas conditioning
   - raw material moisture evaporated in the raw mill
+  - 'TODO MgCO3 in the raw meal: the 2 % MgO is supplied as an oxide in feed:clay, not as a carbonate, so about 22 kg/t
+    of CO2 (and as much raw meal mass) are missing if it comes from dolomitic limestone (see benchmarks)'
   - waste heat recovery or power generation from kiln gases (none credited)
   - cement grinding, gypsum and mineral additions (a cement process, not clinker)
   - infrastructure
@@ -41,13 +43,14 @@ system_boundary:
   catalysts: excluded
   non_routine: excluded
 location: RER
-year: 2013
-valid_until: 2018
+year: 2008
+valid_until: 2013
 time:
   start: 2004
-  description: CLM BREF published 2013 with data of about 2004 to 2008 and BAT conclusions of 2013; IPCC 2006 defaults;
-    electricity of the GNR-2014 reference plant. valid_until is the reference year + 5 (system-model section 6),
-    so it has already lapsed.
+  description: 'Reference year 2008, the end of the CLM BREF data collection (about 2004 to 2008) that gives the fuel
+    energy and the CO and mercury levels, as lime-1 takes its year from the same BREF''s data; the BAT-AELs (NOx,
+    SO2, dust) are of the 2013 BAT conclusions, the electricity is of the GNR-2014 reference plant, the chemistry
+    IPCC 2006 defaults. valid_until is the reference year + 5 (system-model section 6), so it has already lapsed.'
 modelling:
   principle: attributional
   multifunctionality: 'single output: no allocation (lost kiln dust is a waste)'
@@ -71,11 +74,15 @@ parameters:
   description: 'Calcium atoms per formula unit of the model clinker Ca325Mg14Si109Al34Fe12O626: the clinker modelled
     as its five main oxides.'
   source: ASSUMED model formula, fitted with integer counts to 65 % CaO (IPCC default, IPCC (2006) Guidelines for
-    National GHG Inventories, Vol. 3, ch. 2 (Mineral Industry), section 2.2.1.2, p. 2.11), 2 % MgO (typical, EU
-    JRC (2013) CLM BREF, EUR 26129 EN, doi:10.2788/12850, Table 1.5, p. 7) and the rest as SiO2, Al2O3 and Fe2O3
-    in the ratio of the typical phases of the same table (C3S 65, C2S 15, C3A 10, C4AF 10 %); it gives 65.02 % CaO,
-    2.01 % MgO, 23.36 % SiO2, 6.18 % Al2O3, 3.42 % Fe2O3. Minor constituents (alkali sulfates, free lime split,
-    fuel ash) are not modelled
+    National GHG Inventories, Vol. 3, ch. 2 (Mineral Industry), section 2.2.1.2, p. 2.11), 2 % MgO and the rest as
+    SiO2, Al2O3 and Fe2O3 in the oxide ratio of the typical phases C3S 65, C2S 15, C3A 10, C4AF 10 %. MgO and phases
+    are the typical composition of grey Portland cement (EU JRC (2013) CLM BREF, EUR 26129 EN, doi:10.2788/12850,
+    Table 1.5, p. 7, from CEMBUREAU 2006), not of clinker; using them for clinker is ASSUMED (the gypsum and additions
+    of a cement dilute them slightly). The formula gives 65.02 % CaO, 2.01 % MgO, 23.36 % SiO2, 6.18 % Al2O3, 3.42
+    % Fe2O3. It is not phase-consistent; the cited phases imply about 68.5 % CaO, and the model oxides give Bogue phases
+    of about C3S 41, C2S 36, C3A 11, C4AF 10 % and a lime saturation factor of 0.87 (our arithmetic), a low-lime
+    clinker. The calcination CO2 depends on the CaO only, so it is the IPCC default; the split of the raw meal is
+    indicative. Minor constituents (alkali sulfates, free lime split, fuel ash) are not modelled
 - name: M_CLK
   value: 28029.787
   unit: g/mol

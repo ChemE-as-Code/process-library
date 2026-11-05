@@ -2,35 +2,30 @@
 # schemas/benchmarks.schema.json; rules: docs/benchmarks.md. Ranges are facts from the cited
 # source, in our own form.
 #
-# Independence: the CO2 reference (IPCC 2006 Tier 1) rests on world data of 2003 (IISI) and expert
-# consensus, not on the BREF data collection the dataset is built from, but the dataset's CO2 uses
-# the same IPCC volume's Tier 2 carbon contents. The scrap reference is the BREF range whose
-# midpoint the dataset takes: transcription only, not a check.
+# Independence: none of the three KPIs tests iron-steel-1. The CO2 and the electricity have no open
+# reference with the dataset's boundary (no_open_reference, with the context the sources do give),
+# and the scrap reference is the BREF range whose midpoint the dataset takes: transcription only,
+# not a check. The dataset is unvalidated (its README says so).
 schema: cheme-as-code/benchmarks/v1
 family: iron-steel
 
 kpis:
   bf-bof-direct-co2:
-    title: Direct fossil CO2 per t of crude steel, integrated BF-BOF route
+    title: Direct fossil CO2 per t of crude steel, integrated BF-BOF works (coke ovens, sinter, BF, BOF; all process gas burnt at the works)
     unit: kg/t
-    references:
-      - id: ipcc-2006-tier1-bof
-        range: [1460, 1460]
-        basis: unallocated
-        note: >-
-          The IPCC Tier 1 default for BOF steelmaking, recorded as a zero-width range and not
-          widened. It includes the blast furnace iron making (Table 4.1 footnote). It does not
-          include the coke ovens and the sinter plant: the Tier 1 method adds sinter (Equation 4.7,
-          0.20 t CO2/t sinter) and coke (Equation 4.1, 0.56 t CO2/t coke, reported in the Energy
-          sector) as separate terms (sections 4.2.2.1 and 4.2.2.2, p. 4.17 and 4.19). Based on 2003 world data and
-          expert consensus.
-        conditions: {technology: "basic oxygen furnace with blast furnace iron making", region: world, year: 2003}
-        source:
-          citation: "IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Vol. 3 Industrial Processes and Product Use, ch. 4 Metal Industry Emissions"
-          url: https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/3_Volume3/V3_4_Ch4_Metal_Industry.pdf
-          locator: Section 4.2.2.3, Table 4.1 and its footnotes, p. 4.25; Equations 4.1 and 4.4 to 4.8, sections 4.2.2.1-4.2.2.2
-          kind: other
-          accessed: "2026-11-05"
+    no_open_reference: >-
+      No open source with a works-level figure for this boundary found (2026-11-05). Read: IPCC
+      2006 Vol. 3 ch. 4 (Table 4.1, p. 4.25) gives a Tier 1 factor of 1.46 t CO2/t for BOF
+      steelmaking with blast furnace iron making (world data of 2003, expert consensus), but it
+      leaves out the coke ovens and the sinter plant, which the Tier 1 method adds with factors of
+      their own (0.56 t/t coke, Equation 4.1; 0.20 t/t sinter, Equation 4.7); Pardo, Moya and
+      Vatopoulos (2012), JRC EUR 25543 EN, doi:10.2790/64264, Table 2, p. 13, give direct CO2 per
+      plant (coke 0.794, sinter 0.200, BF 1.219, BOS 0.181 t/t), and their route figures (Figure
+      19, about 1.8 t/t for the best integrated performers) leave out the works' power plants; the
+      Iron and Steel BREF (EUR 25521 EN) gives no works-level CO2 per t. For context only (our
+      arithmetic, not a range of any source): the IPCC Tier 1 factors at this dataset's 935 kg
+      sinter and 351 kg coke per t give about 1840 kg/t, and Pardo et al.'s per-plant values at
+      the same ratios about 1690 kg/t (without the power plants).
   bf-bof-scrap-charge:
     title: Scrap charged to the converter per t of liquid steel
     unit: kg/t
@@ -63,19 +58,6 @@ datasets:
     dataset: iron-steel-bf-bof-integrated
     conditions: {technology: "coke ovens, sinter, blast furnace, BOF; every process gas burnt at the works", basis: conceptual inventory, region: EU, year: 2004}
     kpis:
-      bf-bof-direct-co2:
-        expression: emission:CO2 / product:steel
-        per: product:steel
-        reference: ipcc-2006-tier1-bof
-        out_of_range_reason: >-
-          The dataset's boundary is wider than the reference: it counts the CO2 of the coke ovens
-          and the sinter plant as well as the blast furnace and converter (every process gas burnt
-          at the works), by an IPCC Tier 2 carbon balance on EU data of 2004, while the Tier 1 BOF
-          factor (a world value of 2003) leaves coke and sinter to factors of their own. Adding the
-          IPCC Tier 1 sinter (0.20 t/t) and coke (0.56 t/t) factors at this dataset's 935 kg sinter
-          and 351 kg coke per t gives about 1840 kg/t; the per-plant direct CO2 of Pardo, Moya and
-          Vatopoulos (2012, JRC EUR 25543 EN, Table 2, p. 13) at the same ratios gives about 1690
-          kg/t. The dataset's 1645 kg/t is 3 % below the second and 11 % below the first (our
-          arithmetic, not ranges from the sources).
+      bf-bof-direct-co2: {expression: emission:CO2 / product:steel, per: product:steel}
       bf-bof-scrap-charge: {expression: feed:scrap / product:steel, per: product:steel, reference: bref-is-bof-scrap}
       bf-bof-purchased-electricity: {expression: feed:electricity / product:steel, per: product:steel}

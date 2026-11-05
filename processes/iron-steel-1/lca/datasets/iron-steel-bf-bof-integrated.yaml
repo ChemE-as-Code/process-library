@@ -26,7 +26,8 @@ system_boundary:
   - oxygen, nitrogen, argon; purchased electricity of the four plants (gross)
   - CO2 of all carbon burnt at the works, by an IPCC Tier 2 carbon balance
   - CO, CH4, SO2, NOx, dust, H2S, NH3, benzene, HCl, HF, NMVOC of the plants' main sources
-  - slags, coal tar, light oil, sulphur as by-product outputs; coke and sinter plant waste water
+  - slags, coal tar, light oil, sulfur as co-products with a share of 0 (see allocation); coke and sinter
+    plant waste water
   excluded:
   - 'TODO energy exported by the works: process-gas surplus to the power plant and mills, BF top-gas turbine
     power (40 to 91 MJ/t HM, BREF Table 6.2), recovered steam (Table 7.3): not quantified and not credited;
@@ -43,7 +44,7 @@ system_boundary:
     systems'
   - TODO other BF injectants (plastics, recovered oils, fats; 3.6 kg/t HM weighted average, Table 6.1),
     compressed air, steam (made at the works from the process gases and waste heat)
-  - TODO ammonia and ammonium sulphate from the coke oven gas (alternative routes in BREF Table 5.2)
+  - TODO ammonia and ammonium sulfate from the coke oven gas (alternative routes in BREF Table 5.2)
   - pellet plant (pellets are bought), hot rolling and finishing
   - infrastructure
   cutoff: none applied; the excluded flows are not quantified
@@ -59,11 +60,39 @@ time:
     valid_until is the reference year + 5 (system-model section 6), so it has already lapsed.'
 modelling:
   principle: attributional
-  multifunctionality: 'single product, crude steel; the works'' by-products (blast furnace and steelmaking
-    slags, coal tar, light oil, sulphur) are outputs without a share of the burdens, and its exported
-    energy is neither quantified nor credited. DEVIATION from system-model section 2, which would treat
-    them as co-products: no open prices and no curated rule exist yet, so the dataset stays unallocated
-    and every burden is on the steel (an upper view for steel).'
+  multifunctionality: 'six products: crude steel and the works'' by-products (blast furnace and steelmaking
+    slags, coal tar, light oil, sulfur), listed unallocated. Shares give every burden to the steel (see
+    allocation and its deviation); the exported energy is neither quantified nor credited.'
+allocation:
+  method: shares
+  coproducts:
+  - steel
+  - bf-slag
+  - bof-slag
+  - coal-tar
+  - crude-benzole
+  - recovered-sulfur
+  shares:
+    steel: 1.0
+    bf-slag: 0.0
+    bof-slag: 0.0
+    coal-tar: 0.0
+    crude-benzole: 0.0
+    recovered-sulfur: 0.0
+  source: All burdens to the crude steel; the slags and the coke oven by-products leave with no burden and
+    no credit (an upper view for steel).
+  deviation: 'The library hierarchy (docs/system-model.md section 2, step 3) would decide between economic
+    and mass allocation by the price ratio of the co-products, but no open prices of the slags, tar, light
+    oil and sulfur are sourced, so the ratio cannot be computed. Mass allocation would give the steel only
+    about 70 % of the burdens (the slags 28 %), which is not a physical relationship for a slag; that the
+    steel-to-slag price ratio is far above 5, so that the rule would choose economic allocation with nearly
+    all of the burden on the steel, is ASSUMED and not sourced. Tar, light oil and sulfur are each below 1
+    % of the output mass. Shares 1/0 are the conservative choice for the steel until prices are sourced. Also
+    not allocated, and counted against the steel: the works'' exported energy (process-gas surplus, top-gas
+    turbine power, steam; system_boundary.excluded) is neither a co-product nor credited, while the CO2
+    of all process gases burnt is counted and the 143 kWh/t of electricity is bought gross from the grid,
+    so electricity the works makes from its own gases is counted twice (CO2 here and grid power). Both
+    make this an upper view for steel.'
 uuid: d1bc5bb4-2888-57eb-bd00-49c3693bde56
 version: 0.1.0
 methodology_version: 1.0.0
@@ -166,7 +195,7 @@ parameters:
 - name: slag_ds
   value: 21.5
   unit: kg
-  description: 'Slag from hot metal desulphurisation per t LS: midpoint of 3 to 40.'
+  description: 'Slag from hot metal desulfurisation per t LS: midpoint of 3 to 40.'
   source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 7.3, p.
     369 (21 EU basic oxygen steelmaking plants, yearly means 2004) (range); the midpoint is our choice
 - name: slag_sm
@@ -257,7 +286,10 @@ parameters:
   value: 54.4
   unit: kg
   description: 'Oxygen injected at the tuyeres per t HM: the weighted average. The table''s other oxygen
-    row (43 m3/t HM) is not added: it is taken as the same oxygen in volume (ASSUMED).'
+    row (43 m3/t HM under "Other", 61.4 kg at rho_o2) is not added: both rows are taken as the blast
+    oxygen, reported by different sets of plants (ASSUMED). They differ by 13 %, and the source does not
+    say whether they are one flow; if the second is a separate use, the oxygen is understated by up to
+    61 kg/t HM (53 kg/t LS).'
   source: 'EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 6.1, p.
     304 (EU blast furnaces 2004, 73.4 Mt HM): weighted average'
 - name: ngs_hm
@@ -438,9 +470,22 @@ parameters:
 - name: coal_ck
   value: 1285.0
   unit: kg
-  description: 'Coal (dry) per t coke: midpoint of 1220 to 1350.'
-  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 5.2, p.
-    224 (EU coke oven plants 2005, complemented by other references) (range); the midpoint is our choice
+  description: 'Coal (dry) per t coke: midpoint of 1220 to 1350. Converted to coal as received with w_cc.'
+  source: 'EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 5.2, p.
+    224 (EU coke oven plants 2005, complemented by other references) (range); the midpoint is our choice.
+    The source warns (p. 225) that Table 5.2 is not meant for proper calculations such as benchmarking:
+    it mixes existing and new plants across Europe with very wide ranges, not every operator reported,
+    and its emissions are those of the stacks and quenching towers only, without diffuse and fugitive
+    sources. Its midpoints are used here, for this and the other coke oven parameters (el_ck to bz_ck),
+    because no other open per-tonne data of EU coke ovens was found; they are indicative only'
+- name: w_cc
+  value: 0.115
+  unit: kg/kg
+  description: 'Moisture of the coal charged to the coke ovens, as a share of the coal as received: midpoint
+    of 8 to 15 %. Used to turn the dry coal of Table 5.2 into coal as received, the basis of the IPCC
+    carbon content c_cc (taking the coal of the source''s 8 to 15 % as the coal of c_cc is ASSUMED).'
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, section 5.2.2.2,
+    p. 230 (average coal moisture about 8 to 15 %) (range); the midpoint is our choice
 - name: el_ck
   value: 125.0
   unit: MJ
@@ -463,8 +508,8 @@ parameters:
 - name: s_ck
   value: 1.45
   unit: kg
-  description: 'Elemental sulphur recovered per t coke (the source''s case of sulphur recovery; its sulphuric
-    acid and ammonium sulphate cases are alternatives, not modelled: ASSUMED): midpoint of 0.9 to 2.'
+  description: 'Elemental sulfur recovered per t coke (the source''s case of sulfur recovery; its sulfuric
+    acid and ammonium sulfate cases are alternatives, not modelled: ASSUMED): midpoint of 0.9 to 2.'
   source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 5.2, p.
     224 (EU coke oven plants 2005, complemented by other references) (range); the midpoint is our choice
 - name: ww_ck
@@ -482,7 +527,7 @@ parameters:
 - name: sox_ck
   value: 0.49
   unit: kg
-  description: 'SOx to air per t coke, counted as SO2 (ASSUMED); the bracketed 2820 g/t (no desulphurisation)
+  description: 'SOx to air per t coke, counted as SO2 (ASSUMED); the bracketed 2820 g/t (no desulfurisation)
     left out: midpoint of 0.08 to 0.9.'
   source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 5.2, p.
     224 (EU coke oven plants 2005, complemented by other references) (range); the midpoint is our choice
@@ -519,9 +564,11 @@ parameters:
 - name: c_cc
   value: 0.73
   unit: kg/kg
-  description: Carbon content of coking coal.
+  description: 'Carbon content of coking coal, per kg of coal as received (wet). The source derives it from
+    the Vol. 2 defaults (25.8 kg C/GJ at 28.2 GJ/t NCV), which refer to fuel as reported in energy statistics;
+    reading that as coal as received, not dry coal, is ASSUMED (0.73 / (1 - w_cc) = 0.82 kg C/kg dry).'
   source: IPCC (2006) Guidelines for National Greenhouse Gas Inventories, Vol. 3, ch. 4, Table 4.3, p.
-    4.27 (Tier 2 default carbon contents)
+    4.27 (Tier 2 default carbon contents, based on Vol. 2, ch. 1, Tables 1.2 and 1.3)
 - name: c_coal
   value: 0.67
   unit: kg/kg
@@ -654,16 +701,17 @@ exchanges:
   source: the reference flow; the BREF normalises BOF output to 1000 kg of cast products per t LS (Table
     7.3, note 1)
 - key: feed:coking-coal
-  title: Coking coal (dry) to the coke ovens
+  title: Coking coal (as received, with its moisture) to the coke ovens
   type: input
-  amount: 451.15533057148934
+  amount: 509.7800345440557
   unit: kg
-  formula: coal_ck * (coke_hm * hm / 1000 + fuel_si / ncv_coke * sinter_hm * hm / 1000 / 1000 + coke_bof)
-    / 1000
+  formula: coal_ck / (1 - w_cc) * (coke_hm * hm / 1000 + fuel_si / ncv_coke * sinter_hm * hm / 1000 / 1000
+    + coke_bof) / 1000
   provenance: calculated
   source: 'coke demand (BF coke, sinter coke breeze, converter coke; all coke made on site: ASSUMED, as
-    IPCC Tier 1) times coal per t coke; EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469,
-    Tables 3.2, 5.2, 6.1, 7.3'
+    IPCC Tier 1) times dry coal per t coke, turned into coal as received with the coal moisture (w_cc);
+    EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Tables 3.2, 5.2, 6.1,
+    7.3 and section 5.2.2.2'
   pedigree:
     scores:
     - 4
@@ -1070,16 +1118,16 @@ exchanges:
   uncertainty:
     gsd2: 1.4
     source: 'ASSUMED: sum of four plant ranges and averages'
-- key: output:bf-slag
+- key: product:bf-slag
   title: Blast furnace slag (granulated or air-cooled, mostly sold to cement and road construction)
-  type: output
+  type: product
   amount: 242.8918211290221
   unit: kg
   formula: slag_t / hm_t * hm
   provenance: calculated
   source: 'EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 6.2 data
     note and slag row: 19.56 Mt slag over the 69.22 Mt HM of the 18 installations reporting slag (2004),
-    283 kg/t HM, times hot metal per t LS; a by-product, not allocated (see modelling)'
+    283 kg/t HM, times hot metal per t LS; a co-product with a share of 0 (see allocation)'
   pedigree:
     scores:
     - 4
@@ -1093,16 +1141,16 @@ exchanges:
   uncertainty:
     gsd2: 1.3
     source: 'ASSUMED: the reported range is 150 to 346.6 kg/t HM'
-- key: output:bof-slag
-  title: 'Steelmaking slags: converter, desulphurisation and secondary metallurgy'
-  type: output
+- key: product:bof-slag
+  title: 'Steelmaking slags: converter, desulfurisation and secondary metallurgy'
+  type: product
   amount: 158.5
   unit: kg
   formula: slag_bof + slag_ds + slag_sm
   provenance: given
   origin: literature
   source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 7.3; a
-    by-product, not allocated (see modelling)
+    co-product with a share of 0 (see allocation)
   pedigree:
     scores:
     - 3
@@ -1117,16 +1165,16 @@ exchanges:
   uncertainty:
     gsd2: 1.35
     source: 'ASSUMED: three ranges combined'
-- key: output:coal-tar
+- key: product:coal-tar
   title: Coal tar from the coke oven gas treatment
-  type: output
+  type: product
   amount: 12.990464771319148
   unit: kg
   formula: tar_ck * (coke_hm * hm / 1000 + fuel_si / ncv_coke * sinter_hm * hm / 1000 / 1000 + coke_bof)
     / 1000
   provenance: calculated
   source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 5.2 range
-    midpoint times coke per t LS; a by-product, not allocated
+    midpoint times coke per t LS; a co-product with a share of 0 (see allocation)
   pedigree:
     scores:
     - 4
@@ -1141,16 +1189,16 @@ exchanges:
     gsd2: 1.359
     source: 'tar: range 26 to 48 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the
       amount stays the arithmetic midpoint or the stated value)'
-- key: output:crude-benzole
+- key: product:crude-benzole
   title: Light oil (BTX, crude benzole) from the coke oven gas treatment
-  type: output
+  type: product
   amount: 4.055131570506383
   unit: kg
   formula: btx_ck * (coke_hm * hm / 1000 + fuel_si / ncv_coke * sinter_hm * hm / 1000 / 1000 + coke_bof)
     / 1000
   provenance: calculated
   source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 5.2 range
-    midpoint times coke per t LS; a by-product, not allocated
+    midpoint times coke per t LS; a co-product with a share of 0 (see allocation)
   pedigree:
     scores:
     - 4
@@ -1165,16 +1213,16 @@ exchanges:
     gsd2: 1.24
     source: 'light oil: range 9.1 to 14 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
       the amount stays the arithmetic midpoint or the stated value)'
-- key: output:recovered-sulphur
-  title: Elemental sulphur from coke oven gas desulphurisation
-  type: output
+- key: product:recovered-sulfur
+  title: Elemental sulfur from coke oven gas desulfurisation
+  type: product
   amount: 0.5090857815787233
   unit: kg
   formula: s_ck * (coke_hm * hm / 1000 + fuel_si / ncv_coke * sinter_hm * hm / 1000 / 1000 + coke_bof)
     / 1000
   provenance: calculated
-  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 5.2 (sulphur
-    recovery case, ASSUMED) times coke per t LS; a by-product, not allocated
+  source: EU JRC (2013) Iron and Steel Production BREF, EUR 25521 EN, doi:10.2791/97469, Table 5.2 (sulfur
+    recovery case, ASSUMED) times coke per t LS; a co-product with a share of 0 (see allocation)
   pedigree:
     scores:
     - 4
@@ -1187,7 +1235,7 @@ exchanges:
   basic_uncertainty: 1.05
   uncertainty:
     gsd2: 1.491
-    source: 'sulphur: range 0.9 to 2 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+    source: 'sulfur: range 0.9 to 2 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
       the amount stays the arithmetic midpoint or the stated value)'
 - key: output:wastewater
   title: Waste water of the coke oven and sinter plants to treatment
@@ -1218,9 +1266,9 @@ exchanges:
 - key: emission:CO2
   title: CO2, fossil, of all carbon burnt at the works (IPCC Tier 2 carbon balance)
   type: emission
-  amount: 1645.289814131956
+  amount: 1802.096962238187
   unit: kg
-  formula: ((c_cc * coal_ck * (coke_hm * hm / 1000 + fuel_si / ncv_coke * sinter_hm * hm / 1000 / 1000
+  formula: ((c_cc * coal_ck / (1 - w_cc) * (coke_hm * hm / 1000 + fuel_si / ncv_coke * sinter_hm * hm / 1000 / 1000
     + coke_bof) / 1000 + c_coal * pci_hm * hm / 1000 + c_oil * oil_hm * hm / 1000 + c_ng * (ngt_hm * hm
     / 1000 + (ngs_hm * hm / 1000 + ng_bof) / lhv_ng) + c_lst * (lst_si * sinter_hm * hm / 1000 / 1000
     + lst_hm * hm / 1000) + c_dol * dolo_bof + c_scrap * scrap) - (c_steel * ls + c_tar * tar_ck * (coke_hm
@@ -1242,7 +1290,7 @@ exchanges:
     - air
     unit: kg
   source: 'IPCC (2006) Guidelines for National Greenhouse Gas Inventories, Vol. 3, ch. 4, Equation 4.9
-    and Table 4.3 applied to the whole works (coke, sinter, iron and steel): carbon of coking coal, injected
+    and Table 4.3 applied to the whole works (coke, sinter, iron and steel): carbon of coking coal (as received), injected
     coal, oil, natural gas, limestone, dolomite and scrap, less the carbon of the steel, tar, light oil
     and the CO and CH4 emitted; every process gas is taken as burnt at the works (the IPCC Tier 1 assumption),
     so its CO2 is here; biosphere3 UUID, name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml)'
@@ -1696,10 +1744,10 @@ generation:
     - feed:pellets
     - feed:scrap
     - feed:sinter-additives
-    - output:bf-slag
-    - output:bof-slag
-    - output:coal-tar
-    - output:crude-benzole
-    - output:recovered-sulphur
     - output:wastewater
+    - product:bf-slag
+    - product:bof-slag
+    - product:coal-tar
+    - product:crude-benzole
+    - product:recovered-sulfur
     - product:steel

@@ -7,7 +7,8 @@
 # has an independent reference.
 #
 # lime-1:
-# What is and is not an independent check of lime-1:
+# What is and is not an independent check of lime-1 (only the process CO2 is independent, and the
+# dataset lies outside it, explained):
 # - Total CO2 (CLM BREF Table 2.25) is computed by the source from its own process factor and the
 #   combustion CO2 of the kiln types; the dataset's combustion CO2 comes from the heat range of the
 #   same document (Table 2.23), so the two agree partly by construction. The fuel is natural gas in
@@ -179,7 +180,7 @@ datasets:
         expression: emission:CO2 / product:clinker
         per: product:clinker
         reference: csi-ecra-2017-reference-plant-process-co2
-        out_of_range_reason: "The dataset uses the IPCC default clinker (65 % CaO, all from CaCO3, CKD factor 1.02), which gives 520 kg/t; the reference is a reported world average whose CaO content and CKD the source does not state. IPCC gives 0.53 t/t for 67 % CaO before the CKD correction, about 0.54 with it (Vol. 3, p. 2.12)."
+        out_of_range_reason: "The dataset uses the IPCC default clinker (65 % CaO, all from CaCO3, CKD factor 1.02), which gives 520 kg/t, and supplies its 2 % MgO as an oxide in the clay, not as a carbonate (dataset system_boundary.excluded); MgO from MgCO3 would add about 22 kg/t (543 kg/t). The reference is a reported world average whose CaO and MgO contents and CKD the source does not state. IPCC gives 0.53 t/t for 67 % CaO before the CKD correction, about 0.54 with it (Vol. 3, p. 2.12)."
       clinker-gross-co2:
         expression: (emission:CO2 + emission:CO2-fuel) / product:clinker
         per: product:clinker
@@ -189,7 +190,7 @@ datasets:
         expression: (feed:limestone + feed:clay) / product:clinker
         per: product:clinker
         reference: csi-ecra-2017-raw-meal
-        out_of_range_reason: "The model raw meal holds only the clinker's oxides and the CaCO3 they need (1.54 t/t); the combined water of clay minerals, organic carbon, sulfur and other volatiles are not modelled (dataset system_boundary.excluded)."
+        out_of_range_reason: "The model raw meal holds only the clinker's oxides and the CaCO3 they need (1.54 t/t). Its MgO comes as an oxide in the clay, not as MgCO3, which leaves out about 22 kg/t of CO2 bound in the meal (1.56 t/t with it); the combined water of clay minerals, organic carbon, sulfur and other volatiles are not modelled either (dataset system_boundary.excluded)."
       clinker-electricity: {expression: feed:electricity / product:clinker, per: product:clinker}
   - process: lime-1
     dataset: quicklime-pfrk-natural-gas
@@ -200,6 +201,6 @@ datasets:
         expression: emission:CO2-calcination / product:quicklime
         per: product:quicklime
         reference: ipcc-2006-high-calcium-lime-ef
-        out_of_range_reason: "0.809 t/t: the dataset counts its product as pure CaO (0.785 t/t, the stoichiometric ratio of the same IPCC table, where the default assumes 95 % CaO) and also calcines the 3 % by-product lime (CLM BREF section 2.3.4), which the IPCC Tier 1 factor leaves out."
+        out_of_range_reason: "0.809 t/t: the dataset counts its product as pure CaO (0.785 t/t, the stoichiometric ratio of the same IPCC table, where the default assumes 95 % CaO) and also calcines the 3 % by-product lime (CLM BREF section 2.3.4), which the IPCC Tier 1 factor leaves out. The KPI is unallocated: under the dataset's mass allocation the quicklime carries 0.785 t/t."
       lime-specific-limestone: {expression: feed:limestone / product:quicklime, per: product:quicklime, reference: bref-clm-lime-limestone}
       lime-kiln-electricity: {expression: feed:electricity / product:quicklime, per: product:quicklime, reference: bref-clm-lime-electricity-pfrk}

@@ -24,7 +24,7 @@ system_boundary:
   - natural gas and its combustion, electricity of the kiln
   - calcination and combustion CO2, combustion water
   - NOx, SO2, CO and dust from the kiln stack
-  - by-product lime (off-specification and filter dust)
+  - by-product lime (off-specification and filter dust), a co-product allocated by mass
   excluded:
   - 'TODO limestone impurities (SiO2, Al2O3, Fe2O3, MgCO3; BREF Table 2.10, p. 183) and moisture: the stone and
     the product are modelled as pure CaCO3 and CaO'
@@ -33,7 +33,6 @@ system_boundary:
   - 'TODO HCl, HF, TOC, PCDD/F and metals from the kiln (BREF Table 2.24, p. 226: not stated per kiln type)'
   - TODO diffuse dust from storage and handling; electricity of crushing, screening and conveying at the plant
   - TODO refractory lining (campaign life 4 to 8 years, BREF p. 205; no mass stated)
-  - 'TODO the use of by-product lime: no cut-off decision recorded yet'
   - 'limestone washing water: in the washed-limestone background (BREF 2.3.5, p. 246)'
   - lime grinding and hydrating (separate products)
   - infrastructure
@@ -50,8 +49,19 @@ time:
     valid_until is the reference year + 5 (system-model section 6), so it has already lapsed.'
 modelling:
   principle: attributional
-  multifunctionality: 'single output: no allocation (the by-product lime is an output to use elsewhere, not a co-product
-    of the dataset)'
+  multifunctionality: 'two products: quicklime and by-product lime (off-specification lime and filter dust, sold
+    for other uses), listed unallocated. Allocated by mass (see allocation and its deviation).'
+allocation:
+  method: mass
+  coproducts:
+  - quicklime
+  - byproduct-lime
+  deviation: 'No open prices of quicklime and by-product lime are sourced, so the WBCSD price ratio (docs/system-model.md
+    section 2, step 3) cannot be computed. Both are CaO, and the by-product lime is used in other products (CLM BREF
+    section 2.3.4, p. 246), so it is a co-product (above 1 % of the output mass), not a cut-off; mass is the preliminary
+    choice and gives the quicklime 97 % of the burdens. The limestone and the calcination CO2 are computed for the
+    product and the by-product, while the fuel heat, electricity and stack emissions are the source''s values per t of
+    lime and are not scaled up for the by-product (ASSUMED), so the quicklime carries 97 % of them.'
 uuid: e4ccc5bc-430c-5b52-b3f1-11f47109d336
 version: 0.1.0
 methodology_version: 1.0.0
@@ -148,7 +158,7 @@ parameters:
   unit: kg
   description: 'SOx (as SO2) per t lime, PFRK and annular shaft kilns: the low end of 0.2 to 1.2 kg/t.'
   source: EU JRC (2013) CLM BREF, Schorcht et al., EUR 26129 EN, doi:10.2788/12850, section 2.3.3.3, p. 233 (range,
-    which depends on the fuel); taking the low end for a natural-gas-fired kiln is ASSUMED (little fuel sulphur,
+    which depends on the fuel); taking the low end for a natural-gas-fired kiln is ASSUMED (little fuel sulfur,
     and the same section says shaft kilns absorb SO2 into the lime)
 - name: c_pm
   value: 10.0
@@ -260,17 +270,17 @@ exchanges:
     gsd2: 1.414
     source: 'electricity: range 20 to 40 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
       stays the arithmetic midpoint or the stated value)'
-- key: output:byproduct-lime
-  title: By-product lime (off-specification lime and filter dust), to use elsewhere
-  type: output
+- key: product:byproduct-lime
+  title: By-product lime (off-specification lime and filter dust), sold for other uses
+  type: product
   amount: 30.927835051546392
   unit: kg
   formula: q * f_bp / (1 - f_bp)
   provenance: calculated
   origin: literature
   source: EU JRC (2013) CLM BREF, Schorcht et al., EUR 26129 EN, doi:10.2788/12850, section 2.3.4, p. 245 (1 to
-    5 % of production; filter dust is used in other products, p. 246); modelled as CaO (ASSUMED). TODO a cut-off
-    decision for by-product lime sent to use
+    5 % of production; filter dust is used in other products, p. 246); modelled as CaO (ASSUMED). A co-product,
+    allocated by mass (see allocation)
   pedigree: &id003
     scores:
     - 4
@@ -407,14 +417,15 @@ exchanges:
     - air
     unit: kg
   source: EU JRC (2013) CLM BREF, Schorcht et al., EUR 26129 EN, doi:10.2788/12850, section 2.3.3.3, p. 233 (PFRK
-    and ASK, low end for gas firing, ASSUMED); mass outside the element balance (fuel and stone sulphur not modelled);
+    and ASK, low end for gas firing, ASSUMED); mass outside the element balance (fuel and stone sulfur not modelled);
     biosphere3 UUID, name and categories from core's elementary-flow crosswalk (data/elementary-flows.yaml)
   pedigree: *id003
   basic_uncertainty: 1.05
   uncertainty:
-    gsd2: 2.449
-    source: 'SO2, all fuels: range 0.2 to 1.2 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
-      the amount stays the arithmetic midpoint or the stated value)'
+    gsd2: 2.0
+    source: 'ASSUMED: the amount is the low end of the all-fuel range 0.2 to 1.2 kg/t, taken for gas firing, so
+      sqrt(high / low) of the full range does not apply; gsd2 2 (a 95 % interval of about 0.1 to 0.4 kg/t) is an
+      estimate. A lognormal cannot be one-sided, so part of it lies below the source''s low end'
 - key: emission:CO
   title: CO from the kiln
   type: emission
@@ -478,7 +489,7 @@ generation:
     feed:limestone: CaCO3
     feed:natural-gas: CH4
     feed:O2: O2
-    output:byproduct-lime: CaO
+    product:byproduct-lime: CaO
     emission:CO2-calcination: CO2
     emission:CO2-combustion: CO2
     emission:H2O: H2O
@@ -487,7 +498,7 @@ generation:
     feed:limestone: CaCO3
     feed:natural-gas: CH4
     feed:O2: O2
-    output:byproduct-lime: CaO
+    product:byproduct-lime: CaO
     emission:CO2-calcination: CO2
     emission:CO2-combustion: CO2
     emission:H2O: H2O
