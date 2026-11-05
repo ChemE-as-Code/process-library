@@ -159,7 +159,10 @@ specified split of ST101's distillate S9 in scripts/balance.py: 99.5 % of the be
 1 % of the benzoic acid and 2 % of the benzotrichloride to the product S11; the rest, S12, is
 the column's reflux returned to the pot and leaves with the residue (M102, S13). Result: 252.53
 kg/h of 99.993 wt% product, 2.88 kg/h back to the pot; the residue S13 is 16.27 kg/h (64 g per
-kg of product) to hazardous-waste incineration, not recycled. Overall yield 97.19 % of theory
+kg of product) to hazardous-waste incineration, not recycled. It is drained hot under nitrogen
+at 373.15 K (ASSUMED), about 18 K above its ideal benzoic acid liquidus of 355 K (x_BA 0.537;
+Tfus 395.2 K, dHfus 18.0 kJ/mol, SRC-2; the ideal liquid of D-007), so the acid does not
+crystallise in the drain; ZnCl2 and the non-ideality move the liquidus either way. Overall yield 97.19 % of theory
 on the benzotrichloride (SRC-1 Example 1: 96.7 %; description 96-98 %).
 Reason: core 1.8.0's still is one stage with no reflux (ADR 0055); one stage gives 0.66 mol%
 benzoic acid in the distillate, short of SRC-1's purity, which needs a few stages with reflux.
@@ -216,14 +219,16 @@ default, the lowest boiling point of the charge and the dose, would be benzotric
 K, above it: lesson L-5). The vented HCl adds nothing to the MTSR; with the vent blocked it
 pressurises the vessel, which the screening does not assess (core note: a peak of 0.52 mol/(s m3) of the final content).
 No TD24 is known (never estimated): no criticality class (`cheme.reactor-hazard-missing`,
-info). With MTSR below MTT the class is 1 or 2 once a TD24 is measured.
+info). With MTSR below MTT the class is 1 or 2 if the TD24 lies above the MTSR, and 5 if it
+lies below (TD24 < 421.9 K: core's `criticality()` and Stoessel test the TD24 against the MTSR
+first, SRC-4); it needs the TD24.
 Sensitivity (a scratch copy of the folder, only A divided, everything else as designed;
 `cheme process propagate --fill`, `reactor-hazards`, `reactors`, `recipe`):
 
 | k at 413 K | accumulation (end of dosing) | MTSR | MTSR vs MTT 471.0 K | post-reaction to 0.999 | cycle | class without TD24 |
 |---|---|---|---|---|---|---|
-| 2.7e-3 (design) | 7.04 % | 421.9 K | 49 K below | 1.37 h | 4.87 h | 1 or 2 |
-| k/10 | 25.8 % | 443.3 K | 28 K below | 15.4 h | 18.9 h | 1 or 2 |
+| 2.7e-3 (design) | 7.04 % | 421.9 K | 49 K below | 1.37 h | 4.87 h | 1, 2 or 5 |
+| k/10 | 25.8 % | 443.3 K | 28 K below | 15.4 h | 18.9 h | 1, 2 or 5 |
 | k/100 | 69.8 % | 484.8 K | 14 K above | 160 h | 164 h | 3, 4 or 5 |
 
 Interpretation: the step is dosing-controlled only if the reaction is fast. All at once (a
@@ -238,6 +243,22 @@ reaction, heat-flow and gas-flow profile, the ZnCl2 dependence), TD24 of the cru
 residue, the gas-generation pressure with a blocked vent (Stoessel's separate criterion), and
 the HCl release on a dosing restart after accumulation. Screening values only, not a
 reaction-hazard assessment.
+Open, water and HCl release (not assessed, reasoning only): both chlorides react with water and
+give off HCl gas at once (C7H5Cl3 + H2O -> C7H5ClO + 2 HCl, SRC-1's Example 2 route; C7H5ClO +
+H2O -> C7H6O2 + HCl), and the design has water on both sides of R-101. (a) Water ingress into
+R-101 or C-101: from R-101's tempered-water jacket (a pressurised loop at 363 K, so a leak
+runs inward), from C-101's LP steam jacket, or sucked back from A-101 through the off-gas line (HCl
+absorption in water is strongly exothermic and pulls a vacuum once the gas evolution stops or
+the reactor cools). 1 kg of water reacting with benzotrichloride gives 0.111 kmol of HCl, about
+3.8 m3 at 413 K and 101 kPa, into the same off-gas line (75 m3/h peak) that a blocked or flooded
+absorber would restrict. Options to assess: anti-suck-back protection on the off-gas line (a
+nitrogen-padded seal pot or a barometric leg, or a vacuum breaker on nitrogen), a non-water
+heat-transfer fluid on R-101's jacket or jacket-leak detection (conductivity or pressure of the
+loop). (b) Loss of the absorber water while R-101 doses: up to 0.62 mol/s of HCl to the tail
+scrubber or to air; stopping the dosing does not stop it, since the accumulated benzotrichloride
+(7 %, about 0.32 kmol of HCl a batch) keeps reacting. The benzotrichloride dosing should also be
+interlocked on A-101's water flow and on HCl breakthrough at the tail scrubber, and the scrubber
+sized for the accumulated HCl. For the HAZOP of the next stage.
 
 ## D-012 Preliminary gate-to-gate LCI (2026-11-05)
 Decision: `cheme assess lca --write` per kg of distilled benzoyl chloride from the flowsheet's
