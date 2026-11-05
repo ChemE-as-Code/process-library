@@ -1287,10 +1287,15 @@ class Run:
                     ),
                 )
         accepted = _accepted_ids(self.root)
+        # the review records' own bookkeeping (cheme.review-*) is not a result of this run, and
+        # it depends on git: without history (a --scratch or --check copy) core orders records of
+        # one date by file name, so the scenario record would differ between the folder and a copy
         problems = [
             f
             for f in validate
-            if f.get("level") in ("error", "warning") and f.get("id") not in accepted
+            if f.get("level") in ("error", "warning")
+            and f.get("id") not in accepted
+            and not str(f.get("rule") or "").startswith("cheme.review-")
         ]
         for f in problems:
             self.note(
