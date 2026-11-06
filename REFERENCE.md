@@ -28,10 +28,9 @@ says how to add a process.
 
 ## Processes
 
-The table lists 97 public process folders: 58 engineering projects (a `plant.yaml` with a process
+The table lists 98 public process folders: 59 engineering projects (a `plant.yaml` with a process
 flowsheet), 33 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
-One more folder (`co2-electrolysis-bpm-1`) is internal and not listed. The table is generated
-from each folder's `process.yaml` and `checks/maturity.json`; `coverage.yaml` names the
+The table is generated from each folder's `process.yaml` and `checks/maturity.json`; `coverage.yaml` names the
 coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
 
 | id | process | design maturity | engineering project |
@@ -64,6 +63,7 @@ coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
 | [`cement-clinker-1`](processes/cement-clinker-1/) | Portland cement clinker in a dry kiln with preheater and precalciner (CLM BREF ranges, IPCC defaults) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`chlor-alkali-1`](processes/chlor-alkali-1/) | Chlor-alkali by membrane-cell electrolysis (100 kt/a Cl2, 50 wt-% caustic soda, hydrogen) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`chloromethane-1`](processes/chloromethane-1/) | Chloromethane from methanol and hydrogen chloride (gas-phase hydrochlorination, 100 kt/a) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`co2-electrolysis-bpm-1`](processes/co2-electrolysis-bpm-1/) | CO2 electrolysis to CO in reverse-bias bipolar-membrane cells (measured bench cell, two 0.1 kg/h pilot skids) | concept (calculation maturity: not recorded; not reviewed) | yes (DEXPI P&IDs (2), BFD/PFD, flowsheet, 3D layout, MTO, HAZOP drafts, LCI datasets) |
 | [`copper-i-chloride-1`](processes/copper-i-chloride-1/) | Copper(I) chloride by semi-batch chlorination of copper in brine, dilution precipitation and filter-drying (300 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`cumene-1`](processes/cumene-1/) | Cumene by zeolite alkylation of benzene with propylene (licensor figures, EPA emissions) | concept (Tier 0 form, stoichiometric screening with some sourced values; not reviewed) | no (manifest and LCI dataset only) |
 | [`di-tert-butyl-dicarbonate-1`](processes/di-tert-butyl-dicarbonate-1/) | Di-tert-butyl dicarbonate (Boc2O) by semi-batch carbonation and phosgenation of potassium tert-butoxide in hexane with a CO2 vent, hexane strip, wash and vacuum distillation (500 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
