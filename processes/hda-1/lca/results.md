@@ -84,7 +84,7 @@ The inventory above excludes:
 
 | rule | level | ids | where |
 |---|---|---|---|
-| cheme.boundary-utility-unassigned | warning | R101B | process/flowsheet.yaml:211 |
+| cheme.boundary-utility-unassigned | warning | R101B | process/flowsheet.yaml:212 |
 
 ## Limitations
 
