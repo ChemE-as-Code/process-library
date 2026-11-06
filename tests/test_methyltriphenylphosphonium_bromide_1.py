@@ -117,6 +117,33 @@ def _procedure(pid: str) -> dict:
     return next(u for u in _yaml("process/recipe.yaml")["unit_procedures"] if u["id"] == pid)
 
 
+# the R10 preferred numbers (ISO 3) of one decade, the sizes core rounds a vessel up to (ADR 0052)
+R10 = (1.0, 1.25, 1.6, 2.0, 2.5, 3.15, 4.0, 5.0, 6.3, 8.0)
+
+
+def _r10(volume: float) -> float:
+    """m3: the smallest R10 size at or above *volume* (1 to 100 m3)."""
+    return next(r * d for d in (1.0, 10.0) for r in R10 if r * d >= volume)
+
+
+def _batch_volume(model, sid: str) -> float:
+    """m3 a batch of a stream's liquid: its kmol times the liquid_molar_volume of
+    process/materials.yaml (ideal mixing, as core sizes a recipe vessel) times the cycle."""
+    return sum(n * model[0][k]["liquid_molar_volume"] for k, n in _kmol(model, sid).items() if n) * _cycle(model)
+
+
+def _jacket_hours(model, sid: str, medium: float, start: float, end: float, metal: float) -> float:
+    """h to heat or cool R-101's content by the jacket (core's t = C / (U A) ln((T_m - T_0) /
+    (T_m - T_1)), the medium constant), C the content's heat capacity a batch (stream *sid*) plus
+    *metal*, A the shell and flat bottom the content wets in the 6.3 m3 vessel (H/D 1.2)."""
+    vessel = _procedure("REACT")["vessel"]
+    diameter = (4 * 6.3 / (math.pi * vessel["aspect_ratio"])) ** (1 / 3)
+    bottom = math.pi * diameter**2 / 4
+    area = math.pi * diameter * _batch_volume(model, sid) / bottom + bottom
+    capacity = _mcp(model, sid) * _cycle(model) + metal  # kJ/K a batch
+    return capacity / (vessel["jacket"]["u"] * area / 1000) * math.log((medium - start) / (medium - end)) / 3600
+
+
 def test_charge_ratios(model):
     s1, s3, s5, s6 = (_kmol(model, s) for s in ("S1", "S3", "S5", "S6"))
     pph3_kg = _kg(model, "S5")["PPH3"]
@@ -517,17 +544,37 @@ def test_crystallizer_duty_holds_r101s_metal(model):
 
 
 def test_jacket_times_hold_r101s_metal(model):
-    """The heat and cool times use C + C_m (ADR 0063): the 0.535 and 0.552 h of the content alone
-    times (C + 3000) / C, 0.789 and 0.807 h (cheme process recipe); R-101 is occupied 10.146 h of
-    the 10.198 h cycle and stays off the bottleneck."""
+    """The heat and cool times use C + C_m (ADR 0063): from the jacket of recipe.yaml on the
+    content's own heat capacity and wetted area, 0.535 and 0.552 h without the metal, times
+    (C + 3000) / C, 0.789 and 0.807 h (cheme process recipe); with the recipe's fixed durations
+    and R101's dose and post-reaction, R-101 is occupied 10.15 h of the 10.198 h cycle, under it
+    by 0.05 h, and stays off the bottleneck (D-016)."""
     cycle = _cycle(model)
-    for content, before, after in ((_mcp(model, "S4") * cycle, 0.53483, 0.78931), (_mcp(model, "S7") * cycle, 0.55265, 0.80705)):
-        assert before * (content + METAL_R101) / content == pytest.approx(after, rel=2e-3)
-    ops = {o["id"]: o for o in _procedure("REACT")["operations"]}
+    up = _procedure("REACT")
+    vessel, ops = up["vessel"], {o["id"]: o for o in up["operations"]}
+    assert vessel["metal_heat_capacity"] == METAL_R101
+    # the vessel core sizes: the larger of the charge (S5) and the end (S7), 4.435 m3, in 6.3 m3
+    working = max(_batch_volume(model, "S5"), _batch_volume(model, "S7"))
+    assert working == pytest.approx(4.435, abs=0.001)
+    assert _r10(working / vessel["fill_fraction"]) == 6.3
+    jacket = vessel["jacket"]
+    times = {}
+    for op, sid, medium in (("heat", "S5", jacket["heating_temperature"]), ("cool", "S7", jacket["coolant_temperature"])):
+        start, end = ops[op]["temperatures"]
+        alone = _jacket_hours(model, sid, medium, start, end, 0.0)
+        times[op] = _jacket_hours(model, sid, medium, start, end, METAL_R101)
+        content = _mcp(model, sid) * cycle
+        assert times[op] == pytest.approx(alone * (content + METAL_R101) / content, rel=1e-9)
+        assert times[op] - alone == pytest.approx(0.25, abs=0.01), op  # ADR 0063's quarter hour
     assert ops["heat"]["temperatures"] == [292.81, 333.15] and ops["cool"]["temperatures"] == [333.15, 313.15]
+    assert times["heat"] == pytest.approx(0.789, abs=5e-4) and times["cool"] == pytest.approx(0.807, abs=5e-4)
+    # R101's model: the 3 h dosing and the 2.30 h post-reaction (cheme process recipe, D-005)
+    r101 = model[2]["R101"]["batch"]
+    dose = sum(d["time"] for d in r101["dosing"]) / 3600
     fixed = sum(o["duration"]["value"] for o in ops.values() if "duration" in o)
-    assert fixed + 0.78931 + 0.80705 + 3.0 + 2.30 == pytest.approx(10.146, abs=0.005)
-    assert 10.146 < cycle
+    occupied = fixed + times["heat"] + times["cool"] + dose + 2.30
+    assert occupied == pytest.approx(10.146, abs=0.005)
+    assert cycle - occupied == pytest.approx(0.05, abs=0.01) and occupied < cycle
     # the recipe's heat report: R-101's metal from the charge's 292.81 K, 1.662 kW above the hand
     # Q1, whose metal starts at the 313.15 K the cool-down left (D-016)
     report_kw = (_mcp(model, "S4") * (333.15 - 292.81) * cycle + METAL_R101 * (333.15 - 292.81)) / cycle / 3600
@@ -539,12 +586,19 @@ def test_jacket_times_hold_r101s_metal(model):
         assert stated in design, stated
 
 
-def test_c101_sized_by_the_recipe():
-    """L-1 resolved: the still's unit procedure gives a vessel (ADR 0063), 6.3 m3 for 4.852 m3."""
+def test_c101_sized_by_the_recipe(model):
+    """L-1 resolved: the still's unit procedure gives a vessel (ADR 0063); the liquor it takes in a
+    batch, S17's 4210.41 kg, is 4.852 m3 by the materials' molar volumes, in the R10 size 6.3 m3."""
     vessel = _procedure("RECOVER")["vessel"]
     assert vessel["fill_fraction"] == 0.8 and "volume" not in vessel
-    assert 4.852 / vessel["fill_fraction"] <= 6.3  # the R10 size above the working volume
-    assert 4.852 / vessel["fill_fraction"] > 5.0  # the next R10 size below would not hold it
+    assert model[1]["S17"]["to"] == "ST101.in"
+    assert _flow(model, "S17") * _cycle(model) == pytest.approx(4210.41, abs=0.01)
+    working = _batch_volume(model, "S17")
+    assert working == pytest.approx(4.852, abs=5e-4)
+    # the same within 2 % by toluene's density at the feed's temperature (most of the liquor)
+    assert _flow(model, "S17") * _cycle(model) / _rho_toluene(_t(model, "S17")) == pytest.approx(working, rel=0.02)
+    assert _r10(working / vessel["fill_fraction"]) == 6.3
+    assert working / 6.3 == pytest.approx(0.77, abs=0.005)
     design = _text("DESIGN.md")
     assert "L-1 (resolved in core 1.10.0, ADR 0063)" in design
     assert "C-101 6.3 m3 (4.852 m3 of liquor" in design
@@ -575,10 +629,18 @@ def test_column_and_vent_features_not_used(model):
     design = _text("DESIGN.md")
     for stated in ("`still.column`, ADR 0061", "`still.condenser_port` (ADR 0061)", "`batch.vent.vapour`", "a dose's `heat_of_solution` (ADR 0063)"):
         assert stated in design, stated
-    # Q8's latent part is the still's boil-up term of Q7 (a condenser_port would write that alone)
+    # Q8's latent part is the still's boil-up term of Q7 (a condenser_port would write that alone):
+    # Q8 less the distillate S19 cooled from the still's mean temperature equals Q7 less the
+    # charge's heat-up and C-101's metal
     s19 = _kmol(model, "S19")
     latent = sum(n * model[0][k]["heat_of_vaporization"] for k, n in s19.items() if n) / 3600
     assert latent == pytest.approx(40.669, abs=0.001)
+    cooled = _mcp(model, "S19") * ((T_BUBBLE + T_END) / 2 - _t(model, "S19")) / 3600
+    heat_up = _mcp(model, "S17") * (T_BUBBLE - _t(model, "S17")) / 3600
+    metal = METAL_C101 * (T_END - _t(model, "S17")) / _cycle(model) / 3600
+    boil_term = _duty(model, "Q7") - heat_up - metal
+    assert _duty(model, "Q8") - cooled == pytest.approx(boil_term, abs=1e-3)
+    assert _duty(model, "Q8") - cooled == pytest.approx(latent, abs=1e-3)
 
 
 def test_default_mtt_at_the_vessels_pressure_is_below_t_p_so_the_hand_mtt_stays(model):

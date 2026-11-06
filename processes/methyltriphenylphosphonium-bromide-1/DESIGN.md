@@ -419,15 +419,17 @@ criticality class (`cheme.reactor-hazard-missing`, info). With MTSR below MTT, c
 criticality() gives class 1 (TD24 above the MTT), 2 (TD24 between MTSR and MTT, or at the MTT)
 or 5 (TD24 below the MTSR); the TD24 decides which.
 Sensitivity (a scratch copy with the rate constant of QUAT divided by 10 and by 100; nothing else
-changed, the same batch and recycle; not committed; rerun on core 1.9.0 on 2026-11-06 with the
-same accumulation, MTSR and cycle, the MTSR over the batch peaking at the end of the dosing:
+changed, the same batch and recycle; not committed; rerun on core 1.10.0 on 2026-11-06: the
+accumulation, MTSR and post-reaction are those of core 1.9.0, while the k/10 and k/100 cycles,
+where R-101 is the bottleneck, grow by R-101's metal in its heating and cooling (D-016; 34.79 h
+and 292.2 h on 1.9.0); the MTSR over the batch peaks at the end of the dosing:
 k/10 351.7 K at 2.71 h, back to 342.7 K at 4.59 h; k/100 371.9 K at 3 h, 340.0 K at 41.6 h):
 
 | case | accumulation (end of dosing) | MTSR (worst moment) | MTT of the closed vessel | post-reaction | cycle, batches/a |
 |---|---|---|---|---|---|
 | k (design) | 14.7 % | 339.1 K (10132 s) | 415.29 K | 2.30 h | 10.20 h, 776.6 (F-101) |
-| k/10 | 42.0 % | 351.7 K (9769 s) | 409.12 K | 27.4 h | 34.79 h, 227.7 (R-101) |
-| k/100 | 85.0 % | 371.9 K (10800 s) | 401.33 K | 284.9 h | 292.2 h, 27.1 (R-101) |
+| k/10 | 42.0 % | 351.7 K (9769 s) | 409.12 K | 27.4 h | 35.30 h, 224.4 (R-101) |
+| k/100 | 85.0 % | 371.9 K (10800 s) | 401.33 K | 284.9 h | 292.8 h, 27.05 (R-101) |
 
 The MTT of each case is its own (more methyl bromide unreacted, a lower MTT; by hand as above,
 at the end of the dosing); the scratch runs kept the design's `hazard.mtt`, against which core
@@ -550,7 +552,9 @@ the step at least as credibly as the hand value it replaces, checked against it:
   `C + C_m`: heat 292.81 -> 333.15 K 0.789 h (0.535 h before), cool to 313.15 K 0.807 h (0.552
   h), the 0.25 h each that ADR 0063 states; R-101 is occupied 10.15 h of the 10.198 h cycle
   (99.5 %, 94.5 % before); F-101 stays the bottleneck, the cycle, the batches, every flow and
-  the LCI's material exchanges unchanged. **Difference recorded, hand value kept:** the recipe's
+  the LCI's material exchanges unchanged. In D-011's rate sensitivity, where R-101 is the
+  bottleneck, the cycles grow by the metal's 0.5 h: k/10 35.30 h (34.79 h on 1.9.0), k/100
+  292.8 h (292.2 h); the accumulation and MTSR are unchanged. **Difference recorded, hand value kept:** the recipe's
   heat report for R-101's heat-up is 375.4 MJ a batch (10.224 kW), the content's 254.3 MJ and
   the metal's 121.0 MJ from the charge's 292.81 K; core starts the metal at the content's
   temperature (ADR 0063's limitation: a vessel left warm by the previous batch is not modelled),
