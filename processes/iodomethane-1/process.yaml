@@ -1,0 +1,120 @@
+# Process Atlas manifest of iodomethane-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: iodomethane-1
+title: Iodomethane from methanol, red phosphorus and iodine, batch reflux reaction and batch distillation (500 t/a)
+summary: >-
+  A batch plant: iodine is dosed over 10 h into red phosphorus in methanol at its reflux
+  temperature; the crude iodomethane is distilled off the residue, washed, dried and distilled.
+  Concept stage, 1402 kg per batch every 22.2 h, thermal screening, preliminary LCI.
+description: |
+  Methanol (methanol-1) and red phosphorus are charged to an enamelled reactor and warmed to
+  313 K; iodine (iodine-1) is dosed into the slurry over 10 h through a closed solids feeder,
+  6 CH3OH + 2 P + 3 I2 -> 6 CH3I + 2 H3PO3 through PI3, the batch route of CN 114195616 B
+  (Examples 1-3: methanol, red phosphorus and iodine at about 4 : 1 : 10 by mass, total reflux at
+  39-45 C, the crude distilled off up to 90 C into thiosulfate solution, washed, dried and
+  distilled to 99.5-99.7 %). The patent writes phosphoric acid as the by-product; this entry takes
+  phosphorous acid, as the PI3 the patent names gives it (DESIGN.md D-004). The reactor runs at the
+  end mass's boiling point under a reflux condenser, on a chilled-water jacket. The crude
+  iodomethane (92 wt%, with methanol) is distilled off the phosphorous acid residue in the same
+  vessel into sodium thiosulfate solution, washed twice with thiosulfate and twice with water,
+  dried to 100 ppm water and distilled in a still with a short column; every vent goes through a
+  brine condenser to an activated-carbon adsorber. Product 99.6 wt% iodomethane (calibrated to
+  the patent's Example 3, not predicted). Yield 95.8 % of theory on the iodine, inside the
+  patent's 95-96 % (no basis stated) and an ASSUMED upper bound; the residue (0.31 kg per kg),
+  the wash liquors and the adsorber take the rest of the iodine, whose recovery is a gap.
+
+  The batch is modelled with cheme-as-code's semi-batch reactor with a solid reactant and a vent
+  (reactor: semibatch, batch.vent, core ADRs 0050 and 0054), two batch stills (still:, one
+  Rayleigh stage each, ADR 0055) and the batch recipe (process/recipe.yaml with units over several
+  steps, ADRs 0051, 0052, 0057): the dosing, post-reaction, warming and distillation times come
+  from the models, the reactor is the bottleneck (cycle 22.2 h, 356.7 batches a year), the recipe
+  sizes it (1.6 m3) and checks its jacket, and the flowsheet's flows are the recipe's year
+  averages. The semi-batch and the stills write their own duties (ADR 0059), and the screening
+  gives the MTSR over the batch and the gas released at the MTSR against the vent (ADR 0058). The
+  washes, the drying and the column's rectification are specified splits until core has a
+  liquid-liquid model with sourced pairs and a batch column with reflux (core#173); a single
+  still stage gives 99.40 wt%, below the patent. The kinetics are ASSUMED: the iodine accumulates
+  to 2.28 % at the end of the dosing, and the cooling-failure temperature (322.6 K) lies 9.4 K
+  above the boiling point at which the reactor runs, so a cooling failure boils iodomethane off
+  into the reflux condenser (24 to 50 kW), which is designed for it. See DESIGN.md for every
+  assumption.
+families: [chlorinated-organics]   # the halogenated organics (as benzyl-bromide-1); no iodine family exists
+keywords: [iodomethane, methyl iodide, methanol, iodine, red phosphorus, phosphorus triiodide, PI3, phosphorous acid, semi-batch, batch, dosing, solid reactant, reflux, batch distillation, sodium thiosulfate, washing, drying, thermal screening, fine chemicals]
+facets:
+  feedstock_basis: [fossil, mineral, electricity]
+  product_classes: [chemicals]
+  unit_operations: [reaction, distillation, washing, adsorption]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Capacity, kinetics, the stills'
+# volatilities, the washes' and the column's splits are assumed; ratios, conditions, the product's
+# purity and the yield range from the patent's examples (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept batch PFD with closed mass, component and element balances (cheme validate, cheme
+    process streams: 5 blocks and 16 steps within tolerance). The semi-batch R101 with the red
+    phosphorus as a solid reactant and a vent (from its ASSUMED rate law), the stills ST101
+    (constant relative volatility, ASSUMED) and ST102 (Raoult's law with NIST Antoine constants,
+    the ideal liquid ASSUMED), the thiosulfate's reduction of the iodine and the mixers are
+    calculated by cheme process propagate; scripts/balance.py gives the feeds for 500 t/a, the
+    washes' and the drying's splits, the column K104 as a specified split calibrated to the
+    patent's 99.6 %, the vent fraction, the temperatures of the mixed streams, the duties the
+    models do not write and the powers. The recipe's year-average rate of the product agrees with
+    the flowsheet (no cheme.recipe-basis finding); the recipe sizes R-101 (1.6 m3), its jacket
+    check passes against the log-mean chilled-water temperature, and the stills' times come from
+    their boil-ups. Thermal screening (cheme process reactor-hazards): dT_ad 520.1 K,
+    accumulation 2.28 %, MTSR 322.6 K against an MTT of 313.15 K (hazard.mtt: the end mass's
+    boiling point at total reflux, CN 114195616 B), so the MTSR lies above it
+    (cheme.reactor-hazard-mtsr, a design finding of a reactor at reflux); no criticality class
+    without a TD24 (3, 4 or 5). With k/10 the MTSR is 378.7 K, with k/100 604.0 K (DESIGN.md
+    D-006). At the MTSR a cooling failure releases 0.32 m3/h of gas, within R-101's vent of 20
+    m3/h (ASSUMED); the iodomethane it boils off at the MTT, 79 to 163 m3/h, is for the reflux
+    condenser E-101 to condense (a design finding). Preliminary gate-to-gate LCI with the
+    per-batch nitrogen, desiccants and activated carbon; the methanol linked to methanol-1, the
+    iodine to iodine-1 and the nitrogen to asu-1, red phosphorus and sodium thiosulfate gaps with
+    recorded proxies, the other backgrounds gaps. cheme maturity reaches no level (assumed feeds,
+    kinetics and separations); the claim `maturity: concept` is the lowest value of the schema,
+    not an evidenced level. Not reviewed. Needs cheme-as-code 1.9.0.
+chemistry:
+  inputs:
+    - {chemical: iodine, role: feedstock, inventory_key: "feed:IOD", note: "Iodine flakes (iodine-1, 99.8 wt% I2), 0.931 kg/kg iodomethane (stoichiometric 0.896)"}
+    - {chemical: methanol, role: feedstock, inventory_key: "feed:MEOH", note: "Methanol (methanol-1, 500 ppm water), 0.390 kg/kg (stoichiometric 0.226; 66 % excess, CN 114195616 B, Example 1)"}
+    - {chemical: phosphorus/red, role: feedstock, inventory_key: "feed:REDP", note: "Red phosphorus (no library process; proxy from white phosphorus recorded, D-014), 0.096 kg/kg (stoichiometric 0.073; 27 % excess)"}
+    - {chemical: sodium-thiosulfate, role: feedstock, inventory_key: "feed:THIO", note: "5 wt% sodium thiosulfate solution for the washes, 0.221 kg/kg (ASSUMED amount; no library process)"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Process water for the washes, 0.441 kg/kg (ASSUMED amount)"}
+    - {chemical: nitrogen, role: feedstock, inventory_key: "consumable:nitrogen", note: "Nitrogen (asu-1) for inerting and blanketing, 12.5 kg per batch, 8.9 g/kg (ASSUMED)"}
+    - {chemical: calcium-chloride, role: feedstock, inventory_key: "consumable:calcium-chloride", note: "Calcium chloride of the dryer, 3.3 kg per batch, 2.4 g/kg (ASSUMED replacement)"}
+  outputs:
+    - {chemical: iodomethane, role: main-product, inventory_key: "product:MEI", note: "Distilled iodomethane, 99.6 wt% (calibrated to CN 114195616 B, Example 3), 0.40 wt% methanol, 41 ppm water, to dark storage under nitrogen at 283 K"}
+    - {chemical: phosphorous-acid, role: waste, inventory_key: "product:RES", note: "Phosphorous acid residue with methanol, the excess red phosphorus and 1.4 % of the iodine, 0.307 kg/kg, to hazardous-waste treatment (the source describes none)"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Thiosulfate and water wash liquors, 0.748 kg/kg, with methanol, sodium salts and dissolved iodomethane, to wastewater treatment"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.086 kWh/kg: agitators of R-101, V-102 and C-104, the iodine feeder, the loop and transfer pumps, the vent fan (ASSUMED)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.275 kWh/kg of LP steam 350 kPa(a) to the hot-water loops: the charge's warming, the two stills (their net boil-ups from core's still model, the heat-up and the column's reflux share apart)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.274 kWh/kg removed by cooling water: the overhead condenser E-101, the column's condenser, the residues' cooling"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:CHW", note: "0.181 kWh/kg removed by chilled water at 278 K: R-101's jacket, the heat of reaction (from core's semi-batch model)"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:BRINE", note: "0.0086 kWh/kg removed by brine at 258 K: the vent condenser E-102 and the product subcooler (the registry has chilled water, not brine: closest entry)"}
+basis:
+  capacity: "500 t/a distilled iodomethane: 356.7 batches/a of 1401.58 kg in 7920 h on a dedicated train (63.13 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-015)"
+  operating_hours_per_year: 7920
+  location: generic fine-chemicals site with methanol and iodine supply (not chosen)
+references:
+  - {title: "CN 114195616 B: preparation method of methyl iodide (Examples 1-3: red phosphorus, methanol and iodine; the iodine carried in by the reflux through an iodine tank; total reflux at 39-45 C; the crude distilled off up to 90 C into sodium thiosulfate solution, washed, dried over calcium chloride and a 4A sieve, distilled; purity 99.5-99.7 %, water below 80-200 ppm, yield 95-96 % with no basis stated)", url: "https://patents.google.com/patent/CN114195616B/en"}
+  - {title: "PubChem CID 6328, methyl iodide (HSDB: water solubility, density, heat of vaporization, light sensitivity, methods of manufacturing)", url: "https://pubchem.ncbi.nlm.nih.gov/compound/6328"}
+  - {title: "PubChem CID 807, iodine (HSDB: solubility in methanol)", url: "https://pubchem.ncbi.nlm.nih.gov/compound/807"}
+  - {title: "NIST Chemistry WebBook, SRD 69: iodomethane, methanol, iodine, water (Antoine constants, heats of vaporization, boiling points)", url: "https://webbook.nist.gov/chemistry/"}
+  - {title: "Wikipedia, Allotropes of phosphorus (red phosphorus: formation enthalpy, preparation, ignition)", url: "https://en.wikipedia.org/wiki/Allotropes_of_phosphorus"}
+  - {title: "Stoessel, F. (2008) Thermal Safety of Chemical Processes, Wiley-VCH (accumulation and MTSR of a semi-batch; method reference, not data)", doi: 10.1002/9783527621606}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/iodomethane-1
+  access: public
+publication:
+  status: internal
