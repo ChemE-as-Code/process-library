@@ -73,8 +73,10 @@ thiosulfate, calcium chloride, the sieve and activated carbon have no library pr
 Decision: 500 t/a of distilled iodomethane (63.131 kg/h year average), 7920 h/a, ASSUMED. Modelled
 product (S25): 99.86 wt% iodomethane, 0.14 wt% methanol and 0.2 ppm water, **predicted by core's
 batch rectification on an ideal liquid** (ST102 with K-104 at 5 assumed stages and a reflux ratio
-of 2, D-010, D-016). It lies above SRC-1's 99.5-99.7 %: an upper bound, not a claim, since the
-ideal liquid has no azeotrope; the product specification stays SRC-1's. The water is optimistic
+of 2, D-010, D-016). It is the shortcut on an ideal liquid: a rigorous column on the same liquid
+would give at least this (core ADR 0061), and the real liquid (an azeotrope with methanol, not
+represented) may give less. It lies above SRC-1's measured 99.5-99.7 %, so it is a finding, not a
+design claim, and the product specification stays SRC-1's. The water is optimistic
 too (on the ideal liquid it stays in the still; iodomethane and water boil together). The 1.9.0
 version calibrated the column's split to SRC-1 Example 3's 99.6 % instead (D-016).
 Reason: no open market or plant figure was used; a few hundred tonnes a year is a plausible size
@@ -98,9 +100,11 @@ Decision: one batch makes 1465.15 kg of iodomethane (stream S25); the recipe
   of 2.75 h each (15 min stirring, 2 h settling, 0.5 h to separate; SRC-1, Examples 2 and 3),
   transfer 0.5 h: 21.23 h, so V-102 is occupied 91 % of the cycle (about 2 h of margin);
 - DRY on A-103: percolate 2 h, transfer 0.5 h;
-- DISTIL on C-104 over ST102, E104, E105 and H103: receive 0.5 h, distil 6.83 h (from ST102's
-  reboiler at the reflux ratio 2, D-016), cool 0.5 h, drain 0.5 h: 8.33 h.
-R-101 is the bottleneck: cycle 23.208 h, 341.3 batches in 7920 h; one batch takes 43.03 h from the
+- DISTIL on C-104 over ST102, E104, E105 and H103: receive 0.5 h, heat the charge to its bubble
+  point 0.126 h (core's `still.heat_up` energy, 4.53 kWh a batch, at the reboiler's 36 kW: core
+  adds the heat-up to the duty, not to the time, D-016, L-4), distil 6.83 h (from ST102's reboiler
+  at the reflux ratio 2, D-016), cool 0.5 h, drain 0.5 h: 8.46 h.
+R-101 is the bottleneck: cycle 23.208 h, 341.3 batches in 7920 h; one batch takes 43.16 h from the
 purge to the final residue's drain. The flowsheet's flows are the recipe's year averages: 1465.15
 kg x 341.3 / 7920 h = 63.13 kg/h of S25 (no `cheme.recipe-basis` finding). The batch size was
 found by fixed-point iteration with the feeds, the vent fraction and the cycle (L-7).
@@ -395,9 +399,13 @@ wt%, SRC-8; no methanol row was found), and near pure iodomethane methanol is th
 than the ideal liquid says. Water, the heaviest component on the ideal liquid, boils with
 iodomethane in fact (the two are nearly immiscible), so the 0.2 ppm is optimistic too (the first
 version's all-the-water-to-the-product, 41 ppm, was the upper bound; SRC-1's product holds below
-80-200 ppm). The shortcut itself is conservative against a rigorous column on the same liquid (ADR
-0061). So 99.86 wt% is the ideal liquid's upper bound and no headline: the product specification
-stays SRC-1's 99.5-99.7 %, and the stages and reflux that reach it are to be set with VLE data.
+80-200 ppm). So 99.86 wt% is the shortcut on an ideal liquid: a rigorous column on the same liquid
+would give at least this (the shortcut is conservative, ADR 0061), and the real liquid (an
+azeotrope with methanol, not represented) may give less. The two biases point in opposite
+directions, so the number bounds neither side of the real column's purity. It lies above SRC-1's
+measured 99.5-99.7 %, so it is a finding, not a design claim and no headline: the product
+specification stays SRC-1's 99.5-99.7 %, and the stages and reflux that reach it are to be set
+with VLE data.
 Stages (scratch copy, reflux 2, the same end): 1 stage 99.40 wt% at 99.68 % recovery (one Rayleigh
 stage: the first version's still alone, below the source's lowest 99.5 %); 2 stages 99.50 wt% at
 99.21 %; 3 stages 99.66 wt% at 98.49 %; 5 stages 99.86 wt% at 97.59 % (the design); 8 stages 99.97
@@ -444,14 +452,14 @@ scripts/balance.py, ASSUMED unless sourced):
   to 283.15 K (SRC-1: condensers at 0-10 C); Q12 0.015 kW to cooling water: the final residue
   cooled from 326.16 to 303.15 K. The first version's Q8 3.65 kW (the net boil-up), Q13 7.30 kW
   (the reflux share), Q9 0.19 kW (the heat-up) and Q10 11.15 kW are replaced (D-016).
-- Electricity 5.40 kW (0.0855 kWh/kg): R-101's 3 kW agitator and its 0.75 kW loop pump for 22.21 h
+- Electricity 5.41 kW (0.0857 kWh/kg): R-101's 3 kW agitator and its 0.75 kW loop pump for 22.21 h
   of each 23.21 h cycle and the 0.75 kW iodine feeder during the dosing (3.91 kW, P1); V-102's 1.5
   kW agitator for 1 h and a 1.1 kW pump for 3 h a batch (0.21 kW, P2); C-104's 1.5 kW agitator and
-  0.75 kW loop pump for 7.33 h, a 1.1 kW pump for 1.5 h a batch and the 0.5 kW vent fan all the time
-  (1.28 kW, P3).
+  0.75 kW loop pump for 7.46 h (the heat-up, the distillation and the cooling), a 1.1 kW pump for
+  1.5 h a batch and the 0.5 kW vent fan all the time (1.29 kW, P3).
 Every energy flow of the batch is in the flowsheet and so in the LCI per kg (library ADR 0035):
 LP steam 0.2702 kWh, cooling water 0.2692 kWh, chilled water 0.1833 kWh and brine 0.0070 kWh
-removed, electricity 0.0855 kWh. The refrigeration's own electricity is the chilled water's and
+removed, electricity 0.0857 kWh. The refrigeration's own electricity is the chilled water's and
 the brine's background (gaps, D-014).
 Recorded exclusions, each with its estimate (ASSUMED orders, insulated surfaces at about 1 W/(m2
 K)): the heat losses of R-101, C-104 and the hot-water loops (at 313-360 K, 15-60 K above the
@@ -482,7 +490,9 @@ kPa at 268 K, to 0.039 kmol a batch, and returns the condensate. Q7 0.13 kW (the
 cooling included). The 0.039 kmol (5.5 kg) a batch that pass E-102 are written as R101's vent
 fraction, 0.3586 % of the iodomethane formed (R-101's and the work-up's vents lumped on R101,
 L-3), to the adsorber. Core 1.10.0's vent vapour and vent condenser (ADR 0062) do not replace it:
-R101 forms no gas to carry the vapour, and the carrier, the nitrogen, is not modelled (D-016). The first version counted the displaced head spaces' whole volume as
+core accepts them on R101's vent, but takes the vented iodomethane (a condensable product at the
+hand-written fraction) as the vapour's carrier, while the real carrier is the purge's and the
+blanket's nitrogen, which core does not model (D-016). The first version counted the displaced head spaces' whole volume as
 nitrogen on top of the blanket and saturated it again (0.6365 %, 9.2 kg a batch). Activated carbon
 at 0.2 kg of iodomethane per kg (ASSUMED): 27.5 kg a batch (0.019 kg per kg of product), an
 `lca.yaml` consumable with its disposal to incineration
@@ -547,16 +557,21 @@ tried on a scratch copy first:
   says.
 - **ST102 with `still.heat_up`** (ADR 0063) instead of the hand Q9: the charge from 304.11 K to its
   bubble point, 0.195 kW in Q8 (the script's Q9 0.193 kW, which also held the residue's rise while
-  it boils, then 0.0009 kW, now 0.006 kW, which core leaves out: an exclusion, D-011).
+  it boils, then 0.0009 kW, now 0.006 kW, which core leaves out: an exclusion, D-011). Core adds
+  the heat-up to the duty, not to the time (ADR 0063), so the recipe times it by hand: DISTIL's
+  `heatup`, 4.53 kWh a batch at the reboiler's 36 kW, 0.126 h before the distillation (D-003;
+  C-104's agitator and loop pump run through it, P3).
 - **Kept by hand**: ST101's heat-up Q4: `heat_up` needs Raoult's law (the bubble point), and
   `cheme validate` refuses it on ST101's constant relative volatility (scratch copy), which D-007
   keeps because Raoult's law leaves 13 % of the iodomethane in the residue (L-2, L-4). R101's vent
-  fraction and E-102's Q7 (L-3): `batch.vent.vapour` saturates the gases a reaction forms (or a
-  dosed gas passing through) with the liquid's vapour; R101 forms none, a vent with no component
-  is a schema error (scratch copy), and iodomethane, the only vented component, cannot be its own
-  vapour carrier. The carrier is the purge's and the blanket's nitrogen across the work-up's
-  vessels, which core 1.10.0 does not model (ADR 0062's follow-up, as acetyl-chloride-1's L-3);
-  the hand fraction is the more credible value. The MTT (L-5) and the reflux reasoning (L-9): core
+  fraction and E-102's Q7 (L-3): `batch.vent.vapour` saturates the vented components with the
+  liquid's vapour, and core 1.10.0 accepts it on R101's vent (scratch copy: `vapour: {components:
+  [MEOH]}` validates, and `cheme process reactors` carries 0.0004 kmol/h of methanol off the liquid
+  with a 0.004 kW `vent vapour` term in Q2). But core then takes the vented iodomethane, a
+  condensable product at a fraction written by hand, as the vapour's carrier, and `vent.condenser`
+  would condense the carrier itself. The real carrier is the purge's and the blanket's nitrogen
+  across the work-up's vessels, which core 1.10.0 does not model (ADR 0062's follow-up, as
+  acetyl-chloride-1's L-3); the hand fraction from that nitrogen is the more credible value. The MTT (L-5) and the reflux reasoning (L-9): core
   1.10.0 changes neither the default MTT nor the screening without the vent's vapour, so
   `hazard.mtt` stays the source's measured reflux temperature.
 - Not used: the `purity` end (it would make the purity the specification again and recover 99.92 %
@@ -578,7 +593,7 @@ and the cycle, L-7):
 | final residue | 16 g/kg, 1.28 % of the iodine | 30 g/kg, 2.35 % of the iodine |
 | ST102's reboiler | Q8 3.65 kW (the net boil-up, calculated) + Q13 7.30 + Q9 0.19 kW (typed) | Q8 10.79 kW (calculated) |
 | K-104's condenser | Q10 11.15 kW with the product's cooling (typed) | Q10 10.59 kW (calculated) + Q14 0.20 kW |
-| ST102's distillation | 7.00 h | 6.83 h |
+| ST102's distillation | 7.00 h (the heat-up not timed) | 6.83 h, after a 0.126 h heat-up |
 | iodine per kg of product | 0.929 kg | 0.942 kg |
 | batch, cycle, batches a year | 1453.39 kg, 23.022 h, 344.0 | 1465.15 kg, 23.208 h, 341.3 |
 | LP steam, cooling water per kg | 0.2744, 0.2734 kWh | 0.2702, 0.2692 kWh |
@@ -586,7 +601,7 @@ and the cycle, L-7):
 
 Why they differ: the purity, since the ideal liquid takes the methanol as the heavy key (D-010; a
 finding against the calibrated source, recorded, not hidden: the source's purity stays the
-specification and the model's an upper bound). The recovery, since at the same end (50 mol%
+specification and the model's a finding above the source's measured values). The recovery, since at the same end (50 mol%
 iodomethane in the pot) the column keeps the methanol in the pot, so the pot holds 0.51 kmol a
 batch where the one stage left 0.07 kmol and the split an assumed 1 % of its distillate. The yield
 then falls 1.06 points, into SRC-1's 95-96 %, the iodine per kg rises 1.4 %, ST101 boils 2.2 % more
@@ -655,10 +670,13 @@ Core 1.10.0 (D-016):
   fractions and recoveries, the condenser's duty. It replaced K104's specified split, M104, the
   column's return S27 and the reflux share Q13 (L-1).
 - The still's heat-up (ADR 0063): `still.heat_up: true` on ST102, the `charge heat-up` term in Q8
-  (`total_energy_kWh_per_batch` in `process stills`); it replaced the hand Q9 (L-4, for ST102).
+  (`total_energy_kWh_per_batch` in `process stills`); it replaced the hand Q9 (L-4, partly
+  resolved for ST102: the heat-up's duty). Core adds no time for it, so DISTIL's `heatup` (0.126 h
+  at the reboiler's 36 kW) is timed by hand; the recipe vessel and jacket are not used (C-104 is
+  sized by hand).
 - Tried on scratch copies and not used (D-016): `still.heat_up` on ST101 (refused on a constant
-  relative volatility), `batch.vent.vapour` and `vent.condenser` on R101 (no formed gas to carry
-  the vapour; L-3), the `purity` end (D-010). Not used: `vent.henry` (no gas forms),
+  relative volatility), `batch.vent.vapour` and `vent.condenser` on R101 (accepted, but the vented
+  iodomethane would be the vapour's carrier, not the nitrogen, which core does not model; L-3), the `purity` end (D-010). Not used: `vent.henry` (no gas forms),
   `dosing.heat_of_solution` (no sourced value, L-6), `batch.heat_up` (R101's charge is warmed by
   H101 on another utility), `vessel.metal_heat_capacity` and a still's recipe `vessel` (no vessel
   mass at the concept stage).
@@ -682,17 +700,21 @@ Core 1.10.0 (D-016):
   step's vent only; the work-up's vents (V-102, A-103, C-104, T-107) are lumped on R101's, the
   fraction written by hand from the script (the balance-output contract does not check a step
   parameter; this folder's test does). **Not resolved by core 1.10.0** (D-016): its vent vapour and
-  vent condenser (ADR 0062) need a gas a reaction forms or a dose carries through, and R101 forms
-  none; the carrier is the purge's and the blanket's nitrogen, a head space and sweep gas that ADR
-  0062 leaves as a follow-up (as acetyl-chloride-1's L-3). A dose is taken as a liquid: a solid dose (the iodine)
+  vent condenser (ADR 0062) saturate the vented components with the liquid's vapour, so on R101
+  core would take the vented iodomethane (a condensable product at a hand-written fraction) as the
+  carrier; the real carrier is the purge's and the blanket's nitrogen, a head space and sweep gas
+  that ADR 0062 leaves as a follow-up (as acetyl-chloride-1's L-3). A dose is taken as a liquid: a solid dose (the iodine)
   adds its own volume and dissolves at once, so the undissolved iodine a loss of agitation
   accumulates is outside the screening (D-006 (g)).
-- L-4 (ADR 0055), **resolved by core 1.10.0 for ST102** (ADR 0063, `still.heat_up`, which
-  replaced the hand Q9, and a still's vessel in the recipe; D-016), **open for ST101**: `heat_up`
-  needs Raoult's law, and the residue's sensible rise while a still boils stays out of core. The
+- L-4 (ADR 0055), **partly resolved by core 1.10.0 for ST102** (ADR 0063: the heat-up's duty,
+  `still.heat_up`, replaced the hand Q9; D-016); **open for ST102**: the recipe vessel and jacket
+  (not used, C-104 sized by hand), the residue's sensible rise while it boils, and the heat-up's
+  time (core adds the heat-up to the duty only; DISTIL's `heatup` is timed by hand at the
+  reboiler's 36 kW, D-003); **open for ST101**: `heat_up` needs Raoult's law. The
   limit as found: the still has no heat-up or sensible heat (the script's Q4, Q9) and does not size
   its vessel, jacket or condenser; a boil-up that the jacket's falling driving force limits is one
-  constant mean (D-007). The heat-up's time is a separate `heat` operation in the recipe, and the
+  constant mean (D-007). The heat-up's time is a separate `heat` operation in the recipe (REACT's
+  from the jacket, DISTIL's at the reboiler's duty), and the
   residue's sensible heat is taken out of the still's boil-up by hand (ST101's net 14.36 kW of the
   jacket's 15 kW); a still that held the sensible heat would time both. A distil operation takes
   its time from the still or from a duration, not both.
@@ -723,8 +745,9 @@ Core 1.10.0 (D-016):
   MTSR (ADR 0062, `boils`) needs the vent's vapour, not used here (L-3), and a reflux at the
   boiling point is ADR 0062's follow-up (D-016).
 - L-10 (as acetyl-chloride-1's L-10): an ideal liquid only; ST102's basis is "not sourced", and no
-  azeotrope can be represented (D-010). Since core 1.10.0 it bounds the batch rectification too:
-  its 99.86 wt% lies above the source's purity (D-016).
+  azeotrope can be represented (D-010). Since core 1.10.0 it limits the batch rectification too:
+  its 99.86 wt% (the shortcut on the ideal liquid; a rigorous column would give at least this, the
+  real liquid may give less) lies above the source's measured purity (D-016).
 
 ## Open inputs
 Kinetics and heat of reaction by reaction calorimetry (the iodine's accumulation, the heat of

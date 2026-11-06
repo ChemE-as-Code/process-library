@@ -415,7 +415,7 @@ def main() -> None:
     r101_on = sum(op_h.get(("REACT", o), 0.0) for o in ("charge", "heat", "dose", "react", "hold", "heatup", "distil", "cool"))
     e1 = (P_R101_AGITATOR + P_LOOP) * r101_on + P_FEEDER * op_h.get(("REACT", "dose"), 0.0)
     e2 = P_V102_AGITATOR * 4 * 0.25 + P_PUMP * V102_PUMP_H
-    c104_on = op_h.get(("DISTIL", "distil"), 0.0) + op_h.get(("DISTIL", "cool"), 0.0)
+    c104_on = sum(op_h.get(("DISTIL", o), 0.0) for o in ("heatup", "distil", "cool"))
     e3 = (P_C104_AGITATOR + P_LOOP) * c104_on + P_PUMP * C104_PUMP_H + P_FAN * cycle
     p1, p2, p3 = e1 / cycle, e2 / cycle, e3 / cycle
 

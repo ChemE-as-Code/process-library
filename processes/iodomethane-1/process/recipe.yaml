@@ -56,6 +56,9 @@ unit_procedures:
     title: Batch rectification (C-104 with its column K-104)
     operations:
       - {id: receive, kind: charge, title: Receive the dried crude, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      # core's still.heat_up adds the charge's heat-up to ST102's duty (Q8) but not to its time
+      # (ADR 0063): the heat-up is timed here at the reboiler's 36 kW (L-4, D-016)
+      - {id: heatup, kind: heat, title: Heat the dried crude to its bubble point (ST102), duration: {value: 0.126, provenance: calculated, source: "core's still.heat_up of ST102, the dried crude from 304.11 K to its bubble point 316.12 K: 4.526 kWh a batch (cheme process stills: whole duty 250.40 less the boil-up 245.88 kWh), at the reboiler's 36 kW (the still's boilup): 4.526 / 36 = 0.126 h (D-010, D-016)"}}
       - {id: distil, kind: distil, title: Distil the iodomethane, from: ST102}
       - {id: cool, kind: cool, title: Cool the residue (H103), duration: {value: 0.5, provenance: assumed, source: D-003}}
       - {id: drain, kind: transfer, title: Drain the residue, duration: {value: 0.5, provenance: assumed, source: D-003}}

@@ -10,11 +10,13 @@ them:
   the specific iodine and methanol, and the iodine's fate, which closes (D-013);
 - core 1.10.0 (D-010, D-016): ST102 is core's batch rectification with its column (5 stages at a
   reflux ratio of 2) and its charge's heat-up; its purity (99.86 wt%, above the source's 99.5-99.7
-  %, recorded as the ideal liquid's upper bound) and recovery are the model's; one stage gives
-  99.40 wt%, below the source; the reboiler Q8 and the condenser Q10 are the model's duties; the
-  specified split K104, its return and the hand streams Q9 and Q13 are gone; ST101's heat-up and
-  R101's vent fraction stay by hand because core 1.10.0 refuses or cannot carry them; the
-  specified splits close on their inlets;
+  %, recorded as a finding, not a design claim: a rigorous column on the ideal liquid gives at
+  least the shortcut's, the real liquid may give less) and recovery are the model's; one stage
+  gives 99.40 wt%, below the source; the reboiler Q8 and the condenser Q10 are the model's duties;
+  the specified split K104, its return and the hand streams Q9 and Q13 are gone; ST102's heat-up
+  is timed in the recipe at the reboiler's duty; ST101's heat-up stays by hand because core 1.10.0
+  refuses it, and R101's vent fraction because core's vent vapour would take the vented
+  iodomethane, not the nitrogen, as its carrier; the specified splits close on their inlets;
 - R101's vent fraction is the one scripts/balance.py estimates, each kmol of nitrogen counted once
   and a displaced head space not saturated twice (D-012);
 - the heating medium stays below the patent's 90 C kettle limit, the residue's bubble point
@@ -189,7 +191,9 @@ def test_st102_is_cores_batch_rectification_and_the_hand_column_is_gone(sheet, s
 
 def test_the_columns_purity_and_recovery_are_the_models_and_above_the_source(streams):
     """Regression (D-010, D-016): 5 stages at a reflux of 2 on the ideal liquid give 99.86 wt% at
-    97.59 % recovery of the iodomethane, above the source's 99.5-99.7 % (an upper bound)."""
+    97.59 % recovery of the iodomethane, above the source's 99.5-99.7 % (a finding, not a design
+    claim: a rigorous column on the same liquid gives at least this, the real liquid may give
+    less)."""
     s20, s22, s25 = (_components(streams[s]) for s in ("S20", "S22", "S25"))
     total = sum(s25.values())
     purity = s25["MEI"] / total
@@ -204,7 +208,11 @@ def test_the_columns_purity_and_recovery_are_the_models_and_above_the_source(str
     assert "recovering 97.59 % of the iodomethane" in design
     assert "**The model's purity lies above the source's 99.5-99.7 %**" in design
     assert "99.86 wt%" in _text("README.md") and "99.86 wt%" in _text("process.yaml")
-    assert "upper bound" in _text("README.md")
+    readme = _text("README.md")
+    assert "so it is a finding, not a design claim" in readme and "would give at least this" in readme
+    assert "so it is a finding, not a design claim" in design
+    for text in (design, readme, _text("process.yaml"), _text("equipment/equipment-list.yaml")):
+        assert "the ideal liquid's upper bound" not in text and "an upper bound above" not in text
 
 
 def _st102(stages: int | None = None):
@@ -269,14 +277,16 @@ def test_the_columns_reboiler_and_condenser_duties_are_the_models(sheet, streams
     assert "Q8 10.79 kW of LP steam" in _text("DESIGN.md") and "Q10 10.59 kW to cooling water" in _text("DESIGN.md")
 
 
-def test_st101s_heat_up_and_r101s_vent_stay_by_hand_since_core_refuses_them(sheet):
+def test_st101s_heat_up_is_refused_and_r101s_vent_stays_by_hand(sheet):
     """D-016: core 1.10.0's `still.heat_up` needs Raoult's law (ST101 has a constant relative
-    volatility, D-007), and its vent vapour needs a vented gas a reaction forms (R101 forms none;
-    iodomethane, the only vented component, cannot carry itself)."""
+    volatility, D-007). Core accepts a vent vapour on R101's vent, but would take the vented
+    iodomethane (a condensable product at a hand-written fraction) as its carrier, while the real
+    carrier is the purge's and the blanket's nitrogen, which core does not model; the hand vent
+    fraction stays."""
     pytest.importorskip("chemeascode")
     from pydantic import ValidationError
 
-    from chemeascode.domains.process.schema import Still, Vent
+    from chemeascode.domains.process.schema import Still
 
     st101 = _step(sheet, "ST101")["still"]
     assert st101["volatility"]["model"] == "constant" and "heat_up" not in st101
@@ -284,11 +294,13 @@ def test_st101s_heat_up_and_r101s_vent_stay_by_hand_since_core_refuses_them(shee
         Still.model_validate({**st101, "heat_up": True})
     vent = _step(sheet, "R101")["batch"]["vent"]
     assert vent["components"] == ["MEI"] and "vapour" not in vent and "condenser" not in vent
-    with pytest.raises(ValidationError):
-        Vent.model_validate({"stream": "S7", "components": [], "vapour": {"components": ["MEI", "MEOH"]}})
     duties = {s["id"]: s["state"]["design"]["duty"] for s in sheet["streams"] if s.get("kind") == "energy"}
     assert duties["Q4"]["provenance"] == "assumed" and duties["Q7"]["provenance"] == "assumed"
     design = _text("DESIGN.md")
+    d016 = design[design.index("## D-016") : design.index("## Method and dependency table")]
+    assert "core 1.10.0 accepts it on R101's vent" in d016
+    assert "as the vapour's carrier" in d016 and "nitrogen" in d016
+    assert "schema error" not in design and "R101 forms none" not in design
     assert "**resolved by core 1.10.0** (ADR 0061, `still.column`; D-016)" in design
     assert "**Not resolved by core 1.10.0** (D-016)" in design and "**open for ST101**" in design
 
@@ -411,14 +423,14 @@ def test_every_heat_stream_reaches_the_lci(streams):
         "feed:POWER": ("P1", "P2", "P3"),
     }
     product = streams["S25"]["flow"]["value"]
-    stated = {"feed:LPS": 0.27024, "product:CW": 0.26916, "product:CHW": 0.18333, "product:BRINE": 0.00702, "feed:POWER": 0.08554}
+    stated = {"feed:LPS": 0.27024, "product:CW": 0.26916, "product:CHW": 0.18333, "product:BRINE": 0.00702, "feed:POWER": 0.08573}
     design = _text("DESIGN.md")
     for key, ids in groups.items():
         assert float(rows[key][5]) == pytest.approx(duty(*ids), abs=1e-3), key
         assert sorted(rows[key][-1].split()) == sorted(ids), key
         assert duty(*ids) / product == pytest.approx(stated[key], abs=5e-5), key
     assert "LP steam 0.2702 kWh, cooling water 0.2692 kWh, chilled water 0.1833 kWh and brine 0.0070 kWh" in design
-    assert "electricity 0.0855 kWh" in design
+    assert "electricity 0.0857 kWh" in design
 
 
 def test_the_exclusions_carry_their_numbers(streams):
@@ -501,6 +513,28 @@ def test_core_screens_the_reactor_as_stated():
 RECIPE_H = {"cycle": 23.208, "dose": 10.0, "react": 0.37, "heatup": 0.18, "distil": 8.55, "distil2": 6.83}
 
 
+def test_the_design_basis_and_the_functional_unit_state_the_model(streams):
+    """Review of #409: the design basis and the LCA's functional unit give the batch, the purity
+    and the residues the model gives (D-002, D-003, D-010, D-016), not the 1.9.0 calibration."""
+    basis = _load("process/design-basis.yaml")
+    recipe = _load("process/recipe.yaml")
+    assert basis["capacity"]["batch_kg"] == recipe["batch_size"]["value"]
+    assert basis["capacity"]["batches_per_year"] == pytest.approx(7920 / RECIPE_H["cycle"], abs=0.05)
+    product = streams["S25"]["flow"]["value"]
+    s25 = _components(streams["S25"])
+    purity = basis["products"][0]["purity"]
+    assert f"{100 * s25['MEI'] / product:.2f} wt%" in purity and "99.5 to 99.7 %" in purity
+    assert "calibrated" not in purity
+    residue = basis["products"][2]["note"]
+    assert f"{1000 * streams['S26']['flow']['value'] / product:.0f} g per kg" in residue
+    washes = basis["products"][3]["note"]
+    assert f"{(streams['S16']['flow']['value'] + streams['S19']['flow']['value']) / product:.2f} kg per kg" in washes
+    assumptions = " ".join(basis["assumptions"])
+    assert "specified split calibrated" not in assumptions and "K-104, 5 theoretical stages" in assumptions
+    unit = _load("lca/lca.yaml")["functional_unit"]["source"]
+    assert f"{100 * s25['MEI'] / product:.2f} wt%" in unit and "calibrated" not in unit
+
+
 def test_the_batch_size_source_states_the_recipes_cycle(streams):
     batch = _load("process/recipe.yaml")["batch_size"]
     found = re.search(r"over the ([\d.]+) batches the ([\d.]+) h cycle allows, 63\.131 kg/h x ([\d.]+) h", batch["source"])
@@ -530,7 +564,7 @@ def test_the_powers_follow_from_the_recipes_durations(sheet):
     on = sum(hours[("REACT", o)] for o in ("charge", "heat", "dose", "react", "hold", "heatup", "distil", "cool"))
     duties = {s["id"]: s["state"]["design"]["duty"]["value"] for s in sheet["streams"] if s.get("kind") == "energy"}
     assert duties["P1"] == pytest.approx(((3.0 + 0.75) * on + 0.75 * hours[("REACT", "dose")]) / result.cycle_time, abs=1e-3)
-    c104 = hours[("DISTIL", "distil")] + hours[("DISTIL", "cool")]
+    c104 = hours[("DISTIL", "heatup")] + hours[("DISTIL", "distil")] + hours[("DISTIL", "cool")]
     assert duties["P3"] == pytest.approx(((1.5 + 0.75) * c104 + 1.1 * 1.5 + 0.5 * result.cycle_time) / result.cycle_time, abs=1e-3)
     assert f"for {on:.2f} h of each {result.cycle_time:.2f} h cycle" in _text("DESIGN.md")
     vessel = next(v for v in result.vessels if v.procedure == "REACT")
@@ -589,9 +623,28 @@ def test_v102_receives_the_crude_while_st101_distils_it():
     assert step[("WASH", "thiosulfate")].start == pytest.approx(step[("REACT", "hold")].start)
     unit = next(u for u in result.units if u.procedure == "WASH")
     assert unit.utilisation == pytest.approx(0.915, abs=0.005) and unit.occupancy < result.cycle_time
-    assert result.makespan == pytest.approx(43.03, abs=0.01)
+    assert result.makespan == pytest.approx(43.16, abs=0.01)
     design = _text("DESIGN.md")
-    assert "V-102 is occupied 91 % of the cycle" in design and "one batch takes 43.03 h" in design
+    assert "V-102 is occupied 91 % of the cycle" in design and "one batch takes 43.16 h" in design
+
+
+def test_st102s_heat_up_is_timed_at_the_reboilers_duty(sheet):
+    """Review of #409: core's `still.heat_up` adds ST102's charge heat-up to the duty Q8, not to
+    the still's time (ADR 0063), so DISTIL times it by hand: core's heat-up energy per batch at the
+    still's 36 kW boil-up, before the distillation; C-104's agitator and loop run through it (P3)."""
+    distil = _load("process/recipe.yaml")["unit_procedures"][3]
+    ops = [o["id"] for o in distil["operations"]]
+    assert distil["id"] == "DISTIL" and ops.index("heatup") == ops.index("distil") - 1
+    heatup = next(o for o in distil["operations"] if o["id"] == "heatup")
+    assert heatup["kind"] == "heat" and heatup["duration"]["provenance"] == "calculated"
+    kwh = _st102().heat_up / 3600.0  # kJ per batch to kWh
+    assert kwh == pytest.approx(4.526, abs=5e-3)
+    boilup = _step(sheet, "ST102")["still"]["boilup"]["value"]
+    assert heatup["duration"]["value"] == pytest.approx(kwh / boilup, abs=5e-4)
+    hours = {(s.procedure, s.operation): s.end - s.start for s in _recipe_result().steps}
+    assert hours[("DISTIL", "heatup")] == pytest.approx(kwh / boilup, abs=5e-4)
+    design = _text("DESIGN.md")
+    assert "**partly resolved by core 1.10.0 for ST102**" in design and "8.46 h" in design
 
 
 def test_the_vent_counts_each_kmol_of_nitrogen_once(sheet, streams):

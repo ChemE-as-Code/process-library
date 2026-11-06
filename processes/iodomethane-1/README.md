@@ -37,9 +37,10 @@ Four headline numbers carry caveats:
   residue's share rests on an assumed relative volatility and the final still's on its assumed
   end (D-007, D-013, D-016).
 - The product's 99.86 wt% is core's batch rectification on an ideal liquid at 5 assumed stages
-  and a reflux ratio of 2: an upper bound above the patent's 99.5-99.7 % (an azeotrope of
-  iodomethane with methanol, not sourced, would lower it). One still stage would give
-  99.40 wt% (D-010, D-016).
+  and a reflux ratio of 2. A rigorous column on the same liquid would give at least this (core
+  ADR 0061); the real liquid (an azeotrope of iodomethane with methanol, not sourced) may give
+  less. It lies above the patent's measured 99.5-99.7 %, so it is a finding, not a design claim:
+  the specification stays the patent's. One still stage would give 99.40 wt% (D-010, D-016).
 - The accumulation, 2.28 %, follows from an ASSUMED rate law. The reactor runs at its boiling
   point, so a cooling failure takes it above the MTT (MTSR 322.6 K against 313.15 K). The reflux
   condenser takes the boil-off, 26 to 53 kW (D-006). A loss of agitation during the dose would

@@ -21,7 +21,9 @@ description: |
   vessel into sodium thiosulfate solution, washed twice with thiosulfate and twice with water,
   dried to 100 ppm water and distilled in a still with a short column; every vent goes through a
   brine condenser to an activated-carbon adsorber. Product 99.86 wt% iodomethane, predicted by
-  core's batch rectification on an ideal liquid: an upper bound above the patent's 99.5-99.7 %.
+  core's batch rectification on an ideal liquid (a rigorous column would give at least this, the
+  real liquid, with a possible azeotrope with methanol, may give less): above the patent's measured
+  99.5-99.7 %, a finding, not a design claim; the specification stays the patent's.
   Yield 95.01 % of theory on the iodine, inside the patent's 95-96 % (no basis stated) and an
   ASSUMED upper bound; the residue (0.31 kg per kg),
   the wash liquors and the adsorber take the rest of the iodine, whose recovery is a gap.
@@ -32,7 +34,7 @@ description: |
   5 theoretical stages at a reflux ratio of 2, ASSUMED, with the charge's heat-up, ADRs 0061,
   0063) and the batch recipe (process/recipe.yaml with units over several
   steps, ADRs 0051, 0052, 0057): the dosing, post-reaction, warming, heat-up and distillation times
-  come from the models, the reactor is the bottleneck (cycle 23.2 h, 341.3 batches a year), the recipe
+  come from the models (ST102's heat-up from its model's energy at the reboiler's duty), the reactor is the bottleneck (cycle 23.2 h, 341.3 batches a year), the recipe
   sizes it (1.6 m3) and checks its jacket, and the flowsheet's flows are the recipe's year
   averages. The semi-batch and the stills write their own duties, the column's reboiler and condenser too (ADRs 0059, 0061), and the screening
   gives the MTSR over the batch and the gas released at the MTSR against the vent (ADR 0058). The
@@ -58,7 +60,7 @@ validation:
   status: unreviewed
   notes: >-
     Concept batch PFD with closed mass, component and element balances (cheme validate, cheme
-    process streams: 5 blocks and 16 steps within tolerance). The semi-batch R101 with the red
+    process streams: 5 blocks and 15 steps within tolerance). The semi-batch R101 with the red
     phosphorus as a solid reactant and a vent (from its ASSUMED rate law), the still ST101
     (constant relative volatility, ASSUMED), the batch rectification ST102 (5 theoretical stages
     at a reflux ratio of 2, Raoult's law with NIST Antoine constants, the ideal liquid ASSUMED;
@@ -91,7 +93,7 @@ chemistry:
     - {chemical: nitrogen, role: feedstock, inventory_key: "consumable:nitrogen", note: "Nitrogen (asu-1) for inerting and blanketing, 12.5 kg per batch, 8.5 g/kg (ASSUMED)"}
     - {chemical: calcium-chloride, role: feedstock, inventory_key: "consumable:calcium-chloride", note: "Calcium chloride of the dryer, 3.5 kg per batch, 2.4 g/kg (ASSUMED replacement)"}
   outputs:
-    - {chemical: iodomethane, role: main-product, inventory_key: "product:MEI", note: "Distilled iodomethane, 99.86 wt% (core's batch rectification on an ideal liquid, an upper bound; CN 114195616 B: 99.5-99.7 %), 0.14 wt% methanol, 0.2 ppm water, to dark storage under nitrogen at 283 K"}
+    - {chemical: iodomethane, role: main-product, inventory_key: "product:MEI", note: "Distilled iodomethane, 99.86 wt% (core's batch rectification on an ideal liquid, above CN 114195616 B's measured 99.5-99.7 %: a finding, the specification stays the patent's), 0.14 wt% methanol, 0.2 ppm water, to dark storage under nitrogen at 283 K"}
     - {chemical: phosphorous-acid, role: waste, inventory_key: "product:RES", note: "Phosphorous acid residue with methanol, the excess red phosphorus and 1.4 % of the iodine, 0.311 kg/kg, to hazardous-waste treatment (the source describes none)"}
     - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Thiosulfate and water wash liquors, 0.759 kg/kg, with methanol, sodium salts and dissolved iodomethane, to wastewater treatment"}
   utilities:
