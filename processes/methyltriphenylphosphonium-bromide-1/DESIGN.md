@@ -261,9 +261,10 @@ sources; `tests/test_methyltriphenylphosphonium_bromide_1.py` recomputes them):
     core's still leaves out: the charge S17 heated from 308.47 K to its 383.5 K bubble point, and
     C-101's metal (2500 kJ/K, about 5 t, ASSUMED) from 308.47 to 386.48 K each batch.
   R-101 and F-101 are heated with hot water at 353 K from LP steam, C-101 with the steam at
-  412 K: below every temperature limit the design states (R-101's MTT 430.99 K, D-011; the
-  salt's melting point, about 503 K). No decomposition temperature of the salt, PPh3 or the still
-  residue is known (open input, D-011).
+  412 K: below every temperature limit the design states (R-101's MTT 415.29 K, D-011; the
+  salt's melting point, about 503 K). The steam is only 3 K below R-101's MTT, so it must never
+  reach R-101's jacket directly: R-101 sees only the 353 K hot-water circuit. No decomposition
+  temperature of the salt, PPh3 or the still residue is known (open input, D-011).
 - cooling water 298/308 K:
   - Q2 7.878 kW: the heat of quaternisation (0.29123 kmol/h x 100 MJ/kmol) less the dose warmed
     from 298 to 333 K;
@@ -275,7 +276,9 @@ sources; `tests/test_methyltriphenylphosphonium_bromide_1.py` recomputes them):
     vaporisation) and the distillate cooled from the still's mean 384.99 K to 303.15 K.
 - chilled brine 258/263 K: Q5 4.308 kW, F-101's vacuum condenser E-201: 30.90 kg/h of toluene
   condensed (391 kJ/kg), the condensate cooled from 333 to 268 K and the vent gas by 65 K. It is
-  on brine because toluene condenses at the 5 kPa(a) vacuum only below about 290 K.
+  on brine: toluene's dew point at the filter-dryer's 5 kPa(a) is about 304 K (303.6 K by the
+  Antoine set of `process/materials.yaml`), so cooling water at 298/308 K cannot condense it; at
+  the 268 K outlet its vapour pressure is 0.65 kPa.
 - electricity 15.5 kW: R-101's 5.5 kW agitator at 94 % occupancy and the dosing pump (5.4 kW),
   F-101's 7.5 kW agitator half the time and the 5.5 kW vacuum pump over the drying (7.3 kW),
   C-101's agitator and the transfer pumps (2.8 kW). All ASSUMED.
@@ -304,10 +307,18 @@ temperature; the pressure does. The MTT (SRC-7, closed system) is the temperatur
 vessel reaches its relief's set pressure, 700 kPa(a) for a 6 bar g glass-lined vessel
 (ASSUMED), at the worst composition: the end of the dosing, 0.463 kmol of methyl bromide
 unreacted (x 0.0133 in the liquid), by Raoult's law with the vapour pressures of
-`process/materials.yaml`, plus the nitrogen pad (230 kPa(a) at 333 K, compressed to 253 kPa(a) by
-the dose's volume, rising with the temperature): 430.99 K (`hazard.mtt`, by hand; a test
-recomputes it). The pressure at T_p is then 279 kPa(a). Core gives no MTT for a vessel above
-atmospheric pressure (it asks for `hazard.mtt`); at atmospheric pressure it would take the
+`process/materials.yaml`, plus the nitrogen pad: 230 kPa(a) at 333 K on the headspace before the
+dose (1.78 m3 of the 6.3 m3), compressed to 255.8 kPa(a) by the dose's volume (1.60 m3 left), and
+further as the liquid expands on heating. The toluene, 3.79 of the 4.70 m3 of liquid at 333 K,
+is taken at its liquid density of thermo 0.11 (SRC-6; 830 kg/m3 at 333 K, 746 kg/m3 at 415 K, a
+quadratic fit within 0.09 % over 290-440 K, in the test), the other components at their
+`liquid_molar_volume`; the headspace falls to 1.17 m3 at the MTT, so the nitrogen's pressure is
+the pad x (1.60 / V_gas(T)) x (T / 333.15). Result: 415.29 K (`hazard.mtt`, by hand; a test
+recomputes it). Without the expansion it would be 430.99 K, 16 K too high. The pressure at T_p
+is 282 kPa(a). Every MTT of this section lies inside the fitted ranges of the two vapour
+pressures (toluene 300-420 K, methyl bromide 270-420 K): no extrapolation. Core gives no MTT for
+a vessel above atmospheric pressure (it asks for `hazard.mtt`); at atmospheric pressure it would
+take the
 lowest boiling point of what stays in the liquid, methyl bromide's 276.55 K, below T_p (L-4).
 No TD24 is known for the reaction mass, the salt or the still residue (never estimated): no
 criticality class (`cheme.reactor-hazard-missing`, info). With MTSR below MTT, core's
@@ -318,16 +329,18 @@ changed, the same batch and recycle; not committed):
 
 | case | accumulation (end of dosing) | MTSR (worst moment) | MTT of the closed vessel | post-reaction | cycle, batches/a |
 |---|---|---|---|---|---|
-| k (design) | 14.7 % | 339.1 K (10132 s) | 430.99 K | 2.30 h | 10.20 h, 776.6 (F-101) |
-| k/10 | 42.0 % | 351.7 K (9769 s) | 422.70 K | 27.4 h | 34.79 h, 227.7 (R-101) |
-| k/100 | 85.0 % | 371.9 K (10800 s) | 412.47 K | 284.9 h | 292.2 h, 27.1 (R-101) |
+| k (design) | 14.7 % | 339.1 K (10132 s) | 415.29 K | 2.30 h | 10.20 h, 776.6 (F-101) |
+| k/10 | 42.0 % | 351.7 K (9769 s) | 409.12 K | 27.4 h | 34.79 h, 227.7 (R-101) |
+| k/100 | 85.0 % | 371.9 K (10800 s) | 401.33 K | 284.9 h | 292.2 h, 27.1 (R-101) |
 
 The MTT of each case is its own (more methyl bromide unreacted, a lower MTT; by hand as above,
 at the end of the dosing); the scratch runs kept the design's `hazard.mtt`, against which core
 reports the same MTSR. MTSR stays below MTT in every case, so core's criticality() gives class
 1, 2 or 5 in each, depending on the TD24. The largest possible rise (all the batch's PPh3
-unreacted, dT_ad 46 K) would reach 379 K, still below 412 K. The normal pressure at T_p rises
-from 279 kPa(a) (k) to 292 (k/10) and 310 kPa(a) (k/100).
+unreacted, dT_ad 46 K) would reach 379 K, below that case's own MTT: with all the methyl bromide
+and all the PPh3 unreacted in the closed vessel (x 0.078 methyl bromide) the MTT is 399.04 K, by
+the same method. The normal pressure at T_p rises from 282 kPa(a) (k) to 294 (k/10), 312
+(k/100) and 318 kPa(a) (nothing reacted).
 Interpretation: on this screening the quaternisation is thermally mild: its heat is modest (an
 ASSUMED -100 kJ/mol in 4 kg of toluene per kg PPh3) and the closed vessel's MTT is high. The real
 hazards are toxic and pressure ones: a slow reaction (k/10, k/100) accumulates methyl bromide
@@ -377,7 +390,7 @@ multipurpose fine-chemical plants: there the burden per kg differs.
   oxidiser (D-007), and every vent (R-101, F-101, the vacuum pump, T-201, T-202, the relief) to
   the oxidiser, never to atmosphere.
 - Loss of the thermal oxidiser (or its scrubber): R-101 stays closed (it holds its methyl
-  bromide at 279 kPa(a)); the dosing, the sweep, the transfer to F-101 and the drying stop until
+  bromide at 282 kPa(a)); the dosing, the sweep, the transfer to F-101 and the drying stop until
   it is back (an interlock on the oxidiser's running signal); the still keeps running only to its
   condenser. The relief of R-101 discharges to a catch pot and the oxidiser; its scenario is a
   basic-engineering item.
@@ -429,7 +442,8 @@ the reaction, which a vent on the reacting step cannot express (L-3).
 - L-4: no MTT for a closed vessel: above atmospheric pressure core asks for `hazard.mtt`, and at
   atmospheric pressure it would take methyl bromide's boiling point (276.55 K, below T_p). The
   MTT of a closed, padded vessel (the temperature at the relief's set pressure from the
-  vapour pressures and the pad) is hand arithmetic (D-011), and it differs per sensitivity case;
+  vapour pressures and the pad, the pad compressed by the liquid's thermal expansion, which
+  alone lowers it by 16 K here) is hand arithmetic (D-011), and it differs per sensitivity case;
   the screening also reports no pressure at the worst moment.
 - L-5: propagate does not converge recycles: the recovered toluene (S3, S11) is a tear stream
   converged by hand with the fresh feeds that follow the charge ratios (D-006), as in

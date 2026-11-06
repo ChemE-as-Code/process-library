@@ -213,32 +213,86 @@ def test_hand_splits_balance_by_component(model):
     assert _kmol(model, "S18")["MEBR"] == pytest.approx(_kmol(model, "S21")["MEBR"], rel=1e-4)
 
 
-def test_mtt_of_the_closed_vessel(model):
-    """D-011: the temperature at which R-101 reaches 700 kPa(a) at the end of the dosing."""
+def _rho_toluene(t: float) -> float:
+    """kg/m3: toluene's liquid density, a quadratic fit to thermo 0.11 over 290-440 K (max 0.09 %)."""
+    return 1058.135 - 0.41517 * t - 8.0830e-4 * t * t
+
+
+def _mtt(model, accumulation: float) -> tuple[float, float, float]:
+    """K, kPa(a), kPa(a): the closed R-101's MTT at the end of the dosing (D-011).
+
+    The temperature at which the vessel reaches its 700 kPa(a) relief set pressure, with
+    ``accumulation`` of the batch's methyl bromide unreacted: Raoult's law over the liquid plus
+    the nitrogen pad (230 kPa(a) at 333.15 K on the headspace before the dose), compressed by the
+    dose's volume and by the toluene's thermal expansion. Also returns the pad and the pressure at
+    T_p, both at the end of the dosing.
+    """
     materials = model[0]
     cycle = _cycle(model)
     ch = {k: v * cycle for k, v in _kmol(model, "S5").items()}
     dose = _kmol(model, "S6")["MEBR"] * cycle
-    mebr = 0.147 * (ch["MEBR"] + dose)  # the screening's largest accumulation
+    mebr = accumulation * (ch["MEBR"] + dose)
     reacted = ch["MEBR"] + dose - mebr
     liquid = {"TOL": ch["TOL"], "MEBR": mebr, "PPH3": ch["PPH3"] - reacted}
-    v0 = sum(n * materials[k]["liquid_molar_volume"] for k, n in ch.items())
-    v1 = v0 + dose * materials["MEBR"]["liquid_molar_volume"]
-    pad = 230.0 * (6.3 - v0) / (6.3 - v1)
+    tol_kg = ch["TOL"] * materials["TOL"]["molar_mass"]
+    # the other components and the dose at their liquid_molar_volume (20 C), the toluene at T
+    others = sum(n * materials[k]["liquid_molar_volume"] for k, n in ch.items() if k != "TOL")
+    v_dose = dose * materials["MEBR"]["liquid_molar_volume"]
+    v_pad = 6.3 - tol_kg / _rho_toluene(333.15) - others  # the headspace the pad is set on
+
+    def v_gas(t: float) -> float:
+        return 6.3 - tol_kg / _rho_toluene(t) - others - v_dose
+
     total = sum(liquid.values())
 
     def pressure(t: float) -> float:
-        return pad * t / 333.15 + sum(liquid[k] / total * _psat(model, k, t) for k in ("TOL", "MEBR"))
+        nitrogen = 230.0 * v_pad / v_gas(t) * t / 333.15
+        return nitrogen + sum(liquid[k] / total * _psat(model, k, t) for k in ("TOL", "MEBR"))
 
     low, high = 340.0, 500.0  # bisection: the pressure rises with the temperature
     while high - low > 1e-4:
         mid = (low + high) / 2
         low, high = (mid, high) if pressure(mid) < 700.0 else (low, mid)
-    mtt = (low + high) / 2
+    return (low + high) / 2, 230.0 * v_pad / v_gas(333.15), pressure(333.15)
+
+
+def test_mtt_of_the_closed_vessel(model):
+    """D-011: the temperature at which R-101 reaches 700 kPa(a) at the end of the dosing.
+
+    The liquid's thermal expansion compresses the pad: leaving it out (the headspace fixed at
+    its 333 K volume) gave 430.99 K, 16 K too high.
+    """
+    mtt, pad, p_tp = _mtt(model, 0.147)  # the screening's largest accumulation
     assert model[2]["R101"]["hazard"]["mtt"] == pytest.approx(mtt, abs=0.05)
-    assert pad == pytest.approx(253.4, abs=0.2)
-    assert pressure(333.15) == pytest.approx(279.4, abs=0.3)
-    assert "430.99 K" in _text("DESIGN.md")
+    assert mtt == pytest.approx(415.29, abs=0.05)
+    assert pad == pytest.approx(255.8, abs=0.1)
+    assert p_tp == pytest.approx(281.8, abs=0.3)
+    design = _text("DESIGN.md")
+    assert "415.29 K" in design and "430.99 K, 16 K too high" in design
+    for rel in ("README.md", "process.yaml"):
+        assert "415.3 K" in _text(rel) and "431.0 K" not in _text(rel), rel
+    assert "MTT 415.29 K" in _text("process/recipe.yaml")
+    assert _rho_toluene(333.15) == pytest.approx(830.1, abs=0.2)  # thermo 0.11: 829.8
+    # inside the fitted ranges of the vapour pressures: no extrapolation
+    for cid in ("TOL", "MEBR"):
+        low, high = model[0][cid]["vapour_pressure"]["temperature_range"]
+        assert low < mtt < high, cid
+
+
+@pytest.mark.parametrize(
+    ("case", "accumulation", "stated"),
+    [("k/10", 0.420, "409.12 K"), ("k/100", 0.850, "401.33 K"), ("nothing reacted", 1.0, "399.04 K")],
+)
+def test_mtt_of_each_sensitivity_case_is_its_own(model, case, accumulation, stated):
+    """D-011: each case's MTT by the same method, and its MTSR below it (379 K for nothing reacted)."""
+    mtt, _, _ = _mtt(model, accumulation)
+    assert mtt == pytest.approx(float(stated.split()[0]), abs=0.05), case
+    design = _text("DESIGN.md")
+    assert stated in design, case
+    mtsr = {"k/10": 351.7, "k/100": 371.9, "nothing reacted": 333.15 + 46.0}[case]
+    assert mtsr < mtt
+    assert mtt < model[0]["TOL"]["vapour_pressure"]["temperature_range"][1]
+    assert "422.70 K" not in design and "412.47 K" not in design and "below 412 K" not in design
 
 
 def test_yield_and_assay_as_stated_with_their_caveat(model):
@@ -280,3 +334,49 @@ def test_not_published_in_the_change_that_adds_it():
     publication = _yaml("process.yaml")["publication"]
     assert publication["status"] == "internal"
     assert "license" not in publication
+
+
+def test_lca_scope_states_the_recipe_basis_and_the_streams_it_uses(model):
+    """lca/lca.yaml and lca/dataset.yaml carry the recipe's batch basis, the vent header S24 and
+    the methyl bromide content of the liquors the streams give."""
+    recipe = _yaml("process/recipe.yaml")
+    batch = recipe["batch_size"]["value"]
+    batches = _flow(model, "S15") * recipe["hours_per_year"]["value"] / batch
+    lca_text = (PROCESS / "lca" / "lca.yaml").read_text(encoding="utf-8")
+    lca = yaml.safe_load(lca_text)
+    stated = f"{batch:.2f} kg per batch, {batches:.1f} batches a year"
+    assert stated in lca["technology"]
+    assert f"multiply by {batch:.2f} kg" in " ".join(lca_text.split())
+    assert stated in _text("lca/dataset.yaml")
+    assert "1057.09" not in lca_text and "775.9" not in _text("lca/dataset.yaml")
+    # the OFFGAS exchange is the whole vent header S24 (S23 + S18), as inventory.csv carries it
+    flows = {f["key"]: f for f in lca["flows"]}
+    assert flows["product:OFFGAS"]["source"].startswith("flowsheet stream S24")
+    with (PROCESS / "lca" / "inventory.csv").open(encoding="utf-8") as handle:
+        inventory = {row["key"]: row for row in csv.DictReader(handle)}
+    assert inventory["product:OFFGAS"]["streams"] == "S24"
+    # the nitrogen has a disposal exchange, and the comment says so
+    assert "disposal:consumable.nitrogen" in inventory
+    assert "no disposal exchange" not in " ".join(lca_text.split())
+    # the tanks hold the liquors' and the recovered toluene's methyl bromide, about 0.05 wt%
+    for sid in ("S19", "S3", "S11"):
+        w = _kg(model, sid)["MEBR"] / _flow(model, sid)
+        assert w == pytest.approx(0.0005, abs=0.00005), sid
+    breathing = next(e for e in lca["emission_exclusions"] if e["id"] == "tank-breathing")
+    assert "about 0.05 wt% methyl bromide" in breathing["reason"]
+
+
+def test_hand_sources_state_the_numbers_they_use(model):
+    """The vacuum condenser's brine reason and the still feed's mixing arithmetic (D-010, D-009)."""
+    vp = model[0]["TOL"]["vapour_pressure"]
+    dew = vp["b"] / (vp["a"] - math.log10(0.05)) - vp["c"]  # K at 5 kPa(a)
+    assert dew == pytest.approx(303.6, abs=0.1)
+    assert _psat(model, "TOL", 268.15) == pytest.approx(0.65, abs=0.01)
+    assert dew > 298.15  # cooling water cannot condense it usefully: brine
+    q5 = _state(model, "Q5")["duty"]["source"]
+    assert "about 304 K" in q5 and "290 K" not in q5
+    design = _text("DESIGN.md")
+    assert "5 kPa(a) is about 304 K" in design and "only below about 290 K" not in design
+    assert _t(model, "S16") == pytest.approx(268.15)
+    s17 = _state(model, "S17")["temperature"]["source"]
+    assert f"S16 ({_mcp(model, 'S16'):.2f} at {_t(model, 'S16'):.2f} K)" in s17

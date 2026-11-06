@@ -4,7 +4,7 @@
 #
 # Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the batch
 # plant with its amount per kg of the dried salt, from the flowsheet's year averages of the recipe
-# (D-003). Per batch: multiply by 1057.09 kg. The backgrounds are left unmapped (`missing:` with
+# (D-003). Per batch: multiply by 1057.10 kg. The backgrounds are left unmapped (`missing:` with
 # the activity each should connect to, and the proxy a later study may use), except where
 # lca/mappings.yaml links a library producer: a gap, never zero, and no values from licensed
 # databases. The toluene is recovered in the still and reused; only its make-up is a feed. The
@@ -28,7 +28,7 @@ boundary: cradle-to-gate
 case: design
 year: 2026
 location: GLO
-technology: "Batch plant: PPh3 dissolved in recovered toluene (20 wt%), liquefied methyl bromide dosed over 3 h into the closed, nitrogen-padded glass-lined pressure vessel at 333 K (semi-batch, 1.05 mol per mol PPh3 with the recycled excess), the salt precipitated and cooled to 313 K, filtered, reslurry-washed with recovered toluene and vacuum-dried at 333 K in an agitated filter-dryer; the toluene and the excess methyl bromide distilled in a batch still and reused; 1057.09 kg per batch, 775.9 batches a year on a dedicated train"
+technology: "Batch plant: PPh3 dissolved in recovered toluene (20 wt%), liquefied methyl bromide dosed over 3 h into the closed, nitrogen-padded glass-lined pressure vessel at 333 K (semi-batch, 1.05 mol per mol PPh3 with the recycled excess), the salt precipitated and cooled to 313 K, filtered, reslurry-washed with recovered toluene and vacuum-dried at 333 K in an agitated filter-dryer; the toluene and the excess methyl bromide distilled in a batch still and reused; 1057.10 kg per batch, 776.6 batches a year on a dedicated train"
 rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
 flows:
   # raw materials
@@ -58,7 +58,7 @@ flows:
   - key: product:OFFGAS
     treatment: {kind: waste, route: "the site's thermal oxidiser with a caustic scrubber for the hydrogen bromide formed from the methyl bromide (a controlled ozone-depleting substance), as methylmagnesium-bromide-1's vent (D-007, D-012)"}
     missing: "not mapped yet (D-012); connect to: thermal oxidation of a halogenated vent gas with acid-gas scrubbing, per kg of gas"
-    source: "flowsheet stream S18 (D-008)"
+    source: "flowsheet stream S24, the vent header M202: S23 (R-101 sweep and F-101 pressing gas, D-007) and S18 (vacuum-pump exhaust, D-008)"
   - key: product:RESID
     treatment: {kind: waste, route: "hazardous-waste incineration of the still residue (toluene with dissolved PPh3 and the salt, about 20 wt% PPh3 and salt), as a liquid organic waste with phosphorus and bromine (D-009, D-012)"}
     missing: "not mapped yet (D-012); connect to: incineration of a halogenated, phosphorus-containing liquid organic waste, per kg"
@@ -66,8 +66,8 @@ flows:
 # What the batch plant uses per batch and the flowsheet does not carry (library ADR 0035, core
 # ADR 0053), converted with the recipe's batches per year (process/recipe.yaml): the nitrogen that
 # inerts and pads R-101, sweeps its headspace to the oxidiser, presses the filter-dryer and breaks
-# its vacuum (it leaves through the vent header to the thermal oxidiser: no burden of its own, no
-# disposal exchange). There is no rinse between batches: the train is kept dry and closed (the
+# its vacuum (it leaves through the vent header to the thermal oxidiser, recorded as its disposal
+# exchange, a gap). There is no rinse between batches: the train is kept dry and closed (the
 # salt is hygroscopic, the next batch's toluene takes up what stays in the vessels).
 consumables:
   - id: nitrogen
@@ -86,7 +86,7 @@ operation:
   life_years: 20
   source: "design basis operating_hours_per_year 7920 (ASSUMED, the recipe's hours); 20 a service life ASSUMED"
 emission_exclusions:
-  - {id: tank-breathing, method: storage-tank, equipment: [T-201, T-202], reason: "Breathing and filling losses of the liquor and recovered-toluene tanks (toluene with about 0.5 wt% methyl bromide), vented through the nitrogen blanket to the thermal oxidiser; not estimated (no P&ID yet, D-009)."}
+  - {id: tank-breathing, method: storage-tank, equipment: [T-201, T-202], reason: "Breathing and filling losses of the liquor and recovered-toluene tanks (toluene with about 0.05 wt% methyl bromide), vented through the nitrogen blanket to the thermal oxidiser; not estimated (no P&ID yet, D-009)."}
   - {id: methyl-bromide-store, method: storage-tank, reason: "Breathing and transfer losses of the liquefied methyl bromide store (a pressure vessel with a vapour return) are outside the boundary and not estimated (D-004)."}
   - {id: dryer-dust, method: equipment-leaks, equipment: [F-101], reason: "Salt dust in the vacuum pump's exhaust (behind the filter-dryer's dust filter) is not estimated (D-008)."}
 dataset:

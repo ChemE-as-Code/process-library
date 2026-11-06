@@ -25,7 +25,7 @@ reactor-hazards`, `cheme process crystallizers`, `cheme process stills`). Needs 
 
 Key numbers: 1057.10 kg per batch, a 10.20 h cycle (the filter-dryer the bottleneck), 776.6
 batches and 820.9 t a year. Thermal screening: 14.7 % of the methyl bromide accumulates, the
-MTSR is 339.1 K, and the MTT of the closed vessel is 431.0 K, a hand value (the temperature at its
+MTSR is 339.1 K, and the MTT of the closed vessel is 415.3 K, a hand value (the temperature at its
 relief's set pressure, DESIGN.md D-011). The headline yield (98.5 % on PPh3) and assay (99.87 wt%)
 are ASSUMED upper bounds: no open source of this route gives either, and impurities such as
 triphenylphosphine oxide are not modelled. The Org. Synth. procedure the route is usually cited

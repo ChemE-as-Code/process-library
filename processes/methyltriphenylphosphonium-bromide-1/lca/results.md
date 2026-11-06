@@ -77,6 +77,6 @@ It does not check:
 - construction (infrastructure, equipment) not included
 - end of life of the plant not included
 - transport of supplies not included
-- cut off by the study's criteria: emission-excluded:tank-breathing (Breathing and filling losses of the liquor and recovered-toluene tanks (toluene with about 0.5 wt% methyl bromide), vented through the nitrogen blanket to the thermal oxidiser; not estimated (no P&ID yet, D-009).)
+- cut off by the study's criteria: emission-excluded:tank-breathing (Breathing and filling losses of the liquor and recovered-toluene tanks (toluene with about 0.05 wt% methyl bromide), vented through the nitrogen blanket to the thermal oxidiser; not estimated (no P&ID yet, D-009).)
 - cut off by the study's criteria: emission-excluded:methyl-bromide-store (Breathing and transfer losses of the liquefied methyl bromide store (a pressure vessel with a vapour return) are outside the boundary and not estimated (D-004).)
 - cut off by the study's criteria: emission-excluded:dryer-dust (Salt dust in the vacuum pump's exhaust (behind the filter-dryer's dust filter) is not estimated (D-008).)
