@@ -1,0 +1,52 @@
+# Reactions of potassium-tert-butoxide-1. Schema cheme/reactions/v1 (`cheme schema
+# process-reactions`).
+#
+# The route is potassium metal with an excess of dry tert-butanol (DESIGN.md D-001): molten
+# potassium dispersed in the stirred alcohol reacts at its surface to the alkoxide, which stays
+# dissolved in the excess alcohol, and hydrogen, which leaves by the vent as it forms (core ADR
+# 0054). The water the dried make-up still carries reacts with the potassium first, to KOH.
+# - KTBA, WAT in R101 (semi-batch: the molten potassium dosed into the alcohol heel at 348 K).
+# No open kinetics or calorimetry of either reaction was found (searched 2026-11-06): the rate
+# laws and the heats of reaction are ASSUMED (D-005). The rate of the liquid-metal reaction is
+# set by the metal's dispersion (Organic Syntheses: the rate is regulated by the stirring), so
+# the model's first-order rate in "dissolved" potassium is an effective pseudo-homogeneous rate,
+# not a mechanism (L-1). A vented component's heat of reaction is that of forming it as a gas
+# at the vessel's temperature (core ADR 0054).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: KTBA
+    title: Potassium with tert-butanol to potassium tert-butoxide and hydrogen
+    equation: K + (CH3)3COH -> (CH3)3COK + 1/2 H2
+    stoichiometry: {K: -1, TBA: -1, KOTBU: 1, H2: 0.5}
+    phase: liquid
+    heat_of_reaction: {value: -135000, provenance: assumed, source: "ASSUMED (D-005): no open formation enthalpy of potassium tert-butoxide or calorimetry of the reaction; of the order of its analogues from the formation enthalpies packaged in chemicals 1.5.2: Na + CH3OH(l) -> NaOCH3(s) + 1/2 H2, -136.0 kJ/mol (NaOCH3 -374.4, NIST WebBook; methanol -238.4), and K + H2O(l) -> KOH(s) + 1/2 H2, -138.8 kJ/mol (KOH -424.6, CRC; water -285.8), H2 as a gas; taken at -135 kJ/mol for the dissolved alkoxide, its heat of solution unknown"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # first order in the dispersed metal, the alcohol in excess: k = 3.0e-3 1/s at 348.15 K,
+      # Ea 40 kJ/mol: A = 3.0e-3 x exp(40000 / (8.314 x 348.15)) = 3010 1/s
+      k: {A: 3010, Ea: 40000}
+      orders: {K: 1}
+      temperature_range: [336.65, 365.0]
+      provenance: assumed
+      source: "ASSUMED effective rate of the molten metal dispersed by the agitator (D-005): a time constant of about 6 min, so that the dosing controls the heat release; Organic Syntheses (Coll. Vol. 5, 1060) has the dispersed molten potassium dissolve in refluxing tert-butanol at a rate set by the stirring, and Coll. Vol. 4, 132 needs more than 4 h for undispersed pieces; to be replaced by reaction calorimetry"
+    sources: ["Organic Syntheses, Coll. Vol. 5, p. 1060 (1973): 100 g potassium in 1250 mL dry tert-butanol under nitrogen, warms to the metal's melting point, disperses, and dissolves at a rate regulated by the stirring, the alcohol refluxing", "Organic Syntheses, Coll. Vol. 4, p. 132 (1963): potassium in dry tert-butanol boiled under reflux until dissolved, hydrogen liberated"]
+  - id: WAT
+    title: Potassium with the water of the make-up to KOH and hydrogen
+    equation: K + H2O -> KOH + 1/2 H2
+    stoichiometry: {K: -1, H2O: -1, KOH: 1, H2: 0.5}
+    phase: liquid
+    heat_of_reaction: {value: -138800, provenance: assumed, source: "ASSUMED (D-005): K + H2O(l) -> KOH(s) + 1/2 H2(g) from the formation enthalpies packaged in chemicals 1.5.2 (KOH -424.6 kJ/mol, CRC; water -285.8 kJ/mol, CRC), the KOH taken as dissolved without a heat of solution"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # k = 100 m3/(kmol s) at 348.15 K, Ea 40 kJ/mol
+      k: {A: 1.0034e+8, Ea: 40000}
+      orders: {K: 1, H2O: 1}
+      temperature_range: [336.65, 365.0]
+      provenance: assumed
+      source: "ASSUMED fast (D-005): potassium reacts with water far faster than with tert-butanol, so the make-up's water is taken up first; its extent is the water fed, its rate does not matter to the balance"
+    sources: ["Wikipedia, Potassium: reacts vigorously with water, the heat released enough to ignite the hydrogen formed"]

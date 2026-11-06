@@ -37,6 +37,11 @@
 # The yield references are independent of the dataset (other patents, other applicants), but they
 # are patent examples too, and neither is the dataset's technology exactly.
 #
+# potassium-tert-butoxide-1 (#418; an alkoxide, filed with its alcohol among the oxygenates): no
+# open source gives a plant's specific consumptions; the stoichiometric floors (0.3484 kg
+# potassium and 0.6606 kg tert-butanol per kg) are limits, not ranges, and are not recorded as
+# references (docs/benchmarks.md).
+#
 # tert-butanol-1:
 # The selectivity reference is a patent (Sumitomo Chemical) that the dataset does not use: the dataset's
 # by-product rate is from another applicant's patent (Nippon Oil, US 4,180,688, Example 4). The selectivity
@@ -384,6 +389,14 @@ kpis:
       for electricity were read. The student design named under electricity states 9388 kg/h of steam,
       about 0.93 t per t TBA at 330 d/a; it is not used, for the reasons given there. The dataset's value
       is core's Tier 0 default heat from fossil fuel, ASSUMED.
+  kotbu-specific-potassium:
+    title: Potassium metal consumption per kg of potassium tert-butoxide
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's potassium use per kg of potassium tert-butoxide found (searched 2026-11-06: Google Patents US 4 577 045 A, US 5 053 560 A and US 6 150 569 A read, the KOH and amalgam routes, the metal route only as prior art without figures; Organic Syntheses Coll. Vol. 4, 132 and Coll. Vol. 5, 1060 read, laboratory preparations used in situ without a yield of the isolated alkoxide; Wikipedia, Potassium tert-butoxide, the route without figures). The stoichiometric floor is 0.3484 kg/kg (K + tert-butanol -> KOtBu + 1/2 H2), a limit, not a range of real plants."
+  kotbu-specific-tert-butanol:
+    title: tert-Butanol consumption per kg of potassium tert-butoxide
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's tert-butanol use per kg of potassium tert-butoxide found (searched 2026-11-06, the sources named under kotbu-specific-potassium; US 4 577 045 A says the alcohol is recycled almost completely, without a figure). The stoichiometric floor is 0.6606 kg/kg; the losses to the vent, the purge and the sieve's regeneration are this design's ASSUMED values (potassium-tert-butoxide-1, DESIGN.md D-006, D-007)."
 
 datasets:
   - process: terephthalic-acid-1
@@ -497,3 +510,9 @@ datasets:
         reference: us4307257-tba-selectivity
       tba-specific-electricity: {expression: feed:electricity / product:tert-butanol, per: product:tert-butanol}
       tba-specific-heat: {expression: feed:heat / product:tert-butanol, per: product:tert-butanol}
+  - process: potassium-tert-butoxide-1
+    dataset: potassium-tert-butoxide-from-potassium-and-dry-tert-butanol-by-semi-batch-alcohol-strip-and-vacuum-drying
+    conditions: {technology: "molten potassium dosed into dry tert-butanol at 348 K (semi-batch, hydrogen vent), the alcohol stripped in a batch still and recycled, the solvate vacuum-dried at 433 K, the azeotropic make-up dried on a molecular sieve", basis: "concept balance, the charge ratio after Organic Syntheses, ASSUMED kinetics, losses and work-up (DESIGN.md D-004 to D-008)"}
+    kpis:
+      kotbu-specific-potassium: {expression: feed:K / product:KOTBU, per: product:KOTBU}
+      kotbu-specific-tert-butanol: {expression: feed:TBAF / product:KOTBU, per: product:KOTBU}

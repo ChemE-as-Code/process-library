@@ -39,7 +39,7 @@ no paragraph numbers, so the locator is the part of the document).
 | SRC-8 | PubChem CIDs 90495 (Boc2O), 23665647 (KOtBu), 8058 (n-hexane), 9237 (DABCO) | identity: formula, InChIKey, CAS | read (PUG REST) | registry, materials |
 | SRC-9 | Property data of core's environment and the NIST Chemistry WebBook, SRD 69 (https://webbook.nist.gov): Antoine constants of n-hexane (C110543, Willingham et al. 1945), tert-butanol (C75650, Brown et al. 1969), phosgene (C75445, Stull 1947), water (C7732185, Stull 1947); CO2's saturation pressures; the `chemicals` 1.5.2 package's packaged CRC tables (densities, heat capacities, boiling points; not the printed licensed handbook); CoolProp 8.0.0 (MIT licence), water's saturation temperature at 350 kPa(a) from its default IAPWS-95 formulation (the LP steam's 412.007 K) | per component in `process/materials.yaml`; the LP steam in `process/flowsheet.yaml` | open data packages queried and WebBook pages read (2026-11-06); facts only | materials, the flowsheet's utilities, D-006, D-008, D-009 |
 | SRC-10 | Stoessel, F. (2008) Thermal Safety of Chemical Processes, Wiley-VCH, doi:10.1002/9783527621606 | accumulation, MTSR and the criticality classes of a semi-batch (the method of core ADRs 0050, 0058) | method reference, no data taken | D-011 |
-| SRC-11 | processes/phosgene-1, chlor-alkali-1, asu-1, benzyl-chloroformate-1 (this library) | liquid phosgene at 253 K and 340 kPa(a); caustic soda 50 wt%; gaseous nitrogen; the phosgene evaporator's heat, the degassing still and the scrubber pattern | library, internal | D-004, D-006, D-007, D-012 |
+| SRC-11 | processes/phosgene-1, chlor-alkali-1, asu-1, benzyl-chloroformate-1, potassium-tert-butoxide-1 (this library) | liquid phosgene at 253 K and 340 kPa(a); caustic soda 50 wt%; gaseous nitrogen; the phosgene evaporator's heat, the degassing still and the scrubber pattern; potassium tert-butoxide powder from potassium and dry tert-butanol (99.47 wt% KOtBu modelled) | library, internal | D-004, D-006, D-007, D-012 |
 | SRC-12 | Ullmann's Encyclopedia of Industrial Chemistry (carbonic acid esters) | - | not read (licensed) | nothing taken |
 
 Searched and not found openly (2026-11-06): kinetics or reaction calorimetry of the carbonation
@@ -90,9 +90,9 @@ Rejected:
 Lumped, not modelled step by step: the mixed anhydride and the tricarbonate (in PHOS); the
 chloroformate path and its decomposition (in SIDE); MgSO4 drying (the water leaves with the
 forerun, D-008); the two washes of SRC-1 and SRC-2 (one wash stage, D-007).
-Links: phosgene from phosgene-1, caustic soda from chlor-alkali-1, nitrogen from asu-1. No
-library process makes potassium tert-butoxide (its proxy, D-012), hexane, DABCO, CO2 as a
-product or the paraffin.
+Links: potassium tert-butoxide from potassium-tert-butoxide-1 (since issue #418, D-012),
+phosgene from phosgene-1, caustic soda from chlor-alkali-1, nitrogen from asu-1. No library
+process makes hexane, DABCO, CO2 as a product or the paraffin.
 
 ## D-002 Capacity, product and operating hours (2026-11-06)
 Decision: 500 t/a distilled Boc2O, 7920 h/a (330 days of 24 h), ASSUMED. Modelled product (S25):
@@ -511,32 +511,27 @@ Screening values only, not a reaction-hazard assessment.
 
 ## D-012 Preliminary gate-to-gate LCI (2026-11-06)
 Decision: `cheme assess lca --write` per kg of distilled Boc2O from the flowsheet's year averages;
-phosgene linked to phosgene-1 (its liquid phosgene, a captive supply), caustic soda to
-chlor-alkali-1, the nitrogen consumable to asu-1's gaseous nitrogen (`lca/mappings.yaml`), the LP
-steam counted as heat (kWh); every other background a gap with the activity it should connect to.
-- **Potassium tert-butoxide** has no library producer: its stoichiometric proxy, 0.6606 kg of
-  tert-butanol and 0.3484 kg of potassium per kg (from dry tert-butanol and potassium metal, SRC-7;
-  0.009 kg of hydrogen released), is recorded in lca.yaml and here and not linked. Potassium metal
-  has no entry.
-- **tert-Butanol (2026-11-06).** The library has a tert-butanol entry since PR #402
-  (tert-butanol-1, Tier 0, manifest-only, `product:tert-butanol`, TBA contained), and the
-  alkoxide stays a gap: the library's LCI conventions do not allow linking a share of a proxy to
-  an Atlas producer. An exchange override (`lca/mappings.yaml`, schema `exchange_override`) links
-  the whole exchange to one Atlas product kg for kg (`dataset`), or `use`s one shared entry, never
-  both and with no amount factor; a shared proxy of `lci/mappings.yaml` (`proxies:`) takes only
-  technosphere entries with a background activity as inputs (`build_lci.py` refuses others and
-  links them to the background, never to an Atlas dataset). The library's split proxy,
-  hda-1's `hydrogen-methane-makeup`, sends its hydrogen share to the background and is `atlas:
-  false`, since linking hydrogen-1 would take the whole exchange as hydrogen; and
-  p-toluenesulfonyl-chloride-1 records its SO3 + HCl proxy without linking it, as this entry does.
-  A link of `feed:KOTBU` to tert-butanol-1 kg for kg would count 1 kg of tert-butanol for 0.66 kg
-  and leave the potassium out: a guess (CONTRIBUTING, "Gaps"). The grade also differs:
-  tert-butanol-1 counts TBA contained and excludes drying beyond the azeotrope, while the alkoxide
-  is made from dry tert-butanol. To link it the library would need either (a) a potassium
-  tert-butoxide entry, a Tier 0 dataset from dry tert-butanol and potassium with its
-  `feed:tert-butanol` linked to tert-butanol-1 (and the drying stated) and potassium a gap, to
-  which `feed:KOTBU` then links, or (b) proxy inputs that may name an Atlas dataset's product (a
-  schema and `build_lci.py` change, its own PR). Either is an open input.
+potassium tert-butoxide linked to potassium-tert-butoxide-1, phosgene to phosgene-1 (its liquid
+phosgene, a captive supply), caustic soda to chlor-alkali-1, the nitrogen consumable to asu-1's
+gaseous nitrogen (`lca/mappings.yaml`), the LP steam counted as heat (kWh); every other
+background a gap with the activity it should connect to.
+- **Potassium tert-butoxide (linked 2026-11-06, issue #418).** `feed:KOTBU` links the Atlas
+  producer potassium-tert-butoxide-1 kg for kg (`lca/mappings.yaml`, `dataset` to its
+  `product:KOTBU`), as feed:PHOS links phosgene-1. Grade and unit: this entry's S1 is the
+  technical solid, modelled as 100 % KOtBu in kg/h (D-004); that entry's product is the dried
+  powder from potassium metal and dry tert-butanol in kg, modelled 99.47 wt% KOtBu, 0.23 wt% KOH
+  and 0.30 wt% tert-butanol: the same grade per kg of powder, the link counting that entry's
+  burden per kg of powder (its D-014). That entry dries its make-up tert-butanol past the
+  azeotrope on a molecular sieve, links the alcohol contained to tert-butanol-1 (TBA contained,
+  its product's basis), and keeps potassium metal a gap with its proxy (KCl + Na) recorded, so
+  the alkoxide's potassium stays a gap upstream, not here.
+- Until then (PR #402 to #418) the alkoxide was a gap: an exchange override links a whole
+  exchange to one Atlas product kg for kg and a shared proxy's inputs are background activities
+  only, so the stoichiometric proxy's tert-butanol share (0.6606 kg tert-butanol and 0.3484 kg
+  potassium per kg, SRC-7) could not link tert-butanol-1, and tert-butanol-1's TBA contained is
+  not the dry tert-butanol the alkoxide needs. A potassium tert-butoxide entry whose tert-butanol
+  feed links tert-butanol-1 was the way the library chose (issue #418, option 1); proxy inputs
+  that name an Atlas product (option 2) stay a broader to-do.
 - Hexane, DABCO, CO2 and the liquid paraffin: gaps, no library producer (CO2 is a by-product of
   ammonia or ethylene-oxide plants; none of the library's entries supplies it as a product).
 - Wastes: the brine and the scrubber liquor to wastewater treatment, the waste solvent and the heel
@@ -825,5 +820,5 @@ sourced Henry constant of CO2 in the slurry (for `vent.henry`, D-015); the side 
 tricarbonate, the chloroformate) and so the product's assay; Boc2O's vapour pressure and heat of
 vaporization; the wash's partition (tert-butanol, DABCO, Boc2O) and the melt's water; the CO2
 uptake of the scrubber; the product specification; R-101's relief and the phosgene enclosure
-(D-014); a potassium tert-butoxide producer or proxy inputs that link an Atlas product, to
-link the alkoxide's tert-butanol to tert-butanol-1 (D-012); a TEA (`operation.batch: {recipe: true}`).
+(D-014); a potassium metal producer for potassium-tert-butoxide-1's gap (D-012); a TEA
+(`operation.batch: {recipe: true}`).
