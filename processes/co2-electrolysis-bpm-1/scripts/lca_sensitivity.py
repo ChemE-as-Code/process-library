@@ -22,7 +22,11 @@ step 17, beside the resize report; DESIGN.md D-026):
   10,000 h, by exchange;
 - lca/ranking.json: the flows that distinguish Skid A from Skid B, whether each has a documented
   factor, the characterised difference, the break-even KOH factor and the verdict: "ranking not
-  determined" unless every distinguishing flow has a documented factor (library ADR 0029);
+  determined" unless every distinguishing flow has a documented factor (library ADR 0029); and
+  whether the ranking changes (DESIGN.md D-049): the sign of B - A under every electricity mix and
+  duration, whether the membrane life can move it, the construction difference that would
+  reverse the order (per skid life, over the design CO rate x lca/lca.yaml's operation, and per kg
+  of the extra tank mass, the record's ASSUMED weights) and one sentence of it;
 - the tables of lca/README.md between its markers.
 
 Deterministic (no time stamp; floats to 10 significant figures), so --check compares bytes; it
@@ -273,7 +277,213 @@ def _names(items: list[str]) -> str:
     return items[0] if len(items) == 1 else ", ".join(items[:-1]) + " and " + items[-1]
 
 
-def ranking(doc: dict) -> dict[str, Any]:
+def lifetime(root: Path) -> dict[str, Any]:
+    """The CO one skid delivers over its life: the design CO rate (process/design-basis.yaml)
+    times lca/lca.yaml's operation (hours per year, life in years), all ASSUMED."""
+    basis = yaml.safe_load((root / "process" / "design-basis.yaml").read_text(encoding="utf-8"))
+    rate = basis["capacity"]["pilot_skid"]["product"]["rate"]
+    if rate["unit"] != "kg/h":
+        raise ValueError(f"capacity.pilot_skid.product.rate in {rate['unit']}, not kg/h")
+    op = yaml.safe_load((root / "lca" / "lca.yaml").read_text(encoding="utf-8"))["operation"]
+    out = {"co_rate_kg_h": float(rate["value"]), "hours_per_year": float(op["hours_per_year"]), "life_years": float(op["life_years"])}
+    out["co_kg_per_skid_life"] = out["co_rate_kg_h"] * out["hours_per_year"] * out["life_years"]
+    out["assumed"] = True
+    out["source"] = (
+        "process/design-basis.yaml capacity.pilot_skid.product.rate (ASSUMED, DESIGN.md D-008) x lca/lca.yaml "
+        "operation.hours_per_year x operation.life_years (ASSUMED, D-024)"
+    )
+    return out
+
+
+def _higher(diff: float | None) -> str | None:
+    """Which skid has the higher total for a difference B - A."""
+    if diff is None:
+        return None
+    return "B" if diff > 0 else ("A" if diff < 0 else "equal")
+
+
+def _same(x: float | None, y: float | None) -> bool:
+    if x is None or y is None:
+        return x is y
+    return abs(x - y) <= 1e-9 * max(abs(x), abs(y), 1e-300)
+
+
+def by_sensitivity(doc: dict, docs: dict[float, dict] | None) -> dict[str, Any]:
+    """The sign of B - A in every reported sensitivity that has both skids: the electricity
+    mixes (from the scenario records) and the campaign durations (the scenarios' LCA records)."""
+    a, b = doc["skids"]["A"], doc["skids"]["B"]
+    base_core = b["impacts"]["total"] - a["impacts"]["total"]
+    base_sw = b["solution_water"]["total_with_it"] - a["solution_water"]["total_with_it"]
+    # the KOH solutions' water is at the water factor, which an electricity scenario leaves as
+    # it is: its difference is added to each mix's B - A once the scenario's water equals the
+    # baseline's
+    sw_diff = b["solution_water"]["kg_co2e"] - a["solution_water"]["kg_co2e"]
+    sc = doc["scenarios"]
+
+    def water(sid: str) -> float | None:
+        return ((sc.get(sid) or {}).get("contributions", {}).get("feed:WATER") or {}).get("value")
+
+    base_water = {"A": water("baseline"), "B": water("skid-b")}
+    rows: list[dict[str, Any]] = []
+    not_compared = []
+    for r in electricity_mix(doc)["rows"]:
+        if r.get("b_minus_a") is None:
+            reason = "no Skid B scenario on this basis" if r["B"] is None else "a total is missing"
+            not_compared.append({"sensitivity": "electricity mix", "case": r["grid"], "reason": reason})
+            continue
+        same_water = all(_same(water(r[s]["scenario"]), base_water[s]) for s in ("A", "B"))
+        rows.append(
+            {
+                "sensitivity": "electricity mix",
+                "case": r["grid"],
+                "scenarios": {"A": r["A"]["scenario"], "B": r["B"]["scenario"]},
+                "b_minus_a": r["b_minus_a"],
+                "b_minus_a_with_solution_water": r["b_minus_a"] + sw_diff if same_water else None,
+            }
+        )
+    for h in sorted(docs or {}):
+        s = docs[h]["skids"]
+        rows.append(
+            {
+                "sensitivity": "campaign duration",
+                "case": f"{h:g} h",
+                "b_minus_a": s["B"]["impacts"]["total"] - s["A"]["impacts"]["total"],
+                "b_minus_a_with_solution_water": s["B"]["solution_water"]["total_with_it"] - s["A"]["solution_water"]["total_with_it"],
+            }
+        )
+    for r in rows:
+        r["higher"] = _higher(r["b_minus_a_with_solution_water"])
+        r["higher_core_totals"] = _higher(r["b_minus_a"])
+        r["order_changes"] = r["higher_core_totals"] != _higher(base_core) or (
+            r["b_minus_a_with_solution_water"] is not None and r["higher"] != _higher(base_sw)
+        )
+    return {
+        "basis": (
+            "B - A, kg CO2e per kg CO: b_minus_a on core's totals (lca/sensitivity-electricity-mix.json, "
+            "lca/sensitivity-duration.json), b_minus_a_with_solution_water with the KOH solutions' water at the "
+            "water factor (the ranking's basis; an electricity scenario does not change the water factor). "
+            "order_changes: the higher skid differs from the design baseline's on either basis"
+        ),
+        "baseline_higher": _higher(base_sw),
+        "rows": rows,
+        "not_compared": not_compared,
+        "order_changes": any(r["order_changes"] for r in rows),
+    }
+
+
+def membrane_life_reading(doc: dict) -> dict[str, Any]:
+    """Whether the membrane life can change the order: the replaced parts per kg CO, from
+    lca/sensitivity-membrane-life.json, against both skids' datasets and CO."""
+    m = membrane_life(doc)
+    ds = m["datasets_g_per_kg_at_design"]
+    same_parts = all(_same(ds["A"][k], ds["B"][k]) for k in ds["A"])
+    same_co = _same(doc["skids"]["A"]["co_delivered_kg_h"], doc["skids"]["B"]["co_delivered_kg_h"])
+    common = bool(m["same_for_both_skids"] and m["datasets_match"] and same_parts and same_co)
+    return {
+        "common_to_both_skids": common,
+        "can_change_ranking": not common,
+        "levels_h": [r["membrane_life_h"] for r in m["rows"]],
+        "basis": (
+            "lca/sensitivity-membrane-life.json: identical stacks replaced at the same interval and the same CO "
+            "delivered per hour, so both datasets carry the same parts per kg CO at every life; whatever factor "
+            "the parts get adds the same to both totals and leaves B - A as it is. Their impact itself is not "
+            "computable (gaps)"
+            if common
+            else "the replaced parts per kg CO differ between the skids: the membrane life can move B - A"
+        ),
+    }
+
+
+def break_even_construction(doc: dict, diff: float | None, more_construction: str, life: dict[str, Any] | None) -> dict[str, Any] | None:
+    """The construction difference at which the order of the totals with the solutions' water
+    would reverse: |B - A| per kg CO over the CO of one skid's life, and per kg of the extra
+    tank mass of the skid with the larger tanks (the record's ASSUMED weights)."""
+    if diff is None or life is None:
+        return None
+    hi = _higher(diff)
+    lo = "A" if hi == "B" else "B"
+    per_life = abs(diff) * life["co_kg_per_skid_life"]
+    tw = {s: doc["skids"][s].get("tanks_weight") for s in ("A", "B")}
+    out: dict[str, Any] = {
+        "basis": (
+            f"|B - A| per kg CO on the totals with the KOH solutions' water ({abs(diff):.6g} kg CO2e/kg CO, "
+            f"characterised.with_solution_water) x the CO of one skid's life ({life['co_rate_kg_h']:g} kg/h x "
+            f"{life['hours_per_year']:g} h/a x {life['life_years']:g} a = {life['co_kg_per_skid_life']:g} kg); "
+            "with the KOH and treatment gaps at zero: a positive factor for either raises it, the skid with the "
+            "higher total using more of both"
+        ),
+        "b_minus_a_kg_co2e_per_kg_co": diff,
+        "lifetime": life,
+        "skid_with_more_construction": more_construction,
+        "can_reverse": more_construction == lo,
+        "kg_co2e_per_skid_life": per_life,
+        "reverses_if": (
+            f"Skid {lo}'s construction exceeds Skid {hi}'s by more than this, per skid life"
+            if more_construction == lo
+            else f"never: Skid {hi}, the higher, also has the larger tanks"
+        ),
+        "kg_co2e_per_kg_extra_tank_mass": None,
+    }
+    if tw["A"] and tw["B"]:
+        mass = {s: sum(tw[s]["kg"].values()) for s in ("A", "B")}
+        extra = mass[more_construction] - mass["B" if more_construction == "A" else "A"]
+        materials = sorted({m for s in ("A", "B") for m in tw[s]["material"].values() if m})
+        out["tanks_kg"] = {s: tw[s]["kg"] for s in ("A", "B")}
+        out["tank_material"] = materials
+        out["extra_tank_mass_kg"] = extra
+        out["weights_assumed"] = tw["A"]["assumed"] and tw["B"]["assumed"]
+        out["weights_source"] = tw["A"]["source"] + ", via results/scenarios/<H>h/lca.json tanks_weight"
+        if extra > 0:
+            out["kg_co2e_per_kg_extra_tank_mass"] = per_life / extra
+        out["not_in_it"] = (
+            "Skid B's dosing hardware other than its day tank (the metering pump P-202 and its lines) and every "
+            "item both skids share: P-202 adds to Skid B's construction, so counting it would raise the extra "
+            "construction Skid A needs to reverse the order; no factor for the tank material is used (none is open "
+            "in lca/factors.yaml)"
+        )
+    return out
+
+
+def ranking_changes(hi: str, sens: dict, mem: dict, break_even: float | None, more: dict[str, str], groups: dict[str, str],
+                    koh: dict[str, float], waste: dict[str, float], bec: dict[str, Any] | None) -> str:  # fmt: skip
+    """One sentence, from the readings: whether any reported sensitivity or any non-negative
+    factor of a gap reverses the order, and what could."""
+    lo = "A" if hi == "B" else "B"
+    n_mix = sum(r["sensitivity"] == "electricity mix" for r in sens["rows"])
+    n_dur = sum(r["sensitivity"] == "campaign duration" for r in sens["rows"])
+    changes = [r["case"] for r in sens["rows"] if r["order_changes"]]
+    if mem["can_change_ranking"]:
+        changes.append("the membrane life")
+    gaps_ok = break_even is not None and break_even < 0 and more[groups["wastes"]] == hi
+    if changes or not gaps_ok:
+        why = [f"the order changes under {_names(changes)}"] if changes else []
+        if not gaps_ok:
+            why.append("a non-negative KOH or waste-treatment factor could reverse it")
+        return f"The order can change: {'; '.join(why)}."
+    text = (
+        f"The order does not change: Skid {hi} stays higher under every reported sensitivity ({n_mix} electricity "
+        f"mixes, {n_dur} campaign durations; the membrane life is common to both skids) and under any non-negative "
+        f"KOH or waste-treatment factor (Skid {hi} uses {koh[hi] / koh[lo]:.3g} times the KOH and makes "
+        f"{waste[hi] / waste[lo]:.3g} times the alkaline waste per kg CO)"
+    )
+    if bec and bec["can_reverse"]:
+        per_kg = bec["kg_co2e_per_kg_extra_tank_mass"]
+        text += (
+            f"; only a construction difference above the break-even could reverse it: Skid {lo}'s construction "
+            f"exceeding Skid {hi}'s by more than {bec['kg_co2e_per_skid_life']:.4g} kg CO2e per skid life"
+            + (
+                f" ({per_kg:.3g} kg CO2e per kg of its {bec['extra_tank_mass_kg']:.4g} kg of extra "
+                f"{'/'.join(bec['tank_material'])} tank, ASSUMED weights)"
+                if per_kg is not None
+                else ""
+            )
+        )
+    elif bec:
+        text += f"; construction cannot reverse it either (Skid {hi} has the larger tanks)"
+    return text + "."
+
+
+def ranking(doc: dict, docs: dict[float, dict] | None = None, life: dict[str, Any] | None = None) -> dict[str, Any]:
     a, b = doc["skids"]["A"], doc["skids"]["B"]
     keys = sorted(set(a["exchanges"]) | set(b["exchanges"]))
     flows = []
@@ -340,6 +550,12 @@ def ranking(doc: dict) -> dict[str, Any]:
         )
     else:
         reading = f"{break_even:.4g} kg CO2e per kg KOH: above it the skid with less KOH is lower"
+    # whether the ranking changes (DESIGN.md D-049): the signs under the sensitivities, the
+    # membrane life, and the construction difference that would reverse the order
+    sens = by_sensitivity(doc, docs)
+    mem = membrane_life_reading(doc)
+    bec = break_even_construction(doc, diff, more[groups["construction"]], life)
+    changes = None if diff is None else ranking_changes(_higher(diff), sens, mem, break_even, more, groups, koh, waste, bec)
     return {
         "schema": SCHEMA,
         "what": "Skid A against Skid B: the ranking rule (DESIGN.md D-026)",
@@ -363,6 +579,10 @@ def ranking(doc: dict) -> dict[str, Any]:
         "tanks_m3": tanks,
         "carried_more_by": more,
         "inventory_comparison": "lca/README.md and results/scenarios/<H>h/lca.json, per kg CO",
+        "by_sensitivity": sens,
+        "membrane_life": mem,
+        "break_even_construction": bec,
+        "ranking_changes": changes,
     }
 
 
@@ -377,7 +597,7 @@ def _f(x: float | None, digits: int = 4) -> str:
     return f"{x:.{digits}g}"
 
 
-def readme_tables(docs: dict[float, dict], design: float) -> str:
+def readme_tables(docs: dict[float, dict], design: float, life: dict[str, Any] | None = None) -> str:
     d = docs[design]
     hs = sorted(docs)
     lines = [f"Generated from results/scenarios/<H>h/lca.json (design campaign {design:g} h unless stated). Per kg CO delivered.", ""]
@@ -449,7 +669,7 @@ def readme_tables(docs: dict[float, dict], design: float) -> str:
     )
     lines += [h2_line, ""]
     # ranking
-    rk = ranking(d)
+    rk = ranking(d, docs, life)
     be = rk["break_even_koh_kg_co2e_per_kg"]
     rank_line = (
         f"**Skid A against Skid B: {rk['verdict']}.** Distinguishing flows without a documented factor: "
@@ -457,6 +677,23 @@ def readme_tables(docs: dict[float, dict], design: float) -> str:
         f"({rk['break_even_reading'].split(':')[0]})."
     )
     lines += [rank_line, ""]
+    # whether the ranking changes (D-049)
+    if rk["ranking_changes"]:
+        sens = rk["by_sensitivity"]
+        signs = "; ".join(f"{r['case']} {r['b_minus_a_with_solution_water']:+.4g}" for r in sens["rows"])
+        change_line = f"**Whether the ranking changes**: {rk['ranking_changes']} B - A with the solutions' water, kg CO2e per kg CO: {signs}."
+        bec = rk["break_even_construction"]
+        if bec and bec["can_reverse"] and bec["kg_co2e_per_kg_extra_tank_mass"] is not None:
+            life_ = bec["lifetime"]
+            tanks = ", ".join(
+                f"Skid {s}'s " + " + ".join(f"{tag} {kg:g} kg" for tag, kg in sorted(bec["tanks_kg"][s].items())) for s in ("A", "B")
+            )
+            change_line += (
+                f" The break-even's basis: {_f(abs(bec['b_minus_a_kg_co2e_per_kg_co']))} x {life_['co_kg_per_skid_life']:g} kg CO per skid life "
+                f"({life_['co_rate_kg_h']:g} kg/h x {life_['hours_per_year']:g} h/a x {life_['life_years']:g} a, ASSUMED); the tanks: {tanks} "
+                f"({'/'.join(bec['tank_material'])}, ASSUMED weights); Skid B's dosing pump P-202 is not in it (it would raise the break-even)."
+            )
+        lines += [change_line, ""]
     # reconciliation
     ok = {
         f"{h:g} h": all(docs[h]["skids"][s]["reconciled"] and docs[h]["skids"][s]["lca_cases_agree"] for s in ("A", "B"))
@@ -484,7 +721,7 @@ def texts(root: Path, docs: dict[float, dict] | None = None) -> dict[str, str]:
         "lca/sensitivity-h2-coproduct.json": res.dump(h2_coproduct(d)),
         "lca/sensitivity-electricity-mix.json": res.dump(electricity_mix(d)),
         "lca/sensitivity-duration.json": res.dump(duration(docs)),
-        "lca/ranking.json": res.dump(ranking(d)),
+        "lca/ranking.json": res.dump(ranking(d, docs, lifetime(root))),
     }
     readme = root / README
     if readme.exists():
@@ -492,7 +729,7 @@ def texts(root: Path, docs: dict[float, dict] | None = None) -> dict[str, str]:
         if BEGIN in text and END in text:
             head, rest = text.split(BEGIN, 1)
             _, tail = rest.split(END, 1)
-            out[README] = f"{head}{BEGIN}\n{readme_tables(docs, design)}{END}{tail}"
+            out[README] = f"{head}{BEGIN}\n{readme_tables(docs, design, lifetime(root))}{END}{tail}"
     return out
 
 
