@@ -129,10 +129,10 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 18 | `btx` | Benzene, toluene and xylenes | aromatics | n/a, to be sourced | medium | reformate, pygas, hda | styrene, cumene-phenol, terephthalic-acid, caprolactam, mdi-tdi | 1 | btx-1 (T1) |
 | 19 | `soda-ash` | Soda ash | soda-ash | 10-100 (usgs-mcs-2024) | medium | solvay, trona, hou | - | 1 | soda-ash-1 (T2) |
 | 20 | `terephthalic-acid` | Purified terephthalic acid | oxygenates | n/a, to be sourced | medium | - | pet | 1 | terephthalic-acid-1 (T1) |
-| 21 | `ammonium-nitrate` | Ammonium nitrate and calcium ammonium nitrate | fertilizers | n/a, to be sourced | medium | - | npk-fertilizers | 1 | - |
+| 21 | `ammonium-nitrate` | Ammonium nitrate and calcium ammonium nitrate | fertilizers | n/a, to be sourced | medium | - | npk-fertilizers | 1 | ammonium-nitrate-1 (T1) |
 | 22 | `wastewater-treatment` **next** | Wastewater treatment (activated sludge) | wastewater-treatment | n/a, to be sourced | medium | - | - | 2 | utility-wwtp (T1) |
 | 23 | `cooling-water` **next** | Cooling water system | utilities | n/a, to be sourced | low | - | air-separation, ammonia, methanol | 2 | utility-cooling-tower (T1) |
-| 24 | `phosphoric-acid` | Phosphoric acid (wet process) | phosphoric-acid | n/a, to be sourced | low | dihydrate, hemihydrate | npk-fertilizers | 1 | - |
+| 24 | `phosphoric-acid` | Phosphoric acid (wet process) | phosphoric-acid | n/a, to be sourced | low | dihydrate, hemihydrate | npk-fertilizers | 1 | phosphoric-acid-1 (T1) |
 | 25 | `vcm` | Vinyl chloride monomer (balanced EDC process) | chlorinated-organics | n/a, to be sourced | medium | - | pvc | 1 | vcm-1 (T1) |
 | 26 | `pvc` | Polyvinyl chloride | polymers | n/a, to be sourced | medium | suspension, emulsion | - | 1 | - |
 | 27 | `styrene` | Styrene (via ethylbenzene) | styrenics | n/a, to be sourced | medium | eb-dehydrogenation, po-sm | polystyrene | 1 | styrene-1 (T1) |
@@ -150,8 +150,8 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 39 | `carbon-capture` | CO2 capture and conditioning | carbon-capture | n/a, to be sourced | high | high-purity, amine-post-combustion, dac | e-fuels, methanol, urea | 1 | - |
 | 40 | `lime` | Lime | cement-lime | 100-1000 (usgs-mcs-2024) | high | - | soda-ash, iron-steel | 0 | lime-1 (T1) |
 | 41 | `aluminium` | Primary aluminium | aluminium | 10-100 (usgs-mcs-2024) | high | - | - | 0 | aluminium-1 (T1) |
-| 42 | `npk-fertilizers` | NPK fertilisers | fertilizers | n/a, to be sourced | medium | nitrophosphate, mixed-acid | - | 0 | - |
-| 43 | `ammonium-sulfate` | Ammonium sulfate | fertilizers | n/a, to be sourced | low | - | - | 0 | - |
+| 42 | `npk-fertilizers` | NPK fertilisers | fertilizers | n/a, to be sourced | medium | nitrophosphate, mixed-acid | - | 0 | npk-fertilizers-1 (T0) |
+| 43 | `ammonium-sulfate` | Ammonium sulfate | fertilizers | n/a, to be sourced | low | - | - | 0 | ammonium-sulfate-1 (T0) |
 | 44 | `toluene-hda` **next** | Benzene by toluene hydrodealkylation | aromatics | n/a, to be sourced | low | - | - | 2 | hda-1 (T2) |
 | 45 | `e-fuels` | Synthetic fuels from H2 and CO2 (Fischer-Tropsch, methanol-to-fuels) | synthetic-fuels | n/a, to be sourced | high | rwgs-ft, mtj | - | 1 | - |
 | 46 | `plastic-pyrolysis` | Plastic waste pyrolysis | chemical-recycling | n/a, to be sourced | medium | - | ethylene | 1 | - |
@@ -208,7 +208,9 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 97 | `carbon-tetrabromide` | Carbon tetrabromide | chlorinated-organics | n/a, to be sourced | n/a | - | - | 2 | carbon-tetrabromide-1 (T2) |
 | 98 | `benzoyl-chloride` | Benzoyl chloride | chlorinated-organics | n/a, to be sourced | n/a | - | - | 2 | benzoyl-chloride-1 (T2) |
 | 99 | `p-toluenesulfonyl-chloride` | p-Toluenesulfonyl chloride | chlorinated-organics | n/a, to be sourced | n/a | - | - | 2 | p-toluenesulfonyl-chloride-1 (T2) |
-| 100 | `benzyl-bromide` | Benzyl bromide | chlorinated-organics | n/a, to be sourced | n/a | - | - | 2 | benzyl-bromide-1 (T2) |
+| 100 | `ammonium-hydroxide` | Ammonium hydroxide (aqueous ammonia) | ammonia | n/a, to be sourced | n/a | - | - | 0 | ammonium-hydroxide-1 (T0) |
+| 101 | `methyltriphenylphosphonium-bromide` | Methyltriphenylphosphonium bromide | chlorinated-organics | n/a, to be sourced | n/a | - | - | 2 | methyltriphenylphosphonium-bromide-1 (T2) |
+| 102 | `benzyl-bromide` | Benzyl bromide | chlorinated-organics | n/a, to be sourced | n/a | - | - | 2 | benzyl-bromide-1 (T2) |
 
 Volume sources (ids as in `coverage.yaml` `sources:`): `usgs-mcs-2024` U.S. Geological Survey,
 Mineral Commodity Summaries 2024; `iea-ammonia-2021` IEA, Ammonia Technology Roadmap (2021);

@@ -50,6 +50,14 @@
 # above 80 %; CN 105503671 A from purchased TsOH: 81-88 %) are laboratory examples, one of them
 # the dataset's own basis (DESIGN.md D-001, D-005), so binding them would only check the
 # transcription.
+#
+# Methyltriphenylphosphonium bromide (methyltriphenylphosphonium-bromide-1, #133; with the
+# halogenated organics, as carbon tetrabromide: the taxonomy has no organophosphorus family): no
+# open source gives a plant's specific consumptions. The stoichiometric floors are 0.734 kg PPh3
+# and 0.266 kg methyl bromide per kg of salt (Ph3P + CH3Br -> [Ph3PCH3]Br); they are limits, not
+# ranges of real plants, so they are not recorded as references (docs/benchmarks.md: never
+# invent a range). The open sources read (US 3 334 144 A, Wikipedia) give no yield of the
+# methyl bromide route; Org. Synth. 40, 66 (1960) could not be read.
 schema: cheme-as-code/benchmarks/v1
 family: chlorinated-organics
 
@@ -191,6 +199,14 @@ kpis:
     title: Chlorosulfonic acid consumption per kg of p-toluenesulfonyl chloride
     unit: kg/kg
     no_open_reference: "No open source with a plant's chlorosulfonic acid use per kg p-TsCl found (searched 2026-11-05 as for tscl-specific-toluene); the patents give laboratory ratios of about 3 (DE 1 912 956 A1) to 4 (PL 73685 B2) mol per mol toluene. Only the stoichiometric floor, 1.222 kg/kg, is known."
+  mtppb-specific-triphenylphosphine:
+    title: Triphenylphosphine consumption per kg of methyltriphenylphosphonium bromide
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's or a pilot's PPh3 use per kg of methyltriphenylphosphonium bromide found (searched 2026-11-06: Google Patents US 3 334 144 A read, its own dibromomethane route with 30 % conversion and no yield of the methyl bromide route; Wikipedia, Methyltriphenylphosphonium bromide, the route only; web search for the salt's production, which gave supplier pages and one laboratory patent example on another route, CN 107840792 A, not read; Org. Synth. 40, 66 (1960) blocked by a browser check, not read). Only the stoichiometric floor, 0.734 kg/kg, is known."
+  mtppb-specific-methyl-bromide:
+    title: Methyl bromide consumption per kg of methyltriphenylphosphonium bromide
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's methyl bromide use per kg of the salt found (searched 2026-11-06 as for mtppb-specific-triphenylphosphine); US 3 334 144 A states only that the route needs a pressure vessel. Only the stoichiometric floor, 0.266 kg/kg, is known."
 
 datasets:
   - process: vcm-1
@@ -239,3 +255,9 @@ datasets:
     kpis:
       tscl-specific-toluene: {expression: feed:TOL / product:TSCL, per: product:TSCL}
       tscl-specific-chlorosulfonic-acid: {expression: feed:CSA / product:TSCL, per: product:TSCL}
+  - process: methyltriphenylphosphonium-bromide-1
+    dataset: methyltriphenylphosphonium-bromide-by-semi-batch-quaternisation-of-triphenylphosphine-with-methyl-bromide-in-toluene
+    conditions: {technology: "liquid methyl bromide dosed into PPh3 in toluene at 333 K in a closed pressure vessel, the salt precipitated, filtered, washed with recovered toluene and vacuum-dried in a filter-dryer, toluene recovered in a batch still", basis: "concept balance, ASSUMED ratios, kinetics, solubility and work-up (DESIGN.md D-004, D-005, D-007)"}
+    kpis:
+      mtppb-specific-triphenylphosphine: {expression: feed:PPH3 / product:PROD, per: product:PROD}
+      mtppb-specific-methyl-bromide: {expression: feed:MEBR / product:PROD, per: product:PROD}

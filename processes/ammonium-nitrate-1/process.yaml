@@ -1,0 +1,35 @@
+# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its two LCI
+# datasets are lca/datasets/*.yaml, Tier 1 form, so maturity stays at concept
+# (core's cheme.lci-tier-maturity). See README.md.
+schema: cheme-as-code/process/v1
+id: ammonium-nitrate-1
+title: Ammonium nitrate and calcium ammonium nitrate by neutralisation of nitric acid with ammonia
+summary: >-
+  Sourced conceptual inventories per tonne of solid ammonium nitrate and per tonne of calcium ammonium
+  nitrate (about 27 % N, limestone filler): feeds from stoichiometry with sourced losses, utilities and
+  emissions from EU LVIC-AAF BREF chapter 9. No flowsheet; not reviewed.
+families: [fertilizers]
+keywords: [ammonium nitrate, calcium ammonium nitrate, CAN, AN, nitrogen fertiliser, neutralisation, prilling, granulation]
+facets: {feedstock_basis: [fossil, mineral], product_classes: [fertilizers], unit_operations: [reaction, evaporation, prilling, granulation], region: EU}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: ammonia, role: feedstock, inventory_key: "feed:ammonia", note: "linked to ammonia-1 (lca/mappings.yaml)"}
+    - {chemical: nitric-acid, role: feedstock, inventory_key: "feed:nitric-acid", note: "60 wt% acid by mass of solution, linked to nitric-acid-1 (lca/mappings.yaml)"}
+    - {chemical: limestone, role: feedstock, inventory_key: "feed:limestone", note: "CAN filler only, taken as pure CaCO3 (ASSUMED)"}
+  outputs:
+    - {chemical: ammonium-nitrate/solid, role: main-product, inventory_key: "product:ammonium-nitrate", note: "dataset ammonium-nitrate-pressure-neutralisation-solid"}
+    - {chemical: calcium-ammonium-nitrate, role: main-product, inventory_key: "product:calcium-ammonium-nitrate", note: "dataset calcium-ammonium-nitrate-granulation"}
+    - {chemical: water, role: emission, inventory_key: "emission:H2O", note: "the acid's water as vapour (ASSUMED residual of the water balance)"}
+    - {chemical: wastewater, role: waste, inventory_key: "output:wastewater"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity"}
+    - {chemical: steam, role: utility, inventory_key: "feed:steam", note: "imported steam by mass; the source states no pressure for these ranges"}
+basis: {capacity: "per tonne of product (each dataset's basis); no plant size"}
+publication: {status: public, license: CC-BY-4.0}
+references:
+  - {title: "European Commission, JRC (2007) Reference Document on Best Available Techniques for the Manufacture of Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF BREF), August 2007, chapter 9 (AN and CAN)", url: "https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/lvic_aaf.pdf"}
+  - {title: "Pacific Environmental Services for US EPA (1996) Background Report, AP-42 Section 6.8 (now 8.3), Ammonium Nitrate Fertilizer, section 2.2 (route only; no value used)", url: "https://www.epa.gov/sites/production/files/2020-09/documents/final_background_document_for_ammonium_nitrate_section_8.3_pdf.pdf"}
+  - {title: "Prohaska, T. et al. (2022) Standard atomic weights of the elements 2021 (IUPAC Technical Report), Pure Appl. Chem. 94:573"}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/ammonium-nitrate-1, access: public}
