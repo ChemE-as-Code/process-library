@@ -18,9 +18,10 @@ rooms:
   # rectifier cabinet (overcurrent protection per stack, HAZOP action D-031 item 9), never on the
   # AC trays. Core has no DC room kind: each breaker's output is a room of kind mcc at 48 V. Its
   # point is NOT on the cabinet: it is the top of a riser that is not modelled, 1.75 m above
-  # the cabinet top (1.35 m) and 0.05 m north of its north face (y 9.92, the rectifier at the
-  # frame's north-east corner, D-047), DC-x01A also 0.25 m west of it, at 3.1 m, 0.25 m apart
-  # on the router's grid so each tray lines up with its stack (one room for all four would
+  # the cabinet top (1.35 m) and 0.05 m south of its south face (y 11.40, towards the stacks;
+  # the rectifier on its plinth at grade beyond the frame's north-east corner, D-057; it stood
+  # on the frame's north-east corner, D-047), DC-x01A also 0.25 m west of it, at 3.1 m, 0.25 m
+  # apart so each tray lines up with its stack (one room for all four would
   # start the four trays at one point, where the router lets each detour round the ones
   # before it). Points at the cabinet top (1.35 m) were tried: core then runs the direct-fed
   # DC trays at 1.35 to 2.35 m over the deck and beyond the frame's north edge, under the
@@ -29,15 +30,16 @@ rooms:
   # separation checks do not see it. The rack PR-1 runs north of the skids (D-047): the DC
   # cables' stack points stand 5.8 m from it, beyond rack_reach_m (5.5 m,
   # electrical/tray-rules.yaml), so the DC cables are fed directly from the rectifier and never
-  # reach the rack's AC power tray. All ASSUMED (no rectifier vendor yet).
-  - {id: DC-101A, kind: mcc, title: "U-101 DC output to E-101A, 48 V (ASSUMED)", point: [10.65, 9.92, 3.1], voltage_v: 48}
-  - {id: DC-101B, kind: mcc, title: "U-101 DC output to E-101B, 48 V (ASSUMED)", point: [10.9, 9.92, 3.1], voltage_v: 48}
-  - {id: DC-101C, kind: mcc, title: "U-101 DC output to E-101C, 48 V (ASSUMED)", point: [11.15, 9.92, 3.1], voltage_v: 48}
-  - {id: DC-101D, kind: mcc, title: "U-101 DC output to E-101D, 48 V (ASSUMED)", point: [11.4, 9.92, 3.1], voltage_v: 48}
-  - {id: DC-201A, kind: mcc, title: "U-201 DC output to E-201A, 48 V (ASSUMED)", point: [25.65, 9.92, 3.1], voltage_v: 48}
-  - {id: DC-201B, kind: mcc, title: "U-201 DC output to E-201B, 48 V (ASSUMED)", point: [25.9, 9.92, 3.1], voltage_v: 48}
-  - {id: DC-201C, kind: mcc, title: "U-201 DC output to E-201C, 48 V (ASSUMED)", point: [26.15, 9.92, 3.1], voltage_v: 48}
-  - {id: DC-201D, kind: mcc, title: "U-201 DC output to E-201D, 48 V (ASSUMED)", point: [26.4, 9.92, 3.1], voltage_v: 48}
+  # reach the rack's AC power tray. All ASSUMED (no rectifier vendor yet). The DC isolation
+  # (a lockable isolator or DC contactor, D-051) stands at the cabinet, outside the zone.
+  - {id: DC-101A, kind: mcc, title: "U-101 DC output to E-101A, 48 V (ASSUMED)", point: [12.05, 11.4, 3.1], voltage_v: 48}
+  - {id: DC-101B, kind: mcc, title: "U-101 DC output to E-101B, 48 V (ASSUMED)", point: [12.3, 11.4, 3.1], voltage_v: 48}
+  - {id: DC-101C, kind: mcc, title: "U-101 DC output to E-101C, 48 V (ASSUMED)", point: [12.55, 11.4, 3.1], voltage_v: 48}
+  - {id: DC-101D, kind: mcc, title: "U-101 DC output to E-101D, 48 V (ASSUMED)", point: [12.8, 11.4, 3.1], voltage_v: 48}
+  - {id: DC-201A, kind: mcc, title: "U-201 DC output to E-201A, 48 V (ASSUMED)", point: [27.05, 11.4, 3.1], voltage_v: 48}
+  - {id: DC-201B, kind: mcc, title: "U-201 DC output to E-201B, 48 V (ASSUMED)", point: [27.3, 11.4, 3.1], voltage_v: 48}
+  - {id: DC-201C, kind: mcc, title: "U-201 DC output to E-201C, 48 V (ASSUMED)", point: [27.55, 11.4, 3.1], voltage_v: 48}
+  - {id: DC-201D, kind: mcc, title: "U-201 DC output to E-201D, 48 V (ASSUMED)", point: [27.8, 11.4, 3.1], voltage_v: 48}
 defaults:
   lv_room: SDB-1
   control_room: CR-1
@@ -70,17 +72,22 @@ feeders:
   # 20 A = 3.84 kW DC over the efficiency 0.95 of process/cells.yaml = 4.04 kW, rounded up),
   # not on the operating duty (flowsheet Q101 3.164 kW AC at 37.6 V a stack), so the feeder is
   # not below the DC rating the stack cables carry (D-045)
-  - {tag: F-U101, point: [11.05, 9.62, 1.35], power_kw: 4.1, power_factor: 0.95, assumed: true,
+  - {tag: F-U101, point: [12.45, 11.7, 1.35], power_kw: 4.1, power_factor: 0.95, assumed: true,
      source: "the DC output rating 4 x 0.96 kW (48 V bus x 20 A, the DC cables' basis) over the rectifier efficiency 0.95 (process/cells.yaml) = 4.04 kW AC, rounded up; operating duty flowsheet Q101 3.164 kW; power factor 0.95 ASSUMED (an active front end)"}
   - {tag: F-X131, point: [8.25, 9.75, 1.95], power_kw: 0.1, power_factor: 0.8, assumed: true,
      source: "flowsheet Q104 0.050 kW (0.5 kWh/kg CO, ESTIMATE, TBD vendor), rounded up; power factor 0.8 ASSUMED (valve actuators and controller)"}
-  - {tag: F-X132, point: [13.1, 8.3, 0.9], power_kw: 0.5, power_factor: 0.8, assumed: true,
+  # the oxidiser stands off the frame south-east of it (D-057), 7.2 m from PR-1, beyond
+  # rack_reach_m: its feeder ends at the package's local burner-management panel on a stand
+  # 1.5 m north of it (ASSUMED; the vendor's panel, EN 746-2), within reach of the rack, and
+  # the package cable runs from there at grade (not modelled); fed straight from SDB-1 the
+  # branch crossed the plot at 4.3 m with no support (layout-tray-span)
+  - {tag: F-X132, point: [14.55, 8.05, 0.9], power_kw: 0.5, power_factor: 0.8, assumed: true,
      source: "ASSUMED: no power in the flowsheet; the oxidiser's combustion air fan, igniter and burner management (D-031 item 10), TBD vendor"}
-  - {tag: F-U201, point: [26.05, 9.62, 1.35], power_kw: 4.1, power_factor: 0.95, assumed: true,
+  - {tag: F-U201, point: [27.45, 11.7, 1.35], power_kw: 4.1, power_factor: 0.95, assumed: true,
      source: "the DC output rating over the efficiency, as F-U101 (operating duty flowsheet Q201 3.164 kW)"}
   - {tag: F-X231, point: [23.6, 9.75, 1.95], power_kw: 0.1, power_factor: 0.8, assumed: true,
      source: "flowsheet Q204 0.050 kW, as F-X131"}
-  - {tag: F-X232, point: [28.1, 8.3, 0.9], power_kw: 0.5, power_factor: 0.8, assumed: true,
+  - {tag: F-X232, point: [29.55, 8.05, 0.9], power_kw: 0.5, power_factor: 0.8, assumed: true,
      source: "ASSUMED: as F-X132"}
   # The 48 V DC bus (D-045): one cable per stack from its DC output on the rectifier, rated for the stack
   # current 20 A (process/cells.yaml STK-A/STK-B, JIC-x01 4 x 20 A) at the 48 V bus rating
@@ -146,7 +153,7 @@ instruments:
   - {tag: TSHH-133, point: [8.85, 9.88, 0.35], notes: "arrester temperature on TG-101 beside FA-133 (D-054)"}
   - {tag: AIA-141, point: [9.65, 9.55, 1.0], notes: "CO detector, ASSUMED location (gas detection study open, D-031 item 5)"}
   - {tag: AIA-142, point: [10.0, 7.95, 2.0], notes: "H2 detector, ASSUMED location high over the stack row (gas detection study open)"}
-  - {tag: JIC-101, point: [11.2, 9.32, 0.9], notes: "U-101 current signal, run and trip command (south face of the cabinet); modelled as one pair, needs three or more (open, D-045)"}
+  - {tag: JIC-101, point: [12.25, 11.7, 0.9], notes: "U-101 current signal, run and trip command (west face of the cabinet on its plinth, D-057); modelled as one pair, needs three or more (open, D-045)"}
   # Skid B
   - {tag: TV-211, point: [23.65, 7.6, 0.5], notes: "tempered water to E-211 (TWS-201, DN 15)"}
   - {tag: FIC-202, point: [24.05, 8.35, 0.4], notes: "fresh CO2 CO2-201 (DN 15), west of the stack row"}
@@ -163,7 +170,7 @@ instruments:
   - {tag: LV-201, point: [22.4, 9.55, 0.9], notes: "make-up water to T-201 (DN 15), north of the tank"}
   - {tag: AIA-241, point: [24.65, 9.55, 1.0], notes: "CO detector, ASSUMED location (as AIA-141)"}
   - {tag: AIA-242, point: [25.0, 7.95, 2.0], notes: "H2 detector, ASSUMED location (as AIA-142)"}
-  - {tag: JIC-201, point: [26.2, 9.32, 0.9], notes: "U-201 current signal, run and trip command; modelled as one pair, as JIC-101 (open, D-045)"}
+  - {tag: JIC-201, point: [27.25, 11.7, 0.9], notes: "U-201 current signal, run and trip command; modelled as one pair, as JIC-101 (open, D-045)"}
 notes: >-
   ASSUMED (D-045): the host site's 400 V board SDB-1 and control room CR-1 off the plot to the
   east, the cables along PR-1; one junction box per skid; the 48 V DC bus of each skid its own

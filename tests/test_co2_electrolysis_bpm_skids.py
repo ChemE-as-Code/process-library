@@ -356,6 +356,10 @@ def assert_layout(root: Path, records: dict[int, dict]) -> None:
             assert r["reach_ok"] and r["reach_m"] <= r["reach_limit_m"] and not r["lane_blocked_by"], r
         assert {g["tag"][0] for g in skid["ignition_clearance"]} == {"U", "X"}, skid["ignition_clearance"]
         assert all(g["ok"] for g in skid["ignition_clearance"]), skid["ignition_clearance"]
+        # the rectifier and the oxidiser off the frame, 2 m or more in plan from the feet of the
+        # frame's stairs (D-057, review 2026-11-05-layout-r2#1, #3)
+        assert {g["tag"][0] for g in skid["stair_foot_clearance"]} == {"U", "X"}, skid["stair_foot_clearance"]
+        assert all(g["ok"] for g in skid["stair_foot_clearance"]), skid["stair_foot_clearance"]
     lifts = {u["id"]: u for u in records[1000]["lifting"]["unit_lifts"]}
     assert lifts["T-101"]["method"].startswith("mobile crane") and lifts["T-101"]["laydown"] == "LD-R", lifts["T-101"]
     # 10,000 h: reported in the record, the run not failed (its record exists)

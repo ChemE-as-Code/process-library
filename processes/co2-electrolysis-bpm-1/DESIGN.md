@@ -1773,6 +1773,11 @@ the zone, IIC gas detectors, 3G/Gc the stated minimum, armoured cables and IIC g
 drops to the stacks protected as review 2026-11-05-layout-r2 #6 asks). The open items stand,
 but the DC isolation is decided in principle there.
 
+Changed by D-057: the rectifiers stand on plinths at grade north-east of the frames, their DC
+outputs' risers on the cabinets' south faces; the DC cables are longer (102 m, the longest 9.0 %
+drop at 2.5 mm2 against 8.0 % above), the oxidisers' feeders end at their burner-management
+panels within PR-1's reach; 36 trays 195.4 m, cable 840 m at 1,000 h.
+
 ## D-046 The 3D results in the record, the regeneration of the 3D artefacts, their tests (2026-11-05)
 Decision: regen step 25 (after step 13, numbered after the existing steps) writes the scenario's
 3D results into the record's `layout` block, at every duration: from `cheme layout report
@@ -1984,6 +1989,13 @@ arrester for unstable detonation with a check valve and a fail-closed trip valve
 outlet, the arrester's temperature trip, TG-x01 all-welded, D-054); item 4's open low-point
 drain and cooler vent and item 7's open T-101 pump-out are drawn (D-055).
 
+Changed by D-057 (review 2026-11-05-layout-r2 #1 to #3): item 3's clearance was measured to the
+outlines; measured to the zone sources' nozzle points as well it was 1.389 m (U-x01 to K-x31/N2),
+short of the 1.5 m. The rectifiers now stand off the frames on plinths at grade (least 3.230 m),
+the oxidisers south-east of them, 2 m or more from the east steps' feet (item 2: X-132 at
+x 14.55, y 6.30 m, FG-x01 re-pinned), checked by regen step 13; TG-x01 and AIR-x01 are pinned.
+The unit lifts lose the rectifiers (Skid A 2.844 t, Skid B 2.696 t drained).
+
 ## D-048 Publication: public under CC-BY-4.0 (2026-11-06)
 Decision: the process is public (`publication.status: public`, licence CC-BY-4.0), as ADR 0036
 makes the default; the owner decided this on 2026-11-06.
@@ -2054,6 +2066,9 @@ and any roof, for the competent person.
 Changed by D-056: P-01 and P-02 are regenerated without K-x41 (revision B), so the two
 `cheme.equipment-not-listed` warnings are gone; the HAZOP studies still name K-x41
 (`cheme.hazop-unknown-tag`) until their revision.
+
+Changed by D-057: the rectifier stands off the frame on a plinth at grade, the rain canopy over
+it there; the skid carries no non-Ex item.
 
 ## D-051 Ex protection in the screening zones (2026-11-06)
 Decision (the owner, 2026-11-06; ASSUMED until the area classification, no certification is
@@ -2168,6 +2183,12 @@ Open (cannot be settled here): the crane, its load chart, the outrigger spread a
 bearing on the hardstanding; the base frame's lifting points and its weight (the fabricator,
 D-043); the vendor weights themselves.
 
+Changed by D-057: the rectifiers leave the frames (on plinths at grade), so the drained unit
+lifts are Skid A 2.844 t and Skid B 2.696 t at a 5.56 m radius (the unit's plan 6.06 x 2.62 m);
+the doubled-weight bound is now Skid A 2 x 4.379 = **8.76 t** of chart capacity at 5.56 m
+(36.5 t m) and Skid B 2 x 4.151 = **8.30 t** (34.6 t m); T-101 alone unchanged (0.70 t at
+5.74 m). The rectifiers and the oxidisers are lifted on their own (0.18 t and 0.145 t each).
+
 ## D-054 The tail gas TG-x01: detonation arrester, check valve, trip valve and the arrester's temperature trip (2026-11-06)
 Decision (the owner, 2026-11-06; review 2026-11-05-layout-r2 #2, HAZOP H01-A605, H01-A907,
 H02-A604, H02-A907): the tail gas TG-x01 leaves the PSA X-x31 through, in flow order, all at
@@ -2219,6 +2240,11 @@ CO, CO2, H2O) at its temperature and pressure, and its certified burning time, w
 TSHH-x33's set point and XV-x33's closing time (vendor); the detonation pressure rating of
 TG-x01; the oxidiser vendor's integration of its burner arrester and burner management system;
 SIL screening of I-x09 and I-x10 (H01-A112, H02-A104).
+
+Changed by D-057: TG-x01 and AIR-x01 are pinned with the oxidiser's move: TG-x01 about 12.1 m
+at 0.30 m on sleeper posts from X-x31's north end, off the way off the deck, into the oxidiser's
+east face; the air from an intake at the package. The model shows the in-line items 1 m apart
+along TG-x01 (core's in-line pitch); they stand together at X-x31's outlet.
 
 ## D-055 Draining the anolyte loop: low-point drain, cooler vent, tank pump-outs, the drain sequence (2026-11-06)
 Decision (the owner, 2026-11-06; D-043, D-047 items 4 and 7, HAZOP H01-A111, H01-A206,
@@ -2305,4 +2331,98 @@ team, then both studies are re-stamped; until then gate `hazop-current` fails.
 
 Open: the tempered-water unit's duty, supply temperature control, heating and frost-protection
 mode (vendor, D-052); the unit's electricity in the LCA.
+
+## D-057 The rectifier and the oxidiser off the frames, the ignition check at the flanges, the stair feet, the tail gas pinned (2026-11-06)
+Decision (the owner, 2026-11-06; review 2026-11-05-layout-r2 #1, #2 and #3, all medium):
+1. **The ignition margin measured at the flanges (r2 #1).** Regen step 13's ignition check
+   (`_ignition_clearance`) measures from each ignition source to the outline of every zone source
+   item joined with the points of its nozzles (`_outline`: the body box and every nozzle point
+   of the model), not to the body box alone; the rule stays the sphere radius 1 m plus the
+   0.5 m margin (`layout/layout-checks.yaml`). Re-measured on the committed layout of D-056 it
+   reproduces the review's finding: U-x01 1.389 m from K-x31's discharge flange N2, against
+   1.5 m, on both skids; D-047 item 3's "1.550 m, met" was measured to the outlines.
+2. **The rectifier off the frame (r2 #1).** U-101 and U-201 stand on their own 0.15 m plinths
+   at grade beyond each frame's north-east corner (U-101 at x 12.60, y 11.70 m; U-201 15 m
+   east), between the frame and the rack PR-1 (0.95 m south of its edge), the same pattern as the
+   oxidisers (D-047 item 2). Least clearance now 3.230 m (U-x01 to K-x31 with its nozzles)
+   against the 1.5 m required, 2 m or more from every source nozzle as decided; the skid then
+   carries no non-Ex item. At most a rain canopy over it (D-050). Its DC outputs' risers stand
+   0.05 m south of the cabinet's south face (towards the stacks), the DC isolation (D-051) at
+   the cabinet, outside the zone; its AC feeder ends on its top, JIC-x01 on its west face
+   (`electrical/electrical-list.yaml`).
+3. **The oxidiser clear of the east step (r2 #3).** X-132 moves south-east to x 14.55, y
+   6.30 m (X-232 15 m east), on its plinth inside A-100 / A-200 (its foundation to x 15.0 /
+   30.0 m), clear of the crane pads CP-x (x 12.5 / 27.5 m) and the road laydown LD-R (y 3.0 m);
+   its tail-gas inlet N1 turned to its east face, away from the step, its combustion air N2 to
+   its south face; FG-x01 re-pinned straight up from its new top to 3.217 m (the vent rule's
+   height, unchanged). Its feeder F-X1x2 ends at the package's local burner-management panel on a
+   stand 1.5 m north of it (y 8.05 m, ASSUMED, the vendor's panel to EN 746-2), within PR-1's
+   5.5 m reach: at the oxidiser itself (7.2 m from PR-1) core fed it straight from SDB-1 across
+   the plot at 4.3 m with no support (`layout-tray-span`, 17.6 m), and a reach that took it
+   would have taken the stacks' DC points (5.8 m) onto the rack's AC tray (D-045).
+4. **The stair feet (r2 #3).** A new regen step 13 check (`_stair_foot_clearance`,
+   `layout/layout-checks.yaml` `stair_feet`): every ignition or hot source of the frame's train
+   (U-x01, X-x32) at least 2.0 m (ASSUMED, the review's 1.5 to 2 m) in plan from the foot of each
+   stair of its frame from grade (core's base landing `<stair>/landing-base`), an error finding
+   when short; the record's `skids.<x>.stair_foot_clearance` lists them. Before the moves: U-x01
+   0.09 / 0.06 m and X-x32 0.34 m from ST-x2's foot. After: Skid A X-132 2.053 m, U-101 2.150 m;
+   Skid B U-201 2.050 m, X-232 2.144 m (ST-B2 stands 0.1 m further north).
+5. **TG-x01 and AIR-x01 pinned (r2 #2, D-054).** The tail gas is routed and pinned although
+   DN 15: from X-x31's N4 (turned to the PSA's north end, low at 0.30 m) north out of the frame,
+   east along y 10.8 m 0.27 m north of ST-x2's top landing (off the way off the deck), past the
+   rectifier's plinth, south at x 15.2 / 30.2 m over open ground and into the oxidiser's east
+   face: about 12.1 m, level at 0.30 m on 16 ASSUMED sleeper posts (`layout/structures.yaml`
+   `pipe_supports`, 1.7 m apart or less against the 1.8 m span of DN 15 gas), all-welded from
+   FA-x33 and under a protective cover where it crosses the grade (ASSUMED). The combustion air
+   AIR-x01 is drawn by the package's own fan through a hooded, screened intake 0.49 m south of
+   the package at its inlet's height (battery limits BL-x-air, ASSUMED), outside every zone and
+   away from the skid, so no air line crosses the grade. Core places the in-line items 1 m apart
+   along a route from its start (its in-line pitch), so the model shows XV-x33, the check valve
+   and FA-x33 at 0.5, 1.5 and 2.5 m along TG-x01, north of the frame and outside the zone
+   spheres; they stand together at X-x31's outlet on the frame inside Z-HAZ-x (D-054), which the
+   model cannot show. The unit lift (`scripts/_lifting.py`) therefore counts a sheet's in-line
+   item only over its frame, as it counts the sheet's pipes.
+
+Why: the margin the review found short is at the flanges, which the outline rule was meant to
+bound; no place on the frame gives U-x01 1.5 m from K-x31/N2 beside a stack row within reach
+(D-047), and with the enclosure gone (D-050) nothing keeps it on the frame. A way off the deck
+that lands at an open flame, a hot casing or a non-Ex cabinet is not a way off. The tail gas
+that D-054 protects is the line the review asked to see in the model.
+
+Rejected: shifting U-x01 0.11 m on the frame (it is 0.06 m from the frame's edges already);
+turning K-x31's discharge west (the zone sources' flanges stay unknown packages; the rule would
+still fail at E-x01D and V-x21 with their nozzles); a smaller margin at the flanges; moving the
+east step instead of the oxidiser (the ways off stay where D-019 put them); a branch rack or
+`rack_reach_m` raised for the oxidiser's feeder (either would put the DC cables on an AC tray);
+the in-line items placed by hand (core has no placement for them).
+
+Consequence (regen, 1,000 h): 28 of 28 DN 25 lines routed, now with TG-x01 and AIR-x01 the 4
+DN 15 lines routed (42 pinned, 3 astar, 1 via, 1 open end), 0 clash findings, both skids 1.95 m
+against 2.35 m. Unit lifts without the rectifiers: Skid A drained 2.844 t (was 3.051 t), 4.379 t
+of chart capacity at 5.56 m (18.3 t m); Skid B 2.696 t (2.903 t), 4.151 t; the unit's plan is
+6.06 x 2.62 m (X-x31's N4 stands 0.12 m beyond the frame's north edge), so the radius is 5.56 m
+(5.47 m); both lanes clear with LD-R; T-101 alone unchanged. Cabling: 64 cables as before, 36
+trays 195.4 m (175.7 m), cable 840 m (826 m); the DC cables longer, 102 m without the 14.81 m
+of riser (77 m): the longest, C-DC-E201C, 11.1 m with its riser, 14.7 m with core's slack and
+terminations, 2 x 14.7 m x 7.41 ohm/km x 20 A = 4.3 V, 9.0 % of 48 V at 2.5 mm2 (8.0 %, D-045),
+which the electrical design's cable size (open, D-045) must bring down. Take-off: pipe 61.429 m
+(36.195 m DN 25 and 25.234 m DN 15), 36 elbows, 62 flanges and gasket sets (14 DN 15 at the
+valves, arresters and nozzles), 10 valves (two ball and two check valves DN 15), 2 flame
+arresters; steel 8.516 t (8.478 t; the 0.038 t of sleeper posts), so 7.609 t adopted; concrete
+3.792 m3: the four plinths and foundations 0.912 m3 and core's default footing under each
+sleeper post (16 x 0.18 m3 = 2.88 m3, far more than a sleeper post needs: the civil design's).
+Vent outlets: no tray within the clearance. 10,000 h (scratch): as before, Skid A infeasible
+(top 3.62 m) with one clash (T-101's ladder rail through the deck rail), Skid A drained 3.708 t
+without a laydown, T-101 alone 1.047 t; ignition clearances and stair feet as at 1,000 h. The
+HAZOP: `layout/zones.yaml` changes by its comment only, the zones do not; the team re-rates
+H01-S207 / H02-S206 (the rectifier as an ignition source) and H01-S906 / H02-S906 (the
+oxidiser) with the HAZOP revision.
+
+Assumptions: the plinths' positions, the 2 m stair-foot clearance, the oxidiser's panel stand,
+the air intake, the TG-x01 route and its sleeper posts and cover (all ASSUMED).
+
+Open: the area classification may move the zones and so the margins (competent person); the
+oxidiser's and the rectifier's vendor outlines, terminal positions and panel; the DC cable size
+for the longer run (electrical design); the human layout review the r2 review requires before
+sign-off (gate `layout-review` stays stale until the next round).
 

@@ -419,6 +419,13 @@ safeguards and the rating bases.
   management the second barrier (H01-A605, H01-A907, H02-A604, H02-A907; H01-S610, H02-S613).
   Still open: the arrester's type examination for the actual tail gas and its burning time
   (vendor). The entries are to be revised as proposals for the team.
+- **The ignition sources' places** (layout review 2026-11-05-layout-r2 #1, #3): **decided by the
+  owner on 2026-11-06** (DESIGN.md D-057): the rectifier U-x01 leaves the frame for a plinth at
+  grade north-east of it (3.23 m from the nearest zone source with its flanges, against the
+  1.5 m of the screening rule), the oxidiser X-x32 moves south-east, 2 m or more from the east
+  step's foot, and TG-x01 runs about 12 m at 0.30 m on sleeper posts to its east face. The zones
+  do not change; the team re-rates H01-S207 / H02-S206 (the rectifier) and H01-S906 / H02-S906
+  (the oxidiser) with the HAZOP revision.
 - **Draining the anolyte loop and the tanks**: **decided by the owner on 2026-11-06** (DESIGN.md
   D-055, P&ID revision B): a capped low-point drain DR-x01 on the supply header, a capped vent
   AV-x11 on the cooler, a capped camlock pump-out on T-101, T-201 and T-202, and SEQ-x-DRAIN

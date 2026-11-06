@@ -347,11 +347,14 @@ def unit_study(
                 return s["owner"].startswith(steps) or (s["owner"] in trays and over(s["plan"]))
 
             def own(s, tags=tags, inline=inline, frame=frame, sheet=lift["sheet"], off=off, over=over):
-                # the frame, its items, its in-line items and the sheet's pipes over the frame (a
-                # pipe of an item off the frame, the oxidiser's flue, stays: D-047)
+                # the frame, its items, the sheet's in-line items and pipes over the frame (a
+                # pipe of an item off the frame, the oxidiser's flue, stays: D-047). The tail
+                # gas's XV-x33, check valve and FA-x33 stand at X-x31's outlet on the frame
+                # (D-054); core places in-line items 1 m apart along the pinned TG-x01, off the
+                # frame, so an in-line item counts only over it (D-057)
                 return (
                     s["owner"] in tags
-                    or s["owner"] in inline
+                    or (s["owner"] in inline and over(s["plan"]))
                     or s["owner"].startswith(f"{frame}/")
                     or (s["owner"].startswith(f"{sheet}/") and over(s["plan"]))
                     or off(s)

@@ -1,5 +1,6 @@
 # Layout checks of the pilot skids that core 1.5.0 does not make (DESIGN.md D-047), after the
-# layout review 2026-11-05-layout (findings #1, #2, #3, #5, #8). A project file read by
+# layout review 2026-11-05-layout (findings #1, #2, #3, #5, #8) and review 2026-11-05-layout-r2
+# (#1, #3: the flanges, the stair feet, D-057). A project file read by
 # scripts/regen.py step 13 (no core schema); hand-authored intent, hashed in the record's
 # inputs, never written. Every value is ASSUMED until the host site's standards, the area
 # classification and the vendors give them.
@@ -39,7 +40,10 @@ deleted_steel:
 # Ignition sources and the hazardous zones (review #2, #3). Core centres each zone sphere on its
 # source item, not on the item's flanges, whose positions on the packages are not known: so
 # each ignition source keeps the sphere's radius plus `margin_m` from the OUTLINE of every
-# source item of every hazardous zone (from a declared nozzle source, from its point).
+# source item of every hazardous zone (from a declared nozzle source, from its point). The
+# outline is the item's body box joined with the points of its nozzles, whose flanges stand
+# outside the box (review 2026-11-05-layout-r2#1, D-057). The rectifiers stand off the frames on
+# their own plinths at grade, as the oxidisers (D-057).
 ignition_sources:
   margin_m: 0.5
   items:
@@ -47,7 +51,21 @@ ignition_sources:
     - {tag: U-201, kind: "rectifier cabinet, non-Ex (D-019)"}
     - {tag: X-132, kind: "tail-gas oxidiser, an open flame (D-047)"}
     - {tag: X-232, kind: "tail-gas oxidiser, an open flame (D-047)"}
-  basis: "ASSUMED: zone radius plus 0.5 m to the source outlines, the review's proposal, until the area classification (IEC 60079-10-1, by a competent person) gives the zones from the real release points"
+  basis: "ASSUMED: zone radius plus 0.5 m to the source outlines with their nozzle points, the review's proposal, until the area classification (IEC 60079-10-1, by a competent person) gives the zones from the real release points"
+
+# Ignition and hot sources and the ways off the decks (review 2026-11-05-layout-r2#3). Each of
+# the sources above (the rectifier cabinets, the oxidisers with their 150 degC flue) keeps
+# `clearance_m` in plan from the foot of every stair of its frame from grade (core's base
+# landing at grade, `<stair>/landing-base`), so that a person leaving the deck by either way
+# does not land at an open flame, a hot casing or a non-Ex cabinet.
+stair_feet:
+  clearance_m: 2.0
+  items:
+    - {tag: U-101, kind: "rectifier cabinet, non-Ex (D-019)"}
+    - {tag: U-201, kind: "rectifier cabinet, non-Ex (D-019)"}
+    - {tag: X-132, kind: "tail-gas oxidiser, an open flame and a hot casing (D-047)"}
+    - {tag: X-232, kind: "tail-gas oxidiser, an open flame and a hot casing (D-047)"}
+  basis: "ASSUMED: 2 m in plan from the stair's foot, the review's proposal (1.5 to 2 m), until the host site's escape and spacing standard gives it"
 
 # Cable trays and hot or possibly flammable vent outlets (review #5, #10). No tray may come
 # within `clearance_m` of the open end of a listed vent or flue line, nor run above it within

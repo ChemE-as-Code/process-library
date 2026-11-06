@@ -1,5 +1,5 @@
 # Equipment placement of the pilot skids (#330, DESIGN.md D-019, D-047). Schema: `cheme schema placement`.
-# Every item but the tail-gas oxidisers stands on the deck of its skid frame
+# Every item but the tail-gas oxidisers and the rectifiers stands on the deck of its skid frame
 # (layout/structures.yaml, z 0.15 m). No item states a size here: shape and size come from the
 # equipment list (the tool-written stacks and tanks of `cheme process stack --write`, the
 # ASSUMED outlines of the others), so a regenerated tank is drawn at its new size without an
@@ -20,11 +20,12 @@
 # - the flammable gas train behind them: separator in the middle, PSA and compressor on the
 #   north side;
 # - the ignition sources outside zone 2 with the zone radius plus a 0.5 m margin to every source
-#   item's outline (regen step 13, layout/layout-checks.yaml): the rectifier U-x01 at the
-#   frame's north-east corner, the tail-gas oxidiser X-x32 (an open flame) OFF the frame, on its
-#   own plinth at grade east of it (no position on the frame meets that clearance beside the
-#   stack row, D-047). The skid is open and naturally ventilated: no enclosure and no extract
-#   fan (D-050; the fan K-x41 that stood between them is deleted).
+#   item's outline with its nozzle points (regen step 13, layout/layout-checks.yaml), and 2 m in
+#   plan from the feet of the frame's stairs: the rectifier U-x01 and the tail-gas oxidiser
+#   X-x32 (an open flame) both OFF the frame, each on its own plinth at grade, the rectifier
+#   north-east of it, the oxidiser south-east (no position on the frame meets that clearance
+#   beside the stack row, D-047, D-057). The skid is open and naturally ventilated: no enclosure
+#   and no extract fan (D-050; the fan K-x41 that stood between them is deleted).
 schema: cheme/placement/v1
 equipment:
   # -- Skid A (frame SKID-A, origin [5.5, 7.5]) --------------------------------------------
@@ -65,18 +66,28 @@ equipment:
      nozzles: [{id: N1, face: back, offset: [0.07, -0.015]}, {id: N2, face: back, offset: [-0.07, 0.04]},
                {id: N3, face: top, offset: [-0.04, 0]}, {id: N4, face: top, offset: [0.04, 0]}]}
   - {tag: V-121, position: [9.35, 8.65, 0.15], mount: {structure: SKID-A, level: DECK}}
-  # the PSA turned with its long side north-south along the reserved circle of T-101
-  - {tag: X-131, position: [8.35, 9.40, 0.15], rotation_deg: 90, mount: {structure: SKID-A, level: DECK}}
+  # the PSA turned with its long side north-south along the reserved circle of T-101; its tail
+  # gas N4 leaves the north end low (own east face, the PSA turned 90 degrees), where TG-101
+  # with XV-133, the check valve and FA-133 leaves the frame inside Z-HAZ-A (D-054, D-057)
+  - {tag: X-131, position: [8.35, 9.40, 0.15], rotation_deg: 90, mount: {structure: SKID-A, level: DECK},
+     nozzles: [{id: N4, face: east, offset: [-0.15, -0.75]}]}
   - {tag: K-131, position: [9.05, 9.62, 0.15], mount: {structure: SKID-A, level: DECK}}
-  # the rectifier, a non-Ex cabinet and the skid's main ignition source, at the frame's north-
-  # east corner: 1.5 m or more (zone radius 1 m plus the 0.5 m margin) from every source item's
-  # outline (K-131 1.55 m, V-121 1.57 m, E-101D 1.58 m; regen step 13)
-  - {tag: U-101, position: [11.20, 9.62, 0.15], mount: {structure: SKID-A, level: DECK}}
-  # the tail-gas oxidiser, an open flame: off the frame on a 0.15 m plinth at grade east of it,
-  # beyond the east access step ST-A2 and 3 m or more from every source item (D-047); its flue
-  # leaves its top, straight up
-  - {tag: X-132, position: [14.00, 8.30, 0.15], plinth: 0.15,
-     nozzles: [{id: N3, face: top, offset: [0.15, 0]}]}
+  # the rectifier, a non-Ex cabinet and the skid's main ignition source: OFF the frame on its own
+  # 0.15 m plinth at grade beyond the frame's north-east corner (D-057, review
+  # 2026-11-05-layout-r2#1), 2 m or more from the outline of every zone source item with its
+  # nozzle points (regen step 13 requires the zone radius 1 m plus the 0.5 m margin) and from
+  # the foot of the east step ST-A2 (layout/layout-checks.yaml stair_feet), south of the rack
+  # PR-1; at most a rain canopy over it (D-050)
+  - {tag: U-101, position: [12.60, 11.70, 0.15], plinth: 0.15}
+  # the tail-gas oxidiser, an open flame: off the frame on a 0.15 m plinth at grade south-east
+  # of it (D-047, moved by D-057 after review 2026-11-05-layout-r2#3): 2 m or more in plan from
+  # the foot of the east step ST-A2, inside A-100, clear of the crane pad CP-A and the road
+  # laydown LD-R, 3 m or more from every zone source; its tail gas inlet N1 on its east face,
+  # away from the step, its combustion air inlet N2 on its south face, its flue N3 from its
+  # top, straight up
+  - {tag: X-132, position: [14.55, 6.30, 0.15], plinth: 0.15,
+     nozzles: [{id: N1, face: east, offset: [0, -0.45]}, {id: N2, face: south, offset: [0, -0.15]},
+               {id: N3, face: top, offset: [0.15, 0]}]}
   # -- Skid B (frame SKID-B, origin [20.5, 7.5]) --------------------------------------------
   # the small reservoir, turned 270 degrees so that its ladder faces north-west, away from the
   # pump and the stacks: fill (N3) and drain (N5) face west to the hose connections, the pump
@@ -123,8 +134,11 @@ equipment:
      nozzles: [{id: N1, face: back, offset: [0.07, -0.015]}, {id: N2, face: back, offset: [-0.07, 0.04]},
                {id: N3, face: top, offset: [-0.04, 0]}, {id: N4, face: top, offset: [0.04, 0]}]}
   - {tag: V-221, position: [24.35, 8.65, 0.15], mount: {structure: SKID-B, level: DECK}}
-  - {tag: X-231, position: [23.35, 9.40, 0.15], rotation_deg: 90, mount: {structure: SKID-B, level: DECK}}
+  - {tag: X-231, position: [23.35, 9.40, 0.15], rotation_deg: 90, mount: {structure: SKID-B, level: DECK},
+     nozzles: [{id: N4, face: east, offset: [-0.15, -0.75]}]}
   - {tag: K-231, position: [24.05, 9.62, 0.15], mount: {structure: SKID-B, level: DECK}}
-  - {tag: U-201, position: [26.20, 9.62, 0.15], mount: {structure: SKID-B, level: DECK}}
-  - {tag: X-232, position: [29.00, 8.30, 0.15], plinth: 0.15,
-     nozzles: [{id: N3, face: top, offset: [0.15, 0]}]}
+  # the rectifier and the oxidiser as Skid A's, 15 m east (D-057)
+  - {tag: U-201, position: [27.60, 11.70, 0.15], plinth: 0.15}
+  - {tag: X-232, position: [29.55, 6.30, 0.15], plinth: 0.15,
+     nozzles: [{id: N1, face: east, offset: [0, -0.45]}, {id: N2, face: south, offset: [0, -0.15]},
+               {id: N3, face: top, offset: [0.15, 0]}]}
