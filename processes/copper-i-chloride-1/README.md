@@ -22,16 +22,20 @@ an acid reslurry wash, an ethanol wash, vacuum drying under nitrogen) with Ruth 
 and core's dryer. `process/recipe.yaml` holds the batch recipe the cycle time (9.37 h, 846 batches
 a year), the vessel sizes, the jacket check and the flowsheet's year-average flows come from
 (`cheme process recipe`, `cheme process reactor-hazards`, `cheme process crystallizers`). R101
-writes its heat at its `energy_port`. The thermal screening finds a small rise (MTSR 354.2 K
-against an MTT of 373.1 K, also at a hundred times slower rates); the chlorine's breakthrough to
-the vent scrubber and the reduction's end point are the design findings (DESIGN.md D-011).
+writes its heat at its `energy_port`. At the assumed rates the thermal screening finds a small
+rise (MTSR 354.2 K from core, 354.4 K for the reaction network by hand, against an MTT of 373.1
+K). At a hundred times slower rates the network's MTSR reaches 372.1 K, within about 1 K of the
+MTT on water's boiling point (core, taking each reaction alone, gives 363.5 K). The dosing
+therefore stops on a sign of accumulation, a recorded safety requirement. That stop, the
+chlorine's breakthrough to the vent scrubber, the reduction's end point and the ethanol handled
+above its flash point in the filter-dryer are the design findings (DESIGN.md D-011).
 Needs cheme-as-code 1.9.0. DESIGN.md lists the core features used and the core limits hit.
 
 Two headline numbers carry caveats. The modelled product is 99.8 wt% CuCl, an ASSUMED upper
 bound: the model has no oxidation by air, and the only open specification is at least 98 wt%.
 The yield is 77.6 % on copper, set by an ASSUMED solubility of CuCl in the diluted brine (a power
-law through two open data points, DESIGN.md D-006): 22.3 % of the copper leaves dissolved with
-the brine to copper recovery outside the boundary.
+law through two open data points, DESIGN.md D-006): 22.3 % of the copper leaves with the brine
+(22.1 % dissolved) to copper recovery outside the boundary.
 
 | path | what |
 |---|---|

@@ -11,7 +11,13 @@ hand (DESIGN.md D-003 to D-012):
   solution, the acid's heat of dilution and the ethanol's heat of mixing where the source names
   them), and so are the crystallizers' temperatures;
 - the solubilities of CR101 and W101 are the power law of D-006 at their solved liquors, and the
-  law passes through its two open points and is 14 % below US 3 030 178 A's brine;
+  law passes through its two open points; on its own basis (m per kg of water, s per kg of
+  liquor) it is about 30 % above US 3 030 178 A's brine at the R-101 liquor, as DESIGN.md says;
+- with core: the network MTSR (CHL and COMP together) from core's cooling profile, at k, k/10
+  and k/100, as DESIGN.md D-011 states it next to core's per-reaction MTSR;
+- with core: R-101's vessel and jacket as `cheme process recipe` gives them;
+- the liquor's CuCl concentration, the copper lost to the brine and X-101's fines as stated;
+- the ethanol's flash point (chemicals) and the flammability safeguards of D-011;
 - the two recycles are core's tears (ADR 0060), calculated, and the heel is about half the copper
   consumed;
 - the jacket's coolant is the cooling water's log-mean, and the dryer's hot water stays at the
@@ -161,8 +167,29 @@ def test_solubilities_follow_the_power_law(model):
     assert EXPONENT == pytest.approx(1.686, abs=0.001)
     law = lambda m: 1.0 * (m / 0.282) ** EXPONENT  # g/L, read as g per kg of liquor
     assert law(0.282) == pytest.approx(1.0) and law(2.5) == pytest.approx(39.6)
-    assert law(5.13) == pytest.approx(133, abs=1.5)  # the brine; US 3 030 178 A holds 155 g/L
-    assert 1 - law(5.13) / 155 == pytest.approx(0.14, abs=0.01)
+    # US 3 030 178 A on the law's own basis: the R-101 liquor S11A, m per kg of water
+    m_brine = _excess_chloride(model, "S11A")
+    assert m_brine == pytest.approx(5.71, abs=0.01)
+    assert law(m_brine) == pytest.approx(159, abs=1)  # g per kg of liquor
+    materials = model[0]
+    s11a = _kmol(model, "S11A")
+    density = sum(_kg(model, "S11A").values()) / 1000 / sum(  # kg/L
+        n * materials[k]["liquid_molar_volume"] for k, n in s11a.items() if n
+    )
+    assert density == pytest.approx(1.25, abs=0.01)
+    for rho, low, high in ((density, 1.27, 1.30), (1.3, 1.32, 1.35)):  # 155 g/L as g/kg
+        assert low < law(m_brine) / (155 / rho) < high, rho
+    design = _text("DESIGN.md")
+    assert "m = (1.8349 + 0.0046 + 2 x 0.0026) kmol / 0.32323 t of water = 5.71 mol/kg" in design
+    assert "s = (5.71/0.282)^1.686 = 159 g per kg of liquor" in design
+    assert "the law is 28-34 % high there" in design
+    source = model[2]["CR101"]["crystallizer"]["solubility"]["source"]
+    assert "159 g per kg of liquor" in source and "133 g/L" not in source
+    # the fit points per litre against the law per kg of water (water 0.99 and 0.95 kg/L)
+    m1, m2 = 0.282 / 0.99, 2.5 / 0.95
+    refit = (0.621 / m1) ** (math.log(39.6) / math.log(m2 / m1))
+    assert refit == pytest.approx(3.63, abs=0.01) and 1 - refit / law(0.621) == pytest.approx(0.04, abs=0.005)
+    assert "it gives 3.63 instead of 3.79 g/kg at CR101's liquor, 4 % less" in design
     for node, sid, m in (("CR101", "S15", 0.621), ("W101", "S23", 0.144)):
         sol = steps[node]["crystallizer"]["solubility"]
         assert sol["measured_in"] == "mother_liquor" and sol["unit"] == "kg/kg_liquor", node
@@ -211,11 +238,23 @@ def test_yield_and_assay_as_stated(model):
     assert assay == pytest.approx(0.998, abs=0.0005)
     s30 = _kmol(model, "S30")
     lost = sum(s30.get(k, 0.0) for k in ("CUCL", "CUCL_S", "CUCL2", "CU"))
-    assert lost / _kmol(model, "S5")["CU"] == pytest.approx(0.223, abs=0.001)
+    fed = _kmol(model, "S5")["CU"]
+    assert lost / fed == pytest.approx(0.223, abs=0.001)
+    dissolved = s30["CUCL"] + s30["CUCL2"]  # the crystals and the fines are not dissolved
+    assert dissolved / fed == pytest.approx(0.221, abs=0.0005)
+    assert s30["CUCL"] / fed == pytest.approx(0.216, abs=0.0005)
+    assert s30["CUCL2"] / fed == pytest.approx(0.005, abs=0.0005)
     for rel in ("process.yaml", "README.md", "DESIGN.md"):
         text = _text(rel)
         assert "77.6 %" in text and "upper bound" in text, rel
-    assert "22.3 %" in _text("process.yaml") and "22.3 %" in _text("README.md")
+    for rel in ("process.yaml", "README.md"):
+        text = _text(rel)
+        assert "22.3 % of the copper leaves with the brine (22.1 % dissolved)" in text, rel
+        assert "22.3 % of the copper leaves dissolved" not in text, rel
+    stated = "22.1 % of the copper fed leaves dissolved (21.6 % as CuCl, 0.5 % as copper(II)), 22.3 % in all"
+    basis = _text("process/design-basis.yaml")
+    assert basis.count(stated) == 2 and "21 % of the copper" not in basis
+    assert stated in _text("DESIGN.md")
     assert "upper bound" in _yaml("process/design-basis.yaml")["products"][0]["purity"]
 
 
@@ -268,9 +307,140 @@ def test_core_screening_and_the_classes_without_td24():
     assert possible == {1, 2, 5}
     design = _text("DESIGN.md")
     assert "the classes still possible are 1 (TD24 above the MTT, 373.1 K), 2 (TD24 between the MTSR and the MTT) and 5 (TD24 below the MTSR, 354.2 K)" in design
-    assert "| k/10 | 4.26 % | 357.9 K | 373.1 K |" in design
-    assert "| k/100 | 28.1 % | 363.5 K | 373.1 K |" in design
+    assert "| k (design) | 0.63 % | 354.2 K | 373.1 K | 354.4 K |" in design
+    assert "| k/10 | 4.26 % | 357.9 K | 373.1 K | 359.8 K |" in design
+    assert "| k/100 | 28.1 % | 363.5 K | 373.1 K | 372.1 K |" in design
     assert not [f for f in report.findings if f.level in ("warning", "error")]
+
+
+def _network_mtsr(root: Path) -> tuple[float, float, float]:
+    """R101's MTSR of the network from core's cooling profile: at every recorded moment the
+    accumulated chlorine to CuCl2 (CHL) and every CuCl2 then present to CuCl on the excess copper
+    (COMP), T + (274.4 kJ/mol n_Cl2 + 54.3 kJ/mol n_CuCl2) / C, C from core's own CHL rise.
+    Returns (the largest, core's MTSR there, the copper's margin over what that needs)."""
+    from chemeascode.domains.process.model import load
+    from chemeascode.domains.process.stirred_tank import solve_node
+
+    process, _ = load(root)
+    item = process.nodes["R101"]
+    inlets = [
+        s for s in process.flowsheet.streams
+        if s.kind == "material" and (e := process.ends(s)[1]) is not None and e.node == "R101"
+    ]
+    solved, _ = solve_node(process, item, inlets, process.flowsheet.default_case())
+    best = None
+    for point in solved.cooling_profile:
+        n = point.moles
+        cl2, cu, cucl2 = n.get("CL2", 0.0), n.get("CU", 0.0), n.get("CUCL2", 0.0)
+        if point.rises.get("CHL", 0.0) <= 0 or min(cu, cl2) <= 0:
+            continue
+        heat_capacity = 220_100 * min(cu, cl2) / point.rises["CHL"]
+        network = point.temperature + (274_400 * cl2 + 54_300 * cucl2) / heat_capacity
+        if best is None or network > best[0]:
+            best = (network, point.mtsr(), cu - (2 * cl2 + cucl2))
+    assert best is not None
+    return best
+
+
+def test_network_mtsr_as_stated(tmp_path):
+    """D-011, L-2: core's MTSR takes each reaction alone; the network's, with COMP's heat on the
+    CuCl2 the accumulated chlorine forms and on the CuCl2 present, is higher, and at k/100 it
+    comes within about 1 K of the MTT (water's boiling point)."""
+    pytest.importorskip("chemeascode")
+    import shutil
+
+    stated = {1: (354.4, 354.2), 10: (359.8, 357.9), 100: (372.1, 363.5)}
+    for div, (net, core) in stated.items():
+        root = PROCESS
+        if div != 1:
+            root = tmp_path / f"k{div}"
+            shutil.copytree(PROCESS, root, ignore=shutil.ignore_patterns("runs", "build"))
+            path = root / "process" / "reactions.yaml"
+            text = path.read_text(encoding="utf-8")
+            for a in ("1.684e4", "2.476e4"):
+                assert text.count(f"k: {{A: {a},") == 1, a
+                text = text.replace(f"k: {{A: {a},", f"k: {{A: {float(a) / div:.6g},")
+            path.write_text(text, encoding="utf-8")
+        found, core_found, copper_margin = _network_mtsr(root)
+        assert found == pytest.approx(net, abs=0.05), div
+        assert core_found == pytest.approx(core, abs=0.05), div
+        assert copper_margin > 0, div  # the copper covers the whole network in every case
+    assert 373.12 - stated[100][0] == pytest.approx(1.0, abs=0.05)
+    design = _text("DESIGN.md")
+    assert "at k/100 it reaches 372.1 K, 1.0 K below water's boiling point" in design
+    assert "Safety requirement (recorded, for the basic engineering and the HAZOP):** the chlorine dosing stops on a sign of accumulation" in design
+    assert "354.2 / 357.9 / 363.5 K at k, k/10 and k/100; the network gives 354.4 / 359.8 / 372.1 K" in design
+    assert "(The MTSR, from the model, is right.)" not in design
+    for rel in ("DESIGN.md", "process/reactions.yaml"):
+        assert "conservative choice" not in _text(rel), rel
+    for rel in ("README.md", "process.yaml"):
+        text = _text(rel)
+        assert "372.1 K" in text and "within about 1 K of the MTT" in text, rel
+        assert "also at a hundred times slower rates" not in text, rel
+
+
+def test_r101_vessel_and_jacket_as_the_recipe_gives():
+    pytest.importorskip("chemeascode")
+    from chemeascode.domains.process.recipe import recipe_report
+
+    result = recipe_report(PROCESS)
+    vessel = next(v for v in result.vessels if v.procedure == "CHLORINATE")
+    assert vessel.working_volume == pytest.approx(3.643, abs=0.001)
+    assert vessel.peak_duty == pytest.approx(57.77, abs=0.01)
+    assert vessel.removable == pytest.approx(157.9, abs=0.1)
+    assert vessel.jacket_area == pytest.approx(10.6, abs=0.05)
+    stated = "(3.64 m3 at the end of the dosing, 73 %); its jacket (U 300 W/(m2 K) glass-lined, 10.6 m2 wetted at the charge) removes 158 kW against the model's peak 57.8 kW"
+    assert stated in _text("DESIGN.md")
+    assert "peak 57.8 kW against 158 kW" in _text("DESIGN.md")
+    r101 = next(e for e in _yaml("equipment/equipment-list.yaml")["equipment"] if e["tag"] == "R-101")
+    assert "3.64 m3" in r101["notes"] and "10.6 m2" in r101["notes"]
+    assert "removes 158 kW against the model's peak 57.8 kW" in r101["notes"]
+
+
+def test_liquor_concentration_and_fines_as_stated(model):
+    materials = model[0]
+    kg = _kg(model, "S11A")
+    volume = sum(n * materials[k]["liquid_molar_volume"] for k, n in _kmol(model, "S11A").items() if n)
+    assert kg["CUCL"] / volume == pytest.approx(129, abs=0.5)  # g/L
+    assert kg["CUCL"] / sum(kg.values()) * 1000 == pytest.approx(103, abs=0.5)  # g/kg
+    flowsheet = (PROCESS / "process/flowsheet.yaml").read_text(encoding="utf-8")
+    header = " ".join(l.lstrip("# ") for l in flowsheet.splitlines()[:20])
+    assert "about 129 g/L CuCl dissolved (103 g/kg, S11A)" in header
+    assert "about 129 g/L CuCl, 103 g/kg" in model[2]["F101"]["solid_separation"]["source"]
+    assert "about 129 g/L CuCl (103 g/kg)" in _text("process.yaml")
+    for rel in ("process.yaml", "process/flowsheet.yaml"):
+        text = _text(rel)
+        for old in ("150 g/L", "140 g/L", "130 g/L"):
+            assert old not in text, (rel, old)
+    fines = _kg(model, "S34")
+    assert fines["CU"] * CYCLE_H == pytest.approx(0.30, abs=0.01)
+    assert sum(fines.values()) * CYCLE_H == pytest.approx(0.60, abs=0.01)
+    x101 = next(e for e in _yaml("equipment/equipment-list.yaml")["equipment"] if e["tag"] == "X-101")
+    assert "about 0.3 kg of copper fines a batch (0.6 kg wet with liquor)" in x101["notes"]
+
+
+def test_ethanol_flammability_is_reasoned(model):
+    ethanol = _kg(model, "S24")["ETOH"] * CYCLE_H
+    assert ethanol == pytest.approx(186, abs=0.5)
+    pytest.importorskip("chemicals")
+    from chemicals import safety
+
+    assert safety.T_flash("64-17-5") == pytest.approx(285.15)
+    assert safety.LFL(CASRN="64-17-5") == pytest.approx(0.031)
+    # every step with ethanol in F-101 runs above its flash point
+    for sid in ("S25", "S26", "S27"):
+        assert _t(model, sid) > safety.T_flash("64-17-5"), sid
+    assert model[2]["D101"]["dryer"]["temperature"] > safety.T_flash("64-17-5")
+    design = _text("DESIGN.md")
+    assert "Ethanol's flash point is 285 K, its lower flammable limit 3.1 vol%" in design
+    for safeguard in (
+        "nitrogen inerting of F-101, its condenser and T-105 as a flammability safeguard",
+        "the vacuum broken with nitrogen only, never with air",
+        "discharge only after the dryer's end point",
+        "the vacuum pump's exhaust",
+        "need a hazardous-area zone",
+    ):
+        assert safeguard in design, safeguard
 
 
 def test_property_sources_are_registered():

@@ -29,7 +29,7 @@ the part of the document).
 | SRC-7 | PubChem CID 62652, copper(I) chloride; CID 23978 (copper), CID 24014 (copper(II) chloride) | identity (formula, CAS, InChIKey) | read (PUG REST) | registry, materials |
 | SRC-8 | Stoessel, F. (2008) Thermal Safety of Chemical Processes, Wiley-VCH, doi:10.1002/9783527621606 | accumulation, MTSR and the criticality classes of a semi-batch (method, implemented in core ADRs 0050, 0058) | method reference, no data taken | D-011 |
 | SRC-9 | processes/chlor-alkali-1, hydrogen-chloride-1, ethanol-1, asu-1 (this library) | dry chlorine gas, hydrochloric acid 33 wt%, anhydrous ethanol, gaseous nitrogen | library, internal | feed links (D-004, D-012) |
-| SRC-10 | Property data of core's environment: the `chemicals` 1.5.2 package (its packaged CRC Handbook tables: `chemicals.heat_capacity.CRC_standard_data` for standard enthalpies of formation and heat capacities, `chemicals.miscdata.CRC_inorganic_data` and `CRC_organic_data` for densities and boiling points, `chemicals.phase_change.Hvap_data_CRC` for heats of vaporisation, `chemicals.Tb`), and CoolProp's IAPWS water (latent heat at 333 K, saturation of LP steam, viscosity) | per component in `process/materials.yaml`; the heats of reaction (`process/reactions.yaml`); the dryer's latent heats (D-008) | open data packages queried (2026-11-06); facts only. The CRC values come from the tables packaged in `chemicals`, not from the printed (licensed) handbook | materials, D-005, D-008, D-009 |
+| SRC-10 | Property data of core's environment: the `chemicals` 1.5.2 package (its packaged CRC Handbook tables: `chemicals.heat_capacity.CRC_standard_data` for standard enthalpies of formation and heat capacities, `chemicals.miscdata.CRC_inorganic_data` and `CRC_organic_data` for densities and boiling points, `chemicals.phase_change.Hvap_data_CRC` for heats of vaporisation, `chemicals.Tb`; `chemicals.safety` `T_flash`, `LFL` and `T_autoignition` for ethanol, from its IEC 60079-20-1 / NFPA 497 tables), and CoolProp's IAPWS water (latent heat at 333 K, saturation of LP steam, viscosity) | per component in `process/materials.yaml`; the heats of reaction (`process/reactions.yaml`); the dryer's latent heats (D-008); ethanol's flash point 285.15 K, LFL 3.1 vol%, autoignition 673 K (D-011) | open data packages queried (2026-11-06); facts only. The CRC values come from the tables packaged in `chemicals`, not from the printed (licensed) handbook | materials, D-005, D-008, D-009, D-011 |
 | SRC-11 | Ullmann's Encyclopedia of Industrial Chemistry, Copper Compounds (doi:10.1002/14356007.a07_567) | - | not read (licensed); named by the route scouting and by Wikipedia as the source of the industrial routes | lead only, nothing taken |
 | SRC-12 | Fritz, J. J. (1980) Chloride complexes of copper(I) chloride in aqueous solution, J. Phys. Chem. 84, 2241; Kale, Tamhankar and Chaudhari (1979) J. Chem. Eng. Data 24, 110 (CuCl in HCl) | - | not read (paywalled; titles and metadata only) | leads for the solubility (open input, D-006) |
 | SRC-13 | GB1284110A, Norddeutsche Affinerie, 1972 | abstract: copper and chlorine in a CuCl melt, continuous | abstract only | D-001 (rejected route) |
@@ -103,8 +103,8 @@ R-101 is the bottleneck: cycle 9.37 h, 846 batches in 7920 h; one batch takes 16
 purge to the discharge. The flowsheet's flows are the recipe's year averages: 355.0 kg x 845.6 / 7920 h = 37.90 kg/h of S29 (no `cheme.recipe-basis` finding). The feeds were scaled by hand to
 that rate and the batch size set to rate x cycle (L-7).
 Vessels (fill 0.8, H/D 1.2, 1.0 for the filter-dryer, ASSUMED): R-101 5 m3 as core sizes it
-from R101's model (3.63 m3 at the end of the dosing, 73 %); its jacket (U 300 W/(m2 K)
-glass-lined, 10.5 m2 wetted at the charge) removes 157 kW against the model's peak 57.5 kW, on
+from R101's model (3.64 m3 at the end of the dosing, 73 %); its jacket (U 300 W/(m2 K)
+glass-lined, 10.6 m2 wetted at the charge) removes 158 kW against the model's peak 57.8 kW, on
 the cooling water's log-mean temperature: water at 298/308 K against the liquor at 353.15 K
 gives (55 - 45) / ln(55/45) = 49.83 K, so the coolant temperature entered is 303.32 K, not the
 supply's 298.15 K. The cool-down to 308 K takes its time from the same constant 303.32 K; near
@@ -117,7 +117,8 @@ filtration and drying times come from the models, so a change of the kinetics, t
 cake or the drying rate changes the cycle. Settling and decanting in P-101 (DC101) keeps the
 filter-dryer at 1 m3: without it F-101 would take the whole 28 m3 of slurry.
 Dosing time: 3 h ASSUMED for the absorption of the chlorine (about 22.4 m3/h of gas at 353 K into
-3.6 m3); the jacket would allow a faster dosing (peak 57.5 kW against 157 kW).
+3.6 m3); the jacket would allow a faster dosing (peak 57.8 kW against 158 kW; `cheme process
+recipe`: 3.643 m3, 57.77 kW, 157.9 kW, 10.6 m2).
 
 ## D-004 Feeds, charge and the recycles (2026-11-06)
 Decision: per batch 164.1 kg of chlorine, 293.1 kg of fresh copper, 907 kg of salt, 10.5 kg of
@@ -151,8 +152,11 @@ Decision:
   COMP, CuCl2 + Cu -> 2 CuCl. The oxidation of the dissolved copper(I) by chlorine, 2 CuCl + Cl2
   -> 2 CuCl2, is CHL less COMP, so it is not a third reaction: the balance cannot fit the extents
   of linearly dependent reactions (`cheme.process-balance`, "runs backwards", found with it in).
-  CHL carries the chlorine's whole heat to the copper(II) stage, so an accumulated chlorine reacts
-  with the copper on a cooling failure: the conservative choice.
+  CHL carries the chlorine's heat to the copper(II) stage only. On a cooling failure the
+  accumulated chlorine reacts with the copper to CuCl2 (-220.1 kJ/mol), and the excess copper then
+  reduces that CuCl2 and the CuCl2 already present (COMP, -54.3 kJ/mol more). Core's screening
+  takes each reaction alone (the largest), so that follow-on heat is missing from its MTSR and
+  dT_ad; it is not conservative. The network value is given by hand in D-011 (L-2).
 - Copper metal has no place in a liquid semi-batch: it is the solid CU, and the rate laws take its
   amount per m3 of the content as if dissolved (an effective rate of its surface, L-1).
 - Rate laws, ASSUMED (no open kinetics, searched 2026-11-06): CHL second order in copper and
@@ -181,17 +185,27 @@ Decision:
   not bound to copper(I), m (NaCl, HCl and 2 x CuCl2, mol per kg of water), s = 1.0 g/L x
   (m/0.282)^1.686, through two open points of SRC-5: about 1 g/L at 0.282 mol/L of excess
   chloride (20 C) and at least 39.6 g/L (0.4 mol/L) in 2.5 mol/L of NaCl and HCl (25 C). The
-  exponent, near 2, is what copper(I)'s complexes with two and three chlorides give. It checks
-  against SRC-1: at the brine's 5.1 mol/L it gives 133 g/L, 14 % below the 155 g/L SRC-1 holds
-  dissolved at room temperature. The mother liquor S15 has m = 0.621 mol/kg. g/L is read as g per
+  exponent, near 2, is what copper(I)'s complexes with two and three chlorides give.
+  **Against SRC-1 the law overpredicts at the brine's chloride level.** On the law's own basis
+  the R-101 liquor S11A has m = (1.8349 + 0.0046 + 2 x 0.0026) kmol / 0.32323 t of water = 5.71
+  mol/kg, where the law gives s = (5.71/0.282)^1.686 = 159 g per kg of liquor. SRC-1's 155 g/L,
+  dissolved at room temperature, is about 124 g/kg at the model's density of S11A (1.25 kg/L,
+  ideal mixing) and about 119 g/kg at 1.3 kg/L (ASSUMED range; SRC-1 gives no density). So the
+  law is 28-34 % high there, at twice its upper fit point; SRC-1 does not validate it. CR101's
+  liquor (m = 0.621 mol/kg) lies inside the fit range (0.28-2.5), where this overprediction does
+  not apply. Both fit points are per litre and the law is applied per kg of water: refitted with
+  the points per kg of water (water 0.99 and 0.95 kg/L at the two points, ASSUMED) it gives 3.63
+  instead of 3.79 g/kg at CR101's liquor, 4 % less, within the solubility's uncertainty. The
+  mother liquor S15 has m = 0.621 mol/kg. g/L is read as g per
   kg of liquor (a dilute liquor). No temperature dependence is taken (the points are at 20 and
   25 C, the liquor at 299.3 K). The law is evaluated at the solved liquor composition by hand
   and its value typed in; core checks neither (L-4), the test does.
 - The dilution, about 7 volumes of water per volume of liquor (6.9 on the model's volume of S11A;
   SRC-2: 1-15, preferably 5-10, seven in its examples), deoxygenated by sparging with nitrogen
   (SRC-3, SRC-5).
-- **The loss.** Only 76.5 % of the CuCl in the liquor precipitates; 21 % of the copper fed leaves
-  dissolved with the brine. A larger dilution helps slowly: with s growing as m^1.69 and the
+- **The loss.** Only 76.5 % of the CuCl in the liquor precipitates; 22.1 % of the copper fed
+  leaves dissolved (21.6 % as CuCl, 0.5 % as copper(II)), 22.3 % in all with the crystals and
+  fines, with the brine. A larger dilution helps slowly: with s growing as m^1.69 and the
   volume as 1/m, the dissolved share falls as m^0.69 (10 volumes instead of 7 would leave about 19 % of
   the liquor's CuCl dissolved instead of 23.5 %). The loss
   follows from the brine's low CuCl/NaCl ratio (SRC-1's 155 g/L in 300 g/L NaCl); SRC-2's ammonium
@@ -292,7 +306,7 @@ caustic, and a sludge; or the brine recycled after evaporating the dilution wate
 batch, which the energy rules out at this scale). The yield on copper (77.6 %) is that of a plant
 without that recovery.
 
-## D-011 Thermal screening, the rate sensitivity and the hazards of chlorine and of air (2026-11-06)
+## D-011 Thermal screening, the rate sensitivity and the hazards of chlorine, of air and of the ethanol (2026-11-06)
 Result (`cheme process reactor-hazards`, core ADRs 0050, 0058):
 - R101: T_p 353.15 K; core's adiabatic rise of the whole batch 36.9 K (CHL run to completion of
   the chlorine; with COMP after it, the net 274.4 kJ/mol of chlorine over the content's heat
@@ -302,6 +316,22 @@ Result (`cheme process reactor-hazards`, core ADRs 0050, 0058):
   the dissolved chlorine and HCl left out; the brine itself boils about 8 K higher, so the MTT is
   conservative). The MTSR over the batch rises from 353.6 K after 0.8 h to 354.2 K at the end of
   the dosing, set by COMP on the copper(II) present (CHL alone 353.4 K).
+- **Core's MTSR takes each reaction alone, so it is low.** Core gives a semi-batch's
+  cooling-failure temperature as T + max_j(-dHr_j xi_j)/C: the largest reaction, not the sum.
+  When CHL is the largest, the accumulated chlorine counts only to CuCl2 (-220.1 kJ/mol). The
+  heat of COMP that the excess copper then releases is left out (-54.3 kJ/mol per CuCl2, on the
+  CuCl2 formed and on the CuCl2 already accumulated). The network MTSR, by hand from core's own
+  cooling profile (`solve_node`'s `cooling_profile`, the moles in R101 then):
+  T + (274.4 kJ/mol x n_Cl2 + 54.3 kJ/mol x n_CuCl2) / C. It holds as long as the copper covers
+  2 n_Cl2 + n_CuCl2, which it does in every case. The worst moment is the end of the dosing
+  (10800 s) in every case, with C = 1479 kJ/(K h) and per hour of flows:
+  - design: n_Cl2 0.00155, n_CuCl2 0.02725 kmol; (425 + 1480) / 1479 = 1.29 K, so **354.4 K**
+    (copper 0.279 kmol against 0.030 needed);
+  - k/10: n_Cl2 0.01054, n_CuCl2 0.12824 kmol; (2892 + 6963) / 1479 = 6.66 K, so **359.8 K**
+    (copper 0.398 against 0.149);
+  - k/100: n_Cl2 0.0695, n_CuCl2 0.1655 kmol; (19071 + 8986) / 1478 = 18.98 K, so **372.1 K**
+    (copper 0.553 against 0.304).
+  An independent integration of the same rate laws in review gave 354.4, 359.8 and 372.3 K.
 - No TD24 is known for the brine or the product (never estimated): no class
   (`cheme.reactor-hazard-missing`, info). By core's `criticality()`, with MTSR below MTT the
   classes still possible are 1 (TD24 above the MTT, 373.1 K), 2 (TD24 between the MTSR and the
@@ -310,16 +340,28 @@ Result (`cheme process reactor-hazards`, core ADRs 0050, 0058):
 Sensitivity (scratch copies with both rate constants divided by 10 and by 100, the charge held at
 the design's converged heel and recycled liquor; not committed):
 
-| case | accumulation of Cl2 | MTSR | MTT | Cu(II) left after the 1 h post-reaction | Cl2 left unreacted |
-|---|---|---|---|---|---|
-| k (design) | 0.63 % | 354.2 K | 373.1 K | 0.52 % of the copper | none |
-| k/10 | 4.26 % | 357.9 K | 373.1 K | 24 % | none |
-| k/100 | 28.1 % | 363.5 K | 373.1 K | 78 % | 17 kg a batch (1.84 kg/h of flows) |
+| case | accumulation of Cl2 | MTSR (core, each reaction alone) | MTT | MTSR (network, by hand) | Cu(II) left after the 1 h post-reaction | Cl2 left unreacted |
+|---|---|---|---|---|---|---|
+| k (design) | 0.63 % | 354.2 K | 373.1 K | 354.4 K | 0.52 % of the copper | none |
+| k/10 | 4.26 % | 357.9 K | 373.1 K | 359.8 K | 24 % | none |
+| k/100 | 28.1 % | 363.5 K | 373.1 K | 372.1 K | 78 % | 17 kg a batch (1.84 kg/h of flows) |
 
-On MTSR against MTT the classes possible stay 1, 2 or 5 in every case: the large water content
-keeps the rise small. With the tears free (the loop converged again), slower rates let the heel
-grow: at k/100 R-101 needs 8 m3; the product falls with the copper(II) left. Interpretation: the
-thermal risk is small on this screening; the real risks are chemical:
+On the network basis the MTSR stays below the MTT in every case, so the classes possible stay 1,
+2 or 5. But **at k/100 it reaches 372.1 K, 1.0 K below water's boiling point**, and a slightly
+slower rate would cross it (class 3 or 4 then possible). The large water content keeps the rise
+small only while the rates are about as fast as assumed. With the tears free (the loop converged
+again), slower rates let the heel grow: at k/100 R-101 needs 8 m3; the product falls with the
+copper(II) left. The MTT stays at water's normal boiling point (core's default, no `hazard.mtt`).
+The brine boils higher (about 8 K, ASSUMED, not sourced), which would give about 9 K of margin at
+k/100, but no source for the boiling point of this liquor was found, so that margin is not taken.
+**Safety requirement (recorded, for the basic engineering and the HAZOP):** the chlorine dosing
+stops on a sign of accumulation, not only on a cooling failure. The signs are the reaction heat
+falling behind the dose (the jacket's heat flow, or the reactor-jacket temperature difference,
+against the dosed chlorine's expected heat), a redox potential that stays low, or chlorine in the
+vent. Dosing resumes only once the accumulated chlorine has reacted. Reaction calorimetry must
+confirm the rates (D-005) before this margin is relied on. Interpretation: at the assumed rates
+the thermal risk is small on this screening; at slower rates it is held only by that dosing
+interlock. The other risks are chemical:
 - **Chlorine accumulation.** At k/100 the model holds 28 % of the dose, 46 kg, dissolved in 3.6
   m3 (13 g/L): far more than a hot brine dissolves (no open value; chlorine's solubility falls
   with temperature and salt). It would break through as gas. Core's absorbed dose takes the gas
@@ -344,6 +386,30 @@ thermal risk is small on this screening; the real risks are chemical:
   balance, so the assay is an upper bound (D-002). Without the sparging the 24.8 t of water a
   batch would bring about 0.2 kg of oxygen (8 mg/L, ASSUMED), enough to oxidise about 2.4 kg of
   CuCl to copper(II) (0.7 % of a batch).
+- **Ethanol in F-101 and T-105 (flammable atmosphere).** Each batch puts 186 kg of anhydrous
+  ethanol (S24) into F-101. About 159 kg leave with the wash filtrate, 27.6 kg are evaporated in
+  the dryer (27.0 kg condensed on Q6, 0.55 kg left in the product), and all of it goes to T-105.
+  Ethanol's flash point is 285 K, its lower flammable limit 3.1 vol% and its autoignition
+  temperature 673 K (chemicals 1.5.2, `chemicals.safety`, SRC-10). The displacement wash at 303 K,
+  the nitrogen pressing at 200 kPa, the vacuum drying at 333 K on 343 K water and the condensate
+  all run above the flash point, so a flammable mixture forms wherever air gets in. The
+  safeguards below are requirements for basic engineering, every number ASSUMED:
+  - nitrogen inerting of F-101, its condenser and T-105 as a flammability safeguard (not only
+    against oxidising CuCl): purged before the ethanol enters, the oxygen held below 5 vol%
+    (ASSUMED, well below ethanol's limiting oxygen concentration in nitrogen, which is to be
+    taken from a sourced value) and measured by an oxygen analyser on F-101's gas space, which
+    stops the ethanol feed and the heating when it is high;
+  - the vacuum broken with nitrogen only, never with air;
+  - discharge only after the dryer's end point (at most 0.2 wt% volatiles, D-008) and the cooling
+    to 303 K, confirmed by the vacuum's pressure and the condensate rate, and under nitrogen;
+  - the vacuum pump's exhaust (nitrogen with the ethanol the condenser does not hold, not
+    estimated, `emission_exclusions` dryer-vent) routed to a safe place: a vent stack outside the
+    building with a flame arrester, or the site's VOC treatment (open input), not to the caustic
+    scrubber T-201, which does not take up ethanol;
+  - earthing and bonding of F-101, T-105 and the ethanol lines; an ethanol-rated vacuum pump.
+  F-101, its condenser, the vacuum pump and T-105 need a hazardous-area zone (likely zone 1
+  inside and around their openings, zone 2 around them, ASSUMED). That is an open input for the
+  area-classification step (skill `area-classification`, `layout/zones.yaml`).
 Screening values only, not a reaction-hazard assessment.
 
 ## D-012 Preliminary gate-to-gate LCI (2026-11-06)
@@ -399,11 +465,16 @@ still (no distillation); `hazard.reactions` (every reaction counts, the conserva
   surface area, particle size or mass transfer, and the metal's volume counts in the liquid's.
   An effective surface rate (a specific area per kg of solid in the rate law) would express the
   heel.
-- L-2: **dT_ad of a reaction network.** Core gives each reaction's rise run to completion alone
-  and takes the largest (36.9 K for CHL); the network's net heat (CHL then COMP on the copper(II)
-  formed, 274.4 kJ/mol of chlorine) gives 45.8 K by hand. A consecutive reaction that consumes a
-  product of the dosed reaction is not added to the potential. (The MTSR, from the model, is
-  right.) The direct reaction and the oxidation of copper(I) cannot both be written either: the
+- L-2: **dT_ad and MTSR of a reaction network.** Core gives each reaction's rise run to
+  completion alone and takes the largest (36.9 K for CHL); the network's net heat (CHL then COMP
+  on the copper(II) formed, 274.4 kJ/mol of chlorine) gives 45.8 K by hand. Core's semi-batch
+  MTSR, like its dT_ad, takes each reaction alone (T + max_j(-dHr_j xi_j)/C), so a consecutive
+  reaction on the product of the dosed one is missing from both. Here it misses COMP's heat on
+  the CuCl2 that the accumulated chlorine forms and on the CuCl2 already there. Core gives
+  354.2 / 357.9 / 363.5 K at k, k/10 and k/100; the network gives 354.4 / 359.8 / 372.1 K by hand
+  (D-011), so at k/100 core's MTSR is 8.6 K low and 1.0 K short of the MTT. For the core issue: the
+  potential should be the network's (the heat released by running every reaction to the end
+  state of what is in the vessel), not the largest single reaction's. The direct reaction and the oxidation of copper(I) cannot both be written either: the
   balance cannot fit linearly dependent reactions (D-005).
 - L-3: **a gas dose has no solubility.** `absorbed: 1` takes the chlorine up whatever the
   liquid's chlorine content; there is no gas-liquid equilibrium, so an accumulated dose above
@@ -455,7 +526,10 @@ still (no distillation); `hazard.reactions` (every reaction counts, the conserva
 
 ## Open inputs
 Kinetics and heats of reaction in the brine (calorimetry), the chlorine's solubility in the hot
-brine and its breakthrough rate, TD24 of the brine; the solubility of CuCl in NaCl solutions
+brine and its breakthrough rate, TD24 of the brine, the boiling point of the R-101 liquor (a
+sourced `hazard.mtt`), the dosing's accumulation interlock (D-011); the ethanol's limiting
+oxygen concentration, the vacuum exhaust's destination and the hazardous-area classification
+of F-101, its condenser, the vacuum pump and T-105 (D-011); the solubility of CuCl in NaCl solutions
 against chloride and temperature (SRC-12), and so the dilution loss; the heats of solution of the
 chloro complexes; settling, filtration and wash data and the drying rate from trials; the
 product specification (assay, copper(II), moisture, oxidation in storage); copper recovery from
