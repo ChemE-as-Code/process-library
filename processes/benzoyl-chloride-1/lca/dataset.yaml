@@ -16,8 +16,8 @@ year: 2026
 boundary: gate-to-gate foreground of the plant
 technology: 'Batch plant: benzotrichloride dosed over 2 h into molten benzoic acid with zinc chloride
   at 413 K (semi-batch, 7 % acid excess), the HCl vented as it forms and absorbed to 30 wt% acid, the
-  crude distilled at 5 kPa(a) in a batch still with a short column; 1229 kg per batch, 1627 batches a
-  year on a dedicated train'
+  off-gas through a reflux condenser, the crude distilled at 5 kPa(a) in a batch still with a packed column
+  (15 theoretical stages, reflux ratio 2); 1229 kg per batch, 1627 batches a year on a dedicated train'
 rights: 'CC-BY-4.0: the ChemE-as-Code process library''s own concept design (LICENSE-DATA)'
 cutoff:
 - key: emission-excluded:melter-vent
@@ -28,12 +28,12 @@ cutoff:
 - key: emission-excluded:absorber-tail-gas
   title: storage-tank emissions of R-101, A-101
   direction: output
-  reason: 'No P&ID yet: R-101 vents only through the absorber; its tail gas (nitrogen of the purges with
-    HCl, benzotrichloride and benzoyl chloride traces) goes through a water tail scrubber to air. The
-    balance absorbs all HCl and core''s vent carries no organic vapour (D-010, L-2); not estimated (open
-    for basic engineering).'
+  reason: 'No P&ID yet: R-101 vents only through its reflux condenser E-102 and the absorber; its tail
+    gas (nitrogen of the purges with HCl, benzotrichloride and benzoyl chloride traces) goes through a
+    water tail scrubber to air. The balance absorbs all HCl and all the organics past E-102 in the acid
+    (0.18 kg/h, D-010); the tail gas is not estimated (open for basic engineering).'
 - key: emission-excluded:vacuum-vent
-  title: storage-tank emissions of C-101, K-101
+  title: storage-tank emissions of C-101, K-101, E-101
   direction: output
   reason: The vacuum pump's exhaust (nitrogen, air in-leakage, the HCl the crude still holds dissolved
     and benzoyl chloride traces) to the vent scrubber is not estimated (D-007, D-010).
@@ -48,7 +48,7 @@ valid_until: 2031
 system_model: cutoff
 technology_level: current
 production_volume:
-  amount: 1999999.584
+  amount: 2000005.9200000002
   unit: kg/a
   source: product:BZCL per hour x operation.hours_per_year (7920 h/a)
 classification:
@@ -56,7 +56,7 @@ classification:
 modelling:
   principle: attributional
   multifunctionality: 'unallocated multi-output dataset; default allocation shares: D-012 (agent proposal,
-    for the LCA practitioner to confirm): the 30 wt% hydrochloric acid (0.444 kg per kg of benzoyl chloride,
+    for the LCA practitioner to confirm): the 30 wt% hydrochloric acid (0.445 kg per kg of benzoyl chloride,
     0.133 kg of HCl) is a by-product of fixed stoichiometry (one HCl per two benzoyl chloride). All burdens
     are given to the benzoyl chloride, the acid leaves without a burden and without a credit (conservative
     for the main product).'
@@ -67,7 +67,7 @@ exchanges:
 - key: feed:BA
   title: Benzoic acid (flakes; no library process)
   type: input
-  amount: 120.9201
+  amount: 120.9846
   unit: kg
   link:
     source: flowsheet stream S1 (D-004)
@@ -89,7 +89,7 @@ exchanges:
 - key: feed:ZNCL2
   title: Zinc chloride (anhydrous catalyst)
   type: input
-  amount: 0.89766
+  amount: 0.89814
   unit: kg
   link:
     source: flowsheet stream S2 (D-004)
@@ -111,7 +111,7 @@ exchanges:
 - key: feed:BTC
   title: Benzotrichloride (no library process)
   type: input
-  amount: 180.6389
+  amount: 180.7353
   unit: kg
   link:
     source: flowsheet stream S4 (D-004)
@@ -135,7 +135,7 @@ exchanges:
 - key: feed:PW
   title: Process water (HCl absorber)
   type: input
-  amount: 78.5367
+  amount: 78.5782
   unit: kg
   link:
     source: flowsheet stream S7 (D-010)
@@ -179,7 +179,7 @@ exchanges:
 - key: feed:MPS
   title: MP steam 1100 kPa(a) (melter)
   type: input
-  amount: 12.1285
+  amount: 12.135
   unit: kWh
   link:
     source: flowsheet energy stream Q1 (melter), D-009
@@ -202,22 +202,22 @@ exchanges:
 - key: feed:LPS
   title: LP steam 450 kPa(a) (still reboiler)
   type: input
-  amount: 50.196299999999994
+  amount: 74.2548
   unit: kWh
+  provenance: calculated
   link:
-    source: flowsheet energy streams Q4 (the still's net boil-up, from core's still model) and Q6 (the
-      boil-up returned as the column's reflux), together the still's reboiler, D-009
+    source: flowsheet energy stream Q4, the still's reboiler at the column's reflux ratio of 2, from core's
+      still model (core 1.10.0, ADR 0061), D-009
     missing: 'linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry,
       450 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh
       of condensing heat'
   streams:
   - Q4
-  - Q6
-  source: flowsheet energy streams Q4 (the still's net boil-up, from core's still model) and Q6 (the boil-up
-    returned as the column's reflux), together the still's reboiler, D-009
+  source: flowsheet energy stream Q4, the still's reboiler at the column's reflux ratio of 2, from core's
+    still model (core 1.10.0, ADR 0061), D-009
   pedigree:
-    scores: [4, 4, 1, 3, 3]
-    rule: cheme default pedigree v1 (assumed, design maturity concept)
+    scores: [3, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (calculated, design maturity concept)
   basic_uncertainty: 1.05
   carrier:
     kind: steam
@@ -228,25 +228,26 @@ exchanges:
 - key: product:BZCL
   title: Benzoyl chloride to storage
   type: product
-  amount: 252.5252
+  amount: 252.526
   unit: kg
+  provenance: calculated
   streams:
   - S11
   pedigree:
-    scores: [4, 4, 1, 3, 3]
-    rule: cheme default pedigree v1 (assumed, design maturity concept)
+    scores: [3, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (calculated, design maturity concept)
   basic_uncertainty: 1.05
   state:
     pressure: 1.01325
     temperature: 30.0
-    purity: 0.999929164
-    basis: mass
+    purity: 0.999992
+    basis: mole
     component: BZCL
   composition:
     fractions:
-      BTC: 1.2432e-05
-      BA: 5.8404e-05
-      BZCL: 0.999929164
+      BTC: 1.1031e-05
+      BA: 0.0
+      BZCL: 0.999988969
     formulas:
       BTC: C7H5Cl3
       BA: C7H6O2
@@ -255,7 +256,7 @@ exchanges:
 - key: product:HCLAQ
   title: Hydrochloric acid 30 wt% (co-product)
   type: product
-  amount: 112.195
+  amount: 112.436
   unit: kg
   provenance: calculated
   streams:
@@ -267,21 +268,27 @@ exchanges:
   state:
     pressure: 1.01325
     temperature: 40.0
-    purity: 0.825239
+    purity: 0.825039
     basis: mole
     component: H2O
   composition:
     fractions:
-      HCL: 0.300000066
-      H2O: 0.699999934
+      HCL: 0.299515745
+      H2O: 0.698872436
+      BZCL: 0.001598273
+      BTC: 1.2994e-05
+      BA: 5.52e-07
     formulas:
       HCL: HCl
       H2O: H2O
+      BZCL: C7H5ClO
+      BTC: C7H5Cl3
+      BA: C7H6O2
     source: stream table (S8)
 - key: product:RES
   title: Still residue to hazardous-waste incineration
   type: output
-  amount: 16.2732
+  amount: 16.2353
   unit: kg
   provenance: calculated
   link:
@@ -301,10 +308,10 @@ exchanges:
       benzotrichloride traces) with flue-gas scrubbing (HCl captured); not recycled in this concept (D-008)
   composition:
     fractions:
-      BTC: 0.010907478
-      BA: 0.501417732
-      BZCL: 0.432513062
-      ZNCL2: 0.055161728
+      BTC: 0.010960704
+      BA: 0.503819483
+      BZCL: 0.429899318
+      ZNCL2: 0.055320494
     formulas:
       BTC: C7H5Cl3
       BA: C7H6O2
@@ -314,11 +321,12 @@ exchanges:
 - key: product:CW
   title: Cooling water return
   type: output
-  amount: 78.27476
+  amount: 102.24075
   unit: kWh
   link:
-    source: flowsheet energy streams Q2 (R-101, from core's semi-batch model), Q3 (absorber) and Q5 (condenser
-      and product cooler), D-009, D-010
+    source: flowsheet energy streams Q2 (R-101, from core's semi-batch model), Q8 (R-101's reflux condenser
+      E-102, from its vent model), Q3 (absorber), Q5 (the column's condenser, from core's still model)
+      and Q7 (the product cooler), D-009, D-010
     missing: 'not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system
       with cooling tower (processes/utility-cooling-tower), per kWh removed; R-101''s heat passes through
       a tempered-water loop at 363 K first'
@@ -326,8 +334,11 @@ exchanges:
   - Q2
   - Q3
   - Q5
-  source: flowsheet energy streams Q2 (R-101, from core's semi-batch model), Q3 (absorber) and Q5 (condenser
-    and product cooler), D-009, D-010
+  - Q7
+  - Q8
+  source: flowsheet energy streams Q2 (R-101, from core's semi-batch model), Q8 (R-101's reflux condenser
+    E-102, from its vent model), Q3 (absorber), Q5 (the column's condenser, from core's still model) and
+    Q7 (the product cooler), D-009, D-010
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -339,14 +350,14 @@ exchanges:
 - key: consumable:nitrogen
   title: Nitrogen for inerting R-101 and the still and breaking the still's vacuum
   type: input
-  amount: 2.053942495558911
+  amount: 2.054411354528824
   unit: kg
   link:
     source: 8 Nm3 per batch (purges of R-101's and the still's vapour spaces, the vacuum broken once,
       the crude transfer) x 1.2506 kg/Nm3, ASSUMED (D-012)
     missing: 'linked to processes/asu-1 (lca/mappings.yaml): gaseous nitrogen to the battery limit'
   source: 8 Nm3 per batch (purges of R-101's and the still's vapour spaces, the vacuum broken once, the
-    crude transfer) x 1.2506 kg/Nm3, ASSUMED (D-012); 10 kg per batch x 1626.72 batches in 7920 h (process/recipe.yaml,
+    crude transfer) x 1.2506 kg/Nm3, ASSUMED (D-012); 10 kg per batch x 1627.09 batches in 7920 h (process/recipe.yaml,
     case design, bottleneck REACT)
   pedigree:
     scores: [4, 4, 1, 3, 3]
@@ -360,7 +371,7 @@ allocation:
   shares:
     BZCL: 1.0
     HCLAQ: 0.0
-  source: 'D-012 (agent proposal, for the LCA practitioner to confirm): the 30 wt% hydrochloric acid (0.444
+  source: 'D-012 (agent proposal, for the LCA practitioner to confirm): the 30 wt% hydrochloric acid (0.445
     kg per kg of benzoyl chloride, 0.133 kg of HCl) is a by-product of fixed stoichiometry (one HCl per
     two benzoyl chloride). All burdens are given to the benzoyl chloride, the acid leaves without a burden
     and without a credit (conservative for the main product).'
@@ -376,8 +387,8 @@ provenance:
     distillation (2000 t/a)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:2b11f4a61b5cc0a438fd0431d3165e966ac0e3551f752a3ba85fb23620fe24c6
-    lca/lca.yaml: sha256:d7cbc6c97192ecd6e610bbfa344053ed3abe1868536622f874542bb0636f745a
-    process.yaml: sha256:87035c856c6678a9b11e76e3916c3a61e096f9dafea264190a143ede42b60deb
-    process/flowsheet.yaml: sha256:f3aad2f8b7d99b4d1e4fdf9f031b192c0b70f69579866302ec9d8c8199e854cd
-    process/materials.yaml: sha256:0b7792707d2395af034032b2c0dcf32dab55e9d9c03181a543988e2245f5d16f
+    equipment/equipment-list.yaml: sha256:3d5c30c0ca3bc98302e73d676b7b8194d68f22b70e9b2ae8e5ba01c4a0387be4
+    lca/lca.yaml: sha256:47653a65ebc088d4b35fd62fa142c4d7f117a06bfab1a1e9406074ad67d5e0ac
+    process.yaml: sha256:95a1208b9182dfe9db4ee075dc28a64cc0dee1cbd4325d583b51d49017fe5bec
+    process/flowsheet.yaml: sha256:3005e4a34104a23a6786d0f65a4b34bf1ce76f88855fb134f55a50a56b874052
+    process/materials.yaml: sha256:644d9eceb6dd1f15b3cc50eaeec8465a5e61bcf1605b0acc2c66313f1dcc8487
