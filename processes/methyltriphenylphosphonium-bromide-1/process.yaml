@@ -35,15 +35,17 @@ description: |
   source of this route gives a yield, and triphenylphosphine oxide, water and other impurities
   are not modelled.
 
-  The batch is modelled with cheme-as-code 1.9.0: R101 is a semi-batch (reactor: semibatch) with
+  The batch is modelled with cheme-as-code 1.10.0: R101 is a semi-batch (reactor: semibatch) with
   the liquid methyl bromide as the dose; the precipitation CR101 and the reslurry wash W101 are
   crystallizers with the dissolved PPh3 and methyl bromide as spectators (core ADR 0056); the
   filter-dryer is one recipe vessel over four steps with Ruth filtration times and core's dryer
   to a residual moisture (core ADR 0057); the toluene recovery is core's batch still on Raoult's
   law (core ADR 0055). The recovered toluene's recycle is converged by propagate at the tear S11
   (core ADR 0060), and the semi-batch, the crystallizer and the still write their duties (core
-  ADR 0059), the vessels' metal and the still's heat-up on their own streams. The recipe gives the cycle (10.20 h, the filter-dryer the bottleneck,
-  776.6 batches a year), sizes R-101 and F-101 (6.3 m3 each) and checks R-101's jacket against
+  ADR 0059), the still's with the charge's heat-up and C-101's metal and the crystallizer's with
+  R-101's metal (core ADR 0063). The recipe gives the cycle (10.20 h, the filter-dryer the
+  bottleneck, 776.6 batches a year), R-101's heating and cooling times with its metal, sizes
+  R-101, F-101 and the still C-101 (6.3 m3 each) and checks R-101's jacket against
   the cooling water's log-mean temperature. Kinetics and the heat of reaction are ASSUMED (no
   open data): 14.7 % of the methyl bromide accumulates, the cooling-failure temperature reaches
   339.1 K, and the MTT of the closed vessel (the temperature at which it reaches its relief set
@@ -71,20 +73,23 @@ validation:
     the still ST101 by Rayleigh on Raoult's law; the vent losses DG101 and the vacuum condenser
     E201 are hand splits; the recycled toluene is converged by propagate at the tear S11
     (Wegstein, 3 iterations; core 1.9.0). The duties of R101, CR101 and ST101 are written by
-    their models (energy_port); the PPh3's heat of solution, the vessels' metal, the still's
-    heat-up and the condensers are hand arithmetic from the stream table on their own streams;
-    the dryer's is core's model. The recipe takes the dosing, post-reaction, heating, cooling, filtration, drying
-    and boil-up times from the models (cheme process recipe, no cheme.recipe-basis finding).
+    their models (energy_port), the still's with the charge's heat-up and C-101's metal and
+    CR101's with R-101's metal (core 1.10.0); R-101's heat-up with the PPh3's heat of solution
+    and its metal, F-101's cool-down and the condensers are hand arithmetic from the stream table
+    on their own streams; the dryer's is core's model. The recipe takes the dosing,
+    post-reaction, heating and cooling (with R-101's metal), filtration, drying and boil-up times
+    from the models (cheme process recipe, no cheme.recipe-basis finding); the still's heat-up
+    time is hand arithmetic at its boil-up rate.
     Thermal screening (cheme process reactor-hazards): dT_ad 46.0 K, accumulation 14.7 %, MTSR
     339.1 K against a hand MTT of 415.3 K for the closed vessel (core 1.9.0's default, 307.3 K,
     its Clausius-Clapeyron estimate of pure methyl bromide's boiling point at 230 kPa(a) with the
     384 K heat of vaporization of the materials, 300.0 K by their vapour pressure, does not
     describe it); no vent and no gas
     formed, so no gas release; no criticality class without a TD24 from calorimetry (never
-    estimated). The kinetics are assumed: at k/100 the accumulation is 85 % and the cycle 292 h.
+    estimated). The kinetics are assumed: at k/100 the accumulation is 85 % and the cycle 293 h.
     Preliminary gate-to-gate LCI with nitrogen as a per-batch consumable; toluene and nitrogen
     linked to btx-1 and asu-1, PPh3 and methyl bromide gaps with their proxy recorded. Not
-    reviewed. Needs cheme-as-code 1.9.0.
+    reviewed. Needs cheme-as-code 1.10.0.
 chemistry:
   inputs:
     - {chemical: triphenylphosphine, role: feedstock, inventory_key: "feed:PPH3", note: "Triphenylphosphine (merchant), 0.744 kg/kg salt; no library process makes it (proxy PCl3 + chlorobenzene + sodium recorded, D-012)"}
@@ -94,7 +99,7 @@ chemistry:
   outputs:
     - {chemical: methyltriphenylphosphonium-bromide, role: main-product, inventory_key: "product:PROD", note: "Dried salt to packing under nitrogen; modelled 99.87 wt%, an ASSUMED upper bound (no specification or impurity profile found, PPh3 oxide and water not modelled)"}
   utilities:
-    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.150 kWh/kg salt: agitators of R-101, F-101 and C-101, the dosing pump, the vacuum pump and transfer pumps (ASSUMED)"}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.154 kWh/kg salt: agitators of R-101, F-101 and C-101, the dosing pump, the vacuum pump and transfer pumps (ASSUMED)"}
     - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.767 kWh (2.76 MJ)/kg salt of LP steam: the still (boil-up, the charge's heat-up and its metal, 0.585 kWh), the dryer (0.100 kWh) and R-101's heat-up with the PPh3's heat of solution (0.083 kWh)"}
     - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.703 kWh/kg salt removed by cooling water: the still's condenser and distillate cooler (0.544 kWh), the heat of quaternisation, the slurry's cool-down and the product's in F-101"}
     - {chemical: chilled-water, role: utility, inventory_key: "product:BRINE", note: "0.042 kWh/kg salt removed by brine at 258 K: F-101's vacuum condenser (the registry has chilled water, not brine: closest entry)"}
@@ -118,4 +123,5 @@ repository:
   path: processes/methyltriphenylphosphonium-bromide-1
   access: public
 publication:
-  status: internal
+  status: public
+  license: CC-BY-4.0

@@ -215,6 +215,10 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 104 | `iodomethane` | Iodomethane (methyl iodide) | chlorinated-organics | n/a, to be sourced | n/a | - | - | 2 | iodomethane-1 (T2) |
 | 105 | `copper-i-chloride` | Copper(I) chloride | inorganic-chemicals | n/a, to be sourced | n/a | - | - | 2 | copper-i-chloride-1 (T2) |
 | 106 | `di-tert-butyl-dicarbonate` | Di-tert-butyl dicarbonate | oxygenates | n/a, to be sourced | n/a | - | - | 2 | di-tert-butyl-dicarbonate-1 (T2) |
+| 107 | `hydrogen-iodide` | Hydrogen iodide | inorganic-chemicals | n/a, to be sourced | n/a | - | - | 0 | hydrogen-iodide-1 (T0) |
+| 108 | `benzyl-alcohol` | Benzyl alcohol (benzyl chloride hydrolysis) | oxygenates | n/a, to be sourced | n/a | - | - | 0 | benzyl-alcohol-1 (T0) |
+| 109 | `tert-butanol` | tert-Butanol | oxygenates | n/a, to be sourced | n/a | isobutene-hydration, po-tba | - | 0 | tert-butanol-1 (T0) |
+| 110 | `phthalimide` | Phthalimide | nitrogen-organics | n/a, to be sourced | n/a | tube-reactor, countercurrent-column, urea | - | 0 | phthalimide-1 (T0) |
 
 Volume sources (ids as in `coverage.yaml` `sources:`): `usgs-mcs-2024` U.S. Geological Survey,
 Mineral Commodity Summaries 2024; `iea-ammonia-2021` IEA, Ammonia Technology Roadmap (2021);

@@ -1,0 +1,13 @@
+# benzyl-alcohol-1's own exchange overrides for the Atlas LCI build (ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Soda ash links to the Atlas producer soda-ash-1;
+# benzyl chloride stays a reported gap: no library process makes it and the shared vocabulary has no
+# entry. The two residues stay gaps too: their treatment is not stated by the source.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:sodium-carbonate":
+    dataset: {path: processes/soda-ash-1/lca/dataset.yaml, product: "product:SODA"}
+    source: "the Atlas producer soda-ash-1 (Solvay, light soda ash); the grade does not matter here, since the soda is dissolved to a 10.9 wt% solution"
+  "feed:steam": {use: steam-heat, source: "steam counted as heat delivered (kWh), as hda-1 and ethylbenzene-1 do; pressure not stated by the source"}
+  "feed:benzyl-chloride":
+    atlas: false
+    source: "No Atlas producer: benzyl chloride comes from side-chain chlorination of toluene, which the library does not model yet. Link it once one exists."
