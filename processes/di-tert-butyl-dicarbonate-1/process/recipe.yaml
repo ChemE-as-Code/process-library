@@ -7,14 +7,17 @@
 #   DG101's still (from: DG101), the cool-down from the jacket; the vessel is sized from R101's
 #   model and its jacket checked against the model's peak duty (core ADR 0052).
 # - V-201 holds the two hexane strips (ST101, ST102, their boil-up times from the stills) and the
-#   wash (DC201); C-301 the vacuum distillation (ST301). Core sizes no vessel for a still (core
-#   ADR 0055): both are sized by hand in the equipment list (D-003).
+#   wash (DC201); C-301 the vacuum distillation (ST301). Since core 1.10.0 a unit procedure of
+#   stills may give a vessel (core ADR 0063): the recipe sizes V-201 and C-301 from what their
+#   steps take in, without a jacket check (D-003, D-015).
+# - ST101's charge is heated from 278 K to its bubble point (295 K) by E-204 while V-201 receives
+#   it (the `receive` operation): ST101's model counts that heat (`still.heat_up`), not its time.
 # Every other duration is ASSUMED (D-003). `cheme process recipe` also gives the vent's peak gas
 # rate and what one batch sends to the scrubber (core ADR 0054).
 schema: cheme/recipe/v1
 kind: recipe
 title: Boc2O by semi-batch carbonation and phosgenation, hexane strip, wash and vacuum distillation
-batch_size: {value: 657.28, unit: kg, stream: S25, provenance: assumed, source: "one batch of distilled Boc2O: 500 t/a over the batches the 10.411 h cycle allows, 63.131 kg/h x 10.411 h (D-002, D-003)"}
+batch_size: {value: 655.71, unit: kg, stream: S25, provenance: assumed, source: "one batch of distilled Boc2O: 500 t/a over the batches the 10.387 h cycle allows, 63.131 kg/h x 10.387 h (D-002, D-003; the fixed point of batch size = rate x cycle, D-015)"}
 hours_per_year: {value: 7920, provenance: assumed, source: "330 days of 24 h (D-002)"}
 unit_procedures:
   - id: REACT
@@ -37,8 +40,13 @@ unit_procedures:
   - id: WORKUP
     units: [ST101, ST102, DC201]
     title: Strip the hexane, wash and split (V-201)
+    vessel:
+      fill_fraction: 0.8
+      aspect_ratio: 1.2
+      provenance: assumed
+      source: "V-201 sized by the recipe from what its steps take in (core 1.10.0, ADR 0063; D-015), the fill and proportions as R-101's; no jacket check (E-204, the forced-circulation reboiler, heats it, D-003); no metal_heat_capacity: V-201's steel stays in Q8 (D-015)"
     operations:
-      - {id: receive, kind: charge, title: Receive the slurry, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: receive, kind: charge, title: "Receive the slurry, heating it to its bubble point at 15 kPa(a) (E-204)", duration: {value: 0.5, provenance: assumed, source: "D-003, D-015: the charge heated from 278.15 to 295.0 K while it is received, 62.2 kWh a batch (ST101's still.heat_up, 5.99 kW year average): about 124 kW over the 0.5 h, which E-204 (27 m2 at U 600 W/(m2 K)) gives at a 7.7 K approach against the hot water's mean 318.5 K, the content at 278-295 K; the hot-water circuit sized for that, ASSUMED"}}
       - {id: strip1, kind: distil, title: Strip at 15 kPa(a) (ST101), from: ST101}
       - {id: strip2, kind: distil, title: "Strip down to 1 kPa(a) (ST102)", from: ST102}
       - {id: wash, kind: other, title: "Break the vacuum with nitrogen, add the warm water, stir", duration: {value: 1.0, provenance: assumed, source: D-003}}
@@ -47,6 +55,11 @@ unit_procedures:
   - id: DISTIL
     units: [M301, ST301]
     title: Vacuum distillation from the paraffin heel (C-301)
+    vessel:
+      fill_fraction: 0.8
+      aspect_ratio: 1.2
+      provenance: assumed
+      source: "C-301 sized by the recipe from what its steps take in (core 1.10.0, ADR 0063; D-015), the fill and proportions as R-101's; no jacket check (E-303 heats it, D-003); no metal_heat_capacity: C-301's steel leaves each batch as it came, with the hot heel (D-009, D-015)"
     operations:
       - {id: receive, kind: charge, title: "Receive the melt onto the heel, add the paraffin make-up", duration: {value: 0.5, provenance: assumed, source: D-003}}
       - {id: evacuate, kind: other, title: Evacuate to 0.13 kPa(a), duration: {value: 0.5, provenance: assumed, source: D-003}}

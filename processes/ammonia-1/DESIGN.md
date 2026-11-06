@@ -1915,6 +1915,44 @@ to pass); reordering the P-114 tees to the plot order (a P&ID change to all bran
 this job; it would remove the branches that run back along the header, worth doing when P-114
 is next revised).
 
+## D-049 Nozzle orientations kept against the P&ID drawing pass (2026-11-05)
+
+The P&ID drawing pass (library PRs #363/#365: off-page connectors to the sheet edges, symbols
+redrawn) changed nothing in the process, but `cheme layout build` puts every nozzle without an
+override on the side the P&ID draws it on. Rebuilding the model after the pass therefore turned
+eight nozzles: E-103/P1 (right -> left), R-102/N2 (right -> left), C-302/N5 (right -> left,
+9.03 -> 6.68 m), E-505/S1 and S2 (swapped along the shell), V-501/N6 (3.60 -> 4.05 m) and the
+unpiped H-101/N1, N2 (bottom -> left). With E-103/P1 on the west face, PG-1007 (DN 450, R-100
+to E-103) lost its rack route: the router found the rack detour too long and ran it `direct`,
+down through H-101 and R-101, 0.00 m from PG-1006 and PG-1008, and SM-1005 was pushed into a
+PR-2 beam (5 clash findings, R-101's crane lane blocked). PA-1023 rose through R-102's 6.54 m
+platform handrail; AM-1050 went onto the rack and shifted PG-1035, AM-1059 and PC-1083 (two more
+free-span and support-missing findings).
+
+Decision: the 3D orientation of a nozzle is a layout decision; a symbol side on a P&ID is not.
+`layout/equipment-placement.yaml` overrides the piped nozzles whose new side made the routes
+worse:
+- E-103/P1 on the south face, offset [-1, 3.6] (9.6 m), towards PR-2 like the other convection
+  coil inlets (D-036; it was the one coil nozzle left to the P&ID). PG-1007 now runs on PR-2 and
+  rises to it from the south: 22.8 m long instead of 39.8 m on main, no longer over E-104;
+- R-102/N2 at 0 deg, 10.345 m, and C-302/N5 at 0 deg, 9.031 m: the orientations reviewed in
+  S10/S11 (the model of main).
+E-505/S1, S2 and V-501/N6 keep the new P&ID positions (no finding changed with them); H-101/N1,
+N2 are not piped. All ASSUMED until the vendor nozzle orientations, as D-036.
+
+Result: the layout findings are those of main's committed model (2026-10-30, S11) rule for rule
+and id for id, except one fewer: E-104's crane lane is clear (PG-1007 no longer crosses it), so
+the owner's lifting acceptance for E-104 (I-006) named no finding and is removed. Bulk estimate
+103,367.80 (main) -> 103,172.42 (-0.19 %, shorter PG-1007).
+
+Rejected: leaving E-103/P1 on the P&ID side with vias or a pin to drag PG-1007 back onto the rack
+(it would still enter the coil from the furnace side, between E-103 and H-101); restoring E-103/P1
+on the east face as on main (its route climbed over E-104 and blocked E-104's crane lane, accepted
+only through the erection sequence); keeping C-302/N5 on the new west side (net one ladder-clearance and
+one walkway-riser finding fewer at C-302, but AM-1050 then goes onto the rack and shifts its
+neighbours: free-span 41 -> 43 (AM-1059, PC-1083) and support-missing 87 -> 88 (AM-1050, PG-1035
+new, AM-1059 now a free span): a trade to make in the next layout review, not in a rebuild).
+
 ## 3. Results of this stage (design case)
 
 Basic stage, S5c (the D-040 feed, re-simulated; lca/inventory.csv regenerated): per kg of NH3

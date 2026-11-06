@@ -17,9 +17,11 @@
 # - NPH, NCO in the caustic scrubber S401 (conversion steps): phosgene destroyed and part of the
 #   CO2 absorbed.
 # None of these steps has open kinetics or calorimetry (searched 2026-11-06): every rate law and
-# heat of reaction is ASSUMED (D-005, D-011). A dosed gas's heat is written with the gas as a gas
-# (core ADR 0054), so the absorption heat of what reacts is in the heat of reaction; a vented
-# component's heat is that of forming it as a gas at the vessel's temperature.
+# heat of reaction is ASSUMED (D-005, D-011). The dosed gases' heats of absorption are their
+# doses' `heat_of_solution` (core ADR 0063, D-015: CO2 -15, phosgene -24.8 kJ/mol), released as
+# they dissolve, so CARB, PHOS and SIDE are written on the dissolved basis (the gas-basis -70 and
+# -200 kJ/mol less those heats; the absorption is not counted twice); a vented component's heat
+# is that of forming it as a gas at the vessel's temperature.
 # Boc2O's thermal decomposition (to isobutene, CO2 and tert-butanol) is not a reaction here: no
 # open rate exists; it sets the technical limit (hazard.mtt) and the temperature limits of the
 # work-up instead (D-011, D-008).
@@ -31,7 +33,7 @@ reactions:
     equation: (CH3)3COK + CO2 -> (CH3)3COC(O)OK
     stoichiometry: {KOTBU: -1, CO2: -1, KTBC: 1}
     phase: liquid
-    heat_of_reaction: {value: -70000, provenance: assumed, source: "ASSUMED (D-005), CO2 as a gas: the carboxylation of an alkali alkoxide is exothermic (EP 0 256 559 A2 cools the carbonation to 5 C); no calorimetric value found openly"}
+    heat_of_reaction: {value: -55000, provenance: assumed, source: "ASSUMED (D-005, D-015), CO2 dissolved: -70 kJ/mol with CO2 as a gas (the carboxylation of an alkali alkoxide is exothermic; EP 0 256 559 A2 cools the carbonation to 5 C; no calorimetric value found openly) less the dose's heat of absorption, -15 kJ/mol, which R101's dose releases as the CO2 dissolves (core ADR 0063)"}
     rate:
       form: power_law
       basis: volume
@@ -49,7 +51,7 @@ reactions:
     equation: 2 (CH3)3COC(O)OK + COCl2 -> [(CH3)3COC(O)]2O + CO2 + 2 KCl
     stoichiometry: {KTBC: -2, COCL2: -1, BOC2O: 1, CO2: 1, KCL: 2}
     phase: liquid
-    heat_of_reaction: {value: -200000, provenance: assumed, source: "ASSUMED order of magnitude (D-005), per mol of phosgene as a gas, CO2 formed as a gas: phosgene's hydrolysis to CO2 and HCl gas is about -73 kJ/mol (formation enthalpies, chemicals 1.5.2's CRC tables), and each HCl taken up by a carboxylate salt to solid KCl adds of the order of -60 kJ/mol; EP 0 256 559 A2 doses the phosgene slowly with external cooling because the reaction is exothermic; no calorimetric value"}
+    heat_of_reaction: {value: -175200, provenance: assumed, source: "ASSUMED order of magnitude (D-005, D-015), per mol of phosgene dissolved, CO2 formed as a gas: -200 kJ/mol with phosgene as a gas less the dose's heat of solution, -24.8 kJ/mol, which R101's dose releases as the phosgene dissolves (core ADR 0063); the -200 kJ/mol: phosgene's hydrolysis to CO2 and HCl gas is about -73 kJ/mol (formation enthalpies, chemicals 1.5.2's CRC tables), and each HCl taken up by a carboxylate salt to solid KCl adds of the order of -60 kJ/mol; EP 0 256 559 A2 doses the phosgene slowly with external cooling because the reaction is exothermic; no calorimetric value"}
     rate:
       form: power_law
       basis: volume
@@ -67,7 +69,7 @@ reactions:
     equation: 2 (CH3)3COC(O)OK + COCl2 -> (CH3)3COH + C4H8 + 3 CO2 + 2 KCl
     stoichiometry: {KTBC: -2, COCL2: -1, TBA: 1, IB: 1, CO2: 3, KCL: 2}
     phase: liquid
-    heat_of_reaction: {value: -200000, provenance: assumed, source: "ASSUMED as PHOS (D-005): the same reagents to KCl, the decomposition of the chloroformate taken as heat-neutral; no open value"}
+    heat_of_reaction: {value: -175200, provenance: assumed, source: "ASSUMED as PHOS (D-005, D-015), phosgene dissolved: the same reagents to KCl, the decomposition of the chloroformate taken as heat-neutral; no open value"}
     rate:
       form: power_law
       basis: volume

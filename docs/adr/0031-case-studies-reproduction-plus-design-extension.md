@@ -1,7 +1,7 @@
 # 0031. A case study is a reference reproduction plus one labelled design extension, rerun by one command
 
-- **Status:** Proposed, 2026-11-04
-- **Deciders:** the owner (to accept); drafted by the coordinator's agent for #333
+- **Status:** Accepted, 2026-11-06 (proposed 2026-11-04)
+- **Deciders:** the owner (drafted by the coordinator's agent for #333)
 - **Scope:** library structure (benchmarks), evaluation protocol
 
 ## Context
@@ -77,5 +77,6 @@ A case study is a folder `benchmarks/reproductions/<id>/` under ADR 0030, with t
 
 ## Evidence
 
+- Accepted by the owner on 2026-11-06.
 - Tracker #333 and cases #334 to #342 (one pull request each, branches `repro/<n>-<id>`).
 - ADR 0030 and `benchmarks/reproductions/idaes-hda-tutorial/`, the reproduction this extends.

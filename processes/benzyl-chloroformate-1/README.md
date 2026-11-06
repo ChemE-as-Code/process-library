@@ -17,8 +17,9 @@ vent as it forms (`batch.vent`); the crude is degassed in the same vessel (a bat
 (`units:`), from which the cycle time, the vessel, the vent's peak rate and the flowsheet's
 year-average flows come (`cheme process recipe`, `cheme process reactor-hazards`, `cheme process
 stills`). The models write the duties of R101 and the degassing (core ADR 0059), and the
-screening compares the gas a cooling failure releases with the vent's capacity (ADR 0058). It
-needs cheme-as-code 1.9 (core ADRs 0054, 0055, 0057, 0058, 0059).
+R101's duty holds the heat of solution of the dosed phosgene (ADR 0063); the screening compares
+the gas a cooling failure releases with the vent's capacity (ADR 0058). It needs cheme-as-code
+1.10 (core ADRs 0054, 0055, 0057, 0058, 0059, 0063).
 
 | path | what |
 |---|---|
