@@ -382,17 +382,45 @@ safeguards and the rating bases.
 
 ### 3.6 Owner decisions open from #330 that the studies depend on
 
-- **Skid A's pH trip margin** (D-018): I-101 trips at pH 12.0, the threshold itself, with no
-  margin; a trip at 12.2 needs the reservoir sized to it (about 1,176 L), which changes the
-  frozen sizing basis (H01-S113, H01-A108). On Skid B I-201 trips at 12.2; its weakness is that
-  it shares the AIC-201 probe with the dose trim (H02-S702, H02-A701).
+The owner delegated these decisions on 2026-11-06 ("make reasonable decisions and move on");
+they are recorded in DESIGN.md D-050 to D-058. Every one of them is **decided by the owner on
+2026-11-06, to be confirmed by the team**: the studies were revised by an agent on 2026-11-06 to
+the plant as now drawn, every revised or added entry `status: proposed`, `by: agent`, and both
+studies re-stamped against the changed inputs. The team re-assesses the revised entries in the
+session. The revision moved these residual bands (worst category), all proposals:
+
+| Study | Scenario | Residual | Why (decision) |
+|---|---|---|---|
+| H-01 / H-02 | H01-S117; H02-S807 | high -> medium | the new SEQ-x-DRAIN drains and flushes the loop (D-055) |
+| H-01 / H-02 | H01-S207, H02-S206 | medium -> low | the rectifier on a plinth off the frame, AC isolated on gas detection (D-051, D-057) |
+| H-01 / H-02 | H01-S601, S602; H02-S601, S610 | high -> medium | the burner management trip I-x10 closes XV-x33 (D-054) |
+| H-01 / H-02 | H01-S610; H02-S613 | high -> medium / low | the detonation arrester, the check valve and the trip valve on TG-x01 (D-054) |
+| H-01 / H-02 | H01-S901, S904; H02-S901, S905 | high -> medium | the open, naturally ventilated skid (D-050) |
+| H-01 / H-02 | H01-S903; H02-S902 | high -> low | the Ex marking in the zone and the open skid (D-050, D-051) |
+| H-01 / H-02 | H01-S906; H02-S906 | high -> low | the oxidiser outside the zone in open air (D-047, D-057) |
+| H-01 / H-02 | H01-S611; H02-S614 (new) | medium | a flame held on the arrester, I-x09 (D-054) |
+| H-02 | H02-S809 (new) | high | the pump-out of T-202's 5 M KOH heel (D-055), action H02-A706 |
+
+H-01 now has 78 scenarios (worst residual 31 high, 36 medium, 11 low) and 54 actions; H-02 94
+scenarios (43 high, 33 medium, 18 low) and 57 actions. The tables of sections 3.1 to 3.5 are
+those of the 2026-11-05 drafts; where a scenario above moved, the study file holds the current
+rating.
+
+- **Skid A's pH trip margin** (D-018): **decided by the owner on 2026-11-06** (DESIGN.md D-058):
+  I-101 trips at pH 12.2, 0.2 above the criterion pH 12, and T-101 is sized to reach the trip
+  value at H (1,176 L written, D 1.077 x H 1.615 m); pH 12 stays the reported stability
+  criterion and the frozen expectations stand with erratum X-2 (H01-S113, H01-A108, revised as
+  proposals). Still open: the margin against the probe's uncertainty once AI-101 is calibrated
+  (H01-A109) and the SIL screening (H01-A112). On Skid B I-201 trips at 12.2; its weakness is
+  that it shares the AIC-201 probe with the dose trim (H02-S702, H02-A701).
 - **The Ex rating** of the electrical items inside the zones: **decided by the owner on
   2026-11-06** (DESIGN.md D-051): motors (P-x01, K-x31, P-202) II 2G Ex db eb IIC T3 Gb,
   instruments Ex ia IIC T4 Ga with barriers outside the zone, certified IIC gas detectors, 3G/Gc
   the stated minimum, the rectifier's AC isolated at SDB-1 on gas detection and the DC never
   broken under load inside the zone. Still open, for a competent person: the area
   classification, the explosion protection document and the inspection (H01-A903, H01-A204;
-  H02-A902, H02-A206). The study entries are revised as proposals for the team.
+  H02-A902, H02-A206). The study entries are revised as proposals for the team (H01-S903,
+  H02-S902 and the actions above).
 - **The fail positions** proposed in control/philosophy.md, PV-x31 first (section 3.3), and
   PV-x21's fail-open, which lets the still running K-x31 pull a vacuum on the cathodes on the
   loss of instrument air (H01-S404, H02-S403; H01-A402, H02-A403).
@@ -403,8 +431,9 @@ safeguards and the rating bases.
   D-050): the skids are open and naturally ventilated, with no enclosure and no extract fan
   (K-x41 deleted); at most a rain canopy over the rectifier and the junction boxes; the CO and
   H2 detectors stay, with personal CO monitors and a CO2 check at grade and the low points
-  (H01-A901, H01-A902, H02-A903). Node N9 and every gas-in-enclosure cause and rating are to be
-  revised as proposals for the team.
+  (H01-A901, H01-A902, H02-A903). Node N9 of both studies is rewritten for the open skid and
+  every gas-in-enclosure cause and rating revised ("at the open skid", the fan's credits
+  removed), as proposals for the team.
 - **The CO2 supply interface** at the battery limit (pressure regulation, relief, cold gas), not
   drawn (H01-A303, A304; H02-A302, A304).
 - **The site effluent** acceptance of the spent anolyte and Skid B's bleed (H01-A805, H02-A708).
@@ -418,22 +447,25 @@ safeguards and the rating bases.
   (I-x10) closing it, TG-x01 all-welded to the burner; the vendor's burner arrester and burner
   management the second barrier (H01-A605, H01-A907, H02-A604, H02-A907; H01-S610, H02-S613).
   Still open: the arrester's type examination for the actual tail gas and its burning time
-  (vendor). The entries are to be revised as proposals for the team.
+  (vendor). The entries are revised as proposals for the team (H01-S601, S602, S610 and the
+  new S611; H02-S601, S610, S613 and the new S614).
 - **The ignition sources' places** (layout review 2026-11-05-layout-r2 #1, #3): **decided by the
   owner on 2026-11-06** (DESIGN.md D-057): the rectifier U-x01 leaves the frame for a plinth at
   grade north-east of it (3.23 m from the nearest zone source with its flanges, against the
   1.5 m of the screening rule), the oxidiser X-x32 moves south-east, 2 m or more from the east
   step's foot, and TG-x01 runs about 12 m at 0.30 m on sleeper posts to its east face. The zones
-  do not change; the team re-rates H01-S207 / H02-S206 (the rectifier) and H01-S906 / H02-S906
-  (the oxidiser) with the HAZOP revision.
+  do not change; H01-S207 / H02-S206 (the rectifier) and H01-S906 / H02-S906 (the oxidiser)
+  are re-rated as proposals for the team.
 - **Draining the anolyte loop and the tanks**: **decided by the owner on 2026-11-06** (DESIGN.md
   D-055, P&ID revision B): a capped low-point drain DR-x01 on the supply header, a capped vent
   AV-x11 on the cooler, a capped camlock pump-out on T-101, T-201 and T-202, and SEQ-x-DRAIN
-  venting, draining, pumping out the heel and flushing (H01-A111, H01-A206, H02-A208, H02-A802).
-- **The cell temperature on the open skid**: the cooler on a tempered-water unit off the skid
-  that also heats, with a low-temperature alarm on TIC-x11 and frost protection when idle
-  (DESIGN.md D-052, D-056; H01-A105). The lines CWS-x01 and CWR-x01 are renamed TWS-x01 and
-  TWR-x01, which the studies still name.
+  venting, draining, pumping out the heel and flushing (H01-A111, H01-A206, H02-A208, H02-A802;
+  H01-S117, S804, H02-S807 revised and H02-S809 added as proposals).
+- **The cell temperature on the open skid**: **decided by the owner on 2026-11-06** (DESIGN.md
+  D-052, D-056): the cooler on a tempered-water unit off the skid that also heats, with a
+  low-temperature alarm on TIC-x11 and frost protection when idle (H01-A105, H02-A103). The
+  studies now name TWS-x01 and TWR-x01 (H01-S107, S109, S116; H02-S105, S107, S111, revised as
+  proposals).
 - **The DC isolation independent of the rectifier**, which every trip and the current-runaway
   scenario rest on (H01-A205, H02-A207). Decided in principle by the owner (D-051): a lockable
   isolator or DC contactor outside the zone; its design and drawing stay open with the DC bus.

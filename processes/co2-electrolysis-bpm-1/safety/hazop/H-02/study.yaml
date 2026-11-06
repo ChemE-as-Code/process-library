@@ -25,16 +25,20 @@ scope: >-
   the cathode gas outlet CG-201 to CG-201D, the separator V-221 with its condensate CD-201 /
   LV-222 and the back-pressure valve PV-221 on CG-202; the gas conditioning, the diaphragm
   compressor K-231, CG-203 with its check valve, the CO PSA package X-231 and the CO product
-  CO-201 / PV-231 to the battery limit; the tail-gas oxidiser X-232 (TG-201, AIR-201, FG-201),
-  the anolyte reservoir vent O2V-201 and the day tank breather KV-202; Skid B's own dosing,
+  CO-201 / PV-231 to the battery limit; the tail gas TG-201 through the fail-closed trip valve
+  XV-233, a check valve and the detonation arrester FA-233 with TSHH-233 (D-054) to the
+  tail-gas oxidiser X-232 (AIR-201, FG-201), the anolyte reservoir vent O2V-201 and the day
+  tank breather KV-202; the loop's low-point drain DR-201, the cooler vent AV-211 and the
+  pump-outs PO-201 and PO-202 (D-055); Skid B's own dosing,
   bleed and make-up: the 5 M KOH day tank T-202 with its weekly refill KOH-202 / HV-205, the
   metering pump P-202 (KOH-203, KOH-204) under AIC-201, the bleed BL-201 / FV-203 (FIC-203)
   and the make-up water W-202 / LV-201 (LIC-201); the initial fill KOH-201 / HV-202 and the
-  end-of-run drain SP-201 / HV-203; the skid enclosure with its extract fan K-241 and the gas
-  detectors AIA-241 (CO) and AIA-242 (H2). The trips are those of control/cause-effect.yaml
-  I-201 to I-208, the sequences SEQ-B-FILL, -START, -STOP, -TRIP, -GAS and -DRAIN of
-  control/sequences.yaml. Battery limits: the CO2 supply (merchant liquefied CO2, D-016, not
-  studied beyond the CO2-201 tie-in), the cooling water CWS-201 / CWR-201, the demineralised
+  end-of-run drain SP-201 / HV-203; the open, naturally ventilated skid (no enclosure, D-050)
+  with the gas detectors AIA-241 (CO) and AIA-242 (H2). The trips are those of
+  control/cause-effect.yaml I-201 to I-210, the sequences SEQ-B-FILL, -START, -STOP, -TRIP,
+  -GAS and -DRAIN of control/sequences.yaml. Battery limits: the CO2 supply (merchant
+  liquefied CO2, D-016, not studied beyond the CO2-201 tie-in), the tempered water TWS-201 /
+  TWR-201 from a heating and cooling unit off the skid (D-052, D-056), the demineralised
   water W-201 and W-202, the combustion air AIR-201, the 1 M and 5 M KOH deliveries to the
   KOH-201 and KOH-202 connections, the receivers of the spent anolyte, the bleed, the
   condensate and the CO product, instrument air and power. Not covered: the internals of the
@@ -47,27 +51,27 @@ scope: >-
   reservoir, the dosing, bleed and make-up, the 5 M KOH, I-201 at pH 12.2, I-207, I-208) is
   analysed in full.
 modes:
-  - {id: startup, title: 'Start-up: fill, purge, energise', description: "SEQ-B-FILL (fresh 1 M KOH to T-201 through HV-202 and, in the same step S1, 5 M KOH to the day tank T-202 through HV-205; circulate) and SEQ-B-START (ventilate K-241, cool TIC-211, purge and humidify the cathodes with CO2, start K-231, X-232 then X-231, ramp JIC-201 to 80 A, then P-202, AIC-201 and FIC-203 in automatic once I-207 is reset)."}
+  - {id: startup, title: 'Start-up: fill, purge, energise', description: "SEQ-B-FILL (fresh 1 M KOH to T-201 through HV-202 and, in the same step S1, 5 M KOH to the day tank T-202 through HV-205; circulate) and SEQ-B-START (check the air at the skid, bring the loop to 25 degC on the tempered water under TIC-211, purge and humidify the cathodes with CO2, start K-231 and X-232, open XV-233 once X-232 fires, start X-231, ramp JIC-201 to 80 A, then P-202, AIC-201 and FIC-203 in automatic once I-207 is reset)."}
   - {id: normal, title: Normal steady operation, description: "Duty D-B: 200 mA/cm2 constant current (80 A, 4 x 20 A, 28 cells of 100 cm2, about 3 kW DC on the 48 V bus) on 50 L held at the steady state pH 13.7 (concentration basis), 0.5 mol/L OH- and 0.25 mol/L carbon."}
   - {id: dosing, title: 'KOH dosing, bleed and make-up', description: "Continuous with the current on (D-010): 5 M KOH dosed by P-202 at about 0.42 L/h (AIC-201 trim, feedforward from JIC-201), bleed by gravity through FV-203 at about 1.87 L/h (FIC-203), make-up water on level through LV-201 at about 1.45 L/h (LIC-201); the dose and the bleed are off with the current off (I-207); the day tank T-202 (84.5 L) is refilled weekly by hand through HV-205 (no sequence written)."}
-  - {id: exchange, title: 'Anolyte drain and fresh fill at the end of the campaign', description: "SEQ-B-STOP or a trip, then SEQ-B-DRAIN (P-201 stopped, LV-201 closed, the 50 L drained through HV-203 to the site effluent) and a new SEQ-B-FILL."}
-  - {id: stop, title: Normal stop, description: "SEQ-B-STOP at H: ramp the current down (I-207 stops the dose and the bleed), purge the cathodes with CO2 to the oxidiser, stop K-231, X-231, X-232."}
-  - {id: trip, title: Trip and gas trip, description: "SEQ-B-TRIP after I-201, I-202, I-205 or I-206 (current off, dosing and bleed off, CO2 purge kept); SEQ-B-GAS after I-203 or I-204 (current off, FV-202 closed, K-231 stopped, K-241 started, the cathode gas train isolated with its CO and H2 until the leak is found, then purged to X-232)."}
-  - {id: utility-fail, title: 'Loss of power, instrument air or cooling water', description: "control/philosophy.md F-POWER, F-AIR, F-CW: the pneumatic valves TV-211, FV-202, PV-221, LV-222, PV-231, LV-201, FV-203 go to their fail positions; on power loss the rectifier, pumps (P-201, P-202), compressor and fan stop."}
-  - {id: maintenance, title: Maintenance, description: "Isolation, draining and opening of the anolyte, the 5 M KOH and the cathode gas lines, probe calibration of AIC-201, instrument work, and the replacement of a stack (4000 h interval, ASSUMED) by a vertical hand lift of the 0.18 m stack with 0.3 m of hand room (D-019, D-023)."}
+  - {id: exchange, title: 'Anolyte drain and fresh fill at the end of the campaign', description: "SEQ-B-STOP or a trip, then SEQ-B-DRAIN (P-201 stopped, LV-201 closed, the loop vented at AV-211, the 50 L drained through HV-203, the loop's low point through DR-201 and the heels of T-201 and T-202 pumped out through PO-201 and PO-202 to closed IBCs, the loop flushed with demineralised water, D-055) and a new SEQ-B-FILL."}
+  - {id: stop, title: Normal stop, description: "SEQ-B-STOP at H: ramp the current down (I-207 stops the dose and the bleed), purge the cathodes with CO2 to the oxidiser, stop K-231 and X-231, close XV-233, stop X-232; a skid left filled and idle keeps P-201 circulating and the tempered water heating (D-056)."}
+  - {id: trip, title: Trip and gas trip, description: "SEQ-B-TRIP after I-201, I-202, I-205 or I-206 (current off, dosing and bleed off, CO2 purge kept); SEQ-B-GAS after I-203, I-204, I-209 or I-210 (current off with the rectifier's AC feeder at SDB-1, FV-202 and XV-233 closed, K-231 stopped, the cathode gas train isolated with its CO and H2 until the cause is found, then purged to X-232 once it fires)."}
+  - {id: utility-fail, title: 'Loss of power, instrument air or tempered water', description: "control/philosophy.md F-POWER, F-AIR, F-CW: the pneumatic valves TV-211, FV-202, PV-221, LV-222, PV-231, LV-201, FV-203 and XV-233 go to their fail positions; on power loss the rectifier, pumps (P-201, P-202) and compressor stop (no fan: the skid is open, D-050)."}
+  - {id: maintenance, title: Maintenance, description: "Isolation, draining and opening of the anolyte, the 5 M KOH and the cathode gas lines, probe calibration of AIC-201, instrument work, and the replacement of a stack (4000 h interval, ASSUMED): slid out at deck level onto a deck-height trolley from the frame's south edge (D-047)."}
 analysed:
-  - {path: pid/P-02.xml, revision: 'sha256:ad2691552f803e46013bcd2df32d44989dd1983723ce493445d46b3142302886', relation: analyses}
-  - {path: equipment/equipment-list.yaml, revision: 'sha256:9b545fb8faf5650343b51bddce08f1d2733354c26b42ea096cf88cf2f4427561', relation: analyses}
-  - {path: piping/line-list.yaml, revision: 'sha256:6f19c79dc9d74dc112023fa40e33bad13b49102638613fa155d562623a379e91', relation: analyses}
-  - {path: control/instrument-list.yaml, revision: 'sha256:e7660e0aa03b77e0342e389d30a745f1922ed7707563bac9ce6f93a960524b5d', relation: analyses}
-  - {path: control/cause-effect.yaml, revision: 'sha256:7f13b4b24d107bca16f068284082e372e3c7f1c602acc4f3abbd767e2f2d50d6', relation: analyses}
-  - {path: control/loops.yaml, revision: 'sha256:ef4e910c5b8bf82089649ecbbc77f915de4b33c9a01477864a4f31811f18d4cb', relation: analyses}
-  - {path: control/sequences.yaml, revision: 'sha256:0db970a6e6047d9613aa2f6ad3593cb44a35bcc81a1eceedf7ee3f0dd0f10457', relation: analyses}
-  - {path: control/philosophy.md, revision: 'sha256:58ed819f642a004b686de1ce5ab3a606e59b8712ab6f882e46d3e78dbec75a3f', relation: analyses}
-  - {path: layout/zones.yaml, revision: 'sha256:57167cbdaee0f3f8a9ca5219fb8d57a11e2f8e9685f71bb441f5a4bb85aef341', relation: analyses}
-  - {path: process/flowsheet.yaml, revision: 'sha256:c7a257ec57729a24700201f72950732c6a358588f50ce433f819fcec67235659', relation: analyses}
-  - {path: process/design-basis.yaml, revision: 'sha256:62a2cfaa02fdaf7f0c3be3d9652fc485b4a3b97ab93ce6cb1662db55e42a2ade', relation: analyses}
-  - {path: process/duties.yaml, revision: 'sha256:edb6f5c8d3e72e0d8f1a46882df2b7bf9d0a19d1763eae78214bd23a87fecce0', relation: analyses}
+  - {path: pid/P-02.xml, revision: 'sha256:aed5ea055e564ef60ee5fba5ec41b8d647caf2a8dc16f16ab4892bc7a7d7fff9', relation: analyses}
+  - {path: equipment/equipment-list.yaml, revision: 'sha256:0765c2b89a6c55a72cda3194c7fa3da76ef3dd05d4047a3ebb11df9a196d747a', relation: analyses}
+  - {path: piping/line-list.yaml, revision: 'sha256:b1b3074b8baef644ecabdb9ecc56aaa4969b6ac10312ae15abd96bb12b299dbc', relation: analyses}
+  - {path: control/instrument-list.yaml, revision: 'sha256:1a2bd25381a814b0227e91eddcfcbff38c5b625caff2198b3a10be6e22f81d66', relation: analyses}
+  - {path: control/cause-effect.yaml, revision: 'sha256:ada361f5e6bd62b63b9f6fa3ea1682c3d29147b4f4b7e579f1b018ab476e9992', relation: analyses}
+  - {path: control/loops.yaml, revision: 'sha256:467b3bd5574dbb62a4a1a3aba15fec7a62b36f69678090af9fe52782e805fc7e', relation: analyses}
+  - {path: control/sequences.yaml, revision: 'sha256:b5503a140b16b258cd96d205bc4f8cf4f06a2cb744c19399bed8d49f1ce27aa4', relation: analyses}
+  - {path: control/philosophy.md, revision: 'sha256:48d37813cd9f83525d6b922d428d9a4fcfe41583a15fc65bce4fde848ddcf235', relation: analyses}
+  - {path: layout/zones.yaml, revision: 'sha256:779a0514544df8784e34e66661b348b53066740ff46b5ac5c15fdbe7cc74346b', relation: analyses}
+  - {path: process/flowsheet.yaml, revision: 'sha256:6d0c8de93f333d4d9849f37f6ff31a883828708bbbe33d7a642fb3a2b69f2dfc', relation: analyses}
+  - {path: process/design-basis.yaml, revision: 'sha256:c4cc253e90d70b18f520baa007cefac8af112653bb35dd77b8f8561eef5dc55b', relation: analyses}
+  - {path: process/duties.yaml, revision: 'sha256:f511c63cff52403954915ef653b911f980ec918dd085a6251ea66a2cc6b92ca8', relation: analyses}
 risk_matrix: safety/risk-matrix.yaml
 assessment_basis: >-
   As H-01: IEC 61882 guide words applied to the parameters of each node's design intent (flow,
@@ -108,7 +112,7 @@ notes: >-
   Every node, scenario, safeguard, rating and action is a proposal by an agent (status
   proposed, by agent). The plant is studied as drawn: the P&ID has no relief device, no H2-in-O2
   measurement on O2V-201, no pressure measurement on the anolyte side (no pressure difference
-  across the GDE), no heater (TIC-211 cools only), no eyewash or safety shower at the 5 M KOH
+  across the GDE), no eyewash or safety shower at the 5 M KOH
   day tank or the bleed, no check valve on the dosing line KOH-204 and no detector at the vents;
   where the analysis needs one, it is an action, never a safeguard. The on/off and part-load
   duties are not a mode of Skid B: they run on Skid A's hardware only (D-013; dosing would run
@@ -123,17 +127,26 @@ notes: >-
   (flashback along TG-201), S716 and S717 (maintenance at the dosing), S906 (X-232 as an
   ignition source) and the CO product back-flow question (H02-N5-D10), extended S305 (the
   W-201 path), S603 (the gas-trip purge) and S605 (the trip with P-201 stopped), and re-rated
-  the residuals that credited a safeguard the cause defeats.
+  the residuals that credited a safeguard the cause defeats. Revised by an agent on 2026-11-06
+  for the owner's decisions D-050 to D-058 (decided by the owner, to be confirmed by the team;
+  every revised entry stays proposed), as H-01: the open, naturally ventilated skid with no
+  enclosure or extract fan K-241 (node N9 rewritten, "in the enclosure" read as "at the open
+  skid" throughout, the fan's credits removed); the Ex marking in the zone (H02-S902, A902,
+  A206); the tail gas's trip valve XV-233, check valve, detonation arrester FA-233 and the
+  trips I-209 and I-210 (H02-S613, the new S614, A604, A907); the tempered water TWS/TWR
+  (H02-S105, S107, S111, A103); the drains DR-201, AV-211, PO-201 and PO-202 with the new
+  SEQ-B-DRAIN (H02-S807, A208, A802); the rectifier and the oxidiser on plinths off the frame
+  (H02-S206, S906); Skid A's I-101 now also at pH 12.2 (H02-S701).
 nodes:
   # ---------------------------------------------------------------- N1 anolyte loop
   - id: H02-N1
     title: Anolyte loop - reservoir T-201, pump P-201, cooler E-211 and the stack anode side (AN-201 to AN-204C)
-    design_intent: "Circulate the anolyte, held by dosing, bleed and make-up at the steady state pH 13.7 (concentration basis), 0.5 mol/L OH-, 0.25 mol/L carbon, ionic strength about 1.25 mol/L (D-010), from the PP reservoir T-201 (50 L, D 0.376 x H 0.564 m, about 4.5 min hold-up for O2 disengagement; atmospheric, vented by O2V-201) through AN-201 / HV-201 to the sealless pump P-201 (FIC-201 speed, 705.6 kg/h, about 11.2 L/min, 1.51 bar(a) discharge), through the plate cooler E-211 (about 2.2 kW to cooling water by TV-211 under TIC-211, stack inlet about 22.1 degC) and the supply manifold AN-203 / AN-203A to C to the anode side of E-201A to D (1.41 bar(a)), and back with the anode O2 (about 0.16 kg/h) through AN-204A to C / AN-204 (TSHH-212, about 25 degC) to the reservoir top. Level controlled by LIC-201 (make-up, H02-N7) and protected by the independent LIA-202 (I-202); pH on AIC-201 (trip I-201 at 12.2)."
-    members: [T-201, HV-201, AN-201, P-201, AN-202, FIC-201, E-211, TV-211, TIC-211, CWS-201, CWR-201, AN-203, AN-203A, AN-203B, AN-203C, E-201A, E-201B, E-201C, E-201D, AN-204A, AN-204B, AN-204C, AN-204, TSHH-212, LIC-201, LIA-202, AIC-201]
+    design_intent: "Circulate the anolyte, held by dosing, bleed and make-up at the steady state pH 13.7 (concentration basis), 0.5 mol/L OH-, 0.25 mol/L carbon, ionic strength about 1.25 mol/L (D-010), from the PP reservoir T-201 (50 L, D 0.376 x H 0.564 m, about 4.5 min hold-up for O2 disengagement; atmospheric, vented by O2V-201) through AN-201 / HV-201 to the sealless pump P-201 (FIC-201 speed, 705.6 kg/h, about 11.2 L/min, 1.51 bar(a) discharge), through the plate cooler E-211 (about 2.2 kW to the tempered water TWS-201 / TWR-201 by TV-211 under TIC-211, stack inlet about 22.1 degC; the tempered-water unit off the skid heats as well as cools, D-052, D-056) and the supply manifold AN-203 / AN-203A to C to the anode side of E-201A to D (1.41 bar(a)), and back with the anode O2 (about 0.16 kg/h) through AN-204A to C / AN-204 (TSHH-212, about 25 degC) to the reservoir top. The loop's low point has the capped drain DR-201 / HV-206 and the cooler's anolyte outlet the capped vent AV-211 / HV-207 (D-055). Level controlled by LIC-201 (make-up, H02-N7) and protected by the independent LIA-202 (I-202); pH on AIC-201 (trip I-201 at 12.2)."
+    members: [T-201, HV-201, AN-201, P-201, AN-202, FIC-201, E-211, TV-211, TIC-211, TWS-201, TWR-201, AN-203, AN-203A, AN-203B, AN-203C, DR-201, HV-206, AV-211, HV-207, E-201A, E-201B, E-201C, E-201D, AN-204A, AN-204B, AN-204C, AN-204, TSHH-212, LIC-201, LIA-202, AIC-201]
     modes: [startup, normal, dosing, stop, trip, utility-fail, maintenance]
     status: proposed
     by: agent
-    notes: "No heater is drawn (TIC-211 cools only). The 50 L reservoir is 1/23 of Skid A's: a loss of level or a dosing upset moves the anolyte within minutes to hours, not days. The dose, bleed and make-up themselves are node H02-N7, the fill and drain H02-N8, the vent O2V-201 H02-N6."
+    notes: "Revised 2026-11-06 (the owner's decisions D-052, D-055, D-056; proposed for the team): E-211 is served by a tempered-water unit off the skid that heats and cools (CWS/CWR renamed TWS/TWR), TIC-211 has a low-temperature alarm and the loop is heated and circulated when idle; the loop has a low-point drain and a cooler vent. The 50 L reservoir is 1/23 of Skid A's: a loss of level or a dosing upset moves the anolyte within minutes to hours, not days. The dose, bleed and make-up themselves are node H02-N7, the fill and drain H02-N8, the vent O2V-201 H02-N6."
     deviations:
       - id: H02-N1-D1
         guide_word: "no"
@@ -215,9 +228,9 @@ nodes:
         description: "Anolyte temperature above the 25 degC operating point of the measured series."
         scenarios:
           - id: H02-S105
-            cause: "Loss of cooling water CWS-201 at the battery limit (F-CW), or E-211 fouled on the water side."
+            cause: "Loss of the tempered water TWS-201 from the unit off the skid (F-CW: the unit or its pump trips, or it heats when it should cool), or E-211 fouled on the water side."
             consequence: "The 50 L loop heats at the 2.2 kW stack heat (about 0.7 K/min, cp ASSUMED): the stacks leave the measured point within minutes, then the membrane and the PP reservoir T-201 exceed their temperature limits (vendor), stack and tank damage."
-            refs: [CWS-201, CWR-201, E-211, TIC-211, TSHH-212, T-201]
+            refs: [TWS-201, TWR-201, E-211, TIC-211, TSHH-212, T-201]
             modes: [normal, dosing, utility-fail]
             safeguards: [H02-SG-TIC211-TAH, H02-SG-I205]
             actions: []
@@ -225,12 +238,12 @@ nodes:
             by: agent
             risk:
               initial:
-                - {category: asset, severity: "3", likelihood: E, basis: "The four stacks and T-201, 10-100 kEUR (matrix 3); a cooling-water upset at the battery limit is a utility upset, about once a year or more (E, the matrix's example and as H01-S107).", evidence: [F-CW, E-211, D-012], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d1dca7692e91dd35, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: E}}}
+                - {category: asset, severity: "3", likelihood: E, basis: "The four stacks and T-201, 10-100 kEUR (matrix 3); a tempered-water upset at the battery limit is a utility upset, about once a year or more (E, the matrix's example and as H01-S107).", evidence: [F-CW, E-211, D-012], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d1dca7692e91dd35, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: E}}}
               residual:
-                - {category: asset, severity: "3", likelihood: C, basis: "TIC-211 TAH with the operator reducing the current (the transmitter does not share the cooling-water cause: one letter) and I-205 on the separate TSHH-212 tripping U-201 (one letter, sil null). Trip value ASSUMED.", evidence: [TIC-211, I-205, control/philosophy.md], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 0a42b546bff60f53, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: C}}}
+                - {category: asset, severity: "3", likelihood: C, basis: "TIC-211 TAH with the operator reducing the current (the transmitter does not share the tempered-water cause: one letter) and I-205 on the separate TSHH-212 tripping U-201 (one letter, sil null). Trip value ASSUMED.", evidence: [TIC-211, I-205, control/philosophy.md], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 0a42b546bff60f53, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: C}}}
           - id: H02-S106
             cause: "TV-211 sticks closed, or TIC-211 transmitter fails reading low and closes TV-211."
-            consequence: "No cooling water to E-211: the anolyte heats at 2.2 kW as in H02-S105, stack and tank damage; the TAH of TIC-211 is blind when its transmitter is the cause."
+            consequence: "No tempered water to E-211: the anolyte heats at 2.2 kW as in H02-S105, stack and tank damage; the TAH of TIC-211 is blind when its transmitter is the cause."
             refs: [TV-211, TIC-211, E-211, TSHH-212]
             modes: [normal, dosing]
             safeguards: [H02-SG-I205]
@@ -248,19 +261,20 @@ nodes:
         description: "Anolyte below the 25 degC operating point."
         scenarios:
           - id: H02-S107
-            cause: "TV-211 fails open on loss of instrument air (F-AIR) or TIC-211 fault, at low current (the ramp of SEQ-B-START S4, the stop) or with cold cooling water in winter; no heater is drawn."
-            consequence: "The stacks run below the measured operating point: higher cell voltage and lower CO selectivity (more H2 in the cathode gas), results off the duty model; no hazard beyond the performance."
-            refs: [TV-211, TIC-211, E-211, CWS-201]
+            cause: "The tempered-water unit off the skid fails to heat (its heater or controller fails, a power loss) in cold weather on the open skid (D-050), or TV-211 fails open on loss of instrument air (F-AIR) or a TIC-211 fault with the unit's water colder than the anolyte; also an idle, filled skid in frost."
+            consequence: "The stacks run below the measured operating point: higher cell voltage and lower CO selectivity (more H2 in the cathode gas), results off the duty model; an idle loop left in frost may freeze (a cracked cooler plate or PP fitting, a KOH leak on thawing)."
+            refs: [TV-211, TIC-211, E-211, TWS-201, P-201]
             modes: [startup, stop, utility-fail]
-            safeguards: []
+            safeguards: [H02-SG-TIC211-TAL, H02-SG-N1-IDLE-HEAT]
             actions: [H02-A103]
             status: proposed
             by: agent
+            notes: "Revised 2026-11-06 (D-052, D-056, as H01-S109): the cooler is on a heating and cooling tempered-water unit; TIC-211 has a low-temperature alarm; SEQ-B-START S1 heats the loop before the current and SEQ-B-STOP keeps an idle filled skid circulated and heated. Proposed for the team."
             risk:
               initial:
                 - {category: asset, severity: "2", likelihood: E, basis: "Campaign days off the point, 1-10 kEUR (matrix 2); an instrument air upset or a cold season every year (E, as H01-S109).", evidence: [TIC-211, D-014], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: bf0b9e1abb3d1724, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '2', likelihood: E}}}
               residual:
-                - {category: asset, severity: "2", likelihood: E, basis: "No low temperature alarm or heater: nothing credited.", evidence: [TIC-211], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: bf0b9e1abb3d1724, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '2', likelihood: E}}}
+                - {category: asset, severity: "2", likelihood: D, basis: "The TIC-211 low-temperature alarm (TAL, D-056) with the operator restoring the heating or ending the run: one letter, except where a TIC-211 fault is the cause. The heating at start-up and when idle rests on the same unit whose failure is the cause: not credited (as H01-S109).", evidence: [TIC-211, SEQ-B-START, D-056], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9fee79cac88fcd1e, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '2', likelihood: D}}}
       - id: H02-N1-D6
         guide_word: more
         parameter: pressure difference
@@ -326,32 +340,32 @@ nodes:
                 - {category: people, severity: "4", likelihood: C, basis: "A deflagration in the reservoir with anolyte spray at a person on the skid, a permanent injury possible (matrix 4); membrane damage with significant crossover could happen once in the pilot's life (C).", evidence: [O2V-201, control/philosophy.md, D-017], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
                 - {category: asset, severity: "3", likelihood: C, basis: "T-201 and the stacks lost, campaign lost (matrix 3).", evidence: [T-201], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 0a42b546bff60f53, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: C}}}
               residual:
-                - {category: people, severity: "4", likelihood: C, basis: "Nothing detects H2 in the anolyte head space or the vent; the enclosure detector AIA-242 does not see inside T-201. Nothing credited.", evidence: [O2V-201, AIA-242], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
+                - {category: people, severity: "4", likelihood: C, basis: "Nothing detects H2 in the anolyte head space or the vent; the skid's H2 detector AIA-242 does not see inside T-201. Nothing credited.", evidence: [O2V-201, AIA-242], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
                 - {category: asset, severity: "3", likelihood: C, basis: "As for people: nothing credited.", evidence: [O2V-201], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 0a42b546bff60f53, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: C}}}
       - id: H02-N1-D9
         guide_word: as-well-as
-        parameter: composition (anolyte into the cooling water)
-        description: "Anolyte and cooling water mixed through E-211."
+        parameter: composition (anolyte into the tempered water)
+        description: "Anolyte and tempered water mixed through E-211."
         scenarios:
           - id: H02-S111
-            cause: "Plate or gasket leak in E-211: the side at the higher pressure passes into the other (the anolyte about 1.4 bar(a); the cooling water pressure at the battery limit is not stated)."
-            consequence: "Anolyte (pH 13.7) into the site cooling water return CWR-201 (corrosion of the site system, alkaline cooling water), or cooling water into the anolyte (dilution that LIC-201 and the dose then correct, a level rise)."
-            refs: [E-211, CWS-201, CWR-201, AN-202, AN-203]
+            cause: "Plate or gasket leak in E-211: the side at the higher pressure passes into the other (the anolyte about 1.4 bar(a); the tempered-water circuit's pressure is the unit vendor's, not stated)."
+            consequence: "Anolyte (pH 13.7) into the tempered-water circuit TWR-201 and its unit off the skid (corrosion of the unit, alkaline water drained from it), or tempered water into the anolyte (dilution that LIC-201 and the dose then correct, a level rise)."
+            refs: [E-211, TWS-201, TWR-201, AN-202, AN-203]
             modes: [normal, dosing]
             safeguards: []
             actions: []
             status: proposed
             by: agent
-            notes: "Added when H-01 and H-02 were integrated: the same hardware is examined in H-01 as H01-S116. The team states the cooling water pressure, which sets the direction of the leak."
+            notes: "Added when H-01 and H-02 were integrated: the same hardware is examined in H-01 as H01-S116. Revised 2026-11-06: the cooler is on a tempered-water unit off the skid, a closed circuit (D-052, D-056). The team states the circuit's pressure, which sets the direction of the leak."
             risk:
               initial:
-                - {category: environment, severity: "2", likelihood: C, basis: "A small release into the site cooling water needing clean-up (matrix 2); a plate leak could happen once in the pilot's life (C), as H01-S116.", evidence: [E-211], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 044d478c0b354835, inputs: {matrix: 0e87818000ffd702, category: environment, severity: '2', likelihood: C}}}
+                - {category: environment, severity: "2", likelihood: C, basis: "A small release into the tempered-water circuit needing clean-up (matrix 2); a plate leak could happen once in the pilot's life (C), as H01-S116.", evidence: [E-211], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 044d478c0b354835, inputs: {matrix: 0e87818000ffd702, category: environment, severity: '2', likelihood: C}}}
               residual:
-                - {category: environment, severity: "2", likelihood: C, basis: "Nothing measures the cooling water return: nothing credited.", evidence: [CWR-201], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 044d478c0b354835, inputs: {matrix: 0e87818000ffd702, category: environment, severity: '2', likelihood: C}}}
+                - {category: environment, severity: "2", likelihood: C, basis: "Nothing measures the tempered-water return: nothing credited.", evidence: [TWR-201], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 044d478c0b354835, inputs: {matrix: 0e87818000ffd702, category: environment, severity: '2', likelihood: C}}}
   # ---------------------------------------------------------------- N2 stacks and DC supply
   - id: H02-N2
     title: Stacks E-201A to D and their DC supply, rectifier U-201 (48 V bus)
-    design_intent: "As H01-N2 for Skid B: four stacks of seven 100 cm2 bipolar-membrane cells (28 cells) at 200 mA/cm2: 80 A from U-201 under JIC-201 (4 x 20 A, 48 V DC bus, about 3 kW DC; the bus is not drawn), about 2.2 kW of heat to the anolyte; JIC-201 current off also stops the dosing and the bleed (I-207). U-201 is the final element of the trips I-201 to I-206 and stands outside zone Z-HAZ-B at the east end (non-Ex cabinet, D-019). Stack replacement every 4000 h (ASSUMED) by a vertical hand lift (D-023)."
+    design_intent: "As H01-N2 for Skid B: four stacks of seven 100 cm2 bipolar-membrane cells (28 cells) at 200 mA/cm2: 80 A from U-201 under JIC-201 (4 x 20 A, 48 V DC bus, about 3 kW DC; the bus is not drawn), about 2.2 kW of heat to the anolyte; JIC-201 current off also stops the dosing and the bleed (I-207). U-201 is the final element of the trips I-201 to I-206, I-209 and I-210 (its AC feeder opened at SDB-1, D-051) and stands off the frame on a plinth at grade beyond its north-east corner, outside zone Z-HAZ-B (non-Ex cabinet, D-057). Stack replacement every 4000 h (ASSUMED) by a slide at deck level onto a trolley (D-047)."
     members: [U-201, JIC-201, E-201A, E-201B, E-201C, E-201D]
     modes: [startup, normal, dosing, stop, trip, utility-fail, maintenance]
     status: proposed
@@ -466,28 +480,29 @@ nodes:
         description: "Rectifier U-201 (non-Ex) in or near the hazardous zone."
         scenarios:
           - id: H02-S206
-            cause: "A secondary-grade H2 or CO leak at a zone source of Z-HAZ-B (a flange of E-201D, K-231 or X-232) drifts towards the rectifier cabinet U-201."
-            consequence: "Ignition of the flammable cloud at the non-Ex rectifier: a flash fire or explosion at the east end of the skid."
-            refs: [U-201, E-201D, K-231, X-232]
+            cause: "A secondary-grade H2 or CO leak at a zone source of Z-HAZ-B (a flange of E-201D, K-231 or X-231) drifts across the open skid towards the rectifier cabinet U-201 on its plinth north-east of the frame."
+            consequence: "Ignition of the flammable cloud at the non-Ex rectifier: a flash fire at the skid."
+            refs: [U-201, E-201D, K-231, X-231]
             modes: [startup, normal, dosing, stop]
             safeguards: [H02-SG-U201-OUTZONE, H02-SG-I204]
             actions: [H02-A206]
             status: proposed
             by: agent
+            notes: "Revised 2026-11-06 (the owner's decisions D-050, D-051, D-057; proposed for the team to re-rate, as H01-S207): the skid is open, the rectifier stands off the frame on a plinth at grade, the closest zone source with its flanges 3.23 m away, and the gas trips open its AC feeder at SDB-1."
             risk:
               initial:
                 - {category: people, severity: "4", likelihood: C, basis: "A flash fire or explosion at the skid with a person near (matrix 4); a flange leak reaching an ignition source once in the pilot's life (C).", evidence: [layout/zones.yaml, D-019], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
                 - {category: asset, severity: "4", likelihood: C, basis: "Loss of the skid in a fire or explosion at its east end (matrix 4 asset, as H01-S207).", evidence: [U-201], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5c6f61690768879d, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '4', likelihood: C}}}
               residual:
-                - {category: people, severity: "4", likelihood: B, basis: "U-201 stands outside the screened zone, more than 1 m from the sources: one letter, not two, because the zone is a screening, not a classification. I-204 trips the DC output of U-201, not the cabinet's own supply, so it does not remove the ignition source and is not credited (as H01-S207).", evidence: [layout/zones.yaml, I-204], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 19c20d626e6f11bf, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: B}}}
-                - {category: asset, severity: "4", likelihood: B, basis: "As for people.", evidence: [layout/zones.yaml], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: af9a4e7fb863e19d, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '4', likelihood: B}}}
+                - {category: people, severity: "4", likelihood: A, basis: "U-201 stands outside Z-HAZ-B in open air on its plinth, 3.23 m or more from the zone sources with their flanges (D-057): a passive placement outside the zone, two letters (the convention's limit; the zones are a screening, H02-A206). I-204 now also isolates the cabinet's AC feeder at SDB-1 (D-051), but the matrix has no letter below A (as H01-S207).", evidence: [D-057, D-051, I-204], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d6c623c1ee2507ac, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: A}}}
+                - {category: asset, severity: "4", likelihood: A, basis: "As for people.", evidence: [D-057], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: cbcaf57b631fb660, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '4', likelihood: A}}}
       - id: H02-N2-D7
         guide_word: other-than
         parameter: maintenance (stack lift)
         description: "Stack replacement by a vertical hand lift (4000 h, ASSUMED)."
         scenarios:
           - id: H02-S207
-            cause: "A stack is lifted out upwards by hand with 0.3 m of hand room (D-019, D-023), its weight not stated (vendor), between the manifolds and the neighbouring stacks."
+            cause: "A stack is pushed and pulled out at deck level from the frame's south edge onto a deck-height trolley (D-047; the vertical hand lift of D-023 is gone), its weight not stated (vendor, 17.1 kg estimated), with the loop not fully drained."
             consequence: "Back or hand injury of the fitter, the stack dropped onto the manifolds: broken DN 25 / DN 15 lines and anolyte left in the stack on the person."
             refs: [E-201A, E-201B, E-201C, E-201D, AN-203, CG-201]
             modes: [maintenance]
@@ -574,7 +589,7 @@ nodes:
         scenarios:
           - id: H02-S303
             cause: "The pressure regulator of the merchant liquefied CO2 supply at the battery limit fails open (not drawn, beyond the CO2-201 tie-in) while FV-202 stands open: wide open in the start-up purge of SEQ-B-START S2, which has no outlet (H02-S309), or in operation before the reverse-acting FIC-202, which closes FV-202 on the higher flow, can act on the fast rise, or with FV-202 sticking open (as H01-S305)."
-            consequence: "Supply pressure (liquefied CO2 storage, about 15-20 bar(g), ASSUMED) in CO2-201 and the cathodes: stack seal and membrane failure, CO2 with H2 and CO released into the enclosure (asphyxiation, CO), the stacks lost."
+            consequence: "Supply pressure (liquefied CO2 storage, about 15-20 bar(g), ASSUMED) in CO2-201 and the cathodes: stack seal and membrane failure, CO2 with H2 and CO released at the open skid (asphyxiation, CO), the stacks lost."
             refs: [CO2-201, FV-202, FIC-202, E-201A, E-201B, E-201C, E-201D, PIC-221]
             modes: [startup, normal]
             safeguards: [H02-SG-PIC221-PAH]
@@ -584,7 +599,7 @@ nodes:
             notes: "No relief device is drawn on CO2-201 or the cathodes (D-017). This is proposed as the governing scenario of a relief device on the cathode feed (name only, no sizing)."
             risk:
               initial:
-                - {category: people, severity: "4", likelihood: C, basis: "CO2 asphyxiation or CO poisoning in the enclosure (matrix 4); a regulator failure once in the pilot's life (C).", evidence: [D-016, D-017], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
+                - {category: people, severity: "4", likelihood: C, basis: "CO2 asphyxiation or CO poisoning at the open skid (matrix 4); a regulator failure once in the pilot's life (C).", evidence: [D-016, D-017], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
                 - {category: asset, severity: "3", likelihood: C, basis: "The four stacks, 10-100 kEUR (matrix 3).", evidence: [E-201A], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 0a42b546bff60f53, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: C}}}
               residual:
                 - {category: people, severity: "4", likelihood: C, basis: "PIC-221 PAH is too slow for a sudden pressurisation and not credited; the gas detectors see H2 and CO, not CO2. No relief, no PSHH: nothing credited.", evidence: [PIC-221, AIA-241, AIA-242, D-017], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
@@ -671,22 +686,23 @@ nodes:
       - id: H02-N3-D8
         guide_word: other-than
         parameter: location (CO2 release)
-        description: "CO2 released into the enclosure."
+        description: "CO2 released at the open skid."
         scenarios:
           - id: H02-S308
-            cause: "A leak of CO2-201, FV-202 or its flanges, or of the supply hose at the frame, inside the (ASSUMED) skid enclosure."
-            consequence: "CO2 collects at low level in the enclosure (heavier than air): asphyxiation of a person who enters or works low; no CO2 or O2 detector is drawn."
-            refs: [CO2-201, FV-202, K-241]
+            cause: "A leak of CO2-201, FV-202 or its flanges, or of the supply hose at the frame, at the open skid (D-050)."
+            consequence: "CO2 (heavier than air) flows to grade and collects in low points round the skid in still air: asphyxiation of a person who bends into one or works low; no fixed CO2 or O2 detector is drawn."
+            refs: [CO2-201, FV-202]
             modes: [startup, normal, stop, trip, maintenance]
-            safeguards: [H02-SG-SEQ-B-START-VENT]
+            safeguards: [H02-SG-OPEN-SKID, H02-SG-SEQ-B-START-AIR]
             actions: [H02-A306]
             status: proposed
             by: agent
+            notes: "Revised 2026-11-06 (the owner's decision D-050, proposed for the team to re-rate, as H01-S307): the skid is open and naturally ventilated, with no enclosure and no extract fan K-241; SEQ-B-START S1 checks CO2 (and O2) at grade and the low points with a portable meter before the start."
             risk:
               initial:
-                - {category: people, severity: "4", likelihood: D, basis: "CO2 asphyxiation in the enclosure (matrix 4 names it); a flange leak of the CO2 feed is expected a few times in the pilot's life (D, as H01-S307: the initial likelihood is that of the cause, as the matrix states).", evidence: [D-017, D-019], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 758dc1fcaab66e9f, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: D}}}
+                - {category: people, severity: "4", likelihood: D, basis: "CO2 asphyxiation in a low point at the skid (matrix 4 names it); a flange leak of the CO2 feed is expected a few times in the pilot's life (D, as H01-S307: the initial likelihood is that of the cause, as the matrix states).", evidence: [D-050, D-019], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 758dc1fcaab66e9f, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: D}}}
               residual:
-                - {category: people, severity: "4", likelihood: C, basis: "K-241 runs from SEQ-B-START S1 (a sequence step: one letter, although the fan and the enclosure are not sized). The gas detectors do not see CO2.", evidence: [SEQ-B-START, K-241], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
+                - {category: people, severity: "4", likelihood: C, basis: "The open, naturally ventilated skid disperses a CO2 leak in moving air: one letter (passive, but not in still air in a low point). The portable check of SEQ-B-START S1 is made before the start, not during the run: not credited. The gas detectors do not see CO2 (as H01-S307).", evidence: [D-050, SEQ-B-START], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
       - id: H02-N3-D9
         guide_word: other-than
         parameter: sequence (start-up purge of the cathodes)
@@ -724,7 +740,7 @@ nodes:
         scenarios:
           - id: H02-S401
             cause: "K-231 stops (motor fault, its package protection, a local power fault) while U-201 keeps the current on: the gas made at the cathodes has nowhere to go (no bypass or vent of the cathode gas train)."
-            consequence: "The cathode pressure rises at the gas production: reverse pressure difference across the GDE and the membrane, cathode gas (H2, CO) pushed into the anolyte (to O2V-201, H02-S605), stack seals leak H2 and CO into the enclosure, membranes damaged."
+            consequence: "The cathode pressure rises at the gas production: reverse pressure difference across the GDE and the membrane, cathode gas (H2, CO) pushed into the anolyte (to O2V-201, H02-S605), stack seals leak H2 and CO at the open skid, membranes damaged."
             refs: [K-231, CG-202, PIC-221, PV-221, E-201A, E-201B, E-201C, E-201D, U-201]
             modes: [normal, dosing]
             safeguards: [H02-SG-PIC221-PAH, H02-SG-I203, H02-SG-I204]
@@ -735,7 +751,7 @@ nodes:
             risk:
               initial:
                 - {category: asset, severity: "3", likelihood: D, basis: "Membranes and seals of the four stacks (matrix 3); a compressor stop a few times in the pilot's life (D).", evidence: [K-231, control/cause-effect.yaml], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 0897883ced07f447, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: D}}}
-                - {category: people, severity: "4", likelihood: D, basis: "H2 and CO released at the stack seals in the enclosure, CO poisoning or ignition (matrix 4); a compressor stop with the cathode outlet blocked a few times in the pilot's life (D, as H01-S401 and H01-S411).", evidence: [layout/zones.yaml], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 758dc1fcaab66e9f, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: D}}}
+                - {category: people, severity: "4", likelihood: D, basis: "H2 and CO released at the stack seals at the open skid, CO poisoning or ignition (matrix 4); a compressor stop with the cathode outlet blocked a few times in the pilot's life (D, as H01-S401 and H01-S411).", evidence: [layout/zones.yaml], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 758dc1fcaab66e9f, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: D}}}
               residual:
                 - {category: asset, severity: "3", likelihood: C, basis: "PIC-221 PAH with the operator tripping U-201: its transmitter does not share the compressor cause, one letter.", evidence: [PIC-221], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 0a42b546bff60f53, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: C}}}
                 - {category: people, severity: "4", likelihood: B, basis: "PIC-221 PAH with the operator tripping U-201 (its transmitter does not share the compressor cause): one letter; I-203 and I-204 trip U-201 once gas is released: one letter for the pair (single detectors at ASSUMED locations, sil null), as H01-S401.", evidence: [PIC-221, I-203, I-204], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 19c20d626e6f11bf, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: B}}}
@@ -751,13 +767,13 @@ nodes:
             risk:
               initial:
                 - {category: asset, severity: "3", likelihood: D, basis: "Membranes of the four stacks (matrix 3); a single transmitter failure (D).", evidence: [PIC-221], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 0897883ced07f447, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: D}}}
-                - {category: people, severity: "4", likelihood: D, basis: "CO poisoning in the enclosure from a stack seal, a fatality (matrix 4); a single transmitter failure (D, as H01-S402).", evidence: [PIC-221], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 758dc1fcaab66e9f, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: D}}}
+                - {category: people, severity: "4", likelihood: D, basis: "CO poisoning at the open skid from a stack seal, a fatality (matrix 4); a single transmitter failure (D, as H01-S402).", evidence: [PIC-221], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 758dc1fcaab66e9f, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: D}}}
               residual:
                 - {category: asset, severity: "3", likelihood: D, basis: "The PAH shares the transmitter with the cause; no independent cathode pressure or pressure-difference measurement: nothing credited.", evidence: [PIC-221, D-017], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 0897883ced07f447, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: D}}}
                 - {category: people, severity: "4", likelihood: C, basis: "Only I-203 on the CO detector, after the release: one letter (as H01-S402). The PAH shares the failed transmitter; no independent pressure trip and no relief device on the cathode side.", evidence: [I-203], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
           - id: H02-S410
             cause: "PV-221 sticks closed (valve or positioner fault) while CO2 and recycle keep entering the cathodes."
-            consequence: "The cathode compartments, CG-201 and V-221 rise towards the CO2 supply pressure: a stack seal or CG-201 joint leaks or blows out, cathode gas with about 4.8 mol% CO into the enclosure; a person nearby poisoned."
+            consequence: "The cathode compartments, CG-201 and V-221 rise towards the CO2 supply pressure: a stack seal or CG-201 joint leaks or blows out, cathode gas with about 4.8 mol% CO at the open skid; a person nearby poisoned."
             refs: [PV-221, PIC-221, CG-201, CG-202, V-221, E-201A, E-201B, E-201C, E-201D, AIA-241]
             modes: [startup, normal]
             safeguards: [H02-SG-PIC221-PAH, H02-SG-I203]
@@ -767,9 +783,9 @@ nodes:
             notes: "Added when H-01 and H-02 were integrated: the same hardware is examined in H-01 as H01-S401."
             risk:
               initial:
-                - {category: people, severity: "4", likelihood: D, basis: "CO poisoning in the enclosure, a fatality (matrix 4); a control valve sticking is a single failure (D), as H01-S401.", evidence: [PV-221], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 758dc1fcaab66e9f, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: D}}}
+                - {category: people, severity: "4", likelihood: D, basis: "CO poisoning at the open skid, a fatality (matrix 4); a control valve sticking is a single failure (D), as H01-S401.", evidence: [PV-221], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 758dc1fcaab66e9f, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: D}}}
               residual:
-                - {category: people, severity: "4", likelihood: B, basis: "The PIC-221 high alarm (its transmitter is not the cause) with the operator closing FV-202 and tripping U-201: one letter; I-203 (AIA-241) trips U-201, closes FV-202 and starts K-241 once CO is released: one letter (single detector, location ASSUMED, sil null). No relief device.", evidence: [PIC-221, I-203], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 19c20d626e6f11bf, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: B}}}
+                - {category: people, severity: "4", likelihood: B, basis: "The PIC-221 high alarm (its transmitter is not the cause) with the operator closing FV-202 and tripping U-201: one letter; I-203 (AIA-241) trips U-201, closes FV-202 and XV-233 and stops K-231 once CO is released: one letter (single detector, location ASSUMED, sil null). No relief device.", evidence: [PIC-221, I-203], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 19c20d626e6f11bf, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: B}}}
       - id: H02-N4-D2
         guide_word: less
         parameter: pressure
@@ -803,7 +819,7 @@ nodes:
             risk:
               initial:
                 - {category: people, severity: "4", likelihood: B, basis: "An explosion in the gas train at the skid (matrix 4); needs the vacuum and an air path (B).", evidence: [K-231, X-231], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 19c20d626e6f11bf, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: B}}}
-                - {category: asset, severity: "4", likelihood: B, basis: "Loss of the skid's gas train and enclosure (matrix 4).", evidence: [X-231], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: af9a4e7fb863e19d, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '4', likelihood: B}}}
+                - {category: asset, severity: "4", likelihood: B, basis: "Loss of the skid's gas train (matrix 4).", evidence: [X-231], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: af9a4e7fb863e19d, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '4', likelihood: B}}}
               residual:
                 - {category: people, severity: "4", likelihood: B, basis: "Nothing independent is drawn (LV-222 closes on air loss only, not for this cause): nothing credited. Medium.", evidence: [LV-222, PIC-221], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 19c20d626e6f11bf, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: B}}}
                 - {category: asset, severity: "4", likelihood: B, basis: "As for people.", evidence: [PIC-221], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: af9a4e7fb863e19d, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '4', likelihood: B}}}
@@ -898,9 +914,9 @@ nodes:
             by: agent
             risk:
               initial:
-                - {category: people, severity: "4", likelihood: D, basis: "CO poisoning at the fitter's face in the enclosure, a fatality (matrix 4, as H01-S409: the cathode gas holds about 4.8 mol% CO); opening the train is routine maintenance, an error a few times in the pilot's life (D).", evidence: [F-POWER, SEQ-B-GAS], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 758dc1fcaab66e9f, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: D}}}
+                - {category: people, severity: "4", likelihood: D, basis: "CO poisoning at the fitter's face at the open skid, a fatality (matrix 4, as H01-S409: the cathode gas holds about 4.8 mol% CO); opening the train is routine maintenance, an error a few times in the pilot's life (D).", evidence: [F-POWER, SEQ-B-GAS], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 758dc1fcaab66e9f, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: D}}}
               residual:
-                - {category: people, severity: "4", likelihood: B, basis: "The written purge of SEQ-B-STOP / SEQ-B-TRIP and the SEQ-B-GAS steps: one letter as a procedure (none after a power loss); I-203 on AIA-241 alarms, trips and starts K-241: one letter (single detector, ASSUMED location), as H01-S409.", evidence: [SEQ-B-STOP, SEQ-B-GAS, I-203], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 19c20d626e6f11bf, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: B}}}
+                - {category: people, severity: "4", likelihood: B, basis: "The written purge of SEQ-B-STOP / SEQ-B-TRIP and the SEQ-B-GAS steps: one letter as a procedure (none after a power loss); I-203 on AIA-241 alarms and trips: one letter (single detector, ASSUMED location), as H01-S409.", evidence: [SEQ-B-STOP, SEQ-B-GAS, I-203], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 19c20d626e6f11bf, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: B}}}
   # ---------------------------------------------------------------- N5 gas conditioning
   - id: H02-N5
     title: Gas conditioning - compressor K-231, CG-203 and its check valve, CO PSA X-231, CO product CO-201 / PV-231, CO2 recycle CO2-202
@@ -918,7 +934,7 @@ nodes:
         scenarios:
           - id: H02-S501
             cause: "PV-231 closes (it fails closed on loss of instrument air, F-AIR, or PIC-231 fails), or the CO receiver at the battery limit is closed, while the positive-displacement diaphragm compressor K-231 runs."
-            consequence: "K-231 dead-heads against the closed outlet: CG-203 and the PSA vessels of X-231 rise above 6 bar(a) towards the compressor's stall pressure, a flange, the diaphragm or a vessel fails: a jet release of H2 and CO in the enclosure (CO poisoning, fire or explosion)."
+            consequence: "K-231 dead-heads against the closed outlet: CG-203 and the PSA vessels of X-231 rise above 6 bar(a) towards the compressor's stall pressure, a flange, the diaphragm or a vessel fails: a jet release of H2 and CO at the open skid (CO poisoning, fire or explosion)."
             refs: [PV-231, PIC-231, CO-201, K-231, CG-203, X-231]
             modes: [normal, dosing, utility-fail]
             safeguards: [H02-SG-I203]
@@ -928,14 +944,14 @@ nodes:
             notes: "No relief device and no high-pressure alarm or trip are drawn on CG-203 or X-231 (D-017); the PSA's own protection and K-231's internal relief, if any, are the vendors' and not drawn. Proposed as the governing scenario of the relief on the K-231 discharge (named only, no sizing). On loss of instrument air the trip of the current is the operator's (F-AIR)."
             risk:
               initial:
-                - {category: people, severity: "4", likelihood: E, basis: "A pressurised H2 / CO release or explosion in the enclosure (matrix 4); a loss of instrument air is a utility upset, about once a year (E, the matrix's example and as H01-S502), beside a PIC-231 fault or a closed receiver.", evidence: [F-AIR, PV-231, D-017], status: proposed, by: agent, band: {value: very-high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 4b32f6ddf7935923, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: E}}}
+                - {category: people, severity: "4", likelihood: E, basis: "A pressurised H2 / CO release or explosion at the open skid (matrix 4); a loss of instrument air is a utility upset, about once a year (E, the matrix's example and as H01-S502), beside a PIC-231 fault or a closed receiver.", evidence: [F-AIR, PV-231, D-017], status: proposed, by: agent, band: {value: very-high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 4b32f6ddf7935923, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: E}}}
                 - {category: asset, severity: "3", likelihood: E, basis: "K-231 and the PSA package, 10-100 kEUR (matrix 3).", evidence: [X-231, K-231], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d1dca7692e91dd35, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: E}}}
               residual:
                 - {category: people, severity: "4", likelihood: D, basis: "Only I-203 on the CO detector after the release, which stops K-231: one letter (as H01-S502). No relief, no PSHH, no trip on low instrument air; PIC-231 has a PAL only.", evidence: [I-203, D-017], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 758dc1fcaab66e9f, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: D}}}
                 - {category: asset, severity: "3", likelihood: E, basis: "Nothing limits the pressure: nothing is credited for the asset.", evidence: [D-017], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d1dca7692e91dd35, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: E}}}
           - id: H02-S502
             cause: "The PSA package X-231 closes its outlets (an internal valve fault, its own shutdown when the oxidiser X-232 stops) while K-231 runs."
-            consequence: "As H02-S501: K-231 against a closed outlet, overpressure of CG-203 and X-231, an H2 / CO release in the enclosure."
+            consequence: "As H02-S501: K-231 against a closed outlet, overpressure of CG-203 and X-231, an H2 / CO release at the open skid."
             refs: [X-231, X-232, TG-201, K-231, CG-203]
             modes: [normal, dosing]
             safeguards: [H02-SG-I203]
@@ -966,7 +982,7 @@ nodes:
             risk:
               initial:
                 - {category: asset, severity: "3", likelihood: C, basis: "The membranes of the stacks (matrix 3); a back-flow at a stop with leaking compressor valves once in the pilot's life (C).", evidence: [K-231], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 0a42b546bff60f53, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: C}}}
-                - {category: people, severity: "4", likelihood: C, basis: "An H2 / CO release at the stacks in the enclosure (matrix 4); the back-flow overpressures the 1.1 bar(a) cathodes and a seal fails, once in the pilot's life (C; H01-S503 rates D for the daily stops of D-A-ONOFF, which Skid B does not run).", evidence: [K-231], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
+                - {category: people, severity: "4", likelihood: C, basis: "An H2 / CO release at the stacks at the open skid (matrix 4); the back-flow overpressures the 1.1 bar(a) cathodes and a seal fails, once in the pilot's life (C; H01-S503 rates D for the daily stops of D-A-ONOFF, which Skid B does not run).", evidence: [K-231], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
               residual:
                 - {category: asset, severity: "3", likelihood: B, basis: "The check valve on CG-203 (drawn, untagged CV231): one letter.", evidence: [CG-203], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 73f70cb6a6a112aa, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: B}}}
                 - {category: people, severity: "4", likelihood: B, basis: "The check valve on CG-203: one letter. It covers this path only: the parallel path from X-231 through the unguarded recycle CO2-202 is H02-S509.", evidence: [CG-203], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 19c20d626e6f11bf, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: B}}}
@@ -1011,10 +1027,10 @@ nodes:
       - id: H02-N5-D5
         guide_word: other-than
         parameter: location (CO release)
-        description: "CO product released into the enclosure."
+        description: "CO product released at the open skid."
         scenarios:
           - id: H02-S506
-            cause: "A leak at a flange of X-231, PV-231 or CO-201 (0.99 CO at 5 bar(a)) inside the enclosure."
+            cause: "A leak at a flange of X-231, PV-231 or CO-201 (0.99 CO at 5 bar(a)) at the open skid."
             consequence: "CO in the breathing zone of the skid: CO poisoning of an operator."
             refs: [X-231, PV-231, CO-201, AIA-241]
             modes: [normal, dosing, startup]
@@ -1024,9 +1040,9 @@ nodes:
             by: agent
             risk:
               initial:
-                - {category: people, severity: "4", likelihood: D, basis: "CO poisoning in the enclosure, a fatality possible (matrix 4); a flange leak at 5 bar(a) is expected a few times in the pilot's life (D, as H01-S506: the initial likelihood is that of the cause).", evidence: [layout/zones.yaml], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 758dc1fcaab66e9f, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: D}}}
+                - {category: people, severity: "4", likelihood: D, basis: "CO poisoning at the open skid, a fatality possible (matrix 4); a flange leak at 5 bar(a) is expected a few times in the pilot's life (D, as H01-S506: the initial likelihood is that of the cause).", evidence: [layout/zones.yaml], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 758dc1fcaab66e9f, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: D}}}
               residual:
-                - {category: people, severity: "4", likelihood: C, basis: "I-203 on AIA-241 trips U-201, closes FV-202, stops K-231 and starts K-241: one letter (one detector, location and set point ASSUMED, no voting, sil null). I-203 does not isolate X-231 or close PV-231, so the CO inventory of the PSA stays connected to the leak (as H01-S506).", evidence: [I-203, AIA-241], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
+                - {category: people, severity: "4", likelihood: C, basis: "I-203 on AIA-241 trips U-201, closes FV-202 and XV-233 and stops K-231: one letter (one detector, location and set point ASSUMED, no voting, sil null). I-203 does not isolate X-231 or close PV-231, so the CO inventory of the PSA stays connected to the leak (as H01-S506).", evidence: [I-203, AIA-241], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
       - id: H02-N5-D6
         guide_word: other-than
         parameter: maintenance (PSA and compressor)
@@ -1053,7 +1069,7 @@ nodes:
         scenarios:
           - id: H02-S508
             cause: "The K-231 diaphragm ruptures (fatigue, liquid slug from V-221, overpressure as H02-S501)."
-            consequence: "Cathode gas with CO passes into the hydraulic oil side and out of its vent into the enclosure; K-231 damaged."
+            consequence: "Cathode gas with CO passes into the hydraulic oil side and out of its vent at the open skid; K-231 damaged."
             refs: [K-231, AIA-241]
             modes: [normal]
             safeguards: [H02-SG-I203]
@@ -1065,7 +1081,7 @@ nodes:
               initial:
                 - {category: people, severity: "3", likelihood: C, basis: "CO exposure with recovery from the oil vent (matrix 3); a diaphragm rupture could happen once in the pilot's life (C), as H01-S504.", evidence: [K-231, layout/zones.yaml], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 227f8bc24e20e848, inputs: {matrix: 0e87818000ffd702, category: people, severity: '3', likelihood: C}}}
               residual:
-                - {category: people, severity: "3", likelihood: B, basis: "I-203 on AIA-241 trips, stops K-231 and starts K-241: one letter. The package's diaphragm leak detection is the vendor's and not drawn.", evidence: [I-203], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: c82e4ae0a81c19f1, inputs: {matrix: 0e87818000ffd702, category: people, severity: '3', likelihood: B}}}
+                - {category: people, severity: "3", likelihood: B, basis: "I-203 on AIA-241 trips, stops K-231 and closes XV-233: one letter. The package's diaphragm leak detection is the vendor's and not drawn.", evidence: [I-203], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: c82e4ae0a81c19f1, inputs: {matrix: 0e87818000ffd702, category: people, severity: '3', likelihood: B}}}
       - id: H02-N5-D8
         guide_word: reverse
         parameter: flow (CO product)
@@ -1100,7 +1116,7 @@ nodes:
         scenarios:
           - id: H02-S509
             cause: "K-231 stops (any trip, I-203, I-204, a power loss, the normal stop) with X-231 at pressure, or a PSA valve or sequencing fault opens its feed-pressure side to the recycle outlet: as drawn, CO2-202 runs from X-231 to the tee on CO2-201 downstream of FV-202 with no valve, check valve or instrument on it."
-            consequence: "X-231 blows down through CO2-202 straight into the cathode feed and the stack cathodes (1.1 bar(a) design) with no outlet while K-231 is stopped: the cathodes pressurised, a stack seal or the membrane blows out, CO-rich PSA gas and cathode gas into the enclosure. The check valve CV231 on CG-203 is not on this path, FV-202 is upstream of the tee, and SEQ-B-GAS's 'cathode gas train isolated' leaves the X-231 inventory connected to the stacks."
+            consequence: "X-231 blows down through CO2-202 straight into the cathode feed and the stack cathodes (1.1 bar(a) design) with no outlet while K-231 is stopped: the cathodes pressurised, a stack seal or the membrane blows out, CO-rich PSA gas and cathode gas at the open skid. The check valve CV231 on CG-203 is not on this path, FV-202 is upstream of the tee, and SEQ-B-GAS's 'cathode gas train isolated' leaves the X-231 inventory connected to the stacks."
             refs: [X-231, CO2-202, CO2-201, FV-202, K-231, CG-203, {sheet: P-02, object: CV231}, E-201A, E-201B, E-201C, E-201D, AIA-241]
             modes: [normal, dosing, stop, trip, utility-fail]
             safeguards: []
@@ -1110,18 +1126,18 @@ nodes:
             notes: "Found in review of the draft; the same hardware is examined in H-01 as H01-S509. The X-231 internals are the vendor's (D-012), but CO2-202 and the recycle interface are drawn members of H02-N3 and H02-N5."
             risk:
               initial:
-                - {category: people, severity: "4", likelihood: C, basis: "A release of CO-rich gas into the enclosure from a stack seal, a fatality (matrix 4); K-231 stops at a trip, a stop or a power loss with X-231 at pressure, once in the pilot's life to matter (C, as H02-S503; H01-S509 rates D for the daily stops of D-A-ONOFF, which Skid B does not run).", evidence: [CO2-202, X-231, K-231, H02-S503], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
+                - {category: people, severity: "4", likelihood: C, basis: "A release of CO-rich gas at the open skid from a stack seal, a fatality (matrix 4); K-231 stops at a trip, a stop or a power loss with X-231 at pressure, once in the pilot's life to matter (C, as H02-S503; H01-S509 rates D for the daily stops of D-A-ONOFF, which Skid B does not run).", evidence: [CO2-202, X-231, K-231, H02-S503], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
               residual:
                 - {category: people, severity: "4", likelihood: C, basis: "No check valve or shut-off on CO2-202; CV231 guards only the path through K-231; the fail-closed FV-202 is upstream of the tee; the fail-open PV-221 leads to the stopped K-231; no cathode pressure trip or relief: nothing is credited.", evidence: [CO2-202, D-017], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
   # ---------------------------------------------------------------- N6 tail gas and vents
   - id: H02-N6
     title: Tail gas and vents - oxidiser X-232 (TG-201, AIR-201, FG-201), the reservoir vent O2V-201 and the day tank breather KV-202
-    design_intent: "As H01-N6 for Skid B: burn the PSA tail gas TG-201 (0.221 kg/h, H2 about 48, CO2 29, H2O 20, CO 3.3 mol%) in X-232 with twice the stoichiometric air AIR-201 (0.854 kg/h), no CO or H2 vented, the flue gas FG-201 (about 150 degC) to atmosphere above the walking levels; vent the anode O2 (about 0.16 kg/h, and any H2 crossed) from the 50 L T-201 head space through the open vent O2V-201; and let the 5 M KOH day tank T-202 breathe through KV-202 (DN 15, air in on the continuous draw by P-202, air with caustic mist out on the weekly fill; the breather type is the vendor's, D-023)."
-    members: [TG-201, X-232, AIR-201, FG-201, O2V-201, T-201, KV-202, T-202]
+    design_intent: "As H01-N6 for Skid B: burn the PSA tail gas TG-201 (0.221 kg/h, H2 about 48, CO2 29, H2O 20, CO 3.3 mol%) in X-232 with twice the stoichiometric air AIR-201 (0.854 kg/h), no CO or H2 vented, the flue gas FG-201 (about 150 degC) to atmosphere above the walking levels; TG-201 leaves X-231 inside Z-HAZ-B through the fail-closed trip valve XV-233, a check valve and the in-line detonation arrester FA-233 (EN ISO 16852, IIC, unstable detonation, protected side towards X-231), with TSHH-233 on the arrester's unprotected side tripping XV-233 (I-209), all-welded from there to X-232 on its plinth south-east of the frame (D-054, D-057); the gas trips I-203 and I-204 and the burner management trip I-210 close XV-233; vent the anode O2 (about 0.16 kg/h, and any H2 crossed) from the 50 L T-201 head space through the open vent O2V-201; and let the 5 M KOH day tank T-202 breathe through KV-202 (DN 15, air in on the continuous draw by P-202, air with caustic mist out on the weekly fill; the breather type is the vendor's, D-023)."
+    members: [TG-201, XV-233, {sheet: P-02, object: CV233}, FA-233, TSHH-233, X-232, AIR-201, FG-201, O2V-201, T-201, KV-202, T-202]
     modes: [startup, normal, dosing, stop, trip, utility-fail, maintenance]
     status: proposed
     by: agent
-    notes: "The 50 L reservoir has a small head space: the H2 that crosses into the anolyte reaches O2V-201 with a shorter residence than in T-101 (H01-N6)."
+    notes: "The 50 L reservoir has a small head space: the H2 that crosses into the anolyte reaches O2V-201 with a shorter residence than in T-101 (H01-N6). Revised 2026-11-06 (the owner's decisions D-054, D-057; proposed for the team, as H01-N6): the tail gas's trip valve, check valve, detonation arrester and the arrester's temperature trip are drawn (P&ID revision B); the vendor's burner arrester and burner management system (EN 746-2, pre-purge) are the second barrier, its trip I-210. The arrester's EU-type examination for the actual tail gas and its burning time are the vendor's and open."
     deviations:
       - id: H02-N6-D1
         guide_word: "no"
@@ -1131,37 +1147,37 @@ nodes:
           - id: H02-S601
             cause: "The oxidiser X-232 loses its flame or its catalyst stops working (ignition fault, catalyst poisoned or cold after a start), while the PSA keeps sending the tail gas TG-201."
             consequence: "Unburnt tail gas (H2 about 48, CO 3.3 mol%) leaves FG-201 at about 3.4 m: CO and H2 vented, a flammable plume at the flue outlet and CO near the walking levels in still air."
-            refs: [X-232, TG-201, FG-201, X-231]
+            refs: [X-232, TG-201, FG-201, X-231, XV-233]
             modes: [startup, normal, dosing, stop]
-            safeguards: [H02-SG-N6-FG-HEIGHT]
+            safeguards: [H02-SG-N6-FG-HEIGHT, H02-SG-I210]
             actions: [H02-A602]
             status: proposed
             by: agent
-            notes: "X-232 is a black box (D-012); its own combustion monitoring is the vendor's and not drawn."
+            notes: "X-232 is a black box (D-012); its own combustion monitoring is the vendor's. Revised 2026-11-06 (D-054, proposed for the team, as H01-S601): the burner management system's trip of X-232 is I-210, which closes XV-233, trips U-201, stops K-231 and closes FV-202."
             risk:
               initial:
                 - {category: environment, severity: "3", likelihood: D, basis: "CO and H2 vented (matrix 3 names it); an oxidiser upset a few times in the pilot's life (D).", evidence: [X-232, D-012], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 780c10c071b79d36, inputs: {matrix: 0e87818000ffd702, category: environment, severity: '3', likelihood: D}}}
                 - {category: people, severity: "3", likelihood: D, basis: "CO exposure with recovery of a person near the flue outlet (matrix 3); an oxidiser upset a few times in the pilot's life (D, as H01-S601: the initial likelihood is that of the cause).", evidence: [FG-201, D-019], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 407f2fd3a41b6ad0, inputs: {matrix: 0e87818000ffd702, category: people, severity: '3', likelihood: D}}}
               residual:
-                - {category: environment, severity: "3", likelihood: D, basis: "No flame, temperature or CO measurement of X-232 or FG-201 drawn: nothing credited.", evidence: [D-012, D-017], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 780c10c071b79d36, inputs: {matrix: 0e87818000ffd702, category: environment, severity: '3', likelihood: D}}}
-                - {category: people, severity: "3", likelihood: C, basis: "The flue outlet at about 3.4 m above the walking levels dilutes the plume before it reaches people: one letter (a passive layout feature that reduces, not removes, the path; as H01-S601).", evidence: [FG-201, D-019], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 227f8bc24e20e848, inputs: {matrix: 0e87818000ffd702, category: people, severity: '3', likelihood: C}}}
+                - {category: environment, severity: "3", likelihood: C, basis: "I-210 closes XV-233 when X-232 is not firing: one letter (a package signal, sil null; as H01-S601). No temperature or CO measurement of FG-201 is drawn.", evidence: [I-210, D-054], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: fd6f5744f629ea72, inputs: {matrix: 0e87818000ffd702, category: environment, severity: '3', likelihood: C}}}
+                - {category: people, severity: "3", likelihood: B, basis: "The flue outlet at about 3.4 m above the walking levels dilutes the plume before it reaches people: one letter (a passive layout feature that reduces, not removes, the path); I-210 on the flame failure closes XV-233 and stops the tail gas: one letter (sil null; as H01-S601).", evidence: [FG-201, D-019, I-210], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: c82e4ae0a81c19f1, inputs: {matrix: 0e87818000ffd702, category: people, severity: '3', likelihood: B}}}
           - id: H02-S610
-            cause: "X-232 relit, or its catalyst recovers, with an H2-rich mixture accumulated in its chamber after a flame-out (no pre-purge or flame supervision is drawn)."
-            consequence: "Explosion inside the oxidiser: X-232 destroyed, fragments and hot gas on the frame, people near it injured or killed."
-            refs: [X-232, TG-201, AIR-201]
+            cause: "X-232 relit, or its catalyst recovers, with an H2-rich mixture accumulated in its chamber after a flame-out (the pre-purge and flame supervision are the vendor's burner management system, EN 746-2, required by D-054 but not yet delivered)."
+            consequence: "Explosion inside the oxidiser: X-232 destroyed, fragments and hot gas at its plinth east of the frame, people near it injured or killed."
+            refs: [X-232, TG-201, AIR-201, XV-233]
             modes: [startup, normal, trip]
-            safeguards: []
+            safeguards: [H02-SG-I210]
             actions: [H02-A602]
             status: proposed
             by: agent
-            notes: "Added when H-01 and H-02 were integrated: the same hardware is examined in H-01 as H01-S602."
+            notes: "Added when H-01 and H-02 were integrated: the same hardware is examined in H-01 as H01-S602. Revised 2026-11-06 (D-054, proposed for the team): I-210 closes XV-233 on the flame failure; SEQ-B-START S3 and SEQ-B-GAS open XV-233 only once X-232 reports pre-purged and firing."
             risk:
               initial:
                 - {category: people, severity: "4", likelihood: C, basis: "An explosion of a combustion package, a fatality possible (matrix 4); could happen once in the pilot's life (C), as H01-S602.", evidence: [X-232, D-012], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
                 - {category: asset, severity: "3", likelihood: C, basis: "The oxidiser package lost, 10-100 kEUR (matrix 3).", evidence: [X-232], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 0a42b546bff60f53, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: C}}}
               residual:
-                - {category: people, severity: "4", likelihood: C, basis: "The start order of SEQ-B-START (X-232 before X-231) does not purge the chamber; the burner management is the vendor's and not drawn: nothing credited.", evidence: [SEQ-B-START, D-012], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
-                - {category: asset, severity: "3", likelihood: C, basis: "As for people.", evidence: [X-232], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 0a42b546bff60f53, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: C}}}
+                - {category: people, severity: "4", likelihood: B, basis: "I-210 closes XV-233 on the burner management system's flame failure, so no more tail gas reaches the chamber: one letter (a package signal, sil null). The pre-purge itself is the vendor's and not yet delivered (H02-A602): not credited (as H01-S602).", evidence: [I-210, SEQ-B-START, D-054], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 19c20d626e6f11bf, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: B}}}
+                - {category: asset, severity: "3", likelihood: B, basis: "As for people.", evidence: [X-232, I-210], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 73f70cb6a6a112aa, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: B}}}
       - id: H02-N6-D2
         guide_word: less
         parameter: combustion air flow
@@ -1259,7 +1275,7 @@ nodes:
         description: "O2 from O2V-201 where people are."
         scenarios:
           - id: H02-S606
-            cause: "The O2V-201 outlet (about 3.4 m, ASSUMED) is near an air intake or a work position, or its line leaks inside the enclosure."
+            cause: "The O2V-201 outlet (about 3.4 m, ASSUMED) is near an air intake or a work position, or its line leaks at the open skid."
             consequence: "Local O2 enrichment from about 0.16 kg/h: clothing ignites more easily near a hot surface or a spark."
             refs: [O2V-201, T-201]
             modes: [normal, dosing]
@@ -1355,20 +1371,42 @@ nodes:
         description: "Flame or combustion air travelling back from X-232 along the tail gas TG-201 into the H2-rich PSA tail system."
         scenarios:
           - id: H02-S613
-            cause: "The tail gas flow falls away while X-232 keeps burning: K-231 stops on a gas trip (I-203 and I-204 do not stop X-232) or in SEQ-B-STOP / SEQ-B-TRIP S2, where K-231, X-231 and X-232 are stopped one after another by hand; TG-201 (about 1.1 bar(a), ASSUMED) and AIR-201 (about 1.05 bar(a)) differ little, and P-02 draws TG-201 from X-231 to X-232 with no check valve, flame arrester or isolation valve."
-            consequence: "The flame flashes back, or combustion air drifts back, along TG-201 into the tail gas side of X-231 (about 48 mol% H2): a deflagration in TG-201 or the PSA's tail system inside the enclosure, the package damaged, fragments and a release of H2 and CO, people at the skid injured or killed."
-            refs: [TG-201, X-231, X-232, AIR-201, K-231]
+            cause: "The tail gas flow falls away while X-232 keeps burning: K-231 stops on a trip or in SEQ-B-STOP S3 / SEQ-B-TRIP S2; TG-201 (about 1.1 bar(a), ASSUMED) and AIR-201 (about 1.05 bar(a)) differ little, and over the about 12 m, L/D about 500, of TG-201 (D-057) a flame that enters it can run up to a detonation."
+            consequence: "The flame flashes back, or combustion air drifts back, along TG-201 towards the tail gas side of X-231 (about 48 mol% H2): a deflagration or detonation in TG-201 or the PSA's tail system, the package damaged, fragments and a release of H2 and CO, people at the skid injured or killed."
+            refs: [TG-201, X-231, X-232, AIR-201, K-231, XV-233, {sheet: P-02, object: CV233}, FA-233, TSHH-233]
             modes: [stop, trip]
-            safeguards: []
+            safeguards: [H02-SG-FA233, H02-SG-CV233, H02-SG-I209, H02-SG-N6-XV233-CLOSE]
             actions: [H02-A604]
             status: proposed
             by: agent
-            notes: "Found in review of the draft; the same hardware is examined in H-01 as H01-S610. The burner's own flame arrester or flame supervision may be inside the vendor's package (D-012): not drawn, so not credited."
+            notes: "Found in review of the draft; the same hardware is examined in H-01 as H01-S610. Revised 2026-11-06 (the owner's decision D-054, P&ID revision B; proposed for the team to re-assess, as H01-S610): at X-231's outlet inside Z-HAZ-B the fail-closed trip valve XV-233, a check valve and the in-line detonation arrester FA-233 for unstable detonation (EN ISO 16852, IIC, protected side towards X-231), TSHH-233 tripping XV-233 (I-209); XV-233 closes in SEQ-B-STOP S3 and SEQ-B-TRIP S2 before X-232 stops and on I-203, I-204 and I-210; TG-201 all-welded to the burner. The vendor's burner arrester and burner management are a second barrier, not credited. The arrester's EU-type examination, burning time and TG-201's detonation pressure rating are open (vendor)."
             risk:
               initial:
-                - {category: people, severity: "4", likelihood: C, basis: "An explosion in the gas train in the enclosure, a fatality possible (matrix 4, as H02-S610); the tail flow falls away at every K-231 stop with X-232 still burning, and the burner's own flashback protection is not known; Skid B does not stop daily (C; H01-S610 rates D for the daily stops of D-A-ONOFF).", evidence: [TG-201, SEQ-B-STOP, D-012], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
+                - {category: people, severity: "4", likelihood: C, basis: "An explosion in the gas train at the skid, a fatality possible (matrix 4, as H02-S610); the tail flow falls away at every K-231 stop with X-232 still burning; Skid B does not stop daily (C; H01-S610 rates D for the daily stops of D-A-ONOFF).", evidence: [TG-201, SEQ-B-STOP, D-012], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
               residual:
-                - {category: people, severity: "4", likelihood: C, basis: "No check valve, flame arrester or shut-off on TG-201 and no trip that stops X-232 on a falling tail flow: nothing credited.", evidence: [TG-201, control/cause-effect.yaml], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
+                - {category: people, severity: "4", likelihood: A, basis: "The detonation arrester FA-233 (IIC, unstable detonation) stops a flame from X-232 before X-231 whatever its run-up: one letter (type examination open); XV-233 closed in the written stop order before X-232 stops, with the check valve against air drifting back: one letter for the pair. I-209 protects the arrester itself and is not counted again (as H01-S610).", evidence: [FA-233, XV-233, CV233, SEQ-B-STOP, SEQ-B-TRIP, D-054], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d6c623c1ee2507ac, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: A}}}
+      - id: H02-N6-D11
+        guide_word: other-than
+        parameter: location (a flame held on the arrester FA-233)
+        description: "A flame that has entered TG-201 from X-232 stabilises on the unprotected side of the detonation arrester FA-233 while the tail gas keeps flowing."
+        scenarios:
+          - id: H02-S614
+            cause: "After a flashback (H02-S613) the flame burns on the arrester element's unprotected side at continuous tail-gas flow (X-231 sending tail gas, XV-233 open); an arrester holds a stabilised flame only for its certified burning time (EN ISO 16852)."
+            consequence: "The element overheats and the flame passes it into the protected side and the PSA's tail system (about 48 mol% H2): a deflagration in X-231, the package damaged, H2 and CO released, people at the skid injured or killed."
+            refs: [FA-233, TSHH-233, XV-233, TG-201, X-231, X-232]
+            modes: [normal, dosing, stop, trip]
+            safeguards: [H02-SG-I209]
+            actions: [H02-A604]
+            status: proposed
+            by: agent
+            notes: "Added 2026-11-06 with the owner's decision D-054 (P&ID revision B), proposed for the team; the same hardware is examined in H-01 as H01-S611. TSHH-233's set point and XV-233's closing time must fit inside the arrester's certified burning time for the actual tail gas (vendor, open)."
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, basis: "An explosion in the PSA package at the skid, a fatality possible (matrix 4, as H02-S613); a flashback that stabilises on the element at continuous flow could happen once in the pilot's life (C, as H01-S611).", evidence: [FA-233, D-054], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
+                - {category: asset, severity: "3", likelihood: C, basis: "The PSA package and the arrester lost (matrix 3).", evidence: [X-231], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 0a42b546bff60f53, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: C}}}
+              residual:
+                - {category: people, severity: "4", likelihood: B, basis: "I-209 on TSHH-233 (a separate element on the arrester's unprotected side) closes XV-233 and stops K-231, U-201 and the CO2: one letter (sil null; the set point against the burning time is open, vendor).", evidence: [I-209, TSHH-233, D-054], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 19c20d626e6f11bf, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: B}}}
+                - {category: asset, severity: "3", likelihood: B, basis: "As for people.", evidence: [I-209], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 73f70cb6a6a112aa, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: B}}}
   # ---------------------------------------------------------------- N7 dosing, bleed, make-up
   - id: H02-N7
     title: KOH dosing, bleed and make-up - day tank T-202, metering pump P-202 (AIC-201), bleed BL-201 / FV-203, make-up W-202 / LV-201
@@ -1393,7 +1431,7 @@ nodes:
             actions: [H02-A104]
             status: proposed
             by: agent
-            notes: "F-DOSE in control/philosophy.md. I-201 at pH 12.2 sits above the pH 12 threshold, so on Skid B the trip has a margin that I-101 at 12.0 does not have on Skid A."
+            notes: "F-DOSE in control/philosophy.md. I-201 at pH 12.2 sits above the pH 12 threshold, so on Skid B the trip has a margin; since the owner's decision D-058 (2026-11-06) Skid A's I-101 trips at 12.2 as well, with T-101 sized to it."
             risk:
               initial:
                 - {category: asset, severity: "3", likelihood: D, basis: "Anodes and membranes of the four stacks (matrix 3); a metering pump failure or a missed weekly refill a few times in the pilot's life (D).", evidence: [P-202, D-010, F-DOSE], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 0897883ced07f447, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: D}}}
@@ -1701,12 +1739,13 @@ nodes:
                 - {category: asset, severity: "3", likelihood: E, basis: "No second pH measurement, no high pH alarm, no written calibration or bypass procedure: nothing credited.", evidence: [AIC-201], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d1dca7692e91dd35, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '3', likelihood: E}}}
   # ---------------------------------------------------------------- N8 fill and drain
   - id: H02-N8
-    title: Anolyte fill and end-of-campaign drain - KOH-201 / HV-202 and SP-201 / HV-203 at T-201
-    design_intent: "Fill T-201 with fresh 1 M KOH (50 L) through KOH-201 / HV-202 to the working level (SEQ-B-FILL, U-201 off, HV-203 closed); at the end of the campaign drain the anolyte at its steady state (pH about 13.7, 0.5 mol/L OH-, 0.25 mol/L carbon) by gravity through SP-201 / HV-203 to the site effluent with P-201 stopped and LV-201 closed (SEQ-B-DRAIN)."
-    members: [KOH-201, HV-202, T-201, LIC-201, LIA-202, SP-201, HV-203]
+    title: Anolyte fill and end-of-campaign drain - KOH-201 / HV-202, SP-201 / HV-203 and the pump-outs PO-201 and PO-202
+    design_intent: "Fill T-201 with fresh 1 M KOH (50 L) through KOH-201 / HV-202 to the working level (SEQ-B-FILL, U-201 off, HV-203 closed); at the end of the campaign vent the loop at AV-211, drain the anolyte at its steady state (pH about 13.7, 0.5 mol/L OH-, 0.25 mol/L carbon) by gravity through SP-201 / HV-203, the loop's low point through DR-201 / HV-206, and pump the heels out of T-201 (PO-201 / HV-208) and, at the end of the campaign or before a lift, of the 5 M KOH day tank T-202 (PO-202 / HV-209, T-202 had no drain), each through a capped camlock coupling to a closed IBC, then flush the loop with demineralised water and refit the caps, with P-201 stopped and LV-201 closed (SEQ-B-DRAIN, D-055)."
+    members: [KOH-201, HV-202, T-201, LIC-201, LIA-202, SP-201, HV-203, PO-201, HV-208, PO-202, HV-209, T-202]
     modes: [startup, exchange, maintenance]
     status: proposed
     by: agent
+    notes: "Revised 2026-11-06 (the owner's draining decision D-055, P&ID revision B; proposed for the team): the bottom outlets and pump-outs empty the heels; the loop's low-point drain DR-201 and the cooler vent AV-211 are members of H02-N1. The pump-out of the 5 M KOH heel of T-202 is a new hose task with the stronger caustic, studied with H02-S803's hose work (H02-A706)."
     deviations:
       - id: H02-N8-D1
         guide_word: other-than
@@ -1831,19 +1870,20 @@ nodes:
         description: "Anolyte left in the loop after the drain."
         scenarios:
           - id: H02-S807
-            cause: "SEQ-B-DRAIN empties T-201 only: the stacks, the manifolds AN-203 / AN-204, P-201 and E-211 have no low-point drains or flush connections drawn and no isolation valves at the stacks."
-            consequence: "Anolyte runs out onto the fitter's hands and face when a stack, the pump or the cooler is opened (the stack lift, H02-S207)."
-            refs: [T-201, SP-201, HV-203, P-201, E-211, AN-203, AN-204, E-201A, E-201B, E-201C, E-201D]
+            cause: "A stack, the pump or the cooler is opened with the loop not drained and flushed (SEQ-B-DRAIN skipped or incomplete, a drain blocked by carbonate); no isolation valves at the stacks are drawn; the loop drains through T-201's HV-203, the low-point drain DR-201 / HV-206 and the pump-out PO-201 / HV-208, vented at AV-211 / HV-207 (D-055)."
+            consequence: "Anolyte runs out onto the fitter's hands and face when a stack, the pump or the cooler is opened (the stack slide-out, H02-S207)."
+            refs: [T-201, SP-201, HV-203, P-201, E-211, AN-203, AN-204, E-201A, E-201B, E-201C, E-201D, DR-201, HV-206, AV-211, PO-201]
             modes: [maintenance]
-            safeguards: []
+            safeguards: [H02-SG-N8-DRAIN]
             actions: [H02-A802, H02-A706]
             status: proposed
             by: agent
+            notes: "Revised 2026-11-06 (the owner's draining decision D-055, P&ID revision B; proposed for the team, as H01-S117): SEQ-B-DRAIN now vents the loop, drains T-201 and the loop's low point, pumps out the heels of T-201 and T-202 and flushes the loop with demineralised water before the caps are refitted."
             risk:
               initial:
-                - {category: people, severity: "3", likelihood: D, basis: "A caustic eye or skin burn (matrix 3); loop items opened at every stack lift and repair (D).", evidence: [SEQ-B-DRAIN, D-017], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 407f2fd3a41b6ad0, inputs: {matrix: 0e87818000ffd702, category: people, severity: '3', likelihood: D}}}
+                - {category: people, severity: "3", likelihood: D, basis: "A caustic eye or skin burn (matrix 3); loop items opened at every stack change and repair (D).", evidence: [SEQ-B-DRAIN, D-017], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 407f2fd3a41b6ad0, inputs: {matrix: 0e87818000ffd702, category: people, severity: '3', likelihood: D}}}
               residual:
-                - {category: people, severity: "3", likelihood: D, basis: "No drains, flushing or written opening procedure: nothing credited.", evidence: [D-017], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 407f2fd3a41b6ad0, inputs: {matrix: 0e87818000ffd702, category: people, severity: '3', likelihood: D}}}
+                - {category: people, severity: "3", likelihood: C, basis: "SEQ-B-DRAIN (D-055) vents, drains the tank and the loop's low point, pumps out the heel and flushes before any connection is opened: one letter (a written procedure). No per-stack isolation, no check that a connection is empty and no eyewash or shower: nothing more (as H01-S117).", evidence: [SEQ-B-DRAIN, D-055], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 227f8bc24e20e848, inputs: {matrix: 0e87818000ffd702, category: people, severity: '3', likelihood: C}}}
       - id: H02-N8-D8
         guide_word: less
         parameter: pressure (T-201 during the drain)
@@ -1861,151 +1901,178 @@ nodes:
             notes: "Added when H-01 and H-02 were integrated: the same hardware is examined in H-01 as H01-S806."
             risk:
               initial:
-                - {category: asset, severity: "2", likelihood: C, basis: "T-201, a 50 L PP tank, lost (matrix 2: below Skid A's 1166 L T-101 of H01-S806, matrix 3); a blocked vent at the drain could happen once (C).", evidence: [T-201, O2V-201], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ce030c1c53acc8f1, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '2', likelihood: C}}}
+                - {category: asset, severity: "2", likelihood: C, basis: "T-201, a 50 L PP tank, lost (matrix 2: below Skid A's 1176 L T-101 of H01-S806, matrix 3); a blocked vent at the drain could happen once (C).", evidence: [T-201, O2V-201], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ce030c1c53acc8f1, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '2', likelihood: C}}}
               residual:
                 - {category: asset, severity: "2", likelihood: B, basis: "The vent has no valve and cannot be shut: one letter. No vacuum breaker is drawn.", evidence: [O2V-201], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 3b59c7caf6d1e93d, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '2', likelihood: B}}}
-  # ---------------------------------------------------------------- N9 enclosure
+      - id: H02-N8-D9
+        guide_word: other-than
+        parameter: maintenance (pump-out of the 5 M KOH day tank)
+        description: "The heel of the 5 M KOH day tank T-202 pumped out through PO-202 at the end of a campaign or before a lift (D-055)."
+        scenarios:
+          - id: H02-S809
+            cause: "The cap of PO-202 is removed or the camlock coupling disconnected with HV-209 passing or the hose full, or the portable pump's hose fails, during the pump-out of T-202's 5 M KOH heel."
+            consequence: "5 M KOH sprays onto the operator's face and hands: a caustic eye burn with possible loss of sight."
+            refs: [T-202, PO-202, HV-209]
+            modes: [exchange, maintenance]
+            safeguards: [H02-SG-N8-DRAIN]
+            actions: [H02-A706]
+            status: proposed
+            by: agent
+            notes: "Added 2026-11-06 with the owner's draining decision D-055 (P&ID revision B), proposed for the team: T-202 had no drain before; its bottom outlet and pump-out are a new hose task with the stronger caustic."
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: D, basis: "Loss of sight from 5 M KOH (matrix 4 names it, as H02-S712); a hose task at every campaign's end, an error a few times in the pilot's life (D).", evidence: [T-202, PO-202, D-055], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 758dc1fcaab66e9f, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: D}}}
+              residual:
+                - {category: people, severity: "4", likelihood: C, basis: "SEQ-B-DRAIN S5 writes the pump-out with a closed IBC and the chemical protection of the refill: one letter (procedure). No eyewash or shower at T-202 and no dry-break coupling: nothing more (H02-A706).", evidence: [SEQ-B-DRAIN], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
+  # ---------------------------------------------------------------- N9 open skid and gas detection
   - id: H02-N9
-    title: Skid B enclosure - extract fan K-241, gas detection AIA-241 (CO) and AIA-242 (H2), zone Z-HAZ-B
-    design_intent: "As H01-N9 for Skid B: keep the (ASSUMED) enclosed Skid B free of CO, H2 and excess CO2: K-241 runs from start-up (SEQ-B-START S1) and is started by the gas trips; AIA-241 (CO, I-203) and AIA-242 (H2, I-204), at ASSUMED locations and set points, trip U-201, close FV-202, stop K-231 and start K-241 (SEQ-B-GAS). The release sources of zone 2 Z-HAZ-B are the flanges of E-201A to D, V-221, K-231, X-231 and X-232 (screening only); U-201 stands outside it (D-019). Skid B adds the 5 M KOH day tank T-202 and P-202 at the west end."
-    members: [K-241, AIA-241, AIA-242, U-201, E-201A, E-201B, E-201C, E-201D, V-221, K-231, X-231, X-232, T-202, P-202]
+    title: Skid B open skid - natural ventilation, gas detection AIA-241 (CO) and AIA-242 (H2), zone Z-HAZ-B
+    design_intent: "As H01-N9 for Skid B: keep the air at the open, naturally ventilated Skid B (no enclosure, no extract fan, at most a rain canopy over the rectifier and the junction boxes; D-050) free of CO, H2 and excess CO2: a release disperses in the open air, H2 rising; AIA-241 (CO, I-203) and AIA-242 (H2, I-204), at ASSUMED locations and set points, certified IIC (D-051), trip U-201 (its AC feeder opened at SDB-1), close FV-202 and XV-233 and stop K-231 (SEQ-B-GAS); people at the skid wear a personal CO monitor and check CO2 (and O2) at grade and the low points before the start (SEQ-B-START S1). The release sources of zone 2 Z-HAZ-B are the flanges of E-201A to D, V-221, K-231 and X-231 (screening only); the electrical items inside it are Ex-rated (motors II 2G Ex db eb IIC T3 Gb, instruments Ex ia IIC T4 Ga; 3G / Gc the stated minimum; D-051); U-201 and X-232 stand off the frame on plinths outside it (D-047, D-057). Skid B adds the 5 M KOH day tank T-202 and P-202 at the west end."
+    members: [AIA-241, AIA-242, U-201, E-201A, E-201B, E-201C, E-201D, V-221, K-231, X-231, X-232, T-202, P-202, P-201, XV-233]
     modes: [startup, normal, dosing, exchange, stop, trip, utility-fail, maintenance]
     status: proposed
     by: agent
-    notes: "The enclosure is an assumption of the control (D-017, D-019), not drawn or sized. No CO2 or O2 detector is drawn."
+    notes: "Revised 2026-11-06 (the owner's decisions D-050, D-051, D-054, D-057; proposed for the team, which re-rates every scenario of this node, as H01-N9): the enclosure and its extract fan K-241 were an assumption of the control (D-017) and are deleted; the skid is open. No fixed CO2 or O2 detector is drawn (a portable check at the start). The area classification, the explosion protection document (1999/92/EC) and the Ex inspection are the competent person's (H02-A206) and cannot be settled by this study."
     deviations:
       - id: H02-N9-D1
         guide_word: as-well-as
-        parameter: composition (enclosure air)
-        description: "CO in the enclosure air."
+        parameter: composition (air at the open skid)
+        description: "CO in the air at the open skid."
         scenarios:
           - id: H02-S901
-            cause: "A secondary-grade leak of cathode gas or tail gas at a flange of E-201A to D, V-221, K-231 or X-232 inside the enclosure (the CO product side is H02-S506)."
-            consequence: "CO builds up in the enclosure: CO poisoning of a person on or at the skid, with no detector near the leak if AIA-241 is placed elsewhere."
-            refs: [E-201A, E-201B, E-201C, E-201D, V-221, K-231, X-232, AIA-241, K-241]
+            cause: "A secondary-grade leak of cathode gas or tail gas at a flange of E-201A to D, V-221, K-231 or X-231 at the open skid in still air (the CO product side is H02-S506)."
+            consequence: "CO builds up near the leak at breathing height: CO poisoning of a person on or at the skid, with no detector near the leak if AIA-241 is placed elsewhere."
+            refs: [E-201A, E-201B, E-201C, E-201D, V-221, K-231, X-231, AIA-241]
             modes: [startup, normal, dosing, stop, trip]
-            safeguards: [H02-SG-I203]
+            safeguards: [H02-SG-OPEN-SKID, H02-SG-I203]
             actions: [H02-A901, H02-A104]
             status: proposed
             by: agent
             risk:
               initial:
-                - {category: people, severity: "4", likelihood: D, basis: "CO poisoning in the enclosure, a fatality possible (matrix 4); a secondary-grade flange leak is expected a few times in the pilot's life (D, as H01-S902: the initial likelihood is that of the cause).", evidence: [layout/zones.yaml, D-019], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 758dc1fcaab66e9f, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: D}}}
+                - {category: people, severity: "4", likelihood: D, basis: "CO poisoning at the skid, a fatality possible (matrix 4; severity kept as for the enclosure until the team re-rates it); a secondary-grade flange leak is expected a few times in the pilot's life (D, as H01-S902: the initial likelihood is that of the cause).", evidence: [layout/zones.yaml, D-050], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 758dc1fcaab66e9f, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: D}}}
               residual:
-                - {category: people, severity: "4", likelihood: C, basis: "I-203 on AIA-241: one letter (one detector, location and set point ASSUMED, no voting, no gas detection study, sil null). The fan is not sized and not counted.", evidence: [I-203, AIA-241], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
+                - {category: people, severity: "4", likelihood: B, basis: "The open, naturally ventilated skid disperses a small leak in all but still air: one letter (passive, D-050); I-203 on AIA-241: one letter (one detector, location and set point ASSUMED, no voting, no gas detection study, sil null). The personal CO monitor is written for the start only: not credited (as H01-S901).", evidence: [D-050, I-203, AIA-241], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 19c20d626e6f11bf, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: B}}}
       - id: H02-N9-D2
         guide_word: as-well-as
-        parameter: composition (enclosure air, flammable)
-        description: "H2 in the enclosure air reaching an ignition source."
+        parameter: composition (air at the open skid, flammable)
+        description: "H2 in the air at the open skid reaching an ignition source."
         scenarios:
           - id: H02-S902
-            cause: "An H2-rich leak at a zone 2 source of Z-HAZ-B inside the enclosure, ignited by a motor in the zone (K-241, P-201, K-231, P-202) whose Ex rating is ASSUMED, not specified."
-            consequence: "An H2 explosion in the enclosure: injury or death of a person at the skid, the skid lost."
-            refs: [AIA-242, K-241, P-201, K-231, P-202, E-201A, V-221, X-232]
+            cause: "An H2-rich leak at a zone 2 source of Z-HAZ-B at the open skid, ignited by a motor in the zone (P-201, K-231, P-202) or another electrical item whose Ex protection is wrong, missing or degraded (the marking decided by the owner, D-051, is a specification: not yet bought, installed or inspected), or by a non-electrical source of K-231 or the pumps."
+            consequence: "An H2 flash fire at the skid: injury or death of a person at the skid, the skid lost."
+            refs: [AIA-242, P-201, K-231, P-202, E-201A, V-221]
             modes: [startup, normal, dosing, stop, trip]
-            safeguards: [H02-SG-I204]
-            actions: [H02-A902, H02-A901]
+            safeguards: [H02-SG-EX-ZONE, H02-SG-OPEN-SKID, H02-SG-I204]
+            actions: [H02-A902, H02-A901, H02-A206]
             status: proposed
             by: agent
-            notes: "The Ex rating of the electrical items inside zone 2 is an open owner decision of #330 (D-019); the zones are a screening, not an area classification. I-204 is listed because it acts on the release; it is not credited against the motors it starts or leaves running (control/cause-effect.yaml I-204: U-201 trip, FV-202 closed, K-231 stopped, K-241 started; P-201 not stopped; P-202 stops only through I-207 once the current is off). The oxidiser X-232 as an ignition source is H02-S906."
+            notes: "Revised 2026-11-06 (the owner's decisions D-050 and D-051, proposed for the team to re-rate, as H01-S903): the skid is open, so H2 rises and disperses; the extract fan K-241 is deleted; inside Z-HAZ-B the motors are specified II 2G Ex db eb IIC T3 Gb and the instruments Ex ia IIC T4 Ga with barriers outside the zone, the non-electrical ignition of K-231 and the pumps assessed to EN ISO 80079-36/-37. I-204 leaves P-201 running (Gb) and stops P-202 only through I-207. The zones are a screening, not an area classification. The oxidiser X-232 as an ignition source is H02-S906."
             risk:
               initial:
-                - {category: people, severity: "4", likelihood: C, basis: "An H2 explosion in the enclosure (matrix 4 names it); a leak meeting a non-Ex motor once in the pilot's life (C).", evidence: [layout/zones.yaml, D-019], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
+                - {category: people, severity: "4", likelihood: C, basis: "An H2 flash fire at the skid (matrix 4 names it); a leak meeting an ignition source in the zone once in the pilot's life (C).", evidence: [layout/zones.yaml, D-019], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
                 - {category: asset, severity: "4", likelihood: C, basis: "Loss of the skid (matrix 4).", evidence: [D-019], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5c6f61690768879d, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '4', likelihood: C}}}
               residual:
-                - {category: people, severity: "4", likelihood: C, basis: "I-204 on AIA-242 stops K-231 but starts K-241 and leaves P-201 running (P-202 follows only through I-207): of the named sources it removes one or two, and it energises the K-241 motor inside the cloud AIA-242 has just detected; a trip that leaves the ignition source live is not credited (as H02-S206, H01-S903): nothing credited. The Ex rating is an assumption and is not credited.", evidence: [I-204, AIA-242, "control/cause-effect.yaml I-204 I-207"], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
-                - {category: asset, severity: "4", likelihood: C, basis: "As for people.", evidence: [I-204], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5c6f61690768879d, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '4', likelihood: C}}}
+                - {category: people, severity: "4", likelihood: A, basis: "Every electrical item in the zone specified one category above zone 2 (2G / Gb motors, Ia instruments; D-051), a recorded design feature: one letter, pending the area classification and the inspection (H02-A206); the open skid, where the buoyant H2 rises and disperses: one letter (passive, D-050). I-204 leaves P-201 running: not counted (as H01-S903).", evidence: [D-051, D-050, I-204], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d6c623c1ee2507ac, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: A}}}
+                - {category: asset, severity: "4", likelihood: A, basis: "As for people.", evidence: [D-051, D-050], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: cbcaf57b631fb660, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '4', likelihood: A}}}
       - id: H02-N9-D3
-        guide_word: "no"
-        parameter: flow (ventilation)
-        description: "No extract ventilation."
+        guide_word: less
+        parameter: flow (natural ventilation at the open skid)
+        description: "Little or no air movement at the open skid (still air, a canopy or a nearby structure holding the gas)."
         scenarios:
           - id: H02-S903
-            cause: "K-241 stops (fan or motor fault, the operator does not start it) during operation; no air flow is monitored."
-            consequence: "Small leaks are no longer diluted: CO and H2 accumulate in the enclosure towards toxic and flammable levels."
-            refs: [K-241, AIA-241, AIA-242]
+            cause: "Still air at the open skid, or a rain canopy fitted over the gas train against D-050 (only the rectifier and the junction boxes may have one), while small leaks continue."
+            consequence: "Small leaks are no longer dispersed: CO and H2 accumulate near the leak or under the canopy towards toxic and flammable levels."
+            refs: [AIA-241, AIA-242]
             modes: [startup, normal, dosing]
             safeguards: [H02-SG-I203, H02-SG-I204]
             actions: [H02-A903]
             status: proposed
             by: agent
+            notes: "Revised 2026-11-06 (the owner's decision D-050, proposed for the team): the extract fan K-241 is deleted with the enclosure; the scenario is now the loss of the natural ventilation it relied on (as H01-S901)."
             risk:
               initial:
-                - {category: people, severity: "4", likelihood: D, basis: "CO poisoning or an H2 explosion in the enclosure (matrix 4); a fan failure together with a small leak is expected in the pilot's life (D, as H01-S901).", evidence: [K-241, D-017], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 758dc1fcaab66e9f, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: D}}}
+                - {category: people, severity: "4", likelihood: D, basis: "CO poisoning or an H2 flash fire at the skid (matrix 4); still air together with a small leak is expected in the pilot's life (D, as H01-S901).", evidence: [D-050, D-017], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 758dc1fcaab66e9f, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: D}}}
               residual:
                 - {category: people, severity: "4", likelihood: C, basis: "I-203 and I-204 act on the accumulating gas: one letter for the pair (single detectors, ASSUMED locations).", evidence: [I-203, I-204], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
       - id: H02-N9-D4
         guide_word: other-than
-        parameter: entry after a gas trip
-        description: "Entry to the enclosure with CO still present."
+        parameter: approach after a gas trip
+        description: "Approaching the skid with CO still present."
         scenarios:
           - id: H02-S904
-            cause: "After I-203 or I-204 the operator enters to find the leak (SEQ-B-GAS S2) when the single detector at its ASSUMED location reads clear but CO remains at the leak."
+            cause: "After I-203 or I-204 the operator approaches to find the leak (SEQ-B-GAS S2) when the single detector at its ASSUMED location reads clear but CO remains at the leak."
             consequence: "CO poisoning of the person looking for the leak."
-            refs: [AIA-241, AIA-242, K-241]
+            refs: [AIA-241, AIA-242]
             modes: [trip, maintenance]
-            safeguards: [H02-SG-SEQ-B-GAS, H02-SG-I203, H02-SG-I204]
+            safeguards: [H02-SG-SEQ-B-GAS, H02-SG-OPEN-SKID, H02-SG-I203, H02-SG-I204]
             actions: [H02-A904]
             status: proposed
             by: agent
+            notes: "Revised 2026-11-06 (D-050, proposed for the team): no fan; the release disperses in the open air."
             risk:
               initial:
-                - {category: people, severity: "4", likelihood: D, basis: "CO poisoning, a fatality possible (matrix 4); entry to find the leak follows every gas trip (D, as H01-S905).", evidence: [SEQ-B-GAS], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 758dc1fcaab66e9f, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: D}}}
+                - {category: people, severity: "4", likelihood: D, basis: "CO poisoning, a fatality possible (matrix 4); an approach to find the leak follows every gas trip (D, as H01-S905).", evidence: [SEQ-B-GAS], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 758dc1fcaab66e9f, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: D}}}
               residual:
-                - {category: people, severity: "4", likelihood: C, basis: "The SEQ-B-GAS entry rule (no entry until AIA-241 and AIA-242 are clear) rests on the very detector reading the cause says is wrong: not credited. K-241, started by I-203 / I-204 and running before the entry, dilutes: one letter (not sized). No portable monitor or entry permit written (H02-A904).", evidence: [SEQ-B-GAS, I-203, I-204, K-241], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
+                - {category: people, severity: "4", likelihood: C, basis: "The SEQ-B-GAS rule (nobody approaches until AIA-241 and AIA-242 are clear) rests on the very detector reading the cause says is wrong: not credited. The open, naturally ventilated skid disperses the release: one letter (passive, D-050; it replaces the deleted fan's credit). The personal CO monitor of SEQ-B-START S1 is not yet written for the leak search (H02-A904).", evidence: [SEQ-B-GAS, D-050], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
       - id: H02-N9-D5
         guide_word: other-than
         parameter: utility (electric power)
         description: "Loss of electric power to the skid."
         scenarios:
           - id: H02-S905
-            cause: "Loss of electric power (F-POWER): U-201, P-201, P-202, K-231, K-241, the PSA and the oxidiser stop; the gas detectors and the control have no UPS drawn."
-            consequence: "The cathode gas train and the PSA beds are left with CO and H2 unpurged (the purge needs power, an open point), the enclosure unventilated and possibly unmonitored: a leak during the outage is not seen, and a person entering or restarting is exposed to CO."
-            refs: [U-201, K-231, K-241, X-231, X-232, AIA-241, AIA-242]
+            cause: "Loss of electric power (F-POWER): U-201, P-201, P-202, K-231, the PSA and the oxidiser stop, XV-233 closes; the gas detectors and the control have no UPS drawn."
+            consequence: "The cathode gas train and the PSA beds are left with CO and H2 unpurged (the purge needs power, an open point) and the skid possibly unmonitored: a leak during the outage is not seen, and a person approaching or restarting is exposed to CO near it."
+            refs: [U-201, K-231, X-231, X-232, AIA-241, AIA-242, XV-233]
             modes: [utility-fail]
-            safeguards: []
+            safeguards: [H02-SG-OPEN-SKID]
             actions: [H02-A905]
             status: proposed
             by: agent
+            notes: "Revised 2026-11-06 (D-050, proposed for the team, as H01-S904): no fan to lose; the open skid ventilates without power."
             risk:
               initial:
-                - {category: people, severity: "4", likelihood: C, basis: "CO poisoning in the enclosure, a fatality (matrix 4, as H01-S904: the unpurged CO inventory with no ventilation and no detection); a power loss is a utility upset (E), one with a leak and an entry before ventilation could happen once (C).", evidence: [F-POWER, control/philosophy.md], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
+                - {category: people, severity: "4", likelihood: C, basis: "CO poisoning at the skid, a fatality (matrix 4, as H01-S904: the unpurged CO inventory with no detection); a power loss is a utility upset (E), one with a leak and an approach before the detection is back could happen once (C).", evidence: [F-POWER, control/philosophy.md], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
               residual:
-                - {category: people, severity: "4", likelihood: C, basis: "The purge and the detectors need power and none is assured (F-POWER open point): nothing credited.", evidence: [F-POWER], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
+                - {category: people, severity: "4", likelihood: B, basis: "The open, naturally ventilated skid disperses the leak without power: one letter (passive, D-050). The purge and the detectors need power and none is assured (F-POWER open point): nothing more.", evidence: [D-050, F-POWER], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 19c20d626e6f11bf, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: B}}}
       - id: H02-N9-D6
         guide_word: other-than
-        parameter: ignition source (the oxidiser X-232 in the enclosure)
-        description: "The tail-gas oxidiser X-232, a flame or hot catalyst inside zone 2 Z-HAZ-B, reached by a flammable release in the enclosure."
+        parameter: ignition source (the oxidiser X-232 beside the zone)
+        description: "The tail-gas oxidiser X-232, a flame or hot catalyst on its plinth south-east of the frame, reached by a flammable release from the zone."
         scenarios:
           - id: H02-S906
-            cause: "An H2-rich release in the enclosure (a flange of the tail gas TG-201 at about 48 mol% H2, or the cathode gas after a loss of CO2, H02-S301) drifts to the running oxidiser X-232, a combustion package (flame or hot catalyst, flue at about 150 degC) that layout/zones.yaml lists as a zone 2 source of Z-HAZ-B; I-203 and I-204 (and SEQ-B-GAS S1) trip U-201, close FV-202, stop K-231 and start K-241 but do not stop X-232 or X-231, which stop only in SEQ-B-GAS S4 after the leak has been found."
-            consequence: "Ignition at the oxidiser: a flash fire or explosion in the enclosure, people at the skid burned or killed, the skid lost."
-            refs: [X-232, TG-201, X-231, AIA-242, K-241, FG-201]
+            cause: "An H2-rich release at the open skid (a flange of the tail gas inside Z-HAZ-B at about 48 mol% H2, or the cathode gas after a loss of CO2, H02-S301) drifts to the running oxidiser X-232 (flame or hot catalyst, flue at about 150 degC), which stands off the frame on its own plinth south-east of it, 2 m or more from the east stair's foot and outside every zone (D-047, D-057); TG-201 is all-welded from FA-233 to the burner and is no zone source."
+            consequence: "Ignition at the oxidiser: a flash fire at the skid, people at the skid burned or killed, the skid lost."
+            refs: [X-232, TG-201, X-231, AIA-242, XV-233, FG-201]
             modes: [startup, normal, dosing, stop, trip]
-            safeguards: [H02-SG-I204]
+            safeguards: [H02-SG-X232-OUTZONE, H02-SG-I204]
             actions: [H02-A906, H02-A907, H02-A206]
             status: proposed
             by: agent
-            notes: "Found in review of the draft; the same hardware is examined in H-01 as H01-S906. A flame cannot be Ex-rated, so H02-A902 does not cover it."
+            notes: "Found in review of the draft; the same hardware is examined in H-01 as H01-S906. A flame cannot be Ex-rated, so H02-A902 does not cover it. Revised 2026-11-06 (the owner's decisions D-050, D-054, D-057; proposed for the team to re-rate): the skid is open, X-232 stands outside the zone and I-203 and I-204 close XV-233."
             risk:
               initial:
-                - {category: people, severity: "4", likelihood: C, basis: "An H2 explosion in the enclosure (matrix 4 names it, as H02-S206); a flange leak is likely, one that reaches the burning oxidiser in a flammable concentration could happen once (C).", evidence: [X-232, "layout/zones.yaml Z-HAZ-B", D-019], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
+                - {category: people, severity: "4", likelihood: C, basis: "An H2 flash fire at the skid (matrix 4 names it, as H02-S206); a flange leak is likely, one that reaches the burning oxidiser in a flammable concentration could happen once (C).", evidence: [X-232, "layout/zones.yaml Z-HAZ-B", D-019], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
                 - {category: asset, severity: "4", likelihood: C, basis: "Loss of the skid (matrix 4).", evidence: [D-019], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5c6f61690768879d, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '4', likelihood: C}}}
               residual:
-                - {category: people, severity: "4", likelihood: C, basis: "I-204 does not stop X-232 or the tail gas to it (control/cause-effect.yaml, SEQ-B-GAS S1), so it does not remove this ignition source: not credited, as H02-S206. X-232 stands among the zone sources with no separation: nothing credited.", evidence: [I-204, SEQ-B-GAS, H02-S206], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ac8d0aced6485dc3, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: C}}}
-                - {category: asset, severity: "4", likelihood: C, basis: "As for people.", evidence: [I-204], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5c6f61690768879d, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '4', likelihood: C}}}
+                - {category: people, severity: "4", likelihood: A, basis: "X-232 stands outside Z-HAZ-B in open air on its own plinth (D-047, D-057), a passive placement: two letters (the convention's limit; the zones are a screening, H02-A206). I-204 closing XV-233 stops the tail gas but leaves the hot oxidiser: not counted (as H01-S906).", evidence: [D-047, D-057, I-204], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d6c623c1ee2507ac, inputs: {matrix: 0e87818000ffd702, category: people, severity: '4', likelihood: A}}}
+                - {category: asset, severity: "4", likelihood: A, basis: "As for people.", evidence: [D-057], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: co2-bpm-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: cbcaf57b631fb660, inputs: {matrix: 0e87818000ffd702, category: asset, severity: '4', likelihood: A}}}
 # shared register of what P-02 and the C&E have (proposed); a node adds its own as H02-SG-N<k>-<name>
 safeguards:
   - {id: H02-SG-I201, title: "I-201 anolyte pH low-low (AIC-201 AALL, pH 12.2 concentration basis) trips U-201", kind: interlock, interlock: I-201, refs: [AIC-201, U-201], status: proposed, by: agent, notes: "Shares its probe with the AIC-201 dose trim (a probe drift is both the cause and the defeat of the trip). sil: null."}
   - {id: H02-SG-I202, title: "I-202 anolyte level low-low (LIA-202 LALL) trips U-201, stops P-201 and P-202, closes FV-203", kind: interlock, interlock: I-202, refs: [LIA-202, U-201, P-201, P-202, FV-203], status: proposed, by: agent, notes: "LIA-202 is independent of the make-up control LIC-201. sil: null."}
-  - {id: H02-SG-I203, title: "I-203 CO detected in the enclosure (AIA-241 AHH) trips U-201, closes FV-202, stops K-231, starts K-241", kind: interlock, interlock: I-203, refs: [AIA-241, U-201, FV-202, K-231, K-241], status: proposed, by: agent, notes: "One detector, location and set point ASSUMED (gas detection study not made). sil: null."}
-  - {id: H02-SG-I204, title: "I-204 H2 detected in the enclosure (AIA-242 AHH) trips U-201, closes FV-202, stops K-231, starts K-241", kind: interlock, interlock: I-204, refs: [AIA-242, U-201, FV-202, K-231, K-241], status: proposed, by: agent, notes: "One detector, location and set point ASSUMED. sil: null."}
+  - {id: H02-SG-I203, title: "I-203 CO detected at the gas train (AIA-241 AHH) trips U-201 (its AC feeder at SDB-1), closes FV-202 and XV-233, stops K-231", kind: interlock, interlock: I-203, refs: [AIA-241, U-201, FV-202, XV-233, K-231], status: proposed, by: agent, notes: "One detector, location and set point ASSUMED (gas detection study not made), certified IIC (D-051). Revised 2026-11-06: no fan start (D-050), XV-233 closed (D-054). sil: null."}
+  - {id: H02-SG-I204, title: "I-204 H2 detected over the stack row (AIA-242 AHH) trips U-201 (its AC feeder at SDB-1), closes FV-202 and XV-233, stops K-231", kind: interlock, interlock: I-204, refs: [AIA-242, U-201, FV-202, XV-233, K-231], status: proposed, by: agent, notes: "One detector, location and set point ASSUMED, certified IIC (D-051). Revised 2026-11-06: no fan start (D-050), XV-233 closed (D-054). sil: null."}
+  - {id: H02-SG-I209, title: "I-209 tail-gas arrester temperature high-high (TSHH-233, on FA-233's unprotected side) closes XV-233, trips U-201, stops K-231, closes FV-202", kind: interlock, interlock: I-209, refs: [TSHH-233, XV-233, U-201, K-231, FV-202], status: proposed, by: agent, notes: "Burning-time protection of FA-233 (D-054); the set point within the arrester's certified burning time is the vendor's (open). sil: null."}
+  - {id: H02-SG-I210, title: "I-210 oxidiser not firing (X-232 burner management trip) closes XV-233, trips U-201, stops K-231, closes FV-202", kind: interlock, interlock: I-210, refs: [X-232, XV-233, U-201, K-231, FV-202], status: proposed, by: agent, notes: "A package signal of the vendor's burner management system (EN 746-2; D-054), armed once X-232 reports firing. sil: null."}
   - {id: H02-SG-I205, title: "I-205 anolyte temperature high-high at the stack outlet (TSHH-212) trips U-201", kind: interlock, interlock: I-205, refs: [TSHH-212, U-201], status: proposed, by: agent, notes: "TSHH-212 is a separate element from TIC-211 (stack inlet). Trip value ASSUMED. sil: null."}
   - {id: H02-SG-I206, title: "I-206 anolyte recirculation flow low-low (FIC-201 FALL, 5 s delay) trips U-201", kind: interlock, interlock: I-206, refs: [FIC-201, U-201], status: proposed, by: agent, notes: "Shares its transmitter with the flow loop FIC-201 (C&E note: HAZOP to judge): no credit against a FIC-201 transmitter fault. sil: null."}
   - {id: H02-SG-I207, title: "I-207 dosing and bleed off with the current off (JIC-201 below 5 % of setpoint): stops P-202, closes FV-203", kind: interlock, interlock: I-207, refs: [JIC-201, P-202, FV-203], status: proposed, by: agent, notes: "A permissive, not a safety trip (latching false, automatic reset)."}
   - {id: H02-SG-I208, title: "I-208 5 M KOH day tank level low-low (LIA-203 LALL) stops P-202", kind: interlock, interlock: I-208, refs: [LIA-203, P-202], status: proposed, by: agent, notes: "Dry-run protection of the metering pump; AIC-201 then alarms as the pH falls. sil: null."}
   - {id: H02-SG-FIC201-FAL, title: "FIC-201 low anolyte flow alarm (operator checks P-201 and the manifold)", kind: alarm, refs: [FIC-201], status: proposed, by: agent, notes: "Same transmitter as the loop and I-206."}
-  - {id: H02-SG-TIC211-TAH, title: "TIC-211 high anolyte temperature alarm at the stack inlet (operator checks the cooling water and TV-211)", kind: alarm, refs: [TIC-211], status: proposed, by: agent}
+  - {id: H02-SG-TIC211-TAH, title: "TIC-211 high anolyte temperature alarm at the stack inlet (operator checks the tempered water and TV-211)", kind: alarm, refs: [TIC-211], status: proposed, by: agent}
+  - {id: H02-SG-TIC211-TAL, title: "TIC-211 low anolyte temperature alarm at the stack inlet (operator restores the tempered-water heating, or ends the run; frost protection of the open skid)", kind: alarm, refs: [TIC-211], status: proposed, by: agent, notes: "Added 2026-11-06 (D-052, D-056); value ASSUMED. As H01-SG-TIC111-TAL."}
+  - {id: H02-SG-N1-IDLE-HEAT, title: "SEQ-B-START S1 brings the loop to 25 degC on the tempered water before the current; SEQ-B-STOP keeps an idle filled skid circulating with P-201 and heated", kind: procedural, refs: [TIC-211, P-201], status: proposed, by: agent, notes: "control/sequences.yaml (D-052, D-056); it rests on the tempered-water unit off the skid. As H01-SG-N1-IDLE-HEAT."}
   - {id: H02-SG-FIC202-FAL, title: "FIC-202 low fresh CO2 flow alarm (operator reduces the current: without CO2 the stacks make H2 only)", kind: alarm, refs: [FIC-202], status: proposed, by: agent}
   - {id: H02-SG-PIC221-PAH, title: "PIC-221 high cathode back-pressure alarm (operator checks K-231 and PV-221; membrane pressure difference limited, vendor)", kind: alarm, refs: [PIC-221], status: proposed, by: agent}
   - {id: H02-SG-LIC222-LAH, title: "LIC-222 high condensate level alarm in V-221 (operator checks LV-222: liquid must not reach K-231)", kind: alarm, refs: [LIC-222], status: proposed, by: agent}
@@ -2018,35 +2085,42 @@ safeguards:
   - {id: H02-SG-CV231, title: "Check valve on the K-231 discharge CG-203 (against back-flow from X-231)", kind: check-valve, refs: [CG-203, K-231], status: proposed, by: agent, notes: "Untagged on P-02 (DEXPI object CV231, a node member as {sheet: P-02, object: CV231})."}
   - {id: H02-SG-FAIL-FV202, title: "FV-202 fails closed on loss of air or signal (no CO2 to the cathodes)", kind: mechanical, refs: [FV-202], status: proposed, by: agent, notes: "Fail position proposed in control/loops.yaml (D-018)."}
   - {id: H02-SG-FAIL-PV221, title: "PV-221 fails open on loss of air or signal (the cathode is not pressurised against the compressor)", kind: mechanical, refs: [PV-221], status: proposed, by: agent, notes: "Fail position proposed in control/loops.yaml (D-018)."}
-  - {id: H02-SG-FAIL-TV211, title: "TV-211 fails open on loss of air or signal (full cooling water to E-211)", kind: mechanical, refs: [TV-211], status: proposed, by: agent, notes: "Fail position proposed in control/loops.yaml (D-018)."}
+  - {id: H02-SG-FAIL-TV211, title: "TV-211 fails open on loss of air or signal (full tempered water to E-211)", kind: mechanical, refs: [TV-211], status: proposed, by: agent, notes: "Fail position proposed in control/loops.yaml (D-018)."}
   - {id: H02-SG-FAIL-LV222, title: "LV-222 fails closed on loss of air or signal (no cathode gas to the effluent)", kind: mechanical, refs: [LV-222], status: proposed, by: agent, notes: "Fail position proposed in control/loops.yaml (D-018)."}
   - {id: H02-SG-FAIL-LV201, title: "LV-201 fails closed on loss of air or signal (no make-up water)", kind: mechanical, refs: [LV-201], status: proposed, by: agent, notes: "Fail position proposed in control/loops.yaml (D-018)."}
   - {id: H02-SG-FAIL-FV203, title: "FV-203 fails closed on loss of air or signal (no bleed)", kind: mechanical, refs: [FV-203], status: proposed, by: agent, notes: "Fail position proposed in control/loops.yaml (D-018)."}
-  - {id: H02-SG-U201-OUTZONE, title: "Rectifier U-201 (non-Ex) placed outside zone Z-HAZ-B, more than 1 m from the zone sources X-232, E-201D and K-231", kind: mechanical, refs: [U-201], status: proposed, by: agent, notes: "Layout feature (D-019); the zones are a screening, not an area classification."}
+  - {id: H02-SG-U201-OUTZONE, title: "Rectifier U-201 (non-Ex) off the frame on a plinth at grade north-east of it, outside zone Z-HAZ-B, 3.23 m or more from the zone sources with their flanges and 2 m or more from the stair feet", kind: mechanical, refs: [U-201], status: proposed, by: agent, notes: "Layout feature (D-019, revised D-057; regen step 13 checks it); the zones are a screening, not an area classification."}
+  - {id: H02-SG-X232-OUTZONE, title: "Oxidiser X-232 off the frame on its own plinth south-east of it, outside every zone and 2 m or more from the east stair's foot; TG-201 all-welded from FA-233 to the burner", kind: mechanical, refs: [X-232, TG-201], status: proposed, by: agent, notes: "Layout feature (D-047, D-057; regen step 13 checks it). As H01-SG-X132-OUTZONE."}
+  - {id: H02-SG-OPEN-SKID, title: "Open, naturally ventilated skid: no enclosure, at most a rain canopy over the rectifier and the junction boxes (H2 rises and disperses, a release does not collect under a roof)", kind: mechanical, refs: [E-201A, K-231, X-231], status: proposed, by: agent, notes: "The owner's decision D-050 (2026-11-06). Natural ventilation fails in still air and does not keep CO2 out of low points; any roof over the gas train is for the competent person (H02-A206). As H01-SG-OPEN-SKID."}
+  - {id: H02-SG-EX-ZONE, title: "Electrical items inside Z-HAZ-B one category above zone 2: motors (P-201, K-231, P-202) II 2G Ex db eb IIC T3 Gb, transmitters, analysers and solenoids Ex ia IIC T4 Ga with barriers outside the zone, IIC gas detectors; non-electrical ignition of K-231 and the pumps to EN ISO 80079-36/-37", kind: mechanical, refs: [P-201, K-231, P-202, AIA-241, AIA-242], status: proposed, by: agent, notes: "The owner's decision D-051 (2026-11-06), written into the equipment, electrical and instrument lists: a specification until the area classification, the purchase and the Ex inspection confirm it. As H01-SG-EX-ZONE."}
+  - {id: H02-SG-FA233, title: "In-line detonation arrester FA-233 on TG-201 at X-231's outlet inside Z-HAZ-B (EN ISO 16852, explosion group IIC, unstable detonation, unidirectional, protected side towards X-231)", kind: mechanical, refs: [FA-233, TG-201], status: proposed, by: agent, notes: "The owner's decision D-054; piping/special-items.yaml. Its EU-type examination for the actual tail gas is the vendor's and open."}
+  - {id: H02-SG-CV233, title: "Check valve on TG-201 beside FA-233 (against combustion air drifting back towards X-231)", kind: check-valve, refs: [{sheet: P-02, object: CV233}, TG-201], status: proposed, by: agent, notes: "Untagged on P-02 (DEXPI object CV233), D-054."}
+  - {id: H02-SG-N6-XV233-CLOSE, title: "SEQ-B-STOP S3 and SEQ-B-TRIP S2: the tail-gas trip valve XV-233 (fail closed) closed before X-232 stops; SEQ-B-START S3 and SEQ-B-GAS open it only once X-232 reports pre-purged and firing", kind: procedural, refs: [XV-233, X-232], status: proposed, by: agent, notes: "control/sequences.yaml (D-054)."}
   - {id: H02-SG-O2V201-OPEN, title: "Open reservoir vent O2V-201 (DN 25, no valve) to a safe location above the walking levels", kind: mechanical, refs: [O2V-201, T-201], status: proposed, by: agent, notes: "Keeps T-201 at atmospheric pressure; the vent outlet height (about 3.4 m) is a layout assumption (D-019); vent sizing open (D-017)."}
-  - {id: H02-SG-SEQ-B-START-VENT, title: "SEQ-B-START S1: the extract fan K-241 runs before the cathodes are purged and the current is ramped", kind: procedural, refs: [K-241], status: proposed, by: agent, notes: "control/sequences.yaml SEQ-B-START."}
-  - {id: H02-SG-SEQ-B-GAS, title: "SEQ-B-GAS: no entry to the enclosure until AIA-241 and AIA-242 are clear; leak found and isolated before reset; purge to X-232 with the oxidiser running first", kind: procedural, refs: [AIA-241, AIA-242, X-232], status: proposed, by: agent, notes: "control/sequences.yaml."}
+  - {id: H02-SG-SEQ-B-START-AIR, title: "SEQ-B-START S1: CO2 (and O2) checked at grade and the low points round the open skid with a portable meter, a personal CO monitor worn, before the start", kind: procedural, refs: [AIA-241], status: proposed, by: agent, notes: "control/sequences.yaml SEQ-B-START (D-050). Replaces H02-SG-SEQ-B-START-VENT (the extract fan K-241, deleted with the enclosure); that id is not reused."}
+  - {id: H02-SG-SEQ-B-GAS, title: "SEQ-B-GAS: nobody approaches the skid until AIA-241 and AIA-242 are clear; leak found and isolated before reset; purge to X-232 with the oxidiser firing before XV-233 opens", kind: procedural, refs: [AIA-241, AIA-242, X-232, XV-233], status: proposed, by: agent, notes: "control/sequences.yaml."}
   - {id: H02-SG-SEQ-B-PURGE, title: "SEQ-B-STOP / SEQ-B-TRIP: CO2 purge of the cathodes to the oxidiser X-232 until the cathode gas is free of CO and H2 (sampled) before K-231, X-231 and X-232 stop", kind: procedural, refs: [FIC-202, X-232], status: proposed, by: agent, notes: "control/sequences.yaml; needs power and CO2 (F-POWER open point)."}
   - {id: H02-SG-N6-FG-HEIGHT, title: "The flue FG-201 discharges at about 3.4 m, above the walking levels (a 1 m sphere clear of every walking level, D-019)", kind: mechanical, refs: [FG-201, X-232], status: proposed, by: agent, notes: "Layout assumption (D-019, piping/routing.yaml); fitted at site. As H01-SG-N6-FG-HEIGHT."}
   - {id: H02-SG-SEQ-B-FILL-PERM, title: "SEQ-B-FILL permissives: drain HV-203 closed and U-201 off before the fill", kind: procedural, refs: [HV-203, U-201], status: proposed, by: agent, notes: "control/sequences.yaml."}
   # node safeguards
   - {id: H02-SG-N7-SEQ-STOP-P202, title: "SEQ-B-TRIP S1 and SEQ-B-GAS S1 (automatic) stop P-202 and close FV-203 directly, not only through I-207; SEQ-B-STOP S1 (operator) stops P-202 and puts FIC-203 in manual but does not close FV-203; every S1 completes only with I-207 tripped", kind: procedural, refs: [P-202, FV-203], status: proposed, by: agent, notes: "control/sequences.yaml SEQ-B-STOP, SEQ-B-TRIP, SEQ-B-GAS S1."}
+  - {id: H02-SG-N8-DRAIN, title: "SEQ-B-DRAIN: P-201 stopped and LV-201 closed (S1), the loop vented at AV-211 / HV-207 (S2), T-201 drained through HV-203 (S3), the loop's low point through DR-201 / HV-206 (S4), the heels of T-201 and T-202 pumped out through PO-201 / HV-208 and PO-202 / HV-209 with the chemical protection of the refill (S5), the loop flushed with demineralised water (S6), closed and capped (S7)", kind: procedural, refs: [P-201, HV-203, HV-206, HV-207, HV-208, HV-209], status: proposed, by: agent, notes: "control/sequences.yaml SEQ-B-DRAIN, revised with the owner's draining decision D-055 (2026-11-06). As H01-SG-N2-DRAIN-PERM."}
   - {id: H02-SG-N8-SEQ-FILL-LEVEL, title: "SEQ-B-FILL S1 ends at the 50 L working volume on LIC-201 and S2 closes HV-202", kind: procedural, refs: [LIC-201, HV-202], status: proposed, by: agent, notes: "control/sequences.yaml; LIC-201 indicates, it has no high alarm. The same step fills T-202 through HV-205 and completes on 'LIA-203 full', which has no high alarm: not credited for T-202 (H02-S712)."}
 actions:
   # N1 anolyte loop
   - {id: H02-A101, text: "Give the low-low flow trip I-206 its own measurement, independent of the FIC-201 loop transmitter (a second flow element, or a pump-running and differential-pressure signal of P-201), so that a FIC-201 failure does not defeat the trip.", owner: instrument and control engineer, status: proposed, by: agent}
   - {id: H02-A102, text: "With the stack vendor, add per-stack monitoring that shows a starved, flooded or shorted stack at constant total current: the stack voltage (or cell-group voltages) and the current of each of E-201A to D, with alarms and a trip of U-201 on a voltage outside the band.", owner: instrument and control engineer, status: proposed, by: agent}
-  - {id: H02-A103, text: "Add a low temperature alarm on TIC-211 and decide whether Skid B needs an anolyte heater for winter start-up and low current (none is drawn; TIC-211 cools only).", owner: process engineer, status: proposed, by: agent}
-  - {id: H02-A104, text: "Carry out a SIL screening / LOPA of the trips I-201 to I-206 and I-208 (all sil null), including the sharing of AIC-201 with I-201 and of FIC-201 with I-206, before any trip is credited beyond the one-letter convention of this draft.", owner: process safety / HSE, status: proposed, by: agent}
+  - {id: H02-A103, text: "Add a low temperature alarm on TIC-211 and decide whether Skid B needs an anolyte heater for winter start-up and low current (none is drawn; TIC-211 cools only). Proposed response (the owner's decision of 2026-11-06, D-052, D-056, for the team to confirm, as H01-A105): E-211 on a heating and cooling tempered-water unit off the skid (TWS-201 / TWR-201), a low-temperature alarm on TIC-211, the loop heated before the current and kept circulated and heated when idle. Still open: the unit's duty and frost-protection mode and the TAL value (vendor).", owner: process engineer, status: proposed, by: agent}
+  - {id: H02-A104, text: "Carry out a SIL screening / LOPA of the trips I-201 to I-206, I-208, I-209 and I-210 (all sil null; I-209 and I-210 added with D-054), including the sharing of AIC-201 with I-201 and of FIC-201 with I-206, before any trip is credited beyond the one-letter convention of this draft.", owner: process safety / HSE, status: proposed, by: agent}
   # N2 stacks and DC supply
   - {id: H02-A201, text: "Specify with the stack and rectifier vendors the protection against reverse current at stop, trip and power loss (blocking diode, polarisation hold or controlled discharge of the stacks) and add the step to SEQ-B-STOP and SEQ-B-TRIP.", owner: electrical engineer, status: proposed, by: agent}
   - {id: H02-A202, text: "Design and draw the 48 V DC bus: over-current protection (fuses or a DC breaker) at U-201 and per stack, shrouded terminals, drip protection against anolyte above the bus, cable routing, and an arc-flash assessment.", owner: electrical engineer, status: proposed, by: agent}
   - {id: H02-A203, text: "Add insulation (earth-fault) monitoring on the DC bus and equipotential bonding of the frame, manifolds and SS316 items; check for stray-current corrosion through the anolyte.", owner: electrical engineer, status: proposed, by: agent}
   - {id: H02-A204, text: "Provide a lockable DC isolator and an earthing / discharge point for the stacks, and write the electrical isolation procedure (lock-out, prove dead, discharge) used for every terminal work and stack lift.", owner: electrical engineer, status: proposed, by: agent}
   - {id: H02-A205, text: "Get the stack weight from the vendor and make a manual handling assessment of the vertical hand lift with 0.3 m of hand room (D-019, D-023); provide a lifting aid or a two-person lift procedure.", owner: mechanical / package engineer, status: proposed, by: agent}
-  - {id: H02-A206, text: "Have the area classification of Skid B made by a competent person (IEC 60079-10-1) to replace the screening zone Z-HAZ-B, and confirm that the non-Ex rectifier U-201 stands outside every zone; treat the oxidiser X-232 as a permanent ignition source (H02-S906).", owner: process safety / HSE, status: proposed, by: agent}
-  - {id: H02-A207, text: "Remove the DC on every trip independently of the rectifier's regulation: a DC contactor or breaker in the U-201 output opened by I-201 to I-206 and by the stop, and an over-current alarm and trip on a current measurement independent of JIC-201; then I-205 can be credited against a regulation or output-stage fault of U-201 (H02-S201; as H01-A205).", owner: electrical engineer, status: proposed, by: agent}
-  - {id: H02-A208, text: "As H01-A206: the stacks now stand along the frame's south edge, within 0.6 m of a person at grade, and are replaced by a slide at deck level onto a deck-height trolley, no lift (D-047, review 2026-11-05-layout#1); assess that handling in H02-A205 and drain and flush the loop first (H02-A802): the supply header's low point has no drain on P-02 yet (D-047).", owner: mechanical / package engineer, status: proposed, by: agent}
+  - {id: H02-A206, text: "Have the area classification of Skid B made by a competent person (IEC 60079-10-1) to replace the screening zone Z-HAZ-B, and confirm that the non-Ex rectifier U-201 stands outside every zone; treat the oxidiser X-232 as a permanent ignition source (H02-S906). Proposed response in part (the owner's decisions of 2026-11-06, D-050, D-051, D-057, for the team to confirm, as H01-A204): the skid is open and naturally ventilated; U-201 and X-232 stand off the frame on plinths outside the zone; the gas trips open U-201's AC feeder at SDB-1; the Ex marking inside the zone is set (H02-A902). Cannot be settled by the owner or this study: the area classification itself, the explosion protection document (1999/92/EC), the initial and periodic Ex inspection (IEC 60079-14, -17) and the assessment of the stacks' terminals: the competent person's.", owner: process safety / HSE, status: proposed, by: agent}
+  - {id: H02-A207, text: "Remove the DC on every trip independently of the rectifier's regulation: a DC contactor or breaker in the U-201 output opened by I-201 to I-206 and by the stop, and an over-current alarm and trip on a current measurement independent of JIC-201; then I-205 can be credited against a regulation or output-stage fault of U-201 (H02-S201; as H01-A205). Decided in principle by the owner on 2026-11-06 (D-051, for the team to confirm): a lockable DC isolator or a DC contactor outside the zone, the DC never broken under load inside it; its design and drawing stay open with the DC bus.", owner: electrical engineer, status: proposed, by: agent}
+  - {id: H02-A208, text: "As H01-A206: the stacks now stand along the frame's south edge, within 0.6 m of a person at grade, and are replaced by a slide at deck level onto a deck-height trolley, no lift (D-047, review 2026-11-05-layout#1); assess that handling in H02-A205 and drain and flush the loop first (H02-A802): the supply header's low point has no drain on P-02 yet (D-047). Proposed response to the drain (the owner's decision of 2026-11-06, D-055, P&ID revision B, for the team to confirm): the capped low-point drain DR-201 / HV-206 is drawn there and SEQ-B-DRAIN S4 drains it before a stack is opened; the handling assessment stays open (H02-A205).", owner: mechanical / package engineer, status: proposed, by: agent}
   # N3 cathode CO2 feed
   - {id: H02-A301, text: "Trip U-201 automatically on low-low fresh CO2 flow (FIC-202) and on low instrument air pressure, instead of relying on the operator's response to the FIC-202 FAL (F-AIR); measure the PSA recycle CO2-202 or the total cathode CO2 feed as well, since FIC-202 sees only the fresh CO2 and a loss of the 2.94 kg/h recycle goes unseen (H02-S301, H02-S510).", owner: instrument and control engineer, status: proposed, by: agent}
   - {id: H02-A302, text: "Define the CO2 supply interface: a pressure regulator and a high-pressure trip at the tie-in, and a relief device on CO2-201 upstream of the stacks. Governing scenario for the relief: H02-S303, the supply regulator failing open with FV-202 open (named only, not sized here).", owner: process safety / HSE, status: proposed, by: agent}
@@ -2054,7 +2128,7 @@ actions:
   - {id: H02-A304, text: "Specify the CO2 vaporiser and its low-temperature protection at the battery limit, and add a low temperature alarm on CO2-201.", owner: process engineer, status: proposed, by: agent}
   - {id: H02-A305, text: "Replace the local rotameter FI-203 by a flow transmitter with low and high alarms, or write a per-shift check of the humidification water.", owner: process engineer, status: proposed, by: agent}
   - {id: H02-A307, text: "Give the start-up purge of SEQ-B-START S2 a flow path: start K-231 and X-232 before or with the purge (with the order of S3 reviewed against H02-S610), or draw a purge route from CG-202 to X-232 or a safe vent; state the regulated CO2 supply pressure against the anolyte pressure and the GDE window (#332); and correct the PV-221 rationale in control/loops.yaml, which a stopped K-231 defeats (H02-S309; as H01-A307).", owner: process engineer, status: proposed, by: agent}
-  - {id: H02-A306, text: "Add CO2 and O2-depletion detection at low level in the enclosure, with an alarm at the entry, and include CO2 in the enclosure entry procedure.", owner: process safety / HSE, status: proposed, by: agent}
+  - {id: H02-A306, text: "Add CO2 and O2-depletion detection at low level at the open skid, with an alarm at the entry, and include CO2 in the enclosure entry procedure. Proposed response in part (the owner's decision of 2026-11-06, D-050, for the team to confirm, as H01-A305): the skid is open; SEQ-B-START S1 checks CO2 (and O2) at grade and the low points with a portable meter. Still open: whether a fixed CO2 detector at a low point is needed during the run (H02-A901), and keeping pits and trenches away from the skid.", owner: process safety / HSE, status: proposed, by: agent}
   # N4 cathode gas outlet
   - {id: H02-A401, text: "Measure the pressure difference across the GDE: an anolyte-side pressure transmitter at the stack inlet (AN-203) against the cathode (PIC-221), with alarms and a trip of U-201 at the window of benchmarks/reproductions/baumgartner-gde-pressure-window (#332) and the vendor's allowed difference.", owner: process engineer, status: proposed, by: agent}
   - {id: H02-A402, text: "Add a cathode pressure high-high trip independent of PIC-221 that trips U-201, and trip U-201 when K-231 stops; decide the relief of the cathode gas train. Governing scenario for that relief: H02-S401, the stacks making gas against a stopped K-231 (named only, not sized here).", owner: instrument and control engineer, status: proposed, by: agent}
@@ -2073,9 +2147,9 @@ actions:
   - {id: H02-A507, text: "Guard the PSA recycle CO2-202 (no valve on it today): a check valve and a tight shut-off valve on CO2-202 closed by I-203, I-204 and the stop of K-231, or the PSA vendor's recycle outlet isolation confirmed and interlocked; include CO2-202 in the isolation of SEQ-B-GAS and in the relief study of the cathode side (H02-S509; as H01-A507).", owner: process engineer, status: proposed, by: agent}
   # N6 tail gas and vents
   - {id: H02-A601, text: "Add an H2-in-O2 analyser on the reservoir vent O2V-201 with an alarm and a trip of U-201 at a fraction of the lower flammability limit (set point to be defined), and consider a sweep of the T-201 head space and a flame arrester on O2V-201.", owner: process safety / HSE, status: proposed, by: agent}
-  - {id: H02-A602, text: "With the oxidiser vendor, define the combustion monitoring of X-232 (flame or outlet temperature, combustion air flow AIR-201, high temperature) and its trip of the tail gas feed (K-231, X-231) and U-201; check FG-201 for CO; and require a burner or oxidiser management system with a pre-purge before every light-off or re-light (EN 746-2 or the equivalent) and a package HAZOP; size the air for the H2-rich tail gas after a CO2 loss and for the gas-trip purge of SEQ-B-GAS S3, or limit the purge rate (H02-S601, H02-S602, H02-S603, H02-S610; as H01-A601, H01-A602).", owner: mechanical / package engineer, status: proposed, by: agent}
+  - {id: H02-A602, text: "With the oxidiser vendor, define the combustion monitoring of X-232 (flame or outlet temperature, combustion air flow AIR-201, high temperature) and its trip of the tail gas feed (K-231, X-231) and U-201; check FG-201 for CO; and require a burner or oxidiser management system with a pre-purge before every light-off or re-light (EN 746-2 or the equivalent) and a package HAZOP; size the air for the H2-rich tail gas after a CO2 loss and for the gas-trip purge of SEQ-B-GAS S3, or limit the purge rate (H02-S601, H02-S602, H02-S603, H02-S610; as H01-A601, H01-A602). Proposed response in part (the owner's decision of 2026-11-06, D-054, for the team to confirm): the vendor's burner management system to EN 746-2 with pre-purge and its own burner arrester are required as the second barrier behind FA-233; its trip is I-210 (XV-233 closed, K-231 stopped, U-201 tripped); the sequences open XV-233 only once X-232 reports pre-purged and firing. The vendor's system, the flue measurement, the air sizing and the package HAZOP stay open.", owner: mechanical / package engineer, status: proposed, by: agent}
   - {id: H02-A603, text: "Size the vents O2V-201 and KV-202 for the governing in- and out-breathing (the fills, the make-up LV-201 failing open, a cathode gas breakthrough, the gravity drain of T-201 with O2V-201 blocked, H02-S808), route KV-202 away from the refill point, and fit weather caps and screens.", owner: process safety / HSE, status: proposed, by: agent}
-  - {id: H02-A604, text: "Protect the tail gas TG-201 against flashback: a flame arrester and a check valve on TG-201 (or the X-232 vendor's confirmation of the burner's own), a stop of X-232 (or of its fuel) on a falling tail flow and with K-231, and the order of the stop steps of SEQ-B-STOP, -TRIP and -GAS reviewed with the vendor's burner management; and keep the cathode below the anolyte after a trip that stops P-201 (lower the PIC-221 setpoint for the purge of SEQ-B-TRIP S1, or a check valve on AN-202) (H02-S613, H02-S605; as H01-A605).", owner: mechanical / package engineer, status: proposed, by: agent}
+  - {id: H02-A604, text: "Protect the tail gas TG-201 against flashback: a flame arrester and a check valve on TG-201 (or the X-232 vendor's confirmation of the burner's own), a stop of X-232 (or of its fuel) on a falling tail flow and with K-231, and the order of the stop steps of SEQ-B-STOP, -TRIP and -GAS reviewed with the vendor's burner management; and keep the cathode below the anolyte after a trip that stops P-201 (lower the PIC-221 setpoint for the purge of SEQ-B-TRIP S1, or a check valve on AN-202) (H02-S613, H02-S605; as H01-A605). Proposed response to the tail gas (the owner's decision of 2026-11-06, D-054, P&ID revision B, for the team to confirm): at X-231's outlet inside Z-HAZ-B the fail-closed trip valve XV-233, a check valve and the in-line detonation arrester FA-233 for unstable detonation (EN ISO 16852, IIC, unidirectional, protected side towards X-231), TSHH-233 on its unprotected side tripping XV-233 (I-209), the gas trips and the burner management trip (I-210) closing XV-233, the stop sequences closing it before X-232 stops; TG-201 all-welded, protected where it crosses grade and off the escape way (pinned, D-057); the vendor's burner arrester and burner management the second barrier. Cannot be settled here (vendor): the arrester's EU-type examination for the actual tail gas, its burning time and so TSHH-233's set point, and TG-201's detonation pressure rating (H02-S613, H02-S614). The cathode-below-anolyte part after a trip that stops P-201 stays open.", owner: mechanical / package engineer, status: proposed, by: agent}
   # N7 dosing, bleed and make-up
   - {id: H02-A701, text: "Give I-201 its own pH (or conductivity) measurement, separate from the AIC-201 trim probe, with low and high alarms, and add a routine titration check of the anolyte against the probe.", owner: instrument and control engineer, status: proposed, by: agent}
   - {id: H02-A702, text: "Calibrate AIC-201 against titrated anolyte (hydroxide and carbonate) and set its setpoint, AAL and the I-201 trip value on the measured basis before start-up; record the offset (control/philosophy.md).", owner: process engineer, status: proposed, by: agent}
@@ -2089,13 +2163,13 @@ actions:
   - {id: H02-A710, text: "Write the AIC-201 probe handling and calibration procedure: AIC-201 and P-202 in manual at a fixed dose (or the current off) while the probe is out, a recorded and time-limited bypass of I-201 if one is needed, and a check against titration before AIC-201 goes back to automatic; or give I-201 its own probe (H02-A701) (H02-S717).", owner: instrument and control engineer, status: proposed, by: agent}
   # N8 fill and drain
   - {id: H02-A801, text: "Write the fill procedure for T-201: a check of the delivery certificate (1 M KOH), the hose connection and disconnection with PPE, and the fill volume.", owner: operations, status: proposed, by: agent}
-  - {id: H02-A802, text: "Add low-point drains and flush connections on the anolyte loop (stack manifolds, P-201, E-211) and isolation valves at the stack connections, and add a flush step to SEQ-B-DRAIN before any item is opened.", owner: process engineer, status: proposed, by: agent}
+  - {id: H02-A802, text: "Add low-point drains and flush connections on the anolyte loop (stack manifolds, P-201, E-211) and isolation valves at the stack connections, and add a flush step to SEQ-B-DRAIN before any item is opened. Proposed response (the owner's draining decision of 2026-11-06, D-055, P&ID revision B, for the team to confirm): the capped low-point drain DR-201 / HV-206 at the supply header's east end to a closed IBC, the capped vent AV-211 / HV-207 at E-211's anolyte outlet, bottom outlets with valves and capped camlock pump-outs on T-201 (PO-201 / HV-208) and T-202 (PO-202 / HV-209); SEQ-B-DRAIN vents, drains, pumps out the heels, flushes with demineralised water and caps (H02-S807, H02-S809). Still open: isolation valves at the stack connections and the check that a connection is empty before it is opened.", owner: process engineer, status: proposed, by: agent}
   - {id: H02-A803, text: "Lock or car-seal HV-203 closed for the campaign, opened only under SEQ-B-DRAIN (H02-S804; as H01-A804).", owner: operations, status: proposed, by: agent}
-  # N9 enclosure
-  - {id: H02-A901, text: "Make the gas detection study for Skid B: number and locations of the CO and H2 detectors (incl. near the vents and the CO product side), set points, voting (e.g. 1oo2), alarm beacons at the entry and their power supply; then confirm I-203 and I-204.", owner: process safety / HSE, status: proposed, by: agent}
-  - {id: H02-A902, text: "Decide and specify the Ex rating of the electrical items in zone 2 of Skid B (K-241, P-201, K-231, P-202, instruments), an open owner decision of #330, together with the area classification of H02-A206; I-204 starts K-241 and leaves P-201 running inside a detected H2 cloud, so K-241 (motor out of the air stream) and P-201 need the rating whatever the owner decides for the rest, or I-204 must stop P-201 (H02-S902).", owner: owner / electrical engineer, status: proposed, by: agent}
-  - {id: H02-A903, text: "Size the enclosure ventilation (K-241) and add an air flow switch with an alarm and a start permissive, so that a stopped fan is seen.", owner: process safety / HSE, status: proposed, by: agent}
-  - {id: H02-A904, text: "Write the entry procedure for the enclosure after a gas trip: portable CO, H2 and O2 monitors, a permit to work and a second person outside.", owner: operations, status: proposed, by: agent}
-  - {id: H02-A905, text: "Resolve F-POWER: a UPS for the gas detection, the control and the fan, and a defined purge of the cathode gas train after a power loss (control/philosophy.md open point).", owner: process engineer, status: proposed, by: agent}
-  - {id: H02-A906, text: "Remove the oxidiser X-232 as an ignition source of the enclosure: stop X-232 and isolate the tail gas TG-201 (stop X-231) from I-203 and I-204 and in SEQ-B-GAS S1, or place X-232 outside the enclosure and outside zone Z-HAZ-B; have the area classification (H02-A206) treat X-232 as a permanent ignition source and get its surface temperatures from the vendor (H02-S906; as H01-A906).", owner: process safety / HSE, status: proposed, by: agent}
-  - {id: H02-A907, text: "As H01-A907: X-232 now stands off the frame on its own plinth east of Skid B, outside Z-HAZ-B and the enclosure (D-047); draw the flame arrester on TG-201 at X-231's outlet and the all-welded TG-201 on P-02, reassess H02-S906 and confirm by the area classification (H02-A206).", owner: process engineer, status: proposed, by: agent}
+  # N9 open skid and gas detection
+  - {id: H02-A901, text: "Make the gas detection study for Skid B: number and locations of the CO and H2 detectors (incl. near the vents and the CO product side), set points, voting (e.g. 1oo2), alarm beacons at the entry and their power supply; then confirm I-203 and I-204. Decided in part by the owner on 2026-11-06 (D-050, for the team to confirm, as H01-A902): the CO and H2 point detectors stay at the PSA and the compressor and high over the stack row, certified IIC (D-051); personal CO monitors are worn (SEQ-B-START S1); a CO2 check at grade and the low points. The study itself stays open.", owner: process safety / HSE, status: proposed, by: agent}
+  - {id: H02-A902, text: "Decide and specify the Ex rating of the electrical items in zone 2 of Skid B (K-241, P-201, K-231, P-202, instruments), an open owner decision of #330, together with the area classification of H02-A206; I-204 starts K-241 and leaves P-201 running inside a detected H2 cloud, so K-241 (motor out of the air stream) and P-201 need the rating whatever the owner decides for the rest, or I-204 must stop P-201 (H02-S902). Proposed response (decided by the owner on 2026-11-06, D-051, to be confirmed by the team, as H01-A903): inside the screening zone the motors P-201, K-231 and P-202 II 2G Ex db eb IIC T3 Gb (Ex eb acceptable), the transmitters, analysers and solenoids Ex ia IIC T4 Ga with their barriers or isolators outside the zone (JB-201, CR-1), certified IIC gas detectors; 3G / Gc the stated minimum; the non-electrical ignition of K-231 and the pumps to EN ISO 80079-36/-37; the PSA X-231 with the vendor's ATEX assembly assessment; T-201 and T-202 (PP) earthed and bonded (IEC TS 60079-32-1); the rectifier's AC isolated at SDB-1 on gas detection and the DC never broken under load inside the zone; the DC drops in armoured cable with IIC glands and shrouded IP-rated stack terminals. K-241 is deleted (D-050); P-201 left running is Gb. Cannot be settled here: the area classification, the explosion protection document, the Ex inspection and the stacks' terminals (the competent person, H02-A206).", owner: owner / electrical engineer, status: proposed, by: agent}
+  - {id: H02-A903, text: "Size the enclosure ventilation (K-241) and add an air flow switch with an alarm and a start permissive, so that a stopped fan is seen. Proposed response (the owner's decision of 2026-11-06, D-050, for the team to confirm, as H01-A901): the skid is open and naturally ventilated; the enclosure and K-241 are deleted, at most a rain canopy over the rectifier and the junction boxes. Still open: the competent person's confirmation of the ventilation (H02-A206) and that no roof is put over the gas train (H02-S903).", owner: process safety / HSE, status: proposed, by: agent}
+  - {id: H02-A904, text: "Write the procedure for approaching the skid after a gas trip: portable CO, H2 and O2 monitors, a permit to work and a second person at a distance (the enclosure of the first draft is deleted, D-050).", owner: operations, status: proposed, by: agent}
+  - {id: H02-A905, text: "Resolve F-POWER: a UPS for the gas detection and the control, and a defined purge of the cathode gas train after a power loss (control/philosophy.md open point); the fan is deleted with the enclosure (D-050).", owner: process engineer, status: proposed, by: agent}
+  - {id: H02-A906, text: "Remove the oxidiser X-232 as an ignition source of the enclosure: stop X-232 and isolate the tail gas TG-201 (stop X-231) from I-203 and I-204 and in SEQ-B-GAS S1, or place X-232 outside the enclosure and outside zone Z-HAZ-B; have the area classification (H02-A206) treat X-232 as a permanent ignition source and get its surface temperatures from the vendor (H02-S906; as H01-A906). Proposed response (the owner's decisions of 2026-11-06, D-050, D-054, D-057, for the team to confirm): the skid has no enclosure; X-232 stands outside the zone on its plinth south-east of the frame, 2 m or more from the east stair's foot; I-203 and I-204 close XV-233. Still open: the area classification's treatment of X-232 and its surface temperatures (vendor).", owner: process safety / HSE, status: proposed, by: agent}
+  - {id: H02-A907, text: "As H01-A907: X-232 now stands off the frame on its own plinth east of Skid B, outside Z-HAZ-B and the enclosure (D-047); draw the flame arrester on TG-201 at X-231's outlet and the all-welded TG-201 on P-02, reassess H02-S906 and confirm by the area classification (H02-A206). Proposed response (the owner's decision of 2026-11-06, D-054, P&ID revision B, and D-057, for the team to confirm): drawn on P-02 at X-231's outlet inside Z-HAZ-B: XV-233, a check valve and the detonation arrester FA-233, TSHH-233; TG-201 all-welded, pinned at 0.30 m on sleeper posts off the escape way, to X-232 moved south-east; H02-S906 re-rated as a proposal. The area classification's confirmation stays open (H02-A206).", owner: process engineer, status: proposed, by: agent}

@@ -1181,6 +1181,8 @@ Changed by D-050: the skids are open, with no enclosure and no fan. Node N9 and 
 ratings that assume an enclosure are to be revised as proposals by their stable ids (never
 accepted by an agent) and the studies re-stamped; until then gate `hazop-current` fails.
 
+Changed by D-059: done for D-050 to D-058; both studies revised as proposals and re-stamped.
+
 ## D-031 The HAZOP actions the drafting agents consider most important (2026-11-05)
 Decision: of the 107 proposed actions, these are the ones to decide first, for both skids at
 once where the hardware is shared (SESSION.md section 3.5 lists every high scenario with its
@@ -2503,4 +2505,53 @@ Open (cannot be settled here): the activity-to-concentration offset of the probe
 margin set from its uncertainty after the calibration against titrated anolyte (H01-A109);
 the SIL screening of I-101 (H01-A112); the HAZOP team's acceptance of the margin (H01-A108,
 proposed).
+
+## D-059 The HAZOP drafts revised for the owner's decisions, as proposals (2026-11-06)
+Decision: H-01 and H-02 are revised by stable id for the plant of D-050 to D-058 and re-stamped
+against the changed inputs (P&ID revision B, the lists, C&E, loops, sequences, philosophy,
+zones, flowsheet, design basis, duties), so that gate `hazop-current` passes again. Every revised
+or added entry is `status: proposed`, `by: agent`; no team is named, nothing is accepted and no
+review record is written (safety/README.md, skill hazop-review):
+- node N9 of both studies rewritten for the open, naturally ventilated skid (D-050): the
+  enclosure and its fan K-x41 removed from the scope, the modes, the members, the causes and
+  every credit; "in the enclosure" read as "at the open skid" throughout; the fan's scenario
+  H02-S903 becomes the loss of natural ventilation (still air, a canopy over the gas train);
+  safeguard ids H0x-SG-SEQ-x-START-VENT are deleted, not reused, and replaced by
+  H0x-SG-SEQ-x-START-AIR (the CO2 check at grade and the personal CO monitor);
+- the Ex marking of D-051 as a safeguard (H0x-SG-EX-ZONE) of H01-S903 and H02-S902, with the
+  actions H01-A903 / H02-A902 and H01-A204 / H02-A206 carrying the decision as their proposed
+  response and the area classification, the explosion protection document, the inspection and
+  the stacks' terminals as what cannot be settled here;
+- the tail gas of D-054: the arrester, check valve, trip valve and the stop order as safeguards
+  of H01-S610 / H02-S613, the burner management trip I-x10 of H0x-S601 and the relight
+  scenarios, a new scenario for a flame held on the arrester (H01-S611, H02-S614, I-x09), and
+  H01-A605 / A907, H02-A604 / A907 with the decision and the vendor's open items;
+- the tempered water of D-052 and D-056 (TWS/TWR; H01-S107, S109, S116, H02-S105, S107, S111,
+  H01-A105, H02-A103); the drains of D-055 (H01-S117, S804, H02-S807, the new H02-S809 for the
+  pump-out of T-202's 5 M KOH heel; H01-A111, A206, H02-A208, A802); the rectifier and the
+  oxidiser off the frames of D-057 (H01-S207, S906, H02-S206, S906); the pH trip of D-058
+  (H01-S113, S114, A108; H02-S701's comparison).
+
+Why: the studies analyse the plant as drawn; after the owner's decisions the drawn plant is a
+different one, and a study that still credited a fan that no longer exists, or missed the
+arrester the P&ID now shows, would mislead the session. Re-stamping without revising would hide
+the change (skill hazop-review).
+
+Rejected: accepting the owner's decisions in the studies (only the team accepts); re-rating
+every scenario of the studies (only the entries the decisions touch are revised); deleting the
+fan scenario H02-S903 (its cause, gas held in still air, remains).
+
+Consequence: residual bands, all proposals, move as listed in safety/hazop/SESSION.md section
+3.6: H-01 78 scenarios, worst residual 31 high, 36 medium, 11 low (39 / 30 / 8 before), 54
+actions; H-02 94 scenarios, 43 / 33 / 18 (50 / 28 / 14), 57 actions; `cheme safety hazop
+check`: both draft, 0 errors, 0 warnings.
+
+Assumptions: the credit convention of D-030 applied to the new safeguards: a passive placement
+outside the zone in open air two letters, the open skid's natural ventilation one, the specified
+Ex marking one (a specification until inspected), an arrester whose type examination is open
+one (all ASSUMED, for the team).
+
+Open (cannot be settled here): the team session that accepts, changes or rejects every
+proposal, the re-rating it makes, the human review record and the SIL screening (H01-A112,
+H02-A104).
 
