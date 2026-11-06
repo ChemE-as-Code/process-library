@@ -27,8 +27,9 @@ unit_procedures:
       fill_fraction: 0.8
       aspect_ratio: 1.2
       jacket: {u: 300, coolant_temperature: 303.43, heating_temperature: 353.15, provenance: assumed, source: "glass-lined steel, U 300 W/(m2 K) ASSUMED; cooling water enters at 298.15 K and leaves at 308.15 K (design basis, D-010), so the content at 333.15 K sees a log-mean driving force of (35 - 25) / ln(35/25) = 29.72 K: core takes the coolant temperature as constant, so the equivalent mean 333.15 - 29.72 = 303.43 K is entered, not the supply temperature; for the cool-down to 313 K this mean is conservative (the return falls towards the supply as the content cools). Heating with hot water at 353.15 K from LP steam, below every temperature limit of the batch (the MTT 415.29 K, the salt's melting point about 503 K) (D-003, D-010)"}
+      metal_heat_capacity: 3000
       provenance: assumed
-      source: "usual fill and proportions of a glass-lined stirred pressure vessel (D-003)"
+      source: "usual fill and proportions of a glass-lined stirred pressure vessel (D-003); its metal, about 6 t of glass-lined steel at 0.5 kJ/(kg K) = 3000 kJ/K, ASSUMED (D-010), heated and cooled with the content: in the heat and cool times and in CR101's duty Q3 (core 1.10.0, ADR 0063, D-016)"
     operations:
       - {id: inert, kind: other, title: "Nitrogen purge and pressure test of the dry vessel", duration: {value: 0.5, provenance: assumed, source: D-003}}
       - {id: charge, kind: charge, title: Charge the recovered toluene and the make-up, duration: {value: 0.5, provenance: assumed, source: D-003}}
@@ -54,7 +55,9 @@ unit_procedures:
   - id: RECOVER
     units: [ST101, X101]
     title: Toluene recovery in the batch still (C-101)
+    vessel: {fill_fraction: 0.8, aspect_ratio: 1.2, metal_heat_capacity: 2500, provenance: assumed, source: "C-101, a jacketed stirred still pot, sized from the liquor a batch it takes in (core 1.10.0, ADR 0063, lesson L-1 resolved); fill and proportions as R-101's, ASSUMED; its metal about 5 t of steel at 0.5 kJ/(kg K) = 2500 kJ/K, ASSUMED (D-010), heated with the charge to the still's end temperature in ST101's duty Q7 (D-016)"}
     operations:
       - {id: receive, kind: charge, title: Receive the liquors from T-201, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: heat, kind: heat, title: "Heat the liquor and C-101 to the bubble point (ST101's heat-up)", duration: {value: 0.81, provenance: assumed, source: "hand arithmetic (D-016): the heat-up ST101's duty holds (core 1.10.0, still.heat_up and the vessel's metal, cheme process stills) at the still's 250 kW: the charge 149.43 kWh a batch from 308.47 K to its 383.50 K bubble point and C-101's metal 2500 kJ/K over the same 75.03 K, 52.11 kWh, 201.54 kWh / 250 kW = 0.806 h; the distil operation's time from ST101 is the boil-up alone"}}
       - {id: distil, kind: distil, title: "Distil the toluene with the excess methyl bromide (ST101)", from: ST101}
       - {id: drain, kind: transfer, title: Drain the residue to the waste tank, duration: {value: 0.5, provenance: assumed, source: D-003}}
