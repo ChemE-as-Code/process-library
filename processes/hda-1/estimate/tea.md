@@ -89,7 +89,7 @@ The variable operating cost above excludes:
 
 | rule | level | ids | where |
 |---|---|---|---|
-| cheme.boundary-utility-unassigned | warning | R101B | process/flowsheet.yaml:211 |
+| cheme.boundary-utility-unassigned | warning | R101B | process/flowsheet.yaml:212 |
 
 ## Fixed operating cost (per year)
 
@@ -234,6 +234,6 @@ Drivers of lcop (Spearman rank correlation):
 ## Findings
 
 - estimate/tea.yaml: warning cheme.tea-class-stage: the capital cost claims AACE class 4, finer than a concept stage supports (class 5): the scope is not defined that far yet -- claim the class the scope supports (isbl.estimate_class)
-- process/flowsheet.yaml:211: warning cheme.boundary-utility-unassigned [R101B]: step R101B (ReactingChemicals, reacting) exchanges heat or work but no energy stream connects it to a utility: its steam, cooling, refrigeration or power is in no inventory -- give the step an energy port and a stream to a utility terminal (category: utility), or declare it adiabatic: mode: adiabatic in process/simulation.yaml (a reactor) or heat: adiabatic on its bed, tank or batch
+- process/flowsheet.yaml:212: warning cheme.boundary-utility-unassigned [R101B]: step R101B (ReactingChemicals, reacting) exchanges heat or work but no energy stream connects it to a utility: its steam, cooling, refrigeration or power is in no inventory -- give the step an energy port and a stream to a utility terminal (category: utility), or declare it adiabatic: mode: adiabatic in process/simulation.yaml (a reactor) or heat: adiabatic on its bed, tank or batch
 - estimate/tea.yaml:64: info cheme.tea-price-year [feed:H2MU@H2]: feed:H2MU@H2 is of 2024, the TEA of 2025: not escalated -- escalate it to the cost year, or say in its source why it holds
 - estimate/tea.yaml:14: info cheme.tea-confidence: P(lcop meets 673.6) = 4.8%, below the 50.0% the decision asks for -- see the drivers and the break-even values: which evidence would move it

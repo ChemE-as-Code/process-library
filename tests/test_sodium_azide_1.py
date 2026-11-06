@@ -371,3 +371,8 @@ def test_core_screens_the_gas_release_within_the_vents():
         assert f"| {capacity:.0f} m3/h | {gas['capacity_ratio']:.2f} |" in _section("D-017"), node
     assert entries["R102"].accumulation == pytest.approx(0.0198, abs=5e-5)
     assert not [f for f in report.findings if f.level in ("warning", "error")]
+
+
+def test_published_with_cc_by():
+    """Public by default (ADR 0036): the entry is published under CC-BY-4.0."""
+    assert _yaml("process.yaml")["publication"] == {"status": "public", "license": "CC-BY-4.0"}

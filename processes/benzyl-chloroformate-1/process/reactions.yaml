@@ -8,9 +8,17 @@
 # ASSUMED, second order in the two reactants, fast enough for the main reaction to be
 # dosing-controlled, with the side reactions' constants set so that R101 makes the impurity
 # levels of Ex. 3 (D-005); reaction calorimetry must replace them.
-# Heats of reaction: on the gas basis of phosgene (dosed as a gas) and HCl and CO2 (vented as
-# they form), as core ADR 0054 asks: the liquid benzyl alcohol, benzyl chloroformate and benzyl
-# chloride, gaseous phosgene, HCl and CO2 at 298.15 K. Formation enthalpies: benzyl
+# Heats of reaction: on the dissolved basis of phosgene (core ADR 0063, DESIGN.md D-015): R101's
+# dose releases the absorbed phosgene's heat of solution (-24.8 kJ/mol, flowsheet
+# `heat_of_solution`) as it dissolves, so the reactions consume dissolved phosgene and their
+# heats are the gas-basis heats plus 24.8 kJ/mol per mol of phosgene consumed; giving both the
+# gas-basis heats and the heat of solution would count the absorption twice. HCl leaves 95 % as
+# a gas as it forms (batch.vent fraction) and 5 % stays dissolved: core has no heat of solution
+# for a vented gas's retained share (ADR 0063 limitation), so its dissolution (0.05 x -10.91
+# kJ/mol, minus HCl's heat of vaporization at 278.15 K, the value T101 takes back) is written
+# into each reaction's heat, as ADR 0063 says. CO2 leaves whole as a gas. The gas-basis heats:
+# the liquid benzyl alcohol, benzyl chloroformate and benzyl chloride, gaseous phosgene, HCl and
+# CO2 at 298.15 K. Formation enthalpies: benzyl
 # chloroformate (liquid) -376.2 kJ/mol, solution calorimetry of Finch and Salem (1987), NIST
 # WebBook; benzyl alcohol (liquid) -160.7 and benzyl chloride (liquid) -32.5 kJ/mol, CRC and NIST
 # WebBook through chemicals 1.5.2; phosgene, HCl and CO2 (gas) ATcT through chemicals 1.5.2
@@ -29,7 +37,7 @@ reactions:
     equation: C7H8O + COCl2 -> C8H7ClO2 + HCl
     stoichiometry: {BNOH: -1, COCL2: -1, BCF: 1, HCL: 1}
     phase: liquid
-    heat_of_reaction: {value: -88643, provenance: given, source: "formation enthalpies at 298.15 K (header): -376.2 - 92.173 + 160.7 + 219.03 kJ/mol, phosgene and HCl as gas (core ADR 0054)"}
+    heat_of_reaction: {value: -64389, provenance: assumed, source: "dissolved basis (header, D-015): -88.643 kJ/mol from the formation enthalpies at 298.15 K with phosgene and HCl as gas (-376.2 - 92.173 + 160.7 + 219.03), plus phosgene's heat of solution taken back (+24.8, ASSUMED) and 5 % of the HCl dissolved (0.05 x -10.91, ASSUMED): -64.389 kJ/mol"}
     rate:
       form: power_law
       basis: volume
@@ -47,7 +55,7 @@ reactions:
     equation: C8H7ClO2 + C7H8O -> C15H14O3 + HCl
     stoichiometry: {BCF: -1, BNOH: -1, DBC: 1, HCL: 1}
     phase: liquid
-    heat_of_reaction: {value: -30000, provenance: assumed, source: "ASSUMED (D-005): no open formation enthalpy of dibenzyl carbonate; an order of magnitude for an alcoholysis of a chloroformate with HCl leaving as gas"}
+    heat_of_reaction: {value: -30546, provenance: assumed, source: "ASSUMED (D-005): no open formation enthalpy of dibenzyl carbonate; an order of magnitude, -30 kJ/mol, for an alcoholysis of a chloroformate with HCl leaving as gas, plus 5 % of the HCl dissolved (0.05 x -10.91 kJ/mol, header, D-015); no phosgene consumed"}
     rate:
       form: power_law
       basis: volume
@@ -63,7 +71,7 @@ reactions:
     equation: C7H8O + COCl2 -> C7H7Cl + CO2 + HCl
     stoichiometry: {BNOH: -1, COCL2: -1, BNCL: 1, CO2: 1, HCL: 1}
     phase: liquid
-    heat_of_reaction: {value: -138417, provenance: given, source: "formation enthalpies at 298.15 K (header): -32.5 - 393.474 - 92.173 + 160.7 + 219.03 kJ/mol, phosgene, CO2 and HCl as gas"}
+    heat_of_reaction: {value: -114163, provenance: assumed, source: "dissolved basis (header, D-015): -138.417 kJ/mol from the formation enthalpies at 298.15 K with phosgene, CO2 and HCl as gas (-32.5 - 393.474 - 92.173 + 160.7 + 219.03), plus phosgene's heat of solution taken back (+24.8, ASSUMED) and 5 % of the HCl dissolved (0.05 x -10.91, ASSUMED): -114.163 kJ/mol"}
     rate:
       form: power_law
       basis: volume

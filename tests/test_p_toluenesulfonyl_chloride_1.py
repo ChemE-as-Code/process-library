@@ -26,8 +26,7 @@ hand (DESIGN.md D-004, D-007, D-009):
 - the property sources cited in the materials and the flowsheet have a register row;
 - the recipe's batch size times its batches per year gives the flowsheet's product rate, the
   1000 t/a of the design basis;
-- the process is not set public, and carries no licence, in the change that adds it
-  (CONTRIBUTING, "Publishing a process").
+- the process is public with CC-BY-4.0, every library entry is (ADR 0036).
 """
 
 from __future__ import annotations
@@ -450,7 +449,6 @@ def test_recipe_basis_gives_1000_t_per_year(model):
     assert batches == pytest.approx(571.8, abs=0.1)  # D-003
 
 
-def test_not_published_in_the_change_that_adds_it():
+def test_published_public_with_cc_by():
     publication = _yaml("process.yaml")["publication"]
-    assert publication["status"] == "internal"
-    assert "license" not in publication
+    assert publication == {"status": "public", "license": "CC-BY-4.0"}
