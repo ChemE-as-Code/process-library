@@ -181,8 +181,9 @@ def _text(rel: str) -> str:
 
 def test_quench_jacket_peak_with_the_dilution_heat(model):
     """D-003, D-015: the dose's heat of solution released over Q101's 4 h dosing (the 55.5 kW of
-    the hand margin of 1.9.0) on top of the reactions' 135 kW peak: 190.5 kW, which the recipe's
-    jacket check now takes from the model, against the 210 kW the brine jacket removes."""
+    the hand margin of 1.9.0) on top of the model's 135 kW without it (the reactions and the dose
+    S8 cooled from 308 to 288 K): 190.5 kW, which the recipe's jacket check now takes from the
+    model, against the 210 kW the brine jacket removes."""
     recipe = _yaml("process/recipe.yaml")
     dosing_s = _q101_dose()["time"]
     batches = 126.263 * recipe["hours_per_year"]["value"] / recipe["batch_size"]["value"]

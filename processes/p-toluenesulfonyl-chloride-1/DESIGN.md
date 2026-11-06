@@ -114,11 +114,12 @@ sets it: with 2.5 h R101's peak duty was 1.7 times what R-101's jacket removes a
 the salt is added over 1 h and the toluene over 6 h; the jacket (U 300 W/(m2 K) enamelled, 4.92
 m2 wetted at the charge, cooling water at 298 K) removes 59.0 kW against the model's peak 50.3
 kW. The quench is dosed over 4 h on brine at 258 K: the jacket (23.4 m2 at the charge) removes
-210 kW against the model's peak of 190.5 kW (`cheme process recipe`, core 1.10.0): the reactions'
-135 kW and the dosed acids' heat of solution, 16.03 kW as a year average (57694 kJ/h), 799 MJ a
-batch (x 13.85 h) released at the dose's rate over the 4 h: 799000 kJ / 14400 s = 55.5 kW. Until
-core 1.10.0 that share was added to the model's 135 kW by hand (D-009, D-014); the model now
-takes it (D-015).
+210 kW against the model's peak of 190.5 kW (`cheme process recipe`, core 1.10.0): the model's
+135 kW without it (the reactions and the dose S8 cooled from 308 to 288 K, about 8 kW of it the
+dose's sensible heat) and the dosed acids' heat of solution, 16.03 kW as a year average (57694
+kJ/h), 799 MJ a batch (x 13.85 h) released at the dose's rate over the 4 h: 799000 kJ / 14400 s
+= 55.5 kW. Until core 1.10.0 that share was added to the model's 135 kW by hand (D-009, D-014);
+the model now takes it (D-015).
 Vessels (fill 0.8, H/D 1.2 enamelled, 1.0 for the Nutsche, ASSUMED): R-101 4 m3, given and not
 sized (core sizes it from R101's model alone, 2.04 m3, while R102's second acid portion adds
 1.16 m3 in the same vessel: 3.11 m3 of reaction mass, 78 % of 4 m3; L-1); Q-101 20 m3 (14.95 m3
