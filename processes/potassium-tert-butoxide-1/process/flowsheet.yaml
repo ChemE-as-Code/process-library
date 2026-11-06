@@ -27,10 +27,14 @@
 # - the duties: R101's Q2 (its reactions' heat, the dose and the vent's vapour, on its energy
 #   port q) and its vent condenser's Q3 (on qv), the still's reboiler Q4 and condenser Q5 are
 #   written by `cheme process propagate --fill` from the models (core ADRs 0059, 0061, 0062,
-#   0063); the dryer's Q6 is core's dryer model (`cheme process crystallizers`); A001's Q10, Q11,
+#   0063); the dryer's Q6 is core's dryer model (`cheme process crystallizers`), copied at its
+#   precision (core flags a difference only beyond the tolerance below); A001's Q10, Q11,
 #   Q12 and P4 come from scripts/makeup_drying.py; the other duties (Q1, Q7, Q8, Q9, Q13, Q14)
 #   are hand arithmetic from the stream table, given as ASSUMED with the arithmetic in the
 #   source (D-009).
+# - every cooling duty goes to CW, the tempered-water loop at 303/313 K (itself cooled by the
+#   site's cooling water 298/308 K): tert-butanol freezes at 298.3 K, and a condenser's wall
+#   runs close to its coolant (D-006, D-009, D-011).
 schema: cheme/process/v1
 kind: flowsheet
 title: Potassium tert-butoxide from potassium and dry tert-butanol by semi-batch, alcohol strip and vacuum drying
@@ -97,12 +101,12 @@ products:
   - {id: WSOLV, title: Alcohol purge to solvent incineration, category: solid_waste, ports: [{id: in, direction: in}]}
   - {id: WW, title: Sieve regeneration condensate to wastewater treatment, category: wastewater, ports: [{id: in, direction: in}]}
   - id: CW
-    title: Cooling water return
+    title: Tempered water return (closed loop on the site's cooling water)
     category: utility
     utility:
       kind: cooling_water
-      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis (D-009)"}
-      return_temperature: {value: 308.15, provenance: assumed, source: "design basis (D-009)"}
+      supply_temperature: {value: 303.15, provenance: assumed, source: "design basis (D-009): the tempered-water loop, its supply held at 303.15 K, about 5 K above tert-butanol's freezing point (298.3 K, NIST WebBook), so that no condenser wall in tert-butanol service runs below it; the loop is cooled by the site's cooling water 298/308 K (D-006, D-011)"}
+      return_temperature: {value: 313.15, provenance: assumed, source: "design basis (D-009)"}
       min_approach: {value: 5, provenance: assumed, source: "D-009"}
     ports:
       - {id: r101, direction: in, kind: energy}
@@ -236,7 +240,7 @@ steps:
         stream: S11
         components: [H2]
         vapour: {components: [TBA], source: "D-006: the hydrogen leaves the liquid saturated with tert-butanol at 348.15 K and 101.3 kPa(a) (Raoult, an ideal liquid, materials.yaml's NIST Antoine line; the dissolved alkoxide counted in the liquid, L-2); water is under 0.02 mol% of the charge and reacts first, and is left out"}
-        condenser: {temperature: 308.15, returns: vessel, energy_port: qv, provenance: assumed, source: "R-101's vent condenser E-104 on cooling water 298/308 K, the gas out at 308.15 K, above tert-butanol's freezing point (298.3 K, NIST WebBook), the condensate running back into R-101 (D-006)"}
+        condenser: {temperature: 308.15, returns: vessel, energy_port: qv, provenance: assumed, source: "R-101's vent condenser E-104 on tempered water 303/313 K (counter-current), the gas out at 308.15 K, 5 K above the water's supply: the gas, 90 mol% hydrogen, has a low film coefficient, so the tube wall at the gas outlet runs close to the coolant's 303.15 K, and the coolant, not only the gas, stays above tert-butanol's freezing point (298.3 K, NIST WebBook); on the site's cooling water at 298 K the condensate could freeze on the tubes and block R-101's vent (D-006, D-011); the condensate runs back into R-101"}
       provenance: assumed
       source: "molten potassium dosed at a constant rate over 3 h into the alcohol at 348 K (D-003, D-005), then the post-reaction to 0.99999 conversion of the potassium (no free metal may reach the still, D-011); the hydrogen leaves as it forms (D-006)"
     hazard:
@@ -307,7 +311,7 @@ steps:
       - {id: power, direction: in, kind: energy, delegates: power2}
   - id: E103
     block: ISOL
-    title: Product cooled to 313 K in DR-101 (jacket on cooling water)
+    title: Product cooled to 313 K in DR-101 (jacket on tempered water)
     class: Cooling
     links: [{target: equipment, ref: DR-101}]
     ports:
@@ -444,7 +448,7 @@ streams:
     template: regen
     state:
       design:
-        temperature: {value: 308.15, provenance: assumed, source: "the regeneration loop's condenser on cooling water (D-004)"}
+        temperature: {value: 308.15, provenance: assumed, source: "the regeneration loop's condenser on tempered water (D-004, D-009)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
         flow: {value: 13.1905, provenance: assumed, source: "scripts/makeup_drying.py: the water the sieve takes and 1 % of the make-up's tert-butanol, ASSUMED (D-004)"}
         composition: {basis: mass_fraction, values: {TBA: 0.070283, H2O: 0.929717}, provenance: assumed, source: "scripts/makeup_drying.py (D-004)"}
@@ -477,10 +481,10 @@ streams:
     template: process
     state:
       design:
-        composition: {basis: mole_fraction, values: {K: 1.16926e-06, TBA: 0.883074, KOTBU: 0.116394, KOH: 0.000530321, H2O: 0.0, H2: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S9', fingerprint: d880647ea47a9eac}
-        flow: {value: 755.326, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S9', fingerprint: d880647ea47a9eac}
-        temperature: {value: 348.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S9', fingerprint: d880647ea47a9eac}
-        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S9', fingerprint: d880647ea47a9eac}
+        composition: {basis: mole_fraction, values: {K: 1.16926e-06, TBA: 0.883074, KOTBU: 0.116394, KOH: 0.000530321, H2O: 0.0, H2: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S9', fingerprint: 53817e868ab3383c}
+        flow: {value: 755.326, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S9', fingerprint: 53817e868ab3383c}
+        temperature: {value: 348.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S9', fingerprint: 53817e868ab3383c}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S9', fingerprint: 53817e868ab3383c}
   - id: S11
     title: R-101 vent (hydrogen with tert-butanol vapour, past the vent condenser)
     from: R101.gas
@@ -488,10 +492,10 @@ streams:
     template: offgas
     state:
       design:
-        composition: {basis: mole_fraction, values: {H2: 0.89817, TBA: 0.10183}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S9', fingerprint: d880647ea47a9eac}
-        flow: {value: 5.85782, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S9', fingerprint: d880647ea47a9eac}
-        temperature: {value: 308.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S9', fingerprint: d880647ea47a9eac}
-        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S9', fingerprint: d880647ea47a9eac}
+        composition: {basis: mole_fraction, values: {H2: 0.89817, TBA: 0.10183}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S9', fingerprint: 53817e868ab3383c}
+        flow: {value: 5.85782, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S9', fingerprint: 53817e868ab3383c}
+        temperature: {value: 308.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S9', fingerprint: 53817e868ab3383c}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S9', fingerprint: 53817e868ab3383c}
   - id: S12
     title: Still distillate (recovered tert-butanol)
     from: ST101.top
@@ -554,7 +558,7 @@ streams:
     template: process
     state:
       design:
-        temperature: {value: 308.15, provenance: assumed, source: "condensed after the dry vacuum pump at atmospheric pressure on cooling water (D-008)"}
+        temperature: {value: 308.15, provenance: assumed, source: "condensed after the dry vacuum pump at atmospheric pressure on tempered water 303/313 K (D-008, D-009)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
         flow: {value: 82.9638, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S16', fingerprint: a325acf2f359d1de}
         composition: {basis: mole_fraction, values: {TBA: 1.0}, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S16', fingerprint: a325acf2f359d1de}
@@ -611,8 +615,8 @@ streams:
       design:
         temperature: {value: 318.15, provenance: assumed, source: "as S24"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 625.352, provenance: calculated, source: 'cheme process propagate: recycle SP202 from S24 (tear, wegstein)', fingerprint: b77d41278e8c6324}
-        composition: {basis: mole_fraction, values: {K: 0.0, TBA: 1.0, KOTBU: 0.0, KOH: 0.0, H2O: 0.0, H2: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle SP202 from S24 (tear, wegstein)', fingerprint: b77d41278e8c6324}
+        flow: {value: 625.352, provenance: calculated, source: 'cheme process propagate: recycle SP202 from S24 (tear, wegstein)', fingerprint: 527297048a8dcafa}
+        composition: {basis: mole_fraction, values: {K: 0.0, TBA: 1.0, KOTBU: 0.0, KOH: 0.0, H2O: 0.0, H2: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle SP202 from S24 (tear, wegstein)', fingerprint: 527297048a8dcafa}
   - id: S22
     title: Alcohol purge
     from: SP202.purge
@@ -637,12 +641,12 @@ streams:
         composition: {basis: mole_fraction, values: {H2: 0.887279, TBA: 0.112721, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M301 from S11 S20', fingerprint: b163383cbb184696}
   # energy
   - {id: Q1, title: Alcohol charge warming, kind: energy, from: LPS.e101, to: E101.q, state: {design: {duty: {value: 25.57, provenance: assumed, source: "cheme process recipe, REACT's heat operation (D-009): S8 warmed from 316.87 to 348.15 K, 512.3 MJ of content and 93.84 MJ of R-101's metal (3000 kJ/K) a batch, 606.2 MJ, the year average over 1202 batches in 7920 h; the jacket's heat losses not counted"}}}}
-  - {id: Q2, title: Heat of reaction to cooling water (R101's model), kind: energy, from: R101.q, to: CW.r101, state: {design: {duty: {value: 24.5118, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S2 S9', fingerprint: b3a009f372d3ecab}}}}
-  - {id: Q3, title: R-101 vent condenser to cooling water (R101's model), kind: energy, from: R101.qv, to: CW.r101v, state: {design: {duty: {value: 17.3794, provenance: calculated, source: 'cheme process propagate: vent condenser duty R101 from S2 S9', fingerprint: 48c35b4b26759661}}}}
+  - {id: Q2, title: Heat of reaction to tempered water (R101's model), kind: energy, from: R101.q, to: CW.r101, state: {design: {duty: {value: 24.5118, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S2 S9', fingerprint: 20bfedbafff6c97f}}}}
+  - {id: Q3, title: R-101 vent condenser to tempered water (R101's model), kind: energy, from: R101.qv, to: CW.r101v, state: {design: {duty: {value: 17.3794, provenance: calculated, source: 'cheme process propagate: vent condenser duty R101 from S2 S9', fingerprint: d1feb5dfb224d64c}}}}
   - {id: Q4, title: Still reboiler (ST101's model), kind: energy, from: LPS.st101, to: ST101.steam, state: {design: {duty: {value: 90.115, provenance: calculated, source: 'cheme process propagate: still duty ST101 from S10', fingerprint: 8652bb981f9ede78}}}}
-  - {id: Q5, title: Still condenser to cooling water (ST101's model), kind: energy, from: ST101.cond, to: CW.st101, state: {design: {duty: {value: 79.9576, provenance: calculated, source: 'cheme process propagate: still condenser duty ST101 from S10', fingerprint: f960a1c824938edc}}}}
-  - {id: Q6, title: Dryer heat (MP steam), kind: energy, from: MPS.d101, to: D101.mps, state: {design: {duty: {value: 45.1062, provenance: assumed, source: "cheme process crystallizers: D101's dryer model, the paste from 374.25 to 433.15 K, the tert-butanol evaporated at 800 kJ/kg, the dryer's metal reheated each batch, 80 % efficiency (D-008, D-009)"}}}}
-  - {id: Q7, title: Product cooling in DR-101, kind: energy, from: E103.q, to: CW.e103, state: {design: {duty: {value: 15.77, provenance: assumed, source: "hand arithmetic (D-009): S14 cooled from 433.15 to 313.15 K, 169.5 kJ/(K h) of the components' liquid heat capacities (materials.yaml) x 120 K = 20346 kJ/h, and DR-101's metal, 2000 kJ/K x 120 K = 240 MJ a batch over the 6.586 h cycle = 36442 kJ/h: 56788 kJ/h"}}}}
+  - {id: Q5, title: Still condenser to tempered water (ST101's model), kind: energy, from: ST101.cond, to: CW.st101, state: {design: {duty: {value: 79.9576, provenance: calculated, source: 'cheme process propagate: still condenser duty ST101 from S10', fingerprint: f960a1c824938edc}}}}
+  - {id: Q6, title: Dryer heat (MP steam), kind: energy, from: MPS.d101, to: D101.mps, state: {design: {duty: {value: 45.1127, provenance: assumed, source: "cheme process crystallizers (core 1.10.0): D101's dryer model, 45.1127 kW: sensible 27111.5 kJ/h (the paste from 374.25 to 433.15 K), evaporation 66371.1 kJ/h (546.425 kg of tert-butanol a batch at 800 kJ/kg), vessel 36441.9 kJ/h (the dryer's metal reheated each batch: 4075 kJ/K x 58.9 K = 240.0 MJ over the 6.586 h cycle, the 240 MJ Q7 takes out), 80 % efficiency (D-008, D-009); core checks the written duty only to the flowsheet's tolerance (rel 0.002), the library's test to 1e-6"}}}}
+  - {id: Q7, title: Product cooling in DR-101, kind: energy, from: E103.q, to: CW.e103, state: {design: {duty: {value: 15.77, provenance: assumed, source: "hand arithmetic (D-009): S14 cooled from 433.15 to 313.15 K, 169.5 kJ/(K h) of the components' liquid heat capacities (materials.yaml) x 120 K = 20346 kJ/h, and DR-101's metal, 2000 kJ/K x 120 K = 240 MJ a batch over the 6.586 h cycle = 36439 kJ/h: 56785 kJ/h"}}}}
   - {id: Q8, title: Dryer vapour condenser E-201, kind: energy, from: E201.q, to: CW.e201, state: {design: {duty: {value: 21.02, provenance: assumed, source: "hand arithmetic (D-009): S16, 1.11927 kmol/h of tert-butanol vapour desuperheated from 433.15 to 355.45 K (ideal-gas cp 141 kJ/(kmol K), thermo's TRCIG, SRC-9), condensed (39070 kJ/kmol) and the condensate cooled to 308.15 K (246.4 kJ/(kmol K)): 61681 kJ/kmol x 1.11927 = 69038 kJ/h = 19.18 kW; and the dry vacuum pump's work (P3, 1.845 kW year average) that its cooling and E-201 take"}}}}
   - {id: Q9, title: Potassium melting (V-102), kind: energy, from: LPS.e102, to: E102.q, state: {design: {duty: {value: 1.230, provenance: assumed, source: "hand arithmetic (D-009): S1, 1.12437 kmol/h of potassium heated as a solid from 298.15 to its melting point 336.65 K (29.6 kJ/(kmol K), CRC table in chemicals 1.5.2), melted (2270 kJ/kmol, CRC via chemicals) and the melt heated to 353.15 K (32.03 kJ/(kmol K), materials.yaml): 3938 kJ/kmol x 1.12437 = 4428 kJ/h; V-102's heat losses are in Q14"}}}}
   - {id: Q10, title: Sieve unit evaporator, kind: energy, from: LPS.a001, to: A001.steam, state: {design: {duty: {value: 28.1358, provenance: assumed, source: "scripts/makeup_drying.py: the azeotrope S5 heated from 308.15 to 353.15 K, vaporised and superheated to 393.15 K (D-004, D-009)"}}}}

@@ -54,7 +54,8 @@ dedicated train (D-013):
 - T-101, A-001: the make-up, tert-butanol of the azeotrope grade, dried on a vapour-phase 3A
   molecular sieve (D-004).
 Boundary feeds: potassium metal, the azeotrope grade's tert-butanol (tert-butanol-1) and its
-water, electricity, LP and MP steam, nitrogen (per batch); returns: cooling water; outputs: the
+water, electricity, LP and MP steam, nitrogen (per batch); returns: the tempered-water loop's
+heat to the site's cooling water (D-009); outputs: the
 dried alkoxide, the vent gas to the flare, the alcohol purge to incineration, the sieve's
 regeneration condensate to wastewater treatment.
 Reason: the issue names this route; it is the one the open sources describe (SRC-7, SRC-1 and
@@ -103,7 +104,7 @@ purge to the dryer's discharge. The flowsheet's flows are the recipe's year aver
 1202.4 / 7920 h = 126.26 kg/h of S15 (no `cheme.recipe-basis` finding); the batch size was found
 by fixed-point iteration (the warm-up time depends on the vessel, so on the batch: L-7).
 Dosing time: 3 h. R-101's jacket (stainless steel, U 400 W/(m2 K) ASSUMED, 15.7 m2 wetted at the
-charge, cooling water 298/308 K at its log-mean equivalent 303.34 K) removes 280.7 kW against the
+charge, tempered water 303/313 K at its log-mean equivalent 308.36 K, D-009) removes 249.2 kW against the
 model's peak of 92.68 kW, so the jacket would allow a shorter dosing; the 3 h are kept for the
 vent (the normal peak 102.5 m3/h before the vent condenser, D-006) and for the margin a
 dosing-controlled reaction needs (D-011).
@@ -140,7 +141,8 @@ Decision:
   steam, the product condenser 31.44 kW and the regeneration condenser 15.09 kW of cooling water,
   the regeneration heater and blower 19.40 kW of electricity (an ASSUMED heat of adsorption of 3.6
   MJ per kg of water, times 1.5 for the bed and the gas). The dried make-up's 0.1 wt% water is
-  then 0.0917 kg/h, which takes 0.45 % of the potassium to KOH.
+  then 0.0919 kg/h (0.1 wt% of S6's 91.87 kg/h; 0.00510 kmol/h, the KOH of S10), which takes 0.45 %
+  of the potassium to KOH.
 Rejected: drying with sodium as in SRC-1 (a second metal, and a sodium alkoxide in the product);
 buying an anhydrous grade (no library producer: the drying would be a gap); feeding the azeotrope
 to R-101 (each kg of the azeotrope would take 0.26 kg of potassium to KOH).
@@ -177,7 +179,14 @@ condenser's 17.38 kW written on Q3; the gas past it, S11, 0.5622 kmol/h of hydro
 kmol/h of alcohol (10.2 % of the gas, its saturation at 308 K), to the flare. Per batch 38.58 kg:
 7.47 kg of hydrogen and 31.1 kg of tert-butanol (`cheme process recipe`).
 The condenser's 308.15 K is set by the alcohol's freezing point (298.3 K): a colder condenser on
-brine would freeze the condensate. The alcohol it lets pass, 4.72 kg/h, is the largest loss of
+brine would freeze the condensate. The gas outlet temperature is not enough: in the counter-current
+E-104 the gas outlet end meets the coolant's supply, and with a gas of 90 mol% hydrogen (S11) the
+gas-side film coefficient is low, so the tube wall there runs close to the coolant's temperature.
+On the site's cooling water (298.15 K, colder in winter) that wall would be below the freezing
+point and the condensate could freeze on the tubes and block R-101's vent (D-011). E-104 is
+therefore on the tempered-water loop, supply 303.15 K, return 313.15 K (D-009): the wall cannot be
+colder than 303.15 K, about 5 K above the freezing point, and the gas leaves 5 K above the supply
+(the loop's minimum approach). The alcohol it lets pass, 4.72 kg/h, is the largest loss of
 the alcohol (5.1 % of the make-up; 5.7 % with the dryer's bleed, D-008). A second, colder stage
 with defrosting, or a scrubber of the vent gas, would recover most of it: a variant (open input).
 Normal peak: 0.3817 mol/s past E-104 at the end of the dosing (34.75 m3/h at 308 K); before E-104,
@@ -223,20 +232,31 @@ kJ/mol, 270 kJ/kg, to break the solvate's hydrogen bond; no open value), 80 % ef
 metal, about 4 t of steel at 0.5 kJ/(kg K) = 2000 kJ/K, reheated each batch from the 313.15 K it
 was cooled to, while core heats the vessel from the paste's inlet temperature (374.25 K), so 2000 x
 120 / 58.9 = 4075 kJ/K is entered (L-5). Core's dryer gives 45.11 kW year average (sensible
-27111, evaporation 66370, vessel 36424 kJ/h, at 80 %) on Q6, 1070 MJ a batch, and 82.96 kg/h of
-vapour, 546.7 kg a batch; the drying 3.037 h at an ASSUMED 12 kg/(m2 h) on 15 m2 (2.7 kW/m2 at 800
+27111.5, evaporation 66371.1, vessel 36441.9 kJ/h, at 80 %) on Q6 (45.1127 kW, copied from `cheme
+process crystallizers` at its precision), 1070 MJ a batch, and 82.96 kg/h of vapour, 546.4 kg a
+batch; the drying 3.037 h at an ASSUMED 12 kg/(m2 h) on 15 m2 (2.7 kW/m2 at 800
 kJ/kg, less than n-bromosuccinimide-1's 5 kg/(m2 h) of water at 333 K, 3.3 kW/m2).
 The vapour is compressed by a dry screw vacuum pump and condensed at atmospheric pressure at
 308.15 K in E-201 (Q8, 21.02 kW: 19.18 kW for the vapour desuperheated, condensed and cooled,
 1.845 kW the pump's work). The nitrogen bleed (10 Nm3 a batch, 0.446 kmol, D-012) leaves E-201
 saturated with the alcohol at 308 K (10.32 kPa, 0.1134 kmol per kmol of nitrogen): 0.0506 kmol,
-3.75 kg a batch, 0.6864 % of the 546.3 kg of vapour (SP201's split), to the flare.
+3.75 kg a batch, 0.6864 % of the 546.4 kg of vapour (SP201's split), to the flare.
 The product is cooled in DR-101 to 313.15 K before discharge (E103, Q7 15.77 kW: the product's
 20346 kJ/h and the metal's 240 MJ a batch) and packed under nitrogen.
 
 ## D-009 Utilities and heat (2026-11-06)
-Decision: LP steam 350 kPa(a) (412.0 K), MP steam 1000 kPa(a) (453.0 K), cooling water 298/308 K,
-electricity (ASSUMED design basis). Every energy flow of the batch is a stream of the flowsheet:
+Decision: LP steam 350 kPa(a) (412.0 K), MP steam 1000 kPa(a) (453.0 K), tempered water 303/313 K
+on a closed loop cooled by the site's cooling water 298/308 K, electricity (ASSUMED design basis).
+Every cooling duty is on the tempered water (the flowsheet's CW): R-101's jacket and its vent
+condenser E-104, C-101's condenser, DR-101's jacket (product cooling) and the dryer's vapour
+condenser E-201, the recycle cooler E-202 and the sieve's condensers. tert-butanol freezes at
+298.3 K, and a condenser's tube wall runs close to its coolant's temperature (D-006): the site's
+cooling water, at 298 K and below in winter, would let the alcohol freeze on the walls. The loop's
+supply is held at 303.15 K, and never below 303 K in tert-butanol service, by a three-way valve
+bypassing its plate exchanger on the site's water (which fails to bypass; a low supply
+temperature alarms and trips R-101's dosing, D-011); its heat ends in the site's cooling water,
+so the LCI counts it as cooling water removed. Every energy flow of the batch is a stream of the
+flowsheet:
 
 | stream | what | kW | from |
 |---|---|---|---|
@@ -254,10 +274,13 @@ electricity (ASSUMED design basis). Every energy flow of the batch is a stream o
 | Q14 | tank and line heating (T-101, T-201, V-102, the alcohol's lines), ASSUMED | 5.0 | hand |
 | P1..P4 | agitators of R-101 (10.17) and C-101 (2.77), DR-101's drive and vacuum pump (8.72), the sieve's regeneration heater and blower (19.40) | 41.06 | hand, script |
 
-Per kg of product: LP steam 1.188 kWh, MP steam 0.357 kWh, cooling water 1.774 kWh removed,
-electricity 0.325 kWh. Recorded exclusion: the agitators' power ends as heat in the content (about
+Per kg of product: LP steam 1.188 kWh, MP steam 0.357 kWh, cooling water 1.774 kWh removed (through
+the tempered-water loop), electricity 0.325 kWh. Recorded exclusions: the tempered-water loop's
+circulation pump (sized on the peak, about 50 m3/h with C-101's condenser at its 400 kW boil-up,
+about 5 kW, up to 0.04 kWh/kg if it runs at full speed the year round; ASSUMED, not designed); the
+agitators' power ends as heat in the content (about
 11 kW year average of R-101's and C-101's 12.9 kW); it lowers the steam of the warm-up and raises
-the cooling water of the dosing by up to that much, and is not added to Q1, Q2 or Q4 (0.09 kWh/kg
+the tempered water of the dosing by up to that much, and is not added to Q1, Q2 or Q4 (0.09 kWh/kg
 at most); the heat losses of R-101, C-101 and DR-101 are not counted (no insulation design).
 The still's and the dryer's heating media stay below the alkoxide's limits (D-008); R-101 is
 warmed on steam before any metal or alkoxide is in it.
@@ -304,10 +327,12 @@ Without a TD24, core's `criticality()` leaves classes 3 (TD24 above the MTSR), 4
 slower reaction (a poorer dispersion: a stopped or slow agitator, a lower temperature near the
 metal's melting point, a passivated metal) accumulates potassium, and a cooling failure then boils
 the alcohol and releases hydrogen with it. Required, not yet designed: the dosing interlocked with
-the agitator, the jacket's flow and temperature, and the hydrogen flow (a hydrogen flow below the
-dosing's stoichiometric rate shows the metal accumulating, and stops the dosing); R-101's
-emergency relief sized from calorimetry for the boiling alcohol with its hydrogen; the reflux of
-the boiling alcohol through E-104 as a tempering barrier only once its capacity is shown.
+the agitator, the jacket's flow and temperature, the hydrogen flow (a hydrogen flow below the
+dosing's stoichiometric rate shows the metal accumulating, and stops the dosing), R-101's pressure
+and the differential pressure across E-104 and the vent line (a blocked vent, below); R-101's
+emergency relief sized from calorimetry for the boiling alcohol with its hydrogen and for a
+blocked vent; the reflux of the boiling alcohol through E-104 as a tempering barrier only once its
+capacity is shown, on a coolant that cannot freeze the alcohol (D-006).
 Calorimetry (heat of reaction, the dispersion's rate, accumulation, gas release, TD24 of the
 solution and the dry product) decides this before basic engineering.
 **Hydrogen.** The vent gas is mostly hydrogen (flammable at 4-75 vol%, detonable at 18.3-59 vol%
@@ -316,13 +341,27 @@ are inerted with nitrogen and kept free of air (purged header, D-012), the area 
 hydrogen, and the flare line has a flame arrester or a seal. **Loss of the flare** (flame out,
 blocked header): the dosing stops on the header's pressure or flow; the hydrogen of the metal
 already dosed (at most 0.114 kmol after a cooling failure, 133.4 m3/h at the design rate) goes to
-a vent stack at a safe height. **Water and potassium** (SRC-1, SRC-8): water reacts vigorously with
+a vent stack at a safe height. **A blocked vent: frozen E-104.** On water below tert-butanol's
+freezing point (298.3 K) the alcohol condensing at E-104's cold end would freeze on the tubes,
+where the wall runs close to the coolant (D-006), and could close R-101's vent while the metal
+reacts: R-101 would pressurise. A low hydrogen flow alone does not show it: it would be read as the
+metal accumulating, and the dosing could go on into a closed vessel. Measures: every cooling duty
+on the tempered-water loop, its supply held at 303 K or above (D-009), a low supply temperature
+alarming and tripping the dosing; the dosing tripped on high R-101 pressure and on a high
+differential pressure across E-104 and the vent line, as well as on the low hydrogen flow; R-101's
+emergency relief sized for a blocked vent as well (the hydrogen of the metal already dosed, at most
+0.114 kmol after a trip at the design rate and more at k/10 and k/100, with the alcohol's vapour),
+on a relief path that does not pass E-104. C-101's condenser, E-201 and A-001's product condenser
+condense nearly pure alcohol on the same loop; a frozen one blocks the still's, the dryer's or the
+sieve's vapour path, with less consequence (no metal in them), and their relief is set in basic
+engineering. **Water and potassium** (SRC-1, SRC-8): water reacts vigorously with
 the metal and the heat ignites the hydrogen; with the alkoxide it gives KOH and tert-butanol. The
-paths: the make-up's water (dried to 0.1 wt%, D-004), the cooling water of R-101's jacket, of E-104
+paths: the make-up's water (dried to 0.1 wt%, D-004), the tempered water of R-101's jacket, of E-104
 (whose condensate runs back into R-101) and of the condensers, rinse water (none: every vessel is
 kept dry), and air moisture. V-102 is heated by a closed thermal-oil circuit; R-101's jacket and
-E-104 on cooling water are a leak path: basic engineering chooses a non-aqueous intermediate loop
-or a double wall with leak detection on which the dosing trips (open input). Potassium residues
+E-104 on tempered water are a leak path: the loop is closed, so basic engineering can fill it with a
+non-aqueous heat-transfer fluid (its supply still held at 303 K or above for the alcohol), or
+choose a double wall with leak detection on which the dosing trips (open input). Potassium residues
 (SRC-1, Note 3: they have exploded even under a protective liquid) are destroyed with tert-butanol
 at once. **The dry product** is self-heating (H252) and a flammable solid (H228) (SRC-7): DR-101
 dries, cools and discharges under nitrogen. Screening values only, not a reaction-hazard
@@ -394,7 +433,7 @@ Not used: `still.column` (ADR 0061): the alcohol strip needs no rectification, t
 solutes are non-volatile; `dosing.heat_of_solution` (ADR 0063): the metal reacts, it does not
 dissolve, and the alkoxide's heat of solution is inside KTBA's ASSUMED heat; `vent.henry`: the
 hydrogen's solubility is negligible and has no sourced constant here; `batch.heat_up` (ADR 0063):
-the warm-up is on steam and the reaction on cooling water, and one model duty on one stream would
+the warm-up is on steam and the reaction on tempered water, and one model duty on one stream would
 net them (L-11); `dosing.absorbed`: nothing is dosed as a gas; `hazard.reactions`: both reactions
 count; crystallizers: the solvate's precipitation is not modelled (L-2).
 
@@ -428,12 +467,15 @@ count; crystallizers: the solvate's precipitation is not modelled (L-2).
   must be found by hand: there is no design specification (a feed adjusted to a target, such as
   the charge's alcohol per mol of metal). With a gain of 0.995 the recycle is 199 times as
   sensitive to the make-up's surplus.
-- L-9: the vent condenser is not checked against the condensate's freezing point; tert-butanol
-  freezes at 298.3 K, so the condenser's 308 K was chosen by hand (D-006).
+- L-9: no condenser is checked against the condensate's freezing point, neither at its outlet
+  temperature nor at its coolant's supply temperature, the lower bound of its tube wall: tert-butanol
+  freezes at 298.3 K, so the vent condenser's 308 K and the tempered water's 303 K supply were
+  chosen by hand (D-006, D-009). Core could compare a utility's supply temperature with the
+  freezing point of what condenses on it (a vent condenser, a still's condenser).
 - L-10: when the content boils at the MTSR, core gives the non-condensables only and flags it; it
   has no tempered (boiling) reaction model or relief load for a two-phase relief study (D-011).
 - L-11: an isothermal batch has one model duty on one energy stream: with `batch.heat_up` the
-  steam of the warm-up and the cooling water of the reaction would be netted on one stream, so the
+  steam of the warm-up and the tempered water of the reaction would be netted on one stream, so the
   warm-up stays a pass-through E101 with its heat from the recipe (Q1).
 - L-12: the agitators' power is not part of any model's energy balance (D-009).
 
@@ -460,6 +502,9 @@ the alkoxide's solubility in tert-butanol against temperature and the solvate's 
 still and the dryer (its binding heat, the temperature it gives up its alcohol); the drying rate
 and residual alcohol from trials; the sieve unit's design (vendor data: residual water,
 regeneration energy, alcohol loss); a colder second vent stage or a vent scrubber for the alcohol
-(D-006); a non-aqueous coolant or leak detection on R-101's jacket and E-104 (D-011); the product
+(D-006); the tempered-water loop's supply limit against the condensers' wall temperatures (E-104's
+gas-side coefficient, a thermal design), its control and its pump (D-009, D-011); R-101's relief
+for a blocked vent (D-011); a non-aqueous coolant or leak detection on R-101's jacket and E-104
+(D-011); the product
 specification (assay, KOH, sodium, residual alcohol); the purge's real need (D-007); a TEA
 (`operation.batch: {recipe: true}`).

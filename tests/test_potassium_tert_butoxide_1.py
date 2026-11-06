@@ -11,7 +11,12 @@ check what the folder states by hand (DESIGN.md D-004 to D-012):
 - the hand duties (Q7, Q8, Q9, Q13) follow from the streams they name, Q1 is the recipe's
   heat-up, Q6 the dryer model's; the dryer's nitrogen bleed sets SP201's split;
 - every assumed temperature of a mixed stream is the adiabatic mix of its inlets, and R-101's
-  jacket is checked against the cooling water's log-mean;
+  jacket is checked against the tempered water's log-mean;
+- no tert-butanol condenser sees a coolant below the alcohol's freezing point (298.3 K): every
+  cooling duty is on the tempered-water loop at 303 K or above, and the frozen-vent hazard and its
+  trips are recorded (review of PR #420);
+- Q6 is core's dryer duty to its written precision, not a stale copy, and the dryer's numbers in
+  DESIGN.md are core's (review of PR #420);
 - the heating media stay below the temperature limits the design states;
 - every energy flow reaches the LCI: each utility's total per kg is the sum of its energy streams
   and is what DESIGN.md and process.yaml state;
@@ -369,3 +374,104 @@ def test_requires_core_1_10_and_is_public():
     assert _yaml("plant.yaml")["requires"] == "cheme-as-code>=1.10"
     assert _yaml("process.yaml")["publication"] == {"status": "public", "license": "CC-BY-4.0"}
     assert "Needs cheme-as-code 1.10.0" in _text("README.md")
+
+
+FREEZING_TBA = 298.3  # K, tert-butanol's fusion point (NIST WebBook, SRC-9)
+
+
+def test_no_tert_butanol_condenser_on_coolant_below_its_freezing_point(model):
+    """Review of PR #420: a condenser's tube wall runs close to its coolant's temperature (E-104's
+    gas is 90 mol% hydrogen, its film coefficient low), so the coolant's supply, not only the
+    condensate's outlet, must stay above tert-butanol's freezing point. Every cooling duty goes to
+    the tempered-water loop (CW) at 303 K or above; the site's cooling water at 298 K serves only
+    the loop's exchanger."""
+    flowsheet = _yaml("process/flowsheet.yaml")
+    cw = next(p for p in flowsheet["products"] if p["id"] == "CW")
+    supply = cw["utility"]["supply_temperature"]["value"]
+    approach = cw["utility"]["min_approach"]["value"]
+    assert supply >= 303.0 and supply - FREEZING_TBA >= 4.8
+    assert "Tempered water" in cw["title"]
+    # E-104 and every condensate on CW leave at or above the supply plus the minimum approach
+    r101 = next(s for s in flowsheet["steps"] if s["id"] == "R101")
+    assert r101["batch"]["vent"]["condenser"]["temperature"] >= supply + approach
+    for sid in ("S6", "S7", "S11", "S17", "S24"):
+        assert _temperature(model, sid) >= supply + approach, sid
+    # the vent's gas is mostly hydrogen: the reason the wall follows the coolant
+    assert _kmol(model, "S11")["H2"] / sum(_kmol(model, "S11").values()) > 0.85
+    # every energy stream to a cooling utility goes to the tempered loop
+    _, streams = model
+    coolers = {s["id"] for s in streams.values() if s.get("kind") == "energy" and s["to"].startswith("CW.")}
+    assert coolers == {"Q2", "Q3", "Q5", "Q7", "Q8", "Q11", "Q12", "Q13"}
+    # the design basis: the loop for every cooling duty, the site's water for its exchanger only
+    utilities = {u["name"]: u for u in _yaml("process/design-basis.yaml")["utilities"]}
+    tw, site = utilities["Tempered water"], utilities["Cooling water"]
+    assert tw["supply_K"] == supply and tw["return_K"] == cw["utility"]["return_temperature"]["value"]
+    assert site["supply_K"] < FREEZING_TBA and "exchanger only" in site["use"]
+    for duty in ("vent condenser E-104", "the still's condenser", "E-201", "E-202", "the sieve's condensers", "R-101's jacket"):
+        assert duty in tw["use"], duty
+    # the equipment list puts each tert-butanol condenser and R-101's jacket on the loop
+    equipment = {e["tag"]: e for e in _yaml("equipment/equipment-list.yaml")["equipment"]}
+    for tag in ("E-104", "E-201", "E-202", "C-101", "R-101", "A-001"):
+        notes = equipment[tag]["notes"]
+        assert "tempered water 303/313 K" in notes and "on cooling water" not in notes.lower(), tag
+    assert "U-301" in equipment
+    # the hazard review covers the frozen vent condenser, its trips and the relief for it
+    design = _text("DESIGN.md")
+    assert "**A blocked vent: frozen E-104.**" in design
+    for words in ("high R-101 pressure", "differential pressure across E-104", "sized for a blocked vent",
+                  "low supply temperature alarming and tripping the dosing"):
+        assert words in design, words
+    assert "neither at its outlet temperature nor at its coolant's supply temperature" in design  # L-9
+    assert "the tempered-water loop's supply limit against the condensers' wall temperatures" in design
+
+
+def test_jacket_coolant_is_the_loops_log_mean(model):
+    """Review of PR #420: R-101's jacket moved to the tempered water with its condensers; the
+    recipe's coolant temperature and the jacket's capacity stated follow."""
+    jacket = next(u for u in _recipe()["unit_procedures"] if u["id"] == "REACT")["vessel"]["jacket"]
+    assert jacket["coolant_temperature"] == pytest.approx(308.36, abs=0.005)
+    assert "tempered water enters the jacket at 303.15 K" in jacket["source"]
+    assert "removes 249.2 kW" in _text("DESIGN.md") and "removes 249.2 kW" in _text("equipment/equipment-list.yaml")
+
+
+def test_dryer_duty_is_cores_to_its_precision(model, monkeypatch):
+    """Review of PR #420: Q6 is assumed, so propagate --check does not see it drift, and core's
+    cheme.process-dryer-duty only flags it beyond the flowsheet's tolerance (rel 0.002); this test
+    holds it to its written precision. The dryer's numbers DESIGN.md quotes are core's."""
+    pytest.importorskip("chemeascode")
+    import json
+
+    from typer.testing import CliRunner
+
+    from chemeascode.interfaces.cli import app
+
+    monkeypatch.chdir(PROCESS)
+    result = CliRunner().invoke(app, ["process", "crystallizers", "--json"])
+    assert result.exit_code == 0, result.output
+    unit = next(u for u in json.loads(result.output)["units"] if u["node"] == "D101")
+    energy, per_batch = unit["solution"]["energy"], unit["solution"]["per_batch"]
+    assert _duty(model, "Q6") == pytest.approx(energy["duty_kW"], abs=1e-4)
+    assert f"{energy['duty_kW']:.6g} kW" in _state(model, "Q6")["duty"]["source"]
+    design = _text("DESIGN.md")
+    for term in ("sensible", "evaporation", "vessel"):
+        assert f"{term} {energy[term + '_kJ_h']:.6g}" in design, term
+    batch_kg = f"{per_batch['evaporated_kg']:.1f} kg"
+    assert batch_kg == "546.4 kg"
+    assert f"{batch_kg} a batch" in design and f"the {batch_kg} of vapour" in design
+    for stale in ("36424", "546.7 kg", "546.3 kg", "45.1062"):
+        assert stale not in design and stale not in _text("process/flowsheet.yaml"), stale
+    # the dryer's metal: core's vessel term is the 240 MJ a batch Q7 takes out again
+    cycle = _cycle_h(model)
+    assert energy["vessel_kJ_h"] * cycle == pytest.approx(240e3, rel=1e-4)
+    assert f"= {240e3 / cycle:.0f} kJ/h" in _state(model, "Q7")["duty"]["source"]
+    # LCI: the MP steam per kg follows Q6
+    assert float(_inventory()["feed:MPS"]["quantity"]) == pytest.approx(_duty(model, "Q6") / _flow(model, "S15"), rel=1e-5)
+
+
+def test_dried_make_up_water_as_stated(model):
+    """Review of PR #420: D-004's water left in the dried make-up is S6's 0.1 wt%, and the KOH it
+    makes."""
+    s6 = _state(model, "S6")
+    water = _flow(model, "S6") * s6["composition"]["values"]["H2O"]
+    assert f"then {water:.4f} kg/h" in _text("DESIGN.md")
+    assert water / model[0]["H2O"]["molar_mass"] == pytest.approx(_kmol(model, "S10")["KOH"], rel=2e-3)
