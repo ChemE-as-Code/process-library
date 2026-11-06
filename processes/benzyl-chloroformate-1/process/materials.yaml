@@ -16,14 +16,16 @@
 #   needs no liquid data. HCl leaves 95 % as it forms; the 5 % that stays dissolved needs them.
 # - ideal_gas of phosgene, HCl and CO2 as in processes/phosgene-1/process/materials.yaml
 #   (`cheme chemistry thermo`: ATcT formation enthalpies, CRC entropies, fitted cp): the
-#   passing phosgene is warmed to the vessel with it (ADR 0054), and the heats of reaction are
-#   on the gas basis of phosgene and HCl (reactions.yaml).
+#   passing phosgene is warmed to the vessel with it (ADR 0054); the formation enthalpies give
+#   the gas-basis heats from which reactions.yaml writes the dissolved basis (D-015).
 # - normal boiling points: chemicals 1.5.2 (`chemicals.Tb`); benzyl chloroformate's 425 K is
 #   that package's value (the substance decomposes before it boils at atmospheric pressure,
 #   D-008). Dibenzyl carbonate: none found.
 # - heat_of_vaporization, kJ/kmol, of the gases the degassing T101 draws off: `cheme chemistry
 #   props --source Thermo -p heat_of_vaporization --temperature 278.15` (phosgene 24.8, HCl 10.9,
-#   CO2 9.5 kJ/mol), standing for their unknown heats of desorption from the crude (D-006).
+#   CO2 9.5 kJ/mol), standing for their unknown heats of desorption from the crude (D-006);
+#   minus phosgene's is R101's dose heat_of_solution and HCl's the retained share's dissolution
+#   in the heats of reaction (core ADR 0063, D-015).
 # The scrubber species (NaOH, NaCl, Na2CO3 dissolved) are molecular pseudo-components of the
 # aqueous liquor, an inventory basis, not a speciation (no property package of core covers it).
 schema: cheme/process/v1

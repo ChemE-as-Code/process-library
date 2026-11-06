@@ -25,9 +25,9 @@
 # - the dryer's heat Q6: core's dryer model (`cheme process crystallizers`);
 # - the heats of R101, R102 and Q101 (Q2, Q3, Q5): written by `cheme process propagate --fill`
 #   from the models at each step's `energy_port` (core ADR 0059, D-014): the reactions' heats
-#   and the doses or streams brought to the step's temperature;
-# - Q10, the dilution heat of the acids dosed into the quench, which the semi-batch model leaves
-#   out (lesson L-2): its own ASSUMED stream to brine beside Q101's model duty Q5 (D-009, D-014);
+#   and the doses or streams brought to the step's temperature; Q5 also holds the dilution heat
+#   of the acids dosed into the quench, the dose's `heat_of_solution` (core ADR 0063, D-015;
+#   until core 1.10.0 the hand stream Q10, lesson L-2);
 # - the other duties (Q1, Q4, Q7, Q8, Q9): hand arithmetic from the stream table, given as
 #   ASSUMED with the arithmetic in the source (D-009): heat-ups and coolings of pass-through
 #   steps, the dryer's condenser, and the scrubber, whose model lacks NaCl's and NaOH's heat
@@ -110,7 +110,6 @@ products:
     ports:
       - {id: e102, direction: in, kind: energy}
       - {id: q101, direction: in, kind: energy}
-      - {id: q101dil, direction: in, kind: energy}
       - {id: e103, direction: in, kind: energy}
       - {id: d101, direction: in, kind: energy}
 
@@ -139,7 +138,6 @@ blocks:
       - {id: vent, direction: out}
       - {id: chw_heel, direction: out, kind: energy}
       - {id: chw, direction: out, kind: energy}
-      - {id: chw_dil, direction: out, kind: energy}
       - {id: power, direction: in, kind: energy}
   - id: ISOL
     title: Filtration, washing (F-101) and drying (DR-101)
@@ -231,12 +229,18 @@ steps:
     reactions: [HYD, AMH, TSHP, TSHO]
     reactor: semibatch
     batch:
-      dosing: [{stream: S8, time: 14400}]
+      dosing:
+        - stream: S8
+          time: 14400
+          heat_of_solution:
+            values: {H2SO4: -75000, PTSA: -20000, OTSA: -20000}
+            provenance: assumed
+            source: "ASSUMED effective integral heats of dilution of the acids dosed with the mass into the water heel, to the liquor's about 10.6 wt% H2SO4 at 288 K (D-005, D-009, D-015): H2SO4 -75 kJ/mol, the toluenesulfonic acids -20 kJ/mol (no open calorimetry of this liquor). Released at the dose's rate (core ADR 0063): in Q101's duty Q5 (term solution), its peak cooling duty (the recipe's jacket check) and dT_ad, not in the MTSR. Until core 1.10.0 the hand stream Q10 (16.026 kW, lesson L-2)"
       target: {key: CSA, conversion: 0.9999}
       heat: isothermal
       vent: {stream: S11, components: [HCL], fraction: {HCL: 0.1}}
       provenance: assumed
-      source: "the reaction mass dosed over 4 h (set by Q-101's jacket with the dilution heat the model leaves out, Q10, D-003, D-009) into the cooled water heel at 288 K, then the post-reaction to 0.9999 conversion of the chlorosulfonic acid; 10 % of the HCl formed leaves, the rest stays dissolved in the dilute acid (D-005, D-006)"
+      source: "the reaction mass dosed over 4 h (set by Q-101's jacket with the dose's heat of solution, D-003, D-009, D-015) into the cooled water heel at 288 K, then the post-reaction to 0.9999 conversion of the chlorosulfonic acid; 10 % of the HCl formed leaves, the rest stays dissolved in the dilute acid (D-005, D-006)"
     energy_port: q
     hazard:
       vent_capacity: 150
@@ -249,7 +253,6 @@ steps:
       - {id: out, direction: out}
       - {id: gas, direction: out, delegates: vent}
       - {id: q, direction: out, kind: energy, delegates: chw}
-      - {id: dil, direction: out, kind: energy, delegates: chw_dil}
       - {id: power, direction: in, kind: energy, delegates: power}
   - id: CR101
     block: QUENCH
@@ -597,10 +600,10 @@ streams:
     template: scrub
     state:
       design:
-        composition: {basis: mole_fraction, values: {HCL: 1.0}, provenance: calculated, source: 'cheme process propagate: reactor Q101 from S8 S10', fingerprint: 1d60b755ece1b913}
-        flow: {value: 3.43902, provenance: calculated, source: 'cheme process propagate: reactor Q101 from S8 S10', fingerprint: 1d60b755ece1b913}
-        temperature: {value: 288.15, provenance: calculated, source: 'cheme process propagate: reactor Q101 from S8 S10', fingerprint: 1d60b755ece1b913}
-        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor Q101 from S8 S10', fingerprint: 1d60b755ece1b913}
+        composition: {basis: mole_fraction, values: {HCL: 1.0}, provenance: calculated, source: 'cheme process propagate: reactor Q101 from S8 S10', fingerprint: ffdeb0b90d9b8a60}
+        flow: {value: 3.43902, provenance: calculated, source: 'cheme process propagate: reactor Q101 from S8 S10', fingerprint: ffdeb0b90d9b8a60}
+        temperature: {value: 288.15, provenance: calculated, source: 'cheme process propagate: reactor Q101 from S8 S10', fingerprint: ffdeb0b90d9b8a60}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor Q101 from S8 S10', fingerprint: ffdeb0b90d9b8a60}
   - id: S12
     title: Quenched liquor
     from: Q101.out
@@ -608,10 +611,10 @@ streams:
     template: mass
     state:
       design:
-        composition: {basis: mole_fraction, values: {H2O: 0.933235, CSA: 1.11041e-06, TOL: 0.000165979, NH4CL: 0.0, AMCS: 7.4691e-07, HCL: 0.0168048, PTSA: 0.0015695, OTSA: 0.000174413, H2SO4: 0.0258917, PTSCL: 0.0132191, PTSCL_S: 0.0, OTSCL: 0.00146899, AMBS: 0.00746836}, provenance: calculated, source: 'cheme process propagate: reactor Q101 from S8 S10', fingerprint: 1d60b755ece1b913}
-        flow: {value: 1209.4, provenance: calculated, source: 'cheme process propagate: reactor Q101 from S8 S10', fingerprint: 1d60b755ece1b913}
-        temperature: {value: 288.15, provenance: calculated, source: 'cheme process propagate: reactor Q101 from S8 S10', fingerprint: 1d60b755ece1b913}
-        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor Q101 from S8 S10', fingerprint: 1d60b755ece1b913}
+        composition: {basis: mole_fraction, values: {H2O: 0.933235, CSA: 1.11041e-06, TOL: 0.000165979, NH4CL: 0.0, AMCS: 7.4691e-07, HCL: 0.0168048, PTSA: 0.0015695, OTSA: 0.000174413, H2SO4: 0.0258917, PTSCL: 0.0132191, PTSCL_S: 0.0, OTSCL: 0.00146899, AMBS: 0.00746836}, provenance: calculated, source: 'cheme process propagate: reactor Q101 from S8 S10', fingerprint: ffdeb0b90d9b8a60}
+        flow: {value: 1209.4, provenance: calculated, source: 'cheme process propagate: reactor Q101 from S8 S10', fingerprint: ffdeb0b90d9b8a60}
+        temperature: {value: 288.15, provenance: calculated, source: 'cheme process propagate: reactor Q101 from S8 S10', fingerprint: ffdeb0b90d9b8a60}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor Q101 from S8 S10', fingerprint: ffdeb0b90d9b8a60}
   - id: S13
     title: p-TsCl slurry
     from: CR101.out
@@ -837,8 +840,7 @@ streams:
   - {id: Q2, title: Heat of sulfonation to cooling water (R101's model), kind: energy, from: R101.q, to: CW.r101, state: {design: {duty: {value: 23.3387, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S2 S3 S4', fingerprint: 5b25a96e2ca67c8a}}}}
   - {id: Q3, title: Cool-down and second acid portion to cooling water (R102's model), kind: energy, from: R102.q, to: CW.r102, state: {design: {duty: {value: 3.76302, provenance: calculated, source: 'cheme process propagate: conversion duty R102 from S6 S7 S8', fingerprint: a3ffbcd3333db837}}}}
   - {id: Q4, title: Water heel cooling, kind: energy, from: E102.q, to: BRINE.e102, state: {design: {duty: {value: 10.072, provenance: assumed, source: "hand arithmetic (D-009): S9, 866.32 kg/h x 4.185 kJ/(kg K) x 10 K (298 to 288 K)"}}}}
-  - {id: Q5, title: Quench reaction heat to brine (Q101's model), kind: energy, from: Q101.q, to: BRINE.q101, state: {design: {duty: {value: 38.9201, provenance: calculated, source: 'cheme process propagate: semibatch duty Q101 from S8 S10', fingerprint: 0d38558cc4985109}}}}
-  - {id: Q10, title: Dilution heat of the dosed acids to brine, kind: energy, from: Q101.dil, to: BRINE.q101dil, state: {design: {duty: {value: 16.026, provenance: assumed, source: "hand arithmetic (D-009, D-014): the dilution of the H2SO4 and the sulfonic acids dosed with S8 into the water heel, which Q101's semi-batch model leaves out (it counts no heat of dilution of a dosed liquid, lesson L-2; Q5 is the model's part): H2SO4 0.7471 kmol/h x 75 MJ/kmol + PTSA and OTSA 0.0830 kmol/h x 20 MJ/kmol = 57694 kJ/h, ASSUMED effective heats (D-005); on Q-101's brine jacket with Q5"}}}}
+  - {id: Q5, title: Quench reaction and dilution heat to brine (Q101's model), kind: energy, from: Q101.q, to: BRINE.q101, state: {design: {duty: {value: 54.946, provenance: calculated, source: 'cheme process propagate: semibatch duty Q101 from S8 S10', fingerprint: 896e652c66033dba}}}}
   - {id: Q6, title: Dryer heat, kind: energy, from: LPS.d101, to: D101.steam, state: {design: {duty: {value: 40.8382, provenance: assumed, source: "cheme process crystallizers: D101's dryer model, the cake from 278.6 to 308 K, the water, HCl and toluene evaporated, the vessel heated each batch, 70 % efficiency (D-008, D-009)"}}}}
   - {id: Q7, title: Scrubber heat to cooling water, kind: energy, from: S101.q, to: CW.s101, state: {design: {duty: {value: 49.870, provenance: assumed, source: "hand arithmetic (D-009): NEUT 1.3005 kmol/h x 132 MJ/kmol = 171662 kJ/h, less the liquor S30 warmed by 10 K (381.66 kg/h x 3.6 kJ/(kg K) x 10 K = 13740 kJ/h), plus the dilution of the 50 wt% caustic S28 (1.3741 kmol/h NaOH x 15 MJ/kmol = 20612 kJ/h, ASSUMED, D-009) and the vent gas S27 cooled from 334.53 to 308.15 K (1.3017 kmol/h HCl x 29.1 kJ/(kmol K) x 26.38 K = 999 kJ/h)"}}}}
   - {id: P1, title: R-101 agitator, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 3.0, provenance: assumed, source: "year average: a 3 kW agitator of the 4 m3 enamelled vessel R-101 (about 0.75 kW/m3), occupied 100 % (D-009)"}}}}

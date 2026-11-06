@@ -35,7 +35,7 @@ README.md and process.yaml are checked against them:
 - review of #408: R-101's jacket and peak duty wherever stated are the recipe's, the still's
   stream temperatures are the bubble points of their compositions, and D-015's constant-distillate
   row is what core gives;
-- the process is not set public in the change that adds it (CONTRIBUTING).
+- the process is public with CC-BY-4.0, every library entry is (ADR 0036).
 """
 
 from __future__ import annotations
@@ -198,10 +198,9 @@ def test_the_stills_stream_temperatures_are_its_bubble_points(streams):
     assert streams["S8"]["temperature"]["value"] < streams["S9"]["temperature"]["value"]
 
 
-def test_not_published_in_the_change_that_adds_it():
+def test_published_public_with_cc_by():
     manifest = _load("process.yaml")
-    assert manifest["publication"]["status"] == "internal"
-    assert "license" not in manifest["publication"]
+    assert manifest["publication"] == {"status": "public", "license": "CC-BY-4.0"}
 
 
 def _criticality(mtsr: float, mtt: float, td24: float) -> int:

@@ -24,6 +24,13 @@ screening's default MTT at R-101's pressure is checked and the hand MTT of the c
 (ADR 0058, D-011). R101 has no vent, so there is no gas release to compare with a vent capacity.
 `plant.yaml` requires `cheme-as-code>=1.9`.
 
+Moved to core **1.10.0** (c55e9c7) on 2026-11-06 (D-016): the still's charge heated to its
+bubble point (`still.heat_up`) and the vessels' metal (`vessel.metal_heat_capacity` on the
+recipe's vessels R-101 and C-101, ADR 0063) are in the models' duties Q7 and Q3, so the hand
+streams Q9 and Q10 went; R-101's heating and cooling times count its metal; C-101 is sized by the
+recipe (L-1 resolved). The batch rectification (ADR 0061) and the vent's vapour and condenser
+(ADR 0062) were checked and not adopted (D-016). `plant.yaml` requires `cheme-as-code>=1.10`.
+
 ## Source register
 
 Facts are restated in our own words; nothing is copied. "Read" means the passage named was read
@@ -36,7 +43,7 @@ in this session.
 | SRC-3 | Wittig, G.; Schoellkopf, U. (1960) Methylenecyclohexane, Org. Synth. 40, 66, doi:10.15227/orgsyn.040.0066 | - | **not read**: orgsyn.org answered with a browser check (2026-11-06); not worked around. Nothing is taken from it | lead only |
 | SRC-4 | PubChem CID 74505 (MTPPB), 11776 (PPh3), 6323 (methyl bromide), 13097 (Ph3PO), https://pubchem.ncbi.nlm.nih.gov | identities (formula, InChIKey); MTPPB: white hygroscopic powder; PPh3 (HSDB): mp 80.5 C, density 1.075 g/cm3 at 80 C and 1.194 at 25 C, freely soluble in ether, soluble in benzene, practically insoluble in water; methyl bromide made from methanol and hydrogen bromide (HSDB, Methods of Manufacturing, as methylmagnesium-bromide-1 records it) | read (PUG REST and PUG View, 2026-11-06) | materials, registry, D-004, D-012 |
 | SRC-5 | Wikipedia, Bromomethane, https://en.wikipedia.org/wiki/Bromomethane | boiling point about 4 C, vapour pressure 190 kPa at 20 C, water solubility 17.5 g/L; NIOSH IDLH 250 ppm, ACGIH TLV-TWA 1 ppm, effects delayed by hours, a potential occupational carcinogen (NIOSH); added to the Montreal Protocol's phase-out list by the 1990 London Amendment | read; CC BY-SA, facts only | D-011, D-014 |
-| SRC-6 | Property data of core's environment and the NIST WebBook: the `chemicals` 1.5.2 package (its packaged CRC tables: `CRC_organic_data` for the density of liquid PPh3, `heat_capacity.CRC_standard_data` for PPh3's solid heat capacity, `phase_change.Tb` and `Tm`, the Wagner (McGarry) vapour pressure of methyl bromide and the Helmholtz equation of state of toluene), thermo 0.11 (liquid densities, heat capacities and heats of vaporisation of methyl bromide and toluene), CoolProp's IAPWS water (LP steam saturation), and the NIST Chemistry WebBook, SRD 69 (toluene's Antoine set and heats of vaporisation, methyl bromide's heat of vaporisation; `cheme chemistry props --source NIST`) | per component in `process/materials.yaml`, the dryer's latent heats (D-008) | open data packages queried and WebBook pages read (2026-11-06); facts only. The CRC values come from the tables packaged in `chemicals`, not from the printed (licensed) handbook | materials, D-005, D-008, D-009, D-011 |
+| SRC-6 | Property data of core's environment and the NIST WebBook: the `chemicals` 1.5.2 package (its packaged CRC tables: `CRC_organic_data` for the density of liquid PPh3, `heat_capacity.CRC_standard_data` for PPh3's solid heat capacity, `phase_change.Tb` and `Tm`, the Wagner (McGarry) vapour pressure of methyl bromide and the Helmholtz equation of state of toluene), thermo 0.11 (toluene's liquid density; methyl bromide's liquid heat capacity; methyl bromide's liquid density at 298 K and its heat of vaporisation at 384 K by thermo's default method for it, DIPPR_PERRY_8E, a correlation whose coefficients thermo takes from Perry's Chemical Engineers' Handbook, 8th ed., a licensed book drawing on the DIPPR 801 database, not read here; the dryer's 22.2 kJ/mol for methyl bromide (D-008) is a thermo value whose method was not recorded, and thermo's default gives 21.7 kJ/mol at 333 K by the same DIPPR_PERRY_8E correlation), CoolProp's IAPWS water (LP steam saturation), and the NIST Chemistry WebBook, SRD 69 (toluene's Antoine set and heats of vaporisation; `cheme chemistry props --source NIST`) | per component in `process/materials.yaml`, the dryer's latent heats (D-008) | open data packages queried and WebBook pages read (2026-11-06); facts only. The CRC values come from the tables packaged in `chemicals`, not from the printed (licensed) handbook. The DIPPR_PERRY_8E values of methyl bromide (1.663 g/cm3, 18.84 kJ/mol) are not open data: whether values computed from such packaged coefficients may be published is a library-wide question for the maintainers; open alternatives are the NIST WebBook (SRD 69) and PubChem (HSDB) | materials, D-005, D-008, D-009, D-011 |
 | SRC-7 | Stoessel, F. (2008) Thermal Safety of Chemical Processes, Wiley-VCH, doi:10.1002/9783527621606 | accumulation, MTSR, the MTT (for a closed system the temperature at the maximum permitted pressure) and the criticality classes (method, implemented in core ADR 0050) | method reference, no data taken | D-011 |
 | SRC-8 | processes/btx-1, asu-1, methylmagnesium-bromide-1, methanol-1, hydrogen-bromide-1, phosphorus-oxychloride-1 (this library) | toluene (a co-product of reformate extraction), gaseous nitrogen; the methyl bromide proxy (methanol + HBr) as methylmagnesium-bromide-1 records it; PCl3, internal to phosphorus-oxychloride-1 | library, internal | feed links and proxies (D-012) |
 | SRC-9 | US5527966A (PPh3 from PCl3, chlorobenzene and sodium) and CN107840792A (PPh3 with methanol and 48 % HBr) | - | **not read** in this session (named by the route scouting; CN107840792A seen only as a supplier page's citation) | leads only, nothing taken |
@@ -95,18 +102,21 @@ Decision: one batch makes 1057.10 kg of dried salt (stream S15); `process/recipe
 unit procedures:
 - REACT on R-101, one vessel over M101, E101, R101, CR101 and DG101 (`units`, core ADR 0057):
   nitrogen purge and pressure test 0.5 h, charge the recovered toluene 0.5 h and the PPh3 0.75 h,
-  heat 292.81 -> 333.15 K 0.53 h (from the jacket on hot water at 353 K), dose 3.0 h and
-  post-reaction 2.30 h to 0.99 conversion of the PPh3 (both from R101's model), cool to 313 K
-  0.55 h (jacket), precipitation hold 0.5 h, vent and sweep 0.5 h, press the slurry to F-101
-  0.5 h: 9.64 h;
+  heat 292.81 -> 333.15 K 0.79 h (from the jacket on hot water at 353 K, with R-101's metal since
+  core 1.10.0, D-016; 0.53 h without it), dose 3.0 h and post-reaction 2.30 h to 0.99 conversion
+  of the PPh3 (both from R101's model), cool to 313 K 0.81 h (jacket, with the metal; 0.55 h
+  without), precipitation hold 0.5 h, vent and sweep 0.5 h, press the slurry to F-101 0.5 h:
+  10.15 h;
 - ISOLATE on F-101 over F101, W101, F102 and D101: receive 0.5 h, filtration 1.17 h and 0.46 h
   (Ruth, from the filters' data, on the vessel's bottom), reslurry wash 0.5 h, drying 6.57 h
   (D101's 315.3 kg of vapour a batch at 4 kg/(m2 h) on 12 m2), cool and discharge 1.0 h:
   10.20 h;
-- RECOVER on C-101 over ST101 and X101: receive 0.5 h, boil-up 1.66 h (ST101's model at 250 kW),
-  drain 0.5 h: 2.66 h.
-F-101 is the bottleneck: cycle 10.198 h, 776.6 batches in 7920 h; R-101 is 95 % occupied; one
-batch takes 20.99 h from the purge to the still's drain. The flowsheet's flows are the recipe's
+- RECOVER on C-101 over ST101 and X101: receive 0.5 h, heat-up to the bubble point 0.81 h
+  (ASSUMED, the heat ST101's duty holds at its 250 kW, D-016), boil-up 1.66 h (ST101's model at
+  250 kW), drain 0.5 h: 3.47 h.
+F-101 is the bottleneck: cycle 10.198 h, 776.6 batches in 7920 h; R-101 is 99.5 % occupied
+(10.15 h, 0.05 h short of the bottleneck: its heating time is conservative, D-016); one batch
+takes 22.31 h from the purge to the still's drain. The flowsheet's flows are the recipe's
 year averages: 1057.10 kg x 776.6 / 7920 h = 103.655 kg/h of S15 (no `cheme.recipe-basis`
 finding). The feeds are the per-batch charges over the cycle, and the cycle was iterated to a
 fixed point with them (lesson L-6).
@@ -119,8 +129,14 @@ Vessels (fill 0.8, H/D 1.2 for R-101 and 1.0 for F-101, ASSUMED), sized by the r
   mean is conservative (the return falls towards the supply as the content cools).
 - F-101 6.3 m3 (4.417 m3 of batch, 70 %, D 2.0 m), its heated area 12 m2 (jacket, heated bottom
   and agitator, ASSUMED).
-- C-101 is not sized by core (a still has no batch content to size, L-1); about 6.3 m3 for the
-  4.21 t of liquor a batch, ASSUMED.
+- C-101 6.3 m3 (4.852 m3 of liquor a batch, 77 %, D 1.88 m; fill 0.8 and H/D 1.2 ASSUMED, as
+  R-101), sized by the recipe from what ST101 takes in since core 1.10.0 (ADR 0063, L-1
+  resolved, D-016); the hand estimate it replaces was the same 6.3 m3. No jacket check: core
+  checks none on a still's vessel; the boil-up's 250 kW is ASSUMED (D-009).
+- The metal of R-101 (3000 kJ/K) and C-101 (2500 kJ/K), ASSUMED (D-010), is given on their
+  recipe vessels (`metal_heat_capacity`, core 1.10.0): in R-101's heat and cool times and in
+  the duties of CR101 (Q3) and ST101 (Q7). F-101's metal stays in D101's dryer model (its own
+  vessel heat capacity, 4000 kJ/K) and Q6.
 Reason: core ADR 0051 puts the batch basis in one place; the dosing, reaction, heating, cooling,
 filtration, drying and boil-up times come from the models, so a change of the kinetics, the
 jacket, the cake or the drying rate changes the cycle (D-011 shows by how much). There is no
@@ -270,7 +286,9 @@ toluene, 0.05 mol% methyl bromide) condensed and cooled to 303 K on cooling wate
 X101 to the next charge (S3) and the wash (S11); 63.2 kg of residue (toluene with 12.2 wt% PPh3,
 8.1 wt% salt) drained at 386.5 K to the waste tank and to incineration. The still runs from
 383.5 to 386.5 K; the vapour pressures are fitted by us over 300-420 K (SRC-6) because the NIST
-sets end below that (toluene at 384.66 K).
+sets end below that (toluene at 384.66 K). The charge enters at 308.47 K and is heated to its
+383.50 K bubble point first: since core 1.10.0 in ST101's duty (`still.heat_up`, with C-101's
+metal, D-016).
 Reason: the toluene is 4 kg per kg PPh3 and must be reused; PPh3 and the salt do not distil
 (below 3 Pa vapour pressure at 384 K, thermo), so one stage separates them: **a recovery cut by
 a single-stage still is credible here**, unlike a product purification. Distilling everything
@@ -283,7 +301,8 @@ variant once an impurity balance exists.
 
 ## D-010 Utilities and heat (2026-11-06)
 Decision (year averages; since core 1.9.0 the models write Q2, Q3 and Q7 at their
-`energy_port`, `calculated` by `cheme process propagate --fill`, ADR 0059; the rest is hand
+`energy_port`, `calculated` by `cheme process propagate --fill`, ADR 0059, and since core 1.10.0
+Q3 and Q7 hold the vessels' metal and Q7 the charge's heat-up, ADR 0063, D-016; the rest is hand
 arithmetic from cheme's reports, given in the flowsheet's sources;
 `tests/test_methyltriphenylphosphonium_bromide_1.py` recomputes them):
 - LP steam 350 kPa(a), as heat delivered:
@@ -292,17 +311,21 @@ arithmetic from cheme's reports, given in the flowsheet's sources;
     S4's temperature is the adiabatic mix of S1, S2 and S3 less the PPh3's heat of solution,
     20 MJ/kmol ASSUMED (its heat of fusion by Walden's rule, about 56 J/(mol K) at its 353 K
     melting point; no measured value found), 60 MJ per batch (5.9 MJ/h), so Q1 counts the
-    dissolution;
+    dissolution. It stays hand arithmetic (E101 is a pass-through, no model; D-016): core
+    1.10.0's recipe reports R-101's heat-up as 10.224 kW (375.4 MJ a batch), the same content's
+    254.3 MJ but the metal heated from the charge's 292.81 K (121.0 MJ), since core starts the
+    metal at the content's temperature; it was left at 313.15 K by the previous batch's
+    cool-down, so the hand 60.0 MJ stands and the 1.662 kW difference is that start;
   - Q4 10.347 kW: the dryer (core's model, D-008);
-  - Q7 40.6685 kW: the still's boil-up, 414.7 kWh a batch, its latent heat (`cheme process
-    stills`); ST101's model writes it (`energy_port: steam`, `calculated`);
-  - Q9 19.964 kW: what core's still leaves out, ASSUMED by hand: the charge S17 heated from
-    308.47 K to its 383.5 K bubble point (52747 kJ/h), and C-101's metal (2500 kJ/K, about 5 t,
-    ASSUMED) from 308.47 to 386.48 K each batch (19123 kJ/h).
-  Until core 1.9.0 one typed stream Q7 held all three, 60.628 kW; core 1.9.0 compares a typed
-  duty with its model, and the still has two heat streams (Q7, Q8), so it asked for the
-  `energy_port`. With it the boil-up is the model's (40.6685 kW, 0.0045 kW above the hand value,
-  which took the boil-up's 414.7 kWh rounded) and the heat-up is Q9: 60.632 kW together.
+  - Q7 60.6328 kW: ST101's model duty (`energy_port: steam`, `calculated`), 618.3 kWh a batch:
+    the boil-up's latent heat 40.6685 kW (414.7 kWh), the charge S17 heated from 308.47 K to its
+    383.50 K bubble point 14.6525 kW (149.4 kWh, `still.heat_up`) and C-101's metal (2500 kJ/K,
+    about 5 t, ASSUMED) from 308.47 to the end's 386.48 K 5.3118 kW (the RECOVER vessel's
+    `metal_heat_capacity`), core 1.10.0 (D-016).
+  Until core 1.9.0 one typed stream Q7 held all three, 60.628 kW; core 1.9.0 wrote the boil-up
+  alone at the `energy_port` and the heat-up and metal were the hand stream Q9 (19.9639 kW),
+  60.6324 kW together; core 1.10.0 writes all three on Q7, 0.0004 kW above that sum (Q9's
+  rounded kJ/h).
   R-101 and F-101 are heated with hot water at 353 K from LP steam, C-101 with the steam at
   412 K: below every temperature limit the design states (R-101's MTT 415.29 K, D-011; the
   salt's melting point, about 503 K). The steam is only 3 K below R-101's MTT, so it must never
@@ -312,28 +335,33 @@ arithmetic from cheme's reports, given in the flowsheet's sources;
   - Q2 7.8775 kW: the heat of quaternisation (0.29123 kmol/h x 100 MJ/kmol) less the dose warmed
     from 298 to 333 K; R101's semi-batch model writes it (`energy_port: q`, `calculated`), equal
     to the hand value it replaced (7.8775 kW);
-  - Q3 3.5515 kW: the slurry S7 cooled from 333.15 to 313.15 K, CR101's lumped duty (its energy
-    block, 1.54 kJ/(kg K)); CR101's model writes it (`energy_port: q`, `calculated`);
-  - Q10 1.634 kW: R-101's metal (3000 kJ/K, as Q1) cooled by the same 20 K each batch, which the
-    crystallizer's model does not hold, ASSUMED by hand (5883 kJ/h). Until core 1.9.0 Q3 held
-    both, 5.1858 kW; core 1.9.0 named the difference with its model (`cheme.process-duty`:
-    5.1858 against 3.55153 kW), which is exactly this metal (the hand sensible part, 12785.5
-    kJ/h, is the model's 3.55153 kW), not an error, so it is now its own stream;
+  - Q3 5.1858 kW: CR101's model duty (`energy_port: q`, `calculated`): the slurry S7 cooled
+    from 333.15 to 313.15 K, its lumped duty (its energy block, 1.54 kJ/(kg K)), 3.55153 kW, and
+    since core 1.10.0 R-101's metal (3000 kJ/K, as Q1, the REACT vessel's
+    `metal_heat_capacity`) cooled by the same 20 K each batch, 1.63427 kW (D-016). Until core
+    1.9.0 a typed Q3 held both, 5.1858 kW; core 1.9.0 wrote the slurry alone and the metal was
+    the hand stream Q10 (1.6342 kW), which core 1.10.0's term equals; the recipe's cool-down
+    report gives the same 190.3 MJ a batch (5.185 kW);
   - Q6 3.359 kW: the product cooled from 333.15 to 313.15 K in F-101 and F-101's metal cooled
     back to the cake's 307.95 K each batch (as core's dryer model assumes);
   - Q8 56.426 kW: the still's condenser (the distillate at its components' heats of
-    vaporisation) and the distillate cooled from the still's mean 384.99 K to 303.15 K.
+    vaporisation, 40.669 kW, the boil-up term of Q7) and the distillate cooled from the still's
+    mean 384.99 K to 303.15 K (15.758 kW). It stays hand arithmetic: core 1.10.0's
+    `still.condenser_port` would write the latent heat alone (D-016).
 - chilled brine 258/263 K: Q5 4.308 kW, F-101's vacuum condenser E-201: 30.90 kg/h of toluene
   condensed (391 kJ/kg), the condensate cooled from 333 to 268 K and the vent gas by 65 K. It is
   on brine: toluene's dew point at the filter-dryer's 5 kPa(a) is about 304 K (303.6 K by the
   Antoine set of `process/materials.yaml`), so cooling water at 298/308 K cannot condense it; at
   the 268 K outlet its vapour pressure is 0.65 kPa.
-- electricity 15.5 kW: R-101's 5.5 kW agitator at 94 % occupancy and the dosing pump (5.4 kW),
+- electricity 16.0 kW: R-101's 5.5 kW agitator at 99.5 % occupancy and the dosing pump (5.7 kW),
   F-101's 7.5 kW agitator half the time and the 5.5 kW vacuum pump over the drying (7.3 kW),
-  C-101's agitator and the transfer pumps (2.8 kW). All ASSUMED.
+  C-101's agitator at 34 % occupancy and the transfer pumps (3.0 kW). All ASSUMED. Until core
+  1.10.0 15.5 kW (R-101 94 %, 5.4 kW; C-101 26 %, 2.8 kW): the occupancies follow the recipe's
+  longer heating and cooling and the still's heat-up (D-016).
 Per kg of salt: LP steam 0.767 kWh, cooling water 0.703 kWh, brine 0.042 kWh, electricity
-0.150 kWh (core 1.9.0's exact boil-up raises the LP steam from 0.76732 to 0.76737 kWh, the same
-to three digits).
+0.154 kWh (core 1.9.0's exact boil-up raised the LP steam from 0.76732 to 0.76737 kWh, the same
+to three digits; core 1.10.0's Q7 and Q3 leave LP steam and cooling water the same to five
+digits, and the electricity rises from 0.150 kWh).
 Every energy flow of the batch is in the flowsheet and so in the LCI per kg (library ADR 0035),
 including the dissolution of the PPh3, the vessels' metal, the still's heat-up and the vacuum
 condenser. Recorded exclusions, with their size:
@@ -391,15 +419,17 @@ criticality class (`cheme.reactor-hazard-missing`, info). With MTSR below MTT, c
 criticality() gives class 1 (TD24 above the MTT), 2 (TD24 between MTSR and MTT, or at the MTT)
 or 5 (TD24 below the MTSR); the TD24 decides which.
 Sensitivity (a scratch copy with the rate constant of QUAT divided by 10 and by 100; nothing else
-changed, the same batch and recycle; not committed; rerun on core 1.9.0 on 2026-11-06 with the
-same accumulation, MTSR and cycle, the MTSR over the batch peaking at the end of the dosing:
+changed, the same batch and recycle; not committed; rerun on core 1.10.0 on 2026-11-06: the
+accumulation, MTSR and post-reaction are those of core 1.9.0, while the k/10 and k/100 cycles,
+where R-101 is the bottleneck, grow by R-101's metal in its heating and cooling (D-016; 34.79 h
+and 292.2 h on 1.9.0); the MTSR over the batch peaks at the end of the dosing:
 k/10 351.7 K at 2.71 h, back to 342.7 K at 4.59 h; k/100 371.9 K at 3 h, 340.0 K at 41.6 h):
 
 | case | accumulation (end of dosing) | MTSR (worst moment) | MTT of the closed vessel | post-reaction | cycle, batches/a |
 |---|---|---|---|---|---|
 | k (design) | 14.7 % | 339.1 K (10132 s) | 415.29 K | 2.30 h | 10.20 h, 776.6 (F-101) |
-| k/10 | 42.0 % | 351.7 K (9769 s) | 409.12 K | 27.4 h | 34.79 h, 227.7 (R-101) |
-| k/100 | 85.0 % | 371.9 K (10800 s) | 401.33 K | 284.9 h | 292.2 h, 27.1 (R-101) |
+| k/10 | 42.0 % | 351.7 K (9769 s) | 409.12 K | 27.4 h | 35.30 h, 224.4 (R-101) |
+| k/100 | 85.0 % | 371.9 K (10800 s) | 401.33 K | 284.9 h | 292.8 h, 27.05 (R-101) |
 
 The MTT of each case is its own (more methyl bromide unreacted, a lower MTT; by hand as above,
 at the end of the dosing); the scratch runs kept the design's `hazard.mtt`, against which core
@@ -437,7 +467,7 @@ R-101's purge, pad and sweep, F-101's pressing and vacuum break, blanketing; ASS
 per kg, leaving with the vent gas to the oxidiser (its disposal a gap). No rinses: the train is
 kept dry.
 Per kg of salt: PPh3 0.744 kg, methyl bromide 0.281 kg, toluene 0.056 kg, nitrogen 0.097 kg,
-electricity 0.150 kWh, LP steam 0.767 kWh, cooling water 0.703 kWh removed, brine 0.042 kWh
+electricity 0.154 kWh (0.150 until core 1.10.0, D-016), LP steam 0.767 kWh, cooling water 0.703 kWh removed, brine 0.042 kWh
 removed; vent gas to the oxidiser 0.022 kg (0.015 kg methyl bromide), still residue to
 incineration 0.060 kg. Not counted (emission_exclusions): the tanks' breathing, the methyl
 bromide store's losses, salt dust in the vacuum exhaust.
@@ -486,7 +516,7 @@ Decision, on the core pin's rise to 1.9.0 (314642c):
   steam`, Q7) now carry their models' duties, `calculated`; the heat the models deliberately
   leave out is on its own ASSUMED stream with its hand arithmetic, both in the LCI: Q10 (R-101's
   metal cooled with the slurry, 1.634 kW) and Q9 (the still's charge and metal heated to the
-  boil, 19.964 kW). The hand values were recomputed: Q3's difference is exactly the metal, Q7's
+  boil, 19.964 kW); core 1.10.0 put both into the models' duties Q3 and Q7 (D-016). The hand values were recomputed: Q3's difference is exactly the metal, Q7's
   the heat-up and the metal (D-010). R101's typed Q2 already agreed with its model and is now
   the model's. Q1 (a heater, no model), Q4 (the dryer, compared by `cheme.process-dryer-duty`),
   Q5, Q6 and Q8 (condensers and coolers, which ADR 0059 leaves typed) stay ASSUMED.
@@ -502,6 +532,77 @@ Decision, on the core pin's rise to 1.9.0 (314642c):
 - `plant.yaml` requires `cheme-as-code>=1.9`: 1.8.0 refuses `tears` and `energy_port`.
 Reason: core 1.9.0 makes the recycle and the models' duties calculated, so they go stale when an
 input changes, instead of being converged and copied by hand.
+
+## D-016 Core 1.10.0: the still's heat-up, the vessels' metal and C-101 sized (2026-11-06)
+Decision, on the core pin's rise to 1.10.0 (c55e9c7), each feature adopted only where it models
+the step at least as credibly as the hand value it replaces, checked against it:
+- **The still's heat-up (ADR 0063).** ST101 takes `heat_up: true` (Raoult): its duty Q7 holds the
+  charge S17 heated from 308.47 K to its 383.50 K bubble point, 14.6525 kW (149.43 kWh a batch,
+  the hand 52747 kJ/h of Q9 to the kJ/h).
+- **The vessels' metal (ADR 0063).** `metal_heat_capacity` on the recipe's vessels: R-101 3000
+  kJ/K and C-101 2500 kJ/K, the ASSUMED masses of D-010, given once. Core puts C-101's metal into
+  Q7 from the charge's 308.47 K to the still's end 386.48 K, 5.31179 kW (the hand 19123 kJ/h of
+  Q9), and R-101's into CR101's Q3 over the cool-down from 333.15 to 313.15 K, 1.63427 kW (the
+  hand Q10, 1.6342 kW). Q7 is 60.6328 kW (40.6685 + 14.6525 + 5.3118), Q3 5.1858 kW (3.55153 +
+  1.63427): the same as the hand sums, 60.6324 and 5.1857 kW, to their rounding. **The hand
+  streams Q9 and Q10 are removed**, with the ports `ST101.steam_heatup`, `CR101.q_vessel`, the
+  block ports `RECOV.steam2`, `REACT.cw3` and the utility ports `LPS.st101_heatup`,
+  `CW.cr101_vessel`. LP steam and cooling water per kg are unchanged to five digits.
+- **The recipe's heating and cooling with the metal (ADR 0063, L-7).** R-101's jacket times use
+  `C + C_m`: heat 292.81 -> 333.15 K 0.789 h (0.535 h before), cool to 313.15 K 0.807 h (0.552
+  h), the 0.25 h each that ADR 0063 states; R-101 is occupied 10.15 h of the 10.198 h cycle
+  (99.5 %, 94.5 % before); F-101 stays the bottleneck, the cycle, the batches, every flow and
+  the LCI's material exchanges unchanged. In D-011's rate sensitivity, where R-101 is the
+  bottleneck, the cycles grow by the metal's 0.5 h: k/10 35.30 h (34.79 h on 1.9.0), k/100
+  292.8 h (292.2 h); the accumulation and MTSR are unchanged. **Difference recorded, hand value kept:** the recipe's
+  heat report for R-101's heat-up is 375.4 MJ a batch (10.224 kW), the content's 254.3 MJ and
+  the metal's 121.0 MJ from the charge's 292.81 K; core starts the metal at the content's
+  temperature (ADR 0063's limitation: a vessel left warm by the previous batch is not modelled),
+  while R-101 is left at 313.15 K by its cool-down and is purged and charged within 1.75 h. The
+  hand Q1 (metal from 313.15 K, 60.0 MJ, 8.5622 kW) is the better energy and stays; the 1.662 kW
+  difference is exactly the metal's 20.34 K start. For the same reason the heating time is
+  conservative: with the metal's heat only (about 0.66 h, my arithmetic: the metal's 3000 kJ/K
+  weighted by 20/40.34 K) R-101 would be occupied about 10.0 h. Q1 stays on its hand stream: E101
+  is a pass-through heater with no model; `batch.heat_up` on R101 would add nothing (its charge
+  S5 enters at 333.15 K from E101) and the PPh3's dissolution heat is a charged solid's, which
+  core 1.10.0 does not cover (L-8).
+- **The still's heat-up time (a finding, recorded).** Core 1.10.0 puts the heat-up into ST101's
+  duty but not into the recipe's `distil` time from ST101, which stays the boil-up's 1.659 h at
+  250 kW. Heating 4210 kg and C-101's metal by 75 K at that rate takes 0.81 h (201.54 kWh, the
+  charge's 149.43 and the metal's 52.11 kWh to the bubble point), so the RECOVER procedure gets a
+  `heat` operation of 0.81 h, ASSUMED by that arithmetic (C-101 has no jacket model in core);
+  C-101 is occupied 3.47 h (34 %, 26 % before), one batch takes 22.31 h (20.99 h before). L-9.
+- **C-101 sized by the recipe (L-1 resolved).** The RECOVER unit procedure gives a `vessel`
+  (fill 0.8, H/D 1.2, ASSUMED as R-101): 4.852 m3 of liquor a batch in 6.3 m3 (77 %, D 1.88 m),
+  the R10 size the hand estimate had. No jacket check on a still's vessel.
+- **Electricity** follows the occupancies: P1 5.4 -> 5.7 kW (R-101's agitator at 99.5 %), P3 2.8
+  -> 3.0 kW (C-101's at 34 %), 15.5 -> 16.0 kW, 0.150 -> 0.154 kWh per kg (D-010).
+- **Checked, not adopted:**
+  - the batch rectification (`still.column`, ADR 0061): the distillate is to carry the excess
+    methyl bromide back with the toluene (D-009), and PPh3 and the salt do not distil, so one
+    stage is the credible model; a column would only raise the boil-up by `(R + 1)`. Nor a
+    `purity` end: the recovery cut's end is its distilled share;
+  - `still.condenser_port` (ADR 0061): it writes the condenser's latent heat only, 40.669 kW,
+    while Q8 also holds the distillate cooled to 303 K (15.758 kW, no step of its own); adopting
+    it would replace one hand stream by another. Q8's latent part equals Q7's boil-up term (the
+    test checks it);
+  - the vent's vapour, condenser and Henry split (`batch.vent.vapour`, `condenser`, `henry`,
+    ADR 0062): R101 is closed while it reacts and has no vent (D-005); the excess methyl bromide
+    leaves after the reaction (DG101), which is the degassing of a dissolved dose that core
+    1.10.0 leaves open (core#179 item 2, naming this entry's L-3); E201 condenses a dryer's
+    vapour, not a batch's vent. L-3 stays open;
+  - a dose's `heat_of_solution` (ADR 0063) for the liquid methyl bromide in toluene: no value is
+    known; the recorded exclusion (at most 1 kJ/mol ASSUMED, 0.08 kW, D-010) is a bound, not a
+    heat to put into the model and the screening's dT_ad. The PPh3's heat of solution is a
+    charged solid's, not covered (L-8);
+  - `batch.heat_up` on R101 (no heat-up in that step, above).
+- The thermal screening is unchanged (dT_ad 46.0 K, accumulation 14.7 %, MTSR 339.1 K, the hand
+  MTT 415.29 K; `cheme process reactor-hazards` exits 0); R101's duty basis now says the
+  vessel's metal is left out of it (no `heat_up`: E101 and Q1 hold the heat-up).
+- `plant.yaml` requires `cheme-as-code>=1.10`: 1.9.0 refuses `heat_up`, `metal_heat_capacity`
+  and a vessel on the still's unit procedure.
+Reason: core 1.10.0 computes the heat-up and the metal from the models' own temperatures, so they
+go stale with the duties when an input changes, instead of two hand streams to recompute.
 
 ## Core features used (core 1.9.0)
 
@@ -520,6 +621,22 @@ input changes, instead of being converged and copied by hand.
 | `tears: [{stream, initial}]`, `convergence:` (1.9.0) | S11, the recovered toluene's recycle, its flow held as the wash ratio (D-006, D-015) | 0060 |
 | the models' duties at `energy_port:` (1.9.0) | Q2 (R101 semi-batch), Q3 (CR101 crystallizer), Q7 (ST101 still), `calculated` (D-010, D-015) | 0059 |
 | the MTSR over the batch (`mtsr_profile`); the default MTT at the vessel's pressure checked (1.9.0) | R101 (D-011, D-015) | 0058 |
+
+Core 1.10.0 (D-016):
+
+| feature | where | ADR |
+|---|---|---|
+| `still.heat_up: true`: the charge heated to its bubble point in the still's duty | ST101, Q7 (14.6525 kW of 60.6328) | 0063 |
+| `vessel.metal_heat_capacity` on a recipe vessel: in the models' duties | REACT (R-101, 3000 kJ/K: CR101's Q3, 1.63427 kW), RECOVER (C-101, 2500 kJ/K: ST101's Q7, 5.31179 kW) | 0063 |
+| the recipe's `heat` and `cool` times with the metal (`C + C_m`) and their heat report (`heats`) | R-101's heat-up 0.789 h and cool-down 0.807 h; the heat report checked against Q1 and Q3 | 0063 |
+| a `vessel` on a unit procedure holding a still, sized from what it takes in | C-101, 6.3 m3 (L-1) | 0063 |
+
+Checked in 1.10.0 and not used (D-016): `still.column`, `purity` and `still.condenser_port`
+(ADR 0061: one stage is the credible recovery, Q8 holds the distillate's cooling too);
+`batch.vent.vapour`, `condenser` and `henry` (ADR 0062: R101 has no vent, the degassing of the
+dissolved excess stays open); `dosing.heat_of_solution` and `batch.heat_up` (ADR 0063: no value
+for the dosed methyl bromide's mixing heat, no heat-up in R101).
+
 Not used: `batch.vent` and `dosing.absorbed` (ADR 0054): no gas leaves R101 while it reacts (the
 vessel is closed) and the methyl bromide is dosed as a liquid (D-001); the excess leaves after
 the reaction, which a vent on the reacting step cannot express (L-3). Hence also not
@@ -528,11 +645,13 @@ reaction); the default MTT is overridden by `hazard.mtt` (D-011).
 
 ## Core limits hit (for core issues)
 
-Status on core 1.9.0 (2026-11-06): L-5 is resolved, L-7 partly; L-1 to L-4, L-6 and L-8 remain.
+Status on core 1.10.0 (2026-11-06): L-1 and L-5 are resolved, L-7 and L-8 partly; L-2 to L-4
+and L-6 remain; L-9 is new.
 
-- L-1: a batch still is not sized as a vessel: a recipe unit holding only a still has "no batch
-  content to size" (`cheme.recipe-reference` when a vessel is given), so C-101's volume is a
-  hand estimate (D-003). A still's charge is a batch content; core could size its pot from it.
+- L-1 (resolved in core 1.10.0, ADR 0063): a batch still was not sized as a vessel: a recipe
+  unit holding only a still had "no batch content to size" (`cheme.recipe-reference` when a
+  vessel was given), so C-101's volume was a hand estimate. Core 1.10.0 sizes a still's
+  unit procedure's vessel from what its steps take in: C-101 6.3 m3 (D-003, D-016).
 - L-2: the semi-batch is liquid only, so the salt that precipitates as it forms is carried
   dissolved in R101 (with an ASSUMED liquid molar volume and heat capacity) and crystallised
   afterwards by CR101. The concentrations, the volume and the heat capacity during the dosing
@@ -543,7 +662,9 @@ Status on core 1.9.0 (2026-11-06): L-5 is resolved, L-7 partly; L-1 to L-4, L-6 
   by `batch.vent`; its removal after the reaction (DG101) and the vacuum condenser's
   non-condensables (E201) are hand splits with an ASSUMED stripping share. The toluene the
   nitrogen carries is hand arithmetic. A degassing or flash step (a share of each volatile, or a
-  VLE at the vessel's pressure) would make both calculated.
+  VLE at the vessel's pressure) would make both calculated. Still open on core 1.10.0: its vent
+  vapour (ADR 0062) saturates a vent gas a reaction forms, and the degassing of a dissolved dose
+  is left open (core#179 item 2, naming this limit); R101 forms no gas and has no vent (D-016).
 - L-4: no MTT for a closed vessel. Up to 1.8.0 core asked for `hazard.mtt` above atmospheric
   pressure; core 1.9.0 (ADR 0058) gives a default there, the boiling point of what boils at the
   vessel's pressure by Clausius-Clapeyron, here 307.3 K for methyl bromide at 230 kPa(a) with its
@@ -562,16 +683,24 @@ Status on core 1.9.0 (2026-11-06): L-5 is resolved, L-7 partly; L-1 to L-4, L-6 
 - L-6 (as NBS L-6): core propagates from the feeds and does not solve them for a product rate,
   and the per-batch charges over the cycle set the hourly feeds; batch size and cycle were
   iterated by hand to a fixed point.
-- L-7 (partly resolved in core 1.9.0, ADR 0059): the heat-up and the vessel's metal are outside
-  the still's, the crystallizer's and the jacket's models: the still's duty is the boil-up alone
-  (no heat-up of the charge, no sensible heat of the pot), and the recipe's heating and cooling
-  times count the content but not the vessel's steel. Since 1.9.0 the models write their own
-  part (Q2, Q3, Q7) and the hand part is its own stream (Q9, Q10), but Q1, Q6, Q9 and Q10 are
-  still hand arithmetic (ADR 0059 names a heat-up duty from the recipe as a follow-up), and the
-  times are short by that share.
-- L-8: no heat of solution or mixing: the PPh3's dissolution in M101 (60 MJ a batch) is put
-  into S4's temperature by hand, and a dosed liquid's mixing heat is not counted
-  (p-toluenesulfonyl-chloride-1's L-2).
+- L-7 (partly resolved in core 1.9.0, ADR 0059; further in core 1.10.0, ADR 0063): the heat-up
+  and the vessel's metal were outside the still's, the crystallizer's and the jacket's models.
+  Since 1.9.0 the models write their own part (Q2, Q3, Q7); since 1.10.0 the still's charge
+  heat-up and C-101's metal are in Q7, R-101's metal cooled with the slurry in Q3 (the hand
+  streams Q9 and Q10 went), and the recipe's heating and cooling times count R-101's steel
+  (resolved for these, D-016). Still hand arithmetic: Q1 (R-101's heat-up with its metal: E101
+  is a pass-through, and core starts the metal at the content's temperature, not at the
+  313.15 K the previous batch left it at, so its heat report is 1.662 kW high and its heating
+  time conservative) and Q6 (F-101's product and metal cooled; no model in that step).
+- L-8 (partly resolved in core 1.10.0, ADR 0063): no heat of solution or mixing. Core 1.10.0
+  takes a dose's `heat_of_solution`, so the dosed liquid methyl bromide's mixing heat could be
+  counted, but no value is known (the exclusion of D-010 is a bound). The PPh3's dissolution in
+  M101 (60 MJ a batch), a charged solid's, is not covered (ADR 0063) and stays in S4's
+  temperature by hand.
+- L-9 (new on core 1.10.0): the still's `heat_up` enters its duty but not the recipe's `distil`
+  time from the still, which stays the boil-up's at the boil-up rate; the heat-up time at the
+  same 250 kW (0.81 h) is a hand `heat` operation on C-101 (D-016). Core could add the heat-up
+  energy over the boil-up rate to the distil time, or give the still's vessel a jacket time.
 
 ## Method and dependency table
 
@@ -584,11 +713,12 @@ Status on core 1.9.0 (2026-11-06): L-5 is resolved, L-7 partly; L-1 to L-4, L-6 
 | precipitation and wash losses | done in cheme: crystallizers with spectators, solubility ASSUMED | D-007, D-008, core ADR 0056 |
 | filtration | specified split in cheme; time by Ruth, cake data ASSUMED | D-008, core ADR 0057 |
 | drying: outlets, duty Q4, drying time | done in cheme, moisture and rate ASSUMED | D-008, core ADR 0057 |
-| toluene recovery: cuts, residue, boil-up time and energy | done in cheme (Rayleigh, Raoult) | D-009, core ADR 0055 |
+| toluene recovery: cuts, residue, boil-up time and energy, the charge's heat-up and C-101's metal | done in cheme (Rayleigh, Raoult; `heat_up` and the metal, core 1.10.0); the heat-up time hand arithmetic | D-009, D-016, core ADRs 0055, 0063, L-9 |
 | vent losses DG101, vacuum condenser E201 | hand splits, shares ASSUMED | D-007, D-008, L-3 |
 | recycle | done in cheme (tear S11, Wegstein); the fresh feeds' charge ratios and the cycle ASSUMED at the fixed point | D-006, D-015, L-6 |
-| duties Q2, Q3, Q7 | done in cheme (the models at `energy_port`, core 1.9.0) | D-010, D-015 |
-| the other duties (Q1, Q5, Q6, Q8, Q9, Q10) | hand arithmetic in the sources, recomputed by the test | D-010 |
+| duties Q2, Q3, Q7 | done in cheme (the models at `energy_port`, core 1.9.0; with the vessels' metal and the still's heat-up, core 1.10.0) | D-010, D-015, D-016 |
+| the other duties (Q1, Q5, Q6, Q8) | hand arithmetic in the sources, recomputed by the test | D-010 |
+| vessels R-101, F-101, C-101 and R-101's heat and cool times with its metal | done in cheme (recipe, core 1.10.0 for C-101 and the metal) | D-003, D-016 |
 | per-batch exchange (nitrogen) | done in cheme, amount ASSUMED | D-012, core ADR 0053 |
 | LCI inventory | done, PPh3 and methyl bromide unmapped | D-012 |
 

@@ -29,7 +29,7 @@ hand (DESIGN.md D-003 to D-012):
 - the recipe's batch size times its batches per year gives the flowsheet's product rate, 300 t/a;
 - with core: the screening's accumulation, MTSR and MTT, and the classes still possible without a
   TD24 exactly as core's criticality() gives them;
-- the process is not set public and carries no licence in the change that adds it.
+- the process is public with CC-BY-4.0, every library entry is (ADR 0036).
 """
 
 from __future__ import annotations
@@ -452,11 +452,11 @@ def test_property_sources_are_registered():
     assert "CRC Handbook)" not in cited.replace("citing the CRC Handbook", "")
 
 
-def test_requires_core_1_9_and_not_published():
+def test_requires_core_1_9_and_published_public():
     assert _yaml("plant.yaml")["requires"] == "cheme-as-code>=1.9"
     assert "1.9.0" in _text("README.md") and "cheme-as-code 1.9.0" in _text("process.yaml")
     publication = _yaml("process.yaml")["publication"]
-    assert publication["status"] == "internal" and "license" not in publication
+    assert publication == {"status": "public", "license": "CC-BY-4.0"}
 
 
 def test_duties_stated_in_design_are_the_flowsheets(model):

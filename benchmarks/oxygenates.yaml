@@ -33,6 +33,14 @@
 # (149 g from 168 g of the alkoxide and 223 g of phosgene, its purity not stated in the text), is a
 # single laboratory value with a phosgene excess the dataset does not use; it is discussed in
 # DESIGN.md D-005, not bound here.
+# benzyl-alcohol-1:
+# The yield references are independent of the dataset (other patents, other applicants), but they
+# are patent examples too, and neither is the dataset's technology exactly.
+#
+# tert-butanol-1:
+# The selectivity reference is a patent (Sumitomo Chemical) that the dataset does not use: the dataset's
+# by-product rate is from another applicant's patent (Nippon Oil, US 4,180,688, Example 4). The selectivity
+# examples are laboratory tests, not plant data. No energy KPI has an open reference.
 schema: cheme-as-code/benchmarks/v1
 family: oxygenates
 
@@ -300,6 +308,82 @@ kpis:
     title: Phosgene consumption per kg of di-tert-butyl dicarbonate
     unit: kg/kg
     no_open_reference: "No open source with a plant's phosgene use per kg of Boc2O found (searched 2026-11-06 as for boc2o-specific-potassium-tert-butoxide); EP 0 256 559 A2 uses 0.54 to 1.5 mol per mol of the alkoxide in its examples (1.5 in Example 1, 1.50 kg/kg on its 149 g), laboratory ratios. Only the stoichiometric floor, 0.453 kg/kg, is known."
+  benzyl-alcohol-yield:
+    title: Benzyl alcohol yield on benzyl chloride, fraction of theory
+    unit: kg/kg
+    references:
+      - id: cs216044-continuous-soda-cascade
+        range: [0.950, 0.955]
+        basis: unallocated
+        note: >-
+          The total yields of the patent's two soda examples (95.5 % at 95 to 98 degC, atmospheric;
+          95.0 % at 112 to 115 degC and 0.15 to 0.16 MPa), recorded as the span of the two stated values, not widened. Read
+          in the machine translation of Google Patents.
+        conditions: {technology: "continuous cascade of two stirred, jacketed vessels, 9.75 wt% soda solution, no inert solvent", capacity: "pilot, two 20 l vessels", region: CZ, year: 1982}
+        source:
+          citation: "Czechoslovak patent CS 216044 B1 (filed 1979-10-22, published 1982-10-29), Method of continuous preparation of benzyl alcohol"
+          url: https://patents.google.com/patent/CS216044B1/en
+          locator: Examples 1 and 2
+          kind: other
+          accessed: "2026-11-05"
+      - id: us5750801-continuous-water-hydrolysis
+        range: [0.94, 0.96]
+        basis: unallocated
+        note: The patent's stated yield of its worked example, without and with recovery of the alcohol in the residue. A different route (water only, no base, HCl as by-product).
+        conditions: {technology: "continuous hydrolysis with water only, 5-tank cascade, 130 degC, 10 bar, 60 % conversion with benzyl chloride recycle", capacity: "not stated (parts per hour)", year: 1998}
+        source:
+          citation: "Buysch, H.-J. et al. (Bayer AG) (1998) Process for the continuous preparation of benzyl alcohol. US patent 5,750,801"
+          url: https://patents.google.com/patent/US5750801A/en
+          locator: Example
+          kind: other
+          accessed: "2026-11-05"
+  benzyl-alcohol-specific-heat:
+    title: Heat (steam) per t of benzyl alcohol
+    unit: kWh/t
+    no_open_reference: >-
+      No open source independent of the dataset's with a benzyl alcohol heat or steam figure was found
+      (2026-11-05). Read: US 5,750,801 and CS 216044 B1 (no energy figures), IPCC 2006 Vol. 3 ch. 2
+      (process CO2 only), the EU LVOC BREF 2017 (doi:10.2760/77304; no benzyl alcohol section). Not
+      read: Ullmann's chapter on benzyl alcohol (licensed). The dataset's value is EP 0 064 486 A1,
+      Table 3, a pilot figure.
+  tba-isobutene-selectivity:
+    title: Selectivity of the isobutene converted to tert-butanol (molar)
+    unit: "%"
+    references:
+      - id: us4307257-tba-selectivity
+        range: [97.3, 99.8]
+        basis: unallocated
+        note: >-
+          The lowest and highest of the four examples according to the invention (Examples 1 to 4);
+          the comparative examples are left out. The patent does not say whether the selectivity is
+          molar; molar is our reading. A single-reactor test with a C4 raffinate feed.
+        conditions: {technology: "fixed bed of sulfonic-acid cation-exchange resin (Duolite ES-26), 70 degC, 16 kg/cm2, homogeneous TBA/water/C4 feed", product: tert-butanol, year: 1981}
+        source:
+          citation: "US 4,307,257 A (1981) Process for production of tertiary butyl alcohol. Sumitomo Chemical Co Ltd (Sada, M., Kato, M., Mori, Y., Sano, M.)"
+          url: https://patents.google.com/patent/US4307257A/en
+          locator: Examples 1 to 4, Table 2
+          kind: other
+          accessed: "2026-11-05"
+  tba-specific-electricity:
+    title: Electricity per t of tert-butanol
+    unit: kWh/t
+    no_open_reference: >-
+      No usable open source with a tert-butanol electricity figure found (2026-11-05). Read: LVOC BREF 2017
+      section 2.1.2.1.8 (routes only, "endothermic process", no figure); patents US 7,179,948 B2,
+      US 7,002,050 B2, US 7,115,787 B2, US 7,709,690 B2, US 4,180,688 A and US 4,307,257 A (no utility
+      figures). Web searches for open simulation studies with reboiler duties found only abstracts
+      and theses that could not be read. One abstract was read and not used: a student preliminary design
+      (Universitas Muhammadiyah Surakarta, eprints.ums.ac.id/47175, 80 kt/a, bubble reactor) states 321.62 kW
+      of electricity, about 32 kWh/t at 330 d/a; its isobutylene use is below stoichiometry and the route
+      differs, so it is not a reference. The dataset's value is core's Tier 0 default, ASSUMED.
+  tba-specific-heat:
+    title: Heat per t of tert-butanol
+    unit: kWh/t
+    no_open_reference: >-
+      No usable open source with a tert-butanol heat or steam figure found (2026-11-05); the same sources as
+      for electricity were read. The student design named under electricity states 9388 kg/h of steam,
+      about 0.93 t per t TBA at 330 d/a; it is not used, for the reasons given there. The dataset's value
+      is core's Tier 0 default heat from fossil fuel, ASSUMED.
 
 datasets:
   - process: terephthalic-acid-1
@@ -388,3 +472,28 @@ datasets:
     kpis:
       boc2o-specific-potassium-tert-butoxide: {expression: feed:KOTBU / product:BOC, per: product:BOC}
       boc2o-specific-phosgene: {expression: feed:PHOS / product:BOC, per: product:BOC}
+  - process: benzyl-alcohol-1
+    dataset: benzyl-alcohol-continuous-soda-hydrolysis
+    conditions: {technology: "continuous countercurrent column, 10.9 wt% soda solution, toluene as inert solvent, brine extracted", scale: pilot, basis: conceptual inventory}
+    kpis:
+      benzyl-alcohol-yield:
+        expression: product:benzyl-alcohol * 1.170548 / feed:benzyl-chloride
+        reference: cs216044-continuous-soda-cascade
+        out_of_range_reason: >-
+          The dataset's countercurrent column with toluene as solvent converts more of the feed and forms
+          less by-product (99.9 % conversion and 0.55 % dibenzyl ether, EP 0 064 486 A1 Table 1) than the
+          solvent-free stirred cascade of CS 216044, whose organic layer still holds about 1.2 % benzyl
+          chloride, 7 % dibenzyl ether and 2.7 % benzaldehyde, so its yield (98.2 %) is higher. Which design
+          feature accounts for the gap is not established: CS 216044's Example 4, with chlorobenzene as inert
+          solvent, still gives 95.2 %. 1.170548 is the stoichiometric benzyl chloride per kg of alcohol
+          (126.583 / 108.140).
+      benzyl-alcohol-specific-heat: {expression: feed:steam / product:benzyl-alcohol, per: product:benzyl-alcohol}
+  - process: tert-butanol-1
+    dataset: tert-butanol-isobutene-hydration
+    conditions: {technology: continuous fixed-bed resin hydration, feed: pure isobutene (ASSUMED), basis: Tier 0 screening}
+    kpis:
+      tba-isobutene-selectivity:
+        expression: product:tert-butanol * 56.108 / 74.123 / feed:isobutene
+        reference: us4307257-tba-selectivity
+      tba-specific-electricity: {expression: feed:electricity / product:tert-butanol, per: product:tert-butanol}
+      tba-specific-heat: {expression: feed:heat / product:tert-butanol, per: product:tert-butanol}

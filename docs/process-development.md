@@ -119,7 +119,8 @@ when triaging; the issue form does not automatically synchronize custom Project 
 calculation maturity changes from workflow state, labels, merge or closure. Update calculation
 maturity only after reviewing a current `cheme maturity` report (where applicable) at a recorded commit.
 Inventory-only entries record dataset evidence and leave plant calculation maturity Not assessed.
-Record independent review and publication decisions separately.
+Record independent review separately. A new entry is public from the change that adds it
+([ADR 0036](adr/0036-public-is-the-default-publication-status.md)); an entry kept `internal` states why.
 
 ## Maintaining the tracker
 

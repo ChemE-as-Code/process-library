@@ -25,7 +25,7 @@ no paragraph numbers, so the locator is the part of the document).
 | SRC-1 | EP0256559A2, Mitsubishi Kasei, priority 1986, published 1988 (application refused): process for the preparation of di-tert-butyl dicarbonate, https://patents.google.com/patent/EP0256559A2/en | description: the alkali tert-butyl carbonate from the alkoxide and CO2 (0.5-10, preferably 1-3 mol CO2 per mol, at or below 50 C, preferably -20 to 30 C); phosgene (0.4-5, preferably 0.5-1.5 mol per mol of carbonate) with a tertiary amine (0.005-50, preferably 0.005-5 mol%; triethylamine, DABCO) in an ether, cyclic ether, aromatic, aliphatic or halogenated hydrocarbon (2-100, preferably 4-20 times the carbonate's weight), -20 to 50 C preferred, phosgene added gradually with external cooling (exothermic), 0.5-20 h; Di-BOC forms directly, no tricarbonate isolated; acidic by-products such as tert-butyl chloroformate form in the crude; the alkali chloride removed mainly by washing with water (filtration possible but slow, the mixture is paste-like); a water-miscible solvent swapped for a water-insoluble one before the wash; solvent removed under reduced pressure; distillation at 60-120 (preferably 60-100) C under reduced pressure with a liquid paraffin (bp at least 250 C, mp at most 20 C) at 0.01-10 (preferably 0.03-7) times the product's weight to suppress decomposition. Example 1: 1.5 mol KOtBu, 2060 mL THF, 0.018 mol DABCO, 3 mol CO2 over 3 h at 5 C, 2.25 mol phosgene over 4 h at 5 C, THF swapped for dibutyl ether below 50 C, two 500 mL water washes, MgSO4, distilled at 62-66 C and 0.5 mmHg: 149 g. Examples 6-7: 0.81 mol phosgene. Comparative 1: no amine, scarcely any product. The tables' yields and purities are images, not in the text: not read | read; patent, facts only | D-001, D-004, D-005, D-007, D-008 |
 | SRC-2 | US5151542A, Sumitomo Seika, 1991/1992: process for preparing di-tert-butyl dicarbonate, https://patents.google.com/patent/US5151542A/en (family EP0468404A2) | description: Boc2O is thermally unstable; solvent removal at no more than 50 C under reduced pressure (the examples 35-40 C); CO2 bubbled through the alkoxide in a hydrocarbon or ether at -50 to +70 C, 0.5-10 (preferably 1-3) mol per mol; Example 1: 3 mol KOtBu in 3.6 L hexane, 4 mol CO2 at 15-25 C over 2 h, then methanesulfonyl chloride, two 1 L water washes, concentrated at 35-40 C: 285.8 g, 87 %, 99.7 %, mp 22-23 C; Examples 2-26: 71-90 %, 95.6-99.9 %; Comparative Examples 1 and 4 (60-70 C): gas vigorously generated, 11 % and 5 %; conventional high-vacuum distillation called not easy at industrial scale (Comparative Example 5: 56-58 C at 0.5 mmHg, 57.6 %) | read; patent, facts only | D-001 (variant, rejected), D-004, D-006, D-008, D-011 |
 | SRC-3 | US6020514A, Tokuyama, 1997-2000 (sodium alkoxide in tert-butanol, CO2 under pressure, p-toluenesulfonyl chloride) | - | not read (named by the route scouting) | lead only (D-001) |
-| SRC-4 | Pope, B. M.; Yamamoto, Y.; Tarbell, D. S., Organic Syntheses (1977): di-tert-butyl dicarbonate via the tricarbonate | - | not read (the page was blocked by a browser check; named by SRC-2 and Wikipedia) | lead only (D-001) |
+| SRC-4 | Pope, B. M.; Yamamoto, Y.; Tarbell, D. S., Organic Syntheses (1977): di-tert-butyl dicarbonate via the tricarbonate | - | not read (not accessible when checked); named by SRC-2 and SRC-5 | lead only (D-001) |
 | SRC-5 | Wikipedia, Di-tert-butyl dicarbonate, https://en.wikipedia.org/wiki/Di-tert-butyl_dicarbonate | infobox: density 0.95 g/cm3, mp 22-24 C, bp 56-57 C at 0.5 mmHg, insoluble in water; decomposes to gaseous products on heating (a blowing agent); with moisture slowly to tert-butanol and CO2, pressure in closed containers (uncited); routes named (the classical phosgene route cited to Organic Syntheses; the sulfonic acid routes uncited); sold neat or as 70 % solutions (uncited); rat LC50 100 mg/m3 over 4 h (a supplier's MSDS) | read; CC BY-SA, facts only | materials, D-008, D-011 |
 | SRC-6 | Wikipedia, Potassium chloride, https://en.wikipedia.org/wiki/Potassium_chloride | density 1.984 g/cm3; solubility 27.8 g/100 mL at 0 C, 34.0 at 20 C | read; CC BY-SA, facts only | materials, D-007 |
 | SRC-7 | Wikipedia, Potassium tert-butoxide, https://en.wikipedia.org/wiki/Potassium_tert-butoxide | solubility 25 g/100 g in THF, 0.27 in hexane, 2.27 in toluene; made from dry tert-butanol and potassium metal; sold as a solid and in solution | read; CC BY-SA, facts only | D-004, D-005 (a suspension), D-012 (proxy) |
@@ -59,8 +59,9 @@ DABCO, liquid paraffin, caustic soda 50 wt%, process water, electricity, LP stea
 cooling water, chilled water, brine; outputs: distilled Boc2O, wash brine, spent scrubber
 liquor, waste solvent and the heel's purge to incineration, the scrubbed vent to the oxidiser.
 Reason: the issue names the alkoxide + CO2 + phosgene route; SRC-1 is the most complete open
-description of it as one pot, without the tricarbonate the older Organic Syntheses route isolates
-(SRC-4) and with a work-up order (wash, solvent removal, distillation from paraffin). Phosgene-1
+description of it as one pot, without the tricarbonate that the older Organic Syntheses route
+isolates (SRC-4, as SRC-2 and SRC-5 name it; not read) and with a work-up order (wash, solvent
+removal, distillation from paraffin). Phosgene-1
 exists in the library, so the route links its main reagent. It exercises gas dosing
 (`dosing.absorbed`), gas evolution (`batch.vent`), batch stills and recycle tears.
 **Solvent: hexane, not the example's THF (ASSUMED).** SRC-1 claims aliphatic hydrocarbons among
@@ -456,9 +457,9 @@ chlor-alkali-1, the nitrogen consumable to asu-1's gaseous nitrogen (`lca/mappin
 steam counted as heat (kWh); every other background a gap with the activity it should connect to.
 - **Potassium tert-butoxide** has no library producer: its stoichiometric proxy, 0.6606 kg of
   tert-butanol and 0.3484 kg of potassium per kg (from dry tert-butanol and potassium metal, SRC-7;
-  0.009 kg of hydrogen released), is recorded in lca.yaml and here and not linked: **tert-butanol-1
-  is being built by another session; link the alkoxide's proxy (or a KOtBu entry) to it when that
-  entry lands.** Potassium metal has no entry.
+  0.009 kg of hydrogen released), is recorded in lca.yaml and here and not linked. No library
+  entry makes tert-butanol yet; linking the proxy to a tert-butanol entry (or to a KOtBu entry)
+  is an open input. Potassium metal has no entry.
 - Hexane, DABCO, CO2 and the liquid paraffin: gaps, no library producer (CO2 is a by-product of
   ammonia or ethylene-oxide plants; none of the library's entries supplies it as a product).
 - Wastes: the brine and the scrubber liquor to wastewater treatment, the waste solvent and the heel
