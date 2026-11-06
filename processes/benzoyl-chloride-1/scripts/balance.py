@@ -11,7 +11,12 @@ model for, from the streams propagate wrote:
 - the column K101 on the still: its rectification is a specified split of the still's
   distillate S9 (core's still has no reflux, core ADR 0055, core#173), giving S11 and S12;
 - the absorber water S7 for 30 wt% acid;
-- the duties Q1 to Q5 (no property package of core covers these liquids).
+- the duties Q1, Q3, Q5 and Q6 (no property package of core covers these liquids, and core has
+  no column with reflux). Since cheme-as-code 1.9.0 (core ADR 0059) propagate writes R101's Q2
+  (the reaction heat less the dose's warming) and the still's Q4 (its net boil-up's latent
+  heat) from the models; this script prints its own values of both as a cross-check only. Q6
+  is the reboiler's share for the column's reflux: the reflux ratio times the latent heat of
+  the still's distillate, the vapour the column condenses and returns to the pot (D-009).
 
 Run: `cheme run scripts/balance.py`, after `cheme process propagate --fill`. With BALANCE_OUTPUT
 set it writes the values the flowsheet cites (library ADR 0027).
@@ -124,7 +129,8 @@ def main() -> None:
     q2 = (-HEAT_OF_REACTION * vent - dose_heat) / 3600.0
     q3 = (hcl / MW["HCL"] * ABSORPTION - water / MW["H2O"] * CP["H2O"] * (T_ACID - T_AMBIENT)) / 3600.0
     latent = sum(v / MW[n] * HVAP[n] for n, v in s9.items() if n in HVAP)
-    q4 = (1.0 + REFLUX) * latent / 3600.0
+    q4 = latent / 3600.0  # the net boil-up: cheme's still model writes it (ADR 0059)
+    q6 = REFLUX * latent / 3600.0  # the boil-up the column returns as reflux (D-009)
     subcool = sum(v / MW[n] * CP.get(n, CP["BZCL"]) for n, v in s11.items()) * (T_STILL - T_PRODUCT)
     q5 = ((1.0 + REFLUX) * latent + subcool) / 3600.0
 
@@ -134,7 +140,8 @@ def main() -> None:
     print(f"S11 {product:.4f} kg/h, BZCL {s11['BZCL'] / product:.6f} by mass; S12 {sum(s12.values()):.4f} kg/h")
     print(f"S7 absorber water {water:.4f} kg/h for {hcl:.4f} kg/h HCl")
     print(f"yield on benzotrichloride {yield_btc:.4%} (2 mol of benzoyl chloride per mol)")
-    print(f"Q1 melter {q1:.3f}, Q2 R101 {q2:.3f}, Q3 absorber {q3:.3f}, Q4 reboiler {q4:.3f}, Q5 condenser {q5:.3f} kW")
+    print(f"Q1 melter {q1:.3f}, Q3 absorber {q3:.3f}, Q5 condenser {q5:.3f}, Q6 reboiler for the reflux {q6:.3f} kW")
+    print(f"cross-check of the model duties propagate writes: Q2 R101 {q2:.3f}, Q4 still net boil-up {q4:.3f} kW; reboiler Q4 + Q6 {q4 + q6:.3f} kW")
 
     write_balance_output(
         {
@@ -146,10 +153,9 @@ def main() -> None:
                 "S11": {"flow": round(product, 4), "composition": fractions(s11)},
                 "S12": {"flow": round(sum(s12.values()), 5), "composition": fractions(s12)},
                 "Q1": {"duty": round(q1, 4)},
-                "Q2": {"duty": round(q2, 4)},
                 "Q3": {"duty": round(q3, 4)},
-                "Q4": {"duty": round(q4, 4)},
                 "Q5": {"duty": round(q5, 4)},
+                "Q6": {"duty": round(q6, 4)},
             }
         }
     )

@@ -18,7 +18,11 @@
 #   (core has no batch rectification with reflux, core#173): its outlets and the absorber's
 #   water come from scripts/balance.py (D-006, D-008);
 # - M101, A101, M102: mixers (`cheme process propagate --fill`);
-# - the duties: scripts/balance.py (D-009), no property package of core covers these liquids.
+# - the duties: R101's Q2 and the still's net boil-up Q4 are written by `cheme process propagate
+#   --fill` from the models (core 1.9.0, ADR 0059: R101's energy stream is its one heat stream,
+#   ST101's is named by `energy_port`); the melter's Q1, the absorber's Q3, the reboiler's share
+#   for the column's reflux Q6 and the condenser's Q5 come from scripts/balance.py (D-009), no
+#   property package of core covers these liquids and core has no column with reflux.
 schema: cheme/process/v1
 kind: flowsheet
 title: Benzoyl chloride by semi-batch reaction of benzotrichloride with benzoic acid and batch vacuum distillation (2000 t/a)
@@ -66,6 +70,7 @@ feeds:
       min_approach: {value: 10, provenance: assumed, source: "D-009"}
     ports:
       - {id: st101, direction: out, kind: energy}
+      - {id: st101_reflux, direction: out, kind: energy}
 products:
   - {id: BZCL, title: Benzoyl chloride to storage, category: product, ports: [{id: in, direction: in}]}
   - {id: HCLAQ, title: Hydrochloric acid 30 wt% (co-product), category: by_product, ports: [{id: in, direction: in}]}
@@ -118,6 +123,7 @@ blocks:
       - {id: product, direction: out}
       - {id: residue, direction: out}
       - {id: steam, direction: in, kind: energy}
+      - {id: steam_reflux, direction: in, kind: energy}
       - {id: q, direction: out, kind: energy}
       - {id: power, direction: in, kind: energy}
 
@@ -147,8 +153,9 @@ steps:
       source: "benzotrichloride dosed over 2 h into the melt at 413 K, the dosing time of US 4 276 231 A, Example 1; post-reaction to 0.999 conversion of the benzotrichloride; the HCl leaves as gas as it forms, none taken as dissolved (D-005)"
     hazard:
       mtt: 471.0
-      provenance: given
-      source: "the normal boiling point of benzoyl chloride (NIST WebBook, mean of 8 values, 471 +/- 2 K), the liquid's main component once dosed: R101 runs at atmospheric pressure with its vent open to the absorber; the default, benzotrichloride's 493.8 K, lies above it (D-011)"
+      vent_capacity: 100.0
+      provenance: assumed
+      source: "mtt: the normal boiling point of benzoyl chloride (NIST WebBook, mean of 8 values, 471 +/- 2 K), the liquid's main component once dosed: R101 runs at atmospheric pressure with its vent open to the absorber; the default, benzotrichloride's 493.8 K, lies above it, since core takes the MTT from the charge and doses, not the product (D-011, L-5). vent_capacity: ASSUMED design of R-101's off-gas line, its reflux condenser and A-101 (D-014): 1.2 x the gas release at the MTSR (81.6 m3/h of HCl at 421.9 K and 101.3 kPa(a), cheme process reactor-hazards), rounded up to 100 m3/h; the normal peak, 75.25 m3/h at 413 K (cheme process recipe), is within it; holds for the assumed kinetics only: at k/10 the release at the MTSR is 164.3 m3/h, 1.64 x (D-011, D-014, open)"
     links: [{target: equipment, ref: R-101}]
     ports:
       - {id: in, direction: in, delegates: in}
@@ -171,6 +178,9 @@ steps:
     block: PURIFY
     title: Batch still at 5 kPa(a) (one stage, Rayleigh)
     class: Distilling
+    # the still's model duty (its net boil-up's latent heat, ADR 0059) goes on Q4; Q6 is the
+    # reboiler's share for the column's reflux, which the one-stage still does not hold (D-009)
+    energy_port: steam
     still:
       pressure: 5.0
       volatility: {model: raoult, provenance: assumed, source: "ideal liquid, NIST WebBook Antoine constants (materials.yaml); benzoic acid dimerises in the vapour and its mixture with benzoyl chloride is not shown to be ideal: ASSUMED (D-007)"}
@@ -186,6 +196,7 @@ steps:
       - {id: top, direction: out}
       - {id: bottom, direction: out}
       - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: steam_reflux, direction: in, kind: energy, delegates: steam_reflux}
       - {id: power, direction: in, kind: energy, delegates: power}
   - id: K101
     block: PURIFY
@@ -353,9 +364,10 @@ streams:
         composition: {basis: mole_fraction, values: {BTC: 0.00730074, BA: 0.537178, BZCL: 0.402564, ZNCL2: 0.0529568, HCL: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M102 from S10 S12', fingerprint: d22daada56f92bd5}
   # energy
   - {id: Q1, title: Melter heat (MP steam), kind: energy, from: MPS.m101, to: M101.steam, state: {design: {duty: {value: 12.1285, provenance: assumed, source: "scripts/balance.py: benzoic acid from 298 K to its melt at 413 K (fusion 18.0 kJ/mol), the catalyst heated, 10 % losses (D-009)"}}}}
-  - {id: Q2, title: Heat of reaction to cooling water (via the tempered-water loop), kind: energy, from: R101.q, to: CW.r101, state: {design: {duty: {value: 5.4422, provenance: assumed, source: "scripts/balance.py: the reaction heat (-50 kJ/mol, ASSUMED) less the benzotrichloride's heating from 298 to 413 K (D-005, D-009)"}}}}
+  - {id: Q2, title: Heat of reaction to cooling water (via the tempered-water loop), kind: energy, from: R101.q, to: CW.r101, state: {design: {duty: {value: 5.44216, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S3 S4', fingerprint: d1b0705a091a552e}}}}
   - {id: Q3, title: Heat of absorption to cooling water, kind: energy, from: A101.q, to: CW.a101, state: {design: {duty: {value: 15.7912, provenance: assumed, source: "scripts/balance.py: HCl from gas at 413 K to 30 wt% acid at 313 K, -64 kJ/mol ASSUMED (D-010)"}}}}
-  - {id: Q4, title: Still reboiler (LP steam), kind: energy, from: LPS.st101, to: ST101.steam, state: {design: {duty: {value: 50.1964, provenance: assumed, source: "scripts/balance.py: the latent heat of the distillate S9 times (1 + the reflux ratio 1) (D-007, D-008)"}}}}
+  - {id: Q4, title: "Still reboiler: the net boil-up (LP steam)", kind: energy, from: LPS.st101, to: ST101.steam, state: {design: {duty: {value: 25.0981, provenance: calculated, source: 'cheme process propagate: still duty ST101 from S5', fingerprint: 6137227a0332b9da}}}}
+  - {id: Q6, title: "Still reboiler: the boil-up returned as the column's reflux (LP steam)", kind: energy, from: LPS.st101_reflux, to: ST101.steam_reflux, state: {design: {duty: {value: 25.0982, provenance: assumed, source: "scripts/balance.py: the reflux ratio 1 times the latent heat of the distillate S9, the vapour K101 condenses and returns to the pot, which the one-stage still does not hold (core#173; D-008, D-009)"}}}}
   - {id: Q5, title: Column condenser and product cooler to cooling water, kind: energy, from: K101.q, to: CW.k101, state: {design: {duty: {value: 57.0414, provenance: assumed, source: "scripts/balance.py: the vapour condensed at the reflux ratio 1 and the product subcooled to 303 K (D-008)"}}}}
   - {id: P1, title: Melter and reactor agitators, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 4.0, provenance: assumed, source: "year average: M-101 1 kW and R-101 3 kW agitators (D-009)"}}}}
   - {id: P2, title: Still agitator and vacuum pump, kind: energy, from: POWER.st101, to: ST101.power, state: {design: {duty: {value: 3.0, provenance: assumed, source: "year average: still agitator 1 kW, dry vacuum pump 5 kW while distilling, about 40 % of the time (D-009)"}}}}

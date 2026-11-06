@@ -11,8 +11,12 @@ gate-to-gate LCI. Out of scope here: P&IDs, layout, HAZOP, TEA, datasheets.
 Starting point (2026-11-05): library `main` at fcde3262; cheme-as-code core main 7334d7c,
 rechecked on the release **1.8.0** (4e8fd80), with the batch work-up of core#165: gas vents
 and gas dosing (ADR 0054), the batch still (ADR 0055), precipitation from a mixed liquor (ADR
-0056) and the filter-dryer with recipe units over several steps (ADR 0057). The library pins
-core 1.8.0; 1.7.0 refuses these fields, so the folder requires 1.8 (see "Core features used").
+0056) and the filter-dryer with recipe units over several steps (ADR 0057).
+Rechecked (2026-11-06) on core **1.9.0** (314642c), which the library now pins: propagate
+converges the two recycles at declared tear streams (ADR 0060, D-006), the batch models write
+their duties (ADR 0059, D-012), and the screening takes the MTT of what boils and gives the gas
+release at the MTSR against a stated vent capacity (ADR 0058, D-011, D-017). The folder uses all
+three, so it requires 1.9 (see "Core features used").
 
 ## Source register
 
@@ -151,22 +155,37 @@ Decision (`process/reactions.yaml`):
 **The low accumulation of D-011 is a consequence of the assumed rate laws** and must be
 confirmed by reaction calorimetry (heat flow and gas uptake during the dosing).
 
-## D-006 Balance method, pseudo-components and the recycles (2026-11-05)
-Decision: every unit is calculated by `cheme process propagate` (core main): the semi-batches
+## D-006 Balance method, pseudo-components and the recycles (2026-11-05, recycles 2026-11-06)
+Decision: every unit is calculated by `cheme process propagate`: the semi-batches
 R101 and R102 with their vents, the still ST101, the crystallizer CR101, the filters F101 and
 F102, the dryer D101, the mixers and the splitters' remainders. No balance script.
 The liquors are molecular pseudo-components (NaNO2, H2SO4, Na2SO4, NaOH, hydrazine and NaN3
 dissolved), as in n-bromosuccinimide-1: no property package of core covers these electrolyte
 liquors. Their liquid volumes and heat capacities are the solids' or the liquids' (SRC-5,
 ASSUMED for the dissolved salts).
-The two recycles, the recovered methanol S3 to R-101 and the mother liquor S11 to R-102, are
-assumed tear streams: propagate does not converge recycles. They were converged by successive
-substitution over `cheme process propagate --fill` (a scratch driver outside the folder: write
-the tears and the fresh feeds that follow the charge ratios of D-004, propagate, take S11 = 0.95
-x S28 and S3 at S15's composition, repeat, damped) until the change was below 3e-5 kmol/h, the
-precision of the six-digit values the files hold. X101 and X102 then balance within the
-flowsheet's tolerance (abs 0.02 kg/h, rel 0.001), which `cheme validate` checks; a change to an
-upstream value makes them unbalanced, so the loop must be re-converged (L-1).
+The two recycles are the tear streams of the flowsheet's `tears:` (core 1.9.0, ADR 0060): the
+mother liquor S11 (X101's recycle, `split: {recycle: 0.95}`, D-016) to R-102's charge and the
+recovered methanol S3 (X102) to R-101's charge. Every loop of the flowsheet runs through one of
+them (the cake wash S18 -> W101 -> F102 -> M103 -> S11 too), so each loop is torn once.
+Propagate iterates them by Wegstein's method from first guesses (the earlier hand estimates,
+rounded to three digits) to 1e-6 kg/h + 1e-9 relative per component, far tighter than the
+balances' tolerance (0.02 kg/h + 0.001): a loop stops within tolerance / (1 - gain) of its fixed
+point, and a first run at 1e-4 kg/h + 1e-6 (21 iterations) left that error in the last of the six
+digits written (S17's mole fractions then summed to 1.000001, beyond the PFD's 1e-6 check); at
+1e-6 kg/h the digits written are the fixed point's. 32 iterations, worst residual 7.1e-7 kg/h
+(S11's total; `cheme.process-recycle`, info), about 14 s for propagate. S11's flow
+and composition and S3's composition are `calculated`; S3's flow stays ASSUMED, the charge ratio
+of 1.002 mol methanol per mol nitrite (D-004), and the iteration holds it fixed.
+The fresh feeds that follow the charge ratios of D-004 (S1, S2, S8, S9, S10, S22) stay ASSUMED at
+the values set at the hand-converged recycle: core has no design specification on a feed (ADR
+0060, core#181 part 2). At the converged recycle the ratios hold to 1e-4: NaOH 1.2001 and water
+6.6307 mol per mol hydrazine of the charge, nitrite 0.76906 mol per mol hydrazine, methanol
+1.0020 mol per mol nitrite.
+Until 1.9.0 the tears were ASSUMED values converged by hand (successive substitution over
+`propagate --fill` with a scratch driver outside the folder, to 3e-5 kmol/h, L-1). Against that,
+no stream's flow moved by more than 0.004 % (S18, the wash methanol) and the product S26 went from
+84.677 to 84.6771 kg/h. A change to an upstream value now makes the tears stale, and `propagate
+--fill` converges them again.
 
 ## D-007 Methanol strip and concentration in the batch still C-101 (2026-11-05)
 Decision: ST101 is a batch (Rayleigh) still at 10 kPa(a) with two cuts (core ADR 0055): the
@@ -259,18 +278,33 @@ heat capacity nor the MTT, ADR 0054):
 | step | dT_ad | peak accumulation | MTSR | MTT | class |
 |---|---|---|---|---|---|
 | R101 | 43.2 K | 0.96 % (nitrite, end of dosing) | 298.6 K | 337.63 K | none (no TD24) |
-| R102 | 307.2 K | 1.97 % (dissolved methyl nitrite, end of dosing) | 318.9 K | 337.63 K | none (no TD24) |
+| R102 | 307.2 K | 1.98 % (dissolved methyl nitrite, end of dosing) | 318.9 K | 337.63 K | none (no TD24) |
 
-MTT: `hazard.mtt` 337.63 K, the normal boiling point of methanol (SRC-5), in R-101 a charged
-reactant and in R-102 a product: the lowest-boiling component the liquor keeps. Without it the
-screening would take R-102's dissolved methyl nitrite, 261 K, below the process temperature
-(L-10). No TD24 is known for the liquors or for NaN3 (none estimated): no criticality class
-(`cheme.reactor-hazard-missing`, info); the MTSR stays below the MTT in both.
-Sensitivity (the rate constants of NTG, AZ and SIDE divided, scratch copies, not in the files):
+MTT: core 1.9.0's default (ADR 0058), the normal boiling point of methanol, 337.63 K (SRC-5): the
+lowest boiling point of what boils in what is charged and dosed. In R-101 methanol is a charged
+reactant. In R-102 core finds methanol only because the recycled mother liquor S11 brings it
+into the charge S12 (5.8 mol%; S11 carries the methanol of the cake wash S25 and the dryer's
+vapour S27, the filtrate S21 none): the products are not candidates for the MTT (ADR 0058, known
+limitations), so the methanol AZ forms is not counted. **R-102's default MTT depends on that
+recycle**: a charge without methanol (a first batch, no wash recycle, a changed wash) would take
+water's boiling point, the unsafe direction, although AZ forms methanol whatever the recycle
+carries; such a change must restore `hazard.mtt: 337.63` on R102 (the test checks that S12 carries
+methanol). The screening leaves out R-101's vented methyl nitrite and, in R-102, the dosed methyl
+nitrite (a note: `mtt_left_out`) and the vented N2O and NH3. Up to 1.8.0 the default took R-102's
+dissolved methyl nitrite, 261 K, below the process temperature, so both reactors carried a hand
+`hazard.mtt: 337.63` (L-10); it is removed, and the default gives the same MTT. No TD24 is known
+for the liquors or for NaN3 (none estimated): no criticality class (`cheme.reactor-hazard-missing`,
+info); the MTSR stays below the MTT in both. With two reactions R-102 reports each alone: AZ
+307.2 K and 318.9 K, SIDE 161.4 K and 316.2 K (dT_ad, MTSR): AZ, the main reaction, sets the
+MTSR, so `hazard.reactions` is not needed. Over the batch R-102's MTSR rises with the dosing from
+313.5 K at its start to 318.9 K at its end (the MTSR profile), the worst moment the end of the
+dosing; R-101 stays at 298.1-298.6 K. The gas release at the MTSR and the vents: D-017.
+Sensitivity (the rate constants of NTG, AZ and SIDE divided, scratch copies on core 1.8.0, not in
+the files):
 
 | rate constants | R101 accumulation, MTSR, post-reaction | R102 accumulation, MTSR, post-reaction |
 |---|---|---|
-| as declared | 0.96 %, 298.6 K, 0.53 h | 1.97 %, 318.9 K, 0.64 h |
+| as declared | 0.96 %, 298.6 K, 0.53 h | 1.98 %, 318.9 K, 0.64 h |
 | k/10 | 2.88 %, 299.4 K, 6.3 h | 13.5 %, 352.9 K (above the MTT), 10.0 h |
 | k/100 | 9.04 %, 302.3 K, 66 h | 55.6 %, 480.1 K (above the MTT), 119 h |
 
@@ -282,20 +316,31 @@ slow absorption also sends more methyl nitrite (toxic, flammable) to the vent. O
 stage: reaction calorimetry with gas dosing (heat of reaction, heat-flow and gas-uptake profile),
 the TD24 of the azide liquor and the mother liquor, and of the concentrated liquor at the end of
 the still (about 360 K at 10 kPa(a), D-007; with the steam kept off C-101's wall), the dosing (acid
-feed of R-101) interlocked
-with R-102's temperature, its agitator and the off-gas methyl nitrite. Screening values only, not
-a reaction-hazard assessment.
+feed of R-101) interlocked with R-102's temperature, its agitator, the off-gas methyl nitrite and
+both reactors' pressure (D-017). Screening values only, not a reaction-hazard assessment.
 
-## D-012 Utilities and duties (2026-11-05)
-Decision (year averages; core's models; power ASSUMED): R-101's heat to chilled water 17.2 kW
-(Q1, NTG's extent x its heat); R-102's 126.7 kW (Q2, AZ and SIDE; the warming of the dosed gas,
-about 0.3 %, not counted); the still's boil-up 186.2 kW of LP steam (Q3, `process stills`: 2260
-kWh per batch); its methanol condenser 31.4 kW on chilled water (Q4) and its water condenser
-154.9 kW on cooling water (Q5); the crystallizer 13.1 kW to cooling water (Q6); the dryer 8.26 kW
-of LP steam (Q7) and its vapour condenser 1.45 kW on chilled water (Q8); power 13 kW (agitators
-2 + 4 + 4 + 3 kW, R-102's gas dispersion, the vacuum pumps; P1-P4). Per kg NaN3: LP steam 2.30
-kWh, chilled water 2.09 kWh, cooling water 1.98 kWh, electricity 0.154 kWh. The still's boil-up
-and the dryer take their LP steam through tempered hot-water loops (D-007, D-009); the steam is
+## D-012 Utilities and duties (2026-11-05, model duties 2026-11-06)
+Decision (year averages; power ASSUMED). Written by `cheme process propagate` from the models
+(core 1.9.0, ADR 0059; `calculated`, fingerprinted): R-101's heat to chilled water 17.2 kW (Q1,
+NTG's extent x its heat, the acid dosed at the vessel's temperature); R-102's 126.2 kW (Q2:
+126.68 kW released by AZ and SIDE less 0.48 kW that warms the absorbed methyl nitrite from 298 to
+313 K); the still's boil-up 186.2 kW of LP steam (Q3, ST101's `energy_port: steam`, the latent
+heat of 2260 kWh per batch); the crystallizer 13.1 kW to cooling water (Q6). Typed from core's
+reports, ASSUMED: the still's methanol condenser 31.4 kW on chilled water (Q4) and its water
+condenser 154.9 kW on cooling water (Q5) (core writes no per-cut condenser duty); the dryer 8.26
+kW of LP steam (Q7, compared by the dryer's energy port) and its vapour condenser 1.45 kW on
+chilled water (Q8); power 13 kW (agitators 2 + 4 + 4 + 3 kW, R-102's gas dispersion, the vacuum
+pumps; P1-P4). Per kg NaN3: LP steam 2.30 kWh, chilled water 2.08 kWh, cooling water 1.98 kWh,
+electricity 0.154 kWh.
+Up to 1.8.0 Q1 to Q6 were typed from the reports (L-7). Core 1.9.0 compared them with the models:
+Q1, Q3 and Q6 agreed, Q2 did not (`cheme.process-duty`: 126.68 kW typed against the model's
+126.198 kW), since the typed value left out the warming of the dose. Q2 holds no heat the model
+leaves out (the heat of absorption of methyl nitrite is not known and not counted, D-005), so
+there is nothing to split off: the model's duty replaced it, and Q1, Q3 and Q6 are written by
+their models too. Chilled water per kg NaN3 went from 2.087 to 2.081 kWh. The 8.2 % of the dose
+that passes to the vent is not warmed in the model (no ideal-gas data for methyl nitrite, L-9):
+well under a tenth of the absorbed part's 0.48 kW (a tenth of the dose, at a gas's heat capacity,
+below the liquid's), ASSUMED negligible. The still's boil-up and the dryer take their LP steam through tempered hot-water loops (D-007, D-009); the steam is
 counted as the heat delivered.
 Not counted: the sensible heat of the still's content as it heats from 313 to about 360 K (D-007;
 about 0.6 GJ per batch, about 8 % of the boil-up), the heating of R-102's charge to 313 K, heat
@@ -379,9 +424,11 @@ study of the next stage:
 - **Methyl nitrite**: a toxic, flammable gas (bp 261 K) that can decompose explosively; the line
   from R-101 to R-102 is short, inerted and protected (flame arrester, non-return), and the acid
   feed stops when R-102 stops absorbing (D-011).
-- **Gas evolution**: R-101 gives about 44 m3/h of methyl nitrite at its peak and R-102 8 m3/h of
-  off-gas (`process recipe`); with the vent blocked, both pressurise their vessels, which the
-  thermal screening does not assess (ADR 0054).
+- **Gas evolution**: R-101 gives about 44.6 m3/h of methyl nitrite at its peak and R-102 8.1 m3/h
+  of off-gas (`process recipe`). The vents are taken as 50 and 60 m3/h, and the gas a cooling
+  failure releases at the MTSR is within them (29.4 and 6.3 m3/h); but with a vent blocked both
+  vessels pressurise, so the acid dosing trips on either reactor's pressure and each reactor gets
+  a relief device to the thermal oxidiser (D-017).
 - **Thermal**: dry NaN3 decomposes at high temperature to sodium and nitrogen; no TD24 of the
   liquors or the solid was found and none is estimated (D-011). The still's residue (about 44 wt%
   NaN3 at the end, crystals once it precipitates), a concentrated azide / hydrazine caustic liquor, reaches about 360 K at
@@ -394,7 +441,7 @@ study of the next stage:
 
 ## D-016 Mother-liquor recycle and purge (2026-11-05)
 Decision: the mother liquor, the wash filtrate and the dryer condensate are collected in T-101
-(M103) and 95 % goes to the next batch's charge in R-102 (S11); 5 % is purged (S29, 88.6 kg per
+(M103) and 95 % goes to the next batch's charge in R-102 (S11, X101's `split`); 5 % is purged (S29, 88.6 kg per
 batch) to azide destruction, ASSUMED: the hydrazine oxidised first in the alkaline liquor, then the
 azide destroyed with nitrite and acid (D-015).
 Reason: SRC-1 Example 2 recycles the whole filtrate over 11 batches, and its steady batches give
@@ -406,7 +453,55 @@ up to the charge ratios of D-004, so the purge sets the fresh caustic (1.05 mol 
 NaN3).
 Open: the purge from measured impurity build-up; the yield of the methanol wash.
 
-## Core features used (core 1.8.0)
+## D-017 Vent capacities, the gas release at a cooling failure and a blocked vent (2026-11-06)
+Decision: `hazard.vent_capacity` at the vessel's pressure 50 m3/h for R-101 and 60 m3/h for
+R-102, ASSUMED from the vents of D-015 (no line sizing yet, no P&ID):
+- R-101's vent is the methyl nitrite line S7 to R-102's sparger (inerted, flame arrester,
+  non-return valve), 50 m3/h. It passes the normal peak, 44.6 m3/h of methyl nitrite at 298 K at
+  the start of the dosing (`cheme process recipe`), with a headroom of 50/44.6 = 1.12.
+- R-102's vent is the off-gas line S14 to the thermal oxidiser, 60 m3/h. Its normal peak is 8.1
+  m3/h, but it is sized for R-102 not absorbing (agitator or sparger failure) until the interlock
+  stops R-101's acid: R-101's whole methyl nitrite, 44.6 m3/h at 298 K or 46.9 m3/h at 313 K, then
+  passes through, with the N2O and NH3 the dissolved methyl nitrite still forms as it reacts away,
+  at most their normal rate, 4.3 m3/h (the 8.1 m3/h peak less its 3.8 m3/h of unabsorbed methyl
+  nitrite): about 51 m3/h at 313 K, a headroom of 60/51 = 1.17.
+- No nitrogen sweep is counted on either line: the 40 Nm3 of nitrogen per batch (D-013) inerts
+  the vessels before the charge, breaks C-101's vacuum and drives F-101's pressure filtration, and
+  none flows during the dosing. A sweep the P&ID adds passes S7 and S14 both and adds to both
+  bases.
+
+Result (`cheme process reactor-hazards`, core 1.9.0, ADR 0058; per batch of the recipe, at the
+MTSR and 101.3 kPa(a)):
+
+| step | gas at the MTSR | rate from | vent capacity | ratio | most gas one reaction forms |
+|---|---|---|---|---|---|
+| R101 | 29.4 m3/h (methyl nitrite, 0.333 mol/s) at 298.6 K | NTG, the worst moment's content | 50 m3/h | 0.59 | 0.161 kmol, 3.94 m3 (NTG run to completion) |
+| R102 | 6.34 m3/h (N2O and NH3, 0.067 mol/s) at 318.9 K | SIDE, the worst moment's content | 60 m3/h | 0.11 | 0.660 kmol, 17.3 m3 (SIDE run to completion) |
+
+Both are within the vents (`cheme.reactor-hazard-vent`, info). In R-101 the rate at the MTSR is
+below the normal peak: the dosed acid accumulates to under 1 %. In R-102 only the side reaction
+forms gas (AZ forms none), and the "most gas" is an upper bound that sends the whole accumulated
+methyl nitrite by SIDE.
+**Finding: a blocked vent** (a design item for the next stage; core screens no head space or
+relief, ADR 0058, L-13; ideal gas, the head spaces from the recipe's vessels):
+- S7 blocked (the non-return valve stuck, the sparger plugged): R-101 keeps making methyl nitrite
+  at the dosing rate, 1.82 kmol/h, into about 1.76 m3 of head space (6.3 m3 less 4.54 m3 of
+  batch), about 0.7 kPa/s at 298 K; once the acid stops, the accumulated acid still gives 0.161
+  kmol, about 0.23 MPa.
+- S14 blocked: R-102's side reaction on the whole accumulated methyl nitrite gives up to 0.660
+  kmol into about 2.29 m3 (8 m3 less 5.71 m3), about 0.76 MPa at 318.9 K, and the generator's
+  methyl nitrite keeps arriving until the acid stops.
+
+Hence (ASSUMED, for the P&ID, the HAZOP and the relief study): R-101's acid dosing trips on high
+pressure in R-101 or R-102 (with R-102's temperature, agitator and off-gas methyl nitrite, D-011),
+and each reactor gets a relief device to the thermal oxidiser sized for at least its vent
+capacity (50 m3/h for R-101, 60 m3/h for R-102), the vessels' design pressure set with it
+(equipment list). Not screened either: the accumulated
+dissolved methyl nitrite (1.98 % of the dose at the end of the dosing, about 0.33 kmol, at most
+about 8.6 m3 at 318.9 K) desorbing on a cooling failure (core#178 item 5, L-10), toxic and to the
+same vent.
+
+## Core features used (core 1.8.0 and 1.9.0)
 
 | feature | ADR | used for |
 |---|---|---|
@@ -419,19 +514,20 @@ Open: the purge from measured impurity build-up; the yield of the methanol wash.
 | `solid_separation.filtration` and a recipe `filter` `from:` | 0057 | F101, F102: Ruth filtration times |
 | recipe `units: [...]` | 0057 | one vessel each for M101+R101, M102+R102, ST101+X102+CR101 and F101+W101+F102+D101 |
 | recipe `start: {after, operation}` | 0051 | R-102 absorbs while R-101 generates |
+| `tears: [{stream, initial}]`, `convergence:` (1.9.0) | 0060 | S11 and S3: the two recycles converged by Wegstein's method, S3's flow held as a charge ratio (D-006) |
+| model duties on energy streams, `energy_port:` (1.9.0) | 0059 | Q1, Q2, Q3 (ST101 `energy_port: steam`) and Q6 written by propagate (D-012) |
+| default MTT of what boils, `gas_release`, `hazard.vent_capacity` (1.9.0) | 0058 | R101, R102: the MTT of methanol without `hazard.mtt` (in R-102 from the recycled methanol in the charge); the gas release at the MTSR against 50 and 60 m3/h (D-011, D-017) |
 
-With the library's pinned core 1.7.0 these fields fail validation, so the library's CI rejects
-the folder until the pin moves to 1.8.0. `plant.yaml` keeps `requires: cheme-as-code>=1.7`:
-core main still reports 1.7.0, so `>=1.8` would stop it.
+Core 1.7.0 refuses the 1.8 fields and 1.8.0 the 1.9 ones (`tears`, `energy_port`,
+`hazard.vent_capacity`), so `plant.yaml` requires `cheme-as-code>=1.9`, the library's pin.
 
 ## Core limits met (candidates for core issues)
 
-- L-1: **no recycle convergence in propagate.** The mother-liquor and methanol recycles are
-  assumed tear streams converged by a hand driver iterating `propagate --fill` (D-006). Its
-  convergence floor is the six significant digits the files hold. A tear-stream iteration in
-  propagate (declared tears, Wegstein or damped substitution, a tolerance) would make the loop a
-  calculated result and keep it converged when an upstream value changes. Also no design-spec
-  (the fresh feeds that hold a charge ratio at the converged recycle).
+- L-1 (resolved in core 1.9.0, ADR 0060): **no recycle convergence in propagate.** The
+  mother-liquor and methanol recycles were ASSUMED tear streams converged by a hand driver
+  iterating `propagate --fill`; they are now the flowsheet's `tears:`, converged by propagate and
+  `calculated` (D-006). Still open: no design specification (the fresh feeds that hold a charge
+  ratio at the converged recycle stay ASSUMED at their values, core#181 part 2).
 - L-2: **a vent takes only what forms.** A dissolved dose left unreacted (0.1 % of the methyl
   nitrite) cannot leave later, and a gas charged rather than formed cannot vent; the still cannot
   vent a dissolved gas either, so the trace is carried as non-volatile through the work-up (D-005).
@@ -451,24 +547,32 @@ core main still reports 1.7.0, so `>=1.8` would stop it.
 - L-6: **the liquor-measured solubility holds at one composition, and nothing checks it.** The
   still's end was tuned by hand so that the mother liquor matches the patent's filtrate (D-008);
   a check (or an end of the still at a target liquor composition) would help.
-- L-7: **duties are copied by hand.** Only the dryer compares its energy stream with its model
-  (`energy.port`); the semi-batches report heat released per kmol of charge and doses but no
-  year-average duty, and the still and the crystallizer have no port, so Q1-Q6 and Q8 are typed
-  in from the reports and can go stale silently.
+- L-7 (resolved in part in core 1.9.0, ADR 0059): **duties are copied by hand.** The
+  semi-batches, the still's boil-up and the crystallizer now write their duties (Q1, Q2, Q3, Q6,
+  D-012), and a typed duty that differs from its model is a warning. Still typed and able to go
+  stale silently: the still's condensers Q4 and Q5 (no per-cut condenser duty, a follow-up of
+  ADR 0059) and the dryer's vapour condenser Q8; the dryer's heat Q7 is compared by its port.
 - L-8: **a wash is a mixer.** No dissolution of NaN3 into the methanol wash (it is slightly
   soluble in methanol) and no displacement efficiency (D-009); a reslurry crystallizer needs one
   solvent, and the wash liquor is aqueous methanol.
 - L-9: **the gas dose has no ideal-gas data** (no `ideal_gas` for methyl nitrite in chemicals'
-  ATcT set), so the warming of the gas that passes through R-102 is left out (a note).
-- L-10: **the default MTT can be a dissolved gas's boiling point** (methyl nitrite 261 K in
-  R-102), below the process temperature; `hazard.mtt` fixed it (as phosphorus-tribromide-1 L-2).
-  The gas release of an accumulated, dissolved dose on a cooling failure (desorption) is not
-  screened.
+  ATcT set), so the warming of the gas that passes through R-102 is left out (a note; well under
+  0.05 kW); since core 1.9.0 the absorbed part's warming is in Q2 (0.48 kW, D-012).
+- L-10 (resolved for the MTT in core 1.9.0, ADR 0058): **the default MTT can be a dissolved
+  gas's boiling point** (methyl nitrite 261 K in R-102), below the process temperature; a hand
+  `hazard.mtt` fixed it up to 1.8.0. The default now leaves the dosed and vented gases out and
+  gives methanol's 337.63 K, and the hand value is removed (D-011). Still open: the gas release
+  of an accumulated, dissolved dose on a cooling failure (desorption) is not screened (core#178
+  item 5; D-017); and the products are not MTT candidates (ADR 0058), so in R-102 the default
+  finds methanol only in the recycled mother liquor of the charge, not in what AZ forms (D-011).
 - L-11: **two coupled vessels.** R-101 makes the dose of R-102; the recipe aligns them with
   `start.after`, but nothing checks that the two dosing times are equal or that the generator's
   gas rate profile is the absorber's dose profile (both constant here by construction).
 - L-12 (resolved): `requires: cheme-as-code>=1.8` could not be written before the release (core
-  main reported 1.7.0); core 1.8.0 is released and pinned, and plant.yaml requires it.
+  main reported 1.7.0); core 1.8.0 is released and pinned, and plant.yaml requires it (now 1.9).
+- L-13: **the blocked-vent pressure is not screened.** The gas release at the MTSR is compared
+  with the vent's capacity (ADR 0058), but there is no head-space or relief model, so the
+  pressure a blocked vent builds up in R-101 and R-102 is estimated by hand (ideal gas, D-017).
 
 ## Method and dependency table
 
@@ -479,9 +583,10 @@ core main still reports 1.7.0, so `>=1.8` would stop it.
 | methanol strip and concentration | done in cheme (batch still), volatility ASSUMED | D-007, `process stills` |
 | precipitation from the mother liquor | done in cheme, solubility from the patent's filtrate | D-008, `process crystallizers` |
 | filtration, wash, drying | done in cheme, specified, data ASSUMED | D-009 |
-| recycles | tear streams converged over propagate | D-006, L-1 |
+| recycles | done in cheme (tears S11 and S3, Wegstein); the fresh feeds' charge ratios ASSUMED | D-006 |
 | batch recipe, cycle time, basis check, vessels, jackets, filter and drying times | done in cheme | D-003, D-010 |
-| duties | from core's reports, typed in | D-012, L-7 |
+| duties | done in cheme for R-101, R-102, the still's boil-up and the crystallizer; the condensers and the dryer typed from core's reports | D-012, L-7 |
+| vents: gas release at the MTSR against the vent capacity | done in cheme, capacities ASSUMED; the blocked-vent pressure by hand | D-017, L-13 |
 | per-batch exchanges (nitrogen) | done in cheme, amount ASSUMED | D-013 |
 | LCI inventory | done, feeds linked, utilities and treatments gaps | D-013 |
 
@@ -492,4 +597,6 @@ solubility in the mother liquor over temperature and composition; the still's co
 pressure and the boiling point of the concentrated liquor (about 360 K estimated, D-007), its
 TD24; the hydrazine in the recovered methanol (its limit, D-015); filtration and drying data of
 the cake; the purge from impurity build-up; the jackets' U; the product specification; the fate
-of N2O in the thermal oxidiser; the azide-destruction step (hydrazine oxidised first, D-015); a TEA (`operation.batch: {recipe: true}`).
+of N2O in the thermal oxidiser; the azide-destruction step (hydrazine oxidised first, D-015); the
+vent lines' and relief devices' sizing and the vessels' design pressure (D-017); a TEA
+(`operation.batch: {recipe: true}`).

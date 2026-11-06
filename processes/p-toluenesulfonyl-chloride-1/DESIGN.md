@@ -11,6 +11,9 @@ Starting point (2026-11-05): library `main` at a8f53ee4, which pins cheme-as-cod
 precipitation from a mixed liquor (0056), the dryer and recipe units over several steps (0057),
 on top of the semi-batch and the recipe of 1.7.0 (core ADRs 0050 to 0053). The NBS pilot
 (`n-bromosuccinimide-1`) and `phosphorus-tribromide-1` are the templates.
+Core pin raised to cheme-as-code 1.9.0 (314642c) on 2026-11-06: the semi-batch screening's
+default MTT and gas release at the MTSR (core ADR 0058) and the duties the models write (ADR
+0059) are used (D-014); recycle tears (ADR 0060) are not: the flowsheet has no recycle.
 
 ## Source register
 
@@ -109,8 +112,8 @@ the salt is added over 1 h and the toluene over 6 h; the jacket (U 300 W/(m2 K) 
 m2 wetted at the charge, cooling water at 298 K) removes 59.0 kW against the model's peak 50.3
 kW. The quench is dosed over 4 h on brine at 258 K: the jacket (23.4 m2 at the charge) removes
 210 kW against the model's peak 135 kW plus the dilution heat the model leaves out, about 190.5
-kW in all: the dilution share of Q5, 16.03 kW as a year average (57694 kJ/h), is 799 MJ a batch
-(x 13.85 h), released over the 4 h of dosing: 799000 kJ / 14400 s = 55.5 kW (D-009, L-2).
+kW in all: the dilution heat Q10, 16.03 kW as a year average (57694 kJ/h), is 799 MJ a batch
+(x 13.85 h), released over the 4 h of dosing: 799000 kJ / 14400 s = 55.5 kW (D-009, D-014, L-2).
 Vessels (fill 0.8, H/D 1.2 enamelled, 1.0 for the Nutsche, ASSUMED): R-101 4 m3, given and not
 sized (core sizes it from R101's model alone, 2.04 m3, while R102's second acid portion adds
 1.16 m3 in the same vessel: 3.11 m3 of reaction mass, 78 % of 4 m3; L-1); Q-101 20 m3 (14.95 m3
@@ -254,23 +257,28 @@ Reason: SRC-2 dries at 30-40 C under vacuum; p-TsCl melts at 67-71 C and hydroly
 warm, so a low drying temperature and a low residual moisture go together.
 
 ## D-009 Utilities and heat (2026-11-05)
-Decision (year averages, hand arithmetic from cheme's reports, given in the flowsheet's
-sources):
+Decision (year averages; Q2, Q3 and Q5 written by `cheme process propagate --fill` from the
+models, core ADR 0059, D-014; the others hand arithmetic given in the flowsheet's sources):
 - LP steam 350 kPa(a): R-101's heat-up Q1 2.10 kW; the dryer Q6 40.84 kW (core's dryer model:
   evaporation 90.3 MJ/h, the cake 7.3, the vessel 5.3, over 70 %);
-- cooling water 298/308 K: the heat of sulfonation Q2 23.34 kW (R101's 90.6 MJ/h, the model's
-  36610 kJ per kmol of charge and doses, less 6.5 MJ/h warming the doses); the cool-down and the
-  second portion Q3 3.72 kW; the scrubber Q7 49.87 kW. Q7 is NEUT at -132 kJ/mol
+- cooling water 298/308 K: the heat of sulfonation Q2 23.34 kW (R101's model: its reactions
+  release 25.15 kW, 90.6 MJ/h, less 1.82 kW warming the doses S3 and S4 to 338 K; the hand value
+  of 1.8.0 agreed); the cool-down and the second portion Q3 3.76 kW (R102's
+  model: CHLP and CHLO 2.08 kW at their heat's 298.15 K, and 1.69 kW of sensible heat, S6 from
+  338 K and S7 from 298 K brought to 298.15 K and S8 from it to 308 K; the hand value, 3.72 kW,
+  took the heat of reaction at 308 K with the reactants' heat capacity, 1.2 % lower, and is
+  dropped); the scrubber Q7 49.87 kW. Q7 is NEUT at -132 kJ/mol
   (neutralisation and the HCl's dissolution), less the liquor's 10 K rise, plus the dilution of
   the 50 wt% caustic (-15 kJ/mol NaOH, 5.7 kW) and the vent gas cooled from 334.5 K (0.3 kW).
   The caustic's dilution heat is an ASSUMED order of magnitude: no open table of NaOH's integral
   heats of solution was read. It is to be confirmed (open input);
 - chilled brine 258/263 K:
   - the heel Q4 10.07 kW;
-  - the quench Q5 54.95 kW. Of it, 36.5 kW is from Q101's reactions and 2.4 kW is the mass
-    cooled from 308 to 288 K. The other 16.0 kW is the dilution of the H2SO4 and sulfonic acids
-    dosed with the mass (0.747 kmol/h x -75 kJ/mol and 0.083 x -20, ASSUMED), which the
-    semi-batch model leaves out: it counts no heat of dilution of a dosed liquid (L-2);
+  - the quench, 54.95 kW in two streams on Q-101's jacket. Q5, 38.92 kW, is Q101's model:
+    36.51 kW from its reactions and 2.41 kW the mass S8 cooled from 308 to 288 K. Q10, 16.03 kW,
+    ASSUMED, is the dilution of the H2SO4 and sulfonic acids dosed with the mass (0.747 kmol/h
+    x -75 kJ/mol and 0.083 x -20), which the semi-batch model leaves out: it counts no heat of
+    dilution of a dosed liquid (L-2). Until core 1.8.0 one hand-typed Q5 held both (D-014);
   - DR-101's vacuum condenser Q8 25.52 kW: the dryer's 37.35 kg/h of water vapour condensed
     (2418 kJ/kg) and the condensate cooled from 308 to 298 K. It is on brine because condensing
     at the dryer's vacuum (5.6 kPa at 308 K, 3.2 kPa at 298 K) needs a coolant colder than the
@@ -283,7 +291,8 @@ The crystallizers CR101, W101 and W102 are adiabatic (`process/simulation.yaml`)
 crystallisation of p-TsCl is small and not known openly. The temperatures of the washes and of
 the waste acid S26 (285.33 K) are therefore the mixes of their inlets (D-007). The vent mix S27
 is 334.53 K.
-Every energy flow of the batch is in the flowsheet and so in the LCI per kg (library ADR 0035).
+Every energy flow of the batch is in the flowsheet and so in the LCI per kg (library ADR 0035):
+Q10 goes to the brine terminal with Q5, so product:BRINE counts both.
 Still left out: the heat losses and gains of the vessels and tanks, and the heats of
 crystallisation.
 During R101's toluene dosing the jacket removes up to 50 kW (the model's peak). During the
@@ -300,38 +309,74 @@ or an ortho-TsCl recovery for saccharin) is outside this concept. The waste acid
 burden of the route and the first thing a TEA or LCA will look at.
 
 ## D-011 Thermal screening and the rate sensitivity (2026-11-05)
-Result (`cheme process reactor-hazards`, core ADRs 0050, 0054):
+Result (`cheme process reactor-hazards`, core ADRs 0050, 0054, 0058):
 - R101 (sulfonation): T_p 338.15 K, adiabatic rise of the whole batch 238 K (the content is a
   little acid with a low heat capacity, and the vented HCl adds none); largest accumulation of
   the dosed toluene 1.69 % at the end of the dosing (the acid's small excess runs low); MTSR at
   the worst moment 343.6 K, against an MTT of 383.75 K (toluene's normal boiling point, the lowest
-  of what stays in the liquid; given as `hazard.mtt`). The vent's peak HCl rate is 0.71 mmol/(s
-  m3) at the salt's addition: with the vent blocked it pressurises R-101, which the screening
-  does not assess.
+  of what stays in the liquid; core 1.9.0's default, which leaves the vent's HCl out, D-014). The
+  MTSR over the batch rises from 338.5 K after 1.4 h to 343.6 K at the end of the dosing (7 h),
+  set by SULP (SALT alone 338.3 K). The vent's peak HCl rate in operation is 0.71 mmol/(s m3) at
+  the salt's addition (144.9 m3/h, `cheme process recipe`). Core takes the gas release of a
+  cooling failure only at the moment of the highest MTSR, the end of the toluene dosing (25200
+  s): the accumulated toluene releases 0.594 mol/s of HCl, 60.3 m3/h at 343.6 K, 0.40 of the
+  vent capacity of 150 m3/h (`hazard.vent_capacity`, D-014); SULP run to completion from that
+  moment forms 0.197 kmol (5.5 m3). It is not the largest release of the batch: core's
+  `stirred_tank.vent_gas_rate` at every point of R101's cooling profile, at that point's MTSR and
+  per batch (13.85 h of the flowsheet's flows, as core scales it), gives the most at the end of
+  the salt addition (3600 s), from SALT's accumulated NH4Cl: 145.5 m3/h at 338.3 K, 0.97 of the
+  vent, about 3 % margin (a cooling failure there releases about the normal peak, since the
+  salt's HCl leaves as it forms). The pressure of a blocked vent is still not screened.
 - Q101 (quench): T_p 288.15 K, dT_ad 24.9 K, accumulation of ClSO3H 0.16 %, MTSR 298.2 K (it
-  includes the hydrolysis potential of the TsCl in the liquor, which hardly reacts), against an
-  MTT of 373.12 K (water). The dilution heat the model leaves out (L-2) adds about 11 K to dT_ad
-  but nothing to the accumulation (it is released as the mass mixes in).
+  includes the hydrolysis potential of the TsCl in the liquor, which hardly reacts: TSHP alone
+  298.2 K, HYD alone 288.2 K), against an MTT of 373.12 K (water, core's default). The default,
+  every reaction counted, is kept: `hazard.reactions` is not used, since the TsCl's hydrolysis is
+  a real heat on a cooling failure, and counting it is the conservative side. Gas release at
+  core's worst moment (14404 s, just after the dosing) 0.134 mol/s, 11.8 m3/h of HCl at 298.2 K,
+  0.08 of the 150 m3/h header (D-014); at the end of the dosing (14400 s), with the accumulated
+  ClSO3H, 14.1 m3/h, 0.09 of it, the largest over the batch (`vent_gas_rate` over the cooling
+  profile, as for R101). Both are the ASSUMED 10 % vented share of the HCl formed
+  (`batch.vent.fraction`, D-006: the split of normal operation at 288 K, not known for a cooling
+  failure). With all the HCl formed leaving, the release is about 118 m3/h at core's worst
+  moment and about 141 m3/h at the end of the dosing, 0.79 to 0.94 of the header. The
+  dilution heat the model leaves out (L-2) adds about 11 K to dT_ad but nothing to the
+  accumulation (it is released as the mass mixes in).
 - No TD24 is known for the reaction mass, the sulfonyl chlorides or the wet cake (never
   estimated): no criticality class (`cheme.reactor-hazard-missing`, info).
 Sensitivity (a scratch copy with every rate constant of R101 and Q101 divided by 10 and by 100;
 nothing else changed; not committed):
 
-| case | R101 accumulation | R101 MTSR | R101 post-reaction | Q101 accumulation | Q101 MTSR | cycle, batches/a at the same batch |
-|---|---|---|---|---|---|---|
-| k (design) | 1.69 % | 343.6 K | 0.07 h | 0.16 % | 298.2 K | 13.85 h, 572 |
-| k/10 | 7.64 % | 362.4 K | 2.1 h | 1.59 % | 298.2 K | 15.88 h, 499 |
-| k/100 | 27.1 % | 420.1 K | 26.6 h | 15.4 % | 298.2 K | 40.4 h, 196 |
+| case | R101 accumulation | R101 MTSR | R101 post-reaction | R101 HCl at core's worst moment | R101 largest HCl over the batch | Q101 accumulation | Q101 MTSR | Q101 HCl at the end of the dosing (core's worst moment) | cycle, batches/a at the same batch |
+|---|---|---|---|---|---|---|---|---|---|
+| k (design) | 1.69 % | 343.6 K | 0.07 h | 60.3 m3/h | 145.5 m3/h, 0.97 (end of the salt, 338.3 K) | 0.16 % | 298.2 K | 14.1 m3/h (11.8 at 14404 s) | 13.85 h, 572 |
+| k/10 | 7.64 % | 362.4 K | 2.1 h | 132.7 m3/h | 150.2 m3/h, 1.00 (end of the salt, 339.2 K) | 1.59 % | 298.2 K | 14.0 m3/h (1.0 at 14999 s) | 15.88 h, 499 |
+| k/100 | 27.1 % | 420.1 K | 26.6 h | 1302 m3/h | 1302 m3/h, 8.7 (end of the toluene; end of the salt 195 m3/h, 1.30) | 15.4 % | 298.2 K | 13.5 m3/h (0.10 at 25593 s) | 40.4 h, 196 |
 
-MTT 383.75 K (R101) and 373.12 K (Q101) in every case. Without a TD24 there is no class; on
+MTT 383.75 K (R101) and 373.12 K (Q101) in every case. The gas release columns were added on
+core 1.9.0 (scratch copies again, 2026-11-06; the other columns reproduce): m3/h of HCl at
+101.3 kPa(a), per batch (the same 13.85 h of flows in every case), against the vent capacity of
+150 m3/h (D-014). Core gives the release only at its worst moment, the moment of the highest
+MTSR (R101: the end of the toluene dosing, 25200 s, in every case); the largest over the batch
+is core's `stirred_tank.vent_gas_rate` at every point of the cooling profile, at that point's
+MTSR, with its ratio to the vent. Q101's values are the ASSUMED 10 % vented share (about ten
+times as much if all the HCl formed left, D-006). Without a TD24 there is no class; on
 MTSR against MTT alone, R101 at k and k/10 lies below the MTT (Stoessel class 1 or 2, depending
 on where the MTT lies against MTD24), at k/100 above it (class 3, 4 or 5): toluene would boil
 in a cooling failure. Q101 stays below the MTT in every case: the large water heel, not the
 dosing, keeps the quench safe on this screening; its real risks are local boiling and HCl
-release at the dosing point and a blocked vent, which the screening does not cover.
+release at the dosing point and a blocked vent, which the screening does not cover. Core's
+worst moment for Q101 is set by the flat TSHP MTSR (298.2 K in every case) and moves after the
+post-reaction at k/10 (14999 s) and k/100 (25593 s), once the accumulated ClSO3H has hydrolysed:
+its gas value there (1.0 and 0.10 m3/h) is only the slow TsCl hydrolysis and leaves the
+accumulated ClSO3H out. At the end of the dosing, with 0.16, 1.59 and 15.4 % of the ClSO3H
+accumulated, a cooling failure gives 14.1, 14.0 and 13.5 m3/h: the release does not shrink with
+slower kinetics.
 Interpretation: R101 is dosing-controlled only if the sulfonation is fast; a ten times slower
-rate is still tolerable but lengthens the cycle by 2 h; a hundred times slower one makes the
-design unsafe and the cycle impractical. Calorimetry (heat of reaction, heat-flow profile,
+rate is still tolerable thermally but lengthens the cycle by 2 h, and a cooling failure at the
+end of the salt addition then releases 150.2 m3/h, the vent's capacity (132.7 m3/h at core's
+worst moment); even at the design rates that moment uses 0.97 of the vent; a hundred times
+slower one makes the design unsafe and the cycle impractical, and its 1302 m3/h of HCl is 8.7
+times the vent (design finding, D-014). Calorimetry (heat of reaction, heat-flow profile,
 accumulation, gas release rate, TD24 of the mass and the product) decides this before basic
 engineering. Screening values only, not a reaction-hazard assessment.
 
@@ -353,8 +398,9 @@ Nm3: R-101's purge, F-101 pressed for three filtrations, DR-101's vacuum broken 
 wastewater treatment. R-101 is not rinsed: it is kept dry.
 Per kg p-TsCl: chlorosulfonic acid 2.32 kg, toluene 0.612 kg, ammonium chloride 0.160 kg,
 caustic soda 50 wt% 0.871 kg, water 12.66 kg (plus 1.14 kg of rinses), electricity 0.193 kWh,
-LP steam 0.340 kWh, cooling water 0.609 kWh removed, brine 0.811 kWh removed (of it 0.202 kWh
-the dryer's vacuum condenser Q8 and 0.094 kWh the wash water's chilling Q9), waste acid 12.6 kg,
+LP steam 0.340 kWh, cooling water 0.610 kWh removed, brine 0.811 kWh removed (of it 0.127 kWh
+the quench's dilution heat Q10, 0.202 kWh the dryer's vacuum condenser Q8 and 0.094 kWh the wash
+water's chilling Q9), waste acid 12.6 kg,
 scrubber liquor 3.02 kg. Not counted: the scrubbed vent's traces, the toluene vapour the HCl
 strips from R-101, the dryer's vacuum vent (emission_exclusions).
 
@@ -367,14 +413,75 @@ Out of scope, so not LCI gaps: the changeover cleaning between campaigns of othe
 idle time of a multipurpose train, shared tank farms and acid recovery. p-TsCl is often made on
 multipurpose plants, or alongside the ortho isomer for saccharin: there the burden per kg differs.
 
-## Core features used (cheme-as-code 1.8.0)
+## D-014 Core 1.9.0: duties from the models, the dilution heat apart, the vent capacity (2026-11-06)
+Decision, on the core pin's rise to 1.9.0 (314642c):
+- **Duties from the models (core ADR 0059).** R101, R102 and Q101 name their cooling stream
+  (`energy_port: q`), and `cheme process propagate --fill` writes Q2, Q3 and Q5 as `calculated`.
+  Under 1.9.0 the hand values were `cheme.process-duty` warnings at R102 (Q3 3.719 against the
+  model's 3.763 kW) and Q101 (Q5 54.948 against 38.920 kW); Q2 agreed (23.339 kW). Q3's model is
+  the better value (a Hess path at the heat's own 298.15 K, D-009), so the hand value is dropped:
+  Q3 3.719 -> 3.763 kW. Q5's hand value held a heat the model leaves out, the dilution of the
+  acids dosed into the heel (lesson L-2, kept from the review of #391): it is split. Q5 is now
+  the model's 38.920 kW; the dilution, 16.026 kW, is its own stream Q10 (ASSUMED, its arithmetic
+  in the source) from Q101's second energy port to the brine terminal. Both reach the LCI:
+  product:BRINE stays 0.811 kWh/kg (102.363 -> 102.361 kW, the model's rounding), product:CW
+  0.609 -> 0.610 kWh/kg (76.928 -> 76.972 kW, Q3's rise). Q7 (the scrubber) stays hand
+  arithmetic: its model lacks NaCl's and NaOH's heat capacities, and the HCl goes from the vent
+  gas into the liquor, a phase change the conversion duty does not take (`cheme.process-duty`
+  info); Q1, Q4 and Q9 are pass-through steps and Q8 the dryer's condenser, none of them a model.
+- **Default MTT (core ADR 0058).** `hazard.mtt` is dropped from R101 and Q101: core's default now
+  leaves a vent component out, which is what the hand value stood for, and gives the same 383.75
+  K (toluene) and 373.12 K (water).
+- **Vent capacity (core ADR 0058).** `hazard.vent_capacity: 150` m3/h on R101 and Q101,
+  ASSUMED: R-101's vent line and the scrubber T-201 are sized for the recipe's normal peak,
+  144.9 m3/h of HCl at 338 K while the salt goes in, rounded up (no vent sizing yet: there is no
+  P&ID). Q-101's vent joins the same header; while Q-101 doses, R-101 is emptying into it and
+  gives off no gas, so the header's 150 m3/h is Q-101's. Core takes the gas release only at the
+  moment of the highest MTSR: 60.3 m3/h for R101 (0.40 of it, the end of the toluene dosing) and
+  11.8 m3/h for Q101 (0.08), within the vent (`cheme.reactor-hazard-vent`, info). The largest
+  cooling-failure release over the batch (D-011) is R101's at the end of the salt addition,
+  145.5 m3/h (0.97), and Q101's at the end of the dosing, 14.1 m3/h (0.09). Q101's values are the
+  ASSUMED 10 % vented share of the HCl formed (`batch.vent.fraction`, D-006); with all of it
+  leaving, about 118 m3/h at core's worst moment and 141 m3/h at the end of the dosing, 0.79 to
+  0.94 of the shared header.
+- **`hazard.reactions` not used.** SULP sets R101's MTSR, the main reaction; in Q101 the TsCl's
+  hydrolysis sets it, a real heat and the conservative choice (D-011).
+- **Design finding: the vent has about 3 % margin at the design rates, is at its capacity at
+  k/10 and is exceeded at k/100.** The vent sized for normal operation (144.9 m3/h) holds a
+  cooling failure at the end of R-101's salt addition at the design rate laws with about 3 %
+  margin (145.5 m3/h, 0.97), is at its capacity at k/10 (150.2 m3/h, 1.00) and is exceeded at
+  k/100 (1302 m3/h at the end of the toluene dosing, 8.7 times; D-011). The capacity is kept at
+  150 m3/h with this statement rather than raised: nothing yet sizes a larger vent, and a larger
+  number would only move the finding. Since the rates are ASSUMED, basic
+  engineering needs: (1) reaction calorimetry with the gas release rate (D-005, D-011); (2) the
+  toluene dosing interlocked to stop on a cooling failure, a high temperature, the agitator's
+  stop and a high vent flow, since the screened MTSR and gas release assume the dosing stops at
+  the worst moment; (3) R-101's emergency relief (a bursting disc to a catch tank and the
+  scrubber) sized by a DIERS two-phase method from that calorimetry for a gassy runaway, not
+  from the normal vent; (4) the next batch's salt addition in R-101 (145 m3/h) held while Q-101
+  is in an upset, so the shared header carries one vessel's gas at a time: Q-101's release with
+  all the HCl formed leaving is up to about 141 m3/h (0.94 of the header), so the header has no
+  room for both; (5) the salt addition in R-101 interlocked to stop the salt feed (no further
+  portion) on a loss of cooling, a high temperature, the agitator's stop and a high vent flow,
+  since the largest release of a cooling failure comes from the NH4Cl accumulated at the end of
+  the addition (0.97 of the vent at k, 1.00 at k/10).
+Rejected: keeping Q5 as one hand value (the warning would stay, and the model's part would not
+follow its inputs); adding the dilution as a heat of reaction (it is no reaction, and it would
+enter dT_ad and the MTSR as a reaction heat rather than a mixing heat released as the mass mixes
+in); a vent capacity larger than the normal design (nothing in this entry sizes one; the
+interlocks (2) and (5) and the relief (3) from calorimetry are the measures instead).
+Not applicable: recycle tears (core ADR 0060), as no stream returns.
+
+## Core features used (cheme-as-code 1.9.0)
 
 | feature | where | ADR |
 |---|---|---|
 | `reactor: semibatch` with two sequential doses (`start`) and a `target` | R101 (salt, then toluene), Q101 (the mass into the heel) | 0050 |
 | `batch.vent` with `fraction` | R101 (all HCl), Q101 (10 % of the HCl) | 0054 |
 | recipe vent report (peak kmol/s, m3/h, kg per batch) | the scrubber load, D-007 | 0054 |
-| `hazard.mtt` and the screening of a vented semi-batch | R101, Q101, D-011 | 0050, 0054 |
+| the screening of a vented semi-batch; the default MTT of what boils, the vent's HCl left out (1.9.0) | R101, Q101, D-011, D-014 | 0050, 0054, 0058 |
+| each reaction's MTSR, the MTSR over the batch, the gas release at the MTSR against `hazard.vent_capacity` (1.9.0) | R101, Q101, D-011, D-014 | 0058 |
+| duties written by the models at `energy_port` (1.9.0): an isothermal semi-batch, a conversion step | Q2 (R101), Q3 (R102), Q5 (Q101), D-009, D-014 | 0059 |
 | `crystallizer.spectators` with `measured_in: pure_solvent` and `salting_out` | CR101, W101, W102 | 0056 |
 | several crystallizer inlets (a reslurry wash) | W101, W102 | 0056 |
 | `solid_separation.filtration` and recipe `filter` `from:` | F101, F102, F103 | 0057 |
@@ -383,7 +490,7 @@ multipurpose plants, or alongside the ortho isomer for saccharin: there the burd
 | vessel sizing and jacket check, `heat`/`cool` times from the jacket | R-101, Q-101 | 0052 |
 | per-batch LCA consumables | nitrogen, rinses | 0053 |
 Not used: the batch still (ADR 0055): there is no distillation in this route; `dosing.absorbed`:
-nothing is dosed as a gas.
+nothing is dosed as a gas; `hazard.reactions` (D-014); recycle `tears:` (ADR 0060): no recycle.
 
 ## Core limits hit (for core issues)
 
@@ -395,9 +502,12 @@ nothing is dosed as a gas.
   jacket against every step's duty.
 - L-2: the semi-batch counts no heat of dilution or mixing of a dosed liquid: the H2SO4 and the
   sulfonic acids dosed into the quench heel release about 58 MJ per hour of flows (30 % of the
-  quench's heat), which is missing from the model's duty, the jacket check and dT_ad. Q5 and the
-  jacket margin add it by hand (D-003, D-009). ADR 0054 names a `dosing.heat_of_solution` as a
-  follow-up for a dissolving gas; a dosed liquid needs it too (or an enthalpy of mixing).
+  quench's heat), which is missing from the model's duty, the jacket check and dT_ad. Still
+  open in core 1.9.0 (ADR 0059 names no heats of mixing), but the model's part and the extra
+  part are now apart: Q5 is the model's duty (written by propagate), Q10 the dilution by hand,
+  and the jacket margin adds it by hand (D-003, D-009, D-014). ADR 0054 names a
+  `dosing.heat_of_solution` as a follow-up for a dissolving gas; a dosed liquid needs it too (or
+  an enthalpy of mixing).
 - L-3: one recipe vessel may hold only one batch or semi-batch step, and a semi-batch is
   isothermal at one temperature. The patent's second stage (cool to 35 C, add acid, hold 1 h,
   an equilibrium the excess acid drives) is therefore a conversion step with an ASSUMED
@@ -419,29 +529,40 @@ nothing is dosed as a gas.
   times; both were iterated by hand (scaling the feeds, then a fixed point of batch size =
   rate x cycle). A `batch_size: from: cycle` or a product-rate target would remove this.
 - L-7: there is no ice (a melting sink) in the quench, and no liquor enthalpy for the acid: the
-  heel is cooled water on a brine jacket (D-006), and every duty but the dryer's is hand
+  heel is cooled water on a brine jacket (D-006). Partly resolved in core 1.9.0: the semi-batch
+  and conversion duties Q2, Q3 and Q5 now come from the models (ADR 0059, D-014); the heat-ups,
+  the coolers, the dryer's condenser, the scrubber and the dilution heat are still hand
   arithmetic (D-009).
+- L-8 (resolved in core 1.9.0): until 1.8.0 the screening gave no gas rate at a cooling failure
+  and no comparison with the vent (D-011 named only the vent's normal peak). Core 1.9.0 reports
+  the gas release at the MTSR against `hazard.vent_capacity` (ADR 0058, D-014); the pressure of
+  a blocked vent is still not screened (no head space or relief model). Core takes that release
+  only at the moment of the highest MTSR, not the largest over the batch: R101's largest, at the
+  end of the salt addition, and Q101's, at the end of the dosing, come from `vent_gas_rate` over
+  the cooling profile (D-011), and the test checks them.
 
 ## Method and dependency table
 
 | step | status | basis |
 |---|---|---|
 | mass, component, element balances | done in cheme | cheme validate / process streams / propagate |
-| semi-batches R101, Q101: composition, vent, accumulation, MTSR, peak cooling | done in cheme, kinetics ASSUMED | D-005, D-011, `cheme process reactors`, `reactor-hazards` |
+| semi-batches R101, Q101: composition, vent, accumulation, MTSR, peak cooling, gas release at the MTSR | done in cheme, kinetics ASSUMED | D-005, D-011, D-014, `cheme process reactors`, `reactor-hazards` |
+| duties Q2, Q3, Q5 | done in cheme (the models' duties, core ADR 0059) | D-009, D-014 |
 | second stage R102, scrubber S101 | conversion steps, conversions ASSUMED | D-005, D-007 |
 | batch recipe, cycle time, basis check, vessels, jackets, vent loads | done in cheme | D-003, `cheme process recipe` |
 | precipitation and wash losses | done in cheme: crystallizers with spectators, solubility ASSUMED, no salting-out | D-007, core ADR 0056 |
 | ortho isomer | spectator in the liquor (a lower bound in the product) | D-007, L-4 |
 | filtration | specified split in cheme; time by Ruth, cake data ASSUMED | D-007, core ADR 0057 |
 | drying: outlets, duty Q6, drying time | done in cheme, moisture and rate ASSUMED | D-008, core ADR 0057 |
-| feeds for 1000 t/a, the other duties | hand (ratios scaled; arithmetic in the sources) | D-004, D-009, L-6, L-7 |
+| feeds for 1000 t/a, the other duties (Q1, Q4, Q7, Q8, Q9, the dilution heat Q10) | hand (ratios scaled; arithmetic in the sources) | D-004, D-009, L-2, L-6, L-7 |
 | per-batch exchanges (nitrogen, rinses) | done in cheme, amounts ASSUMED | D-012, core ADR 0053 |
 | LCI inventory | done, most backgrounds unmapped | D-012 |
 
 ## Open inputs
 Kinetics, heats of reaction and the gas release rate (calorimetry), TD24 of the reaction mass and
-the product; the second stage's conversion against time and temperature; the solubility of
+the product; the gas release rate of a runaway and R-101's emergency relief (D-014); the second stage's conversion against time and temperature; the solubility of
 p-TsCl in the acid liquor; how much of the ortho oil the cake keeps (the product's o-TsCl
 content and its assay, D-002); the heat of dilution of the 50 wt% caustic (D-009); filtration and wash data and the drying rate from trials; the HCl's split between
-vent and liquor in the quench; the product specification (assay, o-TsCl, TsOH, acidity, water);
+vent and liquor in the quench, in operation and at a cooling failure (the screened Q101 release
+counts the ASSUMED 10 %, all of it would be up to 141 m3/h, D-011, D-014); the product specification (assay, o-TsCl, TsOH, acidity, water);
 acid and HCl recovery (D-010); a TEA (`operation.batch: {recipe: true}`).
