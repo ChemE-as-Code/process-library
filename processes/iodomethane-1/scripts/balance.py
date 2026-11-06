@@ -1,9 +1,10 @@
 """What core cannot calculate in the iodomethane plant (DESIGN.md D-008, D-009, D-011, D-012).
 
 Year-average flows (kg/h, the recipe's basis, D-003). cheme process propagate computes the
-semi-batch R101 with its vent, the batch stills ST101 and ST102 (one Rayleigh stage each), the
-thiosulfate's reduction of the iodine W101 (a conversion step), the mixer M101 and the
-pass-through steps from process/flowsheet.yaml. This script gives what core has no model for,
+semi-batch R101 with its vent, the batch still ST101 (one Rayleigh stage), the batch
+rectification ST102 (the still C-104 with its column K-104 on Diwekar's shortcut, core 1.10.0,
+ADR 0061, D-016), the thiosulfate's reduction of the iodine W101 (a conversion step), the mixer
+M101 and the pass-through steps from process/flowsheet.yaml. This script gives what core has no model for,
 from the streams propagate wrote:
 
 - the feeds that make 500 t/a of iodomethane (core propagates from the feeds and does not
@@ -17,15 +18,18 @@ from the streams propagate wrote:
   (the water down to an ASSUMED residual); core has no liquid-liquid model with sourced pairs for
   these liquids and no drying of a liquid over a desiccant;
 - the temperatures of the stills' streams (bubble points by Raoult's law with the same NIST
-  Antoine constants the stills use) and of the adiabatic washes and the dryer;
+  Antoine constants the stills use: ST101's mass and residue, ST102's distillate and residue)
+  and of the adiabatic washes and the dryer;
 - R101's vent fraction: the iodomethane the batch's wet nitrogen (the work-up's blanket and the
   purge nitrogen R-101's rise displaces, each counted once) carries past the vent condenser E-102
   at 268 K, of what R101 forms (D-012);
 - ST101's net boil-up: the jacket's assumed 15 kW mean less the residue's sensible heat, which the
   still model does not hold (D-007, L-4), so that core's boil-up time covers both;
-- the duties Q1, Q4 to Q7 and Q9 to Q12 (no property package of core covers these liquids); since
-  cheme-as-code 1.9.0 (core ADR 0059) propagate writes R101's Q2 and the stills' net boil-ups Q3
-  and Q8 from the models; this script prints its own values of them as a cross-check only;
+- the duties Q1, Q4 to Q7, Q11, Q12 and Q14 (no property package of core covers these liquids);
+  propagate writes R101's Q2 and ST101's net boil-up Q3 from the models (core 1.9.0, ADR 0059),
+  and ST102's reboiler Q8 (the boil-up at the reflux and the charge's heat-up) and condenser Q10
+  (core 1.10.0, ADRs 0061, 0063); this script prints its own values of them as a cross-check
+  only;
 - the agitator, feeder, pump and fan powers P1 to P3 from the recipe's durations (core's
   `recipe.evaluate`).
 
@@ -63,13 +67,9 @@ MEI_IN_WATER = 0.0139  # kg iodomethane per kg of water in the aqueous phase: 1.
 WATER_IN_MEI = 0.001  # mass fraction of water dissolved in the washed organic phase (ASSUMED)
 DRY_WATER = 0.0001  # mass fraction of water left after A-103 (ASSUMED within the patent's
 #                     product spec, water below 80-200 ppm, CN 114195616 B, Examples 1-3)
-# K104, the column on the still C-104: the share of each component of the still's distillate S22
-# that reaches the product S24; the rest the column returns to the pot (D-010). The iodomethane's
-# 0.99 and the water's 1.0 (iodomethane and water boil together; an upper bound) are ASSUMED; the
-# methanol's share is calibrated so that the product holds PURITY iodomethane by mass
-TO_PRODUCT = {"MEI": 0.99, "H2O": 1.0}
-PURITY = 0.996  # CN 114195616 B, Example 3: 99.6 % (Examples 1-3: 99.5 to 99.7 %)
-REFLUX = 2.0  # reflux ratio of K104 (ASSUMED; the patent gives none)
+# ST102's column K-104 is core's batch rectification (ADR 0061, D-016); its reflux ratio is read
+# from the flowsheet for the cross-check of Q8 and Q10. The source's purity, for comparison only:
+SOURCE_PURITY = (0.995, 0.997)  # CN 114195616 B, Examples 1-3: 99.5 to 99.7 %
 # heats of the washes and the dryer, ASSUMED orders (D-011)
 H_MEOH_TO_WATER = -7300.0  # kJ/kmol of methanol transferred into the aqueous phase
 H_THIO = -30000.0  # kJ/kmol of iodine reduced (reactions.yaml THIO)
@@ -323,16 +323,12 @@ def main() -> None:
         write_balance_output({"design": out})
         return
 
+    # ST102 with its column (core's batch rectification): the distillate S22 is the product
     s22, s23 = component_flows(streams, "S22"), component_flows(streams, "S23")
-    # K104: the specified split of the still's distillate
-    to_product = dict(TO_PRODUCT)
-    mei_p, h2o_p = s22["MEI"] * to_product["MEI"], s22.get("H2O", 0.0) * to_product["H2O"]
-    meoh_p = mei_p / PURITY - mei_p - h2o_p
-    to_product["MEOH"] = meoh_p / s22["MEOH"]
-    s24 = {"MEI": mei_p, "MEOH": meoh_p, "H2O": h2o_p}
-    s27 = {n: v - s24.get(n, 0.0) for n, v in s22.items() if v > 0}
-    s25 = s24
+    s25 = component_flows(streams, "S25")
     product = sum(s25.values())
+    still = next(s for s in sheet["steps"] if s["id"] == "ST102")["still"]
+    reflux = still["column"]["ratio"]
 
     # the feeds that make CAPACITY: linear in the iodine
     i2_now = state(streams, "S5")["flow"]["value"]
@@ -344,10 +340,9 @@ def main() -> None:
     # the stills' temperatures (as their models: Raoult's law with the same Antoine constants)
     t8 = bubble_point({n: v for n, v in kmol(s6).items()})
     t9 = bubble_point(kmol(s9))
-    t22 = bubble_point(kmol(s20))
+    t_still = bubble_point(kmol(s20))  # ST102's charge at its bubble point, where it starts to boil
+    t22 = bubble_point(kmol(s22))  # the distillate condensed at its bubble point (total condenser)
     t23 = bubble_point(kmol(s23))
-    c23, c27 = heat_capacity_rate(s23), heat_capacity_rate(s27)
-    t28 = t23  # the column's hold-up and last cut drain back at the pot's end temperature
 
     # the recipe: the cycle and the operations' hours (core's recipe.evaluate)
     cycle, op_h, working = recipe_hours()
@@ -404,12 +399,17 @@ def main() -> None:
     net_boilup = JACKET_MEAN_ST101 * q3 / (q3 + q4_residue)  # kW of the mean that boils (ST101's boilup)
     q5 = (latent(s8) + heat_capacity_rate(s8) * (t8 - T_COND)) / 3600.0
     q6 = heat_capacity_rate(s9) * (t9 - T_RES) / 3600.0
-    q8 = latent(s22) / 3600.0
-    q9 = (heat_capacity_rate(s20) * (t22 - t20) + heat_capacity_rate(s23) * (t23 - t22)) / 3600.0
-    q10 = ((1.0 + REFLUX) * latent(s22) + heat_capacity_rate(s24) * (t22 - T_COND)) / 3600.0
+    # ST102 (cross-checks of the duties core writes, ADRs 0061, 0063): the reboiler boils (R + 1)
+    # moles per mole distilled and heats the charge to its bubble point; the condenser takes the
+    # boil-up's latent heat only (no subcooling)
+    heatup8 = heat_capacity_rate(s20) * (t_still - t20) / 3600.0
+    q10 = (1.0 + reflux) * latent(s22) / 3600.0
+    q8 = q10 + heatup8
+    # the residue's sensible rise while the still boils (core leaves it out, ADR 0063): reported
+    residue_rise = heat_capacity_rate(s23) * (t23 - t_still) / 3600.0
+    q14 = heat_capacity_rate(s22) * (t22 - T_COND) / 3600.0
     q11 = heat_capacity_rate(s25) * (T_COND - T_PRODUCT) / 3600.0
-    q12 = (c23 + c27) * (t28 - T_RES2) / 3600.0
-    q13 = REFLUX * latent(s22) / 3600.0
+    q12 = heat_capacity_rate(s23) * (t23 - T_RES2) / 3600.0
 
     # power: kWh a batch over the cycle
     r101_on = sum(op_h.get(("REACT", o), 0.0) for o in ("charge", "heat", "dose", "react", "hold", "heatup", "distil", "cool"))
@@ -427,7 +427,7 @@ def main() -> None:
         "residue S11 (MeI and I2)": s9.get("MEI", 0.0) / MW["MEI"] + 2.0 * s9.get("I2", 0.0) / MW["I2"],
         "wash liquors S16 + S19 (MeI)": (s16.get("MEI", 0.0) + s19.get("MEI", 0.0)) / MW["MEI"],
         "wash liquor S16 (NaI)": s16.get("NAI", 0.0) / MW["NAI"],
-        "final residue S26 (MeI)": (s23.get("MEI", 0.0) + s27.get("MEI", 0.0)) / MW["MEI"],
+        "final residue S26 (MeI)": s23.get("MEI", 0.0) / MW["MEI"],
     }
 
     print(f"product S25 {product:.4f} kg/h at the current feeds; target {CAPACITY:.4f} kg/h")
@@ -438,15 +438,17 @@ def main() -> None:
     print(f"S15 {sum(s15.values()):.4f} {fractions(s15)}; S16 {sum(s16.values()):.4f} kg/h")
     print(f"S18 {sum(s18.values()):.4f} {fractions(s18)}; S19 {sum(s19.values()):.4f}; S20 {sum(s20.values()):.4f}; S21 {s21['H2O']:.5f} kg/h")
     print(f"methanol moved: thiosulfate washes {moved1:.5f}, water washes {moved2:.5f} kmol/h")
-    print(f"temperatures: S8 {t8:.2f}, S9 {t9:.2f}, S14 {t14:.2f}, S18 {t18:.2f}, S20 {t20:.2f}, S22 {t22:.2f}, S23 {t23:.2f} K")
-    print(f"S22 one stage: MEI {s22['MEI'] / sum(s22.values()):.6f} by mass, methanol {s22.get('MEOH', 0) / sum(s22.values()):.6f}; K104 methanol share to the product {to_product['MEOH']:.4f}; S27 {sum(s27.values()):.4f} kg/h")
-    print(f"S25 {product:.4f} kg/h, MEI {s25.get('MEI', 0) / product:.6f} by mass, methanol {s25.get('MEOH', 0) / product * 1e6:.0f} ppm, water {s25.get('H2O', 0) / product * 1e6:.0f} ppm")
+    print(f"temperatures: S8 {t8:.2f}, S9 {t9:.2f}, S14 {t14:.2f}, S18 {t18:.2f}, S20 {t20:.2f}, ST102's charge at its bubble point {t_still:.2f}, S22 {t22:.2f}, S23 {t23:.2f} K")
+    recovery = {n: s22.get(n, 0.0) / v for n, v in s20.items() if v > 0}
+    print(f"ST102 with its column (reflux {reflux:g}): S22 MEI {s22['MEI'] / sum(s22.values()):.6f} by mass (the source {SOURCE_PURITY[0]:.3f} to {SOURCE_PURITY[1]:.3f}); recovers " + ", ".join(f"{n} {r:.4%}" for n, r in recovery.items()))
+    print(f"S25 {product:.4f} kg/h, MEI {s25.get('MEI', 0) / product:.6f} by mass, methanol {s25.get('MEOH', 0) / product * 1e6:.0f} ppm, water {s25.get('H2O', 0) / product * 1e6:.2f} ppm")
     print(f"yield on iodine {s25.get('MEI', 0) / MW['MEI'] / i_fed:.4%}")
     print("iodine's fate (share of the iodine fed): " + ", ".join(f"{k} {v / i_fed:.4%}" for k, v in i_fate.items()) + f"; unaccounted {1 - sum(i_fate.values()) / i_fed:.4%}")
     print(f"vent: head spaces displaced {displaced:.3f} m3 a batch (work-up {workup:.3f}, R-101's rise {rise:.3f}); the work-up's make-up at most {makeup:.4f} kmol of the blanket's {blanket:.4f} (its displaced nitrogen {workup_n2:.4f}), R-101's rise {rise_n2:.4f} kmol of the purge's; wet nitrogen {n_wet:.4f} kmol a batch, MeI into E-102 {mei_in:.4f}, past it {mei_out:.4f} kmol ({mei_out * MW['MEI']:.2f} kg) a batch; vent fraction {vent_fraction:.6f} of what R101 forms")
     print(f"Q4 {q4:.4f} kW: heat-up to the bubble point {q4_heatup:.4f} ({q4_heatup * per_batch:.2f} kWh a batch), the residue's sensible heat {q4_residue:.4f} ({q4_residue * per_batch:.2f} kWh a batch); ST101's net boil-up of the jacket's {JACKET_MEAN_ST101:.0f} kW mean: {net_boilup:.2f} kW")
-    print(f"Q1 {q1:.4f}, Q4 {q4:.4f}, Q5 {q5:.4f}, Q6 {q6:.4f}, Q7 {q7:.4f}, Q9 {q9:.4f}, Q10 {q10:.4f}, Q11 {q11:.4f}, Q12 {q12:.5f}, Q13 {q13:.4f} kW")
-    print(f"cross-check of the model duties propagate writes: Q2 {q2:.4f} (released {released / 3600:.4f}, dose {dose_heat / 3600:.4f}), Q3 {q3:.4f}, Q8 {q8:.4f} kW")
+    print(f"Q1 {q1:.4f}, Q4 {q4:.4f}, Q5 {q5:.4f}, Q6 {q6:.4f}, Q7 {q7:.4f}, Q11 {q11:.4f}, Q12 {q12:.5f}, Q14 {q14:.4f} kW")
+    print(f"cross-check of the model duties propagate writes: Q2 {q2:.4f} (released {released / 3600:.4f}, dose {dose_heat / 3600:.4f}), Q3 {q3:.4f}, Q8 {q8:.4f} (boil-up {q10:.4f}, charge heat-up {heatup8:.4f}), Q10 {q10:.4f} kW")
+    print(f"ST102's residue rise while it boils, {t_still:.2f} -> {t23:.2f} K, left out by core (ADR 0063): {residue_rise:.4f} kW")
     print(f"power: P1 {p1:.4f} ({e1:.2f} kWh a batch, R-101 on {r101_on:.2f} h), P2 {p2:.4f} ({e2:.2f} kWh), P3 {p3:.4f} ({e3:.2f} kWh, C-104 on {c104_on:.2f} h) kW")
 
     out = {
@@ -466,19 +468,14 @@ def main() -> None:
         "S21": {"flow": round(sum(s21.values()), 5), "composition": fractions(s21), "temperature": round(t20, 2)},
         "S22": {"temperature": round(t22, 2)},
         "S23": {"temperature": round(t23, 2)},
-        "S24": {"flow": round(sum(s24.values()), 4), "composition": fractions(s24)},
-        "S27": {"flow": round(sum(s27.values()), 5), "composition": fractions(s27), "temperature": round(t28, 2)},
-        "S28": {"temperature": round(t28, 2)},
         "Q1": {"duty": round(q1, 4)},
         "Q4": {"duty": round(q4, 4)},
         "Q5": {"duty": round(q5, 4)},
         "Q6": {"duty": round(q6, 4)},
         "Q7": {"duty": round(q7, 4)},
-        "Q9": {"duty": round(q9, 4)},
-        "Q10": {"duty": round(q10, 4)},
         "Q11": {"duty": round(q11, 4)},
         "Q12": {"duty": round(q12, 5)},
-        "Q13": {"duty": round(q13, 4)},
+        "Q14": {"duty": round(q14, 4)},
         "P1": {"duty": round(p1, 4)},
         "P2": {"duty": round(p2, 4)},
         "P3": {"duty": round(p3, 4)},
