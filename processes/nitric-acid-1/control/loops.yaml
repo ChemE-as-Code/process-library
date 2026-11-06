@@ -2,29 +2,305 @@
 # PROPOSED control intent, not approved for implementation; the review status comes from reviews/.
 # Trips are not loops: they go in control/cause-effect.yaml, which `interlocks` refers to.
 # Conventions (action, fail, travel, split range) and the checks: skill control-loops.
-# Leave a value out until it is known (action, fail, value): validate reports it as
-# cheme.control-incomplete (info), and a stage gate decides when it must be given.
+# D-019: one entry per controller drawn on P-01 to P-06 (15 loops). Flow setpoints quote the
+# design case of process/flowsheet.yaml in their source (not linked with `stream:`, as hda-1
+# does: kg/h comparisons need Pint, core#153); levels, temperatures and pressures that are not a
+# case value are ASSUMED (D-019). Fail positions are those drawn on the P&IDs, for the HAZOP to
+# confirm. Output 100 % opens a valve (default travel).
 schema: cheme/loops/v1
-loops: []
-#  - id: FIC-101                        # stable id, usually the loop tag
-#    title: Feed flow
-#    purpose: Hold the feed rate of the operating case.
-#    section: FEED                      # a section of process/narrative.md
-#    cases: [design]                    # operating cases of process/flowsheet.yaml
-#    variable: flow                     # flow, level, temperature, pressure, composition, ...
-#    measurement: [{tag: FT-101}]
-#    controller: FIC-101
-#    action: reverse                    # direct: output rises with the measurement
-#    final_elements:
-#      - {tag: FV-101, kind: valve, actuator: pneumatic, fail: closed}
-#    targets:
-#      - {kind: setpoint, value: 3600, unit: kg/h, provenance: given, source: basis of design,
-#         cases: [design], stream: S1, property: flow}
-#    modes: [manual, auto]
-#    normal_mode: auto
-#    links: []                          # cascade, ratio, feedforward, override
-#    alarms: [{tag: FT-101, condition: FAL, response: check the feed pump}]
-#    interlocks: []                     # related C&E ids
-#    rationale: ""
-#    operator: ""                       # judgement the operator has to make
-#    unresolved: []                     # open points, one per entry
+loops:
+  # ---------------------------------------------------------------- P-01 ammonia and air
+  - id: FIC-107
+    title: K-101 air flow (plant load)
+    purpose: Hold the total air rate through the inlet guide vanes; it sets the plant load, and the ammonia follows it through the ratio FFIC-201.
+    cases: [design]
+    variable: flow
+    measurement: [{tag: FIC-107}]
+    controller: FIC-107
+    action: reverse
+    final_elements:
+      - {tag: FV-107, kind: damper, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: setpoint, value: 213343, unit: kg/h, provenance: assumed, source: "process/flowsheet.yaml design case, stream S06 flow (assumed, D-010)", cases: [design]}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: FIC-107, condition: FAL, response: "Check the intake filter and the guide vanes; the ratio FFIC-201 takes the ammonia down with the air. The air low-low trip I-202 is behind it."}
+    interlocks: [I-202]
+    rationale: "Air leads, ammonia follows (D-019): the load is moved on the air and the ratio controller keeps the mixture at its design NH3 fraction, so the mixture never passes through a richer ratio on a load change. FV-107 fails open: full air dilutes the mixture."
+    operator: Raises the load on the air first and lowers it on the ammonia first; watches the K-101 surge margin (UIC-110).
+  - id: LIC-102
+    title: E-101 ammonia level
+    purpose: Hold the liquid level over the evaporator tube bundle by admitting liquid ammonia, so the evaporator makes the vapour the burner takes.
+    cases: [design]
+    variable: level
+    measurement: [{tag: LIC-102}]
+    controller: LIC-102
+    action: reverse
+    final_elements:
+      - {tag: LV-102, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 60, unit: "%", provenance: assumed, source: "D-019: bundle covered with disengagement space above it, ASSUMED"}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: LIC-102, condition: LAH, response: "Check LV-102; a rising level means carry-over risk: reduce the load before the high-high trip I-101 closes XV-101."}
+      - {tag: LIC-102, condition: LAL, response: "Check the ammonia supply pressure and LV-102; a low level uncovers the bundle and the vapour rate falls."}
+    interlocks: [I-101]
+    rationale: "Level-to-feed: the vapour leaves at the rate the burner takes (FFIC-201), so the liquid feed is the manipulated variable. LV-102 fails closed so that a failure cannot flood the evaporator into the vapour line; the trip valve XV-101 on the same line is separate (I-101)."
+    operator: Blows down oil and water from E-101 (DR-110) on a schedule; a falling heat transfer at constant pressure points to fouling.
+  - id: PIC-104
+    title: E-101 evaporating pressure
+    purpose: Hold the ammonia vapour pressure at the burner supply level by throttling the chilled water through the evaporator tubes.
+    cases: [design]
+    variable: pressure
+    measurement: [{tag: PIC-104}]
+    controller: PIC-104
+    action: reverse
+    final_elements:
+      - {tag: PV-104, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 600, unit: kPa(a), provenance: assumed, source: "process/flowsheet.yaml design case, stream S03 pressure (assumed, D-003)", cases: [design]}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: PIC-104, condition: PAL, response: "Check the chilled-water supply from C-101 and PV-104; low vapour pressure starves the ratio valve FV-201."}
+      - {tag: PIC-104, condition: PAH, response: "Check PV-104; PSV-105 is behind it."}
+    rationale: "The heat input sets the evaporation rate and so the pressure; the chilled water is the heating medium (D-011). PV-104 fails closed: no heat, the pressure falls, the ammonia supply fails safe (lean). The chilled-water loop's own temperature is the absorber's (C-101 coils), so the two are coupled; a start-up heat source for E-101 before C-101 runs is open (D-020)."
+    unresolved:
+      - "Heat source of E-101 at start-up, before the absorber makes heat (LP steam trim heater or warm water), D-020"
+  - id: UIC-110
+    title: K-101 anti-surge (blow-off)
+    purpose: Keep K-101 away from its surge line by blowing air off to atmosphere when the plant takes less than the surge flow.
+    cases: [design]
+    variable: other
+    measurement: [{tag: UIC-110}]
+    controller: UIC-110
+    action: reverse
+    final_elements:
+      - {tag: UV-110, kind: valve, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: low, value: 10, unit: "%", provenance: assumed, source: "D-018: surge control line 10 % flow margin to the surge line, usual practice, ASSUMED until the compressor vendor's map"}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: UIC-110, condition: "surge margin low", response: "Check the load and the guide vanes; UV-110 should be opening."}
+    rationale: "An air compressor recycles by blow-off: the air is not worth recovering and a cooled recycle loop is not needed (skill control-loops, gas movers). UV-110 fails open (machine protection first). The surge line and the inputs (suction flow, discharge pressure) are the vendor's."
+  # ---------------------------------------------------------------- P-02 burner
+  - id: FFIC-201
+    title: NH3/air ratio at the mixer
+    purpose: Hold the ammonia vapour flow at the design fraction of the primary air, the mixture strength at the gauze.
+    cases: [design]
+    variable: ratio
+    measurement: [{tag: FFIC-201}, {tag: FI-202}]
+    controller: FFIC-201
+    action: reverse
+    final_elements:
+      - {tag: FV-201, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 0.0656, unit: "kg/kg", provenance: calculated, source: "process/flowsheet.yaml design case: S03 11846 kg/h NH3 over S08 180611 kg/h primary air (10.0 mol% NH3 in the mixture, D-005)", cases: [design]}
+      - {kind: high, value: 0.07, unit: "kg/kg", provenance: assumed, source: "D-019: setpoint clamp of the ratio station, about 10.6 mol% NH3, ASSUMED below the trip I-201"}
+    modes: [manual, auto]
+    normal_mode: auto
+    links:
+      - {type: ratio, tag: FI-202, ratio: 0.0656, notes: "wild flow: the primary air FI-202, set by FIC-107"}
+    alarms:
+      - {tag: FFIC-201, condition: FFAH, response: "Ratio above its alarm: lower the ratio setpoint or the ammonia; check FI-202 against FZ-206. The ratio trip I-201 is behind it."}
+      - {tag: AI-210, condition: AAH, response: "Analyser shows a rich mixture: compare with FFIC-201 and FFZ-205; reduce the ammonia."}
+      - {tag: FZ-206, condition: "deviation from FI-202", response: "The trip air flow and the control air flow disagree (both on PA-105, own elements): a FZ-206 stuck high would blind I-202 and the FZ-206 leg of I-401. Check both transmitters; with FZ-206 not proven, reduce the load and call maintenance. Band ASSUMED (D-024, O-9)."}
+      - {tag: FFZ-205, condition: "NH3 flow deviation from FFIC-201", response: "The trip NH3 flow and the control NH3 flow disagree (both on NV-102, own elements): a FFZ-205 NH3 input failed low would make the ratio trip I-201 read lean. Check both transmitters; reduce the ammonia until FFZ-205 is proven. Band ASSUMED (D-024, O-9)."}
+    interlocks: [I-201, I-202, I-203, I-204]
+    rationale: "The mixture is flammable above a NH3 fraction close to the operating one (D-005), so the ratio is controlled, clamped and tripped by independent instruments (FFZ-205, FZ-206 on their own flow elements) acting on XV-203 and XV-204, never on FV-201 (D-019). FV-201 fails closed. The analyser AI-210 is a cross-check, not part of the trip (composition analysers are avoided in safety functions, skill control-safeguarding-and-interlocks)."
+    operator: Moves the ratio only in small steps; on a load change the air leads (FIC-107).
+  # ---------------------------------------------------------------- P-03 heat recovery
+  - id: TIC-301
+    title: R-102 inlet temperature (E-103 tail-gas bypass)
+    purpose: Hold the tail-gas temperature at the tertiary reactor inlet, where the N2O decomposition and the SCR work.
+    cases: [design]
+    variable: temperature
+    measurement: [{tag: TIC-301}]
+    controller: TIC-301
+    action: direct
+    final_elements:
+      - {tag: TV-301, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 703.15, unit: K, provenance: assumed, source: "process/flowsheet.yaml design case, stream S27 temperature (assumed, D-009)", cases: [design]}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: TIC-301, condition: TAL, response: "Close TV-301; check the burner load (less heat in NX-203). The SCR ammonia trip I-601 (TZ-605, P-06) is behind it."}
+      - {tag: TIC-301, condition: TAH, response: "Open TV-301; check against the R-102 and X-101 design temperature."}
+    interlocks: [I-601]
+    rationale: "A bypass of the cold (tail-gas) side keeps the hot nitrous gas flow through E-103 constant (skill control-loops, process exchangers). Direct action: a higher temperature opens the bypass. TV-301 fails closed: all tail gas through E-103, the hottest R-102 inlet, which the design covers, and away from the low-temperature limit of the SCR. The design point needs a small normal bypass for control margin: E-103 is sized with it (D-019)."
+  - id: LIC-305
+    title: V-101 weak-acid level
+    purpose: Hold the separator level by sending the weak acid to the absorber, so no liquid reaches the K-102 suction and no gas the pumps.
+    cases: [design]
+    variable: level
+    measurement: [{tag: LIC-305}]
+    controller: LIC-305
+    action: direct
+    final_elements:
+      - {tag: LV-305, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 50, unit: "%", provenance: assumed, source: "D-019: half of the measuring range, ASSUMED"}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: LIC-305, condition: LAH, response: "Check P-101A/B and LV-305; liquid carried to K-102 damages the machine: start the spare pump."}
+      - {tag: LIC-305, condition: LAL, response: "Check LV-305 for passing; the low-low trip I-301 stops the pumps."}
+    interlocks: [I-301]
+    rationale: "Level-to-outflow on a separator whose inflow is set upstream. LV-305 fails closed so that the pumps cannot run the separator dry and pass gas into the absorber feed; a high level is alarmed (no high-high trip drawn yet: a question for the HAZOP, D-019)."
+    unresolved:
+      - "V-101 level high-high protection of the K-102 suction (trip or the train package's suction drum), HAZOP"
+  # ---------------------------------------------------------------- P-04 NOx compression
+  - id: UIC-401
+    title: K-102 anti-surge (recycle)
+    purpose: Keep K-102 away from its surge line by recycling discharge gas to the suction.
+    cases: [design]
+    variable: other
+    measurement: [{tag: UIC-401}]
+    controller: UIC-401
+    action: reverse
+    final_elements:
+      - {tag: UV-401, kind: valve, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: low, value: 10, unit: "%", provenance: assumed, source: "D-018: surge control line 10 % flow margin, ASSUMED until the vendor's map"}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: UIC-401, condition: "surge margin low", response: "Check the absorber pressure PIC-611 and the load; UV-401 should be opening."}
+      - {tag: TI-402, condition: TAH, response: "K-102 discharge hot: the machine is on hot recycle with no or too little forward flow. Check XV-610 open, PV-611 passing and FZ-206 above its low-low point; restore forward flow or stop the train before the full-recycle time trip I-401 stops it. Setting the train vendor's, not stated yet (ASSUMED below the K-102 discharge design temperature, O-9, D-024)."}
+    interlocks: [I-401]
+    rationale: "Nitrous gas cannot be blown off, so K-102 recycles. The recycle is taken before E-106/E-107 (hot bypass): it suits short-term duty (start-up, trips); continuous recycle at low load heats the suction, so a cooled recycle from the E-107 outlet is the alternative for the HAZOP and the vendor (D-018). UV-401 fails open."
+    unresolved:
+      - "Hot or cooled recycle for K-102 (continuous turndown duty), D-018"
+  # ---------------------------------------------------------------- P-05 absorption and bleaching
+  - id: FIC-505
+    title: Process water to the absorber (acid strength)
+    purpose: Hold the process water to the top tray; with the NOx load it sets the strength of the product acid.
+    cases: [design]
+    variable: flow
+    measurement: [{tag: FIC-505}]
+    controller: FIC-505
+    action: reverse
+    final_elements:
+      - {tag: FV-505, kind: valve, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: setpoint, value: 14039.3, unit: kg/h, provenance: assumed, source: "process/flowsheet.yaml design case, stream S24 flow (assumed, D-008, D-010)", cases: [design]}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: AI-514, condition: "strength deviation", response: "Correct the FIC-505 setpoint: more water for a strong acid, less for a weak one."}
+    rationale: "The water balance closes the acid strength (D-008). The operator trims the setpoint from AI-514; a cascade AIC-514 -> FIC-505 is left for detail design, once the absorber dynamics are known (D-019). FV-505 fails open: the absorption continues (NOx emission kept low), the acid gets weaker, which is the safe side."
+  - id: LIC-506
+    title: C-101 sump level (raw acid to the bleacher)
+    purpose: Hold the absorber sump level, the liquid seal between 1130 and 500 kPa(a).
+    cases: [design]
+    variable: level
+    measurement: [{tag: LIC-506}]
+    controller: LIC-506
+    action: direct
+    final_elements:
+      - {tag: LV-506, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 50, unit: "%", provenance: assumed, source: "D-019: half of the measuring range, ASSUMED"}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: LIC-506, condition: LAL, response: "Check LV-506 for passing; the low-low trip I-501 closes XV-507 against gas blow-by."}
+      - {tag: LIC-506, condition: LAH, response: "Check LV-506 and the bleacher level LIC-510; a flooded sump backs up onto the gas inlet."}
+    interlocks: [I-501]
+    rationale: "The sump is a liquid seal between two pressure levels (skill control-loops); LV-506 fails closed so that a failure never opens a gas path into C-102. XV-507 (I-501) is a separate valve."
+  - id: FIC-509
+    title: Secondary air to the bleacher (tail-gas O2)
+    purpose: Hold the secondary air through C-102; it strips the dissolved NOx and brings the oxygen the absorber needs.
+    cases: [design]
+    variable: flow
+    measurement: [{tag: FIC-509}]
+    controller: FIC-509
+    action: reverse
+    final_elements:
+      - {tag: FV-509, kind: damper, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: setpoint, value: 32732.2, unit: kg/h, provenance: calculated, source: "process/flowsheet.yaml design case, stream S09 flow (calculated, DWSIM run D-016; set by the 3 mol% tail-gas O2 of D-008)", cases: [design]}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: AI-512, condition: AAL, response: "Tail-gas O2 low: raise FIC-509; NOx absorption falls with the oxygen."}
+    rationale: "The secondary air is set by the tail-gas O2 (D-008); the operator trims FIC-509 from AI-512, a cascade AIC-512 -> FIC-509 is for detail design (D-019). FV-509 fails open: bleaching and absorber O2 kept."
+  - id: LIC-510
+    title: C-102 sump level (product acid)
+    purpose: Hold the bleacher sump level by sending the product acid to storage.
+    cases: [design]
+    variable: level
+    measurement: [{tag: LIC-510}]
+    controller: LIC-510
+    action: direct
+    final_elements:
+      - {tag: LV-510, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 50, unit: "%", provenance: assumed, source: "D-019: half of the measuring range, ASSUMED"}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: LIC-510, condition: LAH, response: "Check LV-510 and the storage tank; a flooded bleacher sends acid with the bleacher gas to K-102."}
+      - {tag: LIC-510, condition: LAL, response: "Check LV-510 for passing; air would blow into the product line."}
+    rationale: "Level-to-outflow; LV-510 fails closed (no air or NOx-laden acid to storage on a failure)."
+  # ---------------------------------------------------------------- P-06 tail gas
+  - id: FIC-603
+    title: SCR ammonia dosing
+    purpose: Hold the ammonia to the SCR at the rate that reduces the tail-gas NOx to its target without slip.
+    cases: [design]
+    variable: flow
+    measurement: [{tag: FIC-603}]
+    controller: FIC-603
+    action: reverse
+    final_elements:
+      - {tag: FV-603, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 46.06, unit: kg/h, provenance: calculated, source: "process/flowsheet.yaml design case, stream S05 flow (calculated, DWSIM run D-016; D-009)", cases: [design]}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: AI-614, condition: AAH, response: "Stack NOx high: raise FIC-603 within the catalyst's NH3/NOx limit; check AI-511 for an absorber upset."}
+    interlocks: [I-601, I-602]
+    rationale: "Dosing on flow, trimmed by the operator from the stack NOx (AI-614); a feedforward from AI-511 and a ratio to the tail-gas flow are for detail design with the catalyst vendor (D-019). FV-603 fails closed (no ammonia slip on a failure)."
+  - id: TIC-604
+    title: E-108 ammonia vapour temperature
+    purpose: Hold the SCR ammonia superheated on LP steam, so no liquid reaches the dosing valve.
+    cases: [design]
+    variable: temperature
+    measurement: [{tag: TIC-604}]
+    controller: TIC-604
+    action: reverse
+    final_elements:
+      - {tag: TV-604, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 323.15, unit: K, provenance: assumed, source: "process/flowsheet.yaml design case, stream S05 temperature (assumed, D-009)", cases: [design]}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: TIC-604, condition: TAL, response: "Check the LP steam and the steam trap ST605; wet ammonia makes the dosing unsteady."}
+    rationale: "Steam-side throttling of a utility vaporiser. TV-604 fails closed; the vaporiser then cools and the SCR dosing falls, which FIC-603 and AI-614 show."
+  - id: PIC-611
+    title: Absorber pressure (at the expander inlet)
+    purpose: Hold the pressure of the high-pressure system (C-101) with the expander inlet valve, so the absorption runs at its design pressure.
+    cases: [design]
+    variable: pressure
+    measurement: [{tag: PIC-611}]
+    controller: PIC-611
+    action: direct
+    final_elements:
+      - {tag: PV-611, kind: valve, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: setpoint, value: 1040, unit: kPa(a), provenance: assumed, source: "process/flowsheet.yaml design case, stream S28 pressure (assumed, D-003); C-101 top then at 1100 kPa(a) (S25)", cases: [design]}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: PI-503, condition: PAH, response: "Absorber pressure high: check PV-611 and XV-610; PSV-404 is behind it."}
+      - {tag: PI-503, condition: PAL, response: "Absorber pressure low: NOx absorption falls; check the K-102 load and UV-401."}
+    interlocks: [I-602]
+    rationale: "Back-pressure control upstream of the expander: the pressure is held where the absorption needs it, the expander takes what is left (D-019). The measurement is at the X-101 inlet, downstream of R-102, so the absorber pressure is that plus the drops of E-106, E-103 and R-102 (PI-503 shows it). PV-611 fails open so a failure never pressures the system against PSV-404; the absorber pressure then falls and the NOx emission rises, which AI-614 shows. An expander bypass for start-up and for a held pressure on an expander trip is open (D-018)."
+    unresolved:
+      - "X-101 bypass (start-up and trip): its control and relation to PV-611, with the train vendor (D-018)"
