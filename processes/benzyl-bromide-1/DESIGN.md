@@ -19,9 +19,9 @@ in this session (Google Patents machine text; NIST WebBook and PubChem pages).
 
 | id | source | locator | access / terms | used for |
 |---|---|---|---|---|
-| SRC-1 | US 3 528 899 A, E. Plander, J. Zahalka, V. Formacek, 1970 (priority CS 1965): Method of brominating the side chain of an alkyl benzene, https://patents.google.com/patent/US3528899A/en | background: side-chain bromination activated by light, heat or peroxides was mainly a laboratory process, because light penetrates the mixture only a short way, the reaction slows as bromine builds up, excess bromine accumulates and the ring is brominated as well. Example I: 0.6 mol bromine added to 0.5 mol toluene at room temperature under X-rays, at a rate that keeps unreacted bromine from leaving with the HBr, the HBr withdrawn; the cut at 190-210 C refined by repeated fractional distillation, about 90 % of theory on toluene | read; patent, facts only | D-001, D-005, D-010, benchmarks |
+| SRC-1 | US 3 528 899 A, E. Plander, J. Zahalka, V. Formacek, 1970 (priority CS 1965): Method of brominating the side chain of an alkyl benzene, https://patents.google.com/patent/US3528899A/en | background: side-chain bromination activated by light, heat or peroxides was mainly a laboratory process, because light penetrates the mixture only a short way, the reaction slows as bromine builds up, excess bromine accumulates and the ring is brominated as well. Example I: 0.6 mol bromine added to 0.5 mol toluene at room temperature under X-rays, at a rate that keeps unreacted bromine from leaving with the HBr, the HBr withdrawn; the cut at 190-210 C refined by repeated fractional distillation, about 90 % of theory on toluene. Discussion: the side-chain bromination is a series of successive reactions, the degree of bromination set by the moles of bromine introduced (Example II, xylene: 41 % monobromo- and 46 % dibromoxylene); benzal bromide itself is not named | read; patent, facts only | D-001, D-005, D-010, reactions.yaml (BALBR), benchmarks |
 | SRC-2 | NIST Chemistry WebBook, SRD 69: toluene (C108883), bromine (C7726956), benzyl bromide (C100390), benzal bromide (C618315) | Antoine constants (NIST fits: toluene to Willingham et al. 1945, 308.5-384.7 K; bromine to Blair and Ihle 1973, 343-383 K; benzyl bromide to Stull 1947, 305.4-471.7 K); heats of vaporization (toluene 35.4 kJ/mol at 360 K, Rivenq 1975; bromine 29.8 at 358 K, Blair and Ihle; benzyl bromide 48.1 at 355 K, Ashcroft 1976); boiling points (toluene 383.8 +/- 0.2 K; benzyl bromide 471.7 K, Aldrich 1990, and 471 K); formation enthalpies of the liquids (toluene 12.0 kJ/mol, Prosen et al. 1945; benzyl bromide 16 +/- 2, Ashcroft, Carson et al. 1963, with 22 and 30 +/- 14 also listed); benzal bromide: only a reduced-pressure boiling point, 429.2 K at 0.031 bar (Weast and Grasselli 1989); toluene's liquid heat capacity about 157 J/(mol K) at 298 K | read | materials.yaml, reactions.yaml, D-005, D-007 |
-| SRC-3 | PubChem CID 7498 (benzyl bromide), CID 24408 (bromine) | benzyl bromide: identity (C7H7Br, InChIKey AGEZXYOZHKGVCM-UHFFFAOYSA-N); HSDB methods of manufacturing: toluene brominated under ultraviolet light (citing the Merck Index 2013), toluene bromination or benzyl alcohol with HBr (citing Hawley's 15th ed.), dibenzyl ether with bromine; boiling point 198-201 C, density 1.438 at 20 C, flash point 79-86 C closed cup; a lachrymator; decomposes slowly with water to HBr, attacks most metals when moist releasing heat and HBr, reacts violently with bases, magnesium and strong oxidants; GHS H315, H319, H335. Bromine: GHS H314, H330 (fatal if inhaled), H400 | read (PUG REST, PUG View); the Merck Index and Hawley's are cited through HSDB, not read | D-001, D-011, registry |
+| SRC-3 | PubChem CID 7498 (benzyl bromide), CID 24408 (bromine), CID 1140 (toluene) | benzyl bromide: identity (C7H7Br, InChIKey AGEZXYOZHKGVCM-UHFFFAOYSA-N); HSDB methods of manufacturing: toluene brominated under ultraviolet light (citing the Merck Index 2013), toluene bromination or benzyl alcohol with HBr (citing Hawley's 15th ed.), dibenzyl ether with bromine; boiling point 198-201 C, density 1.438 at 20 C, flash point 79-86 C closed cup; a lachrymator; decomposes slowly with water to HBr, attacks most metals when moist releasing heat and HBr, reacts violently with bases, magnesium and strong oxidants; GHS H315, H319, H335. Bromine: GHS H314, H330 (fatal if inhaled), H400. Toluene: flash point 4 C closed cup, lower explosive limit 1.1 vol%, autoignition temperature 480 C | read (PUG REST, PUG View; toluene 2026-11-06); the Merck Index and Hawley's are cited through HSDB, not read | D-001, D-011, registry |
 | SRC-4 | The `chemicals` 1.5.2 package (Caleb Bell, MIT licence): its packaged CRC Handbook tables (`CRC_organic_data`, `CRC_inorganic_data` densities and melting points, `CRC_standard_data` heat capacities and formation enthalpies) and its critical constants with COSTALD | toluene COSTALD volume at 363 K, 0.1156 m3/kmol; densities: bromine 3102.8, benzyl bromide 1438.0, benzal bromide 1836.5 kg/m3; heat capacities: toluene 157.3, bromine 75.7 J/(mol K) (liquid), HBr 29.1 (gas); HBr (g) formation enthalpy -36.3 kJ/mol; melting point of bromine 265.95 K | open data package queried (2026-11-06); the CRC values are the tables packaged in `chemicals`, not the printed (licensed) handbook | materials.yaml, D-005, D-008 |
 | SRC-5 | processes/hydrogen-bromide-1 (this library), DESIGN.md D-009 | the integral heat of solution of HBr to 48 wt% acid, -72.0 kJ/mol, ASSUMED there from the infinite-dilution -85.14 kJ/mol (NSRDS-NBS 2) | library, internal | D-008 |
 | SRC-6 | Stoessel, F. (2008) Thermal Safety of Chemical Processes, Wiley-VCH, doi:10.1002/9783527621606 | accumulation, MTSR and the criticality classes of a semi-batch (method, implemented in core ADRs 0050, 0054) | method reference, no data taken | D-011 |
@@ -83,7 +83,8 @@ R-101 from R101's model (core ADR 0052, fill fraction 0.8 and H/D 1.2 ASSUMED): 
 R10 preferred size), 75 % full, 1.62 m diameter; its jacket on a tempered-water loop (U 300
 W/(m2 K), the cooling water's mean of 303 K over its 298 K supply and 308 K return, ASSUMED)
 removes 166.9 kW at the charge's 9.27 m2 against the model's 10.3 kW peak, to which the absorbed
-light adds 6 kW and the agitator 3 kW (D-009). C-101 (4 m3, D-007) is busy 55 % of the cycle.
+light adds 6 kW and the agitator 3 kW (D-009). C-101 (4 m3, D-007) is busy 55 % of the cycle
+at core's constant boil-up, 68 % with the boil-up its jacket allows as the pot empties (D-007).
 
 ## D-004 Feeds and charge (2026-11-06)
 Decision: 4.0 mol of toluene in R-101's charge per mol of bromine dosed (the recycle's toluene
@@ -185,7 +186,24 @@ kPa, and the stripped crude at 374 K, above its 321 K bubble point at 2 kPa, so 
 the still is evacuated (counted as a sensible-heat credit in Q7 and Q9, D-009, not in core's
 boil-up time); the dissolved HBr the crude holds (none in the model, D-005) would leave first, to
 the vacuum system; the jacket's area falls as the pot empties, so the constant boil-up is
-optimistic at the end of ST102; the condensers and the vacuum system are sized by hand.
+optimistic; the condensers and the vacuum system are sized by hand.
+**The end of the main cut cannot run at 80 kW.** The residue, 68.7 kg (35 mol% benzyl bromide,
+65 mol% benzal bromide, about 1.6-1.7 kg/L), is about 0.04 m3 at the end of ST102: it sits well
+inside C-101's dished bottom (about 0.42 m3 for a DIN 28011 end of 1.62 m), the jacket is wetted
+on about 0.9 m2 only, and at U 300 W/(m2 K) (ASSUMED, as R-101's) and the steam's 421 K it gives
+about 12.5 kW, 16 % of the stated boil-up. scripts/still_jacket.py repeats both stills with the
+boil-up capped at the jacket's duty for the wetted area: ST101 takes 1.37 h instead of 1.15 h
+(its end, 0.97 m3, at 62 kW against 150 kW), ST102 1.92 h instead of 1.20 h, so C-101 is 0.93 h
+longer a batch. Decision: keep the cut to the 35 mol% residue in C-101, the end of it at the
+falling boil-up the jacket allows. C-101 is then busy 4.78 h of the 7.05 h cycle (68 % instead
+of 55 %), so R-101 stays the bottleneck: the batches a year, the year-average streams and the
+duties (energy per batch, not per hour) do not change; one batch takes about 11.3 h end to end
+instead of 10.40 h, and the residue is held hot about 0.7 h longer (its TD24 is open, D-011).
+Rejected: ending the main cut at a larger heel (at 0.4 m3 the pot still holds more than half of
+the benzyl bromide the cut is meant to take, and carrying a hot heel over to the next batch needs the
+residue's TD24); a smaller still or receiver for the cut (a second vessel and a transfer for 0.7
+h saved on a vessel that is not the bottleneck). The recipe keeps core's constant-boil-up times
+(L-6).
 Rejected: a specified split for the strip or the product (a stated column, core#173) where one
 stage does the work; distilling the forerun with the strip at 15 kPa (it would need the pot
 above 421 K).
@@ -298,8 +316,10 @@ point of toluene, so the dosing, not the dilution, keeps it below the MTT. **For
 the slow cases are the lamp-failure cases**: weak, fouled or failed lamps (or a bromine-coloured
 light path, SRC-1) slow the chain like a smaller k, and in the dark the bromine accumulates while
 it is dosed; when the light comes back the accumulated bromine reacts at once, with its HBr. At
-k/100 the content holds 17 mol% bromine at the end of the dosing, which lowers its bubble point to
-about 373 K (Raoult, the bromine's Antoine extrapolated), so the margin is smaller still than the
+k/100 the content holds about 14 mol% bromine at the end of the dosing (4.2 kmol in 29.3 kmol of
+liquid: the 25.1 kmol charge plus the 5.78 kmol dosed less the 1.55 kmol reacted, each reaction
+taking one mole out of the liquid as its HBr is vented), which lowers its bubble point to about
+372 K (Raoult, the bromine's Antoine extrapolated), so the margin is smaller still than the
 table's MTT shows. The bromine dosing must therefore be interlocked with the lamps' power and
 light sensors, the temperature, the agitator and the HBr off-gas flow: HBr forms only as the
 bromine reacts, so dosing without off-gas means bromine accumulating. At k/100 the cycle (63 h)
@@ -325,6 +345,25 @@ breaker on nitrogen) and jacket-leak detection are to be assessed.
 system with a caustic (or thiosulfate) scrubber for its vents; an emergency vent from R-101 to
 the caustic scrubber, not to air. Benzyl bromide is a strong lachrymator (SRC-3): closed sampling,
 the receivers and T-201 padded and vented to the scrubber, product filled under nitrogen.
+(d) The lamp wells and flammability. R-101 holds 20 kW of electric lamps in immersion wells
+(glass or quartz, ASSUMED), cooled on cooling water (Q3, about 14 kW while lit), immersed in
+toluene at 363 K, 86 K above toluene's flash point of 4 C (277 K, SRC-3); benzyl bromide's flash
+point (79-86 C) is passed too, here and in C-101. The off-gas carries 0.6 to 1.0 mol of toluene
+vapour per mol of HBr (D-005), far above toluene's lower explosive limit of 1.1 vol% (SRC-3): with
+air in the head space or the vent it is a flammable atmosphere. A rupture of a well or a leak at
+its seal (thermal shock, a blow, an overheated lamp) puts the well's cooling water straight into
+a content of bromine, HBr and benzyl bromide, a path apart from the jacket leak of (b) and at the
+cooling water's pressure, and exposes the lamp's electrics, a heat and ignition source, to the
+flammable liquid and its vapour. Safeguards to be assessed: the well coolant held below the
+vessel's pressure, or a non-aqueous inert coolant in the wells; leak detection in the well
+coolant (conductivity or pH for HBr, or a loss of level or pressure); the lamp power tripped on a
+well-coolant fault (low flow, high temperature, leak) and on a lamp over-temperature, the lamp
+surfaces kept far below toluene's autoignition temperature of 480 C (SRC-3); nitrogen inerting
+kept through the whole of the lighting, with an O2 check of the head space before the lamps are
+switched on and an O2 trip while they are on; lamps, wells and terminals rated for the zone (the
+area classification is open). Open for the HAZOP: air in-leakage into the vacuum stills (C-101 at
+15 and 2 kPa(a) with hot toluene and benzyl bromide above their flash points), their receivers
+and the vacuum pump's discharge.
 
 ## D-012 Preliminary gate-to-gate LCI (2026-11-06)
 Decision: `cheme assess lca --write` per kg of distilled benzyl bromide from the flowsheet's
@@ -365,6 +404,7 @@ multipurpose train, shared tank farms.
 | photon budget of the lamps | hand (script), quantum yield ASSUMED | D-005, L-1 |
 | batch recipe, cycle time, basis check, R-101's vessel and jacket | done in cheme | D-003, core ADRs 0051, 0052, 0057 |
 | stills ST101, ST102 (one stage, two cuts): distillates, residue, boil-up times, latent heat | done in cheme, ideal liquid and benzal bromide's vapour pressure ASSUMED | D-007, core ADR 0055 |
+| C-101's jacket against the stills' constant boil-up (wetted area as the pot empties) | hand (scripts/still_jacket.py), U and the head's shape ASSUMED | D-007, L-6 |
 | toluene recycle at its fixed point | script and propagate in turn | D-006, L-7 |
 | feeds for 1000 t/a, absorber water, mixing and bubble-point temperatures, duties Q1 to Q11, P1 | script | D-006, D-008, D-009 |
 | off-gas organics (reflux and vent condensers) | hand (script), not in the balance | D-008, L-3 |
@@ -410,11 +450,14 @@ filter and the dryer (no solids), `still.feed` (no solvent swap).
 - L-5: the default MTT is the lowest boiling point of the charge and the doses (here bromine's
   332 K, below the process temperature); it ignores that the dose reacts and that the content is
   a mixture. `hazard.mtt` was set by hand; core could give the content's bubble point at the
-  worst moment from its Antoine data (D-011: 394.9 K design, about 373 K at k/100).
+  worst moment from its Antoine data (D-011: 394.9 K design, about 372 K at k/100).
 - L-6 (ADR 0055): the still has no heat-up, flash or sensible heat of a charge hotter than its
   bubble point (both charges here), a constant boil-up whatever the wetted jacket area, and does
   not size its vessel, jacket, condensers or vacuum system: C-101 is sized by hand, and Q7 and Q9
-  carry the flash credit that core's boil-up time does not.
+  carry the flash credit that core's boil-up time does not. Here the residue at the end of ST102
+  (about 0.04 m3) wets only about 0.9 m2 of jacket, about 12.5 kW against the 80 kW boil-up; the
+  jacket-limited times (scripts/still_jacket.py, D-007) are 0.93 h a batch longer than core's.
+  Core needs the boil-up from U, the wetted jacket area of the vessel and the steam temperature.
 - L-7: core propagates from the feeds and cannot solve them for a product rate, and does not tear
   a recycle: the script scales the feeds and brings the toluene recycle to its fixed point by
   passes of propagate and the script (as n-bromosuccinimide-1's L-6).

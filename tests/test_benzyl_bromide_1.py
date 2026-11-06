@@ -17,8 +17,14 @@ DESIGN.md, process.yaml and lca/ is checked against them:
 - the recipe's batch size times its batches gives 1000 t/a;
 - the criticality classes DESIGN.md states as possible without a TD24 are those core's
   `criticality()` can give, and the MTT is below the content's bubble point at the worst moment;
-- water ingress and the loss of the absorber water are open items, and the process is not set
-  public in the change that adds it (CONTRIBUTING, "Publishing a process").
+  the k/100 bromine fraction is a share of the whole liquid at the end of the dosing;
+- the lamp power's source states the 20 kW and the 5.25 h of light its duty uses; the residue
+  left in C-101 is about 0.04 m3, inside the bottom head, and the jacket limit is recorded;
+- the benzotribromide bound matches D-005's derivation, and every reaction source is a read
+  entry of the source register;
+- water ingress, the loss of the absorber water and the lamp wells (rupture, ignition in a
+  flammable toluene atmosphere) are open items, and the process is not set public in the change
+  that adds it (CONTRIBUTING, "Publishing a process").
 """
 
 from __future__ import annotations
@@ -240,6 +246,103 @@ def test_the_mtt_is_below_the_content_bubble_point_in_the_design_case(model):
     assert _bubble(materials, worst) == pytest.approx(394.9, abs=0.3)
     assert hazard["mtt"] < _bubble(materials, worst)
     assert "394.9 K at the worst moment" in _text("DESIGN.md")
+
+
+def _per_batch(model, sid: str) -> dict[str, float]:
+    cycle = _yaml("process/recipe.yaml")["hours_per_year"]["value"] / 1124.1
+    return {k: n * cycle for k, n in _kmol(model, sid).items() if k != "HBR"}
+
+
+def test_the_k100_bromine_fraction_counts_the_liquid_at_the_end_of_dosing(model):
+    """At k/100 (accumulation 73.1 %) the bromine left is a share of the whole liquid: the
+    charge plus the bromine dosed less one mole per mole reacted (the HBr is vented), not of
+    the charge alone."""
+    materials, _ = model
+    charge, dosed = _per_batch(model, "S4"), _per_batch(model, "S5")["BR2"]
+    reacted = (1 - 0.731) * dosed
+    liquid = dict(charge)
+    liquid["BR2"] = liquid.get("BR2", 0.0) + dosed - reacted
+    liquid["TOL"] -= reacted
+    liquid["BNBR"] += reacted
+    total = sum(liquid.values())
+    assert total == pytest.approx(29.31, abs=0.02)
+    assert liquid["BR2"] / total == pytest.approx(0.144, abs=1e-3)
+    bubble = _bubble(materials, {k: v / total for k, v in liquid.items() if v > 0})
+    assert bubble == pytest.approx(372.3, abs=0.5)
+    design = _text("DESIGN.md")
+    assert "about 14 mol% bromine at the end of the dosing (4.2 kmol in 29.3 kmol of liquid" in design
+    assert "17 mol% bromine" not in design
+    assert "about 372 K at k/100" in design and "about 373 K" not in design
+
+
+def test_the_lamp_power_source_states_the_lamps_and_hours_the_duty_uses(model):
+    """P1 is 20 kW over the 5.25 h of light a batch (dosing and post-reaction), as a year
+    average; the source names those, not a rating over the dosing alone."""
+    recipe = _yaml("process/recipe.yaml")
+    light_h = 18_891.8 / 3600.0  # scripts/balance.py LIGHT_S
+    p1 = 20.0 * light_h * 1124.1 / recipe["hours_per_year"]["value"]
+    assert _duty(model, "P1") == pytest.approx(p1, rel=1e-3)
+    source = _state(model, "P1")["duty"]["source"]
+    assert "20 kW of lamps" in source and "5.25 h of light" in source
+    assert "30 kW" not in _text("process/flowsheet.yaml")
+    balance = (PROCESS / "scripts" / "balance.py").read_text(encoding="utf-8")
+    assert "P_LAMP = 20.0" in balance and "LIGHT_S = 18_891.8" in balance
+
+
+def test_the_residue_left_in_c101_and_its_jacket(model):
+    """The residue at the end of ST102 is about 0.04 m3, inside C-101's dished bottom, and the
+    note and D-007 say the end of the main cut cannot run at the stated boil-up."""
+    materials, _ = model
+    residue = _per_batch(model, "S16")
+    volume = sum(n * materials[k]["liquid_molar_volume"] for k, n in residue.items())
+    mass = sum(n * materials[k]["molar_mass"] for k, n in residue.items())
+    assert mass == pytest.approx(68.7, abs=0.1)
+    assert volume == pytest.approx(0.0426, abs=1e-3)
+    assert volume < 0.0998 * 1.62**3  # the DIN 28011 bottom of C-101
+    note = _text("equipment/equipment-list.yaml")
+    assert "about 0.04 m3 (68.7 kg) is left at the end of ST102, inside the bottom head" in note
+    assert "0.3 m3 left" not in note
+    assert "cannot run at the stated 80 kW" in note
+    design = _text("DESIGN.md")
+    assert "The end of the main cut cannot run at 80 kW." in design
+    assert "C-101 is then busy 4.78 h of the 7.05 h cycle" in design
+
+
+def test_the_lamp_wells_and_flammability_are_open_items():
+    design = _text("DESIGN.md")
+    assert "(d) The lamp wells and flammability." in design
+    for item in ("toluene's flash point of 4 C", "lower explosive limit of 1.1 vol%",
+                 "a path apart from the jacket leak of (b)", "O2 check", "air in-leakage into the vacuum stills"):
+        assert item in design, item
+    equipment = _text("equipment/equipment-list.yaml")
+    assert "lamp power tripped on a well-coolant fault" in equipment
+    assert "D-011 (d)" in equipment
+
+
+def test_benzotribromide_bound_matches_its_derivation():
+    """reactions.yaml states the bound D-005 derives: 0.037 x the 4.5 % of the bromine BALBR
+    takes, below 0.2 % of the bromine."""
+    header = (PROCESS / "process" / "reactions.yaml").read_text(encoding="utf-8")
+    assert "below 0.2 % of the\n# bromine" in header
+    assert "0.1 % of the" not in header
+    assert 0.037 * 0.045 < 0.002
+    assert "below 0.2 % of the bromine (0.037 x the 4.5 % that BALBR takes)" in _text("DESIGN.md")
+
+
+def test_every_reaction_source_is_a_read_source_of_the_register():
+    """Each `sources:` entry of reactions.yaml names a register entry that was read."""
+    register = {}
+    for line in (PROCESS / "DESIGN.md").read_text(encoding="utf-8").splitlines():
+        m = re.match(r"^\| (SRC-\d+) \|(?:[^|]*\|){2} ([^|]*) \|", line)
+        if m:
+            register[m.group(1)] = m.group(2)
+    for reaction in _yaml("process/reactions.yaml")["reactions"]:
+        for entry in reaction["sources"]:
+            cited = re.findall(r"SRC-\d+", entry)
+            assert cited, (reaction["id"], entry)
+            for src in cited:
+                assert register[src].startswith("read"), (reaction["id"], src)
+            assert "snippet" not in entry and "not used" not in entry, (reaction["id"], entry)
 
 
 def test_water_ingress_and_absorber_water_loss_are_open_items():
