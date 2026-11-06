@@ -417,6 +417,10 @@ bled and make-up totals scale x 10. KOH per kg CO delivered: 1.167 dosed plus 0.
 or 0.0028 (10,000 h) for the 50 L fill, against Skid A's 0.649 and the floor of 0.648 per kg
 delivered (0.583 per kg formed): dosing does not save KOH; it costs 1.8 times Skid A's.
 
+Changed by D-058 (owner, 2026-11-06): Skid A's reservoir is sized to the trip value pH 12.2, so
+its KOH is 0.655 kg per kg CO delivered (0.649 above); Skid B's figures do not change, and its
+dosing costs 1.82 times Skid A's KOH.
+
 ## D-011 Campaign-averaged KOH fill and spent anolyte; the anolyte in the flowsheet (2026-11-04)
 Decision: `scripts/skid_balance.py` writes every stream value per hour from core's duty totals
 over the committed horizon H.
@@ -476,6 +480,12 @@ Rejected: venting the PSA tail gas (CO is toxic, H2 flammable).
 
 Assumptions: every value above; FE H2 0.56 makes about 1.46 mol H2 per mol CO, so the tail gas
 is mostly H2 and CO2.
+
+Changed by D-052 and D-056 (owner, 2026-11-06): the cooler E-x11 is served by a tempered-water
+unit off the skid, outside the zone, that heats and cools (TWS-x01 / TWR-x01, TIC-x11 with a
+low-temperature alarm); the flowsheet's cooling-water terminal CW (20 / 25 degC) stands for the
+unit's cooling side, and the LCA's `product:CW` exchange is unchanged. Changed by D-054: the
+tail gas reaches the oxidiser through a trip valve, a check valve and a detonation arrester.
 
 ## D-013 The comparison duties on Skid A's hardware (2026-11-04)
 Decision: D-A-ONOFF (24 h period, half on, starting on) and D-A-PART (12 h at 200 and 12 h at
@@ -542,6 +552,11 @@ whose reservoir fits 2.20 m is about 2,550 h. Skid B is feasible at both.
 Reason: the tank of Skid A grows with the campaign (V proportional to H, D-009).
 
 Assumptions: the envelope and the tanks' H/D are ASSUMED.
+
+Changed by D-058 (owner, 2026-11-06): with T-101 sized to the trip value pH 12.2, T-101 tops out
+1.28 m above the envelope at 10,000 h and the longest campaign whose reservoir fits 2.20 m is
+about 2,530 h (2,528.98 h, erratum X-2 of `results/expected-errata.yaml`). Skid A stays
+feasible at 1,000 h with 0.40 m left.
 
 ## D-016 CO2 source (2026-11-04)
 Decision: merchant liquefied CO2, a fossil industrial by-product (ASSUMED, conservative), for
@@ -1001,6 +1016,11 @@ takes none): K and C are asserted on the exchanges that have one.
 
 Assumptions: none beyond the design's.
 
+Changed by D-058 (owner, 2026-11-06): Skid A's KOH fill is 0.655 kg per kg CO (0.649 above, the
+frozen E10 value superseded by erratum X-2, which the tests compare with); the solution's water
+0.00222 kg CO2e per kg CO at the water factor. The other hand values and the reconciliation
+stand (largest relative difference 1.2e-08).
+
 ## D-026 Backgrounds, scenarios, sensitivities and the ranking rule (2026-11-05)
 Decision (the spec's D-018): open backgrounds only, no ecoinvent:
 - `lca/factors.yaml` includes `ember-2025` (Ember Yearly Electricity Data, release 2026-09-15,
@@ -1059,6 +1079,13 @@ Deviation from the spec: the electricity-mix verdicts are "proxy", not "like-for
 background); the Ni foam has no proxy (a steel-dominated factor would understate nickel).
 
 Assumptions: the Ember factor at generation stands in for the consumer's; the water proxy.
+
+Changed by D-058 (owner, 2026-11-06): with Skid A's KOH at 0.655 kg per kg CO, the ranking's
+totals with the solutions' water are Skid A 10.4808 and Skid B 10.4830 kg CO2e/kg (B higher by
+0.0022); Skid B uses 1.82 times the KOH and 1.56 times the alkaline waste; the break-even KOH
+factor is -0.00415 kg CO2e/kg KOH, still below zero (`lca/ranking.json`): ranking not
+determined, as before. The characterised totals stay 10.48 for both skids. T-101 holds
+1.470 m3 (1.46 above).
 
 ## D-027 Exports: both designs' datasets, the mappings, construction (2026-11-05)
 Decision:
@@ -1663,6 +1690,13 @@ Assumptions: the take-off's quantities are the model's (ASSUMED sections and out
 D-040); none added here.
 
 Changed by D-047: the take-off of the rearranged model (pipe 36.195 m, 30 elbows, steel 8.456 t of which 7.571 t adopted, concrete 0.456 m3) is D-047's.
+
+Changed by D-054 to D-058 (owner, 2026-11-06): the take-off at 1,000 h (`estimate/mto.md`) is
+pipe 61.431 m (36.197 m DN 25, 25.234 m DN 15, with TG-x01 and AIR-x01 pinned), 36 elbows, 12
+tees, 62 flanges and gasket sets, 10 valves, 2 flame arresters; steel 8.516 t of which 7.609 t
+adopted; grating 75.963 m2; concrete 3.792 m3 (2.88 m3 of it core's default footings under the
+16 TG sleeper posts, the civil design's, D-057). At 10,000 h (scratch) pipe 65.478 m, the rest
+as at 1,000 h.
 
 ## D-045 Electrical: the electrical list, tray rules, cables in trays, the 48 V DC bus, the Ex assumption (2026-11-05)
 Decision: `electrical/electrical-list.yaml` and `electrical/tray-rules.yaml` (hand-authored,

@@ -101,7 +101,7 @@ nickel). Each stays in the inventory with its quantity and is excluded from the 
 dose and bleed are listed at 0 (the table counts the non-zero gaps apart). Construction is cut
 off (above). Two quantities sit inside these gaps and are stated, not counted:
 
-- **the dilution water of the KOH solutions** (Skid A's fill 11.5 kg, Skid B's fill and dose
+- **the dilution water of the KOH solutions** (Skid A's fill 11.6 kg, Skid B's fill and dose
   4.4 kg per kg CO at 1,000 h): core counts each solution as one exchange, so its water is part
   of the KOH gap and not in `feed:WATER`. The table gives it at the water factor; the ranking's
   difference and break-even use the totals with it (DESIGN.md D-025);

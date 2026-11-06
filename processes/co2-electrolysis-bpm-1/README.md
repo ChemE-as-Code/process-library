@@ -108,11 +108,13 @@ The comparison with the published results is held out in
 
 The life cycle inventory of both skids (#331, `lca/README.md`, `DESIGN.md` D-024 to D-027) is
 reconciled with the duty totals at both durations: per kg CO delivered about 34.6 kWh of AC
-power, 3.54 kg of CO2 fed and 1.71 kg vented, and KOH 0.65 kg (Skid A) or 1.20 kg (Skid B). Its
+power, 3.54 kg of CO2 fed and 1.71 kg vented, and KOH 0.655 kg (Skid A, at the pH 12.2 trip,
+D-058) or 1.195 kg (Skid B). Its
 climate screening on the Ember 2025 NL grid gives about 10.5 kg CO2e per kg CO for either skid,
 a partial screening carbon footprint: the CO2 supply, KOH (with the dilution water of its
 solutions), the alkaline wastes (whose carbonate releases about 0.25 kg of fossil CO2 per kg CO
-when neutralised), the cooling water service, the stack parts (membrane, Ag, carbon paper, Ni
+when neutralised), the cooling water service (the tempered-water unit's cooling side, whose
+own electricity is not yet in the inventory, D-052, D-056), the stack parts (membrane, Ag, carbon paper, Ni
 foam) and construction have no open factor and are listed as gaps, so which skid is lower is not
 determined.
 

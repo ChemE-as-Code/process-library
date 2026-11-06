@@ -77,7 +77,7 @@ block of about 3 hours: plan five half-day sessions.
 | Credit and rating convention for both studies (section 3.2) | 40 |
 | The two very-high initial scenarios and PV-x31's fail position (section 3.3) | 30 |
 | Where the studies rate the same hazard differently, and why (section 3.4) | 15 |
-| The owner decisions open from #330 (section 3.6) | 30 |
+| The owner decisions from #330, decided on 2026-11-06, to confirm (section 3.6) | 30 |
 | How the high-residual actions will be handled (section 3.5); they are taken node by node | 10 |
 
 ### Sessions 1 to 4: node by node
@@ -380,7 +380,7 @@ for both skids. The owners are roles the drafting agents proposed; the owner ass
 The causes are shortened here; the study files and the reports hold the full text, the
 safeguards and the rating bases.
 
-### 3.6 Owner decisions open from #330 that the studies depend on
+### 3.6 Owner decisions from #330 that the studies depend on (decided 2026-11-06)
 
 The owner delegated these decisions on 2026-11-06 ("make reasonable decisions and move on");
 they are recorded in DESIGN.md D-050 to D-058. Every one of them is **decided by the owner on
