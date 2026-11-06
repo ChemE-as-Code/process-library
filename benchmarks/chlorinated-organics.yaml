@@ -27,6 +27,13 @@
 # one (docs/benchmarks.md: never invent a range). The route's one open source, CN 101 885 665 A,
 # gives charges but no yield.
 #
+# Benzyl bromide (benzyl-bromide-1, #139; a brominated organic in this family, as CBr4): no open
+# source gives a plant's specific consumptions. The stoichiometric floors are 0.934 kg bromine
+# and 0.539 kg toluene per kg (C7H8 + Br2 -> C7H7Br + HBr); they are limits, not ranges. The one
+# open yield, US 3 528 899 A Example I (about 90 % on toluene, X-ray initiated, bromine in
+# excess), is a single laboratory value at other conditions; it is discussed in DESIGN.md D-010,
+# not bound here.
+#
 # Benzoyl chloride (benzoyl-chloride-1, #156): the one open source with yields is US 4 276 231 A,
 # whose description states 96-98 % of theory for its process (batch and continuous, with and
 # without the bottoms recycle). Converted to the benzotrichloride per kg of benzoyl chloride (two
@@ -43,6 +50,14 @@
 # above 80 %; CN 105503671 A from purchased TsOH: 81-88 %) are laboratory examples, one of them
 # the dataset's own basis (DESIGN.md D-001, D-005), so binding them would only check the
 # transcription.
+#
+# Methyltriphenylphosphonium bromide (methyltriphenylphosphonium-bromide-1, #133; with the
+# halogenated organics, as carbon tetrabromide: the taxonomy has no organophosphorus family): no
+# open source gives a plant's specific consumptions. The stoichiometric floors are 0.734 kg PPh3
+# and 0.266 kg methyl bromide per kg of salt (Ph3P + CH3Br -> [Ph3PCH3]Br); they are limits, not
+# ranges of real plants, so they are not recorded as references (docs/benchmarks.md: never
+# invent a range). The open sources read (US 3 334 144 A, Wikipedia) give no yield of the
+# methyl bromide route; Org. Synth. 40, 66 (1960) could not be read.
 #
 # Acetyl chloride (acetyl-chloride-1, #142): no open source states a yield or a specific
 # consumption for the PCl3 route. The stoichiometric floors are 0.765 kg acetic acid and 0.583 kg
@@ -175,6 +190,14 @@ kpis:
     title: Distillation residue per kg of benzoyl chloride
     unit: kg/kg
     no_open_reference: "No open source with the residue of a benzoyl chloride distillation on the benzoic acid route without recycle found (searched 2026-11-05: Google Patents US 4 276 231 A read; its Example 1 gives no bottoms mass, its Example 2, the water variant, 210 g of bottoms on 3255 g of product before they are re-reacted, one value on other conditions; NIST WebBook and PubChem have no plant data)."
+  bnbr-specific-bromine:
+    title: Bromine consumption per kg of benzyl bromide
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's or a pilot's bromine use per kg of benzyl bromide found (searched 2026-11-06: Google Patents US 3 528 899 A read, a laboratory example with X-ray initiation at 1.2 mol of bromine per mol of toluene, about 90 % on toluene, no yield on bromine; PubChem CID 7498 (HSDB) names the route without figures; NIST WebBook has no plant data). Only the stoichiometric floor, 0.934 kg/kg, is known."
+  bnbr-specific-toluene:
+    title: Toluene consumption per kg of benzyl bromide
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's toluene use per kg of benzyl bromide found (searched 2026-11-06 as for bnbr-specific-bromine). US 3 528 899 A, Example I implies about 0.60 kg/kg (about 90 % of theory on toluene), one laboratory value under other initiation and excess bromine, not a range; the stoichiometric floor is 0.539 kg/kg."
   tscl-specific-toluene:
     title: Toluene consumption per kg of p-toluenesulfonyl chloride
     unit: kg/kg
@@ -183,6 +206,14 @@ kpis:
     title: Chlorosulfonic acid consumption per kg of p-toluenesulfonyl chloride
     unit: kg/kg
     no_open_reference: "No open source with a plant's chlorosulfonic acid use per kg p-TsCl found (searched 2026-11-05 as for tscl-specific-toluene); the patents give laboratory ratios of about 3 (DE 1 912 956 A1) to 4 (PL 73685 B2) mol per mol toluene. Only the stoichiometric floor, 1.222 kg/kg, is known."
+  mtppb-specific-triphenylphosphine:
+    title: Triphenylphosphine consumption per kg of methyltriphenylphosphonium bromide
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's or a pilot's PPh3 use per kg of methyltriphenylphosphonium bromide found (searched 2026-11-06: Google Patents US 3 334 144 A read, its own dibromomethane route with 30 % conversion and no yield of the methyl bromide route; Wikipedia, Methyltriphenylphosphonium bromide, the route only; web search for the salt's production, which gave supplier pages and one laboratory patent example on another route, CN 107840792 A, not read; Org. Synth. 40, 66 (1960) blocked by a browser check, not read). Only the stoichiometric floor, 0.734 kg/kg, is known."
+  mtppb-specific-methyl-bromide:
+    title: Methyl bromide consumption per kg of methyltriphenylphosphonium bromide
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's methyl bromide use per kg of the salt found (searched 2026-11-06 as for mtppb-specific-triphenylphosphine); US 3 334 144 A states only that the route needs a pressure vessel. Only the stoichiometric floor, 0.266 kg/kg, is known."
 
   accl-specific-pcl3:
     title: Phosphorus trichloride consumption per kg of acetyl chloride (acetic acid route)
@@ -215,6 +246,12 @@ datasets:
     kpis:
       bcf-specific-benzyl-alcohol: {expression: feed:BNOH / product:BCF, per: product:BCF}
       bcf-specific-phosgene: {expression: feed:PHOS / product:BCF, per: product:BCF}
+  - process: benzyl-bromide-1
+    dataset: benzyl-bromide-by-semi-batch-light-driven-side-chain-bromination-of-toluene-with-hbr-absorption-and-batch-distillation-1000-t-a
+    conditions: {technology: "bromine dosed into 4 mol of toluene per mol at 363 K under lamps (semi-batch), HBr vent to 48 wt% acid, toluene strip at 15 kPa(a) and recycle, batch vacuum distillation at 2 kPa(a)", basis: "concept balance, ASSUMED effective rate laws, ratio and still ends (DESIGN.md D-004, D-005, D-007)"}
+    kpis:
+      bnbr-specific-bromine: {expression: feed:BR2 / product:BNBR, per: product:BNBR}
+      bnbr-specific-toluene: {expression: feed:TOL / product:BNBR, per: product:BNBR}
   - process: carbon-tetrabromide-1
     dataset: carbon-tetrabromide-by-semi-batch-haloform-bromination-of-acetone-in-aqueous-hypobromite-314-t-a
     conditions: {technology: "aqueous haloform route: hypobromite from bromine and caustic, acetone dosed at 278 K with a phase-transfer catalyst, CBr4 precipitated, filtered, washed and vacuum-dried", basis: "concept balance, ratios after the patent's examples and ASSUMED (DESIGN.md D-004, D-005)"}
@@ -233,6 +270,13 @@ datasets:
     kpis:
       tscl-specific-toluene: {expression: feed:TOL / product:TSCL, per: product:TSCL}
       tscl-specific-chlorosulfonic-acid: {expression: feed:CSA / product:TSCL, per: product:TSCL}
+  - process: methyltriphenylphosphonium-bromide-1
+    dataset: methyltriphenylphosphonium-bromide-by-semi-batch-quaternisation-of-triphenylphosphine-with-methyl-bromide-in-toluene
+    conditions: {technology: "liquid methyl bromide dosed into PPh3 in toluene at 333 K in a closed pressure vessel, the salt precipitated, filtered, washed with recovered toluene and vacuum-dried in a filter-dryer, toluene recovered in a batch still", basis: "concept balance, ASSUMED ratios, kinetics, solubility and work-up (DESIGN.md D-004, D-005, D-007)"}
+    kpis:
+      mtppb-specific-triphenylphosphine: {expression: feed:PPH3 / product:PROD, per: product:PROD}
+      mtppb-specific-methyl-bromide: {expression: feed:MEBR / product:PROD, per: product:PROD}
+
   - process: acetyl-chloride-1
     dataset: acetyl-chloride-by-semi-batch-reaction-of-acetic-acid-with-pcl3-phase-split-and-batch-distillation-2000-t-a
     conditions: {technology: "PCl3 dosed into acetic acid at 313 K (semi-batch, 1:3), phase split, batch distillation at atmospheric pressure with a short column, residue not recycled, no chlorine treatment", basis: "concept balance, the patent's Example 1 ratio, conversion and phase split calibrated to its lower phase, ASSUMED kinetics, still end and column split (DESIGN.md D-004 to D-008)"}
