@@ -1,0 +1,66 @@
+# Components and templates of methyltriphenylphosphonium-bromide-1. Schema cheme/process/v1
+# (`cheme schema process-materials`). Every component has a stable id; molar_mass in kg/kmol
+# (IUPAC 2021 standard atomic weights applied to the formula), normal_boiling_point in K at
+# 101.325 kPa.
+#
+# The reaction mass is toluene with triphenylphosphine (PPh3) and methyl bromide dissolved. The
+# salt is carried dissolved (MTPPB) while it forms in the semi-batch R101, as core's semi-batch
+# is liquid only; the crystallizer CR101 then puts it into the solid component MTPPB_S (phase:
+# solid) at its ASSUMED solubility in toluene (DESIGN.md D-005, D-007, lesson L-2).
+# The liquid data the semi-batch, the still and the screening need (register: DESIGN.md SRC-6),
+# ASSUMED unless a source is named:
+# - liquid_molar_volume, m3/kmol, from densities taken as the volume in the mixture (ideal
+#   mixing): toluene 0.867 g/cm3 at 20 C (as p-toluenesulfonyl-chloride-1; chemicals 1.5.2's
+#   packaged CRC table gives 0.862), methyl bromide 1.663 g/cm3 at 298 K (thermo 0.11, as
+#   methylmagnesium-bromide-1), PPh3 1.075 g/cm3, the liquid at 80 C (chemicals 1.5.2's packaged
+#   CRC organic table, 1074.98 kg/m3; PubChem CID 11776 HSDB gives the same 1.075 at 80 C), the
+#   salt 1.35 g/cm3 (ASSUMED: no open density found);
+# - liquid_heat_capacity, kJ/(kmol K): toluene 157.1 at 298 K (NIST WebBook, condensed phase),
+#   taken as constant (thermo gives 166 at 333 K: the lower value overstates the adiabatic rise,
+#   conservative); methyl bromide 71.0 (thermo at 318 K, as methylmagnesium-bromide-1); PPh3
+#   312.5, the solid's at 298 K (chemicals 1.5.2's packaged CRC standard data), standing for the
+#   dissolved PPh3; the salt 380 (ASSUMED, Kopp-like: the solid PPh3 plus liquid methyl bromide,
+#   1.06 kJ/(kg K); no measured value found);
+# - normal boiling points: toluene 383.75 K and methyl bromide 276.55 K (chemicals 1.5.2's `Tb`),
+#   PPh3 650.15 K (377 C, PubChem CID 11776, HSDB); the salt melts at about 503.65 K (chemicals
+#   1.5.2's `Tm`, 230.5 C) and has no boiling point;
+# - vapour pressures (Antoine, log10(P/bar) = a - b/(T/K + c)) for the batch still ST101:
+#   both fitted by us over the still's range, since the NIST WebBook's sets end below it (toluene
+#   at 384.66 K, methyl bromide at 276.8 K): toluene to chemicals 1.5.2's Helmholtz equation of
+#   state over 300-420 K (maximum deviation 0.08 %, within 0.1 % of NIST's set where both hold),
+#   methyl bromide to its Wagner (McGarry) correlation over 270-420 K (maximum deviation 1.0 %);
+# - heat_of_vaporization, kJ/kmol, at the still's temperature, about 384 K: toluene 33180 (NIST
+#   WebBook, 33.18 kJ/mol at 383.8 K), methyl bromide 18840 (thermo at 383.75 K).
+# PPh3 and the salt are non-volatile in the still (their vapour pressure is below 3 Pa at 384 K,
+# thermo); they are declared `nonvolatile` there.
+schema: cheme/process/v1
+kind: materials
+components:
+  - id: TOL
+    name: Toluene
+    formula: C7H8
+    cas: 108-88-3
+    molar_mass: 92.141
+    normal_boiling_point: 383.75
+    liquid_molar_volume: 0.1063
+    liquid_heat_capacity: 157.1
+    vapour_pressure: {a: 4.07448, b: 1341.719, c: -53.989, temperature_range: [300.0, 420.0], provenance: assumed, source: "fitted by us to chemicals 1.5.2's vapour pressure of toluene (its Helmholtz equation of state) over 300-420 K, maximum deviation 0.08 %; within 0.1 % of the NIST WebBook's Antoine set for 308.52-384.66 K, which ends below the still's 386.5 K (DESIGN.md SRC-6)"}
+    heat_of_vaporization: 33180
+  - id: MEBR
+    name: Methyl bromide (bromomethane)
+    formula: CH3Br
+    cas: 74-83-9
+    molar_mass: 94.939
+    normal_boiling_point: 276.55
+    liquid_molar_volume: 0.05709
+    liquid_heat_capacity: 71.0
+    vapour_pressure: {a: 4.12043, b: 1013.415, c: -30.353, temperature_range: [270.0, 420.0], provenance: assumed, source: "fitted by us to the Wagner (McGarry) vapour-pressure correlation of chemicals 1.5.2 over 270-420 K, maximum deviation 1.0 %: 1.007 bar at 276.55 K, 5.94 bar at 333.15 K, 17.8 bar at 383.75 K (DESIGN.md SRC-6)"}
+    heat_of_vaporization: 18840
+  - {id: PPH3, name: Triphenylphosphine (dissolved), formula: C18H15P, cas: 603-35-0, molar_mass: 262.292, normal_boiling_point: 650.15, liquid_molar_volume: 0.2440, liquid_heat_capacity: 312.5}
+  - {id: MTPPB, name: Methyltriphenylphosphonium bromide (dissolved), formula: C19H18BrP, cas: 1779-49-3, molar_mass: 357.231, liquid_molar_volume: 0.2646, liquid_heat_capacity: 380.0}
+  - {id: MTPPB_S, name: Methyltriphenylphosphonium bromide (crystals), formula: C19H18BrP, cas: 1779-49-3, molar_mass: 357.231, phase: solid, liquid_molar_volume: 0.2646, liquid_heat_capacity: 380.0}
+templates:
+  - {id: mass, title: "Charge, reaction mass, slurry, liquors and recovered toluene", components: [TOL, MEBR, PPH3, MTPPB, MTPPB_S]}
+property_method:
+  adapter: thermo
+  status: placeholder

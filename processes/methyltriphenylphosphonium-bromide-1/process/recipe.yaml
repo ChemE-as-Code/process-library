@@ -1,0 +1,60 @@
+# The batch recipe of methyltriphenylphosphonium-bromide-1 (schema cheme/recipe/v1, `cheme
+# process recipe`, DESIGN.md D-003). One batch makes BATCH kg of the dried salt (stream S15); the
+# flowsheet's rates are the year averages.
+# - R-101, a glass-lined pressure vessel, is one vessel over M101 (the PPh3 dissolved in the
+#   recovered toluene), E101 (the charge heated), R101 (the semi-batch: liquid methyl bromide
+#   dosed into the closed vessel) and CR101 (cooling and precipitation hold): `units`, core ADR
+#   0057. Dosing and post-reaction come from R101's model (from: R101), the heat-up and the
+#   cool-down from the jacket (temperatures); the vessel is sized from R101's model and its
+#   jacket checked against the model's peak duty (core ADR 0052).
+# - F-101, an agitated filter-dryer, is one vessel over F101, W101, F102 and D101: its
+#   filtrations take Ruth's time from the filters' filtration data, its drying the time D101's
+#   drying rate gives on its heated area (core ADR 0057).
+# - C-101, the batch still, is one vessel over ST101 and X101: the boil-up time from ST101's
+#   model (core ADR 0055).
+# Every other duration is ASSUMED (D-003). `cheme process recipe --svg build/gantt.svg` draws one
+# batch.
+schema: cheme/recipe/v1
+kind: recipe
+title: Methyltriphenylphosphonium bromide by semi-batch quaternisation in toluene
+batch_size: {value: 1057.10, unit: kg, stream: S15, provenance: assumed, source: "one batch of the dried salt (D-002, D-003)"}
+hours_per_year: {value: 7920, provenance: assumed, source: "330 days of 24 h (D-002)"}
+unit_procedures:
+  - id: REACT
+    units: [M101, E101, R101, CR101, DG101]
+    title: Dissolve PPh3, heat, dose methyl bromide, react, cool and precipitate (R-101)
+    vessel:
+      fill_fraction: 0.8
+      aspect_ratio: 1.2
+      jacket: {u: 300, coolant_temperature: 303.43, heating_temperature: 353.15, provenance: assumed, source: "glass-lined steel, U 300 W/(m2 K) ASSUMED; cooling water enters at 298.15 K and leaves at 308.15 K (design basis, D-010), so the content at 333.15 K sees a log-mean driving force of (35 - 25) / ln(35/25) = 29.72 K: core takes the coolant temperature as constant, so the equivalent mean 333.15 - 29.72 = 303.43 K is entered, not the supply temperature; for the cool-down to 313 K this mean is conservative (the return falls towards the supply as the content cools). Heating with hot water at 353.15 K from LP steam, below every temperature limit of the batch (the MTT 430.99 K, the salt's melting point about 503 K) (D-003, D-010)"}
+      provenance: assumed
+      source: "usual fill and proportions of a glass-lined stirred pressure vessel (D-003)"
+    operations:
+      - {id: inert, kind: other, title: "Nitrogen purge and pressure test of the dry vessel", duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: charge, kind: charge, title: Charge the recovered toluene and the make-up, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: charge2, kind: charge, title: "Charge the PPh3 (solid, closed charging station) and dissolve it", duration: {value: 0.75, provenance: assumed, source: D-003}}
+      - {id: heat, kind: heat, title: Heat to 333 K (E101), temperatures: [292.81, 333.15]}
+      - {id: dose, kind: dose, title: Dose the liquid methyl bromide, from: R101}
+      - {id: react, kind: react, title: Post-reaction, from: R101}
+      - {id: cool, kind: cool, title: Cool to 313 K (CR101), temperatures: [333.15, 313.15]}
+      - {id: hold, kind: hold, title: Precipitation hold at 313 K (CR101), duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: vent, kind: other, title: "Vent the headspace to the thermal oxidiser, nitrogen sweep", duration: {value: 0.5, provenance: assumed, source: "D-003, D-007"}}
+      - {id: transfer, kind: transfer, title: Press the slurry to F-101, duration: {value: 0.5, provenance: assumed, source: D-003}}
+  - id: ISOLATE
+    units: [F101, W101, F102, D101]
+    title: Filtration, reslurry wash and vacuum drying in the agitated filter-dryer (F-101)
+    vessel: {fill_fraction: 0.8, aspect_ratio: 1.0, heated_area: 12, provenance: assumed, source: "a squat agitated filter-dryer, its filter plate the bottom; jacket, heated bottom and heated agitator about 12 m2 (D-008)"}
+    operations:
+      - {id: receive, kind: charge, title: Receive the slurry, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: filter, kind: filter, title: Filter off the mother liquor (F101), from: F101}
+      - {id: wash, kind: other, title: Reslurry the cake in recovered toluene (W101), duration: {value: 0.5, provenance: assumed, source: D-008}}
+      - {id: refilter, kind: filter, title: Filter off the wash (F102), from: F102}
+      - {id: dry, kind: dry, title: Vacuum drying at 333 K (D101), from: D101}
+      - {id: discharge, kind: transfer, title: "Cool, break the vacuum with nitrogen, discharge to packing", duration: {value: 1.0, provenance: assumed, source: D-003}}
+  - id: RECOVER
+    units: [ST101, X101]
+    title: Toluene recovery in the batch still (C-101)
+    operations:
+      - {id: receive, kind: charge, title: Receive the liquors from T-201, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: distil, kind: distil, title: "Distil the toluene with the excess methyl bromide (ST101)", from: ST101}
+      - {id: drain, kind: transfer, title: Drain the residue to the waste tank, duration: {value: 0.5, provenance: assumed, source: D-003}}
