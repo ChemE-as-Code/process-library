@@ -58,6 +58,13 @@
 # ranges of real plants, so they are not recorded as references (docs/benchmarks.md: never
 # invent a range). The open sources read (US 3 334 144 A, Wikipedia) give no yield of the
 # methyl bromide route; Org. Synth. 40, 66 (1960) could not be read.
+#
+# Acetyl chloride (acetyl-chloride-1, #142): no open source states a yield or a specific
+# consumption for the PCl3 route. The stoichiometric floors are 0.765 kg acetic acid and 0.583 kg
+# PCl3 per kg (3 CH3COOH + PCl3 -> 3 CH3COCl + H3PO3); they are limits, not ranges. CS 272 248 B2,
+# Example 1, the dataset's own basis, gives the lower phase (96 g per mol PCl3) but no acetyl
+# chloride yield; the dataset's phase split is calibrated to it, so binding it would only check
+# the calibration.
 schema: cheme-as-code/benchmarks/v1
 family: chlorinated-organics
 
@@ -208,6 +215,14 @@ kpis:
     unit: kg/kg
     no_open_reference: "No open source with a plant's methyl bromide use per kg of the salt found (searched 2026-11-06 as for mtppb-specific-triphenylphosphine); US 3 334 144 A states only that the route needs a pressure vessel. Only the stoichiometric floor, 0.266 kg/kg, is known."
 
+  accl-specific-pcl3:
+    title: Phosphorus trichloride consumption per kg of acetyl chloride (acetic acid route)
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's or a pilot's PCl3 use per kg of acetyl chloride found (searched 2026-11-06: Google Patents CS 272 248 B2, the dataset's basis, gives charges and the lower phase but no acetyl chloride yield; US 4 209 460 A purifies a crude from another process; US 4 060 546 A names the 1:3 ratio as prior art without a yield; Ullmann's chapters not read, licensed). Only the stoichiometric floor, 0.583 kg/kg, is known."
+  accl-specific-crude-phosphorous-acid:
+    title: Crude phosphorous acid (lower phase) per kg of acetyl chloride
+    unit: kg/kg
+    no_open_reference: "No open source independent of the dataset found (searched 2026-11-06 as for accl-specific-pcl3): CS 272 248 B2, Example 1, gives 96 g of lower phase per 1.0 mol PCl3 but no acetyl chloride mass, and the dataset's phase split is calibrated to that example, so it is not an independent reference."
 datasets:
   - process: vcm-1
     dataset: vcm-balanced-oxygen
@@ -261,3 +276,10 @@ datasets:
     kpis:
       mtppb-specific-triphenylphosphine: {expression: feed:PPH3 / product:PROD, per: product:PROD}
       mtppb-specific-methyl-bromide: {expression: feed:MEBR / product:PROD, per: product:PROD}
+
+  - process: acetyl-chloride-1
+    dataset: acetyl-chloride-by-semi-batch-reaction-of-acetic-acid-with-pcl3-phase-split-and-batch-distillation-2000-t-a
+    conditions: {technology: "PCl3 dosed into acetic acid at 313 K (semi-batch, 1:3), phase split, batch distillation at atmospheric pressure with a short column, residue not recycled, no chlorine treatment", basis: "concept balance, the patent's Example 1 ratio, conversion and phase split calibrated to its lower phase, ASSUMED kinetics, still end and column split (DESIGN.md D-004 to D-008)"}
+    kpis:
+      accl-specific-pcl3: {expression: feed:PCL3 / product:ACCL, per: product:ACCL}
+      accl-specific-crude-phosphorous-acid: {expression: product:H3PO3P / product:ACCL, per: product:ACCL}
