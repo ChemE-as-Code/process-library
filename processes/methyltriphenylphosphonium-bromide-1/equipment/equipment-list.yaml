@@ -1,0 +1,20 @@
+# Equipment list. Schema: `cheme schema equipment`.
+# As far as the PFD requires (concept stage): tags, types and services of the flowsheet steps.
+# Sizes per batch from the recipe (D-003) and the models; design pressures, temperatures and
+# materials are first choices, not set (basic engineering). All values ASSUMED unless the recipe
+# or a model gives them. The liquefied methyl bromide store and its pump skid are at the battery
+# limit and not listed (D-004).
+schema: cheme/equipment/v1
+equipment:
+  - {tag: R-101, type: StirredTankReactor, service: "Quaternisation reactor: PPh3 dissolved in recovered toluene, liquid methyl bromide dosed into the closed vessel at 333 K, the salt precipitated and cooled to 313 K",
+     notes: "6.3 m3 glass-lined pressure vessel, 6 bar g (ASSUMED), relief set at 700 kPa(a) to a catch pot and the thermal oxidiser (D-011); as the recipe sizes it from R101's model, 4.435 m3 of batch (70 % full, D 1.88 m, core ADR 0052); jacket on cooling water (log-mean 303.43 K) and hot water at 353 K from LP steam, 12.1 m2 at the charge, removes 107.5 kW against R101's peak 27.25 kW (cheme process recipe); 5.5 kW agitator; methyl bromide dosing over 3 h interlocked with the temperature, the pressure (alarm at 400 kPa(a), stop at 500 kPa(a)) and the agitator; nitrogen pad 200 kPa(a); kept dry and closed, no rinse (D-003, D-005, D-011)."}
+  - {tag: F-101, type: Filter, service: "Agitated filter-dryer: filtration of the mother liquor, a reslurry wash with recovered toluene, its filtration and vacuum drying at 333 K",
+     notes: "6.3 m3 (R10 preferred size, 70 % full with one batch's slurry, D 2.0 m) as the recipe sizes it (core ADR 0057), Hastelloy or stainless steel (bromide, ASSUMED); filtrations 1.17 h and 0.46 h by Ruth with ASSUMED cake data under 200 kPa of nitrogen; jacket, heated bottom and heated agitator 12 m2 (ASSUMED) on hot water at 353 K from LP steam; drying 6.57 h at an ASSUMED 4 kg/(m2 h), 10.35 kW year average (core's dryer model, the vessel's heat included); 7.5 kW agitator; the bottleneck, 10.2 h per batch (D-003, D-008)."}
+  - {tag: E-201, type: HeatExchanger, service: "F-101's vacuum condenser on brine: the toluene of the dryer vapour condensed, the methyl bromide to the vacuum pump and the vent header",
+     notes: "4.31 kW year average on brine at 258/263 K (Q5), the condensate at 268 K to T-201; dry vacuum pump 5.5 kW, about 5 kPa(a), its exhaust to the thermal oxidiser (D-008, D-010)."}
+  - {tag: T-201, type: Tank, service: "Still feed tank: mother liquor, wash filtrate and dryer condensate",
+     notes: "About 8 m3 (one batch's 4.2 t of liquor, ASSUMED), stainless steel, nitrogen-blanketed and vented to the thermal oxidiser (toluene with about 0.05 mol% methyl bromide) (D-009)."}
+  - {tag: C-101, type: Column, service: "Batch still: the toluene and the excess methyl bromide distilled from the liquors, the residue (PPh3, salt) drained to the waste tank",
+     notes: "Stirred still pot about 6.3 m3 with jacket and coil on LP steam (250 kW boil-up), total condenser and distillate cooler on cooling water to 303 K (56.4 kW year average); 1.66 h of boil-up a batch (cheme process stills), 383.5 -> 386.5 K at 101 kPa(a); one stage, no reflux (core ADR 0055); its steel about 2500 kJ/K, ASSUMED (D-009, D-010)."}
+  - {tag: T-202, type: Tank, service: "Recovered toluene tank: the next charge and the cake wash",
+     notes: "About 8 m3 (one batch's 4.15 t, ASSUMED), stainless steel, nitrogen-blanketed and vented to the thermal oxidiser (D-009)."}

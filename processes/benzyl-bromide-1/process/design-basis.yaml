@@ -1,0 +1,48 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Benzyl bromide by the light-driven side-chain bromination of toluene, a batch plant, issue
+# ChemE-as-Code/process-library#139. Values marked ASSUMED are engineering choices of this
+# concept study, not client or licensor data; every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: distilled benzyl bromide to storage at the battery limit
+  benzyl_bromide_t_per_year: 1000      # ASSUMED (D-002): a fine-chemical batch scale, no open market figure used
+  operating_hours_per_year: 7920       # ASSUMED (D-002): 330 days of 24 h, batch operation
+  batch_kg: 889.6                      # ASSUMED (D-003): one batch of distilled product every 7.05 h
+  batches_per_year: 1124               # from the recipe (process/recipe.yaml, D-003)
+feeds:
+  - name: Bromine (bromine-1)
+    source_of_values: ASSUMED (D-004)
+    composition: "bromine 100 % (bromine-1 makes 99.96 wt%; its chlorine and water not modelled)"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Toluene make-up (btx-1)
+    source_of_values: "ASSUMED (D-004): 4 mol of toluene in the charge per mol of bromine, the recycle's toluene counted"
+    composition: "toluene 100 % (its impurities not modelled)"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Process water (HBr absorber)
+    source_of_values: ASSUMED (D-008)
+products:
+  - name: Benzyl bromide
+    purity: "98.3 wt% benzyl bromide, 1.6 wt% benzal bromide, 0.1 wt% toluene in the model (D-007): an upper bound, since ring-brominated toluenes, the dibenzyl and polybenzyl by-products and dissolved HBr are not modelled"
+    delivery: {temperature_K: 303.15, pressure_kPa_a: 101.325, battery_limit: storage under nitrogen, dry and dark}
+  - name: Hydrobromic acid 48 wt% (co-product)
+    note: "the HBr off-gas absorbed in water (D-008); the bromine and toluene traces it takes up not modelled"
+  - name: Still residue to hazardous-waste incineration
+    note: "benzal bromide with benzyl bromide, 77 g per kg of product (D-007)"
+  - name: Toluene purge to hazardous-waste incineration
+    note: "2 % of the recovered toluene, 44 g per kg of product (D-007)"
+utilities:
+  - {name: Electric power, use: "the lamps of R-101, the agitators of R-101 and C-101, the vacuum pump (D-005, D-009)"}
+  - {name: LP steam, pressure_kPa_a: 450, use: "R-101's heat-up and the still C-101 (D-009)", note: ASSUMED}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "R-101's jacket (through a tempered-water loop) and lamp wells, the reflux condenser, the HBr absorber, the still's condensers and coolers", note: ASSUMED}
+  - {name: Chilled brine, supply_K: 258.15, return_K: 263.15, use: "the vent condenser on the off-gas and the forerun condenser at 2 kPa(a)", note: ASSUMED}
+  - {name: Nitrogen, use: "inerting R-101 and C-101, breaking the vacuum (per batch, lca/lca.yaml)", note: ASSUMED}
+site:
+  location: ASSUMED generic fine-chemicals site with bromine and toluene supplies, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Route: bromine dosed into excess toluene under light, the HBr leaving as gas (PubChem CID 7498, HSDB; US 3 528 899 A, background and Example I); 4 mol of toluene per mol of bromine, 363 K, 5 h dosing, ASSUMED (D-001, D-004, D-005)."
+  - "ASSUMED effective rate laws for the light-driven chain (core has no photochemical rate law): k1 5.0e-4 m3/(kmol s) at 363 K, k2/k1 0.2; the lamps sized for an ASSUMED quantum yield of 20 (D-005); the 1.7 % accumulation follows from them."
+  - "ASSUMED all HBr leaves the liquid as it forms (batch.vent fraction 1): none stays dissolved in the crude (D-005)."
+  - "Stills: one Rayleigh stage each on Raoult's law with NIST Antoine constants (an ideal liquid, ASSUMED), benzal bromide's vapour pressure ASSUMED from one measured point (D-007)."
+  - "All flows are year averages of the recipe (D-003); the duties and power concept estimates (scripts/balance.py, D-006, D-009); accuracy +/-30 % not demonstrated."

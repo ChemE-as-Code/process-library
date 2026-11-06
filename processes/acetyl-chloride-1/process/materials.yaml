@@ -1,0 +1,79 @@
+# Components and templates of acetyl-chloride-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol (IUPAC 2021
+# standard atomic weights applied to the formula), normal_boiling_point in K at 101.325 kPa.
+#
+# Property sources (DESIGN.md source register SRC-4, SRC-5):
+# - normal boiling points, liquid densities and liquid heat capacities from the CRC Handbook
+#   tables packaged in the `chemicals` 1.5.2 package (chemicals.miscdata.CRC_organic_data,
+#   CRC_inorganic_data, chemicals.heat_capacity.CRC_standard_data), not the printed handbook;
+#   acetyl chloride's boiling point agrees with the NIST WebBook's 325 +/- 2 K (mean of 10);
+# - Antoine constants and heats of vaporization from the NIST Chemistry WebBook, SRD 69:
+#   log10(P/bar) = A - B/(T/K + C), each fitted by NIST (acetyl chloride and acetic acid to
+#   McDonald, Shrader et al. 1959; phosphorus trichloride and water to Stull 1947); heats of
+#   vaporization in kJ/kmol (NIST's kJ/mol times 1000).
+# The liquid data the semi-batch R101 needs (DESIGN.md D-005):
+# - liquid_molar_volume, m3/kmol, at R101's 313.15 K: the molar mass over the 298 K density
+#   (CRC: acetic acid 1044.6, acetyl chloride 1105.1, phosphorus trichloride 1574 kg/m3), each
+#   raised by 1.5 % for the 15 K above 298 K (ASSUMED, a thermal expansion of about 0.1 %/K
+#   usual for these liquids); phosphorous acid from the solid's 1650 kg/m3 (CRC), ASSUMED as
+#   its partial volume in the lower phase; water 992 kg/m3 at 313 K. Ideal mixing.
+# - liquid_heat_capacity, kJ/(kmol K): acetic acid 123.3, acetyl chloride 117.0, water 75.3
+#   (CRC; NIST WebBook gives 117.2 for acetyl chloride at 298 K, von Reis 1881); phosphorus
+#   trichloride 120 and phosphorous acid 110, ASSUMED (no open measured liquid value found:
+#   CRC lists none; about 0.87 and 1.34 kJ/(kg K)).
+# - HCl leaves as it forms (batch.vent, core ADR 0054) and is never charged or dosed: it needs
+#   no liquid data.
+# The batch still ST101 (core ADR 0055, Raoult's law, an ideal liquid ASSUMED): acetyl
+# chloride's NIST fit covers 266.9 to 324.2 K, so the still's last part, up to its residue's
+# bubble point, extrapolates it (DESIGN.md D-007, L-4). Phosphorous acid is non-volatile.
+schema: cheme/process/v1
+kind: materials
+components:
+  - id: ACOH
+    name: Acetic acid
+    formula: C2H4O2
+    cas: 64-19-7
+    molar_mass: 60.052
+    normal_boiling_point: 391.05
+    liquid_molar_volume: 0.05835
+    liquid_heat_capacity: 123.3
+    heat_of_vaporization: 40300
+    vapour_pressure: {a: 4.68206, b: 1642.54, c: -39.764, temperature_range: [290.26, 391.01], provenance: given, source: "NIST WebBook (C64197), coefficients fitted by NIST to McDonald, Shrader et al. (1959)"}
+  - id: PCL3
+    name: Phosphorus trichloride
+    formula: PCl3
+    cas: 7719-12-2
+    molar_mass: 137.324
+    normal_boiling_point: 349.15
+    liquid_molar_volume: 0.08856
+    liquid_heat_capacity: 120.0
+    heat_of_vaporization: 30500
+    vapour_pressure: {a: 4.19505, b: 1304.47, c: -36.965, temperature_range: [221.6, 347.3], provenance: given, source: "NIST WebBook (C7719122), coefficients calculated by NIST from Stull (1947)"}
+  - id: ACCL
+    name: Acetyl chloride
+    formula: C2H3ClO
+    cas: 75-36-5
+    molar_mass: 78.495
+    normal_boiling_point: 324.15
+    liquid_molar_volume: 0.07210
+    liquid_heat_capacity: 117.0
+    heat_of_vaporization: 30100
+    vapour_pressure: {a: 3.96568, b: 1062.86, c: -55.531, temperature_range: [266.86, 324.2], provenance: given, source: "NIST WebBook (C75365), coefficients fitted by NIST to McDonald, Shrader et al. (1959)"}
+  - {id: H3PO3, name: Phosphorous acid (phosphonic acid), formula: H3O3P, cas: 13598-36-2, molar_mass: 81.995, liquid_molar_volume: 0.04969, liquid_heat_capacity: 110.0}
+  - id: H2O
+    name: Water
+    formula: H2O
+    cas: 7732-18-5
+    molar_mass: 18.015
+    normal_boiling_point: 373.12
+    liquid_molar_volume: 0.01816
+    liquid_heat_capacity: 75.3
+    heat_of_vaporization: 40660
+    vapour_pressure: {a: 4.6543, b: 1435.264, c: -64.848, temperature_range: [255.9, 373.0], provenance: given, source: "NIST WebBook (C7732185), coefficients fitted by NIST to Stull (1947)"}
+  - {id: HCL, name: Hydrogen chloride, formula: HCl, cas: 7647-01-0, molar_mass: 36.458, normal_boiling_point: 188.15}
+templates:
+  - {id: organics, title: "Acetic acid, phosphorus trichloride, acetyl chloride, phosphorous acid", components: [ACOH, PCL3, ACCL, H3PO3, H2O, HCL]}
+  - {id: acid, title: "Vent gas and scrubber liquor: hydrogen chloride, acetyl chloride vapour, water, acetic acid", components: [HCL, ACCL, H2O, ACOH]}
+property_method:
+  adapter: thermo
+  status: placeholder
