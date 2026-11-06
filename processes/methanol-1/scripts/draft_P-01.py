@@ -124,9 +124,13 @@ instrument(sheet, "LI-108", at=(134, 178), sensing=v103["N5"])
 sic = instrument(sheet, "SIC-113", at=(195, 98), sensing=k101["N3"])
 # K-101 run status YS-117 on its own speed pick-up N4 (with the drive's run contact, not drawn):
 # every K-101 stop (package machine trip, power failure, operator stop) closes XV-110 and XV-116
-# through US-116, not only the C&E trips (C&E I-102, D-022). Its input to US-116 is a C&E cause
-# like the other trips', not a drawn signal: a signal line from K-101 to US-116 would cross SG-102
-# and SG-131 (round 5).
+# through US-116, not only the C&E trips (C&E I-102, D-022). Two links of I-102 are C&E links,
+# not drawn signal lines, and the sheet note says so (round 6): YS-117 into US-116, and US-116
+# onto XV-110 (XV-110's drawn actuation is LZ-109's, I-101). Neither can be drawn without a
+# crossing: YS-117 sits in the area closed by FL-136, SG-130, SG-102 and FL-132, US-116 in the
+# area below the anti-surge loop that DR-135 closes off from XV-110, so a line from K-101 to
+# US-116 crosses SG-102 and SG-131 (or FL-132, CWR-133, CWS-132) and one from US-116 to XV-110
+# crosses DR-135.
 instrument(sheet, "YS-117", at=(207, 84), sensing=k101["N4"])
 # N3 and N4 are the speed pick-ups on the machine, not process connections: DEXPI instrument
 # nozzles (a sensing location must be a nozzle or a segment, not the equipment itself). Core
@@ -156,9 +160,9 @@ tag_label(sheet, "CV103", (363, 113))
 notes(sheet,
       "PIC-102 sets the speed controller SIC-113 (drive package, speed measured at K-101, output to "
       "its variable-speed drive). UIC-104: anti-surge on UV-104 from FT-103, PT-114, PT-105 (D-017)",
-      "LZ-109: V-103 level HH closes XV-110, stops K-101 (C&E I-101). Any K-101 stop closes XV-110 "
-      "and XV-116 (US-116): the C&E trips, and YS-117 (K-101 run status) on a package trip, power "
-      "failure or operator stop (I-102)",
+      "LZ-109: V-103 level HH, C&E I-101. Any K-101 stop closes XV-110 and XV-116 (US-116): C&E "
+      "trips, and YS-117 (run status) on a package trip, power failure or operator stop (I-102); "
+      "YS-117 to US-116 to XV-110 not drawn (would cross lines)",
       "PSV-115: suction side (settle-out via UV-104, leak-back past XV-116, front end past XV-110, "
       "fire); PSV-111: K-101 discharge; PSV-112: E-101 CW side (tube rupture). To the HP flare "
       "header (D-022)")

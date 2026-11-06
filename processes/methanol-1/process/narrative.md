@@ -69,10 +69,13 @@ gas shutdown valve XV-110 (US-116): the trips that stop K-101 close both directl
 stop (package machine trip, power failure, operator stop) through the run status YS-117 (I-102).
 The suction side then sees only the settle-out of the discharge volume through UV-104 and the seat
 leakage of the closed valves, against which PSV-115 protects it.
-**Modes.** Start-up by SEQ-K101-START: with I-102 reset and UV-104 fully open, XV-110 pressures
-the suction side from the front end, K-101 starts on full recycle against the closed XV-116, and
-XV-116 opens (only with YS-117 reading running) once the discharge pressure is above the loop
-pressure; then UIC-104 and PIC-102 take over the loading. I-101 stops the machine on liquid in
+**Modes.** Start-up by SEQ-K101-START: with I-102 reset, UV-104 fully open and XV-110 and XV-116
+closed, K-101 starts on full recycle at the suction side's own (settle-out) pressure, which is
+above the front end's after a stop; XV-116 opens (only with YS-117 reading running) once the
+discharge pressure is above the loop pressure, and XV-110 once K-101 has drawn the suction
+pressure down to the front end's, so no gas flows back through SG-101 and every stop from then on
+trips I-102; then UIC-104 and PIC-102 take over the loading. The first pressuring of the suction
+side after maintenance is a separate procedure, not written (D-021). I-101 stops the machine on liquid in
 V-103.
 **Assumptions and open points.** Electric variable-speed drive, one casing (D-010, D-017);
 surge control by the vendor; the settle-out pressure (I-10) and the front end's maximum pressure

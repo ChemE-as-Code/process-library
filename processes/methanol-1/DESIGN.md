@@ -566,7 +566,8 @@ machine stop is the trip's final element by design; the HAZOP judges independenc
 Reason: the P&IDs need their loops, fail positions and trips to be reviewable; the skills
 control-loops, control-narrative and control-safeguarding-and-interlocks ask for this register
 before a HAZOP.
-Open: start-up, shutdown and abnormal sequences (`control/sequences.yaml` empty); the K-102 trip to
+Open: start-up, shutdown and abnormal sequences (`control/sequences.yaml` holds only the K-101
+start-up SEQ-K101-START, added in D-022; the others are not written); the K-102 trip to
 K-101 / XV-110 interlock; depressuring on I-201; a plant-wide air failure opens XV-304 and all vents
 at once (a simultaneous flare load for the relief study).
 
@@ -607,9 +608,25 @@ deferred here with its reason and an open input):
    with K-101 standing; XV-116 then opens only with YS-117 reading running (start-up permissive
    in US-116). Every start therefore runs against the closed XV-116: the start-up sequence
    SEQ-K101-START (`control/sequences.yaml`, the first written sequence) asks for UV-104 fully
-   open, pressures the suction side through XV-110, starts K-101 on full recycle and opens
-   XV-116 once the discharge pressure is above the loop pressure; a start with UV-104 not open
-   is named in PSV-111's case.
+   open, starts K-101 on full recycle and opens XV-116 once the discharge pressure is above the
+   loop pressure; a start with UV-104 not open is named in PSV-111's case.
+   Round 6: the round-5 sequence opened XV-110 first, with K-101 standing, to pressure the
+   suction side. After a stop the suction side is at the settle-out pressure, above the front
+   end's 2600 kPa(a) (up to the 28 barg PSV-115 set, I-10), so that step sent settle-out gas back
+   through SG-101; and because the I-102 cause is a change from running to not running, a failed
+   start before YS-117 read running did not trip I-102 and left XV-110 open with K-101 standing
+   until the sequence timed out. The order is changed instead of adding a depressuring path or a
+   trip (no new equipment): with XV-110 and XV-116 closed and the suction side at or above the
+   front-end pressure (permissive), K-101 starts on full recycle at the suction side's own
+   pressure (S1), XV-116 opens with K-101 running (S2), and XV-110 opens once K-101 has drawn
+   the suction pressure down to the front end's (S3), so the gas only flows forward and XV-110
+   and XV-116 are open only after YS-117 has read running, when every stop trips I-102. Starting
+   at the settle-out pressure is ASSUMED (the usual design case of a centrifugal compressor's
+   start; with the vendors, I-10); the front-end pressure compared in S3 is the battery-limit
+   pressure reported over the interface, not measured on P-01 (ASSUMED, I-15); S3 times out
+   after 5 min ASSUMED, the fully open UV-104 keeping K-101 out of surge meanwhile. XV-110 open
+   with K-101 standing is left only for the first pressuring after maintenance, a procedure not
+   written (D-021), and for XV-110 failing to close: PSV-115 case (3), I-15.
 2. **V-101 high-high level** (high): LZ-313, own tap, stops K-102 and with it K-101 and XV-110
    (C&E I-302): the loop must not keep receiving make-up gas without circulation. LIC-307's high
    alarm stays the operator warning.
@@ -684,6 +701,13 @@ every K-101 stop); the CMP section of the process narrative lists I-102 and SEQ-
 describes the isolation; on P-01 YS-117 is drawn on K-101 (N4) and the sheet note names the
 operator stop. YS-117's input to US-116 is a C&E cause, like the other trips', and is not drawn as
 a signal line: a line from K-101 to US-116 would cross SG-102 and SG-131.
+Round 6 low items: on P-01 US-116 is drawn acting on XV-116 only and XV-110 is drawn actuated by
+LZ-109 (I-101), so two links of I-102 are not drawn: YS-117 into US-116 and US-116 onto XV-110.
+Neither can be drawn without a crossing (YS-117 sits in the area that FL-136, SG-130, SG-102 and
+FL-132 close; US-116 in the area below the anti-surge loop, which DR-135 separates from XV-110), so
+they stay C&E links, and the P-01 note, the C&E I-102 notes, the US-116 and YS-117 entries of the
+instrument list and the script comment all say so; US-116's entry now gives XV-110's fail position
+too (F.C.). The control philosophy body and D-021 no longer say that no sequence is written.
 Reason: concept-stage design, each protection either drawn or deferred explicitly with its open
 input, for the HAZOP to confirm.
 
@@ -756,7 +780,9 @@ ASSUMED (I-01, I-02). After the DWSIM run (D-014) the predictive checks pass exc
 - I-08 Recycle ratio / purge / inerts trade-off and purge hydrogen recovery.
 - I-09 Closed 2026-11-01: the purge, which returns to the reformer fuel, is not a co-product (D-015).
 - I-10 K-101 settle-out pressure (casing, discharge, recycle volume) against the 28 barg suction
-  side: PSV-115 relief load, or design the suction side for settle-out (D-022, vendor).
+  side: PSV-115 relief load, or design the suction side for settle-out (D-022, vendor); and that
+  K-101 and its drive start at the settle-out pressure (starting torque), as SEQ-K101-START
+  assumes (D-022 item 1, round 6).
 - I-11 End-of-run steam drum pressure: needed as the V-104 / R-101 shell design pressure and the
   PSV-208 set before the drum pressure may be raised over the catalyst life (D-022).
 - I-12 V-104 high-high level with a BFW shutdown valve: deferred to the HAZOP (D-022).
@@ -772,4 +798,7 @@ ASSUMED (I-01, I-02). After the DWSIM run (D-014) the predictive checks pass exc
 - I-15 Front-end interface: the maximum pressure of the make-up gas at the battery limit (the
   front end's relief set or shut-in pressure with no outlet through the plant) against the
   28 barg K-101 suction side; above it, the suction side is designed for it or PSV-115 carries
-  the front end's flow while XV-110 is open with K-101 standing (PSV-115 case 3, D-022 item 1).
+  the front end's flow while XV-110 is open with K-101 standing (the first pressuring after
+  maintenance, or XV-110 failing to close; PSV-115 case 3, D-022 item 1). Also the front end's
+  battery-limit pressure as a signal over the interface: SEQ-K101-START opens XV-110 only once
+  PIC-102 reads at or below it (round 6).

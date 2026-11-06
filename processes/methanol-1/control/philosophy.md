@@ -93,4 +93,6 @@ trips involved.
 ## Assumptions and open points
 
 Fail positions, trip delays and the K-102 to K-101 interlock are ASSUMED or open (D-021);
-setpoints, voting and SIL are for the HAZOP / LOPA. Sequences are not written yet.
+setpoints, voting and SIL are for the HAZOP / LOPA. Of the sequences only the K-101 start-up
+SEQ-K101-START is written (D-022); the other start-up, shutdown and abnormal sequences are not
+written yet (D-021).
