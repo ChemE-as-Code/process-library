@@ -16,7 +16,9 @@ vent as it forms (`batch.vent`); the crude is degassed in the same vessel (a bat
 `still:`), and `process/recipe.yaml` holds the batch recipe over the three steps of that vessel
 (`units:`), from which the cycle time, the vessel, the vent's peak rate and the flowsheet's
 year-average flows come (`cheme process recipe`, `cheme process reactor-hazards`, `cheme process
-stills`). It needs cheme-as-code 1.8 (core ADRs 0054, 0055, 0057).
+stills`). The models write the duties of R101 and the degassing (core ADR 0059), and the
+screening compares the gas a cooling failure releases with the vent's capacity (ADR 0058). It
+needs cheme-as-code 1.9 (core ADRs 0054, 0055, 0057, 0058, 0059).
 
 | path | what |
 |---|---|
@@ -63,10 +65,10 @@ cheme status                    # where the plant stands: sheets, findings, gate
 cheme validate                  # after every change
 cheme check                     # engineering-step gates (--write only at sign-off)
 cheme process build             # BFD and PFD from process/*.yaml
-cheme process propagate --fill  # every stream from the feeds (semi-batch with vent, still, scrubber)
+cheme process propagate --fill  # every stream from the feeds (semi-batch with vent, still, scrubber), and the duties of R101 and T101
 cheme process streams           # stream table with provenance, block balances
 cheme process recipe            # batch cycle, vessel and jacket, vent's peak rate and gas per batch (--svg)
-cheme process reactor-hazards   # thermal screening, with the semi-batch's accumulation
+cheme process reactor-hazards   # thermal screening: accumulation, MTSR over the batch, gas release against the vent
 cheme process stills            # the degassing: gas, time and duty per batch
 cheme assess lca --write        # the preliminary LCI
 ```

@@ -15,6 +15,14 @@ the library now pins, because it uses
 the gas vent and gas dosing of core ADR 0054 and the recipe units and filtration time of core
 ADR 0057 ("Core features used" below). The route and its sources were scouted for core#158 on
 2026-11-05.
+Moved to core **1.9.0** (314642c) on 2026-11-06 with the library's pin (branch ci/core-1.9.0).
+The entry uses three of its features ("Core features used" below): R101's model writes Q1
+(`energy_port`, core ADR 0059, D-009), the default MTT at R-101's pressure replaces the hand-set
+`hazard.mtt` (ADR 0058; 351.15 to 356.3 K, D-011), and the gas release at the MTSR is compared
+with a stated vent capacity (ADR 0058, D-011); `plant.yaml` requires `cheme-as-code>=1.9`. The
+balance, the recipe and the LCI amounts do not change (Q1 stays 134.1 kW); Q1 becomes
+`calculated`, so its pedigree in the LCA dataset goes from [4,4,1,3,3] to [3,4,1,3,3] and the
+data-quality rating changes (P 3.8 to 3.7, DQR 2.7 to 2.675).
 
 ## Source register
 
@@ -32,6 +40,7 @@ in this session, or in the route scouting of the same day where said.
 | SRC-7 | chemicals and thermo packages (the open data of core's environment: CRC Handbook tables, NIST WebBook / JANAF, DIPPR fits, estimates) | printed per component in process/materials.yaml: methyl bromide gas formation enthalpy -36.38 kJ/mol, S0 246.4 J/(mol K), heat of vaporisation 23.3 kJ/mol at 298 K and 23.5 at 293 K, normal boiling point 276.55 K, liquid density 1.663 g/cm3, liquid and ideal-gas heat capacities; 2-MeTHF liquid heat capacity 173.2 kJ/(kmol K) at 318 K; gas formation enthalpies of HBr, methane and ethane | open data packages | D-005, D-006, D-009 |
 | SRC-8 | Stoessel, F. (2008) Thermal Safety of Chemical Processes, Wiley-VCH, doi:10.1002/9783527621606 | the accumulation and MTSR of a semi-batch (method, implemented in core ADR 0050) | method reference, no data taken | D-011 |
 | SRC-9 | processes/asu-1, processes/iodine-1, processes/thf-1, processes/methanol-1, processes/hydrogen-bromide-1 (this library) | gaseous nitrogen and iodine to the battery limit (linked); THF, methanol and HBr (named as proxies, not linked) | library, internal | D-012 |
+| SRC-10 | NIST Chemistry WebBook, 2-Methyltetrahydrofuran (C96479), phase change data, https://webbook.nist.gov/cgi/cbook.cgi?ID=C96479&Mask=4 | enthalpy of vaporization 34.0 kJ/mol from vapour pressures of 283 to 353 K (Stephenson and Malanowski 1987), and 33.7 kJ/mol (Moiseev and Antonova 1970); boiling point 352 +/- 10 K (average of 6 values) | read 2026-11-06; US government data | D-011 (the MTT at 120 kPa(a)) |
 
 Not read and not cited as read: Ullmann's Encyclopedia (licensed; the HSDB entries cite it),
 Organic Syntheses procedures (the scouting session was blocked by a browser check and did not get
@@ -41,7 +50,7 @@ MeMgBr from methyl bromide gas, its induction time, the Wurtz selectivity of met
 TD24 of the solution, the solubility of methyl bromide in 2-MeTHF, a plant's specific
 consumptions, and a market volume.
 
-## Core features used (core 1.8.0)
+## Core features used (core 1.9.0)
 
 - **`reactor: semibatch` with `dosing.profile`** (core ADR 0050): 5 % of the methyl bromide in 15
   min, a segment of share 0 for the 30 min initiation hold, then 95 % over 5 h.
@@ -55,14 +64,28 @@ consumptions, and a market volume.
   `liquid_molar_volume` (its own volume in the slurry) and a heat capacity; the rate law uses its
   pseudo-concentration. It ran without a change to core (the scouting had flagged it as
   untested).
-- **`hazard.mtt`** (core ADR 0050): the solvent's boiling point instead of the default.
+- **The default MTT of what boils, at the vessel's pressure** (core 1.9.0, ADR 0058): the dosed
+  methyl bromide (a dose with `absorbed`) and the vented ethane are left out, and 2-MeTHF's
+  boiling point at R-101's 120 kPa(a) comes by Clausius-Clapeyron from its declared
+  `heat_of_vaporization` (34.0 kJ/mol, NIST WebBook, SRC-10): 356.3 K. It replaces the
+  `hazard.mtt` of 1.8.0 (D-011, L-5).
+- **`hazard.vent_capacity`, the gas release at the MTSR and the MTSR profile** (core 1.9.0, ADR
+  0058, rule `cheme.reactor-hazard-vent`): R-101's vent, 20 m3/h ASSUMED, against the ethane a
+  cooling failure forms at the MTSR (D-011).
+- **`energy_port: q` on R101** (core 1.9.0, ADR 0059): `propagate --fill` writes the
+  semi-batch's year-average duty on Q1 (calculated), in place of the hand value (D-009, L-9).
 - **Recipe `units: [M101, R101]`** (core ADR 0057): one vessel, R-101, over the charge mixer and
   the semi-batch; the vessel is sized from R101's model (core ADR 0052).
 - **A `heat` operation with `temperatures:`** (core ADR 0052): the warm-up time from the jacket.
 - **`solid_separation.filtration:` and a recipe `filter` with `from: F101`** (core ADR 0057): the
   filtration time from Ruth's equation.
 - Not needed here: the batch still and solvent swap (ADR 0055), the crystallizer's spectators
-  (ADR 0056) and the dryer (ADR 0057): the product is sold as a solution, with no isolation.
+  (ADR 0056) and the dryer (ADR 0057): the product is sold as a solution, with no isolation; the
+  recycle tears of core 1.9.0 (ADR 0060): the flowsheet has no recycle (a magnesium heel, D-007,
+  would be one).
+- `hazard.reactions` (ADR 0058) is not used: the default counts every reaction and takes the
+  largest, GRIG (MTSR 321.5 K); the Wurtz coupling alone reaches 321.4 K at its worst moment
+  (D-011), so naming the reactions would change nothing.
 
 ## D-001 Route and boundary (2026-11-05)
 Decision: Mg + CH3Br -> CH3MgBr in dry 2-MeTHF at 318 K under nitrogen (SRC-3), methyl bromide
@@ -201,8 +224,10 @@ Reason: the product is sold as a clear solution (SRC-1: no isolation); the exces
 be removed before filling. Settling and decanting would leave more liquor with the magnesium; a
 filter is the conservative choice for the loss.
 Rejected: keeping the excess magnesium in R-101 for the next batch (a magnesium heel): the usual
-plant practice in some Grignard trains, but a recycle that propagate does not converge, and the
-oxide and fines build up; an open variant for basic engineering.
+plant practice in some Grignard trains, but the oxide and fines build up, and the heel's
+behaviour (its activity, the initiation on a heel) has no open basis; an open variant for basic
+engineering. Core 1.9.0 converges a recycle at a declared tear (ADR 0060), so the recycle itself
+is no longer the obstacle it was on 1.8.0.
 
 ## D-008 Product (2026-11-05)
 Decision: the filtered solution is the product at 318 K to the filling tank, cooled there and
@@ -210,20 +235,27 @@ filled under nitrogen (outside the boundary); its assay is titrated in R-101 bef
 and a correction with 2-MeTHF (not modelled) brings an off-spec batch back into 34.0-36.0 %.
 Reason: SRC-1. The model's 35.0 wt% is the centre of the specification.
 
-## D-009 Utilities and heat (2026-11-05)
-Decision (year averages, by hand from the models; all ASSUMED where not stated):
-- Q1, R-101 to chilled brine 263/268 K: 134.10 kW, the extents of GRIG and WURTZ times their heats
-  of reaction (134.76 kW) less the warming of the dissolved dose from 298 to 318 K (0.66 kW). Over
-  the dosing R-101 removes 241.6 kW at the peak (`cheme process recipe`).
+## D-009 Utilities and heat (2026-11-05, Q1 from the model 2026-11-06)
+Decision (year averages; Q1 from R101's model, the others by hand, all ASSUMED where not stated):
+- Q1, R-101 to chilled brine 263/268 K: 134.1 kW, written by `cheme process propagate --fill`
+  from R101's semi-batch model on the stream its `energy_port: q` names (core 1.9.0, ADR 0059,
+  `calculated`): the reactions' heat 134.763 kW less the doses warmed to 318.15 K, 0.658 kW for
+  the dissolved methyl bromide and 0.004 kW for the gas passing to the vent. Until 2026-11-05 it
+  was typed by hand as 134.10 kW from the extents (134.76 less 0.66 kW); the model agrees and
+  also counts the vented gas's warming, so the hand value was dropped. Over the dosing R-101
+  removes 241.6 kW at the peak (`cheme process recipe`).
 - Q2, the charge's warm-up from 298 to 318 K on LP steam through the jacket's hot-water loop:
   4.27 kW ((359.99 x 2.011 + 43.013 x 1.024) kJ/(h K) x 20 K); losses and the vessel's own heat
-  not counted.
+  not counted. It stays typed on its own stream: R101's model holds the batch at 318.15 K from
+  the start and leaves the heat-up to the recipe's `heat` operation (core ADR 0059), so R101 has
+  two heat streams, Q1 the model's and Q2 this one; both are in the LCI (brine and LP steam).
 - Q3, the methyl bromide vaporiser E-101 on LP steam: 11.12 kW, 1.6855 kmol/h x (23.53 MJ/kmol at
   293 K + 5 K of gas warming) (SRC-7).
 - Electricity 5.3 kW: R-101's agitator 5 kW (P1), F-101 0.3 kW (P2).
 Per kg of solution: chilled brine 0.241 kWh removed, LP steam 0.028 kWh, power 0.0095 kWh.
-Reason: R101's model gives the heat release but core writes no energy stream for a batch (L-9);
-E101 has no property package for the phase change. The refrigeration unit is outside the boundary
+Reason: R101's model gives the heat release and, since core 1.9.0, writes it (L-9 resolved);
+the heat of absorption of the unreacted dissolved gas is still left out (L-7). E101 has no
+property package for the phase change (L-11). The refrigeration unit is outside the boundary
 (an LCA gap, D-012).
 
 ## D-010 Heat removal sets the dosing time (2026-11-05)
@@ -236,44 +268,77 @@ Reason: the heat release of 4.3 GJ per batch has to leave through the jacket; th
 was set by hand to the jacket's limit (L-10). Cooling water at 298 K would give only about 90 kW
 at the charge and a 14 h dosing. Reflux cooling of the boiling solvent (the plant's usual
 emergency and often normal heat sink) is not credited: core checks only a jacket or a coil.
-Heating medium above the MTT: the warm-up's hot water at 353.15 K (fed from LP steam at about
-412 K) lies 2 K above the MTT of 351.15 K (D-011), and an uninitiated 5 % initiation charge
-already reaches 349.5 K. A jacket left on hot water when the dosing starts, or a failed hot-water
-temperature control, can take the content past the MTT by itself, and with a starting reaction
-both heats add. Kept here at 353.15 K, with two safeguards recorded as open (next to the dosing
-interlocks of D-011): the heating isolated (steam to the hot-water loop shut, the jacket switched
-to brine) is a permissive for the dosing, and a high-temperature trip of the hot-water supply
-cuts the steam. Rejected for now: lowering the hot water to 343.15 K, below the MTT. It lengthens
-the warm-up from 0.19 to 0.25 h, the cycle to 9.06 h and the year to 873.9 batches (a scratch copy
-of `cheme process recipe`, not in the files), a choice for basic engineering together with the
-interlocks.
+Heating medium above the solvent's normal boiling point (the MTT if the pad is lost): the warm-up's hot water at 353.15 K (fed from LP steam at about
+412 K) lies 2 K above the solvent's normal boiling point, 351.15 K, which is the MTT once R-101's
+pressure falls to atmospheric (the nitrogen pad lost, the vent open to an atmospheric header),
+and 3.2 K below the MTT at the pad's 120 kPa(a), 356.3 K (D-011, core 1.9.0); the hot-water
+loop's steam at about 412 K is far above both. An uninitiated 5 % initiation charge already
+reaches 349.5 K. A jacket left on hot water when the dosing starts, or a failed hot-water
+temperature control, can take the content to the boiling solvent by itself, and with a starting
+reaction both heats add. Kept here at 353.15 K, with two safeguards recorded as open (next to the
+dosing interlocks of D-011): the heating isolated (steam to the hot-water loop shut, the jacket
+switched to brine) is a permissive for the dosing, and a high-temperature trip of the hot-water
+supply cuts the steam. The higher MTT at 120 kPa(a) does not lift them: it rests on the ASSUMED
+pad pressure being held. Rejected for now: lowering the hot water to 343.15 K, below the normal
+boiling point. It lengthens the warm-up from 0.19 to 0.25 h, the cycle to 9.06 h and the year to
+873.9 batches (a scratch copy of `cheme process recipe`, not in the files), a choice for basic
+engineering together with the interlocks.
 
-## D-011 Thermal screening: initiation and accumulation (2026-11-05)
-Result (`cheme process reactor-hazards`, core ADRs 0050 and 0054): adiabatic temperature rise of
-the whole batch 548 K; largest accumulation of the dosed methyl bromide 0.615 %, at the end of the
-dosing; MTSR at the worst moment 321.5 K, against an MTT of 351.15 K. The vented ethane is not
-part of the MTSR or the MTT; the vent's peak gas rate is 8.3e-6 kmol/(s m3) at the end of the
-dosing (with the vent blocked it pressurises R-101: not screened, L-6). No TD24 is known (none
+## D-011 Thermal screening: initiation, accumulation and the vent (2026-11-05, core 1.9.0 2026-11-06)
+Result (`cheme process reactor-hazards`, core ADRs 0050, 0054 and 0058): adiabatic temperature
+rise of the whole batch 548 K; largest accumulation of the dosed methyl bromide 0.615 %, at the
+end of the dosing; MTSR at the worst moment 321.5 K, against an MTT of 356.3 K. Each reaction
+alone (`per_reaction`): GRIG dT_ad 548.0 K, MTSR 321.5 K; WURTZ alone gives dT_ad 0.0 K over the
+batch (its reactants, MeMgBr and the dosed methyl bromide, are not in the initial charge) and an
+MTSR of 321.4 K at its worst moment, a 3.3 K rise over T_p 318.1 K and below GRIG's 321.5 K, so
+the default (the largest reaction) already counts the right one and `hazard.reactions` is not
+needed. The MTSR
+over the batch (`mtsr_profile`) rises from 318.9 K after the initiation to 321.5 K at the end of
+the dosing: the worst moment is the end of the main dosing, not the initiation charge, at the
+base rate. The vented ethane is not part of the MTSR or the MTT. No TD24 is known (none
 estimated): no criticality class (`cheme.reactor-hazard-missing`, info).
-MTT: `hazard.mtt` 351.15 K, the boiling point of 2-MeTHF from the TDS (SRC-1; thermo gives 353.15
-K), the liquor's solvent: R-101 runs at about atmospheric pressure with a reflux condenser
-(ASSUMED). Without it the screening takes the lowest normal boiling point of the liquor's
-components, methyl bromide's 276.55 K, 42 K below the process temperature (L-5).
-Sensitivity of the rate (both rate constants divided, scratch copies, not in the files):
+MTT: core 1.9.0's default (ADR 0058), 356.3 K, the boiling point of 2-MeTHF at R-101's 120 kPa(a)
+by Clausius-Clapeyron from its normal boiling point 351.15 K (the TDS, SRC-1; thermo gives 353.15
+K) and its heat of vaporization, 34.0 kJ/mol (NIST WebBook, SRC-10; declared in materials.yaml).
+The dosed methyl bromide is left out (a dosed gas, `mtt_left_out`) and the ethane (a vent
+component). It replaces `hazard.mtt: 351.15` of 1.8.0, the solvent's normal boiling point, set
+by hand because the 1.8.0 default was methyl bromide's 276.55 K (L-5, resolved). The value at the
+vessel's pressure is the MTT of Stoessel's open reactor; it rests on the ASSUMED 120 kPa(a) pad
+being held (the vent to the oxidiser at that pressure). At atmospheric pressure the solvent boils
+at 351.15 K, 5.2 K lower, which D-010 keeps for the heating medium. thermo's
+corresponding-states heats of vaporization, 29.5 to 30.8 kJ/mol at 351 K, would give 356.9 to
+357.1 K; the sourced, larger value gives the lower MTT, the conservative one.
+Vent and gas release (core 1.9.0, `hazard.vent_capacity`, rule `cheme.reactor-hazard-vent`):
+R-101's vent runs through its reflux condenser to the thermal oxidiser's header and is sized
+(ASSUMED) for the largest normal gas flow it takes, the nitrogen purge that inerts R-101 (three
+volume changes of 6.3 m3, 18.9 Nm3 as in the LCI's nitrogen (D-012), in the 1 h inert step:
+about 16 to 17.4 m3/h at 120 kPa(a) and 273 to 298 K), rounded up to 20 m3/h at 120 kPa(a). The normal peak of the off-gas, 3.0 m3/h at the end
+of the dosing (`cheme process recipe`), is well inside it. With a cooling failure at the worst
+moment, the Wurtz coupling at the MTSR forms ethane at 3.49e-5 kmol/s, 2.8 m3/h at 321.5 K and 120
+kPa(a), 0.14 times the vent capacity (info); run to completion it would form 0.092 kmol (2.1
+m3) per batch. The screening counts only the vent's components (the ethane), not the dissolved
+methyl bromide a cooling failure drives out (core ADR 0058 limitation, L-6): at the base rate
+about 9 kg, 0.093 kmol or 2.1 m3 at 321.5 K and 120 kPa(a); driven out within 15 min (ASSUMED) it
+adds 8.3 m3/h, together with the ethane 11.1 m3/h, still within the 20 m3/h.
+Sensitivity of the rate (both rate constants divided, scratch copies, not in the files; the
+accumulation, MTSR, cycle and duty columns are those of 1.8.0, which core 1.9.0 reproduces; the
+MTT and the gas release from core 1.9.0):
 
-| case | max. accumulation | MTSR | MTSR - MTT | post-reaction | cycle | batches/a | peak duty | screening reading |
-|---|---|---|---|---|---|---|---|---|
-| base (ASSUMED k) | 0.615 % | 321.5 K | -29.6 K | 0.063 h | 9.00 h | 879.5 | 241.6 kW | MTSR < MTT: dosing-controlled |
-| k/10 | 4.27 % | 341.5 K | -9.6 K | 1.23 h | 10.17 h | 778.5 | 237.3 kW | MTSR < MTT, small margin |
-| k/100 (sluggish or delayed initiation) | 21.1 % | 433.9 K | +82.8 K | 15.64 h | 24.58 h | 322.2 | 203.7 kW | MTSR far above MTT: the solvent boils off and the vessel pressurises |
-| initiation charge uninitiated (5 % only, k/10000) | 99.8 % of the 5 % | 349.5 K | -1.7 K | - | - | - | - | the initiation charge alone stays just below the MTT |
-| whole dose uninitiated (k/10000, dosing not stopped) | 95.8 % | 843 K | +492 K | - | - | - | - | Stoessel class 5 territory: the classic Grignard runaway |
+| case | max. accumulation | MTSR | MTSR - MTT | gas at the MTSR | post-reaction | cycle | batches/a | peak duty | screening reading |
+|---|---|---|---|---|---|---|---|---|---|
+| base (ASSUMED k) | 0.615 % | 321.5 K | -34.8 K | 2.8 m3/h | 0.063 h | 9.00 h | 879.5 | 241.6 kW | MTSR < MTT: dosing-controlled; gas within the vent |
+| k/10 | 4.27 % | 341.5 K | -14.8 K | 4.8 m3/h | 1.23 h | 10.17 h | 778.5 | 237.3 kW | MTSR < MTT, small margin; gas within the vent |
+| k/100 (sluggish or delayed initiation) | 21.1 % | 433.9 K | +77.6 K | 49.2 m3/h | 15.64 h | 24.58 h | 322.2 | 203.7 kW | MTSR far above MTT: the solvent boils off and the vessel pressurises; ethane alone 2.5 times the vent |
+| initiation charge uninitiated (5 % only, k/10000) | 99.8 % of the 5 % | 349.5 K | -6.8 K | - | - | - | - | - | the initiation charge alone stays below the MTT (1.7 K below the normal boiling point) |
+| whole dose uninitiated (k/10000, dosing not stopped) | 95.8 % | 843 K | +487 K | 48.3 m3/h | - | - | - | - | Stoessel class 5 territory: the classic Grignard runaway; ethane alone 2.4 times the vent |
 
+The gas release of the k/100 and uninitiated cases takes the rate laws at the MTSR, far outside
+their ASSUMED 298-338 K range: an order of magnitude, not a value.
 Interpretation: this step is the showcase of the screening's initiation-versus-accumulation
 question. While the reaction runs at the dosing rate, the accumulated methyl bromide is below 1 %
-and a cooling failure stays 30 K below the boiling point. If the initiation is slow or delayed
+and a cooling failure stays 35 K below the boiling point. If the initiation is slow or delayed
 (k/100 stands for an induction period, which core cannot model, L-1), a fifth of the dose
-accumulates and a cooling failure would heat the content 83 K above the boiling point of the
+accumulates and a cooling failure would heat the content 78 K above the boiling point of the
 solvent; if dosing continued into a reactor that never initiated, nearly the whole adiabatic rise
 is available. Each 1 % of accumulated methyl bromide adds about 5.5 K. Two design consequences
 follow and stay open for the next stage: the initiation charge must not exceed about 5 % (an
@@ -281,6 +346,17 @@ uninitiated 5 % already takes the charge to 349.5 K), and the main dosing must b
 a positive initiation signal and stopped on low heat flow, high temperature, loss of brine or of
 the agitator. Dissolved methyl bromide also lowers the liquor's boiling point, so the MTT is
 optimistic for an accumulating batch.
+Design finding, the vent (2026-11-06): the vent passes the base case's gas release seven times
+over, but not that of a sluggish or failed initiation: at k/100 the ethane alone is 49 m3/h, 2.5
+times the 20 m3/h, before the boiling solvent and the methyl bromide it drives out (the larger
+part, not screened). No credible process vent passes that case; it is not hidden by a larger
+`vent_capacity`. It is met by not letting it arise and by a relief: (1) the dosing interlocks
+above (a positive initiation signal before the main dosing, a dosing stop on low heat flow, high
+temperature, loss of brine or of the agitator) keep the accumulation at the base case's level;
+(2) R-101's emergency relief, separate from the process vent, is sized for the boiling-solvent
+case with its methyl bromide and ethane (two-phase venting likely, a DIERS-type sizing) and
+routed to a containment or the oxidiser, never to atmosphere. Both are open safeguards for basic
+engineering, with the calorimetry that sets the real accumulation.
 Toxic gas release: what accumulates is dissolved methyl bromide, which boils at 276.55 K, 42 K
 below the process temperature. A cooling failure with accumulated dose therefore first drives the
 methyl bromide out of the liquor, before and with the solvent, through the vent or the relief.
@@ -349,7 +425,7 @@ the thermal oxidiser and the filling station.
 | batch recipe, cycle time, basis check | done in cheme | D-003, `cheme process recipe` |
 | vessel sizing, jacket check, warm-up time (R-101) | done in cheme, U and media ASSUMED | D-003, D-010, core ADR 0052 |
 | filtration and its time (F-101) | specified split, Ruth time in cheme, cake data ASSUMED | D-007, core ADR 0057 |
-| duties | by hand from the models | D-009 |
+| duties | Q1 in cheme (R101 `energy_port`, core ADR 0059); Q2, Q3, P1, P2 by hand | D-009 |
 | per-batch exchanges (nitrogen, iodine) | done in cheme, amounts ASSUMED | D-012, core ADR 0053 |
 | LCI inventory | done, most backgrounds unmapped | D-012 |
 
@@ -361,10 +437,12 @@ the thermal oxidiser and the filling station.
   the initiation (no control of the dosing, core ADR 0050). A `batch.induction: {time, factor}` or
   a time-dependent rate multiplier, and a screening scenario "dosing continues uninitiated for
   t", would show the real hazard of a Grignard step directly.
-- L-2: **only the worst cooling-failure moment is reported.** The MTSR of the initiation charge
-  (5 % dosed into the cold charge, then a hold) needed a second scratch run with only that dose.
-  The MTSR profile over time in `process reactors --json` (it already has the accumulation's), or
-  the screening at named moments (end of each dosing segment), would answer it in one run.
+- L-2 (partly resolved, core 1.9.0 ADR 0058): **only the worst cooling-failure moment was
+  reported.** Core 1.9.0 adds the MTSR over the batch (`mtsr_profile`, 22 points in
+  `reactor-hazards --json`, 7 printed), which shows the base case's MTSR from the initiation to
+  the end of the dosing (D-011). The MTSR of an uninitiated initiation charge (5 % dosed into the
+  cold charge, then a hold) still needs a second scratch run with only that dose and a slow rate:
+  the profile follows the modelled rate, not a failed initiation (L-1).
 - L-3: **propagate writes the vented component into the liquid outlet** with a mole fraction of 0
   (`C2H6: 0.0`), so the liquid's template must list the gas, or validate reports
   `cheme.process-component`. A vented component that never stays in the liquid should be left out
@@ -373,16 +451,21 @@ the thermal oxidiser and the filling station.
   and `liquid_heat_capacity` and enters the rate law as a pseudo-concentration (order 2/3 here as
   a surface proxy); there is no surface-area rate (particle size, specific area, a shrinking
   particle), which a Grignard formation or any dissolving-metal step would need.
-- L-5: **default MTT below the process temperature** (methyl bromide's 276.55 K in the liquid,
-  dissolved 42 K above its boiling point; as phosphorus-tribromide-1 L-2 with bromine): fixed with
-  `hazard.mtt`. A finding when the default MTT lies below the process temperature would point to
-  it; the dissolved gas also lowers the liquor's boiling point, which the MTT does not follow.
+- L-5 (resolved, core 1.9.0 ADR 0058): **default MTT below the process temperature** (methyl
+  bromide's 276.55 K in the liquid, dissolved 42 K above its boiling point; as
+  phosphorus-tribromide-1 L-2 with bromine): on 1.8.0 fixed with `hazard.mtt`. Core 1.9.0's
+  default leaves out the dosed gas and the vented ethane and takes 2-MeTHF's boiling point at
+  R-101's 120 kPa(a), 356.3 K (D-011). Still open: the dissolved gas lowers the liquor's boiling
+  point, which the MTT does not follow.
 - L-6: **the vent carries no solvent vapour and has no pressure.** At 318 K, 2-MeTHF has a vapour
   pressure of about 30 kPa, so the ethane and the passing methyl bromide strip solvent to the
   oxidiser; core models no stripping (core ADR 0054 limitation), so the LCI excludes it. There is
   no gas-solubility basis for `absorbed` (a fixed share stands for Henry's law and mass
-  transfer), and the screening does not assess the pressure of a blocked vent (Stoessel's gas
-  release criterion, an ADR 0054 follow-up).
+  transfer). Partly resolved by core 1.9.0 (ADR 0058): the gas release at the MTSR is compared
+  with a stated `hazard.vent_capacity` (rule `cheme.reactor-hazard-vent`, D-011). Still open: the
+  pressure of a blocked vent is not screened, and the release counts only the vent's components,
+  not the dissolved toxic methyl bromide a cooling failure boils off (an ADR 0058 known
+  limitation; D-011 adds it by hand).
 - L-7: **heat of absorption.** A dissolving gas adds only its sensible heat; the heat of
   reaction is written on the gas basis (core ADR 0054), so the MTSR is conservative but the
   isothermal duty during the dosing leaves out the absorption of the unreacted gas (small here,
@@ -390,11 +473,11 @@ the thermal oxidiser and the filling station.
 - L-8 (resolved): core main reported version 1.7.0 before its release, so `plant.yaml` could not
   require the 1.8 that `batch.vent`, `dosing.absorbed`, recipe `units:` and `filtration:` need.
   Core 1.8.0 is released and pinned; `plant.yaml` requires `cheme-as-code>=1.8`.
-- L-9: **no energy stream from a batch model.** R101's isothermal heat removal is known to the
-  model but `process propagate` does not write it onto the energy port, and `process reactors`
-  reports its duty as `?` without ideal-gas data for every component; Q1 is copied by hand from
-  the extents (D-009). Writing the year-average duty of an isothermal batch or semi-batch would
-  remove the hand step.
+- L-9 (resolved, core 1.9.0 ADR 0059): **no energy stream from a batch model.** On 1.8.0 R101's
+  isothermal heat removal was known to the model but `process propagate` did not write it onto
+  the energy port, and Q1 was copied by hand from the extents. With `energy_port: q` propagate
+  writes the year-average duty on Q1, 134.1 kW `calculated` (D-009); the charge's warm-up (Q2)
+  stays a hand value, as no model writes it.
 - L-10: **the dosing time is found by hand against the jacket** (as phosphorus-tribromide-1 L-3):
   the jacket check compares the peak duty with the wetted area at the charge, there is no reflux
   cooling, and no solve for the shortest dosing the jacket allows.
@@ -412,7 +495,7 @@ Kinetics, induction time and heat of reaction in 2-MeTHF with gas dosing (calori
 IR); TD24 of the solution and of the wet magnesium cake; methyl bromide's solubility in 2-MeTHF
 and the real slip to the vent; the Wurtz selectivity; R-101's cooling arrangement and U (D-010)
 and its relief for the boiling-solvent case, sized and routed for the methyl bromide it releases
-(D-011); the heating-medium safeguards or a hot water below the MTT (D-010); the quench drum's
+(D-011); the heating-medium safeguards or a hot water below the solvent's normal boiling point (D-010); the quench drum's
 inerting and hydrogen vent (D-007); the filter cake's resistance and liquor (D-007); a
 magnesium heel as an alternative (D-007); the product specification beyond the assay; the
 oxidiser and scrubber; a TEA (`operation.batch: {recipe: true}`).
