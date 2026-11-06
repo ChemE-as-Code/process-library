@@ -39,7 +39,9 @@ description: |
   sets the 10 h dosing; R-102 is the bottleneck (cycle 12.14 h, 652.6 batches a year). The
   kinetics are ASSUMED (no open data): the dissolved methyl nitrite accumulates to 2.0 % and the
   cooling-failure temperature stays at 318.9 K, below the 337.6 K boiling point of methanol, but
-  a ten times slower reaction would exceed it. See DESIGN.md for every assumption, the process
+  a ten times slower reaction would exceed it. The gas a cooling failure releases at the MTSR is
+  within the vents (ASSUMED 50 and 60 m3/h), but a blocked vent pressurises R-101 or R-102: the acid
+  dosing trips on pressure, and each reactor needs a relief device. See DESIGN.md for every assumption, the process
   safety notes (azide toxicity, hydrazoic acid from azide and from hydrazine, heavy-metal azides,
   methyl nitrite, the hot concentrated liquor) and the core
   limits met.
@@ -58,21 +60,24 @@ validation:
   status: unreviewed
   notes: >-
     Concept batch PFD with closed mass, component and element balances (cheme validate: 4 blocks
-    and 13 steps within tolerance). Calculated by cheme process propagate with core main (to be
-    released as 1.8.0): the two vented semi-batches R101 and R102 from their ASSUMED rate laws,
-    the batch still ST101 (constant relative volatility, ASSUMED), the precipitation CR101 from a
-    solubility measured in the patent's mother liquor, the specified filters and the dryer; the
-    two recycles (methanol to R-101, mother liquor to R-102) are assumed tear streams converged
-    over propagate. The recipe's year-average product rate agrees with the flowsheet (no
+    and 13 steps within tolerance). Calculated by cheme process propagate with core 1.9.0: the
+    two vented semi-batches R101 and R102 from their ASSUMED rate laws, the batch still ST101
+    (constant relative volatility, ASSUMED), the precipitation CR101 from a solubility measured
+    in the patent's mother liquor, the specified filters and the dryer; the two recycles
+    (methanol to R-101, mother liquor to R-102) converged by propagate at the tear streams S3
+    and S11 (Wegstein, 32 iterations), the fresh feeds ASSUMED at the charge ratios; the duties
+    of R101, R102, the still's boil-up and the crystallizer written by their models. The recipe's year-average product rate agrees with the flowsheet (no
     cheme.recipe-basis finding); the recipe sizes R-101 (6.3 m3), R-102 (8 m3) and F-101 (2 m3),
     both jacket checks pass. Thermal screening (cheme process reactor-hazards): R-102 dT_ad
-    307 K, accumulation 1.97 %, MTSR 318.9 K against an MTT of 337.63 K (hazard.mtt: methanol's
-    boiling point); R-101 dT_ad 43 K, MTSR 298.6 K; no criticality class without a TD24 from
-    calorimetry (none estimated). Preliminary gate-to-gate LCI with the per-batch nitrogen; the
+    307 K, accumulation 1.98 %, MTSR 318.9 K against an MTT of 337.63 K (core's default:
+    methanol's boiling point); R-101 dT_ad 43 K, MTSR 298.6 K; the gas release at the MTSR 29.4
+    m3/h (R-101) and 6.3 m3/h (R-102) against ASSUMED vent capacities of 50 and 60 m3/h; the pressure of
+    a blocked vent is estimated by hand (a design finding: pressure trip and relief); no
+    criticality class without a TD24 from calorimetry (none estimated). Preliminary gate-to-gate LCI with the per-batch nitrogen; the
     purchased feeds linked to their library producers, utilities and treatments gaps. cheme
     maturity reaches no level (assumed feeds, kinetics and separations); the claim `maturity:
     concept` is the lowest value of the schema, not an evidenced level. Not reviewed. Needs
-    cheme-as-code 1.8.
+    cheme-as-code 1.9.
 chemistry:
   inputs:
     - {chemical: sodium-nitrite, role: feedstock, inventory_key: "feed:NANO2", note: "Dried sodium nitrite (sodium-nitrite-1), dissolved in R-101's charge, 1.222 kg/kg NaN3"}
@@ -98,7 +103,7 @@ chemistry:
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.154 kWh/kg NaN3: agitators, gas dispersion, vacuum pumps (ASSUMED)"}
     - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "2.30 kWh/kg NaN3 of LP steam 350 kPa(a), through tempered hot water: the still's boil-up and the filter-dryer"}
-    - {chemical: chilled-water, role: utility, inventory_key: "product:CHW", note: "2.09 kWh/kg NaN3 removed by chilled water at 278-283 K: R-101, R-102 and the methanol condensers"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:CHW", note: "2.08 kWh/kg NaN3 removed by chilled water at 278-283 K: R-101, R-102 and the methanol condensers"}
     - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "1.98 kWh/kg NaN3: the still's water condenser and the crystallizer, 25/35 C (ASSUMED)"}
 basis:
   capacity: "670.6 t/a dried NaN3: 652.6 batches/a of 1027.6 kg in 7920 h on a dedicated train (84.68 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-014)"

@@ -16,16 +16,19 @@ methanol strip and concentration ST101 a batch still, the precipitation CR101 a 
 spectator solutes, and the filter-dryer F-101 four steps in one vessel (F101, W101, F102, D101).
 `process/recipe.yaml` holds the batch recipe the cycle time, the vessel sizes, the jacket checks,
 the filtration and drying times and the flowsheet's year-average flows come from (`cheme process
-recipe`, `cheme process reactor-hazards`). The mother-liquor and methanol recycles are tear
-streams converged over `cheme process propagate` (DESIGN.md D-006). **It needs cheme-as-code
-1.8** (core ADRs 0054 to 0057), which the library pins.
+recipe`, `cheme process reactor-hazards`). The mother-liquor and methanol recycles are the tear
+streams S11 and S3, which `cheme process propagate` converges (`tears:`, DESIGN.md D-006); the
+reactors', the still's and the crystallizer's duties are written by their models (D-012), and the
+screening compares the gas released at the MTSR with each reactor's vent (D-017). **It needs
+cheme-as-code 1.9** (core ADRs 0054 to 0060), which the library pins.
 
 **Hazards.** Sodium azide, hydrazine and methyl nitrite are highly toxic; any acid turns azide
 into hydrazoic acid (toxic, explosive), and so does hydrazine with nitrous acid in acid (hence a
 hydrazine limit on the methanol recycled to the acid vessel, and the purge's hydrazine oxidised
 before its azide is destroyed); azide forms explosive heavy-metal azides with copper and lead.
-The still's concentrated azide / hydrazine liquor ends at about 360 K, its TD24 unknown. DESIGN.md
-D-015 lists what the design rests on.
+The still's concentrated azide / hydrazine liquor ends at about 360 K, its TD24 unknown. A blocked
+vent pressurises R-101 or R-102 (the acid dosing trips on pressure; relief devices, D-017).
+DESIGN.md D-015 lists what the design rests on.
 
 | path | what |
 |---|---|
@@ -71,11 +74,11 @@ cheme validate                  # after every change
 cheme check                     # engineering-step gates (--write only at sign-off)
 cheme process build             # BFD and PFD from process/*.yaml
 cheme process streams           # stream table with provenance, block balances
-cheme process propagate --check # the semi-batches, the still, the crystallizer, the filter-dryer
+cheme process propagate --check # the semi-batches, the still, the crystallizer, the filter-dryer, the recycles and the duties
 cheme process reactors          # the semi-batches: accumulation, cooling failure, vents
 cheme process stills            # the batch still: cuts, residue, boil-up time and energy
 cheme process crystallizers     # the precipitation, the filters and the dryer
 cheme process recipe            # batch cycle, bottleneck, batches per year, vessels and jackets (--svg)
-cheme process reactor-hazards   # thermal screening, with the semi-batches' accumulation
+cheme process reactor-hazards   # thermal screening: accumulation, MTSR over the batch, gas release against the vents
 cheme assess lca --check        # the LCI files current
 ```

@@ -13,13 +13,17 @@ checked by [`cheme-as-code`](https://github.com/ChemE-as-Code/core).
 A batch plant: the reactor R101 is a semi-batch (`reactor: semibatch`, benzotrichloride dosed
 into molten benzoic acid with zinc chloride) whose HCl leaves as it forms by a vent stream
 (`batch.vent`, core ADR 0054) to the absorber; its maximum technical temperature is given as
-`hazard.mtt`. The crude is distilled in a batch still, ST101, which core integrates as one
+`hazard.mtt`, and its vent's capacity, against the HCl a cooling failure releases at the MTSR,
+as `hazard.vent_capacity` (core ADR 0058). The crude is distilled in a batch still, ST101, which core integrates as one
 Rayleigh stage (`still:`, core ADR 0055); the rectification in the column on top of it, K101,
 is a specified split from `scripts/balance.py` until core has a batch column with reflux
 (core#173). `process/recipe.yaml` holds the batch recipe the cycle time, R-101's vessel and
 jacket check, the still's boil-up time and the flowsheet's year-average flows come from
-(`cheme process recipe`, `cheme process reactor-hazards`, `cheme process stills`). Needs
-cheme-as-code 1.8.0.
+(`cheme process recipe`, `cheme process reactor-hazards`, `cheme process stills`). The
+reactor's and the still's duties (Q2, and Q4 the still's net boil-up) are written by `cheme
+process propagate --fill` from the models (core ADR 0059); the reboiler's share for the column's
+reflux, Q6, the melter, absorber and condenser duties come from `scripts/balance.py`. Needs
+cheme-as-code 1.9.0.
 
 | path | what |
 |---|---|
@@ -36,7 +40,7 @@ cheme-as-code 1.8.0.
 | `reviews/` | review records |
 | `runs/` | one record per design session, written by `cheme runs record` (`runs/README.md`); never edited |
 | `DESIGN.md`, `PROGRESS.md`, `STAGES.md` | decisions, change log, stage definitions |
-| `scripts/` | generator scripts and `balance.py`: the feeds for 2000 t/a, the column's split, the absorber water and the duties (D-006) |
+| `scripts/` | generator scripts and `balance.py`: the feeds for 2000 t/a, the column's split, the absorber water and the duties core does not model (D-006, D-009) |
 | `.claude/skills/` | how an agent works here (not in git: run `cheme skills update` once after cloning) |
 
 ## How this repository works
@@ -65,10 +69,10 @@ cheme validate                  # after every change
 cheme check                     # engineering-step gates (--write only at sign-off)
 cheme process build             # BFD and PFD from process/*.yaml
 cheme process streams           # stream table with provenance, block balances
-cheme process propagate --check # the semi-batch with its vent, the still and the mixers
+cheme process propagate --check # the semi-batch with its vent, the still, the mixers and the model duties
 cheme process recipe            # batch cycle, bottleneck, batches per year, vessel, jacket, off-gas (--svg)
-cheme process reactor-hazards   # thermal screening, with the semi-batch's accumulation
+cheme process reactor-hazards   # thermal screening: accumulation, MTSR over the batch, gas release vs the vent
 cheme process stills            # the still's distillate, residue, boil-up time and duty per batch
-cheme run scripts/balance.py    # the feeds for 2000 t/a, the column's split and the duties
+cheme run scripts/balance.py    # the feeds for 2000 t/a, the column's split and the other duties
 cheme assess lca --check        # the LCI files current
 ```

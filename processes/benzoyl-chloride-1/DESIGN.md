@@ -12,6 +12,14 @@ Starting point (2026-11-05): library `main` at a8f53ee4 (core pin v1.8.0, 4e8fd8
 per-batch LCA consumables (ADR 0053). Library ADR 0035: one dedicated train, campaigns out of
 scope (D-013).
 
+Core pin v1.9.0 (2026-11-06, 314642c): the models write the duties of their energy streams
+(core ADR 0059), so R101's Q2 and the still's net boil-up Q4 are now `calculated` by `cheme
+process propagate --fill` and the reboiler's share for the column's reflux is its own stream Q6
+(D-009); the semi-batch screening gives the MTSR over the batch and the HCl released at the
+MTSR, against R-101's vent capacity (ADR 0058, D-014). Requires cheme-as-code 1.9 (plant.yaml).
+No recycle is modelled (the residue's recycle is a variant, D-008), so the tears of ADR 0060 are
+not used.
+
 ## Source register
 
 Facts are restated in our own words; nothing is copied. "Read" means the passage named was read
@@ -114,18 +122,23 @@ the liquid's volume or heat capacity.
 **The low accumulation in D-011 is a consequence of the assumed rate law** and must be confirmed
 by reaction calorimetry with off-gas measurement before basic engineering (D-011's sensitivity).
 Off-gas (`cheme process recipe`): 164 kg (4.50 kmol) of HCl a batch, peak 0.62 mol/s, 75 m3/h at
-413 K and 101 kPa(a), 0.12 h into the dosing, when the acid's concentration is highest; the
-off-gas line and A-101 are sized for it (equipment list).
+413 K and 101 kPa(a), 0.12 h into the dosing, when the acid's concentration is highest. The
+off-gas line and A-101 are sized for the larger gas release at a cooling failure, 81.6 m3/h at
+the MTSR, with a margin: 100 m3/h of HCl (D-014, equipment list). That holds for the assumed
+rate law only: at k/10 the release at the MTSR is 164.3 m3/h, 1.64 times it (D-011, D-014).
 
 ## D-006 Balance method and property gate (2026-11-05)
 Decision: cheme propagates the melter M101, the semi-batch R101 with both outlets, the absorber
 A101 and the residue mixer M102 (mixers), and the still ST101 (one Rayleigh stage, D-007).
+Since core 1.9.0 (ADR 0059) propagate also writes the duties of R101 (Q2) and of the still's net
+boil-up (Q4) from those models (D-009).
 scripts/balance.py gives what core has no model for (library ADR 0027): the feeds S1, S2 and S4
 that make 2000 t/a (core propagates from the feeds and does not solve them for a product rate;
 the balance is linear in the feeds, so the script scales the benzotrichloride by the ratio of
 the target to S11, converged in two passes); the column K101's specified split of the still's
-distillate S9 into S11 and S12 (D-008); the absorber water S7 (D-010); the duties Q1 to Q5
-(D-009). It reads the streams propagate wrote and follows the balance-output contract
+distillate S9 into S11 and S12 (D-008); the absorber water S7 (D-010); the duties Q1, Q3, Q5
+and the reboiler's share for the column's reflux, Q6 (D-009). It prints its own Q2 and Q4 as a
+cross-check of the models (5.442 and 25.098 kW, as propagate writes them). It reads the streams propagate wrote and follows the balance-output contract
 (`scripts/check_balance_scripts.py`).
 Reason: no property package of core covers these liquids (aromatic acid chlorides with an
 organic acid, HCl in water), so the melter's, absorber's, reboiler's and condenser's heats are
@@ -175,18 +188,30 @@ distillate as the product at 99.4 wt%); a cut sequence of the one-stage still (`
 lighter component a forerun would have the main cut's composition; the residue's recycle with
 excess benzotrichloride (SRC-1, Example 2: from 92.6 % to 97.3 %): a variant, with a tear stream.
 
-## D-009 Utilities and heat (2026-11-05)
+## D-009 Utilities and heat (2026-11-05; the model duties and the reboiler's split 2026-11-06)
 Decision (scripts/balance.py, year averages, all ASSUMED unless sourced):
 - Q1 12.1 kW of MP steam 1100 kPa(a) to the melter: benzoic acid from 298 K (solid cp 175
   J/(mol K), mean, ASSUMED from 146.8 at 298 K) to its melt at 395.2 K, its fusion (18.0 kJ/mol)
   and the liquid to 413 K (259 J/(mol K)), the catalyst, 10 % losses (SRC-2); 30 kW over the 2 h
   melt.
-- Q2 5.4 kW from R-101 to cooling water through a pressurised tempered-water loop at 363 K: the
-  reaction heat (-50 kJ/mol, D-005) less the benzotrichloride's heating from 298 to 413 K (250
-  J/(mol K), ASSUMED); during the dosing about 23 kW (the model's peak, 22.8 kW).
+- Q2 5.442 kW from R-101 to cooling water through a pressurised tempered-water loop at 363 K:
+  the reaction heat (-50 kJ/mol, D-005, 12.822 kW) less the benzotrichloride's heating from 298
+  to 413 K (250 J/(mol K), ASSUMED, 7.380 kW); during the dosing about 23 kW (the model's peak,
+  22.8 kW). Since core 1.9.0 R101's semi-batch model writes it (`calculated`, ADR 0059; its one
+  heat stream, to cooling water): 5.44216 kW, the 5.4422 kW the script gave until then.
 - Q3 15.8 kW from the absorber to cooling water (D-010).
-- Q4 50.2 kW of LP steam 450 kPa(a) to the still's jacket: the latent heat of the distillate S9
-  (SRC-2's heats of vaporization) times 1 + the reflux ratio 1; 200 kW while distilling.
+- The still's reboiler, 50.196 kW of LP steam 450 kPa(a) to the still's jacket, the latent heat
+  of the distillate S9 (SRC-2's heats of vaporization) times 1 + the reflux ratio 1; 200 kW
+  while distilling. It is two streams, both counted in the LCI (`feed:LPS`): Q4 25.0981 kW, the
+  net boil-up that leaves as distillate, which core's still model writes (ADR 0059; ST101's
+  `energy_port: steam`, `calculated`), and Q6 25.0982 kW, the boil-up the column condenses and
+  returns as reflux (the reflux ratio 1 times the same latent heat), ASSUMED from the script,
+  since the one-stage still holds no reflux (core#173, L-1). Until core 1.9.0 one typed stream
+  held the 50.196 kW; core 1.9.0 compares a typed duty with its model and named the difference
+  (`cheme.process-duty`: 50.1964 against 25.0981 kW), which was the reflux share, not an error.
+  Rejected: entering the still's `boilup` as the reboiler's 200 kW (the model would then distil
+  in half the time, 0.61 h, and present the reflux as distillate), and moving the reflux share
+  to K101 (the steam heats the still's jacket, not the column).
 - Q5 57.0 kW to cooling water: the column's condenser at the same reflux, and the product
   subcooled from 376.5 to 303 K (187 J/(mol K)).
 - Electricity 7 kW: agitators of M-101 (1 kW) and R-101 (3 kW), P1; the still's agitator (1 kW)
@@ -216,21 +241,32 @@ whole batch 94.7 K (with -50 kJ/mol); largest accumulation of the dosed benzotri
 at the end of the dosing; MTSR at that moment 421.9 K, against an MTT of 471.0 K
 (`hazard.mtt`: the normal boiling point of benzoyl chloride, the liquid's main component; core's
 default, the lowest boiling point of the charge and the dose, would be benzotrichloride's 493.8
-K, above it: lesson L-5). The vented HCl adds nothing to the MTSR; with the vent blocked it
-pressurises the vessel, which the screening does not assess (core note: a peak of 0.52 mol/(s m3) of the final content).
+K, above it: lesson L-5). The vented HCl adds nothing to the MTSR; at the MTSR it forms at 81.6
+m3/h, which R-101's vent is sized for (D-014), but only with the assumed rate law: at k/10 and
+k/100 the release exceeds the vent capacity (the table below, D-014); with the vent blocked it
+pressurises the vessel, which the screening does not assess (D-014).
 No TD24 is known (never estimated): no criticality class (`cheme.reactor-hazard-missing`,
 info). With MTSR below MTT the class is 1 or 2 if the TD24 lies above the MTSR, and 5 if it
 lies below (TD24 < 421.9 K: core's `criticality()` and Stoessel test the TD24 against the MTSR
 first, SRC-4); it needs the TD24.
-Sensitivity (a scratch copy of the folder, only A divided, everything else as designed;
-`cheme process propagate --fill`, `reactor-hazards`, `reactors`, `recipe`):
+Sensitivity (a scratch copy of the folder, only A divided, everything else as designed,
+`hazard.vent_capacity` kept at 100 m3/h; `cheme process propagate --fill`, `reactor-hazards`,
+`reactors`, `recipe`; gas release rerun with core 1.9.0 on 2026-11-06):
 
-| k at 413 K | accumulation (end of dosing) | MTSR | MTSR vs MTT 471.0 K | post-reaction to 0.999 | cycle | class without TD24 |
-|---|---|---|---|---|---|---|
-| 2.7e-3 (design) | 7.04 % | 421.9 K | 49 K below | 1.37 h | 4.87 h | 1, 2 or 5 |
-| k/10 | 25.8 % | 443.3 K | 28 K below | 15.4 h | 18.9 h | 1, 2 or 5 |
-| k/100 | 69.8 % | 484.8 K | 14 K above | 160 h | 164 h | 3, 4 or 5 |
+| k at 413 K | accumulation (end of dosing) | MTSR | MTSR vs MTT 471.0 K | gas release at the MTSR (HCl, 101.3 kPa(a)) vs the vent's 100 m3/h | post-reaction to 0.999 | cycle | class without TD24 |
+|---|---|---|---|---|---|---|---|
+| 2.7e-3 (design) | 7.04 % | 421.9 K | 49 K below | 0.6547 mol/s, 81.6 m3/h: 0.82 x | 1.37 h | 4.87 h | 1, 2 or 5 |
+| k/10 | 25.8 % | 443.3 K | 28 K below | 1.254 mol/s, 164.3 m3/h: 1.64 x (`cheme.reactor-hazard-vent`, warning) | 15.4 h | 18.9 h | 1, 2 or 5 |
+| k/100 | 69.8 % | 484.8 K | 14 K above | 3.095 mol/s, 443.2 m3/h: 4.43 x (`cheme.reactor-hazard-vent` and `-mtsr`, warnings) | 160 h | 164 h | 3, 4 or 5 |
 
+The release grows with the accumulation (more benzotrichloride left to react at the MTSR, which
+is also hotter), so a slower reaction than assumed does not only raise the MTSR: at k/10 the
+vent is exceeded by 64 % before the MTSR comes near the MTT (open design finding, D-014).
+
+MTSR over the batch (core 1.9.0, ADR 0058): 413.1 K at the start, 415.0 K at 0.67 h, 416.6 K at
+1.35 h, 421.9 K at the end of the dosing (2.0 h), back to 414.0 K at 2.68 h and 413.3 K at the
+end of the post-reaction (3.37 h): the worst moment is the end of the dosing, as the single value
+said. Gas release at the MTSR: D-014.
 Interpretation: the step is dosing-controlled only if the reaction is fast. All at once (a
 batch, accumulation 1) the MTSR would be about 508 K, above the boiling point of benzoyl
 chloride, so the dosing, not the dilution, keeps it below the MTT: the dosing must be interlocked
@@ -238,7 +274,7 @@ with the temperature, the agitator and the off-gas flow. The off-gas is an onlin
 accumulation (HCl forms only as the benzotrichloride reacts): a dosing that runs without
 off-gas means unreacted benzotrichloride is building up. At k/100 the cycle (164 h) already
 rules out the design, before safety does; at k/10 the cycle quadruples and the MTSR is still
-below the MTT. Open for the next stage: reaction calorimetry with off-gas measurement (heat of
+below the MTT, but the gas released at the MTSR is 1.64 times R-101's vent capacity (D-014). Open for the next stage: reaction calorimetry with off-gas measurement (heat of
 reaction, heat-flow and gas-flow profile, the ZnCl2 dependence), TD24 of the crude and of the
 residue, the gas-generation pressure with a blocked vent (Stoessel's separate criterion), and
 the HCl release on a dosing restart after accumulation. Screening values only, not a
@@ -278,7 +314,7 @@ toluene, zinc chloride from zinc and HCl or chlorine. A correct gap is kept rath
 link (library ADR 0026).
 Per kg of benzoyl chloride: benzotrichloride 0.715 kg (stoichiometric 0.695), benzoic acid
 0.479 kg (0.434), ZnCl2 3.6 g, process water 0.311 kg, nitrogen 8.1 g, electricity 0.028 kWh,
-MP steam 0.048 kWh, LP steam 0.199 kWh, cooling water 0.310 kWh removed; out: 30 wt% acid 0.444
+MP steam 0.048 kWh, LP steam 0.199 kWh (Q4 and Q6, D-009), cooling water 0.310 kWh removed; out: 30 wt% acid 0.444
 kg (0.133 kg HCl), residue 0.064 kg. Not counted: the vents (emission_exclusions).
 
 ## D-013 Dedicated train (2026-11-05)
@@ -290,21 +326,68 @@ Out of scope, so not LCI gaps: changeover cleaning between campaigns, the idle t
 multipurpose train, shared tank farms. Benzoyl chloride is also made on continuous plants (SRC-1
 Example 3); this entry is the batch case.
 
+## D-014 R-101's vent capacity against the gas released at a cooling failure (2026-11-06)
+Result (`cheme process reactor-hazards`, core 1.9.0, ADR 0058): at a cooling failure at the
+worst moment (the end of the dosing, 7.04 % of the benzotrichloride accumulated) the reaction
+runs on at the MTSR, 421.9 K, and gives off 0.6547 mol/s of HCl, 81.6 m3/h at 421.9 K and
+101.3 kPa(a) (per batch of the recipe, from the worst moment's content): 8 % more by volume
+(6 % more in moles; 0.6547 against 0.6166 mol/s) than the normal peak of 75.25 m3/h at 413 K
+(`cheme process recipe`, D-005). Run to completion the accumulated benzotrichloride
+gives 0.317 kmol (10.97 m3) more.
+Decision: R-101's off-gas system (the line to A-101, the reflux condenser in it and A-101) is
+sized for 100 m3/h of HCl at the vessel's pressure, `hazard.vent_capacity: 100`, ASSUMED: 1.2 x
+the gas release at the MTSR with the assumed rate law (98 m3/h), rounded up; the normal peak is then 75 % of it and the
+release at the MTSR 82 %, within it (`cheme.reactor-hazard-vent`, info). 100 m3/h of HCl at
+421.9 K is 0.80 mol/s, about 54 kW to A-101's cooling at 66.9 kJ/mol (D-010), against 41 kW at
+the normal peak. Not in core's comparison (L-2): the gas leaving R-101 carries the liquid's
+vapour until the reflux condenser takes it back, about 23 mol% at the MTSR (benzoyl chloride
+at x about 0.9 and 26.2 kPa, SRC-2's Antoine at 421.9 K); the vapour line from R-101 to the
+condenser is sized for 100 / (1 - 0.23), about 130 m3/h (for example DN80, about 7.6 m/s),
+ASSUMED.
+Reason: the off-gas system was sized for the normal peak only (D-005), which a cooling failure
+at the end of the dosing exceeds. With the assumed rate law the release at the MTSR is only 8 %
+above the normal peak the off-gas system must pass anyway, so sizing the system for it (100
+against 75.25 m3/h) costs little and is preferred to slowing the dosing. The 1.2 is a margin on
+that one case, not on the kinetics: the rate law is ASSUMED (D-005, no calorimetry), and the
+capacity is no more credible than the rate constant it was derived from.
+Open (design finding, for the next stage): **the vent capacity holds only for the assumed
+kinetics.** In D-011's own sensitivity cases the gas release at the MTSR exceeds it: at k/10
+1.254 mol/s, 164.3 m3/h at 443.3 K, 1.64 times the 100 m3/h (64 % above it; about 84 kW to
+A-101's cooling at 66.9 kJ/mol, against the 54 kW it is sized for), and at k/100 443.2 m3/h,
+4.43 times (that case is ruled out by its 164 h cycle anyway, D-011). `cheme process
+reactor-hazards` then reports `cheme.reactor-hazard-vent` as a warning and exits 1. Before basic
+engineering either (a) the off-gas system (line, reflux condenser, A-101) is sized for the k/10
+case, about 200 m3/h of HCl (1.2 x 164.3 m3/h, rounded up), with the vapour line to the reflux
+condenser recomputed for the liquid's vapour at 443.3 K, or (b) the dosing rate is set from
+reaction calorimetry with off-gas measurement so that the accumulation, and with it the release
+at the MTSR, stays within the installed capacity. The flowsheet keeps 100 m3/h, the design
+case's basis, until one of the two is decided.
+Open (design finding, for the HAZOP and the relief study of the next stage): with the vent
+blocked (a flooded or frozen absorber, benzoic acid sublimed into the line) the gas pressurises
+R-101, which the screening does not assess (no head-space or relief model, ADR 0058): the 0.317
+kmol of the accumulated benzotrichloride alone would raise the 0.41 m3 head space (1.6 m3 vessel,
+1.19 m3 of crude) by about 2.7 MPa at 421.9 K, far above what a glass-lined vessel is usually
+rated for, and during the dosing the HCl forms all the time. So R-101 needs a relief device
+(rupture disc to a catch tank or the scrubber) sized for the gas generation, the benzotrichloride
+dosing interlocked on R-101's pressure and on the off-gas flow (D-011), and the off-gas line
+traced against benzoic acid deposits. Reasoning only, not a relief sizing.
+
 ## Method and dependency table
 
 | step | status | basis |
 |---|---|---|
 | mass, component, element balances | done in cheme | cheme validate / process streams / propagate |
-| semi-batch R-101 with its HCl vent: composition, accumulation, cooling-failure temperature, peak cooling, off-gas rate | done in cheme, kinetics ASSUMED | D-005, D-011, core ADRs 0050, 0054 |
+| semi-batch R-101 with its HCl vent: composition, accumulation, cooling-failure temperature, peak cooling, off-gas rate, year-average duty Q2 | done in cheme, kinetics ASSUMED | D-005, D-009, D-011, core ADRs 0050, 0054, 0059 |
+| MTSR over the batch, gas release at the MTSR against the vent capacity | done in cheme, vent capacity ASSUMED, holds for the assumed kinetics only (exceeded at k/10) | D-011, D-014, core ADR 0058 |
 | batch recipe, cycle time, basis check, R-101's vessel and jacket | done in cheme | D-003, core ADRs 0051, 0052 |
-| batch still ST101 (one stage): distillate, residue, boil-up time, net latent heat | done in cheme, ideal liquid ASSUMED | D-007, core ADR 0055 |
+| batch still ST101 (one stage): distillate, residue, boil-up time, net latent heat (Q4) | done in cheme, ideal liquid ASSUMED | D-007, D-009, core ADRs 0055, 0059 |
 | column K-101 (rectification with reflux) | specified split in a script | D-008, core#173 |
-| feeds for 2000 t/a, absorber water, duties Q1 to Q5 | script | D-006, D-009, D-010 |
+| feeds for 2000 t/a, absorber water, duties Q1, Q3, Q5 and the reboiler's reflux share Q6 | script | D-006, D-009, D-010 |
 | off-gas organics (reflux condenser, benzotrichloride wash) | not modelled | D-010, L-2 |
 | per-batch nitrogen | done in cheme, amount ASSUMED | D-012, core ADR 0053 |
 | LCI inventory | done, most backgrounds unmapped | D-012 |
 
-## Core features used (cheme-as-code 1.8.0)
+## Core features used (cheme-as-code 1.8.0, and 1.9.0 since the pin of 2026-11-06)
 
 - `reactor: semibatch` with `batch.dosing` and `batch.target` (ADR 0050) and `batch.vent` for the
   HCl (ADR 0054): two outlets, the vent's peak rate per m3 (`process reactors`) and per batch
@@ -316,6 +399,12 @@ Example 3); this entry is the batch case.
   from:` ST101, `units: [ST101, K101, M102]` for one vessel over several steps, R-101's `vessel`
   and `jacket` check.
 - `lca.yaml` `consumables` with `per_batch` (ADR 0053), `allocation: shares`.
+- 1.9.0: the models' duties (ADR 0059): R101's Q2 on its one heat stream, ST101's Q4 by
+  `energy_port: steam`, both written `calculated` by `propagate --fill`, the typed Q6 beside it
+  (D-009); the semi-batch screening (ADR 0058): `mtsr_profile`, `gas_release` and
+  `hazard.vent_capacity` (D-011, D-014).
+- Not used in 1.9.0: `tears:` (ADR 0060; no recycle is modelled), `hazard.reactions` (one
+  reaction), the default MTT (still not the product's boiling point, L-5).
 - Not used, not needed by this route: `dosing.absorbed` (no gas is dosed), the crystallizer, the
   dryer and the filter (no solids: the benzoic acid is charged molten).
 
@@ -324,8 +413,9 @@ Example 3); this entry is the batch case.
 - L-1 (core#173): no batch rectification with reflux. One Rayleigh stage cannot reach the
   product's purity (D-008); the column is a specified split in a script, and the still's
   `boilup` had to be entered as the net distillate rate (100 kW of a 200 kW reboiler at reflux
-  ratio 1), so `cheme process stills` reports the net latent heat, not the reboiler's duty; the
-  reboiler and condenser duties at reflux are in the script.
+  ratio 1), so `cheme process stills` reports the net latent heat, not the reboiler's duty. Since
+  core 1.9.0 the model writes that net latent heat on Q4 (ADR 0059) and the reflux share is its
+  own typed stream Q6; the condenser Q5 is in the script (ADR 0059 leaves condensers typed).
 - L-2 (ADR 0054 limitation): the vent carries only the named gas, no vapour of the liquid. At 413
   K benzoyl chloride's vapour pressure is about 20 kPa, so the real off-gas carries roughly a
   fifth of its moles as organics until a reflux condenser and the benzotrichloride wash take them
@@ -342,11 +432,14 @@ Example 3); this entry is the batch case.
   product formed in the liquid. Here the product, benzoyl chloride (471 K), boils below both the
   charge (benzoic acid, 522 K) and the dose (benzotrichloride, 494 K), so the default would be 23 K
   too high; `hazard.mtt` was set by hand (phosphorus-tribromide-1's L-2 is the mirror case).
+  Still so in core 1.9.0: ADR 0058 leaves out vent and dissolved gases, but the products are no
+  candidates for the MTT (its known limitations).
 - L-6 (as n-bromosuccinimide-1's L-6): core propagates from the feeds and cannot solve them for a
   product rate; the script scales the feeds (two passes of propagate and the script).
-- L-7: an isothermal semi-batch reports its peak cooling duty and the heat released, but no
-  year-average duty for its energy stream (the reaction heat less the dose's sensible heat):
-  Q2 comes from the script, with the same data the model uses.
+- L-7 (resolved in core 1.9.0, ADR 0059): an isothermal semi-batch reported its peak cooling
+  duty and the heat released, but no year-average duty for its energy stream, so Q2 came from
+  the script. Core 1.9.0 writes it (5.44216 kW, the script's 5.4422 kW), and the still's net
+  boil-up Q4 likewise.
 - L-8: no model for melting a solid feed (benzoic acid flakes to a melt) in a mixer: Q1 is a
   script value.
 - L-9 (ADR 0055): an ideal liquid only; benzoic acid's vapour dimerisation and its non-ideality
@@ -358,4 +451,6 @@ and the residue; HCl solubility in hot benzoyl chloride; VLE of benzoyl chloride
 and benzotrichloride at 5 kPa; the column's stages and reflux; the benzotrichloride's impurity
 profile (benzal chloride, ring-chlorinated) and the forerun it would need; the residue's recycle
 with excess benzotrichloride (SRC-1, Example 2); product specification; prices for the
-allocation; a TEA (`operation.batch: {recipe: true}`).
+allocation; a TEA (`operation.batch: {recipe: true}`); R-101's relief device and blocked-vent case,
+the off-gas system's capacity against a slower reaction (200 m3/h for k/10, or the dosing rate
+from calorimetry), and the off-gas line's hydraulics with the liquid's vapour (D-014).

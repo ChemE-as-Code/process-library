@@ -7,9 +7,11 @@ thermal screening and a preliminary gate-to-gate LCI. Out of scope here: P&IDs, 
 TEA, datasheets.
 
 Starting point (2026-11-05): library `main` at 77fa11c2; built on cheme-as-code core
-`main` at 7334d7c and rechecked on the release, 1.8.0 (4e8fd80), which the library pins. The
-entry uses core features that 1.7.0 does not have (batch.vent, dosing.absorbed, still:, recipe
-units:; see "Core features used").
+`main` at 7334d7c and rechecked on the release, 1.8.0 (4e8fd80). Moved to core 1.9.0 (314642c)
+on 2026-11-06, when the library's pin went to it: the model's duties of R101 and T101 (ADR 0059)
+and the semi-batch screening's reactions, MTSR profile and gas release against the vent's
+capacity (ADR 0058) are used, so the entry needs 1.9 (plant.yaml `requires`; see "Core
+features used").
 
 ## Source register
 
@@ -178,20 +180,35 @@ and phosgene per kg in the same ratio. The benchmarks record it (`benchmarks/chl
 organics.yaml`, no_open_reference with Ex. 3's 0.79 kg/kg named).
 
 ## D-009 Utilities and heat (2026-11-05)
-Decision: chilled brine at 248/253 K for R-101's jacket: Q1 0.71 kW year average (the charge
-from 298 to 278 K at 171 kJ/(kmol K)) and Q2 20.03 kW (the heat released, `cheme process
-reactors`: 40265 kJ per kmol of charge and doses, the reactions on the gas basis and the doses'
-sensible heat, 18.85 kW; plus 1.18 kW, the heat of absorption of the phosgene and HCl left
-dissolved in the crude S5, 2.17 kmol phosgene at 24.8 kJ/mol and 0.52 kmol HCl at 10.9 kJ/mol,
-59.5 MJ per batch: the latent heat the degassing takes back as Q4, which core leaves out of the
-semi-batch, core limit L-10), brine 20.73 kW in all; LP steam 350 kPa(a) to tempered-water
-circuits: Q3 7.54 kW for the phosgene evaporator (liquid warmed 40 K at 100 kJ/(kmol K) and evaporated at 24.8 kJ/mol) and Q4 1.18 kW
-for the degassing (D-006); cooling water 298/308 K for the scrubber, Q5 44.65 kW (its reactions'
-ASSUMED heats, HCl gas into caustic -130.8, phosgene -444, CO2 -109.5 kJ/mol, less the liquor
-warmed 10 K); electricity 6.5 kW year average (R-101 agitator 3 kW, vacuum pump 2 kW, scrubber
-pump 1.5 kW). All ASSUMED. The duties are hand arithmetic from cheme's reports, written with the
-arithmetic in each energy stream's `source` (no balance script): core writes no energy stream
-from a model (core limit L-8).
+Decision: chilled brine at 248/253 K for R-101's jacket, on three streams: Q1 0.71 kW year
+average (the charge from 298 to 278 K at 171 kJ/(kmol K)); Q2 18.70 kW, the semi-batch model's
+year-average duty (R101 `energy_port: q`, written by `cheme process propagate --fill`, core
+ADR 0059: the reactions on the gas basis 18.32 kW, the doses cooled from 293 to 278 K 0.373 kW,
+the vented share of the dose 0.011 kW); and Q2A 1.18 kW, ASSUMED, the heat of absorption of the
+phosgene and HCl left dissolved in the crude S5 (2.17 kmol phosgene at 24.8 kJ/mol and 0.52 kmol
+HCl at 10.9 kJ/mol, 59.5 MJ per batch: the latent heat the degassing takes back as Q4), which
+the semi-batch model leaves out (core limit L-10); brine 20.59 kW in all. LP steam 350 kPa(a)
+to tempered-water circuits: Q3 7.54 kW for the phosgene evaporator (liquid warmed 40 K at 100
+kJ/(kmol K) and evaporated at 24.8 kJ/mol) and Q4 1.177 kW for the degassing, the still model's
+year-average duty (written by propagate, ADR 0059; D-006); cooling water 298/308 K for the
+scrubber, Q5 44.65 kW (its reactions' ASSUMED heats, HCl gas into caustic -130.8, phosgene -444,
+CO2 -109.5 kJ/mol, less the liquor warmed 10 K); electricity 6.5 kW year average (R-101 agitator
+3 kW, vacuum pump 2 kW, scrubber pump 1.5 kW). Q1, Q2A, Q3, Q5 and the power are ASSUMED hand
+arithmetic, written with the arithmetic in each energy stream's `source` (no balance script):
+the charge cooling and the evaporator are pass-through steps with no model, and core cannot
+give S101's duty (L-8).
+Why Q2 is split (2026-11-06): on 1.8.0, Q2 was typed by hand as 20.03 kW, the 1.8 report's
+heat released (40265 kJ per kmol of charge and doses, 18.85 kW) plus the 1.18 kW of absorption.
+Core 1.9.0 computes the semi-batch's duty itself, 18.70 kW from the extents of PHOSG, CARB and
+CLBN and the doses' sensible heat, and flags the typed value (`cheme.process-duty`, 20.03 against
+18.7043 kW). The model's figure replaces the hand value, which was wrong by 0.14 kW: the 1.8
+report's 40265 kJ/kmol is the reaction heat per kmol of the charge and the absorbed dose
+(0.74232 + 0.95 x 0.94274 kmol/h gives 18.32 kW, the model's reaction term), but the hand value
+multiplied it by the whole dose (0.53 kW too much) and left out the doses' cooling it named
+(0.37 kW). The heat of absorption, which the
+model deliberately leaves out, now has its own ASSUMED stream Q2A to the same brine, so the
+model's stream stays the model's and the LCI counts both (brine 20.59 kW, was 20.73 kW).
+Q4's hand value (1.178 kW) agreed with the still model and is now written by it (1.17705 kW).
 During the 10 h of dosing R-101 removes up to 31.4 kW (19.3 kW per m3 of the final 1.63 m3,
 `cheme process reactors`), at 0.46 h; the absorption heat left out (L-10) is small then (the
 dissolved phosgene reacts about as fast as it is dosed) and largest near the end of the dosing, about 8.6 kW
@@ -205,29 +222,47 @@ names for this service; the scrubber in plastic-lined steel or FRP. Not designed
 Reason: wet HCl and chloroformates corrode steel and stainless steel; iron also catalyses the
 chloroformate's decomposition (the secondary source of D-011).
 
-## D-011 Thermal screening and the kinetic sensitivity (2026-11-05)
-Result (`cheme process reactor-hazards`, core ADRs 0050, 0054): adiabatic temperature rise
+## D-011 Thermal screening and the kinetic sensitivity (2026-11-05, core 1.9.0 2026-11-06)
+Result (`cheme process reactor-hazards`, core ADRs 0050, 0054, 0058): adiabatic temperature rise
 474.6 K: this is the heat of the side reaction CLBN (138.4 kJ/mol) on all the alcohol, as core
-takes the largest single reaction run to completion (core limit L-1); the main reaction PHOSG
-alone (88.6 kJ/mol) gives 303.9 K (a scratch copy with R101 `reactions: [PHOSG]`). Either way the
+takes the largest counted reaction run to completion (core limit L-1); the main reaction PHOSG
+alone (88.6 kJ/mol) gives 303.9 K (`per_reaction`, the same run). Either way the
 neat batch has no solvent to take up the heat: an all-in batch would be a runaway. Largest
 accumulation of the dosed phosgene 0.173, at the end of the dosing: that is the deliberate
 excess, which has almost no alcohol left to react with; MTSR at the worst moment 355.7 K, at
 4.2 h into the dosing, against an MTT of 280.65 K (`hazard.mtt`); no TD24 known (never
 estimated): no criticality class (`cheme.reactor-hazard-missing`, info) and a
-`cheme.reactor-hazard-mtsr` warning (MTSR above MTT). The vent's peak gas rate is 0.216 mmol/(s
-m3) at 0.46 h; with the vent blocked it pressurises the vessel (not screened).
-- The MTT is set by hand: the default, the lowest normal boiling point of the liquid's
-  components, would be the dissolved HCl's 188 K (core limit L-2). Phosgene's normal boiling
-  point is taken instead: above it the dissolved phosgene boils off and the reflux condenser,
-  the vent and the scrubber, not the jacket, hold the temperature; at the vessel's 50 kPa(a) it
-  would be lower still.
-- The MTSR of 355.7 K is set by the side reaction CARB: core takes, at each moment, the largest
-  potential of any single reaction run to completion, and mid-dosing the chloroformate and the
-  alcohol are both present in quantity (core limit L-1). Without CARB (a scratch copy) the MTSR
-  is 312.4 K, still set by a side reaction (CLBN's heat on the phosgene accumulated near the end
-  of the dosing); with PHOSG alone it is 300.1 K. The hazard numbers are thus those of the side
-  reactions; the conclusions below hold for PHOSG alone too (300.1 K is above the MTT).
+`cheme.reactor-hazard-mtsr` warning (MTSR above MTT), which is a real finding and stays. The
+MTSR over the batch (`mtsr_profile`) rises from 278 K at the start to 355.7 K at 4.2 h, falls to
+about 306 K at 8 h and to 278.4 K at the end of the dosing, where the accumulated phosgene is
+the excess with no alcohol left. The vent's peak gas rate in normal operation is 0.216 mmol/(s
+m3) at 0.46 h; the gas a cooling failure releases is compared with the vent in D-014
+(`cheme.reactor-hazard-vent`, a warning and a finding).
+- The MTT stays set by hand (`hazard.mtt` 280.65 K). Core 1.9.0's default no longer takes the
+  dissolved HCl's 188 K (vent components and the dosed gas are left out, ADR 0058), but what it
+  then takes is benzyl alcohol's normal boiling point, 478.4 K (a scratch copy without
+  `hazard.mtt`): the dosed phosgene is left out because it "boils off rather than boils the
+  batch". Here that boil-off is the hazard: up to 17 % of the dose, toxic, dissolved in the
+  batch. Phosgene's normal boiling point is kept: above it the dissolved phosgene boils off and
+  the reflux condenser, the vent and the scrubber, not the jacket, hold the temperature; at the
+  vessel's 50 kPa(a) it would be lower still. With the default the MTSR warning would go,
+  which would hide this finding. Core still screens no dissolved toxic gas boiling off (ADR
+  0058 known limitation, L-3).
+- Reactions counted (`hazard.reactions: [PHOSG, CARB, CLBN]`, stated on purpose, the same set as
+  the default): all three. The MTSR of 355.7 K is set by the side reaction CARB, the product
+  with the alcohol left (chloroformate + alcohol -> dibenzyl carbonate + HCl): mid-dosing both
+  are present in quantity, about half of the charge each. CARB stays counted, which is the
+  conservative choice. A cooling failure leaves the product and the alcohol together, hot, for
+  as long as it lasts, and nothing stops CARB then. Its rate law and its heat (-30 kJ/mol) are
+  ASSUMED placeholders (D-005), so no data show it too slow to matter on the time scale of a
+  cooling failure. With its Ea of 40 kJ/mol it runs 43 times faster at 355.7 K than at 278 K.
+  The patent's phosgene excess is there to suppress it (SRC-1), and iron catalyses the
+  chloroformate's decomposition (D-010). CLBN takes the same reactants as PHOSG, the accumulated
+  phosgene, and cannot be separated from it. Leaving CARB out (`[PHOSG, CLBN]`) would need
+  calorimetry of the mid-dosing mass showing CARB's heat flow negligible over a cooling
+  failure. Each reaction alone, from the same run (`per_reaction`): PHOSG MTSR 300.2 K at 8.2 h,
+  CLBN 312.5 K at 8.2 h, CARB 355.7 K at 4.2 h (on 1.8.0 these came from scratch copies: 300.1
+  and 312.4 K). The conclusions below hold for PHOSG alone too (300.2 K is above the MTT).
 Kinetic sensitivity (scratch copies, every rate constant divided, all else equal):
 
 | rate constants | peak accumulation | MTSR | MTT | class | post-reaction | cycle | batches/a |
@@ -239,7 +274,7 @@ Kinetic sensitivity (scratch copies, every rate constant divided, all else equal
 Interpretation: at every rate the MTSR is above the MTT, so a cooling failure during the dosing
 boils phosgene off whatever the kinetics: the dosing must stop on high temperature, low cooling
 or agitator failure (interlock), the reflux condenser and the scrubber must take the phosgene
-then released, and the vessel's relief goes to the scrubber, not to air. With k/100 the
+then released, and the vessel's relief goes to the scrubber, not to air (D-014). With k/100 the
 potential (571 K) would reach the chloroformate's decomposition range (vigorous at 155 C, 428
 K, by the secondary source) and the cycle would rule out the design; with k/10 the cycle grows by
 a third. Open for the next stage: reaction calorimetry with gas dosing (heat and gas flow), the
@@ -258,7 +293,8 @@ library ADR 0035): 8.5 g/kg BCF at 565 batches a year. There is no rinse: the tr
 (the chloroformate and phosgene hydrolyse). Not counted (emission_exclusions): the scrubbed vent
 to the stack (traces, D-007) and fugitive phosgene.
 Per kg BCF: benzyl alcohol 0.636 kg, phosgene 0.738 kg, caustic 50 wt% 1.086 kg, process water
-4.34 kg, nitrogen 8.5 g, electricity 0.051 kWh, LP steam 0.069 kWh, brine 0.164 kWh removed,
+4.34 kg, nitrogen 8.5 g, electricity 0.051 kWh, LP steam 0.069 kWh, brine 0.163 kWh removed
+(Q1, Q2 and Q2A, D-009; 0.164 before the duty split of 2026-11-06),
 cooling water 0.354 kWh removed, spent liquor 5.80 kg.
 
 ## D-013 Dedicated train (2026-11-05)
@@ -271,7 +307,60 @@ idle time of a multipurpose train, shared tank farms. Chloroformates are often m
 on a multipurpose phosgenation plant: there the burden per kg is higher, and this LCI is a lower
 bound for it.
 
-## Core features used (core 1.8.0)
+## D-014 Gas release at a cooling failure against the vent: a design finding (2026-11-06)
+Decision: R101 `hazard.vent_capacity` 173 m3/h, ASSUMED. That is the suction volume of the
+vacuum pump K-201, about 173 m3/h at 20 kPa(a) and 278 K (1.5 kmol/h, D-006). The pump is the
+only path the gas has out of R-101 at its 50 kPa(a): the vent S6 goes through it to the scrubber
+(D-007). A dry-running pump's displacement is taken as about the same at 50 kPa(a) as at 20.
+No relief device is designed yet, so none is counted.
+Result (`cheme process reactor-hazards`, core ADR 0058): the gas the vent components form at
+the MTSR is 0.01427 kmol/s, 3039 m3/h at 355.7 K and 50 kPa(a), from the content at the worst
+moment (4.2 h). That is **17.6 times the vent capacity**: the warning `cheme.reactor-hazard-vent`
+stands, a finding, not silenced. Run to completion, CARB would form 4.891 kmol of HCl (289 m3 at
+the MTSR and 50 kPa(a)) from that content.
+What the rate is (hand estimate from the rate laws of `process/reactions.yaml` at 355.7 K, for
+reading the number only): nearly all of it is PHOSG and CLBN on the accumulated phosgene. At the
+worst moment that is about 0.08 kmol (X_ac 0.0066 of the dose), taken whole at the MTSR, which
+CARB's heat sets. CARB itself at the MTSR forms about 8 m3/h, within the pump. The bound is
+therefore loose in time: the accumulated phosgene lives about 4 min even at 278 K and would be
+gone before CARB's slow heat brought the mass to 355.7 K. The gas over the cooling failure's
+course, CARB's 4.9 kmol of HCl, is slow but large: with the vent blocked, the 1.2 m3 head space
+of R-101 could not hold it. With PHOSG alone counted (scratch copy, `hazard.reactions:
+[PHOSG]`) the release is 137 m3/h at its 300.2 K MTSR, 0.79 times the vent: within it, but with
+little margin. That set is not a valid one: CLBN takes the same accumulated phosgene and cannot
+be separated from PHOSG (D-011). With PHOSG and CLBN it is 269 m3/h at 312.5 K, 1.56 times, the
+least that is left if calorimetry shows CARB slow. Neither choice is taken, for the reasons of
+D-011.
+Finding and what the design must do (open for basic engineering, not designed here):
+- the phosgene dosing stops on high temperature, low brine flow or a high brine temperature,
+  agitator failure and high pressure in R-101 (interlock, SIL from the LOPA). It keeps the
+  accumulation at the trip to the dissolved phosgene then, at most 0.0066 of the dose
+  mid-dosing;
+- no isolation between R-101 and K-201 without a relief path. K-201 and the scrubber's pump
+  run on emergency power;
+- an emergency relief of R-101 (rupture disc and safety valve) sized by the DIERS method for the
+  gas generation, with two-phase flow checked, to a catch tank and the scrubber or an emergency
+  phosgene absorber, never to air. The scrubber T-201 is sized for the normal peak of 58 m3/h
+  and must take the relief flow, or a separate absorber must;
+- reaction calorimetry with gas flow (D-005, D-011) measures the gas rate and the accumulation
+  of a cooling failure mid-dosing. If CARB is confirmed slow, the release is that of PHOSG and
+  CLBN, which cannot be separated (D-011): about 269 m3/h by the screening, still 1.56 times
+  K-201's capacity, so the emergency relief stays needed. K-201 or the relief is sized against
+  the measured rate.
+
+## Core features used (core 1.9.0)
+
+- Core 1.9.0, ADR 0059: R101's `energy_port: q`, so that `cheme process propagate --fill` writes
+  the semi-batch's year-average duty on Q2 (18.7043 kW); T101's still duty on Q4 (1.17705 kW),
+  its one heat stream. Both are `calculated` and go stale with the model. Q2A carries what the
+  model leaves out (D-009).
+- Core 1.9.0, ADR 0058: `hazard.reactions` (stated, all three, D-011), `per_reaction` (each
+  reaction's dT_ad and MTSR in one run), the `mtsr_profile`, and the gas release at the MTSR
+  against `hazard.vent_capacity` (D-014). `hazard.mtt` stays set by hand (D-011).
+- Not used: `tears:` (ADR 0060). The plant has no recycle: no phosgene or HCl is recovered
+  (D-007).
+
+From core 1.8.0:
 
 - `batch.vent: {stream, components, fraction}` (ADR 0054): HCl and CO2 leave R101 as they form,
   95 % and 100 %, by the vent stream S6; the liquid's volume and concentrations are without them.
@@ -292,20 +381,34 @@ bound for it.
 
 ## Core limits hit (to become core issues)
 
-- L-1: the adiabatic rise and the MTSR take the largest potential of any one reaction run to
-  completion (the MTSR at each moment). The side reactions set both: dT_ad 474.6 K is CLBN's
+Status on core 1.9.0 (2026-11-06): L-1, L-2, L-3 and L-8 are partly resolved (each says what
+is left); L-4 to L-7, L-9 and L-10 stand.
+
+- L-1: the adiabatic rise and the MTSR take the largest potential of any one counted reaction
+  run to completion (the MTSR at each moment). The side reactions set both: dT_ad 474.6 K is CLBN's
   heat (the benzyl chloride route, about 0.7 % of the alcohol converted) on all the alcohol, against 303.9 K for
   PHOSG alone; a slow side reaction between the product and the charge (CARB, chloroformate +
-  alcohol) sets the MTSR (355.7 K; 312.4 K without CARB, then set by CLBN; 300.1 K with PHOSG
-  alone): there is no way to say which reactions a cooling failure completes, or to screen the desired reaction's accumulation alone as Stoessel
-  does and the side reactions through their own rates. The accumulation also counts a deliberate
-  excess of the dosed reagent (0.173 at the end) although nothing is left to react with it.
-- L-2: the default MTT is the lowest normal boiling point of the liquid's components, so a
-  dissolved gas that is partly vented (HCl at 5 %, 188 K) makes it meaningless; and it ignores
-  the vessel's pressure (50 kPa(a) here). `hazard.mtt` was set by hand.
-- L-3: the screening has no gas-generation term (the vent blocked, ADR 0054 follow-up) and no
-  toxic-release consideration (phosgene): for this process the vent and scrubber are the
-  safety-critical path, and the screening says so only in a note.
+  alcohol) sets the MTSR (355.7 K; 312.5 K for CLBN, 300.2 K for PHOSG alone).
+  **Partly resolved in core 1.9.0** (ADR 0058): `hazard.reactions` names the reactions counted
+  and `per_reaction` gives each one's dT_ad and MTSR in one run, so the main reaction is no
+  longer hidden and no scratch copies are needed (D-011). Still open: each reaction is run to
+  completion alone, never at its own rate, so a slow side reaction is either counted whole or
+  not at all. The accumulation also counts a deliberate excess of the dosed reagent (0.173 at the
+  end) although nothing is left to react with it (ADR 0058 known limitation).
+- L-2: on 1.8.0 the default MTT was the lowest normal boiling point of the liquid's components,
+  so a dissolved gas that is partly vented (HCl at 5 %, 188 K) made it meaningless, and it
+  ignored the vessel's pressure (50 kPa(a) here). **Resolved in core 1.9.0** (ADR 0058) for
+  HCl and the pressure: vent components, dosed gases and minor dissolved gases are left out,
+  and under vacuum a component with `heat_of_vaporization` boils at the vessel's pressure.
+  Still set by hand here (D-011): the default leaves the dosed phosgene out and takes benzyl
+  alcohol's 478.4 K (at its normal boiling point, as the alcohol has no
+  `heat_of_vaporization` in materials.yaml). A dissolved toxic gas that boils off has no MTT of
+  its own.
+- L-3: on 1.8.0 the screening had no gas-generation term. **Partly resolved in core 1.9.0**
+  (ADR 0058): the gas release at the MTSR is compared with `hazard.vent_capacity` (D-014). Still
+  open: the rate takes the worst moment's content whole at the MTSR (a loose bound in time,
+  D-014), there is no blocked-vent pressure (no head-space or relief model), and no
+  toxic-release term for the phosgene that boils off.
 - L-4: `vent.fraction` and `dosing.absorbed` are fixed shares: no solubility or Henry's law, so
   the reduced pressure, which SRC-1 shows is what drives the conversion, has no effect in the
   model; no headspace or reflux condenser (the phosgene that evaporates and is returned).
@@ -319,18 +422,23 @@ bound for it.
 - L-7: propagate has no specified component separator (component recoveries to two outlets): the
   scrubber's scrubbed vent cannot be split from its liquor, so the traces and the stack emission
   are an exclusion.
-- L-8: no model writes or checks an energy stream's duty for a semi-batch, a still or a
-  conversion step (the dryer's `cheme.process-dryer-duty` exists): Q2, Q4 and Q5 are copied by
-  hand from `cheme process reactors`, `stills` and `streams` and do not go stale when the model
-  changes.
+- L-8: on 1.8.0 no model wrote or checked an energy stream's duty for a semi-batch, a still or
+  a conversion step, so Q2, Q4 and Q5 were copied by hand and did not go stale with the model.
+  **Resolved in core 1.9.0 for R101 and T101** (ADR 0059): Q2 and Q4 are written by `propagate
+  --fill` (D-009). The check found the hand Q2 0.14 kW high. Still open for the scrubber S101:
+  the conversion-step duty needs the liquid heat capacities of the liquor's water and salts
+  (`cheme.process-duty`, info). Its heats of reaction are also on the gas basis while the gas
+  inlet S9 is vapour and its traces leave in the liquid, which ADR 0059 leaves unknown. Q5
+  stays ASSUMED hand arithmetic.
 - L-9: no property package for the reaction mass (organics with dissolved HCl and phosgene) or
   the caustic liquor: liquid volumes and heat capacities are per-component inputs, the scrubber's
   heats ASSUMED.
 - L-10: `dosing.absorbed` and the dissolved share of a vented component have no heat of
   absorption (the semi-batch dissolves them on entry with no heat, its heats of reaction are on
   the gas basis), while the still counts their desorption with `heat_of_vaporization`: the energy
-  accounting is one-sided. Q2 adds the absorption heat of what S5 holds dissolved by hand
-  (4247 kJ/h, 1.18 kW; D-009), and the recipe's peak duty and jacket check leave it out.
+  accounting is one-sided. Core 1.9.0 keeps this limit (ADR 0059 limitations). The absorption
+  heat of what S5 holds dissolved (4247 kJ/h, 1.18 kW; D-009) is its own ASSUMED stream Q2A to
+  the brine, beside the model's Q2. The recipe's peak duty and jacket check still leave it out.
 
 ## Method and dependency table
 
@@ -342,7 +450,8 @@ bound for it.
 | off-gas scrubber | conversion step, conversions ASSUMED | D-007 |
 | batch recipe, cycle time, basis check | done in cheme | D-003, `cheme process recipe` |
 | vessel sizing, jacket check | done in cheme | D-003, core ADR 0052 |
-| duties | hand arithmetic from cheme's reports | D-009, L-8 |
+| duties | R101 (Q2) and T101 (Q4) done in cheme (models' year averages, core ADR 0059); Q1, Q2A, Q3, Q5, power hand arithmetic, ASSUMED | D-009, L-8, L-10 |
+| gas release at a cooling failure against the vent | done in cheme (screening bound); vent capacity ASSUMED; relief not designed | D-014, core ADR 0058 |
 | per-batch exchanges (nitrogen) | done in cheme, amounts ASSUMED | D-012, core ADR 0053 |
 | LCI inventory | done, most backgrounds unmapped | D-012 |
 
@@ -351,4 +460,5 @@ Kinetics and heat flow with gas dosing (calorimetry), the TD24 of the crude and 
 the solubility of phosgene and HCl in the reaction mass at 50 kPa(a); the plant yield (D-008);
 the product specification (assay, free phosgene, HCl, benzyl chloride, colour, stabiliser); the
 reflux condenser and the phosgene recovery (D-007); the HCl recovery; the vent and relief
-design; a TEA (`operation.batch: {recipe: true}`).
+design against the gas release of a cooling failure (D-014: 17.6 times the vacuum pump's
+capacity by the screening); the dosing interlock; a TEA (`operation.batch: {recipe: true}`).
