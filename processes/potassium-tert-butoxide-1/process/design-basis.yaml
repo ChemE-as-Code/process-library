@@ -1,0 +1,45 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Potassium tert-butoxide from potassium metal and dry tert-butanol, a batch plant, issue
+# ChemE-as-Code/process-library#418. Values marked ASSUMED are engineering choices of this
+# concept study, not client or licensor data; every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: dried potassium tert-butoxide powder to packing under nitrogen at the battery limit
+  kotbu_t_per_year: 1000                # ASSUMED (D-002): a fine-chemical scale, no open market figure
+  operating_hours_per_year: 7920        # ASSUMED (D-002): 330 days of 24 h, batch operation
+  batch_kg: 831.6                       # ASSUMED (D-003): one batch of dried product every 6.586 h
+  batches_per_year: 1202                # from the recipe (process/recipe.yaml, D-003)
+feeds:
+  - name: Potassium metal (merchant, technical grade)
+    source_of_values: ASSUMED (D-004)
+    composition: "K 100 % (its sodium and oxide not modelled)"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: tert-Butanol, azeotrope grade (tert-butanol-1)
+    source_of_values: ASSUMED (D-004)
+    composition: "the tert-butanol/water azeotrope, 88.24 wt% tert-butanol and 11.76 wt% water (US 5 053 560 A), dried on site to 0.1 wt% water"
+    conditions: {temperature_K: 308.15, pressure_kPa_a: 101.325}
+products:
+  - name: Potassium tert-butoxide
+    purity: "modelled 99.47 wt% KOtBu, 0.23 wt% KOH (from the make-up's water), 0.30 wt% tert-butanol (D-002, D-008); an upper bound on the assay: the metal's sodium, moisture picked up in handling and any decomposition in the dryer are not modelled"
+    delivery: {temperature_K: 313.15, pressure_kPa_a: 101.325, battery_limit: packing under nitrogen (drums or bags; not in the boundary)}
+  - name: Vent gas to the site flare
+    note: "hydrogen with the tert-butanol vapour it carries past the vent condenser at 308 K and the dryer's nitrogen bleed (D-006, D-010)"
+  - name: Alcohol purge to incineration
+    note: "0.5 % of the recovered tert-butanol (D-007, D-010)"
+  - name: Sieve regeneration condensate to wastewater treatment
+    note: "the make-up's water with about 7 wt% tert-butanol (D-004, D-010)"
+utilities:
+  - {name: Electric power, use: "agitators of R-101 and C-101, the paddle dryer's drive and vacuum pump, the sieve's regeneration heater and blower (D-009)"}
+  - {name: LP steam, pressure_kPa_a: 350, use: "R-101 warm-up, the still C-101, the potassium melter V-102, the sieve's evaporator, tank and line heating (D-009)", note: ASSUMED}
+  - {name: MP steam, pressure_kPa_a: 1000, use: "the vacuum paddle dryer DR-101 at 433 K (D-008, D-009)", note: "ASSUMED; 453 K, below the alkoxide's sublimation at 493 K at 0.13 kPa and its melting point, 529 K (Wikipedia)"}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "R-101's jacket and vent condenser, the still's condenser, the dryer's vapour condenser and product cooling, the recycle cooler, the sieve's condensers (D-009)", note: "ASSUMED; tert-butanol freezes at 298.3 K, so its condensers leave the condensate at 308 K"}
+site:
+  location: ASSUMED generic fine-chemicals site with a potassium metal supply, a flare and wastewater treatment, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Route: potassium metal with an excess of dry tert-butanol, the metal molten and dispersed, the hydrogen vented (Organic Syntheses Coll. Vol. 4, 132 and Coll. Vol. 5, 1060; Wikipedia; D-001); 8.6 mol of tert-butanol per mol of potassium in the charge (D-004)."
+  - "ASSUMED kinetics and heats of reaction (no open data, D-005): an effective first-order rate in the dispersed metal, k = 3e-3 1/s at 348 K; -135 kJ/mol for the alkoxide and -138.8 kJ/mol for the water's reaction."
+  - "ASSUMED stripping to the 1:1 solvate in an ideal-liquid batch still and vacuum drying at 433 K to 0.3 wt% tert-butanol (D-007, D-008)."
+  - "ASSUMED vapour-phase 3A molecular-sieve drying of the azeotropic make-up to 0.1 wt% water, 1 % of its alcohol lost to the regeneration (D-004)."
+  - "All flows are year averages of the recipe (D-003); the duties of R101, its vent condenser and the still from the models (written by cheme process propagate), the dryer's from cheme's dryer model, the sieve unit's from scripts/makeup_drying.py, the others hand arithmetic from the stream table (D-009); accuracy +/-30 % not demonstrated."

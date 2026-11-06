@@ -1,0 +1,122 @@
+# Process Atlas manifest of potassium-tert-butoxide-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: potassium-tert-butoxide-1
+title: Potassium tert-butoxide from potassium and dry tert-butanol, semi-batch with alcohol strip and vacuum drying (1000 t/a)
+summary: >-
+  A batch plant: molten potassium is dosed into excess dry tert-butanol (hydrogen to the flare),
+  the alcohol is stripped, recycled and the solvate vacuum-dried; the azeotropic make-up from
+  tert-butanol-1 is dried on a molecular sieve. Concept stage, 831.6 kg per batch every 6.586 h
+  on a dedicated train, preliminary gate-to-gate LCI.
+description: |
+  The route is the classic one: potassium metal with dry tert-butanol in excess (Wikipedia,
+  Potassium tert-butoxide; Organic Syntheses, Coll. Vol. 4, 132 and Coll. Vol. 5, 1060, where the
+  molten metal disperses in the stirred alcohol and dissolves at a rate set by the stirring, the
+  alcohol refluxing and hydrogen leaving), with the excess alcohol distilled off and the solid
+  heated (Wikipedia; US 4 577 045 A dries its product at 160 C and 10 mbar). The KOH route with
+  azeotropic water removal (US 4 577 045 A, US 5 053 560 A) and the amalgam route (US 6 150 569
+  A) are recorded as alternatives (DESIGN.md D-001). Per mol of potassium 8.6 mol of tert-butanol
+  are charged (Organic Syntheses, Coll. Vol. 4, 132), so that the alkoxide stays dissolved at
+  16.6 wt% (US 4 577 045 A runs its solution at 10-18 wt%, ASSUMED to hold at 348 K). The make-up arrives as the
+  azeotrope with 11.76 wt% water (US 5 053 560 A); tert-butanol-1 counts the alcohol contained
+  and leaves out the drying past the azeotrope, so this plant dries it on a vapour-phase 3A
+  molecular sieve (ASSUMED design, a specified split from scripts/makeup_drying.py) to 0.1 wt%
+  water, which the potassium then takes to KOH. The modelled product is 99.47 wt% KOtBu, 0.23
+  wt% KOH and 0.30 wt% tert-butanol, an upper bound on the assay (the metal's sodium, moisture
+  picked up in handling and any decomposition are not modelled; no open product specification
+  was read). The modelled yield is 99.5 % on potassium (the rest is KOH) and 89.5 % on the
+  tert-butanol bought: 5.7 % of it goes to the flare (with the hydrogen and the dryer's nitrogen
+  bleed), 3.4 % with the purge,
+  1 % with the sieve's regeneration and 0.4 % with the product.
+
+  The batch is modelled with cheme-as-code 1.10.0: the reactor R101 is a semi-batch (reactor:
+  semibatch) whose hydrogen leaves by a vent as it forms (batch.vent, core ADR 0054), saturated
+  with the alcohol's vapour through a vent condenser at 308 K whose condensate returns (vent
+  vapour and condenser, core ADR 0062); the still is core's batch still with the charge's heat-up
+  and the vessel's metal (core ADRs 0055, 0063), its reboiler and condenser duties written by the
+  model (core ADRs 0059, 0061); the paddle dryer is core's dryer to a residual alcohol content
+  (core ADR 0057); the alcohol loop converges at its tear (core ADR 0060). The recipe gives the
+  cycle (6.586 h, R-101 the bottleneck, 1202 batches a year), sizes the vessels and checks
+  R-101's jacket. Kinetics and heats of reaction are ASSUMED (no open data): the dispersed metal
+  accumulates to 3.1 % and the cooling-failure temperature reaches 350.1 K against an MTT of
+  355.45 K (tert-butanol's boiling point), the gas released with the liquid's vapour 133.4 m3/h
+  against an ASSUMED vent capacity of 200 m3/h (core ADR 0058); a ten times slower rate takes the
+  MTSR to 366.9 K, above the MTT: the alcohol would boil in a cooling failure. The hydrogen and the
+  potassium's reaction with water are the plant's main hazards (DESIGN.md D-011).
+families: [oxygenates]
+keywords: [potassium tert-butoxide, potassium tert-butylate, KOtBu, potassium, tert-butanol, alkoxide, alcoholate, hydrogen, semi-batch, batch, molten metal, vent condenser, batch still, vacuum dryer, paddle dryer, molecular sieve, azeotrope, flare, fine chemicals, strong base]
+facets:
+  feedstock_basis: [fossil, mineral, electricity]
+  product_classes: [chemicals]
+  unit_operations: [reaction, distillation, drying, adsorption]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Capacity, kinetics, heats of
+# reaction, the solvate's behaviour, drying and the sieve unit are assumed (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept batch PFD with closed mass, component and element balances (cheme validate: 4 blocks,
+    15 steps). Every material stream is calculated by cheme process propagate from the feeds
+    except the sieve unit's two outlets: the semi-batch R101 from its ASSUMED rate laws with the
+    hydrogen vented, the vent's vapour and its condenser (core ADRs 0054, 0062), the still from
+    Raoult's law on NIST Antoine constants, the dryer to an ASSUMED residual alcohol content, the
+    alcohol recycle converged at its tear S19 (core ADR 0060); the sieve unit A001 is a specified
+    split with its duties from scripts/makeup_drying.py (core has no adsorption model). The feeds
+    are sized by hand for 1000 t/a (the outlets scale with them); the duties of R101, its vent
+    condenser and the still are written by the models (core ADRs 0059, 0061, 0062), the dryer's
+    by core's dryer model, the other duties are hand arithmetic from the stream table. The recipe
+    takes the dosing, post-reaction, warm-up, distillation and drying times from the models
+    (cheme process recipe, no cheme.recipe-basis or cheme.recipe-jacket finding). Thermal
+    screening (cheme process reactor-hazards): R101 dT_ad 60.2 K, accumulation 3.1 %, MTSR 350.1
+    K against an MTT of 355.45 K; a cooling failure's gas release 133.4 m3/h with the liquid's
+    vapour (38.4 m3/h of hydrogen) at the end of the dosing, the largest over the batch, against
+    an ASSUMED vent capacity of 200 m3/h; no criticality class without a TD24 from calorimetry
+    (never estimated): classes 1, 2 or 5 remain possible. The kinetics are assumed: at k/10 the
+    MTSR is 366.9 K and at k/100 399.9 K, above the MTT, the content boiling (a design finding:
+    the dosing interlocked with the hydrogen flow, emergency relief from calorimetry, DESIGN.md
+    D-011). Preliminary gate-to-gate LCI with nitrogen as a per-batch consumable; the make-up
+    tert-butanol linked to tert-butanol-1 (kg of alcohol contained), nitrogen to asu-1;
+    potassium metal a gap with its proxy recorded; the hydrogen flared, no credit. Not reviewed.
+    Needs cheme-as-code 1.10.0.
+chemistry:
+  inputs:
+    - {chemical: potassium, role: feedstock, inventory_key: "feed:K", note: "feed:K: technical potassium metal (merchant), 0.348 kg/kg KOtBu, melted and dosed; no library process makes it (proxy KCl + Na recorded, D-012)"}
+    - {chemical: tert-butanol, role: feedstock, inventory_key: "feed:TBAF", note: "feed:TBAF: the tert-butanol of the azeotrope grade (tert-butanol-1, kg of alcohol contained), 0.734 kg/kg KOtBu; dried on site past the azeotrope (A-001)"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:TBAW", note: "feed:TBAW: the azeotrope grade's 11.76 wt% water, 0.098 kg/kg KOtBu, removed by the sieve unit"}
+    - {chemical: nitrogen, role: feedstock, inventory_key: "consumable:nitrogen", note: "Nitrogen (asu-1) for inerting, blankets, the potassium's pressing, the dryer's bleed and the vent header's purge, 95.7 kg per batch, 0.115 kg/kg KOtBu (ASSUMED)"}
+  outputs:
+    - {chemical: potassium-tert-butoxide, role: main-product, inventory_key: "product:KOTBU", note: "Dried potassium tert-butoxide powder to packing under nitrogen; modelled 99.47 wt% KOtBu, 0.23 wt% KOH, 0.30 wt% tert-butanol, an upper bound on the assay (the metal's sodium, handling moisture and decomposition not modelled)"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Sieve regeneration condensate, 0.104 kg/kg KOtBu, water with about 7 wt% tert-butanol, to wastewater treatment"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.325 kWh/kg KOtBu: agitators of R-101 and C-101, the paddle dryer's drive and vacuum pump, and the sieve's regeneration heater and blower (0.154 kWh) (ASSUMED)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "1.188 kWh (4.28 MJ)/kg KOtBu of LP steam: the still's reboiler (0.714 kWh, the charge's heat-up and the metal included), the sieve's evaporator (0.223 kWh), R-101's warm-up, the potassium melter and tank heating"}
+    - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "0.357 kWh (1.29 MJ)/kg KOtBu of MP steam to the paddle dryer at 433 K (cheme's dryer model, the vessel's metal each batch included)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "1.774 kWh/kg KOtBu removed by cooling water: the heat of reaction and R-101's vent condenser (R101's model), the still's condenser, the dryer's vapour condenser and product cooling, the recycle cooler and the sieve's condensers"}
+basis:
+  capacity: "1000 t/a dried potassium tert-butoxide: 1202 batches/a of 831.6 kg in 7920 h on a dedicated train (126.26 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-013)"
+  operating_hours_per_year: 7920
+  location: generic fine-chemicals site with a potassium metal supply, a flare and wastewater treatment (not chosen)
+references:
+  - {title: "Johnson, W. S.; Schneider, W. P. (1950) beta-Carbethoxy-gamma,gamma-diphenylvinylacetic acid, Organic Syntheses Coll. Vol. 4, p. 132 (1963); Vol. 30, p. 18 (potassium dissolved in boiling dry tert-butanol under nitrogen, hydrogen liberated, more than 4 h for pieces; the safe handling of potassium; tert-butanol dried over sodium)", doi: 10.15227/orgsyn.030.0018}
+  - {title: "Ugi, I.; Meyr, R. (1961) o-Tolyl isocyanide, Organic Syntheses Coll. Vol. 5, p. 1060 (1973); Vol. 41, p. 101 (100 g potassium in 1250 mL dry tert-butanol: the mixture warms to the metal's melting point, the metal disperses and dissolves at a rate regulated by the stirring, the alcohol refluxing; the alkoxide precipitates where less alcohol is used than dissolves it)", doi: 10.15227/orgsyn.041.0101}
+  - {title: "Pope, B. M.; Yamamoto, Y.; Tarbell, D. S. (1977) Di-tert-butyl dicarbonate, Organic Syntheses Coll. Vol. 6, p. 418 (1988); Vol. 57, p. 45 (Note 3: alcohol-free potassium tert-butoxide, and its 1:1 complex with tert-butanol)", doi: 10.15227/orgsyn.057.0045}
+  - {title: "Dynamit Nobel AG (1984/1986) US4577045A: Method for the production of anhydrous potassium tert.butoxide (from aqueous KOH and tert-butanol with cyclohexane or hexane in a column; 10-18 wt% solution; the metal route as prior art; product concentrated at 40 C and 100 mbar, dried at 160 C and 10 mbar)", url: "https://patents.google.com/patent/US4577045A/en"}
+  - {title: "Huels AG (published 1991) US5053560A: Method for the continuous production of potassium tert-butoxide (from KOH; tert-butanol with up to 11.76 wt% water, the azeotrope's composition)", url: "https://patents.google.com/patent/US5053560"}
+  - {title: "Huels AG (1998/2000) US6150569A: Process for preparing alkali metal alkoxides, in particular potassium tert-butoxide, by microheterogeneous catalysis (alkali amalgam with tert-butanol; the prior art's unsatisfactory space-time yield)", url: "https://patents.google.com/patent/US6150569"}
+  - {title: "Wikipedia, Potassium tert-butoxide (preparation from dry tert-butanol and potassium, the solid by evaporating and heating; sublimation 220 C at 1 mmHg; melting point 256 C; H228, H252, H314)", url: "https://en.wikipedia.org/wiki/Potassium_tert-butoxide"}
+  - {title: "Wikipedia, Potassium (melting point 336.7 K, liquid density; the vigorous reaction with water igniting its hydrogen; production by sodium reduction of KCl)", url: "https://en.wikipedia.org/wiki/Potassium"}
+  - {title: "NIST Chemistry WebBook, SRD 69: tert-butanol (C75650) phase-change data and Antoine constants", url: "https://webbook.nist.gov/cgi/cbook.cgi?ID=C75650&Mask=4"}
+  - {title: "Stoessel, F. (2008) Thermal Safety of Chemical Processes, Wiley-VCH (accumulation and MTSR of a semi-batch; method reference, not data)", doi: 10.1002/9783527621606}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/potassium-tert-butoxide-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0

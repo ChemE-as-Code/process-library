@@ -1,0 +1,28 @@
+# Equipment list. Schema: `cheme schema equipment`.
+# As far as the PFD requires (concept stage): tags, types and services of the flowsheet steps.
+# Sizes per batch from the recipe (D-003) and the models; design pressures, temperatures and
+# materials are not set yet (basic engineering); the materials named are usual choices for dry
+# alcohol, molten potassium and alkoxide service, to be confirmed (open input). All values
+# ASSUMED.
+schema: cheme/equipment/v1
+equipment:
+  - {tag: T-101, type: Tank, service: "Make-up tank: tert-butanol of the azeotrope grade (tert-butanol-1), kept at 308 K",
+     notes: "About 20 m3 (eight days of make-up, ASSUMED), carbon steel, nitrogen blanket, heated with the lines above tert-butanol's freezing point (298.3 K) (Q14, D-004, D-009)."}
+  - {tag: A-001, type: Package, service: "Molecular-sieve dehydration of the make-up: vapour-phase 3A beds with an electrically heated nitrogen regeneration loop",
+     notes: "Package unit for 105 kg/h of azeotrope: evaporator on LP steam 28.1 kW, product condenser 31.4 kW and regeneration condenser 15.1 kW on cooling water, regeneration heater and blower 19.4 kW (scripts/makeup_drying.py); dries to 0.1 wt% water, 1 % of the alcohol to the regeneration condensate, all ASSUMED (D-004)."}
+  - {tag: V-102, type: Vessel, service: "Potassium melter: the metal melted at 353 K under nitrogen and pressed into R-101",
+     notes: "About 1 m3 (one batch's 289.5 kg of potassium, 0.35 m3 molten, with margin; ASSUMED), stainless steel, jacket on a closed thermal-oil circuit heated by LP steam, so that no water can reach the metal through a jacket leak (Q9 1.23 kW year average, with Q14 for its losses), nitrogen pressing at 200 kPa(a) (D-004, D-011)."}
+  - {tag: R-101, type: StirredTankReactor, service: "Reactor: molten potassium dosed into dry tert-butanol at 348 K, hydrogen vented through the vent condenser E-104 to the flare",
+     notes: "10 m3 stainless steel (R10 preferred size, 65 % full with 6.55 m3 of batch), as the recipe sizes it from R101's model (core ADR 0052); jacket on cooling water (U 400 W/(m2 K), 15.7 m2 at the charge) removes 280.7 kW against the model's peak of 92.7 kW; warmed on LP steam; an 11 kW agitator to disperse the molten metal; potassium dosed over 3 h, the dosing interlocked with the cooling, the agitator and the hydrogen flow (a hydrogen flow below the dosing's stoichiometric rate shows the metal accumulating, D-011); vent line to E-104 for 200 m3/h (hazard.vent_capacity, ASSUMED): normal peak 102.5 m3/h of hydrogen with tert-butanol vapour at 348 K, a cooling failure at the design rate 133.4 m3/h (0.67 of it); at k/10 the content boils at the MTSR, so an emergency relief is sized from calorimetry (D-011); kept dry (no rinse)."}
+  - {tag: E-104, type: HeatExchanger, service: "R-101's vent condenser: the alcohol vapour the hydrogen carries condensed at 308 K and returned to R-101",
+     notes: "On cooling water 298/308 K, 17.4 kW year average (R101's model, Q3); the gas leaves at 308.15 K, above tert-butanol's freezing point; the gas past it (38.6 kg a batch: 7.5 kg hydrogen, 31.1 kg tert-butanol) to the flare (D-006)."}
+  - {tag: C-101, type: Vessel, service: "Batch still: the alcohol stripped from the alkoxide solution at 101 kPa(a) down to the 1:1 solvate",
+     notes: "10 m3 stainless steel (R10 preferred size, 65 % full with one batch's solution), jacket and coil on LP steam, boil-up 400 kW, 1.32 h a batch (cheme process stills), its condenser on cooling water (Q5); 5.5 kW agitator; nitrogen blanket (D-007)."}
+  - {tag: DR-101, type: Dryer, service: "Vacuum paddle dryer: the solvate paste dried at 433 K under nitrogen to the alcohol-free product, then cooled to 313 K",
+     notes: "3.15 m3 (R10 preferred size, 49 % full with 1.53 m3 of paste), heated jacket and shaft 15 m2 (ASSUMED) on MP steam at 453 K, below the alkoxide's sublimation at 493 K at 0.13 kPa and its melting point 529 K; drying 3.04 h at an ASSUMED 12 kg/(m2 h), 45.1 kW year average (core's dryer model, the metal reheated each batch); cooled on cooling water (Q7); a dry screw vacuum pump and the condenser E-201; discharge under nitrogen: the dry alkoxide is self-heating in air (H252) (D-008, D-011)."}
+  - {tag: E-201, type: HeatExchanger, service: "Condenser of the dryer's vapour after the dry vacuum pump, at atmospheric pressure and 308 K",
+     notes: "On cooling water, 21.0 kW year average with the vacuum pump's heat (Q8); the nitrogen bleed it vents carries 0.69 % of the condensable alcohol to the flare (S20, D-008)."}
+  - {tag: T-201, type: Tank, service: "Recycle tank: the recovered tert-butanol (still distillate and dryer condensate) at 318 K, its 0.5 % purge taken off",
+     notes: "About 15 m3 (two batches of 4.1 t of recycled alcohol, about 11 m3 at 318 K, ASSUMED), stainless steel, nitrogen blanket, heated with the lines (Q14) (D-007)."}
+  - {tag: E-202, type: HeatExchanger, service: "Recycle cooler: the recovered alcohol cooled from its 349 K mix to 318 K",
+     notes: "On cooling water, 18.8 kW year average (Q13, D-009)."}

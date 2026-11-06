@@ -1,0 +1,58 @@
+# The batch recipe of potassium-tert-butoxide-1 (schema cheme/recipe/v1, `cheme process
+# recipe`, DESIGN.md D-003). One batch makes BATCH kg of dried potassium tert-butoxide (stream
+# S15); the flowsheet's rates are the year averages.
+# - R-101 is one vessel over E101 (the alcohol charge warmed) and R101 (the semi-batch: molten
+#   potassium dosed, hydrogen vented through the vent condenser): `units`, core ADR 0057. The
+#   dosing and the post-reaction take their times from R101's model (from: R101), the warming
+#   from the jacket (temperatures, with the vessel's metal, core ADR 0063); the vessel is sized
+#   from R101's model and its jacket checked against the model's peak cooling duty (core ADR
+#   0052). The charge's mixer M101 and the potassium melter V-102 are no batch units (V-102
+#   melts the next batch's metal while R-101 runs).
+# - C-101, the still, receives the solution during R-101's transfer and strips the alcohol; its
+#   boil-up time from ST101 (from: ST101).
+# - DR-101, a vacuum paddle dryer, takes the paste during C-101's transfer: its drying time from
+#   D101's drying rate on its heated area (core ADR 0057), then the product is cooled in it
+#   (E103).
+# Every other duration is ASSUMED (D-003). The sieve unit A-001, the recycle tank T-201 and the
+# vent condenser run continuously or with R-101 and are no batch units. `cheme process recipe
+# --svg build/gantt.svg` draws one batch.
+schema: cheme/recipe/v1
+kind: recipe
+title: Potassium tert-butoxide from molten potassium and dry tert-butanol
+batch_size: {value: 831.6, unit: kg, stream: S15, provenance: assumed, source: "one batch of dried potassium tert-butoxide: 1000 t/a over the 1202 batches the 6.586 h cycle allows, 126.263 kg/h x 6.586 h (D-002, D-003)"}
+hours_per_year: {value: 7920, provenance: assumed, source: "330 days of 24 h (D-002)"}
+unit_procedures:
+  - id: REACT
+    units: [E101, R101]
+    title: Purge, charge and warm the alcohol, dose the molten potassium, post-react (R-101)
+    vessel:
+      fill_fraction: 0.8
+      aspect_ratio: 1.2
+      metal_heat_capacity: 3000
+      jacket: {u: 400, coolant_temperature: 303.34, heating_temperature: 412.0, provenance: assumed, source: "stainless-steel vessel, U 400 W/(m2 K) ASSUMED (D-003, D-009); cooling water enters the jacket at 298.15 K and leaves at 308.15 K (design basis), so the reaction mass at 348.15 K sees a log-mean driving force of (50 - 40) / ln(50/40) = 44.81 K: core takes the coolant temperature as constant, so the equivalent 348.15 - 44.81 = 303.34 K is entered, not the supply temperature; warming on LP steam at 412.0 K (the alcohol charge holds no potassium or alkoxide yet)"}
+      provenance: assumed
+      source: "usual fill and proportions of a stainless-steel stirred vessel; its metal about 6 t of steel at 0.5 kJ/(kg K), 3000 kJ/K, ASSUMED (D-003)"
+    operations:
+      - {id: inert, kind: other, title: Nitrogen purge of the dry vessel, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: charge, kind: charge, title: Charge the dried make-up and the recycled alcohol, duration: {value: 1.0, provenance: assumed, source: D-003}}
+      - {id: heat, kind: heat, title: Warm to 348 K (E101), temperatures: [316.87, 348.15]}
+      - {id: dose, kind: dose, title: Dose the molten potassium, from: R101}
+      - {id: react, kind: react, title: Post-reaction at 348 K, from: R101}
+      - {id: transfer, kind: transfer, title: Solution to the still C-101, duration: {value: 1.0, provenance: assumed, source: D-003}}
+  - id: STRIP
+    unit: ST101
+    title: Strip the alcohol down to the solvate (C-101)
+    vessel: {fill_fraction: 0.8, aspect_ratio: 1.2, metal_heat_capacity: 3000, provenance: assumed, source: "a stainless-steel still pot with jacket and coil, sized from the solution it receives; its metal about 6 t of steel at 0.5 kJ/(kg K), 3000 kJ/K, in the still's duty (core ADR 0063), ASSUMED (D-003, D-007)"}
+    operations:
+      - {id: receive, kind: charge, title: Receive the solution, duration: {value: 1.0, provenance: assumed, source: "as R-101's transfer (D-003)"}}
+      - {id: distil, kind: distil, title: Distil the alcohol to the recycle tank, from: ST101}
+      - {id: transfer, kind: transfer, title: Paste to the dryer under nitrogen, duration: {value: 1.0, provenance: assumed, source: D-003}}
+  - id: DRY
+    units: [D101, E103]
+    title: Vacuum drying at 433 K and cooling (DR-101, paddle dryer)
+    vessel: {fill_fraction: 0.6, aspect_ratio: 2.0, heated_area: 15, provenance: assumed, source: "a horizontal vacuum paddle dryer, its jacket and heated shaft about 15 m2 for the 3 to 4 m3 size, as p-toluenesulfonyl-chloride-1's (D-008)"}
+    operations:
+      - {id: charge, kind: charge, title: Receive the paste, duration: {value: 1.0, provenance: assumed, source: "as C-101's transfer (D-003)"}}
+      - {id: dry, kind: dry, title: Vacuum drying at 433 K (D101), from: D101}
+      - {id: cool, kind: cool, title: Cool to 313 K on the jacket's cooling water (E103), duration: {value: 1.5, provenance: assumed, source: D-003}}
+      - {id: discharge, kind: transfer, title: "Break the vacuum with nitrogen and discharge to packing", duration: {value: 0.5, provenance: assumed, source: D-003}}

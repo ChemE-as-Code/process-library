@@ -1,0 +1,104 @@
+# Goal and scope of the potassium-tert-butoxide-1 LCI. Schema: `cheme schema lca`. Outputs:
+# `cheme assess lca --inventory --write` and `--coverage` (lca/inventory.csv, gaps.csv,
+# dataset.yaml, manifest.json); never edit those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the batch
+# plant with its amount per kg of dried potassium tert-butoxide, from the flowsheet's year
+# averages of the recipe (D-003). Per batch: multiply by 831.6 kg. The backgrounds are left
+# unmapped (`missing:` with the activity each should connect to), except where lca/mappings.yaml
+# links a library producer: a gap, never zero, and no values from licensed databases. The
+# hydrogen and the tert-butanol vapour it carries go to the site flare (product:FLARE, a waste
+# treatment: no hydrogen credit, D-012); the plant has no other emission to air in the balance
+# (emission_exclusions).
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of potassium tert-butoxide made from molten
+  potassium and an excess of dry tert-butanol in a semi-batch, the hydrogen flared, the excess
+  alcohol stripped in a batch still and recycled, the solvate dried to the alcohol-free powder
+  under vacuum, and the make-up tert-butanol dried past its azeotrope with water on a molecular
+  sieve, at the concept stage: which raw materials, utilities and wastes the batch plant
+  exchanges per kg of dried potassium tert-butoxide, as the foreground for a later
+  cradle-to-gate study. No impact results: most backgrounds are not mapped yet (D-012).
+functional_unit: {product: KOTBU, amount: 1, unit: kg, source: "1 kg of dried potassium tert-butoxide powder (modelled 99.47 wt% KOtBu, 0.23 wt% KOH and 0.30 wt% tert-butanol, an upper bound on the assay: the metal's sodium, moisture picked up in handling and the alkoxide's decomposition are not modelled, D-002) at the plant gate to packing under nitrogen, stream S15 (D-002, D-012)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
+# being mapped free (the schema's gate-to-gate maps every feed free), as n-bromosuccinimide-1 does.
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Batch plant: molten potassium dosed over 3 h into 8.6 mol of dry tert-butanol per mol at 348 K (semi-batch), the hydrogen vented as it forms through a vent condenser at 308 K to the flare; the alkoxide solution stripped at atmospheric pressure in a batch still down to the 1:1 solvate and the paste vacuum-dried at 433 K in a paddle dryer on MP steam; the alcohol recycled (0.5 % purged); the make-up, tert-butanol of the azeotrope grade, dried on a vapour-phase 3A molecular sieve; 831.6 kg per batch, 1202 batches a year on a dedicated train"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+flows:
+  # raw materials
+  - key: feed:K
+    missing: "not mapped yet (D-012); connect to: potassium metal, technical grade, made by reducing molten potassium chloride with sodium (Wikipedia, Potassium: the thermal method, dominant since the 1950s) or by the electrolysis of KOH; no library process makes it, and the library has no sodium-metal producer either; the stoichiometric proxy of the thermal route, 1.907 kg KCl and 0.588 kg sodium per kg (Na + KCl -> NaCl + K), is recorded here and in DESIGN.md D-012, not linked (CONTRIBUTING, 'Gaps')"
+    source: "flowsheet stream S1 (D-004)"
+  - key: feed:TBAF
+    missing: "linked to processes/tert-butanol-1 (lca/mappings.yaml), kg of tert-butanol contained for kg: its product is tert-butanol counted as the substance in an aqueous product up to the azeotrope; the water of the azeotrope grade is feed:TBAW and the drying past it is modelled here (A-001, D-004)"
+    source: "flowsheet stream S3, the tert-butanol the azeotrope grade contains (D-004)"
+  - key: feed:TBAW
+    missing: "not mapped yet (D-012); connect to: the water of the azeotrope grade (11.76 wt%) delivered with tert-butanol-1's alcohol, which counts the alcohol contained and leaves out its water and the work-up to the azeotrope; process water from the site water treatment as the nearest activity"
+    source: "flowsheet stream S4 (D-004)"
+  # utilities
+  - key: feed:POWER
+    missing: "not mapped yet (D-012); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy streams P1 (R-101 agitator), P2 (C-101 agitator), P3 (DR-101's paddle drive and vacuum pump) and P4 (the sieve's regeneration heater and blower), D-009"
+  - key: feed:LPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 350 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
+    source: "flowsheet energy streams Q1 (R-101's charge warmed), Q4 (the still's reboiler), Q9 (potassium melting), Q10 (the sieve's evaporator) and Q14 (tank and line heating), D-009"
+  - key: feed:MPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 1000 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
+    source: "flowsheet energy stream Q6 (the paddle dryer DR-101), D-008, D-009"
+  - key: product:CW
+    missing: "not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
+    source: "flowsheet energy streams Q2 (the heat of reaction, R101's model), Q3 (R-101's vent condenser, R101's model), Q5 (the still's condenser, ST101's model), Q7 (product cooling), Q8 (the dryer's vapour condenser with the vacuum pump's heat), Q11 and Q12 (the sieve's product and regeneration condensers) and Q13 (the recycle cooler), D-009"
+  # wastes
+  - key: product:FLARE
+    treatment: {kind: waste, route: "the site flare: hydrogen with the tert-butanol vapour it carries past the vent condensers and the dryer's nitrogen bleed, burnt to water and CO2 (D-006, D-010, D-012)"}
+    missing: "not mapped yet (D-012); connect to: flaring of a hydrogen-rich vent gas with an alcohol, per kg of gas; processes/utility-flare is for methane-rich gas only and is not linked (its README: a gas of another composition must not link there)"
+    source: "flowsheet stream S23: R-101's vent S11 and the dryer bleed's alcohol S20 (D-006, D-008)"
+  - key: product:WSOLV
+    treatment: {kind: waste, route: "incineration of a non-halogenated solvent waste (the 0.5 % purge of the recovered tert-butanol) (D-010)"}
+    missing: "not mapped yet (D-012); connect to: incineration of a non-halogenated liquid organic waste, per kg"
+    source: "flowsheet stream S22 (D-007, D-010)"
+  - key: product:WW
+    treatment: {kind: waste, route: "site wastewater treatment of the sieve's regeneration condensate (water with about 7 wt% tert-butanol), biological treatment (D-004, D-010)"}
+    missing: "not mapped yet (D-012); connect to: treatment of a process effluent with a readily degradable alcohol in an industrial wastewater treatment plant (e.g. processes/utility-wwtp), per kg"
+    source: "flowsheet stream S7 (D-004, D-010)"
+# What the batch plant uses per batch and the flowsheet does not carry (library ADR 0035, core
+# ADR 0053), converted with the recipe's batches per year (process/recipe.yaml): the nitrogen
+# that inerts R-101, blankets C-101 and the tanks, presses the molten potassium into R-101,
+# bleeds and breaks the vacuum of DR-101 and purges the vent header to the flare. No rinse
+# between batches: every vessel is kept dry, since water would meet potassium or the alkoxide
+# (D-011, D-012).
+consumables:
+  - id: nitrogen
+    title: "Nitrogen for inerting R-101, blanketing C-101 and the tanks, pressing the potassium, the dryer's bleed and vacuum breaks and the vent header's purge"
+    unit: kg
+    per_batch: 95.7
+    source: "about 76.5 Nm3 per batch x 1.2506 kg/Nm3, ASSUMED (D-012): R-101 purged with 3 volumes of its 10 m3 (30 Nm3); C-101 blanketed as it fills and empties (10 Nm3); DR-101's bleed during the drying (10 Nm3, which carries the alcohol S20 to the flare, D-008) and two vacuum breaks of its 3.15 m3 (6.3 Nm3); V-102's potassium pressed into R-101 (2 Nm3); the vent header to the flare purged at 2 Nm3/h over the 6.586 h cycle (13.2 Nm3); T-101 and T-201 blanketed (5 Nm3)"
+    missing: "linked to processes/asu-1 (lca/mappings.yaml): gaseous nitrogen to the battery limit"
+    disposal:
+      kind: waste
+      route: "through the vent header to the site flare, unchanged (D-012)"
+      source: "the nitrogen leaves with the vent gas S23 (D-012)"
+      missing: "not mapped yet (D-012); connect to: the flare's throughput of inert gas, with the vent gas product:FLARE"
+operation:
+  hours_per_year: 7920
+  life_years: 20
+  source: "design basis operating_hours_per_year 7920 (ASSUMED, the recipe's hours); 20 a service life ASSUMED"
+emission_exclusions:
+  - {id: flare-combustion, method: combustion, equipment: [R-101, DR-101], reason: "The hydrogen and the tert-butanol of S23 are burnt in the site flare, a waste treatment outside the plant's boundary (product:FLARE); the flare's own emissions (about 0.10 kg of fossil CO2 from the 0.042 kg of tert-butanol per kg product, the hydrogen's water, unburnt traces) belong to that treatment's dataset, not estimated here (D-012)."}
+  - {id: reactor-vent, method: storage-tank, equipment: [R-101, C-101], reason: "R-101's vent (the hydrogen with the tert-butanol past E-104) is the flowsheet's S11 to the flare (product:FLARE); its filling and C-101's breathing go through the nitrogen blanket to the same vent header; not estimated beyond S11 (no P&ID yet, D-006, D-010)."}
+  - {id: tank-breathing, method: storage-tank, equipment: [T-101, T-201], reason: "Breathing and filling losses of the make-up and recycle tanks go through the nitrogen blanket to the vent header and the flare; not estimated (no P&ID yet, D-010)."}
+  - {id: kotbu-sublimate, method: equipment-leaks, equipment: [DR-101], reason: "Potassium tert-butoxide sublimes at 493 K at 0.13 kPa and 413 K at 0.001 kPa (Wikipedia): at the dryer's 433 K its vapour pressure is about 0.004 kPa by Clausius-Clapeyron between those points, so up to about 0.4 % of the dryer's vapour at its final 1 kPa; it condenses with the alcohol in E-201 and returns in the recycle, not lost; not modelled (D-008)."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals
+  modelling: {principle: attributional}
+  geography: {description: "Generic fine-chemicals site with a potassium metal supply, a flare and wastewater treatment, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #418, unreviewed"
