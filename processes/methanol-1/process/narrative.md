@@ -70,14 +70,16 @@ stop (package machine trip, power failure, operator stop) through the run status
 The suction side then sees only the settle-out of the discharge volume through UV-104 and the seat
 leakage of the closed valves, against which PSV-115 protects it.
 **Modes.** Start-up by SEQ-K101-START: with I-102 reset, UV-104 fully open and XV-110 and XV-116
-closed, K-101 starts on full recycle at the suction side's own (settle-out) pressure, which is
-above the front end's after a stop; XV-116 opens (only with YS-117 reading running) once the
+closed, K-101 starts on full recycle at the suction side's own pressure, after a stop at or
+above the front end's (the settle-out pressure, or as left by the suction-side pressuring
+procedure); XV-116 opens (only with YS-117 reading running) once the
 discharge pressure is above the loop pressure, and XV-110 once K-101 has drawn the suction
 pressure down to the front end's, so no gas flows back through SG-101 and every stop from then on
 trips I-102; then UIC-104 and PIC-102 take over the loading. The sequence starts only with the
 suction side at or above the front-end pressure; below it (the first pressuring after
 maintenance, or a stop that has left the suction side below the front end through seat or seal
-leakage or a PSV-115 lift) the suction-side pressuring procedure, not written (D-021), first
+leakage, or through a PSV-115 lift only if its blowdown, not recorded and ASSUMED open with
+I-15, exceeds about 10.7 %) the suction-side pressuring procedure, not written (D-021), first
 brings it up through XV-110 with K-101 standing (PSV-115 case 3, I-15). I-101 stops the machine on liquid in
 V-103.
 **Assumptions and open points.** Electric variable-speed drive, one casing (D-010, D-017);

@@ -611,8 +611,9 @@ deferred here with its reason and an open input):
    open, starts K-101 on full recycle and opens XV-116 once the discharge pressure is above the
    loop pressure; a start with UV-104 not open is named in PSV-111's case.
    Round 6: the round-5 sequence opened XV-110 first, with K-101 standing, to pressure the
-   suction side. After a stop the suction side is at the settle-out pressure, above the front
-   end's 2600 kPa(a) (up to the 28 barg PSV-115 set, I-10), so that step sent settle-out gas back
+   suction side. After a stop the suction side is normally at the settle-out pressure, above the
+   front end's 2600 kPa(a) (up to the 28 barg PSV-115 set, I-10; a stop can also leave it at or
+   below the front end's, round 7 below), so that step sent settle-out gas back
    through SG-101; and because the I-102 cause is a change from running to not running, a failed
    start before YS-117 read running did not trip I-102 and left XV-110 open with K-101 standing
    until the sequence timed out. The order is changed instead of adding a depressuring path or a
@@ -622,7 +623,8 @@ deferred here with its reason and an open input):
    the suction pressure down to the front end's (S3), so the gas only flows forward and XV-110
    and XV-116 are open only after YS-117 has read running, when every stop trips I-102. Starting
    at the settle-out pressure is ASSUMED (the usual design case of a centrifugal compressor's
-   start; with the vendors, I-10); the front-end pressure compared in S3 is the battery-limit
+   start; with the vendors, I-10); the front-end pressure compared in the PIC-102 permissive and
+   in S2's completion (round 7) is the battery-limit
    pressure reported over the interface, not measured on P-01 (ASSUMED, I-15). Round 7: S2
    completes only once XV-116 is open and PIC-102 is at or below the front-end pressure, so its
    10 min timeout (ASSUMED) bounds the drawdown too, the fully open UV-104 keeping K-101 out of
@@ -632,7 +634,10 @@ deferred here with its reason and an open input):
    maintenance and also before an ordinary restart whenever the suction side has fallen below
    the front-end pressure, which the PIC-102 permissive then refuses: over a longer stop the
    closed XV-110's seat leakage (SG-101 has no check valve) moves it toward the battery-limit
-   pressure and seal leakage can take it below, and a PSV-115 lift and reseat leaves it below.
+   pressure and seal leakage can take it below. A PSV-115 lift can leave it below only if
+   PSV-115 reseats below the front-end pressure (about 25.0 barg against its 28 barg set), that
+   is with a blowdown above about 10.7 %; the blowdown is not recorded (ASSUMED open, with the
+   PSV-115 data, I-15).
    The gas then flows forward; PSV-115's sizing is unchanged, case (3) being bounded by I-15
    however often it occurs.
 2. **V-101 high-high level** (high): LZ-313, own tap, stops K-102 and with it K-101 and XV-110
@@ -813,4 +818,6 @@ ASSUMED (I-01, I-02). After the DWSIM run (D-014) the predictive checks pass exc
   the suction side below the front-end pressure; or XV-110 failing to close; PSV-115 case 3,
   D-022 item 1). Also the front end's battery-limit pressure as a signal over the interface:
   SEQ-K101-START starts only with PIC-102 at or above it and opens XV-110 only once PIC-102
-  reads at or below it (rounds 6 and 7).
+  reads at or below it (rounds 6 and 7). Also PSV-115's blowdown (not recorded, ASSUMED open with
+  the valve data): a lift leaves the suction side below the about 25.0 barg front end only if the
+  blowdown exceeds about 10.7 % of the 28 barg set (D-022 item 1, final review).
