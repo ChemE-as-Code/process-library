@@ -65,6 +65,12 @@
 # Example 1, the dataset's own basis, gives the lower phase (96 g per mol PCl3) but no acetyl
 # chloride yield; the dataset's phase split is calibrated to it, so binding it would only check
 # the calibration.
+#
+# Iodomethane (iodomethane-1, #163; in this family as the halogenated organics, as benzyl
+# bromide: the taxonomy has no iodine family): CN 114195616 B, the dataset's basis, states yields
+# of 95-96 % but not on which feed, so no specific consumption follows from it. The
+# stoichiometric floors are 0.894 kg iodine and 0.226 kg methanol per kg (6 CH3OH + 2 P + 3 I2 ->
+# 6 CH3I + 2 H3PO3); they are limits, not ranges.
 schema: cheme-as-code/benchmarks/v1
 family: chlorinated-organics
 
@@ -223,6 +229,14 @@ kpis:
     title: Crude phosphorous acid (lower phase) per kg of acetyl chloride
     unit: kg/kg
     no_open_reference: "No open source independent of the dataset found (searched 2026-11-06 as for accl-specific-pcl3): CS 272 248 B2, Example 1, gives 96 g of lower phase per 1.0 mol PCl3 but no acetyl chloride mass, and the dataset's phase split is calibrated to that example, so it is not an independent reference."
+  mei-specific-iodine:
+    title: Iodine consumption per kg of iodomethane (red phosphorus route)
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's iodine use per kg of iodomethane found (searched 2026-11-05/06: Google Patents CN 114195616 B, the dataset's basis, gives charges and yields of 95-96 % without stating their basis; PubChem HSDB names the route without consumptions; Ullmann's chapters not read, licensed). Only the stoichiometric floor, 0.894 kg/kg, is known."
+  mei-specific-methanol:
+    title: Methanol consumption per kg of iodomethane (red phosphorus route)
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's methanol use per kg of iodomethane found (searched as for mei-specific-iodine): CN 114195616 B gives the charges of its examples, which the dataset takes as its ratio, so they are no independent reference. Only the stoichiometric floor, 0.226 kg/kg, is known."
 datasets:
   - process: vcm-1
     dataset: vcm-balanced-oxygen
@@ -283,3 +297,10 @@ datasets:
     kpis:
       accl-specific-pcl3: {expression: feed:PCL3 / product:ACCL, per: product:ACCL}
       accl-specific-crude-phosphorous-acid: {expression: product:H3PO3P / product:ACCL, per: product:ACCL}
+
+  - process: iodomethane-1
+    dataset: iodomethane-from-methanol-red-phosphorus-and-iodine-batch-reflux-reaction-and-batch-distillation-500-t-a
+    conditions: {technology: "iodine dosed as a solid into red phosphorus in methanol at 313 K (semi-batch, the end mass at reflux), the crude distilled off the phosphorous acid residue, thiosulfate and water washes, calcium chloride and 4A sieve drying, batch distillation with a short column; no iodine recovery", basis: "concept balance, the patent's Example 1 ratios, ASSUMED kinetics, relative volatilities, wash splits and column split calibrated to the patent's purity (DESIGN.md D-004 to D-010)"}
+    kpis:
+      mei-specific-iodine: {expression: feed:IOD / product:MEI, per: product:MEI}
+      mei-specific-methanol: {expression: feed:MEOH / product:MEI, per: product:MEI}
