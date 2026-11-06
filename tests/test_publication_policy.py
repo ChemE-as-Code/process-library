@@ -118,9 +118,7 @@ DESIGNS = sorted((KIT / "processes").glob("*/DESIGN.md"))
 _DIPPR_OR_PERRY = re.compile(r"DIPPR|Perry's", re.IGNORECASE)
 _NEGATED = re.compile(r"\b(?:not|no)\s+open data", re.IGNORECASE)
 # Rows whose fix waits for an open pull request; strict, so the entry leaves this list once fixed.
-_PENDING = {
-    "methyltriphenylphosphonium-bromide-1": "SRC-6 says 'open data packages queried'; PR #406 touches the entry",
-}
+_PENDING: dict[str, str] = {}
 
 
 def _open_data_claims(text: str) -> list[int]:
