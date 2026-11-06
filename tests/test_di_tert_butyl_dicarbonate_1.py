@@ -25,7 +25,11 @@ CSV, and what the folder states in DESIGN.md, process.yaml and lca/ is checked a
   kPa(a) needs that sweep, since the slurry's own bubble pressure falls below the still's; the
   dissolved phosgene is stated as stripped into the gas at y = x p*(T) / P, not as boiling off;
   the numbers DESIGN.md quotes follow from the flowsheet; every source id names the register row
-  of what it cites; the reboilers deliver their stills' boil-up at the stills' ends.
+  of what it cites; the reboilers deliver their stills' boil-up at the stills' ends;
+- (core 1.10.0, D-015) the doses' heats of solution with the reactions on the dissolved basis
+  replace the hand Q3; R-101's vent carries its hexane and phosgene through the vent condenser,
+  whose duty Q17 is the model's; ST101's charge heat-up is in its duty Q6; V-201 and C-301 are
+  sized by the recipe without metal; the vacuum still's main cut's purity and recovery.
 """
 
 from __future__ import annotations
@@ -111,11 +115,11 @@ def test_recipe_gives_the_capacity_and_the_flowsheet_rate(model):
     batch = recipe["batch_size"]["value"]
     rate = _state(model, "S25")["flow"]["value"]
     cycle = batch / rate
-    assert cycle == pytest.approx(10.411, abs=2e-3)
+    assert cycle == pytest.approx(10.387, abs=2e-3)
     batches = recipe["hours_per_year"]["value"] / cycle
-    assert batches == pytest.approx(760.7, abs=0.2)
+    assert batches == pytest.approx(762.5, abs=0.2)
     assert batch * batches / 1000 == pytest.approx(500.0, abs=0.1)
-    for figure in ("657.28 kg", "10.41 h", "760.7 batches"):
+    for figure in ("655.71 kg", "10.39 h", "762.5 batches"):
         assert figure in _text("DESIGN.md") and figure in _text("process.yaml"), figure
 
 
@@ -187,7 +191,7 @@ def test_every_energy_flow_reaches_the_lci(model):
     for s in energy:
         for end in (s["from"], s["to"]):
             by_terminal.setdefault(end.split(".")[0], []).append(s["id"])
-    assert set(by_terminal["BRINE"]) == {"Q1", "Q2", "Q3"}
+    assert set(by_terminal["BRINE"]) == {"Q1", "Q2", "Q17"}
     assert set(by_terminal["CHW"]) == {"Q9", "Q16", "Q13"}
     assert set(by_terminal["CW"]) == {"Q14", "Q15"}
     assert set(by_terminal["LPS"]) == {"Q4", "Q5", "Q6", "Q7", "Q8", "Q10", "Q11", "Q12"}
@@ -195,24 +199,26 @@ def test_every_energy_flow_reaches_the_lci(model):
     with (PROCESS / "lca" / "inventory.csv").open(encoding="utf-8") as fh:
         inventory = {row["key"]: float(row["quantity"]) for row in csv.DictReader(fh)}
     keys = {"BRINE": "product:BRINE", "CHW": "product:CHW", "CW": "product:CW", "LPS": "feed:LPS", "POWER": "feed:POWER"}
-    stated = {"BRINE": "0.525", "CHW": "0.925", "CW": "0.125", "LPS": "1.211", "POWER": "0.415"}
+    stated = {"BRINE": "0.524", "CHW": "0.925", "CW": "0.123", "LPS": "1.209", "POWER": "0.415"}
     for terminal, key in keys.items():
         per_kg = sum(_duty(model, q) for q in by_terminal[terminal]) / rate
         assert inventory[key] == pytest.approx(per_kg, rel=1e-4), terminal
         assert f"{per_kg:.3f}" == stated[terminal], terminal
         assert f"{stated[terminal]} kWh" in _text("DESIGN.md"), terminal
-    # the model duties are core's (ADR 0059), the rest scripts/balance.py's
-    for q in ("Q2", "Q5", "Q6", "Q7", "Q11"):
+    # the model duties are core's (ADR 0059; R101's vent condenser Q17, ADR 0062), the rest
+    # scripts/balance.py's; the hand Q3 (the CO2's absorption heat) is gone since core 1.10.0
+    for q in ("Q2", "Q17", "Q5", "Q6", "Q7", "Q11"):
         assert _state(model, q)["duty"]["provenance"] == "calculated", q
-    for q in ("Q1", "Q3", "Q4", "Q8", "Q9", "Q10", "Q12", "Q13", "Q14", "Q15", "Q16"):
+    for q in ("Q1", "Q4", "Q8", "Q9", "Q10", "Q12", "Q13", "Q14", "Q15", "Q16"):
         assert _state(model, q)["duty"]["source"].startswith("scripts/balance.py"), q
+    assert "Q3" not in streams
 
 
 def test_criticality_classes_without_a_td24_and_the_mtt():
     from chemeascode.domains.safety.reaction_hazards import criticality
 
     mtt = 333.15
-    for mtsr in (279.9, 283.7, 294.6):  # design, k/10, k/100 (D-011)
+    for mtsr in (279.5, 282.5, 292.0):  # design, k/10, k/100 (D-011, core 1.10.0)
         assert mtsr < mtt
         classes = {criticality(mtsr, mtt, td24) for td24 in (250.0, mtsr - 0.1, mtsr + 1.0, 320.0, 400.0)}
         assert classes == {1, 2, 5}
@@ -223,17 +229,22 @@ def test_criticality_classes_without_a_td24_and_the_mtt():
     assert "td24" not in r101["hazard"]
 
 
-def test_vent_capacity_and_the_design_findings():
+def test_vent_capacity_and_the_design_findings(model):
     r101 = next(s for s in _yaml("process/flowsheet.yaml")["steps"] if s["id"] == "R101")
     capacity = r101["hazard"]["vent_capacity"]
     assert capacity == 50
-    assert 23.0 / capacity == pytest.approx(0.46, abs=0.005)
-    assert 53.5 / capacity == pytest.approx(1.07, abs=0.005)
+    # the largest cooling-failure gas over the batch with its vapour (core 1.10.0, D-011)
+    assert 24.5 / capacity == pytest.approx(0.49, abs=0.005)
+    assert 52.9 / capacity == pytest.approx(1.06, abs=0.005)
     design = _text("DESIGN.md")
-    for phrase in ("23.0 m3/h", "53.5 m3/h", "1.07", "Water ingress", "Loss of the scrubber", "280.65 K"):
+    for phrase in ("24.5 m3/h", "52.9 m3/h", "1.06", "Water ingress", "Loss of the scrubber", "280.65 K"):
         assert phrase in design, phrase
-    # phosgene accumulated at the end of its dosing: 0.0884 kmol of 3.301 kmol a batch (D-011)
-    assert 0.0884 / 3.301 == pytest.approx(0.0268, abs=2e-4)
+    assert "24.5 m3/h" in r101["hazard"]["source"] and "52.9 m3/h" in r101["hazard"]["source"]
+    # phosgene accumulated at the end of its dosing: 0.0878 kmol of the 3.294 kmol dosed a batch
+    dosed = _kmol(model, "S7")["COCL2"] * _hours(model)
+    assert dosed == pytest.approx(3.294, abs=1e-3)
+    assert 0.0878 / dosed == pytest.approx(0.0267, abs=2e-4)
+    assert "2.67 % of its dose" in design and "0.0878 of 3.294 kmol" in design
 
 
 def test_feeds_links_and_publication(model):
@@ -292,22 +303,32 @@ def _sweep(model) -> tuple[float, float]:
 
 
 def test_vent_condenser_hexane_is_in_the_balance_and_the_make_up(model):
-    """Finding 1: the vent gas S9 leaves R-101's vent condenser saturated with hexane; core's
-    batch.vent carries no solvent, so DG101's gas S11 carries it with the degassing's own."""
+    """Finding 1: the vent gas S9 leaves R-101's vent condenser saturated with hexane. Since core
+    1.10.0 R101's vent carries it (vent.vapour, vent.condenser, ADR 0062): S9 holds the hexane
+    one condensable over an inert passes, G K / (1 - K), and DG101's gas S11 only the sweep's."""
     hours = _hours(model)
+    r101 = next(s for s in _yaml("process/flowsheet.yaml")["steps"] if s["id"] == "R101")
+    vent = r101["batch"]["vent"]
+    assert vent["components"] == ["CO2", "IB"]
+    assert set(vent["vapour"]["components"]) == {"HEX", "TBA", "COCL2"}
+    assert vent["condenser"]["temperature"] == T_VENT_CONDENSER and vent["condenser"]["returns"] == "vessel"
     p_cond = _psat(model, "HEX", T_VENT_CONDENSER)
     assert p_cond == pytest.approx(3.45, abs=0.01)
-    n9 = sum(_kmol(model, "S9").values())
-    vent_hexane = n9 * p_cond / (P_ATM - p_cond)  # kmol/h
-    assert vent_hexane * 86.178 == pytest.approx(1.55, abs=0.01)
+    s9 = _kmol(model, "S9")
+    assert _temperature(model, "S9") == pytest.approx(T_VENT_CONDENSER)
+    gas = s9["CO2"] + s9["IB"]  # the non-condensables
+    vent_hexane = gas * p_cond / (P_ATM - p_cond)  # kmol/h, the hand closed form
+    assert s9["HEX"] == pytest.approx(vent_hexane, rel=0.01)
+    assert s9["HEX"] * 86.178 == pytest.approx(1.54, abs=0.01)
+    assert vent_hexane * 86.178 == pytest.approx(1.55, abs=0.01)  # the hand figure until 1.10.0
     _, sweep_hexane = _sweep(model)
-    target = vent_hexane + sweep_hexane / hours
     s11 = _kmol(model, "S11")["HEX"]
-    assert s11 == pytest.approx(target, rel=0.02)
-    # the hexane leaves to the vent: the scrubbed vent S33 carries it to the oxidiser
-    assert _kmol(model, "S33")["HEX"] == pytest.approx(s11, rel=1e-3)
-    # the make-up covers what leaves the hexane loop: S11, the stripped melt S16 and the purge S36
-    losses = sum(_kg(model, s)["HEX"] for s in ("S11", "S16", "S36"))
+    assert s11 == pytest.approx(sweep_hexane / hours, rel=0.02)
+    assert _dg101(model)["volatility"]["alpha"]["CO2"] == 1070
+    # the hexane leaves to the vent: the scrubbed vent S33 carries both to the oxidiser
+    assert _kmol(model, "S33")["HEX"] == pytest.approx(s9["HEX"] + s11, rel=1e-3)
+    # the make-up covers what leaves the hexane loop: S9, S11, the stripped melt S16 and the purge S36
+    losses = sum(_kg(model, s)["HEX"] for s in ("S9", "S11", "S16", "S36"))
     make_up = _state(model, "S2")["flow"]["value"]
     assert make_up == pytest.approx(losses, abs=0.02)
     rate = _state(model, "S25")["flow"]["value"]
@@ -341,7 +362,7 @@ def test_degassing_needs_the_nitrogen_sweep(model):
     nitrogen, _ = _sweep(model)
     assert nitrogen == pytest.approx(2.28, abs=0.03)
     consumable = next(c for c in _yaml("lca/lca.yaml")["consumables"] if c["id"] == "nitrogen")
-    assert "DG101's sweep, 2.28 kmol" in consumable["source"]
+    assert "DG101's sweep, 2.27 kmol" in consumable["source"]
     assert consumable["per_batch"] == pytest.approx(75.0 * 1.2506 + nitrogen * 28.014, abs=0.5)
     degas = next(o for o in _yaml("process/recipe.yaml")["unit_procedures"][0]["operations"] if o["id"] == "degas")
     assert "nitrogen sweep" in degas["title"]
@@ -353,15 +374,18 @@ def test_phosgene_is_stripped_into_the_gas_not_boiled_off(model):
     for text in (design, readme, _text("process.yaml")):
         for phrase in ("boil off", "boils off", "0.8 K below", "0.8 K above"):
             assert phrase not in text, phrase
-    for x, t, y in ((0.0014, 279.5, 0.0013), (0.0050, 282.9, 0.0053), (0.017, 294.4, 0.027)):
+    for x, t, y in ((0.0014, 279.3, 0.0012), (0.0049, 282.3, 0.0051), (0.017, 291.9, 0.026)):
         assert x * _psat(model, "COCL2", t) / P_ATM == pytest.approx(y, rel=0.1), t
-    for figure in ("0.11 kg/h (y 0.13 %)", "0.55 kg/h (y 0.53 %)", "7.3 kg/h (y 2.7 %, 1.8 m3/h)", "y = x p*(T) / P"):
+    for figure in ("0.11 kg/h (y 0.12 %)", "0.51 kg/h (y 0.51 %)", "5.5 kg/h (y 2.6 %, 1.3 m3/h)", "y = x p*(T) / P"):
         assert figure in design, figure
-    # the scrubber's normal design load: the phosgene the dosing's vent gas strips, against the
-    # balance's S28
+    # the scrubber's normal design load (a peak, 0.1 kg/h) against the balance's year average:
+    # since core 1.10.0 the dosing's vent S9 carries the phosgene the gas strips (vent.vapour)
+    s9 = _kg(model, "S9")["COCL2"]
+    assert s9 == pytest.approx(0.0082, abs=2e-4)
+    assert s9 * _hours(model) == pytest.approx(0.085, abs=0.002)  # kg a batch, below the hand 0.4 kg
     s28 = _kg(model, "S28")["COCL2"]
-    assert 0.1 / s28 == pytest.approx(40, rel=0.15)
-    assert "phosgene design load" in design
+    assert 0.1 / s28 == pytest.approx(10, rel=0.15)
+    assert "phosgene design load" in design and "0.085 kg a batch" in design
 
 
 def test_stated_numbers_follow_from_the_flowsheet(model):
@@ -436,3 +460,125 @@ def test_reboilers_deliver_the_boil_up_at_the_stills_end():
         assert u * area * dt / 1000 == pytest.approx(kw, abs=0.6)
         assert u * area * dt / 1000 >= boilup["value"], sid
     assert "about 27 m2" in _text("DESIGN.md") and "about 27 m2" in _text("equipment/equipment-list.yaml")
+
+
+# --- core 1.10.0 (DESIGN.md D-015) ------------------------------------------------------------
+
+
+def _step(sid: str) -> dict:
+    return next(s for s in _yaml("process/flowsheet.yaml")["steps"] if s["id"] == sid)
+
+
+def test_doses_heats_of_solution_on_the_dissolved_basis(model):
+    """The hand Q3 is gone: the doses carry their heats of absorption and the reactions consuming
+    the dissolved gases are written on the dissolved basis, the same totals (core ADR 0063)."""
+    doses = {d["stream"]: d for d in _step("R101")["batch"]["dosing"]}
+    co2 = doses["S8"]["heat_of_solution"]["values"]["CO2"]
+    phosgene = doses["S7"]["heat_of_solution"]["values"]["COCL2"]
+    assert co2 == -15000 and phosgene == -24800
+    # CO2's heat of absorption is the heat of desorption DG101 counts; phosgene's its condensation
+    assert -co2 == model[0]["CO2"]["heat_of_vaporization"]
+    assert -phosgene == model[0]["COCL2"]["heat_of_vaporization"]
+    heats = {r["id"]: r["heat_of_reaction"]["value"] for r in _yaml("process/reactions.yaml")["reactions"]}
+    # the gas basis of core 1.9.0 = the dissolved basis + the heat of solution
+    assert heats["CARB"] + co2 == -70000
+    assert heats["PHOS"] + phosgene == -200000 and heats["SIDE"] == heats["PHOS"]
+    # the CO2 S10 keeps dissolved: the 0.28 kW Q3 held by hand, now in R101's duty Q2
+    q3 = _kmol(model, "S10")["CO2"] * -co2 / 3600.0
+    assert q3 == pytest.approx(0.283, abs=0.002)
+    q2 = _state(model, "Q2")["duty"]
+    assert q2["provenance"] == "calculated" and "semibatch duty R101" in q2["source"]
+    assert q2["value"] == pytest.approx(30.62, abs=0.01)
+    assert "0.28 kW of the CO2 S10 keeps dissolved" in _text("DESIGN.md")
+
+
+def test_vent_condenser_duty_is_the_model_s(model):
+    """R-101's vent condenser (core ADR 0062): its duty on its own stream to brine, not the jacket's."""
+    r101 = _step("R101")
+    port = r101["batch"]["vent"]["condenser"]["energy_port"]
+    assert port != r101["energy_port"]
+    _, streams = model
+    q17 = streams["Q17"]
+    assert q17["from"] == f"R101.{port}" and q17["to"].startswith("BRINE.")
+    duty = q17["state"]["design"]["duty"]
+    assert duty["provenance"] == "calculated" and "vent condenser duty R101" in duty["source"]
+    assert duty["value"] == pytest.approx(0.269, abs=0.002)
+    # the condenser's duty is of the order of the hexane it condenses: the vapour the gas takes off
+    # the slurry at 278 K (Raoult, x_HEX of the crude) less what passes at 263 K
+    s9 = _kmol(model, "S9")
+    gas = s9["CO2"] + s9["IB"]
+    crude = _kmol(model, "S10")
+    y = crude["HEX"] / sum(crude.values()) * _psat(model, "HEX", T_REACT) / P_ATM
+    condensed = gas * y / (1 - y) - s9["HEX"]
+    latent = condensed * model[0]["HEX"]["heat_of_vaporization"] / 3600.0
+    assert latent == pytest.approx(0.166, rel=0.1)
+    assert latent < duty["value"] < 2 * latent
+    assert "Q17 0.27 kW" in _text("DESIGN.md")
+
+
+def test_strip_heat_up_is_st101_s_model_duty(model):
+    """ST101's charge heated from 278.15 K to its bubble point at 15 kPa(a) is in its duty Q6
+    (still.heat_up, core ADR 0063); Q8 keeps only what the stills still leave out."""
+    assert _step("ST101")["still"]["heat_up"] is True
+    for sid in ("ST102", "ST301"):  # both charges enter above their bubble points
+        assert not _step(sid)["still"].get("heat_up", False), sid
+    s12, s13 = _kmol(model, "S12"), _kmol(model, "S13")
+    heat_up = _mcp(model, "S12") * (294.99 - _temperature(model, "S12")) / 3600.0
+    boil_up = sum(n * model[0][k].get("heat_of_vaporization", 0.0) for k, n in s13.items()) / 3600.0
+    q6 = _state(model, "Q6")["duty"]
+    assert q6["provenance"] == "calculated"
+    assert q6["value"] == pytest.approx(boil_up + heat_up, rel=1e-3)
+    assert heat_up == pytest.approx(5.98, abs=0.02)
+    # Q8 + Q6 hold what Q8 + Q6 held on core 1.9.0 (10.06 + 44.96 kW): the heat-up moved
+    assert _duty(model, "Q8") == pytest.approx(4.08, abs=0.01)
+    assert _duty(model, "Q8") + q6["value"] == pytest.approx(10.0637 + 44.9603, abs=0.05)
+    assert sum(s12.values()) > 0
+    # the recipe's receive holds the heat-up: about 124 kW over its 0.5 h, within E-204's U A dT
+    receive = next(o for o in _yaml("process/recipe.yaml")["unit_procedures"][1]["operations"] if o["id"] == "receive")
+    kwh = heat_up * _hours(model)
+    assert kwh == pytest.approx(62.2, abs=0.2)
+    assert kwh / receive["duration"]["value"] == pytest.approx(124, abs=1.5)
+    assert 600 * 27 * (318.5 - 294.99) / 1000 > kwh / receive["duration"]["value"]
+    assert "62.2 kWh" in receive["duration"]["source"]
+
+
+def test_still_vessels_sized_by_the_recipe_without_metal():
+    """V-201 and C-301 sized by the recipe (L-12 resolved); no metal heat capacity (L-15)."""
+    procedures = {u["id"]: u for u in _yaml("process/recipe.yaml")["unit_procedures"]}
+    for pid in ("WORKUP", "DISTIL"):
+        vessel = procedures[pid]["vessel"]
+        assert "jacket" not in vessel and "metal_heat_capacity" not in vessel, pid
+    assert "metal_heat_capacity" not in procedures["REACT"]["vessel"]
+    equipment = {e["tag"]: e for e in _yaml("equipment/equipment-list.yaml")["equipment"]}
+    assert "12.5 m3 (preferred size, 70 % full: 8.73 m3" in equipment["V-201"]["notes"]
+    assert "1.6 m3 (preferred size, 64 % full: 1.02 m3" in equipment["C-301"]["notes"]
+    design = _text("DESIGN.md")
+    assert "L-12: **resolved by core 1.10.0**" in design and "L-15" in design
+    # the hand metal heat of V-201 that core's metal would replace: 2000 kJ/K from the wash's
+    # temperature back to 313 K each batch, against core's 4.78 kW (D-015)
+    assert "4.78 kW" in design and "0.30 kW" in design
+
+
+def test_vacuum_still_main_cut_purity_and_recovery(model):
+    """ST301 stays a one-stage still (no column, D-008): its main cut's purity and the share of
+    the Boc2O charged that it takes (the rest stays in the heel, 90 % of which returns)."""
+    assert "column" not in _step("ST301")["still"]
+    s25, s23, s22 = _kmol(model, "S25"), _kmol(model, "S23"), _kmol(model, "S22")
+    purity = s25["BOC2O"] / sum(s25.values())
+    assert purity == pytest.approx(0.998, abs=2e-4)
+    recovery = s25["BOC2O"] / s23["BOC2O"]
+    assert recovery == pytest.approx(0.9205, abs=1e-3)
+    net = s25["BOC2O"] / (s23["BOC2O"] - s22["BOC2O"])  # of the melt's Boc2O, the heel's netted
+    assert net == pytest.approx(0.984, abs=1e-3)
+    assert "No column" in _text("DESIGN.md")
+
+
+def test_requires_core_1_10_and_records_the_change():
+    plant = _yaml("plant.yaml")
+    assert plant["requires"] == "cheme-as-code>=1.10"
+    design = _text("DESIGN.md")
+    assert "## D-015 Core 1.10.0" in design and "Core 1.10.0 part" in design
+    for limit in ("L-9 (as benzyl-chloroformate-1 L-10): **resolved by core 1.10.0**", "L-14: **resolved by core 1.10.0"):
+        assert limit in design, limit
+    assert "Needs cheme-as-code 1.10.0" in _text("README.md") and "Needs cheme-as-code 1.10.0" in _text("process.yaml")
+    assert "core 1.10.0" in _text("PROGRESS.md")

@@ -13,28 +13,30 @@ checked by [`cheme-as-code`](https://github.com/ChemE-as-Code/core).
 A batch plant for di-tert-butyl dicarbonate (Boc2O, Boc anhydride) by the one-pot phosgene route
 of EP 0 256 559 A2: potassium tert-butoxide suspended in recovered hexane with DABCO takes up CO2
 and then phosgene gas in one semi-batch at 278 K (`reactor: semibatch` with two gas doses,
-`dosing.absorbed`, and a vent for the CO2 and isobutene, `batch.vent`); the slurry is degassed
-and the hexane stripped and recycled in core's batch stills; the Boc2O melt is washed free of KCl
-with warm water and distilled at 0.13 kPa(a) from a liquid-paraffin heel (a still with a forerun
-and a main cut). Both recycles, the hexane and the heel, are tear streams that `cheme process
-propagate` converges; the semi-batch's and the stills' duties come from their models
-(`energy_port`). `process/recipe.yaml` holds the batch recipe the cycle time (10.41 h, R-101 the
-bottleneck), R-101's size and jacket check, the vent's load per batch and the flowsheet's
-year-average flows come from (`cheme process recipe`, `cheme process reactor-hazards`, `cheme
-process stills`). What core cannot calculate, the wash's phase split, the scrubbed vent's split
-and the heats the models leave out, is in `scripts/balance.py` under the library's
-balance-output contract. Needs cheme-as-code 1.9.0. DESIGN.md lists the core features used and the
-core limits hit.
+`dosing.absorbed` with their heats of solution, and a vent for the CO2 and isobutene, `batch.vent`,
+which carries the slurry's hexane and phosgene vapour through R-101's vent condenser); the slurry
+is degassed and the hexane stripped and recycled in core's batch stills; the Boc2O melt is washed
+free of KCl with warm water and distilled at 0.13 kPa(a) from a liquid-paraffin heel (a still with
+a forerun and a main cut). Both recycles, the hexane and the heel, are tear streams that `cheme
+process propagate` converges; the semi-batch's, its vent condenser's and the stills' duties come
+from their models (`energy_port`, the first strip's with its charge's heat-up).
+`process/recipe.yaml` holds the batch recipe the cycle time (10.39 h, R-101 the bottleneck), the
+sizes of R-101, V-201 and C-301, R-101's jacket check, the vent's load per batch and the
+flowsheet's year-average flows come from (`cheme process recipe`, `cheme process
+reactor-hazards`, `cheme process stills`). What core cannot calculate, the wash's phase split,
+the scrubbed vent's split and the heats the models leave out, is in `scripts/balance.py` under
+the library's balance-output contract. Needs cheme-as-code 1.10.0. DESIGN.md lists the core
+features used (D-015 what core 1.10.0 changed) and the core limits hit.
 
 Three headline numbers carry caveats. The modelled yield is 89.4 % on the alkoxide, below the
 91.0 % the patent's Example 1 gives by mass (its purity not stated), which bounds it from above.
 The modelled product is 99.98 wt% Boc2O, an upper bound: di-tert-butyl carbonate, the tricarbonate
 and the other by-products are not modelled. The thermal screening is on ASSUMED rate laws: the
-MTSR (279.9 K) lies far below the decomposition limit (333.15 K); the risk is the dissolved
+MTSR (279.5 K) lies far below the decomposition limit (333.15 K); the risk is the dissolved
 phosgene, which a cooling failure strips into the CO2 it releases (0.11 kg/h at the design rate).
-At a hundred times slower rates 36.6 % of the phosgene accumulates, the CO2 a cooling failure
-releases exceeds the vent's 50 m3/h and carries about 7 kg/h of phosgene to the scrubber (a
-design finding, DESIGN.md D-011, D-014).
+At a hundred times slower rates 36.1 % of the phosgene accumulates, the gas a cooling failure
+releases, with its vapour, exceeds the vent's 50 m3/h and carries about 5.5 kg/h of phosgene to
+the scrubber (a design finding, DESIGN.md D-011, D-014).
 
 | path | what |
 |---|---|
