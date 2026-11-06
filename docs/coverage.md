@@ -210,6 +210,7 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 99 | `p-toluenesulfonyl-chloride` | p-Toluenesulfonyl chloride | chlorinated-organics | n/a, to be sourced | n/a | - | - | 2 | p-toluenesulfonyl-chloride-1 (T2) |
 | 100 | `ammonium-hydroxide` | Ammonium hydroxide (aqueous ammonia) | ammonia | n/a, to be sourced | n/a | - | - | 0 | ammonium-hydroxide-1 (T0) |
 | 101 | `methyltriphenylphosphonium-bromide` | Methyltriphenylphosphonium bromide | chlorinated-organics | n/a, to be sourced | n/a | - | - | 2 | methyltriphenylphosphonium-bromide-1 (T2) |
+| 102 | `benzyl-bromide` | Benzyl bromide | chlorinated-organics | n/a, to be sourced | n/a | - | - | 2 | benzyl-bromide-1 (T2) |
 
 Volume sources (ids as in `coverage.yaml` `sources:`): `usgs-mcs-2024` U.S. Geological Survey,
 Mineral Commodity Summaries 2024; `iea-ammonia-2021` IEA, Ammonia Technology Roadmap (2021);

@@ -27,6 +27,13 @@
 # one (docs/benchmarks.md: never invent a range). The route's one open source, CN 101 885 665 A,
 # gives charges but no yield.
 #
+# Benzyl bromide (benzyl-bromide-1, #139; a brominated organic in this family, as CBr4): no open
+# source gives a plant's specific consumptions. The stoichiometric floors are 0.934 kg bromine
+# and 0.539 kg toluene per kg (C7H8 + Br2 -> C7H7Br + HBr); they are limits, not ranges. The one
+# open yield, US 3 528 899 A Example I (about 90 % on toluene, X-ray initiated, bromine in
+# excess), is a single laboratory value at other conditions; it is discussed in DESIGN.md D-010,
+# not bound here.
+#
 # Benzoyl chloride (benzoyl-chloride-1, #156): the one open source with yields is US 4 276 231 A,
 # whose description states 96-98 % of theory for its process (batch and continuous, with and
 # without the bottoms recycle). Converted to the benzotrichloride per kg of benzoyl chloride (two
@@ -176,6 +183,14 @@ kpis:
     title: Distillation residue per kg of benzoyl chloride
     unit: kg/kg
     no_open_reference: "No open source with the residue of a benzoyl chloride distillation on the benzoic acid route without recycle found (searched 2026-11-05: Google Patents US 4 276 231 A read; its Example 1 gives no bottoms mass, its Example 2, the water variant, 210 g of bottoms on 3255 g of product before they are re-reacted, one value on other conditions; NIST WebBook and PubChem have no plant data)."
+  bnbr-specific-bromine:
+    title: Bromine consumption per kg of benzyl bromide
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's or a pilot's bromine use per kg of benzyl bromide found (searched 2026-11-06: Google Patents US 3 528 899 A read, a laboratory example with X-ray initiation at 1.2 mol of bromine per mol of toluene, about 90 % on toluene, no yield on bromine; PubChem CID 7498 (HSDB) names the route without figures; NIST WebBook has no plant data). Only the stoichiometric floor, 0.934 kg/kg, is known."
+  bnbr-specific-toluene:
+    title: Toluene consumption per kg of benzyl bromide
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's toluene use per kg of benzyl bromide found (searched 2026-11-06 as for bnbr-specific-bromine). US 3 528 899 A, Example I implies about 0.60 kg/kg (about 90 % of theory on toluene), one laboratory value under other initiation and excess bromine, not a range; the stoichiometric floor is 0.539 kg/kg."
   tscl-specific-toluene:
     title: Toluene consumption per kg of p-toluenesulfonyl chloride
     unit: kg/kg
@@ -216,6 +231,12 @@ datasets:
     kpis:
       bcf-specific-benzyl-alcohol: {expression: feed:BNOH / product:BCF, per: product:BCF}
       bcf-specific-phosgene: {expression: feed:PHOS / product:BCF, per: product:BCF}
+  - process: benzyl-bromide-1
+    dataset: benzyl-bromide-by-semi-batch-light-driven-side-chain-bromination-of-toluene-with-hbr-absorption-and-batch-distillation-1000-t-a
+    conditions: {technology: "bromine dosed into 4 mol of toluene per mol at 363 K under lamps (semi-batch), HBr vent to 48 wt% acid, toluene strip at 15 kPa(a) and recycle, batch vacuum distillation at 2 kPa(a)", basis: "concept balance, ASSUMED effective rate laws, ratio and still ends (DESIGN.md D-004, D-005, D-007)"}
+    kpis:
+      bnbr-specific-bromine: {expression: feed:BR2 / product:BNBR, per: product:BNBR}
+      bnbr-specific-toluene: {expression: feed:TOL / product:BNBR, per: product:BNBR}
   - process: carbon-tetrabromide-1
     dataset: carbon-tetrabromide-by-semi-batch-haloform-bromination-of-acetone-in-aqueous-hypobromite-314-t-a
     conditions: {technology: "aqueous haloform route: hypobromite from bromine and caustic, acetone dosed at 278 K with a phase-transfer catalyst, CBr4 precipitated, filtered, washed and vacuum-dried", basis: "concept balance, ratios after the patent's examples and ASSUMED (DESIGN.md D-004, D-005)"}
