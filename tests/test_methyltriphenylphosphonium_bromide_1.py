@@ -27,7 +27,7 @@ folder states by hand (DESIGN.md D-004, D-007..D-012):
 - the charge ratios (20 wt% PPh3, 1.05 mol methyl bromide per mol PPh3 in R-101) hold;
 - the yield and assay stated hold and carry their caveat;
 - the recipe's batch size times its batches per year gives the flowsheet's product rate;
-- the process is not set public, and carries no licence, in the change that adds it.
+- the process is public with CC-BY-4.0, every library entry is (ADR 0036).
 """
 
 from __future__ import annotations
@@ -377,10 +377,9 @@ def test_recipe_basis_and_capacity(model):
         assert "776.6" in _text(rel) and "820.9" in _text(rel), rel
 
 
-def test_not_published_in_the_change_that_adds_it():
+def test_published_public_with_cc_by():
     publication = _yaml("process.yaml")["publication"]
-    assert publication["status"] == "internal"
-    assert "license" not in publication
+    assert publication == {"status": "public", "license": "CC-BY-4.0"}
 
 
 def test_lca_scope_states_the_recipe_basis_and_the_streams_it_uses(model):

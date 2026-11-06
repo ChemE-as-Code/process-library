@@ -29,13 +29,16 @@ description: |
   times come from the models, the reactor is the bottleneck (cycle 14.0 h, 565 batches a year on
   a dedicated train), the recipe sizes the vessel and checks its jacket, and gives the vent's peak
   gas rate and the scrubber's load per batch (429 kg of vent gas, 233 kg of degassing gas). The
-  kinetics are ASSUMED (no open data): a fast second-order reaction, dosing-controlled. Thermal
-  screening: dT_ad 475 K (the side reaction to benzyl chloride run on all the alcohol; 303.9 K for
-  the main reaction alone), accumulation at most 17 % (the deliberate phosgene excess, at the end
-  of the dosing), MTSR 356 K (set by the side reaction to dibenzyl carbonate, counted on purpose; 300.2 K for
-  the main reaction alone) against an MTT of 281 K (the boiling point of phosgene, which the
-  excess would boil off). The gas a cooling failure releases at the MTSR, 3039 m3/h by the
-  screening, is 17.6 times what the vacuum pump vents (173 m3/h): a design finding for a dosing
+  kinetics are ASSUMED (no open data): a fast second-order reaction, dosing-controlled; the
+  phosgene's heat of solution is the dose's (core ADR 0063), the heats of reaction on the
+  dissolved basis. Thermal screening: dT_ad 494 K (the side reaction to benzyl chloride run on all
+  the alcohol, with the dose's heat of solution; 323.4 K for the main reaction alone), accumulation
+  at most 17 % (the deliberate phosgene excess, at the end of the dosing), MTSR 357 K (set by the
+  side reaction to dibenzyl carbonate, counted on purpose; 294.1 K for the main reaction alone)
+  against an MTT of 281 K (the boiling point of phosgene, which the excess would boil off). The
+  gas a cooling failure releases at the MTSR, 3219 m3/h by the screening, is 18.6 times what the
+  vacuum pump vents (173 m3/h), and 21.9 times (3788 m3/h, phosgene vapour 0.15 of it) with the
+  liquid's vapour on a trial with core 1.10.0's vent vapour: a design finding for a dosing
   interlock and an emergency relief to the scrubber. The vent and scrubber are the
   safety-critical path; no class without a TD24. See DESIGN.md for every assumption.
 families: [chlorinated-organics]
@@ -57,17 +60,21 @@ validation:
     phosgene dose from its ASSUMED rate laws, the degassing T101 as a batch still with ASSUMED
     constant relative volatilities, the scrubber S101 as a conversion step; no balance script.
     The recipe's year-average rate of the product agrees with the flowsheet (cheme process
-    recipe, no cheme.recipe-basis finding), and the jacket removes the model's peak duty (31.4 kW
-    of 34.4 kW). The duties of R101 (Q2, 18.70 kW) and T101 (Q4, 1.177 kW) are the models'
-    year averages written by cheme process propagate (core ADR 0059). The heat of absorption
-    of the dissolved gas, which the model leaves out, is its own assumed stream Q2A (1.18 kW;
-    D-009). Thermal screening (cheme process reactor-hazards): dT_ad 474.6 K, accumulation
-    0.173, MTSR 355.7 K against an MTT of 280.65 K (phosgene's boiling point, hazard.mtt), all
-    set by the side reactions, every reaction counted on purpose (hazard.reactions, CARB
-    included as the conservative choice; CLBN's heat for the dT_ad, CARB for the MTSR); the
-    main reaction PHOSG alone gives dT_ad 303.9 K and MTSR 300.2 K, still above the MTT
-    (DESIGN.md D-011). The gas release at the MTSR, 3039 m3/h at 355.7 K and 50 kPa(a), is 17.6
-    times the vent capacity of 173 m3/h (the vacuum pump, hazard.vent_capacity, assumed). The
+    recipe, no cheme.recipe-basis finding), and the jacket removes the model's peak duty (31.65
+    kW of 34.35 kW, with the phosgene's heat of solution). The duties of R101 (Q2, 19.88 kW) and
+    T101 (Q4, 1.177 kW) are the models' year averages written by cheme process propagate (core
+    ADR 0059); Q2 holds the heat of solution of the absorbed phosgene (the dose's
+    heat_of_solution, assumed, with the heats of reaction on the dissolved basis, core ADR 0063;
+    D-015). Thermal screening (cheme process reactor-hazards): dT_ad 494.0 K (with the dose's
+    heat of solution, 102.6 K), accumulation 0.173, MTSR 357.1 K against an MTT of 280.65 K
+    (phosgene's boiling point, hazard.mtt), all set by the side reactions, every reaction
+    counted on purpose (hazard.reactions, CARB included as the conservative choice; CLBN's heat
+    for the dT_ad, CARB for the MTSR); the main reaction PHOSG alone gives dT_ad 323.4 K (220.8
+    K without the heat of solution) and MTSR 294.1 K, still above the MTT (DESIGN.md D-011). The
+    gas release at the MTSR, 3219 m3/h at 357.1 K and 50 kPa(a), is 18.6 times the vent
+    capacity of 173 m3/h (the vacuum pump, hazard.vent_capacity, assumed); with the phosgene
+    vapour (vent.vapour, core ADR 0062, on a scratch copy, not adopted) it is 3788 m3/h, 21.9
+    times, and the relief is to be sized on that (DESIGN.md D-014, D-015). The
     two warnings cheme.reactor-hazard-mtsr and -vent are design findings, kept (D-011, D-014);
     no criticality class without a TD24 from calorimetry. The kinetics are assumed: the
     accumulation rests on that assumption (k/10 and k/100 in DESIGN.md D-011). Preliminary
@@ -75,9 +82,9 @@ validation:
     and nitrogen linked to phosgene-1, chlor-alkali-1 and asu-1, benzyl alcohol and the other
     backgrounds gaps. cheme maturity reaches no level (assumed feeds, kinetics and separations);
     the claim `maturity: concept` is the lowest value of the schema, not an evidenced level. Not
-    reviewed. Needs cheme-as-code 1.9 (the model duties and energy_port, ADR 0059; hazard.reactions
-    and vent_capacity, ADR 0058; and from 1.8 batch.vent, dosing.absorbed, still:, recipe
-    units:, ADRs 0054, 0055, 0057).
+    reviewed. Needs cheme-as-code 1.10 (the dose's heat_of_solution, ADR 0063; from 1.9 the
+    model duties and energy_port, ADR 0059, hazard.reactions and vent_capacity, ADR 0058; and
+    from 1.8 batch.vent, dosing.absorbed, still:, recipe units:, ADRs 0054, 0055, 0057).
 chemistry:
   inputs:
     - {chemical: benzyl-alcohol, role: feedstock, inventory_key: "feed:BNOH", note: "Dry benzyl alcohol (merchant; no library producer yet), 0.636 kg/kg BCF"}
@@ -91,7 +98,7 @@ chemistry:
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.051 kWh/kg BCF: R-101 agitator, vacuum pump, scrubber pump (ASSUMED)"}
     - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.069 kWh/kg BCF of LP steam to the tempered water of the phosgene evaporator and the degassing"}
-    - {chemical: chilled-water, role: utility, inventory_key: "product:BRINE", note: "0.163 kWh/kg BCF removed by brine at 248 K: the charge's cool-down (Q1), the heat of phosgenation (Q2, the semi-batch model's) and the heat of absorption (Q2A) of the phosgene and HCl left dissolved (the registry has chilled water, not brine: closest entry)"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:BRINE", note: "0.163 kWh/kg BCF removed by brine at 248 K: the charge's cool-down (Q1) and the heat of phosgenation with the heat of absorption of the dosed phosgene (Q2, the semi-batch model's, core ADR 0063) (the registry has chilled water, not brine: closest entry)"}
     - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.354 kWh/kg BCF: the scrubber's heat of neutralisation and phosgene destruction (ASSUMED heats)"}
 basis:
   capacity: "1000 t/a neat benzyl chloroformate: 565 batches/a of 1770 kg in 7920 h on a dedicated train (126.3 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-013)"
@@ -112,4 +119,5 @@ repository:
   path: processes/benzyl-chloroformate-1
   access: public
 publication:
-  status: internal
+  status: public
+  license: CC-BY-4.0

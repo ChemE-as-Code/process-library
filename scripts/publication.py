@@ -1,7 +1,8 @@
 """What a public build may show: the rules shared by the build scripts' ``--public`` mode.
 
-A process is published when its ``process.yaml`` says ``publication.status: public``; every
-other status (``internal``, ``candidate``, none) keeps it out of a public build entirely. A
+A process is published when its ``process.yaml`` says ``publication.status: public`` and names
+its ``publication.license``; every other status (``internal``, ``candidate``, none), and a public
+status without a licence, keeps it out of a public build entirely (ADR 0010, ADR 0036). A
 published process's viewer snapshot is exported without :data:`DEFAULT_EXCLUDE` and
 :data:`MANIFEST` (always) and the process's own ``publication.exclude`` globs; core's ``cheme export-static --exclude``
 matches them (``**`` spans directories, ``*`` stays in one, a plain name is the root file).
@@ -40,7 +41,10 @@ LCA_MANIFEST = "lca/manifest.json"
 
 
 def is_public(manifest: dict[str, Any] | None) -> bool:
-    return ((manifest or {}).get("publication") or {}).get("status") == "public"
+    """Whether the process may be in a public build: ``status: public`` and a stated licence
+    (fail-closed: a missing status or licence keeps it out, ADR 0036)."""
+    pub = (manifest or {}).get("publication") or {}
+    return pub.get("status") == "public" and bool(pub.get("license"))
 
 
 def snapshot_excludes(manifest: dict[str, Any] | None) -> list[str]:

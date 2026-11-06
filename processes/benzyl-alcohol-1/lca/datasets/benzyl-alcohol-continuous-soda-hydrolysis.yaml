@@ -1,0 +1,505 @@
+# Tier 0 form, manifest-only entry after the process-library#313 pilots (PR #317). Every amount is
+# the formula of its parameters; core's validator re-checks each. The numbers are facts from the
+# cited patents and the IPCC guidelines, in our own form; electricity is core's Tier 0 default.
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: benzyl-alcohol-continuous-soda-hydrolysis
+title: Benzyl alcohol by continuous hydrolysis of benzyl chloride with aqueous sodium carbonate
+description: Tier 0 screening estimate per 1 t of reagent-grade benzyl alcohol (at least 99.8 wt%), gate-to-gate.
+  Continuous countercurrent hydrolysis with soda solution and toluene as inert solvent, extraction of the
+  spent brine, vacuum distillation in two columns. Feeds, by-products, water and heat from the worked example
+  of a 1982 patent (pilot scale), the rest by stoichiometry; electricity from core's Tier 0 default.
+basis: 1000 kg of benzyl alcohol
+boundary: 'gate-to-gate: reactor column (washing, hydrolysis and extraction zones), degassing, solvent column
+  and product column; benzyl chloride, soda ash, water, steam and power from outside; brine to treatment'
+technology: continuous countercurrent hydrolysis with aqueous sodium carbonate at 145 degC and 18 bar, toluene
+  as inert solvent, two vacuum columns; batch stirred-tank hydrolysis, the water-only route without base
+  (US 5,750,801) and benzaldehyde hydrogenation are not modelled
+geography:
+  description: Pilot-scale examples of a patent by a Swedish applicant (Eka AB, filed 1982); no plant and no
+    site. Taken as a generic technology.
+classification:
+  isic: '2011'
+system_boundary:
+  included:
+  - benzyl chloride, soda ash, process and wash water
+  - steam to the reactor column and the two distillation columns
+  - electricity (core's default)
+  - dibenzyl ether bottoms and the remaining benzyl alcohol losses
+  - spent brine (water, sodium chloride, excess soda) and the CO2 vented at degassing
+  excluded:
+  - 'TODO toluene make-up: the solvent is recycled and the patent gives no loss'
+  - 'TODO cooling water of the washing zone and the column condensers: not stated'
+  - 'TODO vacuum system (steam ejectors or pumps) and its off-gas: not stated'
+  - 'TODO organics (toluene, benzyl alcohol, benzaldehyde) dissolved in the brine: the patent says the extraction
+    zone purifies it but gives no residual; the dataset puts all benzyl alcohol losses into output:organic-residue'
+  - 'TODO benzaldehyde and unconverted benzyl chloride: up to 0.03 wt% and 0.10 % of the feed, lumped into the
+    residue as benzyl alcohol'
+  - 'CO2 held back as bicarbonate by the excess soda: all CO2 of the reacted carbonate is counted as vented'
+  - infrastructure
+  cutoff: none applied; the excluded flows are not quantified
+  infrastructure: excluded
+  catalysts: excluded
+  non_routine: excluded
+location: GLO
+year: 1982
+valid_until: 1987
+time:
+  start: 1982
+  description: Patent examples of EP 0 064 486 A1 (filed 1982-04-19). valid_until is the reference year + 5
+    (system-model section 6), so it has long lapsed; no newer open figure was found.
+modelling:
+  principle: attributional
+  multifunctionality: 'single output: no allocation (the dibenzyl ether bottoms and the brine are residues,
+    not products here)'
+uuid: db869d77-4a88-590d-8ab3-790cefd47d4e
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+technology_level: current
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: ba
+  value: 1000.0
+  unit: kg
+  description: Benzyl alcohol delivered, reagent grade (the basis).
+  source: basis
+- name: M_BA
+  value: 108.140
+  unit: g/mol
+  description: Molar mass of benzyl alcohol (C7H8O).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_BC
+  value: 126.583
+  unit: g/mol
+  description: Molar mass of benzyl chloride (C7H7Cl).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_SC
+  value: 105.988
+  unit: g/mol
+  description: Molar mass of sodium carbonate (Na2CO3).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_NACL
+  value: 58.440
+  unit: g/mol
+  description: Molar mass of sodium chloride.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_CO2
+  value: 44.009
+  unit: g/mol
+  description: Molar mass of carbon dioxide.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_H2O
+  value: 18.015
+  unit: g/mol
+  description: Molar mass of water.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_DBE
+  value: 198.265
+  unit: g/mol
+  description: Molar mass of dibenzyl ether (C14H14O).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: bc_h
+  value: 48.3
+  unit: kg/h
+  description: Benzyl chloride fed in the example; per t of reagent-grade benzyl alcohol it is bc_h / p2 * ba
+    (1.1926 kg/kg).
+  source: 'Rantala and Hag (Eka AB), EP 0 064 486 A1 (1982), Table 1, Example 1 (sodium carbonate, 10 % molar
+    excess, 145 degC, 18 bar). Pilot-scale example, not plant data. Taken on the same basis as the water and
+    the product (Table 1 flows); Table 2 gives the same ratio rounded to 1.19 kg/kg (Second Product)'
+- name: soda
+  value: 551.0
+  unit: kg
+  description: Sodium carbonate per t of benzyl alcohol (0.551 kg/kg), fed as a 10.9 wt% solution.
+  source: EP 0 064 486 A1 (1982), Table 2, Example 1, Second Product; 10 % molar excess over the stoichiometric
+    amount (Table 1)
+- name: dbe_f
+  value: 0.0055
+  unit: kg/kg
+  description: Dibenzyl ether formed, as a fraction of the benzyl alcohol (0.55 wt%).
+  source: 'EP 0 064 486 A1 (1982), Table 1 (continued), Example 1; the source refers it to the benzyl alcohol
+    produced, applying it to the delivered product is ASSUMED (about 1 % lower base)'
+- name: w_hz
+  value: 183.0
+  unit: kg/h
+  description: Water to the hydrolysis zone in the example, read as the water of the soda solution.
+  source: 'EP 0 064 486 A1 (1982), Table 1, Example 1; reading it as the solution water is ASSUMED (22.3 kg/h
+    soda at 10.9 wt% holds 182 kg/h water, which matches)'
+- name: w_wz
+  value: 60.0
+  unit: kg/h
+  description: Cold wash water to the washing zone in the example.
+  source: EP 0 064 486 A1 (1982), Table 1, Example 1
+- name: p2
+  value: 40.5
+  unit: kg/h
+  description: Reagent-grade benzyl alcohol (Second Product) of the example.
+  source: EP 0 064 486 A1 (1982), Table 1 (continued), Example 1
+- name: q_r
+  value: 153.0
+  unit: kWh
+  description: Energy of the reactor column per t of reagent-grade benzyl alcohol (0.153 kWh/kg), taken as
+    steam heat.
+  source: 'EP 0 064 486 A1 (1982), Table 3, Example 1, Second Product. The table says energy without the carrier;
+    pumping is excluded as negligible, and the soda solution preheater uses steam (description of Fig. 1), so
+    reading it as heat delivered by steam is ASSUMED. Pilot scale'
+- name: q_d
+  value: 802.0
+  unit: kWh
+  description: Energy of the two distillation columns per t of reagent-grade benzyl alcohol (0.802 kWh/kg),
+    taken as steam heat.
+  source: 'EP 0 064 486 A1 (1982), Table 3, Example 1, Second Product (0.442 kWh/kg for the first column alone);
+    reading it as reboiler heat is ASSUMED. Pilot scale'
+- name: elec
+  value: 333.3
+  unit: kWh
+  description: 'Electricity per t benzyl alcohol: core''s Tier 0 default, 0.3333 kWh/kg.'
+  source: 'ASSUMED: cheme tier-defaults 1.0.0: electricity [ASSUMED]: 1.2 MJ (0.333 kWh) per kg of product,
+    attributed to the Gendorf (2000) site average that the ecoinvent v2-era chemicals proxies used, not read
+    in an open copy. Dated and not specific to this process. EP 0 064 486 A1 states only that pumping energy
+    is negligible, so the default is likely high for the pumps; vacuum and cooling are not covered by the
+    patent. TODO source'
+exchanges:
+- key: product:benzyl-alcohol
+  title: Benzyl alcohol, reagent grade (at least 99.8 wt%)
+  type: product
+  amount: 1000.0
+  unit: kg
+  formula: ba
+  provenance: given
+  source: the reference flow; the grade is the Second Product of EP 0 064 486 A1 (at most 0.003 wt% chlorine,
+    0.03 wt% benzaldehyde, 0.01 wt% dibenzyl ether)
+- key: feed:benzyl-chloride
+  title: Benzyl chloride
+  type: input
+  amount: 1192.5925925925924
+  unit: kg
+  formula: bc_h / p2 * ba
+  provenance: calculated
+  origin: literature
+  source: EP 0 064 486 A1 (1982), Table 1, Example 1, scaled to the Second Product (48.3 against 40.5 kg/h; Table
+    2 rounds it to 1.19 kg/kg); compare the stoichiometric 1.1705 kg/kg (overall yield 98.2 % of theory,
+    benchmarks/oxygenates.yaml)
+  pedigree:
+    scores: &patent
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'a pilot-scale patent example of 1982: reliability 4 (not verified), completeness 4 (one example),
+      temporal 5 (more than 15 years), geographical 4, technological 4 (pilot, not a plant)'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.05
+    source: 'ASSUMED: the carbonate examples give 1.187 to 1.193 kg/kg for the Second Product by their Table
+      1 flows (Table 2 states 1.19 for each, and 1.18 for the First Product); scale-up is not covered'
+- key: feed:sodium-carbonate
+  title: Sodium carbonate (soda ash), dissolved to a 10.9 wt% solution
+  type: input
+  amount: 551.0
+  unit: kg
+  formula: soda
+  provenance: given
+  origin: literature
+  source: EP 0 064 486 A1 (1982), Table 2, Example 1, Second Product (10 % molar excess)
+  pedigree:
+    scores: *patent
+    reason: 'a pilot-scale patent example of 1982: reliability 4 (not verified), completeness 4 (one example),
+      temporal 5 (more than 15 years), geographical 4, technological 4 (pilot, not a plant)'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.052
+    source: 'soda: carbonate examples 0.498 (no excess) to 0.551 kg/kg read as a 95 % interval, gsd2 = sqrt(high
+      / low) (our convention; the amount stays the stated value)'
+- key: feed:water
+  title: Process water (soda solution and wash water)
+  type: input
+  amount: 6000.0
+  unit: kg
+  formula: (w_hz + w_wz) / p2 * ba
+  provenance: calculated
+  origin: literature
+  link:
+    factor: water
+    source: process water by mass
+  source: EP 0 064 486 A1 (1982), Table 1, Example 1, scaled to the Second Product
+  pedigree:
+    scores: *patent
+    reason: 'a pilot-scale patent example of 1982: reliability 4 (not verified), completeness 4 (one example),
+      temporal 5 (more than 15 years), geographical 4, technological 4 (pilot, not a plant)'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: the examples give 5.4 to 6.0 kg/kg at pilot scale; a plant may recycle wash water'
+- key: feed:electricity
+  title: Electricity
+  type: input
+  amount: 333.3
+  unit: kWh
+  formula: elec
+  provenance: assumed
+  origin: design-rule
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: 'cheme tier-defaults 1.0.0: electricity [ASSUMED]: 1.2 MJ (0.333 kWh) per kg of product, attributed
+    to the Gendorf (2000) site average that the ecoinvent v2-era chemicals proxies used. ASSUMED, not read
+    in either source: Hischier et al. 2005 (p. 61) names the Gendorf (2000) average as the default but prints
+    no value, and the number could not be confirmed in an open copy of Althaus et al. 2007 (ecoinvent report
+    No. 8)'
+  pedigree:
+    scores:
+    - 4
+    - 5
+    - 5
+    - 4
+    - 5
+    rule: 'cheme tier-defaults 1.0.0: electricity'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: a dated site-average default, not specific to this process'
+- key: feed:steam
+  title: Steam, as heat delivered (reactor column and two vacuum columns)
+  type: input
+  amount: 955.0
+  unit: kWh
+  formula: q_r + q_d
+  provenance: given
+  origin: literature
+  source: EP 0 064 486 A1 (1982), Table 3, Example 1, Second Product; the carrier is our reading (see parameters
+    q_r and q_d); gross, no heat recovery credited
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 5
+    reason: 'a pilot-scale patent figure of 1982 whose carrier is not stated: reliability 4, completeness 4,
+      temporal 5, geographical 4, technological 5 (pilot heat losses and integration differ from a plant)'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: the carbonate examples agree within 3 % (0.925 to 0.955 kWh/kg, Examples 1 to 3), but pilot-scale energy
+      can differ by a factor of 2 from a plant'
+- key: output:heavy-ends
+  title: Dibenzyl ether bottoms of the product column
+  type: output
+  amount: 5.5
+  unit: kg
+  formula: dbe_f * ba
+  provenance: given
+  origin: literature
+  source: EP 0 064 486 A1 (1982), Table 1 (continued), Example 1; the bottoms leave as dibenzyl ether (description
+    of Fig. 1). Fate (use as a solvent or plasticiser, or incineration) not stated
+  pedigree:
+    scores: *patent
+    reason: 'a pilot-scale patent example of 1982: reliability 4 (not verified), completeness 4 (one example),
+      temporal 5 (more than 15 years), geographical 4, technological 4 (pilot, not a plant)'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.173
+    source: 'dibenzyl ether: carbonate examples 0.40 to 0.55 wt% read as a 95 % interval, gsd2 = sqrt(high /
+      low) (our convention; the amount stays the stated value)'
+- key: output:organic-residue
+  title: Benzyl alcohol lost (product column bottoms and the brine), to waste treatment
+  type: output
+  amount: 12.833452245895353
+  unit: kg
+  formula: (bc_h / p2 * ba / M_BC - ba / M_BA - 2 * dbe_f * ba / M_DBE) * M_BA
+  provenance: calculated
+  origin: literature
+  source: 'closes the balance: the benzyl chloride not found in the product or the dibenzyl ether, counted as
+    benzyl alcohol (ASSUMED; it includes the 0.10 % unconverted benzyl chloride and the benzaldehyde of the
+    source). The split between the bottoms and the brine is not stated. Cross-check: Table 1 (continued),
+    Example 1 gives 41.0 kg/h First Product and 40.5 kg/h Second Product, so the product column bottoms are
+    about 12 kg/t, of which about 5.6 kg/t is dibenzyl ether; the other 7 kg/t, benzyl alcohol by the
+    patent''s note that such bottoms must hold up to 50 % of it (description of the problem), lie within
+    this residual'
+  pedigree:
+    scores: *patent
+    reason: 'a residual of pilot-scale patent values: reliability 4, completeness 4, temporal 5, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: a residual; the rounding of the two Table 1 flows it rests on (48.3 and 40.5 kg/h, +/- 0.05
+      each) alone moves it by about +/- 2 kg/t, and the Table 2 ratio rounded to 1.19 kg/kg would give 10.6 kg/t'
+- key: output:wastewater
+  title: Spent brine to wastewater treatment (water)
+  type: output
+  amount: 5915.636237089838
+  unit: kg
+  formula: (w_hz + w_wz) / p2 * ba - (bc_h / p2 * ba / M_BC - 2 * dbe_f * ba / M_DBE) / 2 * M_H2O
+  provenance: calculated
+  origin: literature
+  link:
+    factor: wastewater
+    source: site wastewater treatment
+  source: the process water less the water the hydrolysis consumes (2 C7H7Cl + Na2CO3 + H2O -> 2 C7H8O + 2 NaCl
+    + CO2); the drained spent solution of EP 0 064 486 A1 (description of Fig. 1). Its salt is counted by
+    emission:NaCl and emission:Na2CO3
+  pedigree:
+    scores: *patent
+    reason: 'from pilot-scale patent values and stoichiometry: reliability 4, completeness 4, temporal 5, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: follows the process water'
+- key: emission:NaCl
+  title: Sodium chloride in the spent brine, to surface water after treatment
+  type: emission
+  amount: 550.588239424813
+  unit: kg
+  formula: bc_h / p2 * ba / M_BC * M_NACL
+  provenance: calculated
+  origin: literature
+  cas: 7647-14-5
+  source: 'stoichiometry: all chlorine of the benzyl chloride leaves as sodium chloride in the brine; treatment
+    is ASSUMED not to remove it (lci/mappings.yaml biosphere NaCl: dissolved solids)'
+  pedigree:
+    scores: *patent
+    reason: 'stoichiometry on a pilot-scale patent value: reliability 4, completeness 4, temporal 5, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+- key: emission:Na2CO3
+  title: Excess sodium carbonate in the spent brine, to surface water after treatment
+  type: emission
+  amount: 51.720856261489814
+  unit: kg
+  formula: soda - bc_h / p2 * ba / M_BC / 2 * M_SC
+  provenance: calculated
+  origin: literature
+  cas: 497-19-8
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: cfecebe1-1e13-458d-85bc-d40a9f934927
+    name: Dissolved solids
+    categories:
+    - water
+    - surface water
+    unit: kg
+  source: 'the soda fed less the stoichiometric amount (about the 10 % excess of the source); counted 1:1 by
+    mass as dissolved solids, as lci/mappings.yaml counts NaCl and Na2SO4 (biosphere3 as shipped with bw2io,
+    ecoinvent elementary flows 3.9). Neutralisation at the treatment plant, which would release its CO2, is
+    not counted'
+  pedigree:
+    scores: *patent
+    reason: 'stoichiometry on pilot-scale patent values: reliability 4, completeness 4, temporal 5, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: the difference of two close numbers (551 and 499 kg/t)'
+- key: emission:CO2
+  title: CO2 from the reacted carbonate, vented at degassing
+  type: emission
+  amount: 207.31380757055607
+  unit: kg
+  formula: bc_h / p2 * ba / M_BC / 2 * M_CO2
+  provenance: calculated
+  origin: literature
+  cas: 124-38-9
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 349b29d1-3e58-4c66-98b9-9d1a076efd2e
+    name: Carbon dioxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: 'stoichiometry, half a mole of CO2 per mole of benzyl chloride; EP 0 064 486 A1 (description of Fig.
+    1) vents the CO2 to air when the organic phase is let down to atmospheric pressure. Cross-check: IPCC 2006
+    Vol. 3, ch. 2, Table 2.1 (p. 2.7) gives 0.41492 t CO2 per t Na2CO3 for full release, against 0.4152 here;
+    applied to all the soda fed (section 2.5, other uses of soda ash) it gives 229 kg/t, the dataset counts
+    the reacted part only. Carbonate carbon is mineral, counted as fossil. Biosphere3 UUID, name and categories
+    from core''s elementary-flow crosswalk (data/elementary-flows.yaml)'
+  pedigree:
+    scores: *patent
+    reason: 'stoichiometry on a pilot-scale patent value: reliability 4, completeness 4, temporal 5, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.1
+    source: 'ASSUMED: stoichiometric; between the reacted carbonate (207 kg/t) and all carbonate fed (229 kg/t)'
+provenance:
+  generator: hand-written model; amounts are the formulas of the parameters
+  notes: No value from a licensed database (no Ullmann or ecoinvent value). Patents read in full text on Google
+    Patents and the EPO publication server; tables read from the published images.
+generation:
+  tier: 0
+  method: 'Tier 0 screening: a pilot-scale patent example for the feeds, by-product, water and heat, stoichiometry
+    for the brine and the CO2, electricity from core''s default (no Tier 1: electricity is not sourced, and the
+    yield and heat are one pilot example)'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 4
+  - 4
+  - 3
+  - 3
+  - 4
+  dqr_floor: 3.3333
+  components:
+    product:benzyl-alcohol: C7H8O
+    feed:benzyl-chloride: C7H7Cl
+    feed:sodium-carbonate: Na2CO3
+    feed:water: H2O
+    output:heavy-ends: C14H14O
+    output:organic-residue: C7H8O
+    output:wastewater: H2O
+    emission:NaCl: NaCl
+    emission:Na2CO3: Na2CO3
+    emission:CO2: CO2
+  formulas:
+    product:benzyl-alcohol: C7H8O
+    feed:benzyl-chloride: C7H7Cl
+    feed:sodium-carbonate: Na2CO3
+    feed:water: H2O
+    output:heavy-ends: C14H14O
+    output:organic-residue: C7H8O
+    output:wastewater: H2O
+    emission:NaCl: NaCl
+    emission:Na2CO3: Na2CO3
+    emission:CO2: CO2
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      C:
+      - 854.566990001
+      - 854.566990001
+      Cl:
+      - 333.989614778
+      - 333.989614778
+      H:
+      - 737.918060689
+      - 737.918060689
+      Na:
+      - 239.036305997
+      - 239.036305997
+      O:
+      - 5578.081621128
+      - 5578.081621128
+    outside:
+    - feed:electricity
+    - feed:steam
+  defaults: cheme tier-defaults 1.0.0
+  defaults_used:
+  - electricity

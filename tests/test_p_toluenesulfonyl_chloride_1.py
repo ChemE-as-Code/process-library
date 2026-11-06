@@ -4,12 +4,14 @@ Fast, without core: the flowsheet's calculated streams (written by cheme process
 the materials' molar masses and heat capacities are enough to check what the folder states by
 hand (DESIGN.md D-004, D-007, D-009):
 
-- the duties written as hand arithmetic (Q1, Q4, the dilution heat Q10, Q7, Q8, Q9) follow from
-  the streams they name, and the quench jacket's peak with the dilution heat is the one DESIGN.md
-  and the equipment list state;
+- the duties written as hand arithmetic (Q1, Q4, Q7, Q8, Q9) follow from the streams they name;
 - core 1.9.0 (D-014): the models write Q2, Q3 and Q5 at their `energy_port` (calculated, the
-  values a hand Hess path gives), the dilution heat the semi-batch leaves out is its own assumed
-  stream Q10 beside Q5, both to brine, and the split keeps the hand total of 1.8.0;
+  values a hand Hess path gives);
+- core 1.10.0 (D-015): the quench's dose carries the acids' heat of solution (ADR 0063), so
+  Q101's model duty Q5 holds the dilution heat (the hand stream Q10 of 1.9.0 is gone, the total
+  is the hand value of 1.8.0), and with core the recipe's jacket check meets the 190.5 kW peak
+  and the screening's dT_ad holds the heat of solution (14.2 K, not the 11 K of the hand
+  estimate);
 - the vents' stated capacity covers the recipe's normal peak, each vent's source states its own
   basis, and the rate sensitivity's releases at and beyond it (k/10, k/100) are recorded as a
   design finding; with core, the screening itself and the largest cooling-failure release over
@@ -24,12 +26,12 @@ hand (DESIGN.md D-004, D-007, D-009):
 - the property sources cited in the materials and the flowsheet have a register row;
 - the recipe's batch size times its batches per year gives the flowsheet's product rate, the
   1000 t/a of the design basis;
-- the process is not set public, and carries no licence, in the change that adds it
-  (CONTRIBUTING, "Publishing a process").
+- the process is public with CC-BY-4.0, every library entry is (ADR 0036).
 """
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
@@ -87,16 +89,20 @@ def _provenance(model, qid: str) -> str:
 def test_hand_duties_follow_the_streams(model):
     assert _duty(model, "Q1") == pytest.approx(_mcp(model, "S1") * 40 / 3600, rel=0.01)
     assert _duty(model, "Q4") == pytest.approx(_mcp(model, "S9") * 10 / 3600, rel=0.01)
-    s8 = _kmol(model, "S8")
-    dilution = s8["H2SO4"] * 75_000 + (s8["PTSA"] + s8["OTSA"]) * 20_000  # kJ/h
-    assert dilution / 3600 == pytest.approx(16.03, rel=0.01)  # the share D-009 states
-    assert _provenance(model, "Q10") == "assumed"
-    assert _duty(model, "Q10") == pytest.approx(dilution / 3600, rel=0.002)
+
+
+def _q101_dose() -> dict:
+    flowsheet = _yaml("process/flowsheet.yaml")
+    q101 = next(s for s in flowsheet["steps"] if s["id"] == "Q101")
+    (dose,) = q101["batch"]["dosing"]
+    return dose
 
 
 def _dilution_kW(model) -> float:
+    """The dose's heat of solution (D-015): its kmol/h of each component times its kJ/kmol."""
     s8 = _kmol(model, "S8")
-    return (s8["H2SO4"] * 75_000 + (s8["PTSA"] + s8["OTSA"]) * 20_000) / 3600
+    values = _q101_dose()["heat_of_solution"]["values"]
+    return -sum(s8[k] * v for k, v in values.items()) / 3600
 
 
 def test_models_write_their_duties(model):
@@ -111,15 +117,16 @@ def test_models_write_their_duties(model):
         assert _provenance(model, qid) == "calculated", qid
         assert stream["state"]["design"]["duty"]["fingerprint"], qid
     s6, s7, s8 = _kmol(model, "S6"), _kmol(model, "S7"), _kmol(model, "S8")
-    # Q5: Q101's reactions from its extents and the dose S8 cooled from 308 to 288 K, no dilution
+    # Q5: Q101's reactions from its extents, the dose S8 cooled from 308 to 288 K and, since
+    # core 1.10.0, the dose's heat of solution (D-015)
     s12 = _kmol(model, "S12")
     hyd = s8["CSA"] - s12.get("CSA", 0.0)
     amh = s8["AMCS"] - s12.get("AMCS", 0.0)
     tsh = (s8["PTSCL"] - s12["PTSCL"]) + (s8["OTSCL"] - s12["OTSCL"])
     reactions = hyd * 180_000 + amh * 80_000 + tsh * 60_000
-    q5 = (reactions + _mcp(model, "S8") * 20) / 3600
+    q5 = (reactions + _mcp(model, "S8") * 20) / 3600 + _dilution_kW(model)
     assert _duty(model, "Q5") == pytest.approx(q5, rel=0.002)
-    assert _duty(model, "Q5") == pytest.approx(38.920, abs=0.001)
+    assert _duty(model, "Q5") == pytest.approx(54.946, abs=0.001)
     # Q3: Hess's path through the heat's 298.15 K: S6 from 338.15 K and S7 from 298.15 K to it,
     # CHLP and CHLO there, S8 from it to 308.15 K
     chl = (s6["PTSA"] - s8["PTSA"]) + (s6["OTSA"] - s8["OTSA"])
@@ -135,16 +142,25 @@ def test_models_write_their_duties(model):
     assert _duty(model, "Q2") == pytest.approx(23.339, abs=0.001)
 
 
-def test_quench_duty_split_keeps_the_dilution_heat(model):
-    """D-014: the hand Q5 of 1.8.0 (54.948 kW) held the dilution heat the semi-batch leaves out
-    (L-2); it is split into the model's Q5 and the assumed Q10, both from Q101 to brine."""
+def test_quench_dose_carries_the_heat_of_solution(model):
+    """D-015 (core 1.10.0, ADR 0063): the acids' dilution heat is the dose's heat_of_solution,
+    the ASSUMED -75 kJ/mol of H2SO4 and -20 kJ/mol of the toluenesulfonic acids of D-005, so
+    Q101's model duty Q5 holds it; the hand stream Q10 of 1.9.0 and its ports are gone, and Q5
+    is the hand total of 1.8.0 (54.948 kW) and of 1.9.0's Q5 + Q10 (38.920 + 16.026 kW)."""
     _, streams = model
-    assert streams["Q10"]["from"] == "Q101.dil" and streams["Q10"]["to"].startswith("BRINE.")
-    assert streams["Q5"]["to"].startswith("BRINE.")
-    assert _duty(model, "Q5") + _duty(model, "Q10") == pytest.approx(54.948, abs=0.005)
-    assert _duty(model, "Q10") == pytest.approx(_dilution_kW(model), rel=0.002)
-    source = streams["Q10"]["state"]["design"]["duty"]["source"]
-    assert "leaves out" in source and "L-2" in source
+    heat = _q101_dose()["heat_of_solution"]
+    assert heat["values"] == {"H2SO4": -75_000, "PTSA": -20_000, "OTSA": -20_000}
+    assert heat["provenance"] == "assumed" and "L-2" in heat["source"]
+    assert _dilution_kW(model) == pytest.approx(16.026, abs=0.002)
+    assert "Q10" not in streams
+    assert not [s for s in streams.values() if "dil" in s.get("from", "") + s.get("to", "")]
+    assert streams["Q5"]["from"] == "Q101.q" and streams["Q5"]["to"].startswith("BRINE.")
+    assert _duty(model, "Q5") == pytest.approx(54.948, abs=0.005)
+    assert _duty(model, "Q5") - _dilution_kW(model) == pytest.approx(38.920, abs=0.002)
+    flowsheet = _yaml("process/flowsheet.yaml")
+    ports = [p["id"] for b in flowsheet["blocks"] for p in b["ports"]]
+    ports += [p["id"] for t in flowsheet["products"] for p in t.get("ports", [])]
+    assert "chw_dil" not in ports and "q101dil" not in ports
 
 
 def _temperature(model, sid: str) -> float:
@@ -163,24 +179,31 @@ def _text(rel: str) -> str:
 
 
 def test_quench_jacket_peak_with_the_dilution_heat(model):
-    """D-003: the dilution share of Q5 released over Q101's 4 h dosing, on top of the model's
-    135 kW peak (`cheme process recipe`)."""
+    """D-003, D-015: the dose's heat of solution released over Q101's 4 h dosing (the 55.5 kW of
+    the hand margin of 1.9.0) on top of the model's 135 kW without it (the reactions and the dose
+    S8 cooled from 308 to 288 K): 190.5 kW, which the recipe's jacket check now takes from the
+    model, against the 210 kW the brine jacket removes."""
     recipe = _yaml("process/recipe.yaml")
-    flowsheet = _yaml("process/flowsheet.yaml")
-    q101 = next(s for s in flowsheet["steps"] if s["id"] == "Q101")
-    dosing_s = q101["batch"]["dosing"][0]["time"]
-    s8 = _kmol(model, "S8")
-    dilution_kJ_h = s8["H2SO4"] * 75_000 + (s8["PTSA"] + s8["OTSA"]) * 20_000
+    dosing_s = _q101_dose()["time"]
     batches = 126.263 * recipe["hours_per_year"]["value"] / recipe["batch_size"]["value"]
     cycle_h = recipe["hours_per_year"]["value"] / batches
-    peak = dilution_kJ_h * cycle_h / dosing_s
+    peak = _dilution_kW(model) * 3600 * cycle_h / dosing_s
     assert peak == pytest.approx(55.5, abs=0.1)
-    assert _duty(model, "Q10") * 3600 * cycle_h / dosing_s == pytest.approx(peak, rel=0.002)
     assert 135 + peak == pytest.approx(190.5, abs=0.2)
     for rel in ("DESIGN.md", "equipment/equipment-list.yaml"):
-        text = _text(rel)
-        assert "55.5 kW" in text and "190.5 kW" in text, rel
+        text = " ".join(_text(rel).split())
+        assert "190.5 kW" in text and "210" in text, rel
         assert "189 kW" not in text and "54 kW" not in text, rel
+        assert "plus about 55.5 kW" not in text, rel  # no longer a hand margin
+    pytest.importorskip("chemeascode")
+    from chemeascode.domains.process.recipe import recipe_report
+
+    result = recipe_report(PROCESS)
+    vessel = next(v for v in result.vessels if v.procedure == "QUENCH")
+    assert vessel.peak_duty == pytest.approx(190.5, abs=0.1)
+    assert vessel.removable == pytest.approx(210.3, abs=0.1)
+    assert vessel.peak_duty < vessel.removable
+    assert not [f for f in result.findings if f.level in ("warning", "error")]
 
 
 def test_every_energy_flow_reaches_the_brine(model):
@@ -194,7 +217,7 @@ def test_every_energy_flow_reaches_the_brine(model):
     assert _duty(model, "Q9") == pytest.approx(_mcp(model, "S31") * 20 / 3600, rel=0.005)
     assert _temperature(model, "S31") - _temperature(model, "S32") == pytest.approx(20)
     brine = [s for s in streams.values() if s.get("kind") == "energy" and s["to"].startswith("BRINE.")]
-    assert {s["id"] for s in brine} == {"Q4", "Q5", "Q8", "Q9", "Q10"}
+    assert {s["id"] for s in brine} == {"Q4", "Q5", "Q8", "Q9"}  # Q5 with the dilution, D-015
     per_kg = sum(s["state"]["design"]["duty"]["value"] for s in brine) / 126.263
     assert per_kg == pytest.approx(0.811, abs=0.001)  # D-012, process.yaml
     inventory = {
@@ -205,7 +228,9 @@ def test_every_energy_flow_reaches_the_brine(model):
     assert "not counted" not in washw["missing"]
     assert "0.811 kWh" in _text("process.yaml") and "0.811 kWh" in _text("DESIGN.md")
     lca_brine = next(f for f in _yaml("lca/lca.yaml")["flows"] if f["key"] == "product:BRINE")
-    assert "Q10" in lca_brine["source"] and "Q10" in inventory["product:BRINE"][-1]
+    assert "Q5" in lca_brine["source"] and "dilution" in lca_brine["source"]
+    for text in (lca_brine["source"], inventory["product:BRINE"][-1]):
+        assert not re.search(r"\bQ10\b", text)  # Q101 is the quench, Q10 the removed stream
 
 
 def test_cooling_water_per_kg_as_stated(model):
@@ -329,6 +354,15 @@ def test_core_screens_the_gas_release_against_the_vent():
         assert entry.mtsr == pytest.approx(mtsr, abs=0.01), node
         assert entry.mtt == pytest.approx(mtt, abs=0.01), node
     assert not [f for f in report.findings if f.level in ("warning", "error")]
+    # core 1.10.0 (ADR 0063, D-015): Q101's dT_ad holds the dose's heat of solution, 14.2 K over
+    # HYD's 24.9 K (the hand estimate of 1.9.0 said about 11 K), and the MTSR does not
+    q101 = entries["Q101"]
+    assert q101.heat_of_solution["adiabatic_rise_K"] == pytest.approx(14.2, abs=0.05)
+    assert q101.heat_of_solution["in_mtsr"] is False
+    assert q101.heat_of_solution["kJ_per_hour_of_flows"] == pytest.approx(57_694, rel=0.001)
+    assert q101.per_reaction["HYD"]["adiabatic_rise"] == pytest.approx(24.9, abs=0.05)
+    assert q101.adiabatic_rise == pytest.approx(39.1, abs=0.05)
+    assert entries["R101"].heat_of_solution is None
     # the largest release over the batch, with the margin DESIGN.md states (D-011, D-014)
     process, _ = load(PROCESS)
     capacity = {n: _hazard(n)["vent_capacity"] for n in ("R101", "Q101")}
@@ -343,10 +377,15 @@ def test_core_screens_the_gas_release_against_the_vent():
     assert m3_h / share / capacity["Q101"] == pytest.approx(0.94, abs=0.005)
 
 
-def test_requires_core_1_9():
+def test_requires_core_1_10():
+    """A dose's heat_of_solution needs core 1.10.0 (ADR 0063, D-015)."""
     plant = _yaml("plant.yaml")
-    assert plant["requires"] == "cheme-as-code>=1.9"
-    assert "1.9.0" in _text("README.md") and "cheme-as-code 1.9.0" in _text("process.yaml")
+    assert plant["requires"] == "cheme-as-code>=1.10"
+    assert "heat_of_solution" in _text("plant.yaml")
+    assert "1.10.0" in _text("README.md") and "cheme-as-code 1.10.0" in _text("process.yaml")
+    design = _text("DESIGN.md")
+    assert "## Core features used (cheme-as-code 1.10.0)" in design
+    assert "L-2 (resolved in core 1.10.0)" in design
 
 
 def test_sources_name_the_right_equipment(model):
@@ -410,7 +449,6 @@ def test_recipe_basis_gives_1000_t_per_year(model):
     assert batches == pytest.approx(571.8, abs=0.1)  # D-003
 
 
-def test_not_published_in_the_change_that_adds_it():
+def test_published_public_with_cc_by():
     publication = _yaml("process.yaml")["publication"]
-    assert publication["status"] == "internal"
-    assert "license" not in publication
+    assert publication == {"status": "public", "license": "CC-BY-4.0"}

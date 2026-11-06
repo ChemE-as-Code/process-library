@@ -27,15 +27,15 @@ description: |
   per kg product) is neutralised in a caustic scrubber; 12.6 kg of dilute waste acid (8 wt%
   H2SO4, 2 wt% HCl) per kg product goes to neutralisation.
 
-  The batch is modelled with cheme-as-code 1.9.0: the chlorosulfonator R101 and the quench Q101
+  The batch is modelled with cheme-as-code 1.10.0: the chlorosulfonator R101 and the quench Q101
   are semi-batches (reactor: semibatch) with an HCl vent (batch.vent, core ADR 0054); the
   precipitation and the two reslurry washes are crystallizers with the liquor's other solutes
   as spectators (core ADR 0056); the Nutsche filter is one recipe vessel over five steps with
   Ruth filtration times and the paddle dryer core's dryer to a residual moisture (core ADR 0057).
   The recipe gives the cycle (13.85 h, R-101 the bottleneck, 571.8 batches a year), sizes the
   vessels, checks the jackets and reports the scrubber load per batch (657 kg HCl). The heats of
-  R101, R102 and Q101 come from their models (core ADR 0059); the quench's dilution heat, which
-  the model leaves out, is a stream of its own. Kinetics and heats of reaction are ASSUMED (no
+  R101, R102 and Q101 come from their models (core ADR 0059), the quench's with the dilution heat
+  of the dosed acids (a dose's heat of solution, core ADR 0063). Kinetics and heats of reaction are ASSUMED (no
   open data): the sulfonation accumulates 1.7 % of the toluene and its cooling-failure
   temperature reaches 343.6 K against an MTT of 383.75 K (toluene's boiling point), with 60 m3/h
   of HCl released against a vent of 150 m3/h (core ADR 0058); a 100 times slower rate would
@@ -60,15 +60,15 @@ validation:
     as crystallizers with spectators on an ASSUMED solubility with no salting-out correction, the
     filters as specified splits, the dryer D101 to an ASSUMED residual moisture with its heat from
     cheme's dryer model. The feeds are sized by hand for 1000 t/a (the outlets scale with them);
-    the duties of R101, R102 and Q101 are written by the models (core ADR 0059), the dilution
-    heat in the quench that the model leaves out is its own ASSUMED stream Q10, and the other
-    duties are hand arithmetic from the stream table. The recipe takes the
+    the duties of R101, R102 and Q101 are written by the models (core ADR 0059), Q101's with the
+    ASSUMED heat of solution of the dosed acids (core ADR 0063), and the other duties are hand
+    arithmetic from the stream table. The recipe takes the
     dosing, post-reaction, heating, cooling, filtration and drying times from the models (cheme
     process recipe, no cheme.recipe-basis or cheme.recipe-jacket finding). Thermal screening
     (cheme process reactor-hazards): R101 dT_ad 238 K, accumulation 1.7 %, MTSR 343.6 K against
     an MTT of 383.75 K; a cooling failure's HCl up to 145.5 m3/h at the end of the salt addition
     (60.3 m3/h at the MTSR) against an ASSUMED vent capacity of 150 m3/h, about 3 % margin;
-    Q101 dT_ad 24.9 K, MTSR 298.2 K against 373.1 K, 14.1 m3/h of HCl at the end of the dosing
+    Q101 dT_ad 39.1 K (14.2 K of it the dosed acids' heat of solution), MTSR 298.2 K against 373.1 K, 14.1 m3/h of HCl at the end of the dosing
     (the ASSUMED 10 % vented share; all of it about 141 m3/h); no criticality class without a
     TD24 from calorimetry (never estimated). The kinetics are assumed: at k/10 R101's release
     reaches the vent's capacity (150 m3/h), at k/100 its MTSR is 420 K and its HCl 1302 m3/h, 8.7
@@ -93,7 +93,7 @@ chemistry:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.193 kWh/kg p-TsCl: agitators of R-101, Q-101 and F-101, the paddle dryer, vacuum pump, scrubber pump and fan (ASSUMED)"}
     - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.340 kWh (1.22 MJ)/kg p-TsCl of LP steam: R-101's heat-up and the dryer's hot-water circuit (cheme's dryer model, the vessel's heat each batch included)"}
     - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.610 kWh/kg p-TsCl removed by cooling water: the heat of sulfonation, the cool-down to 308 K and the scrubber (the caustic's ASSUMED dilution heat included)"}
-    - {chemical: chilled-water, role: utility, inventory_key: "product:BRINE", note: "0.811 kWh/kg p-TsCl removed by brine at 258 K: the heel cooled, the quench heat (Q101's model) and the dilution heat (0.127 kWh), the dryer's vacuum condenser (0.202 kWh) and the wash water chilled to 278 K (0.094 kWh) (the registry has chilled water, not brine: closest entry)"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:BRINE", note: "0.811 kWh/kg p-TsCl removed by brine at 258 K: the heel cooled, the quench heat with the dosed acids' dilution heat (Q101's model, 0.435 kWh, of it 0.127 kWh the dilution), the dryer's vacuum condenser (0.202 kWh) and the wash water chilled to 278 K (0.094 kWh) (the registry has chilled water, not brine: closest entry)"}
 basis:
   capacity: "1000 t/a dried p-TsCl: 571.8 batches/a of 1748.95 kg in 7920 h on a dedicated train (126.26 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-013)"
   operating_hours_per_year: 7920
@@ -112,4 +112,5 @@ repository:
   path: processes/p-toluenesulfonyl-chloride-1
   access: public
 publication:
-  status: internal
+  status: public
+  license: CC-BY-4.0
