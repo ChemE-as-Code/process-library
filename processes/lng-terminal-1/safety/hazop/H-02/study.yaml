@@ -30,7 +30,15 @@
 # command discrepancy alarm on ZSC-2123 / ZSC-3123; P-2102 / P-3102 left running on ESD-1 by stated
 # reason; the idle-berth link mode; and, from the layout (D-033, not an analysed input), the trough
 # starting at the PR6 joint, no PR2 trough, the enclosed channels removed, drip trays at XV-3123 and
-# the trough-side thermal reliefs, the basin T-8101 moved and deepened). Every entry is a proposal for
+# the trough-side thermal reliefs, the basin T-8101 moved and deepened), then to those of commit
+# aedd8dbd (DESIGN.md D-034: the DN 800 platform crossover LNG-4010 with its ESD valve XV-4107 /
+# UZ-4107 opened in SEQ-LOAD S0 and closed by ESD-1 of either berth and in SEQ-HOLD, XV-4103 the
+# DN 250 holding bypass closed in loading, the loading pumps re-rated to 191 m / 835 kPa with a
+# 15 barg design, the carrier return envelope 52.5 t/h, the berth O2 analysers on the arm side of
+# XV-n122 with the I-n14 reset permitted on them and I-n11 / I-n12 blocked for 30 min after it,
+# the governing spill flows of D-034.3; and DESIGN.md D-035 from the layout, not an analysed input:
+# the platform header bay holding XV-4107, XV-4103 and the junction drops, rack PR9 with passive
+# fire protection, T-8101 19.5 m deep for 2,400 m3, T-8102 13 m deep). Every entry is a proposal for
 # the team: status proposed.
 schema: cheme/hazop-study/v1
 kind: hazop-study
@@ -41,7 +49,8 @@ scope: >-
   check valves and minimum-flow returns, the circulation pumps P-2102 / P-3102 and the
   circulation header LNG-2002 / LNG-3002 (P-02, P-03), and the trestle lines on P-04: loading
   lines LNG-4001 / LNG-4002 (~2.45 km) with FV-4101/FV-4102 and the tank-end ESD valves
-  XV-4101/XV-4102, the crossovers LNG-4006 (XV-4106) and LNG-4003 (XV-4103), the circulation
+  XV-4101/XV-4102, the crossovers LNG-4006 (XV-4106) and LNG-4003 (XV-4103) and, since aedd8dbd,
+  the DN 800 platform crossover LNG-4010 with its ESD valve XV-4107 (node N4), the circulation
   return LNG-4005 / LNG-4009 (XV-4105, XV-2123, XV-3123), the desuperheater spray take-off
   LNG-4008 and the vapour return lines BOG-4001 / BOG-4002 with, since 589c9ca7, their
   de-inerting switching to the flare (XV-4131 / XV-4135, XV-4132 / XV-4136, AI-4133 / AI-4134,
@@ -52,18 +61,18 @@ scope: >-
   pressure in H-01. Not covered: trestle structure, expansion loops, supports, drip trays and
   low-point drains (not drawn at this revision, D-021).
 modes:
-  - {id: holding, title: Holding, description: "No carrier: P-2102 (or P-3102) circulates ~314 m3/h out on line A, through the platform crossover XV-4103 and back on line B to the tanks (D-008, SEQ-HOLD)."}
-  - {id: loading, title: Loading, description: "Four loading pumps of one tank (or any four) send 12,000 m3/h through both trestle lines (6,000 m3/h each, FIC-4101/FIC-4102) to one berth (D-011, SEQ-LOAD)."}
+  - {id: holding, title: Holding, description: "No carrier: P-2102 (or P-3102) circulates ~314 m3/h out on line A, through the DN 250 platform crossover XV-4103 and back on line B to the tanks (D-008, SEQ-HOLD); since aedd8dbd the DN 800 crossover XV-4107 is closed in holding (SEQ-HOLD S1, D-034)."}
+  - {id: loading, title: Loading, description: "Four loading pumps of one tank (or any four) send 12,000 m3/h through both trestle lines (6,000 m3/h each, FIC-4101/FIC-4102) to one berth (D-011, SEQ-LOAD); since aedd8dbd line B reaches Berth 2 (line A Berth 1) through the DN 800 platform crossover XV-4107, XV-4103 closed, and the pumps are rated 3,000 m3/h at 191 m (D-034)."}
   - {id: cooldown, title: Cooldown, description: "Cooldown of the trestle lines from warm (commissioning, after a long outage) and of the arms and berth header at 500 m3/h (SEQ-LOAD S3)."}
   - {id: startup, title: Start-up and shutdown, description: "Pump start and stop, ramp-up and topping-off (SEQ-LOAD S4, S5), ESD-1 and its reset (SEQ-ESD), restart of the circulation (SEQ-HOLD)."}
 analysed:
   - {path: pid/P-02.xml, revision: 'sha256:2e2b6061eda04d17c9380f54aeee96a5c0e24a03fd7736fe3137851bf9689d98', relation: analyses}
   - {path: pid/P-03.xml, revision: 'sha256:92f4e207112930c90e2fbf6bbd931bd61bf64bdce7e166a096f717c023786884', relation: analyses}
-  - {path: pid/P-04.xml, revision: 'sha256:653d9da188ddd004816d9ff38de890d40b3a7d82685f185407385e847619be65', relation: analyses}
-  - {path: control/cause-effect.yaml, revision: 'sha256:d6f4c1bfe3a9166fcec401f84958bc92ae1d809564a21ce05033f7502d6bf2ba', relation: analyses}
+  - {path: pid/P-04.xml, revision: 'sha256:10b22f9ab36d930d4cd1af508e605e287191b4caacff8d5f895135cada750459', relation: analyses}
+  - {path: control/cause-effect.yaml, revision: 'sha256:83d4914a16eae9ade3d90c6e88616c0aec67a2490be322ef7ecc3530fbf47185', relation: analyses}
   - {path: control/loops.yaml, revision: 'sha256:a7417294d1288704b77fac600cc7963a95b21a3dcaa295aef23e52e0cf9a7b30', relation: analyses}
-  - {path: control/sequences.yaml, revision: 'sha256:85a39deac075a36e4e13b0180df761829fc6356c085352f1fed5189727f45291', relation: analyses}
-  - {path: piping/special-items.yaml, revision: 'sha256:a309ebb57ed8ea9d766ac0a5eb0ccd1e773d2c01ce01784fc0800b254fadce04', relation: analyses}
+  - {path: control/sequences.yaml, revision: 'sha256:8f8a1985a69053114a6f1170f2a9d984749fef7affd4f888e4b54c22892769ac', relation: analyses}
+  - {path: piping/special-items.yaml, revision: 'sha256:694a02f0585b8b21d5067e857062362ea391b8a53759a0a6acca95f08e510597', relation: analyses}
 risk_matrix: safety/risk-matrix.yaml
 assessment_basis: >-
   Each scenario is rated per category before its safeguards (initial): severity is the credible
@@ -91,7 +100,16 @@ assessment_basis: >-
   scenario S25 (the O2 reject at the berth switching the vapour return to the tanks during a
   de-inerting or gassing-up) before safeguards only; the existing codes are kept, and the texts on
   the transfer state, the O2 analysers and the D-026.1 bound, the I-205 / I-305 timer, the
-  circulation pump on ESD-1 and the tank-area spill collection are corrected in place.
+  circulation pump on ESD-1 and the tank-area spill collection are corrected in place. The
+  revision for commit aedd8dbd (D-034, D-035) rates the new scenarios S26 (the 30 min post-reset
+  hold of I-n11 / I-n12 sending the gassing-up return to the tanks), S27 (the re-rated loading
+  pumps' pressure against the 10 barg circulation pumps and the shut-off margin of the lines) and,
+  in the new node N4 for the platform crossovers, S28 (XV-4107 closing during a loading), S29 (a
+  leak at the platform end upstream of a shore ESD valve fed by the trestle line behind it) and S30
+  (XV-4107 failing to close or XV-4103 open, so both lines feed it) before safeguards only; the
+  existing codes are kept, and the texts on the pump rating, the platform crossover, the carrier
+  return envelope, the berth analyser position and the tank-area spill basis are corrected in
+  place.
 team: []            # to be named by the project; no team has sat on this draft yet
 notes: >-
   Drafted by an agent (skills hazop-study, hazop-equipment-causes, relief-scenarios,
@@ -102,13 +120,21 @@ nodes:
   - id: N1
     title: In-tank loading pumps P-2101A..D (P-3101A..D), columns and minimum-flow returns
     design_intent: >-
-      Each submerged-motor pump delivers up to 3,000 m3/h at ~132 m (577 kPa differential)
-      through its column and check valve CV2121A..D into the header LNG-2001 (LNG-3001), DN 800, to
+      Each submerged-motor pump delivers up to 3,000 m3/h at ~191 m (835 kPa differential; ~132 m
+      / 577 kPa until aedd8dbd) through its column and check valve CV2121A..D into the header LNG-2001 (LNG-3001), DN 800, to
       loading line A (B); FIC-2111A..D keep each pump above 900 m3/h by returning LNG through
       FV-2111A..D (fail open) and LNG-2021..2024 into the tank (D-011). Since 589c9ca7 each
       column has an isolation valve HV-2151A..D downstream of its check valve and a vent / N2
       purge HV-2161..HV-2164 (vendor to confirm), and the header LNG-2001 (LNG-3001) has its
-      thermal relief PSV-2141 (PSV-3141) into the tank (D-025 item 2).
+      thermal relief PSV-2141 (PSV-3141) into the tank (D-025 item 2). Since aedd8dbd (D-034 item
+      1, review 2026-11-05-basic-design-7 #1; equipment list, datasheets): each pump is rated
+      3,000 m3/h at ~191 m (835 kPa differential, the governing line-up T-3101 alone to Berth 1 of
+      the recorded hydraulics, was ~132 m / 577 kPa), ~930 kW shaft, design pressure 15 barg for
+      the shut-off head (ASSUMED 1.25 x rated) plus the submergence (was 10 barg); the loading pump
+      discharge S2 / S7 is 949.5 kPa(a) at loading (flowsheet, D-034), so every line-up reaches
+      6,000 m3/h on both FIC-4101 and FIC-4102 with at least 25 kPa across the throttling valve.
+      The circulation pumps P-2102 / P-3102 (60 m, 377 kPa(a) discharge, design 10 barg) are not
+      re-rated (S27).
     members: [P-2101A, P-2101B, P-2101C, P-2101D, P-3101A, P-3101B, P-3101C, P-3101D, LNG-2001, LNG-2012, LNG-2013, LNG-2014, LNG-3001, FIC-2111A, FV-2111A, FIC-2111B, FIC-2111C, FIC-2111D, PI-2117, PI-3117, LNG-2021, HV-2151A, HV-2151B, HV-2151C, HV-2151D, HV-2161, HV-2162, HV-2163, HV-2164, PSV-2141, LNG-2031, PSV-3141, LNG-3031]
     status: proposed
     by: agent
@@ -133,6 +159,12 @@ nodes:
             actions: [A1]
             status: proposed
             by: agent
+            notes: >-
+              Revised for aedd8dbd (D-034 item 1): the pumps are re-rated to 191 m and ~930 kW, so a
+              dead-headed pump heats its column faster than at ~640 kW, and its shut-off pressure
+              is higher (S27); since aedd8dbd the closed discharge may also be XV-4107 closing at
+              the platform while line B carries half the berth flow (S28). The minimum-flow
+              control SG1 and the cause class are unchanged. Codes kept.
             risk:
               initial:
                 - {category: asset, severity: "3", likelihood: C, status: proposed, by: agent, basis: "In-tank pump damage, pump pulled through its column; matrix 3 = plant down for weeks (for that pump). C: blocked discharges occur several times in the plant life.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 4255ea3f73fe5efe, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '3', likelihood: C}}}
@@ -180,6 +212,50 @@ nodes:
               Revised for 589c9ca7 (D-025 items 2, 3): the blocked-in sections now have thermal
               relief; this answers A2 for this scenario. The spray line LNG-4008 behind TV-7103 is
               not named among the new relief cases: the team to confirm it is covered.
+      - id: N1-HP2
+        guide_word: more
+        parameter: pressure (loading pump discharge against the circulation pumps and the line design)
+        description: Created by the re-rating of the loading pumps to 191 m / 835 kPa with a 15 barg design in aedd8dbd (D-034 item 1), the circulation pumps keeping their 10 barg design.
+        scenarios:
+          - id: S27
+            cause: >-
+              The loading pumps raise loading line A to their discharge pressure, 949.5 kPa(a) at
+              the pump header at loading (S2 / S7, D-034), and, dead-headed on a closed discharge
+              (S1), to their shut-off, ASSUMED 1.25 x the rated 835 kPa: about 11 barg at the
+              header (agent estimate from S2, the rating and the 1.25 factor of the equipment list,
+              about 3 bar above the shut-off of the 132 m pumps). The circulation header LNG-2002
+              (LNG-3002) joins line A, so in loading the circulation pump's column check valve
+              CV2122 (CV3122) holds that pressure against P-2102 (P-3102), whose discharge is 377
+              kPa(a) at 60 m and whose design is 10 barg (equipment list, datasheet), not re-rated:
+              the check valve passes or sticks open, or P-2102 is stopped with its column open to
+              LNG-2002; the desuperheater spray LNG-4008 is then fed back from line A (H-04 A7).
+            consequence: >-
+              Reverse flow through the circulation pump into the tank (reverse rotation, as S2), and
+              its column and casing at the loading line pressure plus the column static, about 11
+              barg at the pump in normal loading and about 13 barg at the loading pumps' shut-off
+              (agent estimates), above their 10 barg design: a column joint or head flange leak at
+              the tank roof, damage of the pump that keeps the holding circulation. PSV-2142
+              (PSV-3142) at 15 barg protects LNG-2002, not a 10 barg pump. The shut-off on the
+              closed lines stays inside their 15 barg design, but the margin left for a surge on
+              top (D-023 (1), (4), (5); S11, S22, H-03 S1, S29) is about 3 bar less than before.
+            refs: [P-2102, P-3102, LNG-2002, LNG-3002, {sheet: P-02, object: CV2122}, PSV-2142, PSV-3142, LNG-4008, P-2101A, LNG-2001, LNG-4001]
+            modes: [loading, cooldown]
+            safeguards: [SG4, SG8]
+            actions: [A24]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "2", likelihood: C, status: proposed, by: agent, basis: "Circulation pump damaged by reverse rotation or overpressure; the other tank's circulation pump remains (SG4); matrix 2 = plant down for days. C: a check valve passing while the loading pumps run, several times in the plant life (as S2).", evidence: [equipment/equipment-list.yaml, equipment/datasheets/P-2102.yaml, piping/line-list.yaml, DESIGN.md D-034], band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b67377b30017f4a1, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '2', likelihood: C}}}
+                - {category: people, severity: "3", likelihood: A, status: proposed, by: agent, basis: "LNG leak at the column head on the tank roof from a column above its design pressure; matrix 3 = lost-time injury. A: needs the check valve to pass and the column to fail at a pressure within its test margin, not expected in the plant life.", evidence: [equipment/equipment-list.yaml, DESIGN.md D-034], band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 685801769647b603, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: A}}}
+            notes: >-
+              New scenario for aedd8dbd (D-034 item 1). The pressures are agent estimates from the
+              files (S2 / S7 949.5 kPa(a), the 835 kPa rating, the ASSUMED 1.25 x shut-off, a ~54 m
+              column); the vendor's curves replace them. The equipment list re-rates the eight
+              loading pumps to 15 barg and leaves P-2102 / P-3102 at 10 barg; whether the circulation
+              pumps, their columns and CV2122 / CV3122 are designed for the loading line pressure is
+              for the team (A24). FV-2112 (SG8) keeps P-2102 on its minimum flow against the closed
+              check valve; it does not limit the back-pressure. The bands are proposed for the team.
       - id: N1-OT
         guide_word: other-than
         parameter: start-up condition
@@ -231,7 +307,15 @@ nodes:
       time raises a discrepancy alarm; ESD-1 does not stop P-2102 / P-3102 (the closure against
       500 m3/h gives ~150 kPa even if instant, the pump runs on its fail-open minimum flow, and it
       keeps the spray and the holding circulation); an idle berth no longer trips ESD-1 through its
-      link or its stowed arms, so it does not stop holding (D-016).
+      link or its stowed arms, so it does not stop holding (D-016). Since aedd8dbd (D-034 item 1):
+      XV-4103 is the DN 250 holding bypass (500 m3/h at 2.7 m/s), opened in SEQ-HOLD S1 and closed
+      in SEQ-LOAD S0; the DN 800 platform crossover XV-4107 is closed in SEQ-HOLD S1 (its completion
+      checks XV-4107 closed; XV-4103 open is not a completion condition, only the TI-4102 return
+      temperature shows the loop flowing) and opened in SEQ-LOAD S0 (N4); in holding both lines stay
+      joined at the platform through XV-4103, so a leak at the platform end is fed by both (D-034.3,
+      S29). Since the idle-berth link mode ends by itself (D-034 item 5), unstowing an arm at an
+      idle berth without a carrier's link trips that berth's ESD-1, which closes XV-4101 / XV-4102 /
+      XV-4107 and stops holding (H-03 S30).
     members: [P-2102, P-3102, FIC-2112, FV-2112, FIC-3112, LNG-2002, LNG-3002, LNG-4003, XV-4103, LNG-4005, LNG-4009, XV-4105, XV-2123, XV-3123, XV-4106, TI-4102, TI-4103, TI-4104, PSV-2142, LNG-2032, PSV-3142, PSV-4114, BOG-4016, HV-2152, HS-2123, HS-3123, ZSC-2123, ZSC-3123]
     modes: [holding]
     status: proposed
@@ -278,7 +362,12 @@ nodes:
               XV-4101 / XV-4102 and so stops holding; the idle berth's link in its 'no carrier
               connected' mode and its stowed arm switches are no longer causes of it, while a false
               'not closed' of ZSC-5101 / ZSC-6101 at an idle berth now is (H-03 S31). The cause class
-              is unchanged. Codes kept.
+              is unchanged. Codes kept. Revised for aedd8dbd (D-034 items 1, 5; SEQ-HOLD S1): the
+              holding return now passes the DN 250 XV-4103, which SEQ-LOAD S0 closes for every
+              loading, so a SEQ-HOLD after a loading that does not reopen it leaves P-2102 on its
+              minimum flow (S9) and the lines warming until the TI-4102 completion times out (4 h);
+              an arm unstowed at an idle berth without a carrier's link now ends its link mode and
+              trips its ESD-1 (H-03 S30), another stop of holding. Same cause class. Codes kept.
             risk:
               initial:
                 - {category: people, severity: "3", likelihood: C, status: proposed, by: agent, basis: "Hammer or bowing failure of a flange on the trestle, LNG release; matrix 3 = lost-time injury. C: circulation pump trips are expected several times in the plant life.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b6fe1208a949a698, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: C}}}
@@ -462,10 +551,11 @@ nodes:
   - id: N3
     title: Trestle loading lines LNG-4001 / LNG-4002 and vapour return lines BOG-4001 / BOG-4002
     design_intent: >-
-      Carry 6,000 m3/h each (3.4 m/s, ~91 kPa over 2.45 km) from the tank-end control valves
+      Carry 6,000 m3/h each (3.4 m/s, ~91 kPa over 2.45 km at basic; ~147 kPa over the routed
+      trestle with its expansion loops since aedd8dbd, D-034) from the tank-end control valves
       FV-4101 / FV-4102 (fail last) and ESD valves XV-4101 / XV-4102 to the berth headers; thermal
       relief PSV-4111 / PSV-4112 into the vapour return lines; return the carrier's vapour (up to
-      45.6 t/h) through BOG-4001 / BOG-4002 to the tank vapour header (D-008, D-009). Since
+      45.6 t/h; the envelope is 52.5 t/h since aedd8dbd, ~11 m/s, D-034) through BOG-4001 / BOG-4002 to the tank vapour header (D-008, D-009). Since
       589c9ca7 the carrier's de-inerting and cool-down vapour is switched at the tank end to the
       storage and loading flare: AI-4133 (AI-4134) and I-511 (I-611) open XV-4131 (XV-4132) to
       BOG-4013 (BOG-4014) and only then close XV-4135 (XV-4136), make-before-break, so that the
@@ -523,7 +613,18 @@ nodes:
       vol % O2 plus the slug that passes the berth before the vapour isolations close (~40 s, at
       most ~200 m3, up to air), together at most ~100 m3 of O2, below 0.25 vol % in more than
       40,000 m3 of tank vapour space (all ASSUMED), and the slug never reaches the flare; ESD-1 does
-      not stop P-2102 / P-3102.
+      not stop P-2102 / P-3102. Since aedd8dbd (D-034 items 1, 4; C&E I-501 / I-601, I-511 / I-512,
+      I-514; SEQ-LOAD S0, S1, S3, S4; SEQ-HOLD; SEQ-ESD): line B reaches Berth 2 (line A Berth 1)
+      through the DN 800 platform crossover LNG-4010 / XV-4107 (N4), which ESD-1 of either berth
+      closes with XV-4101 / XV-4102 after the pumps have stopped, so after a trip the two lines are
+      separated at the platform; the berth analysers AI-5126 / AI-6126 sample the vapour arm side of
+      XV-5122 / XV-6122 (BOG-5001 / BOG-6001 S1), so after an O2 reject they still read the carrier's
+      vapour, I-514 / I-614 are reset only once both cells read below 5 vol %, and for 30 min after
+      the reset (ASSUMED, 1.5 line volumes of the ~1,100 m3 return at a gassing-up return of at least
+      ~0.9 m3/s, agreed with the carrier) and while AI-4133 / AI-4134 read O2 at or above 5 vol % the
+      switch I-511 / I-512 (I-611 / I-612) does not move the return to the flare, so the slug trapped
+      downstream of XV-n122 is flushed to the tanks (S26); the analyser fast loop (~1 Nm3/h)
+      returns into BOG-n001 downstream of XV-n122 and is isolated during the S1 leak test.
     members: [UZ-4101, UZ-4102,LNG-4001, LNG-4002, FV-4101, FV-4102, FIC-4101, FIC-4102, XV-4101, XV-4102, PSV-4111, PSV-4112, PI-4105, PI-4106, BOG-4001, BOG-4002, PI-4121, PI-4123, TI-4122, TI-4124, BOG-4011, BOG-4012, XV-4131, XV-4132, XV-4135, XV-4136, HS-4131, HS-4132, HS-4135, HS-4136, AI-4133, AI-4134, BOG-4013, BOG-4014, PSV-4113, BOG-4015, ZSO-4131, ZSO-4132, ZSO-4135, ZSO-4136, BOG-4016]
     status: proposed
     by: agent
@@ -568,7 +669,13 @@ nodes:
               trips the transferring berth's own ESD-1 (I-501 takes I-601 tripped and the reverse),
               so the shared tank-end valves never close on a transfer whose shore ESD valve and
               carrier were left untripped; D-023 (4) names the tank-end residual case. The order
-              relative to XV-5101 and the delays are still not C&E parameters. Codes kept.
+              relative to XV-5101 and the delays are still not C&E parameters. Codes kept. Revised
+              for aedd8dbd (D-034 items 1, 2): ESD-1 now also closes the DN 800 platform crossover
+              XV-4107 in the same 25-30 s, the third valve closing on the moving columns (line B
+              toward Berth 2 decelerates against XV-4107 as line A against XV-5101); D-034.2
+              rechecks D-023 (1) with both lines at 3.4 m/s, ~8.5 barg peak in a 25 s closure, and
+              puts XV-4107 into the fast-closure check case (4) (hold H-01). The order of the four
+              valves is still not a C&E parameter. Codes kept.
           - id: S12
             cause: >-
               LNG blocked in LNG-4001 (LNG-4002) between XV-4101 (XV-4102) and the shore ESD valve
@@ -631,7 +738,12 @@ nodes:
               header design pressure or a surge relief into the tank is a design change. The
               accumulator sizing is hold H-03. Also since 79d5c7ad, an air loss at the platform end
               of the jetty air main is detected at the berth by ZSO-5122 / ZSO-6122 during a
-              transfer (D-030 item 2), which does not reach the tank end. Codes kept.
+              transfer (D-030 item 2), which does not reach the tank end. Codes kept. Revised for
+              aedd8dbd (D-034 items 1, 2): with the pumps re-rated to 191 m the pump header rise of
+              D-023 (4) sits on a discharge about 3 bar higher (S27), so the check case is further
+              beyond the 15 barg design if it stays credible; XV-4107 has the same non-return valve,
+              accumulator and speed controller, and its fast closure is the platform-end case of
+              S28. Codes kept.
       - id: N3-MF
         guide_word: more
         parameter: flow
@@ -648,6 +760,13 @@ nodes:
             actions: [A9]
             status: proposed
             by: agent
+            notes: >-
+              Revised for aedd8dbd (D-034 items 1, 3): the pumps re-rated to 191 m leave every
+              line-up with the excess head throttled on FV-4101 / FV-4102 (at least 25 kPa across
+              the throttling valve), so a control valve driven open now lets the flow rise further
+              toward the pumps' run-out, which D-034.3 takes as ~1.2 x rated (ASSUMED, until the
+              vendor's curve) for the spill design; the arm velocity at 4,000 m3/h is 9.3 m/s. The
+              cause class is unchanged. Codes kept.
             risk:
               initial:
                 - {category: people, severity: "3", likelihood: B, status: proposed, by: agent, basis: "Carrier relief venting or overfill on deck; matrix 3 = lost-time injury.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: aa86891dd127d418, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: B}}}
@@ -686,7 +805,15 @@ nodes:
               loading lines, so the shore end of the trestle has no collection either (D-031.5's
               sentence is superseded); a rupture of a welded run, on the trestle or on the risers,
               is a case of the siting study. SG13 covers the flanged items of the tank area only.
-              Codes kept.
+              Codes kept. Revised for aedd8dbd (D-034 item 3, D-035 items 1, 6, 8; layout): the
+              joint requirement is binding in piping/pipe-specs.yaml (butt-welded, no flanged joint,
+              spool, drain, vent or tapping on the riser drops, the PR5 / PR6 runs, the trestle run
+              and the platform's DN 800 runs); the flanged items of the loading lines at the
+              platform end are gathered in the platform header bay, whose leak upstream of a shore
+              ESD valve is fed by the trestle line behind it (S29, S30); D-035.8 reads the fall
+              between the tank area and the deck as ~3 m, not ~12 m. The tank-area spill basis is
+              now one tank's loading pumps at run-out into one line (~14,400 m3/h, 2,400 m3 in 10
+              min, D-034.3), held in T-8101 19.5 m deep (SG13). Codes kept.
       - id: N3-NV
         guide_word: "no"
         parameter: flow (vapour return at the de-inerting switch)
@@ -860,7 +987,13 @@ nodes:
               The single-analyser switch to the flare of this scenario is unchanged. Codes kept.
               Revised for 709fcf20 (D-032 items 1, 3): the ESD-1 transfer cause takes the O2
               high-high of AI-5126 or AI-4133, armed by ZSC-5101 / UZ-5101; a spurious high-high on
-              a single cell of AI-4133 still only drives I-511 to the flare. Codes kept.
+              a single cell of AI-4133 still only drives I-511 to the flare. Codes kept. Revised
+              for aedd8dbd (D-034 items 1, 4): the carrier return envelope is 52.5 t/h (was 45.6,
+              line list BOG-4001), so the spurious switch to the flare carries up to that (the arms
+              limit what a line-up actually returns, ~38 t/h at most, D-034.1); an AI-4133 reading
+              of O2 at or above 5 vol % also holds the return on the tanks (I-511 / I-512 blocked),
+              which a spurious O2 high reading now does instead of a switch to the flare. Codes
+              kept.
           - id: S20
             cause: >-
               ESD-1 of Berth 2 (I-501, also initiated by ESD-2 through I-503 since fac0bbb5)
@@ -1042,7 +1175,56 @@ nodes:
               least, at the price of O2 and N2 into the tank vapour space. The bound rests on the
               ~40 s of response, vote and closure and the transit of more than 3 min through the
               return (both ASSUMED, analyser vendor, A21). Not credited: I-514 is the cause of the
-              routing.
+              routing. Revised for aedd8dbd (D-034 item 4; C&E I-511 / I-512 / I-514, SEQ-LOAD S1):
+              AI-5126 now samples the vapour arm side of XV-5122, so after the reject it reads the
+              carrier's vapour, not the gas trapped behind the closed valves, and I-514 is reset
+              once both cells read below 5 vol % O2; the slug trapped downstream of XV-5122 is then
+              flushed to the tanks by the 30 min post-reset hold of I-511 / I-512 (S26), which
+              answers the part of A21 that relied on the transit time after a reset. The analyser
+              fast loop (~1 Nm3/h, ASSUMED) returns into BOG-5001 downstream of XV-5122, so while
+              the reject holds XV-5122 closed a small flow of the carrier's O2-rich vapour still
+              passes into the return and, with I-511 blocked, to the tanks (agent observation;
+              negligible against the D-026.1 bound over minutes, for the team over hours). Codes
+              kept.
+          - id: S26
+            cause: >-
+              After an O2 reject (I-514) during a de-inerting or gassing-up, the operator resets
+              I-514 once both AI-5126 cells read below 5 vol % O2 and reopens XV-5122; for 30 min
+              after the reset (ASSUMED) and while AI-4133 reads O2 at or above 5 vol %, I-511 /
+              I-512 are blocked, so the return stays on the tanks through XV-4135 instead of the
+              flare, while the carrier keeps sending its de-inerting or gassing-up vapour (up to 5
+              vol % O2, N2-rich) at the agreed return of at least ~0.9 m3/s. Or the hold fails: the
+              30 min timer or the AI-4133 condition lost (logic, a bypass), so I-511 / I-512 move
+              the return to the flare before the trapped slug has passed XV-4131. Berth 1 alike
+              (AI-6126, AI-4134, I-614, I-611 / I-612, XV-4136, XV-4132).
+            consequence: >-
+              By design the tanks receive, besides the trapped slug (at most ~200 m3, up to air,
+              D-026.1), about 1.5 line volumes (~1,650 m3, agent estimate from the C&E basis) of the
+              carrier's off-specification vapour, up to ~80 m3 of O2 at 5 vol % and the N2 with it,
+              on top of the ~100 m3 of O2 that D-026.1 accepts for an ESD-1 or a reject (agent
+              estimate: together below ~0.5 vol % in more than 40,000 m3 of tank vapour space,
+              against the 1 vol % limit, with the local O2-rich zone while it mixes); D-026.1 does not
+              state the post-reset volume. With the hold failed, the O2-rich slug reaches the flare
+              (H-05 S18).
+            refs: [AI-5126, AI-4133, XV-5122, XV-4135, XV-4131, BOG-4001, BOG-5001, AI-6126, AI-4134, XV-6122, XV-4136, XV-4132]
+            modes: [cooldown]
+            safeguards: [SG17]
+            actions: [A25]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: B, status: proposed, by: agent, basis: "O2-bearing inert gas in the tank vapour header and the compressor suction (as S20, S25), larger than the D-026.1 bound by the post-reset volume; matrix 3 = lost-time injury; whether the mixture can be flammable while it mixes is for the team. B: an O2 reject and its reset during a gassing-up, once in the plant life (as S25).", evidence: [control/cause-effect.yaml, control/sequences.yaml, DESIGN.md D-026, DESIGN.md D-034], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: aa86891dd127d418, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: B}}}
+                - {category: asset, severity: "2", likelihood: B, status: proposed, by: agent, basis: "Compressor trip or trains' fuel gas upset on the N2 (as S20); matrix 2 = plant down for days.", evidence: [control/cause-effect.yaml], band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c0d4218f7f2f3b3d, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '2', likelihood: B}}}
+            notes: >-
+              New scenario for aedd8dbd (D-034 item 4; review 2026-11-05-basic-design-7 #2): the
+              hold keeps the trapped slug off the flare after a reset, which the berth analyser
+              could no longer see once it moved to the arm side, at the price of sending the
+              carrier's off-specification return to the tanks for the hold. The ~1,650 m3 and ~80 m3
+              of O2 are agent arithmetic on the C&E's '1.5 line volumes of the ~1,100 m3 return' and
+              the 5 vol % flare limit, not values of the files. Not credited: the hold is the cause
+              of the routing; the carrier could also hold its return during the 30 min, which the
+              files do not state (A25).
       - id: N3-OS
         guide_word: other-than
         parameter: signal (position switches of the vapour return switch)
@@ -1084,24 +1266,162 @@ nodes:
               I-513 catches a switch reading open against a closed command, not a switch failing
               to read open against an open command, which is this cause; no time-out or alarm on a
               switch-over that does not complete is in the C&E. Codes kept.
+  - id: N4
+    title: Platform end of the trestle lines - DN 800 crossover LNG-4010 (XV-4107) and DN 250 holding bypass LNG-4003 (XV-4103)
+    design_intent: >-
+      Added for aedd8dbd (D-034 items 1, 3; review 2026-11-05-basic-design-7 #1). In loading the
+      DN 800 crossover LNG-4010 (tees T4A5 / T4B5) with its ESD valve XV-4107 (UZ-4107: fail
+      closed, non-return valve and local air accumulator on the actuator supply, speed controller on
+      the exhaust, 25-30 s, ASSUMED) is open, so line B reaches Berth 2 and line A Berth 1 at
+      6,000 m3/h each (3.4 m/s, ~6 kPa across it); SEQ-LOAD S0 opens it and closes the DN 250 holding
+      bypass XV-4103 (HS-4103), and its completion checks XV-4107 open and XV-4103 closed (no
+      position switch on either valve is drawn); ESD-1 of either berth (I-501 / I-601) closes
+      XV-4107 with XV-4101 / XV-4102 after the loading pumps have stopped, so after a trip a leak
+      upstream of a shore ESD valve is fed by one trestle line; SEQ-LOAD S3 reopens it after the
+      ESD-1 tests; SEQ-HOLD S1 closes it and opens XV-4103 (500 m3/h at 2.7 m/s), which also takes
+      the jetty drain pumps. XV-4107, XV-4103 and their tees have butt-weld ends (ASSUMED) and,
+      from the layout (D-035 item 1; not an analysed input), stand with the junction drops of
+      XV-5101 / SR-5102 and XV-6101 / SR-6102 and PI-4105 / PI-4106 / TI-4103 / TI-4104 in the
+      header bay at the platform's south end, which drains to T-8102; PR9 and the PR2 end carrying
+      the loading lines take passive fire protection and the lines a fire-rated jacket for 60 min
+      (ASSUMED, fire protection engineer). Governing platform spills (D-034.3): downstream of
+      XV-n101 the berth header flow until ESD-1 closure, ~170 m3 per berth; upstream of XV-n101 the
+      same flow until closure, ~140 m3, then the trestle line behind the leak, up to ~1,020 m3
+      (line A) or ~1,030 m3 (line B), ~2,050 m3 with the crossovers open (holding).
+    members: [LNG-4010, XV-4107, UZ-4107, LNG-4003, XV-4103, HS-4103, PI-4105, PI-4106, TI-4103, TI-4104, LNG-4001, LNG-4002]
+    modes: [loading, holding]
+    status: proposed
+    by: agent
+    deviations:
+      - id: N4-NF
+        guide_word: "no"
+        parameter: flow (line B to the loading berth through XV-4107)
+        scenarios:
+          - id: S28
+            cause: >-
+              During a loading XV-4107 closes without ESD-1: a solenoid, UZ-4107 output or wiring
+              fault, a command in error, or an air loss at the platform end of the jetty air main
+              with its non-return valve or accumulator failed (at the set speed of 25-30 s
+              otherwise, at spring speed then); or it is not reopened after the ESD-1 tests of
+              SEQ-LOAD S3 and the line-up is checked by the command only (no position switch). No
+              C&E entry acts on XV-4107 not open. Berth 1 alike for line A.
+            consequence: >-
+              The 2.3 km column of line B decelerates against XV-4107 while its pumps run: at the
+              set speed the slow-closure peak of D-023 (1), ~8.5 barg with both lines at 3.4 m/s
+              (D-034.2), at spring speed the fast-closure check case (4) with a rise in the trestle
+              line upstream of the valve and a down-surge in the berth header, which loses half
+              its flow (UZ-4107 notes, hold H-01); line B dead-ends at the platform (the pumps of
+              the tank feeding it move back on their curves toward minimum flow, S1), FIC-4102
+              loses its flow, the carrier receives 6,000 m3/h through line A only; flange or seal
+              leak at the platform end or on the trestle.
+            refs: [XV-4107, UZ-4107, LNG-4010, LNG-4002, LNG-4001, FIC-4102, FV-4102, PI-4106, P-2101A]
+            modes: [loading]
+            safeguards: [SG24, SG21]
+            actions: [A22]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: B, status: proposed, by: agent, basis: "Flange or seal leak from a closure surge on the trestle line with the pumps running (as H-03 S26 for a commanded closure); matrix 3 = lost-time injury at the set-speed closure, which D-034.2 keeps inside the line design. B: a spurious closure of one valve during the transfers of the plant life, once in the plant life.", evidence: [control/instrument-list.yaml, control/sequences.yaml, DESIGN.md D-023, DESIGN.md D-034], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: aa86891dd127d418, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: B}}}
+                - {category: asset, severity: "2", likelihood: C, status: proposed, by: agent, basis: "Loading at half rate or stopped and restarted; matrix 2 = plant down for days. C: valve, solenoid or output faults several times in the plant life.", evidence: [control/instrument-list.yaml], band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b67377b30017f4a1, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '2', likelihood: C}}}
+            notes: >-
+              New scenario for aedd8dbd (D-034 items 1, 2). The crossover is the third valve in the
+              loading path between the tank and the berth that can close under flow; unlike XV-5122
+              (ZSO-5122, I-501) it has no position switch and no trip on 'not open', so a closure is
+              seen only on FIC-4102 and PI-4106. The fast closure is named for the transient
+              analysis (hold H-01, D-034.2); SG24 is the set-speed closure, not credited until its
+              proof test is in the files (A22).
+      - id: N4-AW
+        guide_word: as-well-as
+        parameter: inventory (trestle line behind a platform leak)
+        scenarios:
+          - id: S29
+            cause: >-
+              A leak at the platform end upstream of a shore ESD valve: a stem or bonnet seal of
+              XV-5101 / XV-6101, XV-4107 or XV-4103, a DN 25-80 tapping of PI-4105 / PI-4106 /
+              TI-4103 / TI-4104, or a drain pump tie-in LNG-5006 / LNG-6006 (D-034.3; the joints
+              themselves butt-welded, ASSUMED), or the trestle-side joint of a shore ESD valve.
+              ESD-1 (the confirmed platform fire and gas XS-5108 / XS-6108 or a push button) stops
+              the pumps and closes XV-n101, XV-4101 / XV-4102 and XV-4107, but no valve isolates the
+              trestle line on the leak's side of the platform.
+            consequence: >-
+              About 140 m3 reach the header bay until the closure (D-034.3), then the line drains
+              to the leak on the ~3 m fall (D-035.8): up to ~1,020 m3 (line A) or ~1,030 m3 (line
+              B). T-8102 has ~87 m3 left below its inlet after the ~170 m3 platform spill: a 1 kg/s
+              seal leak (~8 m3/h) fills that in ~11 h, a DN 80 tapping (~80 m3/h, ASSUMED) in ~1 h;
+              then the sump overflows backwards through the collectors into the header bay, the
+              other bays and over the kerbs onto the deck and the water (D-035.14 (g)): rapid phase
+              transition, a pool fire beside the header bay fed for hours, escalation to PR9 and the
+              welded loading lines beyond the 60 min of their passive fire protection (ASSUMED), and
+              to the unisolable trestle inventory (D-035.14 (a)). T-8102 has no fixed pump, and the
+              portable rain pump runs only once TSL-8104 confirms no LNG.
+            refs: [XV-5101, XV-6101, XV-4107, XV-4103, PI-4105, PI-4106, TI-4103, TI-4104, LNG-5006, LNG-6006, LNG-4001, LNG-4002, T-8102, TSL-8104, XS-5108]
+            modes: [loading, holding]
+            safeguards: [SG25, SG26]
+            actions: [A23]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "LNG release and fire at the platform fed for hours, with overflow onto the deck and the water (rapid phase transition) and escalation to the loading lines; matrix 4 = permanent injury or fatality. B: a seal or tapping leak at one of the platform-end items, once in the plant life.", evidence: [DESIGN.md D-034, DESIGN.md D-035], band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+                - {category: environment, severity: "3", likelihood: B, status: proposed, by: agent, basis: "LNG to sea over the deck edge; matrix 3 = reportable release.", evidence: [DESIGN.md D-035], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 92790e212f41fb89, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '3', likelihood: B}}}
+            notes: >-
+              New scenario for aedd8dbd (D-034 item 3, D-035 items 1 (d), 14 (a), (g); layout, not
+              an analysed input): the design limits the inventory to one line (XV-4107 closed by
+              ESD-1, XV-4103 closed in loading) and removes the flanged joints on the trestle side,
+              and leaves the slow leak of the seals and tappings with the trestle line behind it as
+              a residual for the siting study, with the emptying of a leaking line after ESD (N2
+              displacement back to the tanks, ASSUMED) and its time for the design owner (D-035.14
+              (g)). TSL-8104 sees LNG only in the sump, not in the header bay. SG25 limits the
+              inventory, SG26 holds the first part; neither stops the leak.
+          - id: S30
+            cause: >-
+              As S29, with both trestle lines feeding the leak: XV-4107 fails to close on ESD-1
+              (valve stuck, the solenoid fails to vent, a speed controller set closed) or XV-4103 is
+              left open or passing in loading (SEQ-LOAD S0 closes it by the operator, checked by
+              the command only); and in holding, when both lines are joined through XV-4103 by
+              design and the leak is fed by both whatever ESD-1 does.
+            consequence: >-
+              Up to ~2,050 m3 of the two lines drain to the leak (D-034.3), twice the S29 inventory:
+              the overflow of T-8102 comes sooner and the fire at the platform end lasts about
+              twice as long; with XV-4103 open in loading, part of the berth flow also passes the
+              DN 250 crossover at high velocity (vibration).
+            refs: [XV-4107, UZ-4107, XV-4103, HS-4103, LNG-4010, LNG-4003, LNG-4001, LNG-4002, T-8102]
+            modes: [loading, holding]
+            safeguards: [SG26]
+            actions: [A22, A23]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: A, status: proposed, by: agent, basis: "As S29 with twice the inventory; matrix 4 = permanent injury or fatality. A: needs the platform-end leak of S29 together with XV-4107 failing to close or XV-4103 left open in loading, not expected in the plant life; in holding the both-line inventory is by design and the leak alone is S29.", evidence: [control/sequences.yaml, control/cause-effect.yaml, DESIGN.md D-034], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ddcedc61b5d20d1a, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: A}}}
+                - {category: environment, severity: "3", likelihood: A, status: proposed, by: agent, basis: "LNG to sea (as S29); matrix 3 = reportable release.", evidence: [DESIGN.md D-034], band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 010c0843e9e2e8f6, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '3', likelihood: A}}}
+            notes: >-
+              New scenario for aedd8dbd (D-034 items 1, 3). XV-4107 is fail closed, so the common
+              air or power loss closes it; the failure to close is a valve or solenoid fault that no
+              position switch shows. In holding D-034.3 states the ~2,050 m3; the holding mode is
+              rated under S29's leak frequency, the failure to separate the lines here.
 safeguards:
   - {id: SG1, title: "FIC-2111A..D (FIC-3111A..D) minimum-flow control, FV-2111A..D fail open", kind: control, refs: [FIC-2111A, FIC-2111B, FIC-2111C, FIC-2111D, FV-2111A], status: proposed, by: agent}
-  - {id: SG2, title: "Interlock I-501 (I-601): ESD-1 stops the loading pumps and trips the carrier through XS-5100 (XS-6100)", kind: interlock, interlock: I-501, refs: [XS-5100, P-2101A, P-2101B, P-2101C, P-2101D], status: proposed, by: agent, notes: "Since f5d925f6 the carrier trip is an effect and the air-header trip I-804 is a cause (D-028 items 1, 4). Since 79d5c7ad (D-030 items 4, 7, 8, 9) the manual push buttons and the confirmed platform fire and gas are causes in the logic, and during a liquid transfer also ZSO-5122 not open, the 2oo2 O2 high-high of AI-4133, the loss of the ERS solenoid supply and the other berth's ESD-1 (I-601). Since 709fcf20 (D-032) the causes are tags (HS-5100, XS-5108), the transfer state is ZSC-5101 not closed or UZ-5101 energised, the O2 high-high is that of AI-5126 or AI-4133 and the supply causes are XA-5130A / B; P-2102 / P-3102 are not stopped (D-016)."}
+  - {id: SG2, title: "Interlock I-501 (I-601): ESD-1 stops the loading pumps and trips the carrier through XS-5100 (XS-6100)", kind: interlock, interlock: I-501, refs: [XS-5100, P-2101A, P-2101B, P-2101C, P-2101D], status: proposed, by: agent, notes: "Since f5d925f6 the carrier trip is an effect and the air-header trip I-804 is a cause (D-028 items 1, 4). Since 79d5c7ad (D-030 items 4, 7, 8, 9) the manual push buttons and the confirmed platform fire and gas are causes in the logic, and during a liquid transfer also ZSO-5122 not open, the 2oo2 O2 high-high of AI-4133, the loss of the ERS solenoid supply and the other berth's ESD-1 (I-601). Since 709fcf20 (D-032) the causes are tags (HS-5100, XS-5108), the transfer state is ZSC-5101 not closed or UZ-5101 energised, the O2 high-high is that of AI-5126 or AI-4133 and the supply causes are XA-5130A / B; P-2102 / P-3102 are not stopped (D-016). Since aedd8dbd (D-034 items 1, 5, 7, 9) the manual causes are one tag per station, HS-5100A / B / C (control room, jetty head, platform), each a normally closed, line-monitored input; XA-5130A / B also take the line monitoring of every solenoid circuit of their channel; the link's 'no carrier connected' mode ends by itself on a healthy link or an unstowed arm, after which XS-5100 not healthy trips; and the effects include the DN 800 platform crossover XV-4107."}
   - {id: SG3, title: Pump column check valves CV2121A..D (CV3121A..D), kind: check-valve, refs: [{sheet: P-02, object: CV2121A}, {sheet: P-02, object: CV2121B}, {sheet: P-02, object: CV2121C}, {sheet: P-02, object: CV2121D}, {sheet: P-03, object: CV3121A}], status: proposed, by: agent}
   - {id: SG4, title: Installed second circulation pump P-3102 (and P-2102 for T-3101), kind: other, refs: [P-3102, P-2102], status: proposed, by: agent, notes: "Started by the operator; no auto-start is in the files."}
   - {id: SG5, title: "Temperature indications TI-4102 (return), TI-4103 / TI-4104 (lines at the platform)", kind: other, refs: [TI-4102, TI-4103, TI-4104], status: proposed, by: agent, notes: "Indications; no alarm limits are in the files."}
   - {id: SG6, title: "FIC-2112 (FIC-3112) circulation pump flow measurement and minimum-flow control", kind: control, refs: [FIC-2112, FV-2112, FIC-3112], status: proposed, by: agent}
   - {id: SG7, title: FIC-4102 loading line B flow control (mode in holding to be stated), kind: control, refs: [FIC-4102, FV-4102], status: proposed, by: agent}
   - {id: SG8, title: "FIC-2112 / FV-2112 minimum flow of P-2102 (fail open)", kind: control, refs: [FIC-2112, FV-2112], status: proposed, by: agent}
-  - {id: SG9, title: "I-501 stops the loading pumps first, XV-5101 closing in 25-30 s (D-016, D-023)", kind: interlock, interlock: I-501, refs: [XV-5101, XV-4101, XV-4102], status: proposed, by: agent, notes: "The order 'pumps first' is in the I-501 notes, not in the effects as a delay. Since f5d925f6 the carrier is tripped through XS-5100 at once, and XV-4101 / XV-4102 close in 25-30 s after the pumps have stopped by their speed controllers (UZ-4101 / UZ-4102, D-028). Since 709fcf20 (D-016, D-032 item 6) 'pumps first' is that of the loading pumps; the circulation pump keeps running on ESD-1."}
+  - {id: SG9, title: "I-501 stops the loading pumps first, XV-5101 closing in 25-30 s (D-016, D-023)", kind: interlock, interlock: I-501, refs: [XV-5101, XV-4101, XV-4102], status: proposed, by: agent, notes: "The order 'pumps first' is in the I-501 notes, not in the effects as a delay. Since f5d925f6 the carrier is tripped through XS-5100 at once, and XV-4101 / XV-4102 close in 25-30 s after the pumps have stopped by their speed controllers (UZ-4101 / UZ-4102, D-028). Since 709fcf20 (D-016, D-032 item 6) 'pumps first' is that of the loading pumps; the circulation pump keeps running on ESD-1. Since aedd8dbd (D-034 item 1) XV-4107 closes with XV-4101 / XV-4102 in the same 25-30 s."}
   - {id: SG10, title: "Thermal relief PSV-4111 / PSV-4112 into the vapour return lines", kind: relief, refs: [PSV-4111, PSV-4112], status: proposed, by: agent}
   - {id: SG11, title: "Interlock I-502: Berth 2 header back-pressure PZT-5103 PAHH stops the loading pumps and closes XV-5101", kind: interlock, interlock: I-502, refs: [PZT-5103], status: proposed, by: agent}
   - {id: SG12, title: "Carrier cargo plan and ramp agreed through the ship-shore link (SEQ-LOAD S4, S5)", kind: procedural, refs: [XS-5100], status: proposed, by: agent}
-  - {id: SG13, title: Impoundment sump T-8101 for tank-area and trestle spills, kind: mechanical, refs: [T-8101], status: proposed, by: agent, notes: "The collection from the trestle (drip trays) is not drawn. Since f5d925f6 (D-029 item 2) the basin is re-sited north of road R2 (area A8), fed by a trough of ~240 m under the PR6 centreline and under R2 in a culvert (layout, not an analysed input of this study; H-05 S26). Since 79d5c7ad (D-018, D-031 items 1, 5) the collector runs in open troughs under PR1, PR2's shore end, PR3's north-south leg and PR4, across R7 and R2 in culverts, and in an enclosed channel under PR5 / PR6 and the riser towers; the trestle run over the water has no drip tray, so this safeguard covers the tank area and the shore end of the trestle only (S14). Since 709fcf20 (D-018, D-033 items 1-3, 11): the open troughs (0.6 m, lined with cellular glass, 0.5 % fall) start at the PR6 joint (x 975) under PR1 and run under PR3 and PR4 to y 3237.5 and west into the basin, now at (990, 3237.5) and 10.5 m deep (the 1,000 m3 design spill 1.37 m below the inlet); PR2's trough and the enclosed channels under PR5 / PR6 are removed (welded runs only); the flanged LNG items off the trough's line have kerbed drip pads draining to it, and XV-3123, TV-7103 and the DN 25 thermal reliefs off the trough have drip trays at the item without a drain (H-05 S29); the trestle shore end has no collection."}
+  - {id: SG13, title: Impoundment sump T-8101 for tank-area and trestle spills, kind: mechanical, refs: [T-8101], status: proposed, by: agent, notes: "The collection from the trestle (drip trays) is not drawn. Since f5d925f6 (D-029 item 2) the basin is re-sited north of road R2 (area A8), fed by a trough of ~240 m under the PR6 centreline and under R2 in a culvert (layout, not an analysed input of this study; H-05 S26). Since 79d5c7ad (D-018, D-031 items 1, 5) the collector runs in open troughs under PR1, PR2's shore end, PR3's north-south leg and PR4, across R7 and R2 in culverts, and in an enclosed channel under PR5 / PR6 and the riser towers; the trestle run over the water has no drip tray, so this safeguard covers the tank area and the shore end of the trestle only (S14). Since 709fcf20 (D-018, D-033 items 1-3, 11): the open troughs (0.6 m, lined with cellular glass, 0.5 % fall) start at the PR6 joint (x 975) under PR1 and run under PR3 and PR4 to y 3237.5 and west into the basin, now at (990, 3237.5) and 10.5 m deep (the 1,000 m3 design spill 1.37 m below the inlet); PR2's trough and the enclosed channels under PR5 / PR6 are removed (welded runs only); the flanged LNG items off the trough's line have kerbed drip pads draining to it, and XV-3123, TV-7103 and the DN 25 thermal reliefs off the trough have drip trays at the item without a drain (H-05 S29); the trestle shore end has no collection. Since aedd8dbd (D-034 item 3, D-035 item 2; layout): sized for the governing tank-area release of D-034.3, one tank's loading pumps at run-out into one line at the loading valve station or XV-4105 (~14,400 m3/h, ASSUMED 1.2 x rated) for 10 min, 2,400 m3 (was 1,000 m3): 19.5 m deep, the design spill 1.79 m below the trough inlet, ~2,760 m3 below it (11.5 min of the run-out), the trough 2.92 m deep at 0.5 %; no automatic stop of the loading pumps on a tank-area release (D-034.3)."}
   - {id: SG14, title: "Thermal relief PSV-2141 / PSV-3141 (pump headers), PSV-2142 / PSV-3142 (circulation headers) into the tanks and PSV-4113 (tank-end crossover) into vapour return A", kind: relief, refs: [PSV-2141, PSV-2142, PSV-3141, PSV-3142, PSV-4113], status: proposed, by: agent, notes: "Added in 589c9ca7 (D-025 items 2, 3), 15.0 barg."}
   - {id: SG15, title: "Pump column vent and N2 purge HV-2161..HV-2165 (HV-3161..HV-3165) used before a start", kind: procedural, refs: [HV-2161, HV-2162, HV-2163, HV-2164, HV-2165], status: proposed, by: agent, notes: "Drawn since 589c9ca7; no written start procedure or permissive is in the files."}
   - {id: SG16, title: "Thermal relief PSV-4114 of the circulation return LNG-4005 / LNG-4009 into vapour return A on the tank side of XV-4135", kind: relief, refs: [PSV-4114, BOG-4016], status: proposed, by: agent, notes: "Added in 589c9ca7 (D-025 item 3), 15.0 barg; outlet BOG-4016 moved to BOG-4001 on the tank side of XV-4135 in fac0bbb5 (D-026 item 11), before into vapour return B."}
-  - {id: SG17, title: "Interlocks I-511..I-513 (I-611..I-613): make-before-break vapour return switch proven by ZSO-4131 / ZSO-4135 (ZSO-4132 / ZSO-4136); ESD-1 opens the tank-side valve", kind: interlock, interlock: I-512, refs: [AI-4133, XV-4131, XV-4135, ZSO-4131, ZSO-4135], status: proposed, by: agent, notes: "Since fac0bbb5 (D-026 item 1): I-511 opens XV-4131 on off-specification vapour, I-512 closes XV-4135 only with ZSO-4131 proving XV-4131 open and ESD-1 not tripped, I-513 closes XV-4131 only with ZSO-4135 proving XV-4135 open; I-501 opens XV-4135. B alike with AI-4134, ZSO-4132 / ZSO-4136, I-611..I-613, I-601. Latching false, reset automatic, SIL null; a false position signal is part of the cause in S15 and S19. Since 886b0ad5 (D-026 items 1, 14): I-511 / I-611 do not act while I-501 / I-601 is tripped; XV-4135 / XV-4136 fail open, XV-4131 / XV-4132 fail closed (S21); the ZSO switches sense their valves. Since f5d925f6 (D-028 item 13) 'proven open' also needs no standing command discrepancy of the switch; a discrepancy alarms and blocks I-512 / I-513, which leaves the return open (S15, S16). Since 709fcf20 (D-032 item 3) I-511 / I-512 do not act while I-514 is tripped, and I-513 also closes XV-4131 on I-514 (which opens XV-4135), so the O2 reject switches the return to the tanks make-before-break (S25); B alike with I-614."}
+  - {id: SG17, title: "Interlocks I-511..I-513 (I-611..I-613): make-before-break vapour return switch proven by ZSO-4131 / ZSO-4135 (ZSO-4132 / ZSO-4136); ESD-1 opens the tank-side valve", kind: interlock, interlock: I-512, refs: [AI-4133, XV-4131, XV-4135, ZSO-4131, ZSO-4135], status: proposed, by: agent, notes: "Since fac0bbb5 (D-026 item 1): I-511 opens XV-4131 on off-specification vapour, I-512 closes XV-4135 only with ZSO-4131 proving XV-4131 open and ESD-1 not tripped, I-513 closes XV-4131 only with ZSO-4135 proving XV-4135 open; I-501 opens XV-4135. B alike with AI-4134, ZSO-4132 / ZSO-4136, I-611..I-613, I-601. Latching false, reset automatic, SIL null; a false position signal is part of the cause in S15 and S19. Since 886b0ad5 (D-026 items 1, 14): I-511 / I-611 do not act while I-501 / I-601 is tripped; XV-4135 / XV-4136 fail open, XV-4131 / XV-4132 fail closed (S21); the ZSO switches sense their valves. Since f5d925f6 (D-028 item 13) 'proven open' also needs no standing command discrepancy of the switch; a discrepancy alarms and blocks I-512 / I-513, which leaves the return open (S15, S16). Since 709fcf20 (D-032 item 3) I-511 / I-512 do not act while I-514 is tripped, and I-513 also closes XV-4131 on I-514 (which opens XV-4135), so the O2 reject switches the return to the tanks make-before-break (S25); B alike with I-614. Since aedd8dbd (D-034 item 4) I-511 / I-512 are also blocked for 30 min after a reset of I-514 and while AI-4133 reads O2 at or above 5 vol %, so the slug trapped downstream of XV-5122 is flushed to the tanks (S26)."}
+  - {id: SG24, title: "Platform crossover ESD valve XV-4107: closure in 25-30 s by a speed controller on the actuator exhaust, with a non-return valve and a local air accumulator on the supply (UZ-4107)", kind: mechanical, refs: [XV-4107, UZ-4107], status: proposed, by: agent, notes: "Added in aedd8dbd (D-016, D-034 item 1; instrument list UZ-4107); closure and hold times ASSUMED; no position switch and no proof test in the files; its fast closure is a check case of the transient analysis (hold H-01, S28)."}
+  - {id: SG25, title: "Interlocks I-501 / I-601: ESD-1 of either berth closes the DN 800 platform crossover XV-4107 with XV-4101 / XV-4102, so a leak upstream of a shore ESD valve is fed by one trestle line", kind: interlock, interlock: I-501, refs: [XV-4107, UZ-4107, XV-4101, XV-4102], status: proposed, by: agent, notes: "Added in aedd8dbd (D-034 items 1, 3; C&E I-501 / I-601 effects); with XV-4103 closed in loading (SEQ-LOAD S0); limits the inventory, does not stop the leak (S29); SIL null; its failure to close is S30."}
+  - {id: SG26, title: "Platform header bay and jetty sump T-8102 (13.0 m deep, ~257 m3 below the inlet) with the low-temperature alarm TSL-8104", kind: mechanical, refs: [T-8102, TSL-8104], status: proposed, by: agent, notes: "Layout, not an analysed input (D-034.3, D-035 items 1, 8): the header bay (36 m2, recessed 3.4 m, 122 m3) drains through two open floor outlets into the catwalk collector and T-8102, a sealed caisson sized for the ~170 m3 platform spill with ~87 m3 left for rain; no fixed pump; TSL-8104 is in the sump only (S29, S30)."}
   - {id: SG18, title: "Interlocks I-204 / I-304: tank PALL stops the loading pumps and the BOG compressors", kind: interlock, interlock: I-204, refs: [PZT-2112, PZT-3112], status: proposed, by: agent, notes: "Does not close XV-4131 / XV-4132 (S16)."}
   - {id: SG19, title: "PIC-1111 / PV-1111 make-up from the trains' fuel gas FG-1001 (FO-1117)", kind: control, refs: [PIC-1111, PV-1111, FG-1001], status: proposed, by: agent, notes: "Regulatory, not credited in the C&E (H-01 SG19)."}
   - {id: SG20, title: "Tank vacuum relief valves PSV-2133A/B/C and PSV-3133A/B/C", kind: relief, refs: [PSV-2133A, PSV-2133B, PSV-2133C, PSV-3133A, PSV-3133B, PSV-3133C], status: proposed, by: agent, notes: "Admit air: protect the structure, create the O2 ingress consequence. Their locked-open inlet isolations HV-2135A/B/C (HV-3135A/B/C), mechanically interlocked two of three in service, are drawn since fac0bbb5 (D-026 item 11; analysed in H-01 S19)."}
@@ -1116,17 +1436,21 @@ actions:
   - {id: A5, status: proposed, by: agent, text: "Write the restart procedure for warm trestle lines (re-cooldown rate, vapour venting at the high points, TI-4103 / TI-4104 limits) and show the high-point vents and low-point drains of LNG-4001 / LNG-4002 on P-04 (omitted at basic, D-021)."}
   - {id: A6, status: proposed, by: agent, text: "Sequence change: make XV-4106 closed a permissive of SEQ-HOLD S1 (position feedback), and add a temperature alarm at the platform end (TI-4103 / TI-4104) so that a warming trestle is seen whatever the line-up.", response: "Partly answered by commit fac0bbb5 (review 2026-11-05-basic-design-2#3): SEQ-HOLD S1 closes XV-4106 and its completion requires XV-4106 closed, and SEQ-LOAD S6 closes XV-4106 before SEQ-HOLD is run (control/sequences.yaml). Still open: no position switch on XV-4106 is drawn, so 'closed' is the command or the operator's check; no temperature alarm at the platform end (TI-4103 / TI-4104). Still proposed."}
   - {id: A7, status: proposed, by: agent, text: "Write the initial cooldown sequence of the trestle lines (it is not in control/sequences.yaml): rate limit, top-bottom temperature difference measurement on the DN 800 lines (not drawn), vapour routing and the BOG compressor and flare capacity it uses."}
-  - {id: A8, status: proposed, by: agent, text: "Extend the surge analysis (D-023, transient analysis before construction) to the closure of the tank-end ESD valves XV-4101 / XV-4102 and their timing relative to XV-5101 / XV-6101 and the pump stop; record the closure times and delays in the C&E effects of I-501 / I-601.", response: "Partly answered by commit f5d925f6 (D-016, D-023 (4), D-028): the closure time of XV-4101 / XV-4102 is stated as 25-30 s after the pump stop (instrument list, ASSUMED), set by a speed controller, and the air-failure closure is made a commanded one behind I-804; D-028 hands the transient analysis of D-023 (1), (3), (4) to detail engineering. Still open: the analysis itself including the tank-end valves, their timing against XV-5101 / XV-6101, the delays as C&E effect parameters, and the fast closure with a failed non-return valve or accumulator, for which no surge relief is drawn at the tank end (S22). Commit 79d5c7ad (D-030 items 9, 10, 13; D-023 (4)) names the tank-end fast closure as a check case of the transient analysis (PSV-2141 / PSV-3141 relief cases, UZ-4101 / UZ-4102 notes) and registers the analysis as hold H-01 against the detail-engineering gate; an ESD-1 of the other berth now trips the transferring berth too. Still open: the analysis, the timing against XV-5101 / XV-6101 and the delays as C&E effect parameters. Still proposed."}
+  - {id: A8, status: proposed, by: agent, text: "Extend the surge analysis (D-023, transient analysis before construction) to the closure of the tank-end ESD valves XV-4101 / XV-4102 and their timing relative to XV-5101 / XV-6101 and the pump stop; record the closure times and delays in the C&E effects of I-501 / I-601.", response: "Partly answered by commit f5d925f6 (D-016, D-023 (4), D-028): the closure time of XV-4101 / XV-4102 is stated as 25-30 s after the pump stop (instrument list, ASSUMED), set by a speed controller, and the air-failure closure is made a commanded one behind I-804; D-028 hands the transient analysis of D-023 (1), (3), (4) to detail engineering. Still open: the analysis itself including the tank-end valves, their timing against XV-5101 / XV-6101, the delays as C&E effect parameters, and the fast closure with a failed non-return valve or accumulator, for which no surge relief is drawn at the tank end (S22). Commit 79d5c7ad (D-030 items 9, 10, 13; D-023 (4)) names the tank-end fast closure as a check case of the transient analysis (PSV-2141 / PSV-3141 relief cases, UZ-4101 / UZ-4102 notes) and registers the analysis as hold H-01 against the detail-engineering gate; an ESD-1 of the other berth now trips the transferring berth too. Still open: the analysis, the timing against XV-5101 / XV-6101 and the delays as C&E effect parameters. Commit aedd8dbd (D-034 items 1, 2) adds XV-4107 to the ESD-1 closures and to check case (4) (hold H-01) and rechecks D-023 (1) for both lines at 3.4 m/s (~8.5 barg peak in 25 s); the order of XV-4101 / XV-4102 / XV-4107 / XV-n101 is still not a C&E parameter. Still open as before. Still proposed."}
   - {id: A9, status: proposed, by: agent, text: "Consider a high-flow alarm on FIC-4101 / FIC-4102 independent of the controller, and the limit on the loading rate from the vapour arm capacity (D-023) in SEQ-LOAD S4."}
-  - {id: A10, status: proposed, by: agent, text: "P&ID P-04 change: draw the trestle drip trays and the spill route to T-8101 (with its capacity basis, D-018), and define leak detection (low temperature or gas) along the trestle with its ESD action in the C&E.", response: "Partly answered by commit 79d5c7ad (D-018, D-031 item 5; layout): the design decides against drip trays along the welded trestle run over the water (not drainable on the real terrain, not vapour-tight); the shore end drains to the PR2 trough and T-8101, the platform to T-8102, and a rupture over the water is the marine transfer area case of the siting study. Still open: that siting case, the trestle leak detection and its ESD action in the C&E. Commit 709fcf20 (D-018, D-033 item 2; layout) removes the PR2 trough, so the trestle shore end has no collection either: the welded loading lines there carry no leak source and the vapour switch station is on the vapour returns only. Still open as before. Still proposed."}
+  - {id: A10, status: proposed, by: agent, text: "P&ID P-04 change: draw the trestle drip trays and the spill route to T-8101 (with its capacity basis, D-018), and define leak detection (low temperature or gas) along the trestle with its ESD action in the C&E.", response: "Partly answered by commit 79d5c7ad (D-018, D-031 item 5; layout): the design decides against drip trays along the welded trestle run over the water (not drainable on the real terrain, not vapour-tight); the shore end drains to the PR2 trough and T-8101, the platform to T-8102, and a rupture over the water is the marine transfer area case of the siting study. Still open: that siting case, the trestle leak detection and its ESD action in the C&E. Commit 709fcf20 (D-018, D-033 item 2; layout) removes the PR2 trough, so the trestle shore end has no collection either: the welded loading lines there carry no leak source and the vapour switch station is on the vapour returns only. Still open as before. Commit aedd8dbd (D-034 item 3, D-035 items 1, 6; layout and piping/pipe-specs.yaml) makes the welded-run requirement binding and gathers the platform-end flanged items in the header bay, and states the slow leak of a seal or tapping with the trestle line behind it as a residual for the siting study (S29). Still open: the trestle and header bay leak detection with its ESD action, and that siting case (A23). Still proposed."}
   - {id: A11, status: proposed, by: agent, text: "Relief study: the thermal relief valves PSV-4111 / PSV-4112 are set at 15.5 barg (special items, ASSUMED) while D-023 gives 15 barg as the design pressure of the loading lines and arms; confirm the design pressure of LNG-4001 / LNG-4002 and set the valves at or below it.", response: "Answered in the design by commit 589c9ca7: PSV-4111 / PSV-4112 are set at 15.0 barg, the 15 barg design of the LNG lines and arms (piping/special-items.yaml, D-025 item 4: all relief valves at the line design). For the team to verify and close."}
   - {id: A12, status: proposed, by: agent, text: "C&E change for I-501 / I-601 and I-511 / I-611: never leave a vapour return closed at both switching valves - on ESD-1 keep XV-4131 (XV-4132) open or open XV-4135 (XV-4136) first; give XV-4131 / XV-4132 and XV-4135 / XV-4136 position switches for the make-before-break permissive, and record their fail positions in the instrument list.", response: "Answered in the design by commit fac0bbb5 (DESIGN.md D-026 item 1; review 2026-11-05-basic-design-2#1): I-501 / I-601 open the tank-side valve XV-4135 / XV-4136 and do not act on the flare valve; the switch is make-before-break in both directions with open-position switches ZSO-4131 / ZSO-4135 (ZSO-4132 / ZSO-4136): I-512 / I-612 close the tank-side valve only with the flare valve proven open, I-513 / I-613 close the flare valve only with the tank-side valve proven open; at fac0bbb5 all four valves failed open (instrument list HS-4131..HS-4136 of that commit; corrected below); the trestle thermal relief outlets tie in on the tank side of XV-4135. For the team to verify on P-04 and in the C&E and to close; S15 re-described, the new causes are S19 (switch signals) and S20 (ESD-1 during de-inerting). Commit 886b0ad5 (D-026 items 1, 14; review 2026-11-05-basic-design-3#1, #2) corrects the fail positions: only the tank-side XV-4135 / XV-4136 fail open, the flare valves XV-4131 / XV-4132 fail closed again (P-04 and its note, instrument list), so an air failure opens the return to the tanks and never opens the tank vapour header to the flare; I-511 / I-611 no longer act while ESD-1 is tripped; the position switches sense their valves. The fail-closed flare valve is the cause of S21. Still proposed."}
   - {id: A13, status: proposed, by: agent, text: "C&E change: close XV-4131 / XV-4132 when XV-4135 / XV-4136 does not prove closed within a set time after the switch to the flare, and on low tank pressure (I-204 / I-304); include the back-flow of tank vapour through BOG-4013 / BOG-4014 to the flare in the vacuum relief case of PSV-2133A/B/C / PSV-3133A/B/C (H-01 A13).", response: "Not answered by commit fac0bbb5: I-513 / I-613 now order the switch-back (the flare valve closes only after the tank-side valve is proven open), but only open-position switches are drawn, so nothing proves XV-4135 / XV-4136 closed after I-512 / I-612, no time-out closes the flare valve, I-204 / I-304 still do not act on XV-4131 / XV-4132, and the special items do not name the back-flow among the vacuum relief cases. Still open (S16, S19). Commit 886b0ad5 makes XV-4131 / XV-4132 fail closed (D-026 item 1), which removes the air failure as a cause of both valves open; the rest is unchanged at 54648679 (one open-position switch per valve kept, D-026 item 14; no time-out; I-204 / I-304 still do not act on XV-4131 / XV-4132; the vacuum relief cases of PSV-2133 / PSV-3133 in the special items still do not name the back-flow). Still open. Still proposed."}
-  - {id: A14, status: proposed, by: agent, text: "Determine the required integrity of the switch-over I-511 / I-611 (single analyser AI-4133 / AI-4134, SIL null) and consider a second O2 measurement (or the H-04 A5 analyser upstream of D-7101) before the vapour is admitted to the tank vapour header; state the switch-over criterion (O2, N2, CH4 limits) and the analyser's response time in the instrument list; include the spurious switch to the flare in the flare load (H-05 A4).", response: "Partly answered by commit fac0bbb5 (DESIGN.md D-026 item 7): the criterion is stated, vapour to the flare only below 5 vol % O2 and to the tanks only below 1 vol % O2 and on hydrocarbon specification (ASSUMED, S-01 purge limit), above 5 % the berth does not take the vapour; AI-4133 / AI-4134 measure CH4, N2 and O2 (instrument list). Still open: the required integrity of I-511..I-513 / I-611..I-613 (single analyser, SIL null), a second O2 measurement before the tank vapour header, the analyser response time, and the spurious switch in the flare load (H-05 A4). Commit 886b0ad5 adds I-514 / I-614 (review 2026-11-05-basic-design-2#11): O2 above 5 vol % for 10 s on AI-4133 / AI-4134 closes the vapour arm isolation XV-5122 / XV-6122 (latching, manual reset), on the same single analyser. The integrity, the second O2 measurement, the response time and the flare load remain open. Commit f5d925f6 (D-028 item 5) gives the analyser two O2 cells voted 2oo2 for I-514 / I-614 (ASSUMED, analyser vendor; confirmed in the SIL screening), armed only in SEQ-LOAD S1 to S3; the switch-over I-511..I-513 still rests on the one analyser and its sample system. The integrity of I-511..I-513, an O2 measurement independent of the analyser before the tank vapour header, the response time and the flare load remain open. Commit 79d5c7ad (D-030 item 4) arms I-514 / I-614 on 'no liquid transfer' and makes the same O2 high-high a cause of ESD-1 during a transfer (S23); the voting of the O2 cells is in the SIL screening (hold H-06). The other items remain open. Partly answered by commit 709fcf20 (D-032 item 3): the berth analysers AI-5126 / AI-6126 (two cells, 2oo2, ASSUMED) are a second O2 measurement for the trips above 5 vol %, independent of AI-4133 / AI-4134, and the analyser response with the vote and closure (~40 s, ASSUMED) is stated in D-026.1. Still open: the integrity of the switch-over I-511..I-513 on the single tank-end analyser, an O2 measurement before the tank vapour header for vapour between 1 and 5 vol %, the analysers' response time from the vendor, and the spurious switch in the flare load (H-05 A4). Still proposed."}
+  - {id: A14, status: proposed, by: agent, text: "Determine the required integrity of the switch-over I-511 / I-611 (single analyser AI-4133 / AI-4134, SIL null) and consider a second O2 measurement (or the H-04 A5 analyser upstream of D-7101) before the vapour is admitted to the tank vapour header; state the switch-over criterion (O2, N2, CH4 limits) and the analyser's response time in the instrument list; include the spurious switch to the flare in the flare load (H-05 A4).", response: "Partly answered by commit fac0bbb5 (DESIGN.md D-026 item 7): the criterion is stated, vapour to the flare only below 5 vol % O2 and to the tanks only below 1 vol % O2 and on hydrocarbon specification (ASSUMED, S-01 purge limit), above 5 % the berth does not take the vapour; AI-4133 / AI-4134 measure CH4, N2 and O2 (instrument list). Still open: the required integrity of I-511..I-513 / I-611..I-613 (single analyser, SIL null), a second O2 measurement before the tank vapour header, the analyser response time, and the spurious switch in the flare load (H-05 A4). Commit 886b0ad5 adds I-514 / I-614 (review 2026-11-05-basic-design-2#11): O2 above 5 vol % for 10 s on AI-4133 / AI-4134 closes the vapour arm isolation XV-5122 / XV-6122 (latching, manual reset), on the same single analyser. The integrity, the second O2 measurement, the response time and the flare load remain open. Commit f5d925f6 (D-028 item 5) gives the analyser two O2 cells voted 2oo2 for I-514 / I-614 (ASSUMED, analyser vendor; confirmed in the SIL screening), armed only in SEQ-LOAD S1 to S3; the switch-over I-511..I-513 still rests on the one analyser and its sample system. The integrity of I-511..I-513, an O2 measurement independent of the analyser before the tank vapour header, the response time and the flare load remain open. Commit 79d5c7ad (D-030 item 4) arms I-514 / I-614 on 'no liquid transfer' and makes the same O2 high-high a cause of ESD-1 during a transfer (S23); the voting of the O2 cells is in the SIL screening (hold H-06). The other items remain open. Partly answered by commit 709fcf20 (D-032 item 3): the berth analysers AI-5126 / AI-6126 (two cells, 2oo2, ASSUMED) are a second O2 measurement for the trips above 5 vol %, independent of AI-4133 / AI-4134, and the analyser response with the vote and closure (~40 s, ASSUMED) is stated in D-026.1. Still open: the integrity of the switch-over I-511..I-513 on the single tank-end analyser, an O2 measurement before the tank vapour header for vapour between 1 and 5 vol %, the analysers' response time from the vendor, and the spurious switch in the flare load (H-05 A4). Commit aedd8dbd (D-034 item 4) moves the berth analysers' sample point to the vapour arm side of XV-n122 and has AI-4133 / AI-4134 reading O2 at or above 5 vol % block I-511 / I-512 (the return held on the tanks); the switch-over between 1 and 5 vol % still rests on AI-4133 / AI-4134 alone. Still open as before. Still proposed."}
   - {id: A15, status: proposed, by: agent, text: "C&E change: add a discrepancy alarm and a time-out for each switching valve (command against ZSO-4131 / ZSO-4135 / ZSO-4132 / ZSO-4136 within the stroke time) with a defined safe state, consider closed-position switches on XV-4131 / XV-4135 (XV-4132 / XV-4136) so that the switch is proven by a second contact, and put the switches and their interlocks I-512 / I-513 (I-612 / I-613) in the proof test (S15, S19).", response: "Not answered by commit 886b0ad5: D-026 item 14 (review 2026-11-05-basic-design-3#4) keeps one open-position switch per switching valve because only the proven-open state is used, and ties each switch to its valve; no closed-position switch, discrepancy alarm, time-out or proof test is added. A false 'open' of one switch still closes the return at both valves (S15). For the team to decide. Partly answered by commit f5d925f6 (D-028 item 13; review 2026-11-05-basic-design-3#4 completed by review 4): I-512 / I-513 (I-612 / I-613) now require no standing discrepancy between each ZSO switch and its valve's command; a switch reading open while its valve has been commanded closed longer than the stroke time alarms and blocks the interlock, and a blocked I-513 leaves the return open (operator confirms locally). Still open: a time-out or alarm on a switch-over that does not complete (a switch failing to read open, S19), the closed-position switches (deferred to the SIL screening in detail engineering, D-028 item 13), the proof test, and a time limit on the both-open state of a blocked I-513 (S16). Still proposed."}
-  - {id: A16, status: proposed, by: agent, text: "C&E / operating philosophy: decide the response of the vapour return switch to ESD-1 during a de-inerting, gassing-up or cool-down (S20): state how much off-specification vapour the tanks and the BOG compressors may receive (O2 and N2 limits against the compressor and trains' fuel gas tolerance), or keep XV-4131 open on ESD-1 while AI-4133 reads off-specification (both valves open, against the back-flow of S16), and include the ESD-1 test of SEQ-LOAD S3 in the decision.", response: "Partly answered by commit 886b0ad5 (D-026 item 1; review 2026-11-05-basic-design-3#2): the design decides for the tanks - I-511 / I-611 do not act while ESD-1 is tripped, so on ESD-1 (and on its S3 test, now in test mode) the return goes to the tanks, and an air failure does the same (S21). Still open: the O2 and N2 limits the tanks, the BOG compressors and the trains' fuel gas may receive, and the volume reaching them (S20, S21). Mostly answered by commit f5d925f6 (D-026 item 1, D-028 items 4, 8; review 2026-11-05-basic-design-4 #4): every ESD-1 trips the carrier through XS-5100 / XS-6100 (an effect of I-501 / I-601), so only the line pack of the vapour arm and the return reaches the tanks, at most ~1,100 m3 with at most 5 vol % O2, below 0.15 vol % O2 in the tank vapour space against the 1 vol % limit (ASSUMED), and the N2 it carries goes with the boil-off to the trains; the design accepts this. For the team to verify the estimate and the trains' tolerance of the N2 and to close. Commit 79d5c7ad (D-030 item 4) adds an ESD-1 cause the estimate does not cover: the O2 high-high during a transfer, whose line pack is above 5 vol % O2 by definition (S23, A19). Commit 709fcf20 (D-026.1 corrected by D-032 item 3) restates the bound with the O2 measured at the berth: the line pack at or below 5 vol % plus a slug of at most ~200 m3, together at most ~100 m3 of O2, below 0.25 vol % of the tank vapour space; the O2 reject also sends its slug to the tanks (S25). For the team to verify the estimate, the trains' tolerance of the N2 and the local O2-rich zone while it mixes, and to close. Still proposed."}
+  - {id: A16, status: proposed, by: agent, text: "C&E / operating philosophy: decide the response of the vapour return switch to ESD-1 during a de-inerting, gassing-up or cool-down (S20): state how much off-specification vapour the tanks and the BOG compressors may receive (O2 and N2 limits against the compressor and trains' fuel gas tolerance), or keep XV-4131 open on ESD-1 while AI-4133 reads off-specification (both valves open, against the back-flow of S16), and include the ESD-1 test of SEQ-LOAD S3 in the decision.", response: "Partly answered by commit 886b0ad5 (D-026 item 1; review 2026-11-05-basic-design-3#2): the design decides for the tanks - I-511 / I-611 do not act while ESD-1 is tripped, so on ESD-1 (and on its S3 test, now in test mode) the return goes to the tanks, and an air failure does the same (S21). Still open: the O2 and N2 limits the tanks, the BOG compressors and the trains' fuel gas may receive, and the volume reaching them (S20, S21). Mostly answered by commit f5d925f6 (D-026 item 1, D-028 items 4, 8; review 2026-11-05-basic-design-4 #4): every ESD-1 trips the carrier through XS-5100 / XS-6100 (an effect of I-501 / I-601), so only the line pack of the vapour arm and the return reaches the tanks, at most ~1,100 m3 with at most 5 vol % O2, below 0.15 vol % O2 in the tank vapour space against the 1 vol % limit (ASSUMED), and the N2 it carries goes with the boil-off to the trains; the design accepts this. For the team to verify the estimate and the trains' tolerance of the N2 and to close. Commit 79d5c7ad (D-030 item 4) adds an ESD-1 cause the estimate does not cover: the O2 high-high during a transfer, whose line pack is above 5 vol % O2 by definition (S23, A19). Commit 709fcf20 (D-026.1 corrected by D-032 item 3) restates the bound with the O2 measured at the berth: the line pack at or below 5 vol % plus a slug of at most ~200 m3, together at most ~100 m3 of O2, below 0.25 vol % of the tank vapour space; the O2 reject also sends its slug to the tanks (S25). For the team to verify the estimate, the trains' tolerance of the N2 and the local O2-rich zone while it mixes, and to close. Commit aedd8dbd (D-034 item 4) adds the 30 min post-reset hold after an O2 reject, which sends about 1.5 line volumes of the carrier's off-specification return to the tanks on top of the D-026.1 bound (S26, agent estimate); D-026.1 does not state that volume (A25). Still proposed."}
   - {id: A17, status: proposed, by: agent, text: "C&E / operating philosophy: state the response to off-specification vapour admitted to the tanks on an instrument-air failure or a flare-valve fault during a de-inerting (S21) - for example stop the carrier's de-inerting through the ship-shore link and an alarm on ZSO-4131 / ZSO-4132 lost while AI-4133 / AI-4134 reads off-specification - and confirm with the valve vendor that XV-4135 / XV-4136 open at least as fast as XV-4131 / XV-4132 close on a common air failure, so that the vapour return is not closed at both valves for the stroke time (S15).", response: "Partly answered by commit f5d925f6 (D-028 items 1, 4): on an instrument-air failure the air-header trip I-804 initiates ESD-1 of both berths, which trips the carrier through XS-5100 / XS-6100 and so ends its de-inerting return; the vapour reaching the tanks is then the line pack of D-026 item 1. Still open: the response to a single solenoid or actuator failure of XV-4131 / XV-4132 during a de-inerting (no trip, no alarm on ZSO-4131 lost while AI-4133 reads off-specification), and the vendor's confirmation of the relative stroke times of XV-4135 and XV-4131 on a common air failure. Still proposed."}
   - {id: A18, status: proposed, by: agent, text: "Put the non-return valves, accumulators and speed controllers of XV-4101 / XV-4102 in the proof test (hold time of at least 5 min and closure time of 25-30 s, both ASSUMED) and on the maintenance setting list, and include their failure on an air loss in the D-023 transient analysis (case (4) names only the berth valves); if the surge at the tank end exceeds the line design, provide a surge relief or another layer there (S22).", response: "Partly answered by commit 79d5c7ad (D-030 items 10, 13; D-023 (4)): the tank-end case is in D-023 (4) as a check case of the transient analysis (hold H-01), named in the PSV-2141 / PSV-3141 relief cases and the UZ-4101 / UZ-4102 notes, with a pump header design pressure or a surge relief into the tank as the design change if it stays credible; the accumulator and hold-time sizing is hold H-03. Still open: the proof test and maintenance setting list of the non-return valves, accumulators and speed controllers, and the analysis itself. Still proposed."}
   - {id: A19, status: proposed, by: agent, text: "C&E / operating philosophy: extend the D-026 item 1 bound to an ESD-1 initiated by the O2 high-high during a transfer (vapour above 5 vol % O2, up to air), or keep that vapour out of the tank vapour header - for example close XV-5122 / XV-6122 once the loading pumps are proven stopped and the ERS and drum vent paths are confirmed open, or send it to the flare - and state the O2 the tanks, D-7101 and the BOG compressors may receive (S23).", response: "Answered in the design by commit 709fcf20 (D-026.1 corrected by D-032 item 3; review 2026-11-05-basic-design-6 adversarial check): the O2 trips act on the berth analysers AI-5126 / AI-6126, so the vapour above 5 vol % that reaches the tanks on an ESD-1 or a reject is the slug of the ~40 s response, vote and closure (at most ~200 m3, ASSUMED); with the line pack it is at most ~100 m3 of O2, below 0.25 vol % against the 1 vol % limit, and the slug never reaches the flare. For the team to verify the estimate (response time from the analyser vendor, A21) and close; the berth analyser failed low is H-03 S37. Still proposed."}
   - {id: A20, status: proposed, by: agent, text: "Consider confirming the 'not closed' of ZSC-2123 / ZSC-3123 against the valve command or a second switch before I-205 / I-305 stop the circulation pumps in loading, or a spray source for TV-7103 that does not depend on the circulation pump, so that a single switch fault at a tank high-high does not trip the BOG compressors during a loading (S24, H-04 S10); include the switches in the proof test (H-01 A23).", response: "Not answered by commit 709fcf20: D-032 item 7 (#3) moves the 15 s on-delay onto 'I-201 / I-301 tripped' and adds a command discrepancy alarm for a switch reading closed while its valve is commanded open (the false 'closed', H-01 S25); a false 'not closed' still stops the circulation and drain pumps on one switch, now also on a momentary one once the trip has stood 15 s, and no spray source independent of the circulation pump is added. Still proposed."}
-  - {id: A21, status: proposed, by: agent, text: "Confirm with the analyser vendor the response and 2oo2 vote time of AI-5126 / AI-6126 and with the valve vendor the stroke of XV-n122 / XV-n125 that together set the ~40 s and the ~200 m3 slug of D-026.1, and the transit of the return against the stroke of XV-4135 / XV-4136 and I-513 / I-613 that keeps the slug off the flare; alarm a reject whose tank-side valve is not proven open within its stroke time (S25)."}
+  - {id: A21, status: proposed, by: agent, text: "Confirm with the analyser vendor the response and 2oo2 vote time of AI-5126 / AI-6126 and with the valve vendor the stroke of XV-n122 / XV-n125 that together set the ~40 s and the ~200 m3 slug of D-026.1, and the transit of the return against the stroke of XV-4135 / XV-4136 and I-513 / I-613 that keeps the slug off the flare; alarm a reject whose tank-side valve is not proven open within its stroke time (S25).", response: "Partly answered by commit aedd8dbd (D-034 item 4; C&E I-511 / I-512 / I-514): after a reset of I-514 / I-614 the return is held on the tanks for 30 min and while the tank-end analyser reads O2 at or above 5 vol %, so the slug trapped behind the closed vapour isolations no longer depends on the transit time to stay off the flare (S26). Still open: the analyser response and vote time, the valve strokes behind the ~40 s and ~200 m3, and the alarm on a reject whose tank-side valve is not proven open. Still proposed."}
+  - {id: A22, status: proposed, by: agent, text: "Give XV-4107 an open- and a closed-position switch with a command discrepancy alarm, make 'XV-4107 proven open' the completion of SEQ-LOAD S0 / S3 and decide whether XV-4107 not open during a liquid transfer trips ESD-1 (as ZSO-5122) or only alarms, and whether XV-4103 needs a closed-position switch for the S0 completion; put the non-return valve, accumulator and speed controller of XV-4107 in the proof test and include its closure at set and at spring speed with the pumps running in the transient analysis (hold H-01) (S28, S30)."}
+  - {id: A23, status: proposed, by: agent, text: "Design owner / siting study: state how a trestle line leaking at the platform end after ESD-1 is emptied (N2 displacement back to the tanks, ASSUMED in D-035.14 (g)) and in what time, against the ~11 h (1 kg/s seal) and ~1 h (DN 80 tapping) to fill the ~87 m3 left in T-8102; add low-temperature or gas detection in the platform header bay with an alarm and the response (TSL-8104 is in the sump only), the T-8102 level indication with a high alarm of D-035.14 (j), and the escalation of a header bay fire to PR9 and the unisolable trestle inventory (~1,020 m3 per line, ~2,050 m3 in holding) in the siting study (S29, S30)."}
+  - {id: A24, status: proposed, by: agent, text: "Confirm the design pressure of the circulation pumps P-2102 / P-3102, their columns and the check valves CV2122 / CV3122 against the loading line pressure since D-034 (949.5 kPa(a) at the pump header, about 11 barg at the circulation pump depth and about 13 barg at the loading pumps' shut-off, agent estimates), or re-rate them as the loading pumps (15 barg); confirm the ASSUMED 1.25 x shut-off of the loading pumps with the vendor's curve and the surge margin of the 15 barg lines on top of it in the transient analysis (hold H-01) (S27)."}
+  - {id: A25, status: proposed, by: agent, text: "C&E / operating philosophy: state the volume and the O2 and N2 of the carrier's return the tanks receive during the 30 min post-reset hold of I-n11 / I-n12 (about 1.5 line volumes, ~1,650 m3, up to ~80 m3 of O2 at 5 vol %, agent estimate) and add it to the D-026.1 bound, or have the carrier hold its return for that time; and put the hold's timer and AI-4133 / AI-4134 condition in the proof test, since a lost hold sends the trapped slug to the flare (S26, H-05 S18)."}

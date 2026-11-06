@@ -21,7 +21,13 @@
 # then to those of commit 709fcf20 (DESIGN.md D-032 items 1, 3, 6, 7, D-026.1 / .7: the berth O2
 # analysers AI-5126 / AI-6126 for I-514 / I-614 and the ESD-1 transfer cause, I-n14 also opening
 # XV-4135 / XV-4136, the D-026.1 bound restated; the circulation pumps that feed the spray left
-# running on ESD-1; the I-205 / I-305 on-delay moved onto 'I-n01 tripped'; P-01 and P-07 unchanged).
+# running on ESD-1; the I-205 / I-305 on-delay moved onto 'I-n01 tripped'; P-01 and P-07 unchanged),
+# then to those of commit aedd8dbd (DESIGN.md D-034 items 1, 4: the loading pumps re-rated to 191 m,
+# the loading BOG envelope 56.5 t/h at the compressor suction with a carrier return of 52.5 t/h and a
+# spray of 4.1 t/h, the PSV-2131 / PSV-3131 relief cases on 52.5 t/h, the berth analysers on the arm
+# side of XV-n122 with the post-reset hold of I-n11 / I-n12; and DESIGN.md D-035 item 3, 7 from the
+# layout: the fixed water spray on K-7101A-C and D-7101 and the deepened TV-7103 tray, ASSUMED; P-01
+# and P-07 unchanged).
 # Every entry is a proposal for the team.
 schema: cheme/hazop-study/v1
 kind: hazop-study
@@ -47,16 +53,16 @@ scope: >-
   compressor vendor packages (lube oil, seal gas, motors), shown only as causes.
 modes:
   - {id: holding, title: Holding, description: "One compressor takes ~21.9 t/h of tank BOG (D-009, D-010)."}
-  - {id: loading, title: Loading, description: "Two compressors take 49.1 t/h with the carrier's return at about -120 degC, desuperheated to -140 degC (D-009, D-010)."}
+  - {id: loading, title: Loading, description: "Two compressors take 49.1 t/h with the carrier's return at about -120 degC, desuperheated to -140 degC (D-009, D-010); since aedd8dbd the balance's loading envelope is 56.5 t/h with the larger pump heat (carrier return 52.5 t/h, spray 4.1 t/h), above two machines' 54 t/h, while the arms return ~38 t/h at most (D-034)."}
   - {id: cooldown, title: Cooldown, description: "Carrier and arm cooldown vapour, warmer and variable, through the vapour return."}
   - {id: startup, title: Start-up and shutdown, description: "Compressor start on full recycle and loading (SEQ-BOG-START), stop and trip."}
 analysed:
   - {path: pid/P-07.xml, revision: 'sha256:ae8b86ea369978e5dfe845febc3c630adbcde5e32e830e777769a25839006b85', relation: analyses}
   - {path: pid/P-01.xml, revision: 'sha256:3122080b55631f5f232fe4cdea4669441105df23ceb5b55ca0d061948170e21b', relation: analyses}
-  - {path: control/cause-effect.yaml, revision: 'sha256:d6f4c1bfe3a9166fcec401f84958bc92ae1d809564a21ce05033f7502d6bf2ba', relation: analyses}
+  - {path: control/cause-effect.yaml, revision: 'sha256:83d4914a16eae9ade3d90c6e88616c0aec67a2490be322ef7ecc3530fbf47185', relation: analyses}
   - {path: control/loops.yaml, revision: 'sha256:a7417294d1288704b77fac600cc7963a95b21a3dcaa295aef23e52e0cf9a7b30', relation: analyses}
-  - {path: control/sequences.yaml, revision: 'sha256:85a39deac075a36e4e13b0180df761829fc6356c085352f1fed5189727f45291', relation: analyses}
-  - {path: piping/special-items.yaml, revision: 'sha256:a309ebb57ed8ea9d766ac0a5eb0ccd1e773d2c01ce01784fc0800b254fadce04', relation: analyses}
+  - {path: control/sequences.yaml, revision: 'sha256:8f8a1985a69053114a6f1170f2a9d984749fef7affd4f888e4b54c22892769ac', relation: analyses}
+  - {path: piping/special-items.yaml, revision: 'sha256:694a02f0585b8b21d5067e857062362ea391b8a53759a0a6acca95f08e510597', relation: analyses}
 risk_matrix: safety/risk-matrix.yaml
 assessment_basis: >-
   Each scenario is rated per category before its safeguards (initial): severity is the credible
@@ -79,7 +85,11 @@ assessment_basis: >-
   re-described in place; the new deviations are analysed in H-01 S24, S25, H-02 S23, S24 and H-03
   S26 to S30. The revision for commit 709fcf20 (D-032) adds no scenario and changes no code: the
   oxygen routes (S7) and the spray source (S10) are re-described in place; the new deviations are
-  analysed in H-02 S25 and H-03 S31 to S37.
+  analysed in H-02 S25 and H-03 S31 to S37. The revision for commit aedd8dbd (D-034, D-035) adds no
+  scenario and changes no code: the loading BOG envelope against the compressors (S2), the spray
+  rate (S8, S10), the oxygen routes after an O2 reject and its reset (S7) and the fire exposure of
+  the compressor row and D-7101 (S14) are re-described in place; the post-reset hold is analysed in
+  H-02 S26, the circulation pump against the loading line pressure (the spray source) in H-02 S27.
 team: []            # to be named by the project; no team has sat on this draft yet
 notes: >-
   Drafted by an agent (skills hazop-study, hazop-equipment-causes, relief-scenarios,
@@ -158,6 +168,15 @@ nodes:
               Since 886b0ad5 SEQ-LOAD S4 carries the two arm line-ups of D-026 item 6 and still
               starts K-7101B during the ramp-up; D-026 item 6 keeps the 45.6 t/h of D-009 as the
               compressor envelope (line-up (b) ~34 t/h, ASSUMED until carrier data). Codes kept.
+              Revised for aedd8dbd (D-034 item 1; flowsheet, line list BOG-7001, special items): the
+              loading pumps re-rated to 191 m put ~3,900 kW into the LNG at loading (was ~2,700),
+              and the balance's envelope is now 56.5 t/h at the compressor suction (carrier return
+              52.5 t/h, 85 % of the pump heat flashing on board), above the 54 t/h of two 27 t/h
+              machines; D-034 keeps 3 x 27 t/h because no line-up returns more than ~38 t/h through
+              the arms, and leaves the rating (31.1 t/h each by D-010's rule) to the carrier data.
+              On the envelope the spare K-7101C would be needed as a third machine or PV-1110
+              flares the ~2.5 t/h excess; the cause class (return above two machines) is unchanged.
+              Codes kept.
             risk:
               initial:
                 - {category: environment, severity: "2", likelihood: C, status: proposed, by: agent, basis: "Flaring above the routine limit of the permit (S-02); matrix 2 = minor release off site.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 286f676bb8108832, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '2', likelihood: C}}}
@@ -296,7 +315,13 @@ nodes:
               5 vol % plus a slug of at most ~200 m3 that passed the berth, at most ~100 m3 of O2,
               below 0.25 vol % of the tank vapour space (ASSUMED); I-514 / I-614 now also open
               XV-4135 / XV-4136, so the reject sends that slug to the tanks, not to the flare (H-02
-              S25); with the berth analyser failed low the whole line pack returns (H-03 S37).
+              S25); with the berth analyser failed low the whole line pack returns (H-03 S37). Since
+              aedd8dbd (D-034 item 4): the berth analysers sample the vapour arm side of XV-n122,
+              I-n14 is reset on them, and for 30 min after the reset (ASSUMED) and while the
+              tank-end analyser reads O2 at or above 5 vol % the return is held on the tanks, so the
+              trapped slug and about 1.5 line volumes of the carrier's off-specification return
+              (agent estimate, up to ~80 m3 of O2) reach the tank vapour header and the compressors
+              by design (H-02 S26).
             consequence: >-
               O2 (or N2 / CO2 inert gas) reaches the compressors and the trains' end-flash / fuel
               gas system; flammable mixture in the suction drum and the compressor; inert gas
@@ -443,7 +468,11 @@ nodes:
             notes: >-
               I-701 trips all three machines at once (common-cause loss of BOG compression), which
               moves the load to the flare; since 589c9ca7 it also closes the discharge isolation
-              XV-7123A..C and leaves the recycle XV-7125A..C open (D-025 item 5).
+              XV-7123A..C and leaves the recycle XV-7125A..C open (D-025 item 5). Revised for
+              aedd8dbd (D-034 item 1; line list LNG-4008): the spray at loading is 4.1 t/h (was 3.5)
+              with the larger pump heat, and in loading LNG-4008 is fed back from loading line A at
+              the re-rated pumps' pressure (H-02 S27), so TV-7103 stuck open passes more than at
+              132 m. Codes kept.
           - id: S9
             cause: >-
               Liquid arrives with the vapour: LNG from D-5101 / D-6101 overflow or a hybrid arm
@@ -500,6 +529,10 @@ nodes:
               the spray stays in service on every ESD-1 of a loading; the 15 s on-delay of I-205 /
               I-305 now sits on the tank trip, so a momentary false 'not closed' of ZSC-2123 /
               ZSC-3123 after it stops the spray pumps (H-02 S24). Same cause class. Codes kept.
+              Revised for aedd8dbd (D-034 item 1): the spray needed at loading is 4.1 t/h; since the
+              circulation pump (60 m, 377 kPa(a)) cannot deliver against loading line A at ~950
+              kPa(a), the spray in loading is fed back from line A through LNG-2002 and P-2102 runs
+              on its minimum flow (H-02 S27, A7); the cause class is unchanged. Codes kept.
       - id: N2-HL
         guide_word: more
         parameter: level
@@ -588,7 +621,14 @@ nodes:
               (A10). The tank-side outlet is also XV-1115 (I-203 / I-303). Ratings kept. Since
               886b0ad5 (review 2026-11-05-basic-design-3#9) fire on D-7101 and the BOG suction
               header is a relief case of PSV-2131A/B/C and PSV-3131A/B/C in the special items;
-              not sized at basic (D-025). Ratings kept.
+              not sized at basic (D-025). Ratings kept. Noted for aedd8dbd (D-035 items 3, 7, 9;
+              layout, not an analysed input): in the tank-area design fire the compressor packages
+              K-7101A / B / C see 7.4 / 8.3 / 10.3 kW/m2 and D-7101 4.8 kW/m2, but 26.3-28.8 kW/m2
+              from the TV-7103 drip tray above it (near field); K-7101A-C and D-7101 take a fixed
+              water spray system and the PR6 east leg steel over D-7101 passive fire protection
+              (ASSUMED, fire protection engineer, not drawn, so not safeguards here); the TV-7103
+              tray is deepened to 2.4 m3 (~15.6 min of the 4.1 t/h spray, agent arithmetic; H-05
+              S29). The relief cases name the 52.5 t/h return envelope. Ratings kept.
             status: proposed
             by: agent
             risk:
