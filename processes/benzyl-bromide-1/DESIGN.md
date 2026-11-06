@@ -12,6 +12,14 @@ with `cuts:` (ADR 0055), `process/recipe.yaml` with vessel, jacket, `distil from
 over several steps (ADRs 0051, 0052, 0055, 0057), per-batch LCA consumables (ADR 0053). Library
 ADR 0035: one dedicated train, campaigns out of scope (D-013).
 
+Core pin v1.9.0 (2026-11-06, 314642c): the models write the duties of their energy streams
+(core ADR 0059), so R101's duty (on Q12, the off-gas vapour's heat to the reflux condenser) and
+the stills' boil-up Q7 and Q9 are now `calculated` by `cheme process propagate --fill`, and the
+hand still duties, found too low, are replaced (D-009); propagate converges the toluene recycle
+at its tear S2 (ADR 0060, D-006); the semi-batch screening gives the MTSR over the batch and the
+HBr released at the MTSR, against R-101's off-gas capacity (ADR 0058, D-011, D-014). Requires
+cheme-as-code 1.9 (plant.yaml).
+
 ## Source register
 
 Facts are restated in our own words; nothing is copied. "Read" means the passage named was read
@@ -131,22 +139,37 @@ The third bromination, to benzotribromide, is not modelled: it needs benzal brom
 1.1 mol% of the crude, against 70 mol% toluene and 29 mol% benzyl bromide; with a k3 no larger
 than k2 its rate is at most 1.1/29 = 0.037 of BALBR's at the end of the batch and less before,
 so it would take below 0.2 % of the bromine (0.037 x the 4.5 % that BALBR takes).
-Off-gas (`cheme process recipe`): 467 kg (5.78 kmol) of HBr a batch, peak 0.32 mol/s, 34 m3/h
-at 363 K and 101 kPa(a), 0.76 h into the dosing; the condensers and A-101 are sized for it.
+Off-gas (`cheme process recipe`): 467 kg (5.78 kmol) of HBr a batch, peak 0.32 mol/s, 34.32
+m3/h at 363 K and 101 kPa(a), 0.76 h into the dosing. The off-gas system (the line to E-102,
+E-102, E-103 and A-101) is sized for the slightly larger gas release of a cooling failure, 35.10
+m3/h at the MTSR, with a margin: 45 m3/h of HBr (D-014).
 
 ## D-006 Balance method and property gate (2026-11-06)
 Decision: cheme propagates the charge mixer M101, the heat-up E101, the semi-batch R101 with both
 outlets, the condensers E102 and E103 (pass-through), the absorber A101, the stills ST101 and
-ST102 (D-007), the recycle mixer M201 and the splitter SP201. scripts/balance.py gives what core
-has no model for (library ADR 0027): the bromine S5 and the toluene make-up S1 that make 1000 t/a
-at 4 mol per mol (core propagates from the feeds and does not solve them for a product rate); the
-recycle S2 at its fixed point, 0.98 of the recovered toluene S17 (core does not tear a recycle:
-S2 is an assumed stream, and the script and `cheme process propagate --fill` were run in turn,
-14 passes, until S2 moved by less than 0.01 kg/h); the absorber water S10; the temperatures that
-follow from mixing (S3 from S1 and S2, S17 from S12 and S14, S2 and S18 as S17) or from a bubble
-point (S13, the strip's end, by Raoult as the still); the duties Q1 to Q11 and the lamps' P1
-(D-009). It reads the streams propagate wrote and the data of materials.yaml, and follows the
-balance-output contract (`scripts/check_balance_scripts.py`: 22 values checked).
+ST102 (D-007), the recycle mixer M201 and the splitter SP201 (98 % to the recycle, `split:`).
+Since core 1.9.0 it converges the toluene recycle at its tear stream S2 (`tears:`, ADR 0060):
+Wegstein's method from the fixed point of core 1.8.0 as the guess, in 14 iterations (67 from a
+guess of 100 kg/h, to the same S2), to a
+residual of 1e-5 kg/h plus 1e-8 of the flow (`convergence:`, tighter than the balances' because
+the loop's gain is near 1: 98 % of the recovered toluene returns); S2 is `calculated` and goes
+stale on any change upstream. It also writes the model duties Q12, Q7 and Q9 (ADR 0059, D-009).
+Under core 1.8.0 S2 was an assumed stream that the script and `cheme process propagate --fill`
+brought to its fixed point in 14 passes; at the same feeds the tear gives 273.391 kg/h against
+their 273.415 (0.009 % less).
+scripts/balance.py gives what core has no model for (library ADR 0027): the bromine S5 and the
+toluene make-up S1 that make 1000 t/a at 4 mol per mol (core propagates from the feeds and does
+not solve them for a product rate), run in turn with `cheme process propagate --fill` until both
+move by less than 0.001 kg/h; the make-up is the charge's toluene less the recycle's, the
+recycle's toluene taken as the converged loop's share of the crude's (0.98 times the stills'
+recovery), since S2 follows the make-up 49 times as strongly (only 2 % is purged) and a make-up
+from S2 as given diverges; the absorber water S10; the temperatures that follow from mixing (S3
+from S1 and S2, S17 from S12 and S14, S2 and S18 as S17) or from a bubble point (S13, the
+strip's end, by Raoult as the still); the duties Q1 to Q6, Q8, Q10, Q11, Q13 and the lamps' P1
+(D-009), and as a cross-check its own values of the model duties (Q12 6.2356, Q7 24.5578 and Q9
+13.6383 kW; propagate writes 6.2356, 24.5577 and 13.6383). It reads the streams propagate wrote and the data of
+materials.yaml, and follows the balance-output contract (`scripts/check_balance_scripts.py`: 19
+values checked).
 Reason: no property package of core covers these liquids (bromine and HBr in aromatics, HBr in
 water), so the heats are heat capacities and latent heats in the script.
 
@@ -183,8 +206,8 @@ in the pot, the grade of a technical benzyl bromide; a higher grade, or a ring-b
 batch-to-batch recycle; its year average is the fixed point of D-006.
 Not modelled (L-4, L-5, L-6): the crude arrives at 363 K, above its 336 K bubble point at 15
 kPa, and the stripped crude at 374 K, above its 321 K bubble point at 2 kPa, so part flashes as
-the still is evacuated (counted as a sensible-heat credit in Q7 and Q9, D-009, not in core's
-boil-up time); the dissolved HBr the crude holds (none in the model, D-005) would leave first, to
+the still is evacuated (in the stills' full energy balance of D-009, not in core's boil-up time
+nor in the steam Q7 and Q9 its model writes); the dissolved HBr the crude holds (none in the model, D-005) would leave first, to
 the vacuum system; the jacket's area falls as the pot empties, so the constant boil-up is
 optimistic; the condensers and the vacuum system are sized by hand.
 **The end of the main cut cannot run at 80 kW.** The residue, 68.7 kg (35 mol% benzyl bromide,
@@ -231,42 +254,75 @@ Not modelled: the bromine vapour the HBr carries (the content holds at most 0.4 
 the end of the dosing, D-011) and the bromine the acid takes up (it colours the acid); the acid's
 organic carbon.
 
-## D-009 Utilities and heat: every energy flow (2026-11-06)
+## D-009 Utilities and heat: every energy flow (2026-11-06; the model duties and the stills' balance under core 1.9.0, 2026-11-06)
 Decision (scripts/balance.py, year averages, kW; per kg of product in kWh; all ASSUMED unless
 sourced):
 - Q1 11.28 (0.089) of LP steam 450 kPa(a) to R-101's jacket: the charge S3 from its mixing
   temperature of 298.6 K (S1 at 298 K, S2 at 298.8 K) to 363.15 K, 10 % losses; 0.30 h from the
   jacket (`cheme process recipe`).
-- Q2 5.46 (0.043) from R-101's jacket to cooling water through a tempered-water loop: the heat of
-  the reactions (7.36), the light the content absorbs (4.47) and the agitator (3.0), less the
-  bromine's warming from 298 to 363 K (1.12) and the toluene the HBr evaporates, its latent heat
-  and the reheating of its condensate returned at 303 and 268 K (8.24).
+- R-101's heat. The reactions release 7.36 kW and the bromine's warming from 298 to 363 K takes
+  1.12, so the semi-batch model's duty is 6.24 kW (core 1.9.0, ADR 0059); the light the content
+  absorbs adds 4.47 and the agitator 3.0; the toluene the HBr evaporates (its latent heat and
+  the reheating of its condensate returned at 303 and 268 K, D-008) takes 8.24 to the
+  condensers. The vapour takes more than the model's duty, so the model's duty is on Q12, the
+  energy stream from R-101 to the reflux condenser E-102 (R101's `energy_port: reflux`,
+  `calculated`, 6.2356 kW, 0.049); the rest of the vapour's heat is Q13, 2.01 (0.016), ASSUMED
+  from the script (8.24 less Q12); and Q2, R-101's jacket to cooling water through a tempered-
+  water loop, takes the light and the agitator less Q13: 5.46 (0.043), as before. Q12 and Q13
+  are no utility streams: their heat leaves in E-102's Q4 (and the share E-103 condenses, in
+  Q5), so the LCI counts it once.
+  Why not on the jacket: under core 1.9.0 R101 has two heat streams (Q2, Q3), and no duty was
+  written (`cheme.process-duty`, info). On Q2 the model's 6.24 kW would differ from the typed
+  5.46 by the light, the agitator and the vapour, +4.47 + 3.0 - 8.24 = -0.77 kW: a net that
+  flows against the jacket, so it cannot be a stream of its own beside the model's on Q2, and
+  the model's duty on Q2 with the rest left out would put 0.77 kW too much on the cooling water.
+  Rejected: the lamp wells Q3 as the port (they take the lamps' losses, not the content's heat).
 - Q3 10.43 (0.083) from the lamp wells to cooling water: the lamps' electricity less the light
   (70 % of P1).
 - Q4 8.16 (0.065) from E-102 to cooling water: the vapour of D-008 condensed and cooled from 363
   to 303 K, the HBr and the uncondensed toluene cooled.
 - Q5 0.65 (0.005) from E-103 to brine: the toluene condensed from 303 to 268 K, the gas cooled.
 - Q6 14.85 (0.118) from A-101 to cooling water: HBr from gas at 268 K to 48 wt% acid at 313 K.
-- Q7 20.21 (0.160) of LP steam to ST101: the latent heat of S12 less the crude's sensible heat
-  above its bubble point (363.15 - 336.4 K); 150 kW while stripping.
-- Q8 27.36 (0.217) from ST101's condenser to cooling water: S12 condensed at 15 kPa(a) and cooled
-  from its 329 K bubble point to 303 K; about 167 kW while stripping.
-- Q9 10.78 (0.085) of LP steam to ST102: the latent heat of S14 and S15 less S13's sensible heat
-  between its bubble points at 15 and 2 kPa(a) (373.8 - 321.4 K); 80 kW while distilling.
-- Q10 4.28 (0.034) from ST102's forerun condenser to brine: S14 condensed at 2 kPa(a) (its
-  bubble point there is 298.7 K, below the cooling water) and cooled to 268 K; about 90 kW over
-  the forerun's 0.34 h.
-- Q11 11.82 (0.094) to cooling water: the main cut S15 condensed at 2 kPa(a) and cooled from 354.5
-  to 303 K, the residue S16 cooled in C-101 from 376.8 to 333 K.
+- Q7 24.56 (0.194) and Q9 13.64 (0.108) of LP steam to ST101 and ST102: the latent heat of
+  what each boils up, written by core's still model (`energy_port: steam`, `calculated`, ADR
+  0059); 150 and 80 kW while distilling. Until core 1.9.0 the script gave 20.21 and 10.78: the
+  latent heat less the sensible heat the charge brings above its first bubble point (the crude
+  at 363.15 K against 336.4 K at 15 kPa(a), the stripped crude between its bubble points at 15
+  and 2 kPa(a)); core 1.9.0 wrote no duty for them (`cheme.process-duty`, info: two and three
+  heat streams); with `energy_port: steam` its models give 24.56 and 13.64 kW, 4.35 and 2.86 kW
+  above the hand values. **The hand
+  values were too low**: they counted the charge's cooling to its first bubble point but not the
+  pot heating back up (to 373.8 and 376.8 K) as it strips, nor that the vapour leaves at the
+  pot's rising temperature. The full balance of the one-stage Rayleigh still from the charge's
+  temperature (scripts/balance.py repeats both stills on the same data, its cuts within 0.1 % of
+  core's: each part of the vapour leaving at the pot's temperature then, the residue at its
+  end) is 23.23 kW for ST101 (sensible -1.33) and 12.55 for ST102 (-1.08): the hand values were
+  3.02 and 1.77 kW low, the model's are 1.33 and 1.08 high. The model's are kept; the net
+  sensible credit, 2.41 kW, is a recorded exclusion (below): it is negative, so no stream of its
+  own can carry it beside the model's steam.
+- Q8 29.13 (0.231) from ST101's condenser to cooling water: S12's vapour condensed from the pot's
+  temperature at which each part leaves (336.4 to 373.8 K) at 15 kPa(a) and cooled to 303 K;
+  about 178 kW while stripping.
+- Q10 4.91 (0.039) from ST102's forerun condenser to brine: the forerun's vapour from the pot
+  (321.4 to 355.3 K) condensed at 2 kPa(a) (S14's bubble point there is 298.7 K, below the
+  cooling water) and cooled to 268 K; about 103 kW over the forerun's 0.34 h.
+- Q11 11.97 (0.095) to cooling water: the main cut's vapour from the pot (355.3 to 376.8 K)
+  condensed at 2 kPa(a) and cooled to 303 K, the residue S16 cooled in C-101 from 376.8 to 333 K.
+  Until core 1.9.0 the condensers took the vapour from the collected cut's bubble point, not the
+  pot's temperature (Q8 27.36, Q10 4.28, Q11 11.82); recomputed with the stills' full balance.
 - P1 14.90 (0.118) for the lamps (20 kW for the 5.25 h of light a batch), P2 3.0 (0.024) for
   R-101's agitator, P3 1.84 (0.015) for C-101's agitator (1.5 kW) and dry vacuum pump (4 kW)
   while distilling, 2.35 h a batch.
-Totals per kg: cooling water 0.618 kWh, brine 0.039 kWh, LP steam 0.335 kWh, electricity 0.156
-kWh. The jackets are checked against the cooling water's mean temperature (303 K), and LP steam
+Totals per kg: cooling water 0.634 kWh, brine 0.044 kWh, LP steam 0.392 kWh, electricity 0.156
+kWh (until core 1.9.0: 0.618, 0.039, 0.335 and 0.156). The jackets are checked against the cooling water's mean temperature (303 K), and LP steam
 at 421 K is the hottest medium; no decomposition onset of benzyl bromide or of the residue is
 open, so the TD24 or DSC onset of both must lie above the 421 K wall (D-011), else the still and
 the heat-up need hot water.
 Recorded exclusions, each with its number:
+- the stills' sensible heat (the charges hotter than the pot's first bubble point, the vapour
+  and the residue leaving at the pot's temperature): 2.41 kW (0.019 kWh/kg) less LP steam than
+  the model's Q7 and Q9 (ST101 -1.33, ST102 -1.08 kW; scripts/balance.py), so the LCI's LP steam
+  is 4.9 % high (core limit L-6);
 - the heat of mixing of bromine into toluene: not known openly; at an ASSUMED 5 kJ/mol it would
   be 1.1 kW (0.009 kWh/kg) more on R-101's jacket;
 - the still agitator's 1.5 kW while distilling (0.50 kW year average) goes into the pot and would
@@ -293,23 +349,37 @@ whole batch 42.2 K (with -32.3 kJ/mol); largest accumulation of the dosed bromin
 end of the dosing; MTSR at that moment 363.9 K, against an MTT of 383.8 K (`hazard.mtt`: the
 normal boiling point of toluene, the liquid's main component; core's default, the lowest boiling
 point of the charge and the dose, would be bromine's 331.95 K, a dose that does not stay as such
-in the liquid: L-5). The content's bubble point by Raoult is 386.4 K at the start and 394.9 K at
+in the liquid: L-5; core 1.9.0's default is still bromine's, which at 18.7 mol% of the charge and
+doses is no dissolved gas, ADR 0058's known limitation). The content's bubble point by Raoult is 386.4 K at the start and 394.9 K at
 the worst moment (with the 0.4 mol% bromine accumulated), so 383.8 K is a lower bound in the
-design case. The vented HBr adds nothing to the MTSR; with the vent blocked it pressurises the
-vessel, which the screening does not assess (core note: a peak of 0.11 mol/(s m3) of the final
-content).
+design case. The vented HBr adds nothing to the MTSR; at the MTSR it forms at 35.10 m3/h,
+within R-101's off-gas capacity of 45 m3/h (D-014); with the vent blocked it pressurises the
+vessel, which the screening does not assess (D-014).
 No TD24 is known (never estimated): no criticality class (`cheme.reactor-hazard-missing`, info).
 With MTSR below MTT the class is 1 or 2 if the TD24 lies above the MTSR, and 5 if it lies below
 (TD24 < 363.9 K: core's `criticality()` and Stoessel test the TD24 against the MTSR first,
 SRC-6); it needs the TD24.
 Sensitivity (a scratch copy of the folder, both A divided, everything else as designed;
-`cheme process propagate --fill`, `reactor-hazards`, `reactors`, `recipe`):
+`cheme process propagate --fill`, `reactor-hazards`, `reactors`, `recipe`; gas release rerun
+with core 1.9.0 on 2026-11-06 and compared with the 45 m3/h of D-014):
 
-| k at 363 K | accumulation (end of dosing) | MTSR | MTSR vs MTT 383.8 K | post-reaction to 0.999 | cycle, batches/a | class without TD24 |
-|---|---|---|---|---|---|---|
-| 5.0e-4 (design) | 1.73 % | 363.9 K | 19.9 K below | 0.25 h | 7.05 h, 1124 | 1, 2 or 5 |
-| k/10 | 16.4 % | 370.5 K | 13.3 K below | 4.42 h | 11.21 h, 706 | 1, 2 or 5 |
-| k/100 | 73.1 % | 394.6 K | 10.8 K above | 56.5 h | 63.3 h, 125 | 3, 4 or 5 |
+| k at 363 K | accumulation (end of dosing) | MTSR | MTSR vs MTT 383.8 K | gas release at the MTSR (HBr, 101.3 kPa(a)) vs the off-gas system's 45 m3/h | post-reaction to 0.999 | cycle, batches/a | class without TD24 |
+|---|---|---|---|---|---|---|---|
+| 5.0e-4 (design) | 1.73 % | 363.9 K | 19.9 K below | 0.3265 mol/s, 35.10 m3/h: 0.78 x | 0.25 h | 7.05 h, 1124 | 1, 2 or 5 |
+| k/10 | 16.4 % | 370.5 K | 13.3 K below | 0.3758 mol/s, 41.13 m3/h: 0.91 x | 4.42 h | 11.21 h, 706 | 1, 2 or 5 |
+| k/100 | 73.1 % | 394.6 K | 10.8 K above | 0.3276 mol/s, 38.18 m3/h: 0.85 x (the content boils: `-mtsr` warning) | 56.5 h | 63.3 h, 125 | 3, 4 or 5 |
+
+The HBr released at a cooling failure stays near the dosing rate in all three cases (0.321
+mol/s of bromine dosed): a slower chain accumulates more bromine, but its smaller rate constant
+offsets most of it, and the HBr forms at most 1.17 times as fast at its MTSR (k/10), within the
+off-gas system. What grows is the vapour with it and
+the gas a blocked vent must hold (D-014).
+
+MTSR over the batch (core 1.9.0, ADR 0058): 363.2 K at the start, 363.8 K at 1.07 h, 363.9 K
+from 3.15 h to the end of the dosing (5.0 h), back to 363.2 K at the end of the post-reaction
+(5.25 h): the worst moment is the end of the dosing, as the single value said. The gas release
+at a cooling failure is about 35.0 m3/h at any moment from 0.4 h to the end of the dosing, the
+largest 35.10 m3/h at 5.0 h (D-014).
 
 Interpretation: all at once (accumulation 1) the MTSR would be about 405 K, above the boiling
 point of toluene, so the dosing, not the dilution, keeps it below the MTT. **For a photoreactor
@@ -327,7 +397,7 @@ rules out the design before safety does. Open for the next stage: a photoreactor
 reaction calorimetry and off-gas measurement (rate against light, quantum yield, the dark rate),
 the TD24 of the crude, the product and the residue (benzyl halides condense with HBr evolution in
 contact with iron and other metals, SRC-3), the gas-generation pressure with a blocked vent
-(Stoessel's separate criterion). Screening values only, not a reaction-hazard assessment.
+(Stoessel's separate criterion; R-101's relief, D-014). Screening values only, not a reaction-hazard assessment.
 Open, toxic gases, water and the scrubber (reasoning only, for the HAZOP):
 (a) Loss of the absorber water while R-101 doses: up to 0.32 mol/s of HBr (and the bromine
 vapour with it) to the tail scrubber or to air. Stopping the bromine and the lamps stops the HBr
@@ -383,8 +453,8 @@ bromine product sold at a price far closer to the main product's than hydrochlor
 substitution of hydrogen-bromide-1's acid, which belongs to the substitution variant database,
 not to this cut-off dataset (library ADR 0007), recorded as the variant to compare.
 Per kg of benzyl bromide (unallocated): bromine 1.038 kg, toluene 0.609 kg, process water 0.569
-kg, nitrogen 28 g, electricity 0.156 kWh, LP steam 0.335 kWh, cooling water 0.618 kWh and brine
-0.039 kWh removed; out: 48 wt% acid 1.095 kg, residue 77 g and toluene purge 44 g to incineration.
+kg, nitrogen 28 g, electricity 0.156 kWh, LP steam 0.392 kWh, cooling water 0.634 kWh and brine
+0.044 kWh removed (D-009; until core 1.9.0 LP steam 0.335, cooling water 0.618, brine 0.039); out: 48 wt% acid 1.095 kg, residue 77 g and toluene purge 44 g to incineration.
 Not counted: the vents (emission_exclusions, the vent toluene with its 3.8 g/kg).
 
 ## D-013 Dedicated train (2026-11-06)
@@ -395,23 +465,87 @@ be checked without the other products' campaigns.
 Out of scope, so not LCI gaps: changeover cleaning between campaigns, the idle time of a
 multipurpose train, shared tank farms.
 
+## D-014 R-101's off-gas capacity against the gas released at a cooling failure (2026-11-06)
+Result (`cheme process reactor-hazards`, core 1.9.0, ADR 0058): at a cooling failure at the
+worst moment (the end of the dosing, 1.73 % of the bromine accumulated) the reactions run on at
+the MTSR, 363.9 K, and give off 0.3265 mol/s of HBr, 35.10 m3/h at 363.9 K and 101.3 kPa(a)
+(per batch of the recipe, from the worst moment's content), 2 % more than the normal peak of
+34.32 m3/h at 363.15 K (`cheme process recipe`, D-005). Over the whole batch (each step of the
+semi-batch model's cooling profile, the gas at that moment's MTSR; a scratch scan with core's
+`vent_gas_rate`, not a core output) the release is about 35.0 m3/h from 0.4 h to the end of the
+dosing and largest at its end, 35.10 m3/h: core's worst moment is the largest release. Run to
+completion the accumulated bromine gives 0.0999 kmol (2.98 m3 at the MTSR) more HBr.
+Decision: R-101's off-gas system (the vapour line to E-102, E-102, E-103 and A-101 with its
+tail scrubber) is sized for 45 m3/h of HBr at the vessel's pressure, `hazard.vent_capacity: 45`,
+ASSUMED: 1.2 x the largest gas release of a cooling failure with the assumed rate law (42.1
+m3/h), rounded up to the next 5 m3/h. The normal peak is then 76 % of it and the release at the
+MTSR 78 % (`cheme.reactor-hazard-vent`, info); in D-011's k/10 and k/100 cases the release is
+41.13 and 38.18 m3/h, 0.91 and 0.85 of it. 45 m3/h of HBr at 363.9 K is 0.42 mol/s, about 27
+kW to A-101's cooling at 65.2 kJ/mol (D-008, the heat of solution less the gas's and the water's
+warming), against 21 kW at the normal peak.
+Reason: the off-gas system was sized for the normal peak (D-005), which a cooling failure
+slightly exceeds; with a fast chain the release follows the dosing, so sizing for it costs
+little and needs no slower dosing. The 1.2 is a margin on that case, not on the kinetics: the
+rate law is ASSUMED (D-005), and the capacity is no more credible than it.
+Open (design findings, for the next stage; core's comparison holds the HBr alone, L-3):
+- **The vapour with the gas.** The gas leaving R-101 carries the content's vapour until E-102
+  takes it back: 0.68 mol per mol of HBr at the design MTSR and 1.51 at the k/10 MTSR (370.5 K,
+  3.6 mol% bromine accumulated; Raoult on the worst moment's content). At k/100 the MTSR, 394.6
+  K, is above the content's bubble point (372.3 K): the content boils and the vapour is not
+  bounded by the screening (D-011, there ruled out by the 63 h cycle). The vapour line from
+  R-101 to E-102 is to be sized for 45 m3/h of HBr with 1.5 mol of vapour per mol, about 115
+  m3/h; E-102, sized for about 14 kW at the normal peak (equipment list), would have to condense
+  about 28 kW at 45 m3/h of HBr in the k/10 case (toluene to 303 K). Either E-102 is sized for
+  it or the dosing is interlocked so that the accumulation stays at the design case's (D-011).
+- **The blocked vent.** A flooded or frozen absorber or a closed valve in the off-gas line puts
+  the gas into R-101's head space, 1.02 m3 at the end of the dosing (4 m3 vessel, 2.98 m3 of
+  crude): the 0.0999 kmol of the design case raise it by about 0.30 MPa at 363.9 K, the 0.946
+  kmol of k/10 by about 2.9 MPa at 370.5 K, besides the content's own vapour pressure, more
+  than a glass-lined vessel is usually rated for; during the dosing the HBr forms all the time.
+  So R-101 needs a relief device (rupture disc to a catch tank and the caustic scrubber, never
+  to air, D-011 (c)) sized for the gas generation by a DIERS method from calorimetry, the
+  bromine dosing interlocked on R-101's pressure and on the off-gas flow (D-011), and no
+  isolation in the off-gas line without a relief path. Reasoning only, not a relief sizing.
+Rejected: a vent capacity of the normal peak rounded up, 35 m3/h (the release at the MTSR,
+35.10 m3/h, would exceed it by a rounding); a larger capacity for the k/100 case (its HBr is
+within 45 m3/h; what exceeds is the boiling content, which a relief device takes, not the off-gas
+system).
+
 ## Method and dependency table
 
 | step | status | basis |
 |---|---|---|
 | mass, component, element balances | done in cheme | cheme validate / process streams / propagate |
-| semi-batch R-101 with its HBr vent: composition, accumulation, cooling-failure temperature, peak cooling, off-gas rate | done in cheme, effective rate ASSUMED | D-005, D-011, core ADRs 0050, 0054 |
+| semi-batch R-101 with its HBr vent: composition, accumulation, cooling-failure temperature, peak cooling, off-gas rate, year-average duty Q12 | done in cheme, effective rate ASSUMED | D-005, D-009, D-011, core ADRs 0050, 0054, 0059 |
+| MTSR over the batch, gas release at the MTSR against the off-gas capacity | done in cheme, capacity ASSUMED; the release over the whole batch a scratch scan of core's model | D-011, D-014, core ADR 0058 |
 | photon budget of the lamps | hand (script), quantum yield ASSUMED | D-005, L-1 |
 | batch recipe, cycle time, basis check, R-101's vessel and jacket | done in cheme | D-003, core ADRs 0051, 0052, 0057 |
-| stills ST101, ST102 (one stage, two cuts): distillates, residue, boil-up times, latent heat | done in cheme, ideal liquid and benzal bromide's vapour pressure ASSUMED | D-007, core ADR 0055 |
+| stills ST101, ST102 (one stage, two cuts): distillates, residue, boil-up times, latent heat (Q7, Q9) | done in cheme, ideal liquid and benzal bromide's vapour pressure ASSUMED | D-007, D-009, core ADRs 0055, 0059 |
+| stills' full energy balance (sensible heat, left out of Q7 and Q9) and their condensers Q8, Q10, Q11 | script (the stills repeated on core's data) | D-009, L-6 |
 | C-101's jacket against the stills' constant boil-up (wetted area as the pot empties) | hand (scripts/still_jacket.py), U and the head's shape ASSUMED | D-007, L-6 |
-| toluene recycle at its fixed point | script and propagate in turn | D-006, L-7 |
-| feeds for 1000 t/a, absorber water, mixing and bubble-point temperatures, duties Q1 to Q11, P1 | script | D-006, D-008, D-009 |
+| toluene recycle S2 | done in cheme (tear, Wegstein) | D-006, core ADR 0060 |
+| feeds for 1000 t/a, absorber water, mixing and bubble-point temperatures, duties Q1 to Q6, Q8, Q10, Q11, Q13, P1 | script (with propagate in turn for the feeds) | D-006, D-008, D-009, L-7 |
 | off-gas organics (reflux and vent condensers) | hand (script), not in the balance | D-008, L-3 |
 | per-batch nitrogen | done in cheme, amount ASSUMED | D-012, core ADR 0053 |
 | LCI inventory | done, most backgrounds unmapped | D-012 |
 
-## Core features used (cheme-as-code 1.8.0)
+## Core features used (core 1.9.0)
+
+- Core 1.9.0, ADR 0059: R101's `energy_port: reflux`, so that `cheme process propagate --fill`
+  writes the semi-batch's year-average duty on Q12 (6.23565 kW, the off-gas vapour's heat to the
+  reflux condenser), and ST101's and ST102's `energy_port: steam` for their boil-up's latent heat
+  on Q7 (24.5577 kW) and Q9 (13.6383 kW). All three are `calculated` and go stale with the
+  model; Q13, Q2 and the condensers carry what the models leave out (D-009).
+- Core 1.9.0, ADR 0058: the `mtsr_profile`, `per_reaction` (BNBR and BALBR, one run) and the gas
+  release at the MTSR against `hazard.vent_capacity` (D-011, D-014). `hazard.mtt` stays set by
+  hand: the default is still bromine's boiling point (L-5).
+- Core 1.9.0, ADR 0060: `tears: [{stream: S2, initial}]` and `convergence:` with SP201's `split:
+  {rec: 0.98}`: the toluene recycle converged by propagate (D-006), replacing the 14 hand passes
+  of core 1.8.0.
+- Not used: `hazard.reactions` (both reactions are brominations by the accumulated bromine and
+  count together; BNBR sets the MTSR).
+
+From core 1.8.0:
 
 | feature | where | ADR |
 |---|---|---|
@@ -431,6 +565,9 @@ filter and the dryer (no solids), `still.feed` (no solvent swap).
 
 ## Core limits hit (each a candidate core issue)
 
+Status on core 1.9.0 (2026-11-06): L-7 partly and L-8 resolved, L-3 and L-6 partly (each says
+what is left); L-1, L-2, L-4, L-5 and L-9 stand.
+
 - L-1: no photochemical rate law. The rate of a light-driven chain depends on the absorbed photon
   flux (lamp power, emission spectrum, the light path through a bromine-coloured liquid, the
   quantum yield) and is nearly zero in the dark; core takes only a thermal power law, so the rate
@@ -445,12 +582,18 @@ filter and the dryer (no solids), `still.feed` (no solvent swap).
   their duties, the evaporative cooling of R-101 and the toluene left in the vent (3.8 g/kg) are
   script values outside the balance. Core needs the solvent vapour in the off-gas from the
   vessel's VLE, with a partial (reflux) condenser on the vent (as benzoyl-chloride-1's L-2).
+  Core 1.9.0 compares the gas release at the MTSR with the vent's capacity (ADR 0058), for the
+  vent gas alone: the vapour with it at a cooling failure (0.68 to 1.51 mol per mol, D-014) is
+  hand arithmetic, and the vapour's heat had to be carried by energy streams from R-101 to E-102
+  (Q12, Q13, D-009).
 - L-4 (core#173): no batch rectification with reflux; the strip has to stay shallow (D-007) and
   the product's purity rests on the heavy's large volatility; a higher grade needs a column.
 - L-5: the default MTT is the lowest boiling point of the charge and the doses (here bromine's
   332 K, below the process temperature); it ignores that the dose reacts and that the content is
   a mixture. `hazard.mtt` was set by hand; core could give the content's bubble point at the
-  worst moment from its Antoine data (D-011: 394.9 K design, about 372 K at k/100).
+  worst moment from its Antoine data (D-011: 394.9 K design, about 372 K at k/100). Still so in
+  core 1.9.0: ADR 0058 leaves out vent components, dosed gases and minor dissolved gases, but a
+  dosed liquid above 5 mol% of the charge and doses (bromine, 18.7 %) still sets the default.
 - L-6 (ADR 0055): the still has no heat-up, flash or sensible heat of a charge hotter than its
   bubble point (both charges here), a constant boil-up whatever the wetted jacket area, and does
   not size its vessel, jacket, condensers or vacuum system: C-101 is sized by hand, and Q7 and Q9
@@ -458,12 +601,19 @@ filter and the dryer (no solids), `still.feed` (no solvent swap).
   (about 0.04 m3) wets only about 0.9 m2 of jacket, about 12.5 kW against the 80 kW boil-up; the
   jacket-limited times (scripts/still_jacket.py, D-007) are 0.93 h a batch longer than core's.
   Core needs the boil-up from U, the wetted jacket area of the vessel and the steam temperature.
-- L-7: core propagates from the feeds and cannot solve them for a product rate, and does not tear
-  a recycle: the script scales the feeds and brings the toluene recycle to its fixed point by
-  passes of propagate and the script (as n-bromosuccinimide-1's L-6).
-- L-8: an isothermal semi-batch reports its peak cooling duty and the heat released, but no
-  year-average duty for its energy stream; Q2 comes from the script with the same data the model
-  uses.
+  **Partly resolved in core 1.9.0** (ADR 0059): the still's model writes its steam duty, the
+  boil-up's latent heat (Q7, Q9). Still open: the sensible heat of the charge, the vapour and the
+  residue (2.41 kW less steam here, a recorded exclusion, D-009) and the condensers' duties (one
+  energy port per still), which the script gives from a repeat of the still.
+- L-7: core propagates from the feeds and cannot solve them for a product rate, and did not tear
+  a recycle: the script scaled the feeds and brought the toluene recycle to its fixed point by
+  passes of propagate and the script (as n-bromosuccinimide-1's L-6). **The recycle is resolved
+  in core 1.9.0** (ADR 0060: S2 is a tear converged by propagate, D-006). Still open: the feeds
+  for the product rate and the charge ratio (a design specification on S1 and S5) take passes
+  of the script and propagate.
+- L-8 (resolved in core 1.9.0, ADR 0059): an isothermal semi-batch reported its peak cooling
+  duty and the heat released, but no year-average duty for its energy stream, so the script
+  gave it. Core 1.9.0 writes it on Q12 (6.23565 kW, the script's own 6.2356 kW).
 - L-9 (ADR 0055): an ideal liquid only, and a component needs an Antoine equation or a constant
   alpha for the whole still: benzal bromide has one measured point, so its line is ASSUMED and
   the stills' basis is "not sourced".
@@ -475,4 +625,5 @@ ring-bromination share; the TD24 or DSC onset of the crude, the product and the 
 solubility in toluene at 363 K; VLE of toluene with benzyl bromide and of benzyl bromide with
 benzal bromide; benzal bromide's vapour pressure; the product specification; the purge's need;
 the vent's toluene and bromine and the acid's quality; prices for the allocation; a TEA
-(`operation.batch: {recipe: true}`).
+(`operation.batch: {recipe: true}`); R-101's relief device and blocked-vent case, the vapour line
+and E-102 for the vapour of a cooling failure (D-014).

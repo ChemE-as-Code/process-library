@@ -13,16 +13,22 @@ checked by [`cheme-as-code`](https://github.com/ChemE-as-Code/core).
 A batch plant: the photoreactor R101 is a semi-batch (`reactor: semibatch`, bromine dosed into
 excess toluene at 363 K under lamps) whose HBr leaves as it forms by a vent stream
 (`batch.vent`, core ADR 0054) through a reflux and a brine vent condenser to the absorber that
-makes 48 wt% hydrobromic acid; its maximum technical temperature is given as `hazard.mtt`. The
+makes 48 wt% hydrobromic acid; its maximum technical temperature is given as `hazard.mtt`, and
+its off-gas system's capacity, against the HBr a cooling failure releases at the MTSR, as
+`hazard.vent_capacity` (core ADR 0058). The
 light-driven rate is an ASSUMED effective rate law (core has no photochemical rate). The crude
 is stripped of its toluene at 15 kPa(a) (ST101) and distilled at 2 kPa(a) (ST102, a forerun and
 a main cut) in one batch still, two one-stage Rayleigh steps of core (`still:`, core ADR 0055);
-the stripped toluene and the forerun go back to the next batch, 2 % purged. The product is 98.3
+the stripped toluene and the forerun go back to the next batch, 2 % purged, a recycle that
+`cheme process propagate` converges at its tear stream S2 (`tears:`, core ADR 0060). The
+reactor's model duty (on Q12, with the off-gas vapour to the reflux condenser) and the stills'
+boil-up (Q7, Q9) are written by `cheme process propagate --fill` from the models (core ADR
+0059); the other duties come from `scripts/balance.py`. The product is 98.3
 wt% benzyl bromide in the model, an upper bound (ring-brominated and condensation by-products
 are not modelled). `process/recipe.yaml` holds the batch recipe the cycle time, R-101's vessel
 and jacket check, the stills' boil-up times and the flowsheet's year-average flows come from
 (`cheme process recipe`, `cheme process reactor-hazards`, `cheme process stills`). Needs
-cheme-as-code 1.8.0.
+cheme-as-code 1.9.0.
 
 | path | what |
 |---|---|
@@ -39,7 +45,7 @@ cheme-as-code 1.8.0.
 | `reviews/` | review records |
 | `runs/` | one record per design session, written by `cheme runs record` (`runs/README.md`); never edited |
 | `DESIGN.md`, `PROGRESS.md`, `STAGES.md` | decisions, change log, stage definitions |
-| `scripts/` | generator scripts and `balance.py`: the feeds for 1000 t/a, the toluene recycle at its fixed point, the absorber water, the mixing and bubble-point temperatures and the duties (D-006) |
+| `scripts/` | generator scripts and `balance.py`: the feeds for 1000 t/a, the absorber water, the mixing and bubble-point temperatures and the duties core does not model, with a cross-check of those it does (D-006, D-009) |
 | `.claude/skills/` | how an agent works here (not in git: run `cheme skills update` once after cloning) |
 
 ## How this repository works
@@ -68,14 +74,15 @@ cheme validate                  # after every change
 cheme check                     # engineering-step gates (--write only at sign-off)
 cheme process build             # BFD and PFD from process/*.yaml
 cheme process streams           # stream table with provenance, block balances
-cheme process propagate --check # the semi-batch with its vent, the stills, mixers and splitter
+cheme process propagate --check # the semi-batch with its vent, the stills, mixers, splitter, the recycle's tear and the model duties
 cheme process recipe            # batch cycle, bottleneck, batches per year, vessel, jacket, off-gas (--svg)
-cheme process reactor-hazards   # thermal screening, with the semi-batch's accumulation
+cheme process reactor-hazards   # thermal screening: accumulation, MTSR over the batch, gas release vs the vent
 cheme process stills            # the stills' cuts, residue, boil-up times and duty per batch
-cheme run scripts/balance.py    # the feeds for 1000 t/a, the recycle's fixed point and the duties
+cheme run scripts/balance.py    # the feeds for 1000 t/a, the absorber water and the other duties
 cheme assess lca --check        # the LCI files current
 ```
 
-After a change upstream of the recycle, run `cheme process propagate --fill` and
-`cheme run scripts/balance.py` in turn, writing the values the script prints into the flowsheet,
-until the recycle S2 no longer moves (DESIGN.md D-006).
+The recycle S2 is converged by `cheme process propagate --fill` itself (core 1.9.0). After a
+change that moves the product rate, run `cheme run scripts/balance.py` and `cheme process
+propagate --fill` in turn, writing the feeds the script prints into the flowsheet, until the
+product S15 is 1000 t/a (a few passes, DESIGN.md D-006).

@@ -76,7 +76,7 @@ exchanges:
 - key: feed:TOL
   title: Toluene make-up (btx-1)
   type: input
-  amount: 76.8985
+  amount: 76.8994
   unit: kg
   link:
     source: flowsheet stream S1, the make-up (D-004)
@@ -98,7 +98,7 @@ exchanges:
 - key: feed:BR2
   title: Bromine (bromine-1)
   type: input
-  amount: 131.0289
+  amount: 131.029
   unit: kg
   link:
     source: flowsheet stream S5 (D-004)
@@ -120,7 +120,7 @@ exchanges:
 - key: feed:PW
   title: Process water (HBr absorber)
   type: input
-  amount: 71.8681
+  amount: 71.8676
   unit: kg
   link:
     source: flowsheet stream S10 (D-008)
@@ -142,7 +142,7 @@ exchanges:
 - key: feed:POWER
   title: Electric power
   type: input
-  amount: 19.733999999999998
+  amount: 19.7339
   unit: kWh
   link:
     source: flowsheet energy streams P1 (the lamps), P2 (R-101 agitator) and P3 (still agitator and vacuum
@@ -165,10 +165,12 @@ exchanges:
 - key: feed:LPS
   title: LP steam 450 kPa(a) (R-101 heat-up, still C-101)
   type: input
-  amount: 42.2685
+  amount: 49.4734
   unit: kWh
   link:
-    source: flowsheet energy streams Q1 (R-101 heat-up), Q7 (strip) and Q9 (vacuum distillation), D-009
+    source: 'flowsheet energy streams Q1 (R-101 heat-up), Q7 (strip) and Q9 (vacuum distillation), Q7
+      and Q9 the latent heat of the boil-up from core''s still model (the charges'' sensible heat, 2.41
+      kW less steam, left out: D-009), D-009'
     missing: 'linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry,
       450 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh
       of condensing heat'
@@ -176,7 +178,9 @@ exchanges:
   - Q1
   - Q7
   - Q9
-  source: flowsheet energy streams Q1 (R-101 heat-up), Q7 (strip) and Q9 (vacuum distillation), D-009
+  source: 'flowsheet energy streams Q1 (R-101 heat-up), Q7 (strip) and Q9 (vacuum distillation), Q7 and
+    Q9 the latent heat of the boil-up from core''s still model (the charges'' sensible heat, 2.41 kW less
+    steam, left out: D-009), D-009'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -209,8 +213,8 @@ exchanges:
     fractions:
       TOL: 0.001136909
       BR2: 0.0
-      BNBR: 0.982507118
-      BALBR: 0.016355973
+      BNBR: 0.982507261
+      BALBR: 0.01635583
     formulas:
       TOL: C7H8
       BR2: Br2
@@ -220,7 +224,7 @@ exchanges:
 - key: product:HBRACID
   title: Hydrobromic acid 48 wt% (co-product)
   type: product
-  amount: 138.208
+  amount: 138.207
   unit: kg
   provenance: calculated
   streams:
@@ -232,13 +236,13 @@ exchanges:
   state:
     pressure: 1.01325
     temperature: 40.0
-    purity: 0.829516
+    purity: 0.829515
     basis: mole
     component: H2O
   composition:
     fractions:
-      HBR: 0.47999979
-      H2O: 0.52000021
+      HBR: 0.480001555
+      H2O: 0.519998445
     formulas:
       HBR: HBr
       H2O: H2O
@@ -246,7 +250,7 @@ exchanges:
 - key: product:RES
   title: Still residue (benzal bromide) to hazardous-waste incineration
   type: output
-  amount: 9.74657
+  amount: 9.74645
   unit: kg
   provenance: calculated
   link:
@@ -277,7 +281,7 @@ exchanges:
 - key: product:PURGE
   title: Toluene purge to hazardous-waste incineration
   type: output
-  amount: 5.5797
+  amount: 5.58
   unit: kg
   provenance: calculated
   link:
@@ -297,10 +301,10 @@ exchanges:
       flue-gas scrubbing; its heat may be recovered at the incinerator (D-007)
   composition:
     fractions:
-      TOL: 0.823993812
-      BR2: 0.000470108
-      BNBR: 0.174884536
-      BALBR: 0.000651544
+      TOL: 0.823995397
+      BR2: 0.000470104
+      BNBR: 0.174882973
+      BALBR: 0.000651527
     formulas:
       TOL: C7H8
       BR2: Br2
@@ -310,11 +314,15 @@ exchanges:
 - key: product:CW
   title: Cooling water return
   type: output
-  amount: 78.08040000000001
+  amount: 79.99680000000001
   unit: kWh
   link:
-    source: flowsheet energy streams Q2 (R-101 jacket), Q3 (lamp wells), Q4 (reflux condenser), Q6 (absorber),
-      Q8 (strip condenser) and Q11 (main-cut condenser, product and residue coolers), D-009
+    source: 'flowsheet energy streams Q2 (R-101 jacket: the light and the agitator less Q13), Q3 (lamp
+      wells), Q4 (reflux condenser: most of the off-gas vapour''s heat, the HBr and the uncondensed toluene
+      cooled), Q6 (absorber), Q8 (strip condenser) and Q11 (main-cut condenser, product and residue coolers),
+      D-009; Q12 and Q13 (R-101 to E-102, 8.24 kW together) are internal streams counted once, in the
+      condensers that remove their heat: about 7.68 kW in E-102''s Q4 on cooling water and the share E-103
+      condenses (about 0.41 kW) in Q5 on brine (product:BRINE), about 0.05 kW leaving with the vent'
     missing: 'not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system
       with cooling tower (processes/utility-cooling-tower), per kWh removed'
   streams:
@@ -324,8 +332,12 @@ exchanges:
   - Q6
   - Q8
   - Q11
-  source: flowsheet energy streams Q2 (R-101 jacket), Q3 (lamp wells), Q4 (reflux condenser), Q6 (absorber),
-    Q8 (strip condenser) and Q11 (main-cut condenser, product and residue coolers), D-009
+  source: 'flowsheet energy streams Q2 (R-101 jacket: the light and the agitator less Q13), Q3 (lamp wells),
+    Q4 (reflux condenser: most of the off-gas vapour''s heat, the HBr and the uncondensed toluene cooled),
+    Q6 (absorber), Q8 (strip condenser) and Q11 (main-cut condenser, product and residue coolers), D-009;
+    Q12 and Q13 (R-101 to E-102, 8.24 kW together) are internal streams counted once, in the condensers
+    that remove their heat: about 7.68 kW in E-102''s Q4 on cooling water and the share E-103 condenses
+    (about 0.41 kW) in Q5 on brine (product:BRINE), about 0.05 kW leaving with the vent'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -337,17 +349,19 @@ exchanges:
 - key: product:BRINE
   title: Chilled brine return (263 K)
   type: output
-  amount: 4.9262999999999995
+  amount: 5.5564
   unit: kWh
   link:
-    source: flowsheet energy streams Q5 (vent condenser) and Q10 (forerun condenser), D-009
+    source: 'flowsheet energy streams Q5 (vent condenser: about 0.41 kW of it the share of Q12 and Q13
+      that E-103 condenses) and Q10 (forerun condenser), D-009'
     missing: 'not mapped yet (D-012); connect to: refrigeration at 258 K (brine) from an electric vapour-compression
       unit (e.g. processes/utility-chiller), per kWh of heat removed: compressor electricity at its COP,
       condenser cooling water, refrigerant losses'
   streams:
   - Q5
   - Q10
-  source: flowsheet energy streams Q5 (vent condenser) and Q10 (forerun condenser), D-009
+  source: 'flowsheet energy streams Q5 (vent condenser: about 0.41 kW of it the share of Q12 and Q13 that
+    E-103 condenses) and Q10 (forerun condenser), D-009'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -359,7 +373,7 @@ exchanges:
 - key: consumable:nitrogen
   title: Nitrogen for inerting R-101 and C-101, breaking the vacuum and padding the receivers
   type: input
-  amount: 3.5480018965478424
+  amount: 3.548002085849816
   unit: kg
   link:
     source: '20 Nm3 per batch x 1.2506 kg/Nm3, ASSUMED (D-012): R-101''s 4 m3 purged with 3 volumes (12
@@ -400,8 +414,8 @@ provenance:
     and batch distillation (1000 t/a)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:1107421e5f997d2f5fa1afb6d7dd4a1701366945d6a667181f66a73b3e900e97
-    lca/lca.yaml: sha256:6e81fcf5c02a9e9e9f25ac8157ffedf5cd1530a162ca7de46be742b748113fdd
-    process.yaml: sha256:f7595f1a1a09f4458c9f11b5b2a27b824e5a0a61978b6ff600ca6f8b822fa172
-    process/flowsheet.yaml: sha256:cde48b86671de15d8e644421e217e1489cc69a53808ae886ab4cd54af9648bd6
+    equipment/equipment-list.yaml: sha256:0e1b19838dae290bdc6a86ccfbf7f353e957d95a2142ea50b9408e4a19bfefa9
+    lca/lca.yaml: sha256:7bb2d3bda3ef0c0e7d5854cb2db693a7d190a99120a60e9ace4e2fd17b188a1a
+    process.yaml: sha256:b13e7a6fb89ddbf592ad7c8bdb46da86d5ed437e1773a2aa55d271e7be737444
+    process/flowsheet.yaml: sha256:cf9db7f84e3f2d830d9f4e887f2ebe8efaa90ff4ffce7a3870fa8ee22684c800
     process/materials.yaml: sha256:11d3717e73d541eb713da3b8b590b8d5288de8cb83ac83db42140e03869455bc

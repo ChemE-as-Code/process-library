@@ -24,11 +24,22 @@ DESIGN.md, process.yaml and lca/ is checked against them:
   entry of the source register;
 - water ingress, the loss of the absorber water and the lamp wells (rupture, ignition in a
   flammable toluene atmosphere) are open items, and the process is not set public in the change
-  that adds it (CONTRIBUTING, "Publishing a process").
+  that adds it (CONTRIBUTING, "Publishing a process");
+- (core 1.9.0, ADR 0060) the toluene recycle S2 is a tear stream converged by propagate, not an
+  assumed stream, at the splitter's 0.98;
+- (core 1.9.0, ADR 0059) R101's model duty is on Q12 (the off-gas vapour's heat to the reflux
+  condenser), the vapour's rest on Q13, and the jacket Q2 is the light and the agitator less Q13,
+  so R-101's heat balance closes and the cooling water counts the vapour's heat once (in Q4);
+  the stills' steam Q7 and Q9 are their models' latent heat, and the sensible heat core leaves
+  out is the recorded exclusion of D-009, recomputed here from scripts/balance.py's still;
+- (core 1.9.0, ADR 0058) R-101's off-gas capacity covers the HBr released at the MTSR, in the
+  design case and in D-011's k/10 and k/100 cases, with the stated margin, and the vapour and the
+  blocked vent stay open findings (D-014).
 """
 
 from __future__ import annotations
 
+import math
 import re
 from pathlib import Path
 
@@ -126,6 +137,14 @@ def test_acid_strength_and_the_allocation_shares(model):
 
 
 def test_recycle_at_its_fixed_point_and_the_charge_ratio(model):
+    # core 1.9.0 (ADR 0060): S2 is the tear stream, converged and written by propagate
+    sheet = _yaml("process/flowsheet.yaml")
+    assert [t["stream"] for t in sheet["tears"]] == ["S2"]
+    splitter = next(s for s in sheet["steps"] if s["id"] == "SP201")
+    assert splitter["split"] == {"rec": 0.98}
+    for key in ("flow", "composition"):
+        value = _state(model, "S2")[key]
+        assert value["provenance"] == "calculated" and "(tear, wegstein)" in value["source"], key
     s2, s17 = _kmol(model, "S2"), _kmol(model, "S17")
     for k, n in s17.items():
         assert s2.get(k, 0.0) == pytest.approx(0.98 * n, rel=2e-3, abs=1e-6), k
@@ -173,12 +192,12 @@ def test_every_energy_flow_reaches_the_lci(model):
     assert set(by_sink["LPS"]) == {"Q1", "Q7", "Q9"}
     assert set(by_sink["POWER"]) == {"P1", "P2", "P3"}
     per_kg = {k: sum(_duty(model, q) for q in v) / rate for k, v in by_sink.items() if k in ("CW", "BRINE", "LPS", "POWER")}
-    assert per_kg["CW"] == pytest.approx(0.618, abs=5e-4)
-    assert per_kg["BRINE"] == pytest.approx(0.039, abs=5e-4)
-    assert per_kg["LPS"] == pytest.approx(0.335, abs=5e-4)
+    assert per_kg["CW"] == pytest.approx(0.634, abs=5e-4)
+    assert per_kg["BRINE"] == pytest.approx(0.044, abs=5e-4)
+    assert per_kg["LPS"] == pytest.approx(0.392, abs=5e-4)
     assert per_kg["POWER"] == pytest.approx(0.156, abs=5e-4)
     design, manifest = _text("DESIGN.md"), _text("process.yaml")
-    for figure in ("0.618 kWh", "0.039 kWh", "0.335 kWh", "0.156 kWh"):
+    for figure in ("0.634 kWh", "0.044 kWh", "0.392 kWh", "0.156 kWh"):
         assert figure in design and figure in manifest, figure
     inventory = {row.split(",")[0]: row for row in (PROCESS / "lca" / "inventory.csv").read_text(encoding="utf-8").splitlines()[1:]}
     assert {"product:CW", "product:BRINE", "feed:LPS", "feed:POWER"} <= set(inventory)
@@ -208,7 +227,7 @@ def _criticality(mtsr: float, mtt: float, td24: float) -> int:
 
 def test_the_stated_criticality_classes_are_those_any_td24_can_give():
     rows = re.findall(
-        r"^\| (?:5\.0e-4 \(design\)|k/10|k/100) \| [^|]+ \| ([\d.]+) K \| [^|]+ \| [^|]+ \| [^|]+ \| ([^|]+) \|$",
+        r"^\| (?:5\.0e-4 \(design\)|k/10|k/100) \| [^|]+ \| ([\d.]+) K \| [^|]+ \| [^|]+ \| [^|]+ \| [^|]+ \| ([^|]+) \|$",
         (PROCESS / "DESIGN.md").read_text(encoding="utf-8"),
         flags=re.M,
     )
@@ -358,3 +377,177 @@ def test_not_published_in_the_change_that_adds_it():
     publication = _yaml("process.yaml")["publication"]
     assert publication["status"] == "internal"
     assert "license" not in publication
+
+
+# core 1.9.0 (ADRs 0058 to 0060)
+
+T_REACT, T_SUPPLY, T_CW, T_VENT, P_ATM = 363.15, 298.15, 303.15, 268.15, 101.325
+
+
+def _p_sat(materials: dict, k: str, t: float) -> float:
+    vp = materials[k]["vapour_pressure"]
+    return 100.0 * 10 ** (vp["a"] - vp["b"] / (t + vp["c"]))
+
+
+def _carried(model, sid: str) -> float:
+    """mol of the liquid's vapour per mol of HBr leaving at 363.15 K (Raoult, D-008)."""
+    materials, _ = model
+    liquid = {k: n for k, n in _kmol(model, sid).items() if n > 0 and k != "HBR"}
+    total = sum(liquid.values())
+    p = sum(n / total * _p_sat(materials, k, T_REACT) for k, n in liquid.items())
+    return p / (P_ATM - p)
+
+
+def _energy(model) -> dict[str, dict]:
+    return {k: s for k, s in model[1].items() if s.get("kind") == "energy"}
+
+
+def test_r101_model_duty_on_q12_and_its_heat_balance(model):
+    materials, _ = model
+    energy = _energy(model)
+    q12 = energy["Q12"]["state"]["design"]["duty"]
+    assert q12["provenance"] == "calculated" and "semibatch duty R101" in q12["source"]
+    r101 = next(s for s in _yaml("process/flowsheet.yaml")["steps"] if s["id"] == "R101")
+    assert r101["energy_port"] == "reflux"
+    assert energy["Q12"]["from"] == "R101.reflux" and energy["Q12"]["to"] == "E102.reflux"
+    # the model: one HBr per extent of BNBR and BALBR, both -32.3 kJ/mol, less the bromine warmed
+    reactions = 32_300.0 * _kmol(model, "S7")["HBR"]
+    warm = _kmol(model, "S5")["BR2"] * materials["BR2"]["liquid_heat_capacity"] * (T_REACT - T_SUPPLY)
+    assert q12["value"] == pytest.approx((reactions - warm) / 3600.0, rel=1e-4)
+    # the vapour the HBr carries (D-008): its latent heat and the reheating of what returns
+    n_hbr = _kmol(model, "S7")["HBR"]
+    r_out = 0.5 * (_carried(model, "S4") + _carried(model, "S6"))
+    r_cw = _p_sat(materials, "TOL", T_CW) / (P_ATM - _p_sat(materials, "TOL", T_CW))
+    r_vent = _p_sat(materials, "TOL", T_VENT) / (P_ATM - _p_sat(materials, "TOL", T_VENT))
+    lam, cp = materials["TOL"]["heat_of_vaporization"], materials["TOL"]["liquid_heat_capacity"]
+    vapour = n_hbr * (r_out * lam + (r_out - r_cw) * cp * (T_REACT - T_CW) + (r_cw - r_vent) * cp * (T_REACT - T_VENT)) / 3600.0
+    assert vapour == pytest.approx(8.244, abs=2e-3)
+    assert _duty(model, "Q13") == pytest.approx(vapour - q12["value"], abs=2e-4)
+    assert _duty(model, "Q13") > 0  # the vapour takes more than the model's duty
+    light = 0.3 * _duty(model, "P1")
+    assert _duty(model, "Q2") == pytest.approx(light + _duty(model, "P2") - _duty(model, "Q13"), abs=2e-4)
+    # the lamps: their electricity P1 is the light the content absorbs plus the wells' Q3
+    assert _duty(model, "P1") == pytest.approx(light + _duty(model, "Q3"), abs=2e-4)
+    # R-101's full balance without Q12 and Q13: in the reactions (less the warming), the light and
+    # the agitator; out the jacket Q2 and the vapour's heat, both computed here
+    assert (reactions - warm) / 3600.0 + light + _duty(model, "P2") == pytest.approx(_duty(model, "Q2") + vapour, abs=5e-4)
+    # on the jacket the model would differ by a net that flows against it (D-009)
+    assert light + _duty(model, "P2") - vapour == pytest.approx(-0.77, abs=0.01)
+    design = _text("DESIGN.md")
+    assert "+4.47 + 3.0 - 8.24 = -0.77 kW" in design
+    assert "`energy_port: reflux`" in design
+
+
+def test_q12_and_q13_reach_the_lci_once_through_the_reflux_condenser(model):
+    energy = _energy(model)
+    for q in ("Q12", "Q13"):
+        assert energy[q]["to"].startswith("E102."), q
+    inventory = (PROCESS / "lca" / "inventory.csv").read_text(encoding="utf-8")
+    cw = next(line for line in inventory.splitlines() if line.startswith("product:CW,"))
+    assert cw.endswith(",Q2 Q3 Q4 Q6 Q8 Q11")
+    assert "Q12" not in inventory and "Q13" not in inventory
+
+
+def test_the_stills_steam_is_the_model_and_the_sensible_heat_is_recorded(model):
+    materials, _ = model
+    energy = _energy(model)
+    for q, node, cuts in (("Q7", "ST101", ("S12",)), ("Q9", "ST102", ("S14", "S15"))):
+        duty = energy[q]["state"]["design"]["duty"]
+        assert duty["provenance"] == "calculated" and f"still duty {node}" in duty["source"], q
+        latent = sum(n * materials[k]["heat_of_vaporization"] for s in cuts for k, n in _kmol(model, s).items() if n)
+        assert duty["value"] == pytest.approx(latent / 3600.0, rel=2e-4), q
+    steps = {s["id"]: s for s in _yaml("process/flowsheet.yaml")["steps"]}
+    assert steps["ST101"]["energy_port"] == "steam" and steps["ST102"]["energy_port"] == "steam"
+    design = _text("DESIGN.md")
+    assert "2.41 kW (0.019 kWh/kg) less LP steam" in design
+    assert "**The hand values were too low**" in design
+    assert "23.23 kW for ST101 (sensible -1.33) and 12.55 for ST102 (-1.08)" in design
+    # "4.9 % high" of the LCI's steam: the model's Q7 and Q9 with the heat-up Q1, as feed:LPS
+    lps = sum(_duty(model, q) for q in ("Q1", "Q7", "Q9"))
+    inventory = (PROCESS / "lca" / "inventory.csv").read_text(encoding="utf-8").splitlines()
+    row = next(line for line in inventory if line.startswith("feed:LPS,"))
+    assert row.endswith(",Q1 Q7 Q9")
+    assert float(row.split(",kWh/h,")[0].rsplit(",", 1)[1]) == pytest.approx(lps, abs=1e-3)
+    assert 2.41 / lps == pytest.approx(0.049, abs=5e-4)
+
+
+def test_the_stills_full_balance_from_the_script(model):
+    """scripts/balance.py's repeat of the stills gives core's cuts and the stated sensible heat."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("bnbr_balance", PROCESS / "scripts" / "balance.py")
+    balance = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(balance)
+    materials, _ = model
+    s6, s13 = _kmol(model, "S6"), _kmol(model, "S13")
+    strip = balance.rayleigh(materials, s6, 15.0, [("top", lambda x: x.get("TOL", 0.0) <= 0.15)])
+    vac = balance.rayleigh(
+        materials, s13, 2.0,
+        [("fore", lambda x: x.get("TOL", 0.0) <= 0.002), ("main", lambda x: x.get("BNBR", 0.0) <= 0.35)],
+    )
+    for cut, sid in ((strip["top"], "S12"), (vac["fore"], "S14"), (vac["main"], "S15")):
+        assert sum(cut["moles"].values()) == pytest.approx(sum(_kmol(model, sid).values()), rel=2e-3), sid
+    sens7 = balance.sensible(materials, strip, T_REACT) / 3600.0
+    sens9 = balance.sensible(materials, vac, _temperature(model, "S13")) / 3600.0
+    assert sens7 == pytest.approx(-1.33, abs=0.01) and sens9 == pytest.approx(-1.08, abs=0.01)
+    assert -(sens7 + sens9) == pytest.approx(2.41, abs=0.01)
+    assert balance.condenser(materials, strip["top"], T_CW) / 3600.0 == pytest.approx(_duty(model, "Q8"), rel=2e-3)
+    assert balance.condenser(materials, vac["fore"], T_VENT) / 3600.0 == pytest.approx(_duty(model, "Q10"), rel=2e-3)
+
+
+def test_the_off_gas_capacity_covers_the_gas_release_at_the_mtsr():
+    r101 = next(s for s in _yaml("process/flowsheet.yaml")["steps"] if s["id"] == "R101")
+    hazard = r101["hazard"]
+    capacity = hazard["vent_capacity"]
+    assert hazard["provenance"] == "assumed" and "1.2 x the largest gas release" in hazard["source"]
+
+    def m3_h(mol_s: float, t: float) -> float:
+        return mol_s * 1e-3 * 8.314 * t / P_ATM * 3600.0
+
+    release = m3_h(0.3265, 363.93)
+    assert release == pytest.approx(35.10, abs=0.03)
+    assert capacity == 5.0 * math.ceil(1.2 * release / 5.0) == 45.0
+    assert 34.32 < capacity  # the normal peak (cheme process recipe)
+    table = (PROCESS / "DESIGN.md").read_text(encoding="utf-8").splitlines()
+    for name, (rate, mtsr, stated) in {
+        "5.0e-4 (design)": (0.3265, 363.93, 35.10),
+        "k/10": (0.3758, 370.47, 41.13),
+        "k/100": (0.3276, 394.57, 38.18),
+    }.items():
+        assert m3_h(rate, mtsr) == pytest.approx(stated, rel=2e-3), name
+        row = next(line for line in table if line.startswith(f"| {name} |"))
+        assert f"{stated:.2f} m3/h: {stated / capacity:.2f} x" in row, name
+        assert stated < capacity, name
+    design = _text("DESIGN.md")
+    assert "`hazard.vent_capacity: 45`" in design
+    # the blocked vent: the accumulated bromine's HBr in R-101's 1.02 m3 head space
+    head = 4.0 - 2.982
+    assert 0.0999 * 8.314 * 363.93 / head / 1000.0 == pytest.approx(0.30, abs=0.005)
+    assert 0.946 * 8.314 * 370.47 / head / 1000.0 == pytest.approx(2.86, abs=0.02)
+    assert "by about 0.30 MPa at 363.9 K" in design and "by about 2.9 MPa at 370.5 K" in design
+    assert "So R-101 needs a relief device" in design
+    # the vapour with the gas at the k/10 MTSR and the line it needs
+    ratio = float(re.search(r"and ([0-9.]+) at the k/10 MTSR", design).group(1))
+    assert ratio == pytest.approx(1.51)
+    assert capacity * (1.0 + ratio) == pytest.approx(115, abs=3)
+    assert "about 115 m3/h" in design
+
+
+def test_core_screens_the_gas_release_within_the_off_gas_capacity():
+    pytest.importorskip("chemeascode")
+    from chemeascode.domains.safety.reaction_hazards import screen
+
+    report = screen(PROCESS)
+    (entry,) = report.entries
+    gas = entry.gas_release
+    assert gas["per_batch"] and gas["rate_m3_h"] == pytest.approx(35.10, abs=0.05)
+    assert gas["vent_capacity_m3_h"] == 45.0 and gas["capacity_ratio"] < 1.0
+    assert entry.mtsr == pytest.approx(363.9, abs=0.05)
+    assert not [f for f in report.findings if f.level in ("warning", "error")]
+
+
+def test_requires_core_1_9():
+    plant = _yaml("plant.yaml")
+    assert plant["requires"] == "cheme-as-code>=1.9"
+    for rel in ("README.md", "process.yaml"):
+        assert "Needs cheme-as-code 1.9.0" in _text(rel), rel

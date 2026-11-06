@@ -17,11 +17,16 @@
 #   effective rate laws of BNBR and BALBR, to 0.999 conversion of the bromine (D-005);
 # - ST101 and ST102: cheme's batch (Rayleigh) still, one stage each, Raoult's law with NIST
 #   Antoine constants (core ADR 0055, D-007);
-# - M101, A101, M201: mixers, SP201 a splitter, E101..E103 pass-through (`cheme process
-#   propagate --fill`);
-# - the feeds for 1000 t/a, the recycle S2 at its fixed point, the absorber water and every
-#   duty: scripts/balance.py (D-006, D-009), as core propagates from the feeds, does not tear a
-#   recycle, and has no property package for these liquids.
+# - M101, A101, M201: mixers, SP201 a splitter (98 % to the recycle), E101..E103 pass-through
+#   (`cheme process propagate --fill`);
+# - the toluene recycle S2: the tear stream of `tears:`, converged by propagate with Wegstein's
+#   method and written as calculated (core 1.9.0, ADR 0060; D-006);
+# - the duties of R101 (its reactions' heat less the bromine's warming, on Q12 to the reflux
+#   condenser, energy_port reflux) and of the stills' boil-up (Q7, Q9, energy_port steam):
+#   written by propagate from the models (core 1.9.0, ADR 0059; D-009);
+# - the feeds for 1000 t/a, the absorber water, the mixing and bubble-point temperatures and the
+#   other duties: scripts/balance.py (D-006, D-009), as core propagates from the feeds and does
+#   not solve them for a product rate, and has no property package for these liquids.
 schema: cheme/process/v1
 kind: flowsheet
 title: Benzyl bromide by semi-batch light-driven side-chain bromination of toluene with HBr absorption and batch distillation (1000 t/a)
@@ -34,6 +39,14 @@ units:
 cases:
   - {id: design, description: "Design case: 1000 t/a distilled benzyl bromide, year averages of the batch recipe in 7920 h (D-002, D-003)", default: true}
 tolerance: {abs: 0.05, rel: 0.002}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+# The toluene recycle (D-006): S2 is torn and converged by propagate (core 1.9.0, ADR 0060);
+# the guess is the fixed point the script and propagate reached by hand under core 1.8.0. The
+# loop's gain is near 1 (98 % of the recovered toluene returns), so its tolerance is tighter
+# than the balances'.
+tears:
+  - stream: S2
+    initial: {flow: 273.4153, unit: kg/h, basis: mass_fraction, composition: {TOL: 0.823993812, BR2: 0.000470108, BNBR: 0.174884536, BALBR: 0.000651544}}
+convergence: {method: wegstein, max_iterations: 300, tolerance: {abs: 1.0e-5, rel: 1.0e-8}}
 
 feeds:
   - {id: TOL, title: Toluene make-up (btx-1), category: raw_material, ports: [{id: out, direction: out}]}
@@ -107,6 +120,8 @@ blocks:
       - {id: lampq, direction: out, kind: energy}
       - {id: lamps, direction: in, kind: energy}
       - {id: power, direction: in, kind: energy}
+      - {id: reflux, direction: out, kind: energy}
+      - {id: reflux2, direction: out, kind: energy}
   - id: OFFGAS
     title: Off-gas condensers and HBr absorption to hydrobromic acid
     class: Mixing
@@ -117,6 +132,8 @@ blocks:
       - {id: q1, direction: out, kind: energy}
       - {id: q2, direction: out, kind: energy}
       - {id: q3, direction: out, kind: energy}
+      - {id: reflux, direction: in, kind: energy}
+      - {id: reflux2, direction: in, kind: energy}
   - id: PURIFY
     title: Toluene strip and vacuum distillation, toluene recycle
     class: Distilling
@@ -165,10 +182,15 @@ steps:
       vent: {stream: S7, components: [HBR]}
       provenance: assumed
       source: "bromine dosed at a constant rate over 5 h into the toluene charge at 363 K under the lamps (the lamps' photon budget, D-005), then the post-reaction to 0.999 conversion of the bromine, so that little bromine goes to the still; the HBr leaves as gas as it forms, none taken as dissolved (D-005)"
+    # the model's duty (its reactions' heat less the bromine's warming, ADR 0059) leaves R-101
+    # with the off-gas's toluene vapour to the reflux condenser (Q12); the jacket Q2 takes the
+    # light and the agitator's heat less the vapour's heat beyond it (Q13), D-009
+    energy_port: reflux
     hazard:
       mtt: 383.8
-      provenance: given
-      source: "the normal boiling point of toluene (NIST WebBook, 383.8 +/- 0.2 K), the liquid's main component: R-101 runs at atmospheric pressure with its vent open to the condensers and the absorber; the default, the lowest boiling point of the charge and the dose, would be bromine's 331.95 K, a dose that does not stay as such in the liquid (D-011)"
+      vent_capacity: 45.0
+      provenance: assumed
+      source: "mtt: the normal boiling point of toluene (NIST WebBook, 383.8 +/- 0.2 K), the liquid's main component: R-101 runs at atmospheric pressure with its vent open to the condensers and the absorber; core 1.9's default is still bromine's 331.95 K, a dose above 5 % of the charge and doses that does not stay as such in the liquid (ADR 0058's known limitation; D-011, L-5). vent_capacity: ASSUMED design of R-101's off-gas system (the line to E-102, E-102, E-103 and A-101 with its tail scrubber, D-014): 1.2 x the largest gas release of a cooling failure, 35.10 m3/h of HBr at the MTSR of 363.9 K and 101.3 kPa(a) at the end of the dosing (cheme process reactor-hazards; the largest over the batch too), rounded up to 45 m3/h at R-101's 101.3 kPa(a); the normal peak, 34.32 m3/h at 363.15 K (cheme process recipe), and the k/10 and k/100 cases (41.13 and 38.18 m3/h, D-011) are within it. No TD24 (never estimated)"
     links: [{target: equipment, ref: R-101}]
     ports:
       - {id: charge, direction: in}
@@ -179,6 +201,8 @@ steps:
       - {id: lampq, direction: out, kind: energy, delegates: lampq}
       - {id: lamps, direction: in, kind: energy, delegates: lamps}
       - {id: power, direction: in, kind: energy, delegates: power}
+      - {id: reflux, direction: out, kind: energy, delegates: reflux}
+      - {id: reflux2, direction: out, kind: energy, delegates: reflux2}
   - id: E102
     block: OFFGAS
     title: Reflux condenser on R-101 (cooling water; returns toluene and bromine)
@@ -188,6 +212,8 @@ steps:
       - {id: in, direction: in, delegates: gas}
       - {id: out, direction: out}
       - {id: q, direction: out, kind: energy, delegates: q1}
+      - {id: reflux, direction: in, kind: energy, delegates: reflux}
+      - {id: reflux2, direction: in, kind: energy, delegates: reflux2}
   - id: E103
     block: OFFGAS
     title: Vent condenser (brine, to 268 K)
@@ -211,6 +237,9 @@ steps:
     block: PURIFY
     title: Toluene strip at 15 kPa(a) in the still C-101 (one stage, Rayleigh)
     class: Distilling
+    # the still's model duty (its boil-up's latent heat, ADR 0059) goes on the steam Q7; the
+    # condenser Q8 stays the script's (D-009)
+    energy_port: steam
     still:
       pressure: 15.0
       volatility: {model: raoult, provenance: assumed, source: "ideal liquid, NIST WebBook Antoine constants (materials.yaml); toluene with benzyl bromide is a pair of similar aromatics, not shown to be ideal by data: ASSUMED (D-007)"}
@@ -231,6 +260,9 @@ steps:
     block: PURIFY
     title: Vacuum distillation at 2 kPa(a) in the still C-101 (one stage, forerun and main cut)
     class: Distilling
+    # the still's model duty (its two cuts' latent heat, ADR 0059) goes on the steam Q9; the
+    # condensers Q10 and Q11 stay the script's (D-009)
+    energy_port: steam
     still:
       pressure: 2.0
       volatility: {model: raoult, provenance: assumed, source: "ideal liquid, NIST WebBook Antoine constants for toluene, bromine and benzyl bromide, benzal bromide's ASSUMED (materials.yaml, D-007)"}
@@ -263,6 +295,7 @@ steps:
     block: PURIFY
     title: Recycle and purge of the recovered toluene
     class: SplittingMaterial
+    split: {rec: 0.98}   # 2 % of the recovered toluene purged to incineration, ASSUMED (D-007)
     links: [{target: equipment, ref: T-201}]
     ports:
       - {id: in, direction: in}
@@ -279,7 +312,7 @@ streams:
       design:
         temperature: {value: 298.15, provenance: assumed, source: "design basis"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 76.8985, provenance: assumed, source: "scripts/balance.py: 4.0 mol of toluene in the charge per mol of bromine dosed, less the toluene of the recycle S2 (D-004)"}
+        flow: {value: 76.8994, provenance: assumed, source: "scripts/balance.py: 4.0 mol of toluene in the charge per mol of bromine dosed, less the toluene of the recycle S2 (D-004)"}
         composition: {basis: mass_fraction, values: {TOL: 1.0}, provenance: assumed, source: "toluene, its impurities not modelled (D-004)"}
   - id: S2
     title: Recycled toluene (to the next batch)
@@ -290,8 +323,8 @@ streams:
       design:
         temperature: {value: 298.79, provenance: assumed, source: "scripts/balance.py: as S17, the recovered toluene in T-201 (D-007)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 273.4153, provenance: assumed, source: "scripts/balance.py: 0.98 of the recovered toluene S17 at the recycle's fixed point (D-007)"}
-        composition: {basis: mass_fraction, values: {TOL: 0.823993812, BR2: 0.000470108, BNBR: 0.174884536, BALBR: 0.000651544}, provenance: assumed, source: "scripts/balance.py: the composition of S17 at the recycle's fixed point (D-007)"}
+        flow: {value: 273.418, provenance: calculated, source: 'cheme process propagate: recycle SP201 from S17 (tear, wegstein)', fingerprint: 8468a7697e396b11}
+        composition: {basis: mole_fraction, values: {TOL: 0.896895, BR2: 0.000295028, BNBR: 0.102548, BALBR: 0.000261444, HBR: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle SP201 from S17 (tear, wegstein)', fingerprint: 8468a7697e396b11}
   - id: S3
     title: Charge (mixed)
     from: M101.out
@@ -301,8 +334,8 @@ streams:
       design:
         temperature: {value: 298.64, provenance: assumed, source: "scripts/balance.py: the adiabatic mix of S1 and S2 (D-009)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 350.314, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2', fingerprint: f9c051ceed047324}
-        composition: {basis: mole_fraction, values: {TOL: 0.921061, BR2: 0.000225882, BNBR: 0.0785134, BALBR: 0.000200172, HBR: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2', fingerprint: 228912f98db07fab}
+        flow: {value: 350.317, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2', fingerprint: 80ffff0ae65679f8}
+        composition: {basis: mole_fraction, values: {TOL: 0.921061, BR2: 0.000225879, BNBR: 0.0785126, BALBR: 0.000200166, HBR: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2', fingerprint: a8b5a8c214cd6e4c}
   - id: S4
     title: Charge at 363 K
     from: E101.out
@@ -312,8 +345,8 @@ streams:
       design:
         temperature: {value: 363.15, provenance: assumed, source: "heated in R-101 to the reaction temperature (D-005)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 350.314, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S3', fingerprint: aa72831c18eb60fd}
-        composition: {basis: mole_fraction, values: {TOL: 0.921061, BR2: 0.000225882, BNBR: 0.0785134, BALBR: 0.000200172, HBR: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S3', fingerprint: aa72831c18eb60fd}
+        flow: {value: 350.317, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S3', fingerprint: d60a18726c07b188}
+        composition: {basis: mole_fraction, values: {TOL: 0.921061, BR2: 0.000225879, BNBR: 0.0785126, BALBR: 0.000200166, HBR: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S3', fingerprint: d60a18726c07b188}
   - id: S5
     title: Bromine (dosed)
     from: BR2.out
@@ -323,7 +356,7 @@ streams:
       design:
         temperature: {value: 298.15, provenance: assumed, source: "from storage (D-004)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 131.0289, provenance: assumed, source: "scripts/balance.py: the bromine that makes 1000 t/a of S15 (the balance is linear in the feeds; D-002)"}
+        flow: {value: 131.029, provenance: assumed, source: "scripts/balance.py: the bromine that makes 1000 t/a of S15 (the balance is linear in the feeds; D-002)"}
         composition: {basis: mass_fraction, values: {BR2: 1.0}, provenance: assumed, source: "dry bromine, its chlorine and water not modelled (bromine-1 makes 99.96 wt%; D-004)"}
   - id: S6
     title: Crude benzyl bromide in toluene
@@ -332,10 +365,10 @@ streams:
     template: organics
     state:
       design:
-        composition: {basis: mole_fraction, values: {TOL: 0.701124, BR2: 0.00023049, BNBR: 0.288117, BALBR: 0.0105276, HBR: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: ee3b8ca5b8607fa1}
-        flow: {value: 415.003, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: ee3b8ca5b8607fa1}
-        temperature: {value: 363.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: ee3b8ca5b8607fa1}
-        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: ee3b8ca5b8607fa1}
+        composition: {basis: mole_fraction, values: {TOL: 0.701127, BR2: 0.000230488, BNBR: 0.288115, BALBR: 0.0105274, HBR: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: 3ec8b5c596e7ac09}
+        flow: {value: 415.006, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: 3ec8b5c596e7ac09}
+        temperature: {value: 363.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: 3ec8b5c596e7ac09}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: 3ec8b5c596e7ac09}
   - id: S7
     title: HBr off-gas (363 K)
     from: R101.vent
@@ -343,10 +376,10 @@ streams:
     template: acid
     state:
       design:
-        composition: {basis: mole_fraction, values: {HBR: 1.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: ee3b8ca5b8607fa1}
-        flow: {value: 66.3396, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: ee3b8ca5b8607fa1}
-        temperature: {value: 363.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: ee3b8ca5b8607fa1}
-        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: ee3b8ca5b8607fa1}
+        composition: {basis: mole_fraction, values: {HBR: 1.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: 3ec8b5c596e7ac09}
+        flow: {value: 66.3396, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: 3ec8b5c596e7ac09}
+        temperature: {value: 363.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: 3ec8b5c596e7ac09}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: 3ec8b5c596e7ac09}
   - id: S8
     title: HBr after the reflux condenser
     from: E102.out
@@ -378,7 +411,7 @@ streams:
       design:
         temperature: {value: 298.15, provenance: assumed, source: "design basis"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 71.8681, provenance: assumed, source: "scripts/balance.py: 52/48 kg per kg of HBr in S9, for 48 wt% acid (D-008)"}
+        flow: {value: 71.8676, provenance: assumed, source: "scripts/balance.py: 52/48 kg per kg of HBr in S9, for 48 wt% acid (D-008)"}
         composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "process water"}
   - id: S11
     title: Hydrobromic acid 48 wt%
@@ -389,8 +422,8 @@ streams:
       design:
         temperature: {value: 313.15, provenance: assumed, source: "absorber outlet on cooling water (D-008)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 138.208, provenance: calculated, source: 'cheme process propagate: mixer A101 from S9 S10', fingerprint: 35f0e04d60e89cb4}
-        composition: {basis: mole_fraction, values: {HBR: 0.170484, H2O: 0.829516}, provenance: calculated, source: 'cheme process propagate: mixer A101 from S9 S10', fingerprint: d13b66638ba406a9}
+        flow: {value: 138.207, provenance: calculated, source: 'cheme process propagate: mixer A101 from S9 S10', fingerprint: 4629bc38cde29c94}
+        composition: {basis: mole_fraction, values: {HBR: 0.170485, H2O: 0.829515}, provenance: calculated, source: 'cheme process propagate: mixer A101 from S9 S10', fingerprint: 7767bded051110fc}
   - id: S12
     title: Toluene distillate of the strip
     from: ST101.top
@@ -400,8 +433,8 @@ streams:
       design:
         temperature: {value: 303.15, provenance: assumed, source: "condensed and cooled on cooling water (D-007)"}
         pressure: {value: 101.325, provenance: assumed, source: "receiver at atmospheric pressure (D-007)"}
-        flow: {value: 235.801, provenance: calculated, source: 'cheme process propagate: still ST101 from S6', fingerprint: 9cb42624d49db988}
-        composition: {basis: mole_fraction, values: {TOL: 0.949824, BR2: 0.0003345, BNBR: 0.0497219, BALBR: 0.000119597}, provenance: calculated, source: 'cheme process propagate: still ST101 from S6', fingerprint: 9cb42624d49db988}
+        flow: {value: 235.804, provenance: calculated, source: 'cheme process propagate: still ST101 from S6', fingerprint: 1cc3a334252b1c61}
+        composition: {basis: mole_fraction, values: {TOL: 0.949824, BR2: 0.000334496, BNBR: 0.0497215, BALBR: 0.000119594}, provenance: calculated, source: 'cheme process propagate: still ST101 from S6', fingerprint: 1cc3a334252b1c61}
   - id: S13
     title: Stripped crude (to the vacuum distillation)
     from: ST101.bottom
@@ -411,8 +444,8 @@ streams:
       design:
         temperature: {value: 373.78, provenance: assumed, source: "scripts/balance.py: the strip's end, S13's bubble point at 15 kPa(a) (Raoult, as cheme process stills, D-007)"}
         pressure: {value: 15.0, provenance: assumed, source: "ST101's pressure (D-007)"}
-        flow: {value: 179.202, provenance: calculated, source: 'cheme process propagate: still ST101 from S6', fingerprint: 9cb42624d49db988}
-        composition: {basis: mole_fraction, values: {TOL: 0.15, BR2: 7.32681e-10, BNBR: 0.816408, BALBR: 0.0335921}, provenance: calculated, source: 'cheme process propagate: still ST101 from S6', fingerprint: 9cb42624d49db988}
+        flow: {value: 179.202, provenance: calculated, source: 'cheme process propagate: still ST101 from S6', fingerprint: 1cc3a334252b1c61}
+        composition: {basis: mole_fraction, values: {TOL: 0.15, BR2: 7.32631e-10, BNBR: 0.816408, BALBR: 0.0335917}, provenance: calculated, source: 'cheme process propagate: still ST101 from S6', fingerprint: 1cc3a334252b1c61}
   - id: S14
     title: Forerun (toluene and benzyl bromide)
     from: ST102.fore
@@ -422,8 +455,8 @@ streams:
       design:
         temperature: {value: 268.15, provenance: assumed, source: "condensed and cooled on brine to 5 K above its 263 K return (D-007)"}
         pressure: {value: 101.325, provenance: assumed, source: "receiver broken to atmospheric pressure with nitrogen (D-007)"}
-        flow: {value: 43.1936, provenance: calculated, source: 'cheme process propagate: still ST102 from S13', fingerprint: 6003bd424198abe2}
-        composition: {basis: mole_fraction, values: {TOL: 0.501237, BR2: 2.4715e-09, BNBR: 0.497441, BALBR: 0.00132183}, provenance: calculated, source: 'cheme process propagate: still ST102 from S13', fingerprint: 6003bd424198abe2}
+        flow: {value: 43.1936, provenance: calculated, source: 'cheme process propagate: still ST102 from S13', fingerprint: 16c23520c2236dd7}
+        composition: {basis: mole_fraction, values: {TOL: 0.501237, BR2: 2.47133e-09, BNBR: 0.497441, BALBR: 0.00132181}, provenance: calculated, source: 'cheme process propagate: still ST102 from S13', fingerprint: 16c23520c2236dd7}
   - id: S15
     title: Benzyl bromide
     from: ST102.main
@@ -433,8 +466,8 @@ streams:
       design:
         temperature: {value: 303.15, provenance: assumed, source: "main cut condensed and subcooled to storage (D-007)"}
         pressure: {value: 101.325, provenance: assumed, source: "receiver broken to atmospheric pressure with nitrogen (D-007)"}
-        flow: {value: 126.262, provenance: calculated, source: 'cheme process propagate: still ST102 from S13', fingerprint: 6003bd424198abe2}
-        composition: {basis: mole_fraction, values: {TOL: 0.00211927, BR2: 1.64956e-20, BNBR: 0.986641, BALBR: 0.01124}, provenance: calculated, source: 'cheme process propagate: still ST102 from S13', fingerprint: 6003bd424198abe2}
+        flow: {value: 126.262, provenance: calculated, source: 'cheme process propagate: still ST102 from S13', fingerprint: 16c23520c2236dd7}
+        composition: {basis: mole_fraction, values: {TOL: 0.00211927, BR2: 1.64943e-20, BNBR: 0.986641, BALBR: 0.0112399}, provenance: calculated, source: 'cheme process propagate: still ST102 from S13', fingerprint: 16c23520c2236dd7}
   - id: S16
     title: Still residue to incineration
     from: ST102.bottom
@@ -444,8 +477,8 @@ streams:
       design:
         temperature: {value: 333.15, provenance: assumed, source: "cooled in C-101 before draining (D-007)"}
         pressure: {value: 101.325, provenance: assumed, source: "vacuum broken with nitrogen (D-007)"}
-        flow: {value: 9.74657, provenance: calculated, source: 'cheme process propagate: still ST102 from S13', fingerprint: 6003bd424198abe2}
-        composition: {basis: mole_fraction, values: {TOL: 2.51202e-27, BR2: 0.0, BNBR: 0.35, BALBR: 0.65}, provenance: calculated, source: 'cheme process propagate: still ST102 from S13', fingerprint: 6003bd424198abe2}
+        flow: {value: 9.74645, provenance: calculated, source: 'cheme process propagate: still ST102 from S13', fingerprint: 16c23520c2236dd7}
+        composition: {basis: mole_fraction, values: {TOL: 2.49827e-27, BR2: 0.0, BNBR: 0.35, BALBR: 0.65}, provenance: calculated, source: 'cheme process propagate: still ST102 from S13', fingerprint: 16c23520c2236dd7}
   - id: S17
     title: Recovered toluene
     from: M201.out
@@ -455,8 +488,8 @@ streams:
       design:
         temperature: {value: 298.79, provenance: assumed, source: "scripts/balance.py: the adiabatic mix of S12 (303 K) and S14 (268 K) (D-007)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 278.995, provenance: calculated, source: 'cheme process propagate: mixer M201 from S12 S14', fingerprint: 5e68b4b56cf17d66}
-        composition: {basis: mole_fraction, values: {TOL: 0.896894, BR2: 0.000295032, BNBR: 0.102549, BALBR: 0.000261451, HBR: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M201 from S12 S14', fingerprint: e16f855ddd4cf364}
+        flow: {value: 278.998, provenance: calculated, source: 'cheme process propagate: mixer M201 from S12 S14', fingerprint: 7d3cf279c2add707}
+        composition: {basis: mole_fraction, values: {TOL: 0.896895, BR2: 0.000295029, BNBR: 0.102548, BALBR: 0.000261444, HBR: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M201 from S12 S14', fingerprint: 7bfe06fd86bb2c7b}
   - id: S18
     title: Toluene purge
     from: SP201.purge
@@ -466,21 +499,23 @@ streams:
       design:
         temperature: {value: 298.79, provenance: assumed, source: "scripts/balance.py: as S17 (D-007)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 5.5797, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S17 S2', fingerprint: 2e2c6501810cbf45}
-        composition: {basis: mole_fraction, values: {TOL: 0.896894, BR2: 0.000295032, BNBR: 0.102549, BALBR: 0.000261451, HBR: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S17', fingerprint: c5d688e24d583847}
+        flow: {value: 5.58, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S17 S2', fingerprint: bb2b7bd9247d8f95}
+        composition: {basis: mole_fraction, values: {TOL: 0.896895, BR2: 0.000295029, BNBR: 0.102548, BALBR: 0.000261444, HBR: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S17', fingerprint: fa1ab928cb75c8d7}
   # energy
   - {id: Q1, title: Heat-up of the charge (LP steam), kind: energy, from: LPS.e101, to: E101.steam, state: {design: {duty: {value: 11.2774, provenance: assumed, source: "scripts/balance.py: S3 heated from its mixing temperature to 363.15 K, 10 % losses (D-009)"}}}}
-  - {id: Q2, title: Heat of reaction and absorbed light to cooling water (jacket of R-101), kind: energy, from: R101.q, to: CW.r101, state: {design: {duty: {value: 5.4605, provenance: assumed, source: "scripts/balance.py: the reactions' heat, the light the content absorbs and the agitator's power, less the bromine's warming and the toluene the HBr evaporates (D-009)"}}}}
-  - {id: Q3, title: Lamp losses to cooling water (lamp wells), kind: energy, from: R101.lampq, to: CW.lamps, state: {design: {duty: {value: 10.4275, provenance: assumed, source: "scripts/balance.py: the lamps' electricity less the light they emit (D-005, D-009)"}}}}
+  - {id: Q2, title: "Absorbed light and agitator heat, less the vapour's heat beyond the reactions', to cooling water (jacket of R-101)", kind: energy, from: R101.q, to: CW.r101, state: {design: {duty: {value: 5.4604, provenance: assumed, source: "scripts/balance.py: the light the content absorbs (4.469 kW, 30 % of P1) and the agitator's power (P2), less Q13 (D-009)"}}}}
+  - {id: Q12, title: "Heat of reaction (less the bromine's warming) to the reflux condenser with the off-gas's toluene vapour", kind: energy, from: R101.reflux, to: E102.reflux, state: {design: {duty: {value: 6.23565, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S4 S5', fingerprint: 8aec682f45ad55ff}}}}
+  - {id: Q13, title: "The off-gas vapour's heat beyond the reactions' to the reflux condenser", kind: energy, from: R101.reflux2, to: E102.reflux2, state: {design: {duty: {value: 2.0085, provenance: assumed, source: "scripts/balance.py: the toluene the HBr evaporates (its latent heat and the reheating of its condensate returned at 303 and 268 K) less R101's model duty Q12 (D-008, D-009)"}}}}
+  - {id: Q3, title: Lamp losses to cooling water (lamp wells), kind: energy, from: R101.lampq, to: CW.lamps, state: {design: {duty: {value: 10.4274, provenance: assumed, source: "scripts/balance.py: the lamps' electricity less the light they emit (D-005, D-009)"}}}}
   - {id: Q4, title: Reflux condenser to cooling water, kind: energy, from: E102.q, to: CW.e102, state: {design: {duty: {value: 8.1621, provenance: assumed, source: "scripts/balance.py: the toluene and bromine the HBr carries at 363 K condensed and cooled to 303 K, the HBr cooled (D-008, D-009)"}}}}
   - {id: Q5, title: Vent condenser to brine, kind: energy, from: E103.q, to: BRINE.e103, state: {design: {duty: {value: 0.6503, provenance: assumed, source: "scripts/balance.py: the toluene left in the HBr at 303 K condensed down to its vapour pressure at 268 K, the HBr cooled (D-008, D-009)"}}}}
-  - {id: Q6, title: Heat of absorption to cooling water, kind: energy, from: A101.q, to: CW.a101, state: {design: {duty: {value: 14.8481, provenance: assumed, source: "scripts/balance.py: HBr from gas at 268 K to 48 wt% acid at 313 K, -72.0 kJ/mol (hydrogen-bromide-1 D-009, ASSUMED) (D-008)"}}}}
-  - {id: Q7, title: Strip reboiling (LP steam), kind: energy, from: LPS.st101, to: ST101.steam, state: {design: {duty: {value: 20.2079, provenance: assumed, source: "scripts/balance.py: the latent heat of ST101's distillate S12 less the sensible heat the crude brings above its bubble point (D-007, D-009)"}}}}
-  - {id: Q8, title: Strip condenser to cooling water, kind: energy, from: ST101.q, to: CW.st101, state: {design: {duty: {value: 27.3576, provenance: assumed, source: "scripts/balance.py: S12 condensed at 15 kPa(a) and cooled to 303 K (D-007, D-009)"}}}}
-  - {id: Q9, title: Vacuum distillation reboiling (LP steam), kind: energy, from: LPS.st102, to: ST102.steam, state: {design: {duty: {value: 10.7832, provenance: assumed, source: "scripts/balance.py: the latent heat of ST102's cuts S14 and S15 less the sensible heat of S13 above its bubble point at 2 kPa(a) (D-007, D-009)"}}}}
-  - {id: Q10, title: Forerun condenser to brine, kind: energy, from: ST102.q, to: BRINE.st102, state: {design: {duty: {value: 4.276, provenance: assumed, source: "scripts/balance.py: the forerun S14 condensed at 2 kPa(a) and cooled to 268 K (D-007, D-009)"}}}}
-  - {id: Q11, title: "Main-cut condenser, product cooler and residue cool-down to cooling water", kind: energy, from: ST102.qb, to: CW.st102, state: {design: {duty: {value: 11.8246, provenance: assumed, source: "scripts/balance.py: S15 condensed at 2 kPa(a) and cooled to 303 K, the residue S16 cooled to 333 K in C-101 (D-007, D-009)"}}}}
-  - {id: P1, title: Lamps, kind: energy, from: POWER.lamps, to: R101.lamps, state: {design: {duty: {value: 14.8964, provenance: assumed, source: "scripts/balance.py: 20 kW of lamps for the 5.25 h of light a batch (dosing and post-reaction), as a year average (D-005, D-009)"}}}}
+  - {id: Q6, title: Heat of absorption to cooling water, kind: energy, from: A101.q, to: CW.a101, state: {design: {duty: {value: 14.848, provenance: assumed, source: "scripts/balance.py: HBr from gas at 268 K to 48 wt% acid at 313 K, -72.0 kJ/mol (hydrogen-bromide-1 D-009, ASSUMED) (D-008)"}}}}
+  - {id: Q7, title: Strip reboiling (LP steam), kind: energy, from: LPS.st101, to: ST101.steam, state: {design: {duty: {value: 24.5577, provenance: calculated, source: 'cheme process propagate: still duty ST101 from S6', fingerprint: 905726305d97c566}}}}
+  - {id: Q8, title: Strip condenser to cooling water, kind: energy, from: ST101.q, to: CW.st101, state: {design: {duty: {value: 29.133, provenance: assumed, source: "scripts/balance.py: S12's vapour condensed at 15 kPa(a) from the pot's temperature at which each part leaves (the still repeated on core's data) and cooled to 303 K (D-007, D-009)"}}}}
+  - {id: Q9, title: Vacuum distillation reboiling (LP steam), kind: energy, from: LPS.st102, to: ST102.steam, state: {design: {duty: {value: 13.6383, provenance: calculated, source: 'cheme process propagate: still duty ST102 from S13', fingerprint: 0d1aa865b64176a2}}}}
+  - {id: Q10, title: Forerun condenser to brine, kind: energy, from: ST102.q, to: BRINE.st102, state: {design: {duty: {value: 4.9061, provenance: assumed, source: "scripts/balance.py: the forerun S14's vapour condensed at 2 kPa(a) from the pot's temperature at which each part leaves and cooled to 268 K (D-007, D-009)"}}}}
+  - {id: Q11, title: "Main-cut condenser, product cooler and residue cool-down to cooling water", kind: energy, from: ST102.qb, to: CW.st102, state: {design: {duty: {value: 11.9659, provenance: assumed, source: "scripts/balance.py: S15's vapour condensed at 2 kPa(a) from the pot's temperature at which each part leaves and cooled to 303 K, the residue S16 cooled to 333 K in C-101 (D-007, D-009)"}}}}
+  - {id: P1, title: Lamps, kind: energy, from: POWER.lamps, to: R101.lamps, state: {design: {duty: {value: 14.8963, provenance: assumed, source: "scripts/balance.py: 20 kW of lamps for the 5.25 h of light a batch (dosing and post-reaction), as a year average (D-005, D-009)"}}}}
   - {id: P2, title: R-101 agitator, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 3.0, provenance: assumed, source: "year average: R-101 agitator 3 kW, R-101 occupied the whole cycle as the bottleneck (D-009)"}}}}
   - {id: P3, title: Still agitator and vacuum pump, kind: energy, from: POWER.st101, to: ST101.power, state: {design: {duty: {value: 1.8376, provenance: assumed, source: "year average: still agitator 1.5 kW and dry vacuum pump 4 kW while C-101 distils (D-009)"}}}}
 layout: {bfd: {}, pfd: {}}
