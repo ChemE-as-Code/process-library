@@ -23,14 +23,12 @@ D-008). No balance script. Needs cheme-as-code 1.8.0.
 | path | what |
 |---|---|
 | `plant.yaml` | name, stage, sheets |
-| `pid/` | P&ID sheets (DEXPI 2.0.1 XML) |
+| `pid/` | P&ID sheets (DEXPI 2.0.1 XML; none yet) |
 | `process/design-basis.yaml` | capacity, feeds, products, utilities, site |
 | `process/materials.yaml`, `process/flowsheet.yaml` | components, blocks, steps and streams: the source of the generated BFD and PFD (`process/*.xml`, `cheme process build`) |
 | `process/recipe.yaml` | the batch recipe: batch size, unit procedures and their operations (`cheme process recipe`) |
 | `equipment/equipment-list.yaml`, `piping/line-list.yaml`, `control/instrument-list.yaml` | lists, consistent with the P&IDs |
-| `control/cause-effect.yaml` | interlocks and trips (cause and effect) |
-| `piping/special-items.yaml` (optional) | tagged piping components: safety valves, silencers, rupture discs (skill `lists-sync`) |
-| `safety/` | HAZOP studies (`safety/hazop/<id>/study.yaml`) and the risk matrix they rate against; `safety/README.md` says how |
+| `lca/` | goal and scope (`lca.yaml`), this process's mappings, and the preliminary LCI cheme writes |
 | `checks/checks.yaml` | engineering-step gates; `checks/status.json` their result at the last stage sign-off |
 | `reviews/` | review records |
 | `runs/` | one record per design session, written by `cheme runs record` (`runs/README.md`); never edited |
@@ -43,8 +41,7 @@ D-008). No balance script. Needs cheme-as-code 1.8.0.
 - **This repository holds your plant**: drawings, lists, decisions. It does not hold the tools.
 - **The tools come from [`cheme-as-code`](https://github.com/ChemE-as-Code/core)**, installed once on
   your computer (`uv tool install git+https://github.com/ChemE-as-Code/core.git`). Every check,
-  drawing and generated file is made by the `cheme` command, so you need it to work here. The CI
-  in `.github/workflows/` installs it too.
+  drawing and generated file is made by the `cheme` command, so you need it to work here.
 - **Licences.** This folder is part of the ChemE-as-Code process library. Its data and designs are
   under CC BY 4.0 (`LICENSE-DATA`, unless `process.yaml` states otherwise); its skills and scripts
   are under AGPL-3.0-or-later (`LICENSE`), like the ChemE-as-Code tools.
@@ -52,7 +49,6 @@ D-008). No balance script. Needs cheme-as-code 1.8.0.
   `cheme skills update` once in this folder after cloning, so that Claude Code finds them here. Run
   it again after upgrading (`uv tool upgrade cheme-as-code`); `cheme skills status` shows which are
   out of date. A skill you changed here is kept, but only on your machine.
-- The CI needs the secrets named in `.github/workflows/validate.yml`.
 
 ## Working here
 

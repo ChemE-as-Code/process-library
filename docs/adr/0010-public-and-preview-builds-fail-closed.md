@@ -1,6 +1,9 @@
 # 0010. Two builds, preview and public; the public build fails closed
 
-- **Status:** Accepted, 2026-10-23 (LCA values by core's publication policy since 2026-10-24)
+- **Status:** Accepted, 2026-10-23 (LCA values by core's publication policy since 2026-10-24).
+  Partly superseded by [ADR 0036](0036-public-is-the-default-publication-status.md): `internal`
+  is no longer the default, and publishing needs no separate maintainer change; new entries are
+  written public with CC-BY-4.0. The public build stays fail-closed as decided here.
 - **Scope:** `scripts/publication.py`, `--public` of `build_catalog.py`, `build_lci.py` and `export_snapshots.py`
 
 ## Context

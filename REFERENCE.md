@@ -226,7 +226,7 @@ is not comparable as well.
 CI (`.github/workflows/validate.yml`): every `processes/*/plant.yaml` is validated with `cheme`
 in its folder; the library job runs the tests (including the Brightway round trip) and builds
 the catalog and the LCI database, and the public catalog (`--public`: only processes with
-`publication.status: public`, placeholder footprints withheld; see CONTRIBUTING.md). Nothing is
+`publication.status: public` and a licence, placeholder footprints withheld; see CONTRIBUTING.md). Nothing is
 published. `.github/workflows/release.yml` (started by hand) drafts an LCI release with its
 change report and archive metadata as a workflow artifact; it publishes nothing, as the release
 decision is the owner's (docs/governance.md).
