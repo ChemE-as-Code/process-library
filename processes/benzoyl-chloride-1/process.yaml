@@ -7,29 +7,32 @@ title: Benzoyl chloride by semi-batch reaction of benzotrichloride with benzoic 
 summary: >-
   A batch plant: benzotrichloride is dosed over 2 h into molten benzoic acid with zinc chloride
   at 140 C; the HCl it forms leaves as gas and is absorbed to 30 wt% hydrochloric acid, and the
-  crude is distilled at 50 mbar. Concept stage, 1229 kg per batch every 4.9 h on a dedicated
-  train, thermal screening with a rate-constant sensitivity, preliminary gate-to-gate LCI.
+  crude is distilled at 50 mbar through a packed column. Concept stage, 1229 kg per batch every
+  4.9 h on a dedicated train, thermal screening with a rate-constant sensitivity, preliminary
+  gate-to-gate LCI.
 description: |
   Benzoic acid flakes are melted with 0.74 wt% of anhydrous zinc chloride and heated to 413 K;
   benzotrichloride (14 mol per 15 mol of acid) is dosed into the melt over 2 h and held until
   0.999 of it has reacted, C7H5Cl3 + C7H6O2 -> 2 C7H5ClO + HCl, the batch route of US 4 276 231 A
-  (Bayer, Example 1). The HCl leaves the liquid as it forms and is absorbed in water to 30 wt%
-  hydrochloric acid, 0.444 kg per kg of product. The crude is distilled at 5 kPa(a) in a batch
-  still with a short column: benzoyl chloride (99.99 wt%) goes to storage, the residue (benzoic
-  acid, benzoyl chloride, zinc chloride, 64 g per kg) to hazardous-waste incineration. Yield
-  97.2 % of theory on the benzotrichloride (the patent's example: 96.7 %).
+  (Bayer, Example 1). The HCl leaves the liquid as it forms, through a reflux condenser that
+  returns the benzoyl chloride vapour it carries, and is absorbed in water to 30 wt%
+  hydrochloric acid, 0.445 kg per kg of product. The crude is distilled at 5 kPa(a) in a batch
+  still with a packed column (15 theoretical stages, reflux ratio 2): benzoyl chloride (99.999
+  wt%, 11 ppm benzotrichloride) goes to storage, the residue (benzoic acid, benzoyl chloride,
+  zinc chloride, 64 g per kg) to hazardous-waste incineration. Yield 97.1 % of theory on the
+  benzotrichloride (the patent's example: 96.7 %).
 
-  The batch is modelled with cheme-as-code's semi-batch reactor with a gas vent (reactor:
-  semibatch, batch.vent, core ADRs 0050 and 0054), its batch still (still:, one Rayleigh stage,
-  ADR 0055) and the batch recipe (process/recipe.yaml, ADRs 0051 and 0052): the dosing,
-  post-reaction and distillation times come from the models, the reactor is the bottleneck
-  (cycle 4.87 h, 1627 batches a year), the recipe sizes the reactor (1.6 m3) and checks its
-  jacket, and the flowsheet's flows are the recipe's year averages. The column's rectification
-  on the still is a specified split until core has a batch column with reflux (core#173). The
-  kinetics and the heat of reaction are ASSUMED (no open data): the benzotrichloride accumulates
-  to 7.0 % at the end of the dosing and the cooling-failure temperature stays 49 K below the
-  boiling point of benzoyl chloride; a 100 times slower reaction would exceed it. See DESIGN.md
-  for every assumption.
+  The batch is modelled with cheme-as-code's semi-batch reactor with a gas vent that carries the
+  liquid's vapour through a partial vent condenser (reactor: semibatch, batch.vent with vapour
+  and condenser, core ADRs 0050, 0054 and 0062), its batch still with a column on Diwekar's
+  shortcut (still: with column, ADRs 0055 and 0061) and the batch recipe (process/recipe.yaml,
+  ADRs 0051 and 0052): the dosing, post-reaction and distillation times come from the models,
+  the reactor is the bottleneck (cycle 4.87 h, 1627 batches a year), the recipe sizes the
+  reactor (1.6 m3) and checks its jacket, and the flowsheet's flows are the recipe's year
+  averages. The kinetics and the heat of reaction are ASSUMED (no open data): the
+  benzotrichloride accumulates to 7.0 % at the end of the dosing and the cooling-failure
+  temperature stays 49 K below the boiling point of benzoyl chloride; a 100 times slower
+  reaction would exceed it. See DESIGN.md for every assumption.
 families: [chlorinated-organics]
 keywords: [benzoyl chloride, benzotrichloride, benzoic acid, zinc chloride, acid chloride, semi-batch, batch, dosing, gas evolution, HCl off-gas, hydrochloric acid, batch distillation, vacuum distillation, thermal screening, fine chemicals]
 facets:
@@ -38,54 +41,57 @@ facets:
   unit_operations: [reaction, absorption, distillation]
   region: generic
 # Honest claim: concept is the lowest level of the manifest. Capacity, kinetics, heat of
-# reaction, the still's ideal liquid and the column's split are assumed; ratios and conditions
+# reaction, the still's ideal liquid and the column's stages and reflux are assumed; ratios and conditions
 # from the patent's example (DESIGN.md).
 maturity: concept
 validation:
   status: unreviewed
   notes: >-
     Concept batch PFD with closed mass, component and element balances (cheme validate, cheme
-    process streams: 4 blocks and 6 steps within tolerance). The semi-batch R101 with its HCl vent
-    (from its ASSUMED rate law), the batch still ST101 (one Rayleigh stage on Raoult's law with
-    NIST Antoine constants, the ideal liquid ASSUMED) and the mixers are calculated by cheme
-    process propagate; scripts/balance.py gives the feeds for 2000 t/a, the column K101 as a
-    specified split of the still's distillate, the absorber water and every duty (no property
-    package of core covers these liquids, and core has no batch rectification with reflux,
-    core#173), except R101's duty and the still's net boil-up, which core's models write
-    (ADR 0059); the reboiler's share for the column's reflux is its own stream. The recipe's year-average rate of the product agrees with the flowsheet (no
-    cheme.recipe-basis finding); the recipe sizes R-101 (1.6 m3), its jacket check passes, and
-    the still's distillation time comes from its boil-up. Thermal screening (cheme process
-    reactor-hazards): dT_ad 94.7 K, accumulation 7.04 %, MTSR 421.9 K against an MTT of 471.0 K
-    (hazard.mtt: the boiling point of benzoyl chloride); no criticality class without a TD24
-    (1 or 2 if the TD24 lies above the MTSR, 5 if below). At the MTSR the HCl forms at 81.6
-    m3/h, within R-101's vent capacity of 100 m3/h (ASSUMED, 1.2 times it); the blocked-vent
-    case needs a relief device (DESIGN.md D-014).
-    With k/10 the MTSR is 443.3 K, with k/100 484.8 K, above the MTT (DESIGN.md D-011). The vent
-    capacity holds for the assumed kinetics only: at k/10 the release at the MTSR is 164.3 m3/h
-    (1.64 times it), at k/100 443.2 m3/h (4.43 times), so the off-gas system is to be sized for
-    the k/10 case (about 200 m3/h) or the dosing rate set from calorimetry (open, D-014). The
-    off-gas carries no organic vapour in the model (a core limit, D-010). Preliminary
+    process streams: 4 blocks and 5 steps within tolerance). The semi-batch R101 with its HCl vent
+    (from its ASSUMED rate law), the liquid's vapour the HCl carries and the reflux condenser
+    E-102 that returns it (Raoult, an ideal liquid ASSUMED), the batch still ST101 with its column
+    (15 theoretical stages at reflux ratio 2, ASSUMED, on Diwekar's shortcut and Raoult's law with
+    NIST Antoine constants, the ideal liquid ASSUMED: 99.9989 wt% product at 97.31 % recovery of
+    the crude's benzoyl chloride), the mixers and the product cooler are calculated by cheme
+    process propagate, which also writes the duties of R101, E-102 and the still's reboiler and
+    condenser (core ADRs 0059, 0061, 0062); scripts/balance.py gives the feeds for 2000 t/a, the
+    absorber water and the melter's, absorber's and product cooler's duties (no property package
+    of core covers these liquids). The recipe's year-average rate of the product agrees with the
+    flowsheet (no cheme.recipe-basis finding); the recipe sizes R-101 (1.6 m3), its jacket check
+    passes, and the still's distillation time comes from its boil-up. Thermal screening (cheme
+    process reactor-hazards): dT_ad 94.7 K, accumulation 7.04 %, MTSR 421.9 K against an MTT of
+    471.0 K (hazard.mtt: the boiling point of benzoyl chloride); no criticality class without a
+    TD24 (1 or 2 if the TD24 lies above the MTSR, 5 if below). At the MTSR the gas leaves at
+    107.2 m3/h with the liquid's vapour (0.239 of it), within R-101's off-gas capacity of 130 m3/h
+    (ASSUMED, 1.2 times it, no condenser credited); the blocked-vent case needs a relief device
+    (DESIGN.md D-014). With k/10 the MTSR is 443.3 K, with k/100 484.8 K, above the MTT (DESIGN.md
+    D-011). The vent capacity holds for the assumed kinetics only: at k/10 the release at the
+    MTSR is 273.2 m3/h (2.10 times it), at k/100 2951 m3/h (22.7 times), so the off-gas system is
+    to be sized for the k/10 case (about 330 m3/h) or the dosing rate set from calorimetry (open,
+    D-014); 164.3 m3/h and 200 m3/h were those figures for the HCl alone, before core 1.10.0
+    carried the vapour. Preliminary
     gate-to-gate LCI with the per-batch nitrogen; the nitrogen linked to asu-1, the other
     backgrounds gaps; the hydrochloric acid a by-product with shares 1/0. cheme maturity reaches
     no level (assumed feeds, kinetics and separations); the claim `maturity: concept` is the
-    lowest value of the schema, not an evidenced level. Not reviewed. Needs cheme-as-code 1.9.0.
+    lowest value of the schema, not an evidenced level. Not reviewed. Needs cheme-as-code 1.10.0.
 chemistry:
   inputs:
-    - {chemical: benzotrichloride, role: feedstock, inventory_key: "feed:BTC", note: "Benzotrichloride (no library process; proxy: toluene side-chain photochlorination), 0.715 kg/kg benzoyl chloride"}
+    - {chemical: benzotrichloride, role: feedstock, inventory_key: "feed:BTC", note: "Benzotrichloride (no library process; proxy: toluene side-chain photochlorination), 0.716 kg/kg benzoyl chloride"}
     - {chemical: benzoic-acid, role: feedstock, inventory_key: "feed:BA", note: "Benzoic acid flakes (no library process; proxy: toluene air oxidation), 0.479 kg/kg, 7 % above the stoichiometric need"}
     - {chemical: zinc-chloride, role: feedstock, inventory_key: "feed:ZNCL2", note: "Anhydrous zinc chloride catalyst, 3.6 g/kg, leaves with the still residue"}
     - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Process water to the HCl absorber, 0.311 kg/kg"}
     - {chemical: nitrogen, role: feedstock, inventory_key: "consumable:nitrogen", note: "Nitrogen (asu-1) for inerting and breaking the still's vacuum, 10 kg per batch, 8.1 g/kg (ASSUMED)"}
   outputs:
-    - {chemical: benzoyl-chloride, role: main-product, inventory_key: "product:BZCL", note: "Distilled benzoyl chloride, 99.99 wt%, to storage under nitrogen"}
-    - {chemical: hydrogen-chloride, role: co-product, inventory_key: "product:HCLAQ", note: "Hydrochloric acid 30 wt%, 0.444 kg/kg (0.133 kg HCl), allocated no burden (shares 1/0, DESIGN.md D-012)"}
+    - {chemical: benzoyl-chloride, role: main-product, inventory_key: "product:BZCL", note: "Distilled benzoyl chloride, 99.999 wt%, to storage under nitrogen"}
+    - {chemical: hydrogen-chloride, role: co-product, inventory_key: "product:HCLAQ", note: "Hydrochloric acid 30 wt%, 0.445 kg/kg (0.133 kg HCl), allocated no burden (shares 1/0, DESIGN.md D-012)"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.028 kWh/kg: agitators of M-101, R-101 and the still, vacuum pump (ASSUMED)"}
     - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "0.048 kWh/kg of MP steam 1100 kPa(a) to the benzoic acid melter"}
-    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.199 kWh/kg of LP steam 450 kPa(a) to the still at a reflux ratio of 1"}
-    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.310 kWh/kg: R-101's tempered-water loop, the HCl absorber, the column's condenser and product cooler"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.294 kWh/kg of LP steam 450 kPa(a) to the still's reboiler at the column's reflux ratio of 2"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.403 kWh/kg: R-101's tempered-water loop and its reflux condenser, the HCl absorber, the column's condenser and the product cooler"}
 basis:
-  capacity: "2000 t/a distilled benzoyl chloride: 1626.7 batches/a of 1229.47 kg in 7920 h on a dedicated train (252.53 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-013)"
+  capacity: "2000 t/a distilled benzoyl chloride: 1627.1 batches/a of 1229.18 kg in 7920 h on a dedicated train (252.53 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-013)"
   operating_hours_per_year: 7920
   location: generic fine-chemicals site with chlorine and toluene chemistry (not chosen)
 references:

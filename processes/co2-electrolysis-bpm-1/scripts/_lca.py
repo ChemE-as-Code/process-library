@@ -23,8 +23,8 @@ After the calculation record (step 16), one regeneration also keeps the LCA of t
    is uncited), the scenario totals and contributions, the gaps (and which are non-zero), the
    KOH solutions' dilution water at the water factor (inside the KOH gaps in core's totals), the
    fossil CO2 the carbonate wastes release when neutralised (inside the waste gaps), the
-   duty-sized tanks' volumes, and the inputs of the sensitivities (scripts/lca_sensitivity.py
-   writes those into lca/ once both design scenarios have a record).
+   duty-sized tanks' volumes and empty weights, and the inputs of the sensitivities
+   (scripts/lca_sensitivity.py writes those into lca/ once both design scenarios have a record).
 
 Reads core only through scripts/_core.py (its commands' --json output); writes nothing outside
 lca/ and the scenario's record folder.
@@ -487,6 +487,19 @@ def _tanks_m3(skid_record: dict, tags: list[str]) -> dict[str, float]:
     return out
 
 
+def _tanks_weight(listed: dict[str, dict], tags: list[str]) -> dict[str, Any]:
+    """The duty-sized tanks' empty weights, kg, and their material, as the equipment list holds
+    them for this run (regen step 21 writes the weights from layout/lifting-basis.yaml, ASSUMED,
+    DESIGN.md D-043): the ranking's construction break-even per kg of tank (D-049)."""
+    dims = {tag: listed[tag]["dimensions"] for tag in tags}
+    return {
+        "kg": {tag: float(d["weight"]) * 1000.0 for tag, d in dims.items()},
+        "material": {tag: listed[tag].get("material") for tag in tags},
+        "assumed": all(bool(d.get("assumed")) for d in dims.values()),
+        "source": "equipment/equipment-list.yaml dimensions.weight (t, empty; regen step 21 from layout/lifting-basis.yaml, ASSUMED, DESIGN.md D-043)",
+    }
+
+
 def build(root: Path, record: dict, scope: dict[str, Any], core: dict[str, Any]) -> dict[str, Any]:
     """The scenario's LCA record (results/scenarios/<H>h/lca.json)."""
     molar = _molar_masses(root)
@@ -555,6 +568,7 @@ def build(root: Path, record: dict, scope: dict[str, Any], core: dict[str, Any])
             "solution_water": solution_water(rows, impacts),
             "carbonate_co2": carbonate_co2(bal, molar),
             "tanks_m3": _tanks_m3(record["skids"][key], skid["tanks"]),
+            "tanks_weight": _tanks_weight(listed, skid["tanks"]),
         }
     a, b = (skids[k]["exchanges"] for k in ("A", "B"))
     makeup = _get(b, "feed:WATER") - _get(a, "feed:WATER")

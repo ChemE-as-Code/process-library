@@ -43,7 +43,7 @@ The overall yield is 98.2 % of theory. That is above the 95.0 to 95.5 % of the c
 
 ## Linking
 
-The product has the registry slug `benzyl-alcohol`. Soda ash links explicitly to `soda-ash-1` (`lca/mappings.yaml`). Benzyl chloride is a reported gap, because no library process makes it yet (side-chain chlorination of toluene, which would consume `chlor-alkali-1`'s chlorine). The dibenzyl ether and benzyl alcohol residues are gaps, because their treatment is not stated. One library process consumes benzyl alcohol: `benzyl-chloroformate-1`, whose `feed:BNOH` is still a gap; the link to this entry is made in that process's own mappings.
+The product has the registry slug `benzyl-alcohol`. Soda ash links explicitly to `soda-ash-1` (`lca/mappings.yaml`). Benzyl chloride is a reported gap, because no library process makes it yet (side-chain chlorination of toluene, which would consume `chlor-alkali-1`'s chlorine). The dibenzyl ether and benzyl alcohol residues are gaps, because their treatment is not stated. One library process consumes benzyl alcohol: `benzyl-chloroformate-1`, whose `feed:BNOH` links this entry's product in that process's own `lca/mappings.yaml` (kg for kg, its dry alcohol taken as this reagent grade).
 
 ## Not counted yet (TODO)
 

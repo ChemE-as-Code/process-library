@@ -16,18 +16,21 @@ year: 2026
 boundary: gate-to-gate foreground of the plant
 technology: 'Batch plant: bromine dosed over 5 h into 4 mol of toluene per mol at 363 K under lamps (semi-batch),
   the HBr vented as it forms through a reflux and a brine vent condenser and absorbed to 48 wt% acid;
-  the crude stripped of toluene at 15 kPa(a) and distilled at 2 kPa(a) in one batch still (forerun recycled
-  with the toluene, 2 % purged); 889.6 kg per batch, 1124 batches a year on a dedicated train'
+  the crude stripped of toluene at 15 kPa(a) and distilled at 2 kPa(a) in one batch still with a packed
+  column of 5 theoretical stages (forerun at reflux 2 recycled with the toluene, 2 % purged; main cut
+  at reflux 0.5); 887.3 kg per batch, 1127 batches a year on a dedicated train'
 rights: 'CC-BY-4.0: the ChemE-as-Code process library''s own concept design (LICENSE-DATA)'
 cutoff:
 - key: emission-excluded:vent-toluene
   title: storage-tank emissions of E-103, A-101
   direction: output
-  reason: 'Core''s vent carries only HBr (core ADR 0054, L-3): the toluene the HBr still carries past
-    the vent condenser at 268 K, 0.0064 mol per mol of HBr (its vapour pressure, D-008), 0.037 kmol or
-    3.4 kg a batch (3.8 g per kg of product), goes to the absorber, where it separates on the acid or
-    passes to the tail scrubber; the bromine vapour with it is not estimated. Neither is in the balance
-    (open for basic engineering).'
+  reason: 'The toluene and bromine the HBr still carries past the vent condenser at 268 K (0.0061 and
+    0.0034 mol per mol of HBr, the vent''s vapour of core 1.10.0 and E-103''s flash, D-008), 3.2 kg of
+    toluene and 3.1 kg of bromine a batch (3.6 and 3.5 g per kg of product), are in the balance and stay
+    in the acid S11 in the model, an upper bound on the acid''s organics. Where they go from there is
+    not estimated: the toluene separates as a film on the acid or passes to the tail scrubber and the
+    caustic guard scrubber, the bromine dissolves in the acid or is taken by the caustic (open for basic
+    engineering).'
 - key: emission-excluded:absorber-tail-gas
   title: storage-tank emissions of R-101, A-101
   direction: output
@@ -37,7 +40,7 @@ cutoff:
 - key: emission-excluded:toluene-tank
   title: storage-tank emissions of T-201
   direction: output
-  reason: 'No P&ID yet: T-201 (the recovered toluene with 17 wt% benzyl bromide, at about 299 K) is nitrogen-padded
+  reason: 'No P&ID yet: T-201 (the recovered toluene with 9 wt% benzyl bromide, at about 300 K) is nitrogen-padded
     and breathes to the vent scrubber; its working and breathing losses are not estimated (open for basic
     engineering, D-007).'
 - key: emission-excluded:vacuum-vent
@@ -57,7 +60,7 @@ valid_until: 2031
 system_model: cutoff
 technology_level: current
 production_volume:
-  amount: 999995.04
+  amount: 1000002.9600000001
   unit: kg/a
   source: product:BNBR per hour x operation.hours_per_year (7920 h/a)
 classification:
@@ -67,7 +70,7 @@ modelling:
   multifunctionality: 'unallocated multi-output dataset; default allocation shares: D-012 (agent proposal,
     for the LCA practitioner to confirm): mass allocation written as its shares, the hydrobromic acid
     counted by the HBr it contains (as acid datasets count a solution): 126.263 kg/h of benzyl bromide
-    (S15) and 66.340 kg/h of HBr in the 138.208 kg/h of acid (S11), 0.6556 and 0.3444. Written as shares
+    (S15) and 65.864 kg/h of HBr in the 138.125 kg/h of acid (S11), 0.6572 and 0.3428. Written as shares
     because cheme omits the default method mass from the generated dataset (as sodium-nitrite-1 does).'
 review:
 - type: none
@@ -76,7 +79,7 @@ exchanges:
 - key: feed:TOL
   title: Toluene make-up (btx-1)
   type: input
-  amount: 76.8994
+  amount: 77.4732
   unit: kg
   link:
     source: flowsheet stream S1, the make-up (D-004)
@@ -98,7 +101,7 @@ exchanges:
 - key: feed:BR2
   title: Bromine (bromine-1)
   type: input
-  amount: 131.029
+  amount: 130.5417
   unit: kg
   link:
     source: flowsheet stream S5 (D-004)
@@ -120,7 +123,7 @@ exchanges:
 - key: feed:PW
   title: Process water (HBr absorber)
   type: input
-  amount: 71.8676
+  amount: 71.353
   unit: kg
   link:
     source: flowsheet stream S10 (D-008)
@@ -142,7 +145,7 @@ exchanges:
 - key: feed:POWER
   title: Electric power
   type: input
-  amount: 19.7339
+  amount: 20.1524
   unit: kWh
   link:
     source: flowsheet energy streams P1 (the lamps), P2 (R-101 agitator) and P3 (still agitator and vacuum
@@ -165,12 +168,12 @@ exchanges:
 - key: feed:LPS
   title: LP steam 450 kPa(a) (R-101 heat-up, still C-101)
   type: input
-  amount: 49.4734
+  amount: 54.43284
   unit: kWh
   link:
-    source: 'flowsheet energy streams Q1 (R-101 heat-up), Q7 (strip) and Q9 (vacuum distillation), Q7
-      and Q9 the latent heat of the boil-up from core''s still model (the charges'' sensible heat, 2.41
-      kW less steam, left out: D-009), D-009'
+    source: 'flowsheet energy streams Q1 (R-101 heat-up), Q7 (strip), Q9 (forerun) and Q14 (main cut),
+      Q7, Q9 and Q14 the boil-up''s latent heat from core''s still and column models, the column''s with
+      its reflux (the charges'' sensible heat, 2.84 kW less steam, left out: D-009), D-009'
     missing: 'linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry,
       450 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh
       of condensing heat'
@@ -178,9 +181,10 @@ exchanges:
   - Q1
   - Q7
   - Q9
-  source: 'flowsheet energy streams Q1 (R-101 heat-up), Q7 (strip) and Q9 (vacuum distillation), Q7 and
-    Q9 the latent heat of the boil-up from core''s still model (the charges'' sensible heat, 2.41 kW less
-    steam, left out: D-009), D-009'
+  - Q14
+  source: 'flowsheet energy streams Q1 (R-101 heat-up), Q7 (strip), Q9 (forerun) and Q14 (main cut), Q7,
+    Q9 and Q14 the boil-up''s latent heat from core''s still and column models, the column''s with its
+    reflux (the charges'' sensible heat, 2.84 kW less steam, left out: D-009), D-009'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -194,7 +198,7 @@ exchanges:
 - key: product:BNBR
   title: Benzyl bromide to storage
   type: product
-  amount: 126.262
+  amount: 126.263
   unit: kg
   provenance: calculated
   streams:
@@ -206,15 +210,15 @@ exchanges:
   state:
     pressure: 1.01325
     temperature: 30.0
-    purity: 0.986641
+    purity: 0.997633
     basis: mole
     component: BNBR
   composition:
     fractions:
-      TOL: 0.001136909
+      TOL: 0.001143738
       BR2: 0.0
-      BNBR: 0.982507261
-      BALBR: 0.01635583
+      BNBR: 0.998496893
+      BALBR: 0.000359369
     formulas:
       TOL: C7H8
       BR2: Br2
@@ -224,7 +228,7 @@ exchanges:
 - key: product:HBRACID
   title: Hydrobromic acid 48 wt% (co-product)
   type: product
-  amount: 138.207
+  amount: 138.125
   unit: kg
   provenance: calculated
   streams:
@@ -236,21 +240,27 @@ exchanges:
   state:
     pressure: 1.01325
     temperature: 40.0
-    purity: 0.829515
+    purity: 0.828164
     basis: mole
     component: H2O
   composition:
     fractions:
-      HBR: 0.480001555
-      H2O: 0.519998445
+      HBR: 0.476846762
+      H2O: 0.516584832
+      TOL: 0.003333193
+      BR2: 0.003235189
+      BNBR: 2.3e-08
     formulas:
       HBR: HBr
       H2O: H2O
+      TOL: C7H8
+      BR2: Br2
+      BNBR: C7H7Br
     source: stream table (S11)
 - key: product:RES
   title: Still residue (benzal bromide) to hazardous-waste incineration
   type: output
-  amount: 9.74645
+  amount: 9.95723
   unit: kg
   provenance: calculated
   link:
@@ -270,18 +280,16 @@ exchanges:
       flue-gas scrubbing (HBr and bromine captured); not recycled in this concept (D-007)
   composition:
     fractions:
-      TOL: 0.0
       BNBR: 0.269265525
       BALBR: 0.730734475
     formulas:
-      TOL: C7H8
       BNBR: C7H7Br
       BALBR: C7H6Br2
     source: stream table (S16)
 - key: product:PURGE
   title: Toluene purge to hazardous-waste incineration
   type: output
-  amount: 5.58
+  amount: 5.023
   unit: kg
   provenance: calculated
   link:
@@ -297,14 +305,14 @@ exchanges:
   basic_uncertainty: 1.05
   treatment:
     kind: waste
-    route: hazardous-waste incineration of the toluene purge (toluene with 17 wt% benzyl bromide) with
+    route: hazardous-waste incineration of the toluene purge (toluene with 9 wt% benzyl bromide) with
       flue-gas scrubbing; its heat may be recovered at the incinerator (D-007)
   composition:
     fractions:
-      TOL: 0.823995397
-      BR2: 0.000470104
-      BNBR: 0.174882973
-      BALBR: 0.000651527
+      TOL: 0.908486971
+      BR2: 0.001554443
+      BNBR: 0.089704231
+      BALBR: 0.000254355
     formulas:
       TOL: C7H8
       BR2: Br2
@@ -314,15 +322,14 @@ exchanges:
 - key: product:CW
   title: Cooling water return
   type: output
-  amount: 79.99680000000001
+  amount: 84.14179
   unit: kWh
   link:
-    source: 'flowsheet energy streams Q2 (R-101 jacket: the light and the agitator less Q13), Q3 (lamp
-      wells), Q4 (reflux condenser: most of the off-gas vapour''s heat, the HBr and the uncondensed toluene
-      cooled), Q6 (absorber), Q8 (strip condenser) and Q11 (main-cut condenser, product and residue coolers),
-      D-009; Q12 and Q13 (R-101 to E-102, 8.24 kW together) are internal streams counted once, in the
-      condensers that remove their heat: about 7.68 kW in E-102''s Q4 on cooling water and the share E-103
-      condenses (about 0.41 kW) in Q5 on brine (product:BRINE), about 0.05 kW leaving with the vent'
+    source: 'flowsheet energy streams Q2 (R-101 jacket: the light and the agitator less the heat R101''s
+      model takes in), Q3 (lamp wells), Q4 (reflux condenser E-102, R101''s vent condenser duty from core''s
+      model: the off-gas vapour condensed and cooled, the HBr cooled), Q6 (absorber), Q8 (strip condenser),
+      Q11 (the column''s condenser during the main cut, core''s) and Q15 (product cooler and residue cool-down),
+      D-009'
     missing: 'not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system
       with cooling tower (processes/utility-cooling-tower), per kWh removed'
   streams:
@@ -332,12 +339,12 @@ exchanges:
   - Q6
   - Q8
   - Q11
-  source: 'flowsheet energy streams Q2 (R-101 jacket: the light and the agitator less Q13), Q3 (lamp wells),
-    Q4 (reflux condenser: most of the off-gas vapour''s heat, the HBr and the uncondensed toluene cooled),
-    Q6 (absorber), Q8 (strip condenser) and Q11 (main-cut condenser, product and residue coolers), D-009;
-    Q12 and Q13 (R-101 to E-102, 8.24 kW together) are internal streams counted once, in the condensers
-    that remove their heat: about 7.68 kW in E-102''s Q4 on cooling water and the share E-103 condenses
-    (about 0.41 kW) in Q5 on brine (product:BRINE), about 0.05 kW leaving with the vent'
+  - Q15
+  source: 'flowsheet energy streams Q2 (R-101 jacket: the light and the agitator less the heat R101''s
+    model takes in), Q3 (lamp wells), Q4 (reflux condenser E-102, R101''s vent condenser duty from core''s
+    model: the off-gas vapour condensed and cooled, the HBr cooled), Q6 (absorber), Q8 (strip condenser),
+    Q11 (the column''s condenser during the main cut, core''s) and Q15 (product cooler and residue cool-down),
+    D-009'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -349,19 +356,20 @@ exchanges:
 - key: product:BRINE
   title: Chilled brine return (263 K)
   type: output
-  amount: 5.5564
+  amount: 5.85634
   unit: kWh
   link:
-    source: 'flowsheet energy streams Q5 (vent condenser: about 0.41 kW of it the share of Q12 and Q13
-      that E-103 condenses) and Q10 (forerun condenser), D-009'
+    source: flowsheet energy streams Q5 (vent condenser E-103), Q10 (the column's condenser during the
+      forerun, core's) and Q16 (forerun cooler), D-009
     missing: 'not mapped yet (D-012); connect to: refrigeration at 258 K (brine) from an electric vapour-compression
       unit (e.g. processes/utility-chiller), per kWh of heat removed: compressor electricity at its COP,
       condenser cooling water, refrigerant losses'
   streams:
   - Q5
   - Q10
-  source: 'flowsheet energy streams Q5 (vent condenser: about 0.41 kW of it the share of Q12 and Q13 that
-    E-103 condenses) and Q10 (forerun condenser), D-009'
+  - Q16
+  source: flowsheet energy streams Q5 (vent condenser E-103), Q10 (the column's condenser during the forerun,
+    core's) and Q16 (forerun cooler), D-009
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -373,7 +381,7 @@ exchanges:
 - key: consumable:nitrogen
   title: Nitrogen for inerting R-101 and C-101, breaking the vacuum and padding the receivers
   type: input
-  amount: 3.548002085849816
+  amount: 3.557816118065363
   unit: kg
   link:
     source: '20 Nm3 per batch x 1.2506 kg/Nm3, ASSUMED (D-012): R-101''s 4 m3 purged with 3 volumes (12
@@ -382,7 +390,7 @@ exchanges:
     missing: 'linked to processes/asu-1 (lca/mappings.yaml): gaseous nitrogen to the battery limit'
   source: '20 Nm3 per batch x 1.2506 kg/Nm3, ASSUMED (D-012): R-101''s 4 m3 purged with 3 volumes (12
     Nm3), C-101''s 4 m3 vacuum broken once (4 Nm3), the receivers and T-201 padded and the crude transfer
-    pressed (4 Nm3); 25 kg per batch x 1124.01 batches in 7920 h (process/recipe.yaml, case design, bottleneck
+    pressed (4 Nm3); 25 kg per batch x 1127.12 batches in 7920 h (process/recipe.yaml, case design, bottleneck
     REACT)'
   pedigree:
     scores: [4, 4, 1, 3, 3]
@@ -394,12 +402,12 @@ allocation:
   - BNBR
   - HBRACID
   shares:
-    BNBR: 0.6556
-    HBRACID: 0.3444
+    BNBR: 0.6572
+    HBRACID: 0.3428
   source: 'D-012 (agent proposal, for the LCA practitioner to confirm): mass allocation written as its
     shares, the hydrobromic acid counted by the HBr it contains (as acid datasets count a solution): 126.263
-    kg/h of benzyl bromide (S15) and 66.340 kg/h of HBr in the 138.208 kg/h of acid (S11), 0.6556 and
-    0.3444. Written as shares because cheme omits the default method mass from the generated dataset (as
+    kg/h of benzyl bromide (S15) and 65.864 kg/h of HBr in the 138.125 kg/h of acid (S11), 0.6572 and
+    0.3428. Written as shares because cheme omits the default method mass from the generated dataset (as
     sodium-nitrite-1 does).'
   deviation: 'No physical relationship is clear (the acid carries no energy content; no exergy, since
     no property package covers HBr-water), so the WBCSD rule of docs/system-model.md applies. No price
@@ -414,8 +422,8 @@ provenance:
     and batch distillation (1000 t/a)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:0e1b19838dae290bdc6a86ccfbf7f353e957d95a2142ea50b9408e4a19bfefa9
-    lca/lca.yaml: sha256:7bb2d3bda3ef0c0e7d5854cb2db693a7d190a99120a60e9ace4e2fd17b188a1a
-    process.yaml: sha256:b4f14c2b72a5081c24e22fb426c9d9acc08232883a9d8c9fe5679595826d291e
-    process/flowsheet.yaml: sha256:cf9db7f84e3f2d830d9f4e887f2ebe8efaa90ff4ffce7a3870fa8ee22684c800
-    process/materials.yaml: sha256:11d3717e73d541eb713da3b8b590b8d5288de8cb83ac83db42140e03869455bc
+    equipment/equipment-list.yaml: sha256:4bbaf7aff1939ccc5cd8b658a2eb9f71ea14a860774dbaf84f372add86c7e731
+    lca/lca.yaml: sha256:cec3bb749a0dfd1b8fdf441ad2bdd738b4047bba977477d7788eeea195af9d3f
+    process.yaml: sha256:de23b96c42dcff81e772fe2a90fe3614d6ae77735cb741971889aed68f0bab90
+    process/flowsheet.yaml: sha256:308792875eed8a30e96244dcee925fdce20117b9d5396d3f26d2e75bebd16383
+    process/materials.yaml: sha256:a8746d1f7dac8e3ed5f171700422fc270d93929f2500ef7b24ae9cb1b78d4166
