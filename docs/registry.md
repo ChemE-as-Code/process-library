@@ -20,6 +20,12 @@ and takes its molar mass from `oxygen`.
 
 Grade slugs may contain dots (`gox-30barg-99.5`). Substance slugs may not.
 
+Carbon dioxide has two grades: `carbon-dioxide/liquid`, liquefied merchant CO2, and
+`carbon-dioxide/dense-153bara-99.95`, the dense-phase pipeline CO2 that carbon-capture-1 makes
+(15.3 MPa, 30 degC, 99.95 mol%). The build refuses a link between them, so a consumer of merchant
+liquid CO2 (co2-electrolysis-bpm-1, graded through `flow_grades`) is not linked to the pipeline
+product.
+
 ## How a flow names its grade
 
 A flow in `process.yaml` may name `chemical: <slug>/<grade>`. When it names only the substance,
@@ -190,6 +196,15 @@ by-products (`blast-furnace-slag`, `steelmaking-slag`, `coal-tar`) and the `preb
 mixtures without a composition and without an `lhv`, and so is `cement-clinker`. Their datasets keep them outside the element
 balance or use a model formula of their own with its sources (the clinker in cement-clinker-1,
 the anode in aluminium-1).
+
+The energy, carbon and waste entries follow the same rule. e-fuels-1 brought
+`fischer-tropsch-fuel`, plastic-pyrolysis-1 brought `mixed-polyolefin-waste`,
+`plastic-pyrolysis-oil`, `plastic-pyrolysis-gas` and `pyrolysis-char`, and waste-incineration-1
+brought `municipal-solid-waste`. All are mixtures without a composition. The pyrolysis oil and
+gas carry the IPCC category NCV their dataset allocates by (naphtha and ethane, an ASSUMED match),
+as the refining products do. The others have no `lhv`. The incinerated waste's ultimate analysis
+is in waste-incineration-1's dataset, not in the registry, because it is one average waste built
+from separate ranges.
 
 ## Polymers
 
