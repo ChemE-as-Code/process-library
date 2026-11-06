@@ -41,9 +41,9 @@ The results per t are 1840 kg of limestone, 74 kg of natural gas, 809 kg of calc
 
 ## Linking
 
-The product has the registry slug `calcium-oxide` and is counted per kg CaO. `alumina-1` (`feed:LIME`) and `kraft-pulp-1` (`feed:CAO`) count their lime in the same way, and both now link to this dataset in their own `lca/mappings.yaml`, as does `iron-steel-1` (`feed:lime`). `soda-ash-1` runs its own lime kiln and does not buy lime. Limestone links to the shared background `limestone` entry. Natural gas goes to the shared by-mass proxy and is not linked to an Atlas producer.
+The product has the registry slug `calcium-oxide` and is counted per kg CaO. `alumina-1` (`feed:LIME`) and `kraft-pulp-1` (`feed:CAO`) count their lime in the same way, and both now link to this dataset in their own `lca/mappings.yaml`, as do `iron-steel-1` (`feed:lime`), `waste-incineration-1` (`feed:quicklime`) and `propylene-oxide-1` (`feed:lime`). `soda-ash-1` runs its own lime kiln and does not buy lime. Limestone links to the shared background `limestone` entry. Natural gas goes to the shared by-mass proxy and is not linked to an Atlas producer.
 
-The build reports one mapping gap: the kiln dust, because the source states no particle size. The by-product lime is the dataset's second product. The consumers link kg for kg: alumina-1 and kraft-pulp-1 count CaO, while iron-steel-1 counts commercial burnt lime, so its lime burden is overstated by the lime's impurities (its `lca/mappings.yaml`).
+The build reports one mapping gap: the kiln dust, because the source states no particle size. The by-product lime is the dataset's second product. The consumers link kg for kg: alumina-1, kraft-pulp-1 and propylene-oxide-1 count CaO (propylene-oxide-1 reads its source's lime as CaO, ASSUMED), while iron-steel-1 counts commercial burnt lime, so its lime burden is overstated by the lime's impurities (its `lca/mappings.yaml`).
 
 ## Not counted yet (TODO)
 

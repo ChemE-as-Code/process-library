@@ -1,0 +1,279 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Methylmagnesium bromide, sold as a 35 wt% solution in 2-MeTHF (DESIGN.md D-001), a batch plant:
+# magnesium turnings and dry 2-MeTHF are charged into R-101 under nitrogen and warmed to 318 K;
+# methyl bromide, evaporated from its liquefied store in E-101, is dosed as a gas below the
+# surface: 5 % first, a hold for the initiation, then the rest (a semi-batch, reactor:
+# semibatch, with dosing.absorbed and batch.vent, core ADR 0054); the ethane of the Wurtz
+# coupling and the methyl bromide that slips through leave by the vent to the thermal oxidiser;
+# the solution is filtered from the excess magnesium in F-101 and filled under nitrogen; the
+# magnesium cake with its liquor is quenched as hazardous waste. No isolation.
+# The flows are the year averages of the batch recipe (process/recipe.yaml, `cheme process
+# recipe`, D-003).
+# Where the values come from:
+# - feeds, temperatures, pressures, ratios: design basis and D-002..D-009, ASSUMED;
+# - M101: a mixer; R101: cheme's semi-batch model (the rate laws of GRIG and WURTZ, D-005) with
+#   its vent; E101: a pass-through; F101: a specified filter (all calculated by `cheme process
+#   propagate --fill`);
+# - the duties: R101's heat on Q1 from its semi-batch model (energy_port, core 1.9.0 ADR 0059,
+#   calculated by `cheme process propagate --fill`); the sensible and latent heats of E101 and the
+#   charge's warm-up, which no model writes, year averages worked out by hand in D-009, given as
+#   ASSUMED. There is no balance script: core models every material step.
+schema: cheme/process/v1
+kind: flowsheet
+title: Methylmagnesium bromide in 2-MeTHF by semi-batch Grignard reaction with methyl bromide gas dosing
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: 35 wt% methylmagnesium bromide in 2-MeTHF, year averages of the batches in 7920 h (D-002, D-003)", default: true}
+tolerance: {abs: 0.02, rel: 0.001}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - {id: MG, title: Magnesium turnings (merchant), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: METHF, title: Dry 2-MeTHF (merchant), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: MEBR, title: Liquefied methyl bromide (merchant), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: r101, direction: out, kind: energy}
+      - {id: f101, direction: out, kind: energy}
+  - id: LPS
+    title: LP steam 350 kPa(a) (hot-water loop of R-101's jacket and the vaporiser E-101)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 350, provenance: assumed, source: "design basis (D-009)"}
+      supply_temperature: {value: 412.0, provenance: given, source: "saturation at 350 kPa(a), IAPWS-IF97"}
+      min_approach: {value: 10, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: r101, direction: out, kind: energy}
+      - {id: e101, direction: out, kind: energy}
+products:
+  - {id: PROD, title: Methylmagnesium bromide 35 wt% in 2-MeTHF to filling, category: product, ports: [{id: in, direction: in}]}
+  - {id: CAKE, title: Magnesium cake with its liquor to quench and hazardous-waste treatment, category: solid_waste, ports: [{id: in, direction: in}]}
+  - {id: VENT, title: "Off-gas (ethane, methyl bromide) to the thermal oxidiser", category: off_gas, ports: [{id: in, direction: in}]}
+  - id: BRINE
+    title: Chilled brine return (R-101's jacket)
+    category: utility
+    utility:
+      kind: refrigerant
+      supply_temperature: {value: 263.15, provenance: assumed, source: "design basis (D-009)"}
+      return_temperature: {value: 268.15, provenance: assumed, source: "design basis (D-009)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: r101, direction: in, kind: energy}
+
+blocks:
+  - id: REACT
+    title: Grignard reaction
+    class: ReactingChemicals
+    ports:
+      - {id: mg, direction: in}
+      - {id: solv, direction: in}
+      - {id: mebr, direction: in}
+      - {id: out, direction: out}
+      - {id: vent, direction: out}
+      - {id: q, direction: out, kind: energy}
+      - {id: steam, direction: in, kind: energy}
+      - {id: vsteam, direction: in, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: FILT
+    title: Filtration of the excess magnesium
+    class: SeparatingMechanically
+    ports:
+      - {id: in, direction: in}
+      - {id: product, direction: out}
+      - {id: cake, direction: out}
+      - {id: power, direction: in, kind: energy}
+
+steps:
+  - id: M101
+    block: REACT
+    title: Charge of magnesium and 2-MeTHF into R-101
+    class: Mixing
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: mg, direction: in, delegates: mg}
+      - {id: solv, direction: in, delegates: solv}
+      - {id: out, direction: out}
+  - id: E101
+    block: REACT
+    title: Methyl bromide vaporiser
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: in, direction: in, delegates: mebr}
+      - {id: out, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: vsteam}
+  - id: R101
+    block: REACT
+    title: Grignard reactor (methyl bromide gas dosed into magnesium in 2-MeTHF at 318 K)
+    class: ReactingChemicals
+    reactions: [GRIG, WURTZ]
+    reactor: semibatch
+    batch:
+      dosing:
+        - {stream: S5, profile: [[900, 0.05], [1800, 0.0], [18000, 0.95]], absorbed: 0.99}
+      vent: {stream: S7, components: [C2H6]}
+      target: {key: MEBR, conversion: 0.999}
+      heat: isothermal
+      provenance: assumed
+      source: "5 % of the methyl bromide in 15 min, a 30 min hold for the initiation, the rest over 5 h, the rate set by R-101's jacket (D-005, D-010); 99 % of the dosed gas absorbed, the rest to the vent (D-004); post-reaction at 318 K"
+    # the reaction heat goes on Q1 to the brine (core ADR 0059); Q2, the charge's warm-up, is
+    # the recipe's heat operation, not the model's, and stays typed (D-009)
+    energy_port: q
+    # no hazard.mtt: the default (core 1.9.0, ADR 0058) leaves out the dosed methyl bromide and
+    # the vented ethane and takes 2-MeTHF's boiling point at 120 kPa(a) from its heat of
+    # vaporization, 356.3 K (D-011)
+    hazard:
+      vent_capacity: 20.0
+      provenance: assumed
+      source: "R-101's vent through its reflux condenser to the thermal oxidiser's header, sized for the largest normal gas flow it takes, the nitrogen purge that inerts R-101 (three volume changes of its 6.3 m3, 18.9 Nm3 as in lca.yaml's nitrogen, in the 1 h inert step of the recipe: about 16 to 17.4 m3/h at 120 kPa(a) and 273 to 298 K), rounded up to 20 m3/h at 120 kPa(a); the normal off-gas peaks at 3.0 m3/h (cheme process recipe), ASSUMED (D-011)"
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: charge, direction: in}
+      - {id: mebr, direction: in}
+      - {id: out, direction: out, delegates: out}
+      - {id: vent, direction: out, delegates: vent}
+      - {id: q, direction: out, kind: energy, delegates: q}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: F101
+    block: FILT
+    title: Filtration of the excess magnesium (pressure Nutsche)
+    class: Filtering
+    solid_separation:
+      solid_recovery: 0.998
+      cake_liquid: {value: 1.0, basis: per_kg_solid}
+      outlets: {cake: cake, filtrate: filtrate}
+      provenance: assumed
+      source: "closed pressure Nutsche under nitrogen, 99.8 % of the magnesium to the cake, 1 kg of solution per kg of magnesium in the cake (D-007)"
+      filtration:
+        specific_cake_resistance: 5.0e9
+        medium_resistance: 1.0e10
+        pressure_difference: 200
+        viscosity: 2.0
+        area: 1.0
+        provenance: assumed
+        source: "coarse metal fines, a sintered-metal cloth, 2 bar of nitrogen, the Grignard solution's viscosity, a 1 m2 plate (D-007)"
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: cake, direction: out, delegates: cake}
+      - {id: filtrate, direction: out, delegates: product}
+      - {id: power, direction: in, kind: energy, delegates: power}
+
+streams:
+  - id: S1
+    title: Magnesium turnings
+    from: MG.out
+    to: M101.mg
+    template: solid
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 43.013, provenance: assumed, source: "per batch 387.3 kg (1.05 mol of magnesium per mol of methyl bromide dosed, ASSUMED) x 879.5 batches/a / 7920 h (D-003, D-004)"}
+        composition: {basis: mass_fraction, values: {MG: 1.0}, provenance: assumed, source: "magnesium turnings, oxide skin and impurities not modelled (D-004)"}
+  - id: S2
+    title: Dry 2-MeTHF
+    from: METHF.out
+    to: M101.solv
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 359.99, provenance: assumed, source: "per batch 3241.8 kg, the solvent that gives 35.0 wt% MeMgBr in the filtered product, x 879.5 batches/a / 7920 h (D-003, D-004)"}
+        composition: {basis: mass_fraction, values: {METHF: 1.0}, provenance: assumed, source: "dry 2-MeTHF; its water (below 100 ppm, ASSUMED) not modelled (D-004)"}
+  - id: S3
+    title: Charge (magnesium in 2-MeTHF)
+    from: M101.out
+    to: R101.charge
+    template: liquor
+    state:
+      design:
+        temperature: {value: 318.15, provenance: assumed, source: "warmed to the reaction temperature before the dosing (D-005)"}
+        pressure: {value: 120.0, provenance: assumed, source: "R-101 under a slight nitrogen pressure (D-005)"}
+        flow: {value: 403.003, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2', fingerprint: e0fc0bd4f271862d}
+        composition: {basis: mole_fraction, values: {MG: 0.297475, METHF: 0.702525, MEBR: 0.0, MEMGBR: 0.0, MGBR2: 0.0, C2H6: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2', fingerprint: 974d748376e493ac}
+  - id: S4
+    title: Liquefied methyl bromide
+    from: MEBR.out
+    to: E101.in
+    template: gas
+    state:
+      design:
+        temperature: {value: 293.15, provenance: assumed, source: "store at ambient temperature (D-004)"}
+        pressure: {value: 300.0, provenance: assumed, source: "liquefied under its vapour pressure and a nitrogen pad (D-004)"}
+        flow: {value: 160.02, provenance: assumed, source: "per batch 1441.0 kg (15.18 kmol, for 5000 kg of 35 wt% solution) x 879.5 batches/a / 7920 h (D-003, D-004)"}
+        composition: {basis: mass_fraction, values: {MEBR: 1.0}, provenance: assumed, source: "methyl bromide 100 % in the model (D-004)"}
+  - id: S5
+    title: Methyl bromide gas (dosed)
+    from: E101.out
+    to: R101.mebr
+    template: gas
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "evaporated and warmed in E-101 (D-004)"}
+        pressure: {value: 150.0, provenance: assumed, source: "the dosing line, above R-101's pressure (D-004)"}
+        flow: {value: 160.02, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S4', fingerprint: 7943f957a2c96620}
+        composition: {basis: mass_fraction, values: {MEBR: 1.0}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S4', fingerprint: 7943f957a2c96620}
+  - id: S6
+    title: Grignard solution with the excess magnesium
+    from: R101.out
+    to: F101.in
+    template: liquor
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {METHF: 0.702328, MEBR: 0.000280407, MG: 0.0196598, MEMGBR: 0.275337, MGBR2: 0.00239487, C2H6: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3 S5', fingerprint: 088db89323fdbfde}
+        flow: {value: 560.994, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3 S5', fingerprint: 088db89323fdbfde}
+        temperature: {value: 318.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3 S5', fingerprint: 088db89323fdbfde}
+        pressure: {value: 120.0, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3 S5', fingerprint: 088db89323fdbfde}
+  - id: S7
+    title: Off-gas from R-101
+    from: R101.vent
+    to: VENT.in
+    template: gas
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {C2H6: 0.458149, MEBR: 0.541851}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3 S5', fingerprint: 088db89323fdbfde}
+        flow: {value: 2.02874, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3 S5', fingerprint: 088db89323fdbfde}
+        temperature: {value: 318.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3 S5', fingerprint: 088db89323fdbfde}
+        pressure: {value: 120.0, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3 S5', fingerprint: 088db89323fdbfde}
+  - id: S8
+    title: Magnesium cake with its liquor
+    from: F101.cake
+    to: CAKE.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 318.15, provenance: assumed, source: "filtered warm (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 5.67559, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S6', fingerprint: 2d34566d6bfb6d8d}
+        composition: {basis: mole_fraction, values: {MG: 0.797425, METHF: 0.145127, MEBR: 5.79427e-05, MEMGBR: 0.056895, MGBR2: 0.00049487, C2H6: 0.0}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S6', fingerprint: 2d34566d6bfb6d8d}
+  - id: S9
+    title: Methylmagnesium bromide solution
+    from: F101.filtrate
+    to: PROD.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 318.15, provenance: assumed, source: "filtered warm, cooled in the filling tank (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 555.318, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S6', fingerprint: 2d34566d6bfb6d8d}
+        composition: {basis: mole_fraction, values: {METHF: 0.716384, MEBR: 0.000286019, MG: 4.03115e-05, MEMGBR: 0.280847, MGBR2: 0.0024428, C2H6: 0.0}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S6', fingerprint: 2d34566d6bfb6d8d}
+  # energy (year averages, D-009)
+  - {id: Q1, title: Heat of the Grignard reaction to the chilled brine, kind: energy, from: R101.q, to: BRINE.r101, state: {design: {duty: {value: 134.1, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S3 S5', fingerprint: e6be2174dd612b53}}}}
+  - {id: Q2, title: Warm-up of the charge to 318 K, kind: energy, from: LPS.r101, to: R101.steam, state: {design: {duty: {value: 4.266, provenance: assumed, source: "(2-MeTHF 359.99 kg/h x 2.011 + magnesium 43.013 x 1.024 kJ/(kg K)) x 20 K, via the jacket's hot-water loop, losses not counted (D-009)"}}}}
+  - {id: Q3, title: Methyl bromide vaporiser, kind: energy, from: LPS.e101, to: E101.steam, state: {design: {duty: {value: 11.116, provenance: assumed, source: "1.6855 kmol/h x (23.53 MJ/kmol heat of vaporisation at 293 K, thermo, + 43.2 kJ/(kmol K) x 5 K) (D-009)"}}}}
+  - {id: P1, title: R-101 agitator, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 5.0, provenance: assumed, source: "year average, about 1.5 kW/m3 of slurry while the vessel is full (D-009)"}}}}
+  - {id: P2, title: F-101 drives, kind: energy, from: POWER.f101, to: F101.power, state: {design: {duty: {value: 0.3, provenance: assumed, source: "year average of the Nutsche's agitator and discharge (D-009)"}}}}

@@ -1,0 +1,36 @@
+# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
+# dataset is lca/datasets/*.yaml, Tier 1 form, so maturity stays at concept
+# (core's cheme.lci-tier-maturity). See README.md.
+schema: cheme-as-code/process/v1
+id: phosphoric-acid-1
+title: Phosphoric acid by the wet dihydrate process (merchant grade, from phosphate rock and sulfuric acid)
+summary: >-
+  Sourced conceptual inventory per tonne of merchant-grade acid (54 % P2O5): rock, sulfuric acid and
+  phosphogypsum from the stoichiometry of a model Moroccan rock with the BREF's dihydrate P2O5
+  efficiency; power, steam, water and fluosilicic acid from EFMA ranges. No flowsheet; not reviewed.
+families: [phosphoric-acid]
+keywords: [phosphoric acid, wet process, dihydrate, phosphate rock, sulfuric acid, phosphogypsum, fluosilicic acid, merchant grade acid, P2O5]
+facets: {feedstock_basis: [mineral], product_classes: [chemicals, fertilizers], unit_operations: [reaction, crystallization, filtration, evaporation, absorption], region: EU}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: phosphate-rock, role: feedstock, inventory_key: "feed:phosphate-rock", note: "modelled on the Moroccan (Khouribga) analysis of the LVIC-AAF BREF, 33.6 % P2O5"}
+    - {chemical: sulfuric-acid, role: reactant, inventory_key: "feed:sulfuric-acid", note: "98.5 wt%, counted by mass of the acid as sulfuric-acid-1 makes it"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:water", note: "process water, scrubber water not included"}
+  outputs:
+    - {chemical: phosphoric-acid, role: main-product, inventory_key: "product:phosphoric-acid", note: "merchant-grade acid, 53.97 wt% P2O5, counted by mass of the solution"}
+    - {chemical: fluosilicic-acid, role: by-product, inventory_key: "product:fluosilicic-acid", note: "counted as 100 % H2SiF6; sold as 20 to 25 % solution"}
+    - {chemical: phosphogypsum, role: waste, inventory_key: "output:phosphogypsum", note: "the calcium sulfate dihydrate; P2O5 loss, fluoride and gangue are separate outputs to the same stack"}
+    - {chemical: wastewater, role: waste, inventory_key: "output:wastewater", note: "ASSUMED closing term of the water balance"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity"}
+    - {chemical: steam, role: utility, inventory_key: "feed:steam", note: "by mass, for acid concentration; pressure not stated by the source"}
+basis: {capacity: "per tonne of merchant-grade acid (the dataset's basis); no plant size"}
+publication: {status: public, license: CC-BY-4.0}
+references:
+  - {title: "European Commission, JRC (2007) Reference Document on Best Available Techniques for the Manufacture of Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF BREF), chapter 5", url: "https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/lvic_aaf.pdf"}
+  - {title: "EFMA (2000) Best Available Techniques for Pollution Prevention and Control in the European Fertilizer Industry, Booklet No. 4: Production of Phosphoric Acid (Fertilizers Europe)", url: "https://www.fertilizerseurope.com/wp-content/uploads/2019/08/Booklet_4_final.pdf"}
+  - {title: "IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Vol. 3, chapter 2 (Mineral Industry Emissions), section 2.1 and Table 2.1", url: "https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/3_Volume3/V3_2_Ch2_Mineral_Industry.pdf"}
+  - {title: "US EPA (1993, reformatted 1995) AP-42, Fifth Edition, Volume I, section 8.9 Phosphoric Acid", url: "https://www.epa.gov/sites/default/files/2020-09/documents/8.9_phosphoric_acid.pdf"}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/phosphoric-acid-1, access: public}

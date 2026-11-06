@@ -1,0 +1,48 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Acetyl chloride from acetic acid and phosphorus trichloride, a batch plant, issue
+# ChemE-as-Code/process-library#142. Values marked ASSUMED are engineering choices of this
+# concept study, not client or licensor data; every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: distilled acetyl chloride to storage at the battery limit
+  acetyl_chloride_t_per_year: 2000     # ASSUMED (D-002): a fine-chemical batch scale, no open market figure used
+  operating_hours_per_year: 7920       # ASSUMED (D-002): 330 days of 24 h, batch operation
+  batch_kg: 1459.91                    # ASSUMED (D-003): one batch of distilled product every 5.781 h
+  batches_per_year: 1370               # from the recipe (process/recipe.yaml, D-003)
+feeds:
+  - name: Acetic acid, glacial (acetic-acid-1)
+    source_of_values: "acetic-acid-1's product: 691 ppm water by mass (D-004); 3 mol per mol of PCl3 (CS 272 248 B2, Example 1)"
+    composition: "acetic acid 99.93 wt%, water 0.069 wt% (its 50 ppm propionic acid counted as acetic acid)"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Phosphorus trichloride (merchant; no library producer)
+    source_of_values: ASSUMED (D-004)
+    composition: "phosphorus trichloride 100 % (POCl3 and dissolved chlorine not modelled)"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Process water (vent scrubber)
+    source_of_values: ASSUMED (D-010)
+products:
+  - name: Acetyl chloride
+    purity: "99.84 wt% in the model, 0.16 wt% PCl3 (about 370 ppm P) and 8 ppm acetic acid (D-008); no source states a purity for this route; US 4 209 460 A reaches above 99 % with below 1 ppm P only with a chlorine treatment, not modelled"
+    delivery: {temperature_K: 303.15, pressure_kPa_a: 101.325, battery_limit: storage under nitrogen}
+  - name: Crude phosphorous acid (lower phase, co-product)
+    note: "87.5 wt% H3PO3, 10.1 wt% acetic acid, 2.0 wt% acetyl chloride, 0.4 wt% PCl3; 0.406 kg per kg of acetyl chloride; calibrated to CS 272 248 B2, Example 1, without its 6 wt% HCl (D-006)"
+  - name: Still residue to hazardous-waste incineration
+    note: "PCl3, acetyl chloride, acetic acid and phosphorous acid, 47 g per kg of product; not recycled in this concept (D-008)"
+  - name: Scrubber bleed to neutralisation
+    note: "1 wt% HCl, 0.8 wt% acetic acid, 0.22 kg per kg of product (D-010)"
+utilities:
+  - {name: Electric power, use: "agitators of R-101 and C-101, reflux pump, scrubber pump and fan (D-009)"}
+  - {name: LP steam, pressure_kPa_a: 350, use: "R-101's tempered-water loop (warming) and the still C-101's jacket (D-009)", note: ASSUMED}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "R-101's jacket, the column's condenser and product cooler, the residue's cooling", note: ASSUMED}
+  - {name: Chilled brine, supply_K: 258.15, return_K: 263.15, use: "the vent condenser E-103", note: ASSUMED}
+  - {name: Nitrogen, use: "inerting R-101, the still and the receivers (per batch, lca/lca.yaml)", note: ASSUMED}
+site:
+  location: ASSUMED generic fine-chemicals site with PCl3 and acetic acid supply, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Route of CS 272 248 B2 (Nitrokemia, 1991), Example 1: PCl3 dosed into acetic acid (1 mol on 3 mol) below 40 C, held at 40-50 C; the mixture settles into an upper acetyl chloride and a lower phosphorous acid phase (D-001, D-004)."
+  - "ASSUMED second-order rate law, k 5.5e-4 m3/(kmol s) at 313 K, Ea 50 kJ/mol, sized to the source's 30 min hold; heat of reaction -10.5 kJ/mol derived from CRC formation enthalpies with crystalline H3PO3 (+2.3 with the liquid): the sign is uncertain (D-005)."
+  - "ASSUMED conversion of the PCl3 0.95 and the phase split of D101, both calibrated to the lower phase of CS 272 248 B2, Example 1 (D-005, D-006); all HCl leaves the liquid as it forms (batch.vent fraction 1)."
+  - "Still: one Rayleigh stage at 101.325 kPa(a) on Raoult's law with NIST Antoine constants (an ideal liquid, ASSUMED), to 50 mol% acetyl chloride in the residue; the column on it a specified split, 99 % of the acetyl chloride, 6 % of the PCl3 (US 4 209 460 A, Example 1) and 1 % of the acetic acid of the still's vapour to the product, reflux ratio 1 (D-007, D-008)."
+  - "All flows are year averages of the recipe (D-003); the duties and power concept estimates (scripts/balance.py, D-006, D-009); accuracy +/-30 % not demonstrated."

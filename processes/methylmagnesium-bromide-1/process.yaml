@@ -1,0 +1,107 @@
+# Process Atlas manifest of methylmagnesium-bromide-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: methylmagnesium-bromide-1
+title: Methylmagnesium bromide in 2-MeTHF by semi-batch Grignard reaction with methyl bromide gas dosing (4400 t/a)
+summary: >-
+  A batch plant: methyl bromide gas is dosed into magnesium in dry 2-MeTHF at 318 K, 5 % first
+  and a hold for the initiation; ethane and unabsorbed methyl bromide leave by the vent, and the
+  35 wt% solution is filtered from the excess magnesium. Concept stage, 5000 kg every 9.0 h on a
+  dedicated train, initiation and accumulation screened, preliminary LCI.
+description: |
+  Magnesium turnings (5 % above the methyl bromide) and dry 2-MeTHF are charged into a 6.3 m3
+  stainless-steel reactor under nitrogen, activated with a little iodine and warmed to 318 K.
+  Methyl bromide, evaporated from its liquefied store, is dosed below the surface as a gas: 5 %
+  in 15 min, a 30 min hold until the reaction has started, then the rest over 5 h, the rate set by
+  the reactor's brine jacket. The product is the titrated solution, 35 wt% methylmagnesium bromide
+  in 2-MeTHF (about 3.2 M), the grade of the Albemarle data sheet 10000303; it is filtered from
+  the excess magnesium in a pressure Nutsche and filled under nitrogen. No isolation.
+
+  The batch is modelled with cheme-as-code's semi-batch reactor with a vent and a partly absorbed
+  gas dose (reactor: semibatch, batch.vent, dosing.absorbed; core ADRs 0050 and 0054), magnesium
+  as a solid reactant of the liquid model, and the batch recipe (process/recipe.yaml, core ADRs
+  0051, 0052 and 0057: one vessel over the charge and reaction steps, the warm-up from the jacket,
+  the filtration time from Ruth's equation). The reaction releases 291 kJ per mol on the gas basis
+  (Holm 1981 via the NIST WebBook), an adiabatic rise of the whole batch of 548 K against the
+  solvent's boiling point of 356 K at the reactor's 120 kPa(a) (351 K at atmospheric pressure).
+  With the ASSUMED fast rate the accumulated methyl bromide stays
+  at 0.6 % and the cooling-failure temperature at 321.5 K; a reaction 10 times slower gives 4.3 %
+  and 341.5 K, 100 times slower (a sluggish initiation) 21 % and 434 K, far above the boiling
+  point. An uninitiated 5 % charge alone would take the charge to 349.5 K, just below the
+  atmospheric boiling point. Yield
+  96.7 % on methyl bromide (1 % passes through the liquid, 1.7 % couples to ethane). See
+  DESIGN.md for every assumption.
+families: [inorganic-chemicals]
+keywords: [methylmagnesium bromide, MeMgBr, Grignard reagent, organomagnesium, methyl bromide, bromomethane, magnesium, 2-methyltetrahydrofuran, 2-MeTHF, semi-batch, batch, gas dosing, vent, initiation, accumulation, Wurtz coupling, thermal screening]
+facets:
+  feedstock_basis: [fossil, mineral, biogenic]
+  product_classes: [chemicals]
+  unit_operations: [reaction, filtration]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Capacity, kinetics, jacket, gas
+# uptake and the filter are assumed; the heat of reaction and the product grade are sourced
+# (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept batch PFD with closed mass, component and element balances (cheme validate, cheme
+    process streams: 2 blocks and 4 steps within tolerance). The charge mixer M101, the semi-batch
+    R101 with its vent (from its ASSUMED rate laws, magnesium a solid reactant), the vaporiser
+    E101 and the specified filter F101 are calculated by cheme process propagate; there is no
+    balance script. The duties are year averages: Q1 from R101's semi-batch model (energy_port,
+    core ADR 0059), the other duties by hand (DESIGN.md D-009). The recipe's year-average rate of
+    the product agrees with the flowsheet (no cheme.recipe-basis finding); the recipe sizes R-101
+    (6.3 m3) and its jacket check passes at the 5 h main dosing. Thermal screening (cheme process
+    reactor-hazards): dT_ad 548 K, accumulation 0.615 %, MTSR 321.5 K against the default MTT of
+    356.3 K (2-MeTHF at R-101's 120 kPa(a), Clausius-Clapeyron, core 1.9.0 ADR 0058); no
+    criticality class without a TD24 from calorimetry. R-101's vent capacity, 20 m3/h ASSUMED,
+    passes the base case's gas release at the MTSR (2.8 m3/h) but not that of a sluggish
+    initiation (k/100: 49 m3/h of ethane), which the dosing interlocks and a separate emergency
+    relief must meet (D-011). The low accumulation rests on the assumed kinetics; the k/10 and
+    k/100 sensitivities are in DESIGN.md D-011, with the toxic methyl bromide a cooling failure
+    releases (about 300 kg at k/100) and the warm-up's hot water above the solvent's normal
+    boiling point 351.15 K (the MTT if the pad is lost), 3.2 K below the MTT at 120 kPa(a)
+    (D-010); quenching the magnesium cake gives about 1 kmol of hydrogen per batch (D-007).
+    Preliminary gate-to-gate LCI with the per-batch nitrogen and iodine; both linked to asu-1 and
+    iodine-1, the other backgrounds gaps (magnesium, methyl bromide and 2-MeTHF have no library
+    producer; their proxies are named, not linked). cheme maturity reaches no level (assumed
+    feeds, kinetics and separations); the claim `maturity: concept` is the lowest value of the
+    schema, not an evidenced level. Not reviewed. Needs cheme-as-code 1.9 (batch.vent,
+    dosing.absorbed, recipe units and filtration since 1.8; energy_port, vent_capacity and the
+    default MTT at the vessel's pressure since 1.9).
+chemistry:
+  inputs:
+    - {chemical: magnesium, role: feedstock, inventory_key: "feed:MG", note: "Magnesium turnings (merchant), 0.0775 kg/kg solution, 1.05 mol per mol of methyl bromide"}
+    - {chemical: bromomethane, role: feedstock, inventory_key: "feed:MEBR", note: "Liquefied methyl bromide (merchant), evaporated and dosed as a gas, 0.288 kg/kg solution"}
+    - {chemical: 2-methyltetrahydrofuran, role: feedstock, inventory_key: "feed:METHF", note: "Dry 2-MeTHF (merchant), 0.648 kg/kg solution, the solvent of the product"}
+    - {chemical: iodine, role: feedstock, inventory_key: "consumable:iodine", note: "Iodine activator (iodine-1), 0.4 kg per batch, 0.08 g/kg solution (ASSUMED)"}
+    - {chemical: nitrogen, role: feedstock, inventory_key: "consumable:nitrogen", note: "Nitrogen (asu-1) for inerting, pressing and blowing the cake, 37.5 kg per batch, 7.5 g/kg solution (ASSUMED)"}
+  outputs:
+    - {chemical: methylmagnesium-bromide, role: main-product, inventory_key: "product:PROD", note: "Filtered solution, 35.0 wt% MeMgBr in 2-MeTHF, to filling under nitrogen"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.0095 kWh/kg solution: agitators of R-101 and F-101 (ASSUMED)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.028 kWh/kg solution of LP steam 350 kPa(a): the charge's warm-up and the methyl bromide vaporiser"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:BRINE", note: "0.241 kWh/kg solution removed by brine at 263 K: the heat of the Grignard reaction (the registry has chilled water, not brine: closest entry)"}
+basis:
+  capacity: "4398 t/a of 35 wt% solution (1539 t/a MeMgBr): 879.5 batches/a of 5000 kg in 7920 h on a dedicated train (555.3 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-013)"
+  operating_hours_per_year: 7920
+  location: generic fine-chemicals site with a thermal oxidiser for halogenated vents (not chosen)
+references:
+  - {title: "Albemarle Corporation, Technical Data Sheet, Methylmagnesium Bromide, typ. 35 % solution in 2-Methyl-THF (typ. 3.2 M), product number 10000303, issued 2025-02-24 (specification, analysis, density, solvent boiling point, crystallisation, packaging)", url: "https://www.albemarle.com/sites/default/files/2026-01/_TDS_00000191_TDS_ALB_E.PDF"}
+  - {title: "NIST Chemistry WebBook, Methylmagnesium bromide (C75161), reaction thermochemistry: Holm, T. (1981) J. Chem. Soc. Perkin Trans. 2, 464 (heat of reaction of Mg with CH3Br in diethyl ether)", url: "https://webbook.nist.gov/cgi/cbook.cgi?ID=C75161&Mask=8"}
+  - {title: "PubChem CID 6349, Methylmagnesium bromide (identity; HSDB Methods of Manufacturing: reaction of magnesium and methyl bromide)", url: "https://pubchem.ncbi.nlm.nih.gov/compound/6349"}
+  - {title: "PubChem CID 6323, Bromomethane (identity; HSDB Methods of Manufacturing: methanol and hydrogen bromide)", url: "https://pubchem.ncbi.nlm.nih.gov/compound/6323"}
+  - {title: "Fraunhofer IMM, Scalable continuous Grignard reagent formation (flyer): batch formation is dosing-controlled, Wurtz coupling the main side reaction", url: "https://www.imm.fraunhofer.de/content/dam/imm/de/documents/PDFs-neu2018/E-und-C/IMM-Scalable-Continuous-Grignard-Reagent-Formation.pdf"}
+  - {title: "Stoessel, F. (2008) Thermal Safety of Chemical Processes, Wiley-VCH (accumulation and MTSR of a semi-batch; method reference, not data)", doi: 10.1002/9783527621606}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/methylmagnesium-bromide-1
+  access: public
+publication:
+  status: internal

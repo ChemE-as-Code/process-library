@@ -1,0 +1,32 @@
+# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
+# dataset is lca/datasets/*.yaml, Tier 0 form, so maturity stays at concept
+# (core's cheme.lci-tier-maturity). See README.md.
+schema: cheme-as-code/process/v1
+id: ammonium-hydroxide-1
+title: Ammonium hydroxide (aqueous ammonia, 25 wt% NH3) by continuous dilution of liquid ammonia in water
+summary: >-
+  Tier 0 screening per tonne of 25 wt% aqueous ammonia: feeds from the product's strength, heat
+  rejected to cooling water from published heats of solution, pump electricity ASSUMED. No
+  flowsheet; not reviewed.
+families: [ammonia]
+keywords: [ammonium hydroxide, aqueous ammonia, aqua ammonia, ammonia solution, ammonia water, dilution, heat of solution]
+facets: {feedstock_basis: [fossil, water], product_classes: [chemicals, fertilizers], unit_operations: [mixing, heat-exchange], region: generic}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: ammonia, role: feedstock, inventory_key: "feed:ammonia", note: "refrigerated liquid anhydrous ammonia at its normal boiling point; linked to ammonia-1 (lca/mappings.yaml)"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:water", note: "demineralised water (ASSUMED for a technical grade)"}
+  outputs:
+    - {chemical: ammonium-hydroxide, role: main-product, inventory_key: "product:ammonium-hydroxide", note: "aqueous ammonia, 25 wt% NH3, 25 degC; a solution, not a pure NH4OH fluid"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity", note: "pumps only, ASSUMED hydraulic estimate"}
+    - {chemical: cooling-water, role: utility, inventory_key: "output:cooling-water", note: "net heat of solution rejected (kWh), from thermochemical data"}
+basis: {capacity: "per tonne of 25 wt% aqueous ammonia (the dataset's basis); no plant size"}
+publication: {status: public, license: CC-BY-4.0}
+references:
+  - {title: "Harbolt, B.A., Murata, P.L. (Union Oil Company of California) US Patent 4,752,452: Aqueous ammonia process and mixing apparatus therefor, granted 1988-06-21", url: "https://patents.google.com/patent/US4752452A/en"}
+  - {title: "Wagman, D.D. et al. (1982) The NBS tables of chemical thermodynamic properties. J. Phys. Chem. Ref. Data 11, Suppl. 2, Table 18:N, p. 2-64", url: "https://srd.nist.gov/JPCRD/jpcrdS2Vol11.pdf"}
+  - {title: "Gao, K., Wu, J., Bell, I.H., Lemmon, E.W. (2020) Thermodynamic properties of ammonia for temperatures from the melting line to 725 K and pressures to 1000 MPa. J. Phys. Chem. Ref. Data (equation of state as evaluated with CoolProp 8.0.0)", url: "http://www.coolprop.org/fluid_properties/fluids/Ammonia.html"}
+  - {title: "ATSDR (2004) Toxicological Profile for Ammonia, U.S. Department of Health and Human Services, chapter 4 (Tables 4-1 and 4-2)", url: "https://www.atsdr.cdc.gov/toxprofiles/tp126.pdf"}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/ammonium-hydroxide-1, access: public}

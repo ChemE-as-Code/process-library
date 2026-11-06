@@ -1,0 +1,100 @@
+# Goal and scope of the methyltriphenylphosphonium-bromide-1 LCI. Schema: `cheme schema lca`.
+# Outputs: `cheme assess lca --write` (lca/inventory.csv, gaps.csv, dataset.yaml, manifest.json,
+# results); never edit those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the batch
+# plant with its amount per kg of the dried salt, from the flowsheet's year averages of the recipe
+# (D-003). Per batch: multiply by 1057.10 kg. The backgrounds are left unmapped (`missing:` with
+# the activity each should connect to, and the proxy a later study may use), except where
+# lca/mappings.yaml links a library producer: a gap, never zero, and no values from licensed
+# databases. The toluene is recovered in the still and reused; only its make-up is a feed. The
+# vent gas (the excess methyl bromide swept from R-101 and pressed out in F-101, the vacuum
+# pump's exhaust, with toluene vapour) goes to the site's thermal oxidiser and the still residue
+# to incineration, both wastes to treatment, not emissions (D-007).
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of methyltriphenylphosphonium bromide made by the
+  semi-batch quaternisation of triphenylphosphine with liquid methyl bromide in toluene in a
+  closed pressure vessel, the salt precipitated, filtered, washed with recovered toluene and
+  vacuum-dried in a filter-dryer, the toluene recovered in a batch still, at the concept stage:
+  which raw materials, utilities and wastes the batch plant exchanges per kg of dried salt, as the
+  foreground for a later cradle-to-gate study. No impact results: most backgrounds are not mapped
+  yet (D-012).
+functional_unit: {product: PROD, amount: 1, unit: kg, source: "1 kg of dried methyltriphenylphosphonium bromide (modelled 99.87 wt% salt, an ASSUMED upper bound: no product specification or impurity profile was found, D-002) at the plant gate to packing, stream S15 (D-002, D-012)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
+# being mapped free (the schema's gate-to-gate maps every feed free), as n-bromosuccinimide-1 does.
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Batch plant: PPh3 dissolved in recovered toluene (20 wt%), liquefied methyl bromide dosed over 3 h into the closed, nitrogen-padded glass-lined pressure vessel at 333 K (semi-batch, 1.05 mol per mol PPh3 with the recycled excess), the salt precipitated and cooled to 313 K, filtered, reslurry-washed with recovered toluene and vacuum-dried at 333 K in an agitated filter-dryer; the toluene and the excess methyl bromide distilled in a batch still and reused; 1057.10 kg per batch, 776.6 batches a year on a dedicated train"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+flows:
+  # raw materials
+  - key: feed:PPH3
+    missing: "not mapped yet (D-012); connect to: triphenylphosphine, technical grade; no library process makes it. It is made industrially from phosphorus trichloride, chlorobenzene and sodium (a lead of the route scouting, US 5 527 966 A, not read: not used as a source); cited proxy for a later study: the stoichiometric inputs PCl3 + 3 C6H5Cl + 6 Na -> PPh3 + 6 NaCl, 0.524 kg PCl3, 1.287 kg chlorobenzene and 0.526 kg sodium per kg PPh3 (my arithmetic), not linked: PCl3 is internal to processes/phosphorus-oxychloride-1, and the library makes neither chlorobenzene nor sodium (never map to a guess)"
+    source: "flowsheet stream S1 (D-004)"
+  - key: feed:MEBR
+    missing: "not mapped yet (D-012); connect to: methyl bromide, liquefied, from methanol and hydrogen bromide (HSDB via PubChem CID 6323, Methods of Manufacturing, as methylmagnesium-bromide-1 records it); no library process makes it yet. Cited proxy for a later study (methylmagnesium-bromide-1's): the stoichiometric inputs from processes/methanol-1 and processes/hydrogen-bromide-1, 0.337 kg methanol and 0.852 kg HBr per kg methyl bromide, not linked. Methyl bromide is a controlled ozone-depleting substance; its use as a feedstock is the case here (D-012)"
+    source: "flowsheet stream S6 (D-004)"
+  - key: feed:TOL
+    missing: "linked to processes/btx-1 (lca/mappings.yaml): toluene, a co-product of the solvent extraction of catalytic reformate (mass allocation of that dataset); only the make-up, the still recovers the rest (D-009)"
+    source: "flowsheet stream S2 (D-004, D-009)"
+  # utilities
+  - key: feed:POWER
+    missing: "not mapped yet (D-012); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy streams P1 (R-101 agitator and dosing pump), P2 (F-101 agitator and vacuum pump), P3 (C-101 agitator and transfer pumps), D-010"
+  - key: feed:LPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 350 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
+    source: "flowsheet energy streams Q1 (R-101 heat-up with the PPh3's heat of solution and the vessel's metal), Q4 (the dryer's hot-water circuit), Q7 (the still's boil-up, its model's duty) and Q9 (the still's charge and vessel heated to the boil), D-010"
+  - key: product:CW
+    missing: "not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
+    source: "flowsheet energy streams Q2 (heat of quaternisation), Q3 (the slurry's cool-down), Q10 (R-101's vessel cool-down), Q6 (F-101's product and vessel cool-down) and Q8 (still condenser and distillate cooler), D-010"
+  - key: product:BRINE
+    missing: "not mapped yet (D-012); connect to: refrigeration at 258 K (brine) from an electric vapour-compression unit (e.g. processes/utility-chiller, whose 6 C chilled water is too warm to be linked), per kWh of heat removed: compressor electricity at its COP, condenser cooling water, refrigerant losses"
+    source: "flowsheet energy stream Q5 (F-101's vacuum condenser), D-010"
+  # wastes
+  - key: product:OFFGAS
+    treatment: {kind: waste, route: "the site's thermal oxidiser with a caustic scrubber for the hydrogen bromide formed from the methyl bromide (a controlled ozone-depleting substance), as methylmagnesium-bromide-1's vent (D-007, D-012)"}
+    missing: "not mapped yet (D-012); connect to: thermal oxidation of a halogenated vent gas with acid-gas scrubbing, per kg of gas"
+    source: "flowsheet stream S24, the vent header M202: S23 (R-101 sweep and F-101 pressing gas, D-007) and S18 (vacuum-pump exhaust, D-008)"
+  - key: product:RESID
+    treatment: {kind: waste, route: "hazardous-waste incineration of the still residue (toluene with dissolved PPh3 and the salt, about 20 wt% PPh3 and salt), as a liquid organic waste with phosphorus and bromine (D-009, D-012)"}
+    missing: "not mapped yet (D-012); connect to: incineration of a halogenated, phosphorus-containing liquid organic waste, per kg"
+    source: "flowsheet stream S20 (D-009)"
+# What the batch plant uses per batch and the flowsheet does not carry (library ADR 0035, core
+# ADR 0053), converted with the recipe's batches per year (process/recipe.yaml): the nitrogen that
+# inerts and pads R-101, sweeps its headspace to the oxidiser, presses the filter-dryer and breaks
+# its vacuum (it leaves through the vent header to the thermal oxidiser, recorded as its disposal
+# exchange, a gap). There is no rinse between batches: the train is kept dry and closed (the
+# salt is hygroscopic, the next batch's toluene takes up what stays in the vessels).
+consumables:
+  - id: nitrogen
+    title: Nitrogen for inerting and padding R-101, sweeping its headspace, pressing F-101 and breaking its vacuum, blanketing C-101
+    unit: kg
+    per_batch: 103.0
+    source: "about 82 Nm3 per batch x 1.2506 kg/Nm3, ASSUMED (D-012): R-101 purged with 3 volumes of its 6.3 m3 (19 Nm3), padded to 200 kPa(a) (4 Nm3) and its headspace swept for 0.5 h before the transfer (10 Nm3); F-101's 6.3 m3 pressed at 300 kPa(a) for its two filtrations (38 Nm3) and its vacuum broken once (6 Nm3); C-101 and the tanks blanketed (5 Nm3)"
+    missing: "linked to processes/asu-1 (lca/mappings.yaml): gaseous nitrogen to the battery limit"
+    disposal:
+      kind: waste
+      route: "through the vent header and the site's thermal oxidiser to air, unchanged (D-012)"
+      source: "all the nitrogen leaves by the vent header with the vent gas S24 (D-012)"
+      missing: "not mapped yet (D-012); connect to: the thermal oxidiser's throughput of inert gas, with the vent gas product:OFFGAS (the nitrogen passes unchanged to air; its share of the oxidiser's fuel is what a later study counts here)"
+operation:
+  hours_per_year: 7920
+  life_years: 20
+  source: "design basis operating_hours_per_year 7920 (ASSUMED, the recipe's hours); 20 a service life ASSUMED"
+emission_exclusions:
+  - {id: tank-breathing, method: storage-tank, equipment: [T-201, T-202], reason: "Breathing and filling losses of the liquor and recovered-toluene tanks (toluene with about 0.05 wt% methyl bromide), vented through the nitrogen blanket to the thermal oxidiser; not estimated (no P&ID yet, D-009)."}
+  - {id: methyl-bromide-store, method: storage-tank, reason: "Breathing and transfer losses of the liquefied methyl bromide store (a pressure vessel with a vapour return) are outside the boundary and not estimated (D-004)."}
+  - {id: dryer-dust, method: equipment-leaks, equipment: [F-101], reason: "Salt dust in the vacuum pump's exhaust (behind the filter-dryer's dust filter) is not estimated (D-008)."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals
+  modelling: {principle: attributional}
+  geography: {description: "Generic fine-chemicals site with a methyl bromide supply and a thermal oxidiser, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #133, unreviewed"

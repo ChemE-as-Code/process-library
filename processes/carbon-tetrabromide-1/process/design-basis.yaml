@@ -1,0 +1,49 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Carbon tetrabromide by the aqueous haloform route (sodium hypobromite and acetone), a batch
+# plant, issue ChemE-as-Code/process-library#152. Values marked ASSUMED are engineering choices
+# of this concept study, not client or licensor data; every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: dried carbon tetrabromide crystals to packing at the battery limit
+  cbr4_t_per_year: 314                  # ASSUMED (D-002): a fine-chemical scale, no open market figure; the result of 879.6 kg of bromine per batch (77.31 kg/h) over the cycle
+  operating_hours_per_year: 7920        # ASSUMED (D-002): 330 days of 24 h, batch operation
+  batch_kg: 450.91                      # from the recipe (D-003): one batch of dried product every 11.38 h
+  batches_per_year: 696                 # from the recipe (process/recipe.yaml, D-003)
+feeds:
+  - name: Liquid bromine (bromine-1)
+    source_of_values: ASSUMED (D-004)
+    composition: "Br2 100 % (dry bromine of bromine-1, 99.96 wt%)"
+    conditions: {temperature_K: 293.15, pressure_kPa_a: 101.325}
+  - name: Caustic soda 50 wt% (chlor-alkali-1)
+    source_of_values: "ASSUMED (D-004): NaOH 2.2 mol per mol of bromine, within the patent's range"
+  - name: Acetone (acetone-1)
+    source_of_values: "ASSUMED (D-004): 1.05 mol per 4 mol of bromine (the patent's mass ratio is 1.10)"
+    conditions: {temperature_K: 293.15, pressure_kPa_a: 101.325}
+  - name: Tetrabutylammonium bromide (phase-transfer catalyst, merchant)
+    source_of_values: "the patent's 1 g per 200 g of bromine (D-004)"
+  - name: Process water (dilution and a reslurry cake wash)
+    source_of_values: ASSUMED (D-004, D-007)
+products:
+  - name: Carbon tetrabromide
+    purity: "99.6 wt% CBr4, 0.19 wt% NaBr, 0.07 wt% NaOH, 0.04 wt% sodium acetate, 0.1 wt% water (ASSUMED, D-008); bromoform, colour and free bromine not modelled"
+    delivery: {temperature_K: 303.15, pressure_kPa_a: 101.325, battery_limit: packing (drums; not in the boundary)}
+  - name: Liquors to wastewater treatment
+    note: "mother liquor (NaBr 18 wt%, NaOH, sodium acetate, traces of bromate, acetone and catalyst), wash filtrate and dryer condensate; the bromide is not recovered (D-010)"
+utilities:
+  - {name: Electric power, use: "agitators of M-101, R-101 and F-101, vacuum pump (D-009)"}
+  - {name: LP steam, pressure_kPa_a: 350, use: "the filter-dryers' hot-water circuit (D-009)", note: "ASSUMED; the hot water to the filter-dryers' jackets is held at 318.15 K at most, below CBr4's polymorph transition at 320.05 K (D-008)"}
+  - {name: Chilled brine, supply_K: 258.15, return_K: 263.15, use: "cooling the charge and removing the heats of hypobromite formation and of the haloform reaction at 278 K", note: "ASSUMED; from a refrigeration unit outside the boundary; the jackets are checked at the mean brine temperature, 260.77 K, the log-mean equivalent of the supply and return against 278.15 K (D-003, D-009)"}
+  - {name: Nitrogen, use: "inerting R-101 while the acetone is dosed, pressing the filtrations (per batch, lca/lca.yaml)", note: ASSUMED}
+  - {name: Cooling water, supply_K: 298.15, return_K: 303.15, use: "the filter-dryers' vacuum condenser, Q5 3.90 kW year average (the latent heat of the dryer vapour, D-009); the reactors' vent condensers carry no modelled vapour and are not counted", note: ASSUMED}
+site:
+  location: ASSUMED generic fine-chemicals site with a bromine supply (bromine-1), not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Route from CN 101 885 665 A: bromine into cold caustic soda to hypobromite, then acetone into the hypobromite at 0-5 C with tetrabutylammonium bromide, CBr4 precipitating (D-001); the patent gives no yield, dosing time or product data."
+  - "ASSUMED NaOH 2.2 per Br2, acetone 1.05 per 4 Br2, water 2.5 kg per kg Br2 in the charge, catalyst 5 g per kg Br2 (D-004)."
+  - "ASSUMED rate laws of the hypobromite formation, the haloform reaction (lumped) and the hypobromite's disproportionation; heats of reaction from tabulated formation enthalpies (D-005): the low accumulation rests on them."
+  - "Solubility of CBr4 0.24 g per kg water, the 30 C value (Wikipedia), taken at 278 and 291 K and in the mother liquor without a salting-out correction (ASSUMED, D-007)."
+  - "ASSUMED filters: 99.8 % solid recovery, 0.15 kg liquor per kg cake solid, specific cake resistance 1e10 m/kg at 200 kPa; reslurry wash with about 2 kg water per kg solid (D-007)."
+  - "ASSUMED vacuum drying at 308 K (below the 320 K polymorph transition) to 0.1 wt% volatiles, 70 % thermal efficiency, the jacket's hot water at 318 K at most, a mean drying rate of 1.64 kg/(m2 h) (U 110 W/(m2 K) at the 10 K approach); two filter-dryers (D-008)."
+  - "All flows are year averages of the recipe (D-003); the reactor duties from cheme's semi-batch models, the dryer's from cheme's dryer model, the dilution heat and power concept estimates (D-009); accuracy +/-30 % not demonstrated."
