@@ -9,6 +9,12 @@
 # D-021/D-022: without an expander bypass the air reaches the stack only through X-101, so the
 # X-101 inlet pressure control is set first (S1), then XV-610 is opened and the air raised (S2);
 # I-202 is bypassed automatically until S2 has established the air (C&E bypass field).
+# D-023, one convention for the start-up bypasses: I-202 (no air before S2) and I-203 (cold
+# gauze before S5) are bypassed automatically from the sequence start; a bypassed trip reads as
+# not tripped; their latches are reset under the bypass in S1; they are no reset condition of the
+# sequence and enter the abort once their bypass is removed (step complete or bypass timer). The
+# K-102 full hot recycle limit is held from train start by the trip I-401 (C&E); the train-start
+# permissive and the S1/S2 timeouts keep the sequence inside it.
 schema: cheme/sequences/v1
 sequences:
   - id: SEQ-START-BURNER
@@ -20,31 +26,33 @@ sequences:
       - {interlock: I-101, state: reset}
       - {interlock: I-201, state: reset}
       - {interlock: I-204, state: reset}
+      - {interlock: I-401, state: reset}
       - {interlock: I-602, state: reset}
       - {all: [{tag: XV-203, state: closed}, {tag: XV-204, state: closed}, {loop: FFIC-201, state: in manual}]}
       - {all: [{tag: XV-610, state: closed}, {loop: PIC-611, state: in manual}]}
       - {all: [{tag: K-101, state: running}, {loop: UIC-110, state: in auto}, {loop: UIC-401, state: in auto}, {loop: FIC-107, state: in auto}]}
+      - {tag: K-101, state: "train started less than 4 min ago (I-401 timer below 4 min, ASSUMED: 4 + 3 + 8 min = the 15 min limit, D-023)"}
       - {tag: E-102, state: "boiler package ready (drum level in range, BFW in service)"}
-    interlocks: [I-101, I-201, I-202, I-203, I-204, I-602]
+    interlocks: [I-101, I-201, I-202, I-203, I-204, I-401, I-602]
     steps:
       - id: S1
         title: Set the X-101 inlet pressure control before the expander path is opened
         actions:
           - {loop: PIC-611, action: setpoint, setpoint: {kind: setpoint, value: 600, unit: kPa(a), provenance: assumed, source: "D-022: reduced X-101 inlet pressure for the air purge, ASSUMED until the train vendor's start-up curve"}, by: operator}
           - {loop: PIC-611, action: auto, by: operator}
-        complete: {all: [{loop: PIC-611, state: in auto}, {tag: PV-611, state: "at the position PIC-611 asks (not fail-open)"}]}
-        timeout: {value: 5, unit: min}
+        complete: {all: [{loop: PIC-611, state: in auto}, {tag: PV-611, state: "at the position PIC-611 asks (not fail-open)"}, {interlock: I-202, state: reset}, {interlock: I-203, state: reset}]}
+        timeout: {value: 3, unit: min}
         on_timeout: abort
-        operator: "The train has been started on its motor (vendor's procedure, a permissive). Until S2 opens XV-610, K-102 runs on full hot recycle through UV-401: this is limited to 15 min from train start (ASSUMED, vendor) and TI-402 must stay below its alarm, or the operator trips the train; the timeouts of S1 and S2 keep inside it."
+        operator: "The train has been started on its motor (vendor's procedure) less than 4 min ago (a permissive). Until gas flows forward through PV-611 and X-101 (end of S2), K-102 runs on full hot recycle through UV-401. The limit, 15 min from train start (ASSUMED, vendor), is held by the trip I-401, which counts from train start and trips the train; the permissive (4 min) and the S1 (3 min) and S2 (8 min) timeouts keep the sequence inside it. TI-402 has a high alarm (setting the vendor's) that warns before the trip. The operator resets the latches of I-202 and I-203 here: their start-up bypasses are on, so their inputs read healthy, and S1 completes only with both reset (D-023)."
       - id: S2
         title: Open the expander inlet and raise the air to the start-up rate
         actions:
           - {tag: XV-610, action: open, by: operator}
           - {loop: FIC-107, action: setpoint, setpoint: {kind: setpoint, value: 120000, unit: kg/h, provenance: assumed, source: "D-019: about 55 % of the design air, the start-up rate, ASSUMED"}, by: operator}
         complete: {all: [{tag: XV-610, state: open}, {tag: FZ-206, state: above the trip point}, {tag: FIC-107, state: at setpoint}]}
-        timeout: {value: 10, unit: min}
+        timeout: {value: 8, unit: min}
         on_timeout: abort
-        operator: "The only path from K-101 to the stack runs through K-102, the absorber, R-102 and X-101 (no expander bypass in this issue, D-021); XV-610 opens only with PIC-611 in control, so the HP system cannot dump through X-101. The automatic start-up bypass of I-202 ends when FZ-206 is above its trip point (this step complete) or after its timer. Whether X-101 may run on cold air at this rate is the train vendor's (O-9)."
+        operator: "The only path from K-101 to the stack runs through K-102, the absorber, R-102 and X-101 (no expander bypass in this issue, D-021); XV-610 opens only with PIC-611 in control, so the HP system cannot dump through X-101. PV-611 opens only once K-102 has raised the HP system to the PIC-611 setpoint, so the full hot recycle of K-102 lasts into this step; FZ-206 above its trip point proves forward flow through the train and ends it (the I-401 timer stops). The automatic start-up bypass of I-202 ends when FZ-206 is above its trip point (this step complete) or after its timer. Whether X-101 may run on cold air at this rate is the train vendor's (O-9)."
       - id: S3
         title: Purge the mixer, the burner and the boiler with air
         actions:
@@ -69,9 +77,9 @@ sequences:
           - {loop: FFIC-201, action: setpoint, setpoint: {kind: setpoint, value: 0.04, unit: "kg/kg", provenance: assumed, source: "D-019: about 6 mol% NH3, the start ratio, ASSUMED"}, by: operator}
           - {loop: FFIC-201, action: auto, by: operator}
         complete: {all: [{tag: TZ-207, state: above the low-low trip point}, {loop: FFIC-201, state: in auto}]}
-        timeout: {value: 10, unit: min}
+        timeout: {value: 5, unit: min}
         on_timeout: abort
-        operator: "The start-up bypass of I-203 is removed once TZ-207 is above its trip point. The ratio is raised in steps to the design value while the gauze temperature follows (TI-208)."
+        operator: "The start-up bypass of I-203 is removed once TZ-207 is above its trip point (this step complete) or 5 min after XV-203/XV-204 open (its timer, ASSUMED), so ammonia never reaches an unlit gauze for longer than that. The ratio is raised in steps to the design value while the gauze temperature follows (TI-208)."
       - id: S6
         title: Load up to the design rate and the design pressure
         actions:
@@ -87,12 +95,14 @@ sequences:
         any:
           - {interlock: I-101, state: tripped}
           - {interlock: I-201, state: tripped}
-          - {interlock: I-203, state: tripped}
           - {interlock: I-204, state: tripped}
+          - {interlock: I-401, state: tripped}
           - {interlock: I-602, state: tripped}
-          - {all: [{step: S2, state: complete}, {interlock: I-202, state: tripped}]}
+          - {all: [{interlock: I-202, state: start-up bypass removed}, {interlock: I-202, state: tripped}]}
+          - {all: [{interlock: I-203, state: start-up bypass removed}, {interlock: I-203, state: tripped}]}
       actions:
         - {tag: XV-203, action: close}
         - {tag: XV-204, action: close}
         - {tag: XV-101, action: close}
-    reset: {latching: true, manual: true, condition: {all: [{interlock: I-101, state: reset}, {interlock: I-201, state: reset}, {interlock: I-203, state: reset}, {interlock: I-204, state: reset}, {interlock: I-602, state: reset}]}}
+      notes: "I-202 and I-203 abort once their start-up bypass is removed, by the step completing (S2, S5) or by the bypass timer (D-023). The abort does not stop the train; I-401 trips it if the restart does not reach forward flow in time."
+    reset: {latching: true, manual: true, condition: {all: [{interlock: I-101, state: reset}, {interlock: I-201, state: reset}, {interlock: I-204, state: reset}, {interlock: I-401, state: reset}, {interlock: I-602, state: reset}]}}

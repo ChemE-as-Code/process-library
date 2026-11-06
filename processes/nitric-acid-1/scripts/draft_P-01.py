@@ -64,7 +64,7 @@ line(sheet, "PA-104", dn=1800, fluid="Air", route=[
     fv107, k101["N1"]], label_at=(105, 62))
 blowoff = tee("T107", at=(185, AIR), branch="up", branch_dn=400)
 # PSV-111 takes off upstream of the check valve CV105, which separates it from the nitrous gas
-# side (D-021): downstream of CV105 the air piping belongs to the PSV-316 system (P-03)
+# side (D-022 item 1): downstream of CV105 the air piping belongs to the PSV-316 system (P-03)
 relief = tee("T108", at=(228, AIR), branch="up", branch_dn=300)
 secondary = tee("T106", at=(310, AIR), branch="down", branch_dn=400)
 line(sheet, "PA-105", dn=1100, fluid="Air", route=[
@@ -157,6 +157,6 @@ note(sheet, "LZ-103, the burner trips and the train trip close XV-101: C&E I-101
      "I-602. FIC-107 sets the plant air rate (load); UIC-110: K-101 anti-surge blow-off (D-018)",
      at=(20, 269))
 note(sheet, "PSV-111: K-101 discharge up to CV105 only; downstream air piping, M-101 and PA-106 to "
-     "PSV-316 (P-03). Sets, cases: piping/special-items.yaml (D-021)", at=(20, 276))
+     "PSV-316 (P-03). Sets, cases: piping/special-items.yaml (D-022)", at=(20, 276))
 
 save(sheet, target)

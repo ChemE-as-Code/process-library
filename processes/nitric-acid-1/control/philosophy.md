@@ -45,9 +45,9 @@ failures:
     interlocks: [I-203]
   - id: F-TRAIN
     title: Machine train trip
-    response: "I-602: XV-610 closes (no expander overspeed), the ammonia trip valves close and the burner goes out; the anti-surge valves open. The absorber stays pressurised; PSV-404 protects it if XV-610 and PV-611 are closed with K-102 coasting down."
+    response: "I-602: XV-610 closes (no expander overspeed), the ammonia trip valves close and the burner goes out; the anti-surge valves open. The absorber stays pressurised; PSV-404 protects it if XV-610 and PV-611 are closed with K-102 coasting down. The train is also tripped when K-102 has run on full hot recycle (no forward flow) longer than its limit, counted from train start (I-401, D-023)."
     loops: [UIC-110, UIC-401, PIC-611]
-    interlocks: [I-602]
+    interlocks: [I-401, I-602]
     sequences: [SEQ-START-BURNER]
 unresolved:
   - "Ignition burner of R-101 and its fuel (hydrogen torch), and the purge volume of SEQ-START-BURNER: vendor (D-019)"
@@ -74,7 +74,7 @@ pressure levels intact (OBJ-6).
 ## Control hierarchy
 
 Regulatory control (15 loops) holds the operating point; the burner start-up runs as a sequence
-(SEQ-START-BURNER); nine trips (I-101 to I-602) act on dedicated trip valves (XV) and machine
+(SEQ-START-BURNER); ten trips (I-101 to I-602) act on dedicated trip valves (XV) and machine
 stops, never on a control valve, and the relief devices PSV-105, PSV-111, PSV-215, PSV-316, PSV-404 and
 PSV-616 are the layer behind them (cases per device in `piping/special-items.yaml`, D-021). The machine protection of the train is the package's and reaches the
 plant as one trip (I-602). A regulatory loop is never counted as a safeguard.
@@ -110,5 +110,7 @@ machine train trip) in the front matter. Loss of LP steam only stops the SCR amm
 Fail positions, setpoints that are not a design-case value, trip delays and the start-up rates
 are ASSUMED (D-019). Open: the trip point of I-201 (O-7), the ignition burner, the expander
 bypass, the K-102 recycle (hot or cooled), a V-101 high-high level protection, the start-up
-heat source of E-101 and the C-102 acid cooling (D-018 to D-020); sensor voting and SILs are the
-HAZOP / LOPA's.
+heat source of E-101 and the C-102 acid cooling (D-018 to D-020); the K-102 full hot recycle
+limit (the I-401 delay, ASSUMED 15 min) and the TI-402 alarm setting from the train vendor, the
+FFZ-205 NH3 flow cutoff and the I-202/I-203 start-up bypass timers (all ASSUMED, D-023, O-9);
+sensor voting and SILs are the HAZOP / LOPA's.

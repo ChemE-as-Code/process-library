@@ -22,6 +22,10 @@ interlocks:
   - id: I-201
     title: NH3/air ratio high-high at the mixer (flammable mixture)
     cause: {tag: FFZ-205, condition: FFAHH}
+    logic:
+      any:
+        - {all: [{tag: FFZ-205, state: "NH3 flow above its cutoff"}, {tag: FFZ-205, state: FFAHH}]}
+        - {all: [{tag: FFZ-205, state: "NH3 flow above its cutoff"}, {tag: FZ-206, state: "below its measuring range or bad quality"}]}
     effects:
       - {tag: XV-203, action: close}
       - {tag: XV-204, action: close}
@@ -31,7 +35,7 @@ interlocks:
     delay: {value: 0, unit: s}
     latching: true
     reset: manual   # after the cause is cleared and the burner start sequence permissives are met (SEQ-START-BURNER)
-    notes: "D-019. The safety function of the ammonia-air mixture: the ratio from flow transmitters independent of the FFIC-201 loop (FFZ-205 on its own NH3 flow element, FZ-206 on its own air flow element). The trip point lies below the lower flammability limit of NH3 in air at burner conditions with margin; the limit at 520 kPa(a) and 462 K is an open input (O-7), so no setpoint is stated."
+    notes: "D-019, D-023. The safety function of the ammonia-air mixture: the ratio from flow transmitters independent of the FFIC-201 loop (FFZ-205 on its own NH3 flow element, FZ-206 on its own air flow element). Low flows (D-023): the ratio is evaluated only with the NH3 flow above a cutoff of 2 % of the design NH3 flow S03 (ASSUMED, O-9); below it there is no ammonia to burn and FFZ-205 reads 0 (not tripped), so with XV-203/XV-204 closed and no air (SEQ-START-BURNER S1-S2) I-201 is defined and reset. Above the cutoff a low or failed air signal never makes the ratio look lean: air below the measuring range of FZ-206 or a bad-quality signal reads as ratio high-high (tripped). The trip point lies below the lower flammability limit of NH3 in air at burner conditions with margin; the limit at 520 kPa(a) and 462 K is an open input (O-7), so no setpoint is stated."
   - id: I-202
     title: Primary air flow low-low (loss of air, ratio rising)
     cause: {tag: FZ-206, condition: FALL}
@@ -44,8 +48,8 @@ interlocks:
     delay: {value: 1, unit: s}
     latching: true
     reset: manual
-    bypass: "Start-up only: bypassed automatically when SEQ-START-BURNER starts (the air path opens only in its step S2), removed automatically once FZ-206 is above the trip point at the end of S2 or after a 15 min timer (ASSUMED), whichever comes first; never bypassed while XV-203 or XV-204 is open (D-022)."
-    notes: "D-019, D-022. Covers a K-101 trip or blow-off before the ratio trip sees it; FZ-206 above the trip point is the S2 -> S3 transition of SEQ-START-BURNER."
+    bypass: "Start-up only: bypassed automatically when SEQ-START-BURNER starts (the air path opens only in its step S2), removed automatically once FZ-206 is above the trip point at the end of S2 or 11 min after the sequence start (the S1 and S2 timeouts, ASSUMED), whichever comes first; never bypassed while XV-203 or XV-204 is open (D-022). Under the bypass the trip input reads healthy, so the latch left by an earlier trip (or by the dead air path before the start) is reset by the operator in S1; when the bypass is removed the trip acts on its cause only (D-023)."
+    notes: "D-019, D-022, D-023. Covers a K-101 trip or blow-off before the ratio trip sees it; FZ-206 above the trip point is the S2 -> S3 transition of SEQ-START-BURNER. Not a reset condition of the sequence: it is reset under its bypass in S1 and enters the sequence abort once its bypass is removed."
   - id: I-203
     title: R-101 gauze temperature low-low (loss of ignition, unburnt NH3 downstream)
     cause: {tag: TZ-207, condition: TALL}
@@ -58,8 +62,8 @@ interlocks:
     delay: {value: 5, unit: s}
     latching: true
     reset: manual
-    bypass: "Start-up only: bypassed until the gauze is lit (SEQ-START-BURNER step S4), removed automatically when TZ-207 is above the trip point."
-    notes: "D-019. Unreacted ammonia downstream of an extinguished gauze forms ammonium nitrate and nitrite with NOx in the cold end (E-105, V-101, K-102), a known hazard of nitric acid plants (skill tech-heavy-chem-nitric-acid-and-fertilizers)."
+    bypass: "Start-up only: bypassed automatically when SEQ-START-BURNER starts (the gauze is cold until step S4 ignites it and the ammonia of step S5 brings it to temperature), removed automatically once TZ-207 is above the trip point at the end of S5 or 5 min after S5 opens XV-203/XV-204 (ASSUMED, burner vendor), whichever comes first; never bypassed in normal operation. Under the bypass the trip input reads healthy, so a latch left by an earlier trip on a cold gauze is reset by the operator in S1; when the bypass is removed the trip acts on its cause only (D-023)."
+    notes: "D-019, D-023. Treated in SEQ-START-BURNER like I-202: not a reset condition of the sequence, in the abort once its bypass is removed. Unreacted ammonia downstream of an extinguished gauze forms ammonium nitrate and nitrite with NOx in the cold end (E-105, V-101, K-102), a known hazard of nitric acid plants (skill tech-heavy-chem-nitric-acid-and-fertilizers)."
   - id: I-204
     title: R-101 gauze temperature high-high (excess ammonia or gauze damage)
     cause: {tag: TZ-207, condition: TAHH}
@@ -85,6 +89,21 @@ interlocks:
     latching: true
     reset: manual   # the operator restarts the pump once the level is back; no automatic restart
     notes: "D-019; latching with manual reset like every other trip (D-021)."
+  - id: I-401
+    title: K-102 on full hot recycle too long (train running with no forward flow)
+    cause: {tag: K-102, condition: "full hot recycle through UV-401: train running with XV-610 closed or FZ-206 below its low-low trip point"}
+    logic:
+      all:
+        - {tag: K-101, state: running}
+        - {any: [{tag: XV-610, state: closed}, {tag: FZ-206, state: below the low-low trip point}]}
+    effects:
+      - {tag: K-101, action: trip}
+    sheet: P-04
+    sil: null
+    delay: {value: 15, unit: min}   # ASSUMED: the K-102 full hot recycle limit, train vendor's (O-9)
+    latching: true
+    reset: manual
+    notes: "D-023. The hot anti-surge recycle UV-401 (taken before E-106, D-018) is for short duty: with no forward flow K-102 circulates its own heated gas. The only forward path is through PV-611 and X-101 (no expander bypass, D-021), so the train has no forward flow while XV-610 is closed, and none after it opens until the gas passes PV-611, which FZ-206 above its trip point proves (end of SEQ-START-BURNER S2). The timer counts from train start whenever the train starts against a closed XV-610, so it holds the limit from train start, not from the sequence start; it also covers a loss of forward flow in operation. The effect is a train trip: the train trip logic US-612 stops the train and I-602 follows with its effects (XV-610, ammonia trip valves, SCR ammonia). Inputs: the XV-610 closed position and FZ-206 (shared with I-201 and I-202: sensor independence for the HAZOP / LOPA, O-9). Delay ASSUMED at the 15 min of D-022 until the train vendor states the limit; TI-402 high alarm (instrument list) warns the operator before it."
   - id: I-501
     title: C-101 sump level low-low (gas blow-by from 1130 to 500 kPa(a) into C-102)
     cause: {tag: LZ-507, condition: LALL}
@@ -109,7 +128,7 @@ interlocks:
     notes: "D-019. Below the catalyst window NH3 slips and ammonium nitrate deposits downstream (X-101, stack); the window comes with the catalyst (open input O-4)."
   - id: I-602
     title: Machine train trip (K-101, K-102, X-101 and motor)
-    cause: {tag: K-101, condition: "train trip (package machine protection)"}
+    cause: {tag: K-101, condition: "train trip (package machine protection, or I-401)"}
     effects:
       - {tag: XV-610, action: close}
       - {tag: XV-203, action: close}
@@ -120,4 +139,4 @@ interlocks:
     sil: null
     latching: true
     reset: manual
-    notes: "D-018, D-019. The machine protection (overspeed, vibration, axial position, lube oil, seals) is the train package's; it reaches the plant as one trip signal to US-612 (P-06) and US-209 (P-02). XV-610 isolates the expander so it cannot overspeed on the expanding tail gas; the absorber then stays pressurised and settles out."
+    notes: "D-018, D-019. The machine protection (overspeed, vibration, axial position, lube oil, seals) is the train package's; it reaches the plant as one trip signal to US-612 (P-06) and US-209 (P-02). The K-102 full-recycle time trip I-401 stops the train through US-612 and so also ends in I-602 (D-023). XV-610 isolates the expander so it cannot overspeed on the expanding tail gas; the absorber then stays pressurised and settles out."

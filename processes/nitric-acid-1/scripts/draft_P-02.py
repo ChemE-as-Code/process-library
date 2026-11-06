@@ -132,6 +132,6 @@ note(sheet, "R-101 and E-102 in one vessel (vendor); ignition burner and start-u
      "SEQ-START-BURNER. E-102 steam drum, circulation and BFW level control: boiler package (D-020)",
      at=(20, 269))
 note(sheet, "Relief: everything on this sheet downstream of CV105 (P-01), incl. M-101, R-101 and the "
-     "E-102 tube rupture, by PSV-316 (P-03); PSV-111 only up to CV105 (D-021)", at=(20, 276))
+     "E-102 tube rupture, by PSV-316 (P-03); PSV-111 only up to CV105 (D-022)", at=(20, 276))
 
 save(sheet, target)
