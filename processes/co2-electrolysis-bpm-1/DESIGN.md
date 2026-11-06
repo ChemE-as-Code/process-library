@@ -1027,7 +1027,8 @@ Decision:
 - the KOH proxies count the solution as KOH 100 % and deionised water (`water`) by the
   datasets' compositions, which `tests/test_lci_case_datasets.py` compares (rel 1e-6); the
   multifunctional JSON is tested for both datasets like the workbook and the JSON-LD package;
-`publication.status` stays internal: `build_lci.py --public` leaves the process out.
+`publication.status` was internal then, so `build_lci.py --public` left the process out; it is
+public since D-048.
 
 Deviation from the spec: the file is named by core's dataset id (from the flowsheet title), not
 `co2-electrolysis-bpm-1-skid-b.yaml`; the spec's fallback (a scratch copy with `case: skid-b`) is
@@ -1891,3 +1892,27 @@ Assumptions: the rearrangement, the stack connections on the north end plate and
 deck-height trolley, the 0.6 m reach and 0.15 m ankle offset, the 0.5 m ignition margin, the 1.0 m
 vent clearance, the flame arrester and all-welded tail gas line, the plinth, the rack's new
 place and height, the hardstanding, the coupling heights, the deleted rail (all ASSUMED).
+
+## D-048 Publication: public under CC-BY-4.0 (2026-11-06)
+Decision: the process is public (`publication.status: public`, licence CC-BY-4.0), as ADR 0036
+makes the default; the owner decided this on 2026-11-06.
+
+Why it was internal: #373 made it public on 2026-11-05 by an edit of `process.yaml` alone.
+`process.yaml` is a fingerprinted input of `lca/manifest.json`, both datasets and the 11
+`lca/scenarios/*.json`, so the public build (`scripts/publication.py` `lca_withheld`) found a
+stale run manifest and withheld the footprint. The website's `check-public.mjs` then reads every
+text of a withheld footprint that pairs a number with CO2 as a possible leak and failed 37 times:
+the Ember attribution, `goal`, `technology`, the scenario records' `title`, and one `data_year`.
+None of them states a footprint value; #378 made the process internal again.
+
+The fix is the order of the change, not the text: the status and the LCA outputs are changed in
+one commit. `cheme assess lca --write`, `--write --case skid-b` and `cheme assess lca-scenarios
+--write` (core 1.10.0) change only the `process.yaml` fingerprint in those 14 files; no number
+changes. The footprint is not withheld for a licence: both backgrounds are open (ember-2025
+CC-BY-4.0, desnz-ghg-2026 OGL-3.0) and core marks them publishable. It is published as what it
+is, a partial climate-only screening with its 13 gaps (ADR 0026, D-026).
+
+Consequence: any later edit of `process.yaml`, the flowsheet, `lca/lca.yaml` or the factors is
+committed together with the regenerated LCA outputs (`scripts/regen.py` does both); otherwise
+the public footprint is withheld again and the public check fails.
+

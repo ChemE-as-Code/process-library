@@ -227,7 +227,8 @@ def test_the_koh_solution_proxies_convert_by_the_datasets_compositions() -> None
     assert seen == {"feed:KOH-FILL", "feed:KOH-DOSE"}, seen
 
 
-def test_the_public_build_leaves_the_internal_skids_out(tmp_path: Path) -> None:
+def test_the_public_build_carries_both_skids(tmp_path: Path) -> None:
+    """Public since D-048 (ADR 0036): the public package holds Skid A's and Skid B's products."""
     library = tmp_path / "library"
     folder = library / "processes" / SKIDS
     (folder / "lca").mkdir(parents=True)
@@ -239,4 +240,6 @@ def test_the_public_build_leaves_the_internal_skids_out(tmp_path: Path) -> None:
     out = tmp_path / "out"
     build_lci.build(library, out, "0.1.0", commit="skids", public=True)
     package = json.loads((out / "lci" / "datapackage.json").read_text())
-    assert SKIDS not in {p["id"] for p in package["processes"]}
+    entry = next(p for p in package["processes"] if p["id"] == SKIDS)
+    codes = [a["code"] for a in entry["activities"] if a["code"].endswith(":product:CO")]
+    assert len(codes) == 2 and sum(c.endswith("-skid-b:product:CO") for c in codes) == 1, codes

@@ -718,7 +718,7 @@ def test_committed_lca_datasets_are_the_design():
     assert b["title"].endswith(", case skid-b") and b["id"] == f"{a['id']}-skid-b"
     assert b["uuid"] != a["uuid"] and b["parent"] == a["uuid"]
     process = _yaml(PROCESS / "process.yaml")
-    assert process["publication"]["status"] == "internal"  # build_lci --public leaves it out
+    assert process["publication"] == {"status": "public", "license": "CC-BY-4.0"}  # D-048, ADR 0036
     keys = {i.get("inventory_key") for g in process["chemistry"].values() for i in g}
     assert {"feed:CO2", "feed:KOH-FILL", "feed:KOH-DOSE", "feed:POWER", "product:CO"} <= keys
 
