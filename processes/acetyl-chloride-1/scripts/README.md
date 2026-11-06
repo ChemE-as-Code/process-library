@@ -24,8 +24,9 @@ frame (for a new sheet: the one `cheme sheet new` wrote).
 `agent-run/` holds the runner and prompts of a staged agent design run (see its README).
 
 `balance.py` is no generator: it gives the values of `process/flowsheet.yaml` that core cannot
-calculate yet (the feeds for 2000 t/a, the phase split D101, the column split K101, the scrubber
-water, the mixed temperatures and the duties other than R101's Q2 and the still's Q3, which
-core's models write since 1.9.0; DESIGN.md D-006, D-014). Run it with `cheme run
+calculate yet (the feeds for 2000 t/a, the phase split D101, the scrubber water, the still's
+stream temperatures and the duties other than R101's Q2 and the still's reboiler Q3 and
+condenser Q4, which core's models write since 1.9.0 and 1.10.0; DESIGN.md D-006, D-014,
+D-015). Run it with `cheme run
 scripts/balance.py` after `cheme process propagate --fill`; it follows the library's
 balance-output contract (`BALANCE_OUTPUT`, library ADR 0027).
