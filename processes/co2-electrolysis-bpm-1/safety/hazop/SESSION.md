@@ -77,7 +77,7 @@ block of about 3 hours: plan five half-day sessions.
 | Credit and rating convention for both studies (section 3.2) | 40 |
 | The two very-high initial scenarios and PV-x31's fail position (section 3.3) | 30 |
 | Where the studies rate the same hazard differently, and why (section 3.4) | 15 |
-| The owner decisions from #330, decided on 2026-11-06, to confirm (section 3.6) | 30 |
+| The owner decisions from #330, decided on 2026-11-06, and P&ID revision C, to confirm (sections 3.6, 3.6.1) | 40 |
 | How the high-residual actions will be handled (section 3.5); they are taken node by node | 10 |
 
 ### Sessions 1 to 4: node by node
@@ -435,7 +435,8 @@ rating.
   every gas-in-enclosure cause and rating revised ("at the open skid", the fan's credits
   removed), as proposals for the team.
 - **The CO2 supply interface** at the battery limit (pressure regulation, relief, cold gas), not
-  drawn (H01-A303, A304; H02-A302, A304).
+  drawn (H01-A303, A304; H02-A302, A304). Stated since P&ID revision C (D-060, section 3.6.1):
+  up to 3 bar(g) with the supplier's relief at 4 bar(g), ASSUMED; the cold gas stays open.
 - **The site effluent** acceptance of the spent anolyte and Skid B's bleed (H01-A805, H02-A708).
 - **The oxidiser X-x32 inside the enclosure and zone**: stopped with its tail gas by the gas
   trips, or moved outside (H01-A906, H02-A906); a flame cannot be Ex-rated. The oxidiser stands
@@ -469,6 +470,51 @@ rating.
 - **The DC isolation independent of the rectifier**, which every trip and the current-runaway
   scenario rest on (H01-A205, H02-A207). Decided in principle by the owner (D-051): a lockable
   isolator or DC contactor outside the zone; its design and drawing stay open with the DC bus.
+
+#### 3.6.1 P&ID revision C: the design review's fixes (2026-11-06)
+
+An agent design review (`reviews/2026-11-06-design.md`, three high and ten medium findings) and
+layout review round 3 led to P&ID revision C and DESIGN.md D-060 to D-065, **agent design
+decisions under the owner's delegation, to be confirmed by the team**; the studies were revised
+by stable id (D-066), every entry `status: proposed`, `by: agent`, and re-stamped:
+
+- **The relief basis** (D-060): the CO2 supply at up to 3 bar(g) with the supplier's relief at
+  4 bar(g) (ASSUMED); the bursting disc PSE-x01 at 0.5 bar(g) on the cathode feed header with a
+  burst indicator, and the cathode pressure high-high PIA-x23 (I-x11); K-x31's discharge
+  high-high PIA-x32 (I-x12) and its own hydraulic pressure limit, no device on CG-x03; design
+  conditions on every item. The relief study (sizing, outlets, disc or valve) stays the
+  competent person's (H01-A303, A501; H02-A302, A501).
+- **The current trips automatically** when K-x31 stops (I-x13) and on the instrument air
+  low-low PSLL-x51 (I-x14), no longer by the operator (F-AIR); PV-x21's fail-open rationale is
+  corrected (H01-A401, A402; H02-A402).
+- **The oxygen side and the membrane** (D-061): the H2-in-O2 analyser AIA-x14 trips the current
+  at 1 vol% (I-x16), the anolyte pressure PIA-x13 against PIA-x23 trips it outside 0 to 60 kPa
+  (I-x17); both set points and the window are ASSUMED for the team and the stack vendor
+  (H01-A110, A103; H02-A601, A401).
+- **The condensate** (D-061): an independent level LIA-x24 closes XV-x25 at low-low (I-x18) and
+  stops K-x31 at high-high (I-x19); the condensate goes to a vented collection.
+- **The CO2 on its total** (D-062): FIC-x04 the master of FIC-x02, its low-low trips the current
+  (I-x15); check valves on CO2-x01, W-x01 and W-202; the recycle CO2-x02 with a check valve and
+  XV-x34 closed by every stop of K-x31 (H01-A301, A306, A507; H02-A301, A303, A507).
+- **Each stack's voltage and current** with a current high-high trip (I-x20, D-063;
+  H01-A102, H02-A102); the tanks' high and high-high level alarms at the fill point, Skid B's
+  LIA-202 closing the make-up (I-221) (H01-A801, H02-A705); P-202's isolation HV-210,
+  anti-siphon BPV-202 and integral relief (D-064; H02-A703, A709).
+- **The sequences** (D-061): the start-up gives the train its outlet before the CO2 purge, every
+  stop depressurises the PSA through its own stop to the oxidiser still firing (H01-A307, A905;
+  H02-A307).
+- **The layout** (D-065): TG-x01 runs overhead at 2.3 m, no longer a step-over; the oxidiser's
+  burner-management panel stands 2 m or more from the east step's foot.
+
+The revision moved these residual bands (worst category), all proposals: H-01 from 31 high,
+36 medium, 11 low to **15 high, 40 medium, 23 low** (24 scenarios moved: S104, S105, S115,
+S201, S208, S301, S302, S305, S309, S401 to S407, S411, S501, S502, S509, S510, S606, S801,
+S905); H-02 from 43 / 33 / 18 to **25 high, 40 medium, 29 low** (24 moved: S103, S108, S110,
+S201, S202, S301, S303, S309, S401 to S403, S405, S406, S409, S410, S501, S502, S509, S510,
+S604, S605, S707, S710, S802). The number of scenarios and actions is unchanged (H-01 78
+scenarios, 54 actions; H-02 94, 57); 19 safeguards were added to H-01 (60) and 22 to H-02 (68).
+The team confirms or changes each credit; none of the new trips has a SIL yet (H01-A112,
+H02-A104).
 
 ### 3.7 Hazards judged not applicable, or only partly
 
