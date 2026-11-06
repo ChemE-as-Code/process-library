@@ -1,0 +1,900 @@
+# Tier 0 form, a manifest-only entry without a flowsheet (as processes/cumene-1). Every amount is the formula of its
+# parameters; core's validator re-checks each. Written from the LVIC-AAF BREF (2007) and the EFMA BAT booklet No. 7 (2000),
+# facts in our own form. Generated amounts and balance: the formulas are the record.
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: npk-nitrophosphate-odda
+title: NPK 15-15-15 by the nitrophosphate (ODDA) route, with CNTH conversion to ammonium nitrate and lime
+description: Tier 0 screening per 1 t of NPK 15-15-15, gate-to-gate, integrated nitrophosphate complex without its
+  ammonia and nitric acid plants. Feeds from the stoichiometry of a model rock and product with the NP-solution
+  composition of the EFMA BAT booklet; utilities from AMI Linz and Dutch infoMil figures in the LVIC-AAF BREF; emissions
+  from EFMA BAT levels and one plant. Ammonium nitrate and calcium carbonate from the conversion are co-products.
+basis: 1000 kg of NPK 15-15-15
+boundary: 'gate-to-gate: rock digestion in nitric acid, sand removal, CNTH crystallisation and filtration, CNTH
+  conversion with NH3 and CO2 to CaCO3 and AN solution, AN evaporation, neutralisation, potash addition, granulation,
+  drying, cooling, coating; ammonia, nitric acid, CO2, steam and power from outside'
+technology: 'nitrophosphate (ODDA) process: digestion in about 60 % HNO3, cooling crystallisation of calcium nitrate
+  tetrahydrate, ammoniation of the nitrophosphoric acid, spherodiser or drum granulation; the mixed-acid route and
+  CN fertiliser instead of conversion are not modelled'
+geography:
+  description: 'EU: utilities of AMI Linz (AT) and Dutch figures (infoMil 2001), BAT levels of the European industry;
+    no single site.'
+classification:
+  isic: '2012'
+system_boundary:
+  included:
+  - phosphate rock, nitric acid, ammonia, potash, CO2 for the conversion, filler
+  - electricity, steam, natural gas for the dryers, compressed air
+  - co-products ammonium nitrate and calcium carbonate; sand to building use
+  - CO2 of the rock carbonate and the fuel; NH3, NOx, HF and dust to air; N, P2O5 and F to water
+  excluded:
+  - 'TODO cooling water (17 m3/t at AMI Linz, BREF Table 7.4): not converted to heat rejected, the temperature rise
+    is not stated'
+  - TODO process and scrubbing water and the effluent volume (AMI Linz discharges 3450 m3/d at 1200 t/d, BREF Table
+    7.6); the net water is counted as vapour
+  - 'TODO the rock''s minor constituents (5.6 wt%: Al, Fe, Mg, Na, SO3, organics), its excess fluorine, trace metals
+    (Cd) and their fate; the dolomite filler stands in for their mass'
+  - 'TODO HNO3 reduced to NOx by the rock''s organics and iron, and N, P and F lost to air and water: not added
+    to the feeds'
+  - TODO coating agent and anti-caking oil; micronutrients, magnesium and sulfate salts of other grades
+  - 'TODO steam export of an on-site nitric acid plant (EFMA 2.2.2): no credit in the cut-off model'
+  - the ammonia and nitric acid plants of the integrated complex (their products are feeds)
+  - storage, bagging and loading emissions
+  - infrastructure
+  cutoff: none applied; the excluded flows are not quantified
+  infrastructure: excluded
+  catalysts: excluded
+  non_routine: excluded
+location: RER
+year: 2002
+valid_until: 2007
+time:
+  start: 2000
+  description: AMI Linz data of 2000 and 2001 and infoMil 2001 as reported in the 2007 BREF; EFMA booklet of 2000.
+    valid_until is the reference year + 5 (system-model section 6), so it has long lapsed.
+modelling:
+  principle: attributional
+  multifunctionality: 'three products: NPK, ammonium nitrate and calcium carbonate from the CNTH conversion (see
+    allocation); the dataset itself is unallocated'
+allocation:
+  method: mass
+  coproducts:
+  - npk
+  - ammonium-nitrate
+  - calcium-carbonate
+  deviation: No sourced prices, so the WBCSD price ratio cannot be computed; nutrient-based or economic allocation
+    would shift burden to the NPK. Mass is the preliminary choice.
+uuid: f0a4da2f-8db9-5585-bb94-caddd1925b29
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+technology_level: current
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: npk
+  value: 1000.0
+  unit: kg
+  description: NPK 15-15-15 delivered (the basis).
+  source: basis
+- name: M_R
+  value: 8745.579
+  unit: g/mol
+  description: 'Molar mass of the model rock unit Ca85P45C10Si3O216F15: 15 fluorapatite Ca5(PO4)3F, 10 calcite and
+    3 quartz, 36.5 wt% P2O5.'
+  source: 'IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula. The mineral proportions follow the P2O5, CO2 and SiO2 of Moroccan (Khouribga) rock, 33.4, 4.5
+    and 1.9 wt%, in EU JRC (2007) BREF Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF),
+    August 2007, Table 5.2, p. 217 (apatite : calcite : quartz 1.57 : 1.02 : 0.32 mol per kg of rock, taken as 15
+    : 10 : 3). ASSUMED: all P as fluorapatite, all CO2 as calcite; the rock''s other 5.6 wt% (Al, Fe, Mg, Na, SO3,
+    organics) and the F above the apatite''s are not modelled, so the model rock is richer (36.5 against 33.4 %
+    P2O5) and lighter per t of P2O5. Moroccan rock because AMI Linz, the source of most utility data, runs on it
+    (Table 7.11, p. 313)'
+- name: M_HNA
+  value: 315.141
+  unit: g/mol
+  description: Molar mass of the nitric acid unit H17N3O16 (3 HNO3 + 7 H2O, 59.985 wt% HNO3).
+  source: 'IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula; the rock is digested with about 60 % HNO3: EFMA (2000) BAT Booklet No. 7 of 8: Production of
+    NPK fertilizers by the nitrophosphate route, 2000 edition (Fertilizers Europe), section 2.2.3, p. 12, and EU
+    JRC (2007) BREF Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF), August 2007, Figure
+    7.2, p. 286. The 3:7 molar ratio is the nearest small whole numbers (ASSUMED)'
+- name: M_NH3
+  value: 17.031
+  unit: g/mol
+  description: Molar mass of ammonia.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_KCl
+  value: 74.548
+  unit: g/mol
+  description: Molar mass of potassium chloride.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_CO2
+  value: 44.009
+  unit: g/mol
+  description: Molar mass of carbon dioxide.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_DOL
+  value: 184.399
+  unit: g/mol
+  description: Molar mass of dolomite CaMg(CO3)2.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_CaCO3
+  value: 100.086
+  unit: g/mol
+  description: Molar mass of calcium carbonate.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_AN
+  value: 80.043
+  unit: g/mol
+  description: Molar mass of ammonium nitrate.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_SiO2
+  value: 60.083
+  unit: g/mol
+  description: Molar mass of silicon dioxide.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_H2O
+  value: 18.015
+  unit: g/mol
+  description: Molar mass of water.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_CH4
+  value: 16.043
+  unit: g/mol
+  description: Molar mass of methane.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_O2
+  value: 31.998
+  unit: g/mol
+  description: Molar mass of oxygen.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_NPK
+  value: 2129163.189
+  unit: g/mol
+  description: 'Molar mass of the product''s formula unit N22800H61578O55377P4500K6780Cl6780Ca2910Mg1486C2972F1500
+    (generation.formulas): 9487 NH4NO3, 3826 NH4H2PO4, 674 CaHPO4, 750 CaF2, 6780 KCl and 1486 CaMg(CO3)2, from
+    100 rock units. It gives 14.999 % N, 15.000 % P2O5 and 14.997 % K2O.'
+  source: 'IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula; the salts are a model of the neutralised product at about pH 5 (EFMA 2000, section 2.2.5.1,
+    p. 15): Ca left in the NP solution binds the fluorine as CaF2 and then phosphate as CaHPO4, the rest of the
+    phosphate is NH4H2PO4, all nitrate is NH4NO3, potash stays KCl. The speciation is ASSUMED (in the real product
+    KCl and NH4NO3 partly exchange to KNO3 and NH4Cl, which changes no element)'
+- name: nR
+  value: 100.0
+  unit: ''
+  description: Model rock units per product formula unit.
+  source: 'ASSUMED: the scale of the formula unit, chosen so that the counts below are whole numbers; it does not
+    change any amount per t'
+- name: ca_np
+  value: 1424.0
+  unit: ''
+  description: Calcium left in the nitrophosphoric acid after CNTH crystallisation, per formula unit.
+  source: 'EFMA (2000) BAT Booklet No. 7 of 8: Production of NPK fertilizers by the nitrophosphate route, 2000 edition
+    (Fertilizers Europe), section 2.2.3, p. 12: the NP solution has CaO/P2O5 of 0.21 to 0.65; its typical composition
+    at CaO/P2O5 = 0.25 is used. 0.25 kg CaO per kg P2O5 is 0.25 * 141.943 / 56.077 / 2 = 0.3164 mol Ca per mol P,
+    times the formula unit''s 4500 P, rounded to a whole number. The cooling temperature sets the ratio and with
+    it the CNTH (and CaCO3) per t; the typical value is our choice'
+- name: no3_np
+  value: 5948.0
+  unit: ''
+  description: Nitrate in the nitrophosphoric acid, per formula unit.
+  source: 'EFMA (2000) BAT Booklet No. 7 of 8: Production of NPK fertilizers by the nitrophosphate route, 2000 edition
+    (Fertilizers Europe), section 2.2.3, p. 12: typical NP solution 23 % P2O5, 6 % NO3-N. 6/23 kg NO3-N per kg P2O5
+    is 2.6436 mol N per mol P2O5, times 2250 P2O5, rounded; the HNO3 above the stoichiometric digestion is this
+    less 2 ca_np'
+- name: an_r
+  value: 3539.0
+  unit: ''
+  description: Ammonium nitrate from the CNTH conversion returned to the NPK, per formula unit.
+  source: 'Closes the grade at N = P2O5 (15-15-15, the reference grade of EFMA (2000) BAT Booklet No. 7 of 8: Production
+    of NPK fertilizers by the nitrophosphate route, 2000 edition (Fertilizers Europe), section 4, p. 20); returning
+    conversion AN to the NPK is described in section 2.2.4.1, p. 13. The amount is calculated, the choice of grade
+    is the source''s'
+- name: k_cl
+  value: 6780.0
+  unit: ''
+  description: Potassium chloride per formula unit.
+  source: 'Closes K2O = P2O5 (15-15-15); potash as potassium chloride: EFMA (2000) BAT Booklet No. 7 of 8: Production
+    of NPK fertilizers by the nitrophosphate route, 2000 edition (Fertilizers Europe), sections 2.2.5 and 3.1, pp.
+    14 and 18. ASSUMED pure KCl (muriate of potash is about 95 % KCl; its NaCl and insolubles are in the dolomite
+    below)'
+- name: dol
+  value: 1486.0
+  unit: ''
+  description: Dolomite filler per formula unit.
+  source: 'ASSUMED: makes up the mass to 15 % P2O5. It stands for every product component the model leaves out (the
+    rock''s minor oxides, the potash''s NaCl, moisture below 1.5 %, coating) as well as any filler; dolomite because
+    the BREF names it among the solids in the AMI Linz NPK exhaust gas (EU JRC (2007) BREF Large Volume Inorganic
+    Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF), August 2007, section 7.4.10, p. 314) and fillers among
+    the NPK inputs (Figure 7.1, p. 285). Taken as inert (no CO2 released)'
+- name: rate
+  value: 50.0
+  unit: t/h
+  description: Production rate of the AMI Linz NPK plant, to turn kg/h into kg/t.
+  source: 'EU JRC (2007) BREF Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF), August
+    2007, Table 7.6, p. 296: the AMI Linz effluent is stated for 1200 t/d NPK (the per-day columns); 1200 t/d as
+    50 t/h is our reading'
+- name: nh3_a
+  value: 0.2
+  unit: kg
+  description: NH3 to air per t NPK, nitrophosphoric acid and CNTH conversion units.
+  source: 'EFMA (2000) BAT Booklet No. 7 of 8: Production of NPK fertilizers by the nitrophosphate route, 2000 edition
+    (Fertilizers Europe), section 8.1.1, p. 24 (achievable BAT level)'
+- name: nox_a
+  value: 0.2
+  unit: kg
+  description: NOx as NO2 to air per t NPK, nitrophosphoric acid and conversion units.
+  source: 'EFMA (2000) BAT Booklet No. 7 of 8: Production of NPK fertilizers by the nitrophosphate route, 2000 edition
+    (Fertilizers Europe), section 8.1.1, p. 24 (achievable BAT level)'
+- name: hf_a
+  value: 0.02
+  unit: kg
+  description: Fluoride as HF to air per t NPK, nitrophosphoric acid and conversion units.
+  source: 'EFMA (2000) BAT Booklet No. 7 of 8: Production of NPK fertilizers by the nitrophosphate route, 2000 edition
+    (Fertilizers Europe), section 8.1.1, p. 24 (achievable BAT level)'
+- name: pm_a
+  value: 0.2
+  unit: kg
+  description: Particulates to air per t NPK, nitrophosphoric acid and conversion units.
+  source: 'EFMA (2000) BAT Booklet No. 7 of 8: Production of NPK fertilizers by the nitrophosphate route, 2000 edition
+    (Fertilizers Europe), section 8.1.1, p. 24 (achievable BAT level)'
+- name: nh3_b
+  value: 1.9
+  unit: kg/h
+  description: NH3 after the combined scrubber of neutralisation, evaporation and granulation, AMI Linz.
+  source: EU JRC (2007) BREF Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF), August
+    2007, Table 7.12, p. 315 (about 250000 Nm3/h)
+- name: nox_b
+  value: 5.6
+  unit: kg/h
+  description: NOx after the combined scrubber, AMI Linz.
+  source: EU JRC (2007) BREF Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF), August
+    2007, Table 7.12, p. 315
+- name: hf_b
+  value: 0.4
+  unit: kg/h
+  description: HF after the combined scrubber, AMI Linz.
+  source: EU JRC (2007) BREF Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF), August
+    2007, Table 7.12, p. 315
+- name: pm_b
+  value: 6.7
+  unit: kg/h
+  description: Dust after the combined scrubber, AMI Linz.
+  source: EU JRC (2007) BREF Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF), August
+    2007, Table 7.12, p. 315
+- name: p2o5
+  value: 150.0
+  unit: kg
+  description: P2O5 per t of 15-15-15, the basis of the per-P2O5 water loads.
+  source: 'the grade (EFMA (2000) BAT Booklet No. 7 of 8: Production of NPK fertilizers by the nitrophosphate route,
+    2000 edition (Fertilizers Europe), section 4, p. 20)'
+- name: n_w1
+  value: 1.2
+  unit: kg
+  description: Total N to water per t P2O5, nitrophosphoric acid and conversion units.
+  source: 'EFMA (2000) BAT Booklet No. 7 of 8: Production of NPK fertilizers by the nitrophosphate route, 2000 edition
+    (Fertilizers Europe), section 8.1.2, p. 24 (achievable BAT level, without recycling the NOx scrubber liquor;
+    section 4.2, p. 21)'
+- name: n_w2
+  value: 0.2
+  unit: kg
+  description: Total N to water per t NPK, NPK unit.
+  source: 'EFMA (2000) BAT Booklet No. 7 of 8: Production of NPK fertilizers by the nitrophosphate route, 2000 edition
+    (Fertilizers Europe), section 8.2.2, p. 24'
+- name: p_w
+  value: 0.4
+  unit: kg
+  description: P2O5 to water per t P2O5 (sand washing).
+  source: 'EFMA (2000) BAT Booklet No. 7 of 8: Production of NPK fertilizers by the nitrophosphate route, 2000 edition
+    (Fertilizers Europe), section 8.1.2, p. 24 (without recycling the sand washing liquor)'
+- name: f_w1
+  value: 0.7
+  unit: kg
+  description: Fluoride to water per t P2O5, nitrophosphoric acid and conversion units.
+  source: 'EFMA (2000) BAT Booklet No. 7 of 8: Production of NPK fertilizers by the nitrophosphate route, 2000 edition
+    (Fertilizers Europe), section 8.1.2, p. 24'
+- name: f_w2
+  value: 0.03
+  unit: kg
+  description: Fluoride to water per t NPK, NPK unit.
+  source: 'EFMA (2000) BAT Booklet No. 7 of 8: Production of NPK fertilizers by the nitrophosphate route, 2000 edition
+    (Fertilizers Europe), section 8.2.2, p. 24'
+- name: el_a
+  value: 109.0
+  unit: kWh
+  description: Electricity per t, NP and NPK by the nitrophosphate route, AMI Linz.
+  source: EU JRC (2007) BREF Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF), August
+    2007, Table 7.3, p. 290
+- name: el_b
+  value: 50.0
+  unit: kWh
+  description: Electricity per t, nitrophosphate route with chemical granulation (infoMil 2001).
+  source: EU JRC (2007) BREF Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF), August
+    2007, Table 7.3, p. 290
+- name: st_a
+  value: 170.0
+  unit: kg
+  description: Steam per t, NP and NPK by the nitrophosphate route, AMI Linz.
+  source: EU JRC (2007) BREF Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF), August
+    2007, Table 7.3, p. 291
+- name: st_b
+  value: 310.0
+  unit: kg
+  description: Steam per t, nitrophosphate route with chemical granulation (infoMil 2001).
+  source: EU JRC (2007) BREF Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF), August
+    2007, Table 7.3, p. 291
+- name: ng_a
+  value: 23.0
+  unit: Nm3
+  description: Natural gas per t, NP and NPK by the nitrophosphate route, AMI Linz.
+  source: EU JRC (2007) BREF Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF), August
+    2007, Table 7.3, p. 291 (Nm3 column)
+- name: ng_b
+  value: 116.0
+  unit: kWh
+  description: Natural gas per t, nitrophosphate route with chemical granulation (infoMil 2001).
+  source: EU JRC (2007) BREF Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF), August
+    2007, Table 7.3, p. 291 (kWh column; the heating value it is counted on is not stated, LHV is ASSUMED)
+- name: rho_ch4
+  value: 0.7175
+  unit: kg/m3
+  description: Density of methane at 0 degC and 1.01325 bar.
+  source: chemicals/chemicals.yaml methane (NIST Chemistry WebBook, SRD 69); natural gas taken as pure methane (ASSUMED)
+- name: lhv_ch4
+  value: 50.01
+  unit: MJ/kg
+  description: Lower heating value of methane.
+  source: chemicals/chemicals.yaml methane (derived from standard enthalpies of formation)
+- name: air_c
+  value: 38.0
+  unit: Nm3
+  description: Compressed air per t, NP and NPK by the nitrophosphate route, AMI Linz.
+  source: EU JRC (2007) BREF Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF), August
+    2007, Table 7.3, p. 291 (Nm3 column)
+exchanges:
+- key: product:npk
+  title: NPK 15-15-15, nitrate-based, granular
+  type: product
+  amount: 1000.0
+  unit: kg
+  formula: npk
+  provenance: given
+  origin: literature
+  source: the reference flow; the grade is the reference grade of EFMA (2000), section 4, p. 20
+- key: product:ammonium-nitrate
+  title: Ammonium nitrate from the CNTH conversion, to CAN or AN (as NH4NO3 contained)
+  type: product
+  amount: 399.1145888554558
+  unit: kg
+  formula: (npk + (pm_a + pm_b / rate) * npk / 1000) / M_NPK * (2 * (85 * nR - ca_np) - an_r) * M_AN
+  provenance: calculated
+  source: 'co-product: CNTH + 2 NH3 + CO2 -> CaCO3 + 2 NH4NO3 + 3 H2O (EFMA 2000, section 2.2.4.1, p. 13), less
+    the AN returned to the NPK; counted as NH4NO3 contained, its solution water is in emission:H2O'
+  pedigree: &id001
+    scores:
+    - 4
+    - 4
+    - 5
+    - 3
+    - 4
+    reason: 'stoichiometry of the model scheme with the EFMA 2000 NP-solution composition and BREF Table 5.2 rock:
+      reliability 4 (ASSUMED mineral and salt model), completeness 4, temporal 5, geographical 3, technological
+      4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: follows the CaO/P2O5 ratio of the NP solution (0.21 to 0.65 in the source)'
+- key: product:calcium-carbonate
+  title: Calcium carbonate (lime) from the CNTH conversion, to CAN
+  type: product
+  amount: 332.7340437365715
+  unit: kg
+  formula: (npk + (pm_a + pm_b / rate) * npk / 1000) / M_NPK * (85 * nR - ca_np) * M_CaCO3
+  provenance: calculated
+  source: co-product of the conversion (EFMA 2000, section 2.2.4.1, p. 13); compare about 2.2 t CaCO3 per t P2O5
+    (section 2.1, p. 8; benchmarks/fertilizers.yaml)
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.3
+    source: 'ASSUMED: follows the CaO/P2O5 ratio of the NP solution'
+- key: feed:phosphate-rock
+  title: 'Phosphate rock, sedimentary (model: fluorapatite, calcite, quartz)'
+  type: input
+  amount: 410.88912623437244
+  unit: kg
+  formula: (npk + (pm_a + pm_b / rate) * npk / 1000) / M_NPK * nR * M_R
+  provenance: calculated
+  source: 'stoichiometry: all the product''s P from the rock (the P2O5 lost to water, about 0.04 %, is not added);
+    the model rock is richer than real rock, so the real rock mass per t is about 9 % higher (see parameter M_R)'
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.2
+    source: 'ASSUMED: rock grade 30 to 40 % P2O5 (EFMA 2000, section 2.2.3)'
+- key: feed:nitric-acid
+  title: Nitric acid, about 60 wt% (counted by mass of the acid)
+  type: input
+  amount: 992.0094116984098
+  unit: kg
+  formula: (npk + (pm_a + pm_b / rate) * npk / 1000) / M_NPK * (170 * nR + no3_np - 2 * ca_np) / 3 * M_HNA
+  provenance: calculated
+  source: digestion Ca5(PO4)3F + 10 HNO3 -> 3 H3PO4 + 5 Ca(NO3)2 + HF and CaCO3 + 2 HNO3 -> Ca(NO3)2 + CO2 + H2O,
+    plus the free HNO3 of the NP solution (parameter no3_np); NOx lost from the digestion is not added (outside
+    the balance)
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.3
+    source: 'ASSUMED: follows the NP-solution composition'
+- key: feed:ammonia
+  title: Ammonia, liquid (cooling of the crystallisers, then neutralisation and conversion)
+  type: input
+  amount: 191.68401393810964
+  unit: kg
+  formula: (npk + (pm_a + pm_b / rate) * npk / 1000) / M_NPK * (2 * (85 * nR - ca_np) + (no3_np - 2 * ca_np) + 2
+    * ca_np + (45 * nR - (ca_np - 15 * nR / 2))) * M_NH3 + (nh3_a + nh3_b / rate) * npk / 1000
+  provenance: calculated
+  source: conversion (2 NH3 per CNTH), neutralisation of the free HNO3, of the Ca(NO3)2 left (to CaF2 and CaHPO4)
+    and of H3PO4 to NH4H2PO4, plus the NH3 to air; liquid NH3 cools the crystallisers before it is used (EFMA 2000,
+    sections 2.2.1 and 2.2.3)
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.2
+    source: 'ASSUMED: follows the scheme'
+- key: feed:potassium-chloride
+  title: Potassium chloride (muriate of potash), taken as pure KCl
+  type: input
+  amount: 237.46618298169346
+  unit: kg
+  formula: (npk + (pm_a + pm_b / rate) * npk / 1000) / M_NPK * k_cl * M_KCl
+  provenance: calculated
+  source: K2O = P2O5 for 15-15-15; potash is about 95 % KCl, so the real mass is about 5 % higher (ASSUMED pure)
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.1
+    source: 'ASSUMED: pure KCl'
+- key: feed:carbon-dioxide
+  title: Carbon dioxide from the ammonia plant, for the CNTH conversion
+  type: input
+  amount: 146.30710120099488
+  unit: kg
+  formula: (npk + (pm_a + pm_b / rate) * npk / 1000) / M_NPK * (85 * nR - ca_np) * M_CO2
+  provenance: calculated
+  source: one CO2 per CNTH converted; compare about 1.0 t CO2 per t P2O5 (EFMA 2000, sections 2.2.4.1 and 4, pp.
+    13 and 20); the CO2 comes from an ammonia plant's CO2 removal (section 2.2.1, p. 10)
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.3
+    source: 'ASSUMED: follows the CaO/P2O5 ratio of the NP solution'
+- key: feed:dolomite
+  title: Dolomite filler (stands for the unmodelled product components)
+  type: input
+  amount: 128.7399843588391
+  unit: kg
+  formula: (npk + (pm_a + pm_b / rate) * npk / 1000) / M_NPK * dol * M_DOL
+  provenance: assumed
+  origin: estimate
+  source: ASSUMED, see parameter dol
+  pedigree: &id003
+    scores:
+    - 4
+    - 5
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 5, temporal 5, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: a closing filler, not a sourced input'
+- key: feed:natural-gas
+  title: Natural gas (as methane), to heat the granulation and drying air
+  type: input
+  amount: 12.4264149670066
+  unit: kg
+  formula: ((ng_a * rho_ch4 + ng_b * 3.6 / lhv_ch4) / 2) * npk / 1000
+  provenance: given
+  origin: literature
+  link:
+    factor: natural-gas
+    source: natural gas, by mass
+  carrier:
+    kind: fuel
+    lhv: 50.01
+    composition: pure methane (ASSUMED)
+  source: midpoint of AMI Linz 23 Nm3/t and infoMil 116 kWh/t (BREF LVIC-AAF Table 7.3, p. 291), converted at 0.7175
+    kg/Nm3 and 50.01 MJ/kg; pure methane and LHV basis ASSUMED
+  pedigree: &id002
+    scores:
+    - 4
+    - 4
+    - 5
+    - 3
+    - 4
+    reason: 'BREF plant data (AMI Linz 2000 to 2001, infoMil 2001), EU: reliability 4 (one plant and one Dutch reference
+      figure, unverified), completeness 4, temporal 5 (over 20 years old), geographical 3, technological 4; the
+      Tier 0 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.406
+    source: 'natural gas (kg CH4): range 8.35 to 16.503 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: feed:O2
+  title: Combustion oxygen, from ambient air
+  type: input
+  amount: 49.56933567465901
+  unit: kg
+  formula: ((ng_a * rho_ch4 + ng_b * 3.6 / lhv_ch4) / 2) * npk / 1000 / M_CH4 * 2 * M_O2
+  provenance: assumed
+  origin: estimate
+  free: true
+  source: complete combustion of the natural gas (ASSUMED); ambient air is free
+- key: feed:electricity
+  title: Electricity
+  type: input
+  amount: 79.5
+  unit: kWh
+  formula: (el_a + el_b) / 2 * npk / 1000
+  provenance: given
+  origin: literature
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: midpoint of AMI Linz 109 kWh/t and infoMil 50 kWh/t, nitrophosphate route (BREF LVIC-AAF Table 7.3, p.
+    290); whether the conversion unit is inside these figures is not stated
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.476
+    source: 'electricity: range 50 to 109 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the
+      amount stays the arithmetic midpoint or the stated value)'
+- key: feed:steam
+  title: Steam (pressure not stated; AN evaporation takes saturated steam up to 9 bar)
+  type: input
+  amount: 240.0
+  unit: kg
+  formula: (st_a + st_b) / 2 * npk / 1000
+  provenance: given
+  origin: literature
+  source: 'midpoint of AMI Linz 170 kg/t and infoMil 310 kg/t (BREF LVIC-AAF Table 7.3, p. 291); the pressure: EFMA
+    2000, section 2.2.4.2, p. 13. Gross import: steam a nitric acid plant on the site supplies is not netted'
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.35
+    source: 'steam: range 170 to 310 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: feed:compressed-air
+  title: Compressed air
+  type: input
+  amount: 38.0
+  unit: Nm3
+  formula: air_c * npk / 1000
+  provenance: given
+  origin: literature
+  source: AMI Linz only (BREF LVIC-AAF Table 7.3, p. 291); pressure and dryness not stated
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: one plant'
+- key: output:sand
+  title: Washed quartz sand, used as building material
+  type: output
+  amount: 8.468547835954531
+  unit: kg
+  formula: (npk + (pm_a + pm_b / rate) * npk / 1000) / M_NPK * 3 * nR * M_SiO2
+  provenance: calculated
+  treatment:
+    kind: byproduct
+    route: use as building material after washing
+  source: 'the rock''s quartz, all of it taken as removed after digestion (ASSUMED: the source says most of it),
+    washed and used in building (EFMA 2000, sections 2.2.3 and 4.3, pp. 12 and 21)'
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: SiO2 of one rock analysis'
+- key: emission:CO2
+  title: 'CO2, fossil: rock carbonate in the digestion and natural gas in the dryers'
+  type: emission
+  amount: 54.76454592113915
+  unit: kg
+  formula: ((npk + (pm_a + pm_b / rate) * npk / 1000) / M_NPK * 10 * nR + ((ng_a * rho_ch4 + ng_b * 3.6 / lhv_ch4)
+    / 2) * npk / 1000 / M_CH4) * M_CO2
+  provenance: calculated
+  cas: 124-38-9
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 349b29d1-3e58-4c66-98b9-9d1a076efd2e
+    name: Carbon dioxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: 'the calcite of the rock gives off its CO2 in nitric acid (EFMA 2000, section 2.1, p. 8: CO2 among the
+    volatile compounds), and the natural gas burns completely; biosphere3 UUID, name and categories from core''s
+    elementary-flow crosswalk (data/elementary-flows.yaml)'
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.3
+    source: 'ASSUMED: rock carbonate of one analysis and the fuel range'
+- key: emission:H2O
+  title: 'Water vapour: acid water, digestion and combustion water, less the water the conversion takes'
+  type: emission
+  amount: 373.43784470496405
+  unit: kg
+  formula: ((npk + (pm_a + pm_b / rate) * npk / 1000) / M_NPK * (7 * (170 * nR + no3_np - 2 * ca_np) / 3 + 10 *
+    nR - (85 * nR - ca_np)) + 2 * ((ng_a * rho_ch4 + ng_b * 3.6 / lhv_ch4) / 2) * npk / 1000 / M_CH4) * M_H2O
+  provenance: calculated
+  cas: 7732-18-5
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 075e433b-4be4-448e-9510-9a5029c1ce94
+    name: Water
+    categories:
+    - air
+    unit: m3
+    per_unit: 0.001
+  source: 'closes H and O: all the net water leaves as vapour from the evaporators, neutralisers and dryers (ASSUMED;
+    in practice part leaves as condensate to water treatment, see system_boundary); biosphere3 UUID, name and categories
+    from core''s elementary-flow crosswalk (data/elementary-flows.yaml)'
+  pedigree: *id003
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: a closing term'
+- key: emission:NH3
+  title: Ammonia to air
+  type: emission
+  amount: 0.23800000000000002
+  unit: kg
+  formula: (nh3_a + nh3_b / rate) * npk / 1000
+  provenance: given
+  origin: literature
+  cas: 7664-41-7
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 87883a4e-1e3e-4c9d-90c0-f1bea36f8014
+    name: Ammonia
+    categories:
+    - air
+    unit: kg
+  source: EFMA (2000) section 8.1.1 for the nitrophosphoric acid and conversion units plus the AMI Linz combined
+    scrubber (BREF LVIC-AAF Table 7.12, p. 315) at 50 t/h for the NPK unit; biosphere3 UUID, name and categories
+    from core's elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree: &id004
+    scores:
+    - 4
+    - 4
+    - 5
+    - 3
+    - 4
+    reason: 'industry BAT level (EFMA 2000, nitrophosphate route, 15-15-15): reliability 4 (an achievable level,
+      not a measurement), completeness 4, temporal 5 (over 20 years old), geographical 3, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: a BAT level and one plant'
+- key: emission:PM
+  title: Fertiliser dust to air (size not stated)
+  type: emission
+  amount: 0.334
+  unit: kg
+  formula: (pm_a + pm_b / rate) * npk / 1000
+  provenance: given
+  origin: literature
+  source: EFMA (2000) section 8.1.1 plus the AMI Linz combined scrubber (BREF LVIC-AAF Table 7.12) at 50 t/h; counted
+    as product in the element balance. No size fraction is stated, so no elementary flow is chosen
+  pedigree: *id004
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: a BAT level and one plant'
+- key: emission:NOx
+  title: NOx to air, as NO2
+  type: emission
+  amount: 0.312
+  unit: kg
+  formula: (nox_a + nox_b / rate) * npk / 1000
+  provenance: given
+  origin: literature
+  cas: 10102-44-0
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: c1b91234-6f24-417b-8309-46111d09c457
+    name: Nitrogen oxides
+    categories:
+    - air
+    unit: kg
+  source: EFMA (2000) section 8.1.1 (digestion; the BREF gives 100 to 425 mg/Nm3 after scrubbing, depending on the
+    rock, sections 7.4.1 and 7.5, Table 7.14) plus the AMI Linz combined scrubber at 50 t/h; outside the element
+    balance (its N comes from the nitric acid, which is not increased for it); biosphere3 UUID, name and categories
+    from core's elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree: *id004
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: depends on the rock''s organics and iron (BREF 7.4.1)'
+- key: emission:HF
+  title: Fluoride to air, as HF
+  type: emission
+  amount: 0.028
+  unit: kg
+  formula: (hf_a + hf_b / rate) * npk / 1000
+  provenance: given
+  origin: literature
+  cas: 7664-39-3
+  source: EFMA (2000) section 8.1.1 plus the AMI Linz combined scrubber at 50 t/h; outside the element balance
+  pedigree: *id004
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: a BAT level and one plant'
+- key: emission:N-water
+  title: Total nitrogen to water, as N
+  type: emission
+  amount: 0.38
+  unit: kg
+  formula: (n_w1 * p2o5 / 1000 + n_w2) * npk / 1000
+  provenance: given
+  origin: literature
+  source: EFMA (2000) sections 8.1.2 and 8.2.2, p. 24 (as nitrate and ammonium; the split is not stated); outside
+    the element balance
+  pedigree: *id004
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: halved where the NOx scrubber liquor is recycled (EFMA 4.2)'
+- key: emission:P2O5-water
+  title: Phosphate to water, as P2O5
+  type: emission
+  amount: 0.06
+  unit: kg
+  formula: p_w * p2o5 / 1000 * npk / 1000
+  provenance: given
+  origin: literature
+  source: EFMA (2000) section 8.1.2, p. 24 (sand washing); outside the element balance
+  pedigree: *id004
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: 0.02 instead of 0.4 kg/t P2O5 where the washing liquor is recycled (EFMA 4.2)'
+- key: emission:F-water
+  title: Fluoride to water, as F
+  type: emission
+  amount: 0.135
+  unit: kg
+  formula: (f_w1 * p2o5 / 1000 + f_w2) * npk / 1000
+  provenance: given
+  origin: literature
+  source: EFMA (2000) sections 8.1.2 and 8.2.2, p. 24; outside the element balance
+  pedigree: *id004
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: 0.02 instead of 0.7 kg/t P2O5 where the NOx scrubber liquor is recycled (EFMA 4.2)'
+provenance:
+  generator: hand-written model; amounts are the formulas of the parameters
+  notes: 'No value from a licensed database. Sources: the LVIC-AAF BREF (2007) chapters 5 and 7 and the EFMA BAT
+    booklet No. 7 (2000), facts in our own form.'
+generation:
+  tier: 0
+  method: 'Tier 0 stoichiometric screening: a lumped scheme of model rock and product salts with the EFMA NP-solution
+    composition; utilities from two BREF sources (AMI Linz, infoMil); emissions as given (no Tier 1: the rock and
+    product are mineral and salt models, and the filler is ASSUMED)'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 4
+  - 4
+  - 3
+  - 3
+  - 4
+  dqr_floor: 3.3333
+  components:
+    product:npk: NPK
+    product:ammonium-nitrate: NH4NO3
+    product:calcium-carbonate: CaCO3
+    feed:phosphate-rock: ROCK
+    feed:nitric-acid: HNO3-60
+    feed:ammonia: NH3
+    feed:potassium-chloride: KCl
+    feed:carbon-dioxide: CO2
+    feed:dolomite: CaMgC2O6
+    feed:natural-gas: CH4
+    feed:O2: O2
+    output:sand: SiO2
+    emission:CO2: CO2
+    emission:H2O: H2O
+    emission:NH3: NH3
+    emission:PM: NPK
+  formulas:
+    product:npk: N22800H61578O55377P4500K6780Cl6780Ca2910Mg1486C2972F1500
+    product:ammonium-nitrate: NH4NO3
+    product:calcium-carbonate: CaCO3
+    feed:phosphate-rock: Ca85P45C10Si3O216F15
+    feed:nitric-acid: H17N3O16
+    feed:ammonia: NH3
+    feed:potassium-chloride: KCl
+    feed:carbon-dioxide: CO2
+    feed:dolomite: CaMgC2O6
+    feed:natural-gas: CH4
+    feed:O2: O2
+    output:sand: SiO2
+    emission:CO2: CO2
+    emission:H2O: H2O
+    emission:NH3: NH3
+    emission:PM: N22800H61578O55377P4500K6780Cl6780Ca2910Mg1486C2972F1500
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      C:
+      - 71.647961783
+      - 71.647961783
+      Ca:
+      - 188.032830543
+      - 188.032830543
+      Cl:
+      - 112.92289782
+      - 112.92289782
+      F:
+      - 13.38860175
+      - 13.38860175
+      H:
+      - 91.099369584
+      - 91.099369584
+      K:
+      - 124.543285161
+      - 124.543285161
+      Mg:
+      - 16.968775969
+      - 16.968775969
+      N:
+      - 289.923721375
+      - 289.923721375
+      O:
+      - 1191.12000517
+      - 1191.12000517
+      P:
+      - 65.485611738
+      - 65.485611738
+      Si:
+      - 3.95851016
+      - 3.95851016
+    outside:
+    - emission:F-water
+    - emission:HF
+    - emission:N-water
+    - emission:NOx
+    - emission:P2O5-water
+    - feed:compressed-air
+    - feed:electricity
+    - feed:steam

@@ -1,0 +1,684 @@
+# Tier 1 form, a manifest-only entry without a flowsheet (pattern of process-library#317). Every
+# amount is the formula of its parameters; core's validator re-checks each. Written from the EFMA
+# (2000) BAT booklet No. 4, the LVIC-AAF BREF (2007) and IPCC 2006 Vol. 3 (facts in our own form).
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: phosphoric-acid-dihydrate
+title: Phosphoric acid, merchant grade, by the wet dihydrate process
+description: Per 1 t of merchant-grade acid (53.97 wt% P2O5), gate-to-gate, from phosphate rock and sulfuric
+  acid by the dihydrate process with concentration, EU conditions of the EFMA (2000) booklet and the LVIC-AAF
+  BREF (2007). Feeds and gypsum from the stoichiometry of a model Moroccan rock with the sourced P2O5
+  efficiency; utilities from sourced ranges.
+basis: 1000 kg of merchant-grade phosphoric acid, 53.97 wt% P2O5 (539.7 kg P2O5)
+boundary: 'gate-to-gate: rock grinding, attack and crystallisation, filtration, concentration, fluoride
+  scrubbing and fluosilicic acid recovery; gypsum transport to the stack; steam and power from outside'
+technology: wet process with sulfuric acid, dihydrate (DH) precipitation at 26 to 32 % P2O5 and 70 to
+  80 degC, vacuum flash cooling, belt or tilting-pan vacuum filtration, single-effect forced-circulation
+  evaporation to merchant grade; continuous operation
+geography:
+  description: EU plants of the EFMA and BREF data; rock modelled on the Moroccan (Khouribga) analysis,
+    the EU's main supply.
+classification:
+  isic: '2011'
+system_boundary:
+  included:
+  - phosphate rock and sulfuric acid by stoichiometry, process water
+  - electricity and steam
+  - phosphogypsum to the stack (gypsum, P2O5 loss, fluoride, gangue) as outputs
+  - fluosilicic acid co-product
+  - carbonate CO2 and fluoride to air
+  - water leaving the process, counted as effluent
+  excluded:
+  - 'TODO cooling water (100 to 150 m3/t P2O5 in EFMA 4.1): the library counts it as heat rejected, which
+    the sources do not give'
+  - 'TODO dust from rock handling and grinding (EFMA 8.1.1: 50 mg/Nm3 achievable; BREF Table 5.6 reports
+    plant values): no particle size, so no elementary flow chosen'
+  - 'TODO releases to water of open-loop plants and stack run-off (BREF Table 5.7: e.g. 1 kg P and 2 kg
+    F per t P2O5 at one plant): a closed-loop plant is modelled (EFMA 8.1.2)'
+  - 'TODO cadmium, other heavy metals and radionuclides of the rock (BREF Tables 5.3, 5.4, 5.8): they
+    split between acid and gypsum by rock and process; not in the model rock'
+  - 'TODO phosphogypsum stack: its treatment, land use and long-term leachate; no treatment activity chosen'
+  - TODO the rock's other minor constituents (Al, Fe, Mg, Na, organics, SO3), counted as silica
+  - TODO free sulfate in the product acid and sulfuric acid excess
+  - anti-foam and filter aids, storage losses
+  - infrastructure
+  cutoff: none applied; the excluded flows are not quantified
+  infrastructure: excluded
+  catalysts: excluded
+  non_routine: excluded
+location: RER
+year: 2006
+valid_until: 2011
+time:
+  start: 1996
+  description: EFMA booklet (2000, data of the late 1990s) and the BREF data collection (published 2007;
+    plant data 1996 to 2006). valid_until is the reference year + 5 (system-model section 6), so it has
+    already lapsed.
+modelling:
+  principle: attributional
+  multifunctionality: 'two products: the acid and the fluosilicic acid by-product (1.3 % of the product
+    mass); listed unallocated, default mass allocation (see allocation)'
+allocation:
+  method: mass
+  coproducts:
+  - phosphoric-acid
+  - fluosilicic-acid
+  deviation: No sourced prices, so the WBCSD price ratio of the acid and the fluosilicic acid cannot be
+    computed; mass is the preliminary choice. The by-product carries about 1.3 % of the burdens by mass;
+    economic allocation would give it less.
+uuid: 2b746c5d-8c3e-5a31-bd12-9fe37b926e94
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+technology_level: current
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: acid
+  value: 1000.0
+  unit: kg
+  description: Merchant-grade acid delivered (the basis), 53.97 wt% P2O5 as modelled.
+  source: basis
+- name: M_PA
+  value: 11309.853
+  unit: g/mol
+  description: 'Molar mass of the model merchant acid unit (H3PO4)86(H2O)152(H2SiF6): 53.97 wt% P2O5,
+    1.0 wt% F.'
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_ROCK
+  value: 3804.621
+  unit: g/mol
+  description: Molar mass of the model rock unit 3 Ca10(PO4)6F2 + 4 CaCO3 + CaF2 + 5 SiO2.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_SA
+  value: 1194.879
+  unit: g/mol
+  description: Molar mass of the 98.5 wt% sulfuric acid unit (H2SO4)12(H2O) (98.49 wt% H2SO4).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_GYP
+  value: 172.164
+  unit: g/mol
+  description: Molar mass of gypsum, CaSO4.2H2O.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_DCPD
+  value: 172.086
+  unit: g/mol
+  description: Molar mass of dicalcium phosphate dihydrate, CaHPO4.2H2O.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_CAF2
+  value: 78.074
+  unit: g/mol
+  description: Molar mass of calcium fluoride.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_SIO2
+  value: 60.083
+  unit: g/mol
+  description: Molar mass of silica.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_FSA
+  value: 144.089
+  unit: g/mol
+  description: Molar mass of fluosilicic acid, H2SiF6.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_HF
+  value: 20.006
+  unit: g/mol
+  description: Molar mass of hydrogen fluoride.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_CO2
+  value: 44.009
+  unit: g/mol
+  description: Molar mass of carbon dioxide.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_P2O5
+  value: 141.943
+  unit: g/mol
+  description: Molar mass of P2O5 (the industry's basis).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_F
+  value: 18.998
+  unit: g/mol
+  description: Atomic mass of fluorine.
+  source: IUPAC 2021 abridged standard atomic weights
+- name: nP_pa
+  value: 86.0
+  unit: ''
+  description: P atoms per model acid unit.
+  source: from the formula of the component (generation.formulas)
+- name: nF_pa
+  value: 6.0
+  unit: ''
+  description: F atoms per model acid unit (one H2SiF6).
+  source: from the formula of the component (generation.formulas)
+- name: nSi_pa
+  value: 1.0
+  unit: ''
+  description: Si atoms per model acid unit.
+  source: from the formula of the component (generation.formulas)
+- name: nP_r
+  value: 18.0
+  unit: ''
+  description: P atoms per model rock unit.
+  source: from the formula of the component (generation.formulas)
+- name: nCa_r
+  value: 35.0
+  unit: ''
+  description: Ca atoms per model rock unit.
+  source: from the formula of the component (generation.formulas)
+- name: nF_r
+  value: 8.0
+  unit: ''
+  description: F atoms per model rock unit.
+  source: from the formula of the component (generation.formulas)
+- name: nSi_r
+  value: 5.0
+  unit: ''
+  description: Si atoms per model rock unit.
+  source: from the formula of the component (generation.formulas)
+- name: nC_r
+  value: 4.0
+  unit: ''
+  description: C atoms (carbonate) per model rock unit.
+  source: from the formula of the component (generation.formulas)
+- name: nS_sa
+  value: 12.0
+  unit: ''
+  description: H2SO4 per 98.5 wt% acid unit.
+  source: from the formula of the component (generation.formulas)
+- name: nF_fsa
+  value: 6.0
+  unit: ''
+  description: F atoms per H2SiF6.
+  source: from the formula of the component (generation.formulas)
+- name: nF_caf2
+  value: 2.0
+  unit: ''
+  description: F atoms per CaF2.
+  source: from the formula of the component (generation.formulas)
+- name: n_p2o5
+  value: 2.0
+  unit: ''
+  description: P atoms per P2O5.
+  source: from the formula of the component (generation.formulas)
+- name: eta
+  value: 0.95
+  unit: ''
+  description: 'P2O5 efficiency of the dihydrate process: P2O5 to product per P2O5 in the rock; midpoint
+    of 94 to 96 %. The loss is modelled as co-crystallised CaHPO4.2H2O in the gypsum.'
+  source: 'EU JRC (2007) LVIC-AAF BREF (Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers),
+    section 5.4.1, p. 227 (DH: 94 to 96 %, losses mostly by co-crystallisation with the calcium sulphate);
+    the midpoint and the loss compound are our choices (ASSUMED compound)'
+- name: fsa_t
+  value: 25.0
+  unit: kg/t
+  description: 'Fluosilicic acid recovered as 100 % H2SiF6 per t P2O5: midpoint of 20 to 30 kg/t (sold
+    as 20 to 25 % solution; the solution water is in the closing water term).'
+  source: EFMA (2000) BAT Booklet No. 4, Production of Phosphoric Acid (Fertilizers Europe), section 4.2,
+    p. 30 (range); the midpoint is our choice
+- name: fair_t
+  value: 0.04
+  unit: kg/t
+  description: 'Fluoride to air per t P2O5, counted as F, emitted as HF: the achievable stack level of
+    new plants (5 mg/Nm3 = 40 g/t P2O5).'
+  source: EFMA (2000) BAT Booklet No. 4, Production of Phosphoric Acid (Fertilizers Europe), section 8.1.1,
+    p. 34; EU JRC (2007) LVIC-AAF BREF (Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers),
+    section 5.4.7, p. 239. Speciation as HF is ASSUMED (AP-42 8.9.3.1 says mostly SiF4 and HF)
+- name: el_t
+  value: 180.0
+  unit: kWh/t
+  description: 'Electricity per t P2O5: upper end of 120 to 180 kWh/t, the end with rock grinding, which
+    a dihydrate plant on sedimentary rock needs; one EU DH plant reports 170 to 180.'
+  source: EFMA (2000) BAT Booklet No. 4, Production of Phosphoric Acid (Fertilizers Europe), section
+    4.1, pp. 29-30 (range, grinding dependence); EU JRC (2007) LVIC-AAF BREF (Large Volume Inorganic
+    Chemicals - Ammonia, Acids and Fertilisers) Table 5.5, p. 222 (Nilefos 170 to 180 kWh); taking the
+    upper end is our choice
+- name: st_t
+  value: 2200.0
+  unit: kg/t
+  description: 'Steam per t P2O5, mainly for evaporation: upper end of 0.5 to 2.2 t/t, because DH filter
+    acid (26 to 32 % P2O5) is concentrated to merchant grade; one EU DH plant reports 1.9 to 2.4 t. Pressure
+    not stated (low-pressure steam in practice).'
+  source: EFMA (2000) BAT Booklet No. 4, Production of Phosphoric Acid (Fertilizers Europe), section 4.1,
+    p. 30 (range); EU JRC (2007) LVIC-AAF BREF (Large Volume Inorganic Chemicals - Ammonia, Acids and
+    Fertilisers) Table 5.5, p. 222 (Nilefos 1.9 to 2.4 t) and section 5.4.1, p. 227 (weak DH acid, high
+    concentration energy); taking the upper end is our choice
+- name: pw_t
+  value: 5500.0
+  unit: kg/t
+  description: 'Process water per t P2O5, scrubber water not included: midpoint of 4 to 7 m3/t at 1000
+    kg/m3.'
+  source: EFMA (2000) BAT Booklet No. 4, Production of Phosphoric Acid (Fertilizers Europe), section 4.1,
+    p. 29 (range); EU JRC (2007) LVIC-AAF BREF (Large Volume Inorganic Chemicals - Ammonia, Acids and
+    Fertilisers) Table 5.5, p. 222; the midpoint and the density are our choices
+exchanges:
+- key: product:phosphoric-acid
+  title: Phosphoric acid, merchant grade (53.97 wt% P2O5), wet process
+  type: product
+  amount: 1000.0
+  unit: kg
+  formula: acid
+  provenance: given
+  source: 'the reference flow; counted by mass of the acid solution as sold (52 to 54 % P2O5, EFMA booklet
+    4 section 4.2, LVIC-AAF BREF section 5.1), modelled as (H3PO4)86(H2O)152(H2SiF6): 539.7 kg P2O5 and
+    1.0 wt% F as fluosilicic acid, which is 14.9 % of the rock''s fluorine (the BREF''s DH distribution,
+    Table 5.9, gives 15 % to the acid)'
+- key: product:fluosilicic-acid
+  title: Fluosilicic acid, by-product (counted as 100 % H2SiF6)
+  type: product
+  amount: 13.491662977405634
+  unit: kg
+  formula: fsa_t * ((acid / M_PA) * nP_pa / n_p2o5 * M_P2O5) / 1000
+  provenance: given
+  origin: literature
+  source: 'EFMA (2000) BAT Booklet No. 4, Production of Phosphoric Acid (Fertilizers Europe), 4.2, p.
+    30: 20 to 30 kg/t P2O5 as 100 % acid, sold as 20 to 25 % solution; its water is in output:wastewater'
+  pedigree:
+    scores: &id002
+    - 3
+    - 4
+    - 5
+    - 3
+    - 3
+    reason: 'from the EFMA (2000) booklet and the LVIC-AAF BREF data collection (EU plants, late 1990s
+      to 2006): reliability 3, completeness 4, temporal 5 (over 15 years old), geographical 3, technological
+      3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.225
+    source: 'fluosilicic acid: range 20 to 30 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the stated value)'
+- key: feed:phosphate-rock
+  title: Phosphate rock, sedimentary (Moroccan type, 33.6 % P2O5 as modelled)
+  type: input
+  amount: 1691.8302322824338
+  unit: kg
+  formula: ((acid / M_PA) * nP_pa / (nP_r * eta)) * M_ROCK
+  provenance: calculated
+  source: 'stoichiometry with the efficiency eta. The rock is a model of the Khouribga analysis in EU
+    JRC (2007) LVIC-AAF BREF (Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers) Table
+    5.2, p. 217 (33.4 % P2O5, 50.6 % CaO, 4.0 % F, 4.5 % CO2, 1.9 % SiO2): 3 Ca10(PO4)6F2 + 4 CaCO3 +
+    CaF2 + 5 SiO2 gives 33.6 % P2O5, 51.6 % CaO, 4.0 % F, 4.6 % CO2; the other gangue (about 6 %) is counted
+    as silica (ASSUMED). Morocco supplied 47.5 % of the EU''s rock in 2004 (BREF 5.2.2.1.1). Compare 2.6
+    to 3.5 t/t P2O5 (benchmarks/phosphoric-acid.yaml)'
+  pedigree:
+    scores: &id001
+    - 3
+    - 4
+    - 5
+    - 3
+    - 4
+    reason: 'stoichiometry of the model rock with the sourced efficiency: reliability 3, completeness
+      4, temporal 5, geographical 3 (one rock origin), technological 4 (model rock)'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.011
+    source: 'efficiency (the rock scales with 1/eta; the rock grade spread is not in it): range 0.94 to
+      0.96 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount stays the stated
+      value)'
+- key: feed:sulfuric-acid
+  title: Sulfuric acid, 98.5 wt%
+  type: input
+  amount: 1387.2073171076022
+  unit: kg
+  formula: ((((acid / M_PA) * nP_pa / (nP_r * eta)) * nCa_r - ((((acid / M_PA) * nP_pa / (nP_r * eta))
+    * nP_r - (acid / M_PA) * nP_pa)) - ((((acid / M_PA) * nP_pa / (nP_r * eta)) * nF_r - (acid / M_PA)
+    * nF_pa - nF_fsa * (fsa_t * ((acid / M_PA) * nP_pa / n_p2o5 * M_P2O5) / 1000 / M_FSA) - (fair_t *
+    ((acid / M_PA) * nP_pa / n_p2o5 * M_P2O5) / 1000 / M_F)) / nF_caf2))) / nS_sa * M_SA
+  provenance: calculated
+  source: 'stoichiometry: one H2SO4 per Ca that leaves as gypsum (no free sulfate in the product, ASSUMED);
+    counted as 98.5 wt% acid, the grade of sulfuric-acid-1. Compare 2.4 to 2.9 t H2SO4 per t P2O5 at one
+    EU plant (EU JRC (2007) LVIC-AAF BREF (Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers)
+    Table 5.5, p. 222)'
+  pedigree:
+    scores: *id001
+    reason: 'stoichiometry of the model rock with the sourced efficiency: reliability 3, completeness
+      4, temporal 5, geographical 3 (one rock origin), technological 4 (model rock)'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.099
+    source: 'sulfuric acid, as the plant range: range 2.4 to 2.9 read as a 95 % interval, gsd2 = sqrt(high
+      / low) (our convention; the amount stays the stated value)'
+- key: feed:water
+  title: Process water
+  type: input
+  amount: 2968.1658550292395
+  unit: kg
+  formula: pw_t * ((acid / M_PA) * nP_pa / n_p2o5 * M_P2O5) / 1000
+  provenance: given
+  origin: literature
+  link:
+    factor: water
+    source: process water, by mass
+  source: 'EFMA (2000) BAT Booklet No. 4, Production of Phosphoric Acid (Fertilizers Europe), 4.1, p.
+    29: 4 to 7 m3/t P2O5, scrubber water not included; midpoint, 1000 kg/m3'
+  pedigree:
+    scores: *id002
+    reason: 'from the EFMA (2000) booklet and the LVIC-AAF BREF data collection (EU plants, late 1990s
+      to 2006): reliability 3, completeness 4, temporal 5 (over 15 years old), geographical 3, technological
+      3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.323
+    source: 'process water: range 4 to 7 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the stated value)'
+- key: feed:electricity
+  title: Electricity
+  type: input
+  amount: 97.13997343732056
+  unit: kWh
+  formula: el_t * ((acid / M_PA) * nP_pa / n_p2o5 * M_P2O5) / 1000
+  provenance: given
+  origin: literature
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: EFMA (2000) BAT Booklet No. 4, Production of Phosphoric Acid (Fertilizers Europe), 4.1,
+    pp. 29-30, upper end (with grinding)
+  pedigree:
+    scores: *id002
+    reason: 'from the EFMA (2000) booklet and the LVIC-AAF BREF data collection (EU plants, late 1990s
+      to 2006): reliability 3, completeness 4, temporal 5 (over 15 years old), geographical 3, technological
+      3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.225
+    source: 'electricity: range 120 to 180 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the stated value)'
+- key: feed:steam
+  title: Steam, by mass (concentration of the acid)
+  type: input
+  amount: 1187.2663420116958
+  unit: kg
+  formula: st_t * ((acid / M_PA) * nP_pa / n_p2o5 * M_P2O5) / 1000
+  provenance: given
+  origin: literature
+  source: EFMA (2000) BAT Booklet No. 4, Production of Phosphoric Acid (Fertilizers Europe), 4.1, p. 30,
+    upper end; pressure not stated. Where a sulfuric acid plant is on site its low-pressure exhaust steam
+    is normally used (EFMA 4.1)
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 5
+    - 3
+    - 4
+    reason: 'the upper end of a range across plants: reliability 3, completeness 4, temporal 5, geographical
+      3, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.098
+    source: 'steam (the whole range, which spans plants with and without concentration): range 500 to
+      2200 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount stays the stated
+      value)'
+- key: output:phosphogypsum
+  title: 'Phosphogypsum to the stack: calcium sulfate dihydrate'
+  type: output
+  amount: 2398.507235050711
+  unit: kg
+  formula: ((((acid / M_PA) * nP_pa / (nP_r * eta)) * nCa_r - ((((acid / M_PA) * nP_pa / (nP_r * eta))
+    * nP_r - (acid / M_PA) * nP_pa)) - ((((acid / M_PA) * nP_pa / (nP_r * eta)) * nF_r - (acid / M_PA)
+    * nF_pa - nF_fsa * (fsa_t * ((acid / M_PA) * nP_pa / n_p2o5 * M_P2O5) / 1000 / M_FSA) - (fair_t *
+    ((acid / M_PA) * nP_pa / n_p2o5 * M_P2O5) / 1000 / M_F)) / nF_caf2))) * M_GYP
+  provenance: calculated
+  source: Ca of the rock that leaves as CaSO4.2H2O; dry. Free moisture and slurry water are in output:wastewater.
+    Disposal on land (stacking) is the EU practice (BREF 5.4.13). Compare 4 to 5 t gypsum per t P2O5 (BREF
+    5.2.2.5) for the four phosphogypsum outputs together
+  pedigree:
+    scores: *id001
+    reason: 'stoichiometry of the model rock with the sourced efficiency: reliability 3, completeness
+      4, temporal 5, geographical 3 (one rock origin), technological 4 (model rock)'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.118
+    source: 'gypsum: range 4 to 5 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the
+      amount stays the stated value)'
+- key: output:gypsum-p2o5-loss
+  title: 'Phosphogypsum to the stack: co-crystallised P2O5 (as CaHPO4.2H2O)'
+  type: output
+  amount: 68.87053076175013
+  unit: kg
+  formula: ((((acid / M_PA) * nP_pa / (nP_r * eta)) * nP_r - (acid / M_PA) * nP_pa)) * M_DCPD
+  provenance: calculated
+  source: 'the P2O5 not recovered (1 - eta); modelled as CaHPO4.2H2O (ASSUMED compound). The whole loss
+    is put in the gypsum (ASSUMED), which gives 1.06 % P2O5 in the dry phosphogypsum; BREF 5.4.1, p. 227,
+    gives about 0.75 % P2O5 in DH gypsum, so part of the real loss leaves by other routes (soluble P2O5 in
+    the stack water, spills), which are not separated here'
+  pedigree:
+    scores: &id003
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED or modelled part in the amount (see parameters): reliability 4, completeness 4, temporal
+      5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: follows the efficiency range and a model compound'
+- key: output:gypsum-fluoride
+  title: 'Phosphogypsum to the stack: fluoride (as CaF2)'
+  type: output
+  amount: 96.18597012888446
+  unit: kg
+  formula: ((((acid / M_PA) * nP_pa / (nP_r * eta)) * nF_r - (acid / M_PA) * nF_pa - nF_fsa * (fsa_t *
+    ((acid / M_PA) * nP_pa / n_p2o5 * M_P2O5) / 1000 / M_FSA) - (fair_t * ((acid / M_PA) * nP_pa / n_p2o5
+    * M_P2O5) / 1000 / M_F)) / nF_caf2) * M_CAF2
+  provenance: calculated
+  source: 'closes the fluorine balance: the rock''s F less the acid, the recovered fluosilicic acid and
+    the stack emission. BREF Table 5.9 puts 43 % of the F in DH gypsum and 43 % in vapours; the unrecovered
+    vapour F goes to the condenser water, which a closed-loop plant returns to the stack (EFMA 4.3.2,
+    8.1.2), so it is counted here (69 %). CaF2 is an ASSUMED model compound (fluosilicates in practice)'
+  pedigree:
+    scores: *id003
+    reason: 'ASSUMED or modelled part in the amount (see parameters): reliability 4, completeness 4, temporal
+      5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: a closing term of a model distribution'
+- key: output:gypsum-silica
+  title: 'Phosphogypsum to the stack: silica and other insoluble gangue (as SiO2)'
+  type: output
+  amount: 122.64958736838646
+  unit: kg
+  formula: ((((acid / M_PA) * nP_pa / (nP_r * eta)) * nSi_r - (acid / M_PA) * nSi_pa - (fsa_t * ((acid
+    / M_PA) * nP_pa / n_p2o5 * M_P2O5) / 1000 / M_FSA))) * M_SIO2
+  provenance: calculated
+  source: Si of the model rock not bound as fluosilicic acid; stands for silica and the other gangue (ASSUMED)
+  pedigree:
+    scores: *id003
+    reason: 'ASSUMED or modelled part in the amount (see parameters): reliability 4, completeness 4, temporal
+      5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: the gangue is modelled as silica'
+- key: output:wastewater
+  title: Water leaving the process (condensate, stack water, by-product water)
+  type: output
+  amount: 2269.196397128063
+  unit: kg
+  formula: (((acid / M_PA) * nP_pa / (nP_r * eta)) * M_ROCK) + (((((acid / M_PA) * nP_pa / (nP_r * eta))
+    * nCa_r - ((((acid / M_PA) * nP_pa / (nP_r * eta)) * nP_r - (acid / M_PA) * nP_pa)) - ((((acid / M_PA)
+    * nP_pa / (nP_r * eta)) * nF_r - (acid / M_PA) * nF_pa - nF_fsa * (fsa_t * ((acid / M_PA) * nP_pa
+    / n_p2o5 * M_P2O5) / 1000 / M_FSA) - (fair_t * ((acid / M_PA) * nP_pa / n_p2o5 * M_P2O5) / 1000 /
+    M_F)) / nF_caf2))) / nS_sa * M_SA) + (pw_t * ((acid / M_PA) * nP_pa / n_p2o5 * M_P2O5) / 1000) - (acid)
+    - (fsa_t * ((acid / M_PA) * nP_pa / n_p2o5 * M_P2O5) / 1000) - (((((acid / M_PA) * nP_pa / (nP_r *
+    eta)) * nCa_r - ((((acid / M_PA) * nP_pa / (nP_r * eta)) * nP_r - (acid / M_PA) * nP_pa)) - ((((acid
+    / M_PA) * nP_pa / (nP_r * eta)) * nF_r - (acid / M_PA) * nF_pa - nF_fsa * (fsa_t * ((acid / M_PA)
+    * nP_pa / n_p2o5 * M_P2O5) / 1000 / M_FSA) - (fair_t * ((acid / M_PA) * nP_pa / n_p2o5 * M_P2O5) /
+    1000 / M_F)) / nF_caf2))) * M_GYP) - (((((acid / M_PA) * nP_pa / (nP_r * eta)) * nP_r - (acid / M_PA)
+    * nP_pa)) * M_DCPD) - (((((acid / M_PA) * nP_pa / (nP_r * eta)) * nF_r - (acid / M_PA) * nF_pa - nF_fsa
+    * (fsa_t * ((acid / M_PA) * nP_pa / n_p2o5 * M_P2O5) / 1000 / M_FSA) - (fair_t * ((acid / M_PA) *
+    nP_pa / n_p2o5 * M_P2O5) / 1000 / M_F)) / nF_caf2) * M_CAF2) - (((((acid / M_PA) * nP_pa / (nP_r *
+    eta)) * nSi_r - (acid / M_PA) * nSi_pa - (fsa_t * ((acid / M_PA) * nP_pa / n_p2o5 * M_P2O5) / 1000
+    / M_FSA))) * M_SIO2) - ((fair_t * ((acid / M_PA) * nP_pa / n_p2o5 * M_P2O5) / 1000 / M_F) * M_HF)
+    - (((acid / M_PA) * nP_pa / (nP_r * eta)) * nC_r * M_CO2)
+  provenance: assumed
+  origin: estimate
+  link:
+    factor: wastewater
+    source: site wastewater treatment (proxy)
+  source: 'ASSUMED closing term of the mass balance: process water and reaction water not bound in the
+    product or the gypsum. Counted as effluent to treatment, conservatively: a closed-loop plant recycles
+    its process and stack water and loses it by evaporation from the stack and cooling ponds (EFMA 8.1.2,
+    AP-42 8.9.1)'
+  pedigree:
+    scores: *id003
+    reason: 'ASSUMED or modelled part in the amount (see parameters): reliability 4, completeness 4, temporal
+      5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: a closing term'
+- key: emission:HF
+  title: Fluoride to air from the scrubbed stacks, as HF
+  type: emission
+  amount: 0.022732010487502022
+  unit: kg
+  formula: (fair_t * ((acid / M_PA) * nP_pa / n_p2o5 * M_P2O5) / 1000 / M_F) * M_HF
+  provenance: given
+  origin: literature
+  cas: 7664-39-3
+  flow:
+  - list: ef-3.1
+  - list: biosphere3
+    uuid: 8b7dc667-f04e-492c-a161-80b1482126b0
+    name: Hydrogen fluoride
+    categories:
+    - air
+    - non-urban air or from high stacks
+    unit: kg
+  source: EFMA (2000) BAT Booklet No. 4, Production of Phosphoric Acid (Fertilizers Europe), 8.1.1, p.
+    34 (40 g F per t P2O5, new plants), converted to HF by mass
+  pedigree:
+    scores: *id003
+    reason: 'ASSUMED or modelled part in the amount (see parameters): reliability 4, completeness 4, temporal
+      5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: an achievable level, not a measurement; US controlled factors sum to about 2.3 g
+      F/t (AP-42 Table 8.9-1)'
+- key: emission:CO2
+  title: CO2 from the carbonate of the rock (acid-induced release)
+  type: emission
+  amount: 78.27928899358714
+  unit: kg
+  formula: ((acid / M_PA) * nP_pa / (nP_r * eta)) * nC_r * M_CO2
+  provenance: calculated
+  origin: literature
+  cas: 124-38-9
+  link:
+    elementary:
+      subcompartment: non-urban-high-stack
+    source: carbonate CO2 vented with the reactor off-gas
+  flow:
+  - list: ef-3.1
+  - list: biosphere3
+    uuid: aa7cac3a-3625-41d4-bc54-33e2cf11ec46
+    name: Carbon dioxide, fossil
+    categories:
+    - air
+    - non-urban air or from high stacks
+    unit: kg
+  source: all carbonate carbon of the model rock released on acidulation (CaCO3 + H2SO4 -> CaSO4 + H2O
+    + CO2, IPCC 2006 Vol. 3 ch. 2, section 2.1, p. 2.6, which names phosphoric acid; 0.43971 t CO2 per
+    t calcite, Table 2.1, p. 2.7); geogenic carbon, counted fossil
+  pedigree:
+    scores: *id001
+    reason: 'stoichiometry of the model rock with the sourced efficiency: reliability 3, completeness
+      4, temporal 5, geographical 3 (one rock origin), technological 4 (model rock)'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.3
+    source: 'ASSUMED: the carbonate content of the rock varies by origin (0.2 to 4.5 % CO2 in BREF Table
+      5.2)'
+provenance:
+  generator: hand-written model; amounts are the formulas of the parameters
+  notes: No value from a licensed database. Facts from the cited open documents in our own form.
+generation:
+  tier: 1
+  method: 'sourced conceptual inventory: stoichiometry of a model rock (LVIC-AAF BREF Table 5.2) with
+    the BREF''s DH efficiency, EFMA booklet ranges for utilities, water and by-product, every choice listed
+    in parameters'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 3
+  - 4
+  - 3
+  - 3
+  - 3
+  dqr_floor: 3.0
+  components:
+    product:phosphoric-acid: merchant-acid
+    product:fluosilicic-acid: H2SiF6
+    feed:phosphate-rock: model-rock
+    feed:sulfuric-acid: sulfuric-acid-98.5
+    feed:water: H2O
+    output:phosphogypsum: CaSO4.2H2O
+    output:gypsum-p2o5-loss: CaHPO4.2H2O
+    output:gypsum-fluoride: CaF2
+    output:gypsum-silica: SiO2
+    output:wastewater: H2O
+    emission:HF: HF
+    emission:CO2: CO2
+  formulas:
+    product:phosphoric-acid: (H3PO4)86(H2O)152(H2SiF6)
+    product:fluosilicic-acid: H2SiF6
+    feed:phosphate-rock: (Ca10(PO4)6F2)3(CaCO3)4(CaF2)(SiO2)5
+    feed:sulfuric-acid: (H2SO4)12(H2O)
+    feed:water: H2O
+    output:phosphogypsum: CaSO4(H2O)2
+    output:gypsum-p2o5-loss: CaHPO4(H2O)2
+    output:gypsum-fluoride: CaF2
+    output:gypsum-silica: SiO2
+    output:wastewater: H2O
+    emission:HF: HF
+    emission:CO2: CO2
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      C:
+      - 21.364096892
+      - 21.364096892
+      Ca:
+      - 623.762793122
+      - 623.762793122
+      F:
+      - 67.583900216
+      - 67.583900216
+      H:
+      - 362.584230308
+      - 362.584230308
+      O:
+      - 4214.897726811
+      - 4214.897726811
+      P:
+      - 247.922064528
+      - 247.922064528
+      S:
+      - 446.644722217
+      - 446.644722217
+      Si:
+      - 62.443870327
+      - 62.443870327
+    outside:
+    - feed:electricity
+    - feed:steam

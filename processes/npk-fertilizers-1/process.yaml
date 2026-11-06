@@ -1,0 +1,42 @@
+# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
+# dataset is lca/datasets/*.yaml, Tier 0 form, so maturity stays at concept
+# (core's cheme.lci-tier-maturity). See README.md.
+schema: cheme-as-code/process/v1
+id: npk-fertilizers-1
+title: NPK 15-15-15 by the nitrophosphate (ODDA) route, with CNTH conversion to ammonium nitrate and lime
+summary: >-
+  Tier 0 screening per tonne of NPK 15-15-15: feeds from the stoichiometry of a model rock and product
+  with the EFMA NP-solution composition, utilities from two EU plants in the LVIC-AAF BREF, emissions
+  from EFMA BAT levels. Ammonium nitrate and lime are co-products. No flowsheet; not reviewed.
+families: [fertilizers]
+keywords: [npk, compound fertiliser, nitrophosphate, odda, phosphate rock, nitric acid, calcium nitrate, cnth, granulation]
+facets: {feedstock_basis: [mineral, fossil], product_classes: [fertilizers], unit_operations: [reaction, crystallisation, filtration, granulation, drying], region: EU}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: phosphate-rock, role: feedstock, inventory_key: "feed:phosphate-rock", note: "Moroccan sedimentary rock, modelled as fluorapatite, calcite and quartz (36.5 % P2O5)"}
+    - {chemical: nitric-acid, role: feedstock, inventory_key: "feed:nitric-acid", note: "about 60 wt%, counted by mass of the acid; linked to nitric-acid-1 (lca/mappings.yaml)"}
+    - {chemical: ammonia, role: feedstock, inventory_key: "feed:ammonia", note: "liquid; linked to ammonia-1 (lca/mappings.yaml)"}
+    - {chemical: potassium-chloride, role: feedstock, inventory_key: "feed:potassium-chloride", note: "muriate of potash, taken as pure KCl (ASSUMED)"}
+    - {chemical: carbon-dioxide, role: feedstock, inventory_key: "feed:carbon-dioxide", note: "from an ammonia plant's CO2 removal, for the CNTH conversion"}
+    - {chemical: dolomite, role: feedstock, inventory_key: "feed:dolomite", note: "ASSUMED filler that closes the grade"}
+    - {chemical: methane, role: feedstock, inventory_key: "feed:natural-gas", note: "natural gas for the dryers, taken as pure methane (ASSUMED)"}
+    - {chemical: air, role: feedstock, note: "combustion air, free; its O2 is feed:O2"}
+  outputs:
+    - {chemical: npk-fertilizer, role: main-product, inventory_key: "product:npk"}
+    - {chemical: ammonium-nitrate, role: co-product, inventory_key: "product:ammonium-nitrate", note: "AN solution from the CNTH conversion, to CAN or AN production, counted as NH4NO3"}
+    - {chemical: calcium-carbonate, role: co-product, inventory_key: "product:calcium-carbonate", note: "lime from the CNTH conversion, to CAN production"}
+    - {chemical: silicon-dioxide, role: by-product, inventory_key: "output:sand", note: "washed sand from the digestion liquor, used as building material"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "rock carbonate and fuel"}
+    - {chemical: water, role: emission, inventory_key: "emission:H2O", note: "the net water, as vapour (ASSUMED)"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity"}
+    - {chemical: steam, role: utility, inventory_key: "feed:steam", note: "by mass; pressure not stated by the source (AN evaporation takes saturated steam up to 9 bar)"}
+    - {chemical: air, role: utility, note: "feed:compressed-air: 38 Nm3/t compressed air (AMI Linz), pressure and dryness not stated; a reported gap"}
+basis: {capacity: "per tonne of NPK 15-15-15 (the dataset's basis); no plant size (typical plants make about 50 t/h)"}
+publication: {status: public, license: CC-BY-4.0}
+references:
+  - {title: "European Commission, JRC (2007) Reference Document on Best Available Techniques for the Manufacture of Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF BREF), August 2007, chapters 5 and 7", url: "https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/lvic_aaf.pdf"}
+  - {title: "EFMA (2000) Best Available Techniques for Pollution Prevention and Control in the European Fertilizer Industry, Booklet No. 7 of 8: Production of NPK fertilizers by the nitrophosphate route, 2000 edition (Fertilizers Europe)", url: "https://www.fertilizerseurope.com/wp-content/uploads/2019/08/Booklet_7_final.pdf"}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/npk-fertilizers-1, access: public}

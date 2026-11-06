@@ -1,0 +1,18 @@
+# npk-fertilizers-1's own exchange overrides for the Atlas LCI build (ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Ammonia and nitric acid link to the Atlas
+# producers. Phosphate rock, potassium chloride, dolomite and compressed air stay reported gaps:
+# the shared vocabulary has no entry for them, and none is guessed here.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:ammonia": {dataset: {path: processes/ammonia-1/lca/dataset.yaml, product: "product:NH3"}, source: "the Atlas producer ammonia-1, liquid ammonia; the nitrophosphate route is usually integrated with an ammonia plant (BREF LVIC-AAF 7.2.2)"}
+  "feed:nitric-acid": {dataset: {path: processes/nitric-acid-1/lca/dataset.yaml, product: "product:ACID"}, source: "the Atlas producer nitric-acid-1, 60 wt% acid counted by mass of the acid, as this exchange is (the model acid is 59.985 wt%)"}
+  "feed:steam":
+    use: steam
+    atlas: false
+    source: "Steam by mass, pressure not stated by the source: the shared background entry, not one Atlas producer's pressure level (as cumene-1)."
+  "feed:natural-gas":
+    atlas: false
+    source: "Pipeline natural gas: the only Atlas producer of the slug methane is hda-1's fuel gas, which is not natural gas (as styrene-1)."
+  "feed:carbon-dioxide":
+    atlas: false
+    source: "CO2 from an ammonia plant's CO2 removal. ammonia-1 vents its CO2 (product:CO2V is an emission) and has no conditioned CO2 product; under the co2-cutoff rule only the conditioning would carry burden. Left a gap until such a dataset exists."

@@ -1,0 +1,378 @@
+# Tier 1 form, a manifest-only entry without a flowsheet (as process-library#317). Every amount is the
+# formula of its parameters; core's validator re-checks each. Written from the LVIC-AAF BREF chapter 9
+# (facts in our own form); ASSUMED choices are marked in the parameters.
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: ammonium-nitrate-pressure-neutralisation-solid
+title: Ammonium nitrate, solid, by pressure neutralisation of nitric acid with ammonia
+description: Per 1 t of solid ammonium nitrate (as NH4NO3), gate-to-gate, EU plants of the LVIC-AAF BREF data
+  collection. Feeds from stoichiometry with the sourced losses, utilities as midpoints of sourced ranges.
+basis: 1000 kg of solid ammonium nitrate (as NH4NO3)
+boundary: 'gate-to-gate: ammonia vaporisation, neutralisation, evaporation, prilling or granulation, cooling,
+  screening, exhaust gas and condensate treatment; steam and power from outside; storage excluded'
+technology: continuous neutralisation of 60 wt% nitric acid with gaseous ammonia at elevated pressure, evaporation
+  to a melt, prilling or granulation
+geography:
+  description: EU plants of the BREF data collection; no single site.
+classification:
+  isic: '2012'
+system_boundary:
+  included:
+  - ammonia and 60 wt% nitric acid
+  - electricity and imported steam
+  - ammonia and dust to air after abatement
+  - process condensate and scrubber water to treatment
+  - the acid's water as vapour
+  excluded:
+  - 'TODO nitrogen in the waste water (AMI Linz: 0.026 kg N per t N, about 9 g N per t AN, BREF Table 9.5):
+    core''s crosswalk has no nitrate or ammonium flow to water yet, and the amount is left out of the feeds'
+  - TODO nitric acid to air (named by the BREF, section 9.2.2 and Table 9.10, not quantified per t)
+  - 'TODO N2O from ammonium nitrate decomposition: not quantified in the source'
+  - TODO cooling water (Table 9.8 gives 3.8 to 31 m3/t for new solution plants; none for solid AN)
+  - 'TODO steam export of pressure neutralisers (up to 240 kg/t in Table 9.8): no export counted, so no co-product'
+  - 'TODO additives, stabilisers and coating agents (section 9.2.7): not quantified'
+  - storage and loading emissions
+  - infrastructure
+  cutoff: none applied; the excluded flows are not quantified
+  infrastructure: excluded
+  catalysts: excluded
+  non_routine: excluded
+location: RER
+year: 2001
+valid_until: 2006
+time:
+  start: 2000
+  description: 'BREF data collection: the energy figures are from EFMA (2000) and infoMil (2001), the plant
+    emissions from Austrian UBA (2002) and infoMil (2001). valid_until is the reference year + 5 (system-model
+    section 6), so it has already lapsed.'
+modelling:
+  principle: attributional
+  multifunctionality: 'single output: no allocation'
+uuid: 211b97b6-4530-5417-875c-12a5dc573438
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+technology_level: current
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: an
+  value: 1000.0
+  unit: kg
+  description: Solid ammonium nitrate delivered (the basis), counted as NH4NO3.
+  source: basis
+- name: M_N
+  value: 14.007
+  unit: g/mol
+  description: Molar mass of nitrogen.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_NH3
+  value: 17.031
+  unit: g/mol
+  description: Molar mass of ammonia.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_HNO3
+  value: 63.012
+  unit: g/mol
+  description: Molar mass of nitric acid.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_AN
+  value: 80.043
+  unit: g/mol
+  description: Molar mass of ammonium nitrate.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_H2O
+  value: 18.015
+  unit: g/mol
+  description: Molar mass of water.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_ACID
+  value: 315.141
+  unit: g/mol
+  description: Molar mass of the 60 wt% nitric acid written as (HNO3)3(H2O)7, 59.985 wt% HNO3 (ASSUMED integer
+    formula, so that the element balance can count the solution).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: nh3_air
+  value: 0.0153
+  unit: kg
+  description: 'Ammonia to air per t: the AMI Linz central waste gas scrubber (1.6 g/t) and its prilling tower
+    for technical-grade AN (13.7 g/t).'
+  source: EU JRC (2007) LVIC-AAF BREF (Best Available Techniques for the Manufacture of Large Volume Inorganic
+    Chemicals - Ammonia, Acids and Fertilisers), Table 9.4, p. 372 (Austrian UBA 2002). One plant; the table
+    is headed CAN fertilisers and the central scrubber serves the whole plant, so applying both figures per
+    t of solid AN is ASSUMED. TODO an AN-only figure
+- name: dust
+  value: 0.0379
+  unit: kg
+  description: 'Dust to air per t: AMI Linz central waste gas scrubber (17.4 g/t) and prilling tower (20.5
+    g/t), taken as ammonium nitrate.'
+  source: EU JRC (2007) LVIC-AAF BREF (Best Available Techniques for the Manufacture of Large Volume Inorganic
+    Chemicals - Ammonia, Acids and Fertilisers), Table 9.4, p. 371 (Austrian UBA 2002); as nh3_air, applying
+    both per t of solid AN is ASSUMED; that the dust is AN (no coating) is ASSUMED. The same table gives
+    two UK AN plants (Comments on D2, 2004), 30 g/t from a prilling tower with state-of-the-art abatement
+    (Terra Severnside) and 400 g/t from prill towers and coolers (Terra Billingham), so the value here is
+    near the low end of the AN plants in the table
+- name: ww_n
+  value: 0.24
+  unit: m3
+  description: 'Waste water per t of nitrogen in the product: AMI Linz pressure neutralisation (1800 t/d AN).'
+  source: EU JRC (2007) LVIC-AAF BREF (Best Available Techniques for the Manufacture of Large Volume Inorganic
+    Chemicals - Ammonia, Acids and Fertilisers), Table 9.5, p. 373 (Austrian UBA 2002, one plant); applying
+    it to this product is ASSUMED
+- name: rho_w
+  value: 1000.0
+  unit: kg/m3
+  description: Density taken for the waste water.
+  source: ASSUMED
+- name: elec
+  value: 42.5
+  unit: kWh
+  description: 'Electricity per t of solid AN, new AN facility: midpoint of 25 to 60 kWh/t.'
+  source: EU JRC (2007) LVIC-AAF BREF (Best Available Techniques for the Manufacture of Large Volume Inorganic
+    Chemicals - Ammonia, Acids and Fertilisers), Table 9.3, p. 370 (EFMA 2000); the midpoint is our choice
+- name: steam
+  value: 25.0
+  unit: kg
+  description: 'Steam imported per t of solid AN: midpoint of 0 to 50 kg/t.'
+  source: EU JRC (2007) LVIC-AAF BREF (Best Available Techniques for the Manufacture of Large Volume Inorganic
+    Chemicals - Ammonia, Acids and Fertilisers), Table 9.3, p. 370, and section 9.4.3, p. 378 (EFMA 2000);
+    the midpoint is our choice. The pressure is not stated for this range; Table 9.8 gives 10 bar for the import
+    of new plants
+exchanges:
+- key: product:ammonium-nitrate
+  title: Ammonium nitrate, solid (prilled or granulated), as NH4NO3
+  type: product
+  amount: 1000.0
+  unit: kg
+  formula: an
+  provenance: given
+  source: the reference flow; counted as pure NH4NO3 (35.0 % N). Commercial grades have 33.5 to 34.5 % N (BREF
+    section 9.1) with moisture, stabilisers and coating, which are not modelled (TODO)
+- key: feed:ammonia
+  title: Ammonia, anhydrous (vaporised on site)
+  type: input
+  amount: 212.79649854203365
+  unit: kg
+  formula: (an + dust) / M_AN * M_NH3 + nh3_air
+  provenance: calculated
+  source: stoichiometry NH3 + HNO3 -> NH4NO3 with the sourced losses (ammonia and dust to air). Compare 213
+    kg/t (BREF Table 9.8, benchmarks/fertilizers.yaml).
+  pedigree: &id001
+    scores:
+    - 3
+    - 4
+    - 5
+    - 3
+    - 3
+    reason: 'stoichiometry with sourced losses: reliability 3, completeness 4, temporal 5, geographical 3,
+      technological 3'
+  basic_uncertainty: 1.05
+- key: feed:nitric-acid
+  title: Nitric acid, 60 wt% (weak acid)
+  type: input
+  amount: 1312.431833905526
+  unit: kg
+  formula: (an + dust) / M_AN * M_ACID / 3
+  provenance: calculated
+  source: stoichiometry NH3 + HNO3 -> NH4NO3 with the sourced losses, as 60 wt% acid ((HNO3)3(H2O)7, 59.985
+    wt%); the source's figures are for 60 wt% acid (BREF Table 9.8) and its range is 50 to 70 wt% (section
+    9.2.1). Compare 789 kg HNO3 per t (BREF Table 9.8, benchmarks/fertilizers.yaml).
+  pedigree: *id001
+  basic_uncertainty: 1.05
+- key: feed:electricity
+  title: Electricity
+  type: input
+  amount: 42.5
+  unit: kWh
+  formula: elec
+  provenance: given
+  origin: literature
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: EU JRC (2007) LVIC-AAF BREF (Best Available Techniques for the Manufacture of Large Volume Inorganic
+    Chemicals - Ammonia, Acids and Fertilisers), Table 9.3, p. 370 (solid AN, new AN facility, EFMA 2000)
+  pedigree: &id002
+    scores:
+    - 3
+    - 4
+    - 5
+    - 3
+    - 3
+    reason: 'from a value of the LVIC-AAF BREF data collection (EU plants, about 2000 to 2006): reliability
+      3, completeness 4, temporal 5 (about 20 to 25 years old), geographical 3, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.549
+    source: 'electricity: range 25 to 60 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: feed:steam
+  title: Steam imported, by mass
+  type: input
+  amount: 25.0
+  unit: kg
+  formula: steam
+  provenance: given
+  origin: literature
+  source: 'EU JRC (2007) LVIC-AAF BREF (Best Available Techniques for the Manufacture of Large Volume Inorganic
+    Chemicals - Ammonia, Acids and Fertilisers), Table 9.3, p. 370, and section 9.4.3, p. 378 (solid AN, 0
+    to 50 kg/t); import only: steam raised in the neutraliser is used inside the plant and no export is counted'
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: the range 0 to 50 kg/t has a zero lower bound, so sqrt(high / low) is not defined'
+- key: output:wastewater
+  title: Process condensate and scrubber water to waste water treatment
+  type: output
+  amount: 83.99685169221543
+  unit: kg
+  formula: ww_n * rho_w * an / 1000 * 2 * M_N / M_AN
+  provenance: assumed
+  origin: literature
+  link:
+    factor: wastewater
+    source: site wastewater treatment
+  source: EU JRC (2007) LVIC-AAF BREF (Best Available Techniques for the Manufacture of Large Volume Inorganic
+    Chemicals - Ammonia, Acids and Fertilisers), Table 9.5, p. 373 (AMI Linz, 0.24 m3 per t N). Applying one
+    plant's figure, and per t N of this product, is ASSUMED.
+  pedigree: &id003
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 5, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: one plant''s figure'
+- key: emission:H2O
+  title: Water of the acid, as vapour to air (vented process steam, prilling and cooling air)
+  type: emission
+  amount: 441.178280755344
+  unit: kg
+  formula: (an + dust) / M_AN * 7 / 3 * M_H2O - ww_n * rho_w * an / 1000 * 2 * M_N / M_AN
+  provenance: assumed
+  origin: estimate
+  cas: 7732-18-5
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 075e433b-4be4-448e-9510-9a5029c1ce94
+    name: Water
+    categories:
+    - air
+    unit: m3
+    per_unit: 0.001
+  source: 'ASSUMED: the acid''s water less the waste water closes the water balance. The source names the outlets
+    (process steam, condensate reused in the nitric acid plant or as scrubber water, condensate to treatment;
+    sections 9.2.4 and 9.4.4) but gives no split; reuse elsewhere on site would lower this vapour. biosphere3
+    UUID, name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml)'
+  pedigree: *id003
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: a residual of the water balance'
+- key: emission:NH3
+  title: Ammonia to air (after the scrubbers)
+  type: emission
+  amount: 0.0153
+  unit: kg
+  formula: nh3_air
+  provenance: given
+  origin: literature
+  cas: 7664-41-7
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 87883a4e-1e3e-4c9d-90c0-f1bea36f8014
+    name: Ammonia
+    categories:
+    - air
+    unit: kg
+  source: EU JRC (2007) LVIC-AAF BREF (Best Available Techniques for the Manufacture of Large Volume Inorganic
+    Chemicals - Ammonia, Acids and Fertilisers), Table 9.4, p. 372 (AMI Linz, central scrubber and prilling
+    tower); biosphere3 UUID, name and categories from core's elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: one plant, and the attribution of its sources to this product is ASSUMED'
+- key: emission:PM
+  title: Dust to air (after the scrubbers, filters and cyclones)
+  type: emission
+  amount: 0.0379
+  unit: kg
+  formula: dust
+  provenance: given
+  origin: literature
+  source: EU JRC (2007) LVIC-AAF BREF (Best Available Techniques for the Manufacture of Large Volume Inorganic
+    Chemicals - Ammonia, Acids and Fertilisers), Table 9.4, p. 371 (AMI Linz, central scrubber and prilling
+    tower); counted as NH4NO3 in the element balance; no particle size given, so no elementary flow is chosen
+    (TODO a size split)
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: one plant, and the attribution of its sources to this product is ASSUMED'
+provenance:
+  generator: hand-written model; amounts are the formulas of the parameters
+  notes: No value from a licensed database (process-library#313).
+generation:
+  tier: 1
+  method: 'sourced conceptual inventory: LVIC-AAF BREF chapter 9 values with stoichiometry, every choice listed
+    in parameters'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 3
+  - 4
+  - 3
+  - 3
+  - 3
+  dqr_floor: 3.0
+  components:
+    product:ammonium-nitrate: NH4NO3
+    feed:ammonia: NH3
+    feed:nitric-acid: (HNO3)3(H2O)7
+    output:wastewater: H2O
+    emission:H2O: H2O
+    emission:NH3: NH3
+    emission:PM: NH4NO3
+  formulas:
+    product:ammonium-nitrate: NH4NO3
+    feed:ammonia: NH3
+    feed:nitric-acid: (HNO3)3(H2O)7
+    output:wastewater: H2O
+    emission:H2O: H2O
+    emission:NH3: NH3
+    emission:PM: NH4NO3
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      H:
+      - 109.148189634
+      - 109.148189634
+      N:
+      - 350.012729908
+      - 350.012729908
+      O:
+      - 1066.067412906
+      - 1066.067412906
+    outside:
+    - feed:electricity
+    - feed:steam

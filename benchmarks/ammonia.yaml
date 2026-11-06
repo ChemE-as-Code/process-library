@@ -248,6 +248,52 @@ kpis:
           <<: *bref
           locator: Chapter 2, Section 2.3.2, Table 2.7 (Reported NOx emission levels for the production of ammonia), first row [1, EFMA, 2000], p. 52
 
+  # --- aqueous ammonia (ammonium hydroxide), added with ammonium-hydroxide-1 ----------------------
+  # Not independent checks: the dataset takes its strength from the same patent, and the cooling
+  # duty and electricity have no open reference.
+  aqua-ammonia-strength:
+    title: NH3 per mass of aqueous ammonia product
+    unit: kg/kg
+    references:
+      - id: us4752452-aqua-strength
+        range: [0.20, 0.30]
+        basis: unallocated
+        note: The strength the patent names for aqueous ammonia made by diluting anhydrous ammonia with water. The dataset's 25 wt% is its midpoint, so this checks only that the grade is one the route makes.
+        conditions: {technology: "single-stage dilution of anhydrous ammonia with water, solution cooled below its boiling point", product: aqueous ammonia for the liquid fertiliser field, region: US, year: 1983}
+        source:
+          citation: "Harbolt, B.A., Murata, P.L. (Union Oil Company of California) US Patent 4,752,452: Aqueous ammonia process and mixing apparatus therefor, filed 1983-03-10, granted 1988-06-21"
+          url: https://patents.google.com/patent/US4752452A/en
+          locator: Description, Background of the Art
+          kind: other
+          accessed: "2026-11-05"
+      - id: atsdr-2004-commercial-strength
+        range: [0.28, 0.30]
+        basis: unallocated
+        note: The most common commercial formulation, which the source calls nearly saturated; reagent-type 28 to 30 wt% solutions, not the 25 wt% technical grade.
+        conditions: {product: most common commercial aqueous ammonia formulation, region: US, year: 2004}
+        source:
+          citation: "ATSDR (2004) Toxicological Profile for Ammonia. U.S. Department of Health and Human Services, Agency for Toxic Substances and Disease Registry, Atlanta"
+          url: https://www.atsdr.cdc.gov/toxprofiles/tp126.pdf
+          locator: Chapter 4, Section 4.1, p. 113 (citing Weast et al. 1988)
+          kind: government
+          accessed: "2026-11-05"
+  aqua-ammonia-cooling-duty:
+    title: Heat rejected to cooling water per t of aqueous ammonia
+    unit: kWh/t
+    no_open_reference: >-
+      No open source with a measured or design cooling duty for aqueous ammonia production found
+      (2026-11-05). Read: US 4,752,452 (states that the heat of dilution is large, gives no
+      figure), LVIC-AAF BREF 2007 (no aqueous ammonia production section; ammonia solutions only
+      as recycled scrubber liquor), ATSDR 2004 (properties only). The dataset's value is our
+      enthalpy balance from the NBS tables (1982) and the ammonia equation of state, not a check.
+  aqua-ammonia-specific-electricity:
+    title: Electricity per t of aqueous ammonia
+    unit: kWh/t
+    no_open_reference: >-
+      No open source with an electricity figure for aqueous ammonia production found
+      (2026-11-05). Read: US 4,752,452 (pumps and fans named, no power), LVIC-AAF BREF 2007, ATSDR
+      2004. The dataset's value is an ASSUMED pump-work estimate.
+
 # Binding added 2026-10-30 after the design was final (basic stage signed off on main, tag
 # nh3-run-S5). The values were computed blind by a separate job (processes/ammonia-1/runs/
 # benchmark-kpis.md) that saw no range of this file. Only the two CO2 indicators can be expressed
@@ -283,3 +329,10 @@ datasets:
           the furnace fuel follows the radiant balance with complete combustion and a casing loss
           of 1.5 % of the fired duty (D-014, D-040). Natural gas feed plus fuel is 28.0 GJ/t (LHV), against 32.1 GJ/t in the
           IEA BAT row (processes/ammonia-1/runs/benchmark-kpis.md).
+  - process: ammonium-hydroxide-1
+    dataset: ammonium-hydroxide-25wt-dilution
+    conditions: {technology: continuous single-stage dilution of refrigerated liquid ammonia with demineralised water, product: "aqueous ammonia, 25 wt% NH3, 25 degC", basis: Tier 0 screening}
+    kpis:
+      aqua-ammonia-strength: {expression: feed:ammonia / product:ammonium-hydroxide, per: product:ammonium-hydroxide, reference: us4752452-aqua-strength}
+      aqua-ammonia-cooling-duty: {expression: output:cooling-water / product:ammonium-hydroxide, per: product:ammonium-hydroxide}
+      aqua-ammonia-specific-electricity: {expression: feed:electricity / product:ammonium-hydroxide, per: product:ammonium-hydroxide}

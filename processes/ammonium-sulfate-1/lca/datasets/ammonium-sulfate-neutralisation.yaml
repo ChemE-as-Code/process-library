@@ -1,0 +1,327 @@
+# Tier 0 form, process-library#313 pilot without a flowsheet. Every amount is the formula of its parameters;
+# core's validator re-checks each. Written from US EPA AP-42 section 8.4, a UNIDO fertilizer manual chapter
+# and a crystallizer supplier's brochure (facts in our own form); electricity is core's Tier 0 default.
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: ammonium-sulfate-neutralisation
+title: Ammonium sulfate by direct neutralisation of ammonia with sulfuric acid
+description: Tier 0 screening estimate per 1 t of crystalline ammonium sulfate, gate-to-gate. Anhydrous
+  ammonia and strong sulfuric acid react in a continuous saturator-crystallizer whose heat of reaction
+  evaporates the water, so the crystallizer takes no external heat; the crystals are centrifuged, dried
+  in a steam-heated rotary dryer and screened. Feeds from stoichiometry with the sourced dryer dust; the
+  dryer heat is our estimate from the sourced cake moisture; electricity from core's Tier 0 default.
+basis: 1000 kg of ammonium sulfate
+boundary: 'gate-to-gate: saturator-crystallizer, centrifuge, dryer with wet scrubber, screening; steam
+  and power from outside; storage and bagging outside'
+technology: synthetic (on-purpose) ammonium sulfate by reaction crystallization; the caprolactam, coke-oven
+  and other by-product routes are not modelled
+geography:
+  description: 'Mixed: US dryer emission tests (1978 to 1990), a UNIDO manual chapter and a European
+    supplier''s brochure (2010); no single site.'
+classification:
+  isic: '2012'
+system_boundary:
+  included:
+  - ammonia and sulfuric acid (100 % H2SO4 basis)
+  - electricity (default) and dryer steam (estimate)
+  - ammonium sulfate dust from the dryer scrubber stack
+  excluded:
+  - 'TODO the water balance: water of the 98.5 wt% acid and make-up water evaporated by the heat of reaction
+    (about 0.75 to 0.9 t per t of product, liquid or gaseous ammonia feed, by our heat balance from
+    the UNIDO heat of reaction, not a sourced figure), its condensation in the vacuum system, the condensate fate and the cooling water'
+  - 'TODO ammonia to air from the crystallizer vent and the dryer: no open figure (AP-42 background report
+    section 4.3 found no ammonia data); the source says ammonia losses arise when the liquor is not kept
+    acid'
+  - 'TODO motive steam of vacuum ejectors, if the vacuum is made by ejectors: not stated in the sources
+    read'
+  - 'TODO wash water and weak ammonia of the centrifuge wash (UNIDO chapter VIII), mother-liquor purge
+    and scrubber liquor: recycled to the crystallizer in the sources read, not quantified'
+  - fugitive dust of screening and handling (enclosed; AP-42 8.4.3 calls these not significant)
+  - crystal modifiers and corrosion inhibitors (trace additives named by UNIDO chapter VIII, not quantified)
+  - infrastructure
+  cutoff: anti-caking agent cut by the library's 1 % mass rule (cutoff); the excluded flows are not quantified
+  infrastructure: excluded
+  catalysts: excluded
+  non_routine: excluded
+cutoff:
+- key: input:anti-caking-agent
+  title: Anti-caking agent (a heavy organic) added after drying
+  direction: input
+  amount: 0.5
+  unit: kg
+  reason: 'about 0.05 % of the product at synthetic plants (AP-42 8.4.2); its identity is not stated
+    (a high molecular weight organic), so it cannot be linked or balanced; 0.05 % of the input mass,
+    below the 1 % rule'
+  source: US EPA AP-42, 5th ed., section 8.4 (7/93, reformatted 1/95), 8.4.2
+location: GLO
+year: 2010
+valid_until: 2015
+time:
+  start: 1978
+  description: 'Dryer emission tests of 1978 to 1990 (AP-42 section 8.4, 1993/1995), a UNIDO manual chapter
+    citing literature to 1992, a supplier''s brochure of 2010. valid_until is the reference year + 5
+    (system-model section 6), so it has already lapsed.'
+modelling:
+  principle: attributional
+  multifunctionality: 'single output: no allocation. The by-product routes (caprolactam, coke oven) are
+    co-products of other processes and are not represented here.'
+uuid: 555921cc-064e-569a-9622-6a07e2ac0542
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+technology_level: current
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: as_
+  value: 1000.0
+  unit: kg
+  description: Ammonium sulfate delivered (the basis), as dry (NH4)2SO4.
+  source: basis
+- name: M_NH3
+  value: 17.031
+  unit: g/mol
+  description: Molar mass of ammonia.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_H2SO4
+  value: 98.072
+  unit: g/mol
+  description: Molar mass of sulfuric acid.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_AS
+  value: 132.134
+  unit: g/mol
+  description: Molar mass of ammonium sulfate, (NH4)2SO4.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: pm
+  value: 0.02
+  unit: kg
+  description: 'Filterable particulate (ammonium sulfate dust) per t of product from a rotary dryer with
+    a wet scrubber. The older controlled rotary-dryer tests of the background report (1978/79, cyclonic
+    and venturi scrubbers) gave 0.08 and 0.16 kg/t, and AP-42 gives 0.14 kg/t for a fluidized-bed dryer
+    with a wet scrubber; 0.16 kg/t is used as the upper end of the uncertainty.'
+  source: 'US EPA AP-42, 5th ed., section 8.4 (7/93, reformatted 1/95), Table 8.4-1: rotary dryer with
+    wet scrubber, emission factor rating A (one compliance test of 1990, AP-42 background report for
+    section 8.4, section 4.1 Reference 8 and Table 4.2-2; the test did not record the production rate,
+    so the background report divided by a rate estimated from TVA capacity data). The 0.08 and 0.16
+    kg/t are the controlled factors of References 6 and 7 in section 4.1 of the same report. Taking the
+    rotary dryer is ASSUMED: the UNIDO chapter VIII describes rotary driers for synthetic plants'
+- name: w_cake
+  value: 0.0175
+  unit: kg/kg
+  description: 'Moisture of the centrifuge cake fed to the dryer: midpoint of 1 to 2.5 wt%.'
+  source: US EPA AP-42, 5th ed., section 8.4 (7/93, reformatted 1/95), 8.4.2 (range); the midpoint is
+    our choice
+- name: w_prod
+  value: 0.002
+  unit: kg/kg
+  description: Free moisture of the dried product.
+  source: 'UNIDO fertilizer manual, chapter VIII ''Ammonium Salts, Nitric Acid, and Nitrates'' (UNIDO
+    Open Archive document 19836), Chemical and Physical Specifications (PDF p. 6): 0.2 % free H2O as a
+    typical specification figure'
+- name: h_evap
+  value: 0.6616
+  unit: kWh/kg
+  description: 'Latent heat of water at 50 degC (2381.9 kJ/kg), the assumed evaporation temperature in
+    the dryer.'
+  source: 'IAPWS-95 (Wagner and Pruss 2002) evaluated with CoolProp 8.0.0; the 50 degC evaporation (wet-bulb)
+    temperature is ASSUMED'
+- name: eta_dry
+  value: 0.5
+  unit: kg/kg
+  description: 'Thermal efficiency of the steam-heated rotary dryer: latent heat of the water removed over
+    the heat supplied.'
+  source: 'ASSUMED: no open figure read; it stands for the sensible heat of crystals and air and the exhaust
+    loss. TODO a sourced dryer heat'
+- name: elec
+  value: 333.3
+  unit: kWh
+  description: 'Electricity per t of ammonium sulfate: core''s Tier 0 default, 0.3333 kWh/kg.'
+  source: 'ASSUMED: cheme tier-defaults 1.0.0: electricity [ASSUMED]: 1.2 MJ (0.333 kWh) per kg of product,
+    attributed to the Gendorf (2000) site average that the ecoinvent v2-era chemicals proxies used. ASSUMED,
+    not read in either source: Hischier et al. 2005 (p. 61) names the Gendorf (2000) average as the default
+    but prints no value, and the number could not be confirmed in an open copy of Althaus et al. 2007
+    (ecoinvent report No. 8). A site average of organic chemistry, not specific to a salt crystallization
+    plant (pumps, centrifuges, dryer and scrubber fans). No open ammonium sulfate figure was read. TODO
+    source'
+exchanges:
+- key: product:ammonium-sulfate
+  title: Ammonium sulfate, crystalline, fertilizer grade
+  type: product
+  amount: 1000.0
+  unit: kg
+  formula: as_
+  provenance: given
+  source: the reference flow; counted as dry (NH4)2SO4 (21.2 % N); the 0.2 % free moisture and the
+    anti-caking agent are not counted in it
+- key: feed:ammonia
+  title: Ammonia, anhydrous
+  type: input
+  amount: 257.7889206411673
+  unit: kg
+  formula: (as_ + pm) * 2 * M_NH3 / M_AS
+  provenance: calculated
+  source: 'stoichiometry 2 NH3 + H2SO4 -> (NH4)2SO4 with the sourced dryer dust; compare the stoichiometric
+    requirement 0.2578 t/t (UNIDO chapter VIII, Table 1); other losses are not counted (system_boundary.excluded)'
+  pedigree:
+    scores: &id001
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4 (losses other than
+      dust not counted), temporal 4, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+- key: feed:sulfuric-acid
+  title: Sulfuric acid, as 100 % H2SO4
+  type: input
+  amount: 742.2310793588327
+  unit: kg
+  formula: (as_ + pm) * M_H2SO4 / M_AS
+  provenance: calculated
+  source: 'stoichiometry with the sourced dryer dust, on the 100 % H2SO4 basis; compare the stoichiometric
+    requirement 0.7422 t/t (UNIDO chapter VIII, Table 1). The acid is delivered strong (98.5 wt% from sulfuric-acid-1);
+    its water is in the excluded water balance'
+  pedigree:
+    scores: *id001
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4 (losses other than
+      dust not counted), temporal 4, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+- key: feed:electricity
+  title: Electricity
+  type: input
+  amount: 333.3
+  unit: kWh
+  formula: elec
+  provenance: assumed
+  origin: design-rule
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: 'cheme tier-defaults 1.0.0: electricity [ASSUMED]: 1.2 MJ (0.333 kWh) per kg of product, attributed
+    to the Gendorf (2000) site average that the ecoinvent v2-era chemicals proxies used. ASSUMED, not
+    read in either source: Hischier et al. 2005 (p. 61) names the Gendorf (2000) average as the default
+    but prints no value, and the number could not be confirmed in an open copy of Althaus et al. 2007
+    (ecoinvent report No. 8). Not specific to this process'
+  pedigree:
+    scores:
+    - 4
+    - 5
+    - 5
+    - 4
+    - 5
+    rule: 'cheme tier-defaults 1.0.0: electricity'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: a dated site-average default, not specific to this process'
+- key: feed:steam
+  title: Steam to the rotary dryer's air heater, as heat delivered
+  type: input
+  amount: 20.9167444303365
+  unit: kWh
+  formula: as_ * (w_cake / (1 - w_cake) - w_prod / (1 - w_prod)) * h_evap / eta_dry
+  provenance: assumed
+  origin: estimate
+  source: 'our estimate: the water removed from the centrifuge cake (AP-42 8.4.2 moisture to the UNIDO
+    product specification) times its latent heat, over an ASSUMED dryer efficiency. The crystallizer
+    takes no steam: the heat of reaction of reasonably concentrated reactants evaporates the water without
+    an external energy source (GEA Messo PT brochure 2010, PDF p. 4 and p. 6; UNIDO chapter VIII, Production
+    Details); a plant with dilute or spent acid would need evaporator steam, which is not counted (GEA
+    PDF p. 4: most ammonium sulfate crystallizers run in the steam-heated evaporative mode). AP-42 8.4.2
+    names steam-heated and oil- or gas-fired dryers; steam heating is ASSUMED'
+  pedigree:
+    scores:
+    - 4
+    - 5
+    - 4
+    - 4
+    - 4
+    reason: 'an estimate from a sourced moisture and an ASSUMED efficiency: reliability 4, completeness 5
+      (dryer only; ejector steam not counted), temporal 4, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: the cake moisture spans 1 to 2.5 wt% (water removed 8 to 24 kg/t) and the efficiency
+      is not sourced'
+- key: emission:PM
+  title: Ammonium sulfate dust to air, filterable particulate after the dryer's wet scrubber
+  type: emission
+  amount: 0.02
+  unit: kg
+  formula: pm
+  provenance: given
+  origin: literature
+  source: 'US EPA AP-42, 5th ed., section 8.4 (7/93, reformatted 1/95), Table 8.4-1 (rotary dryer, wet
+    scrubber, rating A); the dust is the product itself (AP-42 8.4.3). Particle size not stated, so no
+    PM10 or PM2.5 split'
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'one US compliance test of 1990: reliability 4, completeness 4, temporal 5 (more than 15 years),
+      geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.828
+    source: 'controlled rotary dryers, 0.02 kg/t (AP-42 Table 8.4-1) to 0.16 kg/t (AP-42 background report,
+      section 4.1, Reference 7), read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the
+      amount stays the stated value)'
+provenance:
+  generator: hand-written model; amounts are the formulas of the parameters
+  notes: No value from a licensed database (process-library#313).
+generation:
+  tier: 0
+  method: 'Tier 0 stoichiometric screening: stoichiometry with the sourced dryer dust; dryer heat estimated
+    from a sourced cake moisture with an ASSUMED efficiency; no crystallizer heat (sourced); electricity
+    from core''s default (no Tier 1: electricity and the yield are not sourced)'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 4
+  - 4
+  - 3
+  - 3
+  - 4
+  dqr_floor: 3.3333
+  components:
+    product:ammonium-sulfate: H8N2O4S
+    feed:ammonia: NH3
+    feed:sulfuric-acid: H2SO4
+    emission:PM: H8N2O4S
+  formulas:
+    product:ammonium-sulfate: H8N2O4S
+    feed:ammonia: NH3
+    feed:sulfuric-acid: H2SO4
+    emission:PM: H8N2O4S
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      H:
+      - 61.030176033
+      - 61.030176033
+      N:
+      - 212.016288616
+      - 212.016288616
+      O:
+      - 484.336203551
+      - 484.336203551
+      S:
+      - 242.6373318
+      - 242.6373318
+    outside:
+    - feed:electricity
+    - feed:steam
+  defaults: cheme tier-defaults 1.0.0
+  defaults_used:
+  - electricity
