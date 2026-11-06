@@ -20,6 +20,17 @@ the speed signals of FIC-x01 and AIC-201 to their pumps not drawn (control/loops
 four stacks are fed in parallel by four manifolds: with the anolyte manifolds above and below
 the stack row, the two cathode gas manifolds cross them three times each (accepted in
 checks/checks.yaml with that reason).
+
+Revision B (the owner's decisions of 2026-11-06, DESIGN.md D-050, D-052, D-054 to D-056): no
+extract fan (open skid); the tail gas TG-x01 leaves the PSA through its trip valve XV-x33
+(fail closed), a check valve and the detonation arrester FA-x33, with the arrester's
+temperature switch TSHH-x33 on its unprotected side, drawn with its signal to XV-x33 (the other
+causes that close it are in the cause and effect, I-x03, I-x04, I-x10); the cooler on a
+tempered-water unit off the skid (TWS-x01, TWR-x01); the anolyte loop's low-point drain DR-x01
+at the supply header's east end, the cooler's vent AV-x11 and a bottom pump-out PO-x01 on
+each reservoir (PO-202 on Skid B's day tank), each valved and capped. The bubbles of PIC-x21
+(above its valve's line) and LIC-x22 (over its valve) are placed so that core's actuator and
+signal routing draws them clean: the placement is the script's, not a hand edit of the sheet.
 """
 
 from __future__ import annotations
@@ -29,12 +40,14 @@ from chemeascode.domains.piping.authoring import (
     Sheet,
     equipment,
     instrument,
+    label,
     line,
     note,
     offpage,
     tee,
     valve,
 )
+from chemeascode.domains.piping.authoring.edit import assign
 
 #: Stack centres (x, sheet mm) and the stack row's centre line.
 STACK_X = (140.0, 170.0, 200.0, 230.0)
@@ -89,6 +102,7 @@ def draw(sheet: Sheet, skid: str) -> None:
         Nozzle("N4", (6, 17.5), DN_LIQ),  # outlet to the recirculation pump
         Nozzle("N5", (-6, 17.5), DN_LIQ),  # drain (spent anolyte; Skid B also the bleed)
         Nozzle("N7", (14, 0), None),  # pH
+        Nozzle("N11", (10, 17.5), DN_SMALL),  # bottom outlet, pump-out of the heel (D-055)
     ]
     if dosed:
         tank_nozzles += [
@@ -125,12 +139,13 @@ def draw(sheet: Sheet, skid: str) -> None:
         shape="PLATE_TYPE_HEAT_EXCHANGER_SHAPE",
         at=(115.0, 205.0),
         rotation=90.0,
-        label_at=(128.0, 205.0),
+        label_at=(128.0, 210.0),
         nozzles=[
             Nozzle("N1", (-5, 5), DN_LIQ),  # anolyte in
             Nozzle("N2", (0, -15), DN_LIQ),  # anolyte out
-            Nozzle("N3", (4, 15), DN_SMALL),  # cooling water in
-            Nozzle("N4", (-4, 15), DN_SMALL),  # cooling water out
+            Nozzle("N3", (4, 15), DN_SMALL),  # tempered water in
+            Nozzle("N4", (-4, 15), DN_SMALL),  # tempered water out
+            Nozzle("N5", (5, -10), DN_SMALL),  # vent of the anolyte outlet channel (D-055)
         ],
     )
     sep = equipment(
@@ -195,8 +210,6 @@ def draw(sheet: Sheet, skid: str) -> None:
         scale=(1.4, 0.6),
         label_at=(200.0, 235.0),
     )
-    equipment(sheet, "Fan", t("K", 41), shape="FAN_SHAPE", at=(265.0, 235.0),
-              label_at=(265.0, 242.0))
 
     # -- anolyte loop -----------------------------------------------------------------------
     # return manifold above the stacks, from stack D to the reservoir
@@ -230,17 +243,35 @@ def draw(sheet: Sheet, skid: str) -> None:
     # supply manifold below the stacks, from the cooler to stack D
     sup_tees = [tee(tid(t("AN", 3), s), at=(x, Y_SUP), branch="up")
                 for x, s in zip(STACK_X[:3], "ABC", strict=True)]
+    # the loop's low point: the level header's east end, before its turn to stack D (D-047
+    # item 4, D-055)
+    x_low = STACK_X[3] - 6.0
+    low_tee = tee(tid(t("AN", 3), "LP"), at=(x_low, Y_SUP), branch="down", branch_dn=DN_SMALL)
     sup = line(
         sheet,
         t("AN", 3),
         dn=DN_LIQ,
         fluid="Anolyte",
-        route=[cooler["N2"], (115.0, Y_SUP), *sup_tees, (STACK_X[3], Y_SUP), stacks[3]["N1"]],
+        route=[cooler["N2"], (115.0, Y_SUP), *sup_tees, low_tee, (STACK_X[3], Y_SUP),
+               stacks[3]["N1"]],
         label_at=(123.0, 162.0),
     )
     for tee_, stack, s in zip(sup_tees, stacks[:3], "ABC", strict=True):
         line(sheet, t("AN", 3, s), dn=DN_LIQ, fluid="Anolyte", route=[tee_.branch, stack["N1"]],
              labels=False)
+    # low-point drain, valved and capped, to a closed IBC (D-055)
+    line(sheet, t("DR", 1), dn=DN_SMALL, fluid="Anolyte",
+         route=[low_tee.branch,
+                valve(vid("HV", 6), "BallValve", at=(x_low, 182.0), tag=t("HV", 6)),
+                offpage("out", at=(x_low, 190.0), note="capped", note_at=(x_low + 3.0, 194.0))],
+         labels=False)
+    # vent of the cooler's anolyte outlet channel, valved and capped (D-055)
+    line(sheet, t("AV", 11), dn=DN_SMALL, fluid="Anolyte",
+         route=[cooler["N5"],
+                valve(vid("HV", 7), "BallValve", at=(125.0, cooler["N5"].xy[1]), tag=t("HV", 7)),
+                offpage("out", at=(131.0, cooler["N5"].xy[1]), note="capped",
+                        note_at=(124.0, cooler["N5"].xy[1] + 5.0))],
+         labels=False)
     # O2 vent, 1 M KOH fill, spent anolyte drain (Skid B: with the bleed)
     line(
         sheet,
@@ -272,23 +303,30 @@ def draw(sheet: Sheet, skid: str) -> None:
                  offpage("out", at=(14.0, 252.0), note="spent anolyte, end of run")]
     line(sheet, t("SP", 1), dn=DN_LIQ, fluid="Anolyte", route=sp_route,
          label_at=(52.0, 226.0))
-    # cooling water
+    # the heel: a bottom outlet with its valve and a capped camlock for a pump-out (D-055)
+    line(sheet, t("PO", 1), dn=DN_SMALL, fluid="Anolyte",
+         route=[tank["N11"], (tank["N11"].xy[0], 167.0),
+                valve(vid("HV", 8), "BallValve", at=(88.0, 167.0), tag=t("HV", 8)),
+                offpage("out", at=(97.0, 167.0), note="camlock, capped",
+                        note_at=(91.0, 172.0))],
+         labels=False)
+    # tempered water from the unit off the skid, outside the zone: heating and cooling (D-052)
     line(
         sheet,
-        t("CWS", 1),
+        t("TWS", 1),
         dn=DN_SMALL,
-        fluid="Cooling water",
-        route=[offpage("in", at=(165.0, 255.0), note="CW supply"),
+        fluid="Tempered water",
+        route=[offpage("in", at=(165.0, 255.0), note="TW supply"),
                valve(vid("TV", 11), "GlobeValve", at=(140.0, 255.0), tag=t("TV", 11)),
                (cooler["N3"].xy[0], 255.0), cooler["N3"]],
         label_at=(128.0, 263.0),
     )
     line(
         sheet,
-        t("CWR", 1),
+        t("TWR", 1),
         dn=DN_SMALL,
-        fluid="Cooling water return",
-        route=[cooler["N4"], offpage("out", at=(cooler["N4"].xy[0], 268.0), note="CW return")],
+        fluid="Tempered water return",
+        route=[cooler["N4"], offpage("out", at=(cooler["N4"].xy[0], 268.0), note="TW return")],
         label_at=(100.0, 254.0),
     )
 
@@ -380,9 +418,24 @@ def draw(sheet: Sheet, skid: str) -> None:
                (330.0, 235.0), water_tee.branch],
         label_at=(318.0, 222.0),
     )
-    line(sheet, t("TG", 1), dn=DN_GAS, fluid="Tail gas",
-         route=[psa["N4"], (369.0, 100.0), (oxid["N1"].xy[0], 100.0), oxid["N1"]],
-         label_at=(397.0, 120.0))
+    # the tail gas leaves the PSA through its trip valve (fail closed), a check valve and the
+    # in-line detonation arrester (EN ISO 16852, IIC, unstable detonation, protected side
+    # towards X-x31), all three at X-x31's outlet inside its zone; all-welded from there to
+    # the burner (D-054)
+    xv_tg = valve(vid("XV", 33), "BallValve", at=(369.0, 93.0), tag=t("XV", 33))
+    tg = line(sheet, t("TG", 1), dn=DN_GAS, fluid="Tail gas",
+              route=[psa["N4"], xv_tg,
+                     valve(vid("CV", 33), "CheckValve", at=(369.0, 102.0)),
+                     valve(vid("FA", 33), "FlameArrestor", at=(369.0, 110.0)),
+                     (369.0, 128.0), (oxid["N1"].xy[0], 128.0), oxid["N1"]],
+              label_at=(378.0, 135.0))
+    # DEXPI's FlameArrestor carries its tag as PositionNumber (a SafetyValveOrFitting), not as
+    # the valves' PipingComponentNumber that valve(tag=) writes: set it, and its detonation
+    # proof class, with core's edit (as `cheme set` does), then label it
+    arrester = sheet.find(vid("FA", 33))
+    assign(arrester, "PositionNumber", t("FA", 33))
+    assign(arrester, "DetonationProofArtefact", "DetonationProofArtefact")
+    label(sheet, vid("FA", 33), "PositionNumber", at=(376.0, 110.0))
     line(sheet, t("AIR", 1), dn=DN_GAS, fluid="Air",
          route=[offpage("in", at=(410.0, 172.0), note="air"), (oxid["N2"].xy[0], 172.0),
                 oxid["N2"]],
@@ -402,9 +455,11 @@ def draw(sheet: Sheet, skid: str) -> None:
             scale=0.8,
             label_at=(30.0, 42.0),
             # N4: the breather on the roof, so the weekly fill does not pressurise the tank and
-            # the dosing pump does not pull a vacuum on it (an atmospheric tank, as T-x01)
+            # the dosing pump does not pull a vacuum on it (an atmospheric tank, as T-x01);
+            # N5: the bottom outlet of the pump-out (D-055)
             nozzles=[Nozzle("N1", (0, -10), DN_SMALL), Nozzle("N2", (0, 10), DN_SMALL),
-                     Nozzle("N3", (8, 0), None), Nozzle("N4", (-5, -8), DN_SMALL)],
+                     Nozzle("N3", (8, 0), None), Nozzle("N4", (-5, -8), DN_SMALL),
+                     Nozzle("N5", (-5, 10), DN_SMALL)],
         )
         doser = equipment(
             sheet,
@@ -428,6 +483,12 @@ def draw(sheet: Sheet, skid: str) -> None:
              label_at=(19.0, 26.0))
         line(sheet, t("KOH", 3), dn=DN_SMALL, fluid="KOH solution",
              route=[day["N2"], doser["N1"]], label_at=(42.0, 56.0))
+        line(sheet, t("PO", 2), dn=DN_SMALL, fluid="KOH solution",
+             route=[day["N5"], (day["N5"].xy[0], 60.0),
+                    valve(vid("HV", 9), "BallValve", at=(20.0, 60.0), tag=t("HV", 9)),
+                    offpage("out", at=(14.0, 60.0), note="camlock, capped",
+                            note_at=(14.0, 65.0))],
+             labels=False)
         line(sheet, t("KOH", 4), dn=DN_SMALL, fluid="KOH solution",
              route=[doser["N2"], (tank["N8"].xy[0], 75.0), tank["N8"]],
              label_at=(46.0, 68.0))
@@ -456,11 +517,17 @@ def draw(sheet: Sheet, skid: str) -> None:
                sensing_at=(398.0, Y_CO2), signal_to=vid("FV", 2), fail_action="FC")
     instrument(sheet, t("FI", 3), at=(355.0, 247.0), location="field", sensing=w1.segments[0],
                sensing_at=(355.0, 235.0))
-    instrument(sheet, t("PIC", 21), at=(276.0, 57.0), sensing=f"Line_CG{n}02_S1",
-               sensing_at=(290.0, 57.0), signal_to=vid("PV", 21),
-               signal_points=[(276.0, 30.0), (306.0, 30.0)], fail_action="FO")
-    instrument(sheet, t("LIC", 22), at=(311.0, 85.0), sensing=sep["N4"], signal_to=vid("LV", 22),
+    # PIC-x21's bubble above CG-x02's run to PV-x21, so that the actuator points up and the
+    # signal runs over the top (core places the actuator on the bubble's side); LIC-x22's bubble
+    # over LV-x22, so that the signal drops straight onto its actuator
+    instrument(sheet, t("PIC", 21), at=(276.0, 30.0), sensing=f"Line_CG{n}02_S1",
+               sensing_at=(290.0, 57.0), signal_to=vid("PV", 21), fail_action="FO")
+    instrument(sheet, t("LIC", 22), at=(310.0, 85.0), sensing=sep["N4"], signal_to=vid("LV", 22),
                fail_action="FC")
+    # the arrester's temperature on its unprotected side (towards the burner): a flame held on
+    # the element trips XV-x33 within the arrester's burning time (I-x09, D-054)
+    instrument(sheet, t("TSHH", 33), at=(387.0, 120.0), sensing=tg.segments[0],
+               sensing_at=(369.0, 120.0), signal_to=xv_tg, fail_action="FC")
     instrument(sheet, t("PIC", 31), at=(374.0, 27.0), sensing=f"Line_CO{n}01_S1",
                sensing_at=(374.0, 40.0), signal_to=vid("PV", 31), fail_action="FC")
     instrument(sheet, t("AIC", 1) if dosed else t("AI", 1), at=(98.0, tank["N7"].xy[1]),
@@ -477,4 +544,6 @@ def draw(sheet: Sheet, skid: str) -> None:
     instrument(sheet, t("JIC", 1), at=(222.0, 235.0))
     instrument(sheet, t("AIA", 41), at=(290.0, 228.0), location="field")
     instrument(sheet, t("AIA", 42), at=(290.0, 242.0), location="field")
+    note(sheet, "open skid, naturally ventilated: no enclosure, no fan (D-050)",
+         at=(250.0, 255.0))
     note(sheet, f"{t('U', 1)}: rectifier, DC bus to the stacks (not drawn)", at=(160.0, 222.0))

@@ -50,9 +50,11 @@ loops:
     modes: [manual, auto]
     normal_mode: auto
     alarms:
-      - {tag: TIC-111, condition: TAH, response: "check the cooling water and TV-111; the stack outlet high-high trip I-105 stops the current"}
+      - {tag: TIC-111, condition: TAH, response: "check the tempered-water unit and TV-111; the stack outlet high-high trip I-105 stops the current"}
+      - {tag: TIC-111, condition: TAL, response: "the anolyte is cooling below the measured series' 25 degC (outdoors, idle or at start-up): check that the tempered-water unit is heating and TV-111 is open; on the idle skid keep P-101 circulating or drain the loop (SEQ-A-DRAIN) before it can freeze (D-052)"}
     interlocks: [I-105]
-    rationale: "Sensor on the outlet of the target stream, valve on the utility (skill control-loops). The cooler removes the stack heat (about 2.2 kW, cheme process stack); the duty model is isothermal by assumption."
+    rationale: "Sensor on the outlet of the target stream, valve on the utility (skill control-loops). The cooler removes the stack heat (about 2.2 kW, cheme process stack); the duty model is isothermal by assumption. The utility is a tempered-water unit off the skid, outside the zone, that heats and cools (D-052): in operation it cools at its own supply temperature (the flowsheet's 20 degC cooling water, ASSUMED), at start-up and when the skid stands idle it heats, so that the open skid outdoors holds 25 degC and does not freeze."
+    unresolved: ["the tempered-water unit's duty, its supply temperature control and its heating and frost-protection mode (vendor, D-052)"]
   - id: JIC-101
     title: Skid A stack current
     purpose: Hold the bus current of the four stacks at the duty's current density.
@@ -67,7 +69,7 @@ loops:
       - {kind: setpoint, value: 80, unit: A, provenance: calculated, source: "cheme process stack STK-A bus_current_a, written by scripts/regen.py step 9 (the stacks in parallel at 200 mA/cm2 on 100 cm2)", cases: [skid-a]}
     modes: [manual, auto]
     normal_mode: auto
-    interlocks: [I-101, I-102, I-103, I-104, I-105, I-106]
+    interlocks: [I-101, I-102, I-103, I-104, I-105, I-106, I-109, I-110]
     rationale: "The current sets the CO rate (Faraday); the rectifier runs constant current, its voltage follows the stacks (37.6 V at the measured point)."
     operator: "Ramp the current up only with the permissives of SEQ-A-START met; end the campaign at H with SEQ-A-STOP."
     notes: "J: the electrical quantity at the rectifier output, as the spec of #330 names it."
@@ -87,7 +89,7 @@ loops:
     normal_mode: auto
     alarms:
       - {tag: FIC-102, condition: FAL, response: "check the CO2 supply; without CO2 the stacks make H2 only: reduce the current"}
-    interlocks: [I-103, I-104]
+    interlocks: [I-103, I-104, I-109, I-110]
     rationale: "The flow element upstream of its valve on the fresh CO2. The total cathode feed is the fresh CO2 plus the recycle; the measured FE holds at 10 sccm/cm2 (D-012)."
     unresolved: ["the total cathode feed is not controlled directly: a ratio of the fresh CO2 to the current, or a flow measurement of the total feed with FIC-102 as its slave, is open"]
   - id: PIC-121
@@ -194,9 +196,11 @@ loops:
     modes: [manual, auto]
     normal_mode: auto
     alarms:
-      - {tag: TIC-211, condition: TAH, response: "check the cooling water and TV-211; the stack outlet high-high trip I-205 stops the current"}
+      - {tag: TIC-211, condition: TAH, response: "check the tempered-water unit and TV-211; the stack outlet high-high trip I-205 stops the current"}
+      - {tag: TIC-211, condition: TAL, response: "as TIC-111: tempered-water unit heating, P-201 circulating or the loop drained (SEQ-B-DRAIN) before it can freeze (D-052)"}
     interlocks: [I-205]
     rationale: "As TIC-111."
+    unresolved: ["the tempered-water unit's duty, its supply temperature control and its heating and frost-protection mode (vendor, D-052)"]
   - id: JIC-201
     title: Skid B stack current
     purpose: Hold the bus current of the four stacks at the duty's current density.
@@ -211,7 +215,7 @@ loops:
       - {kind: setpoint, value: 80, unit: A, provenance: calculated, source: "cheme process stack STK-B bus_current_a, written by scripts/regen.py step 9 (the stacks in parallel at 200 mA/cm2 on 100 cm2)", cases: [skid-b]}
     modes: [manual, auto]
     normal_mode: auto
-    interlocks: [I-201, I-202, I-203, I-204, I-205, I-206, I-207]
+    interlocks: [I-201, I-202, I-203, I-204, I-205, I-206, I-207, I-209, I-210]
     rationale: "As JIC-101. Its current-off signal stops the dosing and the bleed (I-207): the model doses and bleeds only while the current is on (D-010)."
     notes: "J: the electrical quantity at the rectifier output, as the spec of #330 names it."
   - id: FIC-202
@@ -230,7 +234,7 @@ loops:
     normal_mode: auto
     alarms:
       - {tag: FIC-202, condition: FAL, response: "check the CO2 supply; without CO2 the stacks make H2 only: reduce the current"}
-    interlocks: [I-203, I-204]
+    interlocks: [I-203, I-204, I-209, I-210]
     rationale: "As FIC-102."
     unresolved: ["the total cathode feed is not controlled directly (as FIC-102)"]
   - id: PIC-221

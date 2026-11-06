@@ -11,7 +11,7 @@ objectives:
 failures:
   - id: F-AIR
     title: Loss of instrument air
-    response: TV-x11 fail open (full cooling), FV-x02 closed (no CO2), PV-x21 open (the cathode is not pressurised against the compressor), LV-x22 closed (no gas to the effluent), PV-x31 closed (open point), Skid B LV-201 and FV-203 closed. Without CO2 the stacks make H2; the operator trips the current (SEQ-A-TRIP, SEQ-B-TRIP).
+    response: TV-x11 fail open (full tempered-water flow), FV-x02 closed (no CO2), PV-x21 open (the cathode is not pressurised against the compressor), LV-x22 closed (no gas to the effluent), PV-x31 closed (open point), XV-x33 closed (no tail gas to the oxidiser), Skid B LV-201 and FV-203 closed. Without CO2 the stacks make H2, and with XV-x33 closed the cathode gas has no outlet; the operator trips the current (SEQ-A-TRIP, SEQ-B-TRIP).
     loops: [TIC-111, TIC-211, FIC-102, FIC-202, PIC-121, PIC-221, LIC-122, LIC-222, PIC-131, PIC-231, LIC-201, FIC-203]
     sequences: [SEQ-A-TRIP, SEQ-B-TRIP]
   - id: F-POWER
@@ -20,10 +20,11 @@ failures:
     loops: [JIC-101, JIC-201, FIC-101, FIC-201, AIC-201]
     sequences: [SEQ-A-TRIP, SEQ-B-TRIP]
   - id: F-CW
-    title: Loss of cooling water
-    response: TIC-x11 saturates open; the stack outlet temperature rises at about 2.2 kW of stack heat until TSHH-x12 trips the current (I-105, I-205).
+    title: Loss of the tempered water (cooling in operation, heating when idle)
+    response: "In operation TIC-x11 saturates open; the stack outlet temperature rises at about 2.2 kW of stack heat until TSHH-x12 trips the current (I-105, I-205). On an idle skid in frost the anolyte cools: TIC-x11's low alarm calls the operator to restore the heating, keep P-x01 circulating or drain the loop (SEQ-A-DRAIN, SEQ-B-DRAIN; DESIGN.md D-052)."
     loops: [TIC-111, TIC-211]
     interlocks: [I-105, I-205]
+    sequences: [SEQ-A-DRAIN, SEQ-B-DRAIN]
   - id: F-FLOW
     title: Loss of anolyte recirculation
     response: The low-low flow trips the current (I-106, I-206); a low-low level also stops the pump (I-102, I-202).
@@ -31,8 +32,13 @@ failures:
     interlocks: [I-106, I-206, I-102, I-202]
   - id: F-GAS
     title: CO or H2 released at an open skid
-    response: The detector trips the current (the rectifier's AC feeder opened at SDB-1), closes the CO2 feed and stops the compressor (I-103, I-104, I-203, I-204); the open, naturally ventilated skid has no fan (DESIGN.md D-050). Nobody approaches until the detectors are clear, and then with a personal CO monitor and a check for CO2 at grade and at the low points. The cathode gas train stays isolated with its CO and H2 until the leak is found and the trips are reset; then it is purged to the oxidiser (SEQ-A-GAS, SEQ-B-GAS).
+    response: The detector trips the current (the rectifier's AC feeder opened at SDB-1), closes the CO2 feed and the tail-gas trip valve XV-x33 and stops the compressor (I-103, I-104, I-203, I-204); the open, naturally ventilated skid has no fan (DESIGN.md D-050). Nobody approaches until the detectors are clear, and then with a personal CO monitor and a check for CO2 at grade and at the low points. The cathode gas train stays isolated with its CO and H2 until the leak is found and the trips are reset; then it is purged to the oxidiser (SEQ-A-GAS, SEQ-B-GAS).
     interlocks: [I-103, I-104, I-203, I-204]
+    sequences: [SEQ-A-GAS, SEQ-B-GAS]
+  - id: F-TG
+    title: A flame held on the tail-gas arrester, or the oxidiser not firing
+    response: "The arrester's temperature on its unprotected side (TSHH-x33; I-109, I-209) or the oxidiser's burner management system (I-110, I-210) closes XV-x33 on the protected side of the detonation arrester FA-x33; with the tail gas closed the train has no outlet, so the current trips, the compressor stops and the CO2 feed closes, as on a gas release (SEQ-A-GAS, SEQ-B-GAS; DESIGN.md D-054). The check valve and the vendor's burner arrester and burner management system (EN 746-2, pre-purge) are the other barriers against a flame or air entering TG-x01."
+    interlocks: [I-109, I-110, I-209, I-210]
     sequences: [SEQ-A-GAS, SEQ-B-GAS]
   - id: F-DOSE
     title: "Skid B: loss of the KOH dose"
@@ -45,6 +51,7 @@ unresolved:
   - "Relief: K-x31 (a positive-displacement compressor) and the cathode gas train have no relief device drawn; the relief study is open (D-017)."
   - "The reservoir vent O2V-x01 carries the anode O2 with any H2 that crosses the membrane; the H2 in O2 is not measured. A gas analyser on the vent, or a dilution, is a HAZOP question."
   - "The CO2 purge and the oxidiser after a power loss (F-POWER)."
+  - "The detonation arrester's EU-type examination for the actual tail gas (H2, CO, CO2, H2O) at its temperature and pressure, its certified burning time (the TSHH-x33 set point and XV-x33's closing time follow from it), the detonation pressure rating of TG-x01 and the oxidiser vendor's integration (DESIGN.md D-054)."
   - "SIL screening and HAZOP of every trip (control/cause-effect.yaml, sil: null)."
 ---
 
@@ -110,12 +117,13 @@ water by hand (FI-x03), the reset of a trip once its cause is found, the end of 
 ## Equipment and utility failures
 
 See `failures` in the front matter: instrument air (F-AIR), electric power (F-POWER),
-cooling water (F-CW), the anolyte recirculation (F-FLOW), a gas release (F-GAS) and, on
-Skid B, the KOH dose (F-DOSE).
+the tempered water (F-CW), the anolyte recirculation (F-FLOW), a gas release (F-GAS), a
+flame at the tail-gas arrester or the oxidiser not firing (F-TG) and, on Skid B, the KOH dose
+(F-DOSE).
 
 ## Assumptions and open points
 
 Every setpoint, alarm and trip value is ASSUMED or taken from the duty model (each with its
 source in the YAML). The open points are in `unresolved` in the front matter: the pH basis,
-the fail position of PV-x31, relief, H2 in the anode O2, the purge after a power loss, SIL and
-HAZOP.
+the fail position of PV-x31, relief, H2 in the anode O2, the purge after a power loss, the
+tail-gas arrester's type examination and burning time, SIL and HAZOP.

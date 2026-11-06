@@ -409,7 +409,24 @@ safeguards and the rating bases.
   drawn (H01-A303, A304; H02-A302, A304).
 - **The site effluent** acceptance of the spent anolyte and Skid B's bleed (H01-A805, H02-A708).
 - **The oxidiser X-x32 inside the enclosure and zone**: stopped with its tail gas by the gas
-  trips, or moved outside (H01-A906, H02-A906); a flame cannot be Ex-rated.
+  trips, or moved outside (H01-A906, H02-A906); a flame cannot be Ex-rated. The oxidiser stands
+  outside the zone since D-047, and the tail gas's protection is **decided by the owner on
+  2026-11-06** (DESIGN.md D-054, P&ID revision B): an in-line detonation arrester FA-x33 for
+  unstable detonation (EN ISO 16852, IIC, protected side towards X-x31), a check valve and the
+  fail-closed trip valve XV-x33 at X-x31's outlet inside the zone, the arrester's temperature
+  TSHH-x33 tripping XV-x33 (I-x09), the gas trips and the oxidiser's burner management trip
+  (I-x10) closing it, TG-x01 all-welded to the burner; the vendor's burner arrester and burner
+  management the second barrier (H01-A605, H01-A907, H02-A604, H02-A907; H01-S610, H02-S613).
+  Still open: the arrester's type examination for the actual tail gas and its burning time
+  (vendor). The entries are to be revised as proposals for the team.
+- **Draining the anolyte loop and the tanks**: **decided by the owner on 2026-11-06** (DESIGN.md
+  D-055, P&ID revision B): a capped low-point drain DR-x01 on the supply header, a capped vent
+  AV-x11 on the cooler, a capped camlock pump-out on T-101, T-201 and T-202, and SEQ-x-DRAIN
+  venting, draining, pumping out the heel and flushing (H01-A111, H01-A206, H02-A208, H02-A802).
+- **The cell temperature on the open skid**: the cooler on a tempered-water unit off the skid
+  that also heats, with a low-temperature alarm on TIC-x11 and frost protection when idle
+  (DESIGN.md D-052, D-056; H01-A105). The lines CWS-x01 and CWR-x01 are renamed TWS-x01 and
+  TWR-x01, which the studies still name.
 - **The DC isolation independent of the rectifier**, which every trip and the current-runaway
   scenario rest on (H01-A205, H02-A207). Decided in principle by the owner (D-051): a lockable
   isolator or DC contactor outside the zone; its design and drawing stay open with the DC bus.

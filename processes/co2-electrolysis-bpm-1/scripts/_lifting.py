@@ -608,7 +608,9 @@ def study_markdown(
         "A drained tank empties by gravity only down to the highest point of its drain line (a "
         "line that rises to its hose coupling keeps the tank full to that level) or, with no "
         "drain, to its lowest outlet; what stands below stays in the tank and is lifted with "
-        "it. Pumping or siphoning it out is not on the P&IDs (open, DESIGN.md D-043).",
+        "it. Each tank's bottom outlet with its capped camlock pump-out (P&ID revision B, "
+        "DESIGN.md D-055) empties the heel at the end of a run; the drained lifts do not "
+        "credit it, so the heel by gravity stays in their weight as a margin.",
         "",
         "| lift | tank | drains to | level above the floor m | volume m3 | heel t | basis |",
         "|---|---|---|---:|---:|---:|---|",

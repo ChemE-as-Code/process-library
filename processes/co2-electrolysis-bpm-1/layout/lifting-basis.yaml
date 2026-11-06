@@ -49,12 +49,15 @@ units:
   carry_limit_m: 2.1
   carry_limit_basis: "ASSUMED: a forklift or a hoist on a portable gantry at the skid carries a load at most to the 2.1 m walkway headroom (core's headroom_walkway_m); a load that has to clear a tray, pipe or rack above it is a crane lift"
   # a drained tank keeps its heel: the liquid below the highest point of its drain line, or of
-  # its lowest outlet where it has no drain (regen reads the levels from the model); no pump-out
-  # or bottom drain is on the P&IDs (open, D-043)
+  # its lowest outlet where it has no drain (regen reads the levels from the model). Since P&ID
+  # revision B (D-055) each tank has a bottom outlet with a capped camlock pump-out (PO-101,
+  # PO-201, PO-202), which SEQ-x-DRAIN uses to empty the heel; the lifts do not credit it: the
+  # heel by gravity stays in the drained weights as a margin, in case a lift is made without the
+  # pump-out (the lifting plan may credit it once the procedure is written)
   heels:
-    - {tag: T-101, drain_line: SP-101, basis: "drained by gravity through N5 and HV-103 to its hose coupling (SP-101, level at 0.30 m)"}
-    - {tag: T-201, drain_line: SP-201, basis: "drained by gravity through N5 and HV-203 to its hose coupling (SP-201, level at 0.25 m)"}
-    - {tag: T-202, nozzle: N2, basis: "no drain on P-02: it empties at best down to its outlet N2 to P-202 (KOH-203, DN 15)"}
+    - {tag: T-101, drain_line: SP-101, basis: "drained by gravity through N5 and HV-103 to its hose coupling (SP-101, level at 0.30 m); the pump-out PO-101 (N11, HV-108) empties it, not credited (D-055)"}
+    - {tag: T-201, drain_line: SP-201, basis: "drained by gravity through N5 and HV-203 to its hose coupling (SP-201, level at 0.25 m); the pump-out PO-201 (N11, HV-208) empties it, not credited (D-055)"}
+    - {tag: T-202, nozzle: N2, basis: "drained down to its outlet N2 to P-202 (KOH-203, DN 15); the pump-out PO-202 (N5, HV-209) empties it, not credited (D-055)"}
   # the access steps ST-x1 and ST-x2 stand on grade beside the frame: delivered loose, not in
   # the unit lift
   lifts:

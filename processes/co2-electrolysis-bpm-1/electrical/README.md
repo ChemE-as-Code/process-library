@@ -46,4 +46,6 @@ the schedule by hand.
   grid 0.25 m; the rest package defaults. Regen step 13 keeps every tray 1 m from the vent and
   flue outlets (`layout/layout-checks.yaml`, D-047).
 - `cable-schedule.csv`, `.md`: written by `scripts/regen.py` step 24 (`cheme layout cables
-  --write`); at 1,000 h 60 cables (19 power, 8 of them 48 V DC; 41 instrument), 36 trays.
+  --write`); at 1,000 h 64 cables (19 power, 8 of them 48 V DC; 45 instrument, with the
+  tail-gas trip valves XV-x33 and arrester temperatures TSHH-x33 of P&ID revision B, D-054),
+  36 trays.

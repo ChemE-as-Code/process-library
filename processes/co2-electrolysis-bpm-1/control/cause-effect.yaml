@@ -8,8 +8,12 @@
 # of control/philosophy.md before it is set. A trip of the rectifier (U-x01) stops the current,
 # and with it the CO, H2 and O2 production; the anolyte pump and the CO2 purge keep running
 # unless the trip says otherwise (SEQ-x-TRIP in control/sequences.yaml). A gas detection trip
-# (I-x03, I-x04) also closes the CO2 feed and stops the compressor: the cathode gas train stays
-# isolated until the leak is found and the trip reset (SEQ-x-GAS).
+# (I-x03, I-x04) also closes the CO2 feed, stops the compressor and closes the tail-gas trip
+# valve XV-x33: the cathode gas train stays isolated until the leak is found and the trip reset
+# (SEQ-x-GAS). The tail-gas trips (D-054): the arrester temperature on its unprotected side
+# (I-x09, burning-time protection) and the oxidiser's own supervision (I-x10, its burner
+# management system) close XV-x33 and isolate the train in the same way. I-107, I-108 are not
+# used (Skid B's I-207, I-208 have no Skid A counterpart), so both skids keep one numbering.
 schema: cheme/interlocks/v1
 interlocks:
   # -- Skid A (P-01) ----------------------------------------------------------------------
@@ -41,11 +45,12 @@ interlocks:
       - {tag: U-101, action: trip}
       - {tag: FV-102, action: close}
       - {tag: K-131, action: stop}
+      - {tag: XV-133, action: close}
     sheet: P-01
     sil: null
     latching: true
     reset: manual
-    notes: "CO is toxic: stop making it, stop the CO2 feed and the compressor. The skid is open and naturally ventilated (D-050): no fan to start. The U-101 trip also opens the rectifier's AC feeder at SDB-1, outside the zone (D-051). D-018."
+    notes: "CO is toxic: stop making it, stop the CO2 feed and the compressor, and close the tail gas to the oxidiser (no gas sent to a flame while the leak is open, D-054). The skid is open and naturally ventilated (D-050): no fan to start. The U-101 trip also opens the rectifier's AC feeder at SDB-1, outside the zone (D-051). D-018."
   - id: I-104
     title: Skid A H2 detected over the stack row (open skid)
     cause: {tag: AIA-142, condition: "AHH: H2, ASSUMED set point (a fraction of the lower flammability limit) by the gas detection study"}
@@ -53,11 +58,12 @@ interlocks:
       - {tag: U-101, action: trip}
       - {tag: FV-102, action: close}
       - {tag: K-131, action: stop}
+      - {tag: XV-133, action: close}
     sheet: P-01
     sil: null
     latching: true
     reset: manual
-    notes: "H2 (about 1.46 mol per mol CO at the measured FE) is flammable; on the open skid it rises and disperses (D-050). The U-101 trip also opens the rectifier's AC feeder at SDB-1, outside the zone (D-051). D-018."
+    notes: "H2 (about 1.46 mol per mol CO at the measured FE) is flammable; on the open skid it rises and disperses (D-050). The tail gas to the oxidiser is closed with the train (D-054). The U-101 trip also opens the rectifier's AC feeder at SDB-1, outside the zone (D-051). D-018."
   - id: I-105
     title: Skid A anolyte temperature high-high at the stack outlet
     cause: {tag: TSHH-112, condition: THH}
@@ -79,6 +85,32 @@ interlocks:
     reset: manual
     delay: {value: 5, unit: s}
     notes: "The stacks without anolyte flow lose the anode's water and O2 removal. The trip shares its transmitter with FIC-101 (HAZOP to judge). D-018."
+  - id: I-109
+    title: Skid A tail-gas arrester temperature high-high (flame held on the arrester)
+    cause: {tag: TSHH-133, condition: "THH: ASSUMED set point, within the arrester's certified burning time (vendor)"}
+    effects:
+      - {tag: XV-133, action: close}
+      - {tag: U-101, action: trip}
+      - {tag: K-131, action: stop}
+      - {tag: FV-102, action: close}
+    sheet: P-01
+    sil: null
+    latching: true
+    reset: manual
+    notes: "Burning-time protection of the detonation arrester FA-133 (EN ISO 16852): a flame that stabilises on the element's unprotected side at continuous flow would pass it once the certified burning time is exceeded, so the temperature closes XV-133 on the protected side and stops the gas that feeds it. With the tail gas closed the cathode gas train has no outlet: the current trips, the compressor stops and the CO2 feed closes, as on a gas trip (SEQ-A-GAS). D-054."
+  - id: I-110
+    title: Skid A oxidiser not firing (burner management trip of X-132)
+    cause: {tag: X-132, condition: "flame failure, low air or the burner management system's own trip while firing (armed once X-132 reports firing; package signal, EN 746-2; vendor)"}
+    effects:
+      - {tag: XV-133, action: close}
+      - {tag: U-101, action: trip}
+      - {tag: K-131, action: stop}
+      - {tag: FV-102, action: close}
+    sheet: P-01
+    sil: null
+    latching: true
+    reset: manual
+    notes: "No tail gas to a burner that is not firing (it would leave unburnt CO and H2 at the flue) or that is pre-purging. The vendor's burner arrester and burner management system (pre-purge, flame supervision) are the second barrier behind FA-133. The train is isolated as on a gas trip (SEQ-A-GAS). D-054."
   # -- Skid B (P-02) ----------------------------------------------------------------------
   - id: I-201
     title: Skid B anolyte pH low-low
@@ -110,6 +142,7 @@ interlocks:
       - {tag: U-201, action: trip}
       - {tag: FV-202, action: close}
       - {tag: K-231, action: stop}
+      - {tag: XV-233, action: close}
     sheet: P-02
     sil: null
     latching: true
@@ -122,6 +155,7 @@ interlocks:
       - {tag: U-201, action: trip}
       - {tag: FV-202, action: close}
       - {tag: K-231, action: stop}
+      - {tag: XV-233, action: close}
     sheet: P-02
     sil: null
     latching: true
@@ -169,3 +203,29 @@ interlocks:
     latching: true
     reset: manual
     notes: "Dry-run protection of the metering pump; the day tank is refilled weekly (refill_interval 168 h, D-010). AIC-201 then alarms as the pH falls."
+  - id: I-209
+    title: Skid B tail-gas arrester temperature high-high (flame held on the arrester)
+    cause: {tag: TSHH-233, condition: "THH: ASSUMED set point, within the arrester's certified burning time (vendor)"}
+    effects:
+      - {tag: XV-233, action: close}
+      - {tag: U-201, action: trip}
+      - {tag: K-231, action: stop}
+      - {tag: FV-202, action: close}
+    sheet: P-02
+    sil: null
+    latching: true
+    reset: manual
+    notes: "As I-109 (SEQ-B-GAS). D-054."
+  - id: I-210
+    title: Skid B oxidiser not firing (burner management trip of X-232)
+    cause: {tag: X-232, condition: "flame failure, low air or the burner management system's own trip while firing (armed once X-232 reports firing; package signal, EN 746-2; vendor)"}
+    effects:
+      - {tag: XV-233, action: close}
+      - {tag: U-201, action: trip}
+      - {tag: K-231, action: stop}
+      - {tag: FV-202, action: close}
+    sheet: P-02
+    sil: null
+    latching: true
+    reset: manual
+    notes: "As I-110 (SEQ-B-GAS). D-054."

@@ -19,6 +19,7 @@ sections:
     cases: [skid-a]
     modes: [normal, startup, shutdown]
     loops: [FIC-102, PIC-121, LIC-122, PIC-131]
+    interlocks: [I-109, I-110]
   - id: ELB
     title: Skid B stacks, anolyte loop, KOH dosing and bleed
     equipment: [E-201A, E-201B, E-201C, E-201D, T-201, P-201, E-211, T-202, P-202, U-201]
@@ -35,6 +36,7 @@ sections:
     cases: [skid-b]
     modes: [normal, startup, shutdown]
     loops: [FIC-202, PIC-221, LIC-222, PIC-231]
+    interlocks: [I-209, I-210]
 unresolved:
   - "The pH probe reads activity pH; the duty model, the trip value and AIC-201's setpoint are concentration-basis pH (control/philosophy.md): an offset or a calibration is needed before use."
   - "FE, WDE, U and kWh/kg are held constant by assumption, not supported by measurement: the measured runs last 1 h in fresh 1 M KOH (DESIGN.md D-014)."
@@ -60,13 +62,17 @@ rectifier U-101 reduce CO2 to CO at 200 mA/cm2. The bipolar membranes supply hyd
 Ni anodes from a recirculated KOH anolyte held in T-101.
 
 **Boundaries.** From the KOH fill hose connection at the frame's west end to the spent anolyte
-drain there; the O2 vent of T-101 to atmosphere; cooling water to E-111; AC power to U-101.
+drain there; the O2 vent of T-101 to atmosphere; tempered water to E-111 from a unit off the
+skid, outside the zone; AC power to U-101; the capped drain, vent and pump-out connections
+(DR-101, AV-111, PO-101) used only at the end of a run.
 
 **Normal operation.** T-101 is filled once with fresh 1 M KOH sized by `cheme process stack`
 so that the anolyte reaches the pH threshold at the end of the campaign (DESIGN.md D-009).
 P-101 recirculates the anolyte through the stacks at the bench ratio (FIC-101), E-111 cools the
 stack inlet so that the stacks return the anolyte at 25 degC (TIC-111), JIC-101 holds the stack
-current. Nothing is dosed or bled: the pH falls steadily as K+ crosses to the cathode and
+current. The tempered-water unit cools in operation and heats at start-up and when the skid
+stands idle outdoors, so the loop holds 25 degC and does not freeze (TIC-111's low alarm,
+DESIGN.md D-052). Nothing is dosed or bled: the pH falls steadily as K+ crosses to the cathode and
 carbonate to the anolyte. AI-101 indicates the pH with an alarm before the end of the campaign.
 
 **Modes.** Fill (SEQ-A-FILL), start-up (SEQ-A-START: recirculation and cooling before the
@@ -75,7 +81,9 @@ trip (SEQ-A-TRIP) or to a gas detection trip (SEQ-A-GAS) and the end-of-run drai
 (SEQ-A-DRAIN). The pH low-low trip (I-101) acts at the threshold itself, if the anolyte gets
 there before H; level, temperature and flow trips stop the current (I-102, I-105, I-106); the
 CO and H2 detectors (I-103, I-104) also isolate the cathode gas train. The skid is open and
-naturally ventilated, with no enclosure and no fan (DESIGN.md D-050).
+naturally ventilated, with no enclosure and no fan (DESIGN.md D-050). The drain vents the loop
+at the cooler, empties T-101 by gravity, the supply header's low point and the tank's heel by
+the pump-out, flushes with demineralised water and caps every connection (D-055).
 
 **Assumptions and open points.** The scale-up from 5 to 100 cm2 and the measured performance
 over the whole campaign (DESIGN.md D-007, D-014); the reservoir has no time margin, so a WDE one
@@ -92,14 +100,19 @@ and the condensate drain; fresh CO2 and air at the battery limit.
 **Normal operation.** FIC-102 feeds the fresh CO2, PIC-121 holds the cathode back-pressure, V-121
 separates the carbonate condensate on level (LIC-122), K-131 compresses the gas, the PSA package
 X-131 delivers the CO (PIC-131) and returns CO2 to the cathode feed, and X-132 burns the tail
-gas with air (DESIGN.md D-012).
+gas with air (DESIGN.md D-012). The tail gas TG-101 leaves the PSA through its trip valve
+XV-133, a check valve and the detonation arrester FA-133, all inside X-131's zone, and runs
+all-welded to the burner (D-054).
 
-**Modes.** Started and stopped with the stacks (SEQ-A-START, SEQ-A-STOP, SEQ-A-TRIP); a gas
-detection closes the CO2 and stops the compressor, and the train is purged to the oxidiser only
-once the leak is found and the trip reset (SEQ-A-GAS).
+**Modes.** Started and stopped with the stacks (SEQ-A-START, SEQ-A-STOP, SEQ-A-TRIP): XV-133
+opens only once the oxidiser fires and closes before it stops. A gas detection, a flame held on
+the arrester (TSHH-133, I-109) or the oxidiser's own trip (I-110) closes the CO2 and the tail
+gas and stops the compressor, and the train is purged to the oxidiser only once the cause is
+found and the trip reset (SEQ-A-GAS).
 
 **Assumptions and open points.** The packages are black boxes (recovery, recycle, energy
-ASSUMED); relief and the cathode salt precipitation are not designed.
+ASSUMED); relief and the cathode salt precipitation are not designed; the arrester's type
+examination for the actual tail gas and its burning time are the vendor's.
 
 ## ELB Skid B stacks, anolyte loop, KOH dosing and bleed
 
@@ -127,6 +140,6 @@ Skid A (`results/resize-1000h-10000h.md`).
 ## GCB Skid B cathode gas conditioning
 
 **Purpose, boundaries, operation and modes.** As GCA, with FIC-202, PIC-221, LIC-222 and PIC-231
-on V-221, K-231, X-231 and X-232.
+on V-221, K-231, X-231 and X-232, the tail gas through XV-233 and FA-233 (I-209, I-210).
 
 **Assumptions and open points.** As GCA.

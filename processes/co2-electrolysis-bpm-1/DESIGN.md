@@ -586,6 +586,13 @@ Changed by D-050: the skids are open and naturally ventilated; the extract fans 
 deleted from the lists, the control and the layout (the drawing module still draws them until
 P-01 and P-02 are regenerated with the P&ID revision).
 
+Changed by D-054 to D-056 (P&ID revision B, 2026-11-06): K-x41 is no longer drawn; the tail gas
+has its trip valve, check valve, detonation arrester and temperature trip (D-054); the anolyte
+loop has its low-point drain and cooler vent and each tank a bottom pump-out (D-055), so "vents
+and drains beyond the ones operation needs" now include the ones the drain needs; the cooler is
+on a tempered-water unit (TWS-x01, TWR-x01); the bubbles of PIC-x21 and LIC-x22 are placed by
+the script, so the sheets are what `cheme regen` makes (D-056).
+
 ## D-018 Control of the skids: loops, trips and sequences (2026-11-04)
 Decision: `control/loops.yaml`, `control/cause-effect.yaml`, `control/sequences.yaml` and
 `control/philosophy.md` hold the control of both skids (1xx Skid A, case skid-a; 2xx Skid B,
@@ -635,6 +642,13 @@ the values need an offset or a calibration before use (control/philosophy.md).
 
 Changed by D-050 and D-051: CO or H2 detected no longer starts a fan (there is none on the open
 skid); the rectifier trip opens its AC feeder at SDB-1.
+
+Changed by D-054 and D-056: CO or H2 detected also closes the tail-gas trip valve XV-x33; two
+trips per skid are added, the arrester temperature (I-109, I-209) and the oxidiser's burner
+management trip (I-110, I-210), each closing XV-x33, tripping the rectifier, stopping the
+compressor and closing the CO2 (SEQ-x-GAS); TIC-x11 has a low-temperature alarm (tempered water,
+heating when idle); SEQ-x-DRAIN vents, drains the low point, pumps out the heel and flushes
+(D-055).
 
 ## D-019 Skid layout: plot, frames, placement, zones and routing (2026-11-04)
 Decision: a notional pilot plot (ASSUMED, `layout/site-plan.yaml`): 32 x 16 m, two process
@@ -1225,7 +1239,10 @@ rating) is decided in D-051, the area classification still the competent person'
 "ignition source of the enclosure" reads "of the zone" (D-050; the oxidiser is outside it since
 D-047); item 17 (DC isolation independent of the rectifier) is decided in principle in D-051 (a
 lockable isolator or DC contactor outside the zone, the DC never broken under load inside it),
-its design and drawing still open with the DC bus.
+its design and drawing still open with the DC bus. Item 14's flashback protection of the tail
+gas is decided in D-054 (a detonation arrester, check valve and trip valve at the PSA outlet,
+the arrester's temperature trip, the oxidiser stopping its tail gas by its own trip I-x10);
+item 10's burner management is the oxidiser vendor's, its trip now in the C&E (I-x10).
 
 ## D-032 What the HAZOP drafts found missing, and what they judged not applicable (2026-11-05)
 Decision: the studies analyse the plant as drawn; what it does not have is an action, never a
@@ -1262,6 +1279,13 @@ vent outlet heights of D-019, the zone screening of layout/zones.yaml (all ASSUM
 Changed by D-050: the fan K-x41 and its running signal are no longer missing; the open skid has
 no fan. CO2 and O2-depletion at low level are checked by the operator with a portable meter
 (SEQ-x-START S1, SEQ-x-GAS S1), not by a fixed detector.
+
+Changed by D-054 to D-056 (P&ID revision B): TG-x01 has a check valve, a detonation arrester and
+a fail-closed trip valve, and X-x32's burner management trip closes it (I-x10); SEQ-x-DRAIN
+vents, drains the loop's low point, pumps out the heel and flushes, and T-202 has a pump-out;
+the cooler's tempered-water unit heats (TIC-x11 no longer only cools). Still missing as drawn:
+the check valves and shut-off on CO2-x02 and W-x01, the DC isolation, the purge outlet of
+SEQ-x-START S2, the valve between T-202 and P-202.
 
 ## D-040 The 3D model of the 1,000 h design to the layout-3d gate: routes, pins, proposals, details (2026-11-05)
 Decision: the committed model (`layout/plant-model.yaml`, `cheme layout build`, core 1.5.0)
@@ -1549,6 +1573,10 @@ test before the first lift, and the lifting plan sized on at least the doubled-w
 recomputed at the 5.47 m radius of D-047 (D-053). The P&ID items of the open list (T-x01 bottom
 outlets, the drain-before-lift sequence) are the owner's anolyte draining decision, made with
 the P&ID revision. The fans' 0.035 t each leave the unit lifts (D-050).
+
+Changed by D-055: T-101, T-201 and T-202 have a bottom outlet with a capped camlock pump-out,
+and SEQ-x-DRAIN pumps out the heel and reaches "LIA-x01 empty"; the drained lifts keep the heel
+by gravity as a margin (the pump-out is not credited), so the weights above stand.
 
 ## D-044 The material take-off of the 1,000 h model; no estimate (2026-11-05)
 Decision: `cheme assess mto --write` (regen step 22) writes `estimate/mto.csv` and `.md` from the
@@ -1951,6 +1979,11 @@ the unit lifts are Skid A 3.051 t and Skid B 2.903 t drained, and the cabling 60
 trays (D-050); the rectifier, the zones and the ignition margins are unchanged; the doubled-weight
 bound at 5.47 m is D-053's.
 
+Changed by D-054 and D-055 (P&ID revision B): item 2's flame arrester is decided (a detonation
+arrester for unstable detonation with a check valve and a fail-closed trip valve at X-x31's
+outlet, the arrester's temperature trip, TG-x01 all-welded, D-054); item 4's open low-point
+drain and cooler vent and item 7's open T-101 pump-out are drawn (D-055).
+
 ## D-048 Publication: public under CC-BY-4.0 (2026-11-06)
 Decision: the process is public (`publication.status: public`, licence CC-BY-4.0), as ADR 0036
 makes the default; the owner decided this on 2026-11-06.
@@ -2017,6 +2050,10 @@ accepts), and both studies re-stamped; until then gate `hazop-current` fails.
 
 Open: the gas detection study (number, location, set points, voting; D-031 item 5); the canopy
 and any roof, for the competent person.
+
+Changed by D-056: P-01 and P-02 are regenerated without K-x41 (revision B), so the two
+`cheme.equipment-not-listed` warnings are gone; the HAZOP studies still name K-x41
+(`cheme.hazop-unknown-tag`) until their revision.
 
 ## D-051 Ex protection in the screening zones (2026-11-06)
 Decision (the owner, 2026-11-06; ASSUMED until the area classification, no certification is
@@ -2098,6 +2135,10 @@ keeps its setpoint (295.27 K at the cooler outlet, D-012).
 Open (cannot be settled here): the meter's actual reference conditions (the dataset authors);
 the tempered-water unit's heating and cooling duty and its frost protection (vendor).
 
+Changed by D-056: the P&ID, line list, loops and C&E change is made: TWS-x01 and TWR-x01 from
+the tempered-water unit, TIC-x11's low-temperature alarm, SEQ-x-START S1 bringing the loop to
+temperature and SEQ-x-STOP S3 keeping an idle filled skid circulated and heated.
+
 ## D-053 The ASSUMED weights for basic engineering; vendor weights, weighing and the lifting plan (2026-11-06)
 Decision (the owner, 2026-11-06): the ASSUMED weights of `layout/lifting-basis.yaml` (D-043)
 are accepted for basic engineering. Before detail engineering, vendor weights are required for
@@ -2126,4 +2167,142 @@ Consequence: text only; no weight, record or study changes.
 Open (cannot be settled here): the crane, its load chart, the outrigger spread and the ground
 bearing on the hardstanding; the base frame's lifting points and its weight (the fabricator,
 D-043); the vendor weights themselves.
+
+## D-054 The tail gas TG-x01: detonation arrester, check valve, trip valve and the arrester's temperature trip (2026-11-06)
+Decision (the owner, 2026-11-06; review 2026-11-05-layout-r2 #2, HAZOP H01-A605, H01-A907,
+H02-A604, H02-A907): the tail gas TG-x01 leaves the PSA X-x31 through, in flow order, all at
+X-x31's outlet inside its own zone Z-HAZ-x:
+- the **tail-gas trip valve XV-x33**, fail closed (P-01, P-02 revision B, D-056);
+- a **check valve**, against air or flue gas flowing back into the PSA;
+- the **detonation arrester FA-x33**: in-line, rated for unstable detonation (EN ISO 16852,
+  explosion group IIC: the tail gas is about 48 mol% H2), unidirectional, its protected side
+  towards X-x31. A detonation arrester has no run-up limit, so it holds over the about 8 m (L/D
+  about 500) of DN 15 line to the burner that review r2 #2 found too long for a deflagration
+  arrester; DEXPI's `FlameArrestor` with `DetonationProofArtefact`, its tag as `PositionNumber`
+  (`piping/special-items.yaml`);
+- the **arrester temperature switch TSHH-x33** on the arrester's unprotected side (towards the
+  burner): a flame that stabilises on the element at continuous flow trips XV-x33 within the
+  arrester's certified burning time (burning-time protection; C&E I-109, I-209).
+From the arrester TG-x01 is all-welded to the burner, rated for the detonation pressure,
+mechanically protected where it crosses grade and kept off the escape way, so no flanged joint
+of it stands outside the declared zone and D-019's zones and D-047 item 2 are unchanged. The
+oxidiser vendor's own burner arrester and burner management system (EN 746-2, pre-purge, flame
+supervision) are the second barrier. Cause and effect: the gas trips I-x03 and I-x04 also close
+XV-x33; the new I-x09 (TSHH-x33, the arrester hot) and I-x10 (X-x32's burner management trip
+while firing, a package signal) close XV-x33, trip U-x01, stop K-x31 and close FV-x02, because
+with the tail gas closed the train has no outlet; they lead into SEQ-x-GAS like a gas trip.
+SEQ-x-START opens XV-x33 only once X-x32 fires, SEQ-x-STOP, -TRIP and -GAS close it before the
+oxidiser stops. The philosophy adds F-TG. I-107 and I-108 stay unused, so that both skids keep
+one numbering (Skid B's I-207 and I-208 have no Skid A counterpart).
+
+Why: a deflagration arrester at the burner would put a flanged release point beside the flame
+and outside every zone, against D-047; an arrester at the PSA end has to stop a detonation that
+has run the whole line. The trip valve and the check valve beside it keep every flange inside
+the zone. A temperature on the unprotected side is the usual protection of an in-line arrester
+against a stabilised flame, which a certified arrester withstands only for its burning time.
+
+Rejected: a deflagration arrester (in-line or end-of-line) at the burner within its tested
+run-up; a detonation arrester alone, without the trip valve, the check valve and the burner's
+own arrester and supervision.
+
+Consequence: P-01 and P-02 revision B draw XV-x33, the check valve, FA-x33 and TSHH-x33 on
+TG-x01 (D-056); the instrument list adds TSHH-133 and TSHH-233, the electrical list their and
+XV-x33's points at X-x31's north-east corner (two field cables per skid). TG-x01 is DN 15 and
+not routed at the concept stage (D-019), so the model, the take-off and the zones do not change
+with it. Pinning TG-x01 and AIR-x01 in `piping/routing.yaml` (review r2 #2) belongs with the
+move of X-x32 of the layout decision (review r2 #3), which changes both routes; it is not done
+here. HAZOP: H01-A605, H01-A907, H02-A604, H02-A907 and scenarios H01-S610, H02-S613 are to be
+revised as proposals for the team with the HAZOP revision; the team re-assesses them.
+
+Open (cannot be settled here): the arrester's EU-type examination for the actual mixture (H2,
+CO, CO2, H2O) at its temperature and pressure, and its certified burning time, which sets
+TSHH-x33's set point and XV-x33's closing time (vendor); the detonation pressure rating of
+TG-x01; the oxidiser vendor's integration of its burner arrester and burner management system;
+SIL screening of I-x09 and I-x10 (H01-A112, H02-A104).
+
+## D-055 Draining the anolyte loop: low-point drain, cooler vent, tank pump-outs, the drain sequence (2026-11-06)
+Decision (the owner, 2026-11-06; D-043, D-047 items 4 and 7, HAZOP H01-A111, H01-A206,
+H02-A208, H02-A802): every point of the anolyte loop and every tank can be emptied before a
+stack is opened or a tank or skid is lifted:
+- a **low-point drain DR-x01** (DN 15, ball valve HV-x06, capped) on a tee at the level east end
+  of the supply header AN-x03, 0.12 m before its turn to stack D (the loop's low point, below the
+  tank drain), to a closed IBC;
+- a **high-point vent AV-x11** (DN 15, HV-x07, capped) on a new connection N5 on the top of the
+  cooler's anolyte outlet channel (the supply side's high point, D-047 item 4);
+- a **bottom outlet with a pump-out** on each tank: T-x01 N11 (PO-x01, HV-x08) and T-202 N5
+  (PO-202, HV-209), each a ball valve and a capped camlock coupling for a portable pump to a
+  closed IBC; T-202 had no drain at all. The gravity drains SP-x01 stay for the bulk;
+- **SEQ-x-DRAIN**: stop the recirculation, vent the loop at the cooler, drain the tank by
+  gravity, drain the loop's low point, pump out the heel (Skid B: T-201 and the day tank),
+  flush with demineralised water through the fill connection and drain again, close and cap
+  every connection. Its end condition "LIA-x01 empty" is now reachable; SEQ-x-FILL requires the
+  new drains closed.
+
+Why: the loop's low point is below the tank drain (D-047 item 4) and cannot drain to the tank;
+without a vent the loop holds liquid behind its high point; the gravity drain leaves a heel of
+0.143 t in T-101 at 1,000 h (0.66 t at 10,000 h) and the day tank of 5 M KOH had no outlet but
+its pump suction. A capped camlock is the usual skid pump-out for an IBC.
+
+Rejected: drains at working height (they need the pump-out anyway, D-047 item 8); draining the
+loop back to the tank (the low point is below it).
+
+Consequence: P-01 and P-02 revision B (D-056); the line list adds DR-x01, AV-x11, PO-x01 and
+PO-202, the placement their nozzles (T-x01 N11 and T-202 N5 at the floor, E-x11 N5 on top), the
+routing their skips (DN 15) and the split of the pinned header AN-x03 at the new tee (S4 to the
+tee, S5 on to stack D). The lifting study does not credit the pump-out: the heel by gravity stays
+in the drained lifts' weight as a margin, in case a lift is made without the pump-out
+(`layout/lifting-basis.yaml`), so D-053's bounds stand. HAZOP: H01-A111, H01-A206, H02-A208 and
+H02-A802 are to be revised as proposals with the HAZOP revision.
+
+Open: the written drain, flush and lift procedure (the operator); the effluent acceptance of the
+flush water (H01-A805, H02-A708); whether the lifting plan credits the pump-out.
+
+## D-056 P&ID revision B of P-01 and P-02: regenerated from the scripts, drift acceptances removed (2026-11-06)
+Decision: P-01 and P-02 are regenerated once (`cheme regen P-01 P-02`) from
+`scripts/_skid_pid.py` with the owner's decisions of 2026-11-06 that change the sheets, and
+their frames' title blocks say revision B of 2026-11-06:
+- the extract fan K-x41 is no longer drawn (D-050); a note on the sheet says the skid is open
+  and naturally ventilated;
+- the tail gas TG-x01 with XV-x33, the check valve, FA-x33 and TSHH-x33 (D-054);
+- the cooler E-x11 on the **tempered-water unit** off the skid, outside the zone (D-052): the
+  lines CWS-x01 and CWR-x01 are renamed TWS-x01 and TWR-x01 (fluid "Tempered water"), TV-x11
+  stays the final element of TIC-x11 (fail open), and TIC-x11 gets a low-temperature alarm TAL
+  with its response (heating, circulation or drain before frost, SEQ-x-START S1, SEQ-x-STOP S3);
+  F-CW of the philosophy covers the heating when idle;
+- the drains, the vent and the pump-outs (D-055);
+- the placement of the bubbles of PIC-x21 (above CG-x02's run to PV-x21) and LIC-x22 (over
+  LV-x22) in the script: core 1.10 points an actuator to the side of its controller's bubble
+  and routes the signal from there, so PIC-x21's bubble below the line turned PV-x21's actuator
+  down through the line (`cheme.line-through-valve`) and LIC-x22's bubble beside LV-x22 sent
+  its signal through the bubble. With the placement in the script the regenerated sheets pass
+  drawing-clean, and the two `generated-sheet-drift` acceptances of `checks/checks.yaml` are
+  removed (no new acceptance added). The gates `pid-skid-a` and `pid-skid-b` name the new tags.
+
+Why: one regeneration with every sheet change of the owner's decisions, so that the HAZOP
+re-assesses one revision; a generated sheet that its script does not reproduce defeats the
+point of generating it (D-017).
+
+Rejected: keeping the cooling-water lines' numbers with a new fluid (the service changed);
+drawing the tempered-water unit as an equipment item (it is a utility package off the skid and
+outside the zone, at the battery limit like the cooling water was); hand edits of the sheets.
+
+Consequence: results at 1,000 h (regen): 28 of 28 DN 25 lines routed (38 pinned, 3 astar, 1
+via, 1 open end), 0 clash findings, both skids 1.95 m against the 2.35 m envelope; the cable
+schedule 64 cables (19 power, 8 of them 48 V DC; 45 instrument: TSHH-x33 and XV-x33 added), 36
+trays 175.7 m, cable 826 m (was 60 and 793 m); the take-off's pipe 36.195 m and fittings
+unchanged (the new lines are DN 15, not routed), 43 pipe pieces (41: AN-x03 split at the drain
+tee), 32 step-over proposals (30: one more on AN-x03 S5 per skid, not adopted, D-040), so steel
+8.478 t (8.456 t) and grating 75.963 m2 (74.149 m2) with the adopted 7.571 t unchanged; unit
+lifts unchanged (Skid A drained 3.051 t, Skid B 2.903 t); the LCA results unchanged. The
+flowsheet's cooling-water utility of the stack heat (20 / 25 degC, D-012) stands for the unit's
+cooling side, unchanged; the LCA's cooling-water exchange is unchanged,
+and the unit's own electricity for cooling and heating is not in the inventory (open). The HAZOP
+studies name K-x41 in node N9 and several scenarios, which `cheme validate` now reports as
+`cheme.hazop-unknown-tag` (warnings), and every analysed P&ID, list and control file changed:
+the HAZOP revision (node N9 and the enclosure causes of D-050, the Ex actions of D-051, the
+tail-gas actions of D-054, the drain actions of D-055) is the next step, as proposals for the
+team, then both studies are re-stamped; until then gate `hazop-current` fails.
+
+Open: the tempered-water unit's duty, supply temperature control, heating and frost-protection
+mode (vendor, D-052); the unit's electricity in the LCA.
 
