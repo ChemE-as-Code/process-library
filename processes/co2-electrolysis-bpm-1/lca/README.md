@@ -115,7 +115,8 @@ has a factor: **ranking not determined** (`ranking.json`). With the solutions' w
 Skid B is higher in electricity and the separately fed water, lower in the solutions' water and
 equal in the vent CO2, higher in total, and it uses more KOH and makes more alkaline waste per kg
 CO; only Skid A's larger reservoir (construction) could reverse that, and it cannot be stated per
-case yet.
+case yet. No reported sensitivity changes the order; the construction difference that would
+reverse it is in the tables below (DESIGN.md D-049).
 
 ## Sensitivities
 
@@ -232,6 +233,8 @@ Generated from results/scenarios/<H>h/lca.json (design campaign 1000 h unless st
 **H2 as a co-product** (not designed): 0.116 kg H2 per kg CO would carry 10.4 % of the burden by mass or 58.0 % by LHV; substitution missing.
 
 **Skid A against Skid B: ranking not determined.** Distinguishing flows without a documented factor: feed:KOH-DOSE, feed:KOH-FILL, product:BLEED, product:SPENT, construction. Break-even KOH factor: -0.004142 kg CO2e/kg KOH (none).
+
+**Whether the ranking changes**: The order does not change: Skid B stays higher under every reported sensitivity (5 electricity mixes, 2 campaign durations; the membrane life is common to both skids) and under any non-negative KOH or waste-treatment factor (Skid B uses 1.84 times the KOH and makes 1.57 times the alkaline waste per kg CO); only a construction difference above the break-even could reverse it: Skid A's construction exceeding Skid B's by more than 18.08 kg CO2e per skid life (0.329 kg CO2e per kg of its 55 kg of extra PP tank, ASSUMED weights). B - A with the solutions' water, kg CO2e per kg CO: NL (Ember 2025) +0.002261; EU-27 (Ember 2025) +0.002111; DE (Ember 2025) +0.00254; FR (Ember 2025) +0.001524; world (Ember 2025) +0.002976; 1000 h +0.002261; 10000 h +0.002176. The break-even's basis: 0.002261 x 8000 kg CO per skid life (0.1 kg/h x 8000 h/a x 10 a, ASSUMED); the tanks: Skid A's T-101 85 kg, Skid B's T-201 15 kg + T-202 15 kg (PP, ASSUMED weights); Skid B's dosing pump P-202 is not in it (it would raise the break-even).
 
 **Reconciliation (E10)**: the datasets equal the duty totals per kg CO at 1000 h yes, 10000 h yes (largest relative difference 1.6e-08, tolerance 1e-6).
 <!-- regen:lca end -->
