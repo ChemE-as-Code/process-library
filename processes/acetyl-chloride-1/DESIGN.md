@@ -257,8 +257,10 @@ Decision (scripts/balance.py, year averages, ASSUMED unless sourced):
 - Q5 0.14 kW to cooling water: the residue S12 cooled from 340.45 to 303.15 K in the still before
   it is drained.
 - Q6 1.28 kW to brine (258/263 K): the vent condenser E-103 (D-010).
-- Electricity 5.2 kW: R-101's agitator 4 kW for 3.54 h of each 5.78 h cycle (2.5 kW, P1); the
-  still's agitator and reflux pump (1.2 kW, P2); the scrubber's pump and fan (1.5 kW, P3).
+- Electricity 5.22 kW (0.0207 kWh/kg): R-101's agitator 4 kW for 3.53 h of each 5.78 h cycle
+  (2.44 kW, P1); the still's agitator 2 kW for 2.63 h (the distillation, 2.13 h, and the residue's
+  cooling) and its reflux pump 1 kW for 2.13 h, 7.38 kWh a cycle (1.28 kW, P2); the scrubber's
+  pump and fan (1.5 kW, P3).
 Every energy flow of the batch is in the flowsheet and so in the LCI per kg (library ADR 0035).
 Recorded exclusions, each with its estimate (ASSUMED orders, insulated surfaces at about 1
 W/(m2 K)): the heat losses of R-101 (at 313 K, 15 K above the ambient: about 0.1 kW), of C-101 and
@@ -307,7 +309,8 @@ whole batch 21.4 K (with the exothermic bound of D-005); largest accumulation of
 liquid once the PCl3 is dosed; core's default, the lowest boiling point of the charge and the
 dose, would be PCl3's 349.15 K, 25 K too high: L-5). The vented HCl and acetyl chloride add
 nothing to the MTSR; with the vent blocked they pressurise the vessel, which the screening does
-not assess (core note: a peak of 0.19 mmol/(s m3)).
+not assess (core note: a peak of 1.87e-4 kmol/(s m3), 0.19 mol/(s m3): 0.33 mol/s or about 31
+m3/h for the 1.78 m3 batch, 0.02 h into the dosing).
 No TD24 is known (never estimated): no criticality class (`cheme.reactor-hazard-missing`, info).
 With MTSR below MTT the class is 1 or 2 if the TD24 lies above the MTSR (1 above the MTT, 2
 between), and 5 if it lies below (TD24 < 315.8 K): core's `criticality()` and Stoessel test the
@@ -351,6 +354,22 @@ Release cases (not assessed, reasoning only; for the HAZOP of the next stage):
   a year average and more while the nitrogen purges, goes to the scrubber. There it hydrolyses
   to HCl and acetic acid, 10 times the normal HCl and about 5.0 kW of heat. Brine flow and the gas
   outlet temperature of E-103 should be interlocked with the dosing.
+- (d) Failure of the warming loop's temperature control, or of the jacket changeover. R-101 is
+  warmed by a tempered-water loop at 322/318 K heated by LP steam at 412 K (D-003, D-009), only
+  4 K below the MTT at its mean and 11 K above the process temperature. If the loop's steam valve
+  fails open, or the jacket is not switched to cooling water before the dosing (D-003), the mass
+  heats towards the steam temperature without any reaction. It boils acetyl chloride at 324 K,
+  and once that is gone PCl3 at 349 K, with the PCl3 the dosing has accumulated, into E-103 and
+  A-101. This is case (c) without a bound: the jacket at full steam temperature delivers about
+  300 W/(m2 K) x 4.9 m2 x (412 - 324) K = 129 kW (the area at the charge, so a lower bound; a
+  loop that is not pressurised and boils at 373 K still gives about 72 kW). At 30.1 kJ/mol that
+  is about 15 kmol/h (1.2 t/h) of acetyl chloride vapour, some 100 times the 0.143 kmol/h of case
+  (c), for which E-103 (1.28 kW) and A-101 are not sized; the batch's acetyl chloride would boil
+  off in about an hour. Options to assess: a high-temperature limit on the loop's supply that
+  trips the steam valve (independent of the loop's controller); the loop's supply capped below
+  the MTT by design (a steam pressure or a hot-water source whose temperature cannot exceed
+  324 K); a dosing permissive on the jacket in cooling mode and on R-101's temperature; a
+  high-temperature trip on R-101 that isolates the steam and stops the dosing.
 Screening values only, not a reaction-hazard assessment.
 
 ## D-012 Preliminary gate-to-gate LCI (2026-11-06)

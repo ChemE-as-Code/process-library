@@ -15,6 +15,9 @@ README.md and process.yaml are checked against them:
   phosphorous acid, and the cooling check uses the log-mean water temperature;
 - the criticality classes D-011 states as possible without a TD24 are the ones core's
   `criticality()` can give; the water and HCl release cases stay among the open items;
+- the batch size, the agitator and pump powers and the blocked-vent gas rate follow from the
+  recipe core gives, every vent source has an emission exclusion, and the failure of the
+  steam-heated warming loop is a release case (review of #393);
 - the process is not set public in the change that adds it (CONTRIBUTING).
 """
 
@@ -194,3 +197,70 @@ def test_the_allocation_shares_are_the_mass_shares_of_the_coproducts(streams):
 def test_the_scrubber_bleed_is_one_percent_hcl(streams):
     bleed = _components(streams["S16"])
     assert bleed["HCL"] / sum(bleed.values()) == pytest.approx(0.01, abs=1e-4)
+
+
+# The durations `cheme process recipe` (core v1.8.0) prints for this recipe: the ones "from the
+# model" (warming, dosing, post-reaction, distillation) are not in recipe.yaml.
+RECIPE_H = {"cycle": 5.781, "heat": 0.537, "dose": 2.0, "react": 0.494, "distil": 2.126, "cool": 0.5}
+
+
+def _step_hours(recipe: dict, procedure: str, step: str) -> float:
+    unit = next(u for u in recipe["unit_procedures"] if u["id"] == procedure)
+    return next(s for s in unit["operations"] if s["id"] == step)["duration"]["value"]
+
+
+def test_the_batch_size_source_states_the_recipes_cycle():
+    # Review of #393: the source quoted an earlier 5.503 h cycle and 1439.1 batches.
+    batch = _load("process/recipe.yaml")["batch_size"]
+    found = re.search(r"over the ([\d.]+) batches the ([\d.]+) h cycle allows, 252\.525 kg/h x ([\d.]+) h", batch["source"])
+    assert found, batch["source"]
+    batches, cycle, cycle_again = (float(g) for g in found.groups())
+    assert cycle == cycle_again == RECIPE_H["cycle"]
+    assert 2000e3 / batches == pytest.approx(batch["value"], rel=1e-3)
+    assert 252.525 * cycle == pytest.approx(batch["value"], rel=1e-3)
+
+
+def test_the_agitator_and_pump_powers_follow_from_the_recipes_durations(sheet):
+    # Review of #393: P1 and P2 were derived from an earlier recipe (3.54 h, 2.02 h, 2.52 h).
+    recipe = _load("process/recipe.yaml")
+    links = {s["id"]: s["state"]["design"]["duty"] for s in sheet["streams"] if s.get("kind") == "energy"}
+    r101_on = _step_hours(recipe, "REACT", "charge") + RECIPE_H["heat"] + RECIPE_H["dose"] + RECIPE_H["react"]
+    assert links["P1"]["value"] == pytest.approx(4.0 * r101_on / RECIPE_H["cycle"], abs=0.01)
+    assert f"{r101_on:.2f} h of R-101's 5.78 h cycle" in links["P1"]["source"]
+    still_on = RECIPE_H["distil"] + RECIPE_H["cool"]
+    energy = 2.0 * still_on + 1.0 * RECIPE_H["distil"]
+    assert links["P2"]["value"] == pytest.approx(energy / RECIPE_H["cycle"], abs=0.01)
+    for stated in (f"({still_on:.2f} h)", f"({RECIPE_H['distil']:.2f} h)", f"{energy:.2f} kWh per 5.78 h cycle"):
+        assert stated in links["P2"]["source"], stated
+    total = sum(links[p]["value"] for p in ("P1", "P2", "P3"))
+    assert f"Electricity {total:.2f} kW" in _text("DESIGN.md")
+
+
+def test_the_blocked_vent_gas_rate_is_stated_in_the_right_unit():
+    # Review of #393: core's 1.874e-4 kmol/(s m3) was written as 0.19 mmol/(s m3).
+    peak_kmol_s, batch_m3 = 0.0003331, 1.777  # `cheme process recipe`: vent of R101, vessel
+    assert peak_kmol_s / batch_m3 == pytest.approx(1.87e-4, abs=5e-7)
+    design = _text("DESIGN.md")
+    assert "mmol/(s m3)" not in design
+    assert "a peak of 1.87e-4 kmol/(s m3), 0.19 mol/(s m3): 0.33 mol/s or about 31 m3/h" in design
+
+
+def test_every_vent_source_has_an_emission_exclusion():
+    # Review of #393: R-101 vents through E-103 to A-101 but no exclusion named it
+    # (`cheme.lci-emissions-incomplete`).
+    excluded = {tag for e in _load("lca/lca.yaml")["emission_exclusions"] for tag in e.get("equipment", [])}
+    assert {"R-101", "E-103", "A-101", "T-101", "T-102"} <= excluded
+
+
+def test_the_warming_loop_failure_is_a_release_case(sheet):
+    # Review of #393: the steam-heated warming loop can push R-101 past its MTT without reaction.
+    jacket = _load("process/recipe.yaml")["unit_procedures"][0]["vessel"]["jacket"]
+    steam = next(f for f in sheet["feeds"] if f["id"] == "LPS")["utility"]["supply_temperature"]["value"]
+    mtt = next(s for s in sheet["steps"] if s["id"] == "R101")["hazard"]["mtt"]
+    duty_kw = jacket["u"] * 4.9 * (steam - mtt) / 1000.0  # 4.9 m2: core's jacket area at the charge
+    assert duty_kw == pytest.approx(129.0, abs=1.0)
+    assert duty_kw / 30.1 * 3.6 == pytest.approx(15.4, abs=0.2)  # kmol/h of acetyl chloride vapour
+    design = _text("DESIGN.md")
+    assert "(d) Failure of the warming loop's temperature control" in design
+    assert "300 W/(m2 K) x 4.9 m2 x (412 - 324) K = 129 kW" in design
+    assert "about 15 kmol/h (1.2 t/h) of acetyl chloride vapour" in design
