@@ -1,0 +1,37 @@
+# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
+# dataset is lca/datasets/*.yaml, Tier 1 form, so maturity stays at concept
+# (core's cheme.lci-tier-maturity). See README.md.
+schema: cheme-as-code/process/v1
+id: butadiene-1
+title: 1,3-Butadiene by extractive distillation of a steam-cracker crude C4 cut
+summary: >-
+  Sourced conceptual inventory per tonne of 1,3-butadiene, with raffinate-1 and an acetylenes purge to fuel
+  as co-products: a typical naphtha-cracker C4 cut, the licensor's recovery bound and IEA Western European
+  energy averages. No flowsheet; not reviewed.
+families: [olefins]
+keywords: [butadiene, "1,3-butadiene", crude C4, C4 extraction, extractive distillation, NMP, raffinate-1, steam cracking]
+facets: {feedstock_basis: [fossil], product_classes: [chemicals], unit_operations: [distillation, extraction], region: EU}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: crude-c4, role: feedstock, inventory_key: "feed:crude-c4", note: "naphtha-cracker C4 cut, 39.3 wt% butadiene (typical cut, ASSUMED); not linked to ethylene-1, whose ethane-cracker cut is another grade (lca/mappings.yaml)"}
+  outputs:
+    - {chemical: butadiene, role: main-product, inventory_key: "product:butadiene"}
+    - {chemical: c4-raffinate, role: co-product, inventory_key: "product:c4-raffinate", note: "raffinate-1: butenes, with the isobutene, and butanes"}
+    - {chemical: c4-acetylenes-purge, role: co-product, inventory_key: "product:c4-purge", note: "C3 and C4 acetylenes with the unrecovered butadiene, to fuel use (ASSUMED fate)"}
+    - {chemical: butadiene, role: emission, inventory_key: "emission:C4H6", note: "process vents and wastewater, US facility means of 1984"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity"}
+    - {chemical: steam, role: utility, inventory_key: "feed:steam", note: "counted as heat delivered (final energy); pressure not stated by the source"}
+basis: {capacity: "per tonne of 1,3-butadiene (the dataset's basis); no plant size"}
+publication: {status: public, license: CC-BY-4.0}
+references:
+  - {title: "Saygin, D., Patel, M.K., Tam, C., Gielen, D.J. (2009) Chemical and Petrochemical Sector: Potential of best practice technology and other measures for improving energy efficiency. IEA Information Paper, OECD/IEA, Paris (Tables 1 and 13)", url: "https://iea.blob.core.windows.net/assets/c2d071e4-4142-44f1-8a41-88ece29be439/ChemicalandPetrochemicalSector.pdf"}
+  - {title: "Neelis, M., Patel, M., Blok, K., Haije, W., Bach, P. (2007) Approximation of theoretical energy-saving potentials for the petrochemical industry using energy balances for 68 key processes. Energy 32:1104-1123 (Table A1)", doi: 10.1016/j.energy.2006.08.005}
+  - {title: "US EPA (1996) Locating and Estimating Air Emissions from Sources of 1,3-Butadiene, EPA-454/R-96-008 (section 4.1, Tables 4-3 and 4-5)", url: "https://19january2021snapshot.epa.gov/sites/static/files/2020-09/documents/butadien.pdf"}
+  - {title: "BASF SE, Butadiene extraction technology (manufacturer web page; yield and purity)", url: "https://www.basf.com/cn/en/products/chemicals/Intermediates/solutions/butadiene-extraction"}
+  - {title: "US DOE Office of Industrial Technologies (2000) Energy and Environmental Profile of the U.S. Chemical Industry, prepared by Energetics (route share, p. 34)", url: "https://www.energy.gov/sites/prod/files/2013/11/f4/profile_full.pdf"}
+  - {title: "US EPA (2025) Environmental Release and Occupational Exposure Assessment for 1,3-Butadiene, EPA-740-R-25-058 (section 3.1, process description)", url: "https://www.epa.gov/system/files/documents/2025-12/03-1-3-butadiene-env-rel-and-occ-exp-assess-qc-complete-hero-dec-2025_0.pdf"}
+  - {title: "Falcke, H. et al. (2017) Best Available Techniques (BAT) Reference Document for the Production of Large Volume Organic Chemicals. JRC Science for Policy Report EUR 28882 EN (JRC109279), section 3.2.2.4 and Table 3.3", doi: 10.2760/77304}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/butadiene-1, access: public}

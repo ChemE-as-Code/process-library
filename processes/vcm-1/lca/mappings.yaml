@@ -1,0 +1,12 @@
+# vcm-1's own exchange overrides for the Atlas LCI build (ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. The three feeds link to the Atlas producers on
+# main; the residues, coke, sludge and catalyst stay reported gaps (no shared treatment entry yet).
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:ethylene": {dataset: {path: processes/ethylene-1/lca/dataset.yaml, product: "product:ETHYLENE"}, source: "the Atlas producer ethylene-1, fossil polymer-grade ethylene from a steam cracker by pipeline, as the LVOC BREF says EDC/VCM plants are supplied (11.3.3), and as acetaldehyde-1, ethanol-1 and ethylene-glycol-1 link it. The other producer of the slug, bio-ethylene-1, makes biogenic ethylene from bio-ethanol, which the cracker-fed EU plants of the BREF data do not use, so ethylene-1 is chosen rather than left open as in ethylbenzene-1"}
+  "feed:chlorine": {dataset: {path: processes/chlor-alkali-1/lca/dataset.yaml, product: "product:CL2"}, source: "the Atlas producer chlor-alkali-1, dry chlorine gas 400 kPa(a); EDC/VCM units are usually integrated with chlorine production (LVOC BREF 11.1)"}
+  "feed:oxygen": {dataset: {path: processes/asu-1/lca/dataset.yaml, product: "product:GOXP"}, source: "the Atlas producer asu-1, GOX (99.5 mol% O2, 30 barg); its pressure is not reduced to the oxychlorination's 0.4 to 0.6 MPa"}
+  "feed:steam": {use: steam-heat, source: "steam counted as heat delivered (kWh), as hda-1 does"}
+  "feed:natural-gas":
+    atlas: false
+    source: "Pipeline natural gas: the only Atlas producer of the slug methane is hda-1's fuel gas, which is not natural gas (as styrene-1)."

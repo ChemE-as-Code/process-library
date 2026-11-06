@@ -1,0 +1,849 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# p-Toluenesulfonyl chloride by the salt-modified chlorosulfonation of toluene (DESIGN.md D-001,
+# after DE 1 912 956 A1, Example 1), a batch plant: chlorosulfonic acid is charged to the
+# enamelled R-101 and heated to 338 K, ammonium chloride and then toluene are dosed (a
+# semi-batch, reactor: semibatch) while the HCl leaves by the vent as it forms (batch.vent, core
+# ADR 0054); the mass is cooled to 308 K and a second acid portion turns the sulfonic acids into
+# the sulfonyl chlorides (R102); the mass is dosed into a water heel at 288 K in Q-101 (the
+# drown-out quench, a second vented semi-batch), where p-TsCl precipitates (CR101); it is
+# filtered in the Nutsche F-101, reslurry-washed twice with ice water and vacuum-dried in the
+# paddle dryer DR-101. The vents go to a caustic scrubber; the liquors to neutralisation.
+# The flows are the year averages of the batch recipe (process/recipe.yaml, `cheme process
+# recipe`, D-003): a batch of 1748.95 kg of dried p-TsCl every 13.85 h, 571.8 batches and 1000 t
+# in 7920 h.
+# Where the values come from:
+# - feeds, temperatures, pressures, ratios: design basis and D-002..D-008, ASSUMED; the feeds are
+#   the patent's ratios scaled by hand to 126.263 kg/h of S24 (every outlet scales with them);
+# - R101, Q101: cheme's semi-batch model with its vent (the ASSUMED rate laws, D-005); R102,
+#   S101: conversion steps; CR101, W101, W102: core's crystallizer with the liquor's other solutes
+#   as spectators (core ADR 0056, D-007); F101..F103: specified filters with a Ruth filtration
+#   time; D101: core's dryer to a residual moisture (core ADR 0057, D-008); E101, E102, E103:
+#   pass-through; SP201: a splitter; M201, M202: mixers (all calculated by `cheme process
+#   propagate --fill`);
+# - the dryer's heat Q6: core's dryer model (`cheme process crystallizers`);
+# - the heats of R101, R102 and Q101 (Q2, Q3, Q5): written by `cheme process propagate --fill`
+#   from the models at each step's `energy_port` (core ADR 0059, D-014): the reactions' heats
+#   and the doses or streams brought to the step's temperature;
+# - Q10, the dilution heat of the acids dosed into the quench, which the semi-batch model leaves
+#   out (lesson L-2): its own ASSUMED stream to brine beside Q101's model duty Q5 (D-009, D-014);
+# - the other duties (Q1, Q4, Q7, Q8, Q9): hand arithmetic from the stream table, given as
+#   ASSUMED with the arithmetic in the source (D-009): heat-ups and coolings of pass-through
+#   steps, the dryer's condenser, and the scrubber, whose model lacks NaCl's and NaOH's heat
+#   capacities and the HCl's dissolution from the gas.
+schema: cheme/process/v1
+kind: flowsheet
+title: p-Toluenesulfonyl chloride by semi-batch chlorosulfonation of toluene with a drown-out quench (1000 t/a)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: 1000 t/a dried p-TsCl, year averages of the batches in 7920 h on a dedicated train (D-002, D-003)", default: true}
+tolerance: {abs: 0.05, rel: 0.002}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - id: CSA
+    title: Chlorosulfonic acid (merchant)
+    category: raw_material
+    ports:
+      - {id: r101, direction: out}
+      - {id: r102, direction: out}
+  - {id: NH4CL, title: Ammonium chloride (merchant), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: TOL, title: Toluene (btx-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: PW
+    title: Process water (quench heel, scrubber make-up)
+    category: raw_material
+    ports:
+      - {id: q101, direction: out}
+      - {id: s101, direction: out}
+  - {id: WASHW, title: Process water for the cake washes (chilled in T-101), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: NAOH, title: Caustic soda 50 wt% (chlor-alkali-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: r101, direction: out, kind: energy}
+      - {id: q101, direction: out, kind: energy}
+      - {id: d101, direction: out, kind: energy}
+      - {id: s101, direction: out, kind: energy}
+  - id: LPS
+    title: LP steam 350 kPa(a) (R-101 heating, the dryer's hot-water circuit)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 350, provenance: assumed, source: "design basis (D-009)"}
+      supply_temperature: {value: 412.0, provenance: given, source: "saturation at 350 kPa(a): 412.007 K (CoolProp's IAPWS water, DESIGN.md SRC-11)"}
+      min_approach: {value: 10, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: e101, direction: out, kind: energy}
+      - {id: d101, direction: out, kind: energy}
+products:
+  - {id: TSCL, title: p-Toluenesulfonyl chloride crystals to packing, category: product, ports: [{id: in, direction: in}]}
+  - {id: WA, title: "Waste acid (mother liquor, wash filtrates, dryer condensate) to neutralisation", category: wastewater, ports: [{id: in, direction: in}]}
+  - {id: WS, title: Spent scrubber liquor to wastewater treatment, category: wastewater, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis (D-009)"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis (D-009)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: r101, direction: in, kind: energy}
+      - {id: r102, direction: in, kind: energy}
+      - {id: s101, direction: in, kind: energy}
+  - id: BRINE
+    title: Chilled brine return (263 K)
+    category: utility
+    utility:
+      kind: refrigerant
+      supply_temperature: {value: 258.15, provenance: assumed, source: "design basis (D-009)"}
+      return_temperature: {value: 263.15, provenance: assumed, source: "design basis (D-009)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: e102, direction: in, kind: energy}
+      - {id: q101, direction: in, kind: energy}
+      - {id: q101dil, direction: in, kind: energy}
+      - {id: e103, direction: in, kind: energy}
+      - {id: d101, direction: in, kind: energy}
+
+blocks:
+  - id: CHLS
+    title: Chlorosulfonation (R-101)
+    class: ReactingChemicals
+    ports:
+      - {id: csa1, direction: in}
+      - {id: csa2, direction: in}
+      - {id: salt, direction: in}
+      - {id: tol, direction: in}
+      - {id: mass, direction: out}
+      - {id: vent, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: QUENCH
+    title: Drown-out quench and precipitation (Q-101)
+    class: ReactingChemicals
+    ports:
+      - {id: mass, direction: in}
+      - {id: water, direction: in}
+      - {id: slurry, direction: out}
+      - {id: vent, direction: out}
+      - {id: chw_heel, direction: out, kind: energy}
+      - {id: chw, direction: out, kind: energy}
+      - {id: chw_dil, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: ISOL
+    title: Filtration, washing (F-101) and drying (DR-101)
+    class: SeparatingMechanically
+    ports:
+      - {id: in, direction: in}
+      - {id: wash, direction: in}
+      - {id: product, direction: out}
+      - {id: wa, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: chw_wash, direction: out, kind: energy}
+      - {id: chw_cond, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: SCRUB
+    title: HCl off-gas scrubbing (caustic scrubber)
+    class: ReactingChemicals
+    ports:
+      - {id: vent1, direction: in}
+      - {id: vent2, direction: in}
+      - {id: naoh, direction: in}
+      - {id: pw, direction: in}
+      - {id: liquor, direction: out}
+      - {id: cw, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+
+steps:
+  - id: E101
+    block: CHLS
+    title: Acid charge heated to 338 K (R-101 jacket)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in, delegates: csa1}
+      - {id: out, direction: out}
+      - {id: q, direction: in, kind: energy, delegates: steam}
+  - id: R101
+    block: CHLS
+    title: Chlorosulfonator (salt, then toluene dosed into the acid at 338 K, HCl vented)
+    class: ReactingChemicals
+    reactions: [SALT, SULP, SULO]
+    reactor: semibatch
+    batch:
+      dosing: [{stream: S3, time: 3600}, {stream: S4, time: 21600, start: 3600}]
+      target: {key: TOL, conversion: 0.99}
+      heat: isothermal
+      vent: {stream: S5, components: [HCL]}
+      provenance: assumed
+      source: "the salt added in portions over 1 h (its HCl peak sets the scrubber, D-003), then toluene dosed over 6 h at 338 K (the laboratory's 2-3 h at 60-70 C, DE 1 912 956 A1, Example 1, lengthened for R-101's jacket, D-003), the HCl leaving as it forms, then the post-reaction to 0.99 conversion of the toluene (D-005)"
+    energy_port: q
+    hazard:
+      vent_capacity: 150
+      provenance: assumed
+      source: "R-101's vent line and the scrubber T-201 are sized for the recipe's normal peak, 144.9 m3/h of HCl at 338 K while the salt goes in (cheme process recipe), rounded up to 150 m3/h at R-101's 101 kPa(a), ASSUMED: no vent sizing yet (no P&ID); against a cooling failure's gas release: 60.3 m3/h at core's worst moment (the highest MTSR, the end of the toluene dosing) and 145.5 m3/h at the end of the salt addition, the largest over the batch, 0.97 of it, about 3 % margin (150.2 m3/h at k/10; D-011, D-014). The MTT is core's default, toluene's normal boiling point, the vent's HCl left out. No TD24 (never estimated)"
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: charge, direction: in}
+      - {id: salt, direction: in, delegates: salt}
+      - {id: tol, direction: in, delegates: tol}
+      - {id: out, direction: out}
+      - {id: gas, direction: out, delegates: vent}
+      - {id: q, direction: out, kind: energy, delegates: cw}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: R102
+    block: CHLS
+    title: Second acid portion at 308 K (sulfonic acids to sulfonyl chlorides)
+    class: ReactingChemicals
+    reactions: [CHLP, CHLO]
+    reactor: conversion
+    energy_port: q
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: csa, direction: in, delegates: csa2}
+      - {id: out, direction: out, delegates: mass}
+      - {id: q, direction: out, kind: energy, delegates: cw2}
+  - id: E102
+    block: QUENCH
+    title: Water heel cooled to 288 K (Q-101 jacket)
+    class: Cooling
+    links: [{target: equipment, ref: Q-101}]
+    ports:
+      - {id: in, direction: in, delegates: water}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: chw_heel}
+  - id: Q101
+    block: QUENCH
+    title: Drown-out quench (reaction mass dosed into the water heel at 288 K)
+    class: ReactingChemicals
+    reactions: [HYD, AMH, TSHP, TSHO]
+    reactor: semibatch
+    batch:
+      dosing: [{stream: S8, time: 14400}]
+      target: {key: CSA, conversion: 0.9999}
+      heat: isothermal
+      vent: {stream: S11, components: [HCL], fraction: {HCL: 0.1}}
+      provenance: assumed
+      source: "the reaction mass dosed over 4 h (set by Q-101's jacket with the dilution heat the model leaves out, Q10, D-003, D-009) into the cooled water heel at 288 K, then the post-reaction to 0.9999 conversion of the chlorosulfonic acid; 10 % of the HCl formed leaves, the rest stays dissolved in the dilute acid (D-005, D-006)"
+    energy_port: q
+    hazard:
+      vent_capacity: 150
+      provenance: assumed
+      source: "Q-101's vent joins R-101's in the header M202 to the scrubber T-201, sized for 150 m3/h (R101's hazard); while Q-101 doses, R-101 is emptying into it and gives no gas, so the header's 150 m3/h is Q-101's, ASSUMED: no vent sizing yet (no P&ID); against a cooling failure's gas release: 11.8 m3/h at core's worst moment and 14.1 m3/h at the end of the dosing, both the ASSUMED 10 % vented share of the HCl formed (batch.vent.fraction, D-006); with all of it leaving about 118 and 141 m3/h, 0.79 to 0.94 of the header (D-011, D-014). The MTT is core's default, water's normal boiling point; the dissolved HCl degasses before, which the screening does not assess. No TD24 (never estimated)"
+    links: [{target: equipment, ref: Q-101}]
+    ports:
+      - {id: charge, direction: in}
+      - {id: dose, direction: in, delegates: mass}
+      - {id: out, direction: out}
+      - {id: gas, direction: out, delegates: vent}
+      - {id: q, direction: out, kind: energy, delegates: chw}
+      - {id: dil, direction: out, kind: energy, delegates: chw_dil}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: CR101
+    block: QUENCH
+    title: Precipitation hold (p-TsCl crystallises from the acid liquor)
+    class: Crystallizing
+    crystallizer:
+      solute: PTSCL
+      solvent: H2O
+      crystal: PTSCL_S
+      basis: solubility
+      temperature: 288.15
+      solubility:
+        unit: kg/kg_solvent
+        value: 0.0005
+        measured_in: pure_solvent
+        provenance: assumed
+        source: "ASSUMED 0.5 g per kg water at 288 K (D-007): p-TsCl is insoluble in water and reacts with it (PubChem CID 7397, HSDB); no measured value found"
+        salting_out:
+          coefficients: {H2SO4: 0.0, HCL: 0.0, AMBS: 0.0, PTSA: 0.0, OTSA: 0.0, OTSCL: 0.0, TOL: 0.0, CSA: 0.0, AMCS: 0.0, NH4CL: 0.0}
+          provenance: assumed
+          source: "no open salting-out data of p-TsCl in an H2SO4/HCl liquor; no correction taken (D-007)"
+      spectators: [H2SO4, HCL, AMBS, PTSA, OTSA, OTSCL, TOL, CSA, AMCS, NH4CL]
+      outlets: {slurry: out}
+    links: [{target: equipment, ref: Q-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: slurry}
+  - id: F101
+    block: ISOL
+    title: Filtration of the mother liquor (Nutsche filter)
+    class: Filtering
+    solid_separation:
+      solid_recovery: 0.998
+      cake_liquid: {value: 0.3, basis: per_kg_solid}
+      outlets: {cake: cake, filtrate: filtrate}
+      provenance: assumed
+      source: "agitated Nutsche filter, cake 0.3 kg liquor per kg p-TsCl (D-007)"
+      filtration:
+        specific_cake_resistance: 1.0e+10
+        medium_resistance: 1.0e+10
+        pressure_difference: 200
+        viscosity: 1.6
+        filtrate_density: 1100
+        provenance: assumed
+        source: "ASSUMED (D-007): a free-filtering crystalline cake, a cloth medium, 200 kPa of nitrogen on the cake; the acid liquor at 288 K estimated from water's with about 12 wt% H2SO4"
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: cake, direction: out}
+      - {id: filtrate, direction: out}
+  - id: E103
+    block: ISOL
+    title: Wash water chilled to 278 K (T-101, brine coil)
+    class: Cooling
+    links: [{target: equipment, ref: T-101}]
+    ports:
+      - {id: in, direction: in, delegates: wash}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: chw_wash}
+  - id: SP201
+    block: ISOL
+    title: Wash water to the two reslurry washes
+    class: SplittingMaterial
+    split: {w101: 0.5}
+    links: [{target: equipment, ref: T-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: w101, direction: out}
+      - {id: w102, direction: out}
+  - id: W101
+    block: ISOL
+    title: First reslurry wash with ice water
+    class: Crystallizing
+    crystallizer:
+      solute: PTSCL
+      solvent: H2O
+      crystal: PTSCL_S
+      basis: solubility
+      temperature: 280.24
+      solubility:
+        unit: kg/kg_solvent
+        value: 0.0005
+        measured_in: pure_solvent
+        provenance: assumed
+        source: "as CR101 (D-007)"
+        salting_out:
+          coefficients: {H2SO4: 0.0, HCL: 0.0, AMBS: 0.0, PTSA: 0.0, OTSA: 0.0, OTSCL: 0.0, TOL: 0.0, CSA: 0.0, AMCS: 0.0, NH4CL: 0.0}
+          provenance: assumed
+          source: "as CR101 (D-007)"
+      spectators: [H2SO4, HCL, AMBS, PTSA, OTSA, OTSCL, TOL, CSA, AMCS, NH4CL]
+      outlets: {slurry: out}
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: cake, direction: in}
+      - {id: wash, direction: in}
+      - {id: out, direction: out}
+  - id: F102
+    block: ISOL
+    title: Filtration of the first wash
+    class: Filtering
+    solid_separation:
+      solid_recovery: 0.998
+      cake_liquid: {value: 0.3, basis: per_kg_solid}
+      outlets: {cake: cake, filtrate: filtrate}
+      provenance: assumed
+      source: "as F101 (D-007)"
+      filtration:
+        specific_cake_resistance: 1.0e+10
+        medium_resistance: 1.0e+10
+        pressure_difference: 200
+        viscosity: 1.45
+        filtrate_density: 1010
+        provenance: assumed
+        source: "as F101; the wash filtrate nearly water at W101's 280.2 K (water 1.42 mPa s there, CoolProp's IAPWS water), a little more for its 1.5 wt% acid (D-007)"
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: cake, direction: out}
+      - {id: filtrate, direction: out}
+  - id: W102
+    block: ISOL
+    title: Second reslurry wash with ice water
+    class: Crystallizing
+    crystallizer:
+      solute: PTSCL
+      solvent: H2O
+      crystal: PTSCL_S
+      basis: solubility
+      temperature: 278.61
+      solubility:
+        unit: kg/kg_solvent
+        value: 0.0005
+        measured_in: pure_solvent
+        provenance: assumed
+        source: "as CR101 (D-007)"
+        salting_out:
+          coefficients: {H2SO4: 0.0, HCL: 0.0, AMBS: 0.0, PTSA: 0.0, OTSA: 0.0, OTSCL: 0.0, TOL: 0.0, CSA: 0.0, AMCS: 0.0, NH4CL: 0.0}
+          provenance: assumed
+          source: "as CR101 (D-007)"
+      spectators: [H2SO4, HCL, AMBS, PTSA, OTSA, OTSCL, TOL, CSA, AMCS, NH4CL]
+      outlets: {slurry: out}
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: cake, direction: in}
+      - {id: wash, direction: in}
+      - {id: out, direction: out}
+  - id: F103
+    block: ISOL
+    title: Filtration of the second wash
+    class: Filtering
+    solid_separation:
+      solid_recovery: 0.998
+      cake_liquid: {value: 0.3, basis: per_kg_solid}
+      outlets: {cake: cake, filtrate: filtrate}
+      provenance: assumed
+      source: "as F101 (D-007)"
+      filtration:
+        specific_cake_resistance: 1.0e+10
+        medium_resistance: 1.0e+10
+        pressure_difference: 200
+        viscosity: 1.5
+        filtrate_density: 1000
+        provenance: assumed
+        source: "as F102; water at W102's 278.6 K (1.50 mPa s, CoolProp's IAPWS water) (D-007)"
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: cake, direction: out}
+      - {id: filtrate, direction: out}
+  - id: D101
+    block: ISOL
+    title: Vacuum drying at 308 K (paddle dryer)
+    class: Drying
+    dryer:
+      volatiles: [H2O, HCL, TOL]
+      residual_moisture: {value: 0.002, basis: mass_fraction, provenance: assumed, source: "0.2 wt% volatiles in the dried product (D-008)"}
+      temperature: 308.15
+      energy:
+        heat_capacity: 1.5
+        latent_heat: {H2O: 2418.0, HCL: 443.0, TOL: 412.0}
+        vessel_heat_capacity: 2500
+        efficiency: 0.7
+        port: steam
+        provenance: assumed
+        source: "wet cake 1.5 kJ/(kg K), 70 % efficiency (D-009); latent heats: water at 308 K (2417.9 kJ/kg, CoolProp's IAPWS water, SRC-11), HCl 16.15 kJ/mol at its boiling point (NIST WebBook: 16.2 at 188 K) and toluene 38.0 kJ/mol at 298 K (NIST WebBook: 38.8 at 288 K, 37.8 at 301 K), SRC-11; the paddle dryer's metal with its heated shaft, about 5 t of steel at 0.5 kJ/(kg K), heated each batch from the cake's inlet temperature (278.6 K, S22), ASSUMED (D-008)"
+      drying_rate: {value: 3.0, provenance: assumed, source: "ASSUMED mean rate of a jacketed vacuum paddle dryer at 308 K with hot water at 318 K, below NBS's 5 kg/(m2 h) at 333 K for the smaller approach (D-008)"}
+      cake_density: {value: 1100, provenance: assumed, source: "ASSUMED bulk density of the wet cake: p-TsCl 1.33 g/cm3 (PubChem) with 0.3 kg of liquor per kg and gas in the voids (D-008)"}
+      outlets: {product: product, vapour: vapour}
+    links: [{target: equipment, ref: DR-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: product, direction: out, delegates: product}
+      - {id: vapour, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: cond, direction: out, kind: energy, delegates: chw_cond}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: M201
+    block: ISOL
+    title: Liquor collection to neutralisation
+    class: Mixing
+    ports:
+      - {id: ml, direction: in}
+      - {id: wf1, direction: in}
+      - {id: wf2, direction: in}
+      - {id: cond, direction: in}
+      - {id: out, direction: out, delegates: wa}
+  - id: M202
+    block: SCRUB
+    title: Vent header (R-101 and Q-101)
+    class: Mixing
+    ports:
+      - {id: r101, direction: in, delegates: vent1}
+      - {id: q101, direction: in, delegates: vent2}
+      - {id: out, direction: out}
+  - id: S101
+    block: SCRUB
+    title: Caustic scrubber (HCl neutralised)
+    class: ReactingChemicals
+    reactions: [NEUT]
+    reactor: conversion
+    links: [{target: equipment, ref: T-201}]
+    ports:
+      - {id: gas, direction: in}
+      - {id: naoh, direction: in, delegates: naoh}
+      - {id: pw, direction: in, delegates: pw}
+      - {id: out, direction: out, delegates: liquor}
+      - {id: q, direction: out, kind: energy, delegates: cw}
+      - {id: power, direction: in, kind: energy, delegates: power}
+
+streams:
+  - id: S1
+    title: Chlorosulfonic acid, first portion (charge)
+    from: CSA.r101
+    to: E101.in
+    template: mass
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "acid storage (D-004)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 146.5529, provenance: assumed, source: "1.5 kmol per kmol toluene, 1.5 x 0.838499 kmol/h x 116.52 kg/kmol (DE 1 912 956 A1, Example 1; D-004)"}
+        composition: {basis: mass_fraction, values: {CSA: 1.0}, provenance: assumed, source: "technical chlorosulfonic acid, impurities (free SO3, H2SO4, HCl) not modelled (D-004)"}
+  - id: S2
+    title: Acid charge at 338 K
+    from: E101.out
+    to: R101.charge
+    template: mass
+    state:
+      design:
+        temperature: {value: 338.15, provenance: assumed, source: "heated in R-101 to the dosing temperature (D-005)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 146.5529, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S1', fingerprint: fb672256b0d52b67}
+        composition: {basis: mass_fraction, values: {CSA: 1.0}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S1', fingerprint: fb672256b0d52b67}
+  - id: S3
+    title: Ammonium chloride (added in portions)
+    from: NH4CL.out
+    to: R101.salt
+    template: mass
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 20.1835, provenance: assumed, source: "0.45 kmol per kmol toluene, 0.45 x 0.838499 kmol/h x 53.491 kg/kmol (DE 1 912 956 A1, Example 1; D-004)"}
+        composition: {basis: mass_fraction, values: {NH4CL: 1.0}, provenance: assumed, source: "technical ammonium chloride, dry (D-004)"}
+  - id: S4
+    title: Toluene (dosed)
+    from: TOL.out
+    to: R101.tol
+    template: mass
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 77.2601, provenance: assumed, source: "0.838499 kmol/h, the toluene that makes 126.263 kg/h of S24 (1000 t/a in 7920 h) at the model's yield (D-002, D-004)"}
+        composition: {basis: mass_fraction, values: {TOL: 1.0}, provenance: assumed, source: "dry toluene, impurities not modelled (D-004)"}
+  - id: S5
+    title: R-101 vent (HCl)
+    from: R101.gas
+    to: M202.r101
+    template: scrub
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {HCL: 1.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S3 S4', fingerprint: e4dca044b01c481f}
+        flow: {value: 44.0208, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S3 S4', fingerprint: e4dca044b01c481f}
+        temperature: {value: 338.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S3 S4', fingerprint: e4dca044b01c481f}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S3 S4', fingerprint: e4dca044b01c481f}
+  - id: S6
+    title: Sulfonation mass
+    from: R101.out
+    to: R102.in
+    template: mass
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.0, CSA: 0.0397352, TOL: 0.00662251, NH4CL: 0.0, AMCS: 0.298014, HCL: 0.0, PTSA: 0.590058, OTSA: 0.0655711, H2SO4: 0.0, PTSCL: 0.0, PTSCL_S: 0.0, OTSCL: 0.0, AMBS: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S3 S4', fingerprint: e4dca044b01c481f}
+        flow: {value: 199.972, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S3 S4', fingerprint: e4dca044b01c481f}
+        temperature: {value: 338.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S3 S4', fingerprint: e4dca044b01c481f}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S3 S4', fingerprint: e4dca044b01c481f}
+  - id: S7
+    title: Chlorosulfonic acid, second portion
+    from: CSA.r102
+    to: R102.csa
+    template: mass
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "acid storage (D-004)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 146.5529, provenance: assumed, source: "1.5 kmol per kmol toluene, 1.5 x 0.838499 kmol/h x 116.52 kg/kmol (DE 1 912 956 A1, Example 1; D-004)"}
+        composition: {basis: mass_fraction, values: {CSA: 1.0}, provenance: assumed, source: "as S1 (D-004)"}
+  - id: S8
+    title: Reaction mass to the quench
+    from: R102.out
+    to: Q101.dose
+    template: mass
+    state:
+      design:
+        temperature: {value: 308.15, provenance: assumed, source: "after the hold at 35 C (D-005)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 346.525, provenance: calculated, source: 'cheme process propagate: reactor R102 from S6 S7', fingerprint: 99fa308c37cc30a1}
+        composition: {basis: mole_fraction, values: {H2O: 0.0, CSA: 0.22226, TOL: 0.00332225, NH4CL: 0.0, AMCS: 0.149502, HCL: 0.0, PTSA: 0.0296009, OTSA: 0.00328944, H2SO4: 0.296013, PTSCL: 0.266408, PTSCL_S: 0.0, OTSCL: 0.029605, AMBS: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R102 from S6 S7', fingerprint: 511d23a22e9d3d1e}
+  - id: S9
+    title: Process water (quench heel)
+    from: PW.q101
+    to: E102.in
+    template: mass
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 866.32, provenance: assumed, source: "about 2.5 kg per kg of the reaction mass S8 (D-006)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "pure water"}
+  - id: S10
+    title: Water heel at 288 K
+    from: E102.out
+    to: Q101.charge
+    template: mass
+    state:
+      design:
+        temperature: {value: 288.15, provenance: assumed, source: "cooled in Q-101 (D-006)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 866.32, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S9', fingerprint: 3db2e682811477c2}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S9', fingerprint: 3db2e682811477c2}
+  - id: S11
+    title: Q-101 vent (HCl)
+    from: Q101.gas
+    to: M202.q101
+    template: scrub
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {HCL: 1.0}, provenance: calculated, source: 'cheme process propagate: reactor Q101 from S8 S10', fingerprint: 1d60b755ece1b913}
+        flow: {value: 3.43902, provenance: calculated, source: 'cheme process propagate: reactor Q101 from S8 S10', fingerprint: 1d60b755ece1b913}
+        temperature: {value: 288.15, provenance: calculated, source: 'cheme process propagate: reactor Q101 from S8 S10', fingerprint: 1d60b755ece1b913}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor Q101 from S8 S10', fingerprint: 1d60b755ece1b913}
+  - id: S12
+    title: Quenched liquor
+    from: Q101.out
+    to: CR101.in
+    template: mass
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.933235, CSA: 1.11041e-06, TOL: 0.000165979, NH4CL: 0.0, AMCS: 7.4691e-07, HCL: 0.0168048, PTSA: 0.0015695, OTSA: 0.000174413, H2SO4: 0.0258917, PTSCL: 0.0132191, PTSCL_S: 0.0, OTSCL: 0.00146899, AMBS: 0.00746836}, provenance: calculated, source: 'cheme process propagate: reactor Q101 from S8 S10', fingerprint: 1d60b755ece1b913}
+        flow: {value: 1209.4, provenance: calculated, source: 'cheme process propagate: reactor Q101 from S8 S10', fingerprint: 1d60b755ece1b913}
+        temperature: {value: 288.15, provenance: calculated, source: 'cheme process propagate: reactor Q101 from S8 S10', fingerprint: 1d60b755ece1b913}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor Q101 from S8 S10', fingerprint: 1d60b755ece1b913}
+  - id: S13
+    title: p-TsCl slurry
+    from: CR101.out
+    to: F101.in
+    template: mass
+    state:
+      design:
+        temperature: {value: 288.15, provenance: assumed, source: "held at 288 K (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 1209.4, provenance: calculated, source: 'cheme process propagate: crystallizer CR101 from S12', fingerprint: 747dbd37b28cbac5}
+        composition: {basis: mole_fraction, values: {PTSCL: 4.40942e-05, H2O: 0.933235, PTSCL_S: 0.013175, H2SO4: 0.0258917, HCL: 0.0168048, AMBS: 0.00746836, PTSA: 0.0015695, OTSA: 0.000174413, OTSCL: 0.00146899, TOL: 0.000165979, CSA: 1.11041e-06, AMCS: 7.4691e-07, NH4CL: 0.0}, provenance: calculated, source: 'cheme process propagate: crystallizer CR101 from S12', fingerprint: 747dbd37b28cbac5}
+  - id: S14
+    title: Filter cake
+    from: F101.cake
+    to: W101.cake
+    template: mass
+    state:
+      design:
+        temperature: {value: 288.15, provenance: assumed, source: "D-007"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 164.622, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S13', fingerprint: 9a415fb3ee057267}
+        composition: {basis: mole_fraction, values: {PTSCL_S: 0.275191, H2O: 0.685448, CSA: 8.15581e-07, TOL: 0.000121909, NH4CL: 0.0, AMCS: 5.48595e-07, HCL: 0.0123429, PTSA: 0.00115278, OTSA: 0.000128104, H2SO4: 0.0190171, PTSCL: 3.23866e-05, OTSCL: 0.00107895, AMBS: 0.00548541}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S13', fingerprint: 9a415fb3ee057267}
+  - id: S15
+    title: Mother liquor
+    from: F101.filtrate
+    to: M201.ml
+    template: mass
+    state:
+      design:
+        temperature: {value: 288.15, provenance: assumed, source: "D-007"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 1044.78, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S13', fingerprint: 9a415fb3ee057267}
+        composition: {basis: mole_fraction, values: {H2O: 0.945669, CSA: 1.1252e-06, TOL: 0.00016819, NH4CL: 0.0, AMCS: 7.56861e-07, HCL: 0.0170287, PTSA: 0.00159041, OTSA: 0.000176737, H2SO4: 0.0262367, PTSCL: 4.46817e-05, PTSCL_S: 2.76722e-05, OTSCL: 0.00148856, AMBS: 0.00756786}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S13', fingerprint: 9a415fb3ee057267}
+  - id: S16
+    title: Wash water, first wash
+    from: SP201.w101
+    to: W101.wash
+    template: mass
+    state:
+      design:
+        temperature: {value: 278.15, provenance: assumed, source: "chilled in T-101 (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 254.18, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S32', fingerprint: ea21e16750d004cf}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S32', fingerprint: ac3f4f91bdb6c286}
+  - id: S17
+    title: First wash slurry
+    from: W101.out
+    to: F102.in
+    template: mass
+    state:
+      design:
+        temperature: {value: 280.24, provenance: assumed, source: "W101 adiabatic (D-007, D-009): the cake S14 (281.2 kJ/(K h) at 288.15 K) mixed with the wash water S16 (1063.8 kJ/(K h) at 278.15 K), the components' liquid heat capacities of process/materials.yaml"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 418.802, provenance: calculated, source: 'cheme process propagate: crystallizer W101 from S14 S16', fingerprint: 8157452afa4eb38d}
+        composition: {basis: mole_fraction, values: {PTSCL: 4.50776e-05, H2O: 0.954049, PTSCL_S: 0.0401608, H2SO4: 0.0027781, HCL: 0.00180311, AMBS: 0.000801333, PTSA: 0.000168403, OTSA: 1.8714e-05, OTSCL: 0.000157618, TOL: 1.7809e-05, CSA: 1.19144e-07, AMCS: 8.01412e-08, NH4CL: 0.0}, provenance: calculated, source: 'cheme process propagate: crystallizer W101 from S14 S16', fingerprint: 8157452afa4eb38d}
+  - id: S18
+    title: Cake after the first wash
+    from: F102.cake
+    to: W102.cake
+    template: mass
+    state:
+      design:
+        temperature: {value: 280.24, provenance: assumed, source: "as S17 (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 164.128, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S17', fingerprint: 47c9ee5d18999c32}
+        composition: {basis: mole_fraction, values: {PTSCL_S: 0.243716, H2O: 0.751722, CSA: 9.38769e-08, TOL: 1.40322e-05, NH4CL: 0.0, AMCS: 6.31455e-08, HCL: 0.00142072, PTSA: 0.000132689, OTSA: 1.47453e-05, H2SO4: 0.00218894, PTSCL: 3.55179e-05, OTSCL: 0.000124192, AMBS: 0.000631393}, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S17', fingerprint: 47c9ee5d18999c32}
+  - id: S19
+    title: First wash filtrate
+    from: F102.filtrate
+    to: M201.wf1
+    template: mass
+    state:
+      design:
+        temperature: {value: 280.24, provenance: assumed, source: "as S17 (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 254.674, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S17', fingerprint: 47c9ee5d18999c32}
+        composition: {basis: mole_fraction, values: {H2O: 0.993872, CSA: 1.24117e-07, TOL: 1.85524e-05, NH4CL: 0.0, AMCS: 8.34864e-08, HCL: 0.00187837, PTSA: 0.000175432, OTSA: 1.94951e-05, H2SO4: 0.00289406, PTSCL: 4.69592e-05, PTSCL_S: 9.61309e-05, OTSCL: 0.000164197, AMBS: 0.000834781}, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S17', fingerprint: 47c9ee5d18999c32}
+  - id: S20
+    title: Wash water, second wash
+    from: SP201.w102
+    to: W102.wash
+    template: mass
+    state:
+      design:
+        temperature: {value: 278.15, provenance: assumed, source: "chilled in T-101 (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 254.18, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S32 S16', fingerprint: ae9356fcf333fcc6}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S32', fingerprint: ac3f4f91bdb6c286}
+  - id: S21
+    title: Second wash slurry
+    from: W102.out
+    to: F103.in
+    template: mass
+    state:
+      design:
+        temperature: {value: 278.61, provenance: assumed, source: "W102 adiabatic (D-007, D-009): the cake S18 (301.1 kJ/(K h) at 280.24 K) mixed with the wash water S20 (1063.8 kJ/(K h) at 278.15 K), the components' liquid heat capacities of process/materials.yaml"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 418.308, provenance: calculated, source: 'cheme process propagate: crystallizer W102 from S18 S20', fingerprint: d78b6a0bb31b6ab3}
+        composition: {basis: mole_fraction, values: {PTSCL: 4.53543e-05, H2O: 0.959906, PTSCL_S: 0.0393178, H2SO4: 0.00035349, HCL: 0.000229431, AMBS: 0.000101963, PTSA: 2.14278e-05, OTSA: 2.3812e-06, OTSCL: 2.00556e-05, TOL: 2.26605e-06, CSA: 1.51601e-08, AMCS: 1.01973e-08, NH4CL: 0.0}, provenance: calculated, source: 'cheme process propagate: crystallizer W102 from S18 S20', fingerprint: d78b6a0bb31b6ab3}
+  - id: S22
+    title: Washed cake
+    from: F103.cake
+    to: D101.in
+    template: mass
+    state:
+      design:
+        temperature: {value: 278.61, provenance: assumed, source: "as S21 (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 163.635, provenance: calculated, source: 'cheme process propagate: solid-separation F103 from S21', fingerprint: 3a5496790385eb21}
+        composition: {basis: mole_fraction, values: {PTSCL_S: 0.240144, H2O: 0.759242, CSA: 1.19909e-08, TOL: 1.79234e-06, NH4CL: 0.0, AMCS: 8.0656e-09, HCL: 0.000181469, PTSA: 1.69484e-05, OTSA: 1.88342e-06, H2SO4: 0.000279594, PTSCL: 3.58732e-05, OTSCL: 1.58631e-05, AMBS: 8.06481e-05}, provenance: calculated, source: 'cheme process propagate: solid-separation F103 from S21', fingerprint: 3a5496790385eb21}
+  - id: S23
+    title: Second wash filtrate
+    from: F103.filtrate
+    to: M201.wf2
+    template: mass
+    state:
+      design:
+        temperature: {value: 278.61, provenance: assumed, source: "as S21 (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 254.673, provenance: calculated, source: 'cheme process propagate: solid-separation F103 from S21', fingerprint: 3a5496790385eb21}
+        composition: {basis: mole_fraction, values: {H2O: 0.999098, CSA: 1.57791e-08, TOL: 2.35857e-06, NH4CL: 0.0, AMCS: 1.06136e-08, HCL: 0.000238798, PTSA: 2.23027e-05, OTSA: 2.47842e-06, H2SO4: 0.000367923, PTSCL: 4.72061e-05, PTSCL_S: 9.3994e-05, OTSCL: 2.08744e-05, AMBS: 0.000106126}, provenance: calculated, source: 'cheme process propagate: solid-separation F103 from S21', fingerprint: 3a5496790385eb21}
+  - id: S24
+    title: Dried p-TsCl
+    from: D101.product
+    to: TSCL.in
+    template: mass
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "cooled in DR-101 before discharge (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 126.263, provenance: calculated, source: 'cheme process propagate: dryer D101 from S22', fingerprint: 3916e088fa463d4c}
+        composition: {basis: mole_fraction, values: {H2O: 0.0207421, CSA: 4.88086e-08, TOL: 4.89658e-08, NH4CL: 0.0, AMCS: 3.28308e-08, HCL: 4.95764e-06, PTSA: 6.8988e-05, OTSA: 7.66641e-06, H2SO4: 0.00113808, PTSCL: 0.000146021, PTSCL_S: 0.977499, OTSCL: 6.45703e-05, AMBS: 0.000328276}, provenance: calculated, source: 'cheme process propagate: dryer D101 from S22', fingerprint: 3916e088fa463d4c}
+  - id: S25
+    title: Dryer vapour, condensed in DR-101's vacuum condenser on brine (Q8)
+    from: D101.vapour
+    to: M201.cond
+    template: mass
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "condensate of the vacuum condenser, cooled on brine (D-008, D-009)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 37.3725, provenance: calculated, source: 'cheme process propagate: dryer D101 from S22', fingerprint: 3916e088fa463d4c}
+        composition: {basis: mole_fraction, values: {H2O: 0.999759, TOL: 2.36013e-06, HCL: 0.000238956}, provenance: calculated, source: 'cheme process propagate: dryer D101 from S22', fingerprint: 3916e088fa463d4c}
+  - id: S26
+    title: Waste acid to neutralisation
+    from: M201.out
+    to: WA.in
+    template: mass
+    state:
+      design:
+        temperature: {value: 285.33, provenance: assumed, source: "M201 mixed adiabatically: S15 (3713.8 kJ/(K h) at 288.15 K), S19 (1044.0 at 280.24 K), S23 (1062.1 at 278.61 K) and S25 (156.4 at 298.15 K), the components' liquid heat capacities of process/materials.yaml (D-010)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 1591.5, provenance: calculated, source: 'cheme process propagate: mixer M201 from S15 S19 S23 S25', fingerprint: d624a9ce5ddb6a80}
+        composition: {basis: mole_fraction, values: {H2O: 0.965266, CSA: 7.18188e-07, TOL: 0.000107414, NH4CL: 0.0, AMCS: 4.83086e-07, HCL: 0.0108754, PTSA: 0.00101512, OTSA: 0.000112807, H2SO4: 0.0167462, PTSCL: 4.43526e-05, PTSCL_S: 5.10046e-05, OTSCL: 0.000950111, AMBS: 0.00483038}, provenance: calculated, source: 'cheme process propagate: mixer M201 from S15 S19 S23 S25', fingerprint: f27286b9fa278ba6}
+  - id: S27
+    title: Vent gas to the scrubber
+    from: M202.out
+    to: S101.gas
+    template: scrub
+    state:
+      design:
+        temperature: {value: 334.53, provenance: assumed, source: "the two vents mixed, both HCl gas: (44.021 kg/h S5 x 338.15 K + 3.439 kg/h S11 x 288.15 K) / 47.460 kg/h (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 47.4598, provenance: calculated, source: 'cheme process propagate: mixer M202 from S5 S11', fingerprint: 5df755e7a8cf677d}
+        composition: {basis: mole_fraction, values: {HCL: 1.0, H2O: 0.0, NAOH: 0.0, NACL: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M202 from S5 S11', fingerprint: bd202dee1b037d95}
+  - id: S28
+    title: Caustic soda 50 wt%
+    from: NAOH.out
+    to: S101.naoh
+    template: scrub
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 109.92, provenance: assumed, source: "NaOH about 1.05 kmol per kmol HCl vented (S27) (D-007)"}
+        composition: {basis: mass_fraction, values: {NAOH: 0.5, H2O: 0.5}, provenance: given, source: "membrane-cell caustic soda 50 wt% (chlor-alkali-1)"}
+  - id: S29
+    title: Process water (scrubber make-up)
+    from: PW.s101
+    to: S101.pw
+    template: scrub
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 224.28, provenance: assumed, source: "the spent liquor at about 20 wt% NaCl (D-007)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "pure water"}
+  - id: S30
+    title: Spent scrubber liquor
+    from: S101.out
+    to: WS.in
+    template: scrub
+    state:
+      design:
+        temperature: {value: 308.15, provenance: assumed, source: "the scrubber's circulation cooled on cooling water (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 381.66, provenance: calculated, source: 'cheme process propagate: reactor S101 from S27 S28 S29', fingerprint: 4850be494282e2bf}
+        composition: {basis: mole_fraction, values: {HCL: 7.16189e-05, H2O: 0.92433, NAOH: 0.00405135, NACL: 0.0715473}, provenance: calculated, source: 'cheme process propagate: reactor S101 from S27 S28 S29', fingerprint: 80619ef1d3aa4167}
+  - id: S31
+    title: Process water for the cake washes
+    from: WASHW.out
+    to: E103.in
+    template: mass
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 508.36, provenance: assumed, source: "about 2 kg per kg p-TsCl in the cake for each of the two washes, 2 x 254.18 kg/h (D-007)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "pure water"}
+  - id: S32
+    title: Chilled wash water
+    from: E103.out
+    to: SP201.in
+    template: mass
+    state:
+      design:
+        temperature: {value: 278.15, provenance: assumed, source: "chilled to 5 C in T-101 on brine (D-007, D-009)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 508.36, provenance: calculated, source: 'cheme process propagate: pass-through E103 from S31', fingerprint: f80625a99f94d101}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: calculated, source: 'cheme process propagate: pass-through E103 from S31', fingerprint: f80625a99f94d101}
+  # energy
+  - {id: Q1, title: Acid charge heating, kind: energy, from: LPS.e101, to: E101.q, state: {design: {duty: {value: 2.096, provenance: assumed, source: "hand arithmetic (D-009): S1, 1.2578 kmol/h x 150 kJ/(kmol K) x 40 K (298 to 338 K) = 7546 kJ/h; the jacket's heat losses not counted"}}}}
+  - {id: Q2, title: Heat of sulfonation to cooling water (R101's model), kind: energy, from: R101.q, to: CW.r101, state: {design: {duty: {value: 23.3387, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S2 S3 S4', fingerprint: 5b25a96e2ca67c8a}}}}
+  - {id: Q3, title: Cool-down and second acid portion to cooling water (R102's model), kind: energy, from: R102.q, to: CW.r102, state: {design: {duty: {value: 3.76302, provenance: calculated, source: 'cheme process propagate: conversion duty R102 from S6 S7 S8', fingerprint: a3ffbcd3333db837}}}}
+  - {id: Q4, title: Water heel cooling, kind: energy, from: E102.q, to: BRINE.e102, state: {design: {duty: {value: 10.072, provenance: assumed, source: "hand arithmetic (D-009): S9, 866.32 kg/h x 4.185 kJ/(kg K) x 10 K (298 to 288 K)"}}}}
+  - {id: Q5, title: Quench reaction heat to brine (Q101's model), kind: energy, from: Q101.q, to: BRINE.q101, state: {design: {duty: {value: 38.9201, provenance: calculated, source: 'cheme process propagate: semibatch duty Q101 from S8 S10', fingerprint: 0d38558cc4985109}}}}
+  - {id: Q10, title: Dilution heat of the dosed acids to brine, kind: energy, from: Q101.dil, to: BRINE.q101dil, state: {design: {duty: {value: 16.026, provenance: assumed, source: "hand arithmetic (D-009, D-014): the dilution of the H2SO4 and the sulfonic acids dosed with S8 into the water heel, which Q101's semi-batch model leaves out (it counts no heat of dilution of a dosed liquid, lesson L-2; Q5 is the model's part): H2SO4 0.7471 kmol/h x 75 MJ/kmol + PTSA and OTSA 0.0830 kmol/h x 20 MJ/kmol = 57694 kJ/h, ASSUMED effective heats (D-005); on Q-101's brine jacket with Q5"}}}}
+  - {id: Q6, title: Dryer heat, kind: energy, from: LPS.d101, to: D101.steam, state: {design: {duty: {value: 40.8382, provenance: assumed, source: "cheme process crystallizers: D101's dryer model, the cake from 278.6 to 308 K, the water, HCl and toluene evaporated, the vessel heated each batch, 70 % efficiency (D-008, D-009)"}}}}
+  - {id: Q7, title: Scrubber heat to cooling water, kind: energy, from: S101.q, to: CW.s101, state: {design: {duty: {value: 49.870, provenance: assumed, source: "hand arithmetic (D-009): NEUT 1.3005 kmol/h x 132 MJ/kmol = 171662 kJ/h, less the liquor S30 warmed by 10 K (381.66 kg/h x 3.6 kJ/(kg K) x 10 K = 13740 kJ/h), plus the dilution of the 50 wt% caustic S28 (1.3741 kmol/h NaOH x 15 MJ/kmol = 20612 kJ/h, ASSUMED, D-009) and the vent gas S27 cooled from 334.53 to 308.15 K (1.3017 kmol/h HCl x 29.1 kJ/(kmol K) x 26.38 K = 999 kJ/h)"}}}}
+  - {id: P1, title: R-101 agitator, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 3.0, provenance: assumed, source: "year average: a 3 kW agitator of the 4 m3 enamelled vessel R-101 (about 0.75 kW/m3), occupied 100 % (D-009)"}}}}
+  - {id: Q8, title: DR-101 vacuum condenser to brine, kind: energy, from: D101.cond, to: BRINE.d101, state: {design: {duty: {value: 25.523, provenance: assumed, source: "hand arithmetic (D-009): the water of the dryer vapour S25, 2.07349 kmol/h = 37.354 kg/h, condensed at D101's latent heat (2418 kJ/kg at 308 K) and the condensate cooled from 308 to 298 K (41.8 kJ/kg) = 91883 kJ/h; the HCl and toluene traces (0.0005 and 0.000005 kmol/h) left out; on brine, since condensing at the dryer's vacuum (water's vapour pressure 5.6 kPa at 308 K, 3.2 kPa at 298 K) needs a coolant below the 298 K cooling water"}}}}
+  - {id: Q9, title: Wash water chilling to brine, kind: energy, from: E103.q, to: BRINE.e103, state: {design: {duty: {value: 11.820, provenance: assumed, source: "hand arithmetic (D-009): S31, 508.36 kg/h = 28.218 kmol/h x 75.4 kJ/(kmol K) x 20 K (298 to 278 K) = 42553 kJ/h; T-101's heat gains not counted"}}}}
+  - {id: P2, title: Q-101 agitator, kind: energy, from: POWER.q101, to: Q101.power, state: {design: {duty: {value: 6.0, provenance: assumed, source: "year average: an 11 kW agitator of the 20 m3 quench vessel, occupied 55 % (D-009)"}}}}
+  - {id: P3, title: "Nutsche agitator, paddle dryer and vacuum pump", kind: energy, from: POWER.d101, to: D101.power, state: {design: {duty: {value: 12.4, provenance: assumed, source: "year average: F-101's 4 kW agitator at 73 % occupancy (2.9 kW), DR-101's 7.5 kW paddle drive and 3 kW vacuum pump at 90 % (9.5 kW) (D-009)"}}}}
+  - {id: P4, title: Scrubber circulation pump and fan, kind: energy, from: POWER.s101, to: S101.power, state: {design: {duty: {value: 3.0, provenance: assumed, source: "year average: 1.5 kW circulation pump and 1.5 kW fan, running continuously (D-009)"}}}}

@@ -586,6 +586,26 @@ allocation:
       The hydrocracked products, the C1-C2 gas and the unconverted-oil bleed are fuels and fuel
       blendstocks, so energy content (LHV) is the physical relationship (hierarchy step 2). LHVs are
       IPCC 2006 defaults per cut, the unsplit product's ASSUMED (jet kerosene), given in the dataset.
+  plastic-pyrolysis-1:
+    method: energy
+    rule: physical-energy
+    reason: >-
+      The raw pyrolysis oil and the exported pyrolysis gas are co-produced fuels (the oil also a
+      steam-cracker feed after upgrading), so energy content (LHV) is the physical relationship
+      (hierarchy step 2). LHVs are IPCC 2006 category defaults, naphtha for the oil and ethane for
+      the gas (ASSUMED match), given in the dataset; the char is a residue, not a co-product.
+  waste-incineration-1:
+    method: exergy
+    rule: deviation
+    reason: >-
+      Net electricity and net heat of one CHP steam cycle, not the products of one separation, so
+      hierarchy step 2a (physical-exergy) does not name this case. docs/system-model.md section 2
+      allocates exported heat as a co-product by energy or exergy, documented per process, never
+      credited. Exergy is chosen because the two leave in different thermodynamic qualities (work,
+      and heat as condensing 1.7 bar(a) steam at 115 degC to the district-heating exchanger, the
+      boundary), which energy content would treat as equal. The products are in kWh, so the WBCSD
+      price-ratio rule (per kg) does not apply. Exergy per kWh is in the dataset's product
+      properties (electricity 3600 kJ; heat the Carnot factor at the boundary temperature).
 
 # Emissions of the plant itself, by component (emission:<component>), to biosphere3 flows. None
 # of the ASU's emissions is a burden (see pass_through), so this list is for other processes.
@@ -651,6 +671,9 @@ biosphere:
   C6H6:
     flow: {name: Benzene, categories: [air], uuid: 28999907-a8a7-45b3-857e-836495ca2aa0}
     source: Benzene, or unburnt aromatics a dataset counts as benzene (name and UUID from biosphere3 as shipped with bw2io 0.9.17, ecoinvent elementary flows 3.9, air, unspecified).
+  C4H6:
+    flow: {name: Butadiene, categories: [air], uuid: 5064da53-d4ec-44ee-ba23-b20a4f8c4964}
+    source: 1,3-Butadiene (CAS 106-99-0) to air from vents and wastewater; a dataset that uses this component means the 1,3-isomer (name and UUID from ecoinvent elementary flows 3.9 as shipped with bw2io 0.9.17, air, unspecified).
   CH3OH:
     flow: {name: Methanol, categories: [air], uuid: 0ebdb68a-f50d-4b0c-ad4b-3a1104d8b454}
     source: Methanol slip (name and UUID from biosphere3 as shipped with bw2io 0.9.17, ecoinvent elementary flows 3.9, air, unspecified).

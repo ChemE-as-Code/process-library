@@ -1,0 +1,38 @@
+# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
+# dataset is lca/datasets/*.yaml, Tier 1 form, so maturity stays at concept
+# (core's cheme.lci-tier-maturity). See README.md.
+schema: cheme-as-code/process/v1
+id: vcm-1
+title: Vinyl chloride monomer by the balanced EDC process (direct chlorination and oxygen-based oxychlorination)
+summary: >-
+  Sourced conceptual inventory per tonne of VCM: ethylene, chlorine, fuel, steam and power from EU
+  LVOC BREF ranges, oxygen and residues from stoichiometry, vent CO2 and combustion CH4 from IPCC
+  2006. No flowsheet; not reviewed.
+families: [chlorinated-organics]
+keywords: [vinyl chloride, VCM, EDC, "1,2-dichloroethane", direct chlorination, oxychlorination, EDC cracking, balanced process, PVC]
+facets: {feedstock_basis: [fossil], product_classes: [chemicals], unit_operations: [reaction, distillation, pyrolysis], region: EU}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: ethylene, role: feedstock, inventory_key: "feed:ethylene", note: "linked to ethylene-1 (lca/mappings.yaml)"}
+    - {chemical: chlorine, role: feedstock, inventory_key: "feed:chlorine", note: "linked to chlor-alkali-1 (lca/mappings.yaml); EDC/VCM units are usually integrated with chlorine production"}
+    - {chemical: oxygen, role: feedstock, inventory_key: "feed:oxygen", note: "oxygen-based oxychlorination; linked to asu-1 GOX (lca/mappings.yaml)"}
+    - {chemical: methane, role: feedstock, inventory_key: "feed:natural-gas", note: "natural gas to the EDC cracker furnaces, taken as pure methane (ASSUMED)"}
+    - {chemical: air, role: feedstock, note: "combustion air of the furnaces and the vent treatment, free; its O2 is feed:O2"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:water", note: "ASSUMED: the effluent less the water formed by oxychlorination"}
+  outputs:
+    - {chemical: vinyl-chloride, role: main-product, inventory_key: "product:vinyl-chloride"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2"}
+    - {chemical: water, role: emission, inventory_key: "emission:H2O", note: "combustion water vapour"}
+    - {chemical: wastewater, role: waste, inventory_key: "output:wastewater"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity"}
+    - {chemical: steam, role: utility, inventory_key: "feed:steam", note: "counted as heat delivered, gross of heat recovery"}
+basis: {capacity: "per tonne of vinyl chloride monomer (the dataset's basis); no plant size"}
+publication: {status: public, license: CC-BY-4.0}
+references:
+  - {title: "Falcke, H. et al. (2017) Best Available Techniques (BAT) Reference Document for the Production of Large Volume Organic Chemicals. JRC Science for Policy Report EUR 28882 EN (JRC109279), chapter 11", doi: 10.2760/77304}
+  - {title: "IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Vol. 3 Industrial Processes and Product Use, chapter 3 Chemical Industry Emissions, section 3.9 (Tables 3.17 to 3.19)", url: "https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/3_Volume3/V3_3_Ch3_Chemical_Industry.pdf"}
+  - {title: "Commission Implementing Regulation (EU) 2021/447 of 12 March 2021, Annex (EU ETS product benchmark for VCM), with the definition in Annex I of Delegated Regulation (EU) 2019/331", url: "https://eur-lex.europa.eu/eli/reg_impl/2021/447/oj"}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/vcm-1, access: public}

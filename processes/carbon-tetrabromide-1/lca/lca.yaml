@@ -1,0 +1,108 @@
+# Goal and scope of the carbon-tetrabromide-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme
+# assess lca --write` (lca/inventory.csv, gaps.csv, dataset.yaml, manifest.json, results);
+# never edit those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the batch
+# plant with its amount per kg of dried CBr4, from the flowsheet's year averages of the recipe
+# (D-003). Per batch: multiply by 450.91 kg. The backgrounds are left unmapped (`missing:` with
+# the activity each should connect to), except where lca/mappings.yaml links a library
+# producer: a gap, never zero, and no values from licensed databases. The plant has no emission
+# to air in the balance: no gas forms in either reaction (no vent stream, D-011); the bromine is
+# dosed into caustic and converted to 0.9999, the acetone into the hypobromite; the 5 % excess of
+# acetone and the bromine's trace leave dissolved in the liquors to the wastewater. Vent losses
+# (acetone vapour in the nitrogen purge, bromine traces) are not estimated
+# (emission_exclusions).
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of carbon tetrabromide made by the semi-batch
+  haloform bromination of acetone in aqueous sodium hypobromite at the concept stage: which raw
+  materials, utilities and wastes the batch plant exchanges per kg of dried CBr4, as the
+  foreground for a later cradle-to-gate study. No impact results: most backgrounds are not
+  mapped yet (D-012).
+functional_unit: {product: CBR4P, amount: 1, unit: kg, source: "1 kg of dried carbon tetrabromide (99.6 wt% CBr4) at the plant gate to packing, stream S16 (D-002, D-012)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
+# being mapped free (the schema's gate-to-gate maps every feed free), as n-bromosuccinimide-1 does.
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Batch plant: bromine dosed over 1.7 h into dilute caustic soda at 278 K (sodium hypobromite, semi-batch), acetone dosed over 4.5 h into the cold hypobromite with tetrabutylammonium bromide (haloform reaction, semi-batch), CBr4 precipitated, filtered, reslurry-washed with water and vacuum-dried at 308 K in two agitated filter-dryers; 450.91 kg per batch, 696 batches a year on a dedicated train"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+flows:
+  # raw materials
+  - key: feed:BR2
+    missing: "linked to processes/bromine-1 (lca/mappings.yaml): dry liquid bromine by the chlorination and steaming-out of a bromide brine"
+    source: "flowsheet stream S5 (D-004)"
+  - key: feed:NAOH
+    missing: "linked to processes/chlor-alkali-1 (lca/mappings.yaml): caustic soda 50 wt% from membrane chlor-alkali electrolysis"
+    source: "flowsheet stream S2 (D-004)"
+  - key: feed:ACET
+    missing: "linked to processes/acetone-1 (lca/mappings.yaml): acetone from the cumene process (with phenol)"
+    source: "flowsheet stream S7 (D-004)"
+  - key: feed:TBAB
+    missing: "not mapped yet (D-012); connect to: tetrabutylammonium bromide, technical grade, from tributylamine and 1-bromobutane; no library process makes it (9.8 g/kg CBr4, below the cut-off's 1 % by mass, kept as a gap)"
+    source: "flowsheet stream S3 (D-004)"
+  - key: feed:PW
+    missing: "not mapped yet (D-012); connect to: process water from the site water treatment"
+    source: "flowsheet stream S1 (D-004)"
+  - key: feed:WASHW
+    missing: "not mapped yet (D-012); connect to: process water from the site water treatment"
+    source: "flowsheet stream S12 (D-007)"
+  # utilities
+  - key: feed:POWER
+    missing: "not mapped yet (D-012); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy streams P1 (M-101 agitator), P2 (R-101 agitator) and P3 (filter-dryers' agitators and vacuum pump), D-009"
+  - key: feed:LPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 350 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
+    source: "flowsheet energy stream Q4 (filter-dryer hot-water circuit), D-009"
+  - key: product:BRINE
+    missing: "not mapped yet (D-012); connect to: refrigeration at 258 K (brine) from an electric vapour-compression unit (e.g. processes/utility-chiller), per kWh of heat removed: compressor electricity at its COP, condenser cooling water, refrigerant losses"
+    source: "flowsheet energy streams Q1 (caustic dilution and charge cooling), Q2 (hypobromite formation) and Q3 (haloform reaction), D-009"
+  - key: product:CW
+    missing: "not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed: pump and fan electricity, make-up water, blowdown, treatment chemicals"
+    source: "flowsheet energy stream Q5 (the filter-dryers' vacuum condenser: the latent heat of the dryer vapour S17), D-009; the reactors' vent condensers carry no modelled vapour and are not counted"
+  # waste
+  - key: product:WW
+    treatment: {kind: waste, route: "site wastewater treatment of an alkaline saline bromide liquor: neutralisation, biological treatment of the acetate, acetone and catalyst, discharge of NaBr as dissolved salt (no bromide recovery, D-010); its bromate needs a reduction step"}
+    missing: "not mapped yet (D-012); connect to: treatment of an alkaline saline process effluent with sodium bromide, sodium acetate and traces of bromate in an industrial wastewater treatment plant (e.g. processes/utility-wwtp), per kg; or bromide recovery to bromine (bromine-1), not modelled"
+    source: "flowsheet stream S18 (D-010)"
+# What the batch plant uses per batch and the flowsheet does not carry (library ADR 0035, core
+# ADR 0053), converted with the recipe's batches per year (process/recipe.yaml): the rinses of
+# R-101 and the filter-dryers between batches, and their water to the wastewater treatment; the
+# nitrogen that inerts R-101 while the acetone is dosed and presses the filter-dryer's two
+# filtrations. M-101 is not rinsed: it makes the same hypobromite batch after batch.
+consumables:
+  - id: rinse-water
+    title: Rinse water of R-101 and F-101 between batches
+    unit: kg
+    per_batch: 1000
+    source: "2 rinses per batch (recipe operations clean of R-101 and F-101) x 0.5 m3 each, ASSUMED (D-003, D-012)"
+    missing: "not mapped yet (D-012); connect to: process water from the site water treatment"
+    disposal:
+      kind: waste
+      route: "site wastewater treatment of the rinse water, with the saline bromide liquor (D-010)"
+      source: "rinses to the wastewater treatment with the liquors (D-012)"
+      missing: "not mapped yet (D-012); connect to: treatment of a saline process effluent in an industrial wastewater treatment plant (e.g. processes/utility-wwtp), per kg"
+  - id: nitrogen
+    title: Nitrogen for inerting R-101 and pressing the filtrations in F-101
+    unit: kg
+    per_batch: 37.5
+    source: "30 Nm3 per batch x 1.2504 kg/Nm3, ASSUMED (D-012): R-101's vapour space purged three times and blanketed while the acetone is dosed (about 10 Nm3), F-101 pressed to 300 kPa(a) for each of its two filtrations (about 20 Nm3)"
+    missing: "linked to processes/asu-1 (lca/mappings.yaml): gaseous nitrogen to the battery limit"
+operation:
+  hours_per_year: 7920
+  life_years: 20
+  source: "design basis operating_hours_per_year 7920 (ASSUMED, the recipe's hours); 20 a service life ASSUMED"
+emission_exclusions:
+  - {id: reactor-vent, method: storage-tank, equipment: [M-101, R-101], reason: "No P&ID yet: the nitrogen and air displaced from M-101 and R-101 while charging and dosing (with acetone vapour from R-101 and bromine traces from M-101) go through a vent condenser to a caustic scrubber not in the balance; not estimated (open for basic engineering, D-011)."}
+  - {id: dryer-vent, method: equipment-leaks, equipment: [F-101], reason: "CBr4 sublimes: its vapour and dust in the filter-dryers' vacuum vent and the nitrogen of the filtrations are not estimated (D-008, D-011)."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals
+  modelling: {principle: attributional}
+  geography: {description: "Generic fine-chemicals site with a bromine supply, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #152, unreviewed"

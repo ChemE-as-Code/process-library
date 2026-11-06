@@ -1,0 +1,374 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Benzoyl chloride from benzotrichloride and benzoic acid over zinc chloride (DESIGN.md D-001),
+# a batch plant: benzoic acid is melted with the catalyst, benzotrichloride is dosed into the
+# melt at 413 K over 2 h (a semi-batch, reactor: semibatch) and the HCl it forms leaves as gas
+# (batch.vent) to an absorber that makes 30 wt% hydrochloric acid; the crude is distilled at
+# 5 kPa(a) from its catalyst and excess acid in a batch still with a short column on top.
+# The flows are the year averages of the batch recipe (process/recipe.yaml, `cheme process
+# recipe`, D-003).
+# Where the values come from:
+# - feeds, temperatures, pressures, ratios: design basis and D-002..D-009, ASSUMED or from
+#   US 4 276 231 A, Example 1 (D-004);
+# - R101: cheme's semi-batch model with a vent (core ADRs 0050, 0054), from the ASSUMED rate law
+#   of BZCL, to 0.999 conversion of the benzotrichloride (D-005);
+# - ST101: cheme's batch (Rayleigh) still, one stage, Raoult's law with NIST Antoine constants
+#   (core ADR 0055, D-007); the column's rectification on top of it, K101, is a specified split
+#   (core has no batch rectification with reflux, core#173): its outlets and the absorber's
+#   water come from scripts/balance.py (D-006, D-008);
+# - M101, A101, M102: mixers (`cheme process propagate --fill`);
+# - the duties: R101's Q2 and the still's net boil-up Q4 are written by `cheme process propagate
+#   --fill` from the models (core 1.9.0, ADR 0059: R101's energy stream is its one heat stream,
+#   ST101's is named by `energy_port`); the melter's Q1, the absorber's Q3, the reboiler's share
+#   for the column's reflux Q6 and the condenser's Q5 come from scripts/balance.py (D-009), no
+#   property package of core covers these liquids and core has no column with reflux.
+schema: cheme/process/v1
+kind: flowsheet
+title: Benzoyl chloride by semi-batch reaction of benzotrichloride with benzoic acid and batch vacuum distillation (2000 t/a)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: 2000 t/a distilled benzoyl chloride, year averages of the batch recipe in 7920 h (D-002, D-003)", default: true}
+tolerance: {abs: 0.05, rel: 0.002}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - {id: BA, title: Benzoic acid (flakes; no library process), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: ZNCL2, title: Zinc chloride (anhydrous catalyst), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: BTC, title: Benzotrichloride (no library process), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: PW, title: Process water (HCl absorber), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: r101, direction: out, kind: energy}
+      - {id: st101, direction: out, kind: energy}
+  - id: MPS
+    title: MP steam 1100 kPa(a) (melter)
+    category: utility
+    utility:
+      kind: steam
+      level: MP
+      pressure: {value: 1100, provenance: assumed, source: "design basis (D-009)"}
+      supply_temperature: {value: 457.0, provenance: given, source: "saturation at 1100 kPa(a), IAPWS-IF97"}
+      min_approach: {value: 10, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: m101, direction: out, kind: energy}
+  - id: LPS
+    title: LP steam 450 kPa(a) (still reboiler)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 450, provenance: assumed, source: "design basis (D-009)"}
+      supply_temperature: {value: 421.0, provenance: given, source: "saturation at 450 kPa(a), IAPWS-IF97"}
+      min_approach: {value: 10, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: st101, direction: out, kind: energy}
+      - {id: st101_reflux, direction: out, kind: energy}
+products:
+  - {id: BZCL, title: Benzoyl chloride to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: HCLAQ, title: Hydrochloric acid 30 wt% (co-product), category: by_product, ports: [{id: in, direction: in}]}
+  - {id: RES, title: Still residue to hazardous-waste incineration, category: by_product, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis (D-009)"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis (D-009)"}
+      min_approach: {value: 10, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: r101, direction: in, kind: energy}
+      - {id: a101, direction: in, kind: energy}
+      - {id: k101, direction: in, kind: energy}
+
+blocks:
+  - id: PREP
+    title: Benzoic acid melting
+    class: Mixing
+    ports:
+      - {id: ba, direction: in}
+      - {id: zncl2, direction: in}
+      - {id: out, direction: out}
+      - {id: steam, direction: in, kind: energy}
+  - id: REACT
+    title: Semi-batch reaction with HCl off-gas
+    class: ReactingChemicals
+    ports:
+      - {id: in, direction: in}
+      - {id: btc, direction: in}
+      - {id: out, direction: out}
+      - {id: vent, direction: out}
+      - {id: q, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: ABSORB
+    title: HCl absorption to hydrochloric acid
+    class: Mixing
+    ports:
+      - {id: gas, direction: in}
+      - {id: water, direction: in}
+      - {id: acid, direction: out}
+      - {id: q, direction: out, kind: energy}
+  - id: PURIFY
+    title: Batch vacuum distillation
+    class: Distilling
+    ports:
+      - {id: in, direction: in}
+      - {id: product, direction: out}
+      - {id: residue, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: steam_reflux, direction: in, kind: energy}
+      - {id: q, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+
+steps:
+  - id: M101
+    block: PREP
+    title: Melter (benzoic acid with the catalyst to 413 K)
+    class: Mixing
+    links: [{target: equipment, ref: M-101}]
+    ports:
+      - {id: ba, direction: in, delegates: ba}
+      - {id: zncl2, direction: in, delegates: zncl2}
+      - {id: out, direction: out, delegates: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+  - id: R101
+    block: REACT
+    title: Reactor (benzotrichloride dosed into the melt at 413 K, HCl vented)
+    class: ReactingChemicals
+    reactions: [BZCL]
+    reactor: semibatch
+    batch:
+      dosing: [{stream: S4, time: 7200}]
+      target: {key: BTC, conversion: 0.999}
+      heat: isothermal
+      vent: {stream: S6, components: [HCL]}
+      provenance: assumed
+      source: "benzotrichloride dosed over 2 h into the melt at 413 K, the dosing time of US 4 276 231 A, Example 1; post-reaction to 0.999 conversion of the benzotrichloride; the HCl leaves as gas as it forms, none taken as dissolved (D-005)"
+    hazard:
+      mtt: 471.0
+      vent_capacity: 100.0
+      provenance: assumed
+      source: "mtt: the normal boiling point of benzoyl chloride (NIST WebBook, mean of 8 values, 471 +/- 2 K), the liquid's main component once dosed: R101 runs at atmospheric pressure with its vent open to the absorber; the default, benzotrichloride's 493.8 K, lies above it, since core takes the MTT from the charge and doses, not the product (D-011, L-5). vent_capacity: ASSUMED design of R-101's off-gas line, its reflux condenser and A-101 (D-014): 1.2 x the gas release at the MTSR (81.6 m3/h of HCl at 421.9 K and 101.3 kPa(a), cheme process reactor-hazards), rounded up to 100 m3/h; the normal peak, 75.25 m3/h at 413 K (cheme process recipe), is within it; holds for the assumed kinetics only: at k/10 the release at the MTSR is 164.3 m3/h, 1.64 x (D-011, D-014, open)"
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: btc, direction: in, delegates: btc}
+      - {id: out, direction: out, delegates: out}
+      - {id: vent, direction: out, delegates: vent}
+      - {id: q, direction: out, kind: energy, delegates: q}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: A101
+    block: ABSORB
+    title: HCl absorber (falling film with tail scrubber, to 30 wt% acid)
+    class: Mixing
+    links: [{target: equipment, ref: A-101}]
+    ports:
+      - {id: gas, direction: in, delegates: gas}
+      - {id: water, direction: in, delegates: water}
+      - {id: acid, direction: out, delegates: acid}
+      - {id: q, direction: out, kind: energy, delegates: q}
+  - id: ST101
+    block: PURIFY
+    title: Batch still at 5 kPa(a) (one stage, Rayleigh)
+    class: Distilling
+    # the still's model duty (its net boil-up's latent heat, ADR 0059) goes on Q4; Q6 is the
+    # reboiler's share for the column's reflux, which the one-stage still does not hold (D-009)
+    energy_port: steam
+    still:
+      pressure: 5.0
+      volatility: {model: raoult, provenance: assumed, source: "ideal liquid, NIST WebBook Antoine constants (materials.yaml); benzoic acid dimerises in the vapour and its mixture with benzoyl chloride is not shown to be ideal: ASSUMED (D-007)"}
+      nonvolatile: [ZNCL2]
+      boilup: {value: 100, unit: kW, provenance: assumed, source: "the net boil-up that leaves as distillate: a 200 kW reboiler at a reflux ratio of 1 in the column K101 (D-007, D-008)"}
+      end: {residue: {key: BZCL, mole_fraction: 0.40}}
+      outlets: {distillate: top, residue: bottom}
+      provenance: assumed
+      source: "distil until benzoyl chloride is 40 mol% of the residue, so the bottoms stay a mobile liquid (US 4 276 231 A: bottoms of 20-70 % benzoyl chloride; D-007)"
+    links: [{target: equipment, ref: C-101}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: top, direction: out}
+      - {id: bottom, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: steam_reflux, direction: in, kind: energy, delegates: steam_reflux}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: K101
+    block: PURIFY
+    title: Column on the still (rectification, specified split)
+    class: Distilling
+    links: [{target: equipment, ref: K-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out, delegates: product}
+      - {id: bottoms, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: q}
+  - id: M102
+    block: PURIFY
+    title: Still residue (with what the column returns to the pot)
+    class: Mixing
+    links: [{target: equipment, ref: C-101}]
+    ports:
+      - {id: res, direction: in}
+      - {id: ret, direction: in}
+      - {id: out, direction: out, delegates: residue}
+
+streams:
+  - id: S1
+    title: Benzoic acid
+    from: BA.out
+    to: M101.ba
+    template: organics
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 120.9201, provenance: assumed, source: "scripts/balance.py: 15/14 mol per mol of benzotrichloride (US 4 276 231 A, Example 1: 15.0 mol on 14.0 mol; D-004)"}
+        composition: {basis: mass_fraction, values: {BA: 1.0}, provenance: assumed, source: "technical benzoic acid, impurities not modelled (D-004)"}
+  - id: S2
+    title: Zinc chloride
+    from: ZNCL2.out
+    to: M101.zncl2
+    template: organics
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 0.89766, provenance: assumed, source: "scripts/balance.py: 0.742 kg per 100 kg of benzoic acid (US 4 276 231 A, Example 1: 13.6 g on 1832 g; D-004)"}
+        composition: {basis: mass_fraction, values: {ZNCL2: 1.0}, provenance: assumed, source: "anhydrous zinc chloride (D-004)"}
+  - id: S3
+    title: Molten charge (benzoic acid and catalyst, 413 K)
+    from: M101.out
+    to: R101.in
+    template: organics
+    state:
+      design:
+        temperature: {value: 413.15, provenance: assumed, source: "melted and heated to the reaction temperature in M101 (D-005)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 121.818, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2', fingerprint: dedff1f95e66243d}
+        composition: {basis: mole_fraction, values: {BTC: 0.0, BA: 0.993392, BZCL: 0.0, ZNCL2: 0.00660844, HCL: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2', fingerprint: b5af44c57a01c8e9}
+  - id: S4
+    title: Benzotrichloride (dosed)
+    from: BTC.out
+    to: R101.btc
+    template: organics
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "from storage through the off-gas wash (D-004, D-010)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 180.6389, provenance: assumed, source: "scripts/balance.py: the benzotrichloride that makes 2000 t/a of S11 (the balance is linear in the feeds; D-002)"}
+        composition: {basis: mass_fraction, values: {BTC: 1.0}, provenance: assumed, source: "benzotrichloride, its benzal chloride and ring-chlorinated impurities not modelled (D-004)"}
+  - id: S5
+    title: Crude benzoyl chloride
+    from: R101.out
+    to: ST101.in
+    template: organics
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {BTC: 0.000481103, BA: 0.0348466, BZCL: 0.961243, ZNCL2: 0.0034291, HCL: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3 S4', fingerprint: d3f4cf5fd5c01b7e}
+        flow: {value: 268.798, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3 S4', fingerprint: d3f4cf5fd5c01b7e}
+        temperature: {value: 413.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3 S4', fingerprint: d3f4cf5fd5c01b7e}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3 S4', fingerprint: d3f4cf5fd5c01b7e}
+  - id: S6
+    title: HCl off-gas
+    from: R101.vent
+    to: A101.gas
+    template: acid
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {HCL: 1.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3 S4', fingerprint: d3f4cf5fd5c01b7e}
+        flow: {value: 33.6586, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3 S4', fingerprint: d3f4cf5fd5c01b7e}
+        temperature: {value: 413.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3 S4', fingerprint: d3f4cf5fd5c01b7e}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3 S4', fingerprint: d3f4cf5fd5c01b7e}
+  - id: S7
+    title: Absorber water
+    from: PW.out
+    to: A101.water
+    template: acid
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 78.5367, provenance: assumed, source: "scripts/balance.py: 7/3 kg per kg of HCl in S6, for 30 wt% acid (D-010)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "process water"}
+  - id: S8
+    title: Hydrochloric acid 30 wt%
+    from: A101.acid
+    to: HCLAQ.in
+    template: acid
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "absorber outlet on cooling water (D-010)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 112.195, provenance: calculated, source: 'cheme process propagate: mixer A101 from S6 S7', fingerprint: 853e61f983022817}
+        composition: {basis: mole_fraction, values: {HCL: 0.174761, H2O: 0.825239}, provenance: calculated, source: 'cheme process propagate: mixer A101 from S6 S7', fingerprint: 67d56bcb67fdd58f}
+  - id: S9
+    title: Still distillate (to the column)
+    from: ST101.top
+    to: K101.in
+    template: organics
+    state:
+      design:
+        temperature: {value: 376.5, provenance: assumed, source: "the still's first bubble point at 5 kPa(a), 376.47 K (cheme process stills); it rises to 397.09 K at the end (D-007)"}
+        pressure: {value: 5.0, provenance: assumed, source: "still pressure (D-007)"}
+        composition: {basis: mole_fraction, values: {BTC: 0.00044166, BA: 0.0066419, BZCL: 0.992916, ZNCL2: 0.0}, provenance: calculated, source: 'cheme process propagate: still ST101 from S5', fingerprint: fd35e19bd7af333d}
+        flow: {value: 255.408, provenance: calculated, source: 'cheme process propagate: still ST101 from S5', fingerprint: fd35e19bd7af333d}
+  - id: S10
+    title: Still residue (end of the boil-up)
+    from: ST101.bottom
+    to: M102.res
+    template: organics
+    state:
+      design:
+        temperature: {value: 397.09, provenance: assumed, source: "the still's bubble point at the end of the boil-up (cheme process stills, D-007)"}
+        pressure: {value: 5.0, provenance: assumed, source: "still pressure (D-007)"}
+        composition: {basis: mole_fraction, values: {BTC: 0.00118003, BA: 0.534628, BZCL: 0.4, ZNCL2: 0.064192}, provenance: calculated, source: 'cheme process propagate: still ST101 from S5', fingerprint: fd35e19bd7af333d}
+        flow: {value: 13.3904, provenance: calculated, source: 'cheme process propagate: still ST101 from S5', fingerprint: fd35e19bd7af333d}
+  - id: S11
+    title: Benzoyl chloride
+    from: K101.top
+    to: BZCL.in
+    template: organics
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: "distillate subcooled to storage (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "receiver broken to atmospheric pressure with nitrogen (D-008)"}
+        flow: {value: 252.5252, provenance: assumed, source: "scripts/balance.py: K101's specified split of S9, 99.5 % of the benzoyl chloride, 1 % of the benzoic acid and 2 % of the benzotrichloride to the product (D-008)"}
+        composition: {basis: mass_fraction, values: {BTC: 1.2432e-05, BA: 5.8404e-05, BZCL: 0.999929164}, provenance: assumed, source: "scripts/balance.py: K101's specified split (D-008)"}
+  - id: S12
+    title: Heavies returned by the column to the pot
+    from: K101.bottoms
+    to: M102.ret
+    template: organics
+    state:
+      design:
+        temperature: {value: 390.0, provenance: assumed, source: "the column's reflux back to the pot (D-008)"}
+        pressure: {value: 5.0, provenance: assumed, source: "still pressure (D-007)"}
+        flow: {value: 2.88281, provenance: assumed, source: "scripts/balance.py: the rest of S9 after K101's specified split (D-008)"}
+        composition: {basis: mass_fraction, values: {BTC: 0.053361622, BA: 0.506484806, BZCL: 0.440153572}, provenance: assumed, source: "scripts/balance.py: K101's specified split (D-008)"}
+  - id: S13
+    title: Still residue to incineration
+    from: M102.out
+    to: RES.in
+    template: organics
+    state:
+      design:
+        temperature: {value: 373.15, provenance: assumed, source: "drained hot under nitrogen, about 18 K above the residue's ideal benzoic acid liquidus of 355 K (x_BA 0.537; Tfus 395.2 K, dHfus 18.0 kJ/mol), ASSUMED (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "vacuum broken with nitrogen (D-008)"}
+        flow: {value: 16.2732, provenance: calculated, source: 'cheme process propagate: mixer M102 from S10 S12', fingerprint: b1848b4996195c31}
+        composition: {basis: mole_fraction, values: {BTC: 0.00730074, BA: 0.537178, BZCL: 0.402564, ZNCL2: 0.0529568, HCL: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M102 from S10 S12', fingerprint: d22daada56f92bd5}
+  # energy
+  - {id: Q1, title: Melter heat (MP steam), kind: energy, from: MPS.m101, to: M101.steam, state: {design: {duty: {value: 12.1285, provenance: assumed, source: "scripts/balance.py: benzoic acid from 298 K to its melt at 413 K (fusion 18.0 kJ/mol), the catalyst heated, 10 % losses (D-009)"}}}}
+  - {id: Q2, title: Heat of reaction to cooling water (via the tempered-water loop), kind: energy, from: R101.q, to: CW.r101, state: {design: {duty: {value: 5.44216, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S3 S4', fingerprint: d1b0705a091a552e}}}}
+  - {id: Q3, title: Heat of absorption to cooling water, kind: energy, from: A101.q, to: CW.a101, state: {design: {duty: {value: 15.7912, provenance: assumed, source: "scripts/balance.py: HCl from gas at 413 K to 30 wt% acid at 313 K, -64 kJ/mol ASSUMED (D-010)"}}}}
+  - {id: Q4, title: "Still reboiler: the net boil-up (LP steam)", kind: energy, from: LPS.st101, to: ST101.steam, state: {design: {duty: {value: 25.0981, provenance: calculated, source: 'cheme process propagate: still duty ST101 from S5', fingerprint: 6137227a0332b9da}}}}
+  - {id: Q6, title: "Still reboiler: the boil-up returned as the column's reflux (LP steam)", kind: energy, from: LPS.st101_reflux, to: ST101.steam_reflux, state: {design: {duty: {value: 25.0982, provenance: assumed, source: "scripts/balance.py: the reflux ratio 1 times the latent heat of the distillate S9, the vapour K101 condenses and returns to the pot, which the one-stage still does not hold (core#173; D-008, D-009)"}}}}
+  - {id: Q5, title: Column condenser and product cooler to cooling water, kind: energy, from: K101.q, to: CW.k101, state: {design: {duty: {value: 57.0414, provenance: assumed, source: "scripts/balance.py: the vapour condensed at the reflux ratio 1 and the product subcooled to 303 K (D-008)"}}}}
+  - {id: P1, title: Melter and reactor agitators, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 4.0, provenance: assumed, source: "year average: M-101 1 kW and R-101 3 kW agitators (D-009)"}}}}
+  - {id: P2, title: Still agitator and vacuum pump, kind: energy, from: POWER.st101, to: ST101.power, state: {design: {duty: {value: 3.0, provenance: assumed, source: "year average: still agitator 1 kW, dry vacuum pump 5 kW while distilling, about 40 % of the time (D-009)"}}}}
+layout: {bfd: {}, pfd: {}}

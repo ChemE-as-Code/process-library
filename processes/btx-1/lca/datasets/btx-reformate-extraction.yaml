@@ -1,0 +1,508 @@
+# Tier 1 form, a manifest-only entry as process-library#317. Every amount is the formula of its parameters;
+# core's validator re-checks each. Written from the LVOC BREF and the DOE profile (facts in our own form).
+# The lumped formulas of reformate and raffinate in generation.formulas follow the parameters: recompute them
+# whenever a composition or recovery parameter changes (provenance.notes).
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: btx-reformate-extraction
+title: Benzene, toluene and mixed xylenes by solvent extraction of catalytic reformate
+description: Per 1 t of benzene, toluene and mixed xylenes together, gate-to-gate. Reformate split, sulfolane-type
+  extraction, clay treatment and benzene, toluene and xylene columns. Raffinate and C9+ aromatics are co-products.
+  Feed slate from one typical US reformate, utilities as midpoints of the EU LVOC BREF ranges for BTX extraction
+  units.
+basis: 1000 kg of benzene, toluene and mixed xylenes together
+boundary: 'gate-to-gate: reformate splitting (mass balance only), aromatics extraction with solvent recovery,
+  clay treatment, benzene, toluene and xylene fractionation; steam, fuel heat and power from outside'
+technology: liquid-liquid or extractive-distillation extraction with sulfolane-type solvent, clay treatment,
+  distillation; para-xylene recovery, isomerisation, toluene conversion and pygas feed are not modelled
+geography:
+  description: 'Utilities: EU plants of the LVOC BREF data collection. Feed slate: a typical US reformate (DOE
+    2000). No single site.'
+classification:
+  isic: '2011'
+system_boundary:
+  included:
+  - reformate feed and its split into products, raffinate and C9+ aromatics
+  - electricity, gross steam, fired heat
+  - clay make-up, spent clay, solvent-regenerator sludge
+  - water drained from the benzene column
+  excluded:
+  - 'TODO energy of the reformate splitter (C9+ removal), usually a refinery column: not in the BREF''s BTX
+    extraction figures (Table 4.3)'
+  - 'TODO extraction solvent make-up (sulfolane or another): the BREF gives no consumption (4.3.3)'
+  - 'TODO fugitive and vent VOC (benzene among them) and SO2 from sulfolane degradation: not quantified in
+    the BREF for extraction units (4.3.1.2); sent to shared refinery abatement'
+  - 'TODO steam-ejector and clay steaming-out condensates, and BTX and solvent in the effluent: not quantified'
+  - 'TODO heat integration with other units and heat recovery: no credit in the cut-off model'
+  - storage emissions
+  - infrastructure
+  cutoff: none applied; the excluded flows are not quantified
+  infrastructure: excluded
+  catalysts: included
+  non_routine: excluded
+location: RER
+year: 2012
+valid_until: 2017
+time:
+  start: 1999
+  description: 'Utilities: LVOC BREF data collection 2012. Feed slate: DOE profile of 2000 citing 1992 to 1999
+    sources. valid_until is the reference year + 5 (system-model section 6), so it has already lapsed.'
+modelling:
+  principle: attributional
+  multifunctionality: 'unallocated multi-output dataset; default allocation mass: benzene, toluene, mixed xylenes,
+    raffinate and C9+ aromatics are all co-products (no subdivision: one extraction and fractionation train
+    makes them). No sourced prices, so the WBCSD price ratio cannot be computed; mass is the preliminary choice
+    (see allocation).'
+allocation:
+  method: mass
+  coproducts:
+  - benzene
+  - toluene
+  - xylenes
+  - raffinate
+  - c9-aromatics
+  deviation: No sourced prices, so the WBCSD price ratio of the five co-products cannot be computed. Raffinate
+    and C9+ aromatics are gasoline components, but the aromatics have energy content too, so an energy rule
+    is not clearly the physical relationship. Mass is the preliminary choice.
+uuid: 2a5d3064-9e1d-514b-93af-bbad46f28a1f
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+technology_level: current
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: btx
+  value: 1000.0
+  unit: kg
+  description: Benzene, toluene and mixed xylenes delivered together (the basis).
+  source: basis
+- name: w_B
+  value: 0.085
+  unit: kg/kg
+  description: Benzene in the reformate, mass fraction.
+  source: US DOE OIT (2000) Energy and Environmental Profile of the U.S. Chemical Industry, chapter 4, Table
+    4-1, p. 108 (8.5 % yield of benzene from naphtha reformate). Reading the table's '% yield' as wt% of the
+    reformate is ASSUMED; the table states no basis
+- name: w_T
+  value: 0.263
+  unit: kg/kg
+  description: Toluene in the reformate, mass fraction.
+  source: US DOE OIT (2000) Energy and Environmental Profile of the U.S. Chemical Industry, chapter 4, Table
+    4-1, p. 108 (26.3 %); wt% reading ASSUMED as for w_B
+- name: w_X
+  value: 0.261
+  unit: kg/kg
+  description: Mixed xylenes (with ethylbenzene) in the reformate, mass fraction.
+  source: US DOE OIT (2000) Energy and Environmental Profile of the U.S. Chemical Industry, chapter 4, Table
+    4-1, p. 108 (26.1 %; the text says the xylene stream also holds ethylbenzene); wt% reading ASSUMED as for
+    w_B
+- name: w_A
+  value: 0.743
+  unit: kg/kg
+  description: Total aromatics in the reformate, mass fraction; the part above benzene, toluene and xylenes
+    is taken as the C9+ aromatics.
+  source: 'US DOE OIT (2000) Energy and Environmental Profile of the U.S. Chemical Industry, chapter 4, Table
+    4-1, p. 108 (74.3 % total aromatics); wt% reading and that the difference is C9+ aromatics are ASSUMED.
+    The rest (25.7 %) is taken as non-aromatics. Compare REF BREF (2015) section 2.6, p. 58: CCR reformates
+    above 70 % v/v aromatics'
+- name: r_B
+  value: 0.995
+  unit: kg/kg
+  description: Benzene recovered of the benzene fed.
+  source: 'Honeywell UOP, Aromatics recovery web page (ED Sulfolane), accessed 2026-11-05 (manufacturer): benzene
+    and toluene recovery greater than 99.5 % for extractive distillation (ED Sulfolane); taking the bound,
+    and for a liquid-liquid unit, is ASSUMED'
+- name: r_T
+  value: 0.995
+  unit: kg/kg
+  description: Toluene recovered of the toluene fed.
+  source: Honeywell UOP, Aromatics recovery web page (ED Sulfolane), accessed 2026-11-05 (manufacturer), as
+    r_B; ASSUMED as for r_B
+- name: r_X
+  value: 0.98
+  unit: kg/kg
+  description: Mixed xylenes recovered of the xylenes fed.
+  source: 'ASSUMED: no open source read for the xylene recovery of a sulfolane unit; set lower than r_B and
+    r_T as a judgement (heavier aromatics are held less by the solvent). TODO a sourced value'
+- name: elec
+  value: 41.5
+  unit: kWh
+  description: 'Electricity per t product: midpoint of 11 to 72 kWh/t (BB2, BTX extraction).'
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, Table 4.3, p. 217 (data collection 2012);
+    the midpoint and reading 'per tonne of product' as per t of benzene, toluene and xylenes are our choices
+- name: steam
+  value: 576.5
+  unit: kWh
+  description: 'Steam per t product: midpoint of 531 to 622 kWh/t (BB2).'
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, Table 4.3, p. 217; the midpoint is our
+    choice; gross, no heat recovery credited
+- name: fuel
+  value: 512.0
+  unit: kWh
+  description: 'Fuel per t product: midpoint of 149 to 875 kWh/t (BB2), for fired reboilers.'
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, Table 4.3, p. 217; the midpoint is our
+    choice. Counting the fuel energy as heat from natural gas delivered is ASSUMED (the source does not name
+    the fuel or say whether the figure is fuel input or heat absorbed)
+- name: clay
+  value: 0.377
+  unit: kg
+  description: 'Spent clay per t product: midpoint of 0.104 to 0.65 kg/t (BB2).'
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, Table 4.5, p. 219; the midpoint, and fresh
+    clay equal to the spent clay, are our choices
+- name: sludge
+  value: 0.0265
+  unit: kg
+  description: 'Solvent-regenerator sludge per t product: midpoint of 0.003 to 0.05 kg/t.'
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, section 4.3.6.4, p. 219 (one example of
+    the data collection); the midpoint is our choice
+- name: ww
+  value: 0.3
+  unit: kg
+  description: Water drained from the benzene column water boot per t aromatics extract.
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, section 4.3.2.2, p. 215 ('a few hundred
+    grams' per t of extract); 0.3 kg is our reading, ASSUMED. The steam-ejector condensate and clay steaming-out
+    condensate are not quantified (TODO)
+exchanges:
+- key: product:benzene
+  title: Benzene, 99.8 % or more
+  type: product
+  amount: 140.48069895687993
+  unit: kg
+  formula: btx / (w_B * r_B + w_T * r_T + w_X * r_X) * w_B * r_B
+  provenance: calculated
+  source: reformate benzene times its recovery; purity 99.8 to 99.95 % from LVOC BREF 4.2.2.2.2, p. 199; the
+    sum of the three products is the basis
+  pedigree:
+    scores: &id001
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'a typical reformate slate from a US profile of 2000 (citing 1990s sources), read as wt% (ASSUMED):
+      reliability 4, completeness 4, temporal 5 (more than 25 years old), geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: the split of the basis between the three products follows one typical reformate slate;
+      reformates vary with feed and severity'
+- key: product:toluene
+  title: Toluene
+  type: product
+  amount: 434.6638097136403
+  unit: kg
+  formula: btx / (w_B * r_B + w_T * r_T + w_X * r_X) * w_T * r_T
+  provenance: calculated
+  source: reformate toluene times its recovery (co-product)
+  pedigree:
+    scores: *id001
+    reason: 'a typical reformate slate from a US profile of 2000 (citing 1990s sources), read as wt% (ASSUMED):
+      reliability 4, completeness 4, temporal 5 (more than 25 years old), geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.3
+    source: 'ASSUMED: as product:benzene'
+- key: product:xylenes
+  title: Mixed xylenes (with ethylbenzene)
+  type: product
+  amount: 424.8554913294798
+  unit: kg
+  formula: btx / (w_B * r_B + w_T * r_T + w_X * r_X) * w_X * r_X
+  provenance: calculated
+  source: reformate xylenes times their recovery (co-product); para-xylene recovery and isomerisation (BB3)
+    are not in this dataset
+  pedigree:
+    scores: *id001
+    reason: 'a typical reformate slate from a US profile of 2000 (citing 1990s sources), read as wt% (ASSUMED):
+      reliability 4, completeness 4, temporal 5 (more than 25 years old), geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.3
+    source: 'ASSUMED: as product:benzene'
+- key: product:raffinate
+  title: 'Raffinate: non-aromatics with the unrecovered aromatics, to gasoline blending or steam cracking'
+  type: product
+  amount: 438.4426283967843
+  unit: kg
+  formula: btx / (w_B * r_B + w_T * r_T + w_X * r_X) * (1 - w_A + w_B * (1 - r_B) + w_T * (1 - r_T) + w_X *
+    (1 - r_X))
+  provenance: calculated
+  source: the non-aromatics of the reformate plus the aromatics not recovered (co-product; uses in LVOC BREF
+    4.2.2.2.1, p. 199); modelled as C7H16 with the aromatic slip (ASSUMED)
+  pedigree:
+    scores: *id001
+    reason: 'a typical reformate slate from a US profile of 2000 (citing 1990s sources), read as wt% (ASSUMED):
+      reliability 4, completeness 4, temporal 5 (more than 25 years old), geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: follows the reformate''s aromatics content (above 70 % v/v for CCR reformates, REF BREF
+      2.6, p. 58)'
+- key: product:c9-aromatics
+  title: C9+ aromatics (heavy cut), to gasoline blending
+  type: product
+  amount: 222.5765729851837
+  unit: kg
+  formula: btx / (w_B * r_B + w_T * r_T + w_X * r_X) * (w_A - w_B - w_T - w_X)
+  provenance: calculated
+  source: the reformate's aromatics other than benzene, toluene and xylenes (DOE Table 4-1 difference, ASSUMED),
+    leaving as the bottoms of the xylene column, or of a reformate splitter ahead of the extraction where the
+    plant has one (LVOC BREF 4.2.2.2.2, pp. 199-200, and 4.2.2.3.1, pp. 200-201); only its mass is modelled,
+    as C9H12 (ASSUMED)
+  pedigree:
+    scores: *id001
+    reason: 'a typical reformate slate from a US profile of 2000 (citing 1990s sources), read as wt% (ASSUMED):
+      reliability 4, completeness 4, temporal 5 (more than 25 years old), geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: a difference of two figures of one typical slate'
+- key: feed:reformate
+  title: Catalytic reformate (debutanised, C5+)
+  type: input
+  amount: 1661.0192013819678
+  unit: kg
+  formula: btx / (w_B * r_B + w_T * r_T + w_X * r_X)
+  provenance: calculated
+  source: the basis over the recovered aromatics fraction of the reformate (DOE 2000 Table 4-1 with the recoveries);
+    the removal of the C9+ cut is in the boundary by mass only (its splitter energy is a TODO exclude)
+  pedigree:
+    scores: *id001
+    reason: 'a typical reformate slate from a US profile of 2000 (citing 1990s sources), read as wt% (ASSUMED):
+      reliability 4, completeness 4, temporal 5 (more than 25 years old), geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.3
+    source: 'ASSUMED: follows the reformate''s benzene, toluene and xylene content, which varies with the reformer''s
+      feed and severity'
+- key: feed:water
+  title: Water to the process (dissolved in the feed and the wet solvent loop)
+  type: input
+  amount: 0.3
+  unit: kg
+  formula: ww
+  provenance: assumed
+  origin: estimate
+  link:
+    factor: water
+    source: process water, by mass
+  source: ASSUMED equal to the water drained (output:wastewater), so that the water balance closes
+  pedigree:
+    scores: &id003
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: ''a few hundred grams'' per t, read as 0.3 kg'
+- key: feed:electricity
+  title: Electricity
+  type: input
+  amount: 41.5
+  unit: kWh
+  formula: elec
+  provenance: given
+  origin: literature
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, Table 4.3, p. 217 (BB2)
+  pedigree:
+    scores: &id002
+    - 3
+    - 4
+    - 4
+    - 3
+    - 3
+    reason: 'from a value of the LVOC BREF data collection (EU plants, 2012): reliability 3, completeness 4,
+      temporal 4 (about 14 years old), geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.558
+    source: 'electricity: range 11 to 72 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: feed:steam
+  title: Steam, as heat delivered
+  type: input
+  amount: 576.5
+  unit: kWh
+  formula: steam
+  provenance: given
+  origin: literature
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, Table 4.3, p. 217 (BB2); gross, heat recovery
+    and heat integration with other units not credited
+  pedigree:
+    scores: *id002
+    reason: 'from a value of the LVOC BREF data collection (EU plants, 2012): reliability 3, completeness 4,
+      temporal 4 (about 14 years old), geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.082
+    source: 'steam: range 531 to 622 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the
+      amount stays the arithmetic midpoint or the stated value)'
+- key: feed:fuel-heat
+  title: Fired heat from fuel (reboilers), as heat from natural gas
+  type: input
+  amount: 512.0
+  unit: kWh
+  formula: fuel
+  provenance: given
+  origin: literature
+  carrier:
+    kind: heat
+    level: fired reboilers
+    source: fuel of Table 4.3, LVOC BREF, counted as heat delivered (ASSUMED)
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, Table 4.3, p. 217 (BB2); the fuel (fuel
+    gas or natural gas, not named) is counted as heat from natural gas, whose background includes the combustion
+    (ASSUMED), so no flue gas is listed here
+  pedigree:
+    scores: *id003
+    reason: 'the source''s fuel figure, with the fuel and its basis (input or absorbed) ASSUMED: reliability
+      4, completeness 4, temporal 4, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.423
+    source: 'fuel: range 149 to 875 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: input:clay
+  title: Clay for the clay treaters (make-up)
+  type: input
+  amount: 0.377
+  unit: kg
+  formula: clay
+  provenance: given
+  origin: literature
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, Table 4.5, p. 219 (spent clay of BB2, taken
+    as the make-up, ASSUMED); mass outside the element balance
+  pedigree:
+    scores: *id002
+    reason: 'from a value of the LVOC BREF data collection (EU plants, 2012): reliability 3, completeness 4,
+      temporal 4 (about 14 years old), geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.5
+    source: 'clay: range 0.104 to 0.65 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the
+      amount stays the arithmetic midpoint or the stated value)'
+- key: output:spent-clay
+  title: Spent clay, to external disposal or incineration
+  type: output
+  amount: 0.377
+  unit: kg
+  formula: clay
+  provenance: given
+  origin: literature
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, Table 4.5, p. 219, and 4.3.6.3 (its fate);
+    hydrocarbons held on the clay not counted; mass outside the element balance
+  pedigree:
+    scores: *id002
+    reason: 'from a value of the LVOC BREF data collection (EU plants, 2012): reliability 3, completeness 4,
+      temporal 4 (about 14 years old), geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.5
+    source: 'spent clay: range 0.104 to 0.65 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: output:solvent-sludge
+  title: Solvent-regenerator sludge, to disposal
+  type: output
+  amount: 0.0265
+  unit: kg
+  formula: sludge
+  provenance: given
+  origin: literature
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, section 4.3.6.4, p. 219 (gums, solvent
+    degradation products, scale, some solvent); mass outside the element balance
+  pedigree:
+    scores: *id002
+    reason: 'from a value of the LVOC BREF data collection (EU plants, 2012): reliability 3, completeness 4,
+      temporal 4 (about 14 years old), geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 4.082
+    source: 'sludge: range 0.003 to 0.05 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: output:wastewater
+  title: Water drained to wastewater treatment
+  type: output
+  amount: 0.3
+  unit: kg
+  formula: ww
+  provenance: given
+  origin: literature
+  link:
+    factor: wastewater
+    source: site (refinery) wastewater treatment
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, section 4.3.2.2, p. 215; may hold BTX and
+    solvent (not counted)
+  pedigree:
+    scores: *id003
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: ''a few hundred grams'' per t, read as 0.3 kg'
+provenance:
+  generator: hand-written model; amounts are the formulas of the parameters
+  notes: No value from a licensed database. The lumped C/H formulas of the reformate and the raffinate are
+    computed from the parameters (1e6 carbon atoms per lump) so that the element balance closes; they must
+    be recomputed when a composition or recovery parameter changes.
+generation:
+  tier: 1
+  method: 'sourced conceptual inventory: LVOC BREF chapter 4 utility ranges with a typical reformate slate
+    (DOE 2000), every choice listed in parameters'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 3
+  - 4
+  - 3
+  - 3
+  - 3
+  dqr_floor: 3.0
+  components:
+    product:benzene: C6H6
+    product:toluene: C7H8
+    product:xylenes: C8H10
+    product:raffinate: 'raffinate (lumped: C7H16 non-aromatics with the unrecovered benzene, toluene and xylenes)'
+    product:c9-aromatics: C9H12
+    feed:reformate: 'reformate (lumped: C6H6, C7H8, C8H10, C9H12 and C7H16 in the mass fractions of the parameters)'
+    feed:water: H2O
+    output:wastewater: H2O
+  formulas:
+    product:benzene: C6H6
+    product:toluene: C7H8
+    product:xylenes: C8H10
+    product:raffinate: C1000000H2255219
+    product:c9-aromatics: C9H12
+    feed:reformate: C1000000H1461123
+    feed:water: H2O
+    output:wastewater: H2O
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      C:
+      - 1479.58912891
+      - 1479.589065052
+      H:
+      - 181.463644495
+      - 181.463708353
+      O:
+      - 0.266427977
+      - 0.266427977
+    outside:
+    - feed:electricity
+    - feed:fuel-heat
+    - feed:steam
+    - input:clay
+    - output:solvent-sludge
+    - output:spent-clay

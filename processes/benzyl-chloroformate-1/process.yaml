@@ -1,0 +1,115 @@
+# Process Atlas manifest of benzyl-chloroformate-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: benzyl-chloroformate-1
+title: Benzyl chloroformate by semi-batch phosgenation of benzyl alcohol at reduced pressure (1000 t/a, batch)
+summary: >-
+  A batch plant: phosgene gas (phosgene-1) is dosed over 10 h into neat benzyl alcohol at 278 K
+  and 50 kPa(a), the HCl vented as it forms; the crude is degassed in the same vessel and leaves
+  neat, the off-gas to a caustic scrubber. Concept stage, 1770 kg per batch every 14.0 h,
+  preliminary gate-to-gate LCI.
+description: |
+  Benzyl alcohol is charged to an enamelled 2.5 m3 reactor, cooled to 278 K, and phosgene from
+  the site's phosgene unit (1.27 mol per mol of alcohol, the ratio of US 6 696 590 B2 Ex. 3) is
+  evaporated and dosed into it as a gas over 10 h at 50 kPa(a), without base or solvent. The
+  alcohol reacts to benzyl chloroformate and HCl; HCl leaves the liquid as it forms (95 % of it,
+  the rest dissolved), 5 % of the dosed phosgene passes straight to the vent, and two side
+  reactions make the impurities the patent reports (benzyl chloride with CO2, dibenzyl
+  carbonate). The crude, holding about 11 wt% dissolved phosgene, is degassed in the same vessel
+  at 20 kPa(a) to 0.05 mol% phosgene and leaves as the product: 99.2 wt% benzyl chloroformate,
+  0.51 wt% benzyl chloride, 0.26 wt% dibenzyl carbonate, 98.9 % yield on the alcohol. It is not
+  distilled (the chloroformate decomposes on heating). The reactor's vent and the degassing gas
+  pass the vacuum pump to a caustic scrubber that absorbs the HCl and destroys the phosgene; the
+  spent liquor (NaCl, Na2CO3) goes to wastewater treatment. No HCl or phosgene is recovered.
+
+  The batch is modelled with cheme-as-code's semi-batch reactor with a vent and a partly absorbed
+  gas dose (core ADR 0050, 0054), a batch still for the degassing (ADR 0055) and the batch recipe
+  over three steps of one vessel (ADR 0051, 0052, 0057): the dosing, post-reaction and degassing
+  times come from the models, the reactor is the bottleneck (cycle 14.0 h, 565 batches a year on
+  a dedicated train), the recipe sizes the vessel and checks its jacket, and gives the vent's peak
+  gas rate and the scrubber's load per batch (429 kg of vent gas, 233 kg of degassing gas). The
+  kinetics are ASSUMED (no open data): a fast second-order reaction, dosing-controlled. Thermal
+  screening: dT_ad 475 K (the side reaction to benzyl chloride run on all the alcohol; 303.9 K for
+  the main reaction alone), accumulation at most 17 % (the deliberate phosgene excess, at the end
+  of the dosing), MTSR 356 K (set by the side reaction to dibenzyl carbonate, counted on purpose; 300.2 K for
+  the main reaction alone) against an MTT of 281 K (the boiling point of phosgene, which the
+  excess would boil off). The gas a cooling failure releases at the MTSR, 3039 m3/h by the
+  screening, is 17.6 times what the vacuum pump vents (173 m3/h): a design finding for a dosing
+  interlock and an emergency relief to the scrubber. The vent and scrubber are the
+  safety-critical path; no class without a TD24. See DESIGN.md for every assumption.
+families: [chlorinated-organics]
+keywords: [benzyl chloroformate, Cbz-Cl, Z-Cl, chloroformate, benzyl alcohol, phosgene, phosgenation, semi-batch, batch, dosing, gas evolution, HCl vent, degassing, caustic scrubber, fine chemicals, protecting group reagent]
+facets:
+  feedstock_basis: [fossil, mineral, electricity]
+  product_classes: [chemicals]
+  unit_operations: [reaction, evaporation, stripping, absorption]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Capacity, feed ratios, kinetics,
+# gas uptake and the degassing are assumed (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept batch PFD with closed mass, component and element balances (cheme validate, cheme
+    process streams: 3 blocks and 7 steps within tolerance). Every stream is calculated by cheme
+    process propagate from the feeds: the semi-batch R101 with its HCl vent and partly absorbed
+    phosgene dose from its ASSUMED rate laws, the degassing T101 as a batch still with ASSUMED
+    constant relative volatilities, the scrubber S101 as a conversion step; no balance script.
+    The recipe's year-average rate of the product agrees with the flowsheet (cheme process
+    recipe, no cheme.recipe-basis finding), and the jacket removes the model's peak duty (31.4 kW
+    of 34.4 kW). The duties of R101 (Q2, 18.70 kW) and T101 (Q4, 1.177 kW) are the models'
+    year averages written by cheme process propagate (core ADR 0059). The heat of absorption
+    of the dissolved gas, which the model leaves out, is its own assumed stream Q2A (1.18 kW;
+    D-009). Thermal screening (cheme process reactor-hazards): dT_ad 474.6 K, accumulation
+    0.173, MTSR 355.7 K against an MTT of 280.65 K (phosgene's boiling point, hazard.mtt), all
+    set by the side reactions, every reaction counted on purpose (hazard.reactions, CARB
+    included as the conservative choice; CLBN's heat for the dT_ad, CARB for the MTSR); the
+    main reaction PHOSG alone gives dT_ad 303.9 K and MTSR 300.2 K, still above the MTT
+    (DESIGN.md D-011). The gas release at the MTSR, 3039 m3/h at 355.7 K and 50 kPa(a), is 17.6
+    times the vent capacity of 173 m3/h (the vacuum pump, hazard.vent_capacity, assumed). The
+    two warnings cheme.reactor-hazard-mtsr and -vent are design findings, kept (D-011, D-014);
+    no criticality class without a TD24 from calorimetry. The kinetics are assumed: the
+    accumulation rests on that assumption (k/10 and k/100 in DESIGN.md D-011). Preliminary
+    gate-to-gate LCI with the nitrogen purges as a per-batch consumable; phosgene, caustic soda
+    and nitrogen linked to phosgene-1, chlor-alkali-1 and asu-1, benzyl alcohol and the other
+    backgrounds gaps. cheme maturity reaches no level (assumed feeds, kinetics and separations);
+    the claim `maturity: concept` is the lowest value of the schema, not an evidenced level. Not
+    reviewed. Needs cheme-as-code 1.9 (the model duties and energy_port, ADR 0059; hazard.reactions
+    and vent_capacity, ADR 0058; and from 1.8 batch.vent, dosing.absorbed, still:, recipe
+    units:, ADRs 0054, 0055, 0057).
+chemistry:
+  inputs:
+    - {chemical: benzyl-alcohol, role: feedstock, inventory_key: "feed:BNOH", note: "Dry benzyl alcohol (merchant; no library producer yet), 0.636 kg/kg BCF"}
+    - {chemical: phosgene, role: feedstock, inventory_key: "feed:PHOS", note: "Liquid phosgene (phosgene-1, captive), evaporated and dosed as a gas, 0.738 kg/kg BCF (1.27 mol per mol of alcohol)"}
+    - {chemical: sodium-hydroxide, role: feedstock, inventory_key: "feed:NAOH", note: "Caustic soda 50 wt% (chlor-alkali-1) for the off-gas scrubber, 1.086 kg/kg BCF, counted by mass of the solution"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Process water diluting the scrubber's caustic to 10 wt%, 4.34 kg/kg BCF"}
+    - {chemical: nitrogen, role: feedstock, inventory_key: "consumable:nitrogen", note: "Nitrogen (asu-1) for inerting R-101, breaking its vacuum and padding the transfer, 15 kg per batch, 8.5 g/kg BCF (ASSUMED)"}
+  outputs:
+    - {chemical: benzyl-chloroformate, role: main-product, inventory_key: "product:BCF", note: "Neat benzyl chloroformate, 99.2 wt%, degassed and not distilled, to cold storage"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Spent scrubber liquor, 5.80 kg/kg BCF: 9.1 wt% NaCl, 3.0 wt% Na2CO3, 0.85 wt% NaOH, to treatment"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.051 kWh/kg BCF: R-101 agitator, vacuum pump, scrubber pump (ASSUMED)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.069 kWh/kg BCF of LP steam to the tempered water of the phosgene evaporator and the degassing"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:BRINE", note: "0.163 kWh/kg BCF removed by brine at 248 K: the charge's cool-down (Q1), the heat of phosgenation (Q2, the semi-batch model's) and the heat of absorption (Q2A) of the phosgene and HCl left dissolved (the registry has chilled water, not brine: closest entry)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.354 kWh/kg BCF: the scrubber's heat of neutralisation and phosgene destruction (ASSUMED heats)"}
+basis:
+  capacity: "1000 t/a neat benzyl chloroformate: 565 batches/a of 1770 kg in 7920 h on a dedicated train (126.3 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-013)"
+  operating_hours_per_year: 7920
+  location: generic fine-chemicals site with a captive phosgene unit (not chosen)
+references:
+  - {title: "Bonnard, H.; Ferruccio, L.; Gauthier, P.; Senet, J.-P. (SNPE, 2004) US 6 696 590 B2, Process for the synthesis of aliphatic, cycloaliphatic or araliphatic chloroformates (description: reduced pressure, temperature, phosgene excess, degassing, off-gas traps; Ex. 3 and 4: benzyl chloroformate at 500 and 250 mbar, yields, purities, impurities)", url: "https://patents.google.com/patent/US6696590B2/en"}
+  - {title: "Rozsa, L.; Meszaros, L.; Mogyorodi, F. (Eszakmagyarorszagi Vegyimuevek, 1976) US 3 966 786 A, Method for producing chloroformates (background: the batch route in enamelled or lead-lined vessels with excess phosgene at 0-10 C, nitrogen flushing, its drawbacks; Ex. 8: benzyl chloroformate in a continuous reactor at 170 C, not used)", url: "https://patents.google.com/patent/US3966786A/en"}
+  - {title: "NIST Chemistry WebBook, SRD 69, benzyl chloroformate: liquid enthalpy of formation -376.2 kJ/mol (Finch and Salem 1987, Thermochim. Acta 116, 65-69, solution calorimetry)", url: "https://webbook.nist.gov/cgi/cbook.cgi?ID=C501531&Units=SI&Mask=2"}
+  - {title: "PubChem CID 10387, Benzyl chloroformate (identity)", url: "https://pubchem.ncbi.nlm.nih.gov/compound/10387"}
+  - {title: "Stoessel, F. (2008) Thermal Safety of Chemical Processes, Wiley-VCH (accumulation and MTSR of a semi-batch; method reference, not data)", doi: 10.1002/9783527621606}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/benzyl-chloroformate-1
+  access: public
+publication:
+  status: internal

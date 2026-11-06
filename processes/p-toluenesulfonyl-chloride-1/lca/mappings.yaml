@@ -1,0 +1,18 @@
+# p-toluenesulfonyl-chloride-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR
+# 0022). Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# The preliminary LCI leaves most backgrounds unmapped (DESIGN.md D-012): the build reports each
+# as a gap (lci/gaps.json). Linked here: the toluene to btx-1's reformate extraction (the library
+# entry whose dataset makes toluene), the caustic soda to chlor-alkali-1, the nitrogen consumable
+# to asu-1's gaseous nitrogen, and the LP steam counted as heat delivered (kWh), as
+# n-bromosuccinimide-1 does. Chlorosulfonic acid and ammonium chloride stay gaps: no library
+# process makes them, and the shared vocabulary has no entry for them; a stoichiometric proxy
+# (SO3 + HCl) is recorded in lca.yaml and DESIGN.md D-012, not linked (CONTRIBUTING, "Gaps").
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:TOL": {dataset: {path: processes/btx-1/lca/datasets/btx-reformate-extraction.yaml, product: "product:toluene"}, source: "the Atlas producer btx-1, toluene from the solvent extraction of catalytic reformate, a co-product of that dataset (its mass allocation)"}
+  "feed:NAOH": {dataset: {path: processes/chlor-alkali-1/lca/dataset.yaml, product: "product:NAOH"}, source: "the Atlas producer chlor-alkali-1, caustic soda 50 wt-%, per kg of solution as this exchange counts it"}
+  "consumable:nitrogen": {dataset: {path: processes/asu-1/lca/dataset.yaml, product: "product:GANP"}, source: "the Atlas producer asu-1, gaseous nitrogen to the battery limit (99.97 mol% N2, 9 bar(a)); the purges and the filter pressing need only a few hundred kPa"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 350 kPa(a) to R-101's jacket (Q1) and the dryer's hot-water circuit (Q6), counted as heat delivered (kWh), D-009"}

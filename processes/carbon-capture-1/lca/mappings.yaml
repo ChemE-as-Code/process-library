@@ -1,0 +1,10 @@
+# carbon-capture-1's own exchange overrides for the Atlas LCI build (ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. The raw vent gas stays a reported gap: under the
+# co2-cutoff rule it carries no burden of the ammonia plant, but no Atlas dataset gives the CO2 as a
+# co-product yet (ammonia-1 vents it), and a background CO2 would bring a burden of its own.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:CO2-raw":
+    atlas: false
+    source: "Raw CO2 stripper vent of an ammonia plant, cut before conditioning (docs/system-model.md section 2, step 4): no burden of the source plant. ammonia-1 vents this stream (product:CO2V, counted as emissions), so it is not a co-product to link; link it once a source dataset gives the CO2 as a co-product with a co2-cutoff share of 0."
+  "input:TEG": {dataset: {path: processes/ethylene-glycol-1/lca/dataset.yaml, product: "product:TEG"}, source: "the Atlas producer ethylene-glycol-1, triethylene glycol of 98.3 wt% from its vacuum columns; the dryer's grade is not stated by the source"}

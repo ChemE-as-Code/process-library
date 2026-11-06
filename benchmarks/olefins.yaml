@@ -1,0 +1,121 @@
+# Benchmarks of olefins: propane dehydrogenation and butadiene by C4 extraction. Schema:
+# schemas/benchmarks.schema.json; rules: docs/benchmarks.md. Ranges are facts from the cited
+# source, in our own form.
+#
+# propylene-pdh-1:
+# The yield reference is the licensor's general figure, independent of the design report the
+# dataset takes its numbers from, but of the same technology family. Electricity and direct CO2
+# have no open reference independent of that report.
+#
+# butadiene-1:
+# The dataset takes its energy from the IEA paper (Saygin et al. 2009); the references are Neelis
+# et al. (2007), a separate study with its own process datasets for Western Europe in 2000, though
+# Patel co-authored both. It gives one value each, recorded as a zero-width range and not widened,
+# so the dataset's values are explained, not inside. The IEA best-practice values are a second
+# reference of the same source as the dataset and are not bound.
+schema: cheme-as-code/benchmarks/v1
+family: olefins
+
+kpis:
+  pdh-propylene-yield:
+    title: Propylene per mass of propane fed
+    unit: kg/kg
+    references:
+      - id: uop-2019-oleflex-yield
+        range: [0.85, 0.85]
+        basis: unallocated
+        note: One value for propane dehydrogenation in general, recorded as a zero-width range and not widened. The paper does not state the basis; the mass basis is our reading. Manufacturer literature (the licensor), used because no BREF or peer-reviewed open source with a yield was found.
+        conditions: {technology: "propane dehydrogenation, moving bed with continuous catalyst regeneration (Oleflex)", year: 2019}
+        source:
+          citation: "Marsh, M., Wery, J. (2019) Filling the propylene gap: shaping the future with on-purpose technologies. Honeywell UOP white paper UOP8395"
+          url: https://pages2.honeywell.com/rs/828-DHL-685/images/Filling%20the%20Propylene%20Gap%20On%20purpose%20technologies.pdf
+          locator: p. 3
+          kind: manufacturer
+          accessed: "2026-11-05"
+  pdh-specific-electricity:
+    title: Electricity per t of propylene
+    unit: kWh/t
+    no_open_reference: >-
+      No open source independent of the dataset's own found (2026-11-05). Read: LVOC BREF sections
+      2.2.7 and 3.2.1 (PDH named, no data); JRC (Boulamanti and Moya 2017, EUR 28471 EN, no PDH
+      figures); Ren, Patel and Blok 2006 (Energy 31:425, open copy: PDH named in a figure, no PDH figure found in the text); Honeywell
+      UOP 2019 white paper (no utility figures). The dataset's value is the Ceyhan design report's
+      (ESIA Annex S, Table 4.1). A Honeywell UOP slide deck of 2024 with energy figures is marked
+      confidential and was not used. A Lummus Catofin technical sheet could not be retrieved (HTTP 404).
+  pdh-direct-co2:
+    title: Direct CO2 per t of propylene
+    unit: kg/t
+    no_open_reference: >-
+      No open source read with a direct CO2 figure (2026-11-05). A process study in J. Clean. Prod.
+      (2022) appeared only in a search-engine summary and was not read, so its figure is not
+      recorded. The design report the dataset uses lists no direct emission from burning its own fuel
+      gas in its GWP breakdown (ESIA Annex S, Table 6.2). The dataset's value follows from its carbon balance with the net gas
+      burnt on site.
+  bd-specific-electricity:
+    title: Electricity per t of butadiene by C4 extraction
+    unit: kWh/t
+    references:
+      - id: neelis-2007-bd-electricity
+        range: [250, 250]
+        basis: unallocated
+        note: "One value, 0.90 GJ of electricity per t (converted at 3.6 MJ/kWh), recorded as a zero-width range and not widened. The authors rate the process's energy data at 10 to 30 % uncertainty (indicator 2, section 5.1)."
+        conditions: {technology: "butadiene separated from steam-cracker C4", region: Western Europe, year: 2000}
+        source: &neelis
+          citation: "Neelis, M., Patel, M., Blok, K., Haije, W., Bach, P. (2007) Approximation of theoretical energy-saving potentials for the petrochemical industry using energy balances for 68 key processes. Energy 32:1104-1123, doi:10.1016/j.energy.2006.08.005 (publisher's version, deposited by ECN as ECN-W--08-030)"
+          url: https://publications.tno.nl/publication/34633305/wg60b8/w08030.pdf
+          locator: Table A1 (continued), butadiene column, p. 1119
+          kind: peer-reviewed
+          accessed: "2026-11-05"
+      - id: iea-2009-bd-electricity-bpt
+        range: [138.9, 138.9]
+        basis: unallocated
+        note: "Best practice technology, 0.5 GJ/t (converted at 3.6 MJ/kWh), one value. Same paper as the dataset's average of 0.7 GJ/t, so not an independent check."
+        conditions: {technology: "butadiene by C4 separation, best practice", region: global}
+        source: &iea
+          citation: "Saygin, D., Patel, M.K., Tam, C., Gielen, D.J. (2009) Chemical and Petrochemical Sector: Potential of best practice technology and other measures for improving energy efficiency. IEA Information Paper, OECD/IEA, Paris"
+          url: https://iea.blob.core.windows.net/assets/c2d071e4-4142-44f1-8a41-88ece29be439/ChemicalandPetrochemicalSector.pdf
+          locator: Table 1, p. 14 (after Schyns 2006)
+          kind: iea
+          accessed: "2026-11-05"
+  bd-specific-steam:
+    title: Steam (heat delivered) per t of butadiene by C4 extraction
+    unit: kWh/t
+    references:
+      - id: neelis-2007-bd-steam
+        range: [1786.1, 1786.1]
+        basis: unallocated
+        note: "One value, 6.43 GJ of steam heat duty per t (final energy, converted at 3.6 MJ/kWh), recorded as a zero-width range and not widened. Uncertainty 10 to 30 % as above. Fuel use is given as zero."
+        conditions: {technology: "butadiene separated from steam-cracker C4", region: Western Europe, year: 2000}
+        source: *neelis
+      - id: iea-2009-bd-steam-bpt
+        range: [1861.1, 1861.1]
+        basis: unallocated
+        note: "Best practice technology, 6.7 GJ/t of steam as final energy (converted at 3.6 MJ/kWh), one value. Same paper as the dataset's average of 7.3 GJ/t, so not an independent check."
+        conditions: {technology: "butadiene by C4 separation, best practice", region: global}
+        source: *iea
+
+datasets:
+  - process: propylene-pdh-1
+    dataset: propylene-propane-dehydrogenation
+    conditions: {technology: "moving bed with continuous catalyst regeneration (Oleflex type), net gas burnt on site", basis: conceptual inventory from one 2022 design}
+    kpis:
+      pdh-propylene-yield:
+        expression: product:propylene / feed:propane
+        reference: uop-2019-oleflex-yield
+        out_of_range_reason: "The dataset's propane is the midpoint of the two figures of one 2022 design report (Ceyhan ESIA Annex S, Table 4.1 and section 3.1: a yield of 0.822 to 0.863 kg/kg), which bracket the licensor's general 0.85."
+      pdh-specific-electricity: {expression: feed:electricity / product:propylene, per: product:propylene}
+      pdh-direct-co2: {expression: emission:CO2 / product:propylene, per: product:propylene}
+  - process: butadiene-1
+    dataset: butadiene-c4-extractive-distillation
+    conditions: {technology: "extractive distillation of crude C4, solvent not stated", region: Western Europe, basis: conceptual inventory}
+    kpis:
+      bd-specific-electricity:
+        expression: feed:electricity / product:butadiene
+        per: product:butadiene
+        reference: neelis-2007-bd-electricity
+        out_of_range_reason: "The dataset takes the IEA's estimated Western European average (0.7 GJ/t, Saygin et al. 2009, Table 13), a later estimate from another data source (Schyns 2006) than Neelis et al.'s 0.90 GJ/t for 2000; 22 % lower, within the 10 to 30 % uncertainty Neelis et al. state."
+      bd-specific-steam:
+        expression: feed:steam / product:butadiene
+        per: product:butadiene
+        reference: neelis-2007-bd-steam
+        out_of_range_reason: "The dataset takes the IEA's estimated Western European average (7.3 GJ/t, Saygin et al. 2009, Table 13), from another data source than Neelis et al.'s 6.43 GJ/t for 2000; 14 % higher, within the 10 to 30 % uncertainty Neelis et al. state."
