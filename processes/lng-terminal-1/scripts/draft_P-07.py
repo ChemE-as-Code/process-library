@@ -94,7 +94,7 @@ tsa = tee("T7HA", at=(SX["A"], HDR_Y), branch="down", branch_dn=500)
 tsb = tee("T7HB", at=(SX["B"], HDR_Y), branch="down", branch_dn=500)
 xv = {s: valve(f"XV7121{s}", "BallValve", tag=f"XV-7121{s}", at=(SX[s], XS_Y)) for s in KX}
 suct = L.line(sheet, "BOG-7001", dn=750, fluid="Boil-off gas", frm="D-7101", to="K-7101C",
-              notes="Compressor suction header, 49.1 t/h at loading, -140 degC, 108 kPa(a) (S14, D-010); ends as the K-7101C suction.",
+              notes="Compressor suction header, 56.5 t/h at loading (the design envelope with the D-034 pump heat), -140 degC, 108 kPa(a) (S14, D-010); ends as the K-7101C suction.",
               segments=[{"number": "S3", "nominal_diameter": "DN500", "notes": "K-7101C suction branch"}],
               route=[drum["N2"], (100, HDR_Y), tsa, tsb, (SX["C"], HDR_Y), xv["C"], (SX["C"], K_Y),
                      k["C"]["N1"]],

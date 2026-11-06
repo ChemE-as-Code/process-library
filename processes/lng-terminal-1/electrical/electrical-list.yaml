@@ -21,7 +21,7 @@ substations:
   - {id: SS-1, title: "Terminal substation in B-SUB", building: B-SUB, incoming_kv: 69, notes: "ASSUMED: two 69 kV incomers from the LNG Canada site grid substation (D-020); the supply voltage is the utility's and the site's choice"}
   - {id: SS-2, title: "Jetty substation in B-JET", building: B-JET, incoming_kv: 6.6, notes: "ASSUMED: fed by two 6.6 kV feeders F-SS2-A / F-SS2-B from SWG-1 over the trestle (PR2 power tray); outside the 200 m radius of every arm (D-027)"}
 transformers:
-  - {tag: TR-1, substation: SS-1, rating_kva: 10000, primary_kv: 69, secondary_v: 6600, feeds: [SWG-1], notes: "ASSUMED, one of two (N+1): running load at loading ~6.3 MW (4 of 8 in-tank pumps 2.56 MW, 2 of 3 BOG compressors 2.85 MW, circulation 0.06 MW, LV and platform ~0.8 MW) at pf 0.9 / efficiency 0.95 ~7.4 MVA"}
+  - {tag: TR-1, substation: SS-1, rating_kva: 10000, primary_kv: 69, secondary_v: 6600, feeds: [SWG-1], notes: "ASSUMED, one of two (N+1): running load at loading ~7.5 MW (4 of 8 in-tank pumps 3.71 MW since D-034, 2 of 3 BOG compressors 2.85 MW, circulation 0.06 MW, LV and platform ~0.8 MW) at pf 0.9 / efficiency 0.95 ~8.7 MVA"}
   - {tag: TR-2, substation: SS-1, rating_kva: 10000, primary_kv: 69, secondary_v: 6600, feeds: [SWG-1], notes: "ASSUMED, the second of the N+1 pair. TR-1 / TR-2 are oil-filled outdoor units in bays with fire walls and oil pits south of B-SUB beside the 69 kV incomer bay, away from the AHU-1 intake on the east wall (zone Z-KC-TX-BAYS, D-029, D-031); the substation is B-SUB in this list because the schema places a transformer in its substation's building"}
   - {tag: TR-3, substation: SS-1, rating_kva: 1600, primary_kv: 6.6, secondary_v: 400, feeds: [MCC-1], notes: "ASSUMED, one of two: circulation pumps, KO drum and sump pumps, lighting, HVAC, heat tracing, UPS, small power"}
   - {tag: TR-4, substation: SS-1, rating_kva: 1600, primary_kv: 6.6, secondary_v: 400, feeds: [MCC-1], notes: "ASSUMED, the second of the pair"}
@@ -36,24 +36,28 @@ rooms:
   # and climb onto the PR2 tray (D-027)
   - {id: MCC-2, kind: mcc, title: "Jetty 400 V motor control centre (platform loads)", building: B-JET, substation: SS-2, voltage_v: 400, point: [1129.6, 1106.0, 4.0]}
   - {id: RR-2, kind: rack_room, title: "Jetty instrument rack room (remote I/O, fibre to CR-1)", building: B-JET, point: [1129.6, 1114.0, 4.0]}
+  # the two UPS of D-032.2 (review 2026-11-05-basic-layout-5 #8), each with its own battery and
+  # distribution board in B-JET (ASSUMED; modelled as LV boards, the schema has no UPS kind)
+  - {id: UPS-A, kind: mcc, title: "UPS A and its distribution board (ERS solenoid channel A, ESD / F&G field power)", building: B-JET, substation: SS-2, voltage_v: 230, point: [1129.6, 1107.5, 4.0], notes: "ASSUMED: fed from MCC-2 with its own battery; channel A of every ERS valve (D-016, D-032.2)"}
+  - {id: UPS-B, kind: mcc, title: "UPS B and its distribution board (ERS solenoid channel B)", building: B-JET, substation: SS-2, voltage_v: 230, point: [1129.6, 1112.0, 4.0], notes: "ASSUMED: fed from MCC-2 with its own battery, separate from UPS A (D-032.2)"}
 defaults: {lv_room: MCC-1, mv_room: SWG-1, control_room: CR-1, lv_voltage_v: 400, mv_voltage_v: 6600, mv_above_kw: 200, jb_capacity: 24, spare_pairs: 0.2}
 motors:
   # powers: the shaft power of each machine's datasheet (equipment/datasheets/<TAG>.yaml,
   # type_specific.shaft_power_kw, D-022), carried as the motor rating until the vendor's
   # motor selection (the next standard size above it)
-  - {driven: P-2101A, power_kw: 641.1, voltage_v: 6600, room: SWG-1, assumed: true, source: "datasheet P-2101A shaft_power_kw 641.1 (3,000 m3/h, 577 kPa, efficiency 0.75 ASSUMED, D-011, D-022)", notes: "Submerged motor in the pump column; the power cable runs down the column from the junction box on the column head plate (vendor)", cable_entry: {side: north, elevation_m: 56.8}}
+  - {driven: P-2101A, power_kw: 927.8, voltage_v: 6600, room: SWG-1, assumed: true, source: "datasheet P-2101A shaft_power_kw 927.8 (3,000 m3/h, 835 kPa, efficiency 0.75 ASSUMED, D-011, D-022, D-034)", notes: "Submerged motor in the pump column; the power cable runs down the column from the junction box on the column head plate (vendor)", cable_entry: {side: north, elevation_m: 56.8}}
   # (in-tank pumps: the tray ends on the outer side of each column head plate (north for the
   # A / C row and the circulation pump, south for the B / D row), clear of the discharge,
   # minimum-flow and vent piping and of the relief valves' zone (D-027); it runs under the
   # pump platform grating at 56.8 m, hung from the deck steel, not across the deck at head
   # height, and the cable rises through the grating at the head plate (D-029))
-  - {driven: P-2101B, power_kw: 641.1, voltage_v: 6600, room: SWG-1, assumed: true, source: "datasheet P-2101B shaft_power_kw 641.1 (D-022)", cable_entry: {side: south, elevation_m: 56.8}}
-  - {driven: P-2101C, power_kw: 641.1, voltage_v: 6600, room: SWG-1, assumed: true, source: "datasheet P-2101C shaft_power_kw 641.1 (D-022)", cable_entry: {side: south, elevation_m: 56.8}, notes: "Entry on the south side: the A pump's tray has the under-deck lane north of the A / C row (D-029)"}
-  - {driven: P-2101D, power_kw: 641.1, voltage_v: 6600, room: SWG-1, assumed: true, source: "datasheet P-2101D shaft_power_kw 641.1 (D-022)", cable_entry: {side: south, elevation_m: 56.8}}
-  - {driven: P-3101A, power_kw: 641.1, voltage_v: 6600, room: SWG-1, assumed: true, source: "datasheet P-3101A shaft_power_kw 641.1 (D-022)", cable_entry: {side: north, elevation_m: 56.8}}
-  - {driven: P-3101B, power_kw: 641.1, voltage_v: 6600, room: SWG-1, assumed: true, source: "datasheet P-3101B shaft_power_kw 641.1 (D-022)", cable_entry: {side: south, elevation_m: 56.8}}
-  - {driven: P-3101C, power_kw: 641.1, voltage_v: 6600, room: SWG-1, assumed: true, source: "datasheet P-3101C shaft_power_kw 641.1 (D-022)", cable_entry: {side: south, elevation_m: 56.8}, notes: "As P-2101C (D-029)"}
-  - {driven: P-3101D, power_kw: 641.1, voltage_v: 6600, room: SWG-1, assumed: true, source: "datasheet P-3101D shaft_power_kw 641.1 (D-022)", cable_entry: {side: south, elevation_m: 56.8}}
+  - {driven: P-2101B, power_kw: 927.8, voltage_v: 6600, room: SWG-1, assumed: true, source: "datasheet P-2101B shaft_power_kw 927.8 (D-022)", cable_entry: {side: south, elevation_m: 56.8}}
+  - {driven: P-2101C, power_kw: 927.8, voltage_v: 6600, room: SWG-1, assumed: true, source: "datasheet P-2101C shaft_power_kw 927.8 (D-022)", cable_entry: {side: south, elevation_m: 56.8}, notes: "Entry on the south side: the A pump's tray has the under-deck lane north of the A / C row (D-029)"}
+  - {driven: P-2101D, power_kw: 927.8, voltage_v: 6600, room: SWG-1, assumed: true, source: "datasheet P-2101D shaft_power_kw 927.8 (D-022)", cable_entry: {side: south, elevation_m: 56.8}}
+  - {driven: P-3101A, power_kw: 927.8, voltage_v: 6600, room: SWG-1, assumed: true, source: "datasheet P-3101A shaft_power_kw 927.8 (D-022)", cable_entry: {side: north, elevation_m: 56.8}}
+  - {driven: P-3101B, power_kw: 927.8, voltage_v: 6600, room: SWG-1, assumed: true, source: "datasheet P-3101B shaft_power_kw 927.8 (D-022)", cable_entry: {side: south, elevation_m: 56.8}}
+  - {driven: P-3101C, power_kw: 927.8, voltage_v: 6600, room: SWG-1, assumed: true, source: "datasheet P-3101C shaft_power_kw 927.8 (D-022)", cable_entry: {side: south, elevation_m: 56.8}, notes: "As P-2101C (D-029)"}
+  - {driven: P-3101D, power_kw: 927.8, voltage_v: 6600, room: SWG-1, assumed: true, source: "datasheet P-3101D shaft_power_kw 927.8 (D-022)", cable_entry: {side: south, elevation_m: 56.8}}
   - {driven: P-2102, power_kw: 60.6, voltage_v: 400, room: MCC-1, assumed: true, source: "datasheet P-2102 shaft_power_kw 60.6 (500 m3/h rated, D-011, D-022)", cable_entry: {side: north, elevation_m: 56.8}}
   - {driven: P-3102, power_kw: 60.6, voltage_v: 400, room: MCC-1, assumed: true, source: "datasheet P-3102 shaft_power_kw 60.6 (D-022)", cable_entry: {side: north, elevation_m: 56.8}}
   # BOG compressors: the tray ends west of the packages (beyond the far side of the crane lanes
@@ -66,14 +70,28 @@ motors:
   # flare KO drum pumps: the tray ends west of P-8101A, out of D-8101's crane lane from Z-PAD-A3
   - {driven: P-8101A, power_kw: 6.7, voltage_v: 400, room: MCC-1, assumed: true, source: "datasheet P-8101A shaft_power_kw 6.7 (D-017, D-022)", cable_entry: {point: [1436.4, 3065.0], elevation_m: 1.0}}
   - {driven: P-8101B, power_kw: 6.7, voltage_v: 400, room: MCC-1, assumed: true, source: "datasheet P-8101B shaft_power_kw 6.7 (D-022)", cable_entry: {point: [1436.4, 3066.0], elevation_m: 1.0}}
-  - {driven: P-8102, power_kw: 6.8, voltage_v: 400, room: MCC-1, assumed: true, source: "datasheet P-8102 shaft_power_kw 6.8 (D-018, D-022)", cable_entry: {side: south}, notes: "Tray from the north end of the basin services rack PR8 (D-029)"}
+  - {driven: P-8102, power_kw: 8.2, voltage_v: 400, room: MCC-1, assumed: true, source: "datasheet P-8102 shaft_power_kw 8.2 (D-018, D-022, D-034.8; for the 12.5 m pit, the 19.5 m pit of D-035.2 is the design owner's to re-rate)", cable_entry: {side: south}, notes: "Submersible on the pit floor (D-034.8): its cable from the west end of the basin services rack PR8 onto the pit cover at its discharge head and down the guide rail (D-029, D-035.4)"}
   - {driven: P-5101, power_kw: 11.2, voltage_v: 400, room: MCC-2, assumed: true, source: "datasheet P-5101 shaft_power_kw 11.2 (D-016, D-022)"}
   - {driven: P-6101, power_kw: 11.2, voltage_v: 400, room: MCC-2, assumed: true, source: "datasheet P-6101 shaft_power_kw 11.2 (D-022)"}
 feeders:
   # loading-arm hydraulic power units (arm manoeuvring, ERS and coupler hydraulics), one per
   # berth beside its arms at the platform deck (vendor package, D-014)
-  - {tag: HPU-5100, point: [1146.8, 901.0, 1.0], power_kw: 75, voltage_v: 400, power_factor: 0.78, room: MCC-2, assumed: true, source: "ASSUMED 75 kW per berth (task basis; the arm vendor's HPU rating replaces it); power factor 0.78 = motor pf 0.85 x efficiency 0.92 (ASSUMED)", notes: "Berth 2 arm HPU, north-east of the Berth 2 crane strip"}
-  - {tag: HPU-6100, point: [1161.5, 901.0, 1.0], power_kw: 75, voltage_v: 400, power_factor: 0.78, room: MCC-2, assumed: true, source: "ASSUMED 75 kW per berth, as HPU-5100", notes: "Berth 1 arm HPU, north-west of the Berth 1 crane strip"}
+  # D-035.5 (review 2026-11-05-basic-layout-5 #5 and the missed medium of its adversarial
+  # check): the HPUs stood 4-7 m from the crossover tray and their own manifold bays (20-80
+  # kW/m2 from one bay fire). They move to the platform's north-west / north-east corners,
+  # outside every bay's 8 kW/m2 band (bay fire with its drained part, D-018 method, D-035.9),
+  # and each arm's emergency release coupler takes its own accumulator on the arm (arm vendor,
+  # ASSUMED), so the release does not depend on the HPU or its hoses surviving a tray fire
+  - {tag: HPU-5100, point: [1132.0, 923.5, 1.0], power_kw: 75, voltage_v: 400, power_factor: 0.78, room: MCC-2, assumed: true, source: "ASSUMED 75 kW per berth (task basis; the arm vendor's HPU rating replaces it); power factor 0.78 = motor pf 0.85 x efficiency 0.92 (ASSUMED)", notes: "Berth 2 arm HPU at the platform's north-west corner, west of R9 and north of the laydown Z-LAY-A4NW, outside every bay's 8 kW/m2 band (D-035.5, D-035.9); hoses to the arms along the west edge (vendor)"}
+  - {tag: HPU-6100, point: [1178.0, 923.5, 1.0], power_kw: 75, voltage_v: 400, power_factor: 0.78, room: MCC-2, assumed: true, source: "ASSUMED 75 kW per berth, as HPU-5100", notes: "Berth 1 arm HPU at the platform's north-east corner, north of the laydown Z-LAY-A4NE, outside every bay's 8 kW/m2 band (D-035.5, D-035.9)"}
+  # ERS solenoid supplies (D-016, D-032.2; review 2026-11-05-basic-layout-5 #8): channel A of
+  # every ERS valve of a berth from UPS A, channel B from UPS B, on separate feeders to each
+  # berth's HPU control panel (ASSUMED 1 kW each; the two feeders in separate trays or with a
+  # fire barrier between them is the electrical engineer's, the model routes both on PR2)
+  - {tag: F-ERS-5100A, point: [1132.0, 924.3, 1.0], power_kw: 1.0, voltage_v: 230, power_factor: 0.9, room: UPS-A, assumed: true, source: "ASSUMED: ERS solenoid channel A of Berth 2 (8 solenoids, D-016)", notes: "UPS A to the Berth 2 HPU control panel, channel A of the ERS solenoids (D-032.2)"}
+  - {tag: F-ERS-5100B, point: [1131.0, 923.5, 1.0], power_kw: 1.0, voltage_v: 230, power_factor: 0.9, room: UPS-B, assumed: true, source: "ASSUMED: ERS solenoid channel B of Berth 2", notes: "UPS B to the Berth 2 HPU control panel, channel B (D-032.2)"}
+  - {tag: F-ERS-6100A, point: [1178.0, 924.3, 1.0], power_kw: 1.0, voltage_v: 230, power_factor: 0.9, room: UPS-A, assumed: true, source: "ASSUMED: ERS solenoid channel A of Berth 1", notes: "UPS A to the Berth 1 HPU control panel, channel A (D-032.2)"}
+  - {tag: F-ERS-6100B, point: [1179.0, 923.5, 1.0], power_kw: 1.0, voltage_v: 230, power_factor: 0.9, room: UPS-B, assumed: true, source: "ASSUMED: ERS solenoid channel B of Berth 1", notes: "UPS B to the Berth 1 HPU control panel, channel B (D-032.2)"}
   # the jetty substation's two 6.6 kV incomers from SWG-1 over the trestle, ending at the
   # B-JET cable entry (the transformer TR-5 inside)
   - {tag: F-SS2-A, point: [1129.6, 1109.0, 4.0], power_kw: 400, voltage_v: 6600, power_factor: 0.85, room: SWG-1, assumed: true, source: "ASSUMED: platform load ~0.3 MW (TR-5 notes) with margin, one of two 100 % feeders", notes: "6.6 kV, ~1.9 km along the PR2 trestle power tray, into B-JET through its east wall"}
@@ -88,12 +106,16 @@ junction_boxes:
   - {tag: JB-T3101, point: [837.2, 3020.0, 1.2], capacity: 40, instruments: ["*-31*"], notes: "T-3101 roof, as JB-T2101"}
   - {tag: JB-A1-1, point: [945.0, 2957.0, 1.2], capacity: 24, instruments: [XV-1106, XV-1107, XV-1108, XV-1109, TI-1112, TI-4102], notes: "Fill valves on PR1, tank-end loading line temperature; south of T-2101 beside PR1"}
   - {tag: JB-A8-1, point: [984.0, 3216.0, 1.2], capacity: 24, instruments: [LI-8103, TSL-8102], notes: "Impoundment basin T-8101 level and low temperature, under the west end of the basin services rack PR8's south edge, outside the basin's zone 2 and 21 m south of the trough's west leg (D-029, D-031, D-033.11)"}
-  - {tag: JB-A2-2, point: [1070.5, 3028.0, 1.2], capacity: 24, instruments: [PV-1110, XV-1115, XV-7123A], notes: "Tank pressure control and SIS vent valves at the PR6 east leg / PR3 joint, north of the crane pad Z-PAD-A2E"}
+  - {tag: JB-A2-2, point: [1055.0, 3032.0, 1.2], capacity: 24, instruments: [PV-1110, XV-1115, XV-7123A], notes: "Tank pressure control and SIS vent valves at the PR6 east leg / PR3 joint; moved 15.5 m west from (1070.5, 3028), where it stood at 11.1 kW/m2 in the tank-area design fire, to 7.1 kW/m2 north of K-7101A, outside the crane lanes and laydowns (D-018 8 kW/m2 for trip boxes, D-035.5)"}
   - {tag: JB-K7101, point: [1036.0, 3005.0, 1.2], capacity: 30, instruments: ["*-71*", PIC-1110, PIC-1111], notes: "BOG compressors and D-7101, west of the machines outside their crane lanes and the west laydown"}
   - {tag: JB-A3-1, point: [1464.5, 3082.5, 1.2], capacity: 24, instruments: [LIC-8101, LZT-8105, HS-8101A, HS-8101B, FI-8133, TI-8131, "*-813?"], notes: "Flare KO drum, the start / stop of its pumps from LIC-8101 (HS-8101A/B, D-026.11) and the flare's pilot and purge gas, between the drum and its laydown"}
-  - {tag: JB-A4-1, point: [1147.5, 880.5, 1.2], room: RR-2, capacity: 40, instruments: ["*-5*", PI-4105, TI-4103, PI-4121, TI-4122], notes: "Berth 2: arms, ERS, drain drum and pump, berth header, loading line A and vapour return A at the platform; east of the Berth 2 crane strip, outside the manifold zone and the drain pump's seal zone"}
-  - {tag: JB-A4-2, point: [1161.0, 880.5, 1.2], room: RR-2, capacity: 40, instruments: ["*-6*", TSL-8104, XV-4103, PI-4106, TI-4104, PI-4123, TI-4124], notes: "Berth 1, the platform crossover valve, the jetty spill sump (TSL-8104's field cable along the catwalk S-CW-A9, D-031), loading line B and vapour return B at the platform; west of the Berth 1 crane strip"}
-  - {tag: JB-PR1, point: [1070.0, 2956.0, 1.2], capacity: 24, instruments: [AI-1102, PI-1104, TI-1103, PZT-1105, FIC-4101, FIC-4102, FV-4101, FV-4102, XV-4101, XV-4102, XV-4105, XV-4106, XV-1102, XV-1103, ZSC-1102, ZSC-1103], notes: "Rundown metering, the rundown high-high pressure trip PZT-1105 and the selection valve position switches (D-026.4), and the loading lines' tank-end valves on PR1, north of the rack between it and the BOG area"}
+  # D-035.5 (review 2026-11-05-basic-layout-5 #5): the platform boxes stood inside the manifold
+  # tray bays; they move with the HPUs to the north corners, outside every bay and its 8 kW/m2
+  # band; the ESD / ERS / ERC circuits from them to the arms and the header bay are
+  # fire-resistant cable (IEC 60331, cited by number only, ASSUMED)
+  - {tag: JB-A4-1, point: [1134.5, 924.0, 1.2], room: RR-2, capacity: 48, instruments: ["*-5*", PI-4105, TI-4103, PI-4121, TI-4122], notes: "Berth 2: arms, ERS, drain drum and pump, berth header, loading line A and vapour return A at the platform; at the platform's north-west corner beside HPU-5100, west of R9, outside every tray bay, crane strip and laydown and outside every bay's 8 kW/m2 band (D-035.5, D-035.9)"}
+  - {tag: JB-A4-2, point: [1175.5, 924.0, 1.2], room: RR-2, capacity: 48, instruments: ["*-6*", TSL-8104, XV-4103, HS-4103, "*-4107", PI-4106, TI-4104, PI-4123, TI-4124], notes: "Berth 1, the platform crossover valves, the jetty spill sump (TSL-8104's field cable along the catwalk S-CW-A9, D-031), loading line B and vapour return B at the platform; at the platform's north-east corner beside HPU-6100, outside every tray bay and its 8 kW/m2 band (D-035.5, D-035.9)"}
+  - {tag: JB-PR1, point: [999.5, 2996.0, 1.2], capacity: 24, instruments: [AI-1102, PI-1104, TI-1103, PZT-1105, FIC-4101, FIC-4102, FV-4101, FV-4102, XV-4101, XV-4102, XV-4105, XV-4106, XV-1102, XV-1103, ZSC-1102, ZSC-1103], notes: "Rundown metering, the rundown high-high pressure trip PZT-1105 and the selection valve position switches (D-026.4), and the loading lines' tank-end valves on PR1. Re-sited from (1070, 2956), where it stood in the design fire at ~31 kW/m2 and in the laydown Z-LAY-A2E (review 2026-11-05-basic-layout-5 #5 and the missed medium of its adversarial check), to the east side of PR6 at y 2996, 5.4 kW/m2 in the design fire (D-018 8 kW/m2 criterion for the trip circuits' box, D-035.5, ASSUMED), outside every zone, laydown and crane pad; its field cables to XV-1102 / 1103, ZSC-1102 / 1103, PZT-1105 and XV-4101 / 4102 / 4105 / 4106 cross the trough band and are fire-resistant (IEC 60331, cited by number only, D-035.5, ASSUMED); the fail-closed valves close on a burnt cable, and I-102 tripping on a bad PZT-1105 signal is the design owner's to confirm (D-035.5)"}
   - {tag: JB-TR-N, point: [1107.0, 2882.5, 1.2], capacity: 24, instruments: [AI-4133, AI-4134, XV-4131, XV-4132, XV-4135, XV-4136, ZSO-4131, ZSO-4132, ZSO-4135, ZSO-4136], notes: "De-inerting / cool-down vapour switching at the tank end of the trestle, its open-position switches (D-026.1) and the analysers in B-ANA; east of PR2, south of the analyser house and outside its zone"}
   - {tag: JB-BL, point: [1085.5, 3600.0, 1.2], capacity: 24, instruments: [FI-1111, FI-1112, FI-1113, FI-1114, XV-1111, XV-1112, XV-1113, XV-1114, PV-1111], notes: "Rundown battery limit valves and meters of trains 1-4 and the make-up gas control at the north end of PR4, west of the rack"}
   - {tag: JB-IA, point: [1187.0, 3101.0, 1.2], capacity: 24, instruments: [PZT-8123A, PZT-8123B, PZT-8123C], notes: "Instrument-air header low-low trip transmitters PZT-8123A/B/C on IA-8001 (P-08, I-804, D-028), reviewed from the build's proposal: south of the PR3 east leg beside the transmitters, outside every zone (D-029)"}
@@ -101,14 +123,30 @@ junction_boxes:
 instruments:
   # the P&ID gives these at the platform or the tank end; the build would place them at the
   # middle of their 2 km segments
-  - {tag: PI-4105, point: [1149.5, 893.0, 7.5], notes: "Loading line A at the platform end of PR2"}
-  - {tag: TI-4103, point: [1149.5, 893.5, 7.5], notes: "Loading line A at the platform end of PR2"}
-  - {tag: PI-4106, point: [1156.0, 893.0, 7.5], notes: "Loading line B at the platform end of PR2"}
-  - {tag: TI-4104, point: [1156.0, 893.5, 7.5], notes: "Loading line B at the platform end of PR2"}
+  - {tag: PI-4105, point: [1155.8, 860.3, 7.6], notes: "Loading line A between its crossover tees in the header bay (S5, D-035.1)"}
+  - {tag: TI-4103, point: [1155.8, 860.0, 7.6], notes: "Loading line A between its crossover tees in the header bay (S5, D-035.1)"}
+  - {tag: PI-4106, point: [1162.2, 860.3, 7.6], notes: "Loading line B between its crossover tees in the header bay (S5, D-035.1)"}
+  - {tag: TI-4104, point: [1162.2, 860.0, 7.6], notes: "Loading line B between its crossover tees in the header bay (S5, D-035.1)"}
   - {tag: PI-4121, point: [1148.2, 893.0, 10.5], notes: "Vapour return A at the platform end of PR2"}
   - {tag: TI-4122, point: [1148.2, 893.5, 10.5], notes: "Vapour return A at the platform end of PR2"}
   - {tag: PI-4123, point: [1149.3, 893.0, 10.5], notes: "Vapour return B at the platform end of PR2"}
   - {tag: TI-4124, point: [1149.3, 893.5, 10.5], notes: "Vapour return B at the platform end of PR2"}
+  # hard-wired ESD push buttons (review 2026-11-05-basic-layout-5 #8; one tag per station
+  # since D-034): the control room stations are wired inside B-SUB, the jetty head stations at
+  # the B-JET north door on the muster point, the platform stations at the north edge beside
+  # the ways off, outside every bay's 8 kW/m2 band (D-035.5)
+  - {tag: HS-5100A, skip: "control room desk in B-SUB: wired inside the building to the SIS, no field cable"}
+  - {tag: HS-5107A, skip: "control room desk in B-SUB: wired inside the building to the SIS, no field cable"}
+  - {tag: HS-6100A, skip: "control room desk in B-SUB: wired inside the building to the SIS, no field cable"}
+  - {tag: HS-6107A, skip: "control room desk in B-SUB: wired inside the building to the SIS, no field cable"}
+  - {tag: HS-5100B, point: [1130.5, 1117.0, 1.2], notes: "Berth 2 ESD-1 push button, jetty head station at the B-JET north door on the muster point (D-016, D-034)"}
+  - {tag: HS-5107B, point: [1130.0, 1117.0, 1.2], notes: "Berth 2 ESD-2 push button, jetty head station at the B-JET north door"}
+  - {tag: HS-6100B, point: [1129.5, 1117.0, 1.2], notes: "Berth 1 ESD-1 push button, jetty head station at the B-JET north door"}
+  - {tag: HS-6107B, point: [1129.0, 1117.0, 1.2], notes: "Berth 1 ESD-2 push button, jetty head station at the B-JET north door"}
+  - {tag: HS-5100C, jb: JB-A4-1, point: [1137.0, 924.0, 1.2], notes: "Berth 2 ESD-1 push button, platform station at the start of W1 (D-016, D-035.5)"}
+  - {tag: HS-5107C, jb: JB-A4-1, point: [1136.5, 924.0, 1.2], notes: "Berth 2 ESD-2 push button, platform station at the start of W1"}
+  - {tag: HS-6100C, jb: JB-A4-2, point: [1173.0, 924.0, 1.2], notes: "Berth 1 ESD-1 push button, platform station at the north-east corner, towards W2"}
+  - {tag: HS-6107C, jb: JB-A4-2, point: [1173.5, 924.0, 1.2], notes: "Berth 1 ESD-2 push button, platform station at the north-east corner"}
   - {tag: AI-4133, point: [1105.5, 2891.5, 1.5], notes: "In the analyser house B-ANA at the tank end of the trestle, sample from vapour return A upstream of XV-4131 / XV-4135 (ASSUMED)"}
   - {tag: AI-4134, point: [1105.5, 2889.5, 1.5], notes: "In the analyser house B-ANA, sample from vapour return B (ASSUMED)"}
 notes: >-
@@ -119,4 +157,11 @@ notes: >-
   voltage drop (the 2.2 km 6.6 kV feeders and the ~450 m 400 V feeders to the flare pumps
   P-8101A/B), short circuit, motor starting of the 1.4 MW compressors and the 0.64 MW in-tank
   pumps (reduced-voltage or soft start, ASSUMED) and hazardous-area cable glands are the
-  electrical engineer's.
+  electrical engineer's. Fire-resistant cable (IEC 60331, cited by number only, ASSUMED,
+  D-033.7, D-035.5): the ESD and fire and gas circuits from B-SUB on PR7 / PR3 over the trough,
+  the rundown trip circuits from JB-PR1 (XV-1102 / 1103, ZSC-1102 / 1103, PZT-1105, XV-4101 /
+  4102 / 4105 / 4106) and the platform ESD / ERS / ERC circuits from JB-A4-1 / -2. The basin's
+  PR8 circuits (P-8102, LI-8103, TSL-8102) fail safe: a burnt cable stops P-8102, which is not
+  needed in a spill (D-035.4, design owner to confirm in the C&E). B-SUB intake gas detection
+  (D-035.10): its detectors and the LV1 / LV2 damper actuators are cabled from LV1 on the
+  east wall to CR-1 once the design owner gives them tags (layout/hvac.yaml AHU-1 notes).

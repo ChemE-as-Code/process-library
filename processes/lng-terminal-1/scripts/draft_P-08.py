@@ -163,18 +163,20 @@ for vid, at in [("HV8106A", (106, 152)), ("HV8106B", (166, 152)), ("FO8107", (21
     label(sheet, vid, "PipingComponentNumber", at=at)
 
 # ---- spill impoundment sumps -------------------------------------------------------------------
+# T-8101 is a 10.5 m deep pit (D-033.3): no wall penetration. The rainwater pump P-8102 is a
+# submersible pump on the pit floor with its riser W-8002 up through the pit cover; the level (radar,
+# N1) and the low-temperature probe (N2) enter through the cover too (review 2026-11-05-basic-design-7
+# #6 and its adversarial check, D-034; was a grade pump on a pit-bottom suction W-8001).
 sump = equipment(sheet, "Tank", "T-8101", shape="TANK_OPEN_SHAPE", at=(40, 222),
-                 nozzles=[Nozzle("N1", (15, 6), 150), Nozzle("N2", (-15, -4), 50), Nozzle("N3", (-15, 6), 50)],
+                 nozzles=[Nozzle("N1", (2, -11), 150), Nozzle("N2", (-10, -11), 50)],
                  label_at=(40, 238))
-spump = equipment(sheet, "CentrifugalPump", "P-8102", shape="CENTRIFUGAL_PUMP_SHAPE", at=(80, 228),
-                  nozzles=[Nozzle("N1", (-7.5, 0), 150), Nozzle("N2", (0, -7.5), 100)], label_at=(80, 240))
-L.line(sheet, "W-8001", dn=150, fluid="Rainwater", frm="T-8101", to="P-8102", insulation="none",
-       pclass="Class 150", notes="Sump rainwater to the pump.", route=[sump["N1"], spump["N1"]], labels=False)
+spump = equipment(sheet, "CentrifugalPump", "P-8102", shape="CENTRIFUGAL_PUMP_SHAPE", at=(46, 226), scale=0.7,
+                  nozzles=[Nozzle("N2", (0, -7.5), 100)], label_at=(66, 226))
 L.line(sheet, "W-8002", dn=100, fluid="Rainwater", frm="P-8102", to="BL (oily water)", insulation="none",
-       notes="Rainwater from the tank-area sump to the site oily water system; interlocked off on LNG in the sump (C&E I-801).",
-       route=[spump["N2"], (80, 210), (120, 210),
-              offpage("out", at=(130, 210), note="to oily water (BL)", note_at=(128, 204))],
-       label_at=(104, 216))
+       notes="Riser of the submersible rainwater pump P-8102 from the T-8101 pit floor up through the pit cover, then to the site oily water system; interlocked off on LNG in the sump (C&E I-801). Static lift ~20 m from the 12.5 m pit floor to the PR8 rack (review 2026-11-05-basic-design-7 #6, D-034).",
+       route=[spump["N2"], (46, 209), (120, 209),
+              offpage("out", at=(130, 209), note="to oily water (BL)", note_at=(128, 204))],
+       label_at=(100, 215))
 jsump = equipment(sheet, "Tank", "T-8102", shape="TANK_OPEN_SHAPE", at=(160, 225), nozzles=[Nozzle("N1", (-15, 0), 50)],
                   label_at=(160, 240))
 
@@ -252,9 +254,11 @@ L.inst(sheet, "FI-8133", "Flare flow (ultrasonic)", "Monthly-average routine flo
 L.inst(sheet, "TI-8131", "Pilot flame temperature (thermocouples)", "Pilot failure alarm.", at=(340, 115),
        sensing="Line_FG8002_S1", sensing_at=(340, 95))
 L.inst(sheet, "TSL-8102", "Tank-area sump low temperature (LNG in the sump)",
-       "Stops P-8102 and starts the high-expansion foam (C&E I-801).", at=(20, 208),
-       sensing=sump["N2"])
-L.inst(sheet, "LI-8103", "Tank-area sump level", "Starts and stops P-8102.", at=(20, 238), sensing=sump["N3"])
+       "Probe hung from the pit cover (N2) to the pit floor beside P-8102, no wall penetration (D-034). Stops P-8102 and starts the high-expansion foam (C&E I-801).",
+       at=(14, 200), sensing=sump["N2"])
+L.inst(sheet, "LI-8103", "Tank-area sump level",
+       "Radar through the pit cover (N1), no wall penetration (D-034). Starts and stops P-8102.",
+       at=(30, 194), sensing=sump["N1"])
 L.inst(sheet, "TSL-8104", "Jetty sump low temperature (LNG in the sump)",
        "Alarm and high-expansion foam on the platform (D-018).", at=(130, 240), sensing=jsump["N1"])
 L.inst(sheet, "PI-8121", "N2 header pressure", at=(225, 220), sensing=n2.segments[0], sensing_at=(225, 210))
@@ -273,13 +277,13 @@ for s, x in zip("ABC", (215, 231, 247)):
 
 note(sheet, "FL-8101: the storage and loading flare, one of four flares on the site's 122 m vapour flare derrick", at=(12, 252))
 note(sheet, "(warm/wet, cold/dry, storage and loading, spare); derrick and liquid burner are site scope (S-02, D-001, D-017).", at=(12, 258))
-note(sheet, "T-8101 / T-8102: LNG spill impoundment sumps, tank area and trestle troughs / loading platform (D-018).", at=(12, 264))
+note(sheet, "T-8101 / T-8102: LNG spill sumps, tank-area troughs / platform (D-018); P-8102 in the pit (D-034).", at=(12, 264))
 note(sheet, "TSL-8102: see C&E I-801. LZT-8105 (independent of LIC-8101): I-802 at high-high starts both pumps", at=(12, 270))
 note(sheet, "P-8101A/B (whichever is not running) and closes LV-7102; non-latching, it yields to I-803.", at=(12, 276))
 note(sheet, "FL-8001 also receives BOG-4013 (carrier de-inerting and cool-down vapour, P-04) and FL-7003", at=(150, 252))
 note(sheet, "(BOG compressor depressurising vents, P-07). FO-8107: minimum-flow orifice of P-8101A/B.", at=(150, 258))
-note(sheet, "T-8102: no fixed pump; rainwater is removed by a portable pump once TSL-8104 confirms no LNG", at=(150, 264))
-note(sheet, "in the sump (D-018). FL-8101 pilot ignition (flame-front generator) and re-ignition on pilot", at=(150, 270))
+note(sheet, "T-8102: no fixed pump; a portable submersible pump, once TSL-8104 confirms no LNG, keeps it", at=(150, 264))
+note(sheet, "dry before every transfer (SEQ-LOAD, D-034). FL-8101 pilot ignition (flame-front generator) and re-ignition on pilot", at=(150, 270))
 note(sheet, "failure (TI-8131) are part of the site's flare derrick package (S-02).", at=(150, 276))
 note(sheet, "HV-8106A/B, HV-8108A/B: suction and discharge isolation of P-8101A/B for maintenance.", at=(150, 282))
 # Rev D notes after the existing ones (ids Note12 on). The third I-802/I-803 line of the left column:

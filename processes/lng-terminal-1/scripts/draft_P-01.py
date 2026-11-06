@@ -194,7 +194,7 @@ r4 = tee("T1112", at=(255, 40), branch="down", branch_dn=25)
 r11 = tee("T1113", at=(260, 40), branch="down", branch_dn=25)
 r10 = tee("T1114", at=(265, 40), branch="down", branch_dn=25)
 bog = L.line(sheet, "BOG-1001", dn=750, fluid="Boil-off gas", frm="T-2101", to="D-7101",
-             notes="Tank vapour header from T-2101 (P-02) with T-3101, the vapour return lines and the make-up (P-01) to the BOG suction drum with the desuperheater spray (P-07); holding 21.9 t/h (S8), loading 49.1 t/h with the return (S6) (D-009); receives the P-01 thermal relief outlets BOG-1004, BOG-1010 and BOG-1011 (D-026). Drawn on P-02, P-01 and P-07.",
+             notes="Tank vapour header from T-2101 (P-02) with T-3101, the vapour return lines and the make-up (P-01) to the BOG suction drum with the desuperheater spray (P-07); holding 21.9 t/h (S8), loading 56.5 t/h with the return (S6) and the spray (D-009, D-034); receives the P-01 thermal relief outlets BOG-1004, BOG-1010 and BOG-1011 (D-026). Drawn on P-02, P-01 and P-07.",
              route=[offpage("in", at=(250, 40), note="from T-2101 (P-02)", note_at=(254, 32)),
                     r4, r11, r10, b3, b6, b7, bm, bf,
                     offpage("out", at=(405, 40), note="to D-7101 (P-07)", note_at=(390, 33))],
@@ -220,7 +220,7 @@ L.line(sheet, "BOG-1010", dn=25, fluid="Boil-off gas", frm="LNG-1002 (PSV-1122)"
 for k, tb, x, side, nx in [("6", b6, 305, "A", 282), ("7", b7, 320, "B", 344)]:
     L.line(sheet, f"BOG-400{int(k) - 5}", dn=750, fluid="Boil-off gas", frm=f"BOG-{'5' if side == 'A' else '6'}001 (Berth {'2' if side == 'A' else '1'})",
            to="BOG-1001", insulation="cold (PIR 150 mm)",
-           notes=f"Vapour return line {side} over the trestle (Berth {'2' if side == 'A' else '1'}) into the tank vapour header; 45.6 t/h at loading (S6), ~9 m/s (D-009, D-012). Drawn on P-04 and P-01.",
+           notes=f"Vapour return line {side} over the trestle (Berth {'2' if side == 'A' else '1'}) into the tank vapour header; 52.5 t/h at loading (S6, the design envelope, D-034), ~11 m/s (D-009, D-012). Drawn on P-04 and P-01.",
            route=[offpage("in", at=(x, 14), note=f"from vapour return {side} (P-04)",
                           note_at=(nx, 9), rotation=DOWN), tb.branch],
            label_at=(x - 10 if side == "A" else x + 10, 25))

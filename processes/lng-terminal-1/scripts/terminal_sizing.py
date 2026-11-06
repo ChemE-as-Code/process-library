@@ -109,7 +109,13 @@ ETA_PUMP = 0.75                 # ASSUMED
 ETA_COMP = 0.78                 # polytropic, ASSUMED
 P_SHIP_MANIFOLD = 350e3         # Pa(a) needed at the ship manifold (spray headers, tank top), ASSUMED (D-011)
 DZ_SHIP = 30.0                  # m, manifold above the low tank liquid level, ASSUMED (D-011)
-DP_JETTY = 120e3                # Pa, arms, ERS, strainers and jetty valves, ASSUMED (D-011)
+# Pa, everything but the 2.45 km line friction, ASSUMED (D-011 as revised by D-034, review
+# 2026-11-05-basic-design-7 #1): the governing line-up (T-3101 alone to Berth 1) of the recorded
+# loading hydraulics in D-034 needs 834 kPa; besides the line friction above that is the pump column
+# and check valve, the pump header at 12,000 m3/h, both crossovers, the expansion loops of the
+# trestle, 25 kPa kept across the loading-line control valve, the strainer at its alarm, the berth
+# header and the arm path (arm, swivels, ERS, coupler). Was 120 kPa for arms, ERS, strainers, valves.
+DP_JETTY = 378e3
 
 
 def main():

@@ -26,6 +26,10 @@ rules:
     - {rack: PR5, elevation: 14, fluids: [Boil-off gas, Air, Flare gas]}
     - {rack: PR6, elevation: 12, fluids: [LNG]}
     - {rack: PR6, elevation: 14, fluids: [Boil-off gas, Air, Flare gas]}
+    # platform header rack PR9 (D-035.1): the loading lines and drain pump returns on its top
+    # tier, the berth headers back north on its bottom tier
+    - {rack: PR9, elevation: 5, fluids: [LNG]}
+    - {rack: PR9, elevation: 7, fluids: [LNG]}
   local_max_m: 20
   # tank relief valve tailpipes on the pump platform: the outlet rises until the 3 m zone 1
   # sphere (Z-HA-TANK-PSV) clears the platform floor and its 2.1 m headroom (D-027, ASSUMED)
@@ -61,11 +65,18 @@ rules:
     - {id: J-T2101-header, lines: [LNG-2001, LNG-4001], point: [984.66, 2940.0, 7.6065]}
     # on the PR1 bottom-tier lane y 2946 that loading line B keeps to the trestle (ASSUMED)
     - {id: J-T3101-header, lines: [LNG-3001, LNG-4002], point: [843.75, 2946.0, 7.6065]}
-    # 2.5 m off the platform end of PR2 (y 890), each in line with its trestle lane, line A
-    # west of line B, so the lines leave the rack straight and the berth headers fan out to
-    # their face from there (ASSUMED).
-    - {id: J-Berth2-liquid, lines: [LNG-4001, LNG-5001], point: [1149.659, 887.5, 7.6065]}
-    - {id: J-Berth1-liquid, lines: [LNG-4002, LNG-6001], point: [1156.096, 887.5, 7.6065]}
+    # D-035.1 (review 2026-11-05-basic-layout-5, missed high of its adversarial check): the
+    # loading lines' flanged items at the platform end (the DN 800 crossover XV-4107, the DN 250
+    # crossover XV-4103 with the drain pump returns, the shore ESD valves XV-5101 / XV-6101 and
+    # the strainers SR-5102 / SR-6102) are gathered in the header bay Z-HA-TRAY-HDR at the
+    # platform's south end, 63 m from the starts of both ways off. The loading lines leave PR2's
+    # end on the platform header rack PR9's top tier (lanes x 1152.45 / 1153.95), welded, and
+    # the berth headers come back north on its bottom tier (lanes x 1152.45 / 1154.05), welded,
+    # to the arm tees at y 887.5 (piping/pipe-specs.yaml Class 150 notes). The sheet junctions
+    # (where LNG-4001 / LNG-4002 become LNG-5001 / LNG-6001) are at the top of the drops in the
+    # bay (ASSUMED).
+    - {id: J-Berth2-liquid, lines: [LNG-4001, LNG-5001], point: [1156.5, 858.0, 7.6065]}
+    - {id: J-Berth1-liquid, lines: [LNG-4002, LNG-6001], point: [1161.5, 858.0, 7.6065]}
     # carrier manifolds: the outboard arm (ERS, couplers) ends at the ship's manifold flange,
     # 3.15 m outboard of the arm's outboard nozzle at the arm apex, clear of the ship envelope
     # boxes of layout/zones.yaml (ASSUMED, D-014; the arm vendor's envelope replaces it)
@@ -112,10 +123,13 @@ lines:
   # (pinned: a via route keeps clear of the rack beams instead of resting on them)
   # (D-029: the tees on BOG-7002 are at its raised 2.6 m centreline; FL-7003 and the K-7101B/C
   # vents FL-7004 / FL-7005 at 3.3 m cross over it, below the compressors' tops and the lanes)
-  - {line: FL-7002, segment: P-07/Line_FL7002_S1, route: [[1059.5, 3004.125, 2.6], [1059.5, 3004.125, 3.6], [1061.6, 3004.125, 3.6], [1061.6, 2976.1, 3.6], [1098.5, 2976.1, 3.6], [1098.5, 2976.1, 10.11], [1098.5, 3078.0, 10.11]]}
+  # D-035.3 (review 2026-11-05-basic-layout-5 #3): both rise west of the PR3 trough (x 1091.6 /
+  # 1092.4, beside BOG-7002's riser) and cross it at 11.4 / 11.6 m over the top tier, then drop
+  # onto their lanes, so no line crosses the trough below the rack's 7 m bottom tier
+  - {line: FL-7002, segment: P-07/Line_FL7002_S1, route: [[1059.5, 3004.125, 2.6], [1059.5, 3004.125, 3.6], [1061.6, 3004.125, 3.6], [1061.6, 2976.1, 3.6], [1091.6, 2976.1, 3.6], [1091.6, 2976.1, 11.4], [1098.5, 2976.1, 11.4], [1098.5, 2976.1, 10.11], [1098.5, 3078.0, 10.11]]}
   - {line: FL-7002, segment: P-08/Line_FL7002_S1, route: [[1098.5, 3078.0, 10.11], [1098.5, 3113.0, 10.11], [1145.0, 3113.0, 10.11], [1145.0, 3113.0, 10.457], [1145.0, 3110.77, 10.457]]}
   - {line: FL-7003, segment: P-07/Line_FL7003_S1, route: [[1059.5, 3010.25, 2.6], [1061.0, 3010.25, 2.6], [1061.0, 3010.25, 3.3], [1061.0, 2997.35, 3.3]]}
-  - {line: FL-7003, segment: P-07/Line_FL7003_S2, route: [[1061.0, 2997.35, 3.3], [1061.0, 2975.2, 3.3], [1097.8, 2975.2, 3.3], [1097.8, 2975.2, 10.045], [1097.8, 3078.0, 10.045]]}
+  - {line: FL-7003, segment: P-07/Line_FL7003_S2, route: [[1061.0, 2997.35, 3.3], [1061.0, 2975.2, 3.3], [1092.4, 2975.2, 3.3], [1092.4, 2975.2, 11.6], [1097.8, 2975.2, 11.6], [1097.8, 2975.2, 10.045], [1097.8, 3078.0, 10.045]]}
   - {line: FL-7004, via: [[1057.73, 2998.35, 3.3], [1061.0, 2998.35, 3.3]]}
   - {line: FL-7003, segment: P-08/Line_FL7003_S1, route: [[1097.8, 3078.0, 10.045], [1097.8, 3114.0, 10.045], [1150.0, 3114.0, 10.045], [1150.0, 3114.0, 10.457], [1150.0, 3110.77, 10.457]]}
   # de-inerting / cool-down vapour on to the flare header: north on PR2 / PR3 (lane x 1096.6),
@@ -179,11 +193,33 @@ lines:
   # Berth 1: the drain pump discharge west of the PR2 end ladder, the hybrid arm's vapour
   # connection south of it (clear of the cage, layout-ladder-clearance)
   - {line: LNG-6006, segment: P-06/Line_LNG6006_S2, via: [[1158.8, 876.0, 5.62]]}
-  - {line: LNG-6006, segment: P-06/Line_LNG6006_S3, via: [[1158.8, 888.0, 5.62], [1158.8, 893.0, 5.62]]}
-  # Berth 1 header straight down from the junction off the PR2 end to the platform pipe-way,
-  # its N2 tie-in (T60N) at the bottom
-  - {line: LNG-6001, segment: Line_LNG6001_S1, route: [[1156.096, 887.5, 7.606], [1156.096, 887.5, 3.99]]}
-  - {line: DR-6006, via: [[1158.2, 886.2, 5.49], [1162.83, 886.2, 5.49]]}
+  # D-035.1: both drain pump discharges go south to their tees on the DN 250 crossover in the
+  # header bay, at 6.4 m between PR9's tiers (under the loading lines, over the berth headers)
+  # pinned whole (D-035.1): the pump discharge, minimum-flow, vent and relief tees and CV-n116
+  # stay over their manifold tray; the line then runs south at 6.4 m (under the loading lines,
+  # over the berth headers) and into the header bay to its tee on the DN 250 crossover
+  - {line: LNG-6006, segment: P-06/Line_LNG6006_S1, route: [[1159.44, 874.32, 1.6], [1159.44, 874.32, 1.9], [1158.8, 874.32, 1.9], [1158.8, 874.32, 2.12], [1158.8, 875.16, 2.12]]}
+  - {line: LNG-6006, segment: P-06/Line_LNG6006_S2, route: [[1158.8, 875.16, 2.12], [1158.8, 876.0, 2.12], [1158.8, 876.0, 5.62], [1158.8, 880.5, 5.62]]}
+  - {line: LNG-6006, segment: P-06/Line_LNG6006_S3, route: [[1158.8, 880.5, 5.62], [1158.8, 884.0, 5.62]]}
+  - {line: LNG-6006, segment: P-06/Line_LNG6006_S4, route: [[1158.8, 884.0, 5.62], [1158.8, 884.0, 6.4], [1158.8, 866.5, 6.4]]}
+  - {line: LNG-6006, segment: P-04/Line_LNG6006_S1, route: [[1158.8, 866.5, 6.4], [1159.8, 866.5, 6.4], [1159.8, 859.5, 6.4], [1159.8, 859.5, 7.6065]]}
+  # drain drum to drain pump suction (D-035.1, D-5101 / P-5101 moved west): north from the drum's
+  # bottom outlet into the manifold tray, so HV-5115 stays over bay M1 as before
+  - {line: LNG-5005, segment: P-05/Line_LNG5005_S1, route: [[1145.86, 868.0, -0.21], [1145.86, 872.0, -0.21], [1147.3, 872.0, -0.21], [1147.3, 874.5, -0.21], [1147.3, 874.5, 0.73], [1147.6, 874.5, 0.73]]}
+  - {line: LNG-5006, segment: P-05/Line_LNG5006_S1, route: [[1147.94, 874.32, 1.6], [1147.94, 874.32, 5.88]]}
+  - {line: LNG-5006, segment: P-05/Line_LNG5006_S2, route: [[1147.94, 874.32, 5.88], [1146.16, 874.32, 5.88], [1146.16, 874.32, 6.12], [1146.16, 880.97, 6.12]]}
+  - {line: LNG-5006, segment: P-05/Line_LNG5006_S3, route: [[1146.16, 880.97, 6.12], [1146.16, 886.0, 6.12]]}
+  - {line: LNG-5006, segment: P-05/Line_LNG5006_S4, route: [[1146.16, 886.0, 6.12], [1145.3, 886.0, 6.12], [1145.3, 886.0, 6.4], [1145.3, 865.0, 6.4], [1155.0, 865.0, 6.4]]}
+  - {line: LNG-5006, segment: P-04/Line_LNG5006_S1, route: [[1155.0, 865.0, 6.4], [1155.0, 862.0, 6.4], [1158.2, 862.0, 6.4], [1158.2, 859.5, 6.4], [1158.2, 859.5, 7.6065]]}
+  # D-035.1: the berth headers start at the junction drops in the header bay (shore ESD valve
+  # and strainer on the drop, the N2 tie-in T50N / T60N at its foot) and come back north on
+  # PR9's bottom tier to the arm tees at y 887.5, welded
+  - {line: LNG-5001, segment: P-05/Line_LNG5001_S1, route: [[1156.5, 858.0, 7.6065], [1156.5, 858.0, 3.0]]}
+  - {line: LNG-5001, segment: P-05/Line_LNG5001_S2, route: [[1156.5, 858.0, 3.0], [1156.5, 863.0, 3.0], [1156.5, 863.0, 5.49], [1152.45, 863.0, 5.49], [1152.45, 890.2, 5.49], [1149.66, 890.2, 5.49], [1149.66, 890.2, 3.99], [1149.66, 887.5, 3.99], [1149.28, 887.5, 3.99]]}
+  - {line: LNG-6001, segment: Line_LNG6001_S1, route: [[1161.5, 858.0, 7.6065], [1161.5, 858.0, 3.0]]}
+  # (D-035.1: from PSV-6118's tee T60Y, now at y 884 on the drain pump discharge, east at 5.62 m
+  # south of DR-6005's run)
+  - {line: DR-6006, via: [[1159.6, 884.6, 5.62], [1162.83, 884.6, 5.62]]}
   # storage and loading flare header: along the north lane of the PR6 east leg (top tier), down
   # onto PR3's top tier on its east lane (x 1100.5), so every line on PR3 that goes on north to
   # PR4 stays west of it, and east along PR3's east leg; the branches FL-7002, FL-7003 and
@@ -295,8 +331,12 @@ lines:
   - {line: LNG-4002, segment: P-04/Line_LNG4002_S1, route: [[843.75, 2946.0, 7.6065], [987.3, 2946.0, 7.6065]]}
   - {line: LNG-4002, segment: P-04/Line_LNG4002_S2, route: [[987.3, 2946.0, 7.6065], [1051.1, 2946.0, 7.6065]]}
   - {line: LNG-4002, segment: P-04/Line_LNG4002_S3, route: [[1051.1, 2946.0, 7.6065], [1075.0, 2946.0, 7.6065]]}
-  - {line: LNG-4002, segment: P-04/Line_LNG4002_S4, route: [[1075.0, 2946.0, 7.6065], [1097.12, 2946.0, 7.6065], [1097.12, 2872.03, 7.6065], [1155.675, 905.0, 7.6065]]}
-  - {line: LNG-4002, segment: P-04/Line_LNG4002_S5, route: [[1155.675, 905.0, 7.6065], [1156.096, 890.85, 7.6065], [1156.096, 887.5, 7.6065]]}
+  # D-035.1: on from the trestle lane onto PR9's top tier (lane x 1153.95) and south to the
+  # header bay, where it jogs east to the DN 800 crossover tee T4B5, the DN 250 crossover tee
+  # T4B4 and the Berth 1 junction drop (x 1161.5)
+  - {line: LNG-4002, segment: P-04/Line_LNG4002_S4, route: [[1075.0, 2946.0, 7.6065], [1097.12, 2946.0, 7.6065], [1097.12, 2872.03, 7.6065], [1155.675, 905.0, 7.6065], [1155.83, 900.0, 7.6065], [1153.95, 900.0, 7.6065], [1153.95, 865.5, 7.6065], [1161.5, 865.5, 7.6065], [1161.5, 861.0, 7.6065]]}
+  - {line: LNG-4002, segment: P-04/Line_LNG4002_S5, route: [[1161.5, 861.0, 7.6065], [1161.5, 859.5, 7.6065]]}
+  - {line: LNG-4002, segment: P-04/Line_LNG4002_S6, route: [[1161.5, 859.5, 7.6065], [1161.5, 858.0, 7.6065]]}
   # circulation return: up out of loading line B under PR6 (T4B1), the PSV-4114 (T4R2) and the
   # T-3101 branch LNG-4009 (T4R1) on the riser, then up PR6 (x 987.3) to the T-2101 roof.
   - {line: LNG-4005, segment: P-04/Line_LNG4005_S1, route: [[987.3, 2946.0, 7.6065], [987.3, 2946.0, 8.6]]}
@@ -312,8 +352,19 @@ lines:
   # crossover (T4A4, y 905) opposite loading line B's tees.
   - {line: LNG-4001, segment: P-04/Line_LNG4001_S2, route: [[1008.0, 2940.0, 7.6065], [1051.1, 2940.0, 7.6065]]}
   - {line: LNG-4001, segment: P-04/Line_LNG4001_S3, route: [[1051.1, 2940.0, 7.6065], [1070.0, 2940.0, 7.6065]]}
-  - {line: LNG-4001, segment: P-04/Line_LNG4001_S4, route: [[1070.0, 2940.0, 7.6065], [1090.68, 2940.0, 7.6065], [1090.68, 2871.94, 7.6065], [1149.232, 905.0, 7.6065]]}
-  - {line: LNG-4001, segment: P-04/Line_LNG4001_S5, route: [[1149.232, 905.0, 7.6065], [1149.659, 890.66, 7.6065], [1149.659, 887.5, 7.6065]]}
+  # D-035.1: on from the trestle lane onto PR9's top tier (lane x 1152.45) and south to the
+  # header bay, jogging east to the DN 800 crossover tee T4A5, the DN 250 crossover tee T4A4
+  # and the Berth 2 junction drop (x 1156.5)
+  - {line: LNG-4001, segment: P-04/Line_LNG4001_S4, route: [[1070.0, 2940.0, 7.6065], [1090.68, 2940.0, 7.6065], [1090.68, 2871.94, 7.6065], [1149.232, 905.0, 7.6065], [1149.41, 899.0, 7.6065], [1152.45, 899.0, 7.6065], [1152.45, 863.5, 7.6065], [1156.5, 863.5, 7.6065], [1156.5, 861.0, 7.6065]]}
+  - {line: LNG-4001, segment: P-04/Line_LNG4001_S5, route: [[1156.5, 861.0, 7.6065], [1156.5, 859.5, 7.6065]]}
+  - {line: LNG-4001, segment: P-04/Line_LNG4001_S6, route: [[1156.5, 859.5, 7.6065], [1156.5, 858.0, 7.6065]]}
+  # the crossovers between the loading lines in the header bay (D-035.1): the DN 800 crossover
+  # LNG-4010 with XV-4107 (D-034) and the DN 250 crossover LNG-4003 with XV-4103 and the drain
+  # pump returns' tees T4X5 / T4X6
+  - {line: LNG-4010, segment: P-04/Line_LNG4010_S1, route: [[1156.5, 861.0, 7.6065], [1161.5, 861.0, 7.6065]]}
+  - {line: LNG-4003, segment: P-04/Line_LNG4003_S1, route: [[1156.5, 859.5, 7.6065], [1158.2, 859.5, 7.6065]]}
+  - {line: LNG-4003, segment: P-04/Line_LNG4003_S2, route: [[1158.2, 859.5, 7.6065], [1159.8, 859.5, 7.6065]]}
+  - {line: LNG-4003, segment: P-04/Line_LNG4003_S3, route: [[1159.8, 859.5, 7.6065], [1161.5, 859.5, 7.6065]]}
   # tank-end crossover between the loading lines with the PSV-4113 take-off (T4X7) in its
   # middle
   - {line: LNG-4006, segment: P-04/Line_LNG4006_S1, route: [[1051.1, 2940.0, 7.6065], [1051.1, 2943.0, 7.6065]]}
@@ -425,12 +476,13 @@ lines:
   # intermediate beams)
   - {line: N-8001, segment: P-05/Line_N8001_S1, route: [[1150.8, 893.5, 1.5], [1150.8, 890.5, 1.5]]}
   - {line: N-8002, segment: P-06/Line_N8002_S1, route: [[1157.5, 893.5, 1.5], [1157.5, 891.0, 1.5]]}
-  - {line: N-8002, segment: P-06/Line_N8002_S2, route: [[1157.5, 891.0, 1.5], [1157.5, 890.0, 1.5], [1156.096, 890.0, 1.5], [1156.096, 887.5, 1.5], [1156.096, 887.5, 3.99]]}
+  # (N-8002 S2 to the Berth 1 tie-in T60N is generated since T60N moved to the header bay with
+  # the junction drop, D-035.1; N-8001 S2 to T50N likewise)
   # Berth 1 platform piping pinned together as reviewed (review #7): the header LNG-6001 from
   # the junction to the arms, the vapour line BOG-6001 from the vapour arm to the junction, and
   # the hybrid arm's vapour connection BOG-6003 (was via+direct) over the header at 8.7-9.2 m
   # to its tee on BOG-6001
-  - {line: LNG-6001, segment: Line_LNG6001_S2, route: [[1156.096, 887.5, 3.99], [1156.096, 887.5, 3.986], [1159.563, 887.5, 3.986]]}
+  - {line: LNG-6001, segment: Line_LNG6001_S2, route: [[1161.5, 858.0, 3.0], [1161.5, 864.5, 3.0], [1161.5, 864.5, 5.49], [1154.05, 864.5, 5.49], [1154.05, 890.2, 5.49], [1156.1, 890.2, 5.49], [1156.1, 890.2, 3.986], [1156.1, 887.5, 3.986], [1159.563, 887.5, 3.986]]}
   - {line: LNG-6001, segment: Line_LNG6001_S3, route: [[1159.563, 887.5, 3.986], [1163.033, 887.5, 3.986]]}
   - {line: LNG-6001, segment: Line_LNG6001_S4, route: [[1163.033, 887.5, 3.986], [1166.133, 887.5, 3.986]]}
   - {line: LNG-6001, segment: Line_LNG6001_S5, route: [[1166.133, 887.5, 3.986], [1168.133, 887.5, 3.986]]}
@@ -438,9 +490,17 @@ lines:
   - {line: LNG-6001, segment: Line_LNG6001_S7, route: [[1169.021, 888.612, 3.986], [1169.021, 890, 3.986], [1169.021, 890, 3.374]]}
   - {line: LNG-6001, segment: Line_LNG6001_S8, route: [[1169.021, 890, 3.374], [1169.021, 890, 3], [1170.647, 890, 3]]}
   - {line: BOG-6001, segment: Line_BOG6001_S1, route: [[1170.647, 884, 3], [1169.834, 884, 3], [1169.834, 884, 3.783], [1160.967, 884, 3.783]]}
-  - {line: BOG-6001, segment: Line_BOG6001_S2, route: [[1160.967, 884, 3.783], [1151.172, 884, 3.783], [1151.172, 884.976, 3.783]]}
-  - {line: BOG-6001, segment: Line_BOG6001_S3, route: [[1151.172, 884.976, 3.783], [1151.172, 887.5, 3.783], [1151.172, 887.5, 10.531], [1149.672, 887.5, 10.531]]}
-  - {line: BOG-6003, segment: Line_BOG6003_S1, route: [[1169.021, 888.612, 3.986], [1169.021, 888.4, 3.986], [1169.021, 888.4, 3.99], [1168.52, 888.4, 3.99], [1168.52, 888.4, 8.7], [1157.02, 888.4, 8.7], [1157.02, 888.4, 9.2], [1152.02, 888.4, 9.2], [1152.02, 888.4, 3.99], [1152.02, 887.9, 3.99], [1152.52, 887.9, 3.99], [1152.52, 884.976, 3.99], [1152.52, 884.976, 3.783], [1151.172, 884.976, 3.783]]}
+  # (D-035.1: the riser 0.27 m further west, clear of PR9's west stringers; the hybrid arm's
+  # vapour connection BOG-6003 tees in from above at T60V, now at x 1160, so no line crosses the
+  # Berth 1 header at the deck pipe-way)
+  - {line: BOG-6001, segment: Line_BOG6001_S2, route: [[1160.967, 884, 3.783], [1160.0, 884, 3.783]]}
+  - {line: BOG-6001, segment: Line_BOG6001_S3, route: [[1160.0, 884, 3.783], [1150.75, 884, 3.783], [1150.75, 887.5, 3.783], [1150.75, 887.5, 10.531], [1149.672, 887.5, 10.531]]}
+  # the N2 tie-ins to the header bay (D-035.1): on the deck at 1.5 m, under PR9 (x 1155.2) and
+  # along its east column line (x 1157.4), to the foot of each junction drop
+  - {line: N-8001, segment: P-05/Line_N8001_S2, route: [[1150.8, 890.5, 1.5], [1155.2, 890.5, 1.5], [1155.2, 857.25, 1.5], [1156.5, 857.25, 1.5], [1156.5, 857.25, 3.0], [1156.5, 858.0, 3.0]]}
+  - {line: N-8002, segment: P-06/Line_N8002_S2, route: [[1157.5, 891.0, 1.5], [1157.4, 891.0, 1.5], [1157.4, 856.75, 1.5], [1161.5, 856.75, 1.5], [1161.5, 856.75, 3.0], [1161.5, 858.0, 3.0]]}
+  # (D-035.1: its drop moved west of PR9's lanes, to x 1150.5)
+  - {line: BOG-6003, segment: Line_BOG6003_S1, route: [[1169.021, 888.612, 3.986], [1169.021, 888.4, 3.986], [1169.021, 888.4, 3.99], [1168.52, 888.4, 3.99], [1168.52, 888.4, 8.7], [1160.0, 888.4, 8.7], [1160.0, 884.0, 8.7], [1160.0, 884.0, 3.783]]}
 # How the valves out of reach of a floor are worked (skill structures-access, D-027). The
 # actuated valves and the restriction orifices have no manual duty: declared so the build
 # proposes no valve platform for them (their operability findings are accepted in

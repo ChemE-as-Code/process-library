@@ -1,7 +1,7 @@
 # Cause and effect list: interlocks and trips. Schema: `cheme schema interlocks`.
 # On a sheet, refer to an interlock ("see C&E I-201") instead of spelling out what it trips.
 # Revised after the design review 2026-11-05-basic-design and the HAZOP H-01..H-05 (D-025), and the
-# follow-up reviews (D-026, D-028, D-030). Written by build/gen_ce.py.
+# follow-up reviews (D-026, D-028, D-030, D-032, D-034). Written by build/gen_ce.py.
 # SIL from the screening in detail engineering (null until then).
 schema: cheme/interlocks/v1
 interlocks:
@@ -438,7 +438,7 @@ interlocks:
   logic:
     any:
     - tag: XS-5100
-      state: trip
+      state: trip (link not healthy, also once its 'no carrier connected' mode has ended because an arm left its stowed position)
     - interlock: I-503
       state: tripped
     - interlock: I-804
@@ -451,8 +451,12 @@ interlocks:
       state: ZAH (stage 1)
     - tag: ZS-5154
       state: ZAH (stage 1)
-    - tag: HS-5100
-      state: 'pressed (manual ESD-1 push buttons: control room, jetty, platform)'
+    - tag: HS-5100A
+      state: pressed (control room; normally closed contact open or input line fault)
+    - tag: HS-5100B
+      state: pressed (jetty head; normally closed contact open or input line fault)
+    - tag: HS-5100C
+      state: pressed (loading platform; normally closed contact open or input line fault)
     - tag: XS-5108
       state: fire and gas confirmed (voted output of the fire and gas system, ASSUMED, F&G vendor)
     - all:
@@ -486,9 +490,9 @@ interlocks:
               value: 10
               unit: s
         - tag: XA-5130A
-          state: ERS solenoid supply A lost
+          state: ERS solenoid channel A lost (UPS A supply, or the line monitoring of any channel A solenoid circuit)
         - tag: XA-5130B
-          state: ERS solenoid supply B lost
+          state: ERS solenoid channel B lost (UPS B supply, or the line monitoring of any channel B solenoid circuit)
         - interlock: I-601
           state: tripped
   effects:
@@ -516,6 +520,8 @@ interlocks:
     action: close
   - tag: XV-4102
     action: close
+  - tag: XV-4107
+    action: close
   - tag: XV-5161
     action: close
   - tag: XV-4135
@@ -530,14 +536,18 @@ interlocks:
     not for running without the vapour arm, which every transfer needs. The ESD-1 tests of SEQ-LOAD S3 inhibit only the sequence
     abort, never this trip.'
   notes: 'Stops the loading pumps and trips the carrier''s ESD through the ship-shore link XS-5100 (effect; the link works
-    both ways, S-01) at once, then closes the shore ESD valve XV-5101 in 25-30 s (surge, D-023) and the tank-end XV-4101/4102;
-    the manual ESD-1 push buttons (control room, jetty, platform), the confirmed platform fire and gas, ESD-2 (I-503, review
-    #4) and the instrument-air header low-low trip I-804 (review 2026-11-05-basic-design-4 #1, D-028) also initiate it, so
-    all of them reach the carrier. Since review 2026-11-05-basic-design-5 (D-030) the logic also trips during a liquid transfer
-    at Berth 2 on: the vapour path not proven open (ZSO-5122, the vapour arm isolation XV-5122, at the start of any closure,
-    which also detects an air loss at the platform end of the air main, XV-5122 having no accumulator); the O2 high-high of
-    the berth analyser AI-5126 or of AI-4133 (the O2 reject I-514 acts only with no liquid transfer); the loss of either ERS
-    solenoid supply (XA-5130A or XA-5130B, D-016, so a transfer never runs on one channel); and ESD-1 of the other berth (I-601),
+    both ways, S-01) at once, then closes the shore ESD valve XV-5101 in 25-30 s (surge, D-023), the tank-end XV-4101/4102
+    and the DN 800 platform crossover XV-4107 (review 2026-11-05-basic-design-7 #1, D-034: after the trip the two trestle
+    lines are separated at the platform, so a release upstream of a shore ESD valve is fed by one line; same closure time,
+    accumulator and speed controller); the manual ESD-1 push buttons HS-5100A/B/C (control room, jetty head, platform, each
+    its own normally closed input, review 7 #7), the confirmed platform fire and gas, ESD-2 (I-503, review #4) and the instrument-air
+    header low-low trip I-804 (review 2026-11-05-basic-design-4 #1, D-028) also initiate it, so all of them reach the carrier.
+    Since review 2026-11-05-basic-design-5 (D-030) the logic also trips during a liquid transfer at Berth 2 on: the vapour
+    path not proven open (ZSO-5122, the vapour arm isolation XV-5122, at the start of any closure, which also detects an air
+    loss at the platform end of the air main, XV-5122 having no accumulator); the O2 high-high of the berth analyser AI-5126
+    or of AI-4133 (the O2 reject I-514 acts only with no liquid transfer); the loss of either ERS solenoid channel (XA-5130A
+    or XA-5130B: its UPS supply, D-016, or since review 7 #5 the line monitoring of any one solenoid circuit of that channel
+    on any ERS valve, D-034, so a transfer never runs on one channel of any valve); and ESD-1 of the other berth (I-601),
     which stops the shared pumps and closes the shared tank-end valves, so the transferring carrier is tripped through its
     own link and its return is kept open to the tanks. Liquid transfer (review 2026-11-05-basic-design-6 #1, D-032) is a state
     of safety-system inputs only: XV-5101 not proven closed by its own closed-position switch ZSC-5101, or held open by the
@@ -548,15 +558,20 @@ interlocks:
     mode (not a bypass: selectable only with every arm stowed and XV-5101 proven closed) and the stowed arms'' envelope switches
     ZS-5151..5154 read stowed, so XS-5100 and ZS-515x are not trip causes and an idle berth never trips I-501, the shared
     pumps or holding; a carrier leaving disconnects the link only after its arms are stowed and the link is set to that mode
-    (SEQ-LOAD S6). The circulation pump P-2102 / P-3102 is not stopped (review 6 adversarial check, D-016): in the S3 cooldown
-    it feeds line A at 500 m3/h (~0.3 m/s in DN 800, so even an instant closure gives rho a v ~150 kPa, far inside the 15
-    barg design), it runs safely on its fail-open minimum flow against the closed XV-5101 / XV-4101, and it keeps the desuperheater
-    spray and the holding circulation; the stop-first order of D-016 is that of the loading pumps. On an instrument-air failure
-    the shore and tank-end ESD valves and the arm isolations hold on their accumulators until this trip has stopped the pumps,
-    and then close no faster than their set speed; the ERS valves are hydraulic and do not move (D-016, D-028). It opens the
-    tank-side vapour return valve XV-4135 and does not act on the flare valve XV-4131: the vapour return, the relief path
-    of the berth, stays open at least to the tanks (review 2026-11-05-basic-design-2#1, D-026); XV-4131 then closes by I-513
-    once ZSO-4135 proves XV-4135 open.'
+    (SEQ-LOAD S6). The mode ends by itself (review 2026-11-05-basic-design-7 #3, D-034): when a carrier''s link cable is connected
+    and healthy (normal connection, SEQ-LOAD S1) or when any arm leaves its stowed position (ZS-5151..5154 not stowed); ended
+    with no healthy link, XS-5100 reads trip and trips this ESD-1, so no carrier can be connected and loaded with the link
+    in that mode. The open command of XV-5101 is also blocked unless the link is in carrier mode and healthy (I-508). Unstowing
+    an arm at an idle berth without a carrier''s link therefore stops the shared pumps (safe, a production stop; arm movements
+    at an idle berth are made outside the other berth''s transfers, ASSUMED operating rule). The circulation pump P-2102 /
+    P-3102 is not stopped (review 6 adversarial check, D-016): in the S3 cooldown it feeds line A at 500 m3/h (~0.3 m/s in
+    DN 800, so even an instant closure gives rho a v ~150 kPa, far inside the 15 barg design), it runs safely on its fail-open
+    minimum flow against the closed XV-5101 / XV-4101, and it keeps the desuperheater spray and the holding circulation; the
+    stop-first order of D-016 is that of the loading pumps. On an instrument-air failure the shore and tank-end ESD valves
+    and the arm isolations hold on their accumulators until this trip has stopped the pumps, and then close no faster than
+    their set speed; the ERS valves are hydraulic and do not move (D-016, D-028). It opens the tank-side vapour return valve
+    XV-4135 and does not act on the flare valve XV-4131: the vapour return, the relief path of the berth, stays open at least
+    to the tanks (review 2026-11-05-basic-design-2#1, D-026); XV-4131 then closes by I-513 once ZSO-4135 proves XV-4135 open.'
 - id: I-502
   title: Berth 2 header back-pressure high-high
   cause:
@@ -604,8 +619,12 @@ interlocks:
       state: ZAHH (stage 2)
     - tag: ZS-5154
       state: ZAHH (stage 2)
-    - tag: HS-5107
-      state: pressed (manual ESD-2 push button)
+    - tag: HS-5107A
+      state: pressed (manual ESD-2, control room; normally closed contact open or input line fault)
+    - tag: HS-5107B
+      state: pressed (manual ESD-2, jetty head; normally closed contact open or input line fault)
+    - tag: HS-5107C
+      state: pressed (manual ESD-2, loading platform; normally closed contact open or input line fault)
   effects:
   - tag: P-2101A
     action: stop
@@ -632,7 +651,7 @@ interlocks:
   notes: 'ESD-2 trips ESD-1 (I-501 takes I-503 tripped as a cause) with no delay: the loading pumps stop, XV-5101 starts to
     close and the carrier''s ESD trips; the ERS valves close 5 s later by I-507 (review #4, D-016, D-025, D-026).'
 - id: I-507
-  title: Berth 2 ERS closure and arm release, 5 s after ESD-2
+  title: Berth 2 ERS closure and arm isolations closed, 5 s after ESD-2
   cause:
     tag: ZS-5151
     condition: ZAHH
@@ -656,6 +675,16 @@ interlocks:
     action: close
   - tag: XV-5144
     action: close
+  - tag: XV-5121
+    action: close
+  - tag: XV-5123
+    action: close
+  - tag: XV-5124
+    action: close
+  - tag: XV-5122
+    action: close
+  - tag: XV-5125
+    action: close
   sheet: P-05
   sil: null
   delay:
@@ -663,27 +692,130 @@ interlocks:
     unit: s
   latching: true
   reset: manual
-  notes: 'The eight ERS ball valves close and the powered emergency release couplers release once I-503 has held for 5 s,
-    so the pumps are already stopping (review #4). The ERS closure time is set with the arm vendor so the surge stays inside
-    the arm design (D-023, relief case of PSV-5131). Trip principle (review 2026-11-05-basic-design-5 #3, D-016, D-030): each
-    ERS valve is de-energise-to-trip on two solenoid valves in series (2oo2, line-monitored, discrepancy alarm), so one coil,
-    wire or output fault cannot close it ahead of the pump stop. Supplies (review 2026-11-05-basic-design-6 #2, D-016, D-032):
-    channel A of every ERS valve of the berth is fed from UPS A and channel B from UPS B, on separate distribution (ASSUMED);
-    XA-5130A / XA-5130B monitor them, and the loss of either trips ESD-1 (I-501) at once, so the pumps are stopped while the
-    other channel still holds the valves open and no single supply fault closes them at full flow. Demand side: under 2oo2
-    one solenoid stuck energised keeps its valve open. Answered by the ERS function test of SEQ-LOAD S1 before every transfer,
-    before the arms are connected (the vendor''s test function, not I-507, so no release is commanded: each channel vented
-    on its own with the valve not moving and its change of state proven by the vendor''s pressure switch on that solenoid''s
-    port (ASSUMED, vendor), then both, the valve stroked closed and reopened), so a stuck solenoid is dormant for one transfer
-    at most; the second ERS valve of the arm (own solenoid pair) still closes; and the coupler release does not wait for the
-    proof. The ERS closure is not interlocked behind a confirmed pump stop: on a real arm envelope stage 2 it must close in
-    its time whatever the pumps do. The couplers are energise-to-release from the HPU accumulator; I-507 commands the release
-    a fixed time after the ERS close command (the 5 s closure plus 2 s, ASSUMED, the vendor''s own sequence), not on the ERS
-    valves'' proven-closed position, so a drift-off releases the arm even with an ERS valve that failed to close (a spill
-    of that side''s arm inventory into the drip tray, smaller than an arm pulled past its envelope with the coupler clamped);
-    no circuit or supply fault releases an arm, since the release needs power. Residual: both supplies or both channels of
-    a valve lost within the ESD-1 response close it at full flow, two independent faults; case (5) of D-023 and a relief case
-    of PSV-5131.'
+  notes: 'The eight ERS ball valves close once I-503 has held for 5 s, so the pumps are already stopping (review #4); the
+    couplers release by I-510. The ERS closure time is set with the arm vendor so the surge stays inside the arm design (D-023,
+    relief case of PSV-5131). Since review 2026-11-05-basic-design-7 #4 (D-034) it also closes the shore-side arm isolations,
+    the liquid XV-5121 / XV-5123 / XV-5124 at their set speed (at least 25 s, accumulator and speed controller, D-016) and
+    the vapour XV-5122 / XV-5125, so the shore side behind an ERS valve that fails to close is bounded at the arm and not
+    open to the header back to XV-5101; the drain drum vent BOG-5002 joins downstream of XV-5122, so the jetty relief path
+    stays open. Trip principle (review 2026-11-05-basic-design-5 #3, D-016, D-030): each ERS valve is de-energise-to-trip
+    on two solenoid valves in series (2oo2, line-monitored, discrepancy alarm), so one coil, wire or output fault cannot close
+    it ahead of the pump stop. Supplies (review 2026-11-05-basic-design-6 #2, D-016, D-032): channel A of every ERS valve
+    of the berth is fed from UPS A and channel B from UPS B, on separate distribution (ASSUMED); XA-5130A / XA-5130B monitor
+    them, and the loss of either trips ESD-1 (I-501) at once, so the pumps are stopped while the other channel still holds
+    the valves open and no single supply fault closes them at full flow. Demand side: under 2oo2 one solenoid stuck energised
+    keeps its valve open. Answered by the ERS function test of SEQ-LOAD S1 before every transfer, before the arms are connected
+    (the vendor''s test function enabled by HS-5109, not I-507, so no release is commanded, and permitted only with no liquid
+    transfer and every arm stowed, I-509: each channel vented on its own with the valve not moving and its change of state
+    proven by the vendor''s pressure switch on that solenoid''s port (ASSUMED, vendor), then both, the valve stroked closed
+    and reopened), so a stuck solenoid is dormant for one transfer at most; the second ERS valve of the arm (own solenoid
+    pair) still closes. Channels A and B are driven from separate SIS output modules, and the logic solver''s own failure
+    de-energises both, a closure with the pumps not yet stopped only if the solver fails during a transfer (its power and
+    fault behaviour in the SIL screening, H-06; ASSUMED). The ERS closure is not interlocked behind a confirmed pump stop:
+    on a real arm envelope stage 2 it must close in its time whatever the pumps do. Residual: both supplies or both channels
+    of a valve lost within the ESD-1 response close it at full flow, two independent faults; case (5) of D-023 and a relief
+    case of PSV-5131.'
+- id: I-510
+  title: 'Berth 2 emergency release couplers released: ERS proven closed or timeout after I-507'
+  cause:
+    tag: ZS-5151
+    condition: ZAHH (through I-{n}03 and I-{n}07)
+  logic:
+    all:
+    - interlock: I-507
+      state: tripped
+    - any:
+      - text: both ERS valves of the arm proven closed (vendor position switches, ASSUMED)
+      - interlock: I-507
+        state: tripped
+        delay:
+          value: 7.5
+          unit: s
+  effects:
+  - tag: UY-5135
+    action: trip
+  - tag: UY-5136
+    action: trip
+  - tag: UY-5137
+    action: trip
+  - tag: UY-5138
+    action: trip
+  sheet: P-05
+  sil: null
+  latching: true
+  reset: manual
+  notes: 'Review 2026-11-05-basic-design-7 #4 (D-034; replaces the fixed ''closure plus 2 s'' of D-032.2): each arm''s coupler
+    release UY-5135..5138 (energise-to-release from the HPU accumulator, ''trip'' = release) is commanded when both ERS valves
+    of that arm are proven closed (the vendor''s position switches, ASSUMED), or, if one fails to close, at a timeout of 1.5
+    times the vendor''s confirmed ERS closure time (7.5 s with the ASSUMED 5 s; H-02), whichever comes first; never before
+    the ERS close command and the arm isolation close command of I-507. So a drift-off releases the arm even with a stuck
+    ERS valve, and a slow but closing valve is no longer released early. Spill with one ERS valve failed open (ASSUMED estimate,
+    D-034): inboard valve failed, the shore side drains from the coupler at the arm''s outboard end, over the water between
+    ship and jetty first, the arm inventory (~5 m3) and the flow through the closing arm isolation until it shuts (up to the
+    arm''s 4,000 m3/h falling to zero over the rest of its 25 s closure, ~10 m3), ~15 m3; outboard valve failed, the carrier''s
+    manifold piping up to its ESD valve (~1-2 m3, carrier''s). No circuit or supply fault releases an arm, since the release
+    needs power.'
+- id: I-508
+  title: 'Berth 2 shore ESD valve: open command only with the ship-shore link in carrier mode and healthy (permissive)'
+  cause:
+    tag: XS-5100
+    condition: not in carrier mode and healthy
+  logic:
+    all:
+    - tag: UZ-5101
+      state: open command
+    - any:
+      - tag: XS-5100
+        state: '''no carrier connected'' mode'
+      - tag: XS-5100
+        state: not healthy
+  effects:
+  - tag: UZ-5101
+    action: trip
+  sheet: P-05
+  sil: null
+  latching: false
+  reset: automatic
+  notes: 'Review 2026-11-05-basic-design-7 #3 (D-034): a start permissive on the open command of XV-5101, not a trip of a
+    transfer in progress (that is I-501 on the link): the effect keeps UZ-5101 de-energised (XV-5101 closed) while XS-5100
+    is in its ''no carrier connected'' mode or not healthy, so no liquid can be sent to a berth whose link to the carrier
+    is not made. With the mode ending by itself on a healthy link or an unstowed arm (I-501), the link cannot be left in that
+    mode with a carrier connected.'
+- id: I-509
+  title: Berth 2 ERS function test permitted only with no liquid transfer and every arm stowed (permissive)
+  cause:
+    tag: HS-5109
+    condition: test enable requested
+  logic:
+    all:
+    - tag: HS-5109
+      state: test enable requested
+    - any:
+      - any:
+        - tag: ZSC-5101
+          state: not closed
+        - tag: UZ-5101
+          state: energised (open)
+      - tag: ZS-5151
+        state: not stowed
+      - tag: ZS-5152
+        state: not stowed
+      - tag: ZS-5153
+        state: not stowed
+      - tag: ZS-5154
+        state: not stowed
+  effects:
+  - tag: HS-5109
+    action: trip
+  sheet: P-05
+  sil: null
+  latching: false
+  reset: automatic
+  notes: 'Review 2026-11-05-basic-design-7 #5 (D-034): the arm vendor''s ERS test function (SEQ-LOAD S1) vents ERS solenoid
+    channels outside I-507; it is enabled through HS-5109 only while XV-5101 is proven closed (ZSC-5101) and not held open
+    (UZ-5101 de-energised) and every arm reads stowed (ZS-5151..5154), and an enabled test ends when any of these is lost,
+    so one operator action or one vendor-panel fault can never close an ERS valve at full flow. Hard-wired into the vendor
+    panel (ASSUMED, arm vendor, H-02).'
 - id: I-504
   title: 'Berth 2 hybrid arm: liquid isolation may open only with the vapour isolation proven closed'
   cause:
@@ -761,6 +893,10 @@ interlocks:
       state: not tripped
     - interlock: I-514
       state: not tripped
+    - tag: AI-4133
+      state: O2 below 5 vol % (both cells)
+    - text: 'I-514 not reset within the last 30 min (post-reset hold, ASSUMED: 1.5 line volumes of the ~1,100 m3 return at
+        a gassing-up return of at least ~0.9 m3/s, agreed with the carrier)'
   effects:
   - tag: XV-4131
     action: open
@@ -773,7 +909,10 @@ interlocks:
     berth is tripped: then the return goes to the tanks (I-501 opens XV-4135, I-513 closes XV-4131), so the two never command
     XV-4131 against each other (review 2026-11-05-basic-design-3#2). Vapour above the O2 limit is rejected by I-514, and while
     I-514 is tripped XV-4131 is not opened either (the return goes to the tanks, review 2026-11-05-basic-design-6 adversarial
-    check, D-032).'
+    check, D-032). Post-reset hold (review 2026-11-05-basic-design-7 #2, D-034): after a reset of I-514 the slug that passed
+    the berth before XV-5122 closed is still in BOG-5001 / the return line; for 30 min after the reset (ASSUMED, 1.5 line
+    volumes at the minimum gassing-up return agreed with the carrier) and whenever AI-4133 itself reads O2 at or above 5 vol
+    %, XV-4131 is not opened, so the slug is flushed to the tanks (bounded in D-026.1), never to the flare.'
 - id: I-512
   title: 'Vapour return A: tank-side valve XV-4135 closes only with XV-4131 proven open'
   cause:
@@ -791,6 +930,9 @@ interlocks:
       state: not tripped
     - interlock: I-514
       state: not tripped
+    - tag: AI-4133
+      state: O2 below 5 vol % (both cells)
+    - text: I-514 not reset within the last 30 min (post-reset hold of I-511, D-034)
   effects:
   - tag: XV-4135
     action: close
@@ -884,20 +1026,24 @@ interlocks:
     the vapour arm isolation XV-5122 and the hybrid vapour isolation XV-5125 (line-up (b), which joins BOG-5001 downstream
     of XV-5122) close, and the carrier vents on board under the terminal rules (S-01). The jetty relief path stays open: the
     drain drum vent BOG-5002 joins BOG-5001 downstream of XV-5122. Measured at the berth (review 2026-11-05-basic-design-6
-    adversarial check, D-032): AI-5126 samples BOG-5001 on the platform, downstream of both vapour isolations, so the reject
-    acts before the vapour enters the 2.45 km return; AI-4133 at the tank end stays the backup. The vapour that passes the
-    berth before XV-5122 / XV-5125 have closed (response, vote and closure ~40 s, ASSUMED) is a slug of at most ~200 m3; the
-    trip also opens the tank-side valve XV-4135, and I-513 closes the flare valve XV-4131 once ZSO-4135 proves XV-4135 open,
-    a stroke of well under a minute against a transit of several minutes through the return line, so the slug goes to the
-    tanks (bounded in D-026.1), never to the flare, and the return is never closed at both valves. Armed on the plant state,
-    not on a sequence step (review 2026-11-05-basic-design-5 #4, review 6 #1, D-030, D-032): only while XV-5101 is proven
-    closed by ZSC-5101 and not held open by UZ-5101 (the exact complement of the transfer state of I-501), i.e. gassing-up
-    in SEQ-LOAD S1 / S2 or run by hand outside the sequence. During a liquid transfer, the cooldown of S3 included, the same
-    O2 high-high trips ESD-1 (I-501) instead, which stops the flow, trips the carrier and keeps the return open to the tanks
-    (D-026.1). After an ESD-1 the reject arms only once ZSC-5101 proves XV-5101 closed, after the pump run-down and the 25-30
-    s closure (review 6 adversarial check), so the vapour return is never shut while the carrier receives LNG. The two O2
-    cells of each analyser (ASSUMED, analyser vendor) vote 2oo2 with a discrepancy alarm, so a single cell failing high does
-    not trip; the voting is confirmed in the SIL screening (H-06).'
+    adversarial check, D-032): AI-5126 samples the carrier vapour on the platform, so the reject acts before the vapour enters
+    the 2.45 km return; AI-4133 at the tank end stays the backup. Since review 2026-11-05-basic-design-7 #2 (D-034) its sample
+    point is on the vapour arm side of XV-5122 (BOG-5001 S1), so after the trip it still reads the carrier''s vapour, not
+    the gas trapped behind the closed valves: the manual reset of I-514 is permitted once both AI-5126 cells read below 5
+    vol % O2, and after the reset I-511 / I-512 hold the return on the tanks for 30 min (ASSUMED), so the slug trapped downstream
+    is flushed to the tanks, not to the flare (D-026.1, D-026.7). The vapour that passes the berth before XV-5122 / XV-5125
+    have closed (response, vote and closure ~40 s, ASSUMED) is a slug of at most ~200 m3; the trip also opens the tank-side
+    valve XV-4135, and I-513 closes the flare valve XV-4131 once ZSO-4135 proves XV-4135 open, a stroke of well under a minute
+    against a transit of several minutes through the return line, so the slug goes to the tanks (bounded in D-026.1), never
+    to the flare, and the return is never closed at both valves. Armed on the plant state, not on a sequence step (review
+    2026-11-05-basic-design-5 #4, review 6 #1, D-030, D-032): only while XV-5101 is proven closed by ZSC-5101 and not held
+    open by UZ-5101 (the exact complement of the transfer state of I-501), i.e. gassing-up in SEQ-LOAD S1 / S2 or run by hand
+    outside the sequence. During a liquid transfer, the cooldown of S3 included, the same O2 high-high trips ESD-1 (I-501)
+    instead, which stops the flow, trips the carrier and keeps the return open to the tanks (D-026.1). After an ESD-1 the
+    reject arms only once ZSC-5101 proves XV-5101 closed, after the pump run-down and the 25-30 s closure (review 6 adversarial
+    check), so the vapour return is never shut while the carrier receives LNG. The two O2 cells of each analyser (ASSUMED,
+    analyser vendor) vote 2oo2 with a discrepancy alarm, so a single cell failing high does not trip; the voting is confirmed
+    in the SIL screening (H-06).'
 - id: I-601
   title: Berth 1 ESD-1 (ship-shore link, arm envelope stage 1, ESD-2, instrument-air header low-low, manual, fire and gas,
     vapour path, O2, ERS supply, other berth's ESD-1)
@@ -907,7 +1053,7 @@ interlocks:
   logic:
     any:
     - tag: XS-6100
-      state: trip
+      state: trip (link not healthy, also once its 'no carrier connected' mode has ended because an arm left its stowed position)
     - interlock: I-603
       state: tripped
     - interlock: I-804
@@ -920,8 +1066,12 @@ interlocks:
       state: ZAH (stage 1)
     - tag: ZS-6154
       state: ZAH (stage 1)
-    - tag: HS-6100
-      state: 'pressed (manual ESD-1 push buttons: control room, jetty, platform)'
+    - tag: HS-6100A
+      state: pressed (control room; normally closed contact open or input line fault)
+    - tag: HS-6100B
+      state: pressed (jetty head; normally closed contact open or input line fault)
+    - tag: HS-6100C
+      state: pressed (loading platform; normally closed contact open or input line fault)
     - tag: XS-6108
       state: fire and gas confirmed (voted output of the fire and gas system, ASSUMED, F&G vendor)
     - all:
@@ -955,9 +1105,9 @@ interlocks:
               value: 10
               unit: s
         - tag: XA-6130A
-          state: ERS solenoid supply A lost
+          state: ERS solenoid channel A lost (UPS A supply, or the line monitoring of any channel A solenoid circuit)
         - tag: XA-6130B
-          state: ERS solenoid supply B lost
+          state: ERS solenoid channel B lost (UPS B supply, or the line monitoring of any channel B solenoid circuit)
         - interlock: I-501
           state: tripped
   effects:
@@ -985,6 +1135,8 @@ interlocks:
     action: close
   - tag: XV-4102
     action: close
+  - tag: XV-4107
+    action: close
   - tag: XV-6161
     action: close
   - tag: XV-4136
@@ -999,14 +1151,18 @@ interlocks:
     not for running without the vapour arm, which every transfer needs. The ESD-1 tests of SEQ-LOAD S3 inhibit only the sequence
     abort, never this trip.'
   notes: 'Stops the loading pumps and trips the carrier''s ESD through the ship-shore link XS-6100 (effect; the link works
-    both ways, S-01) at once, then closes the shore ESD valve XV-6101 in 25-30 s (surge, D-023) and the tank-end XV-4101/4102;
-    the manual ESD-1 push buttons (control room, jetty, platform), the confirmed platform fire and gas, ESD-2 (I-603, review
-    #4) and the instrument-air header low-low trip I-804 (review 2026-11-05-basic-design-4 #1, D-028) also initiate it, so
-    all of them reach the carrier. Since review 2026-11-05-basic-design-5 (D-030) the logic also trips during a liquid transfer
-    at Berth 1 on: the vapour path not proven open (ZSO-6122, the vapour arm isolation XV-6122, at the start of any closure,
-    which also detects an air loss at the platform end of the air main, XV-6122 having no accumulator); the O2 high-high of
-    the berth analyser AI-6126 or of AI-4134 (the O2 reject I-614 acts only with no liquid transfer); the loss of either ERS
-    solenoid supply (XA-6130A or XA-6130B, D-016, so a transfer never runs on one channel); and ESD-1 of the other berth (I-501),
+    both ways, S-01) at once, then closes the shore ESD valve XV-6101 in 25-30 s (surge, D-023), the tank-end XV-4101/4102
+    and the DN 800 platform crossover XV-4107 (review 2026-11-05-basic-design-7 #1, D-034: after the trip the two trestle
+    lines are separated at the platform, so a release upstream of a shore ESD valve is fed by one line; same closure time,
+    accumulator and speed controller); the manual ESD-1 push buttons HS-6100A/B/C (control room, jetty head, platform, each
+    its own normally closed input, review 7 #7), the confirmed platform fire and gas, ESD-2 (I-603, review #4) and the instrument-air
+    header low-low trip I-804 (review 2026-11-05-basic-design-4 #1, D-028) also initiate it, so all of them reach the carrier.
+    Since review 2026-11-05-basic-design-5 (D-030) the logic also trips during a liquid transfer at Berth 1 on: the vapour
+    path not proven open (ZSO-6122, the vapour arm isolation XV-6122, at the start of any closure, which also detects an air
+    loss at the platform end of the air main, XV-6122 having no accumulator); the O2 high-high of the berth analyser AI-6126
+    or of AI-4134 (the O2 reject I-614 acts only with no liquid transfer); the loss of either ERS solenoid channel (XA-6130A
+    or XA-6130B: its UPS supply, D-016, or since review 7 #5 the line monitoring of any one solenoid circuit of that channel
+    on any ERS valve, D-034, so a transfer never runs on one channel of any valve); and ESD-1 of the other berth (I-501),
     which stops the shared pumps and closes the shared tank-end valves, so the transferring carrier is tripped through its
     own link and its return is kept open to the tanks. Liquid transfer (review 2026-11-05-basic-design-6 #1, D-032) is a state
     of safety-system inputs only: XV-6101 not proven closed by its own closed-position switch ZSC-6101, or held open by the
@@ -1017,15 +1173,20 @@ interlocks:
     mode (not a bypass: selectable only with every arm stowed and XV-6101 proven closed) and the stowed arms'' envelope switches
     ZS-6151..6154 read stowed, so XS-6100 and ZS-615x are not trip causes and an idle berth never trips I-601, the shared
     pumps or holding; a carrier leaving disconnects the link only after its arms are stowed and the link is set to that mode
-    (SEQ-LOAD S6). The circulation pump P-2102 / P-3102 is not stopped (review 6 adversarial check, D-016): in the S3 cooldown
-    it feeds line A at 500 m3/h (~0.3 m/s in DN 800, so even an instant closure gives rho a v ~150 kPa, far inside the 15
-    barg design), it runs safely on its fail-open minimum flow against the closed XV-6101 / XV-4101, and it keeps the desuperheater
-    spray and the holding circulation; the stop-first order of D-016 is that of the loading pumps. On an instrument-air failure
-    the shore and tank-end ESD valves and the arm isolations hold on their accumulators until this trip has stopped the pumps,
-    and then close no faster than their set speed; the ERS valves are hydraulic and do not move (D-016, D-028). It opens the
-    tank-side vapour return valve XV-4136 and does not act on the flare valve XV-4132: the vapour return, the relief path
-    of the berth, stays open at least to the tanks (review 2026-11-05-basic-design-2#1, D-026); XV-4132 then closes by I-613
-    once ZSO-4136 proves XV-4136 open.'
+    (SEQ-LOAD S6). The mode ends by itself (review 2026-11-05-basic-design-7 #3, D-034): when a carrier''s link cable is connected
+    and healthy (normal connection, SEQ-LOAD S1) or when any arm leaves its stowed position (ZS-6151..6154 not stowed); ended
+    with no healthy link, XS-6100 reads trip and trips this ESD-1, so no carrier can be connected and loaded with the link
+    in that mode. The open command of XV-6101 is also blocked unless the link is in carrier mode and healthy (I-608). Unstowing
+    an arm at an idle berth without a carrier''s link therefore stops the shared pumps (safe, a production stop; arm movements
+    at an idle berth are made outside the other berth''s transfers, ASSUMED operating rule). The circulation pump P-2102 /
+    P-3102 is not stopped (review 6 adversarial check, D-016): in the S3 cooldown it feeds line A at 500 m3/h (~0.3 m/s in
+    DN 800, so even an instant closure gives rho a v ~150 kPa, far inside the 15 barg design), it runs safely on its fail-open
+    minimum flow against the closed XV-6101 / XV-4101, and it keeps the desuperheater spray and the holding circulation; the
+    stop-first order of D-016 is that of the loading pumps. On an instrument-air failure the shore and tank-end ESD valves
+    and the arm isolations hold on their accumulators until this trip has stopped the pumps, and then close no faster than
+    their set speed; the ERS valves are hydraulic and do not move (D-016, D-028). It opens the tank-side vapour return valve
+    XV-4136 and does not act on the flare valve XV-4132: the vapour return, the relief path of the berth, stays open at least
+    to the tanks (review 2026-11-05-basic-design-2#1, D-026); XV-4132 then closes by I-613 once ZSO-4136 proves XV-4136 open.'
 - id: I-602
   title: Berth 1 header back-pressure high-high
   cause:
@@ -1073,8 +1234,12 @@ interlocks:
       state: ZAHH (stage 2)
     - tag: ZS-6154
       state: ZAHH (stage 2)
-    - tag: HS-6107
-      state: pressed (manual ESD-2 push button)
+    - tag: HS-6107A
+      state: pressed (manual ESD-2, control room; normally closed contact open or input line fault)
+    - tag: HS-6107B
+      state: pressed (manual ESD-2, jetty head; normally closed contact open or input line fault)
+    - tag: HS-6107C
+      state: pressed (manual ESD-2, loading platform; normally closed contact open or input line fault)
   effects:
   - tag: P-2101A
     action: stop
@@ -1101,7 +1266,7 @@ interlocks:
   notes: 'ESD-2 trips ESD-1 (I-601 takes I-603 tripped as a cause) with no delay: the loading pumps stop, XV-6101 starts to
     close and the carrier''s ESD trips; the ERS valves close 5 s later by I-607 (review #4, D-016, D-025, D-026).'
 - id: I-607
-  title: Berth 1 ERS closure and arm release, 5 s after ESD-2
+  title: Berth 1 ERS closure and arm isolations closed, 5 s after ESD-2
   cause:
     tag: ZS-6151
     condition: ZAHH
@@ -1125,6 +1290,16 @@ interlocks:
     action: close
   - tag: XV-6144
     action: close
+  - tag: XV-6121
+    action: close
+  - tag: XV-6123
+    action: close
+  - tag: XV-6124
+    action: close
+  - tag: XV-6122
+    action: close
+  - tag: XV-6125
+    action: close
   sheet: P-06
   sil: null
   delay:
@@ -1132,27 +1307,130 @@ interlocks:
     unit: s
   latching: true
   reset: manual
-  notes: 'The eight ERS ball valves close and the powered emergency release couplers release once I-603 has held for 5 s,
-    so the pumps are already stopping (review #4). The ERS closure time is set with the arm vendor so the surge stays inside
-    the arm design (D-023, relief case of PSV-6131). Trip principle (review 2026-11-05-basic-design-5 #3, D-016, D-030): each
-    ERS valve is de-energise-to-trip on two solenoid valves in series (2oo2, line-monitored, discrepancy alarm), so one coil,
-    wire or output fault cannot close it ahead of the pump stop. Supplies (review 2026-11-05-basic-design-6 #2, D-016, D-032):
-    channel A of every ERS valve of the berth is fed from UPS A and channel B from UPS B, on separate distribution (ASSUMED);
-    XA-6130A / XA-6130B monitor them, and the loss of either trips ESD-1 (I-601) at once, so the pumps are stopped while the
-    other channel still holds the valves open and no single supply fault closes them at full flow. Demand side: under 2oo2
-    one solenoid stuck energised keeps its valve open. Answered by the ERS function test of SEQ-LOAD S1 before every transfer,
-    before the arms are connected (the vendor''s test function, not I-607, so no release is commanded: each channel vented
-    on its own with the valve not moving and its change of state proven by the vendor''s pressure switch on that solenoid''s
-    port (ASSUMED, vendor), then both, the valve stroked closed and reopened), so a stuck solenoid is dormant for one transfer
-    at most; the second ERS valve of the arm (own solenoid pair) still closes; and the coupler release does not wait for the
-    proof. The ERS closure is not interlocked behind a confirmed pump stop: on a real arm envelope stage 2 it must close in
-    its time whatever the pumps do. The couplers are energise-to-release from the HPU accumulator; I-607 commands the release
-    a fixed time after the ERS close command (the 5 s closure plus 2 s, ASSUMED, the vendor''s own sequence), not on the ERS
-    valves'' proven-closed position, so a drift-off releases the arm even with an ERS valve that failed to close (a spill
-    of that side''s arm inventory into the drip tray, smaller than an arm pulled past its envelope with the coupler clamped);
-    no circuit or supply fault releases an arm, since the release needs power. Residual: both supplies or both channels of
-    a valve lost within the ESD-1 response close it at full flow, two independent faults; case (5) of D-023 and a relief case
-    of PSV-6131.'
+  notes: 'The eight ERS ball valves close once I-603 has held for 5 s, so the pumps are already stopping (review #4); the
+    couplers release by I-610. The ERS closure time is set with the arm vendor so the surge stays inside the arm design (D-023,
+    relief case of PSV-6131). Since review 2026-11-05-basic-design-7 #4 (D-034) it also closes the shore-side arm isolations,
+    the liquid XV-6121 / XV-6123 / XV-6124 at their set speed (at least 25 s, accumulator and speed controller, D-016) and
+    the vapour XV-6122 / XV-6125, so the shore side behind an ERS valve that fails to close is bounded at the arm and not
+    open to the header back to XV-6101; the drain drum vent BOG-6002 joins downstream of XV-6122, so the jetty relief path
+    stays open. Trip principle (review 2026-11-05-basic-design-5 #3, D-016, D-030): each ERS valve is de-energise-to-trip
+    on two solenoid valves in series (2oo2, line-monitored, discrepancy alarm), so one coil, wire or output fault cannot close
+    it ahead of the pump stop. Supplies (review 2026-11-05-basic-design-6 #2, D-016, D-032): channel A of every ERS valve
+    of the berth is fed from UPS A and channel B from UPS B, on separate distribution (ASSUMED); XA-6130A / XA-6130B monitor
+    them, and the loss of either trips ESD-1 (I-601) at once, so the pumps are stopped while the other channel still holds
+    the valves open and no single supply fault closes them at full flow. Demand side: under 2oo2 one solenoid stuck energised
+    keeps its valve open. Answered by the ERS function test of SEQ-LOAD S1 before every transfer, before the arms are connected
+    (the vendor''s test function enabled by HS-6109, not I-607, so no release is commanded, and permitted only with no liquid
+    transfer and every arm stowed, I-609: each channel vented on its own with the valve not moving and its change of state
+    proven by the vendor''s pressure switch on that solenoid''s port (ASSUMED, vendor), then both, the valve stroked closed
+    and reopened), so a stuck solenoid is dormant for one transfer at most; the second ERS valve of the arm (own solenoid
+    pair) still closes. Channels A and B are driven from separate SIS output modules, and the logic solver''s own failure
+    de-energises both, a closure with the pumps not yet stopped only if the solver fails during a transfer (its power and
+    fault behaviour in the SIL screening, H-06; ASSUMED). The ERS closure is not interlocked behind a confirmed pump stop:
+    on a real arm envelope stage 2 it must close in its time whatever the pumps do. Residual: both supplies or both channels
+    of a valve lost within the ESD-1 response close it at full flow, two independent faults; case (5) of D-023 and a relief
+    case of PSV-6131.'
+- id: I-610
+  title: 'Berth 1 emergency release couplers released: ERS proven closed or timeout after I-607'
+  cause:
+    tag: ZS-6151
+    condition: ZAHH (through I-{n}03 and I-{n}07)
+  logic:
+    all:
+    - interlock: I-607
+      state: tripped
+    - any:
+      - text: both ERS valves of the arm proven closed (vendor position switches, ASSUMED)
+      - interlock: I-607
+        state: tripped
+        delay:
+          value: 7.5
+          unit: s
+  effects:
+  - tag: UY-6135
+    action: trip
+  - tag: UY-6136
+    action: trip
+  - tag: UY-6137
+    action: trip
+  - tag: UY-6138
+    action: trip
+  sheet: P-06
+  sil: null
+  latching: true
+  reset: manual
+  notes: 'Review 2026-11-05-basic-design-7 #4 (D-034; replaces the fixed ''closure plus 2 s'' of D-032.2): each arm''s coupler
+    release UY-6135..6138 (energise-to-release from the HPU accumulator, ''trip'' = release) is commanded when both ERS valves
+    of that arm are proven closed (the vendor''s position switches, ASSUMED), or, if one fails to close, at a timeout of 1.5
+    times the vendor''s confirmed ERS closure time (7.5 s with the ASSUMED 5 s; H-02), whichever comes first; never before
+    the ERS close command and the arm isolation close command of I-607. So a drift-off releases the arm even with a stuck
+    ERS valve, and a slow but closing valve is no longer released early. Spill with one ERS valve failed open (ASSUMED estimate,
+    D-034): inboard valve failed, the shore side drains from the coupler at the arm''s outboard end, over the water between
+    ship and jetty first, the arm inventory (~5 m3) and the flow through the closing arm isolation until it shuts (up to the
+    arm''s 4,000 m3/h falling to zero over the rest of its 25 s closure, ~10 m3), ~15 m3; outboard valve failed, the carrier''s
+    manifold piping up to its ESD valve (~1-2 m3, carrier''s). No circuit or supply fault releases an arm, since the release
+    needs power.'
+- id: I-608
+  title: 'Berth 1 shore ESD valve: open command only with the ship-shore link in carrier mode and healthy (permissive)'
+  cause:
+    tag: XS-6100
+    condition: not in carrier mode and healthy
+  logic:
+    all:
+    - tag: UZ-6101
+      state: open command
+    - any:
+      - tag: XS-6100
+        state: '''no carrier connected'' mode'
+      - tag: XS-6100
+        state: not healthy
+  effects:
+  - tag: UZ-6101
+    action: trip
+  sheet: P-06
+  sil: null
+  latching: false
+  reset: automatic
+  notes: 'Review 2026-11-05-basic-design-7 #3 (D-034): a start permissive on the open command of XV-6101, not a trip of a
+    transfer in progress (that is I-601 on the link): the effect keeps UZ-6101 de-energised (XV-6101 closed) while XS-6100
+    is in its ''no carrier connected'' mode or not healthy, so no liquid can be sent to a berth whose link to the carrier
+    is not made. With the mode ending by itself on a healthy link or an unstowed arm (I-601), the link cannot be left in that
+    mode with a carrier connected.'
+- id: I-609
+  title: Berth 1 ERS function test permitted only with no liquid transfer and every arm stowed (permissive)
+  cause:
+    tag: HS-6109
+    condition: test enable requested
+  logic:
+    all:
+    - tag: HS-6109
+      state: test enable requested
+    - any:
+      - any:
+        - tag: ZSC-6101
+          state: not closed
+        - tag: UZ-6101
+          state: energised (open)
+      - tag: ZS-6151
+        state: not stowed
+      - tag: ZS-6152
+        state: not stowed
+      - tag: ZS-6153
+        state: not stowed
+      - tag: ZS-6154
+        state: not stowed
+  effects:
+  - tag: HS-6109
+    action: trip
+  sheet: P-06
+  sil: null
+  latching: false
+  reset: automatic
+  notes: 'Review 2026-11-05-basic-design-7 #5 (D-034): the arm vendor''s ERS test function (SEQ-LOAD S1) vents ERS solenoid
+    channels outside I-607; it is enabled through HS-6109 only while XV-6101 is proven closed (ZSC-6101) and not held open
+    (UZ-6101 de-energised) and every arm reads stowed (ZS-6151..6154), and an enabled test ends when any of these is lost,
+    so one operator action or one vendor-panel fault can never close an ERS valve at full flow. Hard-wired into the vendor
+    panel (ASSUMED, arm vendor, H-02).'
 - id: I-604
   title: 'Berth 1 hybrid arm: liquid isolation may open only with the vapour isolation proven closed'
   cause:
@@ -1230,6 +1508,10 @@ interlocks:
       state: not tripped
     - interlock: I-614
       state: not tripped
+    - tag: AI-4134
+      state: O2 below 5 vol % (both cells)
+    - text: 'I-614 not reset within the last 30 min (post-reset hold, ASSUMED: 1.5 line volumes of the ~1,100 m3 return at
+        a gassing-up return of at least ~0.9 m3/s, agreed with the carrier)'
   effects:
   - tag: XV-4132
     action: open
@@ -1242,7 +1524,10 @@ interlocks:
     berth is tripped: then the return goes to the tanks (I-601 opens XV-4136, I-613 closes XV-4132), so the two never command
     XV-4132 against each other (review 2026-11-05-basic-design-3#2). Vapour above the O2 limit is rejected by I-614, and while
     I-614 is tripped XV-4132 is not opened either (the return goes to the tanks, review 2026-11-05-basic-design-6 adversarial
-    check, D-032).'
+    check, D-032). Post-reset hold (review 2026-11-05-basic-design-7 #2, D-034): after a reset of I-614 the slug that passed
+    the berth before XV-6122 closed is still in BOG-6001 / the return line; for 30 min after the reset (ASSUMED, 1.5 line
+    volumes at the minimum gassing-up return agreed with the carrier) and whenever AI-4134 itself reads O2 at or above 5 vol
+    %, XV-4132 is not opened, so the slug is flushed to the tanks (bounded in D-026.1), never to the flare.'
 - id: I-612
   title: 'Vapour return B: tank-side valve XV-4136 closes only with XV-4132 proven open'
   cause:
@@ -1260,6 +1545,9 @@ interlocks:
       state: not tripped
     - interlock: I-614
       state: not tripped
+    - tag: AI-4134
+      state: O2 below 5 vol % (both cells)
+    - text: I-614 not reset within the last 30 min (post-reset hold of I-611, D-034)
   effects:
   - tag: XV-4136
     action: close
@@ -1353,20 +1641,24 @@ interlocks:
     the vapour arm isolation XV-6122 and the hybrid vapour isolation XV-6125 (line-up (b), which joins BOG-6001 downstream
     of XV-6122) close, and the carrier vents on board under the terminal rules (S-01). The jetty relief path stays open: the
     drain drum vent BOG-6002 joins BOG-6001 downstream of XV-6122. Measured at the berth (review 2026-11-05-basic-design-6
-    adversarial check, D-032): AI-6126 samples BOG-6001 on the platform, downstream of both vapour isolations, so the reject
-    acts before the vapour enters the 2.45 km return; AI-4134 at the tank end stays the backup. The vapour that passes the
-    berth before XV-6122 / XV-6125 have closed (response, vote and closure ~40 s, ASSUMED) is a slug of at most ~200 m3; the
-    trip also opens the tank-side valve XV-4136, and I-613 closes the flare valve XV-4132 once ZSO-4136 proves XV-4136 open,
-    a stroke of well under a minute against a transit of several minutes through the return line, so the slug goes to the
-    tanks (bounded in D-026.1), never to the flare, and the return is never closed at both valves. Armed on the plant state,
-    not on a sequence step (review 2026-11-05-basic-design-5 #4, review 6 #1, D-030, D-032): only while XV-6101 is proven
-    closed by ZSC-6101 and not held open by UZ-6101 (the exact complement of the transfer state of I-601), i.e. gassing-up
-    in SEQ-LOAD S1 / S2 or run by hand outside the sequence. During a liquid transfer, the cooldown of S3 included, the same
-    O2 high-high trips ESD-1 (I-601) instead, which stops the flow, trips the carrier and keeps the return open to the tanks
-    (D-026.1). After an ESD-1 the reject arms only once ZSC-6101 proves XV-6101 closed, after the pump run-down and the 25-30
-    s closure (review 6 adversarial check), so the vapour return is never shut while the carrier receives LNG. The two O2
-    cells of each analyser (ASSUMED, analyser vendor) vote 2oo2 with a discrepancy alarm, so a single cell failing high does
-    not trip; the voting is confirmed in the SIL screening (H-06).'
+    adversarial check, D-032): AI-6126 samples the carrier vapour on the platform, so the reject acts before the vapour enters
+    the 2.45 km return; AI-4134 at the tank end stays the backup. Since review 2026-11-05-basic-design-7 #2 (D-034) its sample
+    point is on the vapour arm side of XV-6122 (BOG-6001 S1), so after the trip it still reads the carrier''s vapour, not
+    the gas trapped behind the closed valves: the manual reset of I-614 is permitted once both AI-6126 cells read below 5
+    vol % O2, and after the reset I-611 / I-612 hold the return on the tanks for 30 min (ASSUMED), so the slug trapped downstream
+    is flushed to the tanks, not to the flare (D-026.1, D-026.7). The vapour that passes the berth before XV-6122 / XV-6125
+    have closed (response, vote and closure ~40 s, ASSUMED) is a slug of at most ~200 m3; the trip also opens the tank-side
+    valve XV-4136, and I-613 closes the flare valve XV-4132 once ZSO-4136 proves XV-4136 open, a stroke of well under a minute
+    against a transit of several minutes through the return line, so the slug goes to the tanks (bounded in D-026.1), never
+    to the flare, and the return is never closed at both valves. Armed on the plant state, not on a sequence step (review
+    2026-11-05-basic-design-5 #4, review 6 #1, D-030, D-032): only while XV-6101 is proven closed by ZSC-6101 and not held
+    open by UZ-6101 (the exact complement of the transfer state of I-601), i.e. gassing-up in SEQ-LOAD S1 / S2 or run by hand
+    outside the sequence. During a liquid transfer, the cooldown of S3 included, the same O2 high-high trips ESD-1 (I-601)
+    instead, which stops the flow, trips the carrier and keeps the return open to the tanks (D-026.1). After an ESD-1 the
+    reject arms only once ZSC-6101 proves XV-6101 closed, after the pump run-down and the 25-30 s closure (review 6 adversarial
+    check), so the vapour return is never shut while the carrier receives LNG. The two O2 cells of each analyser (ASSUMED,
+    analyser vendor) vote 2oo2 with a discrepancy alarm, so a single cell failing high does not trip; the voting is confirmed
+    in the SIL screening (H-06).'
 - id: I-701
   title: BOG suction drum level high-high
   cause:

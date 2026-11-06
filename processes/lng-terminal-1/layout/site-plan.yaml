@@ -2,8 +2,11 @@
 # south-west corner (53.990 N, 128.700 W). The reference points (tank 1, the flare, the trains,
 # the trestle and Berth 2) are measured positions of the LNG Canada site at Kitimat
 # (scripts/site_frame.py, D-013); tank 2, Berth 1, the roads, the buildings and the area
-# outlines are ASSUMED (D-019, D-027). One datum: z = 0 is grade everywhere, the jetty deck
-# included (D-013).
+# outlines are ASSUMED (D-019, D-027). z = 0 is the local grade of each area, the jetty deck
+# included (D-013): tank area grade ~+15.3 m chart datum (12 m SRTM above mean sea level, taken
+# as the 3.3 m CD mean water of S-01), jetty deck +12.0 m CD (ASSUMED, marine engineer); design
+# water levels on the deck datum: extreme high -5.3 m, mean -8.7 m, extreme low -12.2 m
+# (process/design-basis.yaml tides, S-01; D-013, D-035.8).
 site: {name: "lng-terminal-1, Kitimat BC (LNG Canada reference geometry)", width: 1800, depth: 4050}
 areas:
   - {id: A1, title: "LNG tanks T-2101 (Phase 1) and T-3101 (Phase 2), impoundment sump (P-02, P-03, P-08)", box: [720, 2955, 1005, 3100], kind: storage}
@@ -39,6 +42,14 @@ roads:
   - {id: R8, title: "Road from R3 along the north side of the substation and control building B-SUB to R11 (ASSUMED, D-033)", points: [[1116.4, 2980], [1205, 2980]], width: 6}
   - {id: R9, title: "Loading platform roadway from the trestle road onto the deck to the Berth 2 crane strip Z-PAD-A4W (ASSUMED)", points: [[1140.5, 925], [1142, 912], [1142, 901]], width: 6}
   - {id: R10, title: "Loading platform roadway under the PR2 end (between its bents at y 906 / 914) to the Berth 1 crane strip Z-PAD-A4E (ASSUMED)", points: [[1142, 910], [1164, 910], [1164, 901]], width: 6}
+  # D-035.4 (review 2026-11-05-basic-layout-5 #4): the basin A8 had no road. R12 runs north off
+  # R2 west of the basin, outside the 8 kW/m2 band of the design fire (7.5 kW/m2 or less on its
+  # east edge), to the hardstanding Z-LAY-A8W, the fire approach to the basin and the trough's
+  # west leg (63 m to the basin's edge, monitor reach ASSUMED 70 m); R13 is the maintenance
+  # access from R12 east along A8's south edge to P-8102 and JB-A8-1, inside the band (a stated
+  # residual, not an approach)
+  - {id: R12, title: "Basin access road from R2 north, west of the basin T-8101, to the hardstanding Z-LAY-A8W (fire approach to the basin and the west leg, D-035.4, ASSUMED)", points: [[922, 3122], [922, 3250]], width: 6}
+  - {id: R13, title: "Basin maintenance access from R12 east along A8's south edge to P-8102 and JB-A8-1 (residual inside the basin's band, D-035.4, ASSUMED)", points: [[922, 3205], [975, 3205]], width: 5}
 # All racks 14 m wide so the lanes line up where they join (PR1/PR2/PR3 at x 1095, y 2945;
 # PR3/PR4 at y 3110). Bents about 8 m apart on PR1, PR2, PR5 and PR6 and 9.1 m on PR3, so the
 # first bent of a branch rack and the last bent of PR1 stand clear of the rack they join (and
@@ -70,6 +81,25 @@ racks:
   # y 3212 / 3229 since the basin moved north, D-033.11) to the pump at the basin's south edge;
   # it carries nothing else, so it is not held to the basin's rack separation
   - {id: PR8, title: "Basin services rack from PR4 west to the impoundment basin T-8101: oily water W-8002, the basin pump and instrument cables (ASSUMED)", points: [[1095, 3220.5], [985, 3220.5]], width: 6, levels: [7], bent_spacing_m: 8, intermediate_supports: {spacing_m: 3}}
+  # platform header rack (D-035.1; review 2026-11-05-basic-layout-5, missed high of its
+  # adversarial check): from PR2's end south over the deck strip between the two berths'
+  # manifold trays (x 1151.5-1157.0, the bays' kerbs) to the header bay Z-HA-TRAY-HDR at the
+  # platform's south end; top tier the loading lines (welded) and the drain pump returns,
+  # bottom tier the berth headers LNG-5001 / LNG-6001 back north to the arm tees (welded);
+  # bents 8.5 m apart at y 900 / 891.5 / 883 / 874.5 / 866, clear of the BOG-6001 riser, the
+  # drain drums and pumps (ASSUMED; structural design on the platform deck, marine engineer).
+  # Fire exposure (independent check of D-035, D-035.14 (a)): PR9 and the PR2 end over the deck
+  # (y 866 to the platform's north edge, y ~925) stand in the bay fires' near field (above the
+  # 8 kW/m2 of an LNG rack from y 866 to ~920 for every bay beside them, 10-1,000 kW/m2), and no
+  # route on the deck keeps the welded loading lines out of that band (the bays fill the deck
+  # between the two berths, a bay fire needs ~24 m to fall to 8). So PR9's and the PR2 end's
+  # steel (columns, both tiers' beams and bracing) and the insulation of the lines on them
+  # (LNG-4001 / LNG-4002 upstream of XV-n101, the berth headers LNG-5001 / LNG-6001, the vapour
+  # return ends BOG-4001 / BOG-4002) take passive fire protection for a 60 min hydrocarbon pool
+  # fire (ASSUMED; product, rating and coverage the fire protection engineer's): no deluge to be
+  # shown to start. The escalation to the unisolable trestle inventory (~1,020 m3 per line,
+  # D-034.3) is a stated residual for the siting study
+  - {id: PR9, title: "Platform header rack from PR2's end south to the header bay: loading lines on the top tier, berth headers on the bottom tier (ASSUMED, D-035.1)", points: [[1154.25, 900], [1154.25, 866]], width: 5.5, levels: [5, 7], bent_spacing_m: 8.5, intermediate_supports: {spacing_m: 2.5}, ladders: []}
 rack_reach: 60
 # the in-tank pump removal crane on the pads north of the tanks works at up to ~75 m radius
 # (D-029, ASSUMED until the lifting contractor's crane selection); every pad still states its
@@ -123,6 +153,7 @@ separations:
   - {from: T-8101, to: PR5, min_m: 49.2, reason: "impoundment basin pool fire: T-3101 riser rack at 8 kW/m2 or less incl. tilt", basis: "D-018, D-029, D-031, ASSUMED"}
   - {from: T-8101, to: PR6, min_m: 49.2, reason: "impoundment basin pool fire: T-2101 riser rack and its east leg at 8 kW/m2 or less incl. tilt", basis: "D-018, D-029, D-031, ASSUMED"}
   - {from: T-8101, to: R2, min_m: 49.2, reason: "impoundment basin pool fire: the north road (fire and crane access to both tanks) usable at 8 kW/m2 or less incl. tilt", basis: "D-018, D-029, D-031, ASSUMED"}
+  - {from: T-8101, to: R12, min_m: 49.2, reason: "the basin's access road, its fire approach, at 8 kW/m2 or less incl. tilt (7.5 kW/m2 on its east edge with the troughs, the basin and the worst pad burning, D-035.4)", basis: "D-018 method, D-035.4, ASSUMED"}
   - {from: T-8101, to: B-SUB, min_m: 150, reason: "occupied building: 59 m for 5 kW/m2 by the radiation screening; 150 m kept for the cold vapour cloud until the dispersion study", basis: "D-018, D-027, D-029, ASSUMED"}
   # D-031 (review 2026-11-05-basic-layout-3 #5 and the check notes): the jetty sump's limits
   # carry a x 1.2 flame tilt allowance on the point source (8 kW/m2 at 28.6 m, 5 kW/m2 at
@@ -163,7 +194,13 @@ separations:
   - {from: Z-HA-TRAY-B2-MAN, to: Z-ESC-A4-E1, min_m: 30.4, reason: "Berth 2 manifold tray bay fire with its drained part: way off W2 at 5 kW/m2 or less incl. tilt", basis: "D-018 method, D-033, ASSUMED"}
   - {from: Z-HA-TRAY-B1-ARMS, to: R5, min_m: 30.4, reason: "Berth 1 arm tray bay fire with its drained part: way off W1, the trestle road, at 5 kW/m2 or less incl. tilt (W2 starts beside these trays)", basis: "D-018 method, D-033, ASSUMED"}
   - {from: Z-HA-TRAY-B1-MAN, to: R5, min_m: 30.4, reason: "Berth 1 manifold tray bay fire with its drained part: way off W1 at 5 kW/m2 or less incl. tilt", basis: "D-018 method, D-033, ASSUMED"}
-  - {from: Z-HA-TRAY-XO, to: R5, min_m: 15, reason: "crossover valve tray fire (14 m2, recessed 2.4 m to hold the design spill) with the drained part: way off W1 at 4.1 and W2 at 4.2 kW/m2 incl. tilt", basis: "D-018 method, D-033, D-033.11, ASSUMED"}
+  # D-035.1: the crossover tray between the ways off is removed; the header bay at the
+  # platform's south end holds every flanged item of the loading lines at the platform end
+  - {from: Z-HA-TRAY-HDR, to: Z-ESC-A4-MUSTER, min_m: 250, reason: "header bay fire (governing platform spill, D-034) with the sump and the collector vapour: muster point at 1.6 kW/m2 or less incl. tilt (0.13, D-035.9)", basis: "D-018 method, D-035.1, ASSUMED"}
+  - {from: Z-HA-TRAY-HDR, to: Z-ESC-A4-E1, min_m: 60, reason: "header bay fire with the sump and the collector vapour: way off W2 at 5 kW/m2 or less incl. tilt (1.5, D-035.9)", basis: "D-018 method, D-035.1, ASSUMED"}
+  - {from: Z-HA-TRAY-HDR, to: R5, min_m: 55, reason: "header bay fire with the sump and the collector vapour: way off W1 at 5 kW/m2 or less incl. tilt (1.5, D-035.9)", basis: "D-018 method, D-035.1, ASSUMED"}
+  - {from: Z-HA-TRAY-HDR, to: Z-SHIP-B2-4, min_m: 26, reason: "header bay fire with the sump and the collector vapour: Berth 2 hull alongside at 8 kW/m2 or less incl. tilt (7.0 on the hull, D-035.9)", basis: "D-018 method, D-035.1, ASSUMED"}
+  - {from: Z-HA-TRAY-HDR, to: Z-SHIP-B1-4, min_m: 24.5, reason: "header bay fire with the sump and the collector vapour: Berth 1 hull alongside at 8 kW/m2 or less incl. tilt (6.8 on the hull, D-035.9)", basis: "D-018 method, D-035.1, ASSUMED"}
   # spill troughs (D-031, review 2026-11-05-basic-layout-3 #1 / #2 and its adversarial check):
   # an open trough fire screened as a line source (q' = 0.35 x 0.078 kg/m2s x 50 MJ/kg x 0.6 m
   # = 0.82 MW/m, integrated point sources, every leg burning at once, x 1.2 tilt, ASSUMED).

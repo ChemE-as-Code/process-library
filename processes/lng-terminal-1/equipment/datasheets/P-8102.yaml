@@ -1,31 +1,32 @@
 # Equipment datasheet. Schema: `cheme schema datasheet`. Drafted by `cheme datasheets draft`,
-# completed by scripts/datasheet_values.py (D-022); maintained by hand from now on.
+# completed by scripts/datasheet_values.py (D-022); maintained by hand from now on. Resized for the
+# submersible arrangement in the 12.5 m pit (review 2026-11-05-basic-design-7 #6, D-034).
 tag: P-8102
 type: CentrifugalPump
 service: Impoundment sump rainwater pump
 operating:
   fluid:
     value: Rainwater
-    source: 'D-018: rainwater from the 6 m deep sump to the oily water system, 30 m head, ASSUMED'
+    source: 'D-034: rainwater from the T-8101 pit floor (12.5 m deep, equipment list) to the oily water system, ASSUMED'
   suction_pressure:
-    value: 101.3
+    value: 106.0
     unit: kPa(a)
-    source: 'D-018: rainwater from the 6 m deep sump to the oily water system, 30 m head, ASSUMED'
+    source: 'D-034: submersible pump on the pit floor, atmospheric pressure plus ~0.5 m minimum submergence, ASSUMED'
     assumed: true
   suction_temperature:
     value: 10.0
     unit: °C
-    source: 'D-018: rainwater from the 6 m deep sump to the oily water system, 30 m head, ASSUMED'
+    source: 'D-034: rainwater, ASSUMED'
     assumed: true
   discharge_pressure:
-    value: 395.3
+    value: 459.0
     unit: kPa(a)
-    source: 'D-018: rainwater from the 6 m deep sump to the oily water system, 30 m head, ASSUMED'
+    source: 'D-034: suction plus the 36 m differential at 1,000 kg/m3, ASSUMED'
     assumed: true
   flow:
     value: 50
     unit: m3/h
-    source: 'D-018: rainwater from the 6 m deep sump to the oily water system, 30 m head, ASSUMED'
+    source: 'D-018, D-034: rainwater removal, ASSUMED'
     assumed: true
 design:
   pressure_barg:
@@ -62,11 +63,6 @@ weights:
     unit: t
     source: equipment/equipment-list.yaml dimensions.weight (empty)
 nozzles:
-- name: N1
-  dn: 150
-  lines:
-  - W-8001
-  source: pid/P-08.xml
 - name: N2
   dn: 100
   lines:
@@ -88,32 +84,37 @@ type_specific:
   flow_m3_h:
     value: 50
     unit: m3/h
-    source: 'D-018: rainwater from the 6 m deep sump to the oily water system, 30 m head, ASSUMED'
+    source: 'D-018, D-034: rainwater removal, ASSUMED'
     assumed: true
   differential_head_m:
-    value: 30.0
+    value: 36.0
     unit: m
-    source: 'D-018: rainwater from the 6 m deep sump to the oily water system, 30 m head, ASSUMED: dp
-      294 kPa / (rho g), rho 1000.0 kg/m3'
+    source: 'D-034: static ~19.6 m from the 12.5 m pit floor to the PR8 rack at +7.1 m (routing.yaml BL-oily-water),
+      ~10.2 m for 1.0 barg at the oily water battery limit, ~6 m friction of ~125 m of DN 100 at 1.8 m/s with
+      its fittings; ASSUMED'
     assumed: true
   npsh_available_m:
-    value: 8.0
+    value: 10.8
     unit: m
-    source: 'D-018: rainwater from the 6 m deep sump to the oily water system, 30 m head, ASSUMED'
+    source: 'D-034: submersible pump, atmospheric pressure (10.3 m of water) plus ~0.5 m minimum submergence
+      at its low level stop, no suction line; ASSUMED'
     assumed: true
   shaft_power_kw:
-    value: 6.8
+    value: 8.2
     unit: kW
-    source: 'D-018: rainwater from the 6 m deep sump to the oily water system, 30 m head, ASSUMED: flow
-      x dp / efficiency 0.6 (ASSUMED)'
+    source: 'D-034: flow x dp / efficiency 0.6 (ASSUMED)'
     assumed: true
   vendor_data:
     value: supplier
-    source: 'vendor package: curves, seals, motor, envelope (enquiry in detail engineering)'
+    source: 'vendor package: curves, seals, motor, guide rail and lifting chain, envelope (enquiry in detail
+      engineering)'
 sizing_basis:
 - parameter: basis
-  value: scripts/terminal_sizing.py (GERG-2008 via CoolProp) and the assumptions of DESIGN.md D-007 to
-    D-018, ASSUMED where marked
-  reference: D-022
-notes: Rainwater to the site oily water system, started by level and interlocked off on low temperature
-  (LNG in the sump). ASSUMED.
+  value: "DESIGN.md D-018 and D-034 (submersible in the pit, review 2026-11-05-basic-design-7 #6), ASSUMED
+    where marked"
+  reference: D-034
+notes: "Submersible rainwater pump on the T-8101 pit floor on a guide rail, lifted through the pit cover; its
+  riser W-8002 leaves through the cover, so there is no suction lift and no wall penetration in the LNG
+  impoundment. Started and stopped by LI-8103 (radar through the cover) and interlocked off on low
+  temperature, TSL-8102 hung from the cover (LNG in the sump, C&E I-801). Motor 400 V; the electrical list
+  power follows this datasheet (owner of electrical/). ASSUMED."

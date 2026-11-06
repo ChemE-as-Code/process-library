@@ -59,6 +59,15 @@ ESD-1 causes as tags (HS-n100 manual ESD-1, XS-n108 platform fire and gas, XA-n1
 solenoid supplies) and HS-n107 manual ESD-2; the ERS solenoid channels on two supplies, the coupler
 release on a timer after the ERS close command; the idle berth's 'no carrier connected' link mode;
 the vapour arm is needed for every transfer (no 'spare' path). PDI-n102 moves right to make room.
+
+Round 8 (reviews/2026-11-05-basic-design-7.md #2 to #5, #7 to #9, D-034): the berth O2 analyser
+AI-n126 samples the vapour arm side of XV-n122 (BOG-n001 S1), so it reads the carrier's vapour with
+the isolations closed and gives I-n14 its reset; the 'no carrier connected' link mode ends by itself;
+the coupler releases UY-n135..n138 (one per arm) are tagged and drawn as effects of I-n07, released
+on both ERS valves of the arm proven closed or on a timeout from the vendor's closure time, with the
+arm isolations closed by I-n07 as well; the ERS function test enable HS-n109 (permissive I-n09); the
+manual ESD-1 / ESD-2 stations each have their own tag (HS-n100A/B/C, HS-n107A/B/C), wired normally
+closed (de-energise-to-trip); the vapour arm N2 test point and the O2 sample in the notes.
 """
 
 import sys
@@ -162,16 +171,21 @@ for k, x in X.items():
                f"D-028). De-energise-to-trip on two solenoid valves (2oo2, each line-monitored, a discrepancy alarms): "
                f"one coil, wire or output fault de-energises one solenoid only and does not move the valve; channel A is fed "
                f"from UPS A, channel B from UPS B (separate distribution, ASSUMED), each monitored (XA-{n}130A / XA-{n}130B), and "
-               f"the loss of either trips ESD-1 at once (I-{n}01). A solenoid stuck energised is found by the ERS function "
-               f"test of SEQ-LOAD S1 before every transfer. The coupler release is energise-to-release, commanded by I-{n}07 a "
-               f"fixed time after the ERS close command, not on the proven-closed position, so a drift-off releases the arm "
-               f"even with a valve that failed to close; no circuit or supply fault releases it (review 2026-11-05-basic-design-5 "
-               f"#3, review 6 #2, D-016, D-032).",
+               f"the loss of either, or of one channel of any ERS valve (line monitoring of its solenoid circuit), during a "
+               f"liquid transfer trips ESD-1 at once (I-{n}01); the two channels are on separate SIS output modules "
+               f"(ASSUMED, H-06). A solenoid stuck energised is found by the ERS function "
+               f"test of SEQ-LOAD S1 before every transfer (HS-{n}109, permitted only with no transfer and every arm stowed, "
+               f"C&E I-{n}09). The coupler release UY-{n}13{4 + int(k)} is energise-to-release, commanded by I-{n}07 when both "
+               f"ERS valves of the arm are proven closed or, if one fails to close, at a timeout from the vendor's confirmed "
+               f"closure time with margin (ASSUMED 1.5 x, H-02), whichever comes first, never before the ERS close command and "
+               f"the closure of the arm isolations by I-{n}07; no circuit or supply fault releases it (review 2026-11-05-basic-design-5 "
+               f"#3, review 6 #2, review 7 #4 / #5, D-016, D-032, D-034).",
                at=(sx - 13, y), signal_to=v, fail_action="FC")
     L.inst(sheet, f"ZS-{n}15{k}", f"LA-{n}10{k} envelope monitoring (position of the outboard arm)",
            f"Pre-alarm, ESD-1 at stage 1 (C&E I-{n}01), ESD-2 at stage 2 (C&E I-{n}03, ERS by I-{n}07). With the arm stowed "
-           f"in its parking position (no carrier connected) it reads stowed, not a stage, so an idle berth trips nothing "
-           f"(review 2026-11-05-basic-design-6 #5, D-016).", at=(x + 8, 56))
+           f"in its parking position (no carrier connected) it reads stowed, not a stage (ASSUMED, arm vendor's envelope "
+           f"system, H-02), so an idle berth trips nothing; leaving the stowed position ends the link's 'no carrier "
+           f"connected' mode (review 2026-11-05-basic-design-6 #5, review 7 #3, D-016, D-034).", at=(x + 8, 56))
 
 # ---- N2 purge and leak test: double block and bleed into the header ---------------------------
 t_bl = tee(f"T{n}0B", at=(32, 160), branch="up", branch_dn=25)
@@ -215,7 +229,8 @@ L.line(sheet, f"DR-{n}001", dn=150, fluid="LNG", frm=f"LNG-{n}001", to=f"D-{n}10
 psv = L.relief(f"PSV{n}131", f"PSV-{n}131", f"DR-{n}002", 15.0,
                "surge on a fast closure: the ERS valves on ESD-2; a spurious ERS closure at full flow ahead of the pump stop "
                "(both channels of a valve or both of the two independent solenoid supplies lost within the ESD-1 response, "
-               "D-016, D-023.5, D-032); XV-%s101 or an arm isolation "
+               "D-016, D-023.5, D-032; rechecked in D-034 for 3.4 m/s in both trestle lines: one arm's ERS closing in 5 s "
+               "~11 barg peak, inside the 15 barg design, every ERS of the berth ~23 barg, above it); XV-%s101 or an arm isolation "
                "closing on an instrument-air failure faster than commanded (non-return valve or accumulator failed, header lost "
                "faster than the I-804 trip); thermal expansion of the blocked-in header (D-023, D-028, D-030); if the surge "
                "analysis shows a spring PSV cannot answer the transient, a design change, not a sizing item" % n,
@@ -357,14 +372,19 @@ L.inst(sheet, f"ZSO-{n}122", f"XV-{n}122 open position",
        f"with XV-{n}122 checked open locally (C&E I-{n}01 bypass, review 2026-11-05-basic-design-6 #4); the vapour arm "
        f"is needed for every transfer.",
        at=(279, 150), sensing=f"XV{n}122", sensing_at=(288, 150))
-# berth O2 analyser on BOG-n001 downstream of both vapour isolations, so the O2 reject acts before the
-# vapour enters the 2.45 km return (review 2026-11-05-basic-design-6 adversarial check, D-032)
+# berth O2 analyser on the vapour arm side of XV-n122 (BOG-n001 S1), so it reads the carrier's vapour
+# also with the isolations it closes shut, and I-n14 can be reset on its reading (review
+# 2026-11-05-basic-design-7 #2, D-034; was downstream of both isolations, D-032)
 L.inst(sheet, f"AI-{n}126", f"Berth {berth} vapour O2 (two cells)",
-       f"O2 of the carrier vapour at the berth, downstream of XV-{n}122 and XV-{n}125 (sample point and cells ASSUMED, "
-       f"analyser vendor). Two O2 cells voted 2oo2 with a discrepancy alarm: above 5 vol % O2 the reject C&E I-{n}14 "
-       f"closes XV-{n}122 / XV-{n}125 and sends the return to the tanks while XV-{n}101 is proven closed (gassing-up); "
-       f"during a liquid transfer it trips ESD-1 (I-{n}01). {ai_o2} at the tank end is the backup (D-026.7, D-032).",
-       at=(325, 170), sensing=vap.segments[-1], sensing_at=(325, 182))
+       f"O2 of the carrier vapour at the berth, on the vapour arm side of XV-{n}122 (sample point and cells ASSUMED, "
+       f"analyser vendor), so it measures the carrier's vapour whether XV-{n}122 is open or closed; the hybrid vapour path "
+       f"of line-up (b) comes from the same carrier vapour header and is only ever open beside the vapour arm (D-032), so "
+       f"the one point serves both. Sample fast loop returned into BOG-{n}001 downstream of XV-{n}122 (~1 Nm3/h, "
+       f"ASSUMED, analyser package), isolated during the vapour arm leak test of SEQ-LOAD S1. Two O2 cells voted 2oo2 with "
+       f"a discrepancy alarm: above 5 vol % O2 the reject C&E I-{n}14 closes XV-{n}122 / XV-{n}125 and sends the return to "
+       f"the tanks while XV-{n}101 is proven closed (gassing-up), and I-{n}14 is reset only once it reads below 5 vol %; "
+       f"during a liquid transfer it trips ESD-1 (I-{n}01). {ai_o2} at the tank end is the backup (D-026.7, D-032, D-034).",
+       at=(279, 138), sensing=vap.segments[0], sensing_at=(290, 138))
 L.inst(sheet, f"HS-{n}161", f"Header drain isolation XV-{n}161 to D-{n}101",
        f"Opened for the header and arm drain and for the N2 purge after loading (SEQ-LOAD S6, D-026.13); fail closed (review #1, H-03 A3).",
        at=(DRX + 12, 183), signal_to=xv_dr, fail_action="FC")
@@ -374,23 +394,47 @@ L.inst(sheet, f"XS-{n}100", f"Berth {berth} ship-shore ESD link",
        f"D-028). With no carrier connected the link is in its own 'no carrier connected' mode, selectable only with every "
        f"arm stowed and XV-{n}101 proven closed (ZSC-{n}101): not a trip and not a bypass, so an idle berth does not trip "
        f"I-{n}01, the shared pumps or holding; a departing carrier's link is set to it after the arms are stowed and "
-       f"before the cable is disconnected (SEQ-LOAD S6; review 2026-11-05-basic-design-6 #5, D-016).", at=(22, 28))
-# the ESD-1 / ESD-2 causes that are not process measurements, as tags (review 2026-11-05-basic-design-6 #4)
-for tag, service, text, x in [
-        (f"HS-{n}100", f"Berth {berth} manual ESD-1 push buttons",
-         f"Hard-wired ESD-1 push buttons in the control room, at the jetty head and on the platform, wired in parallel to "
-         f"the ESD logic: a cause of C&E I-{n}01.", 24),
-        (f"HS-{n}107", f"Berth {berth} manual ESD-2 push button",
-         f"Hard-wired ESD-2 push button on the platform: a cause of C&E I-{n}03 (ESD-1 at once, ERS by I-{n}07).", 42),
-        (f"XS-{n}108", f"Berth {berth} platform fire and gas confirmed",
-         f"Voted output of the fire and gas system for the loading platform (voting ASSUMED, F&G vendor): a cause of C&E "
-         f"I-{n}01.", 60),
-        (f"XA-{n}130A", f"Berth {berth} ERS solenoid supply A",
-         f"Supply monitoring of channel A of the ERS solenoids (UPS A, separate distribution, ASSUMED): its loss during a "
-         f"liquid transfer trips ESD-1, C&E I-{n}01 (review 2026-11-05-basic-design-6 #2, D-016).", 78),
-        (f"XA-{n}130B", f"Berth {berth} ERS solenoid supply B",
-         f"As XA-{n}130A for channel B (UPS B).", 96)]:
-    L.inst(sheet, tag, service, text, at=(x, 222))
+       f"before the cable is disconnected (SEQ-LOAD S6; review 2026-11-05-basic-design-6 #5, D-016). The mode ends by "
+       f"itself when a carrier's link cable is connected and healthy or when any arm leaves its stowed position "
+       f"(ZS-{n}151..{n}154); ended with no healthy link it reads trip (I-{n}01). The open command of XV-{n}101 is "
+       f"permitted only with the link in carrier mode and healthy (C&E I-{n}08), and the mode is alarmed whenever an "
+       f"arm is not stowed (review 2026-11-05-basic-design-7 #3, D-034).", at=(22, 28))
+# the ESD-1 / ESD-2 causes that are not process measurements, as tags (review 2026-11-05-basic-design-6 #4);
+# one tag per station, wired normally closed (review 2026-11-05-basic-design-7 #7, D-034)
+STATION = {"A": "control room", "B": "jetty head", "C": "loading platform"}
+causes = []
+for s, where in STATION.items():
+    causes.append((f"HS-{n}100{s}", f"Berth {berth} manual ESD-1 push button, {where}",
+                   f"Hard-wired ESD-1 push button in the {where}, on its own SIS input with a normally closed contact "
+                   f"(de-energise-to-trip, the input line-monitored), so a broken wire trips or alarms and the SOE names "
+                   f"the station: a cause of C&E I-{n}01 (review 2026-11-05-basic-design-7 #7, D-034)."))
+for s, where in STATION.items():
+    causes.append((f"HS-{n}107{s}", f"Berth {berth} manual ESD-2 push button, {where}",
+                   f"Hard-wired ESD-2 push button in the {where}, own normally closed SIS input as HS-{n}100{s}: a cause "
+                   f"of C&E I-{n}03 (ESD-1 at once, ERS by I-{n}07; review 7 #7, D-034)."))
+causes += [
+    (f"XS-{n}108", f"Berth {berth} platform fire and gas confirmed",
+     f"Voted output of the fire and gas system for the loading platform (voting ASSUMED, F&G vendor): a cause of C&E "
+     f"I-{n}01."),
+    (f"XA-{n}130A", f"Berth {berth} ERS solenoid channel A",
+     f"Monitoring of channel A of the ERS solenoids: the UPS A supply (separate distribution, ASSUMED) and the line "
+     f"monitoring of every channel A solenoid circuit; a loss of either during a liquid transfer trips ESD-1, C&E I-{n}01 "
+     f"(review 2026-11-05-basic-design-6 #2, review 7 #5, D-016, D-034)."),
+    (f"XA-{n}130B", f"Berth {berth} ERS solenoid channel B",
+     f"As XA-{n}130A for channel B (UPS B).")]
+for i, (tag, service, text) in enumerate(causes):
+    L.inst(sheet, tag, service, text, at=(24 + 18 * i, 222))
+# coupler releases (effects of I-n07, review 7 #4) and the ERS function test enable (I-n09, review 7 #5)
+for i, k in enumerate("1234"):
+    L.inst(sheet, f"UY-{n}13{4 + int(k)}", f"LA-{n}10{k} emergency release coupler release",
+           f"Energise-to-release from the arm vendor's HPU accumulator (vendor package): commanded by C&E I-{n}07 when "
+           f"both ERS valves of LA-{n}10{k} are proven closed (vendor position switches, ASSUMED) or at the timeout "
+           f"(vendor closure time x 1.5, ASSUMED, H-02), whichever comes first; I-{n}07 closes the arm isolations at the same "
+           f"time (review 2026-11-05-basic-design-7 #4, D-016, D-034).", at=(24 + 18 * i, 236))
+L.inst(sheet, f"HS-{n}109", f"Berth {berth} ERS function test enable (arm vendor panel)",
+       f"Enables the arm vendor's ERS test function of SEQ-LOAD S1; permitted only with XV-{n}101 proven closed "
+       f"(ZSC-{n}101), UZ-{n}101 de-energised and every arm stowed (ZS-{n}151..{n}154), C&E I-{n}09, so the test can "
+       f"never close an ERS valve during a transfer (review 2026-11-05-basic-design-7 #5, D-034).", at=(96, 236))
 L.inst(sheet, f"PI-{n}105", f"Berth {berth} vapour line pressure", at=(352, 170),
        sensing=vap.segments[-1], sensing_at=(352, 182))
 L.inst(sheet, f"TI-{n}106", f"Berth {berth} vapour line temperature", at=(374, 170),
@@ -411,17 +455,17 @@ NOTES = [
     f"16 inch, ~4,000 m3/h per liquid arm; the hybrid runs as the third liquid arm or, in line-up (b), the second vapour path; the vapour arm LA-{n}102 is needed for every transfer (D-032).",
     f"ESD-2 trips ESD-1 at once (C&E I-{n}03 into I-{n}01); the ERS valves (two ball valves either side of the emergency release coupler) close 5 s later by I-{n}07, not on ESD-1;",
     # Round 6 (D-030), round 7 (D-032): the trip principle of the ERS valves and couplers, continuing the note above
-    f"ERS valves de-energise-to-trip on 2oo2 solenoids, channels on two supplies (XA-{n}130A / B, either lost: ESD-1); couplers release on a timer after the ERS close command (D-016).",
+    f"ERS valves de-energise-to-trip on 2oo2 solenoids, channels A / B (XA-{n}130A / B, either lost: ESD-1); couplers UY-{n}135..{n}138 release on ERS closed or timeout (D-034).",
     f"Thermal relief (15.0 barg) to D-{n}101: PSV-{n}171 / {n}173 / {n}174 per liquid arm section, PSV-{n}118 on the drain pump discharge. Vapour arm connected first, disconnected last (S-01).",
     f"D-{n}101 sits at the platform low point (drawn above the header). Its vent BOG-{n}002 has no valve: it is the drum's relief path and stays open.",
     f"XV-{n}123 / XV-{n}125: open-command permissives, each opens only with the other proven closed (ZSC-{n}123 / ZSC-{n}125, C&E I-{n}04 / I-{n}05), never trip an open valve; key interlock at the arm (vendor).",
     f"Arm purge (D-026): before loading the N2 goes into the carrier's manifold (S-01); after loading the arms drain to D-{n}101 and the purge N2 leaves by the drum vent BOG-{n}002 into the vapour return.",
-    f"HV-{n}119 normally closed (pump vent/drain). BOG-{n}003, DR-{n}002 to DR-{n}007, LNG-{n}005, LNG-{n}007, N-{n}001: see the line list. Arm vents, drains, O2 sample point: arm package.",
+    f"HV-{n}119 normally closed (pump vent/drain). BOG-{n}003, DR-{n}002 to DR-{n}007, LNG-{n}005, LNG-{n}007, N-{n}001: see the line list. Arm vents, drains, vapour arm N2 test point: arm package; O2: AI-{n}126.",
     # Round 5 (D-028), after the existing notes so their ids are kept
     f"Air failure: PZT-8123A/B/C (P-08, C&E I-804) trip ESD-1 first; XV-{n}101 and the arm isolations hold on accumulators, closing at their set speed; ERS valves hydraulic (HPU).",
     f"O2 above 5 vol % (AI-{n}126): C&E I-{n}14 closes XV-{n}122 / XV-{n}125 with XV-{n}101 proven closed (ZSC-{n}101), else ESD-1 (I-{n}01); ZSO-{n}122 not open in a transfer: ESD-1.",
     # Round 7 (D-032)
-    f"ESD-1 causes HS-{n}100 (push buttons), XS-{n}108 (platform F&G), XA-{n}130A / B; ESD-2 HS-{n}107. No carrier connected: XS-{n}100 in its 'no carrier' mode, arms stowed (D-016).",
+    f"ESD-1: HS-{n}100A/B/C, XS-{n}108, XA-{n}130A / B; ESD-2: HS-{n}107A/B/C. XS-{n}100 'no carrier' mode ends on an arm unstowed or link healthy (D-034).",
 ]
 for i, text in enumerate(NOTES):
     note(sheet, text, at=(12, 250 + 3.5 * i))
