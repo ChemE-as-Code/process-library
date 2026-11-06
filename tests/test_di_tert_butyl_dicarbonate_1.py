@@ -199,7 +199,7 @@ def test_every_energy_flow_reaches_the_lci(model):
     with (PROCESS / "lca" / "inventory.csv").open(encoding="utf-8") as fh:
         inventory = {row["key"]: float(row["quantity"]) for row in csv.DictReader(fh)}
     keys = {"BRINE": "product:BRINE", "CHW": "product:CHW", "CW": "product:CW", "LPS": "feed:LPS", "POWER": "feed:POWER"}
-    stated = {"BRINE": "0.524", "CHW": "0.925", "CW": "0.123", "LPS": "1.209", "POWER": "0.415"}
+    stated = {"BRINE": "0.524", "CHW": "0.925", "CW": "0.123", "LPS": "1.209", "POWER": "0.424"}
     for terminal, key in keys.items():
         per_kg = sum(_duty(model, q) for q in by_terminal[terminal]) / rate
         assert inventory[key] == pytest.approx(per_kg, rel=1e-4), terminal
@@ -229,13 +229,63 @@ def test_criticality_classes_without_a_td24_and_the_mtt():
     assert "td24" not in r101["hazard"]
 
 
-def test_vent_capacity_and_the_design_findings(model):
+def _largest_cooling_failure_gas(root: Path) -> float:
+    """m3/h: the largest gas release with the liquid's vapour over R101's cooling profile (D-011):
+    at each point, core's `vent_gas_rate` at that point's MTSR (per batch) over 1 - Y, Y the
+    vapour share of the vent's volatile components at the MTSR (Raoult on core's basis)."""
+    from chemeascode.domains.chemistry.thermochemistry import R
+    from chemeascode.domains.process.model import load
+    from chemeascode.domains.process.recipe import hours_per_batch
+    from chemeascode.domains.process.stirred_tank import solve_node, vent_gas_rate
+    from chemeascode.domains.process.vent_vapour import phase_of
+
+    process, _ = load(root)
+    node = process.nodes["R101"]
+    inlets = [
+        s
+        for s in process.flowsheet.streams
+        if s.kind == "material" and (end := process.ends(s)[1]) is not None and end.node == "R101"
+    ]
+    solved, _ = solve_node(process, node, inlets, "design")
+    hours = hours_per_batch(process, "design")
+    largest = 0.0
+    for point in solved.cooling_profile:
+        t = point.mtsr()
+        gas = vent_gas_rate(process, node, point.moles, t, P_ATM) * hours * 3600.0  # kmol/h
+        phase = phase_of(process, node.batch.vent, list(point.moles), process.ideal_gas())
+        total = sum(v for v in point.moles.values() if v > 0)
+        share = sum(
+            max(point.moles.get(n, 0.0), 0.0) / total * phase.vapour_pressure[n].kpa(t) / P_ATM
+            for n in phase.volatile
+        )
+        largest = max(largest, gas / (1.0 - share) * R * t / P_ATM)
+    return largest
+
+
+def test_vent_capacity_and_the_design_findings(model, tmp_path):
+    pytest.importorskip("chemeascode")
+    import re
+    import shutil
+
     r101 = next(s for s in _yaml("process/flowsheet.yaml")["steps"] if s["id"] == "R101")
     capacity = r101["hazard"]["vent_capacity"]
     assert capacity == 50
-    # the largest cooling-failure gas over the batch with its vapour (core 1.10.0, D-011)
-    assert 24.5 / capacity == pytest.approx(0.49, abs=0.005)
-    assert 52.9 / capacity == pytest.approx(1.06, abs=0.005)
+    # the largest cooling-failure gas over the batch with its vapour (core 1.10.0, D-011), from
+    # core's cooling profile, and at k/100 on a copy with every rate constant of R101 / 100
+    design_gas = _largest_cooling_failure_gas(PROCESS)
+    copy = tmp_path / "k100"
+    shutil.copytree(PROCESS / "process", copy / "process")
+    for rel in ("plant.yaml", "process.yaml"):
+        shutil.copy(PROCESS / rel, copy / rel)
+    reactions = copy / "process" / "reactions.yaml"
+    text, n = re.subn(
+        r"k: \{A: ([0-9.e+]+), Ea", lambda m: f"k: {{A: {float(m.group(1)) / 100!r}, Ea", reactions.read_text()
+    )
+    assert n == 3  # CARB, PHOS, SIDE
+    reactions.write_text(text)
+    slow_gas = _largest_cooling_failure_gas(copy)
+    assert f"{design_gas:.1f}" == "24.5" and f"{design_gas / capacity:.2f}" == "0.49"
+    assert f"{slow_gas:.1f}" == "52.9" and f"{slow_gas / capacity:.2f}" == "1.06"
     design = _text("DESIGN.md")
     for phrase in ("24.5 m3/h", "52.9 m3/h", "1.06", "Water ingress", "Loss of the scrubber", "280.65 K"):
         assert phrase in design, phrase
@@ -543,15 +593,37 @@ def test_strip_heat_up_is_st101_s_model_duty(model):
 
 
 def test_still_vessels_sized_by_the_recipe_without_metal():
-    """V-201 and C-301 sized by the recipe (L-12 resolved); no metal heat capacity (L-15)."""
+    """V-201 and C-301 sized by the recipe (L-12 resolved); no metal heat capacity (L-15). The
+    sizes the equipment list and DESIGN.md state are those core's recipe gives now (as `cheme
+    process recipe`), and R-101's jacket margin is the removable duty's share left at the peak."""
+    pytest.importorskip("chemeascode")
+    from chemeascode.domains.process.recipe import recipe_report
+
     procedures = {u["id"]: u for u in _yaml("process/recipe.yaml")["unit_procedures"]}
     for pid in ("WORKUP", "DISTIL"):
         vessel = procedures[pid]["vessel"]
         assert "jacket" not in vessel and "metal_heat_capacity" not in vessel, pid
     assert "metal_heat_capacity" not in procedures["REACT"]["vessel"]
+    vessels = {v.procedure: v for v in recipe_report(PROCESS).vessels}
     equipment = {e["tag"]: e for e in _yaml("equipment/equipment-list.yaml")["equipment"]}
-    assert "12.5 m3 (preferred size, 70 % full: 8.73 m3" in equipment["V-201"]["notes"]
-    assert "1.6 m3 (preferred size, 64 % full: 1.02 m3" in equipment["C-301"]["notes"]
+    design = _text("DESIGN.md")
+    for pid, tag in (("WORKUP", "V-201"), ("DISTIL", "C-301")):
+        v = vessels[pid]
+        assert v.rounded and v.peak_duty is None and v.removable is None, pid  # no jacket check
+        note = f"{v.volume:.3g} m3 (preferred size, {v.fill:.0%} full: {v.working_volume:.2f} m3".replace("%", " %")
+        assert note in equipment[tag]["notes"], (tag, note)
+        assert f"{v.volume:.3g} m3 ({v.working_volume:.2f} m3, {v.fill:.0%}".replace("%", " %") in design or (
+            f"{v.volume:.3g} m3 (preferred size) as the recipe sizes it" in design
+            and f"{v.working_volume:.2f} m3" in design
+        ), tag
+    assert (vessels["WORKUP"].volume, vessels["DISTIL"].volume) == (12.5, 1.6)
+    reactor = vessels["REACT"]
+    assert f"removes {reactor.removable:.1f} kW against the model's peak of" in design
+    assert f"{reactor.peak_duty:.1f} kW (during the CO2 dosing" in design
+    margin = (reactor.removable - reactor.peak_duty) / reactor.removable
+    assert f"{margin:.0%} margin".replace("%", " %") in design
+    assert f"the jacket margin is {margin:.0%}".replace("%", " %") + ", not 24 %" in design
+    assert (98.6 - 75.4) / 98.6 == pytest.approx(0.24, abs=0.005)  # main's, the same definition
     design = _text("DESIGN.md")
     assert "L-12: **resolved by core 1.10.0**" in design and "L-15" in design
     # the hand metal heat of V-201 that core's metal would replace: 2000 kJ/K from the wash's
@@ -578,7 +650,15 @@ def test_requires_core_1_10_and_records_the_change():
     assert plant["requires"] == "cheme-as-code>=1.10"
     design = _text("DESIGN.md")
     assert "## D-015 Core 1.10.0" in design and "Core 1.10.0 part" in design
-    for limit in ("L-9 (as benzyl-chloroformate-1 L-10): **resolved by core 1.10.0**", "L-14: **resolved by core 1.10.0"):
+    for limit in ("L-9 (as benzyl-chloroformate-1 L-10): **resolved by core 1.10.0**", "L-12: **resolved by core 1.10.0**"):
         assert limit in design, limit
+    # resolved in part only: what is still open is named in the limit
+    for limit in (
+        "L-2 (partly resolved by core 1.10.0, D-015)",
+        "L-8 (as benzyl-bromide-1 L-6; partly resolved by core 1.10.0, D-015)",
+        "L-14 (partly resolved by core 1.10.0, D-015)",
+    ):
+        assert limit in design, limit
+    assert "L-14: **resolved" not in design
     assert "Needs cheme-as-code 1.10.0" in _text("README.md") and "Needs cheme-as-code 1.10.0" in _text("process.yaml")
     assert "core 1.10.0" in _text("PROGRESS.md")
