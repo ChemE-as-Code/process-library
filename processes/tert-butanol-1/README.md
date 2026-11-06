@@ -6,7 +6,7 @@
 > safety decisions and comes with no warranty. Check the design maturity and review status in
 > `process.yaml` before relying on any number.
 
-Manifest and LCI dataset only, with no flowsheet and no simulation. Per tonne of tert-butanol (TBA), from isobutene and water over a strongly acidic ion-exchange resin in continuous fixed-bed reactors, with distillative work-up (issue #155).
+Manifest and LCI dataset only, with no flowsheet and no simulation. Per tonne of tert-butanol (TBA), from isobutene and water over a strongly acidic ion-exchange resin in continuous fixed-bed reactors, with distillative work-up.
 
 ## Route
 
@@ -19,7 +19,7 @@ The LVOC BREF (2017, section 2.1.2.1.8, p. 19) names three routes: direct hydrat
 | Item | Source | Standing |
 |---|---|---|
 | Isobutene, water | stoichiometry C4H8 + H2O -> C4H10O, plus the dimer | 0.7638 t isobutene and 0.2430 t water per t; losses not counted, so a lower view |
-| Isobutene dimer | US 4,180,688 A (Nippon Oil, 1979), Example 4: 17.05 kg/h dimer per 2.48 t/h TBA from two 15 m3 reactors in series, 6.9 kg/t | the plant-scale, two-stage example with a C4 raffinate feed (the patent's laboratory Examples 1 and 2 give 0.46 and 1.9 kg/t); taken for a pure isobutene feed (ASSUMED), modelled as C8H16 |
+| Isobutene dimer | US 4,180,688 A (Nippon Oil, 1979), Example 4: 17.05 kg/h dimer per 2.48 t/h TBA from two 15 m3 reactors in series, 6.9 kg/t | the larger of the patent's two plant-scale, two-stage examples with a C4 raffinate feed (Example 7: 6.0 kg/t; the laboratory Examples 1 and 2 give 0.46 and 1.9 kg/t); taken for a pure isobutene feed (ASSUMED), modelled as C8H16; burned as site fuel (ASSUMED), so it leaves without burden at the point of energy recovery (cut-off) |
 | Electricity | none read | core's Tier 0 default, 333 kWh/t (ASSUMED, a dated site average), TODO |
 | Heat | none read | core's Tier 0 default, 556 kWh/t of heat from fossil fuel (ASSUMED, dated), TODO; mapped to natural-gas heat |
 
@@ -29,13 +29,13 @@ The dataset's selectivity is 99.10 mol%. Examples 1 to 4 of US 4,307,257 A (Sumi
 
 - **The energy figures are defaults, not tert-butanol data.** They are a German site average of 2000, not confirmed in an open copy of their source. Working dilute aqueous TBA up to the azeotrope or to dry TBA can need much more heat. The BREF calls the process endothermic but gives no figure. The hydration itself is exothermic (US 4,180,688 A, Example 3, removes the reaction heat with cooling water), so the heat need is the work-up.
 - **Feeds are a lower bound.** Isobutene lost to vents, flare and effluent is a TODO exclusion, because no open figure was found. The same goes for wastewater, make-up water, cooling water and resin replacement.
-- **Feed basis.** Industrial plants mostly hydrate the isobutene in a C4 raffinate (US 7,179,948 B2 prefers raffinate I). The other C4s pass through to the overhead. The dataset counts only the isobutene consumed and links it to `isobutene-1`'s high-purity isobutene. US 7,179,948 B2 allows pure isobutene as a feed, but the burden of isobutene in a raffinate is different.
+- **Feed basis.** Industrial plants mostly hydrate the isobutene in a C4 raffinate (US 7,179,948 B2 prefers raffinate I). The other C4s pass through to the overhead. The dataset counts only the isobutene consumed, models a pure isobutene feed (US 7,179,948 B2 allows one) and links it to `isobutene-1`'s high-purity isobutene, as a proxy (ASSUMED) for the raffinate feed. The burden of isobutene in a raffinate is different. The library has a raffinate-I producer, `butadiene-1` (`product:c4-raffinate`), but it is not linked: that product is the whole C4 mixture per kg, the registry records no composition for `c4-raffinate` to set the isobutene share, and the other C4s would return as a raffinate-2 co-product that the dataset does not model.
 - **Product.** TBA is counted as the substance. The water of a commercial azeotrope grade, and the drying to anhydrous TBA, are not counted.
 - The sources are patents of 1979 to 2007. `valid_until` is the reference year + 5, 2012, so it has already lapsed.
 
 ## Linking
 
-The product has the new registry slug `tert-butanol` (CAS 75-65-0; identity checked in the `chemicals` package, PubChem and ChEBI). `feed:isobutene` links explicitly to `isobutene-1` (`lca/mappings.yaml`). `feed:heat` uses the shared `heat-natural-gas` entry. The diisobutene residue is a reported gap: it has no registry slug.
+The product has the new registry slug `tert-butanol` (CAS 75-65-0; identity checked in the `chemicals` package, PubChem and ChEBI). `feed:isobutene` links explicitly to `isobutene-1` (`lca/mappings.yaml`), a proxy for the raffinate feed for the reasons above (Feed basis). `feed:heat` uses the shared `heat-natural-gas` entry. The diisobutene is marked free in the dataset: sent to the site fuel system (ASSUMED), it is cut off at the point of energy recovery (`docs/system-model.md`, section 3), so it is not a gap.
 
 ## Not counted yet (TODO)
 

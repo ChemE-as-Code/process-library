@@ -24,26 +24,26 @@ So the route is continuous in documented practice, but no open source says what 
 
 | Item | Source | Standing |
 |---|---|---|
-| Benzyl chloride 1.19 kg/kg, soda 0.551 kg/kg (10 % molar excess) | EP 0 064 486 A1, Table 2, Example 1, Second Product | pilot example (48 kg/h benzyl chloride), not plant data |
+| Benzyl chloride 1.193 kg/kg, soda 0.551 kg/kg (10 % molar excess) | EP 0 064 486 A1, Example 1, Second Product: benzyl chloride from the Table 1 flows (48.3 against 40.5 kg/h, which Table 2 rounds to 1.19), soda from Table 2 | pilot example, not plant data |
 | Dibenzyl ether 0.55 wt% of the alcohol, water 6.0 kg/kg | EP 0 064 486 A1, Table 1, Example 1 | as above |
 | Steam 955 kWh/t (reactor column 153, two columns 802) | EP 0 064 486 A1, Table 3, Example 1, Second Product | the table gives energy without its carrier; heat from steam is our reading |
 | Brine NaCl and excess soda, CO2 vented | stoichiometry of 2 C7H7Cl + Na2CO3 + H2O -> 2 C7H8O + 2 NaCl + CO2 | the patent vents the CO2 at degassing; IPCC 2006 Vol. 3, Table 2.1, as a cross-check |
-| Benzyl alcohol losses, 10.6 kg/t | closes the balance | lumped as benzyl alcohol (ASSUMED) |
+| Benzyl alcohol losses, 12.8 kg/t | closes the balance | lumped as benzyl alcohol (ASSUMED); the rounded Table 2 figure would give 10.6 kg/t |
 | Electricity | none read | core's Tier 0 default, 333 kWh/t (ASSUMED, dated), with a TODO |
 
-The overall yield is 98.4 % of theory. That is above the 95.0 to 95.5 % of the continuous stirred cascade in CS 216044 B1. The cascade converts less and forms more by-products: its organic layer still holds about 1.2 % benzyl chloride, 7 % dibenzyl ether and 2.7 % benzaldehyde, against 99.9 % conversion and 0.55 % ether here. Which design feature accounts for the gap is not established: the cascade's example with chlorobenzene as inert solvent still gives 95.2 %. US 5,750,801 gives 94 to 96 % for its water-only process. These are recorded in `benchmarks/oxygenates.yaml`.
+The overall yield is 98.2 % of theory. That is above the 95.0 to 95.5 % of the continuous stirred cascade in CS 216044 B1. The cascade converts less and forms more by-products: its organic layer still holds about 1.2 % benzyl chloride, 7 % dibenzyl ether and 2.7 % benzaldehyde, against 99.9 % conversion and 0.55 % ether here. Which design feature accounts for the gap is not established: the cascade's example with chlorobenzene as inert solvent still gives 95.2 %. US 5,750,801 gives 94 to 96 % for its water-only process. These are recorded in `benchmarks/oxygenates.yaml`.
 
 ## What is weak
 
 - **All numbers come from one pilot example of 1982.** A plant may differ, especially in energy. `valid_until` is 1987, so it has long lapsed. No newer open figure was found.
 - **The carrier of the energy figure is a reading.** The patent's Table 3 says "energy consumption" and leaves out pumping as negligible. The text heats the soda solution with steam, so the dataset counts all of it as steam heat.
-- **The CO2 is significant**, about 207 kg/t, from the carbonate. The excess soda (53 kg/t) goes to the brine. If neutralised there, it would release about 22 kg CO2/t more, which is not counted. IPCC's full-release factor on all the soda fed gives 229 kg/t.
+- **The CO2 is significant**, about 207 kg/t, from the carbonate. The excess soda (52 kg/t) goes to the brine. If neutralised there, it would release about 21 kg CO2/t more, which is not counted. IPCC's full-release factor on all the soda fed gives 229 kg/t.
 - The brine carries about 550 kg NaCl/t to surface water after treatment, counted as dissolved solids.
 - Toluene make-up, cooling water, the vacuum system and organics in the brine are not counted (TODO).
 
 ## Linking
 
-The product has the registry slug `benzyl-alcohol`. Soda ash links explicitly to `soda-ash-1` (`lca/mappings.yaml`). Benzyl chloride is a reported gap, because no library process makes it yet (side-chain chlorination of toluene, which would consume `chlor-alkali-1`'s chlorine). The dibenzyl ether and benzyl alcohol residues are gaps, because their treatment is not stated. One library process consumes benzyl alcohol: `benzyl-chloroformate-1` (batch track) records its `feed:BNOH` as a pending link to this entry, and links it there itself.
+The product has the registry slug `benzyl-alcohol`. Soda ash links explicitly to `soda-ash-1` (`lca/mappings.yaml`). Benzyl chloride is a reported gap, because no library process makes it yet (side-chain chlorination of toluene, which would consume `chlor-alkali-1`'s chlorine). The dibenzyl ether and benzyl alcohol residues are gaps, because their treatment is not stated. One library process consumes benzyl alcohol: `benzyl-chloroformate-1`, whose `feed:BNOH` is still a gap; the link to this entry is made in that process's own mappings.
 
 ## Not counted yet (TODO)
 

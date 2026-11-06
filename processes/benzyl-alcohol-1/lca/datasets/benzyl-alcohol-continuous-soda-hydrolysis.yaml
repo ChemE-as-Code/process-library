@@ -108,13 +108,14 @@ parameters:
   description: Molar mass of dibenzyl ether (C14H14O).
   source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
     applied to the formula
-- name: bzcl
-  value: 1190.0
-  unit: kg
-  description: Benzyl chloride per t of reagent-grade benzyl alcohol (1.19 kg/kg).
-  source: 'Rantala and Hag (Eka AB), EP 0 064 486 A1 (1982), Table 2, Example 1, Second Product (sodium carbonate,
-    10 % molar excess, 145 degC, 18 bar; Table 1). Pilot-scale example (48.3 kg/h benzyl chloride), not plant
-    data; the same patent gives 1.19 for every carbonate example'
+- name: bc_h
+  value: 48.3
+  unit: kg/h
+  description: Benzyl chloride fed in the example; per t of reagent-grade benzyl alcohol it is bc_h / p2 * ba
+    (1.1926 kg/kg).
+  source: 'Rantala and Hag (Eka AB), EP 0 064 486 A1 (1982), Table 1, Example 1 (sodium carbonate, 10 % molar
+    excess, 145 degC, 18 bar). Pilot-scale example, not plant data. Taken on the same basis as the water and
+    the product (Table 1 flows); Table 2 gives the same ratio rounded to 1.19 kg/kg (Second Product)'
 - name: soda
   value: 551.0
   unit: kg
@@ -180,13 +181,14 @@ exchanges:
 - key: feed:benzyl-chloride
   title: Benzyl chloride
   type: input
-  amount: 1190.0
+  amount: 1192.5925925925924
   unit: kg
-  formula: bzcl
-  provenance: given
+  formula: bc_h / p2 * ba
+  provenance: calculated
   origin: literature
-  source: EP 0 064 486 A1 (1982), Table 2, Example 1, Second Product; compare the stoichiometric 1.1705 kg/kg
-    (overall yield 98.4 % of theory, benchmarks/oxygenates.yaml)
+  source: EP 0 064 486 A1 (1982), Table 1, Example 1, scaled to the Second Product (48.3 against 40.5 kg/h; Table
+    2 rounds it to 1.19 kg/kg); compare the stoichiometric 1.1705 kg/kg (overall yield 98.2 % of theory,
+    benchmarks/oxygenates.yaml)
   pedigree:
     scores: &patent
     - 4
@@ -199,8 +201,8 @@ exchanges:
   basic_uncertainty: 1.05
   uncertainty:
     gsd2: 1.05
-    source: 'ASSUMED: the carbonate examples all give 1.19 kg/kg for the Second Product (1.18 for the First
-      Product), stated to two decimals; scale-up is not covered'
+    source: 'ASSUMED: the carbonate examples give 1.187 to 1.193 kg/kg for the Second Product by their Table
+      1 flows (Table 2 states 1.19 for each, and 1.18 for the First Product); scale-up is not covered'
 - key: feed:sodium-carbonate
   title: Sodium carbonate (soda ash), dissolved to a 10.9 wt% solution
   type: input
@@ -315,9 +317,9 @@ exchanges:
 - key: output:organic-residue
   title: Benzyl alcohol lost (product column bottoms and the brine), to waste treatment
   type: output
-  amount: 10.618597463160498
+  amount: 12.833452245895353
   unit: kg
-  formula: (bzcl / M_BC - ba / M_BA - 2 * dbe_f * ba / M_DBE) * M_BA
+  formula: (bc_h / p2 * ba / M_BC - ba / M_BA - 2 * dbe_f * ba / M_DBE) * M_BA
   provenance: calculated
   origin: literature
   source: 'closes the balance: the benzyl chloride not found in the product or the dibenzyl ether, counted as
@@ -334,14 +336,14 @@ exchanges:
   basic_uncertainty: 1.05
   uncertainty:
     gsd2: 2.0
-    source: 'ASSUMED: a residual; the rounding of the benzyl chloride figure (1.19 +/- 0.005 kg/kg) alone moves
-      it by about +/- 4 kg/t'
+    source: 'ASSUMED: a residual; the rounding of the two Table 1 flows it rests on (48.3 and 40.5 kg/h, +/- 0.05
+      each) alone moves it by about +/- 2 kg/t, and the Table 2 ratio rounded to 1.19 kg/kg would give 10.6 kg/t'
 - key: output:wastewater
   title: Spent brine to wastewater treatment (water)
   type: output
-  amount: 5915.820722982713
+  amount: 5915.636237089838
   unit: kg
-  formula: (w_hz + w_wz) / p2 * ba - (bzcl / M_BC - 2 * dbe_f * ba / M_DBE) / 2 * M_H2O
+  formula: (w_hz + w_wz) / p2 * ba - (bc_h / p2 * ba / M_BC - 2 * dbe_f * ba / M_DBE) / 2 * M_H2O
   provenance: calculated
   origin: literature
   link:
@@ -361,9 +363,9 @@ exchanges:
 - key: emission:NaCl
   title: Sodium chloride in the spent brine, to surface water after treatment
   type: emission
-  amount: 549.3913084695417
+  amount: 550.588239424813
   unit: kg
-  formula: bzcl / M_BC * M_NACL
+  formula: bc_h / p2 * ba / M_BC * M_NACL
   provenance: calculated
   origin: literature
   cas: 7647-14-5
@@ -377,9 +379,9 @@ exchanges:
 - key: emission:Na2CO3
   title: Excess sodium carbonate in the spent brine, to surface water after treatment
   type: emission
-  amount: 52.80624570439943
+  amount: 51.720856261489814
   unit: kg
-  formula: soda - bzcl / M_BC / 2 * M_SC
+  formula: soda - bc_h / p2 * ba / M_BC / 2 * M_SC
   provenance: calculated
   origin: literature
   cas: 497-19-8
@@ -404,13 +406,13 @@ exchanges:
   basic_uncertainty: 1.05
   uncertainty:
     gsd2: 2.0
-    source: 'ASSUMED: the difference of two close numbers (551 and 498 kg/t)'
+    source: 'ASSUMED: the difference of two close numbers (551 and 499 kg/t)'
 - key: emission:CO2
   title: CO2 from the reacted carbonate, vented at degassing
   type: emission
-  amount: 206.86312538018535
+  amount: 207.31380757055607
   unit: kg
-  formula: bzcl / M_BC / 2 * M_CO2
+  formula: bc_h / p2 * ba / M_BC / 2 * M_CO2
   provenance: calculated
   origin: literature
   cas: 124-38-9
@@ -481,14 +483,14 @@ generation:
     tolerance: 1.0e-06
     elements:
       C:
-      - 852.844978298
-      - 852.844978298
+      - 854.566990001
+      - 854.566990001
       Cl:
-      - 333.263550398
-      - 333.263550398
+      - 333.989614778
+      - 333.989614778
       H:
-      - 737.77354418
-      - 737.77354418
+      - 737.918060689
+      - 737.918060689
       Na:
       - 239.036305997
       - 239.036305997

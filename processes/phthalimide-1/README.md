@@ -6,11 +6,11 @@
 > safety decisions and comes with no warranty. Check the design maturity and review status in
 > `process.yaml` before relying on any number.
 
-This entry has a manifest and an LCI dataset only. There is no flowsheet and no simulation. The basis is one tonne of phthalimide. Molten phthalic anhydride and ammonia are mixed in an ejector in about equal moles and react in a heated tube at about 265 °C. The melt is separated and flaked. The phthalimide carried off with the off-gas is recovered by absorbing the off-gas in water.
+Manifest and LCI dataset only, with no flowsheet and no simulation. Per tonne of phthalimide, from molten phthalic anhydride and ammonia, mixed in an ejector in about equal moles and reacted in a heated tube at about 265 °C. The melt is separated and flaked. The phthalimide carried off with the off-gas is recovered by absorbing the off-gas in water.
 
-## Is the route continuous?
+## Route and operation
 
-Yes. Both BASF patents read here describe continuous processes, US 4,419,519 for the ejector and tube and US 4,001,273 for the countercurrent column. Both describe the older melt processes, where ammonia is passed into a batch of anhydride, as batch prior art. A secondary summary (Chemcess, which cites Ullmann's) says industrial phthalimide plants run continuously. Ullmann's chapter itself is licensed and was not read.
+The route runs continuously. Both BASF patents read here describe continuous processes, US 4,419,519 for the ejector and tube and US 4,001,273 for the countercurrent column. Both describe the older melt processes, where ammonia is passed into a batch of anhydride, as batch prior art. A secondary summary (Chemcess, which cites Ullmann's) says industrial phthalimide plants run continuously. Ullmann's chapter itself is licensed and was not read.
 
 ## How it is built
 
@@ -22,7 +22,7 @@ Yes. Both BASF patents read here describe continuous processes, US 4,419,519 for
 | Ammonia ratio of 1.002 mol/mol | US 4,419,519, Examples 1 and 2 (1.000 and 1.003) | Midpoint of the two examples that give the yield; the description prefers 1 to 1.02, in particular 1 |
 | Phthalic anhydride: 1.0107 t/t | Stoichiometry with that yield | Inside the examples' 1.0085 to 1.0127 t/t, but that is the same source. The benchmark binds the only other open figure, Chemcess's 98 % yield (1.027 t/t) for the older co-current tube, and the dataset sits about 1.6 % below it with a reason (`benchmarks/nitrogen-organics.yaml`) |
 | Ammonia: 0.1164 t/t | Stoichiometry with the ratio and the yield | Matches the examples' 0.1164 to 0.1165 t/t by construction; no independent open figure, so the benchmark records `no_open_reference` |
-| Reaction water, excess ammonia, unconverted anhydride | Close the balance | Sent to wastewater treatment with the absorber water (fate ASSUMED) |
+| Reaction water, excess ammonia, unconverted anhydride | Close the balance | Sent to wastewater treatment with the absorber water (fate ASSUMED); the water links to wastewater treatment, the two dissolved loads (0.70 and 4.0 kg/t) stay reported gaps |
 | Electricity of 333 kWh/t and heat of 556 kWh/t | None read | Core's Tier 0 defaults (ASSUMED, dated 2000 site averages, not specific to phthalimide), each with a TODO |
 
 ## What is weak
@@ -37,6 +37,7 @@ Yes. Both BASF patents read here describe continuous processes, US 4,419,519 for
 - **Product:** registry slug `phthalimide`. No library process consumes it yet.
 - **`feed:ammonia`:** linked to `ammonia-1` (`product:NH3`, refrigerated liquid) in `lca/mappings.yaml`.
 - **`feed:phthalic-anhydride`:** registry slug `phthalic-anhydride`, a reported gap. No library process makes it, and the shared vocabulary has no entry for it. A phthalic anhydride process (o-xylene oxidation, LVOC BREF) would close it.
+- **`output:ammonia-effluent` and `output:phthalic-anhydride-effluent`:** reported gaps, as `hydrogen-iodide-1`'s iodine load is. The shared wastewater entry counts the water, not a dissolved load, and no entry treats a nitrogen or organic load. The reaction water (`output:wastewater`) links to wastewater treatment by mass.
 
 ## Not counted yet (TODO)
 

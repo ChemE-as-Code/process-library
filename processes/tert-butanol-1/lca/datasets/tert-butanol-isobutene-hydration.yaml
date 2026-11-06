@@ -52,7 +52,9 @@ time:
     already lapsed.
 modelling:
   principle: attributional
-  multifunctionality: 'single output: no allocation (the diisobutene is a residue to the fuel system)'
+  multifunctionality: 'single output: no allocation. The diisobutene (0.7 % of the output mass) goes to the
+    site fuel system (ASSUMED fate) and leaves the system without burden at the point of energy recovery
+    (cut-off, docs/system-model.md section 3); it is marked free, so it takes no share'
 uuid: c8ee1b94-97bd-5f86-bf04-c83e1f49d7c9
 version: 0.1.0
 methodology_version: 1.0.0
@@ -94,7 +96,9 @@ parameters:
     4 (two 15 m3 shell-and-tube reactors of sulfonated styrene-divinylbenzene resin in series, 90 and 85
     degC, 20 kg/cm2 G, butadiene-free steam-cracker C4 with 46.4 wt% isobutylene; total of both reactors).
     Chosen over the patent''s laboratory Examples 1 and 2 (0.46 and 1.9 g/kg, 15.7 l and 4.2 l reactors)
-    because it is the plant-scale, multi-stage case; Example 3 (first reactor alone) gives 5.2 g/kg. The
+    as the larger of its two plant-scale, two-stage examples: Example 7 (two 15 m3 reactors in series, 91
+    and 85 degC, 1.90 t/h TBA, 11.4 kg/h dimer) gives 6.0 g/kg. The single 15 m3 reactors give 5.2 g/kg
+    (Example 3) and 5.1 g/kg (Example 6). The
     rate is ASSUMED to hold for a pure isobutene feed, where a higher isobutene concentration may give
     more dimer; the 49 kg/h sec-butanol from the linear butenes is left out'
 - name: elec
@@ -225,8 +229,10 @@ exchanges:
   formula: tba * r_dim
   provenance: given
   origin: literature
-  source: US 4,180,688 A (Nippon Oil, 1979), Example 4 (total of two reactors in series); modelled as diisobutene
-    C8H16 (the patent says isobutylene dimer); its fate (fuel) is ASSUMED
+  free: true
+  source: 'US 4,180,688 A (Nippon Oil, 1979), Example 4 (total of two reactors in series); modelled as diisobutene
+    C8H16 (the patent says isobutylene dimer). Free: burned as site fuel (ASSUMED fate), so it leaves the system
+    without burden at the point of energy recovery (cut-off, docs/system-model.md section 3), with no credit'
   pedigree:
     scores: *id001
     reason: 'one plant-scale patent example of 1979: reliability 4, completeness 4, temporal 5, geographical
@@ -235,7 +241,7 @@ exchanges:
   uncertainty:
     gsd2: 3.0
     source: 'ASSUMED: one example of one patent, with a C4 raffinate feed (the same patent''s examples span
-      0.46 to 6.9 g/kg)'
+      0.46 to 6.9 g/kg; its two plant-scale, two-stage examples give 6.0 and 6.9 g/kg)'
 provenance:
   generator: hand-written model; amounts are the formulas of the parameters
   notes: No value from a licensed database and none from a DWSIM file (process-library#313). Ullmann's chapters

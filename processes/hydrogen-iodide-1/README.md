@@ -19,7 +19,7 @@ The swing iodine traps and melting pots run in cycles, but the synthesis itself 
 
 ## How it is built
 
-`lca/datasets/hydrogen-iodide-catalytic-gas-phase.yaml` is a hand-written **Tier 0** dataset. Tier 1 would need electricity and heat from a source, and neither patent gives any utility figure. Every amount is the `formula` of its `parameters`, and `generation.balance` records the closed H and I balance. The amounts are the same as core's `cheme assess lci-estimate` gives for this reaction, yield and loss fate (checked in a scratch project).
+`lca/datasets/hydrogen-iodide-catalytic-gas-phase.yaml` is a hand-written **Tier 0** dataset. Tier 1 would need electricity and heat from a source, and neither patent gives any utility figure. Every amount is the `formula` of its `parameters`, and `generation.balance` records the closed H and I balance. The amounts are the same as core's `cheme assess lci-estimate` gives for this reaction, yield and loss fate.
 
 | Item | Source | Standing |
 |---|---|---|
@@ -32,14 +32,14 @@ The swing iodine traps and melting pots run in cycles, but the synthesis itself 
 ## What is weak
 
 - **Iodine use is an upper view.** Iodine is the costly feed and dominates the burden. US 11 554 956 B2 recycles the unconverted iodine and hydrogen, so a plant loses far less than the 2.1 % treated as lost here. No source gives the loss of a plant with recycle, so it is not credited. Hydrogen is the other way round: its excess (2.4 to 6 mol per mol of iodine in the sources) is taken to be recycled, with no recompression energy counted. Once-through hydrogen at 2.7 mol/mol would be about 22 kg/t fed and 14 kg/t vented, instead of 8.05 and 0.17.
-- **Energy is not this process.** Both values are site-average defaults. The process melts and vaporises the iodine, heats the gas to about 300 to 350 degC and, in the Honeywell layout, compresses the HI and cools it to condense it (HI boils near -35 degC). None of these duties is quantified in an open source. As an order-of-magnitude check (review, not used in the dataset), the latent heats in the `chemicals` 1.5.2 CRC data (iodine fusion 15.5 and vaporisation 41.6 kJ/mol, HI vaporisation 19.8 kJ/mol) give about 63 kWh/t of HI to melt and vaporise the iodine fed and about 43 kWh/t to condense the HI. The gas-phase reaction is slightly exothermic (about -9.5 kJ/mol I2 at 25 degC, from the formation enthalpies in the same data). The 556 kWh/t heat default is several times the iodine duty. Sensible heating of the excess hydrogen, distillation and losses are not estimated, so it is not shown to be high or low.
+- **Energy is not this process.** Both values are site-average defaults. The process melts and vaporises the iodine, heats the gas to about 300 to 350 degC and, in the Honeywell layout, compresses the HI and cools it to condense it (HI boils near -35 degC). None of these duties is quantified in an open source. As an order-of-magnitude check, not used in the dataset, the latent heats in the `chemicals` 1.5.2 CRC data (iodine fusion 15.5 and vaporisation 41.6 kJ/mol, HI vaporisation 19.8 kJ/mol) give about 63 kWh/t of HI to melt and vaporise the iodine fed and about 43 kWh/t to condense the HI. The gas-phase reaction is slightly exothermic (about -9.5 kJ/mol I2 at 25 degC, from the formation enthalpies in the same data). The 556 kWh/t heat default is several times the iodine duty. Sensible heating of the excess hydrogen, distillation and losses are not estimated, so it is not shown to be high or low.
 - **The catalyst is not counted.** The catalyst may be platinum or nickel, and neither source gives a charge or a life. A platinum-group catalyst must never be cut, so it is listed as a TODO.
 - The efficiency comes from one laboratory run with Pt. The nickel runs of US 11 554 956 B2 reach 89.5 to 95.8 % per pass (`benchmarks/inorganic-chemicals.yaml`, explained). The KPI therefore compares two single-pass laboratory figures, not plant data.
 - `valid_until` is the reference year (2008) + 5, so it has already lapsed.
 
 ## Linking
 
-The product has the registry slug `hydrogen-iodide`. `feed:iodine` links to `iodine-1` (iodine flakes, 99.8 wt%) and `feed:hydrogen` to `hydrogen-1` (99.9 mol% H2), through `lca/mappings.yaml`. `output:iodine-loss` stays a reported gap, because no shared entry treats an iodine load in wastewater. No library process uses HI yet.
+The product has the registry slug `hydrogen-iodide`. `feed:iodine` links to `iodine-1` (iodine flakes, 99.8 wt%) and `feed:hydrogen` to `hydrogen-1` (99.9 mol% H2, PSA), through `lca/mappings.yaml`. Of the producers of hydrogen, `hydrogen-1` is the only dry, high-purity grade: `chlor-alkali-1`'s cell hydrogen is water-saturated, and `catalytic-reforming-1` and `hda-1` give impure gas. `output:iodine-loss` stays a reported gap, because no shared entry treats an iodine load in wastewater. No library process uses HI yet.
 
 ## Not counted yet (TODO)
 
