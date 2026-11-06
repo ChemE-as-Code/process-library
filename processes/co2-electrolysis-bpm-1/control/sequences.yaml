@@ -51,7 +51,7 @@ sequences:
     title: Start Skid A
     mode: startup
     cases: [skid-a]
-    equipment: [E-101A, E-101B, E-101C, E-101D, U-101, V-121, K-131, X-131, X-132, K-141]
+    equipment: [E-101A, E-101B, E-101C, E-101D, U-101, V-121, K-131, X-131, X-132]
     permissives:
       - {sequence: SEQ-A-FILL, state: complete}
       - {all: [{interlock: I-101, state: reset}, {interlock: I-102, state: reset}, {interlock: I-103, state: reset}, {interlock: I-104, state: reset}, {interlock: I-105, state: reset}, {interlock: I-106, state: reset}]}
@@ -60,9 +60,9 @@ sequences:
     interlocks: [I-101, I-102, I-103, I-104, I-105, I-106]
     steps:
       - id: S1
-        title: Ventilate and cool
+        title: Check the air at the skid and cool
         actions:
-          - {tag: K-141, action: start, by: operator}
+          - {text: "check CO2 (and O2) at grade and at the low points round the open skid with a portable meter, and wear a personal CO monitor (D-050)", by: operator}
           - {loop: TIC-111, action: auto, by: operator}
         complete: {loop: TIC-111, state: at setpoint}
       - id: S2
@@ -161,26 +161,23 @@ sequences:
         next: end
     abort:
       condition: {any: [{interlock: I-103, state: tripped}, {interlock: I-104, state: tripped}]}
-      actions:
-        - {tag: K-141, action: start}
       then: SEQ-A-GAS
-      notes: "A gas trip closes FV-102 and stops K-131, so the purge of S1 is not possible: SEQ-A-GAS takes over (also when the sequence is entered from a gas trip)."
+      notes: "A gas trip closes FV-102 and stops K-131, so the purge of S1 is not possible: SEQ-A-GAS takes over (also when the sequence is entered from a gas trip). The open skid has no fan to start (D-050)."
     reset: {latching: true, manual: true}
   - id: SEQ-A-GAS
     title: Skid A after a CO or H2 detection trip (cathode gas train isolated)
     mode: abnormal
     cases: [skid-a]
-    equipment: [U-101, FV-102, K-131, X-131, X-132, K-141]
+    equipment: [U-101, FV-102, K-131, X-131, X-132]
     interlocks: [I-103, I-104]
     steps:
       - id: S1
-        title: Isolated and ventilated
+        title: Isolated, the release dispersing in the open
         actions:
           - {loop: JIC-101, action: manual, by: automatic}
           - {loop: FIC-102, action: manual, by: automatic}
-          - {tag: K-141, action: start, by: automatic}
-        complete: {all: [{tag: U-101, state: "off"}, {tag: FV-102, state: closed}, {tag: K-131, state: stopped}, {tag: K-141, state: running}]}
-        operator: "The CO and H2 stay in the closed cathode gas train (FV-102 closed, K-131 stopped by I-103 or I-104). Nobody enters the enclosure until AIA-141 and AIA-142 are clear."
+        complete: {all: [{tag: U-101, state: "off"}, {tag: FV-102, state: closed}, {tag: K-131, state: stopped}]}
+        operator: "The CO and H2 stay in the closed cathode gas train (FV-102 closed, K-131 stopped by I-103 or I-104); the open skid is naturally ventilated (D-050). Nobody approaches the skid until AIA-141 and AIA-142 are clear, and then only with a personal CO monitor; check CO2 at grade and at the low points."
       - id: S2
         title: Find the leak, reset
         actions:
@@ -211,7 +208,6 @@ sequences:
       actions:
         - {tag: FV-102, action: close}
         - {tag: K-131, action: stop}
-        - {tag: K-141, action: start}
       notes: "The gas trips I-103 and I-104 act again as well; back to S1."
     reset: {latching: true, manual: true}
   - id: SEQ-A-DRAIN
@@ -289,7 +285,7 @@ sequences:
     title: Start Skid B
     mode: startup
     cases: [skid-b]
-    equipment: [E-201A, E-201B, E-201C, E-201D, U-201, V-221, K-231, X-231, X-232, K-241, P-202]
+    equipment: [E-201A, E-201B, E-201C, E-201D, U-201, V-221, K-231, X-231, X-232, P-202]
     permissives:
       - {sequence: SEQ-B-FILL, state: complete}
       - {all: [{interlock: I-201, state: reset}, {interlock: I-202, state: reset}, {interlock: I-203, state: reset}, {interlock: I-204, state: reset}, {interlock: I-205, state: reset}, {interlock: I-206, state: reset}, {interlock: I-208, state: reset}]}
@@ -298,9 +294,9 @@ sequences:
     interlocks: [I-201, I-202, I-203, I-204, I-205, I-206, I-207, I-208]
     steps:
       - id: S1
-        title: Ventilate and cool
+        title: Check the air at the skid and cool
         actions:
-          - {tag: K-241, action: start, by: operator}
+          - {text: "check CO2 (and O2) at grade and at the low points round the open skid with a portable meter, and wear a personal CO monitor (D-050)", by: operator}
           - {loop: TIC-211, action: auto, by: operator}
         complete: {loop: TIC-211, state: at setpoint}
       - id: S2
@@ -410,28 +406,25 @@ sequences:
         next: end
     abort:
       condition: {any: [{interlock: I-203, state: tripped}, {interlock: I-204, state: tripped}]}
-      actions:
-        - {tag: K-241, action: start}
       then: SEQ-B-GAS
-      notes: "A gas trip closes FV-202 and stops K-231, so the purge of S1 is not possible: SEQ-B-GAS takes over (also when the sequence is entered from a gas trip)."
+      notes: "A gas trip closes FV-202 and stops K-231, so the purge of S1 is not possible: SEQ-B-GAS takes over (also when the sequence is entered from a gas trip). The open skid has no fan to start (D-050)."
     reset: {latching: true, manual: true}
   - id: SEQ-B-GAS
     title: Skid B after a CO or H2 detection trip (cathode gas train isolated)
     mode: abnormal
     cases: [skid-b]
-    equipment: [U-201, P-202, FV-202, K-231, X-231, X-232, K-241]
+    equipment: [U-201, P-202, FV-202, K-231, X-231, X-232]
     interlocks: [I-203, I-204, I-207]
     steps:
       - id: S1
-        title: Isolated and ventilated, dosing and bleed off
+        title: Isolated, dosing and bleed off, the release dispersing in the open
         actions:
           - {loop: JIC-201, action: manual, by: automatic}
           - {loop: FIC-202, action: manual, by: automatic}
           - {tag: P-202, action: stop, by: automatic}
           - {tag: FV-203, action: close, by: automatic}
-          - {tag: K-241, action: start, by: automatic}
-        complete: {all: [{tag: U-201, state: "off"}, {tag: FV-202, state: closed}, {tag: K-231, state: stopped}, {tag: K-241, state: running}, {interlock: I-207, state: tripped}]}
-        operator: "The CO and H2 stay in the closed cathode gas train (FV-202 closed, K-231 stopped by I-203 or I-204). Nobody enters the enclosure until AIA-241 and AIA-242 are clear."
+        complete: {all: [{tag: U-201, state: "off"}, {tag: FV-202, state: closed}, {tag: K-231, state: stopped}, {interlock: I-207, state: tripped}]}
+        operator: "The CO and H2 stay in the closed cathode gas train (FV-202 closed, K-231 stopped by I-203 or I-204); the open skid is naturally ventilated (D-050). Nobody approaches the skid until AIA-241 and AIA-242 are clear, and then only with a personal CO monitor; check CO2 at grade and at the low points."
       - id: S2
         title: Find the leak, reset
         actions:
@@ -462,7 +455,6 @@ sequences:
       actions:
         - {tag: FV-202, action: close}
         - {tag: K-231, action: stop}
-        - {tag: K-241, action: start}
       notes: "The gas trips I-203 and I-204 act again as well; back to S1."
     reset: {latching: true, manual: true}
   - id: SEQ-B-DRAIN

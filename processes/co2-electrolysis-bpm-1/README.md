@@ -19,7 +19,8 @@ CC BY 4.0, see `NOTICE.md`). The tracker is ChemE-as-Code/core#136; the measured
   bleed and make-up water.
 
 Both deliver 0.100 kg/h CO (ASSUMED pilot duty, recovery 0.90) from four stacks of seven
-100 cm2 cells on a 48 V bus, each skid on one 20 ft frame (ASSUMED envelope). Every number is a
+100 cm2 cells on a 48 V bus, each skid on one open, naturally ventilated 20 ft frame (ASSUMED
+envelope; no enclosure, `DESIGN.md` D-050). Every number is a
 concept-stage result on ASSUMED inputs, and FE, WDE, U and kWh/kg are held constant by
 assumption, not supported by measurement: the measured runs last 1 h in fresh 1 M KOH
 (`DESIGN.md` D-014).
@@ -35,7 +36,7 @@ assumption, not supported by measurement: the measured runs last 1 h in fresh 1 
 | `equipment/`, `piping/`, `control/` | lists, datasheets, loops, cause and effect, sequences, philosophy |
 | `layout/`, `piping/routing.yaml` | the pilot plot, the two frames, placement, zones, routing intent and pinned routes; the generated 3D model `layout/plant-model.yaml` (D-019, D-040 to D-043, D-046, D-047); the project's own layout checks `layout/layout-checks.yaml` (stack reach and slide lane, ignition sources against the zones, trays against the vent outlets, D-047) |
 | `layout/lifting-basis.yaml`, `layout/lifting-study.md`, `layout/lifting-study-units.md` | the item weights (ASSUMED, written into the equipment list by regen), core's lifting study (no listed item reaches 5 t) and the unit lifts: each skid as a 20 ft unit and T-101 alone, drained and full, by a mobile crane from the hardstanding between the road and the skid onto the road (D-043, D-047) |
-| `electrical/electrical-list.yaml`, `electrical/tray-rules.yaml`, `electrical/cable-schedule.md` | the cabling (D-045): the host site's 400 V board and control room off the plot, seven motors, the AC feeders, the 48 V DC bus as its own cable class (one radial cable per stack from the rectifier, never on the rack's AC tray), two junction boxes; trays and cables routed by `cheme layout build`, the schedule written by regen step 24 (62 cables, 40 trays at 1,000 h); every value ASSUMED, the Ex rating of the zone 2 items an open owner decision (no certification claimed) |
+| `electrical/electrical-list.yaml`, `electrical/tray-rules.yaml`, `electrical/cable-schedule.md` | the cabling (D-045): the host site's 400 V board and control room off the plot, five motors, the AC feeders, the 48 V DC bus as its own cable class (one radial cable per stack from the rectifier, never on the rack's AC tray), two junction boxes; trays and cables routed by `cheme layout build`, the schedule written by regen step 24 (60 cables, 36 trays at 1,000 h); every value ASSUMED; the Ex marking of the zone 2 items is the owner's decision D-051 (motors II 2G Ex db eb IIC T3 Gb, instruments Ex ia IIC T4 Ga; no certification claimed, the area classification is the competent person's) |
 | `estimate/mto.md` | the material take-off of the 3D model (`cheme assess mto`); no estimate, the project has no cost basis (D-044) |
 | `figures/skids/<H>h/` | per scenario: the plot plan `layout-plan.png` (A1, 1:50), and per skid its plan `layout-plan-skid-<a\|b>.png` and four sections (`layout-section-x-skid-<k>-reservoir`, `-stack`, `layout-section-y-skid-<k>-stacks`, `-frame`), each core's sheet cropped to the drawing at 1:50 (D-041); SVG and PNG |
 | `results/expected.yaml` | the hand expectations E1 to E9, frozen before the first regeneration |
@@ -47,7 +48,7 @@ assumption, not supported by measurement: the measured runs last 1 h in fresh 1 
 | `lca/` | the LCA of both skids: scope, open factors, Skid A's and Skid B's datasets, scenarios, sensitivities, ranking (`lca/README.md`) |
 | `scripts/regen.py` | the single rerun command of the skids, the LCA included (`scripts/README.md`) |
 | `safety/hazop/H-01/`, `safety/hazop/H-02/`, `safety/hazop/SESSION.md` | HAZOP drafts of Skid A and Skid B, **agent-prepared for a team session that has not been held** (every entry proposed, the risk matrix proposed), and the session pack; `safety/README.md` |
-| `DESIGN.md` | decisions D-001 to D-027, D-030 to D-032 (the HAZOP drafts) and from D-040 (the 3D model to basic engineering; D-047 the layout review fixes) |
+| `DESIGN.md` | decisions D-001 to D-027, D-030 to D-032 (the HAZOP drafts) and from D-040 (the 3D model to basic engineering; D-047 the layout review fixes; from D-050 the owner's decisions of 2026-11-06) |
 
 Rerun the skids, from this folder (about 2 min at 1,000 h, 4 min at 10,000 h):
 
@@ -93,7 +94,8 @@ At the measured mean the longest campaign whose one-fill reservoir fits the fram
 2,550 h (rounded from E2 of `results/expected.yaml`). Skid B does not grow
 with the campaign, but its continuous dosing uses 1.8 times the KOH of Skid A per kg CO
 (the floor is 0.648 kg per kg delivered). The FE at the meter's 20 degC basis would need
-4 x 8 cells. At equal CO, on/off operation (24 h, half on) uses the same charge and KOH as
+4 x 8 cells: the meter's reference stays 0 °C (ASSUMED, asked of the dataset authors) and the
+-6.8 / -8.4 % FE at 20 / 25 °C is a stated capacity band (`DESIGN.md` D-052). At equal CO, on/off operation (24 h, half on) uses the same charge and KOH as
 Skid A's continuous duty, and part load (12 h at 200, 12 h at 100 mA/cm2) 7.6 % more charge
 and 1.47 times the hydroxide deficit (`DESIGN.md` D-013).
 

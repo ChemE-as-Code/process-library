@@ -386,24 +386,33 @@ safeguards and the rating bases.
   margin; a trip at 12.2 needs the reservoir sized to it (about 1,176 L), which changes the
   frozen sizing basis (H01-S113, H01-A108). On Skid B I-201 trips at 12.2; its weakness is that
   it shares the AIC-201 probe with the dose trim (H02-S702, H02-A701).
-- **The Ex rating** of the electrical items inside the zones (K-x41, P-x01, K-x31, P-202,
-  instruments; ASSUMED Ex-rated today) with an area classification by a competent person
-  (H01-A903, H01-A204; H02-A902, H02-A206).
+- **The Ex rating** of the electrical items inside the zones: **decided by the owner on
+  2026-11-06** (DESIGN.md D-051): motors (P-x01, K-x31, P-202) II 2G Ex db eb IIC T3 Gb,
+  instruments Ex ia IIC T4 Ga with barriers outside the zone, certified IIC gas detectors, 3G/Gc
+  the stated minimum, the rectifier's AC isolated at SDB-1 on gas detection and the DC never
+  broken under load inside the zone. Still open, for a competent person: the area
+  classification, the explosion protection document and the inspection (H01-A903, H01-A204;
+  H02-A902, H02-A206). The study entries are revised as proposals for the team.
 - **The fail positions** proposed in control/philosophy.md, PV-x31 first (section 3.3), and
   PV-x21's fail-open, which lets the still running K-x31 pull a vacuum on the cathodes on the
   loss of instrument air (H01-S404, H02-S403; H01-A402, H02-A403).
-- **The safe state on a loss of power** (F-POWER, open): a UPS for the gas detection, the fan and
-  the alarms, and a purge or vent of the cathode gas train that works without power (H01-A904,
+- **The safe state on a loss of power** (F-POWER, open): a UPS for the gas detection and the
+  alarms (no fan since D-050), and a purge or vent of the cathode gas train that works without power (H01-A904,
   H02-A905).
-- **The enclosure and its ventilation** are ASSUMED and not sized; the fan has no running signal
-  (H01-A901, H02-A903). Every gas-in-enclosure rating rests on them.
+- **The enclosure and its ventilation**: **decided by the owner on 2026-11-06** (DESIGN.md
+  D-050): the skids are open and naturally ventilated, with no enclosure and no extract fan
+  (K-x41 deleted); at most a rain canopy over the rectifier and the junction boxes; the CO and
+  H2 detectors stay, with personal CO monitors and a CO2 check at grade and the low points
+  (H01-A901, H01-A902, H02-A903). Node N9 and every gas-in-enclosure cause and rating are to be
+  revised as proposals for the team.
 - **The CO2 supply interface** at the battery limit (pressure regulation, relief, cold gas), not
   drawn (H01-A303, A304; H02-A302, A304).
 - **The site effluent** acceptance of the spent anolyte and Skid B's bleed (H01-A805, H02-A708).
 - **The oxidiser X-x32 inside the enclosure and zone**: stopped with its tail gas by the gas
   trips, or moved outside (H01-A906, H02-A906); a flame cannot be Ex-rated.
 - **The DC isolation independent of the rectifier**, which every trip and the current-runaway
-  scenario rest on (H01-A205, H02-A207).
+  scenario rest on (H01-A205, H02-A207). Decided in principle by the owner (D-051): a lockable
+  isolator or DC contactor outside the zone; its design and drawing stay open with the DC bus.
 
 ### 3.7 Hazards judged not applicable, or only partly
 

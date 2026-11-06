@@ -5,7 +5,7 @@ schema: cheme/narrative/v1
 sections:
   - id: ELA
     title: Skid A stacks and anolyte loop
-    equipment: [E-101A, E-101B, E-101C, E-101D, T-101, P-101, E-111, U-101, K-141]
+    equipment: [E-101A, E-101B, E-101C, E-101D, T-101, P-101, E-111, U-101]
     blocks: [ELA]
     cases: [skid-a]
     modes: [normal, startup, shutdown, abnormal]
@@ -21,7 +21,7 @@ sections:
     loops: [FIC-102, PIC-121, LIC-122, PIC-131]
   - id: ELB
     title: Skid B stacks, anolyte loop, KOH dosing and bleed
-    equipment: [E-201A, E-201B, E-201C, E-201D, T-201, P-201, E-211, T-202, P-202, U-201, K-241]
+    equipment: [E-201A, E-201B, E-201C, E-201D, T-201, P-201, E-211, T-202, P-202, U-201]
     blocks: [ELB]
     cases: [skid-b]
     modes: [normal, startup, shutdown, abnormal]
@@ -74,8 +74,8 @@ current), the normal stop at the end of the campaign H (SEQ-A-STOP), the respons
 trip (SEQ-A-TRIP) or to a gas detection trip (SEQ-A-GAS) and the end-of-run drain
 (SEQ-A-DRAIN). The pH low-low trip (I-101) acts at the threshold itself, if the anolyte gets
 there before H; level, temperature and flow trips stop the current (I-102, I-105, I-106); the
-CO and H2 detectors (I-103, I-104) also isolate the cathode gas train and start the enclosure
-fan K-141.
+CO and H2 detectors (I-103, I-104) also isolate the cathode gas train. The skid is open and
+naturally ventilated, with no enclosure and no fan (DESIGN.md D-050).
 
 **Assumptions and open points.** The scale-up from 5 to 100 cm2 and the measured performance
 over the whole campaign (DESIGN.md D-007, D-014); the reservoir has no time margin, so a WDE one

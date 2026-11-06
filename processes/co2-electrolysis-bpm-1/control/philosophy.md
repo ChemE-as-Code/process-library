@@ -16,7 +16,7 @@ failures:
     sequences: [SEQ-A-TRIP, SEQ-B-TRIP]
   - id: F-POWER
     title: Loss of electric power
-    response: The rectifiers, pumps, compressors and fans stop; the current, and with it the gas production, stops at once. The CO2 purge and the oxidiser need power or a safe purge source (open point).
+    response: The rectifiers, pumps and compressors stop; the current, and with it the gas production, stops at once. The CO2 purge and the oxidiser need power or a safe purge source (open point).
     loops: [JIC-101, JIC-201, FIC-101, FIC-201, AIC-201]
     sequences: [SEQ-A-TRIP, SEQ-B-TRIP]
   - id: F-CW
@@ -30,8 +30,8 @@ failures:
     loops: [FIC-101, FIC-201]
     interlocks: [I-106, I-206, I-102, I-202]
   - id: F-GAS
-    title: CO or H2 released into a skid enclosure
-    response: The detector trips the current, closes the CO2 feed, stops the compressor and starts the extract fan (I-103, I-104, I-203, I-204). The cathode gas train stays isolated with its CO and H2 until the leak is found and the trips are reset; then it is purged to the oxidiser (SEQ-A-GAS, SEQ-B-GAS).
+    title: CO or H2 released at an open skid
+    response: The detector trips the current (the rectifier's AC feeder opened at SDB-1), closes the CO2 feed and stops the compressor (I-103, I-104, I-203, I-204); the open, naturally ventilated skid has no fan (DESIGN.md D-050). Nobody approaches until the detectors are clear, and then with a personal CO monitor and a check for CO2 at grade and at the low points. The cathode gas train stays isolated with its CO and H2 until the leak is found and the trips are reset; then it is purged to the oxidiser (SEQ-A-GAS, SEQ-B-GAS).
     interlocks: [I-103, I-104, I-203, I-204]
     sequences: [SEQ-A-GAS, SEQ-B-GAS]
   - id: F-DOSE
