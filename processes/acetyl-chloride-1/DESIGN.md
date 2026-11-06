@@ -298,7 +298,7 @@ ASSUMED unless sourced):
   scripts/balance.py gives the same two terms as a cross-check. Until then the typed Q2 was 1.27 kW: it also deducted the latent heat
   of the vapour the whole vent gas carries to E-103 and its condensate rewarmed (1.40 kW), as if
   the batch's nitrogen swept the reacting mass. It does not, so that deduction is dropped (D-014).
-  The model's peak is 9.85 kW during the dosing (D-003). With the liquid-H3PO3 heat of reaction
+  The model's peak is 9.84 kW during the dosing (D-003). With the liquid-H3PO3 heat of reaction
   (+2.3 kJ/mol, D-005) Q2 would be about -1.2 kW: R-101 would need heat instead, which its
   tempered-water loop provides (core would then warn that the model's heat flows against Q2);
   the sign is an open input.
@@ -659,6 +659,8 @@ model is at least as credible as the hand value it replaces:
 | 10 stages, reflux 2, residue 50 mol% | 99.92 | 0.082 (185) | 97.91 % | 2.7 % | 335.6 K | 81.3 kW |
 | 10 stages, reflux 1, purity end 99.0 wt% | 99.00 | 0.998 (2252) | 99.43 % | 34.0 % | 344.5 K | 55.7 kW |
 | 10 stages, reflux 1, purity end 99.5 wt% | 99.50 | 0.500 (1128) | 97.63 % | 16.6 % | 334.1 K | 54.6 kW |
+| 10 stages, constant distillate 0.999 mol ACCL to reflux 4, residue 50 mol% | 99.82 | 0.176 (397) | 97.96 % | 5.9 % | 335.6 K | 60.5 kW |
+| 10 stages, constant distillate 0.999 mol ACCL to reflux 4, product cut to 99.8 wt%, an off-cut to 5 mol% in the residue (core's examples/process-batch-rectification) | 99.80 | 0.200 (451) | 99.40 % (off-cut 0.50 %) | 6.7 % (off-cut 11.8 %) | 344.8 K at the product's end, 353.4 K at the off-cut's | 63.5 kW |
 
   Kept: 10 stages at reflux 1, SRC-2's column and reflux; at 6 stages the product misses the
   specification. Rejected: a purity end at the specification (99.0 wt%): no margin for the ideal
@@ -667,6 +669,33 @@ model is at least as credible as the hand value it replaces:
   of purity; reflux 2: 99.92 wt% at 1.5 times the reboiler's steam, the lever for a low-phosphorus
   grade if one is specified (still 185 ppm P: below 1 ppm needs SRC-2's chlorine, D-008). The
   core author's scratch run (ADR 0061: 99.43 wt% at 98.19 %) is reproduced.
+- **Constant distillate compared** (review of #408; `reflux: constant_distillate`, `distillate:
+  {key: ACCL, mole_fraction: 0.999}`, `maximum_ratio: 4`, the policy of core's
+  examples/process-batch-rectification, whose charge is this upper phase; scratch copies
+  2026-11-06, the last two rows of the table). The reflux rises from 0.80 to 4, at 4 from 94.6 %
+  of the charge distilled. With this flowsheet's end (50 mol% acetyl chloride in the residue) the
+  product is 99.82 wt% (397 ppm P) at 97.96 % recovery, 0.23 points less than at reflux 1, for
+  2.29 h of boil-up instead of 2.07 h and a reboiler of 60.5 kW instead of 54.9 kW (+10 %). With
+  the example's cuts (core's result reproduced: 99.8 wt% at 99.4 %) it recovers 1.2 points more
+  into the product, for 2.40 h of boil-up and 63.5 kW (+16 %), and leaves an off-cut of 12.6 kg
+  a batch (59 wt% acetyl chloride, 41 wt% PCl3) and 42.7 kg of residue at 5 mol% acetyl
+  chloride. Kept: constant reflux 1. (1) The specification is 99.0 wt% (D-002); both policies
+  meet it, neither reaches a low-phosphorus grade (397 and 451 ppm P against SRC-2's 1 ppm, which
+  needs its chlorine, D-008), so the extra purity has no grade to serve and costs 10 to 16 % more
+  steam. (2) SRC-2, the only source of this column, ran it at a constant 1:1; a reflux rising to
+  4 on the head's composition is not sourced for it, and its control (an on-line analysis or the
+  head temperature, to hold 0.999 mol fraction of acetyl chloride where, by SRC-2, its boiling
+  and dew curves lie close to PCl3's) would be ASSUMED. (3) The example's higher recovery
+  needs the off-cut: 41 wt% PCl3 and 59 wt% acetyl chloride with nowhere to go in this
+  flowsheet, as no recycle to the next charge or to R-101 is modelled (D-008: the residue's
+  recycle is a variant, ADR 0060's `tears:` not used); sent to the residue's disposal, the
+  recovery is that of the 99.8 wt% cut, and R-101's feeds would fall by about 0.9 % (1472.4
+  against 1459.9 kg of product a batch) while its 7.4 kg of acetyl chloride a batch are thrown away. (4) Its end at 5 mol% takes the still
+  to 353.4 K, 29 K past the end of acetyl chloride's Antoine fit (324.2 K) and 6 K past PCl3's
+  (347.3 K); D-007 ends at 50 mol% to stay within about 10 K, and the purity end at 99.0 wt%
+  was rejected above for 20 K. Constant distillate with the residue end is the cheaper lever
+  for a purer grade than reflux 2 (99.82 wt% at 60.5 kW against 99.92 wt% at 81.3 kW), the
+  first option if a buyer's grade above 99.5 wt% is specified.
 - **The charge's heat-up (`still.heat_up`, ADR 0063), adopted.** The model heats the charge from
   313.15 K to its 324.33 K bubble point, 1.2096 kW in Q3 (7.0 kWh a batch), against the script's
   Q8 1.2282 kW, which also held the one-stage residue's rise to 340.45 K (0.0174 kW). Q8 goes.
@@ -760,7 +789,9 @@ Built on cheme-as-code 1.8.0, pinned to 1.9.0 since 2026-11-06 (D-014) and to 1.
 - Tried in 1.10.0 and not adopted (D-015): `batch.vent.vapour` and `batch.vent.condenser` (ADR
   0062), which carry the HCl's vapour but not that of the head space and nitrogen, so they would
   cut the vent's acetyl chloride from 0.213 % to 0.0006 % and E-103's load from 0.35 to 0.005 kW
-  against the per-source estimate; the still's `end: purity` (ADR 0061), compared on scratch
+  against the per-source estimate; the still's `end: purity` (ADR 0061), `reflux:
+  constant_distillate` (with `distillate` and `maximum_ratio`) and the still's `cuts:` with a
+  product and an off-cut (core's examples/process-batch-rectification), compared on scratch
   copies and not chosen.
 - Not used in 1.10.0, no source or not applicable: `batch.vent.henry` (no sourced Henry constant
   of HCl in these liquids, L-6); a dose's `heat_of_solution` (none sourced for PCl3 in acetic
@@ -772,7 +803,7 @@ Built on cheme-as-code 1.8.0, pinned to 1.9.0 since 2026-11-06 (D-014) and to 1.
   D-008), `hazard.reactions` (the default counts the main reaction, D-014), the default MTT
   (still not the product's boiling point, L-5).
 - Not used, not needed by this route: `dosing.absorbed` (no gas is dosed), the crystallizer, the
-  dryer and the filter (no solids), the still's `cuts:` and `feed:` (D-008).
+  dryer and the filter (no solids), the still's `feed:` (D-008).
 
 ## Core limits hit (each a candidate core issue)
 

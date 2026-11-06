@@ -32,6 +32,9 @@ README.md and process.yaml are checked against them:
   largest cooling-failure release over the batch with the margin DESIGN.md states, and the
   boiling and water cases beyond it are recorded as a design finding;
 - the plant requires cheme-as-code 1.10;
+- review of #408: R-101's jacket and peak duty wherever stated are the recipe's, the still's
+  stream temperatures are the bubble points of their compositions, and D-015's constant-distillate
+  row is what core gives;
 - the process is not set public in the change that adds it (CONTRIBUTING).
 """
 
@@ -183,9 +186,15 @@ def test_heating_media_stay_below_the_stated_limits_and_the_jacket_uses_the_log_
 
 
 def test_the_stills_stream_temperatures_are_its_bubble_points(streams):
-    # the distillate at its mean composition (K-101's total condenser), the residue at the end
-    assert streams["S8"]["temperature"]["value"] == pytest.approx(323.99, abs=0.01)
-    assert streams["S9"]["temperature"]["value"] == pytest.approx(335.89, abs=0.01)
+    # the distillate at its mean composition (K-101's total condenser), the residue at the end:
+    # each stream's temperature is the bubble point of its own composition (Raoult, the
+    # materials' Antoine constants, scripts/balance.py), then the recorded figures
+    balance = _balance_module()
+    for sid, recorded in (("S8", 323.99), ("S9", 335.89)):
+        kmols = {n: v / MW[n] for n, v in _components(streams[sid]).items()}
+        t = streams[sid]["temperature"]["value"]
+        assert t == pytest.approx(balance.bubble_point(kmols), abs=0.01), sid
+        assert t == pytest.approx(recorded, abs=0.01), sid
     assert streams["S8"]["temperature"]["value"] < streams["S9"]["temperature"]["value"]
 
 
@@ -316,10 +325,6 @@ def test_the_warming_loop_failure_is_a_release_case(sheet):
 # ---- core 1.9.0 (D-014) -------------------------------------------------------------------
 
 R_GAS = 8.314  # kJ/(kmol K)
-REBOILER_1_8 = 56.3958  # kW, the typed Q3 of core 1.8.0: (1 + R) x latent + heat-up
-Q2_HAND_1_8 = 1.2696  # kW, the typed Q2 of core 1.8.0
-Q2_MODEL_1_9 = 2.67099  # kW, R101's model duty at core 1.9.0's feeds (D-014)
-Q6_1_9 = 0.3492  # kW, E-103's per-source load at core 1.9.0's feeds (D-014)
 
 
 def _energy(sheet) -> dict[str, dict]:
@@ -368,8 +373,8 @@ def test_q2_is_the_reaction_heat_less_the_dose_warmed(streams):
     dose = pcl3_in * cp["PCL3"] * (313.15 - 298.15) / 3600.0
     assert released == pytest.approx(3.2471, abs=1e-4) and dose == pytest.approx(0.5788, abs=1e-4)
     assert streams["Q2"]["duty"]["value"] == pytest.approx(released - dose, rel=1e-4)
-    # the 1.8.0 hand value deducted 1.40 kW of vapour latent heat and condensate rewarming
-    assert Q2_MODEL_1_9 - Q2_HAND_1_8 == pytest.approx(1.4014, abs=1e-3)
+    # a record, not a model check: the 1.8.0 hand value deducted 1.40 kW of vapour latent heat
+    # and condensate rewarming (D-014)
     design = _text("DESIGN.md")
     assert "The typed Q2, 1.2696 kW, against the semi-batch model's 2.67099 kW" in design
     assert "(1.2028 kW), and that vapour's condensate returned cold and rewarmed (0.1986 kW)" in design
@@ -398,8 +403,7 @@ def test_the_reboiler_and_condenser_are_the_columns_closed_forms(sheet, streams)
     design = _text("DESIGN.md")
     assert "the reboiler Q3 54.88 kW (boil-up 53.67, heat-up 1.21), the condenser Q4 53.67 kW" in design
     assert "against the script's Q8 1.2282 kW" in design
-    # the 1.9.0 split of the reboiler, recorded in D-014
-    assert 27.5838 + 27.5838 + 1.2282 == pytest.approx(REBOILER_1_8, abs=2e-4)
+    # a record, not a model check: the 1.9.0 split of the reboiler (D-014)
     assert "Q7 27.5838 kW (the reflux share) and Q8 1.2282 kW (the heat-up)" in design
 
 
@@ -461,7 +465,8 @@ def test_e103s_load_is_taken_per_source_and_the_vent_fraction_is_its_upper_bound
     # the 1.8.0 basis, all the inert saturated over the upper phase at 313 K
     bound, _, _ = source(hcl + 8.0 * per_nm3, moles("S6"), 313.15)
     assert bound == pytest.approx(1.2826, abs=3e-4)
-    assert 1.2826 - Q6_1_9 == pytest.approx(0.9334, abs=2e-4)  # D-014, at core 1.9.0's feeds
+    # a record, not a model check: the cut of Q6 at core 1.9.0's feeds (D-014)
+    assert "Together 0.3492 kW, so the 1.4014 kW rise of Q2 comes with a 0.9334 kW cut of" in _text("DESIGN.md")
     # what Q6 still counts twice: R-101's share (in Q2) and the still's (in Q4)
     to_utilities = sum(streams[i]["duty"]["value"] for i in ("Q2", "Q4", "Q5", "Q6", "Q9"))
     assert to_utilities == pytest.approx(58.98, abs=0.005)
@@ -557,7 +562,6 @@ def test_the_cases_beyond_the_vent_are_a_design_finding(sheet):
     assert kmol_h * R_GAS * 324.15 / 101.325 == pytest.approx(17.3, abs=0.1)
     q6 = next(s for s in sheet["streams"] if s["id"] == "Q6")["state"]["design"]["duty"]["value"]
     assert 5.45 / q6 == pytest.approx(15.6, abs=0.06)
-    assert 5.45 / 1.2826 == pytest.approx(4.2, abs=0.06)  # against the 1.8.0 upper bound
     assert "15.6 times E-103's year-average 0.35 kW (4.2 times the 1.28 kW upper bound of D-010)" in design
     assert "relief device" in design and "interlocked on R-101's pressure" in design
 
@@ -651,3 +655,60 @@ def test_core_solves_the_column_and_its_duties():
     assert reboiler.heat_kW == pytest.approx(54.8766, abs=1e-3)
     assert reboiler.terms_kW["charge heat-up"] == pytest.approx(1.2096, abs=1e-3)
     assert -condenser.heat_kW == pytest.approx(53.667, abs=1e-3)
+
+
+def test_r101s_jacket_and_peak_duty_are_the_recipes_wherever_stated():
+    # Review of #408: the equipment note and D-009 kept the 1.9.0 figures after D-015's feeds
+    pytest.importorskip("chemeascode")
+    from chemeascode.domains.process.recipe import recipe_report
+
+    result = recipe_report(PROCESS)
+    vessel = next(v for v in result.vessels if v.procedure == "REACT")
+    area, removable, peak = f"{vessel.jacket_area:.2f}", f"{vessel.removable:.2f}", f"{vessel.peak_duty:.2f}"
+    assert (area, removable, peak) == ("4.89", "13.36", "9.84")
+    r101 = next(e for e in _load("equipment/equipment-list.yaml")["equipment"] if e["tag"] == "R-101")
+    assert f"jacket {area} m2 at the charge" in r101["notes"]
+    assert f"removes {removable} kW against R101's peak {peak} kW (cheme process recipe)" in r101["notes"]
+    design = _text("DESIGN.md")
+    assert f"{area} m2 wetted at the charge) removes {removable} kW against the model's peak {peak} kW" in design
+    assert f"The model's peak is {peak} kW during the dosing (D-003)" in design
+
+
+def test_the_constant_distillate_option_is_the_recorded_row():
+    # Review of #408: core's example runs this charge at constant distillate; D-015 records it
+    pytest.importorskip("chemeascode")
+    from chemeascode.domains.process import batch_still, duties
+    from chemeascode.domains.process.model import load
+    from chemeascode.domains.process.schema import Column
+
+    process, _ = load(PROCESS)
+    case = process.flowsheet.default_case()
+    item = process.nodes["ST101"]
+    column = Column.model_validate(
+        {
+            "stages": 10,
+            "reflux": "constant_distillate",
+            "distillate": {"key": "ACCL", "mole_fraction": 0.999},
+            "maximum_ratio": 4,
+            "provenance": "assumed",
+            "source": "the option of D-015",
+        }
+    )
+    variant = item.model_copy(update={"still": item.still.model_copy(update={"column": column})})
+    result, _ = batch_still.solve_node(process, variant, batch_still.inlets_of(process, item), case)
+    (cut,) = result.cuts
+    mass = {n: v * MW[n] for n, v in cut.moles.items()}
+    purity = mass["ACCL"] / sum(mass.values())
+    ppm_p = mass["PCL3"] / sum(mass.values()) * 30.974 / MW["PCL3"] * 1e6
+    recovery = cut.moles["ACCL"] / result.charge["ACCL"]
+    reboiler = duties.still_duty(variant, result, process, case).heat_kW
+    design = _text("DESIGN.md")
+    row = (
+        f"| 10 stages, constant distillate 0.999 mol ACCL to reflux 4, residue 50 mol% | {purity * 100:.2f} "
+        f"| {(1 - purity) * 100:.3f} ({ppm_p:.0f}) | {recovery * 100:.2f} % "
+        f"| {cut.moles['PCL3'] / result.charge['PCL3'] * 100:.1f} % | {result.temperatures[-1]:.1f} K | {reboiler:.1f} kW |"
+    )
+    assert row in design, row
+    assert reboiler > 54.8766 and recovery < 0.9819 and purity > 0.9943  # purer, at more steam and less recovery
+    assert "Kept: constant reflux 1." in design
+    assert "`reflux: constant_distillate` (with `distillate` and `maximum_ratio`)" in design
