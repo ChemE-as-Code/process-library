@@ -60,6 +60,8 @@ Options considered:
 - Accepted by the owner on 2026-11-06.
 - On CI the engineering step took about 17.5 min (validate run 42168252735, 2026-11-06, regen
   steps 1 to 25), under the 40 min timeout; the figures above predate steps 20 to 25.
+- The tests now also assert E10 (`results/expected-lca.yaml`, the LCA reconciled with the run
+  record, `test_regenerated_lca_is_reconciled_e10`); the Context above names E1 to E9, as written.
 - `tests/test_co2_electrolysis_bpm_skids.py`, `tests/conftest.py` (the marker),
   `.github/workflows/validate.yml` (jobs `library` and `engineering`),
   `.github/workflows/release.yml`.

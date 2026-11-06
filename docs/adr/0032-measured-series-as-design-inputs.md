@@ -81,5 +81,6 @@ Issue #329 asked for both the reproduction and the design case in
 - `benchmarks/reproductions/vermaas-rbpm-wde/`: `source.yaml` `split`, tolerances frozen in
   30d35b7.
 - `processes/co2-electrolysis-bpm-1/`: `scripts/adapt_4tu.py`, `data/measured/wde-1m-koh.yaml`,
-  `DESIGN.md` D-002.
+  `experiments/electrochemistry/rbpm-1m-koh.yaml` (the measured series `process/cells.yaml` reads,
+  core ADR 0041), `DESIGN.md` D-002.
 - Issue #329, tracker core#136.
