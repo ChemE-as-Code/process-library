@@ -20,7 +20,17 @@
 # the ERS solenoids on the UPS in F-POWER; and DESIGN.md D-018 / D-031 from the layout: the
 # tank-area collector re-routed under PR1 / PR3 / PR4 and enclosed under PR5 / PR6 and the riser
 # towers, the jetty collectors under the deck and the catwalk trough, T-8102 re-centred between
-# the hulls, the muster point moved to the platform's north-west corner, no trestle drip tray).
+# the hulls, the muster point moved to the platform's north-west corner, no trestle drip tray), then
+# to those of commit 709fcf20 (DESIGN.md D-032 items 1-3, 7 and D-016, D-026.1 / .7: the berth O2
+# analysers AI-5126 / AI-6126 for I-514 / I-614 and the ESD-1 transfer cause, I-n14 also opening
+# XV-4135 / XV-4136 so that I-n13 closes the flare valve, the D-026.1 bound restated, the transfer
+# state on ZSC-n101 / UZ-n101, the ERS solenoid channels on UPS A / B in F-POWER, the cause tags
+# HS-n100 / XS-n108, the vapour arm leak-test boundary, the ZSO-n122 override; and DESIGN.md D-018 /
+# D-033 from the layout: the tank-area enclosed channels and PR2's trough removed, the lined troughs
+# starting at the PR6 joint, drip pads and item drip trays (XV-3123, TV-7103, the trough-side
+# thermal reliefs), the basin T-8101 moved to (990, 3237.5) and deepened to 10.5 m, the jetty tray
+# bays with lined collectors ending in the sump wall, T-8102 6 m x 9.5 m, the catwalk trough and
+# vent removed, the muster point on the B-JET deck A7 with two ways off).
 # Every entry is a proposal for the team: status proposed.
 schema: cheme/hazop-study/v1
 kind: hazop-study
@@ -45,10 +55,10 @@ modes:
   - {id: startup, title: Start-up and shutdown, description: "Flare header purge and pilot light-off, KO drum pump-out, sump draining after rain."}
 analysed:
   - {path: pid/P-08.xml, revision: 'sha256:b0b910e505e3121c7d41ebe12bb4639749507979ae9c556319f6240ead74c7da', relation: analyses}
-  - {path: control/cause-effect.yaml, revision: 'sha256:bbf0f6ff5cec619525ef4d30f4b28c00f42fa8176d6a35ed5acf844c474e36d3', relation: analyses}
+  - {path: control/cause-effect.yaml, revision: 'sha256:d6f4c1bfe3a9166fcec401f84958bc92ae1d809564a21ce05033f7502d6bf2ba', relation: analyses}
   - {path: control/loops.yaml, revision: 'sha256:a7417294d1288704b77fac600cc7963a95b21a3dcaa295aef23e52e0cf9a7b30', relation: analyses}
-  - {path: control/sequences.yaml, revision: 'sha256:b9c24b1b46bf454189319117cd324b23048b138ecc33af1a2694b0736411f3fd', relation: analyses}
-  - {path: piping/special-items.yaml, revision: 'sha256:104f5fb0c4f3e6ffb23a4c31e7e5f70c7faf757af86c75493cc2a2b61c922c01', relation: analyses}
+  - {path: control/sequences.yaml, revision: 'sha256:85a39deac075a36e4e13b0180df761829fc6356c085352f1fed5189727f45291', relation: analyses}
+  - {path: piping/special-items.yaml, revision: 'sha256:a309ebb57ed8ea9d766ac0a5eb0ccd1e773d2c01ce01784fc0800b254fadce04', relation: analyses}
 risk_matrix: safety/risk-matrix.yaml
 assessment_basis: >-
   Each scenario is rated per category before its safeguards (initial): severity is the credible
@@ -71,7 +81,12 @@ assessment_basis: >-
   channels and collectors) and S28 (the muster point beside the Berth 2 manifold) are rated before
   safeguards only; S23 is re-described for the ESD-1 that now answers the O2 high-high during a
   transfer and S26 for the re-routed trough, both keeping their codes; the S18 residual basis is
-  corrected for the new arming of I-514; no other code changes.
+  corrected for the new arming of I-514; no other code changes. In the revision for commit
+  709fcf20 (D-032, D-033) the new scenario S29 (an item drip tray without a drain overflowing) is
+  rated before safeguards only; S28 is re-described for the cause the moved muster point and the
+  two ways off leave and its likelihood re-rated (B to A); S27 is re-described for the jetty
+  collectors that remain (the tank-area channels are removed) and keeps its codes; S18 (residual
+  basis), S23, S26, S12, S13 and S17 are re-described in place with their codes kept.
 team: []            # to be named by the project; no team has sat on this draft yet
 notes: >-
   Drafted by an agent (skills hazop-study, hazop-equipment-causes, relief-scenarios,
@@ -337,7 +352,7 @@ nodes:
                 - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Flashback and deflagration in the flare system (as S6); matrix 4. B: an O2-bearing carrier return to the flare, once in the plant life.", evidence: [control/cause-effect.yaml, piping/line-list.yaml], band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
                 - {category: asset, severity: "4", likelihood: B, status: proposed, by: agent, basis: "KO drum or header rupture; matrix 4 = loss of the unit.", evidence: [piping/line-list.yaml], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: f33c22768a8b83e6, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: B}}}
               residual:
-                - {category: people, severity: "4", likelihood: A, status: proposed, by: agent, basis: "Agent proposal for the team: one layer credited, I-514 / I-614 (886b0ad5) closing the vapour arm isolation XV-5122 / XV-6122 (since f5d925f6 also XV-5125 / XV-6125, 2oo2 on two O2 cells; since 79d5c7ad armed with no liquid transfer at the berth, the gassing-up of this scenario, while in the S3 cooldown the same O2 high-high trips ESD-1, I-501 / I-601, which stops the flow and, by I-513 once XV-4135 is proven open, closes XV-4131 to the flare) on AI-4133 / AI-4134 O2 above 5 vol % for 10 s, independent of the cause (the carrier's O2-bearing vapour) and of I-511, which only routes the vapour. Not credited for vapour below the 5 vol % limit, which goes to the flare by design (A17). The analyser also drives I-511; SIL null; severity kept.", evidence: [control/cause-effect.yaml, DESIGN.md D-026], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ddcedc61b5d20d1a, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: A}}}
+                - {category: people, severity: "4", likelihood: A, status: proposed, by: agent, basis: "Agent proposal for the team: one layer credited, I-514 / I-614 (886b0ad5) closing the vapour arm isolation XV-5122 / XV-6122 (since f5d925f6 also XV-5125 / XV-6125, 2oo2 on two O2 cells; since 79d5c7ad armed with no liquid transfer at the berth, the gassing-up of this scenario, while in the S3 cooldown the same O2 high-high trips ESD-1, I-501 / I-601, which stops the flow and, by I-513 once XV-4135 is proven open, closes XV-4131 to the flare) on AI-4133 / AI-4134 O2 above 5 vol % for 10 s, independent of the cause (the carrier's O2-bearing vapour) and of I-511, which only routes the vapour. Since 709fcf20 (D-032 item 3) on the berth analyser AI-5126 / AI-6126 (2oo2) or the tank-end AI-4133 / AI-4134 (backup), acting before the vapour enters the return, and opening XV-4135 / XV-4136 itself, so the slug goes to the tanks and never to the flare; the berth analyser is independent of AI-4133, which drives I-511. Not credited for vapour below the 5 vol % limit, which goes to the flare by design (A17). The analyser also drives I-511; SIL null; severity kept.", evidence: [control/cause-effect.yaml, DESIGN.md D-026], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ddcedc61b5d20d1a, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: A}}}
                 - {category: asset, severity: "4", likelihood: A, status: proposed, by: agent, basis: "As the people residual: I-514 / I-614 credited as one layer.", evidence: [control/cause-effect.yaml], band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: eca0767de9ee2296, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: A}}}
             notes: >-
               New scenario for 589c9ca7 (D-025 items 3, 6). Since fac0bbb5 (D-026 item 7) the
@@ -360,7 +375,16 @@ nodes:
               liquid transfer, so in the cooldown I-514 / I-614 are not armed and the O2
               high-high trips ESD-1 instead; either way the vapour above 5 vol % stops reaching the
               flare after the 10 s delay and a valve stroke (to the tanks after an ESD-1, H-02 S23).
-              The residual keeps its code.
+              The residual keeps its code. Revised for 709fcf20 (D-026.1 / .7 corrected by D-032
+              item 3; review 2026-11-05-basic-design-6 adversarial check): the O2 is measured at the
+              berth by AI-5126 / AI-6126 downstream of both vapour isolations (AI-4133 / AI-4134 as
+              backup), and the reject also opens XV-4135 / XV-4136, after which I-513 / I-613 close
+              the flare valve within well under a minute against a transit of more than 3 min
+              through the return (ASSUMED): the slug that passed the berth before the closure (at
+              most ~200 m3) goes to the tanks (H-02 S25), so vapour above 5 vol % no longer reaches
+              the flare, the limit holding with the transport delay. The berth analyser failed low
+              leaves the tank-end backup acting at the switch, the case before (H-03 S37). The
+              residual keeps its code (already at A).
           - id: S23
             cause: >-
               The carrier's vapour return carries O2 above 5 vol % during the transfer (SEQ-LOAD S4
@@ -369,14 +393,19 @@ nodes:
               AI-4133 / AI-4134 was an alarm only, the operator to stop the loading by ESD-1; since
               79d5c7ad (D-030 item 4) the 2oo2 O2 high-high for 10 s is a cause of ESD-1 (I-501 /
               I-601) during any liquid transfer; the vapour between the reading and the trip, and
-              all vapour if the two cells fail low together, still reaches the switch.
+              all vapour if the two cells fail low together, still reaches the switch. Since
+              709fcf20 (D-032 items 1, 3) the trip acts on the berth analyser AI-5126 or on AI-4133,
+              so it acts before the vapour enters the 2.45 km return; ESD-1 opens XV-4135 and
+              blocks I-511, and I-513 closes XV-4131, before the slug reaches the tank end; the
+              vapour above 5 vol % reaches the switch to the flare only when AI-5126 has failed low
+              and the backup AI-4133 must act at the tank end (H-03 S37).
             consequence: >-
               While AI-4133 reads off-specification and before ESD-1 (10 s and the stroke of
               XV-4135), I-511 sends the O2-bearing return through BOG-4013 into D-8101 and FL-8001
               (as S18): a flammable mixture in the flare system, flashback from the tip, internal
               deflagration of D-8101 or FL-8001; with the cells failed low, until the operator
               acts. The ESD-1 then sends the line pack to the tanks (H-02 S23).
-            refs: [AI-4133, AI-4134, BOG-4013, D-8101, FL-8001, XV-5122, XV-6122]
+            refs: [AI-4133, AI-4134, AI-5126, AI-6126, BOG-4013, D-8101, FL-8001, XV-5122, XV-6122]
             modes: [loading, cooldown]
             safeguards: [SG4, SG8]
             actions: [A23]
@@ -394,7 +423,11 @@ nodes:
               ESD-1 on the 2oo2 O2 high-high during a transfer, which answers A23 in the design; the
               flare receives the vapour of the 10 s delay and the switch-back, and the tanks the line
               pack (H-02 S23, A19). No residual: the codes are already at the lowest likelihood, and
-              the trip shares the analyser with the switch I-511. Codes kept.
+              the trip shares the analyser with the switch I-511. Codes kept. Revised for 709fcf20
+              (D-032 item 3): the trip now rests on the berth analyser, independent of AI-4133 which
+              drives I-511, so the flare receives O2-rich vapour of this cause only with AI-5126
+              failed low (H-03 S37); the tanks receive the bounded slug (D-026.1, H-02 S23). Codes
+              kept.
       - id: N1-HL2
         guide_word: more
         parameter: level (D-7101, when I-802 acts)
@@ -567,6 +600,31 @@ nodes:
       hulls at (1163.5, 812); the muster point, life-raft station and escape ladder are moved to
       the platform's north-west corner beside the trestle road; the sump limits carry a x 1.2
       flame-tilt allowance and a muster point the continuous-exposure 1.6 kW/m2 (all ASSUMED).
+      Since 709fcf20 (D-018, D-033 items 1-11; layout, not an analysed input): the collection
+      serves the leak sources only, a welded run being none. The enclosed channels under PR5 / PR6
+      and the riser towers and PR2's trough are removed; open troughs 0.6 m wide, lined with
+      cellular glass (ASSUMED, not credited in the radiation screening), at 0.5 % fall, start at the
+      PR6 joint (x 975) under PR1, run under PR3 and PR4 to y 3237.5, across R7 and R2 in culverts,
+      and 97 m west into the basin T-8101, moved to (990, 3237.5) and deepened to 10.5 m (~510 m of
+      open trough; the 1,000 m3 design spill stands at -5.53 m, 1.37 m below the inlet invert,
+      ~1,270 m3 below it); kerbed drip pads at grade under the flanged LNG items off the trough's
+      line drain to it (XV-1102 / 1103, XV-4105 / PSV-4114, XV-4106, FV / XV-4101, FV / XV-4102);
+      the flanged items away from any trough (XV-3123 on PR5, TV-7103 on the PR6 east leg, the DN 25
+      thermal reliefs PSV-1122, PSV-1123, PSV-4111, PSV-4113) are held in drip trays at the item
+      without a drain (S29); the dome-edge valves in drip trays on the roof nozzle and pump
+      platforms (tank supply). On the jetty the drip trays are kerbed bays of at most 36 m2 (14 m2
+      at XV-4103) recessed 1.0-2.4 m, each holding the ~33 m3 design spill with its outlet
+      blocked, draining by open floor outlets without seals into enclosed collectors lined with
+      cellular glass and sized for the vapour formed, whose only outlet is in the wall of T-8102;
+      the catwalk trough and the platform-edge vent are removed; T-8102 is 6 m across and 9.5 m
+      deep (~159 m3 below the inlet: the 33 m3 spill and ~126 m3 of rain), kept pumped down so LNG
+      does not meet standing water (design owner). The muster point, life-raft station and boat
+      landing are on the B-JET deck A7 (Z-ESC-A4-MUSTER), 214 m from the nearest tray bay and ~300 m
+      from T-8102, with two ways off from opposite corners of the platform's north edge: W1 the
+      trestle road R5, W2 a 1.5 m walkway east of PR2 crossing under PR2 (marine engineer, ASSUMED);
+      the boat leaves west (Z-ESC-A4-SEA). D-033.9 screens one spill as one design fire (troughs,
+      basin and the releasing pad at once; on the jetty a bay with the sump and the collector's
+      vapour flame), with the x 1.2 tilt (ASSUMED).
     members: [T-8101, TSL-8102, LI-8103, P-8102, W-8001, W-8002, T-8102, TSL-8104]
     status: proposed
     by: agent
@@ -584,6 +642,11 @@ nodes:
             actions: [A9]
             status: proposed
             by: agent
+            notes: >-
+              Revised for 709fcf20 (D-033 items 3, 10, 11; layout): the basin is deepened to 10.5 m
+              and moved to (990, 3237.5); the type and head of P-8102 for the deeper pit are open
+              with the design owner, so the water removal this scenario rests on is not yet sized
+              for the pit as laid out. Codes kept.
             risk:
               initial:
                 - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "RPT and vapour cloud in the tank area; matrix 4. B: needs a spill and standing water.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
@@ -616,7 +679,11 @@ nodes:
               over the water no longer reaches T-8101 (no drip tray there; the marine transfer area
               case of the siting study), so the trestle part of the cause is limited to its shore
               end and the tank-area racks; T-8101 is still sized for one loading line for 10 min.
-              Codes kept.
+              Codes kept. Revised for 709fcf20 (D-033 items 2, 3, 11; layout): the trestle shore end
+              has no collection (PR2's trough removed), the basin is 10.5 m deep and the 1,000 m3
+              design spill stands 1.37 m below the trough inlet with ~1,270 m3 below it, so it does
+              not back up into the troughs; the release longer than 10 min and the rain not removed
+              remain the causes. Codes kept.
             risk:
               initial:
                 - {category: people, severity: "4", likelihood: A, status: proposed, by: agent, basis: "Large pool fire or vapour cloud; matrix 4. A: not expected in the plant life.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ddcedc61b5d20d1a, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: A}}}
@@ -646,7 +713,15 @@ nodes:
               removal is unchanged: D-031 item 6 leaves a level transmitter with a high alarm and a
               fixed water removal interlocked off on low temperature, or a covered sump, open with
               the design owner (A12), with a rain margin of ~170 m3 against the ~33 m3 of an arm or
-              flange failure until ESD closure (ASSUMED). Codes kept.
+              flange failure until ESD closure (ASSUMED). Codes kept. Revised for 709fcf20 (D-018,
+              D-033 items 4, 5, 10, 11; layout): T-8102 is now 6 m across and 9.5 m deep (268 m3,
+              ~159 m3 below the inlet: the 33 m3 spill and ~126 m3, ~129 mm, of rain on the ~972 m2 of
+              bays and sump), fed only by the lined collectors through its wall; D-033.11 (g) states
+              that LNG must not meet standing water in the sump, so it is kept pumped down, and
+              leaves the level measurement and the fixed water removal with a low-temperature trip
+              open with the design owner (A12); still not on P-08. The muster point is ~300 m away on
+              the B-JET deck (60 m needed); the hulls see 4.8 / 4.6 kW/m2 from the drained part
+              (D-033.9). The cause is unchanged. Codes kept.
             risk:
               initial:
                 - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "RPT on the loading platform; matrix 4. Since f5d925f6 on the sump deck beside the platform (D-029); severity kept.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
@@ -665,7 +740,16 @@ nodes:
               warm trough are not in the files, and D-031 states as residuals that the trough legs
               lie inside the 8 kW/m2 band of the roads beside them (R1 at PR1, R5 at PR2, R3 at PR3,
               R2 near its PR4 crossing, up to ~30 kW/m2 at the junction) and that the A2 exits
-              Z-ESC-A2S and Z-ESC-A2E cross a trough.
+              Z-ESC-A2S and Z-ESC-A2E cross a trough. Since 709fcf20 (D-033 items 2, 3, 7, 11): ~510
+              m of lined open trough from the PR6 joint under PR1, PR3 and PR4 to y 3237.5 and west
+              into the basin at (990, 3237.5), with the drip pads of the flanged items draining to
+              it, PR2's trough removed, the culverts under R7 and R2 kept (vehicle entry under the
+              site's control, gas test or permit, ASSUMED); one spill is one design fire (every open
+              leg, the basin and the releasing pad at once); the fire approaches are R1 (moved to
+              y 2901), the new road R11, R8 east of x 1130, R2 and R4, and R3, R5's stub, R6, R8 west
+              of x 1126 and the two culverts stay inside the band as stated residuals (11.8-646
+              kW/m2 in the design fire); A2's way out in a trough fire is Z-ESC-A2N-W / -A2N (4.8 /
+              4.2 kW/m2), Z-ESC-A2S / -A2E being blocked by design.
             consequence: >-
               LNG boils along the trough and in the culverts; flammable vapour collects in the
               culverts and spreads at roads R7 and R2 and along R1, R3 and R5 beside the troughs,
@@ -696,7 +780,20 @@ nodes:
               four roads; the residuals are stated in D-031 (a trough fire approached from the other
               roads of the ring; a third way out Z-ESC-A2N, 4.5-5.6 kW/m2 with tilt). Codes kept:
               the flash fire at a road remains the governing outcome and still needs a significant
-              spill and an ignition; the enclosed channel is S27.
+              spill and an ignition; the enclosed channel is S27. Revised for 709fcf20 (D-018,
+              D-033 items 2, 3, 7, 9, 11; review 2026-11-05-basic-layout-4 #2-#4 and its adversarial
+              check): the trough is shorter and starts at the PR6 joint, its lining cuts the vapour
+              formed about 25-fold (~2.5 kg/s on the PR3 / PR4 leg against ~63 kg/s bare while the
+              design flow runs, ASSUMED, not credited for radiation), the deeper basin keeps the
+              spill out of the troughs, every trough leg is a zone 2 release source in the model,
+              and the B-SUB intake LV1 takes gas detection with a damper trip (HVAC engineer,
+              ASSUMED); B-SUB stays 69.7 m from the PR3 / PR4 leg against the 150 m kept for the
+              basin's cold vapour, carried to the siting study. Passive fire protection of the rack
+              columns over the troughs, fire-resistant ESD and fire and gas cables and
+              high-expansion foam at the junction, the culverts and the basin inlet are ASSUMED
+              until the fire protection engineer's design, so they are not safeguards here. Codes
+              kept: the flash fire at a road with vehicles entering the culverts still needs a
+              significant spill and an ignition.
       - id: N2-OTE
         guide_word: other-than
         parameter: containment (enclosed spill channels and collectors)
@@ -704,31 +801,36 @@ nodes:
         scenarios:
           - id: S27
             cause: >-
-              An LNG spill from the riser drops of the tank fill, pump and circulation lines under
-              PR5 / PR6 and the riser towers, or from an arm or manifold on the platform, runs into
-              the enclosed, covered and sealed channel (Z-KC-CHANNEL-PR6 / -PR5, 0.6 x 1.3 m) or the
-              enclosed collectors under the deck slab (Z-KC-CHANNEL-JETTY / -W / -E): the LNG boils
-              on the warm concrete in the first minutes; the vent arrangement (south end into the
-              open PR1 trough; at the catwalk on the jetty) and the vapour it must pass are not
-              sized (D-031 items 1, 2: the civil / process detail's, open).
+              An LNG spill from an arm, a coupler or the manifold on the platform runs from its
+              drip tray bay through the open floor outlet into the enclosed collectors under the
+              deck (Z-KC-CHANNEL-JETTY-W / -XO / -B1M / -E, -CW under the catwalk): the LNG boils on
+              the collector walls in the first minutes, and the vapour, with the gas the liquid
+              displaces, flows down the fall with the liquid to the only outlet, in the wall of
+              T-8102; a dry bay outlet downstream of the receiving bay may pass vapour up into its
+              bay. At 79d5c7ad also the enclosed channels Z-KC-CHANNEL-PR6 / -PR5 under the riser
+              racks and towers, with vents not sized; since 709fcf20 (D-033 items 1, 4, 11) those
+              channels are removed (the riser runs are welded, no leak source), and the jetty
+              collectors are lined with cellular glass and sized for the vapour (lined: longest
+              path 106 m, 0.67 kg/s, 1.49 m3/s, 1.85 m/s, ~10 Pa; ASSUMED), the seals and the
+              platform-edge vent are dropped.
             consequence: >-
-              Flammable vapour fills the covered channel or collector and leaves only through its
-              vent: if the vent is short, the channel is pressurised and vapour escapes at its
-              joints and covers under the racks and the riser towers beside the tank shells, or
-              under the platform deck near the arms; an ignition at the vent or inside gives a
-              confined deflagration in the channel under the riser racks or the deck, with damage
-              to the rack and riser supports (escalation to the DN 800 / 900 lines and the tanks'
-              riser towers) or to the deck slab; the open trough at the vent receives the vapour
-              and the boiling liquid together.
-            refs: [T-8101, T-8102, TSL-8102, TSL-8104, LNG-4001]
+              Flammable vapour fills the covered collector under the platform deck near the arms
+              and the drain drums and leaves at the sump and at dry bay outlets; an ignition inside
+              a collector, at a dry outlet or at the sump gives a confined deflagration under the
+              deck slab or a flash back along the collector, with damage to the deck slab and the
+              equipment above (arms, manifolds, D-5101 / D-6101) and burns to people on the
+              platform; the sizing removes the pressurisation of the collector by the vapour flow,
+              not the flammable mixture inside it. (The pressurised channel beside the tank shells
+              and the riser towers of the 79d5c7ad consequence is removed with the channels.)
+            refs: [T-8102, TSL-8104, D-5101, D-6101, LA-5101, LA-6101]
             modes: [loading, holding]
             actions: [A24]
             status: proposed
             by: agent
             risk:
               initial:
-                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Confined deflagration under the riser racks next to the tank shells or under the loading platform deck, with operators on the racks or the platform; matrix 4 = permanent injury or fatality. B: a spill from a riser drop or an arm into the enclosed channel or collector, once in the plant life; whether the vent and the channel's free volume keep the vapour below an explosive accumulation is not in the files.", evidence: [DESIGN.md D-018, DESIGN.md D-031], band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
-                - {category: asset, severity: "3", likelihood: B, status: proposed, by: agent, basis: "Damage to the rack and riser tower supports or the deck slab above the channel; matrix 3 = plant down for weeks.", evidence: [DESIGN.md D-031], band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 579975b5e9fe3f0e, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '3', likelihood: B}}}
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Confined deflagration under the loading platform deck (at 79d5c7ad also under the riser racks next to the tank shells, removed in 709fcf20), with operators on the platform; matrix 4 = permanent injury or fatality. B: a spill from an arm, coupler or manifold into the collector, once in the plant life; the vapour sizing of D-033.11 (f) keeps the collector from being pressurised, but nothing in the files keeps the mixture inside it below an explosive accumulation or the ignition sources out.", evidence: [DESIGN.md D-018, DESIGN.md D-031], band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+                - {category: asset, severity: "3", likelihood: B, status: proposed, by: agent, basis: "Damage to the deck slab above the collector and the equipment on it (at 79d5c7ad also the rack and riser tower supports, removed in 709fcf20); matrix 3 = plant down for weeks.", evidence: [DESIGN.md D-031, DESIGN.md D-033], band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 579975b5e9fe3f0e, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '3', likelihood: B}}}
             notes: >-
               New scenario for 79d5c7ad (D-031 items 1, 2; layout, not an analysed input). The
               enclosed channel is the NFPA 59A provision for enclosed drainage channels that only
@@ -736,22 +838,43 @@ nodes:
               it moves the pool fire away from the shells and the riser towers and from the muster
               point, and turns part of the route into a confined space for vapour. No gas or
               low-temperature detection is drawn along the channel or at its vent (A11). No
-              safeguard is credited: none of the files acts on vapour inside the channel.
+              safeguard is credited: none of the files acts on vapour inside the channel. Revised
+              for 709fcf20 (D-018, D-033 items 1, 4, 11 (f), (g); review 2026-11-05-basic-layout-4 #1
+              and its adversarial check; layout, not an analysed input): the reviewer confirmed that
+              the tank-area channel could not pass its vapour (~9 kPa against a 4.7 kPa cover), and
+              both tank-area channels are removed rather than enlarged; the jetty collectors are
+              lined and sized so the vapour leaves at the sump with ~10 Pa of pressure drop, the
+              rain cannot freeze in a seal (no seals), and the collector vapour flame is screened
+              at the sump and at the worst dry outlet. The cause and consequence are re-described
+              for the jetty collectors that remain; codes kept, since the spill frequency and the
+              confined mixture under the deck are unchanged. Still no gas or low-temperature
+              detection in the collectors, no inerting and no decision on designing them for a
+              deflagration (A24); deluge for the arms, manifolds and drain drums is ASSUMED until the
+              fire protection design.
           - id: S28
             cause: >-
-              A release or fire at the Berth 2 manifold or arms (H-03 S10, S15; a coupler or swivel
-              leak, a jet fire at the manifold) while people gather at the muster point Z-ESC-A4N,
-              moved by 79d5c7ad to the platform's north-west corner beside the trestle road: the
-              Berth 2 manifold zone is 11.5 m south of it (D-031 item 3, as it was 8.5 m north of
-              the old one), the first way off (R5 on the trestle) starts there and the boat route on
-              the water Z-ESC-A4-SEA runs between the trestle and the Berth 2 hull.
+              A release or fire at a manifold or an arm of either berth (H-03 S10, S15, S35; a
+              coupler or swivel leak, a jet fire at the manifold, a drifting vapour cloud) while
+              people leave the platform. At 79d5c7ad the muster point Z-ESC-A4N stood at the
+              platform's north-west corner, 11.5 m from the Berth 2 manifold zone, with the first
+              way off (R5) starting there and the boat route along the Berth 2 hull. Since 709fcf20
+              (D-033 item 5) Z-ESC-A4N is removed: the muster point, life-raft station and boat
+              landing are on the piled deck A7 of the jetty substation north of B-JET
+              (Z-ESC-A4-MUSTER), 214 m from the nearest tray bay; two ways off start at opposite
+              corners of the platform's north edge, 20 m apart with PR2 between them (W1 the trestle
+              road R5, W2 a 1.5 m walkway east of PR2 crossing under PR2's 7 m tier to R5 and the
+              muster point); the boat leaves west (Z-ESC-A4-SEA, 71 m north of the Berth 2 hull
+              envelope). The cause that remains is a jet fire or a vapour cloud, which D-033 does
+              not screen, blocking both starts of the ways off or the walkway under PR2, or the W2
+              walkway and the A7 landing not built as assumed (marine engineer).
             consequence: >-
-              The muster point, the life-raft station and the start of both ways off are within a
-              few tens of metres of a Berth 2 manifold fire or vapour cloud: people mustering into
-              the fire or the cloud, the trestle road exit and the boat route along the Berth 2
-              hull exposed at the same time; the muster point was sited against the sump fire
-              (1.6 kW/m2 with tilt, 100.1 m from T-8102), not against a manifold fire.
-            refs: [T-8102, LA-5101, LA-5103, LA-5104, XV-5101, XS-5100]
+              People on the platform cut off from both ways off by a manifold jet fire or a cloud
+              drifting across the platform's north edge, or exposed while crossing under PR2 on W2;
+              for every single bay pool fire D-033 keeps one way at 4.9 kW/m2 or less over its
+              length and the muster point at 0.21 kW/m2 (1.27 with every Berth 1 bay burning), all
+              ASSUMED, so the pool-fire part of the 79d5c7ad consequence (people mustering into the
+              fire beside the manifold) is removed.
+            refs: [T-8102, LA-5101, LA-5103, LA-5104, LA-6101, XV-5101, XS-5100]
             modes: [loading, cooldown]
             safeguards: [SG8]
             actions: [A25]
@@ -759,7 +882,7 @@ nodes:
             by: agent
             risk:
               initial:
-                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "People at the muster point or on the ways off exposed to a manifold jet or pool fire or a vapour cloud; matrix 4 = permanent injury or fatality. B: a manifold fire at Berth 2 during the transfers of the plant life, once (as H-03 S10, S15 with ignition).", evidence: [DESIGN.md D-031, DESIGN.md D-018], band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+                - {category: people, severity: "4", likelihood: A, status: proposed, by: agent, basis: "People on the platform exposed to a manifold jet fire or a vapour cloud with both ways off cut; matrix 4 = permanent injury or fatality. A (re-rated for 709fcf20, was B with the muster point 11.5 m from the Berth 2 manifold): the muster point is 214 m from the nearest bay and every single bay fire leaves one way off at or below 4.9 kW/m2 (D-033.5, .9); what remains needs a jet fire or a cloud placed so that it blocks both starts 20 m apart, not expected in the plant life; jet fires and dispersion are not screened in the files.", evidence: [DESIGN.md D-018, DESIGN.md D-031, DESIGN.md D-033], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ddcedc61b5d20d1a, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: A}}}
             notes: >-
               New scenario for 79d5c7ad (D-031 item 3, the adversarial check's missed high of
               review 2026-11-05-basic-layout-3; layout, not an analysed input). The move takes the
@@ -767,7 +890,55 @@ nodes:
               its exposure to the Berth 2 manifold is no worse than before (11.5 m against 8.5 m)
               but is not screened in the files, and a Berth 1 fire leaves the north-west corner
               farther away. The marine engineer and the TERMPOL review are to confirm the boat's
-              approach (open). ESD-1 (SG8) stops the transfer; it does not move people.
+              approach (open). ESD-1 (SG8) stops the transfer; it does not move people. Revised for
+              709fcf20 (D-033 item 5, the missed high and #5 of review 2026-11-05-basic-layout-4 and
+              its adversarial check): the north-west muster point lay inside the radiation of the
+              platform's own tray fires and both ways off started there; it is removed, the muster
+              point is on A7 north of B-JET and the two ways off are screened against all 27 bay
+              fires (W2 for the Berth 2 trays, W1 for the Berth 1 trays and the crossover bay),
+              with declared separations (the four trays to the muster point >= 156 m, T-8102 to it
+              >= 60 m and to the boat route >= 32.2 m). The scenario keeps its id for the jet fire
+              and vapour cloud cause that remains, re-rated B to A. Open: the W2 walkway, the A7
+              landing and the mooring lines (marine engineer), and the onshore muster point for
+              A1 / A2 set with the trains' emergency plan (D-033.10).
+      - id: N2-HLT
+        guide_word: more
+        parameter: level (drip trays at items, no drain)
+        description: Created by the drip trays without a drain under the flanged LNG items away from any trough (XV-3123, TV-7103, the DN 25 thermal reliefs PSV-1122, PSV-1123, PSV-4111, PSV-4113), added with the shortened trough in 709fcf20 (D-018, D-033 item 11; layout, not an analysed input).
+        scenarios:
+          - id: S29
+            cause: >-
+              A leak at XV-3123 (DN 250 circulation return to T-3101, on the PR5 steel at its
+              joint), at TV-7103 (spray on the PR6 east leg over D-7101) or at one of the DN 25
+              thermal reliefs off the trough is larger or lasts longer than its drip tray holds
+              (XV-3123: 3 x 2 x 0.5 m, 3 m3, ~50 min of a ~1 kg/s flange leak; TV-7103: 1.6 m3, ~27
+              min of the full 3.5 t/h spray; all ASSUMED), or the tray is part-full of rain or ice
+              (no drain); the response rests on the operator closing XV-4105 and stopping the
+              circulation pump (XV-3123), and no low-temperature detection in the trays is drawn
+              (open with the design owner, D-033.10).
+            consequence: >-
+              LNG overflows the tray onto the rack steel and to grade where, since 709fcf20, no
+              trough runs (PR5's joint, PR6's east leg): cold embrittlement of the rack steel under
+              the DN 800 / 900 lines, a pool at grade beside the riser racks or over D-7101 in the
+              BOG area, and a flash or pool fire on ignition outside the screened design fires
+              (D-033.9 screens a fire held in its tray as a single fire, 1.1 kW/m2 at A2N from the
+              TV-7103 tray, under 0.5 from XV-3123).
+            refs: [XV-3123, TV-7103, PSV-1122, PSV-1123, PSV-4111, PSV-4113, XV-4105, P-2102, P-3102, D-7101]
+            modes: [loading, holding]
+            actions: [A26]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: B, status: proposed, by: agent, basis: "Cold LNG and a fire at grade beside the racks or in the BOG area with operators near; matrix 3 = lost-time injury. B: a flange or packing leak at one of six items larger or longer than its tray holds, or a tray full of rain, unnoticed, once in the plant life.", evidence: [DESIGN.md D-018, DESIGN.md D-033], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: aa86891dd127d418, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: B}}}
+                - {category: asset, severity: "3", likelihood: B, status: proposed, by: agent, basis: "Embrittlement of rack steel under the DN 800 / 900 lines or damage over D-7101; matrix 3 = plant down for weeks.", evidence: [DESIGN.md D-033], band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 579975b5e9fe3f0e, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '3', likelihood: B}}}
+            notes: >-
+              New scenario for 709fcf20 (D-018, D-033 item 11 (a), (c); the adversarial check of
+              review 2026-11-05-basic-layout-4): taking 140 m of trough out in front of T-2101 and
+              the PR5 / PR6 channels away removes exposures of the tanks and the riser towers, at
+              the price of holding the flanged items left off the trough in trays without a drain,
+              which work only while the operator stops the leak within the tray's time. The trays
+              and their capacities are layout and ASSUMED; no safeguard is credited.
   - id: N3
     title: Terminal N2 and instrument-air headers
     design_intent: >-
@@ -817,11 +988,18 @@ nodes:
               barg; no N2 connection, pressure regulator or relief for the vapour arm is drawn (N-8001
               enters the liquid header LNG-5001 only).
             consequence: Overpressure of LA-5102 / BOG-5001 during the leak test; swivel seal damage, rupture.
-            refs: [N-8001, LA-5102, BOG-5001]
+            refs: [N-8001, LA-5102, BOG-5001, XV-5122]
             modes: [startup]
             actions: [A14]
             status: proposed
             by: agent
+            notes: >-
+              Revised for 709fcf20 (SEQ-LOAD S1; D-032 item 7, review 2026-11-05-basic-design-6 #6):
+              the test boundary is written, XV-5122 closed on the shore side and the carrier's
+              manifold valve closed on the ship side with the ERS valves open, the test N2 vented
+              into the carrier's manifold, XV-5122 opened only after the test; where the N2 enters
+              the vapour arm and what limits its pressure are still not drawn, so the cause stands.
+              Codes kept.
             risk:
               initial:
                 - {category: people, severity: "3", likelihood: C, status: proposed, by: agent, basis: "Pressure release at the arm during a test with people present; matrix 3 = lost-time injury.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b6fe1208a949a698, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: C}}}
@@ -902,7 +1080,10 @@ nodes:
               while the liquid-path valves still hold (SG20); this covers the berth part of the
               second cause during a transfer, not the tank area or the rundown, not I-804 failing on
               demand, and not a berth without a transfer; with ZSO-5122 failed 'open' it is lost
-              (H-03 S27). No residual for the combined row. Codes kept.
+              (H-03 S27). No residual for the combined row. Codes kept. Revised for 709fcf20 (D-032
+              items 1, 7): the transfer state that arms SG20 is ZSC-n101 / UZ-n101, and while the
+              maintenance override of a failed ZSO-n122 is in force for a transfer the berth part of
+              the detection is lost too (H-03 S27). Codes kept.
       - id: N3-SP
         guide_word: other-than
         parameter: signal (spurious instrument-air trip)
@@ -958,7 +1139,11 @@ nodes:
               so a grid loss does not close the ERS valves while the pumps coast down; the couplers
               are energise-to-release and do not release on any power loss; a loss of the UPS supply
               of the solenoids as well closes the ERS valves and trips ESD-1, on a grid loss with the
-              pumps already stopped (at full flow it is H-03 S29).
+              pumps already stopped (at full flow it is H-03 S29). Since 709fcf20 (F-POWER, D-016,
+              D-032 item 2): channel A is fed from UPS A and channel B from UPS B on separate
+              distribution (ASSUMED); the loss of either during a transfer trips ESD-1 while the
+              other still holds the ERS valves open (H-03 S33), and both lost within the ESD-1
+              response, two independent faults, is H-03 S29.
             refs: [P-2101A, K-7101A, P-8101A, P-8102, XS-5100, UZ-5131]
             safeguards: [SG3]
             actions: [A16]
@@ -969,7 +1154,9 @@ nodes:
               the supplies of the ESD logic, the link and the ERS solenoids are stated (UPS,
               ASSUMED) and the coupler release no longer depends on power being present to hold;
               the UPS capacity and the PV-1110 and pilot supplies are still not in the files.
-              Codes kept.
+              Codes kept. Revised for 709fcf20 (F-POWER, D-032 item 2): the two ERS solenoid
+              channels are on two UPS; their capacity, the PV-1110 solenoid and the pilot supplies
+              are still not in the files. Codes kept.
             status: proposed
             by: agent
             risk:
@@ -983,7 +1170,7 @@ safeguards:
   - {id: SG5, title: "TI-8131 pilot flame temperature, pilot failure alarm", kind: alarm, refs: [TI-8131], status: proposed, by: agent}
   - {id: SG6, title: "LI-8103 sump level starting P-8102 (keeps T-8101 free of water)", kind: control, refs: [LI-8103, P-8102], status: proposed, by: agent}
   - {id: SG7, title: "Interlock I-801: TSL-8102 low temperature stops P-8102", kind: interlock, interlock: I-801, refs: [TSL-8102, P-8102], status: proposed, by: agent}
-  - {id: SG8, title: "ESD-1 of the berths (I-501 / I-601) stops the loading pumps", kind: interlock, interlock: I-501, refs: [XS-5100], status: proposed, by: agent, notes: "Initiated by the platform fire and gas, not by a spill in the tank area or on the trestle (I-501 notes). Since 79d5c7ad (D-030 items 4, 7) the manual push buttons (control room, jetty, platform) and the confirmed platform fire and gas are written causes in the I-501 / I-601 logic, and during a liquid transfer also the 2oo2 O2 high-high of AI-4133 / AI-4134; still no tank-area or trestle detection (A11)."}
+  - {id: SG8, title: "ESD-1 of the berths (I-501 / I-601) stops the loading pumps", kind: interlock, interlock: I-501, refs: [XS-5100], status: proposed, by: agent, notes: "Initiated by the platform fire and gas, not by a spill in the tank area or on the trestle (I-501 notes). Since 79d5c7ad (D-030 items 4, 7) the manual push buttons (control room, jetty, platform) and the confirmed platform fire and gas are written causes in the I-501 / I-601 logic, and during a liquid transfer also the 2oo2 O2 high-high of AI-4133 / AI-4134; still no tank-area or trestle detection (A11). Since 709fcf20 (D-032 items 1, 3, 7) they are the tags HS-5100 / HS-6100 and XS-5108 / XS-6108, the O2 high-high is that of the berth analyser AI-5126 / AI-6126 or of AI-4133 / AI-4134, and the transfer state is ZSC-n101 / UZ-n101."}
   - {id: SG9, title: TSL-8104 jetty sump low temperature alarm, kind: alarm, refs: [TSL-8104], status: proposed, by: agent}
   - {id: SG10, title: PI-8121 N2 header pressure indication, kind: other, refs: [PI-8121], status: proposed, by: agent}
   - {id: SG11, title: PI-8122 instrument-air header pressure indication and low alarm, kind: alarm, refs: [PI-8122], status: proposed, by: agent, notes: "Low alarm since f5d925f6 (instrument list); the trip is PZT-8123A/B/C (SG18)."}
@@ -994,8 +1181,8 @@ safeguards:
   - {id: SG16, title: "HV-8106A/B cryogenic ball valves with the cavity vented to the drum side, and the pressure-equalising hole of CV-8102A/B", kind: mechanical, refs: [HV-8106A, HV-8106B, D-8101, CV-8102A, CV-8102B], status: proposed, by: agent, notes: "Added in 886b0ad5 (D-026 item 14; P-08 note, line list LNG-8002 / LNG-8003): an isolated pump relieves its thermal expansion back into D-8101; the relief pressure of the seat is a vendor item. Since f5d925f6 (D-028 item 9) the check valve discs have an equalising hole, so the piece between CV-8102x and HV-8108x is covered too; the hole also passes reverse flow (S22)."}
   - {id: SG18, title: "Interlock I-804: instrument-air header low-low PZT-8123A/B/C (2oo3, 4.5 barg ASSUMED) initiates ESD-1 of both berths and the rundown trip I-102 before the fail-closed actuators stroke (~3.5 barg ASSUMED)", kind: interlock, interlock: I-804, refs: [PZT-8123A, PZT-8123B, PZT-8123C, XS-5100, XS-6100, XS-1100], status: proposed, by: agent, notes: "Added in f5d925f6 (D-028 item 1; P-08 note); latching, manual reset, SIL null; a transmitter fault alarms. Its failure on demand is S25, its spurious action S24."}
   - {id: SG19, title: "Non-return valves, local air accumulators and exhaust speed controllers of the fail-closed liquid-path valves (XV-5101 / XV-6101, XV-4101 / XV-4102, the arm isolations, XV-1102 / XV-1103, XV-1111..XV-1114)", kind: mechanical, refs: [UZ-5101, UZ-6101, UZ-4101, UZ-4102, UZ-1102, UZ-1103, UZ-1111, HS-5121], status: proposed, by: agent, notes: "Added in f5d925f6 (D-016, D-028 item 1; instrument list, P-01 / P-05 / P-06 notes): one closing stroke and a hold of at least 5 min after a loss of the header, closure no faster than the set speed (both ASSUMED); no proof test in the files (A20)."}
-  - {id: SG17, title: "Interlocks I-514 / I-614: AI-4133 / AI-4134 O2 above 5 vol % for 10 s closes the vapour arm isolation XV-5122 / XV-6122", kind: interlock, interlock: I-514, refs: [AI-4133, AI-4134, XV-5122, XV-6122], status: proposed, by: agent, notes: "Added in 886b0ad5 (D-026 item 7; review 2026-11-05-basic-design-2#11); latching, manual reset, SIL null; on the same single analyser as I-511 / I-611; its spurious action is a cause of H-03 S14. Since f5d925f6 2oo2 on two O2 cells and also closing XV-5125 / XV-6125; since 79d5c7ad (D-030 item 4) armed only with no liquid transfer at the berth (shore ESD valve not commanded open, or both loading line flows below 50 m3/h, ASSUMED); during a transfer the same O2 high-high trips ESD-1 (S23)."}
-  - {id: SG20, title: "Interlocks I-501 / I-601 on ZSO-5122 / ZSO-6122: the vapour arm isolation not proven open during a liquid transfer trips ESD-1, which detects an air loss at the platform end of the jetty air main", kind: interlock, interlock: I-501, refs: [ZSO-5122, ZSO-6122, XV-5122, XV-6122], status: proposed, by: agent, notes: "Added in 79d5c7ad (D-030 items 2, 8); XV-5122 / XV-6122 have no accumulator and move first; only during a liquid transfer; SIL null; voted platform-end transmitters remain hold H-04 (A20)."}
+  - {id: SG17, title: "Interlocks I-514 / I-614: O2 above 5 vol % for 10 s on the berth analyser AI-5126 / AI-6126 or the tank-end AI-4133 / AI-4134 closes the vapour arm isolation XV-5122 / XV-6122 (and XV-5125 / XV-6125) and opens XV-4135 / XV-4136", kind: interlock, interlock: I-514, refs: [AI-5126, AI-6126, AI-4133, AI-4134, XV-5122, XV-6122, XV-4135, XV-4136], status: proposed, by: agent, notes: "Added in 886b0ad5 (D-026 item 7; review 2026-11-05-basic-design-2#11); latching, manual reset, SIL null; on the same single analyser as I-511 / I-611; its spurious action is a cause of H-03 S14. Since f5d925f6 2oo2 on two O2 cells and also closing XV-5125 / XV-6125; since 79d5c7ad (D-030 item 4) armed only with no liquid transfer at the berth (at 79d5c7ad the shore ESD valve not commanded open, or both loading line flows below 50 m3/h, ASSUMED); during a transfer the same O2 high-high trips ESD-1 (S23). Title and refs revised for 709fcf20 (D-032 items 1, 3, 4): the berth analyser (two cells, 2oo2) is the O2 input with the tank-end analyser as backup, so the trip no longer shares the analyser of I-511; armed with XV-5101 / XV-6101 proven closed by ZSC-n101 and not held open by UZ-n101; it also opens XV-4135 / XV-4136, so the slug goes to the tanks and I-513 / I-613 close the flare valve (H-02 S25)."}
+  - {id: SG20, title: "Interlocks I-501 / I-601 on ZSO-5122 / ZSO-6122: the vapour arm isolation not proven open during a liquid transfer trips ESD-1, which detects an air loss at the platform end of the jetty air main", kind: interlock, interlock: I-501, refs: [ZSO-5122, ZSO-6122, XV-5122, XV-6122], status: proposed, by: agent, notes: "Added in 79d5c7ad (D-030 items 2, 8); XV-5122 / XV-6122 have no accumulator and move first; only during a liquid transfer; SIL null; voted platform-end transmitters remain hold H-04 (A20). Since 709fcf20 (D-032 items 1, 7) the transfer state is ZSC-n101 / UZ-n101, and a maintenance override of a failed ZSO-n122 may suspend it for one transfer (C&E bypass)."}
 actions:
   - {id: A1, status: proposed, by: agent, text: "P&ID P-08 and C&E change: add an independent high-high level switch on D-8101 (separate from LIC-8101) with a defined action (start the spare pump, alarm, close LV-7102), and confirm the KO drum liquid hold-up for the largest credible liquid slug (H-01 S6, H-04 S9).", response: "Partly answered by commit 589c9ca7 (D-025 item 6; review #20): independent high-high LZT-8105 on its own nozzle; I-802 starts the standby pump P-8101B and closes LV-7102 (the D-7101 drain). Still open: the KO drum hold-up for the largest liquid slug; I-802's own consequence is S19. Commit 886b0ad5 (D-026 item 14) has I-802 start both pumps, non-latching and yielding to I-803; the hold-up is still not confirmed, and the parallel running is S21 (A19). Still proposed."}
   - {id: A2, status: proposed, by: agent, text: "P&ID P-08 change: add a low-level pump trip on D-8101 independent of LIC-8101 and a minimum-flow return for P-8101A/B to D-8101; state the response when the site liquid burner is unavailable.", response: "Partly answered by commit 589c9ca7 (D-025 item 6): a continuous minimum flow LNG-8005 through FO-8107 to D-8101 for either pump, and suction isolation HV-8106A/B. Still open: a low-level pump trip independent of LIC-8101 and the response when the site liquid burner is unavailable. Commit fac0bbb5 (DESIGN.md D-026 items 9, 11) adds the low-level trip: I-803 on LZT-8105 (own nozzle, independent of LIC-8101) stops P-8101A/B at low-low level, LIC-8101 drives the pumps by signal lines through HS-8101A / HS-8101B, and HV-8108A/B isolate the discharges. Still open: the response when the site liquid burner is unavailable; the discharge isolations create S20 (A18). Still proposed."}
@@ -1005,20 +1192,21 @@ actions:
   - {id: A6, status: proposed, by: agent, text: "Show the pilot ignition system and its re-ignition on pilot failure (TI-8131) on P-08, and define the response to an unlit flare during loading."}
   - {id: A7, status: proposed, by: agent, text: "Line list change: give FL-8001, FL-8002 (and FL-7002, FL-7003..FL-7005; the D-7101 relief line of the revision analysed was removed in fac0bbb5) a low-temperature material and minimum design temperature for the coldest relief (cold BOG, LNG carry-over), or show where the gas is warmed."}
   - {id: A8, status: proposed, by: agent, text: "P&ID P-05 / P-06 / P-08 change: draw the carrier de-inerting and cooldown route to the storage and loading flare (D-017, S-02) separate from the tank vapour header, with its valves and the switch-over criterion (hydrocarbon content).", response: "Answered in the design by commit 589c9ca7 (D-025 items 3, 6; review #19): BOG-4013 from vapour return A (XV-4131) joined by BOG-4014 from return B (XV-4132) to D-8101, switched at the tank end by AI-4133 / AI-4134 (N2 / O2 / CH4) and I-511 / I-611, make-before-break with XV-4135 / XV-4136; drawn on P-04 and P-08. For the team to verify and close; the switch's failures are H-02 S15 to S18, the O2 it sends to the flare is S18 here."}
-  - {id: A9, status: proposed, by: agent, text: "Confirm the dry-sump philosophy of T-8101: a high level alarm on LI-8103, the P-8102 capacity against the design rain, and the start of the high-expansion foam on TSL-8102 shown on P-08 (the foam system is in the I-801 notes only)."}
+  - {id: A9, status: proposed, by: agent, text: "Confirm the dry-sump philosophy of T-8101: a high level alarm on LI-8103, the P-8102 capacity against the design rain, and the start of the high-expansion foam on TSL-8102 shown on P-08 (the foam system is in the I-801 notes only).", response: "Not answered at 709fcf20: D-033 items 3 and 10 deepen the basin to 10.5 m and leave the type and head of P-8102 for the deeper pit with the design owner; high-expansion foam at the junction, the culverts and the basin inlet is ASSUMED until the fire protection design; nothing is added to P-08. Still proposed."}
   - {id: A10, status: proposed, by: agent, text: "Determine the required integrity of I-801 (single TSL-8102) and consider a second, independent low-temperature switch or a discharge isolation valve on W-8002 that closes on LNG in the sump."}
-  - {id: A11, status: proposed, by: agent, text: "C&E change: add tank-area and trestle fire and gas / low-temperature spill detection as a cause of ESD-1 (I-501 / I-601) and of I-101, and confirm the T-8101 design spill against the ESD response time.", response: "Not answered at 79d5c7ad: D-030 item 7 writes the manual push buttons and the confirmed platform fire and gas into the I-501 / I-601 logic; there is still no tank-area or trestle fire and gas or spill detection and no cause of ESD-1 or I-101 from it, now also none along the ~760 m of open trough and in the enclosed channels (S26, S27). Still proposed."}
-  - {id: A12, status: proposed, by: agent, text: "P&ID P-08 change: give T-8102 a level measurement and a water removal (pump or drain with LNG interlock as I-801), and show its foam system.", response: "Not answered at 79d5c7ad: D-031 item 6 names it open with the design owner (P-08 and this action): a level transmitter with a high alarm and a fixed water removal interlocked off on low temperature for T-8102, or a covered sump; until then the T-8102 notes give a rain margin of ~170 m3 against ~33 m3 for an arm or flange failure until ESD closure (ASSUMED); the catwalk S-CW-A9 now carries TSL-8104's cable and a walkway for access. Still proposed."}
+  - {id: A11, status: proposed, by: agent, text: "C&E change: add tank-area and trestle fire and gas / low-temperature spill detection as a cause of ESD-1 (I-501 / I-601) and of I-101, and confirm the T-8101 design spill against the ESD response time.", response: "Not answered at 79d5c7ad: D-030 item 7 writes the manual push buttons and the confirmed platform fire and gas into the I-501 / I-601 logic; there is still no tank-area or trestle fire and gas or spill detection and no cause of ESD-1 or I-101 from it, now also none along the ~760 m of open trough and in the enclosed channels (S26, S27). Not answered at 709fcf20: the cause tags HS-n100 and XS-n108 are written (D-032 item 7); D-033 item 2 (d) gives the B-SUB intake gas detection with a damper trip (HVAC engineer, ASSUMED), not an ESD-1 cause; there is still no tank-area, trestle, trough or collector detection acting on ESD-1 or I-101 (S26, S27, S29). Still proposed."}
+  - {id: A12, status: proposed, by: agent, text: "P&ID P-08 change: give T-8102 a level measurement and a water removal (pump or drain with LNG interlock as I-801), and show its foam system.", response: "Not answered at 79d5c7ad: D-031 item 6 names it open with the design owner (P-08 and this action): a level transmitter with a high alarm and a fixed water removal interlocked off on low temperature for T-8102, or a covered sump; until then the T-8102 notes give a rain margin of ~170 m3 against ~33 m3 for an arm or flange failure until ESD closure (ASSUMED); the catwalk S-CW-A9 now carries TSL-8104's cable and a walkway for access. Not answered at 709fcf20: D-033 items 10, 11 (g) make T-8102 6 m across and 9.5 m deep (~159 m3 below the inlet) and require it to be kept pumped down so LNG never meets standing water, with its level measurement and fixed water removal with a low-temperature trip open with the design owner (P-08, this action); the foam is still not shown. Still proposed."}
   - {id: A13, status: proposed, by: agent, text: "Add a low-pressure alarm on PI-8121 and make 'N2 header healthy' a permissive of SEQ-LOAD S1 / S2; consider a back-up N2 supply for purge and seal gas."}
-  - {id: A14, status: proposed, by: agent, text: "P&ID P-05 / P-06 / P-08 change: show the N2 connection for the vapour arm leak test and purge with a pressure regulator and a relief valve set below the 3.5 barg design of LA-5102 / LA-6102."}
+  - {id: A14, status: proposed, by: agent, text: "P&ID P-05 / P-06 / P-08 change: show the N2 connection for the vapour arm leak test and purge with a pressure regulator and a relief valve set below the 3.5 barg design of LA-5102 / LA-6102.", response: "Not answered at 709fcf20: SEQ-LOAD S1 now states the test boundary (XV-n122 closed, the carrier's manifold valve closed, the ERS valves open) and vents the test N2 into the carrier's manifold (D-032 item 7, #6); the N2 connection to the vapour arm, its regulator and its relief are still not drawn (S15). Still proposed."}
   - {id: A15, status: proposed, by: agent, text: "Record the fail position of every ESD and switching valve (XV) in the instrument list or the C&E, add a low instrument-air pressure alarm and action (ESD-1 at a set pressure) on PI-8122, and size air receivers for the ESD valves and PV-1110 (see H-04 A2).", response: "Partly answered by commit 589c9ca7: the fail positions of the valves it added are in the instrument list (XV-1115, XV-5161 / XV-6161, XV-7123A..C, XV-7130 closed; XV-7125A..C, XV-4135 / XV-4136 open), control/philosophy.md F-AIR states the ESD, ERS and fill valves close, and XV-1115 has its own air accumulator. Still open: the fail position of every other XV (e.g. XV-7121A..C, XV-4131 / XV-4132), the low instrument-air alarm and action on PI-8122, and the air receivers. Since fac0bbb5 / 886b0ad5 XV-7121A..C are given fail closed (D-026 item 5) and XV-4131 / XV-4132 fail closed (D-026 item 1, P-04, instrument list). Still open: the low instrument-air alarm and action on PI-8122 and the air receivers. Mostly answered by commit f5d925f6 (D-016, D-028 item 1): PI-8122 has a low alarm, and the low-low trip PZT-8123A/B/C (own tappings, 2oo3, 4.5 barg ASSUMED, C&E I-804) initiates ESD-1 of both berths and the rundown trip before the valves move; the fail-closed liquid-path valves have local air accumulators with non-return valves (one stroke, at least 5 min hold, ASSUMED) and speed controllers; the ERS valves are hydraulic; XV-2123 / XV-3123 are given fail closed. Still open: the accumulator and hold-time sizing (detail engineering, D-028), an air receiver or assured action for PV-1110 (H-04 A2), and the proof test of the trip and the accumulators (A20). Still proposed."}
   - {id: A17, status: proposed, by: agent, text: "Agree with the carrier operators the maximum O2 content of the de-inerting and gassing-up vapour, and confirm that the flare system may receive it (O2 limit, purge rate, the O2 analyser on FL-8001 / D-8101 of A5); otherwise state where vapour above that O2 content goes.", response: "Partly answered by commit fac0bbb5 (DESIGN.md D-026 item 7): vapour goes to the flare only below 5 vol % O2 (inert gas quality, ASSUMED) and to the tanks only below 1 vol % O2 and on hydrocarbon specification (S-01 purge limit); above 5 % the berth does not take the vapour and the carrier vents on board under the terminal rules; AI-4133 / AI-4134 measure CH4, N2 and O2. Still open: agreement of the limit with the carrier operators, confirmation that the flare system may receive vapour at up to 5 vol % O2 with its purge, and the O2 analyser on FL-8001 / D-8101 (A5). Commit 886b0ad5 implements the rejection above 5 vol %: I-514 / I-614 close XV-5122 / XV-6122 (S18 residual). The other open items are unchanged. Still proposed."}
   - {id: A18, status: proposed, by: agent, text: "P&ID P-08 / special items: give each KO pump section between HV-8106x and HV-8108x (including the piece between CV-8102x and HV-8108x) a thermal relief to D-8101, or a casing vent and drain with a written isolation procedure that drains the pump to D-8101 before both isolations are closed; list the device in piping/special-items.yaml (S20).", response: "Partly answered by commit 886b0ad5 (D-026 item 14; review 2026-11-05-basic-design-3#3): HV-8106A/B are cryogenic ball valves with the cavity vented to the drum side, so a pump blocked in between HV-8106x and HV-8108x relieves into D-8101, and the P-08 note and the equipment list say to drain the pump to the drum before maintenance. Still open: the piece between CV-8102x and a closed HV-8108x (the check valve separates it from the pump and the vent), the seat relief pressure from the valve vendor, and a written isolation procedure. Commit f5d925f6 (D-028 item 9; review 2026-11-05-basic-design-4 #5) gives CV-8102A/B a disc with a pressure-equalising hole, tagged on P-08, so that piece relieves back through the pump and the HV-8106x cavity vent into D-8101 (P-08 note, LNG-8001 / LNG-8004 notes). Still open: the seat relief pressure and the hole size from the vendors, and the written isolation procedure; the hole's reverse flow is S22 (A21). Still proposed."}
   - {id: A19, status: proposed, by: agent, text: "Confirm with the site the capacity of the liquid burner and of LNG-8001 for both KO pumps in parallel (I-802 starts the pump that is not running, S21), and the burner's interface trip; otherwise have I-802 start the standby only when the duty pump is not running (run feedback), and size FO-8107 for two pumps or give each pump its own minimum flow."}
   - {id: A20, status: proposed, by: agent, text: "Air header trip I-804 and the valve accumulators: agree with the site air system the 4.5 barg trip point (ASSUMED) against the header's normal transients and the ~3.5 barg stroke pressure, and whether a short confirmation delay fits that margin (S24); decide the second set of air-header transmitters at the platform end of the jetty air main and the air distribution (D-020, D-028) so that a break of the air main far from IA-8001 trips ESD-1 before the berth valves move (S25); size the accumulators and hold times; put I-804 (transmitters, voting, outputs) and every non-return valve, accumulator and speed controller of the fail-closed liquid-path valves in the proof test; write the reset and restart after an I-804 trip (F-AIR: reset I-804, then the berths by SEQ-LOAD and the compressors by SEQ-BOG-START) (S16, S24, S25).", response: "Partly answered by commit 79d5c7ad (D-030 items 2, 13): at basic an air loss at the platform end is detected during a transfer by ZSO-5122 / ZSO-6122 on the accumulator-less vapour arm isolations (SG20); the voted platform-end transmitters and the jetty air distribution are hold H-04, the accumulator and hold-time sizing hold H-03, the voting of PZT-8123A/B/C and of the position switches the SIL screening (hold H-06). Still open: the trip point against the header transients and a confirmation delay, the proof test, and the written reset and restart. Still proposed."}
   - {id: A21, status: proposed, by: agent, text: "Confirm with the check valve and pump vendors the size of the pressure-equalising hole of CV-8102A/B against the reverse flow through a stopped standby pump (reverse rotation limit, start against reverse rotation), and state in the operating instructions whether the standby is kept with HV-8108x open or closed (S22)."}
-  - {id: A22, status: proposed, by: agent, text: "Layout and spill design: state the cover, slope and capacity of the ~240 m tank-area trough to T-8101 and the ventilation of its culvert under road R2 (Z-KC-TROUGH-SUMP), consider gas or low-temperature detection along the trough and at the culvert with the closure of road R2 on a spill, and include the trough route in the vapour dispersion of the CSA Z276 / NFPA 59A siting study (D-018 says dispersion is not calculated); consider adding the layout files to the analysed inputs of this study (S26).", response: "Partly answered by commit 79d5c7ad (D-018, D-031 item 1; layout): the collector is re-routed away from the shells and the riser towers in open 0.6 x 1.2 m troughs under PR1, PR2, PR3 and PR4 (~760 m), across R7 and R2 in culverts, with an enclosed channel under PR5 / PR6 and the riser towers vented into the PR1 trough, sized for one loading line (ASSUMED), and screened as a line-source trough fire with its residuals stated (roads beside the troughs above 8 kW/m2, a third A2 way out). Still open: the culvert ventilation, the vapour formed along the troughs and in the channel and its vent (the civil / process detail's, D-031), gas or low-temperature detection along the route, a road closure on a spill, and the vapour dispersion in the siting study; the layout is still not an analysed input. Still proposed."}
-  - {id: A23, status: proposed, by: agent, text: "Alarm and operating instruction for the O2 high-high of AI-4133 / AI-4134 during the transfer (SEQ-LOAD S4 on, where I-514 / I-614 are not armed): set point, priority and the operator's response time to ESD-1, and whether I-511 / I-611 should keep vapour above 5 vol % O2 out of the flare in that mode (S23).", response: "Answered in the design by commit 79d5c7ad (D-030 item 4; review 2026-11-05-basic-design-5 #4): during any liquid transfer, the S3 cooldown included, the 2oo2 O2 high-high of AI-4133 / AI-4134 for 10 s trips ESD-1 (I-501 / I-601), so the response no longer rests on the operator; I-511 does not act while ESD-1 is tripped and I-513 closes the flare valve once the tank-side valve is proven open. For the team to verify and close; the vapour of the 10 s delay still reaches the flare, and the line pack the tanks (H-02 S23, A19). Still proposed."}
-  - {id: A24, status: proposed, by: agent, text: "Civil / process detail: size the vents of the enclosed channel under PR5 / PR6 and the riser towers and of the enclosed collectors under the jetty deck for the vapour formed by a spill on the warm channel in the first minutes, keep the vent outlets out of the racks, riser towers and platform working areas, decide whether the channel is designed for a confined deflagration, inerted or given gas and low-temperature detection with an ESD action, and include the channels in the siting study (S27)."}
-  - {id: A25, status: proposed, by: agent, text: "Screen the muster point Z-ESC-A4N, the start of the trestle road R5 and the boat route Z-ESC-A4-SEA against a jet or pool fire and a vapour cloud at the Berth 2 manifold and arms (11.5 m from the muster point), and state an alternative muster point or refuge for a Berth 2 manifold event with the wind toward the north-west; confirm the boat's approach with the marine engineer and the TERMPOL review (S28)."}
-  - {id: A16, status: proposed, by: agent, text: "Write the power-failure case: which loads are on UPS (ESD logic, ship-shore link XS-5100 / XS-6100, ERS hydraulic accumulators, PV-1110 solenoid, flare pilots ignition), and the resulting flare load (A4).", response: "Partly answered by commit 79d5c7ad (F-POWER, D-016, D-030 item 3): the control system, the ESD logic, the ship-shore link and the two solenoid channels of each ERS valve are on uninterruptible supplies (ASSUMED), the HPU keeps its accumulator charged, the couplers are energise-to-release, and a loss of the solenoid supply trips ESD-1. Still open: the UPS capacity and duration, the PV-1110 solenoid and the flare pilot ignition supplies, and the resulting flare load (A4). Still proposed."}
+  - {id: A22, status: proposed, by: agent, text: "Layout and spill design: state the cover, slope and capacity of the ~240 m tank-area trough to T-8101 and the ventilation of its culvert under road R2 (Z-KC-TROUGH-SUMP), consider gas or low-temperature detection along the trough and at the culvert with the closure of road R2 on a spill, and include the trough route in the vapour dispersion of the CSA Z276 / NFPA 59A siting study (D-018 says dispersion is not calculated); consider adding the layout files to the analysed inputs of this study (S26).", response: "Partly answered by commit 79d5c7ad (D-018, D-031 item 1; layout): the collector is re-routed away from the shells and the riser towers in open 0.6 x 1.2 m troughs under PR1, PR2, PR3 and PR4 (~760 m), across R7 and R2 in culverts, with an enclosed channel under PR5 / PR6 and the riser towers vented into the PR1 trough, sized for one loading line (ASSUMED), and screened as a line-source trough fire with its residuals stated (roads beside the troughs above 8 kW/m2, a third A2 way out). Still open: the culvert ventilation, the vapour formed along the troughs and in the channel and its vent (the civil / process detail's, D-031), gas or low-temperature detection along the route, a road closure on a spill, and the vapour dispersion in the siting study; the layout is still not an analysed input. Partly answered further by commit 709fcf20 (D-018, D-033 items 1-3, 7, 11; layout): the enclosed channels and PR2's trough are removed; ~510 m of open trough, 0.6 m, lined with cellular glass (about 25 times less vapour than bare concrete, ASSUMED), at 0.5 % fall on a recorded profile from the PR6 joint into the basin at (990, 3237.5), 10.5 m deep, so the design spill does not back up; every trough leg is a zone 2 release source; vehicle entry at the R7 and R2 culverts under the site's control (gas test or permit, ASSUMED, an operating measure); gas detection with a damper trip at the B-SUB intake LV1 (ASSUMED); fire approaches on R1, R11, R8, R2, R4. Still open: the culvert ventilation, gas or low-temperature detection along the troughs, a road closure on a spill, the B-SUB vapour distance and the dispersion in the siting study, the civil quantities; the layout is still not an analysed input. Still proposed."}
+  - {id: A23, status: proposed, by: agent, text: "Alarm and operating instruction for the O2 high-high of AI-4133 / AI-4134 during the transfer (SEQ-LOAD S4 on, where I-514 / I-614 are not armed): set point, priority and the operator's response time to ESD-1, and whether I-511 / I-611 should keep vapour above 5 vol % O2 out of the flare in that mode (S23).", response: "Answered in the design by commit 79d5c7ad (D-030 item 4; review 2026-11-05-basic-design-5 #4): during any liquid transfer, the S3 cooldown included, the 2oo2 O2 high-high of AI-4133 / AI-4134 for 10 s trips ESD-1 (I-501 / I-601), so the response no longer rests on the operator; I-511 does not act while ESD-1 is tripped and I-513 closes the flare valve once the tank-side valve is proven open. For the team to verify and close; the vapour of the 10 s delay still reaches the flare, and the line pack the tanks (H-02 S23, A19). Commit 709fcf20 (D-032 item 3) moves the O2 trips to the berth analysers AI-5126 / AI-6126, so the trip acts before the vapour enters the return and the slug goes to the tanks, not the flare (S18, S23); the flare sees vapour above 5 vol % only with the berth analyser failed low (H-03 S37). For the team to verify and close. Still proposed."}
+  - {id: A24, status: proposed, by: agent, text: "Civil / process detail: size the vents of the enclosed channel under PR5 / PR6 and the riser towers and of the enclosed collectors under the jetty deck for the vapour formed by a spill on the warm channel in the first minutes, keep the vent outlets out of the racks, riser towers and platform working areas, decide whether the channel is designed for a confined deflagration, inerted or given gas and low-temperature detection with an ESD action, and include the channels in the siting study (S27).", response: "Partly answered by commit 709fcf20 (D-018, D-033 items 1, 4, 11 (f); layout): the enclosed channels under PR5 / PR6 and the riser towers are removed; the jetty collectors are lined with cellular glass and sized for the vapour formed (~10 Pa over the longest path, ASSUMED), with no seals and no vent other than the sump wall, and the collector vapour flame is screened at the sump and at the worst dry outlet. Still open: a design for a confined deflagration inside the collectors, inerting or gas and low-temperature detection with an ESD action, and the collectors in the siting study. Still proposed."}
+  - {id: A25, status: proposed, by: agent, text: "Screen the muster point Z-ESC-A4N, the start of the trestle road R5 and the boat route Z-ESC-A4-SEA against a jet or pool fire and a vapour cloud at the Berth 2 manifold and arms (11.5 m from the muster point), and state an alternative muster point or refuge for a Berth 2 manifold event with the wind toward the north-west; confirm the boat's approach with the marine engineer and the TERMPOL review (S28).", response: "Mostly answered by commit 709fcf20 (D-033 item 5; layout): Z-ESC-A4N is removed; the muster point, life-raft station and boat landing are on the B-JET deck A7 (Z-ESC-A4-MUSTER), 214 m from the nearest tray bay and ~300 m from T-8102; two ways off from opposite corners of the platform's north edge (W1 the trestle road R5, W2 a walkway east of PR2) are screened so that one stays at 4.9 kW/m2 or less for each of the 27 bay fires and the muster point at 0.21 kW/m2 (1.27 with every Berth 1 bay burning); the boat leaves west, 71 m north of the Berth 2 hull envelope (all ASSUMED). Still open: the jet fire and vapour cloud screening of the ways off (S28, the siting study), the W2 walkway, the A7 landing and the mooring lines (marine engineer), and the TERMPOL review of the boat's approach. Still proposed."}
+  - {id: A26, status: proposed, by: agent, text: "Design owner / layout: give the item drip trays without a drain (XV-3123, TV-7103, PSV-1122, PSV-1123, PSV-4111, PSV-4113) low-temperature detection with an alarm and a written response (close XV-4105 and stop the circulation pump for XV-3123, isolate TV-7103), state how they are kept free of rain and ice, and confirm their hold-up against the largest credible leak at the item until it is isolated; otherwise give them a drain to the trough (S29)."}
+  - {id: A16, status: proposed, by: agent, text: "Write the power-failure case: which loads are on UPS (ESD logic, ship-shore link XS-5100 / XS-6100, ERS hydraulic accumulators, PV-1110 solenoid, flare pilots ignition), and the resulting flare load (A4).", response: "Partly answered by commit 79d5c7ad (F-POWER, D-016, D-030 item 3): the control system, the ESD logic, the ship-shore link and the two solenoid channels of each ERS valve are on uninterruptible supplies (ASSUMED), the HPU keeps its accumulator charged, the couplers are energise-to-release, and a loss of the solenoid supply trips ESD-1. Still open: the UPS capacity and duration, the PV-1110 solenoid and the flare pilot ignition supplies, and the resulting flare load (A4). Commit 709fcf20 (F-POWER, D-032 item 2) puts the two ERS solenoid channels on two independent UPS A / UPS B on separate distribution (ASSUMED), each monitored (XA-n130A / B). Still open as before. Still proposed."}

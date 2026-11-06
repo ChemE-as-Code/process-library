@@ -17,7 +17,11 @@
 # 79d5c7ad (DESIGN.md D-030 items 1, 4, 6, 5: I-201 / I-301 no longer stop the circulation pumps
 # that feed the spray, which I-205 / I-305 stop only if the return is not proven closed; I-514 /
 # I-614 armed on 'no liquid transfer' with the O2 high-high an ESD-1 cause during a transfer;
-# I-103 and the PSV-1121 entry on P-01 / in the special items; the P-01 change is a sheet note).
+# I-103 and the PSV-1121 entry on P-01 / in the special items; the P-01 change is a sheet note),
+# then to those of commit 709fcf20 (DESIGN.md D-032 items 1, 3, 6, 7, D-026.1 / .7: the berth O2
+# analysers AI-5126 / AI-6126 for I-514 / I-614 and the ESD-1 transfer cause, I-n14 also opening
+# XV-4135 / XV-4136, the D-026.1 bound restated; the circulation pumps that feed the spray left
+# running on ESD-1; the I-205 / I-305 on-delay moved onto 'I-n01 tripped'; P-01 and P-07 unchanged).
 # Every entry is a proposal for the team.
 schema: cheme/hazop-study/v1
 kind: hazop-study
@@ -49,10 +53,10 @@ modes:
 analysed:
   - {path: pid/P-07.xml, revision: 'sha256:ae8b86ea369978e5dfe845febc3c630adbcde5e32e830e777769a25839006b85', relation: analyses}
   - {path: pid/P-01.xml, revision: 'sha256:3122080b55631f5f232fe4cdea4669441105df23ceb5b55ca0d061948170e21b', relation: analyses}
-  - {path: control/cause-effect.yaml, revision: 'sha256:bbf0f6ff5cec619525ef4d30f4b28c00f42fa8176d6a35ed5acf844c474e36d3', relation: analyses}
+  - {path: control/cause-effect.yaml, revision: 'sha256:d6f4c1bfe3a9166fcec401f84958bc92ae1d809564a21ce05033f7502d6bf2ba', relation: analyses}
   - {path: control/loops.yaml, revision: 'sha256:a7417294d1288704b77fac600cc7963a95b21a3dcaa295aef23e52e0cf9a7b30', relation: analyses}
-  - {path: control/sequences.yaml, revision: 'sha256:b9c24b1b46bf454189319117cd324b23048b138ecc33af1a2694b0736411f3fd', relation: analyses}
-  - {path: piping/special-items.yaml, revision: 'sha256:104f5fb0c4f3e6ffb23a4c31e7e5f70c7faf757af86c75493cc2a2b61c922c01', relation: analyses}
+  - {path: control/sequences.yaml, revision: 'sha256:85a39deac075a36e4e13b0180df761829fc6356c085352f1fed5189727f45291', relation: analyses}
+  - {path: piping/special-items.yaml, revision: 'sha256:a309ebb57ed8ea9d766ac0a5eb0ccd1e773d2c01ce01784fc0800b254fadce04', relation: analyses}
 risk_matrix: safety/risk-matrix.yaml
 assessment_basis: >-
   Each scenario is rated per category before its safeguards (initial): severity is the credible
@@ -73,7 +77,9 @@ assessment_basis: >-
   analysed in H-01 S21, H-03 S25 and H-05 S24, S25. The revision for commit 79d5c7ad (D-030)
   adds no scenario and changes no code: the spray source (S10) and the oxygen routes (S7) are
   re-described in place; the new deviations are analysed in H-01 S24, S25, H-02 S23, S24 and H-03
-  S26 to S30.
+  S26 to S30. The revision for commit 709fcf20 (D-032) adds no scenario and changes no code: the
+  oxygen routes (S7) and the spray source (S10) are re-described in place; the new deviations are
+  analysed in H-02 S25 and H-03 S31 to S37.
 team: []            # to be named by the project; no team has sat on this draft yet
 notes: >-
   Drafted by an agent (skills hazop-study, hazop-equipment-causes, relief-scenarios,
@@ -284,7 +290,13 @@ nodes:
               79d5c7ad armed only with no liquid transfer at the berth, D-030 item 4). Since 79d5c7ad
               also: during a liquid transfer the 2oo2 O2 high-high trips ESD-1, which opens XV-4135 /
               XV-4136 and sends the line pack of the return, above 5 vol % O2 by definition, to the
-              tank vapour header (H-02 S23).
+              tank vapour header (H-02 S23). Since 709fcf20 (D-026.1 / .7 corrected by D-032 item 3):
+              the O2 trips act on the berth analysers AI-5126 / AI-6126 (AI-4133 / AI-4134 as
+              backup), so what an ESD-1 or the reject sends to the tanks is the line pack at or below
+              5 vol % plus a slug of at most ~200 m3 that passed the berth, at most ~100 m3 of O2,
+              below 0.25 vol % of the tank vapour space (ASSUMED); I-514 / I-614 now also open
+              XV-4135 / XV-4136, so the reject sends that slug to the tanks, not to the flare (H-02
+              S25); with the berth analyser failed low the whole line pack returns (H-03 S37).
             consequence: >-
               O2 (or N2 / CO2 inert gas) reaches the compressors and the trains' end-flash / fuel
               gas system; flammable mixture in the suction drum and the compressor; inert gas
@@ -309,7 +321,10 @@ nodes:
               no O2 measurement on the BOG header. Codes kept. Revised for 79d5c7ad (D-030 item 4):
               the ESD-1 on the O2 high-high during a transfer adds a route whose O2 content is not
               bounded by the 5 vol % of D-026 item 1 (H-02 S23, A19); still no O2 measurement on the
-              BOG header (A5). Codes kept.
+              BOG header (A5). Codes kept. Revised for 709fcf20 (D-032 item 3): D-026.1 now bounds
+              that route and the reject's slug with the O2 measured at the berth (H-02 S23, S25);
+              the berth analysers are not an O2 measurement on the BOG header and do not see air
+              after a vacuum relief lift, so A5 is unchanged. Codes kept.
       - id: N1-LP2
         guide_word: less
         parameter: pressure (SIS vent open)
@@ -480,7 +495,11 @@ nodes:
               I-301 pump stop is a new cause of the same class; codes kept. Revised for 79d5c7ad
               (D-030 item 1): the tank high-high no longer removes the spray while the return is
               proven closed; the narrower cause (a switch fault or a return valve failing to close
-              on a tank trip in loading) is of the same class. Codes kept.
+              on a tank trip in loading) is of the same class. Codes kept. Revised for 709fcf20
+              (D-016, D-032 items 6, 7): ESD-1 does not stop P-2102 / P-3102 by stated reason, so
+              the spray stays in service on every ESD-1 of a loading; the 15 s on-delay of I-205 /
+              I-305 now sits on the tank trip, so a momentary false 'not closed' of ZSC-2123 /
+              ZSC-3123 after it stops the spray pumps (H-02 S24). Same cause class. Codes kept.
       - id: N2-HL
         guide_word: more
         parameter: level
@@ -829,7 +848,7 @@ safeguards:
   - {id: SG21, title: Discharge check valves CV7122A..C, kind: check-valve, refs: [{sheet: P-07, object: CV7122A}, {sheet: P-07, object: CV7122B}, {sheet: P-07, object: CV7122C}], status: proposed, by: agent, notes: "Since 589c9ca7 downstream of the recycle tees (D-025 item 5)."}
   - {id: SG22, title: "Interlock I-702 closes XV-7121A and XV-7123A on a machine trip", kind: interlock, interlock: I-702, refs: [XV-7121A, XV-7123A], status: proposed, by: agent, notes: "K-7101B / C: I-702B, I-702C."}
   - {id: SG23, title: Restriction orifice FO-1117 on the make-up FG-1001, kind: mechanical, refs: [FO-1117, FG-1001], status: proposed, by: agent, notes: "Added in 589c9ca7; its size and the fuel-gas pressure are not in the files, so it limits the S1 flow by an unknown amount (A1)."}
-  - {id: SG24, title: "De-inerting switch to the flare at the tank end: AI-4133 / AI-4134 with I-511 / I-611 (XV-4131 / XV-4135, XV-4132 / XV-4136)", kind: interlock, interlock: I-511, refs: [AI-4133, AI-4134, XV-4131, XV-4132], status: proposed, by: agent, notes: "Added in 589c9ca7 on P-04 (analysed in H-02 N3); single analyser, SIL null. Since 886b0ad5 I-511 / I-611 do not act while ESD-1 is tripped, the flare valves XV-4131 / XV-4132 fail closed and the tank-side XV-4135 / XV-4136 fail open, so ESD-1 and an air failure send the vapour to the tanks (H-02 S20, S21); I-514 / I-614 reject vapour above 5 vol % O2 at the berth, since 79d5c7ad only with no liquid transfer; during a transfer the O2 high-high trips ESD-1, which sends the line pack to the tanks (H-02 S23)."}
+  - {id: SG24, title: "De-inerting switch to the flare at the tank end: AI-4133 / AI-4134 with I-511 / I-611 (XV-4131 / XV-4135, XV-4132 / XV-4136)", kind: interlock, interlock: I-511, refs: [AI-4133, AI-4134, XV-4131, XV-4132], status: proposed, by: agent, notes: "Added in 589c9ca7 on P-04 (analysed in H-02 N3); single analyser, SIL null. Since 886b0ad5 I-511 / I-611 do not act while ESD-1 is tripped, the flare valves XV-4131 / XV-4132 fail closed and the tank-side XV-4135 / XV-4136 fail open, so ESD-1 and an air failure send the vapour to the tanks (H-02 S20, S21); I-514 / I-614 reject vapour above 5 vol % O2 at the berth, since 79d5c7ad only with no liquid transfer; during a transfer the O2 high-high trips ESD-1, which sends the line pack to the tanks (H-02 S23). Since 709fcf20 (D-032 items 1, 3) the O2 trips act on the berth analysers AI-5126 / AI-6126 with AI-4133 / AI-4134 as backup, armed on ZSC-n101 / UZ-n101; I-514 / I-614 also open XV-4135 / XV-4136, and I-511 / I-512 do not act while they are tripped (H-02 S25)."}
   - {id: SG25, title: "Discharge isolation XV-7123A..C (fail closed), closed with XV-7121A..C on a trip (I-701, I-702 / I-702B / I-702C, I-703A..C)", kind: interlock, interlock: I-703A, refs: [XV-7123A, XV-7123B, XV-7123C], status: proposed, by: agent, notes: "Added in 589c9ca7; the instrument list says it closes on a stop too, the C&E only on trips (A9)."}
   - {id: SG26, title: "Interlock I-704: all BOG compressors stopped close the battery-limit ESD valve XV-7130", kind: interlock, interlock: I-704, refs: [K-7101A, K-7101B, K-7101C, XV-7130], status: proposed, by: agent, notes: "Added in 589c9ca7 (D-025 item 5): keeps the trains' system from back-feeding the stopped machines and the tanks."}
   - {id: SG27, title: "Interlocks I-703A..C: discharge temperature high-high TZT-7112A..C stops the machine and closes XV-7121x / XV-7123x", kind: interlock, interlock: I-703A, refs: [TZT-7112A, TZT-7112B, TZT-7112C], status: proposed, by: agent, notes: "Added in 589c9ca7 (D-025 item 5), independent of TIC-7103 and TI-7107."}
@@ -842,7 +861,7 @@ actions:
   - {id: A4, status: proposed, by: agent, text: "P&ID P-07 / P-01 change: give the make-up a source that does not depend on the running compressors (e.g. from the trains' fuel gas header through a pressure reducing station, with the battery-limit connection drawn), or show and confirm that BOG-7002 stays pressurised from the trains after I-204 / I-304; record the answer in DESIGN.md D-017.", response: "Answered in the design by commit 589c9ca7 (D-025 item 1; review #13): the make-up comes from the trains' fuel gas FG-1001 (battery-limit off-page drawn on P-01) through FO-1117 and PV-1111, independent of the BOG compressors; BOG-1009 removed; recorded in DESIGN.md D-025. For the team to verify and close; the fuel-gas capacity and availability are followed in A17."}
   - {id: A5, status: proposed, by: agent, text: "Consider an O2 analyser on the BOG header upstream of D-7101 with an alarm and compressor trip, and show the carrier de-inerting route to the flare (D-017 says to the storage and loading flare; no connection is drawn).", response: "Partly answered by commit 589c9ca7 (D-025 item 3; review #19): the de-inerting route BOG-4013 / BOG-4014 to D-8101 is drawn, switched by XV-4131 / XV-4135 (XV-4132 / XV-4136) on the analysers AI-4133 / AI-4134 (I-511 / I-611). Still open: an O2 measurement on the BOG header upstream of D-7101 with a compressor trip (air after a vacuum relief lift is not covered)."}
   - {id: A6, status: proposed, by: agent, text: "Determine the required integrity of I-701 (single LZT-7106) as the only layer against carry-over to all three machines; consider a high-high spray / low suction temperature cut-out that closes TV-7103 independently of TIC-7103."}
-  - {id: A7, status: proposed, by: agent, text: "State the spray source during loading (circulation pump running, or the loading header back-feeding LNG-2002) in SEQ-LOAD and SEQ-BOG-START, and add a high suction temperature alarm / trip on the compressor inlet independent of TIC-7103.", response: "Mostly answered by commit 589c9ca7: SEQ-LOAD S0 starts the circulation pump P-2102 and states that it keeps the desuperheater spray during loading; the discharge temperature trips TZT-7112A..C / I-703A..C act independently of TIC-7103 (D-025 item 5). Not done: a suction temperature alarm; SEQ-BOG-START does not name the spray source. For the team to judge whether the discharge trip suffices and to close. Commit 79d5c7ad (D-030 item 1; SEQ-LOAD S0) keeps the circulation pump, and so the spray, in service on a tank high-high during loading once ZSC-2123 / ZSC-3123 prove the returns closed; a switch fault still stops it (H-02 S24, A20). The suction temperature alarm is still not in the files. Still proposed."}
+  - {id: A7, status: proposed, by: agent, text: "State the spray source during loading (circulation pump running, or the loading header back-feeding LNG-2002) in SEQ-LOAD and SEQ-BOG-START, and add a high suction temperature alarm / trip on the compressor inlet independent of TIC-7103.", response: "Mostly answered by commit 589c9ca7: SEQ-LOAD S0 starts the circulation pump P-2102 and states that it keeps the desuperheater spray during loading; the discharge temperature trips TZT-7112A..C / I-703A..C act independently of TIC-7103 (D-025 item 5). Not done: a suction temperature alarm; SEQ-BOG-START does not name the spray source. For the team to judge whether the discharge trip suffices and to close. Commit 79d5c7ad (D-030 item 1; SEQ-LOAD S0) keeps the circulation pump, and so the spray, in service on a tank high-high during loading once ZSC-2123 / ZSC-3123 prove the returns closed; a switch fault still stops it (H-02 S24, A20). The suction temperature alarm is still not in the files. Commit 709fcf20 (D-016, D-032 item 6) states that ESD-1 does not stop P-2102 / P-3102, so the spray also stays on an ESD-1 of the loading; the suction temperature alarm and the spray source in SEQ-BOG-START are still not in the files. Still proposed."}
   - {id: A8, status: proposed, by: agent, text: "P&ID P-07 change: move the anti-surge take-off upstream of the discharge check valve CV7122A..C, or add a discharge ESD valve / second check valve downstream of the recycle tee, so that the discharge header cannot back-flow through an open UV-7104 into the suction; add an ESD valve or check valve at the battery limit on BOG-7002.", response: "Answered in the design by commit 589c9ca7 (D-025 item 5; review #10, #11): each discharge check valve CV7122A..C is downstream of its recycle tee, the discharge isolation XV-7123A..C (fail closed) follows it, and the battery-limit ESD valve XV-7130 (fail closed) on BOG-7002 is closed by I-704 when all machines have stopped. For the team to verify and close; S13, S19 re-rated."}
   - {id: A9, status: proposed, by: agent, text: "C&E / sequence change: close XV-7121A..C (and a discharge isolation, if added) on every compressor stop, not only on I-701 / I-702, and add the normal stop to SEQ-BOG-START or a stop sequence.", response: "Partly answered by commit 589c9ca7: XV-7123A..C close with XV-7121A..C on every trip (I-701, I-702 / I-702B / I-702C, I-703A..C), and the instrument list (UZ-7123A..C) says they close on a stop as well. Still open: the normal stop in the C&E or a stop sequence, and the opening of XV-7123A..C in SEQ-BOG-START. Commit fac0bbb5 (D-026 item 5) adds I-705A..C: a running machine stops and its XV-7123x closes when ZSO-7121x loses the open position of the fail-closed suction valve or PZT-7113 reads the suction header low-low, so a suction valve closing on a running machine now has its own trip (S15; spurious action S25). The normal stop is still not in the C&E or a stop sequence, and SEQ-BOG-START still does not open XV-7123x. Commit f5d925f6 (D-028 item 10) adds the opening of XV-7123x and XV-7130 with their proof to SEQ-BOG-START S2. Still open: the normal stop in the C&E or a stop sequence (closing XV-7121x / XV-7123x). Still proposed."}
   - {id: A10, status: proposed, by: agent, text: "Relief study: restate the relief case and set pressure of the D-7101 suction system relief valve (2.5 barg at the revision analysed; removed in fac0bbb5) for a suction system that cannot be isolated from tanks designed for +29 kPa(g): fire on D-7101 and back flow from the discharge (S13) are the credible cases.", response: "Answered by commit 589c9ca7 (review #26) with the relief case restated as fire on D-7101 and the suction header. Commit fac0bbb5 (DESIGN.md D-026 item 12; review 2026-11-05-basic-design-2, previous #26) removes that relief valve and its flare line from P-07, P-08 and the special items: D-7101 and BOG-1001 (DN 750) have no valve to the tanks, so neither a blocked outlet nor a fire raises them above the tank pressure; fire vapour vents back to the tank vapour space and PSV-2131A/B/C / PSV-3131A/B/C protect the drum (3.5 barg design). Still open for the team: whether the D-7101 fire load is in the tank PSV relief cases (not named in the special items) and the S13 back flow, which the tank PSVs alone face. Commit 886b0ad5 (review 2026-11-05-basic-design-3#9) names fire on D-7101 and the BOG suction header among the relief cases of PSV-2131A/B/C and PSV-3131A/B/C (special items), which answers the first point in the files; the sizing is not done at basic (D-025). Still open: the S13 back flow from the discharge, which is not among the tank PSV relief cases. Still proposed."}
