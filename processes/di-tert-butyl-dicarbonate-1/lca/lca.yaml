@@ -4,7 +4,7 @@
 #
 # Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the batch
 # plant with its amount per kg of distilled Boc2O, from the flowsheet's year averages of the
-# recipe (D-003). Per batch: multiply by 657.28 kg. The backgrounds are left unmapped (`missing:`
+# recipe (D-003). Per batch: multiply by 655.71 kg. The backgrounds are left unmapped (`missing:`
 # with the activity each should connect to), except where lca/mappings.yaml links a library
 # producer: a gap, never zero, and no values from licensed databases. The vents go through the
 # caustic scrubber to the site's thermal oxidiser (product:VENT, a waste treatment); the plant
@@ -26,7 +26,7 @@ boundary: cradle-to-gate
 case: design
 year: 2026
 location: GLO
-technology: "Batch plant: potassium tert-butoxide suspended in recovered hexane with DABCO at 278 K, CO2 dosed (2 h) then phosgene gas (4 h) in one glass-lined semi-batch, CO2 and isobutene vented as they form, the slurry degassed; the hexane stripped at 15 and 1 kPa(a) and recycled; the Boc2O melt washed with warm water; vacuum distillation at 0.13 kPa(a) from a liquid-paraffin heel; the vents to a caustic scrubber and a thermal oxidiser; 657.28 kg per batch, 760.7 batches a year on a dedicated train"
+technology: "Batch plant: potassium tert-butoxide suspended in recovered hexane with DABCO at 278 K, CO2 dosed (2 h) then phosgene gas (4 h) in one glass-lined semi-batch, CO2 and isobutene vented as they form, the slurry degassed; the hexane stripped at 15 and 1 kPa(a) and recycled; the Boc2O melt washed with warm water; vacuum distillation at 0.13 kPa(a) from a liquid-paraffin heel; the vents to a caustic scrubber and a thermal oxidiser; 655.71 kg per batch, 762.5 batches a year on a dedicated train"
 rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
 flows:
   # raw materials
@@ -69,7 +69,7 @@ flows:
     source: "flowsheet energy streams Q9 (first strip's condenser), Q16 (second strip's condenser after the vacuum pump) and Q13 (forerun condenser), D-009"
   - key: product:BRINE
     missing: "not mapped yet (D-012); connect to: refrigeration at 258 K (brine) from an electric vapour-compression unit (e.g. processes/utility-chiller), per kWh of heat removed: compressor electricity at its COP, condenser cooling water, refrigerant losses"
-    source: "flowsheet energy streams Q1 (charge cooling), Q2 (the heats of carbonation and phosgenation, R101's model) and Q3 (the absorption heat of the dissolved excess CO2), D-009"
+    source: "flowsheet energy streams Q1 (charge cooling), Q2 (the heats of carbonation and phosgenation with the doses' heats of solution, R101's model) and Q17 (R-101's vent condenser, R101's model), D-009, D-015"
   # wastes
   - key: product:AQ
     treatment: {kind: waste, route: "site wastewater treatment of a saline effluent (about 17 wt% KCl, with tert-butanol, DABCO and the carbonate's hydrolysis products), biological treatment of the dissolved organics, the salt discharged (D-010)"}
@@ -101,8 +101,8 @@ consumables:
   - id: nitrogen
     title: Nitrogen for inerting R-101, sweeping the degassing, purging the phosgene line, breaking the vacuums and blanketing the tanks
     unit: kg
-    per_batch: 157.8
-    source: "about 126 Nm3 per batch x 1.2506 kg/Nm3, ASSUMED (D-012): DG101's sweep, 2.28 kmol (51.2 Nm3, 64.0 kg) that strips the dissolved CO2 from about 0.006 mole fraction to 10 ppm at 30 kPa(a) (D-006); R-101 purged with 3 volumes of its 12.5 m3 (37.5 Nm3) and its degassing vacuum broken (12.5 Nm3), the phosgene line purged after the dosing (5 Nm3), V-201's vacuum broken after the strips (12.5 Nm3), C-301's after the distillation (1.6 Nm3), T-202 and T-302 blanketed (5.9 Nm3)"
+    per_batch: 157.5
+    source: "about 126 Nm3 per batch x 1.2506 kg/Nm3, ASSUMED (D-012): DG101's sweep, 2.27 kmol (51.0 Nm3, 63.7 kg) that strips the dissolved CO2 from about 0.006 mole fraction to 10 ppm at 30 kPa(a) (D-006); R-101 purged with 3 volumes of its 12.5 m3 (37.5 Nm3) and its degassing vacuum broken (12.5 Nm3), the phosgene line purged after the dosing (5 Nm3), V-201's vacuum broken after the strips (12.5 Nm3), C-301's after the distillation (1.6 Nm3), T-202 and T-302 blanketed (5.9 Nm3)"
     missing: "linked to processes/asu-1 (lca/mappings.yaml): gaseous nitrogen to the battery limit"
     disposal:
       kind: waste

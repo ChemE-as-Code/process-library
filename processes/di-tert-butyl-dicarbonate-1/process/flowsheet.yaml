@@ -5,9 +5,11 @@
 # D-001), a batch plant on a dedicated train: potassium tert-butoxide is suspended in recovered
 # hexane with DABCO in the glass-lined R-101 and cooled to 278 K; CO2 and then phosgene gas are
 # dosed (one semi-batch, reactor: semibatch), the CO2 that passes and the CO2 and isobutene that
-# form leave by the vent (batch.vent, core ADR 0054); the slurry is degassed in R-101 with a
-# nitrogen sweep (DG101, a still at a constant volatility, whose gas S11 also carries the hexane
-# that saturates the vent gas, which batch.vent cannot) and the hexane stripped off it in V-201 at 15 and 1 kPa(a)
+# form leave by the vent (batch.vent, core ADR 0054), saturated with the slurry's hexane and
+# phosgene and through R-101's vent condenser (vent.vapour and vent.condenser, core ADR 0062);
+# the slurry is degassed in R-101 with a nitrogen sweep (DG101, a still at a constant
+# volatility, whose gas S11 carries the hexane of the sweep, which core's still and vent do not
+# model) and the hexane stripped off it in V-201 at 15 and 1 kPa(a)
 # (ST101, ST102, Rayleigh stills on Raoult's law, core ADR 0055); the hexane returns to the next
 # charge (the recycle, a tear stream converged by propagate, core ADR 0060). The Boc2O melt left
 # with the KCl is washed with warm water and split from the brine (DC201); it is distilled from a
@@ -26,8 +28,10 @@
 #   outlets come from scripts/balance.py (the split in its parameters), and `cheme validate` checks that they
 #   balance; neither lies in a recycle;
 # - the duties: the models of R101, DG101, ST101, ST102 and ST301 write theirs at each step's
-#   `energy_port` (core ADR 0059); what the models leave out is on its own ASSUMED stream with its
-#   hand arithmetic (D-009).
+#   `energy_port` (core ADR 0059; R101's with the doses' heats of solution and the vent's vapour,
+#   ST101's with its charge's heat-up, core ADR 0063), R101's vent condenser on its own stream Q17
+#   (core ADR 0062); what the models leave out is on its own ASSUMED stream with its hand
+#   arithmetic (D-009, D-015).
 schema: cheme/process/v1
 kind: flowsheet
 title: Di-tert-butyl dicarbonate by semi-batch carbonation and phosgenation of potassium tert-butoxide in hexane
@@ -121,7 +125,7 @@ products:
     ports:
       - {id: e101, direction: in, kind: energy}
       - {id: r101, direction: in, kind: energy}
-      - {id: r101abs, direction: in, kind: energy}
+      - {id: r101vc, direction: in, kind: energy}
   - id: CHW
     title: Chilled water return (283 K)
     category: utility
@@ -160,7 +164,7 @@ blocks:
       - {id: vent, direction: out}
       - {id: degas, direction: out}
       - {id: brine, direction: out, kind: energy}
-      - {id: brine_abs, direction: out, kind: energy}
+      - {id: brine_vc, direction: out, kind: energy}
       - {id: steam, direction: in, kind: energy}
       - {id: power, direction: in, kind: energy}
   - id: WORKUP
@@ -245,17 +249,30 @@ steps:
     reactions: [CARB, PHOS, SIDE]
     reactor: semibatch
     batch:
-      dosing: [{stream: S8, time: 7200, absorbed: 0.85}, {stream: S7, time: 14400, start: 7200, absorbed: 1.0}]
+      dosing:
+        - stream: S8
+          time: 7200
+          absorbed: 0.85
+          heat_of_solution: {values: {CO2: -15000}, provenance: assumed, source: "ASSUMED (D-005, D-015): the heat of absorption of CO2 in hexane, the order of CO2's heat of desorption materials.yaml gives the degassing (heat_of_vaporization 15 kJ/mol); CARB's heat is then on the dissolved basis (core ADR 0063)"}
+        - stream: S7
+          time: 14400
+          start: 7200
+          absorbed: 1.0
+          heat_of_solution: {values: {COCL2: -24800}, provenance: assumed, source: "ASSUMED (D-005, D-015): phosgene gas dissolving in hexane as into an ideal solution, minus its heat of vaporization (24.8 kJ/mol, materials.yaml, as benzyl-chloroformate-1); PHOS's and SIDE's heats are then on the dissolved basis (core ADR 0063)"}
       target: {key: COCL2, conversion: 0.9999}
       heat: isothermal
-      vent: {stream: S9, components: [CO2, IB]}
+      vent:
+        stream: S9
+        components: [CO2, IB]
+        vapour: {components: [HEX, TBA, COCL2], source: "D-015: the gas leaves the slurry saturated with its volatile components at 278.15 K and 101.3 kPa(a) (Raoult, an ideal liquid, materials.yaml's NIST Antoine lines; the suspended salts counted in the liquid, L-3); Boc2O's vapour pressure at 278 K is about 1e-3 kPa and is left out"}
+        condenser: {temperature: 263.15, returns: vessel, energy_port: qvc, provenance: assumed, source: "R-101's vent condenser on brine 258/263 K, the gas out at 263.15 K, the condensate running back into R-101 (D-006, D-015)"}
       provenance: assumed
       source: "CO2 dosed over 2 h at 278 K, 85 % of it taken up (the rest passes to the vent), then phosgene gas over 4 h, all of it taken up (EP 0 256 559 A2, Example 1: 3 h of CO2 and 4 h of phosgene at 5 C; US 5 151 542 A, Example 1: 2 h of CO2), the CO2 and isobutene that form leaving as they form, then the post-reaction to 0.9999 conversion of the phosgene (D-005)"
     hazard:
       mtt: 333.15
       vent_capacity: 50
       provenance: assumed
-      source: "D-011, D-014: mtt is the technical limit of the mass, not a boiling point: Boc2O and its precursors decompose with vigorous gas evolution at 60-70 C (US 5 151 542 A, Comparative Examples 1 and 4: 11 % and 5 % yield, gas evolved), below hexane's 341.9 K that core's default takes; it is an observation of a reaction time, not a TD24 (none is estimated); vent_capacity: R-101's vent line (through the vent condenser to the header) sized for about 2.2 times the recipe's normal peak of 22.8 m3/h (CO2 at 278 K, cheme process recipe), ASSUMED: no vent sizing yet (no P&ID); the scrubber T-401 takes more, about 100 m3/h from K-101 during the degassing (D-006); against a cooling failure's gas release: none at core's worst moment (the end of the CO2 dosing, CARB forms no gas), 23.0 m3/h the largest over the batch (core's vent_gas_rate over the cooling profile, during the phosgene dosing), 0.46 of it; 53.5 m3/h at k/100, 1.07 of it (D-011, D-014)"
+      source: "D-011, D-014: mtt is the technical limit of the mass, not a boiling point: Boc2O and its precursors decompose with vigorous gas evolution at 60-70 C (US 5 151 542 A, Comparative Examples 1 and 4: 11 % and 5 % yield, gas evolved), below hexane's 341.9 K that core's default takes; it is an observation of a reaction time, not a TD24 (none is estimated); vent_capacity: R-101's vent line (through the vent condenser to the header) sized for about 2.2 times the recipe's normal peak of 22.2 m3/h (CO2 with its hexane past the vent condenser at 263 K, cheme process recipe), ASSUMED: no vent sizing yet (no P&ID); the scrubber T-401 takes more, about 100 m3/h from K-101 during the degassing (D-006); against a cooling failure's gas release with the liquid's vapour (core 1.10.0, no condenser credited): none at core's worst moment (the end of the CO2 dosing, CARB forms no gas), 24.5 m3/h the largest over the batch (core's vent_gas_rate over the cooling profile with the vapour share at each point's MTSR, during the phosgene dosing), 0.49 of it; 52.9 m3/h at k/100, 1.06 of it (D-011, D-014, D-015)"
     energy_port: q
     links: [{target: equipment, ref: R-101}]
     ports:
@@ -265,7 +282,7 @@ steps:
       - {id: out, direction: out}
       - {id: gas, direction: out, delegates: vent}
       - {id: q, direction: out, kind: energy, delegates: brine}
-      - {id: q_abs, direction: out, kind: energy, delegates: brine_abs}
+      - {id: qvc, direction: out, kind: energy, delegates: brine_vc}
       - {id: power, direction: in, kind: energy, delegates: power}
   - id: DG101
     block: REACT
@@ -276,11 +293,11 @@ steps:
       pressure: 30
       volatility:
         model: constant
-        alpha: {HEX: 1.0, CO2: 720, COCL2: 150, TBA: 0.1}
+        alpha: {HEX: 1.0, CO2: 1070, COCL2: 150, TBA: 0.1}
         provenance: assumed
-        source: "D-006: R-101's pot and its vent condenser on brine (gas out at 263 K) taken together. CO2 720 is not a vapour-pressure ratio: it is set so that the distillate S11 carries the hexane that saturates the gas leaving the vent condenser at 263.15 K (3.45 kPa, materials.yaml's NIST line) over the whole batch: the vent gas S9 of the dosing at 101.3 kPa(a) (1.55 kg/h; core's batch.vent carries no solvent, L-14, so that hexane is lumped here) and the degassing's nitrogen sweep and CO2 at 30 kPa(a) (3.2 kg/h). Phosgene about 11 (its vapour pressure over hexane's at 278 K) times about 14 (at 263 K), tert-butanol about 0.17 times 0.6 (chemicals 1.5.2, NIST WebBook)"
+        source: "D-006, D-015: R-101's pot and its vent condenser on brine (gas out at 263 K) taken together. CO2 1070 is not a vapour-pressure ratio: it is set so that the distillate S11 carries the hexane that saturates the gas leaving the vent condenser at 263.15 K and 30 kPa(a) (3.45 kPa, materials.yaml's NIST line) with the degassing's nitrogen sweep and CO2 (3.22 kg/h); the sweep gas is not modelled by core's still or vent (L-14). The dosing's vent gas S9 carries its own hexane since core 1.10.0 (R101's vent.vapour and condenser, ADR 0062); until then it was lumped here (CO2 720). Phosgene about 11 (its vapour pressure over hexane's at 278 K) times about 14 (at 263 K), tert-butanol about 0.17 times 0.6 (chemicals 1.5.2, NIST WebBook)"
       nonvolatile: [KOTBU, KTBC, BOC2O, KCL, DABCO]
-      boilup: {value: 1.518, unit: kmol/h, provenance: assumed, source: "D-006: what leaves the slurry (CO2, hexane, traces) in the 0.85 h of the degassing; the rate is set by the nitrogen sweep, about 2.3 kmol a batch, that K-101 draws through the vent condenser with it (about 290 m3/h at 30 kPa(a) and 263 K)"}
+      boilup: {value: 1.294, unit: kmol/h, provenance: assumed, source: "D-006, D-015: what leaves the slurry net of the vent condenser's reflux (CO2 and the hexane that passes, traces: 1.097 kmol a batch) in the 0.85 h of the degassing; the rate is set by the nitrogen sweep, about 2.3 kmol a batch, that K-101 draws through the vent condenser with it (about 290 m3/h at 30 kPa(a) and 263 K)"}
       end: {residue: {key: CO2, mole_fraction: 1.0e-5}}
       outlets: {distillate: gas, residue: crude}
       provenance: assumed
@@ -302,6 +319,7 @@ steps:
       nonvolatile: [KOTBU, KTBC, KCL, DABCO]
       boilup: {value: 100, unit: kW, provenance: assumed, source: "V-201's forced-circulation reboiler E-204 (tubular, for the KCl slurry, about 27 m2 at U 600 W/(m2 K)) on hot water at 321/316 K: 104 kW at the end of the strip (312.1 K, 6.4 K below the water's mean 318.5 K), more before; the jacket alone wets too little as the pot empties (D-006, D-009)"}
       end: {residue: {key: HEX, mole_fraction: 0.41}}
+      heat_up: true
       outlets: {distillate: top, residue: bottom}
       provenance: assumed
       source: "strip until the pot reaches 313 K: Boc2O is kept below 323 K wherever it is held for hours (D-008)"
@@ -471,7 +489,7 @@ streams:
       design:
         temperature: {value: 298.15, provenance: assumed, source: "design basis"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 72.61, provenance: assumed, source: "D-004: 0.64707 kmol/h x 112.213 kg/kmol, the alkoxide that makes 63.13 kg/h of S25 (500 t/a in 7920 h) at the model's yield"}
+        flow: {value: 72.6305, provenance: assumed, source: "D-004: 0.647256 kmol/h x 112.213 kg/kmol, the alkoxide that makes 63.13 kg/h of S25 (500 t/a in 7920 h) at the model's yield (rescaled for core 1.10.0's vent, which strips 0.03 % of the phosgene, D-015)"}
         composition: {basis: mass_fraction, values: {KOTBU: 1.0}, provenance: assumed, source: "technical potassium tert-butoxide, its tert-butanol and KOH not modelled (D-004)"}
   - id: S2
     title: Hexane make-up
@@ -482,7 +500,7 @@ streams:
       design:
         temperature: {value: 298.15, provenance: assumed, source: "design basis"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 7.14936, provenance: assumed, source: "D-004: a little more than the hexane the plant loses (most of it with R-101's vent-condenser gas S11; the rest leaves by the purge S36), the charge then holding about 5 kg of hexane per kg of carbonate"}
+        flow: {value: 7.14936, provenance: assumed, source: "D-004: a little more than the hexane the plant loses (most of it with R-101's vent-condenser gases, the dosing's S9 and the degassing's S11; the rest leaves with the melt and by the purge S36), the charge then holding about 5 kg of hexane per kg of carbonate"}
         composition: {basis: mass_fraction, values: {HEX: 1.0}, provenance: assumed, source: "n-hexane, dry, its isomers not modelled (D-004)"}
   - id: S3
     title: DABCO
@@ -493,7 +511,7 @@ streams:
       design:
         temperature: {value: 298.15, provenance: assumed, source: "design basis"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 0.871011, provenance: assumed, source: "D-004: 0.012 kmol per kmol of the alkoxide (EP 0 256 559 A2, Example 1: 0.018 mol on 1.5 mol), 0.0077648 kmol/h x 112.176 kg/kmol"}
+        flow: {value: 0.871278, provenance: assumed, source: "D-004: 0.012 kmol per kmol of the alkoxide (EP 0 256 559 A2, Example 1: 0.018 mol on 1.5 mol), 0.0077671 kmol/h x 112.176 kg/kmol"}
         composition: {basis: mass_fraction, values: {DABCO: 1.0}, provenance: assumed, source: "DABCO (D-004)"}
   - id: S35
     title: Recovered hexane (T-202)
@@ -504,8 +522,8 @@ streams:
       design:
         temperature: {value: 283.15, provenance: assumed, source: "the strips' condensates, both at 283.15 K (D-009)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 499.556, provenance: calculated, source: 'cheme process propagate: mixer M201 from S13 S15', fingerprint: 4bd27f455c865d6e}
-        composition: {basis: mole_fraction, values: {KOTBU: 0.0, CO2: 1.17064e-05, COCL2: 1.29505e-06, KTBC: 0.0, BOC2O: 6.56412e-05, KCL: 0.0, TBA: 0.0107092, HEX: 0.989212, DABCO: 0.0, H2O: 0.0, PARAF: 0.0, IB: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M201 from S13 S15', fingerprint: 1aa342f791d8ea87}
+        flow: {value: 499.586, provenance: calculated, source: 'cheme process propagate: mixer M201 from S13 S15', fingerprint: f96a28f300bfa55c}
+        composition: {basis: mole_fraction, values: {KOTBU: 0.0, CO2: 1.17066e-05, COCL2: 2.07415e-06, KTBC: 0.0, BOC2O: 6.5635e-05, KCL: 0.0, TBA: 0.0107156, HEX: 0.989205, DABCO: 0.0, H2O: 0.0, PARAF: 0.0, IB: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M201 from S13 S15', fingerprint: e245cc7dbe4799cf}
   - id: S30
     title: Recovered hexane to the next charge
     from: SP201.rec
@@ -516,7 +534,7 @@ streams:
         temperature: {value: 283.15, provenance: assumed, source: "as S35 (D-009)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
         flow: {value: 498.809, provenance: assumed, source: "D-004: the charge's hexane, about 5 kg per kg of carbonate (about 501 kg/h), less the make-up S2"}
-        composition: {basis: mole_fraction, values: {KOTBU: 0.0, CO2: 1.17063e-05, COCL2: 1.29505e-06, KTBC: 0.0, BOC2O: 6.56411e-05, KCL: 0.0, TBA: 0.0107091, HEX: 0.989212, DABCO: 0.0, H2O: 0.0, PARAF: 0.0, IB: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle SP201 from S35 (tear, wegstein)', fingerprint: e31e551f65cd2684}
+        composition: {basis: mole_fraction, values: {KOTBU: 0.0, CO2: 1.17066e-05, COCL2: 2.07416e-06, KTBC: 0.0, BOC2O: 6.5635e-05, KCL: 0.0, TBA: 0.0107156, HEX: 0.989205, DABCO: 0.0, H2O: 0.0, PARAF: 0.0, IB: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle SP201 from S35 (tear, wegstein)', fingerprint: 42a390f28f5d9f82}
   - id: S36
     title: Hexane purge
     from: SP201.purge
@@ -526,8 +544,8 @@ streams:
       design:
         temperature: {value: 283.15, provenance: assumed, source: "as S35 (D-009)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 0.747, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S35 S30', fingerprint: 2ccf8dd85a610adc}
-        composition: {basis: mole_fraction, values: {KOTBU: 0.0, CO2: 1.17064e-05, COCL2: 1.29505e-06, KTBC: 0.0, BOC2O: 6.56412e-05, KCL: 0.0, TBA: 0.0107092, HEX: 0.989212, DABCO: 0.0, H2O: 0.0, PARAF: 0.0, IB: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S35', fingerprint: e141eb1e518d892c}
+        flow: {value: 0.777, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S35 S30', fingerprint: a2b1ce37a110451f}
+        composition: {basis: mole_fraction, values: {KOTBU: 0.0, CO2: 1.17066e-05, COCL2: 2.07415e-06, KTBC: 0.0, BOC2O: 6.5635e-05, KCL: 0.0, TBA: 0.0107156, HEX: 0.989205, DABCO: 0.0, H2O: 0.0, PARAF: 0.0, IB: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S35', fingerprint: 49eb5257512a7444}
   - id: S4
     title: Charge (mixed)
     from: M101.out
@@ -537,8 +555,8 @@ streams:
       design:
         temperature: {value: 284.52, provenance: assumed, source: "scripts/balance.py: the adiabatic mix of S1, S2, S3 at 298.15 K and the recovered hexane S30 at 283.15 K (D-009)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 579.439, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3 S30', fingerprint: 32ccb18aaf4dd402}
-        composition: {basis: mole_fraction, values: {KOTBU: 0.0990308, HEX: 0.890211, TBA: 0.00949988, BOC2O: 5.82292e-05, CO2: 1.03845e-05, COCL2: 1.14882e-06, DABCO: 0.00118834, KTBC: 0.0, KCL: 0.0, H2O: 0.0, PARAF: 0.0, IB: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3 S30', fingerprint: e713acc73e8e1439}
+        flow: {value: 579.46, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3 S30', fingerprint: af0ac114c12dbc30}
+        composition: {basis: mole_fraction, values: {KOTBU: 0.0990559, HEX: 0.89018, TBA: 0.00950537, BOC2O: 5.82221e-05, CO2: 1.03844e-05, COCL2: 1.8399e-06, DABCO: 0.00118867, KTBC: 0.0, KCL: 0.0, H2O: 0.0, PARAF: 0.0, IB: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3 S30', fingerprint: 0c953211b592a562}
   - id: S5
     title: Charge at 278 K
     from: E101.out
@@ -548,8 +566,8 @@ streams:
       design:
         temperature: {value: 278.15, provenance: assumed, source: "cooled in R-101 to the reaction temperature (D-005)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 579.439, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S4', fingerprint: 952fead8902be4e8}
-        composition: {basis: mole_fraction, values: {KOTBU: 0.0990308, HEX: 0.890211, TBA: 0.00949988, BOC2O: 5.82292e-05, CO2: 1.03845e-05, COCL2: 1.14882e-06, DABCO: 0.00118834, KTBC: 0.0, KCL: 0.0, H2O: 0.0, PARAF: 0.0, IB: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S4', fingerprint: 952fead8902be4e8}
+        flow: {value: 579.46, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S4', fingerprint: 98dcbe7442d4add9}
+        composition: {basis: mole_fraction, values: {KOTBU: 0.0990559, HEX: 0.89018, TBA: 0.00950537, BOC2O: 5.82221e-05, CO2: 1.03844e-05, COCL2: 1.8399e-06, DABCO: 0.00118867, KTBC: 0.0, KCL: 0.0, H2O: 0.0, PARAF: 0.0, IB: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S4', fingerprint: 98dcbe7442d4add9}
   - id: S6
     title: Liquid phosgene
     from: PHOS.out
@@ -559,7 +577,7 @@ streams:
       design:
         temperature: {value: 253.15, provenance: assumed, source: "as delivered by phosgene-1 (its product stream)"}
         pressure: {value: 340.0, provenance: assumed, source: "as delivered by phosgene-1 (its product stream)"}
-        flow: {value: 31.3626, provenance: assumed, source: "D-004: 0.49 kmol per kmol of the alkoxide, 0.317066 kmol/h x 98.915 kg/kmol (EP 0 256 559 A2, Examples 6-7: 0.81 mol on 1.5 mol, 0.54; a 2 % deficit on the 0.5 the net reaction takes, ASSUMED, so that no phosgene is left)"}
+        flow: {value: 31.3714, provenance: assumed, source: "D-004: 0.49 kmol per kmol of the alkoxide, 0.317155 kmol/h x 98.915 kg/kmol (EP 0 256 559 A2, Examples 6-7: 0.81 mol on 1.5 mol, 0.54; a 2 % deficit on the 0.5 the net reaction takes, ASSUMED, so that no phosgene is left)"}
         composition: {basis: mass_fraction, values: {COCL2: 1.0}, provenance: assumed, source: "phosgene-1's liquid phosgene, its 35 ppm(wt) Cl2 not modelled (D-004)"}
   - id: S7
     title: Phosgene gas (dosed)
@@ -570,8 +588,8 @@ streams:
       design:
         temperature: {value: 293.15, provenance: assumed, source: "evaporated with tempered water (D-004)"}
         pressure: {value: 150.0, provenance: assumed, source: "evaporator pressure (D-004)"}
-        flow: {value: 31.3626, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S6', fingerprint: 48ca365ed9906f8c}
-        composition: {basis: mass_fraction, values: {COCL2: 1.0}, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S6', fingerprint: 48ca365ed9906f8c}
+        flow: {value: 31.3714, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S6', fingerprint: 0402ecef06757739}
+        composition: {basis: mass_fraction, values: {COCL2: 1.0}, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S6', fingerprint: 0402ecef06757739}
   - id: S8
     title: Carbon dioxide (dosed)
     from: CO2.out
@@ -581,19 +599,19 @@ streams:
       design:
         temperature: {value: 298.15, provenance: assumed, source: "from the site's CO2 supply (D-004)"}
         pressure: {value: 150.0, provenance: assumed, source: "design basis"}
-        flow: {value: 37.0202, provenance: assumed, source: "D-004: 1.3 kmol per kmol of the alkoxide (US 5 151 542 A, Example 1: 4 mol on 3 mol; EP 0 256 559 A2 prefers 1-3), 0.841197 kmol/h x 44.009 kg/kmol"}
+        flow: {value: 37.0306, provenance: assumed, source: "D-004: 1.3 kmol per kmol of the alkoxide (US 5 151 542 A, Example 1: 4 mol on 3 mol; EP 0 256 559 A2 prefers 1-3), 0.841432 kmol/h x 44.009 kg/kmol"}
         composition: {basis: mass_fraction, values: {CO2: 1.0}, provenance: assumed, source: "dry CO2 (D-004)"}
   - id: S9
-    title: R-101 vent (CO2, isobutene)
+    title: R-101 vent past its vent condenser (CO2, isobutene, hexane, phosgene traces)
     from: R101.gas
     to: M401.r101
     template: offgas
     state:
       design:
-        composition: {basis: mole_fraction, values: {CO2: 0.956468, IB: 0.0435325}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5 S7 S8', fingerprint: 61f86341f9376acc}
-        flow: {value: 22.7043, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5 S7 S8', fingerprint: 61f86341f9376acc}
-        temperature: {value: 278.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5 S7 S8', fingerprint: 61f86341f9376acc}
-        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5 S7 S8', fingerprint: 61f86341f9376acc}
+        composition: {basis: mole_fraction, values: {CO2: 0.923889, IB: 0.042047, HEX: 0.0338948, TBA: 1.27986e-05, COCL2: 0.000156653}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5 S7 S8', fingerprint: 086114b89a6d2ebe}
+        flow: {value: 24.2569, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5 S7 S8', fingerprint: 086114b89a6d2ebe}
+        temperature: {value: 263.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5 S7 S8', fingerprint: 086114b89a6d2ebe}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5 S7 S8', fingerprint: 086114b89a6d2ebe}
   - id: S10
     title: Slurry after the phosgenation
     from: R101.out
@@ -601,12 +619,12 @@ streams:
     template: process
     state:
       design:
-        composition: {basis: mole_fraction, values: {KOTBU: 1.60459e-17, CO2: 0.00982968, COCL2: 4.58261e-06, KTBC: 0.0018772, BOC2O: 0.042669, KCL: 0.0916431, TBA: 0.0121788, HEX: 0.840675, DABCO: 0.00112222, H2O: 0.0, PARAF: 0.0, IB: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5 S7 S8', fingerprint: 61f86341f9376acc}
-        flow: {value: 625.116, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5 S7 S8', fingerprint: 61f86341f9376acc}
-        temperature: {value: 278.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5 S7 S8', fingerprint: 61f86341f9376acc}
-        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5 S7 S8', fingerprint: 61f86341f9376acc}
+        composition: {basis: mole_fraction, values: {KOTBU: 0.0, CO2: 0.0098575, COCL2: 4.59571e-06, KTBC: 0.00190535, BOC2O: 0.0427798, KCL: 0.091881, TBA: 0.0122145, HEX: 0.840232, DABCO: 0.00112544, H2O: 0.0, PARAF: 0.0, IB: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5 S7 S8', fingerprint: 086114b89a6d2ebe}
+        flow: {value: 623.604, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5 S7 S8', fingerprint: 086114b89a6d2ebe}
+        temperature: {value: 278.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5 S7 S8', fingerprint: 086114b89a6d2ebe}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5 S7 S8', fingerprint: 086114b89a6d2ebe}
   - id: S11
-    title: R-101's vent-condenser gas (degassing CO2, phosgene traces, the hexane of the dosing's and the degassing's gas)
+    title: R-101's vent-condenser gas in the degassing (CO2, phosgene traces, the hexane of the nitrogen sweep)
     from: DG101.gas
     to: M401.dg
     template: offgas
@@ -614,8 +632,8 @@ streams:
       design:
         temperature: {value: 298.15, provenance: assumed, source: "K-101's discharge, cooled: with the sweep's nitrogen (not a component, D-012) the degassing's gas holds about 11 mol% hexane at 101.3 kPa(a), below its saturation at 298 K (20 kPa); its dew point about 286 K (D-006)"}
         pressure: {value: 101.325, provenance: assumed, source: "after the vacuum pump"}
-        flow: {value: 7.78537, provenance: calculated, source: 'cheme process propagate: still DG101 from S10', fingerprint: 291700c59986e8ce}
-        composition: {basis: mole_fraction, values: {KOTBU: 0.0, CO2: 0.549733, COCL2: 0.000195717, KTBC: 0.0, BOC2O: 0.0, KCL: 0.0, TBA: 0.000653883, HEX: 0.449418, DABCO: 0.0}, provenance: calculated, source: 'cheme process propagate: still DG101 from S10', fingerprint: 291700c59986e8ce}
+        flow: {value: 6.21318, provenance: calculated, source: 'cheme process propagate: still DG101 from S10', fingerprint: 827bc4ee98a73048}
+        composition: {basis: mole_fraction, values: {CO2: 0.645065, COCL2: 0.000186752, KTBC: 0.0, BOC2O: 0.0, KCL: 0.0, TBA: 0.000516446, HEX: 0.354231, DABCO: 0.0}, provenance: calculated, source: 'cheme process propagate: still DG101 from S10', fingerprint: 827bc4ee98a73048}
   - id: S12
     title: Degassed slurry
     from: DG101.crude
@@ -625,8 +643,8 @@ streams:
       design:
         temperature: {value: 278.15, provenance: assumed, source: "degassed at the reaction temperature (D-006)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 617.331, provenance: calculated, source: 'cheme process propagate: still DG101 from S10', fingerprint: 291700c59986e8ce}
-        composition: {basis: mole_fraction, values: {KOTBU: 1.63377e-17, CO2: 1.0e-05, COCL2: 1.10628e-06, KTBC: 0.00191134, BOC2O: 0.0434451, KCL: 0.0933099, TBA: 0.0123884, HEX: 0.847791, DABCO: 0.00114263}, provenance: calculated, source: 'cheme process propagate: still DG101 from S10', fingerprint: 291700c59986e8ce}
+        flow: {value: 617.391, provenance: calculated, source: 'cheme process propagate: still DG101 from S10', fingerprint: 827bc4ee98a73048}
+        composition: {basis: mole_fraction, values: {CO2: 1.0e-05, COCL2: 1.77178e-06, KTBC: 0.00193489, BOC2O: 0.043443, KCL: 0.0933054, TBA: 0.0123959, HEX: 0.847766, DABCO: 0.00114289}, provenance: calculated, source: 'cheme process propagate: still DG101 from S10', fingerprint: 827bc4ee98a73048}
   - id: S13
     title: Hexane distilled at 15 kPa(a)
     from: ST101.top
@@ -636,8 +654,8 @@ streams:
       design:
         temperature: {value: 283.15, provenance: assumed, source: "condensate of ST101's condenser on brine (D-006, D-009)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 439.876, provenance: calculated, source: 'cheme process propagate: still ST101 from S12', fingerprint: 96050eafa56d755c}
-        composition: {basis: mole_fraction, values: {KOTBU: 0.0, CO2: 1.32997e-05, COCL2: 1.47132e-06, KTBC: 0.0, BOC2O: 3.92763e-05, KCL: 0.0, TBA: 0.00769784, HEX: 0.992248, DABCO: 0.0}, provenance: calculated, source: 'cheme process propagate: still ST101 from S12', fingerprint: 96050eafa56d755c}
+        flow: {value: 439.891, provenance: calculated, source: 'cheme process propagate: still ST101 from S12', fingerprint: 645950fb9780ae7f}
+        composition: {basis: mole_fraction, values: {CO2: 1.33003e-05, COCL2: 2.35652e-06, KTBC: 0.0, BOC2O: 3.92738e-05, KCL: 0.0, TBA: 0.00770246, HEX: 0.992243, DABCO: 0.0}, provenance: calculated, source: 'cheme process propagate: still ST101 from S12', fingerprint: 645950fb9780ae7f}
   - id: S14
     title: Concentrate after the first strip
     from: ST101.bottom
@@ -647,8 +665,8 @@ streams:
       design:
         temperature: {value: 313.15, provenance: assumed, source: "ST101's end (D-006)"}
         pressure: {value: 15.0, provenance: assumed, source: "ST101's pressure"}
-        flow: {value: 177.455, provenance: calculated, source: 'cheme process propagate: still ST101 from S12', fingerprint: 96050eafa56d755c}
-        composition: {basis: mole_fraction, values: {KOTBU: 6.58509e-17, CO2: 0.0, COCL2: 2.15927e-14, KTBC: 0.00770386, BOC2O: 0.174991, KCL: 0.376096, TBA: 0.0266037, HEX: 0.41, DABCO: 0.0046055}, provenance: calculated, source: 'cheme process propagate: still ST101 from S12', fingerprint: 96050eafa56d755c}
+        flow: {value: 177.5, provenance: calculated, source: 'cheme process propagate: still ST101 from S12', fingerprint: 645950fb9780ae7f}
+        composition: {basis: mole_fraction, values: {CO2: 0.0, COCL2: 3.46347e-14, KTBC: 0.00779764, BOC2O: 0.174957, KCL: 0.376022, TBA: 0.0266171, HEX: 0.41, DABCO: 0.00460587}, provenance: calculated, source: 'cheme process propagate: still ST101 from S12', fingerprint: 645950fb9780ae7f}
   - id: S15
     title: Hexane distilled at 1 kPa(a)
     from: ST102.top
@@ -658,8 +676,8 @@ streams:
       design:
         temperature: {value: 283.15, provenance: assumed, source: "condensate of the vacuum pump's discharge condenser on brine (D-006, D-009)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 59.6804, provenance: calculated, source: 'cheme process propagate: still ST102 from S14', fingerprint: 4baa5322c3140e4f}
-        composition: {basis: mole_fraction, values: {KOTBU: 0.0, COCL2: 5.23475e-14, KTBC: 0.0, BOC2O: 0.000259347, KCL: 0.0, TBA: 0.0328336, HEX: 0.966907, DABCO: 0.0}, provenance: calculated, source: 'cheme process propagate: still ST102 from S14', fingerprint: 4baa5322c3140e4f}
+        flow: {value: 59.6948, provenance: calculated, source: 'cheme process propagate: still ST102 from S14', fingerprint: 0cb80b9da1ba25d5}
+        composition: {basis: mole_fraction, values: {COCL2: 8.39641e-14, KTBC: 0.0, BOC2O: 0.000259274, KCL: 0.0, TBA: 0.032849, HEX: 0.966892, DABCO: 0.0}, provenance: calculated, source: 'cheme process propagate: still ST102 from S14', fingerprint: 0cb80b9da1ba25d5}
   - id: S16
     title: Boc2O melt with the KCl (stripped)
     from: ST102.bottom
@@ -669,8 +687,8 @@ streams:
       design:
         temperature: {value: 313.15, provenance: assumed, source: "ST102's end (D-006)"}
         pressure: {value: 101.325, provenance: assumed, source: "vacuum broken with nitrogen"}
-        flow: {value: 117.775, provenance: calculated, source: 'cheme process propagate: still ST102 from S14', fingerprint: 4baa5322c3140e4f}
-        composition: {basis: mole_fraction, values: {KOTBU: 1.12084e-16, COCL2: 4.71806e-31, KTBC: 0.0131127, BOC2O: 0.297669, KCL: 0.64015, TBA: 0.0222298, HEX: 0.019, DABCO: 0.00783898}, provenance: calculated, source: 'cheme process propagate: still ST102 from S14', fingerprint: 4baa5322c3140e4f}
+        flow: {value: 117.805, provenance: calculated, source: 'cheme process propagate: still ST102 from S14', fingerprint: 0cb80b9da1ba25d5}
+        composition: {basis: mole_fraction, values: {COCL2: 6.68405e-31, KTBC: 0.0132725, BOC2O: 0.297614, KCL: 0.640032, TBA: 0.0222416, HEX: 0.019, DABCO: 0.00783971}, provenance: calculated, source: 'cheme process propagate: still ST102 from S14', fingerprint: 0cb80b9da1ba25d5}
   - id: S17
     title: Process water (wash)
     from: PW.wash
@@ -702,8 +720,8 @@ streams:
       design:
         temperature: {value: 307.46, provenance: assumed, source: "scripts/balance.py: the adiabatic mix of the melt S16 (313.15 K) and the wash water S18 (318.15 K) less the KCl's heat of solution, +17 kJ/mol ASSUMED; above Boc2O's 296 K melting point (D-007)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 66.2822, provenance: assumed, source: "scripts/balance.py: DC201 specified split of S16 (TO_AQUEOUS), the melt holding 0.2 wt% water (D-007)"}
-        composition: {basis: mole_fraction, values: {BOC2O: 0.904687, TBA: 0.013553, HEX: 0.0579193, DABCO: 0.00119481, H2O: 0.0226461}, provenance: assumed, source: "scripts/balance.py: as the flow (D-007)"}
+        flow: {value: 66.2845, provenance: assumed, source: "scripts/balance.py: DC201 specified split of S16 (TO_AQUEOUS), the melt holding 0.2 wt% water (D-007)"}
+        composition: {basis: mole_fraction, values: {BOC2O: 0.90466788, TBA: 0.013562404, HEX: 0.057928763, DABCO: 0.001195118, H2O: 0.022645835}, provenance: assumed, source: "scripts/balance.py: as the flow (D-007)"}
   - id: S20
     title: Wash brine
     from: DC201.aq
@@ -713,8 +731,8 @@ streams:
       design:
         temperature: {value: 307.46, provenance: assumed, source: "scripts/balance.py: as S19 (D-007)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 274.726, provenance: assumed, source: "scripts/balance.py: the rest of S16 and S18 (D-007)"}
-        composition: {basis: mole_fraction, values: {KOTBU: 0, COCL2: 0, KTBC: 0.000994749, BOC2O: 6.7745e-05, KCL: 0.0485627, TBA: 0.00134911, DABCO: 0.000564943, H2O: 0.948461}, provenance: assumed, source: "scripts/balance.py: as the flow (D-007)"}
+        flow: {value: 274.7535, provenance: assumed, source: "scripts/balance.py: the rest of S16 and S18 (D-007)"}
+        composition: {basis: mole_fraction, values: {COCL2: 0.0, KTBC: 0.00100707, BOC2O: 6.7746e-05, KCL: 0.048563347, TBA: 0.001350091, DABCO: 0.000565107, H2O: 0.94844664}, provenance: assumed, source: "scripts/balance.py: as the flow (D-007)"}
   - id: S21
     title: Liquid paraffin make-up
     from: PARAF.out
@@ -735,8 +753,8 @@ streams:
       design:
         temperature: {value: 357.9, provenance: assumed, source: "ST301's end temperature (cheme process stills, D-008)"}
         pressure: {value: 0.13, provenance: assumed, source: "C-301's pressure"}
-        flow: {value: 22.0165, provenance: calculated, source: 'cheme process propagate: recycle SP301 from S26 (tear, wegstein)', fingerprint: e31e551f65cd2684}
-        composition: {basis: mole_fraction, values: {KOTBU: 0.0, CO2: 0.0, COCL2: 0.0, KTBC: 0.0, BOC2O: 0.3, KCL: 0.0, TBA: 0.0, HEX: 0.0, DABCO: 0.0519193, H2O: 0.0, PARAF: 0.648081, IB: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle SP301 from S26 (tear, wegstein)', fingerprint: e31e551f65cd2684}
+        flow: {value: 22.0168, provenance: calculated, source: 'cheme process propagate: recycle SP301 from S26 (tear, wegstein)', fingerprint: 42a390f28f5d9f82}
+        composition: {basis: mole_fraction, values: {KOTBU: 0.0, CO2: 0.0, COCL2: 0.0, KTBC: 0.0, BOC2O: 0.3, KCL: 0.0, TBA: 0.0, HEX: 0.0, DABCO: 0.051934, H2O: 0.0, PARAF: 0.648066, IB: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle SP301 from S26 (tear, wegstein)', fingerprint: 42a390f28f5d9f82}
   - id: S23
     title: Still charge
     from: M301.out
@@ -746,8 +764,8 @@ streams:
       design:
         temperature: {value: 321.44, provenance: assumed, source: "scripts/balance.py: the adiabatic mix of the melt S19, the paraffin S21 and the heel S22 (D-009)"}
         pressure: {value: 0.13, provenance: assumed, source: "C-301's pressure"}
-        flow: {value: 90.2118, provenance: calculated, source: 'cheme process propagate: mixer M301 from S19 S21 S22', fingerprint: c06305ddbddaa7ed}
-        composition: {basis: mole_fraction, values: {KOTBU: 0.0, CO2: 0.0, COCL2: 0.0, KTBC: 0.0, BOC2O: 0.79116, KCL: 0.0, TBA: 0.0110906, HEX: 0.047396, DABCO: 0.00977725, H2O: 0.0185315, PARAF: 0.122044, IB: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M301 from S19 S21 S22', fingerprint: 2e6808732f767d2c}
+        flow: {value: 90.2144, provenance: calculated, source: 'cheme process propagate: mixer M301 from S19 S21 S22', fingerprint: fbf3c3d705374266}
+        composition: {basis: mole_fraction, values: {KOTBU: 0.0, CO2: 0.0, COCL2: 0.0, KTBC: 0.0, BOC2O: 0.791147, KCL: 0.0, TBA: 0.0110983, HEX: 0.0474039, DABCO: 0.00977985, H2O: 0.0185314, PARAF: 0.122039, IB: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M301 from S19 S21 S22', fingerprint: 28d606cb0f7e234e}
   - id: S37
     title: Waste solvent to incineration
     from: M302.out
@@ -757,8 +775,8 @@ streams:
       design:
         temperature: {value: 283.15, provenance: assumed, source: "both inlets at 283.15 K (D-009)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 3.36706, provenance: calculated, source: 'cheme process propagate: mixer M302 from S36 S24', fingerprint: 5dce7ae5205a2baa}
-        composition: {basis: mole_fraction, values: {KOTBU: 0.0, CO2: 2.46571e-06, COCL2: 2.72776e-07, KTBC: 0.0, BOC2O: 0.0613498, KCL: 0.0, TBA: 0.108233, HEX: 0.665031, DABCO: 0.0, H2O: 0.165384, PARAF: 0.0, IB: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M302 from S36 S24', fingerprint: c428b7f065587ff8}
+        flow: {value: 3.39776, provenance: calculated, source: 'cheme process propagate: mixer M302 from S36 S24', fingerprint: 1a73c1beae47a133}
+        composition: {basis: mole_fraction, values: {KOTBU: 0.0, CO2: 2.54277e-06, COCL2: 4.50522e-07, KTBC: 0.0, BOC2O: 0.0608356, KCL: 0.0, TBA: 0.107473, HEX: 0.667712, DABCO: 0.0, H2O: 0.163976, PARAF: 0.0, IB: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M302 from S36 S24', fingerprint: bdf5de33c34a0b94}
   - id: S24
     title: Forerun
     from: ST301.fore
@@ -768,8 +786,8 @@ streams:
       design:
         temperature: {value: 283.15, provenance: assumed, source: "condensed after the vacuum pump on brine (D-008, D-009)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 2.62006, provenance: calculated, source: 'cheme process propagate: still ST301 from S23', fingerprint: 43a3332e28bc47a3}
-        composition: {basis: mole_fraction, values: {BOC2O: 0.0777024, TBA: 0.134255, HEX: 0.578529, DABCO: 0.0, H2O: 0.209514, PARAF: 0.0}, provenance: calculated, source: 'cheme process propagate: still ST301 from S23', fingerprint: 43a3332e28bc47a3}
+        flow: {value: 2.62076, provenance: calculated, source: 'cheme process propagate: still ST301 from S23', fingerprint: f388d045eeea3886}
+        composition: {basis: mole_fraction, values: {BOC2O: 0.0776979, TBA: 0.134321, HEX: 0.578505, DABCO: 0.0, H2O: 0.209476, PARAF: 0.0}, provenance: calculated, source: 'cheme process propagate: still ST301 from S23', fingerprint: f388d045eeea3886}
   - id: S25
     title: Boc2O (main cut)
     from: ST301.main
@@ -779,8 +797,8 @@ streams:
       design:
         temperature: {value: 303.15, provenance: assumed, source: "condensed and cooled to heated storage above its melting point (D-008)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 63.129, provenance: calculated, source: 'cheme process propagate: still ST301 from S23', fingerprint: 43a3332e28bc47a3}
-        composition: {basis: mole_fraction, values: {BOC2O: 0.998001, TBA: 0.000125805, HEX: 1.45327e-07, DABCO: 0.0, H2O: 0.00187329, PARAF: 0.0}, provenance: calculated, source: 'cheme process propagate: still ST301 from S23', fingerprint: 43a3332e28bc47a3}
+        flow: {value: 63.1306, provenance: calculated, source: 'cheme process propagate: still ST301 from S23', fingerprint: f388d045eeea3886}
+        composition: {basis: mole_fraction, values: {BOC2O: 0.998001, TBA: 0.000125805, HEX: 1.45068e-07, DABCO: 0.0, H2O: 0.00187259, PARAF: 0.0}, provenance: calculated, source: 'cheme process propagate: still ST301 from S23', fingerprint: f388d045eeea3886}
   - id: S26
     title: Still residue (paraffin heel)
     from: ST301.bottom
@@ -790,8 +808,8 @@ streams:
       design:
         temperature: {value: 357.9, provenance: assumed, source: "ST301's end temperature (cheme process stills, D-008)"}
         pressure: {value: 0.13, provenance: assumed, source: "C-301's pressure"}
-        flow: {value: 24.4628, provenance: calculated, source: 'cheme process propagate: still ST301 from S23', fingerprint: 43a3332e28bc47a3}
-        composition: {basis: mole_fraction, values: {BOC2O: 0.3, TBA: 0.0, HEX: 0.0, DABCO: 0.0519194, H2O: 0.0, PARAF: 0.648081}, provenance: calculated, source: 'cheme process propagate: still ST301 from S23', fingerprint: 43a3332e28bc47a3}
+        flow: {value: 24.4631, provenance: calculated, source: 'cheme process propagate: still ST301 from S23', fingerprint: f388d045eeea3886}
+        composition: {basis: mole_fraction, values: {BOC2O: 0.3, TBA: 0.0, HEX: 0.0, DABCO: 0.0519341, H2O: 0.0, PARAF: 0.648066}, provenance: calculated, source: 'cheme process propagate: still ST301 from S23', fingerprint: f388d045eeea3886}
   - id: S27
     title: Heel purge
     from: SP301.purge
@@ -801,8 +819,8 @@ streams:
       design:
         temperature: {value: 357.9, provenance: assumed, source: "ST301's end temperature (cheme process stills, D-008)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 2.4463, provenance: calculated, source: 'cheme process propagate: splitter SP301 from S26 S22', fingerprint: d24d8b5e8844cce9}
-        composition: {basis: mole_fraction, values: {BOC2O: 0.3, TBA: 0.0, HEX: 0.0, DABCO: 0.0519194, H2O: 0.0, PARAF: 0.648081}, provenance: calculated, source: 'cheme process propagate: splitter SP301 from S26', fingerprint: 46012fa41b5de307}
+        flow: {value: 2.4463, provenance: calculated, source: 'cheme process propagate: splitter SP301 from S26 S22', fingerprint: a7353b0613b68063}
+        composition: {basis: mole_fraction, values: {BOC2O: 0.3, TBA: 0.0, HEX: 0.0, DABCO: 0.0519341, H2O: 0.0, PARAF: 0.648066}, provenance: calculated, source: 'cheme process propagate: splitter SP301 from S26', fingerprint: f7a86219e597f3e2}
   - id: S28
     title: Vent gas to the scrubber
     from: M401.out
@@ -810,10 +828,10 @@ streams:
     template: offgas
     state:
       design:
-        temperature: {value: 285.01, provenance: assumed, source: "scripts/balance.py: the adiabatic mix of the vent S9 (278.15 K) and the vent-condenser gas S11 (298.15 K), ideal-gas heat capacities (D-009)"}
+        temperature: {value: 272.18, provenance: assumed, source: "scripts/balance.py: the adiabatic mix of the vent S9 (263.15 K, past R-101's vent condenser) and the vent-condenser gas S11 (298.15 K), ideal-gas heat capacities (D-009, D-015)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 30.4897, provenance: calculated, source: 'cheme process propagate: mixer M401 from S9 S11', fingerprint: 5c22a1facb1dab80}
-        composition: {basis: mole_fraction, values: {CO2: 0.877101, IB: 0.0350379, COCL2: 3.81904e-05, HEX: 0.0876953, TBA: 0.000127593, KOTBU: 0.0, KTBC: 0.0, BOC2O: 0.0, KCL: 0.0, DABCO: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M401 from S9 S11', fingerprint: 614ec0d1f8167954}
+        flow: {value: 30.4701, provenance: calculated, source: 'cheme process propagate: mixer M401 from S9 S11', fingerprint: 142b3c5e07bfb3cd}
+        composition: {basis: mole_fraction, values: {CO2: 0.877495, IB: 0.0350507, COCL2: 0.000161661, HEX: 0.0871964, TBA: 9.66018e-05, KOTBU: 0.0, KTBC: 0.0, BOC2O: 0.0, KCL: 0.0, DABCO: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M401 from S9 S11', fingerprint: 4c8a9cf4417f98ba}
   - id: S29
     title: Caustic soda 50 wt%
     from: NAOH.out
@@ -845,8 +863,8 @@ streams:
       design:
         temperature: {value: 303.15, provenance: assumed, source: "the scrubber's circulation on cooling water (D-007)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 81.2472, provenance: calculated, source: 'cheme process propagate: reactor S101 from S28 S29 S31', fingerprint: d29a51a5b5e051a2}
-        composition: {basis: mole_fraction, values: {CO2: 0.154443, IB: 0.0068551, COCL2: 7.47189e-10, HEX: 0.0171574, TBA: 2.49633e-05, KOTBU: 0.0, KTBC: 0.0, BOC2O: 0.0, KCL: 0.0, DABCO: 0.0, H2O: 0.798708, NAOH: 0.00562869, NA2CO3: 0.0171678, NACL: 1.49423e-05}, provenance: calculated, source: 'cheme process propagate: reactor S101 from S28 S29 S31', fingerprint: f35386c4ead6c731}
+        flow: {value: 81.2276, provenance: calculated, source: 'cheme process propagate: reactor S101 from S28 S29 S31', fingerprint: ec2e04417ea9281e}
+        composition: {basis: mole_fraction, values: {CO2: 0.154472, IB: 0.0068558, COCL2: 3.16203e-09, HEX: 0.0170553, TBA: 1.8895e-05, KOTBU: 0.0, KTBC: 0.0, BOC2O: 0.0, KCL: 0.0, DABCO: 0.0, H2O: 0.798812, NAOH: 0.00552843, NA2CO3: 0.0171951, NACL: 6.32343e-05}, provenance: calculated, source: 'cheme process propagate: reactor S101 from S28 S29 S31', fingerprint: 7b78ce189c331af3}
   - id: S33
     title: Scrubbed vent to the thermal oxidiser
     from: X401.gas
@@ -856,8 +874,8 @@ streams:
       design:
         temperature: {value: 303.15, provenance: assumed, source: "the scrubber's temperature (D-007)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 28.5014, provenance: assumed, source: "scripts/balance.py: X401: the gases of S32 (CO2, isobutene, hexane, tert-butanol, phosgene traces) with the water vapour that saturates them at 303.15 K (D-007)"}
-        composition: {basis: mole_fraction, values: {CO2: 0.828772, IB: 0.0367858, COCL2: 4.0e-09, HEX: 0.09207, TBA: 0.000133958, H2O: 0.0422381}, provenance: assumed, source: "scripts/balance.py: as the flow (D-007)"}
+        flow: {value: 28.4736, provenance: assumed, source: "scripts/balance.py: X401: the gases of S32 (CO2, isobutene, hexane, tert-butanol, phosgene traces) with the water vapour that saturates them at 303.15 K (D-007)"}
+        composition: {basis: mole_fraction, values: {CO2: 0.829292219, IB: 0.036805774, COCL2: 1.7e-08, HEX: 0.091562403, TBA: 0.000101439, H2O: 0.042238147}, provenance: assumed, source: "scripts/balance.py: as the flow (D-007)"}
   - id: S34
     title: Spent scrubber liquor
     from: X401.liq
@@ -867,26 +885,26 @@ streams:
       design:
         temperature: {value: 303.15, provenance: assumed, source: "the scrubber's temperature (D-007)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 52.7458, provenance: assumed, source: "scripts/balance.py: X401: the rest of S32 (D-007)"}
-        composition: {basis: mole_fraction, values: {H2O: 0.971964, NAOH: 0.00691784, NA2CO3: 0.0210998, NACL: 1.8365e-05}, provenance: assumed, source: "scripts/balance.py: as the flow (D-007)"}
+        flow: {value: 52.754, provenance: assumed, source: "scripts/balance.py: X401: the rest of S32 (D-007)"}
+        composition: {basis: mole_fraction, values: {H2O: 0.971997181, NAOH: 0.006793928, NA2CO3: 0.021131183, NACL: 7.7709e-05}, provenance: assumed, source: "scripts/balance.py: as the flow (D-007)"}
   # energy: the models' duties (calculated) and the rest from scripts/balance.py (D-009)
-  - {id: Q1, title: Charge cooling to brine, kind: energy, from: E101.q, to: BRINE.e101, state: {design: {duty: {value: 2.2112, provenance: assumed, source: "scripts/balance.py: the charge S4 cooled from its mixed temperature to 278.15 K at the liquid heat capacities of materials.yaml (D-009)"}}}}
-  - {id: Q2, title: Heats of carbonation and phosgenation to brine (R101's model), kind: energy, from: R101.q, to: BRINE.r101, state: {design: {duty: {value: 30.6714, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S5 S7 S8', fingerprint: bea93b76e597f94a}}}}
-  - {id: Q3, title: Absorption heat of the dissolved excess CO2 to brine, kind: energy, from: R101.q_abs, to: BRINE.r101abs, state: {design: {duty: {value: 0.2834, provenance: assumed, source: "scripts/balance.py: the CO2 that S10 holds dissolved (0.85 of the dose taken up, less what CARB used) at 15 kJ/mol, the absorption heat the semi-batch model leaves out (core ADR 0054; D-009)"}}}}
-  - {id: Q4, title: Phosgene evaporator heat, kind: energy, from: LPS.e102, to: E102.q, state: {design: {duty: {value: 2.5365, provenance: assumed, source: "scripts/balance.py: liquid phosgene S6 from 253.15 K evaporated and warmed to 293.15 K: 100 kJ/(kmol K) x 40 K + 24.8 MJ/kmol (D-009)"}}}}
-  - {id: Q5, title: Degassing heat (DG101's model), kind: energy, from: LPS.dg101, to: DG101.q, state: {design: {duty: {value: 0.771268, provenance: calculated, source: 'cheme process propagate: still duty DG101 from S10', fingerprint: b52f51a06957124c}}}}
-  - {id: Q6, title: First strip boil-up (ST101's model), kind: energy, from: LPS.st101, to: ST101.steam, state: {design: {duty: {value: 44.9603, provenance: calculated, source: 'cheme process propagate: still duty ST101 from S12', fingerprint: 9a053ab3dafa7dfb}}}}
-  - {id: Q7, title: Second strip boil-up (ST102's model), kind: energy, from: LPS.st102, to: ST102.steam, state: {design: {duty: {value: 6.19442, provenance: calculated, source: 'cheme process propagate: still duty ST102 from S14', fingerprint: 2a2a8ec414a7a737}}}}
-  - {id: Q8, title: "V-201: the slurry heated to the strips' temperatures", kind: energy, from: LPS.v201, to: ST101.sens, state: {design: {duty: {value: 10.0637, provenance: assumed, source: "scripts/balance.py: the strips' sensible heat the still model leaves out: the distillates S13 and S15 from 278.15 K to their stills' mean temperatures, the melt S16 to 313.15 K, V-201's steel (2000 kJ/K) from the wash's temperature back to 313.15 K each batch (D-009)"}}}}
-  - {id: Q9, title: First strip's condenser to chilled water, kind: energy, from: ST101.cond, to: CHW.st101, state: {design: {duty: {value: 50.6219, provenance: assumed, source: "scripts/balance.py: the latent heat of S13 (materials.yaml) and the condensate cooled from the still's mean temperature to 283.15 K (D-009)"}}}}
-  - {id: Q16, title: Second strip's vapour condensed to chilled water, kind: energy, from: ST102.cond, to: CHW.st102, state: {design: {duty: {value: 7.3326, provenance: assumed, source: "scripts/balance.py: the latent heat of S15 and the condensate cooled from the pot's 313.15 K (the real strip's, L-5) to 283.15 K, condensed after the dry vacuum pump (D-009)"}}}}
+  - {id: Q1, title: Charge cooling to brine, kind: energy, from: E101.q, to: BRINE.e101, state: {design: {duty: {value: 2.2113, provenance: assumed, source: "scripts/balance.py: the charge S4 cooled from its mixed temperature to 278.15 K at the liquid heat capacities of materials.yaml (D-009)"}}}}
+  - {id: Q2, title: Heats of carbonation and phosgenation to brine (R101's model), kind: energy, from: R101.q, to: BRINE.r101, state: {design: {duty: {value: 30.6199, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S5 S7 S8', fingerprint: 3d27c9f9a770d0a9}}}}
+  - {id: Q17, title: "R-101's vent condenser to brine (R101's model)", kind: energy, from: R101.qvc, to: BRINE.r101vc, state: {design: {duty: {value: 0.269251, provenance: calculated, source: 'cheme process propagate: vent condenser duty R101 from S5 S7 S8', fingerprint: a2ebc21394601270}}}}
+  - {id: Q4, title: Phosgene evaporator heat, kind: energy, from: LPS.e102, to: E102.q, state: {design: {duty: {value: 2.5372, provenance: assumed, source: "scripts/balance.py: liquid phosgene S6 from 253.15 K evaporated and warmed to 293.15 K: 100 kJ/(kmol K) x 40 K + 24.8 MJ/kmol (D-009)"}}}}
+  - {id: Q5, title: Degassing heat (DG101's model), kind: energy, from: LPS.dg101, to: DG101.q, state: {design: {duty: {value: 0.611198, provenance: calculated, source: 'cheme process propagate: still duty DG101 from S10', fingerprint: f1ab1cc051707872}}}}
+  - {id: Q6, title: First strip boil-up (ST101's model), kind: energy, from: LPS.st101, to: ST101.steam, state: {design: {duty: {value: 50.9473, provenance: calculated, source: 'cheme process propagate: still duty ST101 from S12', fingerprint: 0412930df102d0f2}}}}
+  - {id: Q7, title: Second strip boil-up (ST102's model), kind: energy, from: LPS.st102, to: ST102.steam, state: {design: {duty: {value: 6.19597, provenance: calculated, source: 'cheme process propagate: still duty ST102 from S14', fingerprint: 7d124bddb6990f8f}}}}
+  - {id: Q8, title: "V-201: the content's rise while the strips boil, and V-201's steel", kind: energy, from: LPS.v201, to: ST101.sens, state: {design: {duty: {value: 4.0848, provenance: assumed, source: "scripts/balance.py: the strips' sensible heat the still model leaves out: the distillates S13 and S15 from ST101's bubble point (294.99 K; ST101's model heats the charge from 278.15 K to it, still.heat_up, Q6, D-015) to their stills' mean temperatures, the melt S16 to 313.15 K, V-201's steel (2000 kJ/K) from the wash's temperature back to 313.15 K each batch (D-009)"}}}}
+  - {id: Q9, title: First strip's condenser to chilled water, kind: energy, from: ST101.cond, to: CHW.st101, state: {design: {duty: {value: 50.6265, provenance: assumed, source: "scripts/balance.py: the latent heat of S13 (materials.yaml) and the condensate cooled from the still's mean temperature to 283.15 K (D-009)"}}}}
+  - {id: Q16, title: Second strip's vapour condensed to chilled water, kind: energy, from: ST102.cond, to: CHW.st102, state: {design: {duty: {value: 7.3344, provenance: assumed, source: "scripts/balance.py: the latent heat of S15 and the condensate cooled from the pot's 313.15 K (the real strip's, L-5) to 283.15 K, condensed after the dry vacuum pump (D-009)"}}}}
   - {id: Q10, title: Wash water heating, kind: energy, from: LPS.e201, to: E201.q, state: {design: {duty: {value: 5.1838, provenance: assumed, source: "scripts/balance.py: the wash water S17 from 298.15 to 318.15 K (D-009)"}}}}
-  - {id: Q11, title: Vacuum distillation boil-up (ST301's model), kind: energy, from: LPS.st301, to: ST301.steam, state: {design: {duty: {value: 5.57925, provenance: calculated, source: 'cheme process propagate: still duty ST301 from S23', fingerprint: ff3f703de1e9c438}}}}
+  - {id: Q11, title: Vacuum distillation boil-up (ST301's model), kind: energy, from: LPS.st301, to: ST301.steam, state: {design: {duty: {value: 5.57947, provenance: calculated, source: 'cheme process propagate: still duty ST301 from S23', fingerprint: 2e72c022527aeebc}}}}
   - {id: Q12, title: "C-301: the charge heated to the boil", kind: energy, from: LPS.c301, to: ST301.sens, state: {design: {duty: {value: 1.1599, provenance: assumed, source: "scripts/balance.py: C-301's sensible heat the still model leaves out: the melt S19 and the paraffin S21 to the temperatures their outlets leave at (forerun 328 K, main cut 347.1 K, purge 357.9 K; the heel leaves as it came, D-009)"}}}}
-  - {id: Q13, title: Forerun condenser (after the vacuum pump) to chilled water, kind: energy, from: ST301.qf, to: CHW.st301, state: {design: {duty: {value: 0.4251, provenance: assumed, source: "scripts/balance.py: the forerun S24's latent heat and its cooling from 328 to 283.15 K, condensed after the vacuum pump (D-009)"}}}}
-  - {id: Q14, title: Main-cut condenser and product cooler to cooling water, kind: energy, from: ST301.qm, to: CW.st301, state: {design: {duty: {value: 6.3941, provenance: assumed, source: "scripts/balance.py: the main cut S25's latent heat and its cooling from 347.1 K to 303.15 K, on a tempered loop above Boc2O's melting point (D-009)"}}}}
-  - {id: Q15, title: Scrubber heat to cooling water, kind: energy, from: S101.q, to: CW.s101, state: {design: {duty: {value: 1.4952, provenance: assumed, source: "scripts/balance.py: NPH and NCO's heats (reactions.yaml), the 50 wt% caustic's dilution (-15 kJ/mol NaOH, ASSUMED), less the gas S28 and the liquids S29, S31 brought to 303.15 K and the water evaporated into the vent S33 (D-009)"}}}}
-  - {id: P1, title: R-101 agitator and degassing vacuum pump, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 6.11, provenance: assumed, source: "year average (D-009): a 5.5 kW agitator of the 12.5 m3 glass-lined R-101 occupied 100 %, and K-101, a dry screw pump of about 300 m3/h at 30 kPa(a) for the nitrogen sweep, 7.5 kW for the 0.85 h of degassing in the 10.41 h cycle (0.61 kW)"}}}}
-  - {id: P2, title: V-201 agitator and vacuum pump, kind: energy, from: POWER.v201, to: DC201.power, state: {design: {duty: {value: 10.5, provenance: assumed, source: "year average (D-009): a 5.5 kW agitator at 98 % occupancy (5.4 kW) and the dry screw pump with roots booster K-201, 7.5 kW for the 7.1 h of the two strips in the 10.43 h cycle (5.1 kW)"}}}}
-  - {id: P3, title: C-301 agitator and vacuum pump, kind: energy, from: POWER.c301, to: ST301.power, state: {design: {duty: {value: 6.6, provenance: assumed, source: "year average (D-009): a 2.2 kW agitator for C-301's 5.9 h per batch (1.25 kW) and the roots-screw pump K-301 (2000 m3/h at 0.13 kPa(a)), 11 kW for 5.1 h of the 10.43 h cycle (5.4 kW)"}}}}
+  - {id: Q13, title: Forerun condenser (after the vacuum pump) to chilled water, kind: energy, from: ST301.qf, to: CHW.st301, state: {design: {duty: {value: 0.4252, provenance: assumed, source: "scripts/balance.py: the forerun S24's latent heat and its cooling from 328 to 283.15 K, condensed after the vacuum pump (D-009)"}}}}
+  - {id: Q14, title: Main-cut condenser and product cooler to cooling water, kind: energy, from: ST301.qm, to: CW.st301, state: {design: {duty: {value: 6.3943, provenance: assumed, source: "scripts/balance.py: the main cut S25's latent heat and its cooling from 347.1 K to 303.15 K, on a tempered loop above Boc2O's melting point (D-009)"}}}}
+  - {id: Q15, title: Scrubber heat to cooling water, kind: energy, from: S101.q, to: CW.s101, state: {design: {duty: {value: 1.3957, provenance: assumed, source: "scripts/balance.py: NPH and NCO's heats (reactions.yaml), the 50 wt% caustic's dilution (-15 kJ/mol NaOH, ASSUMED), less the gas S28 and the liquids S29, S31 brought to 303.15 K and the water evaporated into the vent S33 (D-009)"}}}}
+  - {id: P1, title: R-101 agitator and degassing vacuum pump, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 6.11, provenance: assumed, source: "year average (D-009): a 5.5 kW agitator of the 12.5 m3 glass-lined R-101 occupied 100 %, and K-101, a dry screw pump of about 300 m3/h at 30 kPa(a) for the nitrogen sweep, 7.5 kW for the 0.85 h of degassing in the 10.39 h cycle (0.61 kW)"}}}}
+  - {id: P2, title: V-201 agitator and vacuum pump, kind: energy, from: POWER.v201, to: DC201.power, state: {design: {duty: {value: 10.66, provenance: assumed, source: "year average (D-009): a 5.5 kW agitator for V-201's 10.24 h per batch in the 10.39 h cycle (98.6 % occupancy, 5.42 kW) and the dry screw pump with roots booster K-201, 7.5 kW for the 7.24 h of the two strips (4.67 + 2.57 h, cheme process recipe) in the 10.39 h cycle (5.23 kW)"}}}}
+  - {id: P3, title: C-301 agitator and vacuum pump, kind: energy, from: POWER.c301, to: ST301.power, state: {design: {duty: {value: 6.98, provenance: assumed, source: "year average (D-009): a 2.2 kW agitator for C-301's 6.53 h per batch in the 10.39 h cycle (1.38 kW) and the roots-screw pump K-301 (2000 m3/h at 0.13 kPa(a)), 11 kW for the 5.28 h of the forerun and the distillation (3.35 + 1.93 h, cheme process recipe) in the 10.39 h cycle (5.59 kW)"}}}}
   - {id: P4, title: Scrubber pump and fan, kind: energy, from: POWER.s101, to: S101.power, state: {design: {duty: {value: 3.0, provenance: assumed, source: "year average (D-009): 1.5 kW circulation pump and 1.5 kW fan, running continuously"}}}}
