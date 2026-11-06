@@ -5,7 +5,7 @@ and the maximum electrode height that follows from it, from Baumgartner, Koopman
 and Vermaas (ACS Sustainable Chem. Eng. 2022). The inputs are the tabulated breakthrough
 pressures in the paper's supporting information. Issue #332, tracker core#136. Protocol: ADR 0030
 (Proposed), with one deviation: there is no `case/` folder. The model is a plain-Python data
-reproduction with no cheme flowsheet, the situation in which ADR 0031 (Proposed) notes that the
+reproduction with no cheme flowsheet, the situation in which ADR 0031 notes that the
 HDA layout (`case/` with a `plant.yaml`) does not fit.
 
 The issue is a separate follow-up to the bipolar-membrane benchmark (#329), and its result does
