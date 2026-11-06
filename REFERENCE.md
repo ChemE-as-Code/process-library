@@ -28,7 +28,7 @@ says how to add a process.
 
 ## Processes
 
-The table lists 91 public process folders: 52 engineering projects (a `plant.yaml` with a process
+The table lists 97 public process folders: 58 engineering projects (a `plant.yaml` with a process
 flowsheet), 33 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
 One more folder (`co2-electrolysis-bpm-1`) is internal and not listed. The table is generated
 from each folder's `process.yaml` and `checks/maturity.json`; `coverage.yaml` names the
@@ -222,7 +222,7 @@ is not comparable as well.
 CI (`.github/workflows/validate.yml`): every `processes/*/plant.yaml` is validated with `cheme`
 in its folder; the library job runs the tests (including the Brightway round trip) and builds
 the catalog and the LCI database, and the public catalog (`--public`: only processes with
-`publication.status: public`, placeholder footprints withheld; see CONTRIBUTING.md). Nothing is
+`publication.status: public` and a licence, placeholder footprints withheld; see CONTRIBUTING.md). Nothing is
 published. `.github/workflows/release.yml` (started by hand) drafts an LCI release with its
 change report and archive metadata as a workflow artifact; it publishes nothing, as the release
 decision is the owner's (docs/governance.md).
