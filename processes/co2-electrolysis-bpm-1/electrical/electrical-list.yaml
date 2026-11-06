@@ -78,17 +78,20 @@ feeders:
      source: "flowsheet Q104 0.050 kW (0.5 kWh/kg CO, ESTIMATE, TBD vendor), rounded up; power factor 0.8 ASSUMED (valve actuators and controller)"}
   # the oxidiser stands off the frame south-east of it (D-057), 7.2 m from PR-1, beyond
   # rack_reach_m: its feeder ends at the package's local burner-management panel on a stand
-  # 1.5 m north of it (ASSUMED; the vendor's panel, EN 746-2), within reach of the rack, and
-  # the package cable runs from there at grade (not modelled); fed straight from SDB-1 the
-  # branch crossed the plot at 4.3 m with no support (layout-tray-span)
-  - {tag: F-X132, point: [14.55, 8.05, 0.9], power_kw: 0.5, power_factor: 0.8, assumed: true,
+  # (ASSUMED; the vendor's panel, EN 746-2, normally not Ex), within reach of the rack, and
+  # the package cable runs from there to the oxidiser (not modelled); fed straight from SDB-1
+  # the branch crossed the plot at 4.3 m with no support (layout-tray-span). The panel stands
+  # east of the tail gas's east leg at x 15.8 m (D-065, review 2026-11-06-layout-r3#1; it stood
+  # at x 14.55 m, 1.24 m from the foot of the east step ST-A2): 2.14 m from that foot with its
+  # declared outline (layout/layout-checks.yaml), 5.45 m from PR-1's centre line
+  - {tag: F-X132, point: [15.8, 8.05, 0.9], power_kw: 0.5, power_factor: 0.8, assumed: true,
      source: "ASSUMED: no power in the flowsheet; the oxidiser's combustion air fan, igniter and burner management (D-031 item 10), TBD vendor"}
   - {tag: F-U201, point: [27.45, 11.7, 1.35], power_kw: 4.1, power_factor: 0.95, assumed: true,
      source: "the DC output rating over the efficiency, as F-U101 (operating duty flowsheet Q201 3.164 kW)"}
   - {tag: F-X231, point: [23.6, 9.75, 1.95], power_kw: 0.1, power_factor: 0.8, assumed: true,
      source: "flowsheet Q204 0.050 kW, as F-X131"}
-  - {tag: F-X232, point: [29.55, 8.05, 0.9], power_kw: 0.5, power_factor: 0.8, assumed: true,
-     source: "ASSUMED: as F-X132"}
+  - {tag: F-X232, point: [30.8, 8.05, 0.9], power_kw: 0.5, power_factor: 0.8, assumed: true,
+     source: "ASSUMED: as F-X132, the panel east of TG-201's east leg (D-065)"}
   # The 48 V DC bus (D-045): one cable per stack from its DC output on the rectifier, rated for the stack
   # current 20 A (process/cells.yaml STK-A/STK-B, JIC-x01 4 x 20 A) at the 48 V bus rating
   # (process/cells.yaml max_stack_voltage, D-008): power_kw = 48 V x 20 A. Core sizes every
@@ -153,7 +156,15 @@ instruments:
   - {tag: TSHH-133, point: [8.85, 9.88, 0.35], notes: "arrester temperature on TG-101 beside FA-133 (D-054)"}
   - {tag: AIA-141, point: [9.65, 9.55, 1.0], notes: "CO detector, ASSUMED location (gas detection study open, D-031 item 5)"}
   - {tag: AIA-142, point: [10.0, 7.95, 2.0], notes: "H2 detector, ASSUMED location high over the stack row (gas detection study open)"}
-  - {tag: JIC-101, point: [12.25, 11.7, 0.9], notes: "U-101 current signal, run and trip command (west face of the cabinet on its plinth, D-057); modelled as one pair, needs three or more (open, D-045)"}
+  - {tag: JIC-101, point: [12.25, 11.7, 0.9], notes: "U-101 current signal, run and trip command (west face of the cabinet on its plinth, D-057); modelled as one pair, needs three or more (open, D-045); the per-stack voltages EIA-105A to D and currents IIA-106A to D (D-063) are the rectifier's own measurements on the same interface, not separate field cables"}
+  # P&ID revision C (D-060 to D-062): the transmitters on the DN 15 lines, beside the items
+  # their line joins, inside the frame and out of the stacks' hand room (ASSUMED). The
+  # instrument air switch PSLL-x51 stands on the site's air header (not modelled); the tight
+  # shut-offs XV-x25 and XV-x34 are cabled with the safety I/O like XV-x33 (their points with
+  # the detail design)
+  - {tag: FIC-104, point: [8.9, 8.35, 0.4], notes: "total cathode CO2 on CO2-101 (DN 15), downstream of the recycle tee (D-062)"}
+  - {tag: PIA-123, point: [9.6, 8.75, 0.5], notes: "cathode gas pressure on CG-101 (DN 15) at V-121's inlet (D-060)"}
+  - {tag: PIA-132, point: [9.6, 9.55, 0.6], notes: "K-131 discharge pressure on CG-103 (DN 15) (D-060)"}
   # Skid B
   - {tag: TV-211, point: [23.65, 7.6, 0.5], notes: "tempered water to E-211 (TWS-201, DN 15)"}
   - {tag: FIC-202, point: [24.05, 8.35, 0.4], notes: "fresh CO2 CO2-201 (DN 15), west of the stack row"}
@@ -170,7 +181,10 @@ instruments:
   - {tag: LV-201, point: [22.4, 9.55, 0.9], notes: "make-up water to T-201 (DN 15), north of the tank"}
   - {tag: AIA-241, point: [24.65, 9.55, 1.0], notes: "CO detector, ASSUMED location (as AIA-141)"}
   - {tag: AIA-242, point: [25.0, 7.95, 2.0], notes: "H2 detector, ASSUMED location (as AIA-142)"}
-  - {tag: JIC-201, point: [27.25, 11.7, 0.9], notes: "U-201 current signal, run and trip command; modelled as one pair, as JIC-101 (open, D-045)"}
+  - {tag: JIC-201, point: [27.25, 11.7, 0.9], notes: "U-201 current signal, run and trip command; modelled as one pair, as JIC-101 (open, D-045); EIA-205A to D and IIA-206A to D on the same interface (D-063)"}
+  - {tag: FIC-204, point: [23.9, 8.35, 0.4], notes: "total cathode CO2 on CO2-201 (DN 15), as FIC-104"}
+  - {tag: PIA-223, point: [24.6, 8.75, 0.5], notes: "cathode gas pressure on CG-201 (DN 15), as PIA-123"}
+  - {tag: PIA-232, point: [24.6, 9.55, 0.6], notes: "K-231 discharge pressure on CG-203 (DN 15), as PIA-132"}
 notes: >-
   ASSUMED (D-045): the host site's 400 V board SDB-1 and control room CR-1 off the plot to the
   east, the cables along PR-1; one junction box per skid; the 48 V DC bus of each skid its own

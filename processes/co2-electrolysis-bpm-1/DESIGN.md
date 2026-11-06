@@ -619,6 +619,12 @@ and drains beyond the ones operation needs" now include the ones the drain needs
 on a tempered-water unit (TWS-x01, TWR-x01); the bubbles of PIC-x21 and LIC-x22 are placed by
 the script, so the sheets are what `cheme regen` makes (D-056).
 
+Changed by D-060 to D-065 (P&ID revision C, 2026-11-06, the design review 2026-11-06-design):
+"relief devices" are no longer left out: the cathode side has its bursting disc PSE-x01 and the
+basis of the compressor's protection is decided (D-060); the sheets add the measurements and
+valves of D-060 to D-064 (D-065). The stacks' DC bus stays not drawn; per-stack voltage and
+current are measured at the rectifier (D-063).
+
 ## D-018 Control of the skids: loops, trips and sequences (2026-11-04)
 Decision: `control/loops.yaml`, `control/cause-effect.yaml`, `control/sequences.yaml` and
 `control/philosophy.md` hold the control of both skids (1xx Skid A, case skid-a; 2xx Skid B,
@@ -681,6 +687,16 @@ threshold, and T-101 is sized to reach the trip value at H (1,176 L), so a campa
 measured WDE ends normally at H with the anolyte at the trip value and the trip acts only when
 the WDE is below the measured one or the run overruns H; both skids trip at 12.2. AI-101's low
 alarm stays 12.5, now about 19 h before H and the trip (28 h before pH 12).
+
+Changed by D-060 to D-064 (the design review 2026-11-06-design): ten trips per skid are added,
+I-x11 to I-x20 (the cathode and the compressor discharge pressure high-high, the compressor not
+running, the instrument air low-low, the total CO2 low-low, H2 in the anode O2, the membrane's
+pressure difference, the condensate low-low and high-high, a stack's current high-high), and
+Skid B's I-221 (the reservoir's high-high closes the make-up); a stopped compressor and a loss of
+air trip the current automatically, no longer by the operator; FIC-x04 holds the total CO2 with
+FIC-x02 in cascade; TIC-x11's action follows the tempered water's mode; the start-up gives the
+train its outlet before the purge and every stop depressurises through the PSA; every trip that
+stops K-x31 closes the recycle XV-x34.
 
 ## D-019 Skid layout: plot, frames, placement, zones and routing (2026-11-04)
 Decision: a notional pilot plot (ASSUMED, `layout/site-plan.yaml`): 32 x 16 m, two process
@@ -2173,6 +2189,13 @@ stacks themselves, which have no Ex certificate: their terminals need the compet
 assessment; the certificates of every item, and the design and drawing of the DC isolation with
 the 48 V DC bus (D-031 item 9).
 
+Changed by D-063 (the design review 2026-11-06-design #12): "PP tanks earthed and bonded" cannot
+be met, a PP wall cannot be earthed: the KOH is earthed through a metal element in contact with
+it and every metal fitting bonded; the PP wall is the competent person's to assess under IEC TS
+60079-32-1, or specified conductive or dissipative. Changed by D-065: the oxidiser's
+burner-management panel, normally not Ex, is an ignition source of the checks, 2 m or more from
+the east step's foot.
+
 ## D-052 Cell and meter temperatures; the stack outlet held at 25 °C (2026-11-06)
 Decision (the owner, 2026-11-06):
 - the cell temperature stays 25 °C and the meter's reference 0 °C and 101.325 kPa (both
@@ -2212,6 +2235,12 @@ the tempered-water unit's heating and cooling duty and its frost protection (ven
 Changed by D-056: the P&ID, line list, loops and C&E change is made: TWS-x01 and TWR-x01 from
 the tempered-water unit, TIC-x11's low-temperature alarm, SEQ-x-START S1 bringing the loop to
 temperature and SEQ-x-STOP S3 keeping an idle filled skid circulated and heated.
+
+Changed by D-062 (the design review 2026-11-06-design #5): "the stack outlet at 25 degC" is held
+through TIC-x11's inlet setpoint (295.27 K) at the duty's stack heat, with TSHH-x12 on the
+outlet; TIC-x11's action follows the unit's heating or cooling mode (direct in cooling, reversed
+in heating) and the unit limits its heating supply to 30 degC, so the fail-open TV-x11 is safe in
+both modes. FIC-x02 is the slave of the total cathode CO2 FIC-x04.
 
 ## D-053 The ASSUMED weights for basic engineering; vendor weights, weighing and the lifting plan (2026-11-06)
 Decision (the owner, 2026-11-06): the ASSUMED weights of `layout/lifting-basis.yaml` (D-043)
@@ -2304,6 +2333,10 @@ Changed by D-057: TG-x01 and AIR-x01 are pinned with the oxidiser's move: TG-x01
 at 0.30 m on sleeper posts from X-x31's north end, off the way off the deck, into the oxidiser's
 east face; the air from an intake at the package. The model shows the in-line items 1 m apart
 along TG-x01 (core's in-line pitch); they stand together at X-x31's outlet.
+
+Changed by D-061 and D-065: every stop depressurises CG-x03 and the PSA through the PSA's own
+stop and XV-x33 to the oxidiser still firing before XV-x33 closes; TG-x01 runs overhead at 2.3 m
+on posts instead of at 0.30 m on sleepers (review 2026-11-06-layout-r3#3).
 
 ## D-055 Draining the anolyte loop: low-point drain, cooler vent, tank pump-outs, the drain sequence (2026-11-06)
 Decision (the owner, 2026-11-06; D-043, D-047 items 4 and 7, HAZOP H01-A111, H01-A206,
@@ -2485,6 +2518,10 @@ oxidiser's and the rectifier's vendor outlines, terminal positions and panel; th
 for the longer run (electrical design); the human layout review the r2 review requires before
 sign-off (gate `layout-review` stays stale until the next round).
 
+Changed by D-065 (review 2026-11-06-layout-r3 #1, #3): the burner-management panel moves east of
+TG-x01's east leg to x 15.8 m (30.8 m), 2.15 m from ST-x2's foot, declared in both checks; TG-x01
+runs overhead at 2.3 m; A-100 and A-200 extend east to x 16.3 and 31.3 m.
+
 ## D-058 Skid A's pH trip at 12.2, T-101 sized to the trip value (2026-11-06)
 Decision (the owner, 2026-11-06; option (c) of the open owner decision of D-018 and D-023):
 - Skid A's low-low pH trip I-101 acts at pH 12.2 (concentration basis, ASSUMED), 0.2 above the
@@ -2588,4 +2625,288 @@ one (all ASSUMED, for the team).
 Open (cannot be settled here): the team session that accepts, changes or rejects every
 proposal, the re-rating it makes, the human review record and the SIL screening (H01-A112,
 H02-A104).
+
+Changed by D-066: the drafts are revised again for P&ID revision C (D-060 to D-065).
+
+## D-060 Overpressure protection, the compressor and instrument-air trips, the design conditions (2026-11-06)
+Decision (agent, after the design review 2026-11-06-design #1, #2 and #10, all for basic
+engineering; every value ASSUMED; P&ID revision C, D-065 for the sheets):
+1. **The CO2 supply interface.** The merchant CO2 supply (D-016) delivers at up to 3 bar(g)
+   from the supplier's vaporiser and pressure regulator at the battery limit, which carries its
+   own relief valve at 4 bar(g) (`piping/line-list.yaml` CO2-x01); CO2-x01 up to FV-x02 is
+   rated for the supply side. The regulator failing open is the governing case of the cathode.
+2. **The cathode side** (the stacks' cathodes, CG-x01, V-x21, CG-x02 up to K-x31): a bursting
+   disc PSE-x01 on the CO2 feed header CO2-x01, downstream of every feed (FV-x02, the recycle
+   CO2-x02, the water W-x01), so that it protects the cathodes through their open flow fields,
+   at 0.5 bar(g), to a safe location at height through RL-x01, with a burst indicator; and an
+   independent pressure high-high PIA-x23 on the cathode outlet CG-x01 at 0.35 bar(g)
+   (135 kPa(a); PIC-x21 is the control transmitter) that trips the current and closes FV-x02
+   first (I-x11; the burst indicator trips the same, so a burst disc does not leave the CO2
+   venting past stacks still on current). Relief case (`piping/special-items.yaml`): a blocked
+   cathode outlet (K-x31 stopped, PV-x21 closed by a failed PIC-x21) with the regulator failed
+   open and FV-x02 open, wide open in the start-up purge. Both are needed: the trip removes the
+   sources (the current, FV-x02), the disc protects against FV-x02 or the trip failing.
+3. **K-x31's discharge** (CG-x03, X-x31 up to PV-x31 and XV-x33): a pressure high-high PIA-x32 at
+   5.8 bar(g) (against 5.0 bar(g) in operation) that stops K-x31, trips the current and closes
+   FV-x02 and the recycle XV-x34 (I-x12), and K-x31 specified as a hydraulically driven
+   diaphragm compressor whose own hydraulic relief limits its discharge to 6.5 bar(g), below the
+   7.0 bar(g) design of K-x31, CG-x03 and X-x31; the PSA vendor's relief devices protect its own
+   vessels (PED). No relief device is drawn on CG-x03: a positive-displacement machine with a
+   built-in pressure limit and an independent trip needs none, and an external device would
+   either release cathode gas (CO, H2) or, returned to the suction, put the PSA's inventory
+   into the 1 bar(g) suction side once open.
+4. **A stopped compressor and a loss of instrument air** no longer rely on the operator: K-x31
+   not running with the current on trips the current and closes FV-x02 and XV-x34 (I-x13); the
+   instrument air low-low PSLL-x51 trips the current and stops K-x31 (I-x14); both lead into
+   SEQ-x-GAS, which now covers every trip that isolates the train. PV-x21's fail-open rationale
+   is corrected (`control/loops.yaml` PIC-x21): it keeps the cathode on the compressor's suction
+   while K-x31 runs down and relieves nothing once K-x31 has stopped; the protection then is
+   I-x13, I-x14, I-x11 and PSE-x01. F-AIR and the new F-COMP of `control/philosophy.md` say so.
+5. **The design conditions** of every item of the equipment list (`design_pressure_barg`,
+   `design_temperature_degc`, each with its basis in its notes): the stacks and V-x21 1.0 bar(g)
+   and 50 degC (the cathode protected by PSE-x01 and I-x11, the anolyte side at most P-x01's
+   shut-off head of about 0.8 bar(g)); the PP tanks atmospheric, 0 bar(g) with the static head
+   of a full tank, 40 degC (above the tempered water's 30 degC heating limit, D-062); P-x01
+   3.0 bar(g), 40 degC; E-x11 6.0 bar(g), 50 degC (the tempered-water unit's pump); K-x31
+   7.0 bar(g) and 150 degC with its head cooled (an uncooled discharge at the 5.5 pressure ratio
+   would reach about 160 to 220 degC: the vendor's head cooling and discharge temperature
+   protection, H01-A503); X-x31 7.0 bar(g), 60 degC; X-x32's casing 0.5 bar(g), 600 degC; P-202
+   6.0 bar(g), 40 degC (D-064); U-x01 no pressure rating, 40 degC ambient. The draft datasheets
+   take them from the list (regen).
+
+Why: the review found no overpressure protection at basic engineering on a positive-displacement
+compressor and a membrane-limited cathode fed from a liquefied CO2 supply, and the current left
+on against closed outlets after a compressor stop or an air loss. The relief basis is a design
+decision; its sizing is the relief study's.
+
+Rejected: a spring-loaded safety valve on either side (core 1.10's authoring API has no inline
+safety-valve symbol; a reclosing valve remains the relief study's option for PSE-x01); a
+bursting disc on CG-x03 back to K-x31's suction (once burst, it would put the PSA's 6 bar(g)
+inventory into the 1 bar(g) suction side); a relief to atmosphere on CG-x03 (a release of CO and
+H2); a high-pressure trip at the CO2 tie-in instead of the cathode's (it would not see a blocked
+outlet).
+
+Consequence: P-01 and P-02 revision C draw PSE-x01, RL-x01, PIA-x23, PIA-x32, PSLL-x51 (D-065);
+the C&E adds I-x11 to I-x14 (both skids), the line list RL-x01 (skipped in the routing, DN 15),
+the electrical list the points of PIA-x23 and PIA-x32. Results at 1,000 h (regen): in D-065.
+
+Assumptions: every set point, burst pressure and design condition above; the supply's 3 and
+4 bar(g); K-x31's integral hydraulic limit.
+
+Open (cannot be settled here): the relief study by a competent person (sizing of PSE-x01, its
+outlet location, disc or reclosing valve, the supplier's actual regulator and relief, the PSA
+vendor's devices, H01-A303, H01-A501, H02-A302, H02-A402); the stack vendor's rating and the
+membrane's pressure-difference window (#332); K-x31's hydraulic limit and head cooling (vendor);
+the SIL screening of I-x11 to I-x14 (H01-A112, H02-A104).
+
+## D-061 The oxygen side, the membrane, the condensate, the tank levels and sequences that can finish (2026-11-06)
+Decision (agent, after the design review 2026-11-06-design #3, #4, #6, #13 and #16; ASSUMED):
+1. **H2 in the anode O2** (#3): an analyser AIA-x14 on the reservoir vent O2V-x01 (the T-x01 head
+   space gas), alarm AH 0.4 vol% H2 (10 % of the lower flammability limit of H2 in O2, about
+   4 vol%), trip of the current at 1.0 vol% (25 %, I-x16).
+2. **The membrane's pressure difference** (#3): the anolyte pressure PIA-x13 at the stack inlet;
+   with the cathode outlet PIA-x23 (D-060) the difference is alarmed (PDAH 45, PDAL 15 kPa) and
+   trips the current outside 0 to 60 kPa (about 31 kPa at the operating point, I-x17). The
+   difference changes sign along a stack (inlet about 141 against 120 kPa(a), outlet about 101
+   against 110 kPa(a)), so two points read a mean; the window is ASSUMED until the stack vendor
+   gives it.
+3. **The condensate** (#6): an independent level LIA-x24 on V-x21 (its own connection N5): its
+   low-low closes the tight shut-off XV-x25 (fail closed) downstream of LV-x22 (I-x18), against
+   gas blowing through to the drain; its high-high stops K-x31, trips the current and closes
+   FV-x02 and XV-x34 (I-x19), against liquid reaching the diaphragm compressor. The condensate
+   goes to a vented collection (vented to a safe location), then the site effluent.
+4. **The tank levels** (#13): LIA-x01 and LIA-203 get LAH (the working volume reached) and LAHH
+   (90 %) with a horn and beacon at the fill connection, so that the filling operator stops the
+   delivery; on Skid B LIA-202's LAHH closes the make-up LV-201 (I-221; I-121 unused). The fill
+   steps check the volume delivered against the working volume before the fill.
+5. **The sequences that can finish** (#4, #16): SEQ-x-START gives the cathode gas train its outlet
+   first (S2: the oxidiser firing, XV-x33 open, the PSA started, XV-x34 open) and then purges
+   with K-x31 and the CO2 together (S3) on the total feed FIC-x04 (D-062); every stop (SEQ-x-STOP,
+   -TRIP, -GAS) stops K-x31 and the feed, closes XV-x34 and lets the PSA's own stop depressurise
+   its beds and CG-x03 into the tail gas through XV-x33 to the oxidiser still firing (a
+   requirement on the PSA package; PIA-x32 shows it), and only then closes XV-x33 and stops the
+   oxidiser; SEQ-x-GAS's reset step S2 waits for I-x10 too.
+
+Why: the oxygen side of an electrolyser is protected by an H2-in-O2 measurement that trips the
+current (ISO 22734 practice, as the review cites it); a crossover forms a mixture with near-pure
+O2 in the head space. Neither the membrane's pressure difference nor the condensate's blow-by and
+carry-over had a measurement independent of the control loop. A start-up purge with no outlet and
+an end condition "depressurised" with no path cannot be executed.
+
+Rejected: a sweep or dilution of the T-x01 head space instead of the analyser (it hides the
+crossover and the vendor has no figure); an overflow of the tanks to a bund (the alarms at the
+fill point and the volume check suffice for a hand fill; an overflow would be one more open
+connection on an O2 head space); a manual depressurisation valve from CG-x03 to TG-x01 (a tee on
+the pinned tail gas inside the zone, and the PSA's stop does it); a liquid seal on CD-x01 (it
+needs its own level and freezes on the open skid).
+
+Consequence: P-01 and P-02 revision C draw AIA-x14, PIA-x13, LIA-x24 on V-x21 N5, XV-x25 (D-065);
+the C&E adds I-x16 to I-x19 and I-221; the equipment list notes V-x21's N5; the datasheets of V-x21
+list N5 (regen). The sequences and the philosophy (F-MEMBRANE) follow.
+
+Assumptions: every set point above; the analyser on an O2-rich sample; the PSA's stop to its tail
+gas.
+
+Open (cannot be settled here): the analyser's sample point, response time and the head space's
+dilution (vendor, the HAZOP team, H01-A110, H02-A601); the membrane window (stack vendor, #332,
+H01-A103); the PSA vendor's stop sequence; the condensate collection's design and the effluent's
+acceptance (the site); SIL screening.
+
+## D-062 The cathode CO2 on its total, back-flow into the supplies, the tempered water in heating mode (2026-11-06)
+Decision (agent, after the design review 2026-11-06-design #5, #7 and #8; ASSUMED):
+1. **The total cathode CO2** (#8): FIC-x04 on CO2-x01 downstream of the recycle tee and upstream
+   of the humidification water measures the dry total (fresh and recycle, 3.30 kg/h, the
+   10 sccm/cm2 the FE was measured at, regen step 9 writes it as S101 plus S103); it is the
+   master of FIC-x02 (cascade), so the fresh CO2 makes up what the recycle does not return, from
+   about 0.36 kg/h in operation to the whole 3.3 kg/h in the start-up purge (FV-x02 sized for
+   both); its low-low at 50 % trips the current (I-x15).
+2. **Back-flow** (#7): check valves on CO2-x01 downstream of FV-x02, on W-x01 and on W-202
+   (Skid B's make-up, which enters T-201 below the working level); the PSA recycle CO2-x02 gets
+   a check valve and a tight shut-off XV-x34 (fail closed) that every trip stopping K-x31
+   closes (I-x03, I-x04, I-x09, I-x10, I-x12, I-x13, I-x19) and the sequences open with the PSA
+   and close at every stop. The 1 M and 5 M KOH fills are hand deliveries through hoses onto the
+   tanks' upper connections, which back-flow cannot reach. The backflow preventer of the
+   demineralised water tie-ins (EN 1717 category, family BA or an air gap) is the site's.
+3. **TIC-x11 in heating mode** (#5): the action follows the tempered-water unit's heating or
+   cooling mode (direct in cooling, reversed in heating, switched by the unit's mode signal);
+   fail-open TV-x11 is safe in both modes because the unit limits its heating supply to 30 degC
+   (its own high-temperature cut-out), below the PP tanks' 40 degC and the stacks' 50 degC
+   (D-060). D-052's "outlet held at 25 degC" is held through the inlet setpoint at the duty's
+   stack heat (295.27 K at the cooler outlet); TSHH-x12 measures the outlet.
+
+Why: FIC-x02 saw 11 % of the cathode CO2 the performance rests on, and a loss of the recycle or
+the purge's ninth of the feed went unseen; cathode gas with CO could reach the CO2 and water
+supplies; a direct-acting controller closes its heating water when the anolyte is cold.
+
+Rejected: a ratio of the fresh CO2 to the current (it does not see the recycle); a flow meter on
+the recycle alone (the total is what the cathode needs); the unit's supply temperature as
+TIC-x11's output with TV-x11 held open (the sheets draw TIC-x11 on TV-x11; a mode switch keeps
+that).
+
+Consequence: P-01 and P-02 revision C draw FIC-x04, the check valves, XV-x34 (D-065); the loops
+add FIC-104 and FIC-204, FIC-x02 normally in cascade; the C&E adds I-x15 and XV-x34 to the
+trips; the philosophy F-CO2.
+
+Open: the PSA's own recycle control (vendor); the unit's mode signal and its 30 degC limit
+(vendor, D-052); the water supplier's backflow category.
+
+## D-063 Each stack's current and voltage; the PP tanks' static earthing corrected (2026-11-06)
+Decision (agent, after the design review 2026-11-06-design #9 and #12; ASSUMED):
+1. **Per stack** (#9): each stack's voltage EIA-x05A to D and current IIA-x06A to D, measured at
+   the rectifier on its DC cable (outside the zone), alarmed on a deviation from the four stacks'
+   mean (0.3 V, 10 % of the 20 A share); any stack above 24 A (120 %) trips the current (I-x20).
+   The start-up's S4 watches them, where it named a stack voltage that had no instrument.
+2. **The PP tanks** (#12, correcting D-051): a polypropylene wall cannot be earthed. The KOH in
+   T-101, T-201 and T-202 is earthed through an earthed metal element in contact with it at the
+   bottom (a stainless dip electrode or metal bottom nozzle) and every metal fitting is bonded;
+   the PP wall's charging in or beside the IIC zone is the competent person's to assess under
+   IEC TS 60079-32-1, or the wall is specified in a conductive or dissipative PP.
+
+Why: four stacks in parallel on one controlled current share it by their resistance; a stack
+that shorts or floods takes a different share, beyond the measured 200 mA/cm2 point, unseen. D-051
+specified something that cannot be met.
+
+Rejected: cell-group voltages (the stack vendor's; per-stack values suffice for basic
+engineering); a separate rectifier per stack (four times the DC equipment for a pilot).
+
+Consequence: the sheets draw the eight bubbles per skid at the rectifier (D-065); they are the
+rectifier's own measurements on its signal interface with JIC-x01 (no separate field cables,
+`electrical/electrical-list.yaml`); the equipment list's tank notes carry the corrected earthing.
+
+Open (cannot be settled here): the competent person's assessment of the PP walls; the stack
+vendor's cell-voltage limits.
+
+## D-064 The dosing pump, the pump and cooler isolation, the separator note (2026-11-06)
+Decision (agent, after the design review 2026-11-06-design #11, #15 and #17; ASSUMED):
+1. **P-202** (#11): a suction isolation HV-210 at T-202's outlet (KOH-203); a back-pressure and
+   anti-siphon valve BPV-202 (1.5 bar, a spring-loaded check valve) on KOH-204 before the dose
+   enters T-201's roof above the liquid; the pump specified with its integral relief valve at
+   3.0 bar(g) returning to its suction (most diaphragm metering pumps carry one), noted on P-02,
+   below its 6.0 bar(g) design (D-060).
+2. **P-x01 and E-x11** (#15, low): no further isolation is drawn: the pilot accepts draining the
+   loop with SEQ-x-DRAIN (D-055) for work on the pump or the cooler; HV-x01 isolates the pump
+   from the tank, and the tempered-water unit off the skid isolates its own supply and return.
+   A suction strainer for P-x01 is the pump vendor's recommendation to follow.
+3. **V-x21's note** (#17): about 30 L/min of cathode gas (3.26 kg/h, 78 mol/h at 110 kPa(a) and
+   298 K), not 3 L/min; at D 0.20 m about 0.016 m/s superficial, so the size stands.
+
+Why: a positive-displacement metering pump needs its discharge relieved and its siphon broken, and
+could not be isolated without emptying T-202; the separator's note understated its gas tenfold.
+
+Rejected: an external relief line from KOH-204 back to T-202 (a new roof connection on the day
+tank for what the pump's own valve does); isolation and a strainer on the DN 25 loop (in-line
+items on pinned routes for maintenance that the drain covers).
+
+Consequence: P-02 revision C draws HV-210 and BPV-202 and the note (D-065); SEQ-B-START S5 opens
+HV-210.
+
+Open: the metering pump's integral relief (vendor's confirmation).
+
+## D-065 P&ID revision C, the burner-management panel off the stair foot, the tail gas overhead (2026-11-06)
+Decision: P-01 and P-02 are regenerated (`cheme regen P-01 P-02`) from `scripts/_skid_pid.py` with
+D-060 to D-064, their frames' title blocks revision C of 2026-11-06: per skid PSE-x01 and RL-x01,
+PIA-x13, AIA-x14, FIC-x04, EIA-x05A to D, IIA-x06A to D, PIA-x23, LIA-x24 on V-x21 N5, XV-x25,
+PIA-x32, PSLL-x51, the check valves on CO2-x01, W-x01 and CO2-x02, XV-x34; on Skid B HV-210,
+BPV-202, W-202's check valve and P-202's relief note. The DR-x01 "capped" note moves clear of its
+arrow (review #14). With the layout review 2026-11-06-layout-r3 (both medium findings):
+1. **The burner-management panel** (r3#1): the oxidiser's local panel (normally not Ex) stands east
+   of the tail gas's east leg at x 15.8 m (30.8 m), y 8.05 m (it stood at x 14.55 m, 1.24 m from
+   the foot of the east step ST-x2), within PR-1's reach (5.45 m), its feeder's point moved with
+   it (`electrical/electrical-list.yaml`); it is declared as an outline in
+   `layout/layout-checks.yaml` (X-x32/BMS, 0.6 x 0.3 x 1.8 m, ASSUMED) in both the ignition and
+   the stair-foot checks, which regen step 13 now take as a model item or a declared box.
+2. **The tail gas overhead** (r3#3): TG-x01 rises just north of the frame and runs at 2.3 m (pipe
+   bottom 2.289 m, the 2.1 m walkway headroom below it) on 16 posts to the oxidiser, where it
+   drops into N1: people reach the rectifier and leave the east step's foot north and east under
+   it, with no step-over and no crossing to mark; the process areas A-100 and A-200 extend east to
+   x 16.3 m and 31.3 m over its east legs and the panels.
+
+Why: a generated sheet is the script's (D-017); a non-Ex panel that people operate at a start and
+after a trip stood 1.24 m from a way off; a 12 m step-over of a 48 % H2 line closed the ways from
+the stair foot and to the rectifier's DC isolation.
+
+Rejected: a covered sleeper way with marked stiles (the stiles stay trip points on an escape
+route, and the cover is not modelled); specifying the panel Ex (a vendor's EN 746-2 panel is
+normally ordinary industrial equipment); moving the panel south (it leaves PR-1's reach).
+
+Consequence (regen, 1,000 h): `cheme validate` 0 errors with the 12 accepted manifold crossings,
+the drawing counts otherwise 0 on both sheets; 28 of 28 DN 25 lines and the 4 pinned DN 15
+lines routed (42 pinned, 3 astar, 1 via, 1 open end), 0 clash findings, both skids 1.95 m
+against 2.35 m; TG-x01 16.1 m (12.1 m) with its two risers; ignition clearances unchanged
+(least 3.230 m, U-x01 to K-x31), the panels 4.67 m (A) and 4.52 m (B) from the nearest zone
+source and 2.149 m (A) and 2.161 m (B) from ST-x2's foot, the stair feet's least 2.050 m
+(U-201); cables 76 (19 power, 8 of them 48 V DC; 57 instrument: FIC-x04, PIA-x13, AIA-x14,
+PIA-x23, LIA-x24 and PIA-x32 added), 35 trays 194.7 m, cable 952 m (64 cables, 840 m); take-off
+pipe 69.431 m (61.431 m), 40 elbows, 62 flanges, 10 valves, steel 8.655 t (the 2.3 m posts),
+concrete 3.792 m3 unchanged; unit lifts Skid A drained 2.845 t (4.381 t of chart capacity),
+Skid B 2.696 t; the LCA's characterised totals unchanged (10.48 kg CO2e/kg). At 10,000 h
+(scratch) as before: Skid A infeasible (top 3.63 m, 1.28 m above the envelope) with the one
+clash (T-101's ladder rail through the deck rail), Skid A drained 3.712 t without a laydown;
+pipe 73.478 m. The HAZOP drafts revised (D-066).
+
+Open: the human layout and design reviews; the posts' and risers' detail (the fabricator); the
+panel's real outline (vendor).
+
+## D-066 The HAZOP drafts revised for P&ID revision C, as proposals (2026-11-06)
+Decision: H-01 and H-02 are revised by stable id for D-060 to D-065 and re-stamped, every revised
+or added entry `status: proposed`, `by: agent` (skill hazop-review): the new trips and devices as
+safeguards of the register, credited on the scenarios they answer by the convention of D-030
+(one letter for a trip with sil null, an alarm with response or a check valve; none for a
+safeguard that shares the cause's transmitter), the actions that asked for them carrying them as
+proposed responses with what stays open. No team is named and nothing is accepted.
+
+Why: the studies analyse the plant as drawn (skill hazop-review).
+
+Consequence: 19 safeguards added to H-01 (H01-SG-I111 to I120, PSE101, K131-HYD, CV102, CV104,
+XV134, STACK-MON, LIA101-LAHH, SEQ-A-ORDER, SEQ-A-DEPRESS) and 22 to H-02 (the same with 2xx
+tags, and I221, BPV202, P202-RELIEF, LIA202-LAHH); 24 scenarios of each study re-rated: H-01
+worst residual 15 high, 40 medium, 23 low (31 / 36 / 11 before), H-02 25 / 40 / 29 (43 / 33 /
+18); scenarios and actions unchanged in number (78 and 54; 94 and 57); the actions that asked for
+the devices carry them as proposed responses with what stays open; the scope, the notes and the
+credit rule (a relief device drawn but not sized, one letter) say so; `cheme safety hazop check`:
+both draft, 0 errors, 0 warnings (safety/hazop/SESSION.md section 3.6.1).
+
+Assumptions: the credit convention of D-030 for the new safeguards (ASSUMED, for the team).
+
+Open (cannot be settled here): the team session, the re-rating it makes, the SIL screening.
 

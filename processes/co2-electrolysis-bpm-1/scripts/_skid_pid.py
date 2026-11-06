@@ -14,7 +14,7 @@ What is drawn follows the PFD (`process/flowsheet.yaml`): every step is an equip
 shows the instruments and the control valves they act on, never the trip logic.
 
 Concept-stage simplifications (DESIGN.md D-017): isolation and drain valves only where
-operation needs them, no relief devices (not sized: open), the gas conditioning as two
+operation needs them, the relief devices (from revision C) not sized, the gas conditioning as two
 black-box packages, the stacks' DC bus not drawn (the rectifier U-x01 and its JIC-x01 only),
 the speed signals of FIC-x01 and AIC-201 to their pumps not drawn (control/loops.yaml). The
 four stacks are fed in parallel by four manifolds: with the anolyte manifolds above and below
@@ -31,6 +31,24 @@ at the supply header's east end, the cooler's vent AV-x11 and a bottom pump-out 
 each reservoir (PO-202 on Skid B's day tank), each valved and capped. The bubbles of PIC-x21
 (above its valve's line) and LIC-x22 (over its valve) are placed so that core's actuator and
 signal routing draws them clean: the placement is the script's, not a hand edit of the sheet.
+
+Revision C (the design review 2026-11-06-design, DESIGN.md D-060 to D-064): the relief basis of
+the cathode side (the bursting disc PSE-x01 on the CO2 feed header, RL-x01 to a safe location)
+and of K-x31's discharge (its own hydraulic pressure limit, no device drawn), each with a
+pressure high-high independent of the control loops (PIA-x23 on the cathode outlet, PIA-x32 on
+the discharge);
+the anolyte pressure at the stack inlet PIA-x13 (with PIA-x23 the membrane's pressure
+difference) and the H2-in-O2 analyser AIA-x14 on the reservoir vent; the total cathode CO2
+FIC-x04 (the master of FIC-x02); the per-stack voltage EIA-x05A to D and current IIA-x06A to D
+at the rectifier; an independent condensate level LIA-x24 on V-x21 (its own connection N5)
+with the tight shut-off XV-x25 on CD-x01 to a vented collection; the check valves on CO2-x01,
+W-x01 and the recycle CO2-x02 with its shut-off XV-x34; the instrument air low-low PSLL-x51;
+on Skid B the make-up water's check valve, P-202's suction isolation HV-210, its back-pressure
+and anti-siphon valve BPV-202 on KOH-204 and its integral relief valve (a note). DEXPI 2.0.1's
+safety valve has no inline symbol in core 1.10's authoring API: the cathode's relief device is
+drawn as a bursting disc (RuptureDisc, a SafetyValveOrFitting, `piping/special-items.yaml`)
+with a burst indicator; whether a reclosing safety valve replaces it is the relief study's
+(D-060).
 """
 
 from __future__ import annotations
@@ -160,7 +178,8 @@ def draw(sheet: Sheet, skid: str) -> None:
             Nozzle("N1", (-7, 8), DN_GAS),  # cathode gas and condensate in
             Nozzle("N2", (0, -10), DN_GAS),  # gas out
             Nozzle("N3", (0, 10), DN_SMALL),  # condensate out
-            Nozzle("N4", (7, 5), None),  # level
+            Nozzle("N4", (7, 5), None),  # level (LIC-x22)
+            Nozzle("N5", (7, -4), None),  # level, independent (LIA-x24, D-061)
         ],
     )
     comp = equipment(
@@ -263,7 +282,7 @@ def draw(sheet: Sheet, skid: str) -> None:
     line(sheet, t("DR", 1), dn=DN_SMALL, fluid="Anolyte",
          route=[low_tee.branch,
                 valve(vid("HV", 6), "BallValve", at=(x_low, 182.0), tag=t("HV", 6)),
-                offpage("out", at=(x_low, 190.0), note="capped", note_at=(x_low + 3.0, 194.0))],
+                offpage("out", at=(x_low, 190.0), note="capped", note_at=(x_low + 6.0, 189.0))],
          labels=False)
     # vent of the cooler's anolyte outlet channel, valved and capped (D-055)
     line(sheet, t("AV", 11), dn=DN_SMALL, fluid="Anolyte",
@@ -273,7 +292,7 @@ def draw(sheet: Sheet, skid: str) -> None:
                         note_at=(124.0, cooler["N5"].xy[1] + 5.0))],
          labels=False)
     # O2 vent, 1 M KOH fill, spent anolyte drain (Skid B: with the bleed)
-    line(
+    o2v = line(
         sheet,
         t("O2V", 1),
         dn=DN_LIQ,
@@ -334,7 +353,7 @@ def draw(sheet: Sheet, skid: str) -> None:
     # cathode gas manifold above the return manifold, from stack A to the separator
     cg_tees = [tee(tid(t("CG", 1), s), at=(x + 12.0, Y_CG), branch="down")
                for x, s in zip(STACK_X[1:], "BCD", strict=True)]
-    line(
+    cg1 = line(
         sheet,
         t("CG", 1),
         dn=DN_GAS,
@@ -357,7 +376,10 @@ def draw(sheet: Sheet, skid: str) -> None:
                comp["N1"]],
         label_at=(300.0, 58.0),
     )
-    line(
+    # K-x31's discharge: no relief device on CG-x03; the diaphragm compressor's own hydraulic
+    # pressure limit and PIA-x32's high-high (I-x12) protect it, the PSA vendor's relief its
+    # vessels (D-060)
+    cg3 = line(
         sheet,
         t("CG", 3),
         dn=DN_GAS,
@@ -373,8 +395,11 @@ def draw(sheet: Sheet, skid: str) -> None:
         fluid="Cathode condensate",
         route=[sep["N3"], (290.0, 105.0),
                valve(vid("LV", 22), "GlobeValve", at=(310.0, 105.0), tag=t("LV", 22)),
-               (330.0, 105.0), offpage("out", at=(330.0, 160.0), note="to site effluent")],
-        label_at=(318.0, 128.0),
+               (330.0, 105.0),
+               # the tight shut-off on the independent low-low level (I-x18, D-061)
+               valve(vid("XV", 25), "BallValve", at=(330.0, 125.0), tag=t("XV", 25)),
+               offpage("out", at=(330.0, 160.0), note="to vented condensate collection")],
+        label_at=(318.0, 140.0),
     )
     # gas conditioning: product, recycle, tail gas, oxidiser
     line(
@@ -391,6 +416,9 @@ def draw(sheet: Sheet, skid: str) -> None:
     water_tee = tee(tid(t("CO2", 1), "W"), at=(330.0, Y_CO2), branch="down")
     co2_tees = [tee(tid(t("CO2", 1), s), at=(x + 16.0, Y_CO2), branch="up")
                 for x, s in zip(STACK_X[:0:-1], "DCB", strict=True)]
+    # the cathode side's relief: a bursting disc on the feed header, downstream of every feed,
+    # to a safe location (D-060)
+    relief_tee = tee(tid(t("CO2", 1), "RL"), at=(272.0, Y_CO2), branch="up")
     co2 = line(
         sheet,
         t("CO2", 1),
@@ -398,7 +426,9 @@ def draw(sheet: Sheet, skid: str) -> None:
         fluid="CO2",
         route=[offpage("in", at=(410.0, Y_CO2), note="CO2 supply"),
                valve(vid("FV", 2), "GlobeValve", at=(385.0, Y_CO2), tag=t("FV", 2)),
-               rec_tee, water_tee, *co2_tees, (STACK_X[0] + 16.0, Y_CO2),
+               # no cathode gas back into the CO2 supply (D-062)
+               valve(vid("CV", 2), "CheckValve", at=(373.0, Y_CO2)),
+               rec_tee, water_tee, relief_tee, *co2_tees, (STACK_X[0] + 16.0, Y_CO2),
                (STACK_X[0] + 16.0, stacks[0]["N3"].xy[1]), stacks[0]["N3"]],
         label_at=(300.0, Y_CO2 + 7.0),
     )
@@ -406,7 +436,19 @@ def draw(sheet: Sheet, skid: str) -> None:
         line(sheet, t("CO2", 1, s), dn=DN_GAS, fluid="CO2",
              route=[tee_.branch, (tee_.branch.xy[0], stack["N3"].xy[1]), stack["N3"]],
              labels=False)
-    line(sheet, t("CO2", 2), dn=DN_GAS, fluid="CO2", route=[psa["N3"], rec_tee.branch],
+    line(sheet, t("RL", 1), dn=DN_GAS, fluid="CO2",
+         route=[relief_tee.branch,
+                valve(vid("PSE", 1), "RuptureDisc", at=(272.0, 190.0)),
+                offpage("out", at=(272.0, 180.0), note="to a safe location",
+                        note_at=(276.0, 173.0))],
+         labels=False)
+    # the PSA recycle with its tight shut-off (fail closed, closed with every stop of K-x31) and
+    # a check valve (D-062)
+    line(sheet, t("CO2", 2), dn=DN_GAS, fluid="CO2",
+         route=[psa["N3"],
+                valve(vid("XV", 34), "BallValve", at=(361.0, 165.0), tag=t("XV", 34)),
+                valve(vid("CV", 34), "CheckValve", at=(361.0, 178.0)),
+                rec_tee.branch],
          label_at=(350.0, 150.0))
     w1 = line(
         sheet,
@@ -415,6 +457,7 @@ def draw(sheet: Sheet, skid: str) -> None:
         fluid="Water",
         route=[offpage("in", at=(410.0, 235.0), note="demineralised water"),
                valve(vid("HV", 4), "GlobeValve", at=(392.0, 235.0), tag=t("HV", 4)),
+               valve(vid("CV", 4), "CheckValve", at=(372.0, 235.0)),
                (330.0, 235.0), water_tee.branch],
         label_at=(318.0, 222.0),
     )
@@ -436,6 +479,9 @@ def draw(sheet: Sheet, skid: str) -> None:
     assign(arrester, "PositionNumber", t("FA", 33))
     assign(arrester, "DetonationProofArtefact", "DetonationProofArtefact")
     label(sheet, vid("FA", 33), "PositionNumber", at=(376.0, 110.0))
+    # the bursting disc likewise carries its tag as PositionNumber (D-060)
+    assign(sheet.find(vid("PSE", 1)), "PositionNumber", t("PSE", 1))
+    label(sheet, vid("PSE", 1), "PositionNumber", at=(279.0, 190.0))
     line(sheet, t("AIR", 1), dn=DN_GAS, fluid="Air",
          route=[offpage("in", at=(410.0, 172.0), note="air"), (oxid["N2"].xy[0], 172.0),
                 oxid["N2"]],
@@ -481,22 +527,33 @@ def draw(sheet: Sheet, skid: str) -> None:
                     offpage("out", at=(12.0, 18.0), note="to atmosphere",
                             note_at=(14.5, 9.5))],
              label_at=(19.0, 26.0))
+        # P-202's suction isolation at the day tank's outlet (D-064)
         line(sheet, t("KOH", 3), dn=DN_SMALL, fluid="KOH solution",
-             route=[day["N2"], doser["N1"]], label_at=(42.0, 56.0))
+             route=[day["N2"], valve(vid("HV", 10), "BallValve", at=(30.0, 57.0), tag=t("HV", 10)),
+                    doser["N1"]],
+             label_at=(42.0, 56.0))
         line(sheet, t("PO", 2), dn=DN_SMALL, fluid="KOH solution",
              route=[day["N5"], (day["N5"].xy[0], 60.0),
                     valve(vid("HV", 9), "BallValve", at=(20.0, 60.0), tag=t("HV", 9)),
                     offpage("out", at=(14.0, 60.0), note="camlock, capped",
                             note_at=(14.0, 65.0))],
              labels=False)
+        # the metering pump's back-pressure and anti-siphon valve before the dose enters T-201
+        # above the liquid (D-064); its discharge relief is the pump's integral relief valve
         line(sheet, t("KOH", 4), dn=DN_SMALL, fluid="KOH solution",
-             route=[doser["N2"], (tank["N8"].xy[0], 75.0), tank["N8"]],
+             route=[doser["N2"], (tank["N8"].xy[0], 75.0),
+                    valve(vid("BPV", 2), "CheckValve", at=(tank["N8"].xy[0], 100.0),
+                          tag=t("BPV", 2)),
+                    tank["N8"]],
              label_at=(46.0, 68.0))
+        note(sheet, f"{t('P', 2)}: integral relief valve to its suction", at=(6.0, 90.0))
+        # the make-up water's check valve against KOH flowing back into the water (D-062)
         line(sheet, t("W", 2), dn=DN_SMALL, fluid="Water",
              route=[offpage("in", at=(14.0, tank["N9"].xy[1]), note="make-up water",
                             note_at=(18.0, tank["N9"].xy[1] + 7.0)),
                     valve(vid("LV", 1), "GlobeValve", at=(26.0, tank["N9"].xy[1]),
                           tag=t("LV", 1)),
+                    valve(vid("CV", 1), "CheckValve", at=(44.0, tank["N9"].xy[1])),
                     tank["N9"]],
              label_at=(42.0, 166.0))
         bl = line(sheet, t("BL", 1), dn=DN_SMALL, fluid="Anolyte",
@@ -544,6 +601,33 @@ def draw(sheet: Sheet, skid: str) -> None:
     instrument(sheet, t("JIC", 1), at=(222.0, 235.0))
     instrument(sheet, t("AIA", 41), at=(290.0, 228.0), location="field")
     instrument(sheet, t("AIA", 42), at=(290.0, 242.0), location="field")
+
+    # -- revision C: the design review 2026-11-06-design (D-060 to D-064) ------------------
+    # the anolyte pressure at the stack inlet: with PIA-x23 the membrane's pressure difference
+    # (I-x17, D-061)
+    instrument(sheet, t("PIA", 13), at=(178.0, 188.0), sensing=sup.segments[2],
+               sensing_at=(178.0, Y_SUP))
+    # H2 (and CO) in the anode O2 at the reservoir vent (I-x16, D-061)
+    instrument(sheet, t("AIA", 14), at=(80.0, 90.0), sensing=o2v.segments[0],
+               sensing_at=(tank["N2"].xy[0], 90.0))
+    # the total cathode CO2 (fresh and recycle) upstream of the humidification water: the
+    # master of FIC-x02, its low-low trips the current (I-x15, D-062)
+    instrument(sheet, t("FIC", 4), at=(345.0, Y_CO2 - 14.0), sensing=co2.segments[1],
+               sensing_at=(345.0, Y_CO2))
+    # the cathode pressure at the stack outlet, independent of PIC-x21 (I-x11, D-060)
+    instrument(sheet, t("PIA", 23), at=(270.0, 100.0), sensing=cg1.segments[-1],
+               sensing_at=(270.0, Y_CG))
+    # the condensate level, independent of LIC-x22 (I-x18 closes XV-x25, I-x19 stops K-x31)
+    instrument(sheet, t("LIA", 24), at=(322.0, 76.0), sensing=sep["N5"])
+    # K-x31's discharge pressure (I-x12; and the depressurisation, D-061)
+    instrument(sheet, t("PIA", 32), at=(334.0, 66.0), sensing=cg3.segments[0],
+               sensing_at=(348.0, 66.0))
+    # each stack's voltage and current on the DC bus at the rectifier (D-063)
+    for s, x in zip(SUFFIX, (230.0, 244.0, 258.0, 272.0), strict=True):
+        instrument(sheet, t("EIA", 5, s), at=(x, 211.0))
+        instrument(sheet, t("IIA", 6, s), at=(x, 224.0))
+    # instrument air at the skid's air header (not drawn): low-low trips the current (I-x14)
+    instrument(sheet, t("PSLL", 51), at=(252.0, 245.0), location="field")
     note(sheet, "open skid, naturally ventilated: no enclosure, no fan (D-050)",
          at=(250.0, 255.0))
     note(sheet, f"{t('U', 1)}: rectifier, DC bus to the stacks (not drawn)", at=(160.0, 222.0))

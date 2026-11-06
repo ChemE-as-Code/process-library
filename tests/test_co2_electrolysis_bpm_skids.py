@@ -612,6 +612,10 @@ def test_calculated_setpoints_follow_the_model():
     for key, loop in (("A", "JIC-101"), ("B", "JIC-201")):
         assert loops[loop]["targets"][0]["value"] == rec["skids"][key]["bus_current_a"], loop
     assert loops["AIC-201"]["targets"][0]["value"] == round(rec["skids"]["B"]["final_ph"], 2)
+    # the total cathode CO2 (DESIGN.md D-062): the fresh CO2 plus the PSA recycle of the case
+    for loop, case, streams in (("FIC-104", "skid-a", ("S101", "S103")), ("FIC-204", "skid-b", ("S201", "S203"))):
+        want = sum(flowsheet[s]["state"][case]["flow"]["value"] for s in streams)
+        assert math.isclose(loops[loop]["targets"][0]["value"], want, rel_tol=1e-9), (loop, want)
 
 
 def _docstrings(tree: ast.AST) -> set[int]:

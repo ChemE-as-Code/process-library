@@ -296,7 +296,12 @@ CALCULATED_SETPOINTS = {
     "JIC-201": ("bus_current", "B"),
     "AIC-201": ("steady_ph", "B"),
     "LIC-201": ("working_level", "B"),
+    # the total cathode CO2 (D-062): the fresh CO2 and the PSA recycle of the case's flowsheet
+    "FIC-104": ("stream_sum", "A"),
+    "FIC-204": ("stream_sum", "B"),
 }
+#: the streams whose flows a "stream_sum" setpoint adds, per loop (the fresh CO2 and the recycle)
+SUMMED_STREAMS = {"FIC-104": ("S101", "S103"), "FIC-204": ("S201", "S203")}
 
 
 class Refused(RuntimeError):
@@ -735,8 +740,9 @@ class Run:
     def control_setpoints(self) -> None:
         """The calculated setpoints of control/loops.yaml: a target linked to a stream from the
         flowsheet (its case's value), the stack current from `cheme process stack`, the Skid B
-        pH setpoint from D-B's steady state (2 decimals) and its level setpoint from the
-        reservoir margin (CALCULATED_SETPOINTS)."""
+        pH setpoint from D-B's steady state (2 decimals), its level setpoint from the
+        reservoir margin and the total cathode CO2 as the sum of the fresh and the recycle
+        streams (CALCULATED_SETPOINTS, SUMMED_STREAMS, D-062)."""
         loops = self.load("control/loops.yaml")
         flowsheet = self.load("process/flowsheet.yaml")
         streams = {s["id"]: s for s in flowsheet["streams"]}
@@ -774,6 +780,16 @@ class Run:
                         )
                         margin = float(stack["equipment"]["reservoir"]["margin"]["value"])
                         want = round(100.0 / (1.0 + margin), 1)
+                    elif what == "stream_sum":
+                        case = (target.get("cases") or loop.get("cases") or [None])[0]
+                        flows = [
+                            (((streams.get(s) or {}).get("state") or {}).get(case) or {}).get("flow") or {}
+                            for s in SUMMED_STREAMS[loop["id"]]
+                        ]
+                        if any("value" not in f for f in flows):
+                            self.note("9", "warning", f"{loop['id']}: a summed stream has no flow in case {case}")
+                            continue
+                        want = sum(float(f["value"]) for f in flows)
                     else:
                         want = round(float(self.summary["skid_b"]["final_ph"]), 2)
                 if want is None:
@@ -2347,21 +2363,31 @@ def _in_train(tag: str, on_frame: set[str]) -> bool:
     return tag in on_frame or (len(tag) > 2 and tag[2] in trains)
 
 
+def _source_box(entry: dict, equipment: dict) -> list[float] | None:
+    """An ignition or hot source's box: the model item of its tag, or the outline its entry
+    declares (``box``, a vendor part the model does not hold, D-065); None when neither."""
+    if entry.get("box"):
+        return [float(v) for v in entry["box"]]
+    item = equipment.get(entry["tag"])
+    return [float(v) for v in item["bbox"]] if item else None
+
+
 def _ignition_clearance(model: dict, cfg: dict, on_frame: set[str]) -> list[dict]:
     """Per ignition source of layout/layout-checks.yaml on this frame or standing beside it
     (the items of *on_frame*, or a tag of the frame's train standing off it): the least
-    clearance from its outline to the outline of any source item of a hazardous zone, its body
-    box joined with its nozzle points (to the point of a nozzle source), against that sphere's
-    radius plus ``margin_m`` (D-047, D-057)."""
+    clearance from its outline (a model item's box, or the entry's declared ``box``) to the
+    outline of any source item of a hazardous zone, its body box joined with its nozzle points
+    (to the point of a nozzle source), against that sphere's radius plus ``margin_m`` (D-047,
+    D-057, D-065)."""
     equipment = {e["tag"]: e for e in model.get("equipment") or []}
     nozzles = {n["id"]: n for e in equipment.values() for n in e.get("nozzles") or []}
     margin = float(cfg.get("margin_m", 0.0))
     found = []
     for entry in cfg.get("items") or []:
         tag = entry["tag"]
-        if tag not in equipment or not _in_train(tag, on_frame):
+        box = _source_box(entry, equipment)
+        if box is None or not _in_train(tag, on_frame):
             continue
-        box = [float(v) for v in equipment[tag]["bbox"]]
         best = None
         for zone in model.get("zones") or []:
             if zone.get("kind") != "hazardous":
@@ -2416,16 +2442,17 @@ def _stair_foot_clearance(model: dict, cfg: dict, structure_id: str, on_frame: s
     """Per ignition or hot source of layout/layout-checks.yaml on this frame or standing beside
     it (as _ignition_clearance): the least plan distance from its outline to the foot of any
     stair of the frame from grade, where the ways off the deck land, against ``clearance_m``
-    (review 2026-11-05-layout-r2#3, D-057)."""
+    (review 2026-11-05-layout-r2#3, D-057; a declared ``box`` for a vendor part the model does
+    not hold, review 2026-11-06-layout-r3#1, D-065)."""
     equipment = {e["tag"]: e for e in model.get("equipment") or []}
     clearance = float(cfg["clearance_m"])
     feet = _stair_feet(model, structure_id)
     found = []
     for entry in cfg.get("items") or []:
         tag = entry["tag"]
-        if tag not in equipment or not _in_train(tag, on_frame) or not feet:
+        b = _source_box(entry, equipment)
+        if b is None or not _in_train(tag, on_frame) or not feet:
             continue
-        b = [float(v) for v in equipment[tag]["bbox"]]
         best = None
         for foot in feet:
             p = foot["plan"]

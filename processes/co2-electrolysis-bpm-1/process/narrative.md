@@ -11,15 +11,15 @@ sections:
     modes: [normal, startup, shutdown, abnormal]
     loops: [FIC-101, TIC-111, JIC-101, AI-101]
     sequences: [SEQ-A-FILL, SEQ-A-START, SEQ-A-STOP, SEQ-A-TRIP, SEQ-A-GAS, SEQ-A-DRAIN]
-    interlocks: [I-101, I-102, I-103, I-104, I-105, I-106]
+    interlocks: [I-101, I-102, I-103, I-104, I-105, I-106, I-114, I-116, I-117, I-120]
   - id: GCA
     title: Skid A cathode gas conditioning
     equipment: [V-121, K-131, X-131, X-132]
     blocks: [GCA]
     cases: [skid-a]
     modes: [normal, startup, shutdown]
-    loops: [FIC-102, PIC-121, LIC-122, PIC-131]
-    interlocks: [I-109, I-110]
+    loops: [FIC-104, FIC-102, PIC-121, LIC-122, PIC-131]
+    interlocks: [I-109, I-110, I-111, I-112, I-113, I-115, I-118, I-119]
   - id: ELB
     title: Skid B stacks, anolyte loop, KOH dosing and bleed
     equipment: [E-201A, E-201B, E-201C, E-201D, T-201, P-201, E-211, T-202, P-202, U-201]
@@ -28,19 +28,19 @@ sections:
     modes: [normal, startup, shutdown, abnormal]
     loops: [FIC-201, TIC-211, JIC-201, AIC-201, FIC-203, LIC-201]
     sequences: [SEQ-B-FILL, SEQ-B-START, SEQ-B-STOP, SEQ-B-TRIP, SEQ-B-GAS, SEQ-B-DRAIN]
-    interlocks: [I-201, I-202, I-203, I-204, I-205, I-206, I-207, I-208]
+    interlocks: [I-201, I-202, I-203, I-204, I-205, I-206, I-207, I-208, I-214, I-216, I-217, I-220, I-221]
   - id: GCB
     title: Skid B cathode gas conditioning
     equipment: [V-221, K-231, X-231, X-232]
     blocks: [GCB]
     cases: [skid-b]
     modes: [normal, startup, shutdown]
-    loops: [FIC-202, PIC-221, LIC-222, PIC-231]
-    interlocks: [I-209, I-210]
+    loops: [FIC-204, FIC-202, PIC-221, LIC-222, PIC-231]
+    interlocks: [I-209, I-210, I-211, I-212, I-213, I-215, I-218, I-219]
 unresolved:
   - "The pH probe reads activity pH; the duty model, the trip value and AIC-201's setpoint are concentration-basis pH (control/philosophy.md): an offset or a calibration is needed before use."
   - "FE, WDE, U and kWh/kg are held constant by assumption, not supported by measurement: the measured runs last 1 h in fresh 1 M KOH (DESIGN.md D-014)."
-  - "Relief, the HAZOP and the area classification are not done (DESIGN.md D-017, D-019)."
+  - "The relief study (sizing, outlets; its basis is DESIGN.md D-060), the HAZOP session and the area classification are not done (D-019, D-059)."
 ---
 
 # Process narrative
@@ -97,7 +97,8 @@ At 10,000 h the reservoir no longer fits the skid envelope (D-015).
 **Boundaries.** From the stack cathode outlets to the CO product connection, the oxidiser flue
 and the condensate drain; fresh CO2 and air at the battery limit.
 
-**Normal operation.** FIC-102 feeds the fresh CO2, PIC-121 holds the cathode back-pressure, V-121
+**Normal operation.** FIC-104 holds the total cathode CO2 by resetting the fresh CO2 of FIC-102
+(D-062), PIC-121 holds the cathode back-pressure, V-121
 separates the carbonate condensate on level (LIC-122), K-131 compresses the gas, the PSA package
 X-131 delivers the CO (PIC-131) and returns CO2 to the cathode feed, and X-132 burns the tail
 gas with air (DESIGN.md D-012). The tail gas TG-101 leaves the PSA through its trip valve
@@ -108,10 +109,15 @@ all-welded to the burner (D-054).
 opens only once the oxidiser fires and closes before it stops. A gas detection, a flame held on
 the arrester (TSHH-133, I-109) or the oxidiser's own trip (I-110) closes the CO2 and the tail
 gas and stops the compressor, and the train is purged to the oxidiser only once the cause is
-found and the trip reset (SEQ-A-GAS).
+found and the trip reset (SEQ-A-GAS); so do the compressor stopping with the current on
+(I-113), its discharge high-high (I-112), the instrument air low-low (I-114) and the condensate
+high-high (I-119). The start-up gives the train its outlet before the CO2 flows, and every stop
+depressurises CG-103 and the PSA through the PSA's own stop to the oxidiser still firing
+(D-061). The cathode side has the bursting disc PSE-101 and its pressure high-high (I-111,
+D-060).
 
 **Assumptions and open points.** The packages are black boxes (recovery, recycle, energy
-ASSUMED); relief and the cathode salt precipitation are not designed; the arrester's type
+ASSUMED); the relief study and the cathode salt precipitation are open; the arrester's type
 examination for the actual tail gas and its burning time are the vendor's.
 
 ## ELB Skid B stacks, anolyte loop, KOH dosing and bleed
@@ -139,7 +145,8 @@ Skid A (`results/resize-1000h-10000h.md`).
 
 ## GCB Skid B cathode gas conditioning
 
-**Purpose, boundaries, operation and modes.** As GCA, with FIC-202, PIC-221, LIC-222 and PIC-231
-on V-221, K-231, X-231 and X-232, the tail gas through XV-233 and FA-233 (I-209, I-210).
+**Purpose, boundaries, operation and modes.** As GCA, with FIC-204, FIC-202, PIC-221, LIC-222 and
+PIC-231 on V-221, K-231, X-231 and X-232, the tail gas through XV-233 and FA-233 (I-209, I-210)
+and the trips I-211 to I-213, I-215, I-218 and I-219.
 
 **Assumptions and open points.** As GCA.
