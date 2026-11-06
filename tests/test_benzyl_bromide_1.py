@@ -23,8 +23,8 @@ DESIGN.md, process.yaml and lca/ is checked against them:
 - the benzotribromide bound matches D-005's derivation, and every reaction source is a read
   entry of the source register;
 - water ingress, the loss of the absorber water and the lamp wells (rupture, ignition in a
-  flammable toluene atmosphere) are open items, and the process is not set public in the change
-  that adds it (CONTRIBUTING, "Publishing a process");
+  flammable toluene atmosphere) are open items, and the process is public with
+  CC-BY-4.0, every library entry is (ADR 0036);
 - (core 1.9.0, ADR 0060) the toluene recycle S2 is a tear stream converged by propagate, not an
   assumed stream, at the splitter's 0.98;
 - (core 1.9.0, ADR 0059) R101's model duty is on Q12 (the off-gas vapour's heat to the reflux
@@ -373,10 +373,9 @@ def test_water_ingress_and_absorber_water_loss_are_open_items():
     assert "caustic guard scrubber" in equipment
 
 
-def test_not_published_in_the_change_that_adds_it():
+def test_published_public_with_cc_by():
     publication = _yaml("process.yaml")["publication"]
-    assert publication["status"] == "internal"
-    assert "license" not in publication
+    assert publication == {"status": "public", "license": "CC-BY-4.0"}
 
 
 # core 1.9.0 (ADRs 0058 to 0060)
