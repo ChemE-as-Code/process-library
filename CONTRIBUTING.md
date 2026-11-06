@@ -178,7 +178,7 @@ Contribute only what may be published under these licences.
 | | |
 | --- | --- |
 | ❌ **Never copy third-party content** | Tables, figures, drawings, P&IDs, datasheet or manual text, screenshots or text from papers, books, standards, vendor documents or websites. No values from licensed databases (ecoinvent factors or results, commercial property data). |
-| ✅ **Facts and numbers in your own form, with their source** | `source:` / `provenance:` fields, `references:` in `process.yaml`, `DESIGN.md`. Estimates are marked ASSUMED. |
+| ✅ **Facts and numbers in your own form, with their source** | `source:` / `provenance:` fields, `references:` in `process.yaml`, `DESIGN.md`. Estimates are marked ASSUMED. A value an open-source package computes from its bundled coefficients or tables (thermo's DIPPR_PERRY_8E, the CRC tables of `chemicals`) is such a fact: name the package, its version, the method and the underlying work, do not call it open data, and copy no table or coefficient set ([ADR 0037](docs/adr/0037-package-property-values-are-single-facts.md)). |
 | ✅ **Draw and write everything yourself** | Drawings are generated from the library's own files. |
 | ⚠️ **Openly licensed material** | Only with its licence and attribution in a `NOTICE.md` next to it, and only if that licence is compatible with the licence of the place it goes (see above). |
 

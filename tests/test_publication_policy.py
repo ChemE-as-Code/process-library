@@ -9,10 +9,14 @@ explicitly, and the public build stays fail-closed.
 - ``scripts/publication.py`` includes only ``status: public`` with a licence: a manifest without
   a publication block, without a status, with ``internal`` or ``candidate``, or public without a
   licence is not public.
+- values a package computes from coefficients taken from Perry's handbook or DIPPR 801 are single
+  facts with their source, never open data (ADR 0037): no source register row of a ``DESIGN.md``
+  that names DIPPR or Perry's calls its values open data.
 """
 
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
@@ -108,3 +112,43 @@ def test_the_schema_requires_a_licence_on_a_public_entry():
     jsonschema.validate({"status": "internal"}, sub)
     with pytest.raises(jsonschema.ValidationError):
         jsonschema.validate({"status": "public"}, sub)
+
+
+DESIGNS = sorted((KIT / "processes").glob("*/DESIGN.md"))
+_DIPPR_OR_PERRY = re.compile(r"DIPPR|Perry's", re.IGNORECASE)
+_NEGATED = re.compile(r"\b(?:not|no)\s+open data", re.IGNORECASE)
+# Rows whose fix waits for an open pull request; strict, so the entry leaves this list once fixed.
+_PENDING = {
+    "methyltriphenylphosphonium-bromide-1": "SRC-6 says 'open data packages queried'; PR #406 touches the entry",
+}
+
+
+def _open_data_claims(text: str) -> list[int]:
+    """Line numbers of source register rows that name DIPPR or Perry's and call something open data
+    other than in 'not open data' / 'no open data'."""
+    return [
+        number
+        for number, line in enumerate(text.splitlines(), 1)
+        if line.startswith("|")
+        and _DIPPR_OR_PERRY.search(line)
+        and "open data" in _NEGATED.sub("", line).lower()
+    ]
+
+
+@pytest.mark.parametrize("path", DESIGNS, ids=lambda p: p.parent.name)
+def test_dippr_and_perry_values_are_not_called_open_data(path):
+    claims = _open_data_claims(path.read_text(encoding="utf-8"))
+    if path.parent.name in _PENDING:
+        assert claims, f"{path.parent.name} is fixed: remove it from _PENDING"
+        pytest.xfail(_PENDING[path.parent.name])
+    assert not claims, (
+        f"{path.parent.name}/DESIGN.md lines {claims}: values computed from DIPPR or Perry's coefficients are "
+        "single facts with their source, not open data (ADR 0037)"
+    )
+
+
+def test_the_open_data_check_reads_negation():
+    assert _open_data_claims("| SRC-1 | thermo DIPPR_PERRY_8E (Perry's 8th ed.) | open data |") == [1]
+    assert _open_data_claims("| SRC-1 | thermo DIPPR_PERRY_8E | the values are not open data |") == []
+    assert _open_data_claims("| SRC-1 | NIST WebBook | open data |") == []
+    assert _open_data_claims("thermo's DIPPR fits are open data (prose, not a register row)") == []
