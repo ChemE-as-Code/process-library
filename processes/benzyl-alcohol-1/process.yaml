@@ -1,0 +1,35 @@
+# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
+# dataset is lca/datasets/*.yaml, Tier 0 form, so maturity stays at concept
+# (core's cheme.lci-tier-maturity). See README.md.
+schema: cheme-as-code/process/v1
+id: benzyl-alcohol-1
+title: Benzyl alcohol by continuous hydrolysis of benzyl chloride with soda solution
+summary: >-
+  Tier 0 screening per tonne of reagent-grade benzyl alcohol: feeds, by-product, water and heat from a
+  1982 patent's pilot example, brine and CO2 by stoichiometry, electricity from core's default. No
+  flowsheet; not reviewed.
+families: [oxygenates]
+keywords: [benzyl alcohol, benzyl chloride, hydrolysis, sodium carbonate, soda ash, dibenzyl ether, continuous, countercurrent]
+facets: {feedstock_basis: [fossil, mineral], product_classes: [chemicals], unit_operations: [reaction, extraction, distillation], region: generic}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: benzyl-chloride, role: feedstock, inventory_key: "feed:benzyl-chloride"}
+    - {chemical: sodium-carbonate, role: feedstock, inventory_key: "feed:sodium-carbonate", note: "dissolved to a 10.9 wt% solution, 10 % molar excess"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:water", note: "soda solution and wash water"}
+  outputs:
+    - {chemical: benzyl-alcohol, role: main-product, inventory_key: "product:benzyl-alcohol", note: "reagent grade, at least 99.8 wt%"}
+    - {chemical: wastewater, role: waste, inventory_key: "output:wastewater", note: "spent brine (its NaCl and excess soda are counted as emissions to water)"}
+    - {chemical: carbon-dioxide, role: emission, note: "emission:CO2: CO2 of the reacted carbonate, vented at degassing"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity", note: "core's Tier 0 default (ASSUMED, dated)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:steam", note: "counted as heat delivered (kWh); the source gives energy without its carrier"}
+basis: {capacity: "per tonne of benzyl alcohol (the dataset's basis); no plant size"}
+publication: {status: public, license: CC-BY-4.0}
+references:
+  - {title: "Rantala, R. K., Hag, G. L. F. (Eka AB) (1982) Method and apparatus for the hydrolysis of alpha-chlorinated toluene compounds. European patent application EP 0 064 486 A1, Tables 1 to 3", url: "https://data.epo.org/publication-server/rest/v1.2/patents/EP0064486NWA1/document.html"}
+  - {title: "Buysch, H.-J. et al. (Bayer AG) (1998) Process for the continuous preparation of benzyl alcohol. US patent 5,750,801 (prior art section and Example)", url: "https://patents.google.com/patent/US5750801A/en"}
+  - {title: "Czechoslovak patent CS 216044 B1 (filed 1979, published 1982) Method of continuous preparation of benzyl alcohol (introduction, Examples 1 and 2; read in the machine translation of Google Patents)", url: "https://patents.google.com/patent/CS216044B1/en"}
+  - {title: "IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Vol. 3, ch. 2 Mineral Industry Emissions, Table 2.1 and section 2.5", url: "https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/3_Volume3/V3_2_Ch2_Mineral_Industry.pdf"}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/benzyl-alcohol-1, access: public}

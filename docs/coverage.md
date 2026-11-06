@@ -212,6 +212,10 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 101 | `methyltriphenylphosphonium-bromide` | Methyltriphenylphosphonium bromide | chlorinated-organics | n/a, to be sourced | n/a | - | - | 2 | methyltriphenylphosphonium-bromide-1 (T2) |
 | 102 | `benzyl-bromide` | Benzyl bromide | chlorinated-organics | n/a, to be sourced | n/a | - | - | 2 | benzyl-bromide-1 (T2) |
 | 103 | `acetyl-chloride` | Acetyl chloride | chlorinated-organics | n/a, to be sourced | n/a | - | - | 2 | acetyl-chloride-1 (T2) |
+| 104 | `hydrogen-iodide` | Hydrogen iodide | inorganic-chemicals | n/a, to be sourced | n/a | - | - | 0 | hydrogen-iodide-1 (T0) |
+| 105 | `benzyl-alcohol` | Benzyl alcohol (benzyl chloride hydrolysis) | oxygenates | n/a, to be sourced | n/a | - | - | 0 | benzyl-alcohol-1 (T0) |
+| 106 | `tert-butanol` | tert-Butanol | oxygenates | n/a, to be sourced | n/a | isobutene-hydration, po-tba | - | 0 | tert-butanol-1 (T0) |
+| 107 | `phthalimide` | Phthalimide (from phthalic anhydride and ammonia) | nitrogen-organics | n/a, to be sourced | n/a | tube-reactor, countercurrent-column, urea | - | 0 | phthalimide-1 (T0) |
 
 Volume sources (ids as in `coverage.yaml` `sources:`): `usgs-mcs-2024` U.S. Geological Survey,
 Mineral Commodity Summaries 2024; `iea-ammonia-2021` IEA, Ammonia Technology Roadmap (2021);

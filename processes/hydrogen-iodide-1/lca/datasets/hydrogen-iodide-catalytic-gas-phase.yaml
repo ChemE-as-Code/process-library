@@ -1,0 +1,360 @@
+# Tier 0 form, a manifest-only entry as in process-library#313/#317. Every amount is the formula of
+# its parameters; core's validator re-checks each. The yield is one patent example, the losses and
+# energy are core's screening defaults, each marked as such.
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: hydrogen-iodide-catalytic-gas-phase
+title: Anhydrous hydrogen iodide by gas-phase catalytic synthesis from hydrogen and iodine
+description: Tier 0 screening estimate per 1 t of anhydrous hydrogen iodide, gate-to-gate. Stoichiometry
+  H2 + I2 -> 2 HI at the iodine conversion of a continuous 100-hour patent run (platinum on alumina,
+  350 degC), the unconverted feed lost by the Hischier et al. (2005) rule, electricity and heat from
+  core's Tier 0 defaults. The energy defaults are Gendorf 2000 site averages (ASSUMED, older than the
+  10-year limit for secondary data); valid_until follows the reference year and does not endorse them.
+basis: 1000 kg of hydrogen iodide
+boundary: 'gate-to-gate: iodine melting and vaporisation, mixing with hydrogen, catalytic reactor, removal
+  of unreacted iodine, condensation and purification of HI; power and heat from outside'
+technology: continuous gas-phase reaction of hydrogen with iodine vapour over a supported metal catalyst
+  (platinum or nickel on alumina in the sources), about 300 to 350 degC near atmospheric pressure; the
+  hydrazine, hydrogen sulfide, red phosphorus and aqueous (hydriodic acid) routes are not modelled
+geography:
+  description: 'Generic: patent examples from Japan (2008) and the USA (2019), laboratory scale; no plant
+    or site.'
+classification:
+  isic: '2011'
+system_boundary:
+  included:
+  - iodine and hydrogen
+  - unconverted hydrogen to air and unconverted iodine to air and to wastewater treatment (screening rule)
+  - electricity and heat (core's Tier 0 defaults)
+  excluded:
+  - 'TODO catalyst make-up and spent catalyst: platinum on alumina (1 g Pt per litre of support, US
+    8 268 284 B2, Example 1) or nickel on alumina (US 11 554 956 B2); neither source gives a life or a
+    charge per t. A platinum-group catalyst is never cut (system-model section 4): it is unquantified,
+    not cut'
+  - 'TODO recycle of the unconverted iodine (US 11 554 956 B2 describes it): not credited; the conversion
+    is a once-through figure, so the iodine loss is an upper view. The excess hydrogen is the other way
+    round: applying y to hydrogen takes its recycle for granted, with no energy for its recompression
+    counted; once-through hydrogen at 2.7 mol/mol would be about 22 kg/t fed and 14 kg/t vented'
+  - 'TODO fate of the iodine scrubbing liquor (saturated aqueous HI that takes up the unreacted iodine
+    in US 8 268 284 B2) and of the purge streams (US 11 554 956 B2): not quantified; the screening rule
+    sends the unconverted iodine to wastewater treatment instead'
+  - 'TODO HI losses in vents and purges beyond the stoichiometric efficiency: not quantified'
+  - 'TODO refrigeration, compression and cooling water for the iodine traps and the HI condensation
+    (HI boils near -35 degC; US 11 554 956 B2 compresses to 600 to 1000 kPag before flash cooling):
+    not quantified; the electricity default is a site average, not this duty'
+  - 'TODO inert gas pressurising the iodine liquefier and desiccant for drying the HI (both named in US
+    11 554 956 B2, not quantified)'
+  - transport of the inputs and infrastructure
+  cutoff: none applied; the excluded flows are not quantified
+  infrastructure: excluded
+  catalysts: excluded
+  non_routine: excluded
+location: GLO
+year: 2008
+valid_until: 2013
+time:
+  start: 2008
+  description: The yield is from a patent example of 2008 (priority date); the second patent (priority
+    2019) gives the process layout and is the KPI reference. valid_until is the reference year + 5 (system-model
+    section 6), so it has already lapsed.
+modelling:
+  principle: attributional
+  multifunctionality: 'single output: no allocation'
+uuid: 3adaf26d-f4f9-582f-a8e0-f8a7010ab9e6
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+technology_level: current
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: hi
+  value: 1000.0
+  unit: kg
+  description: Anhydrous hydrogen iodide delivered (the basis).
+  source: basis
+- name: M_HI
+  value: 127.908
+  unit: g/mol
+  description: Molar mass of hydrogen iodide.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_I2
+  value: 253.8
+  unit: g/mol
+  description: Molar mass of iodine.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_H2
+  value: 2.016
+  unit: g/mol
+  description: Molar mass of hydrogen.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: y
+  value: 0.979
+  unit: dimensionless
+  description: 'Efficiency over the scheme, applied to both reactants: the iodine conversion and HI yield
+    after 100 hours of continuous operation, 97.9 % (98.0 % at the start).'
+  source: 'US 8 268 284 B2 (Nippoh Chemicals), Example 1, catalytic reduction step: hydrogen 450 ml/min
+    with iodine vapour 75 ml/min over 1 g/L platinum on 3 mm alumina spheres at 350 degC, laboratory
+    scale. Reading it as the overall iodine efficiency (no recycle of the unconverted iodine) is ASSUMED.
+    Applying it to hydrogen as well is ASSUMED (Hischier et al. 2005 apply one efficiency to the whole
+    scheme) and implies that the excess hydrogen is recovered and recycled: the example feeds hydrogen
+    at 6 mol per mol of iodine (450 against 75 ml/min) and US 11 554 956 B2 at 2.4 to 2.9 mol/mol, and
+    US 11 554 956 B2 recovers it by compression and flash cooling (review note)'
+- name: f_air
+  value: 0.002
+  unit: dimensionless
+  description: Share of the input of a reactant emitted to air.
+  source: 'cheme tier-defaults 1.0.0: loss-air: Hischier et al. 2005, section 2.3: emissions to air estimated
+    as 0.2 % of the input materials'
+- name: elec
+  value: 333.3
+  unit: kWh
+  description: 'Electricity per t HI: core''s Tier 0 default, 0.3333 kWh/kg.'
+  source: 'ASSUMED: cheme tier-defaults 1.0.0: electricity [ASSUMED]: 1.2 MJ (0.333 kWh) per kg of product,
+    attributed to the Gendorf (2000) site average that the ecoinvent v2-era chemicals proxies used. ASSUMED,
+    not read in either source: Hischier et al. 2005 (p. 61) names the Gendorf (2000) average as the default
+    but prints no value, and the number could not be confirmed in an open copy of Althaus et al. 2007
+    (ecoinvent report No. 8). Dated: newer ecoinvent proxies rest on later Gendorf reports, so this value
+    may be low for a present-day process. Neither patent gives a utility figure. TODO source'
+- name: heat
+  value: 555.6
+  unit: kWh
+  description: 'Heat per t HI: core''s Tier 0 default, 0.5556 kWh/kg, heat generated from fossil fuel.'
+  source: 'ASSUMED: cheme tier-defaults 1.0.0: heat [ASSUMED]: 2.0 MJ (0.556 kWh) of heat per kg of product,
+    generated from fossil fuel (the carrier is a heat flow, not a fuel input), attributed to the Gendorf
+    (2000) site average that the ecoinvent v2-era chemicals proxies used. ASSUMED, not read in either
+    source (see electricity); dated, and possibly low against newer ecoinvent proxies. Neither patent gives
+    a utility figure. TODO source'
+exchanges:
+- key: product:hydrogen-iodide
+  title: Hydrogen iodide, anhydrous
+  type: product
+  amount: 1000.0
+  unit: kg
+  formula: hi
+  provenance: given
+  source: 'the reference flow; anhydrous HI gas, iodine removed to a weight ratio of 0.01/99.99 (US 8 268
+    284 B2, Example 1, after the refining step)'
+- key: feed:hydrogen
+  title: Hydrogen
+  type: input
+  amount: 8.049708097460117
+  unit: kg
+  formula: hi * M_H2 / (2 * M_HI) / y
+  provenance: calculated
+  source: stoichiometry H2 + I2 -> 2 HI at the sourced efficiency y (US 8 268 284 B2, Example 1)
+  pedigree:
+    scores: &id001
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+- key: feed:iodine
+  title: Iodine
+  type: input
+  amount: 1013.4007515552468
+  unit: kg
+  formula: hi * M_I2 / (2 * M_HI) / y
+  provenance: calculated
+  source: 'stoichiometry H2 + I2 -> 2 HI at the sourced efficiency y (US 8 268 284 B2, Example 1); compare
+    the stoichiometric 992.1 kg/t: the difference is the once-through iodine loss'
+  pedigree:
+    scores: *id001
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.02
+    source: 'ASSUMED: the stoichiometric minimum (992.1 kg/t) bounds it from below; a per-pass conversion
+      of 89.5 % (US 11 554 956 B2, Table 1, lowest of the 20 and 21 wt% Ni runs at 320 degC and above) would give 1108.5
+      kg/t once-through'
+- key: feed:electricity
+  title: Electricity
+  type: input
+  amount: 333.3
+  unit: kWh
+  formula: elec
+  provenance: assumed
+  origin: design-rule
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: 'cheme tier-defaults 1.0.0: electricity [ASSUMED]: 1.2 MJ (0.333 kWh) per kg of product, attributed
+    to the Gendorf (2000) site average that the ecoinvent v2-era chemicals proxies used. ASSUMED, not
+    read in either source: Hischier et al. 2005 (p. 61) names the Gendorf (2000) average as the default
+    but prints no value, and the number could not be confirmed in an open copy of Althaus et al. 2007
+    (ecoinvent report No. 8). Dated: newer ecoinvent proxies rest on later Gendorf reports, so this value
+    may be low for a present-day process'
+  pedigree:
+    scores:
+    - 4
+    - 5
+    - 5
+    - 4
+    - 5
+    rule: 'cheme tier-defaults 1.0.0: electricity'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: a dated site-average default, not specific to this process'
+- key: feed:heat
+  title: Heat from fossil fuel (iodine melting, vaporisation, preheating, distillation)
+  type: input
+  amount: 555.6
+  unit: kWh
+  formula: heat
+  provenance: assumed
+  origin: design-rule
+  link:
+    factor: heat-natural-gas
+    source: 'heat absorbed, kWh; natural gas as the fossil fuel is ASSUMED (the default names fossil fuel
+      only)'
+  carrier:
+    kind: heat
+    source: 'heat generated from fossil fuel (Hischier et al. 2005, p. 61: fossil fuel generates the heat
+      for preheating and distillation); a heat flow in kWh, not a fuel input'
+  source: 'cheme tier-defaults 1.0.0: heat [ASSUMED]: 2.0 MJ (0.556 kWh) of heat per kg of product, generated
+    from fossil fuel (the carrier is a heat flow, not a fuel input), attributed to the Gendorf (2000)
+    site average that the ecoinvent v2-era chemicals proxies used. ASSUMED, not read in either source
+    (see electricity); dated, and possibly low against newer ecoinvent proxies'
+  pedigree:
+    scores:
+    - 4
+    - 5
+    - 5
+    - 4
+    - 5
+    rule: 'cheme tier-defaults 1.0.0: heat'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: a dated site-average default, not specific to this process'
+- key: emission:H2
+  title: Hydrogen, unconverted, to air
+  type: emission
+  amount: 0.1690438700466626
+  unit: kg
+  formula: hi * M_H2 / (2 * M_HI) / y * (1 - y)
+  provenance: calculated
+  origin: estimate
+  cas: 1333-74-0
+  source: 'unconverted hydrogen at the efficiency y, vented (ASSUMED: a gas, so all of it to air, not to
+    water); the stoichiometric excess fed to the reactor (2.4 to 6 mol H2 per mol I2 in the sources) is
+    taken to be recycled, as US 11 554 956 B2 describes, and its purge is not quantified (ASSUMED)'
+  pedigree:
+    scores: *id001
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.5
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: follows the screening rule, not a measurement'
+- key: emission:I2
+  title: Iodine, to air
+  type: emission
+  amount: 2.0268015031104936
+  unit: kg
+  formula: f_air * hi * M_I2 / (2 * M_HI) / y
+  provenance: assumed
+  origin: design-rule
+  cas: 7553-56-2
+  source: 'cheme tier-defaults 1.0.0: loss-air: Hischier et al. 2005, section 2.3: emissions to air estimated
+    as 0.2 % of the input materials'
+  pedigree:
+    scores:
+    - 4
+    - 5
+    - 5
+    - 5
+    - 4
+    rule: 'cheme tier-defaults 1.0.0: loss-air'
+  basic_uncertainty: 1.5
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: a generic screening share, not a measurement of this process'
+- key: output:iodine-loss
+  title: Iodine, unconverted, to wastewater treatment
+  type: output
+  amount: 19.254614279549706
+  unit: kg
+  formula: hi * M_I2 / (2 * M_HI) / y * (1 - y - f_air)
+  provenance: assumed
+  origin: design-rule
+  source: 'cheme tier-defaults 1.0.0: loss-water: Hischier et al. 2005, section 2.3: the water emissions
+    are the difference between the input materials and the air emissions (here: the unconverted iodine
+    less its air share). Routed to wastewater treatment (a technosphere output) as the library''s cut-off
+    model puts treatment without recovery in the producer''s system; in practice the iodine is recovered
+    (US 11 554 956 B2), see system_boundary'
+  pedigree:
+    scores:
+    - 4
+    - 5
+    - 5
+    - 5
+    - 4
+    rule: 'cheme tier-defaults 1.0.0: loss-water'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: a residual of the once-through reading; with iodine recycle it is far lower'
+provenance:
+  generator: hand-written model; amounts are the formulas of the parameters
+  notes: No value from a licensed database. The amounts reproduce core's cheme assess lci-estimate for
+    the same reaction, yield and loss fate (checked in a scratch project, not committed).
+generation:
+  tier: 0
+  method: 'Tier 0 stoichiometric screening (Hischier et al. 2005; Althaus et al. 2007): stoichiometry with
+    a patent''s once-through conversion as the efficiency; loss split, electricity and heat from core''s
+    defaults (no Tier 1: electricity and heat are not sourced)'
+  defaults: cheme tier-defaults 1.0.0
+  defaults_used:
+  - loss-air
+  - loss-water
+  - loss-waste
+  - electricity
+  - heat
+  maturity_cap: sourced
+  pedigree_floor:
+  - 4
+  - 4
+  - 3
+  - 3
+  - 4
+  dqr_floor: 3.3333
+  components:
+    product:hydrogen-iodide: HI
+    feed:hydrogen: H2
+    feed:iodine: I2
+    emission:H2: H2
+    emission:I2: I2
+    output:iodine-loss: I2
+  formulas:
+    product:hydrogen-iodide: HI
+    feed:hydrogen: H2
+    feed:iodine: I2
+    emission:H2: H2
+    emission:I2: I2
+    output:iodine-loss: I2
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      H:
+      - 8.049708097
+      - 8.049708097
+      I:
+      - 1013.400751555
+      - 1013.400751555
+    outside:
+    - feed:electricity
+    - feed:heat

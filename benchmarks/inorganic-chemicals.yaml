@@ -16,6 +16,10 @@
 #
 # Sodium azide (sodium-azide-1, #167): the one open plant-like figure is the hydrazine use of
 # US 5 208 002 Example 2 (11 recycled batches); the off-gas has no open reference.
+#
+# Hydrogen iodide (hydrogen-iodide-1, #149): the dataset's efficiency is from US 8 268 284 B2, so
+# that patent's figure is recorded but not bound; the KPI is bound to the per-pass conversions of
+# another applicant's patent (US 11 554 956 B2). Electricity and heat have no open reference.
 schema: cheme-as-code/benchmarks/v1
 family: inorganic-chemicals
 
@@ -66,6 +70,57 @@ kpis:
     title: Azide reactor off-gas to treatment per kg of sodium azide
     unit: kg/kg
     no_open_reference: "No open source with the off-gas (unabsorbed methyl nitrite, N2O, NH3) of a sodium azide plant found (searched 2026-11-05: Google Patents US 5 208 002 A and US 5 098 597 A read, which name the nitrogen of side reactions but give no off-gas amounts; J. Studley, Scientific Update 2023, a secondary summary without figures). The dataset's off-gas follows from the methyl nitrite not absorbed in the patent's Example 1 balance and its ASSUMED side reaction (DESIGN.md D-004, D-005)."
+  hydrogen-iodide-iodine-efficiency:
+    title: HI made per iodine fed, as a fraction of the stoichiometric HI
+    unit: kg/kg
+    references:
+      - id: us11554956-ni-alumina-per-pass
+        range: [0.895, 0.958]
+        basis: unallocated
+        note: >-
+          Per-pass iodine conversion of the runs with 20 and 21 wt% Ni on alumina at 320 to 380
+          degC (runs 3 to 10 of Table 1, contact time 7.3 to 8.6 s, H2/I2 2.4 to 2.9 mol/mol);
+          the runs at 280 and 300 degC and the 5 wt% Ni run are lower and not included. A
+          laboratory fixed bed, single pass, with the unconverted iodine collected, not an
+          overall plant efficiency with recycle.
+        conditions: {technology: "gas-phase H2 + I2 over Ni on alumina, single pass, laboratory", pressure: "0 to 5 psig", region: US, year: 2019}
+        source:
+          citation: "Yang, T. et al. (Honeywell International) US 11 554 956 B2 (2023), Integrated process and catalysts for manufacturing hydrogen iodide from hydrogen and iodine"
+          url: https://patents.google.com/patent/US11554956B2/en
+          locator: Example 1, Table 1
+          kind: other
+          accessed: "2026-11-05"
+      - id: us8268284-pt-alumina-continuous
+        range: [0.979, 0.980]
+        basis: unallocated
+        note: >-
+          98.0 % at the start and 97.9 % after 100 hours of continuous operation (iodine conversion
+          and HI yield are stated equal). The dataset's efficiency comes from this source, so a
+          comparison with it is not an independent check.
+        conditions: {technology: "gas-phase H2 + I2 (450 and 75 ml/min) over 1 g/L Pt on alumina at 350 degC, laboratory, continuous 100 h", region: JP, year: 2008}
+        source:
+          citation: "Kanbe, S., Hosono, K., Wada, M. (Nippoh Chemicals) US 8 268 284 B2 (2012), System and method for producing iodine compound"
+          url: https://patents.google.com/patent/US8268284B2/en
+          locator: Example 1, catalytic reduction reaction
+          kind: other
+          accessed: "2026-11-05"
+  hydrogen-iodide-specific-electricity:
+    title: Electricity per t of hydrogen iodide
+    unit: kWh/t
+    no_open_reference: >-
+      No open source with an electricity figure for HI production found (2026-11-05). Read:
+      US 8 268 284 B2 and US 11 554 956 B2 (process descriptions and examples, no utility data).
+      Not read: Ullmann's chapter Iodine and Iodine Compounds (doi:10.1002/14356007.a14_381.pub2,
+      licensed). No EU BREF was checked for HI. The dataset's value is core's Tier 0 default,
+      ASSUMED.
+  hydrogen-iodide-specific-heat:
+    title: Heat per t of hydrogen iodide
+    unit: kWh/t
+    no_open_reference: >-
+      No open source with a heat figure for HI production found (2026-11-05); the same sources
+      were read as for electricity and give operating temperatures (iodine melted at about 120
+      degC, vaporised at 150 to 170 degC, reactor at 300 to 350 degC) but no duty. The dataset's
+      value is core's Tier 0 default, ASSUMED.
 
 datasets:
   - process: phosphorus-tribromide-1
@@ -86,3 +141,13 @@ datasets:
     kpis:
       nan3-specific-hydrazine-hydrate: {expression: feed:HH / product:NAN3P, per: product:NAN3P, reference: us5208002-example2}
       nan3-specific-offgas: {expression: product:OFFGAS / product:NAN3P, per: product:NAN3P}
+  - process: hydrogen-iodide-1
+    dataset: hydrogen-iodide-catalytic-gas-phase
+    conditions: {technology: "gas-phase H2 + I2 over a supported metal catalyst", basis: "Tier 0 screening, once-through efficiency"}
+    kpis:
+      hydrogen-iodide-iodine-efficiency:
+        expression: product:hydrogen-iodide * 253.8 / ( 2 * 127.908 ) / feed:iodine
+        reference: us11554956-ni-alumina-per-pass
+        out_of_range_reason: "The dataset's efficiency is the platinum-catalyst result of US 8 268 284 B2 (97.9 % after 100 h), which is above the per-pass conversions of the nickel catalysts in US 11 554 956 B2; both are single-pass laboratory figures, and neither includes the iodine recycle of a plant."
+      hydrogen-iodide-specific-electricity: {expression: feed:electricity / product:hydrogen-iodide, per: product:hydrogen-iodide}
+      hydrogen-iodide-specific-heat: {expression: feed:heat / product:hydrogen-iodide, per: product:hydrogen-iodide}

@@ -1,0 +1,32 @@
+# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
+# dataset is lca/datasets/*.yaml, Tier 0 form, so maturity stays at concept
+# (core's cheme.lci-tier-maturity). See README.md.
+schema: cheme-as-code/process/v1
+id: hydrogen-iodide-1
+title: Anhydrous hydrogen iodide by gas-phase catalytic synthesis from hydrogen and iodine
+summary: >-
+  Tier 0 screening per tonne of anhydrous HI: stoichiometry H2 + I2 -> 2 HI with the iodine
+  conversion of a continuous 100-hour patent run, unconverted feed lost by the Hischier rule,
+  electricity and heat from core's defaults. No flowsheet; not reviewed.
+families: [inorganic-chemicals]
+keywords: [hydrogen iodide, anhydrous HI, iodine, hydrogen, gas-phase synthesis, platinum catalyst, nickel catalyst, iodine recycle]
+facets: {feedstock_basis: [mineral, fossil], product_classes: [chemicals], unit_operations: [evaporation, reaction, condensation, distillation], region: generic}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: iodine, role: feedstock, inventory_key: "feed:iodine", note: "solid iodine, melted and vaporised; links to iodine-1"}
+    - {chemical: hydrogen, role: feedstock, inventory_key: "feed:hydrogen", note: "dry hydrogen gas; links to hydrogen-1"}
+  outputs:
+    - {chemical: hydrogen-iodide, role: main-product, inventory_key: "product:hydrogen-iodide", note: "anhydrous HI gas, not hydriodic acid"}
+    - {chemical: hydrogen, role: emission, inventory_key: "emission:H2", note: "unconverted hydrogen, vented (ASSUMED fate)"}
+    - {chemical: iodine, role: emission, inventory_key: "emission:I2", note: "0.2 % of the iodine fed, Hischier et al. 2005 default"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity", note: "core's Tier 0 default (ASSUMED, dated)"}
+basis: {capacity: "per tonne of anhydrous hydrogen iodide (the dataset's basis); no plant size"}
+publication: {status: public, license: CC-BY-4.0}
+references:
+  - {title: "US 8 268 284 B2 (Nippoh Chemicals, priority 2008, granted 2012): System and method for producing iodine compound, Example 1 (Pt on alumina, 350 degC, continuous 100 h)", url: "https://patents.google.com/patent/US8268284B2/en"}
+  - {title: "US 11 554 956 B2 (Honeywell International, priority 2019, granted 2023): Integrated process and catalysts for manufacturing hydrogen iodide from hydrogen and iodine, description and Examples 1 and 2 (Ni on alumina)", url: "https://patents.google.com/patent/US11554956B2/en"}
+  - {title: "Hischier, R. et al. (2005) Establishing life cycle inventories of chemicals based on differing data availability. Int. J. LCA 10:59-67, section 2.3 (loss defaults, as recorded in core's tier defaults)", doi: 10.1065/lca2004.10.181.7}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/hydrogen-iodide-1, access: public}
