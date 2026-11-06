@@ -141,7 +141,8 @@ minimum reflux are not calculated (no qualified methanol-water VLE, D-006).
 Rejected: a three-column (pressure-staged) refining train (saves steam; a basic-engineering
 option once the duties are qualified); a single column (fuel grade only).
 Open: a fusel-oil side draw of the refining column (needs by-products, I-04); a pump between
-the columns (CM-117) and the LP flash relief case (gas blow-by from V-101).
+the columns (CM-117; drawn as P-202A/B, D-016, D-020) and the LP flash relief case (gas blow-by
+from V-101; PSV-311 and the trip I-301 drawn, load open, D-019).
 
 ## D-009 Utilities (2026-10-27)
 Decision: cooling water 298.15/308.15 K (min approach 5 K), LP steam 450 kPa(a) for the
@@ -422,6 +423,309 @@ product:FUELGAS lost their `inventory_key` too: the slug offered
 the steam to other processes as an Atlas supply, which displaced their links and raised warnings
 that fail `--strict` (as aniline-1 D-013 records), and named the fuel gas "Carbon dioxide".
 
+## D-016 First P&IDs: sheet split, added equipment, lines and their sizes (2026-11-05)
+Decision: five P&ID sheets, one per section of the PFD, drawn with the authoring API
+(`scripts/draft_P-0n.py` with `scripts/pid_common.py`) and hand-maintained from now on (no
+`generator:` in `plant.yaml`; the scripts are provenance only, as hda-1 D-025):
+P-01 make-up gas compression (V-103, K-101, E-101; steps K101, E101); P-02 synthesis loop and
+converter (K-102, E-102, R-101, V-104; M101, K102, E102, R101); P-03 HP separator, purge and
+let-down (E-103, V-101, V-102; E103, V101, SPL, V102); P-04 topping column (C-201, E-201,
+V-201, P-201A/B, E-202, P-202A/B; C201); P-05 refining column and product (C-202, E-203,
+V-202, P-203A/B, E-204, P-204A/B; C202). Utilities (cooling water, LP and MP steam, BFW,
+condensate, flare, fuel gas, closed drain) end at off-page connectors named after their header;
+no utility sheet is drawn in this first issue.
+Added equipment (12 items, 14 -> 26): suction knock-out drum V-103 (D-017), converter steam drum
+V-104 (D-018), reflux drums V-201, V-202 and the pumps P-201A/B (topping reflux), P-202A/B
+(topping bottoms to C-202: the pump D-008 left open), P-203A/B (refining reflux and product),
+P-204A/B (bottoms water), each pair one duty and one installed spare (D-020). Design conditions by
+the D-012 rule, ASSUMED; no item is sized.
+Lines: numbers n30 and up are new lines on sheet P-0n. The drafting API continues a line's run
+through a tee and an off-page connector continues the same line, so the PFD lines of the loop
+gas are merged: SG-112 (S12) and SG-104 (S4) are now part of SG-110 (V-101 -> purge take-off ->
+P-02 -> make-up joins -> K-102), as hda-1 merged PG-105 into HG-115. CM-117, ME-118 and WW-119
+now start at their pumps. New lines are sized by the D-011 velocities on the flows and duties of
+`process/flowsheet.yaml` (method in each line's note): cooling water at 10 K rise and 1.5 m/s,
+steam at 20 m/s (LP) and 15 m/s (MP), reflux and pump suction one size above the discharge,
+anti-surge and spillback lines at 70 % of the machine flow (ASSUMED surge margin), the E-102
+bypass at 20 % of the loop flow, reboiler circulation at about 4 times the vapour. Relief, drain,
+vent and blowdown sizes are placeholders until the relief study. All new DN ASSUMED.
+Reason: a PFD section per sheet keeps each sheet readable at A3 with the equipment, tags and
+nozzles clear; the merge keeps every off-page connector on the line it continues
+(`cheme.offpage-mismatch`).
+Rejected: one sheet per block (SYN on one sheet would put two compressors, three exchangers,
+the converter, the steam system and two drums on one A3); a utility sheet now (the headers are
+outside the boundary, D-001).
+Drawing: flow left to right, inflows on the left edge, outflows on the right edge, utilities and
+relief on the top and bottom edges; the drawing-clean gate passes with no finding and no accepted
+crossing. Every sheet's notes name the decisions behind it.
+Title blocks: project methanol-1 (`project:` in `plant.yaml`), plant section = the sheet's
+narrative section, created by "Process engineering"; no client or site is chosen (design basis,
+D-001), so both read "Client (ASSUMED)" and "Generic site (ASSUMED)", as asu-1 does.
+
+## D-017 Make-up compression: control, protection and relief (2026-11-05)
+Decision: K-101 takes all the gas the front end delivers: PIC-102 holds the suction pressure on
+the speed of an electric variable-speed drive (ASSUMED; a steam turbine on the converter's MP
+steam is the usual alternative, D-009). Anti-surge UIC-104 on FT-103 (suction flow), PT-105
+(discharge) and the PIC-102 transmitter recycles through UV-104 (fail open) from after the
+aftercooler E-101 back to the suction downstream of V-103, so the recycled gas is cool; the check
+valve CV-103 is downstream of the anti-surge take-off. A suction knock-out drum V-103 is added
+although the make-up gas is dry by D-004: a front-end upset or condensate carry-over is the case;
+LZ-109 (level high-high) closes the battery-limit shutdown valve XV-110 and stops K-101 (C&E
+I-101). PSV-111 on the K-101 discharge upstream of CV-103 (blocked outlet, settle-out); PSV-112 on
+the E-101 cooling water side (tube rupture: 82 barg gas side against a 6 barg CW side, ASSUMED),
+both to the HP flare header; PSV-115 on V-103 for the suction side, PIC-102 cascaded onto the
+drive's speed controller SIC-113 and a dedicated anti-surge suction transmitter PT-114 (D-022).
+Reason: control-loops guidance (a dynamic machine on speed, anti-surge with a cooled recycle);
+the check valve upstream of the loop means the loop PSV-302 does not cover the K-101 discharge.
+Rejected: suction throttling (losses on a 14 MW machine); a recycle returned upstream of V-103
+(would put the recycle loop round the drum and a crossing on P-01, and the cooled recycle is dry).
+Open: the surge map and the anti-surge algorithm, and whether UIC-104 is in the vendor package;
+machine protection (vibration, axial position, lube oil, seals) is the package's.
+
+## D-018 Synthesis loop and converter: control, steam system and trips (2026-11-05)
+Decision: K-102 spillback UIC-203 / UV-203 (fail open) from the discharge ahead of the check valve
+CV-105 to the suction, uncooled: the circulator's rise is about 10 K (S4 -> S5), so a short
+spillback is acceptable (ASSUMED; a long turndown may need a cooled recycle). Converter inlet
+temperature TIC-205 on a cold bypass TV-205 (fail open) round E-102, which keeps the full loop flow
+through the converter. The R-101 shell runs on natural circulation with a steam drum V-104
+(added, riser SW-232 and downcomer BW-233 drawn as one line each for their sets; the riser enters
+the drum head above the normal liquid level, only the downcomer leaves from the drum bottom; BFW,
+MP steam and PSV-208 are on the drum top, review of PR #367): PIC-207 holds the
+drum pressure on the MP steam valve PV-207 (fail open, ASSUMED) and so the boiling temperature and
+the converter temperature (D-003); LIC-209 feeds BFW on LV-209 (fail open: dry-out is worse than
+overfilling), single element in this issue and three-element at basic engineering; continuous
+blowdown on HV-237; PSV-208 on the drum to atmosphere. Trips: TZ-210 (converter outlet high-high,
+I-201) and LZ-211 (drum level low-low, I-202) close XV-110 and stop K-101; K-102 keeps circulating
+to carry the heat away.
+Reason: in a boiling-water converter the shell's saturation temperature sets the reaction
+temperature; the bypass is the usual handle on a process-process exchanger (control-loops).
+Rejected: a cascade from TI-206 onto PIC-207 now (an option for basic engineering); a converter
+temperature trip that depressures the loop (a question for the HAZOP, D-021).
+Open: an R-101 tube leak puts synthesis gas into the steam system (relief study); catalyst-tube
+temperatures; the K-102 trip to K-101 interlock (D-021).
+
+## D-019 Loop pressure, purge, let-down and relief of the HP loop (2026-11-05)
+Decision: PIC-308 holds the loop pressure at the V-101 gas outlet and sets the purge FIC-303 /
+FV-303 (fail closed) in cascade; AI-305 (H2, CO, CO2, CH4) shows the inerts and the stoichiometric
+number so the operator may purge on inerts instead (D-007, I-08). The crude let-down LIC-307 /
+LV-307 (fail closed) is backed by LZ-306 (low-low, separate tap) closing XV-306 (I-301) against
+gas blow-by into V-102; V-102 pressure PIC-309 on the flash gas (PV-309 fail open) and level
+LIC-310 to C-201 (LV-310 fail closed). Relief: the loop has no isolation valve from the K-102
+check valve to V-101, so one PSV-302 on V-101 (set at the loop design pressure 89 barg, ASSUMED)
+protects the K-102 discharge, E-102, the R-101 tubes, E-103 and V-101; PSV-312 on the E-103
+cooling water side (tube rupture); PSV-311 on V-102 for the blow-by case, which may instead raise
+the V-102 design pressure. Manual loop depressuring HS-304 / XV-304 (fail open) to the flare
+header through FL-332, into which PSV-302 also discharges.
+Reason: with the make-up rate set by the front end (D-017) the purge is the loop's free outlet;
+a level seal with an independent shutdown valve is the usual protection of a let-down
+(pid-design-instrumentation: trip and control do not share sensor or final element).
+Rejected: a block valve at the V-101 gas outlet (it would need its own PSV); purging on a fixed
+flow.
+Open: depressuring rate and restriction orifice, the blow-by load, the simultaneous flare load on
+air failure (D-021).
+
+## D-020 Column control, reflux drums and pumps (2026-11-05)
+Decision: topping column C-201 with a partial condenser E-201 and reflux drum V-201: the off-gas
+leaves V-201 on PIC-404 / PV-404 (column pressure, fail open); LIC-405 returns all condensed
+liquid as reflux (no liquid distillate, D-008; LV-405 fail open); TIC-402 on a column temperature
+moves the LP steam TV-402 (fail closed); LIC-408 sends the bottoms through P-202A/B (the pump D-008
+left open) on LV-408 (fail closed) to C-202. Refining column C-202 with a total condenser E-203
+(which also subcools the product, D-008) and reflux drum V-202 vented to the LP flare header (D-022) on
+PIC-504 / PV-504; the reflux (156 t/h) is on the drum level LIC-505 / LV-505 and the product
+(104 t/h, the smaller branch) on flow FIC-507 / FV-507, taken off the reflux pump discharge;
+AI-509 (water) for Grade AA; TIC-502 / TV-502 on a stripping-section temperature; LIC-508 sends the
+bottoms water through P-204A/B on LV-508. Both reboilers are thermosyphons on LP steam with a
+steam trap standing for a condensate pot. Every pump has an installed spare with suction gate valve
+and strainer, discharge check and gate valve. LZ-411 and LZ-511 (drum level low-low) stop the reflux
+pumps (I-401, I-501). PSV-413 and PSV-513 protect each column with its drum (no isolation valve
+between them).
+Reason: control-loops guidance: flow control on the smaller branch of a split, level on the other;
+a partial condenser holds its pressure on the non-condensable off-gas.
+Rejected: product on level and reflux on flow in C-202 (the larger branch on flow); a separate
+product cooler (E-203 subcools, D-008).
+Open: control tray locations and set points (rigorous columns, D-008); the pressure control of a
+total condenser (nitrogen split range, hot-vapour bypass or flooded condenser); pump minimum-flow
+protection (with the pump vendor: the reflux flows are large); the fusel-oil side draw (I-04);
+cooling of the bottoms water (394 K at the battery limit); the refining column's cooling water
+failure relief load (about 84 MW of vapour).
+
+## D-021 Control philosophy, loops, trips and their basis (2026-11-05)
+Decision: the control records are drafted for the first P&IDs: `control/philosophy.md`
+(objectives OBJ-1..OBJ-6, failures F-AIR, F-POWER, F-CW, F-BFW, F-K102), `process/narrative.md`
+(sections CMP, SYN, SEP, TOP, REF), `control/loops.yaml` (20 loops), `control/cause-effect.yaml`
+(I-101, I-201, I-202, I-301, I-401, I-501), `control/instrument-list.yaml` (44 functions) and
+`piping/special-items.yaml` (8 PSVs). Set points that are design-case pressures and temperatures
+name their stream; levels 50 % of range and surge margins 10 % are ASSUMED; the two column
+temperatures are unresolved. Fail positions: closed for feed, let-down, product, purge and steam
+valves; open for anti-surge, vents, refluxes, BFW, the converter bypass, the steam drum pressure
+valve and the depressuring valve, all ASSUMED for the HAZOP to confirm. Trip delays (2-5 s),
+latching and manual reset ASSUMED; trip setpoints, voting and SIL are left to the HAZOP / LOPA.
+The trips act on shutdown valves (XV) and machine stops only, never on a control valve; the speed
+loop PIC-102 shares K-101 with I-101, I-201 and I-202 (`cheme.control-shared-element`, info: a
+machine stop is the trip's final element by design; the HAZOP judges independence).
+Reason: the P&IDs need their loops, fail positions and trips to be reviewable; the skills
+control-loops, control-narrative and control-safeguarding-and-interlocks ask for this register
+before a HAZOP.
+Open: start-up, shutdown and abnormal sequences (`control/sequences.yaml` holds only the K-101
+start-up SEQ-K101-START, added in D-022; the others are not written); the K-102 trip to
+K-101 / XV-110 interlock; depressuring on I-201; a plant-wide air failure opens XV-304 and all vents
+at once (a simultaneous flare load for the relief study).
+
+## D-022 Protection added and deferred after the engineering review of PR #367 (2026-11-05)
+Decision, item by item (the independent review of PR #367; each item is either drawn now or
+deferred here with its reason and an open input):
+1. **K-101 suction side relief** (high): the suction side (V-103, SG-130, K-101 suction, 28 barg)
+   is tied to the 74.5 barg discharge through the fail-open UV-104 and CV-103 leak-back on a K-101
+   trip. PSV-115 on V-103 to the HP flare header is added (P-01, FL-136), set 28 barg ASSUMED.
+   Its cases: settle-out of the K-101 discharge volume through UV-104; leak-back from the loop,
+   which the whole loop inventory at about 74.5 barg would feed; fire. Choice (round 3 of the
+   review): a discharge shutdown valve XV-116 on SG-103 downstream of CV-103 closes on every K-101
+   stop (US-116), the usual practice, so the loop inventory is isolated and PSV-115 is sized for
+   the settle-out of the discharge volume plus the seat leakage of CV-103 and XV-116 in series,
+   not for an open leak-back path. Round 4: the C&E trips (I-101, I-201, I-202, I-302) are not the
+   only way K-101 stops: a package machine trip, a power failure and an operator stop would have
+   left XV-116 open and CV-103 alone against the loop. The K-101 run status YS-117 from the drive
+   package now closes XV-116 on any stop (C&E I-102), fail-safe (energised while running, a lost
+   signal or power reads as stopped; XV-116 de-energise to close; ASSUMED, contact type with the
+   drive vendor); that is what keeps the sizing basis true, rather than sizing PSV-115 for the
+   open leak-back of the whole loop. Whether designing the suction
+   side for the settle-out pressure is the better answer depends on the vendor's settle-out
+   calculation (I-10).
+   Round 5: with XV-110 left open on those stops the suction side was the dead end of the front
+   end (no outlet, the front end still feeding it at up to its own maximum pressure) and SG-101,
+   which has no check valve, let settle-out gas flow back to the battery limit; neither was a
+   PSV-115 case. I-102 now closes XV-110 as well, so every K-101 stop closes both XV-110 and
+   XV-116, as the C&E trips already did; the settle-out case is then the one with XV-110 closed,
+   and the front end against the stopped K-101 becomes PSV-115's case (3): the seat leakage of
+   XV-110 at the front end's maximum pressure, and, while XV-110 is open with K-101 standing
+   (pressuring the suction side for a start, or XV-110 failing to close), the front end's flow
+   into the dead-ended suction side. That is a case only if the front end's maximum pressure at
+   the battery limit (its relief set or shut-in pressure, outside the boundary) exceeds the
+   28 barg of V-103; it is not known (I-15), so the conservative reading is kept open rather
+   than assumed away. YS-117 is now the K-101 run status from its own speed pick-up on the
+   machine (instrument nozzle N4) together with the drive's run contact, either reading stopped
+   (ASSUMED). The I-102 cause is the stop itself (running to not running), so the trip is reset
+   with K-101 standing; XV-116 then opens only with YS-117 reading running (start-up permissive
+   in US-116). Every start therefore runs against the closed XV-116: the start-up sequence
+   SEQ-K101-START (`control/sequences.yaml`, the first written sequence) asks for UV-104 fully
+   open, starts K-101 on full recycle and opens XV-116 once the discharge pressure is above the
+   loop pressure; a start with UV-104 not open is named in PSV-111's case.
+   Round 6: the round-5 sequence opened XV-110 first, with K-101 standing, to pressure the
+   suction side. After a stop the suction side is normally at the settle-out pressure, above the
+   front end's 2600 kPa(a) (up to the 28 barg PSV-115 set, I-10; a stop can also leave it at or
+   below the front end's, round 7 below), so that step sent settle-out gas back
+   through SG-101; and because the I-102 cause is a change from running to not running, a failed
+   start before YS-117 read running did not trip I-102 and left XV-110 open with K-101 standing
+   until the sequence timed out. The order is changed instead of adding a depressuring path or a
+   trip (no new equipment): with XV-110 and XV-116 closed and the suction side at or above the
+   front-end pressure (permissive), K-101 starts on full recycle at the suction side's own
+   pressure (S1), XV-116 opens with K-101 running (S2), and XV-110 opens once K-101 has drawn
+   the suction pressure down to the front end's (S3), so the gas only flows forward and XV-110
+   and XV-116 are open only after YS-117 has read running, when every stop trips I-102. Starting
+   at the settle-out pressure is ASSUMED (the usual design case of a centrifugal compressor's
+   start; with the vendors, I-10); the front-end pressure compared in the PIC-102 permissive and
+   in S2's completion (round 7) is the battery-limit
+   pressure reported over the interface, not measured on P-01 (ASSUMED, I-15). Round 7: S2
+   completes only once XV-116 is open and PIC-102 is at or below the front-end pressure, so its
+   10 min timeout (ASSUMED) bounds the drawdown too, the fully open UV-104 keeping K-101 out of
+   surge meanwhile; S3 only opens XV-110 (5 min, ASSUMED). XV-110 open with K-101 standing is
+   left for the suction-side pressuring procedure, not written (D-021), and for XV-110 failing
+   to close: PSV-115 case (3), I-15. The procedure is needed for the first pressuring after
+   maintenance and also before an ordinary restart whenever the suction side has fallen below
+   the front-end pressure, which the PIC-102 permissive then refuses: over a longer stop the
+   closed XV-110's seat leakage (SG-101 has no check valve) moves it toward the battery-limit
+   pressure and seal leakage can take it below. A PSV-115 lift can leave it below only if
+   PSV-115 reseats below the front-end pressure (about 25.0 barg against its 28 barg set), that
+   is with a blowdown above about 10.7 %; the blowdown is not recorded (ASSUMED open, with the
+   PSV-115 data, I-15).
+   The gas then flows forward; PSV-115's sizing is unchanged, case (3) being bounded by I-15
+   however often it occurs.
+2. **V-101 high-high level** (high): LZ-313, own tap, stops K-102 and with it K-101 and XV-110
+   (C&E I-302): the loop must not keep receiving make-up gas without circulation. LIC-307's high
+   alarm stays the operator warning.
+3. **Column vacuum** (high): the column pressure loops have no gas make-up (the vents only release
+   gas, and their check valves stop any back-flow), so a loss of reboiler heat with the condensers
+   running pulls a vacuum. Designed for full vacuum (ASSUMED; the usual answer for carbon-steel
+   columns at 5 barg, cheaper than a vacuum relief on a large column): C-201, E-201 (process side),
+   V-201, C-202, E-203 (process side), V-202; the reboilers E-202 and E-204 on both sides (the
+   process side is open to the sump without isolation; the LP steam side condenses to vacuum when
+   TV-402 / TV-502 close, which is the F-HEAT trigger itself and happens on air failure, both valves
+   failing closed; round 4: once the steam side is below the condensate header pressure the traps
+   ST-439 / ST-542 cannot discharge, and the check valves CV-439 / CV-542 drawn on the trap
+   outlets stop condensate being drawn back from the header, which would flood the steam side
+   and give water hammer on restart; round 5: with the steam valve closed only the steam left in
+   the steam side condenses, at about 2.4 kg/m3 (LS-438) about 0.3 % of its volume as liquid, so
+   that side goes to vacuum but does not flood. It floods in normal operation instead: at low
+   load with TV-402 / TV-502 throttled, or a closed valve passing, steam keeps entering below the
+   header pressure, the traps stall and condensate backs up over the tubes, taking heating
+   surface and making TIC-402 / TIC-502 sluggish (their loop records say so); draining it, by a
+   pumping trap or a condensate pot with a pump, and the stall point are open, I-14); and the
+   connected overhead, condensate, reflux, reboiler circulation and reboiler steam / condensate
+   piping (line list header). Case F-HEAT in the control philosophy. A nitrogen or fuel-gas
+   make-up split range with PV-404 / PV-504, or a vacuum breaker on the reboiler steam side, stays
+   the basic-engineering alternative.
+4. **Flare segregation** (medium): the HP loop (PSV-111, -112, -115, -302, -311, -312, XV-304)
+   discharges to an HP flare header, the columns (PSV-413, PSV-513 and the vent PV-504) to an LP
+   flare header, so loop gas depressured through XV-304 does not reach the column vent. The LP
+   header still receives HP loop gas from PSV-413's blow-by case; the C-202 vent PV-504 (about
+   0.1 barg, fail open) is therefore given the check valve CV-532 on VG-532 against back-flow, and
+   the off-gas PV-404 the check valve CV-116 on FG-116 against fuel gas drawn back into a column
+   under vacuum (with the vents open and the steam closed on air failure, F-AIR). The back
+   pressure of the LP header against the 0.1 barg vent and the simultaneous loads are for the
+   flare study (I-13).
+5. **Steam drum pressure over the catalyst life** (medium): the strategy text is dropped; PIC-207
+   stays at the D-003 value inside the 30 barg design of V-104 and the R-101 shell and below
+   PSV-208. Raising it needs the end-of-run drum pressure as the design basis (I-11).
+6. **V-104 high level** (medium): the independent high alarm LAH is put on LZ-211 (own tap, already
+   the low-low trip sensor). A high-high trip closing a BFW shutdown valve is deferred to the
+   HAZOP: the consequence is carry-over of boiler water into the MP steam header (an equipment and
+   steam-quality consequence, no process-safety one is identified at this stage), and a BFW trip
+   valve would itself remove the converter's cooling (I-12). BF-235 has no block valve of its own
+   in this issue: the LZ-211 response is to close LV-209 in manual and, failing that, to isolate
+   the BFW supply at its header outside the boundary.
+7. **P-01 PIC-102 output** (medium): PIC-102 now cascades onto the drive's speed controller SIC-113
+   (signal drawn); the anti-surge controller UIC-104 gets its suction pressure from a dedicated
+   transmitter PT-114 instead of PIC-102, as anti-surge inputs usually are. SIC-113 is part of the
+   drive package: its speed measurement is drawn as a connection to K-101, its output goes to the
+   variable-speed drive inside the package (not drawn). Round 4: that connection, K-101's N3, is
+   an InstrumentNozzle (the speed pick-up on the casing), not a ProcessNozzle. Round 5: DEXPI
+   2.0.1 takes only a nozzle or a piping segment as an instrument's sensing location, not the
+   equipment itself, so a nozzle-free association to K-101 cannot be drawn; the instrument
+   nozzle is the DEXPI class for an instrument connection on equipment, and YS-117's own speed
+   pick-up is the instrument nozzle N4. Core 1.10.0's datasheet draft does not tell instrument
+   nozzles from process nozzles: `cheme datasheets draft --tag K-101 --dry-run` lists N3 (and now
+   N4) next to N1 and N2, with no line. When the K-101 datasheet is drafted, N3 and N4 are
+   entered as the speed pick-ups (instrument connections of the machine vendor), not as
+   process connections; keeping them apart in the draft is a change for cheme-as-code.
+8. **Line labels** (medium): every line carries its number (and DN where it fits) at least once on
+   its sheet; RF-433 and RF-534 show the number only (no room for the DN between the spare pump's
+   suction valves).
+Low items: the tags of XV-110, UV-104, UV-203, XV-304 and XV-306 are printed; the stale SG-104
+references are corrected; the PSV-302 case no longer claims K-101 into a blocked loop (PSV-111 at
+82 barg lifts first), and the same stale text is gone from the P-03 note and I-302 (round 3).
+Round 4 low items: the check valves credited as protections carry their tags on the sheets
+(CV-103 on P-01, CV-116 and CV-439 on P-04, CV-532 and CV-542 on P-05); the P-04 note names
+PSV-413's gas blow-by case through V-102 again, the case CV-532 answers (item 4); XV-116 is in
+the fail-closed list of F-AIR, where K-101, not stopped by an air failure, runs isolated in full
+recycle through the fail-open UV-104, and K-101 against the closed XV-116 without that recycle
+is named in PSV-111's case.
+Round 5 low items: the V-103 equipment note states the current basis (XV-110 and XV-116 closed on
+every K-101 stop); the CMP section of the process narrative lists I-102 and SEQ-K101-START and
+describes the isolation; on P-01 YS-117 is drawn on K-101 (N4) and the sheet note names the
+operator stop. YS-117's input to US-116 is a C&E cause, like the other trips', and is not drawn as
+a signal line: a line from K-101 to US-116 would cross SG-102 and SG-131.
+Round 6 low items: on P-01 US-116 is drawn acting on XV-116 only and XV-110 is drawn actuated by
+LZ-109 (I-101), so two links of I-102 are not drawn: YS-117 into US-116 and US-116 onto XV-110.
+Neither can be drawn without a crossing (YS-117 sits in the area that FL-136, SG-130, SG-102 and
+FL-132 close; US-116 in the open area right of the anti-surge riser from T131B and above the level
+of the SG-131 run, which joins the lower part of the sheet, where DR-135, running from V-103 to the
+bottom edge, separates it from XV-110; wording corrected in round 7), so
+they stay C&E links, and the P-01 note, the C&E I-102 notes, the US-116 and YS-117 entries of the
+instrument list and the script comment all say so; US-116's entry now gives XV-110's fail position
+too (F.C.). The control philosophy body and D-021 no longer say that no sequence is written.
+Reason: concept-stage design, each protection either drawn or deferred explicitly with its open
+input, for the HAZOP to confirm.
+
 ## 3. Reaction and model evidence
 
 | item | basis in this case | source and status | consistency check |
@@ -490,3 +794,30 @@ ASSUMED (I-01, I-02). After the DWSIM run (D-014) the predictive checks pass exc
 - I-07 Read the current O-M-232 Grade AA limits.
 - I-08 Recycle ratio / purge / inerts trade-off and purge hydrogen recovery.
 - I-09 Closed 2026-11-01: the purge, which returns to the reformer fuel, is not a co-product (D-015).
+- I-10 K-101 settle-out pressure (casing, discharge, recycle volume) against the 28 barg suction
+  side: PSV-115 relief load, or design the suction side for settle-out (D-022, vendor); and that
+  K-101 and its drive start at the settle-out pressure (starting torque), as SEQ-K101-START
+  assumes (D-022 item 1, round 6).
+- I-11 End-of-run steam drum pressure: needed as the V-104 / R-101 shell design pressure and the
+  PSV-208 set before the drum pressure may be raised over the catalyst life (D-022).
+- I-12 V-104 high-high level with a BFW shutdown valve: deferred to the HAZOP (D-022).
+- I-13 Flare system: HP and LP headers, back pressure on each PSV and the simultaneous load on air
+  failure (D-021, D-022); the LP header's back pressure against the 0.1 barg C-202 vent with
+  PSV-413's blow-by gas in it; columns under vacuum with the vents open on air failure (check
+  valves CV-116, CV-532; D-022).
+- I-14 Reboiler condensate system: the condensate header pressure, the turndown at which
+  ST-439 / ST-542 stall (low steam load with TV-402 / TV-502 throttled, or a closed valve
+  passing: the steam side then floods; with the valve tight shut it only goes to vacuum), and how
+  the flooded E-202 / E-204 steam side is drained (pumping trap, or a condensate pot with a pump,
+  with a vacuum breaker), with the start-up draining before steam is admitted (D-022 item 3).
+- I-15 Front-end interface: the maximum pressure of the make-up gas at the battery limit (the
+  front end's relief set or shut-in pressure with no outlet through the plant) against the
+  28 barg K-101 suction side; above it, the suction side is designed for it or PSV-115 carries
+  the front end's flow while XV-110 is open with K-101 standing (the suction-side pressuring
+  procedure: the first pressuring after maintenance, and before a restart when a stop has left
+  the suction side below the front-end pressure; or XV-110 failing to close; PSV-115 case 3,
+  D-022 item 1). Also the front end's battery-limit pressure as a signal over the interface:
+  SEQ-K101-START starts only with PIC-102 at or above it and opens XV-110 only once PIC-102
+  reads at or below it (rounds 6 and 7). Also PSV-115's blowdown (not recorded, ASSUMED open with
+  the valve data): a lift leaves the suction side below the about 25.0 barg front end only if the
+  blowdown exceeds about 10.7 % of the 28 barg set (D-022 item 1, final review).
