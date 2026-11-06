@@ -17,7 +17,7 @@ sequences:
       - {tag: LZT-2102, state: above the low-low trip}
       - {loop: PIC-1110, state: in auto}
       - {tag: K-7101A, state: running}
-    interlocks: [I-501, I-502, I-503, I-507, I-504, I-505, I-511, I-512, I-513, I-514, I-202, I-204, I-804]
+    interlocks: [I-501, I-502, I-503, I-507, I-504, I-505, I-511, I-512, I-513, I-514, I-202, I-204, I-205, I-305, I-601, I-804]
     steps:
       - id: S0
         title: Line up from holding
@@ -30,17 +30,17 @@ sequences:
           - {tag: XV-5122, action: open, by: operator}
           - {tag: XV-5161, action: close, by: operator}
           - {tag: P-2102, action: start, by: operator}
-        complete: {all: [{tag: XV-4105, state: closed}, {tag: XV-5125, state: closed}, {tag: XV-5161, state: closed}, {tag: P-2102, state: running}]}
+        complete: {all: [{tag: XV-4105, state: closed}, {tag: ZSC-2123, state: closed}, {tag: ZSC-3123, state: closed}, {tag: XV-5125, state: closed}, {tag: ZSO-5122, state: open}, {tag: XV-5161, state: closed}, {tag: P-2102, state: running}]}
         timeout: {value: 30, unit: min}
         on_timeout: abort
-        operator: "Review 2026-11-05-basic-design#22: the circulation return closes so line B carries LNG to the berth; the tank-end and platform crossovers open; the hybrid vapour isolation XV-5125 stays closed (I-504, I-505); the circulation pump keeps the desuperheater spray."
+        operator: "Review 2026-11-05-basic-design#22: the circulation return closes so line B carries LNG to the berth; the tank-end and platform crossovers open; the hybrid vapour isolation XV-5125 stays closed (I-504, I-505); the circulation pump keeps the desuperheater spray. With XV-2123 / XV-3123 proven closed (ZSC-2123 / ZSC-3123) a tank high-high level does not stop the circulation pump, so the spray stays in service during loading (I-205 / I-305, review 2026-11-05-basic-design-5 #1). The vapour arm isolation is proven open by ZSO-5122 before any liquid moves (D-030)."
       - id: S1
         title: Connect the vapour arm and leak test it
         actions:
           - {text: "connect LA-5102 to the carrier's vapour manifold", by: operator}
           - {text: "N2 leak test of the vapour arm at 2.5 bar (S-01)", by: operator}
           - {text: "AI-4133 selects the vapour return path make-before-break (I-511, I-512, I-513): de-inerting and gassing-up vapour to the flare through XV-4131, on-specification vapour to the tanks through XV-4135 (D-026)", by: automatic}
-        complete: {all: [{tag: XV-5132, state: open}, {tag: XV-5142, state: open}, {any: [{tag: ZSO-4131, state: open}, {tag: ZSO-4135, state: open}]}]}
+        complete: {all: [{tag: ZSO-5122, state: open}, {tag: XV-5132, state: open}, {tag: XV-5142, state: open}, {any: [{tag: ZSO-4131, state: open}, {tag: ZSO-4135, state: open}]}]}
         timeout: {value: 1, unit: h}
         on_timeout: abort
         operator: "The vapour arm first and disconnected last (S-01); the carrier's return then runs free to the tank vapour header."
@@ -63,6 +63,7 @@ sequences:
         actions:
           - {text: "first ESD-1 test through the ship-shore link before cooldown (S-01), in test mode: the sequence abort on I-501 is inhibited for the test only; the test mode ends automatically with the reset of I-501 or 15 min after it was set (ASSUMED), whichever comes first", by: operator}
           - {text: "reset I-501 once the test is complete and the link is healthy (this ends the test mode)", by: operator}
+          - {text: "ZSO-5122 proves the vapour arm isolation XV-5122 open before the cooldown flow starts: from here on the berth is in liquid transfer, and XV-5122 not open or the O2 high-high trips ESD-1 (I-501) instead of the O2 reject I-514 (D-030)", by: operator}
           - {tag: XV-4101, action: open, by: operator}
           - {tag: XV-4102, action: open, by: operator}
           - {tag: XV-5101, action: open, by: operator}
@@ -77,7 +78,7 @@ sequences:
           - {tag: XV-5101, action: open, by: operator}
           - {tag: XV-5121, action: open, by: operator}
           - {loop: FIC-4101, action: auto, by: operator}
-        complete: {all: [{text: "arm and manifold temperatures at LNG temperature"}, {text: "ESD-1 test repeated after cooldown (S-01)"}, {interlock: I-501, state: reset}, {tag: XV-4101, state: open}, {tag: XV-4102, state: open}, {tag: XV-5101, state: open}, {loop: FIC-4101, state: in auto}]}
+        complete: {all: [{text: "arm and manifold temperatures at LNG temperature"}, {text: "ESD-1 test repeated after cooldown (S-01)"}, {interlock: I-501, state: reset}, {tag: XV-4101, state: open}, {tag: XV-4102, state: open}, {tag: XV-5101, state: open}, {tag: ZSO-5122, state: open}, {loop: FIC-4101, state: in auto}]}
         timeout: {value: 2, unit: h}
         on_timeout: abort
         operator: "Cool slowly to avoid thermal shock on the arms; the circulation pump P-2102 (500 m3/h, D-008) gives the cooldown flow through line A. The cooldown vapour returns through the vapour arm, to the flare while AI-4133 reads off-specification. Each ESD-1 test opens XV-4135 (I-501) and XV-4131 closes only once XV-4135 is proven open (I-513), so the test never closes the vapour return (review 2026-11-05-basic-design-2#1); with off-specification vapour only the residual line pack of the return reaches the tanks, which D-026.1 shows to stay well below their 1 vol % O2 limit (review 2026-11-05-basic-design-4 #4). After each test the reset of I-501 and the reopening of XV-4101 / XV-4102 / XV-5101 / XV-5121 restore the line-up, so S4 starts against open valves (review 2026-11-05-basic-design-4 #3, D-028)."
@@ -88,10 +89,10 @@ sequences:
           - {text: "line-up (a), the normal one: open XV-5123 (the hybrid arm as the third liquid arm; I-504 permits it with XV-5125 proven closed), start P-2101A/B/C/D, FIC-4101 and FIC-4102 to 6,000 m3/h each (12,000 m3/h)", by: operator}
           - {text: "line-up (b), a carrier that needs more return: open XV-5125 (the hybrid arm as the second vapour arm; I-505 permits it with XV-5123 proven closed), start P-2101A/B/C, FIC-4101 and FIC-4102 to 4,000 m3/h each (8,000 m3/h)", by: operator}
           - {tag: K-7101B, action: start, by: operator}
-        complete: {all: [{loop: FIC-4101, state: at setpoint}, {loop: FIC-4102, state: at setpoint}]}
+        complete: {all: [{loop: FIC-4101, state: at setpoint}, {loop: FIC-4102, state: at setpoint}, {tag: ZSO-5122, state: open}]}
         timeout: {value: 2, unit: h}
         on_timeout: abort
-        operator: "Ramp in steps on the carrier's request; the carrier ramps its return-gas compressor over at least 1 h (S-01); start the second BOG compressor before the return reaches one machine's capacity. Four pumps make the 12,000 m3/h (D-011). In line-up (a) the carrier keeps its return within one vapour arm (~23.5 t/h) and burns the balance on board; line-up (b) gives two vapour paths at 8,000 m3/h (D-026.6)."
+        operator: "Ramp in steps on the carrier's request; the carrier ramps its return-gas compressor over at least 1 h (S-01); start the second BOG compressor before the return reaches one machine's capacity. Four pumps make the 12,000 m3/h (D-011). In line-up (a) the carrier keeps its return within one vapour arm (~23.5 t/h) and burns the balance on board; line-up (b) gives two vapour paths at 8,000 m3/h (D-026.6). Throughout the transfer ZSO-5122 keeps the vapour arm proven open: its loss trips ESD-1 (I-501, D-030); in line-up (b) a closed XV-5125 (ZSC-5125) leaves the vapour arm as the return and the carrier reduces its return-gas compressor."
       - id: S5
         title: Topping off and stop
         actions:
@@ -199,12 +200,13 @@ sequences:
     section: JETTY
     cases: [loading]
     equipment: [XV-5101, XV-4101, XV-4102]
-    interlocks: [I-501, I-503, I-507, I-513, I-804]
+    interlocks: [I-501, I-503, I-507, I-513, I-601, I-804]
     steps:
       - id: S1
         title: Loading stopped and the line isolated
         actions:
-          - {text: "I-501 (directly, through I-503 on ESD-2, or through the air-header trip I-804) stops the loading pumps and trips the carrier's ESD through XS-5100, then closes XV-5101 (25-30 s) and XV-4101/4102, and opens XV-4135 so the vapour return stays open to the tanks (I-513 then closes XV-4131); on ESD-2, I-507 closes the ERS valves 5 s later; on an air failure the ESD valves hold on their accumulators until the pumps are stopped and close at their set speed (D-028)", by: automatic}
+          - {text: "I-501 (from the carrier through XS-5100, an arm envelope stage 1, the manual ESD-1 push buttons in the control room, on the jetty and on the platform, the confirmed platform fire and gas, ESD-2 through I-503, the air-header trip I-804, and during a liquid transfer XV-5122 not proven open by ZSO-5122, the O2 high-high of AI-4133, the loss of the ERS solenoid supply or ESD-1 of Berth 1, I-601) stops the loading pumps and trips the carrier's ESD through XS-5100, then closes XV-5101 (25-30 s) and XV-4101/4102, and opens XV-4135 so the vapour return stays open to the tanks (I-513 then closes XV-4131); on ESD-2, I-507 closes the ERS valves 5 s later; on an air failure the ESD valves hold on their accumulators until the pumps are stopped and close at their set speed (D-028, D-030)", by: automatic}
+          - {text: "an ESD-1 of either berth stops the shared loading pumps and closes the shared tank-end valves XV-4101 / XV-4102; the berth that is transferring is tripped through its own link by its own ESD-1 (I-501 takes I-601 tripped during a Berth 2 transfer, I-601 takes I-501 during a Berth 1 transfer), so its carrier never loses the flow without its ESD (review 2026-11-05-basic-design-5, adversarial check; D-016)", by: automatic}
         complete: {all: [{tag: XV-5101, state: closed}]}
       - id: S2
         title: Pressure the isolated header is under
@@ -229,21 +231,21 @@ sequences:
     permissives:
       - {text: "AI-1102 against LTD-2103 / LTD-3103 calls for the other fill point (rollover, D-007)"}
       - {tag: PZT-1105, state: below the high-high trip}
-    interlocks: [I-102, I-201, I-301]
+    interlocks: [I-102, I-103, I-201, I-301]
     steps:
       - id: S1
         title: Open the new fill selection valve first
         actions:
           - {text: "open the selection valve of the new fill point (T-2101: XV-1106 top / XV-1107 bottom; T-3101: XV-1108 top / XV-1109 bottom) from its HS", by: operator}
-        complete: {all: [{text: "the new selection valve open for at least its stroke time (fail last, no position switch: proven by the open command held for the stroke time and a local check)"}, {tag: PI-1104, state: "steady, not rising"}]}
+        complete: {all: [{text: "the new selection valve open for at least its stroke time (fail last, no position switch: proven by the open command held for the stroke time, about 35 s with the 30 s closure of D-023.3, and a local check)"}, {tag: PI-1104, state: "steady, not rising"}]}
         timeout: {value: 10, unit: min}
         on_timeout: abort
       - id: S2
         title: Close the old fill selection valve
         actions:
-          - {text: "close the selection valve of the old fill point", by: operator}
+          - {text: "close the selection valve of the old fill point; I-103 blocks the close command while the new valve has not been commanded open for its stroke time and the other tank does not take the rundown, so the last open fill branch of the only lined-up tank is never closed from its HS", by: operator}
         complete: {all: [{tag: PI-1104, state: "steady, not rising"}, {tag: PZT-1105, state: below the high-high trip}]}
-        operator: "Review 2026-11-05-basic-design-3#8, D-026.4: make-before-break, the new branch is open before the old one closes, so the rundown always has a way into the tank. A change that closes both trips I-102 through PZT-1105 (trains tripped, battery limit closed). The fill ESD valve XV-1102 / XV-1103 of a tank that is not lined up is kept closed, so ZSC-1102 / ZSC-1103 show which tank can take the rundown (I-102, D-028)."
+        operator: "Review 2026-11-05-basic-design-3#8, D-026.4: make-before-break, the new branch is open before the old one closes, so the rundown always has a way into the tank. Review 2026-11-05-basic-design-5, adversarial check (D-023.3, D-030): the selection valves close in at least 30 s (speed controller), and the close command of the last open branch is blocked by I-103, so the rundown is never stopped by a selection valve without the train trip; a closure that runs all the same is slow, and PZT-1105 trips I-102 (trains tripped through XS-1100, battery limit closed). The fill ESD valve XV-1102 / XV-1103 of a tank that is not lined up is kept closed, so ZSC-1102 / ZSC-1103 show which tank can take the rundown (I-102, I-103, D-028)."
     abort:
       condition: {tag: PZT-1105, state: rising towards the high-high trip}
       actions:

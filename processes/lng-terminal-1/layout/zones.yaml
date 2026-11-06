@@ -119,37 +119,94 @@ zones:
     kind: hazardous
     zone: 2
     shape: cylinder
-    centre: [1161.0, 812.0, -4.0]
+    centre: [1163.5, 812.0, -4.0]
     radius: 7.0
     height: 5.0
     basis: "As Z-HA-SUMP-T8101 for the jetty sump (ASSUMED); re-sited off the platform by the pool fire screening of D-018 (D-029)"
-  # ---- spill collection (D-018): troughs at grade under the racks to the impoundment basin
-  # T-8101; the trestle drip trays are part of the trestle steel under the bottom tier
-  # (D-027). Keep-clear volumes: no pipe, post or tray at grade in them.
+  # ---- spill collection (D-018, D-031; review 2026-11-05-basic-layout-3 #1 / #2 and its
+  # adversarial check). Two kinds of channel, both keep-clear volumes (no pipe, post or tray
+  # in them):
+  # - open troughs (Z-KC-TROUGH-*), 0.6 m wide, 1.2 m deep, under the racks whose own LNG lines
+  #   they collect, falling to the basin away from the tanks: PR1 east to the PR1 / PR2 / PR3
+  #   junction, PR2's straight north end north to it, then north under PR3's north-south leg
+  #   and PR4 (which carry the rundown header and had no collection) past road R2, west north
+  #   of PR8 and into the basin. A trough fire is screened by the D-018 point-source method
+  #   integrated along the trough (line source q' = chi_r m'' dHc w = 0.35 x 0.078 x 50 MJ/kg
+  #   x 0.6 m = 0.82 MW per m, every leg burning at once, x 1.2 for flame tilt, ASSUMED):
+  #   7.0 kW/m2 at the T-2101 shell, 5.3 at T-3101, 4.8 at S-RT2101, 3.4 at S-RT3101, 3.5 at
+  #   B-SUB (separations in layout/site-plan.yaml);
+  # - enclosed channels (Z-KC-CHANNEL-*) where the collection must start beside a tank shell,
+  #   under a riser tower or under the platform deck: covered, sealed concrete channels that
+  #   only conduct a spill rapidly away from that critical area, sized for the liquid flow and
+  #   vented at their downstream end into the open trough or sump (the enclosed drainage
+  #   channel provision of NFPA 59A, cited by number only; sizing basis D-031, ASSUMED). They
+  #   have no burning surface along their length.
   - id: Z-KC-TROUGH-PR1
-    title: Spill trough under PR1 (tank-area rack) to the basin trough under PR6
+    title: Open spill trough under PR1 (tank-area rack), falling east to the PR1 / PR2 / PR3 junction
     kind: keep_clear
     shape: box
-    box: [760.0, 2944.2, -0.8, 1095.8, 2945.8, 0.3]
-    basis: "Concrete trough 1.6 m wide along the rack centreline, falling to the basin trough at x 988 under PR6 (D-018, D-029, ASSUMED size)"
+    box: [760.0, 2944.7, -1.2, 1095.3, 2945.3, 0.3]
+    basis: "Concrete trough 0.6 m wide, 1.2 m deep along the rack centreline, falling east (no longer to x 988 under PR6); it takes the enclosed channels from under PR5 and PR6 at their joints with PR1; 34.8 m from both tank shells, 63 m from both riser towers (D-018, D-031, ASSUMED size)"
   - id: Z-KC-TROUGH-PR2
-    title: Spill trough under PR2's straight north end, from the trestle drip trays to the PR1 trough
+    title: Open spill trough under PR2's straight north end (vapour switch valve station), falling north to the junction
     kind: keep_clear
     shape: box
-    box: [1094.2, 2872.0, -0.8, 1095.8, 2944.2, 0.3]
-    basis: "As Z-KC-TROUGH-PR1; it receives the trestle drip trays at the shore end and passes under road R6 in a covered culvert (D-018, D-027, ASSUMED)"
+    box: [1094.7, 2872.0, -1.2, 1095.3, 2944.7, 0.3]
+    basis: "As Z-KC-TROUGH-PR1; it collects the shore-end valve station and the trestle's shore end (the welded trestle run over the water has no tray, D-031) and passes under road R6 in a culvert (D-018, D-027, D-031, ASSUMED)"
+  - id: Z-KC-TROUGH-PR3
+    title: Open spill trough under PR3's north-south leg and PR4, from the junction north past road R2
+    kind: keep_clear
+    shape: box
+    box: [1094.7, 2945.3, -1.2, 1095.3, 3165.3, 0.3]
+    basis: "Collector to the basin, 0.6 m wide: under the centreline of PR3 (rundown header, BOG) and PR4 (rundown), which it also serves, crossing road R7 and road R2 (under PR4's portal) in culverts; 119.6 m from the T-2101 shell, 98.5 m from S-RT2101, 70 m from B-SUB (D-018, D-031, ASSUMED; the fall follows the terrain, civil detail)"
   - id: Z-KC-TROUGH-SUMP
-    title: Spill trough from PR1 north under PR6, across the north apron and road R2 into the basin T-8101
+    title: Open spill trough from PR4 west north of PR8 and north into the basin T-8101
     kind: keep_clear
     shape: box
-    box: [987.2, 2945.8, -0.8, 988.8, 3183.0, 0.3]
-    basis: "Covered trough under the PR6 centreline from the PR1 trough to PR6's north end, then north across the apron east of the T-2101 crane pad and under road R2 in a culvert to the basin edge, ~240 m (D-018, D-029, ASSUMED; the fall and the culvert are civil detail)"
+    box: [985.7, 3164.7, -1.2, 1095.3, 3165.3, 0.3]
+    basis: "West leg 39 m north of road R2 (between PR4's bents at y 3161 / 3178) and 15 m north of PR8, then north at x 986 into the basin (Z-KC-TROUGH-SUMP-N); 103.5 m from the T-2101 shell (D-018, D-031, ASSUMED)"
+  - id: Z-KC-TROUGH-SUMP-N
+    title: Open spill trough, last leg into the basin T-8101 at its east side
+    kind: keep_clear
+    shape: box
+    box: [985.7, 3165.3, -1.2, 986.3, 3184.7, 0.3]
+    basis: "Enters the basin rim at x 986 (D-018, D-031, ASSUMED)"
+  - id: Z-KC-CHANNEL-PR6
+    title: Enclosed spill channel under PR6 and the riser tower S-RT2101, from the riser drops south to the PR1 trough
+    kind: keep_clear
+    shape: box
+    box: [987.7, 2945.3, -1.3, 988.3, 3046.0, 0.0]
+    basis: "Collects only PR6 and the T-2101 riser drops (it no longer carries the PR1, PR2 or trestle spills); covered and sealed under the riser tower and beside the shell (12.6 m), vented at its south end into the open PR1 trough; 0.6 x 1.3 m, sized for one loading line (D-018, D-031, ASSUMED; NFPA 59A enclosed drainage channel provision, cited by number only)"
+  - id: Z-KC-CHANNEL-PR5
+    title: Enclosed spill channel under PR5 and the riser tower S-RT3101, from the riser drops south to the PR1 trough
+    kind: keep_clear
+    shape: box
+    box: [845.7, 2945.3, -1.3, 846.3, 3048.5, 0.0]
+    basis: "As Z-KC-CHANNEL-PR6 for T-3101 (PR5 had no collection before, D-031, ASSUMED)"
+  - id: Z-KC-CHANNEL-JETTY
+    title: Enclosed spill collector under the loading platform deck from both berths' drip trays to the south edge
+    kind: keep_clear
+    shape: box
+    box: [1131.5, 856.0, -1.3, 1178.5, 857.0, -0.1]
+    basis: "Under the deck slab along the platform's south edge, from the drip trays under the Berth 2 arms and manifold (west face) and the Berth 1 ones (east face), to the catwalk at x 1163.5, vented there into the open catwalk trough; no muster point or escape station over it any more (D-018, D-031, ASSUMED)"
+  - id: Z-KC-CHANNEL-JETTY-W
+    title: Enclosed spill collector under the deck along the west face (Berth 2 drip trays)
+    kind: keep_clear
+    shape: box
+    box: [1131.5, 857.0, -1.3, 1132.5, 902.0, -0.1]
+    basis: "As Z-KC-CHANNEL-JETTY (ASSUMED)"
+  - id: Z-KC-CHANNEL-JETTY-E
+    title: Enclosed spill collector under the deck along the east face (Berth 1 drip trays)
+    kind: keep_clear
+    shape: box
+    box: [1177.5, 857.0, -1.3, 1178.5, 902.0, -0.1]
+    basis: "As Z-KC-CHANNEL-JETTY (ASSUMED)"
   - id: Z-KC-TROUGH-JETTY
-    title: Covered spill trough from the platform drip trays south to the jetty sump T-8102
+    title: Open spill trough on the sump deck catwalk from the platform south edge to the jetty sump T-8102
     kind: keep_clear
     shape: box
-    box: [1160.2, 815.0, -0.8, 1161.8, 865.0, 0.0]
-    basis: "Collector under the platform deck from the drip trays below both berths' arms and manifolds, south along the sump deck catwalk to the sump (D-018, D-029, ASSUMED)"
+    box: [1163.2, 816.0, -1.2, 1163.8, 855.0, 0.0]
+    basis: "0.6 m trough along the catwalk S-CW-A9 (39 m); line-source screening x 1.2 tilt (D-031, ASSUMED): 6.1 kW/m2 at D-6101, 4.9 at D-5101, 2.7 at LA-6101, below 1 at both carriers (D-018, D-031)"
   # ---- marine safety zones during transfer (LNG Canada TIG Rev 3: 200 m around the vapour
   # arm while a carrier is alongside and transferring; no other vessel, no ignition source).
   # Drawn on the water, below the jetty deck (z -30 .. -6), as the vessel traffic keep-clear
@@ -183,7 +240,7 @@ zones:
     kind: keep_clear
     shape: box
     box: [1129.0, 872.0, 0.0, 1134.6, 902.0, 18.0]
-    basis: "Arm envelope from the risers' outboard face to the ship envelope (Z-SHIP-B2-M), the four arms' width plus 3 m, up to below the apex (D-014, ASSUMED until the vendor's envelope drawing)"
+    basis: "Arm envelope from the risers' outboard face to the ship envelope (Z-SHIP-B2-4, 0.2 m beyond it), the four arms' width plus 3 m, up to below the apex (D-014, ASSUMED until the vendor's envelope drawing)"
   - id: Z-KC-ARMS-B1
     title: Berth 1 loading arm operating envelope (LA-6101 to LA-6104), outboard of the risers
     kind: keep_clear
@@ -216,12 +273,25 @@ zones:
     shape: box
     box: [1016.4, 2934.0, 0.0, 1022.0, 2995.0, 2.2]
     basis: "Second way out of A2, remote from the east exit by road R7 to R3; west of the low pipe corridor y 2975-2979, which is a no-walk strip (D-027, ASSUMED)"
-  - id: Z-ESC-A4S
-    title: Loading platform muster point and escape-to-sea station at the south edge
+  # loading platform muster point and escape to sea (D-031, review 2026-11-05-basic-layout-3
+  # #1, #5 and the missed high of its adversarial check): moved from the south edge, where the
+  # spill collection and the jetty sump lie, to the platform's north-west corner beside the
+  # trestle road, where the first way off (the trestle road R5) also starts. The life-raft
+  # station and the escape ladder to the rescue boat landing are at the north edge; the boat
+  # leaves north on the water between the trestle and the Berth 2 carrier's north part, away
+  # from the sump deck A9, the catwalk trough and both carriers' bows
+  - id: Z-ESC-A4N
+    title: Loading platform muster point, life-raft station and escape ladder at the north-west corner beside the trestle road
     kind: escape
     shape: box
-    box: [1145.5, 855.5, 0.0, 1166.5, 863.5, 2.2]
-    basis: "Second way off the platform besides the trestle road: muster point with life rafts and an escape ladder to a rescue boat landing at the south edge, remote from the trestle end (D-027, ASSUMED)"
+    box: [1130.5, 913.5, 0.0, 1137.0, 924.5, 2.2]
+    basis: "Muster point (people stay here): 1.6 kW/m2 continuous-exposure criterion incl. a x 1.2 flame tilt allowance from a T-8102 pool fire, 60 m from the sump edge (D-031, ASSUMED), measured ~100 m; west of the platform roadway R9, north of the arm laydown Z-LAY-A4NW, 11 m north of the Berth 2 manifold zone; life rafts and the ladder down to the rescue boat landing at the north edge (x ~1133, y 925) (D-027, D-031, ASSUMED)"
+  - id: Z-ESC-A4-SEA
+    title: Escape-to-sea boat route from the north-west landing north between the trestle and the Berth 2 carrier to open water
+    kind: escape
+    shape: box
+    box: [1123.5, 925.0, -12.0, 1133.0, 1070.0, -9.8]
+    basis: "Rescue boat and life-raft route on the water, 9.5 m wide (waterline -12 m below the deck datum, ASSUMED as the ship envelopes), clear of the Berth 2 hull envelope boxes (Z-SHIP-B2-3 east edge x 1122.8; the hull itself is at x 1116.9-1118.9 here) and ~1.4 m off the trestle road's west edge (x 1134.4-1138), clear north of the carrier's stern (y 1046.6) to open water; T-8102 at 5 kW/m2 incl. tilt or less (separation 33 m from the sump edge), measured ~113 m (D-031, ASSUMED; the marine engineer and the TERMPOL review confirm the boat's approach)"
   - id: Z-ESC-T2101-ROOF-S
     title: T-2101 roof walkway from the spiral stair head (south-west) north along the dome to the pump platform
     kind: escape
@@ -266,7 +336,23 @@ zones:
     kind: escape
     shape: box
     box: [1058.0, 2993.0, 0.0, 1083.0, 2997.0, 2.2]
-    basis: "First way out of A2 (the second is Z-ESC-A2S under PR1): the discharge header BOG-7002 runs at 2.6 m centreline (underside 2.27 m with insulation) so the route keeps the 2.2 m walkway headroom (D-029, ASSUMED)"
+    basis: "First way out of A2 (the second is Z-ESC-A2S under PR1): the discharge header BOG-7002 runs at 2.6 m centreline (underside 2.27 m with insulation) so the route keeps the 2.2 m walkway headroom (D-029, ASSUMED). It crosses the crane pad Z-PAD-A2E: during a compressor lift (permit) the A2 ways out are Z-ESC-A2S and Z-ESC-A2N (D-031)"
+  # BOG area north way out (D-031): the re-routed spill collection runs under PR3 (crossed by
+  # R7, the end of Z-ESC-A2E) and under PR1 (crossed by Z-ESC-A2S), so a third way out that
+  # crosses no trough: west along the north side of the BOG area, then north between the
+  # bents of the PR6 east leg (x 999.9 / 1007.8) and over the apron to road R2
+  - id: Z-ESC-A2N-W
+    title: BOG area escape route north, west leg from the compressor row to the PR6 east leg
+    kind: escape
+    shape: box
+    box: [1002.0, 3015.0, 0.0, 1032.0, 3019.0, 2.2]
+    basis: "Way out of A2 that no trough fire blocks: the D-031 line-source screening gives 5 kW/m2 or less (incl. x 1.2 tilt) along it; south of the crane pad Z-PAD-A2W and the suction drum D-7101 (ASSUMED, D-031)"
+  - id: Z-ESC-A2N
+    title: BOG area escape route north, under the PR6 east leg and over the apron to road R2
+    kind: escape
+    shape: box
+    box: [1002.0, 3019.0, 0.0, 1006.0, 3110.0, 2.2]
+    basis: "As Z-ESC-A2N-W: east of the riser tower S-RT2101 and its east stair, between the PR6 east leg's bents, to R2 (ASSUMED, D-031)"
   # ---- pump removal (D-029, review 2026-11-05-basic-layout-2 #1): a mobile crane at grade on
   # the free apron north of each tank, reached from road R2, pulls the in-tank pump with its
   # cable through the column head after the head spool is removed (6 t pump, 12 t with the
@@ -275,28 +361,28 @@ zones:
     title: Crane pad north of T-2101 for the in-tank pump removal
     kind: crane_pad
     shape: box
-    box: [936.0, 3082.0, 0.0, 960.0, 3104.0, 1.0]
+    box: [940.0, 3080.0, 0.0, 974.0, 3106.0, 1.0]
     reach_m: 80
-    basis: "Large crawler crane with a luffing jib on the apron between the shell and road R2 (x 880-975, y 3076-3118, free but for the stair tower S-ESC-T2101 west of it), working at about 50-73 m radius to the five column heads at ~60 m hook height; the crane's class and chart, the ground bearing and the lift plan are the lifting contractor's (ASSUMED, D-029)"
+    basis: "Large crawler crane with a luffing jib on the apron between the shell and road R2, working at about 50-73 m radius to the five column heads; hook ~70 m above grade for a ~6 m pump pulled clear of the 60 m column-head piping (D-031). Enlarged to 34 x 26 m for the crawler, its superlift counterweight and tail swing (review 2026-11-05-basic-layout-3 #6, ASSUMED), its west edge 8.6 m east of the stair tower S-ESC-T2101, so the tower's stair foot and exit to R2 stay outside the pad and the slew area; the boom is assembled along road R2 under a road closure permit. Ground bearing ASSUMED 250 kPa on a prepared crane pad beyond the tank foundation's edge (D-031); the crane's class and chart, the bearing check and the lift plan are the lifting contractor's (ASSUMED, D-029, D-031)"
   - id: Z-LAY-T2101N
     title: Laydown north-east of T-2101 for a pulled pump and its cable reel
     kind: laydown
     shape: box
-    box: [962.0, 3082.0, 0.0, 974.0, 3096.0, 1.0]
-    basis: "Pump (1.2 m column head, ~6 m long pump) and cable reel set down for cleaning and transport (12 x 14 m, ASSUMED, D-029); west of the basin trough under x 988"
+    box: [976.0, 3080.0, 0.0, 990.0, 3094.0, 1.0]
+    basis: "Pump (1.2 m column head, ~6 m long pump) and cable reel set down for cleaning and transport (14 x 14 m, ASSUMED, D-029); east of the enlarged pad on the apron freed by the trough re-route (D-031)"
   - id: Z-PAD-T3101N
     title: Crane pad north of T-3101 for the in-tank pump removal
     kind: crane_pad
     shape: box
-    box: [796.0, 3082.0, 0.0, 820.0, 3104.0, 1.0]
+    box: [800.0, 3080.0, 0.0, 834.0, 3106.0, 1.0]
     reach_m: 80
-    basis: "As Z-PAD-T2101N, east of the stair tower S-ESC-T3101 (ASSUMED, D-029)"
+    basis: "As Z-PAD-T2101N, 8.6 m east of the stair tower S-ESC-T3101 (ASSUMED, D-029, D-031)"
   - id: Z-LAY-T3101N
     title: Laydown north-east of T-3101 for a pulled pump and its cable reel
     kind: laydown
     shape: box
-    box: [822.0, 3082.0, 0.0, 834.0, 3096.0, 1.0]
-    basis: "As Z-LAY-T2101N (ASSUMED, D-029)"
+    box: [836.0, 3080.0, 0.0, 850.0, 3094.0, 1.0]
+    basis: "As Z-LAY-T2101N, north of PR5's end (ASSUMED, D-029, D-031)"
   # ---- tank roof column heads (review 2026-11-05-basic-layout-2 #9): the column head plates
   # (cable penetration seals, flanged discharges and head spools) and the column vents
   - id: Z-HA-T2101-COLHEADS
@@ -313,54 +399,63 @@ zones:
     shape: box
     box: [799.4, 3018.4, 56.0, 814.6, 3041.6, 59.0]
     basis: "As Z-HA-T2101-COLHEADS (ASSUMED)"
+  # dome-edge process nozzles (review 2026-11-05-basic-layout-3 #12): the flanged fill, bottom
+  # fill, vapour outlet and circulation return nozzles with their valves at the dome edge
+  - id: Z-HA-T2101-DOMEEDGE
+    title: T-2101 dome-edge nozzles N1 / N2 / N3 / N8 and their flanged valves (fill, bottom fill, vapour outlet, circulation return)
+    kind: hazardous
+    zone: 2
+    sources:
+      - {item: T-2101/N1, release_grade: secondary, substance: methane, source_kind: flange}
+      - {item: T-2101/N2, release_grade: secondary, substance: methane, source_kind: flange}
+      - {item: T-2101/N3, release_grade: secondary, substance: methane, source_kind: flange}
+      - {item: T-2101/N8, release_grade: secondary, substance: methane, source_kind: flange}
+    basis: "Nozzle flanges and the valve flanges and stem packings beside them: secondary grade; table row flange/secondary/flammable_gas, zone 2 within 1 m (ASSUMED). The roof manholes are not items of the model; their zones come with the roof nozzle platform (tank supply, D-029.14) and the terminal's area classification (D-031)"
+  - id: Z-HA-T3101-DOMEEDGE
+    title: T-3101 dome-edge nozzles N1 / N2 / N3 / N8 and their flanged valves
+    kind: hazardous
+    zone: 2
+    sources:
+      - {item: T-3101/N1, release_grade: secondary, substance: methane, source_kind: flange}
+      - {item: T-3101/N2, release_grade: secondary, substance: methane, source_kind: flange}
+      - {item: T-3101/N3, release_grade: secondary, substance: methane, source_kind: flange}
+      - {item: T-3101/N8, release_grade: secondary, substance: methane, source_kind: flange}
+    basis: "As Z-HA-T2101-DOMEEDGE (ASSUMED, D-031)"
   # ---- outdoor transformer and incomer bays east of B-SUB (review 2026-11-05-basic-layout-2
   # #10): the oil-filled 69 / 6.6 kV transformers TR-1 / TR-2 stand outdoors in bays with
-  # fire walls between them and oil pits, with the 69 kV incomer bay; reserved here
+  # fire walls between them and oil pits, with the 69 kV incomer bay; reserved here. Moved
+  # from east of B-SUB to its south side (review 2026-11-05-basic-layout-3 #8, D-031): the
+  # east wall holds LV1, the only outdoor-air intake of the control room's AHU-1
   - id: Z-KC-TX-BAYS
-    title: Outdoor transformer bays TR-1 / TR-2 and the 69 kV incomer bay east of B-SUB
+    title: Outdoor transformer bays TR-1 / TR-2 and the 69 kV incomer bay south of B-SUB
     kind: keep_clear
     shape: box
-    box: [1203.0, 2952.0, 0.0, 1223.0, 2982.0, 8.0]
-    basis: "Two 10 MVA oil-filled units in bays with a fire wall between them and on the building side, oil pits under them, and the 69 kV incomer cable termination bay at the north end (ASSUMED, D-029; the electrical engineer's substation layout and the 69 kV route from the site grid replace it)"
+    box: [1165.0, 2920.0, 0.0, 1195.0, 2945.0, 8.0]
+    basis: "Two 10 MVA oil-filled units side by side in bays with a fire wall between them and on the building side (north), oil pits under them, and the 69 kV incomer cable termination bay at the east end; 10 m south of B-SUB's south wall (exhaust LV2 and an escape door S1 on that wall; the second exit N2 is on the north wall), ~22 m from the intake LV1 on the east wall, which does not face them (ASSUMED, D-029, D-031; the oil-filled transformer clearances of IEC 61936-1 (power installations exceeding 1 kV AC, common rules), cited by number and title only, and the electrical engineer's substation layout replace it)"
   # ---- ship envelopes at the berths (carrier up to 315 m x 55 m, ASSUMED Q-Max-class limit),
   # the hull alongside the berth line at 173.5 deg with ~3 m fender stand-off; the turned hull
-  # approximated by three axis-parallel boxes along its length, kept off the platform.
-  - id: Z-SHIP-B2-N
-    title: Berth 2 carrier envelope, north third
-    kind: keep_clear
-    shape: box
-    box: [1054, 939, -12, 1121, 1044, 40]
-    basis: "315 x 55 m carrier west of the west face, centre ~(1099, 887), heading 173.5 deg (berth face measured, D-013); waterline -12 m to the top of the accommodation +40 m relative to the deck (ASSUMED)"
-  - id: Z-SHIP-B2-M
-    title: Berth 2 carrier envelope, middle third (at the loading platform)
-    kind: keep_clear
-    shape: box
-    box: [1066, 834, -12, 1129, 939, 40]
-    basis: "As Z-SHIP-B2-N; east edge 1 m off the platform's west face (ASSUMED)"
-  - id: Z-SHIP-B2-S
-    title: Berth 2 carrier envelope, south third
-    kind: keep_clear
-    shape: box
-    box: [1078, 729, -12, 1133, 834, 40]
-    basis: "As Z-SHIP-B2-N (ASSUMED)"
-  - id: Z-SHIP-B1-N
-    title: Berth 1 carrier envelope, north third
-    kind: keep_clear
-    shape: box
-    box: [1166, 939, -12, 1233, 1044, 40]
-    basis: "315 x 55 m carrier east of the east face, parallel to Berth 2 (Phase 2 berth position ASSUMED, D-019); clear of the trestle PR2 (ASSUMED)"
-  - id: Z-SHIP-B1-M
-    title: Berth 1 carrier envelope, middle third (at the loading platform)
-    kind: keep_clear
-    shape: box
-    box: [1181, 834, -12, 1245, 939, 40]
-    basis: "As Z-SHIP-B1-N; west edge 1 m off the platform's east face (ASSUMED)"
-  - id: Z-SHIP-B1-S
-    title: Berth 1 carrier envelope, south third
-    kind: keep_clear
-    shape: box
-    box: [1189, 729, -12, 1257, 834, 40]
-    basis: "As Z-SHIP-B1-N (ASSUMED)"
+  # approximated by axis-parallel boxes along its length, kept off the platform. Review
+  # 2026-11-05-basic-layout-3 (check notes): the three boxes per hull were clipped at the
+  # platform faces and did not bound the stated hull (its south third reached x 1144.2, its
+  # middle third touched the platform's south-west corner). Now (D-031): each hull is placed
+  # 3 m clear of the platform at its nearest corner (Berth 2 centre (1095.5, 887), 3.16 m off
+  # the south-west corner; Berth 1 centre (1215.1, 887), 3.0 m off the north-east corner),
+  # and bounded by six boxes of 52.5 m along its length, each the bounding box of that sixth of
+  # the turned 315 x 55 m hull (computed, so every box contains its part of the hull); numbered
+  # 1 at the stern (north) to 6 at the bow (south). Waterline -12 m to the top of the
+  # accommodation +40 m relative to the deck (ASSUMED).
+  - {id: Z-SHIP-B2-1, title: "Berth 2 carrier envelope, sixth 1 (stern)", kind: keep_clear, shape: box, box: [1050.3, 988.2, -12, 1110.9, 1046.6, 40], basis: "315 x 55 m carrier west of the west face, centre (1095.5, 887), heading 173.5 deg (berth face measured, D-013), 3 m fender stand-off at the platform's nearest corner (ASSUMED, D-031)"}
+  - {id: Z-SHIP-B2-2, title: "Berth 2 carrier envelope, sixth 2", kind: keep_clear, shape: box, box: [1056.3, 936.0, -12, 1116.9, 994.4, 40], basis: "As Z-SHIP-B2-1 (ASSUMED, D-031)"}
+  - {id: Z-SHIP-B2-3, title: "Berth 2 carrier envelope, sixth 3 (at the loading platform)", kind: keep_clear, shape: box, box: [1062.2, 883.9, -12, 1122.8, 942.3, 40], basis: "As Z-SHIP-B2-1 (ASSUMED, D-031)"}
+  - {id: Z-SHIP-B2-4, title: "Berth 2 carrier envelope, sixth 4 (at the loading platform)", kind: keep_clear, shape: box, box: [1068.2, 831.7, -12, 1128.8, 890.1, 40], basis: "As Z-SHIP-B2-1; east edge 1.2 m off the platform's west face, the hull itself 3.2 m off its south-west corner (ASSUMED, D-031)"}
+  - {id: Z-SHIP-B2-5, title: "Berth 2 carrier envelope, sixth 5", kind: keep_clear, shape: box, box: [1074.1, 779.6, -12, 1134.7, 838.0, 40], basis: "As Z-SHIP-B2-1 (ASSUMED, D-031)"}
+  - {id: Z-SHIP-B2-6, title: "Berth 2 carrier envelope, sixth 6 (bow)", kind: keep_clear, shape: box, box: [1080.1, 727.4, -12, 1140.7, 785.8, 40], basis: "As Z-SHIP-B2-1 (ASSUMED, D-031)"}
+  - {id: Z-SHIP-B1-1, title: "Berth 1 carrier envelope, sixth 1 (stern)", kind: keep_clear, shape: box, box: [1169.9, 988.2, -12, 1230.5, 1046.6, 40], basis: "315 x 55 m carrier east of the east face, parallel to Berth 2, centre (1215.1, 887), 3 m stand-off at the platform's nearest corner (Phase 2 berth position ASSUMED, D-019, D-031); clear of the trestle PR2"}
+  - {id: Z-SHIP-B1-2, title: "Berth 1 carrier envelope, sixth 2", kind: keep_clear, shape: box, box: [1175.9, 936.0, -12, 1236.5, 994.4, 40], basis: "As Z-SHIP-B1-1 (ASSUMED, D-031)"}
+  - {id: Z-SHIP-B1-3, title: "Berth 1 carrier envelope, sixth 3 (at the loading platform)", kind: keep_clear, shape: box, box: [1181.8, 883.9, -12, 1242.4, 942.3, 40], basis: "As Z-SHIP-B1-1; west edge 1.8 m off the platform's east face, the hull itself 3.0 m off its north-east corner (ASSUMED, D-031)"}
+  - {id: Z-SHIP-B1-4, title: "Berth 1 carrier envelope, sixth 4 (at the loading platform)", kind: keep_clear, shape: box, box: [1187.8, 831.7, -12, 1248.4, 890.1, 40], basis: "As Z-SHIP-B1-1 (ASSUMED, D-031)"}
+  - {id: Z-SHIP-B1-5, title: "Berth 1 carrier envelope, sixth 5", kind: keep_clear, shape: box, box: [1193.7, 779.6, -12, 1254.3, 838.0, 40], basis: "As Z-SHIP-B1-1 (ASSUMED, D-031)"}
+  - {id: Z-SHIP-B1-6, title: "Berth 1 carrier envelope, sixth 6 (bow)", kind: keep_clear, shape: box, box: [1199.7, 727.4, -12, 1260.3, 785.8, 40], basis: "As Z-SHIP-B1-1 (ASSUMED, D-031)"}
   # ---- crane pads and laydown for the heavy items (weights in the equipment list; lifting
   # rule: a pad within reach, the lane from the pad over the item clear, a laydown that holds
   # the item). All ASSUMED: the lifting study with the crane contractor replaces them.
@@ -433,8 +528,8 @@ zones:
     title: Laydown at the north-west corner of the platform
     kind: laydown
     shape: box
-    box: [1131, 902, 0, 1139, 924, 1]
-    basis: "Arm parts of LA-5103 / LA-5104 set down (ASSUMED); west of the platform roadway R9"
+    box: [1130.5, 902, 0, 1137.0, 912.5, 1]
+    basis: "Arm parts of LA-5103 / LA-5104 set down (ASSUMED); west of the platform roadway R9, south of the muster point Z-ESC-A4N (D-031)"
   - id: Z-LAY-A4NE
     title: Laydown at the north-east corner of the platform
     kind: laydown

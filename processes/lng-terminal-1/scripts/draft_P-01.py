@@ -24,6 +24,11 @@ speed controller, non-return valve and air accumulator) and the closure order (t
 tripped through XS-1100 as the closure starts, C&E I-101 / I-102); PSV-1121..1123 are restated as
 thermal relief only. XV-1115 and UZ-1115 move down (y 77) clear of the PIC-1111 signal line, with
 the FL-1001 label below the bypass (review #8c).
+
+Revision after review 2026-11-05-basic-design-5 and its adversarial check (D-030): the fill selection
+valves XV-1106..1109 take the closure requirement of D-023 (3) (at least 30 s, speed controller) and
+the close command of the last open fill branch of the only lined-up tank is blocked (C&E I-103); the
+sheet notes name every cause of I-102 and the selection-valve permissive (#7b).
 """
 
 import sys
@@ -68,7 +73,10 @@ NOT_SURGE = ("; not a surge relief device: the surge of a rundown closure is lim
              "tripped through XS-1100 as the closure starts) and the closure of at least 30 s of XV-1102 / XV-1103 / "
              "XV-1111..1114 (D-023.3, D-028)")
 psv1121 = L.relief("PSV1121", "PSV-1121", "BOG-1004", 15.0,
-                   "thermal expansion of the blocked-in rundown header" + NOT_SURGE,
+                   "thermal expansion of the blocked-in rundown header" + NOT_SURGE + "; open relief case of the "
+                   "rundown header, not of this PSV: blocked outlet against the trains' rundown pumps, the design "
+                   "pressure to be confirmed with the trains' shut-off head at the battery limit (hold H-05, "
+                   "review 2026-11-05-basic-design-5 #5, D-023.3, D-030)",
                    "Thermal relief of LNG-1001 between XV-1111..1114 and XV-1102/1103, to the BOG header (D-017).",
                    label_at=(107, 116))
 
@@ -159,7 +167,13 @@ L.inst(sheet, "ZSC-1103", "XV-1103 closed position",
 for tag, vid, x, y in [("HS-1106", "XV1106", 135, 210), ("HS-1107", "XV1107", 187, 210),
                        ("HS-1109", "XV1109", 219, 210), ("HS-1108", "XV1108", 245, 198)]:
     L.inst(sheet, tag, f"Fill selection valve XV-{vid[2:]}",
-           "Operator selection (DCS), top or bottom fill.", at=(x, y), signal_to=vid,
+           "Operator selection (DCS), top or bottom fill (SEQ-FILL-CHANGE, make-before-break). Fail last; closure "
+           "time at least 30 s (ASSUMED, D-023.3), set by a speed controller on the actuator exhaust, like the fill "
+           "ESD valves, because closing the last open fill branch stops the whole rundown. Its close command is "
+           "blocked by C&E I-103 while it would close the last open fill branch of the only lined-up tank (the "
+           "other selection valve of the tank not commanded open for its stroke time and the other tank not taking "
+           "the rundown); a closure that still runs (logic fault, bypass) is slow, and PZT-1105 trips I-102 "
+           "(review 2026-11-05-basic-design-5 adversarial check, D-026.4, D-030).", at=(x, y), signal_to=vid,
            fail_action="FL")
 
 # ---- tank vapour header BOG-1001 to the BOG compressors --------------------------------------
@@ -248,12 +262,12 @@ L.inst(sheet, "PIC-1110", "Tank vapour header pressure, high split: BOG compress
 note(sheet, "Rundown subcooled -161.5 degC, 215 kPa(a) at the tanks (D-005). Top or bottom fill", at=(12, 254))
 note(sheet, "from AI-1102 against the tank's density profile LTD-2103 / LTD-3103 (rollover, D-007).", at=(12, 259.5))
 note(sheet, "UZ-111x: see C&E I-101, I-102. UZ-1102: C&E I-201, I-203. UZ-1103: C&E I-301, I-303.", at=(12, 265))
-note(sheet, "ZSC-1102 / ZSC-1103 (both closed) and PZT-1105 (header high-high): C&E I-102. UZ-1115 (SIS vent): C&E I-203, I-303.", at=(12, 270.5))
+note(sheet, "I-102: ZSC-1102 / -1103 both closed, PZT-1105, I-201 / I-203 or I-301 / I-303 with the other fill valve closed, I-804. UZ-1115: I-203, I-303.", at=(12, 270.5))
 note(sheet, "XV-1115: SIS, energise-to-trip with its own air accumulator (D-017). Thermal relief BOG-1004 / -1010 / -1011 into BOG-1001.", at=(12, 276))
 note(sheet, "PIC-1110 / PIC-1111: split-range tank pressure control (D-017).", at=(275, 118))
 note(sheet, "FO-1117: restriction orifice limiting the make-up flow (H-04 A1).", at=(275, 124))
 # rundown closure order and closure time (D-023.3, D-028), after the existing notes (ids kept)
-note(sheet, "XV-1102, XV-1103, XV-1111..1114: closure at least 30 s (speed controller, non-return valve, air accumulator);", at=(12, 281.5))
-note(sheet, "XS-1100 trips the trains' rundown as the closure starts (C&E I-101, I-102; D-023.3, D-028).", at=(12, 287))
+note(sheet, "XV-1102, XV-1103, XV-1111..1114: closure at least 30 s (speed controller, non-return valve, air accumulator); XV-1106..1109 at least 30 s;", at=(12, 281.5))
+note(sheet, "XS-1100 trips the trains' rundown as the closure starts (C&E I-101, I-102). HS-1106..1109: last open fill branch not closed (I-103, D-030).", at=(12, 287))
 
 L.finish(sheet, target)

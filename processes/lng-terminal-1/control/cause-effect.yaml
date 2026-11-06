@@ -1,7 +1,7 @@
 # Cause and effect list: interlocks and trips. Schema: `cheme schema interlocks`.
 # On a sheet, refer to an interlock ("see C&E I-201") instead of spelling out what it trips.
 # Revised after the design review 2026-11-05-basic-design and the HAZOP H-01..H-05 (D-025), and the
-# follow-up reviews (D-026, D-028). Written by build/gen_ce.py.
+# follow-up reviews (D-026, D-028, D-030). Written by build/gen_ce.py.
 # SIL from the screening in detail engineering (null until then).
 schema: cheme/interlocks/v1
 interlocks:
@@ -92,13 +92,75 @@ interlocks:
   notes: 'Review 2026-11-05-basic-design#8, H-01 A1: with both XV-1102 and XV-1103 closed the rundown header would be dead-headed
     against the trains; the trains are tripped through XS-1100 and the battery-limit valves close (D-025). PZT-1105 on LNG-1001
     also catches a branch closed by its selection valves XV-1106..1109, which the ESD valve position switches do not see (review
-    2026-11-05-basic-design-2#4, D-026). A tank trip that starts to close the only open fill valve (I-201 / I-203 with XV-1103
+    2026-11-05-basic-design-2#4, D-026); the close command of the last open selection valve is blocked by I-103 and the selection
+    valves close in at least 30 s (D-030). A tank trip that starts to close the only open fill valve (I-201 / I-203 with XV-1103
     closed, I-301 / I-303 with XV-1102 closed; Phase 1 with one tank, D-019) trips the trains at once, while that valve is
     still closing over its 30 s, not only once both valves are closed; the air-header trip I-804 trips the trains before any
     valve moves. Closure order against the rundown surge (review 2026-11-05-basic-design-4, adversarial check; D-023.3, D-028):
     XS-1100 trips the trains'' rundown at the same instant as the closure starts, and XV-1111..1114 take at least 30 s to
     close (speed controller, about 15 times 2L/a), so the trains'' rundown pumps are stopping or recycling before the valves
     throttle the flow.'
+- id: I-103
+  title: 'Fill selection: the close command of the last open fill branch is blocked (permissive)'
+  cause:
+    tag: HS-1106
+    condition: close command
+  logic:
+    any:
+    - all:
+      - tag: XV-1106
+        state: close command
+      - text: XV-1107 not commanded open for its stroke time
+      - any:
+        - tag: ZSC-1103
+          state: closed
+        - text: neither XV-1108 nor XV-1109 commanded open for its stroke time
+    - all:
+      - tag: XV-1107
+        state: close command
+      - text: XV-1106 not commanded open for its stroke time
+      - any:
+        - tag: ZSC-1103
+          state: closed
+        - text: neither XV-1108 nor XV-1109 commanded open for its stroke time
+    - all:
+      - tag: XV-1108
+        state: close command
+      - text: XV-1109 not commanded open for its stroke time
+      - any:
+        - tag: ZSC-1102
+          state: closed
+        - text: neither XV-1106 nor XV-1107 commanded open for its stroke time
+    - all:
+      - tag: XV-1109
+        state: close command
+      - text: XV-1108 not commanded open for its stroke time
+      - any:
+        - tag: ZSC-1102
+          state: closed
+        - text: neither XV-1106 nor XV-1107 commanded open for its stroke time
+  effects:
+  - tag: HS-1106
+    action: trip
+  - tag: HS-1107
+    action: trip
+  - tag: HS-1108
+    action: trip
+  - tag: HS-1109
+    action: trip
+  sheet: P-01
+  sil: null
+  latching: false
+  reset: automatic
+  notes: 'Review 2026-11-05-basic-design-5, adversarial check (D-023.3, D-026.4, D-030): closing the last open fill selection
+    valve of the only lined-up tank (always in Phase 1, and in Phase 2 when the other tank''s fill ESD valve is kept closed,
+    SEQ-FILL-CHANGE) would stop the whole rundown with no train trip at the start of the closure. Permissive on the close
+    command, not a trip: the effect blocks the close command of that HS (HS-1106..1109) and never moves a valve. The selection
+    valves fail last and have no position switch at basic, so ''open'' is the open command held for at least the stroke time
+    (ASSUMED 30 s closure, so about 35 s), as in SEQ-FILL-CHANGE S1; the other tank takes the rundown while its fill ESD valve
+    is not proven closed and one of its selection valves is open. A closure that runs all the same (logic fault, bypass, an
+    output fault on the fail-last actuator) is no faster than 30 s (speed controller, D-023.3) and PZT-1105 trips I-102 (XS-1100)
+    on the rising header pressure; position switches on the selection valves are left to the SIL screening (D-030).'
 - id: I-201
   title: T-2101 level high-high (1oo2)
   cause:
@@ -115,6 +177,30 @@ interlocks:
     action: close
   - tag: XV-2123
     action: close
+  sheet: P-02
+  sil: null
+  latching: true
+  reset: manual
+  notes: 'Either independent gauge trips (1oo2, review #16, H-01 A5); closes the fill XV-1102 (closure at least 30 s, D-023.3)
+    and the circulation return XV-2123 into T-2101 (D-007, D-025). XV-2123 fails closed (D-028). The sources of the circulation
+    return are stopped only by I-205, if ZSC-2123 does not prove XV-2123 closed after its stroke time, so the circulation
+    pump keeps the desuperheater spray in loading and the jetty drain pumps can empty D-5101 / D-6101 (review 2026-11-05-basic-design-5
+    #1, D-030). With the other tank''s fill valve closed, I-102 trips the trains as XV-1102 starts to close.'
+- id: I-205
+  title: T-2101 high-high level and circulation return XV-2123 not proven closed - sources of the return stopped
+  cause:
+    tag: ZSC-2123
+    condition: not closed
+  logic:
+    all:
+    - interlock: I-201
+      state: tripped
+    - tag: ZSC-2123
+      state: not closed
+      delay:
+        value: 15
+        unit: s
+  effects:
   - tag: P-2102
     action: stop
   - tag: P-3102
@@ -127,11 +213,14 @@ interlocks:
   sil: null
   latching: true
   reset: manual
-  notes: 'Either independent gauge trips (1oo2, review #16, H-01 A5); closes the fill XV-1102 (closure at least 30 s, D-023.3)
-    and the circulation return XV-2123 into T-2101 (D-007, D-025). XV-2123 fails closed (D-028), and the trip also stops the
-    sources of the circulation return, the circulation pumps P-2102 / P-3102 and the jetty drain pumps P-5101 / P-6101, so
-    the return cannot keep filling T-2101 if XV-2123 does not close (review 2026-11-05-basic-design-4, adversarial check).
-    With the other tank''s fill valve closed, I-102 trips the trains as XV-1102 starts to close.'
+  notes: 'Review 2026-11-05-basic-design-5 #1 (replaces the unconditional pump stops of D-028.3 in I-201): only while I-201
+    has tripped and the closed-position switch ZSC-2123 on XV-2123 itself does not read closed 15 s (ASSUMED, the stroke time
+    plus margin) after the trip are the circulation pumps P-2102 / P-3102 and the jetty drain pumps P-5101 / P-6101, which
+    feed the circulation return, stopped, so the return cannot keep filling T-2101 through a valve that failed to close. In
+    loading XV-2123 is already closed (SEQ-LOAD S0), ZSC-2123 proves it, and the spray of TV-7103 (LNG-4008 from the circulation
+    header) and the drain pumps keep running; in holding the circulation pump then runs on its minimum flow against the closed
+    return, PSV-4114 relieves the blocked-in return (D-030). A switch failing to not-closed stops the pumps (safe; the spray
+    is lost and the desuperheater outlet temperature trips the compressors by I-703x, a production loss).'
 - id: I-202
   title: T-2101 level low-low
   cause:
@@ -220,6 +309,30 @@ interlocks:
     action: close
   - tag: XV-3123
     action: close
+  sheet: P-03
+  sil: null
+  latching: true
+  reset: manual
+  notes: 'Either independent gauge trips (1oo2, review #16, H-01 A5); closes the fill XV-1103 (closure at least 30 s, D-023.3)
+    and the circulation return XV-3123 into T-3101 (D-007, D-025). XV-3123 fails closed (D-028). The sources of the circulation
+    return are stopped only by I-305, if ZSC-3123 does not prove XV-3123 closed after its stroke time, so the circulation
+    pump keeps the desuperheater spray in loading and the jetty drain pumps can empty D-5101 / D-6101 (review 2026-11-05-basic-design-5
+    #1, D-030). With the other tank''s fill valve closed, I-102 trips the trains as XV-1103 starts to close.'
+- id: I-305
+  title: T-3101 high-high level and circulation return XV-3123 not proven closed - sources of the return stopped
+  cause:
+    tag: ZSC-3123
+    condition: not closed
+  logic:
+    all:
+    - interlock: I-301
+      state: tripped
+    - tag: ZSC-3123
+      state: not closed
+      delay:
+        value: 15
+        unit: s
+  effects:
   - tag: P-2102
     action: stop
   - tag: P-3102
@@ -232,11 +345,14 @@ interlocks:
   sil: null
   latching: true
   reset: manual
-  notes: 'Either independent gauge trips (1oo2, review #16, H-01 A5); closes the fill XV-1103 (closure at least 30 s, D-023.3)
-    and the circulation return XV-3123 into T-3101 (D-007, D-025). XV-3123 fails closed (D-028), and the trip also stops the
-    sources of the circulation return, the circulation pumps P-2102 / P-3102 and the jetty drain pumps P-5101 / P-6101, so
-    the return cannot keep filling T-3101 if XV-3123 does not close (review 2026-11-05-basic-design-4, adversarial check).
-    With the other tank''s fill valve closed, I-102 trips the trains as XV-1103 starts to close.'
+  notes: 'Review 2026-11-05-basic-design-5 #1 (replaces the unconditional pump stops of D-028.3 in I-301): only while I-301
+    has tripped and the closed-position switch ZSC-3123 on XV-3123 itself does not read closed 15 s (ASSUMED, the stroke time
+    plus margin) after the trip are the circulation pumps P-2102 / P-3102 and the jetty drain pumps P-5101 / P-6101, which
+    feed the circulation return, stopped, so the return cannot keep filling T-3101 through a valve that failed to close. In
+    loading XV-3123 is already closed (SEQ-LOAD S0), ZSC-3123 proves it, and the spray of TV-7103 (LNG-4008 from the circulation
+    header) and the drain pumps keep running; in holding the circulation pump then runs on its minimum flow against the closed
+    return, PSV-4114 relieves the blocked-in return (D-030). A switch failing to not-closed stops the pumps (safe; the spray
+    is lost and the desuperheater outlet temperature trips the compressors by I-703x, a production loss).'
 - id: I-302
   title: T-3101 level low-low
   cause:
@@ -310,7 +426,8 @@ interlocks:
   notes: 'Vacuum protection: stops the withdrawal and the BOG compressors; the make-up PV-1111 (PIC-1111, fuel gas FG-1001)
     is regulatory and not credited; the vacuum relief valves PSV-3133A/B/C are the last protection (D-017, D-025).'
 - id: I-501
-  title: Berth 2 ESD-1 (ship-shore link, arm envelope stage 1, ESD-2, instrument-air header low-low, manual, fire and gas)
+  title: Berth 2 ESD-1 (ship-shore link, arm envelope stage 1, ESD-2, instrument-air header low-low, manual, fire and gas,
+    vapour path, O2, ERS supply, other berth's ESD-1)
   cause:
     tag: XS-5100
     condition: trip
@@ -330,6 +447,33 @@ interlocks:
       state: ZAH (stage 1)
     - tag: ZS-5154
       state: ZAH (stage 1)
+    - text: manual ESD-1 push button (control room, jetty, platform)
+    - text: platform fire and gas confirmed (voted detection of the fire and gas system, ASSUMED, F&G vendor)
+    - all:
+      - all:
+        - tag: XV-5101
+          state: open command
+        - any:
+          - tag: FIC-4101
+            state: '> 50 m3/h (ASSUMED)'
+          - tag: FIC-4102
+            state: '> 50 m3/h (ASSUMED)'
+      - any:
+        - tag: ZSO-5122
+          state: not open
+        - vote:
+            k: 2
+            of:
+            - tag: AI-4133
+              state: O2 AHH (5 vol %), O2 cell 1
+            - tag: AI-4133
+              state: O2 AHH (5 vol %), O2 cell 2
+          delay:
+            value: 10
+            unit: s
+        - text: ERS solenoid supply of Berth 2 lost (both channels, supply monitoring of the arm vendor's HPU)
+        - interlock: I-601
+          state: tripped
   effects:
   - tag: P-2101A
     action: stop
@@ -365,13 +509,20 @@ interlocks:
   reset: manual
   notes: 'Stops the loading pumps and trips the carrier''s ESD through the ship-shore link XS-5100 (effect; the link works
     both ways, S-01) at once, then closes the shore ESD valve XV-5101 in 25-30 s (surge, D-023) and the tank-end XV-4101/4102;
-    manual push buttons, the platform fire and gas, ESD-2 (I-503, review #4) and the instrument-air header low-low trip I-804
-    (review 2026-11-05-basic-design-4 #1, D-028) also initiate it, so all of them reach the carrier. On an instrument-air
-    failure the shore and tank-end ESD valves and the arm isolations hold on their accumulators until this trip has stopped
-    the pumps, and then close no faster than their set speed; the ERS valves are hydraulic and do not move (D-016, D-028).
-    It opens the tank-side vapour return valve XV-4135 and does not act on the flare valve XV-4131: the vapour return, the
-    relief path of the berth, stays open at least to the tanks (review 2026-11-05-basic-design-2#1, D-026); XV-4131 then closes
-    by I-513 once ZSO-4135 proves XV-4135 open.'
+    the manual ESD-1 push buttons (control room, jetty, platform), the confirmed platform fire and gas, ESD-2 (I-503, review
+    #4) and the instrument-air header low-low trip I-804 (review 2026-11-05-basic-design-4 #1, D-028) also initiate it, so
+    all of them reach the carrier. Since review 2026-11-05-basic-design-5 (D-030) the logic also trips during a liquid transfer
+    at Berth 2 (XV-5101 commanded open and a loading line flow above 50 m3/h, ASSUMED; cooldown and loading) on: the vapour
+    path not proven open (ZSO-5122, the vapour arm isolation XV-5122, at the start of any closure, which also detects an air
+    loss at the platform end of the air main, XV-5122 having no accumulator); the O2 high-high of AI-4133 (the O2 reject I-514
+    acts only with no liquid transfer); the loss of the ERS solenoid supply (both channels, D-016); and ESD-1 of the other
+    berth (I-601), which stops the shared pumps and closes the shared tank-end valves, so the transferring carrier is tripped
+    through its own link and its return is kept open to the tanks. On an instrument-air failure the shore and tank-end ESD
+    valves and the arm isolations hold on their accumulators until this trip has stopped the pumps, and then close no faster
+    than their set speed; the ERS valves are hydraulic and do not move (D-016, D-028). It opens the tank-side vapour return
+    valve XV-4135 and does not act on the flare valve XV-4131: the vapour return, the relief path of the berth, stays open
+    at least to the tanks (review 2026-11-05-basic-design-2#1, D-026); XV-4131 then closes by I-513 once ZSO-4135 proves XV-4135
+    open.'
 - id: I-502
   title: Berth 2 header back-pressure high-high
   cause:
@@ -479,7 +630,14 @@ interlocks:
   reset: manual
   notes: 'The eight ERS ball valves close and the powered emergency release couplers release once I-503 has held for 5 s,
     so the pumps are already stopping (review #4). The ERS closure time is set with the arm vendor so the surge stays inside
-    the arm design (D-023, relief case of PSV-5131).'
+    the arm design (D-023, relief case of PSV-5131). Trip principle (review 2026-11-05-basic-design-5 #3, D-016, D-030): each
+    ERS valve is de-energise-to-trip on two solenoid valves in series (2oo2, line-monitored, discrepancy alarm), so one coil,
+    wire or output fault cannot close it ahead of the pump stop; the solenoid supply is on the UPS and its loss trips ESD-1
+    (I-501) at once. The ERS closure is not interlocked behind a confirmed pump stop: on a real arm envelope stage 2 it must
+    close in its time whatever the pumps do. The couplers are energise-to-release from the HPU accumulator, and release only
+    after the ERS valves are proven closed (vendor), so no circuit or supply fault releases an arm under flow. Residual: both
+    channels or the supply lost together close the ERS valves in 5 s at full flow, case (5) of D-023 and a relief case of
+    PSV-5131.'
 - id: I-504
   title: 'Berth 2 hybrid arm: liquid isolation may open only with the vapour isolation proven closed'
   cause:
@@ -541,7 +699,9 @@ interlocks:
   sil: null
   latching: true
   reset: manual
-  notes: 'Stops the header drain into the drum (review #21, H-03 A5); P-5101 empties it (LIC-5111).'
+  notes: 'Stops the header drain into the drum (review #21, H-03 A5); P-5101 empties it (LIC-5111). A tank high-high level
+    stops P-5101 only through I-205 / I-305, when the circulation return into the tripped tank is not proven closed (review
+    2026-11-05-basic-design-5 #1, D-030).'
 - id: I-511
   title: 'Vapour return A: off-specification vapour - flare valve XV-4131 opens'
   cause:
@@ -620,7 +780,7 @@ interlocks:
     stands, XV-4131 stays open with XV-4135 (the return stays open, an alarm calls the operator to confirm XV-4135 open locally
     before closing XV-4131 by hand; review 2026-11-05-basic-design-3#4, D-028).'
 - id: I-514
-  title: 'Vapour return A: oxygen above 5 vol % in gassing-up and cool-down - carrier vapour rejected'
+  title: 'Vapour return A: oxygen above 5 vol % with no liquid transfer at Berth 2 (gassing-up) - carrier vapour rejected'
   cause:
     tag: AI-4133
     condition: O2 AHH (5 vol %)
@@ -636,8 +796,7 @@ interlocks:
       delay:
         value: 10
         unit: s
-    - sequence: SEQ-LOAD
-      state: in S1, S2 or S3 at Berth 2 (gassing-up and cool-down, no liquid transfer)
+    - text: 'no liquid transfer at Berth 2: XV-5101 not commanded open, or FIC-4101 and FIC-4102 both below 50 m3/h (ASSUMED)'
   effects:
   - tag: XV-5122
     action: close
@@ -650,13 +809,16 @@ interlocks:
   notes: 'Review 2026-11-05-basic-design-2#11, D-026.7: vapour above 5 vol % O2 is taken neither by the flare nor by the tanks;
     the vapour arm isolation XV-5122 and the hybrid vapour isolation XV-5125 (line-up (b), which joins BOG-5001 downstream
     of XV-5122) close, and the carrier vents on board under the terminal rules (S-01). The jetty relief path stays open: the
-    drain drum vent BOG-5002 joins BOG-5001 downstream of XV-5122. Armed only in SEQ-LOAD S1 to S3 (gassing-up and cool-down,
-    no liquid transfer; the logic decides, review 2026-11-05-basic-design-4 #2, D-028); from S4 on the O2 high-high is an
-    alarm and the operator stops the loading by ESD-1 (I-501), so the vapour return is never shut while the carrier receives
-    LNG. The two O2 cells of AI-4133 (ASSUMED, analyser vendor) vote 2oo2 with a discrepancy alarm, so a single cell failing
-    high does not trip; the voting is confirmed in the SIL screening.'
+    drain drum vent BOG-5002 joins BOG-5001 downstream of XV-5122. Armed on the plant state, not on a sequence step (review
+    2026-11-05-basic-design-5 #4, D-030): only while no liquid is transferred at Berth 2 (XV-5101 not commanded open, or both
+    loading line flows below 50 m3/h, ASSUMED), i.e. gassing-up in SEQ-LOAD S1 / S2 or run by hand outside the sequence. During
+    a liquid transfer, the cooldown of S3 included, the same 2oo2 O2 high-high trips ESD-1 (I-501) instead, which stops the
+    flow and trips the carrier and keeps the return open to the tanks (D-026.1), so the vapour return is never shut while
+    the carrier receives LNG. The two O2 cells of AI-4133 (ASSUMED, analyser vendor) vote 2oo2 with a discrepancy alarm, so
+    a single cell failing high does not trip; the voting is confirmed in the SIL screening.'
 - id: I-601
-  title: Berth 1 ESD-1 (ship-shore link, arm envelope stage 1, ESD-2, instrument-air header low-low, manual, fire and gas)
+  title: Berth 1 ESD-1 (ship-shore link, arm envelope stage 1, ESD-2, instrument-air header low-low, manual, fire and gas,
+    vapour path, O2, ERS supply, other berth's ESD-1)
   cause:
     tag: XS-6100
     condition: trip
@@ -676,6 +838,33 @@ interlocks:
       state: ZAH (stage 1)
     - tag: ZS-6154
       state: ZAH (stage 1)
+    - text: manual ESD-1 push button (control room, jetty, platform)
+    - text: platform fire and gas confirmed (voted detection of the fire and gas system, ASSUMED, F&G vendor)
+    - all:
+      - all:
+        - tag: XV-6101
+          state: open command
+        - any:
+          - tag: FIC-4101
+            state: '> 50 m3/h (ASSUMED)'
+          - tag: FIC-4102
+            state: '> 50 m3/h (ASSUMED)'
+      - any:
+        - tag: ZSO-6122
+          state: not open
+        - vote:
+            k: 2
+            of:
+            - tag: AI-4134
+              state: O2 AHH (5 vol %), O2 cell 1
+            - tag: AI-4134
+              state: O2 AHH (5 vol %), O2 cell 2
+          delay:
+            value: 10
+            unit: s
+        - text: ERS solenoid supply of Berth 1 lost (both channels, supply monitoring of the arm vendor's HPU)
+        - interlock: I-501
+          state: tripped
   effects:
   - tag: P-2101A
     action: stop
@@ -711,13 +900,20 @@ interlocks:
   reset: manual
   notes: 'Stops the loading pumps and trips the carrier''s ESD through the ship-shore link XS-6100 (effect; the link works
     both ways, S-01) at once, then closes the shore ESD valve XV-6101 in 25-30 s (surge, D-023) and the tank-end XV-4101/4102;
-    manual push buttons, the platform fire and gas, ESD-2 (I-603, review #4) and the instrument-air header low-low trip I-804
-    (review 2026-11-05-basic-design-4 #1, D-028) also initiate it, so all of them reach the carrier. On an instrument-air
-    failure the shore and tank-end ESD valves and the arm isolations hold on their accumulators until this trip has stopped
-    the pumps, and then close no faster than their set speed; the ERS valves are hydraulic and do not move (D-016, D-028).
-    It opens the tank-side vapour return valve XV-4136 and does not act on the flare valve XV-4132: the vapour return, the
-    relief path of the berth, stays open at least to the tanks (review 2026-11-05-basic-design-2#1, D-026); XV-4132 then closes
-    by I-613 once ZSO-4136 proves XV-4136 open.'
+    the manual ESD-1 push buttons (control room, jetty, platform), the confirmed platform fire and gas, ESD-2 (I-603, review
+    #4) and the instrument-air header low-low trip I-804 (review 2026-11-05-basic-design-4 #1, D-028) also initiate it, so
+    all of them reach the carrier. Since review 2026-11-05-basic-design-5 (D-030) the logic also trips during a liquid transfer
+    at Berth 1 (XV-6101 commanded open and a loading line flow above 50 m3/h, ASSUMED; cooldown and loading) on: the vapour
+    path not proven open (ZSO-6122, the vapour arm isolation XV-6122, at the start of any closure, which also detects an air
+    loss at the platform end of the air main, XV-6122 having no accumulator); the O2 high-high of AI-4134 (the O2 reject I-614
+    acts only with no liquid transfer); the loss of the ERS solenoid supply (both channels, D-016); and ESD-1 of the other
+    berth (I-501), which stops the shared pumps and closes the shared tank-end valves, so the transferring carrier is tripped
+    through its own link and its return is kept open to the tanks. On an instrument-air failure the shore and tank-end ESD
+    valves and the arm isolations hold on their accumulators until this trip has stopped the pumps, and then close no faster
+    than their set speed; the ERS valves are hydraulic and do not move (D-016, D-028). It opens the tank-side vapour return
+    valve XV-4136 and does not act on the flare valve XV-4132: the vapour return, the relief path of the berth, stays open
+    at least to the tanks (review 2026-11-05-basic-design-2#1, D-026); XV-4132 then closes by I-613 once ZSO-4136 proves XV-4136
+    open.'
 - id: I-602
   title: Berth 1 header back-pressure high-high
   cause:
@@ -825,7 +1021,14 @@ interlocks:
   reset: manual
   notes: 'The eight ERS ball valves close and the powered emergency release couplers release once I-603 has held for 5 s,
     so the pumps are already stopping (review #4). The ERS closure time is set with the arm vendor so the surge stays inside
-    the arm design (D-023, relief case of PSV-6131).'
+    the arm design (D-023, relief case of PSV-6131). Trip principle (review 2026-11-05-basic-design-5 #3, D-016, D-030): each
+    ERS valve is de-energise-to-trip on two solenoid valves in series (2oo2, line-monitored, discrepancy alarm), so one coil,
+    wire or output fault cannot close it ahead of the pump stop; the solenoid supply is on the UPS and its loss trips ESD-1
+    (I-601) at once. The ERS closure is not interlocked behind a confirmed pump stop: on a real arm envelope stage 2 it must
+    close in its time whatever the pumps do. The couplers are energise-to-release from the HPU accumulator, and release only
+    after the ERS valves are proven closed (vendor), so no circuit or supply fault releases an arm under flow. Residual: both
+    channels or the supply lost together close the ERS valves in 5 s at full flow, case (5) of D-023 and a relief case of
+    PSV-6131.'
 - id: I-604
   title: 'Berth 1 hybrid arm: liquid isolation may open only with the vapour isolation proven closed'
   cause:
@@ -887,7 +1090,9 @@ interlocks:
   sil: null
   latching: true
   reset: manual
-  notes: 'Stops the header drain into the drum (review #21, H-03 A5); P-6101 empties it (LIC-6111).'
+  notes: 'Stops the header drain into the drum (review #21, H-03 A5); P-6101 empties it (LIC-6111). A tank high-high level
+    stops P-6101 only through I-205 / I-305, when the circulation return into the tripped tank is not proven closed (review
+    2026-11-05-basic-design-5 #1, D-030).'
 - id: I-611
   title: 'Vapour return B: off-specification vapour - flare valve XV-4132 opens'
   cause:
@@ -966,7 +1171,7 @@ interlocks:
     stands, XV-4132 stays open with XV-4136 (the return stays open, an alarm calls the operator to confirm XV-4136 open locally
     before closing XV-4132 by hand; review 2026-11-05-basic-design-3#4, D-028).'
 - id: I-614
-  title: 'Vapour return B: oxygen above 5 vol % in gassing-up and cool-down - carrier vapour rejected'
+  title: 'Vapour return B: oxygen above 5 vol % with no liquid transfer at Berth 1 (gassing-up) - carrier vapour rejected'
   cause:
     tag: AI-4134
     condition: O2 AHH (5 vol %)
@@ -982,8 +1187,7 @@ interlocks:
       delay:
         value: 10
         unit: s
-    - sequence: SEQ-LOAD
-      state: in S1, S2 or S3 at Berth 1 (gassing-up and cool-down, no liquid transfer)
+    - text: 'no liquid transfer at Berth 1: XV-6101 not commanded open, or FIC-4101 and FIC-4102 both below 50 m3/h (ASSUMED)'
   effects:
   - tag: XV-6122
     action: close
@@ -996,11 +1200,13 @@ interlocks:
   notes: 'Review 2026-11-05-basic-design-2#11, D-026.7: vapour above 5 vol % O2 is taken neither by the flare nor by the tanks;
     the vapour arm isolation XV-6122 and the hybrid vapour isolation XV-6125 (line-up (b), which joins BOG-6001 downstream
     of XV-6122) close, and the carrier vents on board under the terminal rules (S-01). The jetty relief path stays open: the
-    drain drum vent BOG-6002 joins BOG-6001 downstream of XV-6122. Armed only in SEQ-LOAD S1 to S3 (gassing-up and cool-down,
-    no liquid transfer; the logic decides, review 2026-11-05-basic-design-4 #2, D-028); from S4 on the O2 high-high is an
-    alarm and the operator stops the loading by ESD-1 (I-601), so the vapour return is never shut while the carrier receives
-    LNG. The two O2 cells of AI-4134 (ASSUMED, analyser vendor) vote 2oo2 with a discrepancy alarm, so a single cell failing
-    high does not trip; the voting is confirmed in the SIL screening.'
+    drain drum vent BOG-6002 joins BOG-6001 downstream of XV-6122. Armed on the plant state, not on a sequence step (review
+    2026-11-05-basic-design-5 #4, D-030): only while no liquid is transferred at Berth 1 (XV-6101 not commanded open, or both
+    loading line flows below 50 m3/h, ASSUMED), i.e. gassing-up in SEQ-LOAD S1 / S2 or run by hand outside the sequence. During
+    a liquid transfer, the cooldown of S3 included, the same 2oo2 O2 high-high trips ESD-1 (I-601) instead, which stops the
+    flow and trips the carrier and keeps the return open to the tanks (D-026.1), so the vapour return is never shut while
+    the carrier receives LNG. The two O2 cells of AI-4134 (ASSUMED, analyser vendor) vote 2oo2 with a discrepancy alarm, so
+    a single cell failing high does not trip; the voting is confirmed in the SIL screening.'
 - id: I-701
   title: BOG suction drum level high-high
   cause:
@@ -1368,4 +1574,8 @@ interlocks:
     cannot move them first; the ERS valves are hydraulic. The BOG compressors trip on their suction valves (I-705A-C), the
     tank pressure goes to XV-1115 (own accumulator, I-203 / I-303) and the PSVs (control philosophy F-AIR). I-502 / I-602
     are late, non-preventive safeguards and are not credited. Not on a single transmitter; a transmitter fault alarms. Latching,
-    manual reset once the header is back above its normal pressure.'
+    manual reset once the header is back above its normal pressure. An air loss at the platform end of the ~2.45 km jetty
+    air main need not pull IA-8001 below the trip: it is detected at the berth by ZSO-5122 / ZSO-6122, because the vapour
+    arm isolations XV-5122 / XV-6122 have no accumulator and are the first jetty valves to move, and their loss of the open
+    position during a liquid transfer trips ESD-1 (I-501 / I-601) while the liquid-path valves still hold on their accumulators
+    (review 2026-11-05-basic-design-5 #2, D-030); voted transmitters at the platform end stay a detail-engineering hold.'

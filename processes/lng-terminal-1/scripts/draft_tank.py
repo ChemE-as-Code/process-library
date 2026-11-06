@@ -22,6 +22,11 @@ mechanical interlock in a sheet note (D-026.11); the column vent procedure of D-
 is monitoring only (bottom heating not done at basic, D-025). Review 2026-11-05-basic-design-4
 (adversarial check, D-028): the circulation return valve XV-n123 fails closed (was fail last), as
 the final element of the high-high level trip I-n01.
+Review 2026-11-05-basic-design-5 (#1, #6, #7, D-030): a closed-position switch ZSC-n123 on XV-n123
+itself; I-n01 no longer stops the circulation and drain pumps, I-n05 stops them only when I-n01 has
+tripped and ZSC-n123 does not prove the return closed after its stroke time, so the desuperheater
+spray and the drain pumps keep running in loading; PSV-n141 names the tank-end valve fast-closure
+check case; the sheet note names the fail position of XV-n123 and I-n01 / I-n05.
 """
 
 import sys
@@ -183,8 +188,12 @@ for tee_, nz, line_no, psv, x, hdr, where in [
         (tr_circ, "N10", f"LNG-{n}032", f"PSV-{n}142", TR_CIRC_X, f"LNG-{n}002",
          f"circulation header LNG-{n}002 behind the check valve of P-{n}102")]:
     # tag beside the vertical relief line: right of PSV-n141, left of PSV-n142
+    check = (f"; check case for the transient analysis: {blocked} closing at spring speed with the loading pumps "
+             f"running (non-return valve or accumulator failed), the rise in the pump header; not a surge relief "
+             f"device at DN 25, the analysis confirms the design pressure or sets a surge relief (D-023.4, D-030)"
+             if nz == "N9" else "")
     v = L.relief(psv.replace("-", ""), psv, line_no, 15.0,
-                 f"thermal expansion of the blocked-in {where}",
+                 f"thermal expansion of the blocked-in {where}{check}",
                  f"Thermal relief of {hdr} into {TK} through a roof nozzle; set at the 15 barg design pressure of the LNG lines (review #6).",
                  label_at=(x + 12, 82) if nz == "N9" else (x - 11, 80))
     v.at = (x, 82 if nz == "N9" else 80)
@@ -214,11 +223,20 @@ L.line(sheet, "LNG-4005" if n == "2" else "LNG-4009", dn=250, fluid="LNG",
        label_at=(210, RET_Y + 8))
 L.inst(sheet, f"HS-{n}123", f"{TK} circulation return valve XV-{n}123",
        f"Opened by the operator for the tank that receives the circulation (D-008). Fail closed, and closed by "
-       f"the {TK} high-high level trip I-{n}01 as its final element with the fill ESD valve; I-{n}01 also stops "
-       f"the sources of the return, the circulation pumps P-2102 / P-3102 and the jetty drain pumps P-5101 / "
-       f"P-6101 (review 2026-11-05-basic-design-4, adversarial check; D-028). On an instrument-air failure the "
+       f"the {TK} high-high level trip I-{n}01 as its final element with the fill ESD valve. Only if ZSC-{n}123 "
+       f"does not prove it closed after its stroke time does I-{n}05 stop the sources of the return, the "
+       f"circulation pumps P-2102 / P-3102 and the jetty drain pumps P-5101 / P-6101; with the return proven "
+       f"closed they keep running, so the desuperheater spray stays in service in loading and the drain pumps "
+       f"can empty D-5101 / D-6101 (review 2026-11-05-basic-design-5 #1, D-030). On an instrument-air failure the "
        f"circulation stops: the pumps run on their fail-open minimum flow and PSV-4114 relieves the return.",
        at=(232, RET_Y - 13), signal_to=xvr.id, fail_action="FC")
+# closed-position switch on XV-n123 itself, below the valve (its actuator is above), so I-n05 stops
+# the return's sources only when the return is not proven closed (review 2026-11-05-basic-design-5 #1)
+L.inst(sheet, f"ZSC-{n}123", f"XV-{n}123 closed position",
+       f"Closed-position switch on the circulation return valve XV-{n}123: with I-{n}01 tripped and XV-{n}123 not "
+       f"proven closed after its stroke time, I-{n}05 stops the circulation and jetty drain pumps (C&E I-{n}05, "
+       f"D-030); proven closed, they keep running (spray, drum emptying).",
+       at=(232, 245), sensing=xvr.id, sensing_at=(232, RET_Y + 1.5))
 L.line(sheet, "BOG-1001" if n == "2" else "BOG-1003", dn=750 if n == "2" else 600,
        fluid="Boil-off gas", frm=TK, to="D-7101" if n == "2" else "BOG-1001",
        notes=("see P-01" if n == "2" else "T-3101 vapour outlet to the tank vapour header. Drawn on P-03 and P-01."),
@@ -288,7 +306,7 @@ for (nz, tag, service, notes_), y in zip(INSTS, inst_y):
 
 NOTES = [
     f"{TK}: full containment, 225,000 m3 working, {phase} (D-007). In-tank pumps hang in their pump columns with foot valves; every nozzle passes through the roof (drawn on the shell for clarity, D-021).",
-    f"Minimum-flow returns FV-{n}111A..D: LNG-{n}021..{n}024 DN 150; FV-{n}112: LNG-{n}025 DN 100.",
+    f"Minimum-flow returns FV-{n}111A..D: LNG-{n}021..{n}024 DN 150; FV-{n}112: LNG-{n}025 DN 100. XV-{n}123 fails closed: C&E I-{n}01, I-{n}05 (ZSC-{n}123).",
     f"Column isolation HV-{n}151A..D, HV-{n}152 above the check valves; column vent / N2 purge BOG-{n}011..{n}015 DN 25 with HV-{n}161..{n}165 (blind-flanged; opened only after N2 displacement of the column into the tank, D-026.9).",
     # the spool between the column check valve and HV-n151 / HV-n152 is blockable (round 2)
     f"CV-{n}121A..D, CV-{n}122: disc with a pressure-equalising hole, relieving the CV/HV spool to the pump column (thermal relief; vendor, D-021).",

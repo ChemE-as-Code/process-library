@@ -31,6 +31,11 @@ ZSO-7121A on P-07, instead of the pipe segment beside them.
 Revision after review 2026-11-05-basic-design-4 (D-028): notes only. AI-4133 / AI-4134 name their
 O2 reject I-514 / I-614; the ZSO notes define "proven open" with the command discrepancy check
 (review 3 #4); UZ-4101 / UZ-4102 carry the closure time and the air accumulator (#1).
+
+Revision after review 2026-11-05-basic-design-5 (D-030): notes only. AI-4133 / AI-4134: the O2
+reject is armed on the plant state (no liquid transfer) and trips ESD-1 during a transfer (#4); the
+UZ-4101 / UZ-4102 sheet note names the air hold and I-804 (#7a); the UZ notes name the residual
+fast-closure case of D-023 (4) (#6).
 """
 
 import sys
@@ -235,10 +240,10 @@ L.inst(sheet, "ZSO-4136", "XV-4136 open position",
        at=(108, YVB + 9), sensing=xv36.id, sensing_at=(120, YVB),
        sensing_points=[(120, YVB + 9)])
 L.inst(sheet, "AI-4133", "Vapour return A composition at the tank end (N2 / O2 / CH4)",
-       "Switches the carrier vapour make-before-break between the tank vapour header (XV-4135) and the flare (XV-4131) by C&E I-511..I-513: to the flare while N2 is high (de-inerting, gassing-up; to the flare only below 5 vol % O2), to the tanks once CH4 is on specification and O2 below 1 vol % (D-026). Two O2 cells (ASSUMED, analyser vendor), voted 2oo2 with a discrepancy alarm: above 5 vol % O2 the O2 reject C&E I-514 closes the Berth 2 vapour arm XV-5122 and the hybrid vapour isolation XV-5125, armed only in SEQ-LOAD S1 to S3 (no liquid transfer); during the transfer an alarm only (D-026.7, D-028).",
+       "Switches the carrier vapour make-before-break between the tank vapour header (XV-4135) and the flare (XV-4131) by C&E I-511..I-513: to the flare while N2 is high (de-inerting, gassing-up; to the flare only below 5 vol % O2), to the tanks once CH4 is on specification and O2 below 1 vol % (D-026). Two O2 cells (ASSUMED, analyser vendor), voted 2oo2 with a discrepancy alarm: above 5 vol % O2 the O2 reject C&E I-514 closes the Berth 2 vapour arm XV-5122 and the hybrid vapour isolation XV-5125 while no liquid is transferred at Berth 2 (a plant state, not a sequence step: gassing-up, also when run by hand); during a liquid transfer (cooldown and loading) it trips ESD-1, I-501, which stops the flow and trips the carrier (D-026.7, D-028, D-030).",
        at=(185, 182), sensing=va.segments[0], sensing_at=(185, YVA))
 L.inst(sheet, "AI-4134", "Vapour return B composition at the tank end (N2 / O2 / CH4)",
-       "As AI-4133, with XV-4136 and XV-4132; its O2 reject is C&E I-614 on XV-6122 and XV-6125 (Berth 1, D-028).",
+       "As AI-4133, with XV-4136 and XV-4132; its O2 reject is C&E I-614 on XV-6122 and XV-6125 with no liquid transfer at Berth 1, and ESD-1 I-601 during a transfer (D-028, D-030).",
        at=(262, 222), sensing=vb.segments[0], sensing_at=(262, YVB))
 
 # ---- instruments ----------------------------------------------------------------------------------
@@ -250,7 +255,9 @@ L.inst(sheet, "FIC-4102", "Loading line B flow (loading rate)", "As FIC-4101.",
 TANK_END = ("ESD-1 closes it after the pumps have been stopped (C&E I-501, I-601), in 25-30 s (ASSUMED, D-023); "
             "non-return valve and local air accumulator on the actuator supply and a speed controller on its exhaust, so "
             "on an instrument-air failure it holds until the air-header trip I-804 has initiated ESD-1 and then closes "
-            "no faster than its set speed (D-016, D-028).")
+            "no faster than its set speed (D-016, D-028). Residual case, the valve closing at spring speed with the pumps "
+            "running because its non-return valve or accumulator failed: a rise in the pump header and a column "
+            "separation in the trestle line, a check case of the transient analysis (D-023.4, D-030).")
 L.inst(sheet, "UZ-4101", "Loading line A tank-end ESD valve XV-4101", TANK_END,
        at=(150, 57), signal_to=xv1, fail_action="FC")
 L.inst(sheet, "UZ-4102", "Loading line B tank-end ESD valve XV-4102", TANK_END,
@@ -279,7 +286,7 @@ for tag, service, x, seg, y, yb in [
 note(sheet, "Trestle ~1.98 km at 178 deg; ~2.45 km per line tank to platform (D-013). Expansion loops,", at=(232, 152))
 note(sheet, "guides, drip trays to the impoundment sump and the low-point drains are not shown (D-021).", at=(232, 158))
 note(sheet, "Circulation (holding): P-2102 / P-3102 -> LNG-2002 -> line A -> XV-4103 -> line B -> LNG-4005 (D-008).", at=(232, 164))
-note(sheet, "UZ-4101 / UZ-4102: see C&E I-501, I-601 (ESD-1 of either berth); I-501 / I-601 also cover ESD-2, which trips them through I-503 / I-603.", at=(12, 252))
+note(sheet, "UZ-4101 / UZ-4102: C&E I-501, I-601 (also ESD-2, I-503 / I-603, and the air trip I-804); air accumulator, closure 25-30 s (D-016).", at=(12, 252))
 note(sheet, "LNG-3002 (DN 250): T-3101 circulation; LNG-4008 (DN 80): spray to the desuperheater; LNG-5006 / -6006 (DN 80): drains;", at=(12, 257))
 note(sheet, "BOG-4011 / -4012 / -4015 / -4016 (DN 25): thermal relief PSV-4111 / -4112 / -4113 / -4114 (15.0 barg) into BOG-4001 on the tank side of XV-4135.", at=(12, 262))
 note(sheet, "BOG-4013 / BOG-4014 (DN 300): carrier de-inerting and cool-down vapour to the flare; AI-4133 / AI-4134 (N2, O2, CH4) switch each vapour return", at=(12, 267))

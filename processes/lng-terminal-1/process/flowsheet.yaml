@@ -315,14 +315,21 @@ streams:
         temperature: {value: 112.97, provenance: assumed, source: "scripts/terminal_sizing.py: D-011, D-014"}
         pressure: {value: 350.0, provenance: assumed, source: "scripts/terminal_sizing.py: D-011, D-014"}
         composition: {basis: mass_fraction, values: {CH4: 0.86552, C2H6: 0.0785, C3H8: 0.03482, IC4: 0.00719, NC4: 0.00993, N2: 0.00404}, provenance: assumed, source: "scripts/terminal_sizing.py: D-011, D-014"}
+  # S5 is the design envelope of the BOG system, not the flow of an arm line (review
+  # 2026-11-05-basic-design#23, DESIGN.md D-026.6, D-030): the loading value is derived at 12,000 m3/h
+  # with 85 % of the pump and line heat flashing on board (D-009). No line-up returns it through the
+  # arms: one vapour arm (BOG-5012 / BOG-6012, 16 inch) takes ~23.5 t/h in line-up (a), the carrier
+  # burning the balance on board; line-up (b) with the hybrid arm returns ~34 t/h through two. So S5
+  # is linked to the berth sheets, not to a vapour arm line; the trestle return lines that carry the
+  # envelope are linked to S6. The BOG compressors and the DN 750 lines keep it as margin.
   - id: S5
-    title: Carrier return vapour
+    title: Carrier return vapour, BOG design envelope
     from: SHIPVAP.out
     to: ARMS.vap_in
     template: bog
     links:
-      - {target: line, ref: BOG-5012, sheet: P-05}
-      - {target: line, ref: BOG-6012, sheet: P-06}
+      - {target: sheet, ref: P-05, role: "berth vapour system (envelope; arm capacity in D-023, D-026.6)"}
+      - {target: sheet, ref: P-06, role: "berth vapour system (envelope; arm capacity in D-023, D-026.6)"}
     state:
       average:
         flow: {value: 28627.7, basis: mass, provenance: assumed, source: "scripts/terminal_sizing.py: D-009"}
