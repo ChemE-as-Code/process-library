@@ -6,8 +6,9 @@ id: ammonium-sulfate-1
 title: Ammonium sulfate by direct neutralisation of ammonia with sulfuric acid
 summary: >-
   Tier 0 screening per tonne of crystalline ammonium sulfate from a continuous saturator-crystallizer:
-  stoichiometry with US EPA dryer dust, no crystallizer heat (the heat of reaction evaporates the water),
-  an estimated dryer steam, electricity from core's default. No flowsheet; not reviewed.
+  stoichiometry with US EPA dryer dust, no crystallizer heat (the heat of reaction evaporates the water,
+  rejected to cooling water by an NBS enthalpy balance), an estimated dryer steam, electricity an ASSUMED
+  analogue from solid ammonium nitrate. No flowsheet; not reviewed.
 families: [fertilizers]
 keywords: [ammonium sulfate, ammonium sulphate, neutralisation, reaction crystallization, saturator, fertilizer, ammonia, sulfuric acid]
 facets: {feedstock_basis: [fossil, mineral], product_classes: [fertilizers], unit_operations: [reaction, crystallization, centrifugation, drying], region: generic}
@@ -16,12 +17,15 @@ validation: {status: unreviewed}
 chemistry:
   inputs:
     - {chemical: ammonia, role: feedstock, inventory_key: "feed:ammonia"}
-    - {chemical: sulfuric-acid, role: feedstock, inventory_key: "feed:sulfuric-acid", note: "counted as 100 % H2SO4; delivered as 98.5 wt% acid"}
+    - {chemical: sulfuric-acid, role: feedstock, inventory_key: "feed:sulfuric-acid", note: "98.5 wt% acid, counted by mass of the acid; linked to sulfuric-acid-1 (lca/mappings.yaml)"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:water", note: "make-up to the centrifuge wash, closing the water balance (condensate returned, ASSUMED)"}
   outputs:
     - {chemical: ammonium-sulfate, role: main-product, inventory_key: "product:ammonium-sulfate"}
+    - {chemical: water, role: emission, inventory_key: "emission:H2O", note: "the water the dryer evaporates, as vapour to air"}
   utilities:
-    - {chemical: electricity, role: utility, inventory_key: "feed:electricity", note: "core's Tier 0 default (ASSUMED, dated)"}
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity", note: "ASSUMED analogue: solid ammonium nitrate, LVIC-AAF BREF Table 9.3 (25 to 60 kWh/t, midpoint)"}
     - {chemical: steam, role: utility, inventory_key: "feed:steam", note: "dryer only, counted as heat delivered; our estimate with an ASSUMED dryer efficiency"}
+    - {chemical: cooling-water, role: utility, inventory_key: "output:cooling-water", note: "heat of reaction rejected in the vapour condenser (kWh), from NBS enthalpies of formation"}
 basis: {capacity: "per tonne of ammonium sulfate (the dataset's basis); no plant size"}
 publication: {status: public, license: CC-BY-4.0}
 references:
@@ -29,5 +33,7 @@ references:
   - {title: "Pacific Environmental Services for US EPA (1996) Background report, AP-42 section 6.18 (now 8.4), Ammonium Sulfate", url: "https://epa.gov/sites/production/files/2020-09/documents/final_background_document_for_ammonium_sulfate_section_8.4.pdf"}
   - {title: "UNIDO, fertilizer manual chapter VIII, Ammonium Salts, Nitric Acid, and Nitrates (UNIDO Open Archive document 19836, undated, literature to 1992)", url: "https://downloads.unido.org/ot/48/19/4819811/15001-20000_19836.pdf"}
   - {title: "GEA Messo PT (2010) Ammonium Sulfate, Fertilizer Industry, brochure 03/2010 (manufacturer literature)", url: "https://www.gea.com/assets/170152"}
+  - {title: "Wagman, D.D. et al. (1982) The NBS tables of chemical thermodynamic properties. J. Phys. Chem. Ref. Data 11, Suppl. 2, Table 14:S p. 2-58 and Table 18:N pp. 2-64 and 2-71", url: "https://srd.nist.gov/JPCRD/jpcrdS2Vol11.pdf"}
+  - {title: "European Commission, JRC (2007) Reference Document on Best Available Techniques for the Manufacture of Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF BREF), August 2007, Table 9.3 (electricity analogue only)", url: "https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/lvic_aaf.pdf"}
   - {title: "US EPA (1980) Standards of Performance for New Stationary Sources; Ammonium Sulfate Manufacture, 45 Fed. Reg. 74846 (40 CFR 60 subpart PP)", url: "https://19january2021snapshot.epa.gov/sites/static/files/2015-07/documents/45fedreg74851.pdf"}
 repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/ammonium-sulfate-1, access: public}

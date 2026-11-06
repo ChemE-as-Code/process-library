@@ -10,7 +10,7 @@ Manifest and two LCI datasets, with no flowsheet and no simulation. Ammonia is n
 
 ## Route
 
-Neutralising nitric acid with ammonia is how essentially all AN is made: the LVIC-AAF BREF (section 9.2.1) and the US EPA's AP-42 background report for section 8.3 (1996, section 2.2) both describe it as the route every plant uses. CAN is the same AN solution mixed with dolomite, limestone or calcium carbonate before granulation. The BREF calls it Western Europe's most applied fertiliser (section 9.1). AN and calcium carbonate from the nitrophosphate (Odda) process are another source (BREF section 9.2.2) and are not modelled.
+Neutralising nitric acid with ammonia is how essentially all AN is made: the LVIC-AAF BREF (section 9.2.1) and the US EPA's AP-42 background report for section 8.3 (1996, section 2.2) both describe it as the route every plant uses. CAN is the same AN solution mixed with dolomite, limestone or calcium carbonate before granulation. The BREF calls it Western Europe's most applied fertiliser (section 9.1). AN and calcium carbonate from the nitrophosphate (Odda) process are another source (BREF section 9.2.2). `npk-fertilizers-1` models them as co-products of its CNTH conversion, but these two datasets do not take them (see Linking).
 
 The plants are continuous. Neutralisers are free-boiling vessels, circulating loops or pipe reactors (BREF 9.2.2), and the BREF's water figures are calculated for about 8640 operating hours a year (Table 9.6).
 
@@ -30,7 +30,7 @@ Two integer formulas let the element balance count mixtures:
 
 The acid's water leaves as the sourced waste water (AMI Linz, 0.24 m3 per t N; for CAN also DSM Geleen), and the rest leaves as vapour. That split is ASSUMED: the BREF names the outlets (process steam, condensate reused in the nitric acid plant or as scrubber water, condensate to treatment) but gives no shares.
 
-The AN feeds come out at 0.2128 t NH3 and 0.7873 t HNO3 per t, against 0.213 and 0.789 in the BREF's Table 9.8 (Uhde's expected figures for new plants). The datasets do not use those numbers, so this is a check of the stoichiometry, not a transcription. The 0.2 % of acid the reference has beyond stoichiometry is nitric acid loss, which the dataset does not count (TODO). Both are `explained` in `benchmarks/fertilizers.yaml`. The electricity and steam KPIs take the same ranges as the datasets and are not independent. By hand, solid AN needs about 0.2 GJ/t of electricity and steam. That is inside the 0.09 to 0.22 GJ/t the BREF gives for modern plants (Table 9.3, infoMil 2001), but it is not bound because the steam is in kg.
+The AN feeds come out at 0.2128 t NH3 and 0.7873 t HNO3 per t, against 0.213 and 0.789 in the BREF's Table 9.8 (Uhde's expected figures for new plants). The datasets do not use those numbers. But the reference is itself within 0.2 % of the stoichiometric 212.8 and 787.2 kg, so the check shows only that the stoichiometry is applied, not that the losses are right. The 0.2 % of acid the reference has beyond stoichiometry is nitric acid loss, which the dataset does not count (TODO). Both are `explained` in `benchmarks/fertilizers.yaml`. Solid AN electricity and steam record `no_open_reference`, because the only open figures are the ranges the dataset takes its midpoints from. The CAN electricity and steam are bound to the one plant figure of Table 9.3 (AMI Linz, 13.2 kWh and 13 kg per t), which the dataset does not use. Both are `explained`: the dataset takes the midpoints of the EFMA/infoMil ranges, and AMI Linz's steam is more than ten times below that range. By hand, solid AN needs about 0.2 GJ/t of electricity and steam. That is inside the 0.09 to 0.22 GJ/t the BREF gives for modern plants (Table 9.3, infoMil 2001), but it is not bound because the steam is in kg.
 
 ## What is weak
 
@@ -46,7 +46,9 @@ The AN feeds come out at 0.2128 t NH3 and 0.7873 t HNO3 per t, against 0.213 and
 
 ## Linking
 
-`feed:ammonia` is linked to `ammonia-1` and `feed:nitric-acid` to `nitric-acid-1`, whose product is 60 wt% acid by mass of solution, the same basis (`lca/mappings.yaml`). Limestone links to the shared background entry. The products have the registry slugs `ammonium-nitrate` and `calcium-ammonium-nitrate`. An NPK entry can link to either one once it exists.
+`feed:ammonia` is linked to `ammonia-1` and `feed:nitric-acid` to `nitric-acid-1`, whose product is 60 wt% acid by mass of solution, the same basis (`lca/mappings.yaml`). Limestone links to the shared background entry. The products have the registry slugs `ammonium-nitrate/solid` (a grade, so the catalog keeps it apart from the AN solution of `npk-fertilizers-1`) and `calcium-ammonium-nitrate`.
+
+`npk-fertilizers-1` makes AN solution (`ammonium-nitrate/solution`) and precipitated calcium carbonate as co-products of the nitrophosphate route. The CAN dataset here does not take them: it makes its own AN solution in its neutraliser and takes background limestone as the filler. That is deliberate for a stand-alone CAN plant. A CAN variant for a nitrophosphate complex, fed with those co-products, is not modelled (TODO).
 
 ## Not counted yet (TODO)
 

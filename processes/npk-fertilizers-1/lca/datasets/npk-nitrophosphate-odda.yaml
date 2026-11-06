@@ -32,8 +32,8 @@ system_boundary:
     is not stated'
   - TODO process and scrubbing water and the effluent volume (AMI Linz discharges 3450 m3/d at 1200 t/d, BREF Table
     7.6); the net water is counted as vapour
-  - 'TODO the rock''s minor constituents (5.6 wt%: Al, Fe, Mg, Na, SO3, organics), its excess fluorine, trace metals
-    (Cd) and their fate; the dolomite filler stands in for their mass'
+  - 'TODO the rock''s minor constituents (about 6 wt%: Al, Fe, Mg, Na, SO3, organics) as themselves: counted as silica
+    that stays in the product (parameter nSi_s); trace metals (Cd) and their fate'
   - 'TODO HNO3 reduced to NOx by the rock''s organics and iron, and N, P and F lost to air and water: not added
     to the feeds'
   - TODO coating agent and anti-caking oil; micronutrients, magnesium and sulfate salts of other grades
@@ -62,8 +62,13 @@ allocation:
   - npk
   - ammonium-nitrate
   - calcium-carbonate
-  deviation: No sourced prices, so the WBCSD price ratio cannot be computed; nutrient-based or economic allocation
-    would shift burden to the NPK. Mass is the preliminary choice.
+  deviation: 'Subdivision (step 1 of the hierarchy) is not applied: the sources give the electricity, steam, natural
+    gas, compressed air and the combined-scrubber emissions only per t of NPK for the whole complex, not per section,
+    so splitting the dataset into a digestion-and-conversion part and an NPK finishing part would need an ASSUMED
+    split of every utility (TODO). The potash, the filler, the dryer gas and the neutralisation and granulation
+    serve only the NPK, so mass allocation gives the AN and the lime (43 % of the product mass) a share of burdens
+    they do not cause. No sourced prices, so the WBCSD price ratio cannot be computed; allocation by nutrient
+    content (N, P2O5, K2O) would give the NPK about 75 % instead of 57 %. Mass is the preliminary choice.'
 uuid: f0a4da2f-8db9-5585-bb94-caddd1925b29
 version: 0.1.0
 methodology_version: 1.0.0
@@ -79,18 +84,46 @@ parameters:
   description: NPK 15-15-15 delivered (the basis).
   source: basis
 - name: M_R
-  value: 8745.579
+  value: 3804.621
   unit: g/mol
-  description: 'Molar mass of the model rock unit Ca85P45C10Si3O216F15: 15 fluorapatite Ca5(PO4)3F, 10 calcite and
-    3 quartz, 36.5 wt% P2O5.'
+  description: 'Molar mass of the model rock unit Ca35P18C4Si5O94F8: 3 Ca10(PO4)6F2 + 4 CaCO3 + CaF2 + 5 SiO2,
+    33.6 wt% P2O5, 4.0 wt% F. The same model rock as phosphoric-acid-1 (parameter M_ROCK there), so both users
+    of the Khouribga rock share one composition.'
   source: 'IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
-    to the formula. The mineral proportions follow the P2O5, CO2 and SiO2 of Moroccan (Khouribga) rock, 33.4, 4.5
-    and 1.9 wt%, in EU JRC (2007) BREF Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF),
-    August 2007, Table 5.2, p. 217 (apatite : calcite : quartz 1.57 : 1.02 : 0.32 mol per kg of rock, taken as 15
-    : 10 : 3). ASSUMED: all P as fluorapatite, all CO2 as calcite; the rock''s other 5.6 wt% (Al, Fe, Mg, Na, SO3,
-    organics) and the F above the apatite''s are not modelled, so the model rock is richer (36.5 against 33.4 %
-    P2O5) and lighter per t of P2O5. Moroccan rock because AMI Linz, the source of most utility data, runs on it
-    (Table 7.11, p. 313)'
+    to the formula. The proportions follow Moroccan (Khouribga) rock, 33.4 % P2O5 and 4 % F, in EU JRC (2007) BREF
+    Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF), August 2007, Table 5.2, p. 217.
+    ASSUMED: all P as fluorapatite, the F above the apatite''s as fluorite, all CO2 as calcite, and the rest of
+    the gangue (quartz and the minor Al, Fe, Mg, Na, SO3 and organics) counted as silica, as phosphoric-acid-1
+    does. Moroccan rock because AMI Linz, the source of most utility data, runs on it (Table 7.11, p. 313)'
+- name: nCa_r
+  value: 35.0
+  unit: ''
+  description: Ca atoms per model rock unit.
+  source: from the formula of the component (generation.formulas)
+- name: nP_r
+  value: 18.0
+  unit: ''
+  description: P atoms per model rock unit.
+  source: from the formula of the component (generation.formulas)
+- name: nF_r
+  value: 8.0
+  unit: ''
+  description: F atoms per model rock unit.
+  source: from the formula of the component (generation.formulas)
+- name: nC_r
+  value: 4.0
+  unit: ''
+  description: C atoms (carbonate) per model rock unit.
+  source: from the formula of the component (generation.formulas)
+- name: nSi_s
+  value: 1.2
+  unit: ''
+  description: 'SiO2 per model rock unit removed as sand after digestion: the rock''s quartz, 1.9 wt% SiO2 (72.3
+    g per 3804.6 g unit, 1.2 mol). The other 3.8 of the unit''s 5 SiO2 stand for the minor constituents that
+    dissolve in nitric acid and stay in the product.'
+  source: 'EU JRC (2007) BREF Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF), August
+    2007, Table 5.2, p. 217 (Khouribga 1.9 % SiO2). ASSUMED: all of the quartz is removed as sand (EFMA 2000, sections
+    2.2.3 and 4.3, say most of it) and none of the rest'
 - name: M_HNA
   value: 315.141
   unit: g/mol
@@ -161,18 +194,20 @@ parameters:
   source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
     the formula
 - name: M_NPK
-  value: 2129163.189
+  value: 2129092.547
   unit: g/mol
-  description: 'Molar mass of the product''s formula unit N22800H61578O55377P4500K6780Cl6780Ca2910Mg1486C2972F1500
-    (generation.formulas): 9487 NH4NO3, 3826 NH4H2PO4, 674 CaHPO4, 750 CaF2, 6780 KCl and 1486 CaMg(CO3)2, from
-    100 rock units. It gives 14.999 % N, 15.000 % P2O5 and 14.997 % K2O.'
+  description: 'Molar mass of the product''s formula unit N22800H62328O54904P4500K6780Cl6780Ca2577Mg1153C2306F2000Si950
+    (generation.formulas): 9362 NH4NO3, 4076 NH4H2PO4, 424 CaHPO4, 1000 CaF2, 6780 KCl, 1153 CaMg(CO3)2 and
+    950 SiO2, from 250 rock units. It gives 15.000 % N, 15.000 % P2O5 and 14.998 % K2O.'
   source: 'IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
     to the formula; the salts are a model of the neutralised product at about pH 5 (EFMA 2000, section 2.2.5.1,
     p. 15): Ca left in the NP solution binds the fluorine as CaF2 and then phosphate as CaHPO4, the rest of the
     phosphate is NH4H2PO4, all nitrate is NH4NO3, potash stays KCl. The speciation is ASSUMED (in the real product
-    KCl and NH4NO3 partly exchange to KNO3 and NH4Cl, which changes no element)'
+    KCl and NH4NO3 partly exchange to KNO3 and NH4Cl, which changes no element). The SiO2 is the rock gangue
+    left after the sand is removed (parameter nSi_s); it stands for the rock''s minor oxides, which stay in
+    the product'
 - name: nR
-  value: 100.0
+  value: 250.0
   unit: ''
   description: Model rock units per product formula unit.
   source: 'ASSUMED: the scale of the formula unit, chosen so that the counts below are whole numbers; it does not
@@ -195,7 +230,7 @@ parameters:
     is 2.6436 mol N per mol P2O5, times 2250 P2O5, rounded; the HNO3 above the stoichiometric digestion is this
     less 2 ca_np'
 - name: an_r
-  value: 3539.0
+  value: 3414.0
   unit: ''
   description: Ammonium nitrate from the CNTH conversion returned to the NPK, per formula unit.
   source: 'Closes the grade at N = P2O5 (15-15-15, the reference grade of EFMA (2000) BAT Booklet No. 7 of 8: Production
@@ -211,11 +246,12 @@ parameters:
     14 and 18. ASSUMED pure KCl (muriate of potash is about 95 % KCl; its NaCl and insolubles are in the dolomite
     below)'
 - name: dol
-  value: 1486.0
+  value: 1153.0
   unit: ''
   description: Dolomite filler per formula unit.
   source: 'ASSUMED: makes up the mass to 15 % P2O5. It stands for every product component the model leaves out (the
-    rock''s minor oxides, the potash''s NaCl, moisture below 1.5 %, coating) as well as any filler; dolomite because
+    potash''s NaCl, moisture below 1.5 %, coating) as well as any filler; the rock''s minor oxides are the SiO2
+    of the product (parameter nSi_s); dolomite because
     the BREF names it among the solids in the AMI Linz NPK exhaust gas (EU JRC (2007) BREF Large Volume Inorganic
     Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF), August 2007, section 7.4.10, p. 314) and fillers among
     the NPK inputs (Figure 7.1, p. 285). Taken as inert (no CO2 released)'
@@ -376,9 +412,9 @@ exchanges:
 - key: product:ammonium-nitrate
   title: Ammonium nitrate from the CNTH conversion, to CAN or AN (as NH4NO3 contained)
   type: product
-  amount: 399.1145888554558
+  amount: 422.6324853882249
   unit: kg
-  formula: (npk + (pm_a + pm_b / rate) * npk / 1000) / M_NPK * (2 * (85 * nR - ca_np) - an_r) * M_AN
+  formula: (npk + (pm_a + pm_b / rate) * npk / 1000) / M_NPK * (2 * (nCa_r * nR - ca_np) - an_r) * M_AN
   provenance: calculated
   source: 'co-product: CNTH + 2 NH3 + CO2 -> CaCO3 + 2 NH4NO3 + 3 H2O (EFMA 2000, section 2.2.4.1, p. 13), less
     the AN returned to the NPK; counted as NH4NO3 contained, its solution water is in emission:H2O'
@@ -399,9 +435,9 @@ exchanges:
 - key: product:calcium-carbonate
   title: Calcium carbonate (lime) from the CNTH conversion, to CAN
   type: product
-  amount: 332.7340437365715
+  amount: 344.5011988161471
   unit: kg
-  formula: (npk + (pm_a + pm_b / rate) * npk / 1000) / M_NPK * (85 * nR - ca_np) * M_CaCO3
+  formula: (npk + (pm_a + pm_b / rate) * npk / 1000) / M_NPK * (nCa_r * nR - ca_np) * M_CaCO3
   provenance: calculated
   source: co-product of the conversion (EFMA 2000, section 2.2.4.1, p. 13); compare about 2.2 t CaCO3 per t P2O5
     (section 2.1, p. 8; benchmarks/fertilizers.yaml)
@@ -411,14 +447,15 @@ exchanges:
     gsd2: 1.3
     source: 'ASSUMED: follows the CaO/P2O5 ratio of the NP solution'
 - key: feed:phosphate-rock
-  title: 'Phosphate rock, sedimentary (model: fluorapatite, calcite, quartz)'
+  title: 'Phosphate rock, sedimentary (model: fluorapatite, calcite, fluorite, silica)'
   type: input
-  amount: 410.88912623437244
+  amount: 446.8912998611423
   unit: kg
   formula: (npk + (pm_a + pm_b / rate) * npk / 1000) / M_NPK * nR * M_R
   provenance: calculated
   source: 'stoichiometry: all the product''s P from the rock (the P2O5 lost to water, about 0.04 %, is not added);
-    the model rock is richer than real rock, so the real rock mass per t is about 9 % higher (see parameter M_R)'
+    the model rock has 33.6 % P2O5 against 33.4 % in the cited analysis (see parameter M_R), the composition
+    phosphoric-acid-1 uses'
   pedigree: *id001
   basic_uncertainty: 1.05
   uncertainty:
@@ -427,9 +464,9 @@ exchanges:
 - key: feed:nitric-acid
   title: Nitric acid, about 60 wt% (counted by mass of the acid)
   type: input
-  amount: 992.0094116984098
+  amount: 1016.7199957695406
   unit: kg
-  formula: (npk + (pm_a + pm_b / rate) * npk / 1000) / M_NPK * (170 * nR + no3_np - 2 * ca_np) / 3 * M_HNA
+  formula: (npk + (pm_a + pm_b / rate) * npk / 1000) / M_NPK * (2 * nCa_r * nR + no3_np - 2 * ca_np) / 3 * M_HNA
   provenance: calculated
   source: digestion Ca5(PO4)3F + 10 HNO3 -> 3 H3PO4 + 5 Ca(NO3)2 + HF and CaCO3 + 2 HNO3 -> Ca(NO3)2 + CO2 + H2O,
     plus the free HNO3 of the NP solution (parameter no3_np); NOx lost from the digestion is not added (outside
@@ -442,10 +479,10 @@ exchanges:
 - key: feed:ammonia
   title: Ammonia, liquid (cooling of the crystallisers, then neutralisation and conversion)
   type: input
-  amount: 191.68401393810964
+  amount: 197.6917567263881
   unit: kg
-  formula: (npk + (pm_a + pm_b / rate) * npk / 1000) / M_NPK * (2 * (85 * nR - ca_np) + (no3_np - 2 * ca_np) + 2
-    * ca_np + (45 * nR - (ca_np - 15 * nR / 2))) * M_NH3 + (nh3_a + nh3_b / rate) * npk / 1000
+  formula: (npk + (pm_a + pm_b / rate) * npk / 1000) / M_NPK * (2 * (nCa_r * nR - ca_np) + (no3_np - 2 * ca_np)
+    + 2 * ca_np + (nP_r * nR - (ca_np - nF_r * nR / 2))) * M_NH3 + (nh3_a + nh3_b / rate) * npk / 1000
   provenance: calculated
   source: conversion (2 NH3 per CNTH), neutralisation of the free HNO3, of the Ca(NO3)2 left (to CaF2 and CaHPO4)
     and of H3PO4 to NH4H2PO4, plus the NH3 to air; liquid NH3 cools the crystallisers before it is used (EFMA 2000,
@@ -458,7 +495,7 @@ exchanges:
 - key: feed:potassium-chloride
   title: Potassium chloride (muriate of potash), taken as pure KCl
   type: input
-  amount: 237.46618298169346
+  amount: 237.47406196568684
   unit: kg
   formula: (npk + (pm_a + pm_b / rate) * npk / 1000) / M_NPK * k_cl * M_KCl
   provenance: calculated
@@ -471,9 +508,9 @@ exchanges:
 - key: feed:carbon-dioxide
   title: Carbon dioxide from the ammonia plant, for the CNTH conversion
   type: input
-  amount: 146.30710120099488
+  amount: 151.4812587045123
   unit: kg
-  formula: (npk + (pm_a + pm_b / rate) * npk / 1000) / M_NPK * (85 * nR - ca_np) * M_CO2
+  formula: (npk + (pm_a + pm_b / rate) * npk / 1000) / M_NPK * (nCa_r * nR - ca_np) * M_CO2
   provenance: calculated
   source: one CO2 per CNTH converted; compare about 1.0 t CO2 per t P2O5 (EFMA 2000, sections 2.2.4.1 and 4, pp.
     13 and 20); the CO2 comes from an ammonia plant's CO2 removal (section 2.2.1, p. 10)
@@ -485,7 +522,7 @@ exchanges:
 - key: feed:dolomite
   title: Dolomite filler (stands for the unmodelled product components)
   type: input
-  amount: 128.7399843588391
+  amount: 99.89375977262205
   unit: kg
   formula: (npk + (pm_a + pm_b / rate) * npk / 1000) / M_NPK * dol * M_DOL
   provenance: assumed
@@ -600,9 +637,9 @@ exchanges:
 - key: output:sand
   title: Washed quartz sand, used as building material
   type: output
-  amount: 8.468547835954531
+  amount: 8.468828817237883
   unit: kg
-  formula: (npk + (pm_a + pm_b / rate) * npk / 1000) / M_NPK * 3 * nR * M_SiO2
+  formula: (npk + (pm_a + pm_b / rate) * npk / 1000) / M_NPK * nSi_s * nR * M_SiO2
   provenance: calculated
   treatment:
     kind: byproduct
@@ -617,9 +654,9 @@ exchanges:
 - key: emission:CO2
   title: 'CO2, fossil: rock carbonate in the digestion and natural gas in the dryers'
   type: emission
-  amount: 54.76454592113915
+  amount: 54.76523195575232
   unit: kg
-  formula: ((npk + (pm_a + pm_b / rate) * npk / 1000) / M_NPK * 10 * nR + ((ng_a * rho_ch4 + ng_b * 3.6 / lhv_ch4)
+  formula: ((npk + (pm_a + pm_b / rate) * npk / 1000) / M_NPK * nC_r * nR + ((ng_a * rho_ch4 + ng_b * 3.6 / lhv_ch4)
     / 2) * npk / 1000 / M_CH4) * M_CO2
   provenance: calculated
   cas: 124-38-9
@@ -643,10 +680,10 @@ exchanges:
 - key: emission:H2O
   title: 'Water vapour: acid water, digestion and combustion water, less the water the conversion takes'
   type: emission
-  amount: 373.43784470496405
+  amount: 381.2081384641953
   unit: kg
-  formula: ((npk + (pm_a + pm_b / rate) * npk / 1000) / M_NPK * (7 * (170 * nR + no3_np - 2 * ca_np) / 3 + 10 *
-    nR - (85 * nR - ca_np)) + 2 * ((ng_a * rho_ch4 + ng_b * 3.6 / lhv_ch4) / 2) * npk / 1000 / M_CH4) * M_H2O
+  formula: ((npk + (pm_a + pm_b / rate) * npk / 1000) / M_NPK * (7 * (2 * nCa_r * nR + no3_np - 2 * ca_np) / 3
+    + nC_r * nR - (nCa_r * nR - ca_np)) + 2 * ((ng_a * rho_ch4 + ng_b * 3.6 / lhv_ch4) / 2) * npk / 1000 / M_CH4) * M_H2O
   provenance: calculated
   cas: 7732-18-5
   flow:
@@ -836,10 +873,10 @@ generation:
     emission:NH3: NH3
     emission:PM: NPK
   formulas:
-    product:npk: N22800H61578O55377P4500K6780Cl6780Ca2910Mg1486C2972F1500
+    product:npk: N22800H62328O54904P4500K6780Cl6780Ca2577Mg1153C2306F2000Si950
     product:ammonium-nitrate: NH4NO3
     product:calcium-carbonate: CaCO3
-    feed:phosphate-rock: Ca85P45C10Si3O216F15
+    feed:phosphate-rock: Ca35P18C4Si5O94F8
     feed:nitric-acid: H17N3O16
     feed:ammonia: NH3
     feed:potassium-chloride: KCl
@@ -851,44 +888,44 @@ generation:
     emission:CO2: CO2
     emission:H2O: H2O
     emission:NH3: NH3
-    emission:PM: N22800H61578O55377P4500K6780Cl6780Ca2910Mg1486C2972F1500
+    emission:PM: N22800H62328O54904P4500K6780Cl6780Ca2577Mg1153C2306F2000Si950
   balance:
     closed: true
     tolerance: 1.0e-06
     elements:
       C:
-      - 71.647961783
-      - 71.647961783
+      - 69.302436355
+      - 69.302436355
       Ca:
-      - 188.032830543
-      - 188.032830543
+      - 186.476157005
+      - 186.476157005
       Cl:
-      - 112.92289782
-      - 112.92289782
+      - 112.926644534
+      - 112.926644534
       F:
-      - 13.38860175
-      - 13.38860175
+      - 17.852061301
+      - 17.852061301
       H:
-      - 91.099369584
-      - 91.099369584
+      - 93.509750129
+      - 93.509750129
       K:
-      - 124.543285161
-      - 124.543285161
+      - 124.547417432
+      - 124.547417432
       Mg:
-      - 16.968775969
-      - 16.968775969
+      - 13.166654002
+      - 13.166654002
       N:
-      - 289.923721375
-      - 289.923721375
+      - 298.159654994
+      - 298.159654994
       O:
-      - 1191.12000517
-      - 1191.12000517
+      - 1214.22498359
+      - 1214.22498359
       P:
-      - 65.485611738
-      - 65.485611738
+      - 65.487784511
+      - 65.487784511
       Si:
-      - 3.95851016
-      - 3.95851016
+      - 16.494339589
+      - 16.494339589
     outside:
     - emission:F-water
     - emission:HF

@@ -249,8 +249,9 @@ kpis:
           locator: Chapter 2, Section 2.3.2, Table 2.7 (Reported NOx emission levels for the production of ammonia), first row [1, EFMA, 2000], p. 52
 
   # --- aqueous ammonia (ammonium hydroxide), added with ammonium-hydroxide-1 ----------------------
-  # Not independent checks: the dataset takes its strength from the same patent, and the cooling
-  # duty and electricity have no open reference.
+  # The strength is bound to ATSDR (2004), not to the patent the dataset takes its 25 wt% from: a
+  # check against the patent would only be a transcription (review 2026-11-06). The cooling duty
+  # and electricity have no open reference.
   aqua-ammonia-strength:
     title: NH3 per mass of aqueous ammonia product
     unit: kg/kg
@@ -333,6 +334,10 @@ datasets:
     dataset: ammonium-hydroxide-25wt-dilution
     conditions: {technology: continuous single-stage dilution of refrigerated liquid ammonia with demineralised water, product: "aqueous ammonia, 25 wt% NH3, 25 degC", basis: Tier 0 screening}
     kpis:
-      aqua-ammonia-strength: {expression: feed:ammonia / product:ammonium-hydroxide, per: product:ammonium-hydroxide, reference: us4752452-aqua-strength}
+      aqua-ammonia-strength:
+        expression: feed:ammonia / product:ammonium-hydroxide
+        per: product:ammonium-hydroxide
+        reference: atsdr-2004-commercial-strength
+        out_of_range_reason: "0.250 kg/kg: the dataset models the 25 wt% technical grade, the midpoint of the 20 to 30 wt% that US 4,752,452 names for this dilution route, while ATSDR's 28 to 30 wt% is the most common commercial (nearly saturated) formulation. A different grade, not a modelling error; the patent range stays listed as a reference but is not bound, because the dataset takes its value from it."
       aqua-ammonia-cooling-duty: {expression: output:cooling-water / product:ammonium-hydroxide, per: product:ammonium-hydroxide}
       aqua-ammonia-specific-electricity: {expression: feed:electricity / product:ammonium-hydroxide, per: product:ammonium-hydroxide}

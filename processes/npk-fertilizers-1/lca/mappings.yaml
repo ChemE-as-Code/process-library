@@ -1,7 +1,10 @@
 # npk-fertilizers-1's own exchange overrides for the Atlas LCI build (ADR 0022).
 # Schema: schemas/lci-process-mappings.schema.json. Ammonia and nitric acid link to the Atlas
-# producers. Phosphate rock, potassium chloride, dolomite and compressed air stay reported gaps:
-# the shared vocabulary has no entry for them, and none is guessed here.
+# producers. Phosphate rock, potassium chloride and dolomite stay reported gaps: no background
+# mapping exists for them, and none is guessed here. Compressed air stays a gap for another reason:
+# it is counted in Nm3 at a pressure and dryness the source does not state, while the instrument-air
+# utility (processes/utility-instrument-air) supplies dried air at 8 bar(a) per kg, so the two are not
+# known to match.
 schema: cheme-as-code/lci-process-mappings/v1
 exchanges:
   "feed:ammonia": {dataset: {path: processes/ammonia-1/lca/dataset.yaml, product: "product:NH3"}, source: "the Atlas producer ammonia-1, liquid ammonia; the nitrophosphate route is usually integrated with an ammonia plant (BREF LVIC-AAF 7.2.2)"}

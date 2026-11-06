@@ -1,18 +1,20 @@
 # Tier 0 form, process-library#313 pilot without a flowsheet. Every amount is the formula of its parameters;
-# core's validator re-checks each. Written from US EPA AP-42 section 8.4, a UNIDO fertilizer manual chapter
-# and a crystallizer supplier's brochure (facts in our own form); electricity is core's Tier 0 default.
+# core's validator re-checks each. Written from US EPA AP-42 section 8.4, a UNIDO fertilizer manual chapter,
+# a crystallizer supplier's brochure and the NBS thermochemical tables (facts in our own form); electricity
+# is an ASSUMED analogue from solid ammonium nitrate (LVIC-AAF BREF Table 9.3).
 schema: cheme/lci_dataset/v2
 kind: lci_dataset
 id: ammonium-sulfate-neutralisation
 title: Ammonium sulfate by direct neutralisation of ammonia with sulfuric acid
 description: Tier 0 screening estimate per 1 t of crystalline ammonium sulfate, gate-to-gate. Anhydrous
-  ammonia and strong sulfuric acid react in a continuous saturator-crystallizer whose heat of reaction
-  evaporates the water, so the crystallizer takes no external heat; the crystals are centrifuged, dried
-  in a steam-heated rotary dryer and screened. Feeds from stoichiometry with the sourced dryer dust; the
-  dryer heat is our estimate from the sourced cake moisture; electricity from core's Tier 0 default.
+  ammonia and strong sulfuric acid react in a continuous vacuum saturator-crystallizer whose heat of reaction
+  evaporates the water, so the crystallizer takes no external heat; the vapour is condensed against cooling
+  water and returned. The crystals are centrifuged, dried in a steam-heated rotary dryer and screened. Feeds
+  from stoichiometry with the sourced dryer dust; the heat rejected from the NBS enthalpies of formation; the
+  dryer heat is our estimate from the sourced cake moisture; electricity an ASSUMED analogue.
 basis: 1000 kg of ammonium sulfate
-boundary: 'gate-to-gate: saturator-crystallizer, centrifuge, dryer with wet scrubber, screening; steam
-  and power from outside; storage and bagging outside'
+boundary: 'gate-to-gate: saturator-crystallizer with vapour condenser, centrifuge, dryer with wet scrubber,
+  screening; steam, power and cooling water from outside; storage and bagging outside'
 technology: synthetic (on-purpose) ammonium sulfate by reaction crystallization; the caprolactam, coke-oven
   and other by-product routes are not modelled
 geography:
@@ -22,22 +24,24 @@ classification:
   isic: '2012'
 system_boundary:
   included:
-  - ammonia and sulfuric acid (100 % H2SO4 basis)
-  - electricity (default) and dryer steam (estimate)
-  - ammonium sulfate dust from the dryer scrubber stack
+  - ammonia and 98.5 wt% sulfuric acid
+  - make-up water, closing the water balance
+  - electricity (ASSUMED analogue) and dryer steam (estimate)
+  - heat of reaction rejected to cooling water in the vapour condenser
+  - water vapour and ammonium sulfate dust from the dryer stack
   excluded:
-  - 'TODO the water balance: water of the 98.5 wt% acid and make-up water evaporated by the heat of reaction
-    (about 0.75 to 0.9 t per t of product, liquid or gaseous ammonia feed, by our heat balance from
-    the UNIDO heat of reaction, not a sourced figure), its condensation in the vacuum system, the condensate fate and the cooling water'
   - 'TODO ammonia to air from the crystallizer vent and the dryer: no open figure (AP-42 background report
     section 4.3 found no ammonia data); the source says ammonia losses arise when the liquor is not kept
     acid'
   - 'TODO motive steam of vacuum ejectors, if the vacuum is made by ejectors: not stated in the sources
     read'
-  - 'TODO wash water and weak ammonia of the centrifuge wash (UNIDO chapter VIII), mother-liquor purge
-    and scrubber liquor: recycled to the crystallizer in the sources read, not quantified'
+  - 'TODO a condensate purge: all condensate is taken as returned to the crystallizer and the centrifuge
+    wash (ASSUMED), so the only water leaving is the dryer vapour'
+  - 'TODO mother-liquor purge and scrubber liquor: recycled to the crystallizer in the sources read, not
+    quantified'
   - fugitive dust of screening and handling (enclosed; AP-42 8.4.3 calls these not significant)
   - crystal modifiers and corrosion inhibitors (trace additives named by UNIDO chapter VIII, not quantified)
+  - the product's free moisture (0.2 %), left out of both the product and the water fed
   - infrastructure
   cutoff: anti-caking agent cut by the library's 1 % mass rule (cutoff); the excluded flows are not quantified
   infrastructure: excluded
@@ -85,10 +89,23 @@ parameters:
   description: Molar mass of ammonia.
   source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
     applied to the formula
-- name: M_H2SO4
-  value: 98.072
+- name: M_SA
+  value: 1194.879
   unit: g/mol
-  description: Molar mass of sulfuric acid.
+  description: Molar mass of the 98.5 wt% sulfuric acid unit (H2SO4)12(H2O) (98.49 wt% H2SO4), the grade
+    sulfuric-acid-1 makes.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula; the 12:1 molar ratio is the nearest small whole numbers (ASSUMED), as in
+    phosphoric-acid-1
+- name: nS_sa
+  value: 12.0
+  unit: ''
+  description: H2SO4 per sulfuric acid unit (H2SO4)12(H2O).
+  source: from the formula of the component (generation.formulas)
+- name: M_H2O
+  value: 18.015
+  unit: g/mol
+  description: Molar mass of water.
   source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
     applied to the formula
 - name: M_AS
@@ -97,6 +114,35 @@ parameters:
   description: Molar mass of ammonium sulfate, (NH4)2SO4.
   source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
     applied to the formula
+- name: H_AS
+  value: -1180.85
+  unit: kJ/mol
+  description: Standard enthalpy of formation of crystalline (NH4)2SO4, 298.15 K.
+  source: Wagman, D.D. et al. (1982) The NBS tables of chemical thermodynamic properties, J. Phys. Chem. Ref.
+    Data 11, Suppl. 2, Table 18:N (prepared 1964), p. 2-71, row (NH4)2SO4 cr
+- name: H_SA
+  value: -813.989
+  unit: kJ/mol
+  description: Standard enthalpy of formation of liquid H2SO4, 298.15 K.
+  source: 'Wagman, D.D. et al. (1982) The NBS tables of chemical thermodynamic properties, J. Phys. Chem. Ref.
+    Data 11, Suppl. 2, Table 14:S (prepared 1964), p. 2-58, row H2SO4 l. The heat of mixing of the 1.5 wt%
+    water in the strong acid is not counted (ASSUMED small: the same table gives -841.8 kJ/mol for H2SO4 in
+    1 mol H2O, and the acid carries 0.08 mol)'
+- name: H_g
+  value: -46.11
+  unit: kJ/mol
+  description: Standard enthalpy of formation of NH3, ideal gas, 298.15 K.
+  source: Wagman, D.D. et al. (1982) The NBS tables of chemical thermodynamic properties, J. Phys. Chem. Ref.
+    Data 11, Suppl. 2, Table 18:N (prepared 1964), p. 2-64, row NH3 g
+- name: dh_lg
+  value: 25.614
+  unit: kJ/mol
+  description: 'Enthalpy of NH3 as ideal gas at 25 degC less that of the saturated liquid at 101.325 kPa (-33.3
+    degC): vaporisation 23.33 kJ/mol plus heating of the gas.'
+  source: Gao, Wu, Bell and Lemmon (2020) equation of state for ammonia (J. Phys. Chem. Ref. Data), evaluated
+    with CoolProp 8.0.0, as in ammonium-hydroxide-1. That the feed arrives as refrigerated liquid at its normal
+    boiling point, the state of ammonia-1's product, is ASSUMED; a gaseous feed would raise the heat rejected
+    by 23 %
 - name: pm
   value: 0.02
   unit: kg
@@ -138,16 +184,19 @@ parameters:
   source: 'ASSUMED: no open figure read; it stands for the sensible heat of crystals and air and the exhaust
     loss. TODO a sourced dryer heat'
 - name: elec
-  value: 333.3
+  value: 42.5
   unit: kWh
-  description: 'Electricity per t of ammonium sulfate: core''s Tier 0 default, 0.3333 kWh/kg.'
-  source: 'ASSUMED: cheme tier-defaults 1.0.0: electricity [ASSUMED]: 1.2 MJ (0.333 kWh) per kg of product,
-    attributed to the Gendorf (2000) site average that the ecoinvent v2-era chemicals proxies used. ASSUMED,
-    not read in either source: Hischier et al. 2005 (p. 61) names the Gendorf (2000) average as the default
-    but prints no value, and the number could not be confirmed in an open copy of Althaus et al. 2007
-    (ecoinvent report No. 8). A site average of organic chemistry, not specific to a salt crystallization
-    plant (pumps, centrifuges, dryer and scrubber fans). No open ammonium sulfate figure was read. TODO
-    source'
+  description: 'Electricity per t of ammonium sulfate: the midpoint of 25 to 60 kWh/t that EFMA (2000) gives
+    for a new solid ammonium nitrate facility, taken as an analogue.'
+  source: 'ASSUMED analogue: EU JRC (2007) LVIC-AAF BREF (Best Available Techniques for the Manufacture of
+    Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers), Table 9.3, p. 370 (solid AN, new AN
+    facility, EFMA 2000); the midpoint is our choice. A solid AN plant runs the same kind of machines (a
+    neutraliser, liquor pumps, a particle-forming step, product drying or cooling with fans, and scrubbers);
+    an ammonium sulfate plant has a crystallizer circulation pump, a vacuum system and a centrifuge instead
+    of an evaporator and a prill tower or granulator. No open ammonium sulfate figure was read
+    (benchmarks/fertilizers.yaml records the search). core''s Tier 0 site-average default (333 kWh/t) is not
+    used: it stands for reaction and separation plants of organic chemistry and is not specific to a salt
+    crystallization. TODO source'
 exchanges:
 - key: product:ammonium-sulfate
   title: Ammonium sulfate, crystalline, fertilizer grade
@@ -159,7 +208,7 @@ exchanges:
   source: the reference flow; counted as dry (NH4)2SO4 (21.2 % N); the 0.2 % free moisture and the
     anti-caking agent are not counted in it
 - key: feed:ammonia
-  title: Ammonia, anhydrous
+  title: Ammonia, anhydrous, refrigerated liquid
   type: input
   amount: 257.7889206411673
   unit: kg
@@ -178,50 +227,73 @@ exchanges:
       dust not counted), temporal 4, geographical 4, technological 4'
   basic_uncertainty: 1.05
 - key: feed:sulfuric-acid
-  title: Sulfuric acid, as 100 % H2SO4
+  title: Sulfuric acid, 98.5 wt%
   type: input
-  amount: 742.2310793588327
+  amount: 753.5928789335069
   unit: kg
-  formula: (as_ + pm) * M_H2SO4 / M_AS
+  formula: (as_ + pm) / M_AS / nS_sa * M_SA
   provenance: calculated
-  source: 'stoichiometry with the sourced dryer dust, on the 100 % H2SO4 basis; compare the stoichiometric
-    requirement 0.7422 t/t (UNIDO chapter VIII, Table 1). The acid is delivered strong (98.5 wt% from sulfuric-acid-1);
-    its water is in the excluded water balance'
+  source: 'stoichiometry with the sourced dryer dust, counted as 98.5 wt% acid, the grade of sulfuric-acid-1
+    (compare the stoichiometric requirement of 0.7422 t/t as 100 % H2SO4, UNIDO chapter VIII, Table 1); the
+    acid''s water is in the water balance'
   pedigree:
     scores: *id001
     reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4 (losses other than
       dust not counted), temporal 4, geographical 4, technological 4'
   basic_uncertainty: 1.05
+- key: feed:water
+  title: Process water, make-up to the centrifuge wash
+  type: input
+  amount: 4.4458972438993385
+  unit: kg
+  formula: as_ * (w_cake / (1 - w_cake) - w_prod / (1 - w_prod)) - (as_ + pm) / M_AS / nS_sa * M_H2O
+  provenance: calculated
+  origin: estimate
+  source: 'closes the water balance: the water the dryer evaporates less the water of the acid. ASSUMED: the
+    vapour of the crystallizer is condensed and returned (the UNIDO chapter VIII and GEA 2010 describe the
+    wash and scrubber liquors as recycled), so the dryer vapour is the only water leaving'
+  pedigree:
+    scores: &id002
+    - 4
+    - 5
+    - 4
+    - 4
+    - 4
+    reason: 'a closing term from a sourced moisture and an ASSUMED condensate return: reliability 4, completeness
+      5, temporal 4, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: a closing term; a plant that purges condensate takes up to the whole evaporated water
+      (about 0.7 t/t) as make-up'
 - key: feed:electricity
   title: Electricity
   type: input
-  amount: 333.3
+  amount: 42.5
   unit: kWh
   formula: elec
   provenance: assumed
-  origin: design-rule
+  origin: estimate
   link:
     factor: electricity
     source: grid electricity, medium voltage
   carrier:
     kind: electricity
-  source: 'cheme tier-defaults 1.0.0: electricity [ASSUMED]: 1.2 MJ (0.333 kWh) per kg of product, attributed
-    to the Gendorf (2000) site average that the ecoinvent v2-era chemicals proxies used. ASSUMED, not
-    read in either source: Hischier et al. 2005 (p. 61) names the Gendorf (2000) average as the default
-    but prints no value, and the number could not be confirmed in an open copy of Althaus et al. 2007
-    (ecoinvent report No. 8). Not specific to this process'
+  source: 'ASSUMED analogue, see parameter elec: the midpoint of the EFMA (2000) range for a new solid ammonium
+    nitrate facility (LVIC-AAF BREF Table 9.3, p. 370); no open ammonium sulfate figure was read'
   pedigree:
     scores:
     - 4
-    - 5
-    - 5
+    - 4
+    - 4
     - 4
     - 5
-    rule: 'cheme tier-defaults 1.0.0: electricity'
+    reason: 'ASSUMED analogue from another fertiliser salt plant: reliability 4, completeness 4, temporal 4,
+      geographical 4, technological 5 (a different process)'
   basic_uncertainty: 1.05
   uncertainty:
     gsd2: 3.0
-    source: 'ASSUMED: a dated site-average default, not specific to this process'
+    source: 'ASSUMED: an analogue, wider than the analogue''s own range (25 to 60 kWh/t, gsd2 1.55)'
 - key: feed:steam
   title: Steam to the rotary dryer's air heater, as heat delivered
   type: input
@@ -251,6 +323,70 @@ exchanges:
     gsd2: 2.0
     source: 'ASSUMED: the cake moisture spans 1 to 2.5 wt% (water removed 8 to 24 kg/t) and the efficiency
       is not sourced'
+- key: output:cooling-water
+  title: Heat of reaction rejected to cooling water in the crystallizer vapour condenser
+  type: output
+  amount: 469.6778107829928
+  unit: kWh
+  formula: (as_ + pm) / M_AS * (2 * (H_g - dh_lg) + H_SA - H_AS) / 3.6
+  provenance: calculated
+  origin: estimate
+  carrier:
+    kind: cold
+    temperature: 25.0
+  source: 'enthalpy balance at 25 degC: heat of reaction of 2 NH3 + H2SO4 -> (NH4)2SO4 from the NBS enthalpies
+    of formation (Wagman et al. 1982), 274.6 kJ/mol with gaseous ammonia, less the 51.2 kJ/mol that the
+    refrigerated liquid feed takes up to become gas (CoolProp 8.0.0): 223.4 kJ/mol, 1.69 GJ/t. The heat
+    evaporates about 0.7 t of water per t in the saturator (GEA 2010, PDF p. 4: the heat of reaction does
+    the evaporation); a vacuum saturator with a surface condenser rejects it to cooling water (ASSUMED; an
+    atmospheric saturator would vent the vapour to air instead and take the same water as make-up). Feeds
+    and product taken at 25 degC (ASSUMED: the sensible heat of the warm cake to the dryer, about 12 kWh/t,
+    is not separated)'
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'calculated from evaluated thermochemical data (NBS 1982) with an ASSUMED feed state and saturator
+      type: reliability 4, completeness 4, temporal 4, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: dominated by the ammonia feed state; a gaseous feed at 25 degC gives 577 kWh/t instead
+      of 470 (our calculation)'
+- key: emission:H2O
+  title: Water vapour to air from the dryer stack
+  type: emission
+  amount: 15.807696818573534
+  unit: kg
+  formula: as_ * (w_cake / (1 - w_cake) - w_prod / (1 - w_prod))
+  provenance: calculated
+  origin: estimate
+  cas: 7732-18-5
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 075e433b-4be4-448e-9510-9a5029c1ce94
+    name: Water
+    categories:
+    - air
+    unit: m3
+    per_unit: 0.001
+  source: 'the water removed from the centrifuge cake in the dryer, from the cake moisture (AP-42 8.4.2,
+    midpoint) to the product specification (UNIDO chapter VIII); biosphere3 UUID, name and categories from
+    core''s elementary-flow crosswalk (data/elementary-flows.yaml)'
+  pedigree:
+    scores: *id002
+    reason: 'from a sourced moisture range: reliability 4, completeness 5, temporal 4, geographical 4,
+      technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.73
+    source: 'the cake moisture, 1 to 2.5 wt% (water removed 8 to 24 kg/t), read as a 95 % interval, gsd2 =
+      sqrt(high / low) (our convention; the amount stays the stated value)'
 - key: emission:PM
   title: Ammonium sulfate dust to air, filterable particulate after the dryer's wet scrubber
   type: emission
@@ -279,12 +415,14 @@ exchanges:
       amount stays the stated value)'
 provenance:
   generator: hand-written model; amounts are the formulas of the parameters
-  notes: No value from a licensed database (process-library#313).
+  notes: No value from a licensed database (process-library#313). Thermochemistry from NBS 1982 and CoolProp
+    8.0.0.
 generation:
   tier: 0
-  method: 'Tier 0 stoichiometric screening: stoichiometry with the sourced dryer dust; dryer heat estimated
-    from a sourced cake moisture with an ASSUMED efficiency; no crystallizer heat (sourced); electricity
-    from core''s default (no Tier 1: electricity and the yield are not sourced)'
+  method: 'Tier 0 stoichiometric screening: stoichiometry with the sourced dryer dust; heat rejected from evaluated
+    enthalpies of formation; dryer heat estimated from a sourced cake moisture with an ASSUMED efficiency; no
+    crystallizer heat (sourced); electricity an ASSUMED analogue (no Tier 1: electricity and the yield are not
+    sourced for ammonium sulfate)'
   maturity_cap: sourced
   pedigree_floor:
   - 4
@@ -296,32 +434,34 @@ generation:
   components:
     product:ammonium-sulfate: H8N2O4S
     feed:ammonia: NH3
-    feed:sulfuric-acid: H2SO4
+    feed:sulfuric-acid: sulfuric-acid-98.5
+    feed:water: H2O
+    emission:H2O: H2O
     emission:PM: H8N2O4S
   formulas:
     product:ammonium-sulfate: H8N2O4S
     feed:ammonia: NH3
-    feed:sulfuric-acid: H2SO4
+    feed:sulfuric-acid: (H2SO4)12(H2O)
+    feed:water: H2O
+    emission:H2O: H2O
     emission:PM: H8N2O4S
   balance:
     closed: true
     tolerance: 1.0e-06
     elements:
       H:
-      - 61.030176033
-      - 61.030176033
+      - 62.799163921
+      - 62.799163921
       N:
       - 212.016288616
       - 212.016288616
       O:
-      - 484.336203551
-      - 484.336203551
+      - 498.374912482
+      - 498.374912482
       S:
       - 242.6373318
       - 242.6373318
     outside:
     - feed:electricity
     - feed:steam
-  defaults: cheme tier-defaults 1.0.0
-  defaults_used:
-  - electricity
+    - output:cooling-water

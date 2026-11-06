@@ -3,11 +3,16 @@
 # docs/benchmarks.md. Ranges are facts from the cited source, in our own form.
 #
 # ammonium-nitrate-1, how independent they are:
-# - The AN feed KPIs are a real check of the stoichiometry: the datasets do not use the reference's
-#   213 and 789 kg/t, they calculate the feeds from NH3 + HNO3 -> NH4NO3 and the sourced losses.
-#   The reference is one licensor's expected figures for new plants, quoted in the same BREF.
-# - The electricity and steam KPIs are not independent: the datasets take the midpoint of the
-#   same ranges. They are bound so that a later change of the dataset is checked.
+# - The AN feed KPIs check only that the stoichiometry is applied (a formula and transcription
+#   check): the reference's 213 and 789 kg/t are themselves within 0.2 % of the stoichiometric
+#   212.8 and 787.2 kg/t, so any dataset that applies NH3 + HNO3 -> NH4NO3 matches them, whatever
+#   its losses. The datasets do not take the numbers from the reference. The reference is one
+#   licensor's expected figures for new plants, quoted in the same BREF.
+# - Solid AN electricity and steam record no_open_reference: the only open figures are the EFMA
+#   ranges the dataset takes its midpoints from, and a range made of them would only check the
+#   transcription (the rule of npk-np-specific-electricity; review 2026-11-06).
+# - CAN electricity and steam are bound to the one plant figure of the same table (AMI Linz),
+#   which the dataset does not use, so they are independent of it; both are explained.
 # - A total energy KPI for solid AN (0.09 to 0.22 GJ/t for modern plants, infoMil 2001 in BREF
 #   Table 9.3) is not bound: the steam is in kg and an expression cannot add kg to kWh
 #   (docs/benchmarks.md). By hand, 42.5 kWh and 25 kg of steam at about 2 MJ/kg give about
@@ -67,52 +72,52 @@ kpis:
   an-specific-electricity:
     title: Electricity per t of solid ammonium nitrate
     unit: kWh/t
+    no_open_reference: >-
+      No open source independent of the dataset found (2026-11-06). The open figure for solid AN
+      is the EFMA (2000) range for a new AN facility, 25 to 60 kWh/t, in LVIC-AAF BREF Table 9.3,
+      p. 370, and the dataset takes its midpoint, so a range made of it would only check the
+      transcription. Table 9.8 (p. 378) gives electricity for the AN solution section only, not
+      for solid AN. US EPA AP-42 section 8.3 and its background report give emissions only.
+  an-specific-steam:
+    title: Steam imported per t of solid ammonium nitrate
+    unit: kg/t
+    no_open_reference: >-
+      No open source independent of the dataset found (2026-11-06). The open figure for solid AN
+      is the EFMA (2000) range of 0 to 50 kg/t in LVIC-AAF BREF Table 9.3, p. 370, and the dataset
+      takes its midpoint, so a range made of it would only check the transcription. Table 9.8
+      (p. 378) gives the steam balances of the neutraliser types, not the import of a solid AN
+      plant.
+  can-specific-electricity:
+    title: Electricity per t of calcium ammonium nitrate
+    unit: kWh/t
     references:
-      - id: bref-lvic-aaf-an-solid-electricity
-        range: [25, 60]
+      - id: bref-lvic-aaf-can-electricity-ami-linz
+        range: [13.2, 13.2]
         basis: unallocated
-        note: Not independent of the dataset, which takes the midpoint of this range.
-        conditions: {technology: "new solid AN facility (EFMA 2000)", product: solid AN, region: EU}
+        note: >-
+          One plant's reported figure, recorded as a zero-width range and not widened. The dataset
+          does not use it: it takes the midpoint of the EFMA/infoMil range of 10 to 50 kWh/t in the
+          same table.
+        conditions: {technology: "CAN plant, AMI Linz (663000 t CAN in 2000)", product: CAN, region: AT, year: 2000}
         source: &bref-t93
           citation: "European Commission, JRC/EIPPCB (2007) Reference Document on Best Available Techniques for the Manufacture of Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF BREF), August 2007"
           url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/lvic_aaf.pdf
           locator: Section 9.3, Table 9.3, p. 370
           kind: bref
-          accessed: "2026-11-05"
-  an-specific-steam:
-    title: Steam imported per t of solid ammonium nitrate
-    unit: kg/t
-    references:
-      - id: bref-lvic-aaf-an-solid-steam
-        range: [0, 50]
-        basis: unallocated
-        note: Not independent of the dataset, which takes the midpoint. The source does not state the pressure.
-        conditions: {technology: "solid AN plants (EFMA 2000)", product: solid AN, region: EU}
-        source: *bref-t93
-  can-specific-electricity:
-    title: Electricity per t of calcium ammonium nitrate
-    unit: kWh/t
-    references:
-      - id: bref-lvic-aaf-can-electricity
-        range: [10, 50]
-        basis: unallocated
-        note: >-
-          Not independent of the dataset, which takes the midpoint. One plant in the same table
-          (AMI Linz) reports 13.2 kWh/t, inside the range.
-        conditions: {technology: "CAN plants, filler grinding included (EFMA 2000, infoMil 2001)", product: CAN, region: EU}
-        source: *bref-t93
+          accessed: "2026-11-06"
   can-specific-steam:
     title: Steam per t of calcium ammonium nitrate
     unit: kg/t
     references:
-      - id: bref-lvic-aaf-can-steam
-        range: [150, 200]
+      - id: bref-lvic-aaf-can-steam-ami-linz
+        range: [13, 13]
         basis: unallocated
         note: >-
-          Not independent of the dataset, which takes the midpoint. One plant in the same table
-          (AMI Linz) reports 13 kg/t, far below it; the source does not say why (autothermal
+          One plant's reported figure, recorded as a zero-width range and not widened. The dataset
+          does not use it: it takes the midpoint of the EFMA/infoMil range of 150 to 200 kg/t in the
+          same table. The source does not say why AMI Linz is so far below that range (autothermal
           granulation, section 9.4.5, is one reading).
-        conditions: {technology: "CAN plants (EFMA 2000, infoMil 2001)", product: CAN, region: EU}
+        conditions: {technology: "CAN plant, AMI Linz (663000 t CAN in 2000)", product: CAN, region: AT, year: 2000}
         source: *bref-t93
   npk-np-specific-electricity:
     title: Electricity per t of NPK, nitrophosphate route
@@ -197,7 +202,8 @@ kpis:
       Ammonium Sulphate, State of the Art and New Developments (ResearchGate, HTTP 403); CRU/BC Insight
       articles (paywalled). A web search (2026-11-05) found only university plant-design theses that
       state an installed electrical load in kVA. That is not consumption, so they were not used. The
-      dataset's value is core's Tier 0 default, ASSUMED.
+      dataset's value is an ASSUMED analogue, the midpoint of the solid AN range of LVIC-AAF BREF Table 9.3
+      (25 to 60 kWh/t), not a check.
   as-specific-steam-heat:
     title: Steam, as heat delivered, per t of ammonium sulfate
     unit: kWh/t
@@ -224,31 +230,39 @@ datasets:
         per: product:ammonium-nitrate
         reference: bref-lvic-aaf-an-nitric-acid-new-plants
         out_of_range_reason: "The dataset's 0.7873 t/t is stoichiometry plus the dust loss. The reference's 0.789 implies about 0.2 % more acid, which the dataset does not have because nitric acid losses to air and water are not quantified per t in the source (a TODO exclusion of the dataset)."
-      an-specific-electricity: {expression: feed:electricity / product:ammonium-nitrate, per: product:ammonium-nitrate, reference: bref-lvic-aaf-an-solid-electricity}
-      an-specific-steam: {expression: feed:steam / product:ammonium-nitrate, per: product:ammonium-nitrate, reference: bref-lvic-aaf-an-solid-steam}
+      an-specific-electricity: {expression: feed:electricity / product:ammonium-nitrate, per: product:ammonium-nitrate}
+      an-specific-steam: {expression: feed:steam / product:ammonium-nitrate, per: product:ammonium-nitrate}
   - process: ammonium-nitrate-1
     dataset: calcium-ammonium-nitrate-granulation
     conditions: {technology: neutralisation and granulation with limestone filler, feed: 60 wt% nitric acid, product: CAN about 27 % N, basis: conceptual inventory}
     kpis:
-      can-specific-electricity: {expression: feed:electricity / product:calcium-ammonium-nitrate, per: product:calcium-ammonium-nitrate, reference: bref-lvic-aaf-can-electricity}
-      can-specific-steam: {expression: feed:steam / product:calcium-ammonium-nitrate, per: product:calcium-ammonium-nitrate, reference: bref-lvic-aaf-can-steam}
+      can-specific-electricity:
+        expression: feed:electricity / product:calcium-ammonium-nitrate
+        per: product:calcium-ammonium-nitrate
+        reference: bref-lvic-aaf-can-electricity-ami-linz
+        out_of_range_reason: "30 kWh/t, the midpoint of the EFMA/infoMil range of 10 to 50 kWh/t (BREF Table 9.3) for CAN plants with filler grinding; AMI Linz, one plant of the same table, is near the low end of that range. The dataset represents the range, not one plant."
+      can-specific-steam:
+        expression: feed:steam / product:calcium-ammonium-nitrate
+        per: product:calcium-ammonium-nitrate
+        reference: bref-lvic-aaf-can-steam-ami-linz
+        out_of_range_reason: "175 kg/t, the midpoint of the EFMA/infoMil range of 150 to 200 kg/t (BREF Table 9.3); AMI Linz reports 13 kg/t, more than ten times less, without a stated reason (autothermal granulation, BREF 9.4.5, is one reading). The dataset represents the range, not one plant, so it may overstate the steam of a plant like AMI Linz."
   - process: npk-fertilizers-1
     dataset: npk-nitrophosphate-odda
-    conditions: {technology: "nitrophosphate route with CNTH conversion, model rock 36.5 % P2O5 (Moroccan proportions)", product: NPK 15-15-15, basis: stoichiometric screening}
+    conditions: {technology: "nitrophosphate route with CNTH conversion, model rock 33.6 % P2O5 (Khouribga, as phosphoric-acid-1)", product: NPK 15-15-15, basis: stoichiometric screening}
     kpis:
       npk-np-specific-electricity: {expression: feed:electricity / product:npk, per: product:npk}
       npk-np-calcium-carbonate:
         expression: product:calcium-carbonate / ( product:npk * 0.15 )
         reference: efma-2000-npk-np-caco3
-        out_of_range_reason: "2.22 t/t, 1 % above the source's rounded 'around 2.2': the dataset takes the typical CaO/P2O5 of 0.25 in the NP solution and a model rock (all CO2 as calcite); the source's value depends on the rock and the cooling temperature."
+        out_of_range_reason: "2.30 t/t, 4 % above the source's rounded 'around 2.2': the dataset takes the typical CaO/P2O5 of 0.25 in the NP solution and the Khouribga model rock (51.6 % CaO); the source's value depends on the rock and the cooling temperature."
       npk-np-co2-conversion:
         expression: feed:carbon-dioxide / ( product:npk * 0.15 )
         reference: efma-2000-npk-np-co2
-        out_of_range_reason: "0.98 t/t, 2.5 % below the source's rounded 'around 1.0': one CO2 per CaCO3 by stoichiometry (see npk-np-calcium-carbonate); the source does not state the CO2 purity or losses."
+        out_of_range_reason: "1.01 t/t, 1 % above the source's rounded 'around 1.0': one CO2 per CaCO3 by stoichiometry (see npk-np-calcium-carbonate); the source does not state the CO2 purity or losses."
       npk-np-phosphate-rock:
         expression: feed:phosphate-rock / ( product:npk * 0.15 )
         reference: efma-2000-npk-np-rock
-        out_of_range_reason: "2.74 t/t against about 3.5: the dataset's model rock carries only apatite, calcite and quartz (36.5 % P2O5), so it is lighter than real rock (Khouribga 33.4 % P2O5 would give 2.99 t/t), and the source's plant takes a leaner rock (about 28.6 %). A known limit of the Tier 0 model (dataset parameter M_R)."
+        out_of_range_reason: "2.98 t/t against about 3.5: the dataset's model rock is the Khouribga rock of BREF Table 5.2 (33.6 % P2O5 as modelled, 33.4 % in the analysis, which would give 2.99 t/t), while the source's plant takes a leaner rock (about 28.6 % P2O5). The rock grade differs, not the stoichiometry (dataset parameter M_R)."
   - process: ammonium-sulfate-1
     dataset: ammonium-sulfate-neutralisation
     conditions: {technology: "synthetic, saturator-crystallizer with rotary dryer and wet scrubber", basis: conceptual inventory}
