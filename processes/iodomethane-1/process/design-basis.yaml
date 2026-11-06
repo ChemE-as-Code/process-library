@@ -1,0 +1,57 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Iodomethane from methanol, red phosphorus and iodine, a batch plant, issue
+# ChemE-as-Code/process-library#163. Values marked ASSUMED are engineering choices of this
+# concept study, not client or licensor data; every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: distilled iodomethane to storage at the battery limit
+  iodomethane_t_per_year: 500          # ASSUMED (D-002): a fine-chemical batch scale, no open market figure used
+  operating_hours_per_year: 7920       # ASSUMED (D-002): 330 days of 24 h, batch operation
+  batch_kg: 1453.39                    # ASSUMED (D-003): one batch of distilled product every 23.0 h
+  batches_per_year: 344.0              # from the recipe (process/recipe.yaml, D-003)
+feeds:
+  - name: Methanol (methanol-1)
+    source_of_values: "methanol-1's product: 0.999111 mol methanol, 500 ppm water by mass (D-004); 3.319 mol per mol of iodine (CN 114195616 B, Example 1)"
+    composition: "methanol 99.95 wt%, water 0.05 wt%"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Red phosphorus (merchant; no library producer)
+    source_of_values: "ASSUMED 100 % (the patent's 98.5-99 % grade, impurities not modelled); 0.8496 mol per mol of iodine (CN 114195616 B, Example 1; D-004)"
+    composition: "phosphorus (red) 100 %"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Iodine (iodine-1)
+    source_of_values: "iodine-1's product: 99.8 wt% I2, 0.2 wt% water (D-004); dosed as a solid through a closed feeder"
+    composition: "iodine 99.8 wt%, water 0.2 wt%"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Sodium thiosulfate solution, 5 wt% (merchant thiosulfate in process water)
+    source_of_values: ASSUMED (D-008)
+  - name: Process water (washes)
+    source_of_values: ASSUMED (D-008)
+products:
+  - name: Iodomethane
+    purity: "99.6 wt% (calibrated to CN 114195616 B, Example 3: Examples 1-3 give 99.5 to 99.7 %), 0.40 wt% methanol and 41 ppm water in the model (D-010); the source gives water below 80-200 ppm"
+    delivery: {temperature_K: 283.15, pressure_kPa_a: 101.325, battery_limit: dark storage under nitrogen}
+  - name: Phosphorous acid residue to treatment
+    note: "phosphorous acid with methanol, unreacted red phosphorus, 1.2 mol% iodomethane and some iodine; 0.31 kg per kg of product; its use or treatment is not described by the source (D-007, D-013)"
+  - name: Final still residue to hazardous-waste incineration
+    note: "iodomethane, methanol and water, 16 g per kg of product (D-010)"
+  - name: Wash liquors to wastewater treatment
+    note: "water with methanol, sodium thiosulfate, iodide and tetrathionate and dissolved iodomethane, 0.75 kg per kg of product (D-008)"
+utilities:
+  - {name: Electric power, use: "agitators of R-101, V-102 and C-104, the iodine feeder, the loop and transfer pumps, the vent fan (D-011)"}
+  - {name: LP steam, pressure_kPa_a: 350, use: "the pressurised hot-water loops of R-101 and C-104 at 363.15/358.15 K (D-011)", note: ASSUMED}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "the overhead condenser E-101, the column's condenser, the residues' cooling", note: ASSUMED}
+  - {name: Chilled water, supply_K: 278.15, return_K: 283.15, use: "R-101's jacket during the dosing", note: ASSUMED}
+  - {name: Chilled brine, supply_K: 258.15, return_K: 263.15, use: "the vent condenser E-102 and the product subcooler E-105", note: ASSUMED}
+  - {name: Nitrogen, use: "inerting R-101 and the phosphorus tank, blanketing the work-up (per batch, lca/lca.yaml)", note: ASSUMED}
+site:
+  location: ASSUMED generic fine-chemicals site with methanol and iodine supply, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Route of CN 114195616 B (Examples 1-3): red phosphorus and methanol, iodine, the reaction at total reflux at 39-45 C, the crude distilled off up to 90 C, washed with sodium thiosulfate solution and water, dried over calcium chloride and a 4A molecular sieve, distilled (D-001)."
+  - "By-product phosphorous acid (6 CH3OH + 2 P + 3 I2 -> 6 CH3I + 2 H3PO3), not the phosphoric acid the patent writes (D-004)."
+  - "The iodine is dosed as a solid over 10 h through a closed feeder, not carried in by the reflux through an iodine tank as in the source (D-004)."
+  - "ASSUMED rate law, first order in iodine and of order 2/3 in the red phosphorus, k 5.1e-4 (m3/kmol)^(2/3)/s at 316 K, Ea 60 kJ/mol; heat of reaction -540 kJ per 3 mol iodine from CRC formation enthalpies (D-005)."
+  - "First still (in R-101): constant relative volatility, iodomethane 6 to methanol (ASSUMED); final still: Raoult's law with NIST Antoine constants and a column as a specified split calibrated to the source's 99.6 % (D-007, D-010)."
+  - "Washes and drying are specified splits: methanol distribution 5, iodomethane at its water solubility, the organic saturated with 0.1 wt% water, dried to 100 ppm (D-008, D-009)."
+  - "All flows are year averages of the recipe (D-003); the duties and power concept estimates (scripts/balance.py, D-011); accuracy +/-30 % not demonstrated."

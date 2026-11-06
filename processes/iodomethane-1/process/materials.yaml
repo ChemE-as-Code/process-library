@@ -1,0 +1,92 @@
+# Components and templates of iodomethane-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol (IUPAC 2021
+# standard atomic weights applied to the formula), normal_boiling_point in K at 101.325 kPa.
+#
+# Property sources (DESIGN.md source register SRC-3 to SRC-6):
+# - normal boiling points, liquid densities, liquid and solid heat capacities from the CRC
+#   Handbook tables packaged in the `chemicals` 1.5.2 package (chemicals.miscdata.CRC_organic_data,
+#   CRC_inorganic_data, chemicals.heat_capacity.CRC_standard_data), not the printed handbook;
+#   iodomethane's and methanol's boiling points agree with the NIST WebBook (315.7 +/- 0.2 K and
+#   337.8 +/- 0.3 K, averages);
+# - Antoine constants and heats of vaporization from the NIST Chemistry WebBook, SRD 69:
+#   log10(P/bar) = A - B/(T/K + C), each fitted by NIST (iodomethane above its boiling point and
+#   iodine to Stull 1947; methanol to Ambrose and Sprake 1970; water to Stull 1947); heats of
+#   vaporization in kJ/kmol (NIST's kJ/mol times 1000);
+# - red phosphorus's density 2.34 g/cm3 (HSDB via PubChem CID 5462309), iodomethane's water
+#   solubility (HSDB via PubChem CID 6328) and iodine's solubility in methanol (HSDB via PubChem
+#   CID 807) are used in scripts/balance.py, not here.
+# The liquid data the semi-batch R101 needs (DESIGN.md D-005):
+# - liquid_molar_volume, m3/kmol, at R101's 316.15 K: the molar mass over the density (CRC:
+#   methanol 791.42, iodomethane 2278.92 kg/m3), each raised by 2 % for the 18 K above about 298 K
+#   (ASSUMED, a thermal expansion of about 0.1 %/K); red phosphorus (a solid in the slurry, as
+#   methylmagnesium-bromide-1 takes magnesium) from 2340 kg/m3; iodine from the solid's 4933 kg/m3
+#   (CRC), ASSUMED as its partial volume dissolved; phosphorous acid from the solid's 1650 kg/m3
+#   (CRC), ASSUMED as its partial volume in the solution; water 991 kg/m3. Ideal mixing.
+# - liquid_heat_capacity, kJ/(kmol K): methanol 81.1, iodomethane 126.0, water 75.3 (CRC liquid);
+#   iodine 54.4 and phosphorus 23.8 (CRC solid; the white form's value taken for red phosphorus,
+#   ASSUMED); phosphorous acid 110 (ASSUMED, as acetyl-chloride-1: no open liquid value).
+# - iodine dissolves as it enters (D-004): the dose is the iodine the reflux carries in.
+# The stills ST101 and ST102 (core ADR 0055, Raoult's law, an ideal liquid ASSUMED, DESIGN.md
+# D-007, D-010): iodomethane's NIST fit for 315.6 to 521 K is the one used (both stills run
+# above its normal boiling point; the script takes NIST's 218 to 315.6 K fit for the vent
+# condenser at 278 K); iodine's fit (Stull, 311.9 to 456 K) spans the solid's sublimation and the
+# liquid; phosphorus, phosphorous acid and the sodium salts are non-volatile.
+# The wash salts (D-008) need no liquid data in core: they appear only in the conversion step W101
+# and the specified splits; their heat capacities are ASSUMED orders for the script's mixing
+# temperatures.
+schema: cheme/process/v1
+kind: materials
+components:
+  - id: MEOH
+    name: Methanol
+    formula: CH4O
+    cas: 67-56-1
+    molar_mass: 32.042
+    normal_boiling_point: 337.8
+    liquid_molar_volume: 0.04130
+    liquid_heat_capacity: 81.1
+    heat_of_vaporization: 35210
+    vapour_pressure: {a: 5.20409, b: 1581.341, c: -33.50, temperature_range: [288.1, 356.83], provenance: given, source: "NIST WebBook (C67561), coefficients calculated by NIST from Ambrose and Sprake (1970)"}
+  - id: MEI
+    name: Iodomethane (methyl iodide)
+    formula: CH3I
+    cas: 74-88-4
+    molar_mass: 141.939
+    normal_boiling_point: 315.7
+    liquid_molar_volume: 0.06353
+    liquid_heat_capacity: 126.0
+    heat_of_vaporization: 28410
+    vapour_pressure: {a: 4.14897, b: 1223.831, c: -20.179, temperature_range: [315.6, 521.0], provenance: given, source: "NIST WebBook (C74884), coefficients calculated by NIST from Stull (1947), the fit above the normal boiling point"}
+  - id: I2
+    name: Iodine (dissolved)
+    formula: I2
+    cas: 7553-56-2
+    molar_mass: 253.808
+    normal_boiling_point: 457.55
+    liquid_molar_volume: 0.05145
+    liquid_heat_capacity: 54.4
+    heat_of_vaporization: 62400
+    vapour_pressure: {a: 3.36429, b: 1039.159, c: -146.589, temperature_range: [311.9, 456.0], provenance: given, source: "NIST WebBook (C7553562), coefficients calculated by NIST from Stull (1947); heat_of_vaporization: the heat of sublimation of the solid at 298 K, CRC via chemicals 1.5.2 (62.4 kJ/mol), ASSUMED for the dissolved iodine"}
+  - {id: P, name: Phosphorus (red), formula: P, cas: 7723-14-0, molar_mass: 30.974, phase: solid, liquid_molar_volume: 0.013237, liquid_heat_capacity: 23.8}
+  - {id: H3PO3, name: Phosphorous acid (phosphonic acid), formula: H3O3P, cas: 13598-36-2, molar_mass: 81.996, liquid_molar_volume: 0.04969, liquid_heat_capacity: 110.0}
+  - id: H2O
+    name: Water
+    formula: H2O
+    cas: 7732-18-5
+    molar_mass: 18.015
+    normal_boiling_point: 373.12
+    liquid_molar_volume: 0.01818
+    liquid_heat_capacity: 75.3
+    heat_of_vaporization: 40660
+    vapour_pressure: {a: 4.6543, b: 1435.264, c: -64.848, temperature_range: [255.9, 373.0], provenance: given, source: "NIST WebBook (C7732185), coefficients fitted by NIST to Stull (1947)"}
+  - {id: NA2S2O3, name: Sodium thiosulfate (dissolved), formula: Na2O3S2, cas: 7772-98-7, molar_mass: 158.097, liquid_heat_capacity: 145.0}
+  - {id: NAI, name: Sodium iodide (dissolved), formula: INa, cas: 7681-82-5, molar_mass: 149.894, liquid_heat_capacity: 52.1}
+  - {id: NA2S4O6, name: Sodium tetrathionate (dissolved), formula: Na2O6S4, cas: 13721-29-4, molar_mass: 270.214, liquid_heat_capacity: 200.0}
+templates:
+  - {id: liquor, title: "Methanol, red phosphorus, iodine, iodomethane, phosphorous acid, water", components: [MEOH, P, I2, MEI, H3PO3, H2O]}
+  - {id: crude, title: "Crude iodomethane: iodomethane, methanol, water, iodine (the residue's phosphorus and phosphorous acid listed, at zero)", components: [MEI, MEOH, H2O, I2, P, H3PO3]}
+  - {id: aqueous, title: "Wash liquors: water, sodium thiosulfate, sodium iodide, sodium tetrathionate, methanol, iodomethane", components: [H2O, NA2S2O3, NAI, NA2S4O6, MEOH, MEI, I2, P, H3PO3]}
+  - {id: vent, title: "Vent: iodomethane vapour (with the nitrogen, not modelled)", components: [MEI]}
+property_method:
+  adapter: thermo
+  status: placeholder
