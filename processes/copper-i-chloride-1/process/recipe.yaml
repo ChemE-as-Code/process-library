@@ -1,0 +1,60 @@
+# The batch recipe of copper-i-chloride-1 (schema cheme/recipe/v1, `cheme process recipe`,
+# DESIGN.md D-003). One batch makes BATCH kg of dried CuCl (stream S29); the flowsheet's rates
+# are the year averages.
+# - R-101 is one vessel over M101 (the brine charged over the fresh copper and the heel), E101
+#   (the charge heated), R101 (the semi-batch: chlorine dosed below the surface), E102 (the
+#   liquor cooled) and SS101 (the liquor drawn off through the bottom strainer, the heel kept):
+#   `units`, core ADR 0057. Dosing and post-reaction come from R101's model (from: R101), the
+#   heat-up and the cool-down from the jacket (temperatures); the vessel is sized from R101's
+#   model and its jacket checked against the model's peak duty (core ADR 0052).
+# - P-101 holds CR101 (the dilution precipitation) and DC101 (settling and decanting); it is no
+#   batch model, so core does not size it: its volume is given from one batch's slurry (D-003).
+# - F-101, an agitated filter-dryer, is one vessel over F101, W101, F102, M103, F103 and D101:
+#   its filtrations take Ruth's time from the filters' filtration data and its drying the time
+#   D101's drying rate gives on its heated area (core ADR 0057).
+# Every other duration is ASSUMED (D-003). `cheme process recipe --svg build/gantt.svg` draws one
+# batch.
+schema: cheme/recipe/v1
+kind: recipe
+title: CuCl by semi-batch chlorination of copper in brine and dilution precipitation
+batch_size: {value: 355.0, unit: kg, stream: S29, provenance: assumed, source: "one batch of dried CuCl: 300 t/a over 846 batches, 37.899 kg/h x the 9.367 h cycle (D-002, D-003)"}
+hours_per_year: {value: 7920, provenance: assumed, source: "330 days of 24 h (D-002)"}
+unit_procedures:
+  - id: CHLORINATE
+    units: [M101, E101, R101, E102, SS101]
+    title: Charge, heat, dose chlorine, post-react, cool and draw off the liquor (R-101)
+    vessel:
+      fill_fraction: 0.8
+      aspect_ratio: 1.2
+      jacket: {u: 300, coolant_temperature: 303.32, heating_temperature: 412.0, provenance: assumed, source: "glass-lined steel vessel, U 300 W/(m2 K); cooling water enters the jacket at 298.15 K and leaves at 308.15 K, so the liquor at 353.15 K sees a log-mean driving force of (55 - 45) / ln(55/45) = 49.83 K: core takes the coolant temperature as constant, so the equivalent mean 353.15 - 49.83 = 303.32 K is entered, not the supply temperature; LP steam at 412 K to heat (D-003, D-009)"}
+      provenance: assumed
+      source: "usual fill and proportions of a glass-lined stirred vessel; sized by core from R101's model (D-003)"
+    operations:
+      - {id: inert, kind: other, title: Nitrogen purge, duration: {value: 0.25, provenance: assumed, source: D-003}}
+      - {id: charge, kind: charge, title: Charge the brine and the fresh copper over the heel, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: heat, kind: heat, title: Heat to 353 K (E101), temperatures: [294.87, 353.15]}
+      - {id: dose, kind: dose, title: Dose the chlorine, from: R101}
+      - {id: react, kind: react, title: Post-reaction, from: R101}
+      - {id: cool, kind: cool, title: Cool to 308 K (E102), temperatures: [353.15, 308.15]}
+      - {id: transfer, kind: transfer, title: Draw the liquor off through the strainer to P-101, duration: {value: 1.0, provenance: assumed, source: D-003}}
+  - id: PRECIPITATE
+    units: [CR101, DC101]
+    title: "Receive the liquor into the dilution water, settle, decant (P-101)"
+    operations:
+      - {id: hold, kind: hold, title: Receive the liquor and hold (CR101) while the crystals settle (DC101), duration: {value: 1.0, provenance: assumed, source: D-003}}
+      - {id: transfer, kind: transfer, title: Decant the clear liquor and send the thickened slurry to F-101, duration: {value: 1.0, provenance: assumed, source: D-003}}
+      - {id: clean, kind: clean, title: Rinse, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: charge, kind: charge, title: Charge the next dilution water, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: inert, kind: other, title: Sparge the water with nitrogen, duration: {value: 0.5, provenance: assumed, source: D-003}}
+  - id: ISOLATE
+    units: [F101, W101, F102, M103, F103, D101]
+    title: Filter, acid wash, ethanol wash and dry in the filter-dryer (F-101)
+    vessel: {fill_fraction: 0.8, aspect_ratio: 1.0, heated_area: 2.5, provenance: assumed, source: "a squat agitated filter-dryer, its filter plate the bottom; jacket and heated agitator about 2.5 m2 for the 1 m3 size, ASSUMED (D-008)"}
+    operations:
+      - {id: filter, kind: filter, title: Filter the mother liquor (F101), from: F101}
+      - {id: wash1, kind: other, title: Reslurry in dilute HCl (W101), duration: {value: 0.5, provenance: assumed, source: D-007}}
+      - {id: refilter1, kind: filter, title: Filter the acid wash (F102), from: F102}
+      - {id: wash2, kind: other, title: Ethanol on the cake (M103), duration: {value: 0.25, provenance: assumed, source: D-007}}
+      - {id: refilter2, kind: filter, title: Drain the ethanol (F103), from: F103}
+      - {id: dry, kind: dry, title: Vacuum drying at 333 K (D101), from: D101}
+      - {id: discharge, kind: transfer, title: Cool and discharge under nitrogen, duration: {value: 1.0, provenance: assumed, source: D-003}}
