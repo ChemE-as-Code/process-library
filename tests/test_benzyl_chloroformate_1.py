@@ -400,9 +400,9 @@ def test_benzyl_alcohol_links_benzyl_alcohol_1(fs, comps):
     assert feeds["feed:BNOH"] == made[link["product"]] == "benzyl-alcohol"
     # the purity difference is recorded as a proxy: S1 is pure in the model, the product 99.8 wt%
     assert _stream(fs, "S1")["state"]["design"]["composition"]["values"] == {"BNOH": 1.0}
-    assert "at least 99.8 wt%" in product["title"]
-    gap = 1.0 - 0.998
-    assert f"{gap:.1%}" == "0.2%"
+    # read the grade from the producer so a change of benzyl-alcohol-1's purity breaks the recorded 0.2 %
+    purity = float(re.search(r"at least ([\d.]+) wt%", product["title"]).group(1))
+    assert f"{100 - purity:.1f}" == "0.2"
     design = _text("DESIGN.md")
     assert "Linked as a proxy for the dry alcohol: up to 0.2 % of the alcohol's burden is not counted" in design
     assert "up to 0.2 %" in mappings["feed:BNOH"]["source"]
