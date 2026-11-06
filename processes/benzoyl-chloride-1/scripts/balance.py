@@ -65,7 +65,7 @@ T_MELT = 395.2  # K, benzoic acid (NIST WebBook, mean of 18 values)
 HVAP = {"BZCL": 49_600.0, "BA": 63_300.0, "BTC": 52_000.0}
 HEAT_OF_REACTION = -50_000.0  # kJ/kmol, BZCL with HCl as gas (reactions.yaml, ASSUMED, D-005)
 T_AMBIENT, T_REACT = 298.15, 413.15  # K (D-004, D-005)
-T_PRODUCT = 303.15  # K, to storage (D-008); the distillate's temperature is S9's
+T_PRODUCT = 308.15  # K, to storage: 10 K above the cooling water's 298.15 K supply (D-009); the distillate's temperature is S9's
 T_ACID = 313.15  # K, the acid leaving the absorber (D-010)
 MELTER_LOSSES = 0.10  # share of the melter's heat lost (D-009)
 

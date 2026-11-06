@@ -193,11 +193,11 @@ the crude holds (zero here, D-005) would leave first, to the vacuum system; no f
 since the model's crude has no component lighter than benzoyl chloride (the benzaldehyde of a
 benzal chloride impurity would make one, D-004).
 
-## D-008 Column K-101 on the still: 15 stages at reflux ratio 2 on core's batch shortcut (2026-11-05; the shortcut since core 1.10.0, 2026-11-06)
+## D-008 Column K-101 on the still: 15 stages at reflux ratio 2 on core's batch shortcut (2026-11-05; the shortcut since core 1.10.0, 2026-11-06; the trade against 20 stages and the product at 308 K recorded on review, 2026-11-06)
 Decision: the column on C-101, K-101, is ST101's `still.column` (core ADR 0061, Diwekar's batch
 shortcut on Fenske-Underwood-Gilliland): 15 theoretical stages, the still included, at a
 constant reflux ratio of 2, ASSUMED, with a total condenser (Q5) and the product cooler E-101
-(E101, Q7) to storage at 303 K. Result (`cheme process stills`): 252.53 kg/h of product, 99.9989
+(E101, Q7) to storage at 308 K (10 K above the cooling water's supply, D-009). Result (`cheme process stills`): 252.53 kg/h of product, 99.9989
 wt% benzoyl chloride with 11.0 ppm of benzotrichloride and below 0.01 ppm of benzoic acid; 97.31
 % of the crude's benzoyl chloride, 1.54 % of its benzotrichloride and none of its benzoic acid
 go over. The residue S13 is 16.24 kg/h (64 g per kg of product) to hazardous-waste incineration,
@@ -223,16 +223,33 @@ unchanged):
 The benzoyl chloride's recovery (97.31-97.34 %) is set by the residue's end, not by the column.
 The split K101 stood for until core 1.10.0 (about 5 stages at reflux 1, 2 % of the
 benzotrichloride over) is not what such a column does: the model sends 60 % of it over, 429 ppm
-in the product, 35 times the 12 ppm the split gave. The split was the finding (D-015). 15 stages
-at reflux 2 is the least boil-up of the cases scanned that keeps the design basis' product
-(D-002), 99.99 wt% with about 12 ppm of benzotrichloride, a carcinogen that SRC-1's product is
-free of; 10 stages at reflux 3 (the first estimate, ADR 0061's scratch copy) gives 31 ppm at a
-third more steam, 20 stages at reflux 1.5 a taller column for 17 % less. 14 stages above the
+in the product, 35 times the 12 ppm the split gave. The split was the finding (D-015). The
+design basis' product (D-002) is 99.99 wt% with about 12 ppm of benzotrichloride at most, a
+carcinogen that SRC-1's product is free of. Of the cases scanned with at most 15 stages, 15 at
+reflux 2 has the least boil-up that meets it (15 at reflux 1.5 gives 34 ppm, 10 at reflux 2 65
+ppm); 10 stages at reflux 3 (the first estimate, ADR 0061's scratch copy) gives 31 ppm at a third
+more steam. 20 stages at reflux 1.5 also meets it, with 8 ppm, at 17 % less boil-up: 61.9 against
+74.3 kW year average, 12.4 kW (0.049 kWh/kg, about 98 MWh a year) less LP steam and as much less
+heat to cooling water at the condenser, for 5 more theoretical stages, about 1.75 m more packing
+with its pressure drop and liquid holdup under vacuum. It is rejected below; the choice is a
+design trade, ASSUMED, not a result of the scan. 14 stages above the
 pot are about 5 m of structured packing under vacuum (HETP about 0.35 m, ASSUMED). The shortcut
 is conservative (a rigorous column at the same stages and reflux gives a purer distillate, core
 ADR 0061), so the column is not undersized by the model; it has no holdup, no pressure drop (the
 pot is a few mbar above the 5 kPa(a) at the top) and the volatilities of the still's
 temperature for the whole column.
+Rejected: 20 stages at reflux 1.5 (ASSUMED, on the reasoning, not on a cost estimate): 19
+stages above the pot are about 6.7 m of packing against 4.9 m, so K-101 is a third taller, with
+a third more pressure drop and holdup, which the shortcut does not model; a batch column's holdup
+blurs its separation, so the shortcut's 8 ppm at 20 stages is less certain than its number, and
+the pressure drop raises the pot's pressure and temperature (the pot ends at 396.9 K at the 5
+kPa(a) of the top, 24 K below the LP steam's 421 K, so the reboiler would not be limited). No
+equipment or steam cost is sourced at the concept stage, so the saving is not set against the
+taller column; the shorter column is kept and 20 stages at reflux 1.5 is the first change to
+take up when K-101 is sized with its pressure drop and holdup, or when the steam's cost or its
+weight in the LCA (D-012: LP steam 0.294 against 0.245 kWh/kg) is to be lowered. The still's
+time does not decide it: DISTIL is not the bottleneck (D-003), so the shorter boil-up (1.51
+against 1.81 h) does not shorten the cycle.
 Rejected: the specified split (D-015); a product cut to a `purity` end with an off-cut: the one
 cut to the residue's end meets the specification on its mean, so an off-cut would only add a
 stream to burn or recycle (with a tighter benzotrichloride specification it is the way, since the
@@ -240,7 +257,7 @@ distillate's benzotrichloride rises towards the end as the pot is depleted of be
 the residue's recycle with excess benzotrichloride (SRC-1, Example 2: from 92.6 % to 97.3 %): a
 variant, with a tear stream.
 
-## D-009 Utilities and heat (2026-11-05; the model duties 2026-11-06, core 1.9.0 and 1.10.0)
+## D-009 Utilities and heat (2026-11-05; the model duties 2026-11-06, core 1.9.0 and 1.10.0; the product cooler's approach 2026-11-06)
 Decision (year averages, all ASSUMED unless sourced; `calculated` where a core model writes the
 duty):
 - Q1 12.1 kW of MP steam 1100 kPa(a) to the melter (scripts/balance.py): benzoic acid from 298 K
@@ -268,9 +285,15 @@ duty):
   more steam now, since the column of D-008 needs reflux 2 for the product.
 - Q5 74.25 kW to cooling water, the column's total condenser, ST101's model (`calculated`,
   `still.condenser_port`, ADR 0061): the same latent heat out, no subcooling.
-- Q7 6.75 kW to cooling water, the product cooler E-101 (scripts/balance.py): the product from
-  375.5 K (benzoyl chloride's boiling point at 5 kPa(a), the column's top) to 303 K at 187 J/(mol
-  K). Until core 1.10.0 Q5 held the condenser and the cooler in one typed stream, 57.0 kW.
+- Q7 6.29 kW to cooling water, the product cooler E-101 (scripts/balance.py): the product from
+  375.5 K (benzoyl chloride's boiling point at 5 kPa(a), the column's top) to 308.15 K at 187
+  J/(mol K), 10 K above the cooling water's 298.15 K supply at the cooler's cold end, the minimum
+  approach that sets E-102's gas outlet too (D-010); the design basis' delivery is 308.15 K
+  (ASSUMED, to storage under nitrogen; no storage temperature limit of the product is sourced).
+  Until core 1.10.0 Q5 held the condenser and the cooler in one typed stream, 57.0
+  kW, the product to 303 K, 5 K above the cooling water's supply, an approach below the minimum
+  that the separate cooler made visible (review of the core 1.10.0 change, 2026-11-06); a 303 K
+  delivery would need chilled water or a 5 K approach, neither of which the design basis gives.
 - Electricity 7 kW: agitators of M-101 (1 kW) and R-101 (3 kW), P1; the still's agitator (1 kW)
   and a dry vacuum pump (5 kW while distilling, about 40 % of the time), P2.
 Not counted: the still's heat-up (the crude arrives above its bubble point, D-007), the vessels'
@@ -286,7 +309,7 @@ the reflux condenser E-102 on cooling water (`vent.condenser`), whose gas outlet
 condensate returns to R-101. Over the year the HCl (0.924 kmol/h) carries 0.131 kmol/h of vapour
 off the liquid (0.121 kmol/h of it benzoyl chloride; 0.189 of the gas over the liquid at the end
 of the batch), E-102 returns all but 1.3 mol/h, and the off-gas S6 to A-101 is 33.86 kg/h with
-0.53 mol% of organics (0.18 kg/h of benzoyl chloride, 0.07 % of the product). It is absorbed in
+about 0.54 wt% (0.14 mol%) of organics (0.18 kg/h of benzoyl chloride, 0.07 % of the product). It is absorbed in
 process water to 30 wt% hydrochloric acid in A-101, a falling-film absorber with a water tail
 scrubber (a mixer in the model, all HCl and all organics taken up): 78.58 kg/h of water, 112.44
 kg/h of acid (0.445 kg per kg of product, 29.95 wt% HCl beside the organics), the acid at 313 K;
@@ -392,7 +415,7 @@ link (library ADR 0026).
 Per kg of benzoyl chloride: benzotrichloride 0.716 kg (stoichiometric 0.695), benzoic acid
 0.479 kg (0.434), ZnCl2 3.6 g, process water 0.311 kg, nitrogen 8.1 g, electricity 0.028 kWh,
 MP steam 0.048 kWh, LP steam 0.294 kWh (Q4, the reboiler at reflux 2, D-009), cooling water
-0.405 kWh removed (Q2, Q3, Q5, Q7, Q8); out: 30 wt% acid 0.445 kg (0.133 kg HCl, 0.7 g of
+0.403 kWh removed (Q2, Q3, Q5, Q7, Q8); out: 30 wt% acid 0.445 kg (0.133 kg HCl, 0.7 g of
 benzoyl chloride, D-010), residue 0.064 kg. Not counted: the vents (emission_exclusions). Until
 core 1.10.0: benzotrichloride 0.715 kg, LP steam 0.199 kWh (Q4 and Q6), cooling water 0.310 kWh,
 acid 0.444 kg (D-015).
@@ -480,7 +503,7 @@ Where the model disagrees with the hand values, and what was decided:
   stated stages and reflux is more credible than a split chosen to give a purity, so the model is
   adopted and the column redesigned to the design basis' product: 15 stages at reflux 2 (D-008's
   scan). Consequences: the reboiler's year average rises from 50.20 to 74.25 kW (LP steam 0.199 to
-  0.294 kWh/kg), the condenser's (with the cooler) from 57.04 to 81.01 kW, the boil-up from 1.22 to
+  0.294 kWh/kg), the condenser's (with the cooler) from 57.04 to 80.54 kW (the product now cooled to 308 K, D-009), the boil-up from 1.22 to
   1.81 h (DISTIL 3.22 to 3.81 h, still below R-101's 4.87 h cycle); the product from 99.993 to
   99.9989 wt% (benzotrichloride 12.4 to 11.0 ppm, benzoic acid 58 to below 0.01 ppm); the yield
   from 97.19 to 97.15 %.
@@ -497,6 +520,10 @@ Where the model disagrees with the hand values, and what was decided:
   Q3 falls from 15.79 to 15.02 kW (the gas arrives at 308 K). The feeds rise by 0.05 % (the
   benzoyl chloride past E-102 and the column's recovery), the batch from 1229.47 to 1229.18 kg on
   a 4.868 h cycle (D-003).
+- The product cooler E-101, its own unit now, shows that the 303 K delivery the old typed Q5 held
+  was a 5 K approach to the cooling water's 298.15 K supply, below the design basis' 10 K minimum:
+  the delivery is set to 308.15 K (S11, the design basis), Q7 from 6.75 to 6.29 kW, the cooling
+  water from 0.405 to 0.403 kWh/kg (D-009).
 Not used, with the reason:
 - `vent.henry` (ADR 0062): no solubility of HCl in hot benzoyl chloride was found (searched
   2026-11-05); the vent keeps `fraction` 1 (L-3).

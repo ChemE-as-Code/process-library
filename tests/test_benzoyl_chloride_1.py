@@ -166,6 +166,32 @@ def test_the_still_column_gives_the_stated_purity_and_recovery(sheet, streams):
     assert "| 5, 1 (the specified split's column) | 99.938 | 429 ppm | 60.0 % |" in design
 
 
+def test_the_column_choice_records_its_trade_against_twenty_stages():
+    # D-008: 15 stages at reflux 2 is the least boil-up only of the cases with at most 15 stages;
+    # 20 stages at reflux 1.5 meets the product with less steam and is rejected on the trade
+    design = _text("DESIGN.md")
+    assert "| 20, 1.5 | 99.9992 | 8 ppm | 1.2 % | 1.51 h | 61.9 kW |" in design
+    assert "Rejected: 20 stages at reflux 1.5" in design
+    assert "least boil-up of the cases scanned that keeps" not in design
+    assert "least boil-up of the cases scanned that keeps" not in _text("process/flowsheet.yaml")
+
+
+def test_the_coolers_keep_the_cooling_water_minimum_approach(sheet, streams):
+    # D-009: E-101 (the product, S11) and E-102 (the off-gas, S6) leave at least the minimum
+    # approach above the cooling water's supply; Q7 is the product cooled from the column's top
+    cw = next(p for p in sheet["products"] if p["id"] == "CW")["utility"]
+    floor = cw["supply_temperature"]["value"] + cw["min_approach"]["value"]
+    assert streams["S11"]["temperature"]["value"] >= floor - 1e-9
+    assert streams["S6"]["temperature"]["value"] >= floor - 1e-9
+    basis = yaml.safe_load((PROCESS / "process" / "design-basis.yaml").read_text(encoding="utf-8"))
+    delivery = next(p for p in basis["products"] if p["name"] == "Benzoyl chloride")["delivery"]
+    assert delivery["temperature_K"] == streams["S11"]["temperature"]["value"]
+    product = _components(streams["S11"])
+    cooled = streams["S9"]["temperature"]["value"] - streams["S11"]["temperature"]["value"]
+    q7 = sum(v / MW[n] for n, v in product.items()) * 187.0 * cooled / 3600.0
+    assert _energy(sheet)["Q7"]["state"]["design"]["duty"]["value"] == pytest.approx(q7, rel=1e-3)
+
+
 def test_the_hand_column_and_its_streams_are_gone(sheet):
     steps = {s["id"] for s in sheet["steps"]}
     ids = {s["id"] for s in sheet["streams"]}
