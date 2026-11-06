@@ -1,0 +1,148 @@
+# Benchmarks of wet-process phosphoric acid: for now the dihydrate route (phosphoric-acid-1).
+# Schema: schemas/benchmarks.schema.json; rules: docs/benchmarks.md. Ranges are facts from the
+# cited source, in our own form.
+#
+# The dataset counts its product by mass of merchant-grade acid (53.97 wt% P2O5), while the sources
+# state everything per t of P2O5; each expression divides by the product times 0.53967 (kg P2O5 per
+# kg of the modelled acid, from its formula). How independent each check is:
+# - rock, sulfuric acid and phosphogypsum are calculated from a model rock (BREF Table 5.2) and the
+#   BREF's DH efficiency, so the plant ranges below test the stoichiometry, not a transcription;
+#   the rock range and the efficiency are from the same family of documents (EFMA 2000, which the
+#   BREF cites as [31]);
+# - electricity and steam are the upper ends of EFMA's ranges, so a check against EFMA would be a
+#   transcription; they are bound instead to one EU DH plant's reported values (Nilefos, VITO 2005,
+#   in BREF Table 5.5), plant data from another underlying source. The dataset cites those plant
+#   values as support for taking the upper ends, so the check is only partly independent;
+# - fluoride to air is compared with US EPA AP-42, independent of the EU sources.
+schema: cheme-as-code/benchmarks/v1
+family: phosphoric-acid
+
+kpis:
+  pa-specific-rock:
+    title: Phosphate rock consumption per t of P2O5 produced
+    unit: t/t
+    references:
+      - id: efma-pa-rock
+        range: [2.6, 3.5]
+        basis: unallocated
+        note: The source says the figure depends mainly on the rock's composition and the overall efficiency. The BREF repeats it (Table 5.5).
+        conditions: {technology: "wet process with sulfuric acid, all variants", region: EU, year: 2000}
+        source: &efma
+          citation: "EFMA (2000) Best Available Techniques for Pollution Prevention and Control in the European Fertilizer Industry, Booklet No. 4 of 8: Production of Phosphoric Acid. European Fertilizer Manufacturers' Association (now Fertilizers Europe), Brussels"
+          url: https://www.fertilizerseurope.com/wp-content/uploads/2019/08/Booklet_4_final.pdf
+          locator: Section 4.1, p. 29
+          kind: other
+          accessed: "2026-11-05"
+  pa-specific-sulfuric-acid:
+    title: Sulfuric acid (as 100 % H2SO4) per t of P2O5 produced
+    unit: t/t
+    references:
+      - id: bref-lvic-aaf-pa-h2so4-nilefos
+        range: [2.4, 2.9]
+        basis: unallocated
+        note: One plant's range (Nilefos, a modified dihydrate plant), depending on the rock. Read as 100 % H2SO4; the table does not state the strength.
+        conditions: {technology: "modified dihydrate process", region: "EU (Belgium)", year: 2005}
+        source: &bref
+          citation: "European Commission, JRC/EIPPCB (2007) Reference Document on Best Available Techniques for the Manufacture of Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF BREF), adopted August 2007"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/lvic_aaf.pdf
+          locator: Chapter 5, Section 5.3, Table 5.5, p. 222
+          kind: bref
+          accessed: "2026-11-05"
+  pa-phosphogypsum:
+    title: Phosphogypsum generated per t of P2O5 produced
+    unit: t/t
+    references:
+      - id: bref-lvic-aaf-pa-gypsum
+        range: [4.0, 5.0]
+        basis: unallocated
+        note: The source says about four to five tonnes of gypsum per t P2O5; it does not state the moisture basis, read here as dry. The binding sums the dataset's four phosphogypsum outputs (gypsum, P2O5 loss, fluoride, gangue).
+        conditions: {technology: "wet process with sulfuric acid", region: EU}
+        source:
+          citation: "European Commission, JRC/EIPPCB (2007) Reference Document on Best Available Techniques for the Manufacture of Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF BREF), adopted August 2007"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/lvic_aaf.pdf
+          locator: Chapter 5, Sections 5.2.2 and 5.2.2.5, pp. 215 and 221
+          kind: bref
+          accessed: "2026-11-05"
+  pa-fluoride-air:
+    title: Fluoride to air (as F) per t of P2O5 produced
+    unit: g/t
+    references:
+      - id: ap42-pa-fluoride-controlled
+        range: [2.3, 2.3]
+        basis: unallocated
+        note: Our sum of the four controlled factors of Table 8.9-1 (reactor 1.9, evaporator 0.022, belt filter 0.32, filter vacuum pump 0.073 g/t); gypsum ponds are site-specific and not included. A single value, recorded as a zero-width range and not widened.
+        conditions: {technology: "wet process, scrubbed (US plants, source tests 1987 to 1991)", region: US, year: 1993}
+        source:
+          citation: "US EPA (1993, reformatted 1995) Compilation of Air Pollutant Emission Factors (AP-42), Fifth Edition, Volume I, Chapter 8: Inorganic Chemical Industry, Section 8.9 Phosphoric Acid"
+          url: https://www.epa.gov/sites/default/files/2020-09/documents/8.9_phosphoric_acid.pdf
+          locator: Table 8.9-1, p. 8.9-6
+          kind: government
+          accessed: "2026-11-05"
+  pa-specific-electricity:
+    title: Electricity per t of P2O5 produced
+    unit: kWh/t
+    references:
+      - id: efma-pa-electricity
+        range: [120, 180]
+        basis: unallocated
+        note: The upper end applies with rock grinding. Not independent of the dataset, which takes the upper end of this range; listed for context, not bound.
+        conditions: {technology: "wet process with sulfuric acid, with or without grinding", region: EU, year: 2000}
+        source:
+          citation: "EFMA (2000) Best Available Techniques for Pollution Prevention and Control in the European Fertilizer Industry, Booklet No. 4 of 8: Production of Phosphoric Acid. European Fertilizer Manufacturers' Association (now Fertilizers Europe), Brussels"
+          url: https://www.fertilizerseurope.com/wp-content/uploads/2019/08/Booklet_4_final.pdf
+          locator: Section 4.1, pp. 29-30
+          kind: other
+          accessed: "2026-11-05"
+      - id: bref-lvic-aaf-pa-electricity-nilefos
+        range: [170, 180]
+        basis: unallocated
+        note: One plant's reported range (Nilefos, Belgium, a dihydrate plant; whether it grinds is not stated), data of VITO (2005) as reported in the BREF. The dataset cites it as support for taking EFMA's upper end, so the check is only partly independent.
+        conditions: {technology: "dihydrate process (modified)", region: "EU (Belgium)", year: 2005}
+        source:
+          citation: "European Commission, JRC/EIPPCB (2007) Reference Document on Best Available Techniques for the Manufacture of Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF BREF), adopted August 2007"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/lvic_aaf.pdf
+          locator: Chapter 5, Section 5.3, Table 5.5, p. 222
+          kind: bref
+          accessed: "2026-11-05"
+  pa-specific-steam:
+    title: Steam per t of P2O5 produced (concentrated)
+    unit: t/t
+    references:
+      - id: efma-pa-steam
+        range: [0.5, 2.2]
+        basis: unallocated
+        note: Mainly for concentration. Not independent of the dataset, which takes the upper end of this range; listed for context, not bound.
+        conditions: {technology: "wet process with sulfuric acid, acid concentrated", region: EU, year: 2000}
+        source:
+          citation: "EFMA (2000) Best Available Techniques for Pollution Prevention and Control in the European Fertilizer Industry, Booklet No. 4 of 8: Production of Phosphoric Acid. European Fertilizer Manufacturers' Association (now Fertilizers Europe), Brussels"
+          url: https://www.fertilizerseurope.com/wp-content/uploads/2019/08/Booklet_4_final.pdf
+          locator: Section 4.1, p. 30
+          kind: other
+          accessed: "2026-11-05"
+      - id: bref-lvic-aaf-pa-steam-nilefos
+        range: [1.9, 2.4]
+        basis: unallocated
+        note: One plant's reported range (Nilefos, Belgium, a dihydrate plant), depending on the fraction of the acid concentrated; data of VITO (2005) as reported in the BREF. The dataset cites it as support for taking EFMA's upper end, so the check is only partly independent.
+        conditions: {technology: "dihydrate process (modified), part of the acid concentrated", region: "EU (Belgium)", year: 2005}
+        source:
+          citation: "European Commission, JRC/EIPPCB (2007) Reference Document on Best Available Techniques for the Manufacture of Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF BREF), adopted August 2007"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/lvic_aaf.pdf
+          locator: Chapter 5, Section 5.3, Table 5.5, p. 222
+          kind: bref
+          accessed: "2026-11-05"
+
+datasets:
+  - process: phosphoric-acid-1
+    dataset: phosphoric-acid-dihydrate
+    conditions: {technology: "dihydrate, closed loop, with concentration to merchant grade", rock: "model of Moroccan (Khouribga) rock", basis: conceptual inventory}
+    kpis:
+      pa-specific-rock: {expression: feed:phosphate-rock / (product:phosphoric-acid * 0.53967), per: product:phosphoric-acid, reference: efma-pa-rock}
+      pa-specific-sulfuric-acid: {expression: feed:sulfuric-acid * 0.98492 / (product:phosphoric-acid * 0.53967), per: product:phosphoric-acid, reference: bref-lvic-aaf-pa-h2so4-nilefos}
+      pa-phosphogypsum: {expression: (output:phosphogypsum + output:gypsum-p2o5-loss + output:gypsum-fluoride + output:gypsum-silica) / (product:phosphoric-acid * 0.53967), per: product:phosphoric-acid, reference: bref-lvic-aaf-pa-gypsum}
+      pa-fluoride-air:
+        expression: emission:HF * 0.94961 / (product:phosphoric-acid * 0.53967)
+        per: product:phosphoric-acid
+        reference: ap42-pa-fluoride-controlled
+        out_of_range_reason: "The dataset takes the EU achievable stack level for new plants, 40 g F/t P2O5 at 5 mg/Nm3 (EFMA booklet 4, section 8.1.1), an upper bound rather than a measurement; the US source-test factors are about 17 times lower. Both are far below the BREF's reported 90 to 135 g/t at one EU DH plant (Table 5.6)."
+      pa-specific-electricity: {expression: feed:electricity / (product:phosphoric-acid * 0.53967), per: product:phosphoric-acid, reference: bref-lvic-aaf-pa-electricity-nilefos}
+      pa-specific-steam: {expression: feed:steam / (product:phosphoric-acid * 0.53967), per: product:phosphoric-acid, reference: bref-lvic-aaf-pa-steam-nilefos}
