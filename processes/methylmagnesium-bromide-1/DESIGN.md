@@ -37,10 +37,11 @@ in this session, or in the route scouting of the same day where said.
 | SRC-4 | PubChem CID 6323 (bromomethane), 7301 (2-methyltetrahydrofuran), 5462224 (magnesium) | identities; HSDB densities: 2-MeTHF 0.853 g/cm3 at 20 C, magnesium 1.738 g/cm3 at 20 C; methyl bromide made from methanol and hydrogen bromide (Methods of Manufacturing, read by the scouting session); methyl bromide's safety: GHS classification (H331 toxic if inhaled, H330 fatal if inhaled in a part of the notifications, flammable gas) and the NIOSH IDLH of 250 ppm (PUG View headings "GHS Classification" and "Immediately Dangerous to Life or Health (IDLH)", read 2026-11-05) | read (PUG REST and PUG View) | D-006, D-011, D-012, chemicals registry |
 | SRC-5 | Fraunhofer IMM, Scalable continuous Grignard reagent formation (flyer), https://www.imm.fraunhofer.de/content/dam/imm/de/documents/PDFs-neu2018/E-und-C/IMM-Scalable-Continuous-Grignard-Reagent-Formation.pdf | in batch the exothermic formation is dosing-controlled to remove the heat and often needs long reaction times; the Wurtz coupling is the main side reaction; the continuous packed-magnesium-bed process is demonstrated at pilot scale for PhMgBr, allyl-MgCl and EtMgBr in THF, not for MeMgBr | read by the scouting session (2026-11-05), the summary rechecked by search here | D-001, D-005 |
 | SRC-6 | am Ende, D. J. et al. (1999) Org. Process Res. Dev. 3, 319, doi:10.1021/op9901801 | Grignard initiation monitored by in-situ FTIR: a small part of the halide charged and the initiation confirmed before the rest is dosed | abstract only (and a vendor note on it), no design numbers taken | D-004 (practice only) |
-| SRC-7 | chemicals and thermo packages (the open data of core's environment: CRC Handbook tables, NIST WebBook / JANAF, DIPPR fits, estimates) | printed per component in process/materials.yaml: methyl bromide gas formation enthalpy -36.38 kJ/mol, S0 246.4 J/(mol K), heat of vaporisation 23.3 kJ/mol at 298 K and 23.5 at 293 K, normal boiling point 276.55 K, liquid density 1.663 g/cm3, liquid and ideal-gas heat capacities; 2-MeTHF liquid heat capacity 173.2 kJ/(kmol K) at 318 K; gas formation enthalpies of HBr, methane and ethane | open data packages | D-005, D-006, D-009 |
+| SRC-7 | chemicals and thermo packages of core's environment (open-source, MIT): the gas formation data from their CRC, NIST WebBook / JANAF and ATcT tables; methyl bromide's heat of vaporisation and liquid density from thermo's default method for it, DIPPR_PERRY_8E, a correlation whose coefficients thermo takes from Perry's Chemical Engineers' Handbook, 8th ed. (a licensed book, itself drawing on the DIPPR 801 database; not read here); the liquid heat capacities from thermo's Dadgostar-Shaw estimate; the rest from the packages' estimation methods | printed per component in process/materials.yaml: methyl bromide gas formation enthalpy -36.38 kJ/mol, S0 246.4 J/(mol K), heat of vaporisation 23.3 kJ/mol at 298 K and 23.5 at 293 K, normal boiling point 276.55 K, liquid density 1.663 g/cm3, liquid and ideal-gas heat capacities; 2-MeTHF liquid heat capacity 173.2 kJ/(kmol K) at 318 K; gas formation enthalpies of HBr, methane and ethane | open-source packages queried; single values only, facts only. The three DIPPR_PERRY_8E values (23.3 and 23.5 kJ/mol, 1.663 g/cm3) are not open data: whether values computed from such packaged coefficients may be published is a library-wide question for the maintainers; open alternatives for the same values are the NIST WebBook (SRD 69) and PubChem (HSDB) | D-005, D-006, D-009 |
 | SRC-8 | Stoessel, F. (2008) Thermal Safety of Chemical Processes, Wiley-VCH, doi:10.1002/9783527621606 | the accumulation and MTSR of a semi-batch (method, implemented in core ADR 0050) | method reference, no data taken | D-011 |
 | SRC-9 | processes/asu-1, processes/iodine-1, processes/thf-1, processes/methanol-1, processes/hydrogen-bromide-1 (this library) | gaseous nitrogen and iodine to the battery limit (linked); THF, methanol and HBr (named as proxies, not linked) | library, internal | D-012 |
 | SRC-10 | NIST Chemistry WebBook, 2-Methyltetrahydrofuran (C96479), phase change data, https://webbook.nist.gov/cgi/cbook.cgi?ID=C96479&Mask=4 | enthalpy of vaporization 34.0 kJ/mol from vapour pressures of 283 to 353 K (Stephenson and Malanowski 1987), and 33.7 kJ/mol (Moiseev and Antonova 1970); boiling point 352 +/- 10 K (average of 6 values) | read 2026-11-06; US government data | D-011 (the MTT at 120 kPa(a)) |
+| SRC-11 | Montreal Protocol on Substances that Deplete the Ozone Layer, Article 1 (Definitions), UNEP Ozone Secretariat, https://ozone.unep.org/treaties/montreal-protocol/articles/article-1-definitions | paragraph 5: production is the amount produced minus the amount destroyed and minus the amount entirely used as feedstock in the manufacture of other chemicals | read (2026-11-06); treaty text, facts only | D-012 |
 
 Not read and not cited as read: Ullmann's Encyclopedia (licensed; the HSDB entries cite it),
 Organic Syntheses procedures (the scouting session was blocked by a browser check and did not get
@@ -103,7 +104,8 @@ Rejected: continuous formation in a packed magnesium bed (SRC-5: pilot scale, no
 MeMgBr): a candidate variant `methylmagnesium-bromide-2`. Diethyl ether (boiling point 35 C,
 below a practical reaction temperature with brine cooling, and no open specification read).
 Liquefied methyl bromide dosed as a liquid: it would flash in the vessel at 318 K; dosing it as a
-gas below the surface is what the task and the vent model describe, and it keeps the heat of
+gas below the surface is the design basis of D-004 and what core's gas dosing and vent (core
+ADR 0054) model, and it keeps the heat of
 vaporisation out of the reactor (E-101 supplies it).
 Links: asu-1 (nitrogen) and iodine-1 (iodine). No library process makes magnesium, methyl bromide
 or 2-MeTHF (D-012).
@@ -393,11 +395,10 @@ for inerting R-101, pressing the slurry and blowing the cake, and iodine 0.4 kg,
 the nitrogen leaves through the oxidiser (no disposal exchange); the iodine ends as MgI2 in the
 product (about 90 mg/kg, not in the balance: `cheme.lci-balance-unassessable`, info).
 Wastes: the off-gas (ethane and methyl bromide, 3.65 g/kg) to a thermal oxidiser with a caustic
-scrubber; methyl bromide is a controlled ozone-depleting substance, whose use as a feedstock is
-exempt from the Montreal Protocol's production controls (scouting note from a summary of MOP-4;
-to be confirmed against the Ozone Secretariat's text before relying on it), so its emission must
-be destroyed, not vented. The wet magnesium cake (10.2 g/kg) to quench and hazardous-waste
-treatment. Not counted: the 2-MeTHF vapour in the off-gas and the filter's nitrogen (core models
+scrubber; methyl bromide is a controlled ozone-depleting substance; an amount entirely used as
+feedstock in making other chemicals is not counted as production under the Montreal Protocol,
+Article 1(5) (SRC-11), but its emission must be destroyed, not vented. The wet magnesium cake
+(10.2 g/kg) to quench and hazardous-waste treatment. Not counted: the 2-MeTHF vapour in the off-gas and the filter's nitrogen (core models
 no solvent stripping by the gas, L-6), the methyl bromide store's losses (emission exclusions).
 Per kg of solution: magnesium 0.0775 kg, methyl bromide 0.288 kg, 2-MeTHF 0.648 kg, nitrogen 7.5
 g, iodine 0.08 g, electricity 0.0095 kWh, LP steam 0.028 kWh, brine 0.241 kWh removed, off-gas

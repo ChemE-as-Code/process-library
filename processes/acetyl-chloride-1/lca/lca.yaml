@@ -18,19 +18,19 @@ goal: >-
   stage: which raw materials, utilities and wastes the batch plant exchanges per kg of acetyl
   chloride, as the foreground for a later cradle-to-gate study. No impact results: most
   backgrounds are not mapped yet (D-012).
-functional_unit: {product: ACCL, amount: 1, unit: kg, source: "1 kg of distilled acetyl chloride (modelled 99.84 wt%, 0.16 wt% PCl3) at the plant gate to storage, stream S10 (D-002, D-012)"}
+functional_unit: {product: ACCL, amount: 1, unit: kg, source: "1 kg of distilled acetyl chloride (modelled 99.43 wt%, 0.57 wt% PCl3; specification at least 99.0 wt%) at the plant gate to storage, stream S10 (D-002, D-012, D-015)"}
 # The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
 # being mapped free (the schema's gate-to-gate maps every feed free), as benzoyl-chloride-1 does.
 boundary: cradle-to-gate
 case: design
 year: 2026
 location: GLO
-technology: "Batch plant: phosphorus trichloride dosed over 2 h into acetic acid at 313 K (semi-batch, 1 mol per 3 mol), held to 0.95 conversion of the PCl3, the HCl of the acid's water vented through a brine condenser to a water scrubber; the lower phase (crude phosphorous acid) settled off, the upper phase distilled at atmospheric pressure in a batch still with a short column; 1459.9 kg per batch, 1370 batches a year on a dedicated train"
+technology: "Batch plant: phosphorus trichloride dosed over 2 h into acetic acid at 313 K (semi-batch, 1 mol per 3 mol), held to 0.95 conversion of the PCl3, the HCl of the acid's water vented through a brine condenser to a water scrubber; the lower phase (crude phosphorous acid) settled off, the upper phase distilled at atmospheric pressure in a batch still with a 10-stage column at reflux ratio 1; 1459.9 kg per batch, 1370 batches a year on a dedicated train"
 rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
 system_model: cutoff
 allocation:
-  # Mass allocation written as its shares: the products' masses per hour, S10 252.525 and S7
-  # 102.638 kg/h, give 0.711 and 0.289. `method: mass` would be the same, but core writes the
+  # Mass allocation written as its shares: the products' masses per hour, S10 252.524 and S7
+  # 102.536 kg/h, give 0.711 and 0.289. `method: mass` would be the same, but core writes the
   # dataset's default without a method when it is mass, and the library's strict LCI build then
   # warns that the study's 'mass' differs from the dataset's None (process-library#322); D-012.
   method: shares
@@ -67,10 +67,10 @@ flows:
     source: "flowsheet energy streams P1 (R-101 agitator), P2 (still agitator and reflux pump) and P3 (scrubber pump and fan), D-009"
   - key: feed:LPS
     missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 350 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
-    source: "flowsheet energy streams Q1 (R-101's tempered-water loop), Q3 (the still's net boil-up, from core's still model), Q7 (the boil-up returned as the column's reflux) and Q8 (the still's heat-up), together the still's reboiler, D-009, D-014"
+    source: "flowsheet energy streams Q1 (R-101's tempered-water loop) and Q3 (the still's reboiler from core's still model with its column: the boil-up at the reflux ratio 1 and the charge's heat-up), D-009, D-015"
   - key: product:CW
     missing: "not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
-    source: "flowsheet energy streams Q2 (R-101, from core's semi-batch model), Q4 (column condenser and product cooler) and Q5 (residue cooling), D-009, D-014"
+    source: "flowsheet energy streams Q2 (R-101, from core's semi-batch model), Q4 (the column's condenser, from core's still model), Q5 (residue cooling) and Q9 (product cooler), D-009, D-015"
   - key: product:BRINE
     missing: "not mapped yet (D-012); connect to: refrigeration at 258 K (brine) from an electric vapour-compression unit (e.g. processes/utility-chiller), per kWh of heat removed: compressor electricity at its COP, condenser cooling water, refrigerant losses"
     source: "flowsheet energy stream Q6 (vent condenser E-103), D-010"

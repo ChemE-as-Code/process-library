@@ -21,13 +21,15 @@ residual moisture); and the toluene is recovered in core's batch still C-101 and
 `process/recipe.yaml` holds the batch recipe the cycle time, the vessel sizes, the jacket check
 and the flowsheet's year-average flows come from (`cheme process recipe`, `cheme process
 reactor-hazards`, `cheme process crystallizers`, `cheme process stills`). Needs cheme-as-code
-1.9.0: propagate converges the recovered toluene's recycle at the tear S11 and the semi-batch,
-the crystallizer and the still write their duties (Q2, Q3, Q7); the heat they leave out, the
-vessels' metal and the still's heat-up, is on its own streams (Q9, Q10). DESIGN.md lists the core
+1.10.0: propagate converges the recovered toluene's recycle at the tear S11 (1.9.0) and the
+semi-batch, the crystallizer and the still write their duties (Q2, Q3, Q7); since 1.10.0 the
+still's duty holds its charge's heat-up and C-101's metal (60.63 kW) and the crystallizer's
+R-101's metal cooled with the slurry (5.19 kW), the metal given once on the recipe's vessels,
+which also lengthens R-101's heating and cooling and sizes C-101. DESIGN.md lists the core
 features used and the core limits hit.
 
-Key numbers: 1057.10 kg per batch, a 10.20 h cycle (the filter-dryer the bottleneck), 776.6
-batches and 820.9 t a year. Thermal screening: 14.7 % of the methyl bromide accumulates, the
+Key numbers: 1057.10 kg per batch, a 10.20 h cycle (the filter-dryer the bottleneck; R-101 is
+99.5 % occupied), 776.6 batches and 820.9 t a year. Thermal screening: 14.7 % of the methyl bromide accumulates, the
 MTSR is 339.1 K, and the MTT of the closed vessel is 415.3 K, a hand value (the temperature at its
 relief's set pressure, DESIGN.md D-011; core 1.9.0's default, pure methyl bromide's boiling point
 at 230 kPa(a), 307.3 K, its Clausius-Clapeyron estimate of pure methyl bromide's boiling point
@@ -62,8 +64,8 @@ from could not be read.
   drawing and generated file is made by the `cheme` command, so you need it to work here.
 - **Licences.** This folder is part of the ChemE-as-Code process library. Its data and designs are
   under CC BY 4.0 (`LICENSE-DATA`, unless `process.yaml` states otherwise); its skills and scripts
-  are under AGPL-3.0-or-later (`LICENSE`), like the ChemE-as-Code tools. Its publication status is
-  in `process.yaml` (internal until a maintainer decides otherwise).
+  are under AGPL-3.0-or-later (`LICENSE`), like the ChemE-as-Code tools. It is public
+  (`publication` in `process.yaml`: public, CC-BY-4.0).
 - **The skills in `.claude/skills/` are not in git.** They come with cheme-as-code: run
   `cheme skills update` once in this folder after cloning, so that Claude Code finds them here.
 
@@ -78,7 +80,7 @@ cheme process propagate --fill  # every stream from the feeds, the recycle at th
 cheme process recipe            # batch cycle: occupancy, bottleneck, batches per year, vessels (--svg)
 cheme process reactor-hazards   # thermal screening of the semi-batch
 cheme process crystallizers     # precipitation, wash, filters and dryer: solubility, crystals, moisture, steam
-cheme process stills            # the toluene recovery: distillate, residue, boil-up time and energy
+cheme process stills            # the toluene recovery: distillate, residue, boil-up time, the duty's terms
 cheme assess lca --write        # the preliminary LCI
 ```
 

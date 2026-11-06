@@ -17,20 +17,22 @@ description: |
   HCl leaves by the vent through a brine condenser, which returns the acetyl chloride vapour, to
   a water scrubber. The mixture settles: the lower phase, 87.5 wt% phosphorous acid with acetic
   acid and acetyl chloride, leaves as a crude phosphorous acid co-product (0.41 kg per kg); the
-  upper phase is distilled in a batch still with a short column. Product 99.84 wt% acetyl
-  chloride with 0.16 wt% PCl3, which a column hardly separates (US 4 209 460 A); the PCl3-rich
-  still residue (47 g per kg) goes to incineration. Yield 92.4 % of theory on the acetic acid and
-  the PCl3: a model result, not a sourced one (no open source states a yield for this route).
+  upper phase is distilled in a batch still with a column of about 10 stages at reflux 1. Product
+  99.43 wt% acetyl chloride with 0.57 wt% PCl3 (specification at least 99.0 wt%), which a column
+  hardly separates (US 4 209 460 A); the PCl3-rich still residue (46 g per kg) goes to
+  incineration. Yield 92.1 % of theory on the acetic acid and the PCl3: a model result, not a
+  sourced one (no open source states a yield for this route).
 
   The batch is modelled with cheme-as-code's semi-batch reactor with a gas vent (reactor:
-  semibatch, batch.vent, core ADRs 0050 and 0054), its batch still (still:, one Rayleigh stage,
-  ADR 0055) and the batch recipe (process/recipe.yaml with units over several steps, ADRs 0051,
+  semibatch, batch.vent, core ADRs 0050 and 0054), its batch still with a rectifying column
+  (still: with column, ADRs 0055 and 0061) and the batch recipe (process/recipe.yaml with units over several steps, ADRs 0051,
   0052, 0057): the dosing, post-reaction, warming and distillation times come from the models,
   the reactor is the bottleneck (cycle 5.78 h, 1370 batches a year), the recipe sizes the
   reactor (2.5 m3) and checks its jacket, and the flowsheet's flows are the recipe's year
-  averages. Since core 1.9.0 the semi-batch and the still write their own duties (ADR 0059),
-  and the screening compares the gas a cooling failure releases with R-101's vent (ADR 0058). The phase split and the column's rectification are specified splits until core has
-  a liquid-liquid model for these liquids and a batch column with reflux (core#173). The
+  averages. The semi-batch and the still write their own duties (ADR 0059), the still's
+  reboiler with its reflux and charge's heat-up and its column's condenser (ADRs 0061, 0063),
+  and the screening compares the gas a cooling failure releases with R-101's vent (ADR 0058).
+  The phase split is a specified split until core has a liquid-liquid model for these liquids. The
   conversion and the phase split are calibrated to the source's lower phase; the kinetics are
   ASSUMED: the PCl3 accumulates to 11.7 % at the end of the dosing and the cooling-failure
   temperature stays 8.4 K below the boiling point of acetyl chloride; a 100 times slower reaction
@@ -45,23 +47,24 @@ facets:
   unit_operations: [reaction, separation, distillation, absorption]
   region: generic
 # Honest claim: concept is the lowest level of the manifest. Capacity, kinetics, the phase
-# split's calibration, the still's ideal liquid and the column's split are assumed; ratios and
+# split's calibration, the still's ideal liquid and the column's stages and reflux are assumed; ratios and
 # conditions from the patent's example (DESIGN.md).
 maturity: concept
 validation:
   status: unreviewed
   notes: >-
     Concept batch PFD with closed mass, component and element balances (cheme validate, cheme
-    process streams: 3 blocks and 9 steps within tolerance). The semi-batch R101 with its vent
-    (from its ASSUMED rate laws), the batch still ST101 (one Rayleigh stage on Raoult's law with
-    NIST Antoine constants, the ideal liquid ASSUMED), the scrubber's hydrolysis and the mixers
-    are calculated by cheme process propagate; scripts/balance.py gives the feeds for 2000 t/a,
-    the phase split D101 (calibrated to CS 272 248 B2), the column K101 as a specified split of
-    the still's distillate, the scrubber water, the temperatures of the mixed streams and the
-    duties (no property package of core covers these liquids, no liquid-liquid model applies, and
-    core has no batch rectification with reflux, core#173), except R101's duty and the still's
-    net boil-up, which core's models write (ADR 0059); the reboiler's shares for the column's
-    reflux and for the heat-up are their own streams. The recipe's year-average rate of
+    process streams: 3 blocks and 8 steps within tolerance). The semi-batch R101 with its vent
+    (from its ASSUMED rate laws), the batch still ST101 with its column (10 theoretical stages at
+    a reflux ratio of 1, Diwekar's shortcut on Raoult's law with NIST Antoine constants, the
+    ideal liquid ASSUMED; 99.43 wt% acetyl chloride at 98.19 % recovery, 19.2 % of the charge's
+    PCl3 overhead), the scrubber's hydrolysis and the coolers are calculated by cheme process
+    propagate; scripts/balance.py gives the feeds for 2000 t/a, the phase split D101 (calibrated
+    to CS 272 248 B2), the scrubber water, the still's stream temperatures and the duties (no
+    property package of core covers these liquids, no liquid-liquid model applies), except
+    R101's duty and the still's reboiler and condenser, which core's models write (ADRs 0059,
+    0061, 0063). The vent's acetyl chloride and E-103's load stay script estimates: core
+    1.10.0's vent vapour carries only the HCl's (DESIGN.md D-015). The recipe's year-average rate of
     the product agrees with the flowsheet (no cheme.recipe-basis finding); the recipe sizes R-101
     (2.5 m3), its jacket check passes against the log-mean cooling-water temperature, and the
     still's distillation time comes from its boil-up. Thermal screening (cheme process
@@ -76,29 +79,29 @@ validation:
     crude phosphorous acid; the acetic acid linked to acetic-acid-1 and the nitrogen to asu-1,
     the PCl3 a gap with a recorded proxy, the other backgrounds gaps. cheme maturity reaches no
     level (assumed feeds, kinetics and separations); the claim `maturity: concept` is the lowest
-    value of the schema, not an evidenced level. Not reviewed. Needs cheme-as-code 1.9.0.
+    value of the schema, not an evidenced level. Not reviewed. Needs cheme-as-code 1.10.0.
 chemistry:
   inputs:
-    - {chemical: acetic-acid, role: feedstock, inventory_key: "feed:HAC", note: "Glacial acetic acid (acetic-acid-1, 691 ppm water), 0.827 kg/kg acetyl chloride (stoichiometric 0.765)"}
-    - {chemical: phosphorus-trichloride, role: feedstock, inventory_key: "feed:PCL3", note: "Phosphorus trichloride (no exported library process; proxy P4 + 6 Cl2 recorded, D-012), 0.630 kg/kg acetyl chloride (stoichiometric 0.583)"}
-    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Process water to the vent scrubber, 0.214 kg/kg"}
+    - {chemical: acetic-acid, role: feedstock, inventory_key: "feed:HAC", note: "Glacial acetic acid (acetic-acid-1, 691 ppm water), 0.826 kg/kg acetyl chloride (stoichiometric 0.765)"}
+    - {chemical: phosphorus-trichloride, role: feedstock, inventory_key: "feed:PCL3", note: "Phosphorus trichloride (no exported library process; proxy P4 + 6 Cl2 recorded, D-012), 0.629 kg/kg acetyl chloride (stoichiometric 0.583)"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Process water to the vent scrubber, 0.213 kg/kg"}
     - {chemical: nitrogen, role: feedstock, inventory_key: "consumable:nitrogen", note: "Nitrogen (asu-1) for inerting R-101, the still and the receivers, 10 kg per batch, 6.85 g/kg (ASSUMED)"}
   outputs:
-    - {chemical: acetyl-chloride, role: main-product, inventory_key: "product:ACCL", note: "Distilled acetyl chloride, modelled 99.84 wt% with 0.16 wt% PCl3 (about 370 ppm P), to storage under nitrogen; no source states a purity for this route"}
+    - {chemical: acetyl-chloride, role: main-product, inventory_key: "product:ACCL", note: "Distilled acetyl chloride, modelled 99.43 wt% with 0.57 wt% PCl3 (about 1290 ppm P) against a specification of at least 99.0 wt% (US 4 209 460 A), to storage under nitrogen; no source states a purity for this route"}
     - {chemical: phosphorous-acid, role: co-product, inventory_key: "product:H3PO3P", note: "Crude phosphorous acid (the lower phase), 0.406 kg/kg: 87.5 wt% H3PO3, 10.1 wt% acetic acid, 2.0 wt% acetyl chloride; mass allocation, 28.9 % of the burdens (DESIGN.md D-012)"}
     - {chemical: wastewater, role: waste, inventory_key: "product:SCRL", note: "Scrubber bleed, 0.217 kg/kg: 1 wt% HCl, 0.8 wt% acetic acid, to neutralisation"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.021 kWh/kg: agitators of R-101 and C-101, reflux pump, scrubber pump and fan (ASSUMED)"}
-    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.230 kWh/kg of LP steam 350 kPa(a): R-101's tempered-water loop and the still at a reflux ratio of 1 (its net boil-up from core's still model, the reflux share and the heat-up apart)"}
-    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.238 kWh/kg removed by cooling water: R-101's jacket (from core's semi-batch model), the column's condenser and product cooler, the residue's cooling"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.224 kWh/kg of LP steam 350 kPa(a): R-101's tempered-water loop and the still's reboiler at a reflux ratio of 1 with the charge's heat-up (core's still model with its column)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.232 kWh/kg removed by cooling water: R-101's jacket (from core's semi-batch model), the column's condenser (from core's still model), the product cooler, the residue's cooling"}
     - {chemical: chilled-water, role: utility, inventory_key: "product:BRINE", note: "0.0014 kWh/kg removed by brine at 258 K: the vent condenser E-103 (the registry has chilled water, not brine: closest entry)"}
 basis:
-  capacity: "2000 t/a distilled acetyl chloride: 1370.0 batches/a of 1459.91 kg in 7920 h on a dedicated train (252.53 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-013)"
+  capacity: "2000 t/a distilled acetyl chloride: 1370.0 batches/a of 1459.9 kg in 7920 h on a dedicated train (252.52 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-013)"
   operating_hours_per_year: 7920
   location: generic fine-chemicals site with PCl3 and acetic acid supply (not chosen)
 references:
   - {title: "Pelyva, J. et al. (Nitrokemia Ipartelepek, 1991) CS 272 248 B2: simultaneous preparation of N-phosphonomethyliminodiacetic acid and C1-4 carboxylic acid chlorides (Example 1: 1.0 mol PCl3 added to 3 mol acetic acid below 40 C, 30 min at 40-50 C, the upper acetyl chloride phase separated; the lower phase, 96 g, phosphorous acid with about 6 % HCl, 2 % acetyl chloride and 10 % acetic acid, used in a phosphonomethylation; no yield or purity of the acetyl chloride)", url: "https://patents.google.com/patent/CS272248B2/en"}
-  - {title: "Ohorodnik, A.; Auer, E.; Gehrmann, K. (Hoechst AG, 1980) US 4 209 460 A: Production of pure acetyl chloride (PCl3 hard to distil off; Example 1 without chlorine: a 2 m packed column at reflux 1:1, 125 ppm P to 9 ppm; Examples 2 and 3: chlorine treatment, below 1 ppm P)", url: "https://patents.google.com/patent/US4209460A/en"}
+  - {title: "Ohorodnik, A.; Auer, E.; Gehrmann, K. (Hoechst AG, 1980) US 4 209 460 A: Production of pure acetyl chloride (PCl3 hard to distil off; Example 1 without chlorine: a 2 m packed column at reflux 1:1, 125 ppm P to 9 ppm; Examples 2 and 3: chlorine treatment, below 1 ppm P; commercial grade about 98 %, at least 99 % for many uses)", url: "https://patents.google.com/patent/US4209460A/en"}
   - {title: "Blaser, B.; Germscheid, H.-G.; Worms, K.-H. (Henkel, 1977; priority 1961) US 4 060 546 A: Process for the manufacture of acylation products of phosphorous acid (background: PCl3 and anhydrous acetic acid at 1:3; acylation products of phosphorous acid with two P atoms)", url: "https://patents.google.com/patent/US4060546A/en"}
   - {title: "NIST Chemistry WebBook, SRD 69: acetyl chloride, acetic acid, phosphorus trichloride, water (Antoine constants, heats of vaporization, boiling point, liquid heat capacity)", url: "https://webbook.nist.gov/chemistry/"}
   - {title: "PubChem CIDs 6367 (acetyl chloride), 24387 (phosphorus trichloride), 407 (phosphonic acid) (identity; reactions with water, HSDB)", url: "https://pubchem.ncbi.nlm.nih.gov/"}
@@ -112,4 +115,5 @@ repository:
   path: processes/acetyl-chloride-1
   access: public
 publication:
-  status: internal
+  status: public
+  license: CC-BY-4.0

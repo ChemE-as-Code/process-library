@@ -34,7 +34,7 @@ them:
 - the MTT is the measured reflux temperature, reconciled with the ideal liquid's bubble point;
   the stills' temperatures are the script's, not ST101's (D-006, D-007);
 - the release cases include the loss of agitation during the solid dose (D-006 (g));
-- the process is not set public in the change that adds it (CONTRIBUTING), and needs core 1.10.
+- the process is public with CC-BY-4.0, every library entry is (ADR 0036), and needs core 1.10.
 """
 
 from __future__ import annotations
@@ -708,10 +708,9 @@ def test_the_iodine_feed_cites_iodine_1s_product_stream():
     assert "(its product S21)" in _text("DESIGN.md")
 
 
-def test_not_published_in_the_change_that_adds_it():
+def test_published_public_with_cc_by():
     manifest = _load("process.yaml")
-    assert manifest["publication"]["status"] == "internal"
-    assert "license" not in manifest["publication"]
+    assert manifest["publication"] == {"status": "public", "license": "CC-BY-4.0"}
 
 
 def test_requires_core_1_10():

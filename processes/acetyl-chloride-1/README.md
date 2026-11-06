@@ -18,24 +18,30 @@ temperature, the boiling point of acetyl chloride, is given as `hazard.mtt`. The
 settles in the same vessel into an upper acetyl chloride phase and a lower crude phosphorous acid
 phase; the split D101 is calibrated to the source and given by `scripts/balance.py` (core has no
 liquid-liquid model for these liquids). The upper phase is distilled in a batch still, ST101,
-which core integrates as one Rayleigh stage (`still:`, core ADR 0055). The rectification in the
-column on top of it, K101, is a specified split until core has a batch column with reflux
-(core#173). `process/recipe.yaml` holds the batch recipe that gives the cycle time, R-101's
+with its column K-101 on top: core integrates the still with the column (`still.column`, 10
+theoretical stages at a constant reflux ratio of 1, Diwekar's shortcut, core ADR 0061), its
+charge's heat-up (`still.heat_up`, ADR 0063) and writes the reboiler's and the condenser's
+duties Q3 and Q4 (`still.condenser_port`). `process/recipe.yaml` holds the batch recipe that gives the cycle time, R-101's
 vessel, jacket check and warming time, the still's boil-up time and the flowsheet's
 year-average flows (`cheme process recipe`, `cheme process reactor-hazards`, `cheme process
-stills`). Since core 1.9.0 the semi-batch's and the still's models write their duties Q2 and Q3
-(`energy_port`, core ADR 0059), with the reboiler's reflux share and heat-up on their own streams
-Q7 and Q8, and the screening compares the gas released at a cooling failure with R-101's vent
+stills`). The semi-batch's model writes its duty Q2 (`energy_port`, core ADR 0059), and the
+screening compares the gas released at a cooling failure with R-101's vent
 capacity of 50 m3/h (`hazard.vent_capacity`, core ADR 0058); the boiling and water cases beyond
-it are a design finding (DESIGN.md D-014). Needs cheme-as-code 1.9.0. DESIGN.md lists the core
-features used and the core limits hit.
+it are a design finding (DESIGN.md D-014). The vent's vapour and condenser of core 1.10.0
+(ADR 0062) were tried and not adopted: they carry only the HCl's vapour, not that of the head
+space and nitrogen that carry most of it here, so the vent condenser E-103 and the vent's
+acetyl chloride stay script estimates (D-015). Needs cheme-as-code 1.10.0. DESIGN.md lists the
+core features used and the core limits hit.
 
 Three headline numbers carry caveats:
-- The yield, 92.4 % of theory on the acetic acid and the PCl3, is a model result; no open source
-  states one. It is an upper bound, since the losses not modelled only lower it (D-008).
-- The product, 99.84 wt% with 0.16 wt% PCl3 (about 370 ppm P), has no source either. One still
-  stage alone gives 97.3 wt%, and a low-phosphorus grade needs the chlorine treatment of
-  US 4 209 460 A, which is not modelled (D-007, D-008).
+- The yield, 92.1 % of theory on the acetic acid and the PCl3, is a model result; no open source
+  states one. It is an upper bound, since the losses not modelled only lower it (D-008, D-015).
+- The product, 99.43 wt% with 0.57 wt% PCl3 (about 1290 ppm P), meets a specification of at
+  least 99.0 wt% (US 4 209 460 A: at least 99 % for many uses) on an ideal liquid, with no
+  measured VLE behind it. The column passes 19.2 % of the charge's PCl3 (the hand split of
+  core 1.9.0 assumed 6 %). One still stage alone gives 97.3 wt%; a low-phosphorus grade needs
+  the chlorine treatment of US 4 209 460 A or a higher reflux, neither modelled (D-007, D-008,
+  D-015).
 - The model's HCl, 1.7 kg a batch from the acid's water, is a lower bound: the source's lower
   phase holds 6 wt% HCl, about 39 kg a batch at this scale (D-010).
 
@@ -54,7 +60,7 @@ Three headline numbers carry caveats:
 | `reviews/` | review records |
 | `runs/` | one record per design session, written by `cheme runs record` (`runs/README.md`); never edited |
 | `DESIGN.md`, `PROGRESS.md`, `STAGES.md` | decisions, change log, stage definitions |
-| `scripts/` | generator scripts and `balance.py`: the feeds for 2000 t/a, the phase split, the column's split, the scrubber water, the mixed temperatures and the duties core's models do not write (D-006, D-014) |
+| `scripts/` | generator scripts and `balance.py`: the feeds for 2000 t/a, the phase split, the scrubber water, the still's stream temperatures and the duties core's models do not write (D-006, D-014, D-015) |
 | `.claude/skills/` | how an agent works here (not in git: run `cheme skills update` once after cloning) |
 
 ## How this repository works
@@ -65,8 +71,8 @@ Three headline numbers carry caveats:
   drawing and generated file is made by the `cheme` command, so you need it to work here.
 - **Licences.** This folder is part of the ChemE-as-Code process library. Its data and designs are
   under CC BY 4.0 (`LICENSE-DATA`, unless `process.yaml` states otherwise); its skills and scripts
-  are under AGPL-3.0-or-later (`LICENSE`), like the ChemE-as-Code tools. Its publication status is
-  in `process.yaml` (internal until a maintainer decides otherwise).
+  are under AGPL-3.0-or-later (`LICENSE`), like the ChemE-as-Code tools. It is public
+  (`publication` in `process.yaml`: public, CC-BY-4.0).
 - **The skills in `.claude/skills/` are not in git.** They come with cheme-as-code: run
   `cheme skills update` once in this folder after cloning, so that Claude Code finds them here.
 
@@ -77,10 +83,10 @@ cheme validate                  # after every change
 cheme check                     # engineering-step gates (--write only at sign-off)
 cheme process build             # BFD and PFD from process/*.yaml
 cheme process streams           # stream table with provenance, block balances
-cheme process propagate --fill  # the semi-batch, the still (with their duties Q2, Q3), the mixers and the scrubber from the feeds
-cheme run scripts/balance.py    # the feeds, the phase split, the column's split and the other duties (then propagate again)
+cheme process propagate --fill  # the semi-batch, the still with its column (with their duties Q2, Q3, Q4) and the scrubber from the feeds
+cheme run scripts/balance.py    # the feeds, the phase split and the other duties (then propagate again)
 cheme process recipe            # batch cycle: occupancy, bottleneck, batches per year, vessel, jacket, vent (--svg)
 cheme process reactor-hazards   # thermal screening of the semi-batch
-cheme process stills            # the batch still: distillate, residue, boil-up time
+cheme process stills            # the batch still and its column: purity, recovery, residue, boil-up time, duties
 cheme assess lca --write        # the preliminary LCI
 ```
