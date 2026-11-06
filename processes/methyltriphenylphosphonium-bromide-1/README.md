@@ -21,12 +21,19 @@ residual moisture); and the toluene is recovered in core's batch still C-101 and
 `process/recipe.yaml` holds the batch recipe the cycle time, the vessel sizes, the jacket check
 and the flowsheet's year-average flows come from (`cheme process recipe`, `cheme process
 reactor-hazards`, `cheme process crystallizers`, `cheme process stills`). Needs cheme-as-code
-1.8.0. DESIGN.md lists the core features used and the core limits hit.
+1.9.0: propagate converges the recovered toluene's recycle at the tear S11 and the semi-batch,
+the crystallizer and the still write their duties (Q2, Q3, Q7); the heat they leave out, the
+vessels' metal and the still's heat-up, is on its own streams (Q9, Q10). DESIGN.md lists the core
+features used and the core limits hit.
 
 Key numbers: 1057.10 kg per batch, a 10.20 h cycle (the filter-dryer the bottleneck), 776.6
 batches and 820.9 t a year. Thermal screening: 14.7 % of the methyl bromide accumulates, the
 MTSR is 339.1 K, and the MTT of the closed vessel is 415.3 K, a hand value (the temperature at its
-relief's set pressure, DESIGN.md D-011). The headline yield (98.5 % on PPh3) and assay (99.87 wt%)
+relief's set pressure, DESIGN.md D-011; core 1.9.0's default, pure methyl bromide's boiling point
+at 230 kPa(a), 307.3 K, its Clausius-Clapeyron estimate of pure methyl bromide's boiling point
+with the 384 K heat of vaporization of the materials (300.0 K by their vapour pressure), does not
+describe a closed, padded vessel). R-101 has no vent and the
+reaction forms no gas, so there is no gas release to compare with a vent capacity. The headline yield (98.5 % on PPh3) and assay (99.87 wt%)
 are ASSUMED upper bounds: no open source of this route gives either, and impurities such as
 triphenylphosphine oxide are not modelled. The Org. Synth. procedure the route is usually cited
 from could not be read.
@@ -67,7 +74,7 @@ cheme validate                  # after every change
 cheme check                     # engineering-step gates (--write only at sign-off)
 cheme process build             # BFD and PFD from process/*.yaml
 cheme process streams           # stream table with provenance, block balances
-cheme process propagate --fill  # every stream from the feeds (semi-batch, crystallizers, filters, dryer, still)
+cheme process propagate --fill  # every stream from the feeds, the recycle at the tear S11, the models' duties
 cheme process recipe            # batch cycle: occupancy, bottleneck, batches per year, vessels (--svg)
 cheme process reactor-hazards   # thermal screening of the semi-batch
 cheme process crystallizers     # precipitation, wash, filters and dryer: solubility, crystals, moisture, steam
@@ -75,5 +82,8 @@ cheme process stills            # the toluene recovery: distillate, residue, boi
 cheme assess lca --write        # the preliminary LCI
 ```
 
-The recycled toluene (S3, S11) is a tear stream: after a change upstream, re-converge it with the
-fresh feeds by successive substitution over `cheme process propagate --fill` (DESIGN.md D-006).
+The recycled toluene is converged by `cheme process propagate --fill` at the tear S11 (core 1.9.0,
+`tears:` in the flowsheet); the tear iterates S11's composition only. After a change upstream
+S11's flow (1 kg per kg of salt in S9, the wash ratio), the fresh feeds S1, S2 and S6 (the
+charge ratios), the cycle and the hand splits DG101 and E201 are still set by hand (DESIGN.md
+D-006).

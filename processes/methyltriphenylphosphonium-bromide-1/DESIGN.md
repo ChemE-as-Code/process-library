@@ -15,6 +15,15 @@ semi-batch and the recipe of 1.7.0 (core ADRs 0050 to 0053). The NBS pilot
 `benzoyl-chloride-1` and `sodium-azide-1` (its recycle tears) are the templates;
 `methylmagnesium-bromide-1` is the library's other methyl bromide consumer.
 
+Moved to core **1.9.0** (314642c) on 2026-11-06 with the library's pin (D-015): the recovered
+toluene's recycle is converged by propagate at the tear S11 instead of by hand (ADR 0060, D-006);
+the models write the duties of R101 (Q2), CR101 (Q3) and the still ST101 (Q7) at their
+`energy_port` (ADR 0059), and what they leave out, R-101's metal cooled with the slurry and the
+still's charge and metal heated to the boil, is on its own streams Q10 and Q9 (D-010); the
+screening's default MTT at R-101's pressure is checked and the hand MTT of the closed vessel kept
+(ADR 0058, D-011). R101 has no vent, so there is no gas release to compare with a vent capacity.
+`plant.yaml` requires `cheme-as-code>=1.9`.
+
 ## Source register
 
 Facts are restated in our own words; nothing is copied. "Read" means the passage named was read
@@ -154,20 +163,46 @@ Result: QUAT 0.29123 kmol/h (2.970 kmol a batch); the PPh3 0.99 converted.
 confirmed by reaction calorimetry before basic engineering.
 
 ## D-006 Balance method and the recycles (2026-11-06)
-Decision: every unit but two is calculated by `cheme process propagate` (core 1.8.0): the
+Decision: every unit but two is calculated by `cheme process propagate` (core 1.9.0): the
 semi-batch R101, the crystallizers CR101 and W101, the filters F101 and F102, the dryer D101,
-the still ST101, the mixers M101, M201, M202 and the pass-through E101. The hand splits are
-DG101 (the vent losses, D-007) and E201 (the vacuum condenser, D-008): core has neither a
-degassing nor a condenser with non-condensables. No balance script.
-The recovered toluene to the charge (S3) and to the wash (S11) are assumed tear streams:
-propagate does not converge recycles. With them, the fresh PPh3, toluene and methyl bromide
-(S1, S2, S6) follow the per-batch charges of D-004 and the hand splits follow their rules; all
-were converged by successive substitution over `cheme process propagate --fill` (a scratch
-driver outside the folder, as sodium-azide-1 did) until the change was below 2e-7 relative, and
-then the cycle, which sets the hourly flows of the per-batch charges, to a fixed point. X101,
-DG101 and E201 then balance within the flowsheet's tolerance (abs 0.02 kg/h, rel 0.001), which
-`cheme validate` checks; a change to an upstream value unbalances them, so the loop must be
-re-converged (L-5).
+the still ST101, the mixers M101, M201, M202, the pass-through E101 and the recycle splitter
+X101 (S3 its remainder). The hand splits are DG101 (the vent losses, D-007) and E201 (the vacuum
+condenser, D-008): core has neither a degassing nor a condenser with non-condensables. No
+balance script.
+The recovered toluene's recycle is converged by propagate at a declared tear (core 1.9.0, ADR
+0060; flowsheet `tears:`): the wash S11. Every loop propagate sees runs through it (X101 -> S11
+-> W101 -> F102 -> S14 -> M201 -> ST101 -> S19 -> X101), so the plant is torn once. The
+charge's path (X101 -> S3 -> M101 ... R101 -> CR101 -> DG101) is no loop for propagate: DG101 is
+a hand split whose assumed outlets it does not derive, so S3 is simply X101's remainder (S19 less
+S11), calculated. S11's flow is the ASSUMED wash ratio of D-008 (1 kg of recovered toluene per kg
+of salt in the cake, 103.673 kg/h), a design input held fixed on the tear; its composition is
+iterated by Wegstein's method from a first guess (the hand-converged values rounded to 4
+digits) to 1e-6 kg/h + 1e-9 relative per component, far tighter than the balances' tolerance
+(abs 0.02 kg/h, rel 0.001), so that the six digits written are the fixed point's (as
+sodium-azide-1 does): 3 iterations, worst residual 2.15e-16 kg/h (`cheme.process-recycle`,
+info). The loop's gain is small: S11 brings a quarter of the still's charge, and only its
+methyl bromide content is iterated.
+The fresh PPh3, toluene and methyl bromide (S1, S2, S6) stay ASSUMED at the per-batch charges of
+D-004 at the converged recycle, and the cycle, which sets the hourly flows of those charges, at
+its fixed point (L-6): core has no design specification on a feed (ADR 0060, core#181 part 2).
+DG101 and E201 follow their rules from the calculated S8 and S21 (S23 90 % of S8's methyl
+bromide with the toluene that saturates the nitrogen, S18 all of S21's methyl bromide with the
+toluene that saturates it at 268 K, S22 and S16 the remainders), re-derived after the tear moved
+S8 and S21 and repeated with `propagate --fill` until S22, S23, S16 and S18 no longer change in
+their written digits (two rounds); with X101 they balance within the flowsheet's tolerance,
+which `cheme validate` checks.
+Until core 1.9.0, S3 and S11 were ASSUMED tear streams converged by hand (successive
+substitution over `cheme process propagate --fill` with a scratch driver outside the folder,
+until the change was below 2e-7 relative, L-5). Against that, every calculated flow written is
+the same to its six digits (S3 302.99 kg/h, the product S15 103.655 kg/h) but the vent header's,
+S24 2.2757 to 2.27572 kg/h, which follows the re-derived hand splits S23 (2.25764 to 2.25766)
+and S18 (0.0180598 to 0.0180586 kg/h); the largest change of a fraction is 6.8e-5 relative
+(methyl bromide in the charge S5, 0.000438416 to 0.000438386 mol fraction), inside the
+balances' tolerance. A change to an upstream value now makes the tear stale, and `propagate --fill`
+converges it again; what stays set by hand has to be reset after such a change: S11's flow (1 kg
+per kg of salt in S9, D-008: the tear iterates only its composition, so a change of the yield or
+the solubility would otherwise break the wash ratio), the fresh feeds S1, S2 and S6 (the charge
+ratios, D-004), the cycle (L-6) and the hand splits DG101 and E201 (L-3).
 
 ## D-007 Precipitation and the vent losses (2026-11-06)
 Decision:
@@ -247,8 +282,10 @@ return the unconverted PPh3 but carry the excess methyl bromide and the oxide ro
 variant once an impurity balance exists.
 
 ## D-010 Utilities and heat (2026-11-06)
-Decision (year averages, hand arithmetic from cheme's reports, given in the flowsheet's
-sources; `tests/test_methyltriphenylphosphonium_bromide_1.py` recomputes them):
+Decision (year averages; since core 1.9.0 the models write Q2, Q3 and Q7 at their
+`energy_port`, `calculated` by `cheme process propagate --fill`, ADR 0059; the rest is hand
+arithmetic from cheme's reports, given in the flowsheet's sources;
+`tests/test_methyltriphenylphosphonium_bromide_1.py` recomputes them):
 - LP steam 350 kPa(a), as heat delivered:
   - Q1 8.562 kW: the charge S4 heated from 292.81 to 333.15 K (618.7 kJ/(K h)), and R-101's metal
     (3000 kJ/K, about 6 t of glass-lined steel, ASSUMED) from 313.15 to 333.15 K each batch.
@@ -257,19 +294,31 @@ sources; `tests/test_methyltriphenylphosphonium_bromide_1.py` recomputes them):
     melting point; no measured value found), 60 MJ per batch (5.9 MJ/h), so Q1 counts the
     dissolution;
   - Q4 10.347 kW: the dryer (core's model, D-008);
-  - Q7 60.628 kW: the still: the boil-up, 414.7 kWh a batch (`cheme process stills`), plus what
-    core's still leaves out: the charge S17 heated from 308.47 K to its 383.5 K bubble point, and
-    C-101's metal (2500 kJ/K, about 5 t, ASSUMED) from 308.47 to 386.48 K each batch.
+  - Q7 40.6685 kW: the still's boil-up, 414.7 kWh a batch, its latent heat (`cheme process
+    stills`); ST101's model writes it (`energy_port: steam`, `calculated`);
+  - Q9 19.964 kW: what core's still leaves out, ASSUMED by hand: the charge S17 heated from
+    308.47 K to its 383.5 K bubble point (52747 kJ/h), and C-101's metal (2500 kJ/K, about 5 t,
+    ASSUMED) from 308.47 to 386.48 K each batch (19123 kJ/h).
+  Until core 1.9.0 one typed stream Q7 held all three, 60.628 kW; core 1.9.0 compares a typed
+  duty with its model, and the still has two heat streams (Q7, Q8), so it asked for the
+  `energy_port`. With it the boil-up is the model's (40.6685 kW, 0.0045 kW above the hand value,
+  which took the boil-up's 414.7 kWh rounded) and the heat-up is Q9: 60.632 kW together.
   R-101 and F-101 are heated with hot water at 353 K from LP steam, C-101 with the steam at
   412 K: below every temperature limit the design states (R-101's MTT 415.29 K, D-011; the
   salt's melting point, about 503 K). The steam is only 3 K below R-101's MTT, so it must never
   reach R-101's jacket directly: R-101 sees only the 353 K hot-water circuit. No decomposition
   temperature of the salt, PPh3 or the still residue is known (open input, D-011).
 - cooling water 298/308 K:
-  - Q2 7.878 kW: the heat of quaternisation (0.29123 kmol/h x 100 MJ/kmol) less the dose warmed
-    from 298 to 333 K;
-  - Q3 5.186 kW: the slurry cooled from 333.15 to 313.15 K (CR101's energy block) and R-101's
-    metal by 20 K;
+  - Q2 7.8775 kW: the heat of quaternisation (0.29123 kmol/h x 100 MJ/kmol) less the dose warmed
+    from 298 to 333 K; R101's semi-batch model writes it (`energy_port: q`, `calculated`), equal
+    to the hand value it replaced (7.8775 kW);
+  - Q3 3.5515 kW: the slurry S7 cooled from 333.15 to 313.15 K, CR101's lumped duty (its energy
+    block, 1.54 kJ/(kg K)); CR101's model writes it (`energy_port: q`, `calculated`);
+  - Q10 1.634 kW: R-101's metal (3000 kJ/K, as Q1) cooled by the same 20 K each batch, which the
+    crystallizer's model does not hold, ASSUMED by hand (5883 kJ/h). Until core 1.9.0 Q3 held
+    both, 5.1858 kW; core 1.9.0 named the difference with its model (`cheme.process-duty`:
+    5.1858 against 3.55153 kW), which is exactly this metal (the hand sensible part, 12785.5
+    kJ/h, is the model's 3.55153 kW), not an error, so it is now its own stream;
   - Q6 3.359 kW: the product cooled from 333.15 to 313.15 K in F-101 and F-101's metal cooled
     back to the cake's 307.95 K each batch (as core's dryer model assumes);
   - Q8 56.426 kW: the still's condenser (the distillate at its components' heats of
@@ -283,7 +332,8 @@ sources; `tests/test_methyltriphenylphosphonium_bromide_1.py` recomputes them):
   F-101's 7.5 kW agitator half the time and the 5.5 kW vacuum pump over the drying (7.3 kW),
   C-101's agitator and the transfer pumps (2.8 kW). All ASSUMED.
 Per kg of salt: LP steam 0.767 kWh, cooling water 0.703 kWh, brine 0.042 kWh, electricity
-0.150 kWh.
+0.150 kWh (core 1.9.0's exact boil-up raises the LP steam from 0.76732 to 0.76737 kWh, the same
+to three digits).
 Every energy flow of the batch is in the flowsheet and so in the LCI per kg (library ADR 0035),
 including the dissolution of the PPh3, the vessels' metal, the still's heat-up and the vacuum
 condenser. Recorded exclusions, with their size:
@@ -299,9 +349,15 @@ W101 is adiabatic (`process/simulation.yaml`); M201 and M202 mix adiabatically (
 S24 312.87 K, from their inlets' heat capacities).
 
 ## D-011 Thermal screening, pressure and the rate sensitivity (2026-11-06)
-Result (`cheme process reactor-hazards`, core ADR 0050): R101 T_p 333.15 K, adiabatic rise of the
-whole batch dT_ad 46.0 K; the largest accumulation of the dosed methyl bromide 14.7 % at the
-end of the dosing; the MTSR at the worst moment (10132 s) 339.1 K.
+Result (`cheme process reactor-hazards`, core ADR 0050; the same on core 1.9.0): R101 T_p 333.15
+K, adiabatic rise of the whole batch dT_ad 46.0 K; the largest accumulation of the dosed methyl
+bromide 14.7 % at the end of the dosing; the MTSR at the worst moment (10132 s) 339.1 K. The
+MTSR over the batch (core 1.9.0, `mtsr_profile`, ADR 0058): 333.4 K at the start, 335.0 K at
+1.04 h, 336.6 K at 2.13 h, 339.1 K at 2.81 h, 336.6 K at 3.21 h and 333.6 K at 5.3 h: it rises
+over the dosing and falls once the dose stops.
+No vent: R101 is closed while it reacts and QUAT forms no gas (the salt is its only product), so
+core 1.9.0 gives no gas release at the MTSR and `hazard.vent_capacity` has nothing to compare
+(`cheme.reactor-hazard-vent` applies to a vented batch only); none is stated (D-015).
 MTT: R-101 is closed and padded with nitrogen, so the boiling points do not bound the
 temperature; the pressure does. The MTT (SRC-7, closed system) is the temperature at which the
 vessel reaches its relief's set pressure, 700 kPa(a) for a 6 bar g glass-lined vessel
@@ -317,15 +373,27 @@ the pad x (1.60 / V_gas(T)) x (T / 333.15). Result: 415.29 K (`hazard.mtt`, by h
 recomputes it). Without the expansion it would be 430.99 K, 16 K too high. The pressure at T_p
 is 282 kPa(a). Every MTT of this section lies inside the fitted ranges of the two vapour
 pressures (toluene 300-420 K, methyl bromide 270-420 K): no extrapolation. Core gives no MTT for
-a vessel above atmospheric pressure (it asks for `hazard.mtt`); at atmospheric pressure it would
-take the
-lowest boiling point of what stays in the liquid, methyl bromide's 276.55 K, below T_p (L-4).
+a closed, padded vessel (L-4). Core 1.9.0's default (ADR 0058), which `hazard.mtt` overrides,
+is 307.3 K: core's Clausius-Clapeyron estimate of pure methyl bromide's boiling point at R101's
+230 kPa(a), from its normal boiling point with the `heat_of_vaporization` of
+`process/materials.yaml`, which is taken at the still's 384 K (a scratch copy without
+`hazard.mtt`, 2026-11-06). It is not the physical boiling point: the entry's own vapour pressure
+(the Antoine set fitted over 270-420 K) gives 300.0 K at 230 kPa(a); a single latent heat taken
+100 K above the range puts the estimate 7.3 K high. Both are below T_p. Core leaves
+a dissolved gas out of the default only below 5 mol% of the charge and doses; methyl bromide is
+7.8 % of them (3.15 of 40.3 kmol), so it counts, and core reads it as the liquor at its boiling
+point, below T_p (with a `cheme.reactor-hazard-mtsr` warning, MTSR above the MTT). That does not
+describe this vessel: closed and padded, its liquor does not boil, the pressure bounds the
+temperature, and methyl bromide is 1.3 mol% of the liquid at the worst moment. The hand MTT stays
+the basis (D-015).
 No TD24 is known for the reaction mass, the salt or the still residue (never estimated): no
 criticality class (`cheme.reactor-hazard-missing`, info). With MTSR below MTT, core's
 criticality() gives class 1 (TD24 above the MTT), 2 (TD24 between MTSR and MTT, or at the MTT)
 or 5 (TD24 below the MTSR); the TD24 decides which.
 Sensitivity (a scratch copy with the rate constant of QUAT divided by 10 and by 100; nothing else
-changed, the same batch and recycle; not committed):
+changed, the same batch and recycle; not committed; rerun on core 1.9.0 on 2026-11-06 with the
+same accumulation, MTSR and cycle, the MTSR over the batch peaking at the end of the dosing:
+k/10 351.7 K at 2.71 h, back to 342.7 K at 4.59 h; k/100 371.9 K at 3 h, 340.0 K at 41.6 h):
 
 | case | accumulation (end of dosing) | MTSR (worst moment) | MTT of the closed vessel | post-reaction | cycle, batches/a |
 |---|---|---|---|---|---|
@@ -405,7 +473,37 @@ multipurpose fine-chemical plants: there the burden per kg differs.
   R-101's pressure (alarm 400, stop 500 kPa(a), ASSUMED), its temperature and the agitator.
 These are proposals for the HAZOP, not accepted safeguards.
 
-## Core features used (cheme-as-code 1.8.0)
+## D-015 Core 1.9.0: tears, duties from the models, the MTT and the vent (2026-11-06)
+Decision, on the core pin's rise to 1.9.0 (314642c):
+- **Recycle tear (ADR 0060).** The recovered toluene's recycle is torn at S11 (`tears:`), its
+  flow the ASSUMED wash ratio held fixed, its composition converged by Wegstein's method; S3 is
+  X101's remainder. This replaces the hand convergence of S3 and S11 (D-006, L-5 resolved); the
+  fresh feeds stay ASSUMED at the charge ratios (no design specification in core).
+- **Duties from the models (ADR 0059).** Under 1.9.0 the entry gave `cheme.process-duty`
+  warning at CR101 (Q3 5.1858 kW typed against the model's 3.55153 kW) and info at ST101 (two
+  heat streams, Q7 and Q8, so the model's duty was not written). Each was resolved, not
+  silenced: R101 (`energy_port: q`, Q2), CR101 (`energy_port: q`, Q3) and ST101 (`energy_port:
+  steam`, Q7) now carry their models' duties, `calculated`; the heat the models deliberately
+  leave out is on its own ASSUMED stream with its hand arithmetic, both in the LCI: Q10 (R-101's
+  metal cooled with the slurry, 1.634 kW) and Q9 (the still's charge and metal heated to the
+  boil, 19.964 kW). The hand values were recomputed: Q3's difference is exactly the metal, Q7's
+  the heat-up and the metal (D-010). R101's typed Q2 already agreed with its model and is now
+  the model's. Q1 (a heater, no model), Q4 (the dryer, compared by `cheme.process-dryer-duty`),
+  Q5, Q6 and Q8 (condensers and coolers, which ADR 0059 leaves typed) stay ASSUMED.
+- **MTT (ADR 0058).** The default at R101's 230 kPa(a) is 307.3 K, core's Clausius-Clapeyron
+  estimate of pure methyl bromide's boiling point with the 384 K heat of vaporization of
+  `process/materials.yaml` (the entry's vapour pressure gives 300.0 K): methyl bromide boiling
+  below T_p either way, which a closed, padded vessel does not do; `hazard.mtt` stays the hand MTT of the
+  closed vessel, 415.29 K (D-011, L-4 still open).
+- **No vent capacity.** R101 has no vent (closed while it reacts, D-005) and forms no gas, so
+  there is no gas release at the MTSR, nor over the batch or in the k/10 and k/100 cases, to
+  compare with `hazard.vent_capacity`; none is stated. R-101's relief (700 kPa(a), D-011) and its
+  scenario stay a basic-engineering item (D-014).
+- `plant.yaml` requires `cheme-as-code>=1.9`: 1.8.0 refuses `tears` and `energy_port`.
+Reason: core 1.9.0 makes the recycle and the models' duties calculated, so they go stale when an
+input changes, instead of being converged and copied by hand.
+
+## Core features used (core 1.9.0)
 
 | feature | where | ADR |
 |---|---|---|
@@ -419,11 +517,18 @@ These are proposals for the HAZOP, not accepted safeguards.
 | `still:` on Raoult's law with a `distilled` end, recipe `distil` `from:` | ST101 (toluene recovery) | 0055 |
 | vessel sizing and jacket check, `heat`/`cool` times from the jacket | R-101, F-101 | 0052 |
 | per-batch LCA consumables with a disposal | nitrogen | 0053 |
+| `tears: [{stream, initial}]`, `convergence:` (1.9.0) | S11, the recovered toluene's recycle, its flow held as the wash ratio (D-006, D-015) | 0060 |
+| the models' duties at `energy_port:` (1.9.0) | Q2 (R101 semi-batch), Q3 (CR101 crystallizer), Q7 (ST101 still), `calculated` (D-010, D-015) | 0059 |
+| the MTSR over the batch (`mtsr_profile`); the default MTT at the vessel's pressure checked (1.9.0) | R101 (D-011, D-015) | 0058 |
 Not used: `batch.vent` and `dosing.absorbed` (ADR 0054): no gas leaves R101 while it reacts (the
 vessel is closed) and the methyl bromide is dosed as a liquid (D-001); the excess leaves after
-the reaction, which a vent on the reacting step cannot express (L-3).
+the reaction, which a vent on the reacting step cannot express (L-3). Hence also not
+`hazard.vent_capacity` (no gas release to compare, D-015), nor `hazard.reactions` (one
+reaction); the default MTT is overridden by `hazard.mtt` (D-011).
 
 ## Core limits hit (for core issues)
+
+Status on core 1.9.0 (2026-11-06): L-5 is resolved, L-7 partly; L-1 to L-4, L-6 and L-8 remain.
 
 - L-1: a batch still is not sized as a vessel: a recipe unit holding only a still has "no batch
   content to size" (`cheme.recipe-reference` when a vessel is given), so C-101's volume is a
@@ -439,22 +544,31 @@ the reaction, which a vent on the reacting step cannot express (L-3).
   non-condensables (E201) are hand splits with an ASSUMED stripping share. The toluene the
   nitrogen carries is hand arithmetic. A degassing or flash step (a share of each volatile, or a
   VLE at the vessel's pressure) would make both calculated.
-- L-4: no MTT for a closed vessel: above atmospheric pressure core asks for `hazard.mtt`, and at
-  atmospheric pressure it would take methyl bromide's boiling point (276.55 K, below T_p). The
+- L-4: no MTT for a closed vessel. Up to 1.8.0 core asked for `hazard.mtt` above atmospheric
+  pressure; core 1.9.0 (ADR 0058) gives a default there, the boiling point of what boils at the
+  vessel's pressure by Clausius-Clapeyron, here 307.3 K for methyl bromide at 230 kPa(a) with its
+  heat of vaporization at the still's 384 K (its vapour pressure gives 300.0 K), below T_p: a
+  pure component's boiling point, from one latent heat, still not a closed vessel (still open). The
   MTT of a closed, padded vessel (the temperature at the relief's set pressure from the
   vapour pressures and the pad, the pad compressed by the liquid's thermal expansion, which
   alone lowers it by 16 K here) is hand arithmetic (D-011), and it differs per sensitivity case;
-  the screening also reports no pressure at the worst moment.
-- L-5: propagate does not converge recycles: the recovered toluene (S3, S11) is a tear stream
-  converged by hand with the fresh feeds that follow the charge ratios (D-006), as in
-  sodium-azide-1.
+  the screening also reports no pressure at the worst moment (ADR 0058 names the blocked-vent
+  pressure, with no head space or relief model, a known limitation).
+- L-5 (resolved in core 1.9.0, ADR 0060): propagate did not converge recycles: the recovered
+  toluene (S3, S11) was a tear stream converged by hand with the fresh feeds that follow the
+  charge ratios (D-006), as in sodium-azide-1. It is now the flowsheet's tear S11, converged by
+  propagate; the fresh feeds that follow the charge ratios stay ASSUMED (no design specification
+  on a feed, core#181 part 2, L-6).
 - L-6 (as NBS L-6): core propagates from the feeds and does not solve them for a product rate,
   and the per-batch charges over the cycle set the hourly feeds; batch size and cycle were
   iterated by hand to a fixed point.
-- L-7: the heat-up and the vessel's metal are outside the still's and the jacket's models: the
-  still's duty is the boil-up alone (no heat-up of the charge, no sensible heat of the pot), and
-  the recipe's heating and cooling times count the content but not the vessel's steel; Q1, Q3,
-  Q6 and Q7 add them by hand, and the times are short by that share.
+- L-7 (partly resolved in core 1.9.0, ADR 0059): the heat-up and the vessel's metal are outside
+  the still's, the crystallizer's and the jacket's models: the still's duty is the boil-up alone
+  (no heat-up of the charge, no sensible heat of the pot), and the recipe's heating and cooling
+  times count the content but not the vessel's steel. Since 1.9.0 the models write their own
+  part (Q2, Q3, Q7) and the hand part is its own stream (Q9, Q10), but Q1, Q6, Q9 and Q10 are
+  still hand arithmetic (ADR 0059 names a heat-up duty from the recipe as a follow-up), and the
+  times are short by that share.
 - L-8: no heat of solution or mixing: the PPh3's dissolution in M101 (60 MJ a batch) is put
   into S4's temperature by hand, and a dosed liquid's mixing heat is not counted
   (p-toluenesulfonyl-chloride-1's L-2).
@@ -465,15 +579,16 @@ the reaction, which a vent on the reacting step cannot express (L-3).
 |---|---|---|
 | mass, component, element balances | done in cheme | cheme validate / process streams / propagate |
 | semi-batch R101: composition, accumulation, MTSR, peak cooling | done in cheme, kinetics ASSUMED | D-005, D-011, `cheme process reactors`, `reactor-hazards` |
-| MTT of the closed vessel | hand (Raoult and the pad) | D-011, L-4 |
+| MTT of the closed vessel | hand (Raoult and the pad); core 1.9.0's default (307.3 K) checked, not used | D-011, D-015, L-4 |
 | batch recipe, cycle time, basis check, vessels, jackets | done in cheme | D-003, `cheme process recipe` |
 | precipitation and wash losses | done in cheme: crystallizers with spectators, solubility ASSUMED | D-007, D-008, core ADR 0056 |
 | filtration | specified split in cheme; time by Ruth, cake data ASSUMED | D-008, core ADR 0057 |
 | drying: outlets, duty Q4, drying time | done in cheme, moisture and rate ASSUMED | D-008, core ADR 0057 |
 | toluene recovery: cuts, residue, boil-up time and energy | done in cheme (Rayleigh, Raoult) | D-009, core ADR 0055 |
 | vent losses DG101, vacuum condenser E201 | hand splits, shares ASSUMED | D-007, D-008, L-3 |
-| recycle tears and the cycle | hand (successive substitution over propagate) | D-006, L-5, L-6 |
-| the other duties | hand arithmetic in the sources, recomputed by the test | D-010 |
+| recycle | done in cheme (tear S11, Wegstein); the fresh feeds' charge ratios and the cycle ASSUMED at the fixed point | D-006, D-015, L-6 |
+| duties Q2, Q3, Q7 | done in cheme (the models at `energy_port`, core 1.9.0) | D-010, D-015 |
+| the other duties (Q1, Q5, Q6, Q8, Q9, Q10) | hand arithmetic in the sources, recomputed by the test | D-010 |
 | per-batch exchange (nitrogen) | done in cheme, amount ASSUMED | D-012, core ADR 0053 |
 | LCI inventory | done, PPh3 and methyl bromide unmapped | D-012 |
 

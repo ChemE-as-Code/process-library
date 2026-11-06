@@ -22,16 +22,21 @@
 #   D-007), F101 and F102 (specified filters with a Ruth filtration time), D101 (dryer to a
 #   residual moisture, D-008), ST101 (Rayleigh still on Raoult's law, D-009), M101, M201 (mixers);
 #   E101 (pass-through);
-# - S3 and S11, the recovered toluene to the charge and to the wash, are assumed tear streams,
-#   and S1, S2 and S6, the fresh PPh3, toluene and methyl bromide, follow the charge ratios of
-#   D-004 at the converged recycle: propagate does not converge recycles, so they were converged
-#   by successive substitution over `cheme process propagate --fill` (a scratch driver outside
-#   the folder, as sodium-azide-1 did) until X101 balances (D-006);
-# - E201, the vacuum condenser, is a hand split (S16, S18 assumed: all the methyl bromide to the
-#   vent, D-008), set in the same loop; core models no condenser with non-condensables;
-# - the duties: hand arithmetic from cheme's reports (`cheme process reactors`, `crystallizers`,
-#   `stills`) and the stream table, given as ASSUMED with the arithmetic in each source (D-010);
-#   the dryer's heat Q4 is core's dryer model.
+# - the recycle: S11, the recovered toluene to the cake wash, is the tear stream of `tears:`
+#   (core 1.9.0, ADR 0060), its flow the ASSUMED wash ratio (1 kg per kg of salt in the cake,
+#   D-008) held fixed and its composition iterated by Wegstein's method; S3, the toluene to the
+#   next charge, is X101's remainder; S1, S2 and S6, the fresh PPh3, toluene and methyl bromide,
+#   stay ASSUMED at the charge ratios of D-004 (core has no design specification on a feed,
+#   D-006);
+# - DG101 (the vent losses) and E201 (the vacuum condenser) are hand splits (S22, S23, S16, S18
+#   assumed, D-007, D-008): core models no degassing and no condenser with non-condensables;
+#   `cheme validate` checks that they balance;
+# - the duties (D-010): R101's Q2, CR101's Q3 and ST101's Q7 are written by `cheme process
+#   propagate --fill` from the models at each step's `energy_port` (core 1.9.0, ADR 0059); what
+#   the models leave out is on its own ASSUMED stream with its hand arithmetic: R-101's metal
+#   cooled with the slurry (Q10) and the still's charge and metal heated to the boil (Q9); Q1,
+#   Q5, Q6 and Q8 are hand arithmetic from the stream table; the dryer's heat Q4 is core's dryer
+#   model (`cheme.process-dryer-duty` compares it).
 schema: cheme/process/v1
 kind: flowsheet
 title: Methyltriphenylphosphonium bromide by semi-batch quaternisation of triphenylphosphine with methyl bromide in toluene
@@ -44,6 +49,16 @@ units:
 cases:
   - {id: design, description: "Design case: dried methyltriphenylphosphonium bromide, year averages of the batches in 7920 h on a dedicated train (D-002, D-003)", default: true}
 tolerance: {abs: 0.02, rel: 0.001}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+# The recovered-toluene recycle (D-006): every loop of propagate runs through the wash S11
+# (X101 -> W101 -> F102 -> M201 -> ST101 -> X101), so it is torn once there; the loop through the
+# charge S3 is closed by the hand split DG101, whose assumed outlets propagate does not derive.
+# S11's flow is the ASSUMED wash ratio and stays fixed; its composition is iterated from the
+# first guess (the hand-converged values, rounded). The tolerance is far tighter than the
+# balances' so that the six digits written are the fixed point's (as sodium-azide-1, D-006).
+tears:
+  - stream: S11
+    initial: {flow: 103.673, unit: kg/h, basis: mass_fraction, composition: {TOL: 0.9995, MEBR: 0.0005}}
+convergence: {method: wegstein, max_iterations: 100, tolerance: {abs: 1.0e-6, rel: 1.0e-9}}
 
 feeds:
   - {id: PPH3, title: Triphenylphosphine (merchant), category: raw_material, ports: [{id: out, direction: out}]}
@@ -70,6 +85,7 @@ feeds:
       - {id: e101, direction: out, kind: energy}
       - {id: d101, direction: out, kind: energy}
       - {id: st101, direction: out, kind: energy}
+      - {id: st101_heatup, direction: out, kind: energy}
 products:
   - {id: PROD, title: Methyltriphenylphosphonium bromide crystals to packing, category: product, ports: [{id: in, direction: in}]}
   - {id: OFFGAS, title: "Vent gas (R-101, F-101) to the thermal oxidiser", category: off_gas, ports: [{id: in, direction: in}]}
@@ -85,6 +101,7 @@ products:
     ports:
       - {id: r101, direction: in, kind: energy}
       - {id: cr101, direction: in, kind: energy}
+      - {id: cr101_vessel, direction: in, kind: energy}
       - {id: f101, direction: in, kind: energy}
       - {id: st101, direction: in, kind: energy}
   - id: BRINE
@@ -112,6 +129,7 @@ blocks:
       - {id: steam, direction: in, kind: energy}
       - {id: cw, direction: out, kind: energy}
       - {id: cw2, direction: out, kind: energy}
+      - {id: cw3, direction: out, kind: energy}
       - {id: power, direction: in, kind: energy}
   - id: ISOL
     title: Filtration, toluene wash and vacuum drying (F-101, filter-dryer)
@@ -136,6 +154,7 @@ blocks:
       - {id: wash, direction: out}
       - {id: residue, direction: out}
       - {id: steam, direction: in, kind: energy}
+      - {id: steam2, direction: in, kind: energy}
       - {id: cw, direction: out, kind: energy}
       - {id: power, direction: in, kind: energy}
 
@@ -165,6 +184,8 @@ steps:
     class: ReactingChemicals
     reactions: [QUAT]
     reactor: semibatch
+    # the semi-batch's duty (QUAT's heat less the dose warmed, ADR 0059) goes on Q2 (D-010)
+    energy_port: q
     batch:
       dosing: [{stream: S6, time: 10800}]
       target: {key: PPH3, conversion: 0.99}
@@ -174,7 +195,7 @@ steps:
     hazard:
       mtt: 415.29
       provenance: assumed
-      source: "hand arithmetic (D-011): the temperature at which the closed R-101 reaches the 700 kPa(a) set pressure of its relief (a 6 bar g vessel, ASSUMED) at the end of the dosing, the moment of the largest accumulation (0.463 kmol methyl bromide, x 0.0133 in the liquid): Raoult's law with the toluene and methyl bromide vapour pressures of process/materials.yaml (inside their fitted 300-420 K and 270-420 K ranges) plus the nitrogen pad, 230 kPa(a) at 333 K on the headspace before the dose (1.78 m3), compressed to 255.8 kPa(a) by the dose's volume and further by the toluene's thermal expansion (thermo 0.11: 830 kg/m3 at 333 K, 746 kg/m3 at 415 K; the headspace falls from 1.60 to 1.17 m3), and rising with the temperature; not the normal boiling point of methyl bromide (276.55 K), which core would take and which lies below the process temperature in a closed vessel (lesson L-4); no TD24 (never estimated)"
+      source: "hand arithmetic (D-011): the temperature at which the closed R-101 reaches the 700 kPa(a) set pressure of its relief (a 6 bar g vessel, ASSUMED) at the end of the dosing, the moment of the largest accumulation (0.463 kmol methyl bromide, x 0.0133 in the liquid): Raoult's law with the toluene and methyl bromide vapour pressures of process/materials.yaml (inside their fitted 300-420 K and 270-420 K ranges) plus the nitrogen pad, 230 kPa(a) at 333 K on the headspace before the dose (1.78 m3), compressed to 255.8 kPa(a) by the dose's volume and further by the toluene's thermal expansion (thermo 0.11: 830 kg/m3 at 333 K, 746 kg/m3 at 415 K; the headspace falls from 1.60 to 1.17 m3), and rising with the temperature; not core 1.9.0's default (ADR 0058), 307.3 K, its Clausius-Clapeyron estimate of pure methyl bromide's boiling point at the vessel's 230 kPa(a) with the heat of vaporization of process/materials.yaml, taken at the still's 384 K (the entry's vapour pressure gives 300.0 K at 230 kPa(a); methyl bromide is 7.8 mol% of the charge and doses, above the 5 % core leaves out as a dissolved gas); both lie below the process temperature: in the closed, padded vessel nothing boils, the pressure bounds the temperature (D-011, D-015, lesson L-4); no TD24 (never estimated); no vent_capacity: R101 has no vent and QUAT forms no gas, so no gas release to compare (D-015)"
     links: [{target: equipment, ref: R-101}]
     ports:
       - {id: charge, direction: in}
@@ -205,11 +226,15 @@ steps:
       spectators: [PPH3, MEBR]
       energy: {heat_capacity: 1.54, heat_of_crystallization: 0.0, provenance: assumed, source: "the slurry S7's heat capacity from the components' liquid heat capacities of process/materials.yaml: 638.45 kJ/(K h) over 414.72 kg/h = 1.54 kJ/(kg K) (D-010); the heat of crystallisation is counted in QUAT's heat of reaction, so 0 here (D-005)"}
       outlets: {slurry: out}
+    # the crystallizer's lumped duty (the slurry's cool-down) goes on Q3; R-101's metal cooled
+    # with it is Q10, which the model does not hold (D-010)
+    energy_port: q
     links: [{target: equipment, ref: R-101}]
     ports:
       - {id: in, direction: in}
       - {id: out, direction: out}
       - {id: q, direction: out, kind: energy, delegates: cw2}
+      - {id: q_vessel, direction: out, kind: energy, delegates: cw3}
   - id: DG101
     block: REACT
     title: "Vent losses of the slurry: R-101 depressurised and swept with nitrogen, F-101's pressing gas"
@@ -360,12 +385,17 @@ steps:
       outlets: {distillate: main, residue: residue}
       provenance: assumed
       source: "the toluene distilled, with the excess methyl bromide, until 98.5 % of the charge's mass is over; the residue the PPh3, the salt and about 1.5 % of the charge as toluene (D-009)"
+    # the still's duty (its boil-up's latent heat, ADR 0059) goes on Q7; the charge's heat-up to
+    # its bubble point and C-101's metal, which the still leaves out, are Q9; the condenser Q8
+    # stays hand arithmetic (D-010)
+    energy_port: steam
     links: [{target: equipment, ref: C-101}]
     ports:
       - {id: in, direction: in, delegates: liquor}
       - {id: main, direction: out}
       - {id: residue, direction: out, delegates: residue}
       - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: steam_heatup, direction: in, kind: energy, delegates: steam2}
       - {id: cw, direction: out, kind: energy, delegates: cw}
       - {id: power, direction: in, kind: energy, delegates: power}
   - id: X101
@@ -410,8 +440,8 @@ streams:
       design:
         temperature: {value: 303.15, provenance: assumed, source: "the still's distillate condensed and cooled on cooling water (D-009)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 302.99, provenance: assumed, source: "tear stream: the still's distillate S19 less the wash S11, at S19's composition, converged over cheme process propagate (D-006)"}
-        composition: {basis: mass_fraction, values: {TOL: 0.999499, MEBR: 0.00050077}, provenance: assumed, source: "tear stream: S19's composition as cheme process propagate calculates it, converged (D-006)"}
+        flow: {value: 302.99, provenance: calculated, source: 'cheme process propagate: splitter X101 from S19 S11', fingerprint: cb059cba28d779a4}
+        composition: {basis: mole_fraction, values: {TOL: 0.999514, MEBR: 0.000485986, PPH3: 0.0, MTPPB: 0.0, MTPPB_S: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter X101 from S19', fingerprint: 4f3f4601b81a2bc5}
   - id: S4
     title: Charge (PPh3 in toluene)
     from: M101.out
@@ -421,8 +451,8 @@ streams:
       design:
         temperature: {value: 292.81, provenance: assumed, source: "M101 mixed adiabatically: S1 (91.93 kJ/(K h) at 298.15 K), S2 (9.88 at 298.15 K), S3 (516.45 at 303.15 K), less the PPh3's heat of solution (0.2942 kmol/h x 20 MJ/kmol, ASSUMED its heat of fusion by Walden's rule, D-010); the components' liquid heat capacities of process/materials.yaml"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 385.941, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3', fingerprint: f32a1258e9a83607}
-        composition: {basis: mole_fraction, values: {TOL: 0.918864, MEBR: 0.000438416, PPH3: 0.0806974, MTPPB: 0.0, MTPPB_S: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3', fingerprint: 6007d36368b01e13}
+        flow: {value: 385.941, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3', fingerprint: 8cde58cb7321b414}
+        composition: {basis: mole_fraction, values: {TOL: 0.918864, MEBR: 0.000438386, PPH3: 0.0806973, MTPPB: 0.0, MTPPB_S: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3', fingerprint: 2a693f23aee7fc79}
   - id: S5
     title: Charge at 333 K
     from: E101.out
@@ -432,8 +462,8 @@ streams:
       design:
         temperature: {value: 333.15, provenance: assumed, source: "heated in R-101 to the dosing temperature (D-005)"}
         pressure: {value: 230.0, provenance: assumed, source: "R-101 closed under a nitrogen pad of about 200 kPa(a) at 298 K, 230 at 333 K (D-005)"}
-        flow: {value: 385.941, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S4', fingerprint: 47489d5d1915a619}
-        composition: {basis: mole_fraction, values: {TOL: 0.918864, MEBR: 0.000438416, PPH3: 0.0806974, MTPPB: 0.0, MTPPB_S: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S4', fingerprint: 47489d5d1915a619}
+        flow: {value: 385.941, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S4', fingerprint: 03f7029ec613ba8a}
+        composition: {basis: mole_fraction, values: {TOL: 0.918864, MEBR: 0.000438386, PPH3: 0.0806973, MTPPB: 0.0, MTPPB_S: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S4', fingerprint: 03f7029ec613ba8a}
   - id: S6
     title: Methyl bromide, liquid (dosed)
     from: MEBR.out
@@ -452,10 +482,10 @@ streams:
     template: mass
     state:
       design:
-        composition: {basis: mole_fraction, values: {TOL: 0.914836, MEBR: 0.00482036, PPH3: 0.000803436, MTPPB: 0.0795402, MTPPB_S: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5 S6', fingerprint: e463ab5de17f9672}
-        flow: {value: 415.114, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5 S6', fingerprint: 5542c7bcfce29d86}
-        temperature: {value: 333.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5 S6', fingerprint: e463ab5de17f9672}
-        pressure: {value: 230.0, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5 S6', fingerprint: e463ab5de17f9672}
+        composition: {basis: mole_fraction, values: {TOL: 0.914836, MEBR: 0.00482041, PPH3: 0.000803436, MTPPB: 0.0795401, MTPPB_S: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5 S6', fingerprint: 3c3f29c9c35d338e}
+        flow: {value: 415.114, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5 S6', fingerprint: 68f610aba0852c52}
+        temperature: {value: 333.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5 S6', fingerprint: 3c3f29c9c35d338e}
+        pressure: {value: 230.0, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5 S6', fingerprint: 3c3f29c9c35d338e}
   - id: S8
     title: Slurry at 313 K
     from: CR101.out
@@ -465,8 +495,8 @@ streams:
       design:
         temperature: {value: 313.15, provenance: assumed, source: "cooled in R-101 (D-007)"}
         pressure: {value: 230.0, provenance: assumed, source: "R-101 closed until it is vented (D-007)"}
-        flow: {value: 415.114, provenance: calculated, source: 'cheme process propagate: crystallizer CR101 from S7', fingerprint: a12be947a9bdb399}
-        composition: {basis: mole_fraction, values: {MTPPB: 0.000117982, TOL: 0.914836, MTPPB_S: 0.0794222, PPH3: 0.000803436, MEBR: 0.00482036}, provenance: calculated, source: 'cheme process propagate: crystallizer CR101 from S7', fingerprint: a12be947a9bdb399}
+        flow: {value: 415.114, provenance: calculated, source: 'cheme process propagate: crystallizer CR101 from S7', fingerprint: 965d0bab724c3622}
+        composition: {basis: mole_fraction, values: {MTPPB: 0.000117982, TOL: 0.914836, MTPPB_S: 0.0794221, PPH3: 0.000803436, MEBR: 0.00482041}, provenance: calculated, source: 'cheme process propagate: crystallizer CR101 from S7', fingerprint: 965d0bab724c3622}
   - id: S22
     title: Degassed slurry to the filter-dryer
     from: DG101.slurry
@@ -477,7 +507,7 @@ streams:
         temperature: {value: 313.15, provenance: assumed, source: "as S8 (D-007)"}
         pressure: {value: 101.325, provenance: assumed, source: "R-101 vented to the thermal oxidiser before the transfer (D-007)"}
         flow: {value: 412.856, provenance: assumed, source: "S8 less the vent losses S23 (D-007)"}
-        composition: {basis: mass_fraction, values: {MTPPB: 0.000373775, TOL: 0.745737, MTPPB_S: 0.251615, PPH3: 0.00186888, MEBR: 0.000405854}, provenance: assumed, source: "S8 less the vent losses S23 (D-007)"}
+        composition: {basis: mass_fraction, values: {MTPPB: 0.000373775, TOL: 0.745737, MTPPB_S: 0.251615, PPH3: 0.00186888, MEBR: 0.000405858}, provenance: assumed, source: "S8 less the vent losses S23 (D-007)"}
   - id: S23
     title: R-101 sweep and F-101 pressing gas (methyl bromide, toluene) to the vent header
     from: DG101.vent
@@ -487,8 +517,8 @@ streams:
       design:
         temperature: {value: 313.15, provenance: assumed, source: "the slurry's temperature (D-007)"}
         pressure: {value: 101.325, provenance: assumed, source: "the vent header"}
-        flow: {value: 2.25764, provenance: assumed, source: "hand split of the slurry S8 (D-007): 90% of its dissolved methyl bromide leaves with R-101's depressurising and 10 Nm3 of sweep nitrogen and with F-101's 38 Nm3 of pressing nitrogen (ASSUMED), with the toluene that saturates that nitrogen at 313 K (7.85 kPa: 0.0830 kmol per batch, at 101 and 300 kPa(a)); the nitrogen itself is the per-batch consumable"}
-        composition: {basis: mass_fraction, values: {MEBR: 0.667969, TOL: 0.332031}, provenance: assumed, source: "as the flow (D-007)"}
+        flow: {value: 2.25766, provenance: assumed, source: "hand split of the slurry S8 (D-007): 90% of its dissolved methyl bromide leaves with R-101's depressurising and 10 Nm3 of sweep nitrogen and with F-101's 38 Nm3 of pressing nitrogen (ASSUMED), with the toluene that saturates that nitrogen at 313 K (7.85 kPa: 0.0830 kmol per batch, at 101 and 300 kPa(a)); the nitrogen itself is the per-batch consumable"}
+        composition: {basis: mass_fraction, values: {MEBR: 0.667971, TOL: 0.332029}, provenance: assumed, source: "as the flow (D-007)"}
   - id: S24
     title: Vent gas (methyl bromide, toluene) to the thermal oxidiser
     from: M202.out
@@ -498,8 +528,8 @@ streams:
       design:
         temperature: {value: 312.87, provenance: assumed, source: "M202 mixed adiabatically, the gases' ideal-gas heat capacities (toluene 104, methyl bromide 42.4 kJ/(kmol K)): S23 (1.5196 kJ/(K h) at 313.15 K) and S18 (0.0096 at 268.15 K) (D-007)"}
         pressure: {value: 101.325, provenance: assumed, source: "the vent header"}
-        flow: {value: 2.2757, provenance: calculated, source: 'cheme process propagate: mixer M202 from S23 S18', fingerprint: 36e1dfd708e4e6eb}
-        composition: {basis: mole_fraction, values: {TOL: 0.337045, MEBR: 0.662955, PPH3: 0.0, MTPPB: 0.0, MTPPB_S: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M202 from S23 S18', fingerprint: d82ddc150fc5029d}
+        flow: {value: 2.27572, provenance: calculated, source: 'cheme process propagate: mixer M202 from S23 S18', fingerprint: 58bd326e83519671}
+        composition: {basis: mole_fraction, values: {TOL: 0.337043, MEBR: 0.662957, PPH3: 0.0, MTPPB: 0.0, MTPPB_S: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M202 from S23 S18', fingerprint: 656f32bc25dd043b}
   - id: S9
     title: Filter cake
     from: F101.cake
@@ -509,8 +539,8 @@ streams:
       design:
         temperature: {value: 313.15, provenance: assumed, source: "D-008"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 134.775, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S22', fingerprint: fece2e702ff82b4d}
-        composition: {basis: mole_fraction, values: {MTPPB_S: 0.462799, TOL: 0.536377, MEBR: 0.00028331, PPH3: 0.000472208, MTPPB: 6.93423e-05}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S22', fingerprint: fece2e702ff82b4d}
+        flow: {value: 134.775, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S22', fingerprint: dc14365f921c736d}
+        composition: {basis: mole_fraction, values: {MTPPB_S: 0.462799, TOL: 0.536377, MEBR: 0.000283313, PPH3: 0.000472208, MTPPB: 6.93423e-05}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S22', fingerprint: dc14365f921c736d}
   - id: S10
     title: Mother liquor
     from: F101.filtrate
@@ -520,8 +550,8 @@ streams:
       design:
         temperature: {value: 313.15, provenance: assumed, source: "D-008"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 278.081, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S22', fingerprint: fece2e702ff82b4d}
-        composition: {basis: mole_fraction, values: {TOL: 0.998272, MEBR: 0.00052728, PPH3: 0.000878845, MTPPB: 0.000129056, MTPPB_S: 0.000193201}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S22', fingerprint: fece2e702ff82b4d}
+        flow: {value: 278.081, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S22', fingerprint: dc14365f921c736d}
+        composition: {basis: mole_fraction, values: {TOL: 0.998272, MEBR: 0.000527285, PPH3: 0.000878845, MTPPB: 0.000129056, MTPPB_S: 0.000193201}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S22', fingerprint: dc14365f921c736d}
   - id: S11
     title: Recovered toluene to the cake wash
     from: X101.wash
@@ -531,8 +561,8 @@ streams:
       design:
         temperature: {value: 303.15, provenance: assumed, source: "as S3 (D-009)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 103.673, provenance: assumed, source: "tear stream: 1 kg of recovered toluene per kg of salt in the cake S9, at S19's composition, converged over cheme process propagate (D-006, D-008)"}
-        composition: {basis: mass_fraction, values: {TOL: 0.999499, MEBR: 0.00050077}, provenance: assumed, source: "tear stream: S19's composition as cheme process propagate calculates it, converged (D-006)"}
+        flow: {value: 103.673, provenance: assumed, source: "1 kg of recovered toluene per kg of salt in the cake S9 (D-008), a design input that stays fixed on the tear stream (D-006)"}
+        composition: {basis: mole_fraction, values: {TOL: 0.999514, MEBR: 0.000485986, PPH3: 0.0, MTPPB: 0.0, MTPPB_S: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle X101 from S19 (tear, wegstein)', fingerprint: 177a3bfde175924b}
   - id: S12
     title: Wash slurry
     from: W101.out
@@ -542,8 +572,8 @@ streams:
       design:
         temperature: {value: 307.95, provenance: assumed, source: "W101 adiabatic (D-008, D-010): the cake S9 (163.24 kJ/(K h) at 313.15 K) mixed with the wash S11 (176.71 at 303.15 K), the components' liquid heat capacities of process/materials.yaml"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 238.448, provenance: calculated, source: 'cheme process propagate: crystallizer W101 from S9 S11', fingerprint: 9c9defb89dc9b999}
-        composition: {basis: mole_fraction, values: {MTPPB: 0.000107527, TOL: 0.833767, MTPPB_S: 0.165543, PPH3: 0.000168993, MEBR: 0.000413474}, provenance: calculated, source: 'cheme process propagate: crystallizer W101 from S9 S11', fingerprint: 9c9defb89dc9b999}
+        flow: {value: 238.448, provenance: calculated, source: 'cheme process propagate: crystallizer W101 from S9 S11', fingerprint: 56fcea7ee015408c}
+        composition: {basis: mole_fraction, values: {MTPPB: 0.000107527, TOL: 0.833767, MTPPB_S: 0.165543, PPH3: 0.000168993, MEBR: 0.000413454}, provenance: calculated, source: 'cheme process propagate: crystallizer W101 from S9 S11', fingerprint: 56fcea7ee015408c}
   - id: S13
     title: Washed cake
     from: F102.cake
@@ -553,8 +583,8 @@ streams:
       design:
         temperature: {value: 307.95, provenance: assumed, source: "as S12 (D-008)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 134.573, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S12', fingerprint: 90824e3656a93281}
-        composition: {basis: mole_fraction, values: {MTPPB_S: 0.462488, TOL: 0.537068, MEBR: 0.000266338, PPH3: 0.000108856, MTPPB: 6.92631e-05}, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S12', fingerprint: 90824e3656a93281}
+        flow: {value: 134.573, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S12', fingerprint: a038e2315b8bf04b}
+        composition: {basis: mole_fraction, values: {MTPPB_S: 0.462488, TOL: 0.537068, MEBR: 0.000266325, PPH3: 0.000108856, MTPPB: 6.92631e-05}, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S12', fingerprint: a038e2315b8bf04b}
   - id: S14
     title: Wash filtrate
     from: F102.filtrate
@@ -564,8 +594,8 @@ streams:
       design:
         temperature: {value: 307.95, provenance: assumed, source: "as S12 (D-008)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 103.875, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S12', fingerprint: 90824e3656a93281}
-        composition: {basis: mole_fraction, values: {TOL: 0.998916, MEBR: 0.000495373, PPH3: 0.000202466, MTPPB: 0.000128825, MTPPB_S: 0.000257687}, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S12', fingerprint: 90824e3656a93281}
+        flow: {value: 103.875, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S12', fingerprint: a038e2315b8bf04b}
+        composition: {basis: mole_fraction, values: {TOL: 0.998916, MEBR: 0.000495349, PPH3: 0.000202466, MTPPB: 0.000128825, MTPPB_S: 0.000257687}, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S12', fingerprint: a038e2315b8bf04b}
   - id: S15
     title: Dried methyltriphenylphosphonium bromide
     from: D101.product
@@ -575,8 +605,8 @@ streams:
       design:
         temperature: {value: 313.15, provenance: assumed, source: "cooled in F-101 on cooling water before discharge (D-008)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 103.655, provenance: calculated, source: 'cheme process propagate: dryer D101 from S13', fingerprint: 9afe94e39aa25b8c}
-        composition: {basis: mole_fraction, values: {TOL: 0.00386367, MEBR: 1.91604e-06, PPH3: 0.00023437, MTPPB: 0.000149126, MTPPB_S: 0.995751}, provenance: calculated, source: 'cheme process propagate: dryer D101 from S13', fingerprint: 9afe94e39aa25b8c}
+        flow: {value: 103.655, provenance: calculated, source: 'cheme process propagate: dryer D101 from S13', fingerprint: 5027ca0d8f391057}
+        composition: {basis: mole_fraction, values: {TOL: 0.00386367, MEBR: 1.91594e-06, PPH3: 0.00023437, MTPPB: 0.000149126, MTPPB_S: 0.995751}, provenance: calculated, source: 'cheme process propagate: dryer D101 from S13', fingerprint: 5027ca0d8f391057}
   - id: S21
     title: Dryer vapour (toluene and methyl bromide) to the vacuum condenser
     from: D101.vapour
@@ -586,8 +616,8 @@ streams:
       design:
         temperature: {value: 333.15, provenance: assumed, source: "the vapour at the dryer's temperature (D-008)"}
         pressure: {value: 5.0, provenance: assumed, source: "the filter-dryer's vacuum, about 5 kPa(a) (D-008)"}
-        flow: {value: 30.9183, provenance: calculated, source: 'cheme process propagate: dryer D101 from S13', fingerprint: 9afe94e39aa25b8c}
-        composition: {basis: mole_fraction, values: {TOL: 0.999504, MEBR: 0.000495665}, provenance: calculated, source: 'cheme process propagate: dryer D101 from S13', fingerprint: 9afe94e39aa25b8c}
+        flow: {value: 30.9183, provenance: calculated, source: 'cheme process propagate: dryer D101 from S13', fingerprint: 5027ca0d8f391057}
+        composition: {basis: mole_fraction, values: {TOL: 0.999504, MEBR: 0.000495641}, provenance: calculated, source: 'cheme process propagate: dryer D101 from S13', fingerprint: 5027ca0d8f391057}
   - id: S16
     title: Dryer condensate (toluene) to T-201
     from: E201.cond
@@ -608,7 +638,7 @@ streams:
       design:
         temperature: {value: 268.15, provenance: assumed, source: "the vacuum condenser's outlet (D-008)"}
         pressure: {value: 101.325, provenance: assumed, source: "after the vacuum pump"}
-        flow: {value: 0.0180598, provenance: assumed, source: "hand split of the dryer vapour S21 in the vacuum condenser E-201 (D-008): all its methyl bromide stays a gas (its vapour pressure at 268 K, about 60 kPa, far above its partial pressure at 5 kPa(a)), with the toluene that saturates it at 268 K: 0.645 kPa against 5 kPa(a), 0.1481 mol per mol of gas (ASSUMED; the leak nitrogen not counted)"}
+        flow: {value: 0.0180586, provenance: assumed, source: "hand split of the dryer vapour S21 in the vacuum condenser E-201 (D-008): all its methyl bromide stays a gas (its vapour pressure at 268 K, about 60 kPa, far above its partial pressure at 5 kPa(a)), with the toluene that saturates it at 268 K: 0.645 kPa against 5 kPa(a), 0.1481 mol per mol of gas (ASSUMED; the leak nitrogen not counted)"}
         composition: {basis: mass_fraction, values: {MEBR: 0.874348, TOL: 0.125652}, provenance: assumed, source: "as the flow (D-008)"}
   - id: S17
     title: Still feed
@@ -619,8 +649,8 @@ streams:
       design:
         temperature: {value: 308.47, provenance: assumed, source: "M201 mixed adiabatically: S10 (473.40 kJ/(K h) at 313.15 K), S14 (176.93 at 307.95 K) and S16 (52.68 at 268.15 K), the components' liquid heat capacities of process/materials.yaml (D-009)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 412.856, provenance: calculated, source: 'cheme process propagate: mixer M201 from S10 S14 S16', fingerprint: fef52918d028f050}
-        composition: {basis: mole_fraction, values: {TOL: 0.998563, MEBR: 0.0004797, PPH3: 0.000642649, MTPPB: 0.000119318, MTPPB_S: 0.000194945}, provenance: calculated, source: 'cheme process propagate: mixer M201 from S10 S14 S16', fingerprint: a1185d4a21d7fec9}
+        flow: {value: 412.856, provenance: calculated, source: 'cheme process propagate: mixer M201 from S10 S14 S16', fingerprint: 565f3740c5fe5826}
+        composition: {basis: mole_fraction, values: {TOL: 0.998563, MEBR: 0.000479697, PPH3: 0.000642649, MTPPB: 0.000119318, MTPPB_S: 0.000194945}, provenance: calculated, source: 'cheme process propagate: mixer M201 from S10 S14 S16', fingerprint: 7e4f261347637e63}
   - id: S19
     title: Recovered toluene
     from: ST101.main
@@ -630,8 +660,8 @@ streams:
       design:
         temperature: {value: 303.15, provenance: assumed, source: "condensed on cooling water and cooled to 303 K (D-009)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 406.663, provenance: calculated, source: 'cheme process propagate: still ST101 from S17', fingerprint: f4c3e720b0954a58}
-        composition: {basis: mole_fraction, values: {TOL: 0.999514, MEBR: 0.000485989, PPH3: 0.0, MTPPB: 0.0, MTPPB_S: 0.0}, provenance: calculated, source: 'cheme process propagate: still ST101 from S17', fingerprint: f4c3e720b0954a58}
+        flow: {value: 406.663, provenance: calculated, source: 'cheme process propagate: still ST101 from S17', fingerprint: 8f19456cf90dc680}
+        composition: {basis: mole_fraction, values: {TOL: 0.999514, MEBR: 0.000485986, PPH3: 0.0, MTPPB: 0.0, MTPPB_S: 0.0}, provenance: calculated, source: 'cheme process propagate: still ST101 from S17', fingerprint: 8f19456cf90dc680}
   - id: S20
     title: Still residue to incineration
     from: ST101.residue
@@ -641,17 +671,19 @@ streams:
       design:
         temperature: {value: 386.46, provenance: assumed, source: "drained at the still's end temperature to the waste tank (cheme process stills, D-009)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 6.19284, provenance: calculated, source: 'cheme process propagate: still ST101 from S17', fingerprint: f4c3e720b0954a58}
-        composition: {basis: mole_fraction, values: {TOL: 0.926054, MEBR: 0.0, PPH3: 0.0496611, MTPPB: 0.00922037, MTPPB_S: 0.0150645}, provenance: calculated, source: 'cheme process propagate: still ST101 from S17', fingerprint: f4c3e720b0954a58}
+        flow: {value: 6.19284, provenance: calculated, source: 'cheme process propagate: still ST101 from S17', fingerprint: 8f19456cf90dc680}
+        composition: {basis: mole_fraction, values: {TOL: 0.926054, MEBR: 0.0, PPH3: 0.0496611, MTPPB: 0.00922037, MTPPB_S: 0.0150645}, provenance: calculated, source: 'cheme process propagate: still ST101 from S17', fingerprint: 8f19456cf90dc680}
   # energy
   - {id: Q1, title: Charge heating and PPh3 dissolution, kind: energy, from: LPS.e101, to: E101.q, state: {design: {duty: {value: 8.5622, provenance: assumed, source: "hand arithmetic (D-010): S4, 618.26 kJ/(K h), heated from 292.81 to 333.15 K = 24940 kJ/h (S4's temperature already carries the PPh3's ASSUMED heat of solution, 20 MJ/kmol), plus R-101's metal, about 6 t of glass-lined steel at 0.5 kJ/(kg K) = 3000 kJ/K, heated from 313.15 to 333.15 K each batch over the 10.1983 h cycle = 5883 kJ/h; hot water at 353 K from LP steam"}}}}
-  - {id: Q2, title: Heat of quaternisation to cooling water, kind: energy, from: R101.q, to: CW.r101, state: {design: {duty: {value: 7.8775, provenance: assumed, source: "hand arithmetic from cheme process reactors (D-010): QUAT's extent 0.29123 kmol/h x 100 MJ/kmol = 29123 kJ/h, less the dose S6 warmed from 298.15 to 333.15 K (21.82 kJ/(K h) x 35 K = 764 kJ/h)"}}}}
-  - {id: Q3, title: Slurry cool-down to cooling water, kind: energy, from: CR101.q, to: CW.cr101, state: {design: {duty: {value: 5.1858, provenance: assumed, source: "cheme process crystallizers: CR101's sensible duty, S7 cooled from 333.15 to 313.15 K, 12785.5 kJ/h; plus R-101's metal (3000 kJ/K, as Q1) cooled by 20 K each batch, 5883 kJ/h (D-010)"}}}}
+  - {id: Q2, title: Heat of quaternisation to cooling water, kind: energy, from: R101.q, to: CW.r101, state: {design: {duty: {value: 7.87751, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S5 S6', fingerprint: e57f3b482c83f16a}}}}
+  - {id: Q3, title: Slurry cool-down (CR101's model) to cooling water, kind: energy, from: CR101.q, to: CW.cr101, state: {design: {duty: {value: 3.55153, provenance: calculated, source: 'cheme process propagate: crystallizer duty CR101 from S7', fingerprint: 5e40a22b602561fe}}}}
   - {id: Q4, title: Dryer heat, kind: energy, from: LPS.d101, to: D101.steam, state: {design: {duty: {value: 10.3468, provenance: assumed, source: "cheme process crystallizers: D101's dryer model, the cake from its inlet temperature to 333.15 K, the toluene and methyl bromide evaporated, F-101's metal heated each batch, 70 % efficiency (D-008, D-010); hot water at 353 K from LP steam"}}}}
   - {id: Q5, title: F-101 vacuum condenser to brine, kind: energy, from: E201.q, to: BRINE.d101, state: {design: {duty: {value: 4.3075, provenance: assumed, source: "hand arithmetic (D-010): the toluene of S16, 30.900 kg/h, condensed at D101's latent heat (391 kJ/kg) = 12082 kJ/h, the condensate cooled from 333.15 to 268.15 K (52.68 kJ/(K h) x 65 K = 3425 kJ/h), and the vent gas S18 cooled by 65 K with its ideal-gas heat capacities (toluene 104, methyl bromide 42.4 kJ/(kmol K)) = 1 kJ/h; on brine: toluene's dew point at the filter-dryer's 5 kPa(a) is about 304 K (303.6 K by the Antoine set of process/materials.yaml), so cooling water at 298/308 K cannot condense it; at the 268 K outlet its vapour pressure is 0.65 kPa"}}}}
   - {id: Q6, title: F-101 product and vessel cool-down to cooling water, kind: energy, from: D101.cool, to: CW.f101, state: {design: {duty: {value: 3.3585, provenance: assumed, source: "hand arithmetic (D-010): the product S15 cooled from 333.15 to 313.15 K (110.33 kJ/(K h) x 20 K = 2207 kJ/h) and F-101's metal (4000 kJ/K, D101's vessel heat capacity) cooled back to the cake's 307.95 K each batch, as core's dryer model assumes: 4000 x 25.20 K / 10.1983 h = 9884 kJ/h"}}}}
-  - {id: Q7, title: "Still heat (boil-up, heat-up of the charge and the vessel)", kind: energy, from: LPS.st101, to: ST101.steam, state: {design: {duty: {value: 60.6279, provenance: assumed, source: "hand arithmetic from cheme process stills (D-009, D-010): the boil-up, 414.7 kWh per batch over the 10.1983 h cycle = 146390 kJ/h; the charge S17 heated from 308.47 K to its bubble point 383.50 K, which core's still leaves out (703.01 kJ/(K h) x 75.03 K = 52747 kJ/h); C-101's metal, about 5 t of steel at 0.5 kJ/(kg K) = 2500 kJ/K, from 308.47 to the end's 386.48 K each batch = 19123 kJ/h"}}}}
+  - {id: Q7, title: "Still boil-up (LP steam)", kind: energy, from: LPS.st101, to: ST101.steam, state: {design: {duty: {value: 40.6685, provenance: calculated, source: 'cheme process propagate: still duty ST101 from S17', fingerprint: a32715c8694d43fa}}}}
   - {id: Q8, title: Still condenser and distillate cooler to cooling water, kind: energy, from: ST101.cw, to: CW.st101, state: {design: {duty: {value: 56.4264, provenance: assumed, source: "hand arithmetic (D-009, D-010): the distillate S19 condensed at the components' heats of vaporisation (process/materials.yaml) = 146407 kJ/h, and cooled from the still's mean 384.99 K to 303.15 K (693.16 kJ/(K h) x 81.84 K = 56729 kJ/h)"}}}}
+  - {id: Q9, title: "Still charge and vessel heated to the boil (LP steam)", kind: energy, from: LPS.st101_heatup, to: ST101.steam_heatup, state: {design: {duty: {value: 19.9639, provenance: assumed, source: "hand arithmetic (D-010), what core's still model leaves out (its duty, Q7, is the boil-up's latent heat): the charge S17, 703.01 kJ/(K h), heated from 308.47 K to its bubble point 383.50 K (cheme process stills) = 52747 kJ/h; C-101's metal, about 5 t of steel at 0.5 kJ/(kg K) = 2500 kJ/K, from 308.47 K to the end's 386.48 K each batch over the 10.1983 h cycle = 19123 kJ/h"}}}}
+  - {id: Q10, title: R-101 vessel cool-down to cooling water, kind: energy, from: CR101.q_vessel, to: CW.cr101_vessel, state: {design: {duty: {value: 1.6342, provenance: assumed, source: "hand arithmetic (D-010), what CR101's lumped duty (Q3, the slurry S7 cooled from 333.15 to 313.15 K) leaves out: R-101's metal, about 6 t of glass-lined steel at 0.5 kJ/(kg K) = 3000 kJ/K (as Q1), cooled by 20 K each batch over the 10.1983 h cycle = 5883 kJ/h"}}}}
   - {id: P1, title: R-101 agitator and methyl bromide dosing pump, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 5.4, provenance: assumed, source: "year average: a 5.5 kW agitator of the 6.3 m3 pressure vessel R-101 at its 94 % occupancy (5.2 kW) and a 0.75 kW dosing pump over 3 h of the 10.21 h cycle (0.2 kW), ASSUMED (D-010)"}}}}
   - {id: P2, title: F-101 agitator and vacuum pump, kind: energy, from: POWER.f101, to: D101.power, state: {design: {duty: {value: 7.3, provenance: assumed, source: "year average: F-101's 7.5 kW agitator running half the time (3.75 kW) and a 5.5 kW dry vacuum pump over the 6.6 h of drying a cycle (3.6 kW), ASSUMED (D-010)"}}}}
   - {id: P3, title: C-101 agitator and transfer pumps, kind: energy, from: POWER.c101, to: ST101.power, state: {design: {duty: {value: 2.8, provenance: assumed, source: "year average: C-101's 3 kW agitator at its 26 % occupancy (0.8 kW) and the transfer pumps, 2 kW, ASSUMED (D-010)"}}}}
