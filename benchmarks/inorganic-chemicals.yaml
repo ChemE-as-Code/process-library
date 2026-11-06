@@ -17,6 +17,13 @@
 # Sodium azide (sodium-azide-1, #167): the one open plant-like figure is the hydrazine use of
 # US 5 208 002 Example 2 (11 recycled batches); the off-gas has no open reference.
 #
+# Copper(I) chloride (copper-i-chloride-1, #143): no open source gives a plant's specific
+# consumptions or a yield of the wet brine route. The stoichiometric floors are 0.642 kg copper and
+# 0.358 kg chlorine per kg CuCl (2 Cu + Cl2 -> 2 CuCl); they are limits, not ranges of real plants,
+# so they are not recorded as references (docs/benchmarks.md: never invent a range). The open
+# sources read (US 3 030 178 A, US 3 121 609 A, US 4 582 579 A, CN 1 696 062 A) give no yield on
+# copper; US 4 582 579 A's example (about 120 g CuCl from 48.2 g CuO and 38.3 g Cu in HCl) is a
+# different, evaporative route.
 # Hydrogen iodide (hydrogen-iodide-1, #149): the dataset's efficiency is from US 8 268 284 B2, so
 # that patent's figure is recorded but not bound; the KPI is bound to the per-pass conversions of
 # another applicant's patent (US 11 554 956 B2). Electricity and heat have no open reference.
@@ -70,6 +77,14 @@ kpis:
     title: Azide reactor off-gas to treatment per kg of sodium azide
     unit: kg/kg
     no_open_reference: "No open source with the off-gas (unabsorbed methyl nitrite, N2O, NH3) of a sodium azide plant found (searched 2026-11-05: Google Patents US 5 208 002 A and US 5 098 597 A read, which name the nitrogen of side reactions but give no off-gas amounts; J. Studley, Scientific Update 2023, a secondary summary without figures). The dataset's off-gas follows from the methyl nitrite not absorbed in the patent's Example 1 balance and its ASSUMED side reaction (DESIGN.md D-004, D-005)."
+  cucl-specific-copper:
+    title: Copper consumption per kg of copper(I) chloride
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's or a pilot's copper use per kg CuCl by the wet brine route found independent of the dataset (searched 2026-11-06: Google Patents US 3 030 178 A, US 3 121 609 A, US 4 582 579 A, CN 1 696 062 A and US 4 308 239 A read, none with a yield on copper of the dilution route; web search for cuprous chloride production consumption figures, which gave only encyclopaedia summaries, not read where licensed). Only the stoichiometric floor, 0.642 kg/kg, is known; the dataset's 0.826 kg/kg carries its ASSUMED dilution loss (DESIGN.md D-006)."
+  cucl-specific-chlorine:
+    title: Chlorine consumption per kg of copper(I) chloride
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's chlorine use per kg CuCl found (searched 2026-11-06 as for cucl-specific-copper; US 3 030 178 A, Example 1, gives a chlorine feed rate and an outflow concentration but no product isolated). Only the stoichiometric floor, 0.358 kg/kg, is known."
   hydrogen-iodide-iodine-efficiency:
     title: HI made per iodine fed, as a fraction of the stoichiometric HI
     unit: kg/kg
@@ -141,6 +156,12 @@ datasets:
     kpis:
       nan3-specific-hydrazine-hydrate: {expression: feed:HH / product:NAN3P, per: product:NAN3P, reference: us5208002-example2}
       nan3-specific-offgas: {expression: product:OFFGAS / product:NAN3P, per: product:NAN3P}
+  - process: copper-i-chloride-1
+    dataset: copper-i-chloride-by-semi-batch-chlorination-of-copper-in-brine-dilution-precipitation-and-filter-drying-300-t-a
+    conditions: {technology: "chlorine dosed below the surface of a 300 g/L NaCl brine over excess copper at 353 K (semi-batch, copper heel recycled), dilution with about 7 volumes of water, CuCl precipitated, acid and ethanol washes, vacuum filter-dryer; a tenth of the mother liquor recycled, the rest to copper recovery outside the boundary", basis: "concept balance, the patents' ratios, ASSUMED kinetics, solubility and work-up (DESIGN.md D-004 to D-008)"}
+    kpis:
+      cucl-specific-copper: {expression: feed:CU / product:CUCL, per: product:CUCL}
+      cucl-specific-chlorine: {expression: feed:CL2 / product:CUCL, per: product:CUCL}
   - process: hydrogen-iodide-1
     dataset: hydrogen-iodide-catalytic-gas-phase
     conditions: {technology: "gas-phase H2 + I2 over a supported metal catalyst", basis: "Tier 0 screening, once-through efficiency"}

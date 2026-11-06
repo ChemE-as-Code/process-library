@@ -25,6 +25,14 @@
 # (the patent's DCP range, the IEA paper's PO steam). The electricity reference (ANL 1980) is not used
 # by the dataset, which takes the IEA paper's Western European PO average.
 #
+# Di-tert-butyl dicarbonate (di-tert-butyl-dicarbonate-1, #160; an organic dicarbonate, an
+# oxygenate): no open source gives a plant's specific consumptions. The stoichiometric floors are
+# 1.028 kg potassium tert-butoxide and 0.453 kg phosgene per kg (2 alkoxide + 2 CO2 + phosgene ->
+# Boc2O + CO2 + 2 KCl); they are limits, not ranges of real plants, so they are not recorded as
+# ones (docs/benchmarks.md: never invent a range). The one open figure, EP 0 256 559 A2 Example 1
+# (149 g from 168 g of the alkoxide and 223 g of phosgene, its purity not stated in the text), is a
+# single laboratory value with a phosgene excess the dataset does not use; it is discussed in
+# DESIGN.md D-005, not bound here.
 # benzyl-alcohol-1:
 # The yield references are independent of the dataset (other patents, other applicants), but they
 # are patent examples too, and neither is the dataset's technology exactly.
@@ -292,6 +300,14 @@ kpis:
         note: "One value, 18,700 Btu per lb of PO, the figure's only process-energy input, labelled electricity, in primary terms at the report's 33 % generating efficiency (section 4.1, p. 71). Converted to delivered electricity: 18,700 x 0.33 Btu/lb x 2.326 kJ/kg per Btu/lb / 3.6 MJ/kWh = about 3,990 kWh/t, rounded. The figure shows no separate steam input although the process is steam-heated and steam-stripped (p. 151), so it may cover all utilities. The report takes it from Brownstein (1976)."
         conditions: {technology: "chlorohydrin process with lime", region: US, year: 1976}
         source: *anl
+  boc2o-specific-potassium-tert-butoxide:
+    title: Potassium tert-butoxide consumption per kg of di-tert-butyl dicarbonate
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's or a pilot's alkoxide use per kg of Boc2O found (searched 2026-11-06: Google Patents EP 0 256 559 A2 and US 5 151 542 A read, laboratory examples only; Wikipedia, Di-tert-butyl dicarbonate, routes without figures; web search for Boc2O production consumption figures, none found). EP 0 256 559 A2 Example 1 implies 1.13 kg/kg (168 g for 149 g, its purity not stated), US 5 151 542 A Example 1 about 1.18 kg/kg on its methanesulfonyl chloride route (3 mol for 285.8 g at 87 %), single values; the stoichiometric floor is 1.028 kg/kg."
+  boc2o-specific-phosgene:
+    title: Phosgene consumption per kg of di-tert-butyl dicarbonate
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's phosgene use per kg of Boc2O found (searched 2026-11-06 as for boc2o-specific-potassium-tert-butoxide); EP 0 256 559 A2 uses 0.54 to 1.5 mol per mol of the alkoxide in its examples (1.5 in Example 1, 1.50 kg/kg on its 149 g), laboratory ratios. Only the stoichiometric floor, 0.453 kg/kg, is known."
   benzyl-alcohol-yield:
     title: Benzyl alcohol yield on benzyl chloride, fraction of theory
     unit: kg/kg
@@ -450,6 +466,12 @@ datasets:
         per: product:propylene-oxide
         reference: anl-1980-po-chlorohydrin-energy
         out_of_range_reason: "The dataset takes the IEA's Western European average for propylene oxide (1.0 GJ/t, route not named; ASSUMED to apply). ANL's single figure, read literally as electricity, is about 14 times higher; with no steam input shown beside it although the brine is steam-stripped, it is taken to cover all utilities, so it is not used (README)."
+  - process: di-tert-butyl-dicarbonate-1
+    dataset: di-tert-butyl-dicarbonate-by-semi-batch-carbonation-and-phosgenation-of-potassium-tert-butoxide-in-hexane
+    conditions: {technology: "potassium tert-butoxide carbonated with CO2 and phosgenated with DABCO in hexane at 278 K (one semi-batch, CO2 vent), hexane strip and recycle, water wash of the melt, vacuum distillation from a paraffin heel", basis: "concept balance, ratios after the patents' examples and ASSUMED kinetics, side share and work-up (DESIGN.md D-004 to D-008)"}
+    kpis:
+      boc2o-specific-potassium-tert-butoxide: {expression: feed:KOTBU / product:BOC, per: product:BOC}
+      boc2o-specific-phosgene: {expression: feed:PHOS / product:BOC, per: product:BOC}
   - process: benzyl-alcohol-1
     dataset: benzyl-alcohol-continuous-soda-hydrolysis
     conditions: {technology: "continuous countercurrent column, 10.9 wt% soda solution, toluene as inert solvent, brine extracted", scale: pilot, basis: conceptual inventory}
