@@ -96,10 +96,9 @@ at 293 K, 150 kPa(a). Dry benzyl alcohol, 100 % in the model, from storage at 29
 Reason: the ratio is the one of the example that gives the best yield and purity at 500 mbar;
 SRC-1's preferred range is 1.5-2.5, so 1.27 is at its lean end and keeps the phosgene destroyed
 in the scrubber smaller. Dosing the gas keeps the phosgene inventory in R-101 to what is
-dissolved (at most about 11 wt%). Benzyl alcohol has no library producer: its own entry
-(benzyl-alcohol-1, #154, benzyl chloride hydrolysis) was not on main and had no open PR on
-2026-11-05, so the LCI keeps it a gap (D-012); its water and benzaldehyde (which would consume
-phosgene) are not modelled.
+dissolved (at most about 11 wt%). Benzyl alcohol comes from the library's benzyl-alcohol-1
+(benzyl chloride hydrolysis, merged with PR #402 after this entry; the LCI link of 2026-11-06,
+D-012); its water and benzaldehyde (which would consume phosgene) are not modelled.
 
 ## D-005 Phosgenator R-101: semi-batch with vent, kinetics and heats (2026-11-05)
 Decision: R101 is `reactor: semibatch` (core ADR 0050) with a vent (ADR 0054): the charge S2 at
@@ -307,10 +306,9 @@ emergency scrubber). Screening values only, not a reaction-hazard assessment.
 
 ## D-012 Preliminary gate-to-gate LCI (2026-11-05)
 Decision: `cheme assess lca --write` per kg of neat BCF from the flowsheet's year averages;
-phosgene, caustic soda and the nitrogen consumable linked to phosgene-1, chlor-alkali-1 and
-asu-1 (`lca/mappings.yaml`), the LP steam counted as heat (kWh); every other background a gap
-with the activity it should connect to; benzyl alcohol a gap (no library producer, D-004; no
-proxy, which would be a guess). The nitrogen of the purges, the vacuum break and the transfer
+benzyl alcohol, phosgene, caustic soda and the nitrogen consumable linked to benzyl-alcohol-1,
+phosgene-1, chlor-alkali-1 and asu-1 (`lca/mappings.yaml`), the LP steam counted as heat (kWh);
+every other background a gap with the activity it should connect to. The nitrogen of the purges, the vacuum break and the transfer
 padding (12 Nm3, 15 kg per batch, ASSUMED) is an `lca.yaml` consumable `per_batch` (core ADR 0053,
 library ADR 0035): 8.5 g/kg BCF at 565 batches a year. There is no rinse: the train is kept dry
 (the chloroformate and phosgene hydrolyse). Not counted (emission_exclusions): the scrubbed vent
@@ -320,6 +318,19 @@ Per kg BCF: benzyl alcohol 0.636 kg, phosgene 0.738 kg, caustic 50 wt% 1.086 kg,
 (Q1 and Q2, D-009; Q2 holds the heat of absorption since core 1.10.0, D-015, the same total as
 Q2 and Q2A on 1.9.0; 0.164 before the duty split of 2026-11-06),
 cooling water 0.354 kWh removed, spent liquor 5.80 kg.
+- **Benzyl alcohol (2026-11-06).** `feed:BNOH` links benzyl-alcohol-1's `product:benzyl-alcohol`
+  (`lca/datasets/benzyl-alcohol-continuous-soda-hydrolysis.yaml`, Tier 0, manifest-only, merged
+  with PR #402), kg for kg, as `feed:PHOS` links phosgene-1. Until then it was a gap: the entry
+  was pending (#154) and a proxy would have been a guess. Checked against stream S1: the same
+  substance (registry `benzyl-alcohol`, C7H8O, CAS 100-51-6, the route D-004 names, the alkaline
+  hydrolysis of benzyl chloride) and the same unit (kg). The purity differs: S1 is 100 wt% dry
+  benzyl alcohol in the model (D-004), the linked product reagent grade, at least 99.8 wt% (at
+  most 0.03 wt% benzaldehyde, 0.01 wt% dibenzyl ether, 0.003 wt% chlorine, EP 0 064 486 A1 as
+  benzyl-alcohol-1 cites it). Linked as a proxy for the dry alcohol: up to 0.2 % of the alcohol's
+  burden is not counted, below the Tier 0 dataset's own uncertainty; no correction applied. The
+  link is a plant-gate one (no transport or losses, the build's `pinned` check), and the linked
+  dataset's time is a 1982 pilot example (valid_until 1987, lapsed). benzyl-alcohol-1's own
+  benzyl chloride feed is a gap of that entry, so the alcohol's burden is partial upstream.
 
 ## D-013 Dedicated train (2026-11-05)
 Decision: R-101, E-102, K-201 and T-201 make only BCF, batch after batch: 565 batches in 7920 h
@@ -590,7 +601,7 @@ here, D-015); L-5 to L-7 and L-9 stand.
 | duties | R101 (Q2, with the phosgene's heat of solution, core ADR 0063) and T101 (Q4) done in cheme (models' year averages, core ADR 0059); Q1, Q3, Q5, power hand arithmetic, ASSUMED | D-009, D-015, L-8 |
 | gas release at a cooling failure against the vent | done in cheme (screening bound; with the phosgene vapour on a scratch copy, core ADR 0062); vent capacity ASSUMED; relief not designed | D-014, D-015, core ADR 0058, 0062 |
 | per-batch exchanges (nitrogen) | done in cheme, amounts ASSUMED | D-012, core ADR 0053 |
-| LCI inventory | done, most backgrounds unmapped | D-012 |
+| LCI inventory | done, most backgrounds unmapped; benzyl alcohol, phosgene, caustic and nitrogen linked to library entries | D-012 |
 
 ## Open inputs
 Kinetics and heat flow with gas dosing (calorimetry), the TD24 of the crude and the product;

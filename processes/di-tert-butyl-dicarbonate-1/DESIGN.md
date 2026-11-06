@@ -516,9 +516,27 @@ chlor-alkali-1, the nitrogen consumable to asu-1's gaseous nitrogen (`lca/mappin
 steam counted as heat (kWh); every other background a gap with the activity it should connect to.
 - **Potassium tert-butoxide** has no library producer: its stoichiometric proxy, 0.6606 kg of
   tert-butanol and 0.3484 kg of potassium per kg (from dry tert-butanol and potassium metal, SRC-7;
-  0.009 kg of hydrogen released), is recorded in lca.yaml and here and not linked. No library
-  entry makes tert-butanol yet; linking the proxy to a tert-butanol entry (or to a KOtBu entry)
-  is an open input. Potassium metal has no entry.
+  0.009 kg of hydrogen released), is recorded in lca.yaml and here and not linked. Potassium metal
+  has no entry.
+- **tert-Butanol (2026-11-06).** The library has a tert-butanol entry since PR #402
+  (tert-butanol-1, Tier 0, manifest-only, `product:tert-butanol`, TBA contained), and the
+  alkoxide stays a gap: the library's LCI conventions do not allow linking a share of a proxy to
+  an Atlas producer. An exchange override (`lca/mappings.yaml`, schema `exchange_override`) links
+  the whole exchange to one Atlas product kg for kg (`dataset`), or `use`s one shared entry, never
+  both and with no amount factor; a shared proxy of `lci/mappings.yaml` (`proxies:`) takes only
+  technosphere entries with a background activity as inputs (`build_lci.py` refuses others and
+  links them to the background, never to an Atlas dataset). The library's split proxy,
+  hda-1's `hydrogen-methane-makeup`, sends its hydrogen share to the background and is `atlas:
+  false`, since linking hydrogen-1 would take the whole exchange as hydrogen; and
+  p-toluenesulfonyl-chloride-1 records its SO3 + HCl proxy without linking it, as this entry does.
+  A link of `feed:KOTBU` to tert-butanol-1 kg for kg would count 1 kg of tert-butanol for 0.66 kg
+  and leave the potassium out: a guess (CONTRIBUTING, "Gaps"). The grade also differs:
+  tert-butanol-1 counts TBA contained and excludes drying beyond the azeotrope, while the alkoxide
+  is made from dry tert-butanol. To link it the library would need either (a) a potassium
+  tert-butoxide entry, a Tier 0 dataset from dry tert-butanol and potassium with its
+  `feed:tert-butanol` linked to tert-butanol-1 (and the drying stated) and potassium a gap, to
+  which `feed:KOTBU` then links, or (b) proxy inputs that may name an Atlas dataset's product (a
+  schema and `build_lci.py` change, its own PR). Either is an open input.
 - Hexane, DABCO, CO2 and the liquid paraffin: gaps, no library producer (CO2 is a by-product of
   ammonia or ethylene-oxide plants; none of the library's entries supplies it as a product).
 - Wastes: the brine and the scrubber liquor to wastewater treatment, the waste solvent and the heel
@@ -807,4 +825,5 @@ sourced Henry constant of CO2 in the slurry (for `vent.henry`, D-015); the side 
 tricarbonate, the chloroformate) and so the product's assay; Boc2O's vapour pressure and heat of
 vaporization; the wash's partition (tert-butanol, DABCO, Boc2O) and the melt's water; the CO2
 uptake of the scrubber; the product specification; R-101's relief and the phosgene enclosure
-(D-014); a TEA (`operation.batch: {recipe: true}`).
+(D-014); a potassium tert-butoxide producer or proxy inputs that link an Atlas product, to
+link the alkoxide's tert-butanol to tert-butanol-1 (D-012); a TEA (`operation.batch: {recipe: true}`).
