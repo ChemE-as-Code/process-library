@@ -17,8 +17,8 @@ boundary: gate-to-gate foreground of the plant
 technology: 'Batch plant: phosphorus trichloride dosed over 2 h into acetic acid at 313 K (semi-batch,
   1 mol per 3 mol), held to 0.95 conversion of the PCl3, the HCl of the acid''s water vented through a
   brine condenser to a water scrubber; the lower phase (crude phosphorous acid) settled off, the upper
-  phase distilled at atmospheric pressure in a batch still with a short column; 1459.9 kg per batch, 1370
-  batches a year on a dedicated train'
+  phase distilled at atmospheric pressure in a batch still with a 10-stage column at reflux ratio 1; 1459.9
+  kg per batch, 1370 batches a year on a dedicated train'
 rights: 'CC-BY-4.0: the ChemE-as-Code process library''s own concept design (LICENSE-DATA)'
 cutoff:
 - key: emission-excluded:scrubber-tail-gas
@@ -45,7 +45,7 @@ valid_until: 2031
 system_model: cutoff
 technology_level: current
 production_volume:
-  amount: 1999998.7920000001
+  amount: 1999990.08
   unit: kg/a
   source: product:ACCL per hour x operation.hours_per_year (7920 h/a)
 classification:
@@ -67,7 +67,7 @@ exchanges:
 - key: feed:HAC
   title: Acetic acid (acetic-acid-1)
   type: input
-  amount: 208.8858
+  amount: 208.6783
   unit: kg
   link:
     source: flowsheet stream S1 (D-004)
@@ -90,7 +90,7 @@ exchanges:
 - key: feed:PCL3
   title: Phosphorus trichloride (no library process)
   type: input
-  amount: 159.1133
+  amount: 158.9552
   unit: kg
   link:
     source: flowsheet stream S3 (D-004)
@@ -115,7 +115,7 @@ exchanges:
 - key: feed:PW
   title: Process water (vent scrubber)
   type: input
-  amount: 53.9493
+  amount: 53.8957
   unit: kg
   link:
     source: flowsheet stream S15 (D-010)
@@ -137,7 +137,7 @@ exchanges:
 - key: feed:POWER
   title: Electric power
   type: input
-  amount: 5.22
+  amount: 5.1899999999999995
   unit: kWh
   link:
     source: flowsheet energy streams P1 (R-101 agitator), P2 (still agitator and reflux pump) and P3 (scrubber
@@ -160,23 +160,21 @@ exchanges:
 - key: feed:LPS
   title: LP steam 350 kPa(a)
   type: input
-  amount: 58.1841
+  amount: 56.6631
   unit: kWh
   link:
-    source: flowsheet energy streams Q1 (R-101's tempered-water loop), Q3 (the still's net boil-up, from
-      core's still model), Q7 (the boil-up returned as the column's reflux) and Q8 (the still's heat-up),
-      together the still's reboiler, D-009, D-014
+    source: 'flowsheet energy streams Q1 (R-101''s tempered-water loop) and Q3 (the still''s reboiler
+      from core''s still model with its column: the boil-up at the reflux ratio 1 and the charge''s heat-up),
+      D-009, D-015'
     missing: 'linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry,
       350 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh
       of condensing heat'
   streams:
   - Q1
   - Q3
-  - Q7
-  - Q8
-  source: flowsheet energy streams Q1 (R-101's tempered-water loop), Q3 (the still's net boil-up, from
-    core's still model), Q7 (the boil-up returned as the column's reflux) and Q8 (the still's heat-up),
-    together the still's reboiler, D-009, D-014
+  source: 'flowsheet energy streams Q1 (R-101''s tempered-water loop) and Q3 (the still''s reboiler from
+    core''s still model with its column: the boil-up at the reflux ratio 1 and the charge''s heat-up),
+    D-009, D-015'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -190,25 +188,26 @@ exchanges:
 - key: product:ACCL
   title: Acetyl chloride to storage
   type: product
-  amount: 252.5251
+  amount: 252.524
   unit: kg
+  provenance: calculated
   streams:
   - S10
   pedigree:
-    scores: [4, 4, 1, 3, 3]
-    rule: cheme default pedigree v1 (assumed, design maturity concept)
+    scores: [3, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (calculated, design maturity concept)
   basic_uncertainty: 1.05
   state:
     pressure: 1.01325
     temperature: 30.0
-    purity: 0.998367803
-    basis: mass
+    purity: 0.996713
+    basis: mole
     component: ACCL
   composition:
     fractions:
-      ACOH: 7.696e-06
-      PCL3: 0.001624501
-      ACCL: 0.998367803
+      ACOH: 2.075e-06
+      PCL3: 0.005732208
+      ACCL: 0.994265718
     formulas:
       ACOH: C2H4O2
       PCL3: PCl3
@@ -217,7 +216,7 @@ exchanges:
 - key: product:H3PO3P
   title: Crude phosphorous acid (lower phase; co-product)
   type: product
-  amount: 102.6379
+  amount: 102.5358
   unit: kg
   streams:
   - S7
@@ -246,7 +245,7 @@ exchanges:
 - key: product:RES
   title: Still residue (PCl3 and acetyl chloride) to hazardous-waste incineration
   type: output
-  amount: 11.9931
+  amount: 11.7307
   unit: kg
   provenance: calculated
   link:
@@ -266,10 +265,10 @@ exchanges:
       acid) with flue-gas scrubbing (HCl and P2O5 captured); not recycled in this concept (D-008)
   composition:
     fractions:
-      ACOH: 0.045356762
-      PCL3: 0.595984145
-      ACCL: 0.321031166
-      H3PO3: 0.037627927
+      ACOH: 0.046446052
+      PCL3: 0.520246371
+      ACCL: 0.394876408
+      H3PO3: 0.038431169
     formulas:
       ACOH: C2H4O2
       PCL3: PCl3
@@ -279,7 +278,7 @@ exchanges:
 - key: product:SCRL
   title: Scrubber liquor (dilute hydrochloric acid) to neutralisation
   type: output
-  amount: 54.7922
+  amount: 54.7377
   unit: kg
   provenance: calculated
   link:
@@ -299,8 +298,8 @@ exchanges:
       the site's acidic effluents, then biological treatment (D-010)
   composition:
     fractions:
-      HCL: 0.010000015
-      H2O: 0.982309772
+      HCL: 0.009999995
+      H2O: 0.982309792
       ACOH: 0.007690213
     formulas:
       HCL: HCl
@@ -310,19 +309,20 @@ exchanges:
 - key: product:CW
   title: Cooling water return
   type: output
-  amount: 60.193690000000004
+  amount: 58.63573
   unit: kWh
   link:
-    source: flowsheet energy streams Q2 (R-101, from core's semi-batch model), Q4 (column condenser and
-      product cooler) and Q5 (residue cooling), D-009, D-014
+    source: flowsheet energy streams Q2 (R-101, from core's semi-batch model), Q4 (the column's condenser,
+      from core's still model), Q5 (residue cooling) and Q9 (product cooler), D-009, D-015
     missing: 'not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system
       with cooling tower (processes/utility-cooling-tower), per kWh removed'
   streams:
   - Q2
   - Q4
   - Q5
-  source: flowsheet energy streams Q2 (R-101, from core's semi-batch model), Q4 (column condenser and
-    product cooler) and Q5 (residue cooling), D-009, D-014
+  - Q9
+  source: flowsheet energy streams Q2 (R-101, from core's semi-batch model), Q4 (the column's condenser,
+    from core's still model), Q5 (residue cooling) and Q9 (product cooler), D-009, D-015
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -334,7 +334,7 @@ exchanges:
 - key: product:BRINE
   title: Chilled brine return (263 K)
   type: output
-  amount: 0.3492
+  amount: 0.3484
   unit: kWh
   link:
     source: flowsheet energy stream Q6 (vent condenser E-103), D-010
@@ -355,14 +355,14 @@ exchanges:
 - key: consumable:nitrogen
   title: Nitrogen for inerting R-101, the still and the receivers
   type: input
-  amount: 1.729736680385866
+  amount: 1.7297861988497543
   unit: kg
   link:
     source: '8 Nm3 per batch x 1.2506 kg/Nm3, ASSUMED (D-012): R-101''s 2.5 m3 purged with two volumes
       before the charge (5 Nm3), the still and the receivers purged and blanketed (3 Nm3)'
     missing: 'linked to processes/asu-1 (lca/mappings.yaml): gaseous nitrogen to the battery limit'
   source: '8 Nm3 per batch x 1.2506 kg/Nm3, ASSUMED (D-012): R-101''s 2.5 m3 purged with two volumes before
-    the charge (5 Nm3), the still and the receivers purged and blanketed (3 Nm3); 10 kg per batch x 1369.95
+    the charge (5 Nm3), the still and the receivers purged and blanketed (3 Nm3); 10 kg per batch x 1369.99
     batches in 7920 h (process/recipe.yaml, case design, bottleneck REACT)'
   pedigree:
     scores: [4, 4, 1, 3, 3]
@@ -393,8 +393,8 @@ provenance:
     (2000 t/a)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:25ec663aff1bc9d463cf204600afbb66f9c336d5f3405b970e1cbeb84c0772f6
-    lca/lca.yaml: sha256:83d01e4804d8fa1fe354b795257a6b26970dbada4aa3ecc0eac201aff451643a
-    process.yaml: sha256:7220ec1784fec487ec4d4c81783b8673d27a76d7f0cb058656cc41785716ebeb
-    process/flowsheet.yaml: sha256:e637206aa7debc3cf842d7f4fe1218dcddda00c6cb93ea2e008587e1cbf8852d
+    equipment/equipment-list.yaml: sha256:2e85aa4f1ebe0371c6a720b42f9921942effa1a431a716c5027a17313df53f6c
+    lca/lca.yaml: sha256:a63c83c2fabd3176cc6a538d2d1e4dea05289ee38dd26d90e57d58da98c159d5
+    process.yaml: sha256:6b489dd76af2f4ef07a1ad8128ac6e5a56293966ebefe180fd2e8a60e37900e2
+    process/flowsheet.yaml: sha256:f79daa607db4a9de79438393581555326a8df42ae82b49906414d1fc1d512a73
     process/materials.yaml: sha256:02cdd4fe2acf0f8603b4dc97831e33a94fb4c1f0e38c1608233c74d1bdc2c640

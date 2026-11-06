@@ -1,9 +1,10 @@
 """What core cannot calculate in the acetyl chloride plant (DESIGN.md D-006).
 
 Year-average flows (kg/h, the recipe's basis, D-003). cheme process propagate computes the
-semi-batch R101 with its HCl vent, the batch still ST101 (one Rayleigh stage), the pass-through
-steps E101, E102, E103 and the mixers M102 and A101 from process/flowsheet.yaml. This script gives
-what core has no model for, from the streams propagate wrote:
+semi-batch R101 with its HCl vent, the batch still ST101 with its column (10 stages at reflux
+ratio 1, core ADR 0061), the pass-through steps E101, E102, E103, E104 and the scrubber A101
+from process/flowsheet.yaml. This script gives what core has no model for, from the streams
+propagate wrote:
 
 - the feeds that make 2000 t/a of acetyl chloride (core propagates from the feeds and does not
   solve them for a product rate; the balance is linear in the feeds, so the PCl3 is scaled by
@@ -11,19 +12,15 @@ what core has no model for, from the streams propagate wrote:
 - the phase split D101 in R-101: a specified split of the reaction mass S4 into the upper
   (S6) and lower (S7) phases, calibrated to the lower phase of CS 272 248 B2, Example 1
   (core has no liquid-liquid model for these liquids);
-- the column K101 on the still: its rectification is a specified split of the still's
-  distillate S8 (core's still has no reflux, core ADR 0055, core#173), giving S10 and S11;
 - the scrubber water S15 for a 1 wt% HCl bleed;
 - the temperatures of the still's streams (bubble points by Raoult's law with the same NIST
-  Antoine constants the still uses), of the mixed residue S12 and of the adiabatic scrubber's
-  liquor S16;
-- the duties Q1 and Q4 to Q8 (no property package of core covers these liquids, and core has
-  no column with reflux). Since cheme-as-code 1.9.0 (core ADR 0059) propagate writes R101's Q2
-  (its reactions' heat less the PCl3 dose warmed) and the still's Q3 (its net boil-up's latent
-  heat) from the models; this script prints its own values of both as a cross-check only. Q7
-  is the reboiler's share for the column's reflux (the reflux ratio times the latent heat of
-  the still's distillate) and Q8 the still's heat-up (the charge to its bubble point, the
-  residue to its end temperature), which the one-stage still does not hold (D-009, D-014).
+  Antoine constants the still uses) and of the adiabatic scrubber's liquor S16;
+- the duties Q1, Q5, Q6 and Q9 (no property package of core covers these liquids). Propagate
+  writes R101's Q2 (its reactions' heat less the PCl3 dose warmed, core ADR 0059), the still's
+  reboiler Q3 ((R + 1) times the distillate's latent heat and the charge's heat-up, ADRs 0061,
+  0063) and its condenser Q4 (the boil-up's latent heat, ADR 0061) from the models; this
+  script prints its own values of the three as a cross-check only (D-014, D-015). Q9 is the
+  product's subcooling, which the model's total condenser does not hold.
   The script also bounds R-101's own evaporative cooling: the vapour that the gas leaving
   R-101 while it holds the reacting mass carries to E-103, which the model leaves out of Q2
   (D-009, D-014). E-103's load Q6 is taken per source (R-101's gas off the reacting mass, the
@@ -52,12 +49,6 @@ WATER = 0.000691  # mass fraction of water in the acetic acid: acetic-acid-1's p
 # calibrated to CS 272 248 B2, Example 1 (lower phase 96 g per mol PCl3: about 6 wt% HCl, 2 wt%
 # acetyl chloride, 10 wt% acetic acid, the rest phosphorous acid) (D-006)
 TO_LOWER = {"H3PO3": 0.995, "ACOH": 0.95, "PCL3": 0.05, "ACCL": 0.008, "H2O": 1.0}
-# K101, the column on the still: share of each component of the still's distillate S8 that
-# reaches the product S10; the rest the column returns to the pot (D-008). PCl3: 6 % of the
-# phosphorus went overhead in US 4 209 460 A, Example 1 (a 2 m packed column at reflux 1:1,
-# 125 ppm P in the feed, 9 ppm in 83 % of it taken overhead: 0.83 x 9 / 125 = 0.06)
-TO_PRODUCT = {"ACCL": 0.99, "PCL3": 0.06, "ACOH": 0.01, "H3PO3": 0.0, "H2O": 1.0}
-REFLUX = 1.0  # reflux ratio of K101 (US 4 209 460 A, Examples 1-3: 1:1) (D-008)
 HCL_LIQUOR = 0.01  # mass fraction of HCl in the scrubber bleed (D-010)
 
 T_AMBIENT = 298.15  # K, the feeds from storage and the scrubber water (design basis)
@@ -172,24 +163,25 @@ def main() -> None:
         }})
         return
 
-    # K101: the specified split of the still's distillate
+    # ST101 with its column: the distillate S8 is the product, cooled in E104 to S10 (D-015)
     s8 = component_flows(streams, "S8")
-    s10 = {n: v * TO_PRODUCT[n] for n, v in s8.items() if v > 0}
-    s11 = {n: v - s10.get(n, 0.0) for n, v in s8.items() if v > 0}
+    s10 = {n: v for n, v in s8.items() if v > 0}
     product = sum(s10.values())
+    still = next(s for s in sheet["steps"] if s["id"] == "ST101")["still"]
+    reflux = still["column"]["ratio"]  # K-101's constant reflux ratio (D-015)
 
     # the feeds that make CAPACITY: linear in the PCl3
     pcl3_now = state(streams, "S3")["flow"]["value"]
     pcl3 = pcl3_now * CAPACITY / product
     acid = pcl3 / MW["PCL3"] * ACID_RATIO * MW["ACOH"] / (1.0 - WATER)
 
-    # temperatures: the still's bubble points (as ST101's model), the mixed residue
+    # temperatures: the still's bubble points (as ST101's model), the distillate's at its mean
+    # composition (K-101's total condenser)
     t_still0 = bubble_point(kmol(s6))
     s9 = component_flows(streams, "S9")
     t_still1 = bubble_point(kmol(s9))
-    c9, c11 = heat_capacity_rate(s9), heat_capacity_rate(s11)
-    t_return = t_still1  # the column's hold-up and last cut drain back at the pot's end temperature
-    t12 = (c9 * t_still1 + c11 * t_return) / (c9 + c11)
+    t_top = bubble_point(kmol(s8))
+    c9 = heat_capacity_rate(s9)
 
     # the vent's upper bound as until core 1.9.0: all of E-103's inert (the HCl of R101 and the
     # batch's whole nitrogen) taken saturated with the upper phase's vapour at 313 K, cooled to
@@ -263,13 +255,17 @@ def main() -> None:
     load_purge, _ = e103_load(n_purge, {}, T_AMBIENT)
     q6 = (load_r101 + load_still + load_purge) / 3600.0
     latent = sum(v / MW[n] * HVAP[n] for n, v in s8.items() if v > 0)
-    heat_up = heat_capacity_rate(s6) * (t_still0 - T_REACT) + c9 * (t_still1 - t_still0)
-    q3 = latent / 3600.0  # the still's net boil-up: core's still model writes it (ADR 0059)
-    q7 = REFLUX * latent / 3600.0  # the boil-up the column returns as reflux (D-009)
-    q8 = heat_up / 3600.0  # the charge to its bubble point, the residue to its end (D-009)
-    subcool = heat_capacity_rate(s10) * (t_still0 - T_PRODUCT)
-    q4 = ((1.0 + REFLUX) * latent + subcool) / 3600.0
-    q5 = (c9 + c11) * (t12 - T_PRODUCT) / 3600.0
+    # cross-checks of the still's model duties (ADRs 0061, 0063): (R + 1) moles boil up per mole
+    # distilled; the charge heated from 313.15 K to its first bubble point (still.heat_up)
+    boil = (1.0 + reflux) * latent / 3600.0
+    heat_up = heat_capacity_rate(s6) * (t_still0 - T_REACT) / 3600.0
+    # what neither the model nor this script holds: the pot's content heated from its first to its
+    # last bubble point as it boils down; the residue's heat over the whole rise is a lower bound
+    # (the pot holds more than the residue at every temperature; about 0.15 kW over the still's
+    # profile, D-015)
+    pot_rise = c9 * (t_still1 - t_still0) / 3600.0
+    q9 = heat_capacity_rate(s10) * (t_top - T_PRODUCT) / 3600.0  # E104: the product subcooled
+    q5 = c9 * (t_still1 - T_PRODUCT) / 3600.0
 
     # the vent fraction of the acetyl chloride R101 forms that leaves past E103 (R101's
     # batch.vent fraction in the flowsheet, written by hand from this value): an upper bound, all
@@ -294,15 +290,16 @@ def main() -> None:
     print(f"product S10 {product:.4f} kg/h at the current feeds; target {CAPACITY:.4f} kg/h")
     print(f"feeds for {CAPACITY * 7.92:.0f} t/a: S3 PCl3 {pcl3:.4f}, S1 acetic acid {acid:.4f} kg/h")
     print(f"S6 upper {sum(s6.values()):.4f} kg/h, S7 lower {sum(s7.values()):.4f} kg/h: {fractions(s7)}")
-    print(f"S10 {product:.4f} kg/h, ACCL {s10['ACCL'] / product:.6f} by mass, PCl3 {s10.get('PCL3', 0) / product * 1e6:.0f} ppm; S11 {sum(s11.values()):.4f} kg/h")
+    ppm_p = s10.get("PCL3", 0.0) / product * 30.974 / MW["PCL3"] * 1e6
+    print(f"S10 {product:.4f} kg/h, ACCL {s10['ACCL'] / product:.6f} by mass, PCl3 {s10.get('PCL3', 0) / product * 1e6:.0f} ppm ({ppm_p:.0f} ppm P); recovery of the charge's ACCL {s10['ACCL'] / s6['ACCL']:.4%}, of its PCl3 {s10.get('PCL3', 0) / s6['PCL3']:.4%}")
     print(f"yield on acetic acid {yield_acid:.4%} (1 mol acetyl chloride per mol)")
-    print(f"still: first bubble point {t_still0:.2f} K, last {t_still1:.2f} K; S12 {t12:.2f} K")
+    print(f"still: first bubble point {t_still0:.2f} K, last {t_still1:.2f} K; distillate {t_top:.2f} K")
     print(f"vent: HCl {n_hcl:.6f}, N2 {n_n2:.6f}, vapour at 313 K {sum(vap_hot.values()):.6f} kmol/h, acetyl chloride past E103 {vap_cold:.6f} kmol/h ({vap_cold * MW['ACCL']:.4f} kg/h), vent fraction {vent_fraction:.6f} of what R101 forms; PCl3 past E103 {vap_hot['PCL3']:.6f} kmol/h")
     print(f"vent per source: R-101's gas {inert_r101:.6f}, the still's and receivers' N2 {n_still:.6f}, R-101's dry purge {n_purge:.6f} kmol/h; acetyl chloride into E103 {vap_r101['ACCL'] + vap_still['ACCL']:.6f} (upper bound {vap_hot['ACCL']:.6f}), past E103 {pass_r101 + pass_still:.6f} kmol/h, vent fraction {vent_fraction_per_source:.6f} (not used: the flowsheet keeps the upper bound {vent_fraction:.6f})")
     print(f"Q6 per source {q6:.4f} kW: R-101's gas {load_r101 / 3600:.4f}, the still's and receivers' N2 {load_still / 3600:.4f}, R-101's dry purge {load_purge / 3600:.4f}; the upper bound with all the inert saturated at 313 K {q6_bound:.4f} kW")
     print(f"S15 scrubber water {water:.4f} kg/h; S16 {t16:.2f} K")
-    print(f"Q1 {q1:.4f}, Q4 {q4:.4f}, Q5 {q5:.4f}, Q6 {q6:.4f}, Q7 reboiler for the reflux {q7:.4f}, Q8 still heat-up {q8:.4f} kW")
-    print(f"cross-check of the model duties propagate writes: Q2 R101 {q2:.4f} (released {released / 3600:.4f}, dose {dose_heat / 3600:.4f}), Q3 still net boil-up {q3:.4f} kW; reboiler Q3 + Q7 + Q8 {q3 + q7 + q8:.4f} kW")
+    print(f"Q1 {q1:.4f}, Q5 {q5:.4f}, Q6 {q6:.4f}, Q9 product cooler {q9:.4f} kW")
+    print(f"cross-check of the model duties propagate writes: Q2 R101 {q2:.4f} (released {released / 3600:.4f}, dose {dose_heat / 3600:.4f}), Q3 reboiler {boil + heat_up:.4f} (boil-up {boil:.4f} at reflux {reflux:g}, charge heat-up {heat_up:.4f}), Q4 condenser {boil:.4f} kW; the pot's rise from {t_still0:.2f} to {t_still1:.2f} K, not in Q3, at least {pot_rise:.4f} kW")
     print(f"R-101's own evaporative cooling (not in Q2, upper bound): gas off the reacting mass {inert_r101:.6f} kmol/h ({share_r101:.4f} of E-103's inert), net {evaporation_r101 / 3600:.4f} kW ({evaporation_r101 / 3600 / q2:.2%} of Q2); E-103's whole vapour with its condensate rewarmed {(evaporation + reflux_back) / 3600:.4f} kW (the 1.8.0 hand Q2 deducted it all: {q2 - (evaporation + reflux_back) / 3600:.4f} kW)")
 
     write_balance_output(
@@ -312,19 +309,14 @@ def main() -> None:
                 "S3": {"flow": round(pcl3, 4)},
                 "S6": {"flow": round(sum(s6.values()), 4), "composition": fractions(s6)},
                 "S7": {"flow": round(sum(s7.values()), 4), "composition": fractions(s7)},
-                "S8": {"temperature": round(t_still0, 2)},
+                "S8": {"temperature": round(t_top, 2)},
                 "S9": {"temperature": round(t_still1, 2)},
-                "S10": {"flow": round(product, 4), "composition": fractions(s10)},
-                "S11": {"flow": round(sum(s11.values()), 5), "composition": fractions(s11), "temperature": round(t_return, 2)},
-                "S12": {"temperature": round(t12, 2)},
                 "S15": {"flow": round(water, 4)},
                 "S16": {"temperature": round(t16, 2)},
                 "Q1": {"duty": round(q1, 4)},
-                "Q4": {"duty": round(q4, 4)},
                 "Q5": {"duty": round(q5, 4)},
                 "Q6": {"duty": round(q6, 4)},
-                "Q7": {"duty": round(q7, 4)},
-                "Q8": {"duty": round(q8, 4)},
+                "Q9": {"duty": round(q9, 4)},
             }
         }
     )

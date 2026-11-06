@@ -7,7 +7,7 @@ capacity:
   basis: distilled benzoyl chloride to storage at the battery limit
   benzoyl_chloride_t_per_year: 2000    # ASSUMED (D-002): a fine-chemical batch scale, no open market figure used
   operating_hours_per_year: 7920       # ASSUMED (D-002): 330 days of 24 h, batch operation
-  batch_kg: 1229.47                    # ASSUMED (D-003): one batch of distilled product every 4.869 h
+  batch_kg: 1229.18                    # ASSUMED (D-003): one batch of distilled product every 4.868 h
   batches_per_year: 1627               # from the recipe (process/recipe.yaml, D-003)
 feeds:
   - name: Benzotrichloride (merchant or from a toluene side-chain chlorination outside the boundary)
@@ -24,17 +24,17 @@ feeds:
     source_of_values: ASSUMED (D-010)
 products:
   - name: Benzoyl chloride
-    purity: "99.99 wt% (benzoic acid 58 ppm, benzotrichloride 12 ppm by mass in the model, D-008); the patent states above 99.5 % and free of benzotrichloride"
-    delivery: {temperature_K: 303.15, pressure_kPa_a: 101.325, battery_limit: storage under nitrogen}
+    purity: "at least 99.99 wt% with benzotrichloride at about 12 ppm by mass at most (ASSUMED, D-002, D-008; the patent states above 99.5 % and free of benzotrichloride); the column's model gives 99.9989 wt%, benzotrichloride 11.0 ppm, benzoic acid below 0.01 ppm"
+    delivery: {temperature_K: 308.15, pressure_kPa_a: 101.325, battery_limit: storage under nitrogen}  # ASSUMED (D-009): E-101 on cooling water, 10 K above its supply
   - name: Hydrochloric acid 30 wt% (by-product)
-    note: "the HCl off-gas absorbed in water (D-010); organic carbon not modelled"
+    note: "the HCl off-gas absorbed in water (D-010); the model's acid carries the organics past R-101's reflux condenser, 0.16 wt% benzoyl chloride (which hydrolyses in the acid), an upper bound without the benzotrichloride wash of the patent (18 ppm organic carbon)"
   - name: Still residue to hazardous-waste incineration
     note: "benzoic acid, benzoyl chloride, zinc chloride, 64 g per kg of product; not recycled in this concept (D-008)"
 utilities:
   - {name: Electric power, use: "agitators of M-101, R-101 and C-101, vacuum pump (D-009)"}
   - {name: MP steam, pressure_kPa_a: 1100, use: "the benzoic acid melter M-101 (D-009)", note: ASSUMED}
   - {name: LP steam, pressure_kPa_a: 450, use: "the still C-101's jacket (D-009)", note: ASSUMED}
-  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "R-101's tempered-water loop, the HCl absorber, the column's condenser and product cooler", note: ASSUMED}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "R-101's tempered-water loop and its reflux condenser E-102, the HCl absorber, the column's condenser and the product cooler E-101", note: ASSUMED}
   - {name: Nitrogen, use: "inerting R-101 and C-101, breaking the vacuum (per batch, lca/lca.yaml)", note: ASSUMED}
 site:
   location: ASSUMED generic fine-chemicals site with chlorine and toluene chemistry, not chosen
@@ -43,6 +43,6 @@ site:
 assumptions:
   - "Route of US 4 276 231 A (Bayer, 1981), Example 1: benzotrichloride dosed over 2 h into molten benzoic acid with zinc chloride at 140 C, about 7 % acid excess, the HCl off-gas absorbed, the crude distilled at 50 mbar (D-001, D-004)."
   - "ASSUMED second-order rate law (first in benzotrichloride and in benzoic acid), k 2.7e-3 m3/(kmol s) at 413 K, Ea 60 kJ/mol, and a heat of reaction of -50 kJ/mol with HCl as gas: no open kinetics or calorimetry (D-005); the 7 % accumulation follows from them."
-  - "ASSUMED all HCl leaves the liquid as it forms (batch.vent fraction 1): none stays dissolved in the crude (D-005)."
-  - "Still: one Rayleigh stage at 5 kPa(a) on Raoult's law with NIST Antoine constants (an ideal liquid, ASSUMED), to 40 mol% benzoyl chloride in the residue; the column on it a specified split, 99.5 % of the benzoyl chloride, 1 % of the benzoic acid and 2 % of the benzotrichloride of the still's vapour to the product, reflux ratio 1 (D-007, D-008)."
+  - "ASSUMED all HCl leaves the liquid as it forms (batch.vent fraction 1): none stays dissolved in the crude (D-005); it leaves saturated with the liquid's vapour (an ideal liquid, ASSUMED) through a reflux condenser at 308 K whose condensate returns to R-101 (D-010)."
+  - "Still: a batch still at 5 kPa(a) with a packed column of 15 theoretical stages (the still included) at a constant reflux ratio of 2, ASSUMED, on core's batch shortcut and Raoult's law with NIST Antoine constants (an ideal liquid, ASSUMED), to 40 mol% benzoyl chloride in the residue (D-007, D-008)."
   - "All flows are year averages of the recipe (D-003); the duties and power concept estimates (scripts/balance.py, D-006, D-009); accuracy +/-30 % not demonstrated."

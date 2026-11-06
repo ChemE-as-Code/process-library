@@ -32,9 +32,11 @@ cutoff:
   title: storage-tank emissions of T-201
   direction: output
   reason: 'The scrubbed vent (nitrogen of the purges, 0.1 % of the HCl and the toluene vapour the HCl
-    strips from R-101) is not split from the liquor in the balance: core''s conversion step has one outlet
-    and its vent carries no solvent vapour (core ADR 0054); not estimated (open for basic engineering,
-    D-007, D-011).'
+    strips from R-101) is not split from the liquor in the balance: core''s conversion step has one outlet.
+    Core 1.10.0''s vent vapour (ADR 0062), run on a scratch copy, puts the toluene at about 0.29 g per
+    kg product (0.033 mol% of R-101''s vent gas); it is not in the balance, and the chlorosulfonic acid''s
+    own vapour has no open vapour pressure to model it with (D-015); not estimated as an emission (open
+    for basic engineering, D-007, D-011).'
 - key: emission-excluded:dryer-vent
   title: equipment-leaks emissions of DR-101
   direction: output
@@ -403,24 +405,23 @@ exchanges:
 - key: product:BRINE
   title: Chilled brine return (263 K)
   type: output
-  amount: 102.3611
+  amount: 102.36099999999999
   unit: kWh
   link:
-    source: flowsheet energy streams Q4 (heel cooling), Q5 (the quench's reaction heat, Q101's model),
-      Q10 (the dilution heat of the dosed acids the model leaves out), Q8 (DR-101's vacuum condenser)
-      and Q9 (wash water chilling in T-101), D-009, D-014
+    source: flowsheet energy streams Q4 (heel cooling), Q5 (the quench's reaction heat and the dilution
+      heat of the dosed acids, Q101's model), Q8 (DR-101's vacuum condenser) and Q9 (wash water chilling
+      in T-101), D-009, D-014, D-015
     missing: 'not mapped yet (D-012); connect to: refrigeration at 258 K (brine) from an electric vapour-compression
       unit (e.g. processes/utility-chiller), per kWh of heat removed: compressor electricity at its COP,
       condenser cooling water, refrigerant losses'
   streams:
   - Q4
   - Q5
-  - Q10
   - Q8
   - Q9
-  source: flowsheet energy streams Q4 (heel cooling), Q5 (the quench's reaction heat, Q101's model), Q10
-    (the dilution heat of the dosed acids the model leaves out), Q8 (DR-101's vacuum condenser) and Q9
-    (wash water chilling in T-101), D-009, D-014
+  source: flowsheet energy streams Q4 (heel cooling), Q5 (the quench's reaction heat and the dilution
+    heat of the dosed acids, Q101's model), Q8 (DR-101's vacuum condenser) and Q9 (wash water chilling
+    in T-101), D-009, D-014, D-015
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -490,9 +491,9 @@ provenance:
     (1000 t/a)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:917c42c38ae9aacb8ea4fb3239fbe0ac8c50db5d43e2f8b61b36e939517035a0
-    lca/lca.yaml: sha256:0ac8f2c9b579b69bb1d33a449f8c3996a89cf6a801a73d0ed5b79e0cfe634a27
-    process.yaml: sha256:18f595f011a651ffba4b3bcc5fa0a4dd320f23700bb347f35b934d8a02b13fb7
-    process/flowsheet.yaml: sha256:63cb902da5758522cd6552752438cc219dfb9a826bbf9e40832fdb2580989c88
+    equipment/equipment-list.yaml: sha256:7bcda6af811665158edd4a382505ea78924802013b47492c51e27e14998a950b
+    lca/lca.yaml: sha256:af23b3ca1efd93f29fab308805300dc043555f16e7ed20b30a28337c205bd370
+    process.yaml: sha256:f70d2d7507f4d5011e4e18a443eb96b94459d68dfeee1f1f1c43206256727c9e
+    process/flowsheet.yaml: sha256:7f8f13ee60aa42c4d29078d72cdd0f0694624daa4107ef0499d9df032668321f
     process/materials.yaml: sha256:15ef9b0aecbd97b26ace8c7932515e5943e817d3f543af2d25ec7d2f673f846d
     process/simulation.yaml: sha256:6244c67a678dde5ab9641ec6ba6ceaf8cf5a232b380255e4893d5a2abb2fcc60

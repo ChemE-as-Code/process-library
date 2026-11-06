@@ -19,7 +19,7 @@ CSV, and what the folder states in DESIGN.md, process.yaml and lca/ is checked a
   `criticality()` can give with the MTSR below the MTT, and the MTT is the decomposition limit;
 - the vent capacity covers the design case's largest cooling-failure release and the k/100 case
   is recorded as exceeding it; water ingress and the loss of the scrubber are discussed;
-- tert-butanol-1 is named as the link to make, the process is internal and has no licence;
+- tert-butanol-1 is named as the link to make, the process is public with CC-BY-4.0, every library entry is (ADR 0036);
 - (review of PR #401) the hexane that saturates R-101's vent-condenser gas (the dosing's vent S9
   and the degassing's nitrogen sweep) is in the balance and the make-up; the degassing at 30
   kPa(a) needs that sweep, since the slurry's own bubble pressure falls below the still's; the
@@ -299,14 +299,13 @@ def test_vent_capacity_and_the_design_findings(model, tmp_path):
 
 def test_feeds_links_and_publication(model):
     design = _text("DESIGN.md")
-    assert "tert-butanol-1" in design and "link the alkoxide's proxy" in design
+    assert "entry makes tert-butanol yet" in design and "linking the proxy" in design
     proxy_t, proxy_k = 74.123 / 112.213, 39.098 / 112.213
     assert f"{proxy_t:.4f}" == "0.6606" and f"{proxy_k:.4f}" == "0.3484"
     mappings = _yaml("lca/mappings.yaml")["exchanges"]
     assert mappings["feed:PHOS"]["dataset"]["path"] == "processes/phosgene-1/lca/dataset.yaml"
     manifest = _yaml("process.yaml")
-    assert manifest["publication"] == {"status": "internal"}
-    assert "licence" not in manifest and "license" not in manifest
+    assert manifest["publication"] == {"status": "public", "license": "CC-BY-4.0"}
 
 
 # --- review of PR #401 -------------------------------------------------------------------------

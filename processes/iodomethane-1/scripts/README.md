@@ -25,8 +25,9 @@ frame (for a new sheet: the one `cheme sheet new` wrote).
 
 `balance.py` is no generator: it gives the values of `process/flowsheet.yaml` that core cannot
 calculate yet (the feeds for 500 t/a, the thiosulfate solution and the wash water, the washes'
-and the drying's specified splits D102, D103 and X101, the column split K104, R101's vent fraction,
-the mixed temperatures, the duties other than R101's Q2 and the stills' Q3 and Q8, which core's
-models write since 1.9.0, and the powers from the recipe's durations; DESIGN.md D-008 to D-012).
+and the drying's specified splits D102, D103 and X101, R101's vent fraction,
+the mixed temperatures, the duties other than R101's Q2, ST101's Q3 and ST102's Q8 and Q10, which
+core's models write (Q2, Q3 since 1.9.0; ST102's reboiler and condenser with its column since
+1.10.0), and the powers from the recipe's durations; DESIGN.md D-008 to D-012, D-016).
 Run it with `cheme run scripts/balance.py` after `cheme process propagate --fill`; it follows the
 library's balance-output contract (`BALANCE_OUTPUT`, library ADR 0027).

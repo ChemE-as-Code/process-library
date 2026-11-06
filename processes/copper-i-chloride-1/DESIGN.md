@@ -331,7 +331,8 @@ Result (`cheme process reactor-hazards`, core ADRs 0050, 0058):
     (copper 0.398 against 0.149);
   - k/100: n_Cl2 0.0695, n_CuCl2 0.1655 kmol; (19071 + 8986) / 1478 = 18.98 K, so **372.1 K**
     (copper 0.553 against 0.304).
-  An independent integration of the same rate laws in review gave 354.4, 359.8 and 372.3 K.
+  A second integration of the same rate laws, made during the agent review of the pull request
+  (not an independent human review), gave 354.4, 359.8 and 372.3 K.
 - No TD24 is known for the brine or the product (never estimated): no class
   (`cheme.reactor-hazard-missing`, info). By core's `criticality()`, with MTSR below MTT the
   classes still possible are 1 (TD24 above the MTT, 373.1 K), 2 (TD24 between the MTSR and the

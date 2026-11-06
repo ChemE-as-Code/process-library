@@ -7,8 +7,10 @@
 #   from R101's model (from: R101), the warming from the jacket (temperatures); the vessel is
 #   sized from R101's model and its jacket checked against the model's peak cooling duty
 #   (core ADR 0052).
-# - C-101, the still with its column K-101, is one vessel over ST101, K101, M102 and E102: the
-#   distillation takes its boil-up time from ST101 (from: ST101).
+# - C-101, the still with its column K-101, is one vessel over ST101 (the still and its column,
+#   core ADR 0061) and E102 (the residue cooled): the distillation takes its boil-up time from
+#   ST101 (from: ST101), (R + 1) moles boiled up per mole distilled. The product cooler E104 on
+#   K-101's condensate runs while the still distils and is no batch unit.
 # Every other duration is ASSUMED (D-003). The vent condenser E-103 and the scrubber A-101 run
 # while R-101 doses and are no batch units. `cheme process recipe --svg build/gantt.svg` draws
 # one batch.
@@ -37,7 +39,7 @@ unit_procedures:
       - {id: drain, kind: other, title: Drain the lower phase to the crude phosphorous acid tank, duration: {value: 0.5, provenance: assumed, source: "D-003 (kind other, so that the still starts with the upper phase's transfer)"}}
       - {id: transfer, kind: transfer, title: Upper phase to the still, duration: {value: 0.5, provenance: assumed, source: D-003}}
   - id: DISTIL
-    units: [ST101, K101, M102, E102]
+    units: [ST101, E102]
     title: Batch distillation at atmospheric pressure in the still with its column (C-101, K-101)
     operations:
       - {id: receive, kind: charge, title: Receive the upper phase, duration: {value: 0.5, provenance: assumed, source: D-003}}

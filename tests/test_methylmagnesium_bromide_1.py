@@ -270,3 +270,8 @@ def test_screening_reproduces_the_stated_mtt_and_gas_release(model):
     assert release and release["vent_capacity_m3_h"] == 20.0
     assert abs(release["rate_m3_h"] - _d011_gas_column()["base"]) < 0.05, release["rate_m3_h"]
     assert release["capacity_ratio"] < 1.0
+
+
+def test_published_with_cc_by():
+    """Public by default (ADR 0036): the entry is published under CC-BY-4.0."""
+    assert _yaml("process.yaml")["publication"] == {"status": "public", "license": "CC-BY-4.0"}
