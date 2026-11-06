@@ -75,3 +75,4 @@ with an ADR in the same pull request.
 | [0034](0034-design-case-lci-datasets.md) | An engineering project may export a design case's own LCI dataset beside its study's | Accepted, 2026-11-06 |
 | [0035](0035-batch-processes-on-a-dedicated-train.md) | A batch process folder describes a dedicated train; campaigns on a multipurpose plant are out of scope | **Proposed**, 2026-11-05 |
 | [0036](0036-public-is-the-default-publication-status.md) | Public is the default publication status; the public build stays fail-closed | Accepted, 2026-11-06 |
+| [0037](0037-package-property-values-are-single-facts.md) | Property values an open-source package computes from bundled coefficients (thermo's DIPPR_PERRY_8E, chemicals' CRC tables) are single facts with their source; no tables copied, no open-data claim | Accepted, 2026-11-06 |
