@@ -1,7 +1,7 @@
 # 0032. A process may use measured series from a pinned dataset; reproduction results stay held out
 
-- **Status:** Proposed, 2026-11-04
-- **Deciders:** the owner (to accept); drafted for #329
+- **Status:** Accepted, 2026-11-06 (proposed 2026-11-04)
+- **Deciders:** the owner (drafted for #329)
 - **Scope:** library structure (benchmarks and process folders), evaluation protocol; extends ADR 0030
 
 ## Context
@@ -69,13 +69,15 @@ Issue #329 asked for both the reproduction and the design case in
   computed from raw data, never a reproduction or extension result. The vermaas-rbpm-wde folder
   predates ADR 0031 and keeps its own layout (`reproduce.py` instead of `run.py`, `reruns/`
   instead of `results/`, cache in `~/.cache/cheme-as-code/4tu/`).
-- No checker enforces that a process script does not read `benchmarks/`. A follow-up could add
-  a test.
+- `tests/test_co2_electrolysis_bpm_skids.py` (`test_no_script_reads_the_benchmarks`) enforces
+  that a process script does not read `benchmarks/` for co2-electrolysis-bpm-1; there is no
+  library-wide check yet.
 - Issue #329's folder name is kept for the design case. The reproduction lives in
   `benchmarks/reproductions/vermaas-rbpm-wde/`.
 
 ## Evidence
 
+- Accepted by the owner on 2026-11-06.
 - `benchmarks/reproductions/vermaas-rbpm-wde/`: `source.yaml` `split`, tolerances frozen in
   30d35b7.
 - `processes/co2-electrolysis-bpm-1/`: `scripts/adapt_4tu.py`, `data/measured/wde-1m-koh.yaml`,
