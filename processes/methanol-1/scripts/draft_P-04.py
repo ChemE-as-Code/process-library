@@ -38,6 +38,7 @@ from pid_common import (  # noqa: E402
     make_safety_valve,
     notes,
     save,
+    tag_label,
 )
 
 frame = Path(sys.argv[1])
@@ -105,7 +106,7 @@ line(sheet, "CWS-440", dn=500, fluid="Cooling water", route=[
     e201["S1"]], label_at=(209, 28))
 pv404 = valve("PV404", "GlobeValve", tag="PV-404", at=(330, 40))
 line(sheet, "FG-116", dn=125, fluid="Fuel gas", route=[
-    v201["N2"], (276, 40), pv404, valve("CV116", "SwingCheckValve", at=(352, 40)),
+    v201["N2"], (276, 40), pv404, valve("CV116", "SwingCheckValve", tag="CV-116", at=(352, 40)),
     offpage("out", at=(EDGE, 40), note="to fuel gas header (B/L)")], label_at=(372, 48))
 
 # ---- reflux: V-201 -> P-201A/B -> C-201 on the drum level
@@ -138,6 +139,7 @@ line(sheet, "LS-438", dn=500, fluid="LP steam", route=[
     tv402, (53, 150), e202["S1"]], label_at=(30, 158))
 line(sheet, "CD-439", dn=100, fluid="Condensate", route=[
     e202["S2"], valve("ST439", "SteamTrap", at=(53, 205)),
+    valve("CV439", "SwingCheckValve", tag="CV-439", at=(53, 230)),
     offpage("out", at=(53, BOTTOM), note="to condensate header", rotation=90,
             note_at=(76, 244))],
     label_at=(41, 222))
@@ -178,13 +180,16 @@ fail_label(sheet, "Inst_TIC402", (35, 150), "up")
 fail_label(sheet, "Inst_PIC404", (330, 40), "down")
 fail_label(sheet, "Inst_LIC405", (180, REFLUX), "up-left")
 fail_label(sheet, "Inst_LIC408", (172, BOT), "up")
+tag_label(sheet, "CV116", (352, 34))
+tag_label(sheet, "CV439", (63, 230))
 
 notes(sheet,
       "TIC-402: column temperature on the LP steam TV-402. PIC-404: column pressure on the "
       "off-gas PV-404. LIC-405: all condensed liquid is refluxed, on the V-201 level (D-020)",
       "LIC-408: sump level on the bottoms LV-408 to C-202. LZ-411: V-201 level low-low stops "
       "P-201A/B (C&E I-401). Pump minimum-flow protection with the pump vendor (D-020)",
-      "PSV-413 (LP flare header): C-201, V-201 (fire, CW failure). C-201, E-201, E-202 (both sides), "
-      "V-201 and their piping full vacuum; CV-116 stops back-flow from the header (D-022)")
+      "PSV-413 (LP flare header): C-201, V-201 (fire, CW failure, gas blow-by through V-102). Full "
+      "vacuum: C-201, E-201, E-202 (both sides), V-201, piping. CV-116, CV-439: no header back-flow "
+      "(D-022)")
 
 save(sheet, target)

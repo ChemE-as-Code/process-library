@@ -39,6 +39,7 @@ from pid_common import (  # noqa: E402
     make_safety_valve,
     notes,
     save,
+    tag_label,
 )
 
 frame = Path(sys.argv[1])
@@ -107,7 +108,7 @@ line(sheet, "CWS-540", dn=1400, fluid="Cooling water", route=[
     e203["S1"]], label_at=(210, 25))
 pv504 = valve("PV504", "GlobeValve", tag="PV-504", at=(330, 35))
 line(sheet, "VG-532", dn=50, fluid="Vent gas", route=[
-    v202["N2"], (276, 35), pv504, valve("CV532", "SwingCheckValve", at=(352, 35)),
+    v202["N2"], (276, 35), pv504, valve("CV532", "SwingCheckValve", tag="CV-532", at=(352, 35)),
     offpage("out", at=(EDGE, 35), note="to LP flare header")], label_at=(372, 43))
 
 # ---- reflux on the V-202 level; product on flow, taken off the reflux below the pumps
@@ -146,6 +147,7 @@ line(sheet, "LS-539", dn=1100, fluid="LP steam", route=[
     tv502, (53, 145), e204["S1"]], label_at=(30, 153))
 line(sheet, "CD-542", dn=200, fluid="Condensate", route=[
     e204["S2"], valve("ST542", "SteamTrap", at=(53, 205)),
+    valve("CV542", "SwingCheckValve", tag="CV-542", at=(53, 230)),
     offpage("out", at=(53, BOTTOM), note="to condensate header", rotation=90,
             note_at=(76, 244))],
     label_at=(41, 222))
@@ -190,13 +192,15 @@ fail_label(sheet, "Inst_PIC504", (330, 35), "down")
 fail_label(sheet, "Inst_LIC505", (170, REFLUX), "up-left")
 fail_label(sheet, "Inst_FIC507", (330, PRODUCT), "up")
 fail_label(sheet, "Inst_LIC508", (165, BOT), "up")
+tag_label(sheet, "CV532", (352, 29))
+tag_label(sheet, "CV542", (63, 230))
 
 notes(sheet,
       "TIC-502: column temperature on the LP steam TV-502. LIC-505: reflux on the V-202 level; "
       "FIC-507: product on flow, the smaller branch (D-020). AI-509: water in the Grade AA product",
       "PIC-504: column pressure on the vent PV-504. LIC-508: sump level on the bottoms LV-508. "
       "LZ-511: V-202 level low-low stops P-203A/B (C&E I-501). Fusel-oil draw not modelled (D-008)",
-      "PSV-513 (LP flare header): C-202, V-202 (fire, CW failure). C-202, E-203, E-204 (both sides), "
-      "V-202 and their piping full vacuum; CV-532 stops back-flow into V-202 (D-022)")
+      "PSV-513 (LP flare header): C-202, V-202 (fire, CW failure). Full vacuum: C-202, E-203, E-204 "
+      "(both sides), V-202, piping. CV-532, CV-542: no header back-flow into V-202, E-204 (D-022)")
 
 save(sheet, target)

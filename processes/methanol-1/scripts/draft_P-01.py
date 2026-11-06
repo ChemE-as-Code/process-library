@@ -89,7 +89,7 @@ line(sheet, "SG-102", dn=400, fluid="Synthesis gas", route=[
 asr_out = tee("T131B", at=(345, Y), branch="down", branch_dn=300)
 xv116 = valve("XV116", "BallValve", tag="XV-116", at=(380, Y))
 line(sheet, "SG-103", dn=350, fluid="Synthesis gas", route=[
-    e101["T2"], asr_out, valve("CV103", "SwingCheckValve", at=(363, Y)), xv116,
+    e101["T2"], asr_out, valve("CV103", "SwingCheckValve", tag="CV-103", at=(363, Y)), xv116,
     offpage("out", at=(EDGE, Y), note="to K-102 suction, P-02", note_at=(386, 113))],
     label_at=(356, 128))
 uv104 = valve("UV104", "GlobeValve", tag="UV-104", at=(195, ASR))
@@ -122,8 +122,14 @@ instrument(sheet, "FI-101", at=(32, 146), sensing="Line_SG101_S1", sensing_at=(3
 instrument(sheet, "LZ-109", at=(62, 184), sensing=v103["N4"], signal_to=xv110, fail_action="FC")
 instrument(sheet, "LI-108", at=(134, 178), sensing=v103["N5"])
 sic = instrument(sheet, "SIC-113", at=(195, 98), sensing=k101["N3"])
-instrument(sheet, "US-116", at=(380, 140), signal_to=xv116, fail_action="FC")
+# N3 is the speed pick-up of SIC-113 on the casing, not a process connection: an instrument
+# nozzle, so that the nozzle lists and datasheets do not count it as a process nozzle (round 4).
+sheet.find("K101_N3").set("type", "Plant/ProcessEquipment.InstrumentNozzle")
+us116 = instrument(sheet, "US-116", at=(380, 140), signal_to=xv116, fail_action="FC")
 fail_label(sheet, "Inst_US116", (380, Y), "down-left")
+# K-101 run status from the drive package into US-116: every K-101 stop (package machine trip,
+# power failure, operator stop) closes XV-116, not only the C&E trips (C&E I-102, D-022).
+instrument(sheet, "YS-117", at=(380, 165), signal_to=us116)
 instrument(sheet, "PIC-102", at=(120, 98), sensing="Line_SG130_S1", sensing_at=(120, Y),
            signal_to=sic)
 uic = instrument(sheet, "UIC-104", at=(195, 170), signal_to=uv104, fail_action="FO")
@@ -140,12 +146,13 @@ fail_label(sheet, "Inst_UIC104", (195, ASR), "up")
 tag_label(sheet, "XV110", (62, 158))
 tag_label(sheet, "UV104", (195, 206))
 tag_label(sheet, "XV116", (391, 128))
+tag_label(sheet, "CV103", (363, 113))
 
 notes(sheet,
       "PIC-102 sets the speed controller SIC-113 (drive package, speed measured at K-101, output to "
       "its variable-speed drive). UIC-104: anti-surge on UV-104 from FT-103, PT-114, PT-105 (D-017)",
-      "LZ-109: V-103 level high-high closes XV-110 and stops K-101 (C&E I-101). US-116: every K-101 "
-      "trip closes XV-116 (C&E I-101, I-201, I-202, I-302). Machine protection in the package",
+      "LZ-109: V-103 level high-high closes XV-110, stops K-101 (C&E I-101). US-116 closes XV-116 on "
+      "every K-101 stop: I-101, I-201, I-202, I-302 and YS-117 not running (package trip, power; I-102)",
       "PSV-115: suction side (settle-out through UV-104, leak-back past XV-116, fire); PSV-111: K-101 "
       "discharge; PSV-112: E-101 CW side (tube rupture). To the HP flare header (D-022)")
 

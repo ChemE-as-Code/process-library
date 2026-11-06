@@ -1,13 +1,15 @@
 # Cause and effect list: interlocks and trips. Schema: `cheme schema interlocks`.
 # On a sheet, refer to an interlock ("see C&E I-01") instead of spelling out what it trips.
-# PROPOSED, not approved for implementation (D-021): the seven trips the first P&IDs draw (I-302 added in the review of PR #367). The trip
+# PROPOSED, not approved for implementation (D-021): the eight trips the first P&IDs draw (I-302 and I-102 added in the review of PR #367). The trip
 # setpoints are not set here (they need the design limits and the HAZOP); delays, latching and
 # reset are ASSUMED as usual practice for a first issue; sensor voting and the SIL are for the
 # HAZOP / LOPA: sil stays empty until then. No trip acts on a control valve of control/loops.yaml:
 # every effect is a shutdown valve (XV) or a machine stop. Machine protection of K-101 and K-102
 # (vibration, axial position, lube oil, seals) is in the compressor packages (D-017, D-018). Every
-# trip that stops K-101 also closes its discharge shutdown valve XV-116 (US-116), isolating the loop
-# inventory from the K-101 suction side (D-022).
+# K-101 stop closes its discharge shutdown valve XV-116 (US-116), isolating the loop inventory from
+# the K-101 suction side (D-022): the trips below that stop K-101 close it directly, and any other
+# stop (a package machine trip, a power failure, an operator stop) closes it through the K-101 run
+# status YS-117 (I-102).
 schema: cheme/interlocks/v1
 interlocks:
   - id: I-101
@@ -23,6 +25,17 @@ interlocks:
     latching: true
     reset: manual
     notes: "D-017. Liquid slugs damage the K-101 impellers. Closing XV-110 isolates the front end; the loop then loses its make-up gas and runs down (K-102 keeps circulating). Delay and reset ASSUMED (D-021)."
+  - id: I-102
+    title: K-101 not running (any stop other than a C&E trip - package machine trip, power failure, operator stop)
+    cause: {tag: YS-117, condition: "K-101 not running"}
+    effects:
+      - {tag: XV-116, action: close}
+    sheet: P-01
+    sil: null
+    delay: {value: 0, unit: s}
+    latching: true
+    reset: manual
+    notes: "D-022, round 4 of the review of PR #367. Keeps the basis of PSV-115 (settle-out plus the seat leakage of CV-103 and XV-116 in series, no open leak-back path from the loop) true for every way K-101 can stop, not only the C&E trips: YS-117 is the run status of the drive package (motor starter or drive run contact). Fail-safe ASSUMED: the status is energised while K-101 runs, so a lost signal or a power failure reads as not running, and US-116 holds XV-116 de-energised to close (F.C.); the trip logic is on the uninterruptible supply (F-POWER). XV-110 stays as it is: closing it is not needed for this function and PSV-115's settle-out case already takes it closed. No delay, latching and manual reset ASSUMED; XV-116 is opened again only in the K-101 start-up (permissive with the start-up sequence, not written yet, D-021); stroke time with the valve vendor."
   - id: I-201
     title: Converter outlet temperature high-high (runaway or loss of steam-side cooling)
     cause: {tag: TZ-210, condition: TAHH}

@@ -579,9 +579,15 @@ deferred here with its reason and an open input):
    Its cases: settle-out of the K-101 discharge volume through UV-104; leak-back from the loop,
    which the whole loop inventory at about 74.5 barg would feed; fire. Choice (round 3 of the
    review): a discharge shutdown valve XV-116 on SG-103 downstream of CV-103 closes on every K-101
-   trip (US-116; C&E I-101, I-201, I-202, I-302), the usual practice, so the loop inventory is
-   isolated and PSV-115 is sized for the settle-out of the discharge volume plus the seat leakage
-   of CV-103 and XV-116 in series, not for an open leak-back path. Whether designing the suction
+   stop (US-116), the usual practice, so the loop inventory is isolated and PSV-115 is sized for
+   the settle-out of the discharge volume plus the seat leakage of CV-103 and XV-116 in series,
+   not for an open leak-back path. Round 4: the C&E trips (I-101, I-201, I-202, I-302) are not the
+   only way K-101 stops: a package machine trip, a power failure and an operator stop would have
+   left XV-116 open and CV-103 alone against the loop. The K-101 run status YS-117 from the drive
+   package now closes XV-116 on any stop (C&E I-102), fail-safe (energised while running, a lost
+   signal or power reads as stopped; XV-116 de-energise to close; ASSUMED, contact type with the
+   drive vendor); that is what keeps the sizing basis true, rather than sizing PSV-115 for the
+   open leak-back of the whole loop. Whether designing the suction
    side for the settle-out pressure is the better answer depends on the vendor's settle-out
    calculation (I-10).
 2. **V-101 high-high level** (high): LZ-313, own tap, stops K-102 and with it K-101 and XV-110
@@ -594,7 +600,11 @@ deferred here with its reason and an open input):
    V-201, C-202, E-203 (process side), V-202; the reboilers E-202 and E-204 on both sides (the
    process side is open to the sump without isolation; the LP steam side condenses to vacuum when
    TV-402 / TV-502 close, which is the F-HEAT trigger itself and happens on air failure, both valves
-   failing closed; the condensate drains through the steam traps ST-439 / ST-542); and the
+   failing closed; round 4: once the steam side is below the condensate header pressure the traps
+   ST-439 / ST-542 cannot discharge, the condensate stays and floods the steam side until steam
+   pressure is restored, and the check valves CV-439 / CV-542 drawn on the trap outlets stop
+   condensate being drawn back from the header, a water-hammer risk on restart; draining the
+   flooded side, by a pumping trap or a condensate pot with a pump, is open, I-14); and the
    connected overhead, condensate, reflux, reboiler circulation and reboiler steam / condensate
    piping (line list header). Case F-HEAT in the control philosophy. A nitrogen or fuel-gas
    make-up split range with PV-404 / PV-504, or a vacuum breaker on the reboiler steam side, stays
@@ -622,13 +632,21 @@ deferred here with its reason and an open input):
    (signal drawn); the anti-surge controller UIC-104 gets its suction pressure from a dedicated
    transmitter PT-114 instead of PIC-102, as anti-surge inputs usually are. SIC-113 is part of the
    drive package: its speed measurement is drawn as a connection to K-101, its output goes to the
-   variable-speed drive inside the package (not drawn).
+   variable-speed drive inside the package (not drawn). Round 4: that connection, K-101's N3, is
+   an InstrumentNozzle (the speed pick-up on the casing), not a ProcessNozzle, so it is not counted
+   as a process connection of the compressor.
 8. **Line labels** (medium): every line carries its number (and DN where it fits) at least once on
    its sheet; RF-433 and RF-534 show the number only (no room for the DN between the spare pump's
    suction valves).
 Low items: the tags of XV-110, UV-104, UV-203, XV-304 and XV-306 are printed; the stale SG-104
 references are corrected; the PSV-302 case no longer claims K-101 into a blocked loop (PSV-111 at
 82 barg lifts first), and the same stale text is gone from the P-03 note and I-302 (round 3).
+Round 4 low items: the check valves credited as protections carry their tags on the sheets
+(CV-103 on P-01, CV-116 and CV-439 on P-04, CV-532 and CV-542 on P-05); the P-04 note names
+PSV-413's gas blow-by case through V-102 again, the case CV-532 answers (item 4); XV-116 is in
+the fail-closed list of F-AIR, where K-101, not stopped by an air failure, runs isolated in full
+recycle through the fail-open UV-104, and K-101 against the closed XV-116 without that recycle
+is named in PSV-111's case.
 Reason: concept-stage design, each protection either drawn or deferred explicitly with its open
 input, for the HAZOP to confirm.
 
@@ -709,3 +727,7 @@ ASSUMED (I-01, I-02). After the DWSIM run (D-014) the predictive checks pass exc
   failure (D-021, D-022); the LP header's back pressure against the 0.1 barg C-202 vent with
   PSV-413's blow-by gas in it; columns under vacuum with the vents open on air failure (check
   valves CV-116, CV-532; D-022).
+- I-14 Reboiler condensate system: the condensate header pressure, the steam-side pressure at
+  which ST-439 / ST-542 stall (low steam load, TV-402 / TV-502 closed), and how the flooded E-202 /
+  E-204 steam side is drained (pumping trap, or a condensate pot with a pump, with a vacuum
+  breaker), with the start-up draining before steam is admitted (D-022 item 3).
