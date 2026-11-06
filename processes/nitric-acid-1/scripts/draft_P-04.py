@@ -120,7 +120,7 @@ instrument(sheet, "TI-407", at=(300, 55), sensing="Line_TG402_S1", sensing_at=(3
 
 valve_marks(sheet, "Inst_UIC401", "UV401", (92, 155), "up")
 
-note(sheet, "UIC-401: K-102 anti-surge recycle (hot bypass, time limit C&E I-401; D-018). " + TRAIN,
+note(sheet, "UIC-401: K-102 hot recycle (D-018), limited by TI-402 TAH and C&E I-401. " + TRAIN,
      at=(20, 262))
 note(sheet, "PSV-404 protects the high-pressure system from K-102 to the X-101 inlet valves "
      "(E-106, E-107, C-101, E-103 cold side, R-102); set and case: piping/special-items.yaml",

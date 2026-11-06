@@ -17,8 +17,8 @@ instruments:
   # ---- P-02 burner and steam raising
   - {tag: FFIC-201, sheet: P-02, service: "NH3/air ratio at the mixer: NH3 vapour flow (NV-102) ratioed to the primary air FI-202, valve FV-201", notes: "FV-201 fails closed (F.C.)"}
   - {tag: FI-202, sheet: P-02, service: "Primary air flow to M-101 (PA-105), the wild flow of FFIC-201"}
-  - {tag: FFZ-205, sheet: P-02, service: "NH3/air ratio high-high from the NH3 flow (NV-102) and the independent air flow FZ-206, burner trip through US-209 (C&E I-201)", notes: "Ratio evaluated only above an NH3 flow cutoff (2 % of the design flow, ASSUMED); above it a low or bad air signal reads high-high (D-023)"}
-  - {tag: FZ-206, sheet: P-02, service: "Primary air flow low-low (PA-105), independent of FI-202, burner trip through US-209 (C&E I-202); also the air input of FFZ-205 and of the K-102 full-recycle time trip (C&E I-401)"}
+  - {tag: FFZ-205, sheet: P-02, service: "NH3/air ratio high-high from the NH3 flow (NV-102) and the independent air flow FZ-206, burner trip through US-209 (C&E I-201)", notes: "Ratio evaluated only above an NH3 flow cutoff (2 % of the design flow, ASSUMED); above it a low or bad air signal reads high-high (D-023); a NH3 input below its range or of bad quality trips at any flow; deviation alarm against FFIC-201 in control/loops.yaml (D-024)"}
+  - {tag: FZ-206, sheet: P-02, service: "Primary air flow low-low (PA-105), independent of FI-202, burner trip through US-209 (C&E I-202); also the air input of FFZ-205 and of the K-102 full-recycle time trip in US-612 on P-06 (C&E I-401; the signal to P-06 is given by the sheet notes)", notes: "Below its range or bad quality reads low-low for I-202 and I-401 and ratio high-high for I-201; deviation alarm against FI-202 in control/loops.yaml (D-024)"}
   - {tag: TZ-207, sheet: P-02, service: "R-101 gauze temperature low-low (loss of ignition, NH3 slip) and high-high, closes XV-204 (C&E I-203, I-204)", notes: "XV-204 fails closed (F.C.)"}
   - {tag: TI-208, sheet: P-02, service: "R-101 gauze temperatures (multipoint), indication"}
   - {tag: US-209, sheet: P-02, service: "Burner trip logic: closes the NH3 trip valve XV-203 (C&E I-201 to I-204, I-602)", notes: "XV-203 fails closed (F.C.)"}
@@ -37,7 +37,7 @@ instruments:
   - {tag: PI-307, sheet: P-03, service: "P-101A/B discharge pressure, local (WA-306)"}
   # ---- P-04 NOx gas compression
   - {tag: UIC-401, sheet: P-04, service: "K-102 anti-surge control, recycle valve UV-401 (NX-404)", notes: "UV-401 fails open (F.O.); surge line and inputs in the train package (D-018)"}
-  - {tag: TI-402, sheet: P-04, service: "K-102 discharge temperature (NX-401), indication and high alarm (warns of a long hot recycle before the trip I-401; not part of a trip)", notes: "Alarm setting the train vendor's, not stated yet (O-9, D-023)"}
+  - {tag: TI-402, sheet: P-04, service: "K-102 discharge temperature (NX-401), indication and high alarm TAH (warns of a long hot recycle before the trip I-401; not part of a trip; alarm and response in control/loops.yaml, UIC-401)", notes: "Alarm setting the train vendor's, not stated yet (O-9, D-023, D-024)"}
   - {tag: PI-403, sheet: P-04, service: "Nitrous gas to the absorber, local (NX-403)"}
   - {tag: TI-405, sheet: P-04, service: "E-106 NOx gas outlet (NX-402)"}
   - {tag: TI-406, sheet: P-04, service: "E-107 outlet, nitrous gas to C-101 (NX-403)"}
@@ -61,7 +61,8 @@ instruments:
   - {tag: TZ-605, sheet: P-06, service: "R-102 inlet temperature low-low (TG-310), closes the SCR ammonia XV-602 (C&E I-601)", notes: "XV-602 fails closed (F.C.); independent of TIC-301 (P-03)"}
   - {tag: TI-608, sheet: P-06, service: "R-102 catalyst bed / outlet temperature"}
   - {tag: PIC-611, sheet: P-06, service: "Absorber pressure held at the X-101 inlet (TG-606), PV-611", notes: "PV-611 fails open (F.O.): no overpressure of the HP system against PSV-404 (D-019)"}
-  - {tag: US-612, sheet: P-06, service: "Machine train trip logic: closes the X-101 inlet trip valve XV-610 (C&E I-602); trips the train on the K-102 full-recycle time (C&E I-401, inputs XV-610 closed and FZ-206)", notes: "XV-610 fails closed (F.C.)"}
+  - {tag: ZSC-610, sheet: P-06, service: "XV-610 closed position switch, input of the K-102 full-recycle time trip in US-612 (C&E I-401)", notes: "A broken wire reads not closed; the FZ-206 leg of I-401 still sees a closed XV-610 (D-024)"}
+  - {tag: US-612, sheet: P-06, service: "Machine train trip logic: closes the X-101 inlet trip valve XV-610 (C&E I-602); trips the train on the K-102 full-recycle time (C&E I-401, retentive timer, inputs ZSC-610 and FZ-206 from P-02); train-start time for SEQ-START-BURNER", notes: "XV-610 fails closed (F.C.)"}
   - {tag: TI-613, sheet: P-06, service: "X-101 outlet / stack temperature (TG-607)"}
   - {tag: AI-614, sheet: P-06, service: "NOx in the stack gas (TG-607), emission monitoring"}
   - {tag: AI-615, sheet: P-06, service: "N2O in the stack gas (TG-607), emission monitoring"}

@@ -110,6 +110,10 @@ instrument(sheet, "TZ-605", at=(145, 85), sensing="Line_TG310_S1", sensing_at=(1
            signal_to=xv602, fail_action="FC")
 instrument(sheet, "TI-608", at=(275, 173), sensing=r102["N3"])
 instrument(sheet, "US-612", at=(255, 195), signal_to=xv610, fail_action="FC")
+# XV-610 closed position switch into the train trip logic (C&E I-401, D-024): taken off the
+# valve stem on the side away from PV-611, its signal into US-612 above the line
+instrument(sheet, "ZSC-610", at=(276, 195), sensing="XV610", sensing_at=(255, 210),
+           sensing_points=[(276, 210)], signal_to="Inst_US612", location="field")
 instrument(sheet, "PIC-611", at=(266, 238), sensing="Line_TG606_S1", sensing_at=(266, EXP),
            signal_to=pv611, fail_action="FO")
 instrument(sheet, "TI-613", at=(335, 235), sensing="Line_TG607_S1", sensing_at=(335, EXP))
@@ -119,14 +123,14 @@ instrument(sheet, "AI-615", at=(385, 235), sensing="Line_TG607_S1", sensing_at=(
 valve_marks(sheet, "Inst_TIC604", "TV604", (76.6, 32), "right")
 valve_marks(sheet, "Inst_FIC603", "FV603", (188, NH3), "down")
 valve_marks(sheet, "Inst_TZ605", "XV602", (145, NH3), "down")
-valve_marks(sheet, "Inst_US612", "XV610", (255, EXP), "up")
-valve_marks(sheet, "Inst_PIC611", "PV611", (278, EXP), "down")
+valve_marks(sheet, "Inst_US612", "XV610", (255, EXP), "up", fail_at=(249, 208))
+valve_marks(sheet, "Inst_PIC611", "PV611", (278, EXP), "down", tag_at=(287, 210.5))
 
 note(sheet, "TZ-605 stops the SCR ammonia below the R-102 inlet temperature limit (ammonium "
      "nitrate deposits, NH3 slip): C&E I-601. FIC-603 set from AI-614 by the operator (D-019)",
      at=(20, 262))
-note(sheet, "PIC-611 holds the absorber pressure at the X-101 inlet; US-612 (train trip, C&E I-602) "
-     "closes XV-610; start-up runs through X-101 (SEQ-START-BURNER S1, S2), no bypass yet (D-022)",
+note(sheet, "US-612 trips the train (C&E I-602: XV-610 closes; I-401 from ZSC-610 and FZ-206, P-02). "
+     "PIC-611: absorber pressure; start-up through X-101, no bypass (D-022, D-024)",
      at=(20, 269))
 note(sheet, "AI-614 (NOx), AI-615 (N2O): stack emission monitoring. R-102 protected by PSV-404 "
      "(P-04); E-108 by PSV-616 (D-021). " + TRAIN.split(";")[0], at=(20, 276))

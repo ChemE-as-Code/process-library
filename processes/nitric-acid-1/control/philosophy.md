@@ -24,10 +24,10 @@ objectives:
 failures:
   - id: F-AIR
     title: Loss of instrument air
-    response: "Every actuated valve goes to the fail position drawn on the P&IDs (control/instrument-list.yaml, D-019). Closed: the ammonia trip valves XV-101, XV-203, XV-204 and the ratio valve FV-201 (the burner goes out), the evaporator valves LV-102 and PV-104, the level valves LV-305, LV-506 and LV-510 and the shutdown valve XV-507 (the liquid seals hold), the SCR ammonia XV-602 and FV-603, the LP steam TV-604, the bypass TV-301 and the expander trip valve XV-610. Open: the air guide vanes FV-107 and the anti-surge valves UV-110 and UV-401 (the machines are protected), the process water FV-505, the secondary air FV-509 and the absorber pressure valve PV-611. With XV-610 closed and PV-611 open the high-pressure system is held by XV-610; the train is tripped on its own protection (I-602). Restart follows SEQ-START-BURNER once air is back."
+    response: "Every actuated valve goes to the fail position drawn on the P&IDs (control/instrument-list.yaml, D-019). Closed: the ammonia trip valves XV-101, XV-203, XV-204 and the ratio valve FV-201 (the burner goes out), the evaporator valves LV-102 and PV-104, the level valves LV-305, LV-506 and LV-510 and the shutdown valve XV-507 (the liquid seals hold), the SCR ammonia XV-602 and FV-603, the LP steam TV-604, the bypass TV-301 and the expander trip valve XV-610. Open: the air guide vanes FV-107 and the anti-surge valves UV-110 and UV-401 (the machines are protected), the process water FV-505, the secondary air FV-509 and the absorber pressure valve PV-611. With XV-610 closed and PV-611 open the high-pressure system is held by XV-610. The motor keeps running and K-102 is on full recycle against the closed expander inlet, which the package protection does not see: the operator stops the train, or the full-recycle time trip I-401 (ZSC-610 and FZ-206) trips it after its limit, and I-602 follows (D-024). Restart once air is back: a new train start and SEQ-START-BURNER."
     loops: [FFIC-201, FIC-107, UIC-110, UIC-401, PIC-611]
     sequences: [SEQ-START-BURNER]
-    interlocks: [I-201, I-602]
+    interlocks: [I-201, I-401, I-602]
   - id: F-POWER
     title: Loss of electric power
     response: "The train motor stops: the train trips (I-602), the ammonia is cut (XV-101, XV-203, XV-204) and XV-610 isolates the expander. P-101A/B stop; V-101 fills from what is left in the gas train. The control system and the trip logic are on an uninterruptible supply (ASSUMED, D-019). The HP system settles out behind the check valve CV401 and XV-610; the low-pressure system behind CV105. Restart: SEQ-START-BURNER."
@@ -45,7 +45,7 @@ failures:
     interlocks: [I-203]
   - id: F-TRAIN
     title: Machine train trip
-    response: "I-602: XV-610 closes (no expander overspeed), the ammonia trip valves close and the burner goes out; the anti-surge valves open. The absorber stays pressurised; PSV-404 protects it if XV-610 and PV-611 are closed with K-102 coasting down. The train is also tripped when K-102 has run on full hot recycle (no forward flow) longer than its limit, counted from train start (I-401, D-023)."
+    response: "I-602: XV-610 closes (no expander overspeed), the ammonia trip valves close and the burner goes out; the anti-surge valves open. The absorber stays pressurised; PSV-404 protects it if XV-610 and PV-611 are closed with K-102 coasting down. The train is also tripped when K-102 has run on full hot recycle (no forward flow) longer than its limit: the accumulated time since it last ran at its forward-flow temperature, which at a train start is the time since train start (I-401, D-023, D-024)."
     loops: [UIC-110, UIC-401, PIC-611]
     interlocks: [I-401, I-602]
     sequences: [SEQ-START-BURNER]
@@ -74,10 +74,12 @@ pressure levels intact (OBJ-6).
 ## Control hierarchy
 
 Regulatory control (15 loops) holds the operating point; the burner start-up runs as a sequence
-(SEQ-START-BURNER); ten trips (I-101 to I-602) act on dedicated trip valves (XV) and machine
+(SEQ-START-BURNER, on a train just started), and a relight on a running train with forward flow
+as SEQ-RESTART-BURNER (D-024); ten trips (I-101 to I-602) act on dedicated trip valves (XV) and machine
 stops, never on a control valve, and the relief devices PSV-105, PSV-111, PSV-215, PSV-316, PSV-404 and
 PSV-616 are the layer behind them (cases per device in `piping/special-items.yaml`, D-021). The machine protection of the train is the package's and reaches the
-plant as one trip (I-602). A regulatory loop is never counted as a safeguard.
+plant as one trip (I-602); the plant's own K-102 full-recycle time trip (I-401) ends in the same
+trip (D-024). A regulatory loop is never counted as a safeguard.
 
 ## Normal operation and disturbances
 
@@ -94,8 +96,11 @@ dosed on flow (FIC-603) and trimmed from the stack NOx.
 
 Automatic: the loops, the trips and the anti-surge controls. The operator sets the load and the
 ratio, trims the process water, the secondary air and the SCR ammonia from the analysers
-(AI-514, AI-512, AI-614), blows down the evaporator, runs SEQ-START-BURNER and resets every
-latched trip after the cause is cleared. Cascades of the analysers onto FIC-505, FIC-509 and
+(AI-514, AI-512, AI-614), blows down the evaporator, runs SEQ-START-BURNER and
+SEQ-RESTART-BURNER and resets every latched trip after the cause is cleared. The one exception
+is the start-up bypasses of I-202 and I-203: in step S1 (R1) the operator resets their latches
+while the cause (no air, a cold gauze) is still there, because the bypass masks the cause at the
+latch input until the sequence removes it (D-023, D-024). Cascades of the analysers onto FIC-505, FIC-509 and
 FIC-603 are left for detail design (D-019).
 
 ## Equipment and utility failures
@@ -111,6 +116,7 @@ Fail positions, setpoints that are not a design-case value, trip delays and the 
 are ASSUMED (D-019). Open: the trip point of I-201 (O-7), the ignition burner, the expander
 bypass, the K-102 recycle (hot or cooled), a V-101 high-high level protection, the start-up
 heat source of E-101 and the C-102 acid cooling (D-018 to D-020); the K-102 full hot recycle
-limit (the I-401 delay, ASSUMED 15 min) and the TI-402 alarm setting from the train vendor, the
-FFZ-205 NH3 flow cutoff and the I-202/I-203 start-up bypass timers (all ASSUMED, D-023, O-9);
-sensor voting and SILs are the HAZOP / LOPA's.
+limit (the I-401 retentive timer, ASSUMED 15 min, and its reset after 10 min of forward flow),
+the restart rules of a hot train and the TI-402 alarm setting from the train vendor, the FFZ-205
+NH3 flow cutoff, the deviation alarm bands of FZ-206 and FFZ-205 and the I-202/I-203 start-up
+bypass timers (all ASSUMED, D-023, D-024, O-9); sensor voting and SILs are the HAZOP / LOPA's.

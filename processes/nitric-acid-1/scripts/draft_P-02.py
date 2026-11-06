@@ -126,7 +126,7 @@ valve_marks(sheet, "Inst_FFIC201", "FV201", (140, NH3), "down")
 valve_marks(sheet, "Inst_TZ207", "XV204", (165, 90), "right")
 
 note(sheet, "Burner trips (C&E I-201 to I-204): US-209 closes XV-203, TZ-207 closes XV-204; both "
-     "valves close on every burner trip and on a train trip. FFIC-201: NH3/air ratio (D-019)",
+     "close on every burner and train trip. FZ-206 also to US-612 (P-06, C&E I-401)",
      at=(20, 262))
 note(sheet, "R-101 and E-102 in one vessel (vendor); ignition burner and start-up purge: "
      "SEQ-START-BURNER. E-102 steam drum, circulation and BFW level control: boiler package (D-020)",

@@ -107,6 +107,8 @@ loops:
     alarms:
       - {tag: FFIC-201, condition: FFAH, response: "Ratio above its alarm: lower the ratio setpoint or the ammonia; check FI-202 against FZ-206. The ratio trip I-201 is behind it."}
       - {tag: AI-210, condition: AAH, response: "Analyser shows a rich mixture: compare with FFIC-201 and FFZ-205; reduce the ammonia."}
+      - {tag: FZ-206, condition: "deviation from FI-202", response: "The trip air flow and the control air flow disagree (both on PA-105, own elements): a FZ-206 stuck high would blind I-202 and the FZ-206 leg of I-401. Check both transmitters; with FZ-206 not proven, reduce the load and call maintenance. Band ASSUMED (D-024, O-9)."}
+      - {tag: FFZ-205, condition: "NH3 flow deviation from FFIC-201", response: "The trip NH3 flow and the control NH3 flow disagree (both on NV-102, own elements): a FFZ-205 NH3 input failed low would make the ratio trip I-201 read lean. Check both transmitters; reduce the ammonia until FFZ-205 is proven. Band ASSUMED (D-024, O-9)."}
     interlocks: [I-201, I-202, I-203, I-204]
     rationale: "The mixture is flammable above a NH3 fraction close to the operating one (D-005), so the ratio is controlled, clamped and tripped by independent instruments (FFZ-205, FZ-206 on their own flow elements) acting on XV-203 and XV-204, never on FV-201 (D-019). FV-201 fails closed. The analyser AI-210 is a cross-check, not part of the trip (composition analysers are avoided in safety functions, skill control-safeguarding-and-interlocks)."
     operator: Moves the ratio only in small steps; on a load change the air leads (FIC-107).
@@ -168,6 +170,8 @@ loops:
     normal_mode: auto
     alarms:
       - {tag: UIC-401, condition: "surge margin low", response: "Check the absorber pressure PIC-611 and the load; UV-401 should be opening."}
+      - {tag: TI-402, condition: TAH, response: "K-102 discharge hot: the machine is on hot recycle with no or too little forward flow. Check XV-610 open, PV-611 passing and FZ-206 above its low-low point; restore forward flow or stop the train before the full-recycle time trip I-401 stops it. Setting the train vendor's, not stated yet (ASSUMED below the K-102 discharge design temperature, O-9, D-024)."}
+    interlocks: [I-401]
     rationale: "Nitrous gas cannot be blown off, so K-102 recycles. The recycle is taken before E-106/E-107 (hot bypass): it suits short-term duty (start-up, trips); continuous recycle at low load heats the suction, so a cooled recycle from the E-107 outlet is the alternative for the HAZOP and the vendor (D-018). UV-401 fails open."
     unresolved:
       - "Hot or cooled recycle for K-102 (continuous turndown duty), D-018"

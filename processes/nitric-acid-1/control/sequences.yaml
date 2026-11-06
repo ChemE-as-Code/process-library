@@ -9,12 +9,19 @@
 # D-021/D-022: without an expander bypass the air reaches the stack only through X-101, so the
 # X-101 inlet pressure control is set first (S1), then XV-610 is opened and the air raised (S2);
 # I-202 is bypassed automatically until S2 has established the air (C&E bypass field).
-# D-023, one convention for the start-up bypasses: I-202 (no air before S2) and I-203 (cold
-# gauze before S5) are bypassed automatically from the sequence start; a bypassed trip reads as
-# not tripped; their latches are reset under the bypass in S1; they are no reset condition of the
-# sequence and enter the abort once their bypass is removed (step complete or bypass timer). The
-# K-102 full hot recycle limit is held from train start by the trip I-401 (C&E); the train-start
-# permissive and the S1/S2 timeouts keep the sequence inside it.
+# D-023/D-024, one convention for the start-up bypasses: I-202 (no air before S2) and I-203 (cold
+# gauze before S5) are bypassed automatically from the sequence start. A bypass masks the cause
+# at the input of that trip's own latch only: the latch cannot be set and can be reset under it,
+# a latch already set stays set (not hidden), and the shared input FZ-206 is not bypassed for
+# I-201 and I-401. The operator resets both latches under the bypass in S1 (S1 completes only
+# with both reset); they are no reset condition of the sequence and enter the abort once their
+# bypass is removed (step complete, bypass timer, or the abort itself). The K-102 full hot
+# recycle limit is held by the trip I-401 (C&E: a retentive timer of the time on full recycle);
+# the train-start permissives and the S1/S2 timeouts keep a start inside it.
+# D-024: SEQ-START-BURNER starts the burner on a train just started against a closed XV-610;
+# SEQ-RESTART-BURNER relights it on a running train that still has forward flow (after an abort
+# in S3-S6 or a burner trip in operation), without closing XV-610. A train without forward flow
+# (an abort in S1-S2, a closed XV-610) is stopped and started again before SEQ-START-BURNER.
 schema: cheme/sequences/v1
 sequences:
   - id: SEQ-START-BURNER
@@ -31,9 +38,11 @@ sequences:
       - {all: [{tag: XV-203, state: closed}, {tag: XV-204, state: closed}, {loop: FFIC-201, state: in manual}]}
       - {all: [{tag: XV-610, state: closed}, {loop: PIC-611, state: in manual}]}
       - {all: [{tag: K-101, state: running}, {loop: UIC-110, state: in auto}, {loop: UIC-401, state: in auto}, {loop: FIC-107, state: in auto}]}
-      - {tag: K-101, state: "train started less than 4 min ago (I-401 timer below 4 min, ASSUMED: 4 + 3 + 8 min = the 15 min limit, D-023)"}
+      - {tag: K-101, state: "train started less than 4 min ago (train-start time of the train logic US-612, ASSUMED: 4 + 3 + 8 min = the 15 min limit, D-023, D-024)"}
+      - {interlock: I-401, state: "accumulated full-recycle time below 4 min (ASSUMED, D-024)"}
       - {tag: E-102, state: "boiler package ready (drum level in range, BFW in service)"}
     interlocks: [I-101, I-201, I-202, I-203, I-204, I-401, I-602]
+    notes: "D-024. Only for a train just started against a closed XV-610: then the train-start time and the I-401 accumulated time are the same, and both permissives hold. A running train that has been on forward flow fails the train-start permissive: with forward flow it relights with SEQ-RESTART-BURNER (XV-610 stays open); without forward flow it is stopped and started again (the train vendor's restart rules for a hot machine, O-9), and I-401 trips it if it is not stopped first."
     steps:
       - id: S1
         title: Set the X-101 inlet pressure control before the expander path is opened
@@ -43,7 +52,7 @@ sequences:
         complete: {all: [{loop: PIC-611, state: in auto}, {tag: PV-611, state: "at the position PIC-611 asks (not fail-open)"}, {interlock: I-202, state: reset}, {interlock: I-203, state: reset}]}
         timeout: {value: 3, unit: min}
         on_timeout: abort
-        operator: "The train has been started on its motor (vendor's procedure) less than 4 min ago (a permissive). Until gas flows forward through PV-611 and X-101 (end of S2), K-102 runs on full hot recycle through UV-401. The limit, 15 min from train start (ASSUMED, vendor), is held by the trip I-401, which counts from train start and trips the train; the permissive (4 min) and the S1 (3 min) and S2 (8 min) timeouts keep the sequence inside it. TI-402 has a high alarm (setting the vendor's) that warns before the trip. The operator resets the latches of I-202 and I-203 here: their start-up bypasses are on, so their inputs read healthy, and S1 completes only with both reset (D-023)."
+        operator: "The train has been started on its motor (vendor's procedure) against the closed XV-610 less than 4 min ago (permissives). Until gas flows forward through PV-611 and X-101 (end of S2), K-102 runs on full hot recycle through UV-401. The limit, 15 min on full recycle (ASSUMED, vendor), is held by the trip I-401, whose retentive timer has run since the train start and trips the train; the permissives (4 min) and the S1 (3 min) and S2 (8 min) timeouts keep the sequence inside it. The TI-402 high alarm (control/loops.yaml, UIC-401) warns before the trip. The operator resets the latches of I-202 and I-203 here: their start-up bypasses mask the cause at each latch, so a latch from an earlier trip can be reset with no air and a cold gauze, and S1 completes only with both latches reset (D-023, D-024)."
       - id: S2
         title: Open the expander inlet and raise the air to the start-up rate
         actions:
@@ -52,7 +61,7 @@ sequences:
         complete: {all: [{tag: XV-610, state: open}, {tag: FZ-206, state: above the trip point}, {tag: FIC-107, state: at setpoint}]}
         timeout: {value: 8, unit: min}
         on_timeout: abort
-        operator: "The only path from K-101 to the stack runs through K-102, the absorber, R-102 and X-101 (no expander bypass in this issue, D-021); XV-610 opens only with PIC-611 in control, so the HP system cannot dump through X-101. PV-611 opens only once K-102 has raised the HP system to the PIC-611 setpoint, so the full hot recycle of K-102 lasts into this step; FZ-206 above its trip point proves forward flow through the train and ends it (the I-401 timer stops). The automatic start-up bypass of I-202 ends when FZ-206 is above its trip point (this step complete) or after its timer. Whether X-101 may run on cold air at this rate is the train vendor's (O-9)."
+        operator: "The only path from K-101 to the stack runs through K-102, the absorber, R-102 and X-101 (no expander bypass in this issue, D-021); XV-610 opens only with PIC-611 in control, so the HP system cannot dump through X-101. PV-611 opens only once K-102 has raised the HP system to the PIC-611 setpoint, so the full hot recycle of K-102 lasts into this step; FZ-206 above its trip point proves forward flow through the train and ends it (the I-401 timer stops and resets after 10 min of unbroken forward flow; a flicker of FZ-206 about its trip point during the LP fill only pauses it, D-024). The automatic start-up bypass of I-202 ends when FZ-206 is above its trip point (this step complete) or after its timer. Whether X-101 may run on cold air at this rate is the train vendor's (O-9)."
       - id: S3
         title: Purge the mixer, the burner and the boiler with air
         actions:
@@ -104,5 +113,77 @@ sequences:
         - {tag: XV-203, action: close}
         - {tag: XV-204, action: close}
         - {tag: XV-101, action: close}
-      notes: "I-202 and I-203 abort once their start-up bypass is removed, by the step completing (S2, S5) or by the bypass timer (D-023). The abort does not stop the train; I-401 trips it if the restart does not reach forward flow in time."
+      notes: "I-202 and I-203 abort once their start-up bypass is removed, by the step completing (S2, S5) or by the bypass timer (D-023). The abort itself also removes both bypasses automatically (C&E bypass fields, D-024), and every step timeout aborts, so no bypass outlasts the sequence. The abort does not stop the train. After an abort in S3-S6 (forward flow established) the burner is relit with SEQ-RESTART-BURNER; after an abort in S1-S2 (no forward flow) the train is stopped and started again before SEQ-START-BURNER, and I-401 trips it if the operator does not stop it in time (D-024)."
     reset: {latching: true, manual: true, condition: {all: [{interlock: I-101, state: reset}, {interlock: I-201, state: reset}, {interlock: I-204, state: reset}, {interlock: I-401, state: reset}, {interlock: I-602, state: reset}]}}
+  - id: SEQ-RESTART-BURNER
+    title: Relight the ammonia burner with the train running on forward flow (purge, ignite, ammonia in)
+    mode: startup
+    cases: [design]
+    equipment: [M-101, R-101, E-102, E-101, C-101, R-102]
+    permissives:
+      - {interlock: I-101, state: reset}
+      - {interlock: I-201, state: reset}
+      - {interlock: I-202, state: reset}
+      - {interlock: I-204, state: reset}
+      - {interlock: I-401, state: reset}
+      - {interlock: I-602, state: reset}
+      - {all: [{tag: XV-203, state: closed}, {tag: XV-204, state: closed}, {loop: FFIC-201, state: in manual}]}
+      - {all: [{tag: K-101, state: running}, {tag: XV-610, state: open}, {loop: PIC-611, state: in auto}, {tag: FZ-206, state: above the trip point}, {loop: UIC-110, state: in auto}, {loop: UIC-401, state: in auto}, {loop: FIC-107, state: in auto}]}
+      - {tag: E-102, state: "boiler package ready (drum level in range, BFW in service)"}
+    interlocks: [I-101, I-201, I-202, I-203, I-204, I-401, I-602]
+    notes: "D-024. The relight after a burner trip in operation or an abort of SEQ-START-BURNER in S3-S6, with the train still running and air flowing forward through PV-611 and X-101. XV-610 is not closed, so K-102 never goes back to full recycle and the I-401 timer is not restarted. I-202 is not bypassed (the air flows from the start; it is a permissive); I-203 is bypassed from the sequence start as in SEQ-START-BURNER (C&E bypass field). The steps R2-R4 are those of S4-S6 of SEQ-START-BURNER; the light-off is made at the same air rate and absorber pressure as there, so one light-off condition is validated."
+    steps:
+      - id: R1
+        title: Bring the air and the absorber pressure to the light-off values and purge
+        actions:
+          - {loop: FIC-107, action: setpoint, setpoint: {kind: setpoint, value: 120000, unit: kg/h, provenance: assumed, source: "D-019: about 55 % of the design air, the start-up rate, ASSUMED"}, by: operator}
+          - {loop: PIC-611, action: setpoint, setpoint: {kind: setpoint, value: 600, unit: kPa(a), provenance: assumed, source: "D-022: reduced X-101 inlet pressure of the light-off, ASSUMED until the train vendor's curve"}, by: operator}
+        complete: {all: [{tag: FIC-107, state: at setpoint}, {tag: PIC-611, state: at setpoint}, {tag: FIC-107, state: "purge volume passed (five volumes of M-101 to E-104, ASSUMED)", delay: {value: 5, unit: min}}, {interlock: I-203, state: reset}]}
+        timeout: {value: 30, unit: min}
+        on_timeout: abort
+        operator: "Air leads: the air is lowered to the start-up rate first, then PIC-611 is ramped down to 600 kPa(a) (ramp rate the train vendor's, ASSUMED about 20 kPa/min), watching the K-102 surge margin UIC-401. The purge clears any ammonia left from the trip. The operator resets the I-203 latch under its start-up bypass (C&E). FZ-206 must stay above its trip point: I-202 is live."
+      - id: R2
+        title: Ignite the gauze
+        actions:
+          - {tag: R-101, action: start, by: operator}
+        complete: {tag: TI-208, state: "gauze glowing over its whole area (ignition burner)"}
+        timeout: {value: 15, unit: min}
+        on_timeout: abort
+        operator: "As SEQ-START-BURNER S4."
+      - id: R3
+        title: Admit ammonia below the start ratio and raise it
+        actions:
+          - {tag: XV-203, action: open, by: operator}
+          - {tag: XV-204, action: open, by: operator}
+          - {loop: FFIC-201, action: setpoint, setpoint: {kind: setpoint, value: 0.04, unit: "kg/kg", provenance: assumed, source: "D-019: about 6 mol% NH3, the start ratio, ASSUMED"}, by: operator}
+          - {loop: FFIC-201, action: auto, by: operator}
+        complete: {all: [{tag: TZ-207, state: above the low-low trip point}, {loop: FFIC-201, state: in auto}]}
+        timeout: {value: 5, unit: min}
+        on_timeout: abort
+        operator: "As SEQ-START-BURNER S5: the start-up bypass of I-203 is removed once TZ-207 is above its trip point (this step complete) or 5 min after XV-203/XV-204 open (its timer, ASSUMED)."
+      - id: R4
+        title: Load up to the design rate and the design pressure
+        actions:
+          - {loop: FFIC-201, action: setpoint, setpoint: {kind: setpoint, value: 0.0656, unit: "kg/kg", provenance: calculated, source: "the FFIC-201 design target (control/loops.yaml)"}, by: operator}
+          - {loop: FIC-107, action: setpoint, setpoint: {kind: setpoint, value: 213343, unit: kg/h, provenance: assumed, source: "the FIC-107 design target (control/loops.yaml)"}, by: operator}
+          - {loop: PIC-611, action: setpoint, setpoint: {kind: setpoint, value: 1040, unit: kPa(a), provenance: assumed, source: "the PIC-611 design target (control/loops.yaml): S28 pressure, D-003"}, by: operator}
+        complete: {all: [{tag: FIC-107, state: at setpoint}, {tag: FFIC-201, state: at setpoint}, {tag: PIC-611, state: "at the design setpoint 1040 kPa(a)"}]}
+        timeout: {value: 4, unit: h}
+        on_timeout: abort
+        operator: "As SEQ-START-BURNER S6: air leads on every load step; PIC-611 ramped from 600 to 1040 kPa(a) with the air."
+    abort:
+      condition:
+        any:
+          - {interlock: I-101, state: tripped}
+          - {interlock: I-201, state: tripped}
+          - {interlock: I-202, state: tripped}
+          - {interlock: I-204, state: tripped}
+          - {interlock: I-401, state: tripped}
+          - {interlock: I-602, state: tripped}
+          - {all: [{interlock: I-203, state: start-up bypass removed}, {interlock: I-203, state: tripped}]}
+      actions:
+        - {tag: XV-203, action: close}
+        - {tag: XV-204, action: close}
+        - {tag: XV-101, action: close}
+      notes: "The abort removes the start-up bypass of I-203 automatically (C&E bypass field). The abort does not stop the train; with forward flow kept, the relight is repeated from R1 (D-024)."
+    reset: {latching: true, manual: true, condition: {all: [{interlock: I-101, state: reset}, {interlock: I-201, state: reset}, {interlock: I-202, state: reset}, {interlock: I-204, state: reset}, {interlock: I-401, state: reset}, {interlock: I-602, state: reset}]}}
