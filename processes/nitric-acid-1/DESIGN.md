@@ -688,10 +688,11 @@ Decision (PROPOSED; amends D-018, D-019 and D-023 where they point here):
    trips it, D-025). The stop does not reset the I-401 time before its cool-down time, so the
    I-401 permissive of SEQ-START-BURNER blocks the burner start of a train restarted with a
    high carried time (D-025), not the train start; such a train is kept stopped for the
-   cool-down before a new train start (amended by D-026). After F-AIR in operation I-603 trips
-   the train within seconds, so the carried I-401 time is small and the permissive does not
-   force a cool-down; the cool-down applies when the I-401 time is high, as after minutes on
-   full recycle in S1-S2 (D-026). The cool-down time, a train-start inhibit and the other
+   cool-down before a new train start (amended by D-026). After F-AIR in operation (forward
+   flow unbroken for at least 10 min, the I-401 timer reset) I-603 trips the train within
+   seconds, so the carried I-401 time is small and the permissive does not force a cool-down;
+   the cool-down applies when the I-401 time is high, as after minutes on full recycle in
+   S1-S2, also after an F-AIR within the first 10 min of forward flow (S3, S4) (D-026). The cool-down time, a train-start inhibit and the other
    restart rules of a hot train are the train vendor's (O-9).
    Rejected: closing XV-610 on a running train to re-run SEQ-START-BURNER. That would put a
    hot K-102 back on full recycle for no purpose.
@@ -745,8 +746,8 @@ Decision (PROPOSED; amends D-018, D-019 and D-024 where they point here):
    permissive of SEQ-START-BURNER (accumulated time below 4 min) thereby blocks the burner
    start of a train restarted with a high carried time, and the limit holds across a stop and
    restart as stated (amended by D-026: it does not block the train start, and after F-AIR in
-   operation, which I-603 trips within seconds, the carried time is small and the permissive
-   does not force a cool-down).
+   operation after at least 10 min of unbroken forward flow, which I-603 trips within seconds,
+   the carried time is small and the permissive does not force a cool-down).
 2. XV-610 after loss of instrument air. XV-610 fails closed on air loss but its solenoid stays
    energised, so it would reopen by itself when the air returns, with PIC-611 possibly wound up
    and PV-611 open, before any sequence or permissive. Accepting that was rejected: it breaks
@@ -798,10 +799,12 @@ Decision (PROPOSED; amends D-024 item 2 and D-025 items 1 and 2 where they point
    the closed XV-610; the forward flow that would reset it needs S2) and ends in an I-401
    trip; the 15 min limit holds, so this is operability, not safety. The records now say so,
    and that the operator keeps such a train stopped for the cool-down before a new train
-   start. After F-AIR in forward-flow operation I-603 trips the train within seconds of
-   XV-610 reaching its seat, so the carried I-401 time is small, the permissive holds after a
-   new train start and SEQ-START-BURNER runs with no cool-down; the same holds after an abort
-   in S1-S2 with little time on full recycle. A train-start inhibit of a hot train is not
+   start. After F-AIR in forward-flow operation (forward flow unbroken for at least 10 min, the
+   I-401 timer reset) I-603 trips the train within seconds of XV-610 reaching its seat, so the
+   carried I-401 time is small, the permissive holds after a new train start and
+   SEQ-START-BURNER runs with no cool-down; the same holds after an abort in S1-S2 with little
+   time on full recycle. An F-AIR within the first 10 min of forward flow (S3, S4) still
+   carries the S1-S2 full-recycle time, and the permissive may then force the cool-down. A train-start inhibit of a hot train is not
    added here: it is the train vendor's start logic (O-9).
 Reason: the review of the D-025 fixes found a reopening race inside the I-603 delay, two owners
 named for the same ASSUMED delay, and wording that read as if the burner start could be held
