@@ -27,6 +27,8 @@ itself; I-n01 no longer stops the circulation and drain pumps, I-n05 stops them 
 tripped and ZSC-n123 does not prove the return closed after its stroke time, so the desuperheater
 spray and the drain pumps keep running in loading; PSV-n141 names the tank-end valve fast-closure
 check case; the sheet note names the fail position of XV-n123 and I-n01 / I-n05.
+Review 2026-11-05-basic-design-6 (#3, D-032): notes only; the ZSC-n123 note puts the 15 s on the
+trip and names the command discrepancy alarm of a switch stuck closed.
 """
 
 import sys
@@ -233,9 +235,11 @@ L.inst(sheet, f"HS-{n}123", f"{TK} circulation return valve XV-{n}123",
 # closed-position switch on XV-n123 itself, below the valve (its actuator is above), so I-n05 stops
 # the return's sources only when the return is not proven closed (review 2026-11-05-basic-design-5 #1)
 L.inst(sheet, f"ZSC-{n}123", f"XV-{n}123 closed position",
-       f"Closed-position switch on the circulation return valve XV-{n}123: with I-{n}01 tripped and XV-{n}123 not "
-       f"proven closed after its stroke time, I-{n}05 stops the circulation and jetty drain pumps (C&E I-{n}05, "
-       f"D-030); proven closed, they keep running (spray, drum emptying).",
+       f"Closed-position switch on the circulation return valve XV-{n}123: with I-{n}01 tripped for 15 s (its stroke "
+       f"time plus margin, the delay on the trip) and XV-{n}123 not proven closed, I-{n}05 stops the circulation and "
+       f"jetty drain pumps (C&E I-{n}05, D-030); proven closed, they keep running (spray, drum emptying). Reading closed "
+       f"while XV-{n}123 is commanded open for longer than its stroke time raises a discrepancy alarm, so a switch "
+       f"stuck closed is not a dormant failure (review 2026-11-05-basic-design-6 #3, D-032).",
        at=(232, 245), sensing=xvr.id, sensing_at=(232, RET_Y + 1.5))
 L.line(sheet, "BOG-1001" if n == "2" else "BOG-1003", dn=750 if n == "2" else 600,
        fluid="Boil-off gas", frm=TK, to="D-7101" if n == "2" else "BOG-1001",

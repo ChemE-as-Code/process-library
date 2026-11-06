@@ -36,6 +36,10 @@ Revision after review 2026-11-05-basic-design-5 (D-030): notes only. AI-4133 / A
 reject is armed on the plant state (no liquid transfer) and trips ESD-1 during a transfer (#4); the
 UZ-4101 / UZ-4102 sheet note names the air hold and I-804 (#7a); the UZ notes name the residual
 fast-closure case of D-023 (4) (#6).
+
+Revision after review 2026-11-05-basic-design-6 (D-032): notes only. AI-4133 / AI-4134 are the
+backup of the berth O2 analysers AI-5126 / AI-6126; the O2 reject also opens XV-4135 / XV-4136, so
+the switch sends an O2-rich slug to the tanks, never to the flare (adversarial check, missed medium).
 """
 
 import sys
@@ -213,13 +217,13 @@ L.line(sheet, "BOG-4014", dn=300, fluid="Boil-off gas", frm="BOG-4002", to="BOG-
 # make-before-break switch of each vapour return (C&E I-511..I-513, I-611..I-613; D-026.1): the
 # open-position switches sense their valves themselves (sensing the valve, as ZSO-7121A on P-07)
 L.inst(sheet, "HS-4131", "De-inerting vapour A to the flare XV-4131",
-       "Flare valve of the make-before-break switch: I-511 opens it while AI-4133 reads off-specification vapour (not while ESD-1, I-501, is tripped); I-513 closes it only once ZSO-4135 proves XV-4135 open; fail closed: on an instrument-air failure the return goes to the tanks, never from the tank header to the flare (D-017; D-026.1, review 2026-11-05-basic-design-3#1).",
+       "Flare valve of the make-before-break switch: I-511 opens it while AI-4133 reads off-specification vapour (not while ESD-1, I-501, or the O2 reject, I-514, is tripped); I-513 closes it only once ZSO-4135 proves XV-4135 open; fail closed: on an instrument-air failure the return goes to the tanks, never from the tank header to the flare (D-017; D-026.1, review 2026-11-05-basic-design-3#1).",
        at=(190, 204), signal_to=xv31, fail_action="FC")
 L.inst(sheet, "HS-4132", "De-inerting vapour B to the flare XV-4132",
        "As HS-4131, with AI-4134, ZSO-4136 and XV-4136 (C&E I-611, I-613); fail closed: on an instrument-air failure the return goes to the tanks, never from the tank header to the flare (D-026.1, review 2026-11-05-basic-design-3#1).",
        at=(224, 224), signal_to=xv32, fail_action="FC")
 L.inst(sheet, "HS-4135", "Vapour return A to the tank vapour header XV-4135",
-       "Tank-side valve of the switch: I-512 closes it only while ZSO-4131 proves XV-4131 open; ESD-1 (I-501) opens it; fail open keeps the carrier vapour return (D-026).",
+       "Tank-side valve of the switch: I-512 closes it only while ZSO-4131 proves XV-4131 open; ESD-1 (I-501) and the O2 reject (I-514, D-032) open it; fail open keeps the carrier vapour return (D-026).",
        at=(150, 183), signal_to=xv35, fail_action="FO")
 L.inst(sheet, "HS-4136", "Vapour return B to the tank vapour header XV-4136",
        "As HS-4135, with ZSO-4132 (C&E I-612) and ESD-1 of Berth 1 (I-601); fail open (D-026).",
@@ -240,10 +244,10 @@ L.inst(sheet, "ZSO-4136", "XV-4136 open position",
        at=(108, YVB + 9), sensing=xv36.id, sensing_at=(120, YVB),
        sensing_points=[(120, YVB + 9)])
 L.inst(sheet, "AI-4133", "Vapour return A composition at the tank end (N2 / O2 / CH4)",
-       "Switches the carrier vapour make-before-break between the tank vapour header (XV-4135) and the flare (XV-4131) by C&E I-511..I-513: to the flare while N2 is high (de-inerting, gassing-up; to the flare only below 5 vol % O2), to the tanks once CH4 is on specification and O2 below 1 vol % (D-026). Two O2 cells (ASSUMED, analyser vendor), voted 2oo2 with a discrepancy alarm: above 5 vol % O2 the O2 reject C&E I-514 closes the Berth 2 vapour arm XV-5122 and the hybrid vapour isolation XV-5125 while no liquid is transferred at Berth 2 (a plant state, not a sequence step: gassing-up, also when run by hand); during a liquid transfer (cooldown and loading) it trips ESD-1, I-501, which stops the flow and trips the carrier (D-026.7, D-028, D-030).",
+       "Switches the carrier vapour make-before-break between the tank vapour header (XV-4135) and the flare (XV-4131) by C&E I-511..I-513: to the flare while N2 is high (de-inerting, gassing-up; to the flare only below 5 vol % O2), to the tanks once CH4 is on specification and O2 below 1 vol % (D-026). Two O2 cells (ASSUMED, analyser vendor), voted 2oo2 with a discrepancy alarm. The O2 reject is measured at the berth by AI-5126 (P-05), ahead of the 2.45 km transport delay to this analyser; AI-4133 is its backup: above 5 vol % O2 the O2 reject C&E I-514 closes the Berth 2 vapour arm XV-5122 and the hybrid vapour isolation XV-5125 and sends the return to the tanks (XV-4135 opens, I-513 closes XV-4131), so an O2-rich slug never goes to the flare, while XV-5101 is proven closed (ZSC-5101, gassing-up); during a liquid transfer (cooldown and loading) it trips ESD-1, I-501, which stops the flow and trips the carrier (D-026.7, D-028, D-030, D-032).",
        at=(185, 182), sensing=va.segments[0], sensing_at=(185, YVA))
 L.inst(sheet, "AI-4134", "Vapour return B composition at the tank end (N2 / O2 / CH4)",
-       "As AI-4133, with XV-4136 and XV-4132; its O2 reject is C&E I-614 on XV-6122 and XV-6125 with no liquid transfer at Berth 1, and ESD-1 I-601 during a transfer (D-028, D-030).",
+       "As AI-4133, with XV-4136 and XV-4132; backup of the berth analyser AI-6126 (P-06); its O2 reject is C&E I-614 on XV-6122 and XV-6125 with XV-4136 opened, while XV-6101 is proven closed (ZSC-6101), and ESD-1 I-601 during a transfer (D-028, D-030, D-032).",
        at=(262, 222), sensing=vb.segments[0], sensing_at=(262, YVB))
 
 # ---- instruments ----------------------------------------------------------------------------------

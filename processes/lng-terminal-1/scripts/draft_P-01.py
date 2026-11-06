@@ -29,6 +29,9 @@ Revision after review 2026-11-05-basic-design-5 and its adversarial check (D-030
 valves XV-1106..1109 take the closure requirement of D-023 (3) (at least 30 s, speed controller) and
 the close command of the last open fill branch of the only lined-up tank is blocked (C&E I-103); the
 sheet notes name every cause of I-102 and the selection-valve permissive (#7b).
+
+Revision after review 2026-11-05-basic-design-6 (#8, D-032): line notes only; the rundown lines
+LNG-1001..1004 and LNG-1012..1014 carry HOLD H-05 on their class and design pressure.
 """
 
 import sys
@@ -49,8 +52,12 @@ trv = tee("T1021", at=(95, 122), branch="right", branch_dn=25)
 tk1 = tee("T1002", at=(150, 150), branch="down", branch_dn=900)
 tk2b = tee("T1003", at=(205, 150), branch="down", branch_dn=900)
 trv3 = tee("T1023", at=(193, 150), branch="up", branch_dn=25)  # PSV-1123 (review #5)
+# review 2026-11-05-basic-design-6 #8 (D-032): the rundown lines' class and design pressure are not final
+HOLD = (" HOLD H-05: the pressure class (Class 150) and the 15 barg design pressure (ASSUMED) of the rundown "
+        "lines are not final until the trains confirm the shut-off head of their rundown pumps at the battery "
+        "limit; above the Class 150 rating the class changes (D-023.3, D-030, D-032).")
 hdr = L.line(sheet, "LNG-1001", dn=900, fluid="LNG", frm="BL (train 1)", to="T-3101 (top fill)",
-             notes="Rundown header from the four trains, 3,365 t/h (~7,560 m3/h), 3.4 m/s at DN 900 (S1, D-005); train 1 ties in at the battery limit (D-021); ends as the T-3101 top fill.",
+             notes="Rundown header from the four trains, 3,365 t/h (~7,560 m3/h), 3.4 m/s at DN 900 (S1, D-005); train 1 ties in at the battery limit (D-021); ends as the T-3101 top fill." + HOLD,
              route=[offpage("in", at=(14, 35), note="from train 1 rundown (BL)", note_at=(27, 41)),
                     valve("XV1111", "BallValve", tag="XV-1111", at=(40, 35)),
                     valve("CV1111", "SwingCheckValve", at=(58, 35)), (95, 35), tt[2], tt[3], tt[4],
@@ -62,7 +69,7 @@ hdr = L.line(sheet, "LNG-1001", dn=900, fluid="LNG", frm="BL (train 1)", to="T-3
 for k in (2, 3, 4):
     y = ROWS[k]
     L.line(sheet, f"LNG-101{k}", dn=500, fluid="LNG", frm=f"BL (train {k})", to="LNG-1001",
-           notes=f"Train {k} rundown, ~841 t/h (~1,890 m3/h), 2.7 m/s at DN 500 (D-003).",
+           notes=f"Train {k} rundown, ~841 t/h (~1,890 m3/h), 2.7 m/s at DN 500 (D-003)." + HOLD,
            route=[offpage("in", at=(14, y), note=f"from train {k} rundown (BL)", note_at=(27, y + 6)),
                   valve(f"XV111{k}", "BallValve", tag=f"XV-111{k}", at=(40, y)),
                   valve(f"CV111{k}", "SwingCheckValve", at=(58, y)), tt[k].branch],
@@ -84,7 +91,7 @@ psv1121 = L.relief("PSV1121", "PSV-1121", "BOG-1004", 15.0,
 tsplit = tee("T1004", at=(150, 188), branch="right", branch_dn=900)
 trv2 = tee("T1022", at=(150, 175), branch="left", branch_dn=25)  # PSV-1122 (review #5)
 L.line(sheet, "LNG-1002", dn=900, fluid="LNG", frm="LNG-1001", to="T-2101 (top fill)",
-       notes="Fill to T-2101; top fill (rundown heavier than the tank's top layer) or bottom fill via LNG-1004, chosen from AI-1102 against LTD-2103 (rollover, D-007).",
+       notes="Fill to T-2101; top fill (rundown heavier than the tank's top layer) or bottom fill via LNG-1004, chosen from AI-1102 against LTD-2103 (rollover, D-007)." + HOLD,
        route=[tk1.branch, valve("XV1102", "BallValve", tag="XV-1102", at=(150, 163)), trv2,
               tsplit, valve("XV1106", "BallValve", tag="XV-1106", at=(150, 210)),
               offpage("out", at=(150, 226), note="to T-2101 top fill (P-02)", note_at=(126, 234),
@@ -95,13 +102,13 @@ psv1122 = L.relief("PSV1122", "PSV-1122", "BOG-1010", 15.0,
                    "Thermal relief of the T-2101 fill branch LNG-1002 / LNG-1004 between XV-1102 and XV-1106 / XV-1107, to the BOG header (D-017; review 2026-11-05 #5).",
                    label_at=(127, 180))
 L.line(sheet, "LNG-1004", dn=900, fluid="LNG", frm="LNG-1002", to="T-2101 (bottom fill)",
-       notes="T-2101 bottom fill (D-007).",
+       notes="T-2101 bottom fill (D-007)." + HOLD,
        route=[tsplit.branch, (172, 188), valve("XV1107", "BallValve", tag="XV-1107", at=(172, 210)),
               offpage("out", at=(172, 226), note="to T-2101 bottom fill (P-02)", note_at=(160, 242),
                       rotation=DOWN)],
        label_at=(181, 174))
 L.line(sheet, "LNG-1003", dn=900, fluid="LNG", frm="LNG-1001", to="T-3101 (bottom fill)",
-       notes="T-3101 bottom fill (D-007); the top fill is the end of LNG-1001.",
+       notes="T-3101 bottom fill (D-007); the top fill is the end of LNG-1001." + HOLD,
        route=[tk2b.branch, valve("XV1109", "BallValve", tag="XV-1109", at=(205, 210)),
               offpage("out", at=(205, 226), note="to T-3101 bottom fill (P-03)", note_at=(196, 242),
                       rotation=DOWN)],

@@ -168,15 +168,28 @@ A de-energise-to-trip ERS valve also closes on its own circuit fault, at full fl
 pump stop. Decided: each ERS valve stays de-energise-to-trip (a loss of the HPU control supply
 must not leave an arm unprotected) but on two solenoid valves in series that both must
 de-energise to vent the actuator (2oo2, each line-monitored, a discrepancy alarms; ASSUMED, arm
-vendor), so one coil, wire or output fault cannot close it. The solenoid supply is the UPS of the
-ESD logic (F-POWER), and its loss, both channels together, trips ESD-1 at once (a cause of
-I-501 / I-601). The ERS closure is not delayed or interlocked behind a confirmed pump stop beyond
+vendor), so one coil, wire or output fault cannot close it. *Corrected by D-032.2 (review
+2026-11-05-basic-design-6 #2):* the two channels no longer share one supply. Channel A of every ERS
+valve of a berth is fed from UPS A and channel B from UPS B, on separate distribution (ASSUMED),
+each monitored (XA-n130A / XA-n130B), and the loss of either during a liquid transfer trips ESD-1
+at once (I-501 / I-601), while the other channel still holds the valves open: the pumps stop first
+and the transfer never runs on one channel. The ERS closure is not delayed or interlocked behind a confirmed pump stop beyond
 the 5 s of I-n07: on a real arm envelope stage 2 or the 35 kn disconnect it must close in its
-time whatever the pumps do, so the ERS on the arm envelope stays as it is. The powered
-emergency release couplers are energise-to-release from the HPU accumulator and release only
-on I-n07 after the ERS valves are proven closed (vendor sequence), so no circuit or supply fault
-releases an arm under flow. The residual, both channels or the supply lost together during a
-transfer, is case (5) of D-023 and a relief case of PSV-5131 / PSV-6131.
+time whatever the pumps do, so the ERS on the arm envelope stays as it is. On demand, 2oo2 means a
+solenoid stuck energised keeps its valve open; 1oo2 venting is not taken, since it would bring back
+the single-fault spurious closure at full flow, the larger exposure. The stuck solenoid is found by
+the ERS function test of SEQ-LOAD S1 before every transfer (each channel vented on its own and
+proven by the vendor's pressure switch, then both, the valve stroked; the vendor's test function,
+not I-n07, so nothing is released), so it is dormant for one transfer at most, and the second ERS
+valve of the arm, on its own solenoid pair, still closes. The powered emergency release couplers
+are energise-to-release from the HPU accumulator, so no circuit or supply fault releases an arm.
+Drift-off fallback (D-032.2): I-n07 commands the release a fixed time after the ERS close command
+(the 5 s closure plus 2 s, ASSUMED, as the vendor's own release sequence does), not on the ERS
+valves' proven-closed position, so an arm at envelope stage 2 is released even if an ERS valve has
+failed to close: the spill of that side's arm inventory into the drip tray (D-031.2) is smaller than
+an arm pulled past its envelope with the coupler clamped. The residual, both supplies or both
+channels of a valve lost within the ESD-1 response (two independent faults), is case (5) of D-023
+and a relief case of PSV-5131 / PSV-6131.
 *Other berth (review 5, adversarial check).* ESD-1 of either berth stops the shared loading
 pumps and closes the shared tank-end valves XV-4101 / XV-4102. The berth that is transferring
 is then tripped by its own ESD-1 (I-501 takes I-601 tripped during a Berth 2 liquid transfer,
@@ -187,7 +200,24 @@ alone would leave that carrier's return-gas compressor running against a stopped
 buttons (control room, jetty, platform) and the confirmed platform fire and gas are causes in
 the I-501 / I-601 logic, with, during a liquid transfer, the vapour arm isolation not proven open
 (ZSO-5122 / ZSO-6122), the O2 high-high of AI-4133 / AI-4134 and the loss of the ERS solenoid
-supply (D-026.7, D-030).
+supply (D-026.7, D-030). Since D-032 they are tags (HS-n100 push buttons, XS-n108 fire and gas,
+XA-n130A / B supplies, HS-n107 manual ESD-2), the O2 high-high is that of the berth analyser AI-n126
+or of the tank-end analyser, and "liquid transfer" is XV-n101 not proven closed by its own switch
+ZSC-n101 or held open by the SIS output UZ-n101, safety-system inputs only (review 6 #1).
+*Idle berth (review 2026-11-05-basic-design-6 #5 and adversarial check).* With no carrier connected
+the ship-shore link XS-n100 is in its own "no carrier connected" mode, selectable only with every arm
+stowed and XV-n101 proven closed (ZSC-n101), and the stowed arms' envelope switches ZS-n151..n154
+read stowed: neither is a trip cause, and it is not a bypass (there is no carrier to protect and the
+arms cannot move off their rests). So an idle berth, including Berth 1 before Phase 2, never trips
+its ESD-1 and never stops the shared pumps, holding (SEQ-HOLD) or the other berth's transfer. A
+departing carrier's link is set to that mode after its arms are stowed and before the cable is
+disconnected (SEQ-LOAD S6); in that order I-n01 stays untripped.
+*Circulation pump on ESD-1 (review 6 adversarial check).* ESD-1 does not stop P-2102 / P-3102. In
+the S3 cooldown P-2102 feeds line A at 500 m3/h (~0.3 m/s in DN 800), so even an instant closure
+adds only rho a v ~150 kPa (450 kg/m3 x 1,150 m/s x 0.29 m/s, ASSUMED as in D-023), on top of the
+pump's 60 m head, far inside the 15 barg design (D-011, D-023); it runs safely on its fail-open minimum flow against the closed XV-n101 /
+XV-4101, and stopping it would also stop the desuperheater spray and the holding circulation. The
+"pumps first" order above is that of the loading pumps P-2101A-D / P-3101A-D.
 
 **D-017 Relief and flare philosophy.** Tank overpressure: pressure control to the BOG
 compressors, then PV to the storage and loading flare FL-8101 via the KO drum D-8101 (S-02:
@@ -200,20 +230,30 @@ vapour system. Carrier de-inerting and cool-down vapour to the storage and loadi
 **D-018 Spacing and spill containment.** Tank to tank shell to shell ≥ a quarter of the sum of
 the diameters (NFPA 59A practice, measured 48 m); tank to the BOG compressors ≥ 30 m; the
 loading point ≥ 200 m from ignition sources and the public (S-05) and the 200 m vapour-arm
-safety zone (S-01); flare radiation ≤ 5.0 kW/m2 at the fence (S-10). Spills (D-031): open
-troughs under the tank-area racks that carry LNG (PR1, PR2's shore end with the vapour switch
-station, PR3's north-south leg and PR4 with the rundown header) fall away from the tanks to the
-PR1 / PR2 / PR3 junction and on under PR3 and PR4, past road R2 and north of PR8 to the
-impoundment basin T-8101 (ASSUMED 10 min of one loading line, 6,000 m3/h x 10 min = 1,000 m3
-against ~1,200 m3 of pit); under the riser racks PR5 / PR6 and their riser towers, beside the
-shells, the collection is an enclosed channel to the PR1 trough. The welded trestle run over
-the water has no drip tray (a 2 km tray to a sump at either end is neither drainable on the
-real terrain, ~12 m between the tank area and the jetty deck, D-013, nor vapour-tight); a
-rupture there is a spill onto the water, the marine transfer area case of the siting study. The
-platform's drip trays drain in an enclosed collector under the deck and an open trough on the
-catwalk to its own sump T-8102 (~200 m3 against ~33 m3 for an arm or flange failure until ESD
-closure, D-016). Distances quoted are `separations:` of `layout/site-plan.yaml`, measured by
-`cheme validate`.
+safety zone (S-01); flare radiation ≤ 5.0 kW/m2 at the fence (S-10). Spills (D-031, D-033):
+the collection serves the leak sources, the flanged valves, instruments and seals; an
+all-welded run is not one. Open troughs (0.6 m, lined with cellular glass, 0.5 % fall, D-033.3,
+D-033.11) under PR1 from the PR6 joint (x 975) fall away from the tanks to the PR1 / PR2 / PR3
+junction and on under PR3 and PR4, past road R2 to y 3237.5 and west into the impoundment
+basin T-8101 at (990, 3237.5) (ASSUMED 10 min of one loading line, 6,000 m3/h x 10 min =
+1,000 m3, held 1.4 m below the trough inlet in the 10.5 m pit); kerbed drip pads at grade
+under the flanged LNG items off the trough's line drain to it (spray shields on the flanges,
+ASSUMED). Flanged LNG items away from any trough (XV-3123 on PR5, TV-7103 on the PR6 east
+leg, the DN 25 thermal reliefs) are held at the item in drip trays without a drain, as the
+dome-edge valves (D-033.11). The riser towers and the riser racks PR5 / PR6 between the dome
+edge and their PR1 joints carry welded runs only and have no collection (the enclosed channels
+of D-031 are removed, D-033.1); PR2's north end has no trough, its valve station being on the
+vapour returns only (D-033.2). The welded trestle run over the water has no drip tray (a 2 km tray to
+a sump at either end is neither drainable on the real terrain, ~12 m between the tank area and
+the jetty deck, D-013, nor vapour-tight); a rupture of a welded run, on the trestle or on the
+risers, is a case of the siting study (on the trestle the marine transfer area case). The
+platform's drip trays are kerbed bays of at most 36 m2 (14 m2 for the crossover tray between
+the ways off), recessed 1.0 to 2.4 m, each holding the design spill with its outlet blocked;
+they drain through open floor outlets without liquid seals into enclosed collectors under the
+deck and the catwalk, lined with cellular glass and sized for the vapour formed, whose only
+outlet is in the wall of the sump T-8102 (6 m, 9.5 m deep, ~159 m3 below the inlet against ~33 m3
+for an arm or flange failure until ESD closure, D-016; D-033.4, D-033.11). Distances quoted are
+`separations:` of `layout/site-plan.yaml`, measured by `cheme validate`.
 *Sump siting basis (D-029).* Each sump is sited so that a pool fire over the whole sump keeps
 the radiation at its neighbours below a screening limit: 8 kW/m2 at racks with LNG or vapour
 lines, the tanks, the arms, the moored carriers and the crane and fire roads, 5 kW/m2 at the
@@ -239,6 +279,24 @@ the same method as a line source, q' = chi_r m'' dHc w = 0.35 x 0.078 x 50 MJ/kg
 0.82 MW per m of trough, integrated over every open leg burning at once, with the tilt
 allowance; the 8 kW/m2 criterion holds at the tank shells, the riser towers and the racks a
 trough does not run under, the 5 kW/m2 at B-SUB and the escape routes (numbers in D-031).
+*Corrections (D-033).* (a) A drip tray bay is screened as a sump (point source over the bay's
+area), with the part of the spill it drains (collector vent, catwalk trough, sump) burning at
+the same time. (b) A vent of an enclosed collector is a fire source of chi_r x m_v x dHc, m_v
+the vapour formed in the collector by transient conduction into its lining, q = k dT /
+sqrt(pi a t), averaged over the first minute (inputs in D-033.4, ASSUMED). (c) A rack that joins
+a trough-served rack is held to 8 kW/m2 beyond its joint, 35 m from the trough (as the riser
+racks since D-031). (d) Roads: the criterion holds on the road named as the fire approach to
+each trough leg and on one road to B-SUB; a road crossing or beside a trough is inside its
+band and is a stated residual. (e) Escape: one way out of each area, and one way off the
+loading platform, holds 5 kW/m2 over its whole length for every single fire, and a muster
+point 1.6 kW/m2 for every fire of the area. Equipment standing in or beside a tray (the arms,
+the drain drums, the moored carriers at their manifolds) is in the tray fire's near field
+whatever the layout; it is the fire protection design's (D-033.7). *Corrections (D-033.11).*
+(f) One spill is one design fire wherever its liquid lies while it still flows: in the tank
+area every open trough leg, the basin and the drip pad of the releasing item burn at once; on
+the platform the bay, the sump and the collector's vapour, burnt at the sump or at the worst dry
+bay outlet downstream of the bay. (g) A burning surface is screened over its whole area (pads,
+gutters, trays at items), and a fire at an item held in its own tray is a single fire alone.
 The siting study to CSA Z276 (LNG production, storage and handling) and
 NFPA 59A (production, storage and handling of LNG), cited by number and title only, with its thermal radiation and vapour dispersion
 exclusion zones and the marine transfer area, is a competent person's; it replaces these values.
@@ -315,8 +373,11 @@ confirms it before construction. (2) Vapour arm: one 16 inch arm carries ~23.5 t
 -120 degC return at 40 m/s (ASSUMED limit); the balance's 45.6 t/h (D-009) is the conservative
 design case of the BOG system (85 % of the pump and line heat flashing on board). Above the
 arm's capacity the carrier keeps its tank pressure by burning gas on board (allowed during
-loading, S-01) or the loading rate is reduced; the hybrid arm is the spare vapour path (the two
-arm line-ups of D-026). Both checked against carrier data in detail engineering.
+loading, S-01) or the loading rate is reduced; the hybrid arm is the second vapour path of
+line-up (b), beside the vapour arm and never instead of it (the two arm line-ups of D-026; "spare"
+corrected by D-032.7: the vapour arm, proven open by ZSO-n122, is needed for every transfer, and
+with it out of service there is no transfer). Both checked against carrier data in detail
+engineering.
 (3) Rundown surge (review 2026-11-05-basic-design-4, adversarial check; D-028). The fill ESD
 valves XV-1102 / XV-1103 and the battery-limit ESD valves XV-1111..1114 close on the rundown at
 7,560 m3/h, 3.4 m/s in DN 900 (D-003), the velocity of the loading lines. The terminal's part of
@@ -366,7 +427,12 @@ have no accumulator and are the first jetty valves to move, and ZSO-5122 / ZSO-6
 open position during a liquid transfer trips ESD-1 at the start of their stroke, while the
 liquid-path valves still hold (C&E I-501 / I-601, D-030). (5) Spurious ERS closure at full
 flow (review 5 #3). With the 2oo2 solenoids of D-016 a single circuit fault does not close an
-ERS valve; both channels or their UPS supply lost together during a transfer close it in its
+ERS valve. Since D-032.2 (review 2026-11-05-basic-design-6 #2 and the disputed closure of review 5
+#3) the two channels are on independent supplies (UPS A, UPS B, separate distribution, ASSUMED),
+and the loss of either trips ESD-1 while the other still holds the valve open, so no single fault,
+neither a circuit nor a supply, breaker, fuse or UPS, closes an ERS valve ahead of the pump stop.
+What is left needs two independent faults within the ESD-1 response: both channels of one valve,
+or both supplies; it would close the valve in its
 5 s (ASSUMED) at full flow while ESD-1 is only starting to stop the pumps. 5 s is about 1.2 times
 the 4.3 s 2L/a of the loading line, close to the instant closure of (1) (~1,750 kPa): with the
 operating pressure of several barg the peak can exceed the 15 barg design. The case is a relief
@@ -446,6 +512,18 @@ analysis, the trains' fuel-gas capacity for the make-up, seal gas, arm vents and
    high level (dome and ullage, both tanks on the common header; all ASSUMED): below 0.15 vol %
    O2, well inside the 1 vol % limit of D-026.7. The N2 it carries is boil-off that the
    compressors take to the trains. Accepted, so the S3 test keeps the order of S-01.
+   *Corrected by D-032.3 (review 2026-11-05-basic-design-6, adversarial check):* the 5 vol % bound
+   holds only with the O2 measured at the berth. With AI-4133 / AI-4134 at the tank end, vapour
+   above 5 % filled the 2.45 km line before any trip. The O2 trips now act on the berth analyser
+   AI-5126 / AI-6126 (BOG-n001, downstream of both vapour isolations; the tank-end analysers stay as
+   backup), so the line pack stays at or below 5 % O2 apart from the slug that passes the berth
+   before XV-n122 / XV-n125 have closed: response, 2oo2 vote and closure ~40 s (ASSUMED) at the
+   arm's ~5 m3/s (40 m/s in DN 400) is at most ~200 m3. Even as air (21 % O2) that is ~42 m3 of
+   O2. Line pack and slug together carry at most ~100 m3 of O2 into more than 40,000 m3 of tank
+   vapour space: below 0.25 vol %, inside the 1 vol % limit. The slug never reaches the flare: the
+   O2 reject I-n14 (and ESD-1 in a transfer) opens XV-4135 / XV-4136 at once, and I-n13 closes the
+   flare valve once the tank-side valve is proven open. That is under a minute (ASSUMED), against
+   a transit of the ~1,100 m3 line of more than 3 min at the arm's flow.
 2. ESD-2 (previous #4). I-501 / I-601 take I-503 / I-603 tripped as a cause, so ESD-2 trips
    ESD-1 at once (pumps, shore ESD valve, tank-end valves, the carrier's ESD). The 5 s delay is
    moved to I-507 / I-607, which closes the ERS valves and releases the couplers.
@@ -494,6 +572,13 @@ analysis, the trains' fuel-gas capacity for the make-up, seal gas, arm vents and
    500 m3/h cooldown), and during any liquid transfer the same 2oo2 O2 high-high trips ESD-1
    (I-501 / I-601), which stops the flow, trips the carrier and keeps the return open to the
    tanks (item 1). The earlier text "S1 to S3, no liquid transfer" was wrong for S3.
+   *Corrected by D-032.1 and D-032.3 (review 2026-11-05-basic-design-6 #1 and adversarial check):*
+   the O2 is measured at the berth by AI-5126 / AI-6126 (two cells, 2oo2), with AI-4133 /
+   AI-4134 as backup. "No liquid transfer" is XV-n101 proven closed by ZSC-n101 and not held open
+   by UZ-n101; the loading-line flows and the DCS command are no longer used. The reject also
+   sends the return to the tanks (XV-4135 / XV-4136 open, then the flare valve closes by I-n13), so
+   "to the flare only below 5 vol % O2" holds with the transport delay, and the bounded slug of
+   item 1 goes to the tanks. After an ESD-1 the reject arms only once XV-n101 is proven closed.
 8. Relief cases (#10, accepted). Fuel gas blow-by through FO-1117 with PV-1111 failed open is
    added to the PSV-2131/3131 relief cases and to the detail-stage relief sizing list (D-025).
 9. Small items: P-8101A/B get discharge isolation HV-8108A/B downstream of their check valves
@@ -903,7 +988,9 @@ is ASSUMED. Areas the review found sound are left as they were.
    berth" (shore ESD valve not commanded open, or both loading line flows below 50 m3/h); during a
    transfer, the S3 cooldown included, the 2oo2 O2 high-high is a cause of ESD-1. D-026.7, the
    C&E, the AI-4133 / AI-4134 and HS-n122 / HS-n125 notes and the P-05 / P-06 sheet notes are
-   corrected; SEQ-LOAD S3 proves XV-5122 open before the cooldown flow starts.
+   corrected; SEQ-LOAD S3 proves XV-5122 open before the cooldown flow starts. (Corrected by
+   D-032.1: the state is XV-n101 not proven closed by ZSC-n101 or held open by UZ-n101; the flow
+   loops are not used.)
 5. Rundown blocked outlet (#5). Hold H-05 to the trains (shut-off head of the rundown pumps at the
    battery limit, response time of the trains' rundown trip on XS-1100); until it is answered,
    "blocked outlet against the trains' rundown pumps" is an open relief case of the rundown header
@@ -958,11 +1045,11 @@ is ASSUMED. Areas the review found sound are left as they were.
 | id | kind | deferred safety input | asked of | needed for |
 |---|---|---|---|---|
 | H-01 | hold | transient surge analysis of D-023 (1), (3), (4), (5) with the real closure times: loading lines, rundown, tank-end valves, spurious ERS closure | piping / surge specialist | the ESD and ERS closure times, the design pressure of the LNG lines, the PSV-5131 / 6131 sizing |
-| H-02 | technical query | ERS trip principle (2oo2 de-energise solenoids, line monitoring, supply), closure time, coupler energise-to-release after the ERS valves are closed | arm vendor | D-016, I-507 / I-607, D-023 (5) |
+| H-02 | technical query | ERS trip principle (2oo2 de-energise solenoids, line monitoring, the two supplies UPS A / UPS B and their monitoring XA-n130A / B since D-032), closure time, coupler energise-to-release on a timer after the ERS close command (D-032), the ERS function test of each solenoid channel (SEQ-LOAD S1) | arm vendor | D-016, I-507 / I-607, D-023 (5) |
 | H-03 | hold | accumulator and hold-time sizing (one stroke, at least 5 min) and speed controller settings of the liquid-path ESD valves and arm isolations | valve / actuator vendor | D-016, D-023 (4) |
 | H-04 | hold | jetty instrument-air distribution and voted low-low transmitters at the platform end of the jetty air main | instrument / utilities | D-020, F-AIR (ZSO-5122 / 6122 detect it at basic) |
 | H-05 | technical query | shut-off head of the trains' rundown pumps at the battery limit and the response time of the trains' rundown trip on XS-1100 | liquefaction trains | the rundown header design pressure and its open blocked-outlet relief case (D-023 (3)) |
-| H-06 | hold | SIL screening: voting of PZT-8123A/B/C, the AI-4133 / 4134 O2 cells, PZT-7113, the position switches (ZSO-5122 / 6122, ZSC-2123 / 3123, ZSO-41xx) and whether XV-1106..1109 need position switches | process safety | the SIL of the C&E and the hardware fault tolerance |
+| H-06 | hold | SIL screening: voting of PZT-8123A/B/C, the O2 cells of AI-5126 / 6126 (berth, since D-032) and AI-4133 / 4134 (backup) with the analyser response time that sets the slug of D-026.1, PZT-7113, the position switches (ZSO-5122 / 6122, ZSC-2123 / 3123, ZSC-5101 / 6101 of the transfer state, ZSO-41xx) and whether XV-1106..1109 need position switches; the dangerous failure on demand of the 2oo2 ERS solenoids and the interval of their function test (D-032); no BPCS measurement is used in the arming of I-501 / I-514 since D-032 | process safety | the SIL of the C&E and the hardware fault tolerance |
 
 **D-031 Response to the layout review 2026-11-05-basic-layout-3.** The review's high, eight
 medium and three low findings, the carried open findings and its adversarial check
@@ -1003,12 +1090,21 @@ geometry of D-013 is unchanged (tank 1 to the Berth 2 platform ~2.15 km, flare ~
    (west along the north of the BOG area, between the PR6 east leg's bents to R2) crosses none:
    4.5 kW/m2 incl. tilt along its north leg, 5.6 at the east end of its west leg (4.7 without
    the tilt).
+   *Corrected by D-033.1-3:* the enclosed channels Z-KC-CHANNEL-PR6 / -PR5 were sized for the
+   liquid only and could not pass the vapour formed (review 2026-11-05-basic-layout-4 #1); they
+   are removed, since the riser runs they served are welded and no leak source. PR2's trough is
+   removed, PR1's starts at x 835, the fall is 0.5 % on a recorded profile into a 10.5 m basin,
+   the A2N-W east end is at x 1028 (4.9 kW/m2), and the stated residual on the roads is replaced
+   by the fire approaches of D-033.3 (R1 moved south, the new road R11).
 2. Jetty collection (#1, high). The muster point no longer stands over it (item 3). The
    drip trays under both berths' arms and manifolds drain into enclosed collectors under the
    deck slab along both faces and the south edge (Z-KC-CHANNEL-JETTY / -W / -E), vented at the
    catwalk, then an open 0.6 m trough on the catwalk S-CW-A9 (39 m) to the sump: 6.1 kW/m2 at
    D-6101 (end-on, 11.6 m), 4.9 at D-5101, 2.7 at LA-6101, below 1 at both carriers; declared
    D-5101 / D-6101 >= 9 m, LA-5101 / LA-6101 >= 17 m, the nearest hull boxes >= 17 m.
+   *Corrected by D-033.4:* "below 1 at both carriers" was wrong: 4.3 / 3.2 kW/m2 side-on at
+   Z-SHIP-B1-4 / -B2-5 (review 4 #7b). The collectors are now lined with cellular glass and sized
+   for the vapour, and the drip trays are modelled as bays.
 3. Muster point and escape to sea (adversarial missed high; #5 a). The muster point, life-raft
    station and escape ladder moved from the south edge to the platform's north-west corner
    beside the trestle road (Z-ESC-A4N, x 1130.5-1137, y 913.5-924.5), where the first way off
@@ -1020,6 +1116,10 @@ geometry of D-013 is unchanged (tank 1 to the Berth 2 platform ~2.15 km, flare ~
    (separations 60 m / 32.2 m met). The Berth 2 manifold zone is 11.5 m south of the muster
    point, as it was 8.5 m north of the old one. The laydown Z-LAY-A4NW is shortened to make
    room. The marine engineer and the TERMPOL review confirm the boat's approach.
+   *Corrected by D-033.5:* the north-west muster point and the start of R5 lay inside the
+   radiation of the platform's own drip tray fires, and both ways off started there (missed high
+   of the adversarial check of review 4, and #5). Z-ESC-A4N is removed; the muster point and
+   boat landing are on the B-JET deck, and the second way off is a walkway east of PR2.
 4. Ship envelopes (adversarial note) and the sump margins (#5 b). Each hull is placed 3 m clear
    of the platform at its nearest corner (Berth 2 centre (1095.5, 887), 3.16 m off the
    south-west corner; Berth 1 centre (1215.1, 887), 3.0 m off the north-east corner) and bounded
@@ -1068,6 +1168,8 @@ geometry of D-013 is unchanged (tank 1 to the Berth 2 platform ~2.15 km, flare ~
    oil-filled transformer clearances of IEC 61936-1, cited by number only); A6 extended over
    them. The intake LV1 on the east wall no longer faces them (~22 m). Intake smoke and gas
    detection with a damper trip: detail (HVAC engineer). The bays are farther from the flare.
+   *Corrected by D-033.6:* the bays had no road; the new road R11 runs along their south side
+   with a delivery hardstanding Z-LAY-TX, and B-SUB's escape door S1 is moved to the west wall.
 10. Riser towers (#9). (c) A top level L58 at 58 m on both towers; the DN 800 pump header and
    the circulation header posts stand on it (1.4-1.7 m) instead of 13.4-13.7 m posts on the
    46 m beam; S-RT2101's north bay is 10.4 m (north grid line y 3045) so its north-west column
@@ -1092,6 +1194,338 @@ geometry of D-013 is unchanged (tank 1 to the Berth 2 platform ~2.15 km, flare ~
    engineer's loop design), #8 (roof nozzle platform: tank supply), #10 (B-SUB room sizing and
    the 69 kV route: electrical engineer; the bays are re-sited, item 9), #14 (no site wind
    basis in the register).
+
+**D-032 Response to the design review 2026-11-05-basic-design-6.** The review's two medium and six
+low findings and its adversarial check (`build/adversarial-design-r6.json`: the disputed closure of
+review 5 #3, one missed medium, three missed lows), answered on the generator scripts
+(`scripts/draft_berth.py`, `draft_tank.py`, `draft_P-01.py`, `draft_P-04.py`, `cheme regen`), the
+lists (`scripts/build_lists.py`), the C&E, the sequences, the control philosophy and the gates.
+Every set point, time and supply arrangement below is ASSUMED. Where there was a choice, the
+arrangement that removes an exposure was taken over one that adds a system that must be shown to
+work: no new valve, relief device or trip of a new final element is added. The new items are two
+position or analyser inputs per berth and the tags of causes that were already there.
+1. Transfer state on independent inputs (#1, medium). "Liquid transfer at Berth n" is now
+   XV-n101 not proven closed by a new closed-position switch ZSC-n101 on the valve itself (P-05 /
+   P-06), or held open by the SIS output UZ-n101. The no-transfer state that arms I-n14 is the
+   exact complement: proven closed and not held open. Liquid reaches a berth only through XV-n101
+   (holding circulates through the crossovers with XV-n101 closed, SEQ-HOLD), so cooldown and
+   loading are both covered. FIC-4101 / FIC-4102 and the DCS command are no longer inputs, so a
+   loop transmitter failing low can no longer disarm the ESD-1 causes or arm the reject. A
+   ZSC-n101 stuck closed leaves the state on through UZ-n101, and its discrepancy with the open
+   output alarms. A lost SIS output closes the valve (fail closed), and ZSC-n101 keeps the state on
+   until the valve is closed. The C&E writes the inputs as tags (I-501 / I-601, I-514 / I-614).
+2. ERS solenoids (#2, medium, and the disputed closure of review 5 #3). (a) Spurious side: the two
+   channels are on two UPS with separate distribution (XA-n130A / B), and the loss of either during
+   a transfer trips ESD-1. With the pumps stopped first, no single fault closes an ERS valve at full
+   flow; the residual needs two independent faults (D-023 (5)). (b) Demand side: 2oo2 is kept,
+   since 1oo2 venting would restore the single-fault spurious closure. A solenoid stuck energised
+   is answered by the ERS function test of SEQ-LOAD S1 before every transfer (each channel on its
+   own, then both; the vendor's test function, not I-n07). The second ERS valve of the arm, on its
+   own pair, still closes. (c) Drift-off: the coupler release no longer waits for the ERS valves'
+   proven-closed position. I-n07 commands it a fixed time (closure plus 2 s, ASSUMED) after the ERS
+   close command, as the vendor's release sequence does, so a stuck valve cannot keep the arm
+   clamped past its envelope. D-016, D-023 (5), I-507 / I-607, F-POWER, the UZ-n13x / n14x notes,
+   PSV-5131 / 6131 and H-02 / H-06 say so.
+3. O2 measured at the berth (adversarial check, missed medium). A berth O2 analyser AI-5126 /
+   AI-6126 (two cells, 2oo2) on BOG-n001 downstream of both vapour isolations (P-05 / P-06) is the
+   O2 input of I-n14 and of the transfer cause of I-n01. AI-4133 / AI-4134 at the tank end stay as
+   the backup. I-n14 now also opens the tank-side valve XV-4135 / XV-4136, so I-n13 closes the
+   flare valve make-before-break. I-n11 and I-n12 do not act while I-n14 is tripped. The tank-end
+   O2 high-high therefore takes the flare valve off as well, and the return is never closed at both
+   valves (no blocked return, no new relief case). The slug that passes the berth before closure
+   goes to the tanks; D-026.1 gives its bound and D-026.7 is corrected.
+4. Reject at the ESD-1 transition (adversarial check, missed low). Gated on XV-n101 proven closed
+   (item 1), so after an ESD-1 the reject arms only once the pumps have run down and XV-n101 has
+   closed. The I-n14 note says so.
+5. Idle berth (#5 widened by the adversarial check, missed low). D-016: the link's own "no carrier
+   connected" mode and the stowed state of ZS-n151..n154. Neither trips I-n01, so an idle berth
+   blocks neither holding nor the other berth. SEQ-LOAD S1 / S6 give the order of connection and
+   disconnection; the XS-n100 and ZS-n15x notes say so.
+6. Circulation pump on ESD-1 (adversarial check, missed low). Stated in D-016 and the I-n01 notes
+   why P-2102 / P-3102 keep running: rho a v ~150 kPa at 500 m3/h, the minimum flow, and the spray
+   and holding circulation. They are not added to the effects.
+7. Low findings of the record:
+   - #3: the 15 s on-delay of I-205 / I-305 sits on "I-n01 tripped". ZSC-2123 / 3123 have a
+     command discrepancy alarm (notes, C&E).
+   - #4: the causes are tags, listed and drawn on P-05 / P-06: HS-n100 (manual ESD-1), HS-n107
+     (manual ESD-2), XS-n108 (platform fire and gas, voted), XA-n130A / B (ERS solenoid supplies).
+     The C&E `bypass` of I-501 / I-601 allows only a maintenance override of a failed ZSO-n122,
+     for the transfer in progress, under a permit, alarmed, with XV-n122 checked open locally.
+   - #5: item 5.
+   - #6: SEQ-LOAD S1 names the boundary of the vapour arm leak test (XV-n122 closed on the shore
+     side, the carrier's manifold valve on the ship side, the ERS valves open). XV-n122 opens and
+     ZSO-n122 proves it after the test; S0 no longer opens it.
+   - #7: the vapour arm is needed for every transfer, and there is no hybrid-only vapour line-up.
+     With LA-n102 out of service there is no transfer, as intended. The ZSO-n122 override is not
+     for that case. "Spare vapour path" is corrected in D-023 (2), the P-05 / P-06 notes, the
+     BOG-n001 / BOG-n003 line notes and the LA-5103 equipment and datasheet notes. D-014 ("the
+     spare vapour arm") is read with this item; its text is not edited in this round.
+   - #8: the rundown lines LNG-1001..1004 and LNG-1012..1014 carry "HOLD H-05" on their class and
+     design pressure in the line-list notes.
+8. Left open, with the reason: review 5 #9, the holds H-01..H-06 as issues of the library
+   repository. They are still to be opened by the project owner with the `plant.yaml` forms (no
+   issue can be opened from this session). H-02 and H-06 in the table of D-030 now include the
+   items above. The HAZOP studies take these P&ID and C&E changes as `hazop-input-changed`; their
+   owner restamps them.
+
+**D-033 Response to the layout review 2026-11-05-basic-layout-4.** The review's high (#1), its five
+mediums (#2 to #6), the missed high and the notes of its adversarial check
+(`build/adversarial-layout-r6.json`) are answered in `layout/`, the `accept:` block of
+`checks/checks.yaml`, the T-8101 / T-8102 dimensions and notes of the equipment list, D-018 and
+D-031. Where there was a choice, the arrangement that removes an exposure was taken over a system
+that must be shown to work: two enclosed channels and one open trough are removed, nothing is
+added that is not screened below. Radiation is the D-018 method with its D-031 and D-033
+corrections (point source q = chi_r m'' dHc A / (4 pi R^2) per sump, tray bay or vent, the same
+integrated along each open trough, q' = 0.35 x 0.078 kg/(m2 s) x 50 MJ/kg x 0.6 m = 0.82 MW/m,
+every open leg burning at once, x 1.2 flame tilt, tau = 1); every input, size and criterion is
+ASSUMED (scratch script `build/r7_screen.py`). Distances are `cheme show <tag> --layout` or the
+`separations:` of `layout/site-plan.yaml` (all met: no `layout-separation` finding). The measured
+site geometry of D-013 is unchanged (tank 1 to the Berth 2 platform ~2.15 km, flare ~561 m east).
+1. Enclosed channels beside the shells (#1, high; adversarial notes). Vapour screening of the
+   drawn Z-KC-CHANNEL-PR6, ASSUMED: transient conduction into a semi-infinite slab, q = k dT /
+   sqrt(pi a t), concrete k = 1.5 W/(m K), a = 7e-7 m2/s, dT = 175 K, latent heat 510 kJ/kg
+   (D-006), vapour 1.8 kg/m3 at -160 degC; q = 22.9 kW/m2 at 60 s, 45.7 kW/m2 mean over the first
+   minute. The 1.67 m3/s design flow runs 0.97 m deep (Manning, n 0.013, 1 %), wets 255 m2 over
+   100.7 m and forms 22.8 kg/s (12.7 m3/s): 63 m/s through the 0.20 m2 vapour space and ~9 kPa of
+   pressure drop against a 4.7 kPa cover slab. The reviewer's finding is confirmed: the channel
+   cannot work as drawn. Instead of enlarging it, it is removed with Z-KC-CHANNEL-PR5. What it
+   served carries no leak source: the model's in-line items show that the riser drops on
+   S-RT2101 / S-RT3101 and the PR5 / PR6 runs between the dome edge and their PR1 joints are
+   welded, with no flanged valve, instrument or seal in LNG service; the one exception is the
+   DN 25 thermal relief PSV-1122 on PR6 (982, 2997), a drip-size source whose inlet the detail
+   piping design places at the PR1 joint (in-line item placement is not settable in cheme-as-code
+   1.7.0, D-029.18). The flanged items next to the risers (XV-1102 / 1103, XV-4105, PSV-4114 at the
+   PR6 joint, XV-3123 at the PR5 joint) stand over the PR1 trough and its paved catchments,
+   39 m from the shells. A welded run is not a leak source in the zone basis either (skill
+   area-classification), so the design spill of D-018 does not start there; a rupture of a welded
+   riser run is a case of the siting study, as on the welded trestle (D-018). That also answers
+   the two adversarial notes: a release from PR6's west tier (5.6 m from the shell) has no source,
+   and the 10.3 m of the PR5 channel to the T-3101 shell no longer exists. Leaks at the dome-edge
+   valves (XV-1106..1109, XV-n123, PSV-n141 / n142) and on the pump platform are held in drip
+   trays on the roof nozzle platform and the pump platform, with no drain to grade (tank supply,
+   ASSUMED; review 2 #8 and D-029.14 carry the roof nozzle platform).
+2. Open troughs as release sources, the vapour basis and B-ANA (#2; adversarial note on B-ANA).
+   (a) Every open trough leg, the catwalk trough and the PR1 catchments are now zone 2 release
+   sources at grade (Z-HA-TROUGH-PR1 / -PR3 / -SUMP / -SUMP-N / -JETTY, Z-HA-CATCH-PR1E / -W: the
+   trough and 3 m either side to 1 m above grade, as the sumps), so the model checks trays,
+   escape routes and ladders against them; no tray or way off lies in one except where stated
+   (the culverts of R7 and R2, where vehicles enter under the site's vehicle entry control, gas
+   test or permit, ASSUMED). (b) PR2's straight north end carries the vapour switch station on the
+   vapour returns only and the welded loading lines, so its trough is removed: B-ANA, 8.2 m from
+   it, now sees 3.2 kW/m2 from all legs (was 26.1). PR1's trough starts at its west valve station
+   (x 835, was 760). (c) The troughs, the jetty collectors and the catwalk trough take the
+   cellular glass lining of the sumps (k 0.05 W/(m K), 120 kg/m3, 840 J/(kg K), ASSUMED; vendor
+   data replace it): 1.8 kW/m2 mean over the first minute against 45.7 on bare concrete. The
+   PR3 / PR4 leg 70 m from B-SUB then forms ~2.5 kg/s while the design flow runs, against
+   ~63 kg/s bare. The lining is not credited in the radiation screening (m'' 0.078 kept). (d)
+   B-SUB and the transformer bays stay 69.7 m from the PR3 / PR4 leg against the 150 m that D-018
+   keeps between the basin and B-SUB for the cold vapour. Carried, with the reason: moving B-SUB
+   150 m from every leg puts it within 314 m of the flare or ~170 m south of its loads with every
+   cable, and the dispersion distance is the siting study's (CSA Z276 / NFPA 59A, competent
+   person). The trough holds liquid only while the spill flows, the basin holds it for hours, and
+   the lining cuts the trough's vapour about 25-fold. Until the study, the B-SUB intake LV1 takes
+   gas detection with a damper trip and the transformer bays an ignition-source review (HVAC and
+   electrical engineers, ASSUMED).
+3. Profile, basin depth and catchments (#3). Section 0.6 m wide; at 0.5 % fall the design flow
+   runs 1.31 m deep (Manning, n 0.013), with 0.30 m freeboard 1.61 m at the start. Inverts: x 835
+   -1.61 m; junction (1095, 2945) -2.91; R7 culvert -3.16; R2 culvert -3.79; corner (1095, 3165)
+   -4.01; basin inlet (986, 3184.7) -4.65 m, over 609 m of trough. On the flat concept grade
+   (z = 0, D-013) the trough deepens as it falls; the real terrain and the civil design set the
+   final profile. T-8101 is deepened from 6 m to 10.5 m: the 1,000 m3 design spill is 4.97 m
+   in the 16 m pit and stands at -5.53 m, 0.83 m below the inlet invert, so it never backs up into
+   the troughs (1,176 m3 below the inlet). Zone, placement and equipment-list dimensions follow.
+   The design owner updates the T-8101 datasheet (overall height 10.5 m, `datasheet-dimension-*`
+   warnings until then) and the type and head of the rainwater pump P-8102 for the deeper pit. A
+   paved, kerbed catchment, the rack's width plus 2 m each side and falling 2 % to the trough,
+   lies under each PR1 valve station (Z-HA-CATCH-PR1E x 975-1080, -PR1W x 835-848), so a release
+   at a rack edge from any tier reaches the trough. Welded runs have no catchment (item 1).
+4. Jetty collectors and drip trays (#1 for the jetty; missed high). The drip trays are modelled:
+   kerbed bays recessed 1.0 m into the deck, at most 36 m2 each, so each bay holds the ~33 m3
+   design spill even with its drain blocked and a spill burns in one bay. Four 6 x 6 m arm bays
+   per berth (Z-HA-TRAY-B2-ARMS / -B1-ARMS), eight 11 x 3.25 m and ten 7.5 x 4.75 m manifold
+   bays (Z-HA-TRAY-B2-MAN / -B1-MAN) and one 3 x 3 m bay under the DN 250 crossover valve XV-4103
+   (Z-HA-TRAY-XO), all zone 2 (secondary). Each bay drains through a submerged outlet with a 0.3 m
+   liquid seal (1.3 kPa) into the enclosed collectors Z-KC-CHANNEL-JETTY / -W / -E (1.0 x 1.2 m,
+   1 %, lined). Vapour screening, inputs as item 1, flow 1.11 m3/s (one arm, D-018): 0.40 m deep,
+   128 m2 wetted over 71.5 m; bare concrete would form 11.5 kg/s (7.9 m/s in the 0.80 m2 vapour
+   space, 0.09 kPa); lined, 0.5 kg/s (0.3 m3/s, 0.3 m/s, under 0.01 kPa). The pressure drop is far
+   below the bay seals and the cover weight, so all vapour leaves at the one outlet into the open
+   catwalk trough at the platform's south edge (Z-HA-JETTY-VENT, kept clear of the catwalk ladder).
+   Its vent fire, 0.5 kg/s x 50 MJ/kg x 0.35 = 8 MW radiated in the first minute, is screened with
+   the trough and the sump below. The catwalk and A9 are kept clear during transfers (review 4 #9).
+5. Muster point and ways off the platform (missed high, #5). Z-ESC-A4N is removed. The muster
+   point, life-raft station and boat landing are on the piled deck A7 of the jetty substation,
+   north of B-JET (Z-ESC-A4-MUSTER, x 1113-1131, y 1118-1130; A7 extended to y 1132), 214 m from
+   the nearest tray bay and ~300 m from T-8102; the boat leaves west (Z-ESC-A4-SEA, x 1085-1112),
+   71 m north of the Berth 2 hull envelope. Two ways off start at opposite corners of the
+   platform's north edge, 20 m apart with the PR2 rack between them: W1 the trestle road R5 from
+   the north-west corner; W2 a 1.5 m walkway along the east side of PR2 from the north-east corner
+   (Z-ESC-A4-E1 / -E2), crossing under PR2's 7 m tier between its bents at y 1114.1 / 1122.1
+   (Z-ESC-A4-X) to R5 and the muster point. For each of the 27 bay fires, with its drained part
+   (vent, catwalk trough, sump) burning at once, one of the two ways stays at 4.9 kW/m2 or less
+   over its whole length incl. tilt (W2 for the Berth 2 trays, W1 for the Berth 1 trays and XO),
+   and the muster point at 0.21 kW/m2 (1.27 kW/m2 with every Berth 1 bay burning). Declared: the
+   four trays to the muster point >= 156 m (1.6 kW/m2 with every bay of the largest tray
+   burning), the Berth 2 trays to Z-ESC-A4-E1 and the Berth 1 trays to R5 >= 30.4 m (one bay
+   with the drained part, 5 kW/m2), XO to R5 >= 15 m, T-8102 to the muster point >= 60 m and to
+   the boat route >= 32.2 m. The deck walkway W2 and the A7 landing are the marine engineer's
+   (ASSUMED); the landing is placed clear of the Berth 2 stern lines (mooring not modelled, S-09).
+6. Transformer bays and B-SUB (#6). New road R11 from R1 / R5 east under PR2 (between its bents
+   at y 2905 / 2913), along the bays' south side and north to R8, which is extended to it; a
+   30 x 8 m delivery hardstanding Z-LAY-TX between R11 and the bays for the low-loader, jacking
+   and skidding of a transformer and the fire appliance (ASSUMED; the electrical engineer's
+   method). B-SUB's escape door S1 is moved from the south wall, 10 m from the bays, to the west
+   wall south of PR7 (2.6 kW/m2 there from a trough fire). D-031.9 is corrected.
+7. Roads, fire approach and fire protection over the troughs (#4). R1 is moved 21 m south to
+   y 2909 (7.4 kW/m2 from all legs; R1 to the PR1 trough >= 30.7 m declared), and R11 (6.6 kW/m2,
+   >= 30.7 m from the PR1 and PR3 troughs) is a second road to B-SUB that no trough fire cuts.
+   Approach: PR1 trough from R1; PR3 / PR4 leg from R8 east of x 1130 (6.5), R11 and R2 west of
+   x 1050 (7.3) and east of x 1130 (6.6); west leg and last leg from R2 and R4. Residuals inside
+   the band, stated: R3 (13.7), R5's stub north of R1 (15.2), R6 (13.6), R8 west of x 1126 (11.5)
+   and the culverts of R7 and R2; they are not needed in a trough fire. Fire protection, ASSUMED
+   until the fire protection engineer's design: passive fire protection of the rack columns and
+   bottom-tier beams over the open troughs (PR1 x 835-1095, PR3 / PR4 y 2945-3165) and of the joint
+   regions within 35 m of a trough (PR5 / PR6 to y 2980, PR2 to y 2910, PR6's east leg from
+   x 1060, PR3's east leg to x 1130); fire-resistant cable (IEC 60331, cited by number only) for
+   the ESD and fire and gas circuits from B-SUB on PR7 / PR3 over the trough, with tray covers
+   there; high-expansion foam at the junction, the culverts and the basin inlet; deluge for the
+   arms, the manifolds and D-5101 / D-6101, which stand in or beside the tray bays (their near
+   field, 20-3,100 kW/m2 from the nearest bay, cannot be removed by layout), and the carriers'
+   own water curtains.
+8. Other items. (a) The row of 2026-11-05-basic-layout-2 #2 in review 4 should read "superseded
+   by 2026-11-05-basic-layout-4#1 (basin siting closed)", not "closed 79d5c7ad" (adversarial
+   disputed closure); this entry is the record of that, reviews/ being the reviewer's. (b) Review 4
+   #7(a): Z-ESC-A2N-W ends at x 1028, 4.9 kW/m2; #7(b): D-031.2 corrected; #7(c) (P-08 note,
+   T-8101 service text) is the design owner's. (c) The free-span accept reasons of LNG-4008 and
+   BOG-1004 no longer name the removed channel. (d) The civil works (troughs, catchments, bays,
+   collectors, lining, the deeper basin) are not quantities of the model and are not in the MTO or
+   the estimate (open, civil).
+9. Screening of the arrangement as revised by item 11 (incl. x 1.2 tilt, kW/m2; criterion 8 at
+   shells, riser towers, LNG racks beyond their joints, the fire-approach roads; 5 at the
+   occupied building and escape routes; 1.6 at the muster point; scratch script
+   `build/r8_screen.py`, which reads the layout YAML). Tank area, one spill (D-018 (f)): every
+   open trough leg, the basin and the releasing station's drip pads burn at once (worst of the
+   two pad clusters, column "design fire"); the columns before it show the parts. Jetty, one
+   spill: one bay, the sump and the collector's vapour flame at the sump or at the worst dry bay
+   outlet downstream. Receptors sampled on both edges of every road and rack.
+
+| target | criterion | troughs | basin | troughs + basin | design fire | result |
+|---|---|---|---|---|---|---|
+| T-2101 / T-3101 shell | 8 | 2.5 / 0.6 | 0.9 / 0.4 | 3.0 / 1.0 | 4.1 / 1.1 | met |
+| S-RT2101 / S-RT3101 | 8 | 3.2 / 0.7 | 0.7 / 0.5 | 3.7 / 1.2 | 4.4 / 1.3 | met |
+| PR6 / PR5 north of y 2990 | 8 | 4.1 / 0.7 | 0.8 / 0.5 | 4.5 / 1.2 | 5.9 / 1.3 | met (PR6 joint to y 2990: PFP) |
+| PR6 east leg x <= 1060 | 8 | 6.9 | 0.8 | 7.5 | 7.8 | met (joint x 1060-1088, ~36: PFP) |
+| PR2 south of y 2910 / PR3 east leg x >= 1130 | 8 | 5.3 / 6.5 | 0.2 / 0.8 | 5.5 / 7.3 | 6.7 / 7.4 | met |
+| PR4 north of y 3273 (35 m beyond the trough) | 8 | 5.1 | 2.4 | 7.5 | 7.6 | met |
+| B-SUB, door S1 included | 5 | 2.7 | 0.3 | 2.9 | 3.1 | met |
+| B-ANA / TX bays | 8 | 2.9 / 2.3 | 0.2 | 3.1 / 2.5 | 3.6 / 2.7 | met |
+| R1 / R11 / R8 x >= 1130 (approaches) | 8 | 5.1 / 4.5 / 6.3 | 0.2-0.3 | 5.3 / 4.8 / 6.6 | 7.1 / 5.8 / 6.9 | met |
+| R2 x <= 1050 / x >= 1130 (approaches) | 8 | 5.2 / 6.5 | 2.1 / 0.8 | 6.9 / 7.4 | 6.9 / 7.4 | met |
+| R4 | 8 | 0.3 | 0.3 | 0.6 | 0.6 | met |
+| R3, R5 stub, R6, R8 x < 1130, culverts R7 / R2 | 8 | 11.0-644 | - | - | 11.8-646 | residual, not an approach (item 7) |
+| crane pads and laydowns north of the tanks | 8 | 2.1 | 1.5 | 3.4 | 3.5 | met |
+| Z-ESC-A2N-W / Z-ESC-A2N (A2's way out in a trough fire) | 5 | 3.9 / 3.1 | 0.5 / 1.6 | 4.4 / 4.1 | 4.8 / 4.2 | met |
+| Z-ESC-A2S / Z-ESC-A2E | 5 | crosses / 21.0 | - | - | - | blocked by design, A2N is the way |
+| S-ESC-T2101 / S-ESC-T3101 stair towers | 5 | 1.2 / 0.4 | 0.9 / 0.4 | 2.1 / 0.8 | 2.3 / 0.9 | met |
+| item drip trays alone: TV-7103 at A2N / A2N-W; XV-3123 anywhere | 5 / 8 | 1.1 / 0.7; under 0.5 | | | | met |
+| platform ways off, worst bay | 5 | | | | best way 4.8 (B2-M8, W2); XO 4.1 (W1) / 4.2 (W2) | met: one way per fire |
+| sump with the collector vapour alone, W1 / W2 | 5 | | | | 0.37 / 0.38 | met |
+| muster point Z-ESC-A4-MUSTER | 1.6 | | | | worst bay 0.16; every Berth 2 / Berth 1 bay 1.07 / 1.21 | met |
+| boat route Z-ESC-A4-SEA | 5 | | | | 0.16 | met |
+| D-5101 / D-6101, drained part (sump and vapour) | 8 | | | | 1.6 / 1.6 | met; their own bays' near field: deluge (item 7) |
+| carrier hulls 315 x 55 m, Berth 2 / Berth 1, drained part | 8 | | | | 4.8 / 4.6 | met |
+| envelope boxes Z-SHIP-B2-4 / -5 / -6, Z-SHIP-B1-4 / -5 / -6 | 8 | | | | 3.0 / 5.8 / 4.0, 4.9 / 5.3 / 2.4 | met |
+
+10. Left open, with the reason: the B-SUB vapour distance (item 2d, siting study; the PR3 / PR4
+   leg is unchanged); the roof drip trays (tank supply); the fire protection of item 7 with the
+   extents of item 11 (fire protection engineer); the T-8101 and T-8102 datasheets
+   (`datasheet-dimension-*` warnings until they follow the equipment list: T-8101 overall height
+   10.5 m, T-8102 6 m across and 9.5 m high), P-8102's type and head, the low-temperature
+   detectors in the item drip trays (XV-3123, TV-7103) and T-8102's level measurement and fixed
+   water removal with a low-temperature trip (P-08, H-05 A12) (design owner); moving TV-7103 onto
+   PR3 is a P&ID choice of the design owner, not needed for the criteria; the W2 walkway, the A7
+   landing, the mooring lines, the catwalk collector on the catwalk piles and the 9.5 m sump pit
+   on the sump deck (marine engineer); load-bearing covers over the drip tray bays inside the crane
+   strips Z-PAD-A4W / -A4E (structural, ASSUMED; checker's medium 2); the civil quantities (item
+   8d; now pads, gutters, collectors, the deeper XO and arm bays, the 6 m sump). Medium notes of
+   the check not taken by layout: an onshore muster point for A1 / A2 (A2N and the T-2101 north
+   stair end on R2, 6.9 kW/m2 at most west of x 1050 in the design fire; the site's assembly
+   points are set with the trains' emergency plan, D-001); the rundown battery-limit valves
+   CV / XV-1111..1114 on PR4 at y 3617.5 (their collection belongs with the trains' battery-limit
+   layout, 380 m beyond the trough's end, carried) and the flare KO drum pump seals P-8101A/B in
+   the sterile flare area A3 (a drip pan with the pump baseplate, vendor); the R2 and R7 culverts'
+   vehicle entry control stays an operating measure (ASSUMED). D-031.5's sentence that the trestle
+   shore end drains to the PR2 trough is superseded by D-033.2 (no PR2 trough, vapour valves only).
+   Carried from earlier rounds as in D-031.14, unchanged.
+11. Independent screening check of this arrangement (scratch scripts `build/chk_fire_screen.py`,
+   `chk_catch_sens.py`, `chk_r2_escape.py`, `chk_inline.py`; method of D-018, every input
+   ASSUMED). The checker's single-source values were reproduced; its findings are confirmed and
+   answered, again by taking exposures away. This item supersedes the parts of items 1 to 7 it
+   names; D-018 takes the corrections (f) and (g).
+   (a) Troughs and basin are one fire (high: A2N 8.1, A2N-W 5.7, R2 west of x 1050 11.3, and 8.1
+   on its north edge from the troughs alone, PR6 east leg 8.5). The trough still carries the
+   spill while the basin burns, so the bound of item 9 was the design fire. Two exposures are
+   removed: (i) PR1's trough west of x 975, 140 m in front of T-2101, which served only XV-3123
+   (DN 250 circulation return to T-3101, on PR5 at its joint) and the DN 25 PSV-1123: the trough
+   starts at the PR6 joint; XV-3123 is held in a 3 x 2 x 0.5 m drip tray under it on the PR5 steel
+   (3 m3, ~50 min of a ~1 kg/s flange leak, ASSUMED) while the operator closes XV-4105 and stops
+   the circulation pump, as the dome-edge valves of item 1; the DN 25 thermal reliefs off the
+   trough (PSV-1122, PSV-1123, PSV-4111, PSV-4113) take drip trays at the item, which also settles
+   PSV-1122's inlet position. (ii) The west leg 39 m from R2 and the last leg: the trough runs on
+   under PR4 to y 3237.5 (between its bents at y 3229 / 3246) and 97 m west into the basin's east
+   side; T-8101 moves to (990, 3237.5), 103.5 m north of R2 and 90 m west of PR4, with PR8 (now
+   at y 3220.5), P-8102, the W-8002 battery limit and JB-A8-1. Profile (0.5 %, 510 m of open
+   trough, was 609): x 975 -1.61 m, junction -2.21, R7 culvert -2.46, R2 culvert -3.10, corner
+   -3.67, basin inlet -4.16; the 1,000 m3 stands at -5.53 m in the unchanged 10.5 m pit, 1.37 m
+   below the inlet (~1,270 m3 below it). Z-ESC-A2N-W now starts at x 1022 (was 1028), west of
+   Z-PAD-A2W: the 18-28 m from the compressor packages to it lie in the area at 5.1-5.7 kW/m2.
+   (b) Catchments (high: their burning flow path was not screened). The paved catchments
+   Z-HA-CATCH-PR1E / -PR1W of item 3 are removed. Only the flanged LNG items off the trough's
+   line get a kerbed drip pad at grade under their flanges (spray shields on the flanges,
+   ASSUMED), draining straight into the trough or by a 0.6 m gutter: XV-1102 / 1103 (11.2 m2 and a
+   4.9 m gutter), XV-4105 / PSV-4114 (5.2 m2), XV-4106 (6.2 m2), FV / XV-4101 (6.4 m2 and a 2.8 m
+   gutter), FV / XV-4102 (6.0 m2); PSV-4112, 0.6 m from the trough edge, drips into it. A pad
+   burns with the troughs and the basin. With the FV / XV-4101 pad 26 m from it, R1 would see 9.9,
+   so R1, R4's south end and R11 move 8 m south to y 2901 (R11 under PR2 between its bents at
+   y 2897 / 2905; Z-LAY-TX extended to it; Z-ESC-A2S to y 2905): R1 7.1, R11 5.8. The joint band
+   of D-018 (c) is measured from the pad edge: the PFP on PR6 runs to y 2990; PR5's joint has no
+   trough now (1.3 kW/m2) and needs none.
+   (c) TV-7103 (medium-high: uncollected). The one flanged LNG item on the PR6 east leg, over
+   D-7101: a 2 x 2 x 0.4 m drip tray under it (1.6 m3, ~27 min of the full 3.5 t/h spray, D-010);
+   its fire alone gives 1.1 kW/m2 at A2N.
+   (d) Crossover tray XO (high: 9 m3 against ~33 m3, a closed DN 300 drain not sized for its
+   vapour). Replaced by a 3.5 x 4 m bay recessed 2.4 m (33.6 m3) under XV-4103, kept to 14 m2
+   because it stands between the starts of both ways off (4.1 / 4.2 kW/m2; a 36 m2 bay would give
+   ~10), drained by an open outlet at its floor through its south wall into its own enclosed
+   collector Z-KC-CHANNEL-JETTY-XO, which runs south between the two manifold trays. No closed
+   drain pipe remains.
+   (e) Arm bays (medium: the 4 x 3 m pedestals leave 24 m3): recessed 1.5 m, 36 m3 free.
+   (f) Seals and collectors (high: no maintained seal liquid; rainwater would freeze in the
+   receiving bay's outlet). The liquid seals are dropped. Every bay drains by an open floor
+   outlet straight into a collector under its row: Z-KC-CHANNEL-JETTY-W on the line between the
+   Berth 2 arm and manifold bays, -XO, -B1M between the Berth 1 manifold columns, -E under the
+   Berth 1 arm bays, the south collector and -CW under the catwalk into the sump wall (inverts
+   -2.8 m at the upstream ends with soffits below the bay floors, -3.50 m at the catwalk junction,
+   -3.91 m at the sump), which also closes the jetty profile (checker's medium 1). Vapour, lined,
+   1.81 kW/m2 mean over the first minute: longest path 106 m, 190 m2 wetted, 0.67 kg/s, with the
+   gas the liquid displaces 1.49 m3/s, 1.85 m/s, ~10 Pa (bare concrete 16.5 kg/s, ~0.5 kPa); the
+   cold vapour flows down the fall with the liquid. A dry outlet downstream of the receiving bay
+   may still pass vapour, so its whole flame (11.8 MW) is screened at the sump and at the worst
+   such outlet (table, item 9). Rain: no water stands in the bays.
+   (g) Carriers and drain drums (high / medium: 8.8 / 9.0 on the hulls and 10.3 / 14.1 at the
+   drums from the drained part alone). The checker is right that the table's reason of item 9
+   was wrong: the exposure came from the sump, the open catwalk trough and the platform-edge vent,
+   not the bays. The catwalk trough and the vent are removed (the collectors end in the sump), and
+   T-8102 is 6 m across and 9.5 m deep (268 m3; ~159 m3 below the inlet: the 33 m3 spill and
+   ~126 m3, ~129 mm of rain on the ~972 m2 of bays and sump): hulls 4.8 / 4.6, envelope boxes
+   2.4-5.8, drums 1.6 / 1.6. LNG must not meet standing water in the sump, so it is kept pumped
+   down (item 10, design owner). The six catwalk-trough separations go with their source; the
+   T-8102 separations of 24.6 m are kept, now conservative (8 kW/m2 at ~22 m from the 6 m sump's
+   edge with its vapour). No ship water curtain is relied on.
+   (h) Lows: the residual roads (R3, R5 stub, R6, R8 west, R7 and R2 culverts), A2E / A2S and
+   the PR6 east-leg joint (~36) are stated residuals as in item 7. Item 7's PFP extents now read:
+   PR1 x 975-1095, PR3 / PR4 y 2945-3237.5 and PR4 on to y 3273, PR6 to y 2990, PR6's east leg
+   from x 1060, PR3's east leg to x 1130, PR2 to y 2910.
 
 ## 3. Results (concept)
 
