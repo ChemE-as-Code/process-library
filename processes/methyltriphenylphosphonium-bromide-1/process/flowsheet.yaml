@@ -32,11 +32,12 @@
 #   assumed, D-007, D-008): core models no degassing and no condenser with non-condensables;
 #   `cheme validate` checks that they balance;
 # - the duties (D-010): R101's Q2, CR101's Q3 and ST101's Q7 are written by `cheme process
-#   propagate --fill` from the models at each step's `energy_port` (core 1.9.0, ADR 0059); what
-#   the models leave out is on its own ASSUMED stream with its hand arithmetic: R-101's metal
-#   cooled with the slurry (Q10) and the still's charge and metal heated to the boil (Q9); Q1,
-#   Q5, Q6 and Q8 are hand arithmetic from the stream table; the dryer's heat Q4 is core's dryer
-#   model (`cheme.process-dryer-duty` compares it).
+#   propagate --fill` from the models at each step's `energy_port` (core 1.9.0, ADR 0059); since
+#   core 1.10.0 (ADR 0063, D-016) Q3 holds R-101's metal cooled with the slurry and Q7 the
+#   still's charge heated to its bubble point (`still.heat_up`) and C-101's metal, the vessels'
+#   `metal_heat_capacity` given once on the recipe's vessels (the hand streams Q9 and Q10 went);
+#   Q1, Q5, Q6 and Q8 are hand arithmetic from the stream table; the dryer's heat Q4 is core's
+#   dryer model (`cheme.process-dryer-duty` compares it).
 schema: cheme/process/v1
 kind: flowsheet
 title: Methyltriphenylphosphonium bromide by semi-batch quaternisation of triphenylphosphine with methyl bromide in toluene
@@ -85,7 +86,6 @@ feeds:
       - {id: e101, direction: out, kind: energy}
       - {id: d101, direction: out, kind: energy}
       - {id: st101, direction: out, kind: energy}
-      - {id: st101_heatup, direction: out, kind: energy}
 products:
   - {id: PROD, title: Methyltriphenylphosphonium bromide crystals to packing, category: product, ports: [{id: in, direction: in}]}
   - {id: OFFGAS, title: "Vent gas (R-101, F-101) to the thermal oxidiser", category: off_gas, ports: [{id: in, direction: in}]}
@@ -101,7 +101,6 @@ products:
     ports:
       - {id: r101, direction: in, kind: energy}
       - {id: cr101, direction: in, kind: energy}
-      - {id: cr101_vessel, direction: in, kind: energy}
       - {id: f101, direction: in, kind: energy}
       - {id: st101, direction: in, kind: energy}
   - id: BRINE
@@ -129,7 +128,6 @@ blocks:
       - {id: steam, direction: in, kind: energy}
       - {id: cw, direction: out, kind: energy}
       - {id: cw2, direction: out, kind: energy}
-      - {id: cw3, direction: out, kind: energy}
       - {id: power, direction: in, kind: energy}
   - id: ISOL
     title: Filtration, toluene wash and vacuum drying (F-101, filter-dryer)
@@ -154,7 +152,6 @@ blocks:
       - {id: wash, direction: out}
       - {id: residue, direction: out}
       - {id: steam, direction: in, kind: energy}
-      - {id: steam2, direction: in, kind: energy}
       - {id: cw, direction: out, kind: energy}
       - {id: power, direction: in, kind: energy}
 
@@ -226,15 +223,14 @@ steps:
       spectators: [PPH3, MEBR]
       energy: {heat_capacity: 1.54, heat_of_crystallization: 0.0, provenance: assumed, source: "the slurry S7's heat capacity from the components' liquid heat capacities of process/materials.yaml: 638.45 kJ/(K h) over 414.72 kg/h = 1.54 kJ/(kg K) (D-010); the heat of crystallisation is counted in QUAT's heat of reaction, so 0 here (D-005)"}
       outlets: {slurry: out}
-    # the crystallizer's lumped duty (the slurry's cool-down) goes on Q3; R-101's metal cooled
-    # with it is Q10, which the model does not hold (D-010)
+    # the crystallizer's lumped duty (the slurry's cool-down) and, since core 1.10.0, R-101's
+    # metal cooled with it (the REACT vessel's metal_heat_capacity, ADR 0063) go on Q3 (D-010, D-016)
     energy_port: q
     links: [{target: equipment, ref: R-101}]
     ports:
       - {id: in, direction: in}
       - {id: out, direction: out}
       - {id: q, direction: out, kind: energy, delegates: cw2}
-      - {id: q_vessel, direction: out, kind: energy, delegates: cw3}
   - id: DG101
     block: REACT
     title: "Vent losses of the slurry: R-101 depressurised and swept with nitrogen, F-101's pressing gas"
@@ -382,11 +378,13 @@ steps:
       nonvolatile: [PPH3, MTPPB]
       boilup: {value: 250.0, unit: kW, provenance: assumed, source: "LP steam to C-101's jacket and coil (D-009, D-010)"}
       end: {distilled: 0.985, basis: mass}
+      heat_up: true
       outlets: {distillate: main, residue: residue}
       provenance: assumed
       source: "the toluene distilled, with the excess methyl bromide, until 98.5 % of the charge's mass is over; the residue the PPh3, the salt and about 1.5 % of the charge as toluene (D-009)"
-    # the still's duty (its boil-up's latent heat, ADR 0059) goes on Q7; the charge's heat-up to
-    # its bubble point and C-101's metal, which the still leaves out, are Q9; the condenser Q8
+    # the still's duty goes on Q7: its boil-up's latent heat (ADR 0059), and since core 1.10.0 the
+    # charge heated to its bubble point (`heat_up`) and C-101's metal (the RECOVER vessel's
+    # metal_heat_capacity), ADR 0063, D-016; the condenser Q8
     # stays hand arithmetic (D-010)
     energy_port: steam
     links: [{target: equipment, ref: C-101}]
@@ -395,7 +393,6 @@ steps:
       - {id: main, direction: out}
       - {id: residue, direction: out, delegates: residue}
       - {id: steam, direction: in, kind: energy, delegates: steam}
-      - {id: steam_heatup, direction: in, kind: energy, delegates: steam2}
       - {id: cw, direction: out, kind: energy, delegates: cw}
       - {id: power, direction: in, kind: energy, delegates: power}
   - id: X101
@@ -562,7 +559,7 @@ streams:
         temperature: {value: 303.15, provenance: assumed, source: "as S3 (D-009)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
         flow: {value: 103.673, provenance: assumed, source: "1 kg of recovered toluene per kg of salt in the cake S9 (D-008), a design input that stays fixed on the tear stream (D-006)"}
-        composition: {basis: mole_fraction, values: {TOL: 0.999514, MEBR: 0.000485986, PPH3: 0.0, MTPPB: 0.0, MTPPB_S: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle X101 from S19 (tear, wegstein)', fingerprint: 177a3bfde175924b}
+        composition: {basis: mole_fraction, values: {TOL: 0.999514, MEBR: 0.000485986, PPH3: 0.0, MTPPB: 0.0, MTPPB_S: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle X101 from S19 (tear, wegstein)', fingerprint: ca93a74c67ab38a8}
   - id: S12
     title: Wash slurry
     from: W101.out
@@ -676,14 +673,12 @@ streams:
   # energy
   - {id: Q1, title: Charge heating and PPh3 dissolution, kind: energy, from: LPS.e101, to: E101.q, state: {design: {duty: {value: 8.5622, provenance: assumed, source: "hand arithmetic (D-010): S4, 618.26 kJ/(K h), heated from 292.81 to 333.15 K = 24940 kJ/h (S4's temperature already carries the PPh3's ASSUMED heat of solution, 20 MJ/kmol), plus R-101's metal, about 6 t of glass-lined steel at 0.5 kJ/(kg K) = 3000 kJ/K, heated from 313.15 to 333.15 K each batch over the 10.1983 h cycle = 5883 kJ/h; hot water at 353 K from LP steam"}}}}
   - {id: Q2, title: Heat of quaternisation to cooling water, kind: energy, from: R101.q, to: CW.r101, state: {design: {duty: {value: 7.87751, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S5 S6', fingerprint: e57f3b482c83f16a}}}}
-  - {id: Q3, title: Slurry cool-down (CR101's model) to cooling water, kind: energy, from: CR101.q, to: CW.cr101, state: {design: {duty: {value: 3.55153, provenance: calculated, source: 'cheme process propagate: crystallizer duty CR101 from S7', fingerprint: 5e40a22b602561fe}}}}
+  - {id: Q3, title: Slurry and R-101 metal cool-down (CR101's model) to cooling water, kind: energy, from: CR101.q, to: CW.cr101, state: {design: {duty: {value: 5.1858, provenance: calculated, source: 'cheme process propagate: crystallizer duty CR101 from S7', fingerprint: f4b411d4f0203ccc}}}}
   - {id: Q4, title: Dryer heat, kind: energy, from: LPS.d101, to: D101.steam, state: {design: {duty: {value: 10.3468, provenance: assumed, source: "cheme process crystallizers: D101's dryer model, the cake from its inlet temperature to 333.15 K, the toluene and methyl bromide evaporated, F-101's metal heated each batch, 70 % efficiency (D-008, D-010); hot water at 353 K from LP steam"}}}}
   - {id: Q5, title: F-101 vacuum condenser to brine, kind: energy, from: E201.q, to: BRINE.d101, state: {design: {duty: {value: 4.3075, provenance: assumed, source: "hand arithmetic (D-010): the toluene of S16, 30.900 kg/h, condensed at D101's latent heat (391 kJ/kg) = 12082 kJ/h, the condensate cooled from 333.15 to 268.15 K (52.68 kJ/(K h) x 65 K = 3425 kJ/h), and the vent gas S18 cooled by 65 K with its ideal-gas heat capacities (toluene 104, methyl bromide 42.4 kJ/(kmol K)) = 1 kJ/h; on brine: toluene's dew point at the filter-dryer's 5 kPa(a) is about 304 K (303.6 K by the Antoine set of process/materials.yaml), so cooling water at 298/308 K cannot condense it; at the 268 K outlet its vapour pressure is 0.65 kPa"}}}}
   - {id: Q6, title: F-101 product and vessel cool-down to cooling water, kind: energy, from: D101.cool, to: CW.f101, state: {design: {duty: {value: 3.3585, provenance: assumed, source: "hand arithmetic (D-010): the product S15 cooled from 333.15 to 313.15 K (110.33 kJ/(K h) x 20 K = 2207 kJ/h) and F-101's metal (4000 kJ/K, D101's vessel heat capacity) cooled back to the cake's 307.95 K each batch, as core's dryer model assumes: 4000 x 25.20 K / 10.1983 h = 9884 kJ/h"}}}}
-  - {id: Q7, title: "Still boil-up (LP steam)", kind: energy, from: LPS.st101, to: ST101.steam, state: {design: {duty: {value: 40.6685, provenance: calculated, source: 'cheme process propagate: still duty ST101 from S17', fingerprint: a32715c8694d43fa}}}}
+  - {id: Q7, title: "Still heat-up of the charge and C-101, and boil-up (LP steam)", kind: energy, from: LPS.st101, to: ST101.steam, state: {design: {duty: {value: 60.6328, provenance: calculated, source: 'cheme process propagate: still duty ST101 from S17', fingerprint: dce450e1e7eac5de}}}}
   - {id: Q8, title: Still condenser and distillate cooler to cooling water, kind: energy, from: ST101.cw, to: CW.st101, state: {design: {duty: {value: 56.4264, provenance: assumed, source: "hand arithmetic (D-009, D-010): the distillate S19 condensed at the components' heats of vaporisation (process/materials.yaml) = 146407 kJ/h, and cooled from the still's mean 384.99 K to 303.15 K (693.16 kJ/(K h) x 81.84 K = 56729 kJ/h)"}}}}
-  - {id: Q9, title: "Still charge and vessel heated to the boil (LP steam)", kind: energy, from: LPS.st101_heatup, to: ST101.steam_heatup, state: {design: {duty: {value: 19.9639, provenance: assumed, source: "hand arithmetic (D-010), what core's still model leaves out (its duty, Q7, is the boil-up's latent heat): the charge S17, 703.01 kJ/(K h), heated from 308.47 K to its bubble point 383.50 K (cheme process stills) = 52747 kJ/h; C-101's metal, about 5 t of steel at 0.5 kJ/(kg K) = 2500 kJ/K, from 308.47 K to the end's 386.48 K each batch over the 10.1983 h cycle = 19123 kJ/h"}}}}
-  - {id: Q10, title: R-101 vessel cool-down to cooling water, kind: energy, from: CR101.q_vessel, to: CW.cr101_vessel, state: {design: {duty: {value: 1.6342, provenance: assumed, source: "hand arithmetic (D-010), what CR101's lumped duty (Q3, the slurry S7 cooled from 333.15 to 313.15 K) leaves out: R-101's metal, about 6 t of glass-lined steel at 0.5 kJ/(kg K) = 3000 kJ/K (as Q1), cooled by 20 K each batch over the 10.1983 h cycle = 5883 kJ/h"}}}}
-  - {id: P1, title: R-101 agitator and methyl bromide dosing pump, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 5.4, provenance: assumed, source: "year average: a 5.5 kW agitator of the 6.3 m3 pressure vessel R-101 at its 94 % occupancy (5.2 kW) and a 0.75 kW dosing pump over 3 h of the 10.21 h cycle (0.2 kW), ASSUMED (D-010)"}}}}
+  - {id: P1, title: R-101 agitator and methyl bromide dosing pump, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 5.7, provenance: assumed, source: "year average: a 5.5 kW agitator of the 6.3 m3 pressure vessel R-101 at its 99.5 % occupancy (10.146 h of the 10.198 h cycle, cheme process recipe, the heat and cool times with the vessel's metal since core 1.10.0: 5.47 kW) and a 0.75 kW dosing pump over 3 h of the cycle (0.22 kW), ASSUMED (D-010, D-016)"}}}}
   - {id: P2, title: F-101 agitator and vacuum pump, kind: energy, from: POWER.f101, to: D101.power, state: {design: {duty: {value: 7.3, provenance: assumed, source: "year average: F-101's 7.5 kW agitator running half the time (3.75 kW) and a 5.5 kW dry vacuum pump over the 6.6 h of drying a cycle (3.6 kW), ASSUMED (D-010)"}}}}
-  - {id: P3, title: C-101 agitator and transfer pumps, kind: energy, from: POWER.c101, to: ST101.power, state: {design: {duty: {value: 2.8, provenance: assumed, source: "year average: C-101's 3 kW agitator at its 26 % occupancy (0.8 kW) and the transfer pumps, 2 kW, ASSUMED (D-010)"}}}}
+  - {id: P3, title: C-101 agitator and transfer pumps, kind: energy, from: POWER.c101, to: ST101.power, state: {design: {duty: {value: 3.0, provenance: assumed, source: "year average: C-101's 3 kW agitator at its 34 % occupancy (3.469 h of the 10.198 h cycle with the heat-up to the bubble point, cheme process recipe: 1.02 kW) and the transfer pumps, 2 kW, ASSUMED (D-010, D-016)"}}}}
