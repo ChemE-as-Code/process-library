@@ -16,9 +16,10 @@
 # - M101: a mixer; R101: cheme's semi-batch model (the rate laws of GRIG and WURTZ, D-005) with
 #   its vent; E101: a pass-through; F101: a specified filter (all calculated by `cheme process
 #   propagate --fill`);
-# - the duties: R101's heat from its model (`cheme process reactors`) and the sensible and latent
-#   heats of E101 and the warm-up, year averages worked out by hand in D-009, given as ASSUMED.
-#   There is no balance script: core models every material step.
+# - the duties: R101's heat on Q1 from its semi-batch model (energy_port, core 1.9.0 ADR 0059,
+#   calculated by `cheme process propagate --fill`); the sensible and latent heats of E101 and the
+#   charge's warm-up, which no model writes, year averages worked out by hand in D-009, given as
+#   ASSUMED. There is no balance script: core models every material step.
 schema: cheme/process/v1
 kind: flowsheet
 title: Methylmagnesium bromide in 2-MeTHF by semi-batch Grignard reaction with methyl bromide gas dosing
@@ -126,10 +127,16 @@ steps:
       heat: isothermal
       provenance: assumed
       source: "5 % of the methyl bromide in 15 min, a 30 min hold for the initiation, the rest over 5 h, the rate set by R-101's jacket (D-005, D-010); 99 % of the dosed gas absorbed, the rest to the vent (D-004); post-reaction at 318 K"
+    # the reaction heat goes on Q1 to the brine (core ADR 0059); Q2, the charge's warm-up, is
+    # the recipe's heat operation, not the model's, and stays typed (D-009)
+    energy_port: q
+    # no hazard.mtt: the default (core 1.9.0, ADR 0058) leaves out the dosed methyl bromide and
+    # the vented ethane and takes 2-MeTHF's boiling point at 120 kPa(a) from its heat of
+    # vaporization, 356.3 K (D-011)
     hazard:
-      mtt: 351.15
-      provenance: given
-      source: "the boiling point of 2-MeTHF, 78 C (Albemarle TDS 10000303), the solvent: R-101 runs at about atmospheric pressure under nitrogen with a reflux condenser (ASSUMED); the default, methyl bromide's 276.55 K, lies below the process temperature (D-011)"
+      vent_capacity: 20.0
+      provenance: assumed
+      source: "R-101's vent through its reflux condenser to the thermal oxidiser's header, sized for the largest normal gas flow it takes, the nitrogen purge that inerts R-101 (three volume changes of its 6.3 m3, 18.9 Nm3 as in lca.yaml's nitrogen, in the 1 h inert step of the recipe: about 16 to 17.4 m3/h at 120 kPa(a) and 273 to 298 K), rounded up to 20 m3/h at 120 kPa(a); the normal off-gas peaks at 3.0 m3/h (cheme process recipe), ASSUMED (D-011)"
     links: [{target: equipment, ref: R-101}]
     ports:
       - {id: charge, direction: in}
@@ -265,7 +272,7 @@ streams:
         flow: {value: 555.318, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S6', fingerprint: 2d34566d6bfb6d8d}
         composition: {basis: mole_fraction, values: {METHF: 0.716384, MEBR: 0.000286019, MG: 4.03115e-05, MEMGBR: 0.280847, MGBR2: 0.0024428, C2H6: 0.0}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S6', fingerprint: 2d34566d6bfb6d8d}
   # energy (year averages, D-009)
-  - {id: Q1, title: Heat of the Grignard reaction to the chilled brine, kind: energy, from: R101.q, to: BRINE.r101, state: {design: {duty: {value: 134.10, provenance: assumed, source: "R101's extents (cheme process reactors) x the heats of reaction: GRIG 1.65273 kmol/h x 291.1 MJ/kmol + WURTZ 0.01425 x 283.2 = 134.76 kW, less the dosed methyl bromide's warming from 298 to 318 K, 0.66 kW (D-009)"}}}}
+  - {id: Q1, title: Heat of the Grignard reaction to the chilled brine, kind: energy, from: R101.q, to: BRINE.r101, state: {design: {duty: {value: 134.1, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S3 S5', fingerprint: e6be2174dd612b53}}}}
   - {id: Q2, title: Warm-up of the charge to 318 K, kind: energy, from: LPS.r101, to: R101.steam, state: {design: {duty: {value: 4.266, provenance: assumed, source: "(2-MeTHF 359.99 kg/h x 2.011 + magnesium 43.013 x 1.024 kJ/(kg K)) x 20 K, via the jacket's hot-water loop, losses not counted (D-009)"}}}}
   - {id: Q3, title: Methyl bromide vaporiser, kind: energy, from: LPS.e101, to: E101.steam, state: {design: {duty: {value: 11.116, provenance: assumed, source: "1.6855 kmol/h x (23.53 MJ/kmol heat of vaporisation at 293 K, thermo, + 43.2 kJ/(kmol K) x 5 K) (D-009)"}}}}
   - {id: P1, title: R-101 agitator, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 5.0, provenance: assumed, source: "year average, about 1.5 kW/m3 of slurry while the vessel is full (D-009)"}}}}

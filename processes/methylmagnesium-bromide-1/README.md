@@ -17,8 +17,10 @@ first and a hold for the initiation, then the rest; 99 % of the gas is taken up
 by a vent (`batch.vent`). Magnesium is a solid reactant of the liquid model. `process/recipe.yaml`
 holds the batch recipe the cycle time, the vessel size, the jacket check, the filtration time and
 the flowsheet's year-average flows come from (`cheme process recipe`); `cheme process
-reactor-hazards` screens the initiation and the accumulation (DESIGN.md D-011). These features
-need cheme-as-code after 1.7.0 (core main, to be released as 1.8.0).
+reactor-hazards` screens the initiation, the accumulation and the gas release against the vent
+(DESIGN.md D-011). These features need cheme-as-code 1.9 (`energy_port`, `vent_capacity` and the
+default MTT at the vessel's pressure; core ADRs 0058, 0059; the vent, gas dosing, recipe units and
+filtration since 1.8).
 
 | path | what |
 |---|---|

@@ -16,9 +16,11 @@
 #   to 0.994 conversion of the alcohol; T101: cheme's batch still (constant relative
 #   volatility, D-006); E101, E102: pass-through; M201, M202: mixers; S101: conversion step (all
 #   calculated by `cheme process propagate --fill`);
-# - the duties: hand arithmetic from cheme's reports (`cheme process reactors`, `cheme process
-#   stills`) and the stream table, given as ASSUMED with the arithmetic in the source (D-009);
-#   no property package of core covers the reaction mass or the caustic liquor.
+# - the duties: Q2 (R101, `energy_port: q`) and Q4 (T101) are the year-average duties of the
+#   semi-batch and still models, written by `cheme process propagate --fill` (core ADR 0059);
+#   Q2A, the heat of absorption of the gas left dissolved, which the semi-batch leaves out, and
+#   Q1, Q3, Q5 and the power are hand arithmetic, ASSUMED with the arithmetic in the source
+#   (D-009); no property package of core covers the reaction mass or the caustic liquor.
 schema: cheme/process/v1
 kind: flowsheet
 title: Benzyl chloroformate by semi-batch phosgenation of benzyl alcohol (1000 t/a)
@@ -71,6 +73,7 @@ products:
     ports:
       - {id: e101, direction: in, kind: energy}
       - {id: r101, direction: in, kind: energy}
+      - {id: r101_abs, direction: in, kind: energy}
   - id: CW
     title: Cooling water return
     category: utility
@@ -103,6 +106,7 @@ blocks:
       - {id: vent, direction: out}
       - {id: degas, direction: out}
       - {id: brine, direction: out, kind: energy}
+      - {id: brine_abs, direction: out, kind: energy}
       - {id: steam, direction: in, kind: energy}
       - {id: power, direction: in, kind: energy}
   - id: SCRUB
@@ -150,7 +154,13 @@ steps:
       vent: {stream: S6, components: [HCL, CO2], fraction: {HCL: 0.95}}
       provenance: assumed
       source: "phosgene gas dosed over 10 h at 278 K (8 h exceeds the jacket, D-003) and 50 kPa(a), 95 % of it taken up and 95 % of the HCl leaving as it forms, then the post-reaction to 0.994 conversion of the alcohol (D-005)"
-    hazard: {mtt: 280.65, provenance: assumed, source: "D-011: phosgene's normal boiling point; above it the dissolved excess phosgene boils off and the vent and scrubber, not the jacket, set the limit (the default, the lowest boiling point of the liquid, would be the dissolved HCl's 188 K); no TD24 (never estimated)"}
+    hazard:
+      mtt: 280.65
+      reactions: [PHOSG, CARB, CLBN]
+      vent_capacity: 173
+      provenance: assumed
+      source: "D-011: mtt is phosgene's normal boiling point: above it the dissolved excess phosgene boils off and the vent and scrubber, not the jacket, set the limit (core 1.9's default leaves the dosed phosgene out and takes benzyl alcohol's 478.4 K, which says nothing of the phosgene released); reactions: every reaction counted on purpose, CARB (the product with the alcohol left) included, as a cooling failure mid-dosing holds both and no calorimetry shows CARB too slow to run, its rate and heat being ASSUMED (D-014); vent_capacity: the vacuum pump K-201's suction volume, about 173 m3/h (1.5 kmol/h at 20 kPa(a) and 278 K, D-006), the only path from R-101 at its 50 kPa(a), its displacement taken as the same at 50 kPa(a) (D-014); no TD24 (never estimated)"
+    energy_port: q
     links: [{target: equipment, ref: R-101}]
     ports:
       - {id: charge, direction: in, delegates: charge}
@@ -158,6 +168,7 @@ steps:
       - {id: out, direction: out}
       - {id: gas, direction: out, delegates: vent}
       - {id: q, direction: out, kind: energy, delegates: brine}
+      - {id: q_abs, direction: out, kind: energy, delegates: brine_abs}
       - {id: power, direction: in, kind: energy, delegates: power}
   - id: T101
     block: REACT
@@ -361,9 +372,10 @@ streams:
         composition: {basis: mole_fraction, values: {HCL: 2.01044e-06, COCL2: 5.46411e-07, CO2: 1.38073e-06, BNOH: 0.0, BCF: 0.0, DBC: 0.0, BNCL: 0.0, NAOH: 0.00421153, H2O: 0.959155, NACL: 0.0310295, NA2CO3: 0.00560026}, provenance: calculated, source: 'cheme process propagate: reactor S101 from S9 S12', fingerprint: d6ecc525a9dddb13}
   # energy
   - {id: Q1, title: Charge cooling to brine, kind: energy, from: E101.q, to: BRINE.e101, state: {design: {duty: {value: 0.705, provenance: assumed, source: "D-009: S1 0.74232 kmol/h x 171.0 kJ/(kmol K) x 20 K = 2539 kJ/h"}}}}
-  - {id: Q2, title: Heat of phosgenation to brine, kind: energy, from: R101.q, to: BRINE.r101, state: {design: {duty: {value: 20.03, provenance: assumed, source: "D-009: cheme process reactors, R101 heat released 40265 kJ per kmol of charge and doses x (0.74232 + 0.94274) kmol/h = 67850 kJ/h (the reactions on the gas basis and the doses' sensible heat), plus the dissolved phosgene and HCl absorbed (S5: 0.15491 kmol/h x 24800 + 0.03710 x 10910 = 4247 kJ/h, the latent heat T101 takes back, Q4; core limit L-10) = 72097 kJ/h"}}}}
+  - {id: Q2, title: Heat of phosgenation to brine, kind: energy, from: R101.q, to: BRINE.r101, state: {design: {duty: {value: 18.7043, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S2 S4', fingerprint: 40baa22e6a112f3b}}}}
+  - {id: Q2A, title: Heat of absorption of the dissolved phosgene and HCl to brine, kind: energy, from: R101.q_abs, to: BRINE.r101_abs, state: {design: {duty: {value: 1.18, provenance: assumed, source: "D-009: the phosgene and HCl left dissolved in S5 absorbed in R-101 (0.15491 kmol/h x 24800 + 0.03710 x 10910 kJ/kmol = 4247 kJ/h), the latent heat T101 takes back as Q4; the semi-batch model, whose duty is Q2, dissolves gas with no heat (core ADR 0059 limitation, L-10)"}}}}
   - {id: Q3, title: Phosgene evaporator heat, kind: energy, from: LPS.e102, to: E102.q, state: {design: {duty: {value: 7.54, provenance: assumed, source: "D-009: S3 0.94274 kmol/h x (100 kJ/(kmol K) x 40 K + 24800 kJ/kmol) = 27151 kJ/h"}}}}
-  - {id: Q4, title: Degassing heat, kind: energy, from: LPS.t101, to: T101.q, state: {design: {duty: {value: 1.178, provenance: assumed, source: "D-006, D-009: cheme process stills, T101 16.50 kWh per batch (9.21 kW over 1.79 h) x 565.3 batches / 7920 h"}}}}
+  - {id: Q4, title: Degassing heat, kind: energy, from: LPS.t101, to: T101.q, state: {design: {duty: {value: 1.17705, provenance: calculated, source: 'cheme process propagate: still duty T101 from S5', fingerprint: 5a0b0d978ead07cf}}}}
   - {id: Q5, title: Scrubber heat to cooling water, kind: energy, from: S101.q, to: CW.s101, state: {design: {duty: {value: 44.65, provenance: assumed, source: "D-007, D-009: extents of S101 (cheme process streams) x the heats of reactions.yaml: 0.74193 x 130.8 + 0.20166 x 444 + 0.00503 x 109.5 = 187134 kJ/h, less the liquor warmed 10 K (732.8 kg/h x 3.6 kJ/(kg K)) = 160752 kJ/h"}}}}
   - {id: P1, title: R-101 agitator, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 3.0, provenance: assumed, source: "year average, about 1.2 kW/m3 of the 2.5 m3 vessel (D-009)"}}}}
   - {id: P2, title: Vacuum pump, kind: energy, from: POWER.m201, to: M201.power, state: {design: {duty: {value: 2.0, provenance: assumed, source: "year average of a dry-running vacuum pump for the vent and the degassing (D-009)"}}}}

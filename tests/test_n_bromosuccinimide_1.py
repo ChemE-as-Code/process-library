@@ -138,10 +138,12 @@ def test_solubility_value_recorded_as_workaround():
 
 @pytest.mark.parametrize("rel", ["DESIGN.md", "scripts/balance.py"])
 def test_the_core_version_claimed_is_the_pinned_release(rel):
-    # the work-up rests on core 1.8.0 (ADRs 0056, 0057), the release the library pins; no
-    # unreleased core commit is named as its basis
+    # the work-up rests on core 1.8.0 (ADRs 0056, 0057); the library pins a release at or after
+    # it, and no unreleased core commit is named as its basis
     text = _text(rel)
     for claim in ("when released", "unreleased", "core main 7334d7c"):
         assert claim not in text, f"{rel}: {claim!r}"
     workflow = (KIT / ".github" / "workflows" / "validate.yml").read_text(encoding="utf-8")
-    assert "core v1.8.0" in workflow
+    releases = re.findall(r"core v(\d+)\.(\d+)\.\d+ [0-9a-f]{7}", workflow)
+    pinned = {(int(a), int(b)) for a, b in releases}
+    assert pinned and min(pinned) >= (1, 8), pinned
