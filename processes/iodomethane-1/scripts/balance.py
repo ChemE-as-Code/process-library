@@ -18,8 +18,11 @@ from the streams propagate wrote:
   these liquids and no drying of a liquid over a desiccant;
 - the temperatures of the stills' streams (bubble points by Raoult's law with the same NIST
   Antoine constants the stills use) and of the adiabatic washes and the dryer;
-- R101's vent fraction: the iodomethane the batch's wet nitrogen and displaced head spaces carry
-  past the vent condenser E-102 at 268 K, of what R101 forms (D-012);
+- R101's vent fraction: the iodomethane the batch's wet nitrogen (the work-up's blanket and the
+  purge nitrogen R-101's rise displaces, each counted once) carries past the vent condenser E-102
+  at 268 K, of what R101 forms (D-012);
+- ST101's net boil-up: the jacket's assumed 15 kW mean less the residue's sensible heat, which the
+  still model does not hold (D-007, L-4), so that core's boil-up time covers both;
 - the duties Q1, Q4 to Q7 and Q9 to Q12 (no property package of core covers these liquids); since
   cheme-as-code 1.9.0 (core ADR 0059) propagate writes R101's Q2 and the stills' net boil-ups Q3
   and Q8 from the models; this script prints its own values of them as a cross-check only;
@@ -94,7 +97,10 @@ N2_DRY_NM3_PER_BATCH = 5.0
 RHO_AQ = 1000.0  # kg/m3 of the aqueous liquids, for the displaced head spaces
 
 # powers (kW) and when they run (D-011)
-P_R101_AGITATOR = 3.0  # kW, R-101's agitator: charge, warm, dose, react, hold, distil, cool
+P_R101_AGITATOR = 3.0  # kW, R-101's agitator: charge, warm, dose, react, hold, heat-up, distil, cool
+# the mean heat R-101's jacket gives the still on the hot-water loop (D-007): about 34 kW at the
+# start, a few kW at the end; part of it is the residue's sensible heat, the rest boils
+JACKET_MEAN_ST101 = 15.0
 P_FEEDER = 0.75  # kW, the iodine's closed solids feeder and its nitrogen lock: the dosing
 P_V102_AGITATOR = 1.5  # kW, V-102's agitator: 15 min of each of the four washes
 P_PUMP = 1.1  # kW, a transfer pump
@@ -348,18 +354,32 @@ def main() -> None:
     batches = hours_year / cycle
 
     # R101's vent (D-012): the gas that leaves saturated with iodomethane at 303 K through E-102
-    # and passes it at 268 K. Per batch: the wet nitrogen, the head spaces the liquids displace as
-    # they fill V-102 (the crude, the thiosulfate and the wash water), A-103 (the washed crude),
-    # C-104 (the dried crude) and the product tank, and R-101's own rise in volume over the dosing
+    # and passes it at 268 K. Per batch: the head spaces the liquids displace as they fill V-102
+    # (the crude, the thiosulfate and the wash water), A-103 (the washed crude), C-104 (the dried
+    # crude) and the product tank, and R-101's own rise in volume over the dosing. Each kmol of
+    # nitrogen is counted once, where it leaves, and the iodomethane is added once, below. The
+    # work-up's 5 Nm3 blanket is the make-up of the volumes its liquids vacate (at most P V / (R T)
+    # a batch, checked below) and of its breathing; all of it leaves through E-102 saturated at
+    # 303 K (an upper bound). A head space a liquid displaces holds that nitrogen, already
+    # saturated, so it adds no nitrogen of its own. R-101's head space holds the purge's nitrogen
+    # (the 5 Nm3 that purge R-101 before the charge): what its rise displaces leaves wet, its inert
+    # share (P - p_in) / P of the volume, and the rest of the purge leaves dry
     per_batch = cycle  # h of the flowsheet's flows in one batch
     s3 = {n: s1.get(n, 0.0) + s2.get(n, 0.0) for n in set(s1) | set(s2)}
-    displaced = (
-        volume(s10) + volume(s13) + volume({"H2O": water_wash}) + volume(s18) + volume(s20) + volume(s25)
-        + max(0.0, volume(s6) - volume(s3))
-    ) * per_batch  # m3 a batch
-    n_wet = (N2_NM3_PER_BATCH - N2_DRY_NM3_PER_BATCH) / 22.414 + P * displaced / (R_GAS * T_COND)
-    n_dry = N2_DRY_NM3_PER_BATCH / 22.414
     p_in, p_out = psat_mei_low(T_COND), psat_mei_low(T_VENT)
+    inert_share = (P - p_in) / P
+    workup = (
+        volume(s10) + volume(s13) + volume({"H2O": water_wash}) + volume(s18) + volume(s20) + volume(s25)
+    ) * per_batch  # m3 a batch
+    rise = max(0.0, volume(s6) - volume(s3)) * per_batch  # m3 a batch
+    displaced = workup + rise
+    blanket = (N2_NM3_PER_BATCH - N2_DRY_NM3_PER_BATCH) / 22.414  # kmol a batch
+    makeup = P * workup / (R_GAS * T_COND)  # kmol a batch: the vacated volumes refilled with nitrogen
+    workup_n2 = makeup * inert_share  # kmol of the blanket's nitrogen the liquids displace
+    rise_n2 = P * rise / (R_GAS * T_COND) * inert_share  # kmol of the purge's nitrogen R-101's rise displaces
+    assert makeup <= blanket, "the blanket does not cover the make-up of the work-up's head spaces"
+    n_wet = blanket + rise_n2  # kmol of nitrogen a batch through E-102 saturated
+    n_dry = N2_DRY_NM3_PER_BATCH / 22.414 - rise_n2
     mei_in = n_wet * p_in / (P - p_in)  # kmol a batch into E-102
     mei_out = n_wet * p_out / (P - p_out)  # kmol a batch past E-102
     vent_fraction = mei_out / (formed * per_batch)
@@ -375,7 +395,13 @@ def main() -> None:
     dose_heat = heat_capacity_rate(s5) * (T_REACT - T_AMBIENT)
     q2 = (released - dose_heat) / 3600.0  # cross-check of the model's Q2
     q3 = latent(s8) / 3600.0  # cross-check of the still's net boil-up
-    q4 = (heat_capacity_rate(s6) * max(0.0, t8 - T_REACT) + heat_capacity_rate(s9) * (t9 - max(t8, T_REACT))) / 3600.0
+    # Q4 in two parts (D-007): the reaction mass heated to its bubble point before anything boils
+    # (the recipe's `heatup`, timed by core from the jacket) and the residue's sensible heat as its
+    # bubble point rises during the distillation, drawn from the jacket's mean with the boil-up
+    q4_heatup = heat_capacity_rate(s6) * max(0.0, t8 - T_REACT) / 3600.0
+    q4_residue = heat_capacity_rate(s9) * (t9 - max(t8, T_REACT)) / 3600.0
+    q4 = q4_heatup + q4_residue
+    net_boilup = JACKET_MEAN_ST101 * q3 / (q3 + q4_residue)  # kW of the mean that boils (ST101's boilup)
     q5 = (latent(s8) + heat_capacity_rate(s8) * (t8 - T_COND)) / 3600.0
     q6 = heat_capacity_rate(s9) * (t9 - T_RES) / 3600.0
     q8 = latent(s22) / 3600.0
@@ -386,7 +412,7 @@ def main() -> None:
     q13 = REFLUX * latent(s22) / 3600.0
 
     # power: kWh a batch over the cycle
-    r101_on = sum(op_h.get(("REACT", o), 0.0) for o in ("charge", "heat", "dose", "react", "hold", "distil", "cool"))
+    r101_on = sum(op_h.get(("REACT", o), 0.0) for o in ("charge", "heat", "dose", "react", "hold", "heatup", "distil", "cool"))
     e1 = (P_R101_AGITATOR + P_LOOP) * r101_on + P_FEEDER * op_h.get(("REACT", "dose"), 0.0)
     e2 = P_V102_AGITATOR * 4 * 0.25 + P_PUMP * V102_PUMP_H
     c104_on = op_h.get(("DISTIL", "distil"), 0.0) + op_h.get(("DISTIL", "cool"), 0.0)
@@ -417,7 +443,8 @@ def main() -> None:
     print(f"S25 {product:.4f} kg/h, MEI {s25.get('MEI', 0) / product:.6f} by mass, methanol {s25.get('MEOH', 0) / product * 1e6:.0f} ppm, water {s25.get('H2O', 0) / product * 1e6:.0f} ppm")
     print(f"yield on iodine {s25.get('MEI', 0) / MW['MEI'] / i_fed:.4%}")
     print("iodine's fate (share of the iodine fed): " + ", ".join(f"{k} {v / i_fed:.4%}" for k, v in i_fate.items()) + f"; unaccounted {1 - sum(i_fate.values()) / i_fed:.4%}")
-    print(f"vent: wet gas {n_wet:.4f} kmol a batch (of it displaced {displaced:.3f} m3), MeI into E-102 {mei_in:.4f}, past it {mei_out:.4f} kmol a batch; vent fraction {vent_fraction:.6f} of what R101 forms")
+    print(f"vent: head spaces displaced {displaced:.3f} m3 a batch (work-up {workup:.3f}, R-101's rise {rise:.3f}); the work-up's make-up at most {makeup:.4f} kmol of the blanket's {blanket:.4f} (its displaced nitrogen {workup_n2:.4f}), R-101's rise {rise_n2:.4f} kmol of the purge's; wet nitrogen {n_wet:.4f} kmol a batch, MeI into E-102 {mei_in:.4f}, past it {mei_out:.4f} kmol ({mei_out * MW['MEI']:.2f} kg) a batch; vent fraction {vent_fraction:.6f} of what R101 forms")
+    print(f"Q4 {q4:.4f} kW: heat-up to the bubble point {q4_heatup:.4f} ({q4_heatup * per_batch:.2f} kWh a batch), the residue's sensible heat {q4_residue:.4f} ({q4_residue * per_batch:.2f} kWh a batch); ST101's net boil-up of the jacket's {JACKET_MEAN_ST101:.0f} kW mean: {net_boilup:.2f} kW")
     print(f"Q1 {q1:.4f}, Q4 {q4:.4f}, Q5 {q5:.4f}, Q6 {q6:.4f}, Q7 {q7:.4f}, Q9 {q9:.4f}, Q10 {q10:.4f}, Q11 {q11:.4f}, Q12 {q12:.5f}, Q13 {q13:.4f} kW")
     print(f"cross-check of the model duties propagate writes: Q2 {q2:.4f} (released {released / 3600:.4f}, dose {dose_heat / 3600:.4f}), Q3 {q3:.4f}, Q8 {q8:.4f} kW")
     print(f"power: P1 {p1:.4f} ({e1:.2f} kWh a batch, R-101 on {r101_on:.2f} h), P2 {p2:.4f} ({e2:.2f} kWh), P3 {p3:.4f} ({e3:.2f} kWh, C-104 on {c104_on:.2f} h) kW")
@@ -458,6 +485,7 @@ def main() -> None:
     }
     write_balance_output({"design": out})
     print(f"vent fraction for R101 (written by hand): {vent_fraction:.6f}")
+    print(f"boilup for ST101 (written by hand): {net_boilup:.2f}")
 
 
 def write_balance_output(cases):

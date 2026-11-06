@@ -12,8 +12,8 @@ checked by [`cheme-as-code`](https://github.com/ChemE-as-Code/core).
 
 A batch plant for iodomethane (methyl iodide) from methanol, red phosphorus and iodine (CN
 114195616 B, Examples 1-3). The reactor R101 is a semi-batch (`reactor: semibatch`): iodine is
-dosed over 10 h into a slurry of red phosphorus in methanol at 313 K, the end mass's boiling point
-at total reflux, given as `hazard.mtt`. The red phosphorus is a solid reactant in the liquid
+dosed over 10 h into a slurry of red phosphorus in methanol at 313 K, the end mass's measured
+temperature at total reflux, given as `hazard.mtt`. The red phosphorus is a solid reactant in the liquid
 model. The iodomethane that the vents carry past the brine condenser leaves by a vent stream
 (`batch.vent`, core ADR 0054) to an activated-carbon adsorber. The crude is distilled off the
 phosphorous acid residue in the same vessel by a batch still, ST101 (`still:`, core ADR 0055, a
@@ -30,14 +30,15 @@ m3/h (`hazard.vent_capacity`, core ADR 0058). Needs cheme-as-code 1.9.0. DESIGN.
 features used and the core limits hit.
 
 Four headline numbers carry caveats:
-- The yield, 95.8 % of theory on the iodine, is a model result inside the patent's 95-96 % (no
-  basis stated). It is an ASSUMED upper bound: the losses not modelled only lower it, and the
+- The yield, 96.07 % of theory on the iodine, is a model result just above the patent's 95-96 %
+  (no basis stated). It is an ASSUMED upper bound: the losses not modelled only lower it, and the
   residue's share rests on an assumed relative volatility (D-007, D-013).
 - The product's 99.6 wt% is the patent's (Example 3), to which the column's split is
   calibrated. One still stage gives 99.40 wt% even on an ideal liquid (D-010).
 - The accumulation, 2.28 %, follows from an ASSUMED rate law. The reactor runs at its boiling
   point, so a cooling failure takes it above the MTT (MTSR 322.6 K against 313.15 K). The reflux
-  condenser takes the boil-off, 24 to 50 kW (D-006).
+  condenser takes the boil-off, 25 to 52 kW (D-006). A loss of agitation during the dose would
+  accumulate undissolved iodine, which the 2.28 % does not cover (D-006 (g)).
 - The by-product is phosphorous acid, not the phosphoric acid the patent writes (D-004).
 
 | path | what |
