@@ -7,8 +7,8 @@
   process". Supersedes the rule of [ADR 0010](0010-public-and-preview-builds-fail-closed.md) that
   `internal` is the default and that setting `public` is the maintainers' decision in its own
   change, and the words "`internal` by default" of
-  [ADR 0004](0004-process-manifest-and-entry-kinds.md). The rest of both stands, and
-  `scripts/publication.py` is unchanged.
+  [ADR 0004](0004-process-manifest-and-entry-kinds.md). The rest of both stands; `scripts/publication.py`
+  `is_public` now also requires the licence, which keeps ADR 0010's fail-closed rule.
 
 ## Context
 
@@ -43,12 +43,13 @@ Options considered:
 - **No separate maintainer change is needed to publish.** The pull request that adds an entry
   publishes it; its review is the review of what is published.
 - **The builds stay fail-closed (ADR 0010).** The default is a value authors write, not a
-  fallback of the build: `scripts/publication.py` `is_public` still includes a process only when
-  its `process.yaml` says `publication.status: public`. A `process.yaml` without a status, with
-  `internal` or `candidate`, stays out of every `--public` build, so a forgotten field never
-  publishes. The licence is still written explicitly; it has no default in the schema or the
-  build. A public entry without one is caught by the library tests
-  (`tests/test_publication_policy.py`), which fail CI, so the mistake cannot reach a release.
+  fallback of the build: `scripts/publication.py` `is_public` includes a process only when its
+  `process.yaml` says `publication.status: public` and names its `publication.license`. A
+  `process.yaml` without a status, with `internal` or `candidate`, or public without a licence,
+  stays out of every `--public` build, so a forgotten field never publishes. The licence is
+  written explicitly and has no default: the schema requires it on a public entry, the build
+  leaves a public entry without one out, and the library tests (`tests/test_publication_policy.py`)
+  fail on it, so the mistake neither publishes nor passes CI.
 - **ADR 0013's rules apply in full.** No third-party content, facts and numbers only in our own
   form with their source, drawings generated from our own files, openly licensed material only
   with its licence and attribution. Since `README.md` and `DESIGN.md` are published as text,
@@ -56,7 +57,8 @@ Options considered:
   `publication.exclude`).
 - **`internal` remains available** for an entry that must not be published, for example one that
   rests on data whose licence does not allow it, or an unfinished private study. Its
-  `process.yaml` states the reason in a comment beside the status.
+  `process.yaml` states its own reason in a comment beside the status (the template's generic
+  comment does not count).
 - **The 13 batch entries waiting on 2026-11-06 are published** with this change:
   acetyl-chloride-1, benzoyl-chloride-1, benzyl-bromide-1, benzyl-chloroformate-1,
   carbon-tetrabromide-1, copper-i-chloride-1, di-tert-butyl-dicarbonate-1, iodomethane-1,
@@ -81,8 +83,12 @@ Options considered:
 ## Evidence
 
 - CONTRIBUTING.md "Adding a process" and "Publishing a process"; `templates/process/process.yaml`.
-- `scripts/publication.py` `is_public`, unchanged.
+- `scripts/publication.py` `is_public`: `status: public` and a licence (before this change, the
+  status alone); `schemas/process.schema.json` `publication`: a licence required when public.
 - `tests/test_publication_policy.py`: the template writes public with CC-BY-4.0, every public
-  entry states a licence, an internal entry states its reason, and a manifest without a status is
-  not public. The 13 entries' own tests assert public with CC-BY-4.0.
+  entry states a licence, an internal entry states its own reason (not the template's comment),
+  and a manifest without a status, or public without a licence, is not public. The nine entries
+  whose tests pinned `internal` now assert public with CC-BY-4.0, and the other four
+  (benzyl-chloroformate-1, carbon-tetrabromide-1, methylmagnesium-bromide-1, sodium-azide-1)
+  gain the same assertion; the policy test covers every entry.
 - The public catalog and LCI builds of this change list the 13 entries.

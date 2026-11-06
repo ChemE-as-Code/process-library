@@ -225,3 +225,8 @@ def test_shared_benchmarks_keep_both_entries():
     datasets = {d["process"]: d["dataset"] for d in bench["datasets"]}
     assert "benzyl-chloroformate-1" in datasets
     assert datasets["carbon-tetrabromide-1"] == _yaml("lca/dataset.yaml")["id"]
+
+
+def test_published_with_cc_by():
+    """Public by default (ADR 0036): the entry is published under CC-BY-4.0."""
+    assert _yaml("process.yaml")["publication"] == {"status": "public", "license": "CC-BY-4.0"}

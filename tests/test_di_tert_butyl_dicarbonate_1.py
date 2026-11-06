@@ -238,7 +238,7 @@ def test_vent_capacity_and_the_design_findings():
 
 def test_feeds_links_and_publication(model):
     design = _text("DESIGN.md")
-    assert "tert-butanol-1" in design and "link the alkoxide's proxy" in design
+    assert "entry makes tert-butanol yet" in design and "linking the proxy" in design
     proxy_t, proxy_k = 74.123 / 112.213, 39.098 / 112.213
     assert f"{proxy_t:.4f}" == "0.6606" and f"{proxy_k:.4f}" == "0.3484"
     mappings = _yaml("lca/mappings.yaml")["exchanges"]

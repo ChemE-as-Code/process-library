@@ -295,3 +295,8 @@ def test_reference_process_table_sorted_by_id():
     ids = re.findall(r"^\| \[`([^`]+)`\]\(processes/", table, re.MULTILINE)
     assert "benzyl-chloroformate-1" in ids
     assert ids == sorted(ids), [(a, b) for a, b in pairwise(ids) if a > b]
+
+
+def test_published_with_cc_by():
+    """Public by default (ADR 0036): the entry is published under CC-BY-4.0."""
+    assert _yaml("process.yaml")["publication"] == {"status": "public", "license": "CC-BY-4.0"}

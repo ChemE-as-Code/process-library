@@ -201,15 +201,17 @@ What the public build contains:
   it); the pull request that adds the entry publishes it, with no separate maintainer change
   ([ADR 0036](docs/adr/0036-public-is-the-default-publication-status.md)).
 - **Only public processes, and the build fails closed.** Only processes with
-  `publication.status: public` in `process.yaml` are in the public build; `internal`,
-  `candidate` and a missing status are left out entirely, so a forgotten field never publishes
+  `publication.status: public` and a `publication.license` in `process.yaml` are in the public
+  build; `internal`, `candidate`, a missing status and a public status without a licence are left
+  out entirely, so a forgotten field never publishes
   ([ADR 0010](docs/adr/0010-public-and-preview-builds-fail-closed.md)). Use `internal` only for an
   entry that must not be published (data whose licence does not allow it, an unfinished private
-  study), and state the reason in its `process.yaml`, in a comment beside the status.
+  study), and state its own reason in its `process.yaml`, in a comment beside the status (the
+  template's generic comment is not a reason).
 - **A stated licence.** `publication.license` names the licence it is published under (an SPDX
   id). For data and designs it is `CC-BY-4.0`, the library's licence (`LICENSE-DATA`), still
-  written explicitly: the schema and the build have no default, and the library tests fail on a
-  public entry without one.
+  written explicitly and has no default: the schema requires it on a public entry, the public
+  build leaves a public entry without one out, and the library tests fail on it.
 - **The repository** is shown only when its `access` is `public`.
 - **LCA results only when publishable.** An LCA's footprint values are shown only when core's
   committed run manifest (`lca/manifest.json`) says the result is publishable under its sources'
