@@ -17,7 +17,18 @@ what core has no model for, from the streams propagate wrote:
 - the temperatures of the still's streams (bubble points by Raoult's law with the same NIST
   Antoine constants the still uses), of the mixed residue S12 and of the adiabatic scrubber's
   liquor S16;
-- the duties Q1 to Q6 (no property package of core covers these liquids).
+- the duties Q1 and Q4 to Q8 (no property package of core covers these liquids, and core has
+  no column with reflux). Since cheme-as-code 1.9.0 (core ADR 0059) propagate writes R101's Q2
+  (its reactions' heat less the PCl3 dose warmed) and the still's Q3 (its net boil-up's latent
+  heat) from the models; this script prints its own values of both as a cross-check only. Q7
+  is the reboiler's share for the column's reflux (the reflux ratio times the latent heat of
+  the still's distillate) and Q8 the still's heat-up (the charge to its bubble point, the
+  residue to its end temperature), which the one-stage still does not hold (D-009, D-014).
+  The script also bounds R-101's own evaporative cooling: the vapour that the gas leaving
+  R-101 while it holds the reacting mass carries to E-103, which the model leaves out of Q2
+  (D-009, D-014). E-103's load Q6 is taken per source (R-101's gas off the reacting mass, the
+  still's and receivers' nitrogen at 303 K, R-101's dry purge); R101's vent fraction stays the
+  upper bound with all of E-103's inert saturated (D-010, D-014).
 
 Run: `cheme run scripts/balance.py`, after `cheme process propagate --fill`. With BALANCE_OUTPUT
 set it writes the values the flowsheet cites (library ADR 0027).
@@ -62,10 +73,18 @@ HEAT = {"ACCL": -10_500.0, "HYD": -64_200.0, "AHYD": -48_000.0}
 ABSORPTION = 75_000.0
 CP_GAS = {"HCL": 29.1, "N2": 29.1, "ACCL": 67.8}  # kJ/(kmol K), ideal gas near 298 K (CRC via chemicals 1.5.2; N2 ASSUMED as HCl)
 CP_ACID = 4.1  # kJ/(kg K), the 1 wt% bleed (ASSUMED, about water's 4.18)
-# nitrogen that leaves through E103 (D-010, lca.yaml): all 8 Nm3 a batch uses (R-101's purge
-# and blanket, the still's and receivers' breathing), taken as saturated with the upper phase's
-# vapour at 313 K: an upper bound for the still's vent, which leaves its condenser cooler; ASSUMED
+# nitrogen that leaves through E103 (D-010, lca.yaml): all 8 Nm3 a batch uses, ASSUMED. Of it
+# 5 Nm3 purge R-101 (2.5 m3, two volumes) on the dry vessel before the charge (the recipe's
+# `inert` step), so it carries no vapour; R-101's blanket is static. The other 3 Nm3 purge and
+# blanket the still and the receivers and leave from K-101's condenser and the receivers, taken
+# saturated over the product at its 303 K (D-010, D-014)
 N2_VENT_NM3_PER_BATCH = 8.0
+N2_R101_PURGE_NM3_PER_BATCH = 5.0
+N2_STILL_NM3_PER_BATCH = N2_VENT_NM3_PER_BATCH - N2_R101_PURGE_NM3_PER_BATCH
+# the gas that leaves R-101 while it holds the reacting mass: the HCl it forms and the head space
+# the dosed PCl3 displaces (its liquid volume, materials.yaml), taken saturated with the upper
+# phase's vapour at 313 K, an upper bound (recipe.yaml, D-003, D-014)
+R_GAS = 8.314  # kJ/(kmol K)
 
 
 def load(name: str) -> dict:
@@ -172,8 +191,10 @@ def main() -> None:
     t_return = t_still1  # the column's hold-up and last cut drain back at the pot's end temperature
     t12 = (c9 * t_still1 + c11 * t_return) / (c9 + c11)
 
-    # the vent: HCl of R101 and the nitrogen sweep, saturated with the upper phase's vapour at
-    # 313 K, cooled to 268 K in E103
+    # the vent's upper bound as until core 1.9.0: all of E-103's inert (the HCl of R101 and the
+    # batch's whole nitrogen) taken saturated with the upper phase's vapour at 313 K, cooled to
+    # 268 K in E103. It still sets R101's vent fraction (an upper bound, D-010) and R-101's own
+    # evaporative cooling below; E-103's load Q6 is taken per source further down
     batches = CAPACITY * hours / batch_kg  # batches a year at the recipe's batch size
     hcl = component_flows(streams, "S5").get("HCL", 0.0)
     n_hcl = hcl / MW["HCL"]
@@ -187,7 +208,7 @@ def main() -> None:
     # E103 condenses the acetyl chloride down to its vapour pressure at 268 K and all the acetic
     # acid; the PCl3 (3.6 kPa at 268 K, above its 0.5 kPa partial pressure at 313 K) passes
     condensed = vap_hot["ACCL"] - vap_cold + vap_hot["ACOH"]
-    q6 = (
+    q6_bound = (
         (vap_hot["ACCL"] - vap_cold) * HVAP["ACCL"]
         + vap_hot["ACOH"] * HVAP["ACOH"]
         + (inert * CP_GAS["HCL"] + sum(vap_hot.values()) * CP_GAS["ACCL"]) * (T_REACT - T_VENT)
@@ -205,17 +226,57 @@ def main() -> None:
     dose_heat = heat_capacity_rate(s3) * (T_REACT - T_AMBIENT)
     evaporation = sum(vap_hot[n] * HVAP[n] for n in vap_hot)
     reflux_back = condensed * CP["ACCL"] * (T_REACT - T_VENT)  # the cold condensate rewarmed in R-101
-    q2 = (released - dose_heat - evaporation - reflux_back) / 3600.0
+    # R101's duty as core's semi-batch model writes it on Q2 (ADR 0059): a cross-check only
+    q2 = (released - dose_heat) / 3600.0
+    # R-101's own evaporative cooling, which the model leaves out of Q2 (D-014): the vapour the
+    # gas leaving the reacting mass carries, saturated with the upper phase's vapour at 313 K (an
+    # upper bound: the HCl forms mostly in the first minutes, over nearly pure acetic acid), and
+    # its condensate returned cold from E-103 and rewarmed. The rest of the inert is the batch's
+    # nitrogen, which never passes over the reacting mass. Until core 1.9.0 Q2 was typed with all
+    # of it deducted (1.27 kW), as if the whole batch's nitrogen swept the reacting mass, and Q6
+    # held the same vapour; since then Q6 is taken per source below (D-014)
+    displaced = s3["PCL3"] / MW["PCL3"] * MATERIALS["PCL3"]["liquid_molar_volume"]  # m3/h
+    gas_displaced = P * displaced / (R_GAS * T_REACT)  # kmol/h, saturated head space
+    inert_r101 = n_hcl + gas_displaced * (1.0 - sum(p_hot.values()) / P)
+    share_r101 = inert_r101 / inert
+    evaporation_r101 = (evaporation + reflux_back) * share_r101
+
+    # E-103's load Q6 per source (D-010, D-014): R-101's gas off the reacting mass (above); the
+    # still's and receivers' nitrogen saturated over the product S10 at 303 K; R-101's purge dry,
+    # from the ambient. E103 takes each to 268 K, condensing the acetyl chloride down to its
+    # vapour pressure there and all the acetic acid; the PCl3 passes
+    def e103_load(n_inert: float, vapour: dict[str, float], t_in: float) -> tuple[float, float]:
+        """kJ/h E103 removes from one source, and kmol/h of acetyl chloride that passes it."""
+        passing = min(vapour.get("ACCL", 0.0), n_inert * p_cold / (P - p_cold))
+        latent_e103 = (vapour.get("ACCL", 0.0) - passing) * HVAP["ACCL"] + vapour.get("ACOH", 0.0) * HVAP["ACOH"]
+        sensible = (n_inert * CP_GAS["N2"] + sum(vapour.values()) * CP_GAS["ACCL"]) * (t_in - T_VENT)
+        return latent_e103 + sensible, passing
+
+    vap_r101 = {n: inert_r101 * p / (P - sum(p_hot.values())) for n, p in p_hot.items()}
+    n_still = N2_STILL_NM3_PER_BATCH / 22.414 * batches / hours  # kmol/h
+    x10 = {n: v / sum(kmol(s10).values()) for n, v in kmol(s10).items()}
+    p_still = {n: x10.get(n, 0.0) * psat(n, T_PRODUCT) for n in ("ACCL", "PCL3", "ACOH")}
+    vap_still = {n: n_still * p / (P - sum(p_still.values())) for n, p in p_still.items()}
+    n_purge = N2_R101_PURGE_NM3_PER_BATCH / 22.414 * batches / hours  # kmol/h, dry
+    load_r101, pass_r101 = e103_load(inert_r101, vap_r101, T_REACT)
+    load_still, pass_still = e103_load(n_still, vap_still, T_PRODUCT)
+    load_purge, _ = e103_load(n_purge, {}, T_AMBIENT)
+    q6 = (load_r101 + load_still + load_purge) / 3600.0
     latent = sum(v / MW[n] * HVAP[n] for n, v in s8.items() if v > 0)
     heat_up = heat_capacity_rate(s6) * (t_still0 - T_REACT) + c9 * (t_still1 - t_still0)
-    q3 = ((1.0 + REFLUX) * latent + heat_up) / 3600.0
+    q3 = latent / 3600.0  # the still's net boil-up: core's still model writes it (ADR 0059)
+    q7 = REFLUX * latent / 3600.0  # the boil-up the column returns as reflux (D-009)
+    q8 = heat_up / 3600.0  # the charge to its bubble point, the residue to its end (D-009)
     subcool = heat_capacity_rate(s10) * (t_still0 - T_PRODUCT)
     q4 = ((1.0 + REFLUX) * latent + subcool) / 3600.0
     q5 = (c9 + c11) * (t12 - T_PRODUCT) / 3600.0
 
     # the vent fraction of the acetyl chloride R101 forms that leaves past E103 (R101's
-    # batch.vent fraction in the flowsheet, written by hand from this value)
+    # batch.vent fraction in the flowsheet, written by hand from this value): an upper bound, all
+    # of E-103's inert saturated at 268 K, R-101's dry purge too; per source (the purge carries
+    # no vapour) it is lower, printed beside it and not used (D-010)
     vent_fraction = vap_cold / (3.0 * extent_accl)
+    vent_fraction_per_source = (pass_r101 + pass_still) / (3.0 * extent_accl)
 
     # the scrubber: the vented acetyl chloride hydrolysed (AHYD), water for a 1 wt% HCl bleed,
     # adiabatic outlet temperature
@@ -237,8 +298,12 @@ def main() -> None:
     print(f"yield on acetic acid {yield_acid:.4%} (1 mol acetyl chloride per mol)")
     print(f"still: first bubble point {t_still0:.2f} K, last {t_still1:.2f} K; S12 {t12:.2f} K")
     print(f"vent: HCl {n_hcl:.6f}, N2 {n_n2:.6f}, vapour at 313 K {sum(vap_hot.values()):.6f} kmol/h, acetyl chloride past E103 {vap_cold:.6f} kmol/h ({vap_cold * MW['ACCL']:.4f} kg/h), vent fraction {vent_fraction:.6f} of what R101 forms; PCl3 past E103 {vap_hot['PCL3']:.6f} kmol/h")
+    print(f"vent per source: R-101's gas {inert_r101:.6f}, the still's and receivers' N2 {n_still:.6f}, R-101's dry purge {n_purge:.6f} kmol/h; acetyl chloride into E103 {vap_r101['ACCL'] + vap_still['ACCL']:.6f} (upper bound {vap_hot['ACCL']:.6f}), past E103 {pass_r101 + pass_still:.6f} kmol/h, vent fraction {vent_fraction_per_source:.6f} (not used: the flowsheet keeps the upper bound {vent_fraction:.6f})")
+    print(f"Q6 per source {q6:.4f} kW: R-101's gas {load_r101 / 3600:.4f}, the still's and receivers' N2 {load_still / 3600:.4f}, R-101's dry purge {load_purge / 3600:.4f}; the upper bound with all the inert saturated at 313 K {q6_bound:.4f} kW")
     print(f"S15 scrubber water {water:.4f} kg/h; S16 {t16:.2f} K")
-    print(f"Q1 {q1:.4f}, Q2 {q2:.4f} (released {released / 3600:.4f}, dose {dose_heat / 3600:.4f}, evaporation {evaporation / 3600:.4f}, reflux {reflux_back / 3600:.4f}), Q3 {q3:.4f}, Q4 {q4:.4f}, Q5 {q5:.4f}, Q6 {q6:.4f} kW")
+    print(f"Q1 {q1:.4f}, Q4 {q4:.4f}, Q5 {q5:.4f}, Q6 {q6:.4f}, Q7 reboiler for the reflux {q7:.4f}, Q8 still heat-up {q8:.4f} kW")
+    print(f"cross-check of the model duties propagate writes: Q2 R101 {q2:.4f} (released {released / 3600:.4f}, dose {dose_heat / 3600:.4f}), Q3 still net boil-up {q3:.4f} kW; reboiler Q3 + Q7 + Q8 {q3 + q7 + q8:.4f} kW")
+    print(f"R-101's own evaporative cooling (not in Q2, upper bound): gas off the reacting mass {inert_r101:.6f} kmol/h ({share_r101:.4f} of E-103's inert), net {evaporation_r101 / 3600:.4f} kW ({evaporation_r101 / 3600 / q2:.2%} of Q2); E-103's whole vapour with its condensate rewarmed {(evaporation + reflux_back) / 3600:.4f} kW (the 1.8.0 hand Q2 deducted it all: {q2 - (evaporation + reflux_back) / 3600:.4f} kW)")
 
     write_balance_output(
         {
@@ -255,11 +320,11 @@ def main() -> None:
                 "S15": {"flow": round(water, 4)},
                 "S16": {"temperature": round(t16, 2)},
                 "Q1": {"duty": round(q1, 4)},
-                "Q2": {"duty": round(q2, 4)},
-                "Q3": {"duty": round(q3, 4)},
                 "Q4": {"duty": round(q4, 4)},
                 "Q5": {"duty": round(q5, 4)},
                 "Q6": {"duty": round(q6, 4)},
+                "Q7": {"duty": round(q7, 4)},
+                "Q8": {"duty": round(q8, 4)},
             }
         }
     )

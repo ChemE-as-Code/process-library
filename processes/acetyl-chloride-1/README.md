@@ -23,8 +23,12 @@ column on top of it, K101, is a specified split until core has a batch column wi
 (core#173). `process/recipe.yaml` holds the batch recipe that gives the cycle time, R-101's
 vessel, jacket check and warming time, the still's boil-up time and the flowsheet's
 year-average flows (`cheme process recipe`, `cheme process reactor-hazards`, `cheme process
-stills`). Needs cheme-as-code 1.8.0. DESIGN.md lists the core features used and the core limits
-hit.
+stills`). Since core 1.9.0 the semi-batch's and the still's models write their duties Q2 and Q3
+(`energy_port`, core ADR 0059), with the reboiler's reflux share and heat-up on their own streams
+Q7 and Q8, and the screening compares the gas released at a cooling failure with R-101's vent
+capacity of 50 m3/h (`hazard.vent_capacity`, core ADR 0058); the boiling and water cases beyond
+it are a design finding (DESIGN.md D-014). Needs cheme-as-code 1.9.0. DESIGN.md lists the core
+features used and the core limits hit.
 
 Three headline numbers carry caveats:
 - The yield, 92.4 % of theory on the acetic acid and the PCl3, is a model result; no open source
@@ -50,7 +54,7 @@ Three headline numbers carry caveats:
 | `reviews/` | review records |
 | `runs/` | one record per design session, written by `cheme runs record` (`runs/README.md`); never edited |
 | `DESIGN.md`, `PROGRESS.md`, `STAGES.md` | decisions, change log, stage definitions |
-| `scripts/` | generator scripts and `balance.py`: the feeds for 2000 t/a, the phase split, the column's split, the scrubber water, the mixed temperatures and the duties (D-006) |
+| `scripts/` | generator scripts and `balance.py`: the feeds for 2000 t/a, the phase split, the column's split, the scrubber water, the mixed temperatures and the duties core's models do not write (D-006, D-014) |
 | `.claude/skills/` | how an agent works here (not in git: run `cheme skills update` once after cloning) |
 
 ## How this repository works
@@ -73,8 +77,8 @@ cheme validate                  # after every change
 cheme check                     # engineering-step gates (--write only at sign-off)
 cheme process build             # BFD and PFD from process/*.yaml
 cheme process streams           # stream table with provenance, block balances
-cheme process propagate --fill  # the semi-batch, the still, the mixers and the scrubber from the feeds
-cheme run scripts/balance.py    # the feeds, the phase split, the column's split and the duties (then propagate again)
+cheme process propagate --fill  # the semi-batch, the still (with their duties Q2, Q3), the mixers and the scrubber from the feeds
+cheme run scripts/balance.py    # the feeds, the phase split, the column's split and the other duties (then propagate again)
 cheme process recipe            # batch cycle: occupancy, bottleneck, batches per year, vessel, jacket, vent (--svg)
 cheme process reactor-hazards   # thermal screening of the semi-batch
 cheme process stills            # the batch still: distillate, residue, boil-up time

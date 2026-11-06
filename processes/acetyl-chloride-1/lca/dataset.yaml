@@ -163,14 +163,20 @@ exchanges:
   amount: 58.1841
   unit: kWh
   link:
-    source: flowsheet energy streams Q1 (R-101's tempered-water loop) and Q3 (still), D-009
+    source: flowsheet energy streams Q1 (R-101's tempered-water loop), Q3 (the still's net boil-up, from
+      core's still model), Q7 (the boil-up returned as the column's reflux) and Q8 (the still's heat-up),
+      together the still's reboiler, D-009, D-014
     missing: 'linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry,
       350 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh
       of condensing heat'
   streams:
   - Q1
   - Q3
-  source: flowsheet energy streams Q1 (R-101's tempered-water loop) and Q3 (still), D-009
+  - Q7
+  - Q8
+  source: flowsheet energy streams Q1 (R-101's tempered-water loop), Q3 (the still's net boil-up, from
+    core's still model), Q7 (the boil-up returned as the column's reflux) and Q8 (the still's heat-up),
+    together the still's reboiler, D-009, D-014
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -304,19 +310,19 @@ exchanges:
 - key: product:CW
   title: Cooling water return
   type: output
-  amount: 58.7923
+  amount: 60.193690000000004
   unit: kWh
   link:
-    source: flowsheet energy streams Q2 (R-101), Q4 (column condenser and product cooler) and Q5 (residue
-      cooling), D-009
+    source: flowsheet energy streams Q2 (R-101, from core's semi-batch model), Q4 (column condenser and
+      product cooler) and Q5 (residue cooling), D-009, D-014
     missing: 'not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system
       with cooling tower (processes/utility-cooling-tower), per kWh removed'
   streams:
   - Q2
   - Q4
   - Q5
-  source: flowsheet energy streams Q2 (R-101), Q4 (column condenser and product cooler) and Q5 (residue
-    cooling), D-009
+  source: flowsheet energy streams Q2 (R-101, from core's semi-batch model), Q4 (column condenser and
+    product cooler) and Q5 (residue cooling), D-009, D-014
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -328,7 +334,7 @@ exchanges:
 - key: product:BRINE
   title: Chilled brine return (263 K)
   type: output
-  amount: 1.2826
+  amount: 0.3492
   unit: kWh
   link:
     source: flowsheet energy stream Q6 (vent condenser E-103), D-010
@@ -387,8 +393,8 @@ provenance:
     (2000 t/a)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:81b42b1c27706fe78bde7998d765f986b1c04f38121b713bc9ec75492336a4bd
-    lca/lca.yaml: sha256:32cd14742da22c59b251f338f5c4d5ccea739d7da014b072abec0b0e0ac76c86
-    process.yaml: sha256:9786ac266ac563f386114b70e33af77610ce085628b00d51854e6447fed1c354
-    process/flowsheet.yaml: sha256:dff406f37346127cd6820d0dbf76fa201a35777b003858664df256158ae699b2
+    equipment/equipment-list.yaml: sha256:25ec663aff1bc9d463cf204600afbb66f9c336d5f3405b970e1cbeb84c0772f6
+    lca/lca.yaml: sha256:83d01e4804d8fa1fe354b795257a6b26970dbada4aa3ecc0eac201aff451643a
+    process.yaml: sha256:7220ec1784fec487ec4d4c81783b8673d27a76d7f0cb058656cc41785716ebeb
+    process/flowsheet.yaml: sha256:e637206aa7debc3cf842d7f4fe1218dcddda00c6cb93ea2e008587e1cbf8852d
     process/materials.yaml: sha256:02cdd4fe2acf0f8603b4dc97831e33a94fb4c1f0e38c1608233c74d1bdc2c640

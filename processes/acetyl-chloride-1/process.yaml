@@ -28,12 +28,15 @@ description: |
   0052, 0057): the dosing, post-reaction, warming and distillation times come from the models,
   the reactor is the bottleneck (cycle 5.78 h, 1370 batches a year), the recipe sizes the
   reactor (2.5 m3) and checks its jacket, and the flowsheet's flows are the recipe's year
-  averages. The phase split and the column's rectification are specified splits until core has
+  averages. Since core 1.9.0 the semi-batch and the still write their own duties (ADR 0059),
+  and the screening compares the gas a cooling failure releases with R-101's vent (ADR 0058). The phase split and the column's rectification are specified splits until core has
   a liquid-liquid model for these liquids and a batch column with reflux (core#173). The
   conversion and the phase split are calibrated to the source's lower phase; the kinetics are
   ASSUMED: the PCl3 accumulates to 11.7 % at the end of the dosing and the cooling-failure
   temperature stays 8.4 K below the boiling point of acetyl chloride; a 100 times slower reaction
-  would exceed it. See DESIGN.md for every assumption.
+  would exceed it. The vent, sized for 50 m3/h, passes every cooling failure the screening
+  covers, but not the boiling and water-ingress cases, which need a relief study. See DESIGN.md
+  for every assumption.
 families: [chlorinated-organics]
 keywords: [acetyl chloride, acetic acid, phosphorus trichloride, PCl3, phosphorous acid, acid chloride, semi-batch, batch, dosing, HCl vent, vent condenser, phase separation, decanter, batch distillation, thermal screening, fine chemicals]
 facets:
@@ -54,21 +57,26 @@ validation:
     NIST Antoine constants, the ideal liquid ASSUMED), the scrubber's hydrolysis and the mixers
     are calculated by cheme process propagate; scripts/balance.py gives the feeds for 2000 t/a,
     the phase split D101 (calibrated to CS 272 248 B2), the column K101 as a specified split of
-    the still's distillate, the scrubber water, the temperatures of the mixed streams and every
-    duty (no property package of core covers these liquids, no liquid-liquid model applies, and
-    core has no batch rectification with reflux, core#173). The recipe's year-average rate of
+    the still's distillate, the scrubber water, the temperatures of the mixed streams and the
+    duties (no property package of core covers these liquids, no liquid-liquid model applies, and
+    core has no batch rectification with reflux, core#173), except R101's duty and the still's
+    net boil-up, which core's models write (ADR 0059); the reboiler's shares for the column's
+    reflux and for the heat-up are their own streams. The recipe's year-average rate of
     the product agrees with the flowsheet (no cheme.recipe-basis finding); the recipe sizes R-101
     (2.5 m3), its jacket check passes against the log-mean cooling-water temperature, and the
     still's distillation time comes from its boil-up. Thermal screening (cheme process
     reactor-hazards): dT_ad 21.4 K, accumulation 11.7 %, MTSR 315.8 K against an MTT of 324.15 K
     (hazard.mtt: the boiling point of acetyl chloride); no criticality class without a TD24
     (1 or 2 if the TD24 lies above the MTSR, 5 if below). With k/10 the MTSR is 321.1 K, with
-    k/100 330.5 K, above the MTT (DESIGN.md D-011). The heat of reaction's sign is uncertain
+    k/100 330.5 K, above the MTT (DESIGN.md D-011). At the MTSR a cooling failure releases 0.41
+    m3/h of gas, at most 31.2 m3/h over the batch (37.9 m3/h at k/100), within R-101's vent
+    capacity of 50 m3/h (ASSUMED); the boiling cases (k/100 above the MTT, a failed warming loop)
+    and water ingress are a design finding for the relief study (DESIGN.md D-014). The heat of reaction's sign is uncertain
     (D-005). Preliminary gate-to-gate LCI with the per-batch nitrogen, mass allocation to the
     crude phosphorous acid; the acetic acid linked to acetic-acid-1 and the nitrogen to asu-1,
     the PCl3 a gap with a recorded proxy, the other backgrounds gaps. cheme maturity reaches no
     level (assumed feeds, kinetics and separations); the claim `maturity: concept` is the lowest
-    value of the schema, not an evidenced level. Not reviewed. Needs cheme-as-code 1.8.0.
+    value of the schema, not an evidenced level. Not reviewed. Needs cheme-as-code 1.9.0.
 chemistry:
   inputs:
     - {chemical: acetic-acid, role: feedstock, inventory_key: "feed:HAC", note: "Glacial acetic acid (acetic-acid-1, 691 ppm water), 0.827 kg/kg acetyl chloride (stoichiometric 0.765)"}
@@ -81,9 +89,9 @@ chemistry:
     - {chemical: wastewater, role: waste, inventory_key: "product:SCRL", note: "Scrubber bleed, 0.217 kg/kg: 1 wt% HCl, 0.8 wt% acetic acid, to neutralisation"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.021 kWh/kg: agitators of R-101 and C-101, reflux pump, scrubber pump and fan (ASSUMED)"}
-    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.230 kWh/kg of LP steam 350 kPa(a): R-101's tempered-water loop and the still at a reflux ratio of 1"}
-    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.233 kWh/kg removed by cooling water: R-101's jacket, the column's condenser and product cooler, the residue's cooling"}
-    - {chemical: chilled-water, role: utility, inventory_key: "product:BRINE", note: "0.0051 kWh/kg removed by brine at 258 K: the vent condenser E-103 (the registry has chilled water, not brine: closest entry)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.230 kWh/kg of LP steam 350 kPa(a): R-101's tempered-water loop and the still at a reflux ratio of 1 (its net boil-up from core's still model, the reflux share and the heat-up apart)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.238 kWh/kg removed by cooling water: R-101's jacket (from core's semi-batch model), the column's condenser and product cooler, the residue's cooling"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:BRINE", note: "0.0014 kWh/kg removed by brine at 258 K: the vent condenser E-103 (the registry has chilled water, not brine: closest entry)"}
 basis:
   capacity: "2000 t/a distilled acetyl chloride: 1370.0 batches/a of 1459.91 kg in 7920 h on a dedicated train (252.53 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-013)"
   operating_hours_per_year: 7920

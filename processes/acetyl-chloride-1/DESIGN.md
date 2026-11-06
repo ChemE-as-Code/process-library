@@ -13,6 +13,15 @@ steps (ADRs 0051, 0052, 0055, 0057), per-batch LCA consumables (ADR 0053). Libra
 dedicated train, campaigns out of scope (D-013). Templates: `benzoyl-chloride-1` (vent, still and
 a specified-split column) and `p-toluenesulfonyl-chloride-1`.
 
+Core pin v1.9.0 (2026-11-06, 314642c): the models write the duties of their energy streams (core
+ADR 0059), so R101's Q2 and the still's net boil-up Q3 are now `calculated` by `cheme process
+propagate --fill`. The still's reboiler keeps its reflux share and its heat-up on their own
+streams, Q7 and Q8, and R-101's typed Q2 was found to deduct a vapour that never left R-101
+(D-009, D-014). The semi-batch screening gives the MTSR over the batch and the gas released at
+a cooling failure against R-101's vent capacity, 50 m3/h (ADR 0058, D-011, D-014). Requires
+cheme-as-code 1.9 (plant.yaml). No recycle is modelled (the residue's recycle is a variant,
+D-008), so the tears of ADR 0060 are not used.
+
 ## Source register
 
 Facts are restated in our own words; nothing is copied. "Read" means the passage named was read
@@ -123,7 +132,8 @@ pressure. Reactions (`process/reactions.yaml`):
   ASSUMED: it uses 0.23 % of the PCl3 at the start of the dosing.
 `batch.vent: {stream: S5, components: [HCL, ACCL], fraction: {ACCL: 0.00213}}` (core ADR 0054):
 all the HCl leaves the liquid as it forms (ASSUMED, none dissolved, L-6), and 0.213 % of the
-acetyl chloride formed leaves with it, the vapour that passes the vent condenser (D-010).
+acetyl chloride formed leaves with it, the vapour that passes the vent condenser, an upper
+bound (0.099 % per source; D-010, D-014).
 Temperature: 313.15 K is the top of SRC-1's dosing range (below 40 C) and the bottom of its hold
 (40-50 C). A semi-batch runs at one temperature (L-8), and a hold at 323 K would sit 1 K below
 acetyl chloride's boiling point.
@@ -152,6 +162,7 @@ form during the reaction (the H3PO3 phase separates). The model's kinetics are
 pseudo-homogeneous (L-2).
 Off-gas (`cheme process recipe`): 4.87 kg per batch (1.69 kg HCl, 3.18 kg acetyl chloride
 vapour), peak 30.8 m3/h at 313 K 0.02 h into the dosing, while the water of the charge reacts.
+R-101's vent capacity (50 m3/h) and the gas released at a cooling failure: D-014.
 
 ## D-006 Phase split D101 and the balance method (2026-11-06)
 Decision: the two phases settle in R-101 (D101, one more step of the REACT unit procedure). The
@@ -170,7 +181,9 @@ S1 and S3 for 2000 t/a (linear in the feeds; the script scales the PCl3 by the r
 to S10), the phase split D101, the column K101's split (D-008) and the scrubber water S15. It also
 gives the temperatures of the still's streams (bubble points by Raoult's law with the materials'
 Antoine constants, as the still computes them), of the mixed residue S12 and of the adiabatic
-scrubber's liquor S16, and the duties Q1 to Q6 (D-009). It follows the balance-output contract
+scrubber's liquor S16, and the duties Q1 and Q4 to Q8 (D-009). Since core 1.9.0 (ADR 0059)
+propagate also writes R101's Q2 and the still's net boil-up Q3 from those models, and the script
+prints its own Q2 and Q3 as a cross-check only (D-014). It follows the balance-output contract
 (`scripts/check_balance_scripts.py`). The batch size and the feeds were converged together:
 propagate, the script, the recipe's cycle, and again (L-7).
 Reason: core has no liquid-liquid model that applies. Its NRTL extraction needs binary pairs,
@@ -202,8 +215,8 @@ pairs were found.
 Not modelled (core limits L-4, L-10): acetyl chloride's NIST Antoine fit ends at 324.2 K, so the
 still extrapolates it by up to 16 K at the end (`cheme.process-still-note`, info; the 50 mol%
 end keeps it short of the pure PCl3 end at 349 K); the charge's heat-up from 313 to 324 K and the
-residue's from 324 to 340 K are in the script's Q3 (D-009); dissolved HCl, which would leave
-first as a lights cut (L-6).
+residue's from 324 to 340 K, the script's Q8 beside the model's Q3 (D-009, D-014); dissolved HCl,
+which would leave first as a lights cut (L-6).
 
 ## D-008 Column K101 on the still: rectification as a specified split; the PCl3 carry-over (2026-11-06; revisit with core#173)
 Decision: the column on C-101 (about 10 theoretical stages, reflux ratio 1, ASSUMED after SRC-2's
@@ -239,24 +252,38 @@ purer in PCl3, which is the heavier component; recycling the residue and the col
 (70 wt% PCl3) to the next batch's R-101: the obvious improvement, it would recover most of the
 4.5 % of the PCl3, but it is a tear stream across batches (a variant).
 
-## D-009 Utilities and heat (2026-11-06)
-Decision (scripts/balance.py, year averages, ASSUMED unless sourced):
+## D-009 Utilities and heat (2026-11-06, model duties 2026-11-06)
+Decision (year averages; Q2 and Q3 from core's models, the rest from scripts/balance.py, ASSUMED
+unless sourced):
 - Q1 1.79 kW of LP steam (via R-101's tempered-water loop): the acetic acid S1 warmed from 298 to
   313 K (123.3 kJ/(kmol K), SRC-4); about 19.3 kW over the 0.54 h of warming.
-- Q2 1.27 kW from R-101 to cooling water: the heat of ACCL and HYD (3.25 kW), less the PCl3 dose
-  warmed from 298 to 313 K (0.58 kW), less the acetyl chloride, PCl3 and acetic acid the vent gas
-  evaporates at 313 K (1.20 kW), less the cold condensate E-103 returns, rewarmed (0.20 kW). The
-  model's peak is 9.85 kW during the dosing (D-003). With the liquid-H3PO3 heat of reaction (+2.3
-  kJ/mol, D-005) Q2 would be about -2.6 kW: R-101 would need heat instead, which its tempered-water
-  loop provides; the sign is an open input.
-- Q3 56.40 kW of LP steam 350 kPa(a) (412 K) to the still: the latent heat of the distillate S8
-  times (1 + the reflux ratio 1), plus the charge heated from 313.15 to its 324.33 K bubble point
-  and the residue on to 340.45 K; 150 kW while distilling.
+- Q2 2.67 kW from R-101 to cooling water: the heat of ACCL and HYD (3.2503 kW) less the PCl3 dose
+  warmed from 298 to 313 K (0.5793 kW). Since core 1.9.0 R101's semi-batch model writes it
+  (2.67099 kW, `calculated`, `energy_port: q`, ADR 0059); scripts/balance.py gives the same two
+  terms as a cross-check. Until then the typed Q2 was 1.27 kW: it also deducted the latent heat
+  of the vapour the whole vent gas carries to E-103 and its condensate rewarmed (1.40 kW), as if
+  the batch's nitrogen swept the reacting mass. It does not, so that deduction is dropped (D-014).
+  The model's peak is 9.85 kW during the dosing (D-003). With the liquid-H3PO3 heat of reaction
+  (+2.3 kJ/mol, D-005) Q2 would be about -1.2 kW: R-101 would need heat instead, which its
+  tempered-water loop provides (core would then warn that the model's heat flows against Q2);
+  the sign is an open input.
+- The still's reboiler, 56.40 kW of LP steam 350 kPa(a) (412 K) to C-101's jacket; 150 kW while
+  distilling. It is three streams, all counted in the LCI (`feed:LPS`): Q3 27.5838 kW, the net
+  boil-up that leaves as distillate (the latent heat of S8), which core's still model writes
+  (ADR 0059; ST101's `energy_port: steam`, `calculated`); Q7 27.5838 kW, the boil-up the column
+  condenses and returns as reflux (the reflux ratio 1 times the same latent heat, D-008); and Q8
+  1.2282 kW, the charge heated from 313.15 K to its 324.33 K bubble point and the residue on to
+  340.45 K. Q7 and Q8 are ASSUMED script values: the one-stage still holds neither reflux nor
+  sensible heat (L-1, L-4). Until core 1.9.0 one typed Q3 held the 56.3958 kW (D-014).
 - Q4 57.38 kW to cooling water: the column's condenser at the same reflux, and the product
   subcooled from 324.33 to 303.15 K.
 - Q5 0.14 kW to cooling water: the residue S12 cooled from 340.45 to 303.15 K in the still before
   it is drained.
-- Q6 1.28 kW to brine (258/263 K): the vent condenser E-103 (D-010).
+- Q6 0.35 kW to brine (258/263 K): the vent condenser E-103 (D-010), its load per source: R-101's
+  gas off the reacting mass saturated with the upper phase's vapour at 313 K (0.17 kW, an upper
+  bound), the still's and the receivers' nitrogen saturated over the product at 303 K (0.17 kW),
+  R-101's dry purge (0.01 kW). Until core 1.9.0 it was 1.28 kW, all of the batch's gas taken
+  saturated at 313 K, on the premise of the 1.8.0 Q2 (D-014).
 - Electricity 5.22 kW (0.0207 kWh/kg): R-101's agitator 4 kW for 3.53 h of each 5.78 h cycle
   (2.44 kW, P1); the still's agitator 2 kW for 2.63 h (the distillation, 2.13 h, and the residue's
   cooling) and its reflux pump 1 kW for 2.13 h, 7.38 kWh a cycle (1.28 kW, P2); the scrubber's
@@ -264,7 +291,17 @@ Decision (scripts/balance.py, year averages, ASSUMED unless sourced):
 Every energy flow of the batch is in the flowsheet and so in the LCI per kg (library ADR 0035).
 Recorded exclusions, each with its estimate (ASSUMED orders, insulated surfaces at about 1
 W/(m2 K)): the heat losses of R-101 (at 313 K, 15 K above the ambient: about 0.1 kW), of C-101 and
-K-101 (at 324-340 K: about 0.4 kW while hot, below 1 % of Q3) and of the tempered-water loop; the
+K-101 (at 324-340 K: about 0.4 kW while hot, below 1 % of the reboiler's Q3, Q7 and Q8) and of
+the tempered-water loop; R-101's own evaporative cooling, which the model leaves out of Q2: the
+vapour the HCl and the head space displaced by the dose carry off the reacting mass to E-103,
+and its condensate rewarmed, at most 0.19 kW (7 % of Q2, taken saturated over the upper phase at
+313 K). Less in fact for the HCl's share (86 % of that gas), which forms in the first minutes
+over nearly pure acetic acid (4.7 kPa instead of 68 kPa); the head space's share (14 %, about
+0.03 kW) leaves over the whole dosing while the liquid's vapour pressure rises towards the upper
+phase's, so the bound is not narrowed further. Heat counted twice: Q6's 0.17 kW from R-101's gas
+is that evaporation, which Q2 also holds, and Q6's 0.17 kW from the still's and receivers'
+nitrogen is vapour Q4 takes as condensed in K-101. The heat the utilities remove is high by at
+most 0.34 kW (0.6 % of the 60.54 kW to cooling water and brine, D-014); the
 tracing of the crude phosphorous acid tank T-102 (at 313 K: about 0.1 kW); the scrubber's water
 evaporated into the nitrogen (about 0.003 kmol/h, 0.04 kW, which cools the bleed a little); the
 heats of mixing of PCl3 into acetic acid and of the phase separation, unknown: the span of the
@@ -276,14 +313,25 @@ the upper and lower phases leave at R101's 313.15 K after the 1 h settle on the 
 Decision: R-101's vent (S5) and the vents of C-101, K-101 and the tanks go through E-103, a vent
 condenser on brine (gas out at 268.15 K, 10 K above the 258 K brine), to A-101, a packed water
 scrubber with a bleed of 1 wt% HCl.
-- The vapour load: the HCl (0.0080 kmol/h) and the batch's nitrogen (8 Nm3 a batch, 0.0617
-  kmol/h; all of it taken through E-103) leave saturated with the upper phase's vapour at 313 K
-  (Raoult: 67 kPa of acetyl chloride, 0.5 kPa of PCl3). That is an upper bound for the still's
-  vent, which leaves its condenser cooler. E-103 condenses the acetyl chloride down to its 9.3 kPa
-  at 268 K and all the acetic acid, and returns them to R-101. What passes, 0.0070 kmol/h (0.55
-  kg/h, 0.213 % of the acetyl chloride formed), is R101's vent fraction of ACCL (D-005). The script
-  prints the estimate, and the fraction is written by hand into the flowsheet (L-3). The PCl3 (3.6
-  kPa at 268 K, above its partial pressure) passes E-103, 0.0010 kmol/h (0.14 kg/h). It is
+- The vapour load, per source (since core 1.9.0, D-014). E-103 takes the HCl (0.0080 kmol/h)
+  and the batch's nitrogen (8 Nm3 a batch, 0.0617 kmol/h). Only the HCl and the head space the
+  dose displaces (0.0093 kmol/h, 13 % of the inert) leave the reacting mass, taken saturated
+  with the upper phase's vapour at 313 K (Raoult: 67 kPa of acetyl chloride, 0.5 kPa of PCl3),
+  an upper bound. The still's and the receivers' 3 Nm3 (0.0232 kmol/h) leave K-101's condenser
+  and the receivers saturated over the product at 303 K (47 kPa, ASSUMED: the product's
+  temperature). R-101's 5 Nm3 purge (0.0386 kmol/h) runs on the dry vessel before the charge and
+  carries no vapour. E-103 condenses the acetyl chloride down to its 9.3 kPa at 268 K and all
+  the acetic acid, and returns them to R-101: Q6 0.35 kW (0.17 kW from R-101's gas, 0.17 kW from
+  the still's nitrogen, 0.01 kW the dry purge cooled). Until core 1.9.0 all of the inert was
+  taken saturated at 313 K, which gave 1.28 kW.
+- R101's vent fraction keeps the 1.8.0 upper bound: all of the inert saturated at 268 K, the dry
+  purge too, 0.0070 kmol/h (0.55 kg/h, 0.213 % of the acetyl chloride formed) past E-103, written by
+  hand into the flowsheet (D-005, L-3). Per source, without the purge, it is 0.0033 kmol/h
+  (0.099 %); the script prints both. The bound is kept, not re-converged: it overstates the
+  acetyl chloride lost by 0.29 kg/h (0.12 % of the product), so the LCI's feeds per kg are high
+  by about as much, and lowering it would move every stream, the batch and the 1.8.0 comparisons
+  of D-014 for that. The PCl3 (3.6 kPa at 268 K, above its partial pressure) passes E-103, on
+  the same upper bound 0.0010 kmol/h (0.14 kg/h). It is
   hydrolysed in the scrubber, which is not in the balance (its 0.11 kg/h of HCl would raise the
   bleed from 1.0 to about 1.2 wt%; recorded in lca.yaml's emission_exclusions).
 - The scrubber A101 is a conversion step: the acetyl chloride vapour hydrolysed (AHYD, -48 kJ/mol
@@ -301,16 +349,27 @@ origin (P-Cl and acetyl intermediates, moisture) is not modelled, and core has n
 (L-6). The scrubber and the vent line are therefore to be sized for SRC-1's HCl and the upsets of
 D-011, not for the model's normal load.
 
-## D-011 Thermal screening, the rate-constant sensitivity and the release cases (2026-11-06)
-Result (`cheme process reactor-hazards`, core ADRs 0050, 0054): adiabatic temperature rise of the
+## D-011 Thermal screening, the rate-constant sensitivity and the release cases (2026-11-06, core 1.9.0 2026-11-06)
+Result (`cheme process reactor-hazards`, core ADRs 0050, 0054, 0058): adiabatic temperature rise of the
 whole batch 21.4 K (with the exothermic bound of D-005); largest accumulation of the dosed PCl3
 11.7 %, at the end of the dosing; MTSR at that moment 315.8 K, against an MTT of 324.15 K
 (`hazard.mtt`: the normal boiling point of acetyl chloride, the product, which is most of the
 liquid once the PCl3 is dosed; core's default, the lowest boiling point of the charge and the
-dose, would be PCl3's 349.15 K, 25 K too high: L-5). The vented HCl and acetyl chloride add
-nothing to the MTSR; with the vent blocked they pressurise the vessel, which the screening does
-not assess (core note: a peak of 1.87e-4 kmol/(s m3), 0.19 mol/(s m3): 0.33 mol/s or about 31
-m3/h for the 1.78 m3 batch, 0.02 h into the dosing).
+dose, would be PCl3's 349.15 K, 25 K too high; core 1.9.0's default leaves the vented HCl and
+acetyl chloride out but still takes no product, and gives the same 349.15 K: L-5). The vented HCl
+and acetyl chloride add nothing to the MTSR; with the vent blocked they pressurise the vessel,
+which the screening does not assess (core note: a peak of 1.87e-4 kmol/(s m3), 0.19 mol/(s m3):
+0.33 mol/s or about 31 m3/h for the 1.78 m3 batch, 0.02 h into the dosing).
+MTSR over the batch (core 1.9.0, ADR 0058): 313.1 K at the start, 313.7 K at 0.50 h, 314.0 K at
+1.01 h, 314.5 K at 1.50 h, 315.8 K at the end of the dosing (2.0 h, X_ac 0.117), back to 314.3 K
+at 2.49 h. ACCL sets it (dT_ad 21.4 K); HYD alone gives 0.3 K (313.5 K), so `hazard.reactions` is
+not needed. Gas released at a cooling failure at the MTSR: 4.35e-6 kmol/s, 0.41 m3/h at 315.8 K
+(the worst moment's content, per batch of the recipe), against R-101's vent capacity of 50 m3/h
+(0.008 of it, `cheme.reactor-hazard-vent` info). The main reaction forms no gas: that rate is
+the vented share of the acetyl chloride (0.213 %), whose 0.005 kmol from the accumulated PCl3 is
+vapour. The largest release over the batch is at 69 s, 31.2 m3/h of HCl at 313.4 K, while the
+acid's water hydrolyses the first PCl3 (core's `vent_gas_rate` at every point of the cooling
+profile, at that point's MTSR; D-014).
 No TD24 is known (never estimated): no criticality class (`cheme.reactor-hazard-missing`, info).
 With MTSR below MTT the class is 1 or 2 if the TD24 lies above the MTSR (1 above the MTT, 2
 between), and 5 if it lies below (TD24 < 315.8 K): core's `criticality()` and Stoessel test the
@@ -318,11 +377,16 @@ TD24 against the MTSR first (SRC-8). It needs the TD24.
 Sensitivity (a scratch copy of the folder, only A divided, everything else as designed;
 `cheme process propagate --fill`, `reactor-hazards`, `reactors`, `recipe`; not committed):
 
-| k at 313 K | accumulation (end of dosing) | MTSR | MTSR vs MTT 324.15 K | post-reaction to 0.95 | cycle | class without TD24 |
-|---|---|---|---|---|---|---|
-| 5.5e-4 (design) | 11.7 % | 315.8 K | 8.4 K below | 0.49 h | 5.78 h | 1, 2 or 5 |
-| k/10 | 35.9 % | 321.1 K | 3.0 K below | 7.48 h | 12.77 h | 1, 2 or 5 |
-| k/100 | 80.2 % | 330.5 K | 6.4 K above | 81.6 h | 86.93 h | 3, 4 or 5 |
+| k at 313 K | accumulation (end of dosing) | MTSR | MTSR vs MTT 324.15 K | post-reaction to 0.95 | cycle | gas at the MTSR | largest gas release over the batch, of 50 m3/h | class without TD24 |
+|---|---|---|---|---|---|---|---|---|
+| 5.5e-4 (design) | 11.7 % | 315.8 K | 8.4 K below | 0.49 h | 5.78 h | 0.41 m3/h | 31.2 m3/h at 69 s, 0.62 | 1, 2 or 5 |
+| k/10 | 35.9 % | 321.1 K | 3.0 K below | 7.48 h | 12.77 h | 0.53 m3/h | 37.2 m3/h at 62 s, 0.74 | 1, 2 or 5 |
+| k/100 | 80.2 % | 330.5 K | 6.4 K above | 81.6 h | 86.93 h | 0.46 m3/h | 37.9 m3/h at 65 s, 0.76 | 3, 4 or 5 |
+
+The gas columns were rerun with core 1.9.0 on 2026-11-06 (same scratch copies, the ACCL rate's A
+divided). The largest release is the water's HCl in the first minute of the dosing in every
+case; a slower main reaction leaves more PCl3 for the water, so it rises. None of them counts
+the acetyl chloride that boils above the MTT at k/100 (D-014).
 
 Interpretation: the margin is small because the MTT is low. R101 runs 11 K below the boiling point
 of its own product. Even a slow reaction gives little temperature rise (dT_ad 21.4 K), but at
@@ -336,7 +400,7 @@ in fact endothermic (D-005), there is no thermal runaway of the main reaction at
 cases below are then the hazard that sizes the protection. Open for the next stage: reaction
 calorimetry with off-gas measurement (heat and sign of the reaction, accumulation, the HCl
 profile), the TD24 of the reaction mass, the lower phase and the residue, and the gas generation
-with a blocked vent.
+with a blocked vent (the vent capacity and the cases beyond it: D-014).
 Release cases (not assessed, reasoning only; for the HAZOP of the next stage):
 - (a) Water ingress into R-101. Sources: a leak of the cooling-water jacket (its supply pressure is
   above the vessel's, so it runs inward), of the tempered-water loop, or scrubber water sucked
@@ -346,13 +410,18 @@ Release cases (not assessed, reasoning only; for the HAZOP of the next stage):
   with PCl3. Options to assess: anti-suck-back protection on the vent line (a nitrogen-padded
   seal pot, a vacuum breaker on nitrogen); jacket-leak detection (conductivity of the loop) or a
   non-aqueous heat-transfer fluid on R-101; the vent and the scrubber sized for the water case.
+  R-101's vent capacity of 50 m3/h passes the HCl of about 13 kg/h of water at the start of the
+  dosing (on top of the 31.2 m3/h then) and 35 kg/h otherwise; a suck-back of scrubber liquor
+  far exceeds it (D-014).
 - (b) Loss of the scrubber water while R-101 doses: up to 30.8 m3/h of HCl at the start of the
   dosing, and the acetyl chloride vapour, to air. The PCl3 dosing should be interlocked on A-101's
   water flow and on HCl breakthrough at its outlet. Stopping the dosing stops the model's HCl,
   which comes with the water at the start. SRC-1's dissolved HCl (D-010) would keep degassing.
-- (c) Loss of brine to E-103: the acetyl chloride the gas carries at 313 K, about 0.143 kmol/h as
-  a year average and more while the nitrogen purges, goes to the scrubber. There it hydrolyses
-  to HCl and acetic acid, 10 times the normal HCl and about 5.0 kW of heat. Brine flow and the gas
+- (c) Loss of brine to E-103: the acetyl chloride the vent gas carries, about 0.039 kmol/h as a
+  year average per source (0.143 kmol/h with all of the inert saturated at 313 K, D-010) and
+  more at the start of the dosing, while the HCl peaks, goes to the scrubber. There it
+  hydrolyses to HCl and acetic acid, about 3 (10) times the normal HCl and about 1.5 (5.0) kW
+  of heat. Brine flow and the gas
   outlet temperature of E-103 should be interlocked with the dosing.
 - (d) Failure of the warming loop's temperature control, or of the jacket changeover. R-101 is
   warmed by a tempered-water loop at 322/318 K heated by LP steam at 412 K (D-003, D-009), only
@@ -363,9 +432,10 @@ Release cases (not assessed, reasoning only; for the HAZOP of the next stage):
   A-101. This is case (c) without a bound: the jacket at full steam temperature delivers about
   300 W/(m2 K) x 4.9 m2 x (412 - 324) K = 129 kW (the area at the charge, so a lower bound; a
   loop that is not pressurised and boils at 373 K still gives about 72 kW). At 30.1 kJ/mol that
-  is about 15 kmol/h (1.2 t/h) of acetyl chloride vapour, some 100 times the 0.143 kmol/h of case
-  (c), for which E-103 (1.28 kW) and A-101 are not sized; the batch's acetyl chloride would boil
-  off in about an hour. Options to assess: a high-temperature limit on the loop's supply that
+  is about 15 kmol/h (1.2 t/h) of acetyl chloride vapour, some 100 times the upper bound of case
+  (c), 0.143 kmol/h, for which E-103 (0.35 kW year average) and A-101 are not sized; the batch's acetyl chloride would boil
+  off in about an hour. At 324 K that vapour is about 410 m3/h (229 m3/h for the loop at 373 K),
+  8.2 (4.6) times R-101's vent capacity of 50 m3/h (D-014). Options to assess: a high-temperature limit on the loop's supply that
   trips the steam valve (independent of the loop's controller); the loop's supply capped below
   the MTT by design (a steam pressure or a hot-water source whose temperature cannot exceed
   324 K); a dosing permissive on the jacket in cooling mode and on R-101's temperature; a
@@ -397,7 +467,7 @@ S10 and S7 (0.711 and 0.289; a test keeps them equal to the flowsheet's), becaus
 mass default without its method and the library's strict LCI build then warns (L-12).
 Per kg of acetyl chloride, unallocated: acetic acid 0.827 kg (stoichiometric 0.765), PCl3 0.630 kg
 (0.583), process water 0.214 kg, nitrogen 6.85 g, electricity 0.021 kWh, LP steam 0.230 kWh,
-cooling water 0.233 kWh removed, brine 0.0051 kWh removed; out: crude phosphorous acid 0.406 kg,
+cooling water 0.238 kWh removed (0.233 until core 1.9.0, D-014), brine 0.0014 kWh removed (0.0051 until core 1.9.0, D-014); out: crude phosphorous acid 0.406 kg,
 still residue 0.047 kg, scrubber bleed 0.217 kg. `lca/inventory.csv` lists them allocated (x
 0.711). Not counted: the scrubber's tail gas and the tanks' breathing (emission_exclusions).
 
@@ -410,23 +480,117 @@ Out of scope, so not LCI gaps: changeover cleaning between campaigns, the idle t
 multipurpose train, shared tank farms. Acetyl chloride is also made continuously from acetic
 anhydride and HCl (D-001); this entry is the batch case.
 
+## D-014 Core 1.9.0: duties from the models, the still's reflux and heat-up apart, R-101's vent capacity (2026-11-06)
+Decision, on the core pin's rise to 1.9.0 (314642c), for the three findings core 1.9.0 reported
+(two `cheme.process-duty` warnings and a `cheme.reactor-hazard-vent` warning):
+- **R101's duty Q2 from the model (ADR 0059).** The typed Q2, 1.2696 kW, against the semi-batch
+  model's 2.67099 kW. The model's value is the heat of ACCL and HYD over the batch (3.2503 kW)
+  less the PCl3 dose warmed from 298.15 to 313.15 K (0.5793 kW), the script's own first two
+  terms. The hand value also deducted 1.4014 kW: the latent heat of the vapour that all of
+  E-103's inert carries, saturated with the upper phase's vapour at 313 K (1.2028 kW), and that
+  vapour's condensate returned cold and rewarmed (0.1986 kW), as R-101's evaporative cooling.
+  But 88.5 % of that inert is the batch's nitrogen, and almost none of it passes over the
+  reacting mass. R-101's purge runs on the dry vessel before the charge (the recipe's `inert`
+  step), its blanket is static, and the still's and the receivers' nitrogen vents from C-101,
+  K-101 and T-101. The gas that leaves the reacting mass is the HCl and the head space the dose
+  displaces, 0.0093 kmol/h (13.4 % of the inert). Its vapour and condensate take at most 0.187 kW, 7.0 % of
+  the model's Q2 (saturated over the upper phase at 313 K). Less in fact for the HCl's 86 %,
+  which forms in the first minutes over nearly pure acetic acid (4.7 kPa instead of 68 kPa), but
+  not for the head space's 14 % (about 0.03 kW), which leaves over the whole dosing as the
+  liquid turns into acetyl chloride; the bound is kept as it is. So the hand value was wrong by
+  about 1.2 kW, and the model's value is kept: the typed duty is dropped, `energy_port: q` names
+  Q2, and `cheme process propagate --fill` writes 2.67099 kW (`calculated`). R-101's own
+  evaporative cooling is a recorded exclusion with that bound (D-009). It is not split onto a
+  stream: it would be heat leaving R-101 with the vapour, not with the jacket, and core's one
+  duty per node puts the model's net heat on Q2.
+- **E-103's load Q6 per source, on Q2's premise (review of #393).** The typed Q6, 1.2826 kW,
+  took the same vapour of all the inert, saturated at 313 K: in 1.8.0 its latent heat was
+  balanced by the deduction from Q2, and without that deduction it had no source. Q6 is now
+  taken per source (D-010): R-101's gas off the reacting mass at 313 K, 0.1713 kW (the vapour
+  of the 0.187 kW bound, condensed and cooled to 268 K); the still's and receivers'
+  3 Nm3 a batch saturated over the product at 303 K, 0.1685 kW; R-101's 5 Nm3 purge dry from
+  298 K, 0.0094 kW. Together 0.3492 kW, so the 1.4014 kW rise of Q2 comes with a 0.9334 kW cut of
+  Q6. What is still counted twice: R-101's 0.17 kW (in Q2 and in Q6) and the still's 0.17 kW
+  (in Q4, which takes the whole boil-up as condensed in K-101, and in Q6), at most 0.34 kW, 0.6 %
+  of the 60.54 kW to cooling water and brine (D-009). R101's vent fraction keeps the upper bound
+  of all the inert saturated (0.213 % instead of 0.099 % per source, 0.29 kg/h of acetyl
+  chloride, 0.12 % of the product; D-010), not re-converged.
+- **The still's net boil-up Q3 from the model, the reflux and the heat-up apart (ADR 0059).**
+  The typed Q3, 56.3958 kW, against the still model's 27.5838 kW. That is no error: the hand
+  reboiler held the boil-up the column returns as reflux (the reflux ratio 1 times the
+  distillate's latent heat, 27.5838 kW) and the charge's and residue's heat-up (1.2282 kW),
+  neither of which the one-stage still holds (L-1, L-4). The duty is split. Q3 is the model's
+  net boil-up (`energy_port: steam`, `calculated`). Q7 27.5838 kW (the reflux share) and Q8
+  1.2282 kW (the heat-up) are their own assumed streams from LPS, both from scripts/balance.py.
+  The three together are the 56.3958 kW reboiler, so the LCI's steam is unchanged.
+  Rejected: entering the still's `boilup` as the reboiler's 150 kW (the model would distil in
+  half the time, about 1.06 h, and take the reflux for distillate); the reflux share on K101
+  (the steam heats the still's jacket, not the column).
+- **LCI.** Per kg of acetyl chloride: cooling water 58.792 -> 60.194 kW, 0.2328 -> 0.2384 kWh
+  removed (Q2's rise); brine 1.2826 -> 0.3492 kW, 0.0051 -> 0.0014 kWh removed (Q6 per source);
+  LP steam 58.184 kW, 0.2304 kWh, and electricity 0.0207 kWh unchanged.
+- **The MTT stays given (ADR 0058).** Core 1.9.0's default leaves the vented HCl and acetyl
+  chloride out, but the product is no candidate, so it gives PCl3's 349.15 K (scratch copy
+  without `hazard.mtt`, 2026-11-06). `hazard.mtt: 324.15` stays (L-5).
+- **`hazard.reactions` not used.** ACCL sets the MTSR (315.8 K); HYD alone gives 313.5 K. The
+  default, every reaction with the largest run to completion, is the main reaction (D-011).
+- **Vent capacity (ADR 0058).** `hazard.vent_capacity: 50` m3/h at R-101's 101.3 kPa(a), ASSUMED.
+  It is the design of R-101's vent line, E-103 and A-101 that D-010 asks for: sized for SRC-1's
+  HCl and not for the model's normal load alone. The basis is the model's normal peak, 30.8
+  m3/h of HCl at 313 K at the start of the dosing (`cheme process recipe`), plus SRC-1's 38.6 kg
+  of HCl a batch released evenly over the 2 h dosing (1.059 kmol, 13.6 m3/h at 313 K). That is
+  44.4 m3/h, rounded up to 50 (no vent sizing yet: there is no P&ID). Against a cooling failure
+  (`cheme process reactor-hazards`; core's `vent_gas_rate` over the cooling profile; D-011's
+  table), the gas released is 0.41 m3/h at the MTSR (0.008 of it, `cheme.reactor-hazard-vent`
+  info) and 31.2 m3/h at 69 s, the largest over the batch (0.62). At k/10 the largest is 37.2
+  m3/h (0.74), at k/100 37.9 m3/h (0.76). Core compares the vent's components only. The gas
+  leaving R-101 also carries the liquid's vapour: about 5 % at the HCl peak (acetic acid at 4.7
+  kPa), up to two thirds at the end of the dosing, where the gas is small. The line from R-101 to
+  E-103 is sized for about 53 m3/h (for example DN50, about 6.8 m/s), ASSUMED.
+- **Design finding: the vent covers every cooling failure core screens, but not the boiling and
+  water cases.** These are open for the relief study and the HAZOP of the next stage:
+  (1) At k/100 the MTSR (330.5 K) lies above the MTT, and the acetyl chloride boils, which
+  core's gas release does not count. Once the mass reaches 324.15 K, at most 0.65 kmol/h of
+  vapour boils off (17.3 m3/h at 324 K: ACCL's rate law at 324.15 K with the worst moment's
+  content, 5.45 kW at 30.1 kJ/mol; scratch copy, 2026-11-06). That is within the vent, but 15.6
+  times E-103's year-average 0.35 kW (4.2 times the 1.28 kW upper bound of D-010), so the vapour would reach A-101 as in release case (c).
+  E-103 is to be sized for it, or the dosing rate set from calorimetry.
+  (2) Release case (d), the warming loop's steam valve open: about 410 m3/h of acetyl chloride
+  vapour at 324 K (229 m3/h for a loop at 373 K), 8.2 (4.6) times the vent capacity (D-011). It
+  must be prevented (an independent high-temperature trip on the loop's steam and on R-101, the
+  loop's supply capped below the MTT), not vented.
+  (3) Release case (a), water ingress: 1.43 m3 of HCl per kg of water at once. The vent passes
+  a jacket leak of about 13 kg/h of water at the start of the dosing (35 kg/h otherwise). A
+  suck-back of scrubber liquor far exceeds it: the anti-suck-back protection is the safeguard.
+  (4) A blocked vent: at the design kinetics the main reaction forms no gas, and the mass at its
+  MTSR (315.8 K) stays below its boiling point. So a blocked vent pressurises R-101 through the
+  water and boiling cases above, and through the HCl the dosing forms. R-101 needs a relief
+  device (a rupture disc to a catch tank or the scrubber) sized for them, and the PCl3 dosing
+  interlocked on R-101's pressure and on the vent flow (D-011).
+  The flowsheet keeps 50 m3/h, the design case's basis, until the relief study sizes the vent.
+  Reasoning only, not a relief sizing.
+
 ## Method and dependency table
 
 | step | status | basis |
 |---|---|---|
 | mass, component, element balances | done in cheme | cheme validate / process streams / propagate |
-| semi-batch R-101 with its vent: composition, accumulation, cooling-failure temperature, peak cooling, off-gas | done in cheme, kinetics and conversion ASSUMED | D-005, D-011, core ADRs 0050, 0054 |
+| semi-batch R-101 with its vent: composition, accumulation, cooling-failure temperature, peak cooling, off-gas, year-average duty Q2 | done in cheme, kinetics and conversion ASSUMED | D-005, D-009, D-011, core ADRs 0050, 0054, 0059 |
+| MTSR over the batch, gas release at the MTSR and over the batch against the vent capacity | done in cheme (the largest over the batch with core's `vent_gas_rate`), vent capacity ASSUMED; boiling and water cases beyond it a design finding | D-011, D-014, core ADR 0058 |
+| R-101's own evaporative cooling (not in Q2) | script bound, a recorded exclusion | D-009, D-014 |
 | batch recipe, cycle time, basis check, R-101's vessel, jacket and warming time | done in cheme | D-003, core ADRs 0051, 0052, 0057 |
 | phase split D101 | specified split in a script, calibrated to SRC-1 | D-006, L-2 |
-| batch still ST101 (one stage): distillate, residue, boil-up time, net latent heat | done in cheme, ideal liquid ASSUMED | D-007, core ADR 0055 |
+| batch still ST101 (one stage): distillate, residue, boil-up time, net latent heat (Q3) | done in cheme, ideal liquid ASSUMED | D-007, D-009, core ADRs 0055, 0059 |
 | column K-101 (rectification with reflux) | specified split in a script | D-008, core#173 |
-| vent condenser load and the vent's acetyl chloride | script estimate, written into the vent fraction | D-010, L-3 |
+| vent condenser load (per source) and the vent's acetyl chloride (an upper bound) | script estimate, written into Q6 and the vent fraction | D-010, D-014, L-3 |
 | scrubber hydrolysis | done in cheme (conversion step), heats in the script | D-010 |
-| feeds for 2000 t/a, scrubber water, duties Q1 to Q6, mixed temperatures | script | D-006, D-009, D-010 |
+| feeds for 2000 t/a, scrubber water, duties Q1, Q4 to Q6, the reboiler's reflux share Q7 and the still's heat-up Q8, mixed temperatures | script | D-006, D-009, D-010 |
 | per-batch nitrogen | done in cheme, amount ASSUMED | D-012, core ADR 0053 |
 | LCI inventory | done, most backgrounds unmapped | D-012 |
 
-## Core features used (cheme-as-code 1.8.0)
+## Core features used (core 1.9.0)
+
+Built on cheme-as-code 1.8.0, pinned to 1.9.0 since 2026-11-06 (D-014).
 
 - `reactor: semibatch` with `batch.dosing` and `batch.target` (ADR 0050) and `batch.vent` with two
   components and a `fraction` (ADR 0054): two outlets, the vent's peak rate per m3 (`process
@@ -440,6 +604,15 @@ anhydride and HCl (D-001); this entry is the batch case.
   `temperatures` timed from the jacket.
 - a conversion step (`reactor: conversion`) for the scrubber's hydrolysis; `lca.yaml`
   `consumables` with `per_batch` (ADR 0053), `allocation: shares` (the mass shares, L-12).
+- 1.9.0: the models' duties (ADR 0059): R101's Q2 by `energy_port: q` and ST101's net boil-up
+  Q3 by `energy_port: steam`, both written `calculated` by `propagate --fill`, the typed reflux
+  share Q7 and heat-up Q8 beside Q3 (D-009, D-014); the semi-batch screening (ADR 0058):
+  `mtsr_profile`, `per_reaction`, `gas_release` and `hazard.vent_capacity`, and
+  `stirred_tank.vent_gas_rate` over the cooling profile for the largest release over the batch
+  (D-011, D-014).
+- Not used in 1.9.0: `tears:` (ADR 0060; no recycle is modelled, the residue's recycle is a
+  variant, D-008), `hazard.reactions` (the default counts the main reaction, D-014), the default
+  MTT (still not the product's boiling point, L-5).
 - Not used, not needed by this route: `dosing.absorbed` (no gas is dosed), the crystallizer, the
   dryer and the filter (no solids), the still's `cuts:` and `feed:` (D-008).
 
@@ -448,7 +621,9 @@ anhydride and HCl (D-001); this entry is the batch case.
 - L-1 (core#173): no batch rectification with reflux. One Rayleigh stage gives 97.3 wt% acetyl
   chloride with 2.6 wt% PCl3 (D-007); the column is a specified split in a script, and the still's
   `boilup` had to be entered as the net distillate rate (75 kW of a 150 kW reboiler at reflux ratio
-  1), so `cheme process stills` reports the net latent heat, not the reboiler's duty.
+  1), so `cheme process stills` reports the net latent heat, not the reboiler's duty. Since core
+  1.9.0 the model writes that net latent heat on Q3 (ADR 0059) and the reflux share is its own
+  typed stream Q7; the condenser Q4 stays in the script (ADR 0059 leaves condensers typed).
 - L-2: no liquid-liquid split for a reacting batch. A semi-batch is one homogeneous liquid, while
   the reaction mass forms two phases as it reacts, and core's NRTL extraction needs binary pairs
   that no open source gives for acetyl chloride, acetic acid and phosphorous acid. The settling
@@ -461,15 +636,22 @@ anhydride and HCl (D-001); this entry is the batch case.
   condenser's load, the evaporative cooling of R-101 and the acetyl chloride that passes E-103 are
   script estimates, and the latter is written by hand as the vent `fraction`. The balance-output
   contract does not check a step parameter, so a drift between the script's 0.002131 and the
-  flowsheet's 0.00213 is caught only by this folder's test.
+  flowsheet's 0.00213 is caught only by this folder's test. Still so in core 1.9.0: the
+  semi-batch's model duty (ADR 0059) has no latent heat of a vapour the vent gas carries, so
+  R-101's own evaporative cooling is a script bound (at most 0.19 kW, 7 % of Q2) and a recorded
+  exclusion, which Q6 counts again (D-009, D-014); core's gas release counts the vent's components only, not the
+  liquid's vapour in the vent line, nor what boils above the MTT (D-014).
 - L-4 (ADR 0055): the still extrapolates an Antoine fit beyond its range (acetyl chloride's ends at
   324.2 K, the still reaches 340.45 K; reported as a note only). It has no heat-up or sensible heat
-  of its charge and residue (in the script's Q3), and it does not size its vessel, jacket or
+  of its charge and residue (the script's Q8, beside the model's Q3 since core 1.9.0; ADR 0059
+  names a heat-up duty from the recipe as a follow-up), and it does not size its vessel, jacket or
   condenser: C-101 and K-101 are sized by hand.
 - L-5: the default MTT is the lowest boiling point of the charge and the doses; it ignores the
   product formed in the liquid. Here the product, acetyl chloride (324.15 K), boils below both the
   charge (acetic acid, 391 K) and the dose (PCl3, 349 K), so the default would be 25 K too high;
-  `hazard.mtt` was set by hand (as benzoyl-chloride-1's L-5).
+  `hazard.mtt` was set by hand (as benzoyl-chloride-1's L-5). Still so in core 1.9.0: ADR 0058
+  leaves vent and dissolved gases out of the default, but the products are no candidates (its
+  known limitations); the default stays PCl3's 349.15 K (D-014).
 - L-6 (ADR 0054): no solubility of the vented gas. The source's lower phase holds 6 wt% HCl (38.6
   kg a batch at this scale), the model none (all HCl formed is vented); the HCl dissolved in the
   product and the lights cut the still would take off are not represented. The model cannot carry
@@ -480,8 +662,11 @@ anhydride and HCl (D-001); this entry is the batch case.
   time; both were iterated by hand (propagate, the script, the recipe, again).
 - L-8 (as p-toluenesulfonyl-chloride-1's L-3): a semi-batch is isothermal at one temperature. The
   source doses below 40 C and holds at 40-50 C; the model runs both at 313.15 K.
-- L-9 (as benzoyl-chloride-1's L-7): an isothermal semi-batch reports its peak cooling duty and the
-  heat released, but no year-average duty for its energy stream; Q2 comes from the script.
+- L-9 (resolved in core 1.9.0, ADR 0059; as benzoyl-chloride-1's L-7): an isothermal semi-batch
+  reported its peak cooling duty and the heat released, but no year-average duty for its energy
+  stream, so Q2 came from the script. Core 1.9.0 writes it (2.67099 kW), and the still's net
+  boil-up Q3 likewise (27.5838 kW). Its comparison with the typed values showed that the hand Q2
+  had deducted a vapour that does not leave the reacting mass (D-014).
 - L-10 (as benzoyl-chloride-1's L-9): an ideal liquid only; the still's basis is "not sourced".
 - L-11: a semi-batch has one `heat_of_reaction` per reaction and no heat of mixing of a dosed
   liquid or of a phase separating (as p-toluenesulfonyl-chloride-1's L-2); here even the sign of
@@ -499,4 +684,6 @@ scale; the HCl balance (SRC-1's dissolved HCl); VLE of acetyl chloride with PCl3
 the column's stages, reflux and the PCl3 it passes; the product specification (assay, P content,
 HCl); the chlorine treatment (SRC-2) if a low-phosphorus grade is wanted; recycling the residue's
 PCl3; the lower phase's stripping (SRC-1, Example 2); prices for the allocation; a TEA
-(`operation.batch: {recipe: true}`).
+(`operation.batch: {recipe: true}`); R-101's relief device and blocked-vent case, the vent's
+capacity against the boiling and water cases, E-103's design duty for the k/100 boil-off, and
+the vent line's hydraulics with the liquid's vapour (D-014).
