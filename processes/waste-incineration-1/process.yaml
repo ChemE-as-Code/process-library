@@ -1,0 +1,40 @@
+# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
+# dataset is lca/datasets/*.yaml, Tier 1 form, so maturity stays at concept
+# (core's cheme.lci-tier-maturity). See README.md.
+#
+# The products carry no inventory_key (ADR 0028 allows a stated reason): with one, the build would
+# offer this plant as the Atlas producer of `electricity` to every consumer of grid power, and of
+# heat to steam consumers. Its energy is a by-product of a treatment, not a supply a consumer
+# should be linked to by default; a study that wants it pins it (link.dataset).
+schema: cheme-as-code/process/v1
+id: waste-incineration-1
+title: Waste incineration with energy recovery (mixed MSW, moving grate, heat-oriented CHP)
+summary: >-
+  Sourced conceptual inventory per tonne of mixed municipal solid waste burnt on a moving grate
+  with district-heating CHP: the waste by its ultimate analysis, combustion stoichiometry, energy,
+  reagents, residues and air emissions from EU WI BREF ranges, N2O and CH4 from IPCC 2006. The
+  net electricity and heat are the products. No flowsheet; not reviewed.
+families: [waste-treatment]
+keywords: [waste incineration, waste-to-energy, municipal solid waste, moving grate, CHP, district heating, flue-gas cleaning, SNCR, bottom ash]
+facets: {feedstock_basis: [fossil, biogenic], unit_operations: [combustion, heat-exchange, power-generation, absorption], region: EU}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: municipal-solid-waste, role: feedstock, note: "feed:msw-water, feed:msw-carbon-fossil, feed:msw-carbon-biogenic, feed:msw-hydrogen, feed:msw-oxygen, feed:msw-nitrogen, feed:msw-mineral: 1 t of mixed MSW by its ultimate analysis, free (cut-off)"}
+    - {chemical: air, role: feedstock, note: "feed:O2: combustion oxygen from ambient air, free; nitrogen and excess oxygen pass through"}
+    - {chemical: methane, role: feedstock, note: "feed:natural-gas: support burners, natural gas taken as methane, linked by its factor (no inventory_key, as utility-steam-ng-boiler)"}
+    - {chemical: calcium-oxide, role: reactant, note: "feed:quicklime: semi-wet flue-gas cleaning"}
+    - {chemical: ammonia, role: reactant, note: "feed:ammonia: NH3 of the 25 % ammonia water for SNCR, linked to ammonia-1 in lca/mappings.yaml"}
+  outputs:
+    - {chemical: electricity, role: main-product, note: "product:electricity: net export (generation less own use), kWh; no inventory_key (see the header)"}
+    - {chemical: steam, role: co-product, note: "product:heat: net heat export to district heating from 1.7 bar(a) steam, kWh; no inventory_key (see the header)"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "fossil CO2 of the waste and the support fuel"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2-biogenic", note: "biogenic CO2 of the waste"}
+    - {chemical: water, role: emission, inventory_key: "emission:H2O", note: "water vapour in the flue gas"}
+basis: {capacity: "per tonne of mixed municipal solid waste (the dataset's basis); no plant size"}
+publication: {status: public, license: CC-BY-4.0}
+references:
+  - {title: "Neuwahl, F., Cusano, G., Gómez Benavides, J., Holbrook, S., Roudier, S. (2019) Best Available Techniques (BAT) Reference Document for Waste Incineration. JRC Science for Policy Report EUR 29971 EN (JRC118637)", doi: 10.2760/761437}
+  - {title: "IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Volume 5 Waste, chapter 5 Incineration and Open Burning of Waste. IGES, Hayama", url: "https://www.ipcc-nggip.iges.or.jp/public/2006gl/vol5.html"}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/waste-incineration-1, access: public}

@@ -1,0 +1,415 @@
+# Tier 1 form, a manifest-only entry without a flowsheet (as process-library#317). Every amount is the
+# formula of its parameters; core's validator re-checks each. Written from the US NETL study of
+# industrial capture (2023), facts in our own form; the IPCC 2006 Guidelines set the boundary.
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: co2-conditioning-ammonia-stripper-vent
+title: CO2 conditioning (compression, TEG drying, cooling) of an ammonia plant's CO2 stripper vent
+description: Per 1 t of dense-phase CO2 at 15.3 MPa and 30 degC (99.95 mol% CO2), gate-to-gate, from the
+  wet stripper vent of a natural-gas ammonia plant. Compression, drying and cooling only;
+  the CO2 separation belongs to the ammonia plant, and the vent gas enters without burden (system-model
+  section 2, step 4). After the NETL ammonia case of 2023.
+basis: 1000 kg of dense-phase CO2, 15.3 MPa, 30 degC, 99.95 mol% CO2
+boundary: 'gate-to-gate: inlet water knockout, five-stage reciprocating compression with intercooling,
+  TEG drying within the train, aftercooling, and a stand-alone cooling-water system; from the stripper
+  vent outlet to the pipeline inlet (IPCC 2006 V2 5.3: capture includes compression and dehydration)'
+technology: reciprocating CO2 compression to 15.3 MPa with triethylene glycol dehydration and an evaporative
+  cooling tower; no CO2 separation (the source is already 97 mol% CO2)
+geography:
+  description: 'US: the NETL representative ammonia plant (394 kt/a NH3, natural-gas feed); no single
+    site.'
+classification:
+  isic: '2011'
+system_boundary:
+  included:
+  - the raw vent gas (no burden, see modelling)
+  - electricity of the compressor, the circulating-water pumps and the cooling-tower fans
+  - TEG make-up and spent TEG
+  - cooling-tower make-up, evaporation and blowdown
+  - condensate knocked out of the gas
+  excluded:
+  - 'TODO fugitive CO2 of the compression plant: IPCC 2006 V2 5.4.1 places most fugitive emissions
+    of a CCS chain at the capture and compression facilities but gives no default for them, and the
+    NETL stream table conserves CO2 within its rounding; not quantified, not zero'
+  - 'TODO CO2 dissolved in the condensate and released by the TEG regenerator vent: not stated by the
+    source'
+  - 'TODO heat of the TEG regenerator (reboiler): the NETL case lists no fuel or steam, so it is either
+    inside the quoted compressor package or missing; not quantified'
+  - 'TODO make-up and wastewater treatment chemicals, about 0.1 t/d in the NETL case: composition not
+    stated'
+  - transport and storage of the CO2 beyond the pipeline inlet
+  - the CO2 separation (aMDEA or carbonate absorber and regenerator), which is part of the ammonia plant
+  - infrastructure
+  cutoff: none applied; the excluded flows are not quantified
+  infrastructure: excluded
+  catalysts: excluded
+  non_routine: excluded
+location: US
+year: 2023
+valid_until: 2028
+time:
+  start: 2018
+  description: NETL study published March 2023, cost base December 2018, plant data of 2019. valid_until
+    is the reference year + 5 (system-model section 6).
+modelling:
+  principle: attributional
+  multifunctionality: 'single output: no allocation. The raw vent gas is the CO2 co-product of the ammonia
+    plant cut before conditioning (system-model section 2, step 4, rule co2-cutoff): it carries no burden
+    of the ammonia plant, and this dataset is its separate, subdivided conditioning. Its carbon is fossil
+    and leaves with the product; no capture or avoided-emission credit is given here.'
+uuid: c3bc38ab-0a48-55ef-a218-10e2c6217b03
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+technology_level: current
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: co2
+  value: 1000.0
+  unit: kg
+  description: Conditioned CO2 delivered (the basis).
+  source: basis
+- name: M_CO2
+  value: 44.009
+  unit: g/mol
+  description: Molar mass of carbon dioxide.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_H2O
+  value: 18.015
+  unit: g/mol
+  description: Molar mass of water.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: x_c_f
+  value: 0.9709
+  unit: mol/mol
+  description: CO2 mole fraction of the raw stripper-vent gas (the rest water), at 21 degC and 0.16 MPa.
+  source: NETL (2023) Cost of Capturing CO2 from Industrial Sources, DOE/NETL-2023/3907, section 5.1.5,
+    Exhibit 5-3 (ammonia stream table), stream 1
+- name: x_w_f
+  value: 0.0291
+  unit: mol/mol
+  description: Water mole fraction of the raw stripper-vent gas. It is above the saturation value at
+    21 degC and 0.16 MPa (about 0.016, water vapour pressure 2.5 kPa), so part of it arrives as liquid
+    and leaves at the inlet knockout.
+  source: 'NETL (2023), DOE/NETL-2023/3907, section 5.1.5, Exhibit 5-3, stream 1. The same report''s
+    design inputs (section 5.1.3) state 99 vol% CO2 and 1 vol% water instead; the stream table is used
+    because it carries the flows, and the difference (about 8 kg/t less condensate at 1 vol%) is in
+    the condensate uncertainty'
+- name: x_c_p
+  value: 0.9995
+  unit: mol/mol
+  description: CO2 mole fraction of the conditioned product at 15.3 MPa and 30 degC (the rest water).
+  source: NETL (2023), DOE/NETL-2023/3907, section 5.1.5, Exhibit 5-3, stream 3
+- name: x_w_p
+  value: 0.0005
+  unit: mol/mol
+  description: Water mole fraction of the conditioned product (500 ppm, after the TEG dryer).
+  source: NETL (2023), DOE/NETL-2023/3907, section 5.1.5, Exhibit 5-3, stream 3
+- name: m_prod
+  value: 55488.0
+  unit: kg/h
+  description: Product flow of the source's case, the denominator of its per-hour figures.
+  source: NETL (2023), DOE/NETL-2023/3907, section 5.1.5, Exhibit 5-3, stream 3 (55,488 kg/h)
+- name: P_comp
+  value: 5770.0
+  unit: kW
+  description: Electric power of the five-stage reciprocating CO2 compressor, 0.16 to 15.3 MPa.
+  source: NETL (2023), DOE/NETL-2023/3907, section 5.1.5, Exhibit 5-4 (performance summary); scaled
+    by NETL from a vendor quote (section 4.1.1)
+- name: P_cwp
+  value: 60.0
+  unit: kW
+  description: Electric power of the circulating-water pumps.
+  source: NETL (2023), DOE/NETL-2023/3907, section 5.1.5, Exhibit 5-4
+- name: P_fan
+  value: 30.0
+  unit: kW
+  description: Electric power of the cooling-tower fans.
+  source: NETL (2023), DOE/NETL-2023/3907, section 5.1.5, Exhibit 5-4
+- name: gal
+  value: 0.003785411784
+  unit: m3
+  description: One US liquid gallon.
+  source: 'definition: 231 cubic inches, with the inch of 25.4 mm exactly'
+- name: V_mu
+  value: 46.0
+  unit: 1000 gal/d
+  description: Water make-up per operating day at full rate, read as the cooling-tower make-up (the
+    case has no other water user).
+  source: 'NETL (2023), DOE/NETL-2023/3907, section 5.1.8, Exhibit 5-7 (O&M, consumables, water, per
+    day); the per-day figure is at full rate: the annual cost divided by it gives 310 days, the 85 %
+    capacity factor. Reading it as cooling-tower make-up is ASSUMED'
+- name: rho_w
+  value: 1000.0
+  unit: kg/m3
+  description: Density of the make-up water.
+  source: 'ASSUMED: 1000 kg/m3 (within 0.3 % of liquid water at 5 to 30 degC)'
+- name: cycles
+  value: 4.0
+  unit: '1'
+  description: Cycles of concentration of the cooling tower; splits the make-up into evaporation and
+    blowdown.
+  source: 'ASSUMED: the placeholder of the library''s utility-cooling-tower dataset; the source does
+    not state it. TODO source, or set per site'
+- name: V_teg
+  value: 312.0
+  unit: gal/d
+  description: TEG make-up per operating day at full rate; the same volume goes to waste disposal.
+  source: NETL (2023), DOE/NETL-2023/3907, section 5.1.8, Exhibit 5-7 (consumables and waste disposal,
+    triethylene glycol, per day); full rate as for V_mu (annual cost / price / per-day figure = 310 days)
+- name: rho_teg
+  value: 1125.0
+  unit: kg/m3
+  description: Density of liquid triethylene glycol at 20 degC.
+  source: PubChem CID 8172 (triethylene glycol), section Density, 1.125 at 68 degF (CAMEO Chemicals, USCG
+    1999); queried 2026-11-05
+exchanges:
+- key: product:CO2
+  title: Carbon dioxide, dense phase, 15.3 MPa and 30 degC, 99.95 mol% (EOR pipeline quality)
+  type: product
+  amount: 1000.0
+  unit: kg
+  formula: co2
+  provenance: given
+  source: the reference flow; state and composition from NETL (2023), Exhibit 5-3, stream 3
+- key: feed:CO2-raw
+  title: Raw CO2 stripper vent of the ammonia plant, wet (97.09 mol% CO2, 0.16 MPa, 21 degC)
+  type: input
+  amount: 1012.0618125666634
+  unit: kg
+  formula: co2 / (x_c_p * M_CO2 + x_w_p * M_H2O) * x_c_p / x_c_f * (x_c_f * M_CO2 + x_w_f * M_H2O)
+  provenance: calculated
+  source: 'the CO2 of the product, carried in by the vent gas of the sourced composition (NETL 2023, Exhibit
+    5-3, streams 1 and 3); no CO2 is lost (ASSUMED: the stream table conserves CO2 within its rounding,
+    0.07 %; fugitive losses are a TODO exclusion). The regenerator off-gas may go to urea, a liquid CO2
+    plant or the air (IPCC 2006 V3 3.2.1); here it comes without burden (modelling)'
+  pedigree:
+    scores: &assumed
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+- key: feed:electricity
+  title: Electricity, CO2 compressor, circulating-water pumps and cooling-tower fans
+  type: input
+  amount: 105.60841983852364
+  unit: kWh
+  formula: (P_comp + P_cwp + P_fan) / m_prod * co2
+  provenance: given
+  origin: literature
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage (NETL's case buys its power)
+  carrier:
+    kind: electricity
+  source: NETL (2023), DOE/NETL-2023/3907, section 5.1.5, Exhibit 5-4 (total auxiliary load 5,860 kW)
+    over the product flow of Exhibit 5-3
+  pedigree:
+    scores: &netl
+    - 3
+    - 4
+    - 3
+    - 3
+    - 3
+    reason: 'from a published conceptual design study (NETL 2023, vendor quote scaled, US): reliability
+      3, completeness 4 (one case), temporal 3, geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.054
+    source: 'open values read for high-purity CO2 to 15 MPa: 104.8 kWh/t (McCollum and Ogden 2006 model,
+      evaluated by us), 105.6 and 112.7 (NETL 2023 ammonia and ethanol cases), 108.9 and 116.4 (NETL
+      2014 ammonia and ethanol cases); range 104.8 to 116.4 read as a 95 % interval, gsd2 = sqrt(high
+      / low) (our convention; the amount stays the stated value)'
+- key: input:TEG
+  title: Triethylene glycol, make-up of the dryer
+  type: input
+  amount: 0.9977228831639273
+  unit: kg
+  formula: V_teg * gal * rho_teg / (m_prod * 24) * co2
+  provenance: given
+  origin: literature
+  source: NETL (2023), DOE/NETL-2023/3907, Exhibit 5-7 (312 gal/d), converted with the PubChem density
+  pedigree:
+    scores: *netl
+    reason: 'from a published conceptual design study (NETL 2023, vendor quote scaled, US): reliability
+      3, completeness 4 (one case), temporal 3, geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: one cost-estimate figure; glycol losses depend on operation'
+- key: output:spent-TEG
+  title: Spent triethylene glycol to waste disposal
+  type: output
+  amount: 0.9977228831639273
+  unit: kg
+  formula: V_teg * gal * rho_teg / (m_prod * 24) * co2
+  provenance: given
+  origin: literature
+  source: NETL (2023), DOE/NETL-2023/3907, Exhibit 5-7, waste disposal (the same 312 gal/d as the make-up);
+    taken by mass equal to the make-up (ASSUMED, the water it carries is in output:condensate)
+  pedigree:
+    scores: *netl
+    reason: 'from a published conceptual design study (NETL 2023, vendor quote scaled, US): reliability
+      3, completeness 4 (one case), temporal 3, geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: as the make-up'
+- key: resource:water
+  title: Cooling-tower make-up water withdrawn (untreated raw water)
+  type: resource
+  amount: 130.7557054858708
+  unit: kg
+  formula: V_mu * 1000 * gal * rho_w / (m_prod * 24) * co2
+  provenance: given
+  origin: literature
+  cas: 7732-18-5
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 831f249e-53f2-49cf-a93c-7cee105f048e
+    name: Water, unspecified natural origin
+    categories:
+    - natural resource
+    - in water
+    unit: m3
+    per_unit: 0.001
+  source: 'NETL (2023), DOE/NETL-2023/3907, Exhibit 5-7 (46,000 gal/d); biosphere3 UUID, name and categories
+    as the library''s utility-cooling-tower dataset (core''s elementary-flow crosswalk)'
+  pedigree:
+    scores: *netl
+    reason: 'from a published conceptual design study (NETL 2023, US): reliability 3, completeness 4 (one
+      case), temporal 3, geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.12
+    source: 'NETL 2023 ammonia and ethanol cases, 131 to 164 kg/t, read as a 95 % interval, gsd2 = sqrt(high
+      / low) (our convention; the amount stays the stated value)'
+- key: emission:H2O-evaporation
+  title: Cooling-tower water evaporated to air (drift included)
+  type: emission
+  amount: 98.0667791144031
+  unit: kg
+  formula: V_mu * 1000 * gal * rho_w / (m_prod * 24) * co2 * (cycles - 1) / cycles
+  provenance: assumed
+  origin: estimate
+  cas: 7732-18-5
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 075e433b-4be4-448e-9510-9a5029c1ce94
+    name: Water
+    categories:
+    - air
+    unit: m3
+    per_unit: 0.001
+  source: 'make-up x (cycles - 1) / cycles; the split is ASSUMED (cycles); biosphere3 UUID, name and categories
+    as the library''s utility-cooling-tower dataset'
+  pedigree:
+    scores: *assumed
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.5
+- key: output:blowdown
+  title: Cooling-tower blowdown to wastewater treatment
+  type: output
+  amount: 32.6889263714677
+  unit: kg
+  formula: V_mu * 1000 * gal * rho_w / (m_prod * 24) * co2 / cycles
+  provenance: assumed
+  origin: estimate
+  link:
+    factor: wastewater
+    source: site wastewater treatment
+  source: make-up / cycles; ASSUMED split (cycles), its dissolved solids and treatment chemicals not counted
+  pedigree:
+    scores: *assumed
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: set by the cycles of concentration, not stated by the source'
+- key: output:condensate
+  title: Condensate knocked out of the gas and removed by the dryer, to wastewater treatment
+  type: output
+  amount: 12.061812566663603
+  unit: kg
+  formula: co2 / (x_c_p * M_CO2 + x_w_p * M_H2O) * (x_c_p / x_c_f * x_w_f - x_w_p) * M_H2O
+  provenance: calculated
+  origin: literature
+  link:
+    factor: wastewater
+    source: site wastewater treatment
+  source: 'water in the raw gas less water in the product (NETL 2023, Exhibit 5-3, streams 1 to 3); the dryer''s
+    share, released by the TEG regenerator, is ASSUMED to leave as condensate too; its dissolved CO2 is a
+    TODO exclusion'
+  pedigree:
+    scores: *netl
+    reason: 'from a published conceptual design study (NETL 2023, US): reliability 3, completeness 4 (one
+      case), temporal 3, geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.75
+    source: 'the inlet water content of the source itself: 12.1 kg/t from its stream table (2.91 mol%)
+      and 3.9 kg/t from its design input of 1 vol% water (section 5.1.3), range read as a 95 % interval,
+      gsd2 = sqrt(high / low) (our convention; the amount stays the stream-table value)'
+provenance:
+  generator: hand-written model; amounts are the formulas of the parameters
+  notes: No value from a licensed database. Numbers are facts of the open NETL report (a US Government
+    work) in our own form; the PubChem density and the gallon definition convert its units.
+generation:
+  tier: 1
+  method: 'sourced conceptual inventory: the NETL (2023) ammonia high-purity case, its stream table, performance
+    summary and consumables per t of product, every choice listed in parameters'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 3
+  - 4
+  - 3
+  - 3
+  - 3
+  dqr_floor: 3.0
+  components:
+    product:CO2: (CO2)1999H2O
+    feed:CO2-raw: (CO2)9709(H2O)291
+    input:TEG: C6H14O4
+    output:spent-TEG: C6H14O4
+    resource:water: H2O
+    emission:H2O-evaporation: H2O
+    output:blowdown: H2O
+    output:condensate: H2O
+  formulas:
+    product:CO2: (CO2)1999H2O
+    feed:CO2-raw: (CO2)9709(H2O)291
+    input:TEG: C6H14O4
+    output:spent-TEG: C6H14O4
+    resource:water: H2O
+    emission:H2O-evaporation: H2O
+    output:blowdown: H2O
+    output:condensate: H2O
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      C:
+      - 273.344362032
+      - 273.344362032
+      H:
+      - 16.098911669
+      - 16.098911669
+      O:
+      - 854.371967235
+      - 854.371967235
+    outside:
+    - feed:electricity

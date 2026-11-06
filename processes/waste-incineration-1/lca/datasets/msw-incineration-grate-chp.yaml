@@ -1,0 +1,1333 @@
+# Tier 1 form, a manifest-only library entry (process-library #317 pattern). Every amount is the formula of its
+# parameters; core's validator re-checks each. Written from the WI BREF (2019) and IPCC 2006 Vol. 5 (facts in our own form).
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: msw-incineration-grate-chp
+title: Incineration of mixed municipal solid waste on a grate, with heat-oriented combined heat and power
+description: Per 1 t of mixed municipal solid waste (wet) burnt on a moving grate in an EU plant at BAT, with a
+  heat recovery boiler, a back-pressure turbine and district-heating export, semi-wet lime FGC, SNCR and activated
+  carbon. Net electricity and net heat are the products; the waste arrives burden-free. Waste composition, energy,
+  reagents, residues and air emissions from the WI BREF (2019) ranges; N2O and CH4 from IPCC 2006.
+basis: 1000 kg of mixed municipal solid waste (wet) incinerated
+boundary: 'gate-to-gate: waste bunker, grate furnace and boiler, turbine and district-heating exchanger, flue-gas
+  cleaning; up to the residues leaving the site and the energy at the plant fence'
+technology: moving grate (about 90 % of European MSW installations), 40 bar steam, back-pressure CHP, semi-wet FGC
+  with quicklime, SNCR with ammonia water, activated carbon injection, bag filter
+geography:
+  description: EU plants of the WI BREF data collection; the waste composition is German (UBA 2001).
+classification:
+  isic: '3821'
+system_boundary:
+  included:
+  - the waste, by its ultimate analysis (free)
+  - combustion oxygen (free)
+  - support fuel, quicklime, ammonia, activated carbon
+  - net electricity and net heat (products)
+  - CO2 fossil and biogenic, N2O, CH4, NOx, CO, VOC, SO2, HCl, HF, NH3, Hg, PCDD/F, dust
+  - bottom ash, boiler ash, FGC residue
+  excluded:
+  - 'TODO metals of the flue gas (Cd+Tl, Sb+As+Pb+Cr+Co+Cu+Mn+Ni+V): the BAT-AELs are sums, not single flows'
+  - TODO process water (boiler make-up, lime slurry under 300 l/t, bottom-ash quench), the dilution water of the
+    ammonia, boiler blowdown and other waste water
+  - TODO grid electricity in outages and shutdowns (the source's own use is taken as met from own generation)
+  - TODO ferrous and non-ferrous scrap recovered from the bottom ash (a recyclable, burden-free under cut-off) and
+    the unburnt carbon of the bottom ash
+  - 'TODO the treatment of the residues (no background mapped yet: reported gaps)'
+  - TODO diffuse emissions of the bunker and of bottom-ash handling; emissions of other than normal operation
+  - transport of the waste to the plant; waste collection and pre-treatment
+  - infrastructure
+  cutoff: none applied; the excluded flows are not quantified
+  infrastructure: excluded
+  catalysts: excluded
+  non_routine: excluded
+location: RER
+year: 2014
+valid_until: 2019
+time:
+  start: 2001
+  description: The energy, residue and reagent data are of the 2016 data collection for the WI BREF (operating year
+    2014); the waste composition is from UBA 2001. valid_until is the reference year + 5 (system-model section 6),
+    so it has already lapsed.
+modelling:
+  principle: attributional
+  multifunctionality: 'two co-products, net electricity and net heat, unallocated in the dataset (no allocation
+    block). The database allocates them by exergy (lci/mappings.yaml allocation.waste-incineration-1, docs/system-model.md
+    section 2: exported heat is allocated by energy or exergy, never credited). The waste is an input without burden:
+    under the library''s cut-off the user of the recovered energy carries the treatment (system-model section 3).'
+uuid: 4fd62852-b8bd-52c1-8cd0-75fef52aea97
+version: 0.1.0
+methodology_version: 1.1.0
+system_model: cutoff
+technology_level: current
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: msw
+  value: 1000.0
+  unit: kg
+  description: Mixed municipal solid waste fed to the grate (the basis), as received (wet).
+  source: basis
+- name: w
+  value: 0.275
+  unit: '1'
+  description: 'Water content of the waste, kg/kg wet: midpoint of 15 to 40 %.'
+  source: EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, section 1.4, Table 1.6, p. 9 (municipal waste,
+    Germany; range); the midpoint is our choice
+- name: c_ds
+  value: 0.29
+  unit: kg/kg dry
+  description: 'Carbon content of the dry waste: midpoint of 18 to 40 % of dry solids.'
+  source: 'EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, section 1.4, Table 1.6, p. 9 (municipal waste,
+    Germany; range); the midpoint is our choice. The midpoints of the separate ranges are not one measured waste:
+    ash is taken by difference'
+- name: h_ds
+  value: 0.03
+  unit: kg/kg dry
+  description: 'Hydrogen content of the dry waste: midpoint of 1 to 5 % of dry solids.'
+  source: 'EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, section 1.4, Table 1.6, p. 9 (municipal waste,
+    Germany; range); the midpoint is our choice. The midpoints of the separate ranges are not one measured waste:
+    ash is taken by difference'
+- name: n_ds
+  value: 0.0085
+  unit: kg/kg dry
+  description: 'Nitrogen content of the dry waste: midpoint of 0.2 to 1.5 % of dry solids.'
+  source: 'EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, section 1.4, Table 1.6, p. 9 (municipal waste,
+    Germany; range); the midpoint is our choice. The midpoints of the separate ranges are not one measured waste:
+    ash is taken by difference'
+- name: o_ds
+  value: 0.185
+  unit: kg/kg dry
+  description: 'Oxygen content of the dry waste: midpoint of 15 to 22 % of dry solids.'
+  source: 'EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, section 1.4, Table 1.6, p. 9 (municipal waste,
+    Germany; range); the midpoint is our choice. The midpoints of the separate ranges are not one measured waste:
+    ash is taken by difference'
+- name: s_ds
+  value: 0.003
+  unit: kg/kg dry
+  description: 'Sulphur content of the dry waste: midpoint of 0.1 to 0.5 % of dry solids.'
+  source: 'EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, section 1.4, Table 1.6, p. 9 (municipal waste,
+    Germany; range); the midpoint is our choice. The midpoints of the separate ranges are not one measured waste:
+    ash is taken by difference'
+- name: cl_ds
+  value: 0.0055
+  unit: kg/kg dry
+  description: 'Chlorine content of the dry waste: midpoint of 0.1 to 1 % of dry solids.'
+  source: 'EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, section 1.4, Table 1.6, p. 9 (municipal waste,
+    Germany; range); the midpoint is our choice. The midpoints of the separate ranges are not one measured waste:
+    ash is taken by difference'
+- name: f_ds
+  value: 0.000225
+  unit: kg/kg dry
+  description: 'Fluorine content of the dry waste: midpoint of 0.01 to 0.035 % of dry solids.'
+  source: 'EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, section 1.4, Table 1.6, p. 9 (municipal waste,
+    Germany; range); the midpoint is our choice. The midpoints of the separate ranges are not one measured waste:
+    ash is taken by difference'
+- name: f_fos
+  value: 0.415
+  unit: '1'
+  description: 'Fossil share of the carbon (and so of the CO2): midpoint of 33 to 50 %.'
+  source: EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, section 3.2.1, p. 152 (share of MSWI CO2 of fossil
+    origin, range); the midpoint is our choice
+- name: M_C
+  value: 12.011
+  unit: g/mol
+  description: Molar mass of C.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_H2
+  value: 2.016
+  unit: g/mol
+  description: Molar mass of H2.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_O2
+  value: 31.998
+  unit: g/mol
+  description: Molar mass of O2.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_N2
+  value: 28.014
+  unit: g/mol
+  description: Molar mass of N2.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_S
+  value: 32.06
+  unit: g/mol
+  description: Molar mass of S.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_Cl
+  value: 35.45
+  unit: g/mol
+  description: Molar mass of Cl.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_F
+  value: 18.998
+  unit: g/mol
+  description: Molar mass of F.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_H2O
+  value: 18.015
+  unit: g/mol
+  description: Molar mass of H2O.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_CO2
+  value: 44.009
+  unit: g/mol
+  description: Molar mass of CO2.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_CO
+  value: 28.01
+  unit: g/mol
+  description: Molar mass of CO.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_CH4
+  value: 16.043
+  unit: g/mol
+  description: Molar mass of CH4.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_CH2
+  value: 14.027
+  unit: g/mol
+  description: Molar mass of CH2.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_NO2
+  value: 46.006
+  unit: g/mol
+  description: Molar mass of NO2.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_N2O
+  value: 44.013
+  unit: g/mol
+  description: Molar mass of N2O.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_NH3
+  value: 17.031
+  unit: g/mol
+  description: Molar mass of NH3.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_SO2
+  value: 64.058
+  unit: g/mol
+  description: Molar mass of SO2.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_HCl
+  value: 36.458
+  unit: g/mol
+  description: Molar mass of HCl.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_HF
+  value: 20.006
+  unit: g/mol
+  description: Molar mass of HF.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: V_m
+  value: 22.414
+  unit: m3/kmol
+  description: Molar volume of an ideal gas at 0 degC and 101.325 kPa (the Nm3 of the BAT-AELs).
+  source: R T / p with R = 8.314462618 J/(mol K) (CODATA 2018), T = 273.15 K, p = 101.325 kPa
+- name: x_air
+  value: 0.209476
+  unit: '1'
+  description: O2 mole fraction of dry air; the rest (N2, Ar, CO2) is counted as inert.
+  source: chemicals/chemicals.yaml air (U.S. Standard Atmosphere 1976, 20.9476 mol% O2)
+- name: o2_ref
+  value: 0.11
+  unit: '1'
+  description: Reference O2 content of the dry flue gas for the BAT-AELs (11 vol-%).
+  source: EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, BAT conclusions, General considerations, p. 475
+- name: lhv
+  value: 9.0
+  unit: GJ/t
+  description: 'Lower heating value of mixed MSW as received: the source''s average (range 6.3 to 10.5).'
+  source: EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, section 2.4.2.1, Table 2.10, p. 79 (mixed municipal
+    solid waste, average)
+- name: eta_h
+  value: 0.815
+  unit: '1'
+  description: 'Gross energy efficiency (heat and electricity over the LHV input) of a CHP plant with a back-pressure
+    turbine: midpoint of the BAT-AEEL 72 to 91 %.'
+  source: EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, section 5.1.4, BAT 20, Table 5.2, p. 490 (MSW,
+    gross energy efficiency); the midpoint is our choice. Support fuel is counted outside the input (start-up and
+    shutdown, ASSUMED)
+- name: p_we
+  value: 5.8
+  unit: MW
+  description: Generator power of the source's heat-oriented CHP example plant (FR53).
+  source: EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, Annex 8.2.2, Table 8.4, p. 528 (performance test);
+    its ratio to p_qhe sets the split. ASSUMED that one plant's split stands for a heat-oriented CHP plant. TODO
+    a fleet split for CHP plants
+- name: p_qhe
+  value: 26.2
+  unit: MW
+  description: Heat to the district-heating exchanger of the same example plant.
+  source: EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, Annex 8.2.2, Table 8.4, p. 528 (performance test)
+- name: e_own
+  value: 107.0
+  unit: kWh
+  description: Own electricity use per t of waste (MSW and other non-hazardous waste plants, average; range 45 to
+    264), met from the plant's own generation.
+  source: EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, section 3.5.3, Table 3.37, p. 277 (average);
+    that it is met from own generation is ASSUMED (no grid import counted)
+- name: q_own
+  value: 505.0
+  unit: kWh
+  description: Own heat use per t of waste (average; range 10 to 700), taken from the gross heat.
+  source: 'EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, section 3.5.3, Table 3.37, p. 277 (average).
+    ASSUMED that it is part of the gross output (the source''s gross efficiency counts internal heat Qi, section 3.5.1;
+    the FR53 example itself reports Qi = 0). TODO: it may already be outside the gross heat of some plants. For
+    comparison, CEWEP Energy Report III (Annex A, p. 29) gives 163 kWh/t (range 20 to 387) of self-used heat as the
+    weighted mean of 184 CHP plants (R1 guideline definition); with that value the net heat would be about 1505 kWh/t
+    instead of 1163, so this deduction is likely on the high side'
+- name: t_dh
+  value: 115.148
+  unit: degC
+  description: 'Temperature at which the heat is delivered: saturation of the 1.7 bar(a) steam to the district-heating
+    exchanger.'
+  source: pressure from EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, Annex 8.2.2, Table 8.4, p. 528;
+    saturation temperature from IAPWS-95 (Wagner and Pruss 2002) evaluated with CoolProp 8.0.0
+- name: T0
+  value: 298.15
+  unit: K
+  description: Dead-state temperature of the exergy.
+  source: docs/registry.md, Grade exergy (dead state 298.15 K)
+- name: ng_nm3
+  value: 12.25
+  unit: Nm3
+  description: 'Natural gas for support burners per t of waste: midpoint of 4.5 to 20 m3/t.'
+  source: EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, section 3.7.2.3, p. 287 (Austrian plants; range);
+    the midpoint, the volume read as Nm3 and the gas as pure methane are ASSUMED. TODO a fleet figure (the source
+    gives fuel oil as the alternative)
+- name: rho_ch4
+  value: 0.7175
+  unit: kg/Nm3
+  description: Density of methane at 0 degC, 1.01325 bar.
+  source: chemicals/chemicals.yaml methane (NIST Chemistry WebBook, SRD 69)
+- name: cao
+  value: 8.5
+  unit: kg
+  description: 'Quicklime for semi-wet acid-gas cleaning per t of waste: midpoint of 7 to 10 kg/t.'
+  source: EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, section 4.5.3.2, Table 4.23, p. 387 (range);
+    the midpoint and the choice of semi-wet FGC are ours
+- name: nh3w
+  value: 2.25
+  unit: kg
+  description: 'Ammonia water for SNCR per t of waste: midpoint of the typical 2 to 2.5 kg/t.'
+  source: EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, section 3.7.2.2, p. 286 (typical range; literature
+    0.5 to 5); the midpoint and SNCR (not SCR) are our choices
+- name: x_nh3
+  value: 0.25
+  unit: '1'
+  description: NH3 mass fraction of the ammonia water.
+  source: EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, section 3.7.2.2, p. 286 (25 % NH3)
+- name: ac
+  value: 1.75
+  unit: kg
+  description: 'Activated carbon injected per t of waste: midpoint of 0.5 to 3 kg/t.'
+  source: EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, section 4.5.5.5, p. 416 (typical for MSWIs; range);
+    the midpoint is our choice
+- name: c_dust
+  value: 3.5
+  unit: mg/Nm3
+  description: 'Dust in the cleaned flue gas, dry at 11 % O2: midpoint of the BAT-AEL < 2 to 5 (daily average).'
+  source: 'EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, BAT conclusions, Table 5.3, p. 493 (range);
+    the midpoint is our choice. A BAT-AEL is a permit level, not a measured mean: ASSUMED representative of a plant
+    operating at BAT'
+- name: c_hcl
+  value: 5.0
+  unit: mg/Nm3
+  description: 'HCl in the cleaned flue gas, dry at 11 % O2: midpoint of the BAT-AEL < 2 to 8 (existing plant, daily
+    average).'
+  source: 'EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, BAT conclusions, Table 5.5, p. 495 (range);
+    the midpoint is our choice. A BAT-AEL is a permit level, not a measured mean: ASSUMED representative of a plant
+    operating at BAT'
+- name: c_so2
+  value: 22.5
+  unit: mg/Nm3
+  description: 'SO2 in the cleaned flue gas, dry at 11 % O2: midpoint of the BAT-AEL 5 to 40 (existing plant, daily
+    average).'
+  source: 'EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, BAT conclusions, Table 5.5, p. 495 (range);
+    the midpoint is our choice. A BAT-AEL is a permit level, not a measured mean: ASSUMED representative of a plant
+    operating at BAT'
+- name: c_nox
+  value: 100.0
+  unit: mg/Nm3
+  description: 'NOx as NO2 in the cleaned flue gas, dry at 11 % O2: midpoint of the BAT-AEL 50 to 150 (existing
+    plant, daily average).'
+  source: 'EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, BAT conclusions, Table 5.6, p. 496 (range);
+    the midpoint is our choice. A BAT-AEL is a permit level, not a measured mean: ASSUMED representative of a plant
+    operating at BAT'
+- name: c_co
+  value: 30.0
+  unit: mg/Nm3
+  description: 'CO in the cleaned flue gas, dry at 11 % O2: midpoint of the BAT-AEL 10 to 50 (daily average).'
+  source: 'EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, BAT conclusions, Table 5.6, p. 496 (range);
+    the midpoint is our choice. A BAT-AEL is a permit level, not a measured mean: ASSUMED representative of a plant
+    operating at BAT'
+- name: c_nh3
+  value: 6.0
+  unit: mg/Nm3
+  description: 'NH3 slip in the cleaned flue gas, dry at 11 % O2: midpoint of the BAT-AEL 2 to 10 (daily average).'
+  source: 'EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, BAT conclusions, Table 5.6, p. 496 (range);
+    the midpoint is our choice. A BAT-AEL is a permit level, not a measured mean: ASSUMED representative of a plant
+    operating at BAT'
+- name: c_tvoc
+  value: 6.5
+  unit: mg C/Nm3
+  description: 'TVOC in the cleaned flue gas, dry at 11 % O2: midpoint of the BAT-AEL < 3 to 10 (daily average).'
+  source: 'EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, BAT conclusions, Table 5.7, p. 497 (range);
+    the midpoint is our choice. A BAT-AEL is a permit level, not a measured mean: ASSUMED representative of a plant
+    operating at BAT'
+- name: c_hg
+  value: 0.0125
+  unit: mg/Nm3
+  description: 'Hg in the cleaned flue gas, dry at 11 % O2: midpoint of the BAT-AEL < 5 to 20 ug/Nm3 (daily or sampling-period
+    average).'
+  source: 'EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, BAT conclusions, Table 5.8, p. 499 (range);
+    the midpoint is our choice. A BAT-AEL is a permit level, not a measured mean: ASSUMED representative of a plant
+    operating at BAT'
+- name: c_pcdd
+  value: 3.5e-08
+  unit: mg I-TEQ/Nm3
+  description: 'PCDD/F in the cleaned flue gas, dry at 11 % O2: midpoint of the BAT-AEL < 0.01 to 0.06 ng I-TEQ/Nm3
+    (existing plant, sampling period).'
+  source: 'EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, BAT conclusions, Table 5.7, p. 497 (range);
+    the midpoint is our choice. A BAT-AEL is a permit level, not a measured mean: ASSUMED representative of a plant
+    operating at BAT'
+- name: c_hf
+  value: 1.0
+  unit: mg/Nm3
+  description: 'HF in the cleaned flue gas: the BAT-AEL upper bound (< 1).'
+  source: EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, BAT conclusions, Table 5.5, p. 495 (upper bound
+    only); using the bound is ASSUMED. TODO a measured value
+- name: ef_n2o
+  value: 0.05
+  unit: kg/t
+  description: N2O per t of wet MSW, continuous incinerators (default 50 g/t).
+  source: IPCC (2006) Guidelines for National GHG Inventories, Vol. 5 Waste, ch. 5, Table 5.6, p. 5.22 (default
+    for MSW, continuous and semi-continuous incinerators)
+- name: ef_ch4
+  value: 0.0002
+  unit: kg/t
+  description: CH4 per t of wet MSW, continuous stoker (0.2 kg/Gg).
+  source: IPCC (2006) Guidelines for National GHG Inventories, Vol. 5 Waste, ch. 5, Table 5.3, p. 5.20 (continuous
+    incineration, stoker; Japanese data); counted fossil (ASSUMED)
+- name: boiler
+  value: 30.0
+  unit: kg
+  description: 'Boiler ash per t of waste (dry): midpoint of 20 to 40 kg/t.'
+  source: EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, section 3.4.1, Table 3.13, p. 244 (range); the
+    midpoint is our choice
+- name: fgc
+  value: 37.5
+  unit: kg
+  description: 'Residue of semi-wet FGC with the fly ash per t of waste: midpoint of 25 to 50 kg/t.'
+  source: EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, section 4.5.3.2, Table 4.23, p. 387 (combined
+    FGC residue and fly ash; range); the midpoint is our choice
+exchanges:
+- key: product:electricity
+  title: Electricity, net export (generation less own use)
+  type: product
+  amount: 262.29687499999994
+  unit: kWh
+  formula: (msw / 1000 * lhv * 1000 / 3.6) * eta_h * p_we / (p_we + p_qhe) - msw / 1000 * e_own
+  provenance: calculated
+  carrier:
+    kind: electricity
+    source: generator output less the plant's own use, to the grid
+  properties:
+    exergy: 3600.0
+    source: 'electricity is pure work: 3600 kJ of exergy per kWh'
+  source: LHV input x gross energy efficiency x electricity share of the example CHP plant, less own use (EU JRC
+    (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, Tables 2.10, 5.2, 8.4, 3.37)
+- key: product:heat
+  title: Heat, net export to district heating (gross heat less own use)
+  type: product
+  amount: 1163.2031249999998
+  unit: kWh
+  formula: (msw / 1000 * lhv * 1000 / 3.6) * eta_h * p_qhe / (p_we + p_qhe) - msw / 1000 * q_own
+  provenance: calculated
+  carrier:
+    kind: heat
+    temperature: 115.148
+    level: district heating, from 1.7 bar(a) steam
+    source: condensing 1.7 bar(a) steam in the district-heating exchanger (WI BREF Table 8.4)
+  properties:
+    exergy: 835.783
+    source: 'Carnot factor of heat delivered at t_dh against T0 = 298.15 K: 3600 x (1 - 298.15 / 388.298) kJ per
+      kWh'
+  source: LHV input x gross energy efficiency x heat share of the example CHP plant, less own heat use (EU JRC (2019)
+    WI BREF, EUR 29971 EN, doi:10.2760/761437, Tables 2.10, 5.2, 8.4, 3.37)
+- key: feed:msw-water
+  title: 'Municipal solid waste: water'
+  type: input
+  amount: 275.0
+  unit: kg
+  formula: msw * w
+  provenance: calculated
+  origin: literature
+  free: true
+  source: water content of the waste (BREF Table 1.6); the waste arrives burden-free (cut-off at the point of energy
+    recovery, docs/system-model.md section 3)
+  pedigree: &id001
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 3
+    reason: 'follows the midpoints of the source''s ranges of German municipal waste (UBA 2001) and a sourced fossil
+      share: reliability 4, completeness 4, temporal 5 (over 15 years), geographical 4 (one country), technological
+      3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.633
+    source: 'water content: range 0.15 to 0.4 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: feed:msw-carbon-fossil
+  title: 'Municipal solid waste: fossil carbon (ultimate analysis)'
+  type: input
+  amount: 87.25374999999998
+  unit: kg
+  formula: (msw * (1 - w) * c_ds) * f_fos
+  provenance: calculated
+  origin: literature
+  free: true
+  carbon:
+    total: 1.0
+    biogenic_fraction: 0.0
+    source: 'WI BREF section 3.2.1: fossil share of the CO2'
+  source: carbon of the dry waste times the fossil share (BREF Table 1.6, section 3.2.1); the waste arrives burden-free
+    (cut-off at the point of energy recovery, docs/system-model.md section 3)
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.491
+    source: 'carbon of the dry waste: range 18 to 40 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: feed:msw-carbon-biogenic
+  title: 'Municipal solid waste: biogenic carbon (ultimate analysis)'
+  type: input
+  amount: 122.99624999999997
+  unit: kg
+  formula: (msw * (1 - w) * c_ds) * (1 - f_fos)
+  provenance: calculated
+  origin: literature
+  free: true
+  carbon:
+    total: 1.0
+    biogenic_fraction: 1.0
+    source: 'WI BREF section 3.2.1: the rest of the carbon'
+  source: carbon of the dry waste times one less the fossil share; the waste arrives burden-free (cut-off at the
+    point of energy recovery, docs/system-model.md section 3)
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.491
+    source: 'carbon of the dry waste: range 18 to 40 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: feed:msw-hydrogen
+  title: 'Municipal solid waste: hydrogen (ultimate analysis)'
+  type: input
+  amount: 21.75
+  unit: kg
+  formula: msw * (1 - w) * h_ds
+  provenance: calculated
+  origin: literature
+  free: true
+  source: BREF Table 1.6; counted as H2 in the balance; the waste arrives burden-free (cut-off at the point of energy
+    recovery, docs/system-model.md section 3)
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.236
+    source: 'hydrogen of the dry waste: range 1 to 5 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: feed:msw-oxygen
+  title: 'Municipal solid waste: oxygen (ultimate analysis)'
+  type: input
+  amount: 134.125
+  unit: kg
+  formula: msw * (1 - w) * o_ds
+  provenance: calculated
+  origin: literature
+  free: true
+  source: BREF Table 1.6; counted as O2 in the balance; the waste arrives burden-free (cut-off at the point of energy
+    recovery, docs/system-model.md section 3)
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.211
+    source: 'oxygen of the dry waste: range 15 to 22 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: feed:msw-nitrogen
+  title: 'Municipal solid waste: nitrogen (ultimate analysis)'
+  type: input
+  amount: 6.1625000000000005
+  unit: kg
+  formula: msw * (1 - w) * n_ds
+  provenance: calculated
+  origin: literature
+  free: true
+  source: BREF Table 1.6; counted as N2 in the balance; the waste arrives burden-free (cut-off at the point of energy
+    recovery, docs/system-model.md section 3)
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.739
+    source: 'nitrogen of the dry waste: range 0.2 to 1.5 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: feed:msw-mineral
+  title: 'Municipal solid waste: ash with its sulphur, chlorine and fluorine'
+  type: input
+  amount: 352.7125
+  unit: kg
+  formula: msw * (1 - w) * (1 - c_ds - h_ds - n_ds - o_ds)
+  provenance: calculated
+  origin: literature
+  free: true
+  balance_exclusion: mineral matter of no single formula (ash by difference, with the waste's S, Cl and F); its
+    mass is followed into the residues and the acid-gas emissions
+  source: 'dry waste less C, H, N and O (BREF Table 1.6): ash by difference 34.6 % of the wet waste, inside the
+    source''s ash range of 20 to 35 % (basis not stated), plus the waste''s S, Cl and F; the waste arrives burden-free
+    (cut-off at the point of energy recovery, docs/system-model.md section 3)'
+  pedigree: *id001
+  basic_uncertainty: 1.05
+- key: feed:O2
+  title: Combustion oxygen, from ambient air
+  type: input
+  amount: 634.5516952727427
+  unit: kg
+  formula: (((((msw * (1 - w) * c_ds) * f_fos) + (ng_nm3 * rho_ch4) * M_C / M_CH4 - (c_co * ((((msw * (1 - w) *
+    c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) / M_N2 + (((msw * (1 - w) * c_ds) +
+    (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 - M_C) / M_CH4)
+    / M_H2 / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2) * (1 - x_air) / x_air) / (1 - o2_ref
+    / x_air) * V_m) / 1000000) * M_C / M_CO - (msw / 1000 * ef_ch4) * M_C / M_CH4 - c_tvoc * ((((msw * (1 - w) *
+    c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) / M_N2 + (((msw * (1 - w) * c_ds) +
+    (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 - M_C) / M_CH4)
+    / M_H2 / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2) * (1 - x_air) / x_air) / (1 - o2_ref
+    / x_air) * V_m) / 1000000) * M_CO2 / M_C) + (((msw * (1 - w) * c_ds) * (1 - f_fos)) * M_CO2 / M_C)) * M_O2 /
+    M_CO2 + (c_co * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds)
+    / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3
+    * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2 / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2)
+    * (1 - x_air) / x_air) / (1 - o2_ref / x_air) * V_m) / 1000000) * (M_O2 / 2) / M_CO + (c_nox * ((((msw * (1
+    - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) / M_N2 + (((msw * (1 - w) *
+    c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 - M_C)
+    / M_CH4) / M_H2 / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2) * (1 - x_air) / x_air) / (1
+    - o2_ref / x_air) * V_m) / 1000000) * M_O2 / M_NO2 + (msw / 1000 * ef_n2o) * (M_O2 / 2) / M_N2O + (((msw * (1
+    - w) * h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 - M_C) / M_CH4 + (nh3w * x_nh3) * (M_NH3 - M_N2 / 2) / M_NH3 - (msw
+    / 1000 * ef_ch4) * (M_CH4 - M_C) / M_CH4 - (c_nh3 * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4)
+    / M_C + (msw * (1 - w) * n_ds) / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C +
+    ((msw * (1 - w) * h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2 / 2 + msw * (1 - w) * s_ds / M_S
+    - (msw * (1 - w) * o_ds) / M_O2) * (1 - x_air) / x_air) / (1 - o2_ref / x_air) * V_m) / 1000000) * (M_NH3 -
+    M_N2 / 2) / M_NH3 - (c_tvoc * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1
+    - w) * n_ds) / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) *
+    h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2 / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w)
+    * o_ds) / M_O2) * (1 - x_air) / x_air) / (1 - o2_ref / x_air) * V_m) / 1000000 * M_CH2 / M_C) * M_H2 / M_CH2)
+    * M_H2O / M_H2) * (M_O2 / 2) / M_H2O - (msw * (1 - w) * o_ds)
+  provenance: calculated
+  free: true
+  source: the oxygen the products take beyond the waste's own; ambient air is free; its nitrogen and the excess
+    O2 pass through (not inventoried)
+  pedigree: &id003
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+- key: feed:natural-gas
+  title: Natural gas (as methane) to the support burners
+  type: input
+  amount: 8.789375
+  unit: kg
+  formula: ng_nm3 * rho_ch4
+  provenance: given
+  origin: literature
+  link:
+    factor: natural-gas
+    source: natural gas, by mass (lci/mappings.yaml natural-gas)
+  carrier:
+    kind: fuel
+    lhv: 50.01
+    composition: pure methane (ASSUMED for natural gas)
+  source: EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, section 3.7.2.3, p. 287, times the density of
+    methane; start-up, shutdown and temperature support
+  pedigree: &id002
+    scores:
+    - 3
+    - 4
+    - 4
+    - 3
+    - 3
+    reason: 'from a value or range of the WI BREF data collection (EU plants, about 2014): reliability 3, completeness
+      4, temporal 4 (about 12 years old), geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.108
+    source: 'natural gas: range 4.5 to 20 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the
+      amount stays the arithmetic midpoint or the stated value)'
+- key: feed:quicklime
+  title: Quicklime (CaO) for semi-wet flue-gas cleaning
+  type: input
+  amount: 8.5
+  unit: kg
+  formula: cao
+  provenance: given
+  origin: literature
+  balance_exclusion: ends in the FGC residue, which is outside the element balance
+  source: EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, section 4.5.3.2, Table 4.23, p. 387; slaking
+    and slurry water not counted (TODO)
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.195
+    source: 'quicklime: range 7 to 10 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: feed:ammonia
+  title: Ammonia (NH3 content of 25 % ammonia water) for SNCR
+  type: input
+  amount: 0.5625
+  unit: kg
+  formula: nh3w * x_nh3
+  provenance: given
+  origin: literature
+  source: EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, section 3.7.2.2, p. 286, times the NH3 fraction;
+    the dilution water is not counted (TODO)
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.118
+    source: 'ammonia water: range 2 to 2.5 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the
+      amount stays the arithmetic midpoint or the stated value)'
+- key: feed:activated-carbon
+  title: Activated carbon, injected (PCDD/F and mercury)
+  type: input
+  amount: 1.75
+  unit: kg
+  formula: ac
+  provenance: given
+  origin: literature
+  balance_exclusion: ends in the FGC residue, which is outside the element balance
+  source: EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, section 4.5.5.5, p. 416
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.449
+    source: 'activated carbon: range 0.5 to 3 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: output:bottom-ash
+  title: Bottom ash (dry), to bottom-ash treatment
+  type: output
+  amount: 295.37188770357403
+  unit: kg
+  formula: (msw * (1 - w) * (1 - c_ds - h_ds - n_ds - o_ds)) + cao + ac - (c_so2 * ((((msw * (1 - w) * c_ds) + (ng_nm3
+    * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4)
+    * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2 / 2 + msw
+    * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2) * (1 - x_air) / x_air) / (1 - o2_ref / x_air) * V_m)
+    / 1000000) * M_S / M_SO2 - (c_hcl * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw
+    * (1 - w) * n_ds) / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 -
+    w) * h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2 / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1
+    - w) * o_ds) / M_O2) * (1 - x_air) / x_air) / (1 - o2_ref / x_air) * V_m) / 1000000) * M_Cl / M_HCl - (c_hf
+    * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) / M_N2 + (((msw
+    * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3 * rho_ch4) *
+    (M_CH4 - M_C) / M_CH4) / M_H2 / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2) * (1 - x_air)
+    / x_air) / (1 - o2_ref / x_air) * V_m) / 1000000) * M_F / M_HF - (c_hg * ((((msw * (1 - w) * c_ds) + (ng_nm3
+    * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4)
+    * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2 / 2 + msw
+    * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2) * (1 - x_air) / x_air) / (1 - o2_ref / x_air) * V_m)
+    / 1000000) - (c_dust * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w)
+    * n_ds) / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds)
+    + (ng_nm3 * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2 / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds)
+    / M_O2) * (1 - x_air) / x_air) / (1 - o2_ref / x_air) * V_m) / 1000000) - boiler - fgc
+  provenance: calculated
+  treatment:
+    kind: waste
+    route: bottom-ash treatment (metal recovery, then use as aggregate or landfill)
+  balance_exclusion: mineral residue of no single formula; closes the mass of the mineral matter
+  source: 'by difference: mineral matter, lime and carbon in, less the acid gases, Hg and dust emitted and the boiler
+    and FGC residues; compare 150 to 350 kg/t (EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, Table 3.13).
+    Its unburnt carbon and the water of the quench are not counted; no background mapped yet (gap)'
+  pedigree: *id003
+  basic_uncertainty: 1.05
+- key: output:boiler-ash
+  title: Boiler ash (dry), to disposal
+  type: output
+  amount: 30.0
+  unit: kg
+  formula: boiler
+  provenance: given
+  origin: literature
+  treatment:
+    kind: waste
+    route: disposal of boiler ash (often with the FGC residue)
+  balance_exclusion: mineral residue of no single formula
+  source: EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, section 3.4.1, Table 3.13, p. 244; no background
+    mapped yet (gap)
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.414
+    source: 'boiler ash: range 20 to 40 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: output:fgc-residue
+  title: FGC residue with fly ash, to hazardous-waste disposal
+  type: output
+  amount: 37.5
+  unit: kg
+  formula: fgc
+  provenance: given
+  origin: literature
+  treatment:
+    kind: waste
+    route: hazardous-waste disposal (e.g. underground storage) or treatment
+  balance_exclusion: salts, excess lime, carbon and fly ash of no single formula
+  source: EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, section 4.5.3.2, Table 4.23, p. 387; no background
+    mapped yet (gap)
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.414
+    source: 'FGC residue: range 25 to 50 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: emission:CO2
+  title: CO2, fossil (waste and support fuel)
+  type: emission
+  amount: 343.5008500103326
+  unit: kg
+  formula: (((msw * (1 - w) * c_ds) * f_fos) + (ng_nm3 * rho_ch4) * M_C / M_CH4 - (c_co * ((((msw * (1 - w) * c_ds)
+    + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3
+    * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2
+    / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2) * (1 - x_air) / x_air) / (1 - o2_ref / x_air)
+    * V_m) / 1000000) * M_C / M_CO - (msw / 1000 * ef_ch4) * M_C / M_CH4 - c_tvoc * ((((msw * (1 - w) * c_ds) +
+    (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3
+    * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2
+    / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2) * (1 - x_air) / x_air) / (1 - o2_ref / x_air)
+    * V_m) / 1000000) * M_CO2 / M_C
+  provenance: calculated
+  cas: 124-38-9
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 349b29d1-3e58-4c66-98b9-9d1a076efd2e
+    name: Carbon dioxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: 'fossil carbon of the waste and the natural gas, less the carbon of CO, CH4 and VOC, as CO2; oxidation
+    factor 1 (IPCC (2006) Guidelines for National GHG Inventories, Vol. 5 Waste, ch. 5, Table 5.2); biosphere3 UUID,
+    name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent elementary
+    exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.231
+    source: 'fossil share: range 0.33 to 0.5 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the
+      amount stays the arithmetic midpoint or the stated value)'
+- key: emission:CO2-biogenic
+  title: CO2, biogenic (waste)
+  type: emission
+  amount: 450.66538724918814
+  unit: kg
+  formula: ((msw * (1 - w) * c_ds) * (1 - f_fos)) * M_CO2 / M_C
+  provenance: calculated
+  cas: 124-38-9
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: eba59fd6-f37e-41dc-9ca3-c7ea22d602c7
+    name: Carbon dioxide, non-fossil
+    categories:
+    - air
+    unit: kg
+  source: 'biogenic carbon of the waste as CO2; oxidation factor 1 (IPCC (2006) Guidelines for National GHG Inventories,
+    Vol. 5 Waste, ch. 5, Table 5.2); biosphere3 UUID, name and categories from core''s elementary-flow crosswalk
+    (data/elementary-flows.yaml: ecoinvent elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree: *id001
+  basic_uncertainty: 1.05
+- key: emission:H2O
+  title: Water vapour in the flue gas
+  type: emission
+  amount: 489.9050117332131
+  unit: kg
+  formula: (msw * w) + (((msw * (1 - w) * h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 - M_C) / M_CH4 + (nh3w * x_nh3) *
+    (M_NH3 - M_N2 / 2) / M_NH3 - (msw / 1000 * ef_ch4) * (M_CH4 - M_C) / M_CH4 - (c_nh3 * ((((msw * (1 - w) * c_ds)
+    + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3
+    * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2
+    / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2) * (1 - x_air) / x_air) / (1 - o2_ref / x_air)
+    * V_m) / 1000000) * (M_NH3 - M_N2 / 2) / M_NH3 - (c_tvoc * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) *
+    M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4)
+    / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2 / 2 + msw * (1 - w) * s_ds
+    / M_S - (msw * (1 - w) * o_ds) / M_O2) * (1 - x_air) / x_air) / (1 - o2_ref / x_air) * V_m) / 1000000 * M_CH2
+    / M_C) * M_H2 / M_CH2) * M_H2O / M_H2)
+  provenance: calculated
+  cas: 7732-18-5
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 075e433b-4be4-448e-9510-9a5029c1ce94
+    name: Water
+    categories:
+    - air
+    unit: m3
+    per_unit: 0.001
+  source: 'the waste''s water and the water formed from its hydrogen, the fuel''s and the ammonia''s; quench and
+    slurry water not counted; biosphere3 UUID, name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml:
+    ecoinvent elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree: *id003
+  basic_uncertainty: 1.05
+- key: emission:N2
+  title: Nitrogen of the waste and the ammonia, to air as N2
+  type: emission
+  amount: 6.437556016163946
+  unit: kg
+  formula: (msw * (1 - w) * n_ds) + (nh3w * x_nh3) * (M_N2 / 2) / M_NH3 - (c_nox * ((((msw * (1 - w) * c_ds) + (ng_nm3
+    * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4)
+    * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2 / 2 + msw
+    * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2) * (1 - x_air) / x_air) / (1 - o2_ref / x_air) * V_m)
+    / 1000000) * (M_N2 / 2) / M_NO2 - (msw / 1000 * ef_n2o) * M_N2 / M_N2O - (c_nh3 * ((((msw * (1 - w) * c_ds)
+    + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3
+    * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2
+    / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2) * (1 - x_air) / x_air) / (1 - o2_ref / x_air)
+    * V_m) / 1000000) * (M_N2 / 2) / M_NH3
+  provenance: calculated
+  free: true
+  cas: 7727-37-9
+  source: 'the nitrogen not leaving as NOx, N2O or NH3 (free: pass_through N2 in lci/mappings.yaml)'
+  pedigree: *id003
+  basic_uncertainty: 1.05
+- key: emission:NOx
+  title: NOx (as NO2)
+  type: emission
+  amount: 0.44019112084702866
+  unit: kg
+  formula: c_nox * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds)
+    / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3
+    * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2 / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2)
+    * (1 - x_air) / x_air) / (1 - o2_ref / x_air) * V_m) / 1000000
+  provenance: calculated
+  cas: 10102-44-0
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: c1b91234-6f24-417b-8309-46111d09c457
+    name: Nitrogen oxides
+    categories:
+    - air
+    unit: kg
+  source: 'BAT-AEL midpoint (BREF Table 5.6) times the dry flue gas at 11 % O2; biosphere3 UUID, name and categories
+    from core''s elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent elementary exchanges 3.9 via bw2io
+    0.9.17, BSD-3-Clause)'
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.732
+    source: 'NOx: range 50 to 150 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount stays
+      the arithmetic midpoint or the stated value)'
+- key: emission:N2O
+  title: N2O
+  type: emission
+  amount: 0.05
+  unit: kg
+  formula: msw / 1000 * ef_n2o
+  provenance: calculated
+  cas: 10024-97-2
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 20185046-64bb-4c09-a8e7-e8a9e144ca98
+    name: Dinitrogen monoxide
+    categories:
+    - air
+    unit: kg
+  source: 'IPCC (2006) Guidelines for National GHG Inventories, Vol. 5 Waste, ch. 5, Table 5.6; biosphere3 UUID,
+    name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent elementary
+    exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree: &id004
+    scores:
+    - 4
+    - 4
+    - 5
+    - 3
+    - 3
+    reason: 'IPCC 2006 default emission factor (expert judgement on national data): reliability 4, completeness
+      4, temporal 5 (2006), geographical 3, technological 3'
+  basic_uncertainty: 1.05
+- key: emission:CO
+  title: CO (counted fossil)
+  type: emission
+  amount: 0.1320573362541086
+  unit: kg
+  formula: c_co * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) /
+    M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3
+    * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2 / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2)
+    * (1 - x_air) / x_air) / (1 - o2_ref / x_air) * V_m) / 1000000
+  provenance: calculated
+  cas: 630-08-0
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: ba2f3f82-c93a-47a5-822a-37ec97495275
+    name: Carbon monoxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: 'BAT-AEL midpoint (BREF Table 5.6) times the dry flue gas; counted fossil (ASSUMED); biosphere3 UUID,
+    name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent elementary
+    exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.236
+    source: 'CO: range 10 to 50 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount stays
+      the arithmetic midpoint or the stated value)'
+- key: emission:CH4
+  title: CH4 (counted fossil)
+  type: emission
+  amount: 0.0002
+  unit: kg
+  formula: msw / 1000 * ef_ch4
+  provenance: calculated
+  cas: 74-82-8
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 0795345f-c7ae-410c-ad25-1845784c75f5
+    name: Methane, fossil
+    categories:
+    - air
+    unit: kg
+  source: 'IPCC (2006) Guidelines for National GHG Inventories, Vol. 5 Waste, ch. 5, Table 5.3; counted fossil (ASSUMED);
+    biosphere3 UUID, name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent
+    elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree: *id004
+  basic_uncertainty: 1.05
+- key: emission:NMVOC
+  title: VOC (TVOC, counted as CH2)
+  type: emission
+  amount: 0.03341490761700796
+  unit: kg
+  formula: c_tvoc * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds)
+    / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3
+    * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2 / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2)
+    * (1 - x_air) / x_air) / (1 - o2_ref / x_air) * V_m) / 1000000 * M_CH2 / M_C
+  provenance: calculated
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: d3260d0e-8203-4cbb-a45a-6a13131a5108
+    name: NMVOC, non-methane volatile organic compounds
+    categories:
+    - air
+    unit: kg
+  source: 'BAT-AEL midpoint (BREF Table 5.7, as C) times the dry flue gas, as CH2 (ASSUMED); the methane in TVOC
+    is not taken out; biosphere3 UUID, name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml:
+    ecoinvent elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.826
+    source: 'TVOC: range 3 to 10 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount stays
+      the arithmetic midpoint or the stated value)'
+- key: emission:NH3
+  title: NH3 slip
+  type: emission
+  amount: 0.02641146725082172
+  unit: kg
+  formula: c_nh3 * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds)
+    / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3
+    * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2 / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2)
+    * (1 - x_air) / x_air) / (1 - o2_ref / x_air) * V_m) / 1000000
+  provenance: calculated
+  cas: 7664-41-7
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 87883a4e-1e3e-4c9d-90c0-f1bea36f8014
+    name: Ammonia
+    categories:
+    - air
+    unit: kg
+  source: 'BAT-AEL midpoint (BREF Table 5.6) times the dry flue gas; biosphere3 UUID, name and categories from core''s
+    elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent elementary exchanges 3.9 via bw2io 0.9.17,
+    BSD-3-Clause)'
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.236
+    source: 'NH3: range 2 to 10 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount stays
+      the arithmetic midpoint or the stated value)'
+- key: emission:SO2
+  title: SO2
+  type: emission
+  amount: 0.09904300219058144
+  unit: kg
+  formula: c_so2 * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds)
+    / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3
+    * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2 / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2)
+    * (1 - x_air) / x_air) / (1 - o2_ref / x_air) * V_m) / 1000000
+  provenance: calculated
+  cas: 7446-09-5
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: fd7aa71c-508c-480d-81a6-8052aad92646
+    name: Sulfur dioxide
+    categories:
+    - air
+    unit: kg
+  balance_exclusion: part of the mineral matter's mass (S, Cl, F, Hg, dust), outside the element balance
+  source: 'BAT-AEL midpoint (BREF Table 5.5) times the dry flue gas at 11 % O2; biosphere3 UUID, name and categories
+    from core''s elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent elementary exchanges 3.9 via bw2io
+    0.9.17, BSD-3-Clause)'
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.828
+    source: 'SO2: range 5 to 40 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount stays
+      the arithmetic midpoint or the stated value)'
+- key: emission:HCl
+  title: HCl
+  type: emission
+  amount: 0.02200955604235143
+  unit: kg
+  formula: c_hcl * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds)
+    / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3
+    * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2 / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2)
+    * (1 - x_air) / x_air) / (1 - o2_ref / x_air) * V_m) / 1000000
+  provenance: calculated
+  cas: 7647-01-0
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: c9a8073a-8a19-5b9b-a120-7d549563b67b
+    name: Hydrochloric acid
+    categories:
+    - air
+    unit: kg
+  balance_exclusion: part of the mineral matter's mass (S, Cl, F, Hg, dust), outside the element balance
+  source: BAT-AEL midpoint (BREF Table 5.5) times the dry flue gas at 11 % O2; biosphere3 UUID, name and categories
+    read from 'ecoinvent elementary flows 3.9.xml' as shipped with bw2io 0.9.17 (BSD-3-Clause, Copyright (c) 2016
+    Chris Mutel and Paul Scherrer Institut); identifiers only
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'HCl: range 2 to 8 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount stays
+      the arithmetic midpoint or the stated value)'
+- key: emission:HF
+  title: HF
+  type: emission
+  amount: 0.004401911208470287
+  unit: kg
+  formula: c_hf * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) /
+    M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3
+    * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2 / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2)
+    * (1 - x_air) / x_air) / (1 - o2_ref / x_air) * V_m) / 1000000
+  provenance: calculated
+  cas: 7664-39-3
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 24541c8c-9f11-49ae-9de5-456f238a3f5e
+    name: Hydrogen fluoride
+    categories:
+    - air
+    unit: kg
+  balance_exclusion: part of the mineral matter's mass (S, Cl, F, Hg, dust), outside the element balance
+  source: BAT-AEL upper bound (BREF Table 5.5) times the dry flue gas at 11 % O2; biosphere3 UUID, name and categories
+    read from 'ecoinvent elementary flows 3.9.xml' as shipped with bw2io 0.9.17 (BSD-3-Clause, Copyright (c) 2016
+    Chris Mutel and Paul Scherrer Institut); identifiers only
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: an upper bound, the true value is lower by an unknown factor'
+- key: emission:Hg
+  title: Mercury (total, as the list's Mercury II)
+  type: emission
+  amount: 5.502389010587858e-05
+  unit: kg
+  formula: c_hg * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) /
+    M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3
+    * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2 / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2)
+    * (1 - x_air) / x_air) / (1 - o2_ref / x_air) * V_m) / 1000000
+  provenance: calculated
+  cas: 14302-87-5
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 71234253-b3a7-4dfe-b166-a484ad15bee7
+    name: Mercury II
+    categories:
+    - air
+    unit: kg
+  balance_exclusion: part of the mineral matter's mass (S, Cl, F, Hg, dust), outside the element balance
+  source: BAT-AEL midpoint (BREF Table 5.8); the 3.9 list has mercury to air only as Mercury II, so total Hg is
+    counted as it (ASSUMED) times the dry flue gas at 11 % O2; biosphere3 UUID, name and categories read from 'ecoinvent
+    elementary flows 3.9.xml' as shipped with bw2io 0.9.17 (BSD-3-Clause, Copyright (c) 2016 Chris Mutel and Paul
+    Scherrer Institut); identifiers only
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'Hg: range 5 to 20 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount stays
+      the arithmetic midpoint or the stated value)'
+- key: emission:PCDD-F
+  title: PCDD/F (I-TEQ, as 2,3,7,8-TCDD)
+  type: emission
+  amount: 1.5406689229646004e-10
+  unit: kg
+  formula: c_pcdd * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds)
+    / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3
+    * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2 / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2)
+    * (1 - x_air) / x_air) / (1 - o2_ref / x_air) * V_m) / 1000000
+  provenance: calculated
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 082903e4-45d8-4078-94cb-736b15279277
+    name: Dioxins, measured as 2,3,7,8-tetrachlorodibenzo-p-dioxin
+    categories:
+    - air
+    unit: kg
+  balance_exclusion: part of the mineral matter's mass (S, Cl, F, Hg, dust), outside the element balance
+  source: BAT-AEL midpoint (BREF Table 5.7), I-TEQ counted as TCDD times the dry flue gas at 11 % O2; biosphere3
+    UUID, name and categories read from 'ecoinvent elementary flows 3.9.xml' as shipped with bw2io 0.9.17 (BSD-3-Clause,
+    Copyright (c) 2016 Chris Mutel and Paul Scherrer Institut); identifiers only
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.449
+    source: 'PCDD/F: range 0.01 to 0.06 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: emission:PM
+  title: Dust (counted as PM2.5)
+  type: emission
+  amount: 0.015406689229646003
+  unit: kg
+  formula: c_dust * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds)
+    / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3
+    * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2 / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2)
+    * (1 - x_air) / x_air) / (1 - o2_ref / x_air) * V_m) / 1000000
+  provenance: calculated
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 21e46cb8-6233-4c99-bac3-c41d2ab99498
+    name: Particulate Matter, < 2.5 um
+    categories:
+    - air
+    unit: kg
+  balance_exclusion: part of the mineral matter's mass (S, Cl, F, Hg, dust), outside the element balance
+  source: 'BAT-AEL midpoint (BREF Table 5.3); size fraction ASSUMED below 2.5 um after the bag filter times the
+    dry flue gas at 11 % O2; biosphere3 UUID, name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml:
+    ecoinvent elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.581
+    source: 'dust: range 2 to 5 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount stays
+      the arithmetic midpoint or the stated value)'
+provenance:
+  generator: hand-written model; amounts are the formulas of the parameters
+  notes: 'No value from a licensed database. Sources: WI BREF 2019, IPCC 2006 Vol. 5 ch. 5; facts and numbers in
+    our own form.'
+generation:
+  tier: 1
+  method: 'sourced conceptual inventory: WI BREF (2019) ranges and an ultimate analysis of the waste, with combustion
+    stoichiometry and IPCC 2006 factors for N2O and CH4; every choice listed in parameters'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 3
+  - 4
+  - 3
+  - 3
+  - 3
+  dqr_floor: 3.0
+  components: &id005
+    feed:msw-water: H2O
+    feed:msw-carbon-fossil: C
+    feed:msw-carbon-biogenic: C
+    feed:msw-hydrogen: H2
+    feed:msw-oxygen: O2
+    feed:msw-nitrogen: N2
+    feed:O2: O2
+    feed:natural-gas: CH4
+    feed:ammonia: NH3
+    emission:CO2: CO2
+    emission:CO2-biogenic: CO2
+    emission:H2O: H2O
+    emission:N2: N2
+    emission:NOx: NO2
+    emission:N2O: N2O
+    emission:CO: CO
+    emission:CH4: CH4
+    emission:NMVOC: CH2
+    emission:NH3: NH3
+  formulas: *id005
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      C:
+      - 216.830389149
+      - 216.830389149
+      H:
+      - 54.83321725
+      - 54.83321725
+      N:
+      - 6.625123305
+      - 6.625126218
+      O:
+      - 1012.902340568
+      - 1012.902347223
+    outside:
+    - emission:HCl
+    - emission:HF
+    - emission:Hg
+    - emission:PCDD-F
+    - emission:PM
+    - emission:SO2
+    - feed:activated-carbon
+    - feed:msw-mineral
+    - feed:quicklime
+    - output:boiler-ash
+    - output:bottom-ash
+    - output:fgc-residue
+    - product:electricity
+    - product:heat

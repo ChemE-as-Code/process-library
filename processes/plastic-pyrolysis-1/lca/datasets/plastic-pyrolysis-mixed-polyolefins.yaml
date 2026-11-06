@@ -1,0 +1,481 @@
+# Tier 1 form, a manifest-only entry without a flowsheet (as process-library#317). Every amount is the formula of
+# its parameters; core's validator re-checks each. Written from open sources (facts in our own form).
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: plastic-pyrolysis-mixed-polyolefins
+title: Raw pyrolysis oil by continuous thermal pyrolysis of mixed polyolefin plastic waste
+description: Per 1 t of raw (not upgraded) pyrolysis oil, gate-to-gate, from pyrolysis-ready mixed PE/PP waste.
+  Yield and process heat from a JRC review of EU literature and stakeholder data (2026), electricity from a survey
+  of US companies (2017), combustion CH4 and N2O from IPCC 2006. Part of the gas is fired for the process heat;
+  the rest is a co-product. Char is a residue.
+basis: 1000 kg of raw plastic pyrolysis oil
+boundary: 'gate-to-gate: pyrolysis reactor with its gas-fired heating, condensation and gas handling; the waste
+  enters sorted and pretreated, burden-free; upgrading (hydrotreating, fractionation) and the steam cracker are
+  outside'
+technology: non-catalytic (thermal) pyrolysis of mixed polyolefins at about 430 to 550 degC in continuously fed
+  reactors (screw or rotary kiln, extruder-fed, fluidised bed); catalytic, hydrothermal and batch units are not
+  modelled separately
+geography:
+  description: EU yield and heat basis; electricity from US plants; no single site.
+classification:
+  isic: '3830'
+system_boundary:
+  included:
+  - pyrolysis-ready mixed polyolefin waste (burden-free)
+  - electricity
+  - 'firing of part of the pyrolysis gas for process heat: CO2, H2O, CH4, N2O'
+  - exported pyrolysis gas (co-product), char (residue)
+  excluded:
+  - 'TODO natural gas: 13 % of the purchased energy in the same survey (Benavides et al. 2017), about 231 MJ/t of
+    liquid; left out because it may overlap with the heat modelled from the own gas, and its use (start-up, upgrading)
+    is not stated'
+  - 'TODO NOx, CO, particulates and HCl from the gas firing and the char: no open source quantified them for this
+    process'
+  - TODO nitrogen for inerting and purging; cooling water; water and wastewater from feed moisture and washing
+  - TODO the fate of the char (landfill or energy recovery); the treatment of the exported gas
+  - TODO chlorine and other heteroatoms of real waste (PVC, PET, additives) and their fate in oil, char and flue
+    gas
+  - 'collection, transport, sorting and pretreatment of the waste: in the waste system under cut-off'
+  - upgrading of the oil (hydrotreating, fractionation) and steam cracking
+  - 'catalysts: thermal process; infrastructure'
+  cutoff: none applied; the excluded flows are not quantified
+  infrastructure: excluded
+  catalysts: excluded
+  non_routine: excluded
+location: RER
+year: 2025
+valid_until: 2030
+time:
+  start: 2016
+  description: yield and heat share consolidated in a JRC report published in 2026 from data collected up to 2025;
+    electricity from a survey of US companies published in 2017 (older than the 10-year limit for secondary data
+    at the reference year). valid_until is the reference year + 5 (system-model section 6).
+modelling:
+  principle: attributional
+  multifunctionality: mass allocation between the raw oil and the exported pyrolysis gas (see allocation); the char
+    is a residue
+allocation:
+  method: mass
+  coproducts:
+  - plastic-pyrolysis-oil
+  - plastic-pyrolysis-gas
+  deviation: No sourced prices or heating values of the oil and the gas, so neither the WBCSD price ratio nor energy
+    allocation (system-model section 2, step 2, for co-produced fuels) can be computed from open data here. Mass
+    is the preliminary choice; with similar heating values of the two hydrocarbon products, energy allocation would
+    give close shares.
+uuid: 876814ca-2325-5291-8b8b-4b8b224858f5
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+technology_level: current
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: oil
+  value: 1000.0
+  unit: kg
+  description: Raw pyrolysis oil delivered (the basis).
+  source: basis
+- name: M_PO
+  value: 28.054
+  unit: g/mol
+  description: Molar mass of the polyolefin repeat unit, written C2H4 (the (CH2)n of PE and PP).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_GAS
+  value: 30.07
+  unit: g/mol
+  description: Molar mass of ethane, the model compound of the non-condensable gas.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_CO2
+  value: 44.009
+  unit: g/mol
+  description: Molar mass of carbon dioxide.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_H2O
+  value: 18.015
+  unit: g/mol
+  description: Molar mass of water.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_O2
+  value: 31.998
+  unit: g/mol
+  description: Molar mass of oxygen.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: y_oil
+  value: 0.69
+  unit: kg/kg
+  description: 'Raw pyrolysis oil per kg of pyrolysis-ready mixed polyolefin waste: the central value of 0.67 to
+    0.71.'
+  source: 'Gaudillat, P., Marschinski, R., Saveyn, H. (2026) Economic viability of chemical recycling: current and
+    future perspectives, JRC147061, EUR 40766, doi:10.2760/6105801, Annex A.5 ''Outputs and yield'', p. 99 (literature
+    and stakeholder data converge on 67 to 71 %, 69 % central); Table 7, p. 48 gives 65, 71 and 85 % for its current,
+    baseline and best-case scenarios'
+- name: f_heat
+  value: 0.1
+  unit: MJ/MJ
+  description: 'Process heat as a share of the calorific value of the plastic fed: the practical value for real
+    reactors.'
+  source: 'Gaudillat, P., Marschinski, R., Saveyn, H. (2026) Economic viability of chemical recycling: current and
+    future perspectives, JRC147061, EUR 40766, doi:10.2760/6105801, Annex A.5 ''Opex'', p. 99, reporting Netsch
+    et al. (2024): theoretical heat demand about 5 % (4 to 6 %) of the calorific value, in practice close to 10
+    %. Netsch et al. (2024) itself was not read. Reading the 10 % as fuel fired (furnace losses included, no separate
+    efficiency) is ASSUMED'
+- name: cv_feed
+  value: 34.0
+  unit: MJ/kg
+  description: 'Calorific value of the pyrolysis-ready feed: that of large-format PE film waste bales, taken as
+    a proxy.'
+  source: Garcia-Gutierrez, P. et al. (2023) Environmental and economic assessment of plastic waste recycling, JRC132067,
+    EUR 31423 EN, doi:10.2760/0472, sections 3.2.2.1.4, p. 59 (sorted large-format PE film waste about 34 GJ/t)
+    and 3.2.2.1.3, p. 58 (sorted MPO flexible packaging waste about 28 GJ/t). Using the cleaner PE film bales for
+    a sorted and pretreated feed is ASSUMED; pure polyolefin is higher (about 43 MJ/kg, not sourced here)
+- name: lhv_gas
+  value: 46.4
+  unit: MJ/kg
+  description: Net calorific value of ethane, the model compound of the gas burnt.
+  source: IPCC (2006) Guidelines for National Greenhouse Gas Inventories, Vol. 2 Energy, ch. 1, Table 1.2, p. 1.18
+    (ethane 46.4 TJ/Gg, 95 % interval 44.9 to 48.8)
+- name: e_purch
+  value: 1775.0
+  unit: MJ
+  description: Purchased energy per t of total liquid product of five plastic-to-fuel companies (median aggregate).
+  source: Benavides, P.T., Sun, P., Han, J., Dunn, J.B., Wang, M. (2017) Life-cycle analysis of fuels from post-use
+    non-recycled plastics, Fuel 203:11-22, doi:10.1016/j.fuel.2017.04.070 (accepted manuscript, OSTI 1353191), Table
+    1, p. 8 (covers pretreatment, conversion and on-site upgrading, US plants, survey of about 2016)
+- name: s_el
+  value: 0.87
+  unit: MJ/MJ
+  description: Electricity share of the purchased energy.
+  source: Benavides, P.T., Sun, P., Han, J., Dunn, J.B., Wang, M. (2017) Life-cycle analysis of fuels from post-use
+    non-recycled plastics, Fuel 203:11-22, doi:10.1016/j.fuel.2017.04.070 (accepted manuscript, OSTI 1353191), Table
+    1, p. 8 and section 3.3, p. 10 (87 % electricity, 13 % natural gas)
+- name: ef_ch4
+  value: 1.0e-06
+  unit: kg/MJ
+  description: CH4 per MJ of refinery gas fired in manufacturing industries (1 kg/TJ).
+  source: 'IPCC (2006) Guidelines for National Greenhouse Gas Inventories, Vol. 2 Energy, ch. 2, Table 2.3, p. 2.18
+    (refinery gas: default 1, range 0.3 to 3 kg/TJ); taking the pyrolysis gas as refinery gas is ASSUMED'
+- name: ef_n2o
+  value: 1.0e-07
+  unit: kg/MJ
+  description: N2O per MJ of refinery gas fired in manufacturing industries (0.1 kg/TJ).
+  source: 'IPCC (2006) Guidelines for National Greenhouse Gas Inventories, Vol. 2 Energy, ch. 2, Table 2.3, p. 2.18
+    (refinery gas: default 0.1, range 0.03 to 0.3 kg/TJ); taking the pyrolysis gas as refinery gas is ASSUMED'
+exchanges:
+- key: product:plastic-pyrolysis-oil
+  title: Raw plastic pyrolysis oil, not upgraded
+  type: product
+  amount: 1000.0
+  unit: kg
+  formula: oil
+  provenance: given
+  source: 'the reference flow; modelled as 1-decene, C10H20 (ASSUMED: same element composition as the feed; real
+    oil is a C5 to C30+ mixture of paraffins, olefins and some aromatics)'
+- key: product:plastic-pyrolysis-gas
+  title: Pyrolysis gas not fired in the process, exported as fuel gas
+  type: product
+  amount: 214.84371404754137
+  unit: kg
+  formula: (oil / y_oil - oil) * 2 * M_GAS / (3 * M_PO) - f_heat * cv_feed * oil / y_oil / lhv_gas
+  provenance: calculated
+  source: the non-condensable gas less the part fired for process heat; modelled as ethane (ASSUMED); its use (fuel
+    elsewhere, flare) is not stated by the sources
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: a difference of two model quantities, the gas from the balance of model compounds and the
+      gas fired from the heat share'
+- key: feed:mixed-polyolefin-waste
+  title: Pyrolysis-ready mixed polyolefin (PE, PP) plastic waste
+  type: input
+  amount: 1449.2753623188407
+  unit: kg
+  formula: oil / y_oil
+  provenance: calculated
+  free: true
+  source: 'oil over the sourced yield (JRC 2026, Annex A.5). Waste input: burden-free under the cut-off system model
+    (docs/system-model.md section 3); collection, sorting and pretreatment belong to the waste system and are not
+    in this dataset. Modelled as pure (CH2)n, written C2H4 (ASSUMED: moisture, other polymers and inorganics left
+    out)'
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 3
+    - 3
+    - 3
+    reason: 'from a value consolidated in a JRC report of 2026 from literature and stakeholder data (EU): reliability
+      3, completeness 4, temporal 3, geographical 3, technological 3; the Tier 1 floor'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.029
+    source: 'oil yield: range 0.67 to 0.71 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the
+      amount stays the arithmetic midpoint or the stated value)'
+- key: feed:electricity
+  title: Electricity
+  type: input
+  amount: 428.9583333333333
+  unit: kWh
+  formula: e_purch * s_el / 3.6 * oil / 1000
+  provenance: given
+  origin: literature
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: 'Benavides, P.T., Sun, P., Han, J., Dunn, J.B., Wang, M. (2017) Life-cycle analysis of fuels from post-use
+    non-recycled plastics, Fuel 203:11-22, doi:10.1016/j.fuel.2017.04.070 (accepted manuscript, OSTI 1353191), Table
+    1, p. 8: 87 % of 1775 MJ purchased energy per t of total liquid product, taken per t of raw oil (ASSUMED transfer:
+    the figure includes on-site upgrading, so it is an upper view for raw oil)'
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'from the median of five US plastic-to-fuel companies (about 2016), including on-site upgrading: reliability
+      3, completeness 4, temporal 4, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: a median of five companies with no range stated; pretreatment and upgrading included'
+- key: feed:O2
+  title: Combustion oxygen, from ambient air
+  type: input
+  amount: 395.52077137354183
+  unit: kg
+  formula: f_heat * cv_feed * oil / y_oil / lhv_gas / M_GAS * 3.5 * M_O2
+  provenance: assumed
+  origin: estimate
+  free: true
+  source: complete combustion of the gas fired, C2H6 + 3.5 O2 -> 2 CO2 + 3 H2O (ASSUMED complete); ambient air is
+    free
+- key: output:pyrolysis-char
+  title: Char and solid residue, to treatment
+  type: output
+  amount: 128.23474672207396
+  unit: kg
+  formula: oil / y_oil - oil - (oil / y_oil - oil) * 2 * M_GAS / (3 * M_PO)
+  provenance: calculated
+  source: 'closes the mass balance of the model compounds; modelled as carbon (ASSUMED; real char holds the feed''s
+    inorganics and fillers). Gives 8.85 % of the feed, against the 9 wt% median char of five US companies (Benavides,
+    P.T., Sun, P., Han, J., Dunn, J.B., Wang, M. (2017) Life-cycle analysis of fuels from post-use non-recycled
+    plastics, Fuel 203:11-22, doi:10.1016/j.fuel.2017.04.070 (accepted manuscript, OSTI 1353191), section 3.3, p.
+    10). TODO its fate: landfill (most common in that survey) or energy recovery'
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: char depends on the feed''s contaminants, which the model leaves out'
+- key: emission:CO2
+  title: CO2 from firing the pyrolysis gas
+  type: emission
+  amount: 310.849314285325
+  unit: kg
+  formula: f_heat * cv_feed * oil / y_oil / lhv_gas / M_GAS * 2 * M_CO2
+  provenance: calculated
+  cas: 124-38-9
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 349b29d1-3e58-4c66-98b9-9d1a076efd2e
+    name: Carbon dioxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: 'carbon of the gas fired, complete combustion; 63.1 t CO2/TJ, inside the IPCC default for ethane in manufacturing
+    (61.6, 56.5 to 68.6 t/TJ, IPCC (2006) Guidelines for National Greenhouse Gas Inventories, Vol. 2 Energy, ch.
+    2, Table 2.3, p. 2.18). Fossil: the polyolefin carbon is fossil (ASSUMED; bio-based polymers left out). biosphere3
+    UUID, name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml)'
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.414
+    source: the heat share, theoretical 5 % to practical 10 % of the calorific value, read as a 95 % interval (our
+      convention)
+- key: emission:H2O
+  title: Water vapour from firing the pyrolysis gas
+  type: emission
+  amount: 190.8683586374422
+  unit: kg
+  formula: f_heat * cv_feed * oil / y_oil / lhv_gas / M_GAS * 3 * M_H2O
+  provenance: calculated
+  cas: 7732-18-5
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 075e433b-4be4-448e-9510-9a5029c1ce94
+    name: Water
+    categories:
+    - air
+    unit: m3
+    per_unit: 0.001
+  source: combustion water of the gas fired; biosphere3 UUID, name and categories from core's elementary-flow crosswalk
+    (data/elementary-flows.yaml)
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.414
+    source: follows the heat share, as CO2
+- key: emission:CH4
+  title: CH4 from firing the pyrolysis gas
+  type: emission
+  amount: 0.004927536231884058
+  unit: kg
+  formula: ef_ch4 * f_heat * cv_feed * oil / y_oil
+  provenance: given
+  origin: literature
+  cas: 74-82-8
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 0795345f-c7ae-410c-ad25-1845784c75f5
+    name: Methane, fossil
+    categories:
+    - air
+    unit: kg
+  source: IPCC (2006) Guidelines for National Greenhouse Gas Inventories, Vol. 2 Energy, ch. 2, Table 2.3, p. 2.18,
+    refinery gas default per MJ fired; mass outside the element balance; biosphere3 UUID, name and categories from
+    core's elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.162
+    source: 'CH4 factor: range 0.3 to 3 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: emission:N2O
+  title: N2O from firing the pyrolysis gas
+  type: emission
+  amount: 0.0004927536231884059
+  unit: kg
+  formula: ef_n2o * f_heat * cv_feed * oil / y_oil
+  provenance: given
+  origin: literature
+  cas: 10024-97-2
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 20185046-64bb-4c09-a8e7-e8a9e144ca98
+    name: Dinitrogen monoxide
+    categories:
+    - air
+    unit: kg
+  source: IPCC (2006) Guidelines for National Greenhouse Gas Inventories, Vol. 2 Energy, ch. 2, Table 2.3, p. 2.18,
+    refinery gas default per MJ fired; mass outside the element balance; biosphere3 UUID, name and categories from
+    core's elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.162
+    source: 'N2O factor: range 0.03 to 0.3 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the
+      amount stays the arithmetic midpoint or the stated value)'
+provenance:
+  generator: hand-written model; amounts are the formulas of the parameters
+  notes: No value from a licensed database. Sources are open reports and an accepted manuscript, facts in our own
+    form.
+generation:
+  tier: 1
+  method: 'sourced conceptual inventory: JRC 2026 yield and heat share, US survey electricity, IPCC combustion factors,
+    with model compounds that close the element balance; every choice listed in parameters'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 3
+  - 4
+  - 3
+  - 3
+  - 3
+  dqr_floor: 3.0
+  components:
+    product:plastic-pyrolysis-oil: C10H20
+    product:plastic-pyrolysis-gas: C2H6
+    feed:mixed-polyolefin-waste: C2H4
+    feed:O2: O2
+    output:pyrolysis-char: C
+    emission:CO2: CO2
+    emission:H2O: H2O
+  formulas:
+    product:plastic-pyrolysis-oil: C10H20
+    product:plastic-pyrolysis-gas: C2H6
+    feed:mixed-polyolefin-waste: C2H4
+    feed:O2: O2
+    output:pyrolysis-char: C
+    emission:CO2: CO2
+    emission:H2O: H2O
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      C:
+      - 1240.981419891
+      - 1240.981419891
+      H:
+      - 208.293942428
+      - 208.293942428
+      O:
+      - 395.520771374
+      - 395.520771374
+    outside:
+    - emission:CH4
+    - emission:N2O
+    - feed:electricity

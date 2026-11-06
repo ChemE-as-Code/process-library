@@ -1,0 +1,35 @@
+# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
+# dataset is lca/datasets/*.yaml, Tier 1 form, so maturity stays at concept
+# (core's cheme.lci-tier-maturity). See README.md.
+schema: cheme-as-code/process/v1
+id: carbon-capture-1
+title: CO2 conditioning of a high-purity source (ammonia CO2 stripper vent), compression and TEG drying
+summary: >-
+  Sourced conceptual inventory per tonne of dense-phase CO2 at 15.3 MPa: the wet stripper-vent gas of
+  an ammonia plant is compressed, dried with triethylene glycol and cooled, after the US NETL study
+  of industrial capture (2023). No flowsheet; not reviewed.
+families: [carbon-capture]
+keywords: [CO2 capture, CO2 conditioning, CO2 compression, dehydration, triethylene glycol, high-purity CO2, ammonia, CCUS]
+facets: {feedstock_basis: [fossil], product_classes: [industrial-gases], unit_operations: [compression, absorption], region: US}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: carbon-dioxide, role: feedstock, inventory_key: "feed:CO2-raw", note: "wet CO2 stripper (regenerator) vent of a natural-gas ammonia plant, 97.09 mol% CO2, 0.16 MPa; zero burden from the source plant (system-model section 2, step 4); fossil carbon"}
+    - {chemical: triethylene-glycol, role: feedstock, inventory_key: "input:TEG", note: "make-up of the TEG dryer, linked to ethylene-glycol-1 (lca/mappings.yaml)"}
+    - {chemical: water, role: feedstock, inventory_key: "resource:water", note: "cooling-tower make-up of the compressor coolers, withdrawn from nature"}
+  outputs:
+    - {chemical: carbon-dioxide, role: main-product, inventory_key: "product:CO2", note: "dense phase, 15.3 MPa and 30 degC, 99.95 mol% CO2 (500 ppm water), EOR pipeline quality"}
+    - {chemical: wastewater, role: waste, inventory_key: "output:condensate", note: "water knocked out of the raw gas and removed by the dryer"}
+    - {chemical: wastewater, role: waste, inventory_key: "output:blowdown", note: "cooling-tower blowdown (ASSUMED 4 cycles of concentration)"}
+    - {chemical: water, role: emission, inventory_key: "emission:H2O-evaporation", note: "cooling-tower evaporation"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity", note: "reciprocating CO2 compressor, circulating-water pumps and cooling-tower fans"}
+basis: {capacity: "per tonne of conditioned CO2 (the dataset's basis); the source's case is 55.5 t/h"}
+publication: {status: public, license: CC-BY-4.0}
+references:
+  - {title: "Hughes, S., Zoelle, A. (2023) Cost of Capturing CO2 from Industrial Sources. National Energy Technology Laboratory, DOE/NETL-2023/3907, section 5.1 (ammonia) and 5.3 (ethanol)", url: "https://www.osti.gov/servlets/purl/2007619"}
+  - {title: "IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Volume 3, Chapter 3 Chemical Industry Emissions, section 3.2 (ammonia: CO2 regenerator, CO2 recovered for downstream use, Boxes 3.1 to 3.3)", url: "https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/3_Volume3/V3_3_Ch3_Chemical_Industry.pdf"}
+  - {title: "IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Volume 2, Chapter 5 Carbon Dioxide Transport, Injection and Geological Storage, section 5.3 (capture boundary)", url: "https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/2_Volume2/V2_5_Ch5_CCS.pdf"}
+  - {title: "McCollum, D.L., Ogden, J.M. (2006) Techno-economic models for carbon dioxide compression, transport, and storage. Institute of Transportation Studies, University of California, Davis, UCD-ITS-RR-06-14 (benchmark only)", url: "https://itspubs.ucdavis.edu/publication_detail.php?id=1047"}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/carbon-capture-1, access: public}

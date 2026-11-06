@@ -1,0 +1,19 @@
+# e-fuels-1's own exchange overrides for the Atlas LCI build (ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Hydrogen and CO2 stay reported gaps on purpose:
+# their keys (feed:H2, feed:CO2) are not registry slugs, so the build does not resolve them to the
+# shared `hydrogen` market (merchant, mostly fossil H2) or to liquid CO2, both the wrong supply for
+# an e-fuel. Link each explicitly once its producer is chosen.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:H2":
+    atlas: false
+    source: >-
+      Electrolytic hydrogen at 2.5 MPa, supplier not decided. hydrogen-1 is the SMR variant, and the
+      shared background is merchant hydrogen at low pressure, so neither is linked. An electrolysis
+      entry of the library would be the candidate.
+  "feed:CO2":
+    atlas: false
+    source: >-
+      Captured gaseous CO2 at 0.1 MPa, taken as from a fossil point source (ASSUMED, co2_source in the
+      dataset), supplier not decided. The shared carbon-dioxide-liquid entry is liquefied merchant
+      CO2, another grade. A CO2 capture entry of the library would be the candidate.
