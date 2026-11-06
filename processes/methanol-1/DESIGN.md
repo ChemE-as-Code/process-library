@@ -623,10 +623,18 @@ deferred here with its reason and an open input):
    and XV-116 are open only after YS-117 has read running, when every stop trips I-102. Starting
    at the settle-out pressure is ASSUMED (the usual design case of a centrifugal compressor's
    start; with the vendors, I-10); the front-end pressure compared in S3 is the battery-limit
-   pressure reported over the interface, not measured on P-01 (ASSUMED, I-15); S3 times out
-   after 5 min ASSUMED, the fully open UV-104 keeping K-101 out of surge meanwhile. XV-110 open
-   with K-101 standing is left only for the first pressuring after maintenance, a procedure not
-   written (D-021), and for XV-110 failing to close: PSV-115 case (3), I-15.
+   pressure reported over the interface, not measured on P-01 (ASSUMED, I-15). Round 7: S2
+   completes only once XV-116 is open and PIC-102 is at or below the front-end pressure, so its
+   10 min timeout (ASSUMED) bounds the drawdown too, the fully open UV-104 keeping K-101 out of
+   surge meanwhile; S3 only opens XV-110 (5 min, ASSUMED). XV-110 open with K-101 standing is
+   left for the suction-side pressuring procedure, not written (D-021), and for XV-110 failing
+   to close: PSV-115 case (3), I-15. The procedure is needed for the first pressuring after
+   maintenance and also before an ordinary restart whenever the suction side has fallen below
+   the front-end pressure, which the PIC-102 permissive then refuses: over a longer stop the
+   closed XV-110's seat leakage (SG-101 has no check valve) moves it toward the battery-limit
+   pressure and seal leakage can take it below, and a PSV-115 lift and reseat leaves it below.
+   The gas then flows forward; PSV-115's sizing is unchanged, case (3) being bounded by I-15
+   however often it occurs.
 2. **V-101 high-high level** (high): LZ-313, own tap, stops K-102 and with it K-101 and XV-110
    (C&E I-302): the loop must not keep receiving make-up gas without circulation. LIC-307's high
    alarm stays the operator warning.
@@ -704,7 +712,9 @@ a signal line: a line from K-101 to US-116 would cross SG-102 and SG-131.
 Round 6 low items: on P-01 US-116 is drawn acting on XV-116 only and XV-110 is drawn actuated by
 LZ-109 (I-101), so two links of I-102 are not drawn: YS-117 into US-116 and US-116 onto XV-110.
 Neither can be drawn without a crossing (YS-117 sits in the area that FL-136, SG-130, SG-102 and
-FL-132 close; US-116 in the area below the anti-surge loop, which DR-135 separates from XV-110), so
+FL-132 close; US-116 in the open area right of the anti-surge riser from T131B and above the level
+of the SG-131 run, which joins the lower part of the sheet, where DR-135, running from V-103 to the
+bottom edge, separates it from XV-110; wording corrected in round 7), so
 they stay C&E links, and the P-01 note, the C&E I-102 notes, the US-116 and YS-117 entries of the
 instrument list and the script comment all say so; US-116's entry now gives XV-110's fail position
 too (F.C.). The control philosophy body and D-021 no longer say that no sequence is written.
@@ -798,7 +808,9 @@ ASSUMED (I-01, I-02). After the DWSIM run (D-014) the predictive checks pass exc
 - I-15 Front-end interface: the maximum pressure of the make-up gas at the battery limit (the
   front end's relief set or shut-in pressure with no outlet through the plant) against the
   28 barg K-101 suction side; above it, the suction side is designed for it or PSV-115 carries
-  the front end's flow while XV-110 is open with K-101 standing (the first pressuring after
-  maintenance, or XV-110 failing to close; PSV-115 case 3, D-022 item 1). Also the front end's
-  battery-limit pressure as a signal over the interface: SEQ-K101-START opens XV-110 only once
-  PIC-102 reads at or below it (round 6).
+  the front end's flow while XV-110 is open with K-101 standing (the suction-side pressuring
+  procedure: the first pressuring after maintenance, and before a restart when a stop has left
+  the suction side below the front-end pressure; or XV-110 failing to close; PSV-115 case 3,
+  D-022 item 1). Also the front end's battery-limit pressure as a signal over the interface:
+  SEQ-K101-START starts only with PIC-102 at or above it and opens XV-110 only once PIC-102
+  reads at or below it (rounds 6 and 7).

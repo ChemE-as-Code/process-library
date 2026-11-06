@@ -25,7 +25,7 @@ sequences:
       - {interlock: I-302, state: reset}
       - {tag: XV-116, state: closed}
       - {tag: XV-110, state: closed}
-      - {tag: PIC-102, state: "at or above the front-end pressure: the suction side pressured, settled out after a stop or pressured after maintenance"}
+      - {tag: PIC-102, state: "at or above the front-end pressure: the suction side pressured, settled out after a stop or brought up to the front-end pressure by the suction-side pressuring procedure (sequence notes)"}
       - {loop: UIC-104, state: "in manual, UV-104 fully open"}
       - {loop: SIC-113, state: in manual}
     interlocks: [I-101, I-102, I-201, I-202, I-302]
@@ -44,20 +44,23 @@ sequences:
         entry: {tag: YS-117, state: running}
         actions:
           - {tag: XV-116, action: open, by: operator}
-        complete: {tag: XV-116, state: open}
+        complete:
+          all:
+            - {tag: XV-116, state: open}
+            - {tag: PIC-102, state: "at or below the front-end pressure"}
         timeout: {value: 10, unit: min}
         on_timeout: abort
-        operator: "Raise the speed on SIC-113 in manual until the discharge pressure PT-105 is above the loop pressure PIC-308, then open XV-116, so CV-103 opens forward; US-116 refuses to open XV-116 while YS-117 does not read running. XV-110 is still closed: K-101 now moves the suction side's gas into the loop and the suction pressure PIC-102 falls. The speed needed comes with the compressor curve (vendor)."
+        operator: "Raise the speed on SIC-113 in manual until the discharge pressure PT-105 is above the loop pressure PIC-308, then open XV-116, so CV-103 opens forward; US-116 refuses to open XV-116 while YS-117 does not read running. XV-110 is still closed: K-101 now moves the suction side's gas into the loop and the suction pressure PIC-102 falls; keep raising the speed until PIC-102 reads at or below the front-end pressure. Until then the suction side has no supply: the fully open UV-104 keeps K-101 out of surge while its suction pressure falls. The speed needed comes with the compressor curve (vendor)."
+        notes: "The step completes only once the suction side is drawn down, so its timeout bounds the speed raise, the opening of XV-116 and the drawdown together: if PIC-102 does not reach the front-end pressure (the speed not raised far enough, PT-105 falling below the loop pressure and CV-103 shutting) the start aborts. Front-end pressure: the battery-limit pressure as the front end reports it over the interface, not measured on P-01 (ASSUMED; the signal is part of I-15); 2600 kPa(a) in the design case (stream S1 of the flowsheet). Timeout ASSUMED; the drawdown time comes with the suction-side volume, the settle-out pressure and the compressor curve (I-10, vendor)."
       - id: S3
-        title: Open XV-110 once the suction pressure is down to the front end's
-        entry: {tag: PIC-102, state: "at or below the front-end pressure"}
+        title: Open XV-110 now that the suction pressure is down to the front end's
         actions:
           - {tag: XV-110, action: open, by: operator}
         complete: {tag: XV-110, state: open}
         timeout: {value: 5, unit: min}
         on_timeout: abort
-        operator: "Open XV-110 as soon as PIC-102 reads at or below the front-end pressure, so the make-up gas only flows forward. Until then the suction side has no supply: the fully open UV-104 keeps K-101 out of surge while its suction pressure falls."
-        notes: "Front-end pressure: the battery-limit pressure as the front end reports it over the interface, not measured on P-01 (ASSUMED; the signal is part of I-15); 2600 kPa(a) in the design case (S1). Timeout ASSUMED."
+        operator: "Open XV-110 at once: S2 completed with PIC-102 at or below the front-end pressure, so the make-up gas only flows forward."
+        notes: "No entry condition: S2's completion holds the PIC-102 condition, so S3 is entered as soon as S2 is complete and its timeout covers only the opening of XV-110. Timeout ASSUMED."
       - id: S4
         title: Load K-101 on the suction pressure
         actions:
@@ -75,7 +78,7 @@ sequences:
         - {tag: XV-110, action: close}
       notes: "XV-116 (S2) and XV-110 (S3) are opened only after YS-117 has first read running (S1). From then on every K-101 stop is a change from running to not running and trips I-102, which closes both valves itself (trip system); the abort actions repeat it for an abort by timeout or by the operator. A K-101 stop or a power failure in S1, before YS-117 has read running, gives no such change and does not trip I-102, but both valves are still closed then; S1's timeout aborts the start (control system)."
     reset: {latching: true, manual: true, condition: {interlock: I-102, state: reset}}
-    notes: "D-022 (rounds 5 and 6 of the review of PR #367). PROPOSED; timeouts ASSUMED. The K-101 package start permissives (lube oil, seal gas, drive ready) and the start-up procedure come with the compressor vendor at basic engineering. Open, in DESIGN.md: starting K-101 and its drive at the settle-out pressure (I-10); the front end's battery-limit pressure as a signal over the interface, for the PIC-102 permissive and the entry of S3 (I-15). The first pressuring of the suction side after maintenance (purge, then pressuring through XV-110 with K-101 standing, the suction side below the front-end pressure, so the gas flows forward) is a separate procedure, not written (D-021); while it runs XV-110 is open with K-101 standing, PSV-115 case (3) (I-15)."
+    notes: "D-022 (rounds 5 to 7 of the review of PR #367). PROPOSED; timeouts ASSUMED. The K-101 package start permissives (lube oil, seal gas, drive ready) and the start-up procedure come with the compressor vendor at basic engineering. Open, in DESIGN.md: starting K-101 and its drive at the settle-out pressure (I-10); the front end's battery-limit pressure as a signal over the interface, for the PIC-102 permissive and the completion of S2 (I-15). When PIC-102 is below the front-end pressure the permissive blocks the sequence, and the suction side is first brought up to the front-end pressure by the suction-side pressuring procedure, a separate procedure, not written (D-021): XV-110 opened by the operator with K-101 standing, the gas flowing forward, then closed again before the sequence starts. It is needed for the first pressuring after maintenance (after the purge) and after any stop that has left the suction side below the front end: over a longer stop the seat leakage of the closed XV-110 (SG-101 has no check valve) moves the suction side toward the battery-limit pressure and seal leakage can take it below, and a PSV-115 lift and reseat leaves it below. While it runs XV-110 is open with K-101 standing, PSV-115 case (3) (I-15)."
 #  - id: SEQ-START
 #    title: Start up the feed section
 #    mode: startup                      # startup, shutdown, abnormal, normal, other

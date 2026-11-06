@@ -128,7 +128,9 @@ sic = instrument(sheet, "SIC-113", at=(195, 98), sensing=k101["N3"])
 # not drawn signal lines, and the sheet note says so (round 6): YS-117 into US-116, and US-116
 # onto XV-110 (XV-110's drawn actuation is LZ-109's, I-101). Neither can be drawn without a
 # crossing: YS-117 sits in the area closed by FL-136, SG-130, SG-102 and FL-132, US-116 in the
-# area below the anti-surge loop that DR-135 closes off from XV-110, so a line from K-101 to
+# open area right of the anti-surge riser from T131B and above the level of the SG-131 run,
+# which joins the lower part of the sheet, where DR-135 (V-103 to the bottom edge) separates
+# it from XV-110 (wording corrected in round 7), so a line from K-101 to
 # US-116 crosses SG-102 and SG-131 (or FL-132, CWR-133, CWS-132) and one from US-116 to XV-110
 # crosses DR-135.
 instrument(sheet, "YS-117", at=(207, 84), sensing=k101["N4"])

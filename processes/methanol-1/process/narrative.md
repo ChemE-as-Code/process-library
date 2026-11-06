@@ -74,8 +74,11 @@ closed, K-101 starts on full recycle at the suction side's own (settle-out) pres
 above the front end's after a stop; XV-116 opens (only with YS-117 reading running) once the
 discharge pressure is above the loop pressure, and XV-110 once K-101 has drawn the suction
 pressure down to the front end's, so no gas flows back through SG-101 and every stop from then on
-trips I-102; then UIC-104 and PIC-102 take over the loading. The first pressuring of the suction
-side after maintenance is a separate procedure, not written (D-021). I-101 stops the machine on liquid in
+trips I-102; then UIC-104 and PIC-102 take over the loading. The sequence starts only with the
+suction side at or above the front-end pressure; below it (the first pressuring after
+maintenance, or a stop that has left the suction side below the front end through seat or seal
+leakage or a PSV-115 lift) the suction-side pressuring procedure, not written (D-021), first
+brings it up through XV-110 with K-101 standing (PSV-115 case 3, I-15). I-101 stops the machine on liquid in
 V-103.
 **Assumptions and open points.** Electric variable-speed drive, one casing (D-010, D-017);
 surge control by the vendor; the settle-out pressure (I-10) and the front end's maximum pressure
