@@ -1,0 +1,19 @@
+# copper-i-chloride-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# The preliminary LCI leaves most backgrounds unmapped (DESIGN.md D-012): the build reports each
+# as a gap (lci/gaps.json). Linked here: the chlorine to chlor-alkali-1, the hydrochloric acid to
+# hydrogen-chloride-1, the ethanol to ethanol-1, the nitrogen consumable to asu-1's gaseous
+# nitrogen, and the LP steam counted as heat delivered (kWh), as n-bromosuccinimide-1 does.
+# Copper and sodium chloride stay gaps: no library process makes them, and the shared vocabulary
+# has no entry for them; their proxies (copper cathode, vacuum salt) are recorded in lca.yaml and
+# DESIGN.md D-012, not linked (CONTRIBUTING, "Gaps").
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:CL2": {dataset: {path: processes/chlor-alkali-1/lca/dataset.yaml, product: "product:CL2"}, source: "the Atlas producer chlor-alkali-1, dry chlorine gas 400 kPa(a), let down to R-101's dip pipe"}
+  "feed:HCLA": {dataset: {path: processes/hydrogen-chloride-1/lca/dataset.yaml, product: "product:HCLACID"}, source: "the Atlas producer hydrogen-chloride-1, hydrochloric acid 33 wt%, per kg of acid as this exchange counts it"}
+  "feed:ETOH": {dataset: {path: processes/ethanol-1/lca/dataset.yaml, product: "product:ETOH"}, source: "the Atlas producer ethanol-1, anhydrous ethanol"}
+  "consumable:nitrogen": {dataset: {path: processes/asu-1/lca/dataset.yaml, product: "product:GANP"}, source: "the Atlas producer asu-1, gaseous nitrogen to the battery limit (99.97 mol% N2, 9 bar(a)); the purges and the pressing need only a few hundred kPa"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 350 kPa(a) to R-101's jacket (Q1) and the filter-dryer's hot-water circuit (Q5), counted as heat delivered (kWh), D-009"}
