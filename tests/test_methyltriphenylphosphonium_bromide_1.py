@@ -4,14 +4,18 @@ Fast, without core: the flowsheet's calculated streams (written by cheme process
 the materials' molar masses, heat capacities and vapour pressures are enough to check what the
 folder states by hand (DESIGN.md D-004, D-007..D-012):
 
-- the duties written as hand arithmetic (Q1, Q5, Q6, Q8, Q9: the still's heat-up and metal, Q10:
-  R-101's metal) follow from the streams they name, and the models' duties (Q2, Q3, Q7, written
-  by propagate at each step's energy_port since core 1.9.0) match the streams too (Q7 the
-  latent heat of the distillate S19);
+- the duties written as hand arithmetic (Q1, Q5, Q6, Q8) follow from the streams they name, and
+  the models' duties (Q2, Q3, Q7, written by propagate at each step's energy_port since core
+  1.9.0) match the streams too (Q7 the latent heat of the distillate S19, the charge's heat-up
+  and C-101's metal; Q3 the slurry's cool-down and R-101's metal, core 1.10.0);
 - core 1.9.0 (D-015): the recycle is the tear S11 with its flow held as the wash ratio, the
-  models' duties are calculated at their energy_port and the split-off parts keep the totals
-  typed before, the default MTT at the vessel's pressure is below T_p so the hand MTT stays, R101
-  has no vent and states no vent capacity, and plant.yaml requires 1.9;
+  models' duties are calculated at their energy_port, the default MTT at the vessel's pressure is
+  below T_p so the hand MTT stays, R101 has no vent and states no vent capacity;
+- core 1.10.0 (D-016): the still's heat_up and the recipe vessels' metal put the former hand
+  streams Q9 and Q10 into Q7 and Q3 (the same totals), the jacket times hold the metal, C-101 is
+  sized by the recipe, the still's heat-up time is the hand operation at its boil-up rate, the
+  agitators follow the occupancies, the column and the vent features are not used, and
+  plant.yaml requires 1.10;
 - every energy flow reaches the LCI (library ADR 0035): LP steam, cooling water and brine per kg
   are the sums of their energy streams, as process.yaml and DESIGN.md state them;
 - the jacket's coolant temperature is the cooling water's log-mean equivalent, not its supply,
@@ -30,7 +34,6 @@ from __future__ import annotations
 
 import csv
 import math
-import re
 from pathlib import Path
 
 import pytest
@@ -105,6 +108,15 @@ def _psat(model, cid: str, t: float) -> float:
     return 10 ** (vp["a"] - vp["b"] / (t + vp["c"])) * 100
 
 
+# the still's bubble point at the start and its end temperature (cheme process stills, D-009)
+T_BUBBLE, T_END = 383.50, 386.48
+METAL_R101, METAL_C101 = 3000.0, 2500.0  # kJ/K, ASSUMED (D-010), on the recipe's vessels
+
+
+def _procedure(pid: str) -> dict:
+    return next(u for u in _yaml("process/recipe.yaml")["unit_procedures"] if u["id"] == pid)
+
+
 def test_charge_ratios(model):
     s1, s3, s5, s6 = (_kmol(model, s) for s in ("S1", "S3", "S5", "S6"))
     pph3_kg = _kg(model, "S5")["PPH3"]
@@ -117,7 +129,8 @@ def test_charge_ratios(model):
 
 def test_hand_duties_follow_the_streams(model):
     cycle = _cycle(model)
-    metal_r101 = 3000.0 * 20.0 / cycle
+    metal_r101 = METAL_R101 * 20.0 / cycle  # kJ/h: R-101's metal over 20 K each batch
+    # Q1 by hand: the metal from the 313.15 K the previous cool-down left it at (D-010, D-016)
     q1 = (_mcp(model, "S4") * (333.15 - _t(model, "S4")) + metal_r101) / 3600
     assert _duty(model, "Q1") == pytest.approx(q1, rel=2e-3)
     s5, s7 = _kmol(model, "S5"), _kmol(model, "S7")
@@ -125,9 +138,9 @@ def test_hand_duties_follow_the_streams(model):
     q2 = (extent * 100_000 - _mcp(model, "S6") * 35.0) / 3600
     assert _duty(model, "Q2") == pytest.approx(q2, rel=2e-3)  # R101's model (core 1.9.0)
     cr101 = model[2]["CR101"]["crystallizer"]["energy"]["heat_capacity"]
-    q3 = _flow(model, "S7") * cr101 * 20.0 / 3600  # CR101's lumped duty, its model (core 1.9.0)
+    # Q3, CR101's model: its lumped duty (core 1.9.0) and R-101's metal cooled with it (1.10.0)
+    q3 = (_flow(model, "S7") * cr101 * 20.0 + metal_r101) / 3600
     assert _duty(model, "Q3") == pytest.approx(q3, rel=2e-3)
-    assert _duty(model, "Q10") == pytest.approx(metal_r101 / 3600, rel=2e-3)  # R-101's metal
     # CR101's heat capacity is the slurry's from the components (D-007)
     assert cr101 == pytest.approx(_mcp(model, "S7") / _flow(model, "S7"), abs=0.005)
     s18 = _kmol(model, "S18")
@@ -135,23 +148,18 @@ def test_hand_duties_follow_the_streams(model):
     assert _duty(model, "Q5") == pytest.approx(q5, rel=2e-3)
     q6 = (_mcp(model, "S15") * (333.15 - _t(model, "S15")) + 4000.0 * (333.15 - _t(model, "S13")) / cycle) / 3600
     assert _duty(model, "Q6") == pytest.approx(q6, rel=2e-3)
-    # Q7: the still's boil-up, its model's (core 1.9.0): the latent heat of the distillate S19 at
-    # the components' heats of vaporization, 414.7 kWh a batch (cheme process stills)
+    # Q7, ST101's model: the boil-up's latent heat of the distillate S19 at the components' heats
+    # of vaporization, 414.7 kWh a batch (core 1.9.0), plus since core 1.10.0 the charge S17 to
+    # its bubble point (heat_up) and C-101's metal from S17's temperature to the end's
     s19 = _kmol(model, "S19")
     latent = sum(n * model[0][k]["heat_of_vaporization"] for k, n in s19.items() if n)
-    assert _duty(model, "Q7") == pytest.approx(latent / 3600, rel=1e-4)
-    boil_kwh = _duty(model, "Q7") * cycle
-    assert boil_kwh == pytest.approx(414.7, abs=0.05)
-    # Q9: what the still leaves out, the charge to its bubble point and C-101's metal
-    src = _state(model, "Q9")["duty"]["source"]
-    t0 = float(re.search(r"to its bubble point ([0-9.]+) K", src).group(1))
-    t1 = float(re.search(r"to the end's ([0-9.]+) K", src).group(1))
-    q9 = (_mcp(model, "S17") * (t0 - _t(model, "S17")) + 2500.0 * (t1 - _t(model, "S17")) / cycle) / 3600
-    assert _duty(model, "Q9") == pytest.approx(q9, rel=2e-3)
-    q8 = (latent + _mcp(model, "S19") * ((t0 + t1) / 2 - _t(model, "S19"))) / 3600
+    assert latent * cycle / 3600 == pytest.approx(414.7, abs=0.05)
+    heat_up = _mcp(model, "S17") * (T_BUBBLE - _t(model, "S17"))
+    metal = METAL_C101 * (T_END - _t(model, "S17")) / cycle
+    assert _duty(model, "Q7") == pytest.approx((latent + heat_up + metal) / 3600, rel=2e-4)
+    # Q8 by hand: the condenser takes the boil-up's latent heat, and the distillate is cooled
+    q8 = (latent + _mcp(model, "S19") * ((T_BUBBLE + T_END) / 2 - _t(model, "S19"))) / 3600
     assert _duty(model, "Q8") == pytest.approx(q8, rel=2e-3)
-    # the condenser takes what the boil-up gives (a total condenser): latent heat ~ boil-up
-    assert latent == pytest.approx(boil_kwh * 3600 / cycle, rel=0.01)
 
 
 def test_every_energy_flow_reaches_the_lci(model):
@@ -161,20 +169,20 @@ def test_every_energy_flow_reaches_the_lci(model):
     for s in energy:
         end = s["from"] if s["from"].split(".")[0] in ("LPS", "POWER") else s["to"]
         by.setdefault(end.split(".")[0], set()).add(s["id"])
-    assert by == {"LPS": {"Q1", "Q4", "Q7", "Q9"}, "CW": {"Q2", "Q3", "Q6", "Q8", "Q10"}, "BRINE": {"Q5"}, "POWER": {"P1", "P2", "P3"}}
+    assert by == {"LPS": {"Q1", "Q4", "Q7"}, "CW": {"Q2", "Q3", "Q6", "Q8"}, "BRINE": {"Q5"}, "POWER": {"P1", "P2", "P3"}}
     prod = _flow(model, "S15")
     per_kg = {k: sum(_duty(model, q) for q in v) / prod for k, v in by.items()}
     assert per_kg["LPS"] == pytest.approx(0.767, abs=0.0006)
     assert per_kg["CW"] == pytest.approx(0.703, abs=0.0006)
     assert per_kg["BRINE"] == pytest.approx(0.042, abs=0.0006)
-    assert per_kg["POWER"] == pytest.approx(0.150, abs=0.0006)
+    assert per_kg["POWER"] == pytest.approx(0.154, abs=0.0006)
     with (PROCESS / "lca" / "inventory.csv").open(encoding="utf-8", newline="") as handle:
         inventory = {row["key"]: row for row in csv.DictReader(handle)}
     for key, kind in (("feed:LPS", "LPS"), ("product:CW", "CW"), ("product:BRINE", "BRINE"), ("feed:POWER", "POWER")):
         assert float(inventory[key]["quantity"]) == pytest.approx(per_kg[kind], rel=1e-3), key
     for rel in ("process.yaml", "DESIGN.md"):
         text = _text(rel)
-        for value in ("0.767 kWh", "0.703 kWh", "0.042 kWh", "0.150 kWh"):
+        for value in ("0.767 kWh", "0.703 kWh", "0.042 kWh", "0.154 kWh"):
             assert value in text, (rel, value)
 
 
@@ -435,9 +443,10 @@ def test_recycle_is_the_tear_s11_with_its_flow_held(model):
         assert s16.get(k, 0.0) + s18.get(k, 0.0) == pytest.approx(s21[k], rel=2e-6, abs=2e-6), k
 
 
-def test_model_duties_at_their_energy_port_and_the_split_off_parts(model):
-    """D-010, D-015: the semi-batch, the crystallizer and the still write their duties (ADR 0059);
-    what they leave out is its own assumed stream, and the totals are those typed until 1.8.0."""
+def test_model_duties_at_their_energy_port(model):
+    """D-010, D-015, D-016: the semi-batch, the crystallizer and the still write their duties
+    (ADR 0059), calculated, at their energy_port; since core 1.10.0 nothing they leave out of the
+    vessels' metal and the still's heat-up is on a hand stream any more."""
     steps = model[2]
     for node, port, q in (("R101", "q", "Q2"), ("CR101", "q", "Q3"), ("ST101", "steam", "Q7")):
         assert steps[node]["energy_port"] == port, node
@@ -445,20 +454,131 @@ def test_model_duties_at_their_energy_port_and_the_split_off_parts(model):
         assert node in (stream["from"].split(".")[0], stream["to"].split(".")[0])
         assert port in (stream["from"].split(".")[1], stream["to"].split(".")[1])
         assert _state(model, q)["duty"]["provenance"] == "calculated", q
-    for q in ("Q9", "Q10"):
-        assert _state(model, q)["duty"]["provenance"] == "assumed", q
-    assert model[1]["Q9"]["to"] == "ST101.steam_heatup"
-    assert model[1]["Q10"]["from"] == "CR101.q_vessel"
-    # the values the models now hold, and the totals typed until core 1.8.0
-    assert _duty(model, "Q3") == pytest.approx(3.55153, abs=1e-5)
-    assert _duty(model, "Q3") + _duty(model, "Q10") == pytest.approx(5.1858, abs=2e-4)
-    assert _duty(model, "Q7") == pytest.approx(40.6685, abs=1e-4)
-    # the still's boil-up exact rather than from 414.7 kWh rounded: 0.0045 kW more
-    assert _duty(model, "Q7") + _duty(model, "Q9") - 60.6279 == pytest.approx(0.0045, abs=2e-4)
     assert _duty(model, "Q2") == pytest.approx(7.8775, abs=1e-4)
+
+
+# core 1.10.0 (DESIGN.md D-016)
+
+
+def test_hand_streams_q9_and_q10_are_removed_with_their_ports(model):
+    """The still's heat-up and C-101's metal (Q9) and R-101's metal (Q10) are in Q7 and Q3."""
+    assert "Q9" not in model[1] and "Q10" not in model[1]
+    flowsheet = _yaml("process/flowsheet.yaml")
+    ports = {
+        (node["id"], p["id"])
+        for group in ("feeds", "products", "blocks", "steps")
+        for node in flowsheet[group]
+        for p in node.get("ports", [])
+    }
+    for gone in (("ST101", "steam_heatup"), ("CR101", "q_vessel"), ("RECOV", "steam2"), ("REACT", "cw3"), ("LPS", "st101_heatup"), ("CW", "cr101_vessel")):
+        assert gone not in ports, gone
+    lca = (PROCESS / "lca" / "lca.yaml").read_text(encoding="utf-8")
+    assert "Q9" not in lca and "Q10" not in lca
+    assert "(Q9, Q10)" not in _text("README.md")
+
+
+def test_still_duty_holds_the_heat_up_and_the_metal(model):
+    """ST101's `heat_up` and the RECOVER vessel's metal (ADR 0063): Q7 60.6328 kW, the boil-up
+    40.6685, the charge to its bubble point 14.6525 and C-101's metal 5.3118 kW (cheme process
+    stills), the hand Q7 + Q9 of core 1.9.0 (40.6685 + 19.9639) to their rounding."""
+    assert model[2]["ST101"]["still"]["heat_up"] is True
+    assert _procedure("RECOVER")["vessel"]["metal_heat_capacity"] == METAL_C101
+    cycle = _cycle(model)
+    boil = 414.7476850820376 / cycle  # kW: the boil-up's latent heat (cheme process stills)
+    heat_up = _mcp(model, "S17") * (T_BUBBLE - _t(model, "S17")) / 3600
+    metal = METAL_C101 * (T_END - _t(model, "S17")) / cycle / 3600
+    assert boil == pytest.approx(40.6685, abs=1e-4)
+    assert heat_up == pytest.approx(14.6525, abs=2e-3)
+    assert metal == pytest.approx(5.3118, abs=5e-4)  # T_END rounded to 0.01 K
+    assert _duty(model, "Q7") == pytest.approx(60.6328, abs=1e-4)
+    assert _duty(model, "Q7") == pytest.approx(boil + heat_up + metal, abs=2e-3)
+    assert _duty(model, "Q7") - (40.6685 + 19.9639) == pytest.approx(0.0004, abs=1e-4)
+    # the still's 0.81 h heat-up operation: that heat to the bubble point at its 250 kW
+    boilup = model[2]["ST101"]["still"]["boilup"]["value"]
+    to_bubble = (heat_up * cycle + METAL_C101 * (T_BUBBLE - _t(model, "S17")) / 3600)  # kWh a batch
+    assert to_bubble == pytest.approx(201.54, abs=0.05)
+    op = next(o for o in _procedure("RECOVER")["operations"] if o["id"] == "heat")
+    assert op["duration"]["value"] == pytest.approx(to_bubble / boilup, abs=0.005)
     design = _text("DESIGN.md")
-    for stated in ("Q7 40.6685 kW", "Q9 19.964 kW", "Q3 3.5515 kW", "Q10 1.634 kW", "5.1858 against 3.55153 kW"):
+    for stated in ("Q7 60.6328 kW", "14.6525 kW", "5.3118", "201.54 kWh", "0.81 h", "L-9"):
         assert stated in design, stated
+
+
+def test_crystallizer_duty_holds_r101s_metal(model):
+    """CR101's Q3 with the REACT vessel's 3000 kJ/K cooled by 20 K: 3.55153 + 1.63427 = 5.1858 kW,
+    the hand Q10 (1.6342 kW) of core 1.9.0, and the typed Q3 of core 1.8.0."""
+    assert _procedure("REACT")["vessel"]["metal_heat_capacity"] == METAL_R101
+    metal = METAL_R101 * 20.0 / _cycle(model) / 3600
+    assert metal == pytest.approx(1.63427, abs=1e-5)
+    assert _duty(model, "Q3") == pytest.approx(5.1858, abs=1e-4)
+    assert _duty(model, "Q3") - metal == pytest.approx(3.55153, abs=2e-5)
+    assert metal == pytest.approx(1.6342, abs=1e-4)
+    assert "Q3 5.1858 kW" in _text("DESIGN.md")
+
+
+def test_jacket_times_hold_r101s_metal(model):
+    """The heat and cool times use C + C_m (ADR 0063): the 0.535 and 0.552 h of the content alone
+    times (C + 3000) / C, 0.789 and 0.807 h (cheme process recipe); R-101 is occupied 10.146 h of
+    the 10.198 h cycle and stays off the bottleneck."""
+    cycle = _cycle(model)
+    for content, before, after in ((_mcp(model, "S4") * cycle, 0.53483, 0.78931), (_mcp(model, "S7") * cycle, 0.55265, 0.80705)):
+        assert before * (content + METAL_R101) / content == pytest.approx(after, rel=2e-3)
+    ops = {o["id"]: o for o in _procedure("REACT")["operations"]}
+    assert ops["heat"]["temperatures"] == [292.81, 333.15] and ops["cool"]["temperatures"] == [333.15, 313.15]
+    fixed = sum(o["duration"]["value"] for o in ops.values() if "duration" in o)
+    assert fixed + 0.78931 + 0.80705 + 3.0 + 2.30 == pytest.approx(10.146, abs=0.005)
+    assert 10.146 < cycle
+    # the recipe's heat report: R-101's metal from the charge's 292.81 K, 1.662 kW above the hand
+    # Q1, whose metal starts at the 313.15 K the cool-down left (D-016)
+    report_kw = (_mcp(model, "S4") * (333.15 - 292.81) * cycle + METAL_R101 * (333.15 - 292.81)) / cycle / 3600
+    assert report_kw == pytest.approx(10.224, abs=0.002)
+    assert report_kw - _duty(model, "Q1") == pytest.approx(METAL_R101 * (313.15 - 292.81) / cycle / 3600, abs=0.002)
+    assert report_kw - _duty(model, "Q1") == pytest.approx(1.662, abs=0.002)
+    design = _text("DESIGN.md")
+    for stated in ("0.789 h", "0.807 h", "10.224 kW", "1.662 kW", "99.5 %"):
+        assert stated in design, stated
+
+
+def test_c101_sized_by_the_recipe():
+    """L-1 resolved: the still's unit procedure gives a vessel (ADR 0063), 6.3 m3 for 4.852 m3."""
+    vessel = _procedure("RECOVER")["vessel"]
+    assert vessel["fill_fraction"] == 0.8 and "volume" not in vessel
+    assert 4.852 / vessel["fill_fraction"] <= 6.3  # the R10 size above the working volume
+    assert 4.852 / vessel["fill_fraction"] > 5.0  # the next R10 size below would not hold it
+    design = _text("DESIGN.md")
+    assert "L-1 (resolved in core 1.10.0, ADR 0063)" in design
+    assert "C-101 6.3 m3 (4.852 m3 of liquor" in design
+    assert "4.852 m3" in _text("equipment/equipment-list.yaml")
+
+
+def test_agitators_follow_the_occupancies(model):
+    """P1 and P3 with R-101's 10.146 h and C-101's 3.469 h of the cycle (cheme process recipe)."""
+    cycle = _cycle(model)
+    p1 = 5.5 * 10.146 / cycle + 0.75 * 3.0 / cycle
+    p3 = 3.0 * 3.469 / cycle + 2.0
+    assert _duty(model, "P1") == pytest.approx(p1, abs=0.05)
+    assert _duty(model, "P3") == pytest.approx(p3, abs=0.05)
+    occupied = sum(o["duration"]["value"] for o in _procedure("RECOVER")["operations"] if "duration" in o) + 1.659
+    assert occupied == pytest.approx(3.469, abs=0.001)
+    assert "electricity 16.0 kW" in _text("DESIGN.md")
+
+
+def test_column_and_vent_features_not_used(model):
+    """D-016: one stage is the credible recovery (no still.column, purity or condenser_port) and
+    R101 has no vent (no vent vapour, condenser or Henry split); each is recorded with its reason."""
+    still = model[2]["ST101"]["still"]
+    assert "column" not in still and "condenser_port" not in still
+    assert "distilled" in still["end"] and "purity" not in still["end"]
+    for node in model[2].values():
+        assert "vent" not in node.get("batch", {}), node["id"]
+        assert all("heat_of_solution" not in d for d in node.get("batch", {}).get("dosing", []))
+    design = _text("DESIGN.md")
+    for stated in ("`still.column`, ADR 0061", "`still.condenser_port` (ADR 0061)", "`batch.vent.vapour`", "a dose's `heat_of_solution` (ADR 0063)"):
+        assert stated in design, stated
+    # Q8's latent part is the still's boil-up term of Q7 (a condenser_port would write that alone)
+    s19 = _kmol(model, "S19")
+    latent = sum(n * model[0][k]["heat_of_vaporization"] for k, n in s19.items() if n) / 3600
+    assert latent == pytest.approx(40.669, abs=0.001)
 
 
 def test_default_mtt_at_the_vessels_pressure_is_below_t_p_so_the_hand_mtt_stays(model):
@@ -506,8 +626,9 @@ def test_r101_has_no_vent_and_states_no_vent_capacity(model):
     assert "no gas release" in _text("DESIGN.md")
 
 
-def test_plant_requires_core_1_9():
+def test_plant_requires_core_1_10():
     plant = _yaml("plant.yaml")
-    assert plant["requires"] == "cheme-as-code>=1.9"
+    assert plant["requires"] == "cheme-as-code>=1.10"
     comment = (PROCESS / "plant.yaml").read_text(encoding="utf-8")
     assert "1.9.0" in comment and "tears" in comment and "energy_port" in comment
+    assert "1.10.0" in comment and "heat_up" in comment and "metal_heat_capacity" in comment
