@@ -590,6 +590,26 @@ deferred here with its reason and an open input):
    open leak-back of the whole loop. Whether designing the suction
    side for the settle-out pressure is the better answer depends on the vendor's settle-out
    calculation (I-10).
+   Round 5: with XV-110 left open on those stops the suction side was the dead end of the front
+   end (no outlet, the front end still feeding it at up to its own maximum pressure) and SG-101,
+   which has no check valve, let settle-out gas flow back to the battery limit; neither was a
+   PSV-115 case. I-102 now closes XV-110 as well, so every K-101 stop closes both XV-110 and
+   XV-116, as the C&E trips already did; the settle-out case is then the one with XV-110 closed,
+   and the front end against the stopped K-101 becomes PSV-115's case (3): the seat leakage of
+   XV-110 at the front end's maximum pressure, and, while XV-110 is open with K-101 standing
+   (pressuring the suction side for a start, or XV-110 failing to close), the front end's flow
+   into the dead-ended suction side. That is a case only if the front end's maximum pressure at
+   the battery limit (its relief set or shut-in pressure, outside the boundary) exceeds the
+   28 barg of V-103; it is not known (I-15), so the conservative reading is kept open rather
+   than assumed away. YS-117 is now the K-101 run status from its own speed pick-up on the
+   machine (instrument nozzle N4) together with the drive's run contact, either reading stopped
+   (ASSUMED). The I-102 cause is the stop itself (running to not running), so the trip is reset
+   with K-101 standing; XV-116 then opens only with YS-117 reading running (start-up permissive
+   in US-116). Every start therefore runs against the closed XV-116: the start-up sequence
+   SEQ-K101-START (`control/sequences.yaml`, the first written sequence) asks for UV-104 fully
+   open, pressures the suction side through XV-110, starts K-101 on full recycle and opens
+   XV-116 once the discharge pressure is above the loop pressure; a start with UV-104 not open
+   is named in PSV-111's case.
 2. **V-101 high-high level** (high): LZ-313, own tap, stops K-102 and with it K-101 and XV-110
    (C&E I-302): the loop must not keep receiving make-up gas without circulation. LIC-307's high
    alarm stays the operator warning.
@@ -601,10 +621,15 @@ deferred here with its reason and an open input):
    process side is open to the sump without isolation; the LP steam side condenses to vacuum when
    TV-402 / TV-502 close, which is the F-HEAT trigger itself and happens on air failure, both valves
    failing closed; round 4: once the steam side is below the condensate header pressure the traps
-   ST-439 / ST-542 cannot discharge, the condensate stays and floods the steam side until steam
-   pressure is restored, and the check valves CV-439 / CV-542 drawn on the trap outlets stop
-   condensate being drawn back from the header, a water-hammer risk on restart; draining the
-   flooded side, by a pumping trap or a condensate pot with a pump, is open, I-14); and the
+   ST-439 / ST-542 cannot discharge, and the check valves CV-439 / CV-542 drawn on the trap
+   outlets stop condensate being drawn back from the header, which would flood the steam side
+   and give water hammer on restart; round 5: with the steam valve closed only the steam left in
+   the steam side condenses, at about 2.4 kg/m3 (LS-438) about 0.3 % of its volume as liquid, so
+   that side goes to vacuum but does not flood. It floods in normal operation instead: at low
+   load with TV-402 / TV-502 throttled, or a closed valve passing, steam keeps entering below the
+   header pressure, the traps stall and condensate backs up over the tubes, taking heating
+   surface and making TIC-402 / TIC-502 sluggish (their loop records say so); draining it, by a
+   pumping trap or a condensate pot with a pump, and the stall point are open, I-14); and the
    connected overhead, condensate, reflux, reboiler circulation and reboiler steam / condensate
    piping (line list header). Case F-HEAT in the control philosophy. A nitrogen or fuel-gas
    make-up split range with PV-404 / PV-504, or a vacuum breaker on the reboiler steam side, stays
@@ -633,8 +658,15 @@ deferred here with its reason and an open input):
    transmitter PT-114 instead of PIC-102, as anti-surge inputs usually are. SIC-113 is part of the
    drive package: its speed measurement is drawn as a connection to K-101, its output goes to the
    variable-speed drive inside the package (not drawn). Round 4: that connection, K-101's N3, is
-   an InstrumentNozzle (the speed pick-up on the casing), not a ProcessNozzle, so it is not counted
-   as a process connection of the compressor.
+   an InstrumentNozzle (the speed pick-up on the casing), not a ProcessNozzle. Round 5: DEXPI
+   2.0.1 takes only a nozzle or a piping segment as an instrument's sensing location, not the
+   equipment itself, so a nozzle-free association to K-101 cannot be drawn; the instrument
+   nozzle is the DEXPI class for an instrument connection on equipment, and YS-117's own speed
+   pick-up is the instrument nozzle N4. Core 1.10.0's datasheet draft does not tell instrument
+   nozzles from process nozzles: `cheme datasheets draft --tag K-101 --dry-run` lists N3 (and now
+   N4) next to N1 and N2, with no line. When the K-101 datasheet is drafted, N3 and N4 are
+   entered as the speed pick-ups (instrument connections of the machine vendor), not as
+   process connections; keeping them apart in the draft is a change for cheme-as-code.
 8. **Line labels** (medium): every line carries its number (and DN where it fits) at least once on
    its sheet; RF-433 and RF-534 show the number only (no room for the DN between the spare pump's
    suction valves).
@@ -647,6 +679,11 @@ PSV-413's gas blow-by case through V-102 again, the case CV-532 answers (item 4)
 the fail-closed list of F-AIR, where K-101, not stopped by an air failure, runs isolated in full
 recycle through the fail-open UV-104, and K-101 against the closed XV-116 without that recycle
 is named in PSV-111's case.
+Round 5 low items: the V-103 equipment note states the current basis (XV-110 and XV-116 closed on
+every K-101 stop); the CMP section of the process narrative lists I-102 and SEQ-K101-START and
+describes the isolation; on P-01 YS-117 is drawn on K-101 (N4) and the sheet note names the
+operator stop. YS-117's input to US-116 is a C&E cause, like the other trips', and is not drawn as
+a signal line: a line from K-101 to US-116 would cross SG-102 and SG-131.
 Reason: concept-stage design, each protection either drawn or deferred explicitly with its open
 input, for the HAZOP to confirm.
 
@@ -727,7 +764,12 @@ ASSUMED (I-01, I-02). After the DWSIM run (D-014) the predictive checks pass exc
   failure (D-021, D-022); the LP header's back pressure against the 0.1 barg C-202 vent with
   PSV-413's blow-by gas in it; columns under vacuum with the vents open on air failure (check
   valves CV-116, CV-532; D-022).
-- I-14 Reboiler condensate system: the condensate header pressure, the steam-side pressure at
-  which ST-439 / ST-542 stall (low steam load, TV-402 / TV-502 closed), and how the flooded E-202 /
-  E-204 steam side is drained (pumping trap, or a condensate pot with a pump, with a vacuum
-  breaker), with the start-up draining before steam is admitted (D-022 item 3).
+- I-14 Reboiler condensate system: the condensate header pressure, the turndown at which
+  ST-439 / ST-542 stall (low steam load with TV-402 / TV-502 throttled, or a closed valve
+  passing: the steam side then floods; with the valve tight shut it only goes to vacuum), and how
+  the flooded E-202 / E-204 steam side is drained (pumping trap, or a condensate pot with a pump,
+  with a vacuum breaker), with the start-up draining before steam is admitted (D-022 item 3).
+- I-15 Front-end interface: the maximum pressure of the make-up gas at the battery limit (the
+  front end's relief set or shut-in pressure with no outlet through the plant) against the
+  28 barg K-101 suction side; above it, the suction side is designed for it or PSV-115 carries
+  the front end's flow while XV-110 is open with K-101 standing (PSV-115 case 3, D-022 item 1).

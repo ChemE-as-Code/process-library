@@ -47,7 +47,7 @@ loops:
     links:
       - {type: cascade, loop: PIC-102}
     interlocks: [I-101, I-201, I-202, I-302]
-    rationale: "The speed loop of the drive package: speed measured at the K-101 shaft (drawn on P-01 as K-101's instrument nozzle N3, not a process nozzle), output to the variable-speed drive inside the package (not drawn). The trips stop the machine through the drive, so the loop and the trips share K-101 (a machine stop is the trip's final element by design; the HAZOP judges independence, D-021)."
+    rationale: "The speed loop of the drive package: speed measured at the K-101 shaft (drawn on P-01 as K-101's instrument nozzle N3, the speed pick-up: an instrument connection, which core 1.10.0's datasheet draft still lists with the K-101 nozzles, D-022 item 7), output to the variable-speed drive inside the package (not drawn). The run status YS-117 has its own pick-up (N4), so the trip I-102 does not share this sensor. The trips stop the machine through the drive, so the loop and the trips share K-101 (a machine stop is the trip's final element by design; the HAZOP judges independence, D-021)."
   - id: UIC-104
     title: K-101 anti-surge
     purpose: Keep K-101 away from its surge line by recycling cooled gas from after E-101 to the suction.
@@ -248,7 +248,7 @@ loops:
       - {kind: setpoint, unit: K, unresolved: "the control tray and its temperature come with a rigorous column model (D-008: stages not calculated)"}
     modes: [manual, auto]
     normal_mode: auto
-    rationale: "Steam on a column temperature is the usual dual of a fixed reflux (here the reflux follows the drum level). TV-402 fails closed: no heat input without control."
+    rationale: "Steam on a column temperature is the usual dual of a fixed reflux (here the reflux follows the drum level). TV-402 fails closed: no heat input without control. At low load TV-402 throttles the steam until the E-202 steam-side pressure falls below the condensate header pressure: the trap ST-439 stalls, condensate backs up over the tubes and the heat input no longer follows the valve (sluggish or cycling control), which sets the loop's turndown; the stall point and the condensate draining that removes it are open (D-022 item 3, I-14)."
     unresolved: ["Control tray location and set point (rigorous column model, D-008)."]
   - id: PIC-404
     title: Topping column pressure (off-gas)
@@ -315,7 +315,7 @@ loops:
       - {kind: setpoint, unit: K, unresolved: "the control tray and its temperature come with a rigorous column model (D-008: 27 shortcut stages at reflux ratio 1.5, D-014)"}
     modes: [manual, auto]
     normal_mode: auto
-    rationale: "Steam on a stripping-section temperature holds the bottoms purity (100 ppm(wt) methanol, D-008); the product purity is held by the product rate FIC-507 against AI-509."
+    rationale: "Steam on a stripping-section temperature holds the bottoms purity (100 ppm(wt) methanol, D-008); the product purity is held by the product rate FIC-507 against AI-509. At low load TV-502 throttles the steam until the E-204 steam-side pressure falls below the condensate header pressure: the trap ST-542 stalls, condensate backs up over the tubes and the heat input no longer follows the valve (sluggish or cycling control), which sets the loop's turndown; the stall point and the condensate draining that removes it are open (D-022 item 3, I-14)."
     unresolved: ["Control tray location and set point (rigorous column model)."]
   - id: PIC-504
     title: Refining column pressure (vent)

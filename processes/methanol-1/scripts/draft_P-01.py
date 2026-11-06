@@ -52,7 +52,7 @@ v103 = equipment(sheet, "Vessel", "V-103", shape=DRUM, at=(100, 170), scale=(1.4
 k101 = equipment(sheet, "CentrifugalCompressor", "K-101", shape=COMPRESSOR, at=(195, Y),
                  scale=2.0,
                  nozzles=[Nozzle("N1", (-15, 0), 600), Nozzle("N2", (15, 0), 400),
-                          Nozzle("N3", (0, -15))],
+                          Nozzle("N3", (0, -15)), Nozzle("N4", (12, -9))],
                  label_at=(195, 143))
 e101 = equipment(sheet, "TubularHeatExchanger", "E-101", shape=HX, at=(300, Y), scale=1.2,
                  nozzles=[Nozzle("T1", (-21, 0), 400), Nozzle("T2", (21, 0), 350),
@@ -122,14 +122,19 @@ instrument(sheet, "FI-101", at=(32, 146), sensing="Line_SG101_S1", sensing_at=(3
 instrument(sheet, "LZ-109", at=(62, 184), sensing=v103["N4"], signal_to=xv110, fail_action="FC")
 instrument(sheet, "LI-108", at=(134, 178), sensing=v103["N5"])
 sic = instrument(sheet, "SIC-113", at=(195, 98), sensing=k101["N3"])
-# N3 is the speed pick-up of SIC-113 on the casing, not a process connection: an instrument
-# nozzle, so that the nozzle lists and datasheets do not count it as a process nozzle (round 4).
+# K-101 run status YS-117 on its own speed pick-up N4 (with the drive's run contact, not drawn):
+# every K-101 stop (package machine trip, power failure, operator stop) closes XV-110 and XV-116
+# through US-116, not only the C&E trips (C&E I-102, D-022). Its input to US-116 is a C&E cause
+# like the other trips', not a drawn signal: a signal line from K-101 to US-116 would cross SG-102
+# and SG-131 (round 5).
+instrument(sheet, "YS-117", at=(207, 84), sensing=k101["N4"])
+# N3 and N4 are the speed pick-ups on the machine, not process connections: DEXPI instrument
+# nozzles (a sensing location must be a nozzle or a segment, not the equipment itself). Core
+# 1.10.0's datasheet draft still lists them among the K-101 nozzles (D-022 item 7).
 sheet.find("K101_N3").set("type", "Plant/ProcessEquipment.InstrumentNozzle")
-us116 = instrument(sheet, "US-116", at=(380, 140), signal_to=xv116, fail_action="FC")
+sheet.find("K101_N4").set("type", "Plant/ProcessEquipment.InstrumentNozzle")
+instrument(sheet, "US-116", at=(380, 140), signal_to=xv116, fail_action="FC")
 fail_label(sheet, "Inst_US116", (380, Y), "down-left")
-# K-101 run status from the drive package into US-116: every K-101 stop (package machine trip,
-# power failure, operator stop) closes XV-116, not only the C&E trips (C&E I-102, D-022).
-instrument(sheet, "YS-117", at=(380, 165), signal_to=us116)
 instrument(sheet, "PIC-102", at=(120, 98), sensing="Line_SG130_S1", sensing_at=(120, Y),
            signal_to=sic)
 uic = instrument(sheet, "UIC-104", at=(195, 170), signal_to=uv104, fail_action="FO")
@@ -151,9 +156,11 @@ tag_label(sheet, "CV103", (363, 113))
 notes(sheet,
       "PIC-102 sets the speed controller SIC-113 (drive package, speed measured at K-101, output to "
       "its variable-speed drive). UIC-104: anti-surge on UV-104 from FT-103, PT-114, PT-105 (D-017)",
-      "LZ-109: V-103 level high-high closes XV-110, stops K-101 (C&E I-101). US-116 closes XV-116 on "
-      "every K-101 stop: I-101, I-201, I-202, I-302 and YS-117 not running (package trip, power; I-102)",
-      "PSV-115: suction side (settle-out through UV-104, leak-back past XV-116, fire); PSV-111: K-101 "
-      "discharge; PSV-112: E-101 CW side (tube rupture). To the HP flare header (D-022)")
+      "LZ-109: V-103 level HH closes XV-110, stops K-101 (C&E I-101). Any K-101 stop closes XV-110 "
+      "and XV-116 (US-116): the C&E trips, and YS-117 (K-101 run status) on a package trip, power "
+      "failure or operator stop (I-102)",
+      "PSV-115: suction side (settle-out via UV-104, leak-back past XV-116, front end past XV-110, "
+      "fire); PSV-111: K-101 discharge; PSV-112: E-101 CW side (tube rupture). To the HP flare "
+      "header (D-022)")
 
 save(sheet, target)

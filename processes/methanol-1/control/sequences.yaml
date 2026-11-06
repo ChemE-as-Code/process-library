@@ -3,7 +3,73 @@
 # Start permissives are not trips: trips stay in control/cause-effect.yaml, named by id here.
 # Skill control-sequences.
 schema: cheme/sequences/v1
-sequences: []
+# D-021: the plant's start-up, shutdown and abnormal sequences are basic-engineering work. Only the
+# K-101 start-up is written now, because the interlock I-102 (every K-101 stop closes XV-110 and
+# XV-116, D-022) makes every start run against a closed XV-116: the sequence records how the
+# suction side is pressured, the machine started on full recycle and XV-116 opened. Times, speeds
+# and pressures are ASSUMED or left to the compressor vendor.
+sequences:
+  - id: SEQ-K101-START
+    title: Start the make-up gas compressor K-101 on full recycle and line it up to the loop
+    mode: startup
+    section: CMP
+    cases: [design]
+    equipment: [K-101, XV-110, XV-116, UV-104]
+    permissives:
+      - {interlock: I-101, state: reset}
+      - {interlock: I-102, state: reset}
+      - {interlock: I-201, state: reset}
+      - {interlock: I-202, state: reset}
+      - {interlock: I-302, state: reset}
+      - {tag: XV-116, state: closed}
+      - {loop: UIC-104, state: "in manual, UV-104 fully open"}
+      - {loop: SIC-113, state: in manual}
+    interlocks: [I-101, I-102, I-201, I-202, I-302]
+    steps:
+      - id: S1
+        title: Pressure the suction side from the front end
+        actions:
+          - {tag: XV-110, action: open, by: operator}
+        complete: {tag: PIC-102, state: "at the front-end pressure"}
+        timeout: {value: 30, unit: min}
+        on_timeout: abort
+        operator: "XV-116 stays closed and the loop isolated. V-103 now sees the front end's pressure with K-101 standing (PSV-115 case 3, I-15): go on to S2 without delay."
+      - id: S2
+        title: Start K-101 on full recycle
+        actions:
+          - {tag: K-101, action: start, by: operator}
+        complete: {tag: YS-117, state: running}
+        timeout: {value: 2, unit: min}
+        on_timeout: abort
+        operator: "UV-104 fully open: K-101 runs against the closed XV-116 on the cooled recycle through E-101, so its discharge is not dead-headed (PSV-111's case if UV-104 is not open)."
+        notes: "Time to reach the minimum running speed ASSUMED; with the compressor and drive vendors."
+      - id: S3
+        title: Raise the discharge pressure and open XV-116
+        entry: {tag: YS-117, state: running}
+        actions:
+          - {tag: XV-116, action: open, by: operator}
+        complete: {tag: XV-116, state: open}
+        timeout: {value: 10, unit: min}
+        on_timeout: abort
+        operator: "Raise the speed on SIC-113 in manual until the discharge pressure PT-105 is above the loop pressure PIC-308, then open XV-116, so CV-103 opens forward; US-116 refuses to open XV-116 while YS-117 does not read running. The speed needed comes with the compressor curve (vendor)."
+      - id: S4
+        title: Load K-101 on the suction pressure
+        actions:
+          - {loop: UIC-104, action: auto, by: operator}
+          - {loop: SIC-113, action: cascade, by: operator}
+          - {loop: PIC-102, action: auto, by: operator}
+        complete: {loop: PIC-102, state: in auto}
+        next: end
+        operator: "UIC-104 closes UV-104 as the forward flow through XV-116 takes over; PIC-102 then follows the front end."
+    abort:
+      condition: {any: [{interlock: I-101, state: tripped}, {interlock: I-102, state: tripped}]}
+      actions:
+        - {tag: K-101, action: stop}
+        - {tag: XV-116, action: close}
+        - {tag: XV-110, action: close}
+      notes: "A K-101 stop during the start trips I-102, which closes XV-110 and XV-116 itself; the abort actions repeat it for an abort by timeout or by the operator."
+    reset: {latching: true, manual: true, condition: {interlock: I-102, state: reset}}
+    notes: "D-022 (round 5 of the review of PR #367). PROPOSED; timeouts ASSUMED. The K-101 package start permissives (lube oil, seal gas, drive ready) and the start-up procedure come with the compressor vendor at basic engineering."
 #  - id: SEQ-START
 #    title: Start up the feed section
 #    mode: startup                      # startup, shutdown, abnormal, normal, other

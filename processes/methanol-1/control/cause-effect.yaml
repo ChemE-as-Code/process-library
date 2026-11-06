@@ -7,9 +7,10 @@
 # every effect is a shutdown valve (XV) or a machine stop. Machine protection of K-101 and K-102
 # (vibration, axial position, lube oil, seals) is in the compressor packages (D-017, D-018). Every
 # K-101 stop closes its discharge shutdown valve XV-116 (US-116), isolating the loop inventory from
-# the K-101 suction side (D-022): the trips below that stop K-101 close it directly, and any other
-# stop (a package machine trip, a power failure, an operator stop) closes it through the K-101 run
-# status YS-117 (I-102).
+# the K-101 suction side, and the make-up gas shutdown valve XV-110, isolating the suction side from
+# the front end (D-022): the trips below that stop K-101 close both directly, and any other stop (a
+# package machine trip, a power failure, an operator stop) closes both through the K-101 run status
+# YS-117 (I-102). XV-116 opens again only with K-101 running (start-up permissive, SEQ-K101-START).
 schema: cheme/interlocks/v1
 interlocks:
   - id: I-101
@@ -26,16 +27,17 @@ interlocks:
     reset: manual
     notes: "D-017. Liquid slugs damage the K-101 impellers. Closing XV-110 isolates the front end; the loop then loses its make-up gas and runs down (K-102 keeps circulating). Delay and reset ASSUMED (D-021)."
   - id: I-102
-    title: K-101 not running (any stop other than a C&E trip - package machine trip, power failure, operator stop)
-    cause: {tag: YS-117, condition: "K-101 not running"}
+    title: K-101 stopped (any stop other than a C&E trip - package machine trip, power failure, operator stop)
+    cause: {tag: YS-117, condition: "K-101 stops (run status from running to not running)"}
     effects:
+      - {tag: XV-110, action: close}
       - {tag: XV-116, action: close}
     sheet: P-01
     sil: null
     delay: {value: 0, unit: s}
     latching: true
     reset: manual
-    notes: "D-022, round 4 of the review of PR #367. Keeps the basis of PSV-115 (settle-out plus the seat leakage of CV-103 and XV-116 in series, no open leak-back path from the loop) true for every way K-101 can stop, not only the C&E trips: YS-117 is the run status of the drive package (motor starter or drive run contact). Fail-safe ASSUMED: the status is energised while K-101 runs, so a lost signal or a power failure reads as not running, and US-116 holds XV-116 de-energised to close (F.C.); the trip logic is on the uninterruptible supply (F-POWER). XV-110 stays as it is: closing it is not needed for this function and PSV-115's settle-out case already takes it closed. No delay, latching and manual reset ASSUMED; XV-116 is opened again only in the K-101 start-up (permissive with the start-up sequence, not written yet, D-021); stroke time with the valve vendor."
+    notes: "D-022, rounds 4 and 5 of the review of PR #367. Keeps the basis of PSV-115 true for every way K-101 can stop, not only the C&E trips: XV-116 closed, so the loop leaks back only past CV-103 and XV-116 in series (no open path), and XV-110 closed, so the front end neither keeps feeding the dead-ended suction side nor takes settle-out gas back through SG-101 (no check valve there). YS-117 is the K-101 run status: its own speed pick-up on K-101 (instrument nozzle N4, separate from SIC-113's N3; below the minimum running speed reads as not running) together with the drive package's run contact, either reading stopped (ASSUMED; contact type and minimum speed with the drive and compressor vendors). Fail-safe ASSUMED: both are energised while K-101 runs, so a lost signal or a power failure reads as stopped; US-116 holds XV-110 and XV-116 de-energised to close (F.C.); the trip logic is on the uninterruptible supply (F-POWER). The cause is the stop itself, so the trip can be reset with K-101 standing; after the reset XV-116 stays closed until YS-117 reads running (start-up permissive in US-116), and XV-110 is opened only by the start-up sequence SEQ-K101-START to pressure the suction side. No delay, latching and manual reset ASSUMED; stroke times with the valve vendor."
   - id: I-201
     title: Converter outlet temperature high-high (runaway or loss of steam-side cooling)
     cause: {tag: TZ-210, condition: TAHH}

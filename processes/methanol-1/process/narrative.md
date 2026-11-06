@@ -10,7 +10,8 @@ sections:
     cases: [design]
     modes: [normal, startup, shutdown]
     loops: [PIC-102, SIC-113, UIC-104]
-    interlocks: [I-101]
+    sequences: [SEQ-K101-START]
+    interlocks: [I-101, I-102]
   - id: SYN
     title: Synthesis loop
     equipment: [K-102, E-102, R-101, V-104, E-103, V-101]
@@ -44,7 +45,7 @@ sections:
     loops: [TIC-502, PIC-504, LIC-505, FIC-507, LIC-508]
     interlocks: [I-501]
 unresolved:
-  - "Start-up and shutdown sequences (control/sequences.yaml) are not written yet: catalyst reduction, loop heat-up on the start-up heater (not in the boundary) and column start-up are basic-engineering work (D-021)."
+  - "Start-up and shutdown sequences (control/sequences.yaml) are not written yet, except the K-101 start-up SEQ-K101-START (D-022): catalyst reduction, loop heat-up on the start-up heater (not in the boundary) and column start-up are basic-engineering work (D-021)."
 ---
 
 # Process narrative
@@ -63,11 +64,19 @@ stream S3, on P-02).
 **Normal operation.** The gas passes the suction knock-out drum V-103, is compressed in K-101 and
 cooled in E-101 (design case). K-101 takes all the gas the front end delivers: PIC-102 holds its
 suction pressure through the drive's speed controller SIC-113; UIC-104 recycles cooled gas when
-the flow nears surge. PSV-115 protects the suction side against settle-out through UV-104.
-**Modes.** Start-up on full recycle (UV-104 open), then loading by PIC-102. I-101 stops the
-machine on liquid in V-103.
+the flow nears surge. Every K-101 stop closes the discharge shutdown valve XV-116 and the make-up
+gas shutdown valve XV-110 (US-116): the trips that stop K-101 close both directly, and any other
+stop (package machine trip, power failure, operator stop) through the run status YS-117 (I-102).
+The suction side then sees only the settle-out of the discharge volume through UV-104 and the seat
+leakage of the closed valves, against which PSV-115 protects it.
+**Modes.** Start-up by SEQ-K101-START: with I-102 reset and UV-104 fully open, XV-110 pressures
+the suction side from the front end, K-101 starts on full recycle against the closed XV-116, and
+XV-116 opens (only with YS-117 reading running) once the discharge pressure is above the loop
+pressure; then UIC-104 and PIC-102 take over the loading. I-101 stops the machine on liquid in
+V-103.
 **Assumptions and open points.** Electric variable-speed drive, one casing (D-010, D-017);
-surge control by the vendor.
+surge control by the vendor; the settle-out pressure (I-10) and the front end's maximum pressure
+(I-15) against the 28 barg suction side (D-022).
 
 ## SYN Synthesis loop
 
