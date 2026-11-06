@@ -1,6 +1,8 @@
 # 0004. process.yaml: an Atlas manifest with honest maturity, review and publication status
 
-- **Status:** Accepted, 2026-10-23
+- **Status:** Accepted, 2026-10-23. Partly superseded by
+  [ADR 0036](0036-public-is-the-default-publication-status.md): `public` (with CC-BY-4.0), not
+  `internal`, is the publication status a new entry is written with.
 - **Scope:** `schemas/process.schema.json`, `templates/process/`, `scripts/build_catalog.py`
 
 ## Context
