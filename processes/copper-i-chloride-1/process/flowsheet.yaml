@@ -1,0 +1,874 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Copper(I) chloride by the wet chlorination of copper in a sodium chloride brine (DESIGN.md
+# D-001, after US 3 030 178 A, run as a batch), a batch plant: a brine of 300 g/L NaCl, made up
+# from salt, water, a little hydrochloric acid and a share of the recycled mother liquor, is
+# charged over copper (fresh copper and the heel kept from the previous batch) into the
+# glass-lined R-101 and heated to 353 K; chlorine is dosed below the surface and absorbed (a
+# semi-batch, reactor: semibatch), the copper(II) it forms is reduced by the excess copper, and
+# the brine ends with about 129 g/L CuCl dissolved (103 g/kg, S11A); it is cooled to 308 K
+# and drawn off through the strainer, the copper heel staying in R-101 for the next batch (the tear S6). In P-101 the
+# liquor is diluted with seven volumes of deoxygenated water and CuCl precipitates (CR101, core's
+# crystallizer with the brine's other solutes as spectators); the slurry is filtered in the
+# agitated filter-dryer F-101, reslurry-washed with dilute hydrochloric acid, displacement-washed
+# with ethanol and vacuum-dried at 333 K under nitrogen. A tenth of the mother liquor returns to
+# the next brine (the tear S17); the rest, with the acid wash, goes to copper recovery and
+# wastewater treatment; the spent ethanol and the dryer's condensate to solvent recovery.
+# The flows are the year averages of the batch recipe (process/recipe.yaml, `cheme process
+# recipe`, D-003).
+# Where the values come from:
+# - feeds, temperatures, pressures, ratios: design basis and D-002..D-008, ASSUMED; the feeds are
+#   the sources' ratios scaled by hand to the product rate of S29 (every outlet scales with them);
+# - R101: cheme's semi-batch model (the ASSUMED rate laws, D-005); CR101, W101: core's
+#   crystallizer with the liquor's other solutes as spectators and a solubility measured_in the
+#   mother liquor (core ADR 0056, D-006, D-007); SS101, F101..F103: specified separations, the
+#   filters with a Ruth filtration time; D101: core's dryer to a residual moisture (core ADR 0057,
+#   D-008); E101, E102: pass-through; SP101: a splitter; M100..M104, M201, M202: mixers (all
+#   calculated by `cheme process propagate --fill`);
+# - the recycles S6 (the copper heel) and S17 (the mother liquor to the next brine): declared
+#   tears, converged by propagate (core ADR 0060, D-004);
+# - the heat of R101 (Q2): written by `cheme process propagate --fill` from the model at its
+#   `energy_port` (core ADR 0059, D-009);
+# - the dryer's heat Q5: core's dryer model (`cheme process crystallizers`), compared at its port;
+# - the other duties (Q1, Q3, Q6, Q7): hand arithmetic from the stream table, given as ASSUMED
+#   with the arithmetic in the source (D-009): the heat-up and the cool-down of R-101's content,
+#   the dryer's vapour condenser and the product's cooling in the dryer.
+schema: cheme/process/v1
+kind: flowsheet
+title: Copper(I) chloride by semi-batch chlorination of copper in brine, dilution precipitation and filter-drying (300 t/a)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: 300 t/a dried CuCl, year averages of the batches in 7920 h on a dedicated train (D-002, D-003)", default: true}
+tolerance: {abs: 0.05, rel: 0.002}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+# The two recycles (core ADR 0060, D-004): the copper heel S6, which stays in R-101 from one
+# batch to the next, and the share of the mother liquor S17 that makes up the next brine. Each
+# loop is torn once; Wegstein's method, the tolerance far tighter than the balances' so that the
+# digits written are the fixed point's (as sodium-azide-1, D-006 there).
+tears:
+  - stream: S6
+    initial: {flow: 20.65, unit: kg/h, basis: mass_fraction, composition: {CU: 0.9091, H2O: 0.0611, NACL: 0.0203, CUCL: 0.0094, CUCL2: 0.0001}}
+  - stream: S17
+    initial: {flow: 301.4, unit: kg/h, basis: mass_fraction, composition: {H2O: 0.96134, NACL: 0.03471, CUCL: 0.00377, HCL: 0.00006, CUCL2: 0.00012}}
+convergence: {method: wegstein, max_iterations: 200, tolerance: {abs: 1.0e-6, rel: 1.0e-9}}
+
+feeds:
+  - {id: NACL, title: "Sodium chloride (vacuum salt, merchant)", category: raw_material, ports: [{id: out, direction: out}]}
+  - id: PW
+    title: Process water (brine make-up, dilution, acid wash)
+    category: raw_material
+    ports:
+      - {id: m100, direction: out}
+      - {id: cr101, direction: out}
+      - {id: m102, direction: out}
+  - id: HCLA
+    title: Hydrochloric acid 33 wt% (hydrogen-chloride-1)
+    category: raw_material
+    ports:
+      - {id: m100, direction: out}
+      - {id: m102, direction: out}
+  - {id: CU, title: "Copper (cathode granules or clean scrap, merchant)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: CL2, title: Chlorine gas (chlor-alkali-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: ETOH, title: Ethanol (ethanol-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: r101, direction: out, kind: energy}
+      - {id: cr101, direction: out, kind: energy}
+      - {id: d101, direction: out, kind: energy}
+  - id: LPS
+    title: LP steam 350 kPa(a) (R-101 heating, the dryer's hot-water circuit)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 350, provenance: assumed, source: "design basis (D-009)"}
+      supply_temperature: {value: 412.0, provenance: given, source: "saturation at 350 kPa(a): 412.007 K (CoolProp's IAPWS water, DESIGN.md SRC-10)"}
+      min_approach: {value: 10, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: e101, direction: out, kind: energy}
+      - {id: d101, direction: out, kind: energy}
+products:
+  - {id: CUCL, title: Copper(I) chloride powder to packing (under nitrogen), category: product, ports: [{id: in, direction: in}]}
+  - {id: ML, title: "Copper-bearing brine (mother liquor and acid wash) to copper recovery and wastewater treatment", category: wastewater, ports: [{id: in, direction: in}]}
+  - {id: SE, title: "Spent ethanol (wash filtrate and dryer condensate) to solvent recovery", category: solid_waste, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis (D-009)"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis (D-009)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: r101, direction: in, kind: energy}
+      - {id: e102, direction: in, kind: energy}
+      - {id: d101, direction: in, kind: energy}
+  - id: CHW
+    title: Chilled water return (285 K)
+    category: utility
+    utility:
+      kind: refrigerant
+      supply_temperature: {value: 280.15, provenance: assumed, source: "design basis (D-009)"}
+      return_temperature: {value: 285.15, provenance: assumed, source: "design basis (D-009)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: d101, direction: in, kind: energy}
+
+blocks:
+  - id: CHLOR
+    title: Brine make-up (T-100) and chlorination over copper (R-101)
+    class: ReactingChemicals
+    ports:
+      - {id: salt, direction: in}
+      - {id: pw, direction: in}
+      - {id: acid, direction: in}
+      - {id: mlr, direction: in}
+      - {id: cu, direction: in}
+      - {id: cl2, direction: in}
+      - {id: liquor, direction: out}
+      - {id: fines, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: PREC
+    title: Dilution precipitation (P-101)
+    class: Crystallizing
+    ports:
+      - {id: liquor, direction: in}
+      - {id: water, direction: in}
+      - {id: slurry, direction: out}
+      - {id: clear, direction: out}
+      - {id: power, direction: in, kind: energy}
+  - id: ISOL
+    title: Filtration, washing and drying in the filter-dryer (F-101); liquor recycle and effluents
+    class: SeparatingMechanically
+    ports:
+      - {id: in, direction: in}
+      - {id: clear, direction: in}
+      - {id: fines, direction: in}
+      - {id: pw, direction: in}
+      - {id: acid, direction: in}
+      - {id: etoh, direction: in}
+      - {id: product, direction: out}
+      - {id: mlr, direction: out}
+      - {id: ml, direction: out}
+      - {id: se, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: chw, direction: out, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+
+steps:
+  - id: M100
+    block: CHLOR
+    title: "Brine make-up (T-100): salt dissolved in recycled mother liquor and water"
+    class: Mixing
+    links: [{target: equipment, ref: T-100}]
+    ports:
+      - {id: mlr, direction: in, delegates: mlr}
+      - {id: salt, direction: in, delegates: salt}
+      - {id: pw, direction: in, delegates: pw}
+      - {id: acid, direction: in, delegates: acid}
+      - {id: out, direction: out}
+  - id: M101
+    block: CHLOR
+    title: R-101 charge (the brine over fresh copper and the heel)
+    class: Mixing
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: brine, direction: in}
+      - {id: cu, direction: in, delegates: cu}
+      - {id: heel, direction: in}
+      - {id: out, direction: out}
+  - id: E101
+    block: CHLOR
+    title: Charge heated to 353 K (R-101 jacket)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: in, kind: energy, delegates: steam}
+  - id: R101
+    block: CHLOR
+    title: Chlorinator (chlorine dosed into the brine over copper at 353 K)
+    class: ReactingChemicals
+    reactions: [CHL, COMP]
+    reactor: semibatch
+    batch:
+      dosing: [{stream: S8, time: 10800, absorbed: 1.0}]
+      time: 3600
+      heat: isothermal
+      provenance: assumed
+      source: "chlorine dosed below the surface over 3 h and taken up whole by the hot brine over the copper bed (US 3 030 178 A: the chlorine fed below the surface of the copper column is absorbed; the 3 h set by R-101's jacket, D-003, D-005), then a 1 h post-reaction for the copper(II) to be reduced by the excess copper to about 0.5 % of the copper (US 4 582 579 A leaves 0.5-2 %; D-005)"
+    energy_port: q
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: charge, direction: in}
+      - {id: cl2, direction: in, delegates: cl2}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: cw}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: E102
+    block: CHLOR
+    title: Liquor cooled to 308 K before the transfer (R-101 jacket)
+    class: Cooling
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: cw2}
+  - id: SS101
+    block: CHLOR
+    title: Strainer (the copper heel kept in R-101, the liquor drawn off)
+    class: Filtering
+    solid_separation:
+      solid_recovery: 0.998
+      cake_liquid: {value: 0.1, basis: per_kg_solid}
+      outlets: {cake: heel, filtrate: liquor}
+      provenance: assumed
+      source: "R-101's bottom strainer keeps the copper granules as the next batch's heel, 0.2 % of the copper passing as fines, the heel wet with 0.1 kg of liquor per kg (D-004, D-005)"
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: heel, direction: out}
+      - {id: liquor, direction: out}
+  - id: SS102
+    block: CHLOR
+    title: Bag filter on the transfer line (copper fines)
+    class: Filtering
+    solid_separation:
+      solid_recovery: 1.0
+      cake_liquid: {value: 1.0, basis: per_kg_solid}
+      outlets: {cake: fines, filtrate: liquor}
+      provenance: assumed
+      source: "a bag filter on the liquor's transfer line to P-101 takes the copper fines that pass R-101's strainer, wet with about their own mass of liquor; the bags are emptied into the copper-bearing effluent (to copper recovery) (D-004)"
+    links: [{target: equipment, ref: X-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: fines, direction: out, delegates: fines}
+      - {id: liquor, direction: out, delegates: liquor}
+  - id: CR101
+    block: PREC
+    title: Dilution precipitation (CuCl crystallises as the chloride is diluted)
+    class: Crystallizing
+    crystallizer:
+      solute: CUCL
+      solvent: H2O
+      crystal: CUCL_S
+      basis: solubility
+      temperature: 299.33
+      solubility:
+        unit: kg/kg_liquor
+        value: 0.003787
+        measured_in: mother_liquor
+        provenance: assumed
+        source: "ASSUMED (D-006): 3.79 g per kg of liquor at the mother liquor's 0.621 mol/kg of chloride not bound to copper(I) (NaCl, HCl and 2 x CuCl2 per kg of water, S15), from a power law s = 1.0 g/L x (m / 0.282)^1.686 through two open points: about 1 g/L with 10 g/L (0.282 mol/L) of excess chloride at 20 C (US 4 308 239 A, description) and 0.4 mol/L (39.6 g/L) held dissolved in 2.0 mol/L NaCl with 0.5 mol/L HCl at 25 C (US 4 308 239 A, Table III), a lower bound; checked on its own basis at the R-101 liquor S11A (m = 5.71 mol/kg) the law gives 159 g per kg of liquor, against about 119-124 g/kg for the 155 g/L that US 3 030 178 A, Example 1, keeps dissolved at room temperature (at 1.25-1.3 kg/L, ASSUMED): it overpredicts by about 30 % at the brine's chloride level, outside its fit range, which CR101's liquor is inside; g/L read as g per kg of liquor; no temperature dependence (the liquor at 299.3 K)"
+      spectators: [NACL, HCL, CUCL2, CL2]
+      outlets: {slurry: out}
+    links: [{target: equipment, ref: P-101}]
+    ports:
+      - {id: liquor, direction: in, delegates: liquor}
+      - {id: water, direction: in, delegates: water}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: DC101
+    block: PREC
+    title: Settling and decanting (the clear mother liquor drawn off, the slurry thickened)
+    class: SeparatingByGravity
+    solid_separation:
+      solid_recovery: 1.0
+      cake_liquid: {value: 2.0, basis: per_kg_solid}
+      outlets: {cake: thick, filtrate: clear}
+      provenance: assumed
+      source: "CuCl crystals (4.14 g/cm3) settle in P-101 within the hold; the clear liquor is drawn off down to a thickened slurry of 2 kg of liquor per kg of CuCl, which goes to F-101 (US 4 582 579 A siphons the supernatant off its precipitate; the fines that stay suspended are not modelled, D-006)"
+    links: [{target: equipment, ref: P-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: thick, direction: out, delegates: slurry}
+      - {id: clear, direction: out, delegates: clear}
+  - id: F101
+    block: ISOL
+    title: Filtration of the thickened slurry (filter-dryer)
+    class: Filtering
+    solid_separation:
+      solid_recovery: 1.0
+      cake_liquid: {value: 0.15, basis: per_kg_solid}
+      outlets: {cake: cake, filtrate: filtrate}
+      provenance: assumed
+      source: "agitated filter-dryer, a dense crystalline cake with 0.15 kg of liquor per kg of CuCl; the fines that pass the cloth are not modelled (in the recycled share they redissolve in the next brine, whose R-101 liquor S11A holds about 129 g/L CuCl, 103 g/kg; D-007)"
+      filtration:
+        specific_cake_resistance: 3.0e+9
+        medium_resistance: 1.0e+10
+        pressure_difference: 200
+        viscosity: 0.95
+        filtrate_density: 1030
+        provenance: assumed
+        source: "ASSUMED (D-007): a free-filtering crystalline cake, a cloth medium, 200 kPa of nitrogen on the cake; the dilute brine near 299 K about water's viscosity (0.89 mPa s at 298 K, CoolProp's IAPWS water) raised for its 4 wt% NaCl"
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: cake, direction: out}
+      - {id: filtrate, direction: out}
+  - id: SP101
+    block: ISOL
+    title: Mother liquor split (a share to the next brine)
+    class: SplittingMaterial
+    split: {mlr: 0.1}
+    links: [{target: equipment, ref: T-102}]
+    ports:
+      - {id: in, direction: in, delegates: clear}
+      - {id: mlr, direction: out, delegates: mlr}
+      - {id: purge, direction: out}
+  - id: M102
+    block: ISOL
+    title: Dilute hydrochloric acid for the wash (T-103)
+    class: Mixing
+    links: [{target: equipment, ref: T-103}]
+    ports:
+      - {id: pw, direction: in, delegates: pw}
+      - {id: acid, direction: in, delegates: acid}
+      - {id: out, direction: out}
+  - id: W101
+    block: ISOL
+    title: Reslurry wash with dilute hydrochloric acid
+    class: Crystallizing
+    crystallizer:
+      solute: CUCL
+      solvent: H2O
+      crystal: CUCL_S
+      basis: solubility
+      temperature: 298.68
+      solubility:
+        unit: kg/kg_liquor
+        value: 0.000323
+        measured_in: mother_liquor
+        provenance: assumed
+        source: "ASSUMED as CR101 (D-007): 0.32 g per kg of liquor at the wash liquor's 0.144 mol/kg of excess chloride (S23), the same power law taken below its lowest point (0.282 mol/L); pure water dissolves 0.047 g/L at 20 C (Wikipedia, Copper(I) chloride, citing the CRC Handbook, SRC-6)"
+      spectators: [NACL, HCL, CUCL2, CL2]
+      outlets: {slurry: out}
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: cake, direction: in}
+      - {id: wash, direction: in}
+      - {id: out, direction: out}
+  - id: F102
+    block: ISOL
+    title: Filtration of the acid wash
+    class: Filtering
+    solid_separation:
+      solid_recovery: 0.998
+      cake_liquid: {value: 0.15, basis: per_kg_solid}
+      outlets: {cake: cake, filtrate: filtrate}
+      provenance: assumed
+      source: "as F101 (D-007)"
+      filtration:
+        specific_cake_resistance: 3.0e+9
+        medium_resistance: 1.0e+10
+        pressure_difference: 200
+        viscosity: 0.90
+        filtrate_density: 1005
+        provenance: assumed
+        source: "as F101; the acid wash filtrate nearly water (D-007)"
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: cake, direction: out}
+      - {id: filtrate, direction: out}
+  - id: M103
+    block: ISOL
+    title: Displacement wash with ethanol
+    class: Mixing
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: cake, direction: in}
+      - {id: etoh, direction: in, delegates: etoh}
+      - {id: out, direction: out}
+  - id: F103
+    block: ISOL
+    title: Ethanol wash drained
+    class: Filtering
+    solid_separation:
+      solid_recovery: 0.999
+      cake_liquid: {value: 0.10, basis: per_kg_solid}
+      outlets: {cake: cake, filtrate: filtrate}
+      provenance: assumed
+      source: "the ethanol displaces the aqueous cake liquor; the drained cake keeps 0.1 kg of liquid per kg (D-007)"
+      filtration:
+        specific_cake_resistance: 3.0e+9
+        medium_resistance: 1.0e+10
+        pressure_difference: 200
+        viscosity: 1.1
+        filtrate_density: 850
+        provenance: assumed
+        source: "as F101; the wash filtrate ethanol with about a third of water (ethanol 1.07 mPa s at 298 K, an ethanol-water mixture higher, ASSUMED) (D-007)"
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: cake, direction: out}
+      - {id: filtrate, direction: out}
+  - id: D101
+    block: ISOL
+    title: Vacuum drying at 333 K under nitrogen (filter-dryer)
+    class: Drying
+    dryer:
+      volatiles: [H2O, ETOH, HCL]
+      residual_moisture: {value: 0.002, basis: mass_fraction, provenance: assumed, source: "0.2 wt% volatiles in the dried product (D-008)"}
+      temperature: 333.15
+      energy:
+        heat_capacity: 0.8
+        latent_heat: {H2O: 2358.0, ETOH: 866.0, HCL: 443.0}
+        vessel_heat_capacity: 2000
+        efficiency: 0.7
+        port: steam
+        provenance: assumed
+        source: "wet cake 0.8 kJ/(kg K) (CuCl 0.49 with 0.1 kg of ethanol and water per kg, ASSUMED); latent heats at 333 K: water 2358 kJ/kg (CoolProp's IAPWS water, SRC-10), ethanol 866 kJ/kg (39.9 kJ/mol, linear between chemicals 1.5.2's packaged CRC values of 42.32 kJ/mol at 298 K and 38.56 at 351.4 K, SRC-10), HCl 443 kJ/kg (16.15 kJ/mol at its boiling point, packaged CRC table); F-101's metal with its agitator, about 4 t of steel, 2000 kJ/K, heated each batch from the cake's 303.3 K; 70 % efficiency; hot water at 343 K, the product's temperature limit (D-008)"
+      drying_rate: {value: 3.0, provenance: assumed, source: "ASSUMED mean rate of an agitated filter-dryer under vacuum at 333 K with hot water at 343 K (as p-toluenesulfonyl-chloride-1's paddle dryer at a like approach, D-008)"}
+      cake_density: {value: 2400, provenance: assumed, source: "ASSUMED bulk density of the drained cake: CuCl 4.14 g/cm3 (chemicals 1.5.2, packaged CRC table) with 0.1 kg of liquid per kg and gas in the voids (D-008)"}
+      outlets: {product: product, vapour: vapour}
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: product, direction: out, delegates: product}
+      - {id: vapour, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: cond, direction: out, kind: energy, delegates: chw}
+      - {id: cool, direction: out, kind: energy, delegates: cw}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: M201
+    block: ISOL
+    title: Copper-bearing brine to copper recovery (T-104)
+    class: Mixing
+    links: [{target: equipment, ref: T-104}]
+    ports:
+      - {id: ml, direction: in}
+      - {id: f101, direction: in}
+      - {id: fines, direction: in, delegates: fines}
+      - {id: wf, direction: in}
+      - {id: out, direction: out, delegates: ml}
+  - id: M202
+    block: ISOL
+    title: Spent ethanol to solvent recovery (T-105)
+    class: Mixing
+    links: [{target: equipment, ref: T-105}]
+    ports:
+      - {id: wf, direction: in}
+      - {id: cond, direction: in}
+      - {id: out, direction: out, delegates: se}
+
+streams:
+  - id: S1
+    title: Sodium chloride
+    from: NACL.out
+    to: M100.salt
+    template: brine
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 96.786, provenance: assumed, source: "the salt that brings the brine S4 to about 300 g/L NaCl (US 3 030 178 A, Example 1: a 300 g/L NaCl brine with 0.5 g/L HCl), 0.249 kg of NaCl per kg of NaCl and water, less the NaCl recycled with S17 (D-004)"}
+        composition: {basis: mass_fraction, values: {NACL: 1.0}, provenance: assumed, source: "vacuum salt, dry, impurities not modelled (D-004)"}
+  - id: S2
+    title: Process water (brine make-up)
+    from: PW.m100
+    to: M100.pw
+    template: brine
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 33.206, provenance: assumed, source: "the brine's water less what the recycled mother liquor S17 and the acid S3 bring (D-004)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "pure water"}
+  - id: S3
+    title: Hydrochloric acid 33 wt% (brine)
+    from: HCLA.m100
+    to: M100.acid
+    template: brine
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 0.4609, provenance: assumed, source: "about 0.5 g/L HCl in the brine (US 3 030 178 A, Example 1), less the recycled share, as 33 wt% acid (D-004)"}
+        composition: {basis: mass_fraction, values: {HCL: 0.33, H2O: 0.67}, provenance: given, source: "hydrochloric acid 33 wt% (hydrogen-chloride-1)"}
+  - id: S4
+    title: Brine (300 g/L NaCl)
+    from: M100.out
+    to: M101.brine
+    template: brine
+    state:
+      design:
+        temperature: {value: 294.74, provenance: assumed, source: "M100 mixed adiabatically (D-009): S17 (1220.7 kJ/(K h) at 299.32 K) with S1, S2 and S3 (223.8 kJ/(K h) at 298.15 K), the salt's heat of solution (+3.88 kJ/mol x 1.6561 kmol/h, ASSUMED) and the acid's heat of dilution (-17.5 kJ/mol x 0.00417 kmol/h, ASSUMED); the components' liquid heat capacities of process/materials.yaml"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 431.841, provenance: calculated, source: 'cheme process propagate: mixer M100 from S1 S2 S3 S17', fingerprint: a31e437bab96b66f}
+        composition: {basis: mole_fraction, values: {H2O: 0.90647, NACL: 0.0927032, HCL: 0.000233511, CL2: 1.36311e-19, CU: 0.0, CUCL: 0.000580219, CUCL_S: 0.0, CUCL2: 1.30035e-05}, provenance: calculated, source: 'cheme process propagate: mixer M100 from S1 S2 S3 S17', fingerprint: edfc67db85b8d122}
+  - id: S5
+    title: Fresh copper
+    from: CU.out
+    to: M101.cu
+    template: brine
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 31.287, provenance: assumed, source: "the copper consumed (2 mol per mol of chlorine less the copper(II) left, D-005) and the fines the bag filter takes, so that the heel S6 converges at about half of the copper consumed (US 4 582 579 A runs its pre-reaction with a 50 % excess of copper turnings; D-004)"}
+        composition: {basis: mass_fraction, values: {CU: 1.0}, provenance: assumed, source: "copper cathode granules or clean scrap, impurities not modelled (D-004)"}
+  - id: S6
+    title: Copper heel (kept in R-101, recycle)
+    from: SS101.heel
+    to: M101.heel
+    template: brine
+    state:
+      design:
+        temperature: {value: 308.15, provenance: assumed, source: "the heel cooled with the liquor in R-101 (E102, D-004)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 17.5041, provenance: calculated, source: 'cheme process propagate: recycle SS101 from S10 (tear, wegstein)', fingerprint: 5470a5c8b7166cf8}
+        composition: {basis: mole_fraction, values: {H2O: 0.187069, NACL: 0.0191312, HCL: 4.81896e-05, CL2: 2.88407e-19, CU: 0.788502, CUCL: 0.00522261, CUCL_S: 0.0, CUCL2: 2.75129e-05}, provenance: calculated, source: 'cheme process propagate: recycle SS101 from S10 (tear, wegstein)', fingerprint: 5470a5c8b7166cf8}
+  - id: S7
+    title: R-101 charge
+    from: M101.out
+    to: E101.in
+    template: brine
+    state:
+      design:
+        temperature: {value: 294.87, provenance: assumed, source: "M101 mixed adiabatically (D-009): the brine S4 (1444.5 kJ/(K h) at 294.74 K), the fresh copper S5 (12.01 at 298.15 K) and the heel S6 (10.97 at 308.15 K)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 480.632, provenance: calculated, source: 'cheme process propagate: mixer M101 from S4 S5 S6', fingerprint: 09b170ef5a0701f8}
+        composition: {basis: mole_fraction, values: {H2O: 0.873722, NACL: 0.0893541, HCL: 0.000225075, CL2: 1.35398e-19, CU: 0.0360479, CUCL: 0.000637907, CUCL_S: 0.0, CUCL2: 1.29164e-05}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S4 S5 S6', fingerprint: 34003282ec0f8243}
+  - id: S7A
+    title: Charge at 353 K
+    from: E101.out
+    to: R101.charge
+    template: brine
+    state:
+      design:
+        temperature: {value: 353.15, provenance: assumed, source: "heated in R-101 to the reaction temperature (D-005)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 480.632, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S7', fingerprint: 0d9a32a3308bdfbc}
+        composition: {basis: mole_fraction, values: {H2O: 0.873722, NACL: 0.0893541, HCL: 0.000225075, CL2: 1.35398e-19, CU: 0.0360479, CUCL: 0.000637907, CUCL_S: 0.0, CUCL2: 1.29164e-05}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S7', fingerprint: 0d9a32a3308bdfbc}
+  - id: S8
+    title: Chlorine (dosed below the surface)
+    from: CL2.out
+    to: R101.cl2
+    template: brine
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "dry chlorine gas from the supply (chlor-alkali-1), let down to R-101 (D-004)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 17.522, provenance: assumed, source: "chlorine for 300 t/a of product at the model's yield (D-002, D-004): 164.1 kg a batch over the 3 h of dosing"}
+        composition: {basis: mass_fraction, values: {CL2: 1.0}, provenance: given, source: "dry chlorine gas (chlor-alkali-1)"}
+  - id: S9
+    title: Chlorination liquor with the copper
+    from: R101.out
+    to: E102.in
+    template: brine
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.873722, NACL: 0.0893541, HCL: 0.000225075, CL2: 0.0, CU: 0.0121774, CUCL: 0.0243928, CUCL_S: 0.0, CUCL2: 0.000128502}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S7A S8', fingerprint: 48053eb9a82bd40a}
+        flow: {value: 498.154, provenance: calculated, source: 'cheme process propagate: reactor R101 from S7A S8', fingerprint: c5be9ea524390957}
+        temperature: {value: 353.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S7A S8', fingerprint: 48053eb9a82bd40a}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S7A S8', fingerprint: 48053eb9a82bd40a}
+  - id: S10
+    title: Liquor and copper at 308 K
+    from: E102.out
+    to: SS101.in
+    template: brine
+    state:
+      design:
+        temperature: {value: 308.15, provenance: assumed, source: "cooled in R-101 on cooling water before the transfer (D-005, D-006)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 498.154, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S9', fingerprint: 7b742e5c0726499e}
+        composition: {basis: mole_fraction, values: {H2O: 0.873722, NACL: 0.0893541, HCL: 0.000225075, CL2: 0.0, CU: 0.0121774, CUCL: 0.0243928, CUCL_S: 0.0, CUCL2: 0.000128502}, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S9', fingerprint: 7b742e5c0726499e}
+  - id: S11
+    title: CuCl liquor with the copper fines
+    from: SS101.liquor
+    to: SS102.in
+    template: brine
+    state:
+      design:
+        temperature: {value: 308.15, provenance: assumed, source: "as S10"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 480.65, provenance: calculated, source: 'cheme process propagate: solid-separation SS101 from S10', fingerprint: 4584ff6118d41c21}
+        composition: {basis: mole_fraction, values: {H2O: 0.884471, NACL: 0.0904534, HCL: 0.000227844, CL2: 0.0, CU: 2.47361e-05, CUCL: 0.0246929, CUCL_S: 0.0, CUCL2: 0.000130083}, provenance: calculated, source: 'cheme process propagate: solid-separation SS101 from S10', fingerprint: 4584ff6118d41c21}
+  - id: S11A
+    title: CuCl liquor to the precipitator
+    from: SS102.liquor
+    to: CR101.liquor
+    template: brine
+    state:
+      design:
+        temperature: {value: 308.15, provenance: assumed, source: "as S10"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 480.586, provenance: calculated, source: 'cheme process propagate: solid-separation SS102 from S11', fingerprint: 11d6fe688998d331}
+        composition: {basis: mole_fraction, values: {H2O: 0.884493, NACL: 0.0904556, HCL: 0.00022785, CL2: 0.0, CU: 0.0, CUCL: 0.0246935, CUCL_S: 0.0, CUCL2: 0.000130086}, provenance: calculated, source: 'cheme process propagate: solid-separation SS102 from S11', fingerprint: 11d6fe688998d331}
+  - id: S34
+    title: Copper fines from the bag filter
+    from: SS102.fines
+    to: M201.fines
+    template: brine
+    state:
+      design:
+        temperature: {value: 308.15, provenance: assumed, source: "as S10"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 0.0637787, provenance: calculated, source: 'cheme process propagate: solid-separation SS102 from S11', fingerprint: 11d6fe688998d331}
+        composition: {basis: mole_fraction, values: {CU: 0.271571, CUCL_S: 0.0, H2O: 0.64429, NACL: 0.0658905, HCL: 0.000165972, CL2: 0.0, CUCL: 0.0179875, CUCL2: 9.47586e-05}, provenance: calculated, source: 'cheme process propagate: solid-separation SS102 from S11', fingerprint: 11d6fe688998d331}
+  - id: S12
+    title: Deoxygenated dilution water
+    from: PW.cr101
+    to: CR101.water
+    template: brine
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "process water, sparged with nitrogen in P-101 (D-006)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 2647.1, provenance: assumed, source: "about 7 volumes of water per volume of the liquor S11A (US 3 121 609 A: 1 to 15, preferably 5 to 10 volumes, seven in its examples; 6.9 on the model's ideal-mixing volume of S11A), D-006"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "pure water"}
+  - id: S13
+    title: CuCl slurry
+    from: CR101.out
+    to: DC101.in
+    template: brine
+    state:
+      design:
+        temperature: {value: 299.32, provenance: assumed, source: "CR101 adiabatic (D-006, D-009): the liquor S11A (1468.3 kJ/(K h) at 308.15 K) mixed with the dilution water S12 (11064.5 kJ/(K h) at 298.15 K), the components' liquid heat capacities of process/materials.yaml"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 3127.69, provenance: calculated, source: 'cheme process propagate: crystallizer CR101 from S11A S12', fingerprint: 5d1bc8456cceced9}
+        composition: {basis: mole_fraction, values: {CUCL: 0.000704121, H2O: 0.985988, CUCL_S: 0.00229138, NACL: 0.0109729, HCL: 2.76399e-05, CUCL2: 1.57804e-05, CL2: 0.0}, provenance: calculated, source: 'cheme process propagate: crystallizer CR101 from S11A S12', fingerprint: 5d1bc8456cceced9}
+  - id: S14
+    title: Thickened slurry to F-101
+    from: DC101.thick
+    to: F101.in
+    template: brine
+    state:
+      design:
+        temperature: {value: 299.32, provenance: assumed, source: "as S13 (D-006)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 113.802, provenance: calculated, source: 'cheme process propagate: solid-separation DC101 from S13', fingerprint: 8202b7e1f5184e07}
+        composition: {basis: mole_fraction, values: {CU: 0.0, CUCL_S: 0.085532, H2O: 0.903725, NACL: 0.0100574, HCL: 2.53339e-05, CL2: 0.0, CUCL: 0.000645375, CUCL2: 1.44638e-05}, provenance: calculated, source: 'cheme process propagate: solid-separation DC101 from S13', fingerprint: 8202b7e1f5184e07}
+  - id: S15
+    title: Clear mother liquor (decanted)
+    from: DC101.clear
+    to: SP101.in
+    template: brine
+    state:
+      design:
+        temperature: {value: 299.32, provenance: assumed, source: "as S13 (D-006)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 3013.89, provenance: calculated, source: 'cheme process propagate: solid-separation DC101 from S13', fingerprint: 8202b7e1f5184e07}
+        composition: {basis: mole_fraction, values: {H2O: 0.988253, NACL: 0.0109981, HCL: 2.77034e-05, CL2: 0.0, CU: 0.0, CUCL: 0.000705738, CUCL_S: 0.0, CUCL2: 1.58166e-05}, provenance: calculated, source: 'cheme process propagate: solid-separation DC101 from S13', fingerprint: 8202b7e1f5184e07}
+  - id: S32
+    title: Filter cake
+    from: F101.cake
+    to: W101.cake
+    template: wet
+    state:
+      design:
+        temperature: {value: 299.32, provenance: assumed, source: "as S13 (D-006)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 43.6241, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S14', fingerprint: ca36cdbad82aa822}
+        composition: {basis: mole_fraction, values: {CU: 0.0, CUCL_S: 0.55498, H2O: 0.439792, NACL: 0.00489437, HCL: 1.23286e-05, CL2: 0.0, CUCL: 0.000314067, CUCL2: 7.03871e-06}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S14', fingerprint: ca36cdbad82aa822}
+  - id: S33
+    title: Filtrate of the thickened slurry
+    from: F101.filtrate
+    to: M201.f101
+    template: brine
+    state:
+      design:
+        temperature: {value: 299.32, provenance: assumed, source: "as S13 (D-006)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 70.1779, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S14', fingerprint: ca36cdbad82aa822}
+        composition: {basis: mole_fraction, values: {H2O: 0.988253, NACL: 0.0109981, HCL: 2.77034e-05, CL2: 0.0, CU: 0.0, CUCL: 0.000705739, CUCL_S: 0.0, CUCL2: 1.58166e-05}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S14', fingerprint: ca36cdbad82aa822}
+  - id: S16
+    title: Mother liquor purge
+    from: SP101.purge
+    to: M201.ml
+    template: brine
+    state:
+      design:
+        temperature: {value: 299.32, provenance: assumed, source: "as S13 (D-006)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 2712.5, provenance: calculated, source: 'cheme process propagate: splitter SP101 from S15 S17', fingerprint: 848ea762c07591d1}
+        composition: {basis: mole_fraction, values: {H2O: 0.988253, NACL: 0.0109981, HCL: 2.77034e-05, CL2: 0.0, CU: 0.0, CUCL: 0.000705738, CUCL_S: 0.0, CUCL2: 1.58166e-05}, provenance: calculated, source: 'cheme process propagate: splitter SP101 from S15', fingerprint: b1028ff087092b4d}
+  - id: S17
+    title: Mother liquor to the next brine (recycle)
+    from: SP101.mlr
+    to: M100.mlr
+    template: brine
+    state:
+      design:
+        temperature: {value: 299.32, provenance: assumed, source: "as S13 (D-006)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 301.388, provenance: calculated, source: 'cheme process propagate: recycle SP101 from S15 (tear, wegstein)', fingerprint: 5470a5c8b7166cf8}
+        composition: {basis: mole_fraction, values: {H2O: 0.988253, NACL: 0.0109981, HCL: 2.77033e-05, CL2: 1.65799e-19, CU: 0.0, CUCL: 0.000705738, CUCL_S: 0.0, CUCL2: 1.58166e-05}, provenance: calculated, source: 'cheme process propagate: recycle SP101 from S15 (tear, wegstein)', fingerprint: 5470a5c8b7166cf8}
+  - id: S18
+    title: Process water (acid wash)
+    from: PW.m102
+    to: M102.pw
+    template: wet
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 59.083, provenance: assumed, source: "the acid wash: about 1.6 kg of dilute acid per kg of CuCl in the cake, ASSUMED (D-007)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "pure water"}
+  - id: S19
+    title: Hydrochloric acid 33 wt% (wash)
+    from: HCLA.m102
+    to: M102.acid
+    template: wet
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 0.6599, provenance: assumed, source: "33 wt% acid diluted to 0.1 mol/L HCl, pH 1 (CN 1 696 062 A washes the crystals with dilute HCl of pH 1 to 2.5; D-007)"}
+        composition: {basis: mass_fraction, values: {HCL: 0.33, H2O: 0.67}, provenance: given, source: "hydrochloric acid 33 wt% (hydrogen-chloride-1)"}
+  - id: S20
+    title: Dilute hydrochloric acid (pH 1) for the wash
+    from: M102.out
+    to: W101.wash
+    template: wet
+    state:
+      design:
+        temperature: {value: 298.57, provenance: assumed, source: "M102 mixed adiabatically (D-009): S18 and S19 (248.98 kJ/(K h) at 298.15 K) with the 33 wt% acid's heat of dilution to 0.1 mol/L (-17.5 kJ/mol x 0.00597 kmol/h, ASSUMED)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 59.7429, provenance: calculated, source: 'cheme process propagate: mixer M102 from S18 S19', fingerprint: 1dcc1ad8a484656b}
+        composition: {basis: mole_fraction, values: {H2O: 0.998196, NACL: 0.0, HCL: 0.00180432, CL2: 0.0, CU: 0.0, CUCL: 0.0, CUCL_S: 0.0, CUCL2: 0.0, ETOH: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M102 from S18 S19', fingerprint: 9b1b0ec8b3d548b3}
+  - id: S21
+    title: Acid wash slurry
+    from: W101.out
+    to: F102.in
+    template: wet
+    state:
+      design:
+        temperature: {value: 298.68, provenance: assumed, source: "W101 adiabatic (D-007, D-009): the cake S32 (41.63 kJ/(K h) at 299.32 K) mixed with the dilute acid S20 (248.98 kJ/(K h) at 298.57 K)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 103.367, provenance: calculated, source: 'cheme process propagate: crystallizer W101 from S32 S20', fingerprint: 39b855932b66913b}
+        composition: {basis: mole_fraction, values: {CUCL: 5.33459e-05, H2O: 0.901825, CUCL_S: 0.0957803, NACL: 0.000844679, HCL: 0.00149505, CUCL2: 1.21475e-06, CL2: 0.0}, provenance: calculated, source: 'cheme process propagate: crystallizer W101 from S32 S20', fingerprint: 39b855932b66913b}
+  - id: S22
+    title: Cake after the acid wash
+    from: F102.cake
+    to: M103.cake
+    template: wet
+    state:
+      design:
+        temperature: {value: 298.68, provenance: assumed, source: "as S21 (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 43.5372, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S21', fingerprint: ba557581c28ec798}
+        composition: {basis: mole_fraction, values: {CU: 0.0, CUCL_S: 0.549158, H2O: 0.449648, NACL: 0.000421155, HCL: 0.000745429, CL2: 0.0, CUCL: 2.65982e-05, CUCL2: 6.05672e-07, ETOH: 0.0}, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S21', fingerprint: ba557581c28ec798}
+  - id: S23
+    title: Acid wash filtrate
+    from: F102.filtrate
+    to: M201.wf
+    template: wet
+    state:
+      design:
+        temperature: {value: 298.68, provenance: assumed, source: "as S21 (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 59.8298, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S21', fingerprint: ba557581c28ec798}
+        composition: {basis: mole_fraction, values: {H2O: 0.997121, NACL: 0.000933936, HCL: 0.00165303, CL2: 0.0, CU: 0.0, CUCL: 5.8983e-05, CUCL_S: 0.000231932, CUCL2: 1.34311e-06, ETOH: 0.0}, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S21', fingerprint: ba557581c28ec798}
+  - id: S24
+    title: Ethanol (wash)
+    from: ETOH.out
+    to: M103.etoh
+    template: wet
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 19.904, provenance: assumed, source: "about 0.53 kg of ethanol per kg of CuCl in the cake, ASSUMED (CN 1 696 062 A washes with ethanol after the acid; D-007)"}
+        composition: {basis: mass_fraction, values: {ETOH: 1.0}, provenance: given, source: "anhydrous ethanol (ethanol-1)"}
+  - id: S25
+    title: Ethanol wash in the cake
+    from: M103.out
+    to: F103.in
+    template: wet
+    state:
+      design:
+        temperature: {value: 303.33, provenance: assumed, source: "M103 mixed adiabatically (D-007, D-009): the cake S22 (42.16 kJ/(K h) at 298.68 K) with the ethanol S24 (48.52 kJ/(K h) at 298.15 K) and the heat of mixing of ethanol and the cake's water (-0.6 kJ per mol of the liquid, 0.7452 kmol/h, ASSUMED)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 63.4412, provenance: calculated, source: 'cheme process propagate: mixer M103 from S22 S24', fingerprint: f66385d56bb739a6}
+        composition: {basis: mole_fraction, values: {H2O: 0.277486, NACL: 0.000259902, HCL: 0.000460018, CL2: 0.0, CU: 0.0, CUCL: 1.64142e-05, CUCL_S: 0.338895, CUCL2: 3.73771e-07, ETOH: 0.382882}, provenance: calculated, source: 'cheme process propagate: mixer M103 from S22 S24', fingerprint: ec083a1a25186fde}
+  - id: S26
+    title: Washed cake
+    from: F103.cake
+    to: D101.in
+    template: wet
+    state:
+      design:
+        temperature: {value: 303.33, provenance: assumed, source: "as S25 (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 41.6026, provenance: calculated, source: 'cheme process propagate: solid-separation F103 from S25', fingerprint: f2b70f27b83739bc}
+        composition: {basis: mole_fraction, values: {CU: 0.0, CUCL_S: 0.775986, H2O: 0.0940254, NACL: 8.80671e-05, HCL: 0.000155876, CL2: 0.0, CUCL: 5.56191e-06, CUCL2: 1.26651e-07, ETOH: 0.129739}, provenance: calculated, source: 'cheme process propagate: solid-separation F103 from S25', fingerprint: f2b70f27b83739bc}
+  - id: S27
+    title: Ethanol wash filtrate
+    from: F103.filtrate
+    to: M202.wf
+    template: wet
+    state:
+      design:
+        temperature: {value: 303.33, provenance: assumed, source: "as S25 (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 21.8386, provenance: calculated, source: 'cheme process propagate: solid-separation F103 from S25', fingerprint: f2b70f27b83739bc}
+        composition: {basis: mole_fraction, values: {H2O: 0.419478, NACL: 0.000392897, HCL: 0.000695414, CL2: 0.0, CU: 0.0, CUCL: 2.48135e-05, CUCL_S: 0.000601188, CUCL2: 5.65033e-07, ETOH: 0.578807}, provenance: calculated, source: 'cheme process propagate: solid-separation F103 from S25', fingerprint: f2b70f27b83739bc}
+  - id: S28
+    title: Dryer vapour, condensed on chilled water (Q6)
+    from: D101.vapour
+    to: M202.cond
+    template: wet
+    state:
+      design:
+        temperature: {value: 290.15, provenance: assumed, source: "the condensate of the vacuum condenser, cooled on chilled water at 280/285 K (D-008, D-009)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 3.70346, provenance: calculated, source: 'cheme process propagate: dryer D101 from S26', fingerprint: 8ebe55cc7780775c}
+        composition: {basis: mole_fraction, values: {H2O: 0.419906, HCL: 0.000696123, ETOH: 0.579398}, provenance: calculated, source: 'cheme process propagate: dryer D101 from S26', fingerprint: 8ebe55cc7780775c}
+  - id: S29
+    title: Dried CuCl
+    from: D101.product
+    to: CUCL.in
+    template: wet
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: "cooled in F-101 on cooling water before the discharge under nitrogen (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 37.8991, provenance: calculated, source: 'cheme process propagate: dryer D101 from S26', fingerprint: 8ebe55cc7780775c}
+        composition: {basis: mole_fraction, values: {H2O: 0.00241594, NACL: 0.000112824, HCL: 4.00516e-06, CL2: 0.0, CU: 0.0, CUCL: 7.12544e-06, CUCL_S: 0.994126, CUCL2: 1.62254e-07, ETOH: 0.00333359}, provenance: calculated, source: 'cheme process propagate: dryer D101 from S26', fingerprint: 8ebe55cc7780775c}
+  - id: S30
+    title: Copper-bearing brine to copper recovery
+    from: M201.out
+    to: ML.in
+    template: wet
+    state:
+      design:
+        temperature: {value: 299.31, provenance: assumed, source: "M201 mixed adiabatically: S16 and S33 at 299.32 K, S23 at 298.68 K and the fines S34 at 308.15 K (11270.5, 248.45 and 0.110 kJ/(K h))"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 2842.57, provenance: calculated, source: 'cheme process propagate: mixer M201 from S34 S33 S16 S23', fingerprint: 7fcfc303af63c321}
+        composition: {basis: mole_fraction, values: {H2O: 0.988439, NACL: 0.0107822, HCL: 6.26769e-05, CL2: 0.0, CU: 3.26786e-06, CUCL: 0.00069203, CUCL_S: 4.99043e-06, CUCL2: 1.55061e-05, ETOH: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M201 from S34 S33 S16 S23', fingerprint: 684b4156d44f039c}
+  - id: S31
+    title: Spent ethanol to solvent recovery
+    from: M202.out
+    to: SE.in
+    template: wet
+    state:
+      design:
+        temperature: {value: 301.41, provenance: assumed, source: "M202 mixed adiabatically: S27 (61.48 kJ/(K h) at 303.33 K) and the condensate S28 (10.45 at 290.15 K); their heat of mixing left out (both ethanol-rich)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 25.5421, provenance: calculated, source: 'cheme process propagate: mixer M202 from S27 S28', fingerprint: b5d3f104199abef9}
+        composition: {basis: mole_fraction, values: {H2O: 0.41954, NACL: 0.000335858, HCL: 0.000695517, CL2: 0.0, CU: 0.0, CUCL: 2.12112e-05, CUCL_S: 0.00051391, CUCL2: 4.83004e-07, ETOH: 0.578893}, provenance: calculated, source: 'cheme process propagate: mixer M202 from S27 S28', fingerprint: 2f3f76d0696420aa}
+  # energy
+  - {id: Q1, title: Charge heating, kind: energy, from: LPS.e101, to: E101.q, state: {design: {duty: {value: 23.7578, provenance: assumed, source: "hand arithmetic (D-009): S7, 1467.5 kJ/(K h) x 58.28 K (294.87 to 353.15 K) = 85528 kJ/h; the jacket's heat losses not counted (D-009)"}}}}
+  - {id: Q2, title: Heat of chlorination to cooling water (R101's model), kind: energy, from: R101.q, to: CW.r101, state: {design: {duty: {value: 18.6718, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S7A S8', fingerprint: 9cffbb948e70b841}}}}
+  - {id: Q3, title: Liquor cool-down to cooling water, kind: energy, from: E102.q, to: CW.e102, state: {design: {duty: {value: 18.4929, provenance: assumed, source: "hand arithmetic (D-009): S9 cooled from 353.15 to 308.15 K in R-101, 1479.4 kJ/(K h) x 45 K = 66574 kJ/h (the copper heel with it)"}}}}
+  - {id: Q5, title: Dryer heat, kind: energy, from: LPS.d101, to: D101.steam, state: {design: {duty: {value: 4.6765, provenance: assumed, source: "cheme process crystallizers: D101's dryer model, the cake from 303.3 to 333.15 K, the water, ethanol and HCl evaporated, F-101's metal heated each batch, 70 % efficiency (D-008, D-009); compared at its port (dryer.energy.port)"}}}}
+  - {id: Q6, title: Dryer vapour condenser to chilled water, kind: energy, from: D101.cond, to: CHW.d101, state: {design: {duty: {value: 1.3540, provenance: assumed, source: "hand arithmetic (D-009): the dryer vapour S28 condensed at D101's latent heats (water 0.8172 kg/h x 2358, ethanol 2.8835 x 866, HCl 0.0027 x 443 kJ/kg) and the condensate cooled from 333.15 to 290.15 K (10.45 kJ/(K h) x 43 K); on chilled water: the vapour condenses under the dryer's vacuum"}}}}
+  - {id: Q7, title: Product cooling in F-101 to cooling water, kind: energy, from: D101.cool, to: CW.d101, state: {design: {duty: {value: 1.9355, provenance: assumed, source: "hand arithmetic (D-008, D-009): the product S29 cooled in F-101 from 333.15 to 303.15 K (18.74 kJ/(K h) x 30 K) and F-101's metal with it (2000 kJ/K x 30 K once per batch of 9.367 h); on cooling water"}}}}
+  - {id: P1, title: R-101 agitator and its vent scrubber, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 6.2, provenance: assumed, source: "year average: a 4 kW agitator of the 5 m3 glass-lined R-101, occupied 100 % (the bottleneck), and the vent scrubber T-201 circulation pump and fan, 2.2 kW, running continuously (D-009)"}}}}
+  - {id: P2, title: P-101 agitator, kind: energy, from: POWER.cr101, to: CR101.power, state: {design: {duty: {value: 2.80, provenance: assumed, source: "year average: a 7.5 kW agitator of the 40 m3 precipitator P-101, occupied 3.5 h of the 9.367 h cycle, 37.4 % (D-009)"}}}}
+  - {id: P3, title: "Filter-dryer agitator and vacuum pump", kind: energy, from: POWER.d101, to: D101.power, state: {design: {duty: {value: 2.52, provenance: assumed, source: "year average: F-101's 2.2 kW agitator occupied 7.59 h of the 9.367 h cycle (1.78 kW) and a 1.5 kW vacuum pump over the 4.62 h of drying (0.74 kW) (D-009)"}}}}

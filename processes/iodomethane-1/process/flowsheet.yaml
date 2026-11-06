@@ -1,0 +1,691 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Iodomethane from methanol, red phosphorus and iodine (DESIGN.md D-001), a batch plant after
+# CN 114195616 B: methanol and red phosphorus are charged to R-101 and warmed to 313 K; the
+# iodine is dosed into the slurry (a semi-batch, reactor: semibatch) at 313 K, the source's
+# measured temperature at total reflux, under the reflux condenser E-101; the crude iodomethane is then
+# distilled off the phosphorous acid residue in R-101 (a batch still) through E-101 into a sodium
+# thiosulfate solution in V-102, washed with the thiosulfate and with water, dried over calcium
+# chloride and a 4A molecular sieve (A-103) and distilled in C-104 (a batch still).
+# The flows are the year averages of the batch recipe (process/recipe.yaml, `cheme process
+# recipe`, D-003).
+# Where the values come from:
+# - feeds, temperatures, ratios: design basis and D-002..D-004, ASSUMED or from CN 114195616 B,
+#   Example 1;
+# - R101: cheme's semi-batch model (core ADR 0050) with a vent (ADR 0054: the iodomethane that
+#   passes the vent condenser E-102), from the ASSUMED rate law, to 0.995 conversion of the iodine
+#   (D-005);
+# - ST101 and ST102: cheme's batch (Rayleigh) still, one stage, Raoult's law with NIST Antoine
+#   constants (core ADR 0055, D-007, D-010);
+# - W101 (the thiosulfate's reduction of the iodine): a conversion step (D-008);
+# - D102, D103 (the washes' phase splits) and X101 (the drying): specified splits in
+#   scripts/balance.py (D-008, D-009); core has no liquid-liquid model with sourced pairs for
+#   these liquids and no drying of a liquid over a desiccant;
+# - M101 (mixer), H101, H102, H103, E101, E102, E105 (pass-through), M104 (mixer): `cheme process
+#   propagate --fill`;
+# - the duties: R101's Q2 (the heat of its reaction less the iodine warmed, on its energy port q)
+#   and the stills' net boil-ups Q3 and Q8 (their distillates' latent heat) are written by `cheme
+#   process propagate --fill` from the models (core 1.9.0, ADR 0059); the charge's warming Q1,
+#   the stills' heat-up Q4 and Q9, the condensers and coolers Q5, Q6, Q7, Q10, Q11 and Q12 come
+#   from scripts/balance.py (no property package of core covers these liquids, D-011);
+# - the feeds for 500 t/a, the wash liquids, the vent fraction and the temperatures of mixed
+#   streams: scripts/balance.py (D-002, D-008, D-011, D-012).
+schema: cheme/process/v1
+kind: flowsheet
+title: Iodomethane from methanol, red phosphorus and iodine, batch reflux reaction and batch distillation (500 t/a)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: 500 t/a distilled iodomethane, year averages of the batch recipe in 7920 h (D-002, D-003)", default: true}
+tolerance: {abs: 0.02, rel: 0.002}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - {id: MEOH, title: Methanol (methanol-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: REDP, title: Red phosphorus (no library process), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: IOD, title: Iodine (iodine-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: THIO, title: Sodium thiosulfate solution (5 wt%; no library process), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: PW, title: Process water (wash), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: r101, direction: out, kind: energy}
+      - {id: v102, direction: out, kind: energy}
+      - {id: c104, direction: out, kind: energy}
+  - id: LPS
+    title: LP steam 350 kPa(a) (to the hot-water loops)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 350, provenance: assumed, source: "design basis (D-011)"}
+      supply_temperature: {value: 412.0, provenance: given, source: "saturation at 350 kPa(a), IAPWS-IF97 (411.5 K)"}
+      min_approach: {value: 10, provenance: assumed, source: "D-011"}
+    ports:
+      - {id: h101, direction: out, kind: energy}
+      - {id: st101, direction: out, kind: energy}
+      - {id: st101_heatup, direction: out, kind: energy}
+      - {id: st102, direction: out, kind: energy}
+      - {id: st102_heatup, direction: out, kind: energy}
+      - {id: st102_reflux, direction: out, kind: energy}
+products:
+  - {id: MEI, title: Iodomethane to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: RES, title: "Phosphorous acid residue (with methanol and red phosphorus) to treatment", category: by_product, ports: [{id: in, direction: in}]}
+  - {id: RES2, title: Final still residue to hazardous-waste incineration, category: by_product, ports: [{id: in, direction: in}]}
+  - {id: WW, title: Wash liquors (thiosulfate and water washes) to wastewater treatment, category: wastewater, ports: [{id: in1, direction: in}, {id: in2, direction: in}]}
+  - {id: SPENT, title: Water taken up by the spent calcium chloride and sieve, category: solid_waste, ports: [{id: in, direction: in}]}
+  - {id: VENT, title: Vent gas (nitrogen with iodomethane vapour) to the activated-carbon adsorber, category: off_gas, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis (D-011)"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis (D-011)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-011"}
+    ports:
+      - {id: e101, direction: in, kind: energy}
+      - {id: h102, direction: in, kind: energy}
+      - {id: k104, direction: in, kind: energy}
+      - {id: h103, direction: in, kind: energy}
+  - id: CHW
+    title: Chilled water return (283 K)
+    category: utility
+    utility:
+      kind: refrigerant
+      supply_temperature: {value: 278.15, provenance: assumed, source: "design basis (D-011)"}
+      return_temperature: {value: 283.15, provenance: assumed, source: "design basis (D-011)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-011"}
+    ports:
+      - {id: r101, direction: in, kind: energy}
+  - id: BRINE
+    title: Chilled brine return (263 K)
+    category: utility
+    utility:
+      kind: refrigerant
+      supply_temperature: {value: 258.15, provenance: assumed, source: "design basis (D-011)"}
+      return_temperature: {value: 263.15, provenance: assumed, source: "design basis (D-011)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-011"}
+    ports:
+      - {id: e102, direction: in, kind: energy}
+      - {id: e105, direction: in, kind: energy}
+
+blocks:
+  - id: REACT
+    title: Semi-batch reaction under reflux and distillation of the crude off the residue (R-101, E-101)
+    class: ReactingChemicals
+    ports:
+      - {id: meoh, direction: in}
+      - {id: p, direction: in}
+      - {id: iodine, direction: in}
+      - {id: crude, direction: out}
+      - {id: residue, direction: out}
+      - {id: vent, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: still_steam, direction: in, kind: energy}
+      - {id: still_heatup, direction: in, kind: energy}
+      - {id: q, direction: out, kind: energy}
+      - {id: q_cond, direction: out, kind: energy}
+      - {id: q_res, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: WASH
+    title: Thiosulfate and water washes (V-102)
+    class: SeparatingByContact
+    ports:
+      - {id: crude, direction: in}
+      - {id: thio, direction: in}
+      - {id: water, direction: in}
+      - {id: washed, direction: out}
+      - {id: aq1, direction: out}
+      - {id: aq2, direction: out}
+      - {id: power, direction: in, kind: energy}
+  - id: DRY
+    title: Drying over calcium chloride and a 4A molecular sieve (A-103)
+    class: Adsorbing
+    ports:
+      - {id: in, direction: in}
+      - {id: dry, direction: out}
+      - {id: water, direction: out}
+  - id: PURIFY
+    title: Batch distillation of the dried crude (C-104)
+    class: Distilling
+    ports:
+      - {id: in, direction: in}
+      - {id: product, direction: out}
+      - {id: residue, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: steam_heatup, direction: in, kind: energy}
+      - {id: steam_reflux, direction: in, kind: energy}
+      - {id: q, direction: out, kind: energy}
+      - {id: q_sub, direction: out, kind: energy}
+      - {id: q_res, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: VENTS
+    title: Vent condenser on brine (E-102)
+    class: Cooling
+    ports:
+      - {id: gas, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy}
+
+steps:
+  - id: M101
+    block: REACT
+    title: Methanol and red phosphorus charged to R-101 (through the phosphorus tank)
+    class: Mixing
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: meoh, direction: in, delegates: meoh}
+      - {id: p, direction: in, delegates: p}
+      - {id: out, direction: out}
+  - id: H101
+    block: REACT
+    title: Charge warmed to 313 K (R-101 jacket, hot-water loop)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: in, kind: energy, delegates: steam}
+  - id: R101
+    block: REACT
+    title: Reactor (iodine dosed into the methanol and red phosphorus at 313 K, under reflux)
+    class: ReactingChemicals
+    reactions: [MEI]
+    reactor: semibatch
+    # the semi-batch model's duty (its reaction's heat less the iodine warmed, ADR 0059) goes on
+    # Q2, removed by R-101's jacket on chilled water (D-011)
+    energy_port: q
+    batch:
+      dosing: [{stream: S5, time: 36000}]
+      target: {key: I2, conversion: 0.995}
+      heat: isothermal
+      vent: {stream: S7, components: [MEI], fraction: {MEI: 0.003664}}
+      provenance: assumed
+      source: "the iodine dosed at a constant rate over 10 h (ASSUMED: CN 114195616 B gives no time for its first stage; the jacket on chilled water removes the model's peak, D-003), then the post-reaction to 0.995 conversion of the iodine (the patent reacts until the reflux runs colourless, D-005); isothermal at 313.15 K, the source's measured temperature at total reflux (Example 1: 39-40 C, D-005, D-006); 0.3664 % of the iodomethane formed leaves past the vent condenser E-102: the iodomethane the batch's wet nitrogen carries at 268 K (the work-up's blanket, which fills the head spaces its liquids displace, and the purge nitrogen R-101's rise displaces, each counted once), R-101's and the work-up's vents lumped on R101 (scripts/balance.py prints it, D-012)"
+    hazard:
+      mtt: 313.15
+      vent_capacity: 20.0
+      provenance: assumed
+      source: "mtt: the measured temperature of the end mass at total reflux, CN 114195616 B, Example 1, stage 2 at total reflux at 39-40 C (Examples 2 and 3, with less methanol: 42-45 C): R101 runs at it, as the source does; the ideal-liquid bubble point of the end mass S6 (Raoult's law, scripts/balance.py) is 16 K higher (329.53 K): the ideal liquid leaves out the positive deviation that ST101's relative volatility of 6 represents, and a possible azeotrope with methanol (an open input, D-006, D-007); core's default, the lowest boiling point of the charge and the dose (methanol, 337.8 K; the vented iodomethane left out), lies 24.7 K above it (D-006, L-5). vent_capacity: ASSUMED design of R-101's vent line through E-101 and E-102 to the adsorber (D-006): the nitrogen purge of R-101 and the phosphorus tank, 5 Nm3 in 0.5 h (11.5 m3/h at 313 K), with room; against core's gas release at the MTSR (0.19 m3/h) and the vent's normal peak (0.10 m3/h, cheme process recipe); the iodomethane a cooling failure boils off at the MTT (82 to 169 m3/h) is for E-101 to condense, not for the vent: a design finding (D-006). No TD24 (never estimated)"
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: charge, direction: in}
+      - {id: dose, direction: in, delegates: iodine}
+      - {id: out, direction: out}
+      - {id: gas, direction: out, delegates: vent}
+      - {id: q, direction: out, kind: energy, delegates: q}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: ST101
+    block: REACT
+    title: Crude distilled off the phosphorous acid residue in R-101 (one stage, Rayleigh)
+    class: Distilling
+    energy_port: steam
+    still:
+      pressure: 101.325
+      volatility: {model: constant, alpha: {MEOH: 1.0, MEI: 6.0, H2O: 0.25, I2: 0.009}, provenance: assumed, source: "constant relative volatilities to methanol, ASSUMED (D-007): iodomethane 6, about three times its ideal ratio (2.13 at 330 K, 1.70 at 350 K by the NIST Antoine constants), for its positive deviation from an ideal liquid in the polar residue of phosphorous acid and methanol (not measured); water and iodine at their ideal ratios at 340 K (0.25, 0.009); an ideal liquid (Raoult) would leave 13 % of the iodomethane in the residue at 353 K, which the source's 95-96 % yield rules out (L-2)"}
+      nonvolatile: [H3PO3, P]
+      boilup: {value: 14.36, unit: kW, provenance: assumed, source: "the net boil-up: the mean heat R-101's jacket gives on the hot-water loop (360.65 K mean), about 35 kW at the start (300 W/(m2 K) x 3.76 m2 x 31 K) and a few kW at the end, ASSUMED 15 kW, less the residue's sensible heat as its bubble point rises (Q4's second part), which the still does not hold (L-4): 15 kW x Q3 / (Q3 + that part), scripts/balance.py prints it; the distillation takes 8.36 h (the patent: 8-12 h) (D-007)"}
+      end: {residue: {key: MEI, mole_fraction: 0.012}}
+      outlets: {distillate: top, residue: bottom}
+      provenance: assumed
+      source: "distil until iodomethane is 1.2 mol% of the residue (ASSUMED), whose bubble point by Raoult's law is then 357.1 K, below the hot-water loop's 363.15 K supply, the patent's kettle limit of 90 C (D-007)"
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out}
+      - {id: bottom, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: still_steam}
+      - {id: heatup, direction: in, kind: energy, delegates: still_heatup}
+  - id: E101
+    block: REACT
+    title: Overhead condenser of R-101 on cooling water (the crude to V-102)
+    class: Cooling
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: crude}
+      - {id: q, direction: out, kind: energy, delegates: q_cond}
+  - id: H102
+    block: REACT
+    title: Residue cooled to 313 K in R-101 (jacket on cooling water)
+    class: Cooling
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: residue}
+      - {id: q, direction: out, kind: energy, delegates: q_res}
+  - id: W101
+    block: WASH
+    title: Thiosulfate wash, twice (the iodine reduced; V-102)
+    class: ReactingChemicals
+    reactions: [THIO]
+    reactor: conversion
+    links: [{target: equipment, ref: V-102}]
+    ports:
+      - {id: crude, direction: in, delegates: crude}
+      - {id: thio, direction: in, delegates: thio}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: D102
+    block: WASH
+    title: Phase split after the thiosulfate washes (specified split)
+    class: SeparatingByGravity
+    links: [{target: equipment, ref: V-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: org, direction: out}
+      - {id: aq, direction: out, delegates: aq1}
+  - id: D103
+    block: WASH
+    title: Water wash, twice, and phase split (specified split)
+    class: SeparatingByGravity
+    links: [{target: equipment, ref: V-102}]
+    ports:
+      - {id: org, direction: in}
+      - {id: water, direction: in, delegates: water}
+      - {id: out, direction: out, delegates: washed}
+      - {id: aq, direction: out, delegates: aq2}
+  - id: X101
+    block: DRY
+    title: Drying over calcium chloride and the 4A sieve column (specified split)
+    class: Adsorbing
+    links: [{target: equipment, ref: A-103}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: dry, direction: out, delegates: dry}
+      - {id: water, direction: out, delegates: water}
+  - id: ST102
+    block: PURIFY
+    title: Batch still at 101 kPa(a) (one stage, Rayleigh)
+    class: Distilling
+    energy_port: steam
+    still:
+      pressure: 101.325
+      volatility: {model: raoult, provenance: assumed, source: "ideal liquid, NIST WebBook Antoine constants (materials.yaml); ASSUMED (D-010)"}
+      boilup: {value: 12, unit: kW, provenance: assumed, source: "the net boil-up that leaves as distillate: a 36 kW reboiler (C-104's jacket on the hot-water loop, about 300 W/(m2 K) x 3 m2 x 40 K) at the column's reflux ratio 2, ASSUMED (D-010)"}
+      end: {residue: {key: MEI, mole_fraction: 0.5}}
+      outlets: {distillate: top, residue: bottom}
+      provenance: assumed
+      source: "distil until iodomethane is 50 mol% of the residue (ASSUMED), the rest methanol and water (D-010)"
+    links: [{target: equipment, ref: C-104}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: top, direction: out}
+      - {id: bottom, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: heatup, direction: in, kind: energy, delegates: steam_heatup}
+      - {id: reflux, direction: in, kind: energy, delegates: steam_reflux}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: K104
+    block: PURIFY
+    title: Column on the still with its condenser (rectification, specified split)
+    class: Distilling
+    links: [{target: equipment, ref: K-104}]
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out}
+      - {id: bottoms, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: q}
+  - id: M104
+    block: PURIFY
+    title: Still residue (with what the column returns to the pot)
+    class: Mixing
+    links: [{target: equipment, ref: C-104}]
+    ports:
+      - {id: res, direction: in}
+      - {id: ret, direction: in}
+      - {id: out, direction: out}
+  - id: E105
+    block: PURIFY
+    title: Product subcooler on brine (to 283 K)
+    class: Cooling
+    links: [{target: equipment, ref: E-105}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: product}
+      - {id: q, direction: out, kind: energy, delegates: q_sub}
+  - id: H103
+    block: PURIFY
+    title: Final still residue cooled to 303 K (C-104 jacket)
+    class: Cooling
+    links: [{target: equipment, ref: C-104}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: residue}
+      - {id: q, direction: out, kind: energy, delegates: q_res}
+  - id: E102
+    block: VENTS
+    title: Vent condenser on brine (the iodomethane vapour of the vents returned)
+    class: Cooling
+    links: [{target: equipment, ref: E-102}]
+    ports:
+      - {id: in, direction: in, delegates: gas}
+      - {id: out, direction: out, delegates: out}
+      - {id: q, direction: out, kind: energy, delegates: q}
+
+streams:
+  - id: S1
+    title: Methanol
+    from: MEOH.out
+    to: M101.meoh
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "from storage (design basis)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 24.5281, provenance: assumed, source: "scripts/balance.py: the methanol at 3.319 mol per mol of iodine (CN 114195616 B, Example 1: 144 kg of 99.5 % methanol on 360 kg of 95 % iodine), with its water (D-004)"}
+        composition: {basis: mass_fraction, values: {MEOH: 0.9995, H2O: 0.0005}, provenance: assumed, source: "methanol-1's product (0.999111 mol CH3OH, 0.000889 mol water: 500 ppm water by mass; D-004)"}
+  - id: S2
+    title: Red phosphorus
+    from: REDP.out
+    to: M101.p
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "from storage (design basis)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 6.0673, provenance: assumed, source: "scripts/balance.py: red phosphorus at 0.8496 mol per mol of iodine (CN 114195616 B, Example 1: 36 kg of 98.5 % red phosphorus on 360 kg of 95 % iodine; 27 % above the 2/3 mol the reaction takes) (D-004)"}
+        composition: {basis: mass_fraction, values: {P: 1.0}, provenance: assumed, source: "red phosphorus 100 % (the patent's 98.5 to 99 % grade; its impurities not modelled; D-004)"}
+  - id: S3
+    title: Methanol and red phosphorus slurry
+    from: M101.out
+    to: H101.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "both at 298.15 K; a solid suspended in methanol adds no heat of mixing (D-011)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 30.5954, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2', fingerprint: 85afee6017e239a1}
+        composition: {basis: mole_fraction, values: {MEOH: 0.795603, P: 0.203689, I2: 0.0, MEI: 0.0, H3PO3: 0.0, H2O: 0.000707895}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2', fingerprint: ca18aa44bcccb50e}
+  - id: S4
+    title: Charge (313 K)
+    from: H101.out
+    to: R101.charge
+    template: liquor
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "warmed to R101's temperature (D-005)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 30.5954, provenance: calculated, source: 'cheme process propagate: pass-through H101 from S3', fingerprint: 852029a494160248}
+        composition: {basis: mole_fraction, values: {MEOH: 0.795603, P: 0.203689, I2: 0.0, MEI: 0.0, H3PO3: 0.0, H2O: 0.000707895}, provenance: calculated, source: 'cheme process propagate: pass-through H101 from S3', fingerprint: 852029a494160248}
+  - id: S5
+    title: Iodine (dosed)
+    from: IOD.out
+    to: R101.dose
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "from the iodine store (D-004)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 58.6343, provenance: assumed, source: "scripts/balance.py: the iodine that makes 500 t/a of S25 (the balance is linear in the feeds; D-002, D-004)"}
+        composition: {basis: mass_fraction, values: {I2: 0.998, H2O: 0.002}, provenance: assumed, source: "iodine-1's product (99.8 wt% I2, 0.2 wt% water; D-004)"}
+  - id: S6
+    title: Reaction mass
+    from: R101.out
+    to: ST101.in
+    template: liquor
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {MEOH: 0.316545, P: 0.0443833, I2: 0.00119131, MEI: 0.472403, H3PO3: 0.158047, H2O: 0.00743056}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: f15e7d560a6c0117}
+        flow: {value: 88.9912, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: f15e7d560a6c0117}
+        temperature: {value: 313.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: f15e7d560a6c0117}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: f15e7d560a6c0117}
+  - id: S7
+    title: Iodomethane vapour to the vent condenser (R-101's and the work-up's vents)
+    from: R101.gas
+    to: E102.in
+    template: vent
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {MEI: 1.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: f15e7d560a6c0117}
+        flow: {value: 0.238609, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: f15e7d560a6c0117}
+        temperature: {value: 313.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: f15e7d560a6c0117}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: f15e7d560a6c0117}
+  - id: S8
+    title: Crude distillate (vapour, to E-101)
+    from: ST101.top
+    to: E101.in
+    template: crude
+    state:
+      design:
+        temperature: {value: 329.53, provenance: assumed, source: "scripts/balance.py: the reaction mass S6's bubble point at 101.325 kPa(a) by Raoult's law with the materials' Antoine constants (ST101 uses a constant relative volatility and gives no temperature, D-007); an ideal-liquid estimate, 16 K above the measured reflux temperature that is the MTT (D-006)"}
+        pressure: {value: 101.325, provenance: assumed, source: "still pressure (D-007)"}
+        flow: {value: 69.6471, provenance: calculated, source: 'cheme process propagate: still ST101 from S6', fingerprint: 44a4ea90edb81cb8}
+        composition: {basis: mole_fraction, values: {MEOH: 0.268013, P: 0.0, I2: 1.30453e-05, MEI: 0.729914, H3PO3: 0.0, H2O: 0.00205997}, provenance: calculated, source: 'cheme process propagate: still ST101 from S6', fingerprint: 44a4ea90edb81cb8}
+  - id: S9
+    title: Phosphorous acid residue (end of the distillation)
+    from: ST101.bottom
+    to: H102.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 357.14, provenance: assumed, source: "scripts/balance.py: the residue's bubble point at the end of the distillation by Raoult's law (ST101 uses a constant relative volatility and gives no temperature, D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "still pressure (D-007)"}
+        flow: {value: 19.3441, provenance: calculated, source: 'cheme process propagate: still ST101 from S6', fingerprint: 44a4ea90edb81cb8}
+        composition: {basis: mole_fraction, values: {MEOH: 0.403315, P: 0.123736, I2: 0.00329793, MEI: 0.012, H3PO3: 0.440619, H2O: 0.0170326}, provenance: calculated, source: 'cheme process propagate: still ST101 from S6', fingerprint: 44a4ea90edb81cb8}
+  - id: S10
+    title: Crude iodomethane (condensed, into the thiosulfate in V-102)
+    from: E101.out
+    to: W101.crude
+    template: crude
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: "condensed and cooled on cooling water (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 69.6471, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S8', fingerprint: d8dadcce928052fb}
+        composition: {basis: mole_fraction, values: {MEOH: 0.268013, P: 0.0, I2: 1.30453e-05, MEI: 0.729914, H3PO3: 0.0, H2O: 0.00205997}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S8', fingerprint: d8dadcce928052fb}
+  - id: S11
+    title: Phosphorous acid residue to treatment
+    from: H102.out
+    to: RES.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "cooled in R-101 before it is drained (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 19.3441, provenance: calculated, source: 'cheme process propagate: pass-through H102 from S9', fingerprint: 93880a080b9bd6da}
+        composition: {basis: mole_fraction, values: {MEOH: 0.403315, P: 0.123736, I2: 0.00329793, MEI: 0.012, H3PO3: 0.440619, H2O: 0.0170326}, provenance: calculated, source: 'cheme process propagate: pass-through H102 from S9', fingerprint: 93880a080b9bd6da}
+  - id: S12
+    title: Vent gas to the adsorber
+    from: E102.out
+    to: VENT.in
+    template: vent
+    state:
+      design:
+        temperature: {value: 268.15, provenance: assumed, source: "vent gas leaving the brine condenser 10 K above the 258 K brine (D-012)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 0.238609, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S7', fingerprint: 99adb77b6ff44981}
+        composition: {basis: mole_fraction, values: {MEI: 1.0}, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S7', fingerprint: 99adb77b6ff44981}
+  - id: S13
+    title: Sodium thiosulfate solution (5 wt%)
+    from: THIO.out
+    to: W101.thio
+    template: aqueous
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 13.9294, provenance: assumed, source: "scripts/balance.py: 0.20 kg of solution per kg of crude S10, in two equal contacts, ASSUMED (the patent gives no amount; D-008)"}
+        composition: {basis: mass_fraction, values: {NA2S2O3: 0.05, H2O: 0.95}, provenance: assumed, source: "5 wt% sodium thiosulfate in process water, ASSUMED (the patent gives no strength; D-008)"}
+  - id: S14
+    title: Crude with the thiosulfate liquor
+    from: W101.out
+    to: D102.in
+    template: aqueous
+    state:
+      design:
+        temperature: {value: 306.94, provenance: assumed, source: "scripts/balance.py: adiabatic mix of the crude S10 at 303.15 K and the solution S13 at 298.15 K, with the heat of the iodine's reduction (-30 kJ/mol, ASSUMED) and of the methanol taken into the water (-7.3 kJ/mol, ASSUMED) (D-008, D-011)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 83.5765, provenance: calculated, source: 'cheme process propagate: reactor W101 from S10 S13', fingerprint: 09634218aa634f90}
+        composition: {basis: mole_fraction, values: {MEI: 0.333176, MEOH: 0.122337, H2O: 0.54124, I2: 0.0, P: 0.0, H3PO3: 0.0, NA2S2O3: 0.00322844, NAI: 1.19093e-05, NA2S4O6: 5.95465e-06}, provenance: calculated, source: 'cheme process propagate: reactor W101 from S10 S13', fingerprint: 4251f0b2ad7311d4}
+  - id: S15
+    title: Crude after the thiosulfate washes (lower phase)
+    from: D102.org
+    to: D103.org
+    template: aqueous
+    state:
+      design:
+        temperature: {value: 306.94, provenance: assumed, source: "scripts/balance.py: settled at S14's temperature (D-008)"}
+        composition: {basis: mass_fraction, values: {MEI: 0.969498534, MEOH: 0.029501466, H2O: 0.001}, provenance: assumed, source: "scripts/balance.py: D102's specified split of S14 (D-008)"}
+        flow: {value: 66.1245, provenance: assumed, source: "scripts/balance.py: D102's specified split of S14, two contacts: methanol at a distribution of 5 (mass fractions, aqueous/organic, ASSUMED), iodomethane dissolved at 13.9 g per kg of water (HSDB via PubChem CID 6328), the organic saturated with 0.1 wt% water (ASSUMED) (D-008)"}
+  - id: S16
+    title: Thiosulfate wash liquor (upper phase)
+    from: D102.aq
+    to: WW.in1
+    template: aqueous
+    state:
+      design:
+        temperature: {value: 306.94, provenance: assumed, source: "scripts/balance.py: settled at S14's temperature (D-008)"}
+        composition: {basis: mass_fraction, values: {H2O: 0.755777208, MEI: 0.010611684, MEOH: 0.193585656, NAI: 0.000139063, NA2S2O3: 0.039761045, NA2S4O6: 0.000125345}, provenance: assumed, source: "scripts/balance.py: D102's specified split of S14 (D-008)"}
+        flow: {value: 17.452, provenance: assumed, source: "scripts/balance.py: the rest of S14 after D102's organic phase S15: the water, the salts, the methanol and the iodomethane it takes (D-008)"}
+  - id: S17
+    title: Wash water
+    from: PW.out
+    to: D103.water
+    template: aqueous
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 27.8588, provenance: assumed, source: "scripts/balance.py: 0.40 kg of water per kg of crude S10, in two equal contacts, ASSUMED (the patent gives no amount; D-008)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "process water"}
+  - id: S18
+    title: Washed crude (lower phase)
+    from: D103.out
+    to: X101.in
+    template: crude
+    state:
+      design:
+        temperature: {value: 303.22, provenance: assumed, source: "scripts/balance.py: adiabatic mix of S15 and the water S17 at 298.15 K with the heat of the methanol taken into the water (-7.3 kJ/mol, ASSUMED) (D-008, D-011)"}
+        composition: {basis: mass_fraction, values: {MEI: 0.992447599, MEOH: 0.006552401, H2O: 0.001}, provenance: assumed, source: "scripts/balance.py: D103's specified split (D-008)"}
+        flow: {value: 64.2034, provenance: assumed, source: "scripts/balance.py: D103's specified split of S15 and S17, two contacts, on the same basis as D102 (D-008)"}
+  - id: S19
+    title: Water wash liquor (upper phase)
+    from: D103.aq
+    to: WW.in2
+    template: aqueous
+    state:
+      design:
+        temperature: {value: 303.22, provenance: assumed, source: "scripts/balance.py: settled at S18's temperature (D-008)"}
+        composition: {basis: mass_fraction, values: {H2O: 0.935555813, MEI: 0.013064475, MEOH: 0.051379711}, provenance: assumed, source: "scripts/balance.py: D103's specified split (D-008)"}
+        flow: {value: 29.7799, provenance: assumed, source: "scripts/balance.py: the rest of S15 and S17 after D103's organic phase S18 (D-008)"}
+  - id: S20
+    title: Dried crude
+    from: X101.dry
+    to: ST102.in
+    template: crude
+    state:
+      design:
+        temperature: {value: 304.11, provenance: assumed, source: "scripts/balance.py: S18 warmed by the heat of the water taken up by calcium chloride as its hydrate (-16 kJ/mol, ASSUMED) (D-009, D-011)"}
+        composition: {basis: mass_fraction, values: {MEI: 0.993341696, MEOH: 0.006558304, H2O: 0.0001}, provenance: assumed, source: "scripts/balance.py: X101's specified split (D-009)"}
+        flow: {value: 64.1456, provenance: assumed, source: "scripts/balance.py: X101's specified split: the water of S18 down to 100 ppm (ASSUMED; CN 114195616 B's product holds below 80-200 ppm), the rest unchanged (D-009)"}
+  - id: S21
+    title: Water to the spent desiccant
+    from: X101.water
+    to: SPENT.in
+    template: crude
+    state:
+      design:
+        temperature: {value: 304.11, provenance: assumed, source: "scripts/balance.py: at S20's temperature (D-009)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: "scripts/balance.py: X101's specified split (D-009)"}
+        flow: {value: 0.05779, provenance: assumed, source: "scripts/balance.py: the water of S18 that X101 takes up (D-009)"}
+  - id: S22
+    title: Still distillate (vapour, to the column)
+    from: ST102.top
+    to: K104.in
+    template: crude
+    state:
+      design:
+        temperature: {value: 316.12, provenance: assumed, source: "scripts/balance.py: the still's first bubble point at 101.325 kPa(a) (as ST102 computes it, D-010)"}
+        pressure: {value: 101.325, provenance: assumed, source: "still pressure (D-010)"}
+        flow: {value: 63.8978, provenance: calculated, source: 'cheme process propagate: still ST102 from S20', fingerprint: fe9b3a8a07678e76}
+        composition: {basis: mole_fraction, values: {MEI: 0.97379, MEOH: 0.0258945, H2O: 0.000315308}, provenance: calculated, source: 'cheme process propagate: still ST102 from S20', fingerprint: fe9b3a8a07678e76}
+  - id: S23
+    title: Final still residue (end of the boil-up)
+    from: ST102.bottom
+    to: M104.res
+    template: crude
+    state:
+      design:
+        temperature: {value: 326.99, provenance: assumed, source: "scripts/balance.py: the residue's bubble point at the end of the distillation (as ST102 computes it, D-010)"}
+        pressure: {value: 101.325, provenance: assumed, source: "still pressure (D-010)"}
+        flow: {value: 0.24782, provenance: calculated, source: 'cheme process propagate: still ST102 from S20', fingerprint: fe9b3a8a07678e76}
+        composition: {basis: mole_fraction, values: {MEI: 0.5, MEOH: 0.426747, H2O: 0.0732527}, provenance: calculated, source: 'cheme process propagate: still ST102 from S20', fingerprint: fe9b3a8a07678e76}
+  - id: S24
+    title: Iodomethane condensed (303 K)
+    from: K104.top
+    to: E105.in
+    template: crude
+    state:
+      design:
+        composition: {basis: mass_fraction, values: {MEI: 0.996, MEOH: 0.003958655, H2O: 4.1345e-05}, provenance: assumed, source: "scripts/balance.py: K104's specified split (D-010)"}
+        flow: {value: 63.1313, provenance: assumed, source: "scripts/balance.py: K104's specified split of S22: 99 % of the iodomethane and all the water (ASSUMED) and the methanol's share that makes 99.6 wt% iodomethane, CN 114195616 B, Example 3's purity (calibrated, not predicted; D-010)"}
+        temperature: {value: 303.15, provenance: assumed, source: "condensed and cooled on cooling water (D-010)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+  - id: S25
+    title: Iodomethane
+    from: E105.out
+    to: MEI.in
+    template: crude
+    state:
+      design:
+        temperature: {value: 283.15, provenance: assumed, source: "subcooled on brine to 10 C (CN 114195616 B: condensers at 0-10 C; D-010)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 63.1313, provenance: calculated, source: 'cheme process propagate: pass-through E105 from S24', fingerprint: 7115cbb7f0bba736}
+        composition: {basis: mass_fraction, values: {MEI: 0.996, MEOH: 0.003958655, H2O: 4.1345e-05}, provenance: calculated, source: 'cheme process propagate: pass-through E105 from S24', fingerprint: 7115cbb7f0bba736}
+  - id: S27
+    title: Column return to the pot
+    from: K104.bottoms
+    to: M104.ret
+    template: crude
+    state:
+      design:
+        temperature: {value: 326.99, provenance: assumed, source: "scripts/balance.py: drains back into the pot at its end temperature (D-010)"}
+        composition: {basis: mass_fraction, values: {MEI: 0.828632322, MEOH: 0.171367678}, provenance: assumed, source: "scripts/balance.py: K104's specified split (D-010)"}
+        flow: {value: 0.76649, provenance: assumed, source: "scripts/balance.py: the rest of S22 after K104's specified split: the column's hold-up and last cut returned to the pot (D-010)"}
+  - id: S28
+    title: Final still residue with the column return
+    from: M104.out
+    to: H103.in
+    template: crude
+    state:
+      design:
+        temperature: {value: 326.99, provenance: assumed, source: "scripts/balance.py: the mix of S23 and S27, both at the pot's end temperature (D-010, D-011)"}
+        flow: {value: 1.01431, provenance: calculated, source: 'cheme process propagate: mixer M104 from S23 S27', fingerprint: a5fe810ce9d47800}
+        composition: {basis: mole_fraction, values: {MEI: 0.516382, MEOH: 0.465186, H2O: 0.0184323, I2: 0.0, P: 0.0, H3PO3: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M104 from S23 S27', fingerprint: a22d928822c0d640}
+  - id: S26
+    title: Final still residue to incineration
+    from: H103.out
+    to: RES2.in
+    template: crude
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: "cooled on cooling water before it is drained (D-010)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 1.01431, provenance: calculated, source: 'cheme process propagate: pass-through H103 from S28', fingerprint: 6064242440643d82}
+        composition: {basis: mole_fraction, values: {MEI: 0.516382, MEOH: 0.465186, H2O: 0.0184323, I2: 0.0, P: 0.0, H3PO3: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through H103 from S28', fingerprint: 6064242440643d82}
+  # energy
+  - {id: Q1, title: Charge warming (LP steam via the hot-water loop), kind: energy, from: LPS.h101, to: H101.q, state: {design: {duty: {value: 0.2782, provenance: assumed, source: "scripts/balance.py: the charge S3 warmed from 298.15 to 313.15 K at the materials' heat capacities; the jacket's and the loop's heat losses a recorded exclusion (D-011)"}}}}
+  - {id: Q2, title: Heat of reaction to R-101's jacket (chilled water), kind: energy, from: R101.q, to: CHW.r101, state: {design: {duty: {value: 11.4159, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S4 S5', fingerprint: d7788c005ef33288}}}}
+  - {id: Q3, title: "Still ST101: the net boil-up (LP steam via the hot-water loop)", kind: energy, from: LPS.st101, to: ST101.steam, state: {design: {duty: {value: 5.2159, provenance: calculated, source: 'cheme process propagate: still duty ST101 from S6', fingerprint: 8b5fee2a8b9ec0c8}}}}
+  - {id: Q4, title: "Still ST101 heat-up: the mass to its bubble point and the residue to 357 K", kind: energy, from: LPS.st101_heatup, to: ST101.heatup, state: {design: {duty: {value: 0.6909, provenance: assumed, source: "scripts/balance.py: the reaction mass S6 heated from 313.15 K to its ideal-liquid bubble point (the recipe's heatup, from the jacket) and the residue on to its end temperature (inside the distil's time, through ST101's net boil-up), at the materials' heat capacities; an upper bound, since the mass refluxes at 313.15 K (D-006); the still model holds no sensible heat (D-007, D-011, L-4)"}}}}
+  - {id: Q5, title: Overhead condenser E-101 to cooling water, kind: energy, from: E101.q, to: CW.e101, state: {design: {duty: {value: 5.7337, provenance: assumed, source: "scripts/balance.py: the distillate S8 condensed at the heats of vaporization of materials.yaml and cooled from its first bubble point to 303.15 K (D-011)"}}}}
+  - {id: Q6, title: Residue cooling to cooling water, kind: energy, from: H102.q, to: CW.h102, state: {design: {duty: {value: 0.3694, provenance: assumed, source: "scripts/balance.py: the residue S9 cooled from its end temperature to 313.15 K (D-011)"}}}}
+  - {id: Q7, title: Vent condenser E-102 to brine, kind: energy, from: E102.q, to: BRINE.e102, state: {design: {duty: {value: 0.1322, provenance: assumed, source: "scripts/balance.py: E-102's load per batch: the wet nitrogen and the head spaces the batch's liquids displace, saturated with iodomethane at 303.15 K (NIST Antoine, Stull 1947, below 315.6 K), cooled to 268.15 K, the iodomethane condensed down to its vapour pressure there (27.97 kJ/mol, HSDB), and the dry purge cooled from 298.15 K (D-012)"}}}}
+  - {id: Q8, title: "Still ST102: the net boil-up (LP steam via the hot-water loop)", kind: energy, from: LPS.st102, to: ST102.steam, state: {design: {duty: {value: 3.64932, provenance: calculated, source: 'cheme process propagate: still duty ST102 from S20', fingerprint: d4cb4ad2a61461a3}}}}
+  - {id: Q9, title: "Still ST102 heat-up", kind: energy, from: LPS.st102_heatup, to: ST102.heatup, state: {design: {duty: {value: 0.1932, provenance: assumed, source: "scripts/balance.py: the dried crude S20 heated to its bubble point and the residue on to its end temperature (D-010, D-011)"}}}}
+  - {id: Q10, title: Column condenser to cooling water, kind: energy, from: K104.q, to: CW.k104, state: {design: {duty: {value: 11.1514, provenance: assumed, source: "scripts/balance.py: the vapour condensed at the reflux ratio 2 and the product S24 cooled from the still's first bubble point to 303.15 K (D-010, D-011)"}}}}
+  - {id: Q11, title: Product subcooler E-105 to brine, kind: energy, from: E105.q, to: BRINE.e105, state: {design: {duty: {value: 0.3137, provenance: assumed, source: "scripts/balance.py: the product S25 subcooled from 303.15 to 283.15 K (D-010, D-011)"}}}}
+  - {id: Q13, title: "Still ST102: the boil-up returned as the column's reflux (LP steam via the hot-water loop)", kind: energy, from: LPS.st102_reflux, to: ST102.reflux, state: {design: {duty: {value: 7.2987, provenance: assumed, source: "scripts/balance.py: the reflux ratio 2 (ASSUMED) times the latent heat of the still's distillate S22, the vapour K104 condenses and returns to the pot, which the one-stage still does not hold (core#173; D-010, D-011)"}}}}
+  - {id: Q12, title: Final residue cooling to cooling water, kind: energy, from: H103.q, to: CW.h103, state: {design: {duty: {value: 0.0079, provenance: assumed, source: "scripts/balance.py: the residue with the column's return S28 cooled from the pot's end temperature to 303.15 K (D-010, D-011)"}}}}
+  - {id: P1, title: R-101 agitator and the iodine feeder, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 3.9129, provenance: assumed, source: "scripts/balance.py: year average: R-101's 3 kW agitator and its jacket loop's 0.75 kW circulation pump during the charge, warming, dosing, post-reaction, hold, distillation and cooling, and the iodine feeder's 0.75 kW during the dosing, from the recipe's durations (cheme process recipe; D-011)"}}}}
+  - {id: P2, title: V-102 agitator and transfer pumps, kind: energy, from: POWER.v102, to: W101.power, state: {design: {duty: {value: 0.2085, provenance: assumed, source: "scripts/balance.py: year average: V-102's 1.5 kW agitator for 15 min of each of the four washes and 3 h of a 1.1 kW transfer pump a batch, over the recipe's cycle (D-011)"}}}}
+  - {id: P3, title: "C-104 agitator, transfer pumps and the vent fan", kind: energy, from: POWER.c104, to: ST102.power, state: {design: {duty: {value: 1.3048, provenance: assumed, source: "scripts/balance.py: year average: C-104's 1.5 kW agitator and its jacket loop's 0.75 kW pump during the distillation and the residue's cooling, 1.5 h of a 1.1 kW transfer pump a batch, and the 0.5 kW vent fan all the time (D-011)"}}}}
+layout: {bfd: {}, pfd: {}}
