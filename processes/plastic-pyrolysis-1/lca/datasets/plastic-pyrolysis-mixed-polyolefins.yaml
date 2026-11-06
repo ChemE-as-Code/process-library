@@ -52,20 +52,28 @@ time:
     at the reference year). valid_until is the reference year + 5 (system-model section 6).
 modelling:
   principle: attributional
-  multifunctionality: mass allocation between the raw oil and the exported pyrolysis gas (see allocation); the char
-    is a residue
+  multifunctionality: energy (LHV) allocation between the raw oil and the exported pyrolysis gas, two co-produced
+    fuels (see allocation); the char is a residue
 allocation:
-  method: mass
+  method: energy
   coproducts:
   - plastic-pyrolysis-oil
   - plastic-pyrolysis-gas
-  deviation: No sourced prices or heating values of the oil and the gas, so neither the WBCSD price ratio nor energy
-    allocation (system-model section 2, step 2, for co-produced fuels) can be computed from open data here. Mass
-    is the preliminary choice; with similar heating values of the two hydrocarbon products, energy allocation would
-    give close shares.
+  properties:
+    plastic-pyrolysis-oil:
+      energy: 44500.0
+    plastic-pyrolysis-gas:
+      energy: 46400.0
+  source: 'lci/mappings.yaml allocation.plastic-pyrolysis-1 (rule physical-energy): the oil and the exported gas
+    are co-produced fuels, so energy content (LHV) is the physical relationship, docs/system-model.md section 2,
+    step 2. Lower heating values in kJ/kg (the MJ/kg defaults times 1000), IPCC (2006) Guidelines for National Greenhouse
+    Gas Inventories, Vol. 2 Energy, ch. 1, Table 1.2, p. 1.18 defaults: naphtha 44.5 (95 % interval 41.8 to 46.5)
+    for the raw oil, a naphtha substitute after upgrading, and ethane 46.4 for the gas, its model compound; the
+    matching of the products to IPCC fuel types is ASSUMED. The two LHVs differ by 4 %, so energy and mass allocation
+    give close shares.'
 uuid: 876814ca-2325-5291-8b8b-4b8b224858f5
 version: 0.1.0
-methodology_version: 1.0.0
+methodology_version: 1.1.0
 system_model: cutoff
 technology_level: current
 review: unreviewed
@@ -127,14 +135,19 @@ parameters:
     %. Netsch et al. (2024) itself was not read. Reading the 10 % as fuel fired (furnace losses included, no separate
     efficiency) is ASSUMED'
 - name: cv_feed
-  value: 34.0
+  value: 43.69
   unit: MJ/kg
-  description: 'Calorific value of the pyrolysis-ready feed: that of large-format PE film waste bales, taken as
-    a proxy.'
-  source: Garcia-Gutierrez, P. et al. (2023) Environmental and economic assessment of plastic waste recycling, JRC132067,
-    EUR 31423 EN, doi:10.2760/0472, sections 3.2.2.1.4, p. 59 (sorted large-format PE film waste about 34 GJ/t)
-    and 3.2.2.1.3, p. 58 (sorted MPO flexible packaging waste about 28 GJ/t). Using the cleaner PE film bales for
-    a sorted and pretreated feed is ASSUMED; pure polyolefin is higher (about 43 MJ/kg, not sourced here)
+  description: 'Lower heating value of the feed as modelled, pure (CH2)n: the same feed definition as the element
+    balance.'
+  source: 'estimated by us with the HHV correlation of Channiwala, S.A., Parikh, P.P. (2002) A unified correlation
+    for estimating HHV of solid, liquid and gaseous fuels, Fuel 81:1051-1063, doi:10.1016/S0016-2361(01)00131-4
+    on the element composition of (CH2)n (85.63 % C, 14.37 % H, chemicals/chemicals.yaml polyethylene), less 2.4417
+    MJ/kg for the water formed (enthalpy of vaporisation at 25 degC, IAPWS-95 via CoolProp 8.0.0); ASSUMED that
+    the correlation holds for polyolefins. A real sorted feed with moisture and contaminants has less: Garcia-Gutierrez,
+    P. et al. (2023) Environmental and economic assessment of plastic waste recycling, JRC132067, EUR 31423 EN,
+    doi:10.2760/0472, sections 3.2.2.1.4, p. 59 (sorted large-format PE film waste about 34 GJ/t) and 3.2.2.1.3,
+    p. 58 (sorted MPO flexible packaging waste about 28 GJ/t). That lower value is not used, because the feed is
+    modelled without moisture or inerts and its products would then carry more energy than it'
 - name: lhv_gas
   value: 46.4
   unit: MJ/kg
@@ -180,7 +193,7 @@ exchanges:
 - key: product:plastic-pyrolysis-gas
   title: Pyrolysis gas not fired in the process, exported as fuel gas
   type: product
-  amount: 214.84371404754137
+  amount: 184.57759710601212
   unit: kg
   formula: (oil / y_oil - oil) * 2 * M_GAS / (3 * M_PO) - f_heat * cv_feed * oil / y_oil / lhv_gas
   provenance: calculated
@@ -259,7 +272,7 @@ exchanges:
 - key: feed:O2
   title: Combustion oxygen, from ambient air
   type: input
-  amount: 395.52077137354183
+  amount: 508.2441912150012
   unit: kg
   formula: f_heat * cv_feed * oil / y_oil / lhv_gas / M_GAS * 3.5 * M_O2
   provenance: assumed
@@ -295,7 +308,7 @@ exchanges:
 - key: emission:CO2
   title: CO2 from firing the pyrolysis gas
   type: emission
-  amount: 310.849314285325
+  amount: 399.44136885664255
   unit: kg
   formula: f_heat * cv_feed * oil / y_oil / lhv_gas / M_GAS * 2 * M_CO2
   provenance: calculated
@@ -330,7 +343,7 @@ exchanges:
 - key: emission:H2O
   title: Water vapour from firing the pyrolysis gas
   type: emission
-  amount: 190.8683586374422
+  amount: 245.26584084911326
   unit: kg
   formula: f_heat * cv_feed * oil / y_oil / lhv_gas / M_GAS * 3 * M_H2O
   provenance: calculated
@@ -363,7 +376,7 @@ exchanges:
 - key: emission:CH4
   title: CH4 from firing the pyrolysis gas
   type: emission
-  amount: 0.004927536231884058
+  amount: 0.006331884057971013
   unit: kg
   formula: ef_ch4 * f_heat * cv_feed * oil / y_oil
   provenance: given
@@ -398,7 +411,7 @@ exchanges:
 - key: emission:N2O
   title: N2O from firing the pyrolysis gas
   type: emission
-  amount: 0.0004927536231884059
+  amount: 0.0006331884057971015
   unit: kg
   formula: ef_n2o * f_heat * cv_feed * oil / y_oil
   provenance: given
@@ -473,8 +486,8 @@ generation:
       - 208.293942428
       - 208.293942428
       O:
-      - 395.520771374
-      - 395.520771374
+      - 508.244191215
+      - 508.244191215
     outside:
     - emission:CH4
     - emission:N2O

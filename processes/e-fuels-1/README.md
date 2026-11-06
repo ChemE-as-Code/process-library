@@ -37,7 +37,7 @@ All flows come from one open process simulation: KÃ¶nig, Baucks, Dietrich and WÃ
 
 ## Linking
 
-The product has the new registry slug `fischer-tropsch-fuel` (a mixture without a composition). Hydrogen and CO2 are reported gaps on purpose, as the key comments in `lca/mappings.yaml` explain. Their keys are not registry slugs, so the build does not link the merchant-hydrogen or liquid-CO2 background. `hydrogen-1` is the SMR variant and is not the supplier. An electrolysis entry and a CO2 capture entry are the candidates, each to be linked explicitly. Electricity links the site's medium-voltage grid, and wastewater links the shared wastewater entry.
+The product has the new registry slug `fischer-tropsch-fuel` (a mixture without a composition). Hydrogen and CO2 are reported gaps on purpose, as the key comments in `lca/mappings.yaml` explain. Their keys are not registry slugs, so the build does not link the merchant-hydrogen or liquid-CO2 background. `hydrogen-1` is the SMR variant and is not the supplier. `carbon-capture-1` is not the CO2 supplier either: it delivers dense-phase pipeline CO2 at 15.3 MPa, not gas at 0.1 MPa. An electrolysis entry and a capture entry that delivers low-pressure CO2 are the candidates, each to be linked explicitly. Electricity links the site's medium-voltage grid, and wastewater links the shared wastewater entry.
 
 ## Not counted yet (TODO)
 

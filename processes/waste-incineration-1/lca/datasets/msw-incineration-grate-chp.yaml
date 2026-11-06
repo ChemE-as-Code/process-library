@@ -5,12 +5,14 @@ kind: lci_dataset
 id: msw-incineration-grate-chp
 title: Incineration of mixed municipal solid waste on a grate, with heat-oriented combined heat and power
 description: Per 1 t of mixed municipal solid waste (wet) burnt on a moving grate in an EU plant at BAT, with a
-  heat recovery boiler, a back-pressure turbine and district-heating export, semi-wet lime FGC, SNCR and activated
-  carbon. Net electricity and net heat are the products; the waste arrives burden-free. Waste composition, energy,
-  reagents, residues and air emissions from the WI BREF (2019) ranges; N2O and CH4 from IPCC 2006.
+  heat recovery boiler, a back-pressure turbine and 1.7 bar(a) steam to a district-heating exchanger, semi-wet lime
+  FGC, SNCR and activated carbon. Net electricity and net heat are the products; the waste arrives burden-free.
+  Waste composition, energy, reagents, residues and air emissions from the WI BREF (2019) ranges; N2O and CH4 from
+  IPCC 2006 (Vol. 5 and Vol. 2).
 basis: 1000 kg of mixed municipal solid waste (wet) incinerated
-boundary: 'gate-to-gate: waste bunker, grate furnace and boiler, turbine and district-heating exchanger, flue-gas
-  cleaning; up to the residues leaving the site and the energy at the plant fence'
+boundary: 'gate-to-gate: waste bunker, grate furnace and boiler, turbine, flue-gas cleaning; up to the residues
+  leaving the site, the electricity at the plant fence and the 1.7 bar(a) steam delivered to the district-heating
+  exchanger (the exchanger and the network are outside)'
 technology: moving grate (about 90 % of European MSW installations), 40 bar steam, back-pressure CHP, semi-wet FGC
   with quicklime, SNCR with ammonia water, activated carbon injection, bag filter
 geography:
@@ -75,12 +77,17 @@ parameters:
   source: EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, section 1.4, Table 1.6, p. 9 (municipal waste,
     Germany; range); the midpoint is our choice
 - name: c_ds
-  value: 0.29
+  value: 0.3778
   unit: kg/kg dry
-  description: 'Carbon content of the dry waste: midpoint of 18 to 40 % of dry solids.'
-  source: 'EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, section 1.4, Table 1.6, p. 9 (municipal waste,
-    Germany; range); the midpoint is our choice. The midpoints of the separate ranges are not one measured waste:
-    ash is taken by difference'
+  description: 'Carbon content of the dry waste, set so that the LHV of the composition equals the energy basis
+    lhv (9 GJ/t): 37.78 % of dry solids, inside the source''s 18 to 40 % (its upper part).'
+  source: 'range from EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, section 1.4, Table 1.6, p. 9 (municipal
+    waste, Germany). The value is an ASSUMED closure: the HHV correlation of Channiwala, S.A., Parikh, P.P. (2002)
+    A unified correlation for estimating HHV of solid, liquid and gaseous fuels, Fuel 81:1051-1063, doi:10.1016/S0016-2361(01)00131-4
+    applied to the dry ultimate analysis (the other elements at their midpoints, ash by difference), less 2.4417
+    MJ/kg for the water and the water formed from the hydrogen (enthalpy of vaporisation at 25 degC, IAPWS-95 via
+    CoolProp 8.0.0), solved for the carbon. The range midpoint, 29 %, would give 6.6 GJ/t, so the carbon and the
+    energy would not agree (the energy out would exceed the heating value of the inventoried waste)'
 - name: h_ds
   value: 0.03
   unit: kg/kg dry
@@ -202,7 +209,7 @@ parameters:
   source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
     the formula
 - name: M_NO2
-  value: 46.006
+  value: 46.005
   unit: g/mol
   description: Molar mass of NO2.
   source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
@@ -290,16 +297,16 @@ parameters:
   unit: kWh
   description: Own heat use per t of waste (average; range 10 to 700), taken from the gross heat.
   source: 'EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, section 3.5.3, Table 3.37, p. 277 (average).
-    ASSUMED that it is part of the gross output (the source''s gross efficiency counts internal heat Qi, section 3.5.1;
-    the FR53 example itself reports Qi = 0). TODO: it may already be outside the gross heat of some plants. For
-    comparison, CEWEP Energy Report III (Annex A, p. 29) gives 163 kWh/t (range 20 to 387) of self-used heat as the
-    weighted mean of 184 CHP plants (R1 guideline definition); with that value the net heat would be about 1505 kWh/t
-    instead of 1163, so this deduction is likely on the high side'
+    ASSUMED that it is part of the gross output (the source''s gross efficiency counts internal heat Qi, section
+    3.5.1; the FR53 example itself reports Qi = 0). TODO: it may already be outside the gross heat of some plants.
+    For comparison, CEWEP Energy Report III (Annex A, p. 29) gives 163 kWh/t (range 20 to 387) of self-used heat
+    as the weighted mean of 184 CHP plants (R1 guideline definition); with that value the net heat would be about
+    1505 kWh/t instead of 1163, so this deduction is likely on the high side'
 - name: t_dh
   value: 115.148
   unit: degC
-  description: 'Temperature at which the heat is delivered: saturation of the 1.7 bar(a) steam to the district-heating
-    exchanger.'
+  description: 'Temperature at which the heat leaves the boundary: saturation of the 1.7 bar(a) steam condensing
+    in the district-heating exchanger (the exchanger and the network are outside the boundary).'
   source: pressure from EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, Annex 8.2.2, Table 8.4, p. 528;
     saturation temperature from IAPWS-95 (Wagner and Pruss 2002) evaluated with CoolProp 8.0.0
 - name: T0
@@ -381,12 +388,14 @@ parameters:
     the midpoint is our choice. A BAT-AEL is a permit level, not a measured mean: ASSUMED representative of a plant
     operating at BAT'
 - name: c_nh3
-  value: 6.0
+  value: 8.5
   unit: mg/Nm3
-  description: 'NH3 slip in the cleaned flue gas, dry at 11 % O2: midpoint of the BAT-AEL 2 to 10 (daily average).'
-  source: 'EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, BAT conclusions, Table 5.6, p. 496 (range);
-    the midpoint is our choice. A BAT-AEL is a permit level, not a measured mean: ASSUMED representative of a plant
-    operating at BAT'
+  description: 'NH3 slip in the cleaned flue gas, dry at 11 % O2: midpoint of the BAT-AEL 2 to 15 (existing plant
+    fitted with SNCR without wet abatement, daily average).'
+  source: 'EU JRC (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, BAT conclusions, Table 5.6 and its footnote
+    (3), p. 496 (2 to 10 otherwise; the semi-wet absorber is not a wet abatement technique) (range); the midpoint
+    is our choice. A BAT-AEL is a permit level, not a measured mean: ASSUMED representative of a plant operating
+    at BAT'
 - name: c_tvoc
   value: 6.5
   unit: mg C/Nm3
@@ -423,11 +432,15 @@ parameters:
   source: IPCC (2006) Guidelines for National GHG Inventories, Vol. 5 Waste, ch. 5, Table 5.6, p. 5.22 (default
     for MSW, continuous and semi-continuous incinerators)
 - name: ef_ch4
-  value: 0.0002
-  unit: kg/t
-  description: CH4 per t of wet MSW, continuous stoker (0.2 kg/Gg).
-  source: IPCC (2006) Guidelines for National GHG Inventories, Vol. 5 Waste, ch. 5, Table 5.3, p. 5.20 (continuous
-    incineration, stoker; Japanese data); counted fossil (ASSUMED)
+  value: 30.0
+  unit: kg/TJ
+  description: 'CH4 per TJ of waste fired (net calorific basis): default for municipal wastes in the energy industries
+    (range 10 to 100).'
+  source: 'IPCC (2006) Guidelines for National GHG Inventories, Vol. 2 Energy, ch. 2, Table 2.2, p. 2.17 (municipal
+    wastes, biomass and non-biomass fraction: 30 kg/TJ, 10 to 100), the factor that IPCC (2006) Guidelines for National
+    GHG Inventories, Vol. 5 Waste, ch. 5, section 5.4.2, p. 5.20 gives as good practice for continuous MSW incineration
+    (its Table 5.3 is for semi-continuous and batch units); applied to the waste''s LHV; counted fossil (ASSUMED,
+    the higher-impact flow)'
 - name: boiler
   value: 30.0
   unit: kg
@@ -457,7 +470,7 @@ exchanges:
   source: LHV input x gross energy efficiency x electricity share of the example CHP plant, less own use (EU JRC
     (2019) WI BREF, EUR 29971 EN, doi:10.2760/761437, Tables 2.10, 5.2, 8.4, 3.37)
 - key: product:heat
-  title: Heat, net export to district heating (gross heat less own use)
+  title: Heat, net export as 1.7 bar(a) steam to the district-heating exchanger (gross heat less own use)
   type: product
   amount: 1163.2031249999998
   unit: kWh
@@ -466,12 +479,14 @@ exchanges:
   carrier:
     kind: heat
     temperature: 115.148
-    level: district heating, from 1.7 bar(a) steam
-    source: condensing 1.7 bar(a) steam in the district-heating exchanger (WI BREF Table 8.4)
+    level: 1.7 bar(a) steam to the district-heating exchanger
+    source: heat to the district-heating exchanger, condensing 1.7 bar(a) steam (WI BREF Table 8.4); the exchanger,
+      the network and their losses are outside the boundary
   properties:
     exergy: 835.783
-    source: 'Carnot factor of heat delivered at t_dh against T0 = 298.15 K: 3600 x (1 - 298.15 / 388.298) kJ per
-      kWh'
+    source: 'Carnot factor of heat delivered at t_dh (the condensing steam at the boundary) against T0 = 298.15
+      K: 3600 x (1 - 298.15 / 388.298) kJ per kWh. Delivered as district-heating water after the exchanger, the
+      heat would have less exergy'
   source: LHV input x gross energy efficiency x heat share of the example CHP plant, less own heat use (EU JRC (2019)
     WI BREF, EUR 29971 EN, doi:10.2760/761437, Tables 2.10, 5.2, 8.4, 3.37)
 - key: feed:msw-water
@@ -503,7 +518,7 @@ exchanges:
 - key: feed:msw-carbon-fossil
   title: 'Municipal solid waste: fossil carbon (ultimate analysis)'
   type: input
-  amount: 87.25374999999998
+  amount: 113.67057500000001
   unit: kg
   formula: (msw * (1 - w) * c_ds) * f_fos
   provenance: calculated
@@ -524,7 +539,7 @@ exchanges:
 - key: feed:msw-carbon-biogenic
   title: 'Municipal solid waste: biogenic carbon (ultimate analysis)'
   type: input
-  amount: 122.99624999999997
+  amount: 160.23442500000002
   unit: kg
   formula: (msw * (1 - w) * c_ds) * (1 - f_fos)
   provenance: calculated
@@ -596,7 +611,7 @@ exchanges:
 - key: feed:msw-mineral
   title: 'Municipal solid waste: ash with its sulphur, chlorine and fluorine'
   type: input
-  amount: 352.7125
+  amount: 289.0575
   unit: kg
   formula: msw * (1 - w) * (1 - c_ds - h_ds - n_ds - o_ds)
   provenance: calculated
@@ -604,7 +619,7 @@ exchanges:
   free: true
   balance_exclusion: mineral matter of no single formula (ash by difference, with the waste's S, Cl and F); its
     mass is followed into the residues and the acid-gas emissions
-  source: 'dry waste less C, H, N and O (BREF Table 1.6): ash by difference 34.6 % of the wet waste, inside the
+  source: 'dry waste less C, H, N and O (BREF Table 1.6): ash by difference 28.9 % of the wet waste, inside the
     source''s ash range of 20 to 35 % (basis not stated), plus the waste''s S, Cl and F; the waste arrives burden-free
     (cut-off at the point of energy recovery, docs/system-model.md section 3)'
   pedigree: *id001
@@ -612,35 +627,35 @@ exchanges:
 - key: feed:O2
   title: Combustion oxygen, from ambient air
   type: input
-  amount: 634.5516952727427
+  amount: 803.0578374746024
   unit: kg
   formula: (((((msw * (1 - w) * c_ds) * f_fos) + (ng_nm3 * rho_ch4) * M_C / M_CH4 - (c_co * ((((msw * (1 - w) *
     c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) / M_N2 + (((msw * (1 - w) * c_ds) +
     (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 - M_C) / M_CH4)
     / M_H2 / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2) * (1 - x_air) / x_air) / (1 - o2_ref
-    / x_air) * V_m) / 1000000) * M_C / M_CO - (msw / 1000 * ef_ch4) * M_C / M_CH4 - c_tvoc * ((((msw * (1 - w) *
-    c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) / M_N2 + (((msw * (1 - w) * c_ds) +
-    (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 - M_C) / M_CH4)
-    / M_H2 / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2) * (1 - x_air) / x_air) / (1 - o2_ref
-    / x_air) * V_m) / 1000000) * M_CO2 / M_C) + (((msw * (1 - w) * c_ds) * (1 - f_fos)) * M_CO2 / M_C)) * M_O2 /
-    M_CO2 + (c_co * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds)
-    / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3
-    * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2 / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2)
-    * (1 - x_air) / x_air) / (1 - o2_ref / x_air) * V_m) / 1000000) * (M_O2 / 2) / M_CO + (c_nox * ((((msw * (1
-    - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) / M_N2 + (((msw * (1 - w) *
-    c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 - M_C)
-    / M_CH4) / M_H2 / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2) * (1 - x_air) / x_air) / (1
-    - o2_ref / x_air) * V_m) / 1000000) * M_O2 / M_NO2 + (msw / 1000 * ef_n2o) * (M_O2 / 2) / M_N2O + (((msw * (1
-    - w) * h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 - M_C) / M_CH4 + (nh3w * x_nh3) * (M_NH3 - M_N2 / 2) / M_NH3 - (msw
-    / 1000 * ef_ch4) * (M_CH4 - M_C) / M_CH4 - (c_nh3 * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4)
-    / M_C + (msw * (1 - w) * n_ds) / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C +
-    ((msw * (1 - w) * h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2 / 2 + msw * (1 - w) * s_ds / M_S
-    - (msw * (1 - w) * o_ds) / M_O2) * (1 - x_air) / x_air) / (1 - o2_ref / x_air) * V_m) / 1000000) * (M_NH3 -
-    M_N2 / 2) / M_NH3 - (c_tvoc * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1
-    - w) * n_ds) / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) *
-    h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2 / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w)
-    * o_ds) / M_O2) * (1 - x_air) / x_air) / (1 - o2_ref / x_air) * V_m) / 1000000 * M_CH2 / M_C) * M_H2 / M_CH2)
-    * M_H2O / M_H2) * (M_O2 / 2) / M_H2O - (msw * (1 - w) * o_ds)
+    / x_air) * V_m) / 1000000) * M_C / M_CO - (msw / 1000 * lhv * ef_ch4 / 1000) * M_C / M_CH4 - c_tvoc * ((((msw
+    * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) / M_N2 + (((msw * (1 -
+    w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3 * rho_ch4) * (M_CH4
+    - M_C) / M_CH4) / M_H2 / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2) * (1 - x_air) / x_air)
+    / (1 - o2_ref / x_air) * V_m) / 1000000) * M_CO2 / M_C) + (((msw * (1 - w) * c_ds) * (1 - f_fos)) * M_CO2 /
+    M_C)) * M_O2 / M_CO2 + (c_co * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw *
+    (1 - w) * n_ds) / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w)
+    * h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2 / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 -
+    w) * o_ds) / M_O2) * (1 - x_air) / x_air) / (1 - o2_ref / x_air) * V_m) / 1000000) * (M_O2 / 2) / M_CO + (c_nox
+    * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) / M_N2 + (((msw
+    * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3 * rho_ch4) *
+    (M_CH4 - M_C) / M_CH4) / M_H2 / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2) * (1 - x_air)
+    / x_air) / (1 - o2_ref / x_air) * V_m) / 1000000) * M_O2 / M_NO2 + (msw / 1000 * ef_n2o) * (M_O2 / 2) / M_N2O
+    + (((msw * (1 - w) * h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 - M_C) / M_CH4 + (nh3w * x_nh3) * (M_NH3 - M_N2 / 2)
+    / M_NH3 - (msw / 1000 * lhv * ef_ch4 / 1000) * (M_CH4 - M_C) / M_CH4 - (c_nh3 * ((((msw * (1 - w) * c_ds) +
+    (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3
+    * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2
+    / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2) * (1 - x_air) / x_air) / (1 - o2_ref / x_air)
+    * V_m) / 1000000) * (M_NH3 - M_N2 / 2) / M_NH3 - (c_tvoc * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) *
+    M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4)
+    / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2 / 2 + msw * (1 - w) * s_ds
+    / M_S - (msw * (1 - w) * o_ds) / M_O2) * (1 - x_air) / x_air) / (1 - o2_ref / x_air) * V_m) / 1000000 * M_CH2
+    / M_C) * M_H2 / M_CH2) * M_H2O / M_H2) * (M_O2 / 2) / M_H2O - (msw * (1 - w) * o_ds)
   provenance: calculated
   free: true
   source: the oxygen the products take beyond the waste's own; ambient air is free; its nitrogen and the excess
@@ -738,7 +753,7 @@ exchanges:
 - key: output:bottom-ash
   title: Bottom ash (dry), to bottom-ash treatment
   type: output
-  amount: 295.37188770357403
+  amount: 231.69230666273165
   unit: kg
   formula: (msw * (1 - w) * (1 - c_ds - h_ds - n_ds - o_ds)) + cao + ac - (c_so2 * ((((msw * (1 - w) * c_ds) + (ng_nm3
     * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4)
@@ -812,17 +827,17 @@ exchanges:
 - key: emission:CO2
   title: CO2, fossil (waste and support fuel)
   type: emission
-  amount: 343.5008500103326
+  amount: 439.46878836458995
   unit: kg
   formula: (((msw * (1 - w) * c_ds) * f_fos) + (ng_nm3 * rho_ch4) * M_C / M_CH4 - (c_co * ((((msw * (1 - w) * c_ds)
     + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3
     * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2
     / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2) * (1 - x_air) / x_air) / (1 - o2_ref / x_air)
-    * V_m) / 1000000) * M_C / M_CO - (msw / 1000 * ef_ch4) * M_C / M_CH4 - c_tvoc * ((((msw * (1 - w) * c_ds) +
-    (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3
-    * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2
-    / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2) * (1 - x_air) / x_air) / (1 - o2_ref / x_air)
-    * V_m) / 1000000) * M_CO2 / M_C
+    * V_m) / 1000000) * M_C / M_CO - (msw / 1000 * lhv * ef_ch4 / 1000) * M_C / M_CH4 - c_tvoc * ((((msw * (1 -
+    w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) / M_N2 + (((msw * (1 - w) * c_ds)
+    + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 - M_C) / M_CH4)
+    / M_H2 / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2) * (1 - x_air) / x_air) / (1 - o2_ref
+    / x_air) * V_m) / 1000000) * M_CO2 / M_C
   provenance: calculated
   cas: 124-38-9
   flow:
@@ -847,7 +862,7 @@ exchanges:
 - key: emission:CO2-biogenic
   title: CO2, biogenic (waste)
   type: emission
-  amount: 450.66538724918814
+  amount: 587.1082182853219
   unit: kg
   formula: ((msw * (1 - w) * c_ds) * (1 - f_fos)) * M_CO2 / M_C
   provenance: calculated
@@ -869,18 +884,18 @@ exchanges:
 - key: emission:H2O
   title: Water vapour in the flue gas
   type: emission
-  amount: 489.9050117332131
+  amount: 489.2538765882751
   unit: kg
   formula: (msw * w) + (((msw * (1 - w) * h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 - M_C) / M_CH4 + (nh3w * x_nh3) *
-    (M_NH3 - M_N2 / 2) / M_NH3 - (msw / 1000 * ef_ch4) * (M_CH4 - M_C) / M_CH4 - (c_nh3 * ((((msw * (1 - w) * c_ds)
+    (M_NH3 - M_N2 / 2) / M_NH3 - (msw / 1000 * lhv * ef_ch4 / 1000) * (M_CH4 - M_C) / M_CH4 - (c_nh3 * ((((msw *
+    (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) / M_N2 + (((msw * (1 - w)
+    * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 -
+    M_C) / M_CH4) / M_H2 / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2) * (1 - x_air) / x_air)
+    / (1 - o2_ref / x_air) * V_m) / 1000000) * (M_NH3 - M_N2 / 2) / M_NH3 - (c_tvoc * ((((msw * (1 - w) * c_ds)
     + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3
     * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2
     / 2 + msw * (1 - w) * s_ds / M_S - (msw * (1 - w) * o_ds) / M_O2) * (1 - x_air) / x_air) / (1 - o2_ref / x_air)
-    * V_m) / 1000000) * (M_NH3 - M_N2 / 2) / M_NH3 - (c_tvoc * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) *
-    M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4)
-    / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3 * rho_ch4) * (M_CH4 - M_C) / M_CH4) / M_H2 / 2 + msw * (1 - w) * s_ds
-    / M_S - (msw * (1 - w) * o_ds) / M_O2) * (1 - x_air) / x_air) / (1 - o2_ref / x_air) * V_m) / 1000000 * M_CH2
-    / M_C) * M_H2 / M_CH2) * M_H2O / M_H2)
+    * V_m) / 1000000 * M_CH2 / M_C) * M_H2 / M_CH2) * M_H2O / M_H2)
   provenance: calculated
   cas: 7732-18-5
   flow:
@@ -901,7 +916,7 @@ exchanges:
 - key: emission:N2
   title: Nitrogen of the waste and the ammonia, to air as N2
   type: emission
-  amount: 6.437556016163946
+  amount: 6.383796855868051
   unit: kg
   formula: (msw * (1 - w) * n_ds) + (nh3w * x_nh3) * (M_N2 / 2) / M_NH3 - (c_nox * ((((msw * (1 - w) * c_ds) + (ng_nm3
     * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4)
@@ -921,7 +936,7 @@ exchanges:
 - key: emission:NOx
   title: NOx (as NO2)
   type: emission
-  amount: 0.44019112084702866
+  amount: 0.5596048907965858
   unit: kg
   formula: c_nox * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds)
     / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3
@@ -980,7 +995,7 @@ exchanges:
 - key: emission:CO
   title: CO (counted fossil)
   type: emission
-  amount: 0.1320573362541086
+  amount: 0.16788146723897573
   unit: kg
   formula: c_co * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) /
     M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3
@@ -1009,9 +1024,9 @@ exchanges:
 - key: emission:CH4
   title: CH4 (counted fossil)
   type: emission
-  amount: 0.0002
+  amount: 0.27
   unit: kg
-  formula: msw / 1000 * ef_ch4
+  formula: msw / 1000 * lhv * ef_ch4 / 1000
   provenance: calculated
   cas: 74-82-8
   flow:
@@ -1023,15 +1038,20 @@ exchanges:
     categories:
     - air
     unit: kg
-  source: 'IPCC (2006) Guidelines for National GHG Inventories, Vol. 5 Waste, ch. 5, Table 5.3; counted fossil (ASSUMED);
-    biosphere3 UUID, name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent
-    elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  source: 'IPCC (2006) Guidelines for National GHG Inventories, Vol. 2 Energy, ch. 2, Table 2.2 (municipal wastes,
+    30 kg/TJ) times the waste''s LHV; counted fossil (ASSUMED); biosphere3 UUID, name and categories from core''s
+    elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent elementary exchanges 3.9 via bw2io 0.9.17,
+    BSD-3-Clause)'
   pedigree: *id004
   basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.162
+    source: 'CH4 factor: range 10 to 100 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
 - key: emission:NMVOC
   title: VOC (TVOC, counted as CH2)
   type: emission
-  amount: 0.03341490761700796
+  amount: 0.0424796067944585
   unit: kg
   formula: c_tvoc * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds)
     / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3
@@ -1059,7 +1079,7 @@ exchanges:
 - key: emission:NH3
   title: NH3 slip
   type: emission
-  amount: 0.02641146725082172
+  amount: 0.047566415717709795
   unit: kg
   formula: c_nh3 * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds)
     / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3
@@ -1082,13 +1102,13 @@ exchanges:
   pedigree: *id002
   basic_uncertainty: 1.05
   uncertainty:
-    gsd2: 2.236
-    source: 'NH3: range 2 to 10 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount stays
+    gsd2: 2.739
+    source: 'NH3: range 2 to 15 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount stays
       the arithmetic midpoint or the stated value)'
 - key: emission:SO2
   title: SO2
   type: emission
-  amount: 0.09904300219058144
+  amount: 0.12591110042923181
   unit: kg
   formula: c_so2 * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds)
     / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3
@@ -1118,7 +1138,7 @@ exchanges:
 - key: emission:HCl
   title: HCl
   type: emission
-  amount: 0.02200955604235143
+  amount: 0.02798024453982929
   unit: kg
   formula: c_hcl * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds)
     / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3
@@ -1148,7 +1168,7 @@ exchanges:
 - key: emission:HF
   title: HF
   type: emission
-  amount: 0.004401911208470287
+  amount: 0.005596048907965858
   unit: kg
   formula: c_hf * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) /
     M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3
@@ -1177,7 +1197,7 @@ exchanges:
 - key: emission:Hg
   title: Mercury (total, as the list's Mercury II)
   type: emission
-  amount: 5.502389010587858e-05
+  amount: 6.995061134957324e-05
   unit: kg
   formula: c_hg * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds) /
     M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3
@@ -1208,7 +1228,7 @@ exchanges:
 - key: emission:PCDD-F
   title: PCDD/F (I-TEQ, as 2,3,7,8-TCDD)
   type: emission
-  amount: 1.5406689229646004e-10
+  amount: 1.9586171177880507e-10
   unit: kg
   formula: c_pcdd * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds)
     / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3
@@ -1237,7 +1257,7 @@ exchanges:
 - key: emission:PM
   title: Dust (counted as PM2.5)
   type: emission
-  amount: 0.015406689229646003
+  amount: 0.019586171177880505
   unit: kg
   formula: c_dust * ((((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + (msw * (1 - w) * n_ds)
     / M_N2 + (((msw * (1 - w) * c_ds) + (ng_nm3 * rho_ch4) * M_C / M_CH4) / M_C + ((msw * (1 - w) * h_ds) + (ng_nm3
@@ -1265,12 +1285,13 @@ exchanges:
       the arithmetic midpoint or the stated value)'
 provenance:
   generator: hand-written model; amounts are the formulas of the parameters
-  notes: 'No value from a licensed database. Sources: WI BREF 2019, IPCC 2006 Vol. 5 ch. 5; facts and numbers in
-    our own form.'
+  notes: 'No value from a licensed database. Sources: WI BREF 2019, IPCC 2006 Vol. 5 ch. 5 and Vol. 2 ch. 2, the
+    Channiwala and Parikh (2002) HHV correlation; facts and numbers in our own form.'
 generation:
   tier: 1
   method: 'sourced conceptual inventory: WI BREF (2019) ranges and an ultimate analysis of the waste, with combustion
-    stoichiometry and IPCC 2006 factors for N2O and CH4; every choice listed in parameters'
+    stoichiometry and IPCC 2006 factors for N2O and CH4; the carbon closes the composition''s LHV on the source''s
+    9 GJ/t; every choice listed in parameters'
   maturity_cap: sourced
   pedigree_floor:
   - 3
@@ -1305,17 +1326,17 @@ generation:
     tolerance: 1.0e-06
     elements:
       C:
-      - 216.830389149
-      - 216.830389149
+      - 280.485389149
+      - 280.485389149
       H:
       - 54.83321725
       - 54.83321725
       N:
       - 6.625123305
-      - 6.625126218
+      - 6.625123305
       O:
-      - 1012.902340568
-      - 1012.902347223
+      - 1181.40848277
+      - 1181.40848277
     outside:
     - emission:HCl
     - emission:HF

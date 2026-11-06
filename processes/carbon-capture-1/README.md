@@ -32,7 +32,7 @@ The raw gas carries no burden of the ammonia plant. It is the CO2 co-product cut
 ## What is weak
 
 - **One design case.** All numbers come from one conceptual cost study, with a vendor quote scaled to a 55.5 t/h US case. They are not measured plant data.
-- **Not independent of its benchmark.** The electricity agrees with the McCollum and Ogden (2006) compression model evaluated by us (104.8 kWh/t, 0.1 to 15 MPa), and with NETL's ethanol case and its 2014 edition (105.6 to 116.4 kWh/t). See `benchmarks/carbon-capture.yaml`. The water KPI has no independent open reference and records `no_open_reference`; NETL's two cases (131 to 164 kg/t) are only the dataset's uncertainty spread.
+- **No independent benchmark.** Neither KPI has an open reference that states a value: both record `no_open_reference` in `benchmarks/carbon-capture.yaml`. The electricity is close to our own evaluation of the McCollum and Ogden (2006) compression model (104.8 kWh/t, 0.1 to 15 MPa) and to NETL's two 2023 cases (105.6 to 112.7 kWh/t, the dataset's own source). Both are only notes and the uncertainty spread, not a check. NETL's two water figures (131 to 164 kg/t) are likewise only the uncertainty spread.
 - **Gaps in the source.** No TEG regenerator heat is stated: the case lists no fuel or steam. Fugitive CO2, CO2 dissolved in the condensate and the treatment chemicals are not stated either. They are TODO exclusions, not zeros.
 - **Inlet water.** NETL's stream table gives 2.91 mol% water in the vent gas (above saturation at 21 degC and 0.16 MPa, so partly liquid), but its design inputs say 1 vol%. The dataset uses the stream table; at 1 vol% the condensate would be 3.9 instead of 12.1 kg/t.
 - The reading of NETL's water consumable as the cooling-tower make-up, the 4 cycles of concentration and the equal masses of TEG make-up and spent TEG are ASSUMED.
@@ -40,9 +40,9 @@ The raw gas carries no burden of the ammonia plant. It is the CO2 co-product cut
 
 ## Linking
 
-The product has the registry slug `carbon-dioxide`, with no grade. No existing process takes this dense-phase product:
-- `urea-1`'s `feed:CO2` is the raw gas at 160 kPa(a), before its own compressor.
-- `co2-electrolysis-bpm-1` buys liquefied merchant CO2.
+The product names the registry grade `carbon-dioxide/dense-153bara-99.95` (`process.yaml`). No existing process takes this dense-phase product:
+- `co2-electrolysis-bpm-1` buys liquefied merchant CO2. Its `feed:CO2` is graded `carbon-dioxide/liquid` (the registry's `flow_grades`), so the build refuses this product for it by grade.
+- `urea-1`'s `feed:CO2` is the raw gas at 160 kPa(a), before its own compressor, and `npk-fertilizers-1` and `e-fuels-1` take low-pressure CO2. None of them is linked to this product. Their CO2 stays a reported gap (`npk-fertilizers-1` and `e-fuels-1` by `atlas: false` in their mappings).
 
 The TEG make-up links explicitly to `ethylene-glycol-1`'s `product:TEG` (`lca/mappings.yaml`). The raw vent gas is a reported gap: `ammonia-1` vents this stream and gives no CO2 co-product to link.
 
