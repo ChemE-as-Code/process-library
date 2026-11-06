@@ -23,8 +23,11 @@
 # in S3-S6 or a burner trip in operation), without closing XV-610. A train without forward flow
 # (an abort in S1-S2, a closed XV-610) is stopped and started again before SEQ-START-BURNER;
 # a train stop does not reset the I-401 timer before its cool-down time, so the I-401 permissive
-# is the restart inhibit of a hot train (D-025). An uncommanded closure of XV-610 (F-AIR) trips
-# the train (I-603), so XV-610 never reopens by itself.
+# blocks the burner start of a train restarted hot (D-025); it does not block the train start,
+# so such a train is kept stopped for the cool-down before a new train start (D-026). An
+# uncommanded closure of XV-610 (F-AIR) trips the train (I-603): at once once XV-610 has left
+# its seat after the open command, so it does not reopen by itself after an air dip or a
+# solenoid drop-out that closed it (D-026).
 schema: cheme/sequences/v1
 sequences:
   - id: SEQ-START-BURNER
@@ -46,7 +49,7 @@ sequences:
       - {interlock: I-401, state: "accumulated full-recycle time below 4 min (ASSUMED, D-024)"}
       - {tag: E-102, state: "boiler package ready (drum level in range, BFW in service)"}
     interlocks: [I-101, I-201, I-202, I-203, I-204, I-401, I-602, I-603]
-    notes: "D-024, D-025. Only for a train just started against a closed XV-610. After forward-flow operation or a cool-down the train-start time and the I-401 accumulated time are the same, and both permissives hold. A train restarted hot after running on full recycle (an abort in S1-S2, F-AIR) carries its I-401 time over the stop (no reset before the 60 min cool-down, ASSUMED, C&E I-401), so the I-401 permissive holds the burner start until the cool-down has reset it: the restart inhibit of a hot train (other restart rules the train vendor's, O-9). A running train that has been on forward flow fails the train-start permissive: with forward flow it relights with SEQ-RESTART-BURNER (XV-610 stays open); without forward flow it is stopped and started again, and I-401 trips it if it is not stopped first."
+    notes: "D-024, D-025, D-026. Only for a train just started against a closed XV-610. After forward-flow operation or a cool-down the train-start time and the I-401 accumulated time are the same, and both permissives hold. A train restarted hot after running on full recycle (an abort in S1-S2, F-AIR) carries its I-401 time over the stop (no reset before the 60 min cool-down, ASSUMED, C&E I-401), so the I-401 permissive blocks this sequence. It does not block the train start, and the train cannot wait running for it: the time only grows while the train runs against the closed XV-610, and I-401 trips it after the rest of its 15 min. Such a train is kept stopped for the cool-down (60 min, ASSUMED) before a new train start (D-026; a train-start inhibit and the other restart rules of a hot train are the train vendor's, O-9). A running train that has been on forward flow fails the train-start permissive: with forward flow it relights with SEQ-RESTART-BURNER (XV-610 stays open); without forward flow it is stopped and started again, and I-401 trips it if it is not stopped first."
     steps:
       - id: S1
         title: Set the X-101 inlet pressure control before the expander path is opened
