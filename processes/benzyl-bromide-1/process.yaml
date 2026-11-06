@@ -7,36 +7,41 @@ title: Benzyl bromide by light-driven semi-batch bromination of toluene, HBr abs
 summary: >-
   A batch plant: bromine is dosed over 5 h into excess toluene at 363 K under lamps; the HBr
   is absorbed to 48 wt% acid, and the crude is stripped of its toluene (recycled) and distilled
-  under vacuum. Concept stage, 889.6 kg per batch every 7.05 h on a dedicated train, thermal
-  screening with a rate-constant sensitivity, preliminary gate-to-gate LCI.
+  under vacuum through a packed column. Concept stage, 887.3 kg per batch every 7.03 h on a
+  dedicated train, thermal screening with a rate-constant sensitivity, preliminary gate-to-gate
+  LCI.
 description: |
   Bromine is dosed at a constant rate over 5 h into toluene (4 mol per mol of bromine, the
   recycled toluene counted) at 363 K in a glass-lined photoreactor with immersion lamps, and the
   free-radical chain brominates the side chain: C7H8 + Br2 -> C7H7Br + HBr, and in series
   C7H7Br + Br2 -> C7H6Br2 + HBr (the route PubChem's HSDB names for benzyl bromide, bromine and
   toluene under light; US 3 528 899 A describes the dosing at the rate the bromine reacts). The
-  HBr leaves the liquid as it forms, through a reflux condenser and a brine vent condenser that
-  return the toluene it carries, and is absorbed in water to 48 wt% hydrobromic acid, 1.095 kg
-  per kg of product (a co-product). The crude is stripped of most of its toluene at 15 kPa(a)
-  and distilled at 2 kPa(a) in the same batch still: a forerun (toluene with benzyl bromide)
-  that goes back with the stripped toluene to the next batch, 2 % of it purged, and the main
-  cut, benzyl bromide with 1.6 wt% benzal bromide and 0.1 wt% toluene in the model (98.3 wt%, an
-  upper bound: ring-brominated toluenes and condensation products are not modelled). The
-  benzal bromide residue goes to incineration. Yields 88.5 % on the bromine and 86.9 % on the
-  toluene make-up (US 3 528 899 A, Example I: about 90 % on toluene); both follow from an
-  ASSUMED ratio of the two rate constants (80-94 % on the bromine for k2/k1 from 0.4 to 0.1).
+  HBr leaves the liquid as it forms, saturated with the content's vapour (about 0.9 mol per mol,
+  mostly toluene), through a reflux condenser that returns the vapour to the reactor and a brine
+  vent condenser whose condensate is recycled, and is absorbed in water to 48 wt% hydrobromic
+  acid, 1.094 kg per kg of product (a co-product). The crude is stripped of most of its toluene
+  at 15 kPa(a), then distilled at 2 kPa(a) in the same batch still through a packed column of
+  about 5 theoretical stages: a forerun (toluene with some benzyl bromide, reflux ratio 2) that
+  goes back with the stripped toluene to the next batch, 2 % of it purged, and the main cut
+  (reflux ratio 0.5), 99.85 wt% benzyl bromide with 0.11 wt% toluene and 0.04 wt% benzal
+  bromide in the model (an upper bound: ring-brominated toluenes and condensation products are
+  not modelled). The benzal bromide residue goes to incineration. Yields 90.2 % on the bromine
+  and 87.7 % on the toluene make-up (US 3 528 899 A, Example I: about 90 % on toluene); both
+  follow from an ASSUMED ratio of the two rate constants.
 
-  The batch is modelled with cheme-as-code's semi-batch reactor with a gas vent (reactor:
-  semibatch, batch.vent, core ADRs 0050 and 0054), its batch still with cuts (still:, one
-  Rayleigh stage, ADR 0055) and the batch recipe (process/recipe.yaml, ADRs 0051, 0052 and
-  0057): the dosing, post-reaction and distillation times come from the models, the
-  photoreactor is the bottleneck (cycle 7.05 h, 1124 batches a year), the recipe sizes it (4 m3)
-  and checks its jacket, and the flowsheet's flows are the recipe's year averages; the toluene
-  recycle is converged at its tear stream by cheme process propagate (core 1.9.0). The light-
-  driven rate is an ASSUMED effective rate law (core has no photochemical rate): the bromine
-  accumulates to 1.7 % at the end of the dosing and the cooling-failure temperature stays 20 K
-  below the boiling point of toluene; a 100 times slower reaction (weak or failed lamps) would
-  exceed it. See DESIGN.md for every assumption.
+  The batch is modelled with cheme-as-code's semi-batch reactor with a gas vent that carries the
+  liquid's vapour through a vent condenser (reactor: semibatch, batch.vent with vapour and
+  condenser, core ADRs 0050, 0054 and 0062), its batch still (still:, one Rayleigh stage for the
+  strip, ADR 0055) with a column for the forerun and the main cut (still.column, Diwekar's
+  shortcut, ADR 0061) and the batch recipe (process/recipe.yaml, ADRs 0051, 0052 and 0057): the
+  dosing, post-reaction and distillation times come from the models, the photoreactor is the
+  bottleneck (cycle 7.03 h, 1127 batches a year), the recipe sizes it (4 m3) and checks its
+  jacket, and the flowsheet's flows are the recipe's year averages; the toluene recycle is
+  converged at its tear stream by cheme process propagate. The light-driven rate is an ASSUMED
+  effective rate law (core has no photochemical rate): the bromine accumulates to 1.7 % at the
+  end of the dosing and the cooling-failure temperature stays 20 K below the boiling point of
+  toluene; a 100 times slower reaction (weak or failed lamps) would exceed it. See DESIGN.md for
+  every assumption.
 families: [chlorinated-organics]
 keywords: [benzyl bromide, toluene, bromine, side-chain bromination, photobromination, free-radical bromination, benzal bromide, hydrobromic acid, semi-batch, batch, dosing, gas evolution, HBr off-gas, batch distillation, vacuum distillation, solvent recycle, thermal screening, lachrymator, fine chemicals]
 facets:
@@ -52,50 +57,50 @@ validation:
   notes: >-
     Concept batch PFD with closed mass, component and element balances (cheme validate, cheme
     process streams: 3 blocks and 10 steps within tolerance). The semi-batch R101 with its HBr
-    vent (from its ASSUMED effective rate laws), the stills ST101 and ST102 (one Rayleigh stage
-    each on Raoult's law with NIST Antoine constants, the ideal liquid and benzal bromide's vapour
-    pressure ASSUMED), the mixers, the splitter and the toluene recycle (converged at its tear
-    stream S2, ADR 0060) are calculated by cheme process propagate, which also writes the model
-    duties: R101's reactions' heat less the bromine's warming (on Q12, the off-gas vapour's heat
-    to the reflux condenser) and the stills' boil-up latent heat (Q7, Q9; ADR 0059).
-    scripts/balance.py gives the feeds for 1000 t/a, the absorber water, the mixing and
-    bubble-point temperatures and the other duties (no property package of core covers these
-    liquids); the stills' charges' sensible heat, 2.41 kW less steam, is left out and recorded
-    (DESIGN.md D-009). The recipe's year-average
-    rate of the product agrees with the flowsheet (no cheme.recipe-basis finding); the recipe
-    sizes R-101 (4 m3), its jacket check passes, and the stills' times come from their boil-up.
-    Thermal screening (cheme process reactor-hazards): dT_ad 42.2 K, accumulation 1.73 %, MTSR
-    363.9 K against an MTT of 383.8 K (hazard.mtt: the boiling point of toluene); no
-    criticality class without a TD24 (1 or 2 if the TD24 lies above the MTSR, 5 if below). With
-    k/10 the MTSR is 370.5 K, with k/100 394.6 K, above the MTT (DESIGN.md D-011). At the MTSR
-    the HBr forms at 35.1 m3/h (the largest over the batch), within R-101's off-gas capacity of
-    45 m3/h (ASSUMED: 1.2 times it, rounded up to the next 5 m3/h); at k/10 41.1 m3/h, at k/100 38.2 m3/h, both within it, but
-    at k/100 the content boils; the blocked-vent case (about 0.3 MPa in the head space in the
-    design case, 2.9 MPa at k/10) needs a relief device, and the vapour line and E-102 the
-    toluene vapour of a cooling failure (open findings, DESIGN.md D-014). The off-gas
-    carries no organic vapour in the model (a core limit); the condensers' duties are hand
-    values. Preliminary gate-to-gate LCI with the per-batch nitrogen; the bromine linked to
-    bromine-1, the toluene to btx-1, the nitrogen to asu-1, the other backgrounds gaps; the
-    hydrobromic acid a co-product by mass of its HBr (shares 0.6556/0.3444). cheme maturity
-    reaches no level (assumed feeds, kinetics and separations); the claim `maturity: concept` is
-    the lowest value of the schema, not an evidenced level. Not reviewed. Needs cheme-as-code
-    1.9.0.
+    vent carrying the content's vapour through its vent condenser E-102 (from its ASSUMED
+    effective rate laws, Raoult over an ideal liquid; core ADR 0062), the strip ST101 (one
+    Rayleigh stage), the forerun ST102 and the main cut ST103 through the still's column (5
+    theoretical stages, reflux 2 and 0.5, ASSUMED; Diwekar's shortcut, ADR 0061; all on Raoult's
+    law with NIST Antoine constants, the ideal liquid and benzal bromide's vapour pressure
+    ASSUMED), the mixers, the splitter and the toluene recycle (converged at its tear stream S2,
+    ADR 0060) are calculated by cheme process propagate, which also writes the model duties:
+    E-102's (Q4), the stills' reboilers (Q7, Q9, Q14) and the column's condensers (Q10, Q11; ADRs
+    0059, 0061, 0062). scripts/balance.py gives the feeds for 1000 t/a, the brine vent condenser
+    E-103 (a flash as core's vent condenser), the absorber water, the mixing and bubble-point
+    temperatures and the other duties (no property package of core covers these liquids); the
+    stills' charges' sensible heat, 2.84 kW less steam, is left out and recorded (DESIGN.md
+    D-009). The recipe's year-average rate of the product agrees with the flowsheet (no
+    cheme.recipe-basis finding); the recipe sizes R-101 (4 m3), its jacket check passes, and the
+    stills' times come from their boil-up. Thermal screening (cheme process reactor-hazards):
+    dT_ad 44.2 K, accumulation 1.66 %, MTSR 363.9 K against an MTT of 383.8 K (hazard.mtt: the
+    boiling point of toluene); no criticality class without a TD24 (1 or 2 if the TD24 lies
+    above the MTSR, 5 if below). With k/10 the MTSR is 370.3 K, with k/100 396.1 K, above the
+    MTT, where the content boils (DESIGN.md D-011). At the MTSR the gas leaves with the content's
+    vapour at 59.6 m3/h, within R-101's off-gas capacity of 75 m3/h (ASSUMED: 1.2 times it,
+    rounded up to the next 5 m3/h); at k/10 102.3 m3/h exceeds it, and the blocked-vent case
+    (about 0.24 MPa in the head space in the design case, 2.3 MPa at k/10) needs a relief device
+    (open findings, DESIGN.md D-014). Preliminary gate-to-gate LCI with the per-batch nitrogen;
+    the bromine linked to bromine-1, the toluene to btx-1, the nitrogen to asu-1, the other
+    backgrounds gaps; the hydrobromic acid a co-product by mass of its HBr (shares
+    0.6572/0.3428). cheme maturity reaches no level (assumed feeds, kinetics and separations);
+    the claim `maturity: concept` is the lowest value of the schema, not an evidenced level. Not
+    reviewed. Needs cheme-as-code 1.10.0.
 chemistry:
   inputs:
-    - {chemical: bromine, role: feedstock, inventory_key: "feed:BR2", note: "Dry bromine (bromine-1), 1.038 kg/kg benzyl bromide (stoichiometric 0.934)"}
-    - {chemical: toluene, role: feedstock, inventory_key: "feed:TOL", note: "Toluene make-up (btx-1), 0.609 kg/kg; 2.17 kg/kg of recovered toluene (82 wt% toluene, 17 wt% benzyl bromide) is recycled within the plant"}
-    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Process water to the HBr absorber, 0.569 kg/kg"}
+    - {chemical: bromine, role: feedstock, inventory_key: "feed:BR2", note: "Dry bromine (bromine-1), 1.034 kg/kg benzyl bromide (stoichiometric 0.934)"}
+    - {chemical: toluene, role: feedstock, inventory_key: "feed:TOL", note: "Toluene make-up (btx-1), 0.614 kg/kg; 1.95 kg/kg of recovered toluene (91 wt% toluene, 9 wt% benzyl bromide) is recycled within the plant"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Process water to the HBr absorber, 0.565 kg/kg"}
     - {chemical: nitrogen, role: feedstock, inventory_key: "consumable:nitrogen", note: "Nitrogen (asu-1) for inerting, breaking the vacuum and padding, 25 kg per batch, 28 g/kg (ASSUMED)"}
   outputs:
-    - {chemical: benzyl-bromide, role: main-product, inventory_key: "product:BNBR", note: "Distilled benzyl bromide to storage under nitrogen; modelled 98.3 wt%, an upper bound (ring-brominated and condensation by-products not modelled, DESIGN.md D-007)"}
-    - {chemical: hydrogen-bromide, role: co-product, inventory_key: "product:HBRACID", note: "Hydrobromic acid 48 wt%, 1.095 kg/kg (0.525 kg HBr), counted by mass of the acid; allocated by mass of its HBr, shares 0.6556/0.3444 (DESIGN.md D-012)"}
+    - {chemical: benzyl-bromide, role: main-product, inventory_key: "product:BNBR", note: "Distilled benzyl bromide to storage under nitrogen; modelled 99.85 wt%, an upper bound (ring-brominated and condensation by-products not modelled, DESIGN.md D-007)"}
+    - {chemical: hydrogen-bromide, role: co-product, inventory_key: "product:HBRACID", note: "Hydrobromic acid 48 wt% (on HBr and water), 1.094 kg/kg (0.522 kg HBr), counted by mass of the acid; allocated by mass of its HBr, shares 0.6572/0.3428 (DESIGN.md D-012)"}
   utilities:
-    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.156 kWh/kg: the lamps of R-101 (0.118 kWh/kg), the agitators and the vacuum pump (ASSUMED)"}
-    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.392 kWh/kg of LP steam 450 kPa(a): R-101's heat-up and the still (the stills' boil-up from core's model, DESIGN.md D-009)"}
-    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.634 kWh/kg removed: R-101's jacket and lamp wells, the reflux condenser, the absorber, the still's condensers and coolers"}
-    - {chemical: chilled-water, role: utility, inventory_key: "product:BRINE", note: "0.044 kWh/kg removed by brine at 258 K: the vent condenser and the forerun condenser (the registry has chilled water, not brine: closest entry)"}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.160 kWh/kg: the lamps of R-101 (0.118 kWh/kg), the agitators and the vacuum pump (ASSUMED)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.431 kWh/kg of LP steam 450 kPa(a): R-101's heat-up and the still with its column (the reboilers from core's models, DESIGN.md D-009)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.666 kWh/kg removed: R-101's jacket and lamp wells, the reflux condenser, the absorber, the still's and the column's condensers and coolers"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:BRINE", note: "0.046 kWh/kg removed by brine at 258 K: the vent condenser and the column's condenser and cooler during the forerun (the registry has chilled water, not brine: closest entry)"}
 basis:
-  capacity: "1000 t/a distilled benzyl bromide: 1124 batches/a of 889.6 kg in 7920 h on a dedicated train (126.26 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-013)"
+  capacity: "1000 t/a distilled benzyl bromide: 1127 batches/a of 887.3 kg in 7920 h on a dedicated train (126.26 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-013)"
   operating_hours_per_year: 7920
   location: generic fine-chemicals site with bromine and toluene supplies (not chosen)
 references:
