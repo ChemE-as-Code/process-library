@@ -51,18 +51,24 @@ validation:
     process propagate; scripts/balance.py gives the feeds for 2000 t/a, the column K101 as a
     specified split of the still's distillate, the absorber water and every duty (no property
     package of core covers these liquids, and core has no batch rectification with reflux,
-    core#173). The recipe's year-average rate of the product agrees with the flowsheet (no
+    core#173), except R101's duty and the still's net boil-up, which core's models write
+    (ADR 0059); the reboiler's share for the column's reflux is its own stream. The recipe's year-average rate of the product agrees with the flowsheet (no
     cheme.recipe-basis finding); the recipe sizes R-101 (1.6 m3), its jacket check passes, and
     the still's distillation time comes from its boil-up. Thermal screening (cheme process
     reactor-hazards): dT_ad 94.7 K, accumulation 7.04 %, MTSR 421.9 K against an MTT of 471.0 K
     (hazard.mtt: the boiling point of benzoyl chloride); no criticality class without a TD24
-    (1 or 2 if the TD24 lies above the MTSR, 5 if below).
-    With k/10 the MTSR is 443.3 K, with k/100 484.8 K, above the MTT (DESIGN.md D-011). The
+    (1 or 2 if the TD24 lies above the MTSR, 5 if below). At the MTSR the HCl forms at 81.6
+    m3/h, within R-101's vent capacity of 100 m3/h (ASSUMED, 1.2 times it); the blocked-vent
+    case needs a relief device (DESIGN.md D-014).
+    With k/10 the MTSR is 443.3 K, with k/100 484.8 K, above the MTT (DESIGN.md D-011). The vent
+    capacity holds for the assumed kinetics only: at k/10 the release at the MTSR is 164.3 m3/h
+    (1.64 times it), at k/100 443.2 m3/h (4.43 times), so the off-gas system is to be sized for
+    the k/10 case (about 200 m3/h) or the dosing rate set from calorimetry (open, D-014). The
     off-gas carries no organic vapour in the model (a core limit, D-010). Preliminary
     gate-to-gate LCI with the per-batch nitrogen; the nitrogen linked to asu-1, the other
     backgrounds gaps; the hydrochloric acid a by-product with shares 1/0. cheme maturity reaches
     no level (assumed feeds, kinetics and separations); the claim `maturity: concept` is the
-    lowest value of the schema, not an evidenced level. Not reviewed. Needs cheme-as-code 1.8.0.
+    lowest value of the schema, not an evidenced level. Not reviewed. Needs cheme-as-code 1.9.0.
 chemistry:
   inputs:
     - {chemical: benzotrichloride, role: feedstock, inventory_key: "feed:BTC", note: "Benzotrichloride (no library process; proxy: toluene side-chain photochlorination), 0.715 kg/kg benzoyl chloride"}
