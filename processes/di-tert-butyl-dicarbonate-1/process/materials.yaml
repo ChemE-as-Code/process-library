@@ -1,0 +1,152 @@
+# Components and templates of di-tert-butyl-dicarbonate-1. Schema cheme/process/v1 (`cheme
+# schema process-materials`). Every component has a stable id; molar_mass in kg/kmol (IUPAC 2021
+# abridged standard atomic weights applied to the formula), normal_boiling_point in K at 101.325
+# kPa. Sources are the register rows of DESIGN.md (SRC-n).
+#
+# The liquid data the semi-batch R101 needs (DESIGN.md D-005), at its 278 K:
+# - liquid_molar_volume, m3/kmol: hexane from its density at 278 K (0.6725 g/cm3, extrapolated
+#   from 0.6606 at 293 K, CRC table packaged in chemicals 1.5.2, with the usual 0.0008 g/(cm3 K),
+#   ASSUMED); tert-butanol 0.7887 (CRC table in chemicals) and water; phosgene 1.432 g/cm3 near
+#   0 C (as processes/benzyl-chloroformate-1); Boc2O 0.95 g/cm3 (Wikipedia, SRC-6). The solids
+#   the one-phase model carries as dissolved (potassium tert-butoxide, the carbonate, KCl, DABCO)
+#   at their crystal volume: KCl 1.984 g/cm3 (Wikipedia, SRC-6), KOtBu, the carbonate and DABCO
+#   ASSUMED 1.0, 1.3 and 1.14 g/cm3. Dissolved CO2 at an ASSUMED partial molar volume of 0.045
+#   m3/kmol. Ideal mixing.
+# - liquid_heat_capacity, kJ/(kmol K): hexane 195.6, tert-butanol 218.6, water 75.3 (CRC tables
+#   in chemicals, SRC-11), KCl 51.3 (solid, CRC table in chemicals); phosgene 100 (as
+#   benzyl-chloroformate-1); every other value ASSUMED (no open measured value found): KOtBu 150,
+#   the carbonate 200, Boc2O 330 (about 1.5 kJ/(kg K), an ester's order), DABCO 150, dissolved
+#   CO2 80, the liquid paraffin 790 (2.0 kJ/(kg K), a white oil's order).
+# - CO2 is dosed (85 % taken up, the rest passing to the vent) and also formed (vented whole);
+#   its ideal-gas cp warms the passing share (core ADR 0054). Isobutene is vented whole as it
+#   forms and never charged or dosed, so it needs no liquid data.
+# The batch stills (core ADR 0055, Raoult's law; DG101 constant volatility): Antoine constants of
+# the NIST WebBook (log10(P/bar) = A - B/(T/K + C), each fitted by NIST to the cited author's
+# data) and heats of vaporization in kJ/kmol near the stills' temperatures (NIST WebBook, SRC-11).
+# Boc2O has one open vapour-pressure point (56-57 C at 0.5 mmHg, Wikipedia SRC-6): with an
+# ASSUMED heat of vaporization of 65 kJ/mol it gives a two-constant (c = 0) Clausius-Clapeyron
+# line, provenance assumed (D-008). CO2 above its critical point has no vapour pressure: its
+# line is the saturation curve at 278 and 298 K extrapolated, ASSUMED, for the traces the
+# degassing leaves (D-006).
+schema: cheme/process/v1
+kind: materials
+components:
+  - id: KOTBU
+    name: Potassium tert-butoxide (suspended)
+    formula: C4H9KO
+    cas: 865-47-4
+    molar_mass: 112.213
+    liquid_molar_volume: 0.1122
+    liquid_heat_capacity: 150.0
+  - id: CO2
+    name: Carbon dioxide
+    formula: CO2
+    cas: 124-38-9
+    molar_mass: 44.009
+    normal_boiling_point: 194.67
+    liquid_molar_volume: 0.045
+    liquid_heat_capacity: 80.0
+    heat_of_vaporization: 15000
+    vapour_pressure: {a: 4.7205, b: 868.3, c: 0.0, temperature_range: [240.0, 330.0], provenance: assumed, source: "ASSUMED (D-006): Clausius-Clapeyron through CO2's saturation pressures 3.97 MPa at 278.15 K and 6.43 MPa at 298.15 K (NIST WebBook fluid data, SRC-11), extrapolated above its critical point (304.1 K) as a hypothetical liquid line for the traces of dissolved CO2 the degassing leaves; heat_of_vaporization stands for its heat of desorption from hexane, ASSUMED"}
+    ideal_gas: {dHf_298: -393474.0, S_298: 213.8, cp_R: [2.35127, 0.00919285, -7.99057e-06, 3.68269e-09, -7.05913e-13], temperature_range: [298.15, 1500], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo HEOS_FIT 298.15-1500 K (as processes/phosgene-1)"}
+  - id: COCL2
+    name: Phosgene
+    formula: CCl2O
+    cas: 75-44-5
+    molar_mass: 98.915
+    normal_boiling_point: 280.65
+    liquid_molar_volume: 0.06908
+    liquid_heat_capacity: 100.0
+    heat_of_vaporization: 24800
+    vapour_pressure: {a: 4.27105, b: 1072.71, c: -29.855, temperature_range: [281.4, 447.0], provenance: given, source: "NIST WebBook (C75445), coefficients fitted by NIST to Stull (1947) (SRC-11)"}
+    ideal_gas: {dHf_298: -219030.0, S_298: 283.5, cp_R: [3.57477, 0.0158369, -1.73691e-05, 9.14793e-09, -1.87533e-12], temperature_range: [298.15, 1500], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo WEBBOOK_SHOMATE 298.15-1500 K (as processes/phosgene-1)"}
+  - id: KTBC
+    name: Potassium tert-butyl carbonate (suspended)
+    formula: C5H9KO3
+    molar_mass: 156.222
+    liquid_molar_volume: 0.1202
+    liquid_heat_capacity: 200.0
+  - id: BOC2O
+    name: Di-tert-butyl dicarbonate (Boc2O)
+    formula: C10H18O5
+    cas: 24424-99-5
+    molar_mass: 218.249
+    liquid_molar_volume: 0.2297
+    liquid_heat_capacity: 330.0
+    heat_of_vaporization: 65000
+    vapour_pressure: {a: 7.1239, b: 3395.4, c: 0.0, temperature_range: [290.0, 370.0], provenance: assumed, source: "ASSUMED (D-008): Clausius-Clapeyron through the one open point, 329.65 K at 0.0667 kPa (56-57 C at 0.5 mmHg, Wikipedia SRC-6), with an ASSUMED heat of vaporization of 65 kJ/mol (b = 65000 / (8.314 x ln 10)); EP 0 256 559 A2 distils at 62-66 C at 0.5 mmHg (SRC-1), so the line may put the boiling point a few kelvin low"}
+  - id: KCL
+    name: Potassium chloride
+    formula: KCl
+    cas: 7447-40-7
+    molar_mass: 74.548
+    liquid_molar_volume: 0.03757
+    liquid_heat_capacity: 51.3
+  - {id: IB, name: Isobutene, formula: C4H8, cas: 115-11-7, molar_mass: 56.107, normal_boiling_point: 266.15}
+  - id: TBA
+    name: tert-Butanol
+    formula: C4H10O
+    cas: 75-65-0
+    molar_mass: 74.123
+    normal_boiling_point: 355.45
+    liquid_molar_volume: 0.0940
+    liquid_heat_capacity: 218.6
+    heat_of_vaporization: 46700
+    vapour_pressure: {a: 4.49774, b: 1174.869, c: -93.92, temperature_range: [312.66, 355.56], provenance: given, source: "NIST WebBook (C75650), coefficients fitted by NIST to Brown, Fock et al. (1969) (SRC-11); used down to about 290 K, below its fitted range"}
+  - id: HEX
+    name: n-Hexane
+    formula: C6H14
+    cas: 110-54-3
+    molar_mass: 86.178
+    normal_boiling_point: 341.87
+    liquid_molar_volume: 0.12815
+    liquid_heat_capacity: 195.6
+    heat_of_vaporization: 31560
+    vapour_pressure: {a: 4.00266, b: 1171.53, c: -48.784, temperature_range: [286.18, 342.69], provenance: given, source: "NIST WebBook (C110543), coefficients fitted by NIST to Willingham, Taylor et al. (1945) (SRC-11)"}
+  - id: DABCO
+    name: 1,4-Diazabicyclo[2.2.2]octane (DABCO)
+    formula: C6H12N2
+    cas: 280-57-9
+    molar_mass: 112.176
+    normal_boiling_point: 447.15
+    liquid_molar_volume: 0.0984
+    liquid_heat_capacity: 150.0
+  - id: H2O
+    name: Water
+    formula: H2O
+    cas: 7732-18-5
+    molar_mass: 18.015
+    normal_boiling_point: 373.12
+    liquid_molar_volume: 0.01807
+    liquid_heat_capacity: 75.3
+    heat_of_vaporization: 43990
+    vapour_pressure: {a: 4.6543, b: 1435.264, c: -64.848, temperature_range: [255.9, 373.0], provenance: given, source: "NIST WebBook (C7732185), coefficients fitted by NIST to Stull (1947) (SRC-11)"}
+  - id: PARAF
+    name: Liquid paraffin (white mineral oil, lumped as C28H58)
+    formula: C28H58
+    molar_mass: 394.772
+    liquid_molar_volume: 0.4644
+    liquid_heat_capacity: 790.0
+  - {id: NAOH, name: Sodium hydroxide (dissolved), formula: NaOH, cas: 1310-73-2, molar_mass: 39.997}
+  - {id: NA2CO3, name: Sodium carbonate (dissolved), formula: Na2CO3, cas: 497-19-8, molar_mass: 105.988}
+  - {id: NACL, name: Sodium chloride (dissolved), formula: NaCl, cas: 7647-14-5, molar_mass: 58.443}
+templates:
+  - {id: solid, title: Potassium tert-butoxide, components: [KOTBU]}
+  - {id: solvent, title: "Hexane with what the recovered solvent carries", components: [HEX, TBA, BOC2O, CO2, COCL2]}
+  - {id: gas, title: Carbon dioxide, components: [CO2]}
+  - {id: phosgene, title: Phosgene, components: [COCL2]}
+  - {id: catalyst, title: DABCO, components: [DABCO]}
+  # The stills write every component of their charge into the distillate, the non-volatile
+  # ones at 0: the process template carries them all.
+  - {id: process, title: "Reaction mass, crude and work-up streams", components: [KOTBU, CO2, COCL2, KTBC, BOC2O, KCL, TBA, HEX, DABCO, H2O, PARAF, IB]}
+  - {id: offgas, title: "Vent: CO2, isobutene, phosgene and hexane", components: [CO2, IB, COCL2, HEX, TBA, KOTBU, KTBC, BOC2O, KCL, DABCO, H2O]}
+  - {id: water, title: Process water, components: [H2O]}
+  - {id: oil, title: Liquid paraffin, components: [PARAF]}
+  - {id: caustic, title: Caustic soda solution, components: [NAOH, H2O]}
+  - {id: liquor, title: Spent scrubber liquor, components: [NAOH, NACL, NA2CO3, H2O, CO2, IB, COCL2, HEX, TBA, KOTBU, KTBC, BOC2O, KCL, DABCO]}
+# No benchmarked property package covers the slurry or the caustic liquor (cheme process props
+# --coverage): the liquid data above are the semi-batch's and the stills'; the duties of R101 and
+# the stills are the models' (core ADR 0059), the others hand arithmetic (DESIGN.md D-009).
+property_method:
+  adapter: thermo
+  status: placeholder

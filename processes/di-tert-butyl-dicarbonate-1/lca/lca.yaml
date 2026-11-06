@@ -1,0 +1,129 @@
+# Goal and scope of the di-tert-butyl-dicarbonate-1 LCI. Schema: `cheme schema lca`. Outputs:
+# `cheme assess lca --inventory --write` and `--coverage` (lca/inventory.csv, gaps.csv,
+# dataset.yaml, manifest.json); never edit those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the batch
+# plant with its amount per kg of distilled Boc2O, from the flowsheet's year averages of the
+# recipe (D-003). Per batch: multiply by 657.28 kg. The backgrounds are left unmapped (`missing:`
+# with the activity each should connect to), except where lca/mappings.yaml links a library
+# producer: a gap, never zero, and no values from licensed databases. The vents go through the
+# caustic scrubber to the site's thermal oxidiser (product:VENT, a waste treatment); the plant
+# has no direct emission to air in the balance (emission_exclusions).
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of di-tert-butyl dicarbonate (Boc2O) made by the
+  one-pot phosgene route: potassium tert-butoxide carbonated with CO2 and phosgenated with a
+  DABCO catalyst in hexane (one semi-batch), the hexane stripped and recycled, the melt washed
+  with water and distilled under vacuum from a liquid-paraffin heel, the vents scrubbed with
+  caustic, at the concept stage: which raw materials, utilities and wastes the batch plant
+  exchanges per kg of distilled Boc2O, as the foreground for a later cradle-to-gate study. No
+  impact results: most backgrounds are not mapped yet (D-012).
+functional_unit: {product: BOC, amount: 1, unit: kg, source: "1 kg of distilled Boc2O melt (modelled 99.98 wt% Boc2O, an upper bound: di-tert-butyl carbonate, the tricarbonate and other by-products are not modelled, D-002) at the plant gate to heated storage, stream S25 (D-002, D-012)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
+# being mapped free (the schema's gate-to-gate maps every feed free), as n-bromosuccinimide-1 does.
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Batch plant: potassium tert-butoxide suspended in recovered hexane with DABCO at 278 K, CO2 dosed (2 h) then phosgene gas (4 h) in one glass-lined semi-batch, CO2 and isobutene vented as they form, the slurry degassed; the hexane stripped at 15 and 1 kPa(a) and recycled; the Boc2O melt washed with warm water; vacuum distillation at 0.13 kPa(a) from a liquid-paraffin heel; the vents to a caustic scrubber and a thermal oxidiser; 657.28 kg per batch, 760.7 batches a year on a dedicated train"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+flows:
+  # raw materials
+  - key: feed:KOTBU
+    missing: "not mapped yet (D-012); connect to: potassium tert-butoxide, technical solid; no library process makes it; its stoichiometric proxy, 0.6606 kg tert-butanol and 0.3484 kg potassium metal per kg (dry tert-butanol and potassium, Wikipedia SRC-7; hydrogen 0.009 kg released), is recorded here and in DESIGN.md D-012 and not linked: tert-butanol-1 is not yet an entry (link it when it lands), potassium metal has none"
+    source: "flowsheet stream S1 (D-004)"
+  - key: feed:HEXMU
+    missing: "not mapped yet (D-012); connect to: n-hexane, solvent grade, from the distillation of straight-run naphtha or reformate raffinate; no library process makes it as a product"
+    source: "flowsheet stream S2, the make-up of the hexane loss (D-004, D-006)"
+  - key: feed:DABCO
+    missing: "not mapped yet (D-012); connect to: 1,4-diazabicyclo[2.2.2]octane (DABCO), a fine chemical from ethanolamines or piperazine; no library process makes it"
+    source: "flowsheet stream S3 (D-004)"
+  - key: feed:CO2
+    missing: "not mapped yet (D-012); connect to: carbon dioxide, liquefied, merchant (recovered from an ammonia or ethylene oxide plant's off-gas, purified, liquefied and evaporated on site); no library process supplies CO2 as a product"
+    source: "flowsheet stream S8 (D-004)"
+  - key: feed:PHOS
+    missing: "linked to processes/phosgene-1 (lca/mappings.yaml): liquid phosgene from CO and chlorine over activated carbon, a captive supply on the same site"
+    source: "flowsheet stream S6 (D-004)"
+  - key: feed:PARAF
+    missing: "not mapped yet (D-012); connect to: white mineral oil (liquid paraffin, ISO VG 32) from the hydrotreating of a lubricant base oil; no library process makes it"
+    source: "flowsheet stream S21, the heel's make-up (D-008)"
+  - key: feed:NAOH
+    missing: "linked to processes/chlor-alkali-1 (lca/mappings.yaml): caustic soda 50 wt% from membrane chlor-alkali electrolysis"
+    source: "flowsheet stream S29 (D-007)"
+  - key: feed:PW
+    missing: "not mapped yet (D-012); connect to: process water from the site water treatment"
+    source: "flowsheet streams S17 (the wash) and S31 (scrubber make-up), D-007"
+  # utilities
+  - key: feed:POWER
+    missing: "not mapped yet (D-012); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy streams P1 (R-101 agitator, degassing pump), P2 (V-201 agitator and vacuum pump), P3 (C-301 agitator and vacuum pump) and P4 (scrubber pump and fan), D-009"
+  - key: feed:LPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 350 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
+    source: "flowsheet energy streams Q4 (phosgene evaporator), Q5 (degassing), Q6 and Q7 (the strips' boil-up), Q8 (V-201's sensible heat), Q10 (wash water), Q11 (the still's boil-up) and Q12 (C-301's sensible heat), all through tempered and hot-water circuits, D-009"
+  - key: product:CW
+    missing: "not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
+    source: "flowsheet energy streams Q14 (main-cut condenser and product cooler) and Q15 (scrubber), D-009"
+  - key: product:CHW
+    missing: "not mapped yet (D-012); connect to: chilled water at 278 K from an electric vapour-compression chiller (e.g. processes/utility-chiller), per kWh of heat removed"
+    source: "flowsheet energy streams Q9 (first strip's condenser), Q16 (second strip's condenser after the vacuum pump) and Q13 (forerun condenser), D-009"
+  - key: product:BRINE
+    missing: "not mapped yet (D-012); connect to: refrigeration at 258 K (brine) from an electric vapour-compression unit (e.g. processes/utility-chiller), per kWh of heat removed: compressor electricity at its COP, condenser cooling water, refrigerant losses"
+    source: "flowsheet energy streams Q1 (charge cooling), Q2 (the heats of carbonation and phosgenation, R101's model) and Q3 (the absorption heat of the dissolved excess CO2), D-009"
+  # wastes
+  - key: product:AQ
+    treatment: {kind: waste, route: "site wastewater treatment of a saline effluent (about 17 wt% KCl, with tert-butanol, DABCO and the carbonate's hydrolysis products), biological treatment of the dissolved organics, the salt discharged (D-010)"}
+    missing: "not mapped yet (D-012); connect to: treatment of a saline process effluent with dissolved organics in an industrial wastewater treatment plant (e.g. processes/utility-wwtp), per kg"
+    source: "flowsheet stream S20 (D-007, D-010)"
+  - key: product:WS
+    treatment: {kind: waste, route: "site wastewater treatment of the spent caustic (sodium carbonate with excess NaOH), neutralised and discharged (D-010)"}
+    missing: "not mapped yet (D-012); connect to: treatment of a spent alkaline scrubber liquor in an industrial wastewater treatment plant (e.g. processes/utility-wwtp), per kg"
+    source: "flowsheet stream S34 (D-007, D-010)"
+  - key: product:WSOLV
+    treatment: {kind: waste, route: "hazardous-waste incineration of a non-halogenated solvent waste (hexane, tert-butanol and Boc2O, a little water) (D-010)"}
+    missing: "not mapped yet (D-012); connect to: incineration of a non-halogenated liquid organic waste, per kg"
+    source: "flowsheet stream S37: the forerun S24 and the hexane purge S36 (D-008, D-010)"
+  - key: product:RES
+    treatment: {kind: waste, route: "hazardous-waste incineration of the still's heel purge (liquid paraffin with Boc2O and DABCO) (D-010)"}
+    missing: "not mapped yet (D-012); connect to: incineration of a non-halogenated liquid organic waste, per kg"
+    source: "flowsheet stream S27 (D-008, D-010)"
+  - key: product:VENT
+    treatment: {kind: waste, route: "the site's thermal oxidiser: a CO2-rich vent with isobutene, hexane and water vapour (phosgene destroyed in the scrubber before it) (D-007, D-010)"}
+    missing: "not mapped yet (D-012); connect to: thermal oxidation of a non-halogenated vent gas, per kg of gas (the CO2 passes to air, the isobutene and hexane are burnt)"
+    source: "flowsheet stream S33 (D-007)"
+# What the batch plant uses per batch and the flowsheet does not carry (library ADR 0035, core
+# ADR 0053), converted with the recipe's batches per year (process/recipe.yaml): the nitrogen
+# that inerts R-101, purges the phosgene line, breaks the vacuum of R-101, V-201 and C-301 and
+# blankets the hexane and waste tanks; it leaves through the scrubber to the thermal oxidiser.
+# No rinse between batches: R-101 and C-301 are kept dry (KOtBu and phosgene, and the hot heel),
+# and V-201 is washed every batch by the wash water the flowsheet carries (D-012).
+consumables:
+  - id: nitrogen
+    title: Nitrogen for inerting R-101, purging the phosgene line, breaking the vacuums and blanketing the tanks
+    unit: kg
+    per_batch: 93.8
+    source: "about 75 Nm3 per batch x 1.2506 kg/Nm3, ASSUMED (D-012): R-101 purged with 3 volumes of its 12.5 m3 (37.5 Nm3) and its degassing vacuum broken (12.5 Nm3), the phosgene line purged after the dosing (5 Nm3), V-201's vacuum broken after the strips (12.5 Nm3), C-301's after the distillation (1.6 Nm3), T-202 and T-302 blanketed (5.9 Nm3)"
+    missing: "linked to processes/asu-1 (lca/mappings.yaml): gaseous nitrogen to the battery limit"
+    disposal:
+      kind: waste
+      route: "through the vent header, the scrubber and the site's thermal oxidiser to air, unchanged (D-012)"
+      source: "the nitrogen leaves with the vent gas S33 (D-012)"
+      missing: "not mapped yet (D-012); connect to: the thermal oxidiser's throughput of inert gas, with the vent gas product:VENT"
+operation:
+  hours_per_year: 7920
+  life_years: 20
+  source: "design basis operating_hours_per_year 7920 (ASSUMED, the recipe's hours); 20 a service life ASSUMED"
+emission_exclusions:
+  - {id: phosgene-fugitive, method: equipment-leaks, equipment: [R-101, E-102], reason: "Fugitive phosgene from the evaporator, the dosing line and R-101 is not estimated: no P&ID yet; a phosgene unit is fully contained, in a monitored enclosure (D-011)."}
+  - {id: tank-breathing, method: storage-tank, equipment: [T-202, T-302], reason: "Breathing and filling losses of the recovered-hexane and waste-solvent tanks go through the nitrogen blanket to the thermal oxidiser with the vent; not estimated (no P&ID yet, D-006)."}
+  - {id: vacuum-exhausts, method: storage-tank, equipment: [V-201, C-301], reason: "The non-condensables of the vacuum pumps' discharge condensers (nitrogen with hexane and water vapour at the chilled water's temperature) go to the vent header; core's still has a total condenser, so their hexane is in the condensates S15 and S24, not estimated (D-006, D-008)."}
+  - {id: product-storage, method: storage-tank, reason: "Boc2O gives off CO2 slowly in storage (Wikipedia SRC-6): the vented storage's CO2 and Boc2O vapour are outside the plant gate and not estimated (D-011)."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals
+  modelling: {principle: attributional}
+  geography: {description: "Generic fine-chemicals site with a captive phosgene unit and a thermal oxidiser, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #160, unreviewed"
