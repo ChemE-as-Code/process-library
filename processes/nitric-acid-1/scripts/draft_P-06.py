@@ -110,7 +110,7 @@ instrument(sheet, "TZ-605", at=(145, 85), sensing="Line_TG310_S1", sensing_at=(1
            signal_to=xv602, fail_action="FC")
 instrument(sheet, "TI-608", at=(275, 173), sensing=r102["N3"])
 instrument(sheet, "US-612", at=(255, 195), signal_to=xv610, fail_action="FC")
-# XV-610 closed position switch into the train trip logic (C&E I-401, D-024): taken off the
+# XV-610 closed position switch into the train trip logic (C&E I-401, I-603, D-024, D-025): taken off the
 # valve stem on the side away from PV-611, its signal into US-612 above the line
 instrument(sheet, "ZSC-610", at=(276, 195), sensing="XV610", sensing_at=(255, 210),
            sensing_points=[(276, 210)], signal_to="Inst_US612", location="field")
@@ -129,7 +129,7 @@ valve_marks(sheet, "Inst_PIC611", "PV611", (278, EXP), "down", tag_at=(287, 210.
 note(sheet, "TZ-605 stops the SCR ammonia below the R-102 inlet temperature limit (ammonium "
      "nitrate deposits, NH3 slip): C&E I-601. FIC-603 set from AI-614 by the operator (D-019)",
      at=(20, 262))
-note(sheet, "US-612 trips the train (C&E I-602: XV-610 closes; I-401 from ZSC-610 and FZ-206, P-02). "
+note(sheet, "US-612 trips the train (C&E I-602: XV-610 closes; I-401 from ZSC-610 and FZ-206, P-02; I-603 from ZSC-610). "
      "PIC-611: absorber pressure; start-up through X-101, no bypass (D-022, D-024)",
      at=(20, 269))
 note(sheet, "AI-614 (NOx), AI-615 (N2O): stack emission monitoring. R-102 protected by PSV-404 "

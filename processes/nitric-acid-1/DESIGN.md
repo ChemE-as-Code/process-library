@@ -481,7 +481,8 @@ Decision:
 - The machine train (K-101, K-102, X-101, motor; D-011) is one vendor package: machine
   protection, lube oil, seals and the surge maps are the package's; the plant sees one train trip
   (C&E I-602) and the two anti-surge controllers (amended by D-024: the plant's own K-102
-  full-recycle time trip I-401 is a second cause of that one train trip). K-101 has inlet guide vanes (FV-107, the load
+  full-recycle time trip I-401 is a second cause of that one train trip; amended by D-025: the
+  XV-610 uncommanded-closure trip I-603 is a third). K-101 has inlet guide vanes (FV-107, the load
   setter) and an anti-surge blow-off to atmosphere through a silencer (UV-110, SL-114): air is not
   worth recycling. K-102 has an anti-surge recycle (UV-401) taken before E-106 (a hot bypass),
   suited to start-up and trips; continuous turndown recycle should be cooled (open point).
@@ -521,8 +522,10 @@ Decision (all PROPOSED, for the HAZOP; files: `control/loops.yaml`, `control/cau
 - Other trips: I-101 E-101 level high-high (liquid carry-over), I-301 V-101 level low-low (stops
   P-101A/B), I-501 C-101 sump level low-low (XV-507 against gas blow-by from 1130 to 500 kPa(a)
   into C-102), I-601 R-102 inlet temperature low-low (stops the SCR ammonia, XV-602). No trip acts
-  on a control valve; every trip has its own sensor, none shared with a loop (amended by D-024:
-  FZ-206 is shared by the trips I-201, I-202 and I-401, a HAZOP / LOPA question, O-9). Delays, latching and reset ASSUMED; SILs and
+  on a control valve, and no trip shares a sensor with a loop. Some trips share a sensor with
+  another trip (amended by D-024, D-025): TZ-207 is the cause of I-203 (low-low) and I-204
+  (high-high), FZ-206 is shared by I-201, I-202 and I-401, and ZSC-610 by I-401 and I-603;
+  their independence is a HAZOP / LOPA question (O-9). Delays, latching and reset ASSUMED; SILs and
   voting are the HAZOP / LOPA's.
 - R-102 inlet temperature by a bypass of the E-103 tail-gas side (TIC-301, TV-301): the hot gas
   flow through E-103 stays constant. The absorber pressure by back-pressure control at the X-101
@@ -668,9 +671,11 @@ Decision (PROPOSED; amends D-018, D-019 and D-023 where they point here):
    I-401 is now a retentive timer: it accumulates the time the train runs with XV-610 closed
    or FZ-206 below its low-low point and trips at 15 min (ASSUMED, O-9). A short return of
    forward flow only pauses it; it resets to zero only after 10 min of unbroken forward flow
-   (ASSUMED: K-102 back at its forward-flow temperature, train vendor's, O-9) or a train stop.
-   The limit is the time on full recycle since K-102 last ran at its forward-flow temperature;
-   at a train start against a closed XV-610 that is the time since train start.
+   (ASSUMED: K-102 back at its forward-flow temperature, train vendor's, O-9) or a train stop
+   of at least 60 min (amended by D-025: a shorter stop keeps the accumulated time).
+   The limit is the time on full recycle since K-102 last ran at its forward-flow temperature
+   or cooled down stopped; at a train start against a closed XV-610 after forward-flow
+   operation or a cool-down that is the time since train start.
 2. Starts and restarts. SEQ-START-BURNER is only for a train just started against a closed
    XV-610. It has two permissives: the train-start time of US-612 below 4 min and the I-401
    accumulated time below 4 min, which are the same at such a start. The new
@@ -679,21 +684,25 @@ Decision (PROPOSED; amends D-018, D-019 and D-023 where they point here):
    auto, so K-102 never goes back to full recycle. It runs a purge at the light-off air rate and
    pressure, then ignition, ammonia and load up (R1-R4, the same light-off as S4-S6). A train
    without forward flow (an abort in S1-S2, F-AIR) is stopped and started again before
-   SEQ-START-BURNER, and I-401 trips it if the operator does not stop it. The restart rules of
-   a hot train (a restart inhibit, cool-down time) are the train vendor's (O-9).
+   SEQ-START-BURNER, and I-401 trips it if the operator does not stop it (after F-AIR, I-603
+   trips it, D-025). The stop does not reset the I-401 time before its cool-down time, so the
+   I-401 permissive of SEQ-START-BURNER is the restart inhibit of a hot train (D-025); the
+   cool-down time and the other restart rules of a hot train are the train vendor's (O-9).
    Rejected: closing XV-610 on a running train to re-run SEQ-START-BURNER. That would put a
    hot K-102 back on full recycle for no purpose.
 3. Start-up bypass definition. A bypass of I-202 or I-203 masks the cause at the input of that
    trip's own latch only. While it is on, the latch cannot be set and can be reset although the
    cause is still there (no air, a cold gauze). A latch already set is not hidden, so "I-202 /
-   I-203 reset" in S1 (R1) proves the latch is reset. The shared input FZ-206 and its low-low
+   I-203 reset" in S1, and "I-203 reset" in R1, proves the latch is reset (I-202 is not
+   bypassed in SEQ-RESTART-BURNER, item 4; D-025). The shared input FZ-206 and its low-low
    state are not bypassed, so I-201 and I-401 keep their FZ-206 leg in S2. "A bypassed trip
    reads as not tripped" (D-023) is withdrawn. The philosophy names this as the one exception
    to "reset after the cause is cleared".
 4. Bypass removal. Both start-up bypasses are also removed automatically when their sequence
    aborts (C&E bypass fields), and I-203's when its sequence ends. Every step timeout aborts,
    so the I-203 bypass cannot last longer than the sum of the step timeouts up to the ammonia
-   step: 51 min in SEQ-START-BURNER, 50 min in SEQ-RESTART-BURNER. It is never applied outside
+   step: 51 min in SEQ-START-BURNER, 50 min in SEQ-RESTART-BURNER (R1 30 min, ASSUMED with
+   its basis in D-025, + R2 15 + R3 5 min). It is never applied outside
    these two sequences. The I-202 bypass applies only in SEQ-START-BURNER; in
    SEQ-RESTART-BURNER I-202 is a permissive.
 5. Trip inputs fail safe. An NH3 input of FFZ-205 below its range or of bad quality trips I-201
@@ -710,19 +719,54 @@ Decision (PROPOSED; amends D-018, D-019 and D-023 where they point here):
    names FZ-206 to US-612, and the P-06 note names I-401 and its inputs. On P-06 the XV-610
    F.C. mark and the PV-611 tag moved to clear the ZSC-610 measuring line.
 7. TI-402 high alarm. It is an alarm entry of the UIC-401 loop (control/loops.yaml, setting the
-   vendor's, O-9) with its operator response, and UIC-401 lists I-401. The P-04 note names the
-   TAH and I-401, as the AI-210 precedent shows its alarm in loops.yaml and not by its tag.
+   vendor's, O-9) with its operator response, and UIC-401 lists I-401. The P-04 note names
+   I-401 as the limit and the TAH as its warning (amended by D-025), as the AI-210 precedent
+   shows its alarm in loops.yaml and not by its tag.
 8. F-AIR. On loss of instrument air XV-610 fails closed with the motor running. The package
    protection does not see that, so I-401 (or the operator) trips the train, and F-AIR now
-   lists I-401.
+   lists I-401 (amended by D-025: I-603 trips it first and holds XV-610 closed).
 Reason: the verification of the round-4 fixes found that the records claimed more than the
 logic did: the timer from train start, the bypass meaning, the abort without bypass removal,
 the undrawn inputs and the undefined alarm. Each fix makes the protection work as stated, not
 only the text.
 
+## D-025 Review of the D-024 fixes of PR #368: hot restart, XV-610 after air loss, wording (2026-11-06)
+Decision (PROPOSED; amends D-018, D-019 and D-024 where they point here):
+1. I-401 over a train stop. Resetting the timer on any train stop gave a hot K-102 a fresh
+   15 min after each stop and restart (an S2 abort at about 11 min, then a new start: about
+   26 min in all). The timer now resets on a stop only when the train has stayed stopped for
+   60 min (ASSUMED: K-102 cooled down, train vendor's, O-9); a shorter stop keeps the
+   accumulated time, and a train restarted hot trips when it reaches 15 min. The I-401
+   permissive of SEQ-START-BURNER (accumulated time below 4 min) is thereby the restart
+   inhibit of a hot train, and the limit holds across a stop and restart as stated.
+2. XV-610 after loss of instrument air. XV-610 fails closed on air loss but its solenoid stays
+   energised, so it would reopen by itself when the air returns, with PIC-611 possibly wound up
+   and PV-611 open, before any sequence or permissive. Accepting that was rejected: it breaks
+   the S2 rule that XV-610 opens only with PIC-611 in control. New trip I-603 (P-06): ZSC-610
+   shows XV-610 closed while US-612 commands it open, with the train running, for 30 s
+   (ASSUMED, longer than the valve takes to leave its seat; vendor, O-9), trips the train; I-602
+   follows and keeps XV-610 closed until reset, so the stop and new start that F-AIR and
+   D-024 item 2 prescribe are enforced. It uses the drawn ZSC-610 signal into US-612; nothing
+   new is drawn. ZSC-610 is shared with I-401 (O-9); a broken ZSC-610 wire defeats I-603, and
+   I-401 with its FZ-206 leg remains behind it. I-603 is a permissive and an abort cause of
+   both burner sequences, like I-401.
+3. Reset exception. The philosophy and D-024 item 3 now say the I-202 latch is reset under its
+   bypass in S1 of SEQ-START-BURNER only, and the I-203 latch in S1 or R1; in
+   SEQ-RESTART-BURNER I-202 has no bypass and is a permissive (C&E).
+4. Sensor sharing. D-019 now says that no trip shares a sensor with a loop, and names the
+   sensors shared between trips: TZ-207 (I-203, I-204), FZ-206 (I-201, I-202, I-401) and
+   ZSC-610 (I-401, I-603).
+5. R1 timeout of SEQ-RESTART-BURNER, 30 min, ASSUMED: the PIC-611 ramp from 1040 to
+   600 kPa(a) at the ASSUMED 20 kPa/min takes about 22 min, the purge 5 min after it, plus a
+   few minutes for the air step; the ramp is the train vendor's (O-9).
+6. P-04 note. It credited the TI-402 TAH with limiting the K-102 hot recycle; it now says the
+   recycle is limited by I-401 and the TAH warns before it.
+Reason: the review of the D-024 fixes found a limit that a stop and restart escaped, a trip
+valve that could reopen with no command, and text that disagreed with the C&E.
+
 ## Open inputs
 - O-8 (relief study): loads and orifices of all PSVs; the governing case of PSV-316 (E-102 tube rupture) and whether it needs a device close to E-102; K-101 shut-off pressure against the 6 barg set of PSV-111; thermal relief of blocked-in liquid NH3 (NL-101 between XV-101 and LV-102, NL-103) (D-021); E-108 tube rupture: NH3 into the LP steam header and condensate return (D-022).
-- O-9 (HAZOP / vendors): expander bypass for start-up and expander trip (train vendor); X-101 on cold air from SEQ-START-BURNER S2 (the air path opens there) until the gauze is lit; LP steam shutoff to E-108 on I-601/I-602 against PSV-616; NH3 detection and isolation on the E-108 condensate (D-022); CV105 as the boundary between PSV-111 (air to atmosphere) and the PSV-316 system, or PSV-111 to the NOx vent stack (D-022); K-102 full hot recycle time: the I-401 retentive timer (15 min) and its reset after unbroken forward flow (10 min), the train-start permissive (4 min), the restart rules of a hot train (restart inhibit, cool-down) and the TI-402 high alarm setting (D-022, D-023, D-024); FFZ-205 NH3 flow cutoff of I-201 (2 %) and the start-up bypass timers of I-202 (11 min) and I-203 (5 min) (D-023); FZ-206 shared by I-201, I-202 and I-401, its in-range failures, and the deviation alarm bands FZ-206/FI-202 and FFZ-205/FFIC-201 (D-023, D-024); the light-off at 600 kPa(a) in SEQ-RESTART-BURNER (PIC-611 ramp down at load, D-024); sensor voting and SIL of I-101 to I-602 (D-019, D-021).
+- O-9 (HAZOP / vendors): expander bypass for start-up and expander trip (train vendor); X-101 on cold air from SEQ-START-BURNER S2 (the air path opens there) until the gauze is lit; LP steam shutoff to E-108 on I-601/I-602 against PSV-616; NH3 detection and isolation on the E-108 condensate (D-022); CV105 as the boundary between PSV-111 (air to atmosphere) and the PSV-316 system, or PSV-111 to the NOx vent stack (D-022); K-102 full hot recycle time: the I-401 retentive timer (15 min) and its reset after unbroken forward flow (10 min) or a train stop of 60 min (cool-down), the train-start permissive (4 min), the other restart rules of a hot train and the TI-402 high alarm setting (D-022, D-023, D-024, D-025); the I-603 delay (30 s) against the XV-610 stroke (D-025); the SEQ-RESTART-BURNER R1 timeout (30 min) (D-025); FFZ-205 NH3 flow cutoff of I-201 (2 %) and the start-up bypass timers of I-202 (11 min) and I-203 (5 min) (D-023); FZ-206 shared by I-201, I-202 and I-401, TZ-207 by I-203 and I-204, ZSC-610 by I-401 and I-603 (D-025), the FZ-206 in-range failures, and the deviation alarm bands FZ-206/FI-202 and FFZ-205/FFIC-201 (D-023, D-024); the light-off at 600 kPa(a) in SEQ-RESTART-BURNER (PIC-611 ramp down at load, D-024); sensor voting and SIL of I-101 to I-603 (D-019, D-021, D-025).
 - O-7: lower flammability limit of NH3 in air (and with the water vapour of the feed) at the burner inlet conditions, 520 kPa(a) and 462 K, with its source: the trip point of I-201 and the clamp of FFIC-201 (D-019).
 - O-1: check D-005, D-008, D-011 against the BREF consumption and emission ranges (S2 sections 3.3, 3.4) with exact locators: NH3 per t HNO3 (here 0.285 t/t), steam export, power, cooling water, tail-gas NOx.
 - O-2: a sourced NO selectivity for medium-pressure gauzes (with catalyst age), replacing 0.955.

@@ -21,7 +21,10 @@
 # D-024: SEQ-START-BURNER starts the burner on a train just started against a closed XV-610;
 # SEQ-RESTART-BURNER relights it on a running train that still has forward flow (after an abort
 # in S3-S6 or a burner trip in operation), without closing XV-610. A train without forward flow
-# (an abort in S1-S2, a closed XV-610) is stopped and started again before SEQ-START-BURNER.
+# (an abort in S1-S2, a closed XV-610) is stopped and started again before SEQ-START-BURNER;
+# a train stop does not reset the I-401 timer before its cool-down time, so the I-401 permissive
+# is the restart inhibit of a hot train (D-025). An uncommanded closure of XV-610 (F-AIR) trips
+# the train (I-603), so XV-610 never reopens by itself.
 schema: cheme/sequences/v1
 sequences:
   - id: SEQ-START-BURNER
@@ -35,14 +38,15 @@ sequences:
       - {interlock: I-204, state: reset}
       - {interlock: I-401, state: reset}
       - {interlock: I-602, state: reset}
+      - {interlock: I-603, state: reset}
       - {all: [{tag: XV-203, state: closed}, {tag: XV-204, state: closed}, {loop: FFIC-201, state: in manual}]}
       - {all: [{tag: XV-610, state: closed}, {loop: PIC-611, state: in manual}]}
       - {all: [{tag: K-101, state: running}, {loop: UIC-110, state: in auto}, {loop: UIC-401, state: in auto}, {loop: FIC-107, state: in auto}]}
       - {tag: K-101, state: "train started less than 4 min ago (train-start time of the train logic US-612, ASSUMED: 4 + 3 + 8 min = the 15 min limit, D-023, D-024)"}
       - {interlock: I-401, state: "accumulated full-recycle time below 4 min (ASSUMED, D-024)"}
       - {tag: E-102, state: "boiler package ready (drum level in range, BFW in service)"}
-    interlocks: [I-101, I-201, I-202, I-203, I-204, I-401, I-602]
-    notes: "D-024. Only for a train just started against a closed XV-610: then the train-start time and the I-401 accumulated time are the same, and both permissives hold. A running train that has been on forward flow fails the train-start permissive: with forward flow it relights with SEQ-RESTART-BURNER (XV-610 stays open); without forward flow it is stopped and started again (the train vendor's restart rules for a hot machine, O-9), and I-401 trips it if it is not stopped first."
+    interlocks: [I-101, I-201, I-202, I-203, I-204, I-401, I-602, I-603]
+    notes: "D-024, D-025. Only for a train just started against a closed XV-610. After forward-flow operation or a cool-down the train-start time and the I-401 accumulated time are the same, and both permissives hold. A train restarted hot after running on full recycle (an abort in S1-S2, F-AIR) carries its I-401 time over the stop (no reset before the 60 min cool-down, ASSUMED, C&E I-401), so the I-401 permissive holds the burner start until the cool-down has reset it: the restart inhibit of a hot train (other restart rules the train vendor's, O-9). A running train that has been on forward flow fails the train-start permissive: with forward flow it relights with SEQ-RESTART-BURNER (XV-610 stays open); without forward flow it is stopped and started again, and I-401 trips it if it is not stopped first."
     steps:
       - id: S1
         title: Set the X-101 inlet pressure control before the expander path is opened
@@ -52,7 +56,7 @@ sequences:
         complete: {all: [{loop: PIC-611, state: in auto}, {tag: PV-611, state: "at the position PIC-611 asks (not fail-open)"}, {interlock: I-202, state: reset}, {interlock: I-203, state: reset}]}
         timeout: {value: 3, unit: min}
         on_timeout: abort
-        operator: "The train has been started on its motor (vendor's procedure) against the closed XV-610 less than 4 min ago (permissives). Until gas flows forward through PV-611 and X-101 (end of S2), K-102 runs on full hot recycle through UV-401. The limit, 15 min on full recycle (ASSUMED, vendor), is held by the trip I-401, whose retentive timer has run since the train start and trips the train; the permissives (4 min) and the S1 (3 min) and S2 (8 min) timeouts keep the sequence inside it. The TI-402 high alarm (control/loops.yaml, UIC-401) warns before the trip. The operator resets the latches of I-202 and I-203 here: their start-up bypasses mask the cause at each latch, so a latch from an earlier trip can be reset with no air and a cold gauze, and S1 completes only with both latches reset (D-023, D-024)."
+        operator: "The train has been started on its motor (vendor's procedure) against the closed XV-610 less than 4 min ago (permissives). Until gas flows forward through PV-611 and X-101 (end of S2), K-102 runs on full hot recycle through UV-401. The limit, 15 min on full recycle (ASSUMED, vendor), is held by the trip I-401, whose retentive timer counts the time on full recycle (since the train start, plus any time carried over a stop shorter than its cool-down) and trips the train; the permissives (4 min) and the S1 (3 min) and S2 (8 min) timeouts keep the sequence inside it. The TI-402 high alarm (control/loops.yaml, UIC-401) warns before the trip. The operator resets the latches of I-202 and I-203 here: their start-up bypasses mask the cause at each latch, so a latch from an earlier trip can be reset with no air and a cold gauze, and S1 completes only with both latches reset (D-023, D-024)."
       - id: S2
         title: Open the expander inlet and raise the air to the start-up rate
         actions:
@@ -107,14 +111,15 @@ sequences:
           - {interlock: I-204, state: tripped}
           - {interlock: I-401, state: tripped}
           - {interlock: I-602, state: tripped}
+          - {interlock: I-603, state: tripped}
           - {all: [{interlock: I-202, state: start-up bypass removed}, {interlock: I-202, state: tripped}]}
           - {all: [{interlock: I-203, state: start-up bypass removed}, {interlock: I-203, state: tripped}]}
       actions:
         - {tag: XV-203, action: close}
         - {tag: XV-204, action: close}
         - {tag: XV-101, action: close}
-      notes: "I-202 and I-203 abort once their start-up bypass is removed, by the step completing (S2, S5) or by the bypass timer (D-023). The abort itself also removes both bypasses automatically (C&E bypass fields, D-024), and every step timeout aborts, so no bypass outlasts the sequence. The abort does not stop the train. After an abort in S3-S6 (forward flow established) the burner is relit with SEQ-RESTART-BURNER; after an abort in S1-S2 (no forward flow) the train is stopped and started again before SEQ-START-BURNER, and I-401 trips it if the operator does not stop it in time (D-024)."
-    reset: {latching: true, manual: true, condition: {all: [{interlock: I-101, state: reset}, {interlock: I-201, state: reset}, {interlock: I-204, state: reset}, {interlock: I-401, state: reset}, {interlock: I-602, state: reset}]}}
+      notes: "I-202 and I-203 abort once their start-up bypass is removed, by the step completing (S2, S5) or by the bypass timer (D-023). The abort itself also removes both bypasses automatically (C&E bypass fields, D-024), and every step timeout aborts, so no bypass outlasts the sequence. The abort does not stop the train. After an abort in S3-S6 (forward flow established) the burner is relit with SEQ-RESTART-BURNER; after an abort in S1-S2 (no forward flow) the train is stopped and started again before SEQ-START-BURNER, once the I-401 permissive allows it (the stop does not reset the I-401 time before its cool-down, D-025), and I-401 trips it if the operator does not stop it in time (D-024)."
+    reset: {latching: true, manual: true, condition: {all: [{interlock: I-101, state: reset}, {interlock: I-201, state: reset}, {interlock: I-204, state: reset}, {interlock: I-401, state: reset}, {interlock: I-602, state: reset}, {interlock: I-603, state: reset}]}}
   - id: SEQ-RESTART-BURNER
     title: Relight the ammonia burner with the train running on forward flow (purge, ignite, ammonia in)
     mode: startup
@@ -127,10 +132,11 @@ sequences:
       - {interlock: I-204, state: reset}
       - {interlock: I-401, state: reset}
       - {interlock: I-602, state: reset}
+      - {interlock: I-603, state: reset}
       - {all: [{tag: XV-203, state: closed}, {tag: XV-204, state: closed}, {loop: FFIC-201, state: in manual}]}
       - {all: [{tag: K-101, state: running}, {tag: XV-610, state: open}, {loop: PIC-611, state: in auto}, {tag: FZ-206, state: above the trip point}, {loop: UIC-110, state: in auto}, {loop: UIC-401, state: in auto}, {loop: FIC-107, state: in auto}]}
       - {tag: E-102, state: "boiler package ready (drum level in range, BFW in service)"}
-    interlocks: [I-101, I-201, I-202, I-203, I-204, I-401, I-602]
+    interlocks: [I-101, I-201, I-202, I-203, I-204, I-401, I-602, I-603]
     notes: "D-024. The relight after a burner trip in operation or an abort of SEQ-START-BURNER in S3-S6, with the train still running and air flowing forward through PV-611 and X-101. XV-610 is not closed, so K-102 never goes back to full recycle and the I-401 timer is not restarted. I-202 is not bypassed (the air flows from the start; it is a permissive); I-203 is bypassed from the sequence start as in SEQ-START-BURNER (C&E bypass field). The steps R2-R4 are those of S4-S6 of SEQ-START-BURNER; the light-off is made at the same air rate and absorber pressure as there, so one light-off condition is validated."
     steps:
       - id: R1
@@ -141,7 +147,7 @@ sequences:
         complete: {all: [{tag: FIC-107, state: at setpoint}, {tag: PIC-611, state: at setpoint}, {tag: FIC-107, state: "purge volume passed (five volumes of M-101 to E-104, ASSUMED)", delay: {value: 5, unit: min}}, {interlock: I-203, state: reset}]}
         timeout: {value: 30, unit: min}
         on_timeout: abort
-        operator: "Air leads: the air is lowered to the start-up rate first, then PIC-611 is ramped down to 600 kPa(a) (ramp rate the train vendor's, ASSUMED about 20 kPa/min), watching the K-102 surge margin UIC-401. The purge clears any ammonia left from the trip. The operator resets the I-203 latch under its start-up bypass (C&E). FZ-206 must stay above its trip point: I-202 is live."
+        operator: "Air leads: the air is lowered to the start-up rate first, then PIC-611 is ramped down to 600 kPa(a) (ramp rate the train vendor's, ASSUMED about 20 kPa/min), watching the K-102 surge margin UIC-401. The purge clears any ammonia left from the trip. The operator resets the I-203 latch under its start-up bypass (C&E). FZ-206 must stay above its trip point: I-202 is live. Timeout 30 min (ASSUMED, D-025): the PIC-611 ramp from 1040 to 600 kPa(a) at about 20 kPa/min takes about 22 min, the purge 5 min after it, with a few minutes for the air step first; the ramp is the train vendor's (O-9)."
       - id: R2
         title: Ignite the gauze
         actions:
@@ -180,10 +186,11 @@ sequences:
           - {interlock: I-204, state: tripped}
           - {interlock: I-401, state: tripped}
           - {interlock: I-602, state: tripped}
+          - {interlock: I-603, state: tripped}
           - {all: [{interlock: I-203, state: start-up bypass removed}, {interlock: I-203, state: tripped}]}
       actions:
         - {tag: XV-203, action: close}
         - {tag: XV-204, action: close}
         - {tag: XV-101, action: close}
       notes: "The abort removes the start-up bypass of I-203 automatically (C&E bypass field). The abort does not stop the train; with forward flow kept, the relight is repeated from R1 (D-024)."
-    reset: {latching: true, manual: true, condition: {all: [{interlock: I-101, state: reset}, {interlock: I-201, state: reset}, {interlock: I-202, state: reset}, {interlock: I-204, state: reset}, {interlock: I-401, state: reset}, {interlock: I-602, state: reset}]}}
+    reset: {latching: true, manual: true, condition: {all: [{interlock: I-101, state: reset}, {interlock: I-201, state: reset}, {interlock: I-202, state: reset}, {interlock: I-204, state: reset}, {interlock: I-401, state: reset}, {interlock: I-602, state: reset}, {interlock: I-603, state: reset}]}}
