@@ -1,0 +1,17 @@
+# iodomethane-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# The preliminary LCI leaves most backgrounds unmapped (DESIGN.md D-014): the build reports each
+# as a gap (lci/gaps.json). Linked here: the methanol to methanol-1, the iodine to iodine-1, the
+# nitrogen consumable to asu-1's gaseous nitrogen, and the LP steam counted as heat delivered
+# (kWh), as acetyl-chloride-1 does. Red phosphorus, sodium thiosulfate, calcium chloride, the
+# 4A sieve and activated carbon have no library producer; their proxies are named in lca.yaml
+# and DESIGN.md D-014, not linked (CONTRIBUTING, "Gaps").
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:MEOH": {dataset: {path: processes/methanol-1/lca/dataset.yaml, product: "product:MEOH"}, source: "the Atlas producer methanol-1, Grade AA methanol (500 ppm water), the grade this feed takes (D-004)"}
+  "feed:IOD": {dataset: {path: processes/iodine-1/lca/dataset.yaml, product: "product:IODINE"}, source: "the Atlas producer iodine-1, iodine flakes (99.8 wt% I2) from natural brine, the grade this feed takes (D-004)"}
+  "consumable:nitrogen": {dataset: {path: processes/asu-1/lca/dataset.yaml, product: "product:GANP"}, source: "the Atlas producer asu-1, gaseous nitrogen to the battery limit (99.97 mol% N2, 9 bar(a)); the purges and blankets need only a few hundred kPa"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 350 kPa(a) to the hot-water loops of R-101 (Q1, the still ST101's Q3 and Q4) and C-104 (the still ST102's Q8, Q9 and Q13), counted as heat delivered (kWh), D-011"}

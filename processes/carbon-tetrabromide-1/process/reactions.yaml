@@ -1,0 +1,72 @@
+# Reactions of carbon-tetrabromide-1. Schema cheme/reactions/v1 (`cheme schema
+# process-reactions`).
+#
+# The aqueous haloform route of CN 101 885 665 A (DESIGN.md D-001): bromine is dripped into
+# cold caustic soda (HYPO, sodium hypobromite and bromide), then acetone is dripped into the
+# cold hypobromite with tetrabutylammonium bromide as phase-transfer catalyst; CBr4 precipitates
+# as a white solid. HALO lumps the haloform steps (tribromination of the methyl group, cleavage
+# to bromoform and acetate, bromination of the bromoform to CBr4) into one reaction, our own
+# element balance: C3H6O + 4 NaOBr -> CBr4 + CH3COONa + 3 NaOH. With HYPO the overall route is
+# C3H6O + 4 Br2 + 5 NaOH -> CBr4 + CH3COONa + 4 NaBr + 4 H2O: half of the bromine leaves as NaBr.
+# DISP is the slow disproportionation of hypobromite to bromate and bromide, the yield loss
+# while the hypobromite waits for the acetone (D-005). No open kinetics exist for any of the
+# three: every rate law is ASSUMED (D-005). The heats are Hess's-law estimates from tabulated
+# formation enthalpies (D-005), ASSUMED.
+# The precipitation of CBr4 (CR101) and the reslurry wash (W101) are no reactions here: they are
+# core's crystallizer with the liquor's other solutes as spectators (core ADR 0056, D-007).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: HYPO
+    title: Sodium hypobromite from bromine and caustic soda
+    equation: Br2 + 2 NaOH -> NaBrO + NaBr + H2O
+    stoichiometry: {BR2: -1, NAOH: -2, NAOBR: 1, NABR: 1, H2O: 1}
+    phase: liquid
+    heat_of_reaction: {value: -40900, provenance: assumed, source: "ASSUMED Hess's-law estimate (D-005): Br2(l) + 2 OH-(aq) -> Br-(aq) + BrO-(aq) + H2O(l) with OH- -230, Br- -121, H2O(l) -285.8 kJ/mol (Wikipedia, Standard enthalpy of formation, table, read 2026-11-05) and BrO- -94.1 kJ/mol (NBS tables, Wagman et al. 1982, not re-read; -91.5 elsewhere); Na+ cancels"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # second order, in dissolved bromine and in NaOH: k = 0.1 m3/(kmol s) at 278.15 K, so
+      # k c_NaOH,0 = 0.5 1/s at the charge's 5 kmol/m3: an ionic reaction, effectively instantaneous
+      k: {A: 3.249e6, Ea: 40000}
+      orders: {BR2: 1, NAOH: 1}
+      temperature_range: [273.15, 313.15]
+      provenance: assumed
+      source: "ASSUMED fast effective rate (D-005): no open kinetics of bromine in concentrated caustic found (2026-11-05); to be replaced by reaction calorimetry"
+    sources: ["CN 101 885 665 A, claim 1 step 1 and the examples: bromine dripped into caustic soda at 0-5 C, then 20 min of stirring"]
+  - id: DISP
+    title: Disproportionation of hypobromite to bromate
+    equation: 3 NaBrO -> NaBrO3 + 2 NaBr
+    stoichiometry: {NAOBR: -3, NABRO3: 1, NABR: 2}
+    phase: liquid
+    heat_of_reaction: {value: -26800, provenance: assumed, source: "ASSUMED Hess's-law estimate (D-005): 3 BrO-(aq) -> BrO3-(aq) + 2 Br-(aq) with BrO3- -67.1 kJ/mol (NBS tables, Wagman et al. 1982, not re-read), BrO- -94.1 and Br- -121 kJ/mol as HYPO: -67.1 + 2 x (-121) - 3 x (-94.1) = -26.8 kJ per mol of bromate"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # second order in hypobromite: k = 2e-7 m3/(kmol s) at 278.15 K, about 0.5 % of the
+      # hypobromite an hour at 2 kmol/m3; a strong temperature dependence (Ea 80 kJ/mol)
+      k: {A: 2.111e8, Ea: 80000}
+      orders: {NAOBR: 2}
+      temperature_range: [273.15, 313.15]
+      provenance: assumed
+      source: "ASSUMED slow loss (D-005): hypobromite is kept cold because it disproportionates to bromate on standing; no open rate constant in strong caustic found (2026-11-05)"
+    sources: ["ASSUMED (D-005): the yield loss of a cold hypobromite; not from the patent, which gives no yield"]
+  - id: HALO
+    title: Haloform bromination of acetone to carbon tetrabromide (lumped)
+    equation: C3H6O + 4 NaBrO -> CBr4 + C2H3NaO2 + 3 NaOH
+    stoichiometry: {ACET: -1, NAOBR: -4, CBR4: 1, NAOAC: 1, NAOH: 3}
+    phase: liquid
+    heat_of_reaction: {value: -520800, provenance: assumed, source: "ASSUMED Hess's-law estimate (D-005): C3H6O(l) + 4 BrO-(aq) -> CBr4(s) + CH3COO-(aq) + 3 OH-(aq), with acetone(l) -249.4 and CBr4(s) +29.4 kJ/mol (NIST WebBook, read 2026-11-05), OH- -230 (Wikipedia table, read), BrO- -94.1 and CH3COO- -486.0 kJ/mol (NBS tables, Wagman et al. 1982, not re-read); per mol of acetone, to the solid (the crystallisation's heat included)"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # second order, in acetone and in hypobromite: k = 0.002 m3/(kmol s) at 278.15 K
+      k: {A: 3.703e8, Ea: 60000}
+      orders: {ACET: 1, NAOBR: 1}
+      temperature_range: [273.15, 313.15]
+      provenance: assumed
+      source: "ASSUMED effective rate of the lumped haloform steps with the phase-transfer catalyst (D-005), chosen so that the post-reaction after the dosing takes a few hours, as the patent's 3-5 h of stirring; no open kinetics found (2026-11-05); to be replaced by reaction calorimetry"
+    sources: ["CN 101 885 665 A, claim 1 step 2 and the examples: acetone dripped into the hypobromite at 0-5 C with tetrabutylammonium bromide, a white solid precipitating, then 3-5 h of stirring"]

@@ -1,0 +1,90 @@
+# Benchmarks of waste treatment: for now waste incineration with energy recovery. Schema:
+# schemas/benchmarks.schema.json; rules: docs/benchmarks.md. Ranges are facts from the cited
+# source, in our own form.
+#
+# How independent they are:
+# - The two energy KPIs come from the CEWEP survey of 314 European plants, a source the dataset
+#   does not use (its energy rests on WI BREF Tables 2.10, 5.2, 8.4 and 3.37). They are min-max
+#   ranges over very different plants, so "inside" is a weak test; the weighted means are in the
+#   notes.
+# - CO2 and bottom ash come from the WI BREF, the dataset's own document, but from other data than
+#   the dataset uses: the dataset's CO2 follows its carbon (inside the Table 1.6 range, closed so that
+#   the composition gives the 9 GJ/t LHV of Table 2.10), and its bottom ash is the mineral matter of
+#   Table 1.6 closed by difference, not the Table 3.13 range below.
+schema: cheme-as-code/benchmarks/v1
+family: waste-treatment
+
+kpis:
+  wi-electricity-exported:
+    title: Electricity exported per t of municipal solid waste
+    unit: kWh/t
+    references:
+      - id: cewep-energy-iii-chp-electricity-exported
+        range: [7, 899]
+        basis: unallocated
+        note: "Lowest and highest value of the CHP-producing plants; their weighted mean is 338 kWh/t, with 106 kWh/t self used on top (444 kWh/t produced). Converted from MWh per Mg. The plants' mean NCV is about 10.3 GJ/t, against the dataset's 9 GJ/t."
+        conditions: {technology: "waste-to-energy plants producing heat and electricity (184 plants, 40.8 Mt/a; status 2007-2010)", region: "EU, Switzerland and Norway", year: 2010}
+        source: &cewep
+          citation: "Reimann, D. O. (2012) CEWEP Energy Report III (Status 2007-2010): Results of Specific Data for Energy, R1 Plant Efficiency Factor and NCV of 314 European Waste-to-Energy (WtE) Plants. Confederation of European Waste-to-Energy Plants (CEWEP), Brussels"
+          url: https://www.cewep.eu/wp-content/uploads/2017/09/13_01_15_cewep_energy_report_iii.pdf
+          locator: Annex A, p. 29
+          kind: other
+          accessed: "2026-11-05"
+  wi-heat-exported:
+    title: Heat exported per t of municipal solid waste
+    unit: kWh/t
+    references:
+      - id: cewep-energy-iii-chp-heat-exported
+        range: [4, 3267]
+        basis: unallocated
+        note: "Lowest and highest value of the CHP-producing plants; their weighted mean is 938 kWh/t, with 163 kWh/t self used on top. Converted from MWh per Mg. CEWEP is an industry association; its survey is open and states its method, but it is not peer reviewed."
+        conditions: {technology: "waste-to-energy plants producing heat and electricity (184 plants, 40.8 Mt/a; status 2007-2010)", region: "EU, Switzerland and Norway", year: 2010}
+        source: *cewep
+  wi-co2-total:
+    title: CO2 (fossil and biogenic) per t of municipal solid waste
+    unit: t/t
+    references:
+      - id: bref-wi-co2-per-t-msw
+        range: [0.7, 1.7]
+        basis: unallocated
+        note: The source's approximate range for municipal waste. Same document as the dataset, but the dataset's CO2 follows its carbon content (Table 1.6 range, closed on the Table 2.10 LHV), not this range.
+        conditions: {technology: municipal waste incineration, region: EU}
+        source:
+          citation: "Neuwahl, F., Cusano, G., Gómez Benavides, J., Holbrook, S., Roudier, S. (2019) Best Available Techniques (BAT) Reference Document for Waste Incineration. JRC Science for Policy Report EUR 29971 EN, doi:10.2760/761437"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2020-01/JRC118637_WI_Bref_2019_published_0.pdf
+          locator: Section 3.2.1, p. 152
+          kind: bref
+          accessed: "2026-11-05"
+  wi-bottom-ash:
+    title: Bottom ash (dry) per t of municipal solid waste
+    unit: kg/t
+    references:
+      - id: bref-wi-bottom-ash
+        range: [150, 350]
+        basis: unallocated
+        note: Includes the grate siftings. Same document as the dataset, whose bottom ash is the waste's mineral matter (Table 1.6) closed by difference, not this range.
+        conditions: {technology: "municipal solid waste incineration plants", region: EU}
+        source:
+          citation: "Neuwahl, F., Cusano, G., Gómez Benavides, J., Holbrook, S., Roudier, S. (2019) Best Available Techniques (BAT) Reference Document for Waste Incineration. JRC Science for Policy Report EUR 29971 EN, doi:10.2760/761437"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2020-01/JRC118637_WI_Bref_2019_published_0.pdf
+          locator: Section 3.4.1, Table 3.13, p. 244
+          kind: bref
+          accessed: "2026-11-05"
+
+datasets:
+  - process: waste-incineration-1
+    dataset: msw-incineration-grate-chp
+    conditions: {technology: "moving grate, heat-oriented CHP with district heating, semi-wet FGC, SNCR", basis: "conceptual inventory, 1 t mixed MSW at 9 GJ/t"}
+    kpis:
+      wi-electricity-exported:
+        expression: product:electricity / (feed:msw-water + feed:msw-carbon-fossil + feed:msw-carbon-biogenic + feed:msw-hydrogen + feed:msw-oxygen + feed:msw-nitrogen + feed:msw-mineral)
+        reference: cewep-energy-iii-chp-electricity-exported
+      wi-heat-exported:
+        expression: product:heat / (feed:msw-water + feed:msw-carbon-fossil + feed:msw-carbon-biogenic + feed:msw-hydrogen + feed:msw-oxygen + feed:msw-nitrogen + feed:msw-mineral)
+        reference: cewep-energy-iii-chp-heat-exported
+      wi-co2-total:
+        expression: (emission:CO2 + emission:CO2-biogenic) / (feed:msw-water + feed:msw-carbon-fossil + feed:msw-carbon-biogenic + feed:msw-hydrogen + feed:msw-oxygen + feed:msw-nitrogen + feed:msw-mineral)
+        reference: bref-wi-co2-per-t-msw
+      wi-bottom-ash:
+        expression: output:bottom-ash / (feed:msw-water + feed:msw-carbon-fossil + feed:msw-carbon-biogenic + feed:msw-hydrogen + feed:msw-oxygen + feed:msw-nitrogen + feed:msw-mineral)
+        reference: bref-wi-bottom-ash

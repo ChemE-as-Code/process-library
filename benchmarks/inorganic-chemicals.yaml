@@ -1,0 +1,110 @@
+# Benchmarks of other inorganic chemicals. Schema: schemas/benchmarks.schema.json; rules:
+# docs/benchmarks.md. Ranges are facts from the cited source, in our own form.
+#
+# Phosphorus tribromide (phosphorus-tribromide-1, #134): no open source gives a plant's specific
+# consumptions. The stoichiometric floor of the bromine is 0.886 kg/kg PBr3 (P4 + 6 Br2 -> 4
+# PBr3); it is a limit, not a range of real plants, so it is not recorded as one
+# (docs/benchmarks.md: never invent a range). The one open yield, the 95.0 % on phosphorus of the
+# example of DE 1 281 414 / US 3 409 401, is the dataset's own basis (DESIGN.md D-008), so binding
+# it would only check the transcription.
+#
+# Methylmagnesium bromide (methylmagnesium-bromide-1, #157; the taxonomy has no organometallics
+# family, inorganic-chemicals is the nearest): no open source gives a plant's specific
+# consumptions. The stoichiometric floors per kg of 35 wt% solution are 0.279 kg methyl bromide
+# and 0.071 kg magnesium (Mg + CH3Br -> CH3MgBr); they are limits, not ranges of real plants, so
+# they are not recorded as ranges (docs/benchmarks.md: never invent a range).
+#
+# Sodium azide (sodium-azide-1, #167): the one open plant-like figure is the hydrazine use of
+# US 5 208 002 Example 2 (11 recycled batches); the off-gas has no open reference.
+#
+# Copper(I) chloride (copper-i-chloride-1, #143): no open source gives a plant's specific
+# consumptions or a yield of the wet brine route. The stoichiometric floors are 0.642 kg copper and
+# 0.358 kg chlorine per kg CuCl (2 Cu + Cl2 -> 2 CuCl); they are limits, not ranges of real plants,
+# so they are not recorded as references (docs/benchmarks.md: never invent a range). The open
+# sources read (US 3 030 178 A, US 3 121 609 A, US 4 582 579 A, CN 1 696 062 A) give no yield on
+# copper; US 4 582 579 A's example (about 120 g CuCl from 48.2 g CuO and 38.3 g Cu in HCl) is a
+# different, evaporative route.
+schema: cheme-as-code/benchmarks/v1
+family: inorganic-chemicals
+
+kpis:
+  pbr3-specific-bromine:
+    title: Bromine consumption per kg of phosphorus tribromide
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's or a pilot's bromine use per kg PBr3 found independent of the dataset (searched 2026-11-05: Google Patents DE 1 281 414 B / US 3 409 401 A read, the dataset's own basis; web search for PBr3 production consumption and yields, which gave only laboratory preparations and encyclopaedia summaries without plant figures). Only the stoichiometric floor, 0.886 kg/kg, is known."
+  pbr3-specific-residue:
+    title: Still residue to incineration per kg of phosphorus tribromide
+    unit: kg/kg
+    no_open_reference: "No open source with the residue of PBr3 distillation found (searched 2026-11-05 as for pbr3-specific-bromine); US 3 409 401 names the red-phosphorus addition before the vacuum distillation but no residue amount."
+  memgbr-specific-methyl-bromide:
+    title: Methyl bromide consumption per kg of methylmagnesium bromide solution (35 wt%)
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's or a pilot's methyl bromide use per kg of MeMgBr solution found (searched 2026-11-05: the Albemarle TDS 10000303 gives the product, not the process; the Fraunhofer IMM flyer on continuous Grignard formation (2020) names no MeMgBr figures; am Ende et al., OPRD 1999, 3, 319 seen as an abstract only). Only the stoichiometric floor, 0.279 kg/kg, is known."
+  memgbr-specific-magnesium:
+    title: Magnesium consumption per kg of methylmagnesium bromide solution (35 wt%)
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's magnesium excess or use per kg of MeMgBr solution found (searched 2026-11-05 as for memgbr-specific-methyl-bromide). Only the stoichiometric floor, 0.071 kg/kg, is known."
+
+  nan3-specific-hydrazine-hydrate:
+    title: Hydrazine hydrate (64 wt% N2H4) per kg of sodium azide
+    unit: kg/kg
+    description: >-
+      Hydrazine hydrate counted as 64 wt% N2H4 per kg of dried sodium azide product, with the mother
+      liquor recycled from batch to batch.
+    references:
+      - id: us5208002-example2
+        range: [0.807, 0.852]
+        basis: unallocated
+        conditions:
+          technology: methyl nitrite absorbed into aqueous hydrazine and caustic soda at 30 C, NaN3 crystallised from the concentrated liquor, filtrate recycled (11 batches)
+          product: dried sodium azide, 99.5 wt%
+          region: laboratory to pilot scale (20 L)
+          year: 1993
+        source:
+          citation: "Sasaki, M. et al. (Nippon Carbide Industries, 1993) US 5 208 002 A, Method of producing alkali metal azides (family EP 0 514 143 B1; priority 1991-05-17)"
+          url: https://patents.google.com/patent/US5208002A/en
+          locator: "Example 2 and Table 2: the steady cycles 4-11 (43.2 mol hydrazine added for 41.0 mol NaN3) give the low end, the 11 cycles together (493.8 mol hydrazine, 444.2 mol NaN3 at 99.5 %, 90.0 % yield) the high end; converted by us to kg of 64 wt% hydrate per kg of product"
+          kind: other
+          accessed: "2026-11-05"
+        note: >-
+          A patent example, not a plant: the dataset takes its charge ratios from the same patent's
+          Example 1 (DESIGN.md D-004), but its yield on hydrazine (92 %) follows from its own
+          recycle, purge and losses, so the range checks the balance, not a transcription.
+  nan3-specific-offgas:
+    title: Azide reactor off-gas to treatment per kg of sodium azide
+    unit: kg/kg
+    no_open_reference: "No open source with the off-gas (unabsorbed methyl nitrite, N2O, NH3) of a sodium azide plant found (searched 2026-11-05: Google Patents US 5 208 002 A and US 5 098 597 A read, which name the nitrogen of side reactions but give no off-gas amounts; J. Studley, Scientific Update 2023, a secondary summary without figures). The dataset's off-gas follows from the methyl nitrite not absorbed in the patent's Example 1 balance and its ASSUMED side reaction (DESIGN.md D-004, D-005)."
+  cucl-specific-copper:
+    title: Copper consumption per kg of copper(I) chloride
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's or a pilot's copper use per kg CuCl by the wet brine route found independent of the dataset (searched 2026-11-06: Google Patents US 3 030 178 A, US 3 121 609 A, US 4 582 579 A, CN 1 696 062 A and US 4 308 239 A read, none with a yield on copper of the dilution route; web search for cuprous chloride production consumption figures, which gave only encyclopaedia summaries, not read where licensed). Only the stoichiometric floor, 0.642 kg/kg, is known; the dataset's 0.826 kg/kg carries its ASSUMED dilution loss (DESIGN.md D-006)."
+  cucl-specific-chlorine:
+    title: Chlorine consumption per kg of copper(I) chloride
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's chlorine use per kg CuCl found (searched 2026-11-06 as for cucl-specific-copper; US 3 030 178 A, Example 1, gives a chlorine feed rate and an outflow concentration but no product isolated). Only the stoichiometric floor, 0.358 kg/kg, is known."
+
+datasets:
+  - process: phosphorus-tribromide-1
+    dataset: phosphorus-tribromide-by-semi-batch-bromination-of-white-phosphorus-in-a-pbr3-heel-1000-t-a
+    conditions: {technology: "bromination of white phosphorus in a PBr3 heel at 398 K, red-phosphorus treatment, batch vacuum distillation", basis: "concept balance, ratios from the patent's example and ASSUMED (DESIGN.md D-004, D-008)"}
+    kpis:
+      pbr3-specific-bromine: {expression: feed:BR2 / product:PBR3, per: product:PBR3}
+      pbr3-specific-residue: {expression: product:RES / product:PBR3, per: product:PBR3}
+  - process: methylmagnesium-bromide-1
+    dataset: methylmagnesium-bromide-in-2-methf-by-semi-batch-grignard-reaction-with-methyl-bromide-gas-dosing
+    conditions: {technology: "semi-batch Grignard reaction of magnesium turnings with methyl bromide gas in 2-MeTHF at 318 K, filtration of the excess magnesium", basis: "concept balance, ratios ASSUMED (DESIGN.md D-004, D-005)"}
+    kpis:
+      memgbr-specific-methyl-bromide: {expression: feed:MEBR / product:PROD, per: product:PROD}
+      memgbr-specific-magnesium: {expression: feed:MG / product:PROD, per: product:PROD}
+  - process: sodium-azide-1
+    dataset: sodium-azide-by-the-hydrazine-methyl-nitrite-route-batch-with-precipitation-from-the-reaction-liquor
+    conditions: {technology: "methyl nitrite from NaNO2, methanol and H2SO4 absorbed into hydrazine hydrate and caustic soda at 313 K, methanol strip and vacuum concentration, NaN3 precipitated at 303 K, filter-dryer, mother liquor recycled with a 5 % purge", basis: "concept balance, charge ratios from US 5 208 002 Example 1, ASSUMED kinetics and purge (DESIGN.md D-004, D-005, D-016)"}
+    kpis:
+      nan3-specific-hydrazine-hydrate: {expression: feed:HH / product:NAN3P, per: product:NAN3P, reference: us5208002-example2}
+      nan3-specific-offgas: {expression: product:OFFGAS / product:NAN3P, per: product:NAN3P}
+  - process: copper-i-chloride-1
+    dataset: copper-i-chloride-by-semi-batch-chlorination-of-copper-in-brine-dilution-precipitation-and-filter-drying-300-t-a
+    conditions: {technology: "chlorine dosed below the surface of a 300 g/L NaCl brine over excess copper at 353 K (semi-batch, copper heel recycled), dilution with about 7 volumes of water, CuCl precipitated, acid and ethanol washes, vacuum filter-dryer; a tenth of the mother liquor recycled, the rest to copper recovery outside the boundary", basis: "concept balance, the patents' ratios, ASSUMED kinetics, solubility and work-up (DESIGN.md D-004 to D-008)"}
+    kpis:
+      cucl-specific-copper: {expression: feed:CU / product:CUCL, per: product:CUCL}
+      cucl-specific-chlorine: {expression: feed:CL2 / product:CUCL, per: product:CUCL}

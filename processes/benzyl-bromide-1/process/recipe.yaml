@@ -1,0 +1,48 @@
+# The batch recipe of benzyl-bromide-1 (schema cheme/recipe/v1, `cheme process recipe`,
+# DESIGN.md D-003). One batch makes BATCH kg of distilled benzyl bromide (stream S15); the
+# flowsheet's rates are the year averages.
+# - R-101, the photoreactor, is one vessel over E101 (the charge heated) and R101 (the
+#   semi-batch: bromine dosed under the lamps, HBr vented): `units`, core ADR 0057. Dosing and
+#   post-reaction come from R101's model (from: R101), the heat-up from the jacket
+#   (temperatures); the vessel is sized from R101's model and its jacket checked against the
+#   model's peak duty (core ADR 0052).
+# - C-101, the batch still, is one vessel over ST101 (the toluene strip at 15 kPa(a)) and ST102
+#   (the vacuum distillation at 2 kPa(a), forerun and main cut): both distil times from the
+#   stills' boil-up (from:, core ADR 0055). T-201 (the recovered toluene, M201 and SP201) is a
+#   tank, no batch unit.
+# The condensers E-102 and E-103 and the absorber A-101 run while R-101 doses and are no batch
+# units. Every other duration is ASSUMED (D-003). `cheme process recipe --svg build/gantt.svg`
+# draws one batch.
+schema: cheme/recipe/v1
+kind: recipe
+title: Benzyl bromide by semi-batch light-driven bromination of toluene and batch distillation
+batch_size: {value: 889.6, unit: kg, stream: S15, provenance: assumed, source: "one batch of distilled benzyl bromide: 1000 t/a over the batches the 7.046 h cycle allows, 126.263 kg/h x 7.046 h (D-002, D-003)"}
+hours_per_year: {value: 7920, provenance: assumed, source: "330 days of 24 h (D-002)"}
+unit_procedures:
+  - id: REACT
+    units: [E101, R101]
+    title: Charge, heat, dose bromine under the lamps with the HBr to the absorber (R-101)
+    vessel:
+      fill_fraction: 0.8
+      aspect_ratio: 1.2
+      jacket: {u: 300, coolant_temperature: 303.15, heating_temperature: 421.0, provenance: assumed, source: "enamelled (glass-lined) steel vessel with lamp wells; tempered water at 303 K (cooling water through a mixing loop, mean of 298 supply and 308 K return) and LP steam at 421 K in the jacket (D-003, D-009)"}
+      provenance: assumed
+      source: "usual fill and proportions of an enamelled stirred vessel (D-003)"
+    operations:
+      - {id: inert, kind: other, title: Nitrogen purge of the dry vessel, duration: {value: 0.25, provenance: assumed, source: D-003}}
+      - {id: charge, kind: charge, title: Charge the toluene (make-up and recycle), duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: heat, kind: heat, title: Heat to 363 K (E101), temperatures: [298.64, 363.15]}
+      - {id: dose, kind: dose, title: Dose the bromine under the lamps, from: R101}
+      - {id: react, kind: react, title: Post-reaction under the lamps, from: R101}
+      - {id: hold, kind: hold, title: "Sample the crude (bromine, benzal bromide)", duration: {value: 0.25, provenance: assumed, source: D-003}}
+      - {id: transfer, kind: transfer, title: Crude to the still, duration: {value: 0.5, provenance: assumed, source: D-003}}
+  - id: DISTIL
+    units: [ST101, ST102]
+    title: Toluene strip at 15 kPa(a), vacuum distillation at 2 kPa(a) (C-101)
+    operations:
+      - {id: receive, kind: charge, title: Receive the crude, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: strip, kind: distil, title: Strip the toluene at 15 kPa(a) (ST101), from: ST101}
+      - {id: evacuate, kind: other, title: Evacuate to 2 kPa(a), duration: {value: 0.25, provenance: assumed, source: D-003}}
+      - {id: distil, kind: distil, title: Forerun and main cut at 2 kPa(a) (ST102), from: ST102}
+      - {id: cool, kind: cool, title: Cool the residue to 333 K and break the vacuum with nitrogen, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: drain, kind: transfer, title: Drain the residue to the waste drum, duration: {value: 0.25, provenance: assumed, source: D-003}}

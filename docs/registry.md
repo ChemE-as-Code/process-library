@@ -20,6 +20,12 @@ and takes its molar mass from `oxygen`.
 
 Grade slugs may contain dots (`gox-30barg-99.5`). Substance slugs may not.
 
+Carbon dioxide has two grades: `carbon-dioxide/liquid`, liquefied merchant CO2, and
+`carbon-dioxide/dense-153bara-99.95`, the dense-phase pipeline CO2 that carbon-capture-1 makes
+(15.3 MPa, 30 degC, 99.95 mol%). The build refuses a link between them, so a consumer of merchant
+liquid CO2 (co2-electrolysis-bpm-1, graded through `flow_grades`) is not linked to the pipeline
+product.
+
 ## How a flow names its grade
 
 A flow in `process.yaml` may name `chemical: <slug>/<grade>`. When it names only the substance,
@@ -172,6 +178,16 @@ carry the IPCC category NCV their dataset allocates by, in the same form. A typi
 first process that needs one. A mixture entry may go in
 without a composition (the schema allows it), but no composition is entered without a source.
 
+The olefins and aromatics entries follow the same rule. butadiene-1 brought its two co-products
+from `crude-c4`, `c4-raffinate` (raffinate-1; the slug avoids the `<name>-1` form of a process id)
+and `c4-acetylenes-purge`, and btx-1 brought `aromatics-raffinate`, `heavy-aromatics` and `xylenes`,
+all mixtures. `reformate` got its first composition with btx-1: one typical slate of US DOE
+(2000), Table 4-1, with its source and the ASSUMED wt% reading in the entry;
+catalytic-reforming-1 keeps its own pseudo-formula. `xylenes` has a composition from the same
+source (Table 4-2). A mixture may carry a `cas` when a CAS number names the mixture itself, as
+1330-20-7 does for mixed xylenes; it then has no `inchikey` or `pubchem_cid`, since those name a
+single structure, and the entry's note says so.
+
 The minerals and metals entries of cement-clinker-1, lime-1, iron-steel-1 and aluminium-1 follow
 the same rule, although most of them are not fuels: ores and raw materials (`iron-ore`,
 `iron-ore-pellets`, `clay`, `dolomite`), coals and oil (`coking-coal`, `hard-coal`,
@@ -180,6 +196,28 @@ by-products (`blast-furnace-slag`, `steelmaking-slag`, `coal-tar`) and the `preb
 mixtures without a composition and without an `lhv`, and so is `cement-clinker`. Their datasets keep them outside the element
 balance or use a model formula of their own with its sources (the clinker in cement-clinker-1,
 the anode in aluminium-1).
+
+The energy, carbon and waste entries follow the same rule. e-fuels-1 brought
+`fischer-tropsch-fuel`, plastic-pyrolysis-1 brought `mixed-polyolefin-waste`,
+`plastic-pyrolysis-oil`, `plastic-pyrolysis-gas` and `pyrolysis-char`, and waste-incineration-1
+brought `municipal-solid-waste`. All are mixtures without a composition. The pyrolysis oil and
+gas carry the IPCC category NCV their dataset allocates by (naphtha and ethane, an ASSUMED match),
+as the refining products do. The others have no `lhv`. The incinerated waste's ultimate analysis
+is in waste-incineration-1's dataset, not in the registry, because it is one average waste built
+from separate ranges.
+
+## Polymers
+
+A polymer (`polyethylene`, `polypropylene`, `polyethylene-terephthalate`) is a **substance**
+described by its repeat unit: `formula` is the repeat unit (C2H4, C3H6, C10H8O4; end groups,
+catalyst residues and additives neglected), and `molar_mass`, `elemental_composition` and
+`carbon_content` are per repeat unit, so the element balance of a polymerisation dataset can read
+the product. The polymer's own CAS number is recorded, with the `chebi` id of the ChEBI polymer
+entry that cross-references that CAS; there is no `inchikey` or `pubchem_cid`, since a polymer has
+no standard structure key. The `chemicals` package cannot confirm a polymer's CAS (it maps some to
+the monomer and lacks others), so each polymer is listed in `CHEMICALS_PACKAGE_EXCEPTIONS` in
+`tests/test_registry.py`, with the reason, instead of being checked against it. Grades (HDPE,
+LDPE, LLDPE; homopolymer and copolymer) are not split yet.
 
 ## Identities and how they are verified
 

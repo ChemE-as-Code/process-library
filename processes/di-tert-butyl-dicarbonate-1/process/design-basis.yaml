@@ -1,0 +1,63 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Di-tert-butyl dicarbonate (Boc2O) by the one-pot phosgene route, a batch plant, issue
+# ChemE-as-Code/process-library#160. Values marked ASSUMED are engineering choices of this
+# concept study, not client or licensor data; every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: distilled Boc2O melt to heated storage at the battery limit
+  boc2o_t_per_year: 500                # ASSUMED (D-002): a fine-chemical batch scale, no open market figure used
+  operating_hours_per_year: 7920       # ASSUMED (D-002): 330 days of 24 h, batch operation
+  batch_kg: 657.28                     # ASSUMED (D-003): one batch of distilled product every 10.41 h
+  batches_per_year: 760.7              # from the recipe (process/recipe.yaml, D-003)
+feeds:
+  - name: Potassium tert-butoxide (merchant solid)
+    source_of_values: ASSUMED (D-004)
+    composition: "KOtBu 100 % (its tert-butanol and KOH not modelled)"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Liquid phosgene (phosgene-1)
+    source_of_values: "ASSUMED (D-004): 0.49 mol per mol of the alkoxide"
+    composition: "phosgene 100 % (phosgene-1's 35 ppm(wt) Cl2 not modelled)"
+    conditions: {temperature_K: 253.15, pressure_kPa_a: 340}
+  - name: Carbon dioxide gas (merchant)
+    source_of_values: "ASSUMED (D-004): 1.3 mol per mol of the alkoxide"
+    composition: "CO2 100 %, dry"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 150}
+  - name: n-Hexane make-up (merchant)
+    source_of_values: "ASSUMED (D-004): about 5 kg of hexane per kg of carbonate in the charge, the recycle's hexane counted"
+    composition: "n-hexane 100 % (its isomers not modelled)"
+  - name: DABCO (merchant)
+    source_of_values: "ASSUMED (D-004): 1.2 mol% of the alkoxide (EP 0 256 559 A2, Example 1)"
+  - name: Liquid paraffin (white mineral oil, merchant)
+    source_of_values: "ASSUMED (D-008): the heel's make-up"
+  - name: Process water (wash, scrubber make-up)
+    source_of_values: ASSUMED (D-007)
+  - name: Caustic soda 50 wt% (chlor-alkali-1)
+    source_of_values: ASSUMED (D-007)
+products:
+  - name: Di-tert-butyl dicarbonate (Boc2O)
+    purity: "99.98 wt% Boc2O, 0.016 wt% water, 0.004 wt% tert-butanol in the model (D-008): an upper bound, since di-tert-butyl carbonate, the tricarbonate and the other by-products are not modelled"
+    delivery: {temperature_K: 303.15, pressure_kPa_a: 101.325, battery_limit: heated vented storage above the 296 K melting point, dry}
+  - name: Wash brine to wastewater treatment
+    note: "about 17 wt% KCl with tert-butanol, DABCO and the unreacted carbonate (D-007, D-010)"
+  - name: Waste solvent to incineration
+    note: "the forerun and the hexane purge, 53 g per kg of product (D-008, D-010)"
+  - name: Still heel purge to incineration
+    note: "liquid paraffin with Boc2O and DABCO, 39 g per kg of product (D-008, D-010)"
+  - name: Scrubbed vent to the thermal oxidiser
+    note: "CO2 with isobutene, hexane and water vapour, 451 g per kg of product, and the nitrogen (D-007, D-012)"
+utilities:
+  - {name: Electric power, use: "agitators of R-101, V-201 and C-301, the vacuum pumps, the scrubber (D-009)"}
+  - {name: LP steam, pressure_kPa_a: 350, use: "the hot-water circuits of V-201 (321 K), C-301 (368 K), E-201 and the tempered water of E-102 and DG101 (D-009)", note: ASSUMED}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "the main-cut condenser and product cooler (through a tempered loop above Boc2O's melting point), the scrubber", note: ASSUMED}
+  - {name: Chilled water, supply_K: 278.15, return_K: 283.15, use: "the strips' condensers, the forerun's condenser after the vacuum pump", note: ASSUMED}
+  - {name: Chilled brine, supply_K: 258.15, return_K: 263.15, use: "R-101's jacket and its vent condenser", note: ASSUMED}
+  - {name: Nitrogen, use: "inerting R-101, sweeping the CO2 out of the slurry in the degassing, purging the phosgene line, breaking the vacuums, blanketing the tanks (per batch, lca/lca.yaml)", note: ASSUMED}
+site:
+  location: ASSUMED generic fine-chemicals site with a captive phosgene unit and a thermal oxidiser, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Route: the one-pot phosgene route of EP 0 256 559 A2 (alkoxide carbonated with CO2, then phosgene with DABCO, no tricarbonate isolated), in hexane instead of the example's THF (ASSUMED, within the claimed solvents; D-001)."
+  - "ASSUMED effective rate laws: CARB k 0.05 m3/(kmol s), PHOS 0.05 and SIDE 0.0038 at 278 K (7 % of the phosgene to the side path); the 2.7 % phosgene accumulation follows from them (D-005, D-011)."
+  - "Stills: Raoult's law with NIST Antoine constants (an ideal liquid, ASSUMED), Boc2O's vapour pressure ASSUMED from one open point; the degassing (a nitrogen sweep at 30 kPa(a)) at ASSUMED constant volatilities, its CO2 volatility set so that its gas carries the hexane that saturates R-101's vent-condenser gas over the batch (D-006, D-008)."
+  - "The wash's split and the scrubber's CO2 uptake are specified (ASSUMED, D-007); all flows are year averages of the recipe (D-003); accuracy +/-30 % not demonstrated."
