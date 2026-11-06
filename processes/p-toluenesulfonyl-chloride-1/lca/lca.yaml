@@ -9,7 +9,8 @@
 # a gap, never zero, and no values from licensed databases. The HCl of the two vents is
 # neutralised in the caustic scrubber S101 (0.999 of it); the spent liquor carries the rest.
 # The plant has no emission to air in the balance: the scrubbed vent's traces, the toluene vapour
-# the HCl strips from R-101 and the dryer's vacuum vent are not estimated (emission_exclusions).
+# the HCl strips from R-101 (about 0.29 g per kg on a scratch run of core 1.10.0's vent vapour,
+# DESIGN.md D-015) and the dryer's vacuum vent are not estimated (emission_exclusions).
 schema: cheme/lca/v1
 kind: lca
 goal: >-
@@ -60,7 +61,7 @@ flows:
     source: "flowsheet energy streams Q2 (heat of sulfonation, R101's model), Q3 (cool-down and second acid portion, R102's model) and Q7 (scrubber), D-009, D-014"
   - key: product:BRINE
     missing: "not mapped yet (D-012); connect to: refrigeration at 258 K (brine) from an electric vapour-compression unit (e.g. processes/utility-chiller), per kWh of heat removed: compressor electricity at its COP, condenser cooling water, refrigerant losses"
-    source: "flowsheet energy streams Q4 (heel cooling), Q5 (the quench's reaction heat, Q101's model), Q10 (the dilution heat of the dosed acids the model leaves out), Q8 (DR-101's vacuum condenser) and Q9 (wash water chilling in T-101), D-009, D-014"
+    source: "flowsheet energy streams Q4 (heel cooling), Q5 (the quench's reaction heat and the dilution heat of the dosed acids, Q101's model), Q8 (DR-101's vacuum condenser) and Q9 (wash water chilling in T-101), D-009, D-014, D-015"
   # waste
   - key: product:WA
     treatment: {kind: waste, route: "neutralisation of a dilute waste acid (about 8 wt% H2SO4, 2 wt% HCl, ammonium hydrogen sulfate, toluenesulfonic acids and o-TsCl oil) with lime or caustic, separation of the oil, biological treatment of the dissolved organics (D-010)"}
@@ -100,7 +101,7 @@ operation:
   source: "design basis operating_hours_per_year 7920 (ASSUMED, the recipe's hours); 20 a service life ASSUMED"
 emission_exclusions:
   - {id: vessel-vents, method: storage-tank, equipment: [R-101, Q-101], reason: "No P&ID yet: R-101's and Q-101's vents, the HCl they give off included (S5, S11), go to the caustic scrubber T-201 and are in the balance; the nitrogen and air displaced while charging and dosing, with toluene and water vapour, go the same way and are not estimated (open for basic engineering, D-007, D-011)."}
-  - {id: scrubber-vent, method: storage-tank, equipment: [T-201], reason: "The scrubbed vent (nitrogen of the purges, 0.1 % of the HCl and the toluene vapour the HCl strips from R-101) is not split from the liquor in the balance: core's conversion step has one outlet and its vent carries no solvent vapour (core ADR 0054); not estimated (open for basic engineering, D-007, D-011)."}
+  - {id: scrubber-vent, method: storage-tank, equipment: [T-201], reason: "The scrubbed vent (nitrogen of the purges, 0.1 % of the HCl and the toluene vapour the HCl strips from R-101) is not split from the liquor in the balance: core's conversion step has one outlet. Core 1.10.0's vent vapour (ADR 0062), run on a scratch copy, puts the toluene at about 0.29 g per kg product (0.033 mol% of R-101's vent gas); it is not in the balance, and the chlorosulfonic acid's own vapour has no open vapour pressure to model it with (D-015); not estimated as an emission (open for basic engineering, D-007, D-011)."}
   - {id: dryer-vent, method: equipment-leaks, equipment: [DR-101], reason: "p-TsCl dust and HCl traces in the paddle dryer's vacuum vent are not estimated (D-008, D-011)."}
 dataset:
   version: 0.1.0

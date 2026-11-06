@@ -4,7 +4,7 @@
 schema: cheme/recipe/v1
 kind: recipe
 title: Iodomethane from methanol, red phosphorus and iodine
-batch_size: {value: 1453.39, unit: kg, stream: S25, provenance: assumed, source: "one batch of distilled iodomethane: 500 t/a over the 344.0 batches the 23.022 h cycle allows, 63.131 kg/h x 23.022 h (D-002, D-003)"}
+batch_size: {value: 1465.15, unit: kg, stream: S25, provenance: assumed, source: "one batch of distilled iodomethane: 500 t/a over the 341.3 batches the 23.208 h cycle allows, 63.131 kg/h x 23.208 h (D-002, D-003)"}
 hours_per_year: {value: 7920, provenance: assumed, source: "330 days of 24 h (D-002)"}
 unit_procedures:
   - id: REACT
@@ -52,10 +52,13 @@ unit_procedures:
       - {id: dry, kind: other, title: Percolate through the calcium chloride bed and the sieve column, duration: {value: 2.0, provenance: assumed, source: D-003}}
       - {id: transfer, kind: transfer, title: Dried crude to the still, duration: {value: 0.5, provenance: assumed, source: D-003}}
   - id: DISTIL
-    units: [ST102, K104, M104, E105, H103]
-    title: Batch distillation (C-104)
+    units: [ST102, E104, E105, H103]
+    title: Batch rectification (C-104 with its column K-104)
     operations:
       - {id: receive, kind: charge, title: Receive the dried crude, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      # core's still.heat_up adds the charge's heat-up to ST102's duty (Q8) but not to its time
+      # (ADR 0063): the heat-up is timed here at the reboiler's 36 kW (L-4, D-016)
+      - {id: heatup, kind: heat, title: Heat the dried crude to its bubble point (ST102), duration: {value: 0.126, provenance: calculated, source: "core's still.heat_up of ST102, the dried crude from 304.11 K to its bubble point 316.12 K: 4.526 kWh a batch (cheme process stills: whole duty 250.40 less the boil-up 245.88 kWh), at the reboiler's 36 kW (the still's boilup): 4.526 / 36 = 0.126 h (D-010, D-016)"}}
       - {id: distil, kind: distil, title: Distil the iodomethane, from: ST102}
       - {id: cool, kind: cool, title: Cool the residue (H103), duration: {value: 0.5, provenance: assumed, source: D-003}}
       - {id: drain, kind: transfer, title: Drain the residue, duration: {value: 0.5, provenance: assumed, source: D-003}}

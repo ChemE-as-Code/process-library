@@ -1,7 +1,7 @@
 # 0034. An engineering project may export a design case's own LCI dataset beside its study's
 
-- **Status:** Proposed, 2026-11-05
-- **Deciders:** the owner (to accept); drafted for #331
+- **Status:** Accepted, 2026-11-06 (proposed 2026-11-05)
+- **Deciders:** the owner (drafted for #331)
 - **Scope:** the LCI pipeline (`scripts/build_lci.py`) and the layout of a process's `lca/`
   (`REFERENCE.md`, `CONTRIBUTING.md`, `lci/README.md`)
 
@@ -72,6 +72,7 @@ activities of one supplier.
 
 ## Evidence
 
+- Accepted by the owner on 2026-11-06.
 - `scripts/build_lci.py` (`design_case`, `_product_rows`, the market and plant choices),
   `tests/test_lci_case_datasets.py` (a fixture library with both files; a hand-written twin is
   still refused, `test_a_hand_written_twin_is_still_refused`; the grade before the study's

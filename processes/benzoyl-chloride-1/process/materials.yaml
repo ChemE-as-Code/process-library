@@ -14,7 +14,9 @@
 #   ASSUMED (no open measured value found; about 1.28 kJ/(kg K), as benzoyl chloride's 1.33);
 #   ZnCl2 71.3, the solid's (NIST-JANAF order), ASSUMED for the dissolved salt.
 # - HCl is vented whole as it forms (batch.vent, core ADR 0054) and never charged or dosed, so
-#   it needs no liquid data.
+#   it needs no liquid data. Its ideal-gas heat capacity (chemicals 1.5.2, `cheme chemistry
+#   thermo`; SRC-8) lets R-101's vent condenser count the HCl cooled from 413 to 308 K
+#   (core 1.10.0, ADR 0062, D-010); about 29.1 kJ/(kmol K) there, as scripts/balance.py takes.
 # The batch still ST101 (core ADR 0055, Raoult's law): the Antoine constants of NIST WebBook
 # (log10(P/bar) = A - B/(T/K + C), each fitted by NIST to Stull 1947) and heats of
 # vaporization in kJ/kmol (NIST's kJ/mol times 1000). ZnCl2 is non-volatile in the still.
@@ -54,11 +56,17 @@ components:
     heat_of_vaporization: 49600
     vapour_pressure: {a: 4.61296, b: 1978.427, c: -41.011, temperature_range: [305.3, 470.4], provenance: given, source: "NIST WebBook (C98884), coefficients fitted by NIST to Stull (1947)"}
   - {id: ZNCL2, name: Zinc chloride (catalyst), formula: ZnCl2, cas: 7646-85-7, molar_mass: 136.28, liquid_molar_volume: 0.0469, liquid_heat_capacity: 71.3}
-  - {id: HCL, name: Hydrogen chloride, formula: HCl, cas: 7647-01-0, molar_mass: 36.458, normal_boiling_point: 188.1}
+  - id: HCL
+    name: Hydrogen chloride
+    formula: HCl
+    cas: 7647-01-0
+    molar_mass: 36.458
+    normal_boiling_point: 188.1
+    ideal_gas: {dHf_298: -92173.0, S_298: 186.9, cp_R: [3.827, -0.002936, 8.79e-06, -1.031e-08, 4.39e-12], temperature_range: [50, 1000], provenance: given, source: "chemicals 1.5.2 (`cheme chemistry thermo`): dHf_298 ATcT, S_298 CRC, cp_R Poling et al. (5th ed.)"}
   - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.015, normal_boiling_point: 373.12, liquid_molar_volume: 0.01802, liquid_heat_capacity: 75.3}
 templates:
   - {id: organics, title: "Benzoic acid, benzotrichloride, benzoyl chloride and the catalyst", components: [BTC, BA, BZCL, ZNCL2, HCL]}
-  - {id: acid, title: Hydrogen chloride and water, components: [HCL, H2O]}
+  - {id: acid, title: "Hydrogen chloride and water, with the organic vapour the off-gas carries past R-101's reflux condenser (D-010)", components: [HCL, H2O, BZCL, BTC, BA]}
 property_method:
   adapter: thermo
   status: placeholder
