@@ -1,0 +1,642 @@
+# Tier 1 form, process-library#313 pilot without a flowsheet. Every amount is the formula of its parameters;
+# core's validator re-checks each. Written from the POL BREF (2007) and NAPCOR (2020) (facts in our own form).
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: pet-pta-continuous-ssp
+title: Polyethylene terephthalate by continuous PTA esterification, melt polycondensation and SSP
+description: Per 1 t of bottle-grade PET resin, gate-to-gate. Feeds from stoichiometry with sourced losses
+  (POL BREF ranges); electricity, natural gas and water from a US industry average of 2015 (NAPCOR 2020); air
+  emissions, wastes and effluent COD from the POL BREF.
+basis: 1000 kg of PET resin
+boundary: 'gate-to-gate: paste preparation, esterification, prepolycondensation, melt polycondensation, chip
+  cutting, crystallisation and solid-state polycondensation, glycol recovery, heat-transfer-medium heaters;
+  PTA, MEG and power from outside'
+technology: continuous direct esterification of PTA with MEG and continuous melt polycondensation with antimony
+  catalyst, then continuous solid-state polycondensation; the DMT routes and batch units are not modelled
+geography:
+  description: 'Mixed: US plants of 2015 for energy and water, EU plants of the POL BREF data collection for
+    losses and emissions; no single site.'
+classification:
+  isic: '2013'
+system_boundary:
+  included:
+  - PTA, isophthalic acid and MEG, with the polymer waste and the glycol losses
+  - electricity, natural gas fired for the heat-transfer medium and its CO2 and water
+  - consumed water
+  - reaction water and effluent organics to wastewater treatment
+  - polymer, other and hazardous waste
+  - catalyst and phosphorus stabiliser
+  - acetaldehyde and ethylene glycol to air
+  excluded:
+  - 'TODO nitrogen for SSP gas loops and chip blanketing: not quantified in either source'
+  - 'TODO diethylene glycol formed in the melt and other comonomers or additives (toners, cobalt): the model
+    takes the repeat unit of the homopolymer'
+  - 'TODO VOC other than acetaldehyde and glycol (POL BREF Table 10.4: up to 1.2 kg/t for the TPA process,
+    5 g/t with catalytic oxidation; its overlap with acetaldehyde is not stated) and HTM losses (none given
+    for the TPA process)'
+  - 'TODO NOx and CO of the heaters: not stated in either source'
+  - 'TODO coal (0.87 kg/t), diesel and residual oil of NAPCOR Table 36: fuel use not stated'
+  - TODO steam-ejector condensate and other effluent water; antimony and other metals in the effluent
+  - TODO the fate of the consumed water (mostly evaporation), not inventoried
+  - 'energy credit from waste-to-energy (16 MJ/t in NAPCOR Table 36): not credited in the cut-off model'
+  - transport, storage emissions
+  - infrastructure
+  cutoff: none applied; the excluded flows are not quantified
+  infrastructure: excluded
+  catalysts: included
+  non_routine: excluded
+location: GLO
+year: 2015
+valid_until: 2020
+time:
+  start: 2004
+  description: 'Energy and water: US plants in 2015 (NAPCOR 2020). Losses and emissions: the POL BREF data
+    collection (BREF of 2007, technical working group comments of 2004 and 2005). valid_until is the reference
+    year + 5 (system-model section 6), so it has already lapsed.'
+modelling:
+  principle: attributional
+  multifunctionality: 'single output: no allocation (polymer waste is a waste)'
+uuid: e3cdff86-dd7f-554d-8162-5db5885f3ea6
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+technology_level: current
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: pet
+  value: 1000.0
+  unit: kg
+  description: PET resin delivered (the basis).
+  source: basis
+- name: M_PET
+  value: 192.17
+  unit: g/mol
+  description: Molar mass of the PET repeat unit C10H8O4.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_TPA
+  value: 166.132
+  unit: g/mol
+  description: Molar mass of terephthalic and isophthalic acid (C8H6O4).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_EG
+  value: 62.068
+  unit: g/mol
+  description: Molar mass of ethylene glycol.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_H2O
+  value: 18.015
+  unit: g/mol
+  description: Molar mass of water.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_ACH
+  value: 44.053
+  unit: g/mol
+  description: Molar mass of acetaldehyde.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_CH4
+  value: 16.043
+  unit: g/mol
+  description: Molar mass of methane.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_O2
+  value: 31.998
+  unit: g/mol
+  description: Molar mass of oxygen.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_CO2
+  value: 44.009
+  unit: g/mol
+  description: Molar mass of carbon dioxide.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: pw_m
+  value: 9.07
+  unit: kg
+  description: 'Polymer waste per t of the continuous TPA melt-phase process: midpoint of 0.14 to 18 kg/t.'
+  source: EU JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers (POL
+    BREF), August 2007, Table 10.4, p. 170 (TPA process column, range); the midpoint is our choice, and modelling
+    the waste as PET of the product's composition is ASSUMED
+- name: pw_s
+  value: 0.667
+  unit: kg
+  description: 'Polymer waste per t of continuous solid-state post-condensation: the upper bound of ''up to
+    667 g/t''.'
+  source: EU JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers (POL
+    BREF), August 2007, Table 10.5, p. 171 (continuous post-condensation, upper bound); using the bound is
+    our choice
+- name: x_ipa
+  value: 0.026034
+  unit: kg/kg
+  description: 'Isophthalic acid share of the diacids fed: 22.4 kg in 838 + 22.4 kg per t of resin.'
+  source: Franklin Associates (2020) Cradle-to-resin life cycle analysis of polyethylene terephthalate resin,
+    prepared for NAPCOR, revised 3.2.20, Table 36, p. 92 (US average of seven plants, 2015); the ratio is ours.
+    Treating IPA units like TPA units in the polymer (same formula) is ASSUMED
+- name: cod
+  value: 9.0
+  unit: kg
+  description: 'COD of the effluent before treatment, per t: midpoint of 2 to 16 kg O2/t.'
+  source: 'EU JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers (POL
+    BREF), August 2007, Table 10.4, p. 170 (TPA process column; COD before the waste water treatment plant);
+    the midpoint is our choice. Reading all of it as ethylene glycol (2.5 mol O2 per mol) is ASSUMED: the source
+    names no compounds. TODO acetaldehyde and 2-methyl-1,3-dioxolane in the effluent. For comparison, NAPCOR
+    2020 Table 36 (p. 93) reports 0.57 kg/t of COD released to water, after treatment'
+- name: cod_s
+  value: 0.663
+  unit: kg
+  description: 'COD of the effluent of continuous solid-state post-condensation before treatment, per t: the
+    upper bound of ''up to 663 g/t''.'
+  source: 'EU JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers (POL
+    BREF), August 2007, Table 10.5, p. 171 (continuous post-condensation, upper bound); using the bound is our
+    choice, as for pw_s. Reading it as ethylene glycol is ASSUMED, as for cod'
+- name: e_ach
+  value: 0.06
+  unit: kg
+  description: 'Acetaldehyde to air per t: the upper bound of ''up to 60 g/t''.'
+  source: EU JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers (POL
+    BREF), August 2007, Table 10.4, p. 170 (TPA process column, upper bound); using the bound is our choice.
+    Forming it from ethylene glycol (C2H6O2 -> C2H4O + H2O) is ASSUMED. NAPCOR 2020 Table 36 (p. 92) gives
+    0.010 kg/t, as an order of magnitude only
+- name: e_eg
+  value: 0.01
+  unit: kg
+  description: 'Ethylene glycol to air per t: the upper bound of ''up to 10 g/t''.'
+  source: EU JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers (POL
+    BREF), August 2007, Table 10.4, p. 170 (TPA process column, upper bound); using the bound is our choice.
+    It is not a conservative value, since NAPCOR 2020 Table 36 (p. 92) reports 0.049 kg/t for the US plants
+    (order of magnitude only)
+- name: elec
+  value: 230.0
+  unit: kWh
+  description: Grid electricity per t of PET resin, melt phase with SSP, MTR and Integrex plants together.
+  source: Franklin Associates (2020) Cradle-to-resin life cycle analysis of polyethylene terephthalate resin,
+    prepared for NAPCOR, revised 3.2.20, Table 36, p. 92 (process energy; US average of seven plants of three
+    producers, 2015)
+- name: ng_v
+  value: 62.0
+  unit: m3
+  description: Natural gas per t of PET resin, as a gas volume.
+  source: Franklin Associates (2020) Cradle-to-resin life cycle analysis of polyethylene terephthalate resin,
+    prepared for NAPCOR, revised 3.2.20, Table 36, p. 92 (process energy, 993 ft3 per 1000 lb; the report's
+    m3 per t). The report does not say what the gas is used for; firing it in the heat-transfer-medium heaters
+    (and so its combustion products here) is our reading, ASSUMED
+- name: rho_ng
+  value: 0.6772
+  unit: kg/m3
+  description: Density of the natural gas, taken as methane, at 15.56 degC and 101.325 kPa (ideal gas, p M
+    / (R T)).
+  source: 'ASSUMED: the report states no reference state. Its m3 are its ft3 times 0.0283, and the US standard
+    state of gas volumes, 60 degF, is our reading, as for the same consultant''s PP report in polypropylene-1;
+    natural gas as pure methane is ASSUMED (as styrene-1). The library''s natural-gas proxy (lci/mappings.yaml
+    natural-gas-kg) converts the mass back at 0 degC, so the background sees 5.6 % less volume than the report.
+    TODO a stated composition'
+- name: water
+  value: 730.0
+  unit: kg
+  description: 'Water consumed per t of PET resin (withdrawn and not returned): 730 l at 1 kg/l.'
+  source: Franklin Associates (2020) Cradle-to-resin life cycle analysis of polyethylene terephthalate resin,
+    prepared for NAPCOR, revised 3.2.20, Table 36, p. 93 (water consumption); the density is ASSUMED. Its fate
+    (mostly evaporation) is not inventoried
+- name: cat
+  value: 0.4425
+  unit: kg
+  description: 'Polycondensation catalyst per t (antimony compounds; the source also names catalysts without
+    antimony): midpoint of 270 to 615 g/t.'
+  source: EU JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers (POL
+    BREF), August 2007, Table 10.4, p. 170 (TPA process column, range) and section 10.2.1, p. 161 (antimony
+    trioxide, triglycolate or triacetate; described there for the DMT process, and taking the same catalysts
+    for the TPA process is our reading); the midpoint is our choice. It stays in the polymer. NAPCOR 2020
+    Table 36 (p. 92) gives the catalyst metals only as orders of magnitude (antimony and titanium 0.10 kg/t,
+    cobalt 0.010 kg/t)
+- name: stab
+  value: 0.05
+  unit: kg
+  description: 'Phosphorus stabiliser per t: midpoint of 0 to 100 g/t.'
+  source: EU JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers (POL
+    BREF), August 2007, Table 10.4, p. 170 (TPA process column, range) and section 10.2.1, p. 161 (e.g. polyphosphoric
+    acid; described there for the DMT process, its use in the TPA process is our reading); the midpoint is
+    our choice
+- name: ow
+  value: 3.5
+  unit: kg
+  description: 'Other (non-polymer) waste per t: midpoint of 2 to 5 kg/t; composition not stated.'
+  source: EU JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers (POL
+    BREF), August 2007, Table 10.4, p. 170 (TPA process column, range); the midpoint is our choice
+- name: hw
+  value: 0.00045
+  unit: kg
+  description: 'Hazardous waste per t: the upper bound of ''up to 0.45 g/t''.'
+  source: EU JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers (POL
+    BREF), August 2007, Table 10.4, p. 170 (TPA process column, upper bound)
+exchanges:
+- key: product:pet
+  title: Polyethylene terephthalate resin, bottle grade (melt phase and SSP)
+  type: product
+  amount: 1000.0
+  unit: kg
+  formula: pet
+  provenance: given
+  source: the reference flow
+- key: feed:terephthalic-acid
+  title: Purified terephthalic acid (PTA)
+  type: input
+  amount: 850.1973954690553
+  unit: kg
+  formula: (pet + pw_m + pw_s) * M_TPA / M_PET * (1 - x_ipa)
+  provenance: calculated
+  source: stoichiometry C8H6O4 + C2H6O2 -> C10H8O4 + 2 H2O for the resin and the polymer waste, less the isophthalic
+    share; compare 0.825 to 0.87 t of DMT or TPA per t (POL BREF Table 10.4, benchmarks/polymers.yaml)
+  pedigree: &id001
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+- key: feed:isophthalic-acid
+  title: Isophthalic acid (comonomer)
+  type: input
+  amount: 22.725679329300394
+  unit: kg
+  formula: (pet + pw_m + pw_s) * M_TPA / M_PET * x_ipa
+  provenance: calculated
+  source: the isophthalic share of the diacids (NAPCOR 2020, Table 36), in place of terephthalic acid
+  pedigree: *id001
+  basic_uncertainty: 1.05
+- key: feed:ethylene-glycol
+  title: Monoethylene glycol
+  type: input
+  amount: 333.72180421000354
+  unit: kg
+  formula: (pet + pw_m + pw_s) * M_EG / M_PET + (cod + cod_s) * M_EG / (2.5 * M_O2) + e_eg + e_ach * M_EG / M_ACH
+  provenance: calculated
+  source: stoichiometry plus the glycol lost to the effluent (as COD), to air and as acetaldehyde; compare
+    0.32 to 0.355 t/t (POL BREF Table 10.4, benchmarks/polymers.yaml) and 0.345 t/t (NAPCOR 2020, Table 36)
+  pedigree: *id001
+  basic_uncertainty: 1.05
+- key: feed:natural-gas
+  title: Natural gas (as methane) to the heat-transfer-medium heaters
+  type: input
+  amount: 41.9864
+  unit: kg
+  formula: ng_v * rho_ng
+  provenance: given
+  origin: literature
+  link:
+    factor: natural-gas
+    source: natural gas, by mass
+  carrier:
+    kind: fuel
+    lhv: 50.01
+    composition: pure methane (ASSUMED)
+  source: NAPCOR 2020, Table 36, p. 92 (62.0 m3/t), converted to mass at the ASSUMED reference state (parameter
+    rho_ng)
+  pedigree: &id002
+    scores:
+    - 3
+    - 4
+    - 4
+    - 3
+    - 3
+    reason: 'an average of seven US plants of three producers in 2015 (about half the North American capacity),
+      several technologies: reliability 3, completeness 4, temporal 4 (about 11 years old), geographical 3,
+      technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: an average of seven plants; the spread between plants is not published'
+- key: feed:O2
+  title: Combustion oxygen, from ambient air
+  type: input
+  amount: 167.48498749610425
+  unit: kg
+  formula: ng_v * rho_ng * 2 / M_CH4 * M_O2
+  provenance: assumed
+  origin: estimate
+  free: true
+  source: complete combustion of the natural gas (ASSUMED complete); ambient air is free
+- key: feed:electricity
+  title: Electricity
+  type: input
+  amount: 230.0
+  unit: kWh
+  formula: elec
+  provenance: given
+  origin: literature
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: Franklin Associates (2020) Cradle-to-resin life cycle analysis of polyethylene terephthalate resin,
+    prepared for NAPCOR, revised 3.2.20, Table 36, p. 92
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: an average of seven plants; the spread between plants is not published'
+- key: feed:water
+  title: Water consumed (withdrawn and not returned)
+  type: input
+  amount: 730.0
+  unit: kg
+  formula: water
+  provenance: given
+  origin: literature
+  link:
+    factor: water
+    source: process water, by mass
+  source: Franklin Associates (2020) Cradle-to-resin life cycle analysis of polyethylene terephthalate resin,
+    prepared for NAPCOR, revised 3.2.20, Table 36, p. 93; its fate (mostly evaporation) is not inventoried,
+    so it is outside the element balance
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: a consumptive-use average; BREF Table 10.4 gives 0.4 to 10 m3/t of water for the melt
+      phase alone, on an unstated basis'
+- key: input:catalyst
+  title: Polycondensation catalyst (antimony compounds)
+  type: input
+  amount: 0.4425
+  unit: kg
+  formula: cat
+  provenance: given
+  origin: literature
+  source: EU JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers (POL
+    BREF), August 2007, Table 10.4, p. 170; stays in the polymer (no spent catalyst); mass outside the element
+    balance. Antimony is a never-cut metal (system-model section 4)
+  pedigree: &id003
+    scores:
+    - 3
+    - 4
+    - 5
+    - 3
+    - 3
+    reason: 'from a range of the POL BREF data collection (EU plants, about 2004): reliability 3, completeness
+      4, temporal 5 (over 20 years old), geographical 3, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.509
+    source: 'catalyst: range 0.27 to 0.615 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: input:stabiliser
+  title: Phosphorus stabiliser (e.g. polyphosphoric acid)
+  type: input
+  amount: 0.05
+  unit: kg
+  formula: stab
+  provenance: given
+  origin: literature
+  source: EU JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers (POL
+    BREF), August 2007, Table 10.4, p. 170; mass outside the element balance
+  pedigree: *id003
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: the range starts at 0, so no ratio can be formed'
+- key: output:polymer-waste
+  title: Polymer waste (off-grade PET and lumps)
+  type: output
+  amount: 9.737
+  unit: kg
+  formula: pw_m + pw_s
+  provenance: given
+  origin: literature
+  source: EU JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers (POL
+    BREF), August 2007, Tables 10.4 and 10.5, pp. 170-171; modelled as PET of the product's composition (ASSUMED).
+    For comparison, NAPCOR 2020 (pp. 90-91 and Table 36, p. 93) has off-spec resin below 1 % of output as a
+    coproduct and about 1.9 kg/t of solid waste in all, so the US plants report less than this midpoint
+  pedigree: *id003
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 11.339
+    source: 'melt-phase polymer waste: range 0.14 to 18 read as a 95 % interval, gsd2 = sqrt(high / low) (our
+      convention; the amount stays the arithmetic midpoint or the stated value)'
+- key: output:wastewater
+  title: Reaction water to wastewater treatment
+  type: output
+  amount: 189.34037186416262
+  unit: kg
+  formula: (pet + pw_m + pw_s) * 2 * M_H2O / M_PET + e_ach * M_H2O / M_ACH
+  provenance: calculated
+  link:
+    factor: wastewater
+    source: site wastewater treatment
+  source: the esterification and polycondensation water of the stoichiometry, plus the water of the acetaldehyde
+    reaction. Steam-ejector condensate and other effluent water are not counted (TODO)
+  pedigree: *id001
+  basic_uncertainty: 1.05
+- key: output:effluent-organics
+  title: Organics in the effluent, as ethylene glycol, to wastewater treatment
+  type: output
+  amount: 7.497507144196512
+  unit: kg
+  formula: (cod + cod_s) * M_EG / (2.5 * M_O2)
+  provenance: assumed
+  origin: estimate
+  link:
+    factor: wastewater
+    source: site wastewater treatment
+  source: EU JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers (POL
+    BREF), August 2007, Table 10.4, p. 170 (COD before treatment, 2 to 16 kg/t), and Table 10.5, p. 171 (SSP, up to 0.663 kg/t); all of it read as ethylene
+    glycol (ASSUMED)
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.828
+    source: 'COD: range 2 to 16 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: output:other-waste
+  title: Other waste (composition not stated)
+  type: output
+  amount: 3.5
+  unit: kg
+  formula: ow
+  provenance: given
+  origin: literature
+  source: EU JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers (POL
+    BREF), August 2007, Table 10.4, p. 170; mass outside the element balance, and not drawn from the feeds
+    in this model
+  pedigree: *id003
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.581
+    source: 'other waste: range 2 to 5 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the
+      amount stays the arithmetic midpoint or the stated value)'
+- key: output:hazardous-waste
+  title: Hazardous waste
+  type: output
+  amount: 0.00045
+  unit: kg
+  formula: hw
+  provenance: given
+  origin: literature
+  source: EU JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers (POL
+    BREF), August 2007, Table 10.4, p. 170 (upper bound); mass outside the element balance. NAPCOR 2020 Table
+    36 (p. 93) reports 4.8 g/t of hazardous waste to incineration for the US plants, about ten times this bound
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 10.0
+    source: 'ASSUMED: the BREF upper bound, while the US average (NAPCOR 2020 Table 36) is about ten times higher;
+      the spread is taken as that factor'
+- key: emission:CO2
+  title: CO2 from the heat-transfer-medium heaters
+  type: emission
+  amount: 115.17668002243971
+  unit: kg
+  formula: ng_v * rho_ng / M_CH4 * M_CO2
+  provenance: assumed
+  origin: estimate
+  cas: 124-38-9
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 349b29d1-3e58-4c66-98b9-9d1a076efd2e
+    name: Carbon dioxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: complete combustion of the natural gas; biosphere3 UUID, name and categories from core's elementary-flow
+    crosswalk (data/elementary-flows.yaml)
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: follows the natural gas'
+- key: emission:H2O
+  title: Water vapour from the heat-transfer-medium heaters
+  type: emission
+  amount: 94.29470747366454
+  unit: kg
+  formula: ng_v * rho_ng * 2 / M_CH4 * M_H2O
+  provenance: assumed
+  origin: estimate
+  cas: 7732-18-5
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 075e433b-4be4-448e-9510-9a5029c1ce94
+    name: Water
+    categories:
+    - air
+    unit: m3
+    per_unit: 0.001
+  source: combustion water; biosphere3 UUID, name and categories from core's elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: follows the natural gas'
+- key: emission:CH3CHO
+  title: Acetaldehyde to air
+  type: emission
+  amount: 0.06
+  unit: kg
+  formula: e_ach
+  provenance: given
+  origin: literature
+  cas: 75-07-0
+  source: EU JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers (POL
+    BREF), August 2007, Table 10.4, p. 170 (upper bound); NAPCOR 2020 Table 36 (p. 92) gives 0.010 kg/t
+    (order of magnitude only)
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: an upper bound, the true value is lower by an unknown factor'
+- key: emission:C2H6O2
+  title: Ethylene glycol to air
+  type: emission
+  amount: 0.01
+  unit: kg
+  formula: e_eg
+  provenance: given
+  origin: literature
+  cas: 107-21-1
+  source: EU JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers (POL
+    BREF), August 2007, Table 10.4, p. 170 (upper bound of the EU plants); NAPCOR 2020 Table 36 (p. 92) reports
+    0.049 kg/t for the US plants (order of magnitude only)
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 5.0
+    source: 'ASSUMED: the BREF upper bound, while the US average (NAPCOR 2020 Table 36) is about five times higher;
+      the spread is taken as that factor'
+provenance:
+  generator: hand-written model; amounts are the formulas of the parameters
+  notes: No value from a licensed database and none from a DWSIM file (process-library#313).
+generation:
+  tier: 1
+  method: 'sourced conceptual inventory: stoichiometry with POL BREF chapter 10 losses, energy and water from
+    the NAPCOR 2020 industry average, every choice listed in parameters'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 3
+  - 4
+  - 3
+  - 3
+  - 3
+  dqr_floor: 3.0
+  components:
+    product:pet: C10H8O4
+    feed:terephthalic-acid: C8H6O4
+    feed:isophthalic-acid: C8H6O4
+    feed:ethylene-glycol: C2H6O2
+    feed:natural-gas: CH4
+    feed:O2: O2
+    output:polymer-waste: C10H8O4
+    output:wastewater: H2O
+    output:effluent-organics: C2H6O2
+    emission:CO2: CO2
+    emission:H2O: H2O
+    emission:CH3CHO: C2H4O
+    emission:C2H6O2: C2H6O2
+  formulas:
+    product:pet: C10H8O4
+    feed:terephthalic-acid: C8H6O4
+    feed:isophthalic-acid: C8H6O4
+    feed:ethylene-glycol: C2H6O2
+    feed:natural-gas: CH4
+    feed:O2: O2
+    output:polymer-waste: C10H8O4
+    output:wastewater: H2O
+    output:effluent-organics: C2H6O2
+    emission:CO2: CO2
+    emission:H2O: H2O
+    emission:CH3CHO: C2H4O
+    emission:C2H6O2: C2H6O2
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      C:
+      - 665.477842071
+      - 665.477842071
+      H:
+      - 74.849150386
+      - 74.849150386
+      O:
+      - 675.789274047
+      - 675.789274047
+    outside:
+    - feed:electricity
+    - feed:water
+    - input:catalyst
+    - input:stabiliser
+    - output:hazardous-waste
+    - output:other-waste

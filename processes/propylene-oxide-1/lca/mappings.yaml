@@ -1,0 +1,12 @@
+# propylene-oxide-1's own exchange overrides for the Atlas LCI build (ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Propylene stays a reported gap: its Atlas producer
+# is not chosen here. Lime (calcium-oxide) links the Atlas producer lime-1 explicitly; the lime
+# residue has no shared entry and stays a reported gap.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:chlorine": {dataset: {path: processes/chlor-alkali-1/lca/dataset.yaml, product: "product:CL2"}, source: "the Atlas producer chlor-alkali-1, dry chlorine gas 400 kPa(a); chlorohydrin plants take chlorine gas, often from an integrated chlor-alkali plant"}
+  "feed:steam": {use: steam-heat, source: "steam counted as heat delivered (kWh), as hda-1 does"}
+  "feed:propylene":
+    atlas: false
+    source: "The supplier is not decided; ethylene-1's co-product propylene and propylene-pdh-1 are candidates. Link one explicitly once chosen."
+  "feed:lime": {dataset: {path: processes/lime-1/lca/datasets/quicklime-pfrk-natural-gas.yaml, product: "product:quicklime"}, source: "the Atlas producer lime-1, quicklime counted as CaO, as this exchange counts it; the slaking to milk of lime is in this dataset"}
