@@ -625,6 +625,17 @@ chemicals:
         phase: liquid
         state: {note: "liquefied for transport and storage; pressure and temperature by supplier"}
         crosswalk: {ecoinvent: ["carbon dioxide, liquid"]}
+      - slug: dense-153bara-99.95
+        name: Carbon dioxide, dense phase, >= 99.95 mol%, 153 bara
+        phase: liquid
+        purity: {value: 99.95, unit: mol%, bound: min}
+        impurities: [{component: water, value: 500, unit: ppm(mol), bound: max}]
+        state:
+          pressure: {value: 153, unit: bara}
+          temperature: {value: 30, unit: degC}
+          note: "dense phase for pipeline transport: above the critical pressure (7.38 MPa) and just below the critical temperature (31.0 degC), so a compressed liquid"
+        source: "NETL (2023) Cost of Capturing CO2 from Industrial Sources, DOE/NETL-2023/3907, section 5.1.5, Exhibit 5-3, stream 3 (15.3 MPa, 30 degC, 99.95 mol% CO2); critical point from the NIST Chemistry WebBook, SRD 69"
+        note: "The conditioned pipeline CO2 of carbon-capture-1 (EOR pipeline quality). Not merchant liquid CO2, which a consumer of carbon-dioxide/liquid takes."
 
   - slug: carbon-monoxide
     name: Carbon monoxide
@@ -975,6 +986,11 @@ chemicals:
     name: Ferroalloys
     kind: mixture
     note: "Alloys of iron with titanium, tungsten, nickel, vanadium, silicon, molybdenum, manganese or chromium, added to liquid steel for its grade (iron-steel-1). Composition by alloy and grade. No composition recorded yet: one goes in only with its source (docs/registry.md, Fuel mixtures)."
+
+  - slug: fischer-tropsch-fuel
+    name: Fischer-Tropsch liquid fuel
+    kind: mixture
+    note: "Synthetic liquid hydrocarbons, mainly C5+ n-alkanes, from Fischer-Tropsch synthesis after wax hydrocracking, a blend of gasoline, kerosene and diesel cuts not yet fractionated (e-fuels-1). No composition recorded yet: one goes in only with its source (docs/registry.md, Fuel mixtures)."
 
   - slug: flare-gas
     name: Waste gas to flare
@@ -1403,6 +1419,17 @@ chemicals:
       elemental_composition: {value: {C: 0.6388, H: 0.0508, Br: 0.2237, P: 0.0867}, unit: kg/kg, source: derived from the formula and the IUPAC 2021 atomic weights}
       carbon_content: {value: 0.6388, unit: kg/kg, source: derived from the formula and the IUPAC 2021 atomic weights}
 
+  - slug: mixed-polyolefin-waste
+    name: Mixed polyolefin plastic waste
+    kind: mixture
+    note: "Post-consumer or post-industrial plastic waste sorted to mostly polyethylene and polypropylene (with other polymers, moisture and inorganics as contaminants), as fed to pyrolysis. Composition by source and sorting. No composition recorded yet: one goes in only with its source (docs/registry.md, Fuel mixtures)."
+
+  - slug: municipal-solid-waste
+    name: Municipal solid waste, mixed
+    kind: mixture
+    synonyms: [MSW, residual household waste]
+    note: "Mixed household and similar waste as delivered to an incinerator (paper, food and garden waste, plastics, textiles, wood, glass, metals, inerts, water); composition by region and collection regime. No composition recorded yet: processes/waste-incineration-1 gives its ultimate analysis in its dataset, with the source (docs/registry.md, Fuel mixtures)."
+
   - slug: n-bromosuccinimide
     name: N-Bromosuccinimide
     kind: substance
@@ -1732,6 +1759,20 @@ chemicals:
       elemental_composition: {value: {P: 0.2256, Cl: 0.7744}, unit: kg/kg, source: derived from the formula and the IUPAC 2021 atomic weights}
       carbon_content: {value: 0, unit: kg/kg, source: derived from the formula (no carbon)}
 
+  - slug: plastic-pyrolysis-gas
+    name: Plastic pyrolysis gas
+    kind: mixture
+    note: "Non-condensable gas of plastic waste pyrolysis (hydrogen, methane and C2 to C4 hydrocarbons, with CO and CO2 from oxygen-containing feed); composition by feed and reactor. No composition recorded yet: one goes in only with its source (docs/registry.md, Fuel mixtures)."
+    properties:
+      lhv: {value: 46.4, unit: MJ/kg, range: [44.9, 48.8], source: "IPCC (2006) Guidelines, Vol. 2 Energy, ch. 1, Table 1.2, p. 1.18: default net calorific value of the fuel category 'Ethane' (95 % interval as range), ethane being the model compound of plastic-pyrolysis-1 (ASSUMED match); a category default, not a measured value of the gas"}
+
+  - slug: plastic-pyrolysis-oil
+    name: Plastic pyrolysis oil
+    kind: mixture
+    note: "Raw condensed liquid of plastic waste pyrolysis (C5 to C30+ paraffins and olefins with some aromatics, and heteroatom and metal contaminants), before upgrading to a steam-cracker feed. No composition recorded yet: one goes in only with its source (docs/registry.md, Fuel mixtures)."
+    properties:
+      lhv: {value: 44.5, unit: MJ/kg, range: [41.8, 46.5], source: "IPCC (2006) Guidelines, Vol. 2 Energy, ch. 1, Table 1.2, p. 1.18: default net calorific value of the fuel category 'Naphtha' (95 % interval as range), the oil being a naphtha substitute after upgrading (ASSUMED match); a category default, not a measured value of the oil"}
+
   - slug: polyethylene
     name: Polyethylene
     kind: substance
@@ -1856,6 +1897,11 @@ chemicals:
       molar_mass: {value: 58.080, unit: g/mol, source: "IUPAC 2021 abridged standard atomic weights, applied to the formula"}
       elemental_composition: {value: {C: 0.6204, H: 0.1041, O: 0.2755}, unit: kg/kg, source: derived from the formula and the IUPAC 2021 atomic weights}
       carbon_content: {value: 0.6204, unit: kg/kg, source: derived from the formula and the IUPAC 2021 atomic weights}
+
+  - slug: pyrolysis-char
+    name: Pyrolysis char
+    kind: mixture
+    note: "Solid residue of plastic waste pyrolysis: carbonaceous char with the feed's fillers, inorganics and metals. No composition recorded yet: one goes in only with its source (docs/registry.md, Fuel mixtures)."
 
   - slug: pyrolysis-gasoline
     name: Pyrolysis gasoline
@@ -2380,3 +2426,4 @@ flow_grades:
   asu-1/product:GANP: nitrogen/gan-8barg-10ppm
   asu-1/product:LOX: oxygen/lox
   asu-1/product:LIN: nitrogen/lin
+  co2-electrolysis-bpm-1/feed:CO2: carbon-dioxide/liquid

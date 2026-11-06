@@ -1,0 +1,11 @@
+# waste-incineration-1's own exchange overrides for the Atlas LCI build (ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. The quicklime links the Atlas producer lime-1
+# explicitly. Activated carbon and the three residues stay reported gaps: the shared vocabulary
+# has no entry for them yet. Natural gas links by its factor (lci/mappings.yaml
+# natural-gas), as utility-steam-ng-boiler's does.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:ammonia":
+    dataset: {path: processes/ammonia-1/lca/dataset.yaml, product: "product:NH3"}
+    source: "the Atlas producer ammonia-1, liquid ammonia, for the NH3 of the 25 % ammonia water; the dilution water is not counted (dataset system_boundary)"
+  "feed:quicklime": {dataset: {path: processes/lime-1/lca/datasets/quicklime-pfrk-natural-gas.yaml, product: "product:quicklime"}, source: "the Atlas producer lime-1, quicklime counted as CaO, as this exchange counts it (Tier 1, EU natural-gas PFRK)"}

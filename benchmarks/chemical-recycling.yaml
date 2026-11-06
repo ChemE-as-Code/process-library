@@ -1,0 +1,57 @@
+# Benchmarks of chemical recycling: for now plastic waste pyrolysis. Schema:
+# schemas/benchmarks.schema.json; rules: docs/benchmarks.md. Ranges are facts from the cited source, in
+# our own form.
+#
+# The oil yield is bound to the US company survey (Benavides et al. 2017), which the dataset does not
+# take its yield from (the dataset uses the JRC 2026 central value), so it is an independent check,
+# but of a different product: liquid fuel after on-site upgrading, US plants, about 2016. The JRC 2026
+# range of company-reported yields is recorded as a second reference; it is not independent of the
+# dataset, which takes its yield from another part of the same report.
+schema: cheme-as-code/benchmarks/v1
+family: chemical-recycling
+
+kpis:
+  pyrolysis-oil-yield:
+    title: Pyrolysis liquid per mass of plastic waste fed to pyrolysis
+    unit: kg/kg
+    references:
+      - id: benavides-2017-ptf-liquid-yield
+        range: [0.60, 0.80]
+        basis: unallocated
+        note: "Feedstock-to-liquid-fuel conversion reported by the responding companies (median 75 wt%). The liquid is diesel and naphtha after on-site upgrading, not raw oil."
+        conditions: {technology: "plastic-to-fuel pyrolysis with on-site upgrading, five companies; feed non-recycled plastics, mostly PE and PP", product: "diesel and naphtha (total liquid)", capacity: "24 to 265 t/d feed", region: US, year: 2016}
+        source:
+          citation: "Benavides, P.T., Sun, P., Han, J., Dunn, J.B., Wang, M. (2017) Life-cycle analysis of fuels from post-use non-recycled plastics. Fuel 203:11-22, doi:10.1016/j.fuel.2017.04.070 (accepted manuscript)"
+          url: https://www.osti.gov/servlets/purl/1353191
+          locator: Section 3.2, pp. 9-10
+          kind: peer-reviewed
+          accessed: "2026-11-05"
+      - id: jrc-2026-company-oil-yields
+        range: [0.65, 0.82]
+        basis: unallocated
+        note: "Plastic-to-pyrolysis-oil yields as reported by four companies (Pryme, Quantafuel, Plastic Energy, OMV ReOil); the report says they could not be verified and seem high against the literature. Not independent of the dataset (same report)."
+        conditions: {technology: "industrial pyrolysis of mixed plastic waste, mostly polyolefins", product: raw pyrolysis oil, region: EU}
+        source:
+          citation: "Gaudillat, P., Marschinski, R., Saveyn, H. (2026) Economic viability of chemical recycling: current and future perspectives. JRC147061, EUR 40766, doi:10.2760/6105801"
+          url: https://publications.jrc.ec.europa.eu/repository/bitstream/JRC147061/JRC147061_01.pdf
+          locator: Table 5, pp. 25-26
+          kind: government
+          accessed: "2026-11-05"
+  pyrolysis-specific-electricity:
+    title: Electricity per t of raw pyrolysis oil
+    unit: kWh/t
+    no_open_reference: >-
+      No second open figure found (2026-11-05). Read: JRC 2023 EUR 31423 (its pyrolysis inventories
+      are confidential survey data, not published), JRC 2026 EUR 40766 (costs and yields, no
+      electricity), Gracida-Alvarez et al. 2023, doi:10.1016/j.jclepro.2023.138867 (refers to ANL-22/37
+      for the energy data). Not readable: ANL-22/37 (OSTI 1885570 served a bot check) and Jeswani et
+      al. 2021, doi:10.1016/j.scitotenv.2020.144483 (HTTP 403). The dataset's value is Benavides et
+      al. 2017, its own source.
+
+datasets:
+  - process: plastic-pyrolysis-1
+    dataset: plastic-pyrolysis-mixed-polyolefins
+    conditions: {technology: "continuous thermal pyrolysis, raw oil not upgraded", feed: "pyrolysis-ready mixed PE/PP, modelled as pure (CH2)n", basis: conceptual inventory}
+    kpis:
+      pyrolysis-oil-yield: {expression: product:plastic-pyrolysis-oil / feed:mixed-polyolefin-waste, reference: benavides-2017-ptf-liquid-yield}
+      pyrolysis-specific-electricity: {expression: feed:electricity / product:plastic-pyrolysis-oil, per: product:plastic-pyrolysis-oil}

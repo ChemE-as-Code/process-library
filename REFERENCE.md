@@ -28,8 +28,8 @@ says how to add a process.
 
 ## Processes
 
-The table lists 87 public process folders: 52 engineering projects (a `plant.yaml` with a process
-flowsheet), 29 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
+The table lists 91 public process folders: 52 engineering projects (a `plant.yaml` with a process
+flowsheet), 33 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
 One more folder (`co2-electrolysis-bpm-1`) is internal and not listed. The table is generated
 from each folder's `process.yaml` and `checks/maturity.json`; `coverage.yaml` names the
 coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
@@ -58,6 +58,7 @@ coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
 | [`bromine-1`](processes/bromine-1/) | Bromine from bromide brine by chlorine oxidation and steaming-out (Smackover-type brine) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`btx-1`](processes/btx-1/) | Benzene, toluene and mixed xylenes by solvent extraction of catalytic reformate (LVOC BREF ranges, DOE reformate slate) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`butadiene-1`](processes/butadiene-1/) | 1,3-Butadiene by extractive distillation of a crude C4 cut (EPA cut, IEA energy averages) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
+| [`carbon-capture-1`](processes/carbon-capture-1/) | CO2 conditioning of an ammonia plant's CO2 stripper vent: compression and TEG drying (NETL 2023 case) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`carbon-tetrabromide-1`](processes/carbon-tetrabromide-1/) | Carbon tetrabromide by semi-batch haloform bromination of acetone in aqueous hypobromite, precipitation and filter-drying (325 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`catalytic-reforming-1`](processes/catalytic-reforming-1/) | Catalytic reforming of naphtha with continuous catalyst regeneration (REF BREF ranges; reformate, hydrogen, LPG, fuel gas) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`cement-clinker-1`](processes/cement-clinker-1/) | Portland cement clinker in a dry kiln with preheater and precalciner (CLM BREF ranges, IPCC defaults) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
@@ -66,6 +67,7 @@ coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
 | [`copper-i-chloride-1`](processes/copper-i-chloride-1/) | Copper(I) chloride by semi-batch chlorination of copper in brine, dilution precipitation and filter-drying (300 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`cumene-1`](processes/cumene-1/) | Cumene by zeolite alkylation of benzene with propylene (licensor figures, EPA emissions) | concept (Tier 0 form, stoichiometric screening with some sourced values; not reviewed) | no (manifest and LCI dataset only) |
 | [`dmf-1`](processes/dmf-1/) | N,N-Dimethylformamide by carbonylation of dimethylamine (50 kt/a, sodium methoxide in methanol) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`e-fuels-1`](processes/e-fuels-1/) | Fischer-Tropsch e-fuel from CO2 and hydrogen by RWGS and cobalt FT (one open simulation) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`ethanol-1`](processes/ethanol-1/) | Ethanol by direct hydration of ethylene (100 000 t/a anhydrous, phosphoric acid catalyst) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`ethylbenzene-1`](processes/ethylbenzene-1/) | Ethylbenzene by liquid-phase zeolite alkylation (LVOC BREF ranges) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`ethylene-1`](processes/ethylene-1/) | Ethylene and propylene by ethane steam cracking (1000 kt/a ethylene, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
@@ -102,6 +104,7 @@ coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
 | [`phosphoric-acid-1`](processes/phosphoric-acid-1/) | Phosphoric acid by the wet dihydrate process (merchant grade; LVIC-AAF BREF and EFMA ranges) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`phosphorus-oxychloride-1`](processes/phosphorus-oxychloride-1/) | Phosphorus oxychloride from white phosphorus, chlorine and oxygen via PCl3 (4.0 t/h) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`phosphorus-tribromide-1`](processes/phosphorus-tribromide-1/) | Phosphorus tribromide by semi-batch bromination of white phosphorus in a PBr3 heel, red-phosphorus treatment and vacuum distillation (1000 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
+| [`plastic-pyrolysis-1`](processes/plastic-pyrolysis-1/) | Raw pyrolysis oil by continuous thermal pyrolysis of mixed polyolefin waste (JRC 2026 yield and heat, US survey electricity) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`polyethylene-1`](processes/polyethylene-1/) | High-density polyethylene by low-pressure polymerisation (Plastics Europe eco-profile averages, POL BREF checks) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`polypropylene-1`](processes/polypropylene-1/) | Polypropylene by bulk loop and gas-phase polymerisation of propylene (US plant data, ACC 2021) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`potassium-permanganate-1`](processes/potassium-permanganate-1/) | Potassium permanganate from MnO2 ore by KOH roasting and electrolysis (1250 kg/h, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
@@ -127,6 +130,7 @@ coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
 | [`utility-steam-ng-boiler`](processes/utility-steam-ng-boiler/) | Steam, saturated 11 bar(a), natural-gas boiler (library utility) | concept (Tier 1 form, design parameters ASSUMED, combustion emissions from EPA AP-42; not reviewed) | no (manifest and LCI dataset only) |
 | [`utility-wwtp`](processes/utility-wwtp/) | Wastewater treatment, activated sludge (library utility) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
 | [`vcm-1`](processes/vcm-1/) | Vinyl chloride monomer by the balanced EDC process, oxygen-based oxychlorination (LVOC BREF ranges, IPCC factors) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
+| [`waste-incineration-1`](processes/waste-incineration-1/) | Waste incineration with energy recovery (mixed MSW, moving grate, heat-oriented CHP; WI BREF ranges) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 
 Three separate axes, named as in core's [glossary](https://github.com/ChemE-as-Code/core/blob/main/docs/concepts/glossary.md):
 
