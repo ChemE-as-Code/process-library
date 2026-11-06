@@ -134,7 +134,7 @@ def test_yields_and_assay_follow_from_the_flowsheet(model):
     assert _state(model, "S1")["flow"]["value"] / rate == pytest.approx(0.614, abs=5e-4)
 
 
-def test_the_assay_and_the_yield_carry_their_caveats():
+def test_the_assay_and_the_yield_carry_their_caveats(model):
     """The assay is an upper bound (by-products not modelled) everywhere it is stated, and the
     modelled yield on toluene is said to stay below the source's 90 %."""
     manifest = _yaml("process.yaml")
@@ -146,7 +146,8 @@ def test_the_assay_and_the_yield_carry_their_caveats():
     design = _text("DESIGN.md")
     assert "The 99.85 wt% is an upper bound" in design
     assert "The modelled yield on toluene is below the source's" in design
-    assert 0.877 < 0.90  # SRC-1, Example I: about 90 % on toluene
+    # SRC-1, Example I: about 90 % on toluene; the flowsheet's yield on the toluene make-up
+    assert _kmol(model, "S15")["BNBR"] / _kmol(model, "S1")["TOL"] < 0.90
 
 
 def test_acid_strength_and_the_allocation_shares(model):
@@ -572,6 +573,7 @@ def test_the_off_gas_capacity_covers_the_gas_and_vapour_released_at_the_mtsr():
     hazard = _steps()["R101"]["hazard"]
     capacity = hazard["vent_capacity"]
     assert hazard["provenance"] == "assumed" and "1.2 x the largest gas release" in hazard["source"]
+    assert "over the batch" in hazard["source"]
 
     def m3_h(mol_s: float, t: float) -> float:
         return mol_s * 1e-3 * 8.314 * t / P_ATM * 3600.0
@@ -581,13 +583,22 @@ def test_the_off_gas_capacity_covers_the_gas_and_vapour_released_at_the_mtsr():
     assert hbr == pytest.approx(34.67, abs=0.03)
     release = hbr / (1.0 - 0.41810)
     assert release == pytest.approx(59.57, abs=0.05)
-    assert capacity == 5.0 * math.ceil(1.2 * release / 5.0) == 75.0
+    # the largest over the batch: a cooling failure 0.38 h into the dosing (more toluene, more
+    # vapour per mol of HBr; test_core_screens_the_gas_release_at_every_moment repeats it)
+    largest = m3_h(0.32141, 363.804) / (1.0 - 0.52556)
+    assert largest == pytest.approx(72.80, abs=0.05)
+    # the normal peak at the vessel: the recipe's 0.3338 mol/s past E-102 less its toluene and
+    # bromine (0.050 and 0.0054 mol per mol of HBr), with 1.03 mol of vapour per mol at T_p
+    normal = m3_h(0.3338 / 1.0554, T_REACT) / (1.0 - 0.5073)
+    assert normal == pytest.approx(68.9, abs=0.1)
+    assert capacity == 5.0 * math.ceil(1.2 * max(release, largest, normal) / 5.0) == 90.0
     table = (PROCESS / "DESIGN.md").read_text(encoding="utf-8").splitlines()
-    for name, (stated, ratio) in {"5.0e-4 (design)": (59.57, 0.79), "k/10": (102.3, 1.36)}.items():
+    for name, (stated, ratio) in {"5.0e-4 (design)": (59.57, 0.66), "k/10": (102.3, 1.14)}.items():
         row = next(line for line in table if line.startswith(f"| {name} |"))
         assert f"{stated} m3/h" in row and f"{stated / capacity:.2f} x" in row and f"{ratio:.2f} x" in row, name
     design = _text("DESIGN.md")
-    assert "`hazard.vent_capacity: 75`" in design
+    assert "`hazard.vent_capacity: 90`" in design
+    assert "72.80 m3/h" in design and "68.9 m3/h" in design
     # the blocked vent: the accumulated bromine's HBr in R-101's 1.20 m3 head space
     head = 4.0 - 2.797
     assert 0.0956 * 8.314 * 363.9 / head / 1000.0 == pytest.approx(0.24, abs=0.005)
@@ -607,9 +618,53 @@ def test_core_screens_the_gas_release_within_the_off_gas_capacity():
     assert gas["per_batch"] and gas["rate_m3_h"] == pytest.approx(59.57, abs=0.05)
     assert gas["vapour_share"] == pytest.approx(0.418, abs=1e-3)
     assert gas["noncondensable_m3_h"] == pytest.approx(34.67, abs=0.05)
-    assert gas["vent_capacity_m3_h"] == 75.0 and gas["capacity_ratio"] < 1.0
+    assert gas["vent_capacity_m3_h"] == 90.0 and gas["capacity_ratio"] == pytest.approx(0.662, abs=1e-3)
     assert entry.mtsr == pytest.approx(363.9, abs=0.05)
     assert not [f for f in report.findings if f.level in ("warning", "error")]
+
+
+def test_core_screens_the_gas_release_at_every_moment():
+    """reactor-hazards screens the worst-accumulation moment; the capacity is sized on the
+    largest release over the batch: core's own gas release at the MTSR on each moment of R101's
+    cooling profile (D-014)."""
+    pytest.importorskip("chemeascode")
+    import copy
+
+    import chemeascode.domains.process.stirred_tank as tank
+    from chemeascode.domains.safety import reaction_hazards as hazards
+
+    solved = {}
+    solve = tank.solve_node
+
+    def keep(process, item, inlets, case):
+        out = solve(process, item, inlets, case)
+        if item.id == "R101":
+            solved.update(process=process, item=item, case=case, result=out[0])
+        return out
+
+    tank.solve_node = keep
+    try:
+        (entry,) = hazards.screen(PROCESS).entries
+    finally:
+        tank.solve_node = solve
+    result = solved["result"]
+    releases = []
+    for point in result.cooling_profile:
+        trial = copy.deepcopy(entry)
+        trial.gas_release, trial.missing = None, []
+        hazards._gas(
+            solved["process"], solved["item"], trial, solved["case"], point.moles,
+            point.mtsr(None), result.pressure, point.rises, None,
+        )
+        gas = trial.gas_release
+        assert not gas.get("boils")
+        releases.append((gas["rate_m3_h"], point.time / 3600.0, gas["vapour_share"]))
+    rate, hours, share = max(releases)
+    assert rate == pytest.approx(72.80, abs=0.05) and hours == pytest.approx(0.38, abs=0.01)
+    assert share == pytest.approx(0.526, abs=1e-3)
+    assert rate > entry.gas_release["rate_m3_h"]
+    capacity = _steps()["R101"]["hazard"]["vent_capacity"]
+    assert capacity == 5.0 * math.ceil(1.2 * rate / 5.0)
 
 
 def test_requires_core_1_10():

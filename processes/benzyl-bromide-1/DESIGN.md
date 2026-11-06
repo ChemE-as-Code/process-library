@@ -39,7 +39,7 @@ in this session (Google Patents machine text; NIST WebBook and PubChem pages).
 | SRC-1 | US 3 528 899 A, E. Plander, J. Zahalka, V. Formacek, 1970 (priority CS 1965): Method of brominating the side chain of an alkyl benzene, https://patents.google.com/patent/US3528899A/en | background: side-chain bromination activated by light, heat or peroxides was mainly a laboratory process, because light penetrates the mixture only a short way, the reaction slows as bromine builds up, excess bromine accumulates and the ring is brominated as well. Example I: 0.6 mol bromine added to 0.5 mol toluene at room temperature under X-rays, at a rate that keeps unreacted bromine from leaving with the HBr, the HBr withdrawn; the cut at 190-210 C refined by repeated fractional distillation, about 90 % of theory on toluene. Discussion: the side-chain bromination is a series of successive reactions, the degree of bromination set by the moles of bromine introduced (Example II, xylene: 41 % monobromo- and 46 % dibromoxylene); benzal bromide itself is not named | read; patent, facts only | D-001, D-005, D-010, reactions.yaml (BALBR), benchmarks |
 | SRC-2 | NIST Chemistry WebBook, SRD 69: toluene (C108883), bromine (C7726956), benzyl bromide (C100390), benzal bromide (C618315) | Antoine constants (NIST fits: toluene to Willingham et al. 1945, 308.5-384.7 K; bromine to Blair and Ihle 1973, 343-383 K; benzyl bromide to Stull 1947, 305.4-471.7 K); heats of vaporization (toluene 35.4 kJ/mol at 360 K, Rivenq 1975; bromine 29.8 at 358 K, Blair and Ihle; benzyl bromide 48.1 at 355 K, Ashcroft 1976); boiling points (toluene 383.8 +/- 0.2 K; benzyl bromide 471.7 K, Aldrich 1990, and 471 K); formation enthalpies of the liquids (toluene 12.0 kJ/mol, Prosen et al. 1945; benzyl bromide 16 +/- 2, Ashcroft, Carson et al. 1963, with 22 and 30 +/- 14 also listed); benzal bromide: only a reduced-pressure boiling point, 429.2 K at 0.031 bar (Weast and Grasselli 1989); toluene's liquid heat capacity about 157 J/(mol K) at 298 K | read | materials.yaml, reactions.yaml, D-005, D-007 |
 | SRC-3 | PubChem CID 7498 (benzyl bromide), CID 24408 (bromine), CID 1140 (toluene) | benzyl bromide: identity (C7H7Br, InChIKey AGEZXYOZHKGVCM-UHFFFAOYSA-N); HSDB methods of manufacturing: toluene brominated under ultraviolet light (citing the Merck Index 2013), toluene bromination or benzyl alcohol with HBr (citing Hawley's 15th ed.), dibenzyl ether with bromine; boiling point 198-201 C, density 1.438 at 20 C, flash point 79-86 C closed cup; a lachrymator; decomposes slowly with water to HBr, attacks most metals when moist releasing heat and HBr, reacts violently with bases, magnesium and strong oxidants; GHS H315, H319, H335. Bromine: GHS H314, H330 (fatal if inhaled), H400. Toluene: flash point 4 C closed cup, lower explosive limit 1.1 vol%, autoignition temperature 480 C | read (PUG REST, PUG View; toluene 2026-11-06); the Merck Index and Hawley's are cited through HSDB, not read | D-001, D-011, registry |
-| SRC-4 | The `chemicals` 1.5.2 package (Caleb Bell, MIT licence): its packaged CRC Handbook tables (`CRC_organic_data`, `CRC_inorganic_data` densities and melting points, `CRC_standard_data` heat capacities, formation enthalpies and entropies), its Poling ideal-gas heat capacities and its critical constants with COSTALD | toluene COSTALD volume at 363 K, 0.1156 m3/kmol; densities: bromine 3102.8, benzyl bromide 1438.0, benzal bromide 1836.5 kg/m3; heat capacities: toluene 157.3, bromine 75.7 J/(mol K) (liquid), HBr 29.1 (gas; Poling's Cp/R polynomial, 29.05 at 263 K to 29.15 at 363 K); HBr (g) formation enthalpy -36.3 kJ/mol and entropy 198.7 J/(mol K) (CRC); melting point of bromine 265.95 K | open data package queried (2026-11-06); the CRC values are the tables packaged in `chemicals`, not the printed (licensed) handbook | materials.yaml (HBr's `ideal_gas` for the vent condensers), D-005, D-008 |
+| SRC-4 | The `chemicals` 1.5.2 package (Caleb Bell, MIT licence): its packaged CRC Handbook tables (`CRC_organic_data`, `CRC_inorganic_data` densities and melting points, `CRC_standard_data` heat capacities, formation enthalpies and entropies), its Poling ideal-gas heat capacities (`Cp_data_Poling`) and its critical constants with COSTALD | toluene COSTALD volume at 363 K, 0.1156 m3/kmol; densities: bromine 3102.8, benzyl bromide 1438.0, benzal bromide 1836.5 kg/m3; heat capacities: toluene 157.3, bromine 75.7 J/(mol K) (liquid), HBr 29.1 (gas; Poling's ideal-gas Cp/R polynomial, `Cp_data_Poling`, 29.05 at 263 K to 29.15 at 363 K); HBr (g) formation enthalpy -36.3 kJ/mol and entropy 198.7 J/(mol K) (CRC, `CRC_standard_data`); melting point of bromine 265.95 K | open-source package queried (2026-11-06); single values, facts only (library ADR 0037); the CRC Handbook of Chemistry and Physics (the source of the `CRC_*` tables) and Poling, Prausnitz, O'Connell, The Properties of Gases and Liquids, 5th ed. (the source of `Cp_data_Poling`) not read here | materials.yaml (HBr's `ideal_gas` for the vent condensers), D-005, D-008 |
 | SRC-5 | processes/hydrogen-bromide-1 (this library), DESIGN.md D-009 | the integral heat of solution of HBr to 48 wt% acid, -72.0 kJ/mol, ASSUMED there from the infinite-dilution -85.14 kJ/mol (NSRDS-NBS 2) | library, internal | D-008 |
 | SRC-6 | Stoessel, F. (2008) Thermal Safety of Chemical Processes, Wiley-VCH, doi:10.1002/9783527621606 | accumulation, MTSR and the criticality classes of a semi-batch (method, implemented in core ADRs 0050, 0054) | method reference, no data taken | D-011 |
 | SRC-7 | processes/bromine-1, btx-1, asu-1 (this library) | bromine 99.96 wt%; toluene from reformate extraction; gaseous nitrogen | library, internal | D-004, D-012 |
@@ -154,11 +154,12 @@ The third bromination, to benzotribromide, is not modelled: it needs benzal brom
 than k2 its rate is at most 0.88/26.4 = 0.033 of BALBR's at the end of the batch and less before,
 so it would take below 0.2 % of the bromine (0.033 x the 3.6 % that BALBR takes).
 Off-gas (`cheme process recipe`): 463 kg (5.72 kmol) of HBr a batch with 26 kg of toluene and 5
-kg of bromine past E-102, peak 0.334 mol/s of gas, 29.91 m3/h at E-102's 303.15 K and 101 kPa(a),
+kg of bromine past E-102, peak 0.334 mol/s of gas, 29.89 m3/h at E-102's 303.15 K and 101 kPa(a),
 0.69 h into the dosing. Until core 1.10.0 the recipe gave the HBr alone at 363 K (34.32 m3/h).
-The off-gas system (the vapour line to E-102, E-102, E-103 and A-101) is sized for the gas
-released at a cooling failure with the content's vapour, 59.57 m3/h at the MTSR, with a margin:
-75 m3/h (D-014).
+The off-gas system (the vapour line to E-102, E-102, E-103 and A-101) is sized for the largest
+gas release of a cooling failure over the batch with the content's vapour, 72.80 m3/h 0.38 h
+into the dosing (59.57 m3/h at the worst-accumulation moment that `reactor-hazards` reports),
+with a margin: 90 m3/h (D-014).
 
 ## D-006 Balance method and property gate (2026-11-06; core 1.10.0, 2026-11-06)
 Decision: cheme propagates the charge mixer M101, the heat-up E101, the semi-batch R101 with both
@@ -208,7 +209,7 @@ vaporization of 55 kJ/mol, so a relative volatility of benzyl bromide to benzal 
   benzyl bromide), the pot from 335.5 to 373.8 K, 1.13 h;
 - ST102, the forerun at 2 kPa(a) through K-101 (`still.column`, core ADR 0061: 5 theoretical
   stages with the still, reflux ratio 2, ASSUMED), boil-up 80 kW, until toluene is 0.2 mol% of
-  the pot: 118.2 kg (77 wt% toluene, 23 wt% benzyl bromide), 98.9 % of the pot's toluene and 2.9
+  the pot: 118.1 kg (77 wt% toluene, 23 wt% benzyl bromide), 98.9 % of the pot's toluene and 2.9
   % of its benzyl bromide, the pot from 321.4 to 355.1 K, 0.44 h;
 - ST103, the main cut at 2 kPa(a) through K-101 (the same 5 stages, reflux ratio 0.5, ASSUMED),
   boil-up 80 kW, until benzyl bromide is 35 mol% of the residue: 887.3 kg of product (99.85 wt%
@@ -429,7 +430,7 @@ doses is no dissolved gas, ADR 0058's known limitation). The content's bubble po
 the worst moment (with the 0.5 mol% bromine accumulated), so 383.8 K is a lower bound in the
 design case. The vented HBr adds nothing to the MTSR; at the MTSR it forms at 34.67 m3/h and
 leaves with the content's vapour at 59.57 m3/h (core 1.10.0, ADR 0062: 0.418 of the gas is
-vapour), within R-101's off-gas capacity of 75 m3/h (D-014); with the vent blocked it
+vapour), within R-101's off-gas capacity of 90 m3/h (D-014); with the vent blocked it
 pressurises the vessel, which the screening does not assess (D-014).
 No TD24 is known (never estimated): no criticality class (`cheme.reactor-hazard-missing`, info).
 With MTSR below MTT the class is 1 or 2 if the TD24 lies above the MTSR, and 5 if it lies below
@@ -438,12 +439,12 @@ SRC-6); it needs the TD24.
 Sensitivity (a scratch copy of the folder per case, both A divided, the feeds re-solved by
 scripts/balance.py and `cheme process propagate --fill` in turn for 1000 t/a at 4 mol of
 toluene per mol of bromine, everything else as designed; `reactor-hazards`, `reactors`,
-`recipe`; core 1.10.0 with the vent's vapour, 2026-11-06, compared with the 75 m3/h of D-014):
+`recipe`; core 1.10.0 with the vent's vapour, 2026-11-06, compared with the 90 m3/h of D-014):
 
-| k at 363 K | accumulation (end of dosing) | MTSR | MTSR vs MTT 383.8 K | gas release at the MTSR (101.3 kPa(a); with the content's vapour, the non-condensable HBr in brackets) vs the off-gas system's 75 m3/h | post-reaction to 0.999 | cycle, batches/a | class without TD24 |
+| k at 363 K | accumulation (end of dosing) | MTSR | MTSR vs MTT 383.8 K | gas release at the MTSR (101.3 kPa(a); with the content's vapour, the non-condensable HBr in brackets) vs the off-gas system's 90 m3/h | post-reaction to 0.999 | cycle, batches/a | class without TD24 |
 |---|---|---|---|---|---|---|---|
-| 5.0e-4 (design) | 1.66 % | 363.9 K | 19.9 K below | 59.57 m3/h (0.3224 mol/s, 34.67 m3/h): 0.79 x | 0.24 h | 7.03 h, 1127 | 1, 2 or 5 |
-| k/10 | 14.8 % | 370.3 K | 13.5 K below | 102.3 m3/h (0.3612 mol/s, 39.51 m3/h): 1.36 x | 4.13 h | 10.92 h, 725 | 1, 2 or 5 |
+| 5.0e-4 (design) | 1.66 % | 363.9 K | 19.9 K below | 59.57 m3/h (0.3224 mol/s, 34.67 m3/h): 0.66 x | 0.24 h | 7.03 h, 1127 | 1, 2 or 5 |
+| k/10 | 14.8 % | 370.3 K | 13.5 K below | 102.3 m3/h (0.3612 mol/s, 39.51 m3/h): 1.14 x | 4.13 h | 10.92 h, 725 | 1, 2 or 5 |
 | k/100 | 67.6 % | 396.1 K | 12.3 K above | the content boils (`boils`, its vapour pressure 197 kPa): not bounded (0.3575 mol/s, 41.83 m3/h of HBr) | 51.9 h | 58.7 h, 135 | 3, 4 or 5 |
 
 Until core 1.10.0 (the HBr alone, the one-stage product cut): the design case 1.73 %, 363.9 K,
@@ -562,18 +563,28 @@ m3/h at 363.9 K and 101.3 kPa(a), which leaves saturated with the content's vapo
 gas, 0.72 mol per mol of HBr): 59.57 m3/h up the line to E-102 (per batch of the recipe, from the
 worst moment's content; the condenser is not credited, its cooling may fail too). Run to
 completion the accumulated bromine gives 0.0956 kmol (2.86 m3 at the MTSR, 4.91 m3 with the
-vapour) more HBr. In normal operation the off-gas peaks at 0.334 mol/s past E-102 (29.91 m3/h
-at 303 K, `cheme process recipe`); at the vessel, near the start, that HBr (about 0.317 mol/s)
-carries about 1.0 mol of vapour per mol, about 68 m3/h at 363 K (hand, from the recipe's peak
-and the vapour share then; core reports the vent at the condenser's temperature).
+vapour) more HBr. `reactor-hazards` reports that worst-accumulation moment only; the release
+is larger earlier in the dosing, when the content holds more toluene and so more vapour per mol
+of HBr. Core's gas release at the MTSR applied to each moment of R101's cooling profile (126
+moments, its `_gas` on each moment's content at that moment's MTSR; the library test
+`test_core_screens_the_gas_release_at_every_moment`) gives the largest, 72.80 m3/h, for a cooling failure
+0.38 h into the dosing: 34.54 m3/h of HBr at an MTSR of 363.8 K with 0.526 of the gas vapour
+(1.11 mol per mol). In normal operation the off-gas peaks at 0.334 mol/s past E-102 (29.89 m3/h
+at 303 K, `cheme process recipe`, 0.69 h into the dosing); at the vessel that HBr (0.316 mol/s)
+carries 1.03 mol of vapour per mol (the content then at 363.15 K, Raoult as in core's vent),
+68.9 m3/h at 363 K (core reports the vent at the condenser's temperature). A cooling failure at
+that moment releases at least that, and the 72.80 m3/h covers it.
 Until core 1.10.0 core compared the HBr alone, 35.10 m3/h, with a capacity of 45 m3/h; with the
 vapour the release is 1.32 times that capacity (`cheme.reactor-hazard-vent`, warning).
 Decision: R-101's off-gas system (the vapour line to E-102, E-102, E-103 and A-101 with its
-tail scrubber) is sized for 75 m3/h of gas with its vapour at the vessel's pressure,
-`hazard.vent_capacity: 75`, ASSUMED: 1.2 x the largest gas release of a cooling failure with the
-assumed rate law and the content's vapour (71.5 m3/h), rounded up to the next 5 m3/h. The
-release at the MTSR is then 0.79 of it (`cheme.reactor-hazard-vent`, info), the normal peak at
-the vessel about 0.91. E-102 condenses about 14 kW at the normal peak (8.78 kW year average,
+tail scrubber) is sized for 90 m3/h of gas with its vapour at the vessel's pressure,
+`hazard.vent_capacity: 90`, ASSUMED: 1.2 x the largest gas release of a cooling failure over the
+batch with the assumed rate law and the content's vapour (1.2 x 72.80 = 87.4 m3/h), rounded up
+to the next 5 m3/h. The release at the worst-accumulation moment's MTSR is then 0.66 of it
+(`cheme.reactor-hazard-vent`, info), the largest over the batch 0.81, the normal peak at the
+vessel 0.77. A first sizing of 75 m3/h took 1.2 x the worst-accumulation moment's 59.57 m3/h as
+the largest; it left 1.09 over the normal peak and 1.03 over the release 0.38 h into the
+dosing, so it is not kept. E-102 condenses about 14 kW at the normal peak (8.78 kW year average,
 11.8 kW over the 5.24 h of gas).
 Reason: with a fast chain the release follows the dosing, so sizing for it costs little and
 needs no slower dosing; the vapour is most of the volume and has to pass the line to E-102. The
@@ -581,8 +592,9 @@ needs no slower dosing; the vapour is most of the volume and has to pass the lin
 capacity is no more credible than it.
 Open (design findings, for the next stage):
 - **The slow cases exceed it.** In D-011's k/10 case the release at the MTSR is 102.3 m3/h (39.51
-  m3/h of HBr with 1.59 mol of vapour per mol, 370.3 K, 3.4 mol% bromine accumulated), 1.36 x the
-  capacity, and E-102 would have to condense about 26 kW; at k/100 the MTSR, 396.1 K, is above
+  m3/h of HBr with 1.59 mol of vapour per mol, 370.3 K, 3.4 mol% bromine accumulated), 1.14 x the
+  capacity (at its worst-accumulation moment; the other moments of that case were not
+  screened), and E-102 would have to condense about 26 kW; at k/100 the MTSR, 396.1 K, is above
   the content's bubble point (about 372 K): the content boils (`boils`) and the vapour is not
   bounded by the screening (D-011, there ruled out by the 59 h cycle). Either the vapour line and
   E-102 are sized for about 105 m3/h and 26 kW, or the dosing is interlocked so that the
@@ -598,8 +610,9 @@ Open (design findings, for the next stage):
   bromine dosing interlocked on R-101's pressure and on the off-gas flow (D-011), and no
   isolation in the off-gas line without a relief path. Reasoning only, not a relief sizing.
 Rejected: keeping 45 m3/h (sized on the HBr alone, it would not pass the vapour that goes with
-it at the design MTSR); a larger capacity for the k/100 case (what exceeds is the boiling
-content, which a relief device takes, not the off-gas system).
+it at the design MTSR); 75 m3/h (1.2 x the worst-accumulation moment's release only, see
+above); a larger capacity for the k/100 case (what exceeds is the boiling content, which a
+relief device takes, not the off-gas system).
 
 ## D-015 Core 1.10.0: the column on the still, the vent's vapour and its condenser (2026-11-06)
 Decision: on the core pin v1.10.0 (c55e9c7) the entry moves three hand workarounds onto core's
@@ -625,7 +638,8 @@ models, each compared with the value it replaces before it was adopted:
   up (S1 0.614 instead of 0.609 kg/kg).
 - **The gas release at a cooling failure with the vapour** (core ADR 0062 in the screening of
   ADR 0058): 59.57 m3/h at the MTSR, of which 34.67 m3/h non-condensable, 1.32 times the 45
-  m3/h of core 1.9.0's capacity; the capacity is raised to 75 m3/h (D-014).
+  m3/h of core 1.9.0's capacity; the largest release over the batch, 72.80 m3/h 0.38 h into the
+  dosing, sets the capacity, raised to 90 m3/h (D-014).
 Tried and not adopted:
 - `still.heat_up` (ADR 0063) on ST101, ST102 and ST103 (a scratch copy, 2026-11-06): 0 kW for
   ST101 and ST102, whose charges enter at 363.15 and 373.76 K, above their bubble points of 335.5
