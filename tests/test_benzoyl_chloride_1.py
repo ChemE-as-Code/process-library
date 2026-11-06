@@ -8,8 +8,7 @@ process.yaml are checked against them:
   and the specific benzotrichloride use (0.715 kg/kg) follow from S4 and S11;
 - the product meets the patent's purity (above 99.5 %) and the absorber makes 30 wt% acid;
 - the column's specified split K101 closes on the still's distillate S9;
-- the process is not set public in the change that adds it (CONTRIBUTING, "Publishing a
-  process");
+- the process is public with CC-BY-4.0, every library entry is (ADR 0036);
 - (review of #390) the criticality classes D-011 states as possible without a TD24 are the ones
   Stoessel's scheme (core's `criticality()`) can give for the stated MTSR and MTT; the residue
   S13 is drained above its ideal benzoic acid liquidus; and the water and HCl release cases
@@ -79,10 +78,9 @@ def test_the_column_split_closes_on_the_still_distillate(streams):
         assert out[name] == pytest.approx(value, rel=1e-3, abs=1e-4)
 
 
-def test_not_published_in_the_change_that_adds_it():
+def test_published_public_with_cc_by():
     manifest = yaml.safe_load((PROCESS / "process.yaml").read_text(encoding="utf-8"))
-    assert manifest["publication"]["status"] == "internal"
-    assert "license" not in manifest["publication"]
+    assert manifest["publication"] == {"status": "public", "license": "CC-BY-4.0"}
 
 
 def _criticality(mtsr: float, mtt: float, td24: float) -> int:

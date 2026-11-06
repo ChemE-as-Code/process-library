@@ -21,10 +21,11 @@ jacket checks, the scrubber load per batch and the flowsheet's year-average flow
 (`cheme process recipe`, `cheme process reactor-hazards`, `cheme process crystallizers`).
 The heats of R101, R102 and Q101 are written by the models (`energy_port`), the quench's
 dilution heat, which the semi-batch model leaves out, is its own stream Q10, and the thermal
-screening compares the HCl a cooling failure releases with the vents' 150 m3/h: at the end of
-R-101's salt addition it uses 0.97 of it (about 3 % margin), at a ten times slower rate all of it,
-at a hundred times slower 8.7 times it (a design finding with interlocks and relief, DESIGN.md
-D-011, D-014).
+screening compares the HCl a cooling failure releases with an ASSUMED vent capacity of 150 m3/h
+(the normal peak rounded up; no vent sized yet): at the end of R-101's salt addition it uses 0.97
+of it (about 3 % margin), at a ten times slower rate all of it, at a hundred times slower 8.7
+times it (a design finding: dosing interlocks and an emergency relief sized from calorimetry are
+required, not yet designed; DESIGN.md D-011, D-014).
 Needs cheme-as-code 1.9.0. DESIGN.md lists the core features used and the core limits hit.
 
 Two headline numbers carry caveats. The modelled product is 99.7 wt% p-TsCl, an upper bound:
@@ -56,8 +57,8 @@ crude (an ASSUMED better conversion, D-005); calibrated to the patent, it would 
   drawing and generated file is made by the `cheme` command, so you need it to work here.
 - **Licences.** This folder is part of the ChemE-as-Code process library. Its data and designs are
   under CC BY 4.0 (`LICENSE-DATA`, unless `process.yaml` states otherwise); its skills and scripts
-  are under AGPL-3.0-or-later (`LICENSE`), like the ChemE-as-Code tools. Its publication status is
-  in `process.yaml` (internal until a maintainer decides otherwise).
+  are under AGPL-3.0-or-later (`LICENSE`), like the ChemE-as-Code tools. It is public
+  (`publication` in `process.yaml`: public, CC-BY-4.0).
 - **The skills in `.claude/skills/` are not in git.** They come with cheme-as-code: run
   `cheme skills update` once in this folder after cloning, so that Claude Code finds them here.
 

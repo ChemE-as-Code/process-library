@@ -36,8 +36,7 @@ of the document).
 Searched and not found openly (2026-11-05): kinetics or reaction calorimetry of the
 phosgenation of benzyl alcohol, the formation enthalpy of dibenzyl carbonate, the solubility of
 HCl and phosgene in benzyl alcohol or the chloroformate, a TD24 or decomposition data of benzyl
-chloroformate (a secondary source reports its decarboxylation slow at 100 C and vigorous at
-155 C, citing older work; not used), a plant's capacity or specific consumptions, and a market
+chloroformate, a plant's capacity or specific consumptions, and a market
 volume.
 
 ## D-001 Route and boundary (2026-11-05)
@@ -176,8 +175,9 @@ change the LCI substantially (0.74 kg phosgene and 1.09 kg 50 % caustic per kg B
 ## D-008 Product, yield and the patent's 81 % (2026-11-05)
 Decision: the product is the degassed crude, neat, not distilled: 99.2 wt% BCF, 98.9 % yield
 on the alcohol (the model). It is kept at 278 K.
-Reason: SRC-1 isolates the degassed crude as its product, and the chloroformate decomposes on
-heating to benzyl chloride and CO2 (D-011), so a distillation is avoided. The model's purity
+Reason: SRC-1 isolates the degassed crude as its product, and the chloroformate is ASSUMED to
+decompose on heating to benzyl chloride and CO2 (no decomposition data found; DSC/ARC and the
+TD24 are open, D-011), so a distillation is avoided. The model's purity
 (99.2 %) is above Ex. 3's 98.4 % and its yield (98.9 %) far above Ex. 3's 81 % isolated yield.
 The impurities match Ex. 3 by construction (D-005); the rest of Ex. 3's loss, 19 % of the
 alcohol, is not explained by the patent: its stated impurities account for about 1.2 % of the
@@ -232,8 +232,7 @@ basic-engineering item; a tempered brine at 258 K would need a longer dosing).
 ## D-010 Materials of construction (2026-11-05)
 Decision: enamelled (glass-lined) steel for R-101 and the phosgene and wet-HCl lines, as SRC-2
 names for this service; the scrubber in plastic-lined steel or FRP. Not designed further.
-Reason: wet HCl and chloroformates corrode steel and stainless steel; iron also catalyses the
-chloroformate's decomposition (the secondary source of D-011).
+Reason: wet HCl and chloroformates corrode steel and stainless steel.
 
 ## D-011 Thermal screening and the kinetic sensitivity (2026-11-05, core 1.9.0 and 1.10.0 2026-11-06)
 Result (`cheme process reactor-hazards`, core ADRs 0050, 0054, 0058, 0063): adiabatic
@@ -277,9 +276,8 @@ m3) at 0.46 h; the gas a cooling failure releases is compared with the vent in D
   as long as it lasts, and nothing stops CARB then. Its rate law and its heat (-30 kJ/mol) are
   ASSUMED placeholders (D-005), so no data show it too slow to matter on the time scale of a
   cooling failure. With its Ea of 40 kJ/mol it runs 46 times faster at 357.1 K than at 278 K.
-  The patent's phosgene excess is there to suppress it (SRC-1), and iron catalyses the
-  chloroformate's decomposition (D-010). CLBN takes the same reactants as PHOSG, the accumulated
-  phosgene, and cannot be separated from it. Leaving CARB out (`[PHOSG, CLBN]`) would need
+  The patent's phosgene excess is there to suppress it (SRC-1). CLBN takes the same reactants
+  as PHOSG, the accumulated phosgene, and cannot be separated from it. Leaving CARB out (`[PHOSG, CLBN]`) would need
   calorimetry of the mid-dosing mass showing CARB's heat flow negligible over a cooling
   failure. Each reaction alone, from the same run (`per_reaction`): PHOSG MTSR 294.1 K at 8.2 h,
   CLBN 306.5 K at 8.2 h, CARB 357.1 K at 4.2 h (on 1.9.0, gas basis: 300.2, 312.5 and 355.7 K).
@@ -300,8 +298,8 @@ boils phosgene off whatever the kinetics: the dosing must stop on high temperatu
 or agitator failure (interlock), the reflux condenser and the scrubber must take the phosgene
 then released, and the vessel's relief goes to the scrubber, not to air (D-014). With k/10 and
 k/100 the MTSR is set by CLBN on the accumulated phosgene, so the dissolved basis lowers it
-most there. With k/100 the potential (520 K) would reach the chloroformate's decomposition range (vigorous at 155 C, 428
-K, by the secondary source) and the cycle would rule out the design; with k/10 the cycle grows by
+most there. With k/100 the potential (520 K) would lie far above any credible decomposition onset (none is
+known; TD24 open) and the cycle would rule out the design; with k/10 the cycle grows by
 a third. Open for the next stage: reaction calorimetry with gas dosing (heat and gas flow), the
 TD24 of the crude and of the product (DSC, ARC), the phosgene solubility, the vent and relief
 sizing with the gas-generation term, the phosgene containment (enclosure, detection,

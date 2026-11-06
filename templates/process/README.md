@@ -13,9 +13,12 @@ Optional, as the process matures:
 | `process/flowsheet.yaml` | flowsheet and stream table |
 | `layout/plant-model.yaml` | 3D layout (in the Viewer) |
 | `lca/` with results (`cheme assess lca --write`) | footprint per functional unit, contributions, inventory |
-| `lca/mappings.yaml` (schema `schemas/lci-process-mappings.schema.json`) | nothing on its own: this process's exchange overrides for the LCI build (`exchanges:` by `<kind>:<id>`). Until the process is public, an unmapped exchange is a gap listed in `lci/gaps.json`, not an error ([lci/README.md](../../lci/README.md) "Linking") |
+| `lca/mappings.yaml` (schema `schemas/lci-process-mappings.schema.json`) | nothing on its own: this process's exchange overrides for the LCI build (`exchanges:` by `<kind>:<id>`). An unmapped exchange is a gap listed in `lci/gaps.json`, not an error, and marks the process preliminary ([lci/README.md](../../lci/README.md) "Linking") |
 | `checks/status.json` | engineering gate status |
 | `runs/<run-id>/` (one per agent or work session, [docs/run-records.md](../../docs/run-records.md)) | nothing: the effort record stays in git |
+
+The entry is public from the change that adds it (`publication: {status: public, license:
+CC-BY-4.0}` in `process.yaml`): write this README and the `DESIGN.md` for the public.
 
 Keep sources and assumptions with the data. The `maturity` field (the **design maturity**, a
 claim capped by evidence: in an engineering project by the **calculation maturity** that

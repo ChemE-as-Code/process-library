@@ -67,8 +67,8 @@ Four headline numbers carry caveats:
   drawing and generated file is made by the `cheme` command, so you need it to work here.
 - **Licences.** This folder is part of the ChemE-as-Code process library. Its data and designs are
   under CC BY 4.0 (`LICENSE-DATA`, unless `process.yaml` states otherwise); its skills and scripts
-  are under AGPL-3.0-or-later (`LICENSE`), like the ChemE-as-Code tools. Its publication status is
-  in `process.yaml` (internal until a maintainer decides otherwise).
+  are under AGPL-3.0-or-later (`LICENSE`), like the ChemE-as-Code tools. It is public
+  (`publication` in `process.yaml`: public, CC-BY-4.0).
 - **The skills in `.claude/skills/` are not in git.** They come with cheme-as-code: run
   `cheme skills update` once in this folder after cloning, so that Claude Code finds them here.
 

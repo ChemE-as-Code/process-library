@@ -29,6 +29,7 @@ the part of the document).
 | SRC-8 | processes/bromine-1, chlor-alkali-1, acetone-1, asu-1 (this library) | dry bromine; caustic soda 50 wt%; acetone from the cumene process; gaseous nitrogen | library, internal | feed links (D-004, D-012) |
 | SRC-9 | Fuson, R. C.; Bull, B. A. (1934) The haloform reaction, Chem. Rev. 15, 275-309 | that CBr4 forms from bromoform with hypobromite | lead only: seen as a search snippet by the route scout, not read | D-001 (mechanism lead) |
 | SRC-10 | Ullmann's Encyclopedia of Industrial Chemistry, Bromine Compounds, doi:10.1002/14356007.a04_405 | - | not read (licensed) | route reference lead only |
+| SRC-11 | Property data of core's environment: the `chemicals` 1.5.2 package's CRC Handbook tables (`chemicals.miscdata.CRC_inorganic_data`, `chemicals.phase_change.Hvap_data_CRC`), the values n-bromosuccinimide-1 also uses | bromine (7726-95-6): liquid density 3102.8 kg/m3, normal boiling point 331.95 K, heat of vaporisation 29.96 kJ/mol at the boiling point | open data package queried (2026-11-06); facts only. The values come from the tables packaged in `chemicals`, not from the printed (licensed) handbook | materials, D-005, D-008, D-011 |
 
 Searched and not found openly (2026-11-05, here and in the route scout): an industrial CBr4
 production description with capacity, yield, kinetics or calorimetry of the haloform step, the

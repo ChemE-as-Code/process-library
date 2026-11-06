@@ -11,8 +11,7 @@ process-library#379):
   rejected 0.999;
 - the avoided solid PBr5 is credited to the reaction temperature above 100 C, as US 3 409 401
   says, not to the bromine excess (which forms PBr5, D-004);
-- the process is not set public in the change that adds it (CONTRIBUTING, "Publishing a
-  process"): ``public`` needs a publication decision recorded in PROGRESS.md.
+- the process is public with CC-BY-4.0, every library entry is (ADR 0036).
 """
 
 from __future__ import annotations
@@ -119,17 +118,7 @@ def test_avoided_pbr5_is_credited_to_the_temperature(rel):
         assert "temperature" in s, f"{rel}: the avoided PBr5 is not credited to the temperature: {s}"
 
 
-def test_not_public_without_a_recorded_publication_decision():
-    """CONTRIBUTING: a new process stays out of the public build until `public` is set, the
-    maintainers' decision made in its own change. The adding change keeps it internal; the
-    change that publishes it records the decision in PROGRESS.md."""
+def test_published_public_with_cc_by():
+    """ADR 0036: every library entry is public, with the library's CC BY 4.0 written explicitly."""
     manifest = yaml.safe_load((PROCESS / "process.yaml").read_text(encoding="utf-8"))
-    status = manifest.get("publication", {}).get("status", "internal")
-    assert status in {"internal", "candidate", "public"}
-    if status == "public":
-        progress = (PROCESS / "PROGRESS.md").read_text(encoding="utf-8")
-        rows = [r for r in progress.splitlines() if r.startswith("|")]
-        assert any(re.search(r"\bstatus: public\b", r) and "maintainer" in r for r in rows), (
-            "status public without a maintainer's publication decision in PROGRESS.md"
-        )
-        assert manifest["publication"].get("license"), "state the licence when setting public"
+    assert manifest["publication"] == {"status": "public", "license": "CC-BY-4.0"}
