@@ -18,8 +18,9 @@ Steps (design spec #330, section 6):
 2. Sync from the design basis: stacks[].product (rate, recovery, purity, pressure) and
    stacks[].replacement.operating_hours.
 3. Write the horizons and thresholds: D-A and D-B to H, the comparison duties to 3 H, every
-   duty's pH threshold from the design basis, and D-A-PART's step points (12 h at 200, 12 h
-   at 100 mA/cm2) over 3 H.
+   duty's pH threshold from the design basis' trip value (threshold.trip.ph, the pH the plant
+   stops at, D-058; threshold.ph is the stability criterion D-003 it protects), and D-A-PART's
+   step points (12 h at 200, 12 h at 100 mA/cm2) over 3 H.
 4. Check the cell: `cheme process cell --json`; a refused cell stops the run.
 5. Size Skid A: `cheme process stack --write` writes D-A's reservoir volume (core's
    `reservoir.size: to_horizon`, exact: V = V0 Q(H) / Q*, rounded up to 4 significant
@@ -328,6 +329,15 @@ class Run:
     def basis(self) -> dict:
         return self.load("process/design-basis.yaml")["capacity"]["pilot_skid"]
 
+    def trip_ph(self) -> float:
+        """The pH the duties run to and T-101 is sized at: the trip of I-101 and I-201, above
+        the stability criterion threshold.ph (D-003) by the margin of D-058."""
+        threshold = self.basis()["threshold"]
+        trip = float(threshold["trip"]["ph"])
+        if trip < float(threshold["ph"]):
+            raise SystemExit(f"design basis: the trip pH {trip:g} is below the criterion {threshold['ph']:g}")
+        return trip
+
     def setpoints(self) -> dict[str, float]:
         """Skid B's ASSUMED steady state (design basis skid_b_setpoints, DESIGN.md D-010)."""
         sp = self.basis()["skid_b_setpoints"]
@@ -403,7 +413,7 @@ class Run:
     # -- 3 ----------------------------------------------------------------------------------
     def horizons(self) -> None:
         duties = self.load("process/duties.yaml")
-        threshold = self.basis()["threshold"]["ph"]
+        threshold = self.trip_ph()
         changes = []
         for did, h in [(d, self.h) for d in SKID_DUTIES.values()] + [
             (d, 3 * self.h) for d in COMPARISON
@@ -1902,7 +1912,8 @@ class Run:
             "reservoir_margin": margin,
             "reservoir_aspect_ratio": float(reservoir_cfg["aspect_ratio"]["value"]),
             "usable_height_m": s["envelope"]["basis"]["usable_height"],
-            "threshold_ph": float(self.basis()["threshold"]["ph"]),
+            "threshold_ph": self.trip_ph(),
+            "stability_ph": float(self.basis()["threshold"]["ph"]),
             "max_stack_voltage_v": float(stacks_cfg["electrical"]["max_stack_voltage"]["value"]),
         }
         if key == "A":

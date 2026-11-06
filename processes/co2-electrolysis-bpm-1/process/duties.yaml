@@ -7,13 +7,15 @@
 #   0044 amendment): the exact volume that reaches the horizon at the pH threshold, rounded up
 #   to 4 significant figures;
 # - every horizon (D-A, D-B: the campaign H; the comparison duties: 3 H), every pH threshold
-#   (process/design-basis.yaml capacity.pilot_skid.threshold), the D-B dosing, bleed and
+#   (process/design-basis.yaml capacity.pilot_skid.threshold.trip), the D-B dosing, bleed and
 #   make-up rates, the comparison duties' reservoir volume and the D-A-PART points:
 #   `cheme run scripts/regen.py --duration H` (targeted edits that refuse any other change).
 # No YAML anchors: the values are repeated, and scripts/regen.py and the tests assert equality.
 #
 # The pH threshold is a stated design criterion on a concentration basis, the time to a
-# specified pH threshold, not a corrosion onset (DESIGN.md D-003, core ADR 0043).
+# specified pH threshold, not a corrosion onset (DESIGN.md D-003, core ADR 0043). The duties
+# run to the plant's trip value, pH 12.2, 0.2 above the criterion pH 12 (D-058), so that the
+# trip acts before the criterion is reached and T-101 is sized to reach the trip at H.
 schema: cheme/electrolysis-duties/v1
 kind: electrolysis_duties
 duties:
@@ -25,13 +27,13 @@ duties:
     cell: pilot-cell
     schedule: {kind: constant_current, current_density: {value: 200, unit: mA/cm2}}
     reservoir:
-      volume: {value: 1166.0, unit: L, source: "cheme process stack: stack STK-A, duty D-A at 7 cells x 4 stacks: reservoir.size to_horizon: the volume that reaches the horizon 1000 h at the pH threshold 12 (exact 1165.15 L, rounded up to 4 significant figures)"}
+      volume: {value: 1176.0, unit: L, source: "cheme process stack: stack STK-A, duty D-A at 7 cells x 4 stacks: reservoir.size to_horizon: the volume that reaches the horizon 1000 h at the pH threshold 12.2 (exact 1175.61 L, rounded up to 4 significant figures)"}
       composition: {hydroxide: {value: 1, unit: mol/L}}
       cation: K+
       model: well-mixed-carbonate
       size: to_horizon
     dosing: {kind: none}
-    threshold: {ph: 12, source: "process/design-basis.yaml capacity.pilot_skid.threshold (DESIGN.md D-003)"}
+    threshold: {ph: 12.2, source: "process/design-basis.yaml capacity.pilot_skid.threshold.trip: the trip of I-101 and I-201 (DESIGN.md D-058), 0.2 above the stability criterion pH 12 (D-003)"}
     horizon: {value: 1000, unit: h}
     operating_map: {wde: [0.95, 0.99], volume: [10, 20000], volume_unit: L}
     sources: ["DESIGN.md D-009"]
@@ -57,7 +59,7 @@ duties:
       density: {value: 1.22, unit: kg/L, source: "ASSUMED about 5 M KOH at 25 °C"}
     bleed: {rate: {value: 1.8660792, unit: L/h}}
     makeup_water: {rate: {value: 1.44690069, unit: L/h}}
-    threshold: {ph: 12, source: "process/design-basis.yaml capacity.pilot_skid.threshold (DESIGN.md D-003)"}
+    threshold: {ph: 12.2, source: "process/design-basis.yaml capacity.pilot_skid.threshold.trip: the trip of I-101 and I-201 (DESIGN.md D-058), 0.2 above the stability criterion pH 12 (D-003)"}
     horizon: {value: 1000, unit: h}
     minimum_inventory: {volume: {value: 40, unit: L}}
     sources: ["DESIGN.md D-010"]
@@ -71,12 +73,12 @@ duties:
     stack: STK-A
     schedule: {kind: on_off, period: {value: 24, unit: h}, duty_fraction: 0.5, current_density: {value: 200, unit: mA/cm2}, start: "on"}
     reservoir:
-      volume: {value: 1166.0, unit: L}
+      volume: {value: 1176.0, unit: L}
       composition: {hydroxide: {value: 1, unit: mol/L}}
       cation: K+
       model: well-mixed-carbonate
     dosing: {kind: none}
-    threshold: {ph: 12, source: "process/design-basis.yaml capacity.pilot_skid.threshold (DESIGN.md D-003)"}
+    threshold: {ph: 12.2, source: "process/design-basis.yaml capacity.pilot_skid.threshold.trip: the trip of I-101 and I-201 (DESIGN.md D-058), 0.2 above the stability criterion pH 12 (D-003)"}
     horizon: {value: 3000, unit: h}
     sources: ["DESIGN.md D-013"]
   - id: D-A-PART
@@ -85,11 +87,11 @@ duties:
     stack: STK-A
     schedule: {kind: piecewise, unit: mA/cm2, time_unit: h, interpolation: step, points: [[0, 200], [12, 100], [24, 200], [36, 100], [48, 200], [60, 100], [72, 200], [84, 100], [96, 200], [108, 100], [120, 200], [132, 100], [144, 200], [156, 100], [168, 200], [180, 100], [192, 200], [204, 100], [216, 200], [228, 100], [240, 200], [252, 100], [264, 200], [276, 100], [288, 200], [300, 100], [312, 200], [324, 100], [336, 200], [348, 100], [360, 200], [372, 100], [384, 200], [396, 100], [408, 200], [420, 100], [432, 200], [444, 100], [456, 200], [468, 100], [480, 200], [492, 100], [504, 200], [516, 100], [528, 200], [540, 100], [552, 200], [564, 100], [576, 200], [588, 100], [600, 200], [612, 100], [624, 200], [636, 100], [648, 200], [660, 100], [672, 200], [684, 100], [696, 200], [708, 100], [720, 200], [732, 100], [744, 200], [756, 100], [768, 200], [780, 100], [792, 200], [804, 100], [816, 200], [828, 100], [840, 200], [852, 100], [864, 200], [876, 100], [888, 200], [900, 100], [912, 200], [924, 100], [936, 200], [948, 100], [960, 200], [972, 100], [984, 200], [996, 100], [1008, 200], [1020, 100], [1032, 200], [1044, 100], [1056, 200], [1068, 100], [1080, 200], [1092, 100], [1104, 200], [1116, 100], [1128, 200], [1140, 100], [1152, 200], [1164, 100], [1176, 200], [1188, 100], [1200, 200], [1212, 100], [1224, 200], [1236, 100], [1248, 200], [1260, 100], [1272, 200], [1284, 100], [1296, 200], [1308, 100], [1320, 200], [1332, 100], [1344, 200], [1356, 100], [1368, 200], [1380, 100], [1392, 200], [1404, 100], [1416, 200], [1428, 100], [1440, 200], [1452, 100], [1464, 200], [1476, 100], [1488, 200], [1500, 100], [1512, 200], [1524, 100], [1536, 200], [1548, 100], [1560, 200], [1572, 100], [1584, 200], [1596, 100], [1608, 200], [1620, 100], [1632, 200], [1644, 100], [1656, 200], [1668, 100], [1680, 200], [1692, 100], [1704, 200], [1716, 100], [1728, 200], [1740, 100], [1752, 200], [1764, 100], [1776, 200], [1788, 100], [1800, 200], [1812, 100], [1824, 200], [1836, 100], [1848, 200], [1860, 100], [1872, 200], [1884, 100], [1896, 200], [1908, 100], [1920, 200], [1932, 100], [1944, 200], [1956, 100], [1968, 200], [1980, 100], [1992, 200], [2004, 100], [2016, 200], [2028, 100], [2040, 200], [2052, 100], [2064, 200], [2076, 100], [2088, 200], [2100, 100], [2112, 200], [2124, 100], [2136, 200], [2148, 100], [2160, 200], [2172, 100], [2184, 200], [2196, 100], [2208, 200], [2220, 100], [2232, 200], [2244, 100], [2256, 200], [2268, 100], [2280, 200], [2292, 100], [2304, 200], [2316, 100], [2328, 200], [2340, 100], [2352, 200], [2364, 100], [2376, 200], [2388, 100], [2400, 200], [2412, 100], [2424, 200], [2436, 100], [2448, 200], [2460, 100], [2472, 200], [2484, 100], [2496, 200], [2508, 100], [2520, 200], [2532, 100], [2544, 200], [2556, 100], [2568, 200], [2580, 100], [2592, 200], [2604, 100], [2616, 200], [2628, 100], [2640, 200], [2652, 100], [2664, 200], [2676, 100], [2688, 200], [2700, 100], [2712, 200], [2724, 100], [2736, 200], [2748, 100], [2760, 200], [2772, 100], [2784, 200], [2796, 100], [2808, 200], [2820, 100], [2832, 200], [2844, 100], [2856, 200], [2868, 100], [2880, 200], [2892, 100], [2904, 200], [2916, 100], [2928, 200], [2940, 100], [2952, 200], [2964, 100], [2976, 200], [2988, 100]]}
     reservoir:
-      volume: {value: 1166.0, unit: L}
+      volume: {value: 1176.0, unit: L}
       composition: {hydroxide: {value: 1, unit: mol/L}}
       cation: K+
       model: well-mixed-carbonate
     dosing: {kind: none}
-    threshold: {ph: 12, source: "process/design-basis.yaml capacity.pilot_skid.threshold (DESIGN.md D-003)"}
+    threshold: {ph: 12.2, source: "process/design-basis.yaml capacity.pilot_skid.threshold.trip: the trip of I-101 and I-201 (DESIGN.md D-058), 0.2 above the stability criterion pH 12 (D-003)"}
     horizon: {value: 3000, unit: h}
     sources: ["DESIGN.md D-013"]

@@ -65,6 +65,10 @@ Assumptions:
 - pH 12 is adequate for a Ni anode (ASSUMED, after the authors). #330 states the threshold
   used for the skid.
 
+Changed by D-058 (owner, 2026-11-06): pH 12 stays the stability criterion the design reports
+against; the plant trips 0.2 above it, at pH 12.2, and the duties run to that trip value
+(`process/design-basis.yaml` `threshold.trip`).
+
 ## D-004 No process/cells.yaml until the cell balance has measured inputs (2026-11-04)
 Superseded by D-005 and D-006 (2026-11-04): core#137 landed, the measured series exists and
 `process/cells.yaml` now has the bench cell.
@@ -373,6 +377,13 @@ core computes the exact volume itself now.
 Assumptions: the measured WDE and co-ion split hold over the whole campaign and across the
 changing electrolyte (not supported by measurement, D-014).
 
+Changed by D-058 (owner, 2026-11-06): the duty runs to the trip value pH 12.2, not to the
+criterion pH 12, so that I-101 has a margin and still does not end the campaign before H:
+1175.61 L exact, 1176 L written at 1,000 h (T-101 D 1.077 x H 1.615 m); 11,760 L at 10,000 h
+(D 2.320 x H 3.480 m); the end state 0.397 mol/L carbon (pH 12.21); KOH 0.655 kg per kg CO
+delivered; with WDE one sd lower the 1,176 L reach pH 12.2 after 803 h. The figures above are
+the pH 12 sizing they replace; the frozen expectations stand with erratum X-2.
+
 ## D-010 Skid B: continuous KOH dosing, bleed and make-up at a steady state (2026-11-04)
 Decision: Skid B holds 50 L (ASSUMED: about 4.5 min hold-up at the 11.2 L/min recirculation,
 for O2 disengagement) at the ASSUMED setpoints 0.5 mol/L OH- and 0.25 mol/L carbon (design
@@ -650,6 +661,12 @@ compressor and closing the CO2 (SEQ-x-GAS); TIC-x11 has a low-temperature alarm 
 heating when idle); SEQ-x-DRAIN vents, drains the low point, pumps out the heel and flushes
 (D-055).
 
+Changed by D-058 (owner, 2026-11-06): Skid A's pH trip I-101 is at pH 12.2, 0.2 above the
+threshold, and T-101 is sized to reach the trip value at H (1,176 L), so a campaign at the
+measured WDE ends normally at H with the anolyte at the trip value and the trip acts only when
+the WDE is below the measured one or the run overruns H; both skids trip at 12.2. AI-101's low
+alarm stays 12.5, now about 19 h before H and the trip (28 h before pH 12).
+
 ## D-019 Skid layout: plot, frames, placement, zones and routing (2026-11-04)
 Decision: a notional pilot plot (ASSUMED, `layout/site-plan.yaml`): 32 x 16 m, two process
 areas A-100 (Skid A) and A-200 (Skid B), an access road R-1 along the south for the KOH and CO2
@@ -887,6 +904,10 @@ Changed by D-047: the stacks are no longer lifted out vertically by hand; they s
 
 Changed by D-051: the Ex rating of the electrical items inside the zones is decided (the owner,
 2026-11-06); the fan's Ex rating no longer applies (no fan, D-050).
+
+Changed by D-058: the trip margin above Skid A's threshold is decided (the owner, 2026-11-06):
+I-101 at pH 12.2 with T-101 sized to it; the frozen sizing basis stands, the changed basis is
+erratum X-2 of `results/expected-errata.yaml`. No owner decision of this review stays open.
 
 ## D-024 LCA scope: functional unit, CO the only product, the H2, O2 and CO2 dispositions (2026-11-05)
 Decision: `lca/lca.yaml` (#331, part of it; the spec's D-016) is a climate-change-only screening
@@ -1243,6 +1264,8 @@ its design and drawing still open with the DC bus. Item 14's flashback protectio
 gas is decided in D-054 (a detonation arrester, check valve and trip valve at the PSA outlet,
 the arrester's temperature trip, the oxidiser stopping its tail gas by its own trip I-x10);
 item 10's burner management is the oxidiser vendor's, its trip now in the C&E (I-x10).
+Item 11's Skid A margin is decided in D-058 (I-101 at pH 12.2, T-101 sized to it); the
+probe's calibration and I-201's own probe stay open.
 
 ## D-032 What the HAZOP drafts found missing, and what they judged not applicable (2026-11-05)
 Decision: the studies analyse the plant as drawn; what it does not have is an action, never a
@@ -2425,4 +2448,59 @@ Open: the area classification may move the zones and so the margins (competent p
 oxidiser's and the rectifier's vendor outlines, terminal positions and panel; the DC cable size
 for the longer run (electrical design); the human layout review the r2 review requires before
 sign-off (gate `layout-review` stays stale until the next round).
+
+## D-058 Skid A's pH trip at 12.2, T-101 sized to the trip value (2026-11-06)
+Decision (the owner, 2026-11-06; option (c) of the open owner decision of D-018 and D-023):
+- Skid A's low-low pH trip I-101 acts at pH 12.2 (concentration basis, ASSUMED), 0.2 above the
+  stability criterion pH 12 of D-003; AI-101's low alarm stays at 12.5;
+- the design basis keeps the criterion as the value the design reports against
+  (`process/design-basis.yaml` `threshold.ph: 12`) and gets a separate key for the value the
+  plant stops at, `threshold.trip.ph: 12.2`. Regen step 3 writes the trip value into every
+  duty's threshold (D-A, D-B and the comparison duties; Skid B's I-201 already tripped at 12.2),
+  so that `cheme process stack --write` sizes T-101 to reach the trip at H, not the criterion;
+- the frozen expectations are not edited (ADR 0030). The changed basis is erratum X-2 of
+  `results/expected-errata.yaml` (kind `basis`): the reason, the hand calculation at pH 12.2
+  and the 18 items of `results/expected.yaml` and 4 of `results/expected-lca.yaml` it
+  supersedes. The library tests compare the regenerated results with the superseding values
+  under the frozen tolerances (`with_errata`), `tests/test_skid_errata.py` recomputes each one
+  from the frozen closed forms at the new basis and fails if a moved item is not listed, and
+  the resize report's hand column uses them.
+
+Why: a trip set exactly at the limit it protects has no allowance for the probe's error, and
+the probe reads activity pH against the model's concentration pH with an offset not yet
+calibrated (control/philosophy.md). Sized to the trip, the campaign still lasts H at the
+measured WDE, so the margin costs about 10 L of 1 M KOH (+0.9 %), not campaign time. 12.2 is
+Skid B's trip value too. The pH falls slowly: at the measured WDE 12.5 to 12.2 takes about 19 h
+and 12.2 to 12.0 about 9 h, so the trip's response time hardly matters. The trip protects the
+asset (the Ni anode, H01-S113), not people, so a SIL is unlikely; it still goes through the
+SIL screening (H01-A112).
+
+Rejected:
+- (a) the trip at pH 12.0 with no margin (D-018 as it was): any probe error under-reads the
+  margin to nothing;
+- (b) the trip at 12.2 with the 1,166 L reservoir: every campaign at the measured WDE ends at
+  about 992 h of 1,000 h (0.8 % of the CO lost), and the duty model would not show the trip;
+- a new frozen expectations commit: the frozen file is not edited after the regeneration has
+  run (ADR 0030); the erratum records the changed basis beside it.
+
+Consequence (regen, 1,000 h): T-101 1175.61 L exact, 1176 L written (1166 L), held 1.470 m3, D
+1.077 x H 1.615 m (1.074 x 1.611 m); the anolyte at H at pH 12.21, 0.397 mol/L carbon and 0.804
+mol/L K+; KOH 0.655 kg per kg CO delivered (0.649); the frame still fits with 0.40 m of height
+left; WDE one sd lower: the 1,176 L reach pH 12.2 after 803 h; the longest campaign in the
+envelope 2,529 h (2,552 h). At 10,000 h (scratch): 11,760 L, D 2.320 x H 3.480 m, 1.28 m above
+the envelope (1.27 m), still the one clash. Lifts: Skid A drained 2.845 t (2.844 t), with T-101
+full 4.246 t (4.234 t, the bound), T-101 alone full 1.630 t (1.617 t); D-053's doubled bound
+unchanged at 8.76 t; at 10,000 h Skid A drained 3.712 t (3.708 t). Routes, clashes and cables
+unchanged; take-off pipe 61.431 m (+2 mm on T-101's nozzles). LCA: the KOH fill 0.655 kg per kg
+CO (a gap), the characterised totals unchanged at 10.48 kg CO2e/kg; the break-even KOH factor
+-0.00415 (was -0.00414) kg CO2e/kg KOH. The duties, the C&E (I-101), AI-101's alarm text,
+SEQ-A-FILL and SEQ-A-STOP, the design basis and the flowsheet's anolyte streams changed, so the
+HAZOP studies are revised (H01-A108, H01-S113) and re-stamped.
+
+Assumptions: the 0.2 pH margin (ASSUMED, the same as I-201's).
+
+Open (cannot be settled here): the activity-to-concentration offset of the probe and the
+margin set from its uncertainty after the calibration against titrated anolyte (H01-A109);
+the SIL screening of I-101 (H01-A112); the HAZOP team's acceptance of the margin (H01-A108,
+proposed).
 

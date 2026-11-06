@@ -176,14 +176,14 @@ Generated from results/scenarios/<H>h/lca.json (design campaign 1000 h unless st
 | feed:AIR | 8.475 | 8.475 | kg | none |
 | feed:CO2 | 3.537 | 3.537 | kg | gap |
 | feed:KOH-DOSE (KOH 0 / 1.167) | 0 | 5.077 | kg | gap |
-| feed:KOH-FILL (KOH 0.6494 / 0.02785) | 12.15 | 0.5212 | kg | gap |
+| feed:KOH-FILL (KOH 0.655 / 0.02785) | 12.26 | 0.5212 | kg | gap |
 | feed:POWER | 34.56 | 34.56 | kWh | PROXY |
 | feed:WATER | 2.593 | 16.91 | kg | PROXY |
 | product:BLEED (KOH 0 / 0.5335) | 0 | 19.47 | kg | gap |
 | product:CONDENSATE | 1.299 | 1.299 | kg | gap |
 | product:CW | 22.11 | 22.11 | kWh | gap |
 | product:O2VENT | 1.564 | 1.564 | kg | none |
-| product:SPENT (KOH 0.001644 / 0.01392) | 12.23 | 0.5218 | kg | gap |
+| product:SPENT (KOH 0.007214 / 0.01392) | 12.33 | 0.5218 | kg | gap |
 | product:VENT | 10.66 | 10.66 | kg | none |
 
 **Climate change, NL grid** (kg CO2e per kg CO; a partial screening carbon footprint, gaps excluded)
@@ -194,8 +194,8 @@ Generated from results/scenarios/<H>h/lca.json (design campaign 1000 h unless st
 | vent CO2 (fossil) | 1.712 | 1.712 |
 | water (DESNZ, proxy) | 0.0004961 | 0.003235 |
 | characterised total | 10.48 | 10.48 |
-| water in the KOH solutions (inside the KOH gaps; at the water factor) | 0.002201 | 0.0008422 |
-| total with that water (the ranking's basis) | 10.48077 | 10.48303 |
+| water in the KOH solutions (inside the KOH gaps; at the water factor) | 0.00222 | 0.0008422 |
+| total with that water (the ranking's basis) | 10.48079 | 10.48303 |
 | not counted: fossil CO2 of the carbonate wastes, released when neutralised (inside the waste gaps; 7.2 % of the CO2 fed) | 0.2541 | 0.2541 |
 | gaps (exchanges without a factor; of them non-zero) | 13 (11 non-zero) | 13 (13 non-zero) |
 
@@ -214,9 +214,9 @@ Generated from results/scenarios/<H>h/lca.json (design campaign 1000 h unless st
 
 | skid | quantity | 1000 h | 10000 h |
 |---|---|---|---|
-| A | KOH fill (KOH 100 %), kg per kg CO | 0.6494 | 0.6494 |
+| A | KOH fill (KOH 100 %), kg per kg CO | 0.655 | 0.655 |
 | A | KOH dosed (KOH 100 %), kg per kg CO | 0 | 0 |
-| A | KOH in all (fill + dosed), kg per kg CO | 0.6494 | 0.6494 |
+| A | KOH in all (fill + dosed), kg per kg CO | 0.655 | 0.655 |
 | B | KOH fill (KOH 100 %), kg per kg CO | 0.02785 | 0.002785 |
 | B | KOH dosed (KOH 100 %), kg per kg CO | 1.167 | 1.167 |
 | B | KOH in all (fill + dosed), kg per kg CO | 1.195 | 1.17 |
@@ -231,7 +231,7 @@ Generated from results/scenarios/<H>h/lca.json (design campaign 1000 h unless st
 
 **H2 as a co-product** (not designed): 0.116 kg H2 per kg CO would carry 10.4 % of the burden by mass or 58.0 % by LHV; substitution missing.
 
-**Skid A against Skid B: ranking not determined.** Distinguishing flows without a documented factor: feed:KOH-DOSE, feed:KOH-FILL, product:BLEED, product:SPENT, construction. Break-even KOH factor: -0.004142 kg CO2e/kg KOH (none).
+**Skid A against Skid B: ranking not determined.** Distinguishing flows without a documented factor: feed:KOH-DOSE, feed:KOH-FILL, product:BLEED, product:SPENT, construction. Break-even KOH factor: -0.00415 kg CO2e/kg KOH (none).
 
-**Reconciliation (E10)**: the datasets equal the duty totals per kg CO at 1000 h yes, 10000 h yes (largest relative difference 1.6e-08, tolerance 1e-6).
+**Reconciliation (E10)**: the datasets equal the duty totals per kg CO at 1000 h yes, 10000 h yes (largest relative difference 1.2e-08, tolerance 1e-6).
 <!-- regen:lca end -->

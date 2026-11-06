@@ -2,7 +2,11 @@
 
 processes/co2-electrolysis-bpm-1/scripts/regen.py regenerates both skids for one campaign
 duration; results/expected.yaml holds the hand values E1 to E9 (tests/skid_formulas.py, frozen in
-their own commit before the first regeneration, ADR 0030). Three kinds of test:
+their own commit before the first regeneration, ADR 0030). A basis changed after the freezing is
+a basis erratum of results/expected-errata.yaml (X-2: the pH 12.2 trip, DESIGN.md D-058): the
+items it supersedes are compared with its values under the frozen tolerances (``with_errata``),
+and tests/test_skid_errata.py recomputes those values from the frozen closed forms. Three kinds
+of test:
 
 - fast, without core: the design basis is what the stacks and duties carry, no script reads the
   library's held-out benchmarks (ADR 0032), the frozen-expectations commit precedes every
@@ -96,9 +100,34 @@ def expected() -> dict:
     return f.load_expected()
 
 
+def superseded(frozen_file: str) -> dict[str, float]:
+    """The values a basis erratum of results/expected-errata.yaml (ADR 0030; X-2, the pH 12.2
+    trip of DESIGN.md D-058) puts in place of the frozen ones of *frozen_file*, by key; the
+    frozen file itself is never edited and its tolerances stand."""
+    doc = _yaml(PROCESS / "results" / "expected-errata.yaml")
+    out = {}
+    for e in doc.get("errata") or []:
+        for s in (e.get("supersedes") or {}).get(frozen_file) or []:
+            assert s["key"] not in out, f"{s['key']} superseded twice"
+            out[s["key"]] = s["value"]
+    return out
+
+
+def with_errata(items: dict[str, dict], frozen_file: str) -> dict[str, dict]:
+    new = superseded(frozen_file)
+    assert set(new) <= set(items), f"errata supersede keys {sorted(set(new) - set(items))} not in {frozen_file}"
+    return {k: ({**i, "value": new[k]} if k in new else i) for k, i in items.items()}
+
+
 @pytest.fixture(scope="module")
 def items(expected) -> dict[str, dict]:
-    return {i["key"]: i for block in expected["expectations"].values() for i in block.get("items") or []}
+    frozen = {i["key"]: i for block in expected["expectations"].values() for i in block.get("items") or []}
+    return with_errata(frozen, "results/expected.yaml")
+
+
+def trip_ph() -> float:
+    """The pH the duties run to and T-101 is sized at (design basis threshold.trip, D-058)."""
+    return float(_yaml(PROCESS / "process" / "design-basis.yaml")["capacity"]["pilot_skid"]["threshold"]["trip"]["ph"])
 
 
 @pytest.fixture(scope="module")
@@ -155,7 +184,7 @@ def assert_e1_to_e7(records: dict[int, dict], items: dict, hand: dict) -> None:
         close(s["final_carbon_mol_l"], items[f"E2.{h}.final.carbon"], at)
         close(s["final_cation_mol_l"], items[f"E2.{h}.final.cation"], at)
         assert s["dosed_solution_l"] == s["bleed_l"] == s["makeup_water_l"] == 0.0, at
-        assert s["duty_feasible"] and s["reservoir_limited_by"] == "the pH threshold 12", at
+        assert s["duty_feasible"] and s["reservoir_limited_by"] == f"the pH threshold {trip_ph():g}", at
         fits_height = not any("above the envelope" in r for r in s["reasons"])
         close(fits_height, items[f"E2.{h}.fits_height"], at)
         if h == 10000:
@@ -376,7 +405,8 @@ def assert_layout(root: Path, records: dict[int, dict]) -> None:
 
 
 def _lca_items() -> dict[str, dict]:
-    return {i["key"]: i for i in lf.load_expected()["expectations"]["E10"]["items"]}
+    frozen = {i["key"]: i for i in lf.load_expected()["expectations"]["E10"]["items"]}
+    return with_errata(frozen, "results/expected-lca.yaml")
 
 
 def _lca_close(value: float, items: dict, key: str, where: str) -> None:
@@ -541,9 +571,15 @@ def test_design_basis_is_what_the_stacks_and_duties_carry():
     assert design in basis["duration"]["scenarios"]
     for did in ("D-A", "D-B"):
         assert duties[did]["horizon"] == {"value": design, "unit": "h"}, did
-    # every duty, the comparison duties too, ends at the same criterion (E5 and E6 compare them)
+    # every duty, the comparison duties too, ends at the same trip value (E5 and E6 compare
+    # them): the design basis' trip, above the stability criterion it protects (D-003, D-058),
+    # and the basis of erratum X-2
+    trip = basis["threshold"]["trip"]["ph"]
+    assert trip > basis["threshold"]["ph"]
+    x2 = next(e for e in _yaml(PROCESS / "results" / "expected-errata.yaml")["errata"] if e["id"] == "X-2")
+    assert x2["basis"]["threshold_ph"] == trip
     for did, duty in duties.items():
-        assert duty["threshold"]["ph"] == basis["threshold"]["ph"], did
+        assert duty["threshold"]["ph"] == trip, did
     for did in ("D-A-ONOFF", "D-A-PART"):
         assert duties[did]["horizon"] == {"value": 3 * design, "unit": "h"}, did
         assert duties[did]["stack"] == "STK-A", did

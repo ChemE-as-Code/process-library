@@ -250,11 +250,17 @@ ROWS: tuple[tuple, ...] = (
 )  # fmt: skip
 
 
-def _expected_index(expected: dict) -> dict[str, dict]:
+def _expected_index(expected: dict, errata: dict | None = None) -> dict[str, dict]:
+    """The frozen items by key; an item a basis erratum supersedes (results/expected-errata.yaml,
+    kind basis) carries the superseding value under the frozen tolerance."""
     index = {}
     for block in (expected.get("expectations") or {}).values():
         for item in block.get("items") or []:
             index[item["key"]] = item
+    for e in (errata or {}).get("errata") or []:
+        for s in ((e.get("supersedes") or {}).get("results/expected.yaml")) or []:
+            if s["key"] in index:
+                index[s["key"]] = {**index[s["key"]], "value": s["value"], "erratum": e["id"]}
     return index
 
 
@@ -302,9 +308,10 @@ def resize_report(
     records: dict[float, dict], expected: dict, errata: dict | None = None
 ) -> dict[str, Any]:
     """The rows between the two scenario records (keys: the durations); *errata*: the
-    corrections of the frozen file (results/expected-errata.yaml), reported, never applied."""
+    corrections of the frozen file (results/expected-errata.yaml), reported; a basis erratum's
+    superseding values are the hand values (the frozen tolerances stand)."""
     lo, hi = sorted(records)
-    index = _expected_index(expected)
+    index = _expected_index(expected, errata)
     ratio = hi / lo
     rows = []
     for skid, key, label, unit, rule, template, hand, exponent in ROWS:
@@ -452,8 +459,9 @@ def resize_markdown(report: dict[str, Any]) -> str:
     if report.get("errata"):
         out += [
             "",
-            "Errata of the frozen file (`results/expected-errata.yaml`; the frozen values and "
-            "tolerances stand, ADR 0030):",
+            "Errata of the frozen files (`results/expected-errata.yaml`; the frozen files are "
+            "not edited and their tolerances stand, ADR 0030; a basis erratum's superseding "
+            "values are the hand values above):",
             "",
         ]
         for e in report["errata"]:

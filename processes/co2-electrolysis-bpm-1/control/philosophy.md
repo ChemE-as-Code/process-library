@@ -46,7 +46,7 @@ failures:
     loops: [AIC-201]
     interlocks: [I-201, I-208]
 unresolved:
-  - "pH basis: the probe reads activity pH; the duty model's threshold (pH 12) and Skid B's setpoint (pH 13.7) are concentration-basis pH at an ionic strength of about 1 mol/L. The alarm, trip and setpoint values need an offset or a calibration against titrated anolyte before they are set."
+  - "pH basis: the probe reads activity pH; the duty model's criterion (pH 12), the trip value it runs to (pH 12.2, D-058) and Skid B's setpoint (pH 13.7) are concentration-basis pH at an ionic strength of about 1 mol/L. The alarm, trip and setpoint values need an offset or a calibration against titrated anolyte before they are set (H01-A109); the 0.2 pH trip margin is then checked against the probe's uncertainty."
   - "The fail position of PV-x31 against the PSA package's own pressure protection (vendor)."
   - "Relief: K-x31 (a positive-displacement compressor) and the cathode gas train have no relief device drawn; the relief study is open (D-017)."
   - "The reservoir vent O2V-x01 carries the anode O2 with any H2 that crosses the membrane; the H2 in O2 is not measured. A gas analyser on the vent, or a dilution, is a HAZOP question."
@@ -102,7 +102,8 @@ as the anolyte changes. The anolyte changes over the campaign on both skids:
 
 **The pH basis.** The probe measures activity pH. The duty model's pH is a concentration-basis
 pH (an ideal-solution pH at an ionic strength of about 1 mol/L, core ADR 0043), so the
-threshold (pH 12, D-003) and the Skid B setpoint (pH 13.7) are not meter readings. Before any
+criterion (pH 12, D-003), the trips at pH 12.2 (I-101, I-201; D-058) and the Skid B setpoint
+(pH 13.7) are not meter readings. Before any
 alarm, trip or setpoint is set, the probe is calibrated against titrated anolyte (hydroxide and
 carbonate, as the measured series was) or an offset is determined; until then the values in
 `control/` are the model's. The threshold is a design criterion, not a corrosion limit.

@@ -13,8 +13,10 @@ Prats Vergel, Vermaas, Burdyny et al. (Nature Chemical Engineering 2025; 4TU dat
 CC BY 4.0, see `NOTICE.md`). The tracker is ChemE-as-Code/core#136; the measured cell is #329.
 #330 designs two CO2-to-CO pilot skids from it, for a campaign of 1,000 h and of 10,000 h:
 
-- **Skid A** fills its reservoir once with 1 M KOH, sized so that the anolyte reaches the pH
-  threshold 12 at the end of the campaign;
+- **Skid A** fills its reservoir once with 1 M KOH, sized so that the anolyte reaches its pH
+  trip value 12.2 at the end of the campaign, 0.2 above the stability criterion pH 12
+  (`DESIGN.md` D-003, D-058; the frozen expectations stand with erratum X-2 of
+  `results/expected-errata.yaml`);
 - **Skid B** holds a 50 L reservoir at a steady composition by continuous 5 M KOH dosing, a
   bleed and make-up water.
 
@@ -40,6 +42,7 @@ assumption, not supported by measurement: the measured runs last 1 h in fresh 1 
 | `estimate/mto.md` | the material take-off of the 3D model (`cheme assess mto`); no estimate, the project has no cost basis (D-044) |
 | `figures/skids/<H>h/` | per scenario: the plot plan `layout-plan.png` (A1, 1:50), and per skid its plan `layout-plan-skid-<a\|b>.png` and four sections (`layout-section-x-skid-<k>-reservoir`, `-stack`, `layout-section-y-skid-<k>-stacks`, `-frame`), each core's sheet cropped to the drawing at 1:50 (D-041); SVG and PNG |
 | `results/expected.yaml` | the hand expectations E1 to E9, frozen before the first regeneration |
+| `results/expected-errata.yaml` | the errata of both frozen files (ADR 0030): X-1 a corrected statement, X-2 the changed basis of D-058 (the pH 12.2 trip T-101 is sized to) with its hand calculation and the items it supersedes, which the tests compare with |
 | `results/scenarios/<H>h/record.json`, `uncertainty.json` | the calculation record and the bounding runs of each scenario |
 | `results/scenarios/<H>h/record.json` `layout` | the scenario's 3D results (regen step 25, D-046): lines of DN 25 and above routed, skipped or unrouted, route methods, clash findings, the skids' heights against the envelope; with `lifting` and `cabling` the 10,000 h scenario's 3D results, reported, not failed |
 | `results/resize-1000h-10000h.md` | what changes from 1,000 to 10,000 h, why, and against the hand values |
@@ -80,18 +83,19 @@ written by `scripts/regen.py` from the records, and `regen.py --check` compares 
 | stacks | 4 x 7 cells, 37.6 V, 80 A | same | same | same |
 | DC power, CO formed / delivered | 3.005 kW, 0.1119 / 0.1007 kg/h | same | same | same |
 | electricity per kg CO formed (DC) | 26.85 kWh/kg | same | same | same |
-| anolyte reservoir | T-101 1,166 L, D 1.074 x H 1.611 m | T-101 11,660 L, D 2.313 x H 3.470 m | T-201 50 L, D 0.376 x H 0.564 m | same |
+| anolyte reservoir | T-101 1,176 L, D 1.077 x H 1.615 m | T-101 11,760 L, D 2.320 x H 3.480 m | T-201 50 L, D 0.376 x H 0.564 m | same |
 | KOH dosing, bleed, make-up | none | same | 2.096 mol/h (0.419 L/h of 5 M), 1.866 L/h, 1.447 L/h | same |
-| anolyte at the end | pH 12.02, 0.40 mol/L carbon | same | pH 13.70, 0.25 mol/L carbon | same |
-| KOH per kg CO delivered | 0.649 | same | 1.195 | 1.170 |
-| fits the 20 ft frame (2.20 m usable height) | yes, 0.40 m left | **no**: 1.27 m too tall | yes, 0.40 m left | same |
-| WDE -1 sd (0.9585) | the 1,166 L reservoir reaches pH 12 at 804 h | the 11,660 L reservoir reaches pH 12 at 8,036 h | dose 2.61 mol/h | same |
+| anolyte at the end | pH 12.21, 0.40 mol/L carbon | same | pH 13.70, 0.25 mol/L carbon | same |
+| KOH per kg CO delivered | 0.655 | same | 1.195 | 1.170 |
+| fits the 20 ft frame (2.20 m usable height) | yes, 0.40 m left | **no**: 1.28 m too tall | yes, 0.40 m left | same |
+| WDE -1 sd (0.9585) | the 1,176 L reservoir reaches pH 12.2 at 803 h | the 11,760 L reservoir reaches pH 12.2 at 8,033 h | dose 2.61 mol/h | same |
 
 "Skid A cannot meet the 10,000 h duty within the skid envelope".
 <!-- regen:results end -->
 
 At the measured mean the longest campaign whose one-fill reservoir fits the frame is about
-2,550 h (rounded from E2 of `results/expected.yaml`). Skid B does not grow
+2,530 h (rounded from E2 of `results/expected.yaml` as superseded at the pH 12.2 trip by
+erratum X-2, D-058). Skid B does not grow
 with the campaign, but its continuous dosing uses 1.8 times the KOH of Skid A per kg CO
 (the floor is 0.648 kg per kg delivered). The FE at the meter's 20 degC basis would need
 4 x 8 cells: the meter's reference stays 0 °C (ASSUMED, asked of the dataset authors) and the
