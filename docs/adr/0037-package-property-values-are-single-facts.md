@@ -25,15 +25,18 @@ The packages are open-source, but the values they compute are not all open data:
   vaporisation (23.32 kJ/mol at 298 K, 23.53 at 293 K, 18.84 at 384 K) and the liquid density
   (1663.1 kg/m3) used by methylmagnesium-bromide-1 and methyltriphenylphosphonium-bromide-1, and
   for bromine the liquid density at 293 K used by phosphorus-tribromide-1.
+- thermo's **VDI_PPDS** correlations take their coefficients from the VDI Heat Atlas, also a
+  licensed book; thermo offers them for many compounds.
 - `chemicals` bundles tables of the CRC Handbook of Chemistry and Physics (for example
   `CRC_inorganic_data`, `CRC_standard_data`, `Hvap_data_CRC`), also a licensed work.
 
 The source registers had called such values "open data". The publication review corrected the
 wording in three entries and left one question to the maintainers: **may values that a package
-computes from such bundled coefficients be published in the library at all?** If not, every
-entry that uses them would have to re-source them (from the NIST WebBook, SRD 69, PubChem/HSDB,
-or thermo's own estimation methods, which differ by a few per cent: 22.8 to 24.2 kJ/mol at 298 K
-against 23.3 for methyl bromide's heat of vaporisation).
+computes from such bundled coefficients (DIPPR_PERRY_8E, or VDI_PPDS) be published in the library at
+all?** If not, every entry that uses them would have to re-source them (from the NIST WebBook,
+SRD 69, PubChem/HSDB, or thermo's own estimation methods, which differ by a few per cent: 23.2 to
+24.2 kJ/mol at 298 K against 23.3 for methyl bromide's heat of vaporisation; the packaged CRC
+values are 22.8).
 
 Options considered:
 
@@ -50,7 +53,14 @@ Options considered:
 - **A property value that an open-source package computes from its bundled coefficients or
   tables is a fact, and may be used in a library entry**, in our own form, like any other
   property value (ADR 0013, "facts and numbers ... with their source"). This covers thermo's
-  default methods such as DIPPR_PERRY_8E and the packaged CRC tables of `chemicals`.
+  default methods such as DIPPR_PERRY_8E, its VDI_PPDS correlations (coefficients from the VDI
+  Heat Atlas) in the same way, and the packaged CRC tables of `chemicals`.
+- **Where the line to licensed databases runs.** A value computed from coefficients that a
+  published handbook printed and an open-source package bundles (Perry's 8th ed., itself drawing
+  on DIPPR 801; the VDI Heat Atlas; the CRC Handbook) is a fact from that handbook, like a value
+  read from the handbook itself, not a value taken from a licensed database in ADR 0013's sense.
+  A value read from DIPPR 801 itself, or from any other subscription or commercial database, is
+  still not taken, even if a package bundles it.
 - **Single values only.** An entry uses the values its design needs, each at the condition it
   needs (a heat of vaporisation at 298 K, a density at 293 K). **Copying whole tables or
   coefficient sets into the library stays forbidden** (ADR 0013; CLAUDE.md and CONTRIBUTING.md
@@ -82,8 +92,9 @@ Options considered:
   `tests/test_publication_policy.py` pins the narrower rule that no source register row naming
   DIPPR or Perry's calls its values open data.
 - The rule does not open the door to licensed databases: a value from a commercial property
-  database, or from ecoinvent, is still not taken (ADR 0013); the packages' bundled data are
-  accepted because the values are facts and the packages publish them openly.
+  database, or from ecoinvent, is still not taken (ADR 0013); the packages' bundled handbook
+  coefficients are accepted only as the Decision's bullet "Where the line to licensed databases
+  runs" draws it, as facts from the handbook that printed them.
 
 ## Evidence
 
