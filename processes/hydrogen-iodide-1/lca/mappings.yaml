@@ -1,0 +1,9 @@
+# hydrogen-iodide-1's own exchange overrides for the Atlas LCI build (ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Both feeds link to their Atlas producers.
+# output:iodine-loss (iodine to wastewater treatment, by mass of iodine) stays a reported gap: the
+# shared `wastewater` entry counts the water, not a dissolved load, and no entry treats an iodine
+# load. The heat and electricity link by their `link.factor` ids (heat-natural-gas, electricity).
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:iodine": {dataset: {path: processes/iodine-1/lca/dataset.yaml, product: "product:IODINE"}, source: "the Atlas producer iodine-1, iodine flakes 99.8 wt% I2, by mass of the flakes (the 0.2 % water is not corrected)"}
+  "feed:hydrogen": {dataset: {path: processes/hydrogen-1/lca/dataset.yaml, product: "product:H2"}, source: "the Atlas producer hydrogen-1, hydrogen 99.9 mol% (98.6 wt% H2, the rest N2), by mass of the product gas, as hydrogen-bromide-1 links it. The patents ask for dry hydrogen, which hydrogen-1's PSA product is taken to be (ASSUMED). It is the only dry, high-purity grade among the producers of the slug: chlor-alkali-1's cell hydrogen is water-saturated, catalytic-reforming-1's net gas is impure (counted as pure H2), and hda-1's hydrogen leaves in its fuel gas (about 14 mol% H2)"}
