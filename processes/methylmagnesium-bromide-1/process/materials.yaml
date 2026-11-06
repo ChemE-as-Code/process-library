@@ -24,10 +24,16 @@
 # - normal boiling points: 2-MeTHF 351.15 K (78 C, the TDS; thermo gives 353.15 K) and methyl
 #   bromide 276.55 K (thermo); ethane 184.57 K (thermo). Magnesium and the dissolved salts have
 #   none in the liquid.
+# - heat_of_vaporization of 2-MeTHF, kJ/kmol: 34.0 kJ/mol, the NIST WebBook's value (CID C96479,
+#   phase change data: Stephenson and Malanowski 1987, from vapour pressures of 283 to 353 K, so
+#   it holds at the boiling point); core 1.9.0 takes the default MTT at R-101's 120 kPa(a) from it
+#   by Clausius-Clapeyron (ADR 0058, DESIGN.md D-011). thermo's correlations give 29.5 to 30.8
+#   kJ/mol at 351 K; the larger, measured-based value gives the lower boiling point at 120 kPa(a),
+#   the conservative side.
 schema: cheme/process/v1
 kind: materials
 components:
-  - {id: METHF, name: 2-Methyltetrahydrofuran, formula: C5H10O, cas: 96-47-9, molar_mass: 86.134, normal_boiling_point: 351.15, liquid_molar_volume: 0.10098, liquid_heat_capacity: 173.2}
+  - {id: METHF, name: 2-Methyltetrahydrofuran, formula: C5H10O, cas: 96-47-9, molar_mass: 86.134, normal_boiling_point: 351.15, liquid_molar_volume: 0.10098, liquid_heat_capacity: 173.2, heat_of_vaporization: 34000}
   - id: MEBR
     name: Methyl bromide (bromomethane)
     formula: CH3Br

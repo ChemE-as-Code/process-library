@@ -26,11 +26,12 @@
 #   mother liquor, D-008), F101, F102 (specified filters) and D101 (dryer to a residual moisture,
 #   D-009), the mixers and the remainders of the splitters;
 # - S3 and S11, the two recycles (the recovered methanol to R-101 and the mother liquor to R-102),
-#   are assumed tear streams: propagate does not converge recycles, so they were converged by
-#   successive substitution over `cheme process propagate` until they equal what the models
-#   calculate for them (D-006); X102 and X101 then balance within the tolerance;
-# - the duties: from core's reports of the same models (`cheme process reactors`, `stills`,
-#   `crystallizers`), year averages, given here as ASSUMED (D-012); power ASSUMED.
+#   are the tear streams of `tears:`: propagate converges both loops by Wegstein's method (core
+#   1.9, ADR 0060) and writes them as calculated; S3's flow stays ASSUMED, a charge ratio (D-006);
+# - the duties of R101, R102, ST101 (its boil-up, energy_port steam) and CR101: written by
+#   propagate from the same models (core 1.9, ADR 0059), year averages; the condensers Q4, Q5 and
+#   Q8 and the dryer's heat Q7 (checked by its energy port) from core's reports, ASSUMED (D-012);
+#   power ASSUMED.
 schema: cheme/process/v1
 kind: flowsheet
 title: Sodium azide by the hydrazine / methyl nitrite route, batch, with precipitation from the reaction liquor
@@ -43,6 +44,19 @@ units:
 cases:
   - {id: design, description: "Design case: dried NaN3, year averages of the batches in 7920 h on a dedicated train (D-002, D-003)", default: true}
 tolerance: {abs: 0.02, rel: 0.001}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+# The two recycles, torn once each (D-006, core ADR 0060): the mother liquor S11 (X101 -> R-102's
+# charge) and the recovered methanol S3 (X102 -> R-101's charge). Every loop of the flowsheet runs
+# through one of them (the wash S18 -> F102 -> M103 -> S11 too). The first guesses are the earlier
+# hand estimates, rounded; S3's flow is ASSUMED (a charge ratio) and stays fixed, its composition
+# is iterated. The tolerance is far tighter than the balances': the loop stops within tolerance /
+# (1 - gain) of its fixed point, and at 1e-4 kg/h that was the last of the six digits written (S17's
+# fractions then summed to 1.000001); at 1e-6 kg/h the digits written are the fixed point's (D-006).
+tears:
+  - stream: S11
+    initial: {flow: 139, unit: kg/h, basis: mass_fraction, composition: {H2O: 0.263, NAOH: 0.282, N2H4: 0.126, NAN3: 0.078, NAN3S: 0.002, MEOH: 0.249}}
+  - stream: S3
+    initial: {flow: 54.458, unit: kg/h, basis: mass_fraction, composition: {H2O: 0.116, MEOH: 0.884}}
+convergence: {method: wegstein, max_iterations: 100, tolerance: {abs: 1.0e-6, rel: 1.0e-9}}
 
 feeds:
   - {id: NANO2, title: Sodium nitrite (sodium-nitrite-1), category: raw_material, ports: [{id: out, direction: out}]}
@@ -184,9 +198,9 @@ steps:
       provenance: assumed
       source: "acid dosed at a constant rate over the azide reactor's dosing time, 10 h (D-010), at 298 K (US 5 208 002 Example 1: 25 C), then the post-reaction to 0.999 conversion of the nitrite; methyl nitrite (bp 261 K) leaves as it forms (D-005)"
     hazard:
-      mtt: 337.63
+      vent_capacity: 50.0
       provenance: assumed
-      source: "the normal boiling point of methanol (chemicals), the lowest-boiling component left in the liquor: R-101 at atmospheric pressure under nitrogen, its vent open to R-102 (ASSUMED, no P&ID yet; D-011)"
+      source: "the vent is the methyl nitrite line S7 to R-102's sparger (flame arrester, non-return valve; D-015), sized to pass the normal peak of `cheme process recipe`, 44.6 m3/h of methyl nitrite at 298 K: 50 m3/h at the vessel's pressure (1.12 times the peak), ASSUMED (no line sizing yet); no nitrogen sweep counted (none during the dosing, D-013, D-017). The MTT is the default, methanol's 337.6 K, a charged reactant (core 1.9, ADR 0058; D-011)"
     links: [{target: equipment, ref: R-101}]
     ports:
       - {id: in, direction: in}
@@ -220,9 +234,9 @@ steps:
       provenance: assumed
       source: "methyl nitrite from R-101 dosed over 10 h as it forms (D-010), 91.8 % absorbed: the share US 5 208 002 Example 1's balance accounts for (D-004); isothermal at 313 K (the patent's 20-50 C), post-reaction to 0.999 conversion of the dissolved methyl nitrite; N2O and NH3 leave as they form (D-005)"
     hazard:
-      mtt: 337.63
+      vent_capacity: 60.0
       provenance: assumed
-      source: "the normal boiling point of methanol (chemicals), which the reaction forms: the lowest-boiling component the liquor keeps; dissolved methyl nitrite (bp 261 K) would desorb as a gas, not boil the liquor, and is a gas-release and toxic-release hazard noted apart (ASSUMED; D-011, D-015)"
+      source: "the off-gas line S14 to the thermal oxidiser, sized for the case where R-102 stops absorbing (agitator or sparger failure) before the interlock stops R-101's acid: R-101's whole methyl nitrite peak, 44.6 m3/h at 298 K (46.9 m3/h at 313 K), passes through, with the N2O and NH3 the dissolved methyl nitrite still forms, at most their normal 4.3 m3/h (the 8.1 m3/h normal peak less its unabsorbed methyl nitrite): about 51 m3/h at 313 K; 60 m3/h at the vessel's pressure (1.17 times), ASSUMED (no line sizing yet); no nitrogen sweep counted (none during the dosing, D-013, D-017). The MTT is the default, methanol's 337.6 K, which core finds only because the recycled mother liquor S11 brings methanol into the charge S12 (5.8 mol%): the methanol AZ forms is not counted, and the dosed methyl nitrite and the vented N2O and NH3 are left out (core 1.9, ADR 0058; D-011, D-015)"
     links: [{target: equipment, ref: R-102}]
     ports:
       - {id: in, direction: in}
@@ -246,6 +260,7 @@ steps:
       outlets: {residue: residue}
       provenance: assumed
       source: "the methanol stripped to 0.05 mol% in the still, then water distilled until the mother liquor is about the composition of US 5 208 002 Example 1's filtrate, the basis of CR101's solubility (D-007, D-008); hydrazine and the salts taken as non-volatile (D-007)"
+    energy_port: steam   # the boil-up's latent heat (Q3); the condensers Q4, Q5 are typed (core ADR 0059)
     links: [{target: equipment, ref: C-101}]
     ports:
       - {id: in, direction: in, delegates: in}
@@ -365,6 +380,7 @@ steps:
     block: ISOL
     title: Mother liquor to the next batch, and the purge
     class: SplittingMaterial
+    split: {recycle: 0.95}   # 5 % purged to azide destruction, ASSUMED (D-016)
     links: [{target: equipment, ref: T-101}]
     ports:
       - {id: in, direction: in}
@@ -403,8 +419,8 @@ streams:
       design:
         temperature: {value: 298.15, provenance: assumed, source: "the receiver (D-007)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 54.458, provenance: assumed, source: "tear stream: 1.002 mol methanol per mol NaNO2 (Example 1's 47.6 on 47.5 mol), the methanol cut S15 at its calculated composition, converged over cheme process propagate (D-004, D-006)"}
-        composition: {basis: mass_fraction, values: {H2O: 0.115929, MEOH: 0.884071}, provenance: assumed, source: "tear stream: the composition of S15 as cheme process propagate calculates it, converged (D-006)"}
+        flow: {value: 54.458, provenance: assumed, source: "1.002 mol methanol per mol NaNO2 (Example 1's 47.6 on 47.5 mol) at the methanol cut's composition, a design input that stays fixed on the tear stream (D-004, D-006)"}
+        composition: {basis: mole_fraction, values: {H2O: 0.189128, MEOH: 0.810872, NANO2: 0.0, H2SO4: 0.0, NA2SO4: 0.0, MEONO: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle X102 from S15 (tear, wegstein)', fingerprint: d38eaad288f7c932}
   - id: S4
     title: Nitrite generator charge
     from: M101.out
@@ -414,8 +430,8 @@ streams:
       design:
         temperature: {value: 298.15, provenance: assumed, source: "the charge at 25 C, US 5 208 002 Example 1 (D-004)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 416.305, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3', fingerprint: 91d844a0440e7a45}
-        composition: {basis: mole_fraction, values: {H2O: 0.830346, MEOH: 0.0849121, NANO2: 0.0847422, H2SO4: 0.0, NA2SO4: 0.0, MEONO: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3', fingerprint: 3636bcd7e909c3dc}
+        flow: {value: 416.305, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3', fingerprint: 53f9e74d4fb8e09d}
+        composition: {basis: mole_fraction, values: {H2O: 0.830346, MEOH: 0.0849118, NANO2: 0.0847421, H2SO4: 0.0, NA2SO4: 0.0, MEONO: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3', fingerprint: 82824624d60d93e8}
   - id: S5
     title: Sulfuric acid (dosed)
     from: ACID.out
@@ -435,9 +451,9 @@ streams:
     state:
       design:
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        temperature: {value: 298.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: 0bc722f015ab285b}
-        flow: {value: 399.67, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: 0bc722f015ab285b}
-        composition: {basis: mole_fraction, values: {H2O: 0.955483, MEOH: 0.000264888, NANO2: 8.8152e-05, H2SO4: 0.000132421, NA2SO4: 0.0440319, MEONO: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: 0bc722f015ab285b}
+        temperature: {value: 298.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: c766a0dd88f4ea88}
+        flow: {value: 399.67, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: c766a0dd88f4ea88}
+        composition: {basis: mole_fraction, values: {H2O: 0.955483, MEOH: 0.00026468, NANO2: 8.8152e-05, H2SO4: 0.000132442, NA2SO4: 0.0440319, MEONO: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: c766a0dd88f4ea88}
   - id: S7
     title: Methyl nitrite gas to R-102 (dosed)
     from: R101.vent
@@ -446,9 +462,9 @@ streams:
     state:
       design:
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        temperature: {value: 298.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: 0bc722f015ab285b}
-        flow: {value: 91.4406, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: 0bc722f015ab285b}
-        composition: {basis: mole_fraction, values: {MEONO: 1.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: 0bc722f015ab285b}
+        temperature: {value: 298.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: c766a0dd88f4ea88}
+        flow: {value: 91.4406, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: c766a0dd88f4ea88}
+        composition: {basis: mole_fraction, values: {MEONO: 1.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: c766a0dd88f4ea88}
   - id: S8
     title: Hydrazine hydrate
     from: HH.out
@@ -491,8 +507,8 @@ streams:
       design:
         temperature: {value: 303.15, provenance: assumed, source: "the receiver T-101 (D-016)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 138.723, provenance: assumed, source: "tear stream: 95 % of S28, the 5 % purge ASSUMED (D-016), converged over cheme process propagate (D-006)"}
-        composition: {basis: mass_fraction, values: {NAN3: 0.0782037, MEOH: 0.248846, NAOH: 0.281939, H2O: 0.263069, MEONO: 0.000573009, NAN3S: 0.00173588, N2H4: 0.125633}, provenance: assumed, source: "tear stream: the composition of S28 as cheme process propagate calculates it, converged (D-006)"}
+        flow: {value: 138.721, provenance: calculated, source: 'cheme process propagate: recycle X101 from S28 (tear, wegstein)', fingerprint: d38eaad288f7c932}
+        composition: {basis: mole_fraction, values: {H2O: 0.422352, MEOH: 0.224596, N2H4: 0.113348, NAOH: 0.203871, NAN3: 0.0347896, NAN3S: 0.000772224, MEONO: 0.000271488, N2O: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle X101 from S28 (tear, wegstein)', fingerprint: d38eaad288f7c932}
   - id: S12
     title: Azide reactor charge
     from: M102.out
@@ -502,8 +518,8 @@ streams:
       design:
         temperature: {value: 313.15, provenance: assumed, source: "the charge brought to the reaction temperature (D-005)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 434.678, provenance: calculated, source: 'cheme process propagate: mixer M102 from S8 S9 S10 S11', fingerprint: c5751cb08b798107}
-        composition: {basis: mole_fraction, values: {H2O: 0.700059, MEOH: 0.0583372, N2H4: 0.105589, NAOH: 0.126707, NAN3: 0.00903611, NAN3S: 0.000200574, MEONO: 7.0515e-05, N2O: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M102 from S8 S9 S10 S11', fingerprint: fa069a1217d8fd6f}
+        flow: {value: 434.676, provenance: calculated, source: 'cheme process propagate: mixer M102 from S8 S9 S10 S11', fingerprint: e78c76b9d4235a5e}
+        composition: {basis: mole_fraction, values: {H2O: 0.700067, MEOH: 0.0583352, N2H4: 0.10558, NAOH: 0.12671, NAN3: 0.00903604, NAN3S: 0.000200573, MEONO: 7.05146e-05, N2O: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M102 from S8 S9 S10 S11', fingerprint: b622548f6bbaed61}
   - id: S13
     title: Azide reactor liquor
     from: R102.out
@@ -512,9 +528,9 @@ streams:
     state:
       design:
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        temperature: {value: 313.15, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S12', fingerprint: 3f6cd5068d36ac35}
-        flow: {value: 514.423, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S12', fingerprint: 3f6cd5068d36ac35}
-        composition: {basis: mole_fraction, values: {MEONO: 6.52973e-05, H2O: 0.737232, MEOH: 0.116339, N2H4: 0.0272699, NAOH: 0.049032, NAN3: 0.0698866, NAN3S: 0.000175714, N2O: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S12', fingerprint: 3f6cd5068d36ac35}
+        temperature: {value: 313.15, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S12', fingerprint: 0d0929fb8db11005}
+        flow: {value: 514.421, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S12', fingerprint: 0d0929fb8db11005}
+        composition: {basis: mole_fraction, values: {MEONO: 6.52973e-05, H2O: 0.737239, MEOH: 0.116337, N2H4: 0.027262, NAOH: 0.0490346, NAN3: 0.0698865, NAN3S: 0.000175713, N2O: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S12', fingerprint: 0d0929fb8db11005}
   - id: S14
     title: Azide reactor off-gas (N2O, NH3, unabsorbed methyl nitrite)
     from: R102.vent
@@ -523,9 +539,9 @@ streams:
     state:
       design:
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        temperature: {value: 313.15, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S12', fingerprint: 3f6cd5068d36ac35}
-        flow: {value: 11.6953, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S12', fingerprint: 3f6cd5068d36ac35}
-        composition: {basis: mole_fraction, values: {N2O: 0.264089, NH3: 0.264089, MEONO: 0.471821}, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S12', fingerprint: 3f6cd5068d36ac35}
+        temperature: {value: 313.15, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S12', fingerprint: 0d0929fb8db11005}
+        flow: {value: 11.6953, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S12', fingerprint: 0d0929fb8db11005}
+        composition: {basis: mole_fraction, values: {N2O: 0.264089, NH3: 0.264089, MEONO: 0.471821}, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S12', fingerprint: 0d0929fb8db11005}
   - id: S15
     title: Recovered methanol (first cut)
     from: ST101.meoh
@@ -535,8 +551,8 @@ streams:
       design:
         temperature: {value: 288.15, provenance: assumed, source: "condensed on chilled water (D-007)"}
         pressure: {value: 101.325, provenance: assumed, source: "the receiver vented to nitrogen (D-007)"}
-        flow: {value: 88.5601, provenance: calculated, source: 'cheme process propagate: still ST101 from S13', fingerprint: b1a6053b28159f9d}
-        composition: {basis: mole_fraction, values: {H2O: 0.189125, MEOH: 0.810875, N2H4: 0.0, NAOH: 0.0, NAN3: 0.0, NAN3S: 0.0, MEONO: 0.0}, provenance: calculated, source: 'cheme process propagate: still ST101 from S13', fingerprint: b1a6053b28159f9d}
+        flow: {value: 88.5588, provenance: calculated, source: 'cheme process propagate: still ST101 from S13', fingerprint: 9441f88feee6c5d0}
+        composition: {basis: mole_fraction, values: {H2O: 0.189128, MEOH: 0.810872, N2H4: 0.0, NAOH: 0.0, NAN3: 0.0, NAN3S: 0.0, MEONO: 0.0}, provenance: calculated, source: 'cheme process propagate: still ST101 from S13', fingerprint: 9441f88feee6c5d0}
   - id: S16
     title: Evaporator condensate (second cut)
     from: ST101.cond
@@ -546,8 +562,8 @@ streams:
       design:
         temperature: {value: 308.15, provenance: assumed, source: "condensed on cooling water (D-007)"}
         pressure: {value: 101.325, provenance: assumed, source: "the receiver vented to nitrogen (D-007)"}
-        flow: {value: 235.526, provenance: calculated, source: 'cheme process propagate: still ST101 from S13', fingerprint: b1a6053b28159f9d}
-        composition: {basis: mole_fraction, values: {H2O: 0.999309, MEOH: 0.000691337, N2H4: 0.0, NAOH: 0.0, NAN3: 0.0, NAN3S: 0.0, MEONO: 0.0}, provenance: calculated, source: 'cheme process propagate: still ST101 from S13', fingerprint: b1a6053b28159f9d}
+        flow: {value: 235.526, provenance: calculated, source: 'cheme process propagate: still ST101 from S13', fingerprint: 9441f88feee6c5d0}
+        composition: {basis: mole_fraction, values: {H2O: 0.999309, MEOH: 0.000691338, N2H4: 0.0, NAOH: 0.0, NAN3: 0.0, NAN3S: 0.0, MEONO: 0.0}, provenance: calculated, source: 'cheme process propagate: still ST101 from S13', fingerprint: 9441f88feee6c5d0}
   - id: S17
     title: Concentrated liquor
     from: ST101.residue
@@ -557,8 +573,8 @@ streams:
       design:
         temperature: {value: 360.0, provenance: assumed, source: "the end of the boil-up at 10 kPa(a), ESTIMATED 355-370 K, 360 K taken: water boils at 319 K there, and the residue (54.5 wt% NaOH on a NaOH-plus-water basis) adds the boiling-point elevation of a 50-55 wt% caustic liquor, about 40 K (Duhring lines of NaOH solutions); an ideal Raoult trial run with NaOH as one molecular particle gave only 335 K; the constant-volatility still gives no temperature (D-007, L-4)"}
         pressure: {value: 101.325, provenance: assumed, source: "the vacuum broken with nitrogen (D-007)"}
-        flow: {value: 190.337, provenance: calculated, source: 'cheme process propagate: still ST101 from S13', fingerprint: b1a6053b28159f9d}
-        composition: {basis: mole_fraction, values: {H2O: 0.38268, MEOH: 0.0, N2H4: 0.114965, NAOH: 0.20671, NAN3: 0.294629, NAN3S: 0.000740778, MEONO: 0.000275281}, provenance: calculated, source: 'cheme process propagate: still ST101 from S13', fingerprint: b1a6053b28159f9d}
+        flow: {value: 190.336, provenance: calculated, source: 'cheme process propagate: still ST101 from S13', fingerprint: 9441f88feee6c5d0}
+        composition: {basis: mole_fraction, values: {H2O: 0.382706, MEOH: 0.0, N2H4: 0.114931, NAOH: 0.20672, NAN3: 0.294627, NAN3S: 0.00074077, MEONO: 0.00027528}, provenance: calculated, source: 'cheme process propagate: still ST101 from S13', fingerprint: 9441f88feee6c5d0}
   - id: S18
     title: Recovered methanol to the cake wash
     from: X102.wash
@@ -568,8 +584,8 @@ streams:
       design:
         temperature: {value: 288.15, provenance: assumed, source: "the receiver (D-007)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 34.1021, provenance: calculated, source: 'cheme process propagate: splitter X102 from S15 S3', fingerprint: 0b7b7167d62d3e24}
-        composition: {basis: mole_fraction, values: {H2O: 0.189125, MEOH: 0.810875, N2H4: 0.0, NAOH: 0.0, NAN3: 0.0, NAN3S: 0.0, MEONO: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter X102 from S15', fingerprint: 8f86f7762546e67a}
+        flow: {value: 34.1008, provenance: calculated, source: 'cheme process propagate: splitter X102 from S15 S3', fingerprint: 4819b77f5a8c4816}
+        composition: {basis: mole_fraction, values: {H2O: 0.189128, MEOH: 0.810872, N2H4: 0.0, NAOH: 0.0, NAN3: 0.0, NAN3S: 0.0, MEONO: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter X102 from S15', fingerprint: 57c6da085a6b94b8}
   - id: S19
     title: NaN3 slurry
     from: CR101.slurry
@@ -579,8 +595,8 @@ streams:
       design:
         temperature: {value: 303.15, provenance: assumed, source: "the crystallizer (D-008)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 190.337, provenance: calculated, source: 'cheme process propagate: crystallizer CR101 from S17', fingerprint: 3aa36a7a4b4c24e5}
-        composition: {basis: mole_fraction, values: {NAN3: 0.0352761, H2O: 0.38268, NAN3S: 0.260094, N2H4: 0.114965, NAOH: 0.20671, MEOH: 0.0, MEONO: 0.000275281}, provenance: calculated, source: 'cheme process propagate: crystallizer CR101 from S17', fingerprint: 3aa36a7a4b4c24e5}
+        flow: {value: 190.336, provenance: calculated, source: 'cheme process propagate: crystallizer CR101 from S17', fingerprint: 4ef4b78e1498b596}
+        composition: {basis: mole_fraction, values: {NAN3: 0.0352757, H2O: 0.382706, NAN3S: 0.260092, N2H4: 0.114931, NAOH: 0.20672, MEOH: 0.0, MEONO: 0.00027528}, provenance: calculated, source: 'cheme process propagate: crystallizer CR101 from S17', fingerprint: 4ef4b78e1498b596}
   - id: S20
     title: Wet cake
     from: F101.cake
@@ -590,8 +606,8 @@ streams:
       design:
         temperature: {value: 303.15, provenance: assumed, source: "the crystallizer (D-008)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 88.8217, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S19', fingerprint: bb40303c2a0506d1}
-        composition: {basis: mole_fraction, values: {NAN3S: 0.893123, H2O: 0.0552767, MEOH: 0.0, N2H4: 0.0166063, NAOH: 0.0298585, NAN3: 0.0050955, MEONO: 3.97633e-05, N2O: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S19', fingerprint: bb40303c2a0506d1}
+        flow: {value: 88.8214, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S19', fingerprint: 15cf7f7836e74ff6}
+        composition: {basis: mole_fraction, values: {NAN3S: 0.893122, H2O: 0.055281, MEOH: 0.0, N2H4: 0.0166015, NAOH: 0.0298602, NAN3: 0.00509549, MEONO: 3.97636e-05, N2O: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S19', fingerprint: 15cf7f7836e74ff6}
   - id: S21
     title: Mother liquor
     from: F101.filtrate
@@ -601,8 +617,8 @@ streams:
       design:
         temperature: {value: 303.15, provenance: assumed, source: "the crystallizer (D-008)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 101.515, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S19', fingerprint: bb40303c2a0506d1}
-        composition: {basis: mole_fraction, values: {H2O: 0.516821, MEOH: 0.0, N2H4: 0.155264, NAOH: 0.279168, NAN3: 0.0476415, NAN3S: 0.000733316, MEONO: 0.000371776, N2O: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S19', fingerprint: bb40303c2a0506d1}
+        flow: {value: 101.515, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S19', fingerprint: 15cf7f7836e74ff6}
+        composition: {basis: mole_fraction, values: {H2O: 0.516855, MEOH: 0.0, N2H4: 0.155218, NAOH: 0.279181, NAN3: 0.0476408, NAN3S: 0.000733309, MEONO: 0.000371773, N2O: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S19', fingerprint: 15cf7f7836e74ff6}
   - id: S22
     title: Fresh methanol to the cake wash
     from: MEOH.out
@@ -612,7 +628,7 @@ streams:
       design:
         temperature: {value: 298.15, provenance: assumed, source: "design basis"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 6.26266, provenance: assumed, source: "the make-up that brings the wash S18 + S22 to 0.43 kg methanol per kg of product (US 5 208 002 Example 3: about 20 mL methanol on 36.4 g NaN3), converged with S3 and S11 (D-009, D-006)"}
+        flow: {value: 6.26266, provenance: assumed, source: "the make-up that brings the wash S18 + S22 to 0.43 kg methanol per kg of product (US 5 208 002 Example 3: about 20 mL methanol on 36.4 g NaN3), set at the converged recycles S3 and S11 (D-009, D-006)"}
         composition: {basis: mass_fraction, values: {MEOH: 1}, provenance: assumed, source: "methanol-1's Grade AA methanol"}
   - id: S23
     title: Washed cake slurry
@@ -623,8 +639,8 @@ streams:
       design:
         temperature: {value: 298.15, provenance: assumed, source: "the wash (D-009)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 129.186, provenance: calculated, source: 'cheme process propagate: mixer W101 from S18 S20 S22', fingerprint: 14174cfd64ac108f}
-        composition: {basis: mole_fraction, values: {H2O: 0.10672, MEOH: 0.404529, N2H4: 0.00859126, NAOH: 0.0154473, NAN3: 0.00263615, NAN3S: 0.462056, MEONO: 2.05715e-05, N2O: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer W101 from S18 S20 S22', fingerprint: 69e1a2bf47ad1e21}
+        flow: {value: 129.185, provenance: calculated, source: 'cheme process propagate: mixer W101 from S18 S20 S22', fingerprint: 565fbb5102d8505b}
+        composition: {basis: mole_fraction, values: {H2O: 0.106722, MEOH: 0.404522, N2H4: 0.00858889, NAOH: 0.0154484, NAN3: 0.00263618, NAN3S: 0.462062, MEONO: 2.0572e-05, N2O: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer W101 from S18 S20 S22', fingerprint: 6f746b442f90ce5e}
   - id: S24
     title: Methanol-wet cake
     from: F102.cake
@@ -634,8 +650,8 @@ streams:
       design:
         temperature: {value: 298.15, provenance: assumed, source: "the wash (D-009)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 88.7325, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S23', fingerprint: 158dfff5905c5050}
-        composition: {basis: mole_fraction, values: {NAN3S: 0.896541, H2O: 0.0205246, MEOH: 0.0777998, N2H4: 0.00165229, NAOH: 0.00297086, NAN3: 0.00050699, MEONO: 3.95635e-06, N2O: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S23', fingerprint: 158dfff5905c5050}
+        flow: {value: 88.7326, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S23', fingerprint: ab95704e3b092a95}
+        composition: {basis: mole_fraction, values: {NAN3S: 0.896541, H2O: 0.0205253, MEOH: 0.0777995, N2H4: 0.00165186, NAOH: 0.00297111, NAN3: 0.000507002, MEONO: 3.9565e-06, N2O: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S23', fingerprint: ab95704e3b092a95}
   - id: S25
     title: Wash filtrate
     from: F102.filtrate
@@ -645,8 +661,8 @@ streams:
       design:
         temperature: {value: 298.15, provenance: assumed, source: "the wash (D-009)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 40.4535, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S23', fingerprint: 158dfff5905c5050}
-        composition: {basis: mole_fraction, values: {H2O: 0.198196, MEOH: 0.751274, N2H4: 0.0159553, NAOH: 0.0286881, NAN3: 0.00489575, NAN3S: 0.000952419, MEONO: 3.82045e-05, N2O: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S23', fingerprint: 158dfff5905c5050}
+        flow: {value: 40.4524, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S23', fingerprint: ab95704e3b092a95}
+        composition: {basis: mole_fraction, values: {H2O: 0.198202, MEOH: 0.75127, N2H4: 0.0159511, NAOH: 0.0286905, NAN3: 0.00489586, NAN3S: 0.000952445, MEONO: 3.82059e-05, N2O: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S23', fingerprint: ab95704e3b092a95}
   - id: S26
     title: Dried sodium azide
     from: D101.product
@@ -656,8 +672,8 @@ streams:
       design:
         temperature: {value: 333.15, provenance: assumed, source: "the dryer (D-009)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 84.677, provenance: calculated, source: 'cheme process propagate: dryer D101 from S24', fingerprint: 33c0609f0febabc2}
-        composition: {basis: mole_fraction, values: {H2O: 0.00046452, MEOH: 0.00176079, N2H4: 0.00182839, NAOH: 0.00328749, NAN3: 0.000561024, NAN3S: 0.992093, MEONO: 4.37801e-06, N2O: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: dryer D101 from S24', fingerprint: 33c0609f0febabc2}
+        flow: {value: 84.6771, provenance: calculated, source: 'cheme process propagate: dryer D101 from S24', fingerprint: 1c4853c611cde21a}
+        composition: {basis: mole_fraction, values: {H2O: 0.000464535, MEOH: 0.00176078, N2H4: 0.00182791, NAOH: 0.00328777, NAN3: 0.000561038, NAN3S: 0.992094, MEONO: 4.37818e-06, N2O: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: dryer D101 from S24', fingerprint: 1c4853c611cde21a}
   - id: S27
     title: Dryer vapour, condensed
     from: D101.vapour
@@ -667,8 +683,8 @@ streams:
       design:
         temperature: {value: 288.15, provenance: assumed, source: "condensed on chilled water (D-009)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 4.0555, provenance: calculated, source: 'cheme process propagate: dryer D101 from S24', fingerprint: 33c0609f0febabc2}
-        composition: {basis: mole_fraction, values: {H2O: 0.208744, MEOH: 0.791256}, provenance: calculated, source: 'cheme process propagate: dryer D101 from S24', fingerprint: 33c0609f0febabc2}
+        flow: {value: 4.0555, provenance: calculated, source: 'cheme process propagate: dryer D101 from S24', fingerprint: 1c4853c611cde21a}
+        composition: {basis: mole_fraction, values: {H2O: 0.20875, MEOH: 0.79125}, provenance: calculated, source: 'cheme process propagate: dryer D101 from S24', fingerprint: 1c4853c611cde21a}
   - id: S28
     title: Collected mother liquor
     from: M103.out
@@ -678,8 +694,8 @@ streams:
       design:
         temperature: {value: 303.15, provenance: assumed, source: "the receiver T-101 (D-016)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 146.024, provenance: calculated, source: 'cheme process propagate: mixer M103 from S21 S25 S27', fingerprint: 10c14a8777b00dd1}
-        composition: {basis: mole_fraction, values: {H2O: 0.422323, MEOH: 0.224603, N2H4: 0.11338, NAOH: 0.20386, NAN3: 0.0347898, NAN3S: 0.000772223, MEONO: 0.000271486, N2O: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M103 from S21 S25 S27', fingerprint: c0064cd3f58f11e8}
+        flow: {value: 146.023, provenance: calculated, source: 'cheme process propagate: mixer M103 from S21 S25 S27', fingerprint: 316bef3480460bdf}
+        composition: {basis: mole_fraction, values: {H2O: 0.422351, MEOH: 0.224596, N2H4: 0.113348, NAOH: 0.203872, NAN3: 0.0347897, NAN3S: 0.000772223, MEONO: 0.000271487, N2O: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M103 from S21 S25 S27', fingerprint: b5f274c4e85ee645}
   - id: S29
     title: Mother-liquor purge
     from: X101.purge
@@ -689,15 +705,15 @@ streams:
       design:
         temperature: {value: 303.15, provenance: assumed, source: "the receiver T-101 (D-016)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 7.301, provenance: calculated, source: 'cheme process propagate: splitter X101 from S28 S11', fingerprint: beac5516f4bff0d0}
-        composition: {basis: mole_fraction, values: {H2O: 0.422323, MEOH: 0.224603, N2H4: 0.11338, NAOH: 0.20386, NAN3: 0.0347898, NAN3S: 0.000772223, MEONO: 0.000271486, N2O: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter X101 from S28', fingerprint: c2205bbc068cd9c2}
+        flow: {value: 7.301, provenance: calculated, source: 'cheme process propagate: splitter X101 from S28 S11', fingerprint: 000043b3f9c989a6}
+        composition: {basis: mole_fraction, values: {H2O: 0.422351, MEOH: 0.224596, N2H4: 0.113348, NAOH: 0.203872, NAN3: 0.0347897, NAN3S: 0.000772223, MEONO: 0.000271487, N2O: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter X101 from S28', fingerprint: 5c0714c83363fa82}
   # energy (year averages, kW)
-  - {id: Q1, title: Heat of the methyl nitrite generation, kind: energy, from: R101.q, to: CHW.r101, state: {design: {duty: {value: 17.2171, provenance: assumed, source: "cheme process reactors: R101's extent of NTG x 82.75 MJ/kmol, the acid dosed at the vessel's temperature (D-005, D-012)"}}}}
-  - {id: Q2, title: Heat of the azide reaction, kind: energy, from: R102.q, to: CHW.r102, state: {design: {duty: {value: 126.6799, provenance: assumed, source: "cheme process reactors: R102's extents of AZ and SIDE x 339.7 and 178.5 MJ/kmol; the warming of the dosed gas (about 0.3 %) not counted (D-005, D-012)"}}}}
-  - {id: Q3, title: Still boil-up (LP steam via tempered hot water), kind: energy, from: LPS.c101, to: ST101.steam, state: {design: {duty: {value: 186.2351, provenance: assumed, source: "cheme process stills: ST101's energy per batch over the batch's hours of flows; the heat-up to the boil not counted (D-007, D-012)"}}}}
+  - {id: Q1, title: Heat of the methyl nitrite generation, kind: energy, from: R101.q, to: CHW.r101, state: {design: {duty: {value: 17.2171, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S4 S5', fingerprint: 9cfe5e284c46ef64}}}}
+  - {id: Q2, title: Heat of the azide reaction, kind: energy, from: R102.q, to: CHW.r102, state: {design: {duty: {value: 126.198, provenance: calculated, source: 'cheme process propagate: semibatch duty R102 from S7 S12', fingerprint: c1b0771de9a4b07e}}}}
+  - {id: Q3, title: Still boil-up (LP steam via tempered hot water), kind: energy, from: LPS.c101, to: ST101.steam, state: {design: {duty: {value: 186.235, provenance: calculated, source: 'cheme process propagate: still duty ST101 from S13', fingerprint: e80f3d61624b2b66}}}}
   - {id: Q4, title: Methanol-cut condenser (chilled water), kind: energy, from: ST101.qchw, to: CHW.c101, state: {design: {duty: {value: 31.3727, provenance: assumed, source: "cheme process stills: the first cut's energy per batch over the batch's hours of flows, condensed at 10 kPa(a) (D-007, D-012)"}}}}
   - {id: Q5, title: Water-cut condenser (cooling water), kind: energy, from: ST101.qcw, to: CW.c101, state: {design: {duty: {value: 154.8624, provenance: assumed, source: "cheme process stills: the second cut's energy per batch over the batch's hours of flows (D-007, D-012)"}}}}
-  - {id: Q6, title: Crystallizer cooling to 303 K, kind: energy, from: CR101.q, to: CW.cr101, state: {design: {duty: {value: 13.0999, provenance: assumed, source: "cheme process crystallizers: CR101's lumped duty, the liquor from 360 K (S17, ESTIMATED with the caustic liquor's boiling-point elevation, D-007) to 303 K and the heat of crystallization (D-008, D-012)"}}}}
+  - {id: Q6, title: Crystallizer cooling to 303 K, kind: energy, from: CR101.q, to: CW.cr101, state: {design: {duty: {value: 13.0998, provenance: calculated, source: 'cheme process propagate: crystallizer duty CR101 from S17', fingerprint: 07cdab0a1f418342}}}}
   - {id: Q7, title: Filter-dryer heating (LP steam), kind: energy, from: LPS.f101, to: D101.steam, state: {design: {duty: {value: 8.2567, provenance: assumed, source: "cheme process crystallizers: D101's duty, compared with this stream (dryer energy port, D-009)"}}}}
   - {id: Q8, title: Dryer vapour condenser (chilled water), kind: energy, from: D101.q, to: CHW.f101, state: {design: {duty: {value: 1.4536, provenance: assumed, source: "D101's vapour condensed at the latent heats of the dryer's energy data (D-009, D-012)"}}}}
   - {id: P1, title: R-101 agitator, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 2.0, provenance: assumed, source: "year average (D-012)"}}}}

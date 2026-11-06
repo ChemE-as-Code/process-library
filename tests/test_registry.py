@@ -118,7 +118,11 @@ def test_every_identified_substance_has_a_formula_and_cas() -> None:
 #: Entries where the chemicals package (1.5.2) is known to disagree with the registry, each
 #: checked against PubChem when added (issue #251): the package lists CAS 10039-54-0 with the
 #: 1:1 salt H5NO5S, while the CAS names bis(hydroxylammonium) sulfate H8N2O6S (PubChem CID 24846).
-CHEMICALS_PACKAGE_EXCEPTIONS = {"hydroxylammonium-sulfate"}
+#: Polymers (docs/registry.md, Polymers) carry the polymer's CAS and the repeat-unit formula, which
+#: the package cannot confirm: it resolves polyethylene's CAS 9002-88-4 to the monomer ethene and
+#: does not hold those of polypropylene (9003-07-0) or PET (25038-59-9); each CAS is checked
+#: against the ChEBI polymer entry instead (EBI OLS, 2026-11-05).
+CHEMICALS_PACKAGE_EXCEPTIONS = {"hydroxylammonium-sulfate", "polyethylene", "polyethylene-terephthalate", "polypropylene"}
 
 
 def test_registry_identities_agree_with_the_chemicals_package() -> None:

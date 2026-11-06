@@ -1,0 +1,694 @@
+# Tier 1 form, a manifest-only entry as process-library#317. Every amount is the formula of its parameters;
+# core's validator re-checks each. Written from CN105001073A, the MIDDEN PET/PTA report and US EPA
+# AP-42 6.11 (facts in our own form).
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: pta-px-air-oxidation
+title: Purified terephthalic acid by liquid-phase air oxidation of p-xylene and hydropurification
+description: Per 1 t of purified terephthalic acid (PTA), gate-to-gate. p-Xylene is oxidised with air in acetic
+  acid over a cobalt-manganese-bromide catalyst; the crude acid is hydrogenated over palladium and recrystallised
+  from water. Feeds from a patent's figures for conventional plants, electricity from one EU plant's estimate,
+  steam from the IEA's best-practice value for PTA, vent emissions from US EPA AP-42.
+basis: 1000 kg of purified terephthalic acid
+boundary: 'gate-to-gate: oxidation, crystallisation, filtration and drying of crude TPA, solvent and catalyst recovery,
+  hydropurification, PTA crystallisation and drying, thermal oxidation of the vents; steam and power from outside'
+technology: continuous liquid-phase air oxidation in acetic acid with Co/Mn/Br catalyst (Amoco, Mid-Century type)
+  and catalytic hydropurification; the DMT route and oxygen-based oxidation are not modelled
+geography:
+  description: 'no single site: feeds of a Chinese 1.2 Mt/a plant, utilities of a Dutch plant, US emission factors'
+classification:
+  isic: '2011'
+system_boundary:
+  included:
+  - p-xylene, acetic acid make-up, oxygen from air, demineralised water
+  - electricity and steam (as heat delivered)
+  - cobalt and manganese catalyst make-up
+  - CO2 from burnt p-xylene and acetic acid; CO, VOC and dust after control
+  - organic residue and effluent
+  excluded:
+  - 'TODO hydrogen for the hydropurification: no open per-tonne figure was found (stoichiometric for the 4-CBA alone
+    it is well under 1 kg/t)'
+  - 'TODO palladium-on-carbon purification catalyst: a precious metal, so never cut; not quantified in the sources
+    read'
+  - 'TODO bromine promoter (hydrobromic acid or sodium bromide) make-up and methyl bromide in the off-gas: the LVOC
+    BREF names methyl bromide but gives no amount'
+  - TODO support fuel of the thermal oxidiser and caustic for the off-gas scrubber
+  - 'TODO organic load (COD, about 12.5 kg/t in the patent) of the effluent and the cobalt and manganese leaving
+    with residue and effluent: carried only as the effluent mass'
+  - cooling water (251 kg per kg PTA circulated at Indorama Rotterdam, MIDDEN Table 5); not part of the mass basis
+  - 'heat recovered from the oxidation as steam and power: not credited (cut-off)'
+  - n-propyl acetate or other entrainer make-up of the azeotropic dehydration
+  - storage emissions, infrastructure, transport
+  cutoff: none applied; the excluded flows are not quantified
+  infrastructure: excluded
+  catalysts: included (oxidation catalyst); the purification catalyst is a TODO
+  non_routine: excluded
+location: GLO
+year: 2016
+valid_until: 2021
+time:
+  start: 2015
+  description: The patent describes plants of about 2015, the utilities are for 2016 (MIDDEN), the emission factors
+    date from 1983. valid_until is the reference year + 5 (system-model section 6), so it has already lapsed.
+modelling:
+  principle: attributional
+  multifunctionality: 'single output: no allocation'
+uuid: 680c1593-66e4-599a-bbc0-6cacce79cbfa
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+technology_level: current
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: pta
+  value: 1000.0
+  unit: kg
+  description: Purified terephthalic acid delivered (the basis).
+  source: basis
+- name: M_PX
+  value: 106.168
+  unit: g/mol
+  description: Molar mass of p-xylene (C8H10).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_TPA
+  value: 166.132
+  unit: g/mol
+  description: Molar mass of terephthalic acid (C8H6O4).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_AA
+  value: 60.052
+  unit: g/mol
+  description: Molar mass of acetic acid (C2H4O2).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_PT
+  value: 136.15
+  unit: g/mol
+  description: Molar mass of p-toluic acid (C8H8O2).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_CO2
+  value: 44.009
+  unit: g/mol
+  description: Molar mass of carbon dioxide.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_CO
+  value: 28.01
+  unit: g/mol
+  description: Molar mass of carbon monoxide.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_H2O
+  value: 18.015
+  unit: g/mol
+  description: Molar mass of water.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_O2
+  value: 31.998
+  unit: g/mol
+  description: Molar mass of oxygen (O2).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: px
+  value: 656.0
+  unit: kg
+  description: 'p-Xylene consumed per t PTA, conventional plant: midpoint of 655 to 657 kg/t (the same document''s
+    embodiment gives 655 kg/t for the conventional process at its site).'
+  source: CN105001073A (CNPC and China Kunlun Contracting and Engineering Corp., published 2015-10-28), description,
+    background on the conventional process of a 1.2 Mt/a PTA plant (machine translation, Google Patents); the midpoint
+    is our choice
+- name: aa
+  value: 39.0
+  unit: kg
+  description: 'Acetic acid consumed (solvent make-up) per t PTA, conventional plant: midpoint of 38 to 40 kg/t.'
+  source: CN105001073A (CNPC and China Kunlun Contracting and Engineering Corp., published 2015-10-28), description,
+    background on the conventional process of a 1.2 Mt/a PTA plant (machine translation, Google Patents); the midpoint
+    is our choice. Compare 0.04 to 0.09 t/t (Karali et al. 2024, LBNL-2001585, p. 23; benchmarks/oxygenates.yaml)
+- name: res_ox
+  value: 2.5
+  unit: kg
+  description: 'p-Xylene lost to the oxidation residue (thin-film evaporator bottoms, discarded) per t PTA: midpoint
+    of 2 to 3 kg/t.'
+  source: CN105001073A (CNPC and China Kunlun Contracting and Engineering Corp., published 2015-10-28), description,
+    disadvantage (4) of the conventional process (machine translation, Google Patents); the midpoint is
+    our choice
+- name: res_pond
+  value: 1.8
+  unit: kg
+  description: 'p-Xylene lost to the solids pulled from the detention pond per t PTA: midpoint of 1.2 to 2.4 kg/t.'
+  source: CN105001073A (CNPC and China Kunlun Contracting and Engineering Corp., published 2015-10-28), description,
+    background on the conventional process of a 1.2 Mt/a PTA plant (machine translation, Google Patents); the midpoint
+    is our choice
+- name: res_ml
+  value: 0.5
+  unit: kg
+  description: 'p-Xylene lost with the purification (refining) mother liquor per t PTA: about 0.5 kg/t.'
+  source: CN105001073A (CNPC and China Kunlun Contracting and Engineering Corp., published 2015-10-28), description,
+    disadvantage (5) of the conventional process (machine translation, Google Patents)
+- name: voc_a
+  value: 15.0
+  unit: kg
+  description: 'Uncontrolled NMVOC of the reactor vent (A) per t: 15 g/kg.'
+  source: US EPA AP-42, 5th ed., section 6.11 Terephthalic Acid (5/83, reformatted 1/95), Table 6.11-1 (uncontrolled
+    factors, rating C, per kg of crude TPA; applied per kg of PTA, ASSUMED 1:1)
+- name: voc_b
+  value: 1.9
+  unit: kg
+  description: 'Uncontrolled NMVOC of the crystallisation, separation and drying vent (B): 1.9 g/kg.'
+  source: US EPA AP-42, 5th ed., section 6.11 Terephthalic Acid (5/83, reformatted 1/95), Table 6.11-1 (uncontrolled
+    factors, rating C, per kg of crude TPA; applied per kg of PTA, ASSUMED 1:1)
+- name: voc_c
+  value: 1.1
+  unit: kg
+  description: 'Uncontrolled NMVOC of the distillation and recovery vent (C): 1.1 g/kg.'
+  source: US EPA AP-42, 5th ed., section 6.11 Terephthalic Acid (5/83, reformatted 1/95), Table 6.11-1 (uncontrolled
+    factors, rating C, per kg of crude TPA; applied per kg of PTA, ASSUMED 1:1)
+- name: voc_d
+  value: 1.8
+  unit: kg
+  description: 'Uncontrolled NMVOC of the product transfer vent (D): 1.8 g/kg.'
+  source: US EPA AP-42, 5th ed., section 6.11 Terephthalic Acid (5/83, reformatted 1/95), Table 6.11-1 (uncontrolled
+    factors, rating C, per kg of crude TPA; applied per kg of PTA, ASSUMED 1:1)
+- name: co_a
+  value: 17.0
+  unit: kg
+  description: 'Uncontrolled CO of the reactor vent (A): 17 g/kg.'
+  source: US EPA AP-42, 5th ed., section 6.11 Terephthalic Acid (5/83, reformatted 1/95), Table 6.11-1 (uncontrolled
+    factors, rating C, per kg of crude TPA; applied per kg of PTA, ASSUMED 1:1)
+- name: co_d
+  value: 2.0
+  unit: kg
+  description: 'Uncontrolled CO of the product transfer vent (D): 2 g/kg.'
+  source: US EPA AP-42, 5th ed., section 6.11 Terephthalic Acid (5/83, reformatted 1/95), Table 6.11-1 (uncontrolled
+    factors, rating C, per kg of crude TPA; applied per kg of PTA, ASSUMED 1:1)
+- name: eta
+  value: 0.99
+  unit: '1'
+  description: 'Reduction of VOC and CO by thermal oxidation of the vent gases: the source''s lower bound (>99 %).'
+  source: US EPA AP-42 section 6.11, Table 6.11-1, footnote c; that every vent goes to the oxidiser is ASSUMED (the
+    LVOC BREF, section 2.1.2.3.8, p. 24, names incineration of off-gases as a control technique)
+- name: pm
+  value: 0.7
+  unit: kg
+  description: 'Terephthalic acid particulates in the product transfer vent after the bag filters: 0.7 g/kg.'
+  source: US EPA AP-42 section 6.11, Table 6.11-1, footnote d
+- name: dmw
+  value: 2600.0
+  unit: kg
+  description: 'Demineralised water per t PTA, conventional plant: midpoint of 2.2 to 3.0 t/t.'
+  source: CN105001073A (CNPC and China Kunlun Contracting and Engineering Corp., published 2015-10-28), description,
+    background on the conventional process of a 1.2 Mt/a PTA plant (machine translation, Google Patents); the midpoint
+    is our choice
+- name: elec_gj
+  value: 0.346
+  unit: GJ
+  description: Electricity per t PTA (useful energy, Indorama Rotterdam).
+  source: Tran, A. and West, K.J. (2021) Decarbonisation options for the Dutch bottle-grade PET industry. PBL and
+    TNO (MIDDEN), PBL publication 4617, Table 3, p. 17 (0.346 MJ/kg; the report cites CPME 2017, Port of Rotterdam
+    2016 and Zein et al. 2010)
+- name: steam_gj
+  value: 2.6
+  unit: GJ
+  description: Steam per t PTA, final energy (heat delivered), best practice.
+  source: 'Saygin, D., Patel, M.K., Tam, C., Gielen, D.J. (2009) Chemical and Petrochemical Sector: Potential of
+    best practice technology and other measures for improving energy efficiency. IEA Information Paper, OECD/IEA,
+    Table 1, p. 15 (PTA, 2.6 GJ/t of steam in final energy terms, after Meyers 2005). That the figure covers the
+    hydropurification modelled here is ASSUMED: the paper does not name the route, and its Western European average
+    (Table 13, p. 51, after Boustead 2002) splits the heat into 1.7 GJ/t of steam and 1.6 GJ/t of fuel. The MIDDEN
+    figure for Indorama Rotterdam, 0.981 GJ/t (PBL publication 4617, Table 3, p. 17), is not used: that plant is
+    Eastman-based with post-oxidation and no hydrogenation step, and it may be net of steam raised from the
+    reaction heat. Patent CN105001073A gives 0.7 to 1.0 t of steam per t for conventional hydropurified plants,
+    pressure not stated, about 1.4 to 2.2 GJ/t at an ASSUMED 2.0 to 2.2 GJ of heat per t of steam'
+- name: co_cat
+  value: 0.04
+  unit: kg
+  description: Cobalt catalyst consumed per t PTA, conventional process.
+  source: 'CN105001073A (CNPC and China Kunlun Contracting and Engineering Corp., published 2015-10-28), description,
+    embodiment: the conventional process at the same site (machine translation, Google Patents); counted as cobalt
+    (the patent does not state whether as metal or as acetate)'
+- name: mn_cat
+  value: 0.03
+  unit: kg
+  description: 'Manganese catalyst per t PTA: the manganese lost with the discarded oxidation residue, taken as
+    the make-up.'
+  source: CN105001073A (CNPC and China Kunlun Contracting and Engineering Corp., published 2015-10-28), description,
+    disadvantage (4) of the conventional process (machine translation, Google Patents); taking the residue loss
+    as the whole make-up is ASSUMED. The same passage also gives 0.02 kg/t manganese (and 0.01 kg/t cobalt) not
+    recovered from the evaporator residue; whether that adds to the 0.03 kg/t is unclear in the translation (the
+    cobalt items, 0.01 + 0.03, do sum to the embodiment's 0.04), so up to 0.05 kg/t is possible
+exchanges:
+- key: product:terephthalic-acid
+  title: Purified terephthalic acid
+  type: product
+  amount: 1000.0
+  unit: kg
+  formula: pta
+  provenance: given
+  source: the reference flow
+- key: feed:p-xylene
+  title: p-Xylene
+  type: input
+  amount: 656.0
+  unit: kg
+  formula: px
+  provenance: given
+  origin: literature
+  source: CN105001073A (CNPC and China Kunlun Contracting and Engineering Corp., published 2015-10-28), description,
+    background on the conventional process of a 1.2 Mt/a PTA plant (machine translation, Google Patents); compare
+    the stoichiometric 639.1 kg/t (C8H10 + 3 O2 -> C8H6O4 + 2 H2O)
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 4
+    - 3
+    - 3
+    reason: 'from a patent''s statement of a conventional 1.2 Mt/a plant (China, about 2015): reliability 3 (not
+      verified plant data), completeness 4, temporal 4, geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.002
+    source: 'p-xylene: range 655 to 657 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: feed:acetic-acid
+  title: Acetic acid (solvent make-up)
+  type: input
+  amount: 39.0
+  unit: kg
+  formula: aa
+  provenance: given
+  origin: literature
+  source: CN105001073A (CNPC and China Kunlun Contracting and Engineering Corp., published 2015-10-28), description,
+    background on the conventional process of a 1.2 Mt/a PTA plant (machine translation, Google Patents); burnt
+    in the oxidation or lost as vent VOC (model below)
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 4
+    - 3
+    - 3
+    reason: 'from a patent''s statement of a conventional 1.2 Mt/a plant (China, about 2015): reliability 3 (not
+      verified plant data), completeness 4, temporal 4, geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.026
+    source: 'acetic acid: range 38 to 40 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: feed:O2
+  title: Oxidation and combustion oxygen, from ambient air
+  type: input
+  amount: 658.6425511935548
+  unit: kg
+  formula: ((((pta + pm) * 4 / M_TPA + (res_ox + res_pond + res_ml) * 2 / M_PX + ((voc_a + voc_b + voc_c + voc_d)
+    * (1 - eta)) * 2 / M_AA + ((co_a + co_d) * (1 - eta)) / M_CO + (((px * 8 / M_PX + aa * 2 / M_AA) - ((pta + pm)
+    * 8 / M_TPA + (res_ox + res_pond + res_ml) * 8 / M_PX + ((voc_a + voc_b + voc_c + voc_d) * (1 - eta)) * 2 /
+    M_AA + ((co_a + co_d) * (1 - eta)) / M_CO)) * M_CO2) * 2 / M_CO2 + (((px * 10 / M_PX + aa * 4 / M_AA + dmw *
+    2 / M_H2O) - ((pta + pm) * 6 / M_TPA + (res_ox + res_pond + res_ml) * 8 / M_PX + ((voc_a + voc_b + voc_c + voc_d)
+    * (1 - eta)) * 4 / M_AA)) / 2 * M_H2O) / M_H2O) - (aa * 2 / M_AA + dmw / M_H2O)) / 2 * M_O2)
+  provenance: calculated
+  origin: estimate
+  free: true
+  source: 'closes the oxygen balance: the main reaction, the by-product and burnt losses and the thermal oxidiser
+    (complete combustion ASSUMED); ambient air is free, its nitrogen and excess O2 pass through and are not inventoried'
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.1
+    source: 'ASSUMED: follows the feeds'
+- key: feed:water
+  title: Demineralised water to the process
+  type: input
+  amount: 2600.0
+  unit: kg
+  formula: dmw
+  provenance: given
+  origin: literature
+  link:
+    factor: water
+    source: demineralised process water, by mass
+  source: CN105001073A (CNPC and China Kunlun Contracting and Engineering Corp., published 2015-10-28), description,
+    background on the conventional process of a 1.2 Mt/a PTA plant (machine translation, Google Patents)
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 4
+    - 3
+    - 3
+    reason: 'from a patent''s statement of a conventional 1.2 Mt/a plant (China, about 2015): reliability 3 (not
+      verified plant data), completeness 4, temporal 4, geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.168
+    source: 'demineralised water: range 2200 to 3000 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: feed:electricity
+  title: Electricity
+  type: input
+  amount: 96.11111111111111
+  unit: kWh
+  formula: elec_gj * 1000 / 3.6
+  provenance: given
+  origin: literature
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: Tran, A. and West, K.J. (2021) Decarbonisation options for the Dutch bottle-grade PET industry. PBL and
+    TNO (MIDDEN), PBL publication 4617, Table 3, p. 17 (0.346 GJ/t at 3.6 GJ/MWh); the site has an off-gas expander
+    and a gas-turbine CHP, so the figure may be net of the expander's power. The plant is Eastman-based (GPT) with
+    post-oxidation and no hydrogenation step in the report, so it is not the hydropurified route modelled here
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 4
+    - 3
+    - 4
+    reason: 'from a government agency''s estimate for one EU plant (Indorama Rotterdam, 2016), built from published
+      figures: reliability 3, completeness 4, temporal 4, geographical 3, technological 4 (Eastman-based post-oxidation
+      plant, not the hydropurified route)'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: one plant''s estimate; no range in the source'
+- key: feed:steam
+  title: Steam, as heat delivered
+  type: input
+  amount: 722.2222222222222
+  unit: kWh
+  formula: steam_gj * 1000 / 3.6
+  provenance: given
+  origin: literature
+  source: 'IEA Information Paper (Saygin et al. 2009), Table 1, p. 15 (best practice for PTA, 2.6 GJ/t of steam in
+    final energy terms, after Meyers 2005; at 3.6 GJ/MWh); the route is not named, and covering the hydropurification
+    is ASSUMED. Compare 0.7 to 1.0 t steam per t in the patent CN105001073A for conventional hydropurified plants
+    (pressure not stated) and the MIDDEN estimate of 0.981 GJ/t for an Eastman-based plant without hydrogenation'
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 4
+    - 3
+    - 4
+    reason: 'an IEA best-practice value (2009, after Meyers 2005) for an unnamed route: reliability 3, completeness
+      4, temporal 4, geographical 3, technological 4 (hydropurification ASSUMED)'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: one best-practice value; the patent''s conventional plants convert to about 1.4 to 2.2 GJ/t
+      and the IEA''s Western European average is 1.7 GJ/t of steam plus 1.6 GJ/t of fuel'
+- key: input:cobalt-catalyst
+  title: Cobalt oxidation catalyst (make-up)
+  type: input
+  amount: 0.04
+  unit: kg
+  formula: co_cat
+  provenance: given
+  origin: literature
+  source: 'CN105001073A (CNPC and China Kunlun Contracting and Engineering Corp., published 2015-10-28), description,
+    embodiment: the conventional process at the same site (machine translation, Google Patents); mass outside the
+    element balance'
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 4
+    - 3
+    - 3
+    reason: 'from a patent''s statement of a conventional 1.2 Mt/a plant (China, about 2015): reliability 3 (not
+      verified plant data), completeness 4, temporal 4, geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: a single value; the same document''s improved process needs 0.01 kg/t'
+- key: input:manganese-catalyst
+  title: Manganese oxidation catalyst (make-up)
+  type: input
+  amount: 0.03
+  unit: kg
+  formula: mn_cat
+  provenance: assumed
+  origin: estimate
+  source: CN105001073A (CNPC and China Kunlun Contracting and Engineering Corp., published 2015-10-28), description,
+    disadvantage (4) of the conventional process (machine translation, Google Patents); the residue loss
+    taken as the make-up (ASSUMED); mass outside the element balance
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: a loss taken as the make-up'
+- key: output:residue
+  title: Organic residue and dissolved by-products (benzoic, p-toluic and other acids)
+  type: output
+  amount: 6.155527089141737
+  unit: kg
+  formula: (res_ox + res_pond + res_ml) * M_PT / M_PX
+  provenance: calculated
+  origin: estimate
+  source: the p-xylene lost to the oxidation residue, the detention-pond solids and the purification mother liquor
+    (CN105001073A), modelled as p-toluic acid, PX + 1.5 O2 -> C8H8O2 + H2O (ASSUMED; the LVOC BREF, section 2.1.2.3.8,
+    names p-toluic, benzoic and other organic acids)
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.358
+    source: 'p-xylene lost to residues: range 3.2 to 5.9 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: output:wastewater
+  title: Effluent to wastewater treatment
+  type: output
+  amount: 2851.0443511128988
+  unit: kg
+  formula: (((px * 10 / M_PX + aa * 4 / M_AA + dmw * 2 / M_H2O) - ((pta + pm) * 6 / M_TPA + (res_ox + res_pond +
+    res_ml) * 8 / M_PX + ((voc_a + voc_b + voc_c + voc_d) * (1 - eta)) * 4 / M_AA)) / 2 * M_H2O)
+  provenance: calculated
+  origin: estimate
+  link:
+    factor: wastewater
+    source: site wastewater treatment (biological)
+  source: the demineralised water plus the reaction and combustion water, all ASSUMED to leave as effluent (vent
+    humidity neglected); compare about 3.0 t/t, the patent's 3.6 Mt/a of sewage for 1.2 Mt/a (whole site)
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.168
+    source: 'effluent, following the water: range 2200 to 3000 read as a 95 % interval, gsd2 = sqrt(high / low)
+      (our convention; the amount stays the arithmetic midpoint or the stated value)'
+- key: emission:CO2
+  title: CO2 from burnt p-xylene and acetic acid (reactor and thermal oxidiser)
+  type: emission
+  amount: 95.35467299151443
+  unit: kg
+  formula: (((px * 8 / M_PX + aa * 2 / M_AA) - ((pta + pm) * 8 / M_TPA + (res_ox + res_pond + res_ml) * 8 / M_PX
+    + ((voc_a + voc_b + voc_c + voc_d) * (1 - eta)) * 2 / M_AA + ((co_a + co_d) * (1 - eta)) / M_CO)) * M_CO2)
+  provenance: calculated
+  origin: estimate
+  cas: 124-38-9
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 349b29d1-3e58-4c66-98b9-9d1a076efd2e
+    name: Carbon dioxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: 'carbon balance: the carbon of the p-xylene and acetic acid not in the product, the residue, the vent
+    VOC and CO (complete oxidation ASSUMED); biosphere3 UUID, name and categories from core''s elementary-flow crosswalk
+    (data/elementary-flows.yaml). The patent''s disadvantages (4) and (5) put about 2 to 3 kg/t of acetic acid
+    into the discarded residue and 0.6 to 1.8 kg/t into the refining effluent (300 to 600 ppm in 2 to 3 t/t); that
+    acetic acid is counted as burnt here, so the CO2 is high by about 4 to 7 kg/t (ASSUMED simplification)'
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: follows the p-xylene and acetic acid losses'
+- key: emission:CO
+  title: CO after thermal oxidation of the vents
+  type: emission
+  amount: 0.19000000000000017
+  unit: kg
+  formula: ((co_a + co_d) * (1 - eta))
+  provenance: calculated
+  origin: estimate
+  cas: 630-08-0
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: ba2f3f82-c93a-47a5-822a-37ec97495275
+    name: Carbon monoxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: US EPA AP-42, 5th ed., section 6.11 Terephthalic Acid (5/83, reformatted 1/95), Table 6.11-1 (uncontrolled
+    factors, rating C, per kg of crude TPA; applied per kg of PTA, ASSUMED 1:1) (vents A and D) times (1 - eta); biosphere3 UUID, name and categories
+    from core's elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'US EPA AP-42 uncontrolled factors of 1983 (rating C) with an ASSUMED control efficiency: reliability
+      4, completeness 4, temporal 5 (over 40 years old), geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: a 1983 factor and an assumed control'
+- key: emission:NMVOC
+  title: VOC after thermal oxidation (methyl acetate, p-xylene, acetic acid)
+  type: emission
+  amount: 0.19800000000000018
+  unit: kg
+  formula: ((voc_a + voc_b + voc_c + voc_d) * (1 - eta))
+  provenance: calculated
+  origin: estimate
+  source: US EPA AP-42, 5th ed., section 6.11 Terephthalic Acid (5/83, reformatted 1/95), Table 6.11-1 (uncontrolled
+    factors, rating C, per kg of crude TPA; applied per kg of PTA, ASSUMED 1:1) (vents A to D) times (1 - eta); counted as acetic acid in the balance
+    (ASSUMED)
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'US EPA AP-42 uncontrolled factors of 1983 (rating C) with an ASSUMED control efficiency: reliability
+      4, completeness 4, temporal 5 (over 40 years old), geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: a 1983 factor and an assumed control'
+- key: emission:PM
+  title: Terephthalic acid dust from the product transfer vent
+  type: emission
+  amount: 0.7
+  unit: kg
+  formula: pm
+  provenance: given
+  origin: literature
+  source: US EPA AP-42 section 6.11, Table 6.11-1, footnote d (vent D, the gas leaving the silo bag filters; a
+    crude-TPA factor applied per kg of PTA, ASSUMED 1:1); dust from the purified-product dryer and silos is not
+    covered by the source
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'US EPA AP-42 factor of 1983 (rating C), after the bag filters, no further control applied: reliability
+      4, completeness 4, temporal 5 (over 40 years old), geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: a 1983 factor'
+provenance:
+  generator: hand-written model; amounts are the formulas of the parameters
+  notes: No value from a licensed database and none from a DWSIM file (process-library#313).
+generation:
+  tier: 1
+  method: 'sourced conceptual inventory: a patent''s unit consumptions, one EU plant''s electricity, the IEA''s
+    best-practice steam and US EPA vent factors with stoichiometry and element balances, every choice listed in
+    parameters'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 3
+  - 4
+  - 3
+  - 3
+  - 3
+  dqr_floor: 3.0
+  components:
+    product:terephthalic-acid: C8H6O4
+    feed:p-xylene: C8H10
+    feed:acetic-acid: C2H4O2
+    feed:O2: O2
+    feed:water: H2O
+    output:residue: C8H8O2
+    output:wastewater: H2O
+    emission:CO2: CO2
+    emission:CO: CO
+    emission:NMVOC: C2H4O2
+    emission:PM: C8H6O4
+  formulas:
+    product:terephthalic-acid: C8H6O4
+    feed:p-xylene: C8H10
+    feed:acetic-acid: C2H4O2
+    feed:O2: O2
+    feed:water: H2O
+    output:residue: C8H8O2
+    output:wastewater: H2O
+    emission:CO2: CO2
+    emission:CO: CO
+    emission:NMVOC: C2H4O2
+    emission:PM: C8H6O4
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      C:
+      - 609.317605487
+      - 609.317605487
+      H:
+      - 355.859239832
+      - 355.859239832
+      O:
+      - 2988.465705875
+      - 2988.465705875
+    outside:
+    - feed:electricity
+    - feed:steam
+    - input:cobalt-catalyst
+    - input:manganese-catalyst

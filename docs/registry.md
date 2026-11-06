@@ -191,6 +191,19 @@ mixtures without a composition and without an `lhv`, and so is `cement-clinker`.
 balance or use a model formula of their own with its sources (the clinker in cement-clinker-1,
 the anode in aluminium-1).
 
+## Polymers
+
+A polymer (`polyethylene`, `polypropylene`, `polyethylene-terephthalate`) is a **substance**
+described by its repeat unit: `formula` is the repeat unit (C2H4, C3H6, C10H8O4; end groups,
+catalyst residues and additives neglected), and `molar_mass`, `elemental_composition` and
+`carbon_content` are per repeat unit, so the element balance of a polymerisation dataset can read
+the product. The polymer's own CAS number is recorded, with the `chebi` id of the ChEBI polymer
+entry that cross-references that CAS; there is no `inchikey` or `pubchem_cid`, since a polymer has
+no standard structure key. The `chemicals` package cannot confirm a polymer's CAS (it maps some to
+the monomer and lacks others), so each polymer is listed in `CHEMICALS_PACKAGE_EXCEPTIONS` in
+`tests/test_registry.py`, with the reason, instead of being checked against it. Grades (HDPE,
+LDPE, LLDPE; homopolymer and copolymer) are not split yet.
+
 ## Identities and how they are verified
 
 A substance's identity is its `cas`, `inchikey`, `formula` and, where checked, `chebi` and

@@ -1,5 +1,15 @@
-# Benchmarks of chlorinated organics. Schema: schemas/benchmarks.schema.json; rules:
-# docs/benchmarks.md. Ranges are facts from the cited source, in our own form.
+# Benchmarks of chlorinated organics: VCM by the balanced EDC process, and benzyl chloroformate.
+# Schema: schemas/benchmarks.schema.json; rules: docs/benchmarks.md. Ranges are facts from the
+# cited source, in our own form.
+#
+# vcm-1:
+# Independence: the oxygen and residue KPIs come from the dataset's own document (LVOC BREF 2017),
+# but neither value is transcribed: both are calculated from the chlorine and ethylene figures by
+# stoichiometry, so they test the model's closure, not new plant data. The ethylene and CO2 KPIs are
+# bound to IPCC 2006 defaults, which average the plant data of the earlier (2003) LVOC BREF: a
+# different data collection, though not a fully independent one. The EU ETS benchmark is the most
+# independent figure (verified 2016-2017 emissions of EU installations), but it is the mean of the
+# 10 % best plants, not a range, so it is recorded and not bound.
 #
 # Benzyl chloroformate (benzyl-chloroformate-1, #153): no open source gives a plant's specific
 # consumptions. The stoichiometric floors are 0.634 kg benzyl alcohol and 0.580 kg phosgene per
@@ -44,6 +54,92 @@ schema: cheme-as-code/benchmarks/v1
 family: chlorinated-organics
 
 kpis:
+  vcm-specific-ethylene:
+    title: Ethylene consumption per t of VCM
+    unit: kg/kg
+    references:
+      - id: ipcc-2006-vcm-balanced-ethylene
+        range: [0.47, 0.47]
+        basis: unallocated
+        note: One Tier 1 default for the balanced process, recorded as a zero-width range and not widened. IPCC took it from the 2003 LVOC BREF.
+        conditions: {technology: "balanced EDC process with integrated VCM plant; plant data of the 2003 LVOC BREF", region: EU}
+        source:
+          citation: "IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Vol. 3 Industrial Processes and Product Use, ch. 3 Chemical Industry Emissions"
+          url: https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/3_Volume3/V3_3_Ch3_Chemical_Industry.pdf
+          locator: Section 3.9.2.2, Table 3.18, p. 3.77
+          kind: government
+          accessed: "2026-11-05"
+      - id: bref-lvoc-vcm-ethylene
+        range: [0.46, 0.47]
+        basis: unallocated
+        note: The dataset's own source for its ethylene (it takes the midpoint), so binding it would be transcription only.
+        conditions: {technology: "balanced EDC/VCM unit (the table is headed for air-based oxychlorination but gives both air and oxygen figures)", region: EU}
+        source: &bref-vcm
+          citation: "Falcke, H. et al. (2017) Best Available Techniques (BAT) Reference Document for the Production of Large Volume Organic Chemicals. JRC Science for Policy Report EUR 28882 EN, doi:10.2760/77304"
+          url: https://bureau-industrial-transformation.jrc.ec.europa.eu/sites/default/files/2019-11/JRC109279_LVOC_Bref.pdf
+          locator: Section 11.3.3, Table 11.12, p. 506
+          kind: bref
+          accessed: "2026-11-05"
+  vcm-specific-oxygen:
+    title: Oxygen consumption per t of VCM (oxygen-based oxychlorination)
+    unit: kg/kg
+    references:
+      - id: bref-lvoc-vcm-oxygen
+        range: [0.13, 0.14]
+        basis: unallocated
+        note: Our reading is that the oxygen figure belongs to oxygen-based oxychlorination and the 0.73 kg/kg air figure of the same table to air-based units; the source does not say so explicitly.
+        conditions: {technology: balanced EDC/VCM unit, region: EU}
+        source: *bref-vcm
+  vcm-specific-residues:
+    title: Light and heavy residues of EDC/VCM purification per t of VCM
+    unit: kg/t
+    references:
+      - id: bref-lvoc-vcm-residues
+        range: [20, 62]
+        basis: unallocated
+        note: Questionnaire values of the BREF review; the source says most plants are below 30 kg/t.
+        conditions: {technology: balanced EDC/VCM unit, region: EU}
+        source:
+          citation: "Falcke, H. et al. (2017) Best Available Techniques (BAT) Reference Document for the Production of Large Volume Organic Chemicals. JRC Science for Policy Report EUR 28882 EN, doi:10.2760/77304"
+          url: https://bureau-industrial-transformation.jrc.ec.europa.eu/sites/default/files/2019-11/JRC109279_LVOC_Bref.pdf
+          locator: Section 11.3.6, p. 508
+          kind: bref
+          accessed: "2026-11-05"
+  vcm-direct-co2:
+    title: Direct CO2 (furnaces, vent treatment, process vent) per t of VCM
+    unit: t/t
+    references:
+      - id: ipcc-2006-vcm-balanced-co2
+        range: [0.294, 0.294]
+        basis: unallocated
+        note: Tier 1 default for the balanced process, 0.0083 non-combustion vent plus 0.286 combustion (furnace fuel and the incineration of process waste gas with support fuel; flares excluded). One value, recorded as a zero-width range and not widened.
+        conditions: {technology: "balanced EDC process with integrated VCM plant; plant data of the 2003 LVOC BREF", region: EU}
+        source:
+          citation: "IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Vol. 3 Industrial Processes and Product Use, ch. 3 Chemical Industry Emissions"
+          url: https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/3_Volume3/V3_3_Ch3_Chemical_Industry.pdf
+          locator: Section 3.9.2.2, Table 3.17, p. 3.77
+          kind: government
+          accessed: "2026-11-05"
+      - id: eu-ets-vcm-benchmark-2016-2017
+        range: [0.171, 0.171]
+        basis: unallocated
+        note: >-
+          Average of the 10 % most efficient EU installations in 2016 and 2017, in t CO2e per t VCM
+          (the benchmark value for 2021-2025 is 0.155 allowances/t). Its boundary covers all processes
+          linked to direct chlorination, oxychlorination, EDC cracking and the incineration of vent
+          gases, and leaves out the production of oxygen. Our reading of Article 20 of Delegated
+          Regulation 2019/331 is that the benchmark also counts the emissions of imported heat (steam)
+          and of hydrogen burnt as fuel (valued at the heat benchmark), so it is wider than the dataset's
+          direct CO2. A best-plant mean, not a typical value, so not bound. The text
+          was read through the eurlexa.com mirror of EUR-Lex (EUR-Lex itself refused the download).
+        conditions: {technology: "EDC/VCM installations under the EU ETS, 2016 and 2017", region: EU, year: 2017}
+        source:
+          citation: "Commission Implementing Regulation (EU) 2021/447 of 12 March 2021 determining revised benchmark values for free allocation of emission allowances for 2021 to 2025, Annex; definition in Commission Delegated Regulation (EU) 2019/331, Annex I"
+          url: https://eur-lex.europa.eu/eli/reg_impl/2021/447/oj
+          locator: Annex, point 1 (Vinyl chloride monomer (VCM))
+          kind: government
+          accessed: "2026-11-05"
+
   bcf-specific-benzyl-alcohol:
     title: Benzyl alcohol consumption per kg of benzyl chloroformate
     unit: kg/kg
@@ -97,6 +193,22 @@ kpis:
     unit: kg/kg
     no_open_reference: "No open source independent of the dataset found (searched 2026-11-06 as for accl-specific-pcl3): CS 272 248 B2, Example 1, gives 96 g of lower phase per 1.0 mol PCl3 but no acetyl chloride mass, and the dataset's phase split is calibrated to that example, so it is not an independent reference."
 datasets:
+  - process: vcm-1
+    dataset: vcm-balanced-oxygen
+    conditions: {technology: "balanced process, oxygen-based oxychlorination, thermal EDC cracking", basis: conceptual inventory}
+    kpis:
+      vcm-specific-ethylene:
+        expression: feed:ethylene / product:vinyl-chloride
+        per: product:vinyl-chloride
+        reference: ipcc-2006-vcm-balanced-ethylene
+        out_of_range_reason: "The dataset takes the midpoint of the 2017 BREF's 0.46 to 0.47 kg/kg (newer EU plants, two thirds with oxygen-based oxychlorination, which the BREF says raises the yield); the IPCC default rests on the 2003 BREF data."
+      vcm-specific-oxygen: {expression: feed:oxygen / product:vinyl-chloride, per: product:vinyl-chloride, reference: bref-lvoc-vcm-oxygen}
+      vcm-specific-residues: {expression: output:residues / product:vinyl-chloride, per: product:vinyl-chloride, reference: bref-lvoc-vcm-residues}
+      vcm-direct-co2:
+        expression: emission:CO2 / product:vinyl-chloride
+        per: product:vinyl-chloride
+        reference: ipcc-2006-vcm-balanced-co2
+        out_of_range_reason: "The dataset burns the 2017 BREF's fuel midpoint (3.8 GJ/t) and only the ethylene left unconverted; the IPCC default averages older plants (2003 BREF data) and includes support fuel of the waste-gas incinerators, which is not counted separately here (see the dataset's parameter fuel). Nor is the CO2 of incinerating the dataset's 28.5 kg/t of residues (about 19 kg/t as 1,1,2-trichloroethane, 0.214 kmol x 2 x 44.009): the residues are an output to treatment that no Atlas entry takes yet (a mapping gap), so that CO2 belongs to the unlinked treatment. The value lies between it and the EU ETS mean of the 10 % best plants (0.171 t/t, which also counts steam and hydrogen fuel), recorded beside it."
   - process: benzyl-chloroformate-1
     dataset: benzyl-chloroformate-by-semi-batch-phosgenation-of-benzyl-alcohol-1000-t-a
     conditions: {technology: "phosgenation of neat benzyl alcohol with phosgene gas at 278 K and 50 kPa(a), semi-batch, degassed, not distilled, caustic off-gas scrubber", basis: "concept balance, ratios from the patent's Ex. 3 and ASSUMED kinetics (DESIGN.md D-004, D-005)"}
