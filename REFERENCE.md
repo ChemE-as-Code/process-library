@@ -28,8 +28,8 @@ says how to add a process.
 
 ## Processes
 
-The table lists 77 public process folders: 47 engineering projects (a `plant.yaml` with a process
-flowsheet), 24 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
+The table lists 87 public process folders: 52 engineering projects (a `plant.yaml` with a process
+flowsheet), 29 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
 One more folder (`co2-electrolysis-bpm-1`) is internal and not listed. The table is generated
 from each folder's `process.yaml` and `checks/maturity.json`; `coverage.yaml` names the
 coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
@@ -45,6 +45,9 @@ coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
 | [`alumina-1`](processes/alumina-1/) | Alumina by the Bayer process (3000 t/d smelter-grade alumina, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`aluminium-1`](processes/aluminium-1/) | Primary aluminium by Hall-Heroult electrolysis with point-feed prebaked anodes (NFM BREF ranges, IPCC 2006 PFC) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`ammonia-1`](processes/ammonia-1/) | Ammonia from natural gas (1500 t/d, steam reforming with air-fed secondary reformer, Haber-Bosch loop) | concept (calculation maturity: not recorded; not reviewed) | yes (DEXPI P&IDs (14), BFD/PFD, flowsheet, LCI dataset) |
+| [`ammonium-hydroxide-1`](processes/ammonium-hydroxide-1/) | Ammonium hydroxide, 25 wt% aqueous ammonia, by continuous dilution of liquid ammonia (heat of solution from NBS tables) | concept (Tier 0 form, stoichiometric screening with some sourced values; not reviewed) | no (manifest and LCI dataset only) |
+| [`ammonium-nitrate-1`](processes/ammonium-nitrate-1/) | Ammonium nitrate and calcium ammonium nitrate by neutralisation of nitric acid with ammonia (LVIC-AAF BREF values) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and two LCI datasets only) |
+| [`ammonium-sulfate-1`](processes/ammonium-sulfate-1/) | Ammonium sulfate by direct neutralisation of ammonia with sulfuric acid (saturator-crystallizer, AP-42 dust) | concept (Tier 0 form, stoichiometric screening with some sourced values; not reviewed) | no (manifest and LCI dataset only) |
 | [`aniline-1`](processes/aniline-1/) | Aniline by adiabatic gas-phase hydrogenation of nitrobenzene (25 t/h) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`asu-1`](processes/asu-1/) | Cryogenic air separation unit, 500 t/d GOX | screening (calculation maturity: balanced; not independently reviewed) | yes (DEXPI P&IDs, BFD/PFD, 3D layout, MTO, LCA, DWSIM checks) |
 | [`benzoyl-chloride-1`](processes/benzoyl-chloride-1/) | Benzoyl chloride by semi-batch reaction of benzotrichloride with benzoic acid, HCl vent and batch vacuum distillation (2000 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
@@ -89,9 +92,11 @@ coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
 | [`n-bromosuccinimide-1`](processes/n-bromosuccinimide-1/) | N-Bromosuccinimide by semi-batch bromination of succinimide in aqueous NaOH (500 t/a, the first batch entry) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`natural-gas-processing-1`](processes/natural-gas-processing-1/) | Natural gas processing (amine CO2 removal, TEG dehydration, turbo-expander NGL recovery) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`nitric-acid-1`](processes/nitric-acid-1/) | Weak nitric acid by dual-pressure ammonia oxidation (1000 t/d HNO3 as 60 wt% acid) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`npk-fertilizers-1`](processes/npk-fertilizers-1/) | NPK 15-15-15 by the nitrophosphate (ODDA) route, with ammonium nitrate and lime co-products (LVIC-AAF BREF, EFMA BAT booklet) | concept (Tier 0 form, stoichiometric screening with some sourced values; not reviewed) | no (manifest and LCI dataset only) |
 | [`p-toluenesulfonyl-chloride-1`](processes/p-toluenesulfonyl-chloride-1/) | p-Toluenesulfonyl chloride by semi-batch chlorosulfonation of toluene with an HCl vent, a drown-out quench and precipitation (1000 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`pet-1`](processes/pet-1/) | Polyethylene terephthalate by continuous PTA polycondensation and SSP (POL BREF losses, NAPCOR energy) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`phosgene-1`](processes/phosgene-1/) | Phosgene from CO and chlorine over activated carbon (17.3 t/h liquid phosgene, captive) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`phosphoric-acid-1`](processes/phosphoric-acid-1/) | Phosphoric acid by the wet dihydrate process (merchant grade; LVIC-AAF BREF and EFMA ranges) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`phosphorus-oxychloride-1`](processes/phosphorus-oxychloride-1/) | Phosphorus oxychloride from white phosphorus, chlorine and oxygen via PCl3 (4.0 t/h) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`phosphorus-tribromide-1`](processes/phosphorus-tribromide-1/) | Phosphorus tribromide by semi-batch bromination of white phosphorus in a PBr3 heel, red-phosphorus treatment and vacuum distillation (1000 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`polyethylene-1`](processes/polyethylene-1/) | High-density polyethylene by low-pressure polymerisation (Plastics Europe eco-profile averages, POL BREF checks) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |

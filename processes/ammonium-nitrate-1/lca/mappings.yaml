@@ -1,0 +1,12 @@
+# ammonium-nitrate-1's own exchange overrides for the Atlas LCI build (ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. The keys serve both datasets
+# (ammonium-nitrate-pressure-neutralisation-solid, calcium-ammonium-nitrate-granulation).
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:ammonia": {dataset: {path: processes/ammonia-1/lca/dataset.yaml, product: "product:NH3"}, source: "the Atlas producer ammonia-1, liquid ammonia; the BREF's plants vaporise it on site with neutraliser steam (section 9.4.3)"}
+  "feed:nitric-acid": {dataset: {path: processes/nitric-acid-1/lca/dataset.yaml, product: "product:ACID"}, source: "the Atlas producer nitric-acid-1, weak nitric acid 60 wt% by mass of solution, the strength these datasets are written for (59.985 wt% as the integer formula of the element balance)"}
+  "feed:limestone": {use: limestone, source: "ground limestone filler, the shared background entry, counted 1:1 by mass; no Atlas producer of limestone"}
+  "feed:steam":
+    use: steam
+    atlas: false
+    source: "Imported steam by mass; the source states no pressure for these ranges (Table 9.8 gives 10 bar for new plants, gauge or absolute not stated): the shared background entry, not one Atlas producer's pressure level."
