@@ -20,7 +20,7 @@ description: |
   tert-butanol, isobutene and CO2 (ASSUMED). The patent's own example runs in THF; hexane, an
   aliphatic hydrocarbon within its claimed solvents and the Sumitomo patent's solvent, is
   ASSUMED here so that the KCl is washed out with water after the solvent strip and no THF must be
-  swapped out. The slurry is degassed, the hexane stripped at 15 and then 1 kPa(a) at up to
+  swapped out. The slurry is degassed with a nitrogen sweep, the hexane stripped at 15 and then 1 kPa(a) at up to
   313 K (both patents keep Boc2O below 50 C when the solvent is removed), the melt washed with
   warm water and split from the KCl brine, and the Boc2O distilled at 0.13 kPa(a) from a liquid
   paraffin, which EP 0 256 559 A2 adds to suppress decomposition; the heel returns to the next
@@ -58,8 +58,9 @@ validation:
     Concept batch PFD with closed mass, component and element balances (cheme validate: 5 blocks,
     18 steps). The streams are calculated by cheme process propagate from the feeds: the
     semi-batch R101 from its ASSUMED rate laws with the CO2 and isobutene vented and both gas doses
-    partly or wholly taken up (core ADR 0054), the degassing DG101 at ASSUMED constant
-    volatilities, the strips ST101, ST102 and the vacuum still ST301 on Raoult's law with NIST
+    partly or wholly taken up (core ADR 0054), the degassing DG101 (a nitrogen sweep at 30 kPa(a))
+    at ASSUMED constant volatilities, its gas carrying the hexane that saturates R-101's
+    vent-condenser gas over the batch (core's vent carries no solvent), the strips ST101, ST102 and the vacuum still ST301 on Raoult's law with NIST
     Antoine constants and an ASSUMED line for Boc2O (core ADR 0055), the scrubber S101 a
     conversion step; the recovered hexane S30 and the paraffin heel S22 are tears converged by
     propagate (core ADR 0060). The wash DC201 and the vent split X401 are specified splits from
@@ -73,8 +74,10 @@ validation:
     its dosing), MTSR 279.9 K against an MTT of 333.15 K (hazard.mtt, Boc2O's decomposition
     limit); the largest cooling-failure gas over the batch 23.0 m3/h of CO2 against an ASSUMED
     vent capacity of 50 m3/h; no criticality class without a TD24 (never estimated). The kinetics
-    are assumed: at k/10 the MTSR is 283.7 K and the gas 25.5 m3/h, at k/100 295.2 K and 53.5
-    m3/h, 1.07 times the vent, with 36.6 % of the phosgene accumulated (a design finding:
+    are assumed: at k/10 the MTSR is 283.7 K and the gas 25.5 m3/h, at k/100 294.6 K and 53.5
+    m3/h, 1.07 times the vent, with 36.6 % of the phosgene accumulated and stripped into that
+    gas at up to 7.3 kg/h (y = x p*(T)/P over the cooling profile; 0.11 kg/h at the design rate)
+    (a design finding:
     dosing interlocks, the scrubber's caustic inventory, relief from calorimetry, DESIGN.md
     D-014). Preliminary gate-to-gate LCI with nitrogen as a per-batch consumable; phosgene,
     caustic soda and nitrogen linked to phosgene-1, chlor-alkali-1 and asu-1, potassium
@@ -85,20 +88,20 @@ chemistry:
     - {chemical: potassium-tert-butoxide, role: feedstock, inventory_key: "feed:KOTBU", note: "Potassium tert-butoxide (merchant solid), 1.150 kg/kg Boc2O; no library process makes it (proxy tert-butanol + potassium recorded, D-012; tert-butanol-1 to be linked when it lands)"}
     - {chemical: phosgene, role: feedstock, inventory_key: "feed:PHOS", note: "Liquid phosgene (phosgene-1), 0.497 kg/kg Boc2O, 0.49 mol per mol of the alkoxide, evaporated and dosed as gas"}
     - {chemical: carbon-dioxide, role: feedstock, inventory_key: "feed:CO2", note: "CO2 gas (merchant), 0.586 kg/kg Boc2O, 1.3 mol per mol of the alkoxide; a gap"}
-    - {chemical: n-hexane, role: feedstock, inventory_key: "feed:HEXMU", note: "n-Hexane make-up (merchant), 0.056 kg/kg Boc2O; the strips recover the rest of the 7.96 kg/kg the charge holds"}
+    - {chemical: n-hexane, role: feedstock, inventory_key: "feed:HEXMU", note: "n-Hexane make-up (merchant), 0.113 kg/kg Boc2O, most of it lost with R-101's vent-condenser gas (the dosing's vent and the degassing's nitrogen sweep, saturated at 263 K); the strips recover the rest of the 7.94 kg/kg the charge holds"}
     - {chemical: triethylenediamine, role: feedstock, inventory_key: "feed:DABCO", note: "DABCO catalyst (merchant), 0.0138 kg/kg Boc2O, 1.2 mol% of the alkoxide (EP 0 256 559 A2, Example 1)"}
     - {chemical: white-mineral-oil, role: feedstock, inventory_key: "feed:PARAF", note: "Liquid paraffin make-up for the still's heel, 0.030 kg/kg Boc2O (the heel's 10 % purge)"}
     - {chemical: sodium-hydroxide, role: feedstock, inventory_key: "feed:NAOH", note: "Caustic soda 50 wt% (chlor-alkali-1) to the scrubber, 0.164 kg/kg Boc2O, counted by mass of the solution"}
     - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Wash water and scrubber make-up, 4.18 kg/kg Boc2O"}
-    - {chemical: nitrogen, role: feedstock, inventory_key: "consumable:nitrogen", note: "Nitrogen (asu-1) for inerting, purging and breaking the vacuums, 93.8 kg per batch, 0.143 kg/kg Boc2O (ASSUMED)"}
+    - {chemical: nitrogen, role: feedstock, inventory_key: "consumable:nitrogen", note: "Nitrogen (asu-1) for inerting, the degassing's sweep, purging and breaking the vacuums, 157.8 kg per batch, 0.240 kg/kg Boc2O (ASSUMED)"}
   outputs:
     - {chemical: di-tert-butyl-dicarbonate, role: main-product, inventory_key: "product:BOC", note: "Distilled Boc2O melt to heated storage; modelled 99.98 wt%, an upper bound: di-tert-butyl carbonate, the tricarbonate and other by-products are not modelled"}
     - {chemical: wastewater, role: waste, inventory_key: "product:AQ", note: "Wash brine, 4.35 kg/kg Boc2O: about 17 wt% KCl with tert-butanol, DABCO and the unreacted carbonate, to wastewater treatment"}
     - {chemical: wastewater, role: waste, inventory_key: "product:WS", note: "Spent scrubber liquor, 0.836 kg/kg Boc2O, sodium carbonate with excess NaOH, to wastewater treatment"}
   utilities:
-    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.409 kWh/kg Boc2O: agitators of R-101, V-201 and C-301, the three vacuum pumps, the scrubber's pump and fan (ASSUMED)"}
-    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "1.212 kWh (4.36 MJ)/kg Boc2O of LP steam through hot-water circuits: the hexane strips (0.977 kWh with V-201's sensible heat), the still (0.107 kWh), the wash water, the phosgene evaporator and the degassing"}
-    - {chemical: chilled-water, role: utility, inventory_key: "product:CHW", note: "0.931 kWh/kg Boc2O removed by chilled water at 278 K: the strips' and the forerun's condensers"}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.415 kWh/kg Boc2O: agitators of R-101, V-201 and C-301, the three vacuum pumps, the scrubber's pump and fan (ASSUMED)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "1.211 kWh (4.36 MJ)/kg Boc2O of LP steam through hot-water circuits: the hexane strips (0.970 kWh with V-201's sensible heat), the still (0.107 kWh), the wash water, the phosgene evaporator and the degassing"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:CHW", note: "0.925 kWh/kg Boc2O removed by chilled water at 278 K: the strips' and the forerun's condensers"}
     - {chemical: chilled-water, role: utility, inventory_key: "product:BRINE", note: "0.525 kWh/kg Boc2O removed by brine at 258 K: R-101's charge cooling, the heats of carbonation and phosgenation (R101's model) and the CO2's absorption heat (the registry has chilled water, not brine: closest entry)"}
     - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.125 kWh/kg Boc2O removed by cooling water: the main-cut condenser and product cooler, and the scrubber"}
 basis:

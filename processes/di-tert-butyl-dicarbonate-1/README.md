@@ -30,9 +30,11 @@ Three headline numbers carry caveats. The modelled yield is 89.4 % on the alkoxi
 91.0 % the patent's Example 1 gives by mass (its purity not stated), which bounds it from above.
 The modelled product is 99.98 wt% Boc2O, an upper bound: di-tert-butyl carbonate, the tricarbonate
 and the other by-products are not modelled. The thermal screening is on ASSUMED rate laws: the
-MTSR (279.9 K) lies far below the decomposition limit (333.15 K), but only 0.8 K below phosgene's
-boiling point, and at a hundred times slower rates the CO2 a cooling failure releases exceeds the
-vent's 50 m3/h and 1.2 kmol of phosgene would boil off (a design finding, DESIGN.md D-011, D-014).
+MTSR (279.9 K) lies far below the decomposition limit (333.15 K); the risk is the dissolved
+phosgene, which a cooling failure strips into the CO2 it releases (0.11 kg/h at the design rate).
+At a hundred times slower rates 36.6 % of the phosgene accumulates, the CO2 a cooling failure
+releases exceeds the vent's 50 m3/h and carries about 7 kg/h of phosgene to the scrubber (a
+design finding, DESIGN.md D-011, D-014).
 
 | path | what |
 |---|---|

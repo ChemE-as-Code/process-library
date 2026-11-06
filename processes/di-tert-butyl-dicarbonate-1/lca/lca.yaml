@@ -93,16 +93,16 @@ flows:
     source: "flowsheet stream S33 (D-007)"
 # What the batch plant uses per batch and the flowsheet does not carry (library ADR 0035, core
 # ADR 0053), converted with the recipe's batches per year (process/recipe.yaml): the nitrogen
-# that inerts R-101, purges the phosgene line, breaks the vacuum of R-101, V-201 and C-301 and
+# that inerts R-101, sweeps the CO2 out of the slurry in the degassing, purges the phosgene line, breaks the vacuum of R-101, V-201 and C-301 and
 # blankets the hexane and waste tanks; it leaves through the scrubber to the thermal oxidiser.
 # No rinse between batches: R-101 and C-301 are kept dry (KOtBu and phosgene, and the hot heel),
 # and V-201 is washed every batch by the wash water the flowsheet carries (D-012).
 consumables:
   - id: nitrogen
-    title: Nitrogen for inerting R-101, purging the phosgene line, breaking the vacuums and blanketing the tanks
+    title: Nitrogen for inerting R-101, sweeping the degassing, purging the phosgene line, breaking the vacuums and blanketing the tanks
     unit: kg
-    per_batch: 93.8
-    source: "about 75 Nm3 per batch x 1.2506 kg/Nm3, ASSUMED (D-012): R-101 purged with 3 volumes of its 12.5 m3 (37.5 Nm3) and its degassing vacuum broken (12.5 Nm3), the phosgene line purged after the dosing (5 Nm3), V-201's vacuum broken after the strips (12.5 Nm3), C-301's after the distillation (1.6 Nm3), T-202 and T-302 blanketed (5.9 Nm3)"
+    per_batch: 157.8
+    source: "about 126 Nm3 per batch x 1.2506 kg/Nm3, ASSUMED (D-012): DG101's sweep, 2.28 kmol (51.2 Nm3, 64.0 kg) that strips the dissolved CO2 from about 0.006 mole fraction to 10 ppm at 30 kPa(a) (D-006); R-101 purged with 3 volumes of its 12.5 m3 (37.5 Nm3) and its degassing vacuum broken (12.5 Nm3), the phosgene line purged after the dosing (5 Nm3), V-201's vacuum broken after the strips (12.5 Nm3), C-301's after the distillation (1.6 Nm3), T-202 and T-302 blanketed (5.9 Nm3)"
     missing: "linked to processes/asu-1 (lca/mappings.yaml): gaseous nitrogen to the battery limit"
     disposal:
       kind: waste
@@ -117,7 +117,7 @@ emission_exclusions:
   - {id: phosgene-fugitive, method: equipment-leaks, equipment: [R-101, E-102], reason: "Fugitive phosgene from the evaporator, the dosing line and R-101 is not estimated: no P&ID yet; a phosgene unit is fully contained, in a monitored enclosure (D-011)."}
   - {id: tank-breathing, method: storage-tank, equipment: [T-202, T-302], reason: "Breathing and filling losses of the recovered-hexane and waste-solvent tanks go through the nitrogen blanket to the thermal oxidiser with the vent; not estimated (no P&ID yet, D-006)."}
   - {id: vacuum-exhausts, method: storage-tank, equipment: [V-201, C-301], reason: "The non-condensables of the vacuum pumps' discharge condensers (nitrogen with hexane and water vapour at the chilled water's temperature) go to the vent header; core's still has a total condenser, so their hexane is in the condensates S15 and S24, not estimated (D-006, D-008)."}
-  - {id: product-storage, method: storage-tank, reason: "Boc2O gives off CO2 slowly in storage (Wikipedia SRC-6): the vented storage's CO2 and Boc2O vapour are outside the plant gate and not estimated (D-011)."}
+  - {id: product-storage, method: storage-tank, reason: "Boc2O gives off CO2 slowly in storage (Wikipedia SRC-5): the vented storage's CO2 and Boc2O vapour are outside the plant gate and not estimated (D-011)."}
 dataset:
   version: 0.1.0
   classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals

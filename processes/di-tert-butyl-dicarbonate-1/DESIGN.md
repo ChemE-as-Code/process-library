@@ -30,7 +30,7 @@ no paragraph numbers, so the locator is the part of the document).
 | SRC-6 | Wikipedia, Potassium chloride, https://en.wikipedia.org/wiki/Potassium_chloride | density 1.984 g/cm3; solubility 27.8 g/100 mL at 0 C, 34.0 at 20 C | read; CC BY-SA, facts only | materials, D-007 |
 | SRC-7 | Wikipedia, Potassium tert-butoxide, https://en.wikipedia.org/wiki/Potassium_tert-butoxide | solubility 25 g/100 g in THF, 0.27 in hexane, 2.27 in toluene; made from dry tert-butanol and potassium metal; sold as a solid and in solution | read; CC BY-SA, facts only | D-004, D-005 (a suspension), D-012 (proxy) |
 | SRC-8 | PubChem CIDs 90495 (Boc2O), 23665647 (KOtBu), 8058 (n-hexane), 9237 (DABCO) | identity: formula, InChIKey, CAS | read (PUG REST) | registry, materials |
-| SRC-9 | Property data of core's environment and the NIST Chemistry WebBook, SRD 69 (https://webbook.nist.gov): Antoine constants of n-hexane (C110543, Willingham et al. 1945), tert-butanol (C75650, Brown et al. 1969), phosgene (C75445, Stull 1947), water (C7732185, Stull 1947); CO2's saturation pressures; the `chemicals` 1.5.2 package's packaged CRC tables (densities, heat capacities, boiling points; not the printed licensed handbook) | per component in `process/materials.yaml` | open data packages queried and WebBook pages read (2026-11-06); facts only | materials, D-006, D-008, D-009 |
+| SRC-9 | Property data of core's environment and the NIST Chemistry WebBook, SRD 69 (https://webbook.nist.gov): Antoine constants of n-hexane (C110543, Willingham et al. 1945), tert-butanol (C75650, Brown et al. 1969), phosgene (C75445, Stull 1947), water (C7732185, Stull 1947); CO2's saturation pressures; the `chemicals` 1.5.2 package's packaged CRC tables (densities, heat capacities, boiling points; not the printed licensed handbook); CoolProp 8.0.0 (MIT licence), water's saturation temperature at 350 kPa(a) from its default IAPWS-95 formulation (the LP steam's 412.007 K) | per component in `process/materials.yaml`; the LP steam in `process/flowsheet.yaml` | open data packages queried and WebBook pages read (2026-11-06); facts only | materials, the flowsheet's utilities, D-006, D-008, D-009 |
 | SRC-10 | Stoessel, F. (2008) Thermal Safety of Chemical Processes, Wiley-VCH, doi:10.1002/9783527621606 | accumulation, MTSR and the criticality classes of a semi-batch (the method of core ADRs 0050, 0058) | method reference, no data taken | D-011 |
 | SRC-11 | processes/phosgene-1, chlor-alkali-1, asu-1, benzyl-chloroformate-1 (this library) | liquid phosgene at 253 K and 340 kPa(a); caustic soda 50 wt%; gaseous nitrogen; the phosgene evaporator's heat, the degassing still and the scrubber pattern | library, internal | D-004, D-006, D-007, D-012 |
 | SRC-12 | Ullmann's Encyclopedia of Industrial Chemistry (carbonic acid esters) | - | not read (licensed) | nothing taken |
@@ -101,14 +101,14 @@ from the cycle (D-003).
 Decision: one batch makes 657.28 kg of distilled Boc2O (stream S25); the recipe
 (`process/recipe.yaml`) has three unit procedures:
 - REACT on R-101, one vessel over M101, E101, R101 and DG101 (`units`, core ADR 0057): nitrogen
-  purge 0.25 h, charge 1 h, cool 284.43 -> 278.15 K 0.20 h (from the jacket), dose 6.0 h (CO2 2 h,
-  then phosgene 4 h) and post-reaction 1.62 h to 0.9999 conversion of the phosgene (both from
-  R101's model), degas 0.85 h (DG101's still), transfer 0.5 h: 10.41 h;
-- WORKUP on V-201 over ST101, ST102 and DC201: receive 0.5 h, strip at 15 kPa(a) 4.72 h and down
-  to 1 kPa(a) 2.58 h (the stills' boil-up times), wash 1 h, settle 1 h, transfer 0.5 h: 10.30 h;
+  purge 0.25 h, charge 1 h, cool 284.52 -> 278.15 K 0.20 h (from the jacket), dose 6.0 h (CO2 2 h,
+  then phosgene 4 h) and post-reaction 1.61 h to 0.9999 conversion of the phosgene (both from
+  R101's model), degas with a nitrogen sweep 0.85 h (DG101's still), transfer 0.5 h: 10.41 h;
+- WORKUP on V-201 over ST101, ST102 and DC201: receive 0.5 h, strip at 15 kPa(a) 4.68 h and down
+  to 1 kPa(a) 2.58 h (the stills' boil-up times), wash 1 h, settle 1 h, transfer 0.5 h: 10.26 h;
 - DISTIL on C-301 over M301 and ST301: receive 0.5 h, evacuate 0.5 h, the forerun held to the
   vacuum pump's capacity 3.35 h (L-6), distil 1.94 h (ST301), purge 0.25 h: 6.54 h.
-R-101 is the bottleneck: cycle 10.411 h, 760.7 batches in 7920 h; one batch takes 26.25 h from the
+R-101 is the bottleneck: cycle 10.411 h, 760.7 batches in 7920 h; one batch takes 26.21 h from the
 purge to the heel's purge. The flowsheet's flows are the recipe's year averages: 657.28 kg x 760.7
 / 7920 h = 63.13 kg/h of S25 (no `cheme.recipe-basis` finding); the batch size was found by
 fixed-point iteration with the feeds scaled to the product (L-13).
@@ -118,10 +118,10 @@ charge) on brine 258/263 K checked at the log-mean coolant temperature against t
 278.15 - (20 - 15) / ln(20 / 15) = 260.77 K: it removes 98.6 kW against the model's peak of
 73.9 kW (during the CO2 dosing: the carbonation's heat) plus about 1.5 kW of the dissolved CO2's
 absorption heat the model leaves out (Q3, D-009): 75.4 kW, 24 % margin.
-V-201: 12.5 m3, receives 6.47 t of degassed slurry (about 9.4 m3 at 278 K); a forced-circulation
-reboiler E-204 (tubular, for the KCl slurry, about 25 m2 at U 600 W/(m2 K)) on hot water 321/316 K
-gives the 100 kW of ST101 even at its end (312.1 K, 6.4 K below the water's mean 318.5 K: 96 kW)
-and the 25 kW of ST102; the jacket alone wets too little as the pot empties. C-301: 1.6 m3,
+V-201: 12.5 m3, receives 6.43 t of degassed slurry (about 9.3 m3 at 278 K); a forced-circulation
+reboiler E-204 (tubular, for the KCl slurry, about 27 m2 at U 600 W/(m2 K)) on hot water 321/316 K
+gives the 100 kW of ST101 even at its end (312.1 K, 6.4 K below the water's mean 318.5 K: 600 x 27
+x 6.4 = 104 kW; 25 m2 would give 96 kW and lengthen the strip's end) and the 25 kW of ST102; the jacket alone wets too little as the pot empties. C-301: 1.6 m3,
 receives 0.69 t of melt onto the 0.23 t heel (about 1.0 m3), a forced-circulation reboiler E-303
 (about 8 m2 at U 600) on hot water 368/363 K: 36 kW at the main cut's end (357.9 K, 7.6 K below the
 mean 365.5 K) against ST301's 30 kW. Core sizes no vessel for a still (L-12): V-201 and C-301 are
@@ -132,10 +132,11 @@ models.
 
 ## D-004 Feeds and charge (2026-11-06)
 Decision, per mol of potassium tert-butoxide:
-- hexane in the charge about 5 kg per kg of the carbonate it makes (7.96 kg per kg of product): the
+- hexane in the charge about 5 kg per kg of the carbonate it makes (7.94 kg per kg of product): the
   lower end of SRC-1's preferred 4-20 times; SRC-2 uses 3.6 L for 3 mol (about 0.79 kg per mol,
-  the same order); the recovered hexane S30 (502.4 kg/h, its flow held, D-006) and the make-up S2
-  (3.535 kg/h, a little more than the losses, the rest purged);
+  the same order); the recovered hexane S30 (498.8 kg/h, its flow held, D-006) and the make-up S2
+  (7.149 kg/h, a little more than the losses, the rest purged: 4.79 kg/h leaves with R-101's
+  vent-condenser gas S11, D-006, 1.62 kg/h with the stripped melt, 0.74 kg/h with the purge S36);
 - DABCO 0.012 mol (SRC-1, Example 1: 0.018 mol on 1.5 mol);
 - CO2 1.3 mol (SRC-2, Example 1: 4 mol on 3; SRC-1 prefers 1-3 and uses 2), 85 % of it taken up
   (ASSUMED, `dosing.absorbed`), the rest to the vent;
@@ -154,11 +155,14 @@ the hexane's isomers, are not modelled).
 Decision: R101 is `reactor: semibatch` (core ADR 0050) at 278.15 K, isothermal, the charge S5
 (hexane, the alkoxide, DABCO and what the recycle carries), CO2 S8 dosed over 2 h from 0, phosgene
 S7 over 4 h from 2 h (SRC-1, Example 1: 3 h and 4 h at 5 C; SRC-2: 2 h of CO2), then the
-post-reaction to 0.9999 conversion of the phosgene (1.62 h). `batch.vent` takes the CO2 and the
+post-reaction to 0.9999 conversion of the phosgene (1.61 h). `batch.vent` takes the CO2 and the
 isobutene as they form (all of it, ASSUMED: CO2 is only sparingly soluble in a hydrocarbon at 278
 K); the dosed CO2's untaken 15 % passes to the vent; the phosgene is taken up whole
 (`absorbed: 1.0`, ASSUMED: it is very soluble in hexane at 278 K, below its 280.65 K boiling
-point). Rate laws, ASSUMED (no open kinetics, searched 2026-11-06):
+point). Two things the vent's model leaves out (core's `batch.vent` carries only the components
+it names, L-14): the vent gas leaves R-101's vent condenser saturated with hexane at 263.15 K,
+1.55 kg/h, which is lumped into DG101's gas S11 (D-006); and the dissolved phosgene's partial
+pressure puts about 0.13 mol% of it into the vent gas at the end of the phosgene dosing (D-007). Rate laws, ASSUMED (no open kinetics, searched 2026-11-06):
 - CARB second order in the alkoxide and CO2, k 0.05 m3/(kmol s) at 278 K, Ea 40 kJ/mol;
 - PHOS and SIDE second order in the carbonate and phosgene, k 0.05 and 0.00376 m3/(kmol s) at
   278 K (93 : 7, so that 7 % of the phosgene goes to SIDE whatever the concentrations), Ea 50
@@ -173,9 +177,10 @@ as gases (core ADR 0054):
   KCl adds of the order of -60 kJ/mol; SRC-1 doses phosgene slowly with external cooling;
 - SIDE -200 kJ/mol, as PHOS.
 Results (`cheme process reactors`): CARB 0.6471, PHOS 0.2949 and SIDE 0.0222 kmol/h; 0.2949 kmol/h
-of Boc2O formed, 91.3 % of the alkoxide in the crude (2 x 0.2949 / 0.6471). After the work-up's
+of Boc2O formed, 91.1 % of the alkoxide in the crude (2 x 0.2949 / 0.6471). After the work-up's
 losses (D-007, D-008: 0.30 % to the brine, 0.86 % with the forerun, 0.76 % with the heel's purge)
-0.2898 kmol/h is distilled: **89.4 % on the alkoxide, 91.2 % on phosgene.**
+0.2892 kmol/h of Boc2O is distilled (S25's 63.12 kg/h of Boc2O; S25's 0.2898 kmol/h holds its
+water and tert-butanol too): **89.4 % on the alkoxide, 91.2 % on phosgene.**
 **The yield against the source.** SRC-1's Example 1 gives 149 g from 1.5 mol of the alkoxide, 91.0
 % of the 163.7 g in theory, by mass with its purity not stated in the text (the table is an
 image): an upper bound of its yield. The modelled 89.4 % stays below it; the SIDE share (7 %) was
@@ -188,12 +193,36 @@ by reaction calorimetry with gas measurement before basic engineering.
 ## D-006 Degassing, the hexane strips and the recycle (2026-11-06)
 Decision:
 - DG101 (in R-101): a still at constant relative volatility (as benzyl-chloroformate-1's T101)
-  at 30 kPa(a) and 278 K, its gas drawn through R-101's vent condenser on brine (gas out at 263 K)
-  by the vacuum pump K-101 at 1 kmol/h; the pot and the condenser are taken as two equilibrium
-  stages, so each relative volatility to hexane is the product of the vapour-pressure ratios at
-  278 and 263 K (chemicals 1.5.2, SRC-9): phosgene about 11 x 14, ASSUMED 150; CO2 3000;
-  tert-butanol 0.1; the salts, Boc2O and DABCO non-volatile. It ends when CO2 is 10 ppm(mol) of the
-  slurry (0.85 h), taking 3.0 kg/h of CO2 and 1.15 kg/h of hexane (S11) to the scrubber.
+  at 30 kPa(a) and 278 K with a **nitrogen sweep**, its gas drawn through R-101's vent condenser on
+  brine (gas out at 263 K) by the dry screw pump K-101 (about 300 m3/h at 30 kPa(a), 7.5 kW) to
+  the vent header. **Why a sweep:** at 278 K the slurry's own vapour pressure is hexane's 0.84 x
+  7.85 kPa = 6.6 kPa plus CO2's x_CO2 x 3970 kPa (materials.yaml's lines), so at 30 kPa(a) it boils
+  only while x_CO2 is above about 0.006; without a stripping gas most of the dissolved CO2 would
+  stay (the 10 ppm end would be out of reach) and flash in V-201 instead. Nitrogen through the dip
+  pipe strips the CO2 from 0.006 to 10 ppm(mol) as a stripping gas in equilibrium with the liquid
+  (y_CO2 = 132 x_CO2 at 30 kPa(a)): 3.84 kmol of gas a batch leave the pot, 2.28 kmol of it
+  nitrogen (64.0 kg, 51.2 Nm3; a per-batch consumable, D-012), the rest CO2 and hexane at its 6.6
+  kPa. The vent condenser returns the hexane down to its saturation at 263.15 K and 30 kPa(a)
+  (3.45 kPa, 11.5 mol%): 0.389 kmol a batch (3.22 kg/h) passes with the nitrogen and the CO2, the
+  rest (0.455 kmol a batch) refluxes. K-101 then moves about 290 m3/h at its suction (3.38 kmol
+  over the 0.85 h) and about 100 m3/h at its discharge to T-401.
+  **The hexane of the dosing's vent is lumped here.** The vent gas S9 (5.31 kmol a batch at 101.3
+  kPa(a)) leaves the same vent condenser saturated with hexane at 263.15 K: 0.0180 kmol/h, 1.55
+  kg/h (with no condenser, at 278 K and 7.85 kPa, it would be 3.7 kg/h). Core's `batch.vent`
+  carries only the components it names, and a hexane named there would leave as it forms (none
+  forms) (L-14); a hand split of the slurry between R101 and DG101 would sit inside the hexane
+  recycle, which propagate then no longer closes. So DG101's volatilities, as for the degassing,
+  stand for the pot and the vent condenser together, and the CO2's is set (ASSUMED 720) so that
+  the gas S11 carries the hexane of both: 4.79 kg/h against the 1.55 + 3.22 = 4.77 kg/h of
+  saturation (0.5 % more). Phosgene about 11 x 14 (its vapour-pressure ratio to hexane's at 278 and
+  263 K, chemicals 1.5.2, SRC-9), ASSUMED 150; tert-butanol 0.1; the salts, Boc2O and DABCO
+  non-volatile. It ends when CO2 is 10 ppm(mol) of the slurry (0.85 h at the boil-up of 1.518
+  kmol/h of CO2, hexane and traces the sweep sets), taking 2.99 kg/h of CO2, 4.79 kg/h of hexane
+  and 76 % of the phosgene left (S11) to the scrubber. S11 leaves K-101 at about 298 K: with the
+  nitrogen, which the flowsheet does not carry as a component, the degassing's gas holds about 11
+  mol% hexane at 101.3 kPa(a), below saturation (its dew point 286 K). A discharge condenser on
+  K-101 (brine, 263 K, 101.3 kPa(a): 3.4 mol%) would recover about 2.4 kg/h of the hexane: an
+  option for basic engineering, not taken here.
 - ST101 and ST102 (in V-201): Rayleigh stills on Raoult's law (core ADR 0055) with the NIST
   Antoine constants of hexane, tert-butanol, phosgene and water, Boc2O's ASSUMED line (D-008) and
   CO2's saturation curve extrapolated (traces only), the salts, the carbonate and DABCO
@@ -204,11 +233,11 @@ Decision:
   the plant does not do. Both ends are a residue key, set to the temperature by hand, because
   the stills' temperature end failed on this charge (L-7). The suspended KCl counts in the liquid's
   mole fractions (L-3), so the model leaves about three times the hexane a 313 K end would.
-- The condensates, 443 kg/h and 60 kg/h of hexane with tert-butanol (S13, S15), at 283.15 K
+- The condensates, 440 kg/h and 60 kg/h of hexane with tert-butanol (S13, S15), at 283.15 K
   (ST101's condenser on chilled water at 15 kPa(a), its dew point 291-300 K; ST102's vapour
   through the dry pump K-201 to its discharge condenser), are collected in T-202 (M201, S35).
-- SP201: S30, 502.4 kg/h, back to the next charge (its flow held, ASSUMED, the tear's flow), the
-  remainder S36, 0.747 kg/h (0.15 %), purged to the waste solvent: it takes the make-up's excess
+- SP201: S30, 498.8 kg/h, back to the next charge (its flow held, ASSUMED, the tear's flow), the
+  remainder S36, 0.747 kg/h (0.15 % of S35's 499.6 kg/h), purged to the waste solvent: it takes the make-up's excess
   over the losses and bounds what accumulates.
 - **The recycle S30 is a tear converged by propagate** (core ADR 0060, Wegstein, 16 iterations,
   worst residual 6e-7 kg/h): its composition (hexane 99.06 wt%, tert-butanol 0.92 wt%, Boc2O
@@ -235,14 +264,29 @@ Decision:
   point, which is why the water is warmed. The brine S20 (274.7 kg/h) goes to wastewater
   treatment. Core has no liquid-liquid component separator in propagate (L-4); DC201 lies in no
   recycle.
-- S101/X401 (T-401): the vents S9 and S11 mixed at 275.44 K (M401, ideal-gas heat capacities) to
+- S101/X401 (T-401): the vents S9 and S11 mixed at 285.01 K (M401, ideal-gas heat capacities) to
   a caustic scrubber with 10.35 kg/h of 50 wt% caustic and 40.4 kg/h of make-up water: NPH
   destroys the phosgene (0.9999), NCO takes up 10 % of the CO2 (ASSUMED: a scrubber built for the
   phosgene with a short gas contact; caustic absorbs CO2 well, so a longer contact takes more:
   at 100 % the caustic would be about ten times as much, 1.7 kg of 50 wt% caustic per kg, recorded,
   not modelled), the NaOH about 1.17 times what both take. X401 (scripts/balance.py) splits the scrubbed vent S33
-  (24.8 kg/h: CO2, isobutene, hexane, water vapour to saturation at 303.15 K) from the liquor S34
-  (52.8 kg/h, sodium carbonate with excess NaOH). The vent goes to the site's thermal oxidiser.
+  (28.5 kg/h: CO2, isobutene, 4.79 kg/h of hexane, water vapour to saturation at 303.15 K) from
+  the liquor S34 (52.7 kg/h, sodium carbonate with excess NaOH). The vent goes to the site's
+  thermal oxidiser. T-401 is sized for about 100 m3/h, K-101's discharge during the degassing
+  (D-006); R-101's vent line for 50 m3/h (D-014).
+- **The scrubber's phosgene design load in normal operation** is not the balance's: S28 carries
+  0.0024 kg/h of phosgene (what DG101 strips), but the R101 model takes the dosed phosgene up whole
+  (`absorbed: 1.0`), while the dissolved phosgene's own partial pressure puts some into the vent
+  gas S9 while it is dosed. At the end of the phosgene dosing the slurry holds 0.0884 kmol a batch
+  of it, x about 0.0014 of the liquid (the suspended salts left out); at 278 K and its p* of 89 kPa
+  (materials.yaml's NIST line) that is p 0.12 kPa, about 0.12 mol% of the vent gas, about 0.1 kg/h
+  in the about 18 m3/h of CO2 the phosgenation then releases (R-101's vent condenser may return
+  part of it with the hexane; not credited). Taken over the whole 4 h of the dosing at that rate,
+  at most about 0.4 kg a batch (below 0.04 kg/h year average). T-401's caustic and its
+  phosgene-destruction efficiency are designed for 0.1 kg/h, about 40 times the balance's figure,
+  and for the cooling-failure load of D-011 (0.11 kg/h at the design rate, 7.3 kg/h at k/100); the
+  slip is not in the balance (it would take a little phosgene from PHOS), recorded here with its
+  number (library ADR 0035).
 Reason: SRC-1 washes out the chloride with water; core cannot split two liquids or a gas from a
 liquid itself. The scrubber is the phosgene unit's usual last barrier (benzyl-chloroformate-1).
 
@@ -282,39 +326,46 @@ heavy chaser) keeps the Boc2O it holds in the process.
 Decision (year averages; Q2, Q5, Q6, Q7 and Q11 written by `cheme process propagate --fill` from
 the models at `energy_port`, core ADR 0059; the others scripts/balance.py, each with its
 arithmetic in the flowsheet's source):
-- brine 258/263 K (product:BRINE), 33.14 kW, 0.525 kWh/kg: Q1 2.18 kW, the charge cooled from its
-  mix at 284.43 K (S1, S2, S3 at 298.15 K and the recovered hexane at 283.15 K) to 278.15 K; Q2
+- brine 258/263 K (product:BRINE), 33.17 kW, 0.525 kWh/kg: Q1 2.21 kW, the charge cooled from its
+  mix at 284.52 K (S1, S2, S3 at 298.15 K and the recovered hexane at 283.15 K) to 278.15 K; Q2
   30.67 kW, R101's model (its reactions 30.20 kW: CARB 0.6471 kmol/h x 70 MJ, PHOS and SIDE
   0.3171 kmol/h x 200 MJ; the doses cooled to 278 K 0.45 kW; less the vent gas 0.03 kW); Q3 0.283
   kW, the absorption heat of the CO2 S10 holds dissolved (0.068 kmol/h x 15 kJ/mol), which the
   model leaves out (core ADR 0054, L-9);
-- chilled water 278/283 K (product:CHW), 58.80 kW, 0.931 kWh/kg: Q9 51.04 kW (ST101's condensate:
+- chilled water 278/283 K (product:CHW), 58.38 kW, 0.925 kWh/kg: Q9 50.62 kW (ST101's condensate:
   its latent heat, the model's Q6, and the condensate cooled from the still's mean 303.5 K to
   283 K), Q16 7.33 kW (ST102's, after the vacuum pump, its vapour from the pot's 313 K), Q13 0.43 kW (the forerun's, after K-301);
-- cooling water 298/308 K (product:CW), 7.88 kW, 0.125 kWh/kg: Q14 6.39 kW (the main cut's latent
+- cooling water 298/308 K (product:CW), 7.89 kW, 0.125 kWh/kg: Q14 6.39 kW (the main cut's latent
   heat and its cooling from the still's mean 347.1 K to 303.15 K, through a tempered loop above Boc2O's melting point),
-  Q15 1.48 kW (the scrubber: NPH and NCO's heats, the caustic's dilution at -15 kJ/mol NaOH,
+  Q15 1.50 kW (the scrubber: NPH and NCO's heats, the caustic's dilution at -15 kJ/mol NaOH,
   ASSUMED, less the gas and the liquids brought to 303 K and the water evaporated into the vent);
-- LP steam 350 kPa(a) to hot-water circuits (feed:LPS), 76.51 kW, 1.212 kWh/kg: Q4 2.54 kW
-  (phosgene evaporated, 100 kJ/(kmol K) x 40 K + 24.8 MJ/kmol); Q5 0.40 kW (DG101's model, the
-  desorption heat of CO2 and the hexane boiled off); Q6 45.33 and Q7 6.20 kW (ST101 and ST102's
-  models: their boil-ups' latent heat); Q8 10.12 kW (V-201's sensible heat the stills leave out:
+- LP steam 350 kPa(a) to hot-water circuits (feed:LPS), 76.45 kW, 1.211 kWh/kg: Q4 2.54 kW
+  (phosgene evaporated, 100 kJ/(kmol K) x 40 K + 24.8 MJ/kmol); Q5 0.77 kW (DG101's model, the
+  desorption heat of CO2 and the latent heat of the hexane its gas S11 carries off, the dosing's
+  vent hexane lumped in, D-006); Q6 44.96 and Q7 6.19 kW (ST101 and ST102's
+  models: their boil-ups' latent heat); Q8 10.06 kW (V-201's sensible heat the stills leave out:
   the distillates from 278 K to their stills' mean temperatures, the melt to 313 K, V-201's steel,
   2000 kJ/K ASSUMED, from the wash's 307.5 K back to 313 K each batch); Q10 5.18 kW (the wash
   water to 318 K); Q11 5.58 kW (ST301's model); Q12 1.16 kW (C-301's sensible heat: the melt and
   the make-up from their temperatures to those their outlets leave at; the heel and C-301's steel
   leave as they came);
-- electricity 25.85 kW, 0.409 kWh/kg: R-101's agitator and K-101 5.75, V-201's agitator and K-201
+- electricity 26.21 kW, 0.415 kWh/kg: R-101's agitator and K-101 6.11, V-201's agitator and K-201
   10.5, C-301's agitator and K-301 6.6, the scrubber's pump and fan 3.0 kW (ASSUMED, each with its
   occupancy in the source).
 Every energy flow of the batch is in the flowsheet and so in the LCI (library ADR 0035), except
 these, each recorded with its number:
 - T-202's heat gains: the recovered hexane is charged at 283 K (insulated tank, within the cycle);
-  if it warmed to 298 K in storage, Q1 would be 4.75 kW more (502.4 kg/h x 2.27 kJ/(kg K) x 15 K,
+  if it warmed to 298 K in storage, Q1 would be 4.72 kW more (498.8 kg/h x 2.27 kJ/(kg K) x 15 K,
   0.075 kWh/kg of brine);
-- R-101's vent condenser during DG101: the hexane the pot boils and the condenser returns, about
-  0.14 kW each on LP steam and brine (DG101's ASSUMED two stages, about 0.2 mol of hexane per mol
-  of gas);
+- R-101's vent condenser during DG101: the hexane the sweep takes from the pot and the condenser
+  returns, 0.455 kmol a batch, about 0.38 kW each on LP steam and brine (year average); the
+  nitrogen's sensible heat is negligible;
+- where the vent's hexane evaporates: the 1.55 kg/h that saturates the dosing's vent gas leaves
+  the pot during the dosing, cooling it by about 0.16 kW (so R-101's brine duty Q2 is about 0.16
+  kW less), and it is counted in Q5 on LP steam instead, with DG101's gas (D-006); the vent
+  condenser's cooling of the dosing's gas from 278 to 263 K and the hexane it returns there, about
+  0.3 kW on brine, largely offset by the pot's evaporation of that returned hexane (about 0.2 kW
+  less on the jacket), are not counted;
 - the vessels' heat losses and gains (R-101 at 278 K, V-201 at up to 313 K, C-301 at up to 358 K,
   insulated): about 1.5 kW in all, ASSUMED order, not counted;
 - the vacuum pumps' compression heat: inside their power (P1 to P3), removed by their own cooling;
@@ -326,9 +377,9 @@ these, each recorded with its number:
 ## D-010 Wastes (2026-11-06)
 Decision: the wash brine (4.35 kg per kg product: about 17 wt% KCl, 0.5 wt% tert-butanol, DABCO
 and the carbonate) and the spent scrubber liquor (0.84 kg per kg: sodium carbonate with excess
-NaOH) to wastewater treatment; the waste solvent (the forerun and the hexane purge, 54 g per kg)
+NaOH) to wastewater treatment; the waste solvent (the forerun and the hexane purge, 53 g per kg)
 and the heel's purge (paraffin with Boc2O and DABCO, 39 g per kg) to incineration; the scrubbed
-vent (393 g per kg, mostly CO2) to the thermal oxidiser. Neither KCl nor the solvent of the purges
+vent (451 g per kg, mostly CO2, 76 g of it hexane, and the nitrogen) to the thermal oxidiser. Neither KCl nor the solvent of the purges
 is recovered.
 Reason: SRC-1 and SRC-2 end in a salt solution; KCl recovery or a DABCO recovery is outside this
 concept.
@@ -344,11 +395,11 @@ Result (`cheme process reactor-hazards`, core ADRs 0050, 0054, 0058) for R101:
   that has no alkoxide left to react with, L-1); the phosgene accumulates at most 2.68 % of its dose
   at the end of its dosing (0.0884 of 3.301 kmol a batch, from core's cooling profile); 0.65 % of the
   alkoxide (0.044 kmol a batch) is left when the phosgene starts;
-- MTSR 279.9 K at core's worst moment (6527 s, CARB in the CO2 dosing); PHOS's own MTSR 279.5 K at the
+- MTSR 279.9 K at core's worst moment (6491 s, CARB in the CO2 dosing); PHOS's own MTSR 279.5 K at the
   end of the phosgene dosing; MTT 333.15 K (`hazard.mtt`, D-014): **MTSR below the MTT**;
 - gas release: core takes it at the highest MTSR (CARB forms no gas: 0 m3/h); over the whole cooling
   profile (core's `stirred_tank.vent_gas_rate` at each point's MTSR, per batch, as the
-  p-toluenesulfonyl-chloride-1 entry), the most is 23.0 m3/h of CO2 at 14879 s (the phosgene
+  p-toluenesulfonyl-chloride-1 entry), the most is 23.0 m3/h of CO2 at 14898 s (the phosgene
   dosing), 0.46 of the vent's 50 m3/h (D-014);
 - no TD24 is known for the slurry, the crude or Boc2O (never estimated): no class
   (`cheme.reactor-hazard-missing`, info). With MTSR below the MTT, core's `criticality()` gives
@@ -358,18 +409,29 @@ Result (`cheme process reactor-hazards`, core ADRs 0050, 0054, 0058) for R101:
 Sensitivity (scratch copies with every rate constant of R101 divided by 10 and by 100; nothing
 else changed; not committed):
 
-| case | CO2 accumulation at 7200 s (core) | alkoxide left when the phosgene starts | phosgene accumulated at the end of its dosing | MTSR (core's worst moment) | PHOS's MTSR at the end of the phosgene dosing | largest gas over the batch, of 50 m3/h | post-reaction | cycle, batches/a |
-|---|---|---|---|---|---|---|---|---|
-| k (design) | 10.1 % | 0.65 % | 2.68 % (0.088 kmol) | 279.9 K | 279.5 K | 23.0 m3/h, 0.46 | 1.62 h | 10.41 h, 760.7 |
-| k/10 | 18.4 % | 9.8 % | 9.79 % (0.323 kmol) | 283.7 K | 282.9 K | 25.5 m3/h, 0.51 | 17.5 h | 26.26 h, 301.6 |
-| k/100 | 48.1 % | 42.7 % | 36.6 % (1.208 kmol) | 295.2 K | 294.4 K | 53.5 m3/h, 1.07 | 182.9 h | 191.7 h, 41.3 |
+| case | CO2 accumulation at 7200 s (core) | alkoxide left when the phosgene starts | phosgene accumulated at the end of its dosing | MTSR (core's worst moment) | PHOS's MTSR at the end of the phosgene dosing | largest gas over the batch, of 50 m3/h | most phosgene stripped into that gas | post-reaction | cycle, batches/a |
+|---|---|---|---|---|---|---|---|---|---|
+| k (design) | 10.1 % | 0.65 % | 2.68 % (0.088 kmol) | 279.9 K | 279.5 K | 23.0 m3/h, 0.46 | 0.11 kg/h (y 0.13 %) | 1.61 h | 10.41 h, 760.7 |
+| k/10 | 18.4 % | 9.8 % | 9.79 % (0.323 kmol) | 283.7 K | 282.9 K | 25.5 m3/h, 0.51 | 0.55 kg/h (y 0.53 %) | 17.4 h | 26.23 h, 302.0 |
+| k/100 | 48.1 % | 42.7 % | 36.6 % (1.208 kmol) | 294.6 K | 294.4 K | 53.5 m3/h, 1.07 | 7.3 kg/h (y 2.7 %, 1.8 m3/h) | 182.5 h | 191.3 h, 41.4 |
 
-MTT 333.15 K in every case. Interpretation: the MTSR stays far below the decomposition limit in
-every case, because the hexane's heat capacity is large; the risks lie elsewhere:
-- **dissolved phosgene**: phosgene boils at 280.65 K. The design case's MTSR, 279.9 K, is 0.8 K
-  below it; at k/10 (283.7 K) and k/100 (295.2 K) a cooling failure boils off the accumulated
-  phosgene, 0.32 and 1.21 kmol a batch (32 and 119 kg), a toxic release to the vent and the
-  scrubber that core's gas release does not count (it counts vent components only, L-2, L-14);
+(Rerun 2026-11-06 after the degassing's nitrogen sweep, D-006: the recycle's traces changed and
+the k/100 case's worst moment moved from 295.2 to 294.6 K; the other figures moved by less than
+their last digit.) MTT 333.15 K in every case. Interpretation: the MTSR stays far below the
+decomposition limit in every case, because the hexane's heat capacity is large; the risks lie
+elsewhere:
+- **dissolved phosgene stripped into the gas**: the accumulated phosgene is dissolved, x about
+  0.0014 of the liquid at the end of the design case's phosgene dosing, 0.0050 at k/10 and 0.017
+  at k/100 (the suspended salts left out), in about 60 kmol of hexane a batch. Its pure boiling
+  point (280.65 K) is no limit for the solution: what boils is set by the liquid's bubble pressure
+  (hexane 17.7 kPa at 295 K and the dissolved CO2), far below the vessel's. A cooling failure
+  releases the phosgene by stripping it into the CO2 the reactions keep forming, at y = x p*(T) /
+  P (materials.yaml's NIST line, p* 94 kPa at 279.5 K, 165 kPa at 294.4 K; the hexane's own
+  vapour pressure in the gas counted). Over the cooling profile (each point at its MTSR, with its
+  gas rate, as the gas release) the most is 0.11 kg/h at the design rate, 0.55 kg/h at k/10 and 7.3
+  kg/h (1.8 m3/h) at k/100, each at the end of the phosgene dosing; it is a toxic load on the
+  scrubber that core's gas release does not count (it counts vent components only, L-2, L-14).
+  The caustic stays sized for the whole accumulated inventory (below), a conservative bound;
 - **CO2**: at k/100 the CO2 a cooling failure releases is 1.07 times the vent's capacity;
 - **unreacted alkoxide when the phosgene starts**: at k/10 and k/100, 10 and 43 % of the alkoxide is
   not yet carbonated; phosgene with the alkoxide gives the chloroformate route (not modelled), so
@@ -401,18 +463,22 @@ steam counted as heat (kWh); every other background a gap with the activity it s
   ammonia or ethylene-oxide plants; none of the library's entries supplies it as a product).
 - Wastes: the brine and the scrubber liquor to wastewater treatment, the waste solvent and the heel
   purge to incineration, the vent to the thermal oxidiser: gaps with their routes.
-Per batch, not in the flowsheet (core ADR 0053, library ADR 0035): nitrogen 93.8 kg (about 75 Nm3:
-R-101's purge and vacuum break, the phosgene line's purge, V-201's and C-301's vacuum breaks, the
-tanks' blankets; ASSUMED), 0.143 kg per kg. No rinse between batches: R-101 and C-301 are kept dry
+Per batch, not in the flowsheet (core ADR 0053, library ADR 0035): nitrogen 157.8 kg (about 126
+Nm3: DG101's sweep 51.2 Nm3, 64.0 kg, D-006; R-101's purge and vacuum break, the phosgene line's
+purge, V-201's and C-301's vacuum breaks, the tanks' blankets 75 Nm3, ASSUMED), 0.240 kg per kg;
+it leaves with the vent to the oxidiser. No rinse between batches: R-101 and C-301 are kept dry
 (the alkoxide and phosgene; the hot heel), and V-201 is washed each batch by the wash the
 flowsheet carries.
 Per kg Boc2O: potassium tert-butoxide 1.150 kg, phosgene 0.497 kg, CO2 0.586 kg, hexane make-up
-0.056 kg, DABCO 0.0138 kg, paraffin 0.030 kg, caustic soda 50 wt% 0.164 kg, water 4.18 kg,
-electricity 0.409 kWh, LP steam 1.212 kWh, chilled water 0.931 kWh removed, brine 0.525 kWh
+0.113 kg, DABCO 0.0138 kg, paraffin 0.030 kg, caustic soda 50 wt% 0.164 kg, water 4.18 kg,
+electricity 0.415 kWh, LP steam 1.211 kWh, chilled water 0.925 kWh removed, brine 0.525 kWh
 removed, cooling water 0.125 kWh removed; wash brine 4.35 kg, scrubber liquor 0.836 kg, waste
-solvent 0.054 kg, heel purge 0.039 kg, vent 0.393 kg (of it 0.349 kg CO2, 0.020 kg isobutene, 0.018
-kg hexane). Not counted: fugitive phosgene, the tanks' breathing, the vacuum exhausts' traces,
-the product store's CO2 (emission_exclusions).
+solvent 0.053 kg, heel purge 0.039 kg, vent 0.451 kg (of it 0.349 kg CO2, 0.020 kg isobutene, 0.076
+kg hexane: the hexane that saturates R-101's vent-condenser gas in the dosing and the degassing,
+D-006). Not counted: fugitive phosgene, the tanks' breathing, the vacuum exhausts' traces,
+the product store's CO2 (emission_exclusions); and, inside the plant, the phosgene the dosing's
+vent gas strips from the slurry to the scrubber (at most about 0.4 kg a batch, destroyed there,
+D-007).
 
 ## D-013 Dedicated train (2026-11-06)
 Decision: R-101, V-201, C-301, T-202 and T-401 make only Boc2O, batch after batch: 760.7 batches in
@@ -424,8 +490,9 @@ idle time of a multipurpose train, and a shared phosgene unit's other consumers.
 
 ## D-014 Core 1.9.0: the vent capacity, the MTT and the design findings (2026-11-06)
 Decision:
-- **`hazard.vent_capacity: 50` m3/h on R101**, ASSUMED: the vent line and T-401 sized for about 2.2
-  times the recipe's normal peak, 22.8 m3/h of CO2 at 278 K (`cheme process recipe`); no vent
+- **`hazard.vent_capacity: 50` m3/h on R101**, ASSUMED: R-101's vent line sized for about 2.2
+  times the recipe's normal peak (T-401 takes about 100 m3/h, K-101's discharge in the degassing,
+  D-006), 22.8 m3/h of CO2 at 278 K (`cheme process recipe`); no vent
   sizing yet (no P&ID). Core's release at its worst moment is 0 (CARB, no gas;
   `cheme.reactor-hazard-vent`, info); the largest over the batch 23.0 m3/h (0.46), at k/10 25.5
   (0.51), at k/100 53.5 m3/h (1.07, D-011).
@@ -436,10 +503,11 @@ Decision:
   no estimate of one (none is made).
 - **Design findings** (the rates are ASSUMED, so they stand until calorimetry): (1) reaction
   calorimetry with gas measurement for both steps, the TD24 or DSC onset of the slurry, the crude and
-  Boc2O; (2) the phosgene dosing interlocked to stop on a high temperature (well below phosgene's
-  280.65 K boiling point: the design MTSR is 0.8 K below it), a loss of cooling, the agitator's stop,
-  a high vent flow and a phosgene-accumulation estimate from the heat flow, since the screened MTSR
-  assumes the dosing stops at the worst moment; (3) a permissive: the CO2 uptake complete (no free
+  Boc2O; (2) the phosgene dosing interlocked to stop on a high temperature, a loss of cooling, the
+  agitator's stop, a high vent flow and a phosgene-accumulation estimate from the heat flow, since
+  the screened MTSR assumes the dosing stops at the worst moment and the phosgene a cooling
+  failure strips into the vent gas grows with both the accumulation and the temperature (y = x
+  p*(T) / P: 0.11 kg/h at the design rate, 7.3 kg/h at k/100, D-011); (3) a permissive: the CO2 uptake complete (no free
   alkoxide) before the phosgene starts; (4) the scrubber's caustic strength, flow and level
   interlocked with the phosgene dosing, and its caustic inventory sized for the phosgene that can
   accumulate (D-011); (5) R-101's relief (a bursting disc to a catch tank and the scrubber) sized for
@@ -452,8 +520,8 @@ Decision:
 - **Tears (ADR 0060)**: the recovered hexane S30 and the paraffin heel S22 (D-006, D-008).
 - **`hazard.reactions` not used**: CARB and PHOS each count; CARB sets the MTSR (D-011).
 Rejected: a larger vent capacity (nothing yet sizes one; the interlocks and the relief are the
-measures); counting the phosgene's boil-off as a vent gas (it would no longer be taken up in
-normal operation).
+measures); naming phosgene a vent component (core would then vent it as it forms, and none
+forms; and the dosed phosgene would no longer be taken up in normal operation).
 
 ## Core features used (cheme-as-code 1.9.0)
 
@@ -489,8 +557,11 @@ KCl is washed out); `still.feed` (no solvent swap: the hexane route needs none, 
   cooling profile by a scratch script (D-011). Core could report the accumulation of each dosed
   reactant and the gas release at every point of the cooling profile.
 - L-2: a dosed gas that dissolves sets no MTT and no release in the screening: phosgene, taken up
-  whole, boils at 280.65 K, 0.8 K above the design's MTSR and below it at k/10. Core's gas release
-  counts vent components only (L-14). `hazard.mtt` was set by hand to the decomposition limit.
+  whole, is stripped into the vent gas by its partial pressure over the solution (y = x p*(T) / P,
+  up to 7.3 kg/h at k/100 over the cooling profile, D-011), which core does not count: its gas
+  release counts vent components only (L-14), and a vent component leaves as it forms. Core
+  could give a dissolved dose's partial pressure in the vent gas. `hazard.mtt` was set by hand to
+  the decomposition limit.
 - L-3: the still counts suspended solids (KCl, the carbonate) and non-volatile components in the
   liquid's mole fractions for Raoult's law. At ST102's end they are 66 % of the pot: the hexane left
   (1.9 mol%) would boil at about 291 K without them (by the same Antoine lines), not at 313 K, so the
@@ -527,8 +598,11 @@ KCl is washed out); `still.feed` (no solvent swap: the hexane route needs none, 
 - L-13 (as p-toluenesulfonyl-chloride-1 L-6): propagate does not solve the feeds for a product
   rate, and the batch size and the cycle depend on each other: both iterated by hand (feeds scaled,
   then the fixed point of batch size = rate x cycle).
-- L-14: the gas release of ADR 0058 is the vent's gas only: the solvent's vapour with it (hexane
-  at 278 K, about 8 kPa) and a dissolved toxic gas boiling off (phosgene) are not counted.
+- L-14: `batch.vent` and the gas release of ADR 0058 carry the vent's named components only: the
+  solvent's vapour with them (hexane at 278 K, about 8 kPa; after R-101's vent condenser 3.45 kPa,
+  1.55 kg/h in the normal vent, lumped by hand into DG101's gas S11, D-006) and a dissolved toxic
+  gas stripped into them (phosgene, D-007, D-011) are not counted. Core could saturate a vent with
+  the liquid's volatile components at a stated condenser temperature.
 
 ## Method and dependency table
 
