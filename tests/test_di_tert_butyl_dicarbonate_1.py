@@ -19,7 +19,10 @@ CSV, and what the folder states in DESIGN.md, process.yaml and lca/ is checked a
   `criticality()` can give with the MTSR below the MTT, and the MTT is the decomposition limit;
 - the vent capacity covers the design case's largest cooling-failure release and the k/100 case
   is recorded as exceeding it; water ingress and the loss of the scrubber are discussed;
-- tert-butanol-1 is named as the link to make, the process is public with CC-BY-4.0, every library entry is (ADR 0036);
+- the alkoxide stays a gap now that tert-butanol-1 exists: the library links an exchange whole to one
+  producer (no amount factor) and a shared proxy's inputs are background entries only, so the proxy's
+  tert-butanol share cannot link tert-butanol-1; DESIGN.md and the gap's text say so; the process is
+  public with CC-BY-4.0, every library entry is (ADR 0036);
 - (review of PR #401) the hexane that saturates R-101's vent-condenser gas (the dosing's vent S9
   and the degassing's nitrogen sweep) is in the balance and the make-up; the degassing at 30
   kPa(a) needs that sweep, since the slurry's own bubble pressure falls below the still's; the
@@ -299,7 +302,7 @@ def test_vent_capacity_and_the_design_findings(model, tmp_path):
 
 def test_feeds_links_and_publication(model):
     design = _text("DESIGN.md")
-    assert "entry makes tert-butanol yet" in design and "linking the proxy" in design
+    assert "the library's LCI conventions do not allow linking a share of a proxy" in design
     proxy_t, proxy_k = 74.123 / 112.213, 39.098 / 112.213
     assert f"{proxy_t:.4f}" == "0.6606" and f"{proxy_k:.4f}" == "0.3484"
     mappings = _yaml("lca/mappings.yaml")["exchanges"]
@@ -661,3 +664,34 @@ def test_requires_core_1_10_and_records_the_change():
     assert "L-14: **resolved" not in design
     assert "Needs cheme-as-code 1.10.0" in _text("README.md") and "Needs cheme-as-code 1.10.0" in _text("process.yaml")
     assert "core 1.10.0" in _text("PROGRESS.md")
+
+
+def test_alkoxide_stays_a_gap_now_that_tert_butanol_1_exists():
+    """tert-butanol-1 landed (PR #402), but the library cannot link the proxy's tert-butanol share
+    to it: an override links a whole exchange to one producer kg for kg, and a shared proxy's
+    inputs are background technosphere entries only. KOTBU stays a gap that says so."""
+    kit = PROCESS.parents[1]
+    producer = kit / "processes" / "tert-butanol-1" / "lca" / "datasets" / "tert-butanol-isobutene-hydration.yaml"
+    product = next(e for e in yaml.safe_load(producer.read_text(encoding="utf-8"))["exchanges"] if e["key"] == "product:tert-butanol")
+    assert product["type"] == "product" and product["unit"] == "kg"
+    # the conventions: one producer per exchange, no share; proxy inputs `use` a background entry
+    schema = yaml.safe_load((kit / "schemas" / "lci-mappings.schema.json").read_text(encoding="utf-8"))["$defs"]
+    override = schema["exchange_override"]
+    assert override["not"] == {"required": ["use", "dataset"]} and override["additionalProperties"] is False
+    assert not {"amount", "share", "factor"} & set(override["properties"])
+    assert set(override["properties"]["dataset"]["properties"]) == {"path", "product"}
+    assert set(schema["proxy"]["properties"]["inputs"]["items"]["properties"]) == {"use", "amount", "source"}
+    shared = yaml.safe_load((kit / "lci" / "mappings.yaml").read_text(encoding="utf-8"))
+    assert not any("dataset" in i for p in shared["proxies"].values() for i in p["inputs"])
+    # so KOTBU is not linked, and its gap names tert-butanol-1 and what linking needs
+    assert "feed:KOTBU" not in _yaml("lca/mappings.yaml")["exchanges"]
+    flow = next(f for f in _yaml("lca/lca.yaml")["flows"] if f["key"] == "feed:KOTBU")
+    assert flow["missing"].startswith("not mapped yet (D-012)")
+    assert "tert-butanol-1 exists since PR #402" in flow["missing"]
+    assert "a potassium tert-butoxide entry whose tert-butanol feed links tert-butanol-1" in flow["missing"]
+    with (PROCESS / "lca" / "gaps.csv").open(encoding="utf-8") as fh:
+        gap = next(r for r in csv.DictReader(fh) if r["key"] == "feed:KOTBU")
+    assert gap["reason"] == "missing" and "tert-butanol-1 exists" in gap["detail"]
+    design = _text("DESIGN.md")
+    assert "TBA contained" in design and "dry tert-butanol" in design
+    assert "to be linked when it lands" not in _text("process.yaml")

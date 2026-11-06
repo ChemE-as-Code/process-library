@@ -4,13 +4,13 @@
 # exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
 #
 # The preliminary LCI leaves most backgrounds unmapped (DESIGN.md D-012): the build reports each
-# as a gap (lci/gaps.json). Linked here: the phosgene to phosgene-1, the caustic soda to
-# chlor-alkali-1, the nitrogen consumable to asu-1's gaseous nitrogen, and the LP steam counted as
-# heat delivered (kWh), as n-bromosuccinimide-1 does. Benzyl alcohol stays a gap: no library
-# process makes it yet (benzyl-alcohol-1, #154, is pending), and the shared vocabulary has no
-# entry for it; a proxy would be a guess (CONTRIBUTING, "Gaps").
+# as a gap (lci/gaps.json). Linked here: the benzyl alcohol to benzyl-alcohol-1 (since
+# 2026-11-06, D-012), the phosgene to phosgene-1, the caustic soda to chlor-alkali-1, the nitrogen
+# consumable to asu-1's gaseous nitrogen, and the LP steam counted as heat delivered (kWh), as
+# n-bromosuccinimide-1 does.
 schema: cheme-as-code/lci-process-mappings/v1
 exchanges:
+  "feed:BNOH": {dataset: {path: processes/benzyl-alcohol-1/lca/datasets/benzyl-alcohol-continuous-soda-hydrolysis.yaml, product: "product:benzyl-alcohol"}, source: "the Atlas producer benzyl-alcohol-1, reagent-grade benzyl alcohol (at least 99.8 wt%) by continuous hydrolysis of benzyl chloride with soda solution (Tier 0, a 1982 patent's pilot example), kg for kg. Same substance (registry benzyl-alcohol, C7H8O, CAS 100-51-6) and unit (kg) as stream S1; S1 is 100 wt% dry benzyl alcohol in the model (D-004), the linked product at least 99.8 wt%, so up to 0.2 % of the alcohol's burden is not counted (at most 0.03 wt% benzaldehyde, 0.01 wt% dibenzyl ether, 0.003 wt% chlorine). Its own benzyl chloride feed is a gap of benzyl-alcohol-1, not of this process"}
   "feed:PHOS": {dataset: {path: processes/phosgene-1/lca/dataset.yaml, product: "product:PHOSGENE"}, source: "the Atlas producer phosgene-1, liquid phosgene (35 ppm(wt) Cl2), a captive supply; its 17.3 t/h basis is a scale far above this plant's 0.093 t/h, the burden per kg is what is linked"}
   "feed:NAOH": {dataset: {path: processes/chlor-alkali-1/lca/dataset.yaml, product: "product:NAOH"}, source: "the Atlas producer chlor-alkali-1, caustic soda 50 wt-%, per kg of solution as this exchange counts it"}
   "consumable:nitrogen": {dataset: {path: processes/asu-1/lca/dataset.yaml, product: "product:GANP"}, source: "the Atlas producer asu-1, gaseous nitrogen to the battery limit (99.97 mol% N2, 9 bar(a)); the purge needs only a few hundred kPa"}

@@ -24,7 +24,10 @@ reactions (review of process-library#384, and the moves to core 1.9.0 and 1.10.0
   a design finding stated in DESIGN.md D-014, checked against core's screening;
 - the vacuum pump's volume for the degassing boil-up is the ideal gas at the still's pressure;
 - R101's batch source names the dosing time the model uses (10 h, not the rejected 8 h);
-- the REFERENCE.md process table stays sorted by id.
+- the REFERENCE.md process table stays sorted by id;
+- the benzyl alcohol (feed:BNOH) links benzyl-alcohol-1's product the way feed:PHOS links
+  phosgene-1: the linked dataset and product exist, the substance and unit are stream S1's, and
+  the purity difference (S1 100 wt%, the product at least 99.8 wt%) is recorded as a proxy.
 """
 
 from __future__ import annotations
@@ -377,3 +380,32 @@ def test_reference_process_table_sorted_by_id():
 def test_published_with_cc_by():
     """Public by default (ADR 0036): the entry is published under CC-BY-4.0."""
     assert _yaml("process.yaml")["publication"] == {"status": "public", "license": "CC-BY-4.0"}
+
+
+def test_benzyl_alcohol_links_benzyl_alcohol_1(fs, comps):
+    """feed:BNOH is linked to the library's benzyl-alcohol-1 (PR #402) as feed:PHOS is to phosgene-1."""
+    mappings = _yaml("lca/mappings.yaml")["exchanges"]
+    link, phos = mappings["feed:BNOH"]["dataset"], mappings["feed:PHOS"]["dataset"]
+    assert set(link) == set(phos) == {"path", "product"}
+    assert link["path"].startswith("processes/benzyl-alcohol-1/lca/")
+    producer = yaml.safe_load((KIT / link["path"]).read_text(encoding="utf-8"))
+    product = next(e for e in producer["exchanges"] if e["key"] == link["product"])
+    assert product["type"] == "product"
+    # same substance and unit as stream S1 and the consumer's exchange
+    consumer = next(e for e in _yaml("lca/dataset.yaml")["exchanges"] if e["key"] == "feed:BNOH")
+    assert product["unit"] == consumer["unit"] == "kg"
+    assert producer["generation"]["formulas"][link["product"]] == comps["BNOH"]["formula"] == "C7H8O"
+    feeds = {i["inventory_key"]: i["chemical"] for i in _yaml("process.yaml")["chemistry"]["inputs"]}
+    made = {o["inventory_key"]: o["chemical"] for o in yaml.safe_load((KIT / "processes/benzyl-alcohol-1/process.yaml").read_text(encoding="utf-8"))["chemistry"]["outputs"]}
+    assert feeds["feed:BNOH"] == made[link["product"]] == "benzyl-alcohol"
+    # the purity difference is recorded as a proxy: S1 is pure in the model, the product 99.8 wt%
+    assert _stream(fs, "S1")["state"]["design"]["composition"]["values"] == {"BNOH": 1.0}
+    assert "at least 99.8 wt%" in product["title"]
+    gap = 1.0 - 0.998
+    assert f"{gap:.1%}" == "0.2%"
+    design = _text("DESIGN.md")
+    assert "Linked as a proxy for the dry alcohol: up to 0.2 % of the alcohol's burden is not counted" in design
+    assert "up to 0.2 %" in mappings["feed:BNOH"]["source"]
+    flow = next(f for f in _yaml("lca/lca.yaml")["flows"] if f["key"] == "feed:BNOH")
+    assert flow["missing"].startswith("linked to processes/benzyl-alcohol-1 (lca/mappings.yaml)")
+    assert "pending" not in flow["missing"] and "no library producer" not in _text("process.yaml")
