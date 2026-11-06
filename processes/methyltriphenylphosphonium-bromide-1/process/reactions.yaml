@@ -1,0 +1,37 @@
+# Reactions of methyltriphenylphosphonium-bromide-1. Schema cheme/reactions/v1 (`cheme schema
+# process-reactions`).
+#
+# The route is the quaternisation of triphenylphosphine with methyl bromide (DESIGN.md D-001):
+# Ph3P + CH3Br -> [Ph3PCH3]+ Br-, an SN2 alkylation with no co-product. Wikipedia's
+# "Methyltriphenylphosphonium bromide" (read) states this route and cites Wittig and
+# Schoellkopf, Org. Synth. 40, 66 (1960), which could not be read (a browser check blocked
+# it); US 3 334 144 A (Monsanto Research, 1967, read) says in its background that the salt is
+# made by heating the phosphine with methyl bromide, usually in benzene, that this needs a
+# pressure vessel since methyl bromide boils at about 2-4 C, and that 50 C or more is needed for
+# a reasonable rate. Toluene is used here in place of benzene (ASSUMED, D-001).
+# - QUAT in R101 (semi-batch, liquid methyl bromide dosed into the PPh3 solution in toluene at
+#   333 K in a closed pressure vessel). The salt is carried dissolved in the semi-batch (core's
+#   semi-batch is liquid only) and crystallised by CR101 at its ASSUMED solubility (core ADR 0056).
+# No kinetics or calorimetry of this reaction were found openly (searched 2026-11-06): the rate
+# law and the heat of reaction are ASSUMED (D-005), and D-011 screens them at k/10 and k/100.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: QUAT
+    title: Quaternisation of triphenylphosphine with methyl bromide
+    equation: Ph3P + CH3Br -> [Ph3PCH3]Br
+    stoichiometry: {PPH3: -1, MEBR: -1, MTPPB: 1}
+    phase: liquid
+    heat_of_reaction: {value: -100000, provenance: assumed, source: "ASSUMED order of magnitude (D-005): liquid methyl bromide and dissolved PPh3 to the precipitated salt, its heat of crystallisation included (CR101 adds none); no calorimetric value or formation enthalpy of the salt found openly (NIST WebBook lists none, 2026-11-06); a Menshutkin alkylation forming a crystalline salt, of the order of -80 to -120 kJ/mol, the upper end taken for the screening"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # second order, in PPh3 and methyl bromide: k = 5.0e-3 m3/(kmol s) at 333.15 K, Ea 70 kJ/mol:
+      # A = 5.0e-3 x exp(70000 / (8.314 x 333.15)) = 5.0e-3 x 9.456e10
+      k: {A: 4.728e8, Ea: 70000}
+      orders: {PPH3: 1, MEBR: 1}
+      temperature_range: [313.15, 353.15]
+      provenance: assumed
+      source: "ASSUMED effective rate (D-005): no open kinetics of PPh3 with methyl bromide in toluene found (2026-11-06); set so that a 3 h dosing at 333 K is dosing-controlled with a few per cent accumulated, US 3 334 144 A's 'reasonable rate at 50 C or above' as the only qualitative anchor; to be replaced by reaction calorimetry; D-011 screens k/10 and k/100"
+    sources: ["US 3 334 144 A (Monsanto Research, 1967), background: the phosphine heated with methyl bromide, usually in benzene, in a pressure vessel, at 50 C or above for a reasonable rate", "Wikipedia, Methyltriphenylphosphonium bromide: Ph3P + CH3Br -> Ph3PCH3Br (route only)"]
