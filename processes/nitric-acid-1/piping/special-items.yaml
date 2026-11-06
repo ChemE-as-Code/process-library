@@ -1,0 +1,27 @@
+# Special piping items: relief devices and silencers. Schema: `cheme schema piping_items`.
+# Drawn on the first P&IDs (D-017, D-018). Set pressure = the lowest design pressure of the
+# equipment the device protects (equipment list, D-013), ASSUMED until the MAWPs are known;
+# relief_case = the case that makes the device necessary, named here; the governing case, its
+# load and the orifice come with the relief study. Discharge points are ASSUMED (D-018).
+schema: cheme/piping_items/v1
+piping_items:
+  - {tag: PSV-105, type: SpringLoadedGlobeSafetyValve, line: RL-109, sheet: P-01, set_pressure_barg: 17,
+     relief_case: "E-101 shell: external fire on the liquid ammonia inventory; vapour outlet blocked (XV-203/XV-204 closed) with chilled-water heat input continuing (PV-104 failed open)",
+     notes: "Set ASSUMED = E-101 design pressure. Discharges to the ammonia relief header (B/L): no ammonia to atmosphere (D-018). Load open."}
+  - {tag: PSV-111, type: SpringLoadedGlobeSafetyValve, line: PA-108, sheet: P-01, set_pressure_barg: 6,
+     relief_case: "K-101 discharge up to the check valve CV105 (PA-105 from K-101 to CV105, the blow-off branch PA-107 up to UV-110): blocked outlet with K-101 at its maximum discharge pressure (surge-line / shut-off pressure). External fire is not credible (no liquid inventory)",
+     notes: "Set ASSUMED = 6 barg, the lowest design pressure downstream (R-101, C-102), so K-101 cannot push the downstream system above it. The take-off is upstream of CV105, which separates it from the nitrous gas side; it protects nothing downstream of CV105: PA-105 after CV105, PA-106 to C-102, M-101 and R-101 belong to the PSV-316 system (P-03), D-021/D-022. K-101 is designed for 6.5 barg, so its shut-off pressure must be checked against the 6 barg set (O-8). Only air reaches it; discharges air to atmosphere. Load open."}
+  - {tag: PSV-316, type: SpringLoadedGlobeSafetyValve, line: RL-317, sheet: P-03, set_pressure_barg: 6,
+     relief_case: "The low-pressure system downstream of CV105 (P-01): the air piping PA-105 after CV105 and PA-106, M-101, AM-201, R-101, then the nitrous gas side E-102 tubes, E-103 hot side, E-104, E-105, V-101, NX-304 and, through the bleacher gas BG-503, C-102; no valve that can isolate any part of it from this valve: the only valves inside are the gauze, which overpressure from K-101 passes in its normal flow direction, and the secondary-air valve FV-509 on PA-106 (P-05, fails open), which isolates nothing because C-102 stays connected to this valve through BG-503 and the primary air through M-101. Cases: E-102 tube rupture (steam side 44 barg against 6 barg, 10/13 rule not met), E-104 tube rupture (BFW 44 barg), E-103 tube leak (tail gas 12 barg against 6 barg, 12 > 6 x 13/10), gas blow-by from C-101 (12.5 barg) through AC-502 into C-102 if XV-507 and LV-506 fail (I-501), K-102 trip with the HP system settling back past a passing CV401; external fire on V-101 (weak acid inventory)",
+     notes: "Set ASSUMED = 6 barg, the lowest design pressure of the system (E-105, V-101, C-102, R-101/E-102 process side), equal to PSV-111, so a nitrous gas case reaches PSV-316 before back flow through CV105 could reach PSV-111; a passing CV105 venting nitrous gas through PSV-111 to atmosphere is a HAZOP question (O-9, D-022). No isolation valve and no control valve between the gauze and this valve. Discharges nitrous gas to the NOx vent stack (B/L), never to atmosphere at grade (D-021). The governing case and its load (very likely the E-102 tube rupture) and whether a second valve close to E-102 is needed for the rupture dynamics are for the relief study (O-8). Load open."}
+  - {tag: SL-114, type: Silencer, line: PA-107, sheet: P-01,
+     notes: "Silencer of the K-101 anti-surge blow-off to atmosphere (D-018)."}
+  - {tag: PSV-215, type: SpringLoadedGlobeSafetyValve, line: HS-206, sheet: P-02, set_pressure_barg: 44,
+     relief_case: "E-102 steam side: blocked steam outlet with the burner at full rate",
+     notes: "Set ASSUMED = E-102 steam-side design pressure. The boiler code may require the drum and superheater valves of the boiler package instead (D-020). Load open."}
+  - {tag: PSV-616, type: SpringLoadedGlobeSafetyValve, line: RL-617, sheet: P-06, set_pressure_barg: 17,
+     relief_case: "E-108 ammonia side: blocked outlet (XV-602 or FV-603 closed) with LP steam on, which vaporises and superheats the trapped ammonia; external fire",
+     notes: "Set ASSUMED = E-108 design pressure (17 barg); the LP steam (450 kPa(a), about 148 degC) can raise trapped NH3 above it (NH3 vapour pressure about 60 bar at 100 degC). Upstream of XV-602, discharges to the ammonia relief header (B/L), D-021. Load open."}
+  - {tag: PSV-404, type: SpringLoadedGlobeSafetyValve, line: RL-405, sheet: P-04, set_pressure_barg: 12,
+     relief_case: "High-pressure system K-102 discharge to the X-101 inlet (E-106, E-107, C-101, the tail-gas side of E-106 and E-103, R-102): blocked outlet (XV-610 or PV-611 closed) with K-102 running; external fire",
+     notes: "Set ASSUMED = 12 barg, the lowest design pressure of the system (E-103 tail-gas side, R-102, X-101; C-101 12.5, K-102 13). Discharges nitrous gas to the NOx vent stack (B/L), never to grade (D-018). Load open."}
