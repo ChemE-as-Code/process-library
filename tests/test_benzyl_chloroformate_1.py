@@ -2,23 +2,32 @@
 
 Mostly fast, without core: the statements the folder makes in DESIGN.md, process.yaml and the
 sources of its hand-written values are checked against the flowsheet's streams, materials and
-reactions (review of process-library#384, and the move to core 1.9.0):
+reactions (review of process-library#384, and the moves to core 1.9.0 and 1.10.0):
 
 - the LCI dataset and manifest record the hashes of the files they were written from, so an
   edit after ``cheme assess lca --write`` (which ``cheme assess lca --check`` rejects) fails here;
-- the adiabatic rise core reports (474.6 K) is the side reaction CLBN's heat, as core takes the
-  largest counted reaction run to completion; the main reaction PHOSG alone gives 303.9 K, and
-  both figures, with the MTSR of PHOSG alone (300.2 K), are stated where the screening is;
+- the adiabatic rise core reports (494.0 K) is the side reaction CLBN's heat on the dissolved
+  basis (391.4 K) plus the dose's heat of solution (102.6 K), as core takes the largest counted
+  reaction run to completion and adds the heat of solution (ADR 0063); the main reaction PHOSG
+  alone gives 220.8 K (323.4 K with the heat of solution), and those figures, with the MTSR of
+  PHOSG alone (294.1 K), are stated where the screening is;
+- the heats of PHOSG, CARB and CLBN are on the dissolved basis of phosgene (core ADR 0063: the
+  dose's heat_of_solution, minus phosgene's heat of vaporization, is not counted twice), with 5 %
+  of their HCl dissolved;
 - Q2 is the semi-batch model's duty (R101 ``energy_port: q``, written by propagate, core ADR
-  0059): the reactions' heat on their extents and the doses cooled; the heat of absorption of the
-  phosgene and HCl left dissolved in S5, which the model leaves out and the still T101 takes back
-  as Q4 (core limit L-10), is its own assumed stream Q2A, and the brine per kg counts Q1, Q2, Q2A;
+  0059, 0063): the reactions' heat on their extents, the doses cooled and the absorbed phosgene's
+  heat of solution; it holds the heat of absorption of what S5 keeps dissolved, which the still
+  T101 takes back as Q4 and the removed hand stream Q2A (1.18 kW) used to carry; the brine per kg
+  counts Q1 and Q2, and the recipe's jacket check takes the heat of solution;
 - the vent capacity (hazard.vent_capacity) is the vacuum pump's suction volume, every reaction
   counts on purpose (hazard.reactions), and the gas release at the MTSR is above the capacity:
   a design finding stated in DESIGN.md D-014, checked against core's screening;
 - the vacuum pump's volume for the degassing boil-up is the ideal gas at the still's pressure;
 - R101's batch source names the dosing time the model uses (10 h, not the rejected 8 h);
-- the REFERENCE.md process table stays sorted by id.
+- the REFERENCE.md process table stays sorted by id;
+- the benzyl alcohol (feed:BNOH) links benzyl-alcohol-1's product the way feed:PHOS links
+  phosgene-1: the linked dataset and product exist, the substance and unit are stream S1's, and
+  the purity difference (S1 100 wt%, the product at least 99.8 wt%) is recorded as a proxy.
 """
 
 from __future__ import annotations
@@ -111,29 +120,76 @@ def adiabatic_rise(fs, comps):
     return out
 
 
-def test_adiabatic_rise_is_the_side_reaction_clbn(adiabatic_rise):
+@pytest.fixture(scope="module")
+def solution_rise(fs, comps):
+    """K the dose's heat of solution adds to dT_ad (core ADR 0063): all the absorbed phosgene
+    dissolving, over the same heat capacity."""
+    r101 = _step(fs, "R101")
+    dose = r101["batch"]["dosing"][0]
+    moles = dict(_kmol(fs, comps, "S2"))
+    for k, v in _kmol(fs, comps, dose["stream"]).items():
+        moles[k] = moles.get(k, 0.0) + dose["absorbed"] * v
+    capacity = sum(v * comps[k]["liquid_heat_capacity"] for k, v in moles.items() if v > 0)
+    heats = dose["heat_of_solution"]["values"]
+    return sum(-h * dose["absorbed"] * _kmol(fs, comps, dose["stream"])[k] for k, h in heats.items()) / capacity
+
+
+def test_adiabatic_rise_is_the_side_reaction_clbn(adiabatic_rise, solution_rise):
     assert max(adiabatic_rise, key=adiabatic_rise.get) == "CLBN"
-    assert round(adiabatic_rise["CLBN"], 1) == 474.6, adiabatic_rise
-    assert round(adiabatic_rise["PHOSG"], 1) == 303.9, adiabatic_rise
+    assert round(adiabatic_rise["CLBN"], 1) == 391.4, adiabatic_rise
+    assert round(adiabatic_rise["PHOSG"], 1) == 220.8, adiabatic_rise
+    assert round(solution_rise, 1) == 102.6, solution_rise
+    assert round(adiabatic_rise["CLBN"] + solution_rise, 1) == 494.0
+    assert round(adiabatic_rise["PHOSG"] + solution_rise, 1) == 323.4
 
 
 @pytest.mark.parametrize("rel", ["DESIGN.md", "process.yaml"])
 def test_screening_names_the_reaction_behind_its_numbers(rel):
     text = _text(rel)
-    for figure in ("303.9 K", "300.2 K"):
+    for figure in ("220.8 K", "323.4 K", "294.1 K"):
         assert figure in text, f"{rel}: PHOSG alone ({figure}) is not stated next to the screening"
-    assert not re.search(r"whole neat batch,? 474\.6", text), f"{rel}: 474.6 K is CLBN's, not the batch's"
+    if rel == "process.yaml":  # DESIGN.md D-015 records the 1.9.0 values it replaced
+        for stale in ("474.6 K", "303.9 K", "300.2 K", "355.7 K", "3039 m3/h", "Q2A"):
+            assert stale not in text, (rel, stale)
     assert "set by the phosgene accumulated" not in text, f"{rel}: the MTSR without CARB is CLBN's"
 
 
 def test_screening_notes_and_description_state_phosg_alone():
     manifest = _yaml("process.yaml")
-    assert "303.9 K" in manifest["description"] and "300.2 K" in manifest["description"]
+    assert "323.4 K" in manifest["description"] and "294.1 K" in manifest["description"]
     notes = manifest["validation"]["notes"]
-    assert "303.9 K" in notes and "300.2 K" in notes
+    assert "323.4 K" in notes and "294.1 K" in notes and "494.0 K" in notes
     design = _text("DESIGN.md")
     l1 = design[design.index("- L-1:"):design.index("- L-2:")]
-    assert "adiabatic rise" in l1 and "474.6 K" in l1 and "303.9 K" in l1, l1
+    assert "adiabatic rise" in l1 and "494.0 K" in l1 and "323.4 K" in l1, l1
+
+
+# formation enthalpies of the liquids (kJ/kmol) as reactions.yaml's header cites them
+_LIQUID_DHF = {"BCF": -376200.0, "BNOH": -160700.0, "BNCL": -32500.0}
+
+
+def test_heats_of_reaction_are_on_the_dissolved_basis(fs, comps):
+    """ADR 0063: with the dose's heat of solution the reactions consume dissolved phosgene, so
+    each heat is the gas-basis one plus the heat of solution taken back per mol of phosgene, and
+    5 % of the HCl formed stays dissolved (the vent's fraction) at minus its heat of
+    vaporization: the absorption is counted once."""
+    r101 = _step(fs, "R101")
+    dose = r101["batch"]["dosing"][0]
+    h_sol = dose["heat_of_solution"]["values"]
+    assert set(h_sol) == {"COCL2"}
+    assert h_sol["COCL2"] == -comps["COCL2"]["heat_of_vaporization"]  # ideal solution, ASSUMED
+    assert dose["heat_of_solution"]["provenance"] == "assumed"
+    retained = 1.0 - r101["batch"]["vent"]["fraction"]["HCL"]
+    h_hcl = -comps["HCL"]["heat_of_vaporization"]
+    reactions = {r["id"]: r for r in _yaml("process/reactions.yaml")["reactions"]}
+    for rid in ("PHOSG", "CLBN"):
+        nu = reactions[rid]["stoichiometry"]
+        gas = sum(v * (_LIQUID_DHF.get(k) or comps[k]["ideal_gas"]["dHf_298"]) for k, v in nu.items())
+        dissolved = gas + nu["COCL2"] * h_sol["COCL2"] + nu["HCL"] * retained * h_hcl
+        assert reactions[rid]["heat_of_reaction"]["value"] == pytest.approx(dissolved, abs=1.0), rid
+        assert "dissolved basis" in reactions[rid]["heat_of_reaction"]["source"]
+    carb = reactions["CARB"]["heat_of_reaction"]["value"]
+    assert carb == pytest.approx(-30000.0 + retained * h_hcl, abs=1.0)  # -30 kJ/mol ASSUMED
 
 
 def _absorbed_kJ_h(fs, comps, sid) -> float:
@@ -143,8 +199,9 @@ def _absorbed_kJ_h(fs, comps, sid) -> float:
 
 
 def test_q2_is_the_semibatch_model_duty(fs, comps):
-    """Core 1.9.0 writes R101's year-average duty on the stream at its energy_port: the heat its
-    reactions release on their extents and the doses cooled to the batch (ADR 0059)."""
+    """Core writes R101's year-average duty on the stream at its energy_port: the heat its
+    reactions release on their extents, the doses cooled to the batch (ADR 0059) and the
+    absorbed phosgene's heat of solution (ADR 0063)."""
     r101 = _step(fs, "R101")
     assert r101["energy_port"] == "q"
     q2 = _stream(fs, "Q2")
@@ -162,38 +219,55 @@ def test_q2_is_the_semibatch_model_duty(fs, comps):
     t2 = _stream(fs, "S2")["state"]["design"]["temperature"]["value"]
     n4 = sum(_kmol(fs, comps, "S4").values())
     cooled = dose["absorbed"] * n4 * comps["COCL2"]["liquid_heat_capacity"] * (t4 - t2)
+    solution = -dose["absorbed"] * n4 * dose["heat_of_solution"]["values"]["COCL2"]
     # the vented share's ideal-gas cooling (0.011 kW) is inside the tolerance
-    assert duty["value"] * 3600.0 == pytest.approx(heat + cooled, rel=0.002), (
-        duty["value"], heat / 3600.0, cooled / 3600.0,
+    assert duty["value"] * 3600.0 == pytest.approx(heat + cooled + solution, rel=0.002), (
+        duty["value"], heat / 3600.0, cooled / 3600.0, solution / 3600.0,
     )
+    assert duty["value"] == pytest.approx(19.884, abs=0.001)  # core 1.10.0
 
 
-def test_q2a_holds_the_absorption_heat_q4_takes_back(fs, comps):
-    """The semi-batch dissolves gas with no heat (heats on the gas basis, core limit L-10); the
-    still charges the desorption of what stays dissolved to steam (Q4, its model's duty), so the
-    absorption of what S5 holds is its own assumed stream Q2A to the brine, not part of Q2."""
+def test_q2_holds_the_absorption_heat_q4_takes_back(fs, comps):
+    """The still charges the desorption of what stays dissolved to steam (Q4, its model's duty).
+    On core 1.9.0 the semi-batch dissolved gas with no heat and the absorption of what S5 holds
+    was the hand stream Q2A (1.18 kW); on 1.10.0 the dose's heat of solution with the reactions
+    on the dissolved basis puts it in Q2: Q2 less its gas-basis value (core 1.9.0's 18.7043 kW) is
+    that absorption, the latent heat S5 holds, to the 1.9.0 rounding (ADR 0063)."""
     q4 = _duty(fs, "Q4")
     assert q4["provenance"] == "calculated" and "still duty T101" in q4["source"]
     desorbed = _absorbed_kJ_h(fs, comps, "S7")
     assert desorbed == pytest.approx(q4["value"] * 3600.0, rel=0.01), (desorbed, q4)
-    q2a = _stream(fs, "Q2A")
-    assert q2a["from"] == "R101.q_abs" and q2a["to"].startswith("BRINE.")
-    duty = q2a["state"]["design"]["duty"]
-    assert duty["provenance"] == "assumed"
+    assert all(s["id"] != "Q2A" for s in fs["streams"])
+    assert all(p["id"] != "q_abs" for p in _step(fs, "R101")["ports"])
     absorbed = _absorbed_kJ_h(fs, comps, "S5")
     assert absorbed >= desorbed
-    assert duty["value"] * 3600.0 == pytest.approx(absorbed, rel=0.002), (duty, absorbed / 3600.0)
-    assert re.search(rf"= {round(absorbed)} kJ/h", duty["source"]), duty["source"]
+    gas_basis_q2 = 18.7043  # kW, core 1.9.0's model duty with the heats on the gas basis
+    assert (_duty(fs, "Q2")["value"] - gas_basis_q2) * 3600.0 == pytest.approx(absorbed, rel=0.002)
     design = _text("DESIGN.md")
     assert f"Q2 {_duty(fs, 'Q2')['value']:.2f} kW" in design
-    assert f"Q2A {duty['value']:.2f} kW" in design
 
 
-def test_brine_per_kg_follows_q1_q2_and_q2a(fs):
-    brine = sum(_duty(fs, q)["value"] for q in ("Q1", "Q2", "Q2A"))  # kW
-    assert {s["id"] for s in fs["streams"] if s.get("to", "").startswith("BRINE.")} == {
-        "Q1", "Q2", "Q2A",
-    }
+def test_jacket_check_takes_the_heat_of_solution():
+    """ADR 0063: the heat of solution is released at the dose's rate, so it is in the model's peak
+    cooling duty and the recipe's jacket check (31.65 kW, 31.41 kW on 1.9.0 without it); the 10 h
+    dosing still fits the jacket's 34.35 kW."""
+    pytest.importorskip("chemeascode")
+    from chemeascode.domains.process.recipe import recipe_report
+
+    result = recipe_report(PROCESS)
+    vessel = next(v for v in result.vessels if v.procedure == "PHOSGENATE")
+    assert vessel.peak_duty == pytest.approx(31.65, abs=0.01)
+    assert vessel.removable == pytest.approx(34.35, abs=0.01)
+    assert vessel.peak_duty < vessel.removable
+    design = _text("DESIGN.md")
+    assert "the model's peak duty of 31.65 kW" in design
+    notes = _yaml("equipment/equipment-list.yaml")["equipment"][0]["notes"]
+    assert "peak duty 31.65 kW against 34.35 kW" in notes
+
+
+def test_brine_per_kg_follows_q1_and_q2(fs):
+    brine = sum(_duty(fs, q)["value"] for q in ("Q1", "Q2"))  # kW
+    assert {s["id"] for s in fs["streams"] if s.get("to", "").startswith("BRINE.")} == {"Q1", "Q2"}
     product = _stream(fs, "S8")["state"]["design"]["flow"]["value"]  # kg/h
     per_kg = brine / product
     note = next(u["note"] for u in _yaml("process.yaml")["chemistry"]["utilities"]
@@ -244,23 +318,23 @@ def test_vent_capacity_is_the_vacuum_pump(fs):
 
 
 def test_gas_release_above_the_vent_is_a_recorded_finding(fs):
-    """The screening's gas release at the MTSR (3039 m3/h) is 17.6 times the vent: stated as a
+    """The screening's gas release at the MTSR (3219 m3/h) is 18.6 times the vent: stated as a
     design finding with its measures, not silenced."""
-    release = 0.01427 * R * 355.7 / 50.0 * 3600.0  # kmol/s at the MTSR and 50 kPa(a), m3/h
-    assert release == pytest.approx(3039, rel=0.002)
+    release = 0.01506 * R * 357.1 / 50.0 * 3600.0  # kmol/s at the MTSR and 50 kPa(a), m3/h
+    assert release == pytest.approx(3219, rel=0.002)
     capacity = _step(fs, "R101")["hazard"]["vent_capacity"]
-    assert round(3039 / capacity, 1) == 17.6
+    assert round(3219 / capacity, 1) == 18.6
     design = _text("DESIGN.md")
-    d014 = design[design.index("D-014 Gas release"):design.index("Core features used (core")]
-    assert "3039 m3/h at 355.7 K and 50 kPa(a)" in d014 and "17.6 times the vent capacity" in d014
+    d014 = design[design.index("D-014 Gas release"):design.index("D-015 Core 1.10.0")]
+    assert "3219 m3/h at 357.1 K and 50 kPa(a)" in d014 and "18.6 times the vent capacity" in d014
     for measure in ("dosing stops", "emergency relief", "never to air", "calorimetry"):
         assert measure in d014, measure
     # with CARB ruled out by calorimetry, PHOSG and CLBN still exceed the vent (D-011)
-    assert "269 m3/h at 312.5 K, 1.56 times" in d014
-    assert "about 269 m3/h by the screening, still 1.56 times" in d014
-    assert "about 137 m3/h" not in d014
+    assert "195 m3/h at 306.5 K, 1.13 times" in d014
+    assert "about 195 m3/h by the screening, still 1.13 times" in d014
+    assert "about 97 m3/h" not in d014
     notes = _yaml("process.yaml")["validation"]["notes"]
-    assert "3039 m3/h" in notes and "17.6" in notes and "173 m3/h" in notes
+    assert "3219 m3/h" in notes and "18.6" in notes and "173 m3/h" in notes
 
 
 def test_core_screens_the_gas_release_above_the_vent(fs):
@@ -270,14 +344,20 @@ def test_core_screens_the_gas_release_above_the_vent(fs):
     report = screen(PROCESS)
     entry = next(e for e in report.entries if e.node == "R101")
     assert entry.counted_reactions == ["PHOSG", "CARB", "CLBN"]
-    assert entry.mtsr == pytest.approx(355.7, abs=0.05)
+    assert entry.mtsr == pytest.approx(357.1, abs=0.05)
     assert entry.mtt == pytest.approx(280.65)
-    assert entry.per_reaction["PHOSG"]["mtsr"] == pytest.approx(300.2, abs=0.05)
-    assert entry.per_reaction["CLBN"]["mtsr"] == pytest.approx(312.5, abs=0.05)
+    assert entry.adiabatic_rise == pytest.approx(494.0, abs=0.05)
+    assert entry.per_reaction["PHOSG"]["mtsr"] == pytest.approx(294.1, abs=0.05)
+    assert entry.per_reaction["CLBN"]["mtsr"] == pytest.approx(306.5, abs=0.05)
+    assert entry.per_reaction["PHOSG"]["adiabatic_rise"] == pytest.approx(220.8, abs=0.05)
+    # ADR 0063: the heat of solution is in dT_ad, never in the MTSR
+    solution = entry.heat_of_solution
+    assert solution["adiabatic_rise_K"] == pytest.approx(102.6, abs=0.05)
+    assert solution["in_mtsr"] is False
     gas = entry.gas_release
-    assert gas["per_batch"] and gas["rate_m3_h"] == pytest.approx(3039, abs=0.5)
+    assert gas["per_batch"] and gas["rate_m3_h"] == pytest.approx(3219, abs=0.5)
     assert gas["vent_capacity_m3_h"] == 173.0
-    assert round(gas["capacity_ratio"], 1) == 17.6
+    assert round(gas["capacity_ratio"], 1) == 18.6
     rules = {f.rule for f in report.findings if f.level in ("warning", "error")}
     # both are design findings recorded in DESIGN.md (D-011, D-014); nothing else may warn
     assert rules == {"cheme.reactor-hazard-mtsr", "cheme.reactor-hazard-vent"}, rules
@@ -300,3 +380,32 @@ def test_reference_process_table_sorted_by_id():
 def test_published_with_cc_by():
     """Public by default (ADR 0036): the entry is published under CC-BY-4.0."""
     assert _yaml("process.yaml")["publication"] == {"status": "public", "license": "CC-BY-4.0"}
+
+
+def test_benzyl_alcohol_links_benzyl_alcohol_1(fs, comps):
+    """feed:BNOH is linked to the library's benzyl-alcohol-1 (PR #402) as feed:PHOS is to phosgene-1."""
+    mappings = _yaml("lca/mappings.yaml")["exchanges"]
+    link, phos = mappings["feed:BNOH"]["dataset"], mappings["feed:PHOS"]["dataset"]
+    assert set(link) == set(phos) == {"path", "product"}
+    assert link["path"].startswith("processes/benzyl-alcohol-1/lca/")
+    producer = yaml.safe_load((KIT / link["path"]).read_text(encoding="utf-8"))
+    product = next(e for e in producer["exchanges"] if e["key"] == link["product"])
+    assert product["type"] == "product"
+    # same substance and unit as stream S1 and the consumer's exchange
+    consumer = next(e for e in _yaml("lca/dataset.yaml")["exchanges"] if e["key"] == "feed:BNOH")
+    assert product["unit"] == consumer["unit"] == "kg"
+    assert producer["generation"]["formulas"][link["product"]] == comps["BNOH"]["formula"] == "C7H8O"
+    feeds = {i["inventory_key"]: i["chemical"] for i in _yaml("process.yaml")["chemistry"]["inputs"]}
+    made = {o["inventory_key"]: o["chemical"] for o in yaml.safe_load((KIT / "processes/benzyl-alcohol-1/process.yaml").read_text(encoding="utf-8"))["chemistry"]["outputs"]}
+    assert feeds["feed:BNOH"] == made[link["product"]] == "benzyl-alcohol"
+    # the purity difference is recorded as a proxy: S1 is pure in the model, the product 99.8 wt%
+    assert _stream(fs, "S1")["state"]["design"]["composition"]["values"] == {"BNOH": 1.0}
+    # read the grade from the producer so a change of benzyl-alcohol-1's purity breaks the recorded 0.2 %
+    purity = float(re.search(r"at least ([\d.]+) wt%", product["title"]).group(1))
+    assert f"{100 - purity:.1f}" == "0.2"
+    design = _text("DESIGN.md")
+    assert "Linked as a proxy for the dry alcohol: up to 0.2 % of the alcohol's burden is not counted" in design
+    assert "up to 0.2 %" in mappings["feed:BNOH"]["source"]
+    flow = next(f for f in _yaml("lca/lca.yaml")["flows"] if f["key"] == "feed:BNOH")
+    assert flow["missing"].startswith("linked to processes/benzyl-alcohol-1 (lca/mappings.yaml)")
+    assert "pending" not in flow["missing"] and "no library producer" not in _text("process.yaml")

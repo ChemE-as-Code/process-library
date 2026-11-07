@@ -4,14 +4,16 @@
 # exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
 #
 # The preliminary LCI leaves most backgrounds unmapped (DESIGN.md D-012): the build reports each
-# as a gap (lci/gaps.json). Linked here: the phosgene to phosgene-1, the caustic soda to
-# chlor-alkali-1, the nitrogen consumable to asu-1's gaseous nitrogen, and the LP steam counted
-# as heat delivered (kWh), as n-bromosuccinimide-1 does. Potassium tert-butoxide, hexane, DABCO,
-# CO2 and the liquid paraffin stay gaps: no library process makes them; the alkoxide's
-# stoichiometric proxy (tert-butanol and potassium) is recorded in lca.yaml and DESIGN.md D-012,
-# not linked (CONTRIBUTING, "Gaps"); a tert-butanol entry is to be linked once the library has one.
+# as a gap (lci/gaps.json). Linked here: the potassium tert-butoxide to potassium-tert-butoxide-1
+# (kg of the technical powder for kg, issue #418), the phosgene to phosgene-1, the caustic soda
+# to chlor-alkali-1, the nitrogen consumable to asu-1's gaseous nitrogen, and the LP steam
+# counted as heat delivered (kWh), as n-bromosuccinimide-1 does. Hexane, DABCO, CO2 and the
+# liquid paraffin stay gaps: no library process makes them (CONTRIBUTING, "Gaps"). The
+# alkoxide's own potassium metal is a gap inside potassium-tert-butoxide-1, whose make-up
+# tert-butanol links tert-butanol-1 (D-012).
 schema: cheme-as-code/lci-process-mappings/v1
 exchanges:
+  "feed:KOTBU": {dataset: {path: processes/potassium-tert-butoxide-1/lca/dataset.yaml, product: "product:KOTBU"}, source: "the Atlas producer potassium-tert-butoxide-1, potassium tert-butoxide powder from potassium metal and dry tert-butanol (modelled 99.47 wt% KOtBu, 0.23 wt% KOH, 0.30 wt% tert-butanol), per kg of the dry powder, the basis of both its product and this exchange (stream S1, technical potassium tert-butoxide); its tert-butanol from tert-butanol-1, its potassium a gap there (D-012)"}
   "feed:PHOS": {dataset: {path: processes/phosgene-1/lca/dataset.yaml, product: "product:PHOSGENE"}, source: "the Atlas producer phosgene-1, liquid phosgene (35 ppm(wt) Cl2), a captive supply; its 17.3 t/h basis is a scale far above this plant's 0.031 t/h, the burden per kg is what is linked"}
   "feed:NAOH": {dataset: {path: processes/chlor-alkali-1/lca/dataset.yaml, product: "product:NAOH"}, source: "the Atlas producer chlor-alkali-1, caustic soda 50 wt-%, per kg of solution as this exchange counts it"}
   "consumable:nitrogen": {dataset: {path: processes/asu-1/lca/dataset.yaml, product: "product:GANP"}, source: "the Atlas producer asu-1, gaseous nitrogen to the battery limit (99.97 mol% N2, 9 bar(a)); the purges and vacuum breaks need only a few hundred kPa"}

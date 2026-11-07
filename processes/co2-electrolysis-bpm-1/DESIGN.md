@@ -1131,11 +1131,13 @@ Deviation from the spec: the file is named by core's dataset id (from the flowsh
 `co2-electrolysis-bpm-1-skid-b.yaml`; the spec's fallback (a scratch copy with `case: skid-b`) is
 not used, core does it.
 
-Open (#331 stays open): multi-category impacts; the ecoinvent 3.11 run and the mapping check; the
-A against B ranking (factors for KOH, CO2 supply, membrane, Ag, Ni, PP, caustic treatment);
-construction impacts; the H2 co-product alternative; the biogenic CO2 or higher-recycle case; the
-membrane-life impact; a factor for the GDE's carbon paper; the fossil CO2 of the neutralised
-carbonate wastes (counted once the treatment has a factor); the CPC code of the dataset.
+Open: #331's last acceptance item, whether the ranking changes, is D-049; the remaining items move
+to a follow-up issue (to be filed: full LCIA, ecoinvent run, final ranking): multi-category
+impacts; the ecoinvent 3.11 run and the mapping check; the A against B ranking (factors for KOH,
+CO2 supply, membrane, Ag, Ni, PP, caustic treatment); construction impacts; the H2 co-product
+alternative; the biogenic CO2 or higher-recycle case; the membrane-life impact; a factor for the
+GDE's carbon paper; the fossil CO2 of the neutralised carbonate wastes (counted once the treatment
+has a factor); the CPC code of the dataset.
 
 ## D-030 HAZOP of the pilot skids: two agent-prepared drafts, integrated (2026-11-05)
 Decision: the skids of #330 get two HAZOP studies, drafted by agents for a team session that
@@ -2093,6 +2095,58 @@ is, a partial climate-only screening with its 13 gaps (ADR 0026, D-026).
 Consequence: any later edit of `process.yaml`, the flowsheet, `lca/lca.yaml` or the factors is
 committed together with the regenerated LCA outputs (`scripts/regen.py` does both); otherwise
 the public footprint is withheld again and the public check fails.
+
+## D-049 Whether the ranking changes: the reversal condition (2026-11-06)
+Decision: `lca/ranking.json` also states whether the order of the two skids' totals changes, and
+what could change it, derived by `scripts/lca_sensitivity.py` from the committed records (no new
+data, no factor added; the verdict stays "ranking not determined", D-026):
+- `by_sensitivity`: B - A for each Ember grid (the five pairs of
+  `sensitivity-electricity-mix.json`) and each campaign duration (the two scenarios' LCA
+  records), on core's totals and on the totals with the KOH solutions' water (the ranking's
+  basis; no electricity scenario changes the water factor, which is checked, so the baseline's
+  solution-water difference is added), with the higher skid and `order_changes` against the
+  design baseline. The DESNZ cross-basis scenario has no Skid B pair: listed as not compared;
+- `membrane_life`: the replaced parts per kg CO are the same for both skids at every life
+  (identical stacks and interval, the same CO per hour; `sensitivity-membrane-life.json`
+  `same_for_both_skids` and `datasets_match`, and both datasets compared), so any factor for them
+  adds the same to both totals: `common_to_both_skids: true`, `can_change_ranking: false`;
+- `break_even_construction`: the construction difference at which the order would reverse,
+  |B - A| per kg CO with the solutions' water (`characterised.with_solution_water`) times the CO
+  of one skid's life: the design rate (`process/design-basis.yaml`, 0.100 kg/h) x `lca/lca.yaml`
+  operation (8,000 h/a x 10 a) = 8,000 kg; and per kg of the extra tank mass of the skid with the
+  larger tanks, from the empty weights of the equipment list (regen step 21, ASSUMED, D-043). Step
+  20 now copies those weights into `results/scenarios/<H>h/lca.json` (`tanks_weight`, with the
+  material), so the ranking reads the design scenario's weights and a scratch run at 10,000 h
+  cannot write its own into it;
+- `ranking_changes`: one sentence built from these readings and the signs of D-026; `lca/README.md`
+  gives it with the values.
+
+Results (1,000 h design, kg CO2e per kg CO, B - A with the solutions' water, core's totals in
+brackets): NL 0.002261 (0.003619), EU-27 0.002111 (0.003469), DE 0.002540 (0.003898), FR
+0.001524 (0.002882), world 0.002976 (0.004335); campaign 1,000 h 0.002261, 10,000 h 0.002176
+(both 0.003619). Skid B is higher in every one: the order does not change. The membrane life
+cannot change it. KOH: break-even -0.004142 kg CO2e/kg KOH (D-026); Skid B uses 1.84 times the
+KOH and makes 1.57 times the alkaline waste, so no non-negative KOH or treatment factor reverses
+it. Construction: Skid A's would have to exceed Skid B's by more than 0.00226053 x 8,000 = 18.08
+kg CO2e per skid life; over the extra tank mass, T-101 85 kg against T-201 15 kg and T-202 15 kg
+(PP, ASSUMED empty weights), 55 kg, that is 0.329 kg CO2e per kg of PP tank, its material,
+fabrication and end of life together. A positive KOH or treatment factor raises both numbers.
+
+Reason: #331 asks whether the ranking changes. Under every reported sensitivity it does not; the
+one flow without a factor that Skid A carries more of is construction, so the answer is a
+condition on it, stated as a number a documented factor can be compared with.
+
+Missing data (why the ranking stays undetermined): no open factor in `lca/factors.yaml` for KOH
+(KOH 100 %), the neutralisation of the spent anolyte, the bleed and the condensate, or the PP
+tanks (material, moulding or welding, end of life); construction is cut off (D-027). The other
+gaps (merchant CO2, the replaced parts, the cooling water, the carbonate CO2 of the wastes) are
+equal for both skids and do not distinguish them.
+
+Assumptions: the tanks' empty weights (shell, bottom and roof at 10 mm of PP, D-043); 8,000 h/a
+and a 10-year life (D-024); the design CO rate 0.100 kg/h, not the 0.1007 kg/h the duty delivers
+(0.7 % more CO would raise the break-even by as much). Not in it: Skid B's metering pump P-202
+and its dosing lines (they add to Skid B's construction and would raise the break-even) and the
+items both skids share.
 
 ## D-050 Open, naturally ventilated skids: no enclosure, no extract fan (2026-11-06)
 Decision: the owner delegated the open decisions of #330 on 2026-11-06 ("make reasonable

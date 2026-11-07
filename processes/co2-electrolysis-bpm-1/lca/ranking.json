@@ -1,7 +1,137 @@
 {
  "break_even_basis": "the KOH factor per kg KOH 100 % at which the totals with the KOH solutions' water are equal: (B - A) / (KOH of A - KOH of B)",
- "break_even_koh_kg_co2e_per_kg": -0.004149847268,
- "break_even_reading": "none: -0.00415 kg CO2e per kg KOH, below zero. Skid B has the higher characterised total (0.002242 kg CO2e/kg CO more with the KOH solutions' water; higher in electricity and water; lower in water in the KOH solutions; equal in vent CO2) and uses 1.82 times the KOH per kg CO, so no KOH factor reverses the order; it makes 1.56 times the alkaline waste too, so no treatment factor does either; of the flows without a factor only those Skid A carries more of could: construction (the duty-sized tanks), which core 1.5.0 cannot state per case (cut off)",
+ "break_even_construction": {
+  "b_minus_a_kg_co2e_per_kg_co": 0.00226053,
+  "basis": "|B - A| per kg CO on the totals with the KOH solutions' water (0.00226053 kg CO2e/kg CO, characterised.with_solution_water) x the CO of one skid's life (0.1 kg/h x 8000 h/a x 10 a = 8000 kg); with the KOH and treatment gaps at zero: a positive factor for either raises it, the skid with the higher total using more of both",
+  "can_reverse": true,
+  "extra_tank_mass_kg": 55.0,
+  "kg_co2e_per_kg_extra_tank_mass": 0.3288043636,
+  "kg_co2e_per_skid_life": 18.08424,
+  "lifetime": {
+   "assumed": true,
+   "co_kg_per_skid_life": 8000.0,
+   "co_rate_kg_h": 0.1,
+   "hours_per_year": 8000.0,
+   "life_years": 10.0,
+   "source": "process/design-basis.yaml capacity.pilot_skid.product.rate (ASSUMED, DESIGN.md D-008) x lca/lca.yaml operation.hours_per_year x operation.life_years (ASSUMED, D-024)"
+  },
+  "not_in_it": "Skid B's dosing hardware other than its day tank (the metering pump P-202 and its lines) and every item both skids share: P-202 adds to Skid B's construction, so counting it would raise the extra construction Skid A needs to reverse the order; no factor for the tank material is used (none is open in lca/factors.yaml)",
+  "reverses_if": "Skid A's construction exceeds Skid B's by more than this, per skid life",
+  "skid_with_more_construction": "A",
+  "tank_material": [
+   "PP"
+  ],
+  "tanks_kg": {
+   "A": {
+    "T-101": 85.0
+   },
+   "B": {
+    "T-201": 15.0,
+    "T-202": 15.0
+   }
+  },
+  "weights_assumed": true,
+  "weights_source": "equipment/equipment-list.yaml dimensions.weight (t, empty; regen step 21 from layout/lifting-basis.yaml, ASSUMED, DESIGN.md D-043), via results/scenarios/<H>h/lca.json tanks_weight"
+ },
+ "break_even_koh_kg_co2e_per_kg": -0.004142073618,
+ "break_even_reading": "none: -0.004142 kg CO2e per kg KOH, below zero. Skid B has the higher characterised total (0.002261 kg CO2e/kg CO more with the KOH solutions' water; higher in electricity and water; lower in water in the KOH solutions; equal in vent CO2) and uses 1.84 times the KOH per kg CO, so no KOH factor reverses the order; it makes 1.57 times the alkaline waste too, so no treatment factor does either; of the flows without a factor only those Skid A carries more of could: construction (the duty-sized tanks), which core 1.5.0 cannot state per case (cut off)",
+ "by_sensitivity": {
+  "baseline_higher": "B",
+  "basis": "B - A, kg CO2e per kg CO: b_minus_a on core's totals (lca/sensitivity-electricity-mix.json, lca/sensitivity-duration.json), b_minus_a_with_solution_water with the KOH solutions' water at the water factor (the ranking's basis; an electricity scenario does not change the water factor). order_changes: the higher skid differs from the design baseline's on either basis",
+  "not_compared": [
+   {
+    "case": "UK at the consumer (DESNZ 2026): cross-basis check",
+    "reason": "no Skid B scenario on this basis",
+    "sensitivity": "electricity mix"
+   }
+  ],
+  "order_changes": false,
+  "rows": [
+   {
+    "b_minus_a": 0.00361905,
+    "b_minus_a_with_solution_water": 0.002260537458,
+    "case": "NL (Ember 2025)",
+    "higher": "B",
+    "higher_core_totals": "B",
+    "order_changes": false,
+    "scenarios": {
+     "A": "baseline",
+     "B": "skid-b"
+    },
+    "sensitivity": "electricity mix"
+   },
+   {
+    "b_minus_a": 0.003469493,
+    "b_minus_a_with_solution_water": 0.002110980458,
+    "case": "EU-27 (Ember 2025)",
+    "higher": "B",
+    "higher_core_totals": "B",
+    "order_changes": false,
+    "scenarios": {
+     "A": "mix-eu27",
+     "B": "skid-b-mix-eu27"
+    },
+    "sensitivity": "electricity mix"
+   },
+   {
+    "b_minus_a": 0.00389802,
+    "b_minus_a_with_solution_water": 0.002539507458,
+    "case": "DE (Ember 2025)",
+    "higher": "B",
+    "higher_core_totals": "B",
+    "order_changes": false,
+    "scenarios": {
+     "A": "mix-de",
+     "B": "skid-b-mix-de"
+    },
+    "sensitivity": "electricity mix"
+   },
+   {
+    "b_minus_a": 0.002882386,
+    "b_minus_a_with_solution_water": 0.001523873458,
+    "case": "FR (Ember 2025)",
+    "higher": "B",
+    "higher_core_totals": "B",
+    "order_changes": false,
+    "scenarios": {
+     "A": "mix-fr",
+     "B": "skid-b-mix-fr"
+    },
+    "sensitivity": "electricity mix"
+   },
+   {
+    "b_minus_a": 0.00433485,
+    "b_minus_a_with_solution_water": 0.002976337458,
+    "case": "world (Ember 2025)",
+    "higher": "B",
+    "higher_core_totals": "B",
+    "order_changes": false,
+    "scenarios": {
+     "A": "mix-glo",
+     "B": "skid-b-mix-glo"
+    },
+    "sensitivity": "electricity mix"
+   },
+   {
+    "b_minus_a": 0.00361905,
+    "b_minus_a_with_solution_water": 0.00226053,
+    "case": "1000 h",
+    "higher": "B",
+    "higher_core_totals": "B",
+    "order_changes": false,
+    "sensitivity": "campaign duration"
+   },
+   {
+    "b_minus_a": 0.00361905,
+    "b_minus_a_with_solution_water": 0.0021756,
+    "case": "10000 h",
+    "higher": "B",
+    "higher_core_totals": "B",
+    "order_changes": false,
+    "sensitivity": "campaign duration"
+   }
+  ]
+ },
  "carried_more_by": {
   "KOH (fill and dose, KOH 100 %)": "B",
   "alkaline wastes to neutralisation (spent anolyte, bleed, condensate)": "B",
@@ -16,7 +146,7 @@
     "electricity": 8.766238026,
     "vent CO2": 1.711833625,
     "water": 0.0004960503088,
-    "water in the KOH solutions": 0.002219602661
+    "water in the KOH solutions": 0.002200728489
    },
    "B": {
     "electricity": 8.767117634,
@@ -39,9 +169,9 @@
   },
   "note": "core's totals: electricity, the vent CO2 and the water, the gaps excluded; with_solution_water adds the KOH solutions' dilution water at the water factor (inside the KOH gaps in core's totals), the basis of the break-even",
   "with_solution_water": {
-   "A": 10.4807873,
+   "A": 10.48076843,
    "B": 10.48302896,
-   "B_minus_A": 0.00224166
+   "B_minus_A": 0.00226053
   }
  },
  "distinguishing_flows": [
@@ -58,9 +188,9 @@
    "unit": "kg/kg CO"
   },
   {
-   "A": 12.25770203,
+   "A": 12.15346987,
    "B": 0.5211608005,
-   "B_minus_A": -11.73654123,
+   "B_minus_A": -11.63230907,
    "documented_factor": false,
    "key": "feed:KOH-FILL",
    "status": {
@@ -106,9 +236,9 @@
    "unit": "kg/kg CO"
   },
   {
-   "A": 12.33340892,
+   "A": 12.22917676,
    "B": 0.5218150407,
-   "B_minus_A": -11.81159388,
+   "B_minus_A": -11.70736172,
    "documented_factor": false,
    "key": "product:SPENT",
    "status": {
@@ -118,11 +248,11 @@
    "unit": "kg/kg CO"
   },
   {
-   "A": 1.47,
+   "A": 1.4575,
    "B": 0.1470063872,
    "documented_factor": false,
    "key": "construction",
-   "note": "construction (cut off: not expressible per case in core 1.5.0; Skid A's tanks 1.47 m3 T-101 against Skid B's 0.0625 m3 T-201 and 0.0845 m3 T-202)",
+   "note": "construction (cut off: not expressible per case in core 1.5.0; Skid A's tanks 1.46 m3 T-101 against Skid B's 0.0625 m3 T-201 and 0.0845 m3 T-202)",
    "status": {
     "A": "cutoff",
     "B": "cutoff"
@@ -133,13 +263,24 @@
  "duration_h": 1000.0,
  "inventory_comparison": "lca/README.md and results/scenarios/<H>h/lca.json, per kg CO",
  "koh_kg_per_kg": {
-  "A": 0.6549698743,
+  "A": 0.6494004026,
   "B": 1.195148791
  },
+ "membrane_life": {
+  "basis": "lca/sensitivity-membrane-life.json: identical stacks replaced at the same interval and the same CO delivered per hour, so both datasets carry the same parts per kg CO at every life; whatever factor the parts get adds the same to both totals and leaves B - A as it is. Their impact itself is not computable (gaps)",
+  "can_change_ranking": false,
+  "common_to_both_skids": true,
+  "levels_h": [
+   1000.0,
+   4000.0,
+   20000.0
+  ]
+ },
+ "ranking_changes": "The order does not change: Skid B stays higher under every reported sensitivity (5 electricity mixes, 2 campaign durations; the membrane life is common to both skids) and under any non-negative KOH or waste-treatment factor (Skid B uses 1.84 times the KOH and makes 1.57 times the alkaline waste per kg CO); only a construction difference above the break-even could reverse it: Skid A's construction exceeding Skid B's by more than 18.08 kg CO2e per skid life (0.329 kg CO2e per kg of its 55 kg of extra PP tank, ASSUMED weights).",
  "rule": "A is ranked against B only if every flow that distinguishes them has a documented factor (library ADR 0029: gaps are listed, never stubbed)",
  "schema": "process-library/skid-lca-sensitivity/1",
  "tanks_m3": {
-  "A": 1.47,
+  "A": 1.4575,
   "B": 0.1470063872
  },
  "undocumented": [
@@ -151,7 +292,7 @@
  ],
  "verdict": "ranking not determined",
  "wastes_kg_per_kg": {
-  "A": 13.63281792,
+  "A": 13.52858576,
   "B": 21.29296612
  },
  "what": "Skid A against Skid B: the ranking rule (DESIGN.md D-026)"

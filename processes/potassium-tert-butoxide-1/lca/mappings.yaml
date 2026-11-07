@@ -1,0 +1,18 @@
+# potassium-tert-butoxide-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR
+# 0022). Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# The preliminary LCI leaves most backgrounds unmapped (DESIGN.md D-012): the build reports each
+# as a gap (lci/gaps.json). Linked here: the make-up tert-butanol to tert-butanol-1 (kg of
+# tert-butanol contained for kg, its product's basis; the azeotrope's water is its own exchange
+# feed:TBAW and the drying past the azeotrope is this plant's sieve unit A-001), the nitrogen
+# consumable to asu-1's gaseous nitrogen, and the LP and MP steam counted as heat delivered
+# (kWh), as n-bromosuccinimide-1 does. Potassium metal stays a gap: no library process makes it
+# (its stoichiometric proxy, KCl + Na, is recorded in lca.yaml and DESIGN.md D-012, not linked).
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:TBAF": {dataset: {path: processes/tert-butanol-1/lca/datasets/tert-butanol-isobutene-hydration.yaml, product: "product:tert-butanol"}, source: "the Atlas producer tert-butanol-1, tert-butanol by direct hydration of isobutene, per kg of tert-butanol contained, the basis of both its product and this exchange (S3, the alcohol of the azeotrope grade); its water up to the azeotrope is feed:TBAW, the drying past it A-001 (D-004, D-012)"}
+  "consumable:nitrogen": {dataset: {path: processes/asu-1/lca/dataset.yaml, product: "product:GANP"}, source: "the Atlas producer asu-1, gaseous nitrogen to the battery limit (99.97 mol% N2, 9 bar(a)); the purges, blankets and the potassium's pressing need only a few hundred kPa"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 350 kPa(a) to R-101's jacket (Q1), the still C-101 (Q4), the potassium melter (Q9), the sieve's evaporator (Q10) and the tank and line heating (Q14), counted as heat delivered (kWh), D-009"}
+  "feed:MPS": {use: steam-heat, source: "MP steam 1000 kPa(a) to the paddle dryer DR-101 (Q6), counted as heat delivered (kWh), D-009"}

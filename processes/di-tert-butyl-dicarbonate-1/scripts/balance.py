@@ -14,7 +14,11 @@ from the streams propagate wrote:
   propagate): the gases to the vent, saturated with water vapour at the scrubber's temperature
   (S33, S34);
 - the temperatures of the mixed streams S4, S23 and S28 (adiabatic mixing of their inlets);
-- the duties the models leave out (D-009): Q1, Q3, Q4, Q8, Q9, Q10, Q12, Q13, Q14, Q15, Q16.
+- the duties the models leave out (D-009): Q1, Q4, Q8, Q9, Q10, Q12, Q13, Q14, Q15, Q16. Since
+  core 1.10.0 (D-015) the CO2's absorption heat (Q3 until then) is R101's dose heat of solution in
+  its own duty Q2, R-101's vent condenser is R101's model (Q17), and ST101's charge heat-up to its
+  bubble point is in ST101's duty Q6 (`still.heat_up`): Q8 holds only what the stills still leave
+  out (the sensible rise while they boil and V-201's steel).
 
 Run: `cheme run scripts/balance.py`, after `cheme process propagate --fill`. With
 BALANCE_OUTPUT set it writes the values the flowsheet cites (library ADR 0027). Propagate and
@@ -66,8 +70,11 @@ T_WASH_WATER = 318.15
 # mean of their stills' start and end (`cheme process stills`: 294.97 -> 312.08 K; the main cut
 # 336.28 -> 357.9 K); ST102's pot is held near 313 K while the pressure falls (its model starts
 # at 257 K, core limit L-5); the forerun between the charge's 321 K and its end at 336 K
-T_VAP = {"ST101": 0.5 * (294.97 + 312.08), "ST102": 313.15, "fore": 328.0, "main": 0.5 * (336.28 + 357.9)}
+T_VAP = {"ST101": 0.5 * (294.99 + 312.08), "ST102": 313.15, "fore": 328.0, "main": 0.5 * (336.28 + 357.9)}
 T_END = {"ST102": 313.15}
+# ST101's charge at its bubble point at 15 kPa(a) (`cheme process stills`): ST101's model heats
+# the charge S12 to it (`still.heat_up`, core ADR 0063, in Q6), so Q8 starts there
+T_BUBBLE_ST101 = 294.99
 V201_METAL = 2000.0  # kJ/K, V-201's steel (about 4 t at 0.5 kJ/(kg K)) (D-009)
 # kJ/(kmol K), gas heat capacities near 270-300 K (chemicals 1.5.2, CRC tables): CO2 37.1,
 # isobutene 89.1, hexane 143, phosgene 57.7, tert-butanol 113.6, water vapour 33.6
@@ -77,7 +84,6 @@ CP_LIQ_EXTRA = {"NAOH": 80.0, "NA2CO3": 120.0, "NACL": 50.0, "IB": 120.0}
 # liquid phosgene from 253.15 K evaporated at 150 kPa(a) and warmed to 293.15 K: 100 kJ/(kmol K)
 # x 40 K + 24800 kJ/kmol (as processes/benzyl-chloroformate-1, D-009)
 PHOSGENE_EVAPORATION = 100.0 * 40.0 + 24_800.0
-CO2_ABSORPTION = 15_000.0  # kJ/kmol, as materials.yaml's heat_of_vaporization of CO2 (D-009)
 HEAT = {"NPH": -400_000.0, "NCO": -110_000.0}  # reactions.yaml (ASSUMED)
 
 
@@ -181,14 +187,14 @@ def main() -> dict:
     # duties (kW)
     s4 = kmol(streams, comps, "S4")
     out["Q1"] = {"duty": round(mcp(comps, s4) * (out["S4"]["temperature"] - T_REACT) * kw, 4)}
-    out["Q3"] = {"duty": round(kmol(streams, comps, "S10").get("CO2", 0.0) * CO2_ABSORPTION * kw, 4)}
     out["Q4"] = {"duty": round(kmol(streams, comps, "S6")["COCL2"] * PHOSGENE_EVAPORATION * kw, 4)}
     s12, s13, s15 = (kmol(streams, comps, s) for s in ("S12", "S13", "S15"))
     s16 = melt
-    # V-201: the distillates from 278 K to the pot's mean temperature, the melt to 313 K, the
-    # vessel's steel from the wash's temperature back to 313 K
-    q8 = (mcp(comps, s13) * (T_VAP["ST101"] - T_REACT) + mcp(comps, s15) * (T_VAP["ST102"] - T_REACT)
-          + mcp(comps, s16) * (T_END["ST102"] - T_REACT))
+    # V-201: the distillates from ST101's bubble point (ST101's model heats the charge S12 from
+    # 278 K to it, D-015) to the pot's mean temperature, the melt to 313 K, the vessel's steel
+    # from the wash's temperature back to 313 K
+    q8 = (mcp(comps, s13) * (T_VAP["ST101"] - T_BUBBLE_ST101) + mcp(comps, s15) * (T_VAP["ST102"] - T_BUBBLE_ST101)
+          + mcp(comps, s16) * (T_END["ST102"] - T_BUBBLE_ST101))
     hours = batch_hours(streams)
     q8 += V201_METAL * (T_END["ST102"] - t_wash) / hours
     out["Q8"] = {"duty": round(q8 * kw, 4)}

@@ -68,10 +68,11 @@ with an ADR in the same pull request.
 | [0027](0027-balance-scripts-reproduce-the-flowsheet.md) | Balance scripts write the values the flowsheet cites; CI re-runs them and compares | **Proposed**, 2026-10-31 |
 | [0028](0028-registry-covers-main-products-and-feeds.md) | Register every process's main product and feeds with verified identities; label functional units by product name | **Accepted**, 2026-10-31 |
 | [0029](0029-no-total-when-every-contribution-is-a-gap.md) | Give no total, with the reason, when every contribution to a category is a gap | **Proposed**, 2026-10-30 |
-| [0030](0030-reference-reproduction-benchmarks.md) | Keep reference reproductions in benchmarks/reproductions/, tolerances committed before the run | **Proposed**, 2026-11-01 |
-| [0031](0031-case-studies-reproduction-plus-design-extension.md) | A case study is a reference reproduction plus one labelled design extension, rerun by one command | **Proposed**, 2026-11-04 |
-| [0032](0032-measured-series-as-design-inputs.md) | A process may use measured series from a pinned dataset; reproduction results stay held out | **Proposed**, 2026-11-04 |
-| [0033](0033-engineering-regeneration-tests-own-ci-job.md) | A process's regeneration test runs in its own CI job, marked `engineering` | **Proposed**, 2026-11-05 |
-| [0034](0034-design-case-lci-datasets.md) | An engineering project may export a design case's own LCI dataset beside its study's | **Proposed**, 2026-11-05 |
+| [0030](0030-reference-reproduction-benchmarks.md) | Keep reference reproductions in benchmarks/reproductions/, tolerances committed before the run | Accepted, 2026-11-06 |
+| [0031](0031-case-studies-reproduction-plus-design-extension.md) | A case study is a reference reproduction plus one labelled design extension, rerun by one command | Accepted, 2026-11-06 |
+| [0032](0032-measured-series-as-design-inputs.md) | A process may use measured series from a pinned dataset; reproduction results stay held out | Accepted, 2026-11-06 |
+| [0033](0033-engineering-regeneration-tests-own-ci-job.md) | A process's regeneration test runs in its own CI job, marked `engineering` | Accepted, 2026-11-06 |
+| [0034](0034-design-case-lci-datasets.md) | An engineering project may export a design case's own LCI dataset beside its study's | Accepted, 2026-11-06 |
 | [0035](0035-batch-processes-on-a-dedicated-train.md) | A batch process folder describes a dedicated train; campaigns on a multipurpose plant are out of scope | **Proposed**, 2026-11-05 |
 | [0036](0036-public-is-the-default-publication-status.md) | Public is the default publication status; the public build stays fail-closed | Accepted, 2026-11-06 |
+| [0037](0037-package-property-values-are-single-facts.md) | Property values an open-source package computes from bundled coefficients (thermo's DIPPR_PERRY_8E, chemicals' CRC tables) are single facts with their source; no tables copied, no open-data claim | Accepted, 2026-11-06 |

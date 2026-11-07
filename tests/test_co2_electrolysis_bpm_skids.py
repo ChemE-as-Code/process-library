@@ -788,6 +788,46 @@ def test_committed_lca_reports_are_the_records():
     assert [r["membrane_life_h"] for r in life["rows"]] == [1000.0, 4000.0, 20000.0]
 
 
+def test_committed_ranking_states_whether_it_changes():
+    """#331 (DESIGN.md D-049): the order of the totals does not change under any electricity mix
+    or duration, the membrane life cannot change it, and the construction difference that would
+    reverse it is |B - A| x the CO of one skid's life (design rate x lca.yaml's operation), per kg
+    of Skid A's extra tank mass from the equipment list."""
+    ranking = json.loads((PROCESS / "lca" / "ranking.json").read_text())
+    assert ranking["verdict"] == "ranking not determined"
+    sens = ranking["by_sensitivity"]
+    mix = {r["case"]: r for r in sens["rows"] if r["sensitivity"] == "electricity mix"}
+    grids = json.loads((PROCESS / "lca" / "sensitivity-electricity-mix.json").read_text())["rows"]
+    assert set(mix) == {g["grid"] for g in grids if g.get("b_minus_a") is not None} and len(mix) == 5
+    for g in grids:
+        if g["grid"] in mix:
+            assert mix[g["grid"]]["b_minus_a"] == g["b_minus_a"]
+    assert {r["case"] for r in sens["rows"] if r["sensitivity"] == "campaign duration"} == {f"{h} h" for h in DURATIONS}
+    for r in sens["rows"]:
+        assert r["order_changes"] is False and r["higher"] == "B" and r["b_minus_a_with_solution_water"] > 0, r
+    assert sens["order_changes"] is False
+    life = json.loads((PROCESS / "lca" / "sensitivity-membrane-life.json").read_text())
+    assert life["same_for_both_skids"] and life["datasets_match"]
+    assert ranking["membrane_life"]["common_to_both_skids"] is True
+    assert ranking["membrane_life"]["can_change_ranking"] is False
+    # the break-even, recomputed from the design basis, lca.yaml and the equipment list
+    basis = _yaml(PROCESS / "process" / "design-basis.yaml")["capacity"]["pilot_skid"]["product"]["rate"]
+    op = _yaml(PROCESS / "lca" / "lca.yaml")["operation"]
+    assert basis["unit"] == "kg/h"
+    co_life = basis["value"] * op["hours_per_year"] * op["life_years"]
+    diff = ranking["characterised"]["with_solution_water"]["B_minus_A"]
+    bec = ranking["break_even_construction"]
+    assert bec["skid_with_more_construction"] == "A" and bec["can_reverse"] is True
+    assert bec["kg_co2e_per_skid_life"] > 0
+    assert rel(bec["kg_co2e_per_skid_life"], diff * co_life, 1e-9)
+    weights = {e["tag"]: e["dimensions"]["weight"] * 1000.0 for e in _yaml(PROCESS / "equipment" / "equipment-list.yaml")["equipment"]}
+    extra = weights["T-101"] - weights["T-201"] - weights["T-202"]
+    assert rel(bec["extra_tank_mass_kg"], extra, 1e-9) and bec["weights_assumed"] is True
+    assert rel(bec["kg_co2e_per_kg_extra_tank_mass"], diff * co_life / extra, 1e-9)
+    assert ranking["ranking_changes"].startswith("The order does not change")
+    assert "break-even" in ranking["ranking_changes"]
+
+
 # -- slow: regenerate in a copy ---------------------------------------------------------------
 
 

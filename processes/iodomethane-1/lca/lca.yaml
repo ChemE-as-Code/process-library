@@ -19,7 +19,7 @@ goal: >-
   materials, utilities and wastes the batch plant exchanges per kg of iodomethane, as the
   foreground for a later cradle-to-gate study. No impact results: most backgrounds are not
   mapped yet (D-014).
-functional_unit: {product: MEI, amount: 1, unit: kg, source: "1 kg of distilled iodomethane (99.6 wt%, calibrated to CN 114195616 B, Example 3) at the plant gate to storage, stream S25 (D-002, D-014)"}
+functional_unit: {product: MEI, amount: 1, unit: kg, source: "1 kg of distilled iodomethane (99.86 wt%, predicted by core's batch rectification on an ideal liquid, above CN 114195616 B's 99.5-99.7 %, D-010, D-016) at the plant gate to storage, stream S25 (D-002, D-014)"}
 # The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
 # being mapped free (the schema's gate-to-gate maps every feed free), as acetyl-chloride-1 does.
 boundary: cradle-to-gate
@@ -52,10 +52,10 @@ flows:
     source: "flowsheet energy streams P1 (R-101's agitator and the iodine feeder), P2 (V-102's agitator and pumps) and P3 (C-104's agitator, pumps and the vent fan), D-011"
   - key: feed:LPS
     missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 350 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
-    source: "flowsheet energy streams Q1 (the charge warmed), Q3 and Q4 (ST101's net boil-up from core's still model and its heat-up), Q8, Q9 and Q13 (ST102's net boil-up from core's still model, its heat-up and the column's reflux share), all through the hot-water loops, D-011"
+    source: "flowsheet energy streams Q1 (the charge warmed), Q3 and Q4 (ST101's net boil-up from core's still model and its heat-up), Q8 (ST102's reboiler: the boil-up at the reflux and the charge's heat-up, from core's batch rectification), all through the hot-water loops, D-011, D-016"
   - key: product:CW
     missing: "not mapped yet (D-014); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
-    source: "flowsheet energy streams Q5 (E-101), Q6 (the residue cooled), Q10 (K-104's condenser and the product cooled to 303 K) and Q12 (the final residue cooled), D-011"
+    source: "flowsheet energy streams Q5 (E-101), Q6 (the residue cooled), Q10 (K-104's condenser, from core's batch rectification), Q14 (the condensate cooled to 303 K) and Q12 (the final residue cooled), D-011, D-016"
   - key: product:CHW
     missing: "not mapped yet (D-014); connect to: refrigeration at 278 K (chilled water) from an electric vapour-compression unit (e.g. processes/utility-chiller), per kWh of heat removed"
     source: "flowsheet energy stream Q2 (R-101's jacket: the heat of reaction, from core's semi-batch model), D-011"
@@ -96,8 +96,8 @@ consumables:
   - id: calcium-chloride
     title: Calcium chloride of the dryer A-103
     unit: kg
-    per_batch: 3.4
-    source: "the 1.03 kg of water a batch the calcium chloride takes up (the washed crude's 0.1 wt% down to 300 ppm, scripts/balance.py and D-009) at 0.3 kg of water per kg before the bed is replaced, ASSUMED; the patent's bed is 40 kg for 360 kg of iodine (CN 114195616 B, Examples 1-3)"
+    per_batch: 3.5
+    source: "the 1.06 kg of water a batch the calcium chloride takes up (the washed crude's 0.1 wt% down to 300 ppm, scripts/balance.py and D-009) at 0.3 kg of water per kg before the bed is replaced, ASSUMED; the patent's bed is 40 kg for 360 kg of iodine (CN 114195616 B, Examples 1-3)"
     missing: "not mapped yet (D-014); no library process makes calcium chloride. Connect to: calcium chloride, anhydrous (e.g. from the Solvay process's calcium chloride liquor or from hydrochloric acid and limestone), per kg"
     disposal:
       kind: waste
