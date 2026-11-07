@@ -2393,9 +2393,11 @@ def _ignition_clearance(model: dict, cfg: dict, on_frame: set[str]) -> list[dict
             if zone.get("kind") != "hazardous":
                 continue
             for v in zone.get("volumes") or []:
-                if v.get("shape") != "sphere" or v.get("item") in (None, tag):
+                if v.get("shape") != "sphere" or (v.get("item") is not None and v.get("item") == tag):
                     continue
-                src = v["item"]
+                # an explicit sphere (a declared release point, the reserved vent outlets of
+                # D-068) counts by its centre, under the zone's id
+                src = v.get("item") or zone["id"]
                 if src in equipment:
                     other = _outline(equipment[src])
                 elif src in nozzles:
@@ -2489,6 +2491,10 @@ def _vent_tray_clearance(model: dict, cfg: dict) -> list[dict]:
         if "end" not in (pipe.get("open_ends") or []):
             continue
         outlets.append((pipe["line"], [float(v) for v in pipe["points"][-1]]))
+    # outlets declared by point, of lines the model does not route (the reserved vent outlets
+    # of the cathode relief and the condensate collection, D-068)
+    for entry in cfg.get("outlets") or []:
+        outlets.append((str(entry["id"]), [float(v) for v in entry["point"]]))
     found = []
     for tray in model.get("trays") or []:
         half = max(float(tray.get("width") or 0.0), float(tray.get("depth") or 0.0)) / 2

@@ -49,6 +49,15 @@ safety valve has no inline symbol in core 1.10's authoring API: the cathode's re
 drawn as a bursting disc (RuptureDisc, a SafetyValveOrFitting, `piping/special-items.yaml`)
 with a burst indicator; whether a reclosing safety valve replaces it is the relief study's
 (D-060).
+
+Revision D (the agent reviews 2026-11-06-design-r2 and 2026-11-06-layout-r4, DESIGN.md D-067,
+D-068): the tight shut-offs XV-x25 and XV-x34 drawn as trip valves with their fail-closed
+actuators driven by the safety I/O outputs XY-x25 and XY-x34; the membrane's pressure
+difference measured at both ends of the stacks (PIA-x15 on the anolyte return, PIA-x16 on the
+cathode feed header, which also trips I-x11 where the disc is); PSE-x01's burst indicator
+XS-x01; the tail gas's two low points each with a drip leg and a valved, capped drain (DR-x02
+with HV-x11 at the riser's foot, DR-x03 with HV-x12 before the oxidiser); the AV-x11 note
+clear of E-x11's outline.
 """
 
 from __future__ import annotations
@@ -289,7 +298,7 @@ def draw(sheet: Sheet, skid: str) -> None:
          route=[cooler["N5"],
                 valve(vid("HV", 7), "BallValve", at=(125.0, cooler["N5"].xy[1]), tag=t("HV", 7)),
                 offpage("out", at=(131.0, cooler["N5"].xy[1]), note="capped",
-                        note_at=(124.0, cooler["N5"].xy[1] + 5.0))],
+                        note_at=(128.0, cooler["N5"].xy[1] + 5.0))],
          labels=False)
     # O2 vent, 1 M KOH fill, spent anolyte drain (Skid B: with the bleed)
     o2v = line(
@@ -464,14 +473,30 @@ def draw(sheet: Sheet, skid: str) -> None:
     # the tail gas leaves the PSA through its trip valve (fail closed), a check valve and the
     # in-line detonation arrester (EN ISO 16852, IIC, unstable detonation, protected side
     # towards X-x31), all three at X-x31's outlet inside its zone; all-welded from there to
-    # the burner (D-054)
-    xv_tg = valve(vid("XV", 33), "BallValve", at=(369.0, 93.0), tag=t("XV", 33))
+    # the burner (D-054). Revision D (D-068, review 2026-11-06-layout-r4#2): the overhead line
+    # is an inverted U with two low points, each a drip leg with a valved, capped drain: at the
+    # riser's foot upstream of the trip valve (DR-x02, HV-x11) and at the foot of the drop
+    # before the oxidiser's inlet (DR-x03, HV-x12); the overhead run falls towards the drop, so
+    # nothing drains back onto the arrester
+    tg_low1 = tee(tid(t("TG", 1), "D1"), at=(369.0, 89.5), branch="right", branch_dn=DN_SMALL)
+    tg_low2 = tee(tid(t("TG", 1), "D2"), at=(380.0, 128.0), branch="down", branch_dn=DN_SMALL)
+    xv_tg = valve(vid("XV", 33), "BallValve", at=(369.0, 97.0), tag=t("XV", 33))
     tg = line(sheet, t("TG", 1), dn=DN_GAS, fluid="Tail gas",
-              route=[psa["N4"], xv_tg,
-                     valve(vid("CV", 33), "CheckValve", at=(369.0, 102.0)),
-                     valve(vid("FA", 33), "FlameArrestor", at=(369.0, 110.0)),
-                     (369.0, 128.0), (oxid["N1"].xy[0], 128.0), oxid["N1"]],
-              label_at=(378.0, 135.0))
+              route=[psa["N4"], tg_low1, xv_tg,
+                     valve(vid("CV", 33), "CheckValve", at=(369.0, 105.0)),
+                     valve(vid("FA", 33), "FlameArrestor", at=(369.0, 113.0)),
+                     (369.0, 128.0), tg_low2, (oxid["N1"].xy[0], 128.0), oxid["N1"]],
+              label_at=(397.0, 127.0))
+    line(sheet, t("DR", 2), dn=DN_SMALL, fluid="Tail gas condensate",
+         route=[tg_low1.branch,
+                valve(vid("HV", 11), "BallValve", at=(375.5, 89.5), tag=t("HV", 11)),
+                offpage("out", at=(382.0, 89.5), note="capped", note_at=(390.0, 89.5))],
+         labels=False)
+    line(sheet, t("DR", 3), dn=DN_SMALL, fluid="Tail gas condensate",
+         route=[tg_low2.branch,
+                valve(vid("HV", 12), "BallValve", at=(380.0, 134.0), tag=t("HV", 12)),
+                offpage("out", at=(380.0, 141.0), note="capped", note_at=(371.0, 145.0))],
+         labels=False)
     # DEXPI's FlameArrestor carries its tag as PositionNumber (a SafetyValveOrFitting), not as
     # the valves' PipingComponentNumber that valve(tag=) writes: set it, and its detonation
     # proof class, with core's edit (as `cheme set` does), then label it
@@ -583,8 +608,8 @@ def draw(sheet: Sheet, skid: str) -> None:
                fail_action="FC")
     # the arrester's temperature on its unprotected side (towards the burner): a flame held on
     # the element trips XV-x33 within the arrester's burning time (I-x09, D-054)
-    instrument(sheet, t("TSHH", 33), at=(387.0, 120.0), sensing=tg.segments[0],
-               sensing_at=(369.0, 120.0), signal_to=xv_tg, fail_action="FC")
+    instrument(sheet, t("TSHH", 33), at=(387.0, 121.0), sensing=tg.segments[1],
+               sensing_at=(369.0, 121.0), signal_to=xv_tg, fail_action="FC")
     instrument(sheet, t("PIC", 31), at=(374.0, 27.0), sensing=f"Line_CO{n}01_S1",
                sensing_at=(374.0, 40.0), signal_to=vid("PV", 31), fail_action="FC")
     instrument(sheet, t("AIC", 1) if dosed else t("AI", 1), at=(98.0, tank["N7"].xy[1]),
@@ -628,6 +653,24 @@ def draw(sheet: Sheet, skid: str) -> None:
         instrument(sheet, t("IIA", 6, s), at=(x, 224.0))
     # instrument air at the skid's air header (not drawn): low-low trips the current (I-x14)
     instrument(sheet, t("PSLL", 51), at=(252.0, 245.0), location="field")
+
+    # -- revision D: the design review 2026-11-06-design-r2 (DESIGN.md D-067) ---------------
+    # the tight shut-offs are trip valves: each with its fail-closed actuator and solenoid,
+    # driven by the safety I/O output XY-x25 / XY-x34 (C&E I-x18; I-x03, -04, -09, -10, -12,
+    # -13, -19), as XV-x33 is by TSHH-x33 (review r2#1)
+    instrument(sheet, t("XY", 25), at=(346.0, 125.0), signal_to=vid("XV", 25), fail_action="FC")
+    instrument(sheet, t("XY", 34), at=(376.0, 165.0), signal_to=vid("XV", 34), fail_action="FC")
+    # the membrane's pressure difference at each end of the stacks (review r2#3): the anolyte
+    # at the stack outlet on the return header (with PIA-x23, the cathode outlet) and the
+    # cathode at the stack inlet on the feed header downstream of every feed (with PIA-x13,
+    # the anolyte inlet); PIA-x16 is also the cathode high-high where the disc is (r2#6)
+    instrument(sheet, t("PIA", 15), at=(221.0, 96.5), sensing=ret.segments[0],
+               sensing_at=(221.0, Y_RET))
+    instrument(sheet, t("PIA", 16), at=(256.0, 188.0), sensing=co2.segments[3],
+               sensing_at=(256.0, Y_CO2))
+    # PSE-x01's burst indicator, its own tag (I-x11, review r2#7)
+    instrument(sheet, t("XS", 1), at=(290.0, 185.0), location="field",
+               sensing=f"Line_RL{n}01_S1", sensing_at=(272.0, 185.0))
     note(sheet, "open skid, naturally ventilated: no enclosure, no fan (D-050)",
          at=(250.0, 255.0))
     note(sheet, f"{t('U', 1)}: rectifier, DC bus to the stacks (not drawn)", at=(160.0, 222.0))

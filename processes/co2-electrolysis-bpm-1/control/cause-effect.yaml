@@ -126,8 +126,8 @@ interlocks:
     notes: "No tail gas to a burner that is not firing (it would leave unburnt CO and H2 at the flue) or that is pre-purging. The vendor's burner arrester and burner management system (pre-purge, flame supervision) are the second barrier behind FA-133. The train is isolated as on a gas trip (SEQ-A-GAS). D-054."
   - id: I-111
     title: Skid A cathode pressure high-high (or the cathode relief disc burst)
-    cause: {tag: PIA-123, condition: "PAHH: 0.35 bar(g) (135 kPa(a)) at the stack outlet, ASSUMED: above the 110 kPa(a) operating point, below PSE-101's 0.5 bar(g) and the stacks' 1.0 bar(g) design"}
-    logic: {any: [{tag: PIA-123, state: "PAHH"}, {tag: PSE-101, state: "burst (its burst indicator)"}]}
+    cause: {tag: PIA-116, condition: "PAHH: 0.35 bar(g) (135 kPa(a)) on the feed header where PSE-101 is (PIA-116) or at the stack outlet (PIA-123), ASSUMED: above the 120 and 110 kPa(a) operating points, 0.15 bar below PSE-101's 0.5 bar(g) at the same point, below the stacks' 1.0 bar(g) design"}
+    logic: {any: [{tag: PIA-116, state: "PAHH"}, {tag: PIA-123, state: "PAHH"}, {tag: XS-101, state: "burst (PSE-101's burst indicator)"}]}
     effects:
       - {tag: U-101, action: trip}
       - {tag: FV-102, action: close}
@@ -135,7 +135,7 @@ interlocks:
     sil: null
     latching: true
     reset: manual
-    notes: "The cathode side's protection before its relief (D-060, review 2026-11-06-design #1): a blocked outlet (K-131 stopped, PV-121 closed) or the CO2 supply's regulator failing open with FV-102 open pressurises the cathodes, whose membrane takes a small pressure difference only; PIA-123 is independent of PIC-121. The current stops the stacks' own gas, FV-102 the supply's. A burst PSE-101 would vent the CO2 past stacks still on current: its burst indicator trips the same. K-131 is left running so that it draws the cathode down through PV-121 if it can. HAZOP H01-A303, H01-A401."
+    notes: "The cathode side's protection before its relief (D-060, review 2026-11-06-design #1): a blocked outlet (K-131 stopped, PV-121 closed) or the CO2 supply's regulator failing open with FV-102 open pressurises the cathodes, whose membrane takes a small pressure difference only; PIA-123 is independent of PIC-121. The current stops the stacks' own gas, FV-102 the supply's. A burst PSE-101 would vent the CO2 past stacks still on current: its burst indicator trips the same. K-131 is left running so that it draws the cathode down through PV-121 if it can. Review 2026-11-06-design-r2 (D-067): the high-high also on the header beside the disc (PIA-116), so that with the flow still passing (the regulator failed open) the trip acts 0.15 bar below the disc's burst pressure at the same point, not about 5 kPa (r2#6); the burst indicator has its own tag XS-101 (r2#7). I-111's only supply-side final element is FV-102: where FV-102 failing or sticking open is the cause, I-111 removes the current but not the CO2, and is not an independent layer for that cause; PSE-101 is (r2#8). HAZOP H01-A303, H01-A401."
   - id: I-112
     title: Skid A compressor discharge pressure high-high
     cause: {tag: PIA-132, condition: "PAHH: 5.8 bar(g) on CG-103, ASSUMED: above the 5.0 bar(g) (600 kPa(a)) operating point, below K-131's own hydraulic limit of 6.5 bar(g) and the 7.0 bar(g) design of K-131, CG-103 and X-131"}
@@ -195,15 +195,15 @@ interlocks:
     notes: "Review 2026-11-06-design #3 (D-061): H2 (or CO) that crosses or breaks through the bipolar membrane mixes with near-pure O2 in the T-101 head space and the vent; the usual protection of an electrolyser's oxygen side is the H2-in-O2 measurement tripping the current (ISO 22734 practice, as the review cites it). The alarm AH at 0.4 vol% calls the operator first. The analyser's response time and the head space's dilution are the vendor's and the HAZOP team's. HAZOP H01-A110."
   - id: I-117
     title: Skid A pressure difference across the membrane outside its window
-    cause: {tag: PIA-113, condition: "PDAHH / PDALL: the anolyte stack inlet PIA-113 minus the cathode outlet PIA-123 above 60 kPa or below 0 kPa (about 31 kPa at the operating point), ASSUMED until the stack vendor's window (#332)"}
-    logic: {any: [{tag: PIA-113, state: "PIA-113 minus PIA-123 above 60 kPa"}, {tag: PIA-113, state: "PIA-113 minus PIA-123 below 0 kPa"}]}
+    cause: {tag: PIA-113, condition: "PDAHH / PDALL at either end of the stacks, the anolyte minus the cathode: at the inlet end PIA-113 minus PIA-116 (about +21 kPa at the operating point), at the outlet end PIA-115 minus PIA-123 (about -9 kPa), above +60 kPa or below -20 kPa, ASSUMED until the stack vendor's window (#332)"}
+    logic: {any: [{tag: PIA-113, state: "PIA-113 minus PIA-116 above 60 kPa"}, {tag: PIA-113, state: "PIA-113 minus PIA-116 below -20 kPa"}, {tag: PIA-115, state: "PIA-115 minus PIA-123 above 60 kPa"}, {tag: PIA-115, state: "PIA-115 minus PIA-123 below -20 kPa"}]}
     effects:
       - {tag: U-101, action: trip}
     sheet: P-01
     sil: null
     latching: true
     reset: manual
-    notes: "Review 2026-11-06-design #3 (D-061): the anolyte over the cathode floods the gas diffusion electrode, the cathode over the anolyte breaks gas through the membrane into the anode O2; neither was measured. The difference changes sign along a stack (inlet about 141 against 120 kPa(a), outlet about 101 against 110 kPa(a)), so two points read a mean, and the window is ASSUMED; alarms PDAH 45 kPa and PDAL 15 kPa. HAZOP H01-A103."
+    notes: "Review 2026-11-06-design #3 (D-061): the anolyte over the cathode floods the gas diffusion electrode, the cathode over the anolyte breaks gas through the membrane into the anode O2; neither was measured. The difference changes sign along a stack (inlet about 141 against 120 kPa(a), outlet about 101 against 110 kPa(a)). Review 2026-11-06-design-r2#3 (D-067): each end is measured where it is (PIA-113 and PIA-116 at the inlet, PIA-115 and PIA-123 at the outlet), not across the stack, so the trip sees the outlet end, where the cathode is already about 9 kPa above the anolyte at the design point. The window is ASSUMED (alarms PDAH +45 kPa and PDAL -15 kPa at either end); whether the membrane takes the cathode above the anolyte at the outlet, or the operating pressures must keep the anolyte above the cathode along the whole stack (an anolyte back-pressure on AN-104), is the stack vendor's (#332). HAZOP H01-A103."
   - id: I-118
     title: Skid A condensate level low-low in V-121
     cause: {tag: LIA-124, condition: "LALL: 10 % of the gauge length, ASSUMED"}
@@ -362,8 +362,8 @@ interlocks:
     notes: "As I-110 (SEQ-B-GAS). D-054."
   - id: I-211
     title: Skid B cathode pressure high-high (or the cathode relief disc burst)
-    cause: {tag: PIA-223, condition: "PAHH: 0.35 bar(g), as I-111"}
-    logic: {any: [{tag: PIA-223, state: "PAHH"}, {tag: PSE-201, state: "burst (its burst indicator)"}]}
+    cause: {tag: PIA-216, condition: "PAHH: 0.35 bar(g) on the feed header (PIA-216) or at the stack outlet (PIA-223), as I-111"}
+    logic: {any: [{tag: PIA-216, state: "PAHH"}, {tag: PIA-223, state: "PAHH"}, {tag: XS-201, state: "burst (PSE-201's burst indicator)"}]}
     effects:
       - {tag: U-201, action: trip}
       - {tag: FV-202, action: close}
@@ -371,7 +371,7 @@ interlocks:
     sil: null
     latching: true
     reset: manual
-    notes: "As I-111. D-060."
+    notes: "As I-111 (with r2#6, r2#7, r2#8 of the review 2026-11-06-design-r2). D-060, D-067."
   - id: I-212
     title: Skid B compressor discharge pressure high-high
     cause: {tag: PIA-232, condition: "PAHH: 5.8 bar(g) on CG-203, as I-112"}
@@ -431,15 +431,15 @@ interlocks:
     notes: "As I-116; T-201's small head space (62.5 L tank) concentrates a crossover faster than T-101's. D-061."
   - id: I-217
     title: Skid B pressure difference across the membrane outside its window
-    cause: {tag: PIA-213, condition: "PIA-213 minus PIA-223 above 60 kPa or below 0 kPa, as I-117"}
-    logic: {any: [{tag: PIA-213, state: "PIA-213 minus PIA-223 above 60 kPa"}, {tag: PIA-213, state: "PIA-213 minus PIA-223 below 0 kPa"}]}
+    cause: {tag: PIA-213, condition: "at either end, the anolyte minus the cathode, PIA-213 minus PIA-216 (inlet) or PIA-215 minus PIA-223 (outlet), above +60 kPa or below -20 kPa, as I-117"}
+    logic: {any: [{tag: PIA-213, state: "PIA-213 minus PIA-216 above 60 kPa"}, {tag: PIA-213, state: "PIA-213 minus PIA-216 below -20 kPa"}, {tag: PIA-215, state: "PIA-215 minus PIA-223 above 60 kPa"}, {tag: PIA-215, state: "PIA-215 minus PIA-223 below -20 kPa"}]}
     effects:
       - {tag: U-201, action: trip}
     sheet: P-02
     sil: null
     latching: true
     reset: manual
-    notes: "As I-117. D-061."
+    notes: "As I-117. D-061, D-067."
   - id: I-218
     title: Skid B condensate level low-low in V-221
     cause: {tag: LIA-224, condition: "LALL, as I-118"}

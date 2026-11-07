@@ -11,8 +11,12 @@
 # PIA-x32), the anolyte pressure PIA-x13 (the membrane's pressure difference with PIA-x23), the
 # H2-in-O2 analyser AIA-x14, the total cathode CO2 FIC-x04, the per-stack voltages EIA-x05A to D
 # and currents IIA-x06A to D, the independent condensate level LIA-x24 and the instrument air
-# low-low PSLL-x51; the level alarms of the tanks gain LAH and LAHH (D-061). Every set point is
-# ASSUMED, for the HAZOP team and the SIL screening.
+# low-low PSLL-x51; the level alarms of the tanks gain LAH and LAHH (D-061). Revision D (the
+# design review 2026-11-06-design-r2, D-067) adds per skid the trip valves' solenoid outputs
+# XY-x25 and XY-x34, the anolyte at the stack outlet PIA-x15 and the cathode at the stack inlet
+# PIA-x16 (the membrane's pressure difference at each end; PIA-x16 also the cathode high-high
+# where the disc is) and PSE-x01's burst indicator XS-x01. Every set point is ASSUMED, for the
+# HAZOP team and the SIL screening.
 schema: cheme/instruments/v1
 instruments:
   # -- Skid A (P-01) ----------------------------------------------------------------------
@@ -29,7 +33,10 @@ instruments:
   - {tag: TSHH-133, service: "Temperature high-high on the unprotected side of the tail-gas detonation arrester FA-133 (TG-101), trips XV-133", sheet: P-01, notes: "burning-time protection: a flame held on the arrester element closes XV-133 within the arrester's certified burning time (vendor); see C&E I-109; Ex ia IIC T4 Ga (D-051, D-054)"}
   - {tag: AI-101, service: "Anolyte pH in T-101 (probe, activity basis)", sheet: P-01, notes: "alarm AAL; end-of-run trip, see C&E I-101"}
   - {tag: LIA-101, service: "Anolyte level in T-101", sheet: P-01, notes: "alarms LAL, LAH (the working volume reached, 1,176 L at 1,000 h) and LAHH (90 % of the tank, ASSUMED) with a horn and beacon at the fill connection, so that the operator at HV-102 stops the delivery (D-061); low-low trip, see C&E I-102"}
-  - {tag: PIA-113, service: "Anolyte pressure at the stack inlet (AN-103)", sheet: P-01, notes: "alarms PAH, PAL; with PIA-123 the pressure difference across the membrane, alarm and trip outside the window, see C&E I-117 (window ASSUMED, the stack vendor's, D-061); Ex ia IIC T4 Ga"}
+  - {tag: PIA-113, service: "Anolyte pressure at the stack inlet (AN-103)", sheet: P-01, notes: "alarms PAH, PAL; with PIA-116 (the cathode at the stack inlet) the membrane's pressure difference at the inlet end, alarm and trip outside the window, see C&E I-117 (window ASSUMED, the stack vendor's, D-061, D-067); Ex ia IIC T4 Ga"}
+  - {tag: PIA-115, service: "Anolyte pressure at the stack outlet (AN-104, the return header at stack D)", sheet: P-01, notes: "with PIA-123 (the cathode at the stack outlet) the membrane's pressure difference at the outlet end, alarm and trip outside the window, see C&E I-117 (review 2026-11-06-design-r2#3, D-067); Ex ia IIC T4 Ga"}
+  - {tag: PIA-116, service: "Cathode pressure at the stack inlet (CO2-101, the feed header downstream of every feed, beside PSE-101)", sheet: P-01, notes: "alarm PAH; high-high trips with PIA-123, see C&E I-111 (where the disc is, review 2026-11-06-design-r2#6); with PIA-113 the membrane's pressure difference at the inlet end, see C&E I-117 (D-067); Ex ia IIC T4 Ga"}
+  - {tag: XS-101, service: "Burst indicator of the bursting disc PSE-101 (RL-101)", sheet: P-01, notes: "a burst disc trips U-101 and closes FV-102, see C&E I-111 (review 2026-11-06-design-r2#7, D-067); a passive circuit, Ex ia"}
   - {tag: AIA-114, service: "H2 (and CO) in the anode O2 at the reservoir vent O2V-101 (the T-101 head space gas)", sheet: P-01, notes: "analyser for an O2-rich sample (vendor); alarm AH at 0.4 vol% H2 (10 % of the lower flammability limit of H2 in O2, about 4 vol%), trip AHH at 1.0 vol% (25 %), both ASSUMED for the team, see C&E I-116 (D-061); its sample point and response time are the vendor's"}
   - {tag: EIA-105A, service: "Stack E-101A voltage (on the DC bus at U-101)", sheet: P-01, notes: "alarm on a deviation from the mean of the four stacks (0.3 V, ASSUMED) and on high voltage (D-063)"}
   - {tag: EIA-105B, service: "Stack E-101B voltage (on the DC bus at U-101)", sheet: P-01, notes: "as EIA-105A"}
@@ -39,9 +46,11 @@ instruments:
   - {tag: IIA-106B, service: "Stack E-101B current (DC current sensor on its cable at U-101)", sheet: P-01, notes: "as IIA-106A"}
   - {tag: IIA-106C, service: "Stack E-101C current (DC current sensor on its cable at U-101)", sheet: P-01, notes: "as IIA-106A"}
   - {tag: IIA-106D, service: "Stack E-101D current (DC current sensor on its cable at U-101)", sheet: P-01, notes: "as IIA-106A"}
-  - {tag: PIA-123, service: "Cathode gas pressure at the stack outlet (CG-101), independent of PIC-121", sheet: P-01, notes: "alarm PAH; high-high trip, see C&E I-111 (D-060); with PIA-113 the membrane's pressure difference (I-117)"}
+  - {tag: PIA-123, service: "Cathode gas pressure at the stack outlet (CG-101), independent of PIC-121", sheet: P-01, notes: "alarm PAH; high-high trip with PIA-116, see C&E I-111 (D-060, D-067); with PIA-115 (the anolyte at the stack outlet) the membrane's pressure difference at the outlet end (I-117)"}
   - {tag: LIA-124, service: "Condensate level in V-121, independent of LIC-122 (its own connection N5)", sheet: P-01, notes: "low-low closes XV-125 (C&E I-118), high-high stops K-131 (C&E I-119) (D-061)"}
-  - {tag: PIA-132, service: "K-131 discharge pressure (CG-103)", sheet: P-01, notes: "alarm PAH; high-high stops K-131 below PSE-132's bursting pressure, see C&E I-112 (D-060); shows the depressurisation of CG-103 and X-131 at a stop (D-061)"}
+  - {tag: XY-125, service: "Solenoid of the condensate trip valve XV-125 (CD-101), a safety I/O output", sheet: P-01, notes: "de-energised closes XV-125 (fail closed), see C&E I-118 (review 2026-11-06-design-r2#1, D-067)"}
+  - {tag: PIA-132, service: "K-131 discharge pressure (CG-103)", sheet: P-01, notes: "alarm PAH; high-high stops K-131 below K-131's own hydraulic limit of 6.5 bar(g), see C&E I-112 (D-060; review 2026-11-06-design-r2#5); shows the depressurisation of CG-103 and X-131 at a stop (D-061)"}
+  - {tag: XY-134, service: "Solenoid of the PSA recycle trip valve XV-134 (CO2-102), a safety I/O output", sheet: P-01, notes: "de-energised closes XV-134 (fail closed), see C&E I-103, I-104, I-109, I-110, I-112, I-113, I-119; the stop sequences close it (review 2026-11-06-design-r2#1, D-067)"}
   - {tag: PSLL-151, service: "Instrument air pressure low-low at the Skid A air header (not drawn)", sheet: P-01, notes: "trips U-101 and stops K-131, see C&E I-114 (D-060); the air header and its supply are the site's"}
   - {tag: AIA-141, service: "CO detector at the Skid A gas train (open skid, D-050)", sheet: P-01, notes: "ASSUMED location at the compressor and PSA; certified for gas group IIC (D-051); see C&E I-103"}
   - {tag: AIA-142, service: "H2 detector at Skid A (open skid, D-050)", sheet: P-01, notes: "ASSUMED location high over the stack row and the PSA; certified for gas group IIC (D-051); see C&E I-104"}
@@ -61,7 +70,10 @@ instruments:
   - {tag: LIC-201, service: "Anolyte level in T-201 (make-up water, LV-201)", sheet: P-02, notes: "loop LIC-201"}
   - {tag: LIA-202, service: "Anolyte level in T-201, independent of LIC-201", sheet: P-02, notes: "alarms LAL, LAH; low-low trip, see C&E I-202; high-high (90 % of the tank, ASSUMED) closes the make-up LV-201, see C&E I-221, and sounds at the fill connection (D-061)"}
   - {tag: LIA-203, service: "5 M KOH level in the day tank T-202", sheet: P-02, notes: "alarms LAL: refill (weekly, ASSUMED), LAH and LAHH (90 %, ASSUMED) with a horn and beacon at the refill connection HV-205 (D-061); low-low stops P-202, see C&E I-208"}
-  - {tag: PIA-213, service: "Anolyte pressure at the stack inlet (AN-203)", sheet: P-02, notes: "as PIA-113; see C&E I-217"}
+  - {tag: PIA-213, service: "Anolyte pressure at the stack inlet (AN-203)", sheet: P-02, notes: "as PIA-113, with PIA-216; see C&E I-217"}
+  - {tag: PIA-215, service: "Anolyte pressure at the stack outlet (AN-204, the return header at stack D)", sheet: P-02, notes: "as PIA-115, with PIA-223; see C&E I-217"}
+  - {tag: PIA-216, service: "Cathode pressure at the stack inlet (CO2-201, the feed header downstream of every feed, beside PSE-201)", sheet: P-02, notes: "as PIA-116; see C&E I-211, I-217"}
+  - {tag: XS-201, service: "Burst indicator of the bursting disc PSE-201 (RL-201)", sheet: P-02, notes: "as XS-101; see C&E I-211"}
   - {tag: AIA-214, service: "H2 (and CO) in the anode O2 at the reservoir vent O2V-201 (the T-201 head space gas)", sheet: P-02, notes: "as AIA-114; see C&E I-216"}
   - {tag: EIA-205A, service: "Stack E-201A voltage (on the DC bus at U-201)", sheet: P-02, notes: "as EIA-105A"}
   - {tag: EIA-205B, service: "Stack E-201B voltage (on the DC bus at U-201)", sheet: P-02, notes: "as EIA-105A"}
@@ -74,6 +86,8 @@ instruments:
   - {tag: PIA-223, service: "Cathode gas pressure at the stack outlet (CG-201), independent of PIC-221", sheet: P-02, notes: "as PIA-123; see C&E I-211, I-217"}
   - {tag: LIA-224, service: "Condensate level in V-221, independent of LIC-222 (its own connection N5)", sheet: P-02, notes: "as LIA-124; see C&E I-218, I-219"}
   - {tag: PIA-232, service: "K-231 discharge pressure (CG-203)", sheet: P-02, notes: "as PIA-132; see C&E I-212"}
+  - {tag: XY-225, service: "Solenoid of the condensate trip valve XV-225 (CD-201), a safety I/O output", sheet: P-02, notes: "as XY-125; see C&E I-218"}
+  - {tag: XY-234, service: "Solenoid of the PSA recycle trip valve XV-234 (CO2-202), a safety I/O output", sheet: P-02, notes: "as XY-134; see C&E I-203, I-204, I-209, I-210, I-212, I-213, I-219"}
   - {tag: PSLL-251, service: "Instrument air pressure low-low at the Skid B air header (not drawn)", sheet: P-02, notes: "as PSLL-151; see C&E I-214"}
   - {tag: FIC-203, service: "Anolyte bleed flow (FV-203)", sheet: P-02, notes: "loop FIC-203; closed with the current off, see C&E I-207"}
   - {tag: AIA-241, service: "CO detector at the Skid B gas train (open skid, D-050)", sheet: P-02, notes: "ASSUMED location at the compressor and PSA; certified for gas group IIC (D-051); see C&E I-203"}

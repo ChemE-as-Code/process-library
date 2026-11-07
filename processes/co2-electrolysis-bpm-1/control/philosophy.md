@@ -28,7 +28,7 @@ failures:
     sequences: [SEQ-A-TRIP, SEQ-B-TRIP]
   - id: F-MEMBRANE
     title: Gas through the membrane (H2 in the anode O2, the pressure difference out of its window)
-    response: "H2 in the anode O2 at the reservoir vent (AIA-x14) trips the current at 1 vol% (I-116, I-216); the anolyte inlet against the cathode outlet pressure (PIA-x13, PIA-x23) outside its window trips it as well (I-117, I-217); the stacks are checked before any restart (SEQ-x-TRIP; D-061)."
+    response: "H2 in the anode O2 at the reservoir vent (AIA-x14) trips the current at 1 vol% (I-116, I-216); the anolyte against the cathode pressure at each end of the stacks (the inlet PIA-x13 and PIA-x16, the outlet PIA-x15 and PIA-x23) outside its window trips it as well (I-117, I-217; D-067, review 2026-11-06-design-r2#3); the stacks are checked before any restart (SEQ-x-TRIP; D-061)."
     interlocks: [I-116, I-117, I-216, I-217]
     sequences: [SEQ-A-TRIP, SEQ-B-TRIP]
   - id: F-POWER

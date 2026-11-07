@@ -88,7 +88,10 @@ feeders:
      source: "ASSUMED: no power in the flowsheet; the oxidiser's combustion air fan, igniter and burner management (D-031 item 10), TBD vendor"}
   - {tag: F-U201, point: [27.45, 11.7, 1.35], power_kw: 4.1, power_factor: 0.95, assumed: true,
      source: "the DC output rating over the efficiency, as F-U101 (operating duty flowsheet Q201 3.164 kW)"}
-  - {tag: F-X231, point: [23.6, 9.75, 1.95], power_kw: 0.1, power_factor: 0.8, assumed: true,
+  # 0.25 m further south on the package's top (D-068: at y 9.75 the branch, which now has to
+  # cross the tail gas above 2.7 m, came down west of the package 0.92 m in plan from
+  # O2V-201's outlet, inside the vent's 1 m clearance; from here it drops east of it)
+  - {tag: F-X231, point: [23.6, 9.5, 1.95], power_kw: 0.1, power_factor: 0.8, assumed: true,
      source: "flowsheet Q204 0.050 kW, as F-X131"}
   - {tag: F-X232, point: [30.8, 8.05, 0.9], power_kw: 0.5, power_factor: 0.8, assumed: true,
      source: "ASSUMED: as F-X132, the panel east of TG-201's east leg (D-065)"}
@@ -160,11 +163,25 @@ instruments:
   # P&ID revision C (D-060 to D-062): the transmitters on the DN 15 lines, beside the items
   # their line joins, inside the frame and out of the stacks' hand room (ASSUMED). The
   # instrument air switch PSLL-x51 stands on the site's air header (not modelled); the tight
-  # shut-offs XV-x25 and XV-x34 are cabled with the safety I/O like XV-x33 (their points with
-  # the detail design)
+  # shut-offs XV-x25 and XV-x34 are cabled with the safety I/O like XV-x33 (their points below,
+  # revision D)
   - {tag: FIC-104, point: [8.9, 8.35, 0.4], notes: "total cathode CO2 on CO2-101 (DN 15), downstream of the recycle tee (D-062)"}
   - {tag: PIA-123, point: [9.6, 8.75, 0.5], notes: "cathode gas pressure on CG-101 (DN 15) at V-121's inlet (D-060)"}
   - {tag: PIA-132, point: [9.6, 9.55, 0.6], notes: "K-131 discharge pressure on CG-103 (DN 15) (D-060)"}
+  # P&ID revision D (D-067, D-068; review 2026-11-06-layout-r4#5): the trip valves XV-x25 and
+  # XV-x34 (their solenoids, Ex ia, from the safety I/O outputs XY-x25 and XY-x34, which are
+  # functions in the control system, not field devices), the cathode inlet pressure PIA-x16
+  # and the burst indicator XS-x01 at PSE-x01 on the DN 15 lines beside the items their lines
+  # join; the H2-in-O2 analyser AIA-x14 on the deck north of the reservoir, 1.2 m up, within
+  # reach for its calibration, its sample line from O2V-x01 (the vendor's); the instrument air
+  # switch PSLL-x51 is the site's tie-in on its air header, not modelled. Core gives a valve
+  # it cannot place on a routed line a single-pair cable: the three pairs of XV-x33's (solenoid
+  # and two limit switches) are the detail design's (D-045)
+  - {tag: XV-125, point: [9.6, 8.3, 0.3], notes: "condensate trip valve on CD-101 (DN 15) downstream of LV-122 (D-061, D-067): its solenoid, Ex ia; closed by I-118 through XY-125"}
+  - {tag: XV-134, point: [8.75, 8.7, 0.4], notes: "PSA recycle trip valve on CO2-102 (DN 15) (D-062, D-067): its solenoid, Ex ia; closed through XY-134"}
+  - {tag: PIA-116, point: [11.0, 8.0, 0.4], notes: "cathode pressure at the stack inlet on the feed header CO2-101 (DN 15) by PSE-101 (D-067)"}
+  - {tag: XS-101, point: [11.1, 8.3, 0.5], notes: "PSE-101's burst indicator on RL-101 (DN 15) (D-067)"}
+  - {tag: AIA-114, point: [6.9, 9.6, 1.2], notes: "H2-in-O2 analyser on the deck north of T-101, its sample line from O2V-101 (D-061, D-068)"}
   # Skid B
   - {tag: TV-211, point: [23.65, 7.6, 0.5], notes: "tempered water to E-211 (TWS-201, DN 15)"}
   - {tag: FIC-202, point: [24.05, 8.35, 0.4], notes: "fresh CO2 CO2-201 (DN 15), west of the stack row"}
@@ -185,6 +202,11 @@ instruments:
   - {tag: FIC-204, point: [23.9, 8.35, 0.4], notes: "total cathode CO2 on CO2-201 (DN 15), as FIC-104"}
   - {tag: PIA-223, point: [24.6, 8.75, 0.5], notes: "cathode gas pressure on CG-201 (DN 15), as PIA-123"}
   - {tag: PIA-232, point: [24.6, 9.55, 0.6], notes: "K-231 discharge pressure on CG-203 (DN 15), as PIA-132"}
+  - {tag: XV-225, point: [24.6, 8.3, 0.3], notes: "condensate trip valve on CD-201, as XV-125"}
+  - {tag: XV-234, point: [23.75, 8.7, 0.4], notes: "PSA recycle trip valve on CO2-202, as XV-134"}
+  - {tag: PIA-216, point: [26.05, 8.0, 0.4], notes: "cathode pressure at the stack inlet on CO2-201, as PIA-116"}
+  - {tag: XS-201, point: [26.1, 8.3, 0.5], notes: "PSE-201's burst indicator on RL-201, as XS-101"}
+  - {tag: AIA-214, point: [22.1, 9.7, 1.2], notes: "H2-in-O2 analyser on the deck north of T-201, as AIA-114"}
 notes: >-
   ASSUMED (D-045): the host site's 400 V board SDB-1 and control room CR-1 off the plot to the
   east, the cables along PR-1; one junction box per skid; the 48 V DC bus of each skid its own

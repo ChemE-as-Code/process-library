@@ -17,6 +17,10 @@
 # PSA's own stop into the tail gas while the oxidiser still fires (PIA-x32), before XV-x33 closes;
 # the compressor-stop, instrument-air and condensate high-high trips isolate the train as a gas
 # trip does (SEQ-x-GAS, whose reset now includes the burner management trip I-x10).
+# Revision D (the design review 2026-11-06-design-r2#2, D-067): every stop step (SEQ-x-STOP S3,
+# SEQ-x-TRIP S2, SEQ-x-GAS S4) closes the fresh CO2 FV-x02 and the recycle XV-x34 FIRST, lets
+# K-x31 draw the cathode side down to a stated residual 0.05 bar(g) on PIC-x21, and only then
+# stops K-x31: no feed into a blocked cathode, and an end condition the plant can reach.
 # A campaign is one run of duration H (process/design-basis.yaml capacity.pilot_skid): Skid A
 # on one fill, Skid B on a fill kept by dosing, bleed and make-up (D-009, D-010).
 schema: cheme/sequences/v1
@@ -132,15 +136,17 @@ sequences:
           - {text: "keep FIC-104 (with FIC-102 in cascade), PIC-121, the PSA and the oxidiser in automatic", by: operator}
         complete: {text: "cathode gas free of CO and H2 (sampled)", delay: {value: 15, unit: min}}
       - id: S3
-        title: Stop the compressor and the feed, depressurise through the PSA to the oxidiser
+        title: Close the feed, draw the cathode down with the compressor, then stop it and depressurise through the PSA to the oxidiser
         actions:
-          - {tag: K-131, action: stop, by: operator}
           - {loop: FIC-104, action: manual, by: operator}
           - {loop: FIC-102, action: manual, by: operator}
+          - {tag: FV-102, action: close, by: operator}
           - {tag: XV-134, action: close, by: operator}
+          - {loop: PIC-121, action: setpoint, setpoint: {value: 106, unit: kPa(a), provenance: assumed, source: "ASSUMED residual 0.05 bar(g): above atmospheric so no air is drawn in, below PIC-121's PAH and the I-111 trip (D-067)"}, by: operator}
+          - {tag: K-131, action: stop, by: operator}
           - {tag: X-131, action: stop, by: operator}
-        complete: {all: [{text: "PIA-132 at about 0 bar(g): CG-103 and X-131 depressurised", delay: {value: 5, unit: min}}, {text: "PIA-123 at about 0 bar(g)"}]}
-        operator: "Review 2026-11-06-design #4 (D-061): the PSA's own stop sequence depressurises its beds and the feed line CG-103 into the tail gas, through the open XV-133 to the oxidiser still firing (a requirement of the package specification, the vendor's to confirm); PIA-132 shows it. The current is off, so I-113 is not armed."
+        complete: {all: [{text: "before K-131 stops: FV-102 closed and PIA-123 and PIA-116 at the residual 0.05 bar(g) (106 kPa(a)), the cathode side drawn down"}, {text: "PIA-132 at about 0 bar(g): CG-103 and X-131 depressurised", delay: {value: 5, unit: min}}]}
+        operator: "Review 2026-11-06-design-r2#2 (D-067): the fresh CO2 closes FIRST (FIC-104 and FIC-102 in manual at 0 % output, FV-102 closed) and the recycle XV-134 with it, so no CO2 feeds a cathode whose outlet is about to stop; K-131 keeps running on PIC-121, its set point lowered to the residual 106 kPa(a), and draws the cathode side (the stacks' cathodes, CG-101, V-121, CG-102) down to it in a few minutes (about 30 L of gas); only then K-131 stops. The cathode side is left closed under CO2 at that small positive pressure, below PIC-121's PAH and the I-111 trip, so no air enters and nothing vents; the next start-up purges it to the oxidiser (SEQ-A-START S3). The membrane's pressure difference stays inside I-117's window (anolyte minus cathode about +35 kPa at the inlet end and -5 kPa at the outlet end while P-101 circulates). Then the PSA's own stop sequence depressurises its beds and the feed line CG-103 into the tail gas, through the open XV-133 to the oxidiser still firing (D-061, a requirement of the package specification, the vendor's to confirm); PIA-132 shows it. The current is off, so I-113 is not armed."
       - id: S4
         title: Close the tail gas, stop the oxidiser
         actions:
@@ -171,15 +177,17 @@ sequences:
         complete: {tag: U-101, state: "off"}
         operator: "Keep the CO2 purge and the oxidiser until the cathode gas is free of CO and H2; P-101 runs unless I-102 stopped it. A process trip (I-101, I-102, I-105, I-106, I-115, I-116, I-117, I-120) leaves FV-102, K-131, XV-133 and XV-134 free; I-111 closes FV-102 until it is reset, so the purge waits for the cause (the pressure, or a burst PSE-101) to be found. The trips that stop K-131 or close XV-133 (I-103, I-104, I-109, I-110, I-112, I-113, I-114, I-119) isolate the train: SEQ-A-GAS."
       - id: S2
-        title: Stop the compressor and the feed, depressurise through the PSA to the oxidiser
+        title: Close the feed, draw the cathode down with the compressor, then stop it and depressurise through the PSA to the oxidiser
         actions:
-          - {tag: K-131, action: stop, by: operator}
           - {loop: FIC-104, action: manual, by: operator}
           - {loop: FIC-102, action: manual, by: operator}
+          - {tag: FV-102, action: close, by: operator}
           - {tag: XV-134, action: close, by: operator}
+          - {loop: PIC-121, action: setpoint, setpoint: {value: 106, unit: kPa(a), provenance: assumed, source: "ASSUMED residual 0.05 bar(g), as SEQ-A-STOP S3 (D-067)"}, by: operator}
+          - {tag: K-131, action: stop, by: operator}
           - {tag: X-131, action: stop, by: operator}
-        complete: {all: [{text: "PIA-132 at about 0 bar(g): CG-103 and X-131 depressurised", delay: {value: 5, unit: min}}, {text: "PIA-123 at about 0 bar(g)"}]}
-        operator: As SEQ-A-STOP S3 (the PSA's stop depressurises it through XV-133 to the oxidiser still firing, D-061).
+        complete: {all: [{text: "before K-131 stops: FV-102 closed and PIA-123 and PIA-116 at the residual 0.05 bar(g) (106 kPa(a)), the cathode side drawn down"}, {text: "PIA-132 at about 0 bar(g): CG-103 and X-131 depressurised", delay: {value: 5, unit: min}}]}
+        operator: "As SEQ-A-STOP S3 (D-067): FV-102 closes first, K-131 draws the cathode side down to the residual pressure and only then stops; the PSA's stop depressurises it through XV-133 to the oxidiser still firing (D-061). After I-111 FV-102 is already closed by the trip."
       - id: S3
         title: Close the tail gas, stop the oxidiser
         actions:
@@ -232,15 +240,17 @@ sequences:
         complete: {text: "cathode gas free of CO and H2 (sampled)", delay: {value: 15, unit: min}}
         operator: The oxidiser fires (I-110 reset) before XV-133 opens and the purge reaches it (no CO or H2 vented, D-012, D-054); K-131 starts with the CO2, as in SEQ-A-START S3; stop at once if AIA-141, AIA-142 or TSHH-133 alarms again.
       - id: S4
-        title: Stop the compressor and the feed, depressurise through the PSA to the oxidiser
+        title: Close the feed, draw the cathode down with the compressor, then stop it and depressurise through the PSA to the oxidiser
         actions:
-          - {tag: K-131, action: stop, by: operator}
           - {loop: FIC-104, action: manual, by: operator}
           - {loop: FIC-102, action: manual, by: operator}
+          - {tag: FV-102, action: close, by: operator}
           - {tag: XV-134, action: close, by: operator}
+          - {loop: PIC-121, action: setpoint, setpoint: {value: 106, unit: kPa(a), provenance: assumed, source: "ASSUMED residual 0.05 bar(g), as SEQ-A-STOP S3 (D-067)"}, by: operator}
+          - {tag: K-131, action: stop, by: operator}
           - {tag: X-131, action: stop, by: operator}
-        complete: {all: [{text: "PIA-132 at about 0 bar(g): CG-103 and X-131 depressurised", delay: {value: 5, unit: min}}, {text: "PIA-123 at about 0 bar(g)"}]}
-        operator: As SEQ-A-STOP S3 (D-061).
+        complete: {all: [{text: "before K-131 stops: FV-102 closed and PIA-123 and PIA-116 at the residual 0.05 bar(g) (106 kPa(a)), the cathode side drawn down"}, {text: "PIA-132 at about 0 bar(g): CG-103 and X-131 depressurised", delay: {value: 5, unit: min}}]}
+        operator: "As SEQ-A-STOP S3 (D-061, D-067): FV-102 closes first, K-131 draws the cathode side down to the residual pressure and only then stops."
       - id: S5
         title: Close the tail gas, stop the oxidiser
         actions:
@@ -451,15 +461,17 @@ sequences:
           - {text: "keep FIC-204 (with FIC-202 in cascade), PIC-221, the PSA and the oxidiser in automatic", by: operator}
         complete: {text: "cathode gas free of CO and H2 (sampled)", delay: {value: 15, unit: min}}
       - id: S3
-        title: Stop the compressor and the feed, depressurise through the PSA to the oxidiser
+        title: Close the feed, draw the cathode down with the compressor, then stop it and depressurise through the PSA to the oxidiser
         actions:
-          - {tag: K-231, action: stop, by: operator}
           - {loop: FIC-204, action: manual, by: operator}
           - {loop: FIC-202, action: manual, by: operator}
+          - {tag: FV-202, action: close, by: operator}
           - {tag: XV-234, action: close, by: operator}
+          - {loop: PIC-221, action: setpoint, setpoint: {value: 106, unit: kPa(a), provenance: assumed, source: "ASSUMED residual 0.05 bar(g), as SEQ-A-STOP S3 (D-067)"}, by: operator}
+          - {tag: K-231, action: stop, by: operator}
           - {tag: X-231, action: stop, by: operator}
-        complete: {all: [{text: "PIA-232 at about 0 bar(g): CG-203 and X-231 depressurised", delay: {value: 5, unit: min}}, {text: "PIA-223 at about 0 bar(g)"}]}
-        operator: As SEQ-A-STOP S3 (the PSA's stop depressurises it through XV-233 to the oxidiser still firing, D-061).
+        complete: {all: [{text: "before K-231 stops: FV-202 closed and PIA-223 and PIA-216 at the residual 0.05 bar(g) (106 kPa(a)), the cathode side drawn down"}, {text: "PIA-232 at about 0 bar(g): CG-203 and X-231 depressurised", delay: {value: 5, unit: min}}]}
+        operator: "As SEQ-A-STOP S3 (D-061, D-067): FV-202 closes first, K-231 draws the cathode side down to the residual pressure and only then stops; the PSA's stop depressurises it through XV-233 to the oxidiser still firing."
       - id: S4
         title: Close the tail gas, stop the oxidiser
         actions:
@@ -492,15 +504,17 @@ sequences:
         complete: {all: [{tag: U-201, state: "off"}, {interlock: I-207, state: tripped}]}
         operator: "As SEQ-A-TRIP S1: keep the CO2 purge and the oxidiser until the cathode gas is free of CO and H2. A process trip (I-201, I-202, I-205, I-206, I-215, I-216, I-217, I-220) leaves FV-202, K-231, XV-233 and XV-234 free; I-211 closes FV-202 until it is reset. The trips that stop K-231 or close XV-233 (I-203, I-204, I-209, I-210, I-212, I-213, I-214, I-219) isolate the train: SEQ-B-GAS."
       - id: S2
-        title: Stop the compressor and the feed, depressurise through the PSA to the oxidiser
+        title: Close the feed, draw the cathode down with the compressor, then stop it and depressurise through the PSA to the oxidiser
         actions:
-          - {tag: K-231, action: stop, by: operator}
           - {loop: FIC-204, action: manual, by: operator}
           - {loop: FIC-202, action: manual, by: operator}
+          - {tag: FV-202, action: close, by: operator}
           - {tag: XV-234, action: close, by: operator}
+          - {loop: PIC-221, action: setpoint, setpoint: {value: 106, unit: kPa(a), provenance: assumed, source: "ASSUMED residual 0.05 bar(g), as SEQ-A-STOP S3 (D-067)"}, by: operator}
+          - {tag: K-231, action: stop, by: operator}
           - {tag: X-231, action: stop, by: operator}
-        complete: {all: [{text: "PIA-232 at about 0 bar(g): CG-203 and X-231 depressurised", delay: {value: 5, unit: min}}, {text: "PIA-223 at about 0 bar(g)"}]}
-        operator: As SEQ-A-STOP S3 (D-061).
+        complete: {all: [{text: "before K-231 stops: FV-202 closed and PIA-223 and PIA-216 at the residual 0.05 bar(g) (106 kPa(a)), the cathode side drawn down"}, {text: "PIA-232 at about 0 bar(g): CG-203 and X-231 depressurised", delay: {value: 5, unit: min}}]}
+        operator: "As SEQ-A-TRIP S2 (D-061, D-067)."
       - id: S3
         title: Close the tail gas, stop the oxidiser
         actions:
@@ -555,15 +569,17 @@ sequences:
         complete: {text: "cathode gas free of CO and H2 (sampled)", delay: {value: 15, unit: min}}
         operator: The oxidiser fires (I-210 reset) before XV-233 opens and the purge reaches it (no CO or H2 vented, D-012, D-054); stop at once if AIA-241, AIA-242 or TSHH-233 alarms again.
       - id: S4
-        title: Stop the compressor and the feed, depressurise through the PSA to the oxidiser
+        title: Close the feed, draw the cathode down with the compressor, then stop it and depressurise through the PSA to the oxidiser
         actions:
-          - {tag: K-231, action: stop, by: operator}
           - {loop: FIC-204, action: manual, by: operator}
           - {loop: FIC-202, action: manual, by: operator}
+          - {tag: FV-202, action: close, by: operator}
           - {tag: XV-234, action: close, by: operator}
+          - {loop: PIC-221, action: setpoint, setpoint: {value: 106, unit: kPa(a), provenance: assumed, source: "ASSUMED residual 0.05 bar(g), as SEQ-A-STOP S3 (D-067)"}, by: operator}
+          - {tag: K-231, action: stop, by: operator}
           - {tag: X-231, action: stop, by: operator}
-        complete: {all: [{text: "PIA-232 at about 0 bar(g): CG-203 and X-231 depressurised", delay: {value: 5, unit: min}}, {text: "PIA-223 at about 0 bar(g)"}]}
-        operator: As SEQ-A-STOP S3 (D-061).
+        complete: {all: [{text: "before K-231 stops: FV-202 closed and PIA-223 and PIA-216 at the residual 0.05 bar(g) (106 kPa(a)), the cathode side drawn down"}, {text: "PIA-232 at about 0 bar(g): CG-203 and X-231 depressurised", delay: {value: 5, unit: min}}]}
+        operator: "As SEQ-A-GAS S4 (D-061, D-067)."
       - id: S5
         title: Close the tail gas, stop the oxidiser
         actions:

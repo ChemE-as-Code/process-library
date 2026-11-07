@@ -113,8 +113,10 @@ found and the trip reset (SEQ-A-GAS); so do the compressor stopping with the cur
 (I-113), its discharge high-high (I-112), the instrument air low-low (I-114) and the condensate
 high-high (I-119). The start-up gives the train its outlet before the CO2 flows, and every stop
 depressurises CG-103 and the PSA through the PSA's own stop to the oxidiser still firing
-(D-061). The cathode side has the bursting disc PSE-101 and its pressure high-high (I-111,
-D-060).
+(D-061); a normal stop closes the fresh CO2 first and lets the compressor draw the cathode
+down to a small positive residual pressure before it stops (D-067). The cathode side has the
+bursting disc PSE-101 and its pressure high-high on the feed header and at the stack outlet
+(I-111, D-060, D-067); the tail gas's two low points have drip legs (D-068).
 
 **Assumptions and open points.** The packages are black boxes (recovery, recycle, energy
 ASSUMED); the relief study and the cathode salt precipitation are open; the arrester's type

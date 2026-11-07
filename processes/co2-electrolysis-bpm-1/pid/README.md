@@ -19,3 +19,9 @@ DEXPI 2.0.1 XML, one file per sheet. Start a new one with the `pid-draft` skill.
   (with XV-x34) and W-202, the instrument air PSLL-x51; on P-02 HV-210, BPV-202 and P-202's
   relief note. The relief device is drawn as a bursting disc (core 1.10's authoring API has no
   inline safety-valve symbol).
+  Revision D (2026-11-07, the agent reviews 2026-11-06-design-r2 and 2026-11-06-layout-r4,
+  D-067 to D-069): XV-x25 and XV-x34 drawn as trip valves with their fail-closed actuators and
+  the safety I/O outputs XY-x25 and XY-x34; the anolyte at the stack outlet PIA-x15 and the
+  cathode at the stack inlet PIA-x16 (the membrane's difference at each end); PSE-x01's burst
+  indicator XS-x01; a drip leg with a valved, capped drain at each low point of the tail gas
+  (DR-x02 / HV-x11, DR-x03 / HV-x12); the AV-x11 note clear of the cooler.
