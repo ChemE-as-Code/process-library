@@ -516,6 +516,35 @@ scenarios, 54 actions; H-02 94, 57); 19 safeguards were added to H-01 (60) and 2
 The team confirms or changes each credit; none of the new trips has a SIL yet (H01-A112,
 H02-A104).
 
+#### 3.6.2 P&ID revision D: the second agent reviews' fixes (2026-11-07)
+
+The agent design review round 2 (`reviews/2026-11-06-design-r2.md`) and layout review round 4
+(`reviews/2026-11-06-layout-r4.md`) led to P&ID revision D and DESIGN.md D-067 to D-069, again
+**agent design decisions under the owner's delegation, to be confirmed by the team**; the
+studies were revised by stable id (D-070), every entry `status: proposed`, `by: agent`, and
+re-stamped:
+
+- **The trip valves** XV-x25 and XV-x34 are drawn with their fail-closed actuators and the
+  safety I/O outputs XY-x25 and XY-x34 (the register's I-x18 and XV-x34 entries).
+- **The normal stop** (SEQ-x-STOP S3, -TRIP S2, -GAS S4): FV-x02 and XV-x34 close first, K-x31
+  draws the cathode side down to a residual 0.05 bar(g) and only then stops (SEQ-x-DEPRESS).
+- **The membrane's pressure difference** is measured at each end of the stacks (PIA-x13 with
+  PIA-x16 at the inlet, PIA-x15 with PIA-x23 at the outlet), the window -20 to +60 kPa
+  (ASSUMED); the design point has the cathode about 9 kPa above the anolyte at the outlet end,
+  for the stack vendor (H01-A103, H02-A401).
+- **The cathode relief**: the high-high also beside the disc (PIA-x16), the burst indicator
+  tagged XS-x01, the outlet reserved west of each frame at 5.5 m with the condensate
+  collection's vent (zone 1 within 3 m, ASSUMED); I-x11 is no longer credited on H01-S305 /
+  H02-S303, whose cause (FV-x02 failing open) defeats its only supply-side final element: both
+  move from low to **medium** (people 4/B).
+- **The tail gas's low points**: a drip leg with a valved, capped drain at each low point of the
+  overhead TG-x01, the overhead falling away from the arrester, trace heating and insulation
+  (ASSUMED): the new H01-S612 / H02-S615 (asset 2, E to C, **low**), actions H01-A606 /
+  H02-A605.
+
+Worst residual bands now: H-01 **15 high, 41 medium, 23 low** (79 scenarios, 55 actions, 61
+safeguards); H-02 **25 high, 41 medium, 29 low** (95 scenarios, 58 actions, 69 safeguards).
+
 ### 3.7 Hazards judged not applicable, or only partly
 
 The spec's list of hazards to examine is covered in both studies, except:
