@@ -3,8 +3,10 @@
 # radius table, not by an area classification. The cathode gas is about 56 mol% H2 with CO and
 # CO2 (process/flowsheet.yaml), the PSA product is CO: both flammable (CO also toxic). The
 # host site's classification (IEC 60079-10-1) replaces these, made or reviewed by a competent
-# person (skill area-classification); the gas detection and the extract fan K-x41 of
-# control/cause-effect.yaml are not credited here.
+# person (skill area-classification); the gas detection of control/cause-effect.yaml is not
+# credited here. The skids are open and naturally ventilated (D-050): no enclosure, at most a
+# rain canopy over the rectifier and the junction boxes; any roof over the gas train is the
+# competent person's to judge.
 schema: cheme/zones/v1
 zones:
   # ---- hydrogen and carbon monoxide, secondary grade sources: zone 2
@@ -12,10 +14,11 @@ zones:
   # (D-047, layout review 2026-11-05-layout#2): it is no source here. Its tail gas TG-x01
   # (DN 15) leaves the PSA through a flame arrester at X-x31's outlet, inside X-x31's zone, and
   # is all-welded from there to the burner, so no flanged joint of it stands outside this zone
-  # (ASSUMED; the flame arrester is a P&ID item, open, D-047). The ignition sources (U-x01,
-  # X-x32) keep the zone radius plus 0.5 m to the outline of every source item, because core
-  # centres each sphere on the item, not on its flanges (layout/layout-checks.yaml, regen
-  # step 13; review finding 2026-11-05-layout#3).
+  # (the detonation arrester FA-x33, D-054). The ignition sources (U-x01, X-x32, both off the
+  # frame on plinths at grade, D-057) keep the zone radius plus 0.5 m to the outline of every
+  # source item joined with its nozzle points, because core centres each sphere on the item,
+  # not on its flanges (layout/layout-checks.yaml, regen step 13; review findings
+  # 2026-11-05-layout#3, 2026-11-05-layout-r2#1).
   - id: Z-HAZ-A
     title: "Skid A cathode gas train: stacks, separator, compressor and PSA"
     kind: hazardous
@@ -43,6 +46,51 @@ zones:
       - {item: K-231, release_grade: secondary, substance: hydrogen, source_kind: flange}
       - {item: X-231, release_grade: secondary, substance: carbon monoxide, source_kind: flange, substance_class: flammable_gas}
     basis: "As Z-HAZ-A, for Skid B (D-019)."
+  # ---- the reserved vent outlets of the cathode relief and the condensate collection (D-068,
+  # review 2026-11-06-layout-r4#3), ASSUMED until the relief and vent study. The bursting disc
+  # PSE-x01 relieves cathode gas (CO, H2, CO2) through RL-x01, and the condensate collection
+  # (the site's vented drum, D-061) vents what flashes off the condensate and any gas that
+  # passes XV-x25: both to one vent outlet per skid, 5.5 m above grade on a post WEST of the
+  # frame, where no ignition source, tray, stair, walkway or O2 vent is within the sphere. The
+  # lines are DN 15 skid small bore, not routed (piping/routing.yaml), so the outlet is
+  # declared here as an explicit volume: zone 1 within 3 m, the radius table's row for a relief
+  # outlet of a flammable gas (and a primary-grade vent), so it covers the collection's vent
+  # too. regen step 13 counts these volumes in the ignition check and their centres in the
+  # vent-tray check (layout/layout-checks.yaml); core's tray-zone rule checks the trays against
+  # them. The final outlet, its height and the relief line's back-pressure are the relief and
+  # vent study's, the zone the area classification's (competent person)
+  - id: Z-VENT-A
+    title: "Skid A vent outlet: cathode relief RL-101 and the condensate collection's vent"
+    kind: hazardous
+    zone: 1
+    shape: sphere
+    centre: [3.5, 10.0, 5.5]
+    radius: 3.0
+    basis: "ASSUMED: relief outlet of a flammable gas (rare, secondary) and the collection's vent (primary), zone 1 within 3 m, the package's radius table; the outlet reserved, its sizing the relief study's (D-060, D-068)."
+  - id: Z-VENT-B
+    title: "Skid B vent outlet: cathode relief RL-201 and the condensate collection's vent"
+    kind: hazardous
+    zone: 1
+    shape: sphere
+    centre: [18.3, 9.6, 5.5]
+    radius: 3.0
+    basis: "As Z-VENT-A, west of Skid B's frame (D-068)."
+  # ---- escape ways at grade round the skids (D-068, review 2026-11-06-layout-r4#1), ASSUMED:
+  # the ways a person takes from the foot of the east step ST-x2 north and east, and along the
+  # open strip between the tail gas and the rack north of the frame (to the junction box, the
+  # rectifier's DC isolation and the rack's end), kept clear to core's walkway headroom (core
+  # blocks pipes and trays under it and reports a pipe below it, rule headroom). Each box stops
+  # short of what stands in the way by design: the tail gas's posts and risers, the rectifier
+  # on its plinth, the junction box on its post and its tray drop, the rack's bents; the frame's
+  # deck is stepped onto, not a walkway (D-019)
+  - {id: ESC-A1, title: "Skid A: from the east step's foot north and east under the tail gas", kind: escape, shape: box, box: [11.6, 8.4, 0.0, 15.05, 10.7, 2.2], basis: "ASSUMED way off the deck (D-065, D-068)"}
+  - {id: ESC-A2, title: "Skid A: the strip between the tail gas and PR-1, west of the rectifier", kind: escape, shape: box, box: [7.4, 10.9, 0.0, 12.1, 12.8, 2.2], basis: "ASSUMED way to the junction box and the rack (D-068)"}
+  - {id: ESC-A3, title: "Skid A: the strip between the tail gas and PR-1, east of the rectifier", kind: escape, shape: box, box: [13.1, 10.9, 0.0, 15.05, 12.8, 2.2], basis: "ASSUMED way to the rectifier's DC isolation and the oxidiser (D-068)"}
+  - {id: ESC-A4, title: "Skid A: the strip between the frame and the tail gas, east of its riser", kind: escape, shape: box, box: [8.75, 10.0, 0.0, 11.5, 10.7, 2.2], basis: "ASSUMED way along the frame's north side (D-068)"}
+  - {id: ESC-B1, title: "Skid B: from the east step's foot north and east under the tail gas", kind: escape, shape: box, box: [26.6, 8.5, 0.0, 30.05, 10.7, 2.2], basis: "As ESC-A1 (D-068)"}
+  - {id: ESC-B2, title: "Skid B: the strip between the tail gas and PR-1, west of the rectifier", kind: escape, shape: box, box: [21.4, 10.9, 0.0, 27.1, 12.8, 2.2], basis: "As ESC-A2 (D-068)"}
+  - {id: ESC-B3, title: "Skid B: the strip between the tail gas and PR-1, east of the rectifier", kind: escape, shape: box, box: [28.1, 10.9, 0.0, 30.05, 12.8, 2.2], basis: "As ESC-A3 (D-068)"}
+  - {id: ESC-B4, title: "Skid B: the strip between the frame and the tail gas, east of its riser", kind: escape, shape: box, box: [23.75, 10.0, 0.0, 26.5, 10.7, 2.2], basis: "As ESC-A4 (D-068)"}
   # ---- crane pads and laydown areas of the lifting study (DESIGN.md D-043, D-047), ASSUMED
   # The skids are set and removed as 20 ft units, and T-101 alone, by a mobile crane standing on
   # hardstanding between the access road R-1 and each skid: the road (3 m) plus 3.5 m of

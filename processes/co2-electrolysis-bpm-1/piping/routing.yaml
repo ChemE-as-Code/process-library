@@ -3,7 +3,8 @@
 # drain, the O2 vents, the oxidiser flues); the DN 15 lines (cathode gas, CO2 feed, cooling
 # water, the small liquid lines of Skid B's dosing, make-up and bleed) are not routed at the
 # concept stage: skid small bore, run by the skid fabricator (each skipped below with that
-# reason). Every rule is ASSUMED (D-019).
+# reason), but the tail gas TG-x01 and the combustion air AIR-x01 to the oxidisers off the
+# frames, pinned (D-057). Every rule is ASSUMED (D-019).
 schema: cheme/routing/v1
 rules:
   # the skid pipe-way: local runs inside a skid 1.0 m above grade (0.85 m above the deck),
@@ -27,6 +28,12 @@ rules:
     - {id: BL-A-drain, lines: [SP-101], point: [5.65, 9.296, 0.3]}
     - {id: BL-B-fill, lines: [KOH-201], point: [20.65, 9.55, 0.9]}
     - {id: BL-B-drain, lines: [SP-201], point: [20.65, 8.876, 0.25]}
+    # the oxidisers' combustion air AIR-x01 (DN 15) is drawn from the open air by the package's
+    # own fan (feeder F-X132, F-X232) through a hooded, screened intake 0.49 m south of the
+    # package at its inlet's height, outside every zone (3 m or more from every zone source)
+    # and on the side away from the skid and the east step (ASSUMED, D-057; the vendor's)
+    - {id: BL-A-air, lines: [AIR-101], point: [14.55, 5.4, 0.6]}
+    - {id: BL-B-air, lines: [AIR-201], point: [29.55, 5.4, 0.6]}
   vents:
     # the O2 vents of the reservoirs and the oxidiser flues rise until a 1 m sphere around the
     # outlet clears every walking level up to the headroom (ASSUMED radius, until the vent study)
@@ -38,8 +45,9 @@ lines:
   # inlets' and the cooler outlet's level) 0.145 m north of the inlets (y 8.10), fed from the
   # cooler's lower east connection at its west end (AN-x03 S1 never rises above the cooler,
   # finding 2026-11-05-layout#4); a short stub south to each inlet. Its east end (stack D's
-  # stub) is the loop's low point, where the low-point drain belongs (a P&ID item, open,
-  # D-047). The return rises from each outlet to a header at 0.60 m over the outlets (y 7.955)
+  # stub) is the loop's low point: the low-point drain DR-x01 (DN 15, P&ID revision B, D-055)
+  # leaves a tee on the level header 0.12 m before its turn to stack D (S4 ends at the tee, S5
+  # runs on to the stack). The return rises from each outlet to a header at 0.60 m over the outlets (y 7.955)
   # and runs west, over the cooler and the pump, to the reservoir top; only its last segment
   # is generated: the reservoir's size and nozzles change with the campaign (D-009), so no
   # pinned route ends on T-101.
@@ -49,7 +57,8 @@ lines:
   - {line: AN-103, segment: Line_AN103_S1, route: [[8.822, 7.8, 0.225], [8.822, 8.1, 0.225], [9.23, 8.1, 0.225]]}
   - {line: AN-103, segment: Line_AN103_S2, route: [[9.23, 8.1, 0.225], [9.71, 8.1, 0.225]]}
   - {line: AN-103, segment: Line_AN103_S3, route: [[9.71, 8.1, 0.225], [10.19, 8.1, 0.225]]}
-  - {line: AN-103, segment: Line_AN103_S4, route: [[10.19, 8.1, 0.225], [10.67, 8.1, 0.225], [10.67, 7.955, 0.225]]}
+  - {line: AN-103, segment: Line_AN103_S4, route: [[10.19, 8.1, 0.225], [10.55, 8.1, 0.225]]}
+  - {line: AN-103, segment: Line_AN103_S5, route: [[10.55, 8.1, 0.225], [10.67, 8.1, 0.225], [10.67, 7.955, 0.225]]}
   - {line: AN-103A, segment: Line_AN103A_S1, route: [[9.23, 8.1, 0.225], [9.23, 7.955, 0.225]]}
   - {line: AN-103B, segment: Line_AN103B_S1, route: [[9.71, 8.1, 0.225], [9.71, 7.955, 0.225]]}
   - {line: AN-103C, segment: Line_AN103C_S1, route: [[10.19, 8.1, 0.225], [10.19, 7.955, 0.225]]}
@@ -66,7 +75,8 @@ lines:
   - {line: AN-203, segment: Line_AN203_S1, route: [[23.992, 7.8, 0.225], [23.992, 8.1, 0.225], [24.38, 8.1, 0.225]]}
   - {line: AN-203, segment: Line_AN203_S2, route: [[24.38, 8.1, 0.225], [24.86, 8.1, 0.225]]}
   - {line: AN-203, segment: Line_AN203_S3, route: [[24.86, 8.1, 0.225], [25.34, 8.1, 0.225]]}
-  - {line: AN-203, segment: Line_AN203_S4, route: [[25.34, 8.1, 0.225], [25.82, 8.1, 0.225], [25.82, 7.955, 0.225]]}
+  - {line: AN-203, segment: Line_AN203_S4, route: [[25.34, 8.1, 0.225], [25.7, 8.1, 0.225]]}
+  - {line: AN-203, segment: Line_AN203_S5, route: [[25.7, 8.1, 0.225], [25.82, 8.1, 0.225], [25.82, 7.955, 0.225]]}
   - {line: AN-203A, segment: Line_AN203A_S1, route: [[24.38, 8.1, 0.225], [24.38, 7.955, 0.225]]}
   - {line: AN-203B, segment: Line_AN203B_S1, route: [[24.86, 8.1, 0.225], [24.86, 7.955, 0.225]]}
   - {line: AN-203C, segment: Line_AN203C_S1, route: [[25.34, 8.1, 0.225], [25.34, 7.955, 0.225]]}
@@ -85,8 +95,11 @@ lines:
   # the west side of the PSA X-231 to P-201's suction (pinned: T-201 is the same at every duration)
   - {line: AN-201, segment: Line_AN201_S1, route: [[22.755, 9.1, 0.206], [22.8, 9.1, 0.206], [22.8, 9.1, 0.3], [22.8, 7.8, 0.3], [22.875, 7.8, 0.3]]}
   # -- Skid A small bore (DN 15), not routed at concept ------------------------------------
-  - {line: CWS-101, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
-  - {line: CWR-101, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: TWS-101, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: TWR-101, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: DR-101, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019); the low-point drain stub off AN-103's level east end (D-055)"}
+  - {line: AV-111, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019); the cooler's capped vent (D-055)"}
+  - {line: PO-101, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019); T-101's capped pump-out (D-055)"}
   - {line: CO2-101, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
   - {line: CO2-101B, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
   - {line: CO2-101C, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
@@ -101,11 +114,47 @@ lines:
   - {line: CG-103, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
   - {line: CD-101, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
   - {line: CO-101, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
-  - {line: TG-101, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
-  - {line: AIR-101, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: RL-101, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019); the cathode relief to the vent outlet reserved west of the frame at (3.5, 10.0), 5.5 m above grade, with the condensate collection's vent (zone Z-VENT-A, D-068); its size, route and final outlet the relief and vent study's (D-060)"}
+  # the tail gas and the combustion air are pinned although DN 15 (review 2026-11-05-layout-r2#2,
+  # D-054, D-057): their run, height and crossing of the grade are in the model. TG-101 leaves
+  # X-131's N4 north out of the frame at 0.30 m (above the frame's edge channel), rises just
+  # north of the frame to 2.3 m and runs OVERHEAD (D-065, review 2026-11-06-layout-r3#3: at
+  # 0.30 m it was a 12 m step-over between the frame, the rectifier and the east step's foot):
+  # east 0.27 m north of the east step's top landing, past the rectifier's plinth, south over
+  # the open ground east of the step at x 15.2 and down at the oxidiser into its east face (N1,
+  # away from the step); its pipe bottom at 2.289 m leaves the 2.1 m headroom of a walkway below
+  # it, so people reach the rectifier and leave the east step's foot north and east under it,
+  # with no step-over and no crossing to mark. All-welded from FA-133, on 2.3 m posts (ASSUMED,
+  # layout/structures.yaml), its two risers protected against impact (ASSUMED). Core places the
+  # three in-line items XV-133, the check valve and FA-133 1 m apart along the route from its
+  # start (its in-line pitch); they stand together at X-131's outlet inside Z-HAZ-A (D-054),
+  # which the model does not show.
+  # P&ID revision D (D-068, review 2026-11-06-layout-r4#2): the inverted U has two low points,
+  # each a tee with a drip leg and a valved, capped drain (DR-102's and DR-103's branches are
+  # DN 15 small bore, skipped): S1 from N4 to a tee on the level foot run 0.4 m before the riser
+  # (tee TG101_D1, DR-102: the riser drains down onto the level run and into the drip leg's
+  # bottom branch; the tee stands there, not in the bend, so that core's 1 m in-line pitch puts
+  # XV-133 at 0.9 m with its lever within reach from grade), S2 along the foot, up the
+  # riser to 2.4 m and the overhead run FALLING 1:100 to the drop (2.283 m at its top), so the
+  # condensate runs away from the arrester at the riser's top to the drop's foot, and S3 from
+  # that foot (tee TG101_D2, DR-103) into N1. The drop stands 1.0 m east of the flue riser
+  # FG-101 (x 14.7): the east leg at x 15.2 jogs east at y 7.0 to x 15.7 (0.9 m south of the
+  # burner-management panel) and drops there. Pipe bottom 2.272 m or more along the overhead
+  # run. XV-133, the check valve and FA-133 stand on S2 at core's 1 m pitch from the riser's
+  # foot (FA-133 just past the riser's top, the overhead falling away from it)
+  - {line: TG-101, segment: Line_TG101_S1, route: [[8.5, 10.061, 0.3], [8.5, 10.4, 0.3]]}
+  - {line: TG-101, segment: Line_TG101_S2, route: [[8.5, 10.4, 0.3], [8.5, 10.8, 0.3], [8.5, 10.8, 2.4], [15.2, 10.8, 2.333], [15.2, 7.0, 2.295], [15.7, 7.0, 2.29], [15.7, 6.3, 2.283], [15.7, 6.3, 0.3]]}
+  - {line: TG-101, segment: Line_TG101_S3, route: [[15.7, 6.3, 0.3], [15.011, 6.3, 0.3]]}
+  - {line: DR-102, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019); TG-101's drip leg at the riser's foot, HV-111, capped (D-068)"}
+  - {line: DR-103, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019); TG-101's drip leg at the drop's foot before X-132, HV-112, capped (D-068)"}
+  - {line: AIR-101, segment: Line_AIR101_S1, route: [[14.55, 5.4, 0.6], [14.55, 5.889, 0.6]]}
   # -- Skid B small bore (DN 15), not routed at concept ------------------------------------
-  - {line: CWS-201, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
-  - {line: CWR-201, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: TWS-201, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: TWR-201, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: DR-201, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019); the low-point drain stub off AN-203's level east end (D-055)"}
+  - {line: AV-211, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019); the cooler's capped vent (D-055)"}
+  - {line: PO-201, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019); T-201's capped pump-out (D-055)"}
+  - {line: PO-202, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019); T-202's capped pump-out (D-055)"}
   - {line: CO2-201, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
   - {line: CO2-201B, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
   - {line: CO2-201C, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
@@ -120,8 +169,13 @@ lines:
   - {line: CG-203, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
   - {line: CD-201, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
   - {line: CO-201, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
-  - {line: TG-201, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
-  - {line: AIR-201, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
+  - {line: RL-201, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019); as RL-101, to the vent outlet reserved west of Skid B's frame at (18.3, 9.6), 5.5 m above grade (zone Z-VENT-B, D-068)"}  # as TG-101 and AIR-101, 15 m east (D-057)
+  - {line: TG-201, segment: Line_TG201_S1, route: [[23.5, 10.061, 0.3], [23.5, 10.4, 0.3]]}
+  - {line: TG-201, segment: Line_TG201_S2, route: [[23.5, 10.4, 0.3], [23.5, 10.8, 0.3], [23.5, 10.8, 2.4], [30.2, 10.8, 2.333], [30.2, 7.0, 2.295], [30.7, 7.0, 2.29], [30.7, 6.3, 2.283], [30.7, 6.3, 0.3]]}
+  - {line: TG-201, segment: Line_TG201_S3, route: [[30.7, 6.3, 0.3], [30.011, 6.3, 0.3]]}
+  - {line: DR-202, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019); as DR-102, HV-211 (D-068)"}
+  - {line: DR-203, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019); as DR-103, HV-212 (D-068)"}
+  - {line: AIR-201, segment: Line_AIR201_S1, route: [[29.55, 5.4, 0.6], [29.55, 5.889, 0.6]]}
   - {line: KOH-202, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
   - {line: KOH-203, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
   - {line: KV-202, skip: "DN 15 skid small bore, run by the skid fabricator (concept stage, D-019)"}
@@ -134,8 +188,9 @@ lines:
   - {line: SP-201, segment: Line_SP201_S1, route: [[22.067, 8.979, 0.25], [21.785, 8.876, 0.25], [21.367, 8.876, 0.25]]}
   - {line: SP-201, segment: Line_SP201_S2, route: [[21.367, 8.876, 0.25], [20.65, 8.876, 0.25]]}
   - {line: O2V-201, segment: Line_O2V201_S1, route: [[22.275, 9.02, 0.881], [22.275, 9.02, 3.381]]}
-  # the oxidiser flues straight up from X-x32's top on its plinth east of the frame, to the
-  # outlet the vent sphere sets (no walking level near: 3.22 m), pinned (D-047)
-  - {line: FG-101, segment: Line_FG101_S1, route: [[14.15, 8.3, 1.517], [14.15, 8.3, 3.217]]}
-  - {line: FG-201, segment: Line_FG201_S1, route: [[29.15, 8.3, 1.517], [29.15, 8.3, 3.217]]}
+  # the oxidiser flues straight up from X-x32's top on its plinth south-east of the frame, to
+  # the outlet the vent sphere sets (no walking level near: 3.22 m), pinned (D-047; re-pinned at
+  # the oxidiser's new place, D-057)
+  - {line: FG-101, segment: Line_FG101_S1, route: [[14.7, 6.3, 1.517], [14.7, 6.3, 3.217]]}
+  - {line: FG-201, segment: Line_FG201_S1, route: [[29.7, 6.3, 1.517], [29.7, 6.3, 3.217]]}
 notes: "ASSUMED: the skid pipe-way elevation, the rack tier and the battery limit point (D-019)."

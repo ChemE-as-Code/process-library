@@ -8,21 +8,34 @@
 # of control/philosophy.md before it is set. A trip of the rectifier (U-x01) stops the current,
 # and with it the CO, H2 and O2 production; the anolyte pump and the CO2 purge keep running
 # unless the trip says otherwise (SEQ-x-TRIP in control/sequences.yaml). A gas detection trip
-# (I-x03, I-x04) also closes the CO2 feed and stops the compressor: the cathode gas train stays
-# isolated until the leak is found and the trip reset (SEQ-x-GAS).
+# (I-x03, I-x04) also closes the CO2 feed, stops the compressor and closes the tail-gas trip
+# valve XV-x33: the cathode gas train stays isolated until the leak is found and the trip reset
+# (SEQ-x-GAS). The tail-gas trips (D-054): the arrester temperature on its unprotected side
+# (I-x09, burning-time protection) and the oxidiser's own supervision (I-x10, its burner
+# management system) close XV-x33 and isolate the train in the same way. I-107, I-108 are not
+# used (Skid B's I-207, I-208 have no Skid A counterpart), so both skids keep one numbering.
+# Revision C (the design review 2026-11-06-design, DESIGN.md D-060 to D-064): I-x11 to I-x20 on
+# both skids: the cathode pressure high-high (or the cathode relief disc burst) and the K-x31
+# discharge high-high (D-060); K-x31 not running and the instrument air low-low (D-060, review
+# #2); the total cathode CO2 low-low (D-062); H2 in the anode O2 and the membrane's pressure
+# difference (D-061); the independent condensate level low-low and high-high (D-061); a stack's
+# current high-high (D-063); and Skid B's I-221, the reservoir level high-high closing the
+# make-up water (I-121 is not used). Every trip that stops K-x31 also closes the PSA recycle's
+# shut-off XV-x34 (D-062). All set points ASSUMED, sil null, for the HAZOP team and the SIL
+# screening.
 schema: cheme/interlocks/v1
 interlocks:
   # -- Skid A (P-01) ----------------------------------------------------------------------
   - id: I-101
-    title: Skid A anolyte pH low-low (the threshold reached before the end of the campaign)
-    cause: {tag: AI-101, condition: "AALL: pH 12.0, concentration basis (the pH 12 threshold itself, D-003; ASSUMED)"}
+    title: Skid A anolyte pH low-low (the trip value reached before the end of the campaign)
+    cause: {tag: AI-101, condition: "AALL: pH 12.2, concentration basis (0.2 above the pH 12 stability criterion of D-003, D-058; ASSUMED)"}
     effects:
       - {tag: U-101, action: trip}
     sheet: P-01
     sil: null
     latching: true
     reset: manual
-    notes: "The duty sizes T-101 to reach pH 12 at H with no time margin (D-009): at the measured WDE the anolyte is at pH 12.02 at H, so the campaign ends normally by SEQ-A-STOP and the trip does not act. It stops the current at the threshold if the WDE is lower than measured or the run overruns H. A trip value above 12 would end every campaign early: at pH 12.2 the 1,166 L reservoir trips at about 992 h (0.8 % of the CO lost); a margin above the threshold needs the reservoir sized to the trip value (1,176 L for 12.2). D-018."
+    notes: "Owner decision of 2026-11-06 (D-058): the trip acts at pH 12.2 and the duty sizes T-101 (1,176 L) to reach the trip value at H, so the trip keeps 0.2 pH (about 9 h at the measured WDE) between itself and the criterion pH 12 that protects the Ni anode. At the measured WDE the anolyte is at the trip value at H, so the campaign ends normally by SEQ-A-STOP and the trip does not act; it stops the current if the WDE is lower than measured or the run overruns H. The margin is ASSUMED, the same as Skid B's I-201; it is to be set from the probe's uncertainty once the activity-to-concentration offset is calibrated against titrated anolyte (control/philosophy.md, H01-A109), which this decision does not settle. D-018, D-058."
   - id: I-102
     title: Skid A anolyte level low-low
     cause: {tag: LIA-101, condition: LALL}
@@ -35,31 +48,33 @@ interlocks:
     reset: manual
     notes: "Loss of anolyte (a leak, a drain left open): the stacks lose their anolyte and P-101 runs dry. D-018."
   - id: I-103
-    title: Skid A CO detected in the enclosure
+    title: Skid A CO detected at the gas train (open skid)
     cause: {tag: AIA-141, condition: "AHH: CO, ASSUMED set point by the gas detection study"}
     effects:
       - {tag: U-101, action: trip}
       - {tag: FV-102, action: close}
       - {tag: K-131, action: stop}
-      - {tag: K-141, action: start}
+      - {tag: XV-133, action: close}
+      - {tag: XV-134, action: close}
     sheet: P-01
     sil: null
     latching: true
     reset: manual
-    notes: "CO is toxic: stop making it, stop the CO2 feed and the compressor, ventilate. D-018."
+    notes: "CO is toxic: stop making it, stop the CO2 feed and the compressor, and close the tail gas to the oxidiser (no gas sent to a flame while the leak is open, D-054). The skid is open and naturally ventilated (D-050): no fan to start. The U-101 trip also opens the rectifier's AC feeder at SDB-1, outside the zone (D-051). D-018."
   - id: I-104
-    title: Skid A H2 detected in the enclosure
+    title: Skid A H2 detected over the stack row (open skid)
     cause: {tag: AIA-142, condition: "AHH: H2, ASSUMED set point (a fraction of the lower flammability limit) by the gas detection study"}
     effects:
       - {tag: U-101, action: trip}
       - {tag: FV-102, action: close}
       - {tag: K-131, action: stop}
-      - {tag: K-141, action: start}
+      - {tag: XV-133, action: close}
+      - {tag: XV-134, action: close}
     sheet: P-01
     sil: null
     latching: true
     reset: manual
-    notes: "H2 (about 1.46 mol per mol CO at the measured FE) is flammable. D-018."
+    notes: "H2 (about 1.46 mol per mol CO at the measured FE) is flammable; on the open skid it rises and disperses (D-050). The tail gas to the oxidiser is closed with the train (D-054). The U-101 trip also opens the rectifier's AC feeder at SDB-1, outside the zone (D-051). D-018."
   - id: I-105
     title: Skid A anolyte temperature high-high at the stack outlet
     cause: {tag: TSHH-112, condition: THH}
@@ -81,6 +96,148 @@ interlocks:
     reset: manual
     delay: {value: 5, unit: s}
     notes: "The stacks without anolyte flow lose the anode's water and O2 removal. The trip shares its transmitter with FIC-101 (HAZOP to judge). D-018."
+  - id: I-109
+    title: Skid A tail-gas arrester temperature high-high (flame held on the arrester)
+    cause: {tag: TSHH-133, condition: "THH: ASSUMED set point, within the arrester's certified burning time (vendor)"}
+    effects:
+      - {tag: XV-133, action: close}
+      - {tag: U-101, action: trip}
+      - {tag: K-131, action: stop}
+      - {tag: FV-102, action: close}
+      - {tag: XV-134, action: close}
+    sheet: P-01
+    sil: null
+    latching: true
+    reset: manual
+    notes: "Burning-time protection of the detonation arrester FA-133 (EN ISO 16852): a flame that stabilises on the element's unprotected side at continuous flow would pass it once the certified burning time is exceeded, so the temperature closes XV-133 on the protected side and stops the gas that feeds it. With the tail gas closed the cathode gas train has no outlet: the current trips, the compressor stops and the CO2 feed closes, as on a gas trip (SEQ-A-GAS). D-054."
+  - id: I-110
+    title: Skid A oxidiser not firing (burner management trip of X-132)
+    cause: {tag: X-132, condition: "flame failure, low air or the burner management system's own trip while firing (armed once X-132 reports firing; package signal, EN 746-2; vendor)"}
+    effects:
+      - {tag: XV-133, action: close}
+      - {tag: U-101, action: trip}
+      - {tag: K-131, action: stop}
+      - {tag: FV-102, action: close}
+      - {tag: XV-134, action: close}
+    sheet: P-01
+    sil: null
+    latching: true
+    reset: manual
+    notes: "No tail gas to a burner that is not firing (it would leave unburnt CO and H2 at the flue) or that is pre-purging. The vendor's burner arrester and burner management system (pre-purge, flame supervision) are the second barrier behind FA-133. The train is isolated as on a gas trip (SEQ-A-GAS). D-054."
+  - id: I-111
+    title: Skid A cathode pressure high-high (or the cathode relief disc burst)
+    cause: {tag: PIA-116, condition: "PAHH: 0.35 bar(g) (135 kPa(a)) on the feed header where PSE-101 is (PIA-116) or at the stack outlet (PIA-123), ASSUMED: above the 120 and 110 kPa(a) operating points, 0.15 bar below PSE-101's 0.5 bar(g) at the same point, below the stacks' 1.0 bar(g) design"}
+    logic: {any: [{tag: PIA-116, state: "PAHH"}, {tag: PIA-123, state: "PAHH"}, {tag: XS-101, state: "burst (PSE-101's burst indicator)"}]}
+    effects:
+      - {tag: U-101, action: trip}
+      - {tag: FV-102, action: close}
+    sheet: P-01
+    sil: null
+    latching: true
+    reset: manual
+    notes: "The cathode side's protection before its relief (D-060, review 2026-11-06-design #1): a blocked outlet (K-131 stopped, PV-121 closed) or the CO2 supply's regulator failing open with FV-102 open pressurises the cathodes, whose membrane takes a small pressure difference only; PIA-123 is independent of PIC-121. The current stops the stacks' own gas, FV-102 the supply's. A burst PSE-101 would vent the CO2 past stacks still on current: its burst indicator trips the same. K-131 is left running so that it draws the cathode down through PV-121 if it can. Review 2026-11-06-design-r2 (D-067): the high-high also on the header beside the disc (PIA-116), so that with the flow still passing (the regulator failed open) the trip acts 0.15 bar below the disc's burst pressure at the same point, not about 5 kPa (r2#6); the burst indicator has its own tag XS-101 (r2#7). I-111's only supply-side final element is FV-102: where FV-102 failing or sticking open is the cause, I-111 removes the current but not the CO2, and is not an independent layer for that cause; PSE-101 is (r2#8). HAZOP H01-A303, H01-A401."
+  - id: I-112
+    title: Skid A compressor discharge pressure high-high
+    cause: {tag: PIA-132, condition: "PAHH: 5.8 bar(g) on CG-103, ASSUMED: above the 5.0 bar(g) (600 kPa(a)) operating point, below K-131's own hydraulic limit of 6.5 bar(g) and the 7.0 bar(g) design of K-131, CG-103 and X-131"}
+    effects:
+      - {tag: K-131, action: stop}
+      - {tag: U-101, action: trip}
+      - {tag: FV-102, action: close}
+      - {tag: XV-134, action: close}
+    sheet: P-01
+    sil: null
+    latching: true
+    reset: manual
+    notes: "A blocked outlet of the positive-displacement K-131 (PV-131 closed on loss of air, XV-133 closed by a trip, X-131 closing its feed) stops the compressor before its hydraulic limit; with K-131 stopped the train has no outlet, so the current trips and the CO2 feed and the recycle close, as I-113 (SEQ-A-GAS). No relief device on CG-103 (D-060): the diaphragm compressor's own hydraulic pressure limit and this trip protect the discharge, the PSA vendor's relief its vessels. HAZOP H01-A501."
+  - id: I-113
+    title: Skid A compressor not running with the current on
+    cause: {tag: K-131, condition: "not running (its motor contactor's feedback, its own protection or a motor trip) while U-101 is on; armed with the current on"}
+    effects:
+      - {tag: U-101, action: trip}
+      - {tag: FV-102, action: close}
+      - {tag: XV-134, action: close}
+    sheet: P-01
+    sil: null
+    latching: true
+    reset: manual
+    notes: "Review 2026-11-06-design #2 (D-060): with K-131 stopped the cathode gas has no outlet (PV-121 leads to the stopped diaphragm compressor), so the stacks would keep making H2 and CO into a closed train; the current trips, the CO2 feed and the recycle close. A normal stop takes the current off first (SEQ-A-STOP), so the trip is not armed then. HAZOP H01-A401, H01-A402."
+  - id: I-114
+    title: Skid A instrument air pressure low-low
+    cause: {tag: PSLL-151, condition: "PALL: instrument air header pressure low-low, ASSUMED 3.5 bar(g) against a 6 bar(g) supply"}
+    effects:
+      - {tag: U-101, action: trip}
+      - {tag: K-131, action: stop}
+    sheet: P-01
+    sil: null
+    latching: true
+    reset: manual
+    notes: "Review 2026-11-06-design #2 (D-060): on air loss FV-102, PV-131, XV-133, XV-134 and LV-122 close and PV-121 and TV-111 open by themselves (F-AIR); the current trips and K-131 stops at once, no longer by the operator, so the stacks do not make gas into a train whose outlets are closed and K-131 does not deadhead against PV-131 and XV-133. SEQ-A-GAS takes over."
+  - id: I-115
+    title: Skid A total cathode CO2 feed low-low
+    cause: {tag: FIC-104, condition: "FALL: 50 % of the total feed setpoint (about 1.65 kg/h of 3.30, ASSUMED); armed with the current on"}
+    effects:
+      - {tag: U-101, action: trip}
+    sheet: P-01
+    sil: null
+    latching: true
+    reset: manual
+    delay: {value: 10, unit: s}
+    notes: "Review 2026-11-06-design #8 (D-062): the FE, WDE and the whole sizing rest on 10 sccm/cm2 of CO2 at the cathodes (D-012); without it the stacks make mostly H2. FIC-104 measures the total (fresh and recycle), so a loss of the PSA recycle is seen. Shares its transmitter with the master loop FIC-104 (HAZOP to judge, as I-106). HAZOP H01-A301."
+  - id: I-116
+    title: Skid A H2 in the anode O2 high-high
+    cause: {tag: AIA-114, condition: "AHH: 1.0 vol% H2 at the reservoir vent (25 % of the lower flammability limit of H2 in O2, about 4 vol%), ASSUMED for the team"}
+    effects:
+      - {tag: U-101, action: trip}
+    sheet: P-01
+    sil: null
+    latching: true
+    reset: manual
+    notes: "Review 2026-11-06-design #3 (D-061): H2 (or CO) that crosses or breaks through the bipolar membrane mixes with near-pure O2 in the T-101 head space and the vent; the usual protection of an electrolyser's oxygen side is the H2-in-O2 measurement tripping the current (ISO 22734 practice, as the review cites it). The alarm AH at 0.4 vol% calls the operator first. The analyser's response time and the head space's dilution are the vendor's and the HAZOP team's. HAZOP H01-A110."
+  - id: I-117
+    title: Skid A pressure difference across the membrane outside its window
+    cause: {tag: PIA-113, condition: "PDAHH / PDALL at either end of the stacks, the anolyte minus the cathode: at the inlet end PIA-113 minus PIA-116 (about +21 kPa at the operating point), at the outlet end PIA-115 minus PIA-123 (about -9 kPa), above +60 kPa or below -20 kPa, ASSUMED until the stack vendor's window (#332)"}
+    logic: {any: [{tag: PIA-113, state: "PIA-113 minus PIA-116 above 60 kPa"}, {tag: PIA-113, state: "PIA-113 minus PIA-116 below -20 kPa"}, {tag: PIA-115, state: "PIA-115 minus PIA-123 above 60 kPa"}, {tag: PIA-115, state: "PIA-115 minus PIA-123 below -20 kPa"}]}
+    effects:
+      - {tag: U-101, action: trip}
+    sheet: P-01
+    sil: null
+    latching: true
+    reset: manual
+    notes: "Review 2026-11-06-design #3 (D-061): the anolyte over the cathode floods the gas diffusion electrode, the cathode over the anolyte breaks gas through the membrane into the anode O2; neither was measured. The difference changes sign along a stack (inlet about 141 against 120 kPa(a), outlet about 101 against 110 kPa(a)). Review 2026-11-06-design-r2#3 (D-067): each end is measured where it is (PIA-113 and PIA-116 at the inlet, PIA-115 and PIA-123 at the outlet), not across the stack, so the trip sees the outlet end, where the cathode is already about 9 kPa above the anolyte at the design point. The window is ASSUMED (alarms PDAH +45 kPa and PDAL -15 kPa at either end); whether the membrane takes the cathode above the anolyte at the outlet, or the operating pressures must keep the anolyte above the cathode along the whole stack (an anolyte back-pressure on AN-104), is the stack vendor's (#332). HAZOP H01-A103."
+  - id: I-118
+    title: Skid A condensate level low-low in V-121
+    cause: {tag: LIA-124, condition: "LALL: 10 % of the gauge length, ASSUMED"}
+    effects:
+      - {tag: XV-125, action: close}
+    sheet: P-01
+    sil: null
+    latching: true
+    reset: manual
+    notes: "Review 2026-11-06-design #6 (D-061): a low level or a failed-open LV-122 would blow cathode gas with CO and H2 into the condensate line; LIA-124 is independent of LIC-122 and closes the tight shut-off XV-125 (fail closed) downstream of LV-122. The condensate goes to a vented collection, not straight to the site drain. HAZOP H01-A404."
+  - id: I-119
+    title: Skid A condensate level high-high in V-121
+    cause: {tag: LIA-124, condition: "LAHH: 85 % of the gauge length, ASSUMED"}
+    effects:
+      - {tag: K-131, action: stop}
+      - {tag: U-101, action: trip}
+      - {tag: FV-102, action: close}
+      - {tag: XV-134, action: close}
+    sheet: P-01
+    sil: null
+    latching: true
+    reset: manual
+    notes: "Review 2026-11-06-design #6 (D-061): liquid must not reach the diaphragm compressor; LIA-124 is independent of LIC-122's LAH. With K-131 stopped the train is isolated as on I-113 (SEQ-A-GAS). HAZOP H01-A403."
+  - id: I-120
+    title: Skid A stack current high-high (one stack taking too much of the bus)
+    cause: {tag: IIA-106A, condition: "IAHH: any stack above 24 A (120 % of its 20 A share), ASSUMED"}
+    logic: {any: [{tag: IIA-106A, state: "IAHH"}, {tag: IIA-106B, state: "IAHH"}, {tag: IIA-106C, state: "IAHH"}, {tag: IIA-106D, state: "IAHH"}]}
+    effects:
+      - {tag: U-101, action: trip}
+    sheet: P-01
+    sil: null
+    latching: true
+    reset: manual
+    notes: "Review 2026-11-06-design #9 (D-063): four stacks in parallel on one controlled bus current share it by their resistance; a stack that shorts takes more than its share and the others less, beyond the measured 200 mA/cm2 point. The deviation alarms of EIA-105A to D and IIA-106A to D call the operator first. HAZOP H01-A102."
   # -- Skid B (P-02) ----------------------------------------------------------------------
   - id: I-201
     title: Skid B anolyte pH low-low
@@ -106,26 +263,28 @@ interlocks:
     reset: manual
     notes: "LIA-202 is independent of the make-up control LIC-201. The 50 L reservoir holds about 4.5 min of the recirculation (D-010). D-018."
   - id: I-203
-    title: Skid B CO detected in the enclosure
+    title: Skid B CO detected at the gas train (open skid)
     cause: {tag: AIA-241, condition: "AHH: CO, ASSUMED set point by the gas detection study"}
     effects:
       - {tag: U-201, action: trip}
       - {tag: FV-202, action: close}
       - {tag: K-231, action: stop}
-      - {tag: K-241, action: start}
+      - {tag: XV-233, action: close}
+      - {tag: XV-234, action: close}
     sheet: P-02
     sil: null
     latching: true
     reset: manual
     notes: "As I-103. D-018."
   - id: I-204
-    title: Skid B H2 detected in the enclosure
+    title: Skid B H2 detected over the stack row (open skid)
     cause: {tag: AIA-242, condition: "AHH: H2, ASSUMED set point (a fraction of the lower flammability limit) by the gas detection study"}
     effects:
       - {tag: U-201, action: trip}
       - {tag: FV-202, action: close}
       - {tag: K-231, action: stop}
-      - {tag: K-241, action: start}
+      - {tag: XV-233, action: close}
+      - {tag: XV-234, action: close}
     sheet: P-02
     sil: null
     latching: true
@@ -173,3 +332,155 @@ interlocks:
     latching: true
     reset: manual
     notes: "Dry-run protection of the metering pump; the day tank is refilled weekly (refill_interval 168 h, D-010). AIC-201 then alarms as the pH falls."
+  - id: I-209
+    title: Skid B tail-gas arrester temperature high-high (flame held on the arrester)
+    cause: {tag: TSHH-233, condition: "THH: ASSUMED set point, within the arrester's certified burning time (vendor)"}
+    effects:
+      - {tag: XV-233, action: close}
+      - {tag: U-201, action: trip}
+      - {tag: K-231, action: stop}
+      - {tag: FV-202, action: close}
+      - {tag: XV-234, action: close}
+    sheet: P-02
+    sil: null
+    latching: true
+    reset: manual
+    notes: "As I-109 (SEQ-B-GAS). D-054."
+  - id: I-210
+    title: Skid B oxidiser not firing (burner management trip of X-232)
+    cause: {tag: X-232, condition: "flame failure, low air or the burner management system's own trip while firing (armed once X-232 reports firing; package signal, EN 746-2; vendor)"}
+    effects:
+      - {tag: XV-233, action: close}
+      - {tag: U-201, action: trip}
+      - {tag: K-231, action: stop}
+      - {tag: FV-202, action: close}
+      - {tag: XV-234, action: close}
+    sheet: P-02
+    sil: null
+    latching: true
+    reset: manual
+    notes: "As I-110 (SEQ-B-GAS). D-054."
+  - id: I-211
+    title: Skid B cathode pressure high-high (or the cathode relief disc burst)
+    cause: {tag: PIA-216, condition: "PAHH: 0.35 bar(g) on the feed header (PIA-216) or at the stack outlet (PIA-223), as I-111"}
+    logic: {any: [{tag: PIA-216, state: "PAHH"}, {tag: PIA-223, state: "PAHH"}, {tag: XS-201, state: "burst (PSE-201's burst indicator)"}]}
+    effects:
+      - {tag: U-201, action: trip}
+      - {tag: FV-202, action: close}
+    sheet: P-02
+    sil: null
+    latching: true
+    reset: manual
+    notes: "As I-111 (with r2#6, r2#7, r2#8 of the review 2026-11-06-design-r2). D-060, D-067."
+  - id: I-212
+    title: Skid B compressor discharge pressure high-high
+    cause: {tag: PIA-232, condition: "PAHH: 5.8 bar(g) on CG-203, as I-112"}
+    effects:
+      - {tag: K-231, action: stop}
+      - {tag: U-201, action: trip}
+      - {tag: FV-202, action: close}
+      - {tag: XV-234, action: close}
+    sheet: P-02
+    sil: null
+    latching: true
+    reset: manual
+    notes: "As I-112 (SEQ-B-GAS). D-060."
+  - id: I-213
+    title: Skid B compressor not running with the current on
+    cause: {tag: K-231, condition: "not running while U-201 is on, as I-113; armed with the current on"}
+    effects:
+      - {tag: U-201, action: trip}
+      - {tag: FV-202, action: close}
+      - {tag: XV-234, action: close}
+    sheet: P-02
+    sil: null
+    latching: true
+    reset: manual
+    notes: "As I-113. D-060."
+  - id: I-214
+    title: Skid B instrument air pressure low-low
+    cause: {tag: PSLL-251, condition: "PALL, as I-114"}
+    effects:
+      - {tag: U-201, action: trip}
+      - {tag: K-231, action: stop}
+    sheet: P-02
+    sil: null
+    latching: true
+    reset: manual
+    notes: "As I-114; LV-201 and FV-203 close by themselves, the dosing stops with the current (I-207). D-060."
+  - id: I-215
+    title: Skid B total cathode CO2 feed low-low
+    cause: {tag: FIC-204, condition: "FALL: 50 % of the total feed setpoint, as I-115; armed with the current on"}
+    effects:
+      - {tag: U-201, action: trip}
+    sheet: P-02
+    sil: null
+    latching: true
+    reset: manual
+    delay: {value: 10, unit: s}
+    notes: "As I-115. D-062."
+  - id: I-216
+    title: Skid B H2 in the anode O2 high-high
+    cause: {tag: AIA-214, condition: "AHH: 1.0 vol% H2 at the reservoir vent, as I-116"}
+    effects:
+      - {tag: U-201, action: trip}
+    sheet: P-02
+    sil: null
+    latching: true
+    reset: manual
+    notes: "As I-116; T-201's small head space (62.5 L tank) concentrates a crossover faster than T-101's. D-061."
+  - id: I-217
+    title: Skid B pressure difference across the membrane outside its window
+    cause: {tag: PIA-213, condition: "at either end, the anolyte minus the cathode, PIA-213 minus PIA-216 (inlet) or PIA-215 minus PIA-223 (outlet), above +60 kPa or below -20 kPa, as I-117"}
+    logic: {any: [{tag: PIA-213, state: "PIA-213 minus PIA-216 above 60 kPa"}, {tag: PIA-213, state: "PIA-213 minus PIA-216 below -20 kPa"}, {tag: PIA-215, state: "PIA-215 minus PIA-223 above 60 kPa"}, {tag: PIA-215, state: "PIA-215 minus PIA-223 below -20 kPa"}]}
+    effects:
+      - {tag: U-201, action: trip}
+    sheet: P-02
+    sil: null
+    latching: true
+    reset: manual
+    notes: "As I-117. D-061, D-067."
+  - id: I-218
+    title: Skid B condensate level low-low in V-221
+    cause: {tag: LIA-224, condition: "LALL, as I-118"}
+    effects:
+      - {tag: XV-225, action: close}
+    sheet: P-02
+    sil: null
+    latching: true
+    reset: manual
+    notes: "As I-118. D-061."
+  - id: I-219
+    title: Skid B condensate level high-high in V-221
+    cause: {tag: LIA-224, condition: "LAHH, as I-119"}
+    effects:
+      - {tag: K-231, action: stop}
+      - {tag: U-201, action: trip}
+      - {tag: FV-202, action: close}
+      - {tag: XV-234, action: close}
+    sheet: P-02
+    sil: null
+    latching: true
+    reset: manual
+    notes: "As I-119 (SEQ-B-GAS). D-061."
+  - id: I-220
+    title: Skid B stack current high-high
+    cause: {tag: IIA-206A, condition: "IAHH: any stack above 24 A, as I-120"}
+    logic: {any: [{tag: IIA-206A, state: "IAHH"}, {tag: IIA-206B, state: "IAHH"}, {tag: IIA-206C, state: "IAHH"}, {tag: IIA-206D, state: "IAHH"}]}
+    effects:
+      - {tag: U-201, action: trip}
+    sheet: P-02
+    sil: null
+    latching: true
+    reset: manual
+    notes: "As I-120. D-063."
+  - id: I-221
+    title: Skid B reservoir level high-high (make-up water closed)
+    cause: {tag: LIA-202, condition: "LAHH: 90 % of T-201, ASSUMED"}
+    effects:
+      - {tag: LV-201, action: close}
+    sheet: P-02
+    sil: null
+    latching: true
+    reset: manual
+    notes: "Review 2026-11-06-design #13 (D-061): a failed LIC-201 or LV-201 open would overfill T-201 with make-up water and send anolyte out of its open vent O2V-201; LIA-202 is independent of LIC-201 and also sounds at the fill connection during the manual fill. Skid A has no automatic fill: its LIA-101 LAHH sounds at the fill point only. I-121 is not used."

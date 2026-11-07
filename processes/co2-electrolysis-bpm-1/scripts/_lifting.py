@@ -347,11 +347,14 @@ def unit_study(
                 return s["owner"].startswith(steps) or (s["owner"] in trays and over(s["plan"]))
 
             def own(s, tags=tags, inline=inline, frame=frame, sheet=lift["sheet"], off=off, over=over):
-                # the frame, its items, its in-line items and the sheet's pipes over the frame (a
-                # pipe of an item off the frame, the oxidiser's flue, stays: D-047)
+                # the frame, its items, the sheet's in-line items and pipes over the frame (a
+                # pipe of an item off the frame, the oxidiser's flue, stays: D-047). The tail
+                # gas's XV-x33, check valve and FA-x33 stand at X-x31's outlet on the frame
+                # (D-054); core places in-line items 1 m apart along the pinned TG-x01, off the
+                # frame, so an in-line item counts only over it (D-057)
                 return (
                     s["owner"] in tags
-                    or s["owner"] in inline
+                    or (s["owner"] in inline and over(s["plan"]))
                     or s["owner"].startswith(f"{frame}/")
                     or (s["owner"].startswith(f"{sheet}/") and over(s["plan"]))
                     or off(s)
@@ -608,7 +611,9 @@ def study_markdown(
         "A drained tank empties by gravity only down to the highest point of its drain line (a "
         "line that rises to its hose coupling keeps the tank full to that level) or, with no "
         "drain, to its lowest outlet; what stands below stays in the tank and is lifted with "
-        "it. Pumping or siphoning it out is not on the P&IDs (open, DESIGN.md D-043).",
+        "it. Each tank's bottom outlet with its capped camlock pump-out (P&ID revision B, "
+        "DESIGN.md D-055) empties the heel at the end of a run; the drained lifts do not "
+        "credit it, so the heel by gravity stays in their weight as a margin.",
         "",
         "| lift | tank | drains to | level above the floor m | volume m3 | heel t | basis |",
         "|---|---|---|---:|---:|---:|---|",

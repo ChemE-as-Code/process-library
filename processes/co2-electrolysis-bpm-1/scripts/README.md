@@ -78,7 +78,9 @@ The pilot skids of #330 (DESIGN.md D-007 to D-023):
   read there (the items on a frame, their parts, the solids a stack's slide lane meets).
   Step 13 also makes the project's own layout checks of `layout/layout-checks.yaml` (DESIGN.md
   D-047): each stack's reach from grade and its slide lane at deck level, the ignition sources'
-  clearance to the zone sources' outlines, the trays' clearance to the vent and flue outlets.
+  clearance to the zone sources' outlines joined with their nozzle points, the ignition and hot
+  sources' clearance to the feet of the frame's stairs (D-057), the trays' clearance to the vent
+  and flue outlets.
 - `_yamledit.py`: targeted edits of hand-maintained YAML that refuse any other change.
 - `_figures.py`: the skid plans and sections of step 10, core's A1 sheets (`cheme layout
   render`) cropped to the drawing at their scale, the grid bubbles, scale bar, north arrow and
