@@ -42,7 +42,9 @@ concept has no heat integration (I-08).
 
 The product `product:CUMENE` has the registry slug `cumene`. acetone-1 buys cumene: its
 `feed:CUM` is pinned to this dataset (acetone-1 `lca/mappings.yaml`). Benzene and propylene stay
-reported gaps until their suppliers are chosen (`lca/mappings.yaml`).
+reported gaps until their suppliers are chosen (`lca/mappings.yaml`): the Atlas candidates are
+hda-1, styrene-1 and btx-1 for benzene, ethylene-1 and propylene-pdh-1 for propylene (polymer
+grade there, chemical grade here).
 
 ## Working here
 
