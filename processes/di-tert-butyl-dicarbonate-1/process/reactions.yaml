@@ -1,0 +1,100 @@
+# Reactions of di-tert-butyl-dicarbonate-1. Schema cheme/reactions/v1 (`cheme schema
+# process-reactions`).
+#
+# The route is the one-pot phosgene route of EP 0 256 559 A2 (Mitsubishi Kasei, 1986/1988,
+# DESIGN.md D-001): potassium tert-butoxide carbonated with CO2 to potassium tert-butyl carbonate,
+# then phosgene dosed with a tertiary amine (DABCO) as catalyst, which gives Boc2O, KCl and CO2
+# directly, without isolating the tricarbonate of the older route.
+# - CARB, PHOS, SIDE in R101 (one semi-batch at 278 K: CO2 dosed first, then phosgene; CO2 and
+#   isobutene vented as they form, core ADR 0054):
+#   - CARB: the carbonation; the dosed CO2 85 % taken up (dosing.absorbed), the rest passes to
+#     the vent;
+#   - PHOS: the net phosgenation, 2 carbonate + phosgene -> Boc2O + CO2 + 2 KCl, lumping the
+#     mixed anhydride and the tricarbonate the patent's amine decarboxylates in situ (D-005);
+#   - SIDE: the yield loss, lumped: the acidic by-products the patent names (tert-butyl
+#     chloroformate) decompose to isobutene, HCl and CO2, and the HCl takes a second carbonate
+#     to KCl, tert-butanol and CO2 (D-005). Its share, 7 % of the phosgene, is ASSUMED.
+# - NPH, NCO in the caustic scrubber S401 (conversion steps): phosgene destroyed and part of the
+#   CO2 absorbed.
+# None of these steps has open kinetics or calorimetry (searched 2026-11-06): every rate law and
+# heat of reaction is ASSUMED (D-005, D-011). The dosed gases' heats of absorption are their
+# doses' `heat_of_solution` (core ADR 0063, D-015: CO2 -15, phosgene -24.8 kJ/mol), released as
+# they dissolve, so CARB, PHOS and SIDE are written on the dissolved basis (the gas-basis -70 and
+# -200 kJ/mol less those heats; the absorption is not counted twice); a vented component's heat
+# is that of forming it as a gas at the vessel's temperature.
+# Boc2O's thermal decomposition (to isobutene, CO2 and tert-butanol) is not a reaction here: no
+# open rate exists; it sets the technical limit (hazard.mtt) and the temperature limits of the
+# work-up instead (D-011, D-008).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: CARB
+    title: Carbonation of potassium tert-butoxide
+    equation: (CH3)3COK + CO2 -> (CH3)3COC(O)OK
+    stoichiometry: {KOTBU: -1, CO2: -1, KTBC: 1}
+    phase: liquid
+    heat_of_reaction: {value: -55000, provenance: assumed, source: "ASSUMED (D-005, D-015), CO2 dissolved: -70 kJ/mol with CO2 as a gas (the carboxylation of an alkali alkoxide is exothermic; EP 0 256 559 A2 cools the carbonation to 5 C; no calorimetric value found openly) less the dose's heat of absorption, -15 kJ/mol, which R101's dose releases as the CO2 dissolves (core ADR 0063)"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # second order: k = 0.05 m3/(kmol s) at 278.15 K, Ea 40 kJ/mol:
+      # A = 0.05 x exp(40000 / (8.314 x 278.15))
+      k: {A: 1.6254e6, Ea: 40000}
+      orders: {KOTBU: 1, CO2: 1}
+      temperature_range: [263.15, 303.15]
+      provenance: assumed
+      source: "ASSUMED fast effective rate of the suspended alkoxide with the dissolved CO2 (D-005): no open kinetics found (2026-11-06)"
+    sources: ["EP 0 256 559 A2, Example 1: CO2 introduced over 3 h at 5 C into potassium tert-butoxide with DABCO, giving the potassium tert-butyl carbonate as a slurry", "US 5 151 542 A, Example 1: CO2 bubbled into potassium tert-butoxide in hexane at 15-25 C over 2 h"]
+  - id: PHOS
+    title: Phosgenation of potassium tert-butyl carbonate to di-tert-butyl dicarbonate (amine-catalysed, net)
+    equation: 2 (CH3)3COC(O)OK + COCl2 -> [(CH3)3COC(O)]2O + CO2 + 2 KCl
+    stoichiometry: {KTBC: -2, COCL2: -1, BOC2O: 1, CO2: 1, KCL: 2}
+    phase: liquid
+    heat_of_reaction: {value: -175200, provenance: assumed, source: "ASSUMED order of magnitude (D-005, D-015), per mol of phosgene dissolved, CO2 formed as a gas: -200 kJ/mol with phosgene as a gas less the dose's heat of solution, -24.8 kJ/mol, which R101's dose releases as the phosgene dissolves (core ADR 0063); the -200 kJ/mol: phosgene's hydrolysis to CO2 and HCl gas is about -73 kJ/mol (formation enthalpies, chemicals 1.5.2's CRC tables), and each HCl taken up by a carboxylate salt to solid KCl adds of the order of -60 kJ/mol; EP 0 256 559 A2 doses the phosgene slowly with external cooling because the reaction is exothermic; no calorimetric value"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # second order: k = 0.05 m3/(kmol s) at 278.15 K (93 % of the phosgene's total rate),
+      # Ea 50 kJ/mol: A = 0.05 x exp(50000 / (8.314 x 278.15))
+      k: {A: 1.2273e8, Ea: 50000}
+      orders: {KTBC: 1, COCL2: 1}
+      temperature_range: [263.15, 303.15]
+      provenance: assumed
+      source: "ASSUMED fast effective rate (D-005): no open kinetics found (2026-11-06); fast enough that the phosgene dosing controls the heat (a plant with a dosing interlock aims for this); to be replaced by reaction calorimetry"
+    sources: ["EP 0 256 559 A2, description and Example 1: the carbonate reacts with phosgene in the presence of a tertiary amine (DABCO, triethylamine) to Di-BOC directly, phosgene added over 4 h at 5 C with external cooling; without the amine scarcely any product (Comparative Example 1)"]
+  - id: SIDE
+    title: Loss to tert-butanol and isobutene (lumped acidic by-product path)
+    equation: 2 (CH3)3COC(O)OK + COCl2 -> (CH3)3COH + C4H8 + 3 CO2 + 2 KCl
+    stoichiometry: {KTBC: -2, COCL2: -1, TBA: 1, IB: 1, CO2: 3, KCL: 2}
+    phase: liquid
+    heat_of_reaction: {value: -175200, provenance: assumed, source: "ASSUMED as PHOS (D-005, D-015), phosgene dissolved: the same reagents to KCl, the decomposition of the chloroformate taken as heat-neutral; no open value"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # k = 0.05 x 0.07 / 0.93 = 3.763e-3 m3/(kmol s) at 278.15 K, Ea 50 kJ/mol: the side path
+      # takes 7 % of the phosgene, whatever the concentrations (same orders as PHOS)
+      k: {A: 9.2377e6, Ea: 50000}
+      orders: {KTBC: 1, COCL2: 1}
+      temperature_range: [263.15, 303.15]
+      provenance: assumed
+      source: "ASSUMED (D-005): 7 % of the phosgene to the side path, set so that the modelled isolated yield (89.4 % on the alkoxide) stays below the 91.0 % that EP 0 256 559 A2's Example 1 gives by mass (149 g from 1.5 mol of the alkoxide, its purity not stated in the text)"
+    sources: ["EP 0 256 559 A2, description: acidic by-products such as tert-butyl chloroformate form in the crude phosgenation mixture (named as what stopped the older decarboxylation)", "Wikipedia, Di-tert-butyl dicarbonate: decomposition gives tert-butanol, isobutene and CO2 (products only)"]
+  - id: NPH
+    title: Phosgene destroyed in the caustic scrubber
+    equation: COCl2 + 4 NaOH -> Na2CO3 + 2 NaCl + 2 H2O
+    stoichiometry: {COCL2: -1, NAOH: -4, NA2CO3: 1, NACL: 2, H2O: 2}
+    phase: liquid
+    conversion: {key: COCL2, value: 0.9999, provenance: assumed, source: "ASSUMED destruction efficiency of the caustic scrubber on phosgene (D-007)"}
+    heat_of_reaction: {value: -400000, provenance: assumed, source: "ASSUMED order (D-009): the hydrolysis of phosgene gas and the neutralisation of its HCl and CO2 in caustic; its extent is a trace"}
+    sources: ["ASSUMED: a caustic scrubber for a phosgene-bearing vent (as processes/benzyl-chloroformate-1)"]
+  - id: NCO
+    title: CO2 taken up by the caustic in the scrubber
+    equation: CO2 + 2 NaOH -> Na2CO3 + H2O
+    stoichiometry: {CO2: -1, NAOH: -2, NA2CO3: 1, H2O: 1}
+    phase: liquid
+    conversion: {key: CO2, value: 0.1, provenance: assumed, source: "ASSUMED (D-007): the share of the vent's CO2 the caustic absorbs in a scrubber designed for the phosgene; its sensitivity is in D-007"}
+    heat_of_reaction: {value: -110000, provenance: assumed, source: "ASSUMED order (D-009): CO2 gas absorbed into caustic soda to carbonate, textbook order"}
+    sources: ["ASSUMED: CO2 co-absorption in a caustic scrubber"]

@@ -1,0 +1,76 @@
+# Weights and unit lifts of the pilot skids, for the lifting study (DESIGN.md D-043).
+# A project file read by scripts/regen.py (no core schema): step 21 writes each item's empty
+# weight into the equipment list's dimensions.weight (core's lifting rule and study read it
+# there), step 23 writes the lifts core's study cannot express (the skids as 20 ft units, a tank
+# full and empty) into layout/lifting-study-units.csv and .md.
+#
+# Every number here is ASSUMED: no item has a vendor weight. The estimates are the list's
+# outline volume times a bulk density (the item's mass over its outline volume, the air in it
+# included), or a tank's shell, bottom and roof at one wall thickness. When a vendor gives a
+# weight, add it under `vendor:` with its source; it then replaces the estimate.
+# The owner accepted these estimates for basic engineering on 2026-11-06 (D-053): vendor
+# weights of X-x31, X-x32, K-x31, U-x01 and the stacks are required before detail
+# engineering, each skid is weighed at its factory acceptance test before the first lift, and
+# the lifting plan (an appointed person, ISO 12480-1) uses at least the doubled-weight bound.
+schema: co2-bpm-1/lifting-basis/v1
+weights:
+  round_up_kg: 5
+  bulk_density_kg_m3:
+    - {tags: [E-101A, E-101B, E-101C, E-101D, E-201A, E-201B, E-201C, E-201D], value: 3000, basis: "ASSUMED: a filter-press stack of 7 cells between steel end plates on tie rods (plates, frames, gaskets, membranes), about 40 % of a steel block"}
+    - {tags: [P-101, P-201, P-202, K-131, K-231], value: 1000, basis: "ASSUMED: a small pump or diaphragm compressor with its motor on a base plate"}
+    - {tags: [E-111, E-211], value: 1500, basis: "ASSUMED: a brazed plate pack with its connections and bracket"}
+    - {tags: [V-121, V-221], value: 600, basis: "ASSUMED: a small thin-walled SS316 pot with its bracket"}
+    - {tags: [X-131, X-231, X-132, X-232], value: 400, basis: "ASSUMED: a gas package on its own base frame (vessels, valves, small piping)"}
+    - {tags: [U-101, U-201], value: 500, basis: "ASSUMED: a rectifier cabinet (transformer, rectifier, cooling)"}
+  tanks:
+    - {tags: [T-101, T-201, T-202], density_kg_m3: 905, wall_m: 0.010, fittings_fraction: 0.25, basis: "ASSUMED: PP (about 905 kg/m3), shell, bottom and flat roof 10 mm at every size, plus 25 % for nozzles, ribs, ladder and roof rail"}
+  vendor: []
+# A full tank holds its whole outline volume (pi/4 D^2 H: the working volume and its freeboard)
+# at the density of its contents, as regen reads it from the stack sizing
+contents:
+  - {tag: T-101, density_from: "pump P-101", basis: "the anolyte density of the stack sizing (cheme process stack: P-101 density_kg_m3, ASSUMED about 1 M KOH)"}
+  - {tag: T-201, density_from: "pump P-201", basis: "the anolyte density of the stack sizing (cheme process stack: P-201 density_kg_m3, ASSUMED about 1 M KOH)"}
+  - {tag: T-202, density_from: "duty D-B dosing", basis: "duty D-B dosing.density (process/duties.yaml, ASSUMED about 5 M KOH)"}
+units:
+  # what a skid weighs beyond its items: the frame's own members as core draws them (core's
+  # take-off mass per metre of each section) and deck grating, the base frame's structure core
+  # does not draw, and an allowance on the items and the drawn frame for what neither the list
+  # nor the model weighs (piping, valves, instruments, cable, bolting, drip tray)
+  grating_kg_m2: 35
+  # core draws a skid frame as its perimeter channels, corner posts and guard rail only: a
+  # 2.44 m wide deck carrying about 1.15 t cannot span between the long sides on its grating,
+  # and a 6 m frame lifted as a unit needs lifting points
+  base_frame_kg_m2: 40
+  base_frame_basis: "ASSUMED: cross-members and grating bearers about every 0.7 m (9 x UPN140 x 2.44 m at 16 kg/m, 0.35 t on a 6.06 x 2.44 m frame, about 24 kg/m2), lifting lugs or corner fittings and the stiffening of a perimeter lifted at its corners (about 16 kg/m2); the fabricator's structural design replaces it"
+  allowance_fraction: 0.15
+  allowance_basis: "ASSUMED: piping, valves, instruments, cable, bolting and drip tray, 15 % of the items and the drawn frame"
+  # a load below heavy_lift_t that is not a skid is carried by hoist or forklift: above this
+  # carry height its lane is blocked for that method (a crane lift instead)
+  carry_limit_m: 2.1
+  carry_limit_basis: "ASSUMED: a forklift or a hoist on a portable gantry at the skid carries a load at most to the 2.1 m walkway headroom (core's headroom_walkway_m); a load that has to clear a tray, pipe or rack above it is a crane lift"
+  # a drained tank keeps its heel: the liquid below the highest point of its drain line, or of
+  # its lowest outlet where it has no drain (regen reads the levels from the model). Since P&ID
+  # revision B (D-055) each tank has a bottom outlet with a capped camlock pump-out (PO-101,
+  # PO-201, PO-202), which SEQ-x-DRAIN uses to empty the heel; the lifts do not credit it: the
+  # heel by gravity stays in the drained weights as a margin, in case a lift is made without the
+  # pump-out (the lifting plan may credit it once the procedure is written)
+  heels:
+    - {tag: T-101, drain_line: SP-101, basis: "drained by gravity through N5 and HV-103 to its hose coupling (SP-101, level at 0.30 m); the pump-out PO-101 (N11, HV-108) empties it, not credited (D-055)"}
+    - {tag: T-201, drain_line: SP-201, basis: "drained by gravity through N5 and HV-203 to its hose coupling (SP-201, level at 0.25 m); the pump-out PO-201 (N11, HV-208) empties it, not credited (D-055)"}
+    - {tag: T-202, nozzle: N2, basis: "drained down to its outlet N2 to P-202 (KOH-203, DN 15); the pump-out PO-202 (N5, HV-209) empties it, not credited (D-055)"}
+  # the access steps ST-x1 and ST-x2 stand on grade beside the frame: delivered loose, not in
+  # the unit lift
+  lifts:
+    - {id: SKID-A, kind: skid, frame: SKID-A, sheet: P-01, title: "Skid A as a 20 ft unit, T-101 drained (set or removal)"}
+    - {id: SKID-A-full, kind: skid, frame: SKID-A, sheet: P-01, full: [T-101], permitted: false, title: "Skid A as a unit with T-101 full (not a permitted lift: the bound)"}
+    # T-101 alone goes by the same crane from the hardstanding CP-A as the skid, onto a trailer
+    # on the road laydown LD-R, and leaves the plot by the road (D-047, review
+    # 2026-11-05-layout#7); the hoist or forklift carry to a laydown beside the skid had no way
+    # off the plot past the rack that then stood between the skid and the road
+    # off_first: the tray branch to the pump motor P-101 crosses the lift's lane at 2.5 m over
+    # the frame; it is site-fitted (D-045), and its cable is disconnected and the branch swung
+    # off before the lift, as the trays over a frame before its unit lift
+    - {id: T-101, kind: item, tag: T-101, method: crane, laydown: LD-R, off_first: [PT-M-P-101], title: "T-101 alone, drained (replacement)"}
+    - {id: T-101-full, kind: item, tag: T-101, method: crane, full: [T-101], laydown: LD-R, off_first: [PT-M-P-101], permitted: false, title: "T-101 alone, full (not a permitted lift: the bound)"}
+    - {id: SKID-B, kind: skid, frame: SKID-B, sheet: P-02, title: "Skid B as a 20 ft unit, T-201 and T-202 drained (set or removal)"}
+    - {id: SKID-B-full, kind: skid, frame: SKID-B, sheet: P-02, full: [T-201, T-202], permitted: false, title: "Skid B as a unit with T-201 and T-202 full (not a permitted lift: the bound)"}

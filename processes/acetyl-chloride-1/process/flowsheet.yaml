@@ -1,0 +1,415 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Acetyl chloride from acetic acid and phosphorus trichloride (DESIGN.md D-001), a batch plant:
+# acetic acid is charged to R-101 and warmed to 313 K, phosphorus trichloride is dosed into it
+# (a semi-batch, reactor: semibatch), the HCl the acid's water gives leaves by the vent
+# (batch.vent) through a vent condenser to a water scrubber; the mixture settles in R-101 into
+# an upper acetyl chloride phase and a lower phosphorous acid phase (the decanter D101, a
+# specified split), the lower phase leaves as crude phosphorous acid, the upper is distilled at
+# atmospheric pressure in a batch still with a rectifying column on top, the product cooled.
+# The flows are the year averages of the batch recipe (process/recipe.yaml, `cheme process
+# recipe`, D-003).
+# Where the values come from:
+# - feeds, temperatures, ratios: design basis and D-002..D-004, ASSUMED or from CS 272 248 B2,
+#   Example 1;
+# - R101: cheme's semi-batch model with a vent (core ADRs 0050, 0054), from the ASSUMED rate
+#   laws, to 0.95 conversion of the PCl3 (D-005);
+# - D101 (the phase split): a specified split in scripts/balance.py, calibrated to the source's
+#   lower phase (D-006); core has no liquid-liquid model for these liquids;
+# - ST101: cheme's batch still with its column K-101 (core 1.10.0, ADR 0061): 10 theoretical
+#   stages at a constant reflux ratio of 1, Diwekar's shortcut on Fenske-Underwood-Gilliland,
+#   Raoult's law with NIST Antoine constants (D-007, D-008, D-015);
+# - E101, E102, E103, E104 (pass-through) and A101 (a conversion step): `cheme process
+#   propagate --fill`;
+# - the duties: R101's Q2 (the heat of its reactions less the dose warmed, on its energy port
+#   q), the still's reboiler Q3 ((R + 1) times the distillate's latent heat and the charge's
+#   heat-up, on its energy port steam) and its condenser Q4 (the boil-up's latent heat, on its
+#   condenser port) are written by `cheme process propagate --fill` from the models (core
+#   ADRs 0059, 0061, 0063; D-014, D-015); the charge's warming Q1, the residue's cooling Q5, the
+#   vent condenser Q6 and the product cooler Q9 come from scripts/balance.py (no property
+#   package of core covers these liquids; D-009, D-010);
+# - the feeds for 2000 t/a, the scrubber water and the temperatures of the still's streams:
+#   scripts/balance.py (D-006, D-009, D-010).
+schema: cheme/process/v1
+kind: flowsheet
+title: Acetyl chloride by semi-batch reaction of acetic acid with PCl3, phase split and batch distillation (2000 t/a)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: 2000 t/a distilled acetyl chloride, year averages of the batch recipe in 7920 h (D-002, D-003)", default: true}
+tolerance: {abs: 0.05, rel: 0.002}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - {id: HAC, title: Acetic acid (acetic-acid-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: PCL3, title: Phosphorus trichloride (no library process), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: PW, title: Process water (vent scrubber), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: r101, direction: out, kind: energy}
+      - {id: st101, direction: out, kind: energy}
+      - {id: a101, direction: out, kind: energy}
+  - id: LPS
+    title: LP steam 350 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 350, provenance: assumed, source: "design basis (D-009)"}
+      supply_temperature: {value: 412.0, provenance: given, source: "saturation at 350 kPa(a), IAPWS-IF97 (411.5 K)"}
+      min_approach: {value: 10, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: e101, direction: out, kind: energy}
+      - {id: st101, direction: out, kind: energy}
+products:
+  - {id: ACCL, title: Acetyl chloride to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: H3PO3P, title: Crude phosphorous acid (lower phase; co-product), category: by_product, ports: [{id: in, direction: in}]}
+  - {id: RES, title: Still residue (PCl3 and acetyl chloride) to hazardous-waste incineration, category: by_product, ports: [{id: in, direction: in}]}
+  - {id: SCRL, title: Scrubber liquor (dilute hydrochloric acid) to neutralisation, category: wastewater, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis (D-009)"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis (D-009)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: r101, direction: in, kind: energy}
+      - {id: k101, direction: in, kind: energy}
+      - {id: e102, direction: in, kind: energy}
+      - {id: e104, direction: in, kind: energy}
+  - id: BRINE
+    title: Chilled brine return (263 K)
+    category: utility
+    utility:
+      kind: refrigerant
+      supply_temperature: {value: 258.15, provenance: assumed, source: "design basis (D-009)"}
+      return_temperature: {value: 263.15, provenance: assumed, source: "design basis (D-009)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: e103, direction: in, kind: energy}
+
+blocks:
+  - id: REACT
+    title: Semi-batch reaction and phase split (R-101)
+    class: ReactingChemicals
+    ports:
+      - {id: hac, direction: in}
+      - {id: pcl3, direction: in}
+      - {id: upper, direction: out}
+      - {id: lower, direction: out}
+      - {id: vent, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: q, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: PURIFY
+    title: Batch distillation at atmospheric pressure (C-101, K-101)
+    class: Distilling
+    ports:
+      - {id: in, direction: in}
+      - {id: product, direction: out}
+      - {id: residue, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: q, direction: out, kind: energy}
+      - {id: qres, direction: out, kind: energy}
+      - {id: qprod, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: SCRUB
+    title: Vent condenser and HCl water scrubber
+    class: Absorbing
+    ports:
+      - {id: gas, direction: in}
+      - {id: water, direction: in}
+      - {id: liquor, direction: out}
+      - {id: q, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+
+steps:
+  - id: E101
+    block: REACT
+    title: Acetic acid charge warmed to 313 K (R-101 jacket)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in, delegates: hac}
+      - {id: out, direction: out}
+      - {id: q, direction: in, kind: energy, delegates: steam}
+  - id: R101
+    block: REACT
+    title: Reactor (PCl3 dosed into acetic acid at 313 K, HCl vented)
+    class: ReactingChemicals
+    reactions: [ACCL, HYD]
+    reactor: semibatch
+    # the semi-batch model's duty (its reactions' heat less the dose warmed, ADR 0059) goes on Q2
+    energy_port: q
+    batch:
+      dosing: [{stream: S3, time: 7200}]
+      target: {key: PCL3, conversion: 0.95}
+      heat: isothermal
+      vent: {stream: S5, components: [HCL, ACCL], fraction: {ACCL: 0.00213}}
+      provenance: assumed
+      source: "PCl3 dosed at a constant rate over 2 h into the acetic acid at 313 K (CS 272 248 B2, Example 1: below 40 C; the plant's dosing time ASSUMED, D-003), then the post-reaction to 0.95 conversion of the PCl3 (calibrated to the source's lower phase, D-005, D-006); the HCl leaves as gas as it forms, none taken as dissolved (D-005); 0.213 % of the acetyl chloride formed leaves past the vent condenser E103, an upper bound: the vapour at E103's 268 K of all the inert E103 takes, the HCl, the head space the dose displaces and the batch's whole 8 Nm3 of nitrogen; R-101's 5 Nm3 purge runs dry before the charge and carries none, so per source about 0.099 % (scripts/balance.py prints both, D-010, D-014); core 1.10.0's vent.vapour with a condenser at 268 K (ADR 0062, scratch copy) gives 0.0006 %, the vapour of the HCl alone, as it models no head space or nitrogen as the carrier, so the hand fraction stays (D-015)"
+    hazard:
+      mtt: 324.15
+      vent_capacity: 50.0
+      provenance: assumed
+      source: "mtt: the normal boiling point of acetyl chloride (CRC via chemicals 1.5.2; NIST WebBook 325 +/- 2 K), the product, which becomes the liquid's main component as the PCl3 is dosed: R101 runs at atmospheric pressure with its vent open; core's default, the lowest boiling point of the charge and the dose (PCl3, 349.15 K; core 1.9.0 leaves the vented HCl and acetyl chloride out but takes no product), lies above it (D-011, L-5). vent_capacity: ASSUMED design of R-101's vent line, the vent condenser E-103 and the scrubber A-101 (D-010, D-014): the model's normal peak, 30.8 m3/h of HCl at 313 K at the start of the dosing (cheme process recipe), plus CS 272 248 B2's 38.6 kg of HCl a batch released evenly over the 2 h dosing (13.6 m3/h at 313 K), 44.4 m3/h, rounded up to 50 m3/h at R-101's 101.3 kPa(a); against a cooling failure's gas release (cheme process reactor-hazards): 0.41 m3/h at the MTSR (the end of the dosing) and 31.2 m3/h at 69 s, the largest over the batch (0.62 of it), 37.9 m3/h at k/100; boiling cases are a design finding (D-014). No TD24 (never estimated)"
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: charge, direction: in}
+      - {id: dose, direction: in, delegates: pcl3}
+      - {id: out, direction: out}
+      - {id: gas, direction: out, delegates: vent}
+      - {id: q, direction: out, kind: energy, delegates: q}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: D101
+    block: REACT
+    title: Phase split in R-101 (upper acetyl chloride, lower phosphorous acid; specified split)
+    class: SeparatingByGravity
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: upper, direction: out, delegates: upper}
+      - {id: lower, direction: out, delegates: lower}
+  - id: ST101
+    block: PURIFY
+    title: Batch still at 101 kPa(a) with its column K-101 (10 stages, reflux ratio 1)
+    class: Distilling
+    # the reboiler's duty ((R + 1) times the distillate's latent heat and the charge's heat-up,
+    # ADRs 0061, 0063) goes on Q3, the condenser's (the boil-up's latent heat) on Q4 (D-015)
+    energy_port: steam
+    still:
+      pressure: 101.325
+      volatility: {model: raoult, provenance: assumed, source: "ideal liquid, NIST WebBook Antoine constants (materials.yaml); acetyl chloride and PCl3 are not shown to form an ideal liquid with each other or with acetic acid: ASSUMED (D-007)"}
+      nonvolatile: [H3PO3]
+      boilup: {value: 150, unit: kW, provenance: assumed, source: "the reboiler's heat input, LP steam on C-101's jacket (D-007, D-009); with the column (R + 1) moles boil up per mole distilled (ADR 0061)"}
+      heat_up: true
+      condenser_port: condenser
+      column: {stages: 10, reflux: constant, ratio: 1.0, provenance: assumed, source: "about 10 theoretical stages (the still included) and a reflux ratio of 1:1 after US 4 209 460 A, Example 1: a 2 m column of 50 mm packed with 8 mm saddles at reflux 1:1; the stages are ASSUMED from the packed height (about 0.2 m a stage); the 99.0 wt% minimum of the product (US 4 209 460 A: at least 99 % for many uses) is met at 10 stages and not at 6 (D-008, D-015)"}
+      end: {residue: {key: ACCL, mole_fraction: 0.5}}
+      outlets: {distillate: top, residue: bottom}
+      provenance: assumed
+      source: "distil until acetyl chloride is 50 mol% of the residue, which keeps the still's last bubble point within about 10 K of the end of acetyl chloride's Antoine fit (D-007)"
+    links: [{target: equipment, ref: C-101}, {target: equipment, ref: K-101}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: top, direction: out}
+      - {id: bottom, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: condenser, direction: out, kind: energy, delegates: q}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: E102
+    block: PURIFY
+    title: Residue cooled to 303 K in the still (C-101 jacket)
+    class: Cooling
+    links: [{target: equipment, ref: C-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: residue}
+      - {id: q, direction: out, kind: energy, delegates: qres}
+  - id: E104
+    block: PURIFY
+    title: Product cooler to 303 K (on K-101's condensate)
+    class: Cooling
+    links: [{target: equipment, ref: K-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: product}
+      - {id: q, direction: out, kind: energy, delegates: qprod}
+  - id: E103
+    block: SCRUB
+    title: Vent condenser on brine (acetyl chloride vapour back to R-101)
+    class: Cooling
+    links: [{target: equipment, ref: E-103}]
+    ports:
+      - {id: in, direction: in, delegates: gas}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: q}
+  - id: A101
+    block: SCRUB
+    title: HCl water scrubber (packed column, bleed; the acetyl chloride vapour hydrolysed)
+    class: ReactingChemicals
+    reactions: [AHYD]
+    reactor: conversion
+    links: [{target: equipment, ref: A-101}]
+    ports:
+      - {id: gas, direction: in}
+      - {id: water, direction: in, delegates: water}
+      - {id: liquor, direction: out, delegates: liquor}
+      - {id: power, direction: in, kind: energy, delegates: power}
+
+streams:
+  - id: S1
+    title: Acetic acid
+    from: HAC.out
+    to: E101.in
+    template: organics
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "from storage (design basis)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 208.6783, provenance: assumed, source: "scripts/balance.py: 3 mol acetic acid per mol of PCl3 in S3 (CS 272 248 B2, Example 1: 3 mol on 1.0 mol; D-004), with its water"}
+        composition: {basis: mass_fraction, values: {ACOH: 0.999309, H2O: 0.000691}, provenance: assumed, source: "acetic-acid-1's glacial acid (its product S21: 691 ppm water by mass; its 50 ppm propionic acid counted as acetic acid; D-004)"}
+  - id: S2
+    title: Acetic acid charge (313 K)
+    from: E101.out
+    to: R101.charge
+    template: organics
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "warmed to the reaction temperature in R-101 (D-005)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 208.6783, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S1', fingerprint: 87a91ebec465e29b}
+        composition: {basis: mass_fraction, values: {ACOH: 0.999309, H2O: 0.000691}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S1', fingerprint: 87a91ebec465e29b}
+  - id: S3
+    title: Phosphorus trichloride (dosed)
+    from: PCL3.out
+    to: R101.dose
+    template: organics
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "from storage (design basis)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 158.9552, provenance: assumed, source: "scripts/balance.py: the PCl3 that makes 2000 t/a of S10 (the balance is linear in the feeds; D-002, D-004)"}
+        composition: {basis: mass_fraction, values: {PCL3: 1.0}, provenance: assumed, source: "phosphorus trichloride 100 % (its POCl3 and dissolved chlorine not modelled; D-004)"}
+  - id: S4
+    title: Reaction mass (two liquid phases)
+    from: R101.out
+    to: D101.in
+    template: organics
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {ACOH: 0.0392883, PCL3: 0.012519, ACCL: 0.710333, H3PO3: 0.23786, H2O: 0.0, HCL: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S3', fingerprint: 3c5d4e14208d41ef}
+        flow: {value: 366.791, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S3', fingerprint: 3c5d4e14208d41ef}
+        temperature: {value: 313.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S3', fingerprint: 3c5d4e14208d41ef}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S3', fingerprint: 3c5d4e14208d41ef}
+  - id: S5
+    title: HCl off-gas (with the vent's nitrogen)
+    from: R101.gas
+    to: E103.in
+    template: acid
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {HCL: 0.533122, ACCL: 0.466878}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S3', fingerprint: 3c5d4e14208d41ef}
+        flow: {value: 0.842043, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S3', fingerprint: 3c5d4e14208d41ef}
+        temperature: {value: 313.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S3', fingerprint: 3c5d4e14208d41ef}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S3', fingerprint: 3c5d4e14208d41ef}
+  - id: S6
+    title: Upper phase (crude acetyl chloride)
+    from: D101.upper
+    to: ST101.in
+    template: organics
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "settled at R101's temperature (D-006)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 264.2552, provenance: assumed, source: "scripts/balance.py: D101's specified split of S4, the rest after the lower phase S7 (D-006)"}
+        composition: {basis: mass_fraction, values: {ACOH: 0.002063797, PCL3: 0.028572343, ACCL: 0.967657837, H3PO3: 0.001706023}, provenance: assumed, source: "scripts/balance.py: D101's specified split of S4 (D-006)"}
+  - id: S7
+    title: Lower phase (crude phosphorous acid)
+    from: D101.lower
+    to: H3PO3P.in
+    template: organics
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "settled at R101's temperature, drained to its tank (D-006)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 102.5358, provenance: assumed, source: "scripts/balance.py: D101's specified split of S4 to the lower phase: 99.5 % of the phosphorous acid, 95 % of the acetic acid, 5 % of the PCl3 and 0.8 % of the acetyl chloride, calibrated to the lower phase of CS 272 248 B2, Example 1 (D-006)"}
+        composition: {basis: mass_fraction, values: {ACOH: 0.101057444, PCL3: 0.00387561, ACCL: 0.020111662, H3PO3: 0.874955283}, provenance: assumed, source: "scripts/balance.py: D101's specified split of S4 (D-006)"}
+  - id: S8
+    title: Distillate of the column K-101 (the product cut)
+    from: ST101.top
+    to: E104.in
+    template: organics
+    state:
+      design:
+        temperature: {value: 323.99, provenance: assumed, source: "scripts/balance.py: the bubble point of the distillate's mean composition at 101.325 kPa(a), as it leaves K-101's total condenser (D-015)"}
+        pressure: {value: 101.325, provenance: assumed, source: "still pressure (D-007)"}
+        flow: {value: 252.524, provenance: calculated, source: 'cheme process propagate: still ST101 from S6', fingerprint: eabc2c5c811c999b}
+        composition: {basis: mole_fraction, values: {ACOH: 2.71836e-06, PCL3: 0.00328462, ACCL: 0.996713, H3PO3: 0.0}, provenance: calculated, source: 'cheme process propagate: still ST101 from S6', fingerprint: eabc2c5c811c999b}
+  - id: S9
+    title: Still residue (end of the boil-up)
+    from: ST101.bottom
+    to: E102.in
+    template: organics
+    state:
+      design:
+        temperature: {value: 335.89, provenance: assumed, source: "scripts/balance.py: the residue's bubble point at the end of the boil-up (as cheme process stills; D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "still pressure (D-007)"}
+        flow: {value: 11.7307, provenance: calculated, source: 'cheme process propagate: still ST101 from S6', fingerprint: eabc2c5c811c999b}
+        composition: {basis: mole_fraction, values: {ACOH: 0.0768727, PCL3: 0.376542, ACCL: 0.5, H3PO3: 0.0465851}, provenance: calculated, source: 'cheme process propagate: still ST101 from S6', fingerprint: eabc2c5c811c999b}
+  - id: S10
+    title: Acetyl chloride
+    from: E104.out
+    to: ACCL.in
+    template: organics
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: "distillate subcooled on cooling water to storage (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 252.524, provenance: calculated, source: 'cheme process propagate: pass-through E104 from S8', fingerprint: 0178dcf7df15c31a}
+        composition: {basis: mole_fraction, values: {ACOH: 2.71836e-06, PCL3: 0.00328462, ACCL: 0.996713, H3PO3: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E104 from S8', fingerprint: 0178dcf7df15c31a}
+  - id: S13
+    title: Still residue to incineration
+    from: E102.out
+    to: RES.in
+    template: organics
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: "cooled on cooling water in the still before it is drained (D-009)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 11.7307, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S9', fingerprint: 60a0d70929b8c96e}
+        composition: {basis: mole_fraction, values: {ACOH: 0.0768727, PCL3: 0.376542, ACCL: 0.5, H3PO3: 0.0465851}, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S9', fingerprint: 60a0d70929b8c96e}
+  - id: S14
+    title: Vent gas after the condenser
+    from: E103.out
+    to: A101.gas
+    template: acid
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {HCL: 0.533122, ACCL: 0.466878}, provenance: calculated, source: 'cheme process propagate: pass-through E103 from S5', fingerprint: 3c4c6e7c55f9372f}
+        flow: {value: 0.842043, provenance: calculated, source: 'cheme process propagate: pass-through E103 from S5', fingerprint: 3c4c6e7c55f9372f}
+        temperature: {value: 268.15, provenance: assumed, source: "vent gas leaving the brine condenser 10 K above the 258 K brine (D-010)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+  - id: S15
+    title: Scrubber water
+    from: PW.out
+    to: A101.water
+    template: acid
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 53.8957, provenance: assumed, source: "scripts/balance.py: the water for a 1 wt% HCl bleed, with the HCl of S14 and of the acetyl chloride it hydrolyses (D-010)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "process water"}
+  - id: S16
+    title: Scrubber liquor (dilute hydrochloric acid)
+    from: A101.liquor
+    to: SCRL.in
+    template: acid
+    state:
+      design:
+        temperature: {value: 304.57, provenance: assumed, source: "scripts/balance.py: adiabatic scrubber, the water at 298.15 K warmed by the hydrolysis of the acetyl chloride vapour (AHYD, -48 kJ/mol), the HCl's heat of solution (-75 kJ/mol, ASSUMED) and the gas at 268.15 K (D-010)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 54.7377, provenance: calculated, source: 'cheme process propagate: reactor A101 from S14 S15', fingerprint: 6f7196edefc23cef}
+        composition: {basis: mole_fraction, values: {HCL: 0.00499344, ACCL: 0.0, H2O: 0.992675, ACOH: 0.00233133}, provenance: calculated, source: 'cheme process propagate: reactor A101 from S14 S15', fingerprint: 0a738e904299bc40}
+  # energy
+  - {id: Q1, title: Charge warming (LP steam via the tempered-water loop), kind: energy, from: LPS.e101, to: E101.q, state: {design: {duty: {value: 1.7865, provenance: assumed, source: "scripts/balance.py: S1 from 298.15 to 313.15 K (123.3 kJ/(kmol K), CRC); the jacket's and the loop's heat losses not counted (D-009)"}}}}
+  - {id: Q2, title: Heat of reaction to cooling water, kind: energy, from: R101.q, to: CW.r101, state: {design: {duty: {value: 2.66833, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S2 S3', fingerprint: bdc011570b0a412b}}}}
+  - {id: Q3, title: "Still reboiler (LP steam)", kind: energy, from: LPS.st101, to: ST101.steam, state: {design: {duty: {value: 54.8766, provenance: calculated, source: 'cheme process propagate: still duty ST101 from S6', fingerprint: 815c54057b380fc2}}}}
+  - {id: Q4, title: "Column condenser (K-101) to cooling water", kind: energy, from: ST101.condenser, to: CW.k101, state: {design: {duty: {value: 53.667, provenance: calculated, source: 'cheme process propagate: still condenser duty ST101 from S6', fingerprint: 58e2d51d037a4fac}}}}
+  - {id: Q5, title: Residue cooling to cooling water, kind: energy, from: E102.q, to: CW.e102, state: {design: {duty: {value: 0.127, provenance: assumed, source: "scripts/balance.py: the residue S9 from its end temperature to 303.15 K (D-009)"}}}}
+  - {id: Q6, title: Vent condenser to brine, kind: energy, from: E103.q, to: BRINE.e103, state: {design: {duty: {value: 0.3484, provenance: assumed, source: "scripts/balance.py: E-103's load per source, each gas cooled to 268 K, its acetyl chloride condensed down to 9.3 kPa (30.1 kJ/mol, NIST) and its acetic acid all: R-101's gas off the reacting mass (its HCl and the head space the dose displaces, 0.0093 kmol/h) saturated with the upper phase's vapour at 313 K, an upper bound (0.1712 kW); the still's and the receivers' 3 Nm3 of nitrogen a batch saturated over the product at 303 K (0.1679 kW); R-101's 5 Nm3 purge, dry before the charge, from 298 K (0.0094 kW). All the inert saturated at 313 K, the basis until core 1.9.0, gave 1.2826 kW. Core 1.10.0's vent vapour and condenser (ADR 0062) were not adopted: they carry the vapour of R-101's HCl only, not of this carrier gas (D-010, D-014, D-015)"}}}}
+  - {id: Q9, title: Product cooler to cooling water, kind: energy, from: E104.q, to: CW.e104, state: {design: {duty: {value: 2.1734, provenance: assumed, source: "scripts/balance.py: the product S8 subcooled from its bubble point to 303.15 K, at the liquid heat capacities of materials.yaml (D-009, D-015)"}}}}
+  - {id: P1, title: R-101 agitator, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 2.44, provenance: assumed, source: "year average: a 4 kW agitator running during the charge, warming, dosing and post-reaction, 3.53 h of R-101's 5.78 h cycle (0.5 + 0.54 + 2.0 + 0.49 h, cheme process recipe), 14.1 kWh per cycle, off while the phases settle (D-009)"}}}}
+  - {id: P2, title: Still agitator and column reflux pump, kind: energy, from: POWER.st101, to: ST101.power, state: {design: {duty: {value: 1.25, provenance: assumed, source: "year average: still agitator 2 kW during the distillation and the residue's cooling (2.57 h) and reflux pump 1 kW during the distillation (2.07 h), 7.20 kWh per 5.78 h cycle (D-009, D-015)"}}}}
+  - {id: P3, title: Scrubber circulation pump and vent fan, kind: energy, from: POWER.a101, to: A101.power, state: {design: {duty: {value: 1.5, provenance: assumed, source: "year average: the scrubber's circulation pump 1 kW and its vent fan 0.5 kW, running all the time (D-009)"}}}}
+layout: {bfd: {}, pfd: {}}

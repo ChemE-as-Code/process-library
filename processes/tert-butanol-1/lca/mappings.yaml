@@ -1,0 +1,8 @@
+# tert-butanol-1's own exchange overrides for the Atlas LCI build (ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. The diisobutene needs no entry: it is marked
+# free in the dataset (burned as site fuel, ASSUMED; cut-off at the point of energy recovery,
+# docs/system-model.md section 3).
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:isobutene": {dataset: {path: processes/isobutene-1/lca/dataset.yaml, product: "product:IBP"}, source: "the Atlas producer isobutene-1, high-purity isobutene by MTBE cracking, the grade the dataset models (a pure isobutene feed, which US 7,179,948 B2 allows). ASSUMED as a proxy for the raffinate feed most plants take: the library's raffinate-I producer, butadiene-1's product:c4-raffinate, is not linked, because the dataset counts the isobutene consumed (kg C4H8) while that product is the whole mixture per kg, the registry records no composition for c4-raffinate to set the isobutene share, and the butenes and butanes would return as a raffinate-2 co-product that the dataset does not model"}
+  "feed:heat": {use: heat-natural-gas, source: "core's Tier 0 default heat from fossil fuel, counted as heat in kWh; natural gas as the fuel is ASSUMED (the default names no fuel)"}

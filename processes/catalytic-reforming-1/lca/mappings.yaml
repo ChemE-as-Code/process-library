@@ -1,0 +1,10 @@
+# catalytic-reforming-1's own exchange overrides for the Atlas LCI build (ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Naphtha stays a reported gap: the shared
+# vocabulary has no entry, and refinery-distillation-1's naphtha is another grade (see below); a
+# naphtha hydrotreater entry would supply it. The catalyst and its spent output are gaps too.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:fuel": {use: heat-natural-gas, source: "Fuel fired in the charge heater and interheaters, counted as heat (kWh), as hda-1 counts its feed heater; refinery fuel gas in practice, natural-gas heat as the background proxy (combustion emissions inside it)"}
+  "feed:naphtha":
+    atlas: false
+    source: "Hydrotreated heavy naphtha. refinery-distillation-1 makes unstabilised, untreated full-range naphtha (C5 to 180 degC), another grade; the library has no naphtha hydrotreater or splitter. Link one explicitly once it exists."

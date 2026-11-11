@@ -1,0 +1,995 @@
+{
+  "schema": "cheme/lca-scenario/v1",
+  "id": "co2-electrolysis-to-co-two-0.1-kg-h-pilot-skids-reverse-bias-bpm-28-cells-of-100-cm2-each/skid-b/skid-b-mix-eu27",
+  "scenario": {
+    "id": "skid-b-mix-eu27",
+    "kind": "design-case",
+    "title": "Skid B, EU-27 grid",
+    "location": "EU27",
+    "year": 2025,
+    "electricity": "grid-average",
+    "source": "flowsheet case skid-b; Ember 2025, EU-27",
+    "replaces": {
+      "ember-2025:electricity-nl": "ember-2025:electricity-eu27"
+    },
+    "missing": {},
+    "proxy": {
+      "feed:WATER": "UK mains water stands in for demineralised water in the EU-27 too"
+    }
+  },
+  "process": {
+    "dataset": "co2-electrolysis-to-co-two-0.1-kg-h-pilot-skids-reverse-bias-bpm-28-cells-of-100-cm2-each",
+    "title": "CO2 electrolysis to CO, two 0.1 kg/h pilot skids (reverse-bias BPM, 28 cells of 100 cm2 each)",
+    "technology": "CO2 electrolysis to CO in reverse-bias bipolar-membrane cells (Ag gas-diffusion cathode, Ni foam anode, KOH anolyte), 28 cells of 100 cm2 in four stacks on a 48 V DC bus at 200 mA/cm2, PSA gas conditioning with 0.95 CO2 recycle and tail-gas oxidation; Skid A one 1 M KOH fill per campaign, Skid B continuous 5 M KOH dosing, bleed and make-up"
+  },
+  "design_case": {
+    "id": "skid-b",
+    "description": "Skid B runs: 4 x 7 cells at 200 mA/cm2 on 50 L held at 0.5 mol/L OH- by continuous 5 M KOH dosing, bleed and make-up (duty D-B); train A idle",
+    "capacity": "0.100 kg/h CO, >=99 mol% dry, 5.0 bar(a)",
+    "provenance": "calculated",
+    "applicability": {
+      "range": "200 mA/cm2, 25 C, fresh 1 M KOH",
+      "source": "the measured series, experiments/electrochemistry/rbpm-1m-koh.yaml",
+      "limitations": "5 to 100 cm2 scale-up and campaign duration extrapolated"
+    },
+    "source": "scripts/skid_balance.py",
+    "extrapolated": false
+  },
+  "comparability": {
+    "verdict": "proxy",
+    "reasons": [
+      "declared proxy: feed:WATER"
+    ],
+    "compared": [
+      {
+        "baseline": "ember-2025:electricity-nl",
+        "scenario": "ember-2025:electricity-eu27",
+        "differences": []
+      }
+    ]
+  },
+  "foreground": {
+    "layer": "foreground",
+    "relation": "design-case",
+    "scope": "foreground",
+    "basis": "1 h of operation",
+    "boundary": "gate-to-gate foreground of the plant",
+    "fingerprint": "sha256:d12b2a98f79a40a16ccfeeb179ebfc98ce5a755196452d25672121b1a7175287",
+    "exchanges": [
+      {
+        "key": "feed:CO2",
+        "title": "Liquefied CO2 (merchant, ASSUMED fossil by-product, D-016)",
+        "type": "input",
+        "phase": "operation",
+        "amount": 0.356313,
+        "unit": "kg",
+        "provenance": "assumed"
+      },
+      {
+        "key": "feed:KOH-FILL",
+        "title": "1 M KOH fill (campaign-averaged, D-011)",
+        "type": "input",
+        "phase": "operation",
+        "amount": 0.0525,
+        "unit": "kg",
+        "provenance": "assumed"
+      },
+      {
+        "key": "feed:KOH-DOSE",
+        "title": "5 M KOH solution (Skid B dosing)",
+        "type": "input",
+        "phase": "operation",
+        "amount": 0.511398,
+        "unit": "kg",
+        "provenance": "assumed"
+      },
+      {
+        "key": "feed:WATER",
+        "title": "Demineralised water (humidification, make-up)",
+        "type": "input",
+        "phase": "operation",
+        "amount": 1.70378,
+        "unit": "kg",
+        "provenance": "assumed"
+      },
+      {
+        "key": "feed:AIR",
+        "title": "Air to the tail-gas oxidiser",
+        "type": "input",
+        "phase": "operation",
+        "amount": 0.853699,
+        "unit": "kg",
+        "provenance": "assumed"
+      },
+      {
+        "key": "feed:POWER",
+        "title": "Electric power (AC, grid)",
+        "type": "input",
+        "phase": "operation",
+        "amount": 3.48165,
+        "unit": "kWh",
+        "provenance": "assumed"
+      },
+      {
+        "key": "product:CO",
+        "title": "CO product, >=0.99 mol/mol dry, 5.0 bar(a)",
+        "type": "product",
+        "phase": "operation",
+        "amount": 0.10081,
+        "unit": "kg",
+        "provenance": "assumed"
+      },
+      {
+        "key": "product:VENT",
+        "title": "Oxidiser flue gas to air",
+        "type": "output",
+        "phase": "operation",
+        "amount": 1.07436,
+        "unit": "kg",
+        "provenance": "assumed"
+      },
+      {
+        "key": "product:O2VENT",
+        "title": "Anode O2 vented from the reservoir",
+        "type": "output",
+        "phase": "operation",
+        "amount": 0.157538,
+        "unit": "kg",
+        "provenance": "assumed"
+      },
+      {
+        "key": "product:BLEED",
+        "title": "Anolyte bleed to the site effluent (Skid B)",
+        "type": "output",
+        "phase": "operation",
+        "amount": 1.96152,
+        "unit": "kg",
+        "provenance": "assumed"
+      },
+      {
+        "key": "product:SPENT",
+        "title": "Spent anolyte at the end of the campaign (campaign-averaged, D-011)",
+        "type": "output",
+        "phase": "operation",
+        "amount": 0.0525659,
+        "unit": "kg",
+        "provenance": "assumed"
+      },
+      {
+        "key": "product:CONDENSATE",
+        "title": "Cathode condensate with carbonate to the site effluent",
+        "type": "output",
+        "phase": "operation",
+        "amount": 0.130898,
+        "unit": "kg",
+        "provenance": "assumed"
+      },
+      {
+        "key": "product:CW",
+        "title": "Cooling water return",
+        "type": "output",
+        "phase": "operation",
+        "amount": 2.22679,
+        "unit": "kWh",
+        "provenance": "assumed"
+      },
+      {
+        "key": "emission:CO2",
+        "title": "CO2 to the environment",
+        "type": "emission",
+        "phase": "operation",
+        "amount": 0.172444,
+        "unit": "kg",
+        "provenance": "assumed"
+      },
+      {
+        "key": "emission:H2O",
+        "title": "H2O to the environment",
+        "type": "emission",
+        "phase": "operation",
+        "amount": 0.147628,
+        "unit": "kg",
+        "provenance": "assumed"
+      },
+      {
+        "key": "emission:N2",
+        "title": "N2 to the environment",
+        "type": "emission",
+        "phase": "operation",
+        "amount": 0.654865,
+        "unit": "kg",
+        "provenance": "assumed"
+      },
+      {
+        "key": "emission:O2",
+        "title": "O2 to the environment",
+        "type": "emission",
+        "phase": "operation",
+        "amount": 0.256955,
+        "unit": "kg",
+        "provenance": "assumed"
+      },
+      {
+        "key": "consumable:membrane-bpm",
+        "title": "Bipolar membranes (Fumasep FBM), 28 x 100 cm2",
+        "type": "input",
+        "phase": "operation",
+        "amount": 1.4e-05,
+        "unit": "kg",
+        "provenance": "assumed"
+      },
+      {
+        "key": "disposal:consumable.membrane-bpm",
+        "title": "Disposal: Bipolar membranes (Fumasep FBM), 28 x 100 cm2 (incineration of spent ion-exchange membrane)",
+        "type": "output",
+        "phase": "operation",
+        "amount": 1.4e-05,
+        "unit": "kg",
+        "provenance": "assumed"
+      },
+      {
+        "key": "consumable:cathode-gde-ag",
+        "title": "Silver of the gas-diffusion cathodes, 28 x 100 cm2",
+        "type": "input",
+        "phase": "operation",
+        "amount": 7.343e-08,
+        "unit": "kg",
+        "provenance": "assumed"
+      },
+      {
+        "key": "disposal:consumable.cathode-gde-ag",
+        "title": "Disposal: Silver of the gas-diffusion cathodes, 28 x 100 cm2 (silver recovery by a precious-metal refiner)",
+        "type": "output",
+        "phase": "operation",
+        "amount": 7.343e-08,
+        "unit": "kg",
+        "provenance": "assumed"
+      },
+      {
+        "key": "consumable:cathode-gdl-carbon",
+        "title": "Carbon-paper gas-diffusion layers of the cathodes (Sigracet 39BB), 28 x 100 cm2",
+        "type": "input",
+        "phase": "operation",
+        "amount": 7e-06,
+        "unit": "kg",
+        "provenance": "assumed"
+      },
+      {
+        "key": "disposal:consumable.cathode-gdl-carbon",
+        "title": "Disposal: Carbon-paper gas-diffusion layers of the cathodes (Sigracet 39BB), 28 x 100 cm2 (burnt off by the precious-metal refiner in the silver recovery)",
+        "type": "output",
+        "phase": "operation",
+        "amount": 7e-06,
+        "unit": "kg",
+        "provenance": "assumed"
+      },
+      {
+        "key": "consumable:anode-ni-foam",
+        "title": "Nickel foam anodes, 28 x 100 cm2",
+        "type": "input",
+        "phase": "operation",
+        "amount": 2.45e-05,
+        "unit": "kg",
+        "provenance": "assumed"
+      },
+      {
+        "key": "disposal:consumable.anode-ni-foam",
+        "title": "Disposal: Nickel foam anodes, 28 x 100 cm2 (nickel scrap to recycling)",
+        "type": "output",
+        "phase": "operation",
+        "amount": 2.45e-05,
+        "unit": "kg",
+        "provenance": "assumed"
+      }
+    ]
+  },
+  "linked_inventory": {
+    "layer": "linked-inventory",
+    "backend": "factors",
+    "basis": "1 h of operation",
+    "exchanges": [
+      {
+        "key": "feed:CO2",
+        "title": "Liquefied CO2 (merchant, ASSUMED fossil by-product, D-016)",
+        "phase": "operation",
+        "amount": 0.356313,
+        "unit": "kg",
+        "state": "missing",
+        "background": null,
+        "baseline": "missing: no open factor for merchant liquefied CO2 (capture, purification, liquefaction and delivery of a fossil industrial by-product CO2)",
+        "replaced": false,
+        "location": null,
+        "year": null,
+        "status": null,
+        "source_id": null,
+        "note": "no open factor for merchant liquefied CO2 (capture, purification, liquefaction and delivery of a fossil industrial by-product CO2)",
+        "scope": null,
+        "gaps": [
+          "climate-change"
+        ]
+      },
+      {
+        "key": "feed:KOH-FILL",
+        "title": "1 M KOH fill (campaign-averaged, D-011)",
+        "phase": "operation",
+        "amount": 0.0525,
+        "unit": "kg",
+        "state": "missing",
+        "background": null,
+        "baseline": "missing: no open factor for potassium hydroxide (KOH 100 %, membrane-cell electrolysis of KCl); the exchange counts the 1 M fill solution, its KOH mass fraction in the composition; its dilution water (about 95 % of the mass) is inside this gap, not in feed:WATER",
+        "replaced": false,
+        "location": null,
+        "year": null,
+        "status": null,
+        "source_id": null,
+        "note": "no open factor for potassium hydroxide (KOH 100 %, membrane-cell electrolysis of KCl); the exchange counts the 1 M fill solution, its KOH mass fraction in the composition; its dilution water (about 95 % of the mass) is inside this gap, not in feed:WATER",
+        "scope": null,
+        "gaps": [
+          "climate-change"
+        ]
+      },
+      {
+        "key": "feed:KOH-DOSE",
+        "title": "5 M KOH solution (Skid B dosing)",
+        "phase": "operation",
+        "amount": 0.511398,
+        "unit": "kg",
+        "state": "missing",
+        "background": null,
+        "baseline": "missing: no open factor for potassium hydroxide (KOH 100 %); the exchange counts the 5 M dosing solution, its KOH mass fraction in the composition; its dilution water (about 77 % of the mass) is inside this gap, not in feed:WATER",
+        "replaced": false,
+        "location": null,
+        "year": null,
+        "status": null,
+        "source_id": null,
+        "note": "no open factor for potassium hydroxide (KOH 100 %); the exchange counts the 5 M dosing solution, its KOH mass fraction in the composition; its dilution water (about 77 % of the mass) is inside this gap, not in feed:WATER",
+        "scope": null,
+        "gaps": [
+          "climate-change"
+        ]
+      },
+      {
+        "key": "feed:WATER",
+        "title": "Demineralised water (humidification, make-up)",
+        "phase": "operation",
+        "amount": 1.70378,
+        "unit": "kg",
+        "state": "proxy",
+        "background": "water-supply-gb-kg",
+        "baseline": "factor:water-supply-gb-kg",
+        "replaced": false,
+        "location": "GB",
+        "year": 2026,
+        "status": "PROXY",
+        "source_id": "desnz-ghg-2026",
+        "note": "UK mains water stands in for demineralised water in the EU-27 too",
+        "scope": {
+          "gases": "co2e",
+          "gwp": "AR4/AR5"
+        }
+      },
+      {
+        "key": "feed:AIR",
+        "title": "Air to the tail-gas oxidiser",
+        "phase": "operation",
+        "amount": 0.853699,
+        "unit": "kg",
+        "state": "free",
+        "background": null,
+        "baseline": "free",
+        "replaced": false,
+        "location": null,
+        "year": null,
+        "status": null,
+        "source_id": null,
+        "note": null,
+        "scope": null
+      },
+      {
+        "key": "feed:POWER",
+        "title": "Electric power (AC, grid)",
+        "phase": "operation",
+        "amount": 3.48165,
+        "unit": "kWh",
+        "state": "linked",
+        "background": "ember-2025:electricity-eu27",
+        "baseline": "factor:ember-2025:electricity-nl",
+        "replaced": true,
+        "location": "EU27",
+        "year": 2025,
+        "status": "PUBLISHED",
+        "source_id": "ember-2025",
+        "note": null,
+        "scope": {
+          "basis": "life-cycle",
+          "delivery": "generation",
+          "gases": "co2e",
+          "gwp": "mixed",
+          "mix": "grid-average",
+          "accounting": "generation"
+        }
+      },
+      {
+        "key": "product:VENT",
+        "title": "Oxidiser flue gas to air",
+        "phase": "operation",
+        "amount": 1.07436,
+        "unit": "kg",
+        "state": "released",
+        "background": null,
+        "baseline": "emission",
+        "replaced": false,
+        "location": null,
+        "year": null,
+        "status": null,
+        "source_id": null,
+        "note": null,
+        "scope": null
+      },
+      {
+        "key": "product:O2VENT",
+        "title": "Anode O2 vented from the reservoir",
+        "phase": "operation",
+        "amount": 0.157538,
+        "unit": "kg",
+        "state": "released",
+        "background": null,
+        "baseline": "emission",
+        "replaced": false,
+        "location": null,
+        "year": null,
+        "status": null,
+        "source_id": null,
+        "note": null,
+        "scope": null
+      },
+      {
+        "key": "product:BLEED",
+        "title": "Anolyte bleed to the site effluent (Skid B)",
+        "phase": "operation",
+        "amount": 1.96152,
+        "unit": "kg",
+        "state": "missing",
+        "background": null,
+        "baseline": "missing: no open factor for the neutralisation of an alkaline potassium carbonate solution; its K2CO3 carbon (fossil, from the CO2 feed) is released as CO2 when it is neutralised and is not counted",
+        "replaced": false,
+        "location": null,
+        "year": null,
+        "status": null,
+        "source_id": null,
+        "note": "no open factor for the neutralisation of an alkaline potassium carbonate solution; its K2CO3 carbon (fossil, from the CO2 feed) is released as CO2 when it is neutralised and is not counted",
+        "scope": null,
+        "gaps": [
+          "climate-change"
+        ]
+      },
+      {
+        "key": "product:SPENT",
+        "title": "Spent anolyte at the end of the campaign (campaign-averaged, D-011)",
+        "phase": "operation",
+        "amount": 0.0525659,
+        "unit": "kg",
+        "state": "missing",
+        "background": null,
+        "baseline": "missing: no open factor for the neutralisation of a spent alkaline potassium carbonate solution; its K2CO3 carbon (fossil, from the CO2 feed) is released as CO2 when it is neutralised and is not counted",
+        "replaced": false,
+        "location": null,
+        "year": null,
+        "status": null,
+        "source_id": null,
+        "note": "no open factor for the neutralisation of a spent alkaline potassium carbonate solution; its K2CO3 carbon (fossil, from the CO2 feed) is released as CO2 when it is neutralised and is not counted",
+        "scope": null,
+        "gaps": [
+          "climate-change"
+        ]
+      },
+      {
+        "key": "product:CONDENSATE",
+        "title": "Cathode condensate with carbonate to the site effluent",
+        "phase": "operation",
+        "amount": 0.130898,
+        "unit": "kg",
+        "state": "missing",
+        "background": null,
+        "baseline": "missing: no open factor for the neutralisation of the cathode's potassium carbonate condensate; its K2CO3 carbon (fossil, from the CO2 feed) is released as CO2 when it is neutralised and is not counted",
+        "replaced": false,
+        "location": null,
+        "year": null,
+        "status": null,
+        "source_id": null,
+        "note": "no open factor for the neutralisation of the cathode's potassium carbonate condensate; its K2CO3 carbon (fossil, from the CO2 feed) is released as CO2 when it is neutralised and is not counted",
+        "scope": null,
+        "gaps": [
+          "climate-change"
+        ]
+      },
+      {
+        "key": "product:CW",
+        "title": "Cooling water return",
+        "phase": "operation",
+        "amount": 2.22679,
+        "unit": "kWh",
+        "state": "missing",
+        "background": null,
+        "baseline": "missing: heat rejected to the site cooling water: no open factor for the circuit's pumps, fans, make-up water and treatment; the skids' own power counts the anolyte pump only",
+        "replaced": false,
+        "location": null,
+        "year": null,
+        "status": null,
+        "source_id": null,
+        "note": "heat rejected to the site cooling water: no open factor for the circuit's pumps, fans, make-up water and treatment; the skids' own power counts the anolyte pump only",
+        "scope": null,
+        "gaps": [
+          "climate-change"
+        ]
+      },
+      {
+        "key": "emission:CO2",
+        "title": "CO2 to the environment",
+        "phase": "operation",
+        "amount": 0.172444,
+        "unit": "kg",
+        "state": "linked",
+        "background": "ipcc2021-gwp100 (124-38-9, air, fossil)",
+        "baseline": "elementary:air, fossil",
+        "replaced": false,
+        "location": null,
+        "year": null,
+        "status": "PUBLISHED",
+        "source_id": "method:ipcc2021",
+        "note": null,
+        "scope": null
+      },
+      {
+        "key": "emission:H2O",
+        "title": "H2O to the environment",
+        "phase": "operation",
+        "amount": 0.147628,
+        "unit": "kg",
+        "state": "free",
+        "background": null,
+        "baseline": "free",
+        "replaced": false,
+        "location": null,
+        "year": null,
+        "status": null,
+        "source_id": null,
+        "note": null,
+        "scope": null
+      },
+      {
+        "key": "emission:N2",
+        "title": "N2 to the environment",
+        "phase": "operation",
+        "amount": 0.654865,
+        "unit": "kg",
+        "state": "free",
+        "background": null,
+        "baseline": "free",
+        "replaced": false,
+        "location": null,
+        "year": null,
+        "status": null,
+        "source_id": null,
+        "note": null,
+        "scope": null
+      },
+      {
+        "key": "emission:O2",
+        "title": "O2 to the environment",
+        "phase": "operation",
+        "amount": 0.256955,
+        "unit": "kg",
+        "state": "free",
+        "background": null,
+        "baseline": "free",
+        "replaced": false,
+        "location": null,
+        "year": null,
+        "status": null,
+        "source_id": null,
+        "note": null,
+        "scope": null
+      },
+      {
+        "key": "consumable:membrane-bpm",
+        "title": "Bipolar membranes (Fumasep FBM), 28 x 100 cm2",
+        "phase": "operation",
+        "amount": 1.4e-05,
+        "unit": "kg",
+        "state": "missing",
+        "background": null,
+        "baseline": "missing: no open factor for a bipolar ion-exchange membrane",
+        "replaced": false,
+        "location": null,
+        "year": null,
+        "status": null,
+        "source_id": null,
+        "note": "no open factor for a bipolar ion-exchange membrane",
+        "scope": null,
+        "gaps": [
+          "climate-change"
+        ]
+      },
+      {
+        "key": "disposal:consumable.membrane-bpm",
+        "title": "Disposal: Bipolar membranes (Fumasep FBM), 28 x 100 cm2 (incineration of spent ion-exchange membrane)",
+        "phase": "operation",
+        "amount": 1.4e-05,
+        "unit": "kg",
+        "state": "missing",
+        "background": null,
+        "baseline": "missing: no open factor for the incineration of a spent ion-exchange membrane",
+        "replaced": false,
+        "location": null,
+        "year": null,
+        "status": null,
+        "source_id": null,
+        "note": "no open factor for the incineration of a spent ion-exchange membrane",
+        "scope": null,
+        "gaps": [
+          "climate-change"
+        ]
+      },
+      {
+        "key": "consumable:cathode-gde-ag",
+        "title": "Silver of the gas-diffusion cathodes, 28 x 100 cm2",
+        "phase": "operation",
+        "amount": 7.343e-08,
+        "unit": "kg",
+        "state": "missing",
+        "background": null,
+        "baseline": "missing: no open factor for silver sputtered on a carbon gas-diffusion layer",
+        "replaced": false,
+        "location": null,
+        "year": null,
+        "status": null,
+        "source_id": null,
+        "note": "no open factor for silver sputtered on a carbon gas-diffusion layer",
+        "scope": null,
+        "gaps": [
+          "climate-change"
+        ]
+      },
+      {
+        "key": "disposal:consumable.cathode-gde-ag",
+        "title": "Disposal: Silver of the gas-diffusion cathodes, 28 x 100 cm2 (silver recovery by a precious-metal refiner)",
+        "phase": "operation",
+        "amount": 7.343e-08,
+        "unit": "kg",
+        "state": "free",
+        "background": null,
+        "baseline": "free",
+        "replaced": false,
+        "location": null,
+        "year": null,
+        "status": null,
+        "source_id": null,
+        "note": null,
+        "scope": null
+      },
+      {
+        "key": "consumable:cathode-gdl-carbon",
+        "title": "Carbon-paper gas-diffusion layers of the cathodes (Sigracet 39BB), 28 x 100 cm2",
+        "phase": "operation",
+        "amount": 7e-06,
+        "unit": "kg",
+        "state": "missing",
+        "background": null,
+        "baseline": "missing: no open factor for a carbon-fibre paper gas-diffusion layer with a microporous layer",
+        "replaced": false,
+        "location": null,
+        "year": null,
+        "status": null,
+        "source_id": null,
+        "note": "no open factor for a carbon-fibre paper gas-diffusion layer with a microporous layer",
+        "scope": null,
+        "gaps": [
+          "climate-change"
+        ]
+      },
+      {
+        "key": "disposal:consumable.cathode-gdl-carbon",
+        "title": "Disposal: Carbon-paper gas-diffusion layers of the cathodes (Sigracet 39BB), 28 x 100 cm2 (burnt off by the precious-metal refiner in the silver recovery)",
+        "phase": "operation",
+        "amount": 7e-06,
+        "unit": "kg",
+        "state": "missing",
+        "background": null,
+        "baseline": "missing: no open factor for burning carbon-fibre paper; its fossil carbon leaves as CO2 and is not counted",
+        "replaced": false,
+        "location": null,
+        "year": null,
+        "status": null,
+        "source_id": null,
+        "note": "no open factor for burning carbon-fibre paper; its fossil carbon leaves as CO2 and is not counted",
+        "scope": null,
+        "gaps": [
+          "climate-change"
+        ]
+      },
+      {
+        "key": "consumable:anode-ni-foam",
+        "title": "Nickel foam anodes, 28 x 100 cm2",
+        "phase": "operation",
+        "amount": 2.45e-05,
+        "unit": "kg",
+        "state": "missing",
+        "background": null,
+        "baseline": "missing: no open factor for nickel foam; the packaged desnz-ghg-2026 construction metals factor is steel-dominated and is not used for nickel (DESIGN.md D-026)",
+        "replaced": false,
+        "location": null,
+        "year": null,
+        "status": null,
+        "source_id": null,
+        "note": "no open factor for nickel foam; the packaged desnz-ghg-2026 construction metals factor is steel-dominated and is not used for nickel (DESIGN.md D-026)",
+        "scope": null,
+        "gaps": [
+          "climate-change"
+        ]
+      },
+      {
+        "key": "disposal:consumable.anode-ni-foam",
+        "title": "Disposal: Nickel foam anodes, 28 x 100 cm2 (nickel scrap to recycling)",
+        "phase": "operation",
+        "amount": 2.45e-05,
+        "unit": "kg",
+        "state": "free",
+        "background": null,
+        "baseline": "free",
+        "replaced": false,
+        "location": null,
+        "year": null,
+        "status": null,
+        "source_id": null,
+        "note": null,
+        "scope": null
+      }
+    ]
+  },
+  "impacts": {
+    "layer": "characterized-impact",
+    "functional_unit": {
+      "product": "CO",
+      "amount": 1.0,
+      "unit": "kg",
+      "kg": 1.000727013,
+      "reference_amount": {
+        "value": 1.000727013,
+        "unit": "kg"
+      }
+    },
+    "allocation": {
+      "method": "none",
+      "shares": {
+        "CO": 1.0
+      }
+    },
+    "categories": [
+      {
+        "id": "climate-change",
+        "unit": "kg CO2-eq",
+        "method": "GWP100"
+      }
+    ],
+    "totals": {
+      "climate-change": 8.9916
+    },
+    "characterised_sum": {
+      "climate-change": 8.9916
+    },
+    "partial_categories": [
+      "climate-change"
+    ],
+    "comparable": true,
+    "dropped": [],
+    "dropped_by_category": {},
+    "classification": "partial",
+    "reasons": [
+      "13 exchanges without a burden in some category",
+      "factors PROXY",
+      "climate categories only: a carbon footprint, not a multi-impact LCA",
+      "method mix mismatch"
+    ]
+  },
+  "gaps": [
+    {
+      "category": "climate-change",
+      "key": "feed:CO2",
+      "reason": "missing",
+      "quantity": 3.53707,
+      "unit": "kg",
+      "phase": "operation",
+      "detail": "no open factor for merchant liquefied CO2 (capture, purification, liquefaction and delivery of a fossil industrial by-product CO2)",
+      "why": "declared missing: no background available"
+    },
+    {
+      "category": "climate-change",
+      "key": "feed:KOH-FILL",
+      "reason": "missing",
+      "quantity": 0.521161,
+      "unit": "kg",
+      "phase": "operation",
+      "detail": "no open factor for potassium hydroxide (KOH 100 %, membrane-cell electrolysis of KCl); the exchange counts the 1 M fill solution, its KOH mass fraction in the composition; its dilution water (about 95 % of the mass) is inside this gap, not in feed:WATER",
+      "why": "declared missing: no background available"
+    },
+    {
+      "category": "climate-change",
+      "key": "feed:KOH-DOSE",
+      "reason": "missing",
+      "quantity": 5.07658,
+      "unit": "kg",
+      "phase": "operation",
+      "detail": "no open factor for potassium hydroxide (KOH 100 %); the exchange counts the 5 M dosing solution, its KOH mass fraction in the composition; its dilution water (about 77 % of the mass) is inside this gap, not in feed:WATER",
+      "why": "declared missing: no background available"
+    },
+    {
+      "category": "climate-change",
+      "key": "product:BLEED",
+      "reason": "missing",
+      "quantity": 19.4717,
+      "unit": "kg",
+      "phase": "operation",
+      "detail": "no open factor for the neutralisation of an alkaline potassium carbonate solution; its K2CO3 carbon (fossil, from the CO2 feed) is released as CO2 when it is neutralised and is not counted",
+      "why": "declared missing: no background available"
+    },
+    {
+      "category": "climate-change",
+      "key": "product:SPENT",
+      "reason": "missing",
+      "quantity": 0.521815,
+      "unit": "kg",
+      "phase": "operation",
+      "detail": "no open factor for the neutralisation of a spent alkaline potassium carbonate solution; its K2CO3 carbon (fossil, from the CO2 feed) is released as CO2 when it is neutralised and is not counted",
+      "why": "declared missing: no background available"
+    },
+    {
+      "category": "climate-change",
+      "key": "product:CONDENSATE",
+      "reason": "missing",
+      "quantity": 1.29941,
+      "unit": "kg",
+      "phase": "operation",
+      "detail": "no open factor for the neutralisation of the cathode's potassium carbonate condensate; its K2CO3 carbon (fossil, from the CO2 feed) is released as CO2 when it is neutralised and is not counted",
+      "why": "declared missing: no background available"
+    },
+    {
+      "category": "climate-change",
+      "key": "product:CW",
+      "reason": "missing",
+      "quantity": 22.105,
+      "unit": "kWh",
+      "phase": "operation",
+      "detail": "heat rejected to the site cooling water: no open factor for the circuit's pumps, fans, make-up water and treatment; the skids' own power counts the anolyte pump only",
+      "why": "declared missing: no background available"
+    },
+    {
+      "category": "climate-change",
+      "key": "consumable:membrane-bpm",
+      "reason": "missing",
+      "quantity": 0.000138976,
+      "unit": "kg",
+      "phase": "operation",
+      "detail": "no open factor for a bipolar ion-exchange membrane",
+      "why": "declared missing: no background available"
+    },
+    {
+      "category": "climate-change",
+      "key": "disposal:consumable.membrane-bpm",
+      "reason": "missing",
+      "quantity": 0.000138976,
+      "unit": "kg",
+      "phase": "operation",
+      "detail": "no open factor for the incineration of a spent ion-exchange membrane",
+      "why": "declared missing: no background available"
+    },
+    {
+      "category": "climate-change",
+      "key": "consumable:cathode-gde-ag",
+      "reason": "missing",
+      "quantity": 7.2893e-07,
+      "unit": "kg",
+      "phase": "operation",
+      "detail": "no open factor for silver sputtered on a carbon gas-diffusion layer",
+      "why": "declared missing: no background available"
+    },
+    {
+      "category": "climate-change",
+      "key": "consumable:cathode-gdl-carbon",
+      "reason": "missing",
+      "quantity": 6.94881e-05,
+      "unit": "kg",
+      "phase": "operation",
+      "detail": "no open factor for a carbon-fibre paper gas-diffusion layer with a microporous layer",
+      "why": "declared missing: no background available"
+    },
+    {
+      "category": "climate-change",
+      "key": "disposal:consumable.cathode-gdl-carbon",
+      "reason": "missing",
+      "quantity": 6.94881e-05,
+      "unit": "kg",
+      "phase": "operation",
+      "detail": "no open factor for burning carbon-fibre paper; its fossil carbon leaves as CO2 and is not counted",
+      "why": "declared missing: no background available"
+    },
+    {
+      "category": "climate-change",
+      "key": "consumable:anode-ni-foam",
+      "reason": "missing",
+      "quantity": 0.000243208,
+      "unit": "kg",
+      "phase": "operation",
+      "detail": "no open factor for nickel foam; the packaged desnz-ghg-2026 construction metals factor is steel-dominated and is not used for nickel (DESIGN.md D-026)",
+      "why": "declared missing: no background available"
+    }
+  ],
+  "notes": [
+    "design case skid-b: the foreground was derived from that flowsheet case, not scaled from the baseline"
+  ],
+  "warnings": [
+    {
+      "rule": "cheme.lca-method-mix",
+      "level": "warning",
+      "message": "climate-change: the contributions rest on different characterisation methods: AR4/AR5; AR6; mixed",
+      "file": "lca/factors.yaml"
+    }
+  ],
+  "publication": {
+    "policy": "public",
+    "publishable": true,
+    "restricted_by": []
+  },
+  "inputs": {
+    "files": {
+      "process.yaml": "sha256:4eca5b4dccba111f9e5b262edfe73b82f466cb29d7850563c58060ebc56129cf",
+      "process/materials.yaml": "sha256:f4fcaf1692ea4236a641ed45061cb4ef90b3259df0810399698bd5f48fd842da",
+      "process/flowsheet.yaml": "sha256:6d0c8de93f333d4d9849f37f6ff31a883828708bbbe33d7a642fb3a2b69f2dfc",
+      "lca/lca.yaml": "sha256:4c5e3e31ca10a34135471adf0298b77c08318c5184aec1d1e4695af387cb82a2",
+      "lca/factors.yaml": "sha256:cdf6b3e7d02a53167e513235e8491a6d46fad57510de8aed2b577dcc00fe4d9c",
+      "process/simulation.yaml": "sha256:fb9598b96af585655c7444e1ffd4b8882548bba000affad5b6d5a20836ee2ff1"
+    },
+    "mapping": "sha256:e3afe84aa220d93daa85a685024d7204a7afd78b84065b58c30657777ad04432",
+    "scenario": "sha256:8eb4fc6ec5e7e4aa76d42cef1ad363ccbf23553cb2411c22cc4bcdb666c10ffa",
+    "background": {
+      "backend": "factors",
+      "profiles": [
+        {
+          "id": "ember-2025",
+          "fingerprint": "sha256:59a236406dd7d7778927977d471d3493a3a9da53d22d25affcd0eaf9751c6bfc"
+        },
+        {
+          "id": "desnz-ghg-2026",
+          "fingerprint": "sha256:6d7cd7e8f75e2e921a0952c7f815ee78cb4144f447530043c465e83f5b98b3b1"
+        }
+      ],
+      "sources": [
+        {
+          "id": "desnz-ghg-2026",
+          "title": "UK Government GHG Conversion Factors for Company Reporting 2026 (flat file)",
+          "provider": "UK Department for Energy Security and Net Zero (DESNZ)",
+          "version": "2026 v1.2 (flat file republished 2026-07-31)",
+          "url": "https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2026",
+          "licence": "OGL-3.0",
+          "attribution": "Contains public sector information licensed under the Open Government Licence v3.0 (UK Government GHG Conversion Factors for Company Reporting 2026, DESNZ).",
+          "checksum": "sha256:a9a455ab396dae226d510c7be6233748416d490c41a5d20f3dc7a0c45feecd5e",
+          "publication": "public"
+        },
+        {
+          "id": "ember-2025",
+          "title": "Ember Yearly Electricity Data (global): emissions intensity of generation",
+          "provider": "Ember",
+          "version": "release of 2026-09-15 (downloaded 2026-10-25), data year 2025",
+          "url": "https://ember-energy.org/data/yearly-electricity-data/",
+          "licence": "CC-BY-4.0",
+          "attribution": "Ember (2026), Yearly Electricity Data (release 2026-09-15), https://ember-energy.org/data/yearly-electricity-data/, CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/); subset, converted to kg CO2e/kWh.",
+          "checksum": "sha256:91d30fb170dac8a62130f7b39e11ecbb301f902e08400e9561510882eadcd701",
+          "publication": "public"
+        }
+      ]
+    },
+    "software": {
+      "cheme-as-code": "1.10"
+    }
+  }
+}

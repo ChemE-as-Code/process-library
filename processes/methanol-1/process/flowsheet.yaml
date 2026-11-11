@@ -115,7 +115,7 @@ steps:
     title: Make-up gas compressor
     class: Compressing
     method: CentrifugalMotion
-    links: [{target: equipment, ref: K-101}]
+    links: [{target: equipment, ref: K-101}, {target: equipment, ref: V-103}]
     ports:
       - {id: in, direction: in, delegates: mu}
       - {id: out, direction: out}
@@ -168,7 +168,7 @@ steps:
     fugacity: peng_robinson
     approach: 10
     catalyst: CU_ZNO
-    links: [{target: equipment, ref: R-101}]
+    links: [{target: equipment, ref: R-101}, {target: equipment, ref: V-104}]
     ports:
       - {id: in, direction: in}
       - {id: out, direction: out}
@@ -214,7 +214,9 @@ steps:
     block: PUR
     title: Topping column (light ends)
     class: Distilling
-    links: [{target: equipment, ref: C-201}, {target: equipment, ref: E-201}, {target: equipment, ref: E-202}]
+    links: [{target: equipment, ref: C-201}, {target: equipment, ref: E-201}, {target: equipment, ref: E-202},
+            {target: equipment, ref: V-201}, {target: equipment, ref: P-201A}, {target: equipment, ref: P-201B},
+            {target: equipment, ref: P-202A}, {target: equipment, ref: P-202B}]
     ports:
       - {id: feed, direction: in}
       - {id: top, direction: out, delegates: vent}
@@ -225,7 +227,9 @@ steps:
     block: PUR
     title: Refining column
     class: Distilling
-    links: [{target: equipment, ref: C-202}, {target: equipment, ref: E-203}, {target: equipment, ref: E-204}]
+    links: [{target: equipment, ref: C-202}, {target: equipment, ref: E-203}, {target: equipment, ref: E-204},
+            {target: equipment, ref: V-202}, {target: equipment, ref: P-203A}, {target: equipment, ref: P-203B},
+            {target: equipment, ref: P-204A}, {target: equipment, ref: P-204B}]
     ports:
       - {id: feed, direction: in}
       - {id: top, direction: out, delegates: product}
@@ -238,6 +242,7 @@ streams:
     title: Make-up synthesis gas
     from: SYNGAS.out
     to: K101.in
+    links: [{target: line, ref: SG-101, sheet: P-01}, {target: line, ref: SG-130, sheet: P-01}]
     template: mixture
     state:
       design:
@@ -255,6 +260,7 @@ streams:
     title: Compressed make-up gas
     from: K101.out
     to: E101.in
+    links: [{target: line, ref: SG-102, sheet: P-01}]
     template: mixture
     state:
       design:
@@ -272,6 +278,7 @@ streams:
     title: Make-up gas to loop
     from: E101.out
     to: M101.mu
+    links: [{target: line, ref: SG-103, sheet: P-01}]
     template: mixture
     state:
       design:
@@ -283,6 +290,7 @@ streams:
     title: Circulator suction
     from: M101.out
     to: K102.in
+    links: [{target: line, ref: SG-110, sheet: P-03}]   # SG-110 continues on P-02 to K-102 (D-016)
     template: mixture
     state:
       design:
@@ -294,6 +302,7 @@ streams:
     title: Circulator discharge
     from: K102.out
     to: E102.cold_in
+    links: [{target: line, ref: SG-105, sheet: P-02}]
     template: mixture
     state:
       design:
@@ -305,6 +314,7 @@ streams:
     title: Converter feed
     from: E102.cold_out
     to: R101.in
+    links: [{target: line, ref: SG-106, sheet: P-02}]
     template: mixture
     state:
       design:
@@ -316,6 +326,7 @@ streams:
     title: Converter effluent
     from: R101.out
     to: E102.hot_in
+    links: [{target: line, ref: PG-107, sheet: P-02}]
     template: mixture
     state:
       design:
@@ -327,6 +338,7 @@ streams:
     title: Effluent after feed/effluent exchanger
     from: E102.hot_out
     to: E103.in
+    links: [{target: line, ref: PG-108, sheet: P-02}]
     template: mixture
     state:
       design:
@@ -338,6 +350,7 @@ streams:
     title: Cooled effluent to HP separator
     from: E103.out
     to: V101.in
+    links: [{target: line, ref: PG-109, sheet: P-03}]
     template: mixture
     state:
       design:
@@ -349,6 +362,7 @@ streams:
     title: HP separator gas
     from: V101.vap
     to: SPL.in
+    links: [{target: line, ref: SG-110, sheet: P-03}]
     template: mixture
     state:
       design:
@@ -360,6 +374,7 @@ streams:
     title: Purge gas
     from: SPL.purge
     to: PURGE.in
+    links: [{target: line, ref: FG-111, sheet: P-03}]
     template: mixture
     state:
       design:
@@ -371,6 +386,7 @@ streams:
     title: Recycle gas
     from: SPL.recycle
     to: M101.rec
+    links: [{target: line, ref: SG-110, sheet: P-03}]
     template: mixture
     state:
       design:
@@ -382,6 +398,7 @@ streams:
     title: Crude methanol (HP)
     from: V101.liq
     to: V102.in
+    links: [{target: line, ref: CM-113, sheet: P-03}]
     template: mixture
     state:
       design:
@@ -393,6 +410,7 @@ streams:
     title: LP flash gas
     from: V102.gas
     to: FUELGAS.flash
+    links: [{target: line, ref: FG-114, sheet: P-03}]
     template: mixture
     state:
       design:
@@ -404,6 +422,7 @@ streams:
     title: Crude methanol to topping column
     from: V102.liq
     to: C201.feed
+    links: [{target: line, ref: CM-115, sheet: P-03}]
     template: mixture
     state:
       design:
@@ -415,6 +434,7 @@ streams:
     title: Topping column off-gas
     from: C201.top
     to: FUELGAS.vent
+    links: [{target: line, ref: FG-116, sheet: P-04}]
     template: mixture
     state:
       design:
@@ -426,6 +446,7 @@ streams:
     title: Stabilised methanol to refining column
     from: C201.bot
     to: C202.feed
+    links: [{target: line, ref: CM-117, sheet: P-04}]
     template: mixture
     state:
       design:
@@ -437,6 +458,7 @@ streams:
     title: Methanol product
     from: C202.top
     to: MEOH.in
+    links: [{target: line, ref: ME-118, sheet: P-05}]
     template: mixture
     state:
       design:
@@ -448,6 +470,7 @@ streams:
     title: Refining column bottoms water
     from: C202.bot
     to: WW.in
+    links: [{target: line, ref: WW-119, sheet: P-05}]
     template: mixture
     state:
       design:

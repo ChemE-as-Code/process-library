@@ -191,12 +191,15 @@ checks:
             cheme.process-component-balance*, cheme.process-calculated-stale,
             cheme.generated-*]
   - id: drawing-clean
-    title: No line through a label, crossing, overlapping or misplaced label left unaccepted
+    title: No line through a label or valve, along a pipe or slanted, no crossing, overlapping or
+      misplaced label left unaccepted
     stage: basic
     kind: validate
-    fail_on: warning
+    # info: cheme.line-not-orthogonal (a slanted line) is an info finding
+    fail_on: info
     rules: [cheme.line-through-label, cheme.line-crossing, cheme.label-overlap,
-            cheme.label-far-from-owner]
+            cheme.label-far-from-owner, cheme.line-through-valve, cheme.line-on-pipe,
+            cheme.line-not-orthogonal]
     accept:
       - id: "pid/P-03.xml#line-crossing:Line_GOX3001_S1_P1+Line_LOX3001_S1_P1"
         reason: "GOX leaves C-3102 at N6 above the LOX sump draw N7 (vapour over liquid, D-023) and must reach the cold end of E-3101 at the bottom, while LOX runs left to its connector beside E-3101; the only gap round the LOX end is blocked by the VNT-3004 and UN-3001 connectors and a route over the top cuts the AIA-3103 and KT-3101 instruments"
@@ -216,6 +219,38 @@ checks:
         reason: "the GOX-4003 recycle drops from GOX-4001 at x 65, right of FIC-4148, and the gap left of it is taken by the GOX-4001 DN 500 label; a signal from FIC-4148 to UY-4151 crossing GOX-4001 left of x 65 would run through that label or 2 mm beside the recycle line, so it crosses the recycle riser once (D-101)"
       - id: "pid/P-04.xml#line-crossing:Line_VNT4002_S3_P2+Sig_PIC4102_UY4151"
         reason: "PIC-4102 sits at the GOX-4002 battery limit end, right of the K-4101 vent stack VNT-4002 to S-4101, and UY-4151 beside K-4101; the stack rises from S-4101 to its atmosphere arrow, so any signal from PIC-4102 to the low select crosses it once (above the arrow it would leave the frame) (D-101)"
+      - id: "pid/P-04.xml#line-crossing:Line_GOX4004_S4_P2+Line_LOX3001_S1_P1"
+        reason: "GOX-4004 and LOX-3001 cross at right angles on P-04: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-01.xml#line-crossing:Line_AIR1004_S1_P1+Line_WN1001_S1_P1"
+        reason: "AIR-1004 and WN-1001 cross at right angles on P-01: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-01.xml#line-crossing:Line_CW1001_S6_P1+Line_CWR1001_S1_P2"
+        reason: "CW-1001 and CWR-1001 cross at right angles on P-01: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-01.xml#line-crossing:Line_CHW1001_S6_P1+Line_CHW3001_S1_P1"
+        reason: "CHW-1001 and CHW-3001 cross at right angles on P-01: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-01.xml#line-crossing:Line_CHW1001_S6_P3+Line_CHWR3001_S1_P1"
+        reason: "CHW-1001 and CHWR-3001 cross at right angles on P-01: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-01.xml#line-crossing:Line_CW1003_S1_P1+Line_WN1001_S1_P1"
+        reason: "CW-1003 and WN-1001 cross at right angles on P-01: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-02.xml#line-crossing:Line_AIR2001_S1_P2+Line_RG2001_S1_P1"
+        reason: "AIR-2001 and RG-2001 cross at right angles on P-02: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-02.xml#line-crossing:Line_RG2001_S1_P1+Line_RG2002_S3_P1"
+        reason: "RG-2001 and RG-2002 cross at right angles on P-02: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-02.xml#line-crossing:Line_AIR1004_S1_P1+Line_RG2003_S3_P1"
+        reason: "AIR-1004 and RG-2003 cross at right angles on P-02: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-03.xml#line-crossing:Line_WN3002_S2_P1+Inst_PIC3110"
+        reason: "WN-3002 and PIC-3110 cross at right angles on P-03: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-03.xml#line-crossing:Line_AIR3003_S1_P1+Line_LOX3001_S2_P2"
+        reason: "AIR-3003 and LOX-3001 cross at right angles on P-03: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-03.xml#line-crossing:Line_LIN3001_S1_P1+Line_WN3002_S1_P1"
+        reason: "LIN-3001 and WN-3002 cross at right angles on P-03: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-03.xml#line-crossing:Line_LIN3001_S1_P1+Line_WN3001_S1_P1"
+        reason: "LIN-3001 and WN-3001 cross at right angles on P-03: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-03.xml#line-crossing:Line_LOX3001_S2_P2+Line_WN3002_S1_P1"
+        reason: "LOX-3001 and WN-3002 cross at right angles on P-03: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-04.xml#line-crossing:Line_GAN4002_S6_P2+Line_GOX4004_S4_P2"
+        reason: "GAN-4002 and GOX-4004 cross at right angles on P-04: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-04.xml#line-crossing:Line_GOX4004_S4_P2+Line_UN3001_S1_P1"
+        reason: "GOX-4004 and UN-3001 cross at right angles on P-04: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
   # Cables and trays (electrical/, skill electrical-cabling): every motor and instrument has a
   # cable routed in trays, no tray over its fill, power and instrument trays apart.
   - id: electrical

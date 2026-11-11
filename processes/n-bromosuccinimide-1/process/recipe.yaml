@@ -1,0 +1,48 @@
+# The batch recipe of n-bromosuccinimide-1 (schema cheme/recipe/v1, `cheme process recipe`,
+# DESIGN.md D-003). One batch makes 334.41 kg of dried NBS (stream S14); the flowsheet's rates
+# are the year averages: 334.41 kg x 1495.15 batches / 7920 h = 63.13 kg/h. The dosing and the
+# post-reaction (to 0.999 conversion of the bromine) take their times from R101's semi-batch
+# model (from: R101). The agitated filter-dryer F-101 is one vessel over four steps (units:
+# F101, W101, F102, D101; core ADR 0057): its filtrations take Ruth's time from F101's and
+# F102's filtration data and its drying the time D101's drying rate gives on the heated area the
+# cake wets (D-014); every other duration is ASSUMED (D-003). The brominator is the bottleneck;
+# F-101 is installed three times and takes the batches in turn (two no longer keep up with the
+# calculated drying time, D-014). R101's and F-101's vessels are sized from one batch's content
+# (core ADR 0052, 0057). `cheme process recipe --svg build/gantt.svg` draws one batch.
+schema: cheme/recipe/v1
+kind: recipe
+title: NBS by semi-batch bromination
+batch_size: {value: 334.41, unit: kg, stream: S14, provenance: assumed, source: "one batch of dried NBS: 500 t/a over 1495.15 batches (D-002, D-003)"}
+hours_per_year: {value: 7920, provenance: assumed, source: "330 days of 24 h (D-002)"}
+unit_procedures:
+  - id: DISSOLVE
+    unit: M101
+    title: Succinimide dissolved in caustic and cooled (M-101)
+    operations:
+      - {id: charge, kind: charge, title: "Water, caustic and succinimide", duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: dissolve, kind: other, title: Dissolve, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: cool, kind: cool, title: Cool to 278 K on brine, duration: {value: 1.0, provenance: assumed, source: "D-003: 10.8 kW year average (Q1), 57 kW over the hour"}}
+      - {id: transfer, kind: transfer, title: Charge the brominator, duration: {value: 0.5, provenance: assumed, source: D-003}}
+  - id: BROMINATE
+    unit: R101
+    title: Bromination and precipitation (R-101)
+    vessel: {fill_fraction: 0.8, aspect_ratio: 1.2, provenance: assumed, source: "usual fill and proportions of a glass-lined stirred vessel (D-003)"}
+    operations:
+      - {id: receive, kind: charge, title: Receive the charge, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: dose, kind: dose, title: Dose the bromine, from: R101}
+      - {id: react, kind: react, title: Post-reaction, from: R101}
+      - {id: hold, kind: hold, title: Precipitation hold at 278 K (CR101), duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: transfer, kind: transfer, title: Slurry to the filter-dryer, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: clean, kind: clean, title: Rinse, duration: {value: 1.0, provenance: assumed, source: D-003}}
+  - id: ISOLATE
+    units: [F101, W101, F102, D101]
+    title: Filtration, reslurry wash and drying in the agitated filter-dryer (F-101, three units)
+    parallel: 3
+    vessel: {fill_fraction: 0.8, aspect_ratio: 1.0, provenance: assumed, source: "a squat agitated filter-dryer, its filter plate the bottom (D-014)"}
+    operations:
+      - {id: filter, kind: filter, title: Filter the mother liquor (F101), from: F101}
+      - {id: wash, kind: other, title: Reslurry the cake in ice water (W101), duration: {value: 0.5, provenance: assumed, source: D-014}}
+      - {id: refilter, kind: filter, title: Filter the wash (F102), from: F102}
+      - {id: dry, kind: dry, title: Vacuum drying at 333 K (D101), from: D101}
+      - {id: discharge, kind: transfer, title: Cool and discharge to packing, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: clean, kind: clean, title: Rinse, duration: {value: 1.0, provenance: assumed, source: D-003}}

@@ -1,0 +1,871 @@
+# Tier 1 form, process-library#313 pilot without a flowsheet. Every amount is the formula of its parameters;
+# core's validator re-checks each. Written from the REF BREF, a worked example of published FCC yield
+# correlations, PRELIM's hydrogen contents and IPCC defaults (facts in our own form).
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: fcc-vgo-full-combustion
+title: Fluid catalytic cracking of vacuum gas oil, full-combustion regenerator
+description: 'Per 1 t of fresh feed, gate-to-gate: riser reactor, regenerator, main fractionator and gas plant.
+  Unallocated multi-output dataset: gasoline, C3/C4 cut, dry gas, light and heavy cycle oil. Yields from a worked
+  example of published correlations, utilities and regenerator emissions from REF BREF ranges, CO2 from the coke''s
+  carbon, CH4 and N2O from IPCC defaults.'
+basis: 1000 kg of fresh feed (vacuum gas oil) cracked
+boundary: 'gate-to-gate: feed preheat, riser reactor, catalyst stripper, regenerator with waste heat or CO boiler,
+  main fractionator, wet gas compressor and gas plant; steam, power and fuel from outside; flue-gas abatement of
+  the regenerator included only as far as the BREF''s emission data include it'
+technology: fluid catalytic cracking on zeolite catalyst, single-stage regenerator in full combustion (typical for
+  vacuum distillate feeds, BREF section 2.5); residue cracking (RCC), partial combustion and propylene-maximising
+  variants are not modelled
+geography:
+  description: 'Mixed: utilities and regenerator emissions from EU units of the REF BREF data collection, yields
+    from a US textbook correlation example; no single site.'
+classification:
+  isic: '1920'
+system_boundary:
+  included:
+  - vacuum gas oil feed
+  - gasoline, C3/C4 cut, dry gas, light and heavy cycle oil (co-products, unallocated in the inventory)
+  - 'coke burn in the regenerator: CO2, CO, CH4, N2O, water vapour, combustion oxygen'
+  - NOx, SOx and particulates of the regenerator
+  - electricity, fuel, gross steam, cooling water
+  - catalyst make-up, spent catalyst and fines
+  - sour water
+  excluded:
+  - 'TODO steam raised in the waste heat or CO boiler (40 to 60 kg/t, BREF Table 3.33): an exported co-product under
+    the system model, not inventoried, so the hydrocarbon products carry its share'
+  - 'TODO power from a flue-gas expander: not credited and not inventoried'
+  - 'TODO H2S and sulfur of the products: the feed''s sulfur and nitrogen are not in the element balance; H2S stays
+    in the dry gas'
+  - 'TODO hydrocarbons, aldehydes and NH3 from the regenerator: negligible with a CO boiler and ESP in AP-42 (as
+    listed by US DOE 2007, Table 2-8), not quantified for full combustion'
+  - TODO metals in the particulates (Ni, V, Sb) and dioxins and PAH (BREF Tables 3.38 and 3.39 give examples, no
+    rate per t)
+  - TODO organics, phenols, cyanides and sulfides in the sour water (BREF Table 3.40, concentrations only)
+  - TODO fugitive hydrocarbons and storage
+  - feed hydrotreating and product treating (separate units)
+  - infrastructure
+  cutoff: none applied; the excluded flows are not quantified
+  infrastructure: excluded
+  catalysts: included
+  non_routine: excluded
+location: GLO
+year: 2010
+valid_until: 2015
+time:
+  start: 1997
+  description: REF BREF data collection (sources 1997 to 2010, TWG update 2010; BREF published 2015); yield correlations
+    of Gary et al. (2007) in course notes of 2019. valid_until is the reference year + 5 (system-model section 6),
+    so it has already lapsed.
+modelling:
+  principle: attributional
+  multifunctionality: 'unallocated multi-output dataset; default allocation energy: the five co-products are fuels
+    and fuel blendstocks, so burdens are shared by lower heating value (hierarchy step 2, the curated rule in lci/mappings.yaml),
+    with IPCC default NCVs (see allocation)'
+allocation:
+  method: energy
+  coproducts:
+  - gasoline
+  - lpg
+  - dry-gas
+  - light-cycle-oil
+  - heavy-cycle-oil
+  properties:
+    gasoline:
+      energy: 44300.0
+    lpg:
+      energy: 47300.0
+    dry-gas:
+      energy: 49500.0
+    light-cycle-oil:
+      energy: 43000.0
+    heavy-cycle-oil:
+      energy: 40400.0
+  source: 'lci/mappings.yaml allocation.fcc-1 (rule physical-energy): the five co-products are fuels and fuel blendstocks,
+    so energy content (LHV) is the physical relationship, docs/system-model.md section 2, step 2. Lower heating
+    values in kJ/kg (the MJ/kg defaults times 1000), IPCC 2006 Vol. 2, ch. 1, Table 1.2, p. 1.18 defaults: motor
+    gasoline 44.3 (gasoline), LPG 47.3 (C3/C4 cut), refinery gas 49.5 (dry gas), gas/diesel oil 43.0 (LCO), residual
+    fuel oil 40.4 (heavy cycle oil and slurry); the matching of FCC streams to IPCC fuel types is ASSUMED. The LHVs
+    differ by under 20 %, so energy and mass allocation give similar shares.'
+uuid: 3fc9bfd7-0744-51db-a247-a7978c2f80fa
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+technology_level: current
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: F
+  value: 1000.0
+  unit: kg
+  description: Fresh feed cracked (the basis).
+  source: basis
+- name: M_C
+  value: 12.011
+  unit: g/mol
+  description: Atomic weight of carbon.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573)
+- name: M_H
+  value: 1.008
+  unit: g/mol
+  description: Atomic weight of hydrogen.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573)
+- name: M_VGO
+  value: 566.035
+  unit: g/mol
+  description: Molar mass of the feed pseudo-formula C41H73 (13.0 wt% H).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_DG
+  value: 30.07
+  unit: g/mol
+  description: Molar mass of the dry-gas pseudo-formula C2H6 (20.1 wt% H).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_LPG
+  value: 128.259
+  unit: g/mol
+  description: Molar mass of the LPG pseudo-formula C9H20 (15.7 wt% H, the H/C ratio of the sourced C3/C4 split).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_GAS
+  value: 98.189
+  unit: g/mol
+  description: Molar mass of the gasoline pseudo-formula C7H14 (14.4 wt% H).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_LCO
+  value: 226.363
+  unit: g/mol
+  description: Molar mass of the light cycle oil pseudo-formula C17H22 (9.8 wt% H).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_HCO
+  value: 326.483
+  unit: g/mol
+  description: Molar mass of the heavy cycle oil pseudo-formula C25H26 (8.0 wt% H).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_COKE
+  value: 51.068
+  unit: g/mol
+  description: Molar mass of the coke pseudo-formula C4H3 (5.9 wt% H).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_CO2
+  value: 44.009
+  unit: g/mol
+  description: Molar mass of CO2.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_CO
+  value: 28.01
+  unit: g/mol
+  description: Molar mass of CO.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_CH4
+  value: 16.043
+  unit: g/mol
+  description: Molar mass of CH4.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_H2O
+  value: 18.015
+  unit: g/mol
+  description: Molar mass of H2O.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_O2
+  value: 31.998
+  unit: g/mol
+  description: Molar mass of O2.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: y_dg
+  value: 0.0493
+  unit: kg/kg
+  description: 'Dry gas (C2 and lighter, with H2S) per kg fresh feed: 4.93 wt%.'
+  source: 'Jechura, J. (2019) Catalytic Cracking, CBEN 409 course notes, Colorado School of Mines (open web PDF,
+    updated 1 July 2019), slide 16: worked example of Gary et al. zeolite-catalyst yield correlations at 72 vol%
+    conversion, 25 degAPI feed, Watson K 12.0, 0.50 wt% S'
+- name: y_lpg
+  value: 0.1459
+  unit: kg/kg
+  description: 'C3/C4 (LPG) per kg fresh feed: 14.59 wt% (propane 1.43, propylene 3.34, isobutane 3.48, n-butane
+    1.27, butylenes 5.06).'
+  source: 'Jechura, J. (2019) Catalytic Cracking, CBEN 409 course notes, Colorado School of Mines (open web PDF,
+    updated 1 July 2019), slide 16: worked example of Gary et al. zeolite-catalyst yield correlations at 72 vol%
+    conversion, 25 degAPI feed, Watson K 12.0, 0.50 wt% S'
+- name: y_gas
+  value: 0.4715
+  unit: kg/kg
+  description: 'Gasoline (C5+) per kg fresh feed: 47.15 wt%.'
+  source: 'Jechura, J. (2019) Catalytic Cracking, CBEN 409 course notes, Colorado School of Mines (open web PDF,
+    updated 1 July 2019), slide 16: worked example of Gary et al. zeolite-catalyst yield correlations at 72 vol%
+    conversion, 25 degAPI feed, Watson K 12.0, 0.50 wt% S'
+- name: y_coke
+  value: 0.049
+  unit: kg/kg
+  description: 'Coke burnt in the regenerator per kg fresh feed: 4.90 wt%.'
+  source: 'Jechura, J. (2019) Catalytic Cracking, CBEN 409 course notes, Colorado School of Mines (open web PDF,
+    updated 1 July 2019), slide 16: worked example of Gary et al. zeolite-catalyst yield correlations at 72 vol%
+    conversion, 25 degAPI feed, Watson K 12.0, 0.50 wt% S'
+- name: rho_feed
+  value: 904.2
+  unit: kg/m3
+  description: 'Density of the fresh feed: specific gravity 0.9042 (25 degAPI).'
+  source: 'Jechura, J. (2019) Catalytic Cracking, CBEN 409 course notes, Colorado School of Mines (open web PDF,
+    updated 1 July 2019), slide 16: worked example of Gary et al. zeolite-catalyst yield correlations at 72 vol%
+    conversion, 25 degAPI feed, Watson K 12.0, 0.50 wt% S; used only to turn the BREF''s emission factors per m3
+    of fresh feed into per t'
+- name: e_co_t
+  value: 0.255
+  unit: kg/t
+  description: 'CO per t fresh feed: midpoint of the two example units, 0.08 and 0.43 kg/t. The table does not state
+    their combustion mode; reading them as full combustion is ASSUMED (their 125 to 814 mg/Nm3 lies inside the 50
+    to 1200 mg/Nm3 the BREF gives for full combustion on the same page).'
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 3.5.2.1, Table 3.36, p. 166 (yearly
+    averages of two units); the midpoint is our choice
+- name: ncv_coke
+  value: 39.0
+  unit: MJ/kg
+  description: 'Calorific value of FCC catalyst coke: midpoint of 38 to 40 MJ/kg.'
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 3.10, Table 3.54, p. 181; the midpoint
+    is our choice, and reading it as a net value is ASSUMED (the table does not say)
+- name: ef_ch4
+  value: 3.0
+  unit: kg/TJ
+  description: 'CH4 per TJ of coke burnt: IPCC default for petroleum coke, which by IPCC''s definition includes
+    catalyst coke (Vol. 2, Table 1.1, p. 1.13).'
+  source: IPCC (2006) Guidelines for National GHG Inventories, Vol. 2 Energy, ch. 2, Table 2.2, p. 2.16 (energy
+    industries, net calorific basis)
+- name: ef_n2o
+  value: 0.6
+  unit: kg/TJ
+  description: 'N2O per TJ of coke burnt: IPCC default for petroleum coke. Platinum CO promoters can raise N2O (BREF
+    section 2.5, p. 53), so this may be low.'
+  source: IPCC (2006) Guidelines for National GHG Inventories, Vol. 2 Energy, ch. 2, Table 2.2, p. 2.16 (energy
+    industries, net calorific basis)
+- name: ef_nox
+  value: 0.2615
+  unit: kg/m3
+  description: 'NOx (as NO2) per m3 fresh feed: midpoint of 0.107 to 0.416 kg/m3.'
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 3.5.2.1, Table 3.34, p. 165 (emission
+    factors with and without abatement); the midpoint is our choice
+- name: ef_so2
+  value: 0.845
+  unit: kg/m3
+  description: 'SOx (as SO2) per m3 fresh feed: midpoint of 0.19 to 1.50 kg/m3.'
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 3.5.2.1, Table 3.34, p. 165 (emission
+    factors with and without abatement); the midpoint is our choice. Feed sulfur is not in the element balance
+- name: pm_t
+  value: 0.04
+  unit: kg/t
+  description: 'Particulates per t fresh feed: the average of a sample of 20 European FCC units (range 0.015 to
+    0.100 kg/t).'
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 3.5.2.1, Table 3.37, p. 167 (the source's
+    average, estimated from unit capacity)
+- name: elec_t
+  value: 29.0
+  unit: kWh/t
+  description: 'Electricity per t fresh feed: midpoint of 8 to 50 kWh/t (FCC column).'
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 3.5.1, Table 3.33, p. 164; the midpoint
+    is our choice
+- name: fuel_t
+  value: 1060.0
+  unit: MJ/t
+  description: 'Fuel per t fresh feed: midpoint of 120 to 2000 MJ/t (FCC column).'
+  source: 'EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 3.5.1, Table 3.33, p. 164; the midpoint
+    is our choice, as for every range in the refining datasets. Probably a high view for a full-combustion unit:
+    the same page says that virtually all the heat an FCC needs is generated in the regenerator, and the range is
+    given alike for FCC and RCC units. The coke burn releases about 1 900 MJ/t here (y_coke times ncv_coke). TODO
+    a sourced feed-heater duty'
+- name: steam_t
+  value: 60.0
+  unit: kg/t
+  description: 'Steam consumed per t fresh feed: midpoint of 30 to 90 kg/t (FCC column); gross, the 40 to 60 kg/t
+    produced is not credited.'
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 3.5.1, Table 3.33, p. 164; the midpoint
+    and not crediting the steam produced are our choices (cut-off model)
+- name: cw_t
+  value: 12.5
+  unit: m3/t
+  description: 'Cooling water circulated per t fresh feed at a 17 K rise: midpoint of 5 to 20 m3/t.'
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 3.5.1, Table 3.33, p. 164; the midpoint
+    is our choice
+- name: dT_cw
+  value: 17.0
+  unit: K
+  description: Temperature rise of the cooling water.
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, Table 3.33, p. 164 (the basis of its cooling-water
+    figure)
+- name: cp_w
+  value: 4.18
+  unit: kJ/(kg K)
+  description: Specific heat capacity of liquid water near 25 to 40 degC.
+  source: ASSUMED property of liquid water (about 4.18 kJ/(kg K), IAPWS-95 over 25 to 40 degC; not read in a source
+    here)
+- name: rho_w
+  value: 1000.0
+  unit: kg/m3
+  description: Density of water and of the sour water effluent.
+  source: ASSUMED (1 m3 = 1000 kg, the LCI convention)
+- name: cat_t
+  value: 1.45
+  unit: kg/t
+  description: 'Catalyst make-up per t fresh feed: midpoint of 0.4 to 2.5 kg/t (FCC column).'
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 3.5.1, Table 3.33, p. 164; the midpoint
+    is our choice
+- name: ww_t
+  value: 0.075
+  unit: m3/t
+  description: 'Waste water (sour water) per t fresh feed: midpoint of 60 to 90 L/t.'
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 3.5.2.2, p. 170; the midpoint is our
+    choice
+exchanges:
+- key: product:gasoline
+  title: FCC gasoline (C5+, cracked naphtha)
+  type: product
+  amount: 471.5
+  unit: kg
+  formula: F * y_gas
+  provenance: given
+  source: 'the sourced yield; Jechura, J. (2019) Catalytic Cracking, CBEN 409 course notes, Colorado School of Mines
+    (open web PDF, updated 1 July 2019), slide 16: worked example of Gary et al. zeolite-catalyst yield correlations
+    at 72 vol% conversion, 25 degAPI feed, Watson K 12.0, 0.50 wt% S; modelled as C7H14 (ASSUMED pseudo-formula
+    near the 14.5 wt% H that PRELIM Table 8 gives for FCC gasoline)'
+  pedigree: &id001
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 3
+    reason: 'a worked example of published yield correlations (course notes), not plant data: reliability 4, completeness
+      4, temporal 4, geographical 4 (generic, US textbook basis), technological 3'
+  basic_uncertainty: 1.05
+- key: product:lpg
+  title: FCC C3/C4 cut (LPG, olefinic; propylene not split off)
+  type: product
+  amount: 145.9
+  unit: kg
+  formula: F * y_lpg
+  provenance: given
+  source: 'the sourced yield; Jechura, J. (2019) Catalytic Cracking, CBEN 409 course notes, Colorado School of Mines
+    (open web PDF, updated 1 July 2019), slide 16: worked example of Gary et al. zeolite-catalyst yield correlations
+    at 72 vol% conversion, 25 degAPI feed, Watson K 12.0, 0.50 wt% S; modelled as C9H20, an ASSUMED pseudo-formula
+    with the H/C ratio of the sourced C3/C4 split (15.7 wt% H; PRELIM Table 8 gives 16.1)'
+  composition:
+    fractions:
+      C3H8: 0.098
+      C3H6: 0.2289
+      C4H10: 0.3256
+      C4H8: 0.3475
+    source: 'Jechura, J. (2019) Catalytic Cracking, CBEN 409 course notes, Colorado School of Mines (open web PDF,
+      updated 1 July 2019), slide 16: worked example of Gary et al. zeolite-catalyst yield correlations at 72 vol%
+      conversion, 25 degAPI feed, Watson K 12.0, 0.50 wt% S (propane 1.43, propylene 3.34, isobutane 3.48, n-butane
+      1.27, butylenes 5.06 wt% of feed; butylenes as the rest)'
+  pedigree: *id001
+  basic_uncertainty: 1.05
+- key: product:dry-gas
+  title: FCC dry gas (H2, C1, C2, with the H2S), to the refinery fuel gas system
+  type: product
+  amount: 49.3
+  unit: kg
+  formula: F * y_dg
+  provenance: given
+  source: 'the sourced yield; Jechura, J. (2019) Catalytic Cracking, CBEN 409 course notes, Colorado School of Mines
+    (open web PDF, updated 1 July 2019), slide 16: worked example of Gary et al. zeolite-catalyst yield correlations
+    at 72 vol% conversion, 25 degAPI feed, Watson K 12.0, 0.50 wt% S; modelled as C2H6 (ASSUMED pseudo-formula:
+    no open composition read); its H2S (38 % of the feed sulfur in the example) is not split off'
+  pedigree: *id001
+  basic_uncertainty: 1.05
+- key: product:light-cycle-oil
+  title: Light cycle oil (LCO)
+  type: product
+  amount: 206.96349812507083
+  unit: kg
+  formula: M_LCO * (25 * (F * 73 / M_VGO - F * y_dg * 6 / M_DG - F * y_lpg * 20 / M_LPG - F * y_gas * 14 / M_GAS
+    - F * y_coke * 3 / M_COKE) - 26 * (F * 41 / M_VGO - F * y_dg * 2 / M_DG - F * y_lpg * 9 / M_LPG - F * y_gas
+    * 7 / M_GAS - F * y_coke * 4 / M_COKE)) / 108
+  provenance: calculated
+  source: 'closes the carbon and hydrogen balances with the heavy cycle oil, from the sourced lumps and the ASSUMED
+    pseudo-formulas (C17H22, 9.8 wt% H as PRELIM Table 8 gives for FCC LGO); compare 20.60 wt% in the example (Jechura,
+    J. (2019) Catalytic Cracking, CBEN 409 course notes, Colorado School of Mines (open web PDF, updated 1 July
+    2019), slide 16: worked example of Gary et al. zeolite-catalyst yield correlations at 72 vol% conversion, 25
+    degAPI feed, Watson K 12.0, 0.50 wt% S)'
+  pedigree: &id002
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: a closing residual; the split between LCO and HCO is sensitive to the feed''s pseudo-formula'
+- key: product:heavy-cycle-oil
+  title: Heavy cycle oil and slurry (main fractionator bottoms)
+  type: product
+  amount: 77.3365018749291
+  unit: kg
+  formula: M_HCO * (22 * (F * 41 / M_VGO - F * y_dg * 2 / M_DG - F * y_lpg * 9 / M_LPG - F * y_gas * 7 / M_GAS -
+    F * y_coke * 4 / M_COKE) - 17 * (F * 73 / M_VGO - F * y_dg * 6 / M_DG - F * y_lpg * 20 / M_LPG - F * y_gas *
+    14 / M_GAS - F * y_coke * 3 / M_COKE)) / 108
+  provenance: calculated
+  source: 'closes the carbon and hydrogen balances together with the LCO; heavy cycle oil modelled as C25H26 (8.0
+    wt% H, PRELIM Table 8, FCC HGO); compare 7.84 wt% in the example (Jechura, J. (2019) Catalytic Cracking, CBEN
+    409 course notes, Colorado School of Mines (open web PDF, updated 1 July 2019), slide 16: worked example of
+    Gary et al. zeolite-catalyst yield correlations at 72 vol% conversion, 25 degAPI feed, Watson K 12.0, 0.50 wt%
+    S)'
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: a closing residual, more sensitive than the LCO to the pseudo-formulas'
+- key: feed:vacuum-gas-oil
+  title: Vacuum gas oil (fresh FCC feed)
+  type: input
+  amount: 1000.0
+  unit: kg
+  formula: F
+  provenance: given
+  source: the basis; modelled as C41H73, an ASSUMED pseudo-formula whose 13.0 wt% H closes the hydrogen balance
+    of the sourced yields (PRELIM Table 8 takes 12.5 wt% for a hydrotreated FCC feed; the example's feed of Watson
+    K 12.0 is not hydrotreated)
+  pedigree: *id002
+  basic_uncertainty: 1.05
+- key: feed:O2
+  title: Regenerator air, oxygen burnt with the coke
+  type: input
+  amount: 145.66711844872827
+  unit: kg
+  formula: M_O2 * ((F * y_coke * 4 / M_COKE - F / 1000 * e_co_t / M_CO - F * y_coke * ncv_coke * ef_ch4 / 1000000
+    / M_CH4) + F / 1000 * e_co_t / (2 * M_CO) + (F * y_coke * 3 / M_COKE - 4 * F * y_coke * ncv_coke * ef_ch4 /
+    1000000 / M_CH4) / 2 / 2)
+  provenance: calculated
+  origin: estimate
+  free: true
+  source: oxygen that closes the balance over CO2, CO and H2O of the coke burn; ambient air is free and not inventoried
+    (its N2 and excess O2 pass through)
+  pedigree: *id002
+  basic_uncertainty: 1.05
+- key: feed:electricity
+  title: Electricity (air blower, wet gas compressor, pumps)
+  type: input
+  amount: 29.0
+  unit: kWh
+  formula: F / 1000 * elec_t
+  provenance: given
+  origin: literature
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, Table 3.33, p. 164 (midpoint); no credit for
+    a flue-gas expander
+  pedigree: &id003
+    scores:
+    - 4
+    - 4
+    - 5
+    - 3
+    - 3
+    reason: 'midpoint of a wide range across units of different design and abatement: reliability 4, completeness
+      4, temporal 5, geographical 3, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.5
+    source: 'electricity: range 8 to 50 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: feed:fuel
+  title: Fired heat (fuel of the feed heater and CO boiler, counted as fuel energy)
+  type: input
+  amount: 294.44444444444446
+  unit: kWh
+  formula: F / 1000 * fuel_t / 3.6
+  provenance: given
+  origin: literature
+  carrier:
+    kind: heat
+    source: fuel fired in the feed heater or a CO boiler; refinery fuel gas in practice
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, Table 3.33, p. 164 (midpoint, MJ fuel per t,
+    converted at 3.6 MJ/kWh); the fuel is refinery fuel gas in practice, and natural-gas heat is a proxy (ASSUMED);
+    counting the fuel energy as heat is ASSUMED
+  pedigree: *id003
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 4.082
+    source: 'fuel: range 120 to 2000 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: feed:steam
+  title: Steam (feed atomisation, catalyst stripping, aeration), pressure not stated
+  type: input
+  amount: 60.0
+  unit: kg
+  formula: F / 1000 * steam_t
+  provenance: given
+  origin: literature
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, Table 3.33, p. 164 (midpoint); gross, the steam
+    the unit raises is not credited
+  pedigree: *id003
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.732
+    source: 'steam: range 30 to 90 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: input:catalyst
+  title: FCC catalyst make-up (zeolite Y in an alumina-clay matrix)
+  type: input
+  amount: 1.45
+  unit: kg
+  formula: F / 1000 * cat_t
+  provenance: given
+  origin: literature
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, Table 3.33, p. 164 (midpoint); mass outside
+    the element balance
+  pedigree: *id003
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.5
+    source: 'catalyst: range 0.4 to 2.5 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: output:cooling-water
+  title: Heat rejected to cooling water
+  type: output
+  amount: 246.73611111111111
+  unit: kWh
+  formula: F / 1000 * cw_t * rho_w * cp_w * dT_cw / 3600
+  provenance: calculated
+  origin: literature
+  carrier:
+    kind: cold
+    source: cooling water with a 17 K rise (BREF Table 3.33)
+  source: the BREF's circulation (Table 3.33, p. 164, midpoint) times rho cp dT, in kWh
+  pedigree: *id003
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'cooling water: range 5 to 20 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the
+      amount stays the arithmetic midpoint or the stated value)'
+- key: output:wastewater
+  title: Sour water to the sour water stripper and waste water treatment
+  type: output
+  amount: 75.0
+  unit: kg
+  formula: F / 1000 * ww_t * rho_w
+  provenance: given
+  origin: literature
+  link:
+    factor: wastewater
+    source: site wastewater treatment
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 3.5.2.2, p. 170 (midpoint); mostly condensed
+    process steam, so outside the element balance as the steam is. It exceeds the steam input by 15 kg/t; the rest
+    of the water (wash water injected into the main fractionator overhead, in practice) has no input in the inventory.
+    TODO source the water input
+  pedigree: *id003
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.225
+    source: 'waste water: range 60 to 90 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: output:spent-catalyst
+  title: Spent catalyst and catalyst fines caught (equilibrium catalyst withdrawn, ESP or cyclone fines)
+  type: output
+  amount: 1.41
+  unit: kg
+  formula: F / 1000 * cat_t - F / 1000 * pm_t
+  provenance: calculated
+  origin: estimate
+  source: 'ASSUMED: the make-up leaves as withdrawn catalyst and captured fines, less the fines emitted (BREF section
+    3.5.2.3, p. 170, names these streams without a rate per t); mass outside the element balance'
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: follows the catalyst make-up'
+- key: emission:CO2
+  title: CO2 from the coke burn in the regenerator
+  type: emission
+  amount: 168.49103769203202
+  unit: kg
+  formula: M_CO2 * (F * y_coke * 4 / M_COKE - F / 1000 * e_co_t / M_CO - F * y_coke * ncv_coke * ef_ch4 / 1000000
+    / M_CH4)
+  provenance: calculated
+  cas: 124-38-9
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 349b29d1-3e58-4c66-98b9-9d1a076efd2e
+    name: Carbon dioxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: 'carbon of the coke (sourced yield, ASSUMED C4H3 at the 5.9 wt% H of PRELIM Table 8) less that of CO and
+    CH4; compare 160 to 220 kg/t in BREF Table 3.35 (benchmarks/refining.yaml); biosphere3 UUID, name and categories
+    from core''s elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent elementary exchanges 3.9 via bw2io
+    0.9.17, BSD-3-Clause)'
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.3
+    source: 'ASSUMED: follows the coke yield, which varies with feed and conversion'
+- key: emission:CO
+  title: CO from the regenerator (full combustion)
+  type: emission
+  amount: 0.255
+  unit: kg
+  formula: F / 1000 * e_co_t
+  provenance: given
+  origin: literature
+  cas: 630-08-0
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: ba2f3f82-c93a-47a5-822a-37ec97495275
+    name: Carbon monoxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: 'EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, Table 3.36, p. 166 (midpoint of two examples);
+    biosphere3 UUID, name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent
+    elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree: *id003
+  basic_uncertainty: 5.0
+  uncertainty:
+    gsd2: 2.318
+    source: 'CO: range 0.08 to 0.43 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: emission:CH4
+  title: CH4 from the coke burn
+  type: emission
+  amount: 0.005733
+  unit: kg
+  formula: F * y_coke * ncv_coke * ef_ch4 / 1000000
+  provenance: estimated
+  cas: 74-82-8
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 0795345f-c7ae-410c-ad25-1845784c75f5
+    name: Methane, fossil
+    categories:
+    - air
+    unit: kg
+  source: 'IPCC (2006) Guidelines for National GHG Inventories, Vol. 2 Energy, ch. 2, Table 2.2, p. 2.16, 3 kg/TJ
+    for petroleum coke, times the coke burnt at the BREF''s calorific value; biosphere3 UUID, name and categories
+    from core''s elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent elementary exchanges 3.9 via bw2io
+    0.9.17, BSD-3-Clause)'
+  pedigree: &id004
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'IPCC default factor for petroleum coke applied to catalyst coke: reliability 4, completeness 4, temporal
+      4, geographical 4, technological 4'
+  basic_uncertainty: 1.5
+  uncertainty:
+    gsd2: 3.3
+    source: 'IPCC Table 2.2 gives 1 to 10 kg/TJ around the default 3: gsd2 = sqrt(10 / 1) (our convention)'
+- key: emission:N2O
+  title: N2O from the coke burn
+  type: emission
+  amount: 0.0011466
+  unit: kg
+  formula: F * y_coke * ncv_coke * ef_n2o / 1000000
+  provenance: estimated
+  cas: 10024-97-2
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 20185046-64bb-4c09-a8e7-e8a9e144ca98
+    name: Dinitrogen monoxide
+    categories:
+    - air
+    unit: kg
+  source: 'IPCC (2006) Guidelines for National GHG Inventories, Vol. 2 Energy, ch. 2, Table 2.2, p. 2.16, 0.6 kg/TJ
+    for petroleum coke, times the coke burnt at the BREF''s calorific value; a platinum CO promoter may raise it;
+    biosphere3 UUID, name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent
+    elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree: *id004
+  basic_uncertainty: 1.5
+  uncertainty:
+    gsd2: 3.162
+    source: 'IPCC Table 2.2 gives 0.2 to 2 kg/TJ around the default 0.6: gsd2 = sqrt(2 / 0.2) (our convention)'
+- key: emission:H2O
+  title: Water vapour from the coke burn
+  type: emission
+  amount: 25.915347756696228
+  unit: kg
+  formula: M_H2O * (F * y_coke * 3 / M_COKE - 4 * F * y_coke * ncv_coke * ef_ch4 / 1000000 / M_CH4) / 2
+  provenance: calculated
+  cas: 7732-18-5
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 075e433b-4be4-448e-9510-9a5029c1ce94
+    name: Water
+    categories:
+    - air
+    unit: m3
+    per_unit: 0.001
+  source: 'hydrogen of the coke (ASSUMED C4H3) less that of CH4; biosphere3 UUID, name and categories from core''s
+    elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent elementary exchanges 3.9 via bw2io 0.9.17,
+    BSD-3-Clause)'
+  pedigree: *id002
+  basic_uncertainty: 1.5
+- key: emission:NOx
+  title: NOx from the regenerator, as NO2
+  type: emission
+  amount: 0.28920592789205923
+  unit: kg
+  formula: F / rho_feed * ef_nox
+  provenance: given
+  origin: literature
+  cas: 10102-44-0
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: c1b91234-6f24-417b-8309-46111d09c457
+    name: Nitrogen oxides
+    categories:
+    - air
+    unit: kg
+  source: 'EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, Table 3.34, p. 165 (midpoint, per m3 of fresh
+    feed); feed nitrogen is not in the element balance; biosphere3 UUID, name and categories from core''s elementary-flow
+    crosswalk (data/elementary-flows.yaml: ecoinvent elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree: *id003
+  basic_uncertainty: 1.5
+  uncertainty:
+    gsd2: 1.972
+    source: 'NOx: range 0.107 to 0.416 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: emission:SO2
+  title: SOx from the regenerator, as SO2
+  type: emission
+  amount: 0.9345277593452774
+  unit: kg
+  formula: F / rho_feed * ef_so2
+  provenance: given
+  origin: literature
+  cas: 7446-09-5
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: fd7aa71c-508c-480d-81a6-8052aad92646
+    name: Sulfur dioxide
+    categories:
+    - air
+    unit: kg
+  source: 'EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, Table 3.34, p. 165 (midpoint, per m3 of fresh
+    feed); feed sulfur is not in the element balance; biosphere3 UUID, name and categories from core''s elementary-flow
+    crosswalk (data/elementary-flows.yaml: ecoinvent elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree: *id003
+  basic_uncertainty: 1.5
+  uncertainty:
+    gsd2: 2.81
+    source: 'SOx: range 0.19 to 1.5 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: emission:PM
+  title: Particulates from the regenerator (catalyst fines, size not split)
+  type: emission
+  amount: 0.04
+  unit: kg
+  formula: F / 1000 * pm_t
+  provenance: given
+  origin: literature
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, Table 3.37, p. 167 (average of 20 EU units);
+    about 90 % by mass below 10 um (BREF p. 168), no PM2.5 share stated, so no flow identity is set (TODO)
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 5
+    - 3
+    - 3
+    reason: 'from a range or value of the REF BREF data collection (EU units, sources of 1997 to 2010): reliability
+      3, completeness 4, temporal 5 (over 15 years old), geographical 3, technological 3'
+  basic_uncertainty: 3.0
+  uncertainty:
+    gsd2: 2.582
+    source: 'particulates: range 0.015 to 0.1 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+provenance:
+  generator: hand-written model; amounts are the formulas of the parameters
+  notes: No value from a licensed database and none from a DWSIM file (process-library#313).
+generation:
+  tier: 1
+  method: 'sourced conceptual inventory: yields from a worked example of published FCC correlations, utilities and
+    regenerator emissions from REF BREF ranges, coke-burn CO2 from the coke''s carbon, CH4 and N2O from IPCC defaults;
+    LCO and heavy cycle oil close the C and H balances over ASSUMED pseudo-formulas; every choice listed in parameters'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 3
+  - 4
+  - 3
+  - 3
+  - 3
+  dqr_floor: 3.0
+  components:
+    product:gasoline: C7H14
+    product:lpg: C9H20
+    product:dry-gas: C2H6
+    product:light-cycle-oil: C17H22
+    product:heavy-cycle-oil: C25H26
+    feed:vacuum-gas-oil: C41H73
+    feed:O2: O2
+    emission:CO2: CO2
+    emission:CO: CO
+    emission:CH4: CH4
+    emission:H2O: H2O
+  formulas:
+    product:gasoline: C7H14
+    product:lpg: C9H20
+    product:dry-gas: C2H6
+    product:light-cycle-oil: C17H22
+    product:heavy-cycle-oil: C25H26
+    feed:vacuum-gas-oil: C41H73
+    feed:O2: O2
+    emission:CO2: CO2
+    emission:CO: CO
+    emission:CH4: CH4
+    emission:H2O: H2O
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      C:
+      - 870.000971671
+      - 870.000971671
+      H:
+      - 129.999028329
+      - 129.999028329
+      O:
+      - 145.667118449
+      - 145.667118449
+    outside:
+    - emission:N2O
+    - emission:NOx
+    - emission:PM
+    - emission:SO2
+    - feed:electricity
+    - feed:fuel
+    - feed:steam
+    - input:catalyst
+    - output:cooling-water
+    - output:spent-catalyst
+    - output:wastewater

@@ -1,0 +1,150 @@
+# Every model input of run.py, with value, unit, label and source.
+# label: measured     = a value the source reports as measured or taken from measured data
+#        reported     = a model parameter value stated in the source (not itself a measurement)
+#        reconstructed = derived by us from stated numbers, with the derivation given
+#        assumed      = our choice, with the rationale
+# Locators refer to source.yaml open_version_used (thesis chapter 7).
+
+constants:
+  R: {value: 8.314462618, unit: J/(mol K), label: reported, source: "CODATA 2018"}
+  N_A: {value: 6.02214076e+23, unit: 1/mol, label: reported, source: "CODATA 2018"}
+  g: {value: 9.81, unit: m/s2, label: assumed, rationale: "standard gravity, 3 s.f. as is usual in fluidisation correlations"}
+
+base_case:  # Table 7.5, TMA half-reaction on 22 g of P-25
+  S_BET: {value: 50, unit: m2/g, label: measured, source: "Table 7.5 (BET area of P-25)"}
+  rho_b: {value: 130, unit: kg/m3, label: measured, source: "Table 7.5 (bulk density)"}
+  u_mf: {value: 0.05, unit: m/s, label: measured, source: "Table 7.5, citing its ref. [38] (P-25 at 1.013 bar)"}
+  u0: {value: 0.07, unit: m/s, label: reported, source: "Table 7.5 (superficial velocity u)"}
+  eps_mf: {value: 0.5, unit: "-", label: reported, source: "Table 7.5"}
+  H0_over_dt: {value: 1, unit: "-", label: reported, source: "Table 7.5"}
+  d_t: {value: 0.06, unit: m, label: reported, source: "Table 7.5"}
+  H_over_H0: {value: 1.7, unit: "-", label: measured, source: "Table 7.5, citing its ref. [38] (bed expansion of P-25)"}
+  batch_mass: {value: 22.05, unit: g, label: reported, source: "Table 7.5; equals rho_b * pi/4 * d_t^2 * H0"}
+  T: {value: 500, unit: K, label: reported, source: "Table 7.5"}
+  d_b: {value: 0.01, unit: m, label: reported, source: "Table 7.5 (average bubble size; an adjustable parameter in the source)"}
+  theta_OH0: {value: 0.47, unit: "-", label: reported, source: "Table 7.5; recorded only, not used by our lumped kinetics"}
+  P: {value: [1.013e+5, 100.0], unit: Pa, label: reported, source: "section 7.2.1 (two pressure cases, 1.013 bar and 1 mbar)"}
+
+site_capacity:
+  n_max_Al: {value: 4.8, unit: 1/nm2, label: measured, source: "p. 188-189, citing its ref. [51] (Al surface density at saturation used for tau_sat_min)"}
+
+agglomerate_structure:  # Eqs. 7.1-7.7, P-25 multi-level agglomerates
+  d0: {value: 21.0e-9, unit: m, label: reported, source: "p. 180 (primary particle)"}
+  d1: {value: 260.0e-9, unit: m, label: reported, source: "p. 180 (aggregate)"}
+  d2: {value: 30.0e-6, unit: m, label: reported, source: "p. 180 (simple agglomerate)"}
+  d3: {value: 300.0e-6, unit: m, label: reported, source: "p. 180 (complex agglomerate = d_ag)"}
+  rho3: {value: 47, unit: kg/m3, label: reported, source: "Eq. 7.2 (complex agglomerate density)"}
+  eps_ag: {value: 0.99, unit: "-", label: reported, source: "Eq. 7.3 and p. 183 (eps_3, total porosity used for accumulation at 1.013 bar)"}
+  eps_c: {value: 0.77, unit: "-", label: reported, source: "Eq. 7.4 and p. 181 (eps_3,2, complex level)"}
+  eps_sa: {value: 0.95, unit: "-", label: reported, source: "Eq. 7.3 and p. 181 (eps_2, simple level)"}
+  lambda_c: {value: 30.0e-6, unit: m, label: reported, source: "Eq. 7.6"}
+  lambda_sa: {value: 140.5e-9, unit: m, label: reported, source: "Eq. 7.7"}
+  tortuosity: {value: 1/eps_k, unit: "-", label: reported, source: "p. 183 (tau_k = 1/eps_k), so D_k = eps_k^2 D"}
+  Sh: {value: 2, unit: "-", label: reported, source: "p. 180 (K_ga = 2 D / d_ag, conservative)"}
+
+precursor:
+  M_TMA: {value: 72.086, unit: g/mol, label: reported, source: "Al(CH3)3 from standard atomic weights (IUPAC); the source does not state it"}
+  sigma_TMA: {value: 0.5465e-9, unit: m, label: reported, source: "p. 182 and footnote 1 (collision diameter)"}
+  D_TMA_N2:
+    value: 2.409e-5
+    unit: m2/s
+    at: 500 K, 1.013 bar; scaled as 1/P to other pressures
+    label: reconstructed
+    derivation: >-
+      The source computes D with a modified Hirschfelder-Bird-Spotz method but does not give
+      its value or the Lennard-Jones energy parameter. Table 7.4 reports tau_ga = R_c/K_ga =
+      9.34e-4 s with K_ga = 2 D/d_ag, so D = R_c d_ag / (2 tau_ga) = 150e-6 * 300e-6 /
+      (2 * 9.34e-4) = 2.409e-5 m2/s. tau_ga at 1.013 bar is therefore not a reproduction check
+      (circular); tau_ga at 1 mbar remains a check of the 1/P scaling.
+    cross_check: >-
+      Wilke-Lee form of the Chapman-Enskog equation with sigma_TMA = 0.5465 nm, eps/k(TMA) =
+      1.15 T_b (T_b = 398 K, assumed), N2 sigma = 0.3798 nm and eps/k = 71.4 K (Poling, Prausnitz,
+      O'Connell, The Properties of Gases and Liquids, 5th ed., Table B-1), Neufeld collision
+      integral. Computed and reported in comparison.json; not used.
+  D_Knudsen: {value: "48.5 lambda sqrt(T / M[g/mol])", unit: m2/s, label: reported, source: "Eq. 7.15"}
+  regime: {value: "1.013 bar: complex level Fickian (Eq. 7.12), simple level transition (Eq. 7.14); 1 mbar: complex level transition (Eq. 7.14), simple level Knudsen (Eq. 7.13)", label: reported, source: "Eqs. 7.10-7.11 and text p. 182"}
+
+correlations:  # Table 7.1
+  u_b: {value: "u0 - u_mf + 0.711 sqrt(g d_b)", label: reported, source: "Table 7.1"}
+  delta: {value: "(u0 - u_mf)/(u_b - u_mf)", label: reported, source: "Table 7.1"}
+  K_be: {value: "(6/d_b) [u_mf/3 + sqrt(4 D eps_mf u_b / (pi d_b))]", unit: 1/s, label: reported, source: "Table 7.1 (Sit and Grace)"}
+  K_ga: {value: "2 D / d_ag", unit: m/s, label: reported, source: "Table 7.1 and p. 180"}
+  tau_em:
+    value: "H (1 - delta) eps_mf / u_mf"
+    label: reconstructed
+    rationale: >-
+      Eq. 7.19 prints H(1-delta)/u_mf (1.83 s with Table 7.5 values); Table 7.4 reports 0.91 s,
+      which is the interstitial-gas residence time H(1-delta) eps_mf / u_mf, consistent with
+      the emulsion balance of Table 7.1 (volume per bed area H(1-delta) eps_mf). We use the
+      latter and report both in comparison.json. This choice was made while inspecting the
+      source, before the tolerance freeze.
+  tau_b: {value: "H / u_b", label: reported, source: "Eq. 7.19"}
+  tau_int: {value: "1 / K_be", label: reported, source: "Eq. 7.19"}
+  tau_ga_tau_c_tau_sa: {value: "R_c/K_ga, R_c^2/D_c, R_sa^2/D_sa", label: reported, source: "Eq. 7.20"}
+  thiele_star: {value: "R_k sqrt(<nu'> / D_k), <nu'> = 1/tau_rxn", label: reported, source: "Eqs. 7.21-7.23"}
+  tau_sat_min: {value: "rho_b S_BET n_max H0 / (u0 C_in)", label: reported, source: "Eq. 7.24"}
+  H_star: {value: "(u_b/K_be) ln[u_b delta / (u0 (1 - eta*))]", label: reported, source: "Eq. 7.52"}
+  eta_qss: {value: "1 - (u_b delta/u0) exp(-H K_be/u_b)", label: reported, source: "Eq. 7.51"}
+
+fig_7_4_conditions:
+  eta_star: {value: 0.9999, unit: "-", label: reported, source: "p. 198 and Fig. 7.4 caption"}
+  u0_over_umf: {value: 1.5, unit: "-", label: reported, source: "Fig. 7.4 caption"}
+  eps_mf: {value: 0.5, unit: "-", label: assumed, rationale: "not stated for Fig. 7.4; Table 7.5 value"}
+  T: {value: 500, unit: K, label: assumed, rationale: "not stated for Fig. 7.4; Table 7.5 value"}
+  u_mf_values: {value: [1.0e-4, 1.0e-3, 0.025, 0.05], unit: m/s, label: reported, source: "Fig. 7.4a curve labels"}
+
+tau_sat_min_conditions:
+  P_TMA_in: {value: [10, 10000], unit: Pa, label: reported, source: "Eq. 7.25 (0.1 and 100 mbar)"}
+  C_in: {value: "P_TMA_in / (R T)", label: reported, source: "ideal gas at T = 500 K"}
+
+dynamic_model:  # our implementation of Tables 7.1-7.2 (1.013 bar) with lumped kinetics
+  kinetics:
+    value: "g = -nu_max (1 - theta) C;  q dtheta/dt = nu_max (1 - theta) C"
+    label: assumed
+    rationale: >-
+      The Travis rate laws (Table 7.3) are not given in the chapter. We use one lumped
+      site fraction theta (fraction of the n_max capacity used), first order in precursor and
+      in free sites. g is per unit agglomerate volume, as in Table 7.2.
+  nu_max: {value: 8.0e+4, unit: 1/s, label: reconstructed, derivation: "2 / tau_rxn with tau_rxn = 2.5e-5 s (Table 7.4, 1.013 bar), so the rate linearised at theta = 0.5 equals 1/tau_rxn as in Eq. 7.21"}
+  q_sites:
+    value: "batch_mass S_BET n_max / (A H (1 - delta)(1 - eps_mf))"
+    unit: mol/m3 agglomerate
+    label: reconstructed
+    rationale: >-
+      Conserves the total surface of the batch (22.05 g x 50 m2/g) over the agglomerate volume
+      of the expanded bed. Gives about 68 mol/m3; rho3 (47 kg/m3) would give 19 mol/m3 and a
+      bed mass a quarter of 22 g, so the source's densities are not mutually consistent and we
+      keep the batch surface fixed.
+  P_TMA_in:
+    value: 4000
+    unit: Pa
+    label: reconstructed
+    derivation: >-
+      Not stated. tau_sat = 46.4 s (Fig. 7.3) with near-complete uptake gives
+      C_in ~ rho_b S_BET n_max H0 / (u0 tau_sat), i.e. 3.98 kPa (39.8 mbar). Rounded to 40 mbar.
+      Sets the time axis only; the saturation time is therefore NOT a reproduction check, and
+      the normalised bubble profile compared with Fig. 7.3 does not depend on it.
+  grid: {value: "N_z = 400 upwind cells (bubble), N_r = 40 finite-volume shells (agglomerate)", label: assumed, rationale: "grid study in comparison.json"}
+  solver: {value: "scipy solve_ivp BDF, rtol 1e-6, atol 1e-10 (scaled)", label: assumed}
+
+extension:  # HYPOTHETICAL design extension; see extension.md
+  batch_mass: {value: 1.0, unit: kg, label: assumed, rationale: "changed input (base 22.05 g), about 45 times the lab batch"}
+  batch_sweep: {value: [0.02205, 0.1, 0.3, 1.0, 3.0, 10.0], unit: kg, label: assumed}
+  target_coverage: {value: 0.99, unit: "-", label: assumed, rationale: "volume-averaged site fraction at pulse end; fixed across batch sizes"}
+  strategy_A: {value: "keep H0 = 0.06 m, widen d_t", label: assumed, rationale: "scaling rule of p. 189 (tau_sat_min independent of d_t)"}
+  strategy_B: {value: "keep H0/d_t = 1, scale both", label: assumed, rationale: "geometric similarity"}
+  u0: {value: 0.07, unit: m/s, label: assumed, rationale: "kept at the base value (1.4 u_mf)"}
+  P_TMA_in: {value: 4000, unit: Pa, label: assumed, rationale: "same delivery as the reconstructed base case"}
+  H_over_H0: {value: 1.7, unit: "-", label: assumed, rationale: "lab-scale expansion of P-25 taken as scale independent"}
+  d_b_correlation:
+    value: "Darton et al. (1977): d_b = 0.54 (u0 - u_mf)^0.4 (h + 4 sqrt(A0))^0.8 g^-0.2 (SI), at mid-height of the expanded bed"
+    label: assumed
+    rationale: >-
+      Standard bubble-growth correlation for Geldart A/B beds (Kunii and Levenspiel,
+      Fluidization Engineering, 2nd ed., 1991, ch. 6). Not validated for nanoparticle
+      agglomerates. Gives 1.05 cm for the lab bed, close to the source's 1 cm.
+  A0: {value: 1.0e-4, unit: m2, label: assumed, rationale: "distributor area per orifice (porous or perforated plate, 1 cm2)"}
+  TDH: {value: "1000 u0^2 / g (SI)", unit: m, label: assumed, rationale: "transport disengaging height, Fournol et al. (1973) for fine (group A) powders, as given by Kunii and Levenspiel (1991) ch. 7"}
+  filter_section: {value: 0.15, unit: m, label: assumed, rationale: "space for sintered-metal filter candles above the freeboard (nanopowder elutriation)"}
+  plenum: {value: 0.10, unit: m, label: assumed, rationale: "gas plenum below the distributor"}
+  geldart_AB_criterion: {value: "(rho_p - rho_g)[g/cm3] * d_p[um] < 225 is not group B", label: assumed, rationale: "approximate A/B boundary of Geldart (1973); indicative only for agglomerates"}

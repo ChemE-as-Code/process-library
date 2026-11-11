@@ -116,7 +116,7 @@
       }
     },
     "publication": {
-      "description": "Whether the process may be published. A public build (--public) lists only status public; the preview build lists every process.",
+      "description": "Whether the process may be published. A public build (--public) lists only status public with a license (required then); the preview build lists every process.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -128,7 +128,9 @@
           "items": {"type": "string", "minLength": 1, "pattern": "^(?!/)(?!.*//)"},
           "uniqueItems": true
         }
-      }
+      },
+      "if": {"properties": {"status": {"const": "public"}}, "required": ["status"]},
+      "then": {"required": ["license"]}
     }
   },
   "$defs": {

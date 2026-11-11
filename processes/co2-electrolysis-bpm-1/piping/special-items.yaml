@@ -1,0 +1,69 @@
+# Special piping items. Schema: `cheme schema piping_items`.
+# The tail-gas detonation arresters of the pilot skids (#330, the owner's decision of
+# 2026-11-06, DESIGN.md D-054) and the cathode side's relief devices of P&ID revision C (the
+# design review 2026-11-06-design, D-060), drawn on P-01 and P-02 by scripts/_skid_pid.py. The
+# relief devices are drawn as bursting discs (DEXPI RuptureDisc): core 1.10's authoring API has
+# no inline safety-valve symbol, and a disc with a burst indicator suits the clean, low-pressure
+# CO2 feed header; whether a reclosing spring-loaded safety valve replaces it is the relief
+# study's. K-x31's discharge has no relief device on the line: the diaphragm compressor's own
+# hydraulic pressure limit and the discharge high-high trip protect it, the PSA vendor's relief
+# devices its vessels (D-060). OPEN for the relief study and the competent person (review
+# 2026-11-06-design-r2#10, D-067): whether K-x31's machine-internal hydraulic relief may serve
+# as the pressure-limiting safety accessory of CG-x03 and of X-x31's vessels (PED 2014/68/EU
+# Annex I 2.11), with its setting sealed and verified, or a relief device is needed instead.
+# Set pressures and relief cases are ASSUMED; no device is sized (the relief study, by a
+# competent person).
+schema: cheme/piping_items/v1
+piping_items:
+  - tag: FA-133
+    type: FlameArrestor
+    line: TG-101
+    sheet: P-01
+    notes: >-
+      In-line detonation arrester rated for unstable detonation (EN ISO 16852, explosion group
+      IIC, no run-up limit over the about 8 m, L/D about 500 tail-gas line), unidirectional,
+      protected side towards X-131, at X-131's outlet inside Z-HAZ-A beside the trip valve XV-133
+      and the check valve; TSHH-133 on its unprotected side trips XV-133 within its certified
+      burning time (I-109). ASSUMED; the EU-type examination for the actual tail gas (H2, CO, CO2,
+      H2O) at its temperature and pressure is the vendor's (open).
+  - tag: PSE-101
+    type: RuptureDisc
+    line: RL-101
+    sheet: P-01
+    set_pressure_barg: 0.5
+    relief_case: >-
+      Blocked cathode outlet (K-131 stopped or PV-121 closed by a failed PIC-121) with the CO2
+      supply's regulator failed open and FV-102 open (wide open in the start-up purge): the
+      supply's flow through FV-102 at the supplier's relief pressure, 4 bar(g) (ASSUMED); the
+      stacks' own gas generation with the current on is the smaller case.
+    notes: >-
+      The cathode side's relief: the CO2 feed header CO2-101 downstream of every feed (FV-102,
+      the recycle CO2-102 and the water W-101), so that it also protects the cathodes of
+      E-101A to D, CG-101, V-121 and CG-102 up to K-131 through the open flow fields. Bursting
+      pressure 0.5 bar(g) (ASSUMED), below the stacks' and V-121's design pressure of 1.0 bar(g)
+      (ASSUMED, the stack vendor's) and above the high-high trip at 0.35 bar(g) of PIA-116,
+      which stands beside it on the header, and of PIA-123 at the stack outlet (I-111), which
+      act first: 0.15 bar between the trip and the burst pressure at the same point (review
+      2026-11-06-design-r2#6, D-067). For the relief study: a disc of 0.5 bar(g) is to be
+      specified with a burst tolerance of +/-0.05 bar or better (ASSUMED) and a maximum
+      operating ratio of 0.7 or less (ASSUMED): the normal operating pressure on the header,
+      about 0.19 bar(g) (120 kPa(a)), is 0.38 of the burst pressure, the trip at 0.35 bar(g)
+      0.70. Its burst indicator XS-101 trips the current and closes FV-102 too (I-111), so that
+      a burst disc does not leave the CO2 venting past stacks still on current. To a safe
+      location at height through RL-101 (mostly CO2, some cathode gas): the outlet reserved
+      west of the frame, 5.5 m above grade (layout/zones.yaml Z-VENT-A, D-068); the line's
+      size and its built-up back-pressure against the 0.5 bar(g) disc over about 7 m of line
+      are the relief study's. Not sized; the membrane's pressure-difference window is the stack
+      vendor's (D-060).
+  - tag: FA-233
+    type: FlameArrestor
+    line: TG-201
+    sheet: P-02
+    notes: "As FA-133, at X-231's outlet inside Z-HAZ-B (I-209)."
+  - tag: PSE-201
+    type: RuptureDisc
+    line: RL-201
+    sheet: P-02
+    set_pressure_barg: 0.5
+    relief_case: "As PSE-101 (K-231 stopped or PV-221 closed with the CO2 regulator failed open)."
+    notes: "As PSE-101, on CO2-201, with its burst indicator XS-201; the high-high trip of PIA-216 beside it and of PIA-223 (I-211) acts first, 0.15 bar below the burst pressure; to the vent outlet reserved west of Skid B's frame (Z-VENT-B) (D-060, D-067, D-068)."

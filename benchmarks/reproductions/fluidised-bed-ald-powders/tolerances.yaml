@@ -1,0 +1,55 @@
+# Acceptance tolerances for the fluidised-bed ALD reproduction (#336; ADR 0030, ADR 0031).
+# FROZEN 2026-11-04, committed with source.yaml and inputs.yaml before the first run of run.py
+# that compares computed with reported values. Do not edit: a revision is a new file with its
+# reason, and comparison.md names the file it used.
+#
+# Disclosure (order of evidence). While inspecting the source to decide what is reproducible,
+# hand estimates were made of some targets before this freeze: tau_sat_min at 100 mbar (about
+# 18.5 s), tau_em (0.91 s only with the eps_mf factor, see inputs.yaml tau_em), tau_b, tau_int,
+# tau_ga (used to reconstruct D), the H* text anchors at d_b = 4.5 cm (about 103 cm at 1.013 bar
+# and about 7.1 cm at 1 mbar) and the H* digitised value at d_b = 1 cm, u_mf = 5 cm/s (about
+# 9.5 cm against 10.4 cm), and the slope of the Fig. 7.3 profile (H K_be/u_b about 9.1 against
+# about 7.7 read from the figure). The tolerances below follow the uncertainty budget stated
+# for each check, not these estimates; some checks are expected to fail and are kept as they
+# are.
+#
+# Uncertainty budget common to all checks: model inputs are the source's stated values
+# (inputs.yaml); the molecular diffusivity is reconstructed from tau_ga (3 s.f., +-0.5 %);
+# formula interpretation (which porosity, regime) is the main open source of difference.
+frozen: "2026-11-04"
+reference: source.yaml reported_results
+checks:
+  # G1: minimum saturation time (Eq. 7.25)
+  tau_sat_min_100mbar: {rel: 0.05, reason: "18 s given to 2 s.f. (+-2.8 %); plus n_max and C_in rounding"}
+  tau_sat_min_0.1mbar: {rel: 0.10, reason: "5 h given to 1 s.f. (+-10 %)"}
+  # G2: Table 7.4 time scales and Thiele moduli
+  tau_em_atm: {rel: 0.05, reason: "2 s.f.; no diffusivity dependence"}
+  tau_b_atm: {rel: 0.05, reason: "2 s.f.; no diffusivity dependence"}
+  tau_int_atm: {rel: 0.20, reason: "given to 1 s.f. (+-10 %), plus K_be correlation evaluation"}
+  tau_int_mbar: {rel: 0.10, reason: "2 s.f.; depends on D through sqrt(D)"}
+  tau_ga_mbar: {rel: 0.05, reason: "checks the 1/P scaling of the reconstructed D; 3 s.f."}
+  tau_c_atm: {rel: 0.10, reason: "porosity/tortuosity interpretation (eps_c, tau = 1/eps)"}
+  tau_c_mbar: {rel: 0.10, reason: "transition-regime combination (Eq. 7.14) and Knudsen formula (Eq. 7.15)"}
+  tau_sa_atm: {rel: 0.10, reason: "transition regime, Eq. 7.14-7.15"}
+  tau_sa_mbar: {rel: 0.10, reason: "Knudsen regime, Eq. 7.13 and 7.15"}
+  thiele_atm: {rel: 0.20, reason: "8 given to 1 s.f.; uses the reported tau_rxn (consistency check of D_c)"}
+  thiele_mbar: {rel: 0.10, reason: "3 s.f.; uses the reported tau_rxn (consistency check of D_sa)"}
+  # G3: required bed height, values stated in the text (p. 199)
+  Hstar_text_atm: {rel: 0.10, reason: "'about 100 cm' (+-5 % rounding) plus K_be evaluation"}
+  Hstar_text_mbar: {rel: 0.10, reason: "6.5 cm, 2 s.f.; diffusion-dominated K_be"}
+  # G4: required bed height, digitised Fig. 7.4 (20 values: 16 in panel a, 4 in panel b)
+  Hstar_fig_7_4a: {rel: 0.10, applies_to: "each of d_b = 1, 2, 3, 4 cm for each u_mf", reason: "digitisation +-0.9 cm (<= 9 % at the smallest value 10.4 cm, <= 2 % elsewhere) plus K_be evaluation"}
+  Hstar_fig_7_4b: {rel: 0.10, applies_to: "d_b = 1, 2, 3, 4 cm, against the envelope mid-point", reason: "digitisation +-0.03 cm; curve envelope spread <= 2 %; K_be evaluation"}
+  # G5: dynamic model, quasi-steady bubble-phase profile (digitised Fig. 7.3, t = 19.9 s)
+  bubble_profile_fig_7_3: {abs: 0.03, applies_to: "C_b/C_in at z/H = 0.1, 0.2, 0.4", reason: "digitisation +-0.004; K_be +-5 % moves C_b/C_in by up to 0.02 at z/H = 0.1; our lumped kinetics leave a small emulsion concentration (<= 0.01)"}
+  # Internal checks of our own implementation (not comparisons with the source)
+  dynamic_vs_qss_eta: {abs: 1.0e-3, reason: "our dynamic model's utilisation in the quasi-steady period must match Eq. 7.51 evaluated with the same K_be, u_b, delta"}
+  dynamic_mass_balance: {rel: 1.0e-3, reason: "TMA fed = TMA out + TMA in gas holdup + sites filled, integrated over the pulse"}
+pass_rule: >-
+  Each check passes when |ours - reference| is within its tolerance (rel: relative to the
+  reference value; abs: absolute). The verdict counts only the comparisons with the source
+  (G1-G5, 38 values: 2 + 11 + 2 + 20 + 3); the two internal checks must pass for the run to be valid, otherwise the
+  verdict is "invalid run". PASS: every comparison passes. PARTIAL: at least 75 % of the
+  comparisons pass, including all of G1 and G3 (the source's stated headline numbers). FAIL:
+  otherwise. Targets that cannot be evaluated (saturation time 46.4 s and cumulative CH4 of
+  the full dynamic model) are reported as gaps and never count as passes.

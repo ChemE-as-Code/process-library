@@ -1,0 +1,40 @@
+# The batch recipe of methylmagnesium-bromide-1 (schema cheme/recipe/v1, `cheme process recipe`,
+# DESIGN.md D-003). One batch makes BATCH kg of the filtered 35 wt% solution (stream S9); the
+# flowsheet's rates are the year averages. R-101 is one vessel for the charge (M101) and the
+# semi-batch (R101), a recipe unit over two steps (`units:`, core ADR 0057); the dosing, with its
+# initiation hold, and the post-reaction take their times from R101's model (from: R101), the
+# warm-up from the jacket, and the filtration from F101's Ruth equation (from: F101); every other
+# duration is ASSUMED (D-003). R-101's vessel is sized from its model's content and its jacket
+# checked against the model's peak cooling duty (core ADR 0052). `cheme process recipe --svg
+# build/gantt.svg` draws one batch.
+schema: cheme/recipe/v1
+kind: recipe
+title: Methylmagnesium bromide by semi-batch Grignard reaction
+batch_size: {value: 5000, unit: kg, stream: S9, provenance: assumed, source: "one batch of filtered solution (D-002, D-003)"}
+hours_per_year: {value: 7920, provenance: assumed, source: "330 days of 24 h (D-002)"}
+unit_procedures:
+  - id: REACT
+    units: [M101, R101]
+    title: Charge, initiation and Grignard reaction (R-101)
+    vessel:
+      fill_fraction: 0.8
+      aspect_ratio: 1.2
+      jacket: {u: 400, coolant_temperature: 263.15, heating_temperature: 353.15, provenance: assumed, source: "stainless-steel jacketed vessel with a half-pipe jacket, chilled brine at 263 K or hot water at 353 K (D-010)"}
+      provenance: assumed
+      source: "usual fill and proportions of a stirred vessel (D-003)"
+    operations:
+      - {id: inert, kind: other, title: "Dry and inert R-101 with nitrogen (oxygen and moisture out)", duration: {value: 1.0, provenance: assumed, source: D-003}}
+      - {id: charge-mg, kind: charge, title: Charge the magnesium turnings under nitrogen, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: charge-solvent, kind: charge, title: "Charge the dry 2-MeTHF, add the iodine activator", duration: {value: 0.5, provenance: assumed, source: "D-003, D-004"}}
+      - {id: warm, kind: heat, title: Warm the charge to 318 K, temperatures: [298.15, 318.15]}
+      - {id: dose, kind: dose, title: "Dose 5 % of the methyl bromide, hold for the initiation, dose the rest", from: R101}
+      - {id: react, kind: react, title: Post-reaction, from: R101}
+      - {id: titrate, kind: hold, title: "Sample and titrate; adjust with 2-MeTHF if needed", duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: transfer, kind: transfer, title: Press the slurry to F-101 with nitrogen, duration: {value: 0.5, provenance: assumed, source: D-003}}
+  - id: FILTER
+    unit: F101
+    title: Filtration of the excess magnesium (F-101)
+    operations:
+      - {id: receive, kind: charge, title: Receive the slurry, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: filter, kind: filter, title: Filter under 2 bar of nitrogen to the filling tank, from: F101}
+      - {id: discharge, kind: other, title: "Blow the cake dry with nitrogen, discharge it into the quench drum", duration: {value: 1.0, provenance: assumed, source: "D-003, D-007"}}

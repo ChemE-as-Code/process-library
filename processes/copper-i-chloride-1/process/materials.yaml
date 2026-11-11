@@ -1,0 +1,49 @@
+# Components and templates of copper-i-chloride-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol (IUPAC 2021
+# standard atomic weights applied to the formula), normal_boiling_point in K at 101.325 kPa.
+#
+# The chloride brine is carried as molecular pseudo-components (NaCl, HCl, CuCl and CuCl2
+# dissolved), an inventory basis, not a speciation: in the brine copper(I) is held as chloro
+# complexes (CuCl2-, CuCl3 2-), which core does not model (no electrolyte package beyond NaCl in
+# water; DESIGN.md D-006, L-4). The CuCl crystals are a separate solid component, CUCL_S
+# (phase: solid). Copper metal is the solid CU: the semi-batch R101 has no solid reactant, so its
+# rate laws take the copper's amount per m3 of the content as if it were dissolved (an effective
+# rate, DESIGN.md D-005, L-1).
+# The liquid data the models need (D-005), ASSUMED unless a source is named:
+# - liquid_molar_volume, m3/kmol, from densities near 298 K taken as the volume in the mixture
+#   (ideal mixing, no partial molar volumes): water 0.997 g/cm3 (chemicals 1.5.2's packaged CRC
+#   table), ethanol 0.7893 (packaged CRC organic table); the salts and the copper as their solids'
+#   densities from the packaged CRC inorganic table, standing for the dissolved salt (NaCl 2.17,
+#   CuCl 4.14, CuCl2 3.40; copper 8.96): NaCl's apparent molar volume in a 5 m brine is about
+#   20 cm3/mol, so the solid's 26.9 overstates the brine's volume by about 4 % (the vessels are
+#   sized on the safe side); dissolved Cl2 0.0454 (liquid chlorine's density, 1.56 g/cm3,
+#   ASSUMED) and dissolved HCl 0.0185 (about its partial molar volume in water, ASSUMED);
+# - liquid_heat_capacity, kJ/(kmol K): water 75.3 and ethanol 112.3 (liquids), NaCl 50.5, CuCl
+#   48.5, CuCl2 71.9 and copper 24.4 (the solids, standing for the dissolved salts), chlorine 33.9
+#   and HCl 29.1 (the ideal gases': their apparent molar heat capacities in water are not known
+#   openly), all from chemicals 1.5.2's packaged CRC standard thermodynamic properties
+#   (`chemicals.heat_capacity.CRC_standard_data`). The brine's heat capacity is therefore the
+#   sum of its parts (about 3.4 kJ/(kg K) for a 26 wt% NaCl brine, against about 3.3 measured:
+#   a conservative 3 % high, ASSUMED);
+# - normal boiling points: water 373.12 K, ethanol 351.44 K, chlorine 239.11 K, HCl 188.15 K
+#   (chemicals 1.5.2: its `Tb` and the packaged CRC tables). Register: DESIGN.md SRC-10. The
+#   salts and the copper boil far above anything here (CuCl 1763 K, CuCl2 decomposes): none is
+#   given, so none can set an MTT.
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.015, normal_boiling_point: 373.12, liquid_molar_volume: 0.01807, liquid_heat_capacity: 75.3}
+  - {id: NACL, name: Sodium chloride (dissolved), formula: NaCl, cas: 7647-14-5, molar_mass: 58.443, liquid_molar_volume: 0.02693, liquid_heat_capacity: 50.5}
+  - {id: HCL, name: Hydrogen chloride (dissolved), formula: HCl, cas: 7647-01-0, molar_mass: 36.461, normal_boiling_point: 188.15, liquid_molar_volume: 0.0185, liquid_heat_capacity: 29.1}
+  - {id: CL2, name: Chlorine (dissolved), formula: Cl2, cas: 7782-50-5, molar_mass: 70.906, normal_boiling_point: 239.11, liquid_molar_volume: 0.0454, liquid_heat_capacity: 33.9}
+  - {id: CU, name: "Copper metal (granules, scrap and the heel)", formula: Cu, cas: 7440-50-8, molar_mass: 63.546, phase: solid, liquid_molar_volume: 0.007092, liquid_heat_capacity: 24.4}
+  - {id: CUCL, name: Copper(I) chloride (dissolved as chloro complexes), formula: CuCl, cas: 7758-89-6, molar_mass: 98.999, liquid_molar_volume: 0.02391, liquid_heat_capacity: 48.5}
+  - {id: CUCL_S, name: Copper(I) chloride (crystals), formula: CuCl, cas: 7758-89-6, molar_mass: 98.999, phase: solid, liquid_molar_volume: 0.02391, liquid_heat_capacity: 48.5}
+  - {id: CUCL2, name: Copper(II) chloride (dissolved), formula: CuCl2, cas: 7447-39-4, molar_mass: 134.45, liquid_molar_volume: 0.03954, liquid_heat_capacity: 71.9}
+  - {id: ETOH, name: Ethanol, formula: C2H6O, cas: 64-17-5, molar_mass: 46.069, normal_boiling_point: 351.44, liquid_molar_volume: 0.05837, liquid_heat_capacity: 112.3}
+templates:
+  - {id: brine, title: "Chloride brine, copper and slurry", components: [H2O, NACL, HCL, CL2, CU, CUCL, CUCL_S, CUCL2]}
+  - {id: wet, title: "Cake, washes and dryer streams", components: [H2O, NACL, HCL, CL2, CU, CUCL, CUCL_S, CUCL2, ETOH]}
+property_method:
+  adapter: thermo
+  status: placeholder

@@ -1,0 +1,35 @@
+# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
+# dataset is lca/datasets/*.yaml, Tier 0 form, so maturity stays at concept
+# (core's cheme.lci-tier-maturity). See README.md.
+schema: cheme-as-code/process/v1
+id: propylene-oxide-1
+title: Propylene oxide by the chlorohydrin process with lime
+summary: >-
+  Tier 0 screening per tonne of propylene oxide: stoichiometry with a patent's dichloropropane range,
+  older US lime use, the LVOC BREF's effluent, and the IEA's Western European electricity and steam
+  averages for propylene oxide (route not named). No flowsheet; not reviewed.
+families: [oxygenates]
+keywords: [propylene oxide, methyloxirane, chlorohydrin, hypochlorination, saponification, lime, calcium chloride, dichloropropane]
+facets: {feedstock_basis: [fossil, mineral], product_classes: [chemicals], unit_operations: [reaction, stripping, distillation], region: generic}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: propylene, role: feedstock, inventory_key: "feed:propylene"}
+    - {chemical: chlorine, role: feedstock, inventory_key: "feed:chlorine", note: "linked to chlor-alkali-1 (lca/mappings.yaml)"}
+    - {chemical: calcium-oxide, role: feedstock, inventory_key: "feed:lime", note: "quicklime, slaked to milk of lime on site; reading the source's lime as CaO is ASSUMED"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:water", note: "ASSUMED: closes the water balance with the effluent"}
+  outputs:
+    - {chemical: propylene-oxide, role: main-product, inventory_key: "product:propylene-oxide"}
+    - {chemical: wastewater, role: waste, inventory_key: "output:wastewater", note: "about 40 t/t; its calcium chloride is emission:CaCl2, the 1,2-dichloropropane by-product is output:dichloropropane"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity", note: "IEA 2009 Western European average for propylene oxide, route not named (ASSUMED to apply)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:steam", note: "counted as heat delivered; IEA 2009 Western European average for propylene oxide, route not named (ASSUMED to apply)"}
+basis: {capacity: "per tonne of propylene oxide (the dataset's basis); no plant size"}
+publication: {status: public, license: CC-BY-4.0}
+references:
+  - {title: "Falcke, H. et al. (2017) Best Available Techniques (BAT) Reference Document for the Production of Large Volume Organic Chemicals. JRC Science for Policy Report EUR 28882 EN (JRC109279), section 2.1.2.8 and Table 2.5", doi: 10.2760/77304}
+  - {title: "Gaines, L.L. and Shen, S.Y. (1980) Energy and Materials Flows in the Production of Olefins and Their Derivatives. Argonne National Laboratory, ANL/CNSV-9 (US DOE), section 4.3.2.2 and Fig. 4.58", url: "https://www.osti.gov/servlets/purl/7013430"}
+  - {title: "Nielsen, K.A. (Union Carbide Corp.) Electrolytic process for the production of alkene oxides. US patent 4,560,451 (1985), description of the prior art", url: "https://patents.google.com/patent/US4560451A/en"}
+  - {title: "Saygin, D., Patel, M.K., Tam, C., Gielen, D.J. (2009) Chemical and Petrochemical Sector: Potential of best practice technology and other measures for improving energy efficiency. IEA Information Paper, OECD/IEA, Tables 1 and 13", url: "https://iea.blob.core.windows.net/assets/c2d071e4-4142-44f1-8a41-88ece29be439/ChemicalandPetrochemicalSector.pdf"}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/propylene-oxide-1, access: public}

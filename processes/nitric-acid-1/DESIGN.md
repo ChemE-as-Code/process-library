@@ -445,7 +445,378 @@ so its file hash differs from the input fingerprint in `process/simulation-run.j
 semantic model fingerprint is unchanged (`cheme validate` reports no stale run).
 Follow-ups: the open items above, and F-1 to F-3 of D-015 for the excluded part.
 
+## D-017 First P&IDs: sheet split, numbering, line sizes (2026-11-05)
+Decision: six P&ID sheets drafted from the PFD, one per section of the flowsheet with the
+burner and the absorber kept apart from their machines:
+P-01 ammonia and air supply (E-101, K-101), P-02 burner and steam raising (M-101, R-101, E-102),
+P-03 heat recovery and condenser (E-103, E-104, E-105, V-101, P-101A/B), P-04 NOx gas compression
+(K-102, E-106, E-107), P-05 absorption and bleaching (C-101, C-102), P-06 tail gas and expander
+(E-108, R-102, X-101). E-108 is drawn on P-06 with the SCR dosing it feeds. Every sheet is
+hand-maintained; `scripts/draft_P-0n.py` (with `scripts/pid_common.py`, authoring API) wrote the
+first revision and is provenance only, as in hda-1.
+Numbering: equipment tags of the PFD; lines `<fluid code>-<n><nn>` and instruments `<letters>-<n><nn>`
+with n the sheet the item starts on (codes in the header of `piping/line-list.yaml`); a line on two
+sheets keeps its number and is listed once.
+Line sizes: `scripts/line_sizing.py` (run with `cheme run`) sizes every PFD stream by velocity on
+the design case, ASSUMED first-pass values: gas 20 m/s below 1000 kPa(a) and 15 m/s above (ideal
+gas), the burner gas 30 m/s, liquids 1.5 m/s (1.0 m/s on letdown) at round ASSUMED densities
+(liquid NH3 617, 42 % acid 1260, 60 % acid 1360 kg/m3); utilities at 2-2.5 m/s (water) and
+30 m/s (steam); relief, blow-off and vent lines are placeholders. The air intake (DN1800) and the
+stack line (DN2000) are ducts in practice.
+Drawing: the sheets meet the drawing standard of the `drawing-clean` gate with no accepted
+finding (no crossing at all: the sheet split and the connector edges were chosen for it);
+off-page connectors sit on the sheet edges, process inflows left and outflows right, except the
+tail gas leaving P-04 to the right and entering P-03 from the top, and the process water and
+chilled water of P-05, which enter from the top so that the six absorber connections on the left
+keep their spacing.
+Reason: the PFD blocks are a first guess for the split (skill `pid-draft`); one sheet for the
+absorber and the NOx compressor together forms a closed loop on the sheet (K-102 -> C-101 -> C-102
+-> bleacher gas back to K-102) that cannot be drawn without crossings, so K-102 has its own sheet.
+Supersedes the last sentence of D-013 (no line or instrument list yet).
+Rejected: a utilities sheet (the interfaces are few and drawn as battery-limit connectors on each
+sheet; the cooling-water, chilled-water, steam and BFW systems are outside the boundary, D-001).
+
+## D-018 Machines, spares and relief on the first P&IDs (2026-11-05)
+Decision:
+- The machine train (K-101, K-102, X-101, motor; D-011) is one vendor package: machine
+  protection, lube oil, seals and the surge maps are the package's; the plant sees one train trip
+  (C&E I-602) and the two anti-surge controllers (amended by D-024: the plant's own K-102
+  full-recycle time trip I-401 is a second cause of that one train trip; amended by D-025: the
+  XV-610 uncommanded-closure trip I-603 is a third). K-101 has inlet guide vanes (FV-107, the load
+  setter) and an anti-surge blow-off to atmosphere through a silencer (UV-110, SL-114): air is not
+  worth recycling. K-102 has an anti-surge recycle (UV-401) taken before E-106 (a hot bypass),
+  suited to start-up and trips; continuous turndown recycle should be cooled (open point).
+- The expander has an inlet trip valve XV-610 (train trip, against overspeed) and the absorber
+  pressure valve PV-611 in front of it (D-019). An expander bypass for start-up is not drawn yet
+  (open point with the train vendor).
+- The weak-acid pump is spared: P-101A (the PFD's P-101) and P-101B, one running.
+- Relief (`piping/special-items.yaml`): one valve per pressure system, set at the lowest design
+  pressure of the system (D-013), ASSUMED until the MAWPs are known: PSV-105 on the evaporator
+  (17 barg, to the ammonia relief header), PSV-111 on the K-101 discharge for the air side of the
+  low-pressure system up to the gauze (6 barg, air to atmosphere; narrowed by D-021, which adds
+  PSV-316 for the nitrous gas side and PSV-616 for E-108; superseded by D-022 item 1: PSV-111
+  now protects the K-101 discharge up to CV105 only), PSV-404 on the
+  K-102 discharge for the whole high-pressure system to the X-101 inlet (12 barg, nitrous gas to a
+  NOx vent stack, never to grade), PSV-215 on the HP steam (44 barg). These systems have no
+  isolation valve inside them other than check valves and the trip valves at their ends. The
+  relief study (cases, loads, orifices, the K-101 settle-out pressure against the 6 barg set) is open.
+Reason: usual practice for a dual-pressure plant on one train (skill `control-loops`, gas movers);
+ammonia and nitrous gas are toxic, so their relief goes to a header or vent stack.
+Rejected: a PSV per item (the systems have no isolation valves; a valve per item would be
+unprotected by nothing it adds).
+
+## D-019 Control and safeguarding design of the first P&IDs (2026-11-05)
+Decision (all PROPOSED, for the HAZOP; files: `control/loops.yaml`, `control/cause-effect.yaml`,
+`control/sequences.yaml`, `control/philosophy.md`):
+- Air leads, ammonia follows: the load is set on the air (FIC-107); the ammonia vapour is ratioed
+  to the primary air (FFIC-201 with FI-202 as the wild flow, design ratio 0.0656 kg/kg = 10.0 mol%
+  NH3, D-005; setpoint clamp 0.07 kg/kg ASSUMED).
+- The ammonia-air mixture is protected by trips independent of the ratio loop: FFZ-205 (ratio
+  high-high on its own NH3 flow element, with FZ-206 on its own air flow element), FZ-206 (air
+  low-low), TZ-207 (gauze temperature low-low: flame-out with NH3 slip, ammonium nitrate in the cold
+  end; and high-high), and the train trip; each closes two ammonia trip valves XV-203 and XV-204
+  (in series, through US-209 and TZ-207 on the drawing; the C&E gives the full effects) and the
+  liquid ammonia XV-101. The NH3 analyser AI-210 is a cross-check only (composition analysers are
+  avoided in safety functions). The trip point of I-201 is not stated: it needs the lower
+  flammability limit of NH3 in air at 520 kPa(a) and 462 K (open input O-7).
+- Other trips: I-101 E-101 level high-high (liquid carry-over), I-301 V-101 level low-low (stops
+  P-101A/B), I-501 C-101 sump level low-low (XV-507 against gas blow-by from 1130 to 500 kPa(a)
+  into C-102), I-601 R-102 inlet temperature low-low (stops the SCR ammonia, XV-602). No trip acts
+  on a control valve, and no trip shares a sensor with a loop. Some trips share a sensor with
+  another trip (amended by D-024, D-025): TZ-207 is the cause of I-203 (low-low) and I-204
+  (high-high), FZ-206 is shared by I-201, I-202 and I-401, and ZSC-610 by I-401 and I-603;
+  their independence is a HAZOP / LOPA question (O-9). Delays, latching and reset ASSUMED; SILs and
+  voting are the HAZOP / LOPA's.
+- R-102 inlet temperature by a bypass of the E-103 tail-gas side (TIC-301, TV-301): the hot gas
+  flow through E-103 stays constant. The absorber pressure by back-pressure control at the X-101
+  inlet (PIC-611), the acid strength by the process water (FIC-505) and the tail-gas O2 by the
+  secondary air (FIC-509), trimmed by the operator from AI-514 and AI-512; the SCR ammonia on flow
+  (FIC-603), trimmed from the stack NOx AI-614. Analyser cascades are left for detail design.
+- Fail positions (drawn F.C./F.O. on the sheets): closed for every ammonia valve (XV-101, LV-102,
+  FV-201, XV-203, XV-204, XV-602, FV-603), the chilled-water PV-104 (the evaporator pressure falls,
+  lean), the level valves between pressure levels (LV-305, LV-506, LV-510, XV-507), TV-301 (all
+  tail gas through E-103, away from the SCR low-temperature limit), TV-604 and XV-610; open for the
+  air guide vanes FV-107 (full air dilutes the mixture), the anti-surge valves UV-110 and UV-401,
+  the process water FV-505 and secondary air FV-509 (absorption kept, the safe side) and PV-611
+  (no pressuring of the HP system against PSV-404).
+- Setpoints that are a design-case value quote the stream (S03, S05, S06, S09, S24, S27, S28); the
+  levels (50-60 %), surge margins (10 %) and start-up rates are ASSUMED.
+Reason: the ammonia-air ratio and burner safety are the hazards the tech skill
+(`tech-heavy-chem-nitric-acid-and-fertilizers`) names first; the layers follow skill
+`control-safeguarding-and-interlocks` (basic control, alarm, trip, relief).
+Rejected: a ratio trip from the analyser (less reliable than flow measurements); throttling the
+hot nitrous gas around E-103 (an alloy valve at 793 K).
+
+## D-020 Utility interfaces and packages on the first P&IDs (2026-11-05)
+Decision: the E-102 steam side is a boiler package (steam drum, circulation, BFW level control,
+drum and superheater relief); the sheets show its interfaces (BFW from E-104, HP steam to export,
+PSV-215). The chilled-water loop between the C-101 upper coils and the E-101 tubes (D-011) has its
+circulation pump and expansion in a chilled-water package, not drawn; the cold supply CHS-111 runs
+E-101 -> C-101 coils and the warm return CHR-112 C-101 coils -> E-101 (codes as corrected by D-021). C-101 coil connections are ASSUMED: cooling water on the lower trays
+(CWS-506/CWR-507), chilled water on the upper trays. The C-102 acid cooling (Q10, 1.6 MW) has no
+exchanger in the equipment list yet and is not drawn. A heat source for E-101 at start-up, before
+the absorber makes heat, is open.
+Reason: keep the first issue to the equipment of the PFD; packages and utilities come with their
+vendors (S2-type open inputs).
+
+## D-021 Corrections from the engineering review of PR #368 (2026-11-05)
+Decision (all PROPOSED; drawn on the sheets unless said deferred):
+1. Start-up air path (SEQ-START-BURNER). With no expander bypass the only path from K-101 to the
+   stack runs through X-101, so step S1 now opens XV-610 and puts PIC-611 in auto at a reduced
+   absorber pressure (600 kPa(a), ASSUMED) before the air is raised, and UIC-401 in auto is a
+   permissive. An expander bypass (start-up, expander trip, holding the absorber pressure) is
+   deferred to the train vendor: open point O-9.
+2. E-108 relief and temperature. PSV-616 (17 barg, to the ammonia relief header) on NV-601
+   upstream of XV-602 for a blocked outlet with LP steam on and for fire; E-108 design temperature
+   raised from 75 to 175 degC (LP steam saturated at about 148 degC + 25 K, ASSUMED). A steam
+   shutoff on I-601/I-602 is deferred, not added: TV-604 is a control valve (no trip acts on a
+   control valve, D-019) and a separate steam block valve with its own trip is for the HAZOP to
+   decide against the PSV (O-9).
+3. Relief of the low-pressure system. The cases are listed per device in
+   `piping/special-items.yaml`. PSV-111 keeps only the K-101 discharge up to the check valve
+   CV105 (blocked outlet of K-101); its take-off was moved upstream of CV105 in D-022. PSV-316
+   (6 barg, NX-304 on P-03, to the NOx vent stack) protects everything downstream of CV105 (the
+   air piping PA-105 after CV105, PA-106, M-101, R-101) and the nitrous gas side from the gauze to
+   the K-102 suction, C-102 included through BG-503, against: E-102 tube rupture
+   (44 barg steam side against 6 barg, the 10/13 rule is not met, so it is credible), E-104 tube
+   rupture (BFW 44 barg), E-103 tube leak (12 barg tail gas, 12 > 6 x 13/10), gas blow-by from
+   C-101 into C-102 (I-501 is the trip, PSV-316 the relief), back flow from the HP system past a
+   passing CV401 on a K-102 trip, and fire on V-101. No relief is counted through the gauze or a
+   control valve. Whether the E-102 rupture needs a second device close to E-102 (rupture
+   dynamics) and the loads are for the relief study (O-8).
+4. Chilled-water codes corrected: CHS-111 is the cold supply E-101 -> C-101 coils, CHR-112 the
+   warm return C-101 coils -> E-101 (through PV-104); sheets, lists and connector texts follow.
+5. Every drawn line carries its number and DN label; the P-06 connector of NL-103 names its
+   source (storage via P-01).
+6. Low findings: I-301 and I-601 latch with manual reset like every other trip; the measuring
+   lines of PI-503, LIC-510 and TI-208 leave their vessels level with the bubble; P-101A/B
+   discharge from the side nozzle of the pump symbol; title blocks give 6 sheets and one plant
+   section name per PFD block. Thermal relief of liquid ammonia blocked in between fail-closed
+   valves (NL-101 between XV-101 and LV-102; NL-103 between the P-01 battery limit and E-108) is
+   deferred to the relief study and the HAZOP (O-8, O-9), not drawn.
+Reason: findings of the independent review of PR #368, each reproduced by two reviewers.
+
+## D-022 Second review round of PR #368: PSV-111 boundary, start-up order, E-108 rupture (2026-11-05)
+Decision (PROPOSED):
+1. PSV-111 takes off between K-101 and the check valve CV105 (P-01), so CV105 separates it from
+   the nitrous gas side; it protects the K-101 discharge up to CV105 only, against a blocked
+   outlet. Everything downstream of CV105 (PA-105, PA-106 to C-102, M-101, R-101) belongs to the
+   PSV-316 system, set at the same 6 barg, so a nitrous gas case is relieved by PSV-316 to the NOx
+   vent stack. A passing CV105 that would let nitrous gas back to PSV-111 (air to atmosphere) is
+   a HAZOP question (O-9); routing PSV-111 to the NOx vent stack is the alternative if the HAZOP
+   does not accept the check valve as the boundary.
+2. SEQ-START-BURNER reordered: S1 sets PIC-611 (X-101 inlet pressure, 600 kPa(a) ASSUMED) in
+   auto with XV-610 closed and PIC-611 in manual as permissives; S2 opens XV-610 and raises the
+   air, and FZ-206 above its trip point is the S2 -> S3 transition. I-202 is no start permissive:
+   it is bypassed automatically during S1-S2 (timer 15 min, ASSUMED; C&E bypass field) and is in
+   the abort only once S2 is complete (timer and abort gating restated in D-023 item 2). K-102 runs on full hot recycle at most 15 min from train
+   start (ASSUMED, vendor); the S1/S2 timeouts cannot hold a limit counted from train start, so
+   D-023 adds the trip I-401 that does (corrected in D-023). S6 ramps PIC-611 back to its design
+   1040 kPa(a) and completes only there. The abort now also trips on I-101 and I-602 and closes
+   XV-101; the scope lists K-102, X-101, C-101 and R-102.
+3. E-108 tube rupture (NH3 at up to 17 barg into the LP steam shell, LP header about 3.5 barg):
+   the 17 barg design pressure is taken for both sides of E-108 (ASSUMED), so the 10/13 rule is
+   met for the exchanger. NH3 entering the LP steam header (back through TV-604) and the condensate
+   return (through ST605) on a rupture is not protected yet: a check valve on LS-604, NH3
+   detection on CD-605 with an isolation valve, or a shell-side relief are the options for the
+   relief study and the HAZOP (O-8, O-9). Not drawn in this issue.
+Reason: findings of the round-3 independent review of PR #368, each confirmed by two reviewers.
+
+## D-023 Round-4 review of PR #368: K-102 recycle limit, start-up bypasses, low-flow ratio (2026-11-06)
+Decision (PROPOSED):
+1. K-102 full hot recycle limit. The limit (15 min from train start, ASSUMED, vendor) is held by
+   a new trip I-401 (C&E, sheet P-04): the train running with XV-610 closed or FZ-206 below its
+   low-low point for 15 min (on-delay, ASSUMED) trips the train through US-612, and I-602
+   follows. The only forward path is through PV-611 and X-101 (no expander bypass, D-021), so
+   full recycle lasts until the gas passes PV-611, which FZ-206 above its trip point proves (end
+   of S2). The timer starts when the train starts against a closed XV-610, so it counts from train
+   start, not from the sequence start, and it also covers a loss of forward flow in operation
+   (timer, inputs, permissives and the hot restart restated in D-024 items 1 and 2).
+   SEQ-START-BURNER gets the permissive "train started less than 4 min ago" and shorter timeouts
+   (S1 3 min, S2 8 min; 4 + 3 + 8 = 15, ASSUMED), so a normal start stays inside the limit and the
+   trip is the backstop. TI-402 gets a high alarm (setting the vendor's) that warns the operator;
+   it is not part of the trip. Rejected: relying on the operator and the S1/S2 timeouts (they
+   count from the sequence start, and a timeout aborts only the ammonia, not the train); a
+   temperature trip on TI-402 (it needs a setting only the vendor can give, and the stated
+   limit is a time).
+2. One convention for the start-up bypasses of SEQ-START-BURNER. I-202 (no air before S2) and
+   I-203 (cold gauze before S5) are both bypassed automatically from the sequence start; a
+   bypassed trip reads as not tripped (restated in D-024 item 3: the bypass masks the cause at
+   the trip's latch only); the operator resets their latches under the bypass in S1
+   (S1 completes only with both reset), so a latch from an earlier trip cannot fire when the
+   bypass ends; neither is a reset condition of the sequence (an I-203 latched on a cold gauze
+   no longer blocks the restart); each enters the abort once its bypass is removed (step complete
+   or bypass timer). I-202 timer 11 min from the sequence start (S1 + S2 timeouts), I-203 timer
+   5 min from the opening of XV-203/XV-204 in S5 (ASSUMED, burner vendor), S5 timeout 5 min to
+   match. The C&E I-203 bypass now names S5 (the step that removes it), not S4.
+3. I-201 at low flows: FFZ-205 evaluates the ratio only above an NH3 flow cutoff (2 % of the
+   design NH3 flow S03, ASSUMED); below it the ratio reads 0 (no ammonia, not tripped), so I-201
+   is defined and reset in S1-S2 with no air. Above the cutoff, air below the FZ-206 measuring
+   range or a bad-quality signal reads as ratio high-high, so a low air never makes the ratio
+   look lean (C&E logic field). Failure of the NH3 input and of FZ-206 for the other trips:
+   D-024 item 5.
+4. Cross-references: the PA-105 line-list note gives the flow order (T107, T108/PSV-111, CV105,
+   T106); the D-018 relief bullet points to D-022; O-9 names S2 for X-101 on cold air; the P-01
+   and P-02 relief notes cite D-022; the PSV-316 relief case names FV-509 on PA-106, which
+   isolates nothing (C-102 stays connected through BG-503).
+Reason: findings of the round-4 independent review of PR #368; items 1 and 2 were each
+confirmed by two reviewers (the PIC-611 dead-spool point of item 1 was rated plausible, not
+confirmed: I-401 counts until forward flow, so it holds either way; the I-202 latch point of
+item 2 fails safe, a nuisance abort), items 3 and 4 were checked against the files here.
+
+## D-024 Verification of the round-4 fixes of PR #368: I-401 timer, burner relight, bypasses, trip inputs (2026-11-06)
+Decision (PROPOSED; amends D-018, D-019 and D-023 where they point here):
+1. I-401 timer. An on-delay restarts from zero whenever its condition clears, so it neither held
+   a limit "from train start" nor survived a flicker of FZ-206 about its trip point in S2.
+   I-401 is now a retentive timer: it accumulates the time the train runs with XV-610 closed
+   or FZ-206 below its low-low point and trips at 15 min (ASSUMED, O-9). A short return of
+   forward flow only pauses it; it resets to zero only after 10 min of unbroken forward flow
+   (ASSUMED: K-102 back at its forward-flow temperature, train vendor's, O-9) or a train stop
+   of at least 60 min (amended by D-025: a shorter stop keeps the accumulated time).
+   The limit is the time on full recycle since K-102 last ran at its forward-flow temperature
+   or cooled down stopped; at a train start against a closed XV-610 after forward-flow
+   operation or a cool-down that is the time since train start.
+2. Starts and restarts. SEQ-START-BURNER is only for a train just started against a closed
+   XV-610. It has two permissives: the train-start time of US-612 below 4 min and the I-401
+   accumulated time below 4 min, which are the same at such a start. The new
+   SEQ-RESTART-BURNER relights the burner on a running train that still has forward flow
+   (after an abort in S3-S6 or a burner trip in operation): XV-610 stays open and PIC-611 in
+   auto, so K-102 never goes back to full recycle. It runs a purge at the light-off air rate and
+   pressure, then ignition, ammonia and load up (R1-R4, the same light-off as S4-S6). A train
+   without forward flow (an abort in S1-S2, F-AIR) is stopped and started again before
+   SEQ-START-BURNER, and I-401 trips it if the operator does not stop it (after F-AIR, I-603
+   trips it, D-025). The stop does not reset the I-401 time before its cool-down time, so the
+   I-401 permissive of SEQ-START-BURNER blocks the burner start of a train restarted with a
+   high carried time (D-025), not the train start; such a train is kept stopped for the
+   cool-down before a new train start (amended by D-026). After F-AIR in operation (forward
+   flow unbroken for at least 10 min, the I-401 timer reset) I-603 trips the train within
+   seconds, so the carried I-401 time is small and the permissive does not force a cool-down;
+   the cool-down applies when the I-401 time is high, as after minutes on full recycle in
+   S1-S2, also after an F-AIR within the first 10 min of forward flow (S3, S4) (D-026). The cool-down time, a train-start inhibit and the other
+   restart rules of a hot train are the train vendor's (O-9).
+   Rejected: closing XV-610 on a running train to re-run SEQ-START-BURNER. That would put a
+   hot K-102 back on full recycle for no purpose.
+3. Start-up bypass definition. A bypass of I-202 or I-203 masks the cause at the input of that
+   trip's own latch only. While it is on, the latch cannot be set and can be reset although the
+   cause is still there (no air, a cold gauze). A latch already set is not hidden, so "I-202 /
+   I-203 reset" in S1, and "I-203 reset" in R1, proves the latch is reset (I-202 is not
+   bypassed in SEQ-RESTART-BURNER, item 4; D-025). The shared input FZ-206 and its low-low
+   state are not bypassed, so I-201 and I-401 keep their FZ-206 leg in S2. "A bypassed trip
+   reads as not tripped" (D-023) is withdrawn. The philosophy names this as the one exception
+   to "reset after the cause is cleared".
+4. Bypass removal. Both start-up bypasses are also removed automatically when their sequence
+   aborts (C&E bypass fields), and I-203's when its sequence ends. Every step timeout aborts,
+   so the I-203 bypass cannot last longer than the sum of the step timeouts up to the ammonia
+   step: 51 min in SEQ-START-BURNER, 50 min in SEQ-RESTART-BURNER (R1 30 min, ASSUMED with
+   its basis in D-025, + R2 15 + R3 5 min). It is never applied outside
+   these two sequences. The I-202 bypass applies only in SEQ-START-BURNER; in
+   SEQ-RESTART-BURNER I-202 is a permissive.
+5. Trip inputs fail safe. An NH3 input of FFZ-205 below its range or of bad quality trips I-201
+   at any flow (NAMUR NE 43 levels, ASSUMED), so the NH3 cutoff is only taken from a healthy
+   signal. FZ-206 below its range or of bad quality reads low-low for I-202 and I-401 and ratio
+   high-high for I-201. Failures inside the range are not seen by the trips: an NH3 signal
+   stuck low or a FZ-206 stuck high. They get deviation alarms against the control transmitters
+   on the same lines (FFZ-205 against FFIC-201, FZ-206 against FI-202; bands ASSUMED,
+   control/loops.yaml). A stuck-high FZ-206 is also backed up by the ZSC-610 leg of I-401, and
+   a stuck-low NH3 signal by I-204 and AI-210. Voting is the HAZOP / LOPA's (O-9).
+6. I-401 inputs drawn. A closed-position switch ZSC-610 on XV-610 (P-06) and FZ-206 (P-02) go
+   into US-612; I-401 moves to sheet P-06, where its logic is. Cross-sheet trip signals are
+   given by the sheet notes and the C&E, as the train trip to US-209 already is: the P-02 note
+   names FZ-206 to US-612, and the P-06 note names I-401 and its inputs. On P-06 the XV-610
+   F.C. mark and the PV-611 tag moved to clear the ZSC-610 measuring line.
+7. TI-402 high alarm. It is an alarm entry of the UIC-401 loop (control/loops.yaml, setting the
+   vendor's, O-9) with its operator response, and UIC-401 lists I-401. The P-04 note names
+   I-401 as the limit and the TAH as its warning (amended by D-025), as the AI-210 precedent
+   shows its alarm in loops.yaml and not by its tag.
+8. F-AIR. On loss of instrument air XV-610 fails closed with the motor running. The package
+   protection does not see that, so I-401 (or the operator) trips the train, and F-AIR now
+   lists I-401 (amended by D-025: I-603 trips it first and holds XV-610 closed).
+Reason: the verification of the round-4 fixes found that the records claimed more than the
+logic did: the timer from train start, the bypass meaning, the abort without bypass removal,
+the undrawn inputs and the undefined alarm. Each fix makes the protection work as stated, not
+only the text.
+
+## D-025 Review of the D-024 fixes of PR #368: hot restart, XV-610 after air loss, wording (2026-11-06)
+Decision (PROPOSED; amends D-018, D-019 and D-024 where they point here):
+1. I-401 over a train stop. Resetting the timer on any train stop gave a hot K-102 a fresh
+   15 min after each stop and restart (an S2 abort at about 11 min, then a new start: about
+   26 min in all). The timer now resets on a stop only when the train has stayed stopped for
+   60 min (ASSUMED: K-102 cooled down, train vendor's, O-9); a shorter stop keeps the
+   accumulated time, and a train restarted hot trips when it reaches 15 min. The I-401
+   permissive of SEQ-START-BURNER (accumulated time below 4 min) thereby blocks the burner
+   start of a train restarted with a high carried time, and the limit holds across a stop and
+   restart as stated (amended by D-026: it does not block the train start, and after F-AIR in
+   operation after at least 10 min of unbroken forward flow, which I-603 trips within seconds,
+   the carried time is small and the permissive does not force a cool-down).
+2. XV-610 after loss of instrument air. XV-610 fails closed on air loss but its solenoid stays
+   energised, so it would reopen by itself when the air returns, with PIC-611 possibly wound up
+   and PV-611 open, before any sequence or permissive. Accepting that was rejected: it breaks
+   the S2 rule that XV-610 opens only with PIC-611 in control. New trip I-603 (P-06): ZSC-610
+   shows XV-610 closed while US-612 commands it open, with the train running, for 30 s
+   (ASSUMED, longer than the valve takes to leave its seat; valve vendor, O-9), trips the
+   train; I-602 follows and keeps XV-610 closed until reset, so the stop and new start that
+   F-AIR and D-024 item 2 prescribe are enforced (amended by D-026: once XV-610 has left its
+   seat the trip acts after a 2 s confirmation, the 30 s is for the opening stroke only). It uses the drawn ZSC-610 signal into US-612; nothing
+   new is drawn. ZSC-610 is shared with I-401 (O-9); a broken ZSC-610 wire defeats I-603, and
+   I-401 with its FZ-206 leg remains behind it. I-603 is a permissive and an abort cause of
+   both burner sequences, like I-401.
+3. Reset exception. The philosophy and D-024 item 3 now say the I-202 latch is reset under its
+   bypass in S1 of SEQ-START-BURNER only, and the I-203 latch in S1 or R1; in
+   SEQ-RESTART-BURNER I-202 has no bypass and is a permissive (C&E).
+4. Sensor sharing. D-019 now says that no trip shares a sensor with a loop, and names the
+   sensors shared between trips: TZ-207 (I-203, I-204), FZ-206 (I-201, I-202, I-401) and
+   ZSC-610 (I-401, I-603).
+5. R1 timeout of SEQ-RESTART-BURNER, 30 min, ASSUMED: the PIC-611 ramp from 1040 to
+   600 kPa(a) at the ASSUMED 20 kPa/min takes about 22 min, the purge 5 min after it, plus a
+   few minutes for the air step; the ramp is the train vendor's (O-9).
+6. P-04 note. It credited the TI-402 TAH with limiting the K-102 hot recycle; it now says the
+   recycle is limited by I-401 and the TAH warns before it.
+Reason: the review of the D-024 fixes found a limit that a stop and restart escaped, a trip
+valve that could reopen with no command, and text that disagreed with the C&E.
+
+## D-026 Review of the D-025 fixes of PR #368: I-603 timing, hot train start (2026-11-06)
+Decision (PROPOSED; amends D-024 item 2 and D-025 items 1 and 2 where they point here):
+1. I-603 timing. As an on-delay of 30 s on "XV-610 closed while commanded open", I-603 let
+   XV-610 reopen by itself after an air dip or a solenoid drop-out shorter than 30 s, with
+   PV-611 failed open and PIC-611 wound up: the case D-025 item 2 was written to stop. The
+   30 s basis covers only the opening stroke in S2. I-603 now has two branches in the US-612
+   logic, both on the drawn ZSC-610 signal (nothing new drawn, no new instrument): once
+   ZSC-610 has shown XV-610 off its closed seat after the open command, XV-610 back on its
+   seat trips the train after a 2 s confirmation (ASSUMED: against contact bounce at the seat
+   early in the opening stroke, a loose terminal or vibration, which would otherwise trip the
+   train spuriously on one closed-position switch; shorter than XV-610 takes to leave its seat
+   again when air returns, and far inside the 15 min before K-102 could overheat on full
+   recycle; the XV-610 valve vendor's, O-9); XV-610 not off its seat 30 s after the open
+   command (a valve that fails to open) trips it after the delay (ASSUMED, the XV-610 valve
+   vendor's, O-9). An air dip during that opening window only delays an opening the operator
+   has commanded with PIC-611 in auto. Left for the HAZOP (O-9): a dip too short to bring
+   XV-610 onto its seat, which ZSC-610 (a closed-position switch only) does not see.
+2. Owner of the I-603 delays (30 s opening stroke, 2 s confirmation): the XV-610 valve vendor
+   (stroke), in the C&E, the instrument list, the philosophy and O-9 alike.
+3. Hot train start. The I-401 permissive blocks only SEQ-START-BURNER, not the train start. A
+   train restarted within the 60 min cool-down with a high carried I-401 time (near or above
+   the 4 min of the permissive) cannot clear it while running (the time only grows against
+   the closed XV-610; the forward flow that would reset it needs S2) and ends in an I-401
+   trip; the 15 min limit holds, so this is operability, not safety. The records now say so,
+   and that the operator keeps such a train stopped for the cool-down before a new train
+   start. After F-AIR in forward-flow operation (forward flow unbroken for at least 10 min, the
+   I-401 timer reset) I-603 trips the train within seconds of XV-610 reaching its seat, so the
+   carried I-401 time is small, the permissive holds after a new train start and
+   SEQ-START-BURNER runs with no cool-down; the same holds after an abort in S1-S2 with little
+   time on full recycle. An F-AIR within the first 10 min of forward flow (S3, S4) still
+   carries the S1-S2 full-recycle time, and the permissive may then force the cool-down. A train-start inhibit of a hot train is not
+   added here: it is the train vendor's start logic (O-9).
+Reason: the review of the D-025 fixes found a reopening race inside the I-603 delay, two owners
+named for the same ASSUMED delay, and wording that read as if the burner start could be held
+with the train running. The final review found that the branch without delay tripped the train
+on any momentary false "closed" of the one switch (hence the 2 s confirmation), that the records
+claimed a cool-down after F-AIR that the I-401 basis does not need, and abort notes that tied the
+I-401 permissive to the train start.
+
 ## Open inputs
+- O-8 (relief study): loads and orifices of all PSVs; the governing case of PSV-316 (E-102 tube rupture) and whether it needs a device close to E-102; K-101 shut-off pressure against the 6 barg set of PSV-111; thermal relief of blocked-in liquid NH3 (NL-101 between XV-101 and LV-102, NL-103) (D-021); E-108 tube rupture: NH3 into the LP steam header and condensate return (D-022).
+- O-9 (HAZOP / vendors): expander bypass for start-up and expander trip (train vendor); X-101 on cold air from SEQ-START-BURNER S2 (the air path opens there) until the gauze is lit; LP steam shutoff to E-108 on I-601/I-602 against PSV-616; NH3 detection and isolation on the E-108 condensate (D-022); CV105 as the boundary between PSV-111 (air to atmosphere) and the PSV-316 system, or PSV-111 to the NOx vent stack (D-022); K-102 full hot recycle time: the I-401 retentive timer (15 min) and its reset after unbroken forward flow (10 min) or a train stop of 60 min (cool-down), the train-start permissive (4 min), a train-start inhibit and the other restart rules of a hot train (restart inhibit, cool-down) and the TI-402 high alarm setting (D-022, D-023, D-024, D-025, D-026); the I-603 opening-stroke delay (30 s) and its closed-position confirmation (2 s, against contact bounce and vibration of ZSC-610) against the XV-610 stroke, the XV-610 valve vendor's (D-025, D-026); an instrument-air dip too short to bring XV-610 onto its seat, not seen by ZSC-610 and so by I-603, with PV-611 failing open (D-026); the SEQ-RESTART-BURNER R1 timeout (30 min) (D-025); FFZ-205 NH3 flow cutoff of I-201 (2 %) and the start-up bypass timers of I-202 (11 min) and I-203 (5 min) (D-023); FZ-206 shared by I-201, I-202 and I-401, TZ-207 by I-203 and I-204, ZSC-610 by I-401 and I-603 (D-025), the FZ-206 in-range failures, and the deviation alarm bands FZ-206/FI-202 and FFZ-205/FFIC-201 (D-023, D-024); the light-off at 600 kPa(a) in SEQ-RESTART-BURNER (PIC-611 ramp down at load, D-024); sensor voting and SIL of I-101 to I-603 (D-019, D-021, D-025).
+- O-7: lower flammability limit of NH3 in air (and with the water vapour of the feed) at the burner inlet conditions, 520 kPa(a) and 462 K, with its source: the trip point of I-201 and the clamp of FFIC-201 (D-019).
 - O-1: check D-005, D-008, D-011 against the BREF consumption and emission ranges (S2 sections 3.3, 3.4) with exact locators: NH3 per t HNO3 (here 0.285 t/t), steam export, power, cooling water, tail-gas NOx.
 - O-2: a sourced NO selectivity for medium-pressure gauzes (with catalyst age), replacing 0.955.
 - O-3: Pt/Rh loss per t HNO3 and gauze recovery (a precious-metal flow, never cut off).

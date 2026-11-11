@@ -1,0 +1,36 @@
+# Reactions of n-bromosuccinimide-1. Schema cheme/reactions/v1 (`cheme schema
+# process-reactions`).
+#
+# BROM: the caustic bromination of succinimide, the route US 2 971 960 describes as the usual
+# one (background: bromine with an N-hydrogen imide in water with a strong base; half of the
+# bromine leaves as the alkali bromide). Its kinetics are not published openly: the rate law is
+# a fast effective one, first order in dissolved bromine and in the imide, ASSUMED (D-005), so
+# that the semi-batch is dosing-controlled until the imide's 2 % excess runs low; calorimetry
+# must confirm it. The heat of reaction is ASSUMED as well (D-005): no open calorimetric value
+# was found. BROM's heat is that of the step in R101; the imide's deprotonation by NaOH is
+# released in the dissolver M101 (scripts/balance.py, D-009).
+# The precipitation of NBS from the cold liquor (CR101) and its dissolution in the wash water
+# (W101) are no reactions here: both are core's crystallizer with the liquor's NaBr, NaOH,
+# succinimide and bromine as spectators and the solubility of NBS in the flowsheet (core ADR
+# 0056, DESIGN.md D-014; until then the conversion steps PPT and DISS).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: BROM
+    title: Bromination of succinimide in aqueous NaOH
+    equation: C4H5NO2 + NaOH + Br2 -> C4H4BrNO2 + NaBr + H2O
+    stoichiometry: {SUCC: -1, NAOH: -1, BR2: -1, NBS: 1, NABR: 1, H2O: 1}
+    phase: liquid
+    heat_of_reaction: {value: -50000, provenance: assumed, source: "ASSUMED (D-005): -80 kJ/mol overall, less the imide's deprotonation by NaOH (-30 kJ/mol) released in M101; no open calorimetric value found"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # second order, in dissolved bromine and in the imide (anion): k c_SUCC,0 = 0.05 1/s at
+      # 278 K and the initial imide concentration of the charge (1.615 kmol/m3)
+      k: {A: 1.003e6, Ea: 40000}
+      orders: {BR2: 1, SUCC: 1}
+      temperature_range: [273.15, 303.15]
+      provenance: assumed
+      source: "ASSUMED fast effective rate (D-005): no open kinetics found (2026-11-05); to be replaced by reaction calorimetry"
+    sources: ["US 2 971 960 (Waugh and Waugh, 1961), column 1: the caustic route and its NaBr by-product"]

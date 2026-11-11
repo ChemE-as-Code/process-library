@@ -1,0 +1,408 @@
+# Tier 1 form, a manifest-only entry without a flowsheet (as process-library#317). Every amount is the formula
+# of its parameters; core's validator re-checks each. Written from König et al. 2015 (facts in our own form).
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: fischer-tropsch-fuel-rwgs-co2-h2
+title: Fischer-Tropsch liquid fuel from CO2 and H2 by reverse water-gas shift and cobalt low-temperature FT
+description: 'Per 1 t of FT liquid fuel (mainly C5+ after wax hydrocracking, cuts not split), gate-to-gate, from H2 and
+  captured CO2 delivered at the gate. A sourced conceptual inventory: flows from one open process simulation (König
+  et al. 2015), burner CO2 and water from the element balance. No operating plant behind it.'
+basis: 1000 kg of Fischer-Tropsch liquid fuel
+boundary: 'gate-to-gate: CO2 compression, RWGS reformer fired with the plant''s own fuel gas, cobalt FT synthesis,
+  product recovery, wax hydrocracking; H2 and CO2 from outside, electrolysis and capture excluded'
+technology: reverse water-gas shift at 900 degC and 2.5 MPa with internal and external recycle, low-temperature
+  FT on cobalt at 225 degC, hydrocracking at 6 MPa; methanol-to-fuels and co-electrolysis are not modelled
+geography:
+  description: A generic concept (DLR, Germany); no site.
+classification:
+  isic: '1920'
+system_boundary:
+  included:
+  - H2 and CO2 feeds
+  - utility electricity (CO2 and recycle compression, cooling-water pumping, refrigeration)
+  - RWGS burner flue gas (CO2 and water vapour) from the plant's own fuel gas
+  - reaction water to treatment
+  - 'no external heat: the source''s pinch analysis meets the heating demand from the process (section 4.2)'
+  excluded:
+  - 'TODO excess steam, 25.7 MW in the source (FT steam beyond the 3.8 MW used in the plant, LP and MP steam): not
+    counted as exported; if exported it is a co-product to allocate (docs/system-model.md section 2), never a credit'
+  - 'TODO cooling water: 44.9 MW cooling load in the source; its pumping is in the electricity, its make-up is not
+    counted'
+  - 'TODO catalysts: nickel RWGS, cobalt FT (a critical metal: never cut, docs/system-model.md section 4) and the
+    hydrocracking catalyst; the source gives no charge or life'
+  - TODO CO, CH4, NOx and unburnt hydrocarbons in the flue gas; oxygenates in the FT water (the source models n-alkanes
+    only)
+  - TODO fractionation of the product into gasoline, kerosene and diesel, and their split
+  - hydrogen compression (the source delivers H2 at plant pressure) and CO2 capture and purification
+  - start-up, flaring, storage losses
+  - infrastructure
+  cutoff: none applied; the excluded flows are not quantified
+  infrastructure: excluded
+  catalysts: excluded
+  non_routine: excluded
+location: GLO
+year: 2015
+valid_until: 2020
+time:
+  start: 2015
+  description: a simulation published in 2015 of a future plant; valid_until is the reference year + 5 (system-model
+    section 6), so it has already lapsed
+modelling:
+  principle: attributional
+  multifunctionality: 'single output: the blended liquid fuel. The cuts are not split (see README), and the excess
+    steam is not counted as exported (system_boundary.excluded), so nothing is allocated'
+uuid: ac37108d-b1fc-55bc-b5c7-0e4788699ebd
+version: 0.1.0
+methodology_version: 1.1.0
+system_model: cutoff
+technology_level: new
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: fu
+  value: 1000.0
+  unit: kg
+  description: FT liquid fuel delivered (the basis).
+  source: basis
+- name: m_sf
+  value: 5.5
+  unit: t/h
+  description: Liquid fuel product of the simulated plant (gasoline, kerosene and diesel cuts, 1260 bbl/d).
+  source: König, D.H., Baucks, N., Dietrich, R.-U., Wörner, A. (2015) Simulation and evaluation of a process concept
+    for the generation of synthetic fuel from CO2 and H2. Energy 91:833-841, doi:10.1016/j.energy.2015.08.099 (accepted
+    manuscript read in DLR elib 98357), section 4.1, p. 9 of the manuscript
+- name: e_sf
+  value: 67.1
+  unit: MW
+  description: Chemical energy (LHV) of that liquid fuel.
+  source: König, D.H., Baucks, N., Dietrich, R.-U., Wörner, A. (2015) Simulation and evaluation of a process concept
+    for the generation of synthetic fuel from CO2 and H2. Energy 91:833-841, doi:10.1016/j.energy.2015.08.099 (accepted
+    manuscript read in DLR elib 98357), abstract and section 4.1, p. 9
+- name: h2_in
+  value: 3.01
+  unit: t/h
+  description: 'Hydrogen fed: 100 MW (LHV) to the RWGS plus the hydrocracker''s hydrogen, delivered at the plant
+    pressure of 2.5 MPa (the source runs the electrolyser at plant pressure).'
+  source: König, D.H., Baucks, N., Dietrich, R.-U., Wörner, A. (2015) Simulation and evaluation of a process concept
+    for the generation of synthetic fuel from CO2 and H2. Energy 91:833-841, doi:10.1016/j.energy.2015.08.099 (accepted
+    manuscript read in DLR elib 98357), section 4.1, p. 9
+- name: co2_in
+  value: 22.9
+  unit: t/h
+  description: CO2 fed, at 0.1 MPa and 20 degC, compressed in the plant.
+  source: König, D.H., Baucks, N., Dietrich, R.-U., Wörner, A. (2015) Simulation and evaluation of a process concept
+    for the generation of synthetic fuel from CO2 and H2. Energy 91:833-841, doi:10.1016/j.energy.2015.08.099 (accepted
+    manuscript read in DLR elib 98357), sections 2 and 4.1, pp. 4 and 9
+- name: air_in
+  value: 24.2
+  unit: t/h
+  description: Combustion air of the RWGS burner.
+  source: König, D.H., Baucks, N., Dietrich, R.-U., Wörner, A. (2015) Simulation and evaluation of a process concept
+    for the generation of synthetic fuel from CO2 and H2. Energy 91:833-841, doi:10.1016/j.energy.2015.08.099 (accepted
+    manuscript read in DLR elib 98357), section 4.1, p. 9
+- name: flue
+  value: 28.1
+  unit: t/h
+  description: Flue gas of the RWGS burner (burning 3.9 t/h of the plant's own fuel gas), leaving at 150 degC.
+  source: König, D.H., Baucks, N., Dietrich, R.-U., Wörner, A. (2015) Simulation and evaluation of a process concept
+    for the generation of synthetic fuel from CO2 and H2. Energy 91:833-841, doi:10.1016/j.energy.2015.08.099 (accepted
+    manuscript read in DLR elib 98357), sections 3.2 and 4.1, pp. 6 and 9
+- name: p_el
+  value: 150.1
+  unit: MW
+  description: AC power to the electrolyser; used only to recover the plant's own power from the stated PtL efficiency.
+  source: König, D.H., Baucks, N., Dietrich, R.-U., Wörner, A. (2015) Simulation and evaluation of a process concept
+    for the generation of synthetic fuel from CO2 and H2. Energy 91:833-841, doi:10.1016/j.energy.2015.08.099 (accepted
+    manuscript read in DLR elib 98357), section 4.1, p. 9
+- name: eta_ptl
+  value: 0.433
+  unit: MW/MW
+  description: 'Power-to-Liquid efficiency: fuel LHV over electrolyser plus utility power (the source''s eq. 9).'
+  source: König, D.H., Baucks, N., Dietrich, R.-U., Wörner, A. (2015) Simulation and evaluation of a process concept
+    for the generation of synthetic fuel from CO2 and H2. Energy 91:833-841, doi:10.1016/j.energy.2015.08.099 (accepted
+    manuscript read in DLR elib 98357), section 4.3 and eq. 9, pp. 10-11
+- name: n_C
+  value: 12.0
+  unit: ''
+  description: 'Carbon atoms of the model fuel molecule: n-dodecane, C12H26.'
+  source: 'ASSUMED: a single n-alkane in the kerosene range stands for the liquid product, as the source models the
+    product as n-alkanes (section 3.1, p. 5); it fixes the product''s carbon and hydrogen share and so the burner
+    CO2 and water split'
+- name: n_H
+  value: 26.0
+  unit: ''
+  description: Hydrogen atoms of the model fuel molecule (C12H26).
+  source: ASSUMED with n_C
+- name: M_C
+  value: 12.011
+  unit: g/mol
+  description: Atomic weight of carbon.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573)
+- name: M_H
+  value: 1.008
+  unit: g/mol
+  description: Atomic weight of hydrogen.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573)
+- name: M_O
+  value: 15.999
+  unit: g/mol
+  description: Atomic weight of oxygen.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573)
+- name: M_CO2
+  value: 44.009
+  unit: g/mol
+  description: Molar mass of CO2.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_H2O
+  value: 18.015
+  unit: g/mol
+  description: Molar mass of water.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_FT
+  value: 170.34
+  unit: g/mol
+  description: Molar mass of the model fuel, n-dodecane (C12H26).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+exchanges:
+- key: product:fischer-tropsch-fuel
+  title: Fischer-Tropsch liquid fuel (gasoline, kerosene and diesel cuts, not fractionated)
+  type: product
+  amount: 1000.0
+  unit: kg
+  formula: fu
+  provenance: given
+  source: the reference flow; one blended liquid product as the source reports it (section 4.1; mainly C5+, the hydrocracked part spans C3 to C15), cuts not split (see
+    README)
+- key: feed:H2
+  title: Hydrogen, at 2.5 MPa
+  type: input
+  amount: 547.2727272727273
+  unit: kg
+  formula: h2_in / m_sf * fu
+  provenance: calculated
+  origin: simulated
+  source: 'König, D.H., Baucks, N., Dietrich, R.-U., Wörner, A. (2015) Simulation and evaluation of a process concept
+    for the generation of synthetic fuel from CO2 and H2. Energy 91:833-841, doi:10.1016/j.energy.2015.08.099 (accepted
+    manuscript read in DLR elib 98357), section 4.1, p. 9: 3.01 t/h H2 per 5.5 t/h fuel; electrolysis outside the
+    boundary'
+  pedigree:
+    scores: &id001
+    - 4
+    - 4
+    - 4
+    - 3
+    - 4
+    reason: 'one process simulation of a concept plant (Aspen Plus, equilibrium RWGS at 900 degC, cobalt LTFT, no
+      operating plant behind it): reliability 4, completeness 4, temporal 4 (2015), geographical 3 (no site; a generic
+      concept), technological 4 (a design, not industrial data); at or below the Tier 1 floor'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.2
+    source: 'ASSUMED: one simulation; Zang et al. 2021 (benchmarks/synthetic-fuels.yaml) need about 16 % more fresh
+      H2 per kg with a kinetic RWGS at 600 degC'
+- key: feed:CO2
+  title: Carbon dioxide, gaseous, 0.1 MPa
+  type: input
+  amount: 4163.636363636363
+  unit: kg
+  formula: co2_in / m_sf * fu
+  provenance: calculated
+  origin: simulated
+  co2_source: fossil-point-source
+  source: 'König, D.H., Baucks, N., Dietrich, R.-U., Wörner, A. (2015) Simulation and evaluation of a process concept
+    for the generation of synthetic fuel from CO2 and H2. Energy 91:833-841, doi:10.1016/j.energy.2015.08.099 (accepted
+    manuscript read in DLR elib 98357), section 4.1, p. 9: 22.9 t/h CO2 per 5.5 t/h fuel. Capture outside the boundary.
+    co2_source ASSUMED fossil point source (the source names cement and steel flue gases, section 1, p. 4); a biogenic
+    or DAC supply changes the origin of the burner CO2 and of the product carbon'
+  pedigree:
+    scores: *id001
+    reason: 'one process simulation of a concept plant (Aspen Plus, equilibrium RWGS at 900 degC, cobalt LTFT, no
+      operating plant behind it): reliability 4, completeness 4, temporal 4 (2015), geographical 3 (no site; a generic
+      concept), technological 4 (a design, not industrial data); at or below the Tier 1 floor'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.3
+    source: 'ASSUMED: one simulation; the carbon conversion is design-dependent (73.7 % here, 45.5 % in Zang et
+      al. 2021)'
+- key: feed:O2
+  title: Combustion oxygen of the RWGS burner, from ambient air
+  type: input
+  amount: 867.9779545187698
+  unit: kg
+  formula: (((h2_in + co2_in + air_in - m_sf - flue) / m_sf * fu) + (h2_in / m_sf * fu - fu * n_H * M_H / M_FT -
+    ((h2_in + co2_in + air_in - m_sf - flue) / m_sf * fu) * 2 * M_H / M_H2O) * M_H2O / (2 * M_H)) * M_O / M_H2O
+    - fu * n_C * 2 * M_O / M_FT
+  provenance: calculated
+  origin: estimate
+  free: true
+  source: oxygen that closes the O balance over the burner CO2 and the water; ambient air is free and not inventoried
+    (its N2 and excess O2 pass through). The source's 24.2 t/h air (79 % N2, 21 % O2 by mole, section 3.1) carries about 18 % more O2 than this
+- key: feed:electricity
+  title: Electricity, plant utilities (compressors, cooling-water pumps, refrigeration)
+  type: input
+  amount: 884.6105395758948
+  unit: kWh
+  formula: (e_sf / eta_ptl - p_el) / m_sf * fu
+  provenance: calculated
+  origin: simulated
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: 'König, D.H., Baucks, N., Dietrich, R.-U., Wörner, A. (2015) Simulation and evaluation of a process concept
+    for the generation of synthetic fuel from CO2 and H2. Energy 91:833-841, doi:10.1016/j.energy.2015.08.099 (accepted
+    manuscript read in DLR elib 98357), eq. 9 and section 4.3: utility power = fuel LHV / PtL efficiency - electrolyser
+    AC power (4.87 MW). The electrolyser''s power is outside the boundary (it makes the H2 feed)'
+  pedigree:
+    scores: *id001
+    reason: 'one process simulation of a concept plant (Aspen Plus, equilibrium RWGS at 900 degC, cobalt LTFT, no
+      operating plant behind it): reliability 4, completeness 4, temporal 4 (2015), geographical 3 (no site; a generic
+      concept), technological 4 (a design, not industrial data); at or below the Tier 1 floor'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: recovered from a rounded efficiency (43.25 to 43.35 % gives 4.68 to 5.04 MW); the source''s
+      ''utility losses of 2.1 %'' would read as about 3.3 MW, but with 150.1 MW AC that gives a PtL efficiency of
+      43.8 %, not the stated 43.3 %, so eq. 9 is used. Cross-check (reviewer''s estimate, not from the source): the
+      stated 1.1 MW cooling-water pumping and 0.5 MW refrigeration (section 4.2) plus about 2 MW for the three-stage
+      CO2 compressor (22.9 t/h, 0.1 to 2.5 MPa, 72 % polytropic, 95 % mechanical, section 4.1) and about 1 MW for the
+      recycle compressor give about 4.6 MW, close to 4.87 MW. Zang et al. 2021 need 1369 kWh/t gross with H2 compression'
+- key: output:wastewater
+  title: Reaction water (RWGS knock-out and FT water) to wastewater treatment
+  type: output
+  amount: 3001.8181818181815
+  unit: kg
+  formula: (h2_in + co2_in + air_in - m_sf - flue) / m_sf * fu
+  provenance: calculated
+  origin: simulated
+  link:
+    factor: wastewater
+    source: site wastewater treatment
+  source: 'closes the source''s plant mass balance: H2 + CO2 + air - fuel - flue gas (section 4.1). ASSUMED: the
+    RWGS steam is raised from this water inside the plant, and the water goes to treatment, not to the electrolyser'
+  pedigree:
+    scores: &id002
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.1
+    source: 'ASSUMED: a residual of five rounded flows (each to 0.05 t/h)'
+- key: emission:CO2
+  title: CO2 in the RWGS burner flue gas
+  type: emission
+  amount: 1063.319350603605
+  unit: kg
+  formula: co2_in / m_sf * fu - fu * n_C * M_CO2 / M_FT
+  provenance: calculated
+  origin: estimate
+  cas: 124-38-9
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 349b29d1-3e58-4c66-98b9-9d1a076efd2e
+    name: Carbon dioxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: 'feed carbon not in the fuel, burned to CO2 with the plant''s fuel gas (the source''s burner is a Gibbs
+    reactor, section 3.2); fossil because the CO2 feed is taken as a fossil point source (ASSUMED). biosphere3 UUID,
+    name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent elementary
+    exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree:
+    scores: *id002
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.3
+    source: 'ASSUMED: carbon balance with an ASSUMED product formula; the source''s carbon conversion of 73.7 %
+      gives 1095 kg/t against 1063 kg/t here'
+- key: emission:H2O
+  title: Water vapour in the RWGS burner flue gas
+  type: emission
+  amount: 513.7495130060734
+  unit: kg
+  formula: (h2_in / m_sf * fu - fu * n_H * M_H / M_FT - ((h2_in + co2_in + air_in - m_sf - flue) / m_sf * fu) *
+    2 * M_H / M_H2O) * M_H2O / (2 * M_H)
+  provenance: calculated
+  origin: estimate
+  cas: 7732-18-5
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 075e433b-4be4-448e-9510-9a5029c1ce94
+    name: Water
+    categories:
+    - air
+    unit: m3
+    per_unit: 0.001
+  source: 'hydrogen not in the fuel or the reaction water, burned to vapour; closes the H balance. biosphere3 UUID,
+    name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent elementary
+    exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree:
+    scores: *id002
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.5
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: a residual of the H balance after the wastewater residual'
+provenance:
+  generator: hand-written model; amounts are the formulas of the parameters
+  notes: No value from a licensed database. Facts from an open accepted manuscript, in our own form.
+generation:
+  tier: 1
+  method: 'sourced conceptual inventory: one open process simulation (König et al. 2015) for feeds, products and
+    utility power, element balance for the burner flue gas and the water, every choice listed in parameters'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 3
+  - 4
+  - 3
+  - 3
+  - 3
+  dqr_floor: 3.0
+  components:
+    product:fischer-tropsch-fuel: C12H26
+    feed:H2: H2
+    feed:CO2: CO2
+    feed:O2: O2
+    output:wastewater: H2O
+    emission:CO2: CO2
+    emission:H2O: H2O
+  formulas:
+    product:fischer-tropsch-fuel: C12H26
+    feed:H2: H2
+    feed:CO2: CO2
+    feed:O2: O2
+    output:wastewater: H2O
+    emission:CO2: CO2
+    emission:H2O: H2O
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      C:
+      - 1136.345664833
+      - 1136.345664833
+      H:
+      - 547.272727273
+      - 547.272727273
+      O:
+      - 3895.268653322
+      - 3895.268653322
+    outside:
+    - feed:electricity

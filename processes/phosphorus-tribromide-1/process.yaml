@@ -1,0 +1,92 @@
+# Process Atlas manifest of phosphorus-tribromide-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: phosphorus-tribromide-1
+title: Phosphorus tribromide by semi-batch bromination of white phosphorus in a PBr3 heel (1000 t/a)
+summary: >-
+  A batch plant: molten white phosphorus and bromine (bromine-1) are dosed together into a PBr3
+  heel at 125 C; the crude takes up its free bromine on red phosphorus and is distilled under
+  vacuum. Concept stage, 1421 kg per batch every 11.3 h on a dedicated train, thermal screening,
+  preliminary gate-to-gate LCI.
+description: |
+  White phosphorus, held molten at 333 K, and dry liquid bromine are dosed together into a heel
+  of crude PBr3 (3 kg per kg of phosphorus) at 398 K under nitrogen, with 0.4 % more bromine than
+  P4 + 6 Br2 -> 4 PBr3 needs: the route of DE 1 281 414 / US 3 409 401, whose small bromine
+  excess keeps free phosphorus out of the product, while the reaction temperature above 100 C
+  avoids the solid PBr5 that the older low-temperature practice suppressed with excess phosphorus.
+  The heel is kept in the brominator for the next batch; the rest of the crude goes to a batch
+  still, where red phosphorus (1 kg per 100 kg of white phosphorus) takes up the free bromine, and
+  PBr3 is distilled at 4 kPa(a). The overall yield is the patent example's 95.0 % on phosphorus;
+  the residue (PBr3, red and white phosphorus, 58 g/kg) goes to hazardous-waste incineration. Per
+  kg of PBr3: bromine 0.936 kg, white phosphorus 0.120 kg.
+
+  The batch is modelled with cheme-as-code's semi-batch reactor (reactor: semibatch, core ADR
+  0050) and batch recipe (process/recipe.yaml, core ADRs 0051 and 0052): the reaction releases
+  185 kJ per mol of PBr3, so the dosing time is set by the brominator's jacket at the small heel
+  (10 h for a 1 m3 enamelled vessel), the brominator is the bottleneck (cycle 11.3 h, 704
+  batches a year), and the flowsheet's flows are the recipe's year averages. The kinetics are
+  ASSUMED (no open data): a fast reaction keeps the accumulated bromine at 0.6 % and the
+  cooling-failure temperature within 2 K of the process temperature, against an adiabatic rise
+  of the whole batch of about 1000 K and the boiling point of PBr3, 446 K; a 1000 times slower
+  reaction would exceed it. The vacuum distillation is a specified split until core has a batch
+  distillation (core#165). See DESIGN.md for every assumption.
+families: [inorganic-chemicals]
+keywords: [phosphorus tribromide, PBr3, white phosphorus, red phosphorus, bromine, bromination, semi-batch, batch, dosing, heel, vacuum distillation, brominating agent, thermal screening]
+facets:
+  feedstock_basis: [mineral, fossil, electricity]
+  product_classes: [chemicals]
+  unit_operations: [reaction, distillation]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Capacity, kinetics, jacket and the
+# still's split are assumed; ratios and yield from the patent's example (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept batch PFD with closed mass, component and element balances (cheme validate, cheme
+    process streams: 2 blocks and 4 steps within tolerance). The semi-batch R101 (from its
+    ASSUMED rate law), the heel split and the red-phosphorus treatment are calculated by cheme
+    process propagate; the heel recycle is given as an assumed tear stream and the still as a
+    specified split by scripts/balance.py, which repeats the whole balance and gives every duty
+    (no property package of core covers PBr3 with bromine and phosphorus, and core has no batch
+    distillation, core#165). The recipe's year-average rate of the product agrees with the
+    flowsheet (no cheme.recipe-basis finding); the recipe sizes R-101 (1 m3) and its jacket check
+    passes at the 10 h dosing. Thermal screening (cheme process reactor-hazards): dT_ad 997 K,
+    accumulation 0.575 %, MTSR 399.6 K against an MTT of 446.35 K (hazard.mtt: the boiling point
+    of PBr3); no criticality class without a TD24 from calorimetry. The low accumulation rests on
+    the assumed kinetics. Preliminary gate-to-gate LCI with the per-batch nitrogen; bromine and
+    nitrogen linked to bromine-1 and asu-1, the other backgrounds gaps. cheme maturity reaches no
+    level (assumed feeds, kinetics and separations); the claim `maturity: concept` is the lowest
+    value of the schema, not an evidenced level. Not reviewed. Needs cheme-as-code 1.7.0.
+chemistry:
+  inputs:
+    - {chemical: phosphorus, role: feedstock, inventory_key: "feed:P4", note: "Molten white phosphorus (P4) from a thermal phosphorus furnace outside the boundary, 0.120 kg/kg PBr3"}
+    - {chemical: bromine, role: feedstock, inventory_key: "feed:BR2", note: "Dry liquid bromine (bromine-1), 0.936 kg/kg PBr3, 0.4 % above the stoichiometric need"}
+    - {chemical: phosphorus, role: feedstock, inventory_key: "feed:REDP", note: "Red phosphorus for the crude's free bromine, 1.2 g/kg PBr3"}
+    - {chemical: nitrogen, role: feedstock, inventory_key: "consumable:nitrogen", note: "Nitrogen (asu-1) for inerting and breaking the still's vacuum, 7.5 kg per batch, 5.3 g/kg PBr3 (ASSUMED)"}
+  outputs:
+    - {chemical: phosphorus-tribromide, role: main-product, inventory_key: "product:PBR3", note: "Distilled PBr3 to storage under nitrogen"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.040 kWh/kg PBr3: agitators of R-101 and the still, vacuum pump (ASSUMED)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.063 kWh/kg PBr3 of LP steam 350 kPa(a) to the still's reboiler"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.260 kWh/kg PBr3: the heat of bromination (via a tempered-water loop at 333 K) and the still's condenser, 25/35 C (ASSUMED)"}
+basis:
+  capacity: "1000 t/a distilled PBr3: 703.6 batches/a of 1421.23 kg in 7920 h on a dedicated train (126.26 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-013)"
+  operating_hours_per_year: 7920
+  location: generic fine-chemicals site with a bromine supply (not chosen)
+references:
+  - {title: "Jenkner, H.; Rabe, O. (Chemische Fabrik Kalk, 1968) US 3 409 401 A, Method of producing phosphorus tribromide (family DE 1 281 414 B, GB 1 113 288 A; priority 1966-01-19) (description, claims 1-5 and the example: heel, bromine excess, 120-130 C, red-phosphorus treatment, vacuum distillation, yield)", url: "https://patents.google.com/patent/US3409401A/en"}
+  - {title: "PubChem CID 24614, Phosphorus tribromide (identity)", url: "https://pubchem.ncbi.nlm.nih.gov/compound/24614"}
+  - {title: "Stoessel, F. (2008) Thermal Safety of Chemical Processes, Wiley-VCH (accumulation and MTSR of a semi-batch; method reference, not data)", doi: 10.1002/9783527621606}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/phosphorus-tribromide-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0

@@ -1,0 +1,30 @@
+# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
+# dataset is lca/datasets/*.yaml, Tier 1 form, so maturity stays at concept
+# (core's cheme.lci-tier-maturity). See README.md.
+schema: cheme-as-code/process/v1
+id: e-fuels-1
+title: Fischer-Tropsch e-fuel from CO2 and hydrogen by reverse water-gas shift and cobalt FT synthesis
+summary: >-
+  Sourced conceptual inventory per tonne of blended FT liquid fuel from H2 and captured CO2: feeds,
+  product and utility power from one open process simulation (König et al. 2015), burner flue gas
+  and water from the element balance. Electrolysis and capture are outside. No flowsheet; not reviewed.
+families: [synthetic-fuels]
+keywords: [e-fuels, power-to-liquid, Fischer-Tropsch, reverse water-gas shift, RWGS, synthetic kerosene, CO2 utilisation, hydrogen]
+facets: {feedstock_basis: [fossil, electricity], product_classes: [fuels], unit_operations: [compression, reaction, hydrocracking, distillation], region: generic}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: hydrogen, role: feedstock, note: "feed:H2: 3.01 t/h per 5.5 t/h fuel at 2.5 MPa; electrolytic hydrogen, supplier not chosen (lca/mappings.yaml)"}
+    - {chemical: carbon-dioxide, role: feedstock, note: "feed:CO2: 22.9 t/h per 5.5 t/h fuel at 0.1 MPa; captured CO2, taken as from a fossil point source (ASSUMED), supplier not chosen"}
+  outputs:
+    - {chemical: fischer-tropsch-fuel, role: main-product, inventory_key: "product:fischer-tropsch-fuel"}
+    - {chemical: wastewater, role: waste, inventory_key: "output:wastewater", note: "reaction water, closes the source's mass balance"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity", note: "plant utilities only; the electrolyser's power is in the hydrogen"}
+basis: {capacity: "per tonne of FT liquid fuel (the dataset's basis); the source plant: 100 MW (LHV) of H2, 5.5 t/h fuel"}
+publication: {status: public, license: CC-BY-4.0}
+references:
+  - {title: "König, D.H., Baucks, N., Dietrich, R.-U., Wörner, A. (2015) Simulation and evaluation of a process concept for the generation of synthetic fuel from CO2 and H2. Energy 91:833-841 (accepted manuscript in DLR elib, https://elib.dlr.de/98357/)", doi: 10.1016/j.energy.2015.08.099}
+  - {title: "Zang, G., Sun, P., Elgowainy, A., Bafana, A., Wang, M. (2021) Life cycle analysis of electrofuels: Fischer-Tropsch fuel production from hydrogen and corn ethanol byproduct CO2. Environ. Sci. Technol. 55:3888-3897 (DOE public-access copy, OSTI 1807679); benchmarks only", doi: 10.1021/acs.est.0c05893}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/e-fuels-1, access: public}
