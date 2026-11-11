@@ -28,8 +28,8 @@ says how to add a process.
 
 ## Processes
 
-The table lists 102 public process folders: 59 engineering projects (a `plant.yaml` with a process
-flowsheet), 37 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
+The table lists 103 public process folders: 61 engineering projects (a `plant.yaml` with a process
+flowsheet), 36 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
 The table is generated from each folder's `process.yaml` and `checks/maturity.json`;
 `coverage.yaml` names the coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
 
@@ -71,7 +71,7 @@ The table is generated from each folder's `process.yaml` and `checks/maturity.js
 | [`dmf-1`](processes/dmf-1/) | N,N-Dimethylformamide by carbonylation of dimethylamine (50 kt/a, sodium methoxide in methanol) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`e-fuels-1`](processes/e-fuels-1/) | Fischer-Tropsch e-fuel from CO2 and hydrogen by RWGS and cobalt FT (one open simulation) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`ethanol-1`](processes/ethanol-1/) | Ethanol by direct hydration of ethylene (100 000 t/a anhydrous, phosphoric acid catalyst) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
-| [`ethylbenzene-1`](processes/ethylbenzene-1/) | Ethylbenzene by liquid-phase zeolite alkylation (LVOC BREF ranges) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
+| [`ethylbenzene-1`](processes/ethylbenzene-1/) | Ethylbenzene by liquid-phase zeolite alkylation of benzene with ethylene, with transalkylation (400 kt/a, DWSIM-simulated concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`ethylene-1`](processes/ethylene-1/) | Ethylene and propylene by ethane steam cracking (1000 kt/a ethylene, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`ethylene-glycol-1`](processes/ethylene-glycol-1/) | Ethylene glycol by ethylene oxide hydration (glycols-only EO/EG plant, 1200 t/d MEG) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`fcc-1`](processes/fcc-1/) | Fluid catalytic cracking of vacuum gas oil, full-combustion regenerator (REF BREF ranges, five co-products) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |

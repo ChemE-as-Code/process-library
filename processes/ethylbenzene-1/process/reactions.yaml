@@ -1,0 +1,53 @@
+# Reactions of the liquid-phase zeolite ethylbenzene process (DESIGN.md D-005). Schema
+# cheme/reactions/v1. Heats of reaction from the ideal-gas formation enthalpies of
+# process/materials.yaml at 298.15 K. No rate law: both reactors are conversion reactors.
+#
+# R-101 (alkylator): ethylene is converted completely (ASSUMED, D-005), split between three
+# lumped reactions that all start from benzene and ethylene, so that DWSIM's conversion reactor
+# (one conversion per reaction, all on the inlet) reproduces the shares exactly: ALK to EB,
+# DIALK to the polyethylbenzenes (DEB, i.e. ALK followed by a second ethylation), PENTA to the
+# flux-oil model compound. The conversions are fractions of the inlet ethylene; they add up to 1.
+# R-102 (transalkylator): TRANS on the DEB recycle.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: ALK
+    title: Ethylation of benzene to ethylbenzene
+    equation: C6H6 + C2H4 -> C8H10
+    stoichiometry: {BZ: -1.0, ETY: -1.0, EB: 1.0}
+    phase: mixed
+    reversible: false
+    conversion: {key: ETY, value: 0.88679245, provenance: assumed, source: "D-005: share of the ethylene that ends in EB, 1 - (2 x 5.7 + 3 x 0.2) / (94.0 + 11.4 + 0.6), from the product distribution of US5493065A Example 7 (reaction-evidence O1: MCM-22, 220 C, benzene/ethylene 5.5, 97 % ethylene conversion), transferred to benzene/ethylene 4.0 and complete conversion (ASSUMED); scripts/eb_balance.py F_POLY"}
+    heat_of_reaction: {value: -105840.0, provenance: calculated, source: "ideal-gas formation enthalpies of process/materials.yaml at 298.15 K (29900 - 83180 - 52560 kJ/kmol)"}
+    catalyst: zeolite (MCM-22 or beta type), fixed beds
+    sources: ["US5493065A (1996) Liquid phase ethylbenzene synthesis with MCM-49, Example 7", "EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, section 5.2.2.1.2"]
+  - id: DIALK
+    title: Ethylation of benzene to diethylbenzene (lumped polyethylbenzenes)
+    equation: C6H6 + 2 C2H4 -> C10H14
+    stoichiometry: {BZ: -1.0, ETY: -2.0, DEB: 1.0}
+    phase: mixed
+    reversible: false
+    conversion: {key: ETY, value: 0.1029872, provenance: assumed, source: "D-005: ethylene share in DEB and TEB of US5493065A Example 7 (reaction-evidence O1), 0.1132075, less the share PENTA takes (0.0102203); TEB lumped into DEB (ASSUMED); scripts/eb_balance.py"}
+    heat_of_reaction: {value: -208670.0, provenance: calculated, source: "ideal-gas formation enthalpies of process/materials.yaml at 298.15 K (-20370 - 83180 - 2 x 52560 kJ/kmol); equals ALK plus the ethylation of EB"}
+    catalyst: zeolite (MCM-22 or beta type), fixed beds
+    sources: ["US5493065A (1996) Example 7"]
+  - id: PENTA
+    title: Heavy by-product (flux oil), modelled as pentaethylbenzene
+    equation: C6H6 + 5 C2H4 -> C16H26
+    stoichiometry: {BZ: -1.0, ETY: -5.0, PETB: 1.0}
+    phase: mixed
+    reversible: false
+    conversion: {key: ETY, value: 0.0102203, provenance: assumed, source: "D-005: the ethylene share that makes the flux oil (PEB column bottoms) 4.3 kg per t EB product, the midpoint of 3 to 5.6 kg/t (EU LVOC BREF 2017, section 5.3.6.1.2, p. 284); the model compound is ASSUMED; solved by scripts/eb_balance.py (f_penta x 5)"}
+    heat_of_reaction: {value: -521180.0, provenance: calculated, source: "ideal-gas formation enthalpies of process/materials.yaml at 298.15 K (-175200 - 83180 - 5 x 52560 kJ/kmol)"}
+    catalyst: zeolite (MCM-22 or beta type), fixed beds
+    sources: ["EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, section 5.3.6.1.2 (tar 3 to 5.6 kg/t EB, zeolite process)"]
+  - id: TRANS
+    title: Transalkylation of diethylbenzene with benzene
+    equation: C10H14 + C6H6 -> 2 C8H10
+    stoichiometry: {DEB: -1.0, BZ: -1.0, EB: 2.0}
+    phase: liquid
+    reversible: false
+    conversion: {key: DEB, value: 0.65, provenance: assumed, source: "D-005: DEB conversion per pass at benzene/DEB 3 mol/mol, an engineering choice below equilibrium; no source with a locator read (reaction-evidence gap G2)"}
+    heat_of_reaction: {value: -3010.0, provenance: calculated, source: "ideal-gas formation enthalpies of process/materials.yaml at 298.15 K (2 x 29900 + 20370 - 83180 kJ/kmol)"}
+    catalyst: zeolite (beta or Y type), fixed bed
+    sources: ["EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, section 5.2.2.1.2 (transalkylation of the polyethylbenzenes with benzene on the same catalyst type)"]
