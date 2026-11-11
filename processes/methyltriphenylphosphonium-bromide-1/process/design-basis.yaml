@@ -1,0 +1,49 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Methyltriphenylphosphonium bromide by the quaternisation of triphenylphosphine with methyl
+# bromide in toluene, a batch plant, issue ChemE-as-Code/process-library#133. Values marked
+# ASSUMED are engineering choices of this concept study, not client or licensor data; every
+# decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: dried methyltriphenylphosphonium bromide crystals to packing at the battery limit
+  mtppb_t_per_year: 820.9               # from one 6.3 m3 R-101 and the recipe (D-002, D-003); ASSUMED scale, no open market figure
+  operating_hours_per_year: 7920        # ASSUMED (D-002): 330 days of 24 h, batch operation
+  batch_kg: 1057.10                     # ASSUMED (D-003): 3.0 kmol PPh3 per batch, one batch of dried product every 10.20 h
+  batches_per_year: 776.6               # from the recipe (process/recipe.yaml, D-003)
+feeds:
+  - name: Triphenylphosphine (merchant, technical grade)
+    source_of_values: ASSUMED (D-004)
+    composition: "PPh3 100 % (its oxide and water not modelled)"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Methyl bromide, liquefied (merchant)
+    source_of_values: ASSUMED (D-004)
+    composition: "CH3Br 100 %"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 800}
+  - name: Toluene make-up (btx-1)
+    source_of_values: ASSUMED (D-004)
+    composition: "C7H8 100 %, dry"
+products:
+  - name: Methyltriphenylphosphonium bromide
+    purity: "modelled 99.87 wt% salt (crystals), 0.1 wt% toluene, PPh3 and dissolved salt traces (D-008); an ASSUMED upper bound: no open product specification or impurity profile was found, and triphenylphosphine oxide and water are not modelled (D-002)"
+    delivery: {temperature_K: 313.15, pressure_kPa_a: 101.325, battery_limit: packing under nitrogen (drums or bags; not in the boundary), the salt is hygroscopic}
+  - name: Still residue to incineration
+    note: "toluene with the unconverted PPh3 and the dissolved salt, about 20 wt% PPh3 and salt (D-009)"
+  - name: Vent gas to the thermal oxidiser
+    note: "the excess methyl bromide swept from R-101 and the filter-dryer, with toluene vapour (D-007)"
+utilities:
+  - {name: Electric power, use: "agitators of R-101, F-101 and C-101, the methyl bromide dosing pump, the vacuum pump, transfer pumps (D-010)"}
+  - {name: LP steam, pressure_kPa_a: 350, use: "the still C-101; hot water at 353 K for R-101's heat-up and the filter-dryer (D-010)", note: ASSUMED}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "R-101 (heat of quaternisation, cool-down), F-101 (product cool-down), the still's condenser and distillate cooler (D-010)", note: ASSUMED}
+  - {name: Chilled brine, supply_K: 258.15, return_K: 263.15, use: "F-101's vacuum condenser E-201", note: "ASSUMED; from a refrigeration unit outside the boundary (D-010)"}
+  - {name: Nitrogen, use: "inerting and padding R-101, sweeping its headspace, pressing F-101, breaking its vacuum, blanketing (a per-batch consumable, D-012)", note: ASSUMED}
+site:
+  location: ASSUMED generic fine-chemicals site with a methyl bromide supply and a thermal oxidiser, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Route: PPh3 + CH3Br -> [Ph3PCH3]Br (Wikipedia; US 3 334 144 A background: heated with methyl bromide, usually in benzene, in a pressure vessel, 50 C or above); toluene in place of benzene, 20 wt% PPh3, 1.05 mol methyl bromide per mol PPh3 in R-101 with the recycled excess, 333 K (D-001, D-004)."
+  - "ASSUMED kinetics and heat of reaction (no open data, D-005): second order, k 5.0e-3 m3/(kmol s) at 333 K, Ea 70 kJ/mol, -100 kJ/mol to the precipitated salt; 0.99 conversion of the PPh3."
+  - "ASSUMED solubility of the salt 0.5 g per kg toluene, no salting-out correction (D-007); 90 % of the excess methyl bromide swept to the thermal oxidiser before and during the filtration (D-007)."
+  - "ASSUMED filter-dryer: 99.8 % solid recovery, 0.3 kg liquor per kg cake solid, specific cake resistance 1e10 m/kg at 200 kPa; one reslurry wash with 1 kg recovered toluene per kg solid; vacuum drying at 333 K to 0.1 wt% toluene, 4 kg/(m2 h) on 12 m2 (D-008)."
+  - "ASSUMED still: an ideal liquid (Raoult), 98.5 % of the liquor's mass distilled, PPh3 and the salt non-volatile (D-009)."
+  - "All flows are year averages of the recipe (D-003); the recovered toluene's recycle converged by cheme process propagate at the tear S11, its flow the wash ratio, the fresh feeds at the charge ratios and the hand splits DG101 and E201 set by hand (D-006); the duties of R101, CR101 and ST101 written by their models at energy_port, the rest hand arithmetic from cheme's reports (D-010); accuracy +/-30 % not demonstrated."

@@ -1,0 +1,939 @@
+# Tier 1 form, manifest-only entry (pattern of process-library#317). Every amount is the formula of its
+# parameters; core's validator re-checks each. Numbers from a public report, used as facts in our own form.
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: polypropylene-bulk-gas-phase
+title: Polypropylene by Ziegler-Natta polymerisation of propylene, bulk loop and gas phase
+description: 'Per 1 t of polypropylene resin (pellets), gate-to-gate: the weighted average of three US
+  plants of 2015-2016, about two-thirds bulk liquid-propylene loop (Spheripol type) and one-third gas
+  phase (Unipol type), as reported by Franklin Associates for the American Chemistry Council (2021). Natural
+  gas combustion from stoichiometry.'
+basis: 1000 kg of polypropylene
+boundary: 'gate-to-gate: monomer purification, polymerisation, monomer recovery, deactivation and purging,
+  extrusion and pelletising; power, natural gas and nitrogen from outside'
+technology: continuous Ziegler-Natta polymerisation in liquid propylene (loop reactors) or in the gas
+  phase (fluidised bed), with extrusion; not the solvent slurry process or metallocene grades in particular
+geography:
+  description: United States, three plants; no single site.
+classification:
+  isic: '2013'
+system_boundary:
+  included:
+  - propylene, nitrogen, electricity and natural gas
+  - CO2 and water of the natural gas burnt, and the process CO2 the source reports
+  - 'air emissions the source reports with a flow identity: NMVOC, PM2.5, NOx, CH4, N2O, CO, SO2, NH3'
+  - off-gas residual, solid and hazardous wastes
+  excluded:
+  - 'TODO combustion emissions of the natural gas other than CO2 (NOx, CO, CH4, N2O, PM): no factor applied.
+    The source''s Table 12 emissions are the plant''s process emissions, flaring included (report p. 24,
+    PDF p. 29), and the report counts fuel burnt in boilers separately, so these are most likely missing
+    here rather than double counted'
+  - 'TODO fate of the off-gas residual (fuel gas burnt on site, flare, export): not split by the source'
+  - 'TODO particulates 2.5 to 10 um (0.016 kg/t), particulates unspecified (0.010 kg/t, order of magnitude)
+    and aldehydes (0.010 kg/t, order of magnitude) to air: reported by the source, no flow identity in
+    the shared vocabulary yet'
+  - 'TODO releases to water reported by the source (BOD5 and COD 0.010 kg/t each, order of magnitude;
+    suspended solids 0.013 kg/t; zinc, fluoride, cyanide 1e-06 kg/t and dissolved solids 1e-04 kg/t, order
+    of magnitude): no flow identity yet'
+  - 'TODO water consumption (3 m3/t in the source): its withdrawal source and fate are not stated'
+  - 'TODO catalyst, cocatalyst, donor and additives (stabilisers): not reported by the source; the POL
+    BREF section 3.2.5.2.1 puts the catalyst left in the product below 100 g/t'
+  - 'cogeneration fuel: the cogeneration electricity is supplied as grid electricity (ASSUMED; the report
+    names natural gas as the cogeneration fuel of most data providers, report p. 14, but the library has
+    no natural-gas CHP electricity dataset)'
+  - 'pipeline transport of the propylene (38 t km/t in the source): transport is outside the gate-to-gate
+    boundary'
+  - infrastructure
+  cutoff: none applied; the excluded flows are not quantified in the inventory
+  infrastructure: excluded
+  catalysts: excluded
+  non_routine: excluded
+location: US
+year: 2016
+valid_until: 2021
+time:
+  start: 2015
+  description: Primary data of 2015 and 2016 (report of February 2021). valid_until is the reference year
+    + 5 (system-model section 6), so it has already lapsed.
+modelling:
+  principle: attributional
+  multifunctionality: 'single output: no allocation. The source allocated its own small off-spec and trim
+    co-products by mass; here the solid waste sold for recycling is cut off without burden and the exported
+    vent gas is not credited (the report''s 2.70 m3/t avoided natural gas is left out)'
+uuid: ee337f99-b7f9-5083-a395-dc2142c7ed88
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+technology_level: current
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: pp
+  value: 1000.0
+  unit: kg
+  description: Polypropylene resin (pellets) delivered (the basis).
+  source: basis
+- name: M_P
+  value: 42.081
+  unit: g/mol
+  description: Molar mass of propylene, and of the polymer's repeat unit C3H6.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_CH4
+  value: 16.043
+  unit: g/mol
+  description: Molar mass of methane.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_O2
+  value: 31.998
+  unit: g/mol
+  description: Molar mass of oxygen.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_CO2
+  value: 44.009
+  unit: g/mol
+  description: Molar mass of carbon dioxide.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_H2O
+  value: 18.015
+  unit: g/mol
+  description: Molar mass of water.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: prop
+  value: 1014.0
+  unit: kg
+  description: Propylene per t of PP resin (weighted average of three US plants, 2015-2016).
+  source: Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin, final
+    report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p. 43)
+- name: n2
+  value: 64.0
+  unit: kg
+  description: Nitrogen per t of PP resin (purge and inerting).
+  source: Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin, final
+    report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p. 43)
+- name: el_grid
+  value: 160.0
+  unit: kWh
+  description: Electricity bought from the grid per t of PP resin.
+  source: Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin, final
+    report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p. 43)
+- name: el_cogen
+  value: 140.0
+  unit: kWh
+  description: Electricity from cogeneration per t of PP resin.
+  source: 'Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin,
+    final report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p.
+    43). The report says that most of its data providers reported natural gas as the cogeneration fuel
+    (report p. 14, PDF p. 19), models cogenerated power at 6,826 Btu of fuel per kWh (a 50 % electrical
+    share), and describes the power as coming from the grid or a nearby cogeneration plant (report p. 19,
+    PDF p. 24). Supplied here as grid electricity (ASSUMED: the library has no natural-gas CHP electricity
+    dataset). TODO model the cogeneration supply'
+- name: ng_m3
+  value: 34.0
+  unit: m3
+  description: Natural gas burnt for process energy per t of PP resin, gross.
+  source: Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin, final
+    report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p. 43); the
+    2.70 m3/t of natural gas the report counts as avoided by exported vent gas is not credited (cut-off,
+    docs/system-model.md section 2)
+- name: rho_ng
+  value: 0.6772
+  unit: kg/m3
+  description: Density of the natural gas, taken as methane, at 15.56 degC (60 degF) and 101.325 kPa (ideal
+    gas, p M / (R T)).
+  source: 'ASSUMED: the report states no reference state. Its m3 are its ft3 times 0.0283 (545 ft3 per 1000
+    lb, 34.0 m3 per 1000 kg), and the US standard state of gas volumes, 60 degF, is our reading, as for the
+    same consultant''s PET report in pet-1; natural gas as pure methane is ASSUMED. The library''s natural-gas
+    proxy (lci/mappings.yaml natural-gas-kg) converts the mass back at 0 degC, so the background sees about
+    32.1 m3, 5.6 % less than the report''s 34.0 m3 (the proxy''s own TODO)'
+- name: co2_p
+  value: 10.0
+  unit: kg
+  description: Fossil CO2 reported as a process emission per t of PP resin.
+  source: 'Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin,
+    final report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p.
+    43); the report gives this value only as the order of magnitude of the average (its footnote: fewer
+    than the 3 producers reported it, and the figure protects their confidentiality). It is the CO2 of
+    flaring: the report says flare combustion is included in the PP plants'' process emissions and that
+    the plants'' process greenhouse gases come from flaring (report p. 24, PDF p. 29). It is not the
+    natural gas''s combustion, which gives about 63 kg/t and which the report counts separately. That
+    the flared gas is propylene (for its O2 and H2O) is ASSUMED'
+- name: voc
+  value: 0.11
+  unit: kg
+  description: NMVOC to air per t of PP resin.
+  source: Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin, final
+    report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p. 43)
+- name: pm25
+  value: 0.009
+  unit: kg
+  description: Particulates below 2.5 um to air per t of PP resin.
+  source: Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin, final
+    report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p. 43)
+- name: nox
+  value: 0.044
+  unit: kg
+  description: Nitrogen oxides to air per t of PP resin.
+  source: Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin, final
+    report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p. 43)
+- name: ch4
+  value: 0.001
+  unit: kg
+  description: Methane to air per t of PP resin.
+  source: 'Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin,
+    final report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p.
+    43); the report gives this value only as the order of magnitude of the average (its footnote: fewer
+    than the 3 producers reported it, and the figure protects their confidentiality)'
+- name: n2o
+  value: 0.0001
+  unit: kg
+  description: Dinitrogen monoxide to air per t of PP resin.
+  source: 'Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin,
+    final report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p.
+    43); the report gives this value only as the order of magnitude of the average (its footnote: fewer
+    than the 3 producers reported it, and the figure protects their confidentiality)'
+- name: co
+  value: 0.01
+  unit: kg
+  description: Carbon monoxide to air per t of PP resin.
+  source: 'Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin,
+    final report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p.
+    43); the report gives this value only as the order of magnitude of the average (its footnote: fewer
+    than the 3 producers reported it, and the figure protects their confidentiality)'
+- name: so2
+  value: 0.001
+  unit: kg
+  description: Sulfur oxides to air per t of PP resin, counted as SO2.
+  source: 'Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin,
+    final report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p.
+    43); the report gives this value only as the order of magnitude of the average (its footnote: fewer
+    than the 3 producers reported it, and the figure protects their confidentiality); counting the sulfur
+    oxides as SO2 is ASSUMED'
+- name: nh3
+  value: 0.001
+  unit: kg
+  description: Ammonia to air per t of PP resin.
+  source: 'Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin,
+    final report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p.
+    43); the report gives this value only as the order of magnitude of the average (its footnote: fewer
+    than the 3 producers reported it, and the figure protects their confidentiality)'
+- name: w_land
+  value: 0.42
+  unit: kg
+  description: Non-hazardous process solid waste to landfill per t of PP resin.
+  source: 'Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin,
+    final report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p.
+    43); modelled as polymer (C3H6)n, ASSUMED: the report names no composition'
+- name: w_recy
+  value: 0.7
+  unit: kg
+  description: Solid waste sold for recycling or reuse per t of PP resin.
+  source: Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin, final
+    report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p. 43); modelled
+    as polymer (C3H6)n, ASSUMED (off-spec and trim product, which the report names as the only small co-products)
+- name: hw_land
+  value: 0.001
+  unit: kg
+  description: Hazardous waste to landfill per t of PP resin.
+  source: Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin, final
+    report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p. 43)
+- name: hw_inc
+  value: 0.0051
+  unit: kg
+  description: Hazardous waste to incineration per t of PP resin.
+  source: Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin, final
+    report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p. 43)
+- name: hw_wte
+  value: 0.12
+  unit: kg
+  description: Hazardous waste to waste-to-energy per t of PP resin.
+  source: Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin, final
+    report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p. 43)
+exchanges:
+- key: product:polypropylene
+  title: Polypropylene resin, pellets
+  type: product
+  amount: 1000.0
+  unit: kg
+  formula: pp
+  provenance: given
+  source: the reference flow; homopolymer and copolymer grades as the plants made them
+- key: feed:propylene
+  title: Propylene
+  type: input
+  amount: 1014.0
+  unit: kg
+  formula: prop
+  provenance: given
+  origin: literature
+  source: Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin, final
+    report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p. 43)
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 3
+    - 3
+    - 3
+    reason: 'weighted average of primary data from three US plants, 2015-2016, about 16 % of US production,
+      two-thirds bulk and one-third gas phase: reliability 3, completeness 4, temporal 3 (10 years old),
+      geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.02
+    source: 'ASSUMED: an average of three plants; no spread is reported'
+- key: feed:nitrogen
+  title: Nitrogen, gaseous (purge and inerting)
+  type: input
+  amount: 64.0
+  unit: kg
+  formula: n2
+  provenance: given
+  origin: literature
+  source: Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin, final
+    report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p. 43); the
+    report models it as an ancillary material
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 3
+    - 3
+    - 3
+    reason: 'weighted average of primary data from three US plants, 2015-2016, about 16 % of US production,
+      two-thirds bulk and one-third gas phase: reliability 3, completeness 4, temporal 3 (10 years old),
+      geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: an average of three plants; no spread is reported'
+- key: feed:electricity
+  title: Electricity (grid and cogeneration)
+  type: input
+  amount: 300.0
+  unit: kWh
+  formula: el_grid + el_cogen
+  provenance: given
+  origin: literature
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage; the cogeneration share is supplied as grid (ASSUMED)
+  carrier:
+    kind: electricity
+  source: Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin, final
+    report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p. 43); grid
+    160 and cogeneration 140 kWh/t
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 3
+    - 3
+    - 3
+    reason: 'weighted average of primary data from three US plants, 2015-2016, about 16 % of US production,
+      two-thirds bulk and one-third gas phase: reliability 3, completeness 4, temporal 3 (10 years old),
+      geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.3
+    source: 'ASSUMED: an average of three plants of two technologies; no spread is reported'
+- key: feed:natural-gas
+  title: Natural gas (as methane), burnt for process energy
+  type: input
+  amount: 23.0248
+  unit: kg
+  formula: ng_m3 * rho_ng
+  provenance: given
+  origin: literature
+  link:
+    factor: natural-gas
+    source: natural gas, by mass (lci/mappings.yaml natural-gas)
+  carrier:
+    kind: fuel
+    lhv: 50.01
+    composition: pure methane (ASSUMED for natural gas)
+  source: Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin, final
+    report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p. 43); 34.0
+    m3/t, by mass at the density of methane at 60 degF (ASSUMED, see parameter rho_ng); gross, the vent-gas
+    export is not credited
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 3
+    - 3
+    - 3
+    reason: 'weighted average of primary data from three US plants, 2015-2016, about 16 % of US production,
+      two-thirds bulk and one-third gas phase: reliability 3, completeness 4, temporal 3 (10 years old),
+      geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.3
+    source: 'ASSUMED: an average of three plants of two technologies; no spread is reported'
+- key: feed:O2
+  title: Combustion oxygen, from ambient air
+  type: input
+  amount: 102.75278432796581
+  unit: kg
+  formula: ng_m3 * rho_ng * 2 * M_O2 / M_CH4 + co2_p * 1.5 * M_O2 / M_CO2
+  provenance: assumed
+  origin: estimate
+  free: true
+  source: CH4 + 2 O2 -> CO2 + 2 H2O for the natural gas, and C3H6 + 4.5 O2 -> 3 CO2 + 3 H2O for the flared
+    gas behind co2_p (complete combustion ASSUMED); ambient air is free and not inventoried
+- key: emission:CO2
+  title: CO2 from natural gas combustion and flaring
+  type: emission
+  amount: 73.16140517359597
+  unit: kg
+  formula: ng_m3 * rho_ng * M_CO2 / M_CH4 + co2_p
+  provenance: calculated
+  origin: estimate
+  cas: 124-38-9
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 349b29d1-3e58-4c66-98b9-9d1a076efd2e
+    name: Carbon dioxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: 'complete combustion of the natural gas (stoichiometry) plus the report''s process CO2 from flaring
+    (parameter co2_p); biosphere3 UUID, name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml:
+    ecoinvent elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.3
+    source: 'ASSUMED: follows the natural gas; the process share is an order of magnitude'
+- key: emission:H2O
+  title: Water vapour from combustion
+  type: emission
+  amount: 55.80348175156587
+  unit: kg
+  formula: ng_m3 * rho_ng * 2 * M_H2O / M_CH4 + co2_p * M_H2O / M_CO2
+  provenance: calculated
+  origin: estimate
+  cas: 7732-18-5
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 075e433b-4be4-448e-9510-9a5029c1ce94
+    name: Water
+    categories:
+    - air
+    unit: m3
+    per_unit: 0.001
+  source: 'combustion water of the natural gas and of the flared gas behind co2_p; biosphere3 UUID, name
+    and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent elementary
+    exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+- key: emission:N2
+  title: Nitrogen purged to air
+  type: emission
+  amount: 64.0
+  unit: kg
+  formula: n2
+  provenance: assumed
+  origin: estimate
+  free: true
+  cas: 7727-37-9
+  source: 'ASSUMED: the purge and inerting nitrogen leaves with the vents unchanged; free, not exported
+    (lci/mappings.yaml pass_through N2)'
+- key: output:offgas
+  title: Hydrocarbon vent and off-gas (residual), to fuel-gas use, flare or export
+  type: output
+  amount: 9.582697402803973
+  unit: kg
+  formula: prop - pp - voc - w_land - w_recy - co2_p * M_P / (3 * M_CO2)
+  provenance: calculated
+  source: 'closes the balance: propylene not in the product, the VOC, the polymer wastes or the flared gas
+    behind co2_p. Modelled as propylene (ASSUMED); it also carries the propane of a polymer-grade feed,
+    which the report does not state. Its fate is not split by the report (part is exported as fuel, 2.70
+    m3/t of natural gas avoided). TODO its combustion where it is burnt on site'
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: a residual of the propylene figure; 1014 +/- 0.5 kg/t moves it by about 5 %'
+- key: output:solid-waste-landfill
+  title: Process solid waste to landfill
+  type: output
+  amount: 0.42
+  unit: kg
+  formula: w_land
+  provenance: given
+  origin: literature
+  source: Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin, final
+    report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p. 43); modelled
+    as polymer (ASSUMED)
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 3
+    - 3
+    - 3
+    reason: 'weighted average of primary data from three US plants, 2015-2016, about 16 % of US production,
+      two-thirds bulk and one-third gas phase: reliability 3, completeness 4, temporal 3 (10 years old),
+      geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: an average of three plants; no spread is reported'
+- key: output:solid-waste-recycling
+  title: Solid waste sold for recycling or reuse (cut-off, no burden)
+  type: output
+  amount: 0.7
+  unit: kg
+  formula: w_recy
+  provenance: given
+  origin: literature
+  free: true
+  source: Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin, final
+    report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p. 43); modelled
+    as polymer (ASSUMED); leaves the system without burden at the point of recycling (docs/system-model.md
+    section 3)
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 3
+    - 3
+    - 3
+    reason: 'weighted average of primary data from three US plants, 2015-2016, about 16 % of US production,
+      two-thirds bulk and one-third gas phase: reliability 3, completeness 4, temporal 3 (10 years old),
+      geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+- key: output:hazardous-waste
+  title: Hazardous waste to landfill and incineration
+  type: output
+  amount: 0.0061
+  unit: kg
+  formula: hw_land + hw_inc
+  provenance: given
+  origin: literature
+  source: Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin, final
+    report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p. 43); composition
+    not stated, outside the element balance
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 3
+    - 3
+    - 3
+    reason: 'weighted average of primary data from three US plants, 2015-2016, about 16 % of US production,
+      two-thirds bulk and one-third gas phase: reliability 3, completeness 4, temporal 3 (10 years old),
+      geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: small averages, some plants may report none'
+- key: output:hazardous-waste-energy-recovery
+  title: Hazardous waste to waste-to-energy (cut-off, no burden)
+  type: output
+  amount: 0.12
+  unit: kg
+  formula: hw_wte
+  provenance: given
+  origin: literature
+  free: true
+  source: Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin, final
+    report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p. 43); composition
+    not stated, outside the element balance; leaves the system without burden at the point of energy recovery
+    (docs/system-model.md section 3)
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 3
+    - 3
+    - 3
+    reason: 'weighted average of primary data from three US plants, 2015-2016, about 16 % of US production,
+      two-thirds bulk and one-third gas phase: reliability 3, completeness 4, temporal 3 (10 years old),
+      geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+- key: emission:NMVOC
+  title: NMVOC to air
+  type: emission
+  amount: 0.11
+  unit: kg
+  formula: voc
+  provenance: given
+  origin: literature
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: d3260d0e-8203-4cbb-a45a-6a13131a5108
+    name: NMVOC, non-methane volatile organic compounds
+    categories:
+    - air
+    unit: kg
+  source: 'Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin,
+    final report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p.
+    43); counted as propylene in the element balance (ASSUMED); biosphere3 UUID, name and categories from
+    core''s elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent elementary exchanges 3.9
+    via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 3
+    - 3
+    - 3
+    reason: 'weighted average of primary data from three US plants, 2015-2016, about 16 % of US production,
+      two-thirds bulk and one-third gas phase: reliability 3, completeness 4, temporal 3 (10 years old),
+      geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.5
+- key: emission:PM2.5
+  title: Particulates, < 2.5 um, to air
+  type: emission
+  amount: 0.009
+  unit: kg
+  formula: pm25
+  provenance: given
+  origin: literature
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 21e46cb8-6233-4c99-bac3-c41d2ab99498
+    name: Particulate Matter, < 2.5 um
+    categories:
+    - air
+    unit: kg
+  source: 'Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin,
+    final report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p.
+    43); mass outside the element balance; biosphere3 UUID, name and categories from core''s elementary-flow
+    crosswalk (data/elementary-flows.yaml: ecoinvent elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 3
+    - 3
+    - 3
+    reason: 'weighted average of primary data from three US plants, 2015-2016, about 16 % of US production,
+      two-thirds bulk and one-third gas phase: reliability 3, completeness 4, temporal 3 (10 years old),
+      geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.5
+- key: emission:NOX
+  title: Nitrogen oxides to air
+  type: emission
+  amount: 0.044
+  unit: kg
+  formula: nox
+  provenance: given
+  origin: literature
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: c1b91234-6f24-417b-8309-46111d09c457
+    name: Nitrogen oxides
+    categories:
+    - air
+    unit: kg
+  source: 'Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin,
+    final report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p.
+    43); mass outside the element balance; biosphere3 UUID, name and categories from core''s elementary-flow
+    crosswalk (data/elementary-flows.yaml: ecoinvent elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 3
+    - 3
+    - 3
+    reason: 'weighted average of primary data from three US plants, 2015-2016, about 16 % of US production,
+      two-thirds bulk and one-third gas phase: reliability 3, completeness 4, temporal 3 (10 years old),
+      geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.5
+- key: emission:CH4
+  title: Methane to air
+  type: emission
+  amount: 0.001
+  unit: kg
+  formula: ch4
+  cas: 74-82-8
+  provenance: given
+  origin: literature
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 0795345f-c7ae-410c-ad25-1845784c75f5
+    name: Methane, fossil
+    categories:
+    - air
+    unit: kg
+  source: 'Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin,
+    final report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p.
+    43); the report gives this value only as the order of magnitude of the average (its footnote: fewer
+    than the 3 producers reported it, and the figure protects their confidentiality); mass outside the
+    element balance; biosphere3 UUID, name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml:
+    ecoinvent elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 3
+    - 3
+    - 3
+    reason: 'reported only as an order of magnitude of the average: reliability 4, completeness 4, temporal
+      3, geographical 3, technological 3'
+  basic_uncertainty: 1.5
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: only the order of magnitude of the average is reported'
+- key: emission:N2O
+  title: Dinitrogen monoxide to air
+  type: emission
+  amount: 0.0001
+  unit: kg
+  formula: n2o
+  cas: 10024-97-2
+  provenance: given
+  origin: literature
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 20185046-64bb-4c09-a8e7-e8a9e144ca98
+    name: Dinitrogen monoxide
+    categories:
+    - air
+    unit: kg
+  source: 'Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin,
+    final report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p.
+    43); the report gives this value only as the order of magnitude of the average (its footnote: fewer
+    than the 3 producers reported it, and the figure protects their confidentiality); mass outside the
+    element balance; biosphere3 UUID, name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml:
+    ecoinvent elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 3
+    - 3
+    - 3
+    reason: 'reported only as an order of magnitude of the average: reliability 4, completeness 4, temporal
+      3, geographical 3, technological 3'
+  basic_uncertainty: 1.5
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: only the order of magnitude of the average is reported'
+- key: emission:CO
+  title: Carbon monoxide to air
+  type: emission
+  amount: 0.01
+  unit: kg
+  formula: co
+  cas: 630-08-0
+  provenance: given
+  origin: literature
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: ba2f3f82-c93a-47a5-822a-37ec97495275
+    name: Carbon monoxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: 'Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin,
+    final report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p.
+    43); the report gives this value only as the order of magnitude of the average (its footnote: fewer
+    than the 3 producers reported it, and the figure protects their confidentiality); mass outside the
+    element balance; biosphere3 UUID, name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml:
+    ecoinvent elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 3
+    - 3
+    - 3
+    reason: 'reported only as an order of magnitude of the average: reliability 4, completeness 4, temporal
+      3, geographical 3, technological 3'
+  basic_uncertainty: 1.5
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: only the order of magnitude of the average is reported'
+- key: emission:SO2
+  title: Sulfur oxides (as SO2) to air
+  type: emission
+  amount: 0.001
+  unit: kg
+  formula: so2
+  cas: 7446-09-5
+  provenance: given
+  origin: literature
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: fd7aa71c-508c-480d-81a6-8052aad92646
+    name: Sulfur dioxide
+    categories:
+    - air
+    unit: kg
+  source: 'Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin,
+    final report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p.
+    43); the report gives this value only as the order of magnitude of the average (its footnote: fewer
+    than the 3 producers reported it, and the figure protects their confidentiality); mass outside the
+    element balance; biosphere3 UUID, name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml:
+    ecoinvent elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 3
+    - 3
+    - 3
+    reason: 'reported only as an order of magnitude of the average: reliability 4, completeness 4, temporal
+      3, geographical 3, technological 3'
+  basic_uncertainty: 1.5
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: only the order of magnitude of the average is reported'
+- key: emission:NH3
+  title: Ammonia to air
+  type: emission
+  amount: 0.001
+  unit: kg
+  formula: nh3
+  cas: 7664-41-7
+  provenance: given
+  origin: literature
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 87883a4e-1e3e-4c9d-90c0-f1bea36f8014
+    name: Ammonia
+    categories:
+    - air
+    unit: kg
+  source: 'Franklin Associates (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin,
+    final report for the American Chemistry Council Plastics Division, Table 12 (report p. 38, PDF p.
+    43); the report gives this value only as the order of magnitude of the average (its footnote: fewer
+    than the 3 producers reported it, and the figure protects their confidentiality); mass outside the
+    element balance; biosphere3 UUID, name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml:
+    ecoinvent elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 3
+    - 3
+    - 3
+    reason: 'reported only as an order of magnitude of the average: reliability 4, completeness 4, temporal
+      3, geographical 3, technological 3'
+  basic_uncertainty: 1.5
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: only the order of magnitude of the average is reported'
+provenance:
+  generator: hand-written model; amounts are the formulas of the parameters
+  notes: No value from a licensed database. The source report is public (American Chemistry Council);
+    its numbers are used as facts with their table, in our own form.
+generation:
+  tier: 1
+  method: 'sourced conceptual inventory: a published gate-to-gate unit process (ACC/Franklin 2021, Table
+    12) with stoichiometric combustion and a closing residual, every choice listed in parameters'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 3
+  - 4
+  - 3
+  - 3
+  - 3
+  dqr_floor: 3.0
+  components:
+    product:polypropylene: C3H6
+    feed:propylene: C3H6
+    feed:nitrogen: N2
+    feed:natural-gas: CH4
+    feed:O2: O2
+    emission:CO2: CO2
+    emission:H2O: H2O
+    emission:N2: N2
+    output:offgas: C3H6
+    output:solid-waste-landfill: C3H6
+    output:solid-waste-recycling: C3H6
+    emission:NMVOC: C3H6
+  formulas:
+    product:polypropylene: C3H6
+    feed:propylene: C3H6
+    feed:nitrogen: N2
+    feed:natural-gas: CH4
+    feed:O2: O2
+    emission:CO2: CO2
+    emission:H2O: H2O
+    emission:N2: N2
+    output:offgas: C3H6
+    output:solid-waste-landfill: C3H6
+    output:solid-waste-recycling: C3H6
+    emission:NMVOC: C3H6
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      C:
+      - 885.503162391
+      - 885.503162391
+      H:
+      - 151.521637609
+      - 151.521637609
+      N:
+      - 64.0
+      - 64.0
+      O:
+      - 102.752784328
+      - 102.752784328
+    outside:
+    - emission:CH4
+    - emission:CO
+    - emission:N2O
+    - emission:NH3
+    - emission:NOX
+    - emission:PM2.5
+    - emission:SO2
+    - feed:electricity
+    - output:hazardous-waste
+    - output:hazardous-waste-energy-recovery

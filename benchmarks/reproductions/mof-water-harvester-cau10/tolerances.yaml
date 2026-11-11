@@ -1,0 +1,62 @@
+# Acceptance tolerances for the CAU-10-H water harvester reproduction (#334; ADR 0030).
+# FROZEN 2026-11-04, committed with source.yaml and inputs.yaml before run.py exists and before
+# any run that compares computed with reported values. Do not edit: a revision is a new file
+# with its reason, and comparison.md names the file it used.
+#
+# What is reproduced: the isotherm descriptors that the article plots for the CAU-10-H data sets
+# in Figure 7 (alpha, delta_p_75_25), computed by us from the published uptake series of sample 8,
+# against our digitisation of the Figure 7 marker (source.yaml reference_figure).
+#
+# Disclosure: during data inspection, before this file was written, the data file and the
+# figure were read by eye, so the approximate position of the step (about 0.19 to 0.20 p/p0)
+# and of the five CAU-10-H markers was known. The tolerances below are set from the
+# digitisation and definition uncertainties stated with each check, not from a computed
+# deviation.
+frozen: "2026-11-04"
+reference: source.yaml reference_figure (digitised Figure 7) and dataset Metadata.txt
+checks:
+  alpha:
+    abs: 0.005
+    reason: >-
+      digitisation ±0.0013 (±3 px); definition of total capacity not available (Table S7 and
+      SI Section 7 missing): a capacity 10 % higher or lower moves half capacity along the
+      nearly vertical step by about ±0.002; linear interpolation between points 0.0002 apart
+  delta_p_75_25:
+    abs: 0.004
+    reason: >-
+      digitisation ±0.0016 (±3 px at 1874 px per unit); same capacity-definition effect on the
+      25 % and 75 % points, which lie on the step (about ±0.002)
+  marker_identification:
+    rule: >-
+      exactly one panel-b CAU-10-H marker lies within the alpha tolerance of the computed alpha,
+      and its panel-a partner (same K_H within 0.03 in log10, about 5 px) exists
+    reason: >-
+      sample 8 is not labelled in Figure 7; the check fails if the choice is ambiguous rather
+      than letting the nearest marker pass by default
+  saturation_pressure:
+    rel: 0.005
+    reason: >-
+      the data file gives both p/p0 and absolute pressure; their ratio (median over points with
+      p/p0 > 0.01, where the 1e-4 mmHg resolution does not matter) must agree with IAPWS-IF97
+      p_sat at the stated bath temperature, 313.000 K; this confirms the temperature basis that
+      the sizing uses (0.5 % is about 0.1 K)
+pass_rule: >-
+  every check within tolerance; a check that cannot be evaluated is reported as a gap, not a
+  pass. Verdict: pass if all four pass; partial if the data-integrity check (saturation_pressure)
+  passes and at least one of alpha and delta_p_75_25 passes; fail otherwise.
+
+# Context comparisons, frozen here too but outside the pass rule: different samples, techniques
+# or an unavailable definition. comparison.md reports them with the stated reference.
+context_not_in_pass_rule:
+  henry_constant:
+    reference: digitised K_H of the identified marker
+    status_expected: not evaluable (definition in SI Section 7 not available); run.py reports the lowest-point ratio q/(p/p0) in cm3(STP)/g as a candidate only
+  step_relative_pressure_vs_pxrd:
+    reference: 0.15 to 0.165 at 40 °C (in-situ PXRD, other sample)
+    reported_as: deviation of the adsorption-step inflection of sample 8
+  uptake_after_step_vs_powder:
+    reference: 0.32 g/g directly after the step (Figure 1 powder, other sample, ambient temperature)
+    reported_as: relative deviation of sample 8 (pellets) at p/p0 0.25, the end of its step
+  step_at_ambient_by_characteristic_curve:
+    reference: 0.18 p/p0 at ambient temperature (other sample)
+    reported_as: inflection of sample 8 moved to 298.15 K by the Dubinin-Polanyi characteristic curve (inputs.yaml)

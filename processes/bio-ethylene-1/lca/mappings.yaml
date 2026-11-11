@@ -1,0 +1,20 @@
+# bio-ethylene-1's own exchange overrides for the Atlas LCI build (ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Ethanol stays a reported gap: the shared
+# vocabulary has no entry, and its Atlas producer would be wrong here. Caustic soda links
+# chlor-alkali-1, per kg of 50 wt% solution.
+# Refrigeration at -25 degC, the unconverted ethanol and the spent caustic have no background
+# entry yet and are reported gaps too.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:ethanol":
+    atlas: false
+    source: >-
+      Market bio-ethanol (fermentation ethanol, hydrated), counted as ethanol. ethanol-1 is not the
+      supplier: it makes synthetic ethanol from fossil ethylene. A bioethanol entry is planned on the
+      batch track (coverage.yaml `bioethanol`); link it explicitly once it exists.
+  "feed:caustic-50": {dataset: {path: processes/chlor-alkali-1/lca/dataset.yaml, product: "product:NAOH"}, source: "the Atlas producer chlor-alkali-1, caustic soda 50 wt-%, per kg of solution as this exchange counts it"}
+  "feed:steam":
+    use: steam
+    atlas: false
+    source: "Superheated steam at 11.4 bar, counted by mass. It goes to the shared background entry, which counts 11 bar(a) saturated steam (so the superheat is not counted), and not to utility-steam-ng-boiler, whose 11 bar(a) steam is below this pressure."
+  "feed:fired-heat": {use: heat-natural-gas, source: "external natural gas to the reactor furnace, counted as the heat absorbed (kWh), as hda-1 counts its feed heater"}

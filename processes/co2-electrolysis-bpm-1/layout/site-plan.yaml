@@ -1,0 +1,37 @@
+# Site plan of the two pilot skids (#330, DESIGN.md D-019). Schema: `cheme schema site_plan`.
+# x east, y north, metres from the south-west corner. A notional pilot plot (site NL, ASSUMED):
+# the plot, the two skid areas, the access road, the utility rack and every separation below
+# are ASSUMED screening choices of this design, to be replaced by the host site's plot plan.
+schema: cheme/site_plan/v1
+site: {name: "co2-electrolysis-bpm-1 pilot plot (notional, ASSUMED)", width: 32, depth: 16}
+areas:
+  # each area holds its skid's tail gas TG-x01 east leg (x 15.2 / 30.2 m) and the oxidiser's
+  # burner-management panel east of it (D-065, review 2026-11-06-layout-r3#1, #3)
+  - {id: A-100, title: "Skid A: one KOH fill per campaign (train A, 1xx)", box: [2, 5.5, 16.3, 12.5], kind: process}
+  - {id: A-200, title: "Skid B: continuous KOH dosing and bleed (train B, 2xx)", box: [17, 5.5, 31.3, 12.5], kind: process}
+roads:
+  - {id: R-1, title: "Access road (KOH and CO2 deliveries, fire-fighting access)", points: [[0, 1.5], [32, 1.5]], width: 3}
+racks:
+  # the site's utility tie-ins (CO2, cooling water, demineralised water, effluent, CO product)
+  # along the NORTH side of both skids, one tier, ASSUMED. It stood between the road and the
+  # skids: the crane pads then had no room for outriggers and every lift passed over the live
+  # rack (layout review 2026-11-05-layout#6, #7); north of the skids the ground between the
+  # road and the frames is free for the crane's hardstanding and for vehicles (D-047). The KOH
+  # fill and the spent anolyte are hose connections at the frames' west ends, from the road, not
+  # on the rack. The ladders at its two free ends to the 3.2 m tier are the build's proposals,
+  # pinned (D-040; the tier moved from 2.8 m to 3.2 m with the rack, D-047, review
+  # 2026-11-05-layout-r2#8)
+  - {id: PR-1, title: "Utility rack along the skids (site tie-ins)", points: [[2, 13.5], [30, 13.5]], width: 1.2, levels: [3.2], bent_spacing_m: 4,
+     ladders: [{id: ladder-start, end: start}, {id: ladder-end, end: end}]}
+separations:
+  # ASSUMED screening distances (D-019) until the host site's spacing standard and area
+  # classification give them
+  - {from: X-131, to: X-231, min_m: 6, reason: "the two skids' gas packages apart, so one skid's release zone does not reach the other", basis: D-019}
+  - {from: A-100, to: R-1, min_m: 1.5, reason: "skid area off the access road", basis: D-019}
+  - {from: A-200, to: R-1, min_m: 1.5, reason: "skid area off the access road", basis: D-019}
+criteria:
+  # the package equipment spacing table (pumps 1 m, machines 2 to 3 m, tanks 3 m, ASSUMED) is
+  # for a plot plan, not for a skid: inside a 20 ft frame the spacing is the skid
+  # fabricator's arrangement, kept open for access from the long sides (D-019)
+  spacing_table: false
+notes: "ASSUMED - notional pilot plot (D-019); the host site's plot plan replaces it."

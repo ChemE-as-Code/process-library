@@ -1,0 +1,64 @@
+# Reactions of copper-i-chloride-1. Schema cheme/reactions/v1 (`cheme schema process-reactions`).
+#
+# The route is the wet chlorination of copper in a sodium chloride brine (US 3 030 178 A,
+# Schering, 1962, run here as a batch; DESIGN.md D-001): chlorine is fed below the surface of a
+# hot brine over metallic copper; it oxidises copper (and the copper(I) already in solution) to
+# copper(II), which the excess copper reduces back to copper(I); the brine holds the copper(I)
+# chloride dissolved as chloro complexes. The net reaction is 2 Cu + Cl2 -> 2 CuCl.
+# - CHL, COMP in R101 (semi-batch, the chlorine dosed and absorbed, the copper charged in
+#   excess over a heel kept from the previous batch). The oxidation of the dissolved copper(I) by
+#   chlorine, 2 CuCl + Cl2 -> 2 CuCl2, is CHL less COMP, so it is not a third reaction (the extents
+#   of linearly dependent reactions cannot be fitted to a balance); CHL carries the chlorine's
+#   heat to the copper(II) stage only. On a cooling failure the excess copper also reduces that
+#   CuCl2 (COMP, 54.3 kJ/mol more), which core's screening, taking each reaction alone, leaves
+#   out of the MTSR; the network MTSR is by hand in D-011 (L-2).
+# None of these steps has open kinetics or calorimetry (searched 2026-11-06): every rate law is
+# ASSUMED (D-005, D-011). The heats of reaction are Hess sums of standard enthalpies of
+# formation at 298.15 K (chemicals 1.5.2's packaged CRC standard thermodynamic properties,
+# DESIGN.md SRC-10): copper and the copper chlorides as solids, chlorine as the gas dosed (the
+# dosed gas as a gas, core ADR 0054, so its heat of solution is inside the reaction heat). The
+# chloro complexes' heats of solution in the brine are not known openly and are left out
+# (ASSUMED 0, D-005); CuCl's own heat of dissolution and precipitation likewise (D-009).
+# The precipitation of CuCl by dilution (CR101) and its partial dissolution in the acid wash
+# (W101) are no reactions here: they are core's crystallizer with spectators (core ADR 0056).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: CHL
+    title: Chlorination of copper metal to copper(II) chloride
+    equation: Cu + Cl2 -> CuCl2
+    stoichiometry: {CU: -1, CL2: -1, CUCL2: 1}
+    phase: liquid
+    heat_of_reaction: {value: -220100, provenance: given, source: "Hess sum at 298.15 K, chlorine as gas: dHf CuCl2(s) -220.1 kJ/mol, Cu(s) 0, Cl2(g) 0 (chemicals 1.5.2, packaged CRC standard thermodynamic properties, SRC-10); the heat of solution of CuCl2 in the brine left out (D-005)"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # second order in the copper (per m3 of the content, an effective rate of the metal
+      # surface) and the dissolved chlorine: k = 0.02 m3/(kmol s) at 353.15 K, Ea 40 kJ/mol:
+      # A = 0.02 x exp(40000 / (8.314 x 353.15)) = 1.684e4
+      k: {A: 1.684e4, Ea: 40000}
+      orders: {CU: 1, CL2: 1}
+      temperature_range: [333.15, 373.15]
+      provenance: assumed
+      source: "ASSUMED fast effective rate (D-005): no open kinetics of the chlorine attack on copper in a hot brine found (2026-11-06); US 3 030 178 A, Example 1, absorbs the whole chlorine feed below the surface of a copper bed"
+    sources: ["US 3 030 178 A (Schering, 1962), description and Example 1: chlorine fed below the surface of a hot NaCl brine over scrap copper, chlorination and reduction in one apparatus"]
+  - id: COMP
+    title: Reduction of copper(II) chloride by copper metal (comproportionation)
+    equation: CuCl2 + Cu -> 2 CuCl
+    stoichiometry: {CUCL2: -1, CU: -1, CUCL: 2}
+    phase: liquid
+    heat_of_reaction: {value: -54300, provenance: given, source: "Hess sum at 298.15 K: 2 x dHf CuCl(s) -137.2 - dHf CuCl2(s) -220.1 kJ/mol (chemicals 1.5.2, packaged CRC table, SRC-10); heats of solution left out (D-005)"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # second order in CuCl2 and the copper (an effective rate of the metal surface):
+      # k = 1.0e-3 m3/(kmol s) at 353.15 K, Ea 50 kJ/mol: A = 1.0e-3 x exp(50000 / (8.314 x
+      # 353.15)) = 2.476e4
+      k: {A: 2.476e4, Ea: 50000}
+      orders: {CUCL2: 1, CU: 1}
+      temperature_range: [313.15, 373.15]
+      provenance: assumed
+      source: "ASSUMED effective rate (D-005): set so that the copper(II) left after the post-reaction is about 0.5 % of the copper, the lower end of the 0.5-2 % that US 4 582 579 A leaves after its copper reduction step; no open rate constant found (2026-11-06)"
+    sources: ["US 4 582 579 A (Hughes Aircraft, 1986), description: CuCl2 in concentrated HCl reduced by copper at 40-55 C under nitrogen until 98-99.5 % of the copper(II) is reduced"]

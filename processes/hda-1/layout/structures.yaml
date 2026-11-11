@@ -1,0 +1,52 @@
+# Steel structures of the basic 3D layout (S5, D-027). Schema: `cheme schema structures`.
+# One overhead structure per column: the condenser on the upper deck drains by gravity into
+# the reflux drum on the lower deck, which stands high enough over its pumps at grade for their
+# suction head (NPSH not calculated: the elevations are ASSUMED rules of thumb, D-027). The
+# lower decks stand above the 4.5 m pipe-way (piping/routing.yaml), so the local pipes run
+# under them. Bays, elevations, sections (package defaults by span) and bracing are ASSUMED
+# placeholders for the structural design; the stairs are the main access (decks in regular
+# use).
+schema: cheme/structures/v1
+structures:
+  - id: S-201
+    title: "Stabiliser overhead structure (E-201 over V-201)"
+    origin: [100, 56]
+    spans_x: [6]
+    spans_y: [6, 6]
+    levels:
+      - {id: L1, elevation: 6.0, kind: deck}
+      - {id: L2, elevation: 9.8, kind: deck}
+    bracing: {north: x, east: none, south: x, west: x}
+    stairs:
+      - {id: ST-1, from: grade, to: L1, side: east}
+      - {id: ST-2, from: L1, to: L2, side: east, offset: 6.5}
+    notes: "ASSUMED (D-027): V-201 on L1 at 6 m, E-201 on L2 at 9.8 m; the C-201 top (12.5 m) drains PG-430 down to E-201. The frame stands west of the line from PR-1 to C-201, so the stabiliser feed AR-116 does not pass over it."
+    ladders: [{id: ladder-to-L1, from: grade, to: L1, at: [0.5, 11.5], facing: north}, {id: ladder-to-L2, from: L1, to: L2, at: [0.5, 0.5], facing: south}]
+  - id: S-202
+    title: "Benzene column overhead structure (E-203 over V-202, E-207 below)"
+    origin: [113, 96]
+    spans_x: [6, 6]
+    spans_y: [8]
+    levels:
+      - {id: L1, elevation: 6.5, kind: deck}
+      - {id: L2, elevation: 11.5, kind: deck}
+    bracing: {north: x, east: none, south: none, west: x}
+    stairs:
+      - {id: ST-1, from: grade, to: L1, side: north}
+      - {id: ST-2, from: L1, to: L2, side: north, offset: 6.5}
+    notes: "ASSUMED (D-027): V-202 on L1 at 6.5 m (suction head of P-202A/B at grade south of the frame), E-203 on L2 at 11.5 m, well below the C-202 top (38 m); the product cooler E-207 stands at grade under the frame."
+    ladders: [{id: ladder-to-L1, from: grade, to: L1, at: [0.5, 0.5], facing: south}, {id: ladder-to-L2, from: L1, to: L2, at: [11.5, 0.5], facing: east}]
+  - id: S-203
+    title: "Toluene column overhead structure (E-205 over V-203)"
+    origin: [141, 62]
+    spans_x: [6, 6]
+    spans_y: [6]
+    levels:
+      - {id: L1, elevation: 6.0, kind: deck}
+      - {id: L2, elevation: 10.0, kind: deck}
+    bracing: {north: x, east: x, south: none, west: none}
+    stairs:
+      - {id: ST-1, from: grade, to: L1, side: south}
+      - {id: ST-2, from: L1, to: L2, side: south, offset: 6.5}
+    notes: "ASSUMED (D-027): V-203 on L1 at 6 m, the vacuum drum's height over P-203A/B for their suction head at 30 kPa(a) (boiling liquid: static head only), E-205 on L2 at 10 m below the C-203 top (14 m)."
+    ladders: [{id: ladder-to-L1, from: grade, to: L1, at: [11.5, 5.5], facing: east}, {id: ladder-to-L2, from: L1, to: L2, at: [0.5, 5.5], facing: north}]

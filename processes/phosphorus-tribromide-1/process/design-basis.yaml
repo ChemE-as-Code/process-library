@@ -1,0 +1,47 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Phosphorus tribromide by the bromination of white phosphorus in a PBr3 heel, a batch plant,
+# issue ChemE-as-Code/process-library#134 (the second semi-batch entry after
+# n-bromosuccinimide-1). Values marked ASSUMED are engineering choices of this concept study,
+# not client or licensor data; every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: distilled phosphorus tribromide to storage at the battery limit
+  pbr3_t_per_year: 1000                 # ASSUMED (D-002): a specialty-reagent scale, no open market figure
+  operating_hours_per_year: 7920        # ASSUMED (D-002): 330 days of 24 h, batch operation
+  batch_kg: 1421.23                     # ASSUMED (D-003): one batch of distilled PBr3 every 11.26 h
+  batches_per_year: 703.6               # from the recipe (process/recipe.yaml, D-003)
+feeds:
+  - name: Molten white phosphorus (merchant)
+    source_of_values: ASSUMED (D-004)
+    composition: "P4 100 % (water-free; arsenic and other impurities not modelled)"
+    conditions: {temperature_K: 333.15, pressure_kPa_a: 101.325}
+  - name: Liquid bromine (bromine-1)
+    source_of_values: ASSUMED (D-004)
+    composition: "Br2 100 % (dry bromine of bromine-1, 99.96 wt%)"
+    conditions: {temperature_K: 293.15, pressure_kPa_a: 101.325}
+  - name: Red phosphorus (merchant)
+    source_of_values: ASSUMED (D-007)
+  - name: Nitrogen (asu-1), per batch for inerting and breaking the vacuum
+    source_of_values: ASSUMED (D-012)
+products:
+  - name: Phosphorus tribromide
+    purity: "99.9996 wt% PBr3 with a trace of free bromine in the model (ASSUMED, D-008); colour, free phosphorus, PBr5 and acidity (HBr from moisture) not modelled"
+    delivery: {temperature_K: 308.15, pressure_kPa_a: 101.325, battery_limit: storage under dry nitrogen (not in the boundary)}
+  - name: Still residue to hazardous-waste incineration
+    note: "PBr3 not recovered, red phosphorus and the unconverted white phosphorus (D-008)"
+utilities:
+  - {name: Electric power, use: "agitators of R-101 and C-101, vacuum pump (D-009)"}
+  - {name: LP steam, pressure_kPa_a: 350, use: "the still's reboiler (D-009)", note: ASSUMED}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "R-101's tempered-water loop (333 K in the jacket) and the still's condenser (D-009, D-010)", note: ASSUMED}
+  - {name: Nitrogen, use: "inerting R-101 and C-101 and breaking the still's vacuum (D-012)", note: ASSUMED}
+site:
+  location: ASSUMED generic fine-chemicals site with a bromine supply (bromine-1), not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Route: molten white phosphorus and bromine dosed together into a PBr3 heel at 120-130 C with a 0.05-0.5 % bromine excess, red phosphorus added to the crude before a vacuum distillation (DE 1 281 414 / US 3 409 401, D-001)."
+  - "From the patent's example (D-004, D-007, D-008): heel 3 kg per kg of phosphorus, bromine excess 0.4 %, red phosphorus 1 kg per 100 kg of phosphorus, overall yield 95.0 % on phosphorus."
+  - "ASSUMED fast effective rate law, first order in bromine and in white phosphorus (D-005): no open kinetics; the low accumulation follows from it."
+  - "Heat of reaction from the CRC liquid formation enthalpy of PBr3, -185.1 kJ/mol PBr3 (D-005)."
+  - "ASSUMED jacket: U 300 W/(m2 K), tempered water at 333 K; the dosing time (10 h) is set by it (D-010)."
+  - "All flows are year averages of the recipe (D-003); duties and power concept estimates (scripts/balance.py, D-006, D-009); accuracy +/-30 % not demonstrated."

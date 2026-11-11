@@ -1,0 +1,51 @@
+# Acceptance tolerances for the electrified-distillation control case (#335, ADR 0030).
+# FROZEN 2026-11-04, committed with source.yaml and inputs.yaml before any run that compares
+# computed values with reported ones. Do not edit: a revision is a new file with its reason, and
+# comparison.md names the file it used.
+#
+# Basis. The reference is an Aspen Plus / Aspen Dynamics model whose files are not public. Ours
+# is a transparent tray-by-tray model with reconstructed thermodynamics (NRTL fitted to the SI
+# stage data), reconstructed hydraulics and holdups, and a one-parameter heat-pump closure.
+# Steady-state quantities (purities, reflux ratio, duties, power after 10 h) depend on the
+# thermodynamics, stage count and energy balance, which we reconstruct well; the transient shape
+# (IAE, settling) depends on hydraulics and tuning, which we do not know. Primary checks are
+# therefore steady or end-of-run values; transient metrics are secondary and do not set the
+# verdict. "Final" means the value at t = 10 h of a 10 h run with the step at 0.5 h, as in the SI.
+frozen: "2026-11-04"
+reference: source.yaml reported_results
+primary:
+  # Nominal steady state of our model at the reported purity specifications.
+  nominal_reflux_ratio:      {reference: 0.64636, rel: 0.10, reason: "sensitive to the VLE near the top pinch; NRTL refitted, not Aspen's parameters"}
+  nominal_reboiler_duty:     {reference: "1425.5 kW", rel: 0.05, reason: "energy balance with fitted enthalpies; feed subcooling must be carried"}
+  nominal_conventional_condenser_duty: {reference: "1307 kW", rel: 0.05, reason: "overhead vapour flow x latent heat"}
+  nominal_compressor_power:  {reference: "303.05 kW", rel: 0.05, reason: "follows Q_R through q_c and w (reconstructed from the same SI state)"}
+  nominal_stage35_temperature: {reference: "88.911 C", abs: 2.0, reason: "on the steep front; a small shift of the front moves it by kelvins"}
+  nominal_profile_temperature_rms: {reference: "SI Column data, 38 stages", abs: 1.0, unit: K, reason: "RMS over the stages"}
+  nominal_profile_x_rms:     {reference: "SI Column data, 38 stages", abs: 0.02, unit: mol/mol, reason: "RMS of the liquid methanol fraction over the stages"}
+  # Feed composition steps, end of run.
+  CS1_plus20_MeOH_xD:   {reference: 0.99799, abs: 0.002, reason: "a quarter of the reported offset (+0.008)"}
+  CS1_minus20_MeOH_xD:  {reference: 0.97836, abs: 0.003, reason: "a quarter of the reported offset (-0.0116)"}
+  CS2_plus20_MeOH_xD:   {reference: 0.99007, abs: 0.001, reason: "integral action returns x_D to 0.99; the SI run is still settling at 10 h"}
+  CS2_minus20_MeOH_xD:  {reference: 0.99000, abs: 0.001, reason: as above}
+  CS2_plus20_MeOH_RR:   {reference: 0.30311, rel: 0.15, reason: "a large move (-53 %); the SI run is still moving at 10 h"}
+  CS2_minus20_MeOH_RR:  {reference: 0.72118, rel: 0.10, reason: "a move of +12 %"}
+  CS1_plus20_MeOH_power: {reference: "441.08 kW", rel: 0.10, reason: "depends on the heat-pump closure, calibrated on another case (+20 % throughput)"}
+  CS1_minus20_MeOH_power: {reference: "247.07 kW", rel: 0.10, reason: "below nominal load: full condensation, follows Q_R"}
+  CS2_plus20_MeOH_power: {reference: "283.05 kW", rel: 0.10, reason: as above}
+  CS2_minus20_MeOH_power: {reference: "255.47 kW", rel: 0.10, reason: as above}
+  # The engineering conclusion, as directions.
+  direction_CS2_recovers_purity: {rule: "|x_D,CS2 - 0.99| < 0.25 |x_D,CS1 - 0.99| at both +20 % and -20 % methanol (final)", reason: "the paper's main conclusion"}
+  direction_CS2_saves_power_plus20: {rule: "W_CS2 < W_CS1 at +20 % methanol (final)", reason: "reported 283 against 441 kW"}
+secondary:
+  # Reported, with a status, but not part of the verdict.
+  IAE_MeOH_composition_cases: {reference: "source.yaml table2_IAE, CS1 and CS2 at +-20 % methanol", ratio: [0.5, 2.0], reason: "depends on holdups and tuning (reconstructed)"}
+  IAE_water_composition_cases: {reference: "table2_IAE water, same cases", ratio: [0.33, 3.0], reason: "small numbers, dominated by transients"}
+  settling_time_like_for_like: {reference: "the same rule applied to the SI series", rule: "last time after 0.5 h at which |x_D - x_D(10 h)| > 5e-4", ratio: [0.5, 2.0], reason: "Table 1's own definition is not stated"}
+  FVC_final_composition_cases: {reference: "SI series at 10 h", abs: "5 kmol/h", reason: "a difference of two large flows (m_c - V_top)"}
+  direction_CS2_power_minus20: {rule: "W_CS2 > W_CS1 at -20 % methanol (final)", reason: "reported 255.5 against 247.1 kW, a 3 % difference"}
+  throughput_cases: {reference: "SI series at 10 h: CS1 -20 % F power 235.48 kW (rel 0.10); CS2 +20 % F RR 0.6559 and -20 % F RR 0.6380 (rel 0.05); x_D of CS1 -20 % F 0.99076 (abs 0.002)", reason: "outside the issue's question; CS1 +20 % F is the calibration case and is not checked"}
+pass_rule: >-
+  pass: every primary check within tolerance. partial: at least 75 % of the primary checks
+  within tolerance and both primary direction checks met. fail: otherwise. A check that cannot
+  be evaluated counts as not within tolerance and is reported as a gap. Secondary checks are
+  reported with their own status and do not change the verdict.

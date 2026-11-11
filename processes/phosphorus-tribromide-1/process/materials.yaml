@@ -1,0 +1,39 @@
+# Components and templates of phosphorus-tribromide-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol (IUPAC 2021
+# standard atomic weights applied to the formula), normal_boiling_point in K at 101.325 kPa.
+#
+# The liquor is PBr3 with dissolved bromine and white phosphorus, one liquid phase (the
+# semi-batch model's assumption, DESIGN.md D-005). The free bromine stands for the PBr5 that a
+# bromine excess forms in the crude (PBr3 + Br2 <=> PBr5, not modelled). Red phosphorus is a
+# separate solid component, PRED. White phosphorus is declared by hand: the chemicals package
+# maps CAS 12185-10-3 and 7723-14-0 to monatomic phosphorus gas, whose formation data must not be
+# used for P4 (DESIGN.md D-006). No ideal-gas data are given: the heat of reaction is declared in
+# process/reactions.yaml.
+#
+# The liquid data the semi-batch reactor needs (D-005, D-006):
+# - liquid_molar_volume, m3/kmol: PBr3 from its constant liquid density 2.80 g/cm3 (chemicals,
+#   CRC inorganic table); bromine 3.12 g/cm3 at 293 K (thermo, DIPPR fit); white phosphorus from
+#   the solid's density 1.823 g/cm3 (chemicals, CRC inorganic table), taken for the melt
+#   (ASSUMED); red phosphorus the same (ASSUMED, a placeholder: it is never in the reactor); ideal
+#   mixing, no partial molar volumes;
+# - liquid_heat_capacity, kJ/(kmol K): bromine 75.7 (NIST WebBook); white phosphorus 105.3, four
+#   times the 26.33 per atom of liquid phosphorus (NIST WebBook Shomate fit, via thermo); PBr3
+#   132, thermo's Rowlinson-Poling corresponding-states estimate at 398 K (ASSUMED: no measured
+#   value found; the default Dadgostar-Shaw estimate, 72, lies below the ideal-gas heat capacity
+#   of 79 at 398 K and is not used); red phosphorus 23.8, white phosphorus solid at 298 K (CRC
+#   via thermo), ASSUMED for red;
+# - normal boiling points (chemicals): PBr3 446.35 K (melting point 231.65 K), bromine 331.95 K,
+#   white phosphorus 553.65 K (melting point 317.3 K).
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: PBR3, name: Phosphorus tribromide, formula: PBr3, cas: 7789-60-8, molar_mass: 270.686, normal_boiling_point: 446.35, liquid_molar_volume: 0.09667, liquid_heat_capacity: 132.0}
+  - {id: BR2, name: Bromine, formula: Br2, cas: 7726-95-6, molar_mass: 159.808, normal_boiling_point: 331.95, liquid_molar_volume: 0.05119, liquid_heat_capacity: 75.7}
+  - {id: P4, name: "White phosphorus (tetraphosphorus, molten)", formula: P4, cas: 12185-10-3, molar_mass: 123.896, normal_boiling_point: 553.65, liquid_molar_volume: 0.06796, liquid_heat_capacity: 105.3}
+  - {id: PRED, name: Red phosphorus, formula: P, cas: 7723-14-0, molar_mass: 30.974, phase: solid, liquid_molar_volume: 0.01699, liquid_heat_capacity: 23.8}
+templates:
+  - {id: liquor, title: PBr3 liquor (bromine and white phosphorus dissolved), components: [PBR3, BR2, P4]}
+  - {id: still, title: PBr3 with red phosphorus (still charge and residue), components: [PBR3, BR2, P4, PRED]}
+property_method:
+  adapter: thermo
+  status: placeholder

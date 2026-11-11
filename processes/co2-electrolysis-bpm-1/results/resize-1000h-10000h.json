@@ -1,0 +1,1187 @@
+{
+ "durations_h": [
+  1000.0,
+  10000.0
+ ],
+ "errata": [
+  {
+   "correction": "The duties do not run with the rounded 0.670. For a measured cell, core's duty takes the titration's carbon share, 0.6697790 at P200 (the regenerated records' skids.B.carbon_share_duty and measured_state.co_ion_carbon_share); only `cheme process cell` reports the membrane block's 0.670 (DESIGN.md D-010). The same statement is in tests/skid_formulas.py (stated_co_ion_carbon_fraction, hand_values), which compute the hand values at 0.670.",
+   "effect": "The frozen E2 and E3 hand values carry a one-signed bias against the regenerated ones, inside every frozen tolerance: Skid A's exact volume -1.3e-4 relative (1165.15 L against 1165.30 L), the Skid B bleed -3.3e-4 (1.86608 L/h against 1.86670 L/h, a third of E3's rel 1e-3), the dose -2.2e-4 (2.09589 mol/h against 2.09635 mol/h). The values and tolerances stand.",
+   "id": "X-1",
+   "item": "measurements.co_ion_split",
+   "statement": "process/cells.yaml membrane.co_ion_crossover HCO3- 0.670 (the P200 titration mean 0.6698 rounded): the split the duties run with"
+  },
+  {
+   "correction": "Owner decision of 2026-11-06 (DESIGN.md D-058): Skid A's trip I-101 acts at pH 12.2, 0.2 above the criterion pH 12 of D-003, and T-101 is sized to reach the trip value at H, so that the trip has a margin for the probe's error and the campaign still lasts H at the measured WDE. The criterion pH 12 stays the reported stability criterion (process/design-basis.yaml threshold.ph); the sizing and trip value is the new key threshold.trip.ph 12.2, which scripts/regen.py step 3 writes into every duty (D-B and the comparison duties too: I-201 already tripped at 12.2).",
+   "effect": "Skid A's reservoir grows 0.9 % (about 10 L of 1 M KOH) and its tank by 3 mm in diameter and 4 mm in height; the frozen E2, E4 and E10 items below move by less than their frozen tolerance except the E10 Skid A routes (rel 1e-6), which is why the tests compare with the superseding values. E1, E3, E5 to E9 and the other E10 items do not depend on the threshold. inputs.charge_per_carbon_ph12 and inputs.usable_hydroxide_mol_l stay the values at the criterion pH 12 (they are inputs, never compared with a regenerated value).",
+   "id": "X-2",
+   "item": "design.threshold_ph",
+   "statement": "design threshold_ph: 12 (the duties run to the stability criterion pH 12 and T-101 is sized to reach it at H)"
+  }
+ ],
+ "expected": "results/expected.yaml",
+ "issue": 330,
+ "records": [
+  "results/scenarios/1000h/record.json",
+  "results/scenarios/10000h/record.json"
+ ],
+ "rows": [
+  {
+   "cause": "the stacks are sized on the product rate, not the campaign",
+   "changed": false,
+   "label": "cells",
+   "quantity": "cells",
+   "rule": "invariant-of-duration",
+   "rule_holds": true,
+   "skid": "A",
+   "unit": "-",
+   "values": {
+    "1000": {
+     "hand": 28,
+     "status": "pass",
+     "tolerance": "exact",
+     "value": 28
+    },
+    "10000": {
+     "hand": 28,
+     "status": "pass",
+     "tolerance": "exact",
+     "value": 28
+    }
+   }
+  },
+  {
+   "cause": "floor(48 V / U) in series, the cells shared evenly",
+   "changed": false,
+   "label": "stacks on the DC bus",
+   "quantity": "stacks",
+   "rule": "invariant-of-duration",
+   "rule_holds": true,
+   "skid": "A",
+   "unit": "-",
+   "values": {
+    "1000": {
+     "hand": 4,
+     "status": "pass",
+     "tolerance": "exact",
+     "value": 4
+    },
+    "10000": {
+     "hand": 4,
+     "status": "pass",
+     "tolerance": "exact",
+     "value": 4
+    }
+   }
+  },
+  {
+   "cause": "N U I at the measured point",
+   "changed": false,
+   "label": "DC power",
+   "quantity": "dc_power_kw",
+   "rule": "invariant-of-duration",
+   "rule_holds": true,
+   "skid": "A",
+   "unit": "kW",
+   "values": {
+    "1000": {
+     "hand": 3.005427,
+     "status": "pass",
+     "tolerance": {
+      "rel": 1e-06
+     },
+     "value": 3.005426667
+    },
+    "10000": {
+     "hand": 3.005427,
+     "status": "pass",
+     "tolerance": {
+      "rel": 1e-06
+     },
+     "value": 3.005426667
+    }
+   }
+  },
+  {
+   "cause": "N I FE M / (2 F)",
+   "changed": false,
+   "label": "CO formed",
+   "quantity": "co_formed_kg_h",
+   "rule": "invariant-of-duration",
+   "rule_holds": true,
+   "skid": "A",
+   "unit": "kg/h",
+   "values": {
+    "1000": {
+     "hand": 0.1119296,
+     "status": "pass",
+     "tolerance": {
+      "rel": 1e-06
+     },
+     "value": 0.1119296257
+    },
+    "10000": {
+     "hand": 0.1119296,
+     "status": "pass",
+     "tolerance": {
+      "rel": 1e-06
+     },
+     "value": 0.1119296257
+    }
+   }
+  },
+  {
+   "cause": "2 F U / (FE M): U and FE held constant by assumption (D-014)",
+   "changed": false,
+   "label": "electricity per kg CO formed (DC)",
+   "quantity": "kwh_per_kg_formed",
+   "rule": "invariant-of-duration",
+   "rule_holds": true,
+   "skid": "A",
+   "unit": "kWh/kg",
+   "values": {
+    "1000": {
+     "hand": 26.85104,
+     "status": "pass",
+     "tolerance": {
+      "rel": 1e-06
+     },
+     "value": 26.85103829
+    },
+    "10000": {
+     "hand": 26.85104,
+     "status": "pass",
+     "tolerance": {
+      "rel": 1e-06
+     },
+     "value": 26.85103829
+    }
+   }
+  },
+  {
+   "cause": "N I (U - sum FE U_tn)",
+   "changed": false,
+   "label": "stack heat (cooler E-111)",
+   "quantity": "stack_heat_kw",
+   "rule": "invariant-of-duration",
+   "rule_holds": true,
+   "skid": "A",
+   "unit": "kW",
+   "values": {
+    "1000": {
+     "hand": 2.226786,
+     "status": "pass",
+     "tolerance": {
+      "rel": 1e-06
+     },
+     "value": 2.226785845
+    },
+    "10000": {
+     "hand": 2.226786,
+     "status": "pass",
+     "tolerance": {
+      "rel": 1e-06
+     },
+     "value": 2.226785845
+    }
+   }
+  },
+  {
+   "cause": "x 10 for H x 10 (V = N I H (1 - WDE)((1 - Cx) + Cx g) / (F (c0 - Kw / h + h)) at pH 12.2: the one fill carries the campaign's co-ion charge)",
+   "changed": true,
+   "label": "reservoir T-101, exact volume to the horizon",
+   "quantity": "reservoir_volume_exact_l",
+   "rule": "proportional-to-duration",
+   "rule_holds": true,
+   "skid": "A",
+   "unit": "L",
+   "values": {
+    "1000": {
+     "hand": 1175.764,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.01
+     },
+     "value": 1175.610034
+    },
+    "10000": {
+     "hand": 11757.64,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.01
+     },
+     "value": 11756.10034
+    }
+   }
+  },
+  {
+   "cause": "x 10 for H x 10 (the exact volume rounded up to 4 significant figures (reservoir.size: to_horizon))",
+   "changed": true,
+   "label": "reservoir T-101, working volume written",
+   "quantity": "reservoir_volume_l",
+   "rule": "proportional-to-duration",
+   "rule_holds": true,
+   "skid": "A",
+   "unit": "L",
+   "values": {
+    "1000": {
+     "hand": 1176,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.01
+     },
+     "value": 1176.0
+    },
+    "10000": {
+     "hand": 11760,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.01
+     },
+     "value": 11760.0
+    }
+   }
+  },
+  {
+   "cause": "x 2.15413 for H x 10 (D = (4 V (1 + 0.25) / (pi 1.5))^(1/3): the cube root of the volume)",
+   "changed": true,
+   "label": "reservoir T-101 diameter",
+   "quantity": "reservoir_diameter_m",
+   "rule": "proportional-to-duration",
+   "rule_holds": true,
+   "skid": "A",
+   "unit": "m",
+   "values": {
+    "1000": {
+     "hand": 1.077,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.005
+     },
+     "value": 1.077
+    },
+    "10000": {
+     "hand": 2.32,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.005
+     },
+     "value": 2.32
+    }
+   }
+  },
+  {
+   "cause": "x 2.1548 for H x 10 (H = 1.5 D)",
+   "changed": true,
+   "label": "reservoir T-101 height",
+   "quantity": "reservoir_height_m",
+   "rule": "proportional-to-duration",
+   "rule_holds": true,
+   "skid": "A",
+   "unit": "m",
+   "values": {
+    "1000": {
+     "hand": 1.615,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.005
+     },
+     "value": 1.615
+    },
+    "10000": {
+     "hand": 3.48,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.005
+     },
+     "value": 3.48
+    }
+   }
+  },
+  {
+   "cause": "the fill reaches the threshold at the horizon whatever H is",
+   "changed": false,
+   "label": "anolyte carbon at the end",
+   "quantity": "final_carbon_mol_l",
+   "rule": "invariant-of-duration",
+   "rule_holds": true,
+   "skid": "A",
+   "unit": "mol/L",
+   "values": {
+    "1000": {
+     "hand": 0.3968314,
+     "status": "pass",
+     "tolerance": {
+      "abs": 0.005
+     },
+     "value": 0.3967005103
+    },
+    "10000": {
+     "hand": 0.3968314,
+     "status": "pass",
+     "tolerance": {
+      "abs": 0.005
+     },
+     "value": 0.3967005103
+    }
+   }
+  },
+  {
+   "cause": "as the carbon",
+   "changed": false,
+   "label": "anolyte K+ at the end",
+   "quantity": "final_cation_mol_l",
+   "rule": "invariant-of-duration",
+   "rule_holds": true,
+   "skid": "A",
+   "unit": "mol/L",
+   "values": {
+    "1000": {
+     "hand": 0.8045457,
+     "status": "pass",
+     "tolerance": {
+      "abs": 0.005
+     },
+     "value": 0.804414796
+    },
+    "10000": {
+     "hand": 0.8045457,
+     "status": "pass",
+     "tolerance": {
+      "abs": 0.005
+     },
+     "value": 0.804414796
+    }
+   }
+  },
+  {
+   "cause": "the fill and the CO both scale with H",
+   "changed": false,
+   "label": "KOH per kg CO delivered",
+   "quantity": "koh_per_kg_delivered",
+   "rule": "invariant-of-duration",
+   "rule_holds": true,
+   "skid": "A",
+   "unit": "kg/kg",
+   "values": {
+    "1000": {
+     "hand": 0.6549699,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.01
+     },
+     "value": 0.6549698782
+    },
+    "10000": {
+     "hand": 0.6549699,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.01
+     },
+     "value": 0.6549698782
+    }
+   }
+  },
+  {
+   "cause": "V / H is constant (D-011)",
+   "changed": false,
+   "label": "KOH-FILL, campaign-averaged",
+   "quantity": "koh_fill_kg_h",
+   "rule": "invariant-of-duration",
+   "rule_holds": true,
+   "skid": "A",
+   "unit": "kg KOH/h",
+   "values": {
+    "1000": {
+     "hand": null,
+     "status": "n/a",
+     "tolerance": null,
+     "value": 0.06597948
+    },
+    "10000": {
+     "hand": null,
+     "status": "n/a",
+     "tolerance": null,
+     "value": 0.06597948
+    }
+   }
+  },
+  {
+   "cause": "x 10 for H x 10 (constant current over H)",
+   "changed": true,
+   "label": "charge over the campaign",
+   "quantity": "totals_charge_c",
+   "rule": "proportional-to-duration",
+   "rule_holds": true,
+   "skid": "A",
+   "unit": "C",
+   "values": {
+    "1000": {
+     "hand": null,
+     "status": "n/a",
+     "tolerance": null,
+     "value": 2016000000.0
+    },
+    "10000": {
+     "hand": null,
+     "status": "n/a",
+     "tolerance": null,
+     "value": 20160000000.0
+    }
+   }
+  },
+  {
+   "cause": "x 10 for H x 10 (constant output over H)",
+   "changed": true,
+   "label": "CO formed over the campaign",
+   "quantity": "totals_product_kg",
+   "rule": "proportional-to-duration",
+   "rule_holds": true,
+   "skid": "A",
+   "unit": "kg",
+   "values": {
+    "1000": {
+     "hand": null,
+     "status": "n/a",
+     "tolerance": null,
+     "value": 111.9296257
+    },
+    "10000": {
+     "hand": null,
+     "status": "n/a",
+     "tolerance": null,
+     "value": 1119.296257
+    }
+   }
+  },
+  {
+   "cause": "1.950 m at 1000 h, 3.630 m at 10000 h against the envelope top 2.350 m",
+   "changed": true,
+   "label": "highest item on the frame (top above grade)",
+   "quantity": "items_top_m",
+   "rule": "infeasible",
+   "rule_holds": true,
+   "skid": "A",
+   "unit": "m",
+   "values": {
+    "1000": {
+     "hand": null,
+     "status": "n/a",
+     "tolerance": null,
+     "value": 1.95
+    },
+    "10000": {
+     "hand": null,
+     "status": "n/a",
+     "tolerance": null,
+     "value": 3.63
+    }
+   }
+  },
+  {
+   "cause": "T-101 top 3.630 m above grade is above the envelope's 2.350 m (deck 0.15 m + 2.2 m usable height) by 1.280 m; core: T-101 (T-101/ladder-rail-2) and steel SKID-A/DECK/handrail-3 intersect",
+   "changed": true,
+   "label": "skid feasible (duty and envelope)",
+   "quantity": "feasible",
+   "rule": "infeasible",
+   "rule_holds": true,
+   "skid": "A",
+   "unit": "-",
+   "values": {
+    "1000": {
+     "hand": true,
+     "status": "pass",
+     "tolerance": "exact",
+     "value": true
+    },
+    "10000": {
+     "hand": false,
+     "status": "pass",
+     "tolerance": "exact",
+     "value": false
+    }
+   }
+  },
+  {
+   "cause": "the stacks are sized on the product rate, not the campaign",
+   "changed": false,
+   "label": "cells",
+   "quantity": "cells",
+   "rule": "invariant-of-duration",
+   "rule_holds": true,
+   "skid": "B",
+   "unit": "-",
+   "values": {
+    "1000": {
+     "hand": 28,
+     "status": "pass",
+     "tolerance": "exact",
+     "value": 28
+    },
+    "10000": {
+     "hand": 28,
+     "status": "pass",
+     "tolerance": "exact",
+     "value": 28
+    }
+   }
+  },
+  {
+   "cause": "N U I at the measured point",
+   "changed": false,
+   "label": "DC power",
+   "quantity": "dc_power_kw",
+   "rule": "invariant-of-duration",
+   "rule_holds": true,
+   "skid": "B",
+   "unit": "kW",
+   "values": {
+    "1000": {
+     "hand": 3.005427,
+     "status": "pass",
+     "tolerance": {
+      "rel": 1e-06
+     },
+     "value": 3.005426667
+    },
+    "10000": {
+     "hand": 3.005427,
+     "status": "pass",
+     "tolerance": {
+      "rel": 1e-06
+     },
+     "value": 3.005426667
+    }
+   }
+  },
+  {
+   "cause": "2 F U / (FE M): U and FE held constant by assumption (D-014)",
+   "changed": false,
+   "label": "electricity per kg CO formed (DC)",
+   "quantity": "kwh_per_kg_formed",
+   "rule": "invariant-of-duration",
+   "rule_holds": true,
+   "skid": "B",
+   "unit": "kWh/kg",
+   "values": {
+    "1000": {
+     "hand": 26.85104,
+     "status": "pass",
+     "tolerance": {
+      "rel": 1e-06
+     },
+     "value": 26.85103829
+    },
+    "10000": {
+     "hand": 26.85104,
+     "status": "pass",
+     "tolerance": {
+      "rel": 1e-06
+     },
+     "value": 26.85103829
+    }
+   }
+  },
+  {
+   "cause": "b = Cx (1 - WDE) N I / (F C_T) at the carbon setpoint 0.25 mol/L",
+   "changed": false,
+   "label": "bleed rate",
+   "quantity": "bleed_l_h",
+   "rule": "fixed-by-setpoint",
+   "rule_holds": true,
+   "skid": "B",
+   "unit": "L/h",
+   "values": {
+    "1000": {
+     "hand": 1.866695,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.001
+     },
+     "value": 1.8660792
+    },
+    "10000": {
+     "hand": 1.866695,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.001
+     },
+     "value": 1.8660792
+    }
+   }
+  },
+  {
+   "cause": "b [K+] + (1 - Cx)(1 - WDE) N I / F at the setpoints",
+   "changed": false,
+   "label": "KOH dose",
+   "quantity": "dose_mol_h",
+   "rule": "fixed-by-setpoint",
+   "rule_holds": true,
+   "skid": "B",
+   "unit": "mol/h",
+   "values": {
+    "1000": {
+     "hand": 2.096354,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.001
+     },
+     "value": 2.095892542
+    },
+    "10000": {
+     "hand": 2.096354,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.001
+     },
+     "value": 2.095892542
+    }
+   }
+  },
+  {
+   "cause": "the dose over 5 mol/L",
+   "changed": false,
+   "label": "5 M KOH dosed",
+   "quantity": "dose_l_h",
+   "rule": "fixed-by-setpoint",
+   "rule_holds": true,
+   "skid": "B",
+   "unit": "L/h",
+   "values": {
+    "1000": {
+     "hand": 0.4192709,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.001
+     },
+     "value": 0.4191785084
+    },
+    "10000": {
+     "hand": 0.4192709,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.001
+     },
+     "value": 0.4191785084
+    }
+   }
+  },
+  {
+   "cause": "b - dose (constant volume)",
+   "changed": false,
+   "label": "make-up water",
+   "quantity": "makeup_l_h",
+   "rule": "fixed-by-setpoint",
+   "rule_holds": true,
+   "skid": "B",
+   "unit": "L/h",
+   "values": {
+    "1000": {
+     "hand": 1.447424,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.01
+     },
+     "value": 1.446900694
+    },
+    "10000": {
+     "hand": 1.447424,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.01
+     },
+     "value": 1.446900694
+    }
+   }
+  },
+  {
+   "cause": "50 L over the bleed",
+   "changed": false,
+   "label": "residence time V / b",
+   "quantity": "residence_h",
+   "rule": "fixed-by-setpoint",
+   "rule_holds": true,
+   "skid": "B",
+   "unit": "h",
+   "values": {
+    "1000": {
+     "hand": 26.78531,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.001
+     },
+     "value": 26.79414678
+    },
+    "10000": {
+     "hand": 26.78531,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.001
+     },
+     "value": 26.79414678
+    }
+   }
+  },
+  {
+   "cause": "the steady state at 0.5 mol/L OH-",
+   "changed": false,
+   "label": "anolyte pH at the end",
+   "quantity": "final_ph",
+   "rule": "fixed-by-setpoint",
+   "rule_holds": true,
+   "skid": "B",
+   "unit": "-",
+   "values": {
+    "1000": {
+     "hand": 13.69897,
+     "status": "pass",
+     "tolerance": {
+      "abs": 0.001
+     },
+     "value": 13.69897001
+    },
+    "10000": {
+     "hand": 13.69897,
+     "status": "pass",
+     "tolerance": {
+      "abs": 0.001
+     },
+     "value": 13.69897001
+    }
+   }
+  },
+  {
+   "cause": "the setpoints' charge balance",
+   "changed": false,
+   "label": "anolyte K+ at the end",
+   "quantity": "final_cation_mol_l",
+   "rule": "fixed-by-setpoint",
+   "rule_holds": true,
+   "skid": "B",
+   "unit": "mol/L",
+   "values": {
+    "1000": {
+     "hand": 0.9998956,
+     "status": "pass",
+     "tolerance": {
+      "abs": 0.001
+     },
+     "value": 0.999895579
+    },
+    "10000": {
+     "hand": 0.9998956,
+     "status": "pass",
+     "tolerance": {
+      "abs": 0.001
+     },
+     "value": 0.999895579
+    }
+   }
+  },
+  {
+   "cause": "the ASSUMED 50 L hold-up, held by the make-up",
+   "changed": false,
+   "label": "reservoir T-201 working volume",
+   "quantity": "reservoir_volume_l",
+   "rule": "fixed-by-setpoint",
+   "rule_holds": true,
+   "skid": "B",
+   "unit": "L",
+   "values": {
+    "1000": {
+     "hand": null,
+     "status": "n/a",
+     "tolerance": null,
+     "value": 50.0
+    },
+    "10000": {
+     "hand": null,
+     "status": "n/a",
+     "tolerance": null,
+     "value": 50.0
+    }
+   }
+  },
+  {
+   "cause": "sized on the 50 L working volume",
+   "changed": false,
+   "label": "reservoir T-201 diameter",
+   "quantity": "reservoir_diameter_m",
+   "rule": "invariant-of-duration",
+   "rule_holds": true,
+   "skid": "B",
+   "unit": "m",
+   "values": {
+    "1000": {
+     "hand": null,
+     "status": "n/a",
+     "tolerance": null,
+     "value": 0.376
+    },
+    "10000": {
+     "hand": null,
+     "status": "n/a",
+     "tolerance": null,
+     "value": 0.376
+    }
+   }
+  },
+  {
+   "cause": "the dose rate x (1 + 0.5) x 1.22 kg/L",
+   "changed": false,
+   "label": "dosing pump P-202 capacity",
+   "quantity": "dosing_pump_kg_h",
+   "rule": "invariant-of-duration",
+   "rule_holds": true,
+   "skid": "B",
+   "unit": "kg/h",
+   "values": {
+    "1000": {
+     "hand": 0.7672657,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.001
+     },
+     "value": 0.7670966696
+    },
+    "10000": {
+     "hand": 0.7672657,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.001
+     },
+     "value": 0.7670966696
+    }
+   }
+  },
+  {
+   "cause": "sized over the refill interval 168 h (core refill_interval), not the campaign",
+   "changed": false,
+   "label": "day tank T-202 held volume",
+   "quantity": "dosing_tank_held_l",
+   "rule": "invariant-of-duration",
+   "rule_holds": true,
+   "skid": "B",
+   "unit": "L",
+   "values": {
+    "1000": {
+     "hand": 84.52501,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.001
+     },
+     "value": 84.50638721
+    },
+    "10000": {
+     "hand": 84.52501,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.001
+     },
+     "value": 84.50638721
+    }
+   }
+  },
+  {
+   "cause": "as its volume",
+   "changed": false,
+   "label": "day tank T-202 diameter",
+   "quantity": "dosing_tank_diameter_m",
+   "rule": "invariant-of-duration",
+   "rule_holds": true,
+   "skid": "B",
+   "unit": "m",
+   "values": {
+    "1000": {
+     "hand": 0.448,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.005
+     },
+     "value": 0.448
+    },
+    "10000": {
+     "hand": 0.448,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.005
+     },
+     "value": 0.448
+    }
+   }
+  },
+  {
+   "cause": "x 10 for H x 10 (ceil(H / 168 h))",
+   "changed": true,
+   "label": "day tank fills per campaign",
+   "quantity": "dosing_tank_fills",
+   "rule": "proportional-to-duration",
+   "rule_holds": true,
+   "skid": "B",
+   "unit": "-",
+   "values": {
+    "1000": {
+     "hand": 6,
+     "status": "pass",
+     "tolerance": "exact",
+     "value": 6
+    },
+    "10000": {
+     "hand": 60,
+     "status": "pass",
+     "tolerance": "exact",
+     "value": 60
+    }
+   }
+  },
+  {
+   "cause": "x 10 for H x 10 (rate x H)",
+   "changed": true,
+   "label": "5 M KOH dosed over the campaign",
+   "quantity": "dosed_solution_l",
+   "rule": "proportional-to-duration",
+   "rule_holds": true,
+   "skid": "B",
+   "unit": "L",
+   "values": {
+    "1000": {
+     "hand": 419.2709,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.001
+     },
+     "value": 419.178508
+    },
+    "10000": {
+     "hand": 4192.709,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.001
+     },
+     "value": 4191.78508
+    }
+   }
+  },
+  {
+   "cause": "x 10 for H x 10 (rate x H)",
+   "changed": true,
+   "label": "bleed over the campaign",
+   "quantity": "bleed_l",
+   "rule": "proportional-to-duration",
+   "rule_holds": true,
+   "skid": "B",
+   "unit": "L",
+   "values": {
+    "1000": {
+     "hand": 1866.695,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.001
+     },
+     "value": 1866.0792
+    },
+    "10000": {
+     "hand": 18666.95,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.001
+     },
+     "value": 18660.792
+    }
+   }
+  },
+  {
+   "cause": "x 10 for H x 10 (rate x H)",
+   "changed": true,
+   "label": "make-up water over the campaign",
+   "quantity": "makeup_water_l",
+   "rule": "proportional-to-duration",
+   "rule_holds": true,
+   "skid": "B",
+   "unit": "L",
+   "values": {
+    "1000": {
+     "hand": 1447.424,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.01
+     },
+     "value": 1446.90069
+    },
+    "10000": {
+     "hand": 14474.24,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.01
+     },
+     "value": 14469.0069
+    }
+   }
+  },
+  {
+   "cause": "the dose and the CO both scale with H",
+   "changed": false,
+   "label": "KOH dosed per kg CO delivered",
+   "quantity": "koh_dosed_per_kg_delivered",
+   "rule": "invariant-of-duration",
+   "rule_holds": true,
+   "skid": "B",
+   "unit": "kg/kg",
+   "values": {
+    "1000": {
+     "hand": 1.167559,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.01
+     },
+     "value": 1.16730143
+    },
+    "10000": {
+     "hand": 1.167559,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.01
+     },
+     "value": 1.16730143
+    }
+   }
+  },
+  {
+   "cause": "x 0.1 for H x 10 (one fill over H)",
+   "changed": true,
+   "label": "KOH of the 50 L fill per kg CO delivered",
+   "quantity": "koh_fill_per_kg_delivered",
+   "rule": "amortisation",
+   "rule_holds": true,
+   "skid": "B",
+   "unit": "kg/kg",
+   "values": {
+    "1000": {
+     "hand": 0.02784736,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.01
+     },
+     "value": 0.02784735877
+    },
+    "10000": {
+     "hand": 0.002784736,
+     "status": "pass",
+     "tolerance": {
+      "rel": 0.01
+     },
+     "value": 0.002784735877
+    }
+   }
+  },
+  {
+   "cause": "x 0.1 for H x 10 (50 L / H (D-011))",
+   "changed": true,
+   "label": "KOH-FILL, campaign-averaged",
+   "quantity": "koh_fill_kg_h",
+   "rule": "amortisation",
+   "rule_holds": true,
+   "skid": "B",
+   "unit": "kg KOH/h",
+   "values": {
+    "1000": {
+     "hand": null,
+     "status": "n/a",
+     "tolerance": null,
+     "value": 0.00280525
+    },
+    "10000": {
+     "hand": null,
+     "status": "n/a",
+     "tolerance": null,
+     "value": 0.000280525
+    }
+   }
+  },
+  {
+   "cause": "nothing on Skid B grows with H",
+   "changed": false,
+   "label": "skid feasible (duty and envelope)",
+   "quantity": "feasible",
+   "rule": "invariant-of-duration",
+   "rule_holds": true,
+   "skid": "B",
+   "unit": "-",
+   "values": {
+    "1000": {
+     "hand": null,
+     "status": "n/a",
+     "tolerance": null,
+     "value": true
+    },
+    "10000": {
+     "hand": null,
+     "status": "n/a",
+     "tolerance": null,
+     "value": true
+    }
+   }
+  }
+ ],
+ "schema": "process-library/skid-resize/1",
+ "summary": {
+  "feasible": {
+   "A": {
+    "1000": true,
+    "10000": false
+   },
+   "B": {
+    "1000": true,
+    "10000": true
+   }
+  },
+  "hand_checks_failed": 0,
+  "rows": 41,
+  "rules_broken": [],
+  "sentences": [
+   "Skid A cannot meet the 10,000 h duty within the skid envelope"
+  ]
+ },
+ "unchanged_artefacts": {
+  "pid_sha256": {
+   "pid/P-01.xml": {
+    "1000": "a2e7fe8a051f45c9525884b8addadfc8c9b165a39f838246f937e927b0f91a4b",
+    "10000": "a2e7fe8a051f45c9525884b8addadfc8c9b165a39f838246f937e927b0f91a4b",
+    "unchanged": true
+   },
+   "pid/P-02.xml": {
+    "1000": "fdf5cdbb022081dca6ec9a1c9691d67738861b3312212b977b834bb0097e752b",
+    "10000": "fdf5cdbb022081dca6ec9a1c9691d67738861b3312212b977b834bb0097e752b",
+    "unchanged": true
+   }
+  },
+  "stack_dimensions_m": {
+   "A": {
+    "1000": {
+     "height": 0.18,
+     "length": 0.176,
+     "width": 0.18
+    },
+    "10000": {
+     "height": 0.18,
+     "length": 0.176,
+     "width": 0.18
+    },
+    "unchanged": true
+   },
+   "B": {
+    "1000": {
+     "height": 0.18,
+     "length": 0.176,
+     "width": 0.18
+    },
+    "10000": {
+     "height": 0.18,
+     "length": 0.176,
+     "width": 0.18
+    },
+    "unchanged": true
+   }
+  }
+ }
+}

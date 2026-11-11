@@ -1,0 +1,49 @@
+# Benchmarks of CO2 capture and conditioning: for now the conditioning of a high-purity source.
+# Schema: schemas/benchmarks.schema.json; rules: docs/benchmarks.md. Ranges are facts from the cited
+# source, in our own form.
+#
+# Neither KPI has an open reference that states a value independent of the dataset, so both record
+# no_open_reference. The values read are kept in the notes: our own evaluation of the McCollum and
+# Ogden compression model (a modelling step, not a stated figure, docs/benchmarks.md) and NETL's
+# two cases (the dataset's own source).
+schema: cheme-as-code/benchmarks/v1
+family: carbon-capture
+
+kpis:
+  co2-conditioning-specific-electricity:
+    title: Electricity per t of CO2 compressed (and dried) to pipeline pressure
+    unit: kWh/t
+    no_open_reference: >-
+      No open source found (2026-11-05) that states a per-tonne electricity for compressing (and
+      drying) high-purity CO2 to pipeline pressure independently of the dataset. Read: McCollum, D.L.,
+      Ogden, J.M. (2006) UCD-ITS-RR-06-14, section 'Calculation of Compressor & Pump Power
+      Requirements', pp. 2-4, which prints the compressor and pump power equations and a figure of
+      power against flow, but no per-tonne value. Evaluated by us with the parameter values it states
+      (five stages from 0.1 to 7.38 MPa with their Z and k, inlet 40 degC, isentropic efficiency 0.75;
+      pump from 7.38 to 15 MPa, 630 kg/m3, efficiency 0.75), it gives 100.4 kWh/t compression plus 4.5
+      kWh/t pumping, 104.8 kWh/t, without cooling-water power or drying. That is our own model
+      evaluation, so it is not recorded as a range. NETL (2023) DOE/NETL-2023/3907 gives 105.6 kWh/t
+      (ammonia, Exhibits 5-3 and 5-4: 5,860 kW over 55,488 kg/h) and 112.7 kWh/t (ethanol, Exhibits
+      5-22 and 5-23: 1,840 kW over 16,329 kg/h), divided by us; it is the dataset's own source, so it
+      is not a check either. Both are kept as the dataset's uncertainty spread.
+  co2-conditioning-cooling-water-makeup:
+    title: Cooling-water make-up per t of CO2 conditioned
+    unit: kg/t
+    no_open_reference: >-
+      No open source independent of the dataset found (2026-11-05). The only figures read are NETL
+      (2023), DOE/NETL-2023/3907, Exhibits 5-7 and 5-26: water consumable of the ammonia case (46,000
+      gal/d, 130.8 kg/t, the dataset itself) and the ethanol case (17,000 gal/d, 164.2 kg/t). They are
+      the dataset's own source, so they are kept only as its uncertainty spread and not as a check.
+      Read without a per-tonne make-up figure: McCollum and Ogden (2006) UCD-ITS-RR-06-14 (no cooling
+      water), IPCC SRCCS (2005) ch. 3; a web search for open make-up water figures of CO2 compression
+      intercooling found none stated per t of CO2.
+
+datasets:
+  - process: carbon-capture-1
+    dataset: co2-conditioning-ammonia-stripper-vent
+    conditions: {feed: "ammonia stripper vent, 97.09 mol% CO2, 0.16 MPa, 21 degC", delivery: "15.3 MPa, 30 degC, 99.95 mol% CO2", basis: conceptual inventory}
+    kpis:
+      co2-conditioning-specific-electricity:
+        expression: feed:electricity / product:CO2
+        per: product:CO2
+      co2-conditioning-cooling-water-makeup: {expression: resource:water / product:CO2, per: product:CO2}

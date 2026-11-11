@@ -1,0 +1,570 @@
+# Tier 1 form, process-library#313 pilot without a flowsheet. Every amount is the formula of its parameters;
+# core's validator re-checks each. Written from the REF BREF and US EPA AP-42 8.13 (facts in our own form).
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: sulfur-claus-catalytic-oxidation-tgtu
+title: Sulfur from acid gas by the modified Claus process with a catalytic oxidation tail gas unit
+description: Per 1 t of liquid sulfur, gate-to-gate, EU refinery SRUs of the REF BREF data collection. H2S
+  of an amine acid gas in; steam exported as a co-product; tail gas incinerated. Recovery, fuel, electricity,
+  steam and cooling water from the BREF; NOx, CO and hydrocarbons from US EPA AP-42.
+basis: 1000 kg of sulfur
+boundary: 'gate-to-gate: Claus furnace and waste heat boiler, catalytic converters and condensers, selective-oxidation
+  tail gas stage, incinerator, sulfur pit; acid gas, fuel, power and boiler feed water from outside'
+technology: modified Claus (thermal stage and two to three catalytic stages) with a catalytic direct oxidation
+  tail gas unit (SuperClaus type) and thermal incineration; amine-based and sub-dew-point tail gas units and
+  oxygen enrichment are not modelled
+geography:
+  description: EU refinery SRUs of the BREF data collection; NOx, CO and hydrocarbon factors from US source
+    tests. No single site.
+classification:
+  isic: '1920'
+system_boundary:
+  included:
+  - H2S of the acid gas, combustion oxygen (free), fuel, electricity, boiler feed water
+  - sulfur and exported steam (co-product)
+  - SO2 of the unrecovered sulfur, combustion CO2 and water, NOx, CO and hydrocarbons
+  - cooling water as heat rejected
+  excluded:
+  - 'TODO acid gas components other than H2S (CO2, NH3 of sour water stripper gas, hydrocarbons, water): they
+    change the air, the fuel and the stack gas, and their CO2 passes through; not quantified for a generic
+    SRU in the source'
+  - 'TODO COS, CS2 and H2S slip and sulfur vapour or mist in the stack gas: counted as SO2 here'
+  - 'TODO Claus alumina (or titania) catalyst and the selective-oxidation catalyst (iron and chromium oxides
+    on alumina): plant-specific, the source gives no amount'
+  - 'TODO sour water from knock-out drums (Table 4.84: 0.02 m3/h for a 20 000 t/yr SRU, from sour water stripper
+    gas) to the sour water stripper'
+  - 'TODO particulates (Table 3.88: 0.15 kg/t at one site, from limit values, size not stated)'
+  - TODO liquid sulfur degassing and its vent; sulfur storage and loading
+  - TODO boiler blowdown
+  - 'amine-based tail gas units (SCOT type: their quench sour water of about 1 m3/t and Ni/Mo or Co/Mo catalyst,
+    Table 4.88): another configuration, not this dataset'
+  - infrastructure
+  cutoff: none applied; the excluded flows are not quantified
+  infrastructure: excluded
+  catalysts: excluded
+  non_routine: excluded
+location: RER
+year: 2010
+valid_until: 2015
+time:
+  start: 2004
+  description: 'REF BREF data: CONCAWE recovery measurements of 2004-2008 and an installed-base sample of 2007-2008,
+    utilities undated; AP-42 factors from tests of 1996-2011. valid_until is the reference year + 5 (system-model
+    section 6), so it has already lapsed.'
+modelling:
+  principle: attributional
+  multifunctionality: 'two products: sulfur and exported steam, listed unallocated. Default allocation shares
+    give all burdens to the sulfur (see allocation and its deviation).'
+allocation:
+  method: shares
+  coproducts:
+  - sulfur
+  - steam
+  shares:
+    sulfur: 1.0
+    steam: 0.0
+  source: All burdens to the sulfur; the exported steam leaves without a burden and without a credit (conservative
+    for the sulfur), as sulfuric-acid-1 does for its steam (its DESIGN.md D-014).
+  deviation: 'The library hierarchy allocates exported steam by energy or exergy (docs/system-model.md section
+    2). Neither can be computed here: the source states no steam pressure, so the steam''s exergy and enthalpy
+    are unknown, and the registry has no exergy or heating value of sulfur. The steam is a by-product of a
+    unit whose purpose is H2S abatement; shares 1/0 are the conservative choice for the sulfur until the steam
+    state is sourced.'
+uuid: 6a04e227-e89c-5fb8-97f3-c3b963fa80f6
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+technology_level: current
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: s
+  value: 1000.0
+  unit: kg
+  description: Liquid sulfur to the pit (the basis).
+  source: basis
+- name: M_S
+  value: 32.06
+  unit: g/mol
+  description: Molar mass of sulfur.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_H2S
+  value: 34.076
+  unit: g/mol
+  description: Molar mass of hydrogen sulfide.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_SO2
+  value: 64.058
+  unit: g/mol
+  description: Molar mass of sulfur dioxide.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_H2O
+  value: 18.015
+  unit: g/mol
+  description: Molar mass of water.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_O2
+  value: 31.998
+  unit: g/mol
+  description: Molar mass of oxygen.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_CH4
+  value: 16.043
+  unit: g/mol
+  description: Molar mass of methane.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_CO2
+  value: 44.009
+  unit: g/mol
+  description: Molar mass of carbon dioxide.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: eta
+  value: 0.985
+  unit: kg/kg
+  description: 'Sulfur recovery efficiency of the whole chain (Claus and tail gas unit): S to the pit per S
+    in the H2S feed. The median of 26 daily-average data sets of SRUs with a catalytic direct oxidation tail
+    gas unit (SuperClaus type); observed 95.5 to 99.3 %, typical 98 to 99 %.'
+  source: 'EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 4.23.5.2.2, Table 4.89, p. 491
+    (CONCAWE measurements in more than 40 EU refineries, 2004-2008); the same value is the median of the installed
+    base of 47 EU sites (section 3.23.2, p. 216). Choosing this TGTU category as representative is ASSUMED:
+    it is the largest category in Table 4.89 (26 of 61 data sets) and Table 4.103 (5 of 8 SRUs). In Figure
+    3.36 (47 sites) SuperClaus is the most frequent single process (10, our count), but amine-based units
+    together (about 12) are more, and about a third of the sites have no tail gas unit'
+- name: fuel
+  value: 1300.0
+  unit: MJ
+  description: 'Fuel per t sulfur: midpoint of 1000 to 1600 MJ/t. The source does not say which users it
+    covers; line burners and the tail gas incinerator is our reading.'
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 4.23.5.2.1, Table 4.85, p. 485
+    (typical utilities of a 20 000 t/yr SRU, read as per t of sulfur); the midpoint is our choice
+- name: lhv_ng
+  value: 50.01
+  unit: MJ/kg
+  description: LHV of the fuel, taken as methane.
+  source: chemicals/chemicals.yaml methane lhv; natural gas as pure methane is ASSUMED (refinery SRUs also
+    fire refinery fuel gas). TODO a fuel mix
+- name: elec
+  value: 67.5
+  unit: kWh
+  description: 'Electricity per t sulfur: midpoint of 60 to 75 kWh/t (mainly the air blowers and pumps, our
+    reading; the source does not split it).'
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 4.23.5.2.1, Table 4.85, p. 485;
+    the midpoint is our choice
+- name: steam
+  value: 1750.0
+  unit: kg
+  description: 'Steam produced per t sulfur (waste heat boiler and sulfur condensers): midpoint of 1500 to
+    2000 kg/t. The BREF gives no pressure; its flow scheme shows steam raised in the waste heat boiler and the
+    condensers, and AP-42 says the waste heat boiler raises high- to medium-pressure steam. All of it is taken
+    as exported: steam used inside the unit (reheaters, sulfur pit and line heating) is not subtracted (ASSUMED).'
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 4.23.5.2.1, Table 4.85, p. 485,
+    and Figure 4.53, p. 483; US EPA AP-42 section 8.13.2, p. 8.13-1 (pressure level only); the midpoint is our
+    choice. TODO the pressure levels and the internal steam use
+- name: cw
+  value: 10.0
+  unit: m3
+  description: 'Cooling water per t sulfur at a 10 K rise: midpoint of 0 to 20 m3/t.'
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 4.23.5.2.1, Table 4.85, p. 485;
+    the midpoint is our choice
+- name: cp_w
+  value: 4.186
+  unit: kJ/(kg*K)
+  description: Specific heat of cooling water, with 1000 kg/m3.
+  source: 'ASSUMED: liquid water near 25 degC, rounded; the density of 1000 kg/m3 is in the formula'
+- name: dT_cw
+  value: 10.0
+  unit: K
+  description: Temperature rise of the cooling water.
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, Table 4.85, p. 485 (the basis of its cooling-water
+    figure)
+- name: nox
+  value: 0.11
+  unit: kg
+  description: 'NOx (as NO2) per t sulfur from the incinerator: 0.22 lb/ton of sulfur produced.'
+  source: US EPA (2015) AP-42, 5th ed., Vol. I, section 8.13 Sulfur Recovery (4/15), Table 8.13-2, footnote
+    a (factor per sulfur production, for SRUs controlled by a thermal incinerator or oxidiser; US source tests).
+    1 lb/ton = 0.5 kg/t
+- name: co
+  value: 0.65
+  unit: kg
+  description: 'CO per t sulfur from the incinerator: 1.3 lb/ton of sulfur produced.'
+  source: US EPA (2015) AP-42, 5th ed., Vol. I, section 8.13 Sulfur Recovery (4/15), Table 8.13-2, footnote
+    b (as nox). 1 lb/ton = 0.5 kg/t
+- name: thc
+  value: 0.02
+  unit: kg
+  description: 'Total hydrocarbons (as propane) per t sulfur: 0.040 lb/ton of sulfur produced.'
+  source: US EPA (2015) AP-42, 5th ed., Vol. I, section 8.13 Sulfur Recovery (4/15), Table 8.13-2, footnotes
+    c and d (as nox; rated poorly representative). 1 lb/ton = 0.5 kg/t. Counting them as NMVOC is ASSUMED (the
+    measured THC may include methane)
+exchanges:
+- key: product:sulfur
+  title: Sulfur, liquid, to the sulfur pit
+  type: product
+  amount: 1000.0
+  unit: kg
+  formula: s
+  provenance: given
+  source: the reference flow; the dissolved H2S (200 to 500 ppm by weight, REF BREF 4.23.5.2.1, p. 483) is
+    counted as sulfur
+- key: product:steam
+  title: Steam produced, taken as exported (co-product; pressure not stated by the source)
+  type: product
+  amount: 1750.0
+  unit: kg
+  formula: steam
+  provenance: given
+  origin: literature
+  source: 'EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, 4.23.5.2.1, Table 4.85, p. 485 (steam
+    produced; that all of it is exported is ASSUMED). A co-product: it gets no burden and no credit here (see
+    allocation)'
+  pedigree: &id001
+    scores:
+    - 3
+    - 4
+    - 4
+    - 3
+    - 3
+    reason: 'from a value of the REF BREF data collection (EU refinery SRUs, 2004-2012): reliability 3, completeness
+      4, temporal 4 (more than 10 years old), geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.155
+    source: 'steam: range 1500 to 2000 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the
+      amount stays the arithmetic midpoint or the stated value)'
+- key: feed:hydrogen-sulfide
+  title: Hydrogen sulfide in the acid gas (from amine regeneration)
+  type: input
+  amount: 1079.0681178374305
+  unit: kg
+  formula: s / eta * M_H2S / M_S
+  provenance: calculated
+  source: 'sulfur balance with the sourced recovery efficiency: every S atom of the feed leaves as sulfur or
+    as SO2. Only the H2S is counted: CO2, NH3 (sour water stripper gas), water and hydrocarbons of a real acid
+    gas are left out (system_boundary)'
+  pedigree: &id002
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.02
+    source: 'ASSUMED: follows the recovery range 95.5 to 99.3 %: about 1071 to 1113 kg/t'
+- key: feed:O2
+  title: Combustion and reaction oxygen, from ambient air
+  type: input
+  amount: 625.5255555735873
+  unit: kg
+  formula: (s / M_S * 0.5 + s * (1 - eta) / eta / M_S * 1.5 + fuel / lhv_ng / M_CH4 * 2) * M_O2
+  provenance: calculated
+  origin: estimate
+  free: true
+  source: overall Claus reaction H2S + 1/2 O2 -> S + H2O (AP-42 8.13, reaction 1), the lost sulfur burnt to
+    SO2 in the incinerator, complete combustion of the fuel (ASSUMED complete); ambient air is free, its nitrogen
+    and excess oxygen pass through
+- key: feed:natural-gas
+  title: Natural gas (as methane) to the burners and the incinerator
+  type: input
+  amount: 25.994801039792044
+  unit: kg
+  formula: fuel / lhv_ng
+  provenance: calculated
+  origin: literature
+  link:
+    factor: natural-gas
+    source: natural gas, by mass
+  carrier:
+    kind: fuel
+    lhv: 50.01
+    composition: pure methane (ASSUMED)
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, 4.23.5.2.1, Table 4.85, p. 485 (fuel in
+    MJ/t), over the LHV of methane
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.265
+    source: 'fuel: range 1000 to 1600 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the
+      amount stays the arithmetic midpoint or the stated value)'
+- key: feed:boiler-feed-water
+  title: Boiler feed water for the steam raised
+  type: input
+  amount: 1750.0
+  unit: kg
+  formula: steam
+  provenance: assumed
+  origin: estimate
+  link:
+    factor: water
+    source: demineralised boiler feed water, by mass
+  source: ASSUMED equal to the steam produced (blowdown not counted). TODO blowdown
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.155
+    source: 'boiler feed water, as the steam: range 1500 to 2000 read as a 95 % interval, gsd2 = sqrt(high
+      / low) (our convention; the amount stays the arithmetic midpoint or the stated value)'
+- key: feed:electricity
+  title: Electricity
+  type: input
+  amount: 67.5
+  unit: kWh
+  formula: elec
+  provenance: given
+  origin: literature
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, 4.23.5.2.1, Table 4.85, p. 485
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.118
+    source: 'electricity: range 60 to 75 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: output:heat-rejected
+  title: Heat to cooling water
+  type: output
+  amount: 116.27777777777777
+  unit: kWh
+  formula: cw * 1000 * cp_w * dT_cw / 3600
+  provenance: calculated
+  origin: literature
+  link:
+    factor: cooling-water
+    source: site cooling water
+  carrier:
+    kind: cold
+    temperature: 25.0
+    source: 'ASSUMED: the source gives only the 10 K rise; any site cooling water serves'
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, 4.23.5.2.1, Table 4.85, p. 485 (m3/t at
+    a 10 K rise), converted to heat
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: the source range starts at 0 (some SRUs use none)'
+- key: emission:SO2
+  title: SO2 from the incinerator stack (sulfur not recovered)
+  type: emission
+  amount: 30.427402934219185
+  unit: kg
+  formula: s * (1 - eta) / eta * M_SO2 / M_S
+  provenance: calculated
+  origin: literature
+  cas: 7446-09-5
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: fd7aa71c-508c-480d-81a6-8052aad92646
+    name: Sulfur dioxide
+    categories:
+    - air
+    unit: kg
+  source: the sulfur not recovered, all burnt to SO2 in the incinerator (the assumption of AP-42 8.13, Table
+    8.13-1, footnotes a and d); biosphere3 UUID, name and categories from core's elementary-flow crosswalk
+    (data/elementary-flows.yaml)
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.6
+    source: 'ASSUMED: follows the recovery range 95.5 to 99.3 %: about 14 to 94 kg/t'
+- key: emission:H2O
+  title: Water vapour to the stack (reaction and combustion water)
+  type: emission
+  amount: 628.8523886667366
+  unit: kg
+  formula: (s / eta / M_S + fuel / lhv_ng / M_CH4 * 2) * M_H2O
+  provenance: calculated
+  origin: estimate
+  cas: 7732-18-5
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 075e433b-4be4-448e-9510-9a5029c1ce94
+    name: Water
+    categories:
+    - air
+    unit: m3
+    per_unit: 0.001
+  source: the hydrogen of the H2S and of the fuel, as water; that it all leaves with the stack gas is ASSUMED
+    (some condenses in knock-out drums or a quench, see system_boundary); biosphere3 UUID, name and categories
+    from core's elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.1
+    source: 'ASSUMED: follows the recovery and the fuel ranges'
+- key: emission:CO2
+  title: CO2 from fuel combustion
+  type: emission
+  amount: 71.30868284985402
+  unit: kg
+  formula: fuel / lhv_ng / M_CH4 * M_CO2
+  provenance: calculated
+  origin: literature
+  cas: 124-38-9
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 349b29d1-3e58-4c66-98b9-9d1a076efd2e
+    name: Carbon dioxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: complete combustion of the fuel (the carbon of the CO and hydrocarbon factors, about 1.5 % of the fuel
+    carbon, is not subtracted, as those factors are outside the element balance); CO2 carried in with
+    the acid gas is outside the boundary; biosphere3 UUID, name and categories from core's elementary-flow
+    crosswalk (data/elementary-flows.yaml)
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.265
+    source: 'CO2, as the fuel: range 1000 to 1600 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: emission:NOX
+  title: NOx from the incinerator
+  type: emission
+  amount: 0.11
+  unit: kg
+  formula: nox
+  provenance: given
+  origin: literature
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: c1b91234-6f24-417b-8309-46111d09c457
+    name: Nitrogen oxides
+    categories:
+    - air
+    unit: kg
+  source: US EPA (2015) AP-42, 5th ed., Vol. I, section 8.13 Sulfur Recovery (4/15), Table 8.13-2; mass outside
+    the element balance; biosphere3 UUID, name and categories from core's elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree: &id003
+    scores:
+    - 3
+    - 4
+    - 4
+    - 4
+    - 3
+    reason: 'a US EPA emission factor from source tests of US refinery SRU incinerators (1996-2011): reliability
+      3, completeness 4, temporal 4, geographical 4 (US, not EU), technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: an average factor over US source tests, rated moderately representative'
+- key: emission:CO
+  title: CO from the incinerator
+  type: emission
+  amount: 0.65
+  unit: kg
+  formula: co
+  provenance: given
+  origin: literature
+  cas: 630-08-0
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: ba2f3f82-c93a-47a5-822a-37ec97495275
+    name: Carbon monoxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: US EPA (2015) AP-42, 5th ed., Vol. I, section 8.13 Sulfur Recovery (4/15), Table 8.13-2; mass outside
+    the element balance; biosphere3 UUID, name and categories from core's elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree: *id003
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: an average factor over US source tests, rated moderately representative'
+- key: emission:NMVOC
+  title: Hydrocarbons from the incinerator (THC as propane, counted as NMVOC)
+  type: emission
+  amount: 0.02
+  unit: kg
+  formula: thc
+  provenance: given
+  origin: literature
+  source: US EPA (2015) AP-42, 5th ed., Vol. I, section 8.13 Sulfur Recovery (4/15), Table 8.13-2 (rated poorly
+    representative); counting THC as NMVOC is ASSUMED; mass outside the element balance
+  pedigree: *id003
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: a poorly representative factor'
+provenance:
+  generator: hand-written model; amounts are the formulas of the parameters
+  notes: No value from a licensed database and none from a DWSIM file (process-library#313).
+generation:
+  tier: 1
+  method: 'sourced conceptual inventory: REF BREF recovery and utility ranges and US EPA AP-42 incinerator
+    factors with the sulfur, hydrogen and carbon stoichiometry, every choice listed in parameters'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 3
+  - 4
+  - 3
+  - 3
+  - 3
+  dqr_floor: 3.0
+  components:
+    product:sulfur: S
+    product:steam: H2O
+    feed:hydrogen-sulfide: H2S
+    feed:O2: O2
+    feed:natural-gas: CH4
+    feed:boiler-feed-water: H2O
+    emission:SO2: SO2
+    emission:H2O: H2O
+    emission:CO2: CO2
+  formulas:
+    product:sulfur: S
+    product:steam: H2O
+    feed:hydrogen-sulfide: H2S
+    feed:O2: O2
+    feed:natural-gas: CH4
+    feed:boiler-feed-water: H2O
+    emission:SO2: SO2
+    emission:H2O: H2O
+    emission:CO2: CO2
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      C:
+      - 19.46166897
+      - 19.46166897
+      H:
+      - 266.209626176
+      - 266.209626176
+      O:
+      - 2179.688752909
+      - 2179.688752909
+      S:
+      - 1015.228426396
+      - 1015.228426396
+    outside:
+    - emission:CO
+    - emission:NMVOC
+    - emission:NOX
+    - feed:electricity
+    - output:heat-rejected
