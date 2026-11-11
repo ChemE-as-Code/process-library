@@ -59,12 +59,56 @@ checks:
     stage: basic
     kind: validate
   - id: drawing-clean
-    title: No line through a label, crossing, overlapping or misplaced label left unaccepted
+    title: No line through a label or valve, along a pipe or slanted, no crossing, overlapping or
+      misplaced label, no off-page connector off the sheet's edge left unaccepted
     stage: basic
     kind: validate
-    fail_on: warning
+    # info: cheme.line-not-orthogonal (a slanted line) is an info finding
+    fail_on: info
     rules: [cheme.line-through-label, cheme.line-crossing, cheme.label-overlap,
-            cheme.label-far-from-owner]
+            cheme.label-far-from-owner, cheme.line-through-valve, cheme.line-on-pipe,
+            cheme.line-not-orthogonal, cheme.offpage-not-on-edge]
+    accept:
+      - id: "pid/P-102.xml#line-crossing:Line_CA1013_S1_P2+Line_NG1001_S1_P1"
+        reason: "CA-1013 and NG-1001 cross at right angles on P-102: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-102.xml#line-crossing:Line_CA1013_S1_P2+Line_PA1022_S1_P1"
+        reason: "CA-1013 and PA-1022 cross at right angles on P-102: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-102.xml#line-crossing:Line_CA1013_S1_P2+Line_NG1004_P102_S1_P1"
+        reason: "CA-1013 and NG-1004 cross at right angles on P-102: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-102.xml#line-crossing:Line_CA1013_S1_P2+Line_PG1007_S1_P1"
+        reason: "CA-1013 and PG-1007 cross at right angles on P-102: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-103.xml#line-crossing:Line_BW1039_S1_P1+Line_SM1038_S1_P1"
+        reason: "BW-1039 and SM-1038 cross at right angles on P-103: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-104.xml#line-crossing:Line_AM1049_S1_P1+Line_PG1045_S1_P1"
+        reason: "AM-1049 and PG-1045 cross at right angles on P-104: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-104.xml#line-crossing:Line_AM1051_S1_P1+Line_PG1055_S1_P2"
+        reason: "AM-1051 and PG-1055 cross at right angles on P-104: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-105.xml#line-crossing:Line_AM1057_S1_P3+Line_AM1058_S1_P1"
+        reason: "AM-1057 and AM-1058 cross at right angles on P-105: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-105.xml#line-crossing:Line_CWS1063_S1_P1+Line_PG1056_S1_P1"
+        reason: "CWS-1063 and PG-1056 cross at right angles on P-105: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-105.xml#line-crossing:Line_CWR1064_S1_P2+Line_CWS1063_S1_P1"
+        reason: "CWR-1064 and CWS-1063 cross at right angles on P-105: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-106.xml#line-crossing:Line_AM1057_S1_P1+Line_AM1065_S1_P1"
+        reason: "AM-1057 and AM-1065 cross at right angles on P-106: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-106.xml#line-crossing:Line_AM1050_S1_P1+Line_AM1058_S1_P1"
+        reason: "AM-1050 and AM-1058 cross at right angles on P-106: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-106.xml#line-crossing:Line_CO21068_S1_P2+Line_CWR1075_S1_P1"
+        reason: "CO2-1068 and CWR-1075 cross at right angles on P-106: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-106.xml#line-crossing:Line_CWR1075_S1_P1+Line_DW1073_S1_P1"
+        reason: "CWR-1075 and DW-1073 cross at right angles on P-106: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-106.xml#line-crossing:Line_CO21076_S1_P2+Line_CWS1074_S1_P1"
+        reason: "CO2-1076 and CWS-1074 cross at right angles on P-106: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-107.xml#line-crossing:Line_CWS1085_S1_P1+Line_PG1043_S2_P1"
+        reason: "CWS-1085 and PG-1043 cross at right angles on P-107: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-110.xml#line-crossing:Line_PG1093_S1_P1+Line_PG1107_S1_P1"
+        reason: "PG-1093 and PG-1107 cross at right angles on P-110: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-110.xml#line-crossing:Line_AL1117_S1_P1+Line_CWR1116_S1_P1"
+        reason: "AL-1117 and CWR-1116 cross at right angles on P-110: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-111.xml#line-crossing:Line_AG1134_S1_P2+Line_AL1114_S1_P1"
+        reason: "AG-1134 and AL-1114 cross at right angles on P-111: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
+      - id: "pid/P-111.xml#line-crossing:Line_AG1134_S1_P2+Line_AL1129_S1_P1"
+        reason: "AG-1134 and AL-1129 cross at right angles on P-111: the off-page connector is kept on the sheet edge, which costs this crossing (plant owner decision 2026-11-05, P&ID drawing pass)"
     # A sheet kept from the DEXPI reference P&ID (pyDEXPI's sample, e.g. as a worked example)
     # fails this gate by design: the reference has crossings and labels on its lines. Accept
     # its findings here, naming the sheet:
@@ -246,8 +290,6 @@ accept:
   # build/lifting-acceptance-proposal.md (S5b, D-037)
   - id: "layout/plant-model.yaml#layout-lifting:H-101"
     reason: "accepted_by: owner (I-006, 2026-10-30). Lifting plan: the radiant box is field-erected from panels and the catalyst tubes (R-101) and their headers PG-1008, PG-1009 are hung in it afterwards, so the heaviest part (50 t) is never lifted over its own tubes"
-  - id: "layout/plant-model.yaml#layout-lifting:E-104"
-    reason: "accepted_by: owner (I-006, 2026-10-30). Lifting plan: the convection coil module is set before the interconnecting process piping; the PG-1007 spool over E-104 is left out until the module is set"
   - id: "layout/plant-model.yaml#layout-lifting:E-402"
     reason: "accepted_by: owner (I-006, 2026-10-30). Lifting plan: E-402 is set before the process piping of the neighbouring E-401 (PG-1056, PG-1077), or the two spools are removed for the lift"
   - id: "layout/plant-model.yaml#layout-lifting:K-501"

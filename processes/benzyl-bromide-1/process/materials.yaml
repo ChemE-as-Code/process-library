@@ -1,0 +1,81 @@
+# Components and templates of benzyl-bromide-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol (IUPAC 2021
+# abridged standard atomic weights applied to the formula), normal_boiling_point in K at
+# 101.325 kPa. Sources are the register rows of DESIGN.md (SRC-n).
+#
+# The liquid data the semi-batch R101 needs (DESIGN.md D-005):
+# - liquid_molar_volume, m3/kmol, at the 363 K of R101: toluene from COSTALD with its critical
+#   constants (the chemicals 1.5.2 package, SRC-4); bromine, benzyl bromide and benzal bromide
+#   from their densities at room temperature (CRC tables packaged in chemicals, SRC-4: 3102.8,
+#   1438.0 and 1836.5 kg/m3) raised by the COSTALD expansion from 298 to 363 K of bromine
+#   (7.7 %) and of benzyl bromide (5.9 %), the latter also for benzal bromide (ASSUMED). Ideal
+#   mixing.
+# - liquid_heat_capacity, kJ/(kmol K): toluene 157.3 and bromine 75.7 at 298 K (CRC tables in
+#   chemicals, SRC-4; NIST WebBook gives 157 for toluene, SRC-2); benzyl bromide 180 and benzal
+#   bromide 200, ASSUMED (no open measured value found; benzyl chloride's order, raised for the
+#   heavier halogen). The 298 K values are used at 363 K (they rise with temperature, so the
+#   adiabatic rise is not understated).
+# - HBr is vented whole as it forms (batch.vent, core ADR 0054) and never charged or dosed, so
+#   it needs no liquid data.
+# The batch stills ST101 and ST102 (core ADR 0055, Raoult's law): Antoine constants of the NIST
+# WebBook (log10(P/bar) = A - B/(T/K + C), each fitted by NIST to the cited author's data) and
+# heats of vaporization in kJ/kmol (NIST's kJ/mol times 1000) near the stills' temperatures.
+# Benzal bromide has no open vapour-pressure equation: one measured point (429.2 K at 3.1 kPa,
+# NIST WebBook after Weast and Grasselli 1989) and an ASSUMED heat of vaporization of 55 kJ/mol
+# give a two-constant (c = 0) Clausius-Clapeyron line, provenance assumed (D-007).
+schema: cheme/process/v1
+kind: materials
+components:
+  - id: TOL
+    name: Toluene
+    formula: C7H8
+    cas: 108-88-3
+    molar_mass: 92.141
+    normal_boiling_point: 383.8
+    liquid_molar_volume: 0.1156
+    liquid_heat_capacity: 157.3
+    heat_of_vaporization: 35400
+    vapour_pressure: {a: 4.07827, b: 1343.943, c: -53.773, temperature_range: [308.52, 384.66], provenance: given, source: "NIST WebBook (C108883), coefficients fitted by NIST to Willingham, Taylor et al. (1945) (SRC-2)"}
+  - id: BR2
+    name: Bromine
+    formula: Br2
+    cas: 7726-95-6
+    molar_mass: 159.808
+    normal_boiling_point: 331.95
+    liquid_molar_volume: 0.0555
+    liquid_heat_capacity: 75.7
+    heat_of_vaporization: 29800
+    vapour_pressure: {a: 4.70827, b: 1562.264, c: 0.628, temperature_range: [343.0, 383.0], provenance: given, source: "NIST WebBook (C7726956), coefficients fitted by NIST to Blair and Ihle (1973) (SRC-2)"}
+  - id: BNBR
+    name: Benzyl bromide ((bromomethyl)benzene)
+    formula: C7H7Br
+    cas: 100-39-0
+    molar_mass: 171.037
+    normal_boiling_point: 471.7
+    liquid_molar_volume: 0.1259
+    liquid_heat_capacity: 180.0
+    heat_of_vaporization: 48100
+    vapour_pressure: {a: 4.67342, b: 2043.135, c: -34.57, temperature_range: [305.4, 471.7], provenance: given, source: "NIST WebBook (C100390), coefficients fitted by NIST to Stull (1947) (SRC-2)"}
+  - id: BALBR
+    name: Benzal bromide ((dibromomethyl)benzene)
+    formula: C7H6Br2
+    cas: 618-31-5
+    molar_mass: 249.933
+    liquid_molar_volume: 0.1443
+    liquid_heat_capacity: 200.0
+    heat_of_vaporization: 55000
+    vapour_pressure: {a: 5.1853, b: 2873.0, c: 0.0, temperature_range: [320.0, 440.0], provenance: assumed, source: "ASSUMED (D-007): Clausius-Clapeyron through the one measured point, 429.2 K at 3.1 kPa (NIST WebBook C618315, after Weast and Grasselli 1989, SRC-2), with an ASSUMED heat of vaporization of 55 kJ/mol; the range is where the stills use it"}
+  - id: HBR
+    name: Hydrogen bromide
+    formula: HBr
+    cas: 10035-10-6
+    molar_mass: 80.912
+    normal_boiling_point: 206.77
+    ideal_gas: {dHf_298: -36300.0, S_298: 198.7, cp_R: [3.842, -0.003098, 9.17e-06, -1.032e-08, 4.26e-12], temperature_range: [50.0, 1000.0], provenance: given, source: "the chemicals 1.5.2 package (SRC-4; open-source package queried, single values, facts only, ADR 0037): the CRC formation enthalpy and entropy of the gas (CRC_standard_data, from the CRC Handbook of Chemistry and Physics, not read here), Poling's ideal-gas Cp/R polynomial (Cp_data_Poling, from Poling, Prausnitz, O'Connell, The Properties of Gases and Liquids, 5th ed., not read here)"}
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.015, normal_boiling_point: 373.12, liquid_molar_volume: 0.01802, liquid_heat_capacity: 75.3}
+templates:
+  - {id: organics, title: "Toluene, bromine, benzyl bromide and benzal bromide", components: [TOL, BR2, BNBR, BALBR, HBR]}
+  - {id: acid, title: Hydrobromic acid (with the vent's toluene and bromine traces), components: [HBR, H2O, TOL, BR2, BNBR, BALBR]}
+property_method:
+  adapter: thermo
+  status: placeholder

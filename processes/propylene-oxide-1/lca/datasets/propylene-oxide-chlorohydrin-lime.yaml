@@ -1,0 +1,433 @@
+# Tier 0 form, process-library#313 pilot without a flowsheet. Every amount is the formula of its parameters;
+# core's validator re-checks each. Written from the LVOC BREF, ANL/CNSV-9 and US 4,560,451 (facts in our own form).
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: propylene-oxide-chlorohydrin-lime
+title: Propylene oxide by the chlorohydrin process with lime
+description: 'Tier 0 screening estimate per 1 t of propylene oxide, gate-to-gate: hypochlorination of propylene,
+  saponification of the chlorohydrin with milk of lime, steam stripping and distillation. Stoichiometry with a sourced
+  dichloropropane by-product and lime use, effluent from the LVOC BREF, electricity and steam from the IEA''s
+  Western European averages for propylene oxide (route not named, ASSUMED to apply).'
+basis: 1000 kg of propylene oxide
+boundary: 'gate-to-gate: hypochlorination tower, saponifier and stripper, PO distillation; chlorine, lime, steam
+  and power from outside; brine to the site''s wastewater treatment'
+technology: chlorohydrin process with lime (calcium chloride brine); the caustic (cell liquor) variant with brine
+  recycle to chlor-alkali, HPPO, PO/SM and PO/TBA are not modelled
+geography:
+  description: 'Mixed: US process figures of 1976 to 1985 and an EU BREF statement of 2017; no single site.'
+classification:
+  isic: '2011'
+system_boundary:
+  included:
+  - propylene, chlorine and lime
+  - process water
+  - electricity and steam heat (IEA Western European averages for propylene oxide)
+  - 1,2-dichloropropane by-product
+  - calcium chloride to water
+  - unreacted lime
+  - effluent to treatment
+  excluded:
+  - 'TODO COD and AOX of the effluent: the BREF gives only classes (above 10 kg COD/t, above 100 g AOX/t before
+    biological treatment, Table 2.5), lower bounds, not counted'
+  - 'TODO vent gas: unreacted propylene and its inerts are scrubbed with caustic and recycled (ANL 1980, p. 151),
+    the purge is not quantified; caustic for the scrubber not counted'
+  - 'TODO fugitive and vent emissions of propylene, PO and chlorinated organics to air: no open figure read'
+  - 'TODO dichloro-diisopropyl ether as its own by-product: counted as DCP'
+  - 'TODO energy of the chlorohydrin process itself: the electricity and steam are averages for Western European
+    PO of unnamed routes (IEA 2009); no open figure for this route was found'
+  - 'fate of the DCP (sale as solvent or feedstock, or incineration): not stated by the sources, left as an output'
+  - lime grit and sludge handling
+  - infrastructure
+  cutoff: none applied; the excluded flows are not quantified
+  infrastructure: excluded
+  catalysts: excluded
+  non_routine: excluded
+location: GLO
+year: 1985
+valid_until: 1990
+time:
+  start: 1976
+  description: Lime and the older feed figures are US data of 1976 (via ANL 1980), the DCP range a US patent of
+    1985, the effluent an EU BREF statement of 2017. valid_until is the reference year + 5 (system-model section
+    6), so it has long lapsed.
+modelling:
+  principle: attributional
+  multifunctionality: 'single output: no allocation. The dichloropropane is listed as an output whose fate is not
+    stated, not as a co-product; all burdens stay on PO.'
+uuid: b9224296-5a10-54f0-b2e8-59c8056430eb
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+technology_level: current
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: po
+  value: 1000.0
+  unit: kg
+  description: Propylene oxide delivered (the basis).
+  source: basis
+- name: M_PO
+  value: 58.08
+  unit: g/mol
+  description: Molar mass of propylene oxide (C3H6O).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_P
+  value: 42.081
+  unit: g/mol
+  description: Molar mass of propylene (C3H6).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_CL2
+  value: 70.9
+  unit: g/mol
+  description: Molar mass of chlorine (Cl2).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_DCP
+  value: 112.981
+  unit: g/mol
+  description: Molar mass of 1,2-dichloropropane (C3H6Cl2).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_CAO
+  value: 56.077
+  unit: g/mol
+  description: Molar mass of calcium oxide (CaO).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_CACL2
+  value: 110.978
+  unit: g/mol
+  description: Molar mass of calcium chloride (CaCl2).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_CAOH2
+  value: 74.092
+  unit: g/mol
+  description: Molar mass of calcium hydroxide (Ca(OH)2).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_H2O
+  value: 18.015
+  unit: g/mol
+  description: Molar mass of water.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: dcp
+  value: 150.0
+  unit: kg
+  description: '1,2-Dichloropropane formed per t PO: midpoint of 0.1 to 0.2 t/t. All propylene and chlorine not
+    converted to PO is counted as DCP (the chloro ethers are not split off, ASSUMED).'
+  source: Nielsen, K.A. (Union Carbide), US patent 4,560,451 (1985), description of the prior art (range, the conventional
+    lime process); the midpoint and counting the ethers as DCP are our choices. The older figures of ANL (1980)
+    imply far more by-product, see README
+- name: lime
+  value: 1090.0
+  unit: kg
+  description: 'Lime per t PO: 1.09 lb per lb of PO, read as quicklime CaO, slaked to milk of lime on site. It is
+    1.13 times the stoichiometric 1 mol CaO per mol PO; the excess leaves unreacted.'
+  source: Gaines, L.L. and Shen, S.Y. (1980) Energy and materials flows in the production of olefins and their derivatives,
+    Argonne National Laboratory ANL/CNSV-9 (US DOE, OSTI 7013430), Fig. 4.58, p. 154 (whose source is Brownstein
+    1976); reading 'lime' as CaO is ASSUMED (as Ca(OH)2 it would be less than stoichiometric for neutralising both
+    the chlorohydrin and the HCl)
+- name: ww
+  value: 40000.0
+  unit: kg
+  description: 'Waste water per t PO: about 40 t, carrying the chloride salts (counted separately as CaCl2).'
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, section 2.1.2.8, p. 29 (about 40 t of waste
+    water and 2 t of chloride salts per t PO); Nielsen, K.A. (Union Carbide), US patent 4,560,451 (1985), description
+    of the prior art gives 43 t with 2 t CaCl2 (benchmarks/oxygenates.yaml)
+- name: elec_gj
+  value: 1.0
+  unit: GJ
+  description: Electricity per t PO, final energy (Western European average for propylene oxide).
+  source: 'Saygin, D., Patel, M.K., Tam, C., Gielen, D.J. (2009) Chemical and Petrochemical Sector: Potential of
+    best practice technology and other measures for improving energy efficiency. IEA Information Paper, OECD/IEA,
+    Table 13, p. 51 (propylene oxide, 1.0 GJ/t of electricity, "industrial sources"); its best practice, 0.8 GJ/t
+    (Table 1, p. 15), is estimated as 20 % below the average (footnote 2). The paper does not name the route, and
+    the LVOC BREF (2017, section 2.1.2.8) names co-production with styrene, the chlorohydrin process (in one
+    Member State) and epoxidation with hydrogen peroxide, so applying it to the chlorohydrin process is ASSUMED.
+    The only open chlorohydrin figure read, ANL/CNSV-9 Fig. 4.58
+    (p. 154), labels its single process-energy input 18,700 Btu per lb PO "(ELEC)", primary energy at the
+    report''s 33 % generating efficiency (p. 71), about 3,990 kWh/t delivered if read literally; it shows no
+    steam input although the process is steam-heated and steam-stripped (p. 151), so it is taken to cover all
+    utilities and is not used (benchmarks/oxygenates.yaml, out of range, explained)'
+- name: steam_gj
+  value: 18.0
+  unit: GJ
+  description: Steam per t PO, final energy (heat delivered; Western European average for propylene oxide).
+  source: 'Saygin, D., Patel, M.K., Tam, C., Gielen, D.J. (2009) Chemical and Petrochemical Sector: Potential of
+    best practice technology and other measures for improving energy efficiency. IEA Information Paper, OECD/IEA,
+    Table 13, p. 51 (propylene oxide, 18.0 GJ/t of steam, "industrial sources"); best practice 14.2 GJ/t (Table 1,
+    p. 15, estimated as 20 % below the average, footnote 2). Route not named; applying it to the chlorohydrin
+    process is ASSUMED. A first-principles lower bound for this process supports the order of magnitude: heating
+    the 40 t of brine (LVOC BREF) from the hypochlorination tower''s 50 degC (ANL/CNSV-9, p. 150) to atmospheric
+    stripping at 100 degC takes 40 t x 4.18 kJ/(kg K) x 50 K = 8.4 GJ/t, before PO distillation and losses'
+exchanges:
+- key: product:propylene-oxide
+  title: Propylene oxide
+  type: product
+  amount: 1000.0
+  unit: kg
+  formula: po
+  provenance: given
+  source: the reference flow
+- key: feed:propylene
+  title: Propylene
+  type: input
+  amount: 780.404252404467
+  unit: kg
+  formula: (po / M_PO + dcp / M_DCP) * M_P
+  provenance: calculated
+  source: stoichiometry C3H6 + Cl2 + H2O -> C3H7ClO + HCl, C3H7ClO + HCl + CaO -> C3H6O + CaCl2 + H2O, and C3H6
+    + Cl2 -> C3H6Cl2 for the sourced DCP; compare 0.94 t/t of the older US data (ANL 1980, Fig. 4.58; benchmarks/oxygenates.yaml)
+  pedigree: &id001
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.024
+    source: 'propylene, from DCP 0.1 to 0.2 t/t: range 761.8 to 799 read as a 95 % interval, gsd2 = sqrt(high /
+      low) (our convention; the amount stays the arithmetic midpoint or the stated value)'
+- key: feed:chlorine
+  title: Chlorine, gas
+  type: input
+  amount: 1314.8608991106844
+  unit: kg
+  formula: (po / M_PO + dcp / M_DCP) * M_CL2
+  provenance: calculated
+  source: stoichiometry C3H6 + Cl2 + H2O -> C3H7ClO + HCl, C3H7ClO + HCl + CaO -> C3H6O + CaCl2 + H2O, and C3H6
+    + Cl2 -> C3H6Cl2 for the sourced DCP; compare 1.59 t/t of the older US data (ANL 1980, Fig. 4.58; benchmarks/oxygenates.yaml)
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.024
+    source: 'chlorine, from DCP 0.1 to 0.2 t/t: range 1283.5 to 1346.2 read as a 95 % interval, gsd2 = sqrt(high
+      / low) (our convention; the amount stays the arithmetic midpoint or the stated value)'
+- key: feed:lime
+  title: Lime (quicklime), slaked to milk of lime on site
+  type: input
+  amount: 1090.0
+  unit: kg
+  formula: lime
+  provenance: given
+  origin: literature
+  source: Gaines, L.L. and Shen, S.Y. (1980) Energy and materials flows in the production of olefins and their derivatives,
+    Argonne National Laboratory ANL/CNSV-9 (US DOE, OSTI 7013430), Fig. 4.58, p. 154; read as CaO (ASSUMED)
+  pedigree: &id002
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'a US literature figure of 1976 to 1985: reliability 4 (a typical value, not plant data), completeness
+      4, temporal 5 (over 15 years old), geographical 4, technological 4; the Tier 0 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: one figure of 1976 data, and its reading as CaO'
+- key: feed:water
+  title: Water to the process (dilution, milk of lime and stripping steam)
+  type: input
+  amount: 40039.99200682149
+  unit: kg
+  formula: ww + (lime - po / M_PO * M_CAO) * M_H2O / M_CAO
+  provenance: assumed
+  origin: estimate
+  link:
+    factor: water
+    source: process water, by mass
+  source: 'ASSUMED: the effluent water plus the water that slakes the excess lime, so that the water balance closes;
+    the condensed stripping steam is part of it'
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.037
+    source: 'water, taken as the effluent of 40 t (BREF) to 43 t (US 4,560,451): range 40 to 43 read as a 95 % interval,
+      gsd2 = sqrt(high / low) (our convention; the amount stays the arithmetic midpoint or the stated value)'
+- key: feed:electricity
+  title: Electricity
+  type: input
+  amount: 277.77777777777777
+  unit: kWh
+  formula: elec_gj * 1000 / 3.6
+  provenance: given
+  origin: literature
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: 'IEA Information Paper (Saygin et al. 2009), Table 13, p. 51 (Western European average for propylene
+    oxide, 1.0 GJ/t at 3.6 GJ/MWh; "industrial sources", route not named); applying it to the chlorohydrin process
+    is ASSUMED. ANL/CNSV-9''s single figure is not used (see parameter elec_gj)'
+  pedigree: &id004
+    scores:
+    - 4
+    - 4
+    - 4
+    - 3
+    - 4
+    reason: 'a Western European average estimated by the IEA (2009) for propylene oxide of unnamed routes: reliability
+      4, completeness 4, temporal 4, geographical 3, technological 4 (route ASSUMED); the Tier 0 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: an average of routes that may differ from the chlorohydrin process; the paper''s best practice
+      (20 % below) alone would give gsd2 = sqrt(1.0 / 0.8) = 1.12'
+- key: feed:steam
+  title: Steam, as heat delivered
+  type: input
+  amount: 5000.0
+  unit: kWh
+  formula: steam_gj * 1000 / 3.6
+  provenance: given
+  origin: literature
+  source: 'IEA Information Paper (Saygin et al. 2009), Table 13, p. 51 (Western European average for propylene
+    oxide, 18.0 GJ/t at 3.6 GJ/MWh; "industrial sources", route not named); applying it to the chlorohydrin process
+    is ASSUMED. The sensible heat of the brine alone is about 8.4 GJ/t (see parameter steam_gj)'
+  pedigree: *id004
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: an average of routes that may differ from the chlorohydrin process; the brine''s sensible heat
+      (8.4 GJ/t) is a lower bound for this process, and the paper''s best practice is 14.2 GJ/t'
+- key: output:dichloropropane
+  title: 1,2-Dichloropropane, by-product (sold or incinerated; fate not stated)
+  type: output
+  amount: 150.0
+  unit: kg
+  formula: dcp
+  provenance: given
+  origin: literature
+  source: Nielsen, K.A. (Union Carbide), US patent 4,560,451 (1985), description of the prior art (0.1 to 0.2 t/t,
+    midpoint); modelled as C3H6Cl2 with the chloro ethers included (ASSUMED)
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.414
+    source: 'DCP: range 0.1 to 0.2 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: emission:CaCl2
+  title: Calcium chloride, dissolved in the effluent, to surface water
+  type: emission
+  amount: 1910.7782369146003
+  unit: kg
+  formula: po / M_PO * M_CACL2
+  provenance: calculated
+  cas: 10043-52-4
+  flow:
+  - list: biosphere3
+    uuid: cfecebe1-1e13-458d-85bc-d40a9f934927
+    name: Dissolved solids
+    categories:
+    - water
+    - surface water
+  source: stoichiometry, 1 mol CaCl2 per mol PO; compare about 2 t/t (LVOC BREF 2.1.2.8, p. 29; US 4,560,451; benchmarks/oxygenates.yaml).
+    ASSUMED to pass biological treatment unchanged and counted 1:1 as dissolved solids, the flow chlor-alkali-1's
+    NaCl uses (lci/mappings.yaml biosphere NaCl)
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.1
+    source: 'ASSUMED: stoichiometric; the sources'' 2 t/t are rounded'
+- key: output:lime-residue
+  title: Unreacted lime (as Ca(OH)2) with the effluent or as grit; its treatment is not stated
+  type: output
+  amount: 164.47892142204515
+  unit: kg
+  formula: (lime - po / M_PO * M_CAO) * M_CAOH2 / M_CAO
+  provenance: calculated
+  source: the sourced lime less the stoichiometric CaO, as Ca(OH)2 (ASSUMED)
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: a small difference of two figures, so poorly known'
+- key: output:wastewater
+  title: Effluent water to wastewater treatment
+  type: output
+  amount: 40000.0
+  unit: kg
+  formula: ww
+  provenance: given
+  origin: literature
+  link:
+    factor: wastewater
+    source: site wastewater treatment
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, section 2.1.2.8, p. 29 (about 40 t/t); before
+    biological treatment the effluent is in the classes above 10 kg COD/t and above 100 g AOX/t (Table 2.5, p. 67),
+    not quantified here
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 3
+    - 3
+    - 4
+    reason: 'an approximate value of the LVOC BREF (2017) outline, no plant data behind it stated: reliability 4,
+      completeness 4, temporal 3, geographical 3, technological 4 (the Tier 0 floor)'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.037
+    source: 'effluent, 40 t (BREF) to 43 t (US 4,560,451): range 40 to 43 read as a 95 % interval, gsd2 = sqrt(high
+      / low) (our convention; the amount stays the arithmetic midpoint or the stated value)'
+provenance:
+  generator: hand-written model; amounts are the formulas of the parameters
+  notes: No value from a licensed database and none from a DWSIM file (process-library#313).
+generation:
+  tier: 0
+  method: 'Tier 0 stoichiometric screening: stoichiometry with a patent''s DCP range and older US lime use; electricity
+    and steam from the IEA''s Western European averages for propylene oxide (no Tier 1: the energy is not sourced
+    for this route)'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 4
+  - 4
+  - 3
+  - 3
+  - 4
+  dqr_floor: 3.3333
+  components: &id003
+    product:propylene-oxide: C3H6O
+    feed:propylene: C3H6
+    feed:chlorine: Cl2
+    feed:lime: CaO
+    feed:water: H2O
+    output:dichloropropane: C3H6Cl2
+    emission:CaCl2: CaCl2
+    output:lime-residue: CaH2O2
+    output:wastewater: H2O
+  formulas: *id003
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      C:
+      - 668.242352294
+      - 668.242352294
+      Ca:
+      - 779.01849243
+      - 779.01849243
+      Cl:
+      - 1314.860899111
+      - 1314.860899111
+      H:
+      - 4592.907050582
+      - 4592.907050582
+      O:
+      - 35870.228363919
+      - 35870.228363919
+    outside:
+    - feed:electricity
+    - feed:steam

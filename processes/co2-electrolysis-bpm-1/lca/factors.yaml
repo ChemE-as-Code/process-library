@@ -1,0 +1,39 @@
+# The project's characterised factors. Schema: `cheme schema lca_factors`.
+#
+# Open profiles only (DESIGN.md D-026; no ecoinvent or other licensed data):
+# - ember-2025: Ember Yearly Electricity Data, release of 2026-09-15, data year 2025, CC BY 4.0:
+#   life-cycle emissions intensity of gross generation (upstream, supply chain, manufacturing; no
+#   T&D losses), modelled per technology on a mixed GWP basis (upstream methane at GWP 21). The
+#   grid electricity of the baseline (electricity-nl) and of every electricity-mix scenario
+#   (eu27, de, fr, glo): one profile, so the electricity pair of each scenario differs in no
+#   dimension (the scenarios' verdict is still "proxy": the UK water factor in every geography);
+# - desnz-ghg-2026: UK Government GHG Conversion Factors 2026 v1.2 (DESNZ), Open Government
+#   Licence v3.0, GB, GWP100 of AR4/AR5: the water supply below and the UK grid of the
+#   cross-basis scenario desnz-gb.
+# The plant's own CO2 emission is characterised by ipcc2021-gwp100 (AR6). The result mixes
+# vintages and GWP bases (AR4/AR5, AR6, Ember's mixed basis): a screening, partial carbon
+# footprint only (cheme.lca-method-mix). A flow these profiles do not cover is a gap in the
+# results, never 0.
+schema: cheme/lca/v1
+kind: lca_factors
+include: [ember-2025, desnz-ghg-2026]
+categories:
+  # elementary: the packaged method that characterises the plant's own emissions (mapped
+  # elementary: {compartment, origin} in lca/lca.yaml) in this category, by CAS number
+  - {id: climate-change, title: Climate change, unit: kg CO2-eq, method: "GWP100", elementary: ipcc2021-gwp100}
+sources: []
+factors:
+  # The DESNZ water supply factor is per m3; the flowsheet counts water by mass. The same
+  # published number per kg (1 m3 = 1000 kg, the LCI convention for water), a proxy for NL
+  # demineralised water (the demineralisation itself is not counted).
+  - id: water-supply-gb-kg
+    title: Water supply (mains), GB, per kg
+    unit: kg
+    values: {climate-change: 0.0001913}
+    status: PROXY
+    basis: "desnz-ghg-2026:water-supply-gb, 0.1913 kg CO2e per m3 of mains water (DESNZ 2026: 17_404_4005_1_1), over 1000 kg/m3"
+    validity: "UK mains water supply standing for demineralised process water at an NL site: the demineralisation (ion exchange or reverse osmosis) and the NL supply are not represented"
+    source: "DESNZ 2026 flat file v1.2, Water supply, 17_404_4005_1_1, converted to kg"
+    source_id: desnz-ghg-2026
+    year: 2026
+    location: GB

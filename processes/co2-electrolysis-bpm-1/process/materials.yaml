@@ -1,0 +1,50 @@
+# Components and templates of the process. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol,
+# normal_boiling_point in K at 101.325 kPa.
+# The components of the cell reactions (process/reactions.yaml): CO2 -> CO + 1/2 O2 and the
+# hydrogen side reaction H2O -> H2 + 1/2 O2, and the KOH anolyte. Molar masses follow from the
+# formulas (IUPAC standard atomic weights, as core computes them). The ions of the electrode
+# half-reactions (H+, OH-, K+, HCO3-) are written in process/cells.yaml as formula and charge;
+# they are not components. The molar masses are stated (#330: the flowsheet's component
+# balances need them), from the same atomic weights (H 1.008, C 12.011, N 14.007, O 15.999,
+# K 39.098), to 0.001 kg/kmol.
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: CO2, name: Carbon dioxide, formula: CO2, cas: 124-38-9, molar_mass: 44.009}
+  - {id: CO, name: Carbon monoxide, formula: CO, cas: 630-08-0, molar_mass: 28.010}
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.015}
+  - {id: H2, name: Hydrogen, formula: H2, cas: 1333-74-0, molar_mass: 2.016}
+  - {id: O2, name: Oxygen, formula: O2, cas: 7782-44-7, molar_mass: 31.998}
+  - {id: KOH, name: Potassium hydroxide, formula: KOH, cas: 1310-58-3, molar_mass: 56.105}
+  # #330, the pilot skids: the carbon that crosses the bipolar membrane, in the anolyte and in
+  # the cathode condensate. The flowsheet lumps the dissolved inorganic carbon as K2CO3 (the
+  # HCO3- share is below 2.1 % of the carbon at pH >= 12, so the K and C balances are exact
+  # and the speciation is the duty model's, DESIGN.md D-011); KHCO3 is listed for the
+  # bicarbonate the membrane carries (process/cells.yaml co_ion_crossover).
+  - {id: K2CO3, name: Potassium carbonate, formula: K2CO3, cas: 584-08-7, molar_mass: 138.204}
+  - {id: KHCO3, name: Potassium bicarbonate, formula: KHCO3, cas: 298-14-6, molar_mass: 100.114}
+  # air of the tail-gas oxidiser X-x32 (D-012)
+  - {id: N2, name: Nitrogen, formula: N2, cas: 7727-37-9, molar_mass: 28.014}
+# Stream templates of the two skids (process/flowsheet.yaml, #330)
+templates:
+  - {id: co2-feed, title: "CO2 to the cathode (fresh or recycled)", components: [CO2]}
+  - {id: water, title: Water, components: [H2O]}
+  - {id: cathode-gas, title: "Cathode gas (CO, H2, unreacted CO2, water; carbonate condensate)", components: [CO2, CO, H2, H2O, K2CO3]}
+  - {id: condensate, title: "Cathode condensate with the K+ crossed as carbonate", components: [K2CO3, H2O]}
+  - {id: product-co, title: "CO product, dry", components: [CO, H2]}
+  - {id: tail-gas, title: "PSA tail gas", components: [CO, H2, CO2, H2O]}
+  - {id: air, title: Air, components: [N2, O2]}
+  - {id: flue, title: "Oxidiser flue gas", components: [N2, O2, CO2, H2O]}
+  - {id: anolyte, title: "KOH anolyte (carbon lumped as K2CO3), with the anode O2 in the return", components: [KOH, K2CO3, H2O, O2]}
+  - {id: koh-solution, title: "KOH solution", components: [KOH, H2O]}
+  - {id: oxygen, title: "Anode O2 vented from the reservoir, dry (ASSUMED)", components: [O2]}
+# property_method is a placeholder until `cheme process props --fill` records the method: its
+# benchmarked property package, package versions and application range. Packages:
+# air-pr-chemsep (N2/O2/Ar, 77-315 K, vapour 100-3200 kPa(a), liquid and two-phase 100-600
+# kPa(a)) and syngas-pr-vapor (H2/N2/Ar/CH4/CO/CO2 mixtures, NH3 pure or dilute with H2/N2/Ar/
+# CH4, vapour only, in benchmarked temperature-pressure boxes). `cheme process props --coverage` shows which applies
+# to each stream; `package: <id>` here chooses one.
+property_method:
+  adapter: thermo
+  status: placeholder

@@ -240,6 +240,13 @@ def test_invalid_datasets_fail_with_the_reason(library: Path, tmp_path: Path, ch
         assert not (tmp_path / "out" / "lci").exists()
 
 
+def test_a_dataset_without_a_method_is_mass_like_cores_default(library: Path, tmp_path: Path) -> None:
+    # cheme assess lca --write leaves allocation.method out when it is mass (methylamines-1)
+    _edit_dataset(library, lambda d: d.update(allocation={"coproducts": []}))
+    report = _build(library, tmp_path / "out")
+    assert report.errors == [] and not any("differs from the dataset's default" in w for w in report.warnings)
+
+
 def test_substitution_cannot_be_exported_per_co_product(library: Path, tmp_path: Path) -> None:
     (library / "processes" / "fixture-electrolysis" / "lca" / "lca.yaml").unlink()
     _edit_dataset(library, lambda d: d.update(allocation={"method": "substitution"}))

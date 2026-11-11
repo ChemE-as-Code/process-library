@@ -1,0 +1,38 @@
+# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
+# dataset is lca/datasets/*.yaml, Tier 1 form, so maturity stays at concept
+# (core's cheme.lci-tier-maturity). See README.md.
+schema: cheme-as-code/process/v1
+id: polypropylene-1
+title: Polypropylene by Ziegler-Natta polymerisation of propylene, bulk loop and gas phase
+summary: >-
+  Sourced conceptual inventory per tonne of polypropylene resin: the published gate-to-gate data of
+  three US plants (2015-2016, two-thirds bulk loop, one-third gas phase), natural gas combustion by
+  stoichiometry. No flowsheet; not reviewed.
+families: [polyolefins]
+keywords: [polypropylene, PP, polyolefin, Ziegler-Natta, Spheripol, bulk polymerisation, loop reactor, gas phase, Unipol, propylene]
+facets: {feedstock_basis: [fossil], product_classes: [polymers], unit_operations: [reaction, compression, extrusion], region: US}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: propylene, role: feedstock, inventory_key: "feed:propylene"}
+    - {chemical: methane, role: feedstock, inventory_key: "feed:natural-gas", note: "natural gas burnt for process energy, taken as pure methane (ASSUMED)"}
+    - {chemical: air, role: feedstock, note: "combustion air, free; its O2 is feed:O2"}
+  # emission:NOX, CO, N2O, NH3, PM2.5 and NMVOC are not listed: the registry has no slug for them
+  # (as utility-steam-ng-boiler). See the dataset's exchanges.
+  outputs:
+    - {chemical: polypropylene, role: main-product, inventory_key: "product:polypropylene"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2"}
+    - {chemical: water, role: emission, inventory_key: "emission:H2O", note: "combustion water vapour"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity", note: "grid and cogeneration electricity of the source, both supplied as grid (ASSUMED)"}
+    - {chemical: nitrogen/gan-8barg-10ppm, role: utility, inventory_key: "feed:nitrogen", note: "purge and inerting nitrogen, 64 kg/t; the source states no grade, so the gaseous site grade (the Atlas GAN market, not liquid nitrogen) is ASSUMED"}
+basis: {capacity: "per tonne of polypropylene resin (the dataset's basis); no plant size"}
+publication: {status: public, license: CC-BY-4.0}
+references:
+  - {title: "Franklin Associates, a Division of Eastern Research Group (2021) Cradle-to-gate life cycle analysis of polypropylene (PP) resin, final report for the American Chemistry Council Plastics Division, Table 12", url: "https://www.americanchemistry.com/content/download/8063/file/Cradle-to-Gate-Life-Cycle-Analysis-of-Polypropylene-PP-Resin.pdf"}
+  - {title: "European Commission JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers (POL BREF), sections 3.2.5, 3.3.3 and 3.3.5", url: "https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/pol_bref_0807.pdf"}
+  - {title: "Prohaska, T. et al. (2022) Standard atomic weights of the elements 2021 (IUPAC Technical Report), Pure Appl. Chem. 94:573"}
+  - {title: "Saygin, D., Patel, M.K., Tam, C., Gielen, D.J. (2009) Chemical and Petrochemical Sector: Potential of best practice technology and other measures for improving energy efficiency. IEA Information Paper, OECD/IEA, Tables 1 and 13 (benchmark reference only)", url: "https://iea.blob.core.windows.net/assets/c2d071e4-4142-44f1-8a41-88ece29be439/ChemicalandPetrochemicalSector.pdf"}
+  - {title: "Plastics Europe (2026) Eco-profile of Polyolefins: High Density Polyethylene (HDPE), Low Density Polyethylene (LDPE), Linear Low Density Polyethylene (LLDPE), Polypropylene (PP). January 2026, LCA practitioner ifeu Heidelberg, Table 5 (benchmark reference only)", url: "https://plasticseurope.org/wp-content/uploads/2026/03/PE-and-PP.zip"}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/polypropylene-1, access: public}

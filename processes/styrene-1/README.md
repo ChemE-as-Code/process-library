@@ -60,7 +60,7 @@ ageing. The open inputs are listed in DESIGN.md.
 ## Working here
 
 The tools come from [`cheme-as-code`](https://github.com/ChemE-as-Code/core) (the library CI pins
-v1.4.1). Run `cheme skills update` once in this folder after cloning; then `cheme validate`,
+v1.11.0; the concept run of 2026-11-03 used v1.4.1). Run `cheme skills update` once in this folder after cloning; then `cheme validate`,
 `cheme process build`, `cheme process streams`, `cheme process simulate --check` (needs the
 DWSIM container) and `cheme run scripts/sm_balance.py`. Data and designs are under CC BY 4.0
 (`LICENSE-DATA`), scripts under AGPL-3.0-or-later.

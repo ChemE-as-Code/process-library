@@ -12,8 +12,9 @@ basis: 1 h of operation
 location: GLO
 year: 2026
 boundary: gate-to-gate foreground of the plant
-technology: thermal toluene hydrodealkylation, adiabatic reactor 895-937 K / 3.4 MPa, H2 recycle with
-  purge, stabiliser, benzene and vacuum toluene columns; 100 kt/a benzene, concept design
+technology: thermal toluene hydrodealkylation, adiabatic reactor 895-936 K / 3.4 MPa, H2 recycle with
+  purge and purge hydrogen recovery by PSA, stabiliser, benzene and vacuum toluene columns; 100 kt/a benzene,
+  concept design
 rights: 'CC-BY-4.0: the ChemE-as-Code process library''s own concept design (LICENSE-DATA)'
 cutoff:
 - key: cutoff:c203-vacuum-power
@@ -24,13 +25,17 @@ cutoff:
     sized; D-008, I-08); not in the flowsheet's power feed
   source: D-008
 - key: cutoff:small-pumps-power
-  title: P-102, reflux and distillate pumps power
+  title: reflux and distillate pumps power
   amount: 15.0
   unit: kWh
-  reason: quench pump P-102 (below 1 kW) and the reflux and distillate pumps of C-201, C-202 and C-203,
-    each below about 5 kW, together about 15 kW x 8000 h/a (ASSUMED upper estimate; D-008, D-010); not
-    in the flowsheet's power feed
-  source: D-008, D-010
+  reason: 'the reflux, distillate and recycle pumps P-201A/B, P-202A/B, P-203A/B and the biphenyl bottoms
+    pump P-204A/B: running pumps 0.03 + 8.5 + 1.42 + 0.07 = about 10 kW shaft (scripts/s4_pump_powers.py,
+    D-026), about 11 kW electric at a motor efficiency of 0.9 ASSUMED, about 90 MWh/a at 8000 h/a; 120000
+    kWh/a kept as an upper estimate (D-008, D-010, D-026). Not in the flowsheet''s power feed, and so
+    not in the TEA power cost either: about 2 % of the plant power feed (564.8 kWh/h, about 4.5 GWh/a),
+    left out of both (D-026). The quench pump P-102 is no longer in this cut-off: since S2 it is a flowsheet
+    step with its power Q12 in feed:POWER (D-022)'
+  source: D-008, D-010, D-022, D-026
 - key: emission-excluded:heater-combustion
   title: combustion emissions of H-101
   direction: output
@@ -90,46 +95,50 @@ exchanges:
 - key: feed:TOLF
   title: Fresh toluene
   type: input
-  amount: 15518.29
+  amount: 15427.21
   unit: kg
+  provenance: given
   link:
-    source: fresh toluene S1 (design basis D-003)
+    source: fresh toluene S1 (design basis D-003; composition from the BPCL toluene data sheet, D-020)
     missing: 'no background chosen yet: toluene, liquid, market for (aromatics extraction from catalytic
       reformate or pyrolysis gasoline at a refinery or steam cracker), delivered to the plant'
   streams:
   - S1
-  source: fresh toluene S1 (design basis D-003)
+  source: fresh toluene S1 (design basis D-003; composition from the BPCL toluene data sheet, D-020)
   pedigree:
-    scores: [4, 4, 1, 3, 3]
-    rule: cheme default pedigree v1 (assumed, design maturity concept)
+    scores: [3, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (given, design maturity concept)
   basic_uncertainty: 1.05
   composition:
     fractions:
-      TOL: 1.0
+      TOL: 0.999499999
+      BZ: 0.000500001
     formulas:
       TOL: C7H8
+      BZ: C6H6
     source: stream table (S1)
 - key: feed:H2MU
-  title: Make-up hydrogen (95 mol% H2)
+  title: Make-up hydrogen (PSA grade, 99.9 mol% H2)
   type: input
-  amount: 815.73
+  amount: 392.63
   unit: kg
+  provenance: given
   link:
-    source: make-up hydrogen S4 (design basis D-003)
-    missing: 'no background chosen yet: hydrogen 95 mol% with 5 mol% methane at 3.7 MPa, e.g. from steam
-      methane reforming (PSA-free reformer gas) or a refinery hydrogen network; a two-component feed:
-      link a hydrogen activity per kg H2 and count the CH4 with it, or split it'
+    source: make-up hydrogen S4 (D-003, D-020), reduced by the PSA hydrogen returned to the loop (D-024)
+    missing: 'no background chosen yet: hydrogen of PSA grade (99.9 mol%, the rest taken as methane) at
+      3.7 MPa, e.g. from steam methane reforming with PSA or a refinery hydrogen network; a two-component
+      feed: link a hydrogen activity per kg H2 and count the CH4 with it, or split it'
   streams:
   - S4
-  source: make-up hydrogen S4 (design basis D-003)
+  source: make-up hydrogen S4 (D-003, D-020), reduced by the PSA hydrogen returned to the loop (D-024)
   pedigree:
-    scores: [4, 4, 1, 3, 3]
-    rule: cheme default pedigree v1 (assumed, design maturity concept)
+    scores: [3, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (given, design maturity concept)
   basic_uncertainty: 1.05
   composition:
     fractions:
-      H2: 0.704806962
-      CH4: 0.295193038
+      H2: 0.992097249
+      CH4: 0.007902751
     formulas:
       H2: H2
       CH4: CH4
@@ -137,18 +146,22 @@ exchanges:
 - key: feed:POWER
   title: Electric power
   type: input
-  amount: 266.1991
+  amount: 564.838492
   unit: kWh
   provenance: calculated
   origin: simulated
   link:
-    source: recycle compressor K-101 and toluene pump P-101 (Q1, Q2; D-010)
+    source: recycle compressor K-101, toluene pump P-101, quench pump P-102 and tail-gas compressor K-102
+      (Q1, Q2; D-010; Q12, D-022; Q13, D-024)
     missing: 'no background chosen yet: electricity, medium voltage, market for the site''s grid (site
       not chosen)'
   streams:
   - Q1
   - Q2
-  source: recycle compressor K-101 and toluene pump P-101 (Q1, Q2; D-010)
+  - Q12
+  - Q13
+  source: recycle compressor K-101, toluene pump P-101, quench pump P-102 and tail-gas compressor K-102
+    (Q1, Q2; D-010; Q12, D-022; Q13, D-024)
   pedigree:
     scores: [3, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (simulated, design maturity concept)
@@ -159,7 +172,7 @@ exchanges:
 - key: feed:FUEL
   title: Fired heat from natural gas (feed heater)
   type: input
-  amount: 2914.64
+  amount: 3042.17
   unit: kWh
   provenance: calculated
   origin: simulated
@@ -182,7 +195,7 @@ exchanges:
 - key: feed:MPS
   title: MP steam 1500 kPa(a)
   type: input
-  amount: 1431.4
+  amount: 1424.87
   unit: kWh
   link:
     source: stabiliser reboiler Q5 (D-010)
@@ -204,7 +217,7 @@ exchanges:
 - key: feed:LPS
   title: LP steam 450 kPa(a)
   type: input
-  amount: 3481.76
+  amount: 3484.97
   unit: kWh
   provenance: calculated
   origin: simulated
@@ -228,7 +241,7 @@ exchanges:
 - key: feed:HPS
   title: HP steam 4200 kPa(a)
   type: input
-  amount: 649.226
+  amount: 638.478
   unit: kWh
   provenance: calculated
   origin: simulated
@@ -277,7 +290,7 @@ exchanges:
 - key: product:DIPHENYL
   title: Biphenyl (diphenyl) by-product
   type: product
-  amount: 401.05
+  amount: 352.0
   unit: kg
   provenance: calculated
   origin: simulated
@@ -289,17 +302,17 @@ exchanges:
   basic_uncertainty: 1.05
   state:
     pressure: 0.45
-    temperature: 199.926
-    purity: 0.979417
+    temperature: 183.828
+    purity: 0.952233
     basis: mole
     component: BIPH
   composition:
     fractions:
       H2: 0.0
       CH4: 0.0
-      TOL: 0.012399672
-      BZ: 7.79e-07
-      BIPH: 0.987599549
+      TOL: 0.02909769
+      BZ: 1.632e-06
+      BIPH: 0.970900678
     formulas:
       H2: H2
       CH4: CH4
@@ -308,41 +321,43 @@ exchanges:
       BIPH: C12H10
     source: stream table (S24)
 - key: product:FUELGAS
-  title: Purge gas and stabiliser off-gas to the fuel gas header
+  title: PSA tail gas and stabiliser off-gas to the fuel gas header
   type: product
-  amount: 3432.7
+  amount: 2968.08
   unit: kg
   provenance: calculated
+  origin: simulated
   streams:
-  - S13
+  - S34
   - S19
   pedigree:
     scores: [3, 4, 1, 3, 3]
-    rule: cheme default pedigree v1 (calculated, design maturity concept)
+    rule: cheme default pedigree v1 (simulated, design maturity concept)
   basic_uncertainty: 1.05
   state:
     temperature: 40.0
   composition:
     fractions:
-      H2: 0.070411954
-      CH4: 0.854681902
-      TOL: 0.008808131
-      BZ: 0.066095095
-      BIPH: 2.918e-06
+      H2: 0.019460575
+      CH4: 0.902478543
+      TOL: 0.009019205
+      BZ: 0.069039066
+      BIPH: 2.611e-06
     formulas:
       H2: H2
       CH4: CH4
       TOL: C7H8
       BZ: C6H6
       BIPH: C12H10
-    source: stream table (S13, S19)
+    source: stream table (S34, S19)
 - key: product:CW
   title: Cooling water return
   type: output
-  amount: 10041.136999999999
+  amount: 10777.369
   unit: kWh
   link:
-    source: heat to cooling water Q4, Q6, Q8, Q10 (D-010)
+    source: heat to cooling water Q4, Q6, Q8, Q10 (D-010), the product cooler E-207, Q11 (D-022), and
+      the tail-gas aftercooler E-103, Q14 (D-024)
     missing: 'no background chosen yet: cooling water circulation per MJ rejected (pump and fan electricity,
       make-up water withdrawal and evaporation, blowdown, treatment chemicals)'
   streams:
@@ -350,7 +365,10 @@ exchanges:
   - Q6
   - Q8
   - Q10
-  source: heat to cooling water Q4, Q6, Q8, Q10 (D-010)
+  - Q14
+  - Q11
+  source: heat to cooling water Q4, Q6, Q8, Q10 (D-010), the product cooler E-207, Q11 (D-022), and the
+    tail-gas aftercooler E-103, Q14 (D-024)
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -370,14 +388,17 @@ allocation:
       energy: 40580.0
       source: LHV of S21 (99.9 mol% benzene, 0.1 % toluene) from formation enthalpies, gas basis (D-013)
     DIPHENYL:
-      energy: 39650.0
-      source: LHV of S24 (98 mol% biphenyl, 2 % toluene) from formation enthalpies, gas basis (D-013)
+      energy: 39680.0
+      source: 'LHV of S24 (95.2 mol% biphenyl, 4.8 % toluene, simulated, D-024: 39676 kJ/kg) from formation
+        enthalpies, gas basis (D-013)'
     FUELGAS:
-      energy: 54250.0
-      source: LHV of S13 + S19 (H2, CH4, benzene, toluene; mass-weighted) from formation enthalpies (D-013)
+      energy: 50660.0
+      source: 'LHV of S34 + S19 (PSA tail gas and stabiliser off-gas: H2, CH4, benzene, toluene; mass-weighted)
+        from formation enthalpies, simulated streams of D-024 (D-013); 54230 before the PSA took out the
+        hydrogen'
   substitution:
     FUELGAS:
-      source: purge and stabiliser off-gas burned in the site fuel gas header (D-009)
+      source: PSA tail gas and stabiliser off-gas burned in the site fuel gas header (D-009, D-024)
       missing: 'no background chosen yet: heat from natural gas in an industrial furnace, per MJ LHV of
         the fuel gas (site fuel system), market for the site''s region'
     DIPHENYL:
@@ -401,9 +422,10 @@ provenance:
   plant: Toluene hydrodealkylation to benzene (100 kt/a, thermal HDA)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:f48db77271d5ba4269334775b0c880dac66ddca00c35f02a60cccec7fef8ddd5
-    lca/lca.yaml: sha256:8e7e4214e9c394e93ccc142af4e3141fe03f67cd89c9ee4bec37b07970517b60
-    process.yaml: sha256:b649564c5ea66a9c6a09c3eb786f3c509e7a5487a3623729939fe79d4ef4fa53
-    process/flowsheet.yaml: sha256:ae2b60110e0a87d2220a813764d76c76dabfbc47002dcbeefb4b3ecca287044e
+    equipment/equipment-list.yaml: sha256:33976a9555e7d1ceb29655ba4a9516ee6b89692d27d7e792e20e138d1ab89b49
+    estimate/mto.csv: sha256:62a6401edc890bb8c883de7da7f9f669640a6c9bf88cf8e7d4d5ffce43171a98
+    lca/lca.yaml: sha256:50cd0d7c5ee3cc2d054fffdbe508ba0ab73c869804b2449ed35005b045b837fa
+    process.yaml: sha256:ac9dfd1620eef0aedf5e73bf7ed08d593bdbfdb500315346e32e0e7901fd59dd
+    process/flowsheet.yaml: sha256:8869c64bdfb2bd39c2a4238c9f16c489c1b736dc45cb5a75802718853fce23c5
     process/materials.yaml: sha256:ec966479da5a421c8457b263acbffb87125349725c69d2073a1f027849a27a43
-    process/simulation.yaml: sha256:60b7b26327cc671513ad1f43a206b5f35eabb6475d5a47857ea8e260f9930865
+    process/simulation.yaml: sha256:e19a4504e205a1b5519fe6d98e4c7f8d0ee6a1b7b053fb5d9e1e4177f3e58efe

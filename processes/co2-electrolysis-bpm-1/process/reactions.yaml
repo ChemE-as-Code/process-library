@@ -1,0 +1,63 @@
+# The overall reactions of the bench cell (`cheme schema process-reactions`): CO2 reduction to
+# CO at the Ag cathode with oxygen evolution at the Ni anode (n = 2), and the competing hydrogen
+# evolution (n = 2). Heats of reaction at 298.15 K from the CODATA Key Values for
+# Thermodynamics (Cox, Wagman, Medvedev, Hemisphere, New York, 1989; the same values in the NIST
+# Chemistry WebBook), kJ/mol: dfH(CO2, g) = -393.51 +- 0.13, dfH(CO, g) = -110.53 +- 0.17,
+# dfH(H2O, l) = -285.830 +- 0.040; H2 and O2 are reference states. Water is liquid: the cell's
+# water comes from the humidified feed and the anolyte, and the thermoneutral voltage on the
+# liquid basis is the one the measurement's heat uses (experiments/electrochemistry/).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: CO2R
+    title: CO2 reduction to CO with oxygen evolution
+    equation: CO2 -> CO + 1/2 O2
+    stoichiometry: {CO2: -1, CO: 1, O2: 0.5}
+    heat_of_reaction:
+      value: 282980
+      temperature: 298.15
+      provenance: given
+      source: "CODATA Key Values (Cox, Wagman, Medvedev 1989): dfH(CO, g) - dfH(CO2, g) = -110.53 + 393.51 kJ/mol (+- 0.21 kJ/mol)"
+    sources: ["Cox, Wagman, Medvedev, CODATA Key Values for Thermodynamics, Hemisphere, New York (1989)"]
+  # #330: the co-ion leak of the bipolar membrane as an overall reaction, so that the stack's
+  # element balances close. The carbon that crosses to the anolyte (share Cx of the co-ion
+  # current) takes two KOH there; the K+ that crosses to the cathode (share 1 - Cx) meets CO2
+  # there. Both are written as carbonate (the flowsheet lumps the carbon as K2CO3, materials).
+  # Its extent per hour is set by the measured WDE and carbon share (scripts/skid_balance.py),
+  # not by a conversion. No heat of reaction is given: the stack heat is the cell report's.
+  - id: CARB
+    title: Carbonation of the hydroxide by the CO2 that crosses the membrane
+    equation: CO2 + 2 KOH -> K2CO3 + H2O
+    stoichiometry: {CO2: -1, KOH: -2, K2CO3: 1, H2O: 1}
+    sources: ["Prats Vergel et al., Nat. Chem. Eng. (2025), doi:10.1038/s44286-025-00306-7 (co-ion crossover of a reverse-bias BPM); DESIGN.md D-006"]
+  # #330: the tail-gas oxidiser X-x32 (DESIGN.md D-012): no CO or H2 is vented.
+  - id: COX
+    title: CO oxidation in the tail-gas oxidiser
+    equation: CO + 1/2 O2 -> CO2
+    stoichiometry: {CO: -1, O2: -0.5, CO2: 1}
+    heat_of_reaction:
+      value: -282980
+      temperature: 298.15
+      provenance: given
+      source: "CODATA Key Values (Cox, Wagman, Medvedev 1989): dfH(CO2, g) - dfH(CO, g) = -393.51 + 110.53 kJ/mol"
+    sources: ["Cox, Wagman, Medvedev, CODATA Key Values for Thermodynamics, Hemisphere, New York (1989)"]
+  - id: HOX
+    title: H2 oxidation in the tail-gas oxidiser (liquid water basis, as WS)
+    equation: H2 + 1/2 O2 -> H2O
+    stoichiometry: {H2: -1, O2: -0.5, H2O: 1}
+    heat_of_reaction:
+      value: -285830
+      temperature: 298.15
+      provenance: given
+      source: "CODATA Key Values (Cox, Wagman, Medvedev 1989): dfH(H2O, l) = -285.830 kJ/mol"
+    sources: ["Cox, Wagman, Medvedev, CODATA Key Values for Thermodynamics, Hemisphere, New York (1989)"]
+  - id: WS
+    title: Water splitting (hydrogen evolution at the cathode, oxygen at the anode)
+    equation: H2O(l) -> H2 + 1/2 O2
+    stoichiometry: {H2O: -1, H2: 1, O2: 0.5}
+    heat_of_reaction:
+      value: 285830
+      temperature: 298.15
+      provenance: given
+      source: "CODATA Key Values (Cox, Wagman, Medvedev 1989): dfH(H2O, l) = -285.830 +- 0.040 kJ/mol"
+    sources: ["Cox, Wagman, Medvedev, CODATA Key Values for Thermodynamics, Hemisphere, New York (1989)"]

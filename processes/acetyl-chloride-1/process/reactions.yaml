@@ -1,0 +1,67 @@
+# Reactions of acetyl-chloride-1. Schema cheme/reactions/v1 (`cheme schema process-reactions`).
+#
+# The route is the classic one of CS 272 248 B2 (Nitrokemia, 1991), Example 1 (DESIGN.md D-001):
+# phosphorus trichloride dosed into acetic acid at 1 mol per 3 mol below 40 C, held 30 min at
+# 40-50 C; the mixture settles into an upper acetyl chloride phase and a lower phosphorous acid
+# phase. Both reactions run in R101, a semi-batch at 313.15 K (D-005).
+# - ACCL: 3 CH3COOH + PCl3 -> 3 CH3COCl + H3PO3, the main reaction.
+# - HYD: the water the acetic acid brings (691 ppm by mass in acetic-acid-1's product)
+#   hydrolyses phosphorus trichloride; its HCl leaves by R101's vent (core ADR 0054).
+# - AHYD: in the scrubber A101 (a conversion step), the acetyl chloride vapour that passes the
+#   vent condenser is hydrolysed by the scrubber water (D-010).
+# No open kinetics or calorimetry of either was found (searched 2026-11-05): the rate laws are
+# ASSUMED. The heats of reaction are derived from the standard formation enthalpies of the CRC
+# Handbook as packaged in the chemicals 1.5.2 package (CRC_standard_data; SRC-4): acetic acid
+# (l) -484.3, acetyl chloride (l) -272.9, phosphorus trichloride (l) -319.7, phosphorous acid
+# (crystal) -964.4, water (l) -285.8 and hydrogen chloride (g) -92.3 kJ/mol, at 298 K and used
+# at 313 K (D-005).
+# Side reactions not modelled (D-005): the acylation of phosphorous acid by acetyl chloride to
+# phosphonic acids with two P atoms (US 4 060 546 A), the equilibrium of acetyl chloride and
+# acetic acid with acetic anhydride and HCl, and the mixed P-Cl / P-O-acetyl intermediates.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: ACCL
+    title: Acetic acid and phosphorus trichloride to acetyl chloride and phosphorous acid
+    equation: 3 C2H4O2 + PCl3 -> 3 C2H3ClO + H3PO3
+    stoichiometry: {ACOH: -3, PCL3: -1, ACCL: 3, H3PO3: 1}
+    phase: liquid
+    heat_of_reaction: {value: -10500, provenance: assumed, source: "derived from the CRC standard formation enthalpies packaged in chemicals 1.5.2 (3 x -272.9 - 964.4 + 3 x 484.3 + 319.7 = -10.5 kJ per mol PCl3) with phosphorous acid as the crystal; as a liquid (fusion 12.8 kJ/mol, chemicals 1.5.2) it is +2.3 kJ/mol, so the sign is uncertain and the exothermic bound is taken; no heat of mixing or solution in the two liquid phases (D-005)"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # second order (first in each reactant): k = 5.5e-4 m3/(kmol s) at 313.15 K, Ea 50 kJ/mol:
+      # A = 5.5e-4 x exp(50000 / (8.314 x 313.15))
+      k: {A: 1.2046e5, Ea: 50000}
+      orders: {ACOH: 1, PCL3: 1}
+      temperature_range: [293.15, 323.15]
+      provenance: assumed
+      source: "ASSUMED effective rate (D-005): no open kinetics found (2026-11-05); k sized so that the post-reaction after the dosing reaches the target conversion of PCl3 in about the 30 min hold of CS 272 248 B2, Example 1; to be replaced by reaction calorimetry"
+    sources: ["CS 272 248 B2 (Nitrokemia, 1991), Example 1: 1.0 mol PCl3 added to 3 mol acetic acid below 40 C, 30 min at 40-50 C, two phases settle", "US 4 060 546 A (Henkel), background: PCl3 and anhydrous acetic acid in a 1:3 ratio"]
+  - id: HYD
+    title: Hydrolysis of phosphorus trichloride by the water of the acetic acid
+    equation: PCl3 + 3 H2O -> H3PO3 + 3 HCl
+    stoichiometry: {PCL3: -1, H2O: -3, H3PO3: 1, HCL: 3}
+    phase: liquid
+    heat_of_reaction: {value: -64200, provenance: assumed, source: "derived from the CRC standard formation enthalpies packaged in chemicals 1.5.2 (-964.4 + 3 x -92.3 + 319.7 + 3 x 285.8 = -64.2 kJ per mol PCl3), HCl formed as a gas (core ADR 0054), phosphorous acid as the crystal (D-005)"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # second order: k = 0.1 m3/(kmol s) at 313.15 K, Ea 40 kJ/mol: fast, the water is used up
+      # as the PCl3 arrives
+      k: {A: 4.71e5, Ea: 40000}
+      orders: {PCL3: 1, H2O: 1}
+      temperature_range: [293.15, 323.15]
+      provenance: assumed
+      source: "ASSUMED fast effective rate (D-005): phosphorus trichloride reacts violently with water; no open kinetics in acetic acid"
+    sources: ["PubChem CID 24387, phosphorus trichloride (HSDB): reacts violently with water to phosphorous acid and hydrogen chloride"]
+  - id: AHYD
+    title: Hydrolysis of the acetyl chloride vapour that passes the vent condenser, in the scrubber
+    equation: C2H3ClO + H2O -> C2H4O2 + HCl
+    stoichiometry: {ACCL: -1, H2O: -1, ACOH: 1, HCL: 1}
+    phase: liquid
+    conversion: {key: ACCL, value: 1.0, provenance: assumed, source: "ASSUMED (D-010): acetyl chloride reacts violently with water (PubChem CID 6367, HSDB); the scrubber's water is in large excess"}
+    heat_of_reaction: {value: -48000, provenance: assumed, source: "derived from the CRC formation enthalpies packaged in chemicals 1.5.2 with acetyl chloride as the vapour it arrives as (-272.9 + 30.1 kJ/mol of vaporization, NIST) and HCl as a gas: -484.3 - 92.3 + 242.8 + 285.8 = -48.0 kJ/mol; the HCl's dissolution in the bleed is in scripts/balance.py (D-010)"}
+    sources: ["PubChem CID 6367, acetyl chloride (HSDB): decomposes violently in water to acetic acid and hydrogen chloride"]

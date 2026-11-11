@@ -1,0 +1,90 @@
+# Frozen hand expectations of the LCI of the CO2 pilot skids (process-library#331, E10),
+# committed on their own before the LCA of the skids is first computed (as ADR 0030 freezes
+# tolerances; results/expected.yaml, frozen for #330, is not edited: its E10 says "added with
+# #331", and this file is that addition). The regenerated inventory (lca/dataset.yaml, the skid-b
+# case dataset, results/scenarios/<H>h/lca.json written by scripts/regen.py) is compared with these
+# values by tests/test_co2_electrolysis_bpm_skids.py. The closed forms are tests/lca_formulas.py
+# (no core, no regen import; it reuses tests/skid_formulas.py unchanged); tests/test_lca_formulas.py
+# checks that they reproduce every value below.
+#
+# Every amount is per kg of CO delivered (contained in the product gas at the skid boundary),
+# the functional unit of lca/lca.yaml. Each expectation: `key` (the path in
+# lca_formulas.lci_values()), `value`, `unit`, `formula`, `tolerance`. The inputs are the #330
+# design inputs (results/expected.yaml `design`) and the ASSUMED constants listed under
+# `design` below; a changed input needs a new frozen commit.
+schema: process-library/skid-expectations/1
+issue: 331
+frozen: 2026-11-05
+formulas: tests/lca_formulas.py
+expectations_330: results/expected.yaml
+measurements:
+  file: experiments/electrochemistry/rbpm-1m-koh.yaml
+  sha256: dac88e65d553902ba60a61feea05ad73bd6a2f0889210624f954bf7adb2b3aff
+  point: P200
+  co_ion_split: "the measured titration share at P200, 0.6697790 (results/expected-errata.yaml X-1: the duties run with it)"
+core: {version: 1.5.0, commit: a59e1a983348c98c6cee528d489fa030310876ff}
+
+# ASSUMED unless stated (process/design-basis.yaml capacity.pilot_skid, scripts/skid_balance.py,
+# DESIGN.md D-008, D-012, D-024 to D-026)
+design:
+  purity_mol: 0.99
+  co2_feed_sccm_cm2: 10      # given: the bench ratio
+  co2_recycle: 0.95
+  cathode_gas: {kpa: 110, k: 298.15, saturated_kpa_25c: 3.1699}
+  condensate_molality: 1.0
+  compressor: {from_kpa: 110, to_kpa: 600, kappa: 1.3, efficiency: 0.5}
+  recirculation_pump: {dp_kpa: 50, efficiency: 0.3}
+  psa_kwh_per_kg: 0.5
+  dosing_pump: {dp_kpa: 300, efficiency: 0.1}
+  replacement_interval_h: 4000
+  membrane_life_h: [1000, 4000, 20000]
+  areal_mass: {membrane_kg_m2: 0.20, ag: "100 nm at 10.49 g/cm3 (bulk Ag)", ni_foam_kg_m2: 0.35}
+  lhv_kj_mol: {CO: 282.98, H2: 241.826}   # given: CODATA Key Values (Cox, Wagman, Medvedev 1989)
+  ember_nl_kg_co2e_kwh: 0.253664           # given: core profile ember-2025, electricity-nl (CC BY 4.0)
+
+expectations:
+  E10:
+    title: LCI of Skid A and Skid B per kg CO delivered (#331)
+    applies: {skids: [A, B], durations_h: [1000, 10000]}
+    rules:
+      - "per kg CO, every exchange of lca/dataset.yaml (skid-a), the skid-b case dataset and the cheme assess lca-cases rows equals the duty totals of the scenario's calculation record divided by the CO delivered over the campaign (rel 1e-6; lca-cases prints 6 significant figures: rel 1e-5)"
+      - "K closes: fill + dose = bleed + spent + condensate; C closes by origin: CO2 fed = C in the CO + C in the anolyte (spent or bleed) + C in the condensate + C vented (cheme assess lca --balance --json)"
+      - "the record's duty run_fingerprint equals the dimensions fingerprint of T-101, T-201 and T-202 and is cited by the flowsheet sources the LCA reads; lca/manifest.json fingerprints process/flowsheet.yaml"
+      - "the replaced membrane area is the cells times the cell area, its interval stacks[].replacement.interval"
+    items:
+      - {key: functional_unit.kg_product_per_kg_co, value: 1.000727, unit: kg/kg, formula: "1 / w_CO of the product, 0.99 mol CO and 0.01 mol H2", tolerance: {rel: 1.0e-6}}
+      - {key: electricity.stacks_ac_kwh_per_kg, value: 31.40472, unit: kWh/kg, formula: "N U I / 0.95 / CO delivered", tolerance: {rel: 1.0e-6}}
+      - {key: electricity.compressor_kw, value: 0.2362178, unit: kW, formula: "ndot R T k/(k-1) ((600/110)^((k-1)/k) - 1) / 0.5, ndot the saturated cathode gas", tolerance: {rel: 1.0e-6}}
+      - {key: electricity.skid_a_kwh_per_kg, value: 34.55846, unit: kWh/kg, formula: "(stacks AC + pump + compressor + PSA) / CO delivered", tolerance: {rel: 1.0e-6}}
+      - {key: electricity.skid_b_kwh_per_kg, value: 34.56193, unit: kWh/kg, formula: "Skid A's + the dosing pump", tolerance: {rel: 1.0e-5}}
+      - {key: electricity.skid_a_kg_co2e_per_kg_nl, value: 8.766238, unit: kg CO2e/kg, formula: "kWh/kg x 0.253664 (Ember 2025, NL, life cycle at generation)", tolerance: {rel: 1.0e-6}}
+      - {key: co2.fresh_kg_per_kg, value: 3.537074, unit: kg/kg, formula: "feed - 0.95 (feed - CO - C to the anolyte - K+ / 2)", tolerance: {rel: 1.0e-6}}
+      - {key: co2.vented_kg_per_kg, value: 1.711834, unit: kg/kg, formula: "0.05 x unreacted CO2 + the CO not recovered (oxidised)", tolerance: {rel: 1.0e-6}}
+      - {key: co2.carbon_share.product, value: 0.4442058, unit: "-", formula: "C in the CO delivered / C fed", tolerance: {rel: 1.0e-6}}
+      - {key: co2.carbon_share.anolyte, value: 0.05762088, unit: "-", formula: "Cx (1 - WDE) N I / F / C fed", tolerance: {rel: 1.0e-6}}
+      - {key: co2.carbon_share.condensate, value: 0.01420441, unit: "-", formula: "(1 - Cx)(1 - WDE) N I / (2 F) / C fed", tolerance: {rel: 1.0e-6}}
+      - {key: co2.carbon_share.vented, value: 0.4839689, unit: "-", formula: "C vented / C fed", tolerance: {rel: 1.0e-6}}
+      - {key: routes.1000.A.koh_fill_kg_per_kg, value: 0.6494004, unit: kg KOH/kg, formula: "V_A x 1 mol/L x M_KOH / (CO delivered x H)", tolerance: {rel: 1.0e-6}}
+      - {key: routes.1000.A.fill_k, value: 11.57473, unit: mol K/kg, formula: "V_A x 1 mol/L / (CO delivered x H)", tolerance: {rel: 1.0e-6}}
+      - {key: routes.1000.A.condensate_k, value: 2.283262, unit: mol K/kg, formula: "(1 - Cx)(1 - WDE) N I / F / CO delivered", tolerance: {rel: 1.0e-6}}
+      - {key: routes.1000.A.spent_k, value: 9.291471, unit: mol K/kg, formula: "fill - condensate", tolerance: {rel: 1.0e-6}}
+      - {key: routes.1000.A.spent_c, value: 4.631083, unit: mol C/kg, formula: "Cx (1 - WDE) N I / F / CO delivered", tolerance: {rel: 1.0e-6}}
+      - {key: routes.10000.A.koh_fill_kg_per_kg, value: 0.6494004, unit: kg KOH/kg, formula: "as at 1000 h", tolerance: {rel: 1.0e-6}}
+      - {key: routes.1000.B.koh_fill_kg_per_kg, value: 0.02784736, unit: kg KOH/kg, formula: "50 L x 1 mol/L x M_KOH / (CO delivered x H)", tolerance: {rel: 1.0e-6}}
+      - {key: routes.10000.B.koh_fill_kg_per_kg, value: 0.002784736, unit: kg KOH/kg, formula: "as at 1000 h", tolerance: {rel: 1.0e-6}}
+      - {key: routes.1000.B.koh_dose_kg_per_kg, value: 1.167301, unit: kg KOH/kg, formula: "dose x M_KOH / CO delivered (E3's closed form)", tolerance: {rel: 1.0e-3}}
+      - {key: routes.10000.B.koh_dose_kg_per_kg, value: 1.167301, unit: kg KOH/kg, formula: "as at 1000 h", tolerance: {rel: 1.0e-3}}
+      - {key: routes.1000.B.bleed_k, value: 18.52245, unit: mol K/kg, formula: "fill + dose - condensate - spent", tolerance: {rel: 1.0e-3}}
+      - {key: routes.1000.B.bleed_c, value: 4.506997, unit: mol C/kg, formula: "carbon in - spent", tolerance: {rel: 1.0e-3}}
+      - {key: routes.1000.B.spent_k, value: 0.4962918, unit: mol K/kg, formula: "50 L x [K+] at the setpoints / (CO delivered x H)", tolerance: {rel: 1.0e-3}}
+      - {key: routes.10000.B.bleed_c, value: 4.618674, unit: mol C/kg, formula: "carbon in - spent", tolerance: {rel: 1.0e-3}}
+      - {key: h2_coproduct.h2_kg_per_kg_co, value: 0.1163603, unit: kg/kg, formula: "(FE_H2 N I / (2 F) - the product's 0.01 mol H2) M_H2 / CO delivered: the tail gas's H2", tolerance: {rel: 1.0e-6}}
+      - {key: h2_coproduct.share_mass, value: 0.1042319, unit: "-", formula: "H2 / (H2 + 1 kg CO)", tolerance: {rel: 1.0e-6}}
+      - {key: h2_coproduct.share_lhv, value: 0.5801099, unit: "-", formula: "H2 x 119.95 / (H2 x 119.95 + 10.103 MJ)", tolerance: {rel: 1.0e-6}}
+      - {key: parts.area_m2, value: 0.28, unit: m2, formula: "28 cells x 100 cm2 per replacement", tolerance: {rel: 1.0e-9}}
+      - {key: parts.4000.membrane_m2_per_kg, value: 0.0006948811, unit: m2/kg, formula: "area / (life x CO delivered)", tolerance: {rel: 1.0e-6}}
+      - {key: parts.1000.membrane_m2_per_kg, value: 0.002779524, unit: m2/kg, formula: "as at 4000 h", tolerance: {rel: 1.0e-6}}
+      - {key: parts.20000.membrane_m2_per_kg, value: 0.0001389762, unit: m2/kg, formula: "as at 4000 h", tolerance: {rel: 1.0e-6}}
+      - {key: parts.4000.ag_g_per_kg, value: 0.0007289302, unit: g/kg, formula: "m2/kg x 100 nm x 10.49 g/cm3", tolerance: {rel: 1.0e-6}}
+      - {key: parts.4000.ni_g_per_kg, value: 0.2432084, unit: g/kg, formula: "m2/kg x 0.35 kg/m2", tolerance: {rel: 1.0e-6}}
+      - {key: parts.4000.membrane_g_per_kg, value: 0.1389762, unit: g/kg, formula: "m2/kg x 0.20 kg/m2", tolerance: {rel: 1.0e-6}}

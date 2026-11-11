@@ -1,0 +1,98 @@
+# Benchmarks of primary aluminium (Hall-Heroult electrolysis). Schema: schemas/benchmarks.schema.json;
+# rules: docs/benchmarks.md. Ranges are facts from the cited source, in our own form.
+#
+# How independent each check is of aluminium-1's dataset:
+# - Process CO2 against the IPCC Tier 1 prebake factor: independent of the NFM BREF (the factor rests
+#   on an IAI survey of 2000). The dataset's CO2 is the BREF's net anode with the IPCC Tier 2 sulfur
+#   default; the factor also includes anode baking, which the dataset leaves out, so the dataset is
+#   expected near its lower half.
+# - Electricity against the US DOE range: independent (US data, 2007 report); wide.
+# - SO2 against the BREF's Table 4.13: the range is the BREF's, the dataset's SO2 follows the IPCC
+#   sulfur default and the BREF's anode, so only partly independent.
+# - PFC against the BREF's modern-plant range: not independent, the dataset's anode effect figures
+#   come from the same paragraph.
+schema: cheme-as-code/benchmarks/v1
+family: aluminium
+
+kpis:
+  al-process-co2:
+    title: Process CO2 from anode consumption per t of primary aluminium
+    unit: t/t
+    references:
+      - id: ipcc-2006-al-prebake-tier1
+        range: [1.44, 1.76]
+        basis: unallocated
+        note: >-
+          The source gives one default factor, 1.6 t CO2/t Al, with an uncertainty of +/- 10 %; the range
+          is that stated uncertainty, not a margin of ours. It includes CO2 from pitch volatiles and packing
+          coke of anode baking (Table 4.10, footnote 7).
+        conditions: {technology: "prebake cells (CWPB and SWPB), Tier 1 default", region: global, year: 2000}
+        source:
+          citation: "IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Vol. 3 Industrial Processes and Product Use, ch. 4 Metal Industry Emissions, prepared by the National Greenhouse Gas Inventories Programme, Eggleston, H.S. et al. (eds), IGES, Japan"
+          url: https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/3_Volume3/V3_4_Ch4_Metal_Industry.pdf
+          locator: Section 4.4.2.2, Table 4.10, p. 4.47
+          kind: other
+          accessed: "2026-11-05"
+  al-specific-electricity:
+    title: Electricity per t of primary aluminium (potline, AC)
+    unit: kWh/t
+    references:
+      - id: doe-2007-al-electrolysis
+        range: [13000, 20000]
+        basis: unallocated
+        note: >-
+          The source states total electricity use from "less than 13" kWh/kg for state-of-the-art plants to
+          "more than 20" kWh/kg for older Soederberg plants, without generation and transmission losses;
+          recorded at those stated bounds and converted to kWh/t.
+        conditions: {technology: "Hall-Heroult, state-of-the-art prebake to older Soederberg", region: US, year: 2003}
+        source:
+          citation: "US Department of Energy, Industrial Technologies Program (2007) U.S. Energy Requirements for Aluminum Production: Historical Perspective, Theoretical Limits and Current Practices"
+          url: https://www.energy.gov/sites/prod/files/2013/11/f4/al_theoretical.pdf
+          locator: Section 5.2, p. 25 (PDF p. 40)
+          kind: government
+          accessed: "2026-11-05"
+      - id: bref-nfm-al-prebake-electricity
+        range: [13600, 15700]
+        basis: unallocated
+        note: Not independent of aluminium-1, whose electricity is the midpoint of this range. Includes rectifier losses, pollution control and auxiliaries.
+        conditions: {technology: prebake electrolysis, region: EU, year: 2008}
+        source: &bref-nfm
+          citation: "Cusano, G., Rodrigo Gonzalo, M., Farrell, F., Remus, R., Roudier, S., Delgado Sancho, L. (2017) Best Available Techniques (BAT) Reference Document for the Non-Ferrous Metals Industries. JRC Science for Policy Report EUR 28648 EN, doi:10.2760/8224"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2020-01/JRC107041_NFM_bref2017.pdf
+          locator: Section 4.2.3.1, Table 4.9, p. 398
+          kind: bref
+          accessed: "2026-11-05"
+  al-so2:
+    title: SO2 to air per t of primary aluminium (no wet scrubbing)
+    unit: kg/t
+    references:
+      - id: bref-nfm-al-prebake-so2
+        range: [10, 25]
+        basis: unallocated
+        note: Total of stack and roof, roof vents to the atmosphere, no wet scrubber.
+        conditions: {technology: prebake, region: EU, year: 2012}
+        source:
+          <<: *bref-nfm
+          locator: Section 4.2.3.2.11, Table 4.13, p. 405
+  al-pfc:
+    title: PFC (CF4 and C2F6) to air per t of primary aluminium
+    unit: kg/t
+    references:
+      - id: bref-nfm-al-modern-pfc
+        range: [0.01, 0.1]
+        basis: unallocated
+        note: For modern plants with point feeding and process control. Not independent of aluminium-1, whose anode effect frequency and duration come from the same paragraph.
+        conditions: {technology: "point feeding, anode effects < 0.1 to 0.5 per pot-day of 0.5 to 2 min", region: EU}
+        source:
+          <<: *bref-nfm
+          locator: Section 4.2.3.2.3, p. 401
+
+datasets:
+  - process: aluminium-1
+    dataset: aluminium-prebake-electrolysis
+    conditions: {technology: "point-feed prebake, anodes bought in (no baking)", basis: conceptual inventory}
+    kpis:
+      al-process-co2: {expression: emission:CO2 / product:aluminium, per: product:aluminium, reference: ipcc-2006-al-prebake-tier1}
+      al-specific-electricity: {expression: feed:electricity / product:aluminium, per: product:aluminium, reference: doe-2007-al-electrolysis}
+      al-so2: {expression: emission:SO2 / product:aluminium, per: product:aluminium, reference: bref-nfm-al-prebake-so2}
+      al-pfc: {expression: (emission:CF4 + emission:C2F6) / product:aluminium, per: product:aluminium, reference: bref-nfm-al-modern-pfc}

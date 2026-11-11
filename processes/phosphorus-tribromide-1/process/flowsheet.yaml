@@ -1,0 +1,258 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Phosphorus tribromide by the bromination of white phosphorus in a PBr3 heel (DESIGN.md D-001),
+# a batch plant after DE 1 281 414 / US 3 409 401: molten white phosphorus and liquid bromine
+# are dosed together into the heel at 398 K with a 0.4 % bromine excess (a semi-batch,
+# reactor: semibatch); the heel stays in R-101 for the next batch, the rest of the crude goes to
+# the still C-101, takes up its free bromine on red phosphorus and is distilled under vacuum;
+# the still residue (red phosphorus, phosphorus and PBr3) goes to hazardous-waste incineration.
+# The flows are the year averages of the batch recipe (process/recipe.yaml, `cheme process
+# recipe`, D-003).
+# Where the values come from:
+# - feeds, temperatures, pressures, ratios: design basis and D-002..D-009, ASSUMED or from the
+#   patent's example;
+# - R101: cheme's semi-batch model (the rate law of BROM, D-005), to 0.9999 conversion of the
+#   white phosphorus (batch.target, D-005); X101: the heel split (the heel S3 is the recycle's
+#   tear stream, converged by scripts/balance.py); T101: a conversion step (REDP); all calculated by `cheme process
+#   propagate --fill`;
+# - the still's outlets (a specified split: core has no batch distillation yet, core#165, D-008)
+#   and every duty: the independent balance scripts/balance.py (D-006, ADR 0027 of the
+#   library), given here as ASSUMED: no property package of core covers PBr3 with bromine and
+#   phosphorus.
+schema: cheme/process/v1
+kind: flowsheet
+title: Phosphorus tribromide by semi-batch bromination of white phosphorus in a PBr3 heel (1000 t/a)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: 1000 t/a distilled PBr3, year averages of the batches in 7920 h (D-002, D-003)", default: true}
+tolerance: {abs: 0.02, rel: 0.001}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - {id: P4, title: Molten white phosphorus (merchant), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: BR2, title: Liquid bromine (bromine-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: REDP, title: Red phosphorus (merchant), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: r101, direction: out, kind: energy}
+      - {id: c101, direction: out, kind: energy}
+  - id: LPS
+    title: LP steam 350 kPa(a) (still reboiler)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 350, provenance: assumed, source: "design basis (D-009)"}
+      supply_temperature: {value: 412.0, provenance: given, source: "saturation at 350 kPa(a), IAPWS-IF97"}
+      min_approach: {value: 10, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: c101, direction: out, kind: energy}
+products:
+  - {id: PBR3, title: Distilled phosphorus tribromide to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: RES, title: Still residue to hazardous-waste incineration, category: by_product, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return (via R-101's tempered-water loop and the still condenser)
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis (D-009)"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis (D-009)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: r101, direction: in, kind: energy}
+      - {id: c101, direction: in, kind: energy}
+
+blocks:
+  - id: REACT
+    title: Bromination in the PBr3 heel
+    class: ReactingChemicals
+    ports:
+      - {id: p4, direction: in}
+      - {id: br2, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: PURIFY
+    title: Red-phosphorus treatment and vacuum distillation
+    class: Distilling
+    ports:
+      - {id: in, direction: in}
+      - {id: redp, direction: in}
+      - {id: product, direction: out}
+      - {id: residue, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: q, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+
+steps:
+  - id: R101
+    block: REACT
+    title: Brominator (phosphorus and bromine dosed into the heel at 398 K)
+    class: ReactingChemicals
+    reactions: [BROM]
+    reactor: semibatch
+    batch:
+      dosing: [{stream: S2, time: 36000}, {stream: S1, time: 36000}]
+      target: {key: P4, conversion: 0.9999}
+      heat: isothermal
+      provenance: assumed
+      source: "bromine and molten phosphorus dosed together over 10 h, the rate set by R-101's jacket (D-005, D-010), then the post-reaction to 0.9999 conversion of the phosphorus at 398 K"
+    hazard:
+      mtt: 446.35
+      provenance: given
+      source: "the normal boiling point of PBr3 (chemicals), the liquor's main component: R-101 runs at atmospheric pressure under nitrogen with a reflux condenser (ASSUMED); the default, bromine's 331.95 K, lies below the process temperature (D-011)"
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: heel, direction: in}
+      - {id: p4, direction: in, delegates: p4}
+      - {id: br2, direction: in, delegates: br2}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: q}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: X101
+    block: REACT
+    title: Heel kept back in R-101 (the rest of the crude to the still)
+    class: SplittingMaterial
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: heel, direction: out}
+      - {id: crude, direction: out, delegates: out}
+  - id: T101
+    block: PURIFY
+    title: Red-phosphorus treatment in the still pot
+    class: ReactingChemicals
+    reactions: [REDP]
+    reactor: conversion
+    links: [{target: equipment, ref: C-101}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: redp, direction: in, delegates: redp}
+      - {id: out, direction: out}
+  - id: C101
+    block: PURIFY
+    title: Batch vacuum distillation at 4 kPa(a) (specified split)
+    class: Distilling
+    links: [{target: equipment, ref: C-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out, delegates: product}
+      - {id: bottoms, direction: out, delegates: residue}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: q, direction: out, kind: energy, delegates: q}
+      - {id: power, direction: in, kind: energy, delegates: power}
+
+streams:
+  - id: S1
+    title: Molten white phosphorus (dosed)
+    from: P4.out
+    to: R101.p4
+    template: liquor
+    state:
+      design:
+        temperature: {value: 333.15, provenance: assumed, source: "molten phosphorus held at 60 C (D-004)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 15.2123, provenance: assumed, source: "scripts/balance.py: the phosphorus that makes 1000 t/a at the example's 95.0 % yield (D-002, D-008)"}
+        composition: {basis: mass_fraction, values: {P4: 1.0}, provenance: assumed, source: "white phosphorus, water-free; its impurities not modelled (D-004)"}
+  - id: S2
+    title: Liquid bromine (dosed)
+    from: BR2.out
+    to: R101.br2
+    template: liquor
+    state:
+      design:
+        temperature: {value: 293.15, provenance: assumed, source: "bromine storage (D-004)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 118.201, provenance: assumed, source: "scripts/balance.py: 0.4 % above the stoichiometric bromine, the patent example's excess (D-004)"}
+        composition: {basis: mass_fraction, values: {BR2: 1.0}, provenance: assumed, source: "dry bromine 99.96 wt% (bromine-1), impurities not modelled"}
+  - id: S3
+    title: Heel (crude PBr3 kept in R-101 for the next batch)
+    from: X101.heel
+    to: R101.heel
+    template: liquor
+    state:
+      design:
+        temperature: {value: 398.15, provenance: assumed, source: "kept at the reaction temperature in R-101 (D-004)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 45.6369, provenance: assumed, source: "scripts/balance.py: 3.0 kg of heel per kg of phosphorus per batch, the patent example's 600 kg on 200 kg (D-004)"}
+        composition: {basis: mass_fraction, values: {PBR3: 0.996396, BR2: 0.0035955, P4: 8.5e-06}, provenance: assumed, source: "scripts/balance.py: the crude's composition, the recycle converged (D-004, D-006)"}
+  - id: S4
+    title: Crude PBr3 at the end of the batch
+    from: R101.out
+    to: X101.in
+    template: liquor
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        temperature: {value: 398.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S1 S2 S3', fingerprint: b0f4b1b43d9f32c0}
+        flow: {value: 179.05, provenance: calculated, source: 'cheme process propagate: reactor R101 from S1 S2 S3', fingerprint: 9d3cf17a2253dead}
+        composition: {basis: mole_fraction, values: {PBR3: 0.993906, BR2: 0.00607514, P4: 1.85163e-05}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S1 S2 S3', fingerprint: b0f4b1b43d9f32c0}
+  - id: S5
+    title: Crude PBr3 to the still
+    from: X101.crude
+    to: T101.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 398.15, provenance: assumed, source: "transferred hot (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 133.413, provenance: calculated, source: 'cheme process propagate: splitter X101 from S4 S3', fingerprint: 021591325817ba5d}
+        composition: {basis: mole_fraction, values: {PBR3: 0.993906, BR2: 0.00607514, P4: 1.85163e-05}, provenance: calculated, source: 'cheme process propagate: splitter X101 from S4', fingerprint: ec2f5fd2e786a353}
+  - id: S6
+    title: Red phosphorus
+    from: REDP.out
+    to: T101.redp
+    template: still
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 0.1521, provenance: assumed, source: "scripts/balance.py: 1 kg per 100 kg of white phosphorus, the patent example's 2 kg on 200 kg (D-007)"}
+        composition: {basis: mass_fraction, values: {PRED: 1.0}, provenance: assumed, source: "red phosphorus, impurities not modelled (D-007)"}
+  - id: S7
+    title: Treated crude in the still pot
+    from: T101.out
+    to: C101.in
+    template: still
+    state:
+      design:
+        temperature: {value: 398.15, provenance: assumed, source: "the heat of REDP not counted (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "before the still is evacuated (D-008)"}
+        flow: {value: 133.565, provenance: calculated, source: 'cheme process propagate: reactor T101 from S5 S6', fingerprint: cb6c396049d81c57}
+        composition: {basis: mole_fraction, values: {PBR3: 0.994106, BR2: 6.05173e-06, P4: 1.84449e-05, PRED: 0.00586957}, provenance: calculated, source: 'cheme process propagate: reactor T101 from S5 S6', fingerprint: 9db044a40ec90ca1}
+  - id: S8
+    title: Distilled PBr3
+    from: C101.top
+    to: PBR3.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 308.15, provenance: assumed, source: "distillate subcooled to storage (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "receiver broken to atmospheric pressure with nitrogen (D-008)"}
+        flow: {value: 126.2626, provenance: assumed, source: "scripts/balance.py: the still's PBr3 recovery set to the example's 95.0 % overall yield on phosphorus; all free bromine overhead (D-008)"}
+        composition: {basis: mass_fraction, values: {PBR3: 0.9999962, BR2: 3.8e-06}, provenance: assumed, source: "scripts/balance.py (D-008)"}
+  - id: S9
+    title: Still residue
+    from: C101.bottoms
+    to: RES.in
+    template: still
+    state:
+      design:
+        temperature: {value: 345.15, provenance: assumed, source: "the still's boiling temperature at 4 kPa(a) (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "after the vacuum is broken (D-008)"}
+        flow: {value: 7.3028, provenance: assumed, source: "scripts/balance.py: the PBr3 not recovered, the unreacted white and red phosphorus (D-008)"}
+        composition: {basis: mass_fraction, values: {PBR3: 0.9874931, P4: 0.0001552, PRED: 0.0123517}, provenance: assumed, source: "scripts/balance.py (D-008)"}
+  # energy
+  - {id: Q1, title: Heat of bromination to the tempered-water loop, kind: energy, from: R101.q, to: CW.r101, state: {design: {duty: {value: 23.3866, provenance: assumed, source: "scripts/balance.py: the bromination (-740.48 kJ/mol P4) less the doses' warming to 398 K (D-005, D-009)"}}}}
+  - {id: Q2, title: Still reboiler, kind: energy, from: LPS.c101, to: C101.steam, state: {design: {duty: {value: 7.9034, provenance: assumed, source: "scripts/balance.py: boil-up at reflux ratio 0.5, less the crude's heat from 398 to 345 K (D-008, D-009)"}}}}
+  - {id: Q3, title: Still condenser and product cooler, kind: energy, from: C101.q, to: CW.c101, state: {design: {duty: {value: 9.4955, provenance: assumed, source: "scripts/balance.py: the boil-up condensed and the distillate cooled to 308 K (D-008, D-009)"}}}}
+  - {id: P1, title: Brominator agitator, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 2.0, provenance: assumed, source: "year average (D-009)"}}}}
+  - {id: P2, title: Still agitator and vacuum pump, kind: energy, from: POWER.c101, to: C101.power, state: {design: {duty: {value: 3.0, provenance: assumed, source: "year average (D-009)"}}}}

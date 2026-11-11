@@ -1,7 +1,7 @@
 # 0030. Reference reproductions live in benchmarks/reproductions/, with tolerances frozen first
 
-- **Status:** Proposed, 2026-11-01
-- **Deciders:** the owner (to accept); drafted by the coordinator's agent for #302
+- **Status:** Accepted, 2026-11-06 (proposed 2026-11-01)
+- **Deciders:** the owner (drafted by the coordinator's agent for #302)
 - **Scope:** library structure (benchmarks), evaluation protocol
 
 ## Context
@@ -26,8 +26,9 @@ Options considered: (a) extend `schemas/benchmarks.schema.json` with a reproduct
 - The folder holds: `README.md` (purpose, protocol, status), `source.yaml` (pinned repository
   revision, licence, the reference case specification and the reported results, as facts in
   our own form with exact locators; no copied code, notebook text or figures), `tolerances.yaml`,
-  a minimal cheme case (`case/`), and `comparison.md` with the deviations and their
-  explanations.
+  a minimal cheme case (`case/`) where a cheme backend represents the reference model (a
+  script-based reproduction has none, ADR 0031, 0032), and `comparison.md` with the deviations
+  and their explanations.
 - **Order is part of the evidence.** `tolerances.yaml` is committed in its own commit before
   any comparison run, and is not edited afterwards; a later change is a new file with a reason.
   `git log -- benchmarks/reproductions/<id>/` shows the order of the commits, and
@@ -48,4 +49,5 @@ Options considered: (a) extend `schemas/benchmarks.schema.json` with a reproduct
 
 ## Evidence
 
+- Accepted by the owner on 2026-11-06.
 - `benchmarks/reproductions/idaes-hda-tutorial/` (first reproduction), issue #302, core#104.

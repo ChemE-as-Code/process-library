@@ -1,0 +1,206 @@
+# Benchmarks of cement clinker and lime. Schema: schemas/benchmarks.schema.json; rules:
+# docs/benchmarks.md. Ranges are facts from the cited source, in our own form.
+#
+# cement-clinker-1, independence: the thermal energy, process CO2 and raw meal references are from the CSI/ECRA
+# papers, which the dataset uses for its electricity only. The gross CO2 reference is the CLM BREF,
+# whose fuel energy the dataset takes, so it is not independent of the fuel CO2. No electricity KPI
+# has an independent reference.
+#
+# lime-1:
+# What is and is not an independent check of lime-1 (only the process CO2 is independent, and the
+# dataset lies outside it, explained):
+# - Total CO2 (CLM BREF Table 2.25) is computed by the source from its own process factor and the
+#   combustion CO2 of the kiln types; the dataset's combustion CO2 comes from the heat range of the
+#   same document (Table 2.23), so the two agree partly by construction. The fuel is natural gas in
+#   the dataset, while the source's PFRK range spans all fuels.
+# - Process CO2 (IPCC 2006) is independent of the BREF numbers but rests on the same
+#   stoichiometry; it differs from the dataset by the CaO content of the product and the
+#   by-product lime (see the out_of_range_reason).
+# - Limestone and electricity share their source with the dataset (transcription and stoichiometry).
+# A fuel heat KPI (the source's 3.2 to 4.2 GJ/t, Table 2.23) is not bound: the fuel is in kg, and an
+# expression cannot turn kg into GJ (docs/benchmarks.md). By hand it is 3.7 GJ/t, the midpoint.
+schema: cheme-as-code/benchmarks/v1
+family: cement-lime
+
+kpis:
+  clinker-fuel-energy:
+    title: Kiln fuel energy (net calorific value) per t of clinker
+    unit: MJ/t
+    references:
+      - id: csi-ecra-2017-five-stage
+        range: [3100, 3500]
+        basis: unallocated
+        note: Yearly average of a state-of-the-art kiln with five cyclone stages; the source gives 3200 to 3600 for four and 3000 to 3400 for six stages, and a GNR-2014 world average of 3510.
+        conditions: {technology: "dry kiln, five cyclone stages, preheater and precalciner, state of the art, yearly average"}
+        source: &csi-ecra
+          citation: "CSI and ECRA (2017) Development of State of the Art Techniques in Cement Manufacturing: Trying to Look Ahead, revision 2017. WBCSD Cement Sustainability Initiative and European Cement Research Academy, Duesseldorf and Geneva"
+          url: https://archive.wbcsd.org/contentwbc/download/3604/47080/1
+          locator: State-of-the-art Paper No. 1, p. 10
+          kind: other
+          accessed: "2026-11-05"
+      - id: bref-clm-table-1-18
+        range: [3000, 4000]
+        basis: unallocated
+        note: Not independent of the dataset, whose fuel energy is the midpoint of this range. The source writes the upper end as "<4 000".
+        conditions: {technology: "dry process, multistage (three to six) cyclone preheaters and precalcining kilns", region: EU}
+        source: &bref-clm
+          citation: "Schorcht, F. et al. (2013) Best Available Techniques (BAT) Reference Document for the Production of Cement, Lime and Magnesium Oxide. JRC Reference Report EUR 26129 EN, doi:10.2788/12850"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/CLM_Published_def_0.pdf
+          locator: Section 1.3.3.1, Table 1.18, p. 47
+          kind: bref
+          accessed: "2026-11-05"
+  clinker-process-co2:
+    title: Calcination CO2 per t of clinker
+    unit: kg/t
+    references:
+      - id: csi-ecra-2017-reference-plant-process-co2
+        range: [536, 536]
+        basis: unallocated
+        note: One value, the process CO2 of the GNR-2014 world-average reference plant, recorded as a zero-width range and not widened.
+        conditions: {technology: "world average, 70 % dry kilns with preheater and precalciner", year: 2014}
+        source:
+          <<: *csi-ecra
+          locator: Annex II, p. 168
+  clinker-gross-co2:
+    title: Direct fossil CO2 (calcination and kiln fuel) per t of clinker
+    unit: kg/t
+    references:
+      - id: bref-clm-co2
+        range: [900, 1000]
+        basis: unallocated
+        note: The source relates the range to about 3500 to 5000 MJ/t of fuel and says it depends on the fuel type. It shares the BREF with the dataset's fuel energy.
+        conditions: {technology: grey clinker, region: EU}
+        source:
+          <<: *bref-clm
+          locator: Section 1.3.4.4.1, p. 69
+      - id: csi-ecra-2017-reference-plant-gross-co2
+        range: [842, 842]
+        basis: unallocated
+        note: One value, gross CO2 of the GNR-2014 world-average reference plant (84 % fossil fuel, 10.2 % alternative and 5.8 % biomass fuels by heat), zero-width and not widened.
+        conditions: {technology: world-average reference plant, year: 2014}
+        source:
+          <<: *csi-ecra
+          locator: Annex II, p. 168
+  clinker-raw-meal:
+    title: Raw meal (dry) per t of clinker
+    unit: t/t
+    references:
+      - id: csi-ecra-2017-raw-meal
+        range: [1.55, 1.55]
+        basis: unallocated
+        note: One value of the reference plant (raw meal/clinker factor), zero-width and not widened.
+        conditions: {technology: world-average reference plant, year: 2014}
+        source:
+          <<: *csi-ecra
+          locator: Annex II, p. 168
+      - id: bref-clm-raw-materials
+        range: [1.57, 1.57]
+        basis: unallocated
+        note: One value, the typical EU average of limestone, clay, shale, marl and other raw materials on a dry basis, zero-width and not widened.
+        conditions: {technology: all kiln types, region: EU}
+        source:
+          <<: *bref-clm
+          locator: Section 1.3.2, Table 1.15, p. 45
+  clinker-electricity:
+    title: Electricity of raw meal preparation and the kiln line per t of clinker
+    unit: kWh/t
+    no_open_reference: >-
+      No independent open range per t of clinker found (2026-11-05). Read: CLM BREF section 1.3.3.2
+      (90 to 150 kWh per t of cement only, which needs a split and a clinker factor to compare);
+      CSI/ECRA 2017, Paper No. 2 (shares of the plant's electricity) and Annex II (70 kWh/t
+      clinker, the dataset's own source, so not a check).
+  lime-total-co2:
+    title: Process and combustion CO2 per t of quicklime
+    unit: t/t
+    references:
+      - id: bref-clm-lime-co2-pfrk
+        range: [0.987, 1.210]
+        basis: unallocated
+        note: The source's total activity factor for lime from parallel flow regenerative kilns, 0.785 t/t process CO2 plus 0.202 to 0.425 t/t combustion CO2, across the fuels in use.
+        conditions: {technology: parallel flow regenerative kiln, product: lime (CaO), region: EU, year: 2006}
+        source:
+          citation: "Schorcht, F. et al. (2013) Best Available Techniques (BAT) Reference Document for the Production of Cement, Lime and Magnesium Oxide. JRC Reference Report EUR 26129 EN, doi:10.2788/12850"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/CLM_Published_def_0.pdf
+          locator: Section 2.3.3.4.1, Table 2.25, p. 234
+          kind: bref
+          accessed: "2026-11-05"
+  lime-process-co2:
+    title: Calcination (process) CO2 per t of quicklime
+    unit: t/t
+    references:
+      - id: ipcc-2006-high-calcium-lime-ef
+        range: [0.75, 0.75]
+        basis: unallocated
+        note: The Tier 1 default emission factor for high-calcium lime (stoichiometric 0.785 t CO2 per t CaO times a default CaO content of 0.95), recorded as a zero-width range and not widened. It assumes full calcination and no lime kiln dust.
+        conditions: {product: "high-calcium lime, 95 % CaO (default; range 93 to 98 %), fully calcined", region: global default}
+        source:
+          citation: "IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Volume 3: Industrial Processes and Product Use, chapter 2, section 2.3"
+          url: https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/3_Volume3/V3_2_Ch2_Mineral_Industry.pdf
+          locator: Section 2.3.1.2, Table 2.4, p. 2.22
+          kind: other
+          accessed: "2026-11-05"
+  lime-specific-limestone:
+    title: Limestone per t of saleable quicklime
+    unit: t/t
+    references:
+      - id: bref-clm-lime-limestone
+        range: [1.4, 2.2]
+        basis: unallocated
+        note: All kiln types and products; the source names product type, stone purity, degree of calcination and dust losses as the reasons for the spread. Not independent of the dataset, whose limestone is stoichiometric.
+        conditions: {technology: all lime kilns, product: saleable quicklime, region: EU}
+        source:
+          citation: "Schorcht, F. et al. (2013) Best Available Techniques (BAT) Reference Document for the Production of Cement, Lime and Magnesium Oxide. JRC Reference Report EUR 26129 EN, doi:10.2788/12850"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/CLM_Published_def_0.pdf
+          locator: Section 2.3.1, p. 222
+          kind: bref
+          accessed: "2026-11-05"
+  lime-kiln-electricity:
+    title: Kiln electricity per t of quicklime
+    unit: kWh/t
+    references:
+      - id: bref-clm-lime-electricity-pfrk
+        range: [20, 40]
+        basis: unallocated
+        note: Kiln electricity only. Not independent of the dataset, whose value is the midpoint of this range.
+        conditions: {technology: parallel flow regenerative kiln, product: lime and dolime, region: EU}
+        source:
+          citation: "Schorcht, F. et al. (2013) Best Available Techniques (BAT) Reference Document for the Production of Cement, Lime and Magnesium Oxide. JRC Reference Report EUR 26129 EN, doi:10.2788/12850"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/CLM_Published_def_0.pdf
+          locator: Section 2.3.2.1, Table 2.23, p. 223
+          kind: bref
+          accessed: "2026-11-05"
+
+datasets:
+  - process: cement-clinker-1
+    dataset: cement-clinker-dry-kiln-precalciner
+    conditions: {technology: "dry kiln, cyclone preheater and precalciner", fuel: 100 % petroleum coke (ASSUMED), basis: conceptual inventory}
+    kpis:
+      clinker-fuel-energy: {expression: feed:petroleum-coke / product:clinker, per: product:clinker, reference: csi-ecra-2017-five-stage}
+      clinker-process-co2:
+        expression: emission:CO2 / product:clinker
+        per: product:clinker
+        reference: csi-ecra-2017-reference-plant-process-co2
+        out_of_range_reason: "The dataset uses the IPCC default clinker (65 % CaO, all from CaCO3, CKD factor 1.02), which gives 520 kg/t, and supplies its 2 % MgO as an oxide in the clay, not as a carbonate (dataset system_boundary.excluded); MgO from MgCO3 would add about 22 kg/t (543 kg/t). The reference is a reported world average whose CaO and MgO contents and CKD the source does not state. IPCC gives 0.53 t/t for 67 % CaO before the CKD correction, about 0.54 with it (Vol. 3, p. 2.12)."
+      clinker-gross-co2:
+        expression: (emission:CO2 + emission:CO2-fuel) / product:clinker
+        per: product:clinker
+        reference: bref-clm-co2
+        out_of_range_reason: "The dataset's fuel energy (3500 MJ/t) is at the lower end of the 3500 to 5000 MJ/t the BREF relates its range to, and its calcination CO2 is the IPCC default; at 3500 MJ/t of petroleum coke the fuel adds 341 kg/t. The world-average reference plant of CSI/ECRA (842 kg/t, with some biomass) lies below the dataset's 862 kg/t."
+      clinker-raw-meal:
+        expression: (feed:limestone + feed:clay) / product:clinker
+        per: product:clinker
+        reference: csi-ecra-2017-raw-meal
+        out_of_range_reason: "The model raw meal holds only the clinker's oxides and the CaCO3 they need (1.54 t/t). Its MgO comes as an oxide in the clay, not as MgCO3, which leaves out about 22 kg/t of CO2 bound in the meal (1.56 t/t with it); the combined water of clay minerals, organic carbon, sulfur and other volatiles are not modelled either (dataset system_boundary.excluded)."
+      clinker-electricity: {expression: feed:electricity / product:clinker, per: product:clinker}
+  - process: lime-1
+    dataset: quicklime-pfrk-natural-gas
+    conditions: {technology: natural-gas-fired PFRK, product: quicklime counted as pure CaO, basis: conceptual inventory}
+    kpis:
+      lime-total-co2: {expression: (emission:CO2-calcination + emission:CO2-combustion) / product:quicklime, per: product:quicklime, reference: bref-clm-lime-co2-pfrk}
+      lime-process-co2:
+        expression: emission:CO2-calcination / product:quicklime
+        per: product:quicklime
+        reference: ipcc-2006-high-calcium-lime-ef
+        out_of_range_reason: "0.809 t/t: the dataset counts its product as pure CaO (0.785 t/t, the stoichiometric ratio of the same IPCC table, where the default assumes 95 % CaO) and also calcines the 3 % by-product lime (CLM BREF section 2.3.4), which the IPCC Tier 1 factor leaves out. The KPI is unallocated: under the dataset's mass allocation the quicklime carries 0.785 t/t."
+      lime-specific-limestone: {expression: feed:limestone / product:quicklime, per: product:quicklime, reference: bref-clm-lime-limestone}
+      lime-kiln-electricity: {expression: feed:electricity / product:quicklime, per: product:quicklime, reference: bref-clm-lime-electricity-pfrk}

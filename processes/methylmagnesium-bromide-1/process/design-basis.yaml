@@ -1,0 +1,54 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Methylmagnesium bromide, sold as a 35 wt% solution in 2-MeTHF, by the semi-batch Grignard
+# reaction of magnesium with methyl bromide gas, a batch plant, issue
+# ChemE-as-Code/process-library#157. Values marked ASSUMED are engineering choices of this concept
+# study, not client or licensor data; every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: filtered methylmagnesium bromide solution, 35 wt% in 2-MeTHF, to filling at the battery limit
+  solution_t_per_year: 4398             # from the recipe: 879.5 batches of 5000 kg (D-002, D-003)
+  memgbr_t_per_year: 1539               # contained MeMgBr, 35.0 wt% of the solution
+  operating_hours_per_year: 7920        # ASSUMED (D-002): 330 days of 24 h, batch operation
+  batch_kg: 5000                        # ASSUMED (D-003): one 6.3 m3 reactor batch every 9.0 h
+  batches_per_year: 879.5               # from the recipe (process/recipe.yaml, D-003)
+feeds:
+  - name: Magnesium turnings (merchant)
+    source_of_values: ASSUMED (D-004)
+    composition: "Mg 100 % (oxide skin and impurities not modelled)"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Dry 2-MeTHF (merchant)
+    source_of_values: ASSUMED (D-004)
+    composition: "2-MeTHF 100 % (water below 100 ppm, ASSUMED, not modelled)"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Liquefied methyl bromide (merchant), evaporated in E-101 and dosed as a gas
+    source_of_values: ASSUMED (D-004)
+    composition: "CH3Br 100 %"
+    conditions: {temperature_K: 293.15, pressure_kPa_a: 300}
+  - name: Iodine activator (iodine-1), per batch
+    source_of_values: ASSUMED (D-004, D-012)
+  - name: Nitrogen (asu-1), per batch for inerting, pressing and blowing the cake
+    source_of_values: ASSUMED (D-012)
+products:
+  - name: Methylmagnesium bromide solution
+    purity: "35.0 wt% MeMgBr in 2-MeTHF, 0.47 wt% MgBr2, 0.03 wt% methyl bromide in the model (D-002, D-008); the Albemarle TDS 10000303 specification is 34.0-36.0 wt% by acidimetric titration after hydrolysis; MgI2 from the activator (about 90 mg/kg) and the Schlenk species not modelled"
+    delivery: {temperature_K: 298.15, pressure_kPa_a: 101.325, battery_limit: filling into steel bottles or drums under nitrogen (not in the boundary)}
+  - name: Magnesium cake to quench and hazardous-waste treatment
+    note: "the excess magnesium with 1 kg of liquor per kg (D-007)"
+  - name: Off-gas to the thermal oxidiser
+    note: "ethane of the Wurtz coupling and the 1 % of the methyl bromide gas that passes through the liquid (D-004, D-005)"
+utilities:
+  - {name: Electric power, use: "agitators of R-101 and F-101 (D-009)"}
+  - {name: LP steam, pressure_kPa_a: 350, use: "R-101's hot-water loop (warm-up) and the methyl bromide vaporiser E-101 (D-009)", note: ASSUMED}
+  - {name: Chilled brine, supply_K: 263.15, return_K: 268.15, use: "removing the heat of the Grignard reaction at 318 K (D-009, D-010)", note: "ASSUMED; from a refrigeration unit outside the boundary"}
+  - {name: Nitrogen, use: "inerting R-101, pressing the slurry to F-101, blowing the cake (D-012)", note: ASSUMED}
+site:
+  location: ASSUMED generic fine-chemicals site with a thermal oxidiser for halogenated vents, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Route: Mg + CH3Br -> CH3MgBr in 2-MeTHF (HSDB via PubChem CID 6349; the product of the Albemarle TDS 10000303), methyl bromide gas dosed into magnesium turnings at 318 K under nitrogen (D-001)."
+  - "ASSUMED: 1.05 mol magnesium per mol methyl bromide, 5 % of the methyl bromide dosed first and a 30 min hold for the initiation, 99 % of the dosed gas absorbed (D-004)."
+  - "Heat of reaction from Holm (1981) via the NIST WebBook, -291.1 kJ/mol on the gas basis (D-005)."
+  - "ASSUMED fast effective rate laws, the Grignard formation first order in methyl bromide and of order 2/3 in the magnesium, the Wurtz coupling first order in the Grignard reagent and in methyl bromide (D-005): no open kinetics; the low accumulation follows from them."
+  - "ASSUMED jacket: U 400 W/(m2 K), chilled brine at 263 K; the main dosing time (5 h) is set by it (D-010)."
+  - "All flows are year averages of the recipe (D-003); duties and power concept estimates (D-009); accuracy +/-30 % not demonstrated."

@@ -1,0 +1,19 @@
+# refinery-distillation-1's own exchange overrides for the Atlas LCI build (ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. The vacuum dataset's feed links to this process's
+# atmospheric dataset. Crude oil and the furnace fuel stay reported gaps: the library has no crude
+# production entry and no refinery fuel gas entry in the shared vocabulary.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:atmospheric-residue":
+    dataset: {path: processes/refinery-distillation-1/lca/datasets/crude-atmospheric-distillation.yaml, product: "product:atmospheric-residue"}
+    source: "the atmospheric unit of this process; both datasets use the same crude assay"
+  "feed:steam":
+    use: steam
+    atlas: false
+    source: "Stripping and ejector steam by mass, pressure not stated by the source: the shared background entry, not one Atlas producer's pressure level (as cumene-1)."
+  "feed:crude-oil":
+    atlas: false
+    source: "No crude oil production process in the library and no shared background entry yet. Link one once chosen."
+  "feed:fuel":
+    atlas: false
+    source: "Refinery fuel gas from the site's own fuel gas system (the cuts of other units); no Atlas producer and no shared entry. Its combustion emissions are in the dataset, so a background heat activity (heat-natural-gas) would count them twice."
