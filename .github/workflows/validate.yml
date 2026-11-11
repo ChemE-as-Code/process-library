@@ -38,12 +38,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           fetch-depth: 1  # the files only, no history (see "Repository size" in README.md)
-      # cheme-as-code is read with the fine-grained token in the secret PLANTCODE_READ_TOKEN
-      # (contents: read on ChemE-as-Code/core); pyDEXPI comes from PyPI.
-      - run: |
-          git config --global url."https://x-access-token:${PLANTCODE_READ_TOKEN}@github.com/ChemE-as-Code/core".insteadOf "https://github.com/ChemE-as-Code/core"
-        env:
-          PLANTCODE_READ_TOKEN: ${{ secrets.PLANTCODE_READ_TOKEN }}
+      # core and pyDEXPI are public: no credentials.
       - uses: astral-sh/setup-uv@v6
       # core v1.11.0 c21e6c7 (generator 7 sheets, offpage-not-on-edge lint: core#159/#160) (pinned by commit, tests/test_workflows.py)
       - run: uv tool install "git+https://github.com/ChemE-as-Code/core.git@c21e6c7f35d9debcfd5b2589fcaddee438bb1e7e"
@@ -73,11 +68,7 @@ jobs:
         with:
           fetch-depth: 0
       # The benchmarks (benchmarks/, docs/benchmarks.md) convert units through core's
-      # foundation.units: core is read with the token of the validate job.
-      - run: |
-          git config --global url."https://x-access-token:${PLANTCODE_READ_TOKEN}@github.com/ChemE-as-Code/core".insteadOf "https://github.com/ChemE-as-Code/core"
-        env:
-          PLANTCODE_READ_TOKEN: ${{ secrets.PLANTCODE_READ_TOKEN }}
+      # foundation.units.
       - uses: astral-sh/setup-uv@v6
       - name: tooling tests
         run: uv run --python 3.12 --with pytest --with pyyaml --with jsonschema --with openpyxl --with ./python --with bw2calc --with olca-schema==2.6.2 --with multifunctional==1.1.2 --with chemicals==1.5.2 --with "$CORE" pytest -q tests -m "not engineering"
@@ -117,10 +108,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           fetch-depth: 1  # the files only, no history (see "Repository size" in README.md)
-      - run: |
-          git config --global url."https://x-access-token:${PLANTCODE_READ_TOKEN}@github.com/ChemE-as-Code/core".insteadOf "https://github.com/ChemE-as-Code/core"
-        env:
-          PLANTCODE_READ_TOKEN: ${{ secrets.PLANTCODE_READ_TOKEN }}
       - uses: astral-sh/setup-uv@v6
       - name: engineering regeneration tests
         # the library job's test dependencies too: pytest collects every module of tests/
@@ -138,10 +125,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           fetch-depth: 1  # the files only, no history (see "Repository size" in README.md)
-      - run: |
-          git config --global url."https://x-access-token:${PLANTCODE_READ_TOKEN}@github.com/ChemE-as-Code/core".insteadOf "https://github.com/ChemE-as-Code/core"
-        env:
-          PLANTCODE_READ_TOKEN: ${{ secrets.PLANTCODE_READ_TOKEN }}
       - uses: astral-sh/setup-uv@v6
       # core v1.11.0 c21e6c7 (generator 7 sheets, offpage-not-on-edge lint: core#159/#160) with the property extras the balance scripts import (thermo,
       # CoolProp, scipy through thermo, Cantera); the same commit as the validate job
