@@ -1,3 +1,86 @@
 # Instrument list. Schema: `cheme schema instruments`.
+# Tags as printed on the P&IDs (S3b, D-025); numbers n01 and up on sheet P-0n. Loops,
+# setpoints and alarms are in control/loops.yaml (S4, D-026); trips in control/cause-effect.yaml.
+# S4 (D-026, review 2026-11-04-basic-pids#29): the notes give the fail position of every actuated
+# valve the function drives, as drawn on the P&IDs (FailAction of the actuator, F.C./F.O. label).
 schema: cheme/instruments/v1
-instruments: []
+instruments:
+  # ---- P-01 feed, heater and reactor
+  - {tag: LIC-102, sheet: P-01, service: "V-100 level, fresh toluene make-up LV-102 (TO-101)", notes: "LV-102 fails closed (F.C.) (D-026)"}
+  - {tag: FIC-103, sheet: P-01, service: "Reactor toluene feed (TO-103), FV-103; sets the plant load", notes: "FV-103 fails closed (F.C.) (D-026)"}
+  - {tag: PIC-104, sheet: P-01, service: "V-100 pressure, vent PV-104 to the flare header; nitrogen through the self-acting PCV-105", notes: "PV-104 fails open (F.O.) (D-026)"}
+  - {tag: FIC-106, sheet: P-01, service: "P-101/P-101B discharge flow, minimum flow FV-106 back to V-100", notes: "FV-106 fails open (F.O.) (D-026)"}
+  - {tag: FIC-108, sheet: P-01, service: "Make-up hydrogen (HG-104), FV-108; set point from PIC-205 (loop pressure, P-02)", notes: "FV-108 fails closed (F.C.) (D-026)"}
+  - {tag: TI-109, sheet: P-01, service: E-101 cold side outlet (PG-106)}
+  - {tag: FZ-110, sheet: P-01, service: "H-101 coil flow (PG-106), low-low trip of the firing (C&E I-101)"}
+  - {tag: TIC-111, sheet: P-01, service: "H-101 outlet / R-101 inlet temperature (PG-107), fuel valve TV-111", notes: "TV-111 fails closed (F.C.) (D-026)"}
+  - {tag: US-112, sheet: P-01, service: "H-101 fuel trip logic: closes the block valves XV-112 and XV-125 and opens the bleed XV-126 (C&E I-101, I-102, I-104, I-105, I-106)", notes: "XV-112 fails closed (F.C.); XV-125 fails closed (F.C.); XV-126 fails open (F.O.) (D-026)"}
+  - {tag: TZ-113, sheet: P-01, service: "R-101 outlet temperature, high-high trip of the firing (C&E I-102)"}
+  - {tag: TIC-115, sheet: P-01, service: "Quenched effluent temperature (PG-108 after T117), quench valve TV-115 (AR-117)", notes: "TV-115 fails open (F.O.) (D-026)"}
+  - {tag: TI-116, sheet: P-01, service: E-101 hot side outlet (PG-110)}
+  - {tag: US-122, sheet: P-01, service: "Reactor loop feed cut-off logic: closes the toluene feed XV-120 (TO-103) and the make-up hydrogen XV-121 (HG-104) (C&E I-101, I-102, I-106, I-202, I-203)", notes: "XV-120 fails closed (F.C.); XV-121 fails closed (F.C.) (D-026)"}
+  - {tag: LZ-123, sheet: P-01, service: "V-100 level low-low, stops P-101/P-101B (C&E I-103)"}
+  - {tag: TZ-128, sheet: P-01, service: "Quenched effluent temperature at the E-101 hot inlet (PG-108 after T117), independent of TIC-115; high-high trip of the firing and the feed on loss of quench (C&E I-106)"}
+  - {tag: TI-124, sheet: P-01, service: "R-101 bed and shell skin temperatures (multipoint), indication and high alarm; the I-102 trip sensor voting (for example 2oo3 with TZ-113) is deferred by S4 to the HAZOP / LOPA in S6 (D-025, D-026)"}
+  - {tag: PZ-127, sheet: P-01, service: "H-101 fuel gas pressure downstream of the trip valves (NG-137), low-low and high-high trip of the firing (C&E I-104)"}
+  # ---- P-02 HP separator and recycle gas
+  - {tag: TI-201, sheet: P-02, service: E-102 process outlet / V-101 inlet temperature (PG-111)}
+  - {tag: LIC-202, sheet: P-02, service: "V-101 level, let-down valve LV-202 on AR-116 to C-201", notes: "LV-202 fails closed (F.C.) (D-026)"}
+  - {tag: LZ-203, sheet: P-02, service: "V-101 level low-low, closes XV-204 (gas blow-by to C-201, C&E I-201)", notes: "XV-204 fails closed (F.C.) (D-026)"}
+  - {tag: PIC-205, sheet: P-02, service: "Loop pressure at the K-101 suction (HG-112); sets FIC-108 (make-up hydrogen, P-01)"}
+  - {tag: LZ-206, sheet: P-02, service: "V-101 level high-high, stops K-101 (liquid carry-over, C&E I-202)"}
+  - {tag: UIC-207, sheet: P-02, service: "K-101 anti-surge controller, recycle valve UV-207 (HG-232, returned to PG-110 upstream of E-102, which cools it); inputs FT-218 (suction flow), PT-219 (suction pressure), PT-220 (discharge pressure); suction temperature from TI-201 (V-101 inlet); the surge line and the algorithm are the compressor vendor's, open item (D-025)", notes: "UV-207 fails open (F.O.) (D-026)"}
+  - {tag: FT-218, sheet: P-02, service: "K-101 suction flow (HG-112, after the PSA hydrogen joins), anti-surge input to UIC-207; element type with the vendor (D-025)"}
+  - {tag: PT-219, sheet: P-02, service: "K-101 suction pressure (HG-112), anti-surge input to UIC-207"}
+  - {tag: PT-220, sheet: P-02, service: "K-101 discharge pressure (HG-115, ahead of CV-115), anti-surge input to UIC-207"}
+  - {tag: TI-221, sheet: P-02, service: "K-101 discharge temperature (HG-115), high alarm; trip set and machine protection with the vendor (D-025)"}
+  - {tag: VI-222, sheet: P-02, service: "K-101 vibration (bearing housings), high alarm; shaft vibration, axial position and the trip are the vendor's machine protection, open item (D-025)"}
+  - {tag: FI-216, sheet: P-02, service: "Recycle gas flow to E-101 (HG-115, after the purge take-off), input of FFI-217"}
+  - {tag: FFI-217, sheet: P-02, service: "H2/aromatics ratio at the reactor inlet, computed from FI-216 with AIC-210, the make-up hydrogen FIC-108 and the toluene FIC-103 (P-01); low alarm FFAL at the D-007 lower limit of 5 mol/mol, recorded in S4 under FIC-103 in control/loops.yaml; its alarm setpoint value is set in S6 (D-025, D-026)"}
+  - {tag: HS-209, sheet: P-02, service: "Manual loop depressuring, opens XV-209 (FL-233)", notes: "XV-209 fails open (F.O.) (D-026)"}
+  - {tag: AIC-210, sheet: P-02, service: "Hydrogen in the recycle gas (HG-115), sets the purge flow FIC-211"}
+  - {tag: FIC-211, sheet: P-02, service: "Purge gas to the PSA (HG-113), FV-211", notes: "FV-211 fails closed (F.C.) (D-026)"}
+  # ---- P-03 purge PSA and tail gas
+  - {tag: PIC-301, sheet: P-03, service: "PSA adsorption pressure, back-pressure valve PV-301 on the hydrogen product HG-125", notes: "PV-301 fails closed (F.C.) (D-026)"}
+  - {tag: AI-302, sheet: P-03, service: "Hydrogen purity of the PSA product (HG-125)"}
+  - {tag: PIC-303, sheet: P-03, service: "Tail gas pressure at the K-102 suction (FG-126, PSA desorption pressure), spillback PV-303 on FG-330", notes: "PV-303 fails open (F.O.) (D-026)"}
+  - {tag: US-311, sheet: P-03, service: "Purge shutdown logic: on a K-102 or PK-101 package trip closes the purge shutdown valve XV-310 on HG-113 at the PSA inlet (C&E I-301)", notes: "XV-310 fails closed (F.C.) (D-026)"}
+  - {tag: TI-304, sheet: P-03, service: K-102 discharge temperature (FG-127)}
+  - {tag: TI-305, sheet: P-03, service: E-103 outlet temperature (FG-128)}
+  - {tag: FI-306, sheet: P-03, service: Tail gas to the fuel gas header (FG-128)}
+  # ---- P-04 stabiliser
+  - {tag: FI-401, sheet: P-04, service: Stabiliser feed (AR-116)}
+  - {tag: TIC-402, sheet: P-04, service: "C-201 tray temperature, MP steam valve TV-402 (E-202)", notes: "TV-402 fails closed (F.C.) (D-026)"}
+  - {tag: PIC-404, sheet: P-04, service: "Stabiliser pressure at V-201, off-gas valve PV-404 (FG-119)", notes: "PV-404 fails open (F.O.) (D-026)"}
+  - {tag: LIC-405, sheet: P-04, service: "V-201 level, reflux valve LV-405 (AR-434)", notes: "LV-405 fails open (F.O.) (D-026)"}
+  - {tag: TI-407, sheet: P-04, service: E-201 outlet temperature (PG-431)}
+  - {tag: LIC-408, sheet: P-04, service: "C-201 sump level, bottoms valve LV-408 (AR-120)", notes: "LV-408 fails closed (F.C.) (D-026)"}
+  - {tag: PI-409, sheet: P-04, service: C-201 top pressure (PG-430)}
+  - {tag: LZ-411, sheet: P-04, service: "V-201 level low-low, stops P-201A/B (C&E I-401)"}
+  # ---- P-05 benzene column and product
+  - {tag: TIC-502, sheet: P-05, service: "C-202 tray temperature, LP steam valve TV-502 (E-204)", notes: "TV-502 fails closed (F.C.) (D-026)"}
+  - {tag: PI-503, sheet: P-05, service: C-202 top pressure (PG-530)}
+  - {tag: PIC-504, sheet: P-05, service: "V-202 pressure, vent PV-504 to the flare; nitrogen pad through the self-acting PCV-505", notes: "PV-504 fails open (F.O.) (D-026)"}
+  - {tag: LIC-506, sheet: P-05, service: "V-202 level, distillate valve LV-506 (BZ-537 to E-207)", notes: "LV-506 fails closed (F.C.) (D-026)"}
+  - {tag: FIC-507, sheet: P-05, service: "C-202 reflux flow, FV-507 (BZ-534)", notes: "FV-507 fails open (F.O.) (D-026)"}
+  - {tag: LIC-508, sheet: P-05, service: "C-202 sump level, bottoms valve LV-508 (TO-122)", notes: "LV-508 fails closed (F.C.) (D-026)"}
+  - {tag: TI-509, sheet: P-05, service: Benzene product temperature after E-207 (BZ-121)}
+  - {tag: AI-510, sheet: P-05, service: Benzene product purity (BZ-121)}
+  - {tag: FI-511, sheet: P-05, service: Benzene product flow (BZ-121)}
+  - {tag: LZ-512, sheet: P-05, service: "V-202 level low-low, stops P-202A/B (C&E I-501)"}
+  # ---- P-06 toluene column, toluene recycle, biphenyl
+  - {tag: TIC-602, sheet: P-06, service: "C-203 tray temperature, HP steam valve TV-602 (E-206)", notes: "TV-602 fails closed (F.C.) (D-026)"}
+  - {tag: PI-603, sheet: P-06, service: C-203 top pressure (PG-630)}
+  - {tag: PIC-604, sheet: P-06, service: "C-203 / V-203 vacuum, PK-201 suction valve PV-604 (PG-647)", notes: "PV-604 fails closed (F.C.) (D-026)"}
+  - {tag: LIC-606, sheet: P-06, service: "V-203 level, toluene recycle valve LV-606 (TO-123)", notes: "LV-606 fails closed (F.C.) (D-026)"}
+  - {tag: FIC-607, sheet: P-06, service: "C-203 reflux flow, FV-607 (TO-634)", notes: "FV-607 fails open (F.O.) (D-026)"}
+  - {tag: LIC-608, sheet: P-06, service: "C-203 sump level, biphenyl valve LV-608 (DP-124)", notes: "LV-608 fails closed (F.C.) (D-026)"}
+  - {tag: FI-609, sheet: P-06, service: Toluene recycle flow to V-100 (TO-123)}
+  - {tag: LZ-612, sheet: P-06, service: "V-203 level low-low, stops P-203A/B (C&E I-601)"}
+  # ---- P-07 and P-08 utility headers
+  - {tag: PI-701, sheet: P-07, service: Nitrogen header pressure (N2-702)}
+  - {tag: PI-702, sheet: P-07, service: Natural gas header pressure (NG-703)}
+  - {tag: PI-703, sheet: P-07, service: Flare header pressure at the battery limit (FL-701)}
+  - {tag: TI-801, sheet: P-08, service: Cooling water supply temperature (CWS-801)}
+  - {tag: PI-802, sheet: P-08, service: Cooling water supply pressure (CWS-801)}
+  - {tag: TI-803, sheet: P-08, service: Cooling water return temperature (CWR-802)}

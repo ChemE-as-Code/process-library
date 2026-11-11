@@ -1,0 +1,167 @@
+# Reactions of p-toluenesulfonyl-chloride-1. Schema cheme/reactions/v1 (`cheme schema
+# process-reactions`).
+#
+# The route is the salt-modified chlorosulfonation of toluene of DE 1 912 956 A1 (Hoechst 1969,
+# Example 1, DESIGN.md D-001): ammonium chloride added to chlorosulfonic acid (HCl escapes),
+# toluene dosed at 60-70 C, the mixture cooled to 35 C and a second portion of chlorosulfonic
+# acid added, then the mass drowned in ice water, where the sulfonyl chlorides separate.
+# - SALT, SULP, SULO in R101 (semi-batch, HCl vented as it forms): the salt taken up by the acid,
+#   and the sulfonation of toluene to the p- and o-sulfonic acid in the patent's 90 : 10 para
+#   share (the rate constants in that ratio, ASSUMED).
+# - CHLP, CHLO in R102 (a conversion step after the cool-down): the sulfonic acids converted
+#   to the sulfonyl chlorides by the second portion of acid, an equilibrium the excess acid
+#   drives; its conversion is ASSUMED from the patent's crude yield (D-005).
+# - HYD, AMH, TSHP, TSHO in Q101 (the drown-out quench, semi-batch, the reaction mass dosed
+#   into a water heel, 10 % of the HCl formed vented): the excess acid and the ammonium
+#   chlorosulfate hydrolysed, and the hydrolysis loss of the sulfonyl chlorides.
+# None of these steps has open kinetics or calorimetry (searched 2026-11-05): every rate law
+# and heat of reaction is ASSUMED (D-005, D-011). A vented component's heat of reaction is
+# that of forming it as a gas at the vessel's temperature (core ADR 0054); in the quench, where
+# most of the HCl stays dissolved, the heats are effective values to the dilute liquor (D-005).
+# The precipitation of p-TsCl in the quench (CR101) and its dissolution in the washes (W101,
+# W102) are no reactions here: they are core's crystallizer with spectators (core ADR 0056).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: SALT
+    title: Ammonium chloride taken up by chlorosulfonic acid
+    equation: NH4Cl + HSO3Cl -> NH4SO3Cl + HCl
+    stoichiometry: {NH4CL: -1, CSA: -1, AMCS: 1, HCL: 1}
+    phase: liquid
+    heat_of_reaction: {value: -20000, provenance: assumed, source: "ASSUMED (D-005): the patent's charge warms to about 50 C as the salt is added (DE 1 912 956 A1, Example 1), which with 0.45 mol of salt in 1.5 mol of acid is of the order of -10 to -30 kJ per mol of salt; no calorimetric value found"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # second order: k = 0.01 m3/(kmol s) at 338.15 K, Ea 40 kJ/mol
+      k: {A: 1.51e4, Ea: 40000}
+      orders: {NH4CL: 1, CSA: 1}
+      temperature_range: [298.15, 353.15]
+      provenance: assumed
+      source: "ASSUMED fast effective rate (D-005): no open kinetics found (2026-11-05)"
+    sources: ["DE 1 912 956 A1 (Hoechst, 1969), Example 1: ammonium chloride added in portions to chlorosulfonic acid, hydrogen chloride escapes and the solution warms"]
+  - id: SULP
+    title: Sulfonation of toluene by chlorosulfonic acid, para
+    equation: C7H8 + HSO3Cl -> p-CH3C6H4SO3H + HCl
+    stoichiometry: {TOL: -1, CSA: -1, PTSA: 1, HCL: 1}
+    phase: liquid
+    heat_of_reaction: {value: -100000, provenance: assumed, source: "ASSUMED (D-005): no open calorimetric value; an order of magnitude, HCl formed as a gas: an aromatic sulfonation by SO3 is commonly put at about -170 kJ/mol, and chlorosulfonic acid, the adduct of SO3 and HCl, brings less (D-005)"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # second order, in dissolved toluene and the acid: k = 5.4e-3 m3/(kmol s) at 338.15 K
+      # (90 % of the total 6.0e-3), Ea 50 kJ/mol: A = 5.4e-3 x exp(50000 / (8.314 x 338.15))
+      k: {A: 2.858e5, Ea: 50000}
+      orders: {TOL: 1, CSA: 1}
+      temperature_range: [323.15, 353.15]
+      provenance: assumed
+      source: "ASSUMED fast effective rate (D-005): no open kinetics found (2026-11-05); the para share 90 % of the total rate after DE 1 912 956 A1, Example 1 (p-content of the crude 90 %); to be replaced by reaction calorimetry"
+    sources: ["DE 1 912 956 A1, Example 1: toluene dosed into chlorosulfonic acid with ammonium chloride at about 60-70 C over 2-3 h; crude with 90 % of the para isomer"]
+  - id: SULO
+    title: Sulfonation of toluene by chlorosulfonic acid, ortho
+    equation: C7H8 + HSO3Cl -> o-CH3C6H4SO3H + HCl
+    stoichiometry: {TOL: -1, CSA: -1, OTSA: 1, HCL: 1}
+    phase: liquid
+    heat_of_reaction: {value: -100000, provenance: assumed, source: "ASSUMED as SULP (D-005)"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # k = 6.0e-4 m3/(kmol s) at 338.15 K (10 % of the total), Ea 50 kJ/mol
+      k: {A: 3.176e4, Ea: 50000}
+      orders: {TOL: 1, CSA: 1}
+      temperature_range: [323.15, 353.15]
+      provenance: assumed
+      source: "ASSUMED as SULP (D-005): the ortho share 10 % of the total rate (DE 1 912 956 A1, Example 1)"
+    sources: ["DE 1 912 956 A1, Example 1 (p-content 90 %)"]
+  - id: CHLP
+    title: p-Toluenesulfonic acid to p-toluenesulfonyl chloride by excess chlorosulfonic acid
+    equation: p-CH3C6H4SO3H + HSO3Cl -> p-CH3C6H4SO2Cl + H2SO4
+    stoichiometry: {PTSA: -1, CSA: -1, PTSCL: 1, H2SO4: 1}
+    phase: liquid
+    conversion: {key: PTSA, value: 0.9, provenance: assumed, source: "ASSUMED (D-005): 90 % of the sulfonic acid converted with the second 1.5 mol of acid in 1 h at 35 C; the patent's crude after its solvent work-up is 84-85 % of theory (DE 1 912 956 A1, Example 1)"}
+    heat_of_reaction: {value: -10000, provenance: assumed, source: "ASSUMED small (D-005): the patent adds the second portion of acid in 5-10 min at 35 C, which a strongly exothermic step would not allow; no calorimetric value"}
+    sources: ["DE 1 912 956 A1, Example 1: cooled to about 35 C, 1.5 mol chlorosulfonic acid added over 5-10 min, stirred about 1 h"]
+  - id: CHLO
+    title: o-Toluenesulfonic acid to o-toluenesulfonyl chloride by excess chlorosulfonic acid
+    equation: o-CH3C6H4SO3H + HSO3Cl -> o-CH3C6H4SO2Cl + H2SO4
+    stoichiometry: {OTSA: -1, CSA: -1, OTSCL: 1, H2SO4: 1}
+    phase: liquid
+    conversion: {key: OTSA, value: 0.9, provenance: assumed, source: "ASSUMED as CHLP (D-005)"}
+    heat_of_reaction: {value: -10000, provenance: assumed, source: "ASSUMED as CHLP (D-005)"}
+    sources: ["DE 1 912 956 A1, Example 1"]
+  - id: HYD
+    title: Hydrolysis of the excess chlorosulfonic acid in the quench
+    equation: HSO3Cl + H2O -> H2SO4 + HCl
+    stoichiometry: {CSA: -1, H2O: -1, H2SO4: 1, HCL: 1}
+    phase: liquid
+    heat_of_reaction: {value: -180000, provenance: assumed, source: "ASSUMED effective value to the dilute liquor (D-005): the hydrolysis to liquid H2SO4 and HCl gas (taken as about -30 kJ/mol: no sourced formation enthalpy of liquid chlorosulfonic acid was found openly), the dilution of the H2SO4 formed to about 10 wt% (of the order of -75 kJ/mol) and the dissolution of the 90 % of the HCl that stays (about -75 kJ/mol HCl); no calorimetric value of the drown-out found"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # k = 1e-3 m3/(kmol s) at 288.15 K, Ea 40 kJ/mol: about 0.05 1/s in the water heel
+      k: {A: 1.78e4, Ea: 40000}
+      orders: {CSA: 1, H2O: 1}
+      temperature_range: [278.15, 308.15]
+      provenance: assumed
+      source: "ASSUMED fast effective rate (D-005): chlorosulfonic acid reacts violently with water; no open kinetics"
+    sources: ["Wikipedia, Chlorosulfuric acid: reacts violently with water to sulfuric acid and HCl (identity and the reaction only)"]
+  - id: AMH
+    title: Hydrolysis of the ammonium chlorosulfate in the quench
+    equation: NH4SO3Cl + H2O -> NH4HSO4 + HCl
+    stoichiometry: {AMCS: -1, H2O: -1, AMBS: 1, HCL: 1}
+    phase: liquid
+    heat_of_reaction: {value: -80000, provenance: assumed, source: "ASSUMED effective value to the dilute liquor (D-005): as HYD without the dilution of a free acid; no open value"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      k: {A: 1.78e4, Ea: 40000}
+      orders: {AMCS: 1, H2O: 1}
+      temperature_range: [278.15, 308.15]
+      provenance: assumed
+      source: "ASSUMED as HYD (D-005)"
+    sources: ["ASSUMED: the salt of a chlorosulfuric acid hydrolyses as the acid does (D-005)"]
+  - id: TSHP
+    title: Hydrolysis of p-toluenesulfonyl chloride in the quench (yield loss)
+    equation: p-CH3C6H4SO2Cl + H2O -> p-CH3C6H4SO3H + HCl
+    stoichiometry: {PTSCL: -1, H2O: -1, PTSA: 1, HCL: 1}
+    phase: liquid
+    heat_of_reaction: {value: -60000, provenance: assumed, source: "ASSUMED order of magnitude (D-005); its extent is small"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # an effective rate of the dispersed solid and oil: k c_H2O about 1e-6 1/s at 288 K
+      k: {A: 3.56e-1, Ea: 40000}
+      orders: {PTSCL: 1, H2O: 1}
+      temperature_range: [278.15, 308.15]
+      provenance: assumed
+      source: "ASSUMED effective rate of the heterogeneous hydrolysis (D-005): the model carries the sulfonyl chloride dissolved, while it is a solid and an oil in the cold acid liquor, so the homogeneous rate of a dissolved sulfonyl chloride does not apply; set to lose about 1 % in the quench; the reason the sources quench onto ice"
+    sources: ["PubChem CID 7397 (HSDB): solubility in water: reaction"]
+  - id: TSHO
+    title: Hydrolysis of o-toluenesulfonyl chloride in the quench
+    equation: o-CH3C6H4SO2Cl + H2O -> o-CH3C6H4SO3H + HCl
+    stoichiometry: {OTSCL: -1, H2O: -1, OTSA: 1, HCL: 1}
+    phase: liquid
+    heat_of_reaction: {value: -60000, provenance: assumed, source: "ASSUMED as TSHP (D-005)"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      k: {A: 3.56e-1, Ea: 40000}
+      orders: {OTSCL: 1, H2O: 1}
+      temperature_range: [278.15, 308.15]
+      provenance: assumed
+      source: "ASSUMED as TSHP (D-005)"
+    sources: ["ASSUMED as TSHP"]
+  - id: NEUT
+    title: Neutralisation of the off-gas HCl in the caustic scrubber
+    equation: HCl + NaOH -> NaCl + H2O
+    stoichiometry: {HCL: -1, NAOH: -1, NACL: 1, H2O: 1}
+    phase: liquid
+    conversion: {key: HCL, value: 0.999, provenance: assumed, source: "ASSUMED scrubber efficiency on HCl (D-007)"}
+    heat_of_reaction: {value: -132000, provenance: assumed, source: "ASSUMED (D-009): the neutralisation of a strong acid by a strong base in water (-56 kJ/mol) and the dissolution of HCl gas (about -75 kJ/mol), textbook orders"}
+    sources: ["ASSUMED: a caustic scrubber for an HCl vent"]

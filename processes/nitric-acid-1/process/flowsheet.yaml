@@ -182,6 +182,7 @@ steps:
     block: PREP
     title: Ammonia-air mixer
     class: Mixing
+    symbol: STATIC_MIXER_SHAPE
     links: [{target: equipment, ref: M-101}]
     ports:
       - {id: nh3, direction: in}
@@ -255,7 +256,7 @@ steps:
     # TransportingFluids instead of Pumping: cheme 0.8.0 `process build` crashes on a Pumping
     # step (pyDEXPI's method annotation is a union; core finding, DESIGN.md D-012)
     class: TransportingFluids
-    links: [{target: equipment, ref: P-101}]
+    links: [{target: equipment, ref: P-101A}, {target: equipment, ref: P-101B}]
     ports:
       - {id: in, direction: in, delegates: weak}
       - {id: out, direction: out}
@@ -354,6 +355,7 @@ streams:
     title: Liquid ammonia feed
     from: NH3.out
     to: S101.in
+    links: [{target: line, ref: NL-101, sheet: P-01}]
     template: ammonia
     state:
       design:
@@ -365,6 +367,7 @@ streams:
     title: Liquid ammonia to evaporator
     from: S101.main
     to: E101.in
+    links: [{target: line, ref: NL-101, sheet: P-01}]
     template: ammonia
     state:
       design:
@@ -376,6 +379,7 @@ streams:
     title: Ammonia vapour to mixer
     from: E101.out
     to: M101.nh3
+    links: [{target: line, ref: NV-102, sheet: P-01}]
     template: ammonia
     state:
       design:
@@ -387,6 +391,7 @@ streams:
     title: Liquid ammonia to SCR vaporiser
     from: S101.scr
     to: E108.in
+    links: [{target: line, ref: NL-103, sheet: P-01}]
     template: ammonia
     state:
       design:
@@ -398,6 +403,7 @@ streams:
     title: SCR ammonia vapour
     from: E108.out
     to: R102.nh3
+    links: [{target: line, ref: NV-601, sheet: P-06}]
     template: ammonia
     state:
       design:
@@ -410,6 +416,7 @@ streams:
     title: Ambient air
     from: AIR.out
     to: K101.in
+    links: [{target: line, ref: PA-104, sheet: P-01}]
     template: air
     state:
       design:
@@ -421,6 +428,7 @@ streams:
     title: Compressed air
     from: K101.out
     to: S102.in
+    links: [{target: line, ref: PA-105, sheet: P-01}]
     template: air
     state:
       design:
@@ -432,6 +440,7 @@ streams:
     title: Primary air
     from: S102.primary
     to: M101.air
+    links: [{target: line, ref: PA-105, sheet: P-01}]
     template: air
     state:
       design:
@@ -443,6 +452,7 @@ streams:
     title: Secondary air to bleacher
     from: S102.secondary
     to: C102.air
+    links: [{target: line, ref: PA-106, sheet: P-01}]
     template: air
     state:
       design:
@@ -455,6 +465,7 @@ streams:
     title: Ammonia-air mixture
     from: M101.out
     to: R101.in
+    links: [{target: line, ref: AM-201, sheet: P-02}]
     template: nitrous_gas
     state:
       design:
@@ -466,6 +477,7 @@ streams:
     title: Burner gas
     from: R101.out
     to: E102.in
+    links: [{target: line, ref: NX-202, sheet: P-02}]
     template: nitrous_gas
     state:
       design:
@@ -477,6 +489,7 @@ streams:
     title: Nitrous gas from boiler
     from: E102.out
     to: E103.hot_in
+    links: [{target: line, ref: NX-203, sheet: P-02}]
     template: nitrous_gas
     state:
       design:
@@ -488,6 +501,7 @@ streams:
     title: Nitrous gas from tail-gas heater
     from: E103.hot_out
     to: E104.in
+    links: [{target: line, ref: NX-301, sheet: P-03}]
     template: nitrous_gas
     state:
       design:
@@ -499,6 +513,7 @@ streams:
     title: Nitrous gas from economiser
     from: E104.out
     to: E105.in
+    links: [{target: line, ref: NX-302, sheet: P-03}]
     template: nitrous_gas
     state:
       design:
@@ -510,6 +525,7 @@ streams:
     title: Cooler-condenser outlet (gas and weak acid)
     from: E105.out
     to: V101.in
+    links: [{target: line, ref: NX-303, sheet: P-03}]
     template: nitrous_gas
     state:
       design:
@@ -521,6 +537,7 @@ streams:
     title: Nitrous gas to NOx compressor
     from: V101.gas
     to: M102.gas
+    links: [{target: line, ref: NX-304, sheet: P-03}]
     template: nitrous_gas
     state:
       design:
@@ -532,6 +549,7 @@ streams:
     title: Weak acid
     from: V101.liq
     to: P101.in
+    links: [{target: line, ref: WA-305, sheet: P-03}]
     template: acid
     state:
       design:
@@ -544,6 +562,7 @@ streams:
     title: Weak acid to absorber
     from: P101.out
     to: C101.weak
+    links: [{target: line, ref: WA-306, sheet: P-03}]
     template: acid
     state:
       design:
@@ -555,6 +574,7 @@ streams:
     title: Bleacher gas (secondary air with stripped NOx)
     from: C102.gas
     to: M102.bleach
+    links: [{target: line, ref: BG-503, sheet: P-05}]
     template: nitrous_gas
     state:
       design:
@@ -566,6 +586,7 @@ streams:
     title: Nitrous gas to NOx compressor suction
     from: M102.out
     to: K102.in
+    links: [{target: line, ref: NX-304, sheet: P-03}]
     template: nitrous_gas
     state:
       design:
@@ -577,6 +598,7 @@ streams:
     title: Compressed nitrous gas
     from: K102.out
     to: E106.hot_in
+    links: [{target: line, ref: NX-401, sheet: P-04}]
     template: nitrous_gas
     state:
       design:
@@ -588,6 +610,7 @@ streams:
     title: Nitrous gas from tail-gas exchanger
     from: E106.hot_out
     to: E107.in
+    links: [{target: line, ref: NX-402, sheet: P-04}]
     template: nitrous_gas
     state:
       design:
@@ -599,6 +622,7 @@ streams:
     title: Nitrous gas to absorber
     from: E107.out
     to: C101.gas
+    links: [{target: line, ref: NX-403, sheet: P-04}]
     template: nitrous_gas
     state:
       design:
@@ -610,6 +634,7 @@ streams:
     title: Process water to absorber
     from: PW.out
     to: C101.water
+    links: [{target: line, ref: PW-505, sheet: P-05}]
     template: water
     state:
       design:
@@ -621,6 +646,7 @@ streams:
     title: Absorber tail gas
     from: C101.tail
     to: E106.cold_in
+    links: [{target: line, ref: TG-501, sheet: P-05}]
     template: nitrous_gas
     state:
       design:
@@ -632,6 +658,7 @@ streams:
     title: Tail gas to tail-gas heater
     from: E106.cold_out
     to: E103.cold_in
+    links: [{target: line, ref: TG-402, sheet: P-04}]
     template: nitrous_gas
     state:
       design:
@@ -643,6 +670,7 @@ streams:
     title: Hot tail gas to tertiary reactor
     from: E103.cold_out
     to: R102.in
+    links: [{target: line, ref: TG-310, sheet: P-03}]
     template: nitrous_gas
     state:
       design:
@@ -654,6 +682,7 @@ streams:
     title: Treated tail gas to expander
     from: R102.out
     to: X101.in
+    links: [{target: line, ref: TG-606, sheet: P-06}]
     template: nitrous_gas
     state:
       design:
@@ -665,6 +694,7 @@ streams:
     title: Tail gas to stack
     from: X101.out
     to: STACK.in
+    links: [{target: line, ref: TG-607, sheet: P-06}]
     template: nitrous_gas
     state:
       design:
@@ -676,6 +706,7 @@ streams:
     title: Raw acid to bleacher
     from: C101.raw
     to: C102.raw
+    links: [{target: line, ref: AC-502, sheet: P-05}]
     template: acid
     state:
       design:
@@ -687,6 +718,7 @@ streams:
     title: Product acid 60 wt%
     from: C102.acid
     to: ACID.in
+    links: [{target: line, ref: AC-504, sheet: P-05}]
     template: acid
     state:
       design:
@@ -749,39 +781,3 @@ streams:
     state:
       design:
         duty: {value: 16.6907, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 7a3d2db758a1499f, origin: simulated}
-layout:
-  pfd:
-    NH3: {x: 21.7, y: 57.5}
-    AIR: {x: 28.9, y: 129.5}
-    PW: {x: 20.1, y: 165.5}
-    POWER: {x: 28.9, y: 201.5}
-    LPS: {x: 27.9, y: 93.5}
-    PREP: {x: 107.6, y: 79.5}
-    OX: {x: 400.0, y: 112.0}
-    ABS: {x: 930.0, y: 100.0}
-    TGT: {x: 1480.0, y: 108.0}
-    ACID: {x: 1300.0, y: 225.0}
-    STACK: {x: 1690.0, y: 131.5}
-    HPS: {x: 610.0, y: 40.0}
-    CW: {x: 880.0, y: 225.0}
-    S101: {x: 38.0, y: 32.0}
-    E101: {x: 118.3, y: 11.0}
-    E108: {x: 116.2, y: 53.0}
-    K101: {x: 46.6, y: 64.0}
-    S102: {x: 109.2, y: 95.0}
-    M101: {x: 184.6, y: 48.0}
-    R101: {x: 38.0, y: 11.0}
-    E102: {x: 109.2, y: 11.0}
-    E103: {x: 187.4, y: 11.0}
-    E104: {x: 275.4, y: 11.0}
-    E105: {x: 360.6, y: 11.0}
-    V101: {x: 415.0, y: 11.0}
-    P101: {x: 38.0, y: 24.0}
-    M102: {x: 227.4, y: 19.0}
-    K102: {x: 308.4, y: 19.0}
-    E106: {x: 362.4, y: 19.0}
-    E107: {x: 433.6, y: 19.0}
-    C101: {x: 92.0, y: 11.0}
-    C102: {x: 147.8, y: 11.0}
-    R102: {x: 38.0, y: 19.0}
-    X101: {x: 120.4, y: 11.0}

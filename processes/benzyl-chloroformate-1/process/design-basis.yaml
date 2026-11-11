@@ -1,0 +1,47 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Benzyl chloroformate by the phosgenation of benzyl alcohol at reduced pressure, a batch plant,
+# issue ChemE-as-Code/process-library#153. Values marked ASSUMED are engineering choices of this
+# concept study, not client or licensor data; every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: neat benzyl chloroformate (degassed crude, not distilled) to cold storage at the battery limit
+  bcf_t_per_year: 1000                  # ASSUMED (D-002): a fine-chemical scale, no open market figure
+  operating_hours_per_year: 7920        # ASSUMED (D-002): 330 days of 24 h, batch operation
+  batch_kg: 1770                        # ASSUMED (D-003): one batch every 14.0 h
+  batches_per_year: 565                 # from the recipe (process/recipe.yaml, D-003)
+feeds:
+  - name: Benzyl alcohol (merchant)
+    source_of_values: ASSUMED (D-004)
+    composition: "benzyl alcohol 100 % (dry; water and benzaldehyde not modelled)"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Liquid phosgene (phosgene-1, captive)
+    source_of_values: ASSUMED (D-004)
+    composition: "COCl2 100 % (phosgene-1's 35 ppm(wt) Cl2 not modelled)"
+    conditions: {temperature_K: 253.15, pressure_kPa_a: 340}
+    note: "1.27 mol per mol of alcohol (US 6 696 590 B2 Ex. 3), evaporated and dosed as a gas"
+  - name: Caustic soda 50 wt% (chlor-alkali-1)
+    source_of_values: ASSUMED (D-007)
+    note: "1.1 times the NaOH the off-gas takes, diluted to 10 wt% with process water"
+products:
+  - name: Benzyl chloroformate
+    purity: "99.2 wt% (the model, D-008): 0.51 wt% benzyl chloride, 0.26 wt% dibenzyl carbonate, 0.02 wt% benzyl alcohol, 0.03 wt% phosgene; US 6 696 590 B2 Ex. 3 reports 98.4 % (ASSUMED as the specification's order)"
+    delivery: {temperature_K: 278.15, pressure_kPa_a: 101.325, battery_limit: cold storage tank (drumming not in the boundary)}
+  - name: Spent scrubber liquor to wastewater treatment
+    note: "NaCl 9.1 wt%, Na2CO3 3.0 wt%, NaOH 0.85 wt%: the HCl and the excess phosgene destroyed (D-007)"
+utilities:
+  - {name: Electric power, use: "R-101 agitator, vacuum pump, scrubber pump (D-009)"}
+  - {name: LP steam, pressure_kPa_a: 350, use: "the tempered-water circuits of the phosgene evaporator and the degassing (D-009)", note: ASSUMED}
+  - {name: Chilled brine, supply_K: 248.15, return_K: 253.15, use: "the charge's cool-down and the heat of phosgenation at 278 K (R-101 jacket)", note: "ASSUMED; from a refrigeration unit outside the boundary (D-009)"}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "the scrubber's circulation cooler (D-009)", note: ASSUMED}
+  - {name: Nitrogen, use: "inerting R-101 and breaking its vacuum: a per-batch consumable (lca/lca.yaml, D-012)", note: ASSUMED}
+site:
+  location: ASSUMED generic fine-chemicals site with a captive phosgene unit (phosgene-1), not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "ASSUMED route: phosgene gas dosed into neat benzyl alcohol at 278 K and 50 kPa(a), no base, no solvent (D-001), the reduced-pressure batch route of US 6 696 590 B2 Ex. 3."
+  - "ASSUMED rate laws (second order) and the side reactions' constants set to Ex. 3's impurities; the heats of PHOSG and CLBN from formation enthalpies, CARB's ASSUMED (D-005)."
+  - "ASSUMED 95 % of the dosed phosgene taken up by the liquid and 95 % of the HCl leaving as it forms (D-005)."
+  - "ASSUMED degassing at 20 kPa(a) and 278 K with constant relative volatilities to 0.05 mol% phosgene (D-006)."
+  - "ASSUMED caustic scrubber destroying the HCl and phosgene, 99.99 % (D-007); no phosgene or HCl recovery."
+  - "All flows are year averages of the recipe (D-003); duties and power concept estimates (D-009); accuracy +/-30 % not demonstrated."

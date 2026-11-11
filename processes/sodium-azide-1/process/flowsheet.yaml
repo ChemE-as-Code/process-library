@@ -1,0 +1,723 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Sodium azide by the hydrazine / methyl nitrite route of US 5 208 002 A (Nippon Carbide; DESIGN.md
+# D-001), a batch plant: in R-101 sulfuric acid is dosed into aqueous sodium nitrite and methanol,
+# and the methyl nitrite gas formed (R101, vented as it forms: batch.vent, core ADR 0054) is passed
+# straight into R-102, where aqueous hydrazine and caustic soda with the mother liquor of the
+# previous batch absorb it (R102, a dosed gas: dosing.absorbed) and give sodium azide; nitrous
+# oxide and ammonia from the side reaction leave by R-102's vent with the methyl nitrite that is
+# not absorbed. The liquor is stripped of methanol and concentrated under vacuum in the batch still
+# C-101 (ST101, core ADR 0055); the methanol cut goes back to R-101 and to the cake wash. NaN3
+# precipitates from the concentrated caustic liquor (CR101, a crystallizer with spectator solutes,
+# core ADR 0056) and is filtered, washed with methanol and vacuum-dried in the filter-dryer F-101
+# (F101, W101, F102, D101; core ADR 0057). The mother liquor and the wash filtrate go back to R-102
+# for the next batch, less a 5 % purge to azide destruction. The acid side (R-101) and the azide
+# side never share a vessel or a liquor, so the azide never meets acid; hydrazine carried in the
+# recovered methanol S3 would form HN3 in R-101 (a limit and an analysis on S3, D-015).
+# The flows are the year averages of the batch recipe (process/recipe.yaml, `cheme process
+# recipe`, D-003).
+# Where the values come from:
+# - feeds, ratios, temperatures and pressures: the design basis and D-002..D-010, ASSUMED or from
+#   the patent's Examples 1 and 2 (the fresh feeds follow the charge ratios of D-004 at the
+#   converged recycle);
+# - calculated by `cheme process propagate --fill`: R101 and R102 (semi-batch models with their
+#   vents, ASSUMED rate laws, D-005), ST101 (Rayleigh still, D-007), CR101 (precipitation from the
+#   mother liquor, D-008), F101, F102 (specified filters) and D101 (dryer to a residual moisture,
+#   D-009), the mixers and the remainders of the splitters;
+# - S3 and S11, the two recycles (the recovered methanol to R-101 and the mother liquor to R-102),
+#   are the tear streams of `tears:`: propagate converges both loops by Wegstein's method (core
+#   1.9, ADR 0060) and writes them as calculated; S3's flow stays ASSUMED, a charge ratio (D-006);
+# - the duties of R101, R102, ST101 (its boil-up, energy_port steam) and CR101: written by
+#   propagate from the same models (core 1.9, ADR 0059), year averages; the condensers Q4, Q5 and
+#   Q8 and the dryer's heat Q7 (checked by its energy port) from core's reports, ASSUMED (D-012);
+#   power ASSUMED.
+schema: cheme/process/v1
+kind: flowsheet
+title: Sodium azide by the hydrazine / methyl nitrite route, batch, with precipitation from the reaction liquor
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: dried NaN3, year averages of the batches in 7920 h on a dedicated train (D-002, D-003)", default: true}
+tolerance: {abs: 0.02, rel: 0.001}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+# The two recycles, torn once each (D-006, core ADR 0060): the mother liquor S11 (X101 -> R-102's
+# charge) and the recovered methanol S3 (X102 -> R-101's charge). Every loop of the flowsheet runs
+# through one of them (the wash S18 -> F102 -> M103 -> S11 too). The first guesses are the earlier
+# hand estimates, rounded; S3's flow is ASSUMED (a charge ratio) and stays fixed, its composition
+# is iterated. The tolerance is far tighter than the balances': the loop stops within tolerance /
+# (1 - gain) of its fixed point, and at 1e-4 kg/h that was the last of the six digits written (S17's
+# fractions then summed to 1.000001); at 1e-6 kg/h the digits written are the fixed point's (D-006).
+tears:
+  - stream: S11
+    initial: {flow: 139, unit: kg/h, basis: mass_fraction, composition: {H2O: 0.263, NAOH: 0.282, N2H4: 0.126, NAN3: 0.078, NAN3S: 0.002, MEOH: 0.249}}
+  - stream: S3
+    initial: {flow: 54.458, unit: kg/h, basis: mass_fraction, composition: {H2O: 0.116, MEOH: 0.884}}
+convergence: {method: wegstein, max_iterations: 100, tolerance: {abs: 1.0e-6, rel: 1.0e-9}}
+
+feeds:
+  - {id: NANO2, title: Sodium nitrite (sodium-nitrite-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: PW1, title: Process water (nitrite generator), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: ACID, title: Sulfuric acid 98.5 wt% (sulfuric-acid-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: HH, title: Hydrazine hydrate 64 wt% N2H4 (hydrazine-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: NAOH, title: Caustic soda 50 wt% (chlor-alkali-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: PW2, title: Process water (azide reactor), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: MEOH, title: Methanol make-up (methanol-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: r101, direction: out, kind: energy}
+      - {id: r102, direction: out, kind: energy}
+      - {id: c101, direction: out, kind: energy}
+      - {id: f101, direction: out, kind: energy}
+  - id: LPS
+    title: LP steam 350 kPa(a) (still and filter-dryer)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 350, provenance: assumed, source: "design basis (D-012)"}
+      supply_temperature: {value: 412.0, provenance: given, source: "saturation at 350 kPa(a), IAPWS-IF97"}
+      min_approach: {value: 10, provenance: assumed, source: "D-012"}
+    ports:
+      - {id: c101, direction: out, kind: energy}
+      - {id: f101, direction: out, kind: energy}
+products:
+  - {id: NAN3P, title: Dried sodium azide to packing, category: product, ports: [{id: in, direction: in}]}
+  - {id: SULF, title: Sodium sulfate liquor to wastewater treatment, category: wastewater, ports: [{id: in, direction: in}]}
+  - {id: COND, title: Evaporator condensate to wastewater treatment, category: wastewater, ports: [{id: in, direction: in}]}
+  - {id: PURGE, title: Mother-liquor purge to azide destruction and wastewater treatment, category: wastewater, ports: [{id: in, direction: in}]}
+  - {id: OFFGAS, title: Azide reactor off-gas to the thermal oxidiser, category: off_gas, ports: [{id: in, direction: in}]}
+  - id: CHW
+    title: Chilled water return (R-101, R-102 and the methanol condensers)
+    category: utility
+    utility:
+      kind: refrigerant
+      level: chilled water
+      supply_temperature: {value: 278.15, provenance: assumed, source: "design basis (D-012)"}
+      return_temperature: {value: 283.15, provenance: assumed, source: "design basis (D-012)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-012"}
+    ports:
+      - {id: r101, direction: in, kind: energy}
+      - {id: r102, direction: in, kind: energy}
+      - {id: c101, direction: in, kind: energy}
+      - {id: f101, direction: in, kind: energy}
+  - id: CW
+    title: Cooling water return (still's water condenser and crystallizer)
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis (D-012)"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis (D-012)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-012"}
+    ports:
+      - {id: c101, direction: in, kind: energy}
+      - {id: cr101, direction: in, kind: energy}
+
+blocks:
+  - id: GEN
+    title: Methyl nitrite generation
+    class: ReactingChemicals
+    ports:
+      - {id: nano2, direction: in}
+      - {id: pw, direction: in}
+      - {id: meoh, direction: in}
+      - {id: acid, direction: in}
+      - {id: liquor, direction: out}
+      - {id: meono, direction: out}
+      - {id: q, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: AZIDE
+    title: Azide reaction
+    class: ReactingChemicals
+    ports:
+      - {id: hh, direction: in}
+      - {id: naoh, direction: in}
+      - {id: pw, direction: in}
+      - {id: recycle, direction: in}
+      - {id: meono, direction: in}
+      - {id: out, direction: out}
+      - {id: vent, direction: out}
+      - {id: q, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: CONC
+    title: Methanol strip, concentration and precipitation
+    class: Crystallizing
+    ports:
+      - {id: in, direction: in}
+      - {id: meoh, direction: out}
+      - {id: wash, direction: out}
+      - {id: cond, direction: out}
+      - {id: slurry, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: qchw, direction: out, kind: energy}
+      - {id: qcw, direction: out, kind: energy}
+      - {id: qcr, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: ISOL
+    title: Filter-dryer (filtration, methanol wash, vacuum drying) and the mother-liquor recycle
+    class: SeparatingMechanically
+    ports:
+      - {id: slurry, direction: in}
+      - {id: wash, direction: in}
+      - {id: fresh, direction: in}
+      - {id: product, direction: out}
+      - {id: recycle, direction: out}
+      - {id: purge, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: q, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+
+steps:
+  - id: M101
+    block: GEN
+    title: Nitrite solution charge (R-101)
+    class: Mixing
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: nano2, direction: in, delegates: nano2}
+      - {id: pw, direction: in, delegates: pw}
+      - {id: meoh, direction: in, delegates: meoh}
+      - {id: out, direction: out}
+  - id: R101
+    block: GEN
+    title: Methyl nitrite generator (sulfuric acid dosed, the gas vented to R-102)
+    class: ReactingChemicals
+    reactions: [NTG]
+    reactor: semibatch
+    batch:
+      dosing: [{stream: S5, time: 36000}]
+      target: {key: NANO2, conversion: 0.999}
+      heat: isothermal
+      vent: {stream: S7, components: [MEONO]}
+      provenance: assumed
+      source: "acid dosed at a constant rate over the azide reactor's dosing time, 10 h (D-010), at 298 K (US 5 208 002 Example 1: 25 C), then the post-reaction to 0.999 conversion of the nitrite; methyl nitrite (bp 261 K) leaves as it forms (D-005)"
+    hazard:
+      vent_capacity: 50.0
+      provenance: assumed
+      source: "the vent is the methyl nitrite line S7 to R-102's sparger (flame arrester, non-return valve; D-015), sized to pass the normal peak of `cheme process recipe`, 44.6 m3/h of methyl nitrite at 298 K: 50 m3/h at the vessel's pressure (1.12 times the peak), ASSUMED (no line sizing yet); no nitrogen sweep counted (none during the dosing, D-013, D-017). The MTT is the default, methanol's 337.6 K, a charged reactant (core 1.9, ADR 0058; D-011)"
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: acid, direction: in, delegates: acid}
+      - {id: out, direction: out, delegates: liquor}
+      - {id: vent, direction: out, delegates: meono}
+      - {id: q, direction: out, kind: energy, delegates: q}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: M102
+    block: AZIDE
+    title: Hydrazine and caustic charge with the recycled mother liquor (R-102)
+    class: Mixing
+    links: [{target: equipment, ref: R-102}]
+    ports:
+      - {id: hh, direction: in, delegates: hh}
+      - {id: naoh, direction: in, delegates: naoh}
+      - {id: pw, direction: in, delegates: pw}
+      - {id: recycle, direction: in, delegates: recycle}
+      - {id: out, direction: out}
+  - id: R102
+    block: AZIDE
+    title: Azide reactor (methyl nitrite absorbed into hydrazine and caustic at 313 K)
+    class: ReactingChemicals
+    reactions: [AZ, SIDE]
+    reactor: semibatch
+    batch:
+      dosing: [{stream: S7, time: 36000, absorbed: 0.918}]
+      target: {key: MEONO, conversion: 0.999}
+      heat: isothermal
+      vent: {stream: S14, components: [N2O, NH3]}
+      provenance: assumed
+      source: "methyl nitrite from R-101 dosed over 10 h as it forms (D-010), 91.8 % absorbed: the share US 5 208 002 Example 1's balance accounts for (D-004); isothermal at 313 K (the patent's 20-50 C), post-reaction to 0.999 conversion of the dissolved methyl nitrite; N2O and NH3 leave as they form (D-005)"
+    hazard:
+      vent_capacity: 60.0
+      provenance: assumed
+      source: "the off-gas line S14 to the thermal oxidiser, sized for the case where R-102 stops absorbing (agitator or sparger failure) before the interlock stops R-101's acid: R-101's whole methyl nitrite peak, 44.6 m3/h at 298 K (46.9 m3/h at 313 K), passes through, with the N2O and NH3 the dissolved methyl nitrite still forms, at most their normal 4.3 m3/h (the 8.1 m3/h normal peak less its unabsorbed methyl nitrite): about 51 m3/h at 313 K; 60 m3/h at the vessel's pressure (1.17 times), ASSUMED (no line sizing yet); no nitrogen sweep counted (none during the dosing, D-013, D-017). The MTT is the default, methanol's 337.6 K, which core finds only because the recycled mother liquor S11 brings methanol into the charge S12 (5.8 mol%): the methanol AZ forms is not counted, and the dosed methyl nitrite and the vented N2O and NH3 are left out (core 1.9, ADR 0058; D-011, D-015)"
+    links: [{target: equipment, ref: R-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: meono, direction: in, delegates: meono}
+      - {id: out, direction: out, delegates: out}
+      - {id: vent, direction: out, delegates: vent}
+      - {id: q, direction: out, kind: energy, delegates: q}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: ST101
+    block: CONC
+    title: Batch still at 10 kPa(a) (methanol cut, then water to concentrate)
+    class: Distilling
+    still:
+      pressure: 10
+      volatility: {model: constant, alpha: {MEOH: 150.0, H2O: 1.0}, provenance: assumed, source: "effective relative volatility of methanol to water, ASSUMED so that the first cut is about the 90 wt% methanol of US 5 208 002 Example 1: it stands for the short column on the still and the salting-out of methanol by the caustic liquor, which a one-stage ideal still (core ADR 0055) cannot give (D-007)"}
+      nonvolatile: [N2H4, NAOH, NAN3, MEONO]
+      boilup: {value: 500.0, unit: kW, provenance: assumed, source: "tempered hot water (heated by LP steam) to C-101's jacket and coil (D-007, D-012)"}
+      cuts:
+        - {outlet: meoh, end: {residue: {key: MEOH, mole_fraction: 0.0005}}}
+        - {outlet: cond, end: {distilled: 0.63, basis: mass}}
+      outlets: {residue: residue}
+      provenance: assumed
+      source: "the methanol stripped to 0.05 mol% in the still, then water distilled until the mother liquor is about the composition of US 5 208 002 Example 1's filtrate, the basis of CR101's solubility (D-007, D-008); hydrazine and the salts taken as non-volatile (D-007)"
+    energy_port: steam   # the boil-up's latent heat (Q3); the condensers Q4, Q5 are typed (core ADR 0059)
+    links: [{target: equipment, ref: C-101}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: meoh, direction: out}
+      - {id: cond, direction: out, delegates: cond}
+      - {id: residue, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: qchw, direction: out, kind: energy, delegates: qchw}
+      - {id: qcw, direction: out, kind: energy, delegates: qcw}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: X102
+    block: CONC
+    title: Recovered methanol, to the nitrite generator and to the cake wash
+    class: SplittingMaterial
+    links: [{target: equipment, ref: C-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: gen, direction: out, delegates: meoh}
+      - {id: wash, direction: out, delegates: wash}
+  - id: CR101
+    block: CONC
+    title: Precipitation of NaN3 from the concentrated caustic liquor at 303 K
+    class: Crystallizing
+    crystallizer:
+      solute: NAN3
+      solvent: H2O
+      crystal: NAN3S
+      basis: solubility
+      temperature: 303.15
+      spectators: [N2H4, NAOH, MEOH, MEONO]
+      solubility:
+        unit: mass_fraction
+        value: 0.1084
+        measured_in: mother_liquor
+        provenance: given
+        source: "US 5 208 002 A Example 1, Table 1: the filtrate after concentration and centrifugation, 3.3 kg holding 5.5 mol NaN3 (0.358 kg), with 32.9 mol NaOH and 18.2 mol hydrazine: taken as the saturated mother liquor at the crystallizer's temperature (its temperature not stated, ASSUMED 303 K; D-008)"
+      energy: {heat_capacity: 2.8, heat_of_crystallization: -200, provenance: assumed, source: "the liquor's heat capacity ASSUMED; the heat of crystallization about -13 kJ/mol NaN3, ASSUMED (no open value read; D-008, D-012)"}
+      outlets: {slurry: slurry}
+    links: [{target: equipment, ref: C-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: slurry, direction: out, delegates: slurry}
+      - {id: q, direction: out, kind: energy, delegates: qcr}
+  - id: F101
+    block: ISOL
+    title: Filtration of the mother liquor (filter-dryer)
+    class: Filtering
+    solid_separation:
+      solid_recovery: 0.998
+      cake_liquid: {value: 0.05, basis: mass_fraction}
+      outlets: {cake: cake, filtrate: filtrate}
+      filtration: {specific_cake_resistance: 1.0e9, medium_resistance: 1.0e10, pressure_difference: 200, viscosity: 15, filtrate_density: 1500, provenance: assumed, source: "a granular salt cake, nitrogen pressure filtration at 200 kPa, the caustic liquor's viscosity and density ASSUMED (D-009)"}
+      provenance: assumed
+      source: "wet cake 5 wt% liquor, the 95 wt% of the centrifuged crystals of US 5 208 002 Example 1; 0.2 % of the crystals pass the cloth (ASSUMED, D-009)"
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: in, direction: in, delegates: slurry}
+      - {id: cake, direction: out}
+      - {id: filtrate, direction: out}
+  - id: W101
+    block: ISOL
+    title: Methanol wash of the cake (filter-dryer)
+    class: Mixing
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: cake, direction: in}
+      - {id: wash, direction: in, delegates: wash}
+      - {id: fresh, direction: in, delegates: fresh}
+      - {id: out, direction: out}
+  - id: F102
+    block: ISOL
+    title: Filtration of the wash (filter-dryer)
+    class: Filtering
+    solid_separation:
+      solid_recovery: 0.999
+      cake_liquid: {value: 0.05, basis: mass_fraction}
+      outlets: {cake: cake, filtrate: filtrate}
+      filtration: {specific_cake_resistance: 1.0e9, medium_resistance: 1.0e10, pressure_difference: 200, viscosity: 0.7, filtrate_density: 830, provenance: assumed, source: "as F101, the aqueous methanol wash's viscosity and density ASSUMED (D-009)"}
+      provenance: assumed
+      source: "as F101: the methanol-wet cake 5 wt% liquid (ASSUMED, D-009)"
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: cake, direction: out}
+      - {id: filtrate, direction: out}
+  - id: D101
+    block: ISOL
+    title: Vacuum drying at 333 K (filter-dryer)
+    class: Drying
+    dryer:
+      volatiles: [H2O, MEOH]
+      residual_moisture: {value: 0.001, basis: mass_fraction, provenance: assumed, source: "0.1 wt% water and methanol in the dried product (ASSUMED, D-009)"}
+      temperature: 333.15
+      energy: {heat_capacity: 1.3, latent_heat: {H2O: 2358, MEOH: 1132}, vessel_heat_capacity: 4000, efficiency: 0.7, port: steam, provenance: assumed, source: "the cake's heat capacity ASSUMED (NaN3 1.18 kJ/(kg K), CRC via thermo, with its liquid); latent heats at 333 K, water IAPWS-IF97, methanol thermo; the filter-dryer's steel 8 t x 0.5 kJ/(kg K) heated once a batch; 70 % of the heat to the cake (D-009)"}
+      drying_rate: {value: 3.0, provenance: assumed, source: "a mean rate for an agitated vacuum filter-dryer (D-009)"}
+      cake_density: {value: 1100, provenance: assumed, source: "the wet cake's bulk density, NaN3 crystals 1.846 g/cm3 (D-009)"}
+      outlets: {product: product, vapour: vapour}
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: product, direction: out, delegates: product}
+      - {id: vapour, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: q, direction: out, kind: energy, delegates: q}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: M103
+    block: ISOL
+    title: Mother liquor, wash filtrate and dryer condensate receiver
+    class: Mixing
+    links: [{target: equipment, ref: T-101}]
+    ports:
+      - {id: filtrate, direction: in}
+      - {id: wash, direction: in}
+      - {id: vapour, direction: in}
+      - {id: out, direction: out}
+  - id: X101
+    block: ISOL
+    title: Mother liquor to the next batch, and the purge
+    class: SplittingMaterial
+    split: {recycle: 0.95}   # 5 % purged to azide destruction, ASSUMED (D-016)
+    links: [{target: equipment, ref: T-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: recycle, direction: out, delegates: recycle}
+      - {id: purge, direction: out, delegates: purge}
+
+streams:
+  - id: S1
+    title: Sodium nitrite
+    from: NANO2.out
+    to: M101.nano2
+    template: generator
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 103.461, provenance: assumed, source: "0.769 mol NaNO2 per mol hydrazine in R-102's charge, US 5 208 002 Example 1's 47.5 mol on 61.8 mol (D-004)"}
+        composition: {basis: mass_fraction, values: {NANO2: 1}, provenance: assumed, source: "dried NaNO2 of sodium-nitrite-1 (99.0 wt%), its impurities not modelled (D-004)"}
+  - id: S2
+    title: Process water to the nitrite charge
+    from: PW1.out
+    to: M101.pw
+    template: generator
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 258.386, provenance: assumed, source: "the water of Example 1's 35 wt% nitrite solution and 50 wt% acid, 9.84 mol per mol NaNO2, less the water of S3 and S5 (D-004)"}
+        composition: {basis: mass_fraction, values: {H2O: 1}, provenance: assumed, source: "design basis"}
+  - id: S3
+    title: Recovered methanol to the nitrite generator
+    from: X102.gen
+    to: M101.meoh
+    template: generator
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "the receiver (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 54.458, provenance: assumed, source: "1.002 mol methanol per mol NaNO2 (Example 1's 47.6 on 47.5 mol) at the methanol cut's composition, a design input that stays fixed on the tear stream (D-004, D-006)"}
+        composition: {basis: mole_fraction, values: {H2O: 0.189128, MEOH: 0.810872, NANO2: 0.0, H2SO4: 0.0, NA2SO4: 0.0, MEONO: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle X102 from S15 (tear, wegstein)', fingerprint: d38eaad288f7c932}
+  - id: S4
+    title: Nitrite generator charge
+    from: M101.out
+    to: R101.in
+    template: generator
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "the charge at 25 C, US 5 208 002 Example 1 (D-004)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 416.305, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3', fingerprint: 53f9e74d4fb8e09d}
+        composition: {basis: mole_fraction, values: {H2O: 0.830346, MEOH: 0.0849118, NANO2: 0.0847421, H2SO4: 0.0, NA2SO4: 0.0, MEONO: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3', fingerprint: 82824624d60d93e8}
+  - id: S5
+    title: Sulfuric acid (dosed)
+    from: ACID.out
+    to: R101.acid
+    template: generator
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 74.8056, provenance: assumed, source: "0.501 mol H2SO4 per mol NaNO2, US 5 208 002 Example 1's 23.8 mol on 47.5 mol, dosed as 98.5 wt% acid with the water of the patent's 50 wt% acid in the charge (D-004)"}
+        composition: {basis: mass_fraction, values: {H2SO4: 0.985, H2O: 0.015}, provenance: assumed, source: "sulfuric-acid-1's 98.5 wt% acid"}
+  - id: S6
+    title: Sodium sulfate liquor
+    from: R101.out
+    to: SULF.in
+    template: generator
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        temperature: {value: 298.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: c766a0dd88f4ea88}
+        flow: {value: 399.67, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: c766a0dd88f4ea88}
+        composition: {basis: mole_fraction, values: {H2O: 0.955483, MEOH: 0.00026468, NANO2: 8.8152e-05, H2SO4: 0.000132442, NA2SO4: 0.0440319, MEONO: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: c766a0dd88f4ea88}
+  - id: S7
+    title: Methyl nitrite gas to R-102 (dosed)
+    from: R101.vent
+    to: R102.meono
+    template: meono
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        temperature: {value: 298.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: c766a0dd88f4ea88}
+        flow: {value: 91.4406, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: c766a0dd88f4ea88}
+        composition: {basis: mole_fraction, values: {MEONO: 1.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: c766a0dd88f4ea88}
+  - id: S8
+    title: Hydrazine hydrate
+    from: HH.out
+    to: M102.hh
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 70.4056, provenance: assumed, source: "the hydrazine that tops up the recycled mother liquor S11 to the charge's hydrazine (D-004, D-016)"}
+        composition: {basis: mass_fraction, values: {N2H4: 0.64, H2O: 0.36}, provenance: assumed, source: "hydrazine-1's hydrazine hydrate, 64 wt% N2H4"}
+  - id: S9
+    title: Caustic soda 50 wt%
+    from: NAOH.out
+    to: M102.naoh
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 108.963, provenance: assumed, source: "1.20 mol NaOH per mol hydrazine in the charge (US 5 208 002 Example 1: 74.0 on 61.8 mol), less the NaOH of S11 (D-004)"}
+        composition: {basis: mass_fraction, values: {NAOH: 0.5, H2O: 0.5}, provenance: assumed, source: "chlor-alkali-1's caustic soda 50 wt%"}
+  - id: S10
+    title: Process water to the azide charge
+    from: PW2.out
+    to: M102.pw
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 116.586, provenance: assumed, source: "6.63 mol water per mol hydrazine in the charge (US 5 208 002 Example 1's 35 wt% NaOH and 51.2 wt% hydrazine), less the water of S8, S9 and S11 (D-004)"}
+        composition: {basis: mass_fraction, values: {H2O: 1}, provenance: assumed, source: "design basis"}
+  - id: S11
+    title: Recycled mother liquor and wash filtrate
+    from: X101.recycle
+    to: M102.recycle
+    template: liquor
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: "the receiver T-101 (D-016)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 138.721, provenance: calculated, source: 'cheme process propagate: recycle X101 from S28 (tear, wegstein)', fingerprint: d38eaad288f7c932}
+        composition: {basis: mole_fraction, values: {H2O: 0.422352, MEOH: 0.224596, N2H4: 0.113348, NAOH: 0.203871, NAN3: 0.0347896, NAN3S: 0.000772224, MEONO: 0.000271488, N2O: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle X101 from S28 (tear, wegstein)', fingerprint: d38eaad288f7c932}
+  - id: S12
+    title: Azide reactor charge
+    from: M102.out
+    to: R102.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "the charge brought to the reaction temperature (D-005)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 434.676, provenance: calculated, source: 'cheme process propagate: mixer M102 from S8 S9 S10 S11', fingerprint: e78c76b9d4235a5e}
+        composition: {basis: mole_fraction, values: {H2O: 0.700067, MEOH: 0.0583352, N2H4: 0.10558, NAOH: 0.12671, NAN3: 0.00903604, NAN3S: 0.000200573, MEONO: 7.05146e-05, N2O: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M102 from S8 S9 S10 S11', fingerprint: b622548f6bbaed61}
+  - id: S13
+    title: Azide reactor liquor
+    from: R102.out
+    to: ST101.in
+    template: liquor
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        temperature: {value: 313.15, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S12', fingerprint: 0d0929fb8db11005}
+        flow: {value: 514.421, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S12', fingerprint: 0d0929fb8db11005}
+        composition: {basis: mole_fraction, values: {MEONO: 6.52973e-05, H2O: 0.737239, MEOH: 0.116337, N2H4: 0.027262, NAOH: 0.0490346, NAN3: 0.0698865, NAN3S: 0.000175713, N2O: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S12', fingerprint: 0d0929fb8db11005}
+  - id: S14
+    title: Azide reactor off-gas (N2O, NH3, unabsorbed methyl nitrite)
+    from: R102.vent
+    to: OFFGAS.in
+    template: offgas
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        temperature: {value: 313.15, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S12', fingerprint: 0d0929fb8db11005}
+        flow: {value: 11.6953, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S12', fingerprint: 0d0929fb8db11005}
+        composition: {basis: mole_fraction, values: {N2O: 0.264089, NH3: 0.264089, MEONO: 0.471821}, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S12', fingerprint: 0d0929fb8db11005}
+  - id: S15
+    title: Recovered methanol (first cut)
+    from: ST101.meoh
+    to: X102.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 288.15, provenance: assumed, source: "condensed on chilled water (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "the receiver vented to nitrogen (D-007)"}
+        flow: {value: 88.5588, provenance: calculated, source: 'cheme process propagate: still ST101 from S13', fingerprint: 9441f88feee6c5d0}
+        composition: {basis: mole_fraction, values: {H2O: 0.189128, MEOH: 0.810872, N2H4: 0.0, NAOH: 0.0, NAN3: 0.0, NAN3S: 0.0, MEONO: 0.0}, provenance: calculated, source: 'cheme process propagate: still ST101 from S13', fingerprint: 9441f88feee6c5d0}
+  - id: S16
+    title: Evaporator condensate (second cut)
+    from: ST101.cond
+    to: COND.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 308.15, provenance: assumed, source: "condensed on cooling water (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "the receiver vented to nitrogen (D-007)"}
+        flow: {value: 235.526, provenance: calculated, source: 'cheme process propagate: still ST101 from S13', fingerprint: 9441f88feee6c5d0}
+        composition: {basis: mole_fraction, values: {H2O: 0.999309, MEOH: 0.000691338, N2H4: 0.0, NAOH: 0.0, NAN3: 0.0, NAN3S: 0.0, MEONO: 0.0}, provenance: calculated, source: 'cheme process propagate: still ST101 from S13', fingerprint: 9441f88feee6c5d0}
+  - id: S17
+    title: Concentrated liquor
+    from: ST101.residue
+    to: CR101.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 360.0, provenance: assumed, source: "the end of the boil-up at 10 kPa(a), ESTIMATED 355-370 K, 360 K taken: water boils at 319 K there, and the residue (54.5 wt% NaOH on a NaOH-plus-water basis) adds the boiling-point elevation of a 50-55 wt% caustic liquor, about 40 K (Duhring lines of NaOH solutions); an ideal Raoult trial run with NaOH as one molecular particle gave only 335 K; the constant-volatility still gives no temperature (D-007, L-4)"}
+        pressure: {value: 101.325, provenance: assumed, source: "the vacuum broken with nitrogen (D-007)"}
+        flow: {value: 190.336, provenance: calculated, source: 'cheme process propagate: still ST101 from S13', fingerprint: 9441f88feee6c5d0}
+        composition: {basis: mole_fraction, values: {H2O: 0.382706, MEOH: 0.0, N2H4: 0.114931, NAOH: 0.20672, NAN3: 0.294627, NAN3S: 0.00074077, MEONO: 0.00027528}, provenance: calculated, source: 'cheme process propagate: still ST101 from S13', fingerprint: 9441f88feee6c5d0}
+  - id: S18
+    title: Recovered methanol to the cake wash
+    from: X102.wash
+    to: W101.wash
+    template: liquor
+    state:
+      design:
+        temperature: {value: 288.15, provenance: assumed, source: "the receiver (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 34.1008, provenance: calculated, source: 'cheme process propagate: splitter X102 from S15 S3', fingerprint: 4819b77f5a8c4816}
+        composition: {basis: mole_fraction, values: {H2O: 0.189128, MEOH: 0.810872, N2H4: 0.0, NAOH: 0.0, NAN3: 0.0, NAN3S: 0.0, MEONO: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter X102 from S15', fingerprint: 57c6da085a6b94b8}
+  - id: S19
+    title: NaN3 slurry
+    from: CR101.slurry
+    to: F101.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: "the crystallizer (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 190.336, provenance: calculated, source: 'cheme process propagate: crystallizer CR101 from S17', fingerprint: 4ef4b78e1498b596}
+        composition: {basis: mole_fraction, values: {NAN3: 0.0352757, H2O: 0.382706, NAN3S: 0.260092, N2H4: 0.114931, NAOH: 0.20672, MEOH: 0.0, MEONO: 0.00027528}, provenance: calculated, source: 'cheme process propagate: crystallizer CR101 from S17', fingerprint: 4ef4b78e1498b596}
+  - id: S20
+    title: Wet cake
+    from: F101.cake
+    to: W101.cake
+    template: liquor
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: "the crystallizer (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 88.8214, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S19', fingerprint: 15cf7f7836e74ff6}
+        composition: {basis: mole_fraction, values: {NAN3S: 0.893122, H2O: 0.055281, MEOH: 0.0, N2H4: 0.0166015, NAOH: 0.0298602, NAN3: 0.00509549, MEONO: 3.97636e-05, N2O: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S19', fingerprint: 15cf7f7836e74ff6}
+  - id: S21
+    title: Mother liquor
+    from: F101.filtrate
+    to: M103.filtrate
+    template: liquor
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: "the crystallizer (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 101.515, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S19', fingerprint: 15cf7f7836e74ff6}
+        composition: {basis: mole_fraction, values: {H2O: 0.516855, MEOH: 0.0, N2H4: 0.155218, NAOH: 0.279181, NAN3: 0.0476408, NAN3S: 0.000733309, MEONO: 0.000371773, N2O: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S19', fingerprint: 15cf7f7836e74ff6}
+  - id: S22
+    title: Fresh methanol to the cake wash
+    from: MEOH.out
+    to: W101.fresh
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 6.26266, provenance: assumed, source: "the make-up that brings the wash S18 + S22 to 0.43 kg methanol per kg of product (US 5 208 002 Example 3: about 20 mL methanol on 36.4 g NaN3), set at the converged recycles S3 and S11 (D-009, D-006)"}
+        composition: {basis: mass_fraction, values: {MEOH: 1}, provenance: assumed, source: "methanol-1's Grade AA methanol"}
+  - id: S23
+    title: Washed cake slurry
+    from: W101.out
+    to: F102.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "the wash (D-009)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 129.185, provenance: calculated, source: 'cheme process propagate: mixer W101 from S18 S20 S22', fingerprint: 565fbb5102d8505b}
+        composition: {basis: mole_fraction, values: {H2O: 0.106722, MEOH: 0.404522, N2H4: 0.00858889, NAOH: 0.0154484, NAN3: 0.00263618, NAN3S: 0.462062, MEONO: 2.0572e-05, N2O: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer W101 from S18 S20 S22', fingerprint: 6f746b442f90ce5e}
+  - id: S24
+    title: Methanol-wet cake
+    from: F102.cake
+    to: D101.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "the wash (D-009)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 88.7326, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S23', fingerprint: ab95704e3b092a95}
+        composition: {basis: mole_fraction, values: {NAN3S: 0.896541, H2O: 0.0205253, MEOH: 0.0777995, N2H4: 0.00165186, NAOH: 0.00297111, NAN3: 0.000507002, MEONO: 3.9565e-06, N2O: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S23', fingerprint: ab95704e3b092a95}
+  - id: S25
+    title: Wash filtrate
+    from: F102.filtrate
+    to: M103.wash
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "the wash (D-009)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 40.4524, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S23', fingerprint: ab95704e3b092a95}
+        composition: {basis: mole_fraction, values: {H2O: 0.198202, MEOH: 0.75127, N2H4: 0.0159511, NAOH: 0.0286905, NAN3: 0.00489586, NAN3S: 0.000952445, MEONO: 3.82059e-05, N2O: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S23', fingerprint: ab95704e3b092a95}
+  - id: S26
+    title: Dried sodium azide
+    from: D101.product
+    to: NAN3P.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 333.15, provenance: assumed, source: "the dryer (D-009)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 84.6771, provenance: calculated, source: 'cheme process propagate: dryer D101 from S24', fingerprint: 1c4853c611cde21a}
+        composition: {basis: mole_fraction, values: {H2O: 0.000464535, MEOH: 0.00176078, N2H4: 0.00182791, NAOH: 0.00328777, NAN3: 0.000561038, NAN3S: 0.992094, MEONO: 4.37818e-06, N2O: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: dryer D101 from S24', fingerprint: 1c4853c611cde21a}
+  - id: S27
+    title: Dryer vapour, condensed
+    from: D101.vapour
+    to: M103.vapour
+    template: liquor
+    state:
+      design:
+        temperature: {value: 288.15, provenance: assumed, source: "condensed on chilled water (D-009)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 4.0555, provenance: calculated, source: 'cheme process propagate: dryer D101 from S24', fingerprint: 1c4853c611cde21a}
+        composition: {basis: mole_fraction, values: {H2O: 0.20875, MEOH: 0.79125}, provenance: calculated, source: 'cheme process propagate: dryer D101 from S24', fingerprint: 1c4853c611cde21a}
+  - id: S28
+    title: Collected mother liquor
+    from: M103.out
+    to: X101.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: "the receiver T-101 (D-016)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 146.023, provenance: calculated, source: 'cheme process propagate: mixer M103 from S21 S25 S27', fingerprint: 316bef3480460bdf}
+        composition: {basis: mole_fraction, values: {H2O: 0.422351, MEOH: 0.224596, N2H4: 0.113348, NAOH: 0.203872, NAN3: 0.0347897, NAN3S: 0.000772223, MEONO: 0.000271487, N2O: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M103 from S21 S25 S27', fingerprint: b5f274c4e85ee645}
+  - id: S29
+    title: Mother-liquor purge
+    from: X101.purge
+    to: PURGE.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: "the receiver T-101 (D-016)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 7.301, provenance: calculated, source: 'cheme process propagate: splitter X101 from S28 S11', fingerprint: 000043b3f9c989a6}
+        composition: {basis: mole_fraction, values: {H2O: 0.422351, MEOH: 0.224596, N2H4: 0.113348, NAOH: 0.203872, NAN3: 0.0347897, NAN3S: 0.000772223, MEONO: 0.000271487, N2O: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter X101 from S28', fingerprint: 5c0714c83363fa82}
+  # energy (year averages, kW)
+  - {id: Q1, title: Heat of the methyl nitrite generation, kind: energy, from: R101.q, to: CHW.r101, state: {design: {duty: {value: 17.2171, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S4 S5', fingerprint: 9cfe5e284c46ef64}}}}
+  - {id: Q2, title: Heat of the azide reaction, kind: energy, from: R102.q, to: CHW.r102, state: {design: {duty: {value: 126.198, provenance: calculated, source: 'cheme process propagate: semibatch duty R102 from S7 S12', fingerprint: c1b0771de9a4b07e}}}}
+  - {id: Q3, title: Still boil-up (LP steam via tempered hot water), kind: energy, from: LPS.c101, to: ST101.steam, state: {design: {duty: {value: 186.235, provenance: calculated, source: 'cheme process propagate: still duty ST101 from S13', fingerprint: e80f3d61624b2b66}}}}
+  - {id: Q4, title: Methanol-cut condenser (chilled water), kind: energy, from: ST101.qchw, to: CHW.c101, state: {design: {duty: {value: 31.3727, provenance: assumed, source: "cheme process stills: the first cut's energy per batch over the batch's hours of flows, condensed at 10 kPa(a) (D-007, D-012)"}}}}
+  - {id: Q5, title: Water-cut condenser (cooling water), kind: energy, from: ST101.qcw, to: CW.c101, state: {design: {duty: {value: 154.8624, provenance: assumed, source: "cheme process stills: the second cut's energy per batch over the batch's hours of flows (D-007, D-012)"}}}}
+  - {id: Q6, title: Crystallizer cooling to 303 K, kind: energy, from: CR101.q, to: CW.cr101, state: {design: {duty: {value: 13.0998, provenance: calculated, source: 'cheme process propagate: crystallizer duty CR101 from S17', fingerprint: 07cdab0a1f418342}}}}
+  - {id: Q7, title: Filter-dryer heating (LP steam), kind: energy, from: LPS.f101, to: D101.steam, state: {design: {duty: {value: 8.2567, provenance: assumed, source: "cheme process crystallizers: D101's duty, compared with this stream (dryer energy port, D-009)"}}}}
+  - {id: Q8, title: Dryer vapour condenser (chilled water), kind: energy, from: D101.q, to: CHW.f101, state: {design: {duty: {value: 1.4536, provenance: assumed, source: "D101's vapour condensed at the latent heats of the dryer's energy data (D-009, D-012)"}}}}
+  - {id: P1, title: R-101 agitator, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 2.0, provenance: assumed, source: "year average (D-012)"}}}}
+  - {id: P2, title: R-102 agitator and gas dispersion, kind: energy, from: POWER.r102, to: R102.power, state: {design: {duty: {value: 4.0, provenance: assumed, source: "year average (D-012)"}}}}
+  - {id: P3, title: C-101 agitator and vacuum pump, kind: energy, from: POWER.c101, to: ST101.power, state: {design: {duty: {value: 4.0, provenance: assumed, source: "year average (D-012)"}}}}
+  - {id: P4, title: F-101 agitator and vacuum pump, kind: energy, from: POWER.f101, to: D101.power, state: {design: {duty: {value: 3.0, provenance: assumed, source: "year average (D-012)"}}}}
+layout: {bfd: {}, pfd: {}}

@@ -1,0 +1,93 @@
+# Goal and scope of the n-bromosuccinimide-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme
+# assess lca --inventory --write` and `--coverage` (lca/inventory.csv, gaps.csv, dataset.yaml,
+# manifest.json); never edit those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the batch
+# plant with its amount per kg of NBS, from the flowsheet's year averages of the recipe (D-003).
+# Per batch: multiply by 334.41 kg. The backgrounds are left unmapped (`missing:` with the
+# activity each should connect to), except where lca/mappings.yaml links a library producer:
+# a gap, never zero, and no values from licensed databases. The plant has no emission to air in
+# the balance: the bromine is dosed into a closed vessel and converted to 0.999 (D-005); the
+# rest is carried through the work-up dissolved (92 % with the mother liquor S9, 6 % with the
+# wash filtrate S13, about 1 % with the dryer's vapour S15, 0.08 ppm in the product), all of it
+# to the wastewater in S16; vent losses are not estimated (emission_exclusions).
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of N-bromosuccinimide made by the semi-batch
+  bromination of succinimide in aqueous sodium hydroxide at the concept stage: which raw
+  materials, utilities and wastes the batch plant exchanges per kg of dried NBS, as the
+  foreground for a later cradle-to-gate study. No impact results: most backgrounds are not
+  mapped yet (D-012).
+functional_unit: {product: NBS, amount: 1, unit: kg, source: "1 kg of dried N-bromosuccinimide (99.0 wt% NBS) at the plant gate to packing, stream S14 (D-002, D-012)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
+# being mapped free (the schema's gate-to-gate maps every feed free), as thionyl-chloride-1 does.
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Batch plant: succinimide dissolved in caustic soda at 278 K, bromine dosed over 2 h (semi-batch), NBS precipitated, filtered, reslurry-washed with ice water and vacuum-dried at 333 K in an agitated filter-dryer; 334.41 kg per batch, 1495 batches a year on a dedicated train"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+flows:
+  # raw materials
+  - key: feed:SUCC
+    missing: "not mapped yet (D-012); connect to: succinimide, technical grade, from succinic acid (or its anhydride) and ammonia; no library process makes succinimide"
+    source: "flowsheet stream S3 (D-004)"
+  - key: feed:BR2
+    missing: "linked to processes/bromine-1 (lca/mappings.yaml): dry liquid bromine by the chlorination and steaming-out of a bromide brine"
+    source: "flowsheet stream S5 (D-004)"
+  - key: feed:NAOH
+    missing: "linked to processes/chlor-alkali-1 (lca/mappings.yaml): caustic soda 50 wt% from membrane chlor-alkali electrolysis"
+    source: "flowsheet stream S2 (D-004)"
+  - key: feed:PW
+    missing: "not mapped yet (D-012); connect to: process water from the site water treatment"
+    source: "flowsheet stream S1 (D-004)"
+  - key: feed:WASHW
+    missing: "not mapped yet (D-012); connect to: process water from the site water treatment, chilled (its cooling is not counted)"
+    source: "flowsheet stream S10 (D-007)"
+  # utilities
+  - key: feed:POWER
+    missing: "not mapped yet (D-012); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy streams P1 (dissolver agitator), P2 (brominator agitator) and P3 (filter-dryer agitators and vacuum pump), D-009"
+  - key: feed:LPS
+    missing: "not mapped yet (D-012); connect to: steam in the chemical industry, 350 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
+    source: "flowsheet energy stream Q3 (filter-dryer hot-water circuit), D-009"
+  - key: product:BRINE
+    missing: "not mapped yet (D-012); connect to: refrigeration at 263 K (brine) from an electric vapour-compression unit (e.g. processes/utility-chiller), per kWh of heat removed: compressor electricity at its COP, condenser cooling water, refrigerant losses"
+    source: "flowsheet energy streams Q1 (charge cooling) and Q2 (heat of bromination), D-009"
+  # waste
+  - key: product:WW
+    treatment: {kind: waste, route: "site wastewater treatment of a saline bromide liquor: neutralisation, biological treatment of the dissolved succinimide and NBS, discharge of NaBr as dissolved salt (no bromide recovery, D-010)"}
+    missing: "not mapped yet (D-012); connect to: treatment of a saline process effluent with sodium bromide and dissolved organics in an industrial wastewater treatment plant (e.g. processes/utility-wwtp), per kg; or bromide recovery to bromine (bromine-1), not modelled"
+    source: "flowsheet stream S16 (D-010)"
+# What the batch plant uses per batch and the flowsheet does not carry (library ADR 0035, core
+# ADR 0053): the rinses of R-101 and F-101 between batches, converted with the recipe's batches
+# per year (process/recipe.yaml), and their water to the wastewater treatment.
+consumables:
+  - id: rinse-water
+    title: Rinse water of R-101 and F-101 between batches
+    unit: kg
+    per_batch: 1000
+    source: "2 rinses per batch (recipe operations clean of R-101 and F-101) x 0.5 m3 each, ASSUMED (D-003, D-012)"
+    missing: "not mapped yet (D-012); connect to: process water from the site water treatment"
+    disposal:
+      kind: waste
+      route: "site wastewater treatment of the rinse water, with the saline bromide liquor (D-010)"
+      source: "rinses to the wastewater treatment with the liquors (D-012)"
+      missing: "not mapped yet (D-012); connect to: treatment of a saline process effluent in an industrial wastewater treatment plant (e.g. processes/utility-wwtp), per kg"
+operation:
+  hours_per_year: 7920
+  life_years: 20
+  source: "design basis operating_hours_per_year 7920 (ASSUMED, the recipe's hours); 20 a service life ASSUMED"
+emission_exclusions:
+  - {id: bromine-vent, method: storage-tank, equipment: [M-101, R-101], reason: "No P&ID yet: the air displaced from M-101 and R-101 while charging and dosing (with bromine vapour from R-101) goes to a caustic scrubber not in the balance; not estimated (open for basic engineering, D-011)."}
+  - {id: dryer-vent, method: equipment-leaks, reason: "NBS dust and bromine traces in the filter-dryer's vacuum vent are not estimated (D-008, D-011)."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals
+  modelling: {principle: attributional}
+  geography: {description: "Generic fine-chemicals site with a bromine supply, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #140 and core#158, unreviewed"

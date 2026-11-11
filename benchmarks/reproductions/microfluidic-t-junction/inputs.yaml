@@ -1,0 +1,146 @@
+# Every model input of the T-junction case, with value, unit, label and source or rationale.
+# Labels: measured (a measurement reported by a source), reconstructed (read or inferred from a
+# secondary source, not from the closed original), assumed (our choice, with reason).
+# Locators refer to the source ids in source.yaml.
+#
+# Revision r1 (2026-11-04, after review of the first run; see comparison.md and extension.md):
+# - labels only, values unchanged: q_gutter_over_q_c is reconstructed (known through the
+#   restatement), and the leaking-bound beta is reconstructed (a fit for square channels).
+# - design_extension only: the S-number upper bound of the squeezing regime (korczyk-2019) and
+#   the viscosity-ratio range of the original (Nekouei Table 1) were added; Ca_max is renamed Ca_exp_max and relabelled
+#   as the original's experimental Ca range; the fixed Ca_operating = 0.003 (outside the
+#   S-number bound at the chosen q) is replaced by a rule that sets Ca per design; a
+#   corner-roundness robustness criterion and non-blocking evidence notes were added.
+# The reproduction inputs (model_constants values, reproduction) are as frozen in d3c48e12.
+
+model_constants:
+  q_gutter_over_q_c:
+    value: 0.1
+    unit: "-"
+    label: reconstructed
+    source: >-
+      schackart-kaarj-replication article/content.tex, which reports that the original
+      (van-steijn-2010, not accessed) determined it experimentally
+    note: fixed fraction of the continuous phase that bypasses the forming bubble through the corners
+  model_form:
+    value: closed form of source.yaml model (filling plus squeezing, no fitted parameter)
+    label: reconstructed
+    source: schackart-kaarj-replication article/content.tex equations 1-6; original text not accessed
+
+reproduction:
+  series:   # the three geometries of the reference figure
+    r0.33_h0.33:
+      w_in_over_w: {value: 0.3333333333, unit: "-", label: reconstructed, source: "Fig. 5 legend (nekouei-vanapalli-2017) gives 0.33; make_figures.py uses 1/3"}
+      h_over_w: {value: 0.3333333333, unit: "-", label: reconstructed, source: "Fig. 5 legend gives 0.33; make_figures.py uses 1/3"}
+      eps_over_w: {value: 0.1, unit: "-", label: reconstructed, source: "corner roundness for the bubble series of the original Fig. 3, per make_figures.py"}
+    r0.67_h0.11:
+      w_in_over_w: {value: 0.6666666667, unit: "-", label: reconstructed, source: "Fig. 5 legend gives 0.67; make_figures.py uses 2/3"}
+      h_over_w: {value: 0.11, unit: "-", label: reconstructed, source: "Fig. 5 legend and make_figures.py; Nekouei body text gives 0.17 (conflict, source.yaml series_geometry)"}
+      eps_over_w: {value: 0.1, unit: "-", label: reconstructed, source: as above}
+    r1.33_h0.17:
+      w_in_over_w: {value: 1.3333333333, unit: "-", label: reconstructed, source: "Fig. 5 legend gives 1.33; make_figures.py uses 4/3"}
+      h_over_w: {value: 0.17, unit: "-", label: reconstructed, source: "Fig. 5 legend and make_figures.py; Nekouei body text gives 0.11 (conflict)"}
+      eps_over_w: {value: 0.1, unit: "-", label: reconstructed, source: as above}
+  alpha_checks:   # inputs for the comparison with the two independently evaluated squeezing coefficients
+    case_a: {w_in_over_w: 1.0, h_over_w: 0.33, eps_over_w: 0.0, label: "reconstructed (geometry from nekouei-vanapalli-2017 page 18) and assumed (eps)"}
+    case_b: {w_in_over_w: 1.0, h_over_w: 1.0, eps_over_w: 0.0, label: "reconstructed (geometry) and assumed (eps)"}
+    eps_rationale: >-
+      Nekouei & Vanapalli do not state the corner roundness; eps = 0 is the value the original
+      uses for its squeezing-coefficient chart (Fig. 2b, per the restatement).
+  flow_rate_ratio_grid: {value: "0 to 10", unit: "-", label: assumed, rationale: axis range of the reference figure}
+
+design_extension:   # HYPOTHETICAL design, not validated (revision r1, see header)
+  fluids:
+    system: FC-40 droplets in hexadecane, no surfactant
+    mu_c: {value: 3.6e-3, unit: Pa s, label: measured, source: korczyk-2019 Methods}
+    mu_d: {value: 4.1e-3, unit: Pa s, label: measured, source: korczyk-2019 Methods}
+    gamma: {value: 7.3e-3, unit: N/m, label: measured, source: korczyk-2019 Methods (pendant drop)}
+    rationale: >-
+      an open, measured, non-wetting liquid pair. Its viscosity ratio (1.14) lies outside the
+      original's experimental range (0.01 to 0.1, validity.viscosity_ratio): an extrapolation,
+      flagged on every design (see validity.viscosity_ratio.extrapolation)
+  eps_over_w:
+    value: 0.01
+    unit: "-"
+    label: assumed
+    rationale: >-
+      the original's value for its liquid-droplet series (per make_figures.py), validated there at
+      one geometry only (w_in/w = 1, h/w = 0.48) and not reproduced here; the sensitivity to it is
+      bounded by design_rule.eps_robustness
+  targets:
+    V1: {value: 0.5, unit: nL, label: assumed, rationale: "a typical assay droplet; 0.5 nL = 5.0e5 um^3"}
+    V2: {value: 2.0, unit: nL, label: assumed, rationale: four times V1, to show how geometry and flow ratio change with size}
+  fabrication_grid:
+    h: {value: [25, 50, 75, 100], unit: um, label: assumed, rationale: common single-layer mould depths}
+    w: {value: "50 to 500 in 5 um steps", unit: um, label: assumed, rationale: soft-lithography resolution well above 5 um}
+    w_in_over_w: {value: [0.3333333333, 0.5, 0.6666666667, 1.0, 1.3333333333, 2.0, 3.0], unit: "-", label: assumed, rationale: spans the experimental range of the original}
+  validity:   # blocking: a design outside any of these is not feasible
+    h_over_w: {min: 0.11, max: 0.48, label: reconstructed, source: "smallest and largest h/w of the original Fig. 3 series (make_figures.py: 0.11 to 0.48)"}
+    w_in_over_w: {min: 0.33, max: 3.0, label: reconstructed, source: nekouei-vanapalli-2017 Table 1 row for van Steijn et al.}
+    q: {min: 0.1, max: 10.0, label: reconstructed, source: nekouei-vanapalli-2017 Table 1}
+    Ca_exp_max:
+      value: 0.01
+      label: reconstructed
+      source: >-
+        nekouei-vanapalli-2017 Table 1: the experimental Ca range of the original (Ca < 0.01).
+        This is the range the experiments covered, not a regime boundary; the squeezing-regime
+        upper bound depends on q (jetting_bound)
+    leaking_bound:
+      rule: "q Ca >= 10 beta"
+      beta: 7.4e-5
+      label: reconstructed
+      source: >-
+        korczyk-2019 Fig. 3 caption: beta fitted for square channels (W = H = 360 um, FC-40 in
+        hexadecane); applied here as an assumed, indicative bound for h/w < 1
+    jetting_bound:
+      rule: "S = Ca (1 + q)^2 <= S_crit"
+      S_crit: 0.017
+      label: reconstructed
+      source: >-
+        korczyk-2019 pages 6-7 and Fig. 5b: the S-number predicts the upper boundary of the
+        squeezing regime, transition to jetting at S_crit of about 0.017; an indicative bound
+        measured mainly in square channels (W = H = 360 um)
+    viscosity_ratio:
+      min: 0.01
+      max: 0.1
+      label: reconstructed
+      source: nekouei-vanapalli-2017 Table 1, row for van Steijn et al. (0.01 < mu_d/mu_c < 0.1)
+      extrapolation: >-
+        non-blocking. The design fluid (1.14) is outside this range; it is used as a labelled
+        extrapolation because the VOF simulations of Nekouei and Vanapalli
+        (abstract; Fig. 8) find the size does not vary appreciably below a ratio of 1 and increases above it, so a
+        ratio of 1.14 is expected to give droplets somewhat larger than predicted
+  evidence_bounds:   # non-blocking: outside these the design rests on the original's claim, not on this reproduction
+    h_over_w_reproduced:
+      min: 0.17
+      max: 0.33
+      label: assumed
+      rationale: >-
+        the h/w span of the two series whose published agreement this reproduction confirmed
+        (comparison.md); the series at h/w = 0.11 failed both experiment checks
+  design_rule:
+    q_window_nominal: {min: 0.5, max: 5.0, label: assumed, rationale: "keep a factor of 5 margin to the validated q range at both ends"}
+    Ca_rule:
+      rule: "Ca_op = min(Ca_exp_max, S_crit/(1 + q)^2)/margin, and Ca_op >= margin x 10 beta/q"
+      margin: 2.0
+      label: assumed
+      rationale: >-
+        both regime bounds are indicative (fitted in square channels), so the operating Ca sits a
+        factor 2 inside the upper bound, and a design is nominal only if that Ca is also at least a
+        factor 2 above the leaking bound. With margin 2 this admits q from 0.29 to 3.45
+    eps_robustness:
+      eps_over_w_band: [0.0, 0.1]
+      max_rel_volume_spread: 0.15
+      label: assumed
+      rationale: >-
+        the corner roundness of a fabricated junction is not known in advance; 0 and 0.1 w are
+        the sharp limit and the original's bubble-series value. At the design q, the volume
+        predicted with either must lie within 15 % of the target (the per-series band of
+        tolerances.yaml), otherwise the design is not nominal
+    objective: maximise droplet frequency f = q_d/V at Ca_op; ties broken by smaller w, then smaller h
+  length_estimate: {rule: "L = V/(h w)", label: assumed, source: "korczyk-2019 (valid for long droplets, L > w)"}
+  flagged_requests:
+    F1: {request: "V = 0.02 nL with the fabrication grid", label: assumed, purpose: below the smallest droplet the validated geometry range can make}
+    F2: {request: "V2 from design D2 at f = 1000 Hz", label: assumed, purpose: throughput that forces Ca above the squeezing regime}
+    F3: {request: "V2 in a square channel h = w = 100 um, w_in = w", label: assumed, purpose: aspect ratio outside the validated range}
+    F4: {request: "design D1 at Ca = 1e-4", label: assumed, purpose: slow flow in the leaking regime}

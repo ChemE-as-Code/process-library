@@ -1,0 +1,54 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Copper(I) chloride by the wet chlorination of copper in a sodium chloride brine and dilution
+# precipitation, a batch plant, issue ChemE-as-Code/process-library#143. Values marked ASSUMED
+# are engineering choices of this concept study, not client or licensor data; every decision is
+# in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: dried copper(I) chloride powder to packing under nitrogen at the battery limit
+  cucl_t_per_year: 300                  # ASSUMED (D-002): a fine-chemical and catalyst grade, no open market figure
+  operating_hours_per_year: 7920        # ASSUMED (D-002): 330 days of 24 h, batch operation
+  batch_kg: 355.0                       # ASSUMED (D-003): one batch of dried product every 9.37 h
+  batches_per_year: 846                 # from the recipe (process/recipe.yaml, D-003)
+feeds:
+  - name: Copper (cathode granules or clean scrap, merchant)
+    source_of_values: ASSUMED (D-004)
+    composition: "Cu 100 % (impurities not modelled)"
+  - name: Chlorine gas (chlor-alkali-1)
+    source_of_values: ASSUMED (D-004)
+    composition: "Cl2 100 %, dry"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 400}
+  - name: Sodium chloride (vacuum salt, merchant)
+    source_of_values: ASSUMED (D-004)
+    composition: "NaCl 100 %, dry"
+  - name: Hydrochloric acid 33 wt% (hydrogen-chloride-1), to the brine and the acid wash
+    source_of_values: ASSUMED (D-004, D-007)
+  - name: Ethanol (ethanol-1), to the cake wash
+    source_of_values: ASSUMED (D-007)
+  - name: Process water (brine make-up, dilution water, acid wash)
+    source_of_values: ASSUMED (D-004, D-006, D-007)
+products:
+  - name: Copper(I) chloride
+    purity: "modelled 99.8 wt% CuCl, 0.16 wt% ethanol, 0.04 wt% water, NaCl and copper(II) below 0.01 wt% (D-002, D-008); an ASSUMED upper bound: the model has no oxidation by air, and the only open specification (CN 1 696 062 A) is at least 98 wt% CuCl with at most 1 % copper(II)"
+    delivery: {temperature_K: 303.15, pressure_kPa_a: 101.325, battery_limit: packing under nitrogen (drums or bags; not in the boundary)}
+  - name: Copper-bearing brine to copper recovery and wastewater treatment
+    note: "decanted mother liquor and the filtrates: about 3.4 wt% NaCl, 0.37 wt% CuCl dissolved; 22.1 % of the copper fed leaves dissolved (21.6 % as CuCl, 0.5 % as copper(II)), 22.3 % in all with the crystals and the copper fines (D-007, D-010)"
+  - name: Spent ethanol to solvent recovery
+    note: "the ethanol wash filtrate and the dryer's condensate, about 78 wt% ethanol (D-010)"
+utilities:
+  - {name: Electric power, use: "agitators of R-101, P-101 and F-101, the filter-dryer's vacuum pump, the vent scrubber's pump and fan (D-009)"}
+  - {name: LP steam, pressure_kPa_a: 350, use: "R-101 heat-up; the filter-dryer's hot-water circuit at 343 K (D-009)", note: ASSUMED}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "R-101 (heat of chlorination, cool-down to 308 K), the product's cooling in F-101 (D-009)", note: ASSUMED}
+  - {name: Chilled water, supply_K: 280.15, return_K: 285.15, use: "the filter-dryer's vacuum condenser", note: "ASSUMED; from a refrigeration unit outside the boundary (D-009)"}
+  - {name: Nitrogen, use: "R-101 purge, the dilution water's sparging, F-101's pressing, the dryer's vacuum break and the discharge (per batch, D-012)", note: ASSUMED}
+site:
+  location: ASSUMED generic chemical site with a chlorine supply, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Route: chlorine fed below the surface of a hot 300 g/L NaCl brine over excess copper (US 3 030 178 A, run as a batch, D-001); the copper(II) formed reduced by the excess copper (US 4 582 579 A: about 50 % excess copper, 0.5-2 % copper(II) left); CuCl precipitated by about 7 volumes of deoxygenated water (US 3 121 609 A), acid and ethanol washes (CN 1 696 062 A), vacuum drying under nitrogen."
+  - "ASSUMED kinetics (no open data, D-005): fast second-order chlorination of the copper and comproportionation; heats of reaction from standard enthalpies of formation (chemicals 1.5.2's packaged CRC data), the chloro complexes' heats of solution left out."
+  - "ASSUMED solubility of CuCl in the diluted brine (D-006): a power law in the chloride not bound to copper(I) through two open points of US 4 308 239 A; 3.79 g per kg of mother liquor, so 22.1 % of the copper fed leaves dissolved (21.6 % as CuCl, 0.5 % as copper(II)), 22.3 % in all with the crystals and fines, with the brine to copper recovery."
+  - "ASSUMED separations: the copper heel kept by R-101's strainer (99.8 %), a bag filter for the fines, the crystals settled and the liquor decanted to 2 kg per kg of CuCl, filter cakes of 0.15 (aqueous) and 0.1 (ethanol) kg of liquid per kg (D-004, D-006, D-007)."
+  - "ASSUMED vacuum drying at 333 K to 0.2 wt% volatiles under nitrogen, 70 % thermal efficiency, a mean drying rate of 3 kg/(m2 h) on 2.5 m2 (D-008)."
+  - "All flows are year averages of the recipe (D-003); the recycles converged by core's tears, R101's heat and the dryer's from their models, the other duties hand arithmetic from the stream table (D-009); accuracy +/-30 % not demonstrated."

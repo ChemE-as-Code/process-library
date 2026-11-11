@@ -1,0 +1,36 @@
+# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
+# dataset is lca/datasets/*.yaml, Tier 1 form, so maturity stays at concept
+# (core's cheme.lci-tier-maturity). See README.md.
+schema: cheme-as-code/process/v1
+id: polyethylene-1
+title: High-density polyethylene by low-pressure polymerisation of ethylene (European average)
+summary: >-
+  Sourced conceptual inventory per tonne of HDPE pellets: utilities and direct emissions from the
+  Plastics Europe eco-profile's gate-to-gate averages of European plants, ethylene from stoichiometry
+  with the sourced losses, 1-butene from the branch count. No flowsheet; not reviewed.
+families: [polyolefins]
+keywords: [polyethylene, HDPE, polyolefin, slurry, loop reactor, Ziegler-Natta, ethylene, 1-butene]
+facets: {feedstock_basis: [fossil], product_classes: [polymers], unit_operations: [reaction, polymerisation, extrusion], region: EU}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: ethylene, role: feedstock, inventory_key: "feed:ethylene"}
+    - {chemical: 1-butene, role: feedstock, inventory_key: "feed:1-butene", note: "comonomer, from the branch count of HDPE (ASSUMED 1-butene)"}
+    - {chemical: hydrogen, role: feedstock, inventory_key: "feed:hydrogen", note: "chain-transfer agent for molecular-weight control"}
+    - {chemical: isobutane, role: feedstock, inventory_key: "feed:isobutane", note: "diluent make-up; the source does not name the solvent (ASSUMED isobutane)"}
+    - {chemical: air, role: feedstock, note: "combustion air of the flare or thermal oxidiser, free; its O2 is feed:O2"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:water", note: "ASSUMED equal to the effluent"}
+  outputs:
+    - {chemical: polyethylene, role: main-product, inventory_key: "product:polyethylene", note: "HDPE pellets"}
+    - {chemical: wastewater, role: waste, inventory_key: "output:wastewater"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity"}
+    - {chemical: steam, role: utility, inventory_key: "feed:steam", note: "the source's net thermal energy, counted as steam heat delivered (kWh); it may embed a credit for exported heat (deviation in the dataset)"}
+basis: {capacity: "per tonne of HDPE pellets (the dataset's basis); no plant size"}
+publication: {status: public, license: CC-BY-4.0}
+references:
+  - {title: "Plastics Europe (2026) Eco-profile of Polyolefins: High Density Polyethylene (HDPE), Low Density Polyethylene (LDPE), Linear Low Density Polyethylene (LLDPE), Polypropylene (PP). January 2026, LCA practitioner ifeu Heidelberg", url: "https://plasticseurope.org/wp-content/uploads/2026/03/PE-and-PP.zip"}
+  - {title: "European Commission JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers (POL BREF), August 2007, chapters 3 and 13", url: "https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/pol_bref_0807.pdf"}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/polyethylene-1, access: public}

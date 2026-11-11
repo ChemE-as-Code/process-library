@@ -1,0 +1,115 @@
+# Acceptance tolerances for the GDE pressure-window reproduction (ADR 0030).
+# FROZEN 2026-11-04, committed alone before any comparison run. Do not edit: a revision is a new
+# file with its reason, and comparison.md names which file it used.
+#
+# What was seen before freezing (stated so the order can be judged):
+# - the paper's full text, so every published number compared here (the four windows in the
+#   text, the 40 to 80 mbar range, the 14 mbar spread, the heights 41, 81 and 51 cm, "more than
+#   1 m", "above 200 cm", the Faradaic efficiencies in the text);
+# - the SI PDF methods (sections 6 and 8) and SI Table S3 (uncoated-GDL liquid breakthrough);
+# - the structure of the SI spreadsheet (sheet names, header rows, which cells are formulas, the
+#   FE block titles), not the numbers in sheet deltaP columns B to M or in sheet FE.
+# - By hand: 40, 50 and 80 mbar give 40.9, 51.1 and 81.7 cm with water at 20 degC, and 38.3,
+#   47.9 and 76.6 cm with 1 M KHCO3 (about 1065 kg/m3). R3 states its basis as water because the
+#   text says "aqueous electrolyte" and uses water at 20 degC for its capillary-pressure figure,
+#   but the hand check had already shown that only that basis matches. R3 is therefore a check of
+#   the arithmetic on a declared basis, not a blind test.
+# - From the text alone, TGP-H-060 (58 mbar, CO Faradaic efficiency 81 %) points to about 59 cm,
+#   which bears on claim C1. K1 is not blind either.
+frozen: "2026-11-04"
+reference: source.yaml (published, file_to_table, split)
+
+constants:
+  g: 9.80665            # m/s2, standard gravity
+  rho_water: 998.2      # kg/m3, water at 20 degC: the paper's height basis as read (R3)
+  rho_catholyte:
+    value: 1065         # kg/m3, ASSUMED, 1 M KHCO3 at 20 degC
+    range: [1055, 1075]
+    basis: >-
+      rho = rho_water + c (M - rho_water V_phi), c = 1 mol/L, M(KHCO3) = 100.115 g/mol, V_phi about
+      33 cm3/mol (infinite-dilution partial molar volumes, K+ about 9, HCO3- about 24 cm3/mol).
+      The range covers the rise of V_phi with concentration and the dissolved CO2. Not from the
+      paper, which states no density.
+
+checks:
+  R1:
+    what: window dp* = dp_L* - dp_G* per coated GDE, from sheet deltaP columns H and I
+    against:
+      - sheet deltaP column L (the authors' typed window), all seven GDEs
+      - the four windows in the text (source.yaml published.windows_stated_in_text)
+    rule: abs(dp*_ours - dp*_pub) <= 0.5 mbar
+    reason: >-
+      A difference of two tabulated numbers carries no numerical error, so only the rounding of
+      the published window can separate it from ours. The text reports integer mbar, so half a
+      millibar. Physical resolution (the 10 mbar backpressure steps, the 10 mbar estimated error)
+      does not enter: it is common to both sides.
+    also_checked: >-
+      uncoated GDL: sheet deltaP column C against SI Table S3, and column F against C - B, same
+      rule (consistency of the two published copies)
+  R2:
+    what: standard deviation of the window by Gaussian propagation, sqrt(s_G^2 + s_L^2) from sheet deltaP columns J and K
+    against: [the text's 14 mbar (every GDE but H23C6), sheet deltaP column M]
+    rule: abs(s_ours - s_pub) <= 0.5 mbar
+    reason: integer reporting in the text, as R1
+  R3:
+    what: the paper's height conversions H1 to H3, h = dp* / (rho_water g)
+    rule: abs(h_ours - h_pub) <= 1.0 cm
+    reason: >-
+      The text reports whole centimetres and does not say whether it rounds or truncates;
+      rounding moves a value by at most 0.5 cm, truncation by less than 1 cm. A density
+      difference of the size of water against 1 M KHCO3 (6.7 %) moves 80 mbar by 5 cm, so the
+      band still separates the two bases.
+    also_reported: the same heights with rho_catholyte (no rule)
+
+claim_checks:
+  K1:
+    classification: {supported: the claim holds on the reproduced numbers, contradicted: it does not, unresolved: an input is missing}
+    range:
+      claim: most commercial GDEs have a window between 40 and 80 mbar
+      test: number of the six GDEs with MPL cracks (all but H23C6) whose reproduced window lies in [39.5, 80.5] mbar; supported if more than three
+    C1:
+      claim: every material with a CO Faradaic efficiency above 50 % at 200 mA/cm2 limits the height to less than 51 cm
+      set: >-
+        GDEs whose 200 mA/cm2 CO Faradaic efficiency in sheet FE (column AI; mean over the
+        overview rows with |j| within 180 to 220 mA/cm2) exceeds 50 %. H23C6 is excluded: the paper
+        treats its efficiency as hypothetical because the electrode flooded.
+      test: h_max = dp* / (rho_water g) for every GDE in the set; supported if all are at most 51.5 cm (51 reported to whole cm)
+      also_reported: the same with rho_catholyte; the text's efficiencies beside the sheet's
+    C2:
+      claim: H23C6 allows cells taller than 1 m
+      test: h_max(H23C6) on the water basis above 100 cm; the value at dp* - 2 s is reported beside it
+    C3:
+      claim: H23C6 showed an initial flooding resistance above 200 cm
+      test: h_max(H23C6) on the water basis above 200 cm; the value at dp* - 2 s is reported beside it
+
+consistency:
+  K2:
+    what: operating differential pressure of each 200 mA/cm2 electrolysis run against the window of the same GDE at open circuit
+    dp_op: minus sheet FE column I (the sheet records gas minus liquid; the paper's dp is liquid minus gas)
+    classification:
+      inside: dp_G* <= dp_op <= dp_L*
+      edge: outside the window by at most 10 mbar (one backpressure step of the window measurement)
+      outside: outside by more than 10 mbar
+    reason: >-
+      Not a validation: the authors set the liquid backpressure to obtain flow-by, using the same
+      window. It tests whether the open-circuit window, the one the height argument uses, bounds
+      the pressures at which flow-by actually held under current (the paper expects
+      electrowetting to narrow it).
+    also_reported: the recorded liquid-into-gas and gas-into-liquid breakthrough flows (columns AB and AA)
+
+reported_not_checked:
+  h_max_interval: >-
+    per GDE, h_max = dp* / (rho g) at nominal values (water and rho_catholyte), and the interval
+    [(dp* - 2 s) / (rho_hi g), (dp* + 2 s) / (rho_lo g)] with rho over the rho_catholyte range. s
+    is the authors' estimated error (from literature studies), not a replicate spread.
+  friction: >-
+    laminar pressure gradient of the catholyte channel, (fRe) mu u / (2 Dh^2) with the Shah and
+    London rectangular-duct fRe, against rho g: the lab cell (100 mL/min, 30 mm wide, ASSUMED
+    3.5 mm gap, ASSUMED mu 1.1 mPa s) and a 1 m flow-by channel (ASSUMED gaps 2 and 5 mm, mean
+    velocities 0.01, 0.03 and 0.1 m/s). With upward flow, friction adds to the hydrostatic
+    gradient and h_max becomes dp* / (rho g (1 + r)), r = friction gradient / rho g.
+
+pass_rule: >-
+  Each check is reported on its own. R1 to R3 are reproduction checks and pass or fail; K1 is a
+  classification of the paper's claims; K2 is a consistency classification. They are never
+  pooled into one verdict. A check that cannot be evaluated is reported as a gap, not a pass.

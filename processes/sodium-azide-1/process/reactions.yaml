@@ -1,0 +1,83 @@
+# Reactions of sodium-azide-1. Schema cheme/reactions/v1 (`cheme schema process-reactions`).
+#
+# The hydrazine / methyl nitrite route of US 5 208 002 A (Nippon Carbide, 1993; DESIGN.md D-001):
+# methyl nitrite is made in its own vessel from sodium nitrite, methanol and sulfuric acid (NTG)
+# and passed as a gas into aqueous hydrazine and sodium hydroxide, where it gives sodium azide
+# and methanol (AZ). The patent's Example 1 balance gives about 95 % selectivity on the hydrazine
+# consumed at its 70 % conversion, with no NaOH consumed by the loss: the loss is written as the
+# nitrosation of hydrazine to ammonia and nitrous oxide (SIDE), the low-acidity path of the
+# hydrazine-nitrous acid reaction (Perrott, Stedman and Uysal, J. Chem. Soc. Dalton Trans. 1976,
+# 2058, abstract seen in a search only: ASSUMED stoichiometry, D-005). The patent names nitrogen
+# and nitrite by-products only above 90 % conversion, where methyl nitrite attacks the azide; that
+# reaction is not modelled (the design stays at 70 %).
+#
+# Heats of reaction: pure-substance standard states at 298 K from the chemicals package (CRC,
+# ATcT, NIST WebBook): NaNO2(s) -358.7, H2SO4(l) -814.0, CH3OH(l) -238.4, CH3ONO(g) -66.1,
+# Na2SO4(s) -1387.1, H2O(l) -285.825, N2H4.H2O(l) -242.57 (ATcT), NaOH(s) -425.8, NaN3(s) +21.7,
+# N2O(g) +82.574, NH3(g) -45.558 kJ/mol. The heats of solution of the dissolved salts are not
+# counted (no open values read in this session); for AZ they would make the heat about 15-20 %
+# smaller (NaOH dissolves exothermically), so the declared value is the conservative one for the
+# screening (D-005). Gases (MeONO into R-102, N2O and NH3 leaving) are written as gases, as core
+# ADR 0054 asks for a dosed or vented gas.
+#
+# Kinetics: no open rate data were found (searched 2026-11-05). All three rate laws are ASSUMED
+# fast effective laws, so that both semi-batches are dosing-controlled; SIDE has the same orders
+# and activation energy as AZ, at 0.05/0.95 of its rate constant, which holds the selectivity at
+# the patent's 95 % (D-005). Reaction calorimetry must confirm them; the k/10 and k/100 runs are
+# in DESIGN.md D-011.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: NTG
+    title: Methyl nitrite from sodium nitrite, methanol and sulfuric acid
+    equation: 2 NaNO2 + H2SO4 + 2 CH3OH -> 2 CH3ONO + Na2SO4 + 2 H2O
+    stoichiometry: {NANO2: -2, H2SO4: -1, MEOH: -2, MEONO: 2, NA2SO4: 1, H2O: 2}
+    phase: liquid
+    heat_of_reaction: {value: -82750, provenance: assumed, source: "2 x (-66.1) - 1387.1 + 2 x (-285.825) - 2 x (-358.7) + 814.0 - 2 x (-238.4) kJ/mol: pure-substance standard states (chemicals: CRC, NIST WebBook), methyl nitrite as a gas; heats of solution not counted, ASSUMED to stand for the heat in solution (D-005)"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # second order, in dissolved nitrite and acid: k = 0.05 m3/(kmol s) at 298.15 K (Ea 50
+      # kJ/mol): A = 0.05 x exp(50000 / (8.314 x 298.15))
+      k: {A: 2.8779e7, Ea: 50000}
+      orders: {NANO2: 1, H2SO4: 1}
+      temperature_range: [283.15, 313.15]
+      provenance: assumed
+      source: "ASSUMED fast effective rate (D-005): no open kinetics found (2026-11-05); to be replaced by reaction calorimetry"
+    sources: ["US 5 208 002 A (Nippon Carbide, 1993), Example 1: 35 wt% NaNO2 with an equimolar amount of methanol, 50 wt% H2SO4 (0.5 mol per mol of nitrite) metered in at 25 C over 8 h, the methyl nitrite gas passed into the azide reactor"]
+  - id: AZ
+    title: Sodium azide from hydrazine, methyl nitrite and sodium hydroxide
+    equation: N2H4 + CH3ONO + NaOH -> NaN3 + CH3OH + 2 H2O
+    stoichiometry: {N2H4: -1, MEONO: -1, NAOH: -1, NAN3: 1, MEOH: 1, H2O: 2}
+    phase: liquid
+    heat_of_reaction: {value: -339700, provenance: assumed, source: "21.7 - 238.4 - 3 x 285.825 - (-242.57 - 66.1 - 425.8) kJ/mol: N2H4.H2O(l) + CH3ONO(g) + NaOH(s) -> NaN3(s) + CH3OH(l) + 3 H2O(l), pure-substance standard states (chemicals: ATcT, CRC, NIST WebBook); the dissolved hydrazine taken as its hydrate; heats of solution not counted, conservative by about 15-20 % (D-005)"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # second order, in dissolved hydrazine and methyl nitrite: k = 1.0e-3 m3/(kmol s) at
+      # 313.15 K (Ea 60 kJ/mol): A = 1.0e-3 x exp(60000 / (8.314 x 313.15))
+      k: {A: 1.0200e7, Ea: 60000}
+      orders: {N2H4: 1, MEONO: 1}
+      temperature_range: [293.15, 323.15]
+      provenance: assumed
+      source: "ASSUMED effective rate (D-005): no open kinetics found (2026-11-05); about 4 min half-life of the dissolved methyl nitrite at the charge's hydrazine; to be replaced by reaction calorimetry"
+    sources: ["US 5 208 002 A (Nippon Carbide, 1993): claims and Examples 1-4, aqueous hydrazine (51.2 wt%) and 1.0-1.5 mol NaOH per mol hydrazine absorb gaseous methyl nitrite at 20-50 C, hydrazine conversion held at 50-90 % (examples 70 %), about 95 % selectivity"]
+  - id: SIDE
+    title: Hydrazine nitrosated to ammonia and nitrous oxide (selectivity loss)
+    equation: N2H4 + CH3ONO -> N2O + NH3 + CH3OH
+    stoichiometry: {N2H4: -1, MEONO: -1, N2O: 1, NH3: 1, MEOH: 1}
+    phase: liquid
+    heat_of_reaction: {value: -178500, provenance: assumed, source: "82.574 - 45.558 - 238.4 - 285.825 - (-242.57 - 66.1) kJ/mol: N2H4.H2O(l) + CH3ONO(g) -> N2O(g) + NH3(g) + CH3OH(l) + H2O(l), pure-substance standard states (chemicals: ATcT, CRC); N2O and NH3 formed as gases, as they leave by the vent (core ADR 0054, D-005)"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # AZ's orders and Ea at 0.05/0.95 of its rate constant: k = 5.263e-5 m3/(kmol s) at 313.15 K
+      k: {A: 5.3684e5, Ea: 60000}
+      orders: {N2H4: 1, MEONO: 1}
+      temperature_range: [293.15, 323.15]
+      provenance: assumed
+      source: "ASSUMED: AZ's rate law at 0.05/0.95 of its constant, the patent's 95 % selectivity on hydrazine (D-005)"
+    sources: ["US 5 208 002 A Example 1 (NaOH consumed equals the NaN3 formed; about 5 % of the hydrazine consumed gives no azide); Perrott, Stedman, Uysal, J. Chem. Soc. Dalton Trans. 1976, 2058 (ammonia and N2O as the low-acidity products of hydrazine nitrosation; abstract seen in a search, not read)"]

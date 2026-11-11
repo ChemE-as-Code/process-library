@@ -1,0 +1,355 @@
+# Tier 0 form, a manifest-only entry as process-library#313 piloted (PR #317). Every amount is the
+# formula of its parameters; core's validator re-checks each. The yield and the ammonia ratio are a
+# patent's figures (facts in our own form); electricity and heat are core's Tier 0 defaults.
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: phthalimide-pa-ammonia-continuous
+title: Phthalimide by continuous reaction of molten phthalic anhydride with ammonia
+description: Tier 0 screening estimate per 1 t of phthalimide, gate-to-gate. Molten phthalic anhydride and
+  gaseous ammonia in about the stoichiometric ratio, mixed in an ejector and reacted in a heated tube at
+  about 265 degC; the melt is flaked and the phthalimide in the off-gas is recovered by absorption in
+  water. Feeds from stoichiometry with a patent's yield and ammonia ratio; electricity and heat from
+  core's Tier 0 defaults.
+basis: 1000 kg of phthalimide
+boundary: 'gate-to-gate: phthalic anhydride melt and ammonia from storage, mixing and tube reaction,
+  melt separation and flaking, off-gas absorption and phthalimide recovery; power and heat from outside;
+  the effluent to treatment'
+technology: continuous ejector mixing and tube reaction of molten phthalic anhydride with ammonia (1 to
+  1.02 mol per mol), 240 to 280 degC, 2 to 10 bar; the batch melt routes, the countercurrent column, the
+  urea route and o-xylene ammoxidation are not modelled
+geography:
+  description: 'A patent''s examples (BASF, Germany, priority 1979); no single site.'
+classification:
+  isic: '2011'
+system_boundary:
+  included:
+  - phthalic anhydride and ammonia
+  - electricity and heat (Tier 0 defaults)
+  - reaction water, excess ammonia and unconverted phthalic anhydride to the effluent
+  excluded:
+  - 'TODO absorption water for the off-gas: the patent names the step (US 4,419,519, Example 1) but gives
+    no amount, so the effluent volume is understated'
+  - 'TODO drying of the phthalimide recovered from the absorption water: not described in the source'
+  - 'TODO air emissions of the absorber vent (ammonia, phthalic anhydride, phthalimide dust): not quantified
+    in the source; the dataset sends all unconverted material to the effluent, because the patent absorbs
+    the off-gas in water (US 4,419,519, Example 1). This departs from core''s Tier 0 loss split (0.2 % of
+    each reactant''s input mass to air, Hischier et al. 2005), which would give about 2.0 kg phthalic anhydride
+    and 0.23 kg ammonia to air per t'
+  - 'TODO cooling water of the flaking drum or belt and of the absorber: not quantified'
+  - 'TODO nitrogen blanketing and heat-tracing losses of the melt lines: not quantified'
+  - 'impurities of technical phthalic anhydride (90 to 95 wt%, which the patent allows): pure feed taken,
+    as in the patent''s examples'
+  - infrastructure
+  cutoff: none applied; the excluded flows are not quantified
+  infrastructure: excluded
+  catalysts: excluded
+  non_routine: excluded
+location: GLO
+year: 1983
+valid_until: 1988
+time:
+  start: 1979
+  description: The patent has a 1979 priority (parent application filed 1980) and was granted in 1983. valid_until is the reference
+    year + 5 (system-model section 6), so it has long lapsed; the energy defaults date from 2000.
+modelling:
+  principle: attributional
+  multifunctionality: 'single output: no allocation (the effluent constituents are wastes)'
+uuid: b1b2b9de-40f5-52a7-b34a-05b8a8947ba3
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+technology_level: current
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: pi
+  value: 1000.0
+  unit: kg
+  description: Phthalimide delivered (the basis), counted as phthalimide.
+  source: basis
+- name: M_PI
+  value: 147.133
+  unit: g/mol
+  description: Molar mass of phthalimide (C8H5NO2).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_PA
+  value: 148.117
+  unit: g/mol
+  description: Molar mass of phthalic anhydride (C8H4O3).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_N
+  value: 17.031
+  unit: g/mol
+  description: Molar mass of ammonia.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_W
+  value: 18.015
+  unit: g/mol
+  description: Molar mass of water.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: Y
+  value: 0.996
+  unit: dimensionless
+  description: 'Phthalimide per phthalic anhydride fed, fraction of theory: midpoint of the patent''s two
+    examples, 0.994 and 0.998. The patent counts the product as obtained (99.6 to 99.8 wt% phthalimide,
+    the rest phthalic anhydride), so the yield of pure phthalimide is about 0.2 to 0.4 points lower; the
+    dataset counts the product as pure phthalimide.'
+  source: 'US 4,419,519 (BASF AG, 1983) Continuous preparation of phthalimide, Examples 1 and 2 (melt plus
+    the phthalimide recovered from the off-gas). Pilot-scale tube reactors of 25 and 100 mm; that they
+    stand for an industrial plant, and taking the midpoint, are ASSUMED'
+- name: r_N
+  value: 1.002
+  unit: dimensionless
+  description: 'Ammonia per phthalic anhydride fed, mol/mol: midpoint of the two examples, 1.000 and 1.003
+    (46 parts NH3 on 400 parts anhydride, 82.5 on 715), the runs that give the yield Y. The description
+    prefers 1 to 1.02, in particular 1.'
+  source: US 4,419,519 (BASF AG, 1983), Examples 1 and 2 (ratio computed by us with the molar masses), and
+    the description (preferred molar ratio); the midpoint is our choice
+- name: elec
+  value: 333.3
+  unit: kWh
+  description: 'Electricity per t phthalimide: core''s Tier 0 default, 0.3333 kWh/kg.'
+  source: 'ASSUMED: cheme tier-defaults 1.0.0: electricity [ASSUMED]: 1.2 MJ (0.333 kWh) per kg of product,
+    attributed to the Gendorf (2000) site average that the ecoinvent v2-era chemicals proxies used. ASSUMED,
+    not read in either source: Hischier et al. 2005 (p. 61) names the Gendorf (2000) average as the default
+    but prints no value, and the number could not be confirmed in an open copy of Althaus et al. 2007
+    (ecoinvent report No. 8). Dated: newer ecoinvent proxies rest on later Gendorf reports, so this value
+    may be low for a present-day process. No open phthalimide figure was found; TODO source'
+- name: heat
+  value: 555.6
+  unit: kWh
+  description: 'Heat from fossil fuel per t phthalimide: core''s Tier 0 default, 0.5556 kWh/kg. The reaction
+    is exothermic (the patent says so), so the default may overstate the reactor''s own demand; melting
+    and heating the anhydride and vaporising and heating the ammonia to about 260 degC are the heat users.'
+  source: 'ASSUMED: cheme tier-defaults 1.0.0: heat [ASSUMED]: 2.0 MJ (0.556 kWh) of heat per kg of product,
+    generated from fossil fuel, attributed to the Gendorf (2000) site average that the ecoinvent v2-era
+    chemicals proxies used; not read in either source; dated. No open phthalimide figure was found; TODO
+    source'
+exchanges:
+- key: product:phthalimide
+  title: Phthalimide, flakes, 99.6 to 99.8 wt% (counted as phthalimide)
+  type: product
+  amount: 1000.0
+  unit: kg
+  formula: pi
+  provenance: given
+  source: the reference flow; purity from US 4,419,519, Examples 1 and 2
+- key: feed:phthalic-anhydride
+  title: Phthalic anhydride, molten
+  type: input
+  amount: 1010.7307496588679
+  unit: kg
+  formula: pi / M_PI / Y * M_PA
+  provenance: calculated
+  source: stoichiometry C8H4O3 + NH3 -> C8H5NO2 + H2O with the patent's yield (US 4,419,519, Examples
+    1 and 2)
+  pedigree:
+    scores: &id001
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'a patent''s pilot-scale examples of 1979-1983: reliability 4 (not verified plant data), completeness
+      4, temporal 5 (more than 15 years old), geographical 4, technological 4 (the Tier 0 floor)'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.05
+    source: 'ASSUMED: the stoichiometric part is exact; the yield (0.994 to 0.998) moves the feed by +/- 0.2 %,
+      and the pilot-to-plant step is not known'
+- key: feed:ammonia
+  title: Ammonia, vaporised
+  type: input
+  amount: 116.4497181838348
+  unit: kg
+  formula: r_N * pi / M_PI / Y * M_N
+  provenance: calculated
+  source: stoichiometry with the patent's yield and ammonia ratio (US 4,419,519, Examples 1 and 2)
+  pedigree:
+    scores: *id001
+    reason: 'a patent''s pilot-scale examples of 1979-1983: reliability 4 (not verified plant data), completeness
+      4, temporal 5 (more than 15 years old), geographical 4, technological 4 (the Tier 0 floor)'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.05
+    source: 'ASSUMED: the preferred ratio range 1 to 1.02 moves the feed by -0.2 to +1.8 %'
+- key: feed:electricity
+  title: Electricity
+  type: input
+  amount: 333.3
+  unit: kWh
+  formula: elec
+  provenance: assumed
+  origin: design-rule
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: 'cheme tier-defaults 1.0.0: electricity [ASSUMED]: 1.2 MJ (0.333 kWh) per kg of product, attributed
+    to the Gendorf (2000) site average that the ecoinvent v2-era chemicals proxies used. ASSUMED, not
+    read in either source: Hischier et al. 2005 (p. 61) names the Gendorf (2000) average as the default
+    but prints no value, and the number could not be confirmed in an open copy of Althaus et al. 2007
+    (ecoinvent report No. 8). Dated: newer ecoinvent proxies rest on later Gendorf reports, so this value
+    may be low for a present-day process'
+  pedigree:
+    scores:
+    - 4
+    - 5
+    - 5
+    - 4
+    - 5
+    rule: 'cheme tier-defaults 1.0.0: electricity'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: a dated site-average default, not specific to this process'
+- key: feed:heat
+  title: Heat from fossil fuel (a heat flow, not a fuel input)
+  type: input
+  amount: 555.6
+  unit: kWh
+  formula: heat
+  provenance: assumed
+  origin: design-rule
+  carrier:
+    kind: heat
+    source: 'heat generated from fossil fuel (Hischier et al. 2005, p. 61: fossil fuel generates the heat
+      for preheating and distillation); a heat flow in kWh, not a fuel input'
+  source: 'cheme tier-defaults 1.0.0: heat [ASSUMED]: 2.0 MJ (0.556 kWh) of heat per kg of product, generated
+    from fossil fuel, attributed to the Gendorf (2000) site average that the ecoinvent v2-era chemicals
+    proxies used. ASSUMED, not read in either source; dated, and possibly low against newer ecoinvent
+    proxies'
+  pedigree:
+    scores:
+    - 4
+    - 5
+    - 5
+    - 4
+    - 5
+    rule: 'cheme tier-defaults 1.0.0: heat'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: a dated site-average default, not specific to this process; the reaction is exothermic'
+- key: output:wastewater
+  title: Reaction water, condensed in the off-gas absorber, to wastewater treatment
+  type: output
+  amount: 122.4402411423678
+  unit: kg
+  formula: pi / M_PI * M_W
+  provenance: calculated
+  link:
+    factor: wastewater
+    source: site wastewater treatment, by mass
+  source: 'stoichiometry: 1 mol of water per mol of phthalimide. The patent absorbs the off-gas (steam,
+    phthalimide vapour, ammonia, anhydride) in water (US 4,419,519, Example 1); that the water then goes
+    to treatment is ASSUMED. The absorption water itself is a TODO (system_boundary)'
+  pedigree:
+    scores: *id001
+    reason: 'a patent''s pilot-scale examples of 1979-1983: reliability 4 (not verified plant data), completeness
+      4, temporal 5 (more than 15 years old), geographical 4, technological 4 (the Tier 0 floor)'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.05
+    source: 'ASSUMED: fixed by the stoichiometry'
+- key: output:ammonia-effluent
+  title: Excess ammonia in the absorber effluent, to wastewater treatment
+  type: output
+  amount: 0.6973037016996013
+  unit: kg
+  formula: (r_N * pi / M_PI / Y - pi / M_PI) * M_N
+  provenance: calculated
+  source: closes the nitrogen balance; a dissolved load, not water, so it is not linked to the shared wastewater
+    entry (which counts the water only) and stays a reported gap; that all excess ammonia is absorbed and none is vented is ASSUMED
+    (the patent gives 0.2 to 0.4 wt% ammonia in the off-gas leaving the receiver, Examples 1 and 2, but
+    not the absorber vent)
+  pedigree:
+    scores: *id001
+    reason: 'ASSUMED fate of a residual: reliability 4, completeness 4, temporal 5, geographical 4, technological
+      4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: a residual of the ratio and the yield; the ratio alone (1 to 1.02) moves it from 0.5
+      to 2.8 kg/t'
+- key: output:phthalic-anhydride-effluent
+  title: Unconverted phthalic anhydride (as phthalic acid in the absorber effluent), to wastewater treatment
+  type: output
+  amount: 4.042922998635424
+  unit: kg
+  formula: (pi / M_PI / Y - pi / M_PI) * M_PA
+  provenance: calculated
+  source: 'closes the carbon balance; the fate is ASSUMED. A dissolved load, not water, so it is not linked
+    to the shared wastewater entry (which counts the water only) and stays a reported gap. The yield counts
+    the product as obtained, so the anhydride left unconverted is really about 7 kg/t: about 3 kg/t of it stays in the product as the
+    0.2 to 0.4 wt% impurity (US 4,419,519, Examples 1 and 2), and the rest, about 4.1 kg/t, matches this
+    amount. The dataset counts the product as pure phthalimide instead. Counted as the anhydride, its
+    hydrolysis water is not modelled'
+  pedigree:
+    scores: *id001
+    reason: 'ASSUMED fate of a residual: reliability 4, completeness 4, temporal 5, geographical 4, technological
+      4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: a residual of the yield; the examples'' 0.994 to 0.998 move it from 6.1 to 2.0 kg/t'
+provenance:
+  generator: hand-written model; amounts are the formulas of the parameters
+  notes: No value from a licensed database and none from a DWSIM file. Ullmann's chapter Phthalic Acid and
+    Derivatives was not read in either edition (doi:10.1002/14356007.a20_181.pub3, the later one, or .pub2,
+    the one the Chemcess summary cites); the route rests on the patent's full text.
+generation:
+  tier: 0
+  method: 'Tier 0 stoichiometric screening: stoichiometry with a patent''s yield and ammonia ratio; electricity
+    and heat from core''s defaults (no Tier 1: no open source gives the energy)'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 4
+  - 4
+  - 3
+  - 3
+  - 4
+  dqr_floor: 3.3333
+  components:
+    product:phthalimide: C8H5NO2
+    feed:phthalic-anhydride: C8H4O3
+    feed:ammonia: NH3
+    output:wastewater: H2O
+    output:ammonia-effluent: NH3
+    output:phthalic-anhydride-effluent: C8H4O3
+  formulas:
+    product:phthalimide: C8H5NO2
+    feed:phthalic-anhydride: C8H4O3
+    feed:ammonia: NH3
+    output:wastewater: H2O
+    output:ammonia-effluent: NH3
+    output:phthalic-anhydride-effluent: C8H4O3
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      C:
+      - 655.691759037
+      - 655.691759037
+      H:
+      - 48.190478265
+      - 48.190478265
+      N:
+      - 95.773072785
+      - 95.773072785
+      O:
+      - 327.525157756
+      - 327.525157756
+    outside:
+    - feed:electricity
+    - feed:heat
+  defaults: cheme tier-defaults 1.0.0
+  defaults_used:
+  - electricity
+  - heat

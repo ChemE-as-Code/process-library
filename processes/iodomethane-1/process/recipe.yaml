@@ -1,0 +1,64 @@
+# The batch recipe of iodomethane-1 (schema cheme/recipe/v1, `cheme process recipe`, DESIGN.md
+# D-003). One batch makes BATCH kg of distilled iodomethane (stream S25); the flowsheet's rates
+# are the year averages.
+schema: cheme/recipe/v1
+kind: recipe
+title: Iodomethane from methanol, red phosphorus and iodine
+batch_size: {value: 1465.15, unit: kg, stream: S25, provenance: assumed, source: "one batch of distilled iodomethane: 500 t/a over the 341.3 batches the 23.208 h cycle allows, 63.131 kg/h x 23.208 h (D-002, D-003)"}
+hours_per_year: {value: 7920, provenance: assumed, source: "330 days of 24 h (D-002)"}
+unit_procedures:
+  - id: REACT
+    units: [M101, H101, R101, ST101, E101, H102]
+    title: Charge methanol and red phosphorus, warm, dose the iodine, post-react, heat up, distil the crude off (R-101)
+    vessel:
+      fill_fraction: 0.8
+      aspect_ratio: 1.2
+      jacket: {u: 300, coolant_temperature: 280.71, heating_temperature: 360.65, provenance: assumed, source: "enamelled (glass-lined) steel vessel; chilled water enters the jacket at 278.15 K and leaves at 283.15 K (design basis, D-011), so the reaction mass at 313.15 K sees a log-mean driving force of (35 - 30) / ln(35/30) = 32.44 K: core takes the coolant temperature as constant, so the equivalent 313.15 - 32.44 = 280.71 K is entered, not the supply temperature; warming and distillation on a pressurised hot-water loop at 363.15/358.15 K (mean 360.65 K), its supply at the patent's kettle limit of 90 C, so that no control failure can heat the kettle above it (D-003, D-007, D-011)"}
+      provenance: assumed
+      source: "usual fill and proportions of an enamelled stirred vessel (D-003)"
+    operations:
+      - {id: inert, kind: other, title: Nitrogen purge of the dry vessel and the phosphorus tank, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: charge, kind: charge, title: Charge methanol and red phosphorus through the phosphorus tank, duration: {value: 1.0, provenance: assumed, source: D-003}}
+      - {id: heat, kind: heat, title: Warm to 313 K (H101), temperatures: [298.15, 313.15]}
+      - {id: dose, kind: dose, title: Dose the iodine through the closed solids feeder, from: R101}
+      - {id: react, kind: react, title: Post-reaction to 0.995 conversion of the iodine, from: R101}
+      - {id: hold, kind: hold, title: Hold under reflux until the iodine colour is gone (sample), duration: {value: 1.0, provenance: assumed, source: "D-003"}}
+      # Q4's first part: the reaction mass from 313.15 K to its ideal-liquid bubble point before
+      # anything distils, timed from the jacket (an upper bound, D-006, D-007); the residue's
+      # sensible heat is in the distil's time, through ST101's net boil-up (D-007)
+      - {id: heatup, kind: heat, title: Heat the reaction mass to its bubble point (ST101), temperatures: [313.15, 329.53]}
+      - {id: distil, kind: distil, title: Distil the crude off through E-101 into V-102 (ST101), from: ST101}
+      - {id: cool, kind: cool, title: Cool the residue to 313 K (H102), duration: {value: 1.0, provenance: assumed, source: D-003}}
+      - {id: drain, kind: transfer, title: Drain the residue, duration: {value: 0.5, provenance: assumed, source: D-003}}
+  - id: WASH
+    units: [W101, D102, D103]
+    title: Thiosulfate and water washes (V-102)
+    # V-102 receives the crude while ST101 distils it (D-001, D-008): it is charged with the
+    # thiosulfate during REACT's hold and takes the distillate for as long as ST101 distils
+    start: {after: REACT, operation: hold}
+    operations:
+      - {id: thiosulfate, kind: charge, title: Charge the thiosulfate solution, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: wait, kind: hold, title: Wait for ST101's first distillate (the rest of REACT's hold and its heat-up), duration: {value: 0.68, provenance: assumed, source: "REACT's 1 h hold less the 0.5 h charge, and its heat-up's 0.18 h (cheme process recipe), so that the receiving starts with the distillation (D-003)"}}
+      - {id: receive, kind: distil, title: Receive the crude as ST101 distils it into the thiosulfate, from: ST101}
+      - {id: thio1, kind: other, title: "First thiosulfate wash: stir 15 min, settle 2 h, separate", duration: {value: 2.75, provenance: assumed, source: "D-003"}}
+      - {id: thio2, kind: other, title: Second thiosulfate wash, duration: {value: 2.75, provenance: assumed, source: "D-003"}}
+      - {id: water1, kind: other, title: "First water wash: stir 15 min, settle 2 h, separate", duration: {value: 2.75, provenance: assumed, source: "D-003"}}
+      - {id: water2, kind: other, title: Second water wash, duration: {value: 2.75, provenance: assumed, source: "D-003"}}
+      - {id: transfer, kind: transfer, title: Washed crude to the dryer, duration: {value: 0.5, provenance: assumed, source: D-003}}
+  - id: DRY
+    unit: X101
+    title: Drying over calcium chloride and the 4A sieve column (A-103)
+    operations:
+      - {id: dry, kind: other, title: Percolate through the calcium chloride bed and the sieve column, duration: {value: 2.0, provenance: assumed, source: D-003}}
+      - {id: transfer, kind: transfer, title: Dried crude to the still, duration: {value: 0.5, provenance: assumed, source: D-003}}
+  - id: DISTIL
+    units: [ST102, E104, E105, H103]
+    title: Batch rectification (C-104 with its column K-104)
+    operations:
+      - {id: receive, kind: charge, title: Receive the dried crude, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      # core's still.heat_up adds the charge's heat-up to ST102's duty (Q8) but not to its time
+      # (ADR 0063): the heat-up is timed here at the reboiler's 36 kW (L-4, D-016)
+      - {id: heatup, kind: heat, title: Heat the dried crude to its bubble point (ST102), duration: {value: 0.126, provenance: calculated, source: "core's still.heat_up of ST102, the dried crude from 304.11 K to its bubble point 316.12 K: 4.526 kWh a batch (cheme process stills: whole duty 250.40 less the boil-up 245.88 kWh), at the reboiler's 36 kW (the still's boilup): 4.526 / 36 = 0.126 h (D-010, D-016)"}}
+      - {id: distil, kind: distil, title: Distil the iodomethane, from: ST102}
+      - {id: cool, kind: cool, title: Cool the residue (H103), duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: drain, kind: transfer, title: Drain the residue, duration: {value: 0.5, provenance: assumed, source: D-003}}

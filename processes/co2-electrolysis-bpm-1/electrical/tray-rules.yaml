@@ -1,0 +1,29 @@
+# Cable tray rules of the pilot skids (skill electrical-cabling, DESIGN.md D-045). Schema:
+# `cheme schema trays`. Every value not given here is the package default (ASSUMED, `cheme
+# schema trays`: widths 100 to 900 mm, depth 100 mm, fill 30 % power and 40 % instrument,
+# 0.3 m power-to-instrument separation, 0.15 m spacing) until the host site's electrical
+# standard gives them.
+schema: cheme/trays/v1
+rules:
+  # PR-1 carries no modelled pipe (its site tie-ins are DN 15, skipped, D-019): the trays run on
+  # its one tier, 3.2 m since the rack moved north of the skids (D-047). Core checks a tray as a
+  # capsule of half its width round its bottom centreline, so a tray resting on the beam reads
+  # as running through it: 0.05 m above the beam is the lowest tier that does not. At the 2.8 m
+  # tier core ran some legs off the rack at 2.1 m (0.75 m under the tier), at the walkway
+  # headroom; from 3.25 m they run at 2.5 m or 4.0 m
+  tiers:
+    - {rack: PR-1, elevation: 3.25}
+  # branches run at 2.5 m or higher to above their load: clear of the 2.1 m walkway headroom over
+  # the 0.15 m deck with the tray's own depth, above the stacks and their slide lanes (D-047);
+  # above the 2.35 m skid envelope, so the trays over the frames are site-fitted. Kept 1 m from
+  # every vent and flue outlet and out of its plume by regen step 13 (layout/layout-checks.yaml)
+  branch_elevation_m: 2.5
+  # every AC load and junction box (the pumps' north cable entries the farthest, 5.33 m) takes
+  # PR-1; the stacks' DC points (5.8 m) do not, so the 48 V DC cables are fed directly from the
+  # rectifiers, never on the rack (D-045, D-047)
+  rack_reach_m: 5.5
+  # a finer router grid than the 0.5 m default: the skid is 2.44 m wide
+  grid_m: 0.25
+notes: >-
+  ASSUMED (D-045): no project electrical standard; every value is the package default or the
+  choice above, for the electrical engineer to replace.

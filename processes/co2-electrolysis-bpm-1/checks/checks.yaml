@@ -1,0 +1,354 @@
+# Engineering-step gates. Schema: `cheme schema checks`. Run: `cheme check`.
+schema: cheme/checks/v1
+checks:
+  - id: design-basis
+    title: Design basis exists
+    stage: concept
+    kind: files
+    files: [process/design-basis.yaml]
+  - id: concept-lists
+    title: Design decisions and the equipment, line and instrument lists exist
+    stage: concept
+    kind: files
+    files: [DESIGN.md, equipment/equipment-list.yaml, piping/line-list.yaml, control/instrument-list.yaml]
+  - id: process-concept
+    title: Materials and flowsheet exist, the BFD and PFD built (cheme process build)
+    stage: concept
+    kind: files
+    files: [process/materials.yaml, process/flowsheet.yaml, process/BFD.xml, process/PFD.xml]
+  # The pilot skids of #330 (DESIGN.md D-007 to D-021): every committed value, record and
+  # figure that depends on the campaign duration is what `scripts/regen.py` regenerates from
+  # the inputs, for both design scenarios (1000 h and 10000 h, in temporary copies; exit 3 on a
+  # difference). About 5 min.
+  - id: skid-regen-current
+    title: "The #330 skid model files, records, resize report and figures are current with regen.py"
+    stage: concept
+    kind: command
+    command: cheme run scripts/regen.py --check
+  - id: process-balances
+    title: Every block balance is evaluable and clean, the BFD current
+    stage: concept
+    kind: validate
+    fail_on: info
+    rules: [cheme.process-balance*, cheme.process-schema, cheme.generated-*]
+  # Links from blocks, steps and streams to equipment, lines, instruments and sheets: reported
+  # at concept, required at basic.
+  - id: process-links-concept
+    title: Process links resolve (reported only)
+    stage: concept
+    kind: process-links
+    level: warning
+  # The concept gate accepts cheme.process-component-balance-not-evaluable (a component
+  # balance without compositions); the basic gate requires component balances.
+  - id: process-basic
+    title: PFD generated for the design case, process rules clean, no stale calculated values
+    stage: basic
+    kind: validate
+    generated: [pfd]                # fails until plant.yaml declares a kind: pfd sheet, built
+    fail_on: info
+    rules: [cheme.process-refine-pending, cheme.process-balance*,
+            cheme.process-component-balance*, cheme.process-calculated-stale,
+            cheme.generated-*]
+  - id: process-links
+    title: Every process link resolves against the lists and sheets
+    stage: basic
+    kind: process-links
+    level: error
+  - id: assumptions-marked
+    title: Assumed values are marked ASSUMED in the design basis
+    stage: concept
+    kind: command
+    command: grep -q ASSUMED process/design-basis.yaml
+  # kind: validate fails on errors. `fail_on: warning` (or info) makes warnings fail too, `rules`
+  # limits it to some rule ids (* matches any text), and `accept` lists findings the gate lets
+  # pass, each by the id `cheme validate --json` gives it and with a reason (who, why).
+  - id: pids-valid
+    title: Every P&ID and list validates
+    stage: basic
+    kind: validate
+  - id: drawing-clean
+    title: No line through a label or valve, along a pipe or slanted, no crossing, overlapping or
+      misplaced label left unaccepted
+    stage: basic
+    kind: validate
+    # info: cheme.line-not-orthogonal (a slanted line) is an info finding
+    fail_on: info
+    rules: [cheme.line-through-label, cheme.line-crossing, cheme.label-overlap,
+            cheme.label-far-from-owner, cheme.line-through-valve, cheme.line-on-pipe,
+            cheme.line-not-orthogonal]
+    # A sheet kept from the DEXPI reference P&ID (pyDEXPI's sample, e.g. as a worked example)
+    # fails this gate by design: the reference has crossings and labels on its lines. Accept
+    # its findings here, naming the sheet:
+    #   accept:
+    #     - {id: "pid/P-01.xml#*", reason: "DEXPI reference sheet, kept as drawn by DEXPI"}
+    # Other findings are accepted one by one, by the id `cheme validate --json` gives them:
+    # accept:
+    #   - id: "pid/P-03.xml#line-crossing:Line_GOX3001_S1_P1+Line_LOX3001_S1_P1"
+    #     reason: "D-023: no route around the GOX riser; J. Smith, design review 2026-10-20"
+    # The skid sheets of #330: four stacks fed in parallel by four manifolds cannot be drawn
+    # without crossings; with the anolyte manifolds above and below the stack row, each cathode
+    # gas manifold crosses one of them three times (D-017). Proposed by the drafting agent;
+    # the design review confirms or redraws. P&ID revision C renumbered CO2-x01's segments (the
+    # relief tee): the crossing of AN-x03 S2 with the feed header is now with ..._S7_P1, the same
+    # crossing at the same place, its id corrected (review 2026-11-06-design-r2#4, D-067).
+    accept:
+      - {id: "pid/P-01.xml#line-crossing:Line_AN104_S1_P1+Line_CG101C_S1_P1", reason: "D-017: parallel stack manifolds (agent draft #330, for the design review)"}
+      - {id: "pid/P-01.xml#line-crossing:Line_AN104_S2_P1+Line_CG101B_S1_P1", reason: "D-017: parallel stack manifolds (agent draft #330, for the design review)"}
+      - {id: "pid/P-01.xml#line-crossing:Line_AN104_S3_P1+Line_CG101_S1_P1", reason: "D-017: parallel stack manifolds (agent draft #330, for the design review)"}
+      - {id: "pid/P-01.xml#line-crossing:Line_AN103_S2_P1+Line_CO2101_S7_P1", reason: "D-017: parallel stack manifolds (agent draft #330, for the design review)"}
+      - {id: "pid/P-01.xml#line-crossing:Line_AN103_S3_P1+Line_CO2101B_S1_P1", reason: "D-017: parallel stack manifolds (agent draft #330, for the design review)"}
+      - {id: "pid/P-01.xml#line-crossing:Line_AN103_S4_P1+Line_CO2101C_S1_P1", reason: "D-017: parallel stack manifolds (agent draft #330, for the design review)"}
+      - {id: "pid/P-02.xml#line-crossing:Line_AN204_S1_P1+Line_CG201C_S1_P1", reason: "D-017: parallel stack manifolds (agent draft #330, for the design review)"}
+      - {id: "pid/P-02.xml#line-crossing:Line_AN204_S2_P1+Line_CG201B_S1_P1", reason: "D-017: parallel stack manifolds (agent draft #330, for the design review)"}
+      - {id: "pid/P-02.xml#line-crossing:Line_AN204_S3_P1+Line_CG201_S1_P1", reason: "D-017: parallel stack manifolds (agent draft #330, for the design review)"}
+      - {id: "pid/P-02.xml#line-crossing:Line_AN203_S2_P1+Line_CO2201_S7_P1", reason: "D-017: parallel stack manifolds (agent draft #330, for the design review)"}
+      - {id: "pid/P-02.xml#line-crossing:Line_AN203_S3_P1+Line_CO2201B_S1_P1", reason: "D-017: parallel stack manifolds (agent draft #330, for the design review)"}
+      - {id: "pid/P-02.xml#line-crossing:Line_AN203_S4_P1+Line_CO2201C_S1_P1", reason: "D-017: parallel stack manifolds (agent draft #330, for the design review)"}
+  # The skid P&IDs of #330 (D-017): every piped item and every loop of the skid is drawn and
+  # connected. The rectifier U-x01, JIC-x01 and the gas detectors AIA-x41/42 are drawn without
+  # a process connection by design and are left out of this list (the extract fan K-x41 is
+  # deleted with the enclosure, D-050). Revision B (D-054, D-055): the tail-gas trip valve, its
+  # arrester and the arrester's temperature trip, the drain, vent and pump-out valves.
+  - id: pid-skid-a
+    title: P-01 draws Skid A's equipment, control valves and loops, connected
+    stage: basic
+    kind: on-sheet
+    sheet: P-01
+    connected: true
+    tags: [E-101A, E-101B, E-101C, E-101D, T-101, P-101, E-111, V-121, K-131, X-131, X-132,
+           FV-102, TV-111, PV-121, LV-122, PV-131, XV-133, FA-133,
+           HV-106, HV-107, HV-108,
+           FIC-101, TIC-111, TSHH-112, FIC-102, FI-103, PIC-121, LIC-122, PIC-131, AI-101, LIA-101,
+           TSHH-133,
+           XV-125, XV-134, XY-125, XY-134, PIA-113, PIA-115, PIA-116, PIA-123, XS-101,
+           HV-111, HV-112]
+  - id: pid-skid-b
+    title: P-02 draws Skid B's equipment, control valves and loops, connected
+    stage: basic
+    kind: on-sheet
+    sheet: P-02
+    connected: true
+    tags: [E-201A, E-201B, E-201C, E-201D, T-201, P-201, E-211, V-221, K-231, X-231, X-232,
+           T-202, P-202, FV-202, TV-211, PV-221, LV-222, PV-231, LV-201, FV-203, XV-233, FA-233,
+           HV-206, HV-207, HV-208, HV-209,
+           FIC-201, TIC-211, TSHH-212, FIC-202, FI-203, PIC-221, LIC-222, PIC-231, AIC-201,
+           LIC-201, LIA-202, LIA-203, FIC-203, TSHH-233,
+           XV-225, XV-234, XY-225, XY-234, PIA-213, PIA-215, PIA-216, PIA-223, XS-201,
+           HV-211, HV-212]
+  - id: pids-exist
+    title: At least one P&ID sheet
+    stage: basic
+    kind: files
+    files: ["pid/*.xml"]
+  - id: design-review
+    title: A current, independent design review is recorded
+    stage: basic
+    kind: review                   # a record with front matter (reviews/README.md)
+    topic: design
+    require_kind: [human, agent]    # an author's self review does not pass
+  # The 3D layout (layout/, skills layout-yaml, pipe-routing, structures-access,
+  # area-classification, review). A kind: layout-model gate checks the layout files and the
+  # generated layout/plant-model.yaml against each item of require (`cheme schema checks`).
+  - id: layout-plot-plan
+    title: Plot plan - site, areas, roads, racks, every item placed, separations declared
+    stage: concept
+    kind: layout-model
+    require: [site, areas, roads, racks, placed, separations]
+  - id: layout-3d
+    title: 3D model current, nozzles resolved, elevated items mounted, process lines routed or skipped, no clashes, zones declared, plan and sections reviewed
+    stage: basic
+    kind: layout-model
+    require: [model-current, nozzles, mounted, routed, clashes, zones, drawings]
+    min_dn: 25                      # smaller lines are field-run at basic engineering
+    # utilities are routed at detail engineering (gate layout-detail)
+    # the coolers' tempered water (D-052, D-056) is a utility like the cooling water it replaced
+    exclude_fluids: [Cooling water, Cooling water return, Tempered water, Tempered water return,
+                     Chilled water, Instrument air,
+                     Plant air, Utility nitrogen, Steam, Condensate]
+    sections: 2                     # the layout review cites the plot plan and two sections
+    # A clash or headroom finding that stays is accepted here with a reason, by its id:
+    # accept:
+    #   - id: "layout/plant-model.yaml#layout-clash-pipe:P-01/Line_A_S1+P-01/Line_B_S1"
+    #     reason: "insulated lines touch at the support only; J. Smith, layout review 2026-11-02"
+  # The lifting study (cheme layout lifting, skill structures-access): every heavy item
+  # (5 t or more, ASSUMED) has its crane, a clear lane and a laydown; with crane load charts in
+  # layout/crane-chart.yaml, a chart that carries each lift. The study is written and current.
+  - id: lifting-study
+    title: Lifting study - every heavy item has a crane, a clear lane and a laydown
+    stage: basic
+    kind: layout-model
+    require: [model-current, lifting, lifting-current]
+  # The material take-off of the 3D model (estimate/, skill mto-estimate): rewritten after the
+  # model's last change. Add rates (the project's own, not the example) and estimate-current
+  # once the project prices it.
+  - id: mto
+    title: Material take-off current with the 3D model
+    stage: basic
+    kind: mto
+    require: [mto-current]
+  # The LCA of the two skids (#331, lca/, DESIGN.md D-024 to D-027): every flow mapped or
+  # declared missing, the factors the project's own (open profiles, no example), the outputs
+  # current, the dataset's mass balance closed. Not required: no-gaps and factors-published (a
+  # partial screening footprint, the gaps are listed: ADR 0029) and the element and carbon-origin
+  # balances (not assessable while the replaced stack parts have no composition; K and C close
+  # on every exchange that has one, results/scenarios/<H>h/lca.json).
+  - id: lca
+    title: LCA of Skid A mapped, its factors the project's, current with the flowsheet, mass balance closed
+    stage: concept
+    kind: lca
+    require: [mapped, factors, lca-current, lci-mass-balance]
+  # Skid B's own dataset (core ADR 0045) and the scenario records are current (library ADR 0034)
+  - id: lca-case-dataset-current
+    title: "Skid B's dataset lca/datasets/*-skid-b.yaml is current (cheme assess lca --check --case skid-b)"
+    stage: concept
+    kind: command
+    command: cheme assess lca --check --case skid-b
+  - id: lca-scenarios-current
+    title: The LCA scenario records lca/scenarios/*.json are current
+    stage: concept
+    kind: command
+    command: cheme assess lca-scenarios --check
+  # The techno-economic analysis (estimate/tea.yaml, skill tea): once the project prices its
+  # plant, uncomment; add class-stage (the estimate class the stage expects) and decision (the
+  # baseline meets the decision's threshold) before the stage's investment decision.
+  # - id: tea
+  #   title: TEA priced, of the project's own premises, and current
+  #   stage: basic
+  #   kind: tea
+  #   require: [prices, no-example, tea-current]
+  # Calculation maturity (cheme maturity, docs/framework/maturity.md): the level the evidence
+  # supports reaches require (one of sourced, balanced, predictive, engineering); max_claim also
+  # fails when process.yaml claims more than that. Engineering runs the whole validation (slow
+  # on a large plant); a lower level skips it. Uncomment once the design basis is written.
+  # - id: maturity-balanced
+  #   title: The conceptual PFD is sourced and balanced
+  #   stage: basic
+  #   kind: maturity
+  #   require: [balanced]
+  #   max_claim: true
+  - id: layout-review
+    title: A current, independent layout review is recorded
+    stage: basic
+    kind: review
+    topic: layout
+    require_kind: [human, agent]
+  - id: layout-detail
+    title: Every line routed, including utilities and small bore, no clashes
+    stage: detail
+    kind: layout-model
+    require: [model-current, nozzles, mounted, routed, clashes]
+    min_dn: 0
+  # Cables and trays (electrical/, skill electrical-cabling): every motor and instrument has a
+  # cable routed in trays, no tray over its fill, power and instrument trays apart.
+  - id: electrical
+    title: A cable to every motor and instrument, routed in trays, fill and separation kept
+    stage: detail
+    kind: layout-model
+    require: [model-current, cables, trays]
+  # Ventilation (layout/hvac.yaml, skill hvac-ducts): every clad building ventilated, ducts
+  # routed inside it within their velocity limits, units and louvres large enough.
+  - id: hvac
+    title: Clad buildings ventilated, ducts routed within their velocity limits
+    stage: detail
+    kind: layout-model
+    require: [model-current, hvac]
+  # Control records (control/loops.yaml, control/sequences.yaml, process/narrative.md,
+  # control/philosophy.md; skills control-loops, control-sequences, control-narrative): at
+  # concept and basic a draft may have gaps (cheme.control-incomplete and -unresolved are info);
+  # at detail every loop and sequence is complete and every reference resolves. A plant without
+  # control records passes. Left out on purpose: logic given as text, a loop sharing a tag with
+  # an interlock, an alarm at a trip level (each to be judged, not removed) and a changed basis
+  # (cheme.control-stale); a file that fails its schema is the pids-valid gate's.
+  - id: control-complete
+    title: Loops and sequences complete, every control reference resolved
+    stage: detail
+    kind: validate
+    fail_on: info
+    rules: [cheme.control-incomplete, cheme.control-unresolved, cheme.control-ref,
+            cheme.control-unknown-tag, cheme.control-conflict, cheme.control-unit,
+            cheme.control-case, cheme.control-cycle, cheme.control-duplicate,
+            cheme.control-document, cheme.control-unreachable]
+  - id: datasheets
+    title: A datasheet for every equipment-list item
+    stage: detail
+    kind: datasheets               # equipment/datasheets/<TAG>.yaml, see its README
+    # require: [dimensions, weights, nozzle-schedule, drawing-current]  # main dimensions,
+    #   weights, a located nozzle schedule and current outline drawings (<TAG>.svg)
+  # Prefer on-sheet over grep for what a P&ID must show: it finds printed tags in the model.
+  # - id: relief-on-pid
+  #   title: Relief devices drawn and connected
+  #   stage: basic
+  #   kind: on-sheet
+  #   sheets: [P-01]            # or sheet: P-01; omitted: any sheet
+  #   tags: [PSV-101]           # equipment, instrument (PICSA-101), valve or line tags
+  #   classes: [SafetyValve]    # at least min_count (1) of each class
+  #   connected: true           # piped, on a segment, with a measuring/signal line
+
+  # The HAZOP drafts of the skids (safety/, DESIGN.md D-030 to D-032): agent-prepared for a team
+  # session that has not been held, every entry proposed. This gate passes on the drafts: each
+  # study is current against its analysed inputs (P&IDs, lists, C&E, loops, sequences,
+  # philosophy, zones, flowsheet, design basis, duties) and neither study nor matrix is example
+  # data. A changed input fails it until the touched nodes are reassessed and re-stamped
+  # (cheme safety hazop stamp <id> --write).
+  - id: hazop-current
+    title: HAZOP drafts H-01 and H-02 current against their analysed inputs, no example data
+    stage: basic
+    kind: hazop
+    require: [inputs-current, no-example]
+  # After the team session and a human review (safety/hazop/SESSION.md section 4), the house
+  # gates replace it; they fail on the drafts by design and stay commented until then:
+  # - {id: hazop-basic, title: HAZOP assessed and reviewed, stage: basic, kind: hazop,
+  #    require: [assessed, reviewed, inputs-current, no-example]}
+  # - {id: hazop-review, title: HAZOP human review, stage: basic, kind: review, topic: hazop,
+  #    require_kind: [human]}
+
+  # Open items (plant.yaml issues:): every action, engineering hold, technical query and design
+  # change labelled gate:<stage> (or an earlier stage) is closed out before the stage is signed
+  # off, as an action tracker. n/a until plant.yaml declares issues; without a GitHub token the
+  # gate fails as "not evaluated", it never passes unseen.
+  - id: issues-concept
+    title: No open item to close before the concept gate
+    stage: concept
+    kind: issues
+  - id: issues-basic
+    title: No open item to close before the basic engineering gate
+    stage: basic
+    kind: issues
+  - id: issues-detail
+    title: No open item to close before the detail engineering gate
+    stage: detail
+    kind: issues
+
+# Findings accepted for every gate and for `cheme validate`, which then reports them as info
+# with the reason (an entry that names no finding is reported as cheme.accept-unused).
+# Only warnings and infos can be accepted; an error stays an error (cheme.accept-error).
+accept:
+  # (The two generated-sheet-drift acceptances of P-01 and P-02 are removed with P&ID revision B,
+  # D-056: the bubbles of PIC-x21 and LIC-x22 are placed by scripts/_skid_pid.py so that core
+  # draws PV-x21's actuator, the two signal lines and their labels clean, and both sheets are
+  # what `cheme regen` makes.)
+  # The skid layout (#330, DESIGN.md D-019), for the layout review: a 20 ft skid is worked from
+  # grade along its long sides; its 0.15 m deck is stepped onto, not a walkway with 2.1 m
+  # headroom under a 2.20 m envelope, and the plot-plan pump access space (1 m all round) does
+  # not fit inside a 2.44 m frame (agent draft #330, to be confirmed by the layout review).
+  - {id: "layout/plant-model.yaml#layout-access-blocked:P-101/access", reason: "D-019, D-047: skid pump 0.18 m inside the frame's south edge, maintained from grade there; its 1 m access box holds the cooler, the first stack and the headers (agreed by the layout review 2026-11-05-layout for the pumps at the south edge); since D-057 core names E-111, AN-103 S1, T-101 and X-131 in it (wording per review 2026-11-06-layout-r3#7, D-068)"}
+  - {id: "layout/plant-model.yaml#layout-access-blocked:P-201/access", reason: "D-019, D-047: as P-101, Skid B; core names E-211, AN-203 S1, SP-201 S1, T-201, V-221 and X-231 in its access box (wording per review 2026-11-06-layout-r3#7, D-068)"}
+  - {id: "layout/plant-model.yaml#layout-access-blocked:P-202/access", reason: "D-019, D-047: skid metering pump 0.4 m inside the frame's west end, north of its day tank T-202, maintained from grade at the west end; its 1 m access box holds the tanks, the frame's corner post and the spent anolyte drain"}
+  # AN-104 S4 runs at 0.6 m and at 2.10 to 2.23 m over Skid A's deck (0.43 m and about 1.9 m
+  # clear, under the 2.1 m headroom). Core 1.5.0 does not report it while it proposes a
+  # step-over on that pipe (step-over-13 in D-040, step-over-14 since the supply header's split
+  # of P&ID revision B, D-056), which D-040 does not adopt: the acceptance is kept, so the
+  # finding stays accepted with its reason if the proposal goes
+  - {id: "layout/plant-model.yaml#layout-headroom:P-01/Line_AN104_S4+SKID-A/DECK", reason: "D-019, D-040: anolyte return to the reservoir top, along the header at 0.6 m and over T-101 at 2.10 to 2.23 m inside the 2.35 m skid envelope; the deck is not a walkway (agent draft #330, for the layout review; not reported while core proposes its step-over on AN-104 S4, not adopted)"}
+  - {id: "layout/plant-model.yaml#layout-headroom:P-01/Line_KOH101_S1+SKID-A/DECK", reason: "D-019, D-040, D-047: KOH fill line from T-101's fill nozzle N3 (1.32 m) down to its hose coupling at the working height 1.0 m, 0.15 m inside the frame's west edge; the deck is not a walkway (agreed by the layout review 2026-11-05-layout)"}
+  # The cable trays that drop into the zone 2 of their skid to a load that stands in it (stage
+  # 3 of the 3D model, DESIGN.md D-045): a load in the zone cannot be cabled from outside it.
+  # Since the rearrangement of D-047 only the compressor motors' trays do: the DC trays end
+  # 1.5 m above grade, over the top of the stacks' 1 m zone spheres (1.24 m); the extract fans
+  # and their trays are deleted with the enclosure (D-050).
+  # The owner's Ex decision of 2026-11-06 (D-051; no certification claimed, the area
+  # classification is the competent person's): the cables in the zone armoured, entering through
+  # IIC-certified glands; the motors there II 2G Ex db eb IIC T3 Gb (3G/Gc the stated minimum).
+  # For the electrical design, then the layout review.
+  - {id: "layout/plant-model.yaml#layout-tray-zone:PT-M-K-131+Z-HAZ-A", reason: "D-045, D-051: the compressor motor stands in Z-HAZ-A and is II 2G Ex db eb IIC T3 Gb; armoured cable through an IIC-certified gland (owner's Ex decision 2026-11-06; area classification by the competent person open)"}
+  - {id: "layout/plant-model.yaml#layout-tray-zone:PT-M-K-231+Z-HAZ-B", reason: "D-045: as PT-M-K-131, Skid B"}

@@ -1,0 +1,36 @@
+# Reactions of benzoyl-chloride-1. Schema cheme/reactions/v1 (`cheme schema
+# process-reactions`).
+#
+# BZCL: benzotrichloride and benzoic acid to benzoyl chloride and hydrogen chloride over zinc
+# chloride, the route of US 4 276 231 A (Bayer, 1981; Example 1: ZnCl2 in molten benzoic acid at
+# 140 C, the benzotrichloride added over 2 h and held 2 h, about 7 % excess of the acid). The
+# HCl leaves the liquid as gas as it forms (R101's batch.vent, core ADR 0054).
+# No open kinetics or calorimetry of this reaction was found (searched 2026-11-05): the rate law
+# is ASSUMED, second order (first in benzotrichloride and in benzoic acid), the ZnCl2 at the
+# example's loading lumped into k, sized so that the post-reaction to 0.999 conversion of the
+# benzotrichloride takes about the example's hold (DESIGN.md D-005). The heat of reaction is
+# ASSUMED as well (no formation enthalpy of benzotrichloride in the NIST WebBook, so it cannot
+# be derived): -50 kJ/mol with the HCl formed as a gas at 413 K, an exothermic value chosen so
+# that the thermal screening is not optimistic (D-005, D-011).
+# The benzoic anhydride the patent names in the crude (with the acid, 3.5 wt%) is not modelled.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: BZCL
+    title: Benzotrichloride and benzoic acid to benzoyl chloride (ZnCl2)
+    equation: C7H5Cl3 + C7H6O2 -> 2 C7H5ClO + HCl
+    stoichiometry: {BTC: -1, BA: -1, BZCL: 2, HCL: 1}
+    phase: liquid
+    heat_of_reaction: {value: -50000, provenance: assumed, source: "ASSUMED (D-005): no open calorimetric value and no formation enthalpy of benzotrichloride (NIST WebBook) to derive one; HCl formed as gas at 413 K"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # second order: k = 2.7e-3 m3/(kmol s) at 413.15 K (Ea 60 kJ/mol), the ZnCl2 of the
+      # example's loading (0.74 wt% of the benzoic acid) lumped into it
+      k: {A: 1.04e5, Ea: 60000}
+      orders: {BTC: 1, BA: 1}
+      temperature_range: [393.15, 433.15]
+      provenance: assumed
+      source: "ASSUMED effective rate (D-005): no open kinetics found (2026-11-05); sized to the 2 h hold of US 4 276 231 A, Example 1; to be replaced by reaction calorimetry"
+    sources: ["US 4 276 231 A (Bockmann, Lipper, Bruhne; Bayer AG, 1981), Example 1 and description: catalysts, 70-200 C, 1-20 mol% excess of the acid"]

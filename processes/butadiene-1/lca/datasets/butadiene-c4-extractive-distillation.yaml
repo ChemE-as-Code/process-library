@@ -1,0 +1,370 @@
+# Tier 1 form, process-library#313 pattern without a flowsheet. Every amount is the formula of its parameters;
+# core's validator re-checks each. Facts and numbers from open sources, in our own form.
+# The lumped formulas in generation.formulas follow the parameters: recompute them when one changes.
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: butadiene-c4-extractive-distillation
+title: 1,3-Butadiene by extractive distillation of a steam-cracker crude C4 cut
+description: Per 1 t of 1,3-butadiene, gate-to-gate, from the crude C4 cut of a naphtha steam cracker. Raffinate-1
+  (butenes and butanes) and the purge of C3 and C4 acetylenes to fuel use are co-products. Feed from a typical
+  cut and a recovery bound; utilities as Western European averages.
+basis: 1000 kg of 1,3-butadiene
+boundary: 'gate-to-gate: extractive distillation with a polar solvent, solvent degassing, propyne and finishing
+  columns; crude C4, steam and power from outside'
+technology: continuous extractive distillation with a polar solvent (NMP in the BASF process, also acetonitrile
+  or DMF); the energy data are for C4 separation without the solvent stated; butadiene by dehydrogenation of
+  butane or butenes is not modelled
+geography:
+  description: 'Mixed: Western European energy averages, a US typical cut and US facility emissions; no single
+    site.'
+classification:
+  isic: '2011'
+system_boundary:
+  included:
+  - crude C4 feed
+  - electricity and steam
+  - co-product raffinate-1
+  - co-product acetylenes purge, to fuel use outside the unit
+  - butadiene to air from process vents and wastewater
+  excluded:
+  - 'TODO solvent make-up (NMP or another polar solvent): no open figure read; the licensor calls the losses
+    low'
+  - TODO cooling water, nitrogen, polymerisation inhibitor (e.g. TBC)
+  - 'TODO wastewater volume and its organics: the EPA document gives only the butadiene released from it'
+  - 'TODO equipment leaks: EPA 1996, Table 4-5 note, gives 407 Mg/a over 9 US facilities (1989), not per t'
+  - 'C5 and heavier hydrocarbons in the feed: not in the typical cut used'
+  - 'selective hydrogenation of the acetylenes (an option of some plants): not modelled'
+  - storage emissions (pressure storage, negligible per EPA 1996, p. 4-11)
+  - infrastructure
+  cutoff: none applied; the excluded flows are not quantified
+  infrastructure: excluded
+  catalysts: excluded
+  non_routine: excluded
+location: RER
+year: 2006
+valid_until: 2011
+time:
+  start: 1984
+  description: 'Energy: IEA estimate of the Western European average after Schyns 2006; emissions: US facility
+    data of 1984; composition: a typical cut in a 1996 document. valid_until is the reference year + 5 (system-model
+    section 6), so it has already lapsed.'
+modelling:
+  principle: attributional
+  multifunctionality: 'unallocated in the exchanges: butadiene, raffinate-1 and the acetylenes purge (a fuel
+    exported to the site, so a co-product, docs/system-model.md section 2) are listed as products; the build
+    allocates by mass (see allocation)'
+allocation:
+  method: mass
+  coproducts:
+  - butadiene
+  - c4-raffinate
+  - c4-purge
+  deviation: No sourced prices, so the WBCSD price ratio of butadiene, raffinate-1 and the purge cannot be computed.
+    All three leave one physical separation as C3 and C4 hydrocarbons; mass is the preliminary choice. The purge
+    goes to fuel use, so it is an exported fuel and a co-product (docs/system-model.md section 2), not an
+    unlinked output; energy allocation (LHV) is not used because butadiene and raffinate-1 are not fuels. At
+    2.3 % of the product mass it takes 2.3 % of the burdens.
+uuid: 53807271-3c3f-5a24-89ae-dc517d868e93
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+technology_level: current
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: bd
+  value: 1000.0
+  unit: kg
+  description: 1,3-Butadiene delivered (the basis).
+  source: basis
+- name: M_BD
+  value: 54.092
+  unit: g/mol
+  description: Molar mass of 1,3-butadiene (C4H6).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_BE
+  value: 56.108
+  unit: g/mol
+  description: Molar mass of the butenes (C4H8).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_BA
+  value: 58.124
+  unit: g/mol
+  description: Molar mass of the butanes (C4H10).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_C3
+  value: 40.065
+  unit: g/mol
+  description: Molar mass of propadiene and propyne (C3H4).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_VA
+  value: 52.076
+  unit: g/mol
+  description: Molar mass of vinylacetylene (C4H4).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: x_bd
+  value: 0.393
+  unit: kg/kg
+  description: 1,3-Butadiene in the crude C4 cut of a naphtha steam cracker.
+  source: 'US EPA (1996) Locating and Estimating Air Emissions from Sources of 1,3-Butadiene, EPA-454/R-96-008,
+    Table 4-3, p. 4-6 (typical C4 co-product of naphtha cracking, after its reference 20; 39.30 wt%). Taking
+    this one typical cut is ASSUMED: the content depends on feed and severity (LVOC BREF 2017 Table 3.3, p.
+    133, light naphtha: 4.9 % butadiene against 6.2 % butenes and butane, about 44 % of the C4)'
+- name: x_be
+  value: 0.508
+  unit: kg/kg
+  description: 'Butenes in the crude C4 cut: isobutene 29.0, 1-butene 9.6, trans-2-butene 7.5, cis-2-butene
+    4.7 wt%.'
+  source: US EPA (1996) Locating and Estimating Air Emissions from Sources of 1,3-Butadiene, EPA-454/R-96-008,
+    Table 4-3, p. 4-6 (summed by us)
+- name: x_ba
+  value: 0.084
+  unit: kg/kg
+  description: 'Butanes in the crude C4 cut: n-butane 6.8, isobutane 1.6 wt%.'
+  source: US EPA (1996) Locating and Estimating Air Emissions from Sources of 1,3-Butadiene, EPA-454/R-96-008,
+    Table 4-3, p. 4-6 (summed by us)
+- name: x_c3
+  value: 0.0118
+  unit: kg/kg
+  description: Propadiene (0.53 wt%) and propyne (0.65 wt%) in the crude C4 cut.
+  source: US EPA (1996) Locating and Estimating Air Emissions from Sources of 1,3-Butadiene, EPA-454/R-96-008,
+    Table 4-3, p. 4-6 (summed by us)
+- name: x_va
+  value: 0.0011
+  unit: kg/kg
+  description: Vinylacetylene in the crude C4 cut.
+  source: US EPA (1996) Locating and Estimating Air Emissions from Sources of 1,3-Butadiene, EPA-454/R-96-008,
+    Table 4-3, p. 4-6
+- name: x_c4o
+  value: 0.0021
+  unit: kg/kg
+  description: 'Other C4H6 isomers in the crude C4 cut: 1,2-butadiene 0.08, ethylacetylene 0.05, dimethylacetylene
+    0.08 wt%.'
+  source: US EPA (1996) Locating and Estimating Air Emissions from Sources of 1,3-Butadiene, EPA-454/R-96-008,
+    Table 4-3, p. 4-6 (summed by us)
+- name: rec
+  value: 0.98
+  unit: kg/kg
+  description: Recovery of the 1,3-butadiene in the feed as product.
+  source: 'BASF SE, Butadiene extraction technology, web page (manufacturer), basf.com/cn/en/products/chemicals/Intermediates/solutions/butadiene-extraction,
+    read 2026-11-05: yield above 98 % (manufacturer''s claim for the NMP process). Taking the bound itself
+    is ASSUMED. TODO an open plant figure'
+- name: e_vent
+  value: 0.0157
+  unit: kg
+  description: 'Butadiene from process vents per t butadiene, recovery process: facility mean of 0.0034 to
+    0.0275 kg/Mg (3 facilities, controls as installed).'
+  source: US EPA (1996) Locating and Estimating Air Emissions from Sources of 1,3-Butadiene, EPA-454/R-96-008,
+    Table 4-5, p. 4-14 (factor quality rating E; US facilities, 1984 data, Appendix C)
+- name: e_ww
+  value: 0.468
+  unit: kg
+  description: 'Butadiene released from the recovery-process wastewater (a secondary source, to air) per t
+    butadiene: facility mean of 0.00034 to 2.2 kg/Mg (6 facilities).'
+  source: US EPA (1996) Locating and Estimating Air Emissions from Sources of 1,3-Butadiene, EPA-454/R-96-008,
+    Table 4-5, p. 4-14 (factor quality rating E; US facilities, 1984 data). Using the mean of a range over
+    four orders of magnitude is our choice
+- name: elec
+  value: 0.7
+  unit: GJ
+  description: 'Electricity per t butadiene by C4 separation: estimated current Western European average.'
+  source: 'Saygin, D., Patel, M.K., Tam, C., Gielen, D.J. (2009) Chemical and Petrochemical Sector: Potential
+    of best practice technology and other measures for improving energy efficiency. IEA Information Paper,
+    OECD/IEA, Paris, Table 13, p. 50 (after Schyns 2006); best practice 0.5 GJ/t in Table 1, p. 14'
+- name: steam
+  value: 7.3
+  unit: GJ
+  description: 'Steam per t butadiene by C4 separation, as final energy (heat delivered): estimated current
+    Western European average.'
+  source: 'Saygin, D., Patel, M.K., Tam, C., Gielen, D.J. (2009) Chemical and Petrochemical Sector: Potential
+    of best practice technology and other measures for improving energy efficiency. IEA Information Paper,
+    OECD/IEA, Paris, Table 13, p. 50 (after Schyns 2006; its primary value 8.1 GJ/t is this over a 90 % boiler);
+    best practice 6.7 GJ/t in Table 1, p. 14. Gross: no heat export is stated'
+exchanges:
+- key: product:butadiene
+  title: 1,3-Butadiene, polymer grade
+  type: product
+  amount: 1000.0
+  unit: kg
+  formula: bd
+  provenance: given
+  source: the reference flow, modelled as pure C4H6; purity above 99.7 % (BASF SE, Butadiene extraction technology,
+    web page (manufacturer), basf.com/cn/en/products/chemicals/Intermediates/solutions/butadiene-extraction,
+    read 2026-11-05); the impurities are not modelled
+- key: product:c4-raffinate
+  title: Raffinate-1 (butenes and butanes, with the isobutene)
+  type: product
+  amount: 1537.1033909747107
+  unit: kg
+  formula: bd / (x_bd * rec) * (x_be + x_ba)
+  provenance: calculated
+  source: the butenes and butanes of the feed; that all of them leave in the raffinate and none of the unrecovered
+    butadiene does is ASSUMED (see product:c4-purge). A co-product, unallocated in the dataset
+  pedigree: &id001
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters), on a typical cut of a 1996 US document: reliability
+      4, completeness 4, temporal 5, geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.3
+    source: 'ASSUMED: follows the crude C4 composition, which varies with feed and severity'
+- key: feed:crude-c4
+  title: Crude C4 cut of a naphtha steam cracker
+  type: input
+  amount: 2596.458430700525
+  unit: kg
+  formula: bd / (x_bd * rec)
+  provenance: calculated
+  source: butadiene over its content in the cut and its recovery (parameters x_bd and rec)
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.3
+    source: 'ASSUMED: the butadiene content of naphtha-cracker C4 cuts, about 39 to 44 % in the two sources
+      read, and the recovery bound'
+- key: feed:electricity
+  title: Electricity
+  type: input
+  amount: 194.44444444444443
+  unit: kWh
+  formula: elec / 3.6 * bd
+  provenance: given
+  origin: literature
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: 'Saygin, D., Patel, M.K., Tam, C., Gielen, D.J. (2009) Chemical and Petrochemical Sector: Potential
+    of best practice technology and other measures for improving energy efficiency. IEA Information Paper,
+    OECD/IEA, Paris, Table 13, p. 50; GJ per t converted at 3.6 MJ/kWh'
+  pedigree: &id002
+    scores:
+    - 3
+    - 4
+    - 5
+    - 3
+    - 3
+    reason: 'an estimated Western European average of an IEA information paper (data of about 2006): reliability
+      3, completeness 4, temporal 5 (about 20 years old), geographical 3, technological 3 (C4 separation, solvent
+      not stated)'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.342
+    source: 'ASSUMED: the open figures read span 0.5 GJ/t (IEA best practice) to 0.90 GJ/t (Neelis et al. 2007),
+      read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount stays the stated average)'
+- key: feed:steam
+  title: Steam, as heat delivered
+  type: input
+  amount: 2027.7777777777776
+  unit: kWh
+  formula: steam / 3.6 * bd
+  provenance: given
+  origin: literature
+  source: 'Saygin, D., Patel, M.K., Tam, C., Gielen, D.J. (2009) Chemical and Petrochemical Sector: Potential
+    of best practice technology and other measures for improving energy efficiency. IEA Information Paper,
+    OECD/IEA, Paris, Table 13, p. 50; final energy (heat duty), GJ per t converted at 3.6 MJ/kWh; pressure
+    not stated'
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.3
+    source: 'ASSUMED: Neelis et al. (2007, section 5.1) rate their C4 separation figure at 10 to 30 % uncertainty;
+      30 % read as the 95 % half-width'
+- key: product:c4-purge
+  title: C3 and C4 acetylenes and heavies purge, to fuel use (co-product)
+  type: product
+  amount: 58.87133972581401
+  unit: kg
+  formula: bd / (x_bd * rec) * (x_c3 + x_va + x_c4o) + bd * (1 - rec) / rec - (e_vent + e_ww) * bd / 1000
+  provenance: calculated
+  source: propadiene, propyne, vinylacetylene and the other C4H6 isomers of the feed, with the unrecovered
+    1,3-butadiene less what is emitted. That the unrecovered butadiene leaves here and that the stream goes
+    to fuel use are ASSUMED (the LVOC BREF 2017, section 3.2.2.4, p. 131, names the extractive distillation,
+    and EPA 1996, p. 4-8, names the alkyne removal; neither gives its amount or fate). A fuel that leaves the
+    unit, so a co-product (docs/system-model.md section 2); where it is burnt is outside this boundary
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: a residual of the composition and the recovery bound'
+- key: emission:C4H6
+  title: 1,3-Butadiene to air (process vents and wastewater)
+  type: emission
+  amount: 0.4837
+  unit: kg
+  formula: (e_vent + e_ww) * bd / 1000
+  provenance: given
+  origin: literature
+  cas: 106-99-0
+  source: 'US EPA (1996) Locating and Estimating Air Emissions from Sources of 1,3-Butadiene, EPA-454/R-96-008,
+    Table 4-5, p. 4-14: facility means of process vents and of the wastewater (secondary source); equipment
+    leaks are not in it (see system_boundary)'
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'US facility data of 1984, factor quality rating E: reliability 4, completeness 4, temporal 5,
+      geographical 4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 5.0
+    source: 'ASSUMED: factors rated E whose facility values span one (vents) and four (wastewater) orders of
+      magnitude'
+provenance:
+  generator: hand-written model; amounts are the formulas of the parameters
+  notes: 'No value from a licensed database. The lumped C/H formulas of the crude C4, the raffinate and the
+    purge in generation.formulas follow the parameters: recompute them when a parameter changes.'
+generation:
+  tier: 1
+  method: 'sourced conceptual inventory: a typical crude C4 cut (EPA 1996), the licensor''s recovery bound,
+    IEA Western European energy averages, every choice listed in parameters'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 3
+  - 4
+  - 3
+  - 3
+  - 3
+  dqr_floor: 3.0
+  components:
+    product:butadiene: C4H6
+    product:c4-raffinate: 'raffinate-1 (lumped: C4H8 butenes and C4H10 butanes in the mass fractions of the
+      parameters)'
+    feed:crude-c4: 'crude C4 (lumped: C4H6, C4H8, C4H10, C3H4 and C4H4 in the mass fractions of the parameters)'
+    product:c4-purge: 'C3 and C4 acetylenes, 1,2-butadiene and the unrecovered 1,3-butadiene (lumped: C4H6,
+      C3H4, C4H4)'
+    emission:C4H6: C4H6
+  formulas:
+    product:butadiene: C4H6
+    product:c4-raffinate: C1000000H2068824
+    feed:crude-c4: C1000000H1828327
+    product:c4-purge: C1000000H1387919
+    emission:C4H6: C4H6
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      C:
+      - 2251.058656291
+      - 2251.058610895
+      H:
+      - 345.39977441
+      - 345.399819806
+    outside:
+    - feed:electricity
+    - feed:steam

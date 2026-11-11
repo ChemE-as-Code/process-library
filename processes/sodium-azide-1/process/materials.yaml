@@ -1,0 +1,71 @@
+# Components and templates of sodium-azide-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol (IUPAC 2021
+# standard atomic weights applied to the formula, via the chemicals package), normal_boiling_point
+# in K at 101.325 kPa (chemicals).
+#
+# The aqueous liquors are carried as molecular pseudo-components (NaNO2, H2SO4, Na2SO4, NaOH,
+# hydrazine and NaN3 dissolved), an inventory basis, not a speciation: core has no property
+# package for these liquors (DESIGN.md D-006), as in n-bromosuccinimide-1. Hydrazine is carried as
+# anhydrous N2H4 in water (the hydrazine hydrate feed is N2H4 64 wt% with its water). The NaN3
+# crystals are a separate solid component, NAN3S (phase: solid). N2O and NH3 leave R-102 by its
+# vent as they form (batch.vent, core ADR 0054), so they need no liquid data; methyl nitrite
+# (MEONO) leaves R-101 by its vent the same way, but is dosed into R-102 and dissolves there, so it
+# carries liquid data.
+#
+# Liquid data the semi-batch reactors need (D-005, D-006):
+# - liquid_molar_volume, m3/kmol: water, methanol and hydrazine from their liquid densities at
+#   298 K (thermo: 997.0, 786.3 and 1003.6 kg/m3); sulfuric acid 1830 kg/m3 (thermo, 98-100 %
+#   acid); methyl nitrite 857.7 kg/m3 (thermo's correlation at 298 K, above its 261 K boiling
+#   point, ASSUMED for the dissolved gas); the salts from their solids' densities (thermo/CRC:
+#   NaNO2 2.170, Na2SO4 2.700, NaOH 2.130, NaN3 1.846 g/cm3), taken as their volume in solution
+#   (ideal mixing, no partial molar volumes, ASSUMED);
+# - liquid_heat_capacity, kJ/(kmol K): water 75.3, methanol 81.2, hydrazine 98.9 (CRC), H2SO4
+#   138.9 (CRC); methyl nitrite 84.1 (thermo's estimate, ASSUMED); the dissolved salts the solids'
+#   (NaOH 59.5 NIST WebBook via thermo, Na2SO4 128.2 CRC, NaN3 76.6 CRC; NaNO2 65, ASSUMED: no
+#   tabulated value in thermo), standing for the dissolved salts;
+# - vapour_pressure (the batch still ST101, Raoult's law, core ADR 0055): NIST WebBook Antoine
+#   records, log10(P/bar) = A - B/(T/K + C): methanol 288.1-356.83 K (A 5.20409, B 1581.341,
+#   C -33.5, `cheme chemistry props methanol -p antoine_parameters --source NIST`), water
+#   255.9-373 K (Stull 1947: A 4.6543, B 1435.264, C -64.848); heat_of_vaporization at 333 K
+#   from thermo (water 42.67, methanol 36.27 kJ/mol), in kJ/kmol.
+schema: cheme/process/v1
+kind: materials
+components:
+  - id: H2O
+    name: Water
+    formula: H2O
+    cas: 7732-18-5
+    molar_mass: 18.015
+    normal_boiling_point: 373.12
+    liquid_molar_volume: 0.01807
+    liquid_heat_capacity: 75.3
+    vapour_pressure: {a: 4.6543, b: 1435.264, c: -64.848, temperature_range: [255.9, 373.0], provenance: given, source: "NIST WebBook, water, Antoine (Stull 1947), 255.9-373 K"}
+    heat_of_vaporization: 42670
+  - id: MEOH
+    name: Methanol
+    formula: CH4O
+    cas: 67-56-1
+    molar_mass: 32.042
+    normal_boiling_point: 337.63
+    liquid_molar_volume: 0.04075
+    liquid_heat_capacity: 81.2
+    vapour_pressure: {a: 5.20409, b: 1581.341, c: -33.5, temperature_range: [288.1, 356.83], provenance: given, source: "NIST WebBook, methanol, Antoine 288.1-356.83 K (cheme chemistry props --source NIST)"}
+    heat_of_vaporization: 36270
+  - {id: NANO2, name: Sodium nitrite (dissolved), formula: NaNO2, cas: 7632-00-0, molar_mass: 68.995, liquid_molar_volume: 0.03180, liquid_heat_capacity: 65.0}
+  - {id: H2SO4, name: Sulfuric acid, formula: H2SO4, cas: 7664-93-9, molar_mass: 98.078, normal_boiling_point: 610.15, liquid_molar_volume: 0.05359, liquid_heat_capacity: 138.9}
+  - {id: NA2SO4, name: Sodium sulfate (dissolved), formula: Na2SO4, cas: 7757-82-6, molar_mass: 142.042, liquid_molar_volume: 0.05261, liquid_heat_capacity: 128.2}
+  - {id: MEONO, name: Methyl nitrite, formula: CH3NO2, cas: 624-91-9, molar_mass: 61.040, normal_boiling_point: 261.15, liquid_molar_volume: 0.07117, liquid_heat_capacity: 84.1}
+  - {id: N2H4, name: Hydrazine (dissolved), formula: N2H4, cas: 302-01-2, molar_mass: 32.045, normal_boiling_point: 386.7, liquid_molar_volume: 0.03193, liquid_heat_capacity: 98.9}
+  - {id: NAOH, name: Sodium hydroxide (dissolved), formula: NaOH, cas: 1310-73-2, molar_mass: 39.997, liquid_molar_volume: 0.01878, liquid_heat_capacity: 59.5}
+  - {id: NAN3, name: Sodium azide (dissolved), formula: NaN3, cas: 26628-22-8, molar_mass: 65.010, liquid_molar_volume: 0.03522, liquid_heat_capacity: 76.6}
+  - {id: NAN3S, name: Sodium azide (crystals), formula: NaN3, cas: 26628-22-8, molar_mass: 65.010, phase: solid, liquid_molar_volume: 0.03522, liquid_heat_capacity: 76.6}
+  - {id: N2O, name: Nitrous oxide, formula: N2O, cas: 10024-97-2, molar_mass: 44.013, normal_boiling_point: 184.68}
+  - {id: NH3, name: Ammonia, formula: H3N, cas: 7664-41-7, molar_mass: 17.031, normal_boiling_point: 239.83}
+templates:
+  - {id: generator, title: "Nitrite generator liquor (aqueous methanol, nitrite, acid, sulfate)", components: [H2O, MEOH, NANO2, H2SO4, NA2SO4, MEONO]}
+  - {id: meono, title: Methyl nitrite gas, components: [MEONO]}
+  - {id: offgas, title: Azide reactor off-gas, components: [MEONO, N2O, NH3]}
+  - {id: liquor, title: Azide liquor and slurry, components: [H2O, MEOH, N2H4, NAOH, NAN3, NAN3S, MEONO, N2O, NH3]}
+property_method:
+  adapter: thermo
+  status: placeholder

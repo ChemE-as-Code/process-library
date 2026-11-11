@@ -31,6 +31,10 @@ process's URL in the Atlas.
 
 ### 2. Fill in `process.yaml`
 
+Keep the template's `publication: {status: public, license: CC-BY-4.0}`: a new entry is public
+([Publishing a process](#publishing-a-process)), so write its `README.md` and `DESIGN.md` for the
+public.
+
 Be honest about two fields:
 
 - **`maturity`: the design maturity.** How far the design is taken. It is a claim, capped by
@@ -72,6 +76,19 @@ the slugs other processes already use:
 Start one with `cheme init`, then add P&IDs, the process YAML, the layout and the LCA. The
 catalog derives its sheets, gates, design basis and LCA results.
 
+#### A batch process
+
+A batch or semi-batch process folder describes one dedicated train (campaigns on a
+multipurpose plant are out of scope; [ADR 0035](docs/adr/0035-batch-processes-on-a-dedicated-train.md)).
+A Tier 2 batch entry states its batch size and recipe in `process/recipe.yaml` (`cheme process
+recipe`), and its flowsheet holds the recipe's year averages, with no `cheme.recipe-basis`
+warning. A dosed exothermic step is `reactor: semibatch`, so that `cheme process
+reactor-hazards` screens its accumulation. Cleaning, rinses and purges between its own batches
+that the flowsheet does not carry are `lca/lca.yaml` consumables with `per_batch`; those it
+carries are streams at their year-average rate (per-batch amount x batches / hours, the
+arithmetic in the `source`). Changeovers between products are outside the boundary. Like every
+entry, a batch entry is written public with CC-BY-4.0 in the change that adds it.
+
 #### A balance script whose numbers go into the flowsheet
 
 When core cannot calculate the flowsheet yet, a standalone script
@@ -95,7 +112,12 @@ fails the `balance-scripts` job.
 #### An LCI dataset, its mappings, gaps and allocation
 
 - The dataset is `lca/dataset.yaml`, written by `cheme assess lca --write`, or hand-written
-  `lca/datasets/*.yaml`.
+  `lca/datasets/*.yaml` (a manifest-only process). An engineering project with a second
+  computed design (another flowsheet case) also commits that case's own dataset,
+  `lca/datasets/<dataset id>-<case>.yaml`, written by `cheme assess lca --write --case <case>` and
+  never edited; a `kind: command` gate `cheme assess lca --check --case <case>` keeps it current,
+  and the build names its activities `<title>, case <case>`
+  ([ADR 0034](docs/adr/0034-design-case-lci-datasets.md)).
 - **Overrides for this process's exchanges** go in its own `lca/mappings.yaml`, not in the shared
   file: `use` an existing technosphere entry, a `chemical` slug, a `dataset` (an Atlas producer),
   `atlas: false`, a `properties_reason`.
@@ -156,7 +178,7 @@ Contribute only what may be published under these licences.
 | | |
 | --- | --- |
 | ❌ **Never copy third-party content** | Tables, figures, drawings, P&IDs, datasheet or manual text, screenshots or text from papers, books, standards, vendor documents or websites. No values from licensed databases (ecoinvent factors or results, commercial property data). |
-| ✅ **Facts and numbers in your own form, with their source** | `source:` / `provenance:` fields, `references:` in `process.yaml`, `DESIGN.md`. Estimates are marked ASSUMED. |
+| ✅ **Facts and numbers in your own form, with their source** | `source:` / `provenance:` fields, `references:` in `process.yaml`, `DESIGN.md`. Estimates are marked ASSUMED. A value an open-source package computes from its bundled coefficients or tables (thermo's DIPPR_PERRY_8E, the CRC tables of `chemicals`) is such a fact, even where the coefficients go back to DIPPR 801: name the package, its version, the method and the underlying work, do not call it open data, and copy no table or coefficient set ([ADR 0037](docs/adr/0037-package-property-values-are-single-facts.md)). |
 | ✅ **Draw and write everything yourself** | Drawings are generated from the library's own files. |
 | ⚠️ **Openly licensed material** | Only with its licence and attribution in a `NOTICE.md` next to it, and only if that licence is compatible with the licence of the place it goes (see above). |
 
@@ -174,12 +196,22 @@ The Atlas has two builds:
 
 What the public build contains:
 
-- **Only public processes.** Only processes with `publication.status: public` in `process.yaml`
-  are in it; `internal` (the default) and `candidate` are left out entirely. Every process of
-  the library is public today; a new one stays out until `public` is set, which is the
-  maintainers' decision, made in its own change.
+- **Every entry is public, and a new one is written public.** Write
+  `publication: {status: public, license: CC-BY-4.0}` in a new `process.yaml` (the template has
+  it); the pull request that adds the entry publishes it, with no separate maintainer change
+  ([ADR 0036](docs/adr/0036-public-is-the-default-publication-status.md)).
+- **Only public processes, and the build fails closed.** Only processes with
+  `publication.status: public` and a `publication.license` in `process.yaml` are in the public
+  build; `internal`, `candidate`, a missing status and a public status without a licence are left
+  out entirely, so a forgotten field never publishes
+  ([ADR 0010](docs/adr/0010-public-and-preview-builds-fail-closed.md)). Use `internal` only for an
+  entry that must not be published (data whose licence does not allow it, an unfinished private
+  study), and state its own reason in its `process.yaml`, in a comment beside the status (the
+  template's generic comment is not a reason).
 - **A stated licence.** `publication.license` names the licence it is published under (an SPDX
-  id, e.g. `CC-BY-4.0`). There is no default: state it when you set `public`.
+  id). For data and designs it is `CC-BY-4.0`, the library's licence (`LICENSE-DATA`), still
+  written explicitly and has no default: the schema requires it on a public entry, the public
+  build leaves a public entry without one out, and the library tests fail on it.
 - **The repository** is shown only when its `access` is `public`.
 - **LCA results only when publishable.** An LCA's footprint values are shown only when core's
   committed run manifest (`lca/manifest.json`) says the result is publishable under its sources'
@@ -200,7 +232,9 @@ What the public build contains:
   example `DESIGN.md` or `docs/private/**`).
 
 > **Important:** everything else in the folder, including `README.md` and `DESIGN.md`, is
-> published as text: write it for the public, or exclude it.
+> published as text from the entry's first pull request: write it for the public, or exclude it.
+> The rules on [sources and licences](#sources-licences-and-what-may-not-be-copied) apply in
+> full.
 
 ```yaml
 publication: {status: public, license: CC-BY-4.0, exclude: ["docs/private/**"]}
@@ -290,6 +324,7 @@ The `issue-labels` workflow turns the form fields into labels:
   [tracker #306](https://github.com/ChemE-as-Code/process-library/issues/306) for issue links,
   reference records, labels and GitHub Project setup.
 - Workflow status, entry tier, calculation maturity, design maturity, review status and
-  publication approval are separate.
+  publication status are separate; a new entry is public by default
+  ([ADR 0036](docs/adr/0036-public-is-the-default-publication-status.md)).
 - The existing engineering forms and gate-label workflow remain in use for engineering action
   items.

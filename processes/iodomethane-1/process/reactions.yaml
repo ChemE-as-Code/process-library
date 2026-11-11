@@ -1,0 +1,54 @@
+# Reactions of iodomethane-1. Schema cheme/reactions/v1 (`cheme schema process-reactions`).
+#
+# The route is the batch reflux process of CN 114195616 B (DESIGN.md D-001): red phosphorus in
+# methanol, iodine carried into the kettle by the refluxing condensate through an iodine tank;
+# the patent names phosphorus triiodide as the intermediate, which iodinates the methanol.
+# - MEI: 6 CH3OH + 2 P + 3 I2 -> 6 CH3I + 2 H3PO3, the overall reaction of the two steps
+#   2 P + 3 I2 -> 2 PI3 and PI3 + 3 CH3OH -> 3 CH3I + H3PO3 (lumped: core has one rate law per
+#   reaction and no intermediate is measured). The by-product is phosphorous acid, not the
+#   phosphoric acid the patent writes (10 CH3OH + 5 I2 + 2 P -> 10 CH3I + 2 H3PO4 + 2 H2O):
+#   D-004 gives why. Both balance; the choice changes the phosphorus used per iodine (2/3 against
+#   2/5), the heat and the residue, not the iodomethane made per iodine.
+# - THIO: in the wash W101 (a conversion step), the iodine the crude carries is reduced by the
+#   sodium thiosulfate solution: I2 + 2 Na2S2O3 -> 2 NaI + Na2S4O6 (D-008).
+# No open kinetics or calorimetry of the reaction was found (searched 2026-11-06): the rate law
+# is ASSUMED. The heat of MEI is derived from the standard formation enthalpies of the CRC
+# Handbook as packaged in the chemicals 1.5.2 package (CRC_standard_data; SRC-4): methanol (l)
+# -239.2, iodomethane (l) -13.6, phosphorous acid (crystal) -964.4, iodine (crystal) 0, and red
+# phosphorus -17.6 kJ/mol against white phosphorus's 0 (Wikipedia, Allotropes of phosphorus,
+# SRC-5; the packaged table has only the white form), at 298 K and used at 316 K (D-005).
+# Side reactions not modelled (D-005): dimethyl ether from methanol over the acid, the
+# esterification of phosphorous acid by methanol, hydrogen iodide (the hydrolysis of PI3 by the
+# feeds' water gives HI, which methanol takes back to iodomethane and water), and the oxidation
+# of phosphorous acid by iodine that the patent's equation implies.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: MEI
+    title: Methanol, red phosphorus and iodine to iodomethane and phosphorous acid (via PI3)
+    equation: 6 CH4O + 2 P + 3 I2 -> 6 CH3I + 2 H3PO3
+    stoichiometry: {MEOH: -6, P: -2, I2: -3, MEI: 6, H3PO3: 2}
+    phase: liquid
+    heat_of_reaction: {value: -540000, provenance: assumed, source: "derived from the CRC standard formation enthalpies packaged in chemicals 1.5.2 (6 x -13.6 + 2 x -964.4 - 6 x -239.2 = -575.2 kJ) and red phosphorus at -17.6 kJ/mol (Wikipedia, Allotropes of phosphorus): -540.0 kJ per 3 mol iodine (-180 kJ per mol I2), phosphorous acid as the crystal and iodine as the solid; with liquid phosphorous acid (fusion 12.8 kJ/mol, chemicals 1.5.2) -514.4 kJ; the heats of solution of iodine and of phosphorous acid in methanol are unknown and not counted (D-005, L-6)"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # first order in dissolved iodine and of order 2/3 in the red phosphorus's
+      # pseudo-concentration (its surface shrinking with its mass, as methylmagnesium-bromide-1
+      # takes magnesium); zero order in methanol (the solvent, in excess):
+      # k = 5.1e-4 (m3/kmol)^(2/3)/s at 316.15 K, Ea 60 kJ/mol: A = 5.1e-4 x exp(60000 / (8.314 x 316.15))
+      k: {A: 4.1801e6, Ea: 60000}
+      orders: {I2: 1, P: 0.6667}
+      temperature_range: [298.15, 348.15]
+      provenance: assumed
+      source: "ASSUMED effective rate (D-005): no open kinetics found (2026-11-06); k sized so that the iodine the dosing leaves accumulated reacts to 0.995 conversion in about 0.4 h at R101's 313.15 K (k 4.1e-4 there), a fast reaction once PI3 forms (the patent's 6-8 h of total reflux are taken as returning the iodine its reflux loop holds up, D-003); to be replaced by reaction calorimetry"
+    sources: ["CN 114195616 B, description and Examples 1-3: methanol, red phosphorus and iodine at reflux, PI3 as the intermediate, the reaction exothermic", "HSDB via PubChem CID 6328, Methods of Manufacturing: prepared from methyl alcohol, iodine and red phosphorus"]
+  - id: THIO
+    title: Reduction of the crude's iodine by sodium thiosulfate in the wash
+    equation: I2 + 2 Na2O3S2 -> 2 INa + Na2O6S4
+    stoichiometry: {I2: -1, NA2S2O3: -2, NAI: 2, NA2S4O6: 1}
+    phase: liquid
+    conversion: {key: I2, value: 1.0, provenance: assumed, source: "ASSUMED (D-008): the thiosulfate is in excess and the patent washes until the crude is decolourised (CN 114195616 B, Examples 1-3)"}
+    heat_of_reaction: {value: -30000, provenance: assumed, source: "ASSUMED order (D-008): no open formation enthalpies of the aqueous thiosulfate and tetrathionate ions were read; about -30 kJ per mol iodine; the batch's iodine to the wash is small, so its heat is bounded in scripts/balance.py"}
+    sources: ["CN 114195616 B, Examples 1-3: the crude decolourised with sodium thiosulfate solution, twice"]

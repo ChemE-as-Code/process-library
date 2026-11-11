@@ -1,0 +1,144 @@
+# Goal and scope of the iodomethane-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme assess
+# lca --write` (lca/inventory.csv, gaps.csv, dataset.yaml, manifest.json, results); never edit
+# those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-014): every exchange of the batch
+# plant with its amount per kg of iodomethane, from the flowsheet's year averages of the recipe
+# (D-003). Per batch: multiply by the recipe's batch size. The backgrounds are left unmapped
+# (`missing:` with the activity each should connect to), except where lca/mappings.yaml links a
+# library producer or a shared entry: a gap, never zero, and no values from licensed databases.
+# Red phosphorus and sodium thiosulfate have no library producer: their gaps name the proxy they
+# should connect to (D-014). The adsorber's outlet to air is not estimated (emission_exclusions).
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of iodomethane made by dosing iodine into a
+  slurry of red phosphorus in methanol under reflux, distilling the crude off the phosphorous
+  acid residue, washing it with sodium thiosulfate solution and water, drying it over calcium
+  chloride and a 4A molecular sieve and distilling it, at the concept stage: which raw
+  materials, utilities and wastes the batch plant exchanges per kg of iodomethane, as the
+  foreground for a later cradle-to-gate study. No impact results: most backgrounds are not
+  mapped yet (D-014).
+functional_unit: {product: MEI, amount: 1, unit: kg, source: "1 kg of distilled iodomethane (99.86 wt%, predicted by core's batch rectification on an ideal liquid, above CN 114195616 B's 99.5-99.7 %, D-010, D-016) at the plant gate to storage, stream S25 (D-002, D-014)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
+# being mapped free (the schema's gate-to-gate maps every feed free), as acetyl-chloride-1 does.
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Batch plant: red phosphorus slurried in methanol, iodine dosed over 10 h at 313 K under a reflux condenser, post-reaction to 0.995 conversion of the iodine, the crude distilled off the phosphorous acid residue in the same vessel into sodium thiosulfate solution, washed twice with thiosulfate and twice with water, dried over calcium chloride and a 4A sieve, distilled in a still with a short column; one product on a dedicated train"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+system_model: cutoff
+flows:
+  # raw materials
+  - key: feed:MEOH
+    missing: "linked to processes/methanol-1 (lca/mappings.yaml): Grade AA methanol"
+    source: "flowsheet stream S1 (D-004)"
+  - key: feed:IOD
+    missing: "linked to processes/iodine-1 (lca/mappings.yaml): iodine flakes from natural brine"
+    source: "flowsheet stream S5 (D-004)"
+  - key: feed:REDP
+    missing: "not mapped yet (D-014); no library process makes red phosphorus. Connect to: red phosphorus made by heating white phosphorus to about 300 C without air (Wikipedia, Allotropes of phosphorus), 1 kg of white phosphorus per kg plus the conversion's heat; white phosphorus from phosphate rock in an electric furnace has no library producer either (recorded proxy, not linked)"
+    source: "flowsheet stream S2 (D-004)"
+  - key: feed:THIO
+    missing: "not mapped yet (D-014); no library process makes sodium thiosulfate. Connect to: sodium thiosulfate (5 wt% in process water: 0.05 kg Na2S2O3 and 0.95 kg water per kg), the thiosulfate by boiling sodium sulfite solution with sulfur (recorded proxy, not linked)"
+    source: "flowsheet stream S13 (D-008)"
+  - key: feed:PW
+    missing: "not mapped yet (D-014); connect to: process water from the site water treatment, for the washes"
+    source: "flowsheet stream S17 (D-008)"
+  # utilities
+  - key: feed:POWER
+    missing: "not mapped yet (D-014); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy streams P1 (R-101's agitator and the iodine feeder), P2 (V-102's agitator and pumps) and P3 (C-104's agitator, pumps and the vent fan), D-011"
+  - key: feed:LPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 350 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
+    source: "flowsheet energy streams Q1 (the charge warmed), Q3 and Q4 (ST101's net boil-up from core's still model and its heat-up), Q8 (ST102's reboiler: the boil-up at the reflux and the charge's heat-up, from core's batch rectification), all through the hot-water loops, D-011, D-016"
+  - key: product:CW
+    missing: "not mapped yet (D-014); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
+    source: "flowsheet energy streams Q5 (E-101), Q6 (the residue cooled), Q10 (K-104's condenser, from core's batch rectification), Q14 (the condensate cooled to 303 K) and Q12 (the final residue cooled), D-011, D-016"
+  - key: product:CHW
+    missing: "not mapped yet (D-014); connect to: refrigeration at 278 K (chilled water) from an electric vapour-compression unit (e.g. processes/utility-chiller), per kWh of heat removed"
+    source: "flowsheet energy stream Q2 (R-101's jacket: the heat of reaction, from core's semi-batch model), D-011"
+  - key: product:BRINE
+    missing: "not mapped yet (D-014); connect to: refrigeration at 258 K (brine) from an electric vapour-compression unit (e.g. processes/utility-chiller), per kWh of heat removed"
+    source: "flowsheet energy streams Q7 (the vent condenser E-102) and Q11 (the product subcooler E-105), D-011, D-012"
+  # wastes
+  - key: product:RES
+    treatment: {kind: waste, route: "the phosphorous acid residue (with methanol, unreacted red phosphorus and a little iodomethane and iodine) to a hazardous-waste treatment: the methanol and iodine recovered and the phosphorus oxidised, or incineration with flue-gas scrubbing (P2O5 and iodine captured); its recovery is not described by the source (D-013)"}
+    missing: "not mapped yet (D-014); connect to: treatment of a phosphorus-containing acidic organic residue (incineration of hazardous waste with flue-gas scrubbing), per kg; red phosphorus recovery and phosphorous acid use are open variants"
+    source: "flowsheet stream S11 (D-007, D-013)"
+  - key: product:RES2
+    treatment: {kind: waste, route: "hazardous-waste incineration of the final still residue (iodomethane, methanol, water) with flue-gas scrubbing (iodine captured); a recycle to the next batch's wash is a variant (D-010)"}
+    missing: "not mapped yet (D-014); connect to: incineration of a halogenated organic liquid waste, per kg"
+    source: "flowsheet stream S26 (D-010)"
+  - key: product:WW
+    treatment: {kind: waste, route: "the thiosulfate and water wash liquors (water, methanol, sodium salts, dissolved iodomethane at its water solubility) to the site's wastewater treatment after a stripping of the iodomethane, not modelled (D-008, D-013)"}
+    missing: "not mapped yet (D-014); connect to: treatment of a process effluent with methanol and halogenated organics in an industrial wastewater treatment plant (e.g. processes/utility-wwtp), per kg"
+    source: "flowsheet streams S16 and S19 (D-008)"
+  - key: product:SPENT
+    treatment: {kind: waste, route: "the water the dryer takes up leaves with the spent calcium chloride and sieve (consumables below) to hazardous-waste disposal (D-009)"}
+    missing: "not mapped yet (D-014); part of the disposal of the spent desiccants (consumables calcium-chloride and molecular-sieve)"
+    source: "flowsheet stream S21 (D-009)"
+  - key: product:VENT
+    treatment: {kind: waste, route: "the vent gas (nitrogen with the iodomethane that passes E-102) through the activated-carbon adsorber X-106 (consumable activated-carbon); the adsorber's outlet to air is an emission exclusion (D-012)"}
+    missing: "not mapped yet (D-014); the iodomethane is taken up by the activated carbon (consumable activated-carbon and its disposal)"
+    source: "flowsheet stream S12 (D-012)"
+# What the batch plant uses per batch and the flowsheet does not carry (library ADR 0035, core
+# ADR 0053), converted with the recipe's batches per year (process/recipe.yaml). The train is
+# kept dry between its own batches (no rinse: the same product batch after batch).
+consumables:
+  - id: nitrogen
+    title: Nitrogen for inerting R-101 and the phosphorus tank and blanketing the work-up
+    unit: kg
+    per_batch: 12.5
+    source: "10 Nm3 per batch x 1.2506 kg/Nm3, ASSUMED (D-012): R-101 and the phosphorus tank purged before the charge (5 Nm3; CN 114195616 B evacuates and refills the phosphorus tank three times), V-102, A-103, C-104 and the tanks blanketed (5 Nm3)"
+    missing: "linked to processes/asu-1 (lca/mappings.yaml): gaseous nitrogen to the battery limit"
+  - id: calcium-chloride
+    title: Calcium chloride of the dryer A-103
+    unit: kg
+    per_batch: 3.5
+    source: "the 1.06 kg of water a batch the calcium chloride takes up (the washed crude's 0.1 wt% down to 300 ppm, scripts/balance.py and D-009) at 0.3 kg of water per kg before the bed is replaced, ASSUMED; the patent's bed is 40 kg for 360 kg of iodine (CN 114195616 B, Examples 1-3)"
+    missing: "not mapped yet (D-014); no library process makes calcium chloride. Connect to: calcium chloride, anhydrous (e.g. from the Solvay process's calcium chloride liquor or from hydrochloric acid and limestone), per kg"
+    disposal:
+      kind: waste
+      route: "the spent calcium chloride (with its water and some iodomethane) to hazardous-waste disposal (D-009)"
+      source: "D-009"
+      missing: "not mapped yet (D-014); connect to: disposal of a spent inorganic desiccant contaminated with halogenated organics, per kg"
+  - id: molecular-sieve
+    title: 4A molecular sieve of the dryer A-103
+    unit: kg
+    per_batch: 3.0
+    source: "the 0.30 kg of water a batch the sieve takes up (from 300 to 100 ppm, D-009) at 0.1 kg of water per kg before it is replaced, not regenerated (so no regeneration heat), ASSUMED"
+    missing: "not mapped yet (D-014); connect to: zeolite 4A (sodium aluminosilicate) as an adsorbent, per kg"
+    disposal:
+      kind: waste
+      route: "the spent sieve to hazardous-waste disposal (D-009)"
+      source: "D-009"
+      missing: "not mapped yet (D-014); connect to: disposal of a spent zeolite adsorbent contaminated with halogenated organics, per kg"
+  - id: activated-carbon
+    title: Activated carbon of the vent adsorber X-106
+    unit: kg
+    per_batch: 27.5
+    source: "the 5.5 kg of iodomethane a batch that passes E-102 (cheme process recipe: the vent of R101) at 0.2 kg per kg of carbon before it is replaced, ASSUMED (D-012)"
+    missing: "not mapped yet (D-014); connect to: activated carbon, granular, per kg"
+    disposal:
+      kind: waste
+      route: "the spent carbon with its iodomethane to incineration with flue-gas scrubbing, or to off-site regeneration with iodomethane recovery (a variant) (D-012)"
+      source: "D-012"
+      missing: "not mapped yet (D-014); connect to: incineration of spent activated carbon loaded with halogenated organics, per kg"
+operation:
+  hours_per_year: 7920
+  life_years: 20
+  source: "design basis operating_hours_per_year 7920 (ASSUMED, the recipe's hours); 20 a service life ASSUMED"
+emission_exclusions:
+  - {id: adsorber-outlet, method: storage-tank, equipment: [R-101, E-101, E-102, X-106, V-102, A-103, C-104, K-104, T-107], reason: "No P&ID yet: every vent of the train goes through E-102 and the activated-carbon adsorber X-106, whose outlet (the nitrogen with the iodomethane the carbon lets pass) goes to air; the balance gives all the iodomethane past E-102 (5.5 kg a batch, D-012) to the carbon; its breakthrough is not estimated (open for basic engineering)."}
+  - {id: wash-liquor-stripping, method: equipment-leaks, equipment: [V-102], reason: "The iodomethane dissolved in the wash liquors (about 0.88 % of the iodine fed, D-013) is not stripped in the balance; its fate in the wastewater treatment (volatilisation to air) is not estimated (D-008)."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals
+  modelling: {principle: attributional}
+  geography: {description: "Generic fine-chemicals site with methanol and iodine supply, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #163, unreviewed"

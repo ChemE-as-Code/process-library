@@ -1,0 +1,105 @@
+# Errata of the frozen hand expectations results/expected.yaml (process-library#330) and
+# results/expected-lca.yaml (#331). ADR 0030: a frozen file is not edited after the
+# regeneration has run; a correction is a new file with a reason. Two kinds of entry:
+# - a statement erratum (X-1) corrects a statement of the frozen record and changes no frozen
+#   value or tolerance;
+# - a basis erratum (kind: basis, X-2) records a changed design input decided after the
+#   freezing: it names the new basis, the hand calculation and, per frozen file, the items it
+#   supersedes. The frozen tolerances stand; tests/test_co2_electrolysis_bpm_skids.py compares
+#   the regenerated results with the superseding values and asserts that the frozen files are
+#   unchanged since their freezing commit; tests/test_skid_errata.py recomputes the superseding
+#   values from the frozen closed forms.
+# scripts/regen.py (step 17) prints these errata in the resize report, and its hand column
+# uses the superseding values.
+schema: process-library/skid-expectations-errata/1
+issue: 330
+frozen_file: results/expected.yaml
+errata:
+  - id: X-1
+    item: measurements.co_ion_split
+    statement: "process/cells.yaml membrane.co_ion_crossover HCO3- 0.670 (the P200 titration mean 0.6698 rounded): the split the duties run with"
+    correction: >-
+      The duties do not run with the rounded 0.670. For a measured cell, core's duty takes the
+      titration's carbon share, 0.6697790 at P200 (the regenerated records'
+      skids.B.carbon_share_duty and measured_state.co_ion_carbon_share); only `cheme process
+      cell` reports the membrane block's 0.670 (DESIGN.md D-010). The same statement is in
+      tests/skid_formulas.py (stated_co_ion_carbon_fraction, hand_values), which compute the
+      hand values at 0.670.
+    effect: >-
+      The frozen E2 and E3 hand values carry a one-signed bias against the regenerated ones,
+      inside every frozen tolerance: Skid A's exact volume -1.3e-4 relative (1165.15 L against
+      1165.30 L), the Skid B bleed -3.3e-4 (1.86608 L/h against 1.86670 L/h, a third of E3's rel
+      1e-3), the dose -2.2e-4 (2.09589 mol/h against 2.09635 mol/h). The values and tolerances
+      stand.
+    found: "review of #330, 2026-11-05 (stage 2 noted the share; the frozen wording was not corrected)"
+  # A changed basis (kind: basis): the frozen value stands as the record of what was frozen,
+  # and `supersedes` lists, per frozen file, each item whose hand value the new basis moves,
+  # with the frozen value and the new hand value. The tests compare the regenerated results with
+  # the new value under the frozen tolerance (tests/test_co2_electrolysis_bpm_skids.py reads
+  # this file), and tests/test_skid_errata.py recomputes every new value from the frozen closed
+  # forms (tests/skid_formulas.py, tests/lca_formulas.py) at `basis`. Every item not listed
+  # keeps its frozen value.
+  - id: X-2
+    kind: basis
+    item: design.threshold_ph
+    frozen_files: [results/expected.yaml, results/expected-lca.yaml]
+    statement: "design threshold_ph: 12 (the duties run to the stability criterion pH 12 and T-101 is sized to reach it at H)"
+    correction: >-
+      Owner decision of 2026-11-06 (DESIGN.md D-058): Skid A's trip I-101 acts at pH 12.2, 0.2
+      above the criterion pH 12 of D-003, and T-101 is sized to reach the trip value at H, so
+      that the trip has a margin for the probe's error and the campaign still lasts H at the
+      measured WDE. The criterion pH 12 stays the reported stability criterion
+      (process/design-basis.yaml threshold.ph); the sizing and trip value is the new key
+      threshold.trip.ph 12.2, which scripts/regen.py step 3 writes into every duty (D-B and the
+      comparison duties too: I-201 already tripped at 12.2).
+    basis: {threshold_ph: 12.2}
+    hand_calculation: >-
+      At h = 10^-12.2 (pK1 6.37, pK2 10.32): g = (K1 h + 2 K1 K2) / (h^2 + K1 h + K1 K2) =
+      1.986989 eq/mol (1.979535 at pH 12); the co-ion charge per mol (1 - Cx) + Cx g = 0.330 +
+      0.670 x 1.986989 = 1.661283 (1.656288); the usable hydroxide c0 - Kw / h + h = 1 -
+      10^-1.8 = 0.984151 mol/L (0.990000). V scales with charge per mol over usable hydroxide:
+      (1.661283 / 1.656288) x (0.990000 / 0.984151) = 1.008976. E2: V(1000 h) = 1165.304 x
+      1.008976 = 1175.764 L, written 1176 L (4 significant figures, rounded up); held 1176 x 1.25
+      = 1.470 m3; D = (4 x 1.470 / (pi x 1.5))^(1/3) = 1.07658, 1.077 m to the mm; H = 1.5 D =
+      1.615 m (0.40 m of envelope height was left at 1.611 m, D-015). V(10000 h) = 11757.64 L,
+      written 11760 L, 14.70 m3, D 2.320 m, H 3.480 m (still above the 2.20 m envelope).
+      The final state scales with 1 / V written: carbon 0.4002348 x 1166 / 1176 = 0.3968314
+      mol/L, cation 1 - 0.1971306 x 1166 / 1176 = 0.8045457 mol/L. The longest campaign in the
+      envelope: 2973.483 L / 1.175764 L/h = 2528.98 h (2551.68 h). E4: KOH per kg delivered
+      x 1176 / 1166: 0.6549699 kg/kg; per kg formed, exact, x 1.008976: 0.5893548 kg/kg. E10
+      (expected-lca.yaml): KOH fill 0.6549699 kg/kg, K in the fill 11.574733 x 1176 / 1166 =
+      11.674002 mol/kg, K in the spent inventory 11.674002 - 2.283262 (the condensate,
+      unchanged) = 9.390740 mol/kg.
+    effect: >-
+      Skid A's reservoir grows 0.9 % (about 10 L of 1 M KOH) and its tank by 3 mm in diameter
+      and 4 mm in height; the frozen E2, E4 and E10 items below move by less than their
+      frozen tolerance except the E10 Skid A routes (rel 1e-6), which is why the tests compare
+      with the superseding values. E1, E3, E5 to E9 and the other E10 items do not depend on
+      the threshold. inputs.charge_per_carbon_ph12 and inputs.usable_hydroxide_mol_l stay the
+      values at the criterion pH 12 (they are inputs, never compared with a regenerated value).
+    supersedes:
+      results/expected.yaml:
+        - {key: E2.1000.volume_exact_l, frozen: 1165.304, value: 1175.764, unit: L}
+        - {key: E2.1000.volume_written_l, frozen: 1166, value: 1176, unit: L}
+        - {key: E2.10000.volume_exact_l, frozen: 11653.04, value: 11757.64, unit: L}
+        - {key: E2.10000.volume_written_l, frozen: 11660, value: 11760, unit: L}
+        - {key: E2.1000.tank.held_m3, frozen: 1.4575, value: 1.470, unit: m3}
+        - {key: E2.1000.tank.diameter, frozen: 1.074, value: 1.077, unit: m}
+        - {key: E2.1000.tank.height, frozen: 1.611, value: 1.615, unit: m}
+        - {key: E2.10000.tank.held_m3, frozen: 14.575, value: 14.70, unit: m3}
+        - {key: E2.10000.tank.diameter, frozen: 2.313, value: 2.320, unit: m}
+        - {key: E2.10000.tank.height, frozen: 3.470, value: 3.480, unit: m}
+        - {key: E2.max_duration_in_envelope_h, frozen: 2551.68, value: 2528.98, unit: h}
+        - {key: E2.1000.final.carbon, frozen: 0.4002348, value: 0.3968314, unit: mol/L}
+        - {key: E2.1000.final.cation, frozen: 0.8028694, value: 0.8045457, unit: mol/L}
+        - {key: E2.10000.final.carbon, frozen: 0.4002348, value: 0.3968314, unit: mol/L}
+        - {key: E2.10000.final.cation, frozen: 0.8028694, value: 0.8045457, unit: mol/L}
+        - {key: E4.skid_a.1000, frozen: 0.6494004, value: 0.6549699, unit: kg/kg}
+        - {key: E4.skid_a.10000, frozen: 0.6494004, value: 0.6549699, unit: kg/kg}
+        - {key: E4.skid_a_per_kg_formed_exact, frozen: 0.5841115, value: 0.5893548, unit: kg/kg}
+      results/expected-lca.yaml:
+        - {key: routes.1000.A.koh_fill_kg_per_kg, frozen: 0.6494004, value: 0.6549699, unit: kg KOH/kg}
+        - {key: routes.1000.A.fill_k, frozen: 11.57473, value: 11.674002, unit: mol K/kg}
+        - {key: routes.1000.A.spent_k, frozen: 9.291471, value: 9.390740, unit: mol K/kg}
+        - {key: routes.10000.A.koh_fill_kg_per_kg, frozen: 0.6494004, value: 0.6549699, unit: kg KOH/kg}
+    found: "owner decision 1 of 2026-11-06 (process-library#330's open owner decisions; DESIGN.md D-018, D-023)"

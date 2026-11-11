@@ -1,0 +1,44 @@
+# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
+# dataset is lca/datasets/*.yaml, Tier 1 form, so maturity stays at concept
+# (core's cheme.lci-tier-maturity). See README.md.
+schema: cheme-as-code/process/v1
+id: fcc-1
+title: Fluid catalytic cracking of vacuum gas oil (full-combustion regenerator)
+summary: >-
+  Sourced conceptual inventory per tonne of fresh feed: yields from a worked example of published
+  FCC correlations, utilities and regenerator emissions as midpoints of EU REF BREF ranges, coke-burn
+  CO2 from the coke's carbon, CH4 and N2O from IPCC defaults. Five co-products, unallocated. No
+  flowsheet; not reviewed.
+families: [refining]
+keywords: [fluid catalytic cracking, FCC, vacuum gas oil, cracked gasoline, LPG, light cycle oil, regenerator, coke burn, zeolite]
+facets: {feedstock_basis: [fossil], product_classes: [fuels], unit_operations: [reaction, distillation, combustion], region: generic}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: vacuum-gas-oil, role: feedstock, inventory_key: "feed:vacuum-gas-oil"}
+    - {chemical: air, role: feedstock, note: "regenerator air, free; the oxygen burnt with the coke is feed:O2"}
+  outputs:
+    - {chemical: fcc-gasoline, role: main-product, inventory_key: "product:gasoline"}
+    - {chemical: liquefied-petroleum-gas, role: co-product, inventory_key: "product:lpg", note: "olefinic C3/C4 cut; about 23 wt% propylene, not split off here"}
+    - {chemical: refinery-fuel-gas, role: co-product, inventory_key: "product:dry-gas", note: "C2 and lighter, with the H2S"}
+    - {chemical: light-cycle-oil, role: co-product, inventory_key: "product:light-cycle-oil"}
+    - {chemical: heavy-cycle-oil, role: co-product, inventory_key: "product:heavy-cycle-oil", note: "main fractionator bottoms (heavy cycle oil and slurry)"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "coke burn in the regenerator, the unit's direct CO2"}
+    - {chemical: carbon-monoxide, role: emission, inventory_key: "emission:CO"}
+    - {chemical: water, role: emission, inventory_key: "emission:H2O", note: "water vapour of the coke burn"}
+    - {chemical: sulfur-dioxide, role: emission, inventory_key: "emission:SO2", note: "SOx as SO2"}
+    - {chemical: wastewater, role: waste, inventory_key: "output:wastewater", note: "sour water"}
+  # emission:NOx, N2O, CH4 and PM are not listed, as in utility-steam-ng-boiler: see the dataset.
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity"}
+    - {chemical: steam, role: utility, inventory_key: "feed:steam", note: "gross, pressure not stated by the source; the steam the unit raises is not credited"}
+    - {chemical: cooling-water, role: utility, inventory_key: "output:cooling-water"}
+basis: {capacity: "per tonne of fresh feed (the dataset's basis); no plant size"}
+publication: {status: public, license: CC-BY-4.0}
+references:
+  - {title: "Barthe, P., Chaugny, M., Roudier, S., Delgado Sancho, L. (2015) Best Available Techniques (BAT) Reference Document for the Refining of Mineral Oil and Gas. JRC Science and Policy Report EUR 27140 EN, sections 2.5 and 3.5, Tables 3.33 to 3.37 and 3.54", doi: 10.2791/010758}
+  - {title: "Jechura, J. (2019) Catalytic Cracking, CBEN 409 Petroleum Refining Processes course notes, Colorado School of Mines, slides 15, 16 and 27", url: "https://people.mines.edu/jjechura/wp-content/uploads/sites/120/2019/02/CBEN409_07_Catalytic_Cracking.pdf"}
+  - {title: "Abella, J.P., Motazedi, K., Bergerson, J.A. (2015) Petroleum Refinery Life Cycle Inventory Model (PRELIM) v1.0, user guide and technical documentation, University of Calgary, Table 8 (p. 53)", url: "https://www.ucalgary.ca/sites/default/files/teams/477/prelim-v1-0-documentation.pdf"}
+  - {title: "IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Vol. 2 Energy, ch. 1 (Tables 1.1, 1.2) and ch. 2 (Table 2.2)", url: "https://www.ipcc-nggip.iges.or.jp/public/2006gl/vol2.html"}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/fcc-1, access: public}

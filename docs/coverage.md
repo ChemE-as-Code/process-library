@@ -112,53 +112,53 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 1 | `ammonia` **next** | Ammonia | ammonia | 100-1000 (iea-ammonia-2021) | high | smr, smr-ccs, coal-gasification, electrolytic | nitric-acid, urea, ammonium-nitrate, ammonium-sulfate, npk-fertilizers, acrylonitrile, caprolactam | 2 | ammonia-1 (T2) |
 | 2 | `hydrogen` **next** | Hydrogen | hydrogen | 10-100 (iea-ghr-2023) | high | smr, smr-ccs, atr-ccs, coal-gasification, pem, alkaline, soec, by-product | ammonia, methanol, hydrotreating, hydrocracking, e-fuels, iron-steel, toluene-hda | 2 | hydrogen-1 (T2) |
 | 3 | `air-separation` | Oxygen, nitrogen and argon by air separation | air-separation | n/a, to be sourced | medium | cryogenic, psa-vsa, membrane | ammonia, ethylene-oxide, iron-steel, e-fuels, methanol | 2 | asu-1 (T2) |
-| 4 | `ethylene` | Ethylene and propylene by steam cracking | olefins | 100-1000 (iea-petchem-2018) | high | naphtha, ethane, lpg, mto, bio-ethanol | ethylene-oxide, polyethylene, vcm, styrene, propylene-oxide, polypropylene, butadiene, btx | 1 | ethylene-1 (T2) |
+| 4 | `ethylene` | Ethylene and propylene by steam cracking | olefins | 100-1000 (iea-petchem-2018) | high | naphtha, ethane, lpg, mto, bio-ethanol | ethylene-oxide, polyethylene, vcm, styrene, propylene-oxide, polypropylene, butadiene, btx | 1 | ethylene-1 (T2), bio-ethylene-1 (T1) |
 | 5 | `methanol` **next** | Methanol | methanol | n/a, to be sourced | high | natural-gas, coal, e-methanol, biomass | formaldehyde, acetic-acid, mto-olefins, e-fuels | 2 | methanol-1 (T2) |
 | 6 | `nitric-acid` **next** | Nitric acid | nitric-acid | n/a, to be sourced | high | dual-pressure, mono-pressure, n2o-abatement | ammonium-nitrate, npk-fertilizers, adipic-acid | 2 | nitric-acid-1 (T2) |
 | 7 | `urea` **next** | Urea | fertilizers | n/a, to be sourced | medium | co2-stripping, nh3-stripping | - | 1 | urea-1 (T2) |
 | 8 | `chlor-alkali` **next** | Chlorine, caustic soda and hydrogen (chlor-alkali) | chlor-alkali | n/a, to be sourced | medium | membrane, diaphragm, mercury | vcm, propylene-oxide, mdi-tdi, hydrogen | 2 | chlor-alkali-1 (T2) |
 | 9 | `sulfuric-acid` | Sulfuric acid | sulfuric-acid | n/a, to be sourced | low | sulfur-burning, metallurgical | phosphoric-acid, ammonium-sulfate, titanium-dioxide, caprolactam | 1 | sulfuric-acid-1 (T2) |
-| 10 | `cement-clinker` | Cement clinker | cement-lime | 1000-10000 (usgs-mcs-2024) | high | dry-kiln, dry-kiln-ccs | carbon-capture | 1 | - |
-| 11 | `iron-steel` | Iron and steel | iron-steel | 1000-10000 (usgs-mcs-2024) | high | bf-bof, dri-gas-eaf, dri-h2-eaf, scrap-eaf | - | 1 | - |
-| 12 | `refinery-distillation` | Crude oil distillation (atmospheric and vacuum) | refining | n/a, to be sourced | high | - | catalytic-reforming, hydrotreating, fcc, hydrocracking, ethylene | 1 | - |
+| 10 | `cement-clinker` | Cement clinker | cement-lime | 1000-10000 (usgs-mcs-2024) | high | dry-kiln, dry-kiln-ccs | carbon-capture | 1 | cement-clinker-1 (T1) |
+| 11 | `iron-steel` | Iron and steel | iron-steel | 1000-10000 (usgs-mcs-2024) | high | bf-bof, dri-gas-eaf, dri-h2-eaf, scrap-eaf | - | 1 | iron-steel-1 (T1) |
+| 12 | `refinery-distillation` | Crude oil distillation (atmospheric and vacuum) | refining | n/a, to be sourced | high | - | catalytic-reforming, hydrotreating, fcc, hydrocracking, ethylene | 1 | refinery-distillation-1 (T1) |
 | 13 | `steam-generation` **next** | Steam generation (boiler, CHP) | steam-and-heat | n/a, to be sourced | high | gas-boiler, chp, electric-boiler, heat-pump | ammonia, methanol, ethylene-oxide, styrene, bioethanol | 2 | utility-steam-ng-boiler (T1) |
 | 14 | `ethylene-oxide` | Ethylene oxide and ethylene glycols | oxygenates | n/a, to be sourced | medium | oxygen-based, air-based, omega | pet | 1 | ethylene-glycol-1 (T2) |
-| 15 | `polyethylene` | Polyethylene (HDPE, LLDPE, LDPE) | polyolefins | n/a, to be sourced | medium | hdpe-slurry, lldpe-gas-phase, ldpe-high-pressure | plastic-pyrolysis | 1 | - |
-| 16 | `polypropylene` | Polypropylene | polyolefins | n/a, to be sourced | medium | - | plastic-pyrolysis | 1 | - |
-| 17 | `propylene-pdh` | Propylene by propane dehydrogenation | olefins | n/a, to be sourced | medium | pdh, fcc, metathesis | polypropylene, propylene-oxide, acrylonitrile, cumene-phenol | 1 | - |
-| 18 | `btx` | Benzene, toluene and xylenes | aromatics | n/a, to be sourced | medium | reformate, pygas, hda | styrene, cumene-phenol, terephthalic-acid, caprolactam, mdi-tdi | 1 | - |
+| 15 | `polyethylene` | Polyethylene (HDPE, LLDPE, LDPE) | polyolefins | n/a, to be sourced | medium | hdpe-slurry, lldpe-gas-phase, ldpe-high-pressure | plastic-pyrolysis | 1 | polyethylene-1 (T1) |
+| 16 | `polypropylene` | Polypropylene | polyolefins | n/a, to be sourced | medium | - | plastic-pyrolysis | 1 | polypropylene-1 (T1) |
+| 17 | `propylene-pdh` | Propylene by propane dehydrogenation | olefins | n/a, to be sourced | medium | pdh, fcc, metathesis | polypropylene, propylene-oxide, acrylonitrile, cumene-phenol | 1 | propylene-pdh-1 (T1) |
+| 18 | `btx` | Benzene, toluene and xylenes | aromatics | n/a, to be sourced | medium | reformate, pygas, hda | styrene, cumene-phenol, terephthalic-acid, caprolactam, mdi-tdi | 1 | btx-1 (T1) |
 | 19 | `soda-ash` | Soda ash | soda-ash | 10-100 (usgs-mcs-2024) | medium | solvay, trona, hou | - | 1 | soda-ash-1 (T2) |
-| 20 | `terephthalic-acid` | Purified terephthalic acid | oxygenates | n/a, to be sourced | medium | - | pet | 1 | - |
-| 21 | `ammonium-nitrate` | Ammonium nitrate and calcium ammonium nitrate | fertilizers | n/a, to be sourced | medium | - | npk-fertilizers | 1 | - |
+| 20 | `terephthalic-acid` | Purified terephthalic acid | oxygenates | n/a, to be sourced | medium | - | pet | 1 | terephthalic-acid-1 (T1) |
+| 21 | `ammonium-nitrate` | Ammonium nitrate and calcium ammonium nitrate | fertilizers | n/a, to be sourced | medium | - | npk-fertilizers | 1 | ammonium-nitrate-1 (T1) |
 | 22 | `wastewater-treatment` **next** | Wastewater treatment (activated sludge) | wastewater-treatment | n/a, to be sourced | medium | - | - | 2 | utility-wwtp (T1) |
 | 23 | `cooling-water` **next** | Cooling water system | utilities | n/a, to be sourced | low | - | air-separation, ammonia, methanol | 2 | utility-cooling-tower (T1) |
-| 24 | `phosphoric-acid` | Phosphoric acid (wet process) | phosphoric-acid | n/a, to be sourced | low | dihydrate, hemihydrate | npk-fertilizers | 1 | - |
-| 25 | `vcm` | Vinyl chloride monomer (balanced EDC process) | chlorinated-organics | n/a, to be sourced | medium | - | pvc | 1 | - |
+| 24 | `phosphoric-acid` | Phosphoric acid (wet process) | phosphoric-acid | n/a, to be sourced | low | dihydrate, hemihydrate | npk-fertilizers | 1 | phosphoric-acid-1 (T1) |
+| 25 | `vcm` | Vinyl chloride monomer (balanced EDC process) | chlorinated-organics | n/a, to be sourced | medium | - | pvc | 1 | vcm-1 (T1) |
 | 26 | `pvc` | Polyvinyl chloride | polymers | n/a, to be sourced | medium | suspension, emulsion | - | 1 | - |
 | 27 | `styrene` | Styrene (via ethylbenzene) | styrenics | n/a, to be sourced | medium | eb-dehydrogenation, po-sm | polystyrene | 1 | styrene-1 (T1) |
-| 28 | `pet` | Polyethylene terephthalate | polymers | n/a, to be sourced | medium | - | plastic-pyrolysis | 1 | - |
-| 29 | `catalytic-reforming` | Catalytic reforming | refining | n/a, to be sourced | medium | - | btx, hydrotreating | 1 | - |
-| 30 | `hydrotreating` | Hydrotreating and hydrodesulfurisation | refining | n/a, to be sourced | medium | - | sulfur-recovery | 1 | - |
-| 31 | `fcc` | Fluid catalytic cracking | refining | n/a, to be sourced | high | - | propylene-pdh | 1 | - |
+| 28 | `pet` | Polyethylene terephthalate | polymers | n/a, to be sourced | medium | - | plastic-pyrolysis | 1 | pet-1 (T1) |
+| 29 | `catalytic-reforming` | Catalytic reforming | refining | n/a, to be sourced | medium | - | btx, hydrotreating | 1 | catalytic-reforming-1 (T1) |
+| 30 | `hydrotreating` | Hydrotreating and hydrodesulfurisation | refining | n/a, to be sourced | medium | - | sulfur-recovery | 1 | hydrotreating-1 (T1) |
+| 31 | `fcc` | Fluid catalytic cracking | refining | n/a, to be sourced | high | - | propylene-pdh | 1 | fcc-1 (T1) |
 | 32 | `bioethanol` | Bioethanol | bioethanol | n/a, to be sourced | medium | corn-dry-mill, sugarcane, lignocellulosic | bio-ethylene, carbon-capture | 1 | - |
-| 33 | `adipic-acid` | Adipic acid | oxygenates | n/a, to be sourced | high | - | - | 1 | - |
+| 33 | `adipic-acid` | Adipic acid | oxygenates | n/a, to be sourced | high | - | - | 1 | adipic-acid-1 (T1) |
 | 34 | `acetic-acid` | Acetic acid (methanol carbonylation) | oxygenates | n/a, to be sourced | low | - | - | 1 | acetic-acid-1 (T2) |
 | 35 | `formaldehyde` | Formaldehyde | oxygenates | n/a, to be sourced | low | silver, metal-oxide | mdi-tdi | 1 | formaldehyde-1 (T2) |
-| 36 | `propylene-oxide` | Propylene oxide | oxygenates | n/a, to be sourced | medium | chlorohydrin, hppo, po-sm | - | 1 | - |
-| 37 | `butadiene` | Butadiene (C4 extraction) | olefins | n/a, to be sourced | low | - | - | 0 | - |
+| 36 | `propylene-oxide` | Propylene oxide | oxygenates | n/a, to be sourced | medium | chlorohydrin, hppo, po-sm | - | 1 | propylene-oxide-1 (T0) |
+| 37 | `butadiene` | Butadiene (C4 extraction) | olefins | n/a, to be sourced | low | - | - | 0 | butadiene-1 (T1) |
 | 38 | `cumene-phenol` | Cumene, phenol and acetone | oxygenates | n/a, to be sourced | low | - | - | 0 | acetone-1 (T2) |
-| 39 | `carbon-capture` | CO2 capture and conditioning | carbon-capture | n/a, to be sourced | high | high-purity, amine-post-combustion, dac | e-fuels, methanol, urea | 1 | - |
-| 40 | `lime` | Lime | cement-lime | 100-1000 (usgs-mcs-2024) | high | - | soda-ash, iron-steel | 0 | - |
-| 41 | `aluminium` | Primary aluminium | aluminium | 10-100 (usgs-mcs-2024) | high | - | - | 0 | - |
-| 42 | `npk-fertilizers` | NPK fertilisers | fertilizers | n/a, to be sourced | medium | nitrophosphate, mixed-acid | - | 0 | - |
-| 43 | `ammonium-sulfate` | Ammonium sulfate | fertilizers | n/a, to be sourced | low | - | - | 0 | - |
+| 39 | `carbon-capture` | CO2 capture and conditioning | carbon-capture | n/a, to be sourced | high | high-purity, amine-post-combustion, dac | e-fuels, methanol, urea | 1 | carbon-capture-1 (T1) |
+| 40 | `lime` | Lime | cement-lime | 100-1000 (usgs-mcs-2024) | high | - | soda-ash, iron-steel | 0 | lime-1 (T1) |
+| 41 | `aluminium` | Primary aluminium | aluminium | 10-100 (usgs-mcs-2024) | high | - | - | 0 | aluminium-1 (T1) |
+| 42 | `npk-fertilizers` | NPK fertilisers | fertilizers | n/a, to be sourced | medium | nitrophosphate, mixed-acid | - | 0 | npk-fertilizers-1 (T0) |
+| 43 | `ammonium-sulfate` | Ammonium sulfate | fertilizers | n/a, to be sourced | low | - | - | 0 | ammonium-sulfate-1 (T0) |
 | 44 | `toluene-hda` **next** | Benzene by toluene hydrodealkylation | aromatics | n/a, to be sourced | low | - | - | 2 | hda-1 (T2) |
-| 45 | `e-fuels` | Synthetic fuels from H2 and CO2 (Fischer-Tropsch, methanol-to-fuels) | synthetic-fuels | n/a, to be sourced | high | rwgs-ft, mtj | - | 1 | - |
-| 46 | `plastic-pyrolysis` | Plastic waste pyrolysis | chemical-recycling | n/a, to be sourced | medium | - | ethylene | 1 | - |
-| 47 | `hydrocracking` | Hydrocracking | refining | n/a, to be sourced | medium | - | - | 0 | - |
-| 48 | `sulfur-recovery` | Sulfur recovery (Claus) | sulfuric-acid | 10-100 (usgs-mcs-2024) | low | - | sulfuric-acid | 0 | - |
-| 49 | `bio-ethylene` | Bio-ethylene by ethanol dehydration | bio-based-chemicals | n/a, to be sourced | medium | - | polyethylene | 0 | - |
-| 50 | `waste-incineration` | Waste incineration with energy recovery | waste-treatment | n/a, to be sourced | medium | - | steam-generation | 1 | - |
+| 45 | `e-fuels` | Synthetic fuels from H2 and CO2 (Fischer-Tropsch, methanol-to-fuels) | synthetic-fuels | n/a, to be sourced | high | rwgs-ft, mtj | - | 1 | e-fuels-1 (T1) |
+| 46 | `plastic-pyrolysis` | Plastic waste pyrolysis | chemical-recycling | n/a, to be sourced | medium | - | ethylene | 1 | plastic-pyrolysis-1 (T1) |
+| 47 | `hydrocracking` | Hydrocracking | refining | n/a, to be sourced | medium | - | - | 0 | hydrocracking-1 (T1) |
+| 48 | `sulfur-recovery` | Sulfur recovery (Claus) | sulfuric-acid | 10-100 (usgs-mcs-2024) | low | - | sulfuric-acid | 0 | sulfur-recovery-1 (T1) |
+| 49 | `bio-ethylene` | Bio-ethylene by ethanol dehydration | bio-based-chemicals | n/a, to be sourced | medium | - | polyethylene | 0 | bio-ethylene-1 (T1) |
+| 50 | `waste-incineration` | Waste incineration with energy recovery | waste-treatment | n/a, to be sourced | medium | - | steam-generation | 1 | waste-incineration-1 (T1) |
 | 51 | `caprolactam` | Caprolactam | nitrogen-organics | n/a, to be sourced | medium | - | - | 0 | - |
 | 52 | `acrylonitrile` | Acrylonitrile (propylene ammoxidation) | nitrogen-organics | n/a, to be sourced | low | - | - | 0 | - |
 | 53 | `mdi-tdi` | Isocyanates (MDI, TDI) | nitrogen-organics | n/a, to be sourced | medium | - | - | 0 | - |
@@ -199,6 +199,27 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 88 | `sodium-nitrite` | Sodium nitrite | inorganic-chemicals | n/a, to be sourced | n/a | - | - | 2 | sodium-nitrite-1 (T2) |
 | 89 | `tetrahydrofuran` | Tetrahydrofuran (from 1,4-butanediol) | oxygenates | n/a, to be sourced | n/a | - | - | 2 | thf-1 (T2) |
 | 90 | `thionyl-chloride` | Thionyl chloride | inorganic-chemicals | n/a, to be sourced | n/a | - | - | 2 | thionyl-chloride-1 (T2) |
+| 91 | `carbon-monoxide-co2-electrolysis` | Carbon monoxide by CO2 electrolysis | electrolysis | n/a, to be sourced | n/a | rbpm-mea | - | 2 | co2-electrolysis-bpm-1 (T2) |
+| 92 | `n-bromosuccinimide` | N-Bromosuccinimide | nitrogen-organics | n/a, to be sourced | n/a | - | - | 2 | n-bromosuccinimide-1 (T2) |
+| 93 | `phosphorus-tribromide` | Phosphorus tribromide | inorganic-chemicals | n/a, to be sourced | n/a | - | - | 2 | phosphorus-tribromide-1 (T2) |
+| 94 | `benzyl-chloroformate` | Benzyl chloroformate | chlorinated-organics | n/a, to be sourced | n/a | - | - | 2 | benzyl-chloroformate-1 (T2) |
+| 95 | `methylmagnesium-bromide` | Methylmagnesium bromide | inorganic-chemicals | n/a, to be sourced | n/a | - | - | 2 | methylmagnesium-bromide-1 (T2) |
+| 96 | `sodium-azide` | Sodium azide | inorganic-chemicals | n/a, to be sourced | n/a | - | - | 2 | sodium-azide-1 (T2) |
+| 97 | `carbon-tetrabromide` | Carbon tetrabromide | chlorinated-organics | n/a, to be sourced | n/a | - | - | 2 | carbon-tetrabromide-1 (T2) |
+| 98 | `benzoyl-chloride` | Benzoyl chloride | chlorinated-organics | n/a, to be sourced | n/a | - | - | 2 | benzoyl-chloride-1 (T2) |
+| 99 | `p-toluenesulfonyl-chloride` | p-Toluenesulfonyl chloride | chlorinated-organics | n/a, to be sourced | n/a | - | - | 2 | p-toluenesulfonyl-chloride-1 (T2) |
+| 100 | `ammonium-hydroxide` | Ammonium hydroxide (aqueous ammonia) | ammonia | n/a, to be sourced | n/a | - | - | 0 | ammonium-hydroxide-1 (T0) |
+| 101 | `methyltriphenylphosphonium-bromide` | Methyltriphenylphosphonium bromide | chlorinated-organics | n/a, to be sourced | n/a | - | - | 2 | methyltriphenylphosphonium-bromide-1 (T2) |
+| 102 | `benzyl-bromide` | Benzyl bromide | chlorinated-organics | n/a, to be sourced | n/a | - | - | 2 | benzyl-bromide-1 (T2) |
+| 103 | `acetyl-chloride` | Acetyl chloride | chlorinated-organics | n/a, to be sourced | n/a | - | - | 2 | acetyl-chloride-1 (T2) |
+| 104 | `iodomethane` | Iodomethane (methyl iodide) | chlorinated-organics | n/a, to be sourced | n/a | - | - | 2 | iodomethane-1 (T2) |
+| 105 | `copper-i-chloride` | Copper(I) chloride | inorganic-chemicals | n/a, to be sourced | n/a | - | - | 2 | copper-i-chloride-1 (T2) |
+| 106 | `di-tert-butyl-dicarbonate` | Di-tert-butyl dicarbonate | oxygenates | n/a, to be sourced | n/a | - | - | 2 | di-tert-butyl-dicarbonate-1 (T2) |
+| 107 | `hydrogen-iodide` | Hydrogen iodide | inorganic-chemicals | n/a, to be sourced | n/a | - | - | 0 | hydrogen-iodide-1 (T0) |
+| 108 | `benzyl-alcohol` | Benzyl alcohol (benzyl chloride hydrolysis) | oxygenates | n/a, to be sourced | n/a | - | - | 0 | benzyl-alcohol-1 (T0) |
+| 109 | `tert-butanol` | tert-Butanol | oxygenates | n/a, to be sourced | n/a | isobutene-hydration, po-tba | - | 0 | tert-butanol-1 (T0) |
+| 110 | `phthalimide` | Phthalimide | nitrogen-organics | n/a, to be sourced | n/a | tube-reactor, countercurrent-column, urea | - | 0 | phthalimide-1 (T0) |
+| 111 | `potassium-tert-butoxide` | Potassium tert-butoxide | oxygenates | n/a, to be sourced | n/a | - | - | 2 | potassium-tert-butoxide-1 (T2) |
 
 Volume sources (ids as in `coverage.yaml` `sources:`): `usgs-mcs-2024` U.S. Geological Survey,
 Mineral Commodity Summaries 2024; `iea-ammonia-2021` IEA, Ammonia Technology Roadmap (2021);

@@ -1,0 +1,32 @@
+# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
+# dataset is lca/datasets/*.yaml, Tier 1 form, so maturity stays at concept
+# (core's cheme.lci-tier-maturity). See README.md.
+schema: cheme-as-code/process/v1
+id: bio-ethylene-1
+title: Bio-ethylene by catalytic dehydration of ethanol (adiabatic fixed beds, steam dilution)
+summary: >-
+  Sourced conceptual inventory per tonne of polymer-grade ethylene from bought bio-ethanol: the
+  ethanol feed from a published simulation's yield, by-products from the stoichiometry of its eight
+  reactions, utilities from the same study. No flowsheet; not reviewed.
+families: [bio-based-chemicals]
+keywords: [bio-ethylene, ethylene, ethanol dehydration, bioethanol, alumina, adiabatic reactor, green polyethylene]
+facets: {feedstock_basis: [biogenic, fossil, electricity], product_classes: [chemicals], unit_operations: [reaction, compression, absorption, adsorption, cryogenic-distillation], region: generic}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: ethanol, role: feedstock, inventory_key: "feed:ethanol", note: "bought hydrated bio-ethanol (93 wt% in the source), counted as ethanol; not linked to ethanol-1, which makes synthetic ethanol from ethylene"}
+    - {chemical: sodium-hydroxide, role: reactant, inventory_key: "feed:caustic-50", note: "caustic wash of the CO2, 50 wt% solution counted per kg of solution; linked to chlor-alkali-1 (lca/mappings.yaml)"}
+  outputs:
+    - {chemical: ethylene, role: main-product, inventory_key: "product:ethylene", note: "polymer grade, 99.95 vol%"}
+    - {chemical: wastewater, role: waste, inventory_key: "output:wastewater"}
+  utilities:
+    - {chemical: steam, role: utility, inventory_key: "feed:steam", note: "superheated at 11.4 bar, injected into the reactor feed 1:1 by weight; counted by mass"}
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity", note: "simulated process units and cooling-water supply; refrigeration power not included"}
+basis: {capacity: "per tonne of ethylene (the dataset's basis); the source's plant makes 200 kt/a"}
+publication: {status: public, license: CC-BY-4.0}
+references:
+  - {title: "Arvidsson, M., Lundin, B. (2011) Process integration study of a biorefinery producing ethylene from lignocellulosic feedstock for a chemical cluster. MSc thesis, Chalmers University of Technology", url: "https://odr.chalmers.se/handle/20.500.12380/140886"}
+  - {title: "Haro, P., Ollero, P., Trippe, F. (2013) Technoeconomic assessment of potential processes for bio-ethylene production. Fuel Processing Technology 114:35-48 (accepted manuscript, idus.us.es)", doi: 10.1016/j.fuproc.2013.03.024}
+  - {title: "IEA-ETSAP and IRENA (2013) Production of Bio-ethylene. Technology Brief I13", url: "https://www.irena.org/-/media/Files/IRENA/Agency/Publication/2013/IRENA-ETSAP-Tech-Brief-I13-Production_of_Bio-ethylene.pdf"}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/bio-ethylene-1, access: public}

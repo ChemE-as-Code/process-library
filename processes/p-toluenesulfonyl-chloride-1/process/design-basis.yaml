@@ -1,0 +1,50 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# p-Toluenesulfonyl chloride by the salt-modified chlorosulfonation of toluene, a batch plant,
+# issue ChemE-as-Code/process-library#162. Values marked ASSUMED are engineering choices of this
+# concept study, not client or licensor data; every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: dried p-toluenesulfonyl chloride crystals to packing at the battery limit
+  tscl_t_per_year: 1000                 # ASSUMED (D-002): a fine-chemical scale, no open market figure
+  operating_hours_per_year: 7920        # ASSUMED (D-002): 330 days of 24 h, batch operation
+  batch_kg: 1748.95                     # ASSUMED (D-003): one batch of dried product every 13.85 h
+  batches_per_year: 571.8               # from the recipe (process/recipe.yaml, D-003)
+feeds:
+  - name: Chlorosulfonic acid (merchant, technical grade)
+    source_of_values: ASSUMED (D-004)
+    composition: "ClSO3H 100 % (free SO3, H2SO4 and HCl not modelled)"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Ammonium chloride (merchant, technical grade)
+    source_of_values: ASSUMED (D-004)
+    composition: "NH4Cl 100 %, dry"
+  - name: Toluene (btx-1)
+    source_of_values: ASSUMED (D-004)
+    composition: "C7H8 100 %, dry"
+  - name: Caustic soda 50 wt% (chlor-alkali-1), to the scrubber
+    source_of_values: ASSUMED (D-007)
+  - name: Process water (quench heel, scrubber make-up, ice-cold cake washes)
+    source_of_values: ASSUMED (D-006, D-007)
+products:
+  - name: p-Toluenesulfonyl chloride
+    purity: "modelled 99.7 wt% p-TsCl, 0.2 wt% water, 0.06 wt% H2SO4, 0.02 wt% NH4HSO4, o-TsCl and toluenesulfonic acids below 0.01 wt% each (D-008); the assay an upper bound, the ortho content a lower bound: the cake's o-TsCl retention is not modelled (D-002, D-007, L-4); the source's crude has 90 % para"
+    delivery: {temperature_K: 298.15, pressure_kPa_a: 101.325, battery_limit: packing (drums or bags; not in the boundary)}
+  - name: Waste acid to neutralisation
+    note: "mother liquor, wash filtrates and dryer condensate: about 8 wt% H2SO4, 2 wt% HCl, ammonium hydrogen sulfate, toluenesulfonic acids, the o-TsCl oil (D-010)"
+  - name: Spent scrubber liquor to wastewater treatment
+    note: "about 20 wt% NaCl with excess NaOH (D-007, D-010)"
+utilities:
+  - {name: Electric power, use: "agitators of R-101, Q-101 and F-101, paddle dryer drive, vacuum pump, scrubber pump and fan (D-009)"}
+  - {name: LP steam, pressure_kPa_a: 350, use: "R-101 heat-up, the dryer's hot-water circuit (D-009)", note: ASSUMED}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "R-101 (heat of sulfonation, cool-down), scrubber cooler (D-009)", note: ASSUMED}
+  - {name: Chilled brine, supply_K: 258.15, return_K: 263.15, use: "Q-101: the heel cooled and the quench heat removed at 288 K; DR-101's vacuum condenser; the wash water chilled to 278 K in T-101", note: "ASSUMED; from a refrigeration unit outside the boundary (D-009)"}
+site:
+  location: ASSUMED generic fine-chemicals site with a chlorosulfonic acid supply, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Route: ammonium chloride and toluene into chlorosulfonic acid at 60-70 C, a second acid portion at 35 C, the mass drowned in ice water (DE 1 912 956 A1, Example 1; D-001); per mol toluene 1.5 + 1.5 mol ClSO3H and 0.45 mol NH4Cl (D-004)."
+  - "ASSUMED kinetics and heats of reaction (no open data, D-005): fast second-order sulfonation in the patent's 90 : 10 para share, -100 kJ/mol; 90 % of the sulfonic acids to the sulfonyl chlorides in the second stage (above the patent's crude: 78.8 % para product against its 77 %, D-005); the quench heats effective values to the dilute liquor."
+  - "ASSUMED solubility of p-TsCl 0.5 g per kg water in the acid liquor (insoluble and reactive, PubChem), no salting-out correction (D-007)."
+  - "ASSUMED filters: 99.8 % solid recovery, 0.3 kg liquor per kg cake solid, specific cake resistance 1e10 m/kg at 200 kPa; two reslurry washes with 2 kg ice water per kg solid (D-007)."
+  - "ASSUMED vacuum drying at 308 K to 0.2 wt% volatiles, 70 % thermal efficiency, a mean drying rate of 3 kg/(m2 h) on 15 m2 (D-008)."
+  - "All flows are year averages of the recipe (D-003); the dryer's heat from cheme's dryer model, the heats of R101, R102 and Q101 from their models (written by cheme process propagate, D-014; Q101's with the dosed acids' heat of solution, D-015), the other duties hand arithmetic from the stream table (D-009); accuracy +/-30 % not demonstrated."

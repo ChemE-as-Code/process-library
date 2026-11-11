@@ -4,11 +4,12 @@ on: [pull_request, push]
 permissions:
   contents: read
 
-# core is pinned to a commit (bfb5215: core main 2026-10-25; core has no tags
-# yet). An unpinned install turned validate red when core changed its generated LCA records
-# (#91). Bump the pin deliberately, in every URL of validate.yml and release.yml at once, together
-# with the records that core regenerates (cheme assess lca-scenarios --write);
-# tests/test_workflows.py checks that every core install carries the same commit.
+# core is pinned to a commit (c21e6c7: core v1.11.0, 2026-11-06, generator 7 BFD/PFD written without
+# indentation, core ADR 0048, and the cheme.offpage-not-on-edge drawing lint, core ADR 0049, core#159/#160). An unpinned
+# install turned validate red when core changed its generated LCA records (#91). Bump the pin
+# deliberately, in every URL of validate.yml and release.yml at once, together with the records
+# that core regenerates (cheme assess lca-scenarios --write); tests/test_workflows.py checks that
+# every core install carries the same commit.
 jobs:
   # Every process folder with a plant.yaml is a plantcode project, validated on its own.
   discover:
@@ -39,8 +40,8 @@ jobs:
           fetch-depth: 1  # the files only, no history (see "Repository size" in README.md)
       # core and pyDEXPI are public: no credentials.
       - uses: astral-sh/setup-uv@v6
-      # core v1.4.1 (the tag's commit; pinned by commit, tests/test_workflows.py)
-      - run: uv tool install "git+https://github.com/ChemE-as-Code/core.git@278a8682f02fc98db664c7c3236aa7ee2ea88e17"
+      # core v1.11.0 c21e6c7 (generator 7 sheets, offpage-not-on-edge lint: core#159/#160) (pinned by commit, tests/test_workflows.py)
+      - run: uv tool install "git+https://github.com/ChemE-as-Code/core.git@c21e6c7f35d9debcfd5b2589fcaddee438bb1e7e"
       - run: cheme fmt --check
       - run: cheme validate
       # core's per-scenario LCA records (lca/scenarios/<id>.json) must be current
@@ -57,8 +58,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      # core v1.4.1
-      CORE: "cheme-as-code[units] @ git+https://github.com/ChemE-as-Code/core.git@278a8682f02fc98db664c7c3236aa7ee2ea88e17"
+      # core v1.11.0 c21e6c7 (generator 7 sheets, offpage-not-on-edge lint: core#159/#160)
+      CORE: "cheme-as-code[units] @ git+https://github.com/ChemE-as-Code/core.git@c21e6c7f35d9debcfd5b2589fcaddee438bb1e7e"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         # Full history here only: the catalog records each process folder's last commit
@@ -70,7 +71,7 @@ jobs:
       # foundation.units.
       - uses: astral-sh/setup-uv@v6
       - name: tooling tests
-        run: uv run --python 3.12 --with pytest --with pyyaml --with jsonschema --with openpyxl --with ./python --with bw2calc --with olca-schema==2.6.2 --with multifunctional==1.1.2 --with chemicals==1.5.2 --with "$CORE" pytest -q tests
+        run: uv run --python 3.12 --with pytest --with pyyaml --with jsonschema --with openpyxl --with ./python --with bw2calc --with olca-schema==2.6.2 --with multifunctional==1.1.2 --with chemicals==1.5.2 --with "$CORE" pytest -q tests -m "not engineering"
         env:
           ATLAS_REQUIRE_BRIGHTWAY: "1"
           ATLAS_REQUIRE_CORE: "1"
@@ -93,6 +94,31 @@ jobs:
           path: dist-public/
           retention-days: 14
 
+  # Tests that regenerate a whole process design (pytest marker engineering, ADR 0033): the #330
+  # pilot skids regenerated at 1000 h and 10000 h and asserted against their frozen hand
+  # expectations. They need core's props (datasheet fill) and png (rendered views) extras and take
+  # minutes, so they run here and not in the library job.
+  engineering:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      # core v1.11.0 c21e6c7 (generator 7 sheets, offpage-not-on-edge lint: core#159/#160) (the same commit as every job, tests/test_workflows.py)
+      CORE: "cheme-as-code[units,props,png] @ git+https://github.com/ChemE-as-Code/core.git@c21e6c7f35d9debcfd5b2589fcaddee438bb1e7e"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 1  # the files only, no history (see "Repository size" in README.md)
+      - run: |
+          git config --global url."https://x-access-token:${PLANTCODE_READ_TOKEN}@github.com/ChemE-as-Code/core".insteadOf "https://github.com/ChemE-as-Code/core"
+        env:
+          PLANTCODE_READ_TOKEN: ${{ secrets.PLANTCODE_READ_TOKEN }}
+      - uses: astral-sh/setup-uv@v6
+      - name: engineering regeneration tests
+        # the library job's test dependencies too: pytest collects every module of tests/
+        run: uv run --python 3.12 --with pytest --with pyyaml --with jsonschema --with openpyxl --with ./python --with bw2calc --with olca-schema==2.6.2 --with multifunctional==1.1.2 --with chemicals==1.5.2 --with "$CORE" pytest -q tests -m engineering
+        env:
+          ATLAS_REQUIRE_CORE: "1"
+
   # Balance scripts reproduce the flowsheet values that cite them (ADR 0027): every process
   # script that follows the balance-output contract is re-run with the pinned cheme and its
   # output compared with process/flowsheet.yaml; --strict: every cited script follows the contract.
@@ -104,9 +130,9 @@ jobs:
         with:
           fetch-depth: 1  # the files only, no history (see "Repository size" in README.md)
       - uses: astral-sh/setup-uv@v6
-      # core v1.4.1 with the property extras the balance scripts import (thermo, CoolProp,
-      # scipy through thermo, Cantera); the same commit as the validate job
-      - run: uv tool install --python 3.12 "cheme-as-code[props,units,cantera] @ git+https://github.com/ChemE-as-Code/core.git@278a8682f02fc98db664c7c3236aa7ee2ea88e17"
+      # core v1.11.0 c21e6c7 (generator 7 sheets, offpage-not-on-edge lint: core#159/#160) with the property extras the balance scripts import (thermo,
+      # CoolProp, scipy through thermo, Cantera); the same commit as the validate job
+      - run: uv tool install --python 3.12 "cheme-as-code[props,units,cantera] @ git+https://github.com/ChemE-as-Code/core.git@c21e6c7f35d9debcfd5b2589fcaddee438bb1e7e"
       - name: balance scripts reproduce the flowsheet
         run: |
           uv run --python 3.12 scripts/check_balance_scripts.py --library . --strict --jobs 4 \

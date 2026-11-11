@@ -1,0 +1,41 @@
+# Components and templates of carbon-tetrabromide-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol (IUPAC 2021
+# standard atomic weights applied to the formula), normal_boiling_point in K at 101.325 kPa.
+#
+# The aqueous liquor is carried as molecular pseudo-components (NaOH, NaOBr, NaBr, NaBrO3,
+# sodium acetate, acetone, the phase-transfer catalyst and CBr4 dissolved), an inventory basis,
+# not a speciation: core has no property package for this liquor (DESIGN.md D-006). The CBr4
+# crystals are a separate solid component, CBR4_S (phase: solid). The liquid data the two
+# semi-batch reactors need (D-005), ASSUMED where no source is named:
+# - liquid_molar_volume, m3/kmol: water from its density at 278 K; bromine 3.10 g/cm3 (chemicals
+#   1.5.2's packaged CRC table, SRC-11; the value n-bromosuccinimide-1 uses); acetone 0.785 g/cm3 (ASSUMED, about its 25 C density);
+#   NaOH 2.13 and NaBr 3.21 g/cm3 (as n-bromosuccinimide-1, PubChem); CBr4 3.42 g/cm3
+#   (Wikipedia, Carbon tetrabromide, infobox, read 2026-11-05); NaOBr 2.5, NaBrO3 3.34, sodium
+#   acetate 1.53 and TBAB 1.04 g/cm3 ASSUMED (no source read), taken as their volume in the
+#   solution (ideal mixing, no partial molar volumes);
+# - liquid_heat_capacity, kJ/(kmol K): water 75.3, bromine 75.7, NaOH 59.5 and NaBr 51.4 as
+#   n-bromosuccinimide-1 (NIST WebBook); acetone 125.5 (liquid, 298 K, NIST WebBook, Malhotra
+#   and Woolf 1991, read 2026-11-05); CBr4 145.9 (solid, 298 K, NIST WebBook, Bickerton et al.
+#   1984, read 2026-11-05); NaOBr 60, NaBrO3 100, sodium acetate 80 and TBAB 500 ASSUMED.
+# - normal boiling points: water 373.12 K, bromine 331.9 K (chemicals 1.5.2's packaged CRC table, SRC-11), acetone 329.3 K
+#   (NIST WebBook, mean of 117 values, read 2026-11-05). The salts, the catalyst and the crystals
+#   have none in the liquor; CBr4's own (463 K, decomposes) is not needed.
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.015, normal_boiling_point: 373.12, liquid_molar_volume: 0.01802, liquid_heat_capacity: 75.3}
+  - {id: NAOH, name: Sodium hydroxide (dissolved), formula: NaOH, cas: 1310-73-2, molar_mass: 39.997, liquid_molar_volume: 0.0188, liquid_heat_capacity: 59.5}
+  - {id: BR2, name: Bromine, formula: Br2, cas: 7726-95-6, molar_mass: 159.808, normal_boiling_point: 331.9, liquid_molar_volume: 0.05155, liquid_heat_capacity: 75.7}
+  - {id: NAOBR, name: Sodium hypobromite (dissolved), formula: NaBrO, cas: 13824-96-9, molar_mass: 118.893, liquid_molar_volume: 0.0476, liquid_heat_capacity: 60.0}
+  - {id: NABR, name: Sodium bromide (dissolved; dry residue in the product), formula: NaBr, cas: 7647-15-6, molar_mass: 102.894, liquid_molar_volume: 0.0321, liquid_heat_capacity: 51.4}
+  - {id: NABRO3, name: Sodium bromate (dissolved), formula: NaBrO3, cas: 7789-38-0, molar_mass: 150.891, liquid_molar_volume: 0.0452, liquid_heat_capacity: 100.0}
+  - {id: ACET, name: Acetone, formula: C3H6O, cas: 67-64-1, molar_mass: 58.080, normal_boiling_point: 329.3, liquid_molar_volume: 0.0740, liquid_heat_capacity: 125.5}
+  - {id: TBAB, name: Tetrabutylammonium bromide (dissolved), formula: C16H36BrN, cas: 1643-19-2, molar_mass: 322.375, liquid_molar_volume: 0.310, liquid_heat_capacity: 500.0}
+  - {id: NAOAC, name: Sodium acetate (dissolved), formula: C2H3NaO2, cas: 127-09-3, molar_mass: 82.034, liquid_molar_volume: 0.0536, liquid_heat_capacity: 80.0}
+  - {id: CBR4, name: Carbon tetrabromide (dissolved), formula: CBr4, cas: 558-13-4, molar_mass: 331.627, liquid_molar_volume: 0.09697, liquid_heat_capacity: 145.9}
+  - {id: CBR4_S, name: Carbon tetrabromide (crystals), formula: CBr4, cas: 558-13-4, molar_mass: 331.627, phase: solid, liquid_molar_volume: 0.09697, liquid_heat_capacity: 145.9}
+templates:
+  - {id: liquor, title: Aqueous liquor and slurry, components: [H2O, NAOH, BR2, NAOBR, NABR, NABRO3, ACET, TBAB, NAOAC, CBR4, CBR4_S]}
+property_method:
+  adapter: thermo
+  status: placeholder
