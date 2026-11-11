@@ -30,3 +30,10 @@ DEXPI 2.0.1 XML, one file per sheet. Start a new one with the `pid-draft` skill.
   crossing; DR-x01 is an open end at its valve ("drain, capped"); CD-x01 stays inside the east
   edge (V-x21's outlet lies inside the cathode gas loop, any route to an edge crosses it),
   open for the owner (D-071).
+  Revision F (2026-11-12, the owner's decisions on review 2026-11-11-design-r4, D-072): drawing
+  only. CD-x01 runs from XV-x25 down just west of W-x01's drop, across the CO2 feed header, to
+  the bottom edge; that one crossing per sheet is accepted in drawing-clean (ADR 0049). The
+  capped vents, drains and pump-outs of D-055 (AV-x11, PO-x01, PO-202, DR-x01 to DR-x03) are
+  open ends at their valves, their notes "vent, capped", "drain, capped", "pump-out by hose,
+  capped" ("hose, capped" on PO-202); AV-x11, PO-x01 and DR-x03 (at the foot of TG-x01's drop)
+  are drawn as in revision D again.

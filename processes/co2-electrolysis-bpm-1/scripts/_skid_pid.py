@@ -61,13 +61,27 @@ clear of E-x11's outline.
 
 Revision E (core 1.11's cheme.offpage-not-on-edge, DESIGN.md D-071): the off-page connectors on
 the drawing area's edge, each line routed to it without a new crossing: AV-x11 down to the
-bottom edge (TIC-x11 and TV-x11 5 mm east to clear it), PO-x01 from T-x01's N11 drawn west of
+bottom edge (TIC-x11 and TV-x11 6 mm east to clear it), PO-x01 from T-x01's N11 drawn west of
 N5 to the west edge, DR-x03's drip leg drawn on the drop into X-x32's N1, branching east to the
 east edge (the TG-x01 label below the overhead run). DR-x01 is an open end at its valve ("drain,
 capped"): no route from AN-x03's low point clears the CO2 feed header. CD-x01 stays where it is:
 V-x21's bottom lies inside the cathode gas loop (V-x21, K-x31, X-x31, the recycle CO2-x02, the
 feed header, the stacks, CG-x01), so every route to an edge crosses one of its lines; that
 crossing is the owner's to accept (core ADR 0049) and is not drawn.
+
+Revision F (the owner's decisions of 2026-11-12 on review 2026-11-11-design-r4, DESIGN.md
+D-072): CD-x01, a connection to another system, runs from XV-x25 down just west of W-x01's
+drop, across the CO2 feed header (the one crossing it costs, accepted in checks/checks.yaml's
+drawing-clean with ADR 0049 and D-072 as the reason), to the bottom edge (9 mm in), its note
+west of the arrow; the W-x01 label moves above its run east of the drop, clear of CD-x01. The
+capped vents, drains and pump-outs of D-055 (AV-x11, PO-x01, PO-202, DR-x01, DR-x02, DR-x03)
+are open ends drawn at their valve (ADR 0049: vents, drains, hose connections), each with a
+note saying what it is and naming no system, which the rule exempts: "vent, capped", "drain,
+capped", "pump-out by hose, capped" (PO-202 "hose, capped": no longer text fits between the
+sheet's edge and KOH-203). AV-x11 is a short stub at its valve by E-x11 (TIC-x11 and TV-x11
+back where revision D had them), PO-x01 ends at T-x01's bottom outlet valve (N11 drawn east of
+N4 again), DR-x03 hangs at the foot of TG-x01's drop, its low point, as in revision D (its note
+under the arrow, the X-x32 tag 2 mm lower); DR-x02's note clear of its arrow.
 """
 
 from __future__ import annotations
@@ -139,10 +153,9 @@ def draw(sheet: Sheet, skid: str) -> None:
         Nozzle("N4", (6, 17.5), DN_LIQ),  # outlet to the recirculation pump
         Nozzle("N5", (-6, 17.5), DN_LIQ),  # drain (spent anolyte; Skid B also the bleed)
         Nozzle("N7", (14, 0), None),  # pH
-        # bottom outlet, pump-out of the heel (D-055); drawn west of N5, outside the anolyte
-        # loop, so PO-x01 reaches the sheet's west edge without a crossing (revision E; its
-        # place on the tank is layout/equipment-placement.yaml's)
-        Nozzle("N11", (-10, 17.5), DN_SMALL),
+        # bottom outlet, pump-out of the heel (D-055); PO-x01 is an open end at its valve
+        # (revision F, D-072), its place on the tank layout/equipment-placement.yaml's
+        Nozzle("N11", (10, 17.5), DN_SMALL),
     ]
     if dosed:
         tank_nozzles += [
@@ -235,7 +248,7 @@ def draw(sheet: Sheet, skid: str) -> None:
         shape="FURNACE_SHAPE",
         at=(390.0, 150.0),
         scale=0.8,
-        label_at=(372.0, 152.0),
+        label_at=(372.0, 154.0),  # 2 mm lower than revision D: DR-x03's note above it
         nozzles=[
             Nozzle("N1", (-4, -10), DN_GAS),  # tail gas in
             Nozzle("N2", (0, 10), DN_GAS),  # air in
@@ -300,24 +313,25 @@ def draw(sheet: Sheet, skid: str) -> None:
     for tee_, stack, s in zip(sup_tees, stacks[:3], "ABC", strict=True):
         line(sheet, t("AN", 3, s), dn=DN_LIQ, fluid="Anolyte", route=[tee_.branch, stack["N1"]],
              labels=False)
-    # low-point drain, valved and capped, drained into a closed IBC by hose (D-055). An open
-    # end drawn at its valve, not a connection (revision E): it hangs between the CO2 feed
-    # branches of stacks C and D above the feed header, so no route reaches a sheet edge without
-    # crossing that header; its note says "drain" (core's cheme.offpage-not-on-edge exempts an
-    # open end that says so and names no system)
+    # The capped vents, drains and pump-outs of D-055 are open ends drawn at their valve, not
+    # connections (core ADR 0049; revision E for DR-x01, revision F for the rest, D-072): each
+    # note says what it is, "vent, capped", "drain, capped" or "pump-out by hose, capped", and
+    # names no system, which core's cheme.offpage-not-on-edge exempts. Where they are emptied to
+    # (a closed IBC, a closed container by hand) is the line list's.
+    # low-point drain, valved and capped, drained into a closed IBC by hose (D-055)
     line(sheet, t("DR", 1), dn=DN_SMALL, fluid="Anolyte",
          route=[low_tee.branch,
                 valve(vid("HV", 6), "BallValve", at=(x_low, 182.0), tag=t("HV", 6)),
                 offpage("out", at=(x_low, 190.0), note="drain, capped",
                         note_at=(x_low + 12.5, 193.5))],
          labels=False)
-    # vent of the cooler's anolyte outlet channel, valved and capped (D-055); its connector on
-    # the sheet's bottom edge, east of E-x11's tag and west of TIC-x11's signal (revision E)
+    # vent of the cooler's anolyte outlet channel, valved and capped (D-055): a short stub at
+    # its valve (revision F)
     line(sheet, t("AV", 11), dn=DN_SMALL, fluid="Anolyte",
          route=[cooler["N5"],
                 valve(vid("HV", 7), "BallValve", at=(125.0, cooler["N5"].xy[1]), tag=t("HV", 7)),
-                (136.0, cooler["N5"].xy[1]),
-                offpage("out", at=(136.0, 243.0), note="capped", note_at=(127.0, 247.0))],
+                offpage("out", at=(131.0, cooler["N5"].xy[1]), note="vent, capped",
+                        note_at=(130.0, cooler["N5"].xy[1] + 5.0))],
          labels=False)
     # O2 vent, 1 M KOH fill, spent anolyte drain (Skid B: with the bleed)
     o2v = line(
@@ -350,13 +364,13 @@ def draw(sheet: Sheet, skid: str) -> None:
                  offpage("out", at=(14.0, 252.0), note="spent anolyte, end of run")]
     line(sheet, t("SP", 1), dn=DN_LIQ, fluid="Anolyte", route=sp_route,
          label_at=(52.0, 226.0))
-    # the heel: a bottom outlet with its valve and a capped camlock for a pump-out (D-055); to
-    # the sheet's west edge, between the fill above and the bleed below (revision E)
+    # the heel: a bottom outlet with its valve and a capped camlock for a pump-out by hose
+    # (D-055), an open end at its valve (revision F)
     line(sheet, t("PO", 1), dn=DN_SMALL, fluid="Anolyte",
-         route=[tank["N11"], (tank["N11"].xy[0], 180.0),
-                valve(vid("HV", 8), "BallValve", at=(40.0, 180.0), tag=t("HV", 8)),
-                offpage("out", at=(14.0, 180.0), note="camlock, capped",
-                        note_at=(25.0, 176.0))],
+         route=[tank["N11"], (tank["N11"].xy[0], 167.0),
+                valve(vid("HV", 8), "BallValve", at=(88.0, 167.0), tag=t("HV", 8)),
+                offpage("out", at=(97.0, 167.0), note="pump-out by hose, capped",
+                        note_at=(94.0, 172.0))],
          labels=False)
     # tempered water from the unit off the skid, outside the zone: heating and cooling (D-052)
     line(
@@ -365,7 +379,7 @@ def draw(sheet: Sheet, skid: str) -> None:
         dn=DN_SMALL,
         fluid="Tempered water",
         route=[offpage("in", at=(165.0, 255.0), note="TW supply"),
-               valve(vid("TV", 11), "GlobeValve", at=(146.0, 255.0), tag=t("TV", 11)),
+               valve(vid("TV", 11), "GlobeValve", at=(140.0, 255.0), tag=t("TV", 11)),
                (cooler["N3"].xy[0], 255.0), cooler["N3"]],
         label_at=(128.0, 263.0),
     )
@@ -427,7 +441,12 @@ def draw(sheet: Sheet, skid: str) -> None:
                (330.0, 105.0),
                # the tight shut-off on the independent low-low level (I-x18, D-061)
                valve(vid("XV", 25), "BallValve", at=(330.0, 125.0), tag=t("XV", 25)),
-               offpage("out", at=(330.0, 160.0), note="to vented condensate collection")],
+               # revision F (D-072, core ADR 0049): a connection to another system, so to the
+               # sheet's bottom edge, just west of W-x01's drop and east of its label, across
+               # the CO2 feed header (the one crossing, accepted in drawing-clean)
+               (330.0, 150.0), (325.0, 150.0),
+               offpage("out", at=(325.0, 242.0), note="to vented condensate collection",
+                       note_at=(303.0, 249.5))],
         label_at=(318.0, 140.0),
     )
     # gas conditioning: product, recycle, tail gas, oxidiser
@@ -488,7 +507,8 @@ def draw(sheet: Sheet, skid: str) -> None:
                valve(vid("HV", 4), "GlobeValve", at=(392.0, 235.0), tag=t("HV", 4)),
                valve(vid("CV", 4), "CheckValve", at=(372.0, 235.0)),
                (330.0, 235.0), water_tee.branch],
-        label_at=(318.0, 222.0),
+        # above its run east of the drop, clear of CD-x01 (revision F)
+        label_at=(345.0, 226.0),
     )
     # the tail gas leaves the PSA through its trip valve (fail closed), a check valve and the
     # in-line detonation arrester (EN ISO 16852, IIC, unstable detonation, protected side
@@ -498,27 +518,27 @@ def draw(sheet: Sheet, skid: str) -> None:
     # riser's foot upstream of the trip valve (DR-x02, HV-x11) and at the foot of the drop
     # before the oxidiser's inlet (DR-x03, HV-x12); the overhead run falls towards the drop, so
     # nothing drains back onto the arrester
-    # Revision E: the second drip leg drawn on the drop into N1, branching east, so DR-x03's
-    # connector sits on the sheet's east edge (the same tee between FA-x33 and N1)
+    # Revision F (D-072): the drip legs are open ends at their valves, DR-x03 again at the foot
+    # of the drop, its low point, as in revision D
     tg_low1 = tee(tid(t("TG", 1), "D1"), at=(369.0, 89.5), branch="right", branch_dn=DN_SMALL)
-    tg_low2 = tee(tid(t("TG", 1), "D2"), at=(oxid["N1"].xy[0], 132.0), branch="right",
-                  branch_dn=DN_SMALL)
+    tg_low2 = tee(tid(t("TG", 1), "D2"), at=(380.0, 128.0), branch="down", branch_dn=DN_SMALL)
     xv_tg = valve(vid("XV", 33), "BallValve", at=(369.0, 97.0), tag=t("XV", 33))
     tg = line(sheet, t("TG", 1), dn=DN_GAS, fluid="Tail gas",
               route=[psa["N4"], tg_low1, xv_tg,
                      valve(vid("CV", 33), "CheckValve", at=(369.0, 105.0)),
                      valve(vid("FA", 33), "FlameArrestor", at=(369.0, 113.0)),
-                     (369.0, 128.0), (oxid["N1"].xy[0], 128.0), tg_low2, oxid["N1"]],
-              label_at=(377.0, 135.0))
+                     (369.0, 128.0), tg_low2, (oxid["N1"].xy[0], 128.0), oxid["N1"]],
+              label_at=(397.0, 127.0))
     line(sheet, t("DR", 2), dn=DN_SMALL, fluid="Tail gas condensate",
          route=[tg_low1.branch,
                 valve(vid("HV", 11), "BallValve", at=(375.5, 89.5), tag=t("HV", 11)),
-                offpage("out", at=(382.0, 89.5), note="capped", note_at=(390.0, 89.5))],
+                offpage("out", at=(382.0, 89.5), note="drain, capped", note_at=(398.0, 89.5))],
          labels=False)
     line(sheet, t("DR", 3), dn=DN_SMALL, fluid="Tail gas condensate",
          route=[tg_low2.branch,
-                valve(vid("HV", 12), "BallValve", at=(397.0, 132.0), tag=t("HV", 12)),
-                offpage("out", at=(410.0, 132.0), note="capped", note_at=(403.0, 125.0))],
+                valve(vid("HV", 12), "BallValve", at=(380.0, 133.0), tag=t("HV", 12)),
+                offpage("out", at=(380.0, 137.0), note="drain, capped",
+                        note_at=(373.0, 146.5))],
          labels=False)
     # DEXPI's FlameArrestor carries its tag as PositionNumber (a SafetyValveOrFitting), not as
     # the valves' PipingComponentNumber that valve(tag=) writes: set it, and its detonation
@@ -583,7 +603,9 @@ def draw(sheet: Sheet, skid: str) -> None:
         line(sheet, t("PO", 2), dn=DN_SMALL, fluid="KOH solution",
              route=[day["N5"], (day["N5"].xy[0], 60.0),
                     valve(vid("HV", 9), "BallValve", at=(20.0, 60.0), tag=t("HV", 9)),
-                    offpage("out", at=(14.0, 60.0), note="camlock, capped",
+                    # an open end at its valve (revision F): the note says hose, the room
+                    # between the sheet's edge and KOH-x03 takes no longer text
+                    offpage("out", at=(14.0, 60.0), note="hose, capped",
                             note_at=(14.0, 65.0))],
              labels=False)
         # the metering pump's back-pressure and anti-siphon valve before the dose enters T-201
@@ -612,7 +634,7 @@ def draw(sheet: Sheet, skid: str) -> None:
                   label_at=(28.0, 206.0))
 
     # -- instruments ----------------------------------------------------------------------------
-    instrument(sheet, t("TIC", 11), at=(146.0, 188.0), sensing=sup.segments[0],
+    instrument(sheet, t("TIC", 11), at=(140.0, 188.0), sensing=sup.segments[0],
                sensing_at=(115.0, 188.0), signal_to=vid("TV", 11), fail_action="FO")
     instrument(sheet, t("TSHH", 12), at=(110.0, Y_RET + 12.0), sensing=ret.segments[-1],
                sensing_at=(110.0, Y_RET))
