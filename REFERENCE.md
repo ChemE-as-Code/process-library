@@ -28,8 +28,8 @@ says how to add a process.
 
 ## Processes
 
-The table lists 103 public process folders: 61 engineering projects (a `plant.yaml` with a process
-flowsheet), 36 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
+The table lists 103 public process folders: 62 engineering projects (a `plant.yaml` with a process
+flowsheet), 35 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
 The table is generated from each folder's `process.yaml` and `checks/maturity.json`;
 `coverage.yaml` names the coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
 
@@ -122,7 +122,7 @@ The table is generated from each folder's `process.yaml` and `checks/maturity.js
 | [`sodium-azide-1`](processes/sodium-azide-1/) | Sodium azide by the hydrazine / methyl nitrite route: semi-batch absorption with gas vents, batch still, precipitation from the reaction liquor, filter-dryer and mother-liquor recycle (670 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`sodium-cyanide-1`](processes/sodium-cyanide-1/) | Solid sodium cyanide from Andrussow HCN (6.25 t/h, 50 kt/a) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`sodium-nitrite-1`](processes/sodium-nitrite-1/) | Sodium nitrite from ammonia oxidation and soda absorption (with sodium nitrate by inversion) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
-| [`styrene-1`](processes/styrene-1/) | Styrene by dehydrogenation of ethylbenzene (LVOC BREF ranges) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
+| [`styrene-1`](processes/styrene-1/) | Styrene by adiabatic dehydrogenation of ethylbenzene (300 kt/a, concept) | concept (DWSIM cross-check with an unqualified property package; not reviewed) | yes (BFD/PFD, flowsheet, simulation, LCI dataset) |
 | [`sulfur-recovery-1`](processes/sulfur-recovery-1/) | Sulfur recovery by the modified Claus process with a catalytic oxidation tail gas unit (REF BREF ranges, EPA factors) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`sulfuric-acid-1`](processes/sulfuric-acid-1/) | Sulfuric acid from sulfur burning, double contact / double absorption (1000 t/d, 98.5 wt%) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`terephthalic-acid-1`](processes/terephthalic-acid-1/) | Purified terephthalic acid by air oxidation of p-xylene and hydropurification (patent, MIDDEN, IEA and AP-42 figures) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |

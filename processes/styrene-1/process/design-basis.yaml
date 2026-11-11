@@ -1,0 +1,62 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Styrene by adiabatic dehydrogenation of ethylbenzene with superheated steam, concept stage
+# (ChemE-as-Code/process-library#313). An independent concept design: no DWSIM/FOSSEE flowsheet
+# value is used (DESIGN.md D-001). Values marked ASSUMED are engineering choices of this concept
+# study, not client or licensor data; sourced values cite the LVOC BREF (EU JRC 2017, EUR 28882
+# EN, doi:10.2760/77304) with section and page; every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: Styrene monomer product stream to storage (incl. its ethylbenzene impurity)
+  product_t_per_a: 300000             # ASSUMED (D-002): the plant size the LVOC BREF's catalyst charge refers to (5.2.3.1.1, p. 255)
+  product_kg_per_h: 37500.0           # = 300 kt/a / 8000 h
+  operating_hours_per_year: 8000      # ASSUMED (D-002)
+  turndown_percent: 60                # ASSUMED, not checked
+feeds:
+  - name: Fresh ethylbenzene (from an ethylbenzene unit, e.g. ethylbenzene-1 of this library, outside the boundary)
+    source_of_values: ASSUMED (D-003)
+    composition_mol_percent: {EB: 100.0}   # ASSUMED pure; the BREF's plants use 97.5-99.8 % fresh EB (Table 5.11, p. 285), impurities not modelled
+    conditions: {pressure_kPa_a: 300, temperature_K: 303.15}   # ASSUMED battery limit
+    flow: set by the product rate through the balance (D-006); stream S1 of process/flowsheet.yaml
+  - name: Dilution steam (site MP steam header, outside the boundary)
+    source_of_values: ASSUMED (D-003, D-004)
+    composition_mol_percent: {H2O: 100.0}
+    conditions: {pressure_kPa_a: 1100, temperature_K: 460.2}   # ASSUMED: 3 K above saturation, the 11 bar(a) grade of the library's steam registry entry
+    flow: 1.3 kg per kg EB to the first bed (D-004); stream S3
+  - name: Natural gas, make-up fuel of the steam superheater (outside the boundary)
+    source_of_values: ASSUMED (D-009)
+    composition_mol_percent: {CH4: 100.0}   # ASSUMED pure methane, as the pilot dataset
+    conditions: {pressure_kPa_a: 400, temperature_K: 298.15}
+    flow: what the off-gas leaves short of the steam superheater duty (D-009); stream S36
+  - name: Combustion air
+    source_of_values: ASSUMED (D-009)
+    composition_mol_percent: {N2: 79.0, O2: 21.0}   # ASSUMED dry air without argon
+    conditions: {pressure_kPa_a: 105, temperature_K: 298.15}
+    flow: 15 % excess oxygen (D-009); stream S37
+products:
+  - name: Styrene monomer
+    purity: "at least 99.8 wt% (LVOC BREF 5.2.3.1.3, p. 256); the impurity modelled is ethylbenzene (and traces of the tar proxy); polymer content, colour and inhibitor level are outside the model"
+    delivery: {pressure_kPa_a: 8, battery_limit: product tanks (outside the boundary); the rundown pump is not modelled (D-010)}
+  - name: Benzene by-product
+    purity: "99.5 mol% (ASSUMED, D-008); to an ethylbenzene unit as recycle benzene (LVOC BREF 5.3.6.2, p. 286)"
+  - name: Toluene by-product
+    purity: "about 96 mol%, with the EB and benzene that leave with it (ASSUMED, D-008); to an aromatics unit or refinery (LVOC BREF 5.3.6.2, p. 286)"
+  - name: Tar
+    purity: "about 30 wt% styrene in the heavies (ASSUMED, D-008), burned as fuel at the site as in three of four BREF plants (Table 5.11, p. 285)"
+  - name: Process condensate
+    use: to the condensate stripper outside the boundary, then boiler feed water (LVOC BREF 5.2.3.1.2, p. 256); in the LCA treated as wastewater to treatment (D-013)
+utilities:
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: ASSUMED (D-010)}
+  - {name: LP steam, pressure_kPa_a: 450, saturation_K: 420.8, use: column reboilers, note: ASSUMED level (D-010)}
+  - {name: Electric power, use: off-gas compressor and pumps, note: ASSUMED electric drives (D-010)}
+site:
+  location: ASSUMED generic EU site, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325   # ASSUMED
+assumptions:
+  - "ASSUMED two adiabatic radial beds in series with interstage reheat by superheated steam (LVOC BREF 5.2.3.1.1, p. 254-255 and Table 5.10: two or three beds in the BREF plants), each bed inlet 893.15 K (620 C, BREF 5.2.1.2, p. 240); vacuum at the bed outlets 75 and 60 kPa(a) (BREF Table 5.10: 30-50 kPa(a) vacuum level) (D-004)."
+  - "ASSUMED EB conversion 0.40 per bed (0.64 overall, BREF 60-65 %, 5.2.3.1.1, p. 255) and molar selectivities styrene 0.953, toluene 0.028, benzene 0.012, tar 0.007 per mol EB converted: a conversion model, not kinetics (D-005)."
+  - "ASSUMED steam-to-EB mass ratio 1.3 at the first bed (BREF 1-1.8 kg/kg, 5.2.3.1.1, p. 255), 10 % of it as primary steam with the EB feed; EB and primary steam preheated to 793.15 K (520 C, BREF 5.2.3.1.1, p. 255) against the reactor effluent (D-004)."
+  - "ASSUMED steam superheater: main steam heated to 1073.15 K in coil 1, used for the interstage reheat, and reheated in coil 2 to the temperature that gives 893.15 K at the first bed; burners fired with the compressed off-gas and natural gas, 15 % excess air, flue gas to the stack at 523.15 K (D-009)."
+  - "ASSUMED effluent condensed at 313.15 K and 45 kPa(a); water and aromatics as immiscible liquids; off-gas compressed in two intercooled stages to 300 kPa(a) for the burners; no aromatics absorber (D-007, D-008)."
+  - "ASSUMED columns: B/T column C-301 50/65 kPa(a), B/T splitter C-304 45/60 kPa(a), EB/styrene splitter C-302 10/25 kPa(a), styrene finishing column C-303 8/12 kPa(a); key specifications and reflux in D-008; inhibitor dosed upstream of the fractionation (not modelled as a stream, D-011)."
+  - "All flows, temperatures and duties are concept estimates on an unqualified property method (D-006, D-012); accuracy not stated."

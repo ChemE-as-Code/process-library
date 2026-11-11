@@ -1,35 +1,88 @@
-# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
-# dataset is lca/datasets/*.yaml, Tier 1 form, so maturity stays at concept
-# (core's cheme.lci-tier-maturity). See README.md.
+# Process Atlas manifest of styrene-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here. Until 2026-11-03 a
+# manifest-only pilot with a hand-written Tier 1 dataset (LVOC BREF); that dataset is replaced
+# by the flowsheet's (lca/dataset.yaml) and kept as the cross-check in DESIGN.md (D-014).
 schema: cheme-as-code/process/v1
 id: styrene-1
 title: Styrene by adiabatic catalytic dehydrogenation of ethylbenzene
 summary: >-
-  Sourced conceptual inventory per tonne of styrene monomer, with toluene and benzene as co-products:
-  midpoints of EU LVOC BREF ranges and a closing balance. No flowsheet; not reviewed.
+  Ethylbenzene dehydrogenated with superheated steam over iron oxide in two adiabatic beds,
+  effluent condensed and decanted, off-gas burned in the steam superheater, styrene purified by
+  vacuum distillation with ethylbenzene recycle; benzene, toluene and tar as by-products. 300
+  kt/a concept design with a simulated PFD and a flowsheet-derived LCI; not reviewed.
+description: |
+  Fresh and recycled ethylbenzene (EB) are vaporised with 10 % of the dilution steam against the
+  reactor effluent and preheated to 793 K; the rest of the steam (1.3 kg per kg EB in all) is
+  superheated in a fired steam superheater, gives up heat in the interstage reheater, is
+  superheated again and mixed with the EB to 893 K at the first bed. Two adiabatic radial beds
+  convert 40 % of the inlet EB each (64 % overall) at 85 to 60 kPa(a), with assumed molar
+  selectivities (styrene 0.952). The effluent is condensed at 313 K and 45 kPa(a); the
+  hydrogen-rich off-gas is compressed and burned with natural gas in the superheater; the
+  process condensate goes to stripping; the crude styrene is inhibited and fractionated in a
+  benzene/toluene column and splitter, an EB/styrene splitter (EB recycle) and a styrene
+  finishing column that leaves the tar.
+
+  All values are concept estimates. Stream values and duties come from a DWSIM simulation of
+  the plant (Peng-Robinson as a recorded substitution), checked against an independent balance
+  script; ChemE-as-Code has not qualified any property package for aromatics with water and
+  hydrogen, and the water/aromatics separation is a specified split, not a prediction. See
+  DESIGN.md (D-006, D-008, D-012). Facts are from the EU LVOC BREF (2017), in our own form; no
+  DWSIM/FOSSEE flowsheet value is used.
 families: [styrenics]
-keywords: [styrene, styrene monomer, ethylbenzene, dehydrogenation, steam superheater, toluene]
-facets: {feedstock_basis: [fossil], product_classes: [chemicals], unit_operations: [reaction, distillation, combustion], region: EU}
+keywords: [styrene, styrene monomer, ethylbenzene, dehydrogenation, steam superheater, adiabatic reactor, vacuum distillation, toluene, benzene, tar]
+facets: {feedstock_basis: [fossil], product_classes: [chemicals], unit_operations: [reaction, heat-exchange, combustion, flash, compression, distillation], region: EU}
+# Honest claim: concept. The feeds and capacity are assumed, the reactor is a conversion model
+# with assumed selectivities, and the property package is unqualified (validation.notes, D-012).
 maturity: concept
-validation: {status: unreviewed}
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances (cheme validate) and an
+    independent overall energy closure of 7 kW in 264 MW (scripts/sm_balance.py). The plant is
+    simulated in DWSIM 9.0.5 (converged, four tears), but core has not qualified any property
+    package for aromatics with water and hydrogen (predictive.property-regime fails); Peng-Robinson
+    is a recorded substitution, not approved, so the run is an unqualified cross-check of the
+    script, not validated data. Peng-Robinson's two-phase flash cannot represent the
+    water/aromatics liquid-liquid split, so the separator, the knock-out drum and the decanter
+    are specified splits from the script (immiscible liquids, PubChem solubilities) and the
+    off-gas compression is not simulated. Reactor loop, steam superheater and the B/T and
+    finishing columns agree with the script within about 2 %; the EB/styrene splitter needs a
+    32 % larger reflux in DWSIM (its Underwood minimum is 8.9 against the script's 6.7), and
+    E-103's duty is 7 % lower (the organic phase is not condensed in Peng-Robinson). The LCI is
+    a cradle-to-gate study with the foreground inventory only: every background is a gap in
+    the study (lca.source none); the library's LCI build links it.
 chemistry:
   inputs:
-    - {chemical: ethylbenzene, role: feedstock, inventory_key: "feed:ethylbenzene", note: "linked to ethylbenzene-1 (lca/mappings.yaml)"}
-    - {chemical: methane, role: feedstock, inventory_key: "feed:natural-gas", note: "natural gas, taken as pure methane (ASSUMED)"}
-    - {chemical: air, role: feedstock, note: "combustion air, free; its O2 is feed:O2"}
-    - {chemical: water, role: feedstock, note: "Condensed dilution steam, free in the dataset (feed:water): it belongs to the steam exchange and only closes the element balance"}
+    - {chemical: ethylbenzene, role: feedstock, inventory_key: "feed:EB", note: "1.048 kg/kg styrene; linked to ethylbenzene-1 by the registry slug"}
+    - {chemical: steam, role: feedstock, inventory_key: "feed:DSTEAM", note: "dilution steam 11 bar(a), 2.11 kg/kg styrene; leaves as process condensate"}
+    - {chemical: methane, role: feedstock, inventory_key: "feed:NG", note: "natural gas make-up of the steam superheater, taken as pure methane (ASSUMED)"}
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "combustion air, free"}
   outputs:
-    - {chemical: styrene, role: main-product, inventory_key: "product:styrene"}
-    - {chemical: toluene, role: co-product, inventory_key: "product:toluene"}
-    - {chemical: benzene, role: co-product, inventory_key: "product:benzene"}
-    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2"}
+    - {chemical: styrene, role: main-product, inventory_key: "product:STYRENE", note: "99.85 wt%"}
+    - {chemical: toluene, role: co-product, inventory_key: "product:TOLUENE", note: "about 96 mol% toluene with EB and benzene"}
+    - {chemical: benzene, role: co-product, inventory_key: "product:BENZENE", note: "99.5 mol%"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:PCOND", note: "process condensate to stripping and treatment"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "steam superheater flue gas"}
     - {chemical: water, role: emission, inventory_key: "emission:H2O", note: "combustion water vapour"}
-    - {chemical: wastewater, role: waste, inventory_key: "output:wastewater"}
   utilities:
-    - {chemical: electricity, role: utility, inventory_key: "feed:electricity"}
-    - {chemical: steam, role: utility, inventory_key: "feed:steam", note: "counted as heat delivered, gross of heat recovery"}
-basis: {capacity: "per tonne of styrene (the dataset's basis); no plant size"}
-publication: {status: public, license: CC-BY-4.0}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "off-gas compressor and pumps"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 450 kPa(a) to the column reboilers, counted as heat delivered (kWh)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED)"}
+basis:
+  capacity: "300 kt/a styrene (ASSUMED)"
+  operating_hours_per_year: 8000
+  location: generic EU site (not chosen)
 references:
   - {title: "Falcke, H. et al. (2017) Best Available Techniques (BAT) Reference Document for the Production of Large Volume Organic Chemicals. JRC Science for Policy Report EUR 28882 EN (JRC109279), chapter 5", doi: 10.2760/77304}
+  - {title: "PubChem compound records (HSDB): water solubility of benzene, toluene, ethylbenzene and styrene at 25 C (CIDs 241, 1140, 7500, 7501)", url: "https://pubchem.ncbi.nlm.nih.gov/"}
+  - {title: "DWSIM/FOSSEE flowsheet collection, entry 231 (styrene): a lead only (process-library#313); no file, value or topology of it is used", url: "https://dwsim.fossee.in/flowsheeting-project/completed-flowsheet"}
+# source: none while every background of the study is a gap (as hda-1): the generated all-gap
+# total must not reach the catalog as a result. The library's LCI build links the dataset.
+lca:
+  source: none
+  notes: "Foreground LCI per kg styrene from the flowsheet (lca/inventory.csv, lca/dataset.yaml), backgrounds linked by the library's LCI build, not in the study (D-013)."
+maintainers:
+  - {name: Artur Schweidtmann}
 repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/styrene-1, access: public}
+publication: {status: public, license: CC-BY-4.0}

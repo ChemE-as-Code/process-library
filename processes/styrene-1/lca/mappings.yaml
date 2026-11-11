@@ -1,9 +1,14 @@
 # styrene-1's own exchange overrides for the Atlas LCI build (ADR 0022).
-# Schema: schemas/lci-process-mappings.schema.json.
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the exchange keys of lca/dataset.yaml.
+# feed:EB links the Atlas producer ethylbenzene-1 (registry slug ethylbenzene) by its
+# flowsheet-derived dataset of process-library PR #323 (lca/dataset.yaml): no background entry
+# for ethylbenzene exists in lci/mappings.yaml, so the link is explicit.
 schema: cheme-as-code/lci-process-mappings/v1
 exchanges:
-  "feed:ethylbenzene": {dataset: {path: processes/ethylbenzene-1/lca/dataset.yaml, product: "product:ethylbenzene"}, source: "the Atlas producer ethylbenzene-1 (its flowsheet-derived dataset since the concept PFD of issue #313); the BREF's plants are integrated in the same way"}
-  "feed:steam": {use: steam-heat, source: "steam counted as heat delivered (kWh), as hda-1 does"}
-  "feed:natural-gas":
+  "feed:EB": {dataset: {path: processes/ethylbenzene-1/lca/dataset.yaml, product: "product:ethylbenzene"}, source: "the Atlas producer ethylbenzene-1 (its flowsheet-derived dataset since its concept PFD, PR #323); the BREF's plants are integrated in the same way"}
+  "feed:DSTEAM": {dataset: {path: processes/utility-steam-ng-boiler/lca/datasets/steam-mp-11bara-natural-gas-boiler.yaml, product: "product:steam"}, source: "dilution steam from the site boiler: the library's natural-gas boiler at 11 bar(a), the grade of the feed (D-003); the steam exports of ammonia-1 and hydrogen-1 are not this plant's supply"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a) to the reboilers, counted as heat delivered (kWh), as hda-1"}
+  "feed:NG":
+    use: natural-gas
     atlas: false
-    source: "Pipeline natural gas: the only Atlas producer of the slug methane is hda-1's fuel gas, which is not natural gas (as utility-steam-ng-boiler)."
+    source: "Pipeline natural gas by mass: the only Atlas producer of the slug methane is hda-1's fuel gas, which is not natural gas (as utility-steam-ng-boiler)."
