@@ -1,0 +1,81 @@
+# Benchmarks of polymers: for now PET. Schema: schemas/benchmarks.schema.json; rules:
+# docs/benchmarks.md. Ranges are facts from the cited source, in our own form.
+#
+# How independent these are:
+# - The diacid feed is stoichiometry plus the BREF's polymer waste, so it would sit near the range
+#   whatever the plants reported. Its 0.873 t/t is above the range: see out_of_range_reason.
+# - The glycol feed adds the BREF's effluent COD and air emissions to the stoichiometry, so it shares
+#   a source with its range. It is inside, as is NAPCOR's 0.345 t/t.
+# A total energy KPI is not bound: the natural gas is in kg, and an expression cannot add kg to kWh
+# (docs/benchmarks.md). By hand, the dataset's 230 kWh/t of electricity (828 MJ) and 42.0 kg/t of
+# natural gas at an LHV of 50.01 MJ/kg (2100 MJ) give about 2930 MJ/t for melt phase and SSP together.
+# The POL BREF gives 2087 to 4500 MJ/t for the continuous TPA melt phase (Table 10.4) and 903 to
+# 949 MJ/t for continuous SSP (Table 10.5). The dataset sits inside the melt-phase range alone, and
+# slightly below the sum of the two lowest values (about 2990 MJ/t). The BREF does not say how it adds
+# fuel and power. NAPCOR's plants include MTR, which has no separate SSP step. The BREF's footnoted
+# single value for the TPA process making high-viscosity PET for food packaging, the grade closest to
+# this bottle resin, is 18500 MJ/t, about six times the dataset; the BREF gives no reason for it.
+# The IEA paper (Saygin et al. 2009) gives PET 4.1 GJ/t of fuel at best practice (Table 1, after
+# Boustead 2008) and 4.9 GJ/t as the Western European average (Table 13), twice the dataset's 2.1 GJ/t
+# of natural gas: the dataset's heat is at about half of the best-practice fuel, recorded here and in
+# the README, not bound (kg against GJ). The PET electricity is bound to the same paper.
+schema: cheme-as-code/benchmarks/v1
+family: polymers
+
+kpis:
+  pet-specific-diacid:
+    title: Terephthalic (and isophthalic) acid per t of PET
+    unit: t/t
+    references:
+      - id: bref-pol-pet-tpa-diacid
+        range: [0.825, 0.87]
+        basis: unallocated
+        note: The source labels the row DMT/TPA and does not say whether comonomer acids are counted. Its lower end is below the 0.8645 t/t that the homopolymer's stoichiometry needs, which suggests comonomers or a different product mix; that reading is ours.
+        conditions: {technology: "continuous polycondensation based on TPA (fibre and other grades); the food-packaging grade has its own energy figure only", region: EU}
+        source: &bref-pol
+          citation: "European Commission JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers (POL BREF), August 2007"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/pol_bref_0807.pdf
+          locator: Table 10.4, p. 170
+          kind: bref
+          accessed: "2026-11-05"
+  pet-specific-ethylene-glycol:
+    title: Ethylene glycol per t of PET
+    unit: t/t
+    references:
+      - id: bref-pol-pet-tpa-eg
+        range: [0.32, 0.355]
+        basis: unallocated
+        conditions: {technology: continuous polycondensation based on TPA, region: EU}
+        source: *bref-pol
+  pet-specific-electricity:
+    title: Electricity per t of PET
+    unit: kWh/t
+    references:
+      - id: iea-2009-pet-electricity
+        range: [194.4, 222.2]
+        basis: unallocated
+        note: From the best-practice value (0.7 GJ/t, Table 1, after Boustead 2008) to the estimated current Western European average (0.8 GJ/t, Table 13), in final energy terms, converted at 3.6 MJ/kWh. Table 13 names no source for PET, so by its footnote 1 the average is the best-practice value plus 20 %, not a survey. The same rows give 4.1 GJ/t (best practice) and 4.9 GJ/t (average) of fuel. Independent of the dataset, which takes NAPCOR's US figure.
+        conditions: {technology: "PET production, process and grade not named", region: Western Europe, year: 2009}
+        source:
+          citation: "Saygin, D., Patel, M.K., Tam, C., Gielen, D.J. (2009) Chemical and Petrochemical Sector: Potential of best practice technology and other measures for improving energy efficiency. IEA Information Paper, OECD/IEA, Paris"
+          url: https://iea.blob.core.windows.net/assets/c2d071e4-4142-44f1-8a41-88ece29be439/ChemicalandPetrochemicalSector.pdf
+          locator: Table 1, p. 16, and Table 13, p. 52
+          kind: iea
+          accessed: "2026-11-05"
+
+datasets:
+  - process: pet-1
+    dataset: pet-pta-continuous-ssp
+    conditions: {technology: "continuous PTA esterification and melt polycondensation with SSP; homopolymer repeat unit with 2.6 % isophthalic acid of the diacids", basis: conceptual inventory}
+    kpis:
+      pet-specific-diacid:
+        expression: (feed:terephthalic-acid + feed:isophthalic-acid) / product:pet
+        per: product:pet
+        reference: bref-pol-pet-tpa-diacid
+        out_of_range_reason: "The diacids are the homopolymer stoichiometry (0.8645 t/t) plus the BREF's polymer waste at the midpoint of its very wide range (9.7 kg/t), so they come out at 0.873 t/t, just above the range's top. NAPCOR 2020 (Table 36) reports 0.860 t/t, below the homopolymer stoichiometry, probably because its bottle grades contain diethylene glycol units (our reading; NAPCOR p. 90 says its glycol feed is MEG and DEG together), which the model leaves out (dataset system_boundary.excluded)."
+      pet-specific-ethylene-glycol: {expression: feed:ethylene-glycol / product:pet, per: product:pet, reference: bref-pol-pet-tpa-eg}
+      pet-specific-electricity:
+        expression: feed:electricity / product:pet
+        per: product:pet
+        reference: iea-2009-pet-electricity
+        out_of_range_reason: "The dataset's 230 kWh/t is NAPCOR's figure for US bottle-grade plants of 2015 (melt phase with SSP, some MTR), 4 % above the IEA's Western European average, which is itself the best-practice value plus 20 % (Table 13, footnote 1) rather than plant data."

@@ -1,0 +1,609 @@
+# Tier 1 form, without a flowsheet (as process-library#317). Every amount is the formula of its parameters;
+# core's validator re-checks each. Written from the REF BREF and the other open sources named in the
+# parameters (facts in our own form). Pseudo-components: naphtha C9H20 and reformate C9H15 (the hydrogen
+# contents of PRELIM v1.0 Table 8), LPG C7H18 (C3H8 + C4H10), fuel gas C3H10 (CH4 + C2H6), all ASSUMED
+# lumps for the element balance.
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: catalytic-reforming-ccr
+title: Catalytic reforming of naphtha with continuous catalyst regeneration (CCR)
+description: Per 1 t of C5+ reformate, gate-to-gate. Hydrogen, LPG and fuel gas are co-products. Utilities from
+  the ranges of the EU REF BREF, hydrogen from its CCR figure, fuel gas from a patent's standard-CCR case; the feed
+  and the LPG close the mass and hydrogen balances over pseudo-components with PRELIM's hydrogen contents.
+basis: 1000 kg of C5+ reformate
+boundary: 'gate-to-gate: charge heater and interheaters, three to four moving-bed reactors, continuous regenerator,
+  separators, recontacting and debutaniser; naphtha hydrotreating upstream is not included; fuel and power from
+  outside'
+technology: low-pressure (3.5 to 10 bar) moving-bed reforming over Pt-Sn/alumina with continuous catalyst regeneration;
+  semi-regenerative and cyclic units are not modelled
+geography:
+  description: EU refineries of the BREF data collection for the utilities and hydrogen; one US patent example for
+    the fuel gas; no single site.
+classification:
+  isic: '1920'
+system_boundary:
+  included:
+  - naphtha feed; reformate, hydrogen, LPG and fuel gas
+  - electricity, fired heat, cooling water
+  - coke burn-off CO2 and its oxygen
+  - scrubber water and waste water
+  - Pt catalyst make-up and spent catalyst
+  excluded:
+  - 'TODO HP steam generated in the convection section (50 to 90 kg/t in REF BREF Table 3.42): an exported co-product
+    in the cut-off model, not yet an exchange, so the other products carry its burden'
+  - 'TODO organic chloride promoter (tri- or perchloroethylene) dosed to the regenerator: not quantified in the
+    source'
+  - 'TODO regeneration vent traces: HCl, Cl2, CO, SO2 and PCDD/F (REF BREF Table 3.43: 1172 ng TEQ/t for CCR in
+    a US EPA study; vent concentrations of below 0.01 to 6.7 ng TEQ/Nm3 measured at four Belgian refineries); the
+    shipped biosphere list has no TEQ flow'
+  - 'TODO fugitive hydrocarbons from valves and leaks: not quantified in the source'
+  - TODO chloride guard and dryer adsorbents (discontinuous solid waste)
+  - 'TODO net-gas purity: its light hydrocarbons are counted in the fuel gas'
+  - naphtha hydrotreating, which is a separate unit
+  - 'combustion emissions of the heaters: inside the fired-heat background activity'
+  - storage emissions
+  - infrastructure
+  cutoff: none applied; the excluded flows are not quantified
+  infrastructure: excluded
+  catalysts: included
+  non_routine: excluded
+location: RER
+year: 2010
+valid_until: 2015
+time:
+  start: 1997
+  description: 'REF BREF: Table 3.42 rests on sources of 1997 to 2000, the hydrogen figure and the emission data
+    on the 2010 data collection (REF TWG 2010); the patent example is of 2014. valid_until is the reference year
+    + 5 (system-model section 6), so it has already lapsed.'
+modelling:
+  principle: attributional
+  multifunctionality: energy (LHV) allocation between reformate, hydrogen, LPG and fuel gas (see allocation); the
+    inventory itself is unallocated
+allocation:
+  method: energy
+  coproducts:
+  - reformate
+  - hydrogen
+  - lpg
+  - fuel-gas
+  properties:
+    reformate:
+      energy: 44300.0
+      source: IPCC (2006) Vol. 2, ch. 1, Table 1.2, motor gasoline 44.3 TJ/Gg (reformate as gasoline, ASSUMED)
+    hydrogen:
+      energy: 119950.0
+      source: chemicals/chemicals.yaml hydrogen lhv, 119.95 MJ/kg
+    lpg:
+      energy: 47300.0
+      source: IPCC (2006) Vol. 2, ch. 1, Table 1.2, liquefied petroleum gases 47.3 TJ/Gg
+    fuel-gas:
+      energy: 49500.0
+      source: IPCC (2006) Vol. 2, ch. 1, Table 1.2, refinery gas 49.5 TJ/Gg
+  source: 'lci/mappings.yaml allocation.catalytic-reforming-1 (rule physical-energy): all four products are fuels
+    or hydrogen, docs/system-model.md section 2 step 2; LHVs as given per product'
+uuid: 9548469c-970d-5de0-ab5c-e5b51619a267
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+technology_level: current
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: ref
+  value: 1000.0
+  unit: kg
+  description: Reformate (C5+ liquid) delivered (the basis).
+  source: basis
+- name: M_C
+  value: 12.011
+  unit: g/mol
+  description: Atomic weight of carbon.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573)
+- name: M_H
+  value: 1.008
+  unit: g/mol
+  description: Atomic weight of hydrogen.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573)
+- name: M_O
+  value: 15.999
+  unit: g/mol
+  description: Atomic weight of oxygen.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573)
+- name: V_m
+  value: 22.41396954
+  unit: m3/kmol
+  description: Molar volume of an ideal gas at 0 degC and 1.01325 bar (the Nm3 of the source).
+  source: CODATA 2018 recommended value, as core's foundation.units.MOLAR_VOLUME_NORMAL
+- name: h2_nm3
+  value: 350.0
+  unit: Nm3/t
+  description: 'Net hydrogen per t of naphtha feed, continuous regeneration reformer: around 350 Nm3/t.'
+  source: 'EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 2.6 (operational data of the CCR process),
+    p. 57; taken as pure H2 (ASSUMED: the light hydrocarbons of the net gas are counted in the fuel gas). TODO the
+    net gas purity'
+- name: y_fg
+  value: 0.0318
+  unit: kg/kg
+  description: 'C1 + C2 (fuel gas) per kg of feed under standard CCR conditions: 3.18 wt%.'
+  source: US 8,668,824 B2 (2014), Example, Table B, run 1 (computer simulation based on pilot plant data, RON 100,
+    1300 kPa, H2/HC 4.5); the description states the [C1+C2] concentration on a total product weight basis, and
+    the total product equals the feed by mass, so it is per kg of feed. TODO a plant figure at low pressure
+- name: y_c5
+  value: 0.84
+  unit: kg/kg
+  description: 'C5+ reformate per kg of feed, CCR: midpoint of 82 to 86 wt%. Not used in a formula: the yield the
+    hydrogen balance gives (0.866) is compared with it.'
+  source: 'Honeywell UOP CCR Platforming figures as compiled by ppPLUS, technology #T280 (accessed 2026-11-05),
+    Technical specifications (manufacturer data compiled by a third party); the midpoint is our choice'
+- name: coke
+  value: 0.275
+  unit: kg/t
+  description: 'Coke laid down on the catalyst and burnt in the CCR regenerator per t of feed: midpoint of 0.05
+    to 0.5 kg/t.'
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 3.6 (emissions to air), p. 171 (range);
+    the midpoint is our choice and modelling the coke as pure carbon is ASSUMED (it carries some hydrogen). TODO
+    the coke H/C
+- name: elec
+  value: 37.5
+  unit: kWh/t
+  description: 'Electricity per t of feed: midpoint of 25 to 50 kWh/t (all reformer types).'
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, Table 3.42, p. 171 (range); the midpoint is
+    our choice. The table's CCR example (6 142 kWh at 2 351 t/d) would give about 63 kWh/t if read per hour, which
+    is our reading, so it is not used
+- name: fuel
+  value: 2150.0
+  unit: MJ/t
+  description: 'Fuel fired in the heaters per t of feed: midpoint of 1 400 to 2 900 MJ/t (all reformer types).'
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, Table 3.42, p. 171 (range); the midpoint is
+    our choice. The table's CCR example (232 GJ at 2 351 t/d) would give about 2 370 MJ/t if read per hour, our
+    reading, close to the midpoint; it is not used. Counting the fuel fired as heat delivered (no furnace efficiency)
+    is ASSUMED and overstates the heat. TODO a furnace efficiency
+- name: cw
+  value: 2.0
+  unit: m3/t
+  description: 'Cooling water per t of feed at a 10 K rise: midpoint of 1 to 3 m3/t.'
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, Table 3.42, p. 171 (range); the midpoint is
+    our choice
+- name: rho_w
+  value: 1000.0
+  unit: kg/m3
+  description: Density of the cooling water.
+  source: ASSUMED round value for water near 25 degC. TODO none needed at screening level
+- name: cp_w
+  value: 4.18
+  unit: kJ/(kg K)
+  description: Specific heat of liquid water near 25 degC.
+  source: ASSUMED round value (liquid water near 25 degC). TODO none needed at screening level
+- name: dT_cw
+  value: 10.0
+  unit: K
+  description: Cooling water temperature rise of the source's figure.
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, Table 3.42, p. 171
+- name: ww
+  value: 2.0
+  unit: kg/t
+  description: 'Waste water of a design with a water or caustic scrubber per t of feed: midpoint of 1 to 3 litres
+    per t, at 1 kg/L.'
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 3.6 (waste water), p. 172 (range); the
+    midpoint, the density and that the make-up water equals it are ASSUMED. TODO source the water input
+- name: cat
+  value: 1.35
+  unit: g/t
+  description: 'Pt catalyst consumed per t of feed: 1.35 t per Mt/yr of capacity, read as the yearly make-up.'
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, Table 3.42, p. 171 (all reformer types); reading
+    the figure as the yearly make-up per t of feed is ASSUMED. TODO confirm against the catalyst life (about 10
+    years, p. 172)
+- name: w_pt
+  value: 0.003
+  unit: kg/kg
+  description: 'Platinum in the catalyst: 0.3 wt%.'
+  source: Hameed, S.A. (2017) Iraqi J. Chem. Petrol. Eng. 18(2):109-123, Table 1 (an industrial CCR Pt-Sn catalyst
+    from the literature); taken for every CCR catalyst is ASSUMED. TODO a second catalyst
+- name: w_sn
+  value: 0.003
+  unit: kg/kg
+  description: 'Tin in the catalyst: 0.3 wt%.'
+  source: Hameed, S.A. (2017) Iraqi J. Chem. Petrol. Eng. 18(2):109-123, Table 1; ASSUMED as for w_pt. TODO a second
+    catalyst
+- name: lhv_ref
+  value: 44300.0
+  unit: kJ/kg
+  description: Energy content of the reformate for allocation.
+  source: IPCC (2006) Guidelines Vol. 2, ch. 1, Table 1.2 (motor gasoline, 44.3 TJ/Gg); reformate as motor gasoline
+    is ASSUMED. TODO a reformate LHV
+- name: lhv_lpg
+  value: 47300.0
+  unit: kJ/kg
+  description: Energy content of the LPG for allocation.
+  source: IPCC (2006) Guidelines Vol. 2, ch. 1, Table 1.2 (liquefied petroleum gases, 47.3 TJ/Gg)
+- name: lhv_fg
+  value: 49500.0
+  unit: kJ/kg
+  description: Energy content of the fuel gas for allocation.
+  source: IPCC (2006) Guidelines Vol. 2, ch. 1, Table 1.2 (refinery gas, 49.5 TJ/Gg)
+- name: lhv_h2
+  value: 119950.0
+  unit: kJ/kg
+  description: Energy content of hydrogen for allocation.
+  source: chemicals/chemicals.yaml hydrogen lhv (CODATA Key Values 1989, -241.826 kJ/mol H2O(g))
+exchanges:
+- key: product:reformate
+  title: Reformate, C5+ (stabilised)
+  type: product
+  amount: 1000.0
+  unit: kg
+  formula: ref
+  provenance: given
+  source: the reference flow; aromatics-rich C5+ liquid to gasoline blending or aromatics extraction
+- key: product:hydrogen
+  title: Hydrogen, net gas of the reformer (counted as pure H2)
+  type: product
+  amount: 36.33700276212172
+  unit: kg
+  formula: (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 15 * M_H / (9 * M_C + 15 * M_H)) / ((1 - h2_nm3 * 2 * M_H /
+    V_m / 1000 - y_fg - coke / 1000) * 18 * M_H / (7 * M_C + 18 * M_H) + h2_nm3 * 2 * M_H / V_m / 1000 + y_fg *
+    10 * M_H / (3 * M_C + 10 * M_H) - 20 * M_H / (9 * M_C + 20 * M_H))) * h2_nm3 * 2 * M_H / V_m / 1000
+  provenance: given
+  origin: literature
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, 2.6, p. 57 (around 350 Nm3/t feed for a continuous
+    regeneration reformer); pure H2 ASSUMED
+  pedigree:
+    scores: &id004
+    - 3
+    - 4
+    - 4
+    - 3
+    - 3
+    reason: 'from a value of the REF BREF (EU refineries; data of about 2000 to 2010): reliability 3, completeness
+      4, temporal 4, geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: ''around'' a figure; UOP''s 300 to 600 Nm3/t brackets it (benchmarks/refining.yaml)'
+- key: product:lpg
+  title: C3 and C4 from the debutaniser
+  type: product
+  amount: 80.91467199820681
+  unit: kg
+  formula: (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 15 * M_H / (9 * M_C + 15 * M_H)) / ((1 - h2_nm3 * 2 * M_H /
+    V_m / 1000 - y_fg - coke / 1000) * 18 * M_H / (7 * M_C + 18 * M_H) + h2_nm3 * 2 * M_H / V_m / 1000 + y_fg *
+    10 * M_H / (3 * M_C + 10 * M_H) - 20 * M_H / (9 * M_C + 20 * M_H))) * (1 - h2_nm3 * 2 * M_H / V_m / 1000 - y_fg
+    - coke / 1000) - ref
+  provenance: calculated
+  origin: estimate
+  source: the rest of the feed mass after reformate, hydrogen, fuel gas and coke; no source gives the LPG (7.0 wt%
+    of the feed with these pseudo-formulas)
+  pedigree:
+    scores: &id001
+    - 4
+    - 4
+    - 4
+    - 4
+    - 3
+    reason: 'a closure of the element balance over pseudo-components (ASSUMED formulas) and sourced yields: reliability
+      4, completeness 4, temporal 4, geographical 4, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: a residual of the mass balance, sensitive to the pseudo-formulas'
+- key: product:fuel-gas
+  title: C1 and C2 to the refinery fuel system
+  type: product
+  amount: 36.705946491079835
+  unit: kg
+  formula: (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 15 * M_H / (9 * M_C + 15 * M_H)) / ((1 - h2_nm3 * 2 * M_H /
+    V_m / 1000 - y_fg - coke / 1000) * 18 * M_H / (7 * M_C + 18 * M_H) + h2_nm3 * 2 * M_H / V_m / 1000 + y_fg *
+    10 * M_H / (3 * M_C + 10 * M_H) - 20 * M_H / (9 * M_C + 20 * M_H))) * y_fg
+  provenance: given
+  origin: literature
+  source: US 8,668,824 B2 (2014), Example, Table B, run 1 (C1 + C2 wt%, simulated from pilot plant data under standard
+    CCR conditions)
+  pedigree:
+    scores: *id001
+    reason: 'a simulated figure of one patent example at 1300 kPa: reliability 4, completeness 4, temporal 4, geographical
+      4, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: one simulated value; lower-pressure CCR units crack less'
+- key: feed:naphtha
+  title: Hydrotreated heavy naphtha
+  type: input
+  amount: 1154.275046889303
+  unit: kg
+  formula: (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 15 * M_H / (9 * M_C + 15 * M_H)) / ((1 - h2_nm3 * 2 * M_H /
+    V_m / 1000 - y_fg - coke / 1000) * 18 * M_H / (7 * M_C + 18 * M_H) + h2_nm3 * 2 * M_H / V_m / 1000 + y_fg *
+    10 * M_H / (3 * M_C + 10 * M_H) - 20 * M_H / (9 * M_C + 20 * M_H)))
+  provenance: calculated
+  origin: estimate
+  source: 'closes the hydrogen balance between the naphtha and the products over pseudo-formulas (ASSUMED): naphtha
+    C9H20 (15.7 wt% H) and reformate C9H15 (12.3 wt% H) carry the hydrogen contents PRELIM assumes for hydrotreated
+    naphtha and reformate (Abella, J.P., Motazedi, K., Bergerson, J.A. (2015) PRELIM v1.0 user guide and technical
+    documentation, University of Calgary, Table 8, p. 53). The C5+ yield this gives, 0.866 kg/kg, is just above
+    UOP''s 82 to 86 wt% and below the patent''s 87.4 wt% at RON 100 (benchmarks/refining.yaml). The LPG stays positive
+    only while the reformate holds less than about 12.7 wt% H (README)'
+  pedigree:
+    scores: *id001
+    reason: 'a closure of the element balance over pseudo-components (ASSUMED formulas) and sourced yields: reliability
+      4, completeness 4, temporal 4, geographical 4, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.024
+    source: C5+ yield 0.82 to 0.86 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention)
+- key: feed:O2
+  title: Oxygen of the regeneration air (coke burn-off)
+  type: input
+  amount: 0.8456402931770942
+  unit: kg
+  formula: (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 15 * M_H / (9 * M_C + 15 * M_H)) / ((1 - h2_nm3 * 2 * M_H /
+    V_m / 1000 - y_fg - coke / 1000) * 18 * M_H / (7 * M_C + 18 * M_H) + h2_nm3 * 2 * M_H / V_m / 1000 + y_fg *
+    10 * M_H / (3 * M_C + 10 * M_H) - 20 * M_H / (9 * M_C + 20 * M_H))) * coke / 1000 * 2 * M_O / M_C
+  provenance: calculated
+  origin: estimate
+  free: true
+  source: complete combustion of the coke to CO2 (ASSUMED complete; the source gives CO below 10 mg/Nm3); ambient
+    air is free
+- key: emission:CO2
+  title: CO2 from the coke burn-off in the CCR regenerator
+  type: emission
+  amount: 1.1630659310716527
+  unit: kg
+  formula: (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 15 * M_H / (9 * M_C + 15 * M_H)) / ((1 - h2_nm3 * 2 * M_H /
+    V_m / 1000 - y_fg - coke / 1000) * 18 * M_H / (7 * M_C + 18 * M_H) + h2_nm3 * 2 * M_H / V_m / 1000 + y_fg *
+    10 * M_H / (3 * M_C + 10 * M_H) - 20 * M_H / (9 * M_C + 20 * M_H))) * coke / 1000 * (M_C + 2 * M_O) / M_C
+  provenance: calculated
+  origin: literature
+  cas: 124-38-9
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 349b29d1-3e58-4c66-98b9-9d1a076efd2e
+    name: Carbon dioxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, 3.6, p. 171 (coke 0.05 to 0.5 kg/t feed burnt
+    off); complete combustion; biosphere3 UUID, name and categories from core's elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree:
+    scores: &id003
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.162
+    source: 'coke: range 0.05 to 0.5 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: feed:electricity
+  title: Electricity
+  type: input
+  amount: 43.28531425834886
+  unit: kWh
+  formula: elec * (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 15 * M_H / (9 * M_C + 15 * M_H)) / ((1 - h2_nm3 * 2
+    * M_H / V_m / 1000 - y_fg - coke / 1000) * 18 * M_H / (7 * M_C + 18 * M_H) + h2_nm3 * 2 * M_H / V_m / 1000 +
+    y_fg * 10 * M_H / (3 * M_C + 10 * M_H) - 20 * M_H / (9 * M_C + 20 * M_H))) / 1000
+  provenance: given
+  origin: literature
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, Table 3.42, p. 171
+  pedigree:
+    scores: &id002
+    - 3
+    - 4
+    - 5
+    - 3
+    - 3
+    reason: 'from Table 3.42 of the REF BREF, whose sources date from 1997 to 2000: reliability 3, completeness
+      4, temporal 5 (over 15 years old), geographical 3, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.414
+    source: 'electricity: range 25 to 50 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: feed:fuel
+  title: Fired heat of the charge heater and interheaters (fuel fired, counted as heat)
+  type: input
+  amount: 689.3587085588892
+  unit: kWh
+  formula: fuel / 3.6 * (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 15 * M_H / (9 * M_C + 15 * M_H)) / ((1 - h2_nm3
+    * 2 * M_H / V_m / 1000 - y_fg - coke / 1000) * 18 * M_H / (7 * M_C + 18 * M_H) + h2_nm3 * 2 * M_H / V_m / 1000
+    + y_fg * 10 * M_H / (3 * M_C + 10 * M_H) - 20 * M_H / (9 * M_C + 20 * M_H))) / 1000
+  provenance: given
+  origin: literature
+  carrier:
+    kind: heat
+    level: fired heater
+    source: refinery fuel gas in practice; the background is natural gas heat (lca/mappings.yaml)
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, Table 3.42, p. 171 (fuel fired, MJ/t); counted
+    as heat delivered without a furnace efficiency (ASSUMED, an upper view)
+  pedigree:
+    scores: *id002
+    reason: 'from Table 3.42 of the REF BREF, whose sources date from 1997 to 2000: reliability 3, completeness
+      4, temporal 5 (over 15 years old), geographical 3, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.439
+    source: 'fuel: range 1400 to 2900 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: output:cooling-water
+  title: Heat rejected to cooling water
+  type: output
+  amount: 26.804831644429367
+  unit: kWh
+  formula: cw * rho_w * cp_w * dT_cw / 3600 * (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 15 * M_H / (9 * M_C + 15
+    * M_H)) / ((1 - h2_nm3 * 2 * M_H / V_m / 1000 - y_fg - coke / 1000) * 18 * M_H / (7 * M_C + 18 * M_H) + h2_nm3
+    * 2 * M_H / V_m / 1000 + y_fg * 10 * M_H / (3 * M_C + 10 * M_H) - 20 * M_H / (9 * M_C + 20 * M_H))) / 1000
+  provenance: calculated
+  origin: literature
+  carrier:
+    kind: cold
+    source: no supply temperature stated by the source
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, Table 3.42, p. 171 (1 to 3 m3/t at a 10 K rise),
+    times the water's heat capacity
+  pedigree:
+    scores: *id002
+    reason: 'from Table 3.42 of the REF BREF, whose sources date from 1997 to 2000: reliability 3, completeness
+      4, temporal 5 (over 15 years old), geographical 3, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.732
+    source: 'cooling water: range 1 to 3 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: feed:water
+  title: Water to the regeneration vent scrubber
+  type: input
+  amount: 2.308550093778606
+  unit: kg
+  formula: ww * (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 15 * M_H / (9 * M_C + 15 * M_H)) / ((1 - h2_nm3 * 2 *
+    M_H / V_m / 1000 - y_fg - coke / 1000) * 18 * M_H / (7 * M_C + 18 * M_H) + h2_nm3 * 2 * M_H / V_m / 1000 + y_fg
+    * 10 * M_H / (3 * M_C + 10 * M_H) - 20 * M_H / (9 * M_C + 20 * M_H))) / 1000
+  provenance: assumed
+  origin: estimate
+  link:
+    factor: water
+    source: process water, by mass
+  source: ASSUMED equal to the waste water, so that the water balance closes
+  pedigree:
+    scores: *id003
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.732
+    source: 'water, taken as the waste water: range 1 to 3 read as a 95 % interval, gsd2 = sqrt(high / low) (our
+      convention; the amount stays the arithmetic midpoint or the stated value)'
+- key: output:wastewater
+  title: Waste water of the scrubber to treatment
+  type: output
+  amount: 2.308550093778606
+  unit: kg
+  formula: ww * (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 15 * M_H / (9 * M_C + 15 * M_H)) / ((1 - h2_nm3 * 2 *
+    M_H / V_m / 1000 - y_fg - coke / 1000) * 18 * M_H / (7 * M_C + 18 * M_H) + h2_nm3 * 2 * M_H / V_m / 1000 + y_fg
+    * 10 * M_H / (3 * M_C + 10 * M_H) - 20 * M_H / (9 * M_C + 20 * M_H))) / 1000
+  provenance: given
+  origin: literature
+  link:
+    factor: wastewater
+    source: site wastewater treatment
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, 3.6, p. 172 (1 to 3 L/t feed, designs with a
+    water or caustic scrubber)
+  pedigree:
+    scores: *id004
+    reason: 'from a value of the REF BREF (EU refineries; data of about 2000 to 2010): reliability 3, completeness
+      4, temporal 4, geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.732
+    source: 'waste water: range 1 to 3 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: input:catalyst
+  title: Pt-Sn on alumina reforming catalyst, make-up
+  type: input
+  amount: 0.001558271313300559
+  unit: kg
+  formula: cat / 1000 * (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 15 * M_H / (9 * M_C + 15 * M_H)) / ((1 - h2_nm3
+    * 2 * M_H / V_m / 1000 - y_fg - coke / 1000) * 18 * M_H / (7 * M_C + 18 * M_H) + h2_nm3 * 2 * M_H / V_m / 1000
+    + y_fg * 10 * M_H / (3 * M_C + 10 * M_H) - 20 * M_H / (9 * M_C + 20 * M_H))) / 1000
+  provenance: given
+  origin: literature
+  metals:
+    Pt: 0.003
+    Sn: 0.003
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, Table 3.42, p. 171 (1.35 t per Mt/yr, read as
+    the yearly make-up); mass outside the element balance
+  pedigree:
+    scores: *id002
+    reason: 'from Table 3.42 of the REF BREF, whose sources date from 1997 to 2000: reliability 3, completeness
+      4, temporal 5 (over 15 years old), geographical 3, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: one figure for all reformer types, and our reading of its basis'
+- key: output:spent-catalyst
+  title: Spent reforming catalyst and fines, to platinum reclamation
+  type: output
+  amount: 0.001558271313300559
+  unit: kg
+  formula: cat / 1000 * (ref * (18 * M_H / (7 * M_C + 18 * M_H) - 15 * M_H / (9 * M_C + 15 * M_H)) / ((1 - h2_nm3
+    * 2 * M_H / V_m / 1000 - y_fg - coke / 1000) * 18 * M_H / (7 * M_C + 18 * M_H) + h2_nm3 * 2 * M_H / V_m / 1000
+    + y_fg * 10 * M_H / (3 * M_C + 10 * M_H) - 20 * M_H / (9 * M_C + 20 * M_H))) / 1000
+  provenance: given
+  origin: literature
+  metals:
+    Pt: 0.003
+    Sn: 0.003
+  source: equal to the make-up; the source says CCR fines go to platinum reclamation (EU JRC (2015) REF BREF, EUR
+    27140 EN, doi:10.2791/010758, 3.6, p. 172); mass outside the element balance
+  pedigree:
+    scores: *id002
+    reason: 'from Table 3.42 of the REF BREF, whose sources date from 1997 to 2000: reliability 3, completeness
+      4, temporal 5 (over 15 years old), geographical 3, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: as the make-up'
+provenance:
+  generator: hand-written model; amounts are the formulas of the parameters
+  notes: 'No value from a licensed database. Sources read: REF BREF 2015 sections 2.6 and 3.6; US 8,668,824 B2 Example
+    and description; ppPLUS #T280; Hameed 2017; PRELIM v1.0 Table 8; IPCC 2006 Vol. 2 ch. 1.'
+generation:
+  tier: 1
+  method: 'sourced conceptual inventory: REF BREF ranges, a patent''s standard-CCR yields and a mass and hydrogen
+    balance over pseudo-components with PRELIM''s hydrogen contents, every choice listed in parameters'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 3
+  - 4
+  - 3
+  - 3
+  - 3
+  dqr_floor: 3.0
+  components:
+    product:reformate: C9H15
+    product:hydrogen: H2
+    product:lpg: C7H18
+    product:fuel-gas: C3H10
+    feed:naphtha: C9H20
+    feed:O2: O2
+    emission:CO2: CO2
+    feed:water: H2O
+    output:wastewater: H2O
+  formulas:
+    product:reformate: C9H15
+    product:hydrogen: H2
+    product:lpg: C7H18
+    product:fuel-gas: C3H10
+    feed:naphtha: C9H20
+    feed:O2: O2
+    emission:CO2: CO2
+    feed:water: H2O
+    output:wastewater: H2O
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      C:
+      - 972.843841708
+      - 972.843841708
+      H:
+      - 181.689547506
+      - 181.689547506
+      O:
+      - 2.895848062
+      - 2.895848062
+    outside:
+    - feed:electricity
+    - feed:fuel
+    - input:catalyst
+    - output:cooling-water
+    - output:spent-catalyst

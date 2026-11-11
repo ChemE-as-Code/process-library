@@ -1,0 +1,125 @@
+# Process Atlas manifest of copper-i-chloride-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: copper-i-chloride-1
+title: Copper(I) chloride by semi-batch chlorination of copper in brine, dilution precipitation and filter-drying (300 t/a)
+summary: >-
+  A batch plant: chlorine is dosed into a hot sodium chloride brine over excess copper, the
+  copper(I) chloride stays dissolved, and seven volumes of deoxygenated water precipitate it; it
+  is filtered, washed with dilute acid and ethanol and vacuum-dried. Concept stage, 355.0 kg per
+  batch every 9.37 h, preliminary LCI.
+description: |
+  The route is the wet chlorination of copper in a 300 g/L NaCl brine of US 3 030 178 A
+  (Schering, 1962), run as a batch: the brine, made up from salt, water, a little hydrochloric
+  acid and a tenth of the recycled mother liquor, is charged into R-101 over fresh copper and the
+  copper heel kept from the previous batch, heated to 353 K, and chlorine is dosed below the
+  surface over 3 h and absorbed. The chlorine forms copper(II) chloride on the metal, which the
+  excess copper (about 50 %, as US 4 582 579 A uses) reduces to copper(I); after a 1 h
+  post-reaction 0.5 % of the copper is left as copper(II) and the brine holds about 129 g/L CuCl (103 g/kg).
+  The liquor is cooled to 308 K and drawn off through the strainer into about seven volumes of
+  nitrogen-sparged water (US 3 121 609 A), where 76.5 % of its CuCl precipitates; the rest stays
+  dissolved, on an ASSUMED solubility (a power law in the chloride through two open points of US
+  4 308 239 A, 3.79 g per kg of mother liquor). The crystals settle, the clear liquor is decanted,
+  and the slurry is filtered in the agitated filter-dryer F-101, reslurry-washed with
+  hydrochloric acid of pH 1, washed with ethanol (CN 1 696 062 A) and vacuum-dried at 333 K under
+  nitrogen. The modelled product is 99.8 wt% CuCl, an ASSUMED upper bound (no oxidation by air in
+  the model; the open specification is at least 98 wt%). The yield is 77.6 % on copper: 22.3 % of
+  the copper leaves with the brine (22.1 % dissolved), 75 kg of copper-bearing brine per kg of
+  product, to copper recovery and wastewater treatment outside the boundary.
+
+  The batch is modelled with cheme-as-code 1.9.0: R-101 is a semi-batch (reactor: semibatch)
+  with the chlorine as an absorbed gas dose (core ADR 0054); the copper heel and the recycled
+  mother liquor are tears converged by propagate (core ADR 0060); the precipitation and the acid
+  reslurry wash are crystallizers with the brine's other solutes as spectators and a solubility
+  measured_in the mother liquor (core ADR 0056); the filter-dryer is one recipe vessel over six
+  steps with Ruth filtration times and core's dryer to a residual moisture (core ADR 0057); R101
+  writes its heat at its energy port (core ADR 0059). The recipe gives the cycle (9.37 h, R-101
+  the bottleneck, 846 batches a year), sizes R-101 (5 m3) and F-101 (1 m3) and checks R-101's
+  jacket on the cooling water's log-mean temperature. Kinetics are ASSUMED (no open data): the
+  dosed chlorine accumulates 0.63 % and the cooling-failure temperature reaches 354.2 K (core,
+  each reaction alone; 354.4 K for the reaction network by hand) against an MTT of 373.1 K
+  (water). At a hundred times slower rates the accumulation is 28.1 % and core gives 363.5 K, but
+  the network's MTSR, with the comproportionation heat that core leaves out, reaches 372.1 K:
+  within about 1 K of the MTT on water's boiling point. The dosing therefore stops on a sign of
+  accumulation (a recorded safety requirement), and the chlorine held would exceed its solubility
+  and break through to the vent scrubber, which is sized for the whole chlorine feed (D-011). The
+  filter-dryer handles ethanol above its flash point under nitrogen (D-011). See DESIGN.md for
+  every assumption.
+families: [inorganic-chemicals]
+keywords: [copper(I) chloride, cuprous chloride, CuCl, copper, chlorine, sodium chloride brine, comproportionation, semi-batch, batch, dosing, gas dosing, precipitation, dilution, recycle, filter-dryer, vacuum dryer, catalyst, fine chemicals]
+facets:
+  feedstock_basis: [mineral, electricity]
+  product_classes: [chemicals]
+  unit_operations: [reaction, crystallization, filtration, drying]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Capacity, kinetics, the solubility,
+# filtration and drying are assumed (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept batch PFD with closed mass, component and element balances (cheme validate: 3 blocks,
+    19 steps). Every material stream is calculated by cheme process propagate from the feeds: the
+    semi-batch R101 from its ASSUMED rate laws with the chlorine as an absorbed dose (core ADR
+    0054), the copper heel S6 and the recycled mother liquor S17 as tears converged by Wegstein's
+    method (core ADR 0060), the precipitation CR101 and the acid wash W101 as crystallizers with
+    spectators on an ASSUMED solubility measured_in the mother liquor (a power law through two
+    open points), the strainer, the bag filter, the settler and the filters as specified splits,
+    the dryer D101 to an ASSUMED residual moisture with its heat from cheme's dryer model. The
+    feeds are sized by hand for 300 t/a (the outlets scale with them); R101's duty is written by
+    its model (core ADR 0059), the other duties are hand arithmetic from the stream table, and
+    every mixed temperature is the mix of its inlets. The recipe takes the dosing, post-reaction,
+    heating, cooling, filtration and drying times from the models (cheme process recipe, no
+    cheme.recipe-basis or cheme.recipe-jacket finding). Thermal screening (cheme process
+    reactor-hazards): R101 dT_ad 36.9 K (core's, the chlorination alone; 45.8 K for the net
+    reaction by hand), accumulation 0.63 %, MTSR 354.2 K against an MTT of 373.1 K; no criticality
+    class without a TD24 from calorimetry (never estimated): classes 1, 2 or 5 are still possible.
+    Core's MTSR takes each reaction alone; with the comproportionation's heat (the network, by
+    hand) it is 354.4 K. At k/10 and k/100 the accumulation is 4.26 % and 28.1 %, core's MTSR 357.9
+    and 363.5 K, the network's 359.8 and 372.1 K (within about 1 K of the MTT at k/100), and the
+    copper(II) left after the post-reaction 24 % and 78 %: the dosing's stop on accumulation, the
+    end point and the chlorine's breakthrough to the vent scrubber are the design findings (D-011). Preliminary gate-to-gate
+    LCI with nitrogen and the rinse as per-batch consumables; chlorine, hydrochloric acid, ethanol
+    and nitrogen linked to chlor-alkali-1, hydrogen-chloride-1, ethanol-1 and asu-1, copper and
+    sodium chloride gaps with their proxies recorded. Not reviewed. Needs cheme-as-code 1.9.0.
+chemistry:
+  inputs:
+    - {chemical: copper, role: feedstock, note: "feed:CU: copper cathode granules or clean scrap (merchant), 0.826 kg/kg CuCl; no library process makes copper (proxy copper cathode recorded, D-012)"}
+    - {chemical: chlorine, role: feedstock, note: "feed:CL2: dry chlorine gas (chlor-alkali-1), 0.462 kg/kg CuCl"}
+    - {chemical: sodium-chloride, role: feedstock, note: "feed:NACL: vacuum salt (merchant), 2.55 kg/kg CuCl for the brine; no library process makes it (proxy recorded, D-012)"}
+    - {chemical: hydrogen-chloride, role: feedstock, inventory_key: "feed:HCLA", note: "Hydrochloric acid 33 wt% (hydrogen-chloride-1) to the brine and the acid wash, 0.030 kg/kg CuCl, counted by mass of the acid"}
+    - {chemical: ethanol, role: feedstock, note: "feed:ETOH: anhydrous ethanol (ethanol-1) for the cake wash, 0.525 kg/kg CuCl"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Brine make-up, dilution water and acid wash, 72.3 kg/kg CuCl"}
+  outputs:
+    - {chemical: copper-i-chloride, role: main-product, inventory_key: "product:CUCL", note: "Dried CuCl powder to packing under nitrogen; modelled 99.8 wt% CuCl, an ASSUMED upper bound (no oxidation by air in the model, D-002); the open specification (CN 1 696 062 A) is at least 98 wt%"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:ML", note: "Copper-bearing brine (the decanted mother liquor's purge, the filtrates, the copper fines), 75.0 kg/kg CuCl: 3.4 wt% NaCl, 0.37 wt% CuCl dissolved, 22.3 % of the copper fed (22.1 % dissolved), to copper recovery and wastewater treatment"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:SE", note: "Spent ethanol (the wash filtrate and the dryer condensate), 0.674 kg/kg CuCl, 78 wt% ethanol, to solvent recovery (the registry has no spent-solvent entry: closest entry)"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.304 kWh/kg CuCl: agitators of R-101, P-101 and F-101, the vent scrubber's pump and fan, the vacuum pump (ASSUMED)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.750 kWh/kg CuCl of LP steam: R-101's heat-up and the filter-dryer's hot-water circuit (cheme's dryer model, the vessel's heat each batch included)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "1.032 kWh/kg CuCl removed by cooling water: the heat of chlorination (R101's model), the liquor's cool-down to 308 K and the product's and F-101's cooling before the discharge"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:CHW", note: "0.036 kWh/kg CuCl removed by chilled water at 280 K: the filter-dryer's vacuum condenser"}
+basis:
+  capacity: "300 t/a dried CuCl: 846 batches/a of 355.0 kg in 7920 h on a dedicated train (37.90 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-013)"
+  operating_hours_per_year: 7920
+  location: generic chemical site with a chlorine supply (not chosen)
+references:
+  - {title: "Schering AG (1962) US3030178A: Process for the continuous production of cuprous chloride (300 g/L NaCl brine with 0.5 g/L HCl, chlorine below the surface over scrap copper near the boil, about 155 g/L CuCl in the outflow, precipitated by water, liquors reusable)", url: "https://patents.google.com/patent/US3030178A/en"}
+  - {title: "Buckland, Rolland (American Cyanamid, 1964) US3121609A: Process for preparing cuprous chloride (dilution with 1-15, preferably 5-10, volumes of water; seven in the examples)", url: "https://patents.google.com/patent/US3121609A/en"}
+  - {title: "Hughes Aircraft (1986) US4582579A: Method for preparing cupric ion-free cuprous chloride (copper reduction with a 50 % excess of copper to 0.5-2 % copper(II); dilution with deoxygenated water, chilled deoxygenated wash, vacuum drying)", url: "https://patents.google.com/patent/US4582579A/en"}
+  - {title: "CN1696062A (2005): Method for producing cuprous chloride from spent copper chloride etching solution (washes with dilute HCl of pH 1-2.5 and ethanol; at least 98 wt% CuCl)", url: "https://patents.google.com/patent/CN1696062A/en"}
+  - {title: "US4308239A (1981): Obtaining copper(I) chloride from ores with acetonitrile (CuCl solubility about 1 g/L with 10 g/L excess chloride at 20 C; 0.4 mol/L CuCl in 2.0 mol/L NaCl with 0.5 mol/L HCl at 25 C)", url: "https://patents.google.com/patent/US4308239A/en"}
+  - {title: "PubChem CID 62652, Copper(I) chloride (identity)", url: "https://pubchem.ncbi.nlm.nih.gov/compound/62652"}
+  - {title: "Stoessel, F. (2008) Thermal Safety of Chemical Processes, Wiley-VCH (accumulation and MTSR of a semi-batch; method reference, not data)", doi: 10.1002/9783527621606}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/copper-i-chloride-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0

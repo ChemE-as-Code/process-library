@@ -147,8 +147,8 @@ technosphere:
   hydrogen-methane-makeup:
     proxy: hydrogen-methane-makeup
     source: >-
-      hda-1's make-up gas, 95 mol% H2 with 5 mol% CH4, counted by mass of the mixture: the proxy
-      splits it into hydrogen and natural gas by mass fraction.
+      hda-1's make-up gas, PSA grade, 99.9 mol% H2 with 0.1 mol% CH4 (hda-1 D-020), counted by mass
+      of the mixture: the proxy splits it into hydrogen and natural gas by mass fraction.
   toluene:
     activity: {name: "market for toluene, liquid", reference_product: "toluene, liquid", unit: kilogram, location: GLO}
     source: Fresh toluene, liquid (hda-1 feed:TOLF).
@@ -180,6 +180,30 @@ technosphere:
   sodium-sulfite:
     activity: {name: "market for sodium sulfite", reference_product: "sodium sulfite", unit: kilogram, location: GLO}
     source: Sodium sulfite for brine dechlorination (chlor-alkali-1 feed:NA2SO3).
+  # co2-electrolysis-bpm-1 (#331): the KOH anolyte and the merchant CO2 of the pilot skids. The
+  # names follow ecoinvent 3.11 and are not checked: no ecoinvent licence (ADR 0017); install()
+  # reports one that does not link.
+  potassium-hydroxide:
+    activity: {name: "market for potassium hydroxide", reference_product: "potassium hydroxide", unit: kilogram, location: GLO}
+    source: >-
+      Potassium hydroxide counted as KOH 100 % (the background's basis); used by the
+      potassium-hydroxide-1m and -5m proxies, which count the solutions.
+    notes: "not checked: no ecoinvent licence (scripts/check_mappings.py has not run against a licensed copy)"
+  potassium-hydroxide-1m:
+    proxy: potassium-hydroxide-1m
+    source: 1 M KOH solution counted by mass (co2-electrolysis-bpm-1 feed:KOH-FILL).
+    notes: "not checked: no ecoinvent licence"
+  potassium-hydroxide-5m:
+    proxy: potassium-hydroxide-5m
+    source: 5 M KOH solution counted by mass (co2-electrolysis-bpm-1 feed:KOH-DOSE).
+    notes: "not checked: no ecoinvent licence"
+  carbon-dioxide-liquid:
+    activity: {name: "market for carbon dioxide, liquid", reference_product: "carbon dioxide, liquid", unit: kilogram, location: RER}
+    source: >-
+      Merchant liquefied CO2 (co2-electrolysis-bpm-1 feed:CO2, a fossil industrial by-product,
+      ASSUMED in its DESIGN.md D-016). ASSUMED that the background's CO2 includes the capture,
+      purification and liquefaction but not the delivery to the site.
+    notes: "not checked: no ecoinvent licence"
   sulfuric-acid:
     activity: {name: "market for sulfuric acid", reference_product: "sulfuric acid", unit: kilogram, location: RER}
     source: >-
@@ -363,13 +387,13 @@ proxies:
       - {use: heat-natural-gas-furnace, amount: 3.6, source: "1 kWh = 3.6 MJ. ASSUMED that the dataset's absorbed duty is the background's heat delivered (the furnace efficiency is in the background activity)"}
     source: Converts fired heat counted in kWh (hda-1 feed:FUEL, the feed heater's absorbed duty) to the background's MJ.
   hydrogen-methane-makeup:
-    name: "hydrogen make-up gas, 95 mol% H2, 5 mol% CH4, per kg (Atlas unit proxy)"
-    reference_product: "hydrogen make-up gas, 95 mol% H2"
+    name: "hydrogen make-up gas, 99.9 mol% H2, 0.1 mol% CH4, per kg (Atlas unit proxy)"
+    reference_product: "hydrogen make-up gas, 99.9 mol% H2"
     unit: kilogram
     location: GLO
     inputs:
-      - {use: hydrogen, amount: 0.704807, source: "mass fraction of H2: 0.95 x 2.016 / (0.95 x 2.016 + 0.05 x 16.043), molar masses of chemicals/chemicals.yaml (hda-1's dataset composition gives 0.704807)"}
-      - {use: natural-gas-m3, amount: 0.411419, source: "mass fraction of CH4 0.295193 x 1.393728 m3/kg (natural-gas-kg proxy: methane at 0 degC, 1.01325 bar)"}
+      - {use: hydrogen, amount: 0.992097, source: "mass fraction of H2: 0.999 x 2.016 / (0.999 x 2.016 + 0.001 x 16.043), molar masses of chemicals/chemicals.yaml (hda-1 D-020)"}
+      - {use: natural-gas-m3, amount: 0.011014, source: "mass fraction of CH4 0.007903 x 1.393728 m3/kg (natural-gas-kg proxy: methane at 0 degC, 1.01325 bar)"}
     source: >-
       Splits a two-component make-up gas by mass. ASSUMED that its methane is supplied as natural
       gas; mixing and compression are not counted.
@@ -422,6 +446,30 @@ proxies:
     source: >-
       Converts the brine's mass to the background's NaCl; the brine water and the brine
       purification (Ca/Mg removal, soda-ash-1 D-003) are not counted (screening).
+  potassium-hydroxide-1m:
+    name: "potassium hydroxide, 1 M in water, per kg of solution (Atlas unit proxy)"
+    reference_product: "potassium hydroxide, 1 M solution"
+    unit: kilogram
+    location: GLO
+    inputs:
+      - {use: potassium-hydroxide, amount: 0.053433333, source: "KOH mass fraction of the 1 M fill, 56.105 g/mol / 1.05 kg/L (co2-electrolysis-bpm-1 dataset composition of feed:KOH-FILL; the density ASSUMED there)"}
+      - {use: water, amount: 0.946566667, source: "the dilution water, the rest of the fill's mass (co2-electrolysis-bpm-1 dataset composition of feed:KOH-FILL)"}
+    source: >-
+      Converts the solution's mass to the background's KOH 100 % and its dilution water
+      (deionised). tests/test_lci_case_datasets.py checks both amounts against the dataset's
+      composition.
+  potassium-hydroxide-5m:
+    name: "potassium hydroxide, 5 M in water, per kg of solution (Atlas unit proxy)"
+    reference_product: "potassium hydroxide, 5 M solution"
+    unit: kilogram
+    location: GLO
+    inputs:
+      - {use: potassium-hydroxide, amount: 0.229938525, source: "KOH mass fraction of the 5 M dose, 5 x 56.105 g/mol / 1.22 kg/L (co2-electrolysis-bpm-1 skid-b dataset composition of feed:KOH-DOSE; the density ASSUMED there)"}
+      - {use: water, amount: 0.770061475, source: "the dilution water, the rest of the dose's mass (co2-electrolysis-bpm-1 skid-b dataset composition of feed:KOH-DOSE)"}
+    source: >-
+      Converts the solution's mass to the background's KOH 100 % and its dilution water
+      (deionised). tests/test_lci_case_datasets.py checks both amounts against the dataset's
+      composition.
 
 # Flows the cut-off model leaves out of the producer's system (docs/system-model.md, "Wastes and
 # recyclables"): material sent to recycling leaves burden-free, the recycler carries the
@@ -510,6 +558,54 @@ allocation:
       states (compressed gas, gas at 9 bara, cold liquids), so exergy is the underlying physical
       relationship (hierarchy step 2a). Same method as the study (asu-1 DESIGN.md D-056), so the
       database and the study agree. Economic allocation would need prices (#46).
+  refinery-distillation-1:
+    method: energy
+    rule: physical-energy
+    reason: >-
+      The cuts of the crude and vacuum units are co-produced fuels and refinery feedstocks, so
+      energy content (LHV) is the physical relationship (hierarchy step 2). The LHVs are IPCC 2006
+      category defaults per cut, given in each dataset (not measured values of these cuts).
+  catalytic-reforming-1:
+    method: energy
+    rule: physical-energy
+    reason: >-
+      Reformate, hydrogen, LPG and fuel gas are fuels and hydrogen, so energy content (LHV) is the
+      physical relationship (hierarchy step 2). LHVs as the dataset gives them: IPCC 2006 defaults,
+      the registry's for hydrogen.
+  fcc-1:
+    method: energy
+    rule: physical-energy
+    reason: >-
+      Gasoline, LPG, dry gas, light and heavy cycle oil are fuels and fuel blendstocks, so energy
+      content (LHV) is the physical relationship (hierarchy step 2). LHVs are IPCC 2006 defaults of
+      the matching fuel categories (ASSUMED match), given in the dataset.
+  hydrocracking-1:
+    method: energy
+    rule: physical-energy
+    reason: >-
+      The hydrocracked products, the C1-C2 gas and the unconverted-oil bleed are fuels and fuel
+      blendstocks, so energy content (LHV) is the physical relationship (hierarchy step 2). LHVs are
+      IPCC 2006 defaults per cut, the unsplit product's ASSUMED (jet kerosene), given in the dataset.
+  plastic-pyrolysis-1:
+    method: energy
+    rule: physical-energy
+    reason: >-
+      The raw pyrolysis oil and the exported pyrolysis gas are co-produced fuels (the oil also a
+      steam-cracker feed after upgrading), so energy content (LHV) is the physical relationship
+      (hierarchy step 2). LHVs are IPCC 2006 category defaults, naphtha for the oil and ethane for
+      the gas (ASSUMED match), given in the dataset; the char is a residue, not a co-product.
+  waste-incineration-1:
+    method: exergy
+    rule: deviation
+    reason: >-
+      Net electricity and net heat of one CHP steam cycle, not the products of one separation, so
+      hierarchy step 2a (physical-exergy) does not name this case. docs/system-model.md section 2
+      allocates exported heat as a co-product by energy or exergy, documented per process, never
+      credited. Exergy is chosen because the two leave in different thermodynamic qualities (work,
+      and heat as condensing 1.7 bar(a) steam at 115 degC to the district-heating exchanger, the
+      boundary), which energy content would treat as equal. The products are in kWh, so the WBCSD
+      price-ratio rule (per kg) does not apply. Exergy per kWh is in the dataset's product
+      properties (electricity 3600 kJ; heat the Carnot factor at the boundary temperature).
 
 # Emissions of the plant itself, by component (emission:<component>), to biosphere3 flows. None
 # of the ASU's emissions is a burden (see pass_through), so this list is for other processes.
@@ -575,6 +671,9 @@ biosphere:
   C6H6:
     flow: {name: Benzene, categories: [air], uuid: 28999907-a8a7-45b3-857e-836495ca2aa0}
     source: Benzene, or unburnt aromatics a dataset counts as benzene (name and UUID from biosphere3 as shipped with bw2io 0.9.17, ecoinvent elementary flows 3.9, air, unspecified).
+  C4H6:
+    flow: {name: Butadiene, categories: [air], uuid: 5064da53-d4ec-44ee-ba23-b20a4f8c4964}
+    source: 1,3-Butadiene (CAS 106-99-0) to air from vents and wastewater; a dataset that uses this component means the 1,3-isomer (name and UUID from ecoinvent elementary flows 3.9 as shipped with bw2io 0.9.17, air, unspecified).
   CH3OH:
     flow: {name: Methanol, categories: [air], uuid: 0ebdb68a-f50d-4b0c-ad4b-3a1104d8b454}
     source: Methanol slip (name and UUID from biosphere3 as shipped with bw2io 0.9.17, ecoinvent elementary flows 3.9, air, unspecified).

@@ -43,7 +43,14 @@ U = {  # W/(m2 K), overall, clean
     "E-204": 800,  # LP-steam reboiler, aromatics
     "E-205": 600,  # toluene condenser under vacuum
     "E-206": 700,  # HP-steam reboiler, biphenyl
+    "E-207": 500,  # benzene liquid product cooled against cooling water (D-022)
+    "E-103": 100,  # tail-gas aftercooler: methane-rich gas at 0.47 MPa against cooling water (D-024)
 }
+# kJ/(kmol K), mean cp of the tail gas (84 mol% CH4, 14 mol% H2) between 313 and 436 K at 0.45 to
+# 0.47 MPa: not assumed but taken from scripts/hda_balance.py (thermo, Peng-Robinson), whose K-102
+# outlet is 430.76 K and whose E-103 duty is 238.06 kW for 187.2 kmol/h: 238.06 * 3600 /
+# (187.2 * (430.76 - 313.15)) = 38.9 (review of PR #327; 38.0 ASSUMED before) (D-024)
+CP_TAIL = 38.9
 F_FACTOR = 2.0       # Pa^0.5, sieve trays at the design vapour load
 ACTIVE = 0.85        # active-area fraction of the column cross-section
 TRAY_EFF = 0.7       # overall tray efficiency
@@ -80,7 +87,7 @@ def main() -> None:
 
     # latent heats from the simulation: condenser duty over the condensed vapour V = D (R + 1)
     latent = {
-        "BZ": units["C202"]["condenser_kW"] * 3600.0 / (streams["S21"]["flow"]["value"] * 3.18),
+        "BZ": units["C202"]["condenser_kW"] * 3600.0 / (streams["S26"]["flow"]["value"] * 3.18),
         "TOL": units["C203"]["condenser_kW"] * 3600.0 / (streams["S23"]["flow"]["value"] * 1.5),
     }
     # biphenyl bottoms of C-203: the toluene value, ASSUMED (no simulated biphenyl latent heat)
@@ -94,6 +101,8 @@ def main() -> None:
         return RHO_LIQ
 
     out = [("latent heats", out_latent)]
+    n_tail = streams["S34"]["flow"]["value"] / molar_mass("S34")
+    t_k102 = t("S34") + units["K102"]["cooling_kW"] * 3600.0 / (n_tail * CP_TAIL)
     # ---- exchangers
     ex = {
         "E-101": (units["E101"]["duty_kW"], lmtd(t("S9") - t("S6"), t("S10") - t("S5")),
@@ -104,10 +113,17 @@ def main() -> None:
         # condensing range is ASSUMED 350 -> 313.15 K (the D-008 condenser outlet)
         "E-201": (duty["Q6"], lmtd(350.0 - CW_OUT, 313.15 - CW_IN), "ASSUMED 350 -> 313.15 K against CW"),
         "E-202": (duty["Q5"], STEAM_T["MPS"] - t("S20"), "MP steam against S20 bubble point"),
-        "E-203": (duty["Q8"], lmtd(t("S21") - CW_IN, t("S21") - CW_OUT), "condensing at the S21 temperature"),
+        "E-203": (duty["Q8"], lmtd(t("S26") - CW_IN, t("S26") - CW_OUT), "condensing at the S26 temperature"),
         "E-204": (duty["Q7"], STEAM_T["LPS"] - t("S22"), "LP steam against S22"),
         "E-205": (duty["Q10"], lmtd(t("S23") - CW_IN, t("S23") - CW_OUT), "condensing at the S23 temperature"),
         "E-206": (duty["Q9"], STEAM_T["HPS"] - t("S24"), "HP steam against S24"),
+        "E-207": (abs(units["E207"]["duty_kW"]), lmtd(t("S26") - CW_OUT, 313.15 - CW_IN),
+                  "S26 -> 313.15 K against CW (D-022)"),
+        # D-024: the K-102 discharge temperature is not in the run record (the aftercooler is
+        # inside the compressor unit), so it follows from the simulated aftercooler duty at the
+        # balance script's Peng-Robinson cp (CP_TAIL)
+        "E-103": (units["K102"]["cooling_kW"], lmtd(t_k102 - CW_OUT, t("S34") - CW_IN),
+                  f"K-102 discharge {t_k102:.1f} K -> S34 {t('S34'):.2f} K against CW (D-024)"),
     }
     for tag, (q, dt, basis) in ex.items():
         area = q * 1000 / (U[tag] * dt)
@@ -135,10 +151,10 @@ def main() -> None:
         out.append((tag, f"{text}; {stages:.1f} theoretical stages / {TRAY_EFF} = {trays} trays x "
                          f"{TRAY_SPACING} m + {COLUMN_EXTRA} m -> H {height:.1f} m"))
 
-    s19, s21, s23 = streams["S19"], streams["S21"], streams["S23"]
+    s19, s26, s23 = streams["S19"], streams["S26"], streams["S23"]
     column("C-201", s19["flow"]["value"] * (1.0 + 1.0), molar_mass("S19"), 313.15, 800.0,
            duty["Q5"], "BZ", t("S20"), 800.0, molar_mass("S20"), max(units["C201"]["stages"], 8.0))
-    column("C-202", s21["flow"]["value"] * (1.0 + 2.18), molar_mass("S21"), t("S21"), 150.0,
+    column("C-202", s26["flow"]["value"] * (1.0 + 2.18), molar_mass("S26"), t("S26"), 150.0,
            duty["Q7"], "TOL", t("S22"), 170.0, molar_mass("S22"), units["C202"]["stages"])
     column("C-203", s23["flow"]["value"] * (1.0 + 0.5), molar_mass("S23"), t("S23"), 30.0,
            duty["Q9"], "BIPH", t("S24"), 45.0, molar_mass("S24"), 10.0)
@@ -166,11 +182,16 @@ def main() -> None:
     out.append(("R-101", f"inlet gas {q7:.3f} m3/s (ideal gas, S7); volume not from a model (D-005)"))
 
     # ---- machines and fired heater: simulated duties
-    q = 5494.29 / 3600.0 / rho_liq("BZ", t("S17"), 3250.0)
-    out.append(("P-102", f"{q * 1000:.2f} L/s x 200 kPa / 0.65 = {q * 200 / 0.65:.2f} kW shaft (D-010)"))
+    out.append(("P-102", f"{units['P102']['duty_kW']:.2f} kW (DWSIM, D-022)"))
     out.append(("P-101", f"{units['P101']['duty_kW']:.1f} kW (DWSIM, D-014)"))
     out.append(("K-101", f"{units['K101']['duty_kW']:.1f} kW (DWSIM, D-014)"))
     out.append(("H-101", f"{units['H101']['duty_kW']:.1f} kW absorbed (DWSIM, D-014)"))
+    out.append(("K-102", f"{units['K102']['duty_kW']:.1f} kW shaft, {n_tail:.1f} kmol/h tail gas, "
+                         f"discharge about {t_k102:.0f} K (DWSIM, D-024)"))
+    s13 = streams["S13"]
+    q13 = s13["flow"]["value"] / molar_mass("S13") / 3600.0 * R * t("S13") / s13["pressure"]["value"]
+    out.append(("PK-101", f"PSA feed {s13['flow']['value']:.0f} kg/h, {q13 * 3600:.0f} m3/h actual at "
+                          f"{s13['pressure']['value']:.0f} kPa(a) (ideal gas, S13); package plot ASSUMED (D-024)"))
 
     for tag, text in out:
         print(f"{tag}: {text}")

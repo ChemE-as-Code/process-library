@@ -9,13 +9,9 @@ is identical to the per-kg-DMA inventory in `inventory.csv`. Every exchange is s
 total", not a zero footprint. The steam exchanges are an upper estimate without heat
 integration (D-009).
 
-**One hand-added line in `dataset.yaml`.** `allocation.method: mass` was added by hand to
-`dataset.yaml`. `cheme assess lca --write` leaves the method out when it is the schema
-default (`mass`), and the library's `scripts/build_lci.py --strict` then reads the dataset's
-default as `None` and warns, which fails CI (PR #209). Because of this line,
-`cheme assess lca --check` reports `dataset.yaml` as not current. After every
-`cheme assess lca --write`, add the line again until core writes the default method or the
-library reads a missing one as `mass` (to report to both).
+**No `method` under `allocation` in `dataset.yaml`.** `cheme assess lca --write` leaves the
+method out when it is the schema default (`mass`); the library's `scripts/build_lci.py` reads a
+missing method as `mass` too. `dataset.yaml` is generated as is: do not add the line by hand.
 
 | file | what | written by |
 |---|---|---|

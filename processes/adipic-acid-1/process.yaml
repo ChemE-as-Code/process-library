@@ -1,0 +1,44 @@
+# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
+# datasets are lca/datasets/*.yaml, Tier 1 form, so maturity stays at concept
+# (core's cheme.lci-tier-maturity). See README.md.
+schema: cheme-as-code/process/v1
+id: adipic-acid-1
+title: Adipic acid from cyclohexane via KA oil and nitric acid oxidation
+summary: >-
+  Sourced conceptual inventory per tonne of adipic acid, with and without catalytic N2O
+  decomposition: feeds from stoichiometry with US EPA yield ranges, N2O from the IPCC 2006
+  defaults, energy from IEA Western European averages, air emissions from AP-42. No flowsheet;
+  not reviewed.
+families: [oxygenates]
+keywords: [adipic acid, hexanedioic acid, cyclohexane oxidation, KA oil, cyclohexanol, cyclohexanone, nitric acid oxidation, N2O, nitrous oxide, N2O abatement, nylon 6.6]
+facets: {feedstock_basis: [fossil, atmospheric], product_classes: [chemicals], unit_operations: [reaction, distillation, absorption, crystallisation, drying], region: generic}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: cyclohexane, role: feedstock, inventory_key: "feed:cyclohexane"}
+    - {chemical: nitric-acid, role: feedstock, inventory_key: "feed:nitric-acid", note: "net make-up as 60 wt% weak acid, linked to nitric-acid-1"}
+    - {chemical: air, role: feedstock, note: "feed:oxygen: oxygen of the process air, free (closes the balance)"}
+  outputs:
+    - {chemical: adipic-acid, role: main-product, inventory_key: "product:adipic-acid"}
+    - {chemical: wastewater, role: waste, inventory_key: "output:wastewater"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "KA-section off-gas and residue burned on site, and the nitric acid oxidation"}
+    - {chemical: water, role: emission, inventory_key: "emission:H2O", note: "combustion water vapour"}
+  # emission:N2O, the flow that separates the two datasets (53 kg/t with catalytic decomposition,
+  # 300 kg/t unabated), is not listed: the registry has no slug for N2O yet (as nitric-acid-1).
+  # Nor are emission:NOX and NMVOC (no slug), emission:CO, or the N2 and O2 of the N2O
+  # decomposition (free). See the datasets' exchanges.
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity"}
+    - {chemical: steam, role: utility, inventory_key: "feed:steam", note: "counted as heat delivered (kWh), gross"}
+    - {chemical: methane, role: utility, note: "feed:fuel: fuel counted as heat from natural gas (kWh), ASSUMED natural gas"}
+basis: {capacity: "per tonne of adipic acid (the datasets' basis); no plant size"}
+publication: {status: public, license: CC-BY-4.0}
+references:
+  - {title: "IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Vol. 3 Industrial Processes and Product Use, Ch. 3 Chemical Industry Emissions, section 3.4 Adipic acid production, Table 3.4", url: "https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/3_Volume3/V3_3_Ch3_Chemical_Industry.pdf"}
+  - {title: "US EPA (1991) Alternative Control Techniques Document: Nitric and Adipic Acid Manufacturing Plants, EPA-450/3-91-026, chapter 3.2", url: "https://webarchive.library.unt.edu/web/20090511184712/http://www.epa.gov/ttn/catc/dir1/nitric.pdf"}
+  - {title: "US EPA (1995) AP-42, Fifth Edition, Volume I, section 6.2 Adipic Acid", url: "https://19january2021snapshot.epa.gov/sites/static/files/2020-10/documents/c06s02.pdf"}
+  - {title: "Saygin, D., Patel, M.K., Tam, C., Gielen, D.J. (2009) Chemical and Petrochemical Sector: Potential of best practice technology and other measures for improving energy efficiency. IEA Information Paper, OECD/IEA, Tables 1 and 13", url: "https://iea.blob.core.windows.net/assets/c2d071e4-4142-44f1-8a41-88ece29be439/ChemicalandPetrochemicalSector.pdf"}
+  - {title: "Falcke, H. et al. (2017) Best Available Techniques (BAT) Reference Document for the Production of Large Volume Organic Chemicals. JRC Science for Policy Report EUR 28882 EN (JRC109279), section 2.1.2.3.3", doi: 10.2760/77304}
+  - {title: "Ecofys, Fraunhofer ISI, Öko-Institut (2009) Methodology for the free allocation of emission allowances in the EU ETS post 2012: Sector report for the chemical industry, chapter 6 Adipic acid (benchmark reference only)", url: "https://climate.ec.europa.eu/document/download/b5e9cb5a-ff10-4a89-a083-e69663b708d3_en"}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/adipic-acid-1, access: public}

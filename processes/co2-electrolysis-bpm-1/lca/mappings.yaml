@@ -1,0 +1,24 @@
+# co2-electrolysis-bpm-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the exchange keys of both datasets
+# (lca/dataset.yaml, Skid A, and lca/datasets/*-skid-b.yaml, Skid B: the same keys). The entries
+# they `use` are in the shared lci/mappings.yaml; their ecoinvent 3.11 names are NOT checked: no
+# ecoinvent licence (ADR 0017), so install() reports any that does not link (DESIGN.md D-027).
+#
+# The study's own climate screening (lca/lca.yaml) declares these exchanges `missing:` (no open
+# factor); this file only names what a licensed background run would link them to.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:CO2": {use: carbon-dioxide-liquid, chemical: carbon-dioxide, source: "merchant liquefied CO2, a fossil industrial by-product (ASSUMED, D-016); not checked: no ecoinvent licence"}
+  # the KOH exchanges count the solutions; the proxies convert them to KOH 100 % and the
+  # dilution water by the dataset's composition (registry slug potassium-hydroxide, so a future
+  # Atlas producer links; tests/test_lci_case_datasets.py compares the fractions)
+  "feed:KOH-FILL": {use: potassium-hydroxide-1m, chemical: potassium-hydroxide, source: "1 M KOH fill counted by mass of solution: KOH 100 % and its dilution water by the dataset's composition; not checked: no ecoinvent licence"}
+  "feed:KOH-DOSE": {use: potassium-hydroxide-5m, chemical: potassium-hydroxide, source: "5 M KOH dose counted by mass of solution: KOH 100 % and its dilution water by the dataset's composition; not checked: no ecoinvent licence"}
+  # the anolyte wastes: alkaline KOH and K2CO3 solutions. Screening link to the wastewater entry
+  # (average treatment); their neutralisation is not represented (DESIGN.md D-027)
+  "product:SPENT": {use: wastewater, source: "spent anolyte (KOH, K2CO3) to treatment by mass; the neutralisation of the alkaline solution is not represented (screening); not checked: no ecoinvent licence"}
+  "product:BLEED": {use: wastewater, source: "Skid B's anolyte bleed (KOH, K2CO3) to treatment by mass; neutralisation not represented (screening); not checked: no ecoinvent licence"}
+  # the coolers need 20 degC cooling water (flowsheet CW, ASSUMED): the Atlas cooling tower
+  # (25/35 degC) cannot serve them, so only the background proxy is linked
+  "product:CW": {atlas: false, source: "heat rejected to 20/25 degC site cooling water (ASSUMED, D-012): below the operating range of processes/utility-cooling-tower (25/35 degC); the cooling-water background proxy only"}
+  "product:CONDENSATE": {use: wastewater, source: "the cathode condensate (K2CO3) to treatment by mass; neutralisation not represented (screening); not checked: no ecoinvent licence"}

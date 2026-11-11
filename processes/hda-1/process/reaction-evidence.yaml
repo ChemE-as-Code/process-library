@@ -1,0 +1,125 @@
+# Reaction evidence for thermal toluene hydrodealkylation (skill reaction-evidence-search).
+# Schema cheme/reaction-evidence/v1 (`cheme schema reaction-evidence`). Evidence, not the model:
+# the model is process/reactions.yaml (D-021). model_basis records that decision (R101
+# conversion from O1, R101B biphenyl equilibrium) and the assumptions beyond the evidence.
+# Written in the review of PR #326, round 1 (D-021 revision): the selectivity of O2 is the only
+# benzene selectivity read in full text for a thermal HDA reactor, and it is lower than the
+# model's 0.9734. That is a difference between the model and the evidence, not between two
+# observations, so it is recorded in O2's notes, the route's gaps and D-021 (the schema's
+# `conflicts` compares observations only). The model's equilibrium bounds the biphenyl make
+# only; it excludes heavier polyaromatics and hydrocracking, so its selectivity is optimistic.
+# O2 is at a higher conversion (85 against 75 %) and a lower pressure than R-101, so it is not
+# R-101's value either; the TEA carries a scenario at 0.945 (estimate/tea.yaml, D-021).
+schema: cheme/reaction-evidence/v1
+kind: reaction-evidence
+product: BZ
+question: >-
+  Thermal (non-catalytic) gas-phase hydrodealkylation of toluene with hydrogen to benzene,
+  100 kt/a, adiabatic vessel at about 3.4 MPa(a), 895-940 K, H2/aromatics about 5: per-pass
+  conversion, benzene selectivity and the by-products (biphenyl, heavier polyaromatics, light
+  paraffins) at those conditions.
+searches:
+  - {query: "thermal hydrodealkylation toluene patent conversion per pass residence time", tool: web search, date: "2026-11-03", found: [S1, S2], notes: "S2 section of the campaign (D-021); US 3,340,318 and US 3,390,200 seen as snippets only"}
+  - {query: "US3607960 thermal hydrodealkylation diphenyl auxiliary reactor example selectivity", tool: web fetch (Google Patents full text), date: "2026-11-03", found: [S2], notes: "re-read for Example 1 in the review of PR #326"}
+  - {query: "thermal hydrodealkylation toluene kinetics rate law", tool: web search, date: "2026-11-03", found: [S3], notes: "rate laws without units or range (D-021); not recorded as kinetics evidence"}
+sources:
+  - id: S1
+    kind: patent
+    title: Hydrodealkylation
+    authors: "C. C. King, J. F. Campagnolo, L. M. Lehman (Hydrocarbon Research, Inc.)"
+    year: 1966
+    patent: US3291849A
+    url: https://patents.google.com/patent/US3291849
+    accessed: "2026-11-03"
+    access: full-text
+    reuse: "patent; citation and extracted facts only"
+  - id: S2
+    kind: patent
+    title: Thermal hydrodealkylation process
+    authors: "Gulf Research & Development Co."
+    year: 1971
+    patent: US3607960A
+    url: https://patents.google.com/patent/US3607960A/en
+    accessed: "2026-11-03"
+    access: full-text
+    reuse: "patent; citation and extracted facts only"
+  - id: S3
+    kind: paper
+    title: "Thermal hydrodealkylation kinetics (as cited in D-021)"
+    authors: "Hutabarat et al."
+    year: 2026
+    doi: 10.9767/jcerp.20563
+    accessed: "2026-11-03"
+    access: full-text
+    reuse: "CC BY-SA 4.0"
+    notes: "rate laws (eqs. 4 and 6) give pre-exponential factors without units or validity range and cite a secondary source; no observation recorded (D-021)"
+routes:
+  - id: THDA
+    title: Thermal hydrodealkylation of toluene
+    equations: ["C7H8 + H2 -> C6H6 + CH4", "2 C6H6 <=> C12H10 + H2"]
+    reactants: [TOL, H2]
+    products: [BZ, CH4]
+    reactions: [HDA, BIPH]
+    catalysts: ["none (thermal)"]
+    status: selected
+    rationale: "route of D-001; model basis D-021"
+    gaps:
+      - "benzene selectivity at R-101's conversion (0.75 per pass) and pressure: no full-text source reports it; O2 is at 85 % conversion and 460 psig"
+      - "split of the selectivity loss between biphenyl, heavier polyaromatics ('polymer') and hydrocracking to light paraffins: not reported by S1 or S2"
+      - "kinetics with units, rate basis and validity range (D-021)"
+      - "patent examples are reported operating conditions, not validated performance of an industrial plant"
+observations:
+  - id: O1
+    source: S1
+    route: THDA
+    location: "detailed description, paragraph beginning 'The reactor 44 is an internally insulated open chamber'"
+    kind: operating-example
+    scale: patent-example
+    conditions:
+      temperature: {range: [922.0, 1005.4], unit: K, status: derived, derived_from: "total reactor feed heated to about 1200 F in the fired heater before the reactor, temperature at most 1350 F at any point in the reactor: (F - 32) / 1.8 + 273.15", note: "the patent states no outlet temperature; the range is the feed temperature to the stated maximum"}
+      pressure: {value: 4238.2, unit: kPa(a), status: derived, derived_from: "about 600 psig: 600 x 6.894757 kPa/psi + 101.325 kPa"}
+      phase: gas
+      catalyst: "none (thermal)"
+      residence_time: {range: [20, 40], unit: s}
+      notes: "open chamber without catalytic surfaces; the temperature profile is held by quench gas added at points along the reactor, and the outlet is quenched with liquid: a staged gas quench, not a single adiabatic vessel like R-101"
+    conversion:
+      - {component: TOL, value: {value: 75, unit: "%"}, basis: per-pass, measurement: "the reactor is controlled so that about 75 % of the toluene in the total feed is converted"}
+    missing: [benzene selectivity, by-product split, feed hydrogen ratio of this example]
+  - id: O2
+    source: S2
+    route: THDA
+    location: "Example 1 (primary reactor system: first and second primary reactors)"
+    kind: operating-example
+    scale: patent-example
+    conditions:
+      temperature: {range: [930.4, 999.8], unit: K, status: derived, derived_from: "feed preheated to about 1215 F, outlet of the second primary reactor about 1340 F: (F - 32) / 1.8 + 273.15"}
+      pressure: {value: 3272.9, unit: kPa(a), status: derived, derived_from: "about 460 psig: 460 x 6.894757 kPa/psi + 101.325 kPa"}
+      phase: gas
+      catalyst: "none (thermal)"
+      residence_time: {value: 56, unit: s, note: "nominal, primary and secondary reactors together"}
+      feed:
+        H2: {value: 2161.9, unit: mol/h}
+        CH4: {value: 1083.8, unit: mol/h}
+        BZ: {value: 36.9, unit: mol/h}
+        TOL: {value: 501.6, unit: mol/h, note: "441.5 fresh, the rest recycle"}
+      notes: "two reactors in series; the feed also carries 72.0 and 8.1 mol/h of light paraffins (the full text renders their formulas incompletely). H2/aromatics 4.0 mol/mol, derived: 2161.9 / (36.9 + 501.6)"
+    conversion:
+      - {component: TOL, value: {value: 85.0, unit: "%", status: derived, derived_from: "(501.6 - 75.2) / 501.6, toluene in the feed and in the secondary reactor effluent"}, basis: per-pass}
+    selectivity:
+      - {product: BZ, value: {value: 94.5, unit: "%"}, relative_to: TOL, basis: molar, measurement: "'net selectivity 94.5 percent for this primary reactor system'; consistent with (439.8 - 36.9) / (501.6 - 75.2) = 0.945"}
+    byproducts: ["polymer (9.4 mol/h in the effluent): polyphenyls, primarily diphenyl, and higher-boiling polymers (background)", "light paraffins (the effluent's 59.4 mol/h of the light component against 72.0 in the feed)"]
+    missing: [the polymer's split between diphenyl and heavier compounds, selectivity at 75 % conversion]
+    notes: "the patent's background states the effluent of a primary thermal zone carries 'polyphenyls (primarily diphenyl) and higher boiling polymers', that the benzene yield 'may be increased somewhat' by HDA in the presence of diphenyl, and that diphenyl depresses the dealkylation rate of toluene. Its auxiliary reactor raises the overall selectivity to about 98.3 % (Example 1), which is not part of R-101"
+model_basis:
+  route: THDA
+  reactions: [HDA, BIPH]
+  catalyst: "none (thermal)"
+  evidence: [O1]
+  assumptions:
+    - "HDA at O1's per-pass conversion of 0.75, transferred to R-101 as the design value: R-101 is a single adiabatic vessel at 3450 kPa(a) (485 psig) and 895-938 K, O1 a reactor with a staged gas quench at about 600 psig; R-101's volume and residence time are not designed to it (D-021)"
+    - "BIPH at chemical equilibrium at the R101 outlet temperature (isothermal in DWSIM, D-021); it bounds the biphenyl make only"
+    - "no other side reactions (heavier polyaromatics, hydrocracking to light paraffins): O2 shows a selectivity of 94.5 % at 85 % conversion, so the modelled 0.9734 is optimistic (D-021)"
+  validation: "none: no full-text source reports the benzene selectivity at R-101's conversion and pressure"
+  decision: "D-021"
+  decided_by: "design agent (S2), not reviewed by a person"
+  date: "2026-11-03"

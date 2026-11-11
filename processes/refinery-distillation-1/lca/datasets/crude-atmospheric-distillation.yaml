@@ -1,0 +1,786 @@
+# Tier 1 form, without a flowsheet. Every amount is the formula of its parameters; core's validator
+# re-checks each. Written from the REF BREF, one public crude assay and IPCC 2006 (facts in our own form).
+# The element balance counts every hydrocarbon stream as the pseudo-component CH2 (ASSUMED): it checks
+# the mass balance of the cuts, not how carbon, hydrogen and sulfur split between them.
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: crude-atmospheric-distillation
+title: Atmospheric distillation of desalted crude oil
+description: 'Per 1 t of desalted crude oil, gate-to-gate, crude distillation unit (CDU) with side strippers.
+  Cut yields of one medium North Sea crude at the REF BREF''s cut points; utilities as midpoints of the REF
+  BREF''s ranges; furnace CO2, CH4 and N2O from IPCC defaults. Unallocated: all cuts are co-products.'
+basis: 1000 kg of desalted crude oil distilled
+boundary: 'gate-to-gate: preheat furnace, atmospheric column, side strippers, overhead condensing; desalting,
+  naphtha stabilisation and sour water stripping are outside; steam and power from outside'
+technology: atmospheric crude distillation at 0.5 to 1 barg with steam stripping (REF BREF 2.19); one crude
+  assay
+geography:
+  description: EU utility data of the REF BREF; the crude is a Norwegian North Sea grade refined in Europe;
+    no single site.
+classification:
+  isic: '1920'
+system_boundary:
+  included:
+  - crude feed and the six cuts
+  - furnace fuel and its combustion emissions
+  - electricity, stripping steam, cooling water
+  - sour water
+  - column clean-out sludge
+  - fugitive hydrocarbons of both distillation units
+  excluded:
+  - 'TODO desalting (REF BREF 2.9 and 3.9): its water, electricity and desalter effluent'
+  - 'TODO H2S and NH3 in the overhead gas and sour water: the sheet gives no H2S, and they go to amine treating
+    and the sour water stripper'
+  - 'TODO furnace decoking (once or twice a year, REF BREF 3.19): soot and spent decoking steam not quantified'
+  - 'TODO corrosion inhibitors and caustic soda dosed to the overhead: no amount in the source'
+  - 'heat integration with downstream units: no credit in the cut-off model'
+  - infrastructure
+  - storage emissions
+  cutoff: none applied; the excluded flows are not quantified
+  infrastructure: excluded
+  catalysts: excluded
+  non_routine: excluded
+location: RER
+year: 2001
+valid_until: 2006
+time:
+  start: 1999
+  description: Utilities from the REF BREF table, whose sources date from 1999 to 2001 (the 2015 BREF still
+    gives them); cut yields from an assay of 2021; combustion factors of IPCC 2006. valid_until is the reference
+    year + 5 (system-model section 6), so it has long lapsed.
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+technology_level: current
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+modelling:
+  principle: attributional
+  multifunctionality: 'unallocated: every cut is a co-product. Default allocation for the export: energy (LHV,
+    IPCC 2006 default NCVs), hierarchy step 2 for co-produced fuels, the curated rule in lci/mappings.yaml
+    (see allocation)'
+  sampling: One crude (Johan Sverdrup); a lighter or heavier crude shifts every cut. EU utility ranges of 1999
+    to 2001.
+allocation:
+  method: energy
+  coproducts:
+  - refinery-gas
+  - lpg
+  - naphtha
+  - kerosene
+  - gas-oil
+  - atmospheric-residue
+  source: 'lci/mappings.yaml allocation.refinery-distillation-1 (rule physical-energy): the cuts are co-produced
+    fuels and refinery feedstocks, so energy content (LHV) is the physical relationship, docs/system-model.md
+    section 2, step 2. The LHVs are IPCC 2006 category defaults (Vol. 2, Table 1.2), not measured per cut.'
+uuid: 0d4d6ddb-1be7-5599-a036-73edd76f2fec
+parameters:
+- name: crude
+  value: 1000.0
+  unit: kg
+  description: Desalted crude oil distilled (the basis).
+  source: basis
+- name: c2
+  value: 0.001
+  unit: kg/kg
+  description: Ethane in the crude (the only C2- light end the sheet gives).
+  source: TotalEnergies crude oil data sheet Johan Sverdrup (assay of 01-Apr-2021, sheet Jul-21), TBP distillation
+    table (manufacturer literature; the sheet gives no guarantee of accuracy), light ends
+- name: c34
+  value: 0.02
+  unit: kg/kg
+  description: Propane 0.6, isobutane 0.4 and n-butane 1.0 wt% in the crude.
+  source: TotalEnergies crude oil data sheet Johan Sverdrup (assay of 01-Apr-2021, sheet Jul-21), TBP distillation
+    table (manufacturer literature; the sheet gives no guarantee of accuracy), light ends
+- name: tbp_180
+  value: 0.165
+  unit: kg/kg
+  description: Mass distilled up to 180 degC, light ends included; the BREF's naphtha end point.
+  source: TotalEnergies crude oil data sheet Johan Sverdrup (assay of 01-Apr-2021, sheet Jul-21), TBP distillation
+    table (manufacturer literature; the sheet gives no guarantee of accuracy), TBP curve; cut point from EU
+    JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 2.19, p. 101
+- name: tbp_240
+  value: 0.247
+  unit: kg/kg
+  description: Mass distilled up to 240 degC; the BREF's kerosene end point.
+  source: TotalEnergies crude oil data sheet Johan Sverdrup (assay of 01-Apr-2021, sheet Jul-21), TBP distillation
+    table (manufacturer literature; the sheet gives no guarantee of accuracy), TBP curve; cut point from EU
+    JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 2.19, p. 101
+- name: tbp_360
+  value: 0.474
+  unit: kg/kg
+  description: Mass distilled up to 360 degC; the BREF's heavy gas oil end point, above it atmospheric residue.
+  source: TotalEnergies crude oil data sheet Johan Sverdrup (assay of 01-Apr-2021, sheet Jul-21), TBP distillation
+    table (manufacturer literature; the sheet gives no guarantee of accuracy), TBP curve; cut point from EU
+    JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 2.19, p. 101
+- name: voc
+  value: 0.0112
+  unit: kg
+  description: 'Fugitive hydrocarbons per t crude: midpoint of 5 to 190 t/yr for a refinery of 8.7 Mt/yr crude
+    (0.57 to 21.8 g/t), both distillation units together.'
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, p. 207 (after
+    API 1993); the midpoint, booking both units here and taking it from the naphtha are ASSUMED
+- name: fuel_a
+  value: 540.0
+  unit: MJ
+  description: 'Fuel per t crude, atmospheric unit: midpoint of 400 to 680 MJ/t.'
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.77,
+    p. 207 (sources VROM 1999, Canales 2000, TWG 2001); the midpoint is our choice
+- name: elec_a
+  value: 5.0
+  unit: kWh
+  description: 'Electricity per t crude, atmospheric unit: midpoint of 4 to 6 kWh/t.'
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.77,
+    p. 207 (sources VROM 1999, Canales 2000, TWG 2001); the midpoint is our choice
+- name: steam_a
+  value: 27.5
+  unit: kg
+  description: 'Steam consumed per t crude, atmospheric unit: midpoint of 25 to 30 kg/t (stripping steam).'
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.77,
+    p. 207 (sources VROM 1999, Canales 2000, TWG 2001); the midpoint is our choice; pressure not stated
+- name: cw_a
+  value: 4.0
+  unit: m3
+  description: Cooling water per t crude at a 17 K rise, atmospheric unit.
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.77,
+    p. 207 (sources VROM 1999, Canales 2000, TWG 2001)
+- name: dt_cw
+  value: 17.0
+  unit: K
+  description: Temperature rise of the cooling water.
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.77,
+    p. 207 (sources VROM 1999, Canales 2000, TWG 2001)
+- name: ww_a
+  value: 0.005
+  unit: kg/kg
+  description: 'Water that comes in with the desalted crude and leaves in the overhead reflux drum: 0.5 % on
+    crude. The drum''s sour water is this water plus the stripping steam.'
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 3.19, p. 208 (the overhead reflux
+    drum generates 0.5 % water on crude plus 1.5 % steam on feed); taking all the stripping steam of Table
+    3.77 (27.5 kg/t, more than the 1.5 %) to the drum is ASSUMED. The same page gives 0.08 to 0.75 m3/t of
+    process waste water for the whole atmospheric unit; it is not used, because the rest of that water has
+    no stated source in the unit and may include the desalter's (desalting is outside the boundary). TODO the
+    unit's other waste water
+- name: sludge
+  value: 0.5517
+  unit: kg
+  description: 'Column clean-out sludge per t crude: midpoint of 6.3 to 20 t/day for a crude unit of 8.7 Mt/yr
+    (0.26 to 0.84 kg/t at 365 days a year).'
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, p. 208; the
+    midpoint and 365 operating days are ASSUMED
+- name: a_nox
+  value: 0.01181
+  unit: kg
+  description: 'NOx per t crude, atmospheric unit: the plant''s load of 100.4 t/yr over 8 500 000 t/yr of crude
+    (the table''s kg/t row rounds it to 0.012).'
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.78,
+    p. 208 (TOTAL Mitteldeutschland, loads calculated by the source from permit limit values, yearly average,
+    3 % O2 dry)
+- name: a_so2
+  value: 0.00414
+  unit: kg
+  description: 'SO2 per t crude, atmospheric unit (the plant''s flue gas passes FGD): the plant''s load of
+    35.2 t/yr over 8 500 000 t/yr of crude (the table''s kg/t row rounds it to 0.004).'
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.78,
+    p. 208 (TOTAL Mitteldeutschland, loads calculated by the source from permit limit values, yearly average,
+    3 % O2 dry)
+- name: a_co
+  value: 0.01181
+  unit: kg
+  description: 'CO per t crude, atmospheric unit: the plant''s load of 100.4 t/yr over 8 500 000 t/yr of crude
+    (the table''s kg/t row rounds it to 0.012).'
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.78,
+    p. 208 (TOTAL Mitteldeutschland, loads calculated by the source from permit limit values, yearly average,
+    3 % O2 dry)
+- name: a_pm
+  value: 0.000588
+  unit: kg
+  description: 'Particulates per t crude, atmospheric unit: the plant''s load of 5 t/yr over 8 500 000 t/yr
+    of crude (the table''s kg/t row rounds it to 0.001).'
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.78,
+    p. 208 (TOTAL Mitteldeutschland, loads calculated by the source from permit limit values, yearly average,
+    3 % O2 dry)
+- name: ef_co2
+  value: 57.6
+  unit: g/MJ
+  description: 'CO2 per MJ (LHV) of refinery gas burned: 57 600 kg/TJ, 95 % interval 48 200 to 69 000.'
+  source: IPCC (2006) Guidelines, Vol. 2 Energy, ch. 1, Table 1.4, p. 1.23 (refinery gas) and IPCC (2006) Guidelines,
+    Vol. 2 Energy, ch. 2, Table 2.2, p. 2.16 (energy industries, refinery gas); that the furnace burns refinery
+    gas only is ASSUMED (EU refineries also fire natural gas and fuel oil, which IPCC puts at 56 100 and 77
+    400 kg/TJ)
+- name: ef_ch4
+  value: 0.001
+  unit: g/MJ
+  description: 'CH4 per MJ (LHV) of refinery gas burned: 1 kg/TJ, range 0.3 to 3.'
+  source: IPCC (2006) Guidelines, Vol. 2 Energy, ch. 2, Table 2.2, p. 2.16 (energy industries, refinery gas)
+- name: ef_n2o
+  value: 0.0001
+  unit: g/MJ
+  description: 'N2O per MJ (LHV) of refinery gas burned: 0.1 kg/TJ, range 0.03 to 0.3.'
+  source: IPCC (2006) Guidelines, Vol. 2 Energy, ch. 2, Table 2.2, p. 2.16 (energy industries, refinery gas)
+- name: cp_w
+  value: 4.18
+  unit: kJ/(kg K)
+  description: Specific heat of liquid cooling water.
+  source: 'ASSUMED: the common value of liquid water near 25 degC (not read in a source here)'
+exchanges:
+- key: feed:crude-oil
+  title: Crude oil, desalted (Johan Sverdrup type, 28.7 API, 0.81 wt% S)
+  type: input
+  amount: 1000.0
+  unit: kg
+  formula: crude
+  provenance: given
+  origin: literature
+  source: the basis; the crude type is the assay's (ASSUMED representative)
+- key: feed:steam
+  title: Stripping steam (pressure not stated)
+  type: input
+  amount: 27.5
+  unit: kg
+  formula: steam_a
+  provenance: given
+  origin: literature
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.77,
+    p. 207 (sources VROM 1999, Canales 2000, TWG 2001)
+  pedigree: &id001
+    scores:
+    - 3
+    - 4
+    - 5
+    - 3
+    - 3
+    reason: 'from a range of the REF BREF utility table (EU, sources of 1999 to 2001): reliability 3, completeness
+      4, temporal 5 (about 25 years old), geographical 3, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.095
+    source: 'steam: range 25 to 30 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: feed:water
+  title: Water carried with the desalted crude (residual desalter water)
+  type: input
+  amount: 5.0
+  unit: kg
+  formula: crude * ww_a
+  provenance: given
+  origin: literature
+  link:
+    factor: water
+    source: process water, by mass
+  source: EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 3.19, p. 208 (0.5 % water on crude
+    in the overhead reflux drum); counted on top of the 1 t of dry crude whose TBP yields the cuts follow (ASSUMED)
+  pedigree: &id007
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: one figure without a range; residual water varies with the desalter'
+- key: feed:electricity
+  title: Electricity
+  type: input
+  amount: 5.0
+  unit: kWh
+  formula: elec_a
+  provenance: given
+  origin: literature
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.77,
+    p. 207 (sources VROM 1999, Canales 2000, TWG 2001)
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.225
+    source: 'electricity: range 4 to 6 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the
+      amount stays the arithmetic midpoint or the stated value)'
+- key: feed:fuel
+  title: Refinery fuel gas fired in the crude unit furnace (LHV)
+  type: input
+  amount: 150.0
+  unit: kWh
+  formula: fuel_a / 3.6
+  provenance: given
+  origin: literature
+  carrier:
+    kind: fuel
+    composition: refinery fuel gas (ASSUMED)
+    source: 'REF BREF 3.19: fuel to heat the feed'
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.77,
+    p. 207 (sources VROM 1999, Canales 2000, TWG 2001); the source gives MJ/t, converted at 3.6 MJ/kWh
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.304
+    source: 'fuel: range 400 to 680 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: emission:CO2
+  title: CO2 from the crude unit furnace
+  type: emission
+  amount: 31.104
+  unit: kg
+  formula: fuel_a * ef_co2 / 1000
+  provenance: calculated
+  origin: literature
+  cas: 124-38-9
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 349b29d1-3e58-4c66-98b9-9d1a076efd2e
+    name: Carbon dioxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: fuel times the IPCC default for refinery gas (IPCC (2006) Guidelines, Vol. 2 Energy, ch. 1, Table
+    1.4, p. 1.23 (refinery gas)); compare REF BREF Table 3.78; biosphere3 UUID, name and categories from core's
+    elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree: &id002
+    scores:
+    - 4
+    - 4
+    - 4
+    - 3
+    - 4
+    reason: 'an IPCC 2006 default factor applied to the sourced fuel, the fuel taken as refinery gas (ASSUMED):
+      reliability 4, completeness 4, temporal 4, geographical 3, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.377
+    source: fuel range and the IPCC 95 % interval 48 200 to 69 000 kg/TJ, each read as gsd2 = sqrt(high / low)
+      and combined in the log (our convention)
+- key: emission:CH4
+  title: CH4 from the crude unit furnace
+  type: emission
+  amount: 0.00054
+  unit: kg
+  formula: fuel_a * ef_ch4 / 1000
+  provenance: calculated
+  origin: literature
+  cas: 74-82-8
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 0795345f-c7ae-410c-ad25-1845784c75f5
+    name: Methane, fossil
+    categories:
+    - air
+    unit: kg
+  source: IPCC (2006) Guidelines, Vol. 2 Energy, ch. 2, Table 2.2, p. 2.16 (energy industries, refinery gas);
+    biosphere3 UUID, name and categories from core's elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.162
+    source: 'IPCC CH4 factor: range 0.3 to 3 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: emission:N2O
+  title: N2O from the crude unit furnace
+  type: emission
+  amount: 5.4e-05
+  unit: kg
+  formula: fuel_a * ef_n2o / 1000
+  provenance: calculated
+  origin: literature
+  cas: 10024-97-2
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 20185046-64bb-4c09-a8e7-e8a9e144ca98
+    name: Dinitrogen monoxide
+    categories:
+    - air
+    unit: kg
+  source: IPCC (2006) Guidelines, Vol. 2 Energy, ch. 2, Table 2.2, p. 2.16 (energy industries, refinery gas);
+    biosphere3 UUID, name and categories from core's elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.162
+    source: 'IPCC N2O factor: range 0.03 to 0.3 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: product:refinery-gas
+  title: Refinery gas (C2 and lighter, to the fuel gas system)
+  type: product
+  amount: 1.0
+  unit: kg
+  formula: crude * c2
+  provenance: calculated
+  origin: literature
+  properties:
+    energy: 49500.0
+    source: 'IPCC (2006) Guidelines, Vol. 2 Energy, ch. 1, Table 1.2, p. 1.18 (default NCV): Refinery Gas,
+      49.5 MJ/kg; the category is ASSUMED for the cut'
+  source: TotalEnergies crude oil data sheet Johan Sverdrup (assay of 01-Apr-2021, sheet Jul-21), TBP distillation
+    table (manufacturer literature; the sheet gives no guarantee of accuracy); methane and H2S are not given
+    by the sheet
+  pedigree: &id003
+    scores:
+    - 4
+    - 4
+    - 3
+    - 3
+    - 4
+    reason: 'TBP yields of one crude (assay of 2021) taken as plant yields at the cut points (ASSUMED): reliability
+      4, completeness 4, temporal 3, geographical 3, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty: &id004
+    gsd2: 2.0
+    source: 'ASSUMED: light ends of one assay; the overhead also carries gas from the desalter and slops'
+- key: product:lpg
+  title: Liquefied petroleum gas (C3 and C4)
+  type: product
+  amount: 20.0
+  unit: kg
+  formula: crude * c34
+  provenance: calculated
+  origin: literature
+  properties:
+    energy: 47300.0
+    source: 'IPCC (2006) Guidelines, Vol. 2 Energy, ch. 1, Table 1.2, p. 1.18 (default NCV): Liquefied Petroleum
+      Gases, 47.3 MJ/kg; the category is ASSUMED for the cut'
+  source: TotalEnergies crude oil data sheet Johan Sverdrup (assay of 01-Apr-2021, sheet Jul-21), TBP distillation
+    table (manufacturer literature; the sheet gives no guarantee of accuracy)
+  pedigree: *id003
+  basic_uncertainty: 1.05
+  uncertainty: *id004
+- key: product:naphtha
+  title: Naphtha (C5 to 180 degC), unstabilised
+  type: product
+  amount: 143.98880000000003
+  unit: kg
+  formula: crude * (tbp_180 - c2 - c34) - voc
+  provenance: calculated
+  origin: literature
+  properties:
+    energy: 44500.0
+    source: 'IPCC (2006) Guidelines, Vol. 2 Energy, ch. 1, Table 1.2, p. 1.18 (default NCV): Naphtha, 44.5
+      MJ/kg; the category is ASSUMED for the cut'
+  source: TotalEnergies crude oil data sheet Johan Sverdrup (assay of 01-Apr-2021, sheet Jul-21), TBP distillation
+    table (manufacturer literature; the sheet gives no guarantee of accuracy); less the fugitive hydrocarbons
+    (ASSUMED)
+  pedigree: *id003
+  basic_uncertainty: 1.05
+  uncertainty: &id005
+    gsd2: 1.2
+    source: 'ASSUMED: TBP yields of one crude at sharp cut points; a plant''s cuts overlap and its crude slate
+      differs'
+- key: product:kerosene
+  title: Kerosene (180 to 240 degC)
+  type: product
+  amount: 81.99999999999999
+  unit: kg
+  formula: crude * (tbp_240 - tbp_180)
+  provenance: calculated
+  origin: literature
+  properties:
+    energy: 43800.0
+    source: 'IPCC (2006) Guidelines, Vol. 2 Energy, ch. 1, Table 1.2, p. 1.18 (default NCV): Other Kerosene,
+      43.8 MJ/kg; the category is ASSUMED for the cut'
+  source: TotalEnergies crude oil data sheet Johan Sverdrup (assay of 01-Apr-2021, sheet Jul-21), TBP distillation
+    table (manufacturer literature; the sheet gives no guarantee of accuracy)
+  pedigree: *id003
+  basic_uncertainty: 1.05
+  uncertainty: *id005
+- key: product:gas-oil
+  title: Gas oil (240 to 360 degC, light and heavy)
+  type: product
+  amount: 226.99999999999997
+  unit: kg
+  formula: crude * (tbp_360 - tbp_240)
+  provenance: calculated
+  origin: literature
+  properties:
+    energy: 43000.0
+    source: 'IPCC (2006) Guidelines, Vol. 2 Energy, ch. 1, Table 1.2, p. 1.18 (default NCV): Gas/Diesel Oil,
+      43.0 MJ/kg; the category is ASSUMED for the cut'
+  source: TotalEnergies crude oil data sheet Johan Sverdrup (assay of 01-Apr-2021, sheet Jul-21), TBP distillation
+    table (manufacturer literature; the sheet gives no guarantee of accuracy)
+  pedigree: *id003
+  basic_uncertainty: 1.05
+  uncertainty: *id005
+- key: product:atmospheric-residue
+  title: Atmospheric residue (above 360 degC, to the vacuum unit)
+  type: product
+  amount: 526.0
+  unit: kg
+  formula: crude * (1 - tbp_360)
+  provenance: calculated
+  origin: literature
+  properties:
+    energy: 40400.0
+    source: 'IPCC (2006) Guidelines, Vol. 2 Energy, ch. 1, Table 1.2, p. 1.18 (default NCV): Residual Fuel
+      Oil, 40.4 MJ/kg; the category is ASSUMED for the cut'
+  source: TotalEnergies crude oil data sheet Johan Sverdrup (assay of 01-Apr-2021, sheet Jul-21), TBP distillation
+    table (manufacturer literature; the sheet gives no guarantee of accuracy)
+  pedigree: *id003
+  basic_uncertainty: 1.05
+  uncertainty: *id005
+- key: output:wastewater
+  title: Sour water to stripping and wastewater treatment
+  type: output
+  amount: 32.5
+  unit: kg
+  formula: crude * ww_a + steam_a
+  provenance: given
+  origin: literature
+  link:
+    factor: wastewater
+    source: site wastewater treatment
+  source: 'EU JRC (2015) REF BREF, EUR 27140 EN, doi:10.2791/010758, section 3.19, p. 208: the overhead reflux
+    drum''s sour water, the water carried with the crude plus the stripping steam (see parameter ww_a); contains
+    oil, H2S, NH3, chlorides, phenol; sour water stripping not counted'
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: the stripping steam (25 to 30 kg/t) plus one figure for the water on crude'
+- key: output:cooling-water
+  title: Heat rejected to cooling water
+  type: output
+  amount: 78.95555555555555
+  unit: kWh
+  formula: cw_a * 1000 * cp_w * dt_cw / 3600
+  provenance: calculated
+  origin: literature
+  source: 'EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.77,
+    p. 207 (sources VROM 1999, Canales 2000, TWG 2001): m3 per t at 17 K, times cp (ASSUMED)'
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.5
+    source: 'ASSUMED: a single value of the source'
+- key: output:sludge
+  title: Column clean-out sludge (oily solids) to hazardous waste treatment
+  type: output
+  amount: 0.5517
+  unit: kg
+  formula: sludge
+  provenance: given
+  origin: literature
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, p. 208; composition
+    not stated (oil, water and the crude's solids), so outside the element balance. TODO its treatment route
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.797
+    source: 'sludge: range 0.26 to 0.84 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the
+      amount stays the arithmetic midpoint or the stated value)'
+- key: emission:NOX
+  title: NOx from the crude unit furnace
+  type: emission
+  amount: 0.01181
+  unit: kg
+  formula: a_nox
+  provenance: calculated
+  origin: literature
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: c1b91234-6f24-417b-8309-46111d09c457
+    name: Nitrogen oxides
+    categories:
+    - air
+    unit: kg
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.78,
+    p. 208 (TOTAL Mitteldeutschland, loads calculated by the source from permit limit values, yearly average,
+    3 % O2 dry); mass outside the element balance; biosphere3 UUID, name and categories from core's elementary-flow
+    crosswalk (data/elementary-flows.yaml)
+  pedigree: &id006
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 3
+    reason: 'one EU plant''s loads, which the source calculates from permit limit values: reliability 4, completeness
+      4, temporal 5 (about 25 years old), geographical 4, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: one plant''s loads from permit limit values, not measurements'
+- key: emission:SO2
+  title: SO2 from the crude unit furnace
+  type: emission
+  amount: 0.00414
+  unit: kg
+  formula: a_so2
+  provenance: calculated
+  origin: literature
+  cas: 7446-09-5
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: fd7aa71c-508c-480d-81a6-8052aad92646
+    name: Sulfur dioxide
+    categories:
+    - air
+    unit: kg
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.78,
+    p. 208 (TOTAL Mitteldeutschland, loads calculated by the source from permit limit values, yearly average,
+    3 % O2 dry); mass outside the element balance; biosphere3 UUID, name and categories from core's elementary-flow
+    crosswalk (data/elementary-flows.yaml)
+  pedigree: *id006
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: one plant''s loads from permit limit values, not measurements'
+- key: emission:CO
+  title: CO from the crude unit furnace
+  type: emission
+  amount: 0.01181
+  unit: kg
+  formula: a_co
+  provenance: calculated
+  origin: literature
+  cas: 630-08-0
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: ba2f3f82-c93a-47a5-822a-37ec97495275
+    name: Carbon monoxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.78,
+    p. 208 (TOTAL Mitteldeutschland, loads calculated by the source from permit limit values, yearly average,
+    3 % O2 dry); mass outside the element balance; biosphere3 UUID, name and categories from core's elementary-flow
+    crosswalk (data/elementary-flows.yaml)
+  pedigree: *id006
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: one plant''s loads from permit limit values, not measurements'
+- key: emission:PM
+  title: Particulates (all sizes, counted as PM2.5) from the crude unit furnace
+  type: emission
+  amount: 0.000588
+  unit: kg
+  formula: a_pm
+  provenance: calculated
+  origin: literature
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 21e46cb8-6233-4c99-bac3-c41d2ab99498
+    name: Particulate Matter, < 2.5 um
+    categories:
+    - air
+    unit: kg
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, Table 3.78,
+    p. 208 (TOTAL Mitteldeutschland, loads calculated by the source from permit limit values, yearly average,
+    3 % O2 dry); mass outside the element balance; biosphere3 UUID, name and categories from core's elementary-flow
+    crosswalk (data/elementary-flows.yaml)
+  pedigree: *id006
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: one plant''s loads from permit limit values, not measurements'
+- key: emission:NMVOC
+  title: Fugitive hydrocarbons, both distillation units
+  type: emission
+  amount: 0.0112
+  unit: kg
+  formula: voc
+  provenance: given
+  origin: literature
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: d3260d0e-8203-4cbb-a45a-6a13131a5108
+    name: NMVOC, non-methane volatile organic compounds
+    categories:
+    - air
+    unit: kg
+  source: EU JRC (2015) REF BREF, Barthe et al., EUR 27140 EN, doi:10.2791/010758, section 3.19, p. 207; booked
+    here for both units (ASSUMED); biosphere3 UUID, name and categories from core's elementary-flow crosswalk
+    (data/elementary-flows.yaml)
+  pedigree: *id007
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 6.157
+    source: 'fugitive hydrocarbons: range 0.575 to 21.8 read as a 95 % interval, gsd2 = sqrt(high / low) (our
+      convention; the amount stays the arithmetic midpoint or the stated value)'
+provenance:
+  generator: hand-written model; amounts are the formulas of the parameters
+  notes: No value from a licensed database. Yields from a public crude data sheet (manufacturer literature),
+    utilities from the REF BREF, combustion factors and NCVs from IPCC 2006.
+generation:
+  tier: 1
+  method: 'sourced conceptual inventory: REF BREF utility ranges, cut yields from one crude''s TBP curve at
+    the BREF''s cut points, IPCC 2006 combustion defaults; every choice listed in parameters'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 3
+  - 4
+  - 3
+  - 3
+  - 3
+  dqr_floor: 3.0
+  components:
+    feed:crude-oil: hydrocarbon
+    product:refinery-gas: hydrocarbon
+    product:lpg: hydrocarbon
+    product:naphtha: hydrocarbon
+    product:kerosene: hydrocarbon
+    product:gas-oil: hydrocarbon
+    product:atmospheric-residue: hydrocarbon
+    emission:NMVOC: hydrocarbon
+    feed:steam: H2O
+    feed:water: H2O
+    output:wastewater: H2O
+  formulas:
+    feed:crude-oil: CH2
+    product:refinery-gas: CH2
+    product:lpg: CH2
+    product:naphtha: CH2
+    product:kerosene: CH2
+    product:gas-oil: CH2
+    product:atmospheric-residue: CH2
+    emission:NMVOC: CH2
+    feed:steam: H2O
+    feed:water: H2O
+    output:wastewater: H2O
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      C:
+      - 856.277179725
+      - 856.277179725
+      H:
+      - 147.359789468
+      - 147.359789468
+      O:
+      - 28.863030808
+      - 28.863030808
+    outside:
+    - emission:CH4
+    - emission:CO
+    - emission:CO2
+    - emission:N2O
+    - emission:NOX
+    - emission:PM
+    - emission:SO2
+    - feed:electricity
+    - feed:fuel
+    - output:cooling-water
+    - output:sludge

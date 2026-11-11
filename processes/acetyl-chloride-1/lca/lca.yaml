@@ -1,0 +1,114 @@
+# Goal and scope of the acetyl-chloride-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme
+# assess lca --write` (lca/inventory.csv, gaps.csv, dataset.yaml, manifest.json, results); never
+# edit those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the batch
+# plant with its amount per kg of acetyl chloride, from the flowsheet's year averages of the
+# recipe (D-003). Per batch: multiply by 1459.91 kg. The backgrounds are left unmapped
+# (`missing:` with the activity each should connect to), except where lca/mappings.yaml links a
+# library producer or a shared entry: a gap, never zero, and no values from licensed databases.
+# Phosphorus trichloride has no exported library producer: its gap names the proxy it should
+# connect to (D-012). The vent scrubber's tail gas is not estimated (emission_exclusions).
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of acetyl chloride made by dosing phosphorus
+  trichloride into acetic acid in a semi-batch reactor, settling the crude phosphorous acid off
+  as a lower phase and distilling the acetyl chloride at atmospheric pressure, at the concept
+  stage: which raw materials, utilities and wastes the batch plant exchanges per kg of acetyl
+  chloride, as the foreground for a later cradle-to-gate study. No impact results: most
+  backgrounds are not mapped yet (D-012).
+functional_unit: {product: ACCL, amount: 1, unit: kg, source: "1 kg of distilled acetyl chloride (modelled 99.43 wt%, 0.57 wt% PCl3; specification at least 99.0 wt%) at the plant gate to storage, stream S10 (D-002, D-012, D-015)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
+# being mapped free (the schema's gate-to-gate maps every feed free), as benzoyl-chloride-1 does.
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Batch plant: phosphorus trichloride dosed over 2 h into acetic acid at 313 K (semi-batch, 1 mol per 3 mol), held to 0.95 conversion of the PCl3, the HCl of the acid's water vented through a brine condenser to a water scrubber; the lower phase (crude phosphorous acid) settled off, the upper phase distilled at atmospheric pressure in a batch still with a 10-stage column at reflux ratio 1; 1459.9 kg per batch, 1370 batches a year on a dedicated train"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+system_model: cutoff
+allocation:
+  # Mass allocation written as its shares: the products' masses per hour, S10 252.524 and S7
+  # 102.536 kg/h, give 0.711 and 0.289. `method: mass` would be the same, but core writes the
+  # dataset's default without a method when it is mass, and the library's strict LCI build then
+  # warns that the study's 'mass' differs from the dataset's None (process-library#322); D-012.
+  method: shares
+  coproducts: [ACCL, H3PO3P]
+  shares: {ACCL: 0.711, H3PO3P: 0.289}
+  source: >-
+    D-012 (agent proposal, for the LCA practitioner to confirm): the crude phosphorous acid
+    (lower phase, 87.5 wt% H3PO3 with acetic acid and acetyl chloride; 0.406 kg per kg of acetyl
+    chloride) is a co-product of fixed stoichiometry (one H3PO3 per three acetyl chloride) that
+    CS 272 248 B2 uses as it is, diluted, as the phosphorus source of a phosphonomethylation.
+    The library hierarchy (docs/system-model.md) has no physical relationship here (neither is
+    a fuel; no exergy, since no property package covers these liquids), so the WBCSD rule
+    applies; both products are priced as chemical intermediates of the same order per kg, so the
+    rule is taken to give mass allocation: 71.1 % to the acetyl chloride.
+  deviation: >-
+    No prices are sourced at the concept stage: that the ratio of the prices per kg is below 5
+    is ASSUMED. If a sourced price ratio comes out above 5, the rule gives economic allocation
+    and the acetyl chloride's share rises; a share of 1 (all burdens to the acetyl chloride, the
+    crude acid free) is the conservative bound.
+flows:
+  # raw materials
+  - key: feed:HAC
+    missing: "linked to processes/acetic-acid-1 (lca/mappings.yaml): glacial acetic acid by methanol carbonylation"
+    source: "flowsheet stream S1 (D-004)"
+  - key: feed:PCL3
+    missing: "not mapped yet (D-012); no library process exports phosphorus trichloride. Connect to: phosphorus trichloride from white phosphorus and chlorine in a PCl3 heel (P4 + 6 Cl2 -> 4 PCl3; 0.226 kg P and 0.774 kg Cl2 per kg, stoichiometric), whose main burdens are white phosphorus (no library producer) and chlorine (processes/chlor-alkali-1); processes/phosphorus-oxychloride-1 models that step as its internal block PCL3 and does not export it (recorded proxy, not linked)"
+    source: "flowsheet stream S3 (D-004)"
+  - key: feed:PW
+    missing: "not mapped yet (D-012); connect to: process water from the site water treatment, for the vent scrubber"
+    source: "flowsheet stream S15 (D-010)"
+  # utilities
+  - key: feed:POWER
+    missing: "not mapped yet (D-012); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy streams P1 (R-101 agitator), P2 (still agitator and reflux pump) and P3 (scrubber pump and fan), D-009"
+  - key: feed:LPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 350 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
+    source: "flowsheet energy streams Q1 (R-101's tempered-water loop) and Q3 (the still's reboiler from core's still model with its column: the boil-up at the reflux ratio 1 and the charge's heat-up), D-009, D-015"
+  - key: product:CW
+    missing: "not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
+    source: "flowsheet energy streams Q2 (R-101, from core's semi-batch model), Q4 (the column's condenser, from core's still model), Q5 (residue cooling) and Q9 (product cooler), D-009, D-015"
+  - key: product:BRINE
+    missing: "not mapped yet (D-012); connect to: refrigeration at 258 K (brine) from an electric vapour-compression unit (e.g. processes/utility-chiller), per kWh of heat removed: compressor electricity at its COP, condenser cooling water, refrigerant losses"
+    source: "flowsheet energy stream Q6 (vent condenser E-103), D-010"
+  # wastes
+  - key: product:RES
+    treatment: {kind: waste, route: "hazardous-waste incineration of the still residue (PCl3, acetyl chloride, acetic acid, phosphorous acid) with flue-gas scrubbing (HCl and P2O5 captured); not recycled in this concept (D-008)"}
+    missing: "not mapped yet (D-012); connect to: incineration of hazardous liquid chlorinated and phosphorus-containing waste, per kg"
+    source: "flowsheet stream S13 (D-008)"
+  - key: product:SCRL
+    treatment: {kind: waste, route: "neutralisation of the dilute scrubber bleed (about 1 wt% HCl and 0.8 wt% acetic acid) with the site's acidic effluents, then biological treatment (D-010)"}
+    missing: "not mapped yet (D-012); connect to: treatment of an acidic process effluent in an industrial wastewater treatment plant (e.g. processes/utility-wwtp), per kg"
+    source: "flowsheet stream S16 (D-010)"
+# What the batch plant uses per batch and the flowsheet does not carry (library ADR 0035, core
+# ADR 0053): the nitrogen that inerts R-101, the still and the receivers and blankets the
+# transfers, converted with the recipe's batches per year (process/recipe.yaml). It leaves through
+# the vent condenser and the scrubber to air (nitrogen: no burden, no disposal exchange); its
+# vapour load is in the balance (Q6, D-010). There is no rinse between batches: the train is kept
+# dry (acetyl chloride and PCl3 react violently with water).
+consumables:
+  - id: nitrogen
+    title: Nitrogen for inerting R-101, the still and the receivers
+    unit: kg
+    per_batch: 10.0
+    source: "8 Nm3 per batch x 1.2506 kg/Nm3, ASSUMED (D-012): R-101's 2.5 m3 purged with two volumes before the charge (5 Nm3), the still and the receivers purged and blanketed (3 Nm3)"
+    missing: "linked to processes/asu-1 (lca/mappings.yaml): gaseous nitrogen to the battery limit"
+operation:
+  hours_per_year: 7920
+  life_years: 20
+  source: "design basis operating_hours_per_year 7920 (ASSUMED, the recipe's hours); 20 a service life ASSUMED"
+emission_exclusions:
+  - {id: scrubber-tail-gas, method: storage-tank, equipment: [R-101, E-103, A-101], reason: "No P&ID yet: R-101 vents only through the vent condenser E-103 and the scrubber A-101, so its emissions are the scrubber's tail gas (the nitrogen of the purges, 0.062 kmol/h, with HCl traces and the PCl3 vapour that passes E-103, about 0.001 kmol/h, 0.14 kg/h, which the water hydrolyses) goes to air; the balance hydrolyses only the acetyl chloride and absorbs all HCl (D-010, L-2); not estimated (open for basic engineering)."}
+  - {id: storage-breathing, method: storage-tank, equipment: [T-101, T-102], reason: "The breathing of the acetic acid, PCl3, acetyl chloride and crude phosphorous acid tanks (nitrogen-blanketed, vented to E-103) is not estimated (D-010)."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals
+  modelling: {principle: attributional}
+  geography: {description: "Generic fine-chemicals site with a PCl3 and acetic acid supply, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #142, unreviewed"

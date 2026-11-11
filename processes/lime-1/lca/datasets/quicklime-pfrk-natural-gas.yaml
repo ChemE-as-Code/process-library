@@ -1,0 +1,526 @@
+# Tier 1 form, a library entry without a flowsheet (as process-library#317). Every amount is the formula
+# of its parameters; core's validator re-checks each. Written from the CLM BREF and IPCC 2006 Vol. 3
+# (facts in our own form).
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: quicklime-pfrk-natural-gas
+title: Quicklime by calcination of limestone in a natural-gas-fired parallel flow regenerative kiln
+description: Per 1 t of high-calcium quicklime (counted as CaO), gate-to-gate, EU kilns of the CLM BREF data collection.
+  Limestone and process CO2 from stoichiometry with the sourced by-product share; fuel heat, electricity and air
+  emissions from the BREF's PFRK ranges.
+basis: 1000 kg of quicklime (CaO)
+boundary: 'gate-to-gate: kiln feeding, calcination in the PFRK, lime cooling and discharge, kiln dedusting; crushed,
+  washed limestone, natural gas and power from outside; no grinding or hydrating'
+technology: parallel flow regenerative shaft kiln (two shafts, alternating 8 to 15 minute firing periods, continuous
+  production), natural gas through lances, fabric filter; rotary, annular and mixed-feed kilns and dolime are not
+  modelled
+geography:
+  description: EU-27 kilns of the BREF data collection; no single site.
+classification:
+  isic: '2394'
+system_boundary:
+  included:
+  - limestone, as its CaCO3
+  - natural gas and its combustion, electricity of the kiln
+  - calcination and combustion CO2, combustion water
+  - NOx, SO2, CO and dust from the kiln stack
+  - by-product lime (off-specification and filter dust), a co-product allocated by mass
+  excluded:
+  - 'TODO limestone impurities (SiO2, Al2O3, Fe2O3, MgCO3; BREF Table 2.10, p. 183) and moisture: the stone and
+    the product are modelled as pure CaCO3 and CaO'
+  - 'TODO residual CO2 in the lime (0.5 to 5 %, BREF p. 223): full calcination taken'
+  - 'TODO fuel mix: 36 % of PFRK fuel in the EU is not gas (BREF Table 2.11, p. 186)'
+  - 'TODO HCl, HF, TOC, PCDD/F and metals from the kiln (BREF Table 2.24, p. 226: not stated per kiln type)'
+  - TODO diffuse dust from storage and handling; electricity of crushing, screening and conveying at the plant
+  - TODO refractory lining (campaign life 4 to 8 years, BREF p. 205; no mass stated)
+  - 'limestone washing water: in the washed-limestone background (BREF 2.3.5, p. 246)'
+  - lime grinding and hydrating (separate products)
+  - infrastructure
+  cutoff: none applied; the excluded flows are not quantified
+  infrastructure: excluded
+  catalysts: excluded
+  non_routine: excluded
+location: RER
+year: 2007
+valid_until: 2012
+time:
+  start: 2004
+  description: 'BREF data collection: kiln statistics of 2003-2004 and industry and member-state data of 2006-2008.
+    valid_until is the reference year + 5 (system-model section 6), so it has already lapsed.'
+modelling:
+  principle: attributional
+  multifunctionality: 'two products: quicklime and by-product lime (off-specification lime and filter dust, sold
+    for other uses), listed unallocated. Allocated by mass (see allocation and its deviation).'
+allocation:
+  method: mass
+  coproducts:
+  - quicklime
+  - byproduct-lime
+  deviation: 'No open prices of quicklime and by-product lime are sourced, so the WBCSD price ratio (docs/system-model.md
+    section 2, step 3) cannot be computed. Both are CaO, and the by-product lime is used in other products (CLM BREF
+    section 2.3.4, p. 246), so it is a co-product (above 1 % of the output mass), not a cut-off; mass is the preliminary
+    choice and gives the quicklime 97 % of the burdens. The limestone and the calcination CO2 are computed for the
+    product and the by-product, while the fuel heat, electricity and stack emissions are the source''s values per t of
+    lime and are not scaled up for the by-product (ASSUMED), so the quicklime carries 97 % of them.'
+uuid: e4ccc5bc-430c-5b52-b3f1-11f47109d336
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+technology_level: current
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: q
+  value: 1000.0
+  unit: kg
+  description: Quicklime delivered (the basis), counted as CaO.
+  source: basis
+- name: M_CaO
+  value: 56.077
+  unit: g/mol
+  description: Molar mass of calcium oxide.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_CaCO3
+  value: 100.086
+  unit: g/mol
+  description: Molar mass of calcium carbonate.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_CO2
+  value: 44.009
+  unit: g/mol
+  description: Molar mass of carbon dioxide.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_CH4
+  value: 16.043
+  unit: g/mol
+  description: Molar mass of methane.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_O2
+  value: 31.998
+  unit: g/mol
+  description: Molar mass of oxygen.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: M_H2O
+  value: 18.015
+  unit: g/mol
+  description: Molar mass of water.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied to
+    the formula
+- name: f_bp
+  value: 0.03
+  unit: kg/kg
+  description: 'By-product lime (off-specification grain size or calcination, from start-up, shutdown, screening
+    and dedusting) as a share of total yearly production: midpoint of 1 to 5 %.'
+  source: EU JRC (2013) CLM BREF, Schorcht et al., EUR 26129 EN, doi:10.2788/12850, section 2.3.4, p. 245 (range);
+    the midpoint is our choice, and that the by-product is fully calcined CaO is ASSUMED (the source says some is
+    partially calcined)
+- name: heat
+  value: 3700.0
+  unit: MJ
+  description: 'Fuel heat per t quicklime in a parallel flow regenerative kiln (PFRK): midpoint of 3.2 to 4.2 GJ/t.'
+  source: EU JRC (2013) CLM BREF, Schorcht et al., EUR 26129 EN, doi:10.2788/12850, Table 2.23, p. 223 (EU-27 kilns),
+    and the same range as the BAT-associated level, Table 4.6, p. 358; the midpoint is our choice
+- name: lhv_ng
+  value: 50.01
+  unit: MJ/kg
+  description: LHV of the kiln fuel, taken as methane.
+  source: chemicals/chemicals.yaml methane lhv; natural gas as pure methane is ASSUMED (gas is 64 % of PFRK fuel
+    in the EU, EU JRC (2013) CLM BREF, Schorcht et al., EUR 26129 EN, doi:10.2788/12850, Table 2.11, p. 186; the
+    rest is solid, liquid and waste fuel). TODO a fuel mix
+- name: elec
+  value: 30.0
+  unit: kWh
+  description: 'Kiln electricity per t quicklime, PFRK: midpoint of 20 to 40 kWh/t.'
+  source: EU JRC (2013) CLM BREF, Schorcht et al., EUR 26129 EN, doi:10.2788/12850, Table 2.23, p. 223 (Table 2.19,
+    p. 206, gives 20 to 41); the midpoint is our choice. Crushing, screening, grinding and hydrating are not in
+    it
+- name: v_fg
+  value: 3000.0
+  unit: Nm3
+  description: Specific dry flue gas of a PFRK per t lime, at 11 % O2 and 273 K.
+  source: EU JRC (2013) CLM BREF, Schorcht et al., EUR 26129 EN, doi:10.2788/12850, sections 2.3.3.2, p. 230, and
+    2.3.3.3, p. 233 (the basis the source uses to turn concentrations into kg/t)
+- name: nox
+  value: 0.9
+  unit: kg
+  description: 'NOx (as NO2) per t lime, PFRK and annular shaft kilns: midpoint of 0.3 to 1.5 kg/t.'
+  source: EU JRC (2013) CLM BREF, Schorcht et al., EUR 26129 EN, doi:10.2788/12850, section 2.3.3.2, p. 230 (range);
+    the midpoint is our choice. Its BAT-AEL of 100 to 350 mg/Nm3 (Table 4.9, p. 364) at v_fg is 0.3 to 1.05 kg/t,
+    so the value sits inside it
+- name: so2
+  value: 0.2
+  unit: kg
+  description: 'SOx (as SO2) per t lime, PFRK and annular shaft kilns: the low end of 0.2 to 1.2 kg/t.'
+  source: EU JRC (2013) CLM BREF, Schorcht et al., EUR 26129 EN, doi:10.2788/12850, section 2.3.3.3, p. 233 (range,
+    which depends on the fuel); taking the low end for a natural-gas-fired kiln is ASSUMED (little fuel sulfur,
+    and the same section says shaft kilns absorb SO2 into the lime)
+- name: c_pm
+  value: 10.0
+  unit: mg/Nm3
+  description: 'Dust in the kiln flue gas after a fabric filter: the BAT-AEL upper bound.'
+  source: EU JRC (2013) CLM BREF, Schorcht et al., EUR 26129 EN, doi:10.2788/12850, Table 4.8, p. 362 (fabric filter,
+    below 10 mg/Nm3); a fabric filter is ASSUMED (the source, p. 227, says all German shaft kilns have one)
+- name: c_co
+  value: 250.0
+  unit: mg/Nm3
+  description: 'CO in the PFRK flue gas (short peaks after each reversal): midpoint of 100 to 400 mg/Nm3, which at
+    v_fg is the source''s 0.3 to 1.2 kg/t.'
+  source: EU JRC (2013) CLM BREF, Schorcht et al., EUR 26129 EN, doi:10.2788/12850, section 2.3.3.4.2, p. 236 (PFRK
+    range, depending on the fuel); the midpoint is our choice. Inside the PFRK BAT-AEL of below 500 mg/Nm3 (Table
+    4.11, p. 365)
+exchanges:
+- key: product:quicklime
+  title: Quicklime, high-calcium, lump (counted as CaO)
+  type: product
+  amount: 1000.0
+  unit: kg
+  formula: q
+  provenance: given
+  source: the reference flow
+- key: feed:limestone
+  title: Limestone to the kiln (counted as CaCO3)
+  type: input
+  amount: 1839.9957789997518
+  unit: kg
+  formula: (q + q * f_bp / (1 - f_bp)) * M_CaCO3 / M_CaO
+  provenance: calculated
+  link:
+    factor: limestone
+    source: kiln-grade limestone, by mass
+  source: 'stoichiometry CaCO3 -> CaO + CO2 for the product and the by-product lime; the stone is counted as pure
+    CaCO3 (ASSUMED: typical limestone is above 90 % CaCO3, BREF section 2.2.2, p. 182, so the rock mass is understated
+    by its impurities); compare 1.4 to 2.2 t/t (BREF 2.3.1, benchmarks/cement-lime.yaml)'
+  pedigree: &id002
+    scores:
+    - 3
+    - 4
+    - 5
+    - 3
+    - 3
+    reason: 'stoichiometry with a sourced range (see parameters): reliability 3, completeness 4, temporal 5 (about
+      20 years old), geographical 3, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.021
+    source: 'follows the by-product share of 1 to 5 %: about 1803 to 1879 kg/t'
+- key: feed:natural-gas
+  title: Natural gas (as methane) to the kiln
+  type: input
+  amount: 73.98520295940813
+  unit: kg
+  formula: heat / lhv_ng
+  provenance: calculated
+  origin: literature
+  link:
+    factor: natural-gas
+    source: natural gas, by mass
+  carrier:
+    kind: fuel
+    lhv: 50.01
+    composition: pure methane (ASSUMED)
+  source: EU JRC (2013) CLM BREF, Schorcht et al., EUR 26129 EN, doi:10.2788/12850, Table 2.23, p. 223 (PFRK heat
+    use) at the LHV of methane
+  pedigree: &id001
+    scores:
+    - 3
+    - 4
+    - 5
+    - 3
+    - 3
+    reason: 'from a range of the CLM BREF data collection (EU kilns, 2004-2008): reliability 3, completeness 4,
+      temporal 5 (about 20 years old), geographical 3, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.146
+    source: 'heat use: range 3.2 to 4.2 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: feed:O2
+  title: Combustion oxygen, from ambient air
+  type: input
+  amount: 295.1291559303299
+  unit: kg
+  formula: heat / lhv_ng * 2 * M_O2 / M_CH4
+  provenance: assumed
+  origin: estimate
+  free: true
+  source: complete combustion of the fuel (ASSUMED complete); ambient air is free
+- key: feed:electricity
+  title: Electricity, kiln
+  type: input
+  amount: 30.0
+  unit: kWh
+  formula: elec
+  provenance: given
+  origin: literature
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: EU JRC (2013) CLM BREF, Schorcht et al., EUR 26129 EN, doi:10.2788/12850, Table 2.23, p. 223
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.414
+    source: 'electricity: range 20 to 40 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: product:byproduct-lime
+  title: By-product lime (off-specification lime and filter dust), sold for other uses
+  type: product
+  amount: 30.927835051546392
+  unit: kg
+  formula: q * f_bp / (1 - f_bp)
+  provenance: calculated
+  origin: literature
+  source: EU JRC (2013) CLM BREF, Schorcht et al., EUR 26129 EN, doi:10.2788/12850, section 2.3.4, p. 245 (1 to
+    5 % of production; filter dust is used in other products, p. 246); modelled as CaO (ASSUMED). A co-product,
+    allocated by mass (see allocation)
+  pedigree: &id003
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 5, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.236
+    source: 'by-product share: range 1 to 5 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the
+      amount stays the arithmetic midpoint or the stated value)'
+- key: emission:CO2-calcination
+  title: CO2 from calcination of the limestone
+  type: emission
+  amount: 809.0679439482053
+  unit: kg
+  formula: (q + q * f_bp / (1 - f_bp)) * M_CO2 / M_CaO
+  provenance: calculated
+  cas: 124-38-9
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 349b29d1-3e58-4c66-98b9-9d1a076efd2e
+    name: Carbon dioxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: stoichiometry, 0.785 t CO2 per t CaO (IPCC (2006) Guidelines for National Greenhouse Gas Inventories,
+    Vol. 3, ch. 2, Table 2.4, p. 2.22, and BREF Table 2.25, p. 234), applied to the product and the by-product lime;
+    full calcination ASSUMED (IPCC Tier 1, p. 2.22); carbonate carbon counted as fossil; biosphere3 UUID, name and
+    categories from core's elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree: *id002
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.021
+    source: 'follows the by-product share of 1 to 5 %: about 794 to 826 kg/t'
+- key: emission:CO2-combustion
+  title: CO2 from fuel combustion in the kiln
+  type: emission
+  amount: 202.95548195727685
+  unit: kg
+  formula: heat / lhv_ng * M_CO2 / M_CH4
+  provenance: calculated
+  cas: 124-38-9
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 349b29d1-3e58-4c66-98b9-9d1a076efd2e
+    name: Carbon dioxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: complete combustion of the natural gas (as methane); biosphere3 UUID, name and categories from core's
+    elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.146
+    source: 'follows the heat use: range 3.2 to 4.2 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: emission:H2O
+  title: Water vapour from fuel combustion
+  type: emission
+  amount: 166.1588769324612
+  unit: kg
+  formula: heat / lhv_ng * 2 * M_H2O / M_CH4
+  provenance: calculated
+  cas: 7732-18-5
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 075e433b-4be4-448e-9510-9a5029c1ce94
+    name: Water
+    categories:
+    - air
+    unit: m3
+    per_unit: 0.001
+  source: combustion water; limestone moisture is not counted (stone taken dry, ASSUMED); biosphere3 UUID, name
+    and categories from core's elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.146
+    source: 'follows the heat use: range 3.2 to 4.2 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: emission:NOX
+  title: NOx from the kiln
+  type: emission
+  amount: 0.9
+  unit: kg
+  formula: nox
+  provenance: given
+  origin: literature
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: c1b91234-6f24-417b-8309-46111d09c457
+    name: Nitrogen oxides
+    categories:
+    - air
+    unit: kg
+  source: EU JRC (2013) CLM BREF, Schorcht et al., EUR 26129 EN, doi:10.2788/12850, section 2.3.3.2, p. 230 (PFRK
+    and ASK); mass outside the element balance; biosphere3 UUID, name and categories from core's elementary-flow
+    crosswalk (data/elementary-flows.yaml)
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.236
+    source: 'NOx: range 0.3 to 1.5 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: emission:SO2
+  title: SO2 from the kiln
+  type: emission
+  amount: 0.2
+  unit: kg
+  formula: so2
+  provenance: given
+  origin: literature
+  cas: 7446-09-5
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: fd7aa71c-508c-480d-81a6-8052aad92646
+    name: Sulfur dioxide
+    categories:
+    - air
+    unit: kg
+  source: EU JRC (2013) CLM BREF, Schorcht et al., EUR 26129 EN, doi:10.2788/12850, section 2.3.3.3, p. 233 (PFRK
+    and ASK, low end for gas firing, ASSUMED); mass outside the element balance (fuel and stone sulfur not modelled);
+    biosphere3 UUID, name and categories from core's elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree: *id003
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: the amount is the low end of the all-fuel range 0.2 to 1.2 kg/t, taken for gas firing, so
+      sqrt(high / low) of the full range does not apply; gsd2 2 (a 95 % interval of about 0.1 to 0.4 kg/t) is an
+      estimate. A lognormal cannot be one-sided, so part of it lies below the source''s low end'
+- key: emission:CO
+  title: CO from the kiln
+  type: emission
+  amount: 0.75
+  unit: kg
+  formula: v_fg * c_co / 1000000
+  provenance: given
+  origin: literature
+  cas: 630-08-0
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: ba2f3f82-c93a-47a5-822a-37ec97495275
+    name: Carbon monoxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: EU JRC (2013) CLM BREF, Schorcht et al., EUR 26129 EN, doi:10.2788/12850, section 2.3.3.4.2, p. 236 (PFRK,
+    0.3 to 1.2 kg/t at 3000 Nm3/t; see parameters c_co, v_fg); mass outside the element balance (its carbon is
+    not taken from the CO2); biosphere3 UUID, name and categories from core's elementary-flow crosswalk (data/elementary-flows.yaml)
+  pedigree: *id001
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'CO: range 0.3 to 1.2 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the amount
+      stays the arithmetic midpoint or the stated value)'
+- key: emission:PM
+  title: Dust from the kiln stack, after a fabric filter
+  type: emission
+  amount: 0.03
+  unit: kg
+  formula: v_fg * c_pm / 1000000
+  provenance: given
+  origin: literature
+  source: EU JRC (2013) CLM BREF, Schorcht et al., EUR 26129 EN, doi:10.2788/12850, Table 4.8, p. 362 (BAT-AEL,
+    upper bound) at the flue gas of section 2.3.3.2; particle size not stated, so no elementary flow is named (TODO);
+    mass outside the element balance
+  pedigree: *id003
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: an upper bound, the true value is lower by an unknown factor'
+provenance:
+  generator: hand-written model; amounts are the formulas of the parameters
+  notes: No value from a licensed database.
+generation:
+  tier: 1
+  method: 'sourced conceptual inventory: CLM BREF chapter 2 ranges for the PFRK with stoichiometry, every choice
+    listed in parameters'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 3
+  - 4
+  - 3
+  - 3
+  - 3
+  dqr_floor: 3.0
+  components:
+    product:quicklime: CaO
+    feed:limestone: CaCO3
+    feed:natural-gas: CH4
+    feed:O2: O2
+    product:byproduct-lime: CaO
+    emission:CO2-calcination: CO2
+    emission:CO2-combustion: CO2
+    emission:H2O: H2O
+  formulas:
+    product:quicklime: CaO
+    feed:limestone: CaCO3
+    feed:natural-gas: CH4
+    feed:O2: O2
+    product:byproduct-lime: CaO
+    emission:CO2-calcination: CO2
+    emission:CO2-combustion: CO2
+    emission:H2O: H2O
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      C:
+      - 276.202898692
+      - 276.202898692
+      Ca:
+      - 736.799860428
+      - 736.799860428
+      H:
+      - 18.594298967
+      - 18.594298967
+      O:
+      - 1177.513079802
+      - 1177.513079802
+    outside:
+    - emission:CO
+    - emission:NOX
+    - emission:PM
+    - emission:SO2
+    - feed:electricity

@@ -1,0 +1,90 @@
+# Layout checks of the pilot skids that core 1.5.0 does not make (DESIGN.md D-047), after the
+# layout review 2026-11-05-layout (findings #1, #2, #3, #5, #8) and review 2026-11-05-layout-r2
+# (#1, #3: the flanges, the stair feet, D-057). A project file read by
+# scripts/regen.py step 13 (no core schema); hand-authored intent, hashed in the record's
+# inputs, never written. Every value is ASSUMED until the host site's standards, the area
+# classification and the vendors give them.
+schema: co2-bpm-1/layout-checks/v1
+
+# The stacks' replacement by hand (review #1). A stack is reached from grade at the frame's long
+# side nearest to it: the person stands at the frame edge (no guard rail on the 0.15 m deck,
+# below), the standing position taken `ankle_m` behind the edge (the midpoint between the
+# ankles, from which the revised NIOSH lifting equation measures the horizontal distance; its
+# horizontal multiplier is 25/H cm and zero beyond 63 cm, Waters et al., Ergonomics 36 (1993)
+# 749-776, as the review cites it, not re-checked against the published text here). The far
+# face of the stack, where its anolyte connections are undone, must be within `reach_m` of that
+# position. The stack is not lifted by hand: its connections undone, it slides out over the
+# frame edge at deck level onto a trolley or lift table set at the deck height (ASSUMED
+# handling aid, its procedure the fabricator's), so its slide lane, from the stack to beyond
+# the edge and from the deck to the stack's top plus `lane_clearance_m`, must hold no solid but
+# the stack's own parts.
+stack_removal:
+  side: south
+  reach_m: 0.6
+  ankle_m: 0.15
+  lane_clearance_m: 0.05
+  lane_beyond_edge_m: 0.3
+  basis: "ASSUMED: reach about 0.6 m from the standing position (the review's criterion); a slide at deck level onto a deck-height trolley instead of a hand lift of a stack of about 17 kg (D-043, estimate) at 0.15 to 0.33 m above grade; the vendor's stack mass and handling instruction replace it"
+
+# Steel core 1.5.0 draws that the design deletes (review #8). Core draws a guard rail (top
+# rail, mid rail, toe plate and posts, ids <frame>/<level>/handrail-*) on every edge of every
+# deck and has no option to leave it out. A 0.15 m deck needs none (a guard rail is required
+# above 0.5 m of fall height, EN ISO 14122-3 as the review cites it, to be confirmed by the host
+# site's standard): the skids have no rail and no toe plate, so the stacks slide out and the
+# hose couplings at the west end are worked from grade without reaching through a rail. The
+# checks of regen (stack removal, lifts) and the take-off's reading in DESIGN.md D-047 leave
+# these solids out; they stay in the model and its drawings as core draws them.
+deleted_steel:
+  - {pattern: "SKID-*/DECK/handrail-*", reason: "no guard rail or toe plate on the 0.15 m skid deck (fall height under 0.5 m, D-047)"}
+
+# Ignition sources and the hazardous zones (review #2, #3). Core centres each zone sphere on its
+# source item, not on the item's flanges, whose positions on the packages are not known: so
+# each ignition source keeps the sphere's radius plus `margin_m` from the OUTLINE of every
+# source item of every hazardous zone (from a declared nozzle source, from its point). The
+# outline is the item's body box joined with the points of its nozzles, whose flanges stand
+# outside the box (review 2026-11-05-layout-r2#1, D-057). The rectifiers stand off the frames on
+# their own plinths at grade, as the oxidisers (D-057).
+ignition_sources:
+  margin_m: 0.5
+  # An item of the model by its tag, or a declared outline `box: [x0, y0, z0, x1, y1, z1]` for a
+  # vendor part the model does not hold: the oxidiser's burner-management panel X-x32/BMS on its
+  # stand (ASSUMED 0.6 x 0.3 x 1.8 m, normally not Ex, the feeder's point F-X1x2 of
+  # electrical/electrical-list.yaml at its centre; D-065, review 2026-11-06-layout-r3#1)
+  items:
+    - {tag: U-101, kind: "rectifier cabinet, non-Ex (D-019)"}
+    - {tag: U-201, kind: "rectifier cabinet, non-Ex (D-019)"}
+    - {tag: X-132, kind: "tail-gas oxidiser, an open flame (D-047)"}
+    - {tag: X-232, kind: "tail-gas oxidiser, an open flame (D-047)"}
+    - {tag: X-132/BMS, kind: "the oxidiser's burner-management panel, non-Ex (D-065)", box: [15.5, 7.9, 0.0, 16.1, 8.2, 1.8]}
+    - {tag: X-232/BMS, kind: "the oxidiser's burner-management panel, non-Ex (D-065)", box: [30.5, 7.9, 0.0, 31.1, 8.2, 1.8]}
+  basis: "ASSUMED: zone radius plus 0.5 m to the source outlines with their nozzle points, the review's proposal, until the area classification (IEC 60079-10-1, by a competent person) gives the zones from the real release points"
+
+# Ignition and hot sources and the ways off the decks (review 2026-11-05-layout-r2#3). Each of
+# the sources above (the rectifier cabinets, the oxidisers with their 150 degC flue) keeps
+# `clearance_m` in plan from the foot of every stair of its frame from grade (core's base
+# landing at grade, `<stair>/landing-base`), so that a person leaving the deck by either way
+# does not land at an open flame, a hot casing or a non-Ex cabinet.
+stair_feet:
+  clearance_m: 2.0
+  items:
+    - {tag: U-101, kind: "rectifier cabinet, non-Ex (D-019)"}
+    - {tag: U-201, kind: "rectifier cabinet, non-Ex (D-019)"}
+    - {tag: X-132, kind: "tail-gas oxidiser, an open flame and a hot casing (D-047)"}
+    - {tag: X-232, kind: "tail-gas oxidiser, an open flame and a hot casing (D-047)"}
+    - {tag: X-132/BMS, kind: "the oxidiser's burner-management panel, non-Ex (D-065)", box: [15.5, 7.9, 0.0, 16.1, 8.2, 1.8]}
+    - {tag: X-232/BMS, kind: "the oxidiser's burner-management panel, non-Ex (D-065)", box: [30.5, 7.9, 0.0, 31.1, 8.2, 1.8]}
+  basis: "ASSUMED: 2 m in plan from the stair's foot, the review's proposal (1.5 to 2 m), until the host site's escape and spacing standard gives it"
+
+# Cable trays and hot or possibly flammable vent outlets (review #5, #10). No tray may come
+# within `clearance_m` of the open end of a listed vent or flue line, nor run above it within
+# `clearance_m` in plan (its plume).
+# The reserved vent outlets of the cathode relief RL-x01 and the condensate collection (D-068,
+# review 2026-11-06-layout-r4#3): their lines are not routed, so their outlets are declared by
+# point (the centres of the zones Z-VENT-A and Z-VENT-B of layout/zones.yaml).
+vent_tray_clearance:
+  lines: ["FG-*", "O2V-*"]
+  outlets:
+    - {id: "RL-101/vent", point: [3.5, 10.0, 5.5]}
+    - {id: "RL-201/vent", point: [18.3, 9.6, 5.5]}
+  clearance_m: 1.0
+  basis: "ASSUMED: the vent sphere radius of piping/routing.yaml (1 m) around the oxidiser flue outlets (150 degC flue, ASSUMED, flowsheet S111; the oxidiser's design temperature is TBD with its vendor) and the reservoir O2 vents (H2 crossover open, piping/line-list.yaml)"

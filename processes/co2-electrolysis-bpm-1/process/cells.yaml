@@ -1,0 +1,189 @@
+# The electrochemical cells of the process. Schema cheme/electrochemical-cells/v1 (`cheme schema
+# process-cells`); `cheme process cell` evaluates them (Faraday balance, power, heat, membrane).
+# bench-cell is the measured 5 cm2 reverse-bias BPM cell of process/design-basis.yaml
+# (capacity.reference_cell) at the design current density 200 mA/cm2 (DESIGN.md D-006). Its
+# voltage and Faradaic efficiencies are not stated here: performance: measured looks them up in
+# the measured series (DESIGN.md D-005) at I / active_area, and refuses the cell outside the
+# measured 25-250 mA/cm2.
+schema: cheme/electrochemical-cells/v1
+kind: electrochemical_cells
+cells:
+  - id: bench-cell
+    title: Reverse-bias bipolar-membrane CO2 electrolysis cell, 5 cm2 (measured bench cell)
+    performance: measured
+    reaction: CO2R
+    electrons: 2
+    # The half-reactions in their alkaline form, so that they add up to CO2 -> CO + 1/2 O2. In
+    # the cell the reverse-biased BPM dissociates water: its cation exchange layer gives the Ag
+    # cathode protons (CO2 + 2 H+ + 2 e- -> CO + H2O), its anion exchange layer the Ni anode
+    # hydroxide. That pair adds up to the same overall reaction only with the membrane's water
+    # dissociation (2 H2O -> 2 H+ + 2 OH-), which is no electrode reaction and which the electrode
+    # check cannot hold (DESIGN.md D-006). The electrons per extent and the home electrode of each
+    # product are the same in both forms. The co-ions that cross instead of H+ and OH- are in
+    # membrane: below; they do not change the Faraday balance.
+    electrodes:
+      cathode: {equation: "CO2 + H2O + 2 e- -> CO + 2 OH-", species: {CO2: -1, H2O: -1, e-: -2, CO: 1, OH-: 2}}
+      anode: {equation: "2 OH- -> 1/2 O2 + H2O + 2 e-", species: {OH-: -2, e-: 2, O2: 0.5, H2O: 1}}
+    cells: 1
+    current: {value: 1.0, unit: A, provenance: given, source: "design current density 200 mA/cm2 on the 5 cm2 active area (DESIGN.md D-006)"}
+    active_area: {value: 5, unit: cm2, provenance: given, source: "Prats Vergel et al., Nat. Chem. Eng. (2025), doi:10.1038/s44286-025-00306-7, Methods"}
+    side_reactions:
+      - {reaction: WS, electrons: 2}       # current fraction: the measured FE of H2
+    measurements:
+      file: experiments/electrochemistry/rbpm-1m-koh.yaml
+      product: CO
+      side_products: [H2]
+    membrane:
+      kind: bipolar
+      bias: reverse
+      # the water dissociation efficiency is the measured one at 200 mA/cm2; the co-ion split is
+      # the measured carbon share of the co-ion current there (HCO3- 0.670 +- 0.082, n 3: the
+      # titration's second end point), the rest K+ (D-006)
+      co_ion_crossover: {K+: 0.330, HCO3-: 0.670}
+      source: "experiments/electrochemistry/rbpm-1m-koh.yaml, point P200 (titration, DESIGN.md D-002, D-005)"
+    thermal:
+      kind: isothermal
+      temperature: {value: 25, unit: °C, provenance: assumed, source: "room temperature; the paper and the dataset state no cell temperature (DESIGN.md D-005)"}
+    operating_range:
+      current_density: [250, 2500]
+      source: "the measured series: 25-250 mA/cm2 in 1 M KOH, 1 h runs (experiments/electrochemistry/rbpm-1m-koh.yaml)"
+    electrolyte: "1 M KOH anolyte, 90 mL recirculated at 20 mL/min; no catholyte (humidified CO2 gas feed)"
+    sources:
+      - "Prats Vergel et al., Nat. Chem. Eng. (2025), doi:10.1038/s44286-025-00306-7"
+      - "Prats Vergel et al., 4TU.ResearchData (2025), doi:10.4121/5c4fc325-a71b-4ca8-9c1b-01c0405936a2.v1 (CC BY 4.0)"
+  # The pilot cell of the two skids (#330, DESIGN.md D-007): the bench cell scaled 20x in area
+  # at the same 200 mA/cm2. Its voltage, Faradaic efficiencies and WDE are the measured ones of
+  # the 5 cm2 bench cell, looked up at I / active_area: that the per-area performance transfers
+  # from 5 to 100 cm2 is ASSUMED (no measurement of a larger cell). Not linked to a flowsheet
+  # step: each train is idle (zero flow) in the other train's case (D-007).
+  - id: pilot-cell
+    title: Reverse-bias bipolar-membrane CO2 electrolysis cell, 100 cm2 (pilot skids, ASSUMED scale-up)
+    performance: measured
+    reaction: CO2R
+    electrons: 2
+    electrodes:
+      cathode: {equation: "CO2 + H2O + 2 e- -> CO + 2 OH-", species: {CO2: -1, H2O: -1, e-: -2, CO: 1, OH-: 2}}
+      anode: {equation: "2 OH- -> 1/2 O2 + H2O + 2 e-", species: {OH-: -2, e-: 2, O2: 0.5, H2O: 1}}
+    cells: 1
+    current: {value: 20, unit: A, provenance: assumed, source: "200 mA/cm2 (the bench cell's design current density, D-006) on the ASSUMED 100 cm2 pilot cell"}
+    active_area: {value: 100, unit: cm2, provenance: assumed, source: "ASSUMED 20x scale-up of the 5 cm2 bench cell; per-area performance assumed to transfer (DESIGN.md D-007)"}
+    side_reactions:
+      - {reaction: WS, electrons: 2}       # current fraction: the measured FE of H2
+    measurements:
+      file: experiments/electrochemistry/rbpm-1m-koh.yaml
+      product: CO
+      side_products: [H2]
+    membrane:
+      kind: bipolar
+      bias: reverse
+      # as the bench cell: the measured carbon share of the co-ion current at P200 (D-006)
+      co_ion_crossover: {K+: 0.330, HCO3-: 0.670}
+      source: "experiments/electrochemistry/rbpm-1m-koh.yaml, point P200 (titration, DESIGN.md D-002, D-005); the same membrane as the bench cell (ASSUMED)"
+    thermal:
+      kind: isothermal
+      temperature: {value: 25, unit: °C, provenance: assumed, source: "ASSUMED: the anolyte held at 25 °C by the cooler E-x11 (TIC-x11); the measured series' 25 °C is itself ASSUMED (DESIGN.md D-005)"}
+    operating_range:
+      current_density: [250, 2500]
+      source: "the measured series: 25-250 mA/cm2 in 1 M KOH, 1 h runs (experiments/electrochemistry/rbpm-1m-koh.yaml)"
+    electrolyte: "1 M KOH anolyte (Skid A: one fill per campaign; Skid B: held at 0.5 mol/L OH- by continuous 5 M KOH dosing); humidified CO2 gas feed, no catholyte"
+    sources:
+      - "Prats Vergel et al., Nat. Chem. Eng. (2025), doi:10.1038/s44286-025-00306-7"
+      - "Prats Vergel et al., 4TU.ResearchData (2025), doi:10.4121/5c4fc325-a71b-4ca8-9c1b-01c0405936a2.v1 (CC BY 4.0)"
+
+# The stacks of the two pilot skids (#330, DESIGN.md D-007 to D-010), sized by `cheme process
+# stack` (core ADR 0044). STK-A and STK-B are identical but for their tags and their duty: Skid A
+# runs one fill of 1 M KOH to the pH threshold (duty D-A), Skid B doses 5 M KOH continuously and
+# bleeds (duty D-B). `product` and `replacement.operating_hours` are written by scripts/regen.py
+# from process/design-basis.yaml (capacity.pilot_skid.product, .operating_hours); do not edit
+# them here. `access` is checked by regen against the layout model (step 13): core sizes the
+# stack footprint with it but draws no envelope for it. The equipment-list dimensions of the stack
+# and tank tags, and the pumps' datasheet inputs, are written by `cheme process stack --write`.
+stacks:
+  - id: STK-A
+    title: Skid A, CO2-to-CO stacks on a 48 V DC bus (one KOH fill per campaign)
+    cell: pilot-cell
+    tags: [E-101A, E-101B, E-101C, E-101D]
+    product:
+      component: CO
+      rate: {value: 0.100, unit: kg/h, provenance: assumed, source: "process/design-basis.yaml capacity.pilot_skid.product.rate (DESIGN.md D-008)"}
+      recovery: {value: 0.90, provenance: assumed, source: "process/design-basis.yaml capacity.pilot_skid.product.recovery (DESIGN.md D-008, D-012)"}
+      purity: {value: 0.99, provenance: assumed, source: "process/design-basis.yaml capacity.pilot_skid.product.purity (DESIGN.md D-008)"}
+      pressure: {value: 5.0, unit: bar(a), provenance: assumed, source: "process/design-basis.yaml capacity.pilot_skid.product.pressure (DESIGN.md D-008)"}
+    electrical:
+      max_stack_voltage: {value: 48, unit: V, provenance: assumed, source: "ASSUMED 48 V DC bus of the pilot skid (DESIGN.md D-008)"}
+      max_stack_current: {value: 100, unit: A, provenance: assumed, source: "ASSUMED busbar rating per stack"}
+      rectifier_efficiency: {value: 0.95, provenance: assumed, source: "ASSUMED AC to DC efficiency of a small switched-mode rectifier"}
+    envelope:
+      cell_pitch: {value: 8, unit: mm, provenance: assumed, source: "ASSUMED bipolar plate, frames, gaskets and membrane per cell; TBD vendor"}
+      end_plates: {value: 120, unit: mm, provenance: assumed, source: "ASSUMED both end plate assemblies; TBD vendor"}
+      frame_margin: {value: 40, unit: mm, provenance: assumed, source: "ASSUMED frame and manifolds beyond the active area; TBD vendor"}
+    # The 0.18 m stack is lifted out upwards by hand once its connections are undone: the
+    # clearances are hand room for its end-plate connections and tie rods, not a pull along its
+    # axis (DESIGN.md D-019; the spec's 1.0 m and 0.8 m cannot be met in the 20 ft frame)
+    access:
+      end: {value: 0.3, unit: m, provenance: assumed, source: "ASSUMED hand room at the end plates for the anolyte and gas connections; removal is a vertical hand lift of the 0.18 m stack (D-019); TBD vendor"}
+      side: {value: 0.3, unit: m, provenance: assumed, source: "ASSUMED hand room at the sides for the tie rods and the busbar (D-019); TBD vendor"}
+    replacement:
+      interval: {value: 4000, unit: h, provenance: assumed, source: "ASSUMED: no life data (1 h runs; the Ni anode failed within 4 h in 0.1 M KOH, design basis)"}
+      operating_hours: {value: 8000, unit: h/a, provenance: assumed, source: "process/design-basis.yaml capacity.pilot_skid.operating_hours"}
+    equipment:
+      duty: D-A
+      reservoir:
+        tag: T-101
+        margin: {value: 0.25, provenance: assumed, source: "ASSUMED freeboard over the working volume"}
+        aspect_ratio: {value: 1.5, provenance: assumed, source: "ASSUMED H/D of a vertical tank"}
+      recirculation_pump:
+        tag: P-101
+        flow_per_area: {value: 4, unit: mL/(min cm2), provenance: assumed, source: "the bench ratio, 20 mL/min on 5 cm2 (capacity.reference_cell), ASSUMED to transfer"}
+        density: {value: 1050, unit: kg/m3, provenance: assumed, source: "ASSUMED about 1 M KOH at 25 °C"}
+        viscosity: {value: 1.2, unit: mPa s, provenance: assumed, source: "ASSUMED about 1 M KOH at 25 °C"}
+        reservoir_pressure: {value: 101.3, unit: kPa, provenance: assumed, source: "ASSUMED vented reservoir"}
+        stack_pressure_drop: {value: 50, unit: kPa, provenance: assumed, source: "ASSUMED across a stack and its manifolds; TBD vendor"}
+    sources: ["DESIGN.md D-007 to D-009"]
+  - id: STK-B
+    title: Skid B, CO2-to-CO stacks on a 48 V DC bus (continuous KOH dosing and bleed)
+    cell: pilot-cell
+    tags: [E-201A, E-201B, E-201C, E-201D]
+    product:
+      component: CO
+      rate: {value: 0.100, unit: kg/h, provenance: assumed, source: "process/design-basis.yaml capacity.pilot_skid.product.rate (DESIGN.md D-008)"}
+      recovery: {value: 0.90, provenance: assumed, source: "process/design-basis.yaml capacity.pilot_skid.product.recovery (DESIGN.md D-008, D-012)"}
+      purity: {value: 0.99, provenance: assumed, source: "process/design-basis.yaml capacity.pilot_skid.product.purity (DESIGN.md D-008)"}
+      pressure: {value: 5.0, unit: bar(a), provenance: assumed, source: "process/design-basis.yaml capacity.pilot_skid.product.pressure (DESIGN.md D-008)"}
+    electrical:
+      max_stack_voltage: {value: 48, unit: V, provenance: assumed, source: "ASSUMED 48 V DC bus of the pilot skid (DESIGN.md D-008)"}
+      max_stack_current: {value: 100, unit: A, provenance: assumed, source: "ASSUMED busbar rating per stack"}
+      rectifier_efficiency: {value: 0.95, provenance: assumed, source: "ASSUMED AC to DC efficiency of a small switched-mode rectifier"}
+    envelope:
+      cell_pitch: {value: 8, unit: mm, provenance: assumed, source: "ASSUMED bipolar plate, frames, gaskets and membrane per cell; TBD vendor"}
+      end_plates: {value: 120, unit: mm, provenance: assumed, source: "ASSUMED both end plate assemblies; TBD vendor"}
+      frame_margin: {value: 40, unit: mm, provenance: assumed, source: "ASSUMED frame and manifolds beyond the active area; TBD vendor"}
+    access:
+      end: {value: 0.3, unit: m, provenance: assumed, source: "ASSUMED hand room at the end plates for the anolyte and gas connections; removal is a vertical hand lift of the 0.18 m stack (D-019); TBD vendor"}
+      side: {value: 0.3, unit: m, provenance: assumed, source: "ASSUMED hand room at the sides for the tie rods and the busbar (D-019); TBD vendor"}
+    replacement:
+      interval: {value: 4000, unit: h, provenance: assumed, source: "ASSUMED: no life data (1 h runs; the Ni anode failed within 4 h in 0.1 M KOH, design basis)"}
+      operating_hours: {value: 8000, unit: h/a, provenance: assumed, source: "process/design-basis.yaml capacity.pilot_skid.operating_hours"}
+    equipment:
+      duty: D-B
+      reservoir:
+        tag: T-201
+        margin: {value: 0.25, provenance: assumed, source: "ASSUMED freeboard over the working volume"}
+        aspect_ratio: {value: 1.5, provenance: assumed, source: "ASSUMED H/D of a vertical tank"}
+      recirculation_pump:
+        tag: P-201
+        flow_per_area: {value: 4, unit: mL/(min cm2), provenance: assumed, source: "the bench ratio, 20 mL/min on 5 cm2 (capacity.reference_cell), ASSUMED to transfer"}
+        density: {value: 1050, unit: kg/m3, provenance: assumed, source: "ASSUMED about 1 M KOH at 25 °C"}
+        viscosity: {value: 1.2, unit: mPa s, provenance: assumed, source: "ASSUMED about 1 M KOH at 25 °C"}
+        reservoir_pressure: {value: 101.3, unit: kPa, provenance: assumed, source: "ASSUMED vented reservoir"}
+        stack_pressure_drop: {value: 50, unit: kPa, provenance: assumed, source: "ASSUMED across a stack and its manifolds; TBD vendor"}
+      dosing_pump:
+        tag: P-202
+        margin: {value: 0.5, provenance: assumed, source: "ASSUMED metering pump turndown and the AIC-201 trim range"}
+      dosing_tank:
+        tag: T-202
+        margin: {value: 0.2, provenance: assumed, source: "ASSUMED refill reserve"}
+        aspect_ratio: {value: 1.2, provenance: assumed, source: "ASSUMED H/D of a small day tank"}
+        refill_interval: {value: 168, unit: h, provenance: assumed, source: "ASSUMED weekly refill of the 5 M KOH day tank (DESIGN.md D-010)"}
+      # no bleed tank: the bleed goes to the site effluent at the battery limit (D-010)
+    sources: ["DESIGN.md D-007, D-008, D-010"]

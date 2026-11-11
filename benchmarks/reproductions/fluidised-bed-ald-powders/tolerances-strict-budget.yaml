@@ -1,0 +1,50 @@
+# Stricter tolerance budget for the fluidised-bed ALD reproduction (#336): a SENSITIVITY VIEW.
+# Written 2026-11-04, AFTER the comparison run, in response to two independent reviews. It does
+# not replace tolerances.yaml. The verdict of record is the one under tolerances.yaml (frozen in
+# 38aa2e3f, unchanged); run.py reports this file's verdict next to it, labelled as a sensitivity
+# view.
+#
+# Reason. The frozen verdict (PARTIAL, 29 of 38, 29 needed) is one pass away from FAIL, and five
+# of its passes lie within 1.4 percentage points of a 10 % limit. Several frozen tolerances add
+# an allowance for "K_be evaluation" or "formula interpretation" that is not quantified. This
+# file removes those allowances. It asks only whether our implementation reproduces the source
+# to the precision the source states.
+#
+# Budget per check: (a) the rounding of the reported value, half a unit in its last stated digit,
+# relative; (b) the digitisation uncertainty recorded in source.yaml, where the value is
+# digitised; (c) the rounding of stated inputs that enter the check: tau_ga = 9.34e-4 s (3 s.f.)
+# fixes the reconstructed D to +-0.054 %, taken as +-0.06 % on any D-dependent value (an upper
+# bound: K_be depends on D at most to the power 1/2 and tau_c, tau_sa at most to the power 1);
+# tau_rxn (2 s.f.) enters the Thiele moduli as its square root. Model parameters the source
+# states without uncertainty (eps_mf = 0.5, u_mf, d_b, eta*) are taken as exact.
+written: "2026-11-04"
+replaces: none (sensitivity view only; tolerances.yaml remains the frozen rule)
+d_rounding_rel: 0.00054  # tau_ga 9.34e-4 s to 3 s.f.; used by run.py for the G3 sensitivity
+checks:
+  # G1
+  tau_sat_min_100mbar: {rel: 0.028, reason: "18 s, 2 s.f.: 0.5/18"}
+  tau_sat_min_0.1mbar: {rel: 0.10, reason: "5 h, 1 s.f.: 0.5/5"}
+  # G2
+  tau_em_atm: {rel: 0.0055, reason: "0.91 s: 0.005/0.91; no D dependence"}
+  tau_b_atm: {rel: 0.012, reason: "0.42 s: 0.005/0.42; no D dependence"}
+  tau_int_atm: {rel: 0.1006, reason: "5e-2 s, 1 s.f.: 0.1; D 0.06 %"}
+  tau_int_mbar: {rel: 0.0198, reason: "2.6e-3 s: 0.05/2.6 = 1.92 %; D 0.06 %"}
+  tau_ga_mbar: {rel: 0.0011, reason: "9.25e-7 s: 0.005/9.25 = 0.054 %; D 0.06 %"}
+  tau_c_atm: {rel: 0.0319, reason: "1.6e-3 s: 0.05/1.6 = 3.13 %; D 0.06 %"}
+  tau_c_mbar: {rel: 0.0050, reason: "1.15e-5 s: 0.005/1.15 = 0.43 %; D 0.06 % (transition regime)"}
+  tau_sa_atm: {rel: 0.0027, reason: "2.43e-5 s: 0.005/2.43 = 0.21 %; D 0.06 % (transition regime)"}
+  tau_sa_mbar: {rel: 0.0036, reason: "1.39e-5 s: 0.005/1.39 = 0.36 %; Knudsen regime, no D dependence"}
+  thiele_atm: {rel: 0.073, reason: "8, 1 s.f.: 6.25 %; tau_rxn 2.5e-5 s (2 %) under a square root: 1 %; D 0.06 %"}
+  thiele_mbar: {rel: 0.0076, reason: "1.56: 0.32 %; tau_rxn 5.7e-6 s (0.88 %) under a square root: 0.44 %; Knudsen, no D"}
+  # G3
+  Hstar_text_atm: {rel: 0.0506, reason: "'about 100 cm' read as +-5 % (as in tolerances.yaml); D 0.06 %"}
+  Hstar_text_mbar: {rel: 0.0083, reason: "6.5 cm, 2 s.f.: 0.05/6.5 = 0.77 %; D 0.06 %"}
+  # G4: per point, tolerance = digitisation_abs / reference + rel_inputs
+  Hstar_fig_7_4a: {digitisation_abs: 0.9, rel_inputs: 0.0006, reason: "digitisation +-0.9 cm (source.yaml) at each point; D 0.06 %"}
+  # panel b: tolerance = (digitisation_abs + half the envelope spread) / mid-point + rel_inputs
+  Hstar_fig_7_4b: {digitisation_abs: 0.03, rel_inputs: 0.0006, reason: "digitisation +-0.03 cm plus half the envelope spread at each point; D 0.06 %"}
+  # G5
+  bubble_profile_fig_7_3: {abs: 0.0041, reason: "digitisation +-0.004 (source.yaml); D 0.06 % moves C_b/C_in by < 1e-4"}
+pass_rule: >-
+  As in tolerances.yaml (38 comparisons; PASS if all pass; PARTIAL if at least 75 % pass,
+  including all of G1 and G3; FAIL otherwise). The internal checks are those of tolerances.yaml.

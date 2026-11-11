@@ -1,0 +1,94 @@
+# Goal and scope of the methylmagnesium-bromide-1 LCI. Schema: `cheme schema lca`. Outputs:
+# `cheme assess lca --write` (lca/inventory.csv, gaps.csv, dataset.yaml, manifest.json, results);
+# never edit those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the batch
+# plant with its amount per kg of the 35 wt% solution, from the flowsheet's year averages of the
+# recipe (D-003). Per batch: multiply by 5000 kg. The backgrounds are left unmapped (`missing:`
+# with the activity each should connect to, and the proxy a later study may use, D-012), except
+# where lca/mappings.yaml links a library producer: a gap, never zero, and no values from
+# licensed databases. The off-gas (ethane and the methyl bromide that slips through the liquid)
+# and the magnesium cake leave as wastes to treatment, not as emissions; the solvent vapour in the
+# off-gas is not estimated (emission_exclusions; core models no solvent stripping by the gas).
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of methylmagnesium bromide, sold as a 35 wt%
+  solution in 2-MeTHF, made by the semi-batch Grignard reaction of magnesium turnings with
+  methyl bromide gas and filtered from the excess magnesium, at the concept stage: which raw
+  materials, utilities and wastes the batch plant exchanges per kg of solution, as the
+  foreground for a later cradle-to-gate study. No impact results: most backgrounds are not mapped
+  yet (D-012).
+functional_unit: {product: PROD, amount: 1, unit: kg, source: "1 kg of methylmagnesium bromide solution, 35 wt% in 2-MeTHF, at the plant gate to filling, stream S9 (D-002, D-012)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
+# being mapped free (the schema's gate-to-gate maps every feed free), as n-bromosuccinimide-1 and
+# phosphorus-tribromide-1 do.
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Batch plant: magnesium turnings in dry 2-MeTHF under nitrogen, methyl bromide gas dosed at 318 K over 5.75 h (5 % for the initiation, a 30 min hold, the rest; semi-batch, 1.05 mol Mg per mol MeBr), filtration of the excess magnesium; 5000 kg of 35 wt% solution per batch, 880 batches a year on a dedicated train"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+flows:
+  # raw materials
+  - key: feed:MG
+    missing: "not mapped yet (D-012); connect to: primary magnesium metal, turnings, from the silicothermic (Pidgeon) reduction of calcined dolomite, the dominant primary route; no library process makes magnesium. Cited proxy for a later study: a primary-magnesium ingot dataset of the background database, plus turning (not linked: never map to a guess)"
+    source: "flowsheet stream S1 (D-004)"
+  - key: feed:METHF
+    missing: "not mapped yet (D-012); connect to: 2-methyltetrahydrofuran, dry, from the hydrogenation of furfural (via 2-methylfuran); no library process makes it. processes/thf-1 (tetrahydrofuran from 1,4-butanediol) is the library's nearest ether solvent and is recorded as the cited proxy, not linked: another substance and another feedstock"
+    source: "flowsheet stream S2 (D-004)"
+  - key: feed:MEBR
+    missing: "not mapped yet (D-012); connect to: methyl bromide from methanol and hydrogen bromide (HSDB via PubChem CID 6323, Methods of Manufacturing); no library process makes it yet. Cited proxy for a later study: the stoichiometric inputs from processes/methanol-1 and processes/hydrogen-bromide-1 (0.337 kg methanol and 0.852 kg HBr per kg MeBr), not linked"
+    source: "flowsheet stream S4 (D-004)"
+  # utilities
+  - key: feed:POWER
+    missing: "not mapped yet (D-012); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy streams P1 (R-101 agitator) and P2 (F-101), D-009"
+  - key: feed:LPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 350 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
+    source: "flowsheet energy streams Q2 (warm-up of the charge) and Q3 (methyl bromide vaporiser), D-009"
+  - key: product:BRINE
+    missing: "not mapped yet (D-012); connect to: refrigeration at 263 K (brine) from an electric vapour-compression unit (e.g. processes/utility-chiller, whose 6 C chilled water is too warm to be linked), per kWh of heat removed: compressor electricity at its COP, condenser cooling water, refrigerant losses"
+    source: "flowsheet energy stream Q1 (heat of the Grignard reaction), D-009, D-010"
+  # wastes
+  - key: product:CAKE
+    treatment: {kind: waste, route: "the wet magnesium cake (unreacted magnesium with 2-MeTHF and Grignard liquor) quenched under nitrogen with an alcohol and water, then hazardous-waste incineration of the solvent phase and landfill or recovery of the magnesium salts"}
+    missing: "not mapped yet (D-012); connect to: treatment of a reactive metal-containing hazardous waste (quench, then incineration of the organic phase), per kg"
+    source: "flowsheet stream S8 (D-007)"
+  - key: product:VENT
+    treatment: {kind: waste, route: "thermal oxidiser with a caustic scrubber for the hydrogen bromide formed from the methyl bromide (a controlled ozone-depleting substance, D-012)"}
+    missing: "not mapped yet (D-012); connect to: thermal oxidation of a halogenated vent gas with acid-gas scrubbing, per kg of gas"
+    source: "flowsheet stream S7 (D-004, D-005)"
+# What the batch plant uses per batch and the flowsheet does not carry (library ADR 0035, core
+# ADR 0053), converted with the recipe's batches per year (process/recipe.yaml). The train is
+# kept dry between its own batches (a Grignard reagent reacts with water): no rinse.
+consumables:
+  - id: nitrogen
+    title: Nitrogen for inerting R-101, pressing the slurry to F-101 and blowing the cake
+    unit: kg
+    per_batch: 37.5
+    source: "30 Nm3 per batch (three volume changes of R-101's 6.3 m3 at the start, about 10 Nm3 to press 4.6 m3 of slurry at 3 bar(a), the cake blown dry) x 1.2506 kg/Nm3, ASSUMED (D-012)"
+    missing: "linked to processes/asu-1 (lca/mappings.yaml): gaseous nitrogen to the battery limit"
+  - id: iodine
+    title: Iodine activator for the magnesium
+    unit: kg
+    per_batch: 0.4
+    source: "about 0.1 % of the magnesium charge (387 kg per batch), the usual small activator dose, ASSUMED (D-004); it ends as MgI2 in the product (about 90 mg/kg), not in the balance"
+    missing: "linked to processes/iodine-1 (lca/mappings.yaml): iodine from natural brine"
+operation:
+  hours_per_year: 7920
+  life_years: 20
+  source: "design basis operating_hours_per_year 7920 (ASSUMED, the recipe's hours); 20 a service life ASSUMED"
+emission_exclusions:
+  - {id: solvent-vapour, method: storage-tank, equipment: [R-101], reason: "The 2-MeTHF vapour the off-gas and the nitrogen carry from R-101's reflux condenser to the thermal oxidiser is not estimated: core models no stripping of the solvent by the gas (core ADR 0054, D-012); it is destroyed in the oxidiser."}
+  - {id: filter-vent, method: equipment-leaks, equipment: [F-101], reason: "The nitrogen blown through F-101 (with 2-MeTHF vapour) goes to the same oxidiser; not estimated (D-007, D-012)."}
+  - {id: methyl-bromide-store, method: storage-tank, reason: "Breathing and transfer losses of the liquefied methyl bromide store (pressure vessel with a vapour return) are outside the boundary and not estimated (D-004)."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals
+  modelling: {principle: attributional}
+  geography: {description: "Generic fine-chemicals site, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #157, unreviewed"

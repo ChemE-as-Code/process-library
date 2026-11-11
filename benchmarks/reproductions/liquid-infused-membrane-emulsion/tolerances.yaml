@@ -1,0 +1,61 @@
+# Acceptance tolerances for the liquid-infused membrane emulsion reproduction (#340; ADR 0030).
+# FROZEN 2026-11-04, committed with source.yaml and inputs.yaml before any run of run.py that
+# compares computed with reported values. Do not edit: a revision is a new file with its reason,
+# and comparison.md names the file it used.
+#
+# Disclosure: while inspecting the data (before this freeze) a few values were checked by hand
+# for plausibility (the Szyszkowski IFT at 50 % cmc, the 0.26 and 0.15 bar combined entry
+# pressures, the 0.08 bar hexadecane entry pressure, the 1.74e-4 Darcy permeability). The
+# tolerances below follow from the measurement resolution and the uncertainties the source
+# states, not from those deviations.
+#
+# Basis: the reproduction recomputes reported numbers from reported inputs with the source's
+# own equations (Young-Laplace with theta = 180 deg, Szyszkowski, Darcy). Deviations then come
+# from rounding of the published inputs, from the fit residuals, from the pressure step of the
+# LEP measurement and, for Figure 4b, from our digitisation.
+frozen: "2026-11-04"
+reference: source.yaml reported_results
+inputs: inputs.yaml
+checks:
+  ift_szyszkowski:
+    what: eq 2 with Table 2 (a, b) and gamma* against the eight measured IFTs of SI Table S2
+    rule: >-
+      pass if the measured value lies inside the band of eq 2 over the box a +- a_hci,
+      b +- b_hci (the reported half 95 % confidence intervals), widened by 2 standard
+      deviations of the measurement
+    reason: the fit is the authors'; the test is that it reproduces the tabulated measurement
+      within its own stated uncertainty
+  lep_figure4b:
+    what: eq 3 with Table 2 (a, b, r) against the 10 digitised Figure 4b points
+    abs_bar: {default: 0.037, CTAB_hexadecane: 0.0205}
+    reason: digitisation 0.015 bar plus one pressure step of the measurement (22 mbar;
+      5.5 mbar for CTAB with hexadecane)
+  lep_stated_hexadecane_infused:
+    what: eq 3 against the 0.05 bar (CTAB 50) and 0.15 bar (SDS 50) stated in the text
+    abs_bar: {SDS50: 0.027, CTAB50: 0.0105}
+    reason: one pressure step (22 or 5.5 mbar) plus half a unit of the last stated digit (0.005 bar)
+  lep_combined_interface:
+    what: 2 (gamma12 + gamma23) / r(surfactant, hexadecane) against 0.26 bar (SDS 50) and 0.15 bar (CTAB 50)
+    abs_bar: 0.010
+    reason: a calculation by the authors, not a measurement; half a unit of the stated digit
+      (0.005 bar) plus the effect of gamma23 = 8.7 +- 0.08 mN/m and of IFT rounding (< 0.005 bar)
+  lep_hexadecane_K101:
+    what: 2 gamma23 / r(K101 fit, 1.82 um) against the 0.08 bar measured
+    abs_bar: 0.027
+    reason: one 22 mbar pressure step plus 0.005 bar rounding
+  emulsion_run_permeability:
+    what: Darcy permeability from the average emulsion-run oil flux, against 1.74e-4 Darcy
+    rel: 0.02
+    reason: a calculation from stated inputs; 1 % rounding of the 3-digit result plus the
+      Darcy conversion
+  lld_active_fraction:
+    what: permeability ratio to the dry membrane, against the 0.31, 0.47 and 0.55 of SI Table S3
+    abs: 0.01
+    reason: two-digit values; half a unit (0.005) plus rounding of the tabulated permeabilities
+pass_rule: >-
+  PASS if every check above is within tolerance for every compared value; FAIL if any is
+  outside; a value that cannot be evaluated is a gap, never a pass. Not part of the rule and
+  reported only: the Table 3 permeating-phase classification (the threshold model against the
+  paper's own observations at 0.1 bar; same source, so not independent validation, and partly
+  seen during data inspection), the K101-radius variant of the combined entry pressure, the
+  creaming-implied droplet radii, the pressure sweep, the area estimate and the design extension.

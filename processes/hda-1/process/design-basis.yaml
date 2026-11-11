@@ -11,24 +11,24 @@ capacity:
   turndown_percent: 60                # ASSUMED, not checked
 feeds:
   - name: Fresh toluene (from an aromatics complex or tank farm, outside the boundary)
-    source_of_values: ASSUMED (D-003)
-    composition_mol_percent: {TOL: 100.0}   # ASSUMED: pure; real nitration/solvent grade carries traces of C8 aromatics and non-aromatics, not modelled
-    conditions: {pressure_kPa_a: 300, temperature_K: 303.15}   # ASSUMED battery limit
-    flow: set by the product rate through the balance (D-006); stream S1 of process/flowsheet.yaml
-  - name: Make-up hydrogen (from a reformer or a hydrogen network, outside the boundary)
-    source_of_values: ASSUMED (D-003)
-    composition_mol_percent: {H2: 95.0, CH4: 5.0}   # ASSUMED (D-003): a reformer-type make-up gas
-    conditions: {pressure_kPa_a: 3700, temperature_K: 313.15}  # ASSUMED: available above loop pressure, no make-up compressor
-    flow: set by the loop specifications (D-007); stream S4
+    source_of_values: "composition from a published commercial toluene specification (BPCL toluene data sheet, IS 537:2011: toluene at least 99.8 wt%, benzene at most 500 mg/kg), D-020; conditions ASSUMED"
+    composition_mol_percent: {TOL: 99.941, BZ: 0.059}   # D-020: benzene at its specification limit; the other impurities (C8+ aromatics, non-aromatics, water; at most 0.2 wt% together) not modelled, counted as toluene (ASSUMED)
+    conditions: {pressure_kPa_a: 300, temperature_K: 303.15}   # ASSUMED battery limit (no published value)
+    flow: set by the design capacity (12.5 t/h benzene) through the balance scripts/hda_balance.py (D-006, D-020); stream S1 of process/flowsheet.yaml
+  - name: Make-up hydrogen (PSA-grade hydrogen from a reformer or a hydrogen network, outside the boundary)
+    source_of_values: "purity from a published PSA product purity (Matijasevic and Petric 2016, Chem. Biochem. Eng. Q. 30(3) 291-304, Table 1 and Fig. 3: 99.9 %), D-020; the remainder as methane and the conditions ASSUMED"
+    composition_mol_percent: {H2: 99.9, CH4: 0.1}   # D-020
+    conditions: {pressure_kPa_a: 3700, temperature_K: 313.15}  # ASSUMED: available above loop pressure, no make-up compressor (no published value)
+    flow: set by the loop specifications (D-007) at the design capacity; stream S4
 products:
   - name: Benzene
     purity: "99.9 mol% benzene (99.88 wt%), toluene the impurity (ASSUMED design target, D-002); a commercial specification (e.g. ASTM D2359 or D4734 refined benzene) is not checked: thiophene, non-aromatics, freezing point and colour are outside the model"
     delivery: {pressure_kPa_a: 150, temperature_K: 313.15, battery_limit: product tanks (outside the boundary)}
   - name: Biphenyl (diphenyl) by-product
-    purity: "98 mol% biphenyl, 2 mol% toluene (ASSUMED, D-008)"
+    purity: "98 mol% biphenyl, 2 mol% toluene (ASSUMED, D-008); the current simulation misses this target: 4.9 mol% toluene, because C-203's bottoms are set at 352 kg/h, the lowest flow DWSIM converges at (deviation recorded in D-022)"
     use: sale or fuel (outside the boundary, D-009)
   - name: Fuel gas (purge gas and stabiliser off-gas)
-    use: site fuel gas header (outside the boundary); hydrogen recovery from the purge not included (D-007, D-009)
+    use: site fuel gas header (outside the boundary); hydrogen recovery from the purge not included (D-007, D-009, D-023)
 utilities:
   - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: ASSUMED (D-010)}
   - {name: LP steam, pressure_kPa_a: 450, saturation_K: 420.8, use: benzene column reboiler, note: ASSUMED level (D-010)}
@@ -42,10 +42,11 @@ site:
   atmospheric_pressure_kPa: 101.325   # ASSUMED
 assumptions:
   - "ASSUMED thermal (non-catalytic) HDA: adiabatic reactor, inlet 895.15 K and 3450 kPa(a), outlet temperature from the energy balance (D-004)."
-  - "ASSUMED toluene conversion per pass 0.75; benzene selectivity from the Douglas (1988) correlation S = 1 - 0.0036/(1 - X)^1.544 = 0.969, recalled and not verified at source (I-06): a conversion/selectivity model, not kinetics (D-005)."
+  - "Toluene conversion per pass 0.75, the per-pass conversion of a published thermal HDA reactor (US 3,291,849, D-021); biphenyl at chemical equilibrium at the reactor outlet (formation data of process/materials.yaml), which gives a benzene selectivity of 0.973: a conversion and equilibrium model, not kinetics. The equilibrium bounds the biphenyl make only, not the selectivity loss: heavier polyaromatics and hydrocracking are excluded (the next assumption), so 0.973 is optimistic. US 3,607,960 Example 1 reports 94.5 % for its primary reactors at 85 % conversion per pass, a higher conversion than R-101's (process/reaction-evidence.yaml O2); the TEA carries it as a scenario (D-021). The 0.75 is the patent reactor's value adopted as R-101's design value; R-101's volume and residence time are not designed to it. The recalled Douglas (1988) correlation of D-005 is no longer used (I-06)."
   - "ASSUMED loop specifications: H2/aromatics 5 mol/mol at the reactor inlet, purge gas 40 mol% H2 (D-007)."
-  - "ASSUMED quench of the reactor effluent to 893.15 K with separator liquid; separator 313.15 K, 3250 kPa(a) (D-004)."
+  - "ASSUMED quench of the reactor effluent to 893.15 K with separator liquid (quench pump P-102); separator 313.15 K, 3250 kPa(a) (D-004, D-022)."
+  - "Benzene product cooled to 313.15 K in the product cooler E-207 (D-022)."
   - "ASSUMED columns: stabiliser 800 kPa(a) with partial condenser at 313.15 K, L/D 1; benzene column 150/170 kPa(a), 99.5 % benzene recovery; toluene column 30/45 kPa(a) (vacuum), 2 mol% toluene in the biphenyl; reflux 1.3 x Underwood minimum, at least 0.5 (D-008)."
   - "ASSUMED compressor isentropic efficiency 0.75, pump efficiency 0.65 (D-010)."
-  - "ASSUMED no other side reactions (hydrocracking to light paraffins, methylbiphenyls, coke): not modelled until sourced selectivities exist (D-005)."
+  - "ASSUMED no other side reactions (heavier polyaromatics, hydrocracking to light paraffins, methylbiphenyls, coke): not modelled, because no source read in full gives their split; US 3,607,960 reports 'polyphenyls (primarily diphenyl) and higher boiling polymers' in the effluent of a primary thermal zone (D-005, D-021)."
   - "All flows, temperatures and duties are concept estimates from an unqualified property method (Peng-Robinson in thermo, D-006); accuracy not stated."

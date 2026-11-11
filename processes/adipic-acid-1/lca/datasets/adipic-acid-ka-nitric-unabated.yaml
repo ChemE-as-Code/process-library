@@ -1,0 +1,766 @@
+# Tier 1 form, a manifest-only entry as process-library#317. Every amount is the formula of its parameters;
+# core's validator re-checks each. Written by hand from open sources (facts in our own form).
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: adipic-acid-ka-nitric-unabated
+title: Adipic acid from cyclohexane via KA oil and nitric acid oxidation, without N2O abatement
+description: Per 1 t of adipic acid, gate-to-gate from cyclohexane, without N2O abatement (IPCC Tier 1 good
+  practice). Feeds from stoichiometry with sourced yields (US EPA 1991), energy from the IEA's Western European
+  averages (2009, after a 1989 source), N2O from the IPCC 2006 defaults, other air emissions from AP-42 (1995).
+basis: 1000 kg of adipic acid
+boundary: 'gate-to-gate: cobalt-catalysed air oxidation of cyclohexane to KA (cyclohexanol and cyclohexanone)
+  with cyclohexane recycle, nitric acid oxidation over copper-vanadium, NOx stripping and reabsorption, crystallisation,
+  drying; nitric acid, steam, fuel and power from outside'
+technology: 'continuous two-stage process: air oxidation of cyclohexane, then oxidation of KA with 50 to 60
+  % nitric acid (EPA 1991, 3.2.2: 98 % of US output from cyclohexane in continuous operation)'
+geography:
+  description: 'Mixed: yields and air emissions of US plants (EPA 1991, AP-42 1995), Western European energy
+    averages (IEA 2009), IPCC defaults; no single site. Located GLO: a plant without N2O abatement, which the
+    EU no longer has (Ecofys et al. 2009, section 6.1); the energy is still a Western European average.'
+classification:
+  isic: '2011'
+system_boundary:
+  included:
+  - cyclohexane, nitric acid make-up, process air oxygen
+  - electricity, steam, fuel
+  - N2O, unabated
+  - CO2, CO, NOx and organics to air; the KA-section off-gas and residue burned
+  - the KA-section residue, burned on site as fuel with the off-gas (ASSUMED, AP-42 6.2.3)
+  - dibasic acids, effluent
+  excluded:
+  - 'TODO N2 formed in the nitric acid oxidation (EPA 1991, 3.2.2.3, names N2 among the reduction products;
+    not quantified in an open source): the nitric acid make-up is a lower bound'
+  - 'TODO nitric acid, catalyst metals and organic acids in the effluent and the mother-liquor bleed (BREF
+    2.1.2.3.3: recovered in part); not quantified'
+  - 'TODO catalysts: cobalt (cyclohexane oxidation), copper and vanadium (nitric acid oxidation); no open charge
+    or make-up'
+  - 'TODO wash and recrystallisation water, cooling water and the caustic wash of the KA (spent caustic): not
+    quantified'
+  - 'TODO adipic acid dust after the baghouses, 0.1 + 0.4 kg/t (AP-42 Table 6.2-2): no particle size, so no
+    PM flow; left out of the balance'
+  - 'TODO organics in the effluent: the BREF gives < 3 kg TOC/t after biological treatment, which belongs to
+    the treatment activity'
+  - 'TODO heat recovered from the reaction: no credit in the cut-off model, so the steam is gross'
+  - storage and handling emissions (carboxylic acids, odour)
+  - 'heat of the residue burned on site (about 255 kg/t): not credited against the fuel or steam, which are
+    taken as the energy bought in (ASSUMED); NOx, CO and the cobalt and chromium compounds that AP-42 6.2.2 finds
+    in its flue gas are not counted'
+  - the phenol hydrogenation and borate-promoted routes to KA, and thermal destruction or recycle of N2O
+  - infrastructure
+  cutoff: none applied; the excluded flows are not quantified
+  infrastructure: excluded
+  catalysts: excluded
+  non_routine: excluded
+location: GLO
+year: 2009
+valid_until: 2014
+time:
+  start: 1989
+  description: Energy of a 1989 source in a 2009 estimate; yields of 1991, emission factors of 1995, IPCC defaults
+    of 2006. valid_until is the reference year + 5 (system-model section 6), so it has already lapsed.
+modelling:
+  principle: attributional
+  multifunctionality: 'single output: no allocation. The dibasic acids, which some plants sell (AP-42 6.2.2),
+    are an output without a burden share; the cut-off model gives them no credit. The residue is burned on site
+    (its CO2 is counted here) and its heat is not credited.'
+uuid: 785edda7-106b-575d-822b-05524d37f493
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+technology_level: current
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: aa
+  value: 1000.0
+  unit: kg
+  description: Adipic acid delivered, dried crystals (the basis).
+  source: basis
+- name: M_AA
+  value: 146.142
+  unit: g/mol
+  description: Molar mass of adipic acid (C6H10O4).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_CH
+  value: 84.162
+  unit: g/mol
+  description: Molar mass of cyclohexane (C6H12).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_HNO3
+  value: 63.012
+  unit: g/mol
+  description: Molar mass of nitric acid (HNO3).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_H2O
+  value: 18.015
+  unit: g/mol
+  description: Molar mass of water (H2O).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_N2O
+  value: 44.013
+  unit: g/mol
+  description: Molar mass of dinitrogen monoxide (N2O).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_NO2
+  value: 46.005
+  unit: g/mol
+  description: Molar mass of nitrogen dioxide (NOx is counted as NO2) (NO2).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_CO
+  value: 28.01
+  unit: g/mol
+  description: Molar mass of carbon monoxide (CO).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_CO2
+  value: 44.009
+  unit: g/mol
+  description: Molar mass of carbon dioxide (CO2).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_CH4
+  value: 16.043
+  unit: g/mol
+  description: Molar mass of methane (CH4).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_VOC
+  value: 58.124
+  unit: g/mol
+  description: Molar mass of butane, the model of the organic compounds in the off-gases (C4H10).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_RES
+  value: 146.142
+  unit: g/mol
+  description: Molar mass of the model formula of the KA-section residue (C6H10O4).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_DBA
+  value: 132.115
+  unit: g/mol
+  description: Molar mass of glutaric acid, the model of the dibasic acid by-products (C5H8O4).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_O2
+  value: 31.998
+  unit: g/mol
+  description: Molar mass of oxygen (O2).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: M_N2
+  value: 28.014
+  unit: g/mol
+  description: Molar mass of nitrogen (N2).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), applied
+    to the formula
+- name: y_ka
+  value: 0.775
+  unit: ''
+  description: 'KA (cyclohexanol and cyclohexanone) per cyclohexane converted, mol/mol, cobalt-catalysed air
+    oxidation: midpoint of 75 to 80 mol%.'
+  source: 'US EPA (1991) Alternative Control Techniques Document: Nitric and Adipic Acid Manufacturing Plants,
+    EPA-450/3-91-026, section 3.2.2.1, p. 3-19 (range, from Kirk-Othmer 1978); the midpoint is our choice.
+    Unconverted cyclohexane is recycled (same page) and not counted as a loss'
+- name: y_aa
+  value: 0.94
+  unit: ''
+  description: 'Adipic acid per KA fed to the nitric acid oxidation, mol/mol: midpoint of 92 to 96 %.'
+  source: 'US EPA (1991) Alternative Control Techniques Document: Nitric and Adipic Acid Manufacturing Plants,
+    EPA-450/3-91-026, section 3.2.2.3, p. 3-20 (range, for high-purity KA); reading the conversion yield as
+    mol AA per mol KA and the midpoint are our choices'
+- name: n2o_gen
+  value: 300.0
+  unit: kg
+  description: N2O generated per t adipic acid by the nitric acid oxidation, before abatement.
+  source: IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Vol. 3, Ch. 3, section
+    3.4, Table 3.4, p. 3.30 (default generation factor 300 kg/t, +/- 10 %)
+- name: co_1
+  value: 34.0
+  unit: kg
+  description: 'CO in the scrubbed off-gas of the cyclohexane oxidation per t adipic acid: high-pressure 25
+    plus low-pressure scrubber 9 kg/t, uncontrolled.'
+  source: US EPA (1995) AP-42, Fifth Edition, Vol. I, section 6.2 Adipic Acid (final section, 1/95), Table
+    6.2-1 (rating D); adding the two scrubbers as one plant's off-gas is our reading
+- name: co2_1
+  value: 17.7
+  unit: kg
+  description: 'CO2 in the scrubbed off-gas of the cyclohexane oxidation per t adipic acid: 14 plus 3.7 kg/t.'
+  source: US EPA (1995) AP-42, Fifth Edition, Vol. I, section 6.2 Adipic Acid (final section, 1/95), Table
+    6.2-1 (rating D)
+- name: ch4_1
+  value: 0.13
+  unit: kg
+  description: 'Methane in the scrubbed off-gas of the cyclohexane oxidation per t adipic acid: 0.08 plus 0.05
+    kg/t.'
+  source: US EPA (1995) AP-42, Fifth Edition, Vol. I, section 6.2 Adipic Acid (final section, 1/95), Table
+    6.2-1 (rating D)
+- name: voc_1
+  value: 8.4
+  unit: kg
+  description: 'Non-methane organics in the scrubbed off-gas of the cyclohexane oxidation per t adipic acid:
+    7.0 plus 1.4 kg/t, modelled as butane.'
+  source: US EPA (1995) AP-42, Fifth Edition, Vol. I, section 6.2 Adipic Acid (final section, 1/95), Table
+    6.2-1 and its notes (rating D; butane is the largest part of the speciation given there); the butane model
+    is ASSUMED
+- name: co2_2
+  value: 62.6
+  unit: kg
+  description: 'CO2 from the nitric acid oxidation per t adipic acid: oxidation reactor 60 plus nitric acid
+    tank fume sweep 2.6 kg/t.'
+  source: US EPA (1995) AP-42, Fifth Edition, Vol. I, section 6.2 Adipic Acid (final section, 1/95), Table
+    6.2-2 (ratings D and E)
+- name: co_2
+  value: 0.39
+  unit: kg
+  description: 'CO from the nitric acid oxidation per t adipic acid: 0.25 plus 0.14 kg/t.'
+  source: US EPA (1995) AP-42, Fifth Edition, Vol. I, section 6.2 Adipic Acid (final section, 1/95), Table
+    6.2-2 (ratings D and E)
+- name: voc_2
+  value: 0.587
+  unit: kg
+  description: 'Non-methane organics from the nitric acid oxidation and refining per t adipic acid: 0.28 plus
+    0.007 plus 0.3 kg/t, modelled as butane.'
+  source: US EPA (1995) AP-42, Fifth Edition, Vol. I, section 6.2 Adipic Acid (final section, 1/95), Table
+    6.2-2 (ratings D and E); the butane model is ASSUMED (no speciation given)
+- name: nox
+  value: 8.11
+  unit: kg
+  description: 'NOx (as NO2) after the process''s NOx absorber per t adipic acid: oxidation reactor 7.0, tank
+    fume sweep 0.81, refining 0.3 kg/t.'
+  source: US EPA (1995) AP-42, Fifth Edition, Vol. I, section 6.2 Adipic Acid (final section, 1/95), Table
+    6.2-2 (ratings D and E); counting NOx as NO2 is ASSUMED. One of the two plants behind the reactor factor
+    could use extended absorption
+- name: elec
+  value: 388.9
+  unit: kWh
+  description: 'Electricity per t adipic acid: 1.4 GJ/t, the estimated current Western European average (BPT
+    0.5 GJ/t).'
+  source: 'IEA Information Paper (Saygin et al. 2009), Table 13, p. 50 (current average) and Table 1, p. 14
+    (BPT), both from Chauvel and Lefebvre (1989); the average, not the BPT, is used for an average plant. Its
+    scope (cyclohexane to adipic acid, both stages) is ASSUMED: the paper lists cyclohexane making as a process
+    of its own'
+- name: steam
+  value: 7138.9
+  unit: kWh
+  description: 'Steam per t adipic acid, counted as heat delivered: 25.7 GJ/t, the estimated current Western
+    European average (BPT 18.5 GJ/t).'
+  source: IEA Information Paper (Saygin et al. 2009), Table 13, p. 50 and Table 1, p. 14, from Chauvel and
+    Lefebvre (1989); taking the GJ of steam as heat delivered and the scope (both stages) are ASSUMED
+- name: fuel
+  value: 333.3
+  unit: kWh
+  description: 'Fuel per t adipic acid: 1.2 GJ/t, the estimated current Western European average (BPT 1.0 GJ/t),
+    counted as heat from natural gas.'
+  source: IEA Information Paper (Saygin et al. 2009), Table 13, p. 50 and Table 1, p. 14, from Chauvel and
+    Lefebvre (1989); natural gas as the fuel and its GJ as the heat delivered are ASSUMED
+- name: df
+  value: 0.0
+  unit: ''
+  description: 'No N2O abatement: destruction factor 0.'
+  source: 'IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Vol. 3, Ch. 3, section
+    3.4, Table 3.4, p. 3.30; section 3.4.2.2: the Tier 1 good practice assumes no abatement'
+- name: asuf
+  value: 0.0
+  unit: ''
+  description: 'No N2O abatement: utilisation factor 0.'
+  source: IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Vol. 3, Ch. 3, section
+    3.4, Table 3.4, p. 3.30; section 3.4.2.2, as df
+exchanges:
+- key: product:adipic-acid
+  title: Adipic acid, dried crystals
+  type: product
+  amount: 1000.0
+  unit: kg
+  formula: aa
+  provenance: given
+  source: the reference flow
+- key: feed:cyclohexane
+  title: Cyclohexane
+  type: input
+  amount: 790.5174203365749
+  unit: kg
+  formula: aa / (M_AA * y_aa * y_ka) * M_CH
+  provenance: calculated
+  source: stoichiometry over both stages with the sourced yields y_ka and y_aa; unconverted cyclohexane is
+    recycled. No open source states a consumption to compare (benchmarks/oxygenates.yaml)
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 3
+    reason: 'from the yield ranges of US EPA (1991, after Kirk-Othmer 1978) with ASSUMED by-product models:
+      reliability 4, completeness 4, temporal 5 (over 30 years old), geographical 4, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.055
+    source: 'yields at the ends of their ranges (75 % and 92 %; 80 % and 96 %) give 0.835 and 0.750 t/t: gsd2
+      = sqrt(high / low), our convention'
+- key: feed:nitric-acid
+  title: Nitric acid, 60 wt% weak acid (net make-up)
+  type: input
+  amount: 1450.5542193417812
+  unit: kg
+  formula: (2 * n2o_gen / M_N2O + nox / M_NO2) / 3 * (3 * M_HNO3 + 7 * M_H2O)
+  provenance: calculated
+  source: 'net make-up: the nitrogen that leaves as N2O (generated, before abatement) and as NOx; NO and NO2
+    are reabsorbed to nitric acid in the plant (EPA 1991, section 3.2.2.3; AP-42 6.2.3). As 60 wt% acid, the
+    strength nitric-acid-1 makes, within the 50 to 60 % the EPA document gives; modelled as (HNO3)3(H2O)7 (59.98
+    wt% HNO3) so that the element balance can read it. A lower bound: N2 formation and acid lost to the effluent
+    are not counted (system_boundary.excluded)'
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 3
+    reason: 'from the yield ranges of US EPA (1991, after Kirk-Othmer 1978) with ASSUMED by-product models:
+      reliability 4, completeness 4, temporal 5 (over 30 years old), geographical 4, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.106
+    source: 'N2O generation, which sets most of the nitrogen: range 270 to 330 read as a 95 % interval, gsd2
+      = sqrt(high / low) (our convention; the amount stays the stated value)'
+- key: feed:oxygen
+  title: Oxygen from process air (stripping, NOx reabsorption and oxidation air)
+  type: input
+  amount: 805.2336237484283
+  unit: kg
+  formula: (4 * aa / M_AA + 4 * ((6 * (aa / (M_AA * y_aa * y_ka) - aa / (M_AA * y_aa)) - (co_1 / M_CO + co2_1 /
+    M_CO2 + ch4_1 / M_CH4 + 4 * voc_1 / M_VOC)) / 6 * M_RES) / M_RES + 4 * ((6 * (aa / (M_AA * y_aa) - aa / M_AA) -
+    co2_2 / M_CO2 - co_2 / M_CO - 4 * voc_2 / M_VOC) / 5 * M_DBA) / M_DBA + 2 * ((co_1 / M_CO + co2_1 / M_CO2 +
+    ch4_1 / M_CH4 + 4 * voc_1 / M_VOC) * M_CO2 + co2_2) / M_CO2 + co_2 / M_CO + 2 * nox / M_NO2 + n2o_gen / M_N2O +
+    ((2 * ch4_1 / M_CH4 + 5 * voc_1 / M_VOC) * M_H2O + (12 * aa / (M_AA * y_aa * y_ka) + 17 * (2 * n2o_gen / M_N2O +
+    nox / M_NO2) / 3 - 10 * aa / M_AA - 10 * ((6 * (aa / (M_AA * y_aa * y_ka) - aa / (M_AA * y_aa)) - (co_1 / M_CO +
+    co2_1 / M_CO2 + ch4_1 / M_CH4 + 4 * voc_1 / M_VOC)) / 6 * M_RES) / M_RES - 8 * ((6 * (aa / (M_AA * y_aa) - aa /
+    M_AA) - co2_2 / M_CO2 - co_2 / M_CO - 4 * voc_2 / M_VOC) / 5 * M_DBA) / M_DBA - 2 * (2 * ch4_1 / M_CH4 + 5 *
+    voc_1 / M_VOC) * M_H2O / M_H2O - 10 * voc_2 / M_VOC) / 2 * M_H2O) / M_H2O - 16 * (2 * n2o_gen / M_N2O + nox /
+    M_NO2) / 3) / 2 * M_O2 + 6.5 * (6 * (aa / (M_AA * y_aa * y_ka) - aa / (M_AA * y_aa)) - (co_1 / M_CO + co2_1 /
+    M_CO2 + ch4_1 / M_CH4 + 4 * voc_1 / M_VOC)) / 6 * M_O2
+  provenance: calculated
+  origin: estimate
+  free: true
+  source: 'closes the oxygen balance, including the combustion of the KA-section residue on site (C6H10O4 + 6.5 O2
+    -> 6 CO2 + 5 H2O); ambient air carries no burden and its nitrogen passes through (not inventoried, as core''s
+    tier convention)'
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+- key: feed:electricity
+  title: Electricity
+  type: input
+  amount: 388.9
+  unit: kWh
+  formula: elec
+  provenance: given
+  origin: literature
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: IEA Information Paper (Saygin et al. 2009), Table 13, p. 50 (Western European average, from Chauvel
+    and Lefebvre 1989)
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 5
+    - 3
+    - 3
+    reason: 'a Western European average estimated by the IEA (2009) from Chauvel and Lefebvre (1989): reliability
+      3, completeness 4, temporal 5 (data of 1989), geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.673
+    source: 'electricity, from BPT to the Western European average: range 138.9 to 388.9 read as a 95 % interval,
+      gsd2 = sqrt(high / low) (our convention; the amount stays the stated value)'
+- key: feed:steam
+  title: Steam, as heat delivered
+  type: input
+  amount: 7138.9
+  unit: kWh
+  formula: steam
+  provenance: given
+  origin: literature
+  source: IEA Information Paper (Saygin et al. 2009), Table 13, p. 50 (Western European average, from Chauvel
+    and Lefebvre 1989); gross, no credit for steam raised from the reaction or N2O decomposition heat
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 5
+    - 3
+    - 3
+    reason: 'a Western European average estimated by the IEA (2009) from Chauvel and Lefebvre (1989): reliability
+      3, completeness 4, temporal 5 (data of 1989), geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.179
+    source: 'steam, from BPT to the Western European average: range 5138.9 to 7138.9 read as a 95 % interval,
+      gsd2 = sqrt(high / low) (our convention; the amount stays the stated value)'
+- key: feed:fuel
+  title: Fuel, counted as heat from natural gas
+  type: input
+  amount: 333.3
+  unit: kWh
+  formula: fuel
+  provenance: given
+  origin: literature
+  source: IEA Information Paper (Saygin et al. 2009), Table 13, p. 50 (Western European average, from Chauvel
+    and Lefebvre 1989); natural gas ASSUMED
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 5
+    - 3
+    - 3
+    reason: 'a Western European average estimated by the IEA (2009) from Chauvel and Lefebvre (1989): reliability
+      3, completeness 4, temporal 5 (data of 1989), geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.095
+    source: 'fuel, from BPT to the Western European average: range 277.8 to 333.3 read as a 95 % interval,
+      gsd2 = sqrt(high / low) (our convention; the amount stays the stated value)'
+- key: output:dibasic-acids
+  title: Dibasic acids (glutaric and succinic) in the mother-liquor bleed, to recovery or treatment
+  type: output
+  amount: 30.223600627197452
+  unit: kg
+  formula: (6 * (aa / (M_AA * y_aa) - aa / M_AA) - co2_2 / M_CO2 - co_2 / M_CO - 4 * voc_2 / M_VOC) / 5 * M_DBA
+  provenance: calculated
+  source: closes the carbon balance of the nitric acid oxidation after its CO2, CO and organics; modelled as
+    glutaric acid C5H8O4 (ASSUMED). AP-42 6.2.2 says they may be recovered and sold; here an output without
+    allocation, not a co-product
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: a residual of the AA yield (92 to 96 %)'
+- key: output:wastewater
+  title: Effluent water to wastewater treatment
+  type: output
+  amount: 915.7363207722655
+  unit: kg
+  formula: (12 * aa / (M_AA * y_aa * y_ka) + 17 * (2 * n2o_gen / M_N2O + nox / M_NO2) / 3 - 10 * aa / M_AA
+    - 10 * ((6 * (aa / (M_AA * y_aa * y_ka) - aa / (M_AA * y_aa)) - (co_1 / M_CO + co2_1 / M_CO2 + ch4_1 /
+    M_CH4 + 4 * voc_1 / M_VOC)) / 6 * M_RES) / M_RES - 8 * ((6 * (aa / (M_AA * y_aa) - aa / M_AA) - co2_2 /
+    M_CO2 - co_2 / M_CO - 4 * voc_2 / M_VOC) / 5 * M_DBA) / M_DBA - 2 * (2 * ch4_1 / M_CH4 + 5 * voc_1 / M_VOC)
+    * M_H2O / M_H2O - 10 * voc_2 / M_VOC) / 2 * M_H2O
+  provenance: calculated
+  link:
+    factor: wastewater
+    source: site wastewater treatment
+  source: 'closes the hydrogen balance: water of the weak acid plus reaction water, removed by distillation
+    (BREF 2.1.2.3.3). Wash and recrystallisation water is not counted (in = out ASSUMED, system_boundary.excluded)'
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.2
+    source: 'ASSUMED: follows the nitric acid make-up'
+- key: emission:CO2
+  title: 'CO2, fossil: KA-section off-gas and residue burned on site, and the nitric acid oxidation'
+  type: emission
+  amount: 620.646856712645
+  unit: kg
+  formula: 6 * (aa / (M_AA * y_aa * y_ka) - aa / (M_AA * y_aa)) * M_CO2 + co2_2
+  provenance: calculated
+  origin: literature
+  cas: 124-38-9
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 349b29d1-3e58-4c66-98b9-9d1a076efd2e
+    name: Carbon dioxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: 'the carbon converted in the cyclohexane oxidation that does not end in the KA, as CO2: the KA-section
+    off-gas (its CO, CO2, CH4 and organics, AP-42 Table 6.2-1) and the non-volatile residue (C6H10O4, the carbon
+    residual of the KA yield), both burned on site in process heaters (ASSUMED; AP-42 6.2.3: the off-gas and the
+    residue may be used as fuel), plus the CO2 of the nitric acid oxidation (AP-42 Table 6.2-2). The residue gives
+    about 461 of the 621 kg/t. Its heat is not credited against feed:fuel or feed:steam: the IEA averages are taken
+    as the energy bought in (ASSUMED). biosphere3 UUID, name and categories from core''s elementary-flow crosswalk
+    (data/elementary-flows.yaml: ecoinvent elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 5
+    - 4
+    - 3
+    reason: 'AP-42 (1995) factors from two to three US plants, ratings D and E: reliability 3, completeness
+      4, temporal 5, geographical 4, technological 3'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: factors of rating D and E from few plants'
+- key: emission:H2O
+  title: Water vapour from burning the KA-section off-gas and residue
+  type: emission
+  amount: 170.611485314676
+  unit: kg
+  formula: (2 * ch4_1 / M_CH4 + 5 * voc_1 / M_VOC) * M_H2O + 5 * (6 * (aa / (M_AA * y_aa * y_ka) - aa / (M_AA *
+    y_aa)) - (co_1 / M_CO + co2_1 / M_CO2 + ch4_1 / M_CH4 + 4 * voc_1 / M_VOC)) / 6 * M_H2O
+  provenance: calculated
+  origin: estimate
+  cas: 7732-18-5
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 075e433b-4be4-448e-9510-9a5029c1ce94
+    name: Water
+    categories:
+    - air
+    unit: m3
+    per_unit: 0.001
+  source: 'the hydrogen of the off-gas methane and organics and of the residue (C6H10O4), burned on site (ASSUMED,
+    as emission:CO2); biosphere3 UUID, name and categories from core''s elementary-flow crosswalk
+    (data/elementary-flows.yaml: ecoinvent elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.5
+- key: emission:CO
+  title: CO from the nitric acid oxidation
+  type: emission
+  amount: 0.39
+  unit: kg
+  formula: co_2
+  provenance: given
+  origin: literature
+  cas: 630-08-0
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: ba2f3f82-c93a-47a5-822a-37ec97495275
+    name: Carbon monoxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: 'US EPA (1995) AP-42, Fifth Edition, Vol. I, section 6.2 Adipic Acid (final section, 1/95), Table
+    6.2-2; biosphere3 UUID, name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml:
+    ecoinvent elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 5
+    - 4
+    - 3
+    reason: 'AP-42 (1995) factors from two to three US plants, ratings D and E: reliability 3, completeness
+      4, temporal 5, geographical 4, technological 3'
+  basic_uncertainty: 5.0
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: factors of rating D and E from few plants'
+- key: emission:NMVOC
+  title: Non-methane organics from the nitric acid oxidation and refining
+  type: emission
+  amount: 0.587
+  unit: kg
+  formula: voc_2
+  provenance: given
+  origin: literature
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: d3260d0e-8203-4cbb-a45a-6a13131a5108
+    name: NMVOC, non-methane volatile organic compounds
+    categories:
+    - air
+    unit: kg
+  source: 'US EPA (1995) AP-42, Fifth Edition, Vol. I, section 6.2 Adipic Acid (final section, 1/95), Table
+    6.2-2 (no speciation; butane model ASSUMED for the balance); biosphere3 UUID, name and categories from
+    core''s elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent elementary exchanges 3.9 via bw2io
+    0.9.17, BSD-3-Clause)'
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 5
+    - 4
+    - 3
+    reason: 'AP-42 (1995) factors from two to three US plants, ratings D and E: reliability 3, completeness
+      4, temporal 5, geographical 4, technological 3'
+  basic_uncertainty: 1.5
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: factors of rating D and E from few plants'
+- key: emission:NOX
+  title: NOx (as NO2) after the NOx absorber
+  type: emission
+  amount: 8.11
+  unit: kg
+  formula: nox
+  provenance: given
+  origin: literature
+  cas: 10102-44-0
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: c1b91234-6f24-417b-8309-46111d09c457
+    name: Nitrogen oxides
+    categories:
+    - air
+    unit: kg
+  source: 'US EPA (1995) AP-42, Fifth Edition, Vol. I, section 6.2 Adipic Acid (final section, 1/95), Table
+    6.2-2; the N2O abatement is not credited with any NOx removal; biosphere3 UUID, name and categories from
+    core''s elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent elementary exchanges 3.9 via bw2io
+    0.9.17, BSD-3-Clause)'
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 5
+    - 4
+    - 3
+    reason: 'AP-42 (1995) factors from two to three US plants, ratings D and E: reliability 3, completeness
+      4, temporal 5, geographical 4, technological 3'
+  basic_uncertainty: 1.5
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: factors of rating D and E from few plants; extended absorption lowers it'
+- key: emission:N2O
+  title: N2O, unabated
+  type: emission
+  amount: 300.0
+  unit: kg
+  formula: n2o_gen * (1 - df * asuf)
+  provenance: calculated
+  origin: literature
+  cas: 10024-97-2
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 20185046-64bb-4c09-a8e7-e8a9e144ca98
+    name: Dinitrogen monoxide
+    categories:
+    - air
+    unit: kg
+  source: 'IPCC 2006 Table 3.4 default generation factor, no abatement (df = asuf = 0; the Tier 1 good practice);
+    biosphere3 UUID, name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml:
+    ecoinvent elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree:
+    scores:
+    - 3
+    - 4
+    - 4
+    - 3
+    - 3
+    reason: 'IPCC 2006 default factors (expert judgement on plant data of the 1990s): reliability 3, completeness
+      4, temporal 4, geographical 3, technological 3'
+  basic_uncertainty: 1.5
+  uncertainty:
+    gsd2: 1.106
+    source: 'N2O, IPCC +/- 10 %: range 270 to 330 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the stated value)'
+provenance:
+  generator: hand-written model; amounts are the formulas of the parameters
+  notes: No value from a licensed database and none from a DWSIM file. Kirk-Othmer figures are used only as
+    the EPA document reports them.
+generation:
+  tier: 1
+  method: 'sourced conceptual inventory: yields (US EPA 1991), energy (IEA 2009), N2O (IPCC 2006) and air emissions
+    (AP-42 1995) with stoichiometry; oxygen, water and dibasic acids close the element balance, and the
+    residue (the carbon residual of the KA yield) is burned on site'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 3
+  - 4
+  - 3
+  - 3
+  - 3
+  dqr_floor: 3.0
+  components:
+    product:adipic-acid: C6H10O4
+    feed:cyclohexane: C6H12
+    feed:nitric-acid: (HNO3)3(H2O)7
+    feed:oxygen: O2
+    output:dibasic-acids: C5H8O4
+    output:wastewater: H2O
+    emission:CO2: CO2
+    emission:H2O: H2O
+    emission:CO: CO
+    emission:NMVOC: C4H10
+    emission:NOX: NO2
+    emission:N2O: N2O
+  formulas:
+    product:adipic-acid: C6H10O4
+    feed:cyclohexane: C6H12
+    feed:nitric-acid: (HNO3)3(H2O)7
+    feed:oxygen: O2
+    output:dibasic-acids: C5H8O4
+    output:wastewater: H2O
+    emission:CO2: CO2
+    emission:H2O: H2O
+    emission:CO: CO
+    emission:NMVOC: C4H10
+    emission:NOX: NO2
+    emission:N2O: N2O
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      C:
+      - 676.902027209
+      - 676.902027209
+      H:
+      - 192.490236777
+      - 192.490236777
+      N:
+      - 193.417355568
+      - 193.417355568
+      O:
+      - 1983.495643873
+      - 1983.495643873
+    outside:
+    - feed:electricity
+    - feed:steam
+    - feed:fuel
