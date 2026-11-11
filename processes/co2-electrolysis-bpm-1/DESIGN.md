@@ -3256,3 +3256,44 @@ Assumptions: the credit convention of D-030 (ASSUMED, for the team).
 
 Open (cannot be settled here): the team session, the re-rating it makes, the SIL screening.
 
+## D-071 P&ID revision E: off-page connectors on the sheet edge (2026-11-11)
+Decision: core 1.11.0's `cheme.offpage-not-on-edge` (core ADR 0049: a connector sits within
+10 mm of the drawing area's edge, or 35 mm with nothing drawn between, unless its own text makes
+it an open end) reported five connectors per sheet. P-01 and P-02 are regenerated from
+`scripts/_skid_pid.py` as revision E of 2026-11-11 (frames' title blocks by `cheme sheet meta`),
+no item, nozzle, line number or segment changed, only drawing positions and one note:
+1. **AV-x11** (the cooler's capped vent) runs east past E-x11's tag and down to the bottom edge
+   (8 mm in); TIC-x11 and TV-x11 move 6 mm east to give it room.
+2. **PO-x01** (T-x01's capped pump-out): N11 is drawn west of N5 at the tank's bottom, outside
+   the anolyte loop, and the line runs to the west edge (3 mm in) between the fill and the bleed.
+   The nozzle's place on the tank is `layout/equipment-placement.yaml`'s and does not move.
+3. **DR-x03** (TG-x01's second drip leg): its tee is drawn on the drop into X-x32's N1, still
+   between FA-x33 and N1, branching east to the east edge (0 mm in); the TG-x01 label sits
+   under the overhead run.
+4. **DR-x01** (the anolyte loop's low-point drain) cannot reach an edge without a crossing: it
+   hangs between the CO2 feed branches of stacks C and D above the feed header, which runs from
+   the CO2 inlet to stack A. It is a valved, capped drain drained by hose (D-055), an open end
+   and not a connection: its note says "drain, capped", which the rule exempts.
+5. **CD-x01** (the condensate to the vented collection) stays where it is, 82 mm inside the
+   east edge, and is the one finding left per sheet. V-x21's bottom lies inside the cathode gas
+   loop as drawn (CG-x01, V-x21, K-x31, X-x31, the recycle CO2-x02, the feed header, the
+   stacks): every route to an edge crosses one of its lines, and the condensate goes to a
+   system, so the open-end note does not apply.
+
+`checks/checks.yaml` drawing-clean lists `cheme.offpage-not-on-edge`; nothing is accepted.
+
+Why: the owner's convention (core ADR 0049) puts connections on the sheet's edges; a generated
+sheet is the script's (D-017); no new crossing and no accept was the brief of this change.
+
+Results (regen at both durations, `regen.py --check` clean): `cheme validate` 0 errors, on each
+sheet 6 line crossings (the accepted manifolds, D-017) and 1 offpage-not-on-edge (CD-x01), no
+other drawing finding; the 3D model, take-off, cables, lifting, figures, datasheets and LCA
+unchanged but for the sheets' hashes in the model's provenance and the records; H-01 and H-02
+re-stamped (`cheme safety hazop stamp --write`; the change is drawing only, no entry revised).
+The drawing-clean gate fails on CD-101 and CD-201 until the owner decides.
+
+Open: CD-x01. Either the owner accepts the one crossing a route to the edge costs (ADR 0049
+foresees it; e.g. down from XV-x25 across the feed header to the bottom edge, or east across
+CO2-x02 between XV-x34 and CV-x34 to the east edge between AIR-x01 and CO2-x01) and the script
+draws it, or the connector is accepted where it is, with a reason. The human design review.
+

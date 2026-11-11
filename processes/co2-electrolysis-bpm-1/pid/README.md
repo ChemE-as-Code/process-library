@@ -25,3 +25,8 @@ DEXPI 2.0.1 XML, one file per sheet. Start a new one with the `pid-draft` skill.
   cathode at the stack inlet PIA-x16 (the membrane's difference at each end); PSE-x01's burst
   indicator XS-x01; a drip leg with a valved, capped drain at each low point of the tail gas
   (DR-x02 / HV-x11, DR-x03 / HV-x12); the AV-x11 note clear of the cooler.
+  Revision E (2026-11-11, core 1.11's `cheme.offpage-not-on-edge`, D-071): drawing only. AV-x11,
+  PO-x01 and DR-x03 end on the drawing area's edge (bottom, west, east), routed without a new
+  crossing; DR-x01 is an open end at its valve ("drain, capped"); CD-x01 stays inside the east
+  edge (V-x21's outlet lies inside the cathode gas loop, any route to an edge crosses it),
+  open for the owner (D-071).
