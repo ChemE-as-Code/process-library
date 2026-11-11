@@ -156,6 +156,45 @@ structures:
       - {id: CW, title: "Catwalk walkway", elevation: 0.3, kind: deck, use: occasional}
     ladders: [{id: ladder-cw-s, from: grade, to: CW, at: [0.5, 0.5], facing: south}, {id: ladder-cw-n, from: grade, to: CW, at: [4.5, 30.5], facing: north}]
     notes: "x 1161-1166, y 824-855, walkway 0.3 m above the deck datum over the enclosed collector (D-031, D-033.11); joins the platform deck at its south edge and the sump deck at A9's north edge. A9 is a dead end: an escape ladder to the water and a life ring at A9's south edge, and A9 and the catwalk kept clear during transfers (review 2026-11-05-basic-layout-4 #9, D-035.12; marine engineer, ASSUMED; a ladder to the water is not a level the model can draw)."
+  # Header bay access aisle (D-037, review 2026-11-05-basic-layout-6 #1): a fixed grated aisle at
+  # 4.5 m on the bottom tier of the header bay frame PR10 (layout/site-plan.yaml), between the
+  # two berth headers, from which the shore ESD valves XV-5101 / XV-6101 with their position
+  # switches ZSC-n101, the strainers SR-5102 / SR-6102 (handwheels, covers and PDI-n102 tappings
+  # ~1.2 m above the floor) are operated and maintained, and under the top tier's crossover
+  # valves XV-4107 / XV-4103 (2.6 m above it; maintained by exchange since D-037.15, below).
+  # Its posts stand outside the recess (x 1154.82
+  # west of the bay, x 1163.4 east of it); the grating spans PR10's bottom-tier beams. Way down:
+  # a stair at the east end onto the deck east of the bay (outside the recess and the drum bay),
+  # and a caged ladder at the west end onto the deck west of the bay, so the 8.6 m aisle has no
+  # dead end. It lies inside the header bay's zone 2 and the south-end occupancy rule of
+  # D-035.14 (e): no presence while a transfer runs on either berth (ASSUMED)
+  # D-037.15 (independent check of D-037): the crossover actuators stand 2.6-3.8 m above the
+  # aisle, and the portable work platform on the aisle declared for them was no means of access.
+  # A fixed platform between the two crossovers at their 7 m level was tried: nothing reaches it
+  # but a ladder from the aisle (any walkway to it crosses a crossover at its own height), and
+  # a floor at 7 m with no stair takes a generated stair standing in the recess (cheme-as-code
+  # 1.7.0 proposes one for every floor at 6 m or higher), the pattern review 6 #1 rejected. So
+  # XV-4107 / XV-4103 have no local duty and are maintained by exchange: their actuator
+  # packages (actuator, solenoids, position switches and stored-energy supply in one fire-rated
+  # enclosure, pipe-specs Class 150 (e)) are unbolted at the valve's top flange from the basket
+  # of a mobile elevating work platform standing on the deck east of the bay (Z-LAY-A4SE,
+  # outside the recess; ~10-12 m outreach at ~8 m, the basket lowered between the loading lines
+  # and between the crossovers, which lie on PR10's top-tier beams at x 1156.1 / 1158.4 since
+  # D-037.15, 1.5 m apart clear), lifted out by the crane on Z-PAD-A4E and bench-maintained, with
+  # no transfer on either berth (ASSUMED; the crane and MEWP contractor's lift plan)
+  - id: S-HDR
+    title: "Header bay access aisle on the header bay frame PR10 (XV-5101 / XV-6101, SR-5102 / SR-6102), ASSUMED"
+    origin: [1154.82, 859.6]
+    spans_x: [8.58]
+    spans_y: [0.8]
+    levels:
+      - {id: P4, title: "Header bay aisle at 4.5 m", elevation: 4.5, kind: platform, use: occasional}
+    stairs:
+      - {id: stair-to-P4, from: grade, to: P4, side: east, width: 0.9}
+    ladders:
+      - {id: ladder-w, from: grade, to: P4, at: [0.0, 0.4], facing: west}
+    serves: [XV-5101, XV-6101, XV-4107, XV-4103]
+    notes: "x 1154.82-1163.4, y 859.6-860.4 (0.8 m clear, occasional access), floor 4.5 m on PR10's bottom tier between the berth headers (y 858.9 / 861.1), passing between the two junction drops at its east end; the stair lands on the deck at x 1163.4-1165.2, y 859.6-864.5, the ladder at x 1154.82 west of the recess (D-037). The crossover valves XV-4107 / XV-4103 above it have no local duty and are maintained by exchange of their actuator packages from a mobile elevating work platform on Z-LAY-A4SE (D-037.15, comment above). The east posts (x 1163.4) and the stair foot, like PR10's east bent (x 1163.0), stand over the enclosed B1M collector (x 1162.5-1164.0): their loads on the collector's cover slab are the marine engineer's (D-037.15). Headroom 2.2 m to PR10's top-tier beams, 2.5-2.6 m to the loading lines and crossovers. The shore ESD valves' handwheels / actuators 1.2 m above the floor and 0.7 m from its edge; the strainer baskets lift vertically between the loading line and the aisle edge through the gap between PR10's top-tier beams at x 1158.4 / 1160.7, by the mobile crane on Z-PAD-A4E (~25 m radius, a ~1-2 t basket, ASSUMED) or a davit on the frame, with the berth out of transfer (D-037). Posts and stair outside the recess; structural design the marine engineer's (ASSUMED)."
 # Supports of the tank-roof headers (D-027, review #7): posts on the pump platform and on the
 # riser towers; sizes ASSUMED. The roof stools on the dome between the platform edge and the
 # shell (tank supply) are not modelled: a post standing on the dome intersects the tank's
@@ -201,6 +240,16 @@ pipe_supports:
   - {id: P-06/Line_BOG6002_S1/SP-10.6, kind: t_post, at: [1160.967, 878.0], top: 3.4, from: grade, serves: [P-06/Line_BOG6002_S1]}
   - {id: P-08/Line_N8002_S1/SP-1282.8, kind: t_post, at: [1151.066, 893.187], top: 11.76, from: grade, rotation_deg: 90, serves: [P-08/Line_N8002_S1]}
   - {id: P-08/Line_N8002_S1/SP-1286.1, kind: t_post, at: [1155.0, 893.187], top: 11.76, from: grade, rotation_deg: 90, serves: [P-08/Line_N8002_S1]}
+  # header bay crossovers (D-037.15, independent check of D-037; the open part of review 6 #1
+  # (a)): they hung on the loading line tees between PR10's north-south top-tier beams. They
+  # now lie on two of those beams (x 1156.1 / 1158.4, top of steel 7.0 m), and a stub on the
+  # beam under each, beside its valve, carries the DN 800 XV-4107 and the DN 250 XV-4103 with
+  # their actuator packages and 240 min jackets (shoe to the 80 mm insulation; the second
+  # support of each span is the loading line tee; sizes ASSUMED, stress design detail)
+  - {id: HB-LNG4010-1, kind: stub, at: [1156.1, 860.45], top: 7.12, from: steel, base: 7.0, serves: [P-04/Line_LNG4010_S1], notes: "Shoe stub on PR10's top-tier beam at x 1156.1 under the DN 800 crossover just north of XV-4107 (D-037.15, ASSUMED)"}
+  - {id: HB-LNG4010-2, kind: stub, at: [1156.1, 858.6], top: 7.12, from: steel, base: 7.0, serves: [P-04/Line_LNG4010_S1], notes: "Shoe stub on the same beam just south of XV-4107, so the valve sits between two supports (D-037.15, ASSUMED)"}
+  - {id: HB-LNG4003-1, kind: stub, at: [1158.4, 860.2], top: 7.39, from: steel, base: 7.0, serves: [P-04/Line_LNG4003_S1], notes: "Shoe stub on PR10's top-tier beam at x 1158.4 under the DN 250 crossover just north of XV-4103 (D-037.15, ASSUMED)"}
+  - {id: HB-LNG4003-2, kind: stub, at: [1158.4, 858.65], top: 7.39, from: steel, base: 7.0, serves: [P-04/Line_LNG4003_S1], notes: "Shoe stub on the same beam just south of XV-4103 (D-037.15, ASSUMED)"}
   # BOG area A2 (suction header, recycles, discharge header, compressor vents to the flare)
   - {id: P-07/Line_BOG7001_S1/SP-14.1, kind: t_post, at: [1040.0, 3038.04], top: 10.939, from: grade, serves: [P-07/Line_BOG7001_S1]}
   - {id: P-07/Line_BOG7001_S1/SP-26.0, kind: t_post, at: [1040.0, 3026.08], top: 10.939, from: grade, serves: [P-07/Line_BOG7001_S1]}
@@ -300,6 +349,7 @@ pipe_supports:
   - {id: P-08/Line_LNG8006_S1/SP-7.4, kind: t_post, at: [1453.5, 3067.365], top: 4.27, from: grade, serves: [P-08/Line_LNG8006_S1]}
   - {id: P-08/Line_LNG8006_S1/SP-9.9, kind: t_post, at: [1453.5, 3069.91], top: 4.27, from: grade, serves: [P-08/Line_LNG8006_S1]}
   - {id: P-08/Line_LNG8006_S1/SP-12.5, kind: t_post, at: [1453.5, 3072.455], top: 4.27, from: grade, serves: [P-08/Line_LNG8006_S1]}
+  - {id: P-08/Line_W8003_S1/SP-8.0, kind: t_post, at: [1170.1, 809.7], top: 2.456, from: grade, width: 1, rotation_deg: 90, serves: [P-08/Line_W8003_S1], notes: "T-post on the sump deck A9 under the overhead run of the T-8102 dry-sump pump's discharge to the jetty drain (D-037.16); pinned proposal (ASSUMED: check the support with the stress engineer)"}
 notes: >-
   The tank-top pump platforms are the single platform level of a frame spanning each tank
   (S-Tn101-TOP above, D-027): a cheme-as-code structure stands on grade and cannot stand on the

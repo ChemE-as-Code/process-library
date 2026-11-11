@@ -38,7 +38,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lng_pid import Lists, Sheet, label, note, offpage, tee, valve  # noqa: E402
+from lng_pid import Lists, Sheet, label, note, offpage, tee, to_orifice, valve  # noqa: E402
 
 target = Path(sys.argv[1])
 sheet = Sheet.load(target)
@@ -234,6 +234,7 @@ L.line(sheet, "FG-1001", dn=150, fluid="Fuel gas", frm="BL (trains' fuel gas sys
                       rotation=UP), fo1117, pv1111, bm.branch],
        label_at=(326, 72))
 label(sheet, "FO1117", "PipingComponentNumber", at=(331, 84))
+to_orifice(sheet, "FO1117")   # drawn as a restriction orifice (checker of D-036)
 # flare branch: PV-1110 regulates; the high-high pressure trip opens its own SIS valve XV-1115
 # in a bypass FL-1001 around PV-1110 (review #14)
 fb1 = tee("T1110", at=(380, 50), branch="left", branch_dn=600)

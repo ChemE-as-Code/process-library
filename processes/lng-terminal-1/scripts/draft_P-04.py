@@ -47,6 +47,24 @@ pumps have stopped, 25-30 s, air accumulator and speed controller as XV-4101), b
 T4A5 / T4B5 left of the DN 250 crossover, so both DN 800 lines reach the loading berth at 6,000
 m3/h each (3.4 m/s). LNG-4003 / XV-4103 stays as the holding circulation bypass and takes the jetty
 drain pumps; it is closed in loading. The LNG-4002 label moves left to clear the new crossover.
+
+Revision after review 2026-11-05-basic-design-8 and layout review 2026-11-05-basic-layout-6 #2 (D-036):
+nothing but valve stem and bonnet seals is left on the trestle side of the shore ESD valves. The jetty
+drain pump returns LNG-5006 / LNG-6006 and their tees T4X5 / T4X6 leave LNG-4003 (they now enter the
+berth headers downstream of XV-5101 / XV-6101, P-05 / P-06), so LNG-4003 is one segment; PI-4105 /
+PI-4106 and TI-4103 / TI-4104 become non-intrusive (clamp-on strain and strap-on surface sensors under
+the insulation, no process tapping). New tank-end N2 connections N-4001 / N-4002 (DN 80, tees T4A6 /
+T4B6 on the trestle side of XV-4101 / XV-4102 at the PR1 joint, double block HV-4151 / HV-4152 and
+HV-4153 / HV-4154 with the restriction orifice FO-4151 / FO-4152 and the check valve CV-4151 /
+CV-4152, normally closed and blinded) displace an isolated trestle line back to the tanks downhill
+through the platform crossover and the other line (SEQ-LINE-EMPTY). XV-4107 takes closed- and
+open-position switches ZSC-4107 / ZSO-4107 (review 8 #5).
+
+Revision after the checker of D-036: the N2 stations lose their blind and take the bleed HV-4161 /
+HV-4162 (lines N-4003 / N-4004) between their blocks, PI-4155..PI-4158 either side of the orifices,
+which are drawn as restriction orifices (lng_pid.to_orifice), and the spec break SB at their
+battery-limit flange (austenitic from there); ~4,000 Nm3/h. The platform crossovers LNG-4003 /
+LNG-4010 are bottom-of-line takeoffs and the trestle lines fall to them without a pocket (notes).
 """
 
 import sys
@@ -55,7 +73,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from dataclasses import replace  # noqa: E402
 
-from lng_pid import Lists, Sheet, note, offpage, tee, valve  # noqa: E402
+from lng_pid import Lists, Sheet, label, note, offpage, tee, to_orifice, valve  # noqa: E402
 
 target = Path(sys.argv[1])
 sheet = Sheet.load(target)
@@ -69,13 +87,14 @@ ta_x = tee("T4A2", at=(100, YA), branch="down", branch_dn=800)
 ta_t = tee("T4A3", at=(200, YA), branch="down", branch_dn=25)  # PSV-4111 to BOG-4001 (D-026)
 ta_p = tee("T4A4", at=(330, YA), branch="down", branch_dn=250)
 ta_k = tee("T4A5", at=(290, YA), branch="down", branch_dn=800)   # platform crossover LNG-4010 (D-034)
+ta_n = tee("T4A6", at=(185, YA), branch="up", branch_dn=80)      # tank-end N2 N-4001 (SEQ-LINE-EMPTY, D-036)
 fv1 = valve("FV4101", "ButterflyValve", tag="FV-4101", at=(125, YA))
 xv1 = valve("XV4101", "BallValve", tag="XV-4101", at=(150, YA))
 la = L.line(sheet, "LNG-4001", dn=800, fluid="LNG", frm="LNG-2001 (P-02)", to="LNG-5001 (P-05)",
             insulation="cold (PIR 200 mm)",
-            notes="Loading line A over the trestle, ~2.16 km routed (~2.45 km with the tank area and platform runs, D-013); 6,000 m3/h at 3.4 m/s in every 12,000 m3/h line-up, both lines reaching the loading berth through the DN 800 platform crossover LNG-4010; ~147 kPa over the trestle with its expansion loops (D-008, D-011, D-034); out-leg of the circulation loop in holding (S2 holding).",
+            notes="Loading line A over the trestle, ~2.16 km routed (~2.45 km with the tank area and platform runs, D-013); 6,000 m3/h at 3.4 m/s in every 12,000 m3/h line-up, both lines reaching the loading berth through the DN 800 platform crossover LNG-4010; ~147 kPa over the trestle with its expansion loops (D-008, D-011, D-034); out-leg of the circulation loop in holding (S2 holding). Butt-welded from the PR1 joint to the shore ESD valve (no flanged joint, spool, drain, vent or tapping on the trestle and platform DN 800 runs, piping/pipe-specs.yaml Class 150, D-035.6); its only branches there are the relief tee T4A3 and the N2 tee T4A6 at the PR1 joint and the welded crossover tees at the platform (D-036). Falls without a pocket from the PR1 joint (+15.3 m CD grade) to the platform crossover tees, whose branches leave from the bottom of the line, so that in SEQ-LINE-EMPTY the liquid the N2 overruns drains along the bottom to them and not to a platform-end leak (expansion loops flat in the rack plane; checker of D-036).",
             route=[offpage("in", at=(14, YA), note="from T-2101 pumps (P-02)", note_at=(30, YA - 6)),
-                   ta_c, ta_x, fv1, xv1, ta_t, ta_k, ta_p,
+                   ta_c, ta_x, fv1, xv1, ta_n, ta_t, ta_k, ta_p,
                    offpage("out", at=(405, YA), note="to Berth 2 (P-05)", note_at=(390, YA - 6))],
             label_at=(250, YA - 8))
 # ---- loading line B ---------------------------------------------------------------------------
@@ -84,36 +103,106 @@ tb_x = tee("T4B2", at=(100, YB), branch="up", branch_dn=800)
 tb_t = tee("T4B3", at=(220, YB), branch="down", branch_dn=25)  # PSV-4112 to BOG-4001 (D-026)
 tb_p = tee("T4B4", at=(330, YB), branch="up", branch_dn=250)
 tb_k = tee("T4B5", at=(290, YB), branch="up", branch_dn=800)     # platform crossover LNG-4010 (D-034)
+# tank-end N2 N-4002 (D-036): after T4B3, so that the crossing of BOG-4011 stays on segment S3 (accepted
+# crossing id unchanged); its spool rises into the free field between the two loading lines
+tb_n = tee("T4B6", at=(250, YB), branch="up", branch_dn=80)
 fv2 = valve("FV4102", "ButterflyValve", tag="FV-4102", at=(125, YB))
 xv2 = valve("XV4102", "BallValve", tag="XV-4102", at=(150, YB))
 lb = L.line(sheet, "LNG-4002", dn=800, fluid="LNG", frm="LNG-3001 (P-03)", to="LNG-6001 (P-06)",
             insulation="cold (PIR 200 mm)",
-            notes="Loading line B, as LNG-4001 (~2.31 km routed); reaches Berth 2 through the DN 800 platform crossover LNG-4010 / XV-4107, as line A reaches Berth 1 (D-034); return leg of the circulation loop in holding through the DN 250 platform crossover LNG-4003 (D-008).",
+            notes="Loading line B, as LNG-4001 (~2.31 km routed); reaches Berth 2 through the DN 800 platform crossover LNG-4010 / XV-4107, as line A reaches Berth 1 (D-034); return leg of the circulation loop in holding through the DN 250 platform crossover LNG-4003 (D-008). Butt-welded as LNG-4001, its PR1-joint branches the relief tee T4B3 and the N2 tee T4B6 (D-035.6, D-036); falls without a pocket to the bottom-of-line platform crossover tees as LNG-4001.",
             route=[offpage("in", at=(14, YB), note="from T-3101 pumps (P-03)", note_at=(30, YB - 6)),
-                   tb_r, tb_x, fv2, xv2, tb_t, tb_k, tb_p,
+                   tb_r, tb_x, fv2, xv2, tb_t, tb_n, tb_k, tb_p,
                    offpage("out", at=(405, YB), note="to Berth 1 (P-06)", note_at=(390, YB - 6))],
-            label_at=(245, YB - 8))
+            label_at=(272, YB + 8))
 # crossovers
 xv7 = valve("XV4107", "BallValve", tag="XV-4107", at=(290, 95))
 L.line(sheet, "LNG-4010", dn=800, fluid="LNG", frm="LNG-4001", to="LNG-4002",
-       notes="Platform crossover DN 800 (review 2026-11-05-basic-design-7 #1, D-034): open in loading, so both DN 800 lines reach the loading berth at 6,000 m3/h each (3.4 m/s, ~6 kPa across it); ESD valve XV-4107 (UZ-4107, fail closed, closed by ESD-1 of either berth after the pumps have stopped, 25-30 s), closed in holding. Butt-weld ends on the valve and tees, ASSUMED (no gasketed joint on the trestle side of the shore ESD valves, D-034).",
-       route=[ta_k.branch, xv7, tb_k.branch], label_at=(310, 80))
+       notes="Platform crossover DN 800 (review 2026-11-05-basic-design-7 #1, D-034): open in loading, so both DN 800 lines reach the loading berth at 6,000 m3/h each (3.4 m/s, ~6 kPa across it); ESD valve XV-4107 (UZ-4107, fail closed, closed by ESD-1 of either berth after the pumps have stopped, 25-30 s), closed in holding. Butt-weld ends on the valve and tees, ASSUMED (no gasketed joint on the trestle side of the shore ESD valves, D-034). Its tees T4A5 / T4B5 take it off the bottom of both loading lines, so it is also a crossover of SEQ-LINE-EMPTY when XV-4103 is the leaking item (D-036).",
+       route=[ta_k.branch, xv7, tb_k.branch], label_at=(280, 107))
 xv3 = valve("XV4103", "BallValve", tag="XV-4103", at=(330, 95))
-t_d5 = tee("T4X5", at=(330, 82), branch="right", branch_dn=80)
-t_d6 = tee("T4X6", at=(330, 108), branch="right", branch_dn=80)
 L.line(sheet, "LNG-4003", dn=250, fluid="LNG", frm="LNG-4001", to="LNG-4002",
-       notes="Platform crossover DN 250, the holding circulation bypass (~314 m3/h, S10; 500 m3/h at 2.7 m/s): open in holding, closed in loading, when the DN 800 crossover LNG-4010 carries line B to Berth 2 or line A to Berth 1 (D-008, D-034; 6,000 m3/h in DN 250 would be ~33 m/s, review 2026-11-05-basic-design-7 #1); receives the jetty drain pumps.",
-       route=[ta_p.branch, t_d5, xv3, t_d6, tb_p.branch], label_at=(316, 102))
-for nb, tt, y in [("5", t_d5, 82), ("6", t_d6, 108)]:
-    L.line(sheet, f"LNG-{nb}006", dn=80, fluid="LNG", frm=f"P-{nb}101", to="LNG-4003",
-           notes=f"Jetty drain pump P-{nb}101 discharge into the platform crossover, ~60 m3/h (D-016). Drawn on P-0{nb} and P-04.",
-           route=[offpage("in", at=(372, y), note=f"from P-{nb}101 (P-0{nb})", note_at=(384, y - 6 if nb == "6" else y + 6), rotation=180), tt.branch],
-           labels=False)
+       notes="Platform crossover DN 250, the holding circulation bypass (~314 m3/h, S10; 500 m3/h at 2.7 m/s): open in holding, closed in loading, when the DN 800 crossover LNG-4010 carries line B to Berth 2 or line A to Berth 1 (D-008, D-034; 6,000 m3/h in DN 250 would be ~33 m/s, review 2026-11-05-basic-design-7 #1); the crossover of SEQ-LINE-EMPTY (~450 m3/h at ~2.5 m/s, D-036), so its tees T4A4 / T4B4 take it off the bottom of both loading lines, at the low point of the trestle run above the drops to the berth headers (checker of D-036: with a side or top takeoff the liquid below it, a stratified wedge of up to ~500 m at the line's ~0.16 % fall, would stay in the line and drain to the leak). Butt-weld ends, no tapping: the jetty drain pump returns enter the berth headers downstream of XV-5101 / XV-6101 since D-036 (layout review 2026-11-05-basic-layout-6 #2).",
+       route=[ta_p.branch, xv3, tb_p.branch], label_at=(345, 108))
 xv6 = valve("XV4106", "BallValve", tag="XV-4106", at=(100, 95))
 t_x6 = tee("T4X7", at=(100, 84), branch="left", branch_dn=25)
 L.line(sheet, "LNG-4006", dn=800, fluid="LNG", frm="LNG-4001", to="LNG-4002",
        notes="Tank-end crossover: either tank's pumps load through both lines (D-008, D-011); thermal relief PSV-4113.",
        route=[ta_x.branch, t_x6, xv6, tb_x.branch], label_at=(116, 108))
+
+# ---- tank-end N2 connections for emptying an isolated trestle line (SEQ-LINE-EMPTY, D-036) ------------
+# Site N2 at 7 barg (process/design-basis.yaml) into the trestle side of XV-4101 / XV-4102 at the PR1 joint
+# (the tank end, the high end of each line, D-013 / D-035.8): it pushes the isolated line downhill to the
+# platform, the liquid the gas overruns drains along the bottom of the line to the bottom-of-line crossover
+# tees and leaves through XV-4103 (or XV-4107) up the other line, which stays liquid-full, back to the tank
+# through the circulation return. Since the checker of D-036: the station is austenitic stainless steel from
+# its battery-limit flange (the spec break), no blind (a blind to remove costs time in the emergency it
+# serves): double block and bleed, the bleed HV-4161 / HV-4162 open while the station is isolated; the
+# restriction orifice is drawn as one (to_orifice), with a PI upstream and downstream of it.
+N2_NOTE = ("Tank-end N2 connection of loading line {side} for SEQ-LINE-EMPTY (layout review 2026-11-05-basic-layout-6 #2, "
+           "D-036): site N2 at 7 barg into the trestle side of {xv} at the PR1 joint (the high end of the line), "
+           "~4,000 Nm3/h set by the restriction orifice {fo} (choked, ~39 mm bore, ASSUMED), ~3.7 bar(a) at the line, so "
+           "the line's ~1,030 m3 return downhill through the bottom-of-line platform crossover and the other loading line "
+           "to the tanks in ~2.3 h (D-036); {pu} upstream of {fo} reads the site N2 at the station, {pd} downstream of it "
+           "the injection pressure (choked while {pu} is at least ~1.9 times {pd} in absolute terms). Double block {hv2} "
+           "(outer) / {hv1} (inner) with the check valve {cv} and the bleed {hb} between them (line {bl}, open while the "
+           "station is isolated, so LNG passing {hv1} cannot reach the N2 system); no blind. Spec break at the "
+           "battery-limit flange upstream of {hv2}: the station is austenitic stainless steel, Class 150 (the material "
+           "of the LNG service, piping/pipe-specs.yaml), because the section from {hv1} to the tee holds LNG at "
+           "-160 degC and the bleed section can; that section takes cold insulation (PIR, as the loading lines' "
+           "branches), the rest of the station may stay bare (piping detail). Drawn on P-04 only (the site N2 at the "
+           "battery limit).")
+n2_a = [valve("HV4152", "BallValve", tag="HV-4152", at=(185, 20)),
+        valve("FO4151", "GlobeValve", tag="FO-4151", at=(185, 28)),
+        valve("CV4151", "SwingCheckValve", tag="CV-4151", at=(185, 36))]
+t_ba = tee("T4N1", at=(185, 44), branch="left", branch_dn=25)        # bleed HV-4161
+hv_a = valve("HV4151", "BallValve", tag="HV-4151", at=(185, 54))
+n2a = L.line(sheet, "N-4001", dn=80, fluid="Nitrogen", frm="BL (site N2)", to="LNG-4001", insulation="cold (PIR)",
+             notes=N2_NOTE.format(side="A", xv="XV-4101", fo="FO-4151", hv1="HV-4151", hv2="HV-4152", cv="CV-4151",
+                                  pu="PI-4155", pd="PI-4156", hb="HV-4161", bl="N-4003"),
+             route=[offpage("in", at=(185, 12), note="N2 (BL)", note_at=(172, 10), rotation=DOWN), *n2_a, t_ba, hv_a,
+                    ta_n.branch], labels=False)
+L.line(sheet, "N-4003", dn=25, fluid="Nitrogen", frm="N-4001 (between HV-4152 and HV-4151)", to="atmosphere",
+       insulation="none",
+       notes="Bleed of the N2 double block and bleed HV-4152 / HV-4161 / HV-4151 of N-4001: open while the station is "
+             "isolated, so LNG passing the inner block HV-4151 vents here instead of reaching the N2 system; closed "
+             "before the blocks open in SEQ-LINE-EMPTY S2 (D-036). Austenitic stainless steel as N-4001.",
+       route=[t_ba.branch, valve("HV4161", "BallValve", tag="HV-4161", at=(177, 44)),
+              offpage("out", at=(169, 44), note="to atm.", note_at=(160, 49), rotation=LEFT)], labels=False)
+n2_b = [valve("HV4154", "BallValve", tag="HV-4154", at=(250, 84)),
+        valve("FO4152", "GlobeValve", tag="FO-4152", at=(250, 91)),
+        valve("CV4152", "SwingCheckValve", tag="CV-4152", at=(250, 98))]
+t_bb = tee("T4N2", at=(250, 105), branch="left", branch_dn=25)       # bleed HV-4162
+hv_b = valve("HV4153", "BallValve", tag="HV-4153", at=(250, 112))
+n2b = L.line(sheet, "N-4002", dn=80, fluid="Nitrogen", frm="BL (site N2)", to="LNG-4002", insulation="cold (PIR)",
+             notes=N2_NOTE.format(side="B", xv="XV-4102", fo="FO-4152", hv1="HV-4153", hv2="HV-4154", cv="CV-4152",
+                                  pu="PI-4157", pd="PI-4158", hb="HV-4162", bl="N-4004"),
+             route=[offpage("in", at=(250, 79), note="N2 (BL)", note_at=(238, 78), rotation=DOWN), *n2_b, t_bb, hv_b,
+                    tb_n.branch], labels=False)
+L.line(sheet, "N-4004", dn=25, fluid="Nitrogen", frm="N-4002 (between HV-4154 and HV-4153)", to="atmosphere",
+       insulation="none",
+       notes="Bleed of the N2 double block and bleed HV-4154 / HV-4162 / HV-4153 of N-4002, as N-4003 (D-036).",
+       route=[t_bb.branch, valve("HV4162", "BallValve", tag="HV-4162", at=(243, 105)),
+              offpage("out", at=(236, 105), note="to atm.", note_at=(227, 110), rotation=LEFT)], labels=False)
+for v in n2_a + n2_b + [hv_a, hv_b]:
+    x, y = v.at
+    label(sheet, v.id, "PipingComponentNumber", at=(x + 10, y))
+to_orifice(sheet, "FO4151")
+to_orifice(sheet, "FO4152")
+label(sheet, "HV4161", "PipingComponentNumber", at=(177, 39))
+label(sheet, "HV4162", "PipingComponentNumber", at=(243, 109.5))
+note(sheet, "SB", at=(190, 12))
+note(sheet, "SB", at=(255, 79))
+PI_N2 = ("Local pressure gauge of the SEQ-LINE-EMPTY N2 station (checker of D-036): {what}; read in S2 to confirm that "
+         "the orifice {fo} is choked (upstream at least ~1.9 times downstream, absolute) and that the line takes the "
+         "~3.7 bar(a) of the displacement.")
+for tag, what, fo, seg, at, sense in [
+        ("PI-4155", "site N2 pressure upstream of FO-4151", "FO-4151", n2a.segments[0], (167, 24), (185, 24)),
+        ("PI-4156", "injection pressure downstream of FO-4151", "FO-4151", n2a.segments[0], (167, 32), (185, 32)),
+        ("PI-4157", "site N2 pressure upstream of FO-4152", "FO-4152", n2b.segments[0], (231, 86.8), (250, 86.8)),
+        ("PI-4158", "injection pressure downstream of FO-4152", "FO-4152", n2b.segments[0], (231, 94.6), (250, 94.6))]:
+    L.inst(sheet, tag, f"N2 to loading line {'A' if fo == 'FO-4151' else 'B'}, {what}",
+           PI_N2.format(what=what, fo=fo), at=at, sensing=seg, sensing_at=sense)
 
 # ---- circulation header, spray take-off, circulation return ------------------------------------
 tc3 = tee("T4C1", at=(40, YC), branch="up", branch_dn=250)
@@ -285,8 +374,20 @@ L.inst(sheet, "UZ-4107", "Platform crossover ESD valve XV-4107 (DN 800)",
                           "ESD-1 of either berth closes it after the pumps have been stopped (C&E I-501, I-601), so after an ESD the two trestle lines are separated at the platform and a leak upstream of a shore ESD valve is fed by one line only")
                  .replace("a rise in the pump header and a column separation in the trestle line",
                           "a rise in the trestle line upstream of it and a down-surge in the berth header, which loses half its flow")
-       + " Review 2026-11-05-basic-design-7 #1, D-034.",
+       + " Review 2026-11-05-basic-design-7 #1, D-034. Its position is proven by ZSC-4107 / ZSO-4107 on the valve "
+         "(review 2026-11-05-basic-design-8 #5, D-036): a discrepancy between UZ-4107's command and the switches after "
+         "the stroke time alarms, so a failure to close on ESD-1 (both trestle lines then feed a platform-end leak) is "
+         "revealed at once.",
        at=(276, 95), signal_to=xv7, fail_action="FC")
+ZPOS = ("Position switch on the DN 800 platform crossover XV-4107 itself (review 2026-11-05-basic-design-8 #5, D-036): "
+        "the complete conditions of SEQ-LOAD S0 / S3 (open) and SEQ-HOLD S1 / SEQ-ESD (closed) use it; reading "
+        "otherwise than UZ-4107 commands for longer than the stroke time raises a discrepancy alarm, so a failure "
+        "to close on ESD-1 or a spurious closure in loading is revealed. ")
+L.inst(sheet, "ZSC-4107", "XV-4107 closed position", ZPOS + "Closed: the two trestle lines are separated at the platform "
+       "(the one-line inventory of a platform-end leak, D-034.3, D-036).",
+       at=(304, 104), sensing=xv7.id, sensing_at=(291, 97), sensing_points=[(293, 97), (293, 104)])
+L.inst(sheet, "ZSO-4107", "XV-4107 open position", ZPOS + "Open: both lines reach the loading berth (S0, S3).",
+       at=(304, 88), sensing=xv7.id, sensing_at=(291, 93), sensing_points=[(293, 93), (293, 88)])
 L.inst(sheet, "HS-4103", "Platform crossover XV-4103 (DN 250, holding bypass)",
        "Open in holding (circulation); closed in loading, when the DN 800 crossover XV-4107 carries the second line to the loading berth (D-008, D-034).",
        at=(346, 95), signal_to=xv3, fail_action="FL")
@@ -307,14 +408,30 @@ for tag, service, x, seg, y, yb in [
         ("TI-4122", "Vapour return A temperature at the platform", 366, va.segments[0], YVA, 182),
         ("PI-4123", "Vapour return B pressure at the platform", 350, vb.segments[0], YVB, YVB - 13),
         ("TI-4124", "Vapour return B temperature at the platform", 366, vb.segments[0], YVB, YVB - 13)]:
-    L.inst(sheet, tag, service, at=(x, yb), sensing=seg, sensing_at=(x, y))
+    # the loading-line instruments upstream of the shore ESD valves have no process tapping since D-036
+    # (layout review 2026-11-05-basic-layout-6 #2): only valve stem and bonnet seals stay on the trestle side
+    nonintrusive = {"PI": ("Non-intrusive pressure indication: clamp-on strain sensor on the pipe wall under the cold "
+                           "insulation, no process tapping (ASSUMED, instrument vendor), so no leak source is left on "
+                           "the trestle side of the shore ESD valve (layout review 2026-11-05-basic-layout-6 #2, D-036); "
+                           "indication only, the berth header pressure PZT-{b}103 (downstream of XV-{b}101) is the "
+                           "measured value. Should no qualified clamp-on sensor exist for -160 degC, the instrument is "
+                           "deleted, never tapped."),
+                    "TI": ("Strap-on surface temperature sensor under the cold insulation, no process tapping or "
+                           "thermowell (layout review 2026-11-05-basic-layout-6 #2, D-036): the cooldown of the line's "
+                           "platform end and the passage of the gas front in SEQ-LINE-EMPTY (D-036).")}
+    kind = tag.split("-")[0]
+    berth = "5" if tag in ("PI-4105", "TI-4103") else "6"
+    notes_ = nonintrusive[kind].format(b=berth) if tag in ("PI-4105", "TI-4103", "PI-4106", "TI-4104") else ""
+    L.inst(sheet, tag, service, notes_, at=(x, yb), sensing=seg, sensing_at=(x, y))
 
-note(sheet, "Trestle ~1.98 km at 178 deg; ~2.45 km per line tank to platform (D-013). Expansion loops,", at=(232, 152))
-note(sheet, "guides, drip trays to the impoundment sump and the low-point drains are not shown (D-021).", at=(232, 158))
+note(sheet, "Trestle ~1.98 km at 178 deg; ~2.45 km per line tank to platform (D-013). Expansion loops (flat),", at=(232, 152))
+note(sheet, "guides, drip trays not shown (D-021); no low-point drain or vent on the trestle runs (D-036).", at=(232, 158))
 note(sheet, "Circulation (holding): P-2102 / P-3102 -> LNG-2002 -> line A -> XV-4103 -> line B -> LNG-4005 (D-008).", at=(232, 164))
 note(sheet, "Loading: both lines to the loading berth, the second through LNG-4010 / XV-4107 (DN 800); XV-4103 closed (D-034).", at=(232, 170))
+note(sheet, "Trestle side of XV-5101 / -6101: welded, no tapping (D-036). LNG-4003 / LNG-4010: bottom-of-line tees;", at=(232, 176))
+note(sheet, "the loading lines fall to them, no pocket (D-036). SB: spec break.", at=(232, 182))
 note(sheet, "UZ-4101 / UZ-4102: C&E I-501, I-601 (also ESD-2, I-503 / I-603, and the air trip I-804); air accumulator, closure 25-30 s (D-016).", at=(12, 252))
-note(sheet, "LNG-3002 (DN 250): T-3101 circulation; LNG-4008 (DN 80): spray to the desuperheater; LNG-5006 / -6006 (DN 80): drains;", at=(12, 257))
+note(sheet, "LNG-3002 (DN 250): T-3101 circulation; LNG-4008 (DN 80): spray to the desuperheater; N-4001 / -4002 (DN 80): N2, SEQ-LINE-EMPTY, bleeds N-4003 / -4004;", at=(12, 257))
 note(sheet, "BOG-4011 / -4012 / -4015 / -4016 (DN 25): thermal relief PSV-4111 / -4112 / -4113 / -4114 (15.0 barg) into BOG-4001 on the tank side of XV-4135.", at=(12, 262))
 note(sheet, "BOG-4013 / BOG-4014 (DN 300): carrier de-inerting and cool-down vapour to the flare; AI-4133 / AI-4134 (N2, O2, CH4) switch each vapour return", at=(12, 267))
 note(sheet, "make-before-break between the tank vapour header (XV-4135 / XV-4136) and the flare (XV-4131 / XV-4132): C&E I-511..I-513 with ZSO-4131 / ZSO-4135,", at=(12, 272))

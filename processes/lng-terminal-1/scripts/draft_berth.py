@@ -68,6 +68,18 @@ on both ERS valves of the arm proven closed or on a timeout from the vendor's cl
 arm isolations closed by I-n07 as well; the ERS function test enable HS-n109 (permissive I-n09); the
 manual ESD-1 / ESD-2 stations each have their own tag (HS-n100A/B/C, HS-n107A/B/C), wired normally
 closed (de-energise-to-trip); the vapour arm N2 test point and the O2 sample in the notes.
+
+Round 9 (reviews/2026-11-05-basic-design-8.md #1, #7, #8 and layout review 2026-11-05-basic-layout-6 #2,
+D-036): the drain pump discharge LNG-n006 enters the berth header downstream of XV-n101 (new tee T-n0K
+between the N2 tee and the surge relief tee, which moves 3 mm right), no longer the platform crossover on
+the trestle side, so the header segments after T-n0N are renumbered by one (S7..S9 are the DN 400 hybrid
+arm pieces); PZT-n103 carries its PAHH set point against the carrier's manifold design pressure; the UZ
+and UY notes name I-n10 for the coupler release; AI-n126's fast-loop isolation is a leak-test permissive.
+
+Round 9, checker of D-036: the carrier manifold protection moves to the arms' outboard ends, PZT-n181 /
+PZT-n184 on LNG-n011 / LNG-n014 (1oo2, PAHH 5.0 barg, C&E I-n02), where the normal pressure is the
+carrier's manifold pressure; PZT-n103 stays as the header indication and an uncredited backstop. FO-n118
+is drawn as a restriction orifice (lng_pid.to_orifice).
 """
 
 import sys
@@ -76,7 +88,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from chemeascode.domains.piping.authoring import label  # noqa: E402
 from lng_pid import (  # noqa: E402
-    Lists, Nozzle, Sheet, arm_shape, equipment, note, offpage, set_dn, tee, valve)
+    Lists, Nozzle, Sheet, arm_shape, equipment, note, offpage, set_dn, tee, to_orifice, valve)
 
 target, n = Path(sys.argv[1]), sys.argv[2]
 berth, line_in, vap_out = ("2", "LNG-4001", "BOG-4001") if n == "5" else ("1", "LNG-4002", "BOG-4002")
@@ -101,7 +113,10 @@ for k, x in X.items():
 
 # ---- liquid header: shore ESD valve, strainer, N2, surge relief, drain ---------------------
 t_n2 = tee(f"T{n}0N", at=(62, HDR_Y), branch="up", branch_dn=80 if n == "5" else 50)
-t_srg = tee(f"T{n}0S", at=(74, HDR_Y), branch="up", branch_dn=150)
+# drain pump return downstream of XV-n101 (layout review 2026-11-05-basic-layout-6 #2, D-036): was a tie-in
+# into the platform crossover LNG-4003 on the trestle side of the shore ESD valve
+t_dk = tee(f"T{n}0K", at=(67, HDR_Y), branch="up", branch_dn=80)
+t_srg = tee(f"T{n}0S", at=(77, HDR_Y), branch="up", branch_dn=150)
 t_dr = tee(f"T{n}0D", at=(DRX, HDR_Y), branch="up", branch_dn=150)
 t_l1 = tee(f"T{n}01", at=(X["1"], HDR_Y), branch="up", branch_dn=400)
 t_l2 = tee(f"T{n}04", at=(X["4"], HDR_Y), branch="up", branch_dn=400)
@@ -110,18 +125,18 @@ xv_esd = valve(f"XV{n}101", "BallValve", tag=f"XV-{n}101", at=(28, HDR_Y))
 hdr = L.line(sheet, f"LNG-{n}001", dn=800, fluid="LNG", frm=f"{line_in} (P-04)", to=f"LA-{n}103",
              notes=f"Berth {berth} liquid header on the loading platform, 12,000 m3/h at loading (S3); shore ESD valve XV-{n}101 and strainer SR-{n}102 (S-01: shore strainers; D-016).",
              route=[offpage("in", at=(12, HDR_Y), note=f"from trestle line {'A' if n == '5' else 'B'} (P-04)", note_at=(24, HDR_Y + 7)), xv_esd,
-                    valve(f"SR{n}102", "ConicalStrainer", tag=f"SR-{n}102", at=(46, HDR_Y)), t_n2, t_srg,
+                    valve(f"SR{n}102", "ConicalStrainer", tag=f"SR-{n}102", at=(46, HDR_Y)), t_n2, t_dk, t_srg,
                     t_dr, t_l1, t_l2, (X["3"], HDR_Y),
                     valve(f"XV{n}123", "BallValve", tag=f"XV-{n}123", at=(X["3"], 181)),
                     tee(f"T{n}0H", at=(X["3"], 172), branch="right", branch_dn=400), t_rh,
                     arms["3"]["N1"]],
              label_at=(192, HDR_Y + 8),
-             segments=[{"number": "S6", "nominal_diameter": "DN400", "notes": "to the hybrid arm, after the LA-n104 tee"},
-                       {"number": "S7", "nominal_diameter": "DN400", "notes": "hybrid arm connection, to the thermal relief tee"},
-                       {"number": "S8", "nominal_diameter": "DN400", "notes": "hybrid arm connection, thermal relief tee to the arm"}])
+             segments=[{"number": "S7", "nominal_diameter": "DN400", "notes": "to the hybrid arm, after the LA-n104 tee"},
+                       {"number": "S8", "nominal_diameter": "DN400", "notes": "hybrid arm connection, to the thermal relief tee"},
+                       {"number": "S9", "nominal_diameter": "DN400", "notes": "hybrid arm connection, thermal relief tee to the arm"}])
 set_dn(sheet, [f"T{n}04_N2", f"XV{n}123_N1", f"XV{n}123_N2", f"T{n}0H_N1", f"T{n}0H_N2",
                f"T{n}R3_N1", f"T{n}R3_N2"], 400,
-       segments=[f"Line_LNG{n}001_S6", f"Line_LNG{n}001_S7", f"Line_LNG{n}001_S8"])
+       segments=[f"Line_LNG{n}001_S7", f"Line_LNG{n}001_S8", f"Line_LNG{n}001_S9"])
 t_rl = {}
 for k, tt in [("1", t_l1), ("4", t_l2)]:
     t_rl[k] = tee(f"T{n}R{k}", at=(X[k], RLF_Y), branch="left", branch_dn=25)
@@ -157,14 +172,35 @@ for k, x in X.items():
                route=[offpage("in", at=(sx, 156), note="from carrier", note_at=(sx + 13, 160), rotation=UP),
                       *ers[::-1], arms[k]["N2"]], labels=False)
     else:
-        L.line(sheet, f"LNG-{n}01{k}", dn=400, fluid="LNG", frm=f"LA-{n}10{k}", to="carrier manifold",
-               notes=f"{KIND[k].capitalize()} arm outboard: arm, ERS (XV-{n}13{k}, emergency release coupler, XV-{n}14{k}), quick connect/disconnect coupler, carrier manifold (D-014).",
-               route=[arms[k]["N2"], *ers,
-                      offpage("out", at=(sx, 156), note="to carrier", note_at=(sx - 11 if k == "3" else sx + 11, 160), rotation=DOWN)],
-               labels=False)
+        outb = L.line(sheet, f"LNG-{n}01{k}", dn=400, fluid="LNG", frm=f"LA-{n}10{k}", to="carrier manifold",
+                      notes=f"{KIND[k].capitalize()} arm outboard: arm, ERS (XV-{n}13{k}, emergency release coupler, XV-{n}14{k}), quick connect/disconnect coupler, carrier manifold (D-014)."
+                            + (f" PZT-{n}18{k} on its shore side of the inboard ERS valve, at the arm's outboard end (C&E I-{n}02, D-036)." if k in ("1", "4") else ""),
+                      route=[arms[k]["N2"], *ers,
+                             offpage("out", at=(sx, 156), note="to carrier", note_at=(sx - 11 if k == "3" else sx + 11, 160), rotation=DOWN)],
+                      labels=False)
+        if k in ("1", "4"):
+            # carrier manifold protection measured where the normal pressure is lowest (checker of D-036): at the
+            # outboard end of each of the two liquid arms that every transfer uses, on the arm side of the ERS
+            other = "4" if k == "1" else "1"
+            L.inst(sheet, f"PZT-{n}18{k}", f"LA-{n}10{k} outboard pressure at the carrier manifold (high back-pressure)",
+                   f"Carrier manifold protection (checker of D-036, D-016, D-023 (6)): pressure at the outboard end of the "
+                   f"liquid arm, on the arm side of the inboard ERS valve XV-{n}13{k} (ASSUMED ~2 m above the carrier's "
+                   f"manifold flange, so ~0.1 bar of static between them; transmitter, cable and seal on the arm in the arm "
+                   f"vendor's package, ASSUMED, H-02). PAHH 5.0 barg (ASSUMED), 1oo2 with PZT-{n}18{other}, a discrepancy "
+                   f"between the two alarms: C&E I-{n}02 stops the loading pumps, trips the carrier through the link and "
+                   f"closes XV-{n}101. The normal pressure here is the carrier's manifold pressure, ~2.5-3.0 barg at "
+                   f"12,000 m3/h (350 kPa(a) of the pump rating, D-011, with the ERS and coupler losses; the highest a "
+                   f"carrier asks for is confirmed in the ship-shore compatibility study), against ~5.2-5.5 barg on the "
+                   f"berth header at PZT-{n}103 (S3, 647.9 kPa(a) at XV-{n}101), so a set point 2 bar above normal leaves "
+                   f"room for the closure rise of a carrier ESD valve below the carrier's 10 barg (ASSUMED): 5.0 + "
+                   f"2.7-3.2 bar (2 rho L v / t over the trestle line and the berth header for a 30-25 s closure) + "
+                   f"~0.1 bar = ~8.3 barg at most (D-036). Both liquid arms LA-{n}101 / LA-{n}104 carry liquid in every "
+                   f"transfer (the hybrid may be in vapour service), so the 1oo2 never rests on an arm that is not "
+                   f"flowing; an arm not connected reads ~0 and leaves the other as 1oo1, alarmed.",
+                   at=(sx - 15, 113), sensing=outb.segments[0], sensing_at=(sx, 119))
     for v, y in [(f"XV{n}13{k}", 125), (f"XV{n}14{k}", 140)]:
         L.inst(sheet, f"UZ-{v[2:]}", f"LA-{n}10{k} ERS valve XV-{v[2:]}",
-               f"Closes on ESD-2 by C&E I-{n}07 (5 s after I-{n}03), not on ESD-1; I-{n}07 also releases the coupler (D-016, D-026). "
+               f"Closes on ESD-2 by C&E I-{n}07 (5 s after I-{n}03), not on ESD-1; I-{n}10 then releases the coupler (D-016, D-026, D-034). "
                f"Hydraulic actuator on the arm vendor's hydraulic power unit with its accumulator (ASSUMED, vendor): instrument air "
                f"does not move it, so an air failure does not close it; it closes only on I-{n}07, from the accumulator also on a "
                f"loss of the power unit, in a closure time set with the arm vendor against the surge of the arm (ASSUMED 5 s, D-023, "
@@ -175,7 +211,7 @@ for k, x in X.items():
                f"liquid transfer trips ESD-1 at once (I-{n}01); the two channels are on separate SIS output modules "
                f"(ASSUMED, H-06). A solenoid stuck energised is found by the ERS function "
                f"test of SEQ-LOAD S1 before every transfer (HS-{n}109, permitted only with no transfer and every arm stowed, "
-               f"C&E I-{n}09). The coupler release UY-{n}13{4 + int(k)} is energise-to-release, commanded by I-{n}07 when both "
+               f"C&E I-{n}09). The coupler release UY-{n}13{4 + int(k)} is energise-to-release, commanded by I-{n}10 when both "
                f"ERS valves of the arm are proven closed or, if one fails to close, at a timeout from the vendor's confirmed "
                f"closure time with margin (ASSUMED 1.5 x, H-02), whichever comes first, never before the ERS close command and "
                f"the closure of the arm isolations by I-{n}07; no circuit or supply fault releases it (review 2026-11-05-basic-design-5 "
@@ -235,10 +271,10 @@ psv = L.relief(f"PSV{n}131", f"PSV-{n}131", f"DR-{n}002", 15.0,
                "faster than the I-804 trip); thermal expansion of the blocked-in header (D-023, D-028, D-030); if the surge "
                "analysis shows a spring PSV cannot answer the transient, a design change, not a sizing item" % n,
                f"Surge and thermal relief of the Berth {berth} header into D-{n}101 through DR-{n}001 downstream of XV-{n}161 (D-016, D-023); set at the 15 barg design of the header and arms; size from the surge analysis in detail engineering.",
-               label_at=(74, 171.5))
+               label_at=(78, 171.5))
 L.line(sheet, f"DR-{n}002", dn=150, fluid="LNG", frm=f"LNG-{n}001 (PSV-{n}131)", to=f"DR-{n}001",
        notes=f"Surge relief discharge of PSV-{n}131 into the drain line downstream of XV-{n}161.",
-       route=[t_srg.branch, psv, (74, 175), t_ps.branch], labels=False)
+       route=[t_srg.branch, psv, (77, 175), t_ps.branch], labels=False)
 
 # thermal relief of each liquid arm section (arm isolation valve to inboard ERS valve), DN 25
 ARM_VALVES = {"1": ("121", "131"), "4": ("124", "134"), "3": ("123", "133")}
@@ -274,14 +310,14 @@ L.line(sheet, f"LNG-{n}005", dn=100, fluid="LNG", frm=f"D-{n}101", to=f"P-{n}101
 t_mf = tee(f"T{n}0M", at=(72, 78), branch="up", branch_dn=50)
 t_vd = tee(f"T{n}0Z", at=(76, 78), branch="up", branch_dn=25)    # vent/drain HV-n119
 t_pd = tee(f"T{n}0Y", at=(80, 95), branch="right", branch_dn=25)  # thermal relief PSV-n118
-L.line(sheet, f"LNG-{n}006", dn=80, fluid="LNG", frm=f"P-{n}101", to="LNG-4003",
-       notes=f"Drain pump discharge into the platform crossover / circulation (P-04), ~60 m3/h; minimum-flow take-off and the vent/drain HV-{n}119 upstream of the check valve CV-{n}116, then the thermal relief PSV-{n}118 and the isolation valve HV-{n}117 (review #2, H-03 A4).",
+L.line(sheet, f"LNG-{n}006", dn=80, fluid="LNG", frm=f"P-{n}101", to=f"LNG-{n}001",
+       notes=f"Drain pump discharge into the Berth {berth} header LNG-{n}001 downstream of the shore ESD valve XV-{n}101 (tee T{n}0K), ~60 m3/h: D-{n}101 is emptied into the cooldown flow to the arms and the carrier in SEQ-LOAD S3 of the next transfer, with XV-{n}101 open (D-036; was a tie-in into the platform crossover LNG-4003 on the trestle side of XV-{n}101, layout review 2026-11-05-basic-layout-6 #2, so its flanged check and isolation valves are no longer fed by the trestle line after an ESD). Minimum-flow take-off and the vent/drain HV-{n}119 upstream of the check valve CV-{n}116, then the thermal relief PSV-{n}118 and the isolation valve HV-{n}117 (review #2, H-03 A4). Drawn on P-0{n} only.",
        route=[pump["N2"], (65, 78), t_mf, t_vd, (80, 78),
               valve(f"CV{n}116", "SwingCheckValve", tag=f"CV-{n}116", at=(80, 87)),
               t_pd,
-              valve(f"HV{n}117", "BallValve", tag=f"HV-{n}117", at=(80, 102.5)), (80, 110),
-              offpage("out", at=(12, 110), note="to platform crossover", note_at=(28, 104), rotation=LEFT)],
-       label_at=(48, 117))
+              valve(f"HV{n}117", "BallValve", tag=f"HV-{n}117", at=(80, 102.5)), (80, 110), (67, 110),
+              t_dk.branch],
+       labels=False)
 psv_dp = L.relief(f"PSV{n}118", f"PSV-{n}118", f"DR-{n}006", 15.0,
                   "thermal expansion of the blocked-in drain pump discharge",
                   f"Thermal relief of the drain pump P-{n}101 discharge between the check valve CV-{n}116 and the isolation valve HV-{n}117 into DR-{n}001 downstream of XV-{n}161, to D-{n}101; DN 25, set at the 15 barg design.",
@@ -297,6 +333,7 @@ L.line(sheet, f"LNG-{n}007", dn=50, fluid="LNG", frm=f"LNG-{n}006", to=f"D-{n}10
        notes=f"Drain pump minimum flow back to D-{n}101 through the restriction orifice FO-{n}118 (review #2).",
        route=[t_mf.branch, valve(f"FO{n}118", "GlobeValve", tag=f"FO-{n}118", at=(72, 66)), (72, 55), drum["N6"]],
        labels=False)
+to_orifice(sheet, f"FO{n}118")
 
 # ---- instruments --------------------------------------------------------------------------
 AIR_HOLD = ("non-return valve and local air accumulator on the actuator supply (one closing stroke and a hold of at "
@@ -323,10 +360,16 @@ L.inst(sheet, f"ZSC-{n}101", f"XV-{n}101 closed position",
 L.inst(sheet, f"PDI-{n}102", f"Strainer SR-{n}102 differential pressure", at=(56, 202),
        sensing=hdr.segments[0], sensing_at=(56, HDR_Y))
 L.inst(sheet, f"PZT-{n}103", f"Berth {berth} header pressure (high back-pressure)",
-       f"High-high back-pressure at the shore manifold stops the loading (S-01; C&E I-{n}02).",
-       at=(124, 202), sensing=hdr.segments[4], sensing_at=(124, HDR_Y))
+       f"Berth header pressure downstream of XV-{n}101: indication, the PAH, and in C&E I-{n}02 an uncredited backstop "
+       f"at PAHH 7.0 barg (ASSUMED). Normal ~5.2-5.5 barg at 12,000 m3/h (S3, 647.9 kPa(a) at XV-{n}101, less the "
+       f"strainer). Corrected after the checker of D-036: on the header no set point fits between that normal pressure "
+       f"and the carrier's 10 barg (ASSUMED) once the closure rise of a carrier ESD valve (2.7-3.2 bar, not ~0.3 bar) is "
+       f"allowed for; the carrier's manifold is protected by PZT-{n}181 / PZT-{n}184 at the arms' outboard ends, where "
+       f"the normal pressure is lowest (1oo2, PAHH 5.0 barg, D-036). Shore shut-off with a full tank ~12.1 barg here "
+       f"(scripts/terminal_sizing.py).",
+       at=(124, 202), sensing=hdr.segments[5], sensing_at=(124, HDR_Y))
 L.inst(sheet, f"TI-{n}104", f"Berth {berth} header temperature (cooldown)", at=(146, 202),
-       sensing=hdr.segments[4], sensing_at=(146, HDR_Y))
+       sensing=hdr.segments[5], sensing_at=(146, HDR_Y))
 ARM_HOLD = ("Fail closed; closure time at least 25 s (ASSUMED, D-023) with the " + AIR_HOLD.replace(
     "the valve holds until", "it holds until"))
 L.inst(sheet, f"HS-{n}121", f"LA-{n}101 isolation XV-{n}121", ARM_HOLD + ".", at=(X["1"] + 14, 168),
@@ -380,7 +423,9 @@ L.inst(sheet, f"AI-{n}126", f"Berth {berth} vapour O2 (two cells)",
        f"analyser vendor), so it measures the carrier's vapour whether XV-{n}122 is open or closed; the hybrid vapour path "
        f"of line-up (b) comes from the same carrier vapour header and is only ever open beside the vapour arm (D-032), so "
        f"the one point serves both. Sample fast loop returned into BOG-{n}001 downstream of XV-{n}122 (~1 Nm3/h, "
-       f"ASSUMED, analyser package), isolated during the vapour arm leak test of SEQ-LOAD S1. Two O2 cells voted 2oo2 with "
+       f"ASSUMED, analyser package), isolated during the vapour arm leak test of SEQ-LOAD S1 by the analyser package's "
+       f"fast-loop isolation valve (vendor tag), proven closed by the package as a permissive of the leak test (review "
+       f"2026-11-05-basic-design-8 #7, D-036). Two O2 cells voted 2oo2 with "
        f"a discrepancy alarm: above 5 vol % O2 the reject C&E I-{n}14 closes XV-{n}122 / XV-{n}125 and sends the return to "
        f"the tanks while XV-{n}101 is proven closed (gassing-up), and I-{n}14 is reset only once it reads below 5 vol %; "
        f"during a liquid transfer it trips ESD-1 (I-{n}01). {ai_o2} at the tank end is the backup (D-026.7, D-032, D-034).",
@@ -427,7 +472,7 @@ for i, (tag, service, text) in enumerate(causes):
 # coupler releases (effects of I-n07, review 7 #4) and the ERS function test enable (I-n09, review 7 #5)
 for i, k in enumerate("1234"):
     L.inst(sheet, f"UY-{n}13{4 + int(k)}", f"LA-{n}10{k} emergency release coupler release",
-           f"Energise-to-release from the arm vendor's HPU accumulator (vendor package): commanded by C&E I-{n}07 when "
+           f"Energise-to-release from the arm vendor's HPU accumulator (vendor package): commanded by C&E I-{n}10 when "
            f"both ERS valves of LA-{n}10{k} are proven closed (vendor position switches, ASSUMED) or at the timeout "
            f"(vendor closure time x 1.5, ASSUMED, H-02), whichever comes first; I-{n}07 closes the arm isolations at the same "
            f"time (review 2026-11-05-basic-design-7 #4, D-016, D-034).", at=(24 + 18 * i, 236))
@@ -440,7 +485,10 @@ L.inst(sheet, f"PI-{n}105", f"Berth {berth} vapour line pressure", at=(352, 170)
 L.inst(sheet, f"TI-{n}106", f"Berth {berth} vapour line temperature", at=(374, 170),
        sensing=vap.segments[-1], sensing_at=(374, 182))
 L.inst(sheet, f"LIC-{n}111", f"Jetty drain drum D-{n}101 level",
-       f"Starts and stops P-{n}101 (level control, D-016); the high-high level is the independent LZT-{n}112.",
+       f"Starts and stops P-{n}101 (level control, D-016); the high-high level is the independent LZT-{n}112. Since "
+       f"D-036 P-{n}101 returns into the berth header downstream of XV-{n}101, so its start is permitted only with "
+       f"XV-{n}101 open and the cooldown or loading flow established (SEQ-LOAD S3 / S4): the drum is emptied into the "
+       f"flow to the arms and the carrier at the start of the next transfer, never against the closed header.",
        at=(20, 66), sensing=drum["N4"])
 L.inst(sheet, f"LZT-{n}112", f"Jetty drain drum D-{n}101 independent high-high level",
        f"Own nozzle, independent of LIC-{n}111: stops the drain (closes XV-{n}161) and alarms (C&E; review #21, H-03 A5).",
@@ -460,14 +508,16 @@ NOTES = [
     f"D-{n}101 sits at the platform low point (drawn above the header). Its vent BOG-{n}002 has no valve: it is the drum's relief path and stays open.",
     f"XV-{n}123 / XV-{n}125: open-command permissives, each opens only with the other proven closed (ZSC-{n}123 / ZSC-{n}125, C&E I-{n}04 / I-{n}05), never trip an open valve; key interlock at the arm (vendor).",
     f"Arm purge (D-026): before loading the N2 goes into the carrier's manifold (S-01); after loading the arms drain to D-{n}101 and the purge N2 leaves by the drum vent BOG-{n}002 into the vapour return.",
-    f"HV-{n}119 normally closed (pump vent/drain). BOG-{n}003, DR-{n}002 to DR-{n}007, LNG-{n}005, LNG-{n}007, N-{n}001: see the line list. Arm vents, drains, vapour arm N2 test point: arm package; O2: AI-{n}126.",
+    f"HV-{n}119 normally closed (pump vent/drain). BOG-{n}003, DR-{n}002 to DR-{n}007, LNG-{n}005 to LNG-{n}007, N-{n}001: see the line list. Arm vents, drains, vapour arm N2 test point: arm package; O2: AI-{n}126.",
     # Round 5 (D-028), after the existing notes so their ids are kept
     f"Air failure: PZT-8123A/B/C (P-08, C&E I-804) trip ESD-1 first; XV-{n}101 and the arm isolations hold on accumulators, closing at their set speed; ERS valves hydraulic (HPU).",
     f"O2 above 5 vol % (AI-{n}126): C&E I-{n}14 closes XV-{n}122 / XV-{n}125 with XV-{n}101 proven closed (ZSC-{n}101), else ESD-1 (I-{n}01); ZSO-{n}122 not open in a transfer: ESD-1.",
     # Round 7 (D-032)
     f"ESD-1: HS-{n}100A/B/C, XS-{n}108, XA-{n}130A / B; ESD-2: HS-{n}107A/B/C. XS-{n}100 'no carrier' mode ends on an arm unstowed or link healthy (D-034).",
+    # Round 9 (D-036)
+    f"LNG-{n}006: P-{n}101 returns D-{n}101 into the header downstream of XV-{n}101 in the next cooldown (D-036). PZT-{n}181 / {n}184 1oo2 5.0 barg: C&E I-{n}02.",
 ]
 for i, text in enumerate(NOTES):
-    note(sheet, text, at=(12, 250 + 3.5 * i))
+    note(sheet, text, at=(12, 246.5 + 3.5 * i))  # one row higher since D-036 (13 notes)
 
 L.finish(sheet, target)

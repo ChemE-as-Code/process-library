@@ -28,6 +28,26 @@ transmitters beside PI-8122. CV-8102A/B get a disc with a pressure-equalising ho
 between the check valve and HV-8108x relieves back to the pump side and through the HV-8106x cavity
 vent into D-8101 (the note is corrected). N-8001: purge and leak test only, no blanketing (D-020).
 The new notes come after the existing ones (ids kept).
+
+Rev G (review 2026-11-05-basic-design-8 #3, #9 and the adversarial check of layout review
+2026-11-05-basic-layout-6, D-036): the riser W-8002 of P-8102 takes a check valve CV-8114 and an
+isolation valve HV-8115 above the pit cover, P-8102 is re-rated for the 19.5 m pit, TSL-8102's tip sits
+below the pump intake and I-801 opens the pump's feeder; T-8102 takes the level transmitter LZT-8106
+(radar through the cover, N2) with a high alarm for the pump-down and a high-high, C&E I-805, that keeps
+the sump's room for the design spill and the trestle drain-down.
+
+Rev H (D-037.16, the design owner's answer to D-037.15 (a), independent check of D-037): T-8102 is kept
+dry at the start of and during every transfer. The fixed dry-sump pump P-8103 (vertical line-shaft pump,
+its bowl in the ~0.25 m3 floor pocket, its motor on the sump cover, no motor in the sump) discharges
+through W-8003 with the check valve CV-8116 and the isolation valve HV-8117 above the cover to the jetty
+drain at the edge of the sump deck A9. LZT-8106 now reads the pocket: P-8103 start and stop (C&E I-806 /
+I-807), LAH at the pocket rim as a transfer hold, LAHH 0.1 m above the sump floor (C&E I-805); TSL-8104
+locks P-8103 out on LNG (C&E I-808). The portable pump stays a spare means, not the basis.
+With D-037.17 (independent check of D-037.16, same revision, not yet issued): a second, independent LNG
+detection TSL-8118 on the P-8103 discharge head (W-8003 upstream of CV-8116), voted 1oo2 with TSL-8104 in
+I-808; TSL-8104's tip stated at 0.40 m in the pocket (above the pump start level); CV-8116 with a drain-back
+hole in its disc so that nothing stands above the cover when the pump stops (freezing, -20 degC design
+ambient); LZT-8106 a guided-wave radar in a stilling pipe down to the pocket.
 """
 
 import sys
@@ -36,7 +56,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from chemeascode.domains.piping.authoring import label  # noqa: E402
-from lng_pid import Lists, Nozzle, Sheet, equipment, note, offpage, tee, valve  # noqa: E402
+from lng_pid import Lists, Nozzle, Sheet, equipment, note, offpage, tee, to_orifice, valve  # noqa: E402
 
 target = Path(sys.argv[1])
 sheet = Sheet.load(target)
@@ -161,9 +181,11 @@ L.line(sheet, "LNG-8006", dn=25, fluid="LNG", frm="LNG-8001 (PSV-8109)", to="D-8
 for vid, at in [("HV8106A", (106, 152)), ("HV8106B", (166, 152)), ("FO8107", (215, 152)),
                 ("HV8108A", (154, 182)), ("HV8108B", (214, 182))]:
     label(sheet, vid, "PipingComponentNumber", at=at)
+for vid in ("FO8111", "FO8107"):     # restriction orifices drawn as such (checker of D-036)
+    to_orifice(sheet, vid)
 
 # ---- spill impoundment sumps -------------------------------------------------------------------
-# T-8101 is a 10.5 m deep pit (D-033.3): no wall penetration. The rainwater pump P-8102 is a
+# T-8101 is a 19.5 m deep pit (D-035.2): no wall penetration. The rainwater pump P-8102 is a
 # submersible pump on the pit floor with its riser W-8002 up through the pit cover; the level (radar,
 # N1) and the low-temperature probe (N2) enter through the cover too (review 2026-11-05-basic-design-7
 # #6 and its adversarial check, D-034; was a grade pump on a pit-bottom suction W-8001).
@@ -172,13 +194,48 @@ sump = equipment(sheet, "Tank", "T-8101", shape="TANK_OPEN_SHAPE", at=(40, 222),
                  label_at=(40, 238))
 spump = equipment(sheet, "CentrifugalPump", "P-8102", shape="CENTRIFUGAL_PUMP_SHAPE", at=(46, 226), scale=0.7,
                   nozzles=[Nozzle("N2", (0, -7.5), 100)], label_at=(66, 226))
+# check valve and isolation valve on the riser above the pit cover (review 2026-11-05-basic-design-8 #3, D-036):
+# no back-flow from the oily water system into the impoundment through a stopped pump, and the pump can be
+# isolated and pulled on its guide rail
+w_cv = valve("CV8114", "SwingCheckValve", tag="CV-8114", at=(70, 209))
+w_hv = valve("HV8115", "BallValve", tag="HV-8115", at=(84, 209))
 L.line(sheet, "W-8002", dn=100, fluid="Rainwater", frm="P-8102", to="BL (oily water)", insulation="none",
-       notes="Riser of the submersible rainwater pump P-8102 from the T-8101 pit floor up through the pit cover, then to the site oily water system; interlocked off on LNG in the sump (C&E I-801). Static lift ~20 m from the 12.5 m pit floor to the PR8 rack (review 2026-11-05-basic-design-7 #6, D-034).",
-       route=[spump["N2"], (46, 209), (120, 209),
+       notes="Riser of the submersible rainwater pump P-8102 from the T-8101 pit floor up through the pit cover, then to the site oily water system; interlocked off on LNG in the sump (C&E I-801, the feeder isolated). Static lift ~26.6 m from the 19.5 m pit floor to the PR8 rack (review 2026-11-05-basic-design-8 #3, D-036; was 12.5 m). Check valve CV-8114 and isolation valve HV-8115 above the pit cover (no back-flow into the impoundment, the pump pulled with the riser isolated). Austenitic stainless steel from the pump to the isolation valve, design -170 degC (the first item a spill reaches, D-036), ASSUMED.",
+       route=[spump["N2"], (46, 209), w_cv, w_hv, (120, 209),
               offpage("out", at=(130, 209), note="to oily water (BL)", note_at=(128, 204))],
-       label_at=(100, 215))
-jsump = equipment(sheet, "Tank", "T-8102", shape="TANK_OPEN_SHAPE", at=(160, 225), nozzles=[Nozzle("N1", (-15, 0), 50)],
+       label_at=(104, 215))
+for v in (w_cv, w_hv):
+    label(sheet, v.id, "PipingComponentNumber", at=(v.at[0], 204))
+jsump = equipment(sheet, "Tank", "T-8102", shape="TANK_OPEN_SHAPE", at=(160, 225),
+                  nozzles=[Nozzle("N1", (-15, 0), 50), Nozzle("N2", (15, -6), 50)],
                   label_at=(160, 240))
+# Dry-sump pump of T-8102 (D-037.16, answering D-037.15 (a)): a vertical line-shaft pump whose bowl stands
+# in the floor pocket and whose motor stands on the sump cover, so no motor is in the sump; drawn in the
+# sump with its discharge up through the cover, as P-8102 in T-8101. Check valve and isolation valve above
+# the cover, then to the jetty drain at the edge of the sump deck A9 (battery limit).
+dpump = equipment(sheet, "CentrifugalPump", "P-8103", shape="CENTRIFUGAL_PUMP_SHAPE", at=(166, 229), scale=0.7,
+                  nozzles=[Nozzle("N2", (0, -7.5), 80)], label_at=(185, 227.5))
+d_cv = valve("CV8116", "SwingCheckValve", tag="CV-8116", at=(161, 211))
+d_hv = valve("HV8117", "BallValve", tag="HV-8117", at=(148, 211))
+L.line(sheet, "W-8003", dn=80, fluid="Rainwater", frm="P-8103", to="BL (jetty drain)", insulation="none",
+       notes="Discharge of the dry-sump pump P-8103 from the T-8102 floor pocket up through the sump cover to the "
+             "jetty drain at the edge of the sump deck A9 (battery limit; its outfall, treatment and consent the "
+             "civil and environmental owners', ASSUMED): ~20 m3/h of rain, ~1.1 m/s in DN 80. Check valve CV-8116 "
+             "(no full reverse flow and reverse spin through a stopped pump) with a drain-back hole in its disc "
+             "(~6 mm, ASSUMED) and isolation valve HV-8117 (the pump pulled with its column isolated) above the "
+             "cover. Self-draining against freezing (design ambient -20 degC, D-037.17): when the pump stops, the "
+             "column, the discharge head and the riser drain back through the disc hole and the bowl into the "
+             "pocket (air enters from the open end at the drain), and the overhead run and the drop drain to the "
+             "jetty drain (laid to a fall, ASSUMED), so no water stands above the cover; no heat tracing. Austenitic "
+             "stainless steel from the pump to the battery limit, design -170 degC (an LNG spill reaches the pump "
+             "first), ASSUMED. Started and stopped by LZT-8106 in the pocket (C&E I-806 / I-807), locked out on LNG "
+             "by TSL-8104 in the pocket or TSL-8118 on the discharge head (1oo2, C&E I-808); D-037.15 (a), "
+             "D-037.16, D-037.17.",
+       route=[dpump["N2"], (166, 211), d_cv, d_hv, (140, 211), (140, 222),
+              offpage("out", at=(132, 222), note="jetty drain (BL)", note_at=(127, 229), rotation=LEFT)],
+       label_at=(155.5, 219))
+for v in (d_cv, d_hv):
+    label(sheet, v.id, "PipingComponentNumber", at=(v.at[0], 206.5))
 
 # ---- N2 and instrument-air headers ----------------------------------------------------------------
 tn = tee("T8N1", at=(240, 210), branch="down", branch_dn=50)
@@ -254,13 +311,46 @@ L.inst(sheet, "FI-8133", "Flare flow (ultrasonic)", "Monthly-average routine flo
 L.inst(sheet, "TI-8131", "Pilot flame temperature (thermocouples)", "Pilot failure alarm.", at=(340, 115),
        sensing="Line_FG8002_S1", sensing_at=(340, 95))
 L.inst(sheet, "TSL-8102", "Tank-area sump low temperature (LNG in the sump)",
-       "Probe hung from the pit cover (N2) to the pit floor beside P-8102, no wall penetration (D-034). Stops P-8102 and starts the high-expansion foam (C&E I-801).",
+       "Probe hung from the pit cover (N2) to the pit floor beside P-8102, no wall penetration (D-034); its sensing tip "
+       "at the pit floor, below the pump intake (~0.3 m above the floor, ASSUMED), so LNG reaching a dry pit trips "
+       "before the pump can draw it (review 2026-11-05-basic-design-8 #3, D-036). Stops P-8102 by opening its motor "
+       "feeder (the feeder isolated, latching, not a control stop) and starts the high-expansion foam (C&E I-801).",
        at=(14, 200), sensing=sump["N2"])
 L.inst(sheet, "LI-8103", "Tank-area sump level",
        "Radar through the pit cover (N1), no wall penetration (D-034). Starts and stops P-8102.",
        at=(30, 194), sensing=sump["N1"])
 L.inst(sheet, "TSL-8104", "Jetty sump low temperature (LNG in the sump)",
-       "Alarm and high-expansion foam on the platform (D-018).", at=(130, 240), sensing=jsump["N1"])
+       "Probe hung from the cover into the T-8102 floor pocket beside the P-8103 bowl, its tip 0.40 m above the pocket "
+       "floor (ASSUMED): above the pump's start level (0.35 m), so in normal service it stands in air and sees LNG "
+       "flowing into the pocket or lying on its water, and below the rim (0.50 m). Trips at -60 degC (ASSUMED: below "
+       "the -20 degC design ambient of an empty pocket in winter, far above LNG). Alarm and high-expansion foam on the "
+       "platform (D-018); C&E I-808 locks the dry-sump pump P-8103 out (its feeder opened, latching), 1oo2 with "
+       "TSL-8118 on the discharge head, and the portable pump may be used only while it reads no LNG (D-034, D-036, "
+       "D-037.16, D-037.17).", at=(130, 240), sensing=jsump["N1"])
+L.inst(sheet, "TSL-8118", "P-8103 discharge head low temperature (LNG drawn by the dry-sump pump)",
+       "Second, independent LNG detection of the dry-sump pump (D-037.17): a fast-response probe with its tip in the "
+       "flow of the discharge head, upstream of CV-8116 (ASSUMED, no thermowell), own SIS input and cable. Trips at "
+       "-60 degC (ASSUMED, as TSL-8104; the head is empty and at ambient between runs, D-037.17). Voted 1oo2 with "
+       "TSL-8104 in C&E I-808 (either opens P-8103's feeder, latching) and a start permissive of I-806, so a failure "
+       "of TSL-8104 to see LNG in the pocket stops the pump within seconds of LNG reaching the head, before it passes "
+       "the check valve in any quantity (residual: the seconds of flow, H-05).",
+       at=(183, 212), sensing="Line_W8003_S1", sensing_at=(166, 212))
+L.inst(sheet, "LZT-8106", "Jetty sump T-8102 pocket level: P-8103 start / stop, high (transfer hold) and high-high",
+       "Guided-wave radar from the sump cover (N2, drawn on the shell for clarity), its probe in a stilling pipe from "
+       "the cover bracket down to the floor of the pocket (~0.8 m across, 0.5 m deep, ~0.25 m3), so the P-8103 column "
+       "and the TSL-8104 probe in the pocket give no false echo and the ~13.5 m drop needs no beam (D-037.17; ASSUMED, "
+       "vendor), no wall penetration (D-036, D-037.15 (a), D-037.16). Levels from the pocket floor, "
+       "ASSUMED: P-8103 starts at 0.35 m (C&E I-806) and stops at 0.10 m (C&E I-807, the bowl's submergence), its "
+       "speed following the level in between (VSD); LAH at 0.50 m, the pocket rim (water on the sump floor: P-8103 "
+       "failed or the inflow above its ~20 m3/h), a transfer hold: no transfer starts (SEQ-LOAD S0) and a transfer in "
+       "progress is paused (SEQ-LOAD S4) until the level is back below it, no one going to A9 during a transfer "
+       "(S-CW-A9, D-037.3); LAHH at 0.60 m (0.1 m over the sump floor, ~3 m3 with the pocket): C&E I-805 inhibits the "
+       "start of SEQ-LOAD and during a transfer trips ESD-1 of the transferring berth (I-501 / I-601: carrier tripped "
+       "through its own link, D-016). So no LNG lands on standing water, and the 257 m3 below the inlet hold the "
+       "~170 m3 platform spill and the trestle drain-down of D-036 (~36 m3, 40 m3 kept) with no rain allowance "
+       "(D-037.15 (a); the 0.7 m / ~20 m3 and 1.6 m / ~45 m3 of D-036 are withdrawn). One transmitter serves the pump "
+       "control and I-805: a separate trip transmitter if the SIL screening asks for it (H-06).",
+       at=(192, 219), sensing=jsump["N2"])
 L.inst(sheet, "PI-8121", "N2 header pressure", at=(225, 220), sensing=n2.segments[0], sensing_at=(225, 210))
 L.inst(sheet, "PI-8122", "Instrument-air header pressure",
        "Indication and low alarm only; the trip is PZT-8123A/B/C (C&E I-804, D-028).", at=(199, 236),
@@ -282,8 +372,8 @@ note(sheet, "TSL-8102: see C&E I-801. LZT-8105 (independent of LIC-8101): I-802 
 note(sheet, "P-8101A/B (whichever is not running) and closes LV-7102; non-latching, it yields to I-803.", at=(12, 276))
 note(sheet, "FL-8001 also receives BOG-4013 (carrier de-inerting and cool-down vapour, P-04) and FL-7003", at=(150, 252))
 note(sheet, "(BOG compressor depressurising vents, P-07). FO-8107: minimum-flow orifice of P-8101A/B.", at=(150, 258))
-note(sheet, "T-8102: no fixed pump; a portable submersible pump, once TSL-8104 confirms no LNG, keeps it", at=(150, 264))
-note(sheet, "dry before every transfer (SEQ-LOAD, D-034). FL-8101 pilot ignition (flame-front generator) and re-ignition on pilot", at=(150, 270))
+note(sheet, "T-8102 kept dry: P-8103 (drive on the cover), I-806 / I-807 on LZT-8106, I-808 lockout on TSL-8104 / 8118 (1oo2);", at=(150, 264))
+note(sheet, "LAH transfer hold, LAHH I-805 (D-037.16). FL-8101 pilot ignition (flame-front generator) and re-ignition on pilot", at=(150, 270))
 note(sheet, "failure (TI-8131) are part of the site's flare derrick package (S-02).", at=(150, 276))
 note(sheet, "HV-8106A/B, HV-8108A/B: suction and discharge isolation of P-8101A/B for maintenance.", at=(150, 282))
 # Rev D notes after the existing ones (ids Note12 on). The third I-802/I-803 line of the left column:

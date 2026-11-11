@@ -102,7 +102,7 @@ suct = L.line(sheet, "BOG-7001", dn=750, fluid="Boil-off gas", frm="D-7101", to=
 set_dn(sheet, ["T7HB_N2", "XV7121C_N1", "XV7121C_N2"], 500, segments=["Line_BOG7001_S3"])
 for s, tt, lab in [("A", tsa, (SX["A"] - 12, 80)), ("B", tsb, (SX["B"] + 14, 84))]:
     L.line(sheet, f"BOG-700{4 if s == 'A' else 5}", dn=500, fluid="Boil-off gas", frm="BOG-7001",
-           to=f"K-7101{s}", notes=f"K-7101{s} suction, 27 t/h design (D-010).",
+           to=f"K-7101{s}", notes=f"K-7101{s} suction, 31.1 t/h design (D-010 as corrected by D-036).",
            route=[tt.branch, xv[s], (SX[s], K_Y), k[s]["N1"]], label_at=lab)
 
 # ---- discharges: recycle tee, check valve, vent tee, discharge XV -------------------------------
@@ -221,6 +221,14 @@ L.inst(sheet, "TIC-7103", "BOG temperature after the desuperheater",
        "LNG spray TV-7103 to -140 degC at the drum inlet, also quenching the anti-surge recycles BOG-7012 and "
        "BOG-7008 (D-010).",
        at=(88, 100), sensing=inlet.segments[3], sensing_at=(77, 120), signal_to=tv, fail_action="FC")
+# TV-7103 stands over D-7101 in its own drip tray (Z-HA-TRAY-TV7103, 0.6 m deep, D-035.7): the tray's
+# low-temperature detector (layout review 2026-11-05-basic-layout-6 #9, D-036)
+L.inst(sheet, "TSL-7115", "TV-7103 drip tray low temperature (LNG in the tray)",
+       "Low-temperature detector in the drip tray under the desuperheater spray valve TV-7103 (Z-HA-TRAY-TV7103, "
+       "2.4 m3, 18.5 min of the 3.5 t/h spray at LNG density, D-035.7): alarm in the control room, so the operator "
+       "isolates the spray within the 10 min of the tray concept (ASSUMED), before the tray overflows (layout review "
+       "2026-11-05-basic-layout-6 #9, D-036). Cabled to JB-A2-2 (layout).",
+       at=(50, 80), sensing=tv.id, sensing_at=(70, 80))
 L.inst(sheet, "PIC-7101", "BOG suction header pressure",
        "Acts on the inlet guide vanes of K-7101A/B/C; setpoint from PIC-1110 (P-01) (D-010).",
        at=(120, 54), sensing=suct.segments[0], sensing_at=(120, HDR_Y))
@@ -273,8 +281,8 @@ for tag, service, x, seg in [("PI-7108", "BOG discharge pressure", 290, 4),
                              ("FI-7109", "BOG to the trains", 368, 5)]:
     L.inst(sheet, tag, service, at=(x, 207), sensing=dis.segments[seg], sensing_at=(x, DIS_Y))
 
-note(sheet, "K-7101A/B/C: 3 x 50 % centrifugal (C the installed spare), 27 t/h each, 108 -> 600 kPa(a), ~1.4 MW, "
-            "electric motors 6.6 kV (D-010). Holding: one machine; loading: two.", at=(12, 252))
+note(sheet, "K-7101A/B/C: 3 x 50 % centrifugal (C the installed spare), 31.1 t/h each, 108 -> 600 kPa(a), ~1.6 MW, "
+            "electric motors 6.6 kV (D-010, D-036). Holding: one machine; loading: two.", at=(12, 252))
 note(sheet, "Anti-surge recycles (DN 250): BOG-7008 to BOG-1001; BOG-7009, BOG-7012 S1 via BOG-7012 (DN 300) "
             "to BOG-1001; both upstream of the spray TV-7103. Discharges BOG-7006, BOG-7007 (DN 300).", at=(12, 258))
 note(sheet, "HV-7124A/B/C normally closed (depressurising to FL-7003); XV-7125A/B/C fail open, closed only for "
@@ -284,4 +292,6 @@ note(sheet, "LZT-7106: C&E I-701. VZ-7110x: vendor unit control panel trips I-70
 note(sheet, "ZSO-7121x, PZT-7113: I-705A-C stop a running machine when its suction valve XV-7121x leaves the open "
             "position or the suction header is low-low. TZT-7112x: I-703A-C.", at=(12, 276))
 
+# Revision after review 2026-11-05-basic-design-8 #2 and layout review 2026-11-05-basic-layout-6 #9 (D-036): the
+# compressors re-rated to 31.1 t/h each (50 % of the 56.5 t/h loading case + 10 %), the TV-7103 tray detector.
 L.finish(sheet, target)

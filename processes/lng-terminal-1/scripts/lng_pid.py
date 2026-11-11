@@ -2,7 +2,8 @@
 
 Shared by the generators of the eight generated sheets (plant.yaml, D-021). Builders
 from cheme-as-code's authoring API with ISO 6708 sizes (DIN 2448 in DEXPI stops at DN 200);
-two shapes the catalogue lacks (a full-containment LNG tank, a marine loading arm), built from
+three shapes the catalogue lacks (a full-containment LNG tank, a marine loading arm, a
+restriction orifice, D-036), built from
 cheme-as-code's own XML element helpers; the relief valves drawn as globe valves and turned
 into spring-loaded safety valves (as ammonia-1 D-027 does). Each draft records the lines,
 instruments and relief devices it draws (`Lists`), so the lists are written from the same
@@ -85,6 +86,26 @@ def to_safety_valve(sheet: Sheet, vid: str, cls: str = "SpringLoadedGlobeSafetyV
     if number is not None:  # a safety valve carries its tag as PositionNumber
         number.set("property", "PositionNumber")
     shape = sheet.use_shape("SAFETY_VALVE_SPRING_LOADED_SHAPE")
+    usage = sheet.find(f"{vid}_SymbolShape")
+    usage.find("References[@property='Shape']").set("objects", f"#{shape}")
+
+
+def orifice_shape(sheet: Sheet) -> str:
+    """Restriction orifice: the pipe through two short plates across it; 10 mm long at scale 1
+    like the valve symbols, so it takes a valve's ports (the catalogue has no orifice shape)."""
+    run = [(-5, 0), (5, 0)]
+    plate_a = [(-0.9, -3.5), (-0.9, 3.5)]
+    plate_b = [(0.9, -3.5), (0.9, 3.5)]
+    return _shape(sheet, "ShapeLNG_Orifice", "RESTRICTION_ORIFICE_SHAPE",
+                  [(run, 0.35, False), (plate_a, 0.5, False), (plate_b, 0.5, False)])
+
+
+def to_orifice(sheet: Sheet, vid: str) -> None:
+    """Turn the globe valve *vid* (drawn by `line`) into a restriction orifice with its own
+    symbol (checker of D-036: FO-4151 / FO-4152 were drawn and modelled as globe valves)."""
+    element = sheet.find(vid)
+    element.set("type", "Plant/Piping.RestrictionOrifice")
+    shape = orifice_shape(sheet)
     usage = sheet.find(f"{vid}_SymbolShape")
     usage.find("References[@property='Shape']").set("objects", f"#{shape}")
 

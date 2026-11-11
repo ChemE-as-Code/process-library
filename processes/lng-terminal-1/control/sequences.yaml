@@ -2,7 +2,9 @@
 # PROPOSED, not approved for implementation. Trips by C&E id; setpoints ASSUMED. The loading
 # sequence follows the order of the LNG Canada Terminal Information Guide (S-01): vapour arm
 # connected first, N2 leak test, purge, cooldown, ramp-up, topping-off, drain and purge,
-# disconnect. Berth 2 shown; Berth 1 runs the same with the 6xxx tags.
+# disconnect. Berth 2 shown; Berth 1 runs the same with the 6xxx tags and the two loading lines
+# exchanged (review 2026-11-05-basic-design-8 #6, D-036): line B (FIC-4102, FV-4102) is the direct line
+# of Berth 1 and its cooldown controller, line A (FIC-4101) reaches Berth 1 only through XV-4107.
 schema: cheme/sequences/v1
 sequences:
   - id: SEQ-LOAD
@@ -17,8 +19,9 @@ sequences:
       - {tag: LZT-2102, state: above the low-low trip}
       - {loop: PIC-1110, state: in auto}
       - {tag: K-7101A, state: running}
-      - {text: "jetty sump T-8102 dry: checked and pumped down with the portable pump, TSL-8104 normal, so spilled LNG cannot meet standing water (review 2026-11-05-basic-design-7 #9, D-034)"}
-    interlocks: [I-501, I-502, I-503, I-507, I-508, I-509, I-510, I-504, I-505, I-511, I-512, I-513, I-514, I-202, I-204, I-205, I-305, I-601, I-804]
+      - {text: "jetty sump T-8102 dry: water only in its floor pocket, the dry-sump pump P-8103 in auto and available (I-808 reset, TSL-8104 and TSL-8118 normal), so spilled LNG cannot meet standing water (review 2026-11-05-basic-design-7 #9, D-034; fixed pump since D-037.16)"}
+      - {tag: LZT-8106, state: "below LAH (0.50 m, the pocket rim: the sump floor dry; the high-high 0.60 m of I-805 also blocks the start, D-037.16)"}
+    interlocks: [I-501, I-502, I-503, I-507, I-508, I-509, I-510, I-504, I-505, I-511, I-512, I-513, I-514, I-202, I-204, I-205, I-305, I-601, I-804, I-805, I-806, I-807, I-808]
     steps:
       - id: S0
         title: Line up from holding
@@ -31,19 +34,19 @@ sequences:
           - {tag: XV-4103, action: close, by: operator}
           - {tag: XV-5161, action: close, by: operator}
           - {tag: P-2102, action: start, by: operator}
-        complete: {all: [{tag: XV-4105, state: closed}, {tag: ZSC-2123, state: closed}, {tag: ZSC-3123, state: closed}, {tag: XV-4107, state: open}, {tag: XV-4103, state: closed}, {tag: XV-5125, state: closed}, {tag: ZSC-5101, state: closed}, {tag: XV-5161, state: closed}, {tag: P-2102, state: running}]}
+        complete: {all: [{tag: XV-4105, state: closed}, {tag: ZSC-2123, state: closed}, {tag: ZSC-3123, state: closed}, {tag: ZSO-4107, state: open}, {tag: XV-4103, state: closed}, {tag: XV-5125, state: closed}, {tag: ZSC-5101, state: closed}, {tag: XV-5161, state: closed}, {tag: P-2102, state: running}]}
         timeout: {value: 30, unit: min}
         on_timeout: abort
-        operator: "Review 2026-11-05-basic-design-7 #1 (D-034): the DN 800 platform crossover XV-4107 opens so the second loading line reaches the loading berth at 6,000 m3/h (line B to Berth 2, line A to Berth 1); the DN 250 holding bypass XV-4103 closes, so after an ESD-1 (which closes XV-4107) the two trestle lines are separated at the platform. Review 2026-11-05-basic-design#22: the circulation return closes so line B carries LNG to the berth; the tank-end crossover opens; the hybrid vapour isolation XV-5125 stays closed (I-504, I-505); the circulation pump keeps the desuperheater spray. With XV-2123 / XV-3123 proven closed (ZSC-2123 / ZSC-3123) a tank high-high level does not stop the circulation pump, so the spray stays in service during loading (I-205 / I-305, review 2026-11-05-basic-design-5 #1). XV-5101 stays proven closed (ZSC-5101) until S3, so the berth is not in liquid transfer and the O2 reject I-514 is armed (D-032). The vapour arm isolation XV-5122 stays closed until the vapour arm leak test of S1 is done (review 2026-11-05-basic-design-6 #6)."
+        operator: "Review 2026-11-05-basic-design-7 #1 (D-034): the DN 800 platform crossover XV-4107 opens so the second loading line reaches the loading berth at 6,000 m3/h (line B to Berth 2, line A to Berth 1); the DN 250 holding bypass XV-4103 closes, so after an ESD-1 (which closes XV-4107) the two trestle lines are separated at the platform; ZSO-4107 proves it open and ZSC-4107 closed (review 2026-11-05-basic-design-8 #5, D-036). Review 2026-11-05-basic-design#22: the circulation return closes so line B carries LNG to the berth; the tank-end crossover opens; the hybrid vapour isolation XV-5125 stays closed (I-504, I-505). The desuperheater spray LNG-4008 is taken from the circulation header LNG-2002: until the loading pumps start P-2102 feeds it; once they run, the loading header (~9.5 bar(a)) holds P-2102 (~6 bar(a) shut-off) on its check valve CV-2122 and feeds the spray back through LNG-2002, while P-2102 keeps running on its fail-open minimum flow, so that it takes the spray over at once when the loading pumps stop (topping-off, ramp-down, ESD-1) without restarting a submerged pump (review 2026-11-05-basic-design-8 adversarial check, D-036; P-2102 is designed for the 15 barg of the loading system since D-036). With XV-2123 / XV-3123 proven closed (ZSC-2123 / ZSC-3123) a tank high-high level does not stop the circulation pump (I-205 / I-305, review 2026-11-05-basic-design-5 #1). XV-5101 stays proven closed (ZSC-5101) until S3, so the berth is not in liquid transfer and the O2 reject I-514 is armed (D-032). The vapour arm isolation XV-5122 stays closed until the vapour arm leak test of S1 is done (review 2026-11-05-basic-design-6 #6)."
       - id: S1
         title: Test the ERS, connect the vapour arm, leak test it, then open the vapour path
         actions:
           - {text: "ERS function test of the eight ERS valves of the berth before the arms are connected (review 2026-11-05-basic-design-6 #2, D-016): the arm vendor's test function enabled by HS-5109, permitted only with XV-5101 proven closed and every arm stowed (I-509, review 7 #5), not I-507, so no coupler release is commanded; each solenoid channel vented on its own (the valve must not move; the vendor's pressure switch proves that solenoid changed state), then both (the valve closes), then reopened; XA-5130A / XA-5130B healthy", by: operator}
           - {text: "connect the carrier's link cable: once it is healthy XS-5100 leaves its 'no carrier connected' mode by itself (review 2026-11-05-basic-design-7 #3, D-034); with the mode ended and no healthy link, or an arm unstowed first, I-501 trips", by: operator}
           - {text: "connect LA-5102 to the carrier's vapour manifold", by: operator}
-          - {text: "N2 leak test of the vapour arm at 2.5 bar (S-01) against its test boundary: the vapour arm isolation XV-5122 closed on the shore side and the carrier's vapour manifold valve closed on the ship side, the ERS valves XV-5132 / XV-5142 open, so the arm, its swivels, the ERS and the coupler are tested; the N2 enters at the arm package's test connection between LA-5102 and XV-5122 (arm vendor, review 7 #8) and the AI-5126 sample fast loop is isolated during the test; the test N2 is then vented into the carrier's manifold (D-026.13)", by: operator}
+          - {text: "N2 leak test of the vapour arm at 2.5 bar (S-01) against its test boundary: the vapour arm isolation XV-5122 closed on the shore side and the carrier's vapour manifold valve closed on the ship side, the ERS valves XV-5132 / XV-5142 open, so the arm, its swivels, the ERS and the coupler are tested; the N2 enters at the arm package's test connection between LA-5102 and XV-5122 (arm vendor, review 7 #8); permissive of the test: the AI-5126 sample fast loop isolated by the analyser package's fast-loop isolation valve (vendor tag), proven closed by the package (review 2026-11-05-basic-design-8 #7, D-036), and reopened after the test; the test N2 is then vented into the carrier's manifold (D-026.13)", by: operator}
           - {tag: XV-5122, action: open, by: operator}
-          - {text: "AI-5126 at the berth (backup AI-4133) rejects vapour above 5 vol % O2 (I-514) and AI-4133 selects the vapour return path make-before-break (I-511, I-512, I-513): de-inerting and gassing-up vapour to the flare through XV-4131, on-specification vapour to the tanks through XV-4135 (D-026, D-032). After an O2 reject, AI-5126 on the arm side of XV-5122 still reads the carrier's vapour: I-514 is reset by the operator once both its cells read below 5 vol % O2, XV-5122 is reopened, and for 30 min after the reset the return is held on the tanks (I-511 / I-512 blocked), so the slug trapped downstream of XV-5122 is flushed to the tanks, never to the flare (review 2026-11-05-basic-design-7 #2, D-034)", by: automatic}
+          - {text: "AI-5126 at the berth (backup AI-4133) rejects vapour above 5 vol % O2 (I-514) and AI-4133 selects the vapour return path make-before-break (I-511, I-512, I-513): de-inerting and gassing-up vapour to the flare through XV-4131, on-specification vapour to the tanks through XV-4135 (D-026, D-032). After an O2 reject, AI-5126 on the arm side of XV-5122 still reads the carrier's vapour: I-514 may be reset by the operator only once both its cells read below 5 vol % O2 (the reset condition), XV-5122 is reopened, and after the reset the return is held on the tanks (I-511 / I-512 blocked) until AI-4133 has seen the trapped slug pass (O2 above 1 vol % and back below 1 vol % for 5 min), or, if it sees no rise, until the operator releases the hold once the carrier confirms 1.5 return-line volumes delivered, so the slug trapped downstream of XV-5122 is flushed to the tanks, never to the flare (review 2026-11-05-basic-design-7 #2, review 8 #7, D-034, D-036; no longer a 30 min timer)", by: automatic}
         complete: {all: [{text: "ERS function test passed on every ERS valve and both solenoid channels"}, {tag: XS-5100, state: in carrier mode and healthy}, {text: "vapour arm leak test held at 2.5 bar"}, {tag: ZSO-5122, state: open}, {tag: XV-5132, state: open}, {tag: XV-5142, state: open}, {any: [{tag: ZSO-4131, state: open}, {tag: ZSO-4135, state: open}]}]}
         timeout: {value: 1, unit: h}
         on_timeout: abort
@@ -72,9 +75,12 @@ sequences:
           - {tag: XV-4102, action: open, by: operator}
           - {tag: XV-5101, action: open, by: operator}
           - {tag: XV-5121, action: open, by: operator}
+          - {loop: FIC-4102, action: manual, by: operator}
+          - {text: "FV-4102 closed in manual (line B is not the Berth 2 cooldown path; at Berth 1 the roles are exchanged: FIC-4102 / line B, the direct line, at 500 m3/h in auto and FV-4101 closed in manual, so the cooldown keeps its controlled path when the ESD-1 tests close XV-4107, review 2026-11-05-basic-design-8 #6, D-036)", by: operator}
           - {loop: FIC-4101, action: setpoint, setpoint: {kind: setpoint, value: 500, unit: m3/h, provenance: assumed, source: "D-016: cooldown rate, ASSUMED"}, by: operator}
           - {loop: FIC-4101, action: auto, by: operator}
           - {text: "cool the arms and the carrier manifold to LNG temperature", by: operator}
+          - {text: "with the cooldown flow established through XV-5101, LIC-5111 in auto empties D-5101 with P-5101 into the header downstream of XV-5101 (the previous transfer's drain, D-036), into the flow to the arms; D-5101 below its low level before S4", by: operator}
           - {text: "second ESD-1 test after cooldown (S-01), in test mode as for the first test (ends with the reset of I-501 or after 15 min)", by: operator}
           - {text: "reset I-501 once the repeated test is complete and the link is healthy (this ends the test mode)", by: operator}
           - {tag: XV-4101, action: open, by: operator}
@@ -83,7 +89,7 @@ sequences:
           - {tag: XV-5101, action: open, by: operator}
           - {tag: XV-5121, action: open, by: operator}
           - {loop: FIC-4101, action: auto, by: operator}
-        complete: {all: [{text: "arm and manifold temperatures at LNG temperature"}, {text: "ESD-1 test repeated after cooldown (S-01)"}, {interlock: I-501, state: reset}, {tag: XV-4101, state: open}, {tag: XV-4102, state: open}, {tag: XV-4107, state: open}, {tag: XV-5101, state: open}, {tag: ZSO-5122, state: open}, {loop: FIC-4101, state: in auto}]}
+        complete: {all: [{text: "arm and manifold temperatures at LNG temperature"}, {text: "ESD-1 test repeated after cooldown (S-01)"}, {interlock: I-501, state: reset}, {tag: XV-4101, state: open}, {tag: XV-4102, state: open}, {tag: ZSO-4107, state: open}, {tag: XV-5101, state: open}, {tag: ZSO-5122, state: open}, {loop: FIC-4101, state: in auto}, {text: "D-5101 emptied by P-5101 (LIC-5111 low level)"}]}
         timeout: {value: 2, unit: h}
         on_timeout: abort
         operator: "Cool slowly to avoid thermal shock on the arms; the circulation pump P-2102 (500 m3/h, D-008) gives the cooldown flow through line A. The cooldown vapour returns through the vapour arm, to the flare while AI-4133 reads off-specification. Each ESD-1 test opens XV-4135 (I-501) and XV-4131 closes only once XV-4135 is proven open (I-513), so the test never closes the vapour return (review 2026-11-05-basic-design-2#1); with off-specification vapour only the residual line pack of the return reaches the tanks, which D-026.1 shows to stay well below their 1 vol % O2 limit (review 2026-11-05-basic-design-4 #4). After each test the reset of I-501 and the reopening of XV-4101 / XV-4102 / XV-5101 / XV-5121 (and after the repeated test XV-4107, which ESD-1 also closes, D-034) restore the line-up, so S4 starts against open valves (review 2026-11-05-basic-design-4 #3, D-028). An ESD-1 does not stop P-2102: at 500 m3/h the closure of XV-5101 / XV-4101 against it stays far inside the line design and it runs on its minimum flow (D-016, D-032). During each test I-514 arms only once ZSC-5101 proves XV-5101 closed."
@@ -94,10 +100,11 @@ sequences:
           - {text: "line-up (a), the normal one: open XV-5123 (the hybrid arm as the third liquid arm; I-504 permits it with XV-5125 proven closed), start P-2101A/B/C/D (or two pumps in each tank), FIC-4101 and FIC-4102 to 6,000 m3/h each (12,000 m3/h), line B reaching Berth 2 through the DN 800 platform crossover XV-4107 (D-034)", by: operator}
           - {text: "line-up (b), a carrier that needs more return: open XV-5125 (the hybrid arm as the second vapour arm; I-505 permits it with XV-5123 proven closed), start P-2101A/B/C, FIC-4101 and FIC-4102 to 4,000 m3/h each (8,000 m3/h)", by: operator}
           - {tag: K-7101B, action: start, by: operator}
+          - {text: "jetty sump: P-8103 keeps T-8102 dry during the transfer (I-806 / I-807), no one goes to A9 (S-CW-A9, D-037.3). On the LZT-8106 high alarm at the pocket rim (0.50 m: water on the sump floor, P-8103 failed or the rain above its ~20 m3/h), a transfer hold: pause the transfer with the carrier (rates to zero, the loading pumps stopped, XV-5101 closed: no liquid transfer) until the level is back below it (P-8103 restored from the control room, or after the transfer has ended), then reopen XV-5101 and ramp up again. At the high-high (0.60 m, 0.1 m over the floor) I-805 trips ESD-1 (I-501) instead (checker of D-036, D-037.16)", by: operator}
         complete: {all: [{loop: FIC-4101, state: at setpoint}, {loop: FIC-4102, state: at setpoint}, {tag: ZSO-5122, state: open}]}
         timeout: {value: 2, unit: h}
         on_timeout: abort
-        operator: "Ramp in steps on the carrier's request; the carrier ramps its return-gas compressor over at least 1 h (S-01); start the second BOG compressor before the return reaches one machine's capacity. Four pumps make the 12,000 m3/h (D-011): the hydraulics of D-034 (every line-up, one tank or both, Berth 2 or Berth 1) need at most 834 kPa (191 m) at 3,000 m3/h per pump with 25 kPa kept across the control valve of the higher-loss line, so with the pumps rated at 191 m both FIC-4101 and FIC-4102 reach 6,000 m3/h and the step completes; through the DN 250 crossover alone line B would have needed ~580 kPa more (review 2026-11-05-basic-design-7 #1). In line-up (a) the carrier keeps its return within one vapour arm (~23.5 t/h) and burns the balance on board; line-up (b) gives two vapour paths at 8,000 m3/h (D-026.6). Throughout the transfer ZSO-5122 keeps the vapour arm proven open: its loss trips ESD-1 (I-501, D-030); in line-up (b) a closed XV-5125 (ZSC-5125) leaves the vapour arm as the return and the carrier reduces its return-gas compressor."
+        operator: "Ramp in steps on the carrier's request; the carrier ramps its return-gas compressor over at least 1 h (S-01); start the second BOG compressor before the return reaches one machine's capacity. Four pumps make the 12,000 m3/h (D-011): the hydraulics of D-034 (every line-up, one tank or both, Berth 2 or Berth 1) need at most 834 kPa (191 m) at 3,000 m3/h per pump with 25 kPa kept across the control valve of the higher-loss line, so with the pumps rated at 191 m both FIC-4101 and FIC-4102 reach 6,000 m3/h and the step completes. Margin (review 2026-11-05-basic-design-8 #4, D-036): the rating leaves only the 25 kPa control allowance; with pessimistic losses (vendor arm data, H-02) the governing line-up, T-3101 alone to Berth 1, may reach only ~10,900 m3/h: if FV-4101 or FV-4102 is fully open below 6,000 m3/h, the operator holds both lines at the rate the line-up gives (setpoints lowered to it), the step then completes at that rate and the carrier is told, or the transfer is lined up from both tanks (~765 kPa needed, D-034). Through the DN 250 crossover alone line B would have needed ~580 kPa more (review 2026-11-05-basic-design-7 #1). In line-up (a) the carrier keeps its return within one vapour arm (~23.5 t/h) and burns the balance on board; line-up (b) gives two vapour paths at 8,000 m3/h (D-026.6). Throughout the transfer ZSO-5122 keeps the vapour arm proven open: its loss trips ESD-1 (I-501, D-030); in line-up (b) a closed XV-5125 (ZSC-5125) leaves the vapour arm as the return and the carrier reduces its return-gas compressor."
       - id: S5
         title: Topping off and stop
         actions:
@@ -112,7 +119,7 @@ sequences:
         title: Drain, purge and disconnect
         actions:
           - {tag: XV-5161, action: open, by: operator}
-          - {text: "drain the arms and the header to D-5101; P-5101 returns it to the platform crossover", by: operator}
+          - {text: "drain the arms and the header to D-5101; the drain stays in D-5101 (vent BOG-5002 open to the vapour return) until P-5101 returns it into the header in S3 of the next transfer, since its return now enters downstream of XV-5101 (D-036)", by: operator}
           - {text: "N2 purge to below 2 % hydrocarbons (S-01) through HV-5151 and HV-5152 with the bleed HV-5153 closed; the purge N2 leaves through XV-5161, D-5101 and its vent BOG-5002 into the vapour return (D-026.13); then both blocks closed and the bleed opened", by: operator}
           - {tag: XV-5161, action: close, by: operator}
           - {text: "disconnect the liquid arms, then the vapour arm, and stow every arm (the envelope switches ZS-5151..5154 then read stowed)", by: operator}
@@ -152,7 +159,7 @@ sequences:
           - {tag: XV-4105, action: open, by: operator}
           - {tag: XV-2123, action: open, by: operator}
           - {tag: P-2102, action: start, by: operator}
-        complete: {all: [{tag: XV-4106, state: closed}, {tag: XV-4107, state: closed}, {tag: XV-4101, state: open}, {tag: XV-4102, state: open}, {tag: TI-4102, state: "< 3 K above the tank liquid"}]}
+        complete: {all: [{tag: XV-4106, state: closed}, {tag: ZSC-4107, state: closed}, {tag: XV-4101, state: open}, {tag: XV-4102, state: open}, {tag: TI-4102, state: "< 3 K above the tank liquid"}]}
         timeout: {value: 4, unit: h}
         on_timeout: abort
         operator: "Circulation out on line A, back on line B (D-008) through the DN 250 platform bypass XV-4103 (500 m3/h at 2.7 m/s); the DN 800 platform crossover XV-4107 is closed in holding (D-034); the tank-end crossover XV-4106 closed so the flow runs the whole trestle loop (review 2026-11-05-basic-design-2#3); the vapour return lines stay cold through the tank vapour."
@@ -207,18 +214,20 @@ sequences:
     section: JETTY
     cases: [loading]
     equipment: [XV-5101, XV-4101, XV-4102, XV-4107]
-    interlocks: [I-501, I-503, I-507, I-510, I-513, I-601, I-804]
+    interlocks: [I-501, I-502, I-503, I-507, I-510, I-513, I-601, I-804]
     steps:
       - id: S1
         title: Loading stopped and the line isolated
         actions:
           - {text: "I-501 (from the carrier through XS-5100, an arm envelope stage 1, the manual ESD-1 push buttons HS-5100A / B / C in the control room, at the jetty head and on the platform, the confirmed platform fire and gas XS-5108, ESD-2 through I-503, the air-header trip I-804, and during a liquid transfer (XV-5101 not proven closed by ZSC-5101, or held open by UZ-5101): XV-5122 not proven open by ZSO-5122, the O2 high-high of AI-5126 or AI-4133, the loss of either ERS solenoid channel XA-5130A / XA-5130B or ESD-1 of Berth 1, I-601) stops the loading pumps and trips the carrier's ESD through XS-5100, then closes XV-5101 (25-30 s), XV-4101/4102 and the platform crossover XV-4107 (D-034), and opens XV-4135 so the vapour return stays open to the tanks (I-513 then closes XV-4131); on ESD-2, I-507 closes the ERS valves and the arm isolations 5 s later and I-510 releases each coupler once both its ERS valves are proven closed or at the timeout (D-034); on an air failure the ESD valves hold on their accumulators until the pumps are stopped and close at their set speed (D-028, D-030)", by: automatic}
           - {text: "an ESD-1 of either berth stops the shared loading pumps and closes the shared tank-end valves XV-4101 / XV-4102; the berth that is transferring is tripped through its own link by its own ESD-1 (I-501 takes I-601 tripped during a Berth 2 transfer, I-601 takes I-501 during a Berth 1 transfer), so its carrier never loses the flow without its ESD (review 2026-11-05-basic-design-5, adversarial check; D-016)", by: automatic}
-        complete: {all: [{tag: XV-5101, state: closed}]}
+        complete: {all: [{tag: XV-5101, state: closed}, {tag: ZSC-4107, state: closed}]}
       - id: S2
         title: Pressure the isolated header is under
         actions:
           - {text: "watch PZT-5103; PSV-5131 relieves surge or thermal expansion into D-5101", by: operator}
+          - {text: "if XV-4107 is not proven closed (ZSC-4107, discrepancy alarm), close it from UZ-4107 again: a leak on the trestle side of XV-5101 is otherwise fed by both lines (D-034.3, D-036)", by: operator}
+          - {text: "on fire or gas confirmed at the header bay (XS-5108 / XS-6108) after the ESD-1, send an operator to the N2 stations at the PR1 joint at once, while the leak is located (header bay low-temperature or gas detection, TSL-8104, CCTV); a leak on the trestle side of XV-5101 / XV-6101: SEQ-LINE-EMPTY for the leaking line, its N2 flowing within 30 min of the ESD-1 (D-036)", by: operator}
           - {loop: PIC-1110, action: auto, by: operator}
         complete: {text: "the cause found and cleared; the carrier informed"}
         operator: "After ESD-2 the ERS valves close 5 s after I-503 (I-507; I-607 on Berth 1) and the couplers release on the ERS proven closed or at the timeout (I-510 / I-610, D-034): the outboard ERS valves stay on the carrier side; recover the arms before any restart. Restart after ESD-1 reopens XV-4101 / XV-4102 / XV-4107."
@@ -228,6 +237,69 @@ sequences:
         - {text: "no abort: the trips latch until reset", by: automatic}
       notes: "The ESD response itself cannot be aborted."
     reset: {latching: true, manual: true, condition: {text: "cause cleared, ship-shore link healthy, arms recovered after ESD-2"}, restart: {text: "the loading restarts from SEQ-LOAD S3 (cooldown) after ESD-1, from S1 after ESD-2"}}
+
+  - id: SEQ-LINE-EMPTY
+    title: Empty an isolated trestle loading line back to the tanks with N2 (leak on the trestle side of a shore ESD valve)
+    mode: abnormal
+    section: TRANSFER
+    cases: [loading, holding]
+    equipment: [XV-4101, XV-4102, XV-4103, XV-4105, XV-4106, XV-4107, XV-2123, XV-3123, P-2102, P-3102]
+    permissives:
+      - {text: "ESD-1 complete: the loading pumps stopped, XV-5101 / XV-6101 proven closed (ZSC-5101, ZSC-6101), XV-4107 proven closed (ZSC-4107), XV-4101 / XV-4102 closed"}
+      - {text: "the leaking line identified (A: LNG-4001, B: LNG-4002) from the header bay low-temperature and gas detection, TSL-8104 and CCTV; the leak is on the trestle side of XV-5101 / XV-6101 (stem or bonnet seal of XV-5101 / XV-6101, XV-4107 or XV-4103, the only sources left there since D-036)"}
+      - {tag: LZT-2102, state: "below LAH, with at least 1,100 m3 below the high-high level of the receiving tank (T-2101 shown; T-3101 with XV-3123 and LZT-3102)"}
+      - {tag: PI-4155, state: "site N2 at the station at 6 barg or more (PI-4157 for line B)"}
+      - {text: "I-501 / I-601 output override of XV-4101 / XV-4102 / XV-4107 permitted: every loading pump proven stopped, XV-5101 / XV-6101 proven closed (C&E I-501 bypass, checker of D-036)"}
+    interlocks: [I-201, I-202, I-501, I-601, I-805]
+    steps:
+      - id: S1
+        title: Line up the return of the leaking line through the other line to the tank (line A leaking shown)
+        actions:
+          - {tag: P-2102, action: stop, by: operator}
+          - {tag: P-3102, action: stop, by: operator}
+          - {tag: XV-4106, action: close, by: operator}
+          - {tag: XV-4103, action: open, by: operator}
+          - {text: "override the I-501 / I-601 close output of XV-4102 only (key-protected SIS override, alarmed and logged; the loading pump stops stay latched): ESD-1 holds XV-4101 / XV-4102 / XV-4107 closed while its cause, the fire at the header bay, is active, so without the override the return path cannot open (checker of D-036)", by: operator}
+          - {tag: XV-4102, action: open, by: operator}
+          - {loop: FIC-4102, action: manual, by: operator}
+          - {text: "FV-4102 fully open in manual; XV-4101 stays closed (the N2 enters line A on its trestle side)", by: operator}
+          - {tag: XV-4105, action: open, by: operator}
+          - {tag: XV-2123, action: open, by: operator}
+          - {text: "line B leaking: N2 into line B through N-4002 instead, XV-4102 stays closed, and the return runs up line A through XV-4101 (its close output overridden) and FV-4101 (open in manual), the tank-end crossover XV-4106 (open), XV-4105 and XV-2123; XV-4103 is the crossover unless it is itself the leaking item, then XV-4107 (its close output overridden, opened from UZ-4107)", by: operator}
+          - {text: "meanwhile the operator sent at the ESD-1 (SEQ-ESD S2) stands at the N2 station of the leaking line at the PR1 joint: no blind to remove (double block and bleed since the checker of D-036)", by: operator}
+        complete: {all: [{tag: XV-4103, state: open}, {tag: XV-4105, state: open}, {tag: ZSC-2123, state: not closed}, {tag: XV-4106, state: closed}, {tag: XV-4102, state: open}]}
+        timeout: {value: 20, unit: min}
+        on_timeout: abort
+        operator: "The N2 flows within 30 min of the ESD-1 (ASSUMED: the operator walks to the PR1 joint while the leak is located, SEQ-ESD S2; S1 is remote valves and overrides from the control room). The leaking line is then open, through the platform crossover and the other loading line, which stays liquid-full, to the receiving tank at its tank-pressure-plus-static level instead of building up towards the 15 barg of PSV-4111 / PSV-4112 as an isolated line warms, so the seal leak is driven by ~2.7 barg at most."
+      - id: S2
+        title: Displace the leaking line with N2 from its tank end
+        actions:
+          - {tag: HV-4161, action: close, by: operator}
+          - {tag: HV-4152, action: open, by: operator}
+          - {tag: HV-4151, action: open, by: operator}
+          - {text: "site N2 at 7 barg enters line A at the PR1 joint through the restriction orifice FO-4151, choked at ~4,000 Nm3/h (ASSUMED; confirmed on the station gauges: PI-4155 ~7 barg upstream, PI-4156 ~2.6 barg downstream, at least ~1.9 times in absolute terms); the line takes ~3.7 bar(a) at its tank end (tank 115 kPa(a), ~45-48 m of LNG static up to the roof inlet of the circulation return, ~45 kPa of friction); ~450 m3/h of LNG returns (~0.26 m/s in DN 800, ~2.5 m/s in the DN 250 crossover). The gas overruns the liquid in the near-horizontal line, which falls ~3.3 m over ~2.1 km (~0.16 %, D-013, D-035.8): the overrun liquid drains along the bottom of the line, ahead of the gas, to the bottom-of-line crossover tee at the platform end and leaves through it; it does not need a piston front", by: automatic}
+          - {text: "watch the receiving tank level rise (LT-2101), the N2 totalised at the site N2 meter (~9 Nm3 per m3 of line, ~9,500 Nm3 for one line, ASSUMED), PI-4156 and TI-4103 at the platform end (strap-on: the cold gas front shows as a step); the end is the gas reaching the crossover tee: the tank level stops rising and N2 appears in the receiving tank's vapour (PIC-1110 output rising)", by: operator}
+          - {tag: XV-4103, action: close, by: operator}
+        complete: {all: [{text: "line A displaced: the receiving tank level steady, ~1,030 m3 returned (as for line B)"}, {tag: XV-4103, state: closed}]}
+        timeout: {value: 3, unit: h}
+        on_timeout: abort
+        operator: "Layout review 2026-11-05-basic-layout-6 #2 and the checker of D-036: from the ESD-1, ~0.5 h until the N2 flows plus ~2.3 h of displacement, then the platform-end dead legs below the crossover tees (the drop and the berth header to XV-5101 / XV-6101, ~6 m3 per line) drain to the leak at the ASSUMED ~1 kg/s of a stem or bonnet seal (D-034.3) in ~0.75 h: the leak is fed at ~1 kg/s for ~3.5 h at most, ~28 m3, plus the film left on the 2.1 km of pipe (~5-8 m3, ASSUMED 2-3 mm), which drains to the low point over hours and feeds a trickle well below 1 kg/s: ~36 m3 into T-8102 at most, inside the 40 m3 kept below its inlet (257 m3: ~170 m3 platform spill, 40 m3 drain-down, no rain allowance: the sump is kept dry by P-8103 and LZT-8106 / I-805, D-037.15 (a), D-037.16). The PFP duration of the header bay (240 min, D-037.2) covers the ~3.5 h. Once the gas has passed, the leak releases N2. The N2 that reaches the tank at the end goes to the BOG system."
+      - id: S3
+        title: Secure the emptied line
+        actions:
+          - {tag: XV-4105, action: close, by: operator}
+          - {tag: XV-2123, action: close, by: operator}
+          - {text: "keep HV-4151 / HV-4152 open: the emptied line stays under N2 at ~2.7 barg, the station making up what leaks out, so the film that drains to the platform end meets warm N2 (its sensible heat evaporates up to ~0.5 kg/s of LNG at the full rate) and the leak releases N2, not air into the line; when the leak is isolated or the line is to be left, close HV-4151 / HV-4152 and open the bleed HV-4161; the line is cooled down and refilled from the tank end by P-2102 as at commissioning before the next transfer", by: operator}
+          - {text: "remove the overrides of XV-4101 / XV-4102 / XV-4107 (the SIS removes them itself at the end of this step, after 8 h or when a permissive is lost)", by: operator}
+        complete: {all: [{tag: XV-4103, state: closed}, {tag: XV-4105, state: closed}]}
+    abort:
+      condition: {any: [{interlock: I-201, state: tripped}, {tag: PI-4155, state: "below 5 barg (PI-4157 for line B)"}, {text: "receiving tank pressure high (PIC-1110 output saturated)"}]}
+      actions:
+        - {tag: HV-4151, action: close, by: operator}
+        - {tag: HV-4153, action: close, by: operator}
+        - {text: "close the N2 blocks HV-4151 / HV-4152 (HV-4153 / HV-4154) and open the bleed HV-4161 (HV-4162); the line stays connected to the tank through the return path, so its pressure stays at the tank level plus the static head", by: operator}
+      notes: "A tank high-high level closes the return XV-2123 (I-201); the displacement stops with it. For a leak at XV-4107 or XV-4103, between the two lines, one line is emptied through the other crossover; the full line then feeds the closed valve's cavity only through its seats (residual for the siting study, D-036). The two-phase displacement (overrun liquid draining to the bottom-of-line tee at the line's fall) is a check case of the transient analysis, H-01 (checker of D-036)."
+    reset: {latching: true, manual: true, restart: {text: "operator restarts SEQ-LINE-EMPTY from S1"}}
 
   - id: SEQ-FILL-CHANGE
     title: Change the fill of a tank between top and bottom fill (make-before-break)

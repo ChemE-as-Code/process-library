@@ -29,6 +29,9 @@ spray and the drain pumps keep running in loading; PSV-n141 names the tank-end v
 check case; the sheet note names the fail position of XV-n123 and I-n01 / I-n05.
 Review 2026-11-05-basic-design-6 (#3, D-032): notes only; the ZSC-n123 note puts the 15 s on the
 trip and names the command discrepancy alarm of a switch stuck closed.
+Review 2026-11-05-basic-design-8 and layout review 2026-11-05-basic-layout-6 #9 (D-036): on P-03 the
+drip tray under XV-3123 takes its low-temperature detector TSL-3124; the HS-n123 note no longer counts
+the jetty drain pumps among the sources of the return and names the spray source in loading.
 """
 
 import sys
@@ -226,10 +229,11 @@ L.line(sheet, "LNG-4005" if n == "2" else "LNG-4009", dn=250, fluid="LNG",
 L.inst(sheet, f"HS-{n}123", f"{TK} circulation return valve XV-{n}123",
        f"Opened by the operator for the tank that receives the circulation (D-008). Fail closed, and closed by "
        f"the {TK} high-high level trip I-{n}01 as its final element with the fill ESD valve. Only if ZSC-{n}123 "
-       f"does not prove it closed after its stroke time does I-{n}05 stop the sources of the return, the "
-       f"circulation pumps P-2102 / P-3102 and the jetty drain pumps P-5101 / P-6101; with the return proven "
-       f"closed they keep running, so the desuperheater spray stays in service in loading and the drain pumps "
-       f"can empty D-5101 / D-6101 (review 2026-11-05-basic-design-5 #1, D-030). On an instrument-air failure the "
+       f"does not prove it closed after its stroke time does I-{n}05 stop the source of the return, the "
+       f"circulation pumps P-2102 / P-3102 (the jetty drain pumps no longer feed it, D-036); with the return proven "
+       f"closed they keep running, so the circulation pump stays on its minimum flow in loading, ready to take the "
+       f"desuperheater spray when the loading pumps stop (in loading the spray comes from the loading header, "
+       f"review 2026-11-05-basic-design-8, D-036; review 2026-11-05-basic-design-5 #1, D-030). On an instrument-air failure the "
        f"circulation stops: the pumps run on their fail-open minimum flow and PSV-4114 relieves the return.",
        at=(232, RET_Y - 13), signal_to=xvr.id, fail_action="FC")
 # closed-position switch on XV-n123 itself, below the valve (its actuator is above), so I-n05 stops
@@ -241,6 +245,16 @@ L.inst(sheet, f"ZSC-{n}123", f"XV-{n}123 closed position",
        f"while XV-{n}123 is commanded open for longer than its stroke time raises a discrepancy alarm, so a switch "
        f"stuck closed is not a dormant failure (review 2026-11-05-basic-design-6 #3, D-032).",
        at=(232, 245), sensing=xvr.id, sensing_at=(232, RET_Y + 1.5))
+if n == "3":
+    # XV-3123 stands west of the PR1 trough in its own drip tray (D-033.11, D-035.7): the tray's low-temperature
+    # detector (layout review 2026-11-05-basic-layout-6 #9, D-036)
+    L.inst(sheet, "TSL-3124", "XV-3123 drip tray low temperature (LNG in the tray)",
+           "Low-temperature detector in the drip tray under XV-3123 (Z-HA-TRAY-XV3123, 3 m3, 22.5 min of a 1 kg/s "
+           "leak at LNG density, D-035.7): alarm in the control room, so the operator isolates the leak within the "
+           "10 min of the tray concept (ASSUMED), before the tray overflows onto grade (layout review "
+           "2026-11-05-basic-layout-6 #9, D-036). Cabled to JB-T3101 (layout).",
+           at=(257, 224), sensing=xvr.id, sensing_at=(234, RET_Y - 1.5),
+           sensing_points=[(241, RET_Y - 1.5), (241, 224)])
 L.line(sheet, "BOG-1001" if n == "2" else "BOG-1003", dn=750 if n == "2" else 600,
        fluid="Boil-off gas", frm=TK, to="D-7101" if n == "2" else "BOG-1001",
        notes=("see P-01" if n == "2" else "T-3101 vapour outlet to the tank vapour header. Drawn on P-03 and P-01."),

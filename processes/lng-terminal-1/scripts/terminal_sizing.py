@@ -116,6 +116,25 @@ DZ_SHIP = 30.0                  # m, manifold above the low tank liquid level, A
 # trestle, 25 kPa kept across the loading-line control valve, the strainer at its alarm, the berth
 # header and the arm path (arm, swivels, ERS, coupler). Was 120 kPa for arms, ERS, strainers, valves.
 DP_JETTY = 378e3
+# Split of DP_JETTY at the shore ESD valve XV-n101 (review 2026-11-05-basic-design-8 #8 (d), D-036), from the
+# governing line-up of the D-034 table: upstream of it the pump column and check valve 38, the pump header 81,
+# the tank-end crossover 5, the trestle's expansion loops 56 (147 - 91 of plain line friction), the platform
+# crossover 6 and the 25 kPa control margin, 211 kPa; downstream XV-n101, the strainer and the berth header 27
+# and the arm path 140, 167 kPa. S3, "LNG at the jetty", is the berth header pressure at XV-n101.
+DP_BERTH = 167e3
+DP_TO_BERTH = DP_JETTY - DP_BERTH
+# One shut-off basis for the loading system (checker of D-036, low #7): the pumps dead-headed with a full
+# tank, at the pump, at the shore ESD valve and at the lowest carrier manifold. All ASSUMED.
+SHUTOFF_RATIO = 1.25            # shut-off / rated head of the in-tank loading pumps (D-011)
+H_FULL = 37.0                   # m, working liquid level above the pump suction (225,000 m3 in the ~88 m inner tank, D-007)
+Z_PUMP = 15.3                   # m CD, pump suction at the tank floor, tank area grade (D-013, D-035.8)
+Z_HDR = 16.5                    # m CD, XV-n101 on PR10's bottom tier, 4.5 m above the +12.0 m CD deck (D-037)
+Z_MAN_LOW = 12.0                # m CD, lowest carrier manifold flange (laden at low water), at deck level
+# carrier manifold protection (D-036): closure of a carrier ESD valve against the flowing trestle line
+L_TRESTLE, L_BERTH = 2_160.0, 250.0   # m, trestle line at 3.4 m/s and berth header at twice that (D-034)
+T_CARRIER = (30.0, 25.0)        # s, carrier ESD valve closure (ASSUMED, ship-shore compatibility study)
+PAHH_ARM = 5.0e5                # Pa(g), PZT-n181 / PZT-n184 at the arms' outboard ends (D-036)
+DZ_ARM = 2.0                    # m, arm-end transmitter above the carrier's manifold flange
 
 
 def main():
@@ -210,6 +229,18 @@ def main():
     arm_area = math.pi / 4 * 0.381 ** 2
     arm_cap_kgh = 40.0 * arm_area * rho_sv * 3600
 
+    # shut-off basis and carrier manifold bound (D-036)
+    g_rho = rho_l * 9.81
+    p_shut_pump = P_TANK + g_rho * H_FULL + SHUTOFF_RATIO * dp_pump
+    p_shut_hdr = p_shut_pump - g_rho * (Z_HDR - Z_PUMP)
+    p_shut_man = p_shut_pump + g_rho * (Z_PUMP - Z_MAN_LOW)
+    p_hdr_normal = P_TANK + dp_pump - dp_l - DP_TO_BERTH        # S3, berth header at XV-n101
+    rise = [2 * rho_l * (L_TRESTLE * v_l + L_BERTH * 2 * v_l) / t for t in T_CARRIER]
+    bound_man = PAHH_ARM + max(rise) + g_rho * DZ_ARM
+
+    def barg(p_abs):
+        return round((p_abs - 101.3e3) / 1e5, 1)
+
     rows = [
         ("LNG composition (mol)", {k: round(v, 5) for k, v in x.items()}),
         ("LNG molar mass, kg/kmol", round(m_lng, 3)),
@@ -247,6 +278,13 @@ def main():
         ("surge: instant / slow-closure dP, kPa", (round(dp_instant / 1000), round(dp_slow / 1000))),
         ("surge: peak pressure at the ESD valve, kPa(a) / barg", (round(p_surge / 1000), round((p_surge - 101.3e3) / 1e5, 1))),
         ("vapour arm capacity at 40 m/s, t/h", round(arm_cap_kgh / 1000, 1)),
+        ("shut-off, full tank: pump / XV-n101 / lowest manifold, barg",
+         (barg(p_shut_pump), barg(p_shut_hdr), barg(p_shut_man))),
+        ("normal at 12,000 m3/h: XV-n101 (S3) / carrier manifold, barg",
+         (barg(p_hdr_normal), barg(P_SHIP_MANIFOLD))),
+        ("carrier valve closure rise 2 rho L v / t, 30 s / 25 s, bar",
+         tuple(round(r / 1e5, 2) for r in rise)),
+        ("carrier manifold bound: arm-end PAHH + rise + static, barg", round(bound_man / 1e5, 1)),
     ]
     for k, v in rows:
         print(f"{k:52s} {v}")
@@ -286,7 +324,7 @@ def main():
         return tail | {
             "S1": s(rundown_kgh, t_rd, P_TANK + 100e3, wl),        # rundown from the trains
             "S2": s(load + circ, t_l, p_dis, w),                   # pumped LNG to the trestle
-            "S3": s(load, t_l, p_dis - dp_l, w),                   # LNG at the jetty
+            "S3": s(load, t_l, p_dis - dp_l - DP_TO_BERTH, w),     # LNG at the jetty (berth header at XV-n101, D-036)
             "S4": s(load, t_l, P_SHIP_MANIFOLD, w),                # LNG to the ship
             "S5": s(ship_ret, T_SHIP_VAP + 273.15, 106e3, wv),     # ship return vapour
             "S6": s(ship_ret, T_SHIP_VAP + 273.15, 104e3, wv),     # vapour return over the trestle
