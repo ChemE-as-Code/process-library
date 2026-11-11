@@ -1,0 +1,741 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Liquid-phase zeolite cumene process (D-001). Where the values come from:
+# - the feeds' compositions and all temperatures and pressures are design choices (design
+#   basis, D-003, D-004, D-008), ASSUMED;
+# - the feed flows S1 and S4 and the split fractions of SPL1 come from the independent balance
+#   scripts/cumene_balance.py (D-007), ASSUMED;
+# - the other stream values and the duties are calculated: by `cheme process propagate --fill`
+#   (mixers, splitters, pass-throughs, the conversion reactors) and by `cheme process simulate
+#   --fill` (DWSIM, Peng-Robinson, D-011). Peng-Robinson is not qualified by core for aromatics
+#   with light hydrocarbons: the simulated values are a second implementation's check of the
+#   script, not validated data.
+schema: cheme/process/v1
+kind: flowsheet
+title: Cumene by zeolite alkylation of benzene with propylene (272 kt/a)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+  enthalpy_reference: {state: ideal_gas, temperature: 298.15}
+cases:
+  - {id: design, description: "Design case: 34.0 t/h cumene, benzene/propylene 4 at the alkylator, propylene fully converted, DIPB transalkylated (D-002, D-004, D-005)", default: true}
+# balances: |in - out| <= abs + rel * max(in, out), kg/h. abs 5 kg/h (not the usual 1): DWSIM
+# carries TIPB with its surrogate's molar mass (1-tetradecene, 196.4 against 204.4 kg/kmol,
+# D-011), so the TIPB of streams rich in it (S27) comes back about 3.9 % (4 kg/h) light against
+# the leaner ones; the totals are unaffected beyond that.
+tolerance: {abs: 5.0, rel: 0.005}
+
+feeds:
+  - {id: BZF, title: Fresh benzene, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: PRF, title: "Propylene feed (95 mol% propylene, 5 mol% propane)", category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports: [{id: p101, direction: out, kind: energy}, {id: p102, direction: out, kind: energy}, {id: p103, direction: out, kind: energy}]
+  - id: MPS
+    title: MP steam 1500 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: MP
+      pressure: {value: 1500, provenance: assumed, source: "design basis, D-010"}
+      supply_temperature: {value: 471.4, provenance: assumed, source: "saturation at 1500 kPa(a), D-010"}
+      min_approach: {value: 10, provenance: assumed, source: D-010}
+    ports: [{id: e102, direction: out, kind: energy}, {id: c202, direction: out, kind: energy}]
+  - id: HPS
+    title: HP steam 4200 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: HP
+      pressure: {value: 4200, provenance: assumed, source: "design basis, D-010"}
+      supply_temperature: {value: 526.4, provenance: assumed, source: "saturation at 4200 kPa(a), D-010"}
+      min_approach: {value: 10, provenance: assumed, source: D-010}
+    ports: [{id: c201, direction: out, kind: energy}, {id: c203, direction: out, kind: energy}, {id: c204, direction: out, kind: energy}]
+products:
+  - {id: CUMENE, title: Cumene to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: LPG, title: Propane (LPG) to sale or fuel, category: by_product, ports: [{id: in, direction: in}]}
+  - {id: HEAVY, title: Heavy ends (polyisopropylbenzenes) to fuel, category: by_product, ports: [{id: in, direction: in}]}
+  - id: LPSX
+    title: LP steam export 250 kPa(a), raised by the alkylator interbed coolers
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 250, provenance: assumed, source: "design basis, D-009"}
+      supply_temperature: {value: 400.6, provenance: assumed, source: "saturation at 250 kPa(a), D-009"}
+      min_approach: {value: 10, provenance: assumed, source: D-009}
+    ports: [{id: r101, direction: in, kind: energy}]
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-010"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-010"}
+      min_approach: {value: 5, provenance: assumed, source: D-010}
+    ports:
+      - {id: c201, direction: in, kind: energy}
+      - {id: c202, direction: in, kind: energy}
+      - {id: c203, direction: in, kind: energy}
+      - {id: e103, direction: in, kind: energy}
+      - {id: c204, direction: in, kind: energy}
+
+blocks:
+  - id: RXN
+    title: Alkylation and transalkylation
+    class: ReactingChemicals
+    ports:
+      - {id: bz, direction: in}
+      - {id: c3, direction: in}
+      - {id: bzrec, direction: in}
+      - {id: dipbrec, direction: in}
+      - {id: eff, direction: out}
+      - {id: slip, direction: out}
+      - {id: power1, direction: in, kind: energy}
+      - {id: power2, direction: in, kind: energy}
+      - {id: power3, direction: in, kind: energy}
+      - {id: steam, direction: in, kind: energy}
+      - {id: lps, direction: out, kind: energy}
+  - id: SEP
+    title: Depropaniser, benzene, cumene and DIPB columns
+    class: Distilling
+    ports:
+      - {id: eff, direction: in}
+      - {id: slip, direction: in}
+      - {id: bzrec, direction: out}
+      - {id: dipbrec, direction: out}
+      - {id: lpg, direction: out}
+      - {id: cumene, direction: out}
+      - {id: heavy, direction: out}
+      - {id: steam1, direction: in, kind: energy}
+      - {id: steam2, direction: in, kind: energy}
+      - {id: steam3, direction: in, kind: energy}
+      - {id: steam4, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+      - {id: cw3, direction: out, kind: energy}
+      - {id: cw4, direction: out, kind: energy}
+      - {id: cw5, direction: out, kind: energy}
+
+steps:
+  - id: M101
+    block: RXN
+    title: Benzene feed drum (fresh + recycle)
+    class: Mixing
+    links: [{target: equipment, ref: V-101}]
+    ports:
+      - {id: fresh, direction: in, delegates: bz}
+      - {id: rec, direction: in, delegates: bzrec}
+      - {id: out, direction: out}
+  - id: P101
+    block: RXN
+    title: Benzene charge pump
+    class: Pumping
+    links: [{target: equipment, ref: P-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power1}
+  # D-004, D-005, D-006: the fractions of the pumped benzene that hold benzene/DIPB 5 at R-102
+  # and 5 mol% propane in the benzene recycle (scripts/cumene_balance.py); the rest to R-101.
+  - id: SPL1
+    block: RXN
+    title: Benzene distribution (alkylator, transalkylator, depropaniser slipstream)
+    class: SplittingMaterial
+    split: {tr: 0.120772923, dep: 0.204903973}
+    ports:
+      - {id: in, direction: in}
+      - {id: alk, direction: out}
+      - {id: tr, direction: out}
+      - {id: dep, direction: out, delegates: slip}
+  - id: P102
+    block: RXN
+    title: Propylene feed pump
+    class: Pumping
+    links: [{target: equipment, ref: P-102}]
+    ports:
+      - {id: in, direction: in, delegates: c3}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power2}
+  - id: M102
+    block: RXN
+    title: Alkylator feed junction (benzene + propylene)
+    class: Mixing
+    ports:
+      - {id: bz, direction: in}
+      - {id: c3, direction: in}
+      - {id: out, direction: out}
+  - id: E101
+    block: RXN
+    title: Alkylator feed / effluent exchanger
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: cold_in, direction: in}
+      - {id: cold_out, direction: out}
+      - {id: hot_in, direction: in}
+      - {id: hot_out, direction: out}
+  # D-004, D-005, D-009: liquid-phase fixed beds with propylene before each bed and interbed
+  # coolers raising LP steam, modelled as one conversion reactor with a fixed outlet temperature;
+  # the heat removed is the LP steam export.
+  - id: R101
+    block: RXN
+    title: Alkylation reactor (zeolite, liquid phase, interbed steam raising)
+    class: ReactingChemicals
+    reactions: [ALK, ALK2, ALK3]
+    reactor: conversion
+    links: [{target: equipment, ref: R-101}]
+    # liquid-full reactor: `out` is its liquid; `vap` is DWSIM's vapour outlet, empty by design
+    # (it checks that the reactor stays liquid; D-011)
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: vap, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: lps}
+  - id: P103
+    block: RXN
+    title: DIPB recycle pump
+    class: Pumping
+    links: [{target: equipment, ref: P-103}]
+    ports:
+      - {id: in, direction: in, delegates: dipbrec}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power3}
+  - id: M103
+    block: RXN
+    title: Transalkylator feed junction (benzene + DIPB)
+    class: Mixing
+    ports:
+      - {id: bz, direction: in}
+      - {id: dipb, direction: in}
+      - {id: out, direction: out}
+  - id: E102
+    block: RXN
+    title: Transalkylator feed heater
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+  - id: R102
+    block: RXN
+    title: Transalkylation reactor (zeolite, liquid phase, adiabatic)
+    class: ReactingChemicals
+    reactions: [TRANS]
+    reactor: conversion
+    links: [{target: equipment, ref: R-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: vap, direction: out}
+  - id: M104
+    block: RXN
+    title: Reactor effluents junction
+    class: Mixing
+    ports:
+      - {id: alk, direction: in}
+      - {id: tr, direction: in}
+      - {id: alkv, direction: in}
+      - {id: trv, direction: in}
+      - {id: out, direction: out, delegates: eff}
+  - id: C201
+    block: SEP
+    title: Depropaniser (on the benzene slipstream)
+    class: Distilling
+    links: [{target: equipment, ref: C-201}]
+    ports:
+      - {id: feed, direction: in, delegates: slip}
+      - {id: top, direction: out, delegates: lpg}
+      - {id: bot, direction: out}
+      - {id: reb, direction: in, kind: energy, delegates: steam1}
+      - {id: cond, direction: out, kind: energy, delegates: cw1}
+  - id: M105
+    block: SEP
+    title: Benzene column feed junction (effluents + depropaniser bottoms)
+    class: Mixing
+    ports:
+      - {id: eff, direction: in, delegates: eff}
+      - {id: c201, direction: in}
+      - {id: out, direction: out}
+  - id: C202
+    block: SEP
+    title: Benzene column
+    class: Distilling
+    links: [{target: equipment, ref: C-202}]
+    ports:
+      - {id: feed, direction: in}
+      - {id: top, direction: out, delegates: bzrec}
+      - {id: bot, direction: out}
+      - {id: reb, direction: in, kind: energy, delegates: steam2}
+      - {id: cond, direction: out, kind: energy, delegates: cw2}
+  - id: C203
+    block: SEP
+    title: Cumene column
+    class: Distilling
+    links: [{target: equipment, ref: C-203}]
+    ports:
+      - {id: feed, direction: in}
+      - {id: top, direction: out}
+      - {id: bot, direction: out}
+      - {id: reb, direction: in, kind: energy, delegates: steam3}
+      - {id: cond, direction: out, kind: energy, delegates: cw3}
+  - id: E103
+    block: SEP
+    title: Cumene product cooler
+    class: Cooling
+    links: [{target: equipment, ref: E-103}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: cumene}
+      - {id: cw, direction: out, kind: energy, delegates: cw4}
+  - id: C204
+    block: SEP
+    title: DIPB column (vacuum)
+    class: Distilling
+    links: [{target: equipment, ref: C-204}]
+    ports:
+      - {id: feed, direction: in}
+      - {id: top, direction: out, delegates: dipbrec}
+      - {id: bot, direction: out, delegates: heavy}
+      - {id: reb, direction: in, kind: energy, delegates: steam4}
+      - {id: cond, direction: out, kind: energy, delegates: cw5}
+
+streams:
+  - id: S1
+    title: Fresh benzene
+    from: BZF.out
+    to: M101.fresh
+    template: mixture
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: "design basis, D-003"}
+        temperature: {value: 303.15, provenance: assumed, source: "design basis, D-003"}
+        flow: {value: 22160.57, basis: mass, provenance: assumed, source: "scripts/cumene_balance.py: the fresh benzene that gives 34.0 t/h cumene (D-002, D-007)"}
+        composition: {basis: mole_fraction, values: {BZ: 1.0}, provenance: assumed, source: "design basis, D-003"}
+  - id: S2
+    title: Benzene recycle
+    from: C202.top
+    to: M101.rec
+    template: mixture
+    state:
+      design:
+        pressure: {value: 150, provenance: assumed, source: D-008}
+        composition: {basis: mole_fraction, values: {C3H8: 0.0500005, C3H6: 3.46248e-17, BZ: 0.9495, CUM: 0.0005, DIPB: 1.00763e-10, TIPB: 5.26579e-15}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        flow: {value: 112935.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        temperature: {value: 321.427, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: S3
+    title: Benzene to charge pump
+    from: M101.out
+    to: P101.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 150, provenance: assumed, source: "D-004: benzene drum"}
+        temperature: {value: 318.51, provenance: assumed, source: "scripts/cumene_balance.py: adiabatic mix of S1 and the saturated S2 (D-007)"}
+        flow: {value: 135092.41, basis: mass, provenance: assumed, source: "scripts/cumene_balance.py: the drum outflow that holds benzene/propylene 4 at R-101 (D-004, D-007); the closing point of the benzene loop, checked by the M101 balance (D-011)"}
+        composition: {basis: mole_fraction, values: {C3H8: 0.0419460, BZ: 0.9576346, CUM: 0.0004195}, provenance: assumed, source: "scripts/cumene_balance.py (D-006, D-007)"}
+  - id: S4
+    title: Propylene feed
+    from: PRF.out
+    to: P102.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 2000, provenance: assumed, source: "design basis, D-003"}
+        temperature: {value: 313.15, provenance: assumed, source: "design basis, D-003"}
+        flow: {value: 12624.63, basis: mass, provenance: assumed, source: "scripts/cumene_balance.py: the propylene feed at benzene/propylene 4 for 34.0 t/h cumene (D-002, D-004, D-007)"}
+        composition: {basis: mole_fraction, values: {C3H6: 0.95, C3H8: 0.05}, provenance: assumed, source: "design basis, D-003"}
+  - id: S5
+    title: Pumped benzene
+    from: P101.out
+    to: SPL1.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 4200, provenance: assumed, source: D-004}
+        composition: {basis: mole_fraction, values: {C3H8: 0.041946, C3H6: 0.0, BZ: 0.957635, CUM: 0.0004195, DIPB: 0.0, TIPB: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        flow: {value: 135092.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        temperature: {value: 321.3, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: S6
+    title: Benzene to alkylator
+    from: SPL1.alk
+    to: M102.bz
+    template: mixture
+    state:
+      design:
+        pressure: {value: 4200, provenance: assumed, source: D-004}
+        composition: {basis: mole_fraction, values: {C3H8: 0.041946, C3H6: 0.0, BZ: 0.957635, CUM: 0.0004195, DIPB: 0.0, TIPB: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        flow: {value: 91095.9, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        temperature: {value: 321.3, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: S7
+    title: Pumped propylene
+    from: P102.out
+    to: M102.c3
+    template: mixture
+    state:
+      design:
+        pressure: {value: 4200, provenance: assumed, source: D-004}
+        flow: {value: 12624.63, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through P102 from S4', fingerprint: 8b6aad35f3edb0e3}
+        composition: {basis: mole_fraction, values: {C3H6: 0.95, C3H8: 0.05}, provenance: calculated, source: 'cheme process propagate: pass-through P102 from S4', fingerprint: 8b6aad35f3edb0e3}
+        temperature: {value: 316.695, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: S8
+    title: Alkylator combined feed
+    from: M102.out
+    to: E101.cold_in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 4200, provenance: assumed, source: D-004}
+        composition: {basis: mole_fraction, values: {C3H8: 0.0435671, C3H6: 0.19122, BZ: 0.764878, CUM: 0.000335061, DIPB: 0.0, TIPB: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        flow: {value: 103721.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        temperature: {value: 321.642, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: S9
+    title: Alkylator feed (preheated)
+    from: E101.cold_out
+    to: R101.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 4100, provenance: assumed, source: D-004}
+        temperature: {value: 413.15, provenance: assumed, source: "D-004: alkylator inlet"}
+        composition: {basis: mole_fraction, values: {C3H8: 0.0435671, C3H6: 0.19122, BZ: 0.764878, CUM: 0.000335061, DIPB: 0.0, TIPB: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        flow: {value: 103721.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: S10
+    title: Alkylator effluent
+    from: R101.out
+    to: E101.hot_in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 4000, provenance: assumed, source: D-004}
+        temperature: {value: 436.15, provenance: assumed, source: "D-004: alkylator outlet"}
+        composition: {basis: mole_fraction, values: {C3H8: 0.0538677, C3H6: 4.25398e-17, BZ: 0.72367, CUM: 0.208473, DIPB: 0.0135948, TIPB: 0.000394051}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        flow: {value: 103721.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: S11
+    title: Alkylator effluent after feed / effluent exchanger
+    from: E101.hot_out
+    to: M104.alk
+    template: mixture
+    state:
+      design:
+        pressure: {value: 3900, provenance: assumed, source: D-004}
+        composition: {basis: mole_fraction, values: {C3H8: 0.0538677, C3H6: 4.25398e-17, BZ: 0.72367, CUM: 0.208473, DIPB: 0.0135948, TIPB: 0.000394051}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        flow: {value: 103721.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        temperature: {value: 345.587, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: S12
+    title: Benzene to transalkylator
+    from: SPL1.tr
+    to: M103.bz
+    template: mixture
+    state:
+      design:
+        pressure: {value: 4200, provenance: assumed, source: D-004}
+        composition: {basis: mole_fraction, values: {C3H8: 0.041946, C3H6: 0.0, BZ: 0.957635, CUM: 0.0004195, DIPB: 0.0, TIPB: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        flow: {value: 16315.5, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        temperature: {value: 321.3, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: S13
+    title: DIPB recycle
+    from: C204.top
+    to: P103.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 30, provenance: assumed, source: D-008}
+        composition: {basis: mole_fraction, values: {C3H8: 8.04424e-36, C3H6: 4.27428e-51, BZ: 3.14976e-13, CUM: 0.0101203, DIPB: 0.988926, TIPB: 0.000953744}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        flow: {value: 6667.64, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        temperature: {value: 435.835, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: S14
+    title: Pumped DIPB recycle
+    from: P103.out
+    to: M103.dipb
+    template: mixture
+    state:
+      design:
+        pressure: {value: 4200, provenance: assumed, source: D-004}
+        composition: {basis: mole_fraction, values: {C3H8: 8.05299e-36, C3H6: 4.27788e-51, BZ: 3.14998e-13, CUM: 0.0101203, DIPB: 0.988926, TIPB: 0.000953739}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        flow: {value: 6667.64, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        temperature: {value: 438.297, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: S15
+    title: Transalkylator combined feed
+    from: M103.out
+    to: E102.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 4200, provenance: assumed, source: D-004}
+        composition: {basis: mole_fraction, values: {C3H8: 0.0351413, C3H6: 6.93984e-52, BZ: 0.802281, CUM: 0.00199322, DIPB: 0.16043, TIPB: 0.000154721}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        flow: {value: 22983.1, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        temperature: {value: 358.898, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: S16
+    title: Transalkylator feed (heated)
+    from: E102.out
+    to: R102.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 4100, provenance: assumed, source: D-004}
+        temperature: {value: 433.15, provenance: assumed, source: "D-005: transalkylator inlet"}
+        composition: {basis: mole_fraction, values: {C3H8: 0.0351413, C3H6: 6.93984e-52, BZ: 0.802281, CUM: 0.00199322, DIPB: 0.16043, TIPB: 0.000154721}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        flow: {value: 22983.1, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: S17
+    title: Transalkylator effluent
+    from: R102.out
+    to: M104.tr
+    template: mixture
+    state:
+      design:
+        pressure: {value: 4000, provenance: assumed, source: D-004}
+        composition: {basis: mole_fraction, values: {C3H8: 0.0351413, C3H6: 6.93984e-52, BZ: 0.738109, CUM: 0.130337, DIPB: 0.0962578, TIPB: 0.000154721}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        flow: {value: 22983.1, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        temperature: {value: 432.394, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: S18
+    title: Combined reactor effluent
+    from: M104.out
+    to: M105.eff
+    template: mixture
+    state:
+      design:
+        pressure: {value: 3900, provenance: assumed, source: D-004}
+        composition: {basis: mole_fraction, values: {C3H8: 0.0506034, C3H6: 3.51245e-17, BZ: 0.726187, CUM: 0.194853, DIPB: 0.0280042, TIPB: 0.000352332}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        flow: {value: 126704.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        temperature: {value: 362.721, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: S19
+    title: Benzene slipstream to depropaniser
+    from: SPL1.dep
+    to: C201.feed
+    template: mixture
+    state:
+      design:
+        pressure: {value: 4200, provenance: assumed, source: D-006}
+        composition: {basis: mole_fraction, values: {C3H8: 0.041946, C3H6: 0.0, BZ: 0.957635, CUM: 0.0004195, DIPB: 0.0, TIPB: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        flow: {value: 27681.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        temperature: {value: 321.3, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: S20
+    title: Propane (LPG) product
+    from: C201.top
+    to: LPG.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 1500, provenance: assumed, source: D-008}
+        composition: {basis: mole_fraction, values: {C3H8: 0.977621, C3H6: 0.0, BZ: 0.02, CUM: 0.00238354, DIPB: 0.0, TIPB: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        flow: {value: 688.192, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        temperature: {value: 318.298, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: S21
+    title: Depropaniser bottoms (benzene)
+    from: C201.bot
+    to: M105.c201
+    template: mixture
+    state:
+      design:
+        pressure: {value: 1520, provenance: assumed, source: D-008}
+        composition: {basis: mole_fraction, values: {C3H8: 0.0005, C3H6: 0.0, BZ: 0.999167, CUM: 0.000332502, DIPB: 0.0, TIPB: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        flow: {value: 26992.8, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        temperature: {value: 476.44, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: S22
+    title: Benzene column feed
+    from: M105.out
+    to: C202.feed
+    template: mixture
+    state:
+      design:
+        pressure: {value: 1520, provenance: assumed, source: "D-008: lowest inlet pressure of the junction; let down into C-202 at its feed valve"}
+        composition: {basis: mole_fraction, values: {C3H8: 0.0409956, C3H6: 2.8389e-17, BZ: 0.778534, CUM: 0.157551, DIPB: 0.0226341, TIPB: 0.000284769}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        flow: {value: 153696.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        temperature: {value: 385.46, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: S23
+    title: Benzene column bottoms
+    from: C202.bot
+    to: C203.feed
+    template: mixture
+    state:
+      design:
+        pressure: {value: 180, provenance: assumed, source: D-008}
+        composition: {basis: mole_fraction, values: {C3H8: 1.443e-17, C3H6: 1.59642e-32, BZ: 0.0002, CUM: 0.87254, DIPB: 0.125677, TIPB: 0.0015812}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        flow: {value: 40762.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        temperature: {value: 453.924, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: S24
+    title: Cumene column distillate
+    from: C203.top
+    to: E103.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 120, provenance: assumed, source: D-008}
+        composition: {basis: mole_fraction, values: {C3H8: 1.65566e-17, C3H6: 1.83169e-32, BZ: 0.000229475, CUM: 0.999657, DIPB: 0.0001, TIPB: 8.9337e-11}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        flow: {value: 33996.2, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        temperature: {value: 432.141, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: S25
+    title: Cumene product
+    from: E103.out
+    to: CUMENE.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 120, provenance: assumed, source: "design basis, D-008 (cooler pressure drop neglected)"}
+        temperature: {value: 313.15, provenance: assumed, source: "design basis, D-008"}
+        composition: {basis: mole_fraction, values: {C3H8: 1.65566e-17, C3H6: 1.83169e-32, BZ: 0.000229475, CUM: 0.999657, DIPB: 0.0001, TIPB: 8.9337e-11}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        flow: {value: 33996.2, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: S26
+    title: Cumene column bottoms
+    from: C203.bot
+    to: C204.feed
+    template: mixture
+    state:
+      design:
+        pressure: {value: 150, provenance: assumed, source: D-008}
+        composition: {basis: mole_fraction, values: {C3H8: 7.94862e-36, C3H6: 4.22347e-51, BZ: 3.11232e-13, CUM: 0.01, DIPB: 0.977772, TIPB: 0.0123103}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        flow: {value: 6765.3, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        temperature: {value: 499.195, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: S27
+    title: Heavy ends
+    from: C204.bot
+    to: HEAVY.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 45, provenance: assumed, source: D-008}
+        composition: {basis: mole_fraction, values: {C3H8: 1.31852e-64, C3H6: 2.57559e-80, BZ: 6.15635e-31, CUM: 8.40277e-12, DIPB: 0.0502127, TIPB: 0.949787}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        flow: {value: 97.1023, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        temperature: {value: 487.158, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  # The reactors' vapour outlets: empty while the reactors stay liquid-full (D-011)
+  - id: S28
+    title: Alkylator vapour outlet (none at design)
+    from: R101.vap
+    to: M104.alkv
+    template: mixture
+    state:
+      design:
+        pressure: {value: 4000, provenance: assumed, source: D-004}
+        flow: {value: 0.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        temperature: {value: 436.15, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: S29
+    title: Transalkylator vapour outlet (none at design)
+    from: R102.vap
+    to: M104.trv
+    template: mixture
+    state:
+      design:
+        pressure: {value: 4000, provenance: assumed, source: D-004}
+        flow: {value: 0.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+        temperature: {value: 432.394, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: Q1
+    title: P-101 power
+    kind: energy
+    from: POWER.p101
+    to: P101.power
+    state:
+      design:
+        duty: {value: 284.372, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: Q2
+    title: P-102 power
+    kind: energy
+    from: POWER.p102
+    to: P102.power
+    state:
+      design:
+        duty: {value: 24.8627, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: Q3
+    title: P-103 power
+    kind: energy
+    from: POWER.p103
+    to: P103.power
+    state:
+      design:
+        duty: {value: 15.9721, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: Q4
+    title: R-101 heat to LP steam (export)
+    kind: energy
+    from: R101.q
+    to: LPSX.r101
+    state:
+      design:
+        duty: {value: 6228.18, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: Q5
+    title: E-102 duty
+    kind: energy
+    from: MPS.e102
+    to: E102.steam
+    state:
+      design:
+        duty: {value: 960.448, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: Q6
+    title: C-201 reboiler duty
+    kind: energy
+    from: HPS.c201
+    to: C201.reb
+    state:
+      design:
+        duty: {value: 2531.5, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: Q7
+    title: C-201 condenser duty
+    kind: energy
+    from: C201.cond
+    to: CW.c201
+    state:
+      design:
+        duty: {value: 198.727, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: Q8
+    title: C-202 reboiler duty
+    kind: energy
+    from: MPS.c202
+    to: C202.reb
+    state:
+      design:
+        duty: {value: 19341.8, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: Q9
+    title: C-202 condenser duty
+    kind: energy
+    from: C202.cond
+    to: CW.c202
+    state:
+      design:
+        duty: {value: 21369.6, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: Q10
+    title: C-203 reboiler duty
+    kind: energy
+    from: HPS.c203
+    to: C203.reb
+    state:
+      design:
+        duty: {value: 4517.85, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: Q11
+    title: C-203 condenser duty
+    kind: energy
+    from: C203.cond
+    to: CW.c203
+    state:
+      design:
+        duty: {value: 4736.76, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: Q12
+    title: E-103 duty
+    kind: energy
+    from: E103.cw
+    to: CW.e103
+    state:
+      design:
+        duty: {value: 2254.32, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: Q13
+    title: C-204 reboiler duty
+    kind: energy
+    from: HPS.c204
+    to: C204.reb
+    state:
+      design:
+        duty: {value: 526.092, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+  - id: Q14
+    title: C-204 condenser duty
+    kind: energy
+    from: C204.cond
+    to: CW.c204
+    state:
+      design:
+        duty: {value: 812.968, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: cabf0aef82468c98, origin: simulated}
+layout: {bfd: {}, pfd: {}}

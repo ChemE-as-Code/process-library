@@ -1,0 +1,109 @@
+# Goal and scope of the cumene-1 preliminary LCI. Schema: `cheme schema lca`. Outputs: `cheme
+# assess lca --write` (lca/inventory.csv, results.csv, results.md, gaps.csv, dataset.yaml,
+# manifest.json); never edit those by hand.
+#
+# A cradle-to-gate study with the foreground inventory only (DESIGN.md D-013): every exchange
+# comes from the balanced and simulated flowsheet (process/flowsheet.yaml, design case). No
+# background is linked here: every feed, utility and treatment is `missing:` with the activity
+# it should connect to, so the inventory carries them as gaps (never 0) and no impact result is
+# claimed (process.yaml lca.source none). The library LCI build links what its mappings allow
+# (lca/mappings.yaml). Known omissions are declared below (emission_exclusions, cutoff). No
+# values from licensed databases are used. This dataset replaces the pilot's hand-written Tier 0
+# dataset (lca/datasets/cumene-zeolite-alkylation.yaml, retired in D-013).
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary cradle-to-gate life cycle inventory of cumene from liquid-phase zeolite
+  alkylation of benzene with propylene and transalkylation of the diisopropylbenzenes at the
+  concept stage (issue #313), foreground inventory only: the foreground exchanges per kg of
+  cumene at the plant gate, with their provenance; the upstream (every background) is a gap
+  until background datasets are chosen. Not an impact assessment (D-013).
+functional_unit: {product: CUMENE, amount: 1, unit: kg}
+boundary: cradle-to-gate
+case: design
+location: GLO
+year: 2026
+technology: "liquid-phase alkylation of benzene with chemical-grade propylene on a beta-type zeolite (413-436 K, 4 MPa, benzene/propylene 4), DIPB transalkylation, depropaniser, benzene, cumene and vacuum DIPB columns, interbed LP steam raising; 272 kt/a cumene, concept design"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+# system_model unset (cut-off, the Atlas default): the exported dataset is allocated by exergy
+# between the four co-products; no credit for the exported steam (docs/system-model.md section 2).
+allocation:
+  method: exergy
+  coproducts: [CUMENE, LPG, HEAVY, LPSX]
+  properties:
+    CUMENE:
+      exergy: 43550.5
+      source: >-
+        scripts/allocation_exergy.py: standard chemical exergy of liquid S25 (99.97 wt% cumene)
+        from the ideal-gas formation data of process/materials.yaml and Szargut's standard
+        element exergies (Szargut, Morris and Steward 1988), less the Gibbs energy of
+        condensation at 298.15 K; physical exergy neglected
+    LPG:
+      exergy: 48523.3
+      source: "scripts/allocation_exergy.py: chemical exergy of S20 (97.8 mol% propane, 2 mol% benzene, 0.2 mol% cumene), gas basis"
+    HEAVY:
+      exergy: 44592.6
+      source: "scripts/allocation_exergy.py: chemical exergy of liquid S27 (TIPB surrogate with 5 mol% DIPB); TIPB formation data estimated (D-005)"
+    LPSX:
+      exergy: 916.9
+      source: >-
+        scripts/allocation_exergy.py: exergy added per kWh of heat raised in the R-101 interbed
+        coolers, saturated steam at 250 kPa(a) from boiler feed water at 378.15 K (ASSUMED),
+        dead state 298.15 K, 101.325 kPa, IAPWS-95 (thermo)
+  compare: [none]
+  source: >-
+    D-013: the propane (LPG), the heavy ends (fuel) and the exported LP steam are co-products
+    of cumene. The library allocates exported steam by energy or exergy, never by credit
+    (docs/system-model.md section 2); exergy is used for all four because it weighs the steam by
+    its work potential and the hydrocarbons by their chemical exergy on one basis (aniline-1
+    D-013 is the precedent). Cumene carries 97.1 %, the LPG 2.2 %, the heavy ends 0.3 % and the
+    steam 0.4 %. The unallocated result is kept in the comparison; mass allocation does not
+    apply (the steam is counted in kWh).
+  deviation: >-
+    The products do not come from one separation of a joint product only (the steam is raised
+    by the reactor's heat), and the WBCSD price ratio does not apply: no sourced prices at the
+    concept stage and the steam counted in kWh. Exergy is the library's rule for exported steam
+    (D-013).
+flows:
+  # ---- inputs
+  - key: feed:BZF
+    missing: "no background chosen yet: benzene, market for (from catalytic reformate extraction such as btx-1, pyrolysis gasoline, styrene by-product as styrene-1 or toluene hydrodealkylation such as hda-1), delivered to the plant"
+    source: "fresh benzene S1 (design basis D-003)"
+  - key: feed:PRF
+    missing: "no background chosen yet: propylene, chemical grade (95 mol%, with 5 mol% propane), from a steam cracker such as ethylene-1, propane dehydrogenation such as propylene-pdh-1 or a refinery splitter; link per kg of feed and count the propane with it, or split it"
+    source: "propylene feed S4 (design basis D-003)"
+  - key: feed:POWER
+    missing: "no background chosen yet: electricity, medium voltage, market for the site's grid (site not chosen)"
+    source: "benzene, propylene and DIPB recycle pumps P-101, P-102, P-103 (Q1-Q3; D-010)"
+  - key: feed:MPS
+    missing: "no background chosen yet: steam, in chemical industry, 1500 kPa(a) (site boiler on natural gas), per kWh of condensing heat"
+    source: "transalkylator feed heater E-102 and benzene column reboiler (Q5, Q8; D-010)"
+  - key: feed:HPS
+    missing: "no background chosen yet: steam, in chemical industry, 4200 kPa(a), per kWh of condensing heat"
+    source: "depropaniser, cumene and DIPB column reboilers (Q6, Q10, Q13; D-010)"
+  # ---- outputs
+  - key: product:CW
+    missing: "no background chosen yet: cooling water circulation per kWh rejected (pump and fan power, make-up water, blowdown, treatment chemicals); processes/utility-cooling-tower is a candidate"
+    source: "column condensers and the cumene product cooler (Q7, Q9, Q11, Q12, Q14; D-010)"
+emission_exclusions:
+  - {id: fugitive-leaks, method: equipment-leaks, reason: "fugitive benzene, propylene, propane and cumene from flanges, seals and valves are not estimated, not claimed negligible: an equipment-leak estimate needs the P&ID component counts, which do not exist at the concept stage; the pilot's US EPA facility figures (about 6, 8 and 19 g/t of benzene, propylene and cumene to air, doi:10.23719/1503030) are kept as the order of magnitude in DESIGN.md D-012, not as this plant's emissions", source: "D-012, D-013"}
+  - {id: storage-tanks, method: storage-tank, reason: "benzene, propylene, cumene and LPG storage is outside the battery limit (design basis): its breathing losses belong to the storage, not to this plant boundary", source: "design basis"}
+  - {id: vacuum-vent, method: effluent, equipment: [C-204], reason: "the C-204 vacuum system vents non-condensables with traces of DIPB and cumene; not quantified (no vacuum system designed, D-008); the Versalis brochure names vacuum pump vents and oily water as the only releases (PDF p. 3)", source: "D-008, D-012"}
+  - {id: oily-water, method: effluent, reason: "no process water is fed or formed in the model; the oily water the Versalis brochure names (feed-water carry-over, drains) is not quantified (I-07)", source: "D-012"}
+  - {id: catalyst-regeneration, method: non-routine, equipment: [R-101, R-102], reason: "ex-situ regeneration of the zeolite (coke burn-off) every few years and the catalyst charge are not quantified: no open charge or life figure for this design (the brochure gives a run length of up to 8 years, no mass); open gap, not negligible by evidence", source: "D-012"}
+cutoff:
+  - {id: column-pumps-power, title: "Reflux, bottoms and product pumps power", unit: kWh, per_year: 1200000, reason: "reflux, bottoms and product pumps of C-201 to C-204, together about 150 kW x 8000 h/a (ASSUMED order of magnitude, not sized; D-010); not in the flowsheet's power feed", source: "D-010"}
+  - {id: c204-vacuum-power, title: "C-204 vacuum system power", unit: kWh, per_year: 160000, reason: "vacuum pump on the C-204 overhead, about 20 kW x 8000 h/a (ASSUMED order of magnitude, not sized; D-008)", source: "D-008"}
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 25 a service life ASSUMED; no construction inventory at this stage (D-013)"
+dataset:
+  version: 0.2.0
+  geography: {description: "One concept design for a generic, not chosen site; no regional background"}
+  system_model: cutoff
+  technology_level: current
+  classification: {isic: "2011", cpc: "34110"}
+  modelling: {principle: attributional}
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library, cumene-1 concept run (agent-generated, unreviewed)"

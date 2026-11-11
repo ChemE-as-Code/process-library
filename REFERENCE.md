@@ -28,8 +28,8 @@ says how to add a process.
 
 ## Processes
 
-The table lists 103 public process folders: 62 engineering projects (a `plant.yaml` with a process
-flowsheet), 35 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
+The table lists 103 public process folders: 63 engineering projects (a `plant.yaml` with a process
+flowsheet), 34 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
 The table is generated from each folder's `process.yaml` and `checks/maturity.json`;
 `coverage.yaml` names the coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
 
@@ -66,7 +66,7 @@ The table is generated from each folder's `process.yaml` and `checks/maturity.js
 | [`chloromethane-1`](processes/chloromethane-1/) | Chloromethane from methanol and hydrogen chloride (gas-phase hydrochlorination, 100 kt/a) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`co2-electrolysis-bpm-1`](processes/co2-electrolysis-bpm-1/) | CO2 electrolysis to CO in reverse-bias bipolar-membrane cells (measured bench cell, two 0.1 kg/h pilot skids) | concept (calculation maturity: not recorded; not reviewed) | yes (DEXPI P&IDs (2), BFD/PFD, flowsheet, 3D layout, MTO, HAZOP drafts, LCI datasets) |
 | [`copper-i-chloride-1`](processes/copper-i-chloride-1/) | Copper(I) chloride by semi-batch chlorination of copper in brine, dilution precipitation and filter-drying (300 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
-| [`cumene-1`](processes/cumene-1/) | Cumene by zeolite alkylation of benzene with propylene (licensor figures, EPA emissions) | concept (Tier 0 form, stoichiometric screening with some sourced values; not reviewed) | no (manifest and LCI dataset only) |
+| [`cumene-1`](processes/cumene-1/) | Cumene by zeolite alkylation of benzene with propylene (272 kt/a, transalkylation, LP steam export) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, DWSIM simulation, LCI dataset) |
 | [`di-tert-butyl-dicarbonate-1`](processes/di-tert-butyl-dicarbonate-1/) | Di-tert-butyl dicarbonate (Boc2O) by semi-batch carbonation and phosgenation of potassium tert-butoxide in hexane with a CO2 vent, hexane strip, wash and vacuum distillation (500 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`dmf-1`](processes/dmf-1/) | N,N-Dimethylformamide by carbonylation of dimethylamine (50 kt/a, sodium methoxide in methanol) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`e-fuels-1`](processes/e-fuels-1/) | Fischer-Tropsch e-fuel from CO2 and hydrogen by RWGS and cobalt FT (one open simulation) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |

@@ -1,0 +1,52 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Cumene by liquid-phase zeolite alkylation of benzene with propylene and transalkylation of the
+# diisopropylbenzenes, issue ChemE-as-Code/process-library#313. An independent concept design:
+# no flowsheet data of DWSIM/FOSSEE flowsheets or of Luyben's cumene studies are used (DESIGN.md
+# D-001). Values marked ASSUMED are engineering choices of this concept study, not client or
+# licensor data; every decision is in DESIGN.md.
+capacity:
+  basis: Cumene product stream to storage (incl. its impurities)
+  product_t_per_a: 272000             # ASSUMED (D-002): covers acetone-1's fresh cumene (33.2 t/h) with about 2 % margin
+  product_kg_per_h: 34000.0           # = 272 kt/a / 8000 h
+  operating_hours_per_year: 8000      # ASSUMED (D-002)
+  turndown_percent: 60                # ASSUMED, not checked
+feeds:
+  - name: Fresh benzene (from an aromatics complex or tank farm, outside the boundary)
+    source_of_values: ASSUMED (D-003)
+    composition_mol_percent: {BZ: 100.0}   # ASSUMED: pure; real benzene carries traces of toluene, non-aromatics, water and sulfur, not modelled
+    conditions: {pressure_kPa_a: 400, temperature_K: 303.15}   # ASSUMED battery limit
+    flow: set by the product rate through the balance (D-007); stream S1 of process/flowsheet.yaml
+  - name: Propylene, chemical grade (from a steam cracker or refinery splitter, outside the boundary)
+    source_of_values: ASSUMED (D-003)
+    composition_mol_percent: {C3H6: 95.0, C3H8: 5.0}   # ASSUMED (D-003): chemical grade, propane the only impurity
+    conditions: {pressure_kPa_a: 2000, temperature_K: 313.15}  # ASSUMED: liquid at the battery limit
+    flow: set by the product rate through the balance (D-007); stream S4
+products:
+  - name: Cumene
+    purity: "99.95 wt% cumene or higher (ASSUMED design target, D-002, the typical figure of the Versalis brochure, PDF p. 3); benzene and DIPB the impurities; n-propylbenzene, ethylbenzene, butylbenzenes and bromine index are outside the model"
+    delivery: {pressure_kPa_a: 120, temperature_K: 313.15, battery_limit: product tanks or acetone-1 (outside the boundary)}
+  - name: Propane (LPG)
+    purity: "98 mol% propane, 2 mol% benzene (ASSUMED, D-008)"
+    use: sale or fuel (outside the boundary, D-009)
+  - name: Heavy ends (polyisopropylbenzenes)
+    purity: "TIPB surrogate with 5 mol% DIPB (ASSUMED, D-008)"
+    use: fuel (outside the boundary, D-009)
+utilities:
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: ASSUMED (D-010)}
+  - {name: LP steam export, pressure_kPa_a: 250, saturation_K: 400.6, use: raised by the alkylator interbed coolers, note: ASSUMED level (D-009)}
+  - {name: MP steam, pressure_kPa_a: 1500, saturation_K: 471.4, use: transalkylator feed heater and benzene column reboiler, note: ASSUMED level (D-010)}
+  - {name: HP steam, pressure_kPa_a: 4200, saturation_K: 526.4, use: depropaniser, cumene and DIPB column reboilers, note: ASSUMED level (D-010)}
+  - {name: Electric power, use: benzene, propylene and DIPB recycle pumps, note: ASSUMED electric drives (D-010)}
+site:
+  location: ASSUMED generic site, not chosen; next to acetone-1 if integrated (D-002)
+  design_ambient_K: 303.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325   # ASSUMED
+assumptions:
+  - "ASSUMED liquid-phase alkylation on a beta-type zeolite: inlet 413.15 K / 4100 kPa(a), outlet 436.15 K / 4000 kPa(a), benzene/propylene 4 mol/mol at the inlet, propylene converted completely; the heat of reaction raises LP steam in interbed coolers, modelled as one cooled reactor (D-004, D-005, D-009)."
+  - "ASSUMED alkylation selectivity: of the propylene converted, 0.88 to cumene, 0.115 to DIPB, 0.005 to TIPB (molar), informed by US4891458A Example 4 at a higher benzene ratio (D-005)."
+  - "ASSUMED transalkylation: benzene/DIPB 5 mol/mol, 433.15 K, 4100 kPa(a) inlet, adiabatic, DIPB conversion 0.40 per pass, TIPB inert (D-005)."
+  - "ASSUMED propane purge: a slipstream of the pumped benzene to the depropaniser holds 5 mol% propane in the benzene recycle (D-006)."
+  - "ASSUMED columns: depropaniser 1500/1520 kPa(a), benzene column 150/180, cumene column 120/150, DIPB column 30/45 (vacuum); total condensers; reflux 1.3 x Underwood minimum, at least 0.5 (D-008)."
+  - "ASSUMED pump efficiency 0.65; no other machines (D-010)."
+  - "ASSUMED no other side reactions (n-propylbenzene, propylene oligomers, diphenylpropanes): not modelled until sourced selectivities exist (D-005)."
+  - "All flows, temperatures and duties are concept estimates from an unqualified property method (Peng-Robinson in thermo and in DWSIM, D-007, D-011); accuracy not stated."
