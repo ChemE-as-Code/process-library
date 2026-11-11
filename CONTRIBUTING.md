@@ -162,9 +162,8 @@ uv run scripts/build_lci.py ... --strict   # with an LCI dataset
 
 CI runs the same, and the public build (`--public`, see [Publishing a process](#publishing-a-process)).
 
-CI needs a secret to read core, and GitHub gives a pull request from a fork no secrets. Its
-`validate` and `library` jobs therefore fail when they install core, whatever you changed, and only
-the docs build tells you anything. Run the commands above yourself and say so in the pull request.
+CI installs core and pyDEXPI anonymously (both are public), so a pull request from a fork runs
+every job too. Run the commands above yourself as well and say so in the pull request.
 
 ---
 
