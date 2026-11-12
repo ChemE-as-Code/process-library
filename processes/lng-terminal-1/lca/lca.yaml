@@ -1,0 +1,46 @@
+# Goal and scope of the lng-terminal-1 LCI. Schema: `cheme schema lca`. Outputs:
+# `cheme assess lca --write` (lca/inventory.csv, dataset.yaml, gaps.csv, results.*,
+# manifest.json); never edit those by hand.
+#
+# A gate-to-gate inventory of the terminal per tonne of LNG loaded (DESIGN.md D-024), in the
+# annual-average case of the flowsheet (62.8 % of the time loading, the tank inventory steady).
+# No background is linked yet: the LNG rundown and the grid electricity are declared `missing:`
+# with the activity they should connect to, so each is a gap, never 0. The carrier's return
+# vapour and the inventory change carry no burden (see the flows). Fugitive methane, the flare
+# pilots and purge and construction are not in the foreground yet (D-024).
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Gate-to-gate life cycle inventory of an LNG export terminal (storage, ship loading and BOG
+  handling) per tonne of LNG loaded to carriers, for the basic engineering stage: the
+  foreground exchanges of the balanced flowsheet, ready to be linked to the liquefaction train
+  and grid electricity backgrounds. No impact assessment is claimed.
+functional_unit: {product: SHIP, amount: 1000, unit: kg}
+boundary: gate-to-gate
+year: 2026
+location: CA-BC
+technology: "LNG export terminal modelled on LNG Canada, Kitimat (Phase 1 + 2): 2 x 225,000 m3 full-containment tanks, electric in-tank pumps, ~2 km trestle lines, 2 berths, electric BOG compressors returning the BOG to the trains; 28 MTPA"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own design (LICENSE-DATA)"
+case: average
+system_model: cutoff
+allocation:
+  method: energy
+  coproducts: [SHIP, BOGOUT]
+  properties:
+    SHIP: {energy: 49.3}
+    BOGOUT: {energy: 43.6}
+  source: >-
+    D-024: both products are fuels; burdens shared by lower heating value (MJ/kg), from the
+    component LHVs of methane 50.01, ethane 47.49, propane 46.35, butanes 45.7 MJ/kg (NIST
+    Chemistry WebBook standard enthalpies of combustion) and the mass fractions of S4 and S9
+    (nitrogen 0). LNG loaded ~99 % of the energy, so the BOG share is small.
+  deviation: >-
+    Hierarchy step 3 (price ratio) cannot be applied: no sourced prices of the returned BOG
+    (an internal fuel of the trains). Energy is the physical relationship between two fuels
+    (D-024); the result is insensitive to it.
+flows:
+  - {key: feed:RUNDOWN, missing: "not linked yet: LNG at the outlet of a liquefaction train (natural gas production, pre-treatment and liquefaction in British Columbia); the trains are outside this battery limit (D-001)", source: "S1, D-003"}
+  - {key: feed:SHIPVAP, free: true, source: "S5: the carrier's own cargo vapour returned during loading; it is part of the LNG loaded (the net cargo is S4 - S5) and carries no extra burden (D-024)"}
+  - {key: feed:INVDRAW, free: true, source: "S11: tank inventory change, zero in the annual-average case (D-009)"}
+  - {key: product:INVFILL, free: true, source: "S12: tank inventory change, zero in the annual-average case (D-009)"}
+  - {key: feed:POWER, missing: "not linked yet: grid electricity, high voltage, British Columbia (BC Hydro, mostly hydro)", source: "E1, E2; D-020"}

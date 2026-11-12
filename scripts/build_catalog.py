@@ -222,9 +222,11 @@ def _facets(manifest: dict) -> dict:
 
 
 def _sheets(plant: dict) -> list[dict]:
+    """The drawn sheets of plant.yaml; a `status: planned` sheet has no file yet (core's plant schema)."""
     return [
         {"id": s["id"], "kind": s.get("kind", "pid"), "file": s["file"], "title": s.get("title", s["id"])}
         for s in plant.get("sheets", [])
+        if s.get("status") != "planned"
     ]
 
 

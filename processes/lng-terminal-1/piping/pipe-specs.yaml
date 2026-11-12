@@ -1,0 +1,88 @@
+# Pipe classes and insulation. Schema: `cheme schema pipe_specs` (skill pipe-routing).
+# The insulation types are the line list's `insulation` values (piping/line-list.yaml); the
+# thicknesses size the outside diameters of the 3D model, the rack lanes, the clearances and
+# the take-off. Basis D-012 and D-027.
+schema: cheme/pipe_specs/v1
+classes:
+  - code: Class 150
+    material: "Austenitic stainless steel for the LNG and cold vapour service, carbon steel for the warm flare, fuel gas and utility lines (ASSUMED; the material selection and the piping class specification are detail engineering)"
+    rating: "ASME Class 150 (line list, ASSUMED)"
+    colour: "#8a9bb0"
+    notes: >-
+      The only pressure class of the line list. Joint requirement of the LNG and cold vapour
+      service (D-018, D-035.6; review 2026-11-05-basic-layout-5 #1): butt-welded throughout,
+      flanged only at the in-line items the P&IDs draw, so the collection of D-018 serves every
+      flange. Binding, and to be carried into the piping class specification of detail
+      engineering: (a) between the dome edge and the PR1 joint (the riser drops on S-RT2101 /
+      S-RT3101 and the runs on PR5 / PR6 north of y 2952, lines LNG-1001 / 1002 / 1003 / 1004,
+      LNG-2001 / 2002, LNG-3001 / 3002, LNG-4005 / 4009, BOG-1001 / 1003 / 4001 / 4002 there)
+      no flanged joint, spool, drain, vent or instrument tapping; their low-point drains, vents
+      and the inlets of the DN 25 thermal reliefs sit at the PR1 joint over the trough, on a
+      drip pad or in a drip tray at the item (layout/zones.yaml Z-HA-TRAY-PSV*); (b) the same
+      on the trestle run between the PR2 north end valve station and the platform header bay,
+      and on the platform's DN 800 runs between the header bay and the arm bays (D-035.1);
+      (c) hydrotest and drain connections on these runs are welded and seal-welded caps, not
+      flanges (ASSUMED until the piping class specification); (d) on the platform, where the
+      runs stand in the drip tray bays' fire near field (PR9 and the PR2 end from y 866 to the
+      platform's north edge: LNG-4001 / LNG-4002, LNG-5001 / LNG-6001, BOG-4001 / BOG-4002), the
+      cold insulation carries a fire-rated jacket, passive fire protection for a 60 min
+      hydrocarbon pool fire over the insulation system, with the rack steel (D-035.14 (a),
+      ASSUMED; the system and its rating are the fire protection engineer's). Extended by D-037
+      (review 2026-11-05-basic-layout-6, missed high of its adversarial check): on the header bay
+      frame PR10 and PR9's south bay (y 857-874.5) the jacket and PFP cover every line (LNG-4001
+      / LNG-4002, LNG-4010, LNG-4003, LNG-5001 / LNG-6001, the drops), the valve bodies and
+      their actuators, solenoids, position switches and cables (XV-5101 / XV-6101 with ZSC-n101
+      and UZ-n101, XV-4107 with ZSC- / ZSO-4107 and UZ-4107, XV-4103 with HS-4103), the
+      strainer covers SR-5102 / SR-6102 and the frame's steel, for 240 min of hydrocarbon pool
+      fire: the header bay fire is fed at the berth rate until ESD closure and then, through a
+      stem or bonnet seal of those valves, by the isolated trestle line until its N2 emptying
+      ends (~0.5 h to line up plus ~3 h, ~4 h at most at ~1 kg/s, D-036 item 5 (c)), which
+      bounds the duration; the rest of PR9 and the PR2 end keep the 60 min basis, being ~15 m
+      or more from that ~1 kg/s fire (below 8 kW/m2, D-037) (ASSUMED; rating and
+      product the fire protection engineer's, e.g. tested to UL 1709, Rapid Rise Fire Tests of
+      Protection Materials for Structural Steel, cited by number and title only). (e) The
+      shore ESD valves XV-5101 / XV-6101 and the platform crossover valves XV-4107 / XV-4103
+      are fire-tested (fire-safe) valves to API 607 (Fire Test for Quarter-turn Valves and
+      Valves Equipped with Nonmetallic Seats) or ISO 10497 (Testing of valves, Fire type-testing
+      requirements), cited by number and title only, so their seats and stem seals limit the
+      leak through and past a closed valve in an engulfing fire (D-037, ASSUMED; the valve
+      specification is detail engineering's). Those fire tests cover the seats and the stem
+      seal of a closed valve, not an actuator that has to move in the fire (independent check of
+      D-037, D-037.15): the drain-down bound of D-036 item 5 (c) needs one opening stroke of
+      XV-4103 (XV-4107 if XV-4103 leaks) in the burning bay, SEQ-LINE-EMPTY S1, within ~0.5 h of
+      the ESD-1. So each crossover valve's actuator, solenoids, position switches, actuating
+      tubing and a local stored-energy supply sized for one opening and one closing stroke with
+      nothing from outside the bay are one package in a fire-rated enclosure, qualified by its
+      vendor to stroke after at least 60 min of hydrocarbon pool fire exposure (twice the ~0.5 h
+      to line up, ASSUMED requirement); the instrument air or hydraulic supply tubing and the
+      cables up to the package are inside the 240 min jacket of (d). Once opened in the
+      drain-down the valve must stay open without its supply or signal (a stay-put actuator in
+      that mode, or an enclosure rated for the whole ~4 h; the choice and the fail position are
+      the design owner's on P-04), so the ~3 h of displacement needs nothing further in the bay:
+      the displacement is ended at the tank end by the N2 block valves HV-4151..4154 on PR1, and
+      the crossover is closed only after the fire (SEQ-LINE-EMPTY S3 for the design owner). If
+      no package qualifies, the crossover does not open and the leaking line drains through its
+      leak for far longer than 4 h: then the 240 min of (d) does not bound the fire, and the
+      case returns to the siting study (D-037.15). (f) Exception to (a), recorded (review
+      2026-11-05-basic-layout-6 #11): the model keeps PSV-1122's DN 25 inlet tee on BOG-1010 /
+      LNG-1002 at y 2997 on PR6, north of y 2952, held in its own drip tray
+      Z-HA-TRAY-PSV1122, because cheme-as-code 1.7.0 places in-line items along the route; the
+      design intent is the tee at the PR1 joint, and the welded-run note of the lines named in
+      (a) / (b) is the design owner's to carry into the line list (D-037).
+insulation:
+  - type: cold (PIR 200 mm)
+    thickness_mm: 200
+    notes: "D-012: PIR/PUF 200 mm on the DN 800 loading lines LNG-4001 / LNG-4002 over the trestle (the line list names the thickness)."
+  - type: cold (PIR 150 mm)
+    thickness_mm: 150
+    notes: "D-012: PIR/PUF 150 mm on the DN 750 vapour return lines BOG-4001 / BOG-4002 over the trestle (the line list names the thickness)."
+  - type: cold (PIR)
+    thickness_mm: 80
+    notes: "Every other cold line: the line list gives no thickness. 80 mm for every DN, the package default the model was built with so far (ASSUMED until the insulation specification of detail engineering sizes each DN against condensation and heat ingress, D-027)."
+  - type: none
+    thickness_mm: 0
+notes: >-
+  The thicknesses are concept values (D-012, ASSUMED where the line list names none). The span
+  screening of cheme-as-code takes liquid or gas from the fluid's name and screens the LNG lines
+  as gas; this file has no field for it (D-027). The welded-joint requirement of the riser,
+  rack, trestle and platform runs is in the Class 150 notes above (D-035.6).

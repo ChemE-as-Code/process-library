@@ -1,0 +1,138 @@
+# Equipment datasheet. Schema: `cheme schema datasheet`. Drafted by `cheme datasheets draft`,
+# completed by scripts/datasheet_values.py (D-022); maintained by hand from now on.
+tag: P-3101B
+type: CentrifugalPump
+service: LNG loading pump (in-tank in T-3101)
+operating:
+  fluid:
+    value: LNG
+    source: 'scripts/terminal_sizing.py: 4 x 3,000 m3/h for 12,000 m3/h, differential 835 kPa (D-011, D-034);
+      NPSHa the submergence at low-low level, ASSUMED'
+  suction_pressure:
+    value: 115.0
+    unit: kPa(a)
+    source: 'scripts/terminal_sizing.py: 4 x 3,000 m3/h for 12,000 m3/h, differential 835 kPa (D-011, D-034);
+      NPSHa the submergence at low-low level, ASSUMED'
+    assumed: true
+  suction_temperature:
+    value: -160.2
+    unit: °C
+    source: 'scripts/terminal_sizing.py: 4 x 3,000 m3/h for 12,000 m3/h, differential 835 kPa (D-011, D-034);
+      NPSHa the submergence at low-low level, ASSUMED'
+    assumed: true
+  discharge_pressure:
+    value: 950.0
+    unit: kPa(a)
+    source: 'scripts/terminal_sizing.py: 4 x 3,000 m3/h for 12,000 m3/h, differential 835 kPa (D-011, D-034);
+      NPSHa the submergence at low-low level, ASSUMED'
+    assumed: true
+  flow:
+    value: 3000
+    unit: m3/h
+    source: 'scripts/terminal_sizing.py: 4 x 3,000 m3/h for 12,000 m3/h, differential 835 kPa (D-011, D-034);
+      NPSHa the submergence at low-low level, ASSUMED'
+    assumed: true
+design:
+  pressure_barg:
+    value: 15.0
+    unit: barg
+    source: equipment/equipment-list.yaml
+  temperature_degc:
+    value: -170.0
+    unit: degC
+    source: equipment/equipment-list.yaml
+materials:
+  main:
+    value: Aluminium alloy / SS
+    source: equipment/equipment-list.yaml
+dimensions:
+  orientation: vertical
+  outside_diameter:
+    value: 1.2
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.diameter
+  overall_height:
+    value: 2.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.height
+  tangent_length:
+    value: 2.0
+    unit: m
+    source: 'layout/plant-model.yaml part P-3101B/shell: the generated shell between the heads (the 3D
+      model''s proportions, not a vessel design)'
+    assumed: true
+  support:
+    elevation:
+      value: 56.0
+      unit: m
+      source: 'layout/plant-model.yaml P-3101B position z (layout/equipment-placement.yaml): the base
+        above grade'
+    stands_on:
+      value: T-3101
+      source: 'layout/plant-model.yaml: the top of T-3101 at the base of P-3101B, under its plan outline'
+weights:
+  empty:
+    value: 4.0
+    unit: t
+    source: equipment/equipment-list.yaml dimensions.weight (empty)
+nozzles:
+- name: N1
+  dn: 450
+  lines: []
+  source: pid/P-03.xml
+- name: N2
+  dn: 450
+  lines:
+  - LNG-3012
+  source: pid/P-03.xml
+type_specific:
+  diameter_m:
+    value: 1.2
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  height_m:
+    value: 2.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  weight_t:
+    value: 4.0
+    unit: t
+    source: equipment/equipment-list.yaml dimensions
+  flow_m3_h:
+    value: 3000
+    unit: m3/h
+    source: 'scripts/terminal_sizing.py: 4 x 3,000 m3/h for 12,000 m3/h, differential 835 kPa (D-011, D-034);
+      NPSHa the submergence at low-low level, ASSUMED'
+    assumed: true
+  differential_head_m:
+    value: 191.3
+    unit: m
+    source: 'scripts/terminal_sizing.py: 4 x 3,000 m3/h for 12,000 m3/h, differential 835 kPa (D-011, D-034);
+      NPSHa the submergence at low-low level, ASSUMED: dp 835 kPa / (rho g), rho 445.0 kg/m3'
+    assumed: true
+  npsh_available_m:
+    value: 2.5
+    unit: m
+    source: 'scripts/terminal_sizing.py: 4 x 3,000 m3/h for 12,000 m3/h, differential 835 kPa (D-011, D-034);
+      NPSHa the submergence at low-low level, ASSUMED'
+    assumed: true
+  shaft_power_kw:
+    value: 927.8
+    unit: kW
+    source: 'scripts/terminal_sizing.py: 4 x 3,000 m3/h for 12,000 m3/h, differential 835 kPa (D-011, D-034);
+      NPSHa the submergence at low-low level, ASSUMED: flow x dp / efficiency 0.75 (ASSUMED)'
+    assumed: true
+  motor_rating_kw:
+    value: 1050
+    unit: kW
+    source: 'D-036: as P-2101A, sized for the end of the curve; ASSUMED until the vendor''s power curve'
+    assumed: true
+  vendor_data:
+    value: supplier
+    source: 'vendor package: curves, seals, motor, envelope (enquiry in detail engineering)'
+sizing_basis:
+- parameter: basis
+  value: scripts/terminal_sizing.py (GERG-2008 via CoolProp) and the assumptions of DESIGN.md D-007 to
+    D-018, ASSUMED where marked
+  reference: D-022
+notes: As P-2101A. ASSUMED.

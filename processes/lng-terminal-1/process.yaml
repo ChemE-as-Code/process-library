@@ -1,0 +1,83 @@
+# Process Atlas manifest of lng-terminal-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: lng-terminal-1
+title: LNG export marine terminal (2 x 225,000 m3 tanks, 2 berths, 28 MTPA; LNG Canada reference)
+summary: >-
+  The storage, ship loading and boil-off gas system of an LNG export plant: 28 MTPA of rundown
+  from four trains into two full-containment tanks, in-tank pumps, ~2 km trestle lines and two
+  berths loading carriers at 12,000 m3/h, with BOG compressed back to the trains. Modelled on
+  LNG Canada (Kitimat, Shell 40 %), Phase 1 + 2; concept stage.
+description: |
+  A design case built from public facts of LNG Canada's export terminal at Kitimat, British
+  Columbia: the as-built Phase 1 (one 225,000 m3 full-containment tank, one berth, the
+  Terminal Information Guide's four 16 inch arms, 12,000 m3/h loading) and the Phase 2
+  extension decided in September 2026 (a second tank, a second berth, trains 3 and 4). The
+  plot plan follows the real site: tank, flare and trains from OpenStreetMap, the ~2 km trestle
+  and the loading platform from satellite imagery, redrawn as our own geometry.
+
+  Rundown (3,365 t/h) fills the tanks; four of eight in-tank pumps (3,000 m3/h each) load a
+  carrier through two DN 800 lines over the trestle; in holding one circulation pump keeps the
+  lines cold through a loop. The carrier's own compressor returns its vapour; with the tank
+  boil-off and the displaced vapour it is desuperheated with an LNG spray and compressed (3 x
+  50 %) to 600 kPa(a) for the trains' fuel gas. Holding makes 21.9 t/h of BOG, loading 49.1
+  t/h.
+
+  Stream values come from an independent sizing script on the GERG-2008 reference equation of
+  state (CoolProp), because no property package of ChemE-as-Code covers LNG yet. In-tank pump,
+  BOG compressor, ERS and LNG specification data are not public and are ASSUMED. See DESIGN.md.
+families: [fuels]
+keywords: [LNG, liquefied natural gas, export terminal, marine terminal, LNG storage tank, full containment, in-tank pump, loading arm, jetty, trestle, boil-off gas, BOG compressor, vapour return, LNG carrier, LNG Canada, Kitimat, Shell]
+facets:
+  feedstock_basis: [fossil]
+  product_classes: [fuels]
+  unit_operations: [storage, compression]
+  region: CA
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept stage: balanced flowsheet (mass and component balances of every block and step in
+    three cases: average, loading, holding) from scripts/terminal_sizing.py, GERG-2008 via
+    CoolProp; no cheme property package covers LNG, so the values are assumed with the script
+    as their source (library ADR 0027). The reference facts are from LNG Canada's public
+    documents (DESIGN.md source register); pump, compressor, ERS and LNG specification data
+    are ASSUMED. Not reviewed.
+chemistry:
+  inputs:
+    - {chemical: liquefied-natural-gas, role: feedstock, note: "feed:RUNDOWN: LNG rundown from the liquefaction trains, 3,365 t/h (composition derived, ASSUMED, D-004)"}
+  outputs:
+    - {chemical: liquefied-natural-gas, role: main-product, note: "product:SHIP: LNG loaded to carriers; net of the carrier return vapour 27.7 Mt/a"}
+    - {chemical: methane, role: co-product, note: "product:BOGOUT: boil-off gas (about 92 mol% CH4, 8 mol% N2) compressed to the trains' fuel gas, 39 t/h on average; taken as methane"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "in-tank pumps 1.7 MW and BOG compressors 2.1 MW on average (motor efficiency 0.95 ASSUMED)"}
+basis:
+  capacity: "28 MTPA LNG (4 trains), 2 x 225,000 m3 storage, 12,000 m3/h loading"
+  operating_hours_per_year: 8322
+  location: "Kitimat, British Columbia, Canada (LNG Canada reference site)"
+references:
+  - {title: "LNG Canada (2025) Terminal Information Guide, C000-000-OA-9020-0007 Rev 3", url: "https://www.lngcanada.ca/wp-content/uploads/Terminal-Information-Guide.pdf"}
+  - {title: "BC Energy Regulator (2024) Air permit PA-110588, LNG Canada", url: "https://www.bc-er.ca/files/projects/lng-canada/PA110588-PERMIT-EMA.pdf"}
+  - {title: "BC Energy Regulator, LNG facility permit 9709124 and amendments to 2026", url: "https://www.bc-er.ca/files/projects/lng-canada/9709124-PERMIT-LNG-FACILITY-Amendment.pdf"}
+  - {title: "BC EAO (2015) LNG Canada Export Terminal, Certified Project Description (Schedule A)", url: "https://projects.eao.gov.bc.ca/api/public/document/58869074e036fb0105768b52/download/Schedule%20A%20-%20Certified%20Project%20Description.pdf"}
+  - {title: "LNG Canada (2014) Application for an Environmental Assessment Certificate, Section 2 Project Overview", url: "https://www.jbic.go.jp/en/business-areas/environment/projects/image/62412_2.pdf"}
+  - {title: "LNG Canada (2014) EA application, Greenhouse Gas Management Technical Data Report (feed gas composition)", url: "https://projects.eao.gov.bc.ca/api/document/5886905ce036fb0105768a9b/fetch/Greenhouse%20Gas%20Management%20Technical%20Data%20Report.pdf"}
+  - {title: "World Oil (2026-09-29) Shell takes FID to double LNG Canada capacity to 28 MMtpa", url: "https://worldoil.com/news/2026/9/29/shell-takes-fid-to-double-lng-canada-capacity-to-28-mmtpa/"}
+  - {title: "BESIX, LNG Canada marine works (wharf, loading platform, dolphins)", url: "https://besix.com/en/projects/lng-canada"}
+  - {title: "LNG Canada (2024) Flaring factsheet", url: "https://www.lngcanada.ca/wp-content/uploads/LNGC24-051-0-FAQ-Flaring-FactSheet-LTR-FIN-WEB.pdf"}
+  - {title: "OpenStreetMap, LNG Canada (relation 20055269), (c) OpenStreetMap contributors, ODbL: a few measured site points only", url: "https://www.openstreetmap.org/relation/20055269"}
+  - {title: "Bell, Wronski, Quoilin, Lemort (2014) CoolProp, Ind. Eng. Chem. Res. 53(6), 2498-2508; Kunz and Wagner (2012) GERG-2008, J. Chem. Eng. Data 57(11), 3032-3091", doi: 10.1021/ie4033999}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/lng-terminal-1
+  access: private
+# Internal until a human reviewer has signed off the basic stage: every review so far is an
+# agent review, and design review 2026-11-05-basic-design-9 has an open high finding.
+publication:
+  status: internal
+  license: CC-BY-4.0

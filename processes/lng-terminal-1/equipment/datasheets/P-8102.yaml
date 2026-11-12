@@ -1,0 +1,146 @@
+# Equipment datasheet. Schema: `cheme schema datasheet`. Drafted by `cheme datasheets draft`,
+# completed by scripts/datasheet_values.py (D-022); maintained by hand from now on. Resized for the
+# submersible arrangement (review 2026-11-05-basic-design-7 #6, D-034) and re-rated for the 19.5 m pit,
+# its materials and motor for the LNG impoundment (review 2026-11-05-basic-design-8 #3, D-036).
+tag: P-8102
+type: CentrifugalPump
+service: Impoundment sump rainwater pump
+operating:
+  fluid:
+    value: Rainwater
+    source: 'D-036: rainwater from the T-8101 pit floor (19.5 m deep, equipment list, D-035.2) to the oily water
+      system, ASSUMED'
+  suction_pressure:
+    value: 106.0
+    unit: kPa(a)
+    source: 'D-034: submersible pump on the pit floor, atmospheric pressure plus ~0.5 m minimum submergence, ASSUMED'
+    assumed: true
+  suction_temperature:
+    value: 10.0
+    unit: °C
+    source: 'D-034: rainwater, ASSUMED'
+    assumed: true
+  discharge_pressure:
+    value: 538.0
+    unit: kPa(a)
+    source: 'D-036: suction plus the 44 m differential at 1,000 kg/m3, ASSUMED'
+    assumed: true
+  flow:
+    value: 50
+    unit: m3/h
+    source: 'D-018, D-034: rainwater removal, ASSUMED'
+    assumed: true
+design:
+  pressure_barg:
+    value: 10.0
+    unit: barg
+    source: 'equipment/equipment-list.yaml (D-036: shut-off ~57 m, 1.3 x the 44 m rated head, ~5.6 bar, plus the
+      submergence, rounded up; ASSUMED)'
+  temperature_degc:
+    value: -170.0
+    unit: degC
+    source: 'equipment/equipment-list.yaml (D-036: the first item an LNG spill into T-8101 reaches; +40 degC
+      upper design)'
+materials:
+  main:
+    value: Austenitic SS (casing, impeller, riser)
+    source: 'equipment/equipment-list.yaml (D-036: austenitic stainless steel for -170 degC; was CS at 40 degC)'
+  motor:
+    value: Submersible motor, flameproof Ex d IIA T3, certified for zone 1, cold-rated cable and seals
+    source: 'D-036: the pit is zone 2 inside (layout/zones.yaml Z-HA-SUMP-T8101); zone 1 taken for the motor
+      because LNG vapour collects in the pit after a spill; the feeder is opened by C&E I-801 on TSL-8102;
+      ASSUMED, vendor'
+    assumed: true
+dimensions:
+  orientation: vertical
+  outside_diameter:
+    value: 0.6
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.diameter
+  overall_height:
+    value: 2.5
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.height
+  tangent_length:
+    value: 2.5
+    unit: m
+    source: 'layout/plant-model.yaml part P-8102/shell: the generated shell between the heads (the 3D
+      model''s proportions, not a vessel design)'
+    assumed: true
+weights:
+  empty:
+    value: 1.5
+    unit: t
+    source: equipment/equipment-list.yaml dimensions.weight (empty)
+nozzles:
+- name: N2
+  dn: 100
+  lines:
+  - W-8002
+  source: pid/P-08.xml
+type_specific:
+  diameter_m:
+    value: 0.6
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  height_m:
+    value: 2.5
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  weight_t:
+    value: 1.5
+    unit: t
+    source: equipment/equipment-list.yaml dimensions
+  flow_m3_h:
+    value: 50
+    unit: m3/h
+    source: 'D-018, D-034: rainwater removal, ASSUMED'
+    assumed: true
+  differential_head_m:
+    value: 44.0
+    unit: m
+    source: 'D-036: static ~26.6 m from the 19.5 m pit floor to the PR8 rack at +7.1 m (routing.yaml BL-oily-water),
+      ~10.2 m for 1.0 barg at the oily water battery limit, ~7 m friction of ~130 m of DN 100 at 1.8 m/s with
+      its fittings, the check valve CV-8114 and the isolation valve HV-8115; ASSUMED (was 36 m for the 12.5 m pit)'
+    assumed: true
+  shutoff_head_m:
+    value: 57.0
+    unit: m
+    source: 'D-036: 1.3 x the rated head, ASSUMED until the vendor curve'
+    assumed: true
+  npsh_available_m:
+    value: 10.8
+    unit: m
+    source: 'D-034: submersible pump, atmospheric pressure (10.3 m of water) plus ~0.5 m minimum submergence
+      at its low level stop, no suction line; ASSUMED'
+    assumed: true
+  shaft_power_kw:
+    value: 10.0
+    unit: kW
+    source: 'D-036: flow x dp / efficiency 0.6 (ASSUMED)'
+    assumed: true
+  motor_rating_kw:
+    value: 15
+    unit: kW
+    source: 'checker of D-036 (low #8): at least 1.25 x the 10.0 kW shaft power for a motor of this size (the
+      driver margin of API 610, Centrifugal Pumps for Petroleum, Petrochemical and Natural Gas Industries, cited by
+      number and title only, taken as practice for this pump) and the end of its curve, the next standard rating;
+      ASSUMED until the vendor''s curve. The electrical list follows this datasheet (its owner)'
+    assumed: true
+  vendor_data:
+    value: supplier
+    source: 'vendor package: curves, seals, motor (Ex certificate, cold rating), guide rail and lifting chain,
+      envelope (enquiry in detail engineering)'
+sizing_basis:
+- parameter: basis
+  value: "DESIGN.md D-018, D-034 (submersible in the pit, review 2026-11-05-basic-design-7 #6) and D-036 (19.5 m
+    pit, materials and motor, review 2026-11-05-basic-design-8 #3), ASSUMED where marked"
+  reference: D-036
+notes: "Submersible rainwater pump on the T-8101 pit floor on a guide rail, lifted through the pit cover; its
+  riser W-8002 leaves through the cover, so there is no suction lift and no wall penetration in the LNG
+  impoundment. Re-rated for the 19.5 m pit: 50 m3/h at 44 m, shut-off ~57 m, design 10 barg. Austenitic
+  stainless steel down to -170 degC and a flameproof, zone 1 submersible motor, because it stands where an LNG
+  spill arrives first. Started and stopped by LI-8103 (radar through the cover); C&E I-801 on TSL-8102 (its tip at
+  the pit floor, below the pump intake) opens the motor feeder, latching. Check valve CV-8114 and isolation valve
+  HV-8115 on the riser above the cover: no back-flow from the oily water system into the impoundment, and the
+  pump is pulled with its riser isolated. Motor 400 V; the electrical list power follows this datasheet. ASSUMED."

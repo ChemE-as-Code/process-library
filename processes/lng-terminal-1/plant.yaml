@@ -1,0 +1,49 @@
+# The root of this plant repository. Schema: `cheme schema plant`.
+schema: cheme/plant/v1
+name: "LNG export marine terminal (2 x 225,000 m3, 2 berths, 28 MTPA)"
+# The oldest cheme-as-code this repository works with; an older one stops with an upgrade hint.
+requires: cheme-as-code>=1.5
+description: >-
+  Storage, loading and boil-off gas handling of an LNG export terminal modelled on LNG Canada
+  (Kitimat, BC), Phase 1 as built and Phase 2: rundown from 4 liquefaction trains (28 MTPA),
+  2 full-containment tanks of 225,000 m3 with in-tank pumps, 2 loading lines and 2 vapour
+  return lines over a ~2 km trestle, 2 berths with 4 x 16 inch arms each (12,000 m3/h), BOG
+  compressors 3 x 50 % to the trains, storage and loading flare system (issue
+  ChemE-as-Code/process-library#362).
+units: SI
+stage: concept
+stages:
+  - {id: concept, title: Concept and feasibility}
+  - {id: basic, title: Basic engineering}
+  - {id: detail, title: Detail engineering}
+# Open items (action items, engineering holds, technical queries, design changes) are the
+# library's GitHub issues labelled process:lng-terminal-1 (CONTRIBUTING.md, Issues).
+issues:
+  repository: ChemE-as-Code/process-library
+  label: "process:lng-terminal-1"
+  forms: {action: 1-action-item.yml, hold: 2-engineering-hold.yml,
+          tq: 3-technical-query.yml, change: 4-design-change.yml}
+project: {number: "LNGT-1", client: "ChemE-as-Code process library", site: "Kitimat, BC (reference site)", revision: A}
+# P&ID sheets, DEXPI 2.0.1 XML; split by system (D-015). All eight are generated sheets
+# (D-021): scripts/draft_P-0N.py on the empty frame pid/frames/P-0N.xml, rebuilt by
+# `cheme regen`; change the script, never the XML.
+sheets:
+  - {id: P-01, file: pid/P-01.xml, title: "LNG rundown and tank fill", status: drafted,
+     generator: {script: scripts/draft_P-01.py, frame: pid/frames/P-01.xml}}
+  - {id: P-02, file: pid/P-02.xml, title: "LNG tank T-2101 and pumps", status: drafted,
+     generator: {script: scripts/draft_P-02.py, frame: pid/frames/P-02.xml}}
+  - {id: P-03, file: pid/P-03.xml, title: "LNG tank T-3101 and pumps", status: drafted,
+     generator: {script: scripts/draft_P-03.py, frame: pid/frames/P-03.xml}}
+  - {id: P-04, file: pid/P-04.xml, title: "Trestle lines", status: drafted,
+     generator: {script: scripts/draft_P-04.py, frame: pid/frames/P-04.xml}}
+  - {id: P-05, file: pid/P-05.xml, title: "Berth 2 loading arms", status: drafted,
+     generator: {script: scripts/draft_P-05.py, frame: pid/frames/P-05.xml}}
+  - {id: P-06, file: pid/P-06.xml, title: "Berth 1 loading arms", status: drafted,
+     generator: {script: scripts/draft_P-06.py, frame: pid/frames/P-06.xml}}
+  - {id: P-07, file: pid/P-07.xml, title: "BOG compressors", status: drafted,
+     generator: {script: scripts/draft_P-07.py, frame: pid/frames/P-07.xml}}
+  - {id: P-08, file: pid/P-08.xml, title: "Flare, sumps and utilities", status: drafted,
+     generator: {script: scripts/draft_P-08.py, frame: pid/frames/P-08.xml}}
+  # Generated from process/*.yaml by `cheme process build` (never edited by hand).
+  - {id: BFD, kind: bfd, file: process/BFD.xml, title: Block flow diagram}
+  - {id: PFD, kind: pfd, file: process/PFD.xml, title: Process flow diagram}

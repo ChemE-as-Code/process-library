@@ -1,0 +1,1061 @@
+# HAZOP study H-01: a DRAFT until the team has accepted every entry and a
+# human review record covers it (cheme safety hazop check). Schema: cheme schema
+# hazop-study; workflow: safety/README.md and the skill hazop-study.
+# Drafted by an agent from the plant as drawn (P-01, P-02, P-03 rev A, C&E, loops,
+# sequences, special items) and revised by an agent to the P&IDs, C&E and sequences of
+# commit 589c9ca7 (DESIGN.md D-025), then to those of commit fac0bbb5 (DESIGN.md D-026: PZT-1105
+# in I-102, ZSC-1102/1103 tied to their valves, tank relief inlet isolations HV-n134/n135), then
+# to those of commit 54648679 (the response to review 2026-11-05-basic-design-3 in commit
+# 886b0ad5: ZSC-1102/1103 sense their valves, fire on D-7101 and the BOG suction header in the
+# PSV-2131/3131 relief cases, the fill-change rule of D-026 item 4, XV-4131/4132 fail closed;
+# the core 1.7.0 regeneration in 54648679 changed the drawing only), then to those of commit
+# f5d925f6 (DESIGN.md D-028, D-023 (3), (4): the rundown link XS-1100 tripping the trains as a
+# closure starts, I-102 also on a tank trip with the other fill valve closed and on the
+# instrument-air trip I-804, the rundown valves closing in at least 30 s with a non-return valve,
+# an accumulator and a speed controller, XV-2123 / XV-3123 fail closed and I-201 / I-301 stopping
+# the return sources, SEQ-FILL-CHANGE, PSV-1121..1123 restated as thermal relief only), then to
+# those of commit 79d5c7ad (DESIGN.md D-030 items 1, 5, 6, 11, 13 and D-023 (3): I-201 / I-301 close
+# the fill and the circulation return only, ZSC-2123 / ZSC-3123 with the new trips I-205 / I-305
+# stop the return sources only if the return is not proven closed after 15 s, the fill selection
+# valves XV-1106..1109 close in at least 30 s and the new permissive I-103 blocks the close command
+# of the last open fill branch, the blocked-outlet case of the rundown header carried open in the
+# PSV-1121 entry with hold H-05; the D-031 layout changes are outside the analysed inputs), then to
+# those of commit 709fcf20 (DESIGN.md D-032 item 7: the 15 s on-delay of I-205 / I-305 moved onto
+# 'I-201 / I-301 tripped' and a command discrepancy alarm on ZSC-2123 / ZSC-3123; D-032 item 6: the
+# circulation pumps left running on ESD-1; and, from the layout, D-033 items 1, 3, 9, 11: the
+# enclosed channels beside the shells removed, the PR1 trough starting at the PR6 joint, drip trays
+# at XV-3123 and the trough-side thermal reliefs, the basin T-8101 moved and deepened, the radiation
+# screening table D-033.9; P-01 to P-03 are unchanged), then to those of commit aedd8dbd (DESIGN.md
+# D-034 items 1, 3: the loading pumps re-rated to 191 m with the loading BOG envelope 56.5 t/h and
+# the carrier return 52.5 t/h in the PSV-2131 / PSV-3131 relief cases, the governing tank-area spill
+# of D-034.3; and DESIGN.md D-035 items 2, 5, 9 from the layout: T-8101 19.5 m deep for 2,400 m3,
+# the tank-area muster point, JB-PR1 moved and the rundown trip cables fire-resistant; P-01 to P-03
+# are unchanged), then to those of commit c257902c (DESIGN.md D-036 items 4, 5, 7, 11 and D-037:
+# I-201 / I-301 and I-205 / I-305 no longer act on the jetty drain pumps, which since D-036 return
+# into the berth headers; the desuperheater spray in loading fed from the loading header back
+# through LNG-2002 with P-2102 / P-3102 at 15 barg; SEQ-LINE-EMPTY, which returns a leaking trestle
+# line to a tank with site N2 (permissive: at least 1,100 m3 below the receiving tank's high-high,
+# abort on I-201 or a high tank pressure); on P-03 the drip-tray detector TSL-3124 under XV-3123;
+# on P-01 FO-1117 drawn as a restriction orifice, the same tag and service).
+# Every entry is a proposal for the team: status proposed.
+schema: cheme/hazop-study/v1
+kind: hazop-study
+id: H-01
+title: Rundown and LNG storage tanks
+scope: >-
+  Detail-stage HAZOP of the LNG rundown header from the four trains' battery-limit ESD valves
+  XV-1111..XV-1114 to the tank fill valves (P-01), and the two full-containment tanks T-2101
+  (P-02) and T-3101 (P-03) with their level, pressure, relief and vacuum devices. The in-tank
+  pumps and their headers are in H-02; the tank vapour header, PIC-1110/PIC-1111, the SIS vent
+  XV-1115, the make-up from the trains' fuel gas FG-1001 and the BOG compressors in H-04 (the
+  tank pressure deviations are analysed here, the control and compressor causes there); the
+  flare in H-05. Not covered: the liquefaction trains and their
+  end-flash system (outside the battery limit, D-001), fire and gas detection and the tank
+  bottom heating system (not drawn at this revision, D-021).
+modes:
+  - {id: holding, title: Holding, description: "No carrier alongside: the rundown fills the tanks, one BOG compressor runs, one circulation pump keeps the trestle lines cold (flowsheet case holding, SEQ-HOLD)."}
+  - {id: loading, title: Loading, description: "One carrier loaded at 12,000 m3/h from either tank while the rundown continues; two BOG compressors take tank BOG and the carrier's return (case loading, SEQ-LOAD)."}
+  - {id: cooldown, title: Cooldown, description: "Cooldown of a warm tank, of the fill lines or of the transfer lines; first cooldown at commissioning and after maintenance."}
+  - {id: startup, title: Start-up and shutdown, description: "Start and stop of the rundown, fill switching between tanks and between top and bottom fill, ESD and restart."}
+analysed:
+  - {path: pid/P-01.xml, revision: 'sha256:e47fed36a98b17c37a7ef9d503cc115fda2d2bda768cdd695a212f110850c064', relation: analyses}
+  - {path: pid/P-02.xml, revision: 'sha256:2e2b6061eda04d17c9380f54aeee96a5c0e24a03fd7736fe3137851bf9689d98', relation: analyses}
+  - {path: pid/P-03.xml, revision: 'sha256:14c60066ab45caac7562d21fe1a03d310c89cb1a3d120cdadde365a8933e8f65', relation: analyses}
+  - {path: control/cause-effect.yaml, revision: 'sha256:987f6b095ca0aabafa9e93d4a22d8e5c22ec766a1798d1fafee63726534bf321', relation: analyses}
+  - {path: control/loops.yaml, revision: 'sha256:a7417294d1288704b77fac600cc7963a95b21a3dcaa295aef23e52e0cf9a7b30', relation: analyses}
+  - {path: control/sequences.yaml, revision: 'sha256:de967e12a155e5c74344b503ad656043f2b1e072bd0ed79cff4adc148aabad85', relation: analyses}
+  - {path: piping/special-items.yaml, revision: 'sha256:694a02f0585b8b21d5067e857062362ea391b8a53759a0a6acca95f08e510597', relation: analyses}
+risk_matrix: safety/risk-matrix.yaml
+assessment_basis: >-
+  Each scenario is rated per category before its safeguards (initial): severity is the credible
+  worst outcome if every safeguard fails, likelihood that of the cause. The codes written here
+  are agent proposals with their basis, for the team to accept or change. Residual ratings are
+  proposed (by the agent, status proposed) only for the scenarios whose safeguards changed in
+  commit 589c9ca7 and where a new layer independent of the cause now exists as drawn: the
+  severity is kept, the likelihood is lowered by one code per independent layer named in the
+  basis, and nothing is credited whose capacity or integrity the files leave open (SIL null
+  everywhere). Which safeguards are credited, and how far, remains the team's judgement (and a
+  LOPA's where the band requires it). The matrix safety/risk-matrix.yaml is the example matrix
+  written by cheme init (example: true); the bands are therefore illustrative until the
+  company's matrix replaces it. No frequency is calculated and no safeguard is credited by a tool.
+  The revision for commit fac0bbb5 (D-026) follows the same rule: the new scenarios S19 and S20
+  are rated before safeguards only, and existing ratings keep their codes unless the cause they
+  rest on changed. The revision for commit 54648679 (886b0ad5) adds no scenario and changes no
+  code: it corrects the texts the changed position-switch sensing, relief cases and fill-change
+  rule touch. The revision for commit f5d925f6 (D-028) rates the new scenarios S21 and S22
+  before safeguards only and leaves S23 unrated (its basis is not in the files); the existing
+  ratings keep their codes, since the changes add or describe safeguards and closure order
+  rather than change a cause, and the texts and residual bases they touch are corrected in place.
+  The revision for commit 79d5c7ad (D-030) rates the new scenarios S24 (the I-103 permissive
+  resting on open commands) and S25 (the return into a tripped tank when XV-2123 / XV-3123 fails
+  to close) before safeguards, and proposes a residual for S25 only, where I-205 / I-305 on the
+  valve's own closed-position switch is a layer independent of the cause; existing codes are kept
+  (I-103 and the slower selection valves act on causes the codes already rest on), and the texts
+  that no longer match (the pump stops of I-201 / I-301, the selection valve closure) are corrected
+  in place. The revision for commit 709fcf20 (D-032, D-033) adds no scenario and changes no code:
+  the I-205 / I-305 timer and the ZSC-2123 / ZSC-3123 discrepancy alarm (S6, S25, SG28, A23) and the
+  tank-area spill collection and its radiation screening (S13) are re-described in place; the
+  spurious pump stop is H-02 S24. The revision for commit aedd8dbd (D-034, D-035) adds no scenario
+  and changes no code: the loading BOG envelope (S11) and the tank-area spill basis, basin and
+  muster point (S13) are re-described in place, and A18 records the PZT-1105 bad-signal question of
+  D-035.5; the re-rated loading pumps against the circulation pumps are H-02 S27. The revision for
+  commit c257902c (D-036, D-037) rates the new scenario S26 (the return of a leaking trestle line
+  by SEQ-LINE-EMPTY into a receiving tank without the ullage its permissive asks for) before
+  safeguards only; S25 and SG28 are corrected for the jetty drain pumps, which I-205 / I-305 no
+  longer stop and which no longer feed the return, and S11 for the N2 that SEQ-LINE-EMPTY sends
+  to a tank; codes kept. The N2 displacement itself is H-02 S31 to S33, its N2 in the BOG H-04
+  S26, the XV-3123 tray detector TSL-3124 H-05 S29; the P-01 change (FO-1117 drawn as a restriction
+  orifice) touches no scenario of this study.
+team: []            # to be named by the project; no team has sat on this draft yet
+notes: >-
+  Drafted by an agent (skills hazop-study, hazop-equipment-causes, relief-scenarios,
+  safeguard-crediting). Tanks T-2101 and T-3101 are identical (D-019): scenarios name T-2101
+  with the T-3101 tags in brackets; the team may split them. Setpoints, set pressures and
+  closure times quoted are ASSUMED values from DESIGN.md and the control files.
+nodes:
+  - id: N1
+    title: Rundown header LNG-1001 from the train battery limit to the tank fill valves
+    design_intent: >-
+      Receive up to 3,365 t/h (~7,560 m3/h) of subcooled LNG at -161.5 degC and 215 kPa(a) from
+      four trains (LNG-1001, LNG-1012..LNG-1014, each with its BL ESD valve XV-1111..XV-1114 and
+      check valve) and route it to T-2101 through XV-1102 or to T-3101 through XV-1103; top or
+      bottom fill chosen by XV-1106/XV-1107 (T-2101) and XV-1108/XV-1109 (T-3101) from AI-1102
+      against the tank density profile (D-005, D-007). Since 589c9ca7: I-102 closes the
+      battery-limit valves when ZSC-1102 and ZSC-1103 show both fill ESD valves closed, and the
+      fill branches have their own thermal relief PSV-1122 / PSV-1123 (D-025 item 1). Since
+      fac0bbb5 (D-026 items 4, 11): ZSC-1102 / ZSC-1103 are tied to their valves on P-01, I-102 also
+      trips on PZT-1105 high-high on LNG-1001 (which catches a branch closed by its selection
+      valves), the top / bottom fill change is made by opening the new selection valve before
+      closing the old one (operator), and the thermal relief outlets BOG-1004, BOG-1010, BOG-1011
+      tie into BOG-1001 on the sheet. Since 886b0ad5 (D-026 items 4, 14) the sensors of ZSC-1102 /
+      ZSC-1103 sense the valves XV-1102 / XV-1103 themselves (at fac0bbb5 the pipe segments beside
+      them), and D-026 item 4 states the fill-change rule (open the new selection valve
+      XV-1106..1109 before closing the old one; a change that closes both trips I-102 through
+      PZT-1105). Since f5d925f6 (D-028 items 1, 2, 14; D-023 (3), (4)): every closure that stops
+      the whole rundown trips the trains' rundown through the hard-wired link XS-1100 at the
+      instant the closure starts (I-101, I-102); I-102 also acts on I-201 / I-203 with XV-1103
+      closed, on I-301 / I-303 with XV-1102 closed (the Phase 1 case, one tank) and on the
+      instrument-air trip I-804; XV-1102, XV-1103 and XV-1111..1114 close in at least 30 s (ASSUMED,
+      about 15 times 2L/a of the ~1,164 m terminal section; slow-closure estimate about +120 kPa
+      over the operating header pressure) set by a speed controller on the actuator exhaust, with
+      a non-return valve and a local air accumulator on the supply, so a closure on an air failure
+      is no faster than a commanded one (P-01 note, instrument list UZ-1102 / UZ-1103 / UZ-1111..1114);
+      the fill change is the sequence SEQ-FILL-CHANGE (make-before-break, abort on a rising
+      PZT-1105), and the fill ESD valve of a tank not lined up is kept closed; PSV-1121..1123 are
+      thermal relief only, a rundown closure is not one of their relief cases. Since 79d5c7ad
+      (D-030 items 5, 6, 11; D-023 (3)): the fill selection valves XV-1106..1109 (DN 900, fail
+      last, no position switch) also close in at least 30 s, set by a speed controller on the
+      actuator exhaust (ASSUMED, HS-1106..1109 notes), and the permissive I-103 blocks the close
+      command of the last open fill branch of the only lined-up tank (the other selection valve of
+      that tank not commanded open for its stroke time, and the other tank's fill ESD valve proven
+      closed by ZSC-1102 / ZSC-1103 or neither of its selection valves commanded open); 'open' is
+      the open command held for the stroke time (about 35 s), not a position; SEQ-FILL-CHANGE S2
+      names I-103. The rundown header's 'blocked outlet against the trains' rundown pumps' is
+      carried as an open relief case of the header, not of PSV-1121, with its design pressure to
+      be confirmed against the trains' shut-off head (hold H-05 of D-030).
+    members: [LNG-1001, LNG-1012, LNG-1013, LNG-1014, LNG-1002, LNG-1003, LNG-1004, XV-1111, XV-1112, XV-1113, XV-1114, XV-1102, XV-1103, XV-1106, XV-1107, XV-1108, XV-1109, FI-1111, AI-1102, TI-1103, PI-1104, PSV-1121, BOG-1004, ZSC-1102, ZSC-1103, PSV-1122, PSV-1123, BOG-1010, BOG-1011, PZT-1105, XS-1100, UZ-1102, UZ-1103, UZ-1111, UZ-1112, UZ-1113, UZ-1114]
+    status: proposed
+    by: agent
+    deviations:
+      - id: N1-NF
+        guide_word: "no"
+        parameter: flow
+        scenarios:
+          - id: S1
+            cause: >-
+              XV-1102 closes (I-201 on T-2101 LAHH or I-203 on PAHH) while XV-1103 is already
+              closed (I-301/I-303 on T-3101, T-3101 isolated for maintenance or in Phase 1, or
+              closed by the operator). I-101 closes the battery-limit valves only when both
+              LZT-2102 and LZT-3102 are at LAHH, so this combination leaves the rundown with no
+              outlet and no trip. Also (added for fac0bbb5): the open branch is closed by its
+              selection valves, XV-1106 and XV-1107 (XV-1108 and XV-1109) both closed, for example
+              a top / bottom fill change made by closing the old valve first, which the ESD valve
+              position switches do not see (since 79d5c7ad blocked at the HS by I-103 and slowed to
+              at least 30 s; what remains of this cause is S24 and a closure past I-103: logic
+              fault, bypass, an output fault on the fail-last actuator).
+            consequence: >-
+              The rundown of up to four trains is deadheaded against closed valves: the header
+              rises to the shut-off head of the trains' rundown pumps (not in the files, D-023
+              (3)); a closure of a DN 900 ESD valve at 3.4 m/s faster than intended gives a
+              pressure surge in LNG-1001 and the trains' rundown lines (about +1,750 kPa for an
+              instant closure, D-023 (3)); possible flange or gasket failure and an LNG release in
+              the tank area; trains upset (outside the battery limit).
+            refs: [XV-1102, XV-1103, LNG-1001, LZT-2102, LZT-3102, ZSC-1102, ZSC-1103, XV-1106, XV-1107, PZT-1105, XS-1100, HS-1106, HS-1107]
+            safeguards: [SG2, SG22, SG26, SG27]
+            actions: [A1, A2]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "LNG release in the tank area with ignition possible; matrix 4 = permanent injury or fatality. B: needs two closures together, could happen once in the plant life.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+                - {category: asset, severity: "3", likelihood: B, status: proposed, by: agent, basis: "Rundown header damage and trains shut in; matrix 3 = plant down for weeks.", band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 579975b5e9fe3f0e, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '3', likelihood: B}}}
+              residual:
+                - {category: people, severity: "4", likelihood: A, status: proposed, by: agent, basis: "Agent proposal for the team: one independent layer credited, I-102 (589c9ca7), which acts on the closed-position switches ZSC-1102 / ZSC-1103, not on the level or pressure transmitters whose trips are the cause, and closes the battery-limit valves with the trains tripped through the BL interface; since f5d925f6 (D-028 item 2) it also trips on I-201 / I-203 with XV-1103 closed (I-301 / I-303 with XV-1102 closed), so the trains are tripped through XS-1100 as the only open fill valve starts to close, not once both are closed. Severity kept: the closure of at least 30 s and the closure order are stated with a slow-closure estimate (D-023 (3)), but the transient analysis and the trains' rundown pump shut-off head are open (A2). SIL of I-102 null.", evidence: [control/cause-effect.yaml, DESIGN.md D-025, DESIGN.md D-028], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ddcedc61b5d20d1a, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: A}}}
+                - {category: asset, severity: "3", likelihood: A, status: proposed, by: agent, basis: "As the people residual: I-102 credited as one layer.", evidence: [control/cause-effect.yaml], band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: f04923bf0bf2e0ec, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '3', likelihood: A}}}
+            notes: >-
+              PSV-1121 is sized for thermal expansion only (special items) and is not a
+              safeguard against a blocked rundown. The trains' rundown pressure and their own
+              protection are outside the battery limit: the team to say what they are. Revised
+              for 589c9ca7: I-102 answers A1; its spurious action is S18. Revised for fac0bbb5
+              (D-026 item 4): I-102 also trips on PZT-1105 PAHH on LNG-1001, own tapping
+              independent of PI-1104, so the selection-valve cause is covered by the same
+              interlock; the residual ratings keep their codes (one layer, I-102, SIL null). The
+              spurious PZT-1105 trip is S20. Revised for 54648679 (886b0ad5; review
+              2026-11-05-basic-design-3#8): the fill-change rule is now written in D-026 item 4 as
+              an operator rule; it is not a sequence or a permissive, so the selection-valve cause
+              stays and is caught by I-102 on PZT-1105 (a plant trip, not a dead-head). ZSC-1102 /
+              ZSC-1103 sense their valves (D-026 item 14). Codes kept. Revised for f5d925f6
+              (D-028 items 2, 14; D-023 (3)): the fill change is now the sequence SEQ-FILL-CHANGE
+              (open the new selection valve, wait its stroke time with PI-1104 steady, then close
+              the old one; abort on a rising PZT-1105), still operator steps on valves without
+              position switches, so the selection-valve cause stays. The first cause is now met as
+              the closure starts: I-102 takes I-201 / I-203 tripped with ZSC-1103 closed (and the
+              reverse) as causes, trips the trains through XS-1100 and closes XV-1111..1114, while
+              XV-1102 takes at least 30 s to close; the header then reaches at most the shut-off
+              head of the trains' rundown pumps, to be kept below the 15 barg design at the
+              battery-limit interface (ASSUMED). Codes kept. Revised for 79d5c7ad (D-030 items 5,
+              6; D-023 (3)): the selection-valve cause is now met by I-103, a permissive on the
+              close command of HS-1106..1109 that never moves a valve (SG27), and by the closure of
+              at least 30 s of XV-1106..1109, so a selection valve closing all the same throttles
+              the rundown no faster than the ESD valves and PZT-1105 trips I-102 on the rising
+              header pressure. I-103 rests on open commands held for the stroke time, not on
+              positions (the selection valves have no position switch at basic): a new valve
+              commanded open but not moving defeats it (S24). The blocked outlet against the
+              trains' rundown pumps is now an open relief case of the header in the PSV-1121 entry,
+              with hold H-05 (shut-off head and the trains' trip response time, D-030 item 13).
+              Codes kept: the ESD-valve part of the cause is unchanged and I-103 is not credited
+              against it.
+      - id: N1-HP
+        guide_word: more
+        parameter: pressure
+        scenarios:
+          - id: S2
+            cause: >-
+              LNG blocked in LNG-1001 between XV-1111..XV-1114 (or the check valves CV1111..CV1114)
+              and XV-1102/XV-1103 after I-101 or I-102 (since f5d925f6 also after the instrument-air
+              trip I-804, through I-102), warmed by ambient heat ingress.
+            consequence: Thermal expansion overpressures the blocked-in rundown header.
+            refs: [LNG-1001, XV-1111, XV-1102, XV-1103, PSV-1121]
+            safeguards: [SG3]
+            actions: [A15]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: C, status: proposed, by: agent, basis: "Flange leak of LNG in the tank area; matrix 3 = lost-time injury. C: every I-101 trip blocks the header in.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b6fe1208a949a698, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: C}}}
+          - id: S3
+            cause: >-
+              LNG blocked in the fill branches between the ESD valve and the fill selection
+              valves: LNG-1002/LNG-1004 between XV-1102 and XV-1106/XV-1107 when both selection
+              valves are closed, and the LNG-1001 tail and LNG-1003 between XV-1103 and
+              XV-1108/XV-1109 likewise. PSV-1121 is upstream of XV-1102 and XV-1103 and does not
+              reach these sections.
+            consequence: >-
+              Thermal expansion of trapped LNG overpressures the DN 900 fill lines; flange or
+              valve body leak on the tank roof, LNG release at height.
+            refs: [LNG-1002, LNG-1004, LNG-1003, XV-1102, XV-1106, XV-1107, XV-1103, XV-1108, XV-1109, PSV-1122, PSV-1123]
+            safeguards: [SG23]
+            actions: [A3]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: C, status: proposed, by: agent, basis: "LNG leak on the tank roof; matrix 3 = lost-time injury. C: a routine fill-switch line-up can leave a section blocked in.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b6fe1208a949a698, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: C}}}
+              residual:
+                - {category: people, severity: "3", likelihood: B, status: proposed, by: agent, basis: "Agent proposal for the team: one layer credited, the thermal relief valves PSV-1122 (T-2101 branch, BOG-1010) and PSV-1123 (T-3101 branch, BOG-1011) added in 589c9ca7, set at the 15 barg line design, discharging to the tank vapour header; their relief case is this one (special items).", evidence: [piping/special-items.yaml, DESIGN.md D-025], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: aa86891dd127d418, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: B}}}
+            notes: Revised for 589c9ca7 (D-025 item 1); PSV-1122 / PSV-1123 answer A3.
+      - id: N1-HT
+        guide_word: more
+        parameter: temperature
+        scenarios:
+          - id: S4
+            cause: >-
+              Train upset (end-flash or main cryogenic heat exchanger, outside the battery limit)
+              sends warmer, less subcooled LNG; the subcooling of ~1.3 K (D-005) is lost.
+            consequence: >-
+              The rundown flashes in the fill line (two-phase flow, vibration of LNG-1002/LNG-1004)
+              and adds flash vapour to the tank; tank pressure rises (see N3-HP).
+            refs: [TI-1103, LNG-1001, T-2101]
+            safeguards: [SG4]
+            actions: [A4]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "2", likelihood: C, status: proposed, by: agent, basis: "Line vibration and flashing; matrix 2 = plant down for days. C: train upsets are expected several times in the plant life.", band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b67377b30017f4a1, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '2', likelihood: C}}}
+            notes: TI-1103 is an indication; no alarm is stated in the instrument list.
+      - id: N1-RF
+        guide_word: reverse
+        parameter: flow
+        scenarios:
+          - id: S5
+            cause: >-
+              One train trips and its rundown pressure at the battery limit falls below the
+              header pressure while the other trains continue.
+            consequence: LNG flows back from the header into the tripped train's rundown line.
+            refs: [LNG-1012, XV-1112, {sheet: P-01, object: CV1112}]
+            safeguards: [SG1]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "1", likelihood: C, status: proposed, by: agent, basis: "Back flow into the train's rundown; repair within a shift (matrix 1).", band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 85aab00e0badb4b2, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '1', likelihood: C}}}
+      - id: N1-NF2
+        guide_word: "no"
+        parameter: flow (spurious trip of the rundown)
+        description: Created by the I-102 interlock added in 589c9ca7.
+        scenarios:
+          - id: S18
+            cause: >-
+              Spurious I-102: ZSC-1102 or ZSC-1103 shows a valve closed that is open (switch or
+              wiring fault, valve stem not made up), while the other fill ESD valve is closed. With
+              one tank isolated for maintenance or in Phase 1 (XV-1103 held closed), a single fault
+              of ZSC-1102 is enough.
+            consequence: >-
+              I-102 closes XV-1111..XV-1114 at the full rundown rate and trips the four trains
+              (since f5d925f6 through XS-1100 as the closure starts): loss of production for the
+              whole plant, a pressure surge in LNG-1001 and the trains' rundown lines on the
+              closure (as S1; since f5d925f6 a closure of at least 30 s, slow-closure estimate about
+              +120 kPa, D-023 (3); transient analysis open, A2), LNG blocked in the header (S2).
+            refs: [ZSC-1102, ZSC-1103, XV-1111, XV-1112, XV-1113, XV-1114, LNG-1001]
+            modes: [holding, loading, startup]
+            safeguards: [SG2, SG3]
+            actions: [A2, A16]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: B, status: proposed, by: agent, basis: "Flange leak from the closure surge in the tank area; matrix 3 = lost-time injury. B: needs a position switch fault, more likely while one tank is isolated; could happen once in the plant life.", evidence: [control/cause-effect.yaml], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: aa86891dd127d418, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: B}}}
+                - {category: asset, severity: "2", likelihood: C, status: proposed, by: agent, basis: "All four trains tripped and restarted; matrix 2 = plant down for days. C: spurious trips of a single-switch function are possible several times in the plant life.", evidence: [control/cause-effect.yaml], band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b67377b30017f4a1, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '2', likelihood: C}}}
+            notes: >-
+              New scenario for 589c9ca7 (D-025 item 1). The trains' response to the BL trip
+              (turn-down before the valves close) is outside the battery limit; the team to say
+              what it is. Since 886b0ad5 the switch sensors are tied to XV-1102 / XV-1103 in the
+              model (D-026 item 14); a single switch is still the cause. Codes kept. Revised for
+              f5d925f6 (D-028 item 2): the trains' side of the interface is now the hard-wired
+              trip XS-1100 (rundown pumps stopped or recycled inside the trains). I-102 has two
+              more paths on the same switches: a tank trip (I-201 / I-203) with ZSC-1103 falsely
+              'closed' (I-301 / I-303 with ZSC-1102) now trips the four trains as the closure of
+              XV-1102 starts, where before it did so once ZSC-1102 also read closed: the same
+              spurious plant trip, earlier; the spurious I-804 path is S21.
+              A single switch fault still trips the plant. Codes kept.
+          - id: S20
+            cause: >-
+              Spurious I-102 on PZT-1105 (added in fac0bbb5): the single transmitter on LNG-1001
+              reads high-high (transmitter or impulse line fault, a frozen tapping, a calibration
+              error), or a short real pressure peak at the header (a fast fill change, a train
+              rundown upset) passes the trip point; the PAHH value is not in the files.
+            consequence: >-
+              As S18: I-102 closes XV-1111..XV-1114 at the full rundown rate and trips all four
+              trains (since f5d925f6 through XS-1100 as the closure starts), in both tank line-ups
+              (the PZT-1105 path of I-102 does not depend on either fill ESD valve being closed);
+              loss of production for the plant, a closure surge in LNG-1001 and the trains'
+              rundown lines (closure at least 30 s since f5d925f6, A2), LNG blocked in the header (S2).
+            refs: [PZT-1105, PI-1104, XV-1111, XV-1112, XV-1113, XV-1114, LNG-1001]
+            modes: [holding, loading, startup]
+            safeguards: [SG2, SG3]
+            actions: [A2, A16, A18]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: B, status: proposed, by: agent, basis: "Flange leak from the closure surge in the tank area (as S18); matrix 3 = lost-time injury. B: a single-transmitter spurious trip, once in the plant life.", evidence: [control/cause-effect.yaml, control/instrument-list.yaml], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: aa86891dd127d418, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: B}}}
+                - {category: asset, severity: "2", likelihood: C, status: proposed, by: agent, basis: "All four trains tripped and restarted (as S18); matrix 2 = plant down for days. C: a single transmitter on the trip, several spurious trips possible in the plant life.", evidence: [control/cause-effect.yaml], band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b67377b30017f4a1, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '2', likelihood: C}}}
+            notes: >-
+              New scenario for fac0bbb5 (D-026 item 4). I-102 is now 'both ZSC closed' or
+              'PZT-1105 PAHH' (logic any), so its spurious rate is that of the two paths together;
+              the trip point against the trains' normal rundown pressure (215 kPa(a), D-005) and
+              against the PSV-1121 set pressure is for the team. Since f5d925f6 (D-028 item 2)
+              I-102 has four paths (both ZSC closed, PZT-1105, a tank trip with the other fill
+              valve closed, I-804), so its spurious rate is that of the four; the I-804 path is S21.
+              SEQ-FILL-CHANGE (abort on a rising PZT-1105) keeps a fill change below the trip
+              point. Codes kept.
+          - id: S21
+            cause: >-
+              The instrument-air trip I-804 (PZT-8123A/B/C on IA-8001, P-08, 2oo3 at 4.5 barg,
+              ASSUMED; added in f5d925f6) initiates I-102: on a real loss of instrument-air
+              pressure, on a short dip of the header below the trip point that recovers (air
+              compressor or dryer change-over at the site, a large air demand), or spuriously on two
+              of the three transmitters reading low (calibration error, impulse line fault).
+            consequence: >-
+              I-102 trips the four trains through XS-1100 and closes XV-1111..XV-1114 at the full
+              rundown rate (closure at least 30 s): loss of production for the whole plant whatever
+              the cause, together with ESD-1 of both berths (H-05 S24); the trains restart only
+              after the manual reset of I-804 and I-102; LNG blocked in the header (S2). A dip that
+              recovers still runs the trip to completion (latching).
+            refs: [PZT-8123A, PZT-8123B, PZT-8123C, XS-1100, XV-1111, XV-1112, XV-1113, XV-1114, LNG-1001]
+            modes: [holding, loading, startup]
+            safeguards: [SG3, SG26]
+            actions: [A2, A21]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: B, status: proposed, by: agent, basis: "Flange leak from the closure surge in the tank area (as S18), the closure now commanded with the trains tripped first; matrix 3 = lost-time injury. B: a closure surge that exceeds the line rating on a commanded closure, once in the plant life.", evidence: [control/cause-effect.yaml, control/instrument-list.yaml, DESIGN.md D-028], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: aa86891dd127d418, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: B}}}
+                - {category: asset, severity: "2", likelihood: C, status: proposed, by: agent, basis: "All four trains tripped and restarted (as S18); matrix 2 = plant down for days. C: instrument-air failures and dips occur several times in the plant life (as H-04 S3), and every one now trips the rundown.", evidence: [control/cause-effect.yaml, control/philosophy.md], band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b67377b30017f4a1, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '2', likelihood: C}}}
+            notes: >-
+              New scenario for f5d925f6 (D-028 item 1; review 2026-11-05-basic-design-4 #1). The
+              trip is the intended response to a real air failure: it trips the trains before the
+              fail-closed rundown valves can move. The 2oo3 voting limits the spurious trips of a
+              single transmitter; a header dip below 4.5 barg that recovers before 3.5 barg is not
+              filtered (no delay in the C&E). The trip point against the header's normal
+              transients and the restart route of the trains are for the team (A21).
+      - id: N1-HPA
+        guide_word: more
+        parameter: pressure (surge on an air-failure closure)
+        description: Created by the non-return valves, accumulators and speed controllers of the rundown valves and the trip I-804 added in f5d925f6 (D-023 (4)).
+        scenarios:
+          - id: S22
+            cause: >-
+              Loss of instrument air while the non-return valve or the local air accumulator on the
+              actuator supply of one of XV-1102, XV-1103, XV-1111..XV-1114 has failed unnoticed
+              (non-return valve passing, accumulator leaking or empty), so that the actuator air
+              escapes back into the falling header past its exhaust speed controller and the valve
+              closes at its spring speed; or the header is lost faster than I-804 can trip the
+              trains (rupture of IA-8001 near the rundown valves); or a speed controller
+              misadjusted or left open after maintenance.
+            consequence: >-
+              A DN 900 rundown valve closes in a few seconds against the full rundown at 3.4 m/s,
+              before or as XS-1100 trips the trains: surge of up to about +1,750 kPa for an instant
+              closure (D-023 (3)) in LNG-1001 and the trains' rundown lines, beyond the 15 barg
+              design; no surge relief on the rundown (PSV-1121..PSV-1123 are thermal relief only);
+              flange or gasket failure, LNG release in the tank area or at the battery limit.
+            refs: [XV-1102, XV-1103, XV-1111, XV-1112, XV-1113, XV-1114, UZ-1102, UZ-1103, UZ-1111, LNG-1001, PSV-1121, PZT-8123A, IA-8001]
+            modes: [holding, loading]
+            safeguards: [SG25]
+            actions: [A2, A19]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "LNG release in the tank area with ignition possible (as S1); matrix 4 = permanent injury or fatality. B: a loss of instrument air (several times in the plant life) while one of six non-return valves or accumulators has failed unnoticed, once in the plant life.", evidence: [control/instrument-list.yaml, DESIGN.md D-023, DESIGN.md D-028], band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+                - {category: asset, severity: "3", likelihood: B, status: proposed, by: agent, basis: "Rundown header damage and trains shut in (as S1); matrix 3 = plant down for weeks.", evidence: [DESIGN.md D-023], band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 579975b5e9fe3f0e, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '3', likelihood: B}}}
+            notes: >-
+              New scenario for f5d925f6 (D-028 items 1, 2; review 2026-11-05-basic-design-4 #1 and
+              its adversarial check). Before f5d925f6 every fail-closed rundown valve closed on an
+              air failure at its own speed ahead of any trip (the earlier cause of S1 and S18); the
+              non-return valves, accumulators and speed controllers make that closure the
+              commanded one, and I-804 trips the trains first. D-023 (4) names the residual case for
+              the berths (a relief case of PSV-5131 / PSV-6131) but not for the rundown, which has
+              no surge relief. I-804 is credited by no residual: it acts before the valve only while
+              the header falls slower than the margin between its 4.5 barg trip point and the
+              ~3.5 barg at which the actuators stroke (both ASSUMED), and the non-return valves and
+              accumulators have no proof test in the files (A19).
+      - id: N1-NF3
+        guide_word: "no"
+        parameter: flow (fill selection permissive I-103)
+        description: Created by the fill selection permissive I-103 and the 30 s closure of XV-1106..XV-1109 added in 79d5c7ad (D-030 item 6).
+        scenarios:
+          - id: S24
+            cause: >-
+              A fill change (SEQ-FILL-CHANGE) in which the new selection valve is commanded open
+              from its HS but does not open (actuator or solenoid fault, valve stuck closed, an
+              air supply isolated): I-103 counts it as open once its open command has been held for
+              the stroke time (no position switch on XV-1106..XV-1109 at basic), so it releases the
+              close command of the old valve, and the operator's local check and 'PI-1104 steady'
+              of SEQ-FILL-CHANGE S1 are the only proof; likewise the other tank counted as taking
+              the rundown because one of its selection valves is commanded open while it is stuck
+              closed or its fill ESD valve is closed but ZSC-1102 / ZSC-1103 reads not closed.
+              Also the reverse: I-103 blocking a close command it should release (a held open
+              command lost, a ZSC fault), so a fill change cannot be completed.
+            consequence: >-
+              The old selection valve closes the last open fill branch of the only lined-up tank
+              in at least 30 s against the full rundown: the header pressure rises, PZT-1105 trips
+              I-102 (trains tripped through XS-1100 as XV-1111..XV-1114 close in at least 30 s) and
+              the header reaches at most the shut-off head of the trains' rundown pumps (open,
+              hold H-05); a slow-closure surge (D-023 (3)); loss of production of the four trains.
+              In the reverse case the fill point cannot be moved as AI-1102 / LTD-2103 call for,
+              a delay of the rollover management (S8).
+            refs: [HS-1106, HS-1107, HS-1108, HS-1109, XV-1106, XV-1107, XV-1108, XV-1109, PZT-1105, PI-1104, ZSC-1102, ZSC-1103, XS-1100, LNG-1001]
+            modes: [holding, loading, startup]
+            safeguards: [SG27, SG22, SG2]
+            actions: [A22, A2]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: B, status: proposed, by: agent, basis: "Flange leak from the closure surge or the dead-headed header in the tank area (as S20); matrix 3 = lost-time injury: the closure is the speed-controlled one of D-023 (3), with I-102 on PZT-1105 behind it. B: a selection valve failing to open at a fill change, once in the plant life.", evidence: [control/cause-effect.yaml, control/instrument-list.yaml, control/sequences.yaml, DESIGN.md D-030], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: aa86891dd127d418, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: B}}}
+                - {category: asset, severity: "2", likelihood: B, status: proposed, by: agent, basis: "All four trains tripped on PZT-1105 and restarted (as S20); matrix 2 = plant down for days.", evidence: [control/cause-effect.yaml], band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c0d4218f7f2f3b3d, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '2', likelihood: B}}}
+            notes: >-
+              New scenario for 79d5c7ad (D-030 item 6, the adversarial check of review
+              2026-11-05-basic-design-5). I-103 turns the make-before-break of SEQ-FILL-CHANGE from
+              a written rule into a permissive, but on commands: D-030 leaves position switches on
+              the selection valves to the SIL screening (hold H-06). No residual is proposed:
+              I-103 shares its basis (the open command) with the cause, and PZT-1105 / I-102 is the
+              layer already in the consequence.
+  - id: N2
+    title: LNG tanks T-2101 and T-3101 - liquid inventory, level and density
+    design_intent: >-
+      Store up to 225,000 m3 working LNG each (D-007) at about -160 degC between the low-low and
+      high-high levels of the independent servo gauges LZT-2102 / LZT-3102 (radar LT-2101 / LT-3101
+      for inventory and fill control); since 589c9ca7 a second independent high-high gauge
+      LZT-2106 / LZT-3106 makes I-201 / I-301 1oo2, and the trip also closes the circulation
+      return XV-2123 / XV-3123 (D-025 item 2); fill top or bottom so that the density profile
+      (LTD-2103 / LTD-3103) stays mixed (rollover, D-007); supply the in-tank pumps (H-02). Since
+      f5d925f6 (D-028 item 3) XV-2123 / XV-3123 fail closed (were fail last) and I-201 / I-301 also
+      stop the sources of the circulation return, the circulation pumps P-2102 / P-3102 and the
+      jetty drain pumps P-5101 / P-6101; the fill ESD valve closes in at least 30 s (D-023 (3)),
+      and with the other tank's fill valve closed I-102 trips the trains as it starts to close.
+      Since 79d5c7ad (D-030 item 1; replaces the unconditional pump stops of D-028 item 3): I-201 /
+      I-301 close the fill and the circulation return only; the closed-position switch ZSC-2123 /
+      ZSC-3123 on XV-2123 / XV-3123 itself and the new trips I-205 / I-305 stop P-2102, P-3102,
+      P-5101 and P-6101 only while I-201 / I-301 has tripped and the switch does not read closed
+      15 s after the trip (ASSUMED, stroke time plus margin); in loading the returns are closed and
+      proven closed in SEQ-LOAD S0, so a tank high-high level leaves the desuperheater spray and
+      the drain pumps in service. Since 709fcf20 (D-032 item 7, #3): the 15 s on-delay sits on
+      'I-201 / I-301 tripped', so the pumps stop once the trip has stood 15 s and the switch does
+      not read closed (no longer a switch reading 'not closed' for 15 s), and ZSC-2123 / ZSC-3123
+      reading closed while XV-2123 / XV-3123 is commanded open longer than its stroke time raises a
+      discrepancy alarm (C&E I-205 / I-305 notes); ESD-1 does not stop the circulation pumps (D-016,
+      D-032 item 6).
+    members: [T-2101, T-3101, LT-2101, LZT-2102, LZT-2106, LTD-2103, TI-2104, TI-2105, LT-3101, LZT-3102, LZT-3106, LTD-3103, TI-3104, TI-3105, HS-1106, HS-1107, HS-1108, HS-1109, ZSC-2123, ZSC-3123]
+    status: proposed
+    by: agent
+    deviations:
+      - id: N2-HL
+        guide_word: more
+        parameter: level
+        scenarios:
+          - id: S6
+            cause: >-
+              The rundown continues into T-2101 (T-3101) past its high level: LT-2101 reads low
+              (radar fault) or the operator does not switch the fill to the other tank in holding.
+            consequence: >-
+              Overfill: LNG over the suspended deck into the roof space and the vapour outlet
+              BOG-1001 (liquid to D-7101 and the compressors, H-04) and to the inlets of PSV-2131A/B,
+              which would discharge LNG from elevated tailpipes to atmosphere; overload of the
+              inner tank.
+            refs: [T-2101, LT-2101, XV-1102, BOG-1001, PSV-2131A, PSV-2131B, PSV-2131C, LZT-2106]
+            modes: [holding, loading]
+            safeguards: [SG5, SG6, SG7]
+            actions: [A5]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, status: proposed, by: agent, basis: "Cold LNG and vapour released from the tank top, flammable cloud in the tank area; matrix 4 = permanent injury or fatality. C: fill control failures are possible several times in the plant life.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ac0a4b03e3d8d0c2, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: C}}}
+                - {category: asset, severity: "4", likelihood: C, status: proposed, by: agent, basis: "Inner tank or roof damage; matrix 4 = loss of the unit.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 93e154c44de9f515, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: C}}}
+              residual:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Agent proposal for the team: one layer credited, I-201 (I-301), since 589c9ca7 1oo2 on two gauges LZT-2102 / LZT-2106 independent of the radar LT-2101 whose failure is the cause. I-101 is not credited (it acts only when both tanks are high). The band stays high: SIL of I-201 null and no LT-2101 high alarm in the files (A5).", evidence: [control/cause-effect.yaml, control/instrument-list.yaml, DESIGN.md D-025], band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+                - {category: asset, severity: "4", likelihood: B, status: proposed, by: agent, basis: "As the people residual: I-201 (1oo2) credited as one layer.", evidence: [control/cause-effect.yaml], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: f33c22768a8b83e6, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: B}}}
+            notes: >-
+              Since 589c9ca7 I-201 rests on two independent gauges LZT-2102 and LZT-2106 (1oo2,
+              own nozzles), both independent of LT-2101 (D-025 item 2); the 1oo2 voting also makes
+              a spurious closure of XV-1102 and XV-2123 more likely (then I-102 trips the rundown
+              if XV-1103 is closed, S18). Whether LT-2101 has a high alarm and with what time to
+              act is not in the files. Revised for f5d925f6 (D-028 item 3): the circulation return
+              is a second source into the tank at high level; XV-2123 now fails closed and I-201
+              also stops P-2102 / P-3102 and P-5101 / P-6101, so the return stops even if XV-2123
+              does not close. The fill now takes at least 30 s to stop after the trip (S23). Codes
+              kept. Revised for 79d5c7ad (D-030 item 1): I-201 no longer stops the pumps; they are
+              stopped by I-205 only if ZSC-2123 does not prove XV-2123 closed 15 s after the trip,
+              so the return into a tank at high-high level now rests on XV-2123 closing or on
+              I-205; that cause is S25. The fill part of this scenario is unchanged. Codes kept.
+              Revised for 709fcf20 (D-032 item 7): the 15 s now runs from the I-201 trip, not from
+              the switch reading; the fill part is unchanged. Codes kept.
+          - id: S23
+            cause: >-
+              I-201 (I-301) on LAHH or I-203 (I-303) on PAHH closes XV-1102 (XV-1103) while the whole
+              rundown goes into that tank: since f5d925f6 the closure takes at least 30 s (speed
+              controller, D-023 (3)), and with the other fill valve closed the trains are tripped
+              through XS-1100 only as the closure starts, so the rundown keeps flowing into the tank
+              while the valve closes and the trains' rundown pumps run down.
+            consequence: >-
+              Up to about 63 m3 (7,560 m3/h for 30 s, less as the valve throttles) enters the tank
+              after the high-high level trip point of LZT-2102 / LZT-2106; if the margin between the
+              trip point and the overfill point was set for a faster closure, LNG reaches the
+              suspended deck and the roof space (as S6). On I-203 the fill keeps displacing vapour
+              into a vapour space already at high-high pressure until the valve is closed (the
+              control philosophy F-AIR names this displaced vapour).
+            refs: [XV-1102, XV-1103, UZ-1102, UZ-1103, LZT-2102, LZT-2106, PZT-2112, T-2101, XS-1100]
+            modes: [holding, loading]
+            safeguards: [SG6, SG10, SG13]
+            actions: [A20]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: null, likelihood: null, status: proposed, by: agent, basis: "Not rated: the volume between the LAHH trip points of LZT-2102 / LZT-2106 and the overfill point, and the closure characteristic of XV-1102 / XV-1103 (how much of the 30 s passes before the valve throttles), are not in the files; the team to state them (A20)."}
+            notes: >-
+              New scenario for f5d925f6 (D-023 (3), D-028 item 2): the slower closure protects the
+              rundown against surge and moves volume into the tank after the trip. Left unrated on
+              purpose. I-101 (both tanks high-high) does not act on one tank.
+          - id: S25
+            cause: >-
+              In holding, I-201 (I-301) trips on a high-high level of the tank that receives the
+              circulation return, and XV-2123 (XV-3123) fails to close (actuator or solenoid fault,
+              valve stuck, ice on the stem); I-205 (I-305) does not stop the return sources because
+              ZSC-2123 (ZSC-3123) falsely reads 'closed' (switch held made, cam slipped or set to
+              make early, a valve stuck part-way) or the trip fails on demand. (Since 79d5c7ad I-201
+              / I-301 themselves no longer stop the pumps, D-030 item 1.)
+            consequence: >-
+              The circulation pump P-2102 (P-3102) keeps returning ~314 m3/h (rated 500 m3/h, D-008)
+              through LNG-4005 into the tank past its high-high level (up to aedd8dbd, during a
+              post-loading drain the jetty drain pumps P-5101 / P-6101 added to it through the
+              platform crossover; since c257902c, D-036, they return into the berth headers downstream of
+              XV-5101 / XV-6101 and feed the return no longer); the tank fills further toward the
+              suspended deck and the roof space at the return rate while the fill is already
+              stopped: overfill as S6, slower.
+            refs: [XV-2123, XV-3123, ZSC-2123, ZSC-3123, P-2102, P-3102, LZT-2102, LZT-2106, T-2101, LNG-4005]
+            modes: [holding]
+            safeguards: [SG28]
+            actions: [A23]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Cold LNG and vapour released from the tank top (as S6); matrix 4 = permanent injury or fatality. B: a high-high demand in holding together with the return valve failing to close on it, once in the plant life.", evidence: [control/cause-effect.yaml, control/instrument-list.yaml, DESIGN.md D-030], band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+                - {category: asset, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Inner tank or roof damage (as S6); matrix 4 = loss of the unit.", evidence: [control/cause-effect.yaml], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: f33c22768a8b83e6, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: B}}}
+              residual:
+                - {category: people, severity: "4", likelihood: A, status: proposed, by: agent, basis: "Agent proposal for the team: one layer credited, I-205 (I-305) on the closed-position switch ZSC-2123 (ZSC-3123) of the valve itself (79d5c7ad), independent of the level gauges and of the XV-2123 actuator whose failure is the cause, stopping the sources of the return after 15 s (since c257902c the two circulation pumps only; the jetty drain pumps no longer feed the return, D-036). Severity kept; SIL null; the false 'closed' of the switch is part of the cause and has no proof test in the files (A23).", evidence: [control/cause-effect.yaml, control/instrument-list.yaml, DESIGN.md D-030], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ddcedc61b5d20d1a, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: A}}}
+                - {category: asset, severity: "4", likelihood: A, status: proposed, by: agent, basis: "As the people residual: I-205 (I-305) credited as one layer.", evidence: [control/cause-effect.yaml], band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: eca0767de9ee2296, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: A}}}
+            notes: >-
+              New scenario for 79d5c7ad (D-030 item 1; review 2026-11-05-basic-design-5 #1). At
+              f5d925f6 I-201 / I-301 stopped the pumps whatever the valve did (the cause was then
+              only the trip failing); the change keeps the desuperheater spray and the drum emptying
+              in loading at the price of resting the holding case on the valve's own switch. In
+              loading XV-2123 / XV-3123 are already closed and proven closed in SEQ-LOAD S0, so the
+              cause needs holding. With the return valve closed the circulation pump runs on its
+              minimum flow FV-2112 and PSV-4114 relieves the blocked return (H-02 S8, S9). The
+              spurious 'not closed' of the switch, which stops the spray in loading, is H-02 S24.
+              Revised for 709fcf20 (D-032 item 7, #3): the on-delay of I-205 / I-305 sits on 'I-201
+              / I-301 tripped', so the pumps stop 15 s after the trip if the switch does not read
+              closed then. The new discrepancy alarm (switch reading closed while the valve is
+              commanded open longer than its stroke time) finds a switch stuck closed in holding,
+              when XV-2123 / XV-3123 is open for the circulation, before the demand: it answers part
+              of A23 and narrows the dormant false 'closed' of this cause; it does not act once the
+              trip has commanded the valve closed, so a switch that sticks at the moment of the
+              demand or a valve stuck part-way with the cam made early remains. Codes kept; the
+              residual keeps its code (the alarm is not counted as a second layer). Revised for
+              c257902c (D-036 items 4, 5 (a); C&E I-201 / I-205 notes and effects): P-5101 / P-6101
+              are no longer effects of I-205 / I-305, since their discharge LNG-5006 / LNG-6006 now
+              enters the berth headers downstream of XV-5101 / XV-6101, so the return has the
+              circulation pump as its only source; in loading the spray LNG-4008 is fed from the
+              loading header back through LNG-2002 with P-2102 held on its check valve CV-2122 on
+              its minimum flow (P-2102 designed for 15 barg since D-036), which does not change this
+              holding cause. SEQ-LINE-EMPTY also uses the return (XV-4105, XV-2123) to bring a
+              leaking trestle line back to a tank, with the circulation pumps stopped; its overfill
+              case is S26. Codes kept.
+          - id: S26
+            cause: >-
+              SEQ-LINE-EMPTY (added in c257902c, D-036 item 5 (b), 11 (b): a leak on the trestle side
+              of a shore ESD valve after ESD-1) returns the leaking loading line, ~1,030 m3 of LNG
+              plus the film, with site N2 through the platform crossover, the other loading line,
+              XV-4105 and the circulation return XV-2123 (XV-3123) into the receiving tank, ~450
+              m3/h for ~2.3 h (ASSUMED); its permissive asks for at least 1,100 m3 below the
+              high-high level of that tank, but the margin is misjudged (LT-2101 reading low, the
+              check made on the other tank) or the rundown keeps filling the same tank through
+              XV-1102 during the displacement (the sequence does not say where the rundown goes
+              meanwhile), so the level reaches the LAHH of LZT-2102 / LZT-2106 before the line is
+              empty.
+            consequence: >-
+              I-201 (I-301) closes XV-2123 (XV-3123) and the fill, which also ends the displacement
+              (the SEQ-LINE-EMPTY abort): the leaking line is left part-full with the N2 pushing
+              against a closed return (H-02 S31), and what is left of it drains to the leak by
+              gravity beyond the ~3.5 h / ~36 m3 of D-036.11 (b) (T-8102, the header bay fire, H-02
+              S29); with I-201 failing on demand the return overfills the tank as S6, at the
+              displacement rate plus the rundown, and the N2 that follows the liquid at the end goes
+              into a tank whose vapour space is already at its high-high level.
+            refs: [T-2101, T-3101, LZT-2102, LZT-2106, LT-2101, XV-2123, XV-3123, XV-4105, XV-1102, LNG-4005, LNG-4001, LNG-4002]
+            modes: [holding, loading]
+            safeguards: [SG29, SG6]
+            actions: [A24]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: A, status: proposed, by: agent, basis: "A line-empty demand that ends early leaves the platform leak fed beyond its bound, or with I-201 failing an overfill as S6; matrix 4 = permanent injury or fatality. A: needs the trestle-side leak that calls SEQ-LINE-EMPTY (H-02 S29, once in the plant life) together with a misjudged ullage or the rundown left on the receiving tank, not expected in the plant life.", evidence: [control/sequences.yaml, control/cause-effect.yaml, DESIGN.md D-036], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ddcedc61b5d20d1a, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: A}}}
+            notes: >-
+              New scenario for c257902c (D-036 item 5 (b), 11 (b), (d); SEQ-LINE-EMPTY permissive,
+              abort and I-201 among its interlocks). The ~1,030 m3, ~450 m3/h and ~2.3 h are the
+              design's ASSUMED values. The 1,100 m3 permissive leaves ~70 m3 for the film and the
+              rundown, which at the full rundown rate (~7,560 m3/h, D-005) fills that margin in under
+              a minute: the rundown has to be on the other tank for the displacement, which the
+              sequence does not state (A24). The band is proposed for the team; no residual (the
+              permissive is an operator's check, I-201 ends the displacement it protects).
+      - id: N2-LL
+        guide_word: less
+        parameter: level
+        scenarios:
+          - id: S7
+            cause: >-
+              Withdrawal by the loading pumps (up to 12,000 m3/h from one tank, D-011) continues
+              below the minimum submergence: LT-2101 reads high, or the loading is not switched to
+              the other tank.
+            consequence: Submerged-motor pumps P-2101A..D and P-2102 cavitate and run dry; motor and bearing damage; loading stops.
+            refs: [T-2101, LT-2101, P-2101A, P-2101B, P-2101C, P-2101D, P-2102]
+            modes: [loading]
+            safeguards: [SG8]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: C, status: proposed, by: agent, basis: "In-tank pump damage; a pump is pulled through its column, weeks (matrix 3).", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 4255ea3f73fe5efe, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '3', likelihood: C}}}
+      - id: N2-OC
+        guide_word: other-than
+        parameter: composition (density)
+        scenarios:
+          - id: S8
+            cause: >-
+              Stratification: the rundown differs in density from the tank heel (train off-spec
+              or a different train mix, a weathered N2-depleted heel, D-009) and is filled at the
+              wrong level (lighter LNG bottom-filled under heavier, or heavier top-filled without
+              mixing); LTD-2103 trend not acted on.
+            consequence: >-
+              Rollover: the layers mix suddenly and release BOG at many times the normal rate,
+              beyond the BOG compressors and PV-1110; the tank pressure reaches PSV-2131A/B, which
+              vent cold methane-rich vapour to atmosphere; if relief is insufficient, damage to the
+              tank roof or inner tank.
+            refs: [T-2101, AI-1102, LTD-2103, XV-1106, XV-1107, PSV-2131A, PSV-2131B]
+            safeguards: [SG9, SG10, SG11, SG12, SG13]
+            actions: [A6, A7]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Large venting of cold flammable vapour from the tank top; matrix 4 = permanent injury or fatality. B: rollover could happen once in the plant life without management.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+                - {category: environment, severity: "3", likelihood: B, status: proposed, by: agent, basis: "Methane release to atmosphere; matrix 3 = reportable release.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 92790e212f41fb89, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '3', likelihood: B}}}
+                - {category: asset, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Tank roof or inner tank damage; matrix 4 = loss of the unit.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: f33c22768a8b83e6, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: B}}}
+            notes: >-
+              PSV-2131A/B/C list rollover as a check case only (special items); the rollover
+              relieving rate is not in the files. Since 589c9ca7 I-203 opens the SIS vent XV-1115
+              instead of PV-1110, and a third relief valve PSV-2131C (PSV-3131C) is drawn (N+1);
+              no residual rating is proposed because neither the vent nor the relief capacity is
+              confirmed against the rollover rate (relief sizing not done at basic, D-025; A7).
+      - id: N2-HT
+        guide_word: more
+        parameter: temperature (annular space)
+        scenarios:
+          - id: S9
+            cause: Inner-tank leak through the 9 % Ni inner tank into the annular space.
+            consequence: >-
+              LNG in the annular space against the concrete outer tank (full containment holds it
+              by design); cold spot, thermal stress of the outer tank and liner; boil-off increase.
+            refs: [T-2101, TI-2105]
+            safeguards: [SG14, SG15]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "4", likelihood: A, status: proposed, by: agent, basis: "Tank out of service for repair; matrix 4 = loss of the unit. A: not expected in the plant life.", band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: eca0767de9ee2296, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: A}}}
+            notes: The deviation is a lower temperature in the annular space; TI-2105 is the drawn detection (no alarm stated).
+      - id: N2-LT
+        guide_word: less
+        parameter: temperature (tank base)
+        scenarios:
+          - id: S10
+            cause: Failure of the tank bottom heating (controlled from TI-2105, not drawn on P-02).
+            consequence: Freezing of the ground below the base slab, frost heave and damage to the foundation.
+            refs: [T-2101, TI-2105]
+            safeguards: [SG15]
+            actions: [A8]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Foundation damage of a 225,000 m3 tank; matrix 4 = loss of the unit. B: slow failure, could happen once in the plant life.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: f33c22768a8b83e6, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: B}}}
+  - id: N3
+    title: LNG tanks T-2101 and T-3101 - vapour space pressure, relief and vacuum
+    design_intent: >-
+      Hold the tank vapour space at about 115 kPa(a) (PIC-1110 setpoint 14 kPa(g)) between the
+      relief valves PSV-2131A/B/C (PSV-3131A/B/C, N+1) at +29 kPa(g) and the vacuum relief valves
+      PSV-2133A/B/C (PSV-3133A/B/C, N+1) set at -0.3 kPa(g) against the -0.5 kPa(g) design
+      vacuum; BOG leaves through BOG-1001 (BOG-1003) to the header; make-up from the trains' fuel
+      gas FG-1001 through FO-1117 and PV-1111 (PIC-1111) at 6 kPa(g); trips I-203 (opens the SIS
+      vent XV-1115) and I-204 (I-303 / I-304) (D-007, D-017, D-025). Since fac0bbb5 each
+      relief and vacuum valve has its locked-open inlet isolation drawn, HV-2134A/B/C on
+      BOG-2002..BOG-2004 and HV-2135A/B/C on A-2001..A-2003 (HV-3134A/B/C, HV-3135A/B/C on
+      T-3101), mechanically interlocked so that two of the three devices of each set stay in
+      service (D-026 item 11, special items).
+    members: [T-2101, T-3101, PI-2111, PZT-2112, PSV-2131A, PSV-2131B, PSV-2131C, PSV-2133A, PSV-2133B, PSV-2133C, PI-3111, PZT-3112, PSV-3131A, PSV-3131B, PSV-3131C, PSV-3133A, PSV-3133B, PSV-3133C, BOG-1001, BOG-1003, BOG-2002, BOG-2003, BOG-2004, A-2001, A-2002, A-2003, HV-2134A, HV-2134B, HV-2134C, HV-2135A, HV-2135B, HV-2135C, HV-3134A, HV-3134B, HV-3134C, HV-3135A, HV-3135B, HV-3135C]
+    status: proposed
+    by: agent
+    deviations:
+      - id: N3-HP
+        guide_word: more
+        parameter: pressure
+        scenarios:
+          - id: S11
+            cause: >-
+              All running BOG compressors trip (I-701 on D-7101 LAHH, power failure, I-702 / I-702B /
+              I-702C, I-703A..C; since f5d925f6 the control philosophy F-AIR also states that a loss
+              of instrument air stops them through I-705A..C, their suction valves failing closed)
+              during loading, when the BOG is 49.1 t/h with the carrier's return (D-009; since
+              aedd8dbd the balance's envelope is 56.5 t/h at the compressor suction with a carrier
+              return of 52.5 t/h, D-034).
+            consequence: >-
+              Header and tank pressure rise; if PV-1110 does not take the BOG to the flare, the
+              tanks reach +29 kPa(g) and PSV-2131A/B/C (PSV-3131A/B/C) vent cold BOG to atmosphere
+              from the tank tops; above the relief capacity, tank roof overpressure.
+            refs: [K-7101A, K-7101B, K-7101C, PV-1110, XV-1115, T-2101, PSV-2131A, PSV-2131B, PSV-2131C]
+            modes: [loading, holding]
+            safeguards: [SG16, SG17, SG18, SG10]
+            actions: [A9, A10]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, status: proposed, by: agent, basis: "Cold flammable vapour from elevated tailpipes at the tank top; matrix 4 = permanent injury or fatality. C: compressor trips are expected several times in the plant life.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ac0a4b03e3d8d0c2, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: C}}}
+                - {category: environment, severity: "3", likelihood: C, status: proposed, by: agent, basis: "Methane venting; matrix 3 = reportable release.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 1fb9317519cce7ee, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '3', likelihood: C}}}
+              residual:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Agent proposal for the team: one layer credited, I-203 / I-303 opening the SIS vent XV-1115 to the flare (589c9ca7), a final element independent of PV-1110 with its own air accumulator. PIC-1110 / PV-1110 is not credited as a second layer here (the C&E and the vent capacity against the 49.1 t/h loading case are not confirmed). Still high: an action is needed (A10, flare capacity H-04 A3).", evidence: [control/cause-effect.yaml, piping/line-list.yaml, DESIGN.md D-025], band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+                - {category: environment, severity: "3", likelihood: B, status: proposed, by: agent, basis: "As the people residual: XV-1115 credited as one layer; the vent goes to the flare instead of the atmosphere.", evidence: [control/cause-effect.yaml], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 92790e212f41fb89, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '3', likelihood: B}}}
+            notes: >-
+              Revised for 589c9ca7: I-203 / I-303 now open XV-1115 (FL-1001, bypass of PV-1110),
+              energise-to-trip from its own air accumulator; the spurious opening of XV-1115 is in
+              H-04 (S20). Revised for aedd8dbd (D-034 item 1; special items, flowsheet): the
+              loading pumps re-rated to 191 m put ~3,900 kW into the LNG at loading (E1, was ~2,700),
+              which raises the balance's loading envelope to 56.5 t/h (carrier return envelope 52.5
+              t/h, now the PSV-2131A/B/C / PSV-3131A/B/C relief case); the arms return ~38 t/h at
+              most (D-034.1). The load on XV-1115 and the tank PSVs on a compressor trip at loading
+              rises with it; their capacity against it is still open (A10, H-04 A3). Codes kept.
+              Revised for c257902c (D-036 item 2; equipment list, P-07 note, not the trip causes):
+              the compressors are re-rated to 3 x 31.1 t/h, so two machines carry the 56.5 t/h
+              envelope and the third is the spare; the common-cause trip of all running machines is
+              unchanged, and so is the load on XV-1115 and the PSVs. SEQ-LINE-EMPTY (D-036 item 5)
+              adds a source to the tank vapour space: the N2 that follows the displaced line into the
+              receiving tank at up to ~4,000 Nm3/h (~5 t/h, agent arithmetic) until XV-4103 is closed,
+              which the sequence aborts on a high receiving-tank pressure (H-02 S32, H-04 S26); it
+              adds to the vapour load only while the compressors run. Codes kept.
+          - id: S12
+            cause: >-
+              PV-1110 fails closed (loss of instrument air - its fail position in control/loops.yaml
+              - or a stuck valve) while the BOG exceeds the running compressors' capacity (start of
+              loading, one machine out of service).
+            consequence: As S11; without another outlet the tank PSVs are the only remaining outlet.
+            refs: [PV-1110, PIC-1110, XV-1115, PSV-2131A, PSV-2131B, PSV-2131C]
+            safeguards: [SG17, SG10]
+            actions: [A9]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, status: proposed, by: agent, basis: "As S11; matrix 4.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ac0a4b03e3d8d0c2, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: C}}}
+                - {category: environment, severity: "3", likelihood: C, status: proposed, by: agent, basis: "Methane venting; matrix 3 = reportable release.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 1fb9317519cce7ee, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '3', likelihood: C}}}
+              residual:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Agent proposal for the team: one layer credited, I-203 / I-303 on PZT-2112 / PZT-3112 opening XV-1115 (589c9ca7), no longer the failed PV-1110; XV-1115 keeps its own air accumulator, so the loss of instrument air that closes PV-1110 does not defeat it. Still high: SIL null, vent capacity to be confirmed (H-04 A3).", evidence: [control/cause-effect.yaml, control/philosophy.md, DESIGN.md D-025], band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+                - {category: environment, severity: "3", likelihood: B, status: proposed, by: agent, basis: "As the people residual.", evidence: [control/cause-effect.yaml], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 92790e212f41fb89, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '3', likelihood: B}}}
+            notes: >-
+              Before 589c9ca7 I-203 opened PV-1110, the final element of PIC-1110 (shared final
+              element). Since 589c9ca7 I-203 / I-303 open the SIS vent XV-1115 in a bypass of
+              PV-1110 (FL-1001), fail closed, energise-to-trip with its own accumulator (D-025
+              item 1): the trip is independent of the failed PV-1110; this answers A9. Revised for
+              f5d925f6 (D-028 item 1, F-AIR rewritten): on a loss of instrument air PV-1110 fails
+              closed and the BOG compressors are stopped as well (I-705A..C), while I-804 stops the
+              loading and the fill (ESD-1 of both berths, I-102), which ends the carrier's return
+              and, after the fill valves have closed, the vapour displaced by the fill; the tank
+              pressure then rises on the boil-off to I-203 / I-303 and XV-1115 (H-04 S3). Codes kept.
+          - id: S13
+            cause: Fire on the tank roof or at the tank (pool fire in the tank area, jet fire at a roof nozzle).
+            consequence: Heat input raises the boil-off beyond the BOG system; PSV-2131A/B relieve; fire escalation to the roof platform and pump columns.
+            refs: [T-2101, PSV-2131A, PSV-2131B]
+            safeguards: [SG10]
+            actions: [A11]
+            status: proposed
+            by: agent
+            notes: >-
+              Since 886b0ad5 (D-026 item 12; review 2026-11-05-basic-design-3#9) the relief cases of
+              PSV-2131A/B/C / PSV-3131A/B/C also name fire on D-7101 and the BOG suction header,
+              which vents back through BOG-1001 into the tank vapour space (H-04 S14); a fire in
+              the tank area that reaches both a tank and D-7101 adds the two loads. Sizing is not
+              done at basic (D-025). Codes kept. Noted for 79d5c7ad (D-031 item 1, D-018; layout,
+              not an analysed input of this study): the spill trough under PR1 now runs 34.8 m from
+              the T-2101 shell, and a fire along every open trough leg at once is screened at about
+              7.0 kW/m2 at the T-2101 shell and 5.3 kW/m2 at T-3101 including the flame tilt
+              (ASSUMED line-source method), below the 8 kW/m2 criterion; the enclosed channel under
+              PR5 / PR6 and the riser towers is not screened as a fire source. A trough fire is a
+              fire exposure of the tank the team may count under this scenario (H-05 S26). Codes
+              kept. Noted for 709fcf20 (D-018, D-033 items 1, 3, 9, 11; layout, not an analysed
+              input): the enclosed channels under PR5 / PR6 and the riser towers are removed (the
+              riser runs between the dome edge and their PR1 joints are welded, no leak source; a
+              rupture of a welded riser run is a case of the siting study); the PR1 trough now
+              starts at the PR6 joint (x 975), 140 m less in front of T-2101, and is lined; XV-3123
+              on PR5 and the DN 25 thermal reliefs PSV-1122 / PSV-1123 have drip trays at the item
+              (XV-3123: 3 m3, ~50 min of a ~1 kg/s flange leak, ASSUMED); leaks at the dome-edge
+              valves are held in drip trays on the roof nozzle and pump platforms (tank supply,
+              ASSUMED); the basin T-8101 is at (990, 3237.5), 10.5 m deep. The D-033.9 screening of
+              one spill as one design fire (every open trough leg, the basin and the releasing
+              item's drip pad at once, incl. the x 1.2 tilt, ASSUMED) gives 4.1 kW/m2 at the T-2101
+              shell and 1.1 at T-3101, 4.4 / 1.3 at the riser towers, against the 8 kW/m2 criterion
+              (the figures above are superseded). Codes kept: the fire on the tank remains the
+              rated outcome. Noted for aedd8dbd (D-034 item 3, D-035 items 2, 5, 9; layout, not an
+              analysed input): the governing tank-area release is one tank's loading pumps at
+              run-out into one line (~14,400 m3/h, 2,400 m3 in 10 min, ASSUMED), the rundown through
+              XV-1102 / XV-1103 (7,560 m3/h, 1,260 m3) the lesser case; the trough is 0.6 m wide and
+              up to 5.77 m deep, the basin T-8101 keeps its 16 m (and the burning surface) at 19.5 m
+              deep, so the D-033.9 shell and riser tower values hold (4.1 / 1.1, 4.4 / 1.3 kW/m2);
+              a tank-area muster point Z-ESC-A1-MUSTER sees 0.49 kW/m2; JB-PR1 is moved out of the
+              trough's near field and the field cables of the rundown trip (XV-1102 / XV-1103,
+              ZSC-1102 / ZSC-1103, PZT-1105) crossing the trough band are fire-resistant (ASSUMED),
+              with the design owner to confirm that I-102 trips on a bad PZT-1105 signal (A18). The
+              design has no automatic stop of the loading pumps on a tank-area release (D-034.3).
+              Codes kept.
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Fire on the tank; matrix 4 = permanent injury or fatality. B: could happen once in the plant life.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+                - {category: asset, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Tank damage; matrix 4 = loss of the unit.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: f33c22768a8b83e6, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: B}}}
+          - id: S14
+            cause: Rapid fall of the barometric pressure (storm front at Kitimat) at constant tank absolute pressure demand.
+            consequence: Gauge pressure and boil-off rise; more BOG to the compressors and the flare.
+            refs: [T-2101, PIC-1110]
+            safeguards: [SG16]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: environment, severity: "1", likelihood: C, status: proposed, by: agent, basis: "Extra flaring; matrix 1 = release contained on site.", band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ed33d7239a0f1e4c, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '1', likelihood: C}}}
+            notes: The controlled variable is the header gauge pressure (PIC-1110, kPa(g)); the team to confirm whether the control is on gauge or absolute pressure.
+      - id: N3-LP
+        guide_word: less
+        parameter: pressure (vacuum)
+        scenarios:
+          - id: S15
+            cause: >-
+              Rapid withdrawal at the full loading rate from one tank (four pumps, 12,000 m3/h)
+              with a low vapour return (carrier return-gas compressor not yet ramped up, S-01, or
+              the vapour arm isolated) while the BOG compressors keep drawing.
+            consequence: >-
+              The vapour space pressure falls below the make-up range; at -0.3 kPa(g)
+              PSV-2133A/B/C admit air into a tank full of methane: a flammable mixture in the vapour
+              space and the BOG header; at a deeper vacuum (design -0.5 kPa(g)) buckling of the
+              inner tank roof or deck.
+            refs: [T-2101, P-2101A, PV-1111, FG-1001, FO-1117, PSV-2133A, PSV-2133B, PSV-2133C]
+            modes: [loading]
+            safeguards: [SG19, SG20, SG21]
+            actions: [A12, A13]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Flammable mixture inside the tank and header with ignition sources at the compressors; matrix 4. B: needs the make-up and the trip to fail.", band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+                - {category: asset, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Inner tank damage by vacuum; matrix 4 = loss of the unit.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: f33c22768a8b83e6, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: B}}}
+              residual:
+                - {category: people, severity: "4", likelihood: A, status: proposed, by: agent, basis: "Agent proposal for the team: one layer credited, I-204 / I-304 on PZT-2112 / PZT-3112 stopping the loading pumps and the BOG compressors (the withdrawal that is the cause). The make-up PV-1111, since 589c9ca7 from the trains' fuel gas FG-1001 through FO-1117 and independent of the compressors, is regulatory and not credited (C&E I-204 notes; fuel-gas capacity not confirmed, D-025). The vacuum valves are not credited for people: their lift is the air-ingress consequence.", evidence: [control/cause-effect.yaml, piping/line-list.yaml, DESIGN.md D-025], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ddcedc61b5d20d1a, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: A}}}
+                - {category: asset, severity: "4", likelihood: A, status: proposed, by: agent, basis: "Agent proposal: I-204 / I-304 and the N+1 vacuum relief valves PSV-2133A/B/C (set -0.3 kPa(g) against the -0.5 kPa(g) design) protect the structure; one code lower for the two together pending the relief capacity check (A13).", evidence: [piping/special-items.yaml], band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: eca0767de9ee2296, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: A}}}
+            notes: >-
+              Before 589c9ca7 the make-up came from the compressor discharge BOG-7002 (line
+              BOG-1009, removed) and depended on the machines that I-204 stops. Since 589c9ca7 it
+              comes from the trains' fuel gas FG-1001 through FO-1117 and PV-1111 (D-025 item 1),
+              which answers A12; I-204 no longer opens PV-1111 (PIC-1111 does). The loss of the
+              fuel gas itself (trains tripped) and the spurious opening of the SIS vent XV-1115
+              are analysed in H-04 (S6, S20). Since 886b0ad5 the flare valves XV-4131 / XV-4132 of
+              the de-inerting switch fail closed again (D-026 item 1, review
+              2026-11-05-basic-design-3#1): at fac0bbb5 an instrument-air failure opened the tank
+              vapour header to the flare through BOG-4013 / BOG-4014 with the make-up PV-1111 failed
+              closed, a further vacuum cause beside this one (H-02 S16); that air-failure path is
+              removed. Codes kept.
+          - id: S16
+            cause: Rapid rise of the barometric pressure (passing a low).
+            consequence: Gauge pressure falls toward the vacuum set point; as S15.
+            refs: [T-2101, PSV-2133A, PSV-2133B, PSV-2133C]
+            safeguards: [SG19, SG20, SG21]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: B, status: proposed, by: agent, basis: "Vacuum valve lift and air ingress; matrix 3 = plant down for weeks for inerting.", band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 579975b5e9fe3f0e, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '3', likelihood: B}}}
+          - id: S17
+            cause: >-
+              Subcooled rundown top-filled through the spray (XV-1106) at the full rundown rate
+              into a tank with low boil-off: the spray condenses the vapour (D-005 notes the
+              effect and does not credit it).
+            consequence: Vapour space pressure falls toward vacuum; as S15. I-204 does not stop or switch the fill.
+            refs: [XV-1106, LNG-1002, T-2101, TI-1103]
+            modes: [holding]
+            safeguards: [SG19, SG20, SG21]
+            actions: [A14]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: C, status: proposed, by: agent, basis: "Vacuum valve lift and air ingress; matrix 3 = plant down for weeks.", band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 4255ea3f73fe5efe, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '3', likelihood: C}}}
+      - id: N3-LR
+        guide_word: less
+        parameter: relief capacity (inlet isolation)
+        description: Created by the relief and vacuum valve inlet isolations HV-n134 / HV-n135 drawn in fac0bbb5.
+        scenarios:
+          - id: S19
+            cause: >-
+              A relief or vacuum valve inlet isolation left closed or part closed: HV-2134A/B/C
+              (HV-3134A/B/C) under PSV-2131A/B/C (PSV-3131A/B/C) or HV-2135A/B/C (HV-3135A/B/C) under
+              PSV-2133A/B/C (PSV-3133A/B/C) not reopened after a valve change, with the mechanical
+              interlock wrongly assembled, its key bypassed or a valve not fully open behind it;
+              more than one device of a set out of service at once.
+            consequence: >-
+              Fewer than the N relief or vacuum valves the relief case needs (N+1 installed): on
+              the next demand (loss of the BOG compressors at loading, fire, rollover, the fuel gas
+              blow-by of D-026 item 8, since 886b0ad5 also fire on D-7101 and the BOG suction header;
+              a fast withdrawal or the spurious XV-1115 opening for the
+              vacuum side) the tank pressure rises above +29 kPa(g) or falls below the -0.5 kPa(g)
+              design vacuum: roof or inner-tank damage, release from the tank top.
+            refs: [HV-2134A, HV-2134B, HV-2134C, HV-2135A, HV-2135B, HV-2135C, PSV-2131A, PSV-2131B, PSV-2131C, PSV-2133A, PSV-2133B, PSV-2133C, HV-3134A, HV-3135A]
+            modes: [holding, loading]
+            safeguards: [SG24]
+            actions: [A17]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Tank overpressure with a release from the tank top at a relief demand while the capacity is short; matrix 4 = permanent injury or fatality. B: needs an isolation left closed beyond the interlock and a relief demand in that time, once in the plant life.", evidence: [piping/special-items.yaml, DESIGN.md D-026], band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+                - {category: asset, severity: "4", likelihood: B, status: proposed, by: agent, basis: "Tank roof or inner tank damage by over- or underpressure; matrix 4 = loss of the unit.", evidence: [piping/special-items.yaml], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: f33c22768a8b83e6, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: B}}}
+            notes: >-
+              New scenario for fac0bbb5 (D-026 item 11). No position indication of the inlet
+              isolations is drawn; the mechanical interlock is the only safeguard and keeps two of
+              three in service by design, so with N+1 = 3 one valve may be out without loss of
+              capacity if N = 2 is confirmed by the relief sizing (not done at basic, D-025). No
+              residual is proposed.
+safeguards:
+  - {id: SG1, title: Check valves CV1111..CV1114 on the train rundown lines, kind: check-valve, refs: [{sheet: P-01, object: CV1111}, {sheet: P-01, object: CV1112}, {sheet: P-01, object: CV1113}, {sheet: P-01, object: CV1114}], status: proposed, by: agent}
+  - {id: SG2, title: PI-1104 rundown header pressure indication (no alarm stated in the files), kind: other, refs: [PI-1104], status: proposed, by: agent, notes: "An indication only; the team to say whether an alarm and operator action exist."}
+  - {id: SG3, title: PSV-1121 thermal relief of the rundown header to the BOG header, kind: relief, refs: [PSV-1121], status: proposed, by: agent, notes: "Since f5d925f6 its relief case says it is not a surge relief device: the surge of a rundown closure is limited by the closure order and the closure of at least 30 s (D-023 (3), D-028; S22). Since 79d5c7ad its entry also carries 'blocked outlet against the trains' rundown pumps' as an open relief case of the rundown header, not of this PSV, the header design pressure to be confirmed with the trains' shut-off head (hold H-05, D-030 item 5)."}
+  - {id: SG4, title: TI-1103 rundown temperature indication, kind: other, refs: [TI-1103], status: proposed, by: agent}
+  - {id: SG5, title: LT-2101 / LT-3101 radar level and fill control, kind: control, refs: [LT-2101, LT-3101], status: proposed, by: agent, notes: "The cause in S6 is its failure; not a safeguard against it."}
+  - {id: SG6, title: "Interlock I-201 (I-301): LZT-2102 or LZT-2106 (LZT-3102 or LZT-3106) LAHH, 1oo2, closes XV-1102 (XV-1103) and the circulation return XV-2123 (XV-3123)", kind: interlock, interlock: I-201, refs: [LZT-2102, LZT-2106, XV-1102, XV-2123], status: proposed, by: agent, notes: "Second independent gauge and 1oo2 since 589c9ca7 (D-025 item 2); I-301 alike with LZT-3102 / LZT-3106. Since f5d925f6 (D-028 item 3) XV-2123 / XV-3123 fail closed; XV-1102 closes in at least 30 s (S23). Since 79d5c7ad (D-030 item 1) the trip no longer stops P-2102, P-3102, P-5101, P-6101; I-205 / I-305 do, only if the return is not proven closed (SG28, S25)."}
+  - {id: SG27, title: "Permissive I-103: the close command of the last open fill selection valve of the only lined-up tank (HS-1106..HS-1109) is blocked; XV-1106..XV-1109 close in at least 30 s (speed controller)", kind: interlock, interlock: I-103, refs: [HS-1106, HS-1107, HS-1108, HS-1109, XV-1106, XV-1107, XV-1108, XV-1109, ZSC-1102, ZSC-1103], status: proposed, by: agent, notes: "Added in 79d5c7ad (D-030 item 6, D-023 (3), D-026.4); never moves a valve; 'open' is the open command held for the stroke time (about 35 s), the selection valves have no position switch at basic (S24); latching false, reset automatic, SIL null; position switches left to the SIL screening (hold H-06)."}
+  - {id: SG28, title: "Interlocks I-205 (I-305): I-201 (I-301) tripped and ZSC-2123 (ZSC-3123) not proving XV-2123 (XV-3123) closed after 15 s stop P-2102 and P-3102 (until aedd8dbd also P-5101 and P-6101)", kind: interlock, interlock: I-205, refs: [ZSC-2123, ZSC-3123, XV-2123, XV-3123, P-2102, P-3102], status: proposed, by: agent, notes: "Added in 79d5c7ad (D-030 item 1; P-02 / P-03, instrument list); the switch is on the valve itself; latching, manual reset, SIL null; delay 15 s ASSUMED (stroke time plus margin); a switch failing to 'not closed' stops the pumps (H-02 S24), one failing to 'closed' is part of the cause of S25. Since 709fcf20 (D-032 item 7, #3) the delay sits on 'I-201 / I-301 tripped', and a command discrepancy alarm finds a switch reading closed while its valve is commanded open. Since c257902c (D-036 item 5 (a)) the jetty drain pumps are no longer effects: they return into the berth headers downstream of XV-5101 / XV-6101, not into the return."}
+  - {id: SG29, title: "SEQ-LINE-EMPTY permissive and abort: at least 1,100 m3 below the high-high level of the receiving tank (LZT-2102 / LZT-3102) before the displacement; abort on I-201 (I-301) tripped or a high receiving-tank pressure (PIC-1110 output saturated)", kind: procedural, refs: [LZT-2102, LZT-3102, XV-2123, XV-3123, PIC-1110], status: proposed, by: agent, notes: "Added in c257902c (D-036 item 5 (b), control/sequences.yaml SEQ-LINE-EMPTY); an operator's check of the level against the ~1,030 m3 line, no interlock; the rundown into the same tank during the ~2.3 h displacement is not stated in the sequence (S26)."}
+  - {id: SG7, title: "Interlock I-101: both tanks LAHH trip the trains through XS-1100 and close the battery-limit valves XV-1111..XV-1114", kind: interlock, interlock: I-101, refs: [LZT-2102, LZT-3102, LZT-2106, LZT-3106, XV-1111, XV-1112, XV-1113, XV-1114, XS-1100], status: proposed, by: agent, notes: "XS-1100 effect since f5d925f6 (D-028 item 2)."}
+  - {id: SG8, title: "Interlock I-202 (I-302): LZT-2102 LALL stops the in-tank pumps", kind: interlock, interlock: I-202, refs: [LZT-2102, P-2101A, P-2101B, P-2101C, P-2101D, P-2102], status: proposed, by: agent}
+  - {id: SG9, title: Density and temperature profile LTD-2103 / LTD-3103 with TI-2104 / TI-3104 and rundown density AI-1102, kind: other, refs: [LTD-2103, LTD-3103, TI-2104, TI-3104, AI-1102], status: proposed, by: agent, notes: "Monitoring; no alarm on a density difference is stated in the files."}
+  - {id: SG10, title: "Tank relief valves PSV-2131A/B/C and PSV-3131A/B/C to atmosphere (+29 kPa(g), N+1)", kind: relief, refs: [PSV-2131A, PSV-2131B, PSV-2131C, PSV-3131A, PSV-3131B, PSV-3131C], status: proposed, by: agent, notes: "Third valve per tank (N+1) since 589c9ca7; capacity for fire and rollover not confirmed (relief sizing not done at basic, D-025). Since fac0bbb5 the locked-open inlet isolations HV-2134A/B/C (HV-3134A/B/C) are drawn (S19), and the fuel gas blow-by through FO-1117 with PV-1111 failed open is one of their relief cases (D-026 item 8). Since 886b0ad5 fire on D-7101 and the BOG suction header is one too (D-026 item 12, review 2026-11-05-basic-design-3#9)."}
+  - {id: SG11, title: Top / bottom fill selection XV-1106..XV-1109 by the operator (HS-1106..HS-1109) against the density profile, kind: procedural, refs: [HS-1106, HS-1107, HS-1108, HS-1109], status: proposed, by: agent, notes: "No written rollover procedure is in the files."}
+  - {id: SG12, title: "PIC-1110 / PV-1110: BOG compressor load, then vent to the storage and loading flare", kind: control, refs: [PIC-1110, PV-1110], status: proposed, by: agent}
+  - {id: SG13, title: "Interlock I-203 (I-303): PZT-2112 PAHH closes XV-1102 and opens the SIS vent XV-1115", kind: interlock, interlock: I-203, refs: [PZT-2112, XV-1102, XV-1115], status: proposed, by: agent, notes: "Since 589c9ca7 its own final element XV-1115 (bypass FL-1001 of PV-1110), independent of PIC-1110 / PV-1110 (D-025 item 1)."}
+  - {id: SG14, title: Full-containment concrete outer tank of T-2101 / T-3101, kind: mechanical, refs: [T-2101, T-3101], status: proposed, by: agent}
+  - {id: SG15, title: TI-2105 / TI-3105 annular space and bottom temperatures, kind: other, refs: [TI-2105, TI-3105], status: proposed, by: agent}
+  - {id: SG16, title: "PIC-1110 / PV-1110 split range to the BOG compressors and the flare", kind: control, refs: [PIC-1110, PV-1110], status: proposed, by: agent}
+  - {id: SG17, title: "Interlock I-203 (I-303): PZT-2112 PAHH opens the SIS vent XV-1115 to the flare and stops the fill", kind: interlock, interlock: I-203, refs: [PZT-2112, XV-1115, XV-1102], status: proposed, by: agent, notes: "XV-1115 fails closed and opens energise-to-trip from its own air accumulator (instrument list UZ-1115, 589c9ca7)."}
+  - {id: SG18, title: Installed spare BOG compressor K-7101C, kind: other, refs: [K-7101C], status: proposed, by: agent, notes: "Only when it is started; not against a common-cause trip (I-701, power)."}
+  - {id: SG19, title: "PIC-1111 / PV-1111 make-up gas from the trains' fuel gas FG-1001 through the restriction orifice FO-1117", kind: control, refs: [PIC-1111, PV-1111, FG-1001, FO-1117], status: proposed, by: agent, notes: "Since 589c9ca7 independent of the BOG compressors (the former source BOG-1009 from BOG-7002 is removed); regulatory only, not credited in the C&E (I-204 notes); the trains' fuel-gas capacity for the make-up is to be confirmed in detail engineering (D-025)."}
+  - {id: SG20, title: "Interlock I-204 (I-304): PZT-2112 PALL stops the loading pumps and the BOG compressors", kind: interlock, interlock: I-204, refs: [PZT-2112, P-2101A, K-7101A], status: proposed, by: agent, notes: "Since 589c9ca7 it no longer opens PV-1111; the make-up is PIC-1111's."}
+  - {id: SG21, title: "Vacuum relief valves PSV-2133A/B/C and PSV-3133A/B/C (-0.3 kPa(g), N+1)", kind: relief, refs: [PSV-2133A, PSV-2133B, PSV-2133C, PSV-3133A, PSV-3133B, PSV-3133C], status: proposed, by: agent, notes: "Admits air: protects the tank structure, creates the O2 ingress consequence. Third valve and the -0.3 kPa(g) set point since 589c9ca7; locked-open inlet isolations HV-2135A/B/C (HV-3135A/B/C) drawn since fac0bbb5 (S19)."}
+  - {id: SG22, title: "Interlock I-102: ZSC-1102 and ZSC-1103 both closed, PZT-1105 PAHH on LNG-1001, a tank trip with the other fill valve closed, or the air-header trip I-804, trip the trains through XS-1100 and close XV-1111..XV-1114", kind: interlock, interlock: I-102, refs: [ZSC-1102, ZSC-1103, PZT-1105, XV-1111, XV-1112, XV-1113, XV-1114, XS-1100], status: proposed, by: agent, notes: "Added in 589c9ca7 (D-025 item 1); PZT-1105 added and ZSC-1102 / ZSC-1103 tied to their valves in fac0bbb5 (D-026 items 4, 11), their sensors sensing XV-1102 / XV-1103 themselves since 886b0ad5 (D-026 item 14); since f5d925f6 (D-028 items 1, 2) also on I-201 / I-203 with ZSC-1103 closed, I-301 / I-303 with ZSC-1102 closed and I-804, the trains tripped through XS-1100 as the closure starts; SIL null."}
+  - {id: SG23, title: "Thermal relief PSV-1122 / PSV-1123 of the fill branches to the tank vapour header (15.0 barg)", kind: relief, refs: [PSV-1122, PSV-1123, BOG-1010, BOG-1011], status: proposed, by: agent, notes: "Added in 589c9ca7 (D-025 item 1). Thermal relief only; since f5d925f6 the relief case says a rundown closure is not one of its cases (D-028)."}
+  - {id: SG25, title: "Interlock I-804: instrument-air header low-low PZT-8123A/B/C (2oo3, 4.5 barg ASSUMED) initiates the rundown trip I-102 (trains tripped through XS-1100, XV-1111..XV-1114 closed) and ESD-1 of both berths before the fail-closed actuators stroke (~3.5 barg ASSUMED)", kind: interlock, interlock: I-804, refs: [PZT-8123A, PZT-8123B, PZT-8123C, XS-1100], status: proposed, by: agent, notes: "Added in f5d925f6 (D-028 item 1; P-08); latching, manual reset, SIL null. Acts before a valve moves only while the header falls slower than the margin between the trip point and the stroke pressure allows; its spurious action is S21."}
+  - {id: SG26, title: "Rundown valves XV-1102, XV-1103, XV-1111..XV-1114: closure in at least 30 s by a speed controller on the actuator exhaust, with a non-return valve and a local air accumulator on the actuator supply", kind: mechanical, refs: [XV-1102, XV-1103, XV-1111, XV-1112, XV-1113, XV-1114, UZ-1102, UZ-1103, UZ-1111, UZ-1112, UZ-1113, UZ-1114], status: proposed, by: agent, notes: "Added in f5d925f6 (D-023 (3), D-028 item 2; P-01 note, instrument list); closure and hold times ASSUMED; no proof test in the files; its failure on an air loss is S22."}
+  - {id: SG24, title: "Locked-open inlet isolations HV-2134A/B/C, HV-2135A/B/C (HV-3134A/B/C, HV-3135A/B/C) with the mechanical interlock that keeps two of three relief or vacuum valves of each set in service", kind: mechanical, refs: [HV-2134A, HV-2134B, HV-2134C, HV-2135A, HV-2135B, HV-2135C, HV-3134A, HV-3134B, HV-3134C, HV-3135A, HV-3135B, HV-3135C], status: proposed, by: agent, notes: "Drawn in fac0bbb5 (D-026 item 11, special items); a mechanical device, no position indication drawn."}
+actions:
+  - {id: A1, status: proposed, by: agent, text: "C&E change: extend I-101 so that the battery-limit valves XV-1111..XV-1114 close (and the trains are told to turn down) whenever no fill path is open - XV-1102 and XV-1103 both closed by any cause (I-201, I-203, I-301, I-303, operator) - using valve position feedback, not only on both LAHH.", response: "Answered in the design by commit 589c9ca7 (DESIGN.md D-025 item 1): interlock I-102 on the closed-position switches ZSC-1102 / ZSC-1103 closes XV-1111..XV-1114 and trips the trains through the BL interface whenever XV-1102 and XV-1103 are both closed, by any cause. For the team to verify on P-01 and in the C&E and to close; S1 re-rated, the spurious trip is S18. Commit fac0bbb5 (D-026 items 4, 11) ties ZSC-1102 / ZSC-1103 to their valves on P-01 and adds PZT-1105 to I-102, which also covers a branch closed by its selection valves XV-1106..XV-1109 (S1); its spurious trip is S20. Commit f5d925f6 (D-028 item 2) makes I-102 also act on a tank trip with the other fill valve closed (I-201 / I-203 with ZSC-1103 closed, I-301 / I-303 with ZSC-1102 closed), so the trains are tripped through XS-1100 as the only open fill valve starts to close, and on the air-header trip I-804 (S21). Still proposed."}
+  - {id: A2, status: proposed, by: agent, text: "Surge analysis of the rundown header LNG-1001 for the closure of XV-1102, XV-1103 and XV-1111..XV-1114 at the full rundown rate; set the closure times in the C&E. DESIGN.md section 4 lists only the loading lines.", response: "Partly answered by commit f5d925f6 (DESIGN.md D-023 (3), D-028 item 2): the terminal section is ~1,164 m (2L/a ~2 s); XV-1102, XV-1103 and XV-1111..1114 close in at least 30 s (ASSUMED, about 15 times 2L/a) set by a speed controller on each actuator exhaust (instrument list UZ-1102 / UZ-1103 / UZ-1111..1114, P-01 note), slow-closure estimate about +120 kPa over the operating header pressure; every closure that stops the whole rundown trips the trains through XS-1100 as it starts (I-101, I-102). Still open: the transient analysis with the real closure times and the trains' rundown lines upstream of the battery limit (detail engineering, D-028), the shut-off head of the trains' rundown pumps against the 15 barg design (battery-limit interface, ASSUMED), the closure time as a C&E effect parameter (it is in the notes and the instrument list), and the fast closure on an air failure with a failed non-return valve or accumulator, which has no surge relief on the rundown (S22, A19). Commit 79d5c7ad (D-030 items 5, 6, 13; D-023 (3)) gives the fill selection valves XV-1106..1109 the same closure of at least 30 s and the permissive I-103, carries the blocked outlet against the trains' rundown pumps as an open relief case of the header (PSV-1121 entry) and registers the open items as holds of D-030: H-01 (transient surge analysis of D-023 (1), (3), (4), (5) with the real closure times, rundown included) and H-05 (shut-off head of the trains' rundown pumps at the battery limit and the response time of their trip on XS-1100). Still open as before, now registered; the closure time as a C&E effect parameter is still in the notes and the instrument list only. Still proposed."}
+  - {id: A3, status: proposed, by: agent, text: "P&ID P-01 change: thermal relief valves on LNG-1002/LNG-1004 between XV-1102 and XV-1106/XV-1107 and on LNG-1001/LNG-1003 between XV-1103 and XV-1108/XV-1109 (to the BOG header as PSV-1121), or an interlock that keeps one fill selection valve open while the ESD valve is closed; add the devices to piping/special-items.yaml.", response: "Answered in the design by commit 589c9ca7 (D-025 item 1): thermal relief valves PSV-1122 on the T-2101 fill branch LNG-1002 / LNG-1004 (outlet BOG-1010) and PSV-1123 on the T-3101 fill branch LNG-1001 / LNG-1003 (outlet BOG-1011), 15.0 barg, to the tank vapour header, listed in piping/special-items.yaml. For the team to verify and close; S3 re-rated."}
+  - {id: A4, status: proposed, by: agent, text: "Consider a high temperature alarm on TI-1103 (rundown subcooling lost) with the response agreed with the trains."}
+  - {id: A5, status: proposed, by: agent, text: "Confirm a high level alarm on LT-2101 / LT-3101 separate from the LZT-2102 / LZT-3102 trip point with time for the operator to switch the fill; determine the required integrity of I-201 / I-301 (SIL is null in the C&E).", response: "Partly answered by commit 589c9ca7 (D-025 item 2): a second independent high-high gauge LZT-2106 / LZT-3106 on its own nozzle, I-201 / I-301 now 1oo2. Still open: the LT-2101 / LT-3101 high alarm with the operator's time to act, and the required integrity of I-201 / I-301 (SIL still null)."}
+  - {id: A6, status: proposed, by: agent, text: "Write a rollover management procedure: density difference limits between rundown (AI-1102) and the layers (LTD-2103 / LTD-3103), the fill-level rule, alarms on the LTD density difference and BOG rate, and the mixing measures available on the plant as drawn (tank-to-tank transfer by P-2102 / P-3102)."}
+  - {id: A7, status: proposed, by: agent, text: "Relief study: confirm that PSV-2131A/B and PSV-3131A/B with PV-1110 cover the rollover boil-off rate, or show the rollover case as excluded by the management in A6.", response: "Not answered at 54648679: the relief cases of PSV-2131A/B/C / PSV-3131A/B/C now list the compressor loss at loading, fire, rollover as a check case, the FO-1117 blow-by (D-026 item 8) and fire on D-7101 and the BOG suction header (D-026 item 12), but no device is sized against them (D-025: relief sizing not done at basic). Still open."}
+  - {id: A8, status: proposed, by: agent, text: "P&ID P-02 / P-03 change: draw the tank bottom heating system with its control from TI-2105 / TI-3105 and a low temperature alarm."}
+  - {id: A9, status: proposed, by: agent, text: "C&E / P&ID P-01 change: give I-203 / I-303 a final element independent of PV-1110 (a second flare valve or an ESD vent valve to FL-8001), or show why the shared PV-1110 is acceptable; review the fail position of PV-1110 (fails closed in control/loops.yaml) against the loss-of-air case.", response: "Answered in the design by commit 589c9ca7 (D-025 item 1): I-203 / I-303 open the SIS vent XV-1115 in a bypass of PV-1110 (FL-1001) to the storage and loading flare, independent of PIC-1110 / PV-1110; XV-1115 fails closed and opens energise-to-trip from its own air accumulator; the loss-of-air response is restated in control/philosophy.md F-AIR (no vent opens on the failure, the PSVs remain the last protection). For the team to verify and close; S11, S12 re-rated; the spurious opening of XV-1115 is H-04 S20."}
+  - {id: A10, status: proposed, by: agent, text: "C&E change: on PZT-2112 / PZT-3112 PAHH during loading also reduce or stop the loading (berth ESD-1 or a rate reduction), since the carrier's return is the largest BOG contributor (D-009)."}
+  - {id: A11, status: proposed, by: agent, text: "Show the fire protection of the tank roof (roof and PSV area water spray or deluge, fire and gas detection) and its actuation; D-021 leaves fire and gas off the basic-stage P&IDs."}
+  - {id: A12, status: proposed, by: agent, text: "Confirm that the make-up through PV-1111 is available after I-204 / I-304 has stopped the BOG compressors (make-up source BOG-7002 then depends on the trains' system); otherwise provide a make-up source independent of the compressors (see H-04).", response: "Answered in the design by commit 589c9ca7 (D-025 item 1): the make-up comes from the trains' fuel gas FG-1001 through the restriction orifice FO-1117 and PV-1111 (PIC-1111), independent of the BOG compressors; BOG-1009 is removed. The trains' fuel-gas capacity for the make-up is recorded as not done at basic (D-025) and is followed in H-04 A17. For the team to verify and close."}
+  - {id: A13, status: proposed, by: agent, text: "Relief study: confirm the vacuum relief capacity of PSV-2133A/B and PSV-3133A/B for maximum withdrawal plus compressor draw plus barometric rise, and the procedure for inerting after air has been admitted.", response: "Partly answered by commit 589c9ca7 (D-025 item 2): a third vacuum valve per tank (PSV-2133C / PSV-3133C, N+1) and the set point -0.3 kPa(g) against the -0.5 kPa(g) design. Still open: the relief capacity (sizing not done at basic, D-025), now including the spurious opening of XV-1115 (H-04 S20), and the inerting procedure."}
+  - {id: A14, status: proposed, by: agent, text: "Consider adding a switch from top to bottom fill (or a fill-rate reduction) to the PIC-1111 low pressure response or to I-204 / I-304, since the subcooled top fill is itself a vacuum cause."}
+  - {id: A15, status: proposed, by: agent, text: "Relief study: confirm the set pressure of PSV-1121 (15.5 barg, ASSUMED) against the design pressure of LNG-1001 (Class 150 at the design temperature) and that its liquid discharge into the BOG header (BOG-1004 to BOG-1001) is acceptable for D-7101 (H-04).", response: "Partly answered by commit 589c9ca7: PSV-1121 is now set at 15.0 barg, the 15 barg design of the LNG lines (piping/special-items.yaml). Still open: the liquid discharge of PSV-1121, PSV-1122 and PSV-1123 into BOG-1001 and D-7101 (H-04 A15)."}
+  - {id: A16, status: proposed, by: agent, text: "Agree with the trains the BL interface response to I-102 / I-101 (turn-down or recycle before XV-1111..XV-1114 close) and include the I-102 closure in the rundown surge analysis (A2); consider a confirmation of the closed position by a second signal (closed limit and the trip command of the valve) so that a single ZSC fault does not trip the four trains while one tank is isolated.", response: "Partly answered by commit fac0bbb5 (DESIGN.md D-026 items 4, 11): ZSC-1102 / ZSC-1103 are now tied to XV-1102 / XV-1103 on P-01, and I-102 also trips on PZT-1105 PAHH on LNG-1001 (own tapping, independent of PI-1104), a second, process signal that sees a dead-headed header whatever valve closed it. It is an additional trip path (logic any), not a confirmation of the ZSC signal: a single ZSC-1102 fault with XV-1103 closed still trips the four trains (S18), and PZT-1105 adds its own spurious trip (S20, A18). Still open: the BL interface response of the trains, the I-102 closure in the surge analysis (A2) and the second-signal confirmation of the ZSC path. Commit 886b0ad5 ties the ZSC-1102 / ZSC-1103 sensors to the valves themselves (D-026 item 14) and writes the fill-change rule into D-026 item 4; the open items are unchanged. Commit f5d925f6 (D-028 item 2) answers the terminal side of the BL interface: the hard-wired link XS-1100 trips the trains' rundown (pumps stopped or recycled inside the trains) at the instant XV-1111..1114 start to close, and the closure takes at least 30 s, so the trains are stopping before the valves throttle; the I-102 closure is part of the D-023 (3) estimate. Still open: the trains' confirmation of their response within the closure time (trains' scope), the transient analysis (A2) and the second-signal confirmation of the ZSC path, which now also feeds the tank-trip paths of I-102 (S18). Commit 79d5c7ad (D-030 item 13) registers the trains' items as hold H-05 (response time of the trains' rundown trip on XS-1100, shut-off head at the battery limit); ZSC-1102 / ZSC-1103 now also feed I-103 (S24); the second-signal confirmation is not answered, and the voting of the position switches is left to the SIL screening (hold H-06). Still proposed."}
+  - {id: A17, status: proposed, by: agent, text: "Put the inlet isolations HV-2134A/B/C, HV-2135A/B/C, HV-3134A/B/C, HV-3135A/B/C on the locked-valve register with a position check after every relief or vacuum valve change; confirm with the tank contractor that the mechanical interlock cannot leave fewer than two devices of a set in service and that two (N) cover the governing relief and vacuum cases (relief sizing, D-025); consider position indication of the isolations in the DCS (S19)."}
+  - {id: A18, status: proposed, by: agent, text: "C&E / instrument list: state the PZT-1105 trip point against the normal rundown pressure, the fill-change transient and the PSV-1121 set pressure, and consider a second header pressure transmitter voted 2oo2 or 1oo2 with discrepancy alarm (or PI-1104 as confirmation) so that one transmitter fault does not trip the four trains (S20); state the response time the dead-head case needs.", response: "Not answered by commit aedd8dbd: D-035 item 5 (a) makes the PZT-1105 field cable fire-resistant where it crosses the trough band (ASSUMED) and asks the design owner to confirm that I-102 trips on a bad PZT-1105 signal, which would make a transmitter or cable fault a trip of the four trains (S20) unless it is voted; the trip point, the voting and the response time are still not stated. Still proposed."}
+  - {id: A19, status: proposed, by: agent, text: "Include the closure of a rundown valve (XV-1102, XV-1103, XV-1111..XV-1114) on an instrument-air failure with a failed non-return valve or accumulator, and a header lost faster than I-804 can act, in the D-023 transient analysis (case (4) names only the berths); if the surge exceeds the 15 barg design, provide a surge relief or another layer on the rundown; put the non-return valves, accumulators and speed controllers of these valves in the proof test (hold time of at least 5 min and closure time, both ASSUMED) and on the maintenance setting list (S22).", response: "Not answered at 79d5c7ad: D-023 (4) now names the residual air-failure case for the berth valves and the tank-end valves XV-4101 / XV-4102 (D-030 item 10), still not for the rundown valves; the transient analysis (hold H-01) and the accumulator and hold-time sizing (hold H-03) are registered in D-030 for detail engineering, without a proof test of the non-return valves and accumulators. Still proposed."}
+  - {id: A20, status: proposed, by: agent, text: "Tank contractor and C&E: state the volume between the LAHH trip points of LZT-2102 / LZT-2106 (LZT-3102 / LZT-3106) and the overfill point and check it against the rundown received while XV-1102 / XV-1103 close in at least 30 s with the trains running down (up to about 63 m3), and the displaced vapour on an I-203 / I-303 closure against the PSV-2131 / PSV-3131 relief cases; move the trip points if the margin is short (S23)."}
+  - {id: A21, status: proposed, by: agent, text: "Agree with the trains and the site air system the trip point of I-804 (4.5 barg, ASSUMED) against the normal transients of the air header (compressor and dryer change-over), whether a short confirmation delay is acceptable within the margin to the ~3.5 barg stroke pressure, and the restart route of the trains after an I-804 rundown trip (reset of I-804 and I-102, rundown restart through XS-1100) (S21)."}
+  - {id: A22, status: proposed, by: agent, text: "C&E / instrument list: base I-103 on proven positions rather than held open commands - closed- or open-position switches on XV-1106..XV-1109, or a confirmation by the rundown header pressure (PI-1104 / PZT-1105 steady) before the old selection valve may close - and state the response when I-103 blocks a close command (alarm, operator action); decide it in the SIL screening with the voting of ZSC-1102 / ZSC-1103 (hold H-06) (S24)."}
+  - {id: A23, status: proposed, by: agent, text: "Put ZSC-2123 / ZSC-3123 and I-205 / I-305 in the proof test (switch made only by the fully closed valve, the 15 s delay against the stroke time of XV-2123 / XV-3123, ASSUMED), consider a discrepancy alarm between the close command and the switch, and confirm with the tank contractor the volume above the LAHH trip point against the return at the circulation rate until I-205 / I-305 act (with A20) (S25).", response: "Partly answered by commit 709fcf20 (D-032 item 7, #3; C&E I-205 / I-305 notes): ZSC-2123 / ZSC-3123 reading closed while XV-2123 / XV-3123 is commanded open longer than its stroke time raises a discrepancy alarm, and the 15 s on-delay now sits on 'I-201 / I-301 tripped', so it is measured against the stroke from the trip. Still open: the proof test of the switches and of I-205 / I-305, and the volume above the LAHH trip point against the return until they act. Still proposed. Commit c257902c (D-036 item 5 (a)) removes the jetty drain pumps from I-205 / I-305 (they no longer feed the return), so the return volume until the trip acts is that of the circulation pump alone; the items above remain open. Still proposed."}
+  - {id: A24, status: proposed, by: agent, text: "SEQ-LINE-EMPTY: state where the rundown goes during the displacement (fill switched to the other tank as a permissive, since the ~70 m3 the 1,100 m3 permissive leaves above the ~1,030 m3 line is filled by the rundown in under a minute), make the ullage of the receiving tank a measured permissive (LZT-2102 / LZT-3102 against the line volume and the film), and state the response when I-201 (I-301) ends the displacement with the leaking line part-full (which receiving tank next, the N2 blocks closed, the remaining drain-down against the T-8102 budget of D-036.11 (b)) (S26; H-02 S29, S31)."}

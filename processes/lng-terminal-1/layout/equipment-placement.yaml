@@ -1,0 +1,128 @@
+# Equipment placement. Schema: `cheme schema placement`. Position = footprint centre, bottom
+# elevation, m (site frame of layout/site-plan.yaml). Shapes and sizes come from the equipment
+# list. Measured: T-2101, FL-8101, the Berth 2 platform (D-013); everything else ASSUMED.
+equipment:
+  # ---- A1 tanks (P-02, P-03)
+  # Full-containment tanks: every connection goes through the roof (no shell penetration of
+  # the inner or outer tank, D-007). The process nozzles stand in a row near the east edge of
+  # the dome, facing the riser rack (PR6 / PR5). The tank-top pump platform S-T2101-TOP /
+  # S-T3101-TOP (layout/structures.yaml, floor 57.4 m) spans the pump column heads near the crown
+  # (D-027): the relief valves (PSV A-C, north row) and the vacuum valves (A-C, south row)
+  # stand on their nozzles west of the pumps under the platform, each with its inlet isolation
+  # within reach above the floor; the minimum-flow returns beside their pump columns (east of
+  # each); the instrument wells west of the platform beside the roof walkway. Offsets from the
+  # roof centre, ASSUMED.
+  - tag: T-2101
+    position: [929.4, 3025.8, 0]
+    notes: "Measured centre (OSM way 1435792133, D-013). Roof nozzle positions ASSUMED (D-027)."
+    nozzles: &tank_roof_nozzles
+      - {id: N1, face: top, offset: [37, -14]}    # top fill (spray ring)
+      - {id: N2, face: top, offset: [37, -20]}    # bottom fill (internal down-comer)
+      - {id: N3, face: top, offset: [37, 18]}     # vapour outlet
+      - {id: N8, face: top, offset: [37, -8]}     # circulation return
+      # PSVs A-C stay at the crown (review 2026-11-05-basic-layout-3 #7, D-031): moved to the
+      # deck's east part (offset 28.5) their inlet isolations fell 3.6 m below the deck as the
+      # dome drops, so they stay where the deck reaches them
+      - {id: N4, face: top, offset: [3, 7]}       # PSV A (under the pump platform, D-027)
+      - {id: N5, face: top, offset: [6, 7]}       # PSV B
+      - {id: N11, face: top, offset: [9, 7]}      # PSV C
+      - {id: N6, face: top, offset: [3, -7]}      # vacuum relief A
+      - {id: N7, face: top, offset: [6, -7]}      # vacuum relief B
+      - {id: N12, face: top, offset: [9, -7]}     # vacuum relief C
+      - {id: N9, face: top, offset: [34, 1]}      # DN 25 thermal relief returns (LNG-n031 / n032)
+      - {id: N10, face: top, offset: [32, 11]}
+      - {id: I8, face: top, offset: [-6, 16]}
+      - {id: MA, face: top, offset: [14.1, 6.2]}  # minimum-flow returns 2.5 m east of their
+      - {id: MB, face: top, offset: [14.1, -5.8]} # pump columns, under the pump platform
+      - {id: MC, face: top, offset: [26.1, 6.2]}
+      - {id: MD, face: top, offset: [26.1, -5.8]}
+      - {id: MR, face: top, offset: [18.6, 16.7]}
+      - {id: I1, face: top, offset: [-6, -12]}    # level, temperature and density wells
+      - {id: I2, face: top, offset: [-6, -8]}
+      - {id: I3, face: top, offset: [-6, -4]}
+      - {id: I4, face: top, offset: [-6, 0]}
+      - {id: I5, face: top, offset: [-6, 4]}
+      - {id: I6, face: top, offset: [-6, 8]}
+      - {id: I7, face: top, offset: [-6, 12]}
+  - tag: T-3101
+    position: [789.4, 3025.8, 0]
+    notes: "Phase 2 tank 140 m west of T-2101, ASSUMED (D-019). Roof nozzles as T-2101, ASSUMED."
+    nozzles: *tank_roof_nozzles
+  # In-tank pumps: the column head plates on the tank-top pump platform near the crown (D-011).
+  # Removal (D-029): a mobile crane on the pad north of each tank (Z-PAD-T2101N / -T3101N,
+  # from road R2) pulls the pump with its cable through the column head after the head spool
+  # is removed and lands it on the laydown beside the pad.
+  - {tag: P-2101A, position: [941, 3032, 56], notes: "Pump column head on the T-2101 roof platform."}
+  - {tag: P-2101B, position: [941, 3020, 56], notes: "Pump column head on the T-2101 roof platform."}
+  - {tag: P-2101C, position: [953, 3032, 56], notes: "Pump column head on the T-2101 roof platform."}
+  - {tag: P-2101D, position: [953, 3020, 56], notes: "Pump column head on the T-2101 roof platform."}
+  - {tag: P-2102, position: [947, 3040, 56], notes: "Circulation pump column head on the T-2101 roof platform."}
+  - {tag: P-3101A, position: [801, 3032, 56], notes: "Pump column head on the T-3101 roof platform."}
+  - {tag: P-3101B, position: [801, 3020, 56], notes: "Pump column head on the T-3101 roof platform."}
+  - {tag: P-3101C, position: [813, 3032, 56], notes: "Pump column head on the T-3101 roof platform."}
+  - {tag: P-3101D, position: [813, 3020, 56], notes: "Pump column head on the T-3101 roof platform."}
+  - {tag: P-3102, position: [807, 3040, 56], notes: "Circulation pump column head on the T-3101 roof platform."}
+  # ---- A8 impoundment basin (P-08), re-sited by the pool fire radiation screening of D-018
+  # (review 2026-11-05-basic-layout-2 #2): north of road R2, away from the tanks, PR1, the
+  # riser racks PR5 / PR6 and the main racks; the tank-area trough reaches it from the
+  # PR1 / PR2 / PR3 junction under PR3 and PR4, past R2 (culvert) to y 3237.5 and west into the
+  # basin's east side (Z-KC-TROUGH-PR3, -SUMP, D-031, D-033.11); 10.5 m deep since D-033, so
+  # the full design spill stays below the trough inlet invert (-4.16 m). Moved 47.5 m north
+  # and 10 m east with the trough's north end (D-033.11): the troughs and the basin burning
+  # together keep the BOG area's way out, road R2 and the PR6 east leg within their criteria
+  - {tag: T-8101, position: [990, 3237.5, -19.5], notes: "Impoundment basin pit below grade, 19.5 m deep (D-033.3; deepened for 10 min of the governing tank-area flow of D-034.3, 2,400 m3, D-035.2), north of road R2 in area A8, at the separations of layout/site-plan.yaml (pool fire screening D-018, D-029, D-033.11). ASSUMED. N1 is the level radar LI-8103's nozzle on the pit cover (D-034.8).", nozzles: [{id: N1, face: top, offset: [-4.5, -6.5]}]}
+  - {tag: P-8102, position: [986.0, 3232.5, 0], notes: "Submersible rainwater pump on a guide rail to the pit floor (D-034.8), modelled at its discharge head on the pit cover over the south part of the basin, the riser W-8002 through the cover; lifted out on its rail by the davit to the hardstanding Z-LAY-A8W along R13 (D-035.4). ASSUMED."}
+  # ---- A2 BOG compression (P-07)
+  - tag: D-7101
+    position: [1030, 3040, 0]
+    notes: "BOG suction drum, north end of A2. ASSUMED. Inlet N1 on the north side, under the PR6 east leg that brings the tank vapour header."
+    nozzles: [{id: N1, angle_deg: 90, elevation: 5.9}]
+    access: {platforms: [], notes: "No platforms: N1 (inlet) and N2 (outlet to the suction header) are piped nozzles with no manual valve at the drum; N4/N5 are the level bridle tappings at 3.8-4.3 m, whose transmitters are remote-mounted at grade on the bridle; the drain valve on N3 is at grade. Inspection access by mobile platform (ASSUMED)."}
+  # Compressor packages, shaft east-west, suction (N1) on the west end, motor on the east end
+  # (its removal space kept free); the discharge (N2) on the south side at mid-height, so the
+  # discharge header runs low east of the machines and the crane lanes from Z-PAD-A2E stay
+  # clear above them (ASSUMED).
+  - {tag: K-7101A, position: [1050, 3015, 0], notes: "Compressor package, shaft east-west. ASSUMED.", nozzles: [{id: N2, face: south}]}
+  - {tag: K-7101B, position: [1050, 3000, 0], notes: "ASSUMED.", nozzles: [{id: N2, face: south}]}
+  - {tag: K-7101C, position: [1050, 2985, 0], notes: "Installed spare. ASSUMED.", nozzles: [{id: N2, face: south}]}
+  # ---- A3 flare (P-08)
+  - {tag: FL-8101, position: [1484.9, 3102.8, 0], notes: "Storage and loading flare on the site derrick, measured derrick position (OSM node 13436993551, D-013)."}
+  - tag: D-8101
+    position: [1448, 3075, 0]
+    notes: "Flare KO drum near the derrick base. ASSUMED. The PSV-8109 thermal relief return (N8) on the top near the east head, apart from the minimum-flow return N7 on the east head (ASSUMED)."
+    nozzles: [{id: N8, face: top, offset: [5.5, 0]}]
+  - {tag: P-8101A, position: [1438, 3065, 0], notes: "ASSUMED."}
+  - {tag: P-8101B, position: [1444, 3065, 0], notes: "ASSUMED."}
+  # ---- A4 loading platform: Berth 2 arms on the west face, south to north L, V, H, L (TIG Rev 3)
+  # Arm nozzles: N1 the shore connection at the riser base, facing the platform piping; N2 the
+  # outboard (ERS, coupler, carrier manifold) high on the arm, facing the ship (ASSUMED, D-014).
+  - {tag: LA-5101, position: [1137, 878, 0], notes: "Berth 2 liquid arm, southernmost. Arm spacing 6 m ASSUMED (D-014).", nozzles: &arms_b2 [{id: N1, face: east, offset: [0, -8]}, {id: N2, face: west, offset: [0, 8]}]}
+  - {tag: LA-5102, position: [1137, 884, 0], notes: "Berth 2 vapour arm.", nozzles: *arms_b2}
+  - {tag: LA-5103, position: [1137, 890, 0], notes: "Berth 2 hybrid arm.", nozzles: *arms_b2}
+  - {tag: LA-5104, position: [1137, 896, 0], notes: "Berth 2 liquid arm, northernmost.", nozzles: *arms_b2}
+  - {tag: D-5101, position: [1146.5, 868, 0], notes: "Berth 2 jetty drain drum, moved 3.5 m west (D-035.1) so the platform header rack PR9's west columns (x 1151.5) stand clear of it. ASSUMED."}
+  - {tag: P-5101, position: [1148.5, 874.5, 0], notes: "North of its drum under the Berth 2 manifold tray, 2.5 m west of its first position so PR9's west columns stand clear of it and its access (D-035.1). ASSUMED."}
+  # Berth 1 (Phase 2) on the east face of the platform, ASSUMED (D-019)
+  - {tag: LA-6101, position: [1173, 878, 0], notes: "Berth 1 liquid arm. ASSUMED position (D-019).", nozzles: &arms_b1 [{id: N1, face: west, offset: [0, -8]}, {id: N2, face: east, offset: [0, 8]}]}
+  - {tag: LA-6102, position: [1173, 884, 0], notes: "Berth 1 vapour arm.", nozzles: *arms_b1}
+  - {tag: LA-6103, position: [1173, 890, 0], notes: "Berth 1 hybrid arm.", nozzles: *arms_b1}
+  - {tag: LA-6104, position: [1173, 896, 0], notes: "Berth 1 liquid arm.", nozzles: *arms_b1}
+  - {tag: D-6101, position: [1162, 868, 0], notes: "Berth 1 jetty drain drum. ASSUMED."}
+  - {tag: P-6101, position: [1160, 874.5, 0], notes: "North of its drum, as P-5101. ASSUMED."}
+  # jetty spill sump re-sited (review 2026-11-05-basic-layout-2, adversarial check): on its own
+  # piled sump deck A9 south of the loading platform, between the bows of the two berthed
+  # carriers, at the pool fire screening distances of D-018 from both carrier envelopes, the
+  # PR2 end, the arms, road R10 and the muster point; the platform drip trays drain to it in
+  # enclosed collectors under the deck and under the sump deck's catwalk S-CW-A9
+  # (Z-KC-CHANNEL-JETTY*, D-033.11; the open catwalk trough is removed). Moved 2.5 m east onto
+  # the centreline of the water between the corrected hull envelopes (D-031). 6 m across and
+  # 9.5 m deep since D-033.11 (was 8 x 4 m): a smaller burning surface between the carriers'
+  # bows and more volume below the collector inlet
+  - {tag: T-8102, position: [1163.5, 812, -13.0], notes: "Jetty spill sump pit on the sump deck A9 south of the loading platform (zone Z-HA-SUMP-T8102), 6 m across, 13.0 m deep for the governing platform spill of D-034.3 (D-035.1), a sealed caisson below extreme high water (D-035.8). ASSUMED (D-018, D-029, D-031, D-033.11)."}
+  # the dry-sump pump of T-8102 (D-037.15 (a), D-037.16): its motor and discharge head on the grated
+  # cover at the cover's south edge, opposite the collector inlet on the north wall, the column down
+  # to the floor pocket (not modelled); discharge W-8003 to the jetty drain at A9's east edge.
+  # The discharge nozzle N2 is the discharge head's side nozzle, facing east 0.8 m above the cover
+  # (the P&ID draws it on top), so the check and isolation valves stand within reach of the cover and
+  # nothing but the motor is above the pump, which is pulled vertically (D-037.16)
+  - {tag: P-8103, position: [1163.5, 809.7, 0], nozzles: [{id: N2, angle_deg: 0, elevation: 0.8}], notes: "Vertical line-shaft dry-sump pump, modelled at its motor and discharge head on the T-8102 cover at the cover's south edge (y 809-815 sump, the head 0.7 m in from the rim), its ~13.5 m column through the removable grating panel to the floor pocket; discharge nozzle on the head's east side 0.8 m above the cover; pulled by a davit on the cover beams with no transfer on either berth (D-037.16). ASSUMED."}

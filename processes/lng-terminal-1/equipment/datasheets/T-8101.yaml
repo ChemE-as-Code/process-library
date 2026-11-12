@@ -1,0 +1,88 @@
+# Equipment datasheet. Schema: `cheme schema datasheet`. Drafted by `cheme datasheets draft`,
+# completed by scripts/datasheet_values.py (D-022); maintained by hand from now on.
+tag: T-8101
+type: Tank
+service: LNG spill impoundment sump (tank area)
+operating:
+  pressure:
+    value: 101.3
+    unit: kPa(a)
+    source: 'D-018: open sump'
+    assumed: true
+  temperature:
+    value: -160.0
+    unit: °C
+    source: 'D-018: design for an LNG spill; normally rainwater'
+    assumed: true
+design:
+  pressure_barg:
+    value: 0.0
+    unit: barg
+    source: equipment/equipment-list.yaml
+  temperature_degc:
+    value: -170.0
+    unit: degC
+    source: equipment/equipment-list.yaml
+materials:
+  main:
+    value: Concrete with insulated lining
+    source: equipment/equipment-list.yaml
+dimensions:
+  orientation: vertical
+  outside_diameter:
+    value: 16.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.diameter
+  overall_height:
+    value: 19.5
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.height
+  head:
+    value: flat
+    source: equipment/equipment-list.yaml dimensions.head
+  support:
+    type:
+      value: none
+      source: equipment/equipment-list.yaml dimensions.support
+  tangent_length:
+    value: 19.5
+    unit: m
+    source: 'layout/plant-model.yaml part T-8101/shell: the generated shell between the heads (the 3D
+      model''s proportions, not a vessel design)'
+    assumed: true
+nozzles:
+- name: N1
+  dn: 150
+  lines: []
+  source: pid/P-08.xml
+- name: N2
+  dn: 50
+  lines: []
+  source: pid/P-08.xml
+type_specific:
+  diameter_m:
+    value: 16.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  height_m:
+    value: 19.5
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  volume_m3:
+    value: 3920.71
+    unit: m3
+    source: 'equipment/equipment-list.yaml dimensions: pi/4 D^2 x height (overall, including heads and
+      skirt: an upper bound)'
+    assumed: true
+sizing_basis:
+- parameter: basis
+  value: DESIGN.md D-018, D-034 (the governing tank-area release flows) and the layout's D-035 (depth and
+    profile), ASSUMED where marked
+  reference: D-034
+notes: "Collects spills from the tank-area troughs (the welded trestle run has no drip tray, D-031, D-033).
+  Depth and volume follow the equipment list (19.5 m, the layout's D-035: 2,400 m3 of D-034.3 below the
+  trough inlet); the governing release flows of the
+  tank area are stated in D-034. No wall penetration (review 2026-11-05-basic-design-7 #6, D-034): N1 is the
+  radar level LI-8103 and N2 the low-temperature probe TSL-8102, both through the pit cover, and the
+  submersible rainwater pump P-8102 stands on the pit floor with its riser W-8002 through the cover.
+  High-expansion foam."

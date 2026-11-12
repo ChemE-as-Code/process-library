@@ -1,0 +1,180 @@
+# Equipment datasheet. Schema: `cheme schema datasheet`. Drafted by `cheme datasheets draft` and run
+# through `cheme datasheets fill` (no flowsheet node links this pump, so nothing was calculated); completed
+# by hand from DESIGN.md D-037.15 (a) and D-037.16 and maintained by hand from now on. Every value
+# ASSUMED unless a source is named.
+tag: P-8103
+type: CentrifugalPump
+service: Jetty sump dry-sump pump (T-8102 floor pocket)
+operating:
+  fluid:
+    value: Rainwater
+    source: 'D-037.16: rain draining from the platform tray bays and the sump to the T-8102 floor pocket, to
+      the jetty drain at the edge of the sump deck A9, ASSUMED'
+  suction_pressure:
+    value: 102.0
+    unit: kPa(a)
+    source: 'D-037.16: bowl in the floor pocket, atmospheric pressure plus ~0.1 m submergence at the stop level
+      of LZT-8106, ASSUMED'
+    assumed: true
+  suction_temperature:
+    value: 10.0
+    unit: °C
+    source: 'D-037.16: rainwater, ASSUMED'
+    assumed: true
+  discharge_pressure:
+    value: 298.0
+    unit: kPa(a)
+    source: 'D-037.16: suction plus the 20 m differential at 1,000 kg/m3, ASSUMED'
+    assumed: true
+  flow:
+    value: 20
+    unit: m3/h
+    source: 'D-037.15 (a), D-037.16: ~1.9 x the ~10.5 m3/h of the ASSUMED design rain (250 mm in 24 h) on the
+      ~1,006 m2 draining to T-8102, ASSUMED'
+    assumed: true
+design:
+  pressure_barg:
+    value: 5.0
+    unit: barg
+    source: 'equipment/equipment-list.yaml (D-037.16: shut-off ~26 m, ~2.6 bar, rounded up; ASSUMED)'
+  temperature_degc:
+    value: -170.0
+    unit: degC
+    source: 'equipment/equipment-list.yaml (D-037.16: an LNG spill into T-8102 reaches the pump first; +40 degC
+      upper design)'
+materials:
+  main:
+    value: Austenitic SS (bowl, impeller, column, line shaft, discharge head)
+    source: 'equipment/equipment-list.yaml (D-037.16: austenitic stainless steel for -170 degC, as P-8102)'
+  bearings:
+    value: Dry-running, cold-rated line-shaft bearings (carbon or filled PTFE, ASSUMED)
+    source: 'D-037.16: the column above the pocket water runs dry between starts and meets LNG after a spill;
+      ASSUMED, vendor'
+    assumed: true
+  motor:
+    value: Flameproof Ex d IIA T3 motor on the sump cover, certified for zone 1 as a converter-fed combination
+      with its VSD, non-reverse ratchet
+    source: 'D-037.16: the cover lies in the zone 2 of Z-HA-SUMP-T8102 (layout/zones.yaml); zone 1 taken for the
+      motor as for P-8102, because LNG vapour leaves through the grating after a spill; the feeder is opened by
+      C&E I-808 on TSL-8104 or TSL-8118 (1oo2). D-037.17: fed through a VSD in MCC-2 over a ~334 m cable
+      (cable schedule C-M-P-8103), so the Ex certificate covers the motor with that converter (thermal protection
+      in the winding, a dv/dt or sine filter for the cable length); the ratchet holds the line shaft while the
+      column drains back; ASSUMED, vendor'
+    assumed: true
+dimensions:
+  orientation: vertical
+  outside_diameter:
+    value: 0.5
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.diameter (motor and discharge head on the cover)
+  overall_height:
+    value: 1.8
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.height (above the cover; the ~13.5 m column below it is
+      not in the 3D model)
+weights:
+  empty:
+    value: 1.2
+    unit: t
+    source: equipment/equipment-list.yaml dimensions.weight (empty, with the column, ASSUMED)
+nozzles:
+- name: N2
+  dn: 80
+  lines:
+  - W-8003
+  service: discharge
+  source: pid/P-08.xml
+type_specific:
+  diameter_m:
+    value: 0.5
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  height_m:
+    value: 1.8
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  weight_t:
+    value: 1.2
+    unit: t
+    source: equipment/equipment-list.yaml dimensions
+  column_length_m:
+    value: 13.5
+    unit: m
+    source: 'D-037.16: from the cover at the deck datum to the bowl in the pocket (sump 13.0 m deep, pocket
+      0.5 m), ASSUMED'
+    assumed: true
+  flow_m3_h:
+    value: 20
+    unit: m3/h
+    source: 'D-037.15 (a), D-037.16: rain removal, ASSUMED'
+    assumed: true
+  minimum_flow_m3_h:
+    value: 6
+    unit: m3/h
+    source: 'D-037.16: ~30 % of rated at reduced speed (VSD), ASSUMED until the vendor curve; below it the pump
+      cycles on LZT-8106 (C&E I-806 / I-807), at most ~18 starts an hour with the ~0.08 m3 drain-back of the
+      column, head and riser after each stop (D-037.17; ~12 without it)'
+    assumed: true
+  differential_head_m:
+    value: 20.0
+    unit: m
+    source: 'D-037.16: static ~16 m from the pocket water to the discharge 2.5 m above the cover, ~2 m of column,
+      line, check valve CV-8116 and isolation valve HV-8117 losses at ~1.1 m/s in DN 80, ~2 m at the jetty drain
+      battery limit; ASSUMED'
+    assumed: true
+  shutoff_head_m:
+    value: 26.0
+    unit: m
+    source: 'D-037.16: 1.3 x the rated head, ASSUMED until the vendor curve'
+    assumed: true
+  npsh_available_m:
+    value: 10.3
+    unit: m
+    source: 'D-037.16: bowl submerged in the pocket, atmospheric pressure (10.3 m of water) plus ~0.1 m
+      submergence at the stop level less the vapour pressure of water at 10 degC (~0.1 m), no suction line;
+      ASSUMED'
+    assumed: true
+  shaft_power_kw:
+    value: 2.4
+    unit: kW
+    source: 'D-037.16: flow x dp / efficiency 0.45 (a small vertical line-shaft pump, ASSUMED)'
+    assumed: true
+  motor_rating_kw:
+    value: 3.0
+    unit: kW
+    source: 'D-037.16: at least 1.25 x the 2.4 kW shaft power (the driver margin of API 610, Centrifugal Pumps for
+      Petroleum, Petrochemical and Natural Gas Industries, cited by number and title only, taken as practice for
+      this pump, as P-8102), the next standard rating; ASSUMED until the vendor''s curve. The electrical list
+      follows this datasheet (its owner)'
+    assumed: true
+  vendor_data:
+    value: supplier
+    source: 'vendor package: curve, NPSH required, line-shaft bearings and their dry-running and cold rating,
+      motor (Ex certificate as a converter-fed combination with the VSD, thermal protection, dv/dt or sine filter
+      for the ~334 m cable), VSD duty and start count (~18 an hour at most), non-reverse ratchet and the
+      drain-back through the bowl, the CV-8116 disc drain-back hole, lifting arrangement (enquiry in detail
+      engineering)'
+sizing_basis:
+- parameter: basis
+  value: "DESIGN.md D-037.15 (a) (no LNG on standing water: T-8102 dry at the start of and during every transfer)
+    and D-037.16 (the fixed dry-sump pump), ASSUMED where marked"
+  reference: D-037.16
+- parameter: sizing_scope
+  value: preliminary
+  reference: 'cheme datasheets fill: the values it writes are preliminary process sizing (short-cut methods,
+    declared or typical parameters), not a rating or a design to a code; not calculated: rating, mechanical
+    code, materials corrosion, relief, dynamics controls (docs/framework/sizing.md)'
+notes: "Fixed dry-sump pump of the jetty sump T-8102: a vertical line-shaft pump, its bowl in the ~0.25 m3 floor
+  pocket (~0.8 m across, 0.5 m deep below the sump floor) and its motor and discharge head on the sump cover at
+  the cover's south edge, opposite the collector inlet on the north wall, so no motor is in the sump. 20 m3/h at
+  ~20 m, shut-off ~26 m, design 5 barg, austenitic stainless steel wetted parts down to -170 degC (an LNG spill
+  reaches it first). Started by LZT-8106 at 0.35 m in the pocket (C&E I-806), its speed following the level
+  (VSD), stopped at 0.10 m (C&E I-807); locked out on LNG by TSL-8104 in the pocket (tip 0.40 m above its floor)
+  or TSL-8118 in the discharge head, 1oo2, its feeder opened, latching (C&E I-808, D-037.17). Discharge W-8003
+  through the check valve CV-8116 (a drain-back hole in its disc) and the isolation valve HV-8117 above the cover
+  to the jetty drain at the edge of A9, stainless to the battery limit; when the pump stops the column, head and
+  riser drain back into the pocket and the overhead run to the drain, so nothing above the cover can freeze at
+  the -20 degC design ambient (no heat tracing, D-037.17). Motor 400 V from MCC-2, 3.0 kW; the electrical list power follows this datasheet.
+  Pulled with its column through the removable grating panel by a davit on the cover beams, with no transfer on
+  either berth. The portable pump stays a spare means. No relief device: the shut-off (~2.6 bar) is inside the
+  5 barg design. ASSUMED."

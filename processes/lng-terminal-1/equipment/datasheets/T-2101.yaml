@@ -1,0 +1,223 @@
+# Equipment datasheet. Schema: `cheme schema datasheet`. Drafted by `cheme datasheets draft`,
+# completed by scripts/datasheet_values.py (D-022); maintained by hand from now on.
+tag: T-2101
+type: Tank
+service: LNG storage tank 1 (Phase 1)
+operating:
+  pressure:
+    value: 115.0
+    unit: kPa(a)
+    source: 'scripts/terminal_sizing.py: tank pressure 115 kPa(a), LNG at its bubble point (D-006, D-007)'
+    assumed: true
+  temperature:
+    value: -160.2
+    unit: °C
+    source: 'scripts/terminal_sizing.py: tank pressure 115 kPa(a), LNG at its bubble point (D-006, D-007)'
+    assumed: true
+  working_volume:
+    value: 225000
+    unit: m3
+    source: 'D-007: LNG Canada tank 1 (S-08); tank 2 ASSUMED equal'
+design:
+  pressure_barg:
+    value: 0.29
+    unit: barg
+    source: equipment/equipment-list.yaml
+  temperature_degc:
+    value: -170.0
+    unit: degC
+    source: equipment/equipment-list.yaml
+materials:
+  main:
+    value: 9 % Ni steel inner / prestressed concrete outer
+    source: equipment/equipment-list.yaml
+dimensions:
+  orientation: vertical
+  outside_diameter:
+    value: 92.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.diameter
+  overall_height:
+    value: 56.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.height
+  head:
+    value: dome_roof
+    source: equipment/equipment-list.yaml dimensions.head
+  support:
+    type:
+      value: none
+      source: equipment/equipment-list.yaml dimensions.support
+  tangent_length:
+    value: 42.2
+    unit: m
+    source: 'layout/plant-model.yaml part T-2101/shell: the generated shell between the heads (the 3D
+      model''s proportions, not a vessel design)'
+    assumed: true
+nozzles:
+- name: N1
+  dn: 900
+  lines:
+  - LNG-1002
+  source: pid/P-02.xml
+- name: N2
+  dn: 900
+  lines:
+  - LNG-1004
+  source: pid/P-02.xml
+- name: N3
+  dn: 750
+  lines:
+  - BOG-1001
+  source: pid/P-02.xml
+- name: N4
+  dn: 250
+  lines:
+  - BOG-2002
+  source: pid/P-02.xml
+- name: N5
+  dn: 250
+  lines:
+  - BOG-2003
+  source: pid/P-02.xml
+- name: N11
+  dn: 250
+  lines:
+  - BOG-2004
+  source: pid/P-02.xml
+- name: N6
+  dn: 250
+  lines:
+  - A-2001
+  source: pid/P-02.xml
+- name: N7
+  dn: 250
+  lines:
+  - A-2002
+  source: pid/P-02.xml
+- name: N12
+  dn: 250
+  lines:
+  - A-2003
+  source: pid/P-02.xml
+- name: N8
+  dn: 250
+  lines:
+  - LNG-4005
+  source: pid/P-02.xml
+- name: N9
+  dn: 25
+  lines:
+  - LNG-2031
+  source: pid/P-02.xml
+- name: N10
+  dn: 25
+  lines:
+  - LNG-2032
+  source: pid/P-02.xml
+- name: MA
+  dn: 150
+  lines:
+  - LNG-2021
+  source: pid/P-02.xml
+- name: MB
+  dn: 150
+  lines:
+  - LNG-2022
+  source: pid/P-02.xml
+- name: MC
+  dn: 150
+  lines:
+  - LNG-2023
+  source: pid/P-02.xml
+- name: MD
+  dn: 150
+  lines:
+  - LNG-2024
+  source: pid/P-02.xml
+- name: MR
+  dn: 100
+  lines:
+  - LNG-2025
+  source: pid/P-02.xml
+- name: I1
+  dn: 50
+  lines: []
+  source: pid/P-02.xml
+- name: I2
+  dn: 50
+  lines: []
+  source: pid/P-02.xml
+- name: I8
+  dn: 50
+  lines: []
+  source: pid/P-02.xml
+- name: I3
+  dn: 50
+  lines: []
+  source: pid/P-02.xml
+- name: I4
+  dn: 50
+  lines: []
+  source: pid/P-02.xml
+- name: I5
+  dn: 50
+  lines: []
+  source: pid/P-02.xml
+- name: I6
+  dn: 50
+  lines: []
+  source: pid/P-02.xml
+- name: I7
+  dn: 50
+  lines: []
+  source: pid/P-02.xml
+type_specific:
+  diameter_m:
+    value: 92.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  height_m:
+    value: 56.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  volume_m3:
+    value: 372266.163
+    unit: m3
+    source: 'equipment/equipment-list.yaml dimensions: pi/4 D^2 x height (overall, including heads and
+      skirt: an upper bound)'
+    assumed: true
+  process_streams:
+  - stream: S1
+    direction: in
+    title: LNG rundown from the liquefaction trains
+    source: process/flowsheet.yaml (case average)
+  - stream: S13
+    direction: out
+    title: Tank liquid to the in-tank pumps
+    source: process/flowsheet.yaml (case average)
+  - stream: S10
+    direction: in
+    title: Circulation return to the tanks (holding)
+    source: process/flowsheet.yaml (case average)
+  - stream: S8
+    direction: out
+    title: Tank boil-off and displaced vapour
+    source: process/flowsheet.yaml (case average)
+  - stream: S11
+    direction: in
+    title: Tank inventory drawn down (loading)
+    source: process/flowsheet.yaml (case average)
+  - stream: S12
+    direction: out
+    title: Tank inventory filled up (holding)
+    source: process/flowsheet.yaml (case average)
+sizing_basis:
+- parameter: basis
+  value: scripts/terminal_sizing.py (GERG-2008 via CoolProp) and the assumptions of DESIGN.md D-007 to
+    D-018, ASSUMED where marked
+  reference: D-022
+notes: 'Full containment, 225,000 m3 working (LNG Canada tank 1: Vinci/Entrepose EPC, 9 % Ni inner tank,
+  concrete roof air-raised 2021, roof diameter 92 m, 56 m floor to dome; D-007). Inner tank ~88 m x ~41
+  m liquid height ASSUMED; design pressure +29 / -0.5 kPa(g) ASSUMED. Field-erected; its heaviest maintenance
+  lift is an in-tank pump with its column cable reel (lift_weight, ASSUMED). CSA Z276-2018.'

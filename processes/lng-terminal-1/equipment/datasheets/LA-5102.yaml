@@ -1,0 +1,118 @@
+# Equipment datasheet. Schema: `cheme schema datasheet`. Drafted by `cheme datasheets draft`,
+# completed by scripts/datasheet_values.py (D-022); maintained by hand from now on.
+tag: LA-5102
+type: LoadingUnloadingSystem
+service: Berth 2 vapour return arm
+operating:
+  fluid:
+    value: Boil-off gas
+    source: 'scripts/terminal_sizing.py: carrier return envelope 52.5 t/h at -120 degC (D-009, D-034; was 45.6 t/h);
+      one 16 inch vapour arm carries ~23.5 t/h at 40 m/s, the balance burnt on board or taken by the hybrid arm
+      in line-up (b) (D-023, D-026.6, D-036)'
+  pressure:
+    value: 106.0
+    unit: kPa(a)
+    source: 'scripts/terminal_sizing.py: carrier return envelope 52.5 t/h at -120 degC (D-009, D-034; was 45.6 t/h);
+      one 16 inch vapour arm carries ~23.5 t/h at 40 m/s, the balance burnt on board or taken by the hybrid arm
+      in line-up (b) (D-023, D-026.6, D-036)'
+    assumed: true
+  temperature:
+    value: -120.0
+    unit: °C
+    source: 'scripts/terminal_sizing.py: carrier return envelope 52.5 t/h at -120 degC (D-009, D-034; was 45.6 t/h);
+      one 16 inch vapour arm carries ~23.5 t/h at 40 m/s, the balance burnt on board or taken by the hybrid arm
+      in line-up (b) (D-023, D-026.6, D-036)'
+    assumed: true
+  flow:
+    value: 23500
+    unit: kg/h
+    source: 'scripts/terminal_sizing.py: carrier return envelope 52.5 t/h at -120 degC (D-009, D-034; was 45.6 t/h);
+      one 16 inch vapour arm carries ~23.5 t/h at 40 m/s, the balance burnt on board or taken by the hybrid arm
+      in line-up (b) (D-023, D-026.6, D-036)'
+    assumed: true
+design:
+  pressure_barg:
+    value: 3.5
+    unit: barg
+    source: equipment/equipment-list.yaml
+  temperature_degc:
+    value: -170.0
+    unit: degC
+    source: equipment/equipment-list.yaml
+materials:
+  main:
+    value: SS
+    source: equipment/equipment-list.yaml
+dimensions:
+  overall_length:
+    value: 4.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.length
+  overall_width:
+    value: 3.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.width
+  overall_height:
+    value: 22.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.height
+weights:
+  empty:
+    value: 40.0
+    unit: t
+    source: equipment/equipment-list.yaml dimensions.weight (empty)
+nozzles:
+- name: N1
+  dn: 400
+  lines:
+  - BOG-5001
+  source: pid/P-05.xml
+- name: N2
+  dn: 400
+  lines:
+  - BOG-5012
+  source: pid/P-05.xml
+type_specific:
+  height_m:
+    value: 22.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  length_m:
+    value: 4.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  width_m:
+    value: 3.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  weight_t:
+    value: 40.0
+    unit: t
+    source: equipment/equipment-list.yaml dimensions
+  process_streams:
+  - stream: S3
+    direction: in
+    title: LNG at the jetty (loading berth)
+    source: process/flowsheet.yaml (case average)
+  - stream: S4
+    direction: out
+    title: LNG to the carrier
+    source: process/flowsheet.yaml (case average)
+  - stream: S5
+    direction: in
+    title: Carrier return vapour
+    source: process/flowsheet.yaml (case average)
+  - stream: S6
+    direction: out
+    title: Vapour return over the trestle
+    source: process/flowsheet.yaml (case average)
+  vendor_data:
+    value: supplier
+    source: 'vendor package: curves, seals, motor, envelope (enquiry in detail engineering)'
+sizing_basis:
+- parameter: basis
+  value: scripts/terminal_sizing.py (GERG-2008 via CoolProp) and the assumptions of DESIGN.md D-007 to
+    D-018, ASSUMED where marked
+  reference: D-022
+notes: 16 inch vapour arm, connected first and disconnected last; leak test 2.5 bar (TIG Rev 3). ASSUMED
+  envelope (D-014).

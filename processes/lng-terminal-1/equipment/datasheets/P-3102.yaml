@@ -1,0 +1,153 @@
+# Equipment datasheet. Schema: `cheme schema datasheet`. Drafted by `cheme datasheets draft`,
+# completed by scripts/datasheet_values.py (D-022); maintained by hand from now on.
+tag: P-3102
+type: CentrifugalPump
+service: LNG circulation pump (in-tank in T-3101)
+operating:
+  fluid:
+    value: LNG
+    source: 'scripts/terminal_sizing.py: circulation ~314 m3/h, rated 500 m3/h; differential for the 2
+      x 2.45 km loop at circulation flow plus the return, ASSUMED (D-008, D-011)'
+  suction_pressure:
+    value: 115.0
+    unit: kPa(a)
+    source: 'scripts/terminal_sizing.py: circulation ~314 m3/h, rated 500 m3/h; differential for the 2
+      x 2.45 km loop at circulation flow plus the return, ASSUMED (D-008, D-011)'
+    assumed: true
+  suction_temperature:
+    value: -160.2
+    unit: °C
+    source: 'scripts/terminal_sizing.py: circulation ~314 m3/h, rated 500 m3/h; differential for the 2
+      x 2.45 km loop at circulation flow plus the return, ASSUMED (D-008, D-011)'
+    assumed: true
+  discharge_pressure:
+    value: 377.0
+    unit: kPa(a)
+    source: 'scripts/terminal_sizing.py: circulation ~314 m3/h, rated 500 m3/h; differential for the 2
+      x 2.45 km loop at circulation flow plus the return, ASSUMED (D-008, D-011)'
+    assumed: true
+  flow:
+    value: 500
+    unit: m3/h
+    source: 'scripts/terminal_sizing.py: circulation ~314 m3/h, rated 500 m3/h; differential for the 2
+      x 2.45 km loop at circulation flow plus the return, ASSUMED (D-008, D-011)'
+    assumed: true
+design:
+  pressure_barg:
+    value: 15.0
+    unit: barg
+    source: 'equipment/equipment-list.yaml (D-036: the class of the loading system behind the check valve CV-3122,
+      as P-2102; was 10 barg)'
+  temperature_degc:
+    value: -170.0
+    unit: degC
+    source: equipment/equipment-list.yaml
+materials:
+  main:
+    value: Aluminium alloy / SS
+    source: equipment/equipment-list.yaml
+dimensions:
+  orientation: vertical
+  outside_diameter:
+    value: 0.8
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.diameter
+  overall_height:
+    value: 1.6
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.height
+  tangent_length:
+    value: 1.6
+    unit: m
+    source: 'layout/plant-model.yaml part P-3102/shell: the generated shell between the heads (the 3D
+      model''s proportions, not a vessel design)'
+    assumed: true
+  support:
+    elevation:
+      value: 56.0
+      unit: m
+      source: 'layout/plant-model.yaml P-3102 position z (layout/equipment-placement.yaml): the base above
+        grade'
+    stands_on:
+      value: T-3101
+      source: 'layout/plant-model.yaml: the top of T-3101 at the base of P-3102, under its plan outline'
+weights:
+  empty:
+    value: 2.0
+    unit: t
+    source: equipment/equipment-list.yaml dimensions.weight (empty)
+nozzles:
+- name: N1
+  dn: 250
+  lines: []
+  source: pid/P-03.xml
+- name: N2
+  dn: 250
+  lines:
+  - LNG-3002
+  source: pid/P-03.xml
+type_specific:
+  diameter_m:
+    value: 0.8
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  height_m:
+    value: 1.6
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  weight_t:
+    value: 2.0
+    unit: t
+    source: equipment/equipment-list.yaml dimensions
+  flow_m3_h:
+    value: 500
+    unit: m3/h
+    source: 'scripts/terminal_sizing.py: circulation ~314 m3/h, rated 500 m3/h; differential for the 2
+      x 2.45 km loop at circulation flow plus the return, ASSUMED (D-008, D-011)'
+    assumed: true
+  differential_head_m:
+    value: 60.0
+    unit: m
+    source: 'scripts/terminal_sizing.py: circulation ~314 m3/h, rated 500 m3/h; differential for the 2
+      x 2.45 km loop at circulation flow plus the return, ASSUMED (D-008, D-011): dp 262 kPa / (rho g),
+      rho 445.0 kg/m3'
+    assumed: true
+  npsh_available_m:
+    value: 2.5
+    unit: m
+    source: 'scripts/terminal_sizing.py: circulation ~314 m3/h, rated 500 m3/h; differential for the 2
+      x 2.45 km loop at circulation flow plus the return, ASSUMED (D-008, D-011)'
+    assumed: true
+  shaft_power_kw:
+    value: 60.6
+    unit: kW
+    source: 'scripts/terminal_sizing.py: circulation ~314 m3/h, rated 500 m3/h; differential for the 2
+      x 2.45 km loop at circulation flow plus the return, ASSUMED (D-008, D-011): flow x dp / efficiency
+      0.6 (ASSUMED)'
+    assumed: true
+  process_streams:
+  - stream: S13
+    direction: in
+    title: Tank liquid to the in-tank pumps
+    source: process/flowsheet.yaml (case average)
+  - stream: S2
+    direction: out
+    title: Pumped LNG to the trestle loading lines
+    source: process/flowsheet.yaml (case average)
+  - stream: S7
+    direction: out
+    title: LNG spray to the BOG desuperheater
+    source: process/flowsheet.yaml (case average)
+  - stream: E1
+    direction: in
+    title: In-tank pump motors (electric)
+    source: process/flowsheet.yaml (case average)
+  vendor_data:
+    value: supplier
+    source: 'vendor package: curves, seals, motor, envelope (enquiry in detail engineering)'
+sizing_basis:
+- parameter: basis
+  value: scripts/terminal_sizing.py (GERG-2008 via CoolProp) and the assumptions of DESIGN.md D-007 to
+    D-018, ASSUMED where marked
+  reference: D-022
+notes: As P-2102. ASSUMED.

@@ -1,0 +1,43 @@
+# Cable tray rules. Schema: `cheme schema trays`. Skill electrical-cabling.
+# Every value ASSUMED until the project's electrical standard replaces it.
+rules:
+  widths_mm: [150, 300, 450, 600, 900, 1200]
+  depth_mm: 100
+  fill_max_power: 0.3          # single-layer power cables with spacing (ASSUMED)
+  fill_max_instrument: 0.4
+  separation_m: 0.3            # power to instrument tray without a metal divider (EN 50174-2 practice, ASSUMED)
+  # power trays 6 m to one side of the rack centreline, instrument trays 6 m to the other: at
+  # the PR1 joints with the riser racks PR5 / PR6 the risers between the pipe tiers stand in
+  # the middle of the rack (layout lane plan in piping/routing.yaml), the edges are free
+  lane_fraction: 0.43
+  # loads up to 60 m off a rack take their branch from it (the site plan's rack_reach for the
+  # pipes): the middle BOG compressor's entry is 43 m from PR6 / PR3
+  rack_reach_m: 60
+  tiers:
+    # PR1: above the risers that climb from its tiers to the riser racks' tiers at the joints
+    # (they end at 12-15 m), on steel of its own
+    - {rack: PR1, elevation: 17.0}
+    # riser racks: at PR1's tray level, above their top tier and the tank vapour header and
+    # recycle lines over the PR6 east leg (to 16.7 m); the roof piping drops onto the tiers
+    # inside the racks only east of the power lanes (layout lane plan in piping/routing.yaml)
+    - {rack: PR5, elevation: 17.0}
+    - {rack: PR6, elevation: 17.0}
+    # trestle: above the vapour returns' and de-inerting take-offs' crossings (to 12.7 m)
+    - {rack: PR2, elevation: 13.5}
+    # PR3: above the storage flare header's and the PV-1110 bypass's arrival from the PR6 east
+    # leg (to 14.9 m)
+    - {rack: PR3, elevation: 15.5}
+    # cable bridge from B-SUB to PR3, level with PR3's tray tier (D-027)
+    - {rack: PR7, elevation: 15.5}
+    # basin services rack from PR4 to the impoundment basin (D-029), above its single tier
+    - {rack: PR8, elevation: 9.0}
+  # trestle: the 6.6 kV feeders in their own tray and two 400 / 230 V trays, so the UPS A and
+  # UPS B channels of the ERS solenoid supplies run in separate trays (D-032.2, D-037, review
+  # 2026-11-05-basic-layout-6 #10)
+  power_trays:
+    - {rack: PR2, trays: [hv, lv, lv]}
+notes: >-
+  Trays run on their own tier on each rack (tiers above, ASSUMED), power to one side of the
+  rack centreline and instrument trays to the other. Where power and instrument links cross at
+  the rack joints a steel cover plate (metal divider) separates them (accepted findings,
+  checks/checks.yaml).

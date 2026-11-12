@@ -223,6 +223,18 @@ def test_missing_sheet_file_is_an_error(library: Path, tmp_path: Path) -> None:
     assert any("pid/P-01.xml, which does not exist" in e for e in report.errors)
 
 
+def test_planned_sheet_without_file_is_skipped(library: Path, tmp_path: Path) -> None:
+    folder = library / "processes" / "fixture-electrolysis"
+    (folder / "pid" / "P-01.xml").unlink()
+    plant = yaml.safe_load((folder / "plant.yaml").read_text())
+    for sheet in plant["sheets"]:
+        if sheet["file"] == "pid/P-01.xml":
+            sheet["status"] = "planned"
+    (folder / "plant.yaml").write_text(yaml.safe_dump(plant))
+    report = _build(library, tmp_path / "out")
+    assert not any("pid/P-01.xml" in e for e in report.errors), report.errors
+
+
 def test_unknown_inventory_key_is_a_warning(library: Path, tmp_path: Path) -> None:
     path = library / "processes" / "fixture-electrolysis" / "process.yaml"
     manifest = yaml.safe_load(path.read_text())

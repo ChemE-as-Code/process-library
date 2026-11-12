@@ -1,0 +1,60 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Reference project: LNG Canada, Kitimat BC, Phase 1 (as built) + Phase 2 (FID 2026-09-29),
+# DESIGN.md D-002. A value with a source is a public fact of that project, in our own form;
+# values marked ASSUMED are our engineering estimates (the project has not published them).
+capacity:
+  basis: LNG received from the liquefaction trains and loaded to LNG carriers
+  lng_mtpa: 28                        # 4 trains (Phase 1 2 x 7 + Phase 2 2 x 7), LNG Canada Phase 2 FID release (D-003)
+  trains: 4
+  availability: 0.95                  # ASSUMED, trains on stream 8,322 h/a (D-003)
+  rundown_t_per_h: 3365               # scripts/terminal_sizing.py: 28 Mt / (8760 h x 0.95)
+  storage_tanks: 2
+  tank_working_volume_m3: 225000      # each; LNG Canada tank 1 (Vinci/Entrepose contract, LNG Prime); tank 2 ASSUMED equal (sources: 225,000 or 255,000 m3, D-007)
+  berths: 2                           # Berth 2 as built (TIG Rev 3), Berth 1 Phase 2 (FID release) (D-014)
+  loading_rate_m3_per_h: 12000        # maximum, EA application 2014 §2 (D-008)
+  max_carrier_m3: 217000              # terminal maximum, LNG Canada Terminal Information Guide Rev 3 (2025) (D-014)
+  operating_hours_per_year: 8322      # ASSUMED, as availability
+feeds:
+  - name: LNG rundown
+    terminal: RUNDOWN
+    composition_mol_fraction: {CH4: 0.93348, C2H6: 0.04488, C3H8: 0.01357, IC4: 0.00213, NC4: 0.00294, N2: 0.0030}
+    composition_note: >-
+      Derived from the feed gas of the EA application GHG technical data report (2014): CO2, He
+      and C5+ removed in the trains, N2 reduced to 0.3 mol% by the end flash (ASSUMED, D-004).
+      No LNG specification is public.
+    conditions: {temperature_degc: -161.5, pressure_kpa_a: 215}   # ASSUMED, subcooled at the tank inlet (D-005)
+  - name: Ship return vapour
+    terminal: SHIPVAP
+    note: "Driven by the carrier's own return-gas compressor (TIG Rev 3: ramped to its maximum over at least 1 h); no shore vapour blower (D-009). ASSUMED -120 degC at the jetty."
+products:
+  - name: LNG to carriers
+    terminal: SHIP
+    delivery: {pressure_kpa_a: 350, note: "at the ship manifold, ASSUMED (D-011)"}
+  - name: Boil-off gas to the liquefaction trains
+    terminal: BOGOUT
+    delivery: {pressure_kpa_a: 600, note: "to the trains' end-flash / fuel gas system, ASSUMED (D-010)"}
+utilities:
+  - {name: Electric power, note: "BC Hydro grid; terminal motors at 6.6 kV (in-tank pumps, BOG compressors), 400 V LV. ASSUMED voltages. Site supply: EA application 2014 §2 (D-020)"}
+  - {name: Nitrogen, pressure_barg: 7, note: "purge and leak test of the loading arms (5 bar liquid, 2.5 bar vapour arm: TIG Rev 3), seal gas, blanketing; from the trains' utility N2 (ASSUMED source)"}
+  - {name: Instrument air, pressure_barg: 7, note: ASSUMED}
+  - {name: Fuel gas, note: "flare pilots and purge, from the trains (ASSUMED)"}
+  - {name: Firewater, note: "site system outside the terminal battery limit; 2 diesel firewater pumps on site (BCER air permit PA-110588)"}
+site:
+  location: Kitimat, British Columbia, Canada (head of Kitimat Arm, Douglas Channel)
+  reference_point: {tank_1_centre: "54.01719 N, 128.68583 W", source: "OpenStreetMap way 1435792133 (c) OpenStreetMap contributors (D-013)"}
+  grade_elevation_m: 12              # tank area, SRTM before construction, rounded (D-013)
+  tides_m_chart_datum: {extreme_high: 6.7, mean: 3.3, extreme_low: -0.2}   # TIG Rev 3
+  berth_depth_m_chart_datum: -13.35  # Berth 2, TIG Rev 3
+  design_ambient_degc: {summer: 25, winter: -20}   # ASSUMED for Kitimat (cold, wet coastal climate)
+  heat_ingress_ambient_degc: 5       # ASSUMED annual mean for insulation heat ingress (D-012)
+  weather_limits_kn: {stop_cargo: 30, disconnect_arms: 35}   # TIG Rev 3
+  seismic: "CSA Z276-2018 for tank 1; tank 2 to CSA Z276:2022 clauses 7.1.5.1 to 7.1.5.9 (BCER LNG facility permit 9709124, 2026 amendment)"
+assumptions:
+  - "ASSUMED tank operating pressure 115 kPa(a) (~14 kPa(g)), design +29 kPa(g) / -0.5 kPa(g) (D-007)."
+  - "ASSUMED boil-off 0.05 %/d of a full tank's liquid (D-007)."
+  - "ASSUMED 4 in-tank loading pumps of 3,000 m3/h per tank (any 4 of 8 give 12,000 m3/h) and 1 circulation pump of 500 m3/h per tank (D-011)."
+  - "ASSUMED 2 loading lines DN 800 and 2 vapour return lines DN 750 over the ~2 km trestle; in holding one circulation pump sends LNG out on one loading line and back on the other (D-008)."
+  - "ASSUMED BOG compressors 3 x 50 % of the loading case plus 10 %, centrifugal, suction -140 degC after an LNG spray desuperheater, discharge 600 kPa(a) (D-010)."
+  - "ASSUMED ship heat-in 1.5 MW during loading, ship return vapour -120 degC, 85 % of the pump and line heat flashing on board (D-009)."
+  - "ASSUMED all flows, pressures, duties and DNs are concept estimates, accuracy about +/-30 %."
+residence_times: []

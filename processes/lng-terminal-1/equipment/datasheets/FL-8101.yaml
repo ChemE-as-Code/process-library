@@ -1,0 +1,91 @@
+# Equipment datasheet. Schema: `cheme schema datasheet`. Drafted by `cheme datasheets draft`,
+# completed by scripts/datasheet_values.py (D-022); maintained by hand from now on.
+tag: FL-8101
+type: Flare
+service: Storage and loading flare (stack on the site flare derrick)
+operating:
+  pressure:
+    value: 105.0
+    unit: kPa(a)
+    source: 'D-017: storage and loading flare design case; routine 6.0 m3/min (S-02)'
+    assumed: true
+  temperature:
+    value: -150.0
+    unit: °C
+    source: 'D-017: storage and loading flare design case; routine 6.0 m3/min (S-02)'
+    assumed: true
+  flow:
+    value: 54000
+    unit: kg/h
+    source: 'D-017: storage and loading flare design case; routine 6.0 m3/min (S-02)'
+    assumed: true
+design:
+  pressure_barg:
+    value: 3.5
+    unit: barg
+    source: equipment/equipment-list.yaml
+  temperature_degc:
+    value: -170.0
+    unit: degC
+    source: equipment/equipment-list.yaml
+materials:
+  main:
+    value: SS riser / tip alloy
+    source: equipment/equipment-list.yaml
+dimensions:
+  orientation: vertical
+  outside_diameter:
+    value: 1.6
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.diameter
+  overall_height:
+    value: 122.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.height
+  tangent_length:
+    value: 122.0
+    unit: m
+    source: 'layout/plant-model.yaml part FL-8101/shell: the generated shell between the heads (the 3D
+      model''s proportions, not a vessel design)'
+    assumed: true
+weights:
+  empty:
+    value: 60.0
+    unit: t
+    source: equipment/equipment-list.yaml dimensions.weight (empty)
+nozzles:
+- name: N1
+  dn: 900
+  lines:
+  - FL-8002
+  source: pid/P-08.xml
+- name: N2
+  dn: 50
+  lines:
+  - FG-8002
+  source: pid/P-08.xml
+type_specific:
+  diameter_m:
+    value: 1.6
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  height_m:
+    value: 122.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  weight_t:
+    value: 60.0
+    unit: t
+    source: equipment/equipment-list.yaml dimensions
+  vendor_data:
+    value: supplier
+    source: 'vendor package: curves, seals, motor, envelope (enquiry in detail engineering)'
+sizing_basis:
+- parameter: basis
+  value: scripts/terminal_sizing.py (GERG-2008 via CoolProp) and the assumptions of DESIGN.md D-007 to
+    D-018, ASSUMED where marked
+  reference: D-022
+notes: 'One of the four flares on the 122 m vapour flare derrick (warm/wet, cold/dry, storage and loading,
+  spare): stack inner diameter 1.42 m, routine limit 6.0 m3/min monthly average (pilot, purge, seal gas)
+  (BCER air permit PA-110588; LNG Canada flaring factsheet 2024). The derrick steel is site scope (D-001,
+  D-017).'
