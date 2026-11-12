@@ -1,0 +1,36 @@
+# Line list. Schema: `cheme schema lines`.
+# Concept stage: one line per material stream of the PFD (stream id in the notes), no P&ID yet.
+# DN: first-pass size from velocity (D-014, ASSUMED), scripts/line_sizes.py on the simulated
+# streams: liquid 1.5 m/s (0.6 m/s on the low-pressure pump suctions), inside diameter taken as
+# the DN, DN25 the smallest. Reflux, reboiler and utility lines come with the P&IDs. Pressure
+# classes come with the pipe specs. Fluid codes: BZ benzene-rich, PR propylene/propane,
+# AR alkylate (aromatics), CU cumene, PB polyisopropylbenzenes, HE heavy ends.
+schema: cheme/lines/v1
+lines:
+  - {number: BZ-101, from: B/L, to: V-101, nominal_diameter: DN80, fluid: Benzene, notes: "S1 fresh benzene"}
+  - {number: BZ-102, from: C-202, to: V-101, nominal_diameter: DN200, fluid: Benzene recycle, notes: "S2 benzene column distillate, 5 mol% propane"}
+  - {number: BZ-103, from: V-101, to: P-101, nominal_diameter: DN350, fluid: Benzene, notes: "S3 pump suction (0.6 m/s)"}
+  - {number: PR-104, from: B/L, to: P-102, nominal_diameter: DN80, fluid: Propylene, notes: "S4 chemical-grade propylene"}
+  - {number: BZ-105, from: P-101, to: BZ-106, nominal_diameter: DN200, fluid: Benzene, notes: "S5 pumped benzene to the distribution (SPL1)"}
+  - {number: BZ-106, from: BZ-105, to: AR-108, nominal_diameter: DN200, fluid: Benzene, notes: "S6 benzene to the alkylator"}
+  - {number: PR-107, from: P-102, to: AR-108, nominal_diameter: DN80, fluid: Propylene, notes: "S7 pumped propylene, joins the benzene (M102; staged injection at basic)"}
+  - {number: AR-108, from: BZ-106, to: E-101, nominal_diameter: DN200, fluid: Alkylator feed, notes: "S8"}
+  - {number: AR-109, from: E-101, to: R-101, nominal_diameter: DN200, fluid: Alkylator feed, notes: "S9, 413 K"}
+  - {number: AR-110, from: R-101, to: E-101, nominal_diameter: DN200, fluid: Alkylate, notes: "S10, 436 K"}
+  - {number: AR-111, from: E-101, to: AR-118, nominal_diameter: DN200, fluid: Alkylate, notes: "S11"}
+  - {number: BZ-112, from: BZ-105, to: PB-115, nominal_diameter: DN80, fluid: Benzene, notes: "S12 benzene to the transalkylator"}
+  - {number: PB-113, from: C-204, to: P-103, nominal_diameter: DN80, fluid: DIPB recycle, notes: "S13 C-204 distillate, pump suction (0.6 m/s)"}
+  - {number: PB-114, from: P-103, to: PB-115, nominal_diameter: DN50, fluid: DIPB recycle, notes: "S14"}
+  - {number: PB-115, from: BZ-112, to: E-102, nominal_diameter: DN100, fluid: Transalkylator feed, notes: "S15"}
+  - {number: PB-116, from: E-102, to: R-102, nominal_diameter: DN100, fluid: Transalkylator feed, notes: "S16, 433 K"}
+  - {number: AR-117, from: R-102, to: AR-118, nominal_diameter: DN100, fluid: Transalkylate, notes: "S17"}
+  - {number: AR-118, from: AR-111, to: AR-122, nominal_diameter: DN200, fluid: Combined effluent, notes: "S18"}
+  - {number: BZ-119, from: BZ-105, to: C-201, nominal_diameter: DN100, fluid: Benzene, notes: "S19 slipstream to the depropaniser"}
+  - {number: PR-120, from: C-201, to: B/L, nominal_diameter: DN25, fluid: Propane (LPG), notes: "S20"}
+  - {number: BZ-121, from: C-201, to: AR-122, nominal_diameter: DN100, fluid: Benzene, notes: "S21 depropaniser bottoms"}
+  - {number: AR-122, from: AR-118, to: C-202, nominal_diameter: DN250, fluid: Benzene column feed, notes: "S22, let down to C-202"}
+  - {number: CU-123, from: C-202, to: C-203, nominal_diameter: DN125, fluid: Crude cumene, notes: "S23 benzene column bottoms"}
+  - {number: CU-124, from: C-203, to: E-103, nominal_diameter: DN125, fluid: Cumene, notes: "S24 cumene column distillate"}
+  - {number: CU-125, from: E-103, to: B/L, nominal_diameter: DN100, fluid: Cumene, notes: "S25 cumene product, 313 K"}
+  - {number: PB-126, from: C-203, to: C-204, nominal_diameter: DN50, fluid: Polyisopropylbenzenes, notes: "S26 cumene column bottoms"}
+  - {number: HE-127, from: C-204, to: B/L, nominal_diameter: DN25, fluid: Heavy ends, notes: "S27 heavy ends to fuel"}

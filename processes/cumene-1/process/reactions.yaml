@@ -1,0 +1,65 @@
+# Reactions of liquid-phase zeolite cumene synthesis (DESIGN.md D-005). Schema cheme/reactions/v1.
+# Heats of reaction from the ideal-gas formation enthalpies of process/materials.yaml (298.15 K).
+# No rate law: both reactors are conversion reactors. The alkylator R-101 converts all the
+# propylene; ALK, ALK2 and ALK3 are each keyed on propylene so that their conversions are the
+# fractions of the propylene converted that end in cumene, DIPB and TIPB (they add up to 1, the
+# complete conversion of process/reaction-evidence.yaml O1). ALK2 and ALK3 are the overall
+# routes benzene + 2 or 3 propylene (through cumene), written so because DWSIM's conversion
+# reactor takes one conversion per reaction on the inlet. The transalkylator R-102 runs TRANS
+# keyed on DIPB. The split of ALK/ALK2/ALK3 and the TRANS conversion are ASSUMED (D-005).
+# phase: mixed so that DWSIM converts the whole inlet even where Peng-Robinson splits it.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: ALK
+    title: Alkylation of benzene to cumene
+    equation: C6H6 + C3H6 -> C9H12
+    stoichiometry: {BZ: -1.0, C3H6: -1.0, CUM: 1.0}
+    phase: mixed
+    reversible: false
+    conversion: {key: C3H6, value: 0.88, provenance: assumed, source: "D-005: fraction of the propylene converted that ends in cumene, ASSUMED at benzene/propylene 4; reaction-evidence O1 (US4891458A Example 4, Table 2) gives 0.915 (derived) at about 7.4 mol/mol"}
+    heat_of_reaction:
+      value: -99550.0
+      provenance: calculated
+      source: "ideal-gas formation enthalpies of process/materials.yaml at 298.15 K (4000 - 83180 - 20370 kJ/kmol)"
+    catalyst: beta-type zeolite (PBE-1 or similar), liquid phase
+    sources: ["US4891458A (Chevron, 1990), Example 4: liquid-phase alkylation on zeolite beta", "Versalis (2018) Cumene brochure, PDF p. 3-4: zeolite catalyst, staged propylene"]
+  - id: ALK2
+    title: Dialkylation to diisopropylbenzene (overall, through cumene)
+    equation: C6H6 + 2 C3H6 -> C12H18
+    stoichiometry: {BZ: -1.0, C3H6: -2.0, DIPB: 1.0}
+    phase: mixed
+    reversible: false
+    conversion: {key: C3H6, value: 0.115, provenance: assumed, source: "D-005: fraction of the propylene converted that ends in DIPB, ASSUMED; reaction-evidence O1 gives 0.085 (derived) at the higher benzene ratio"}
+    heat_of_reaction:
+      value: -201520.0
+      provenance: calculated
+      source: "ideal-gas formation enthalpies of process/materials.yaml at 298.15 K (-77600 - 83180 - 2 x 20370 kJ/kmol)"
+    catalyst: beta-type zeolite, liquid phase
+    sources: ["US4891458A (Chevron, 1990), Example 4, Table 2: 1,3- and 1,4-DIPB in the product"]
+  - id: ALK3
+    title: Trialkylation to triisopropylbenzene (heavy ends, overall)
+    equation: C6H6 + 3 C3H6 -> C15H24
+    stoichiometry: {BZ: -1.0, C3H6: -3.0, TIPB: 1.0}
+    phase: mixed
+    reversible: false
+    conversion: {key: C3H6, value: 0.005, provenance: assumed, source: "D-005: fraction of the propylene converted that ends in the heavy ends (TIPB surrogate), ASSUMED; not reported by O1"}
+    heat_of_reaction:
+      value: -299470.0
+      provenance: calculated
+      source: "formation enthalpies of process/materials.yaml at 298.15 K (-155180 - 83180 - 3 x 20370 kJ/kmol); TIPB's is a Joback estimate (ASSUMED)"
+    catalyst: beta-type zeolite, liquid phase
+    sources: ["Versalis (2018) Cumene brochure, PDF p. 4: a small amount of high boilers leaves the PIPB column bottoms"]
+  - id: TRANS
+    title: Transalkylation of DIPB with benzene
+    equation: C12H18 + C6H6 -> 2 C9H12
+    stoichiometry: {DIPB: -1.0, BZ: -1.0, CUM: 2.0}
+    phase: mixed
+    reversible: false
+    conversion: {key: DIPB, value: 0.40, provenance: assumed, source: "D-005: per pass, ASSUMED at the upper end of reaction-evidence O2 (US4891458A Example 8: 35-40 % DIPB converted at 411 K, 3.55 MPa(a), LHSV 1); equilibrium not checked (I-05)"}
+    heat_of_reaction:
+      value: 2420.0
+      provenance: calculated
+      source: "ideal-gas formation enthalpies of process/materials.yaml at 298.15 K (2 x 4000 + 77600 - 83180 kJ/kmol)"
+    catalyst: beta-type zeolite, liquid phase
+    sources: ["US4891458A (Chevron, 1990), Example 8: DIPB transalkylation on zeolite beta", "US6888037B2, transalkylation conditions"]

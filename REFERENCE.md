@@ -28,8 +28,8 @@ says how to add a process.
 
 ## Processes
 
-The table lists 102 public process folders: 59 engineering projects (a `plant.yaml` with a process
-flowsheet), 37 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
+The table lists 103 public process folders: 63 engineering projects (a `plant.yaml` with a process
+flowsheet), 34 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
 The table is generated from each folder's `process.yaml` and `checks/maturity.json`;
 `coverage.yaml` names the coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
 
@@ -66,12 +66,12 @@ The table is generated from each folder's `process.yaml` and `checks/maturity.js
 | [`chloromethane-1`](processes/chloromethane-1/) | Chloromethane from methanol and hydrogen chloride (gas-phase hydrochlorination, 100 kt/a) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`co2-electrolysis-bpm-1`](processes/co2-electrolysis-bpm-1/) | CO2 electrolysis to CO in reverse-bias bipolar-membrane cells (measured bench cell, two 0.1 kg/h pilot skids) | concept (calculation maturity: not recorded; not reviewed) | yes (DEXPI P&IDs (2), BFD/PFD, flowsheet, 3D layout, MTO, HAZOP drafts, LCI datasets) |
 | [`copper-i-chloride-1`](processes/copper-i-chloride-1/) | Copper(I) chloride by semi-batch chlorination of copper in brine, dilution precipitation and filter-drying (300 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
-| [`cumene-1`](processes/cumene-1/) | Cumene by zeolite alkylation of benzene with propylene (licensor figures, EPA emissions) | concept (Tier 0 form, stoichiometric screening with some sourced values; not reviewed) | no (manifest and LCI dataset only) |
+| [`cumene-1`](processes/cumene-1/) | Cumene by zeolite alkylation of benzene with propylene (272 kt/a, transalkylation, LP steam export) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, DWSIM simulation, LCI dataset) |
 | [`di-tert-butyl-dicarbonate-1`](processes/di-tert-butyl-dicarbonate-1/) | Di-tert-butyl dicarbonate (Boc2O) by semi-batch carbonation and phosgenation of potassium tert-butoxide in hexane with a CO2 vent, hexane strip, wash and vacuum distillation (500 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`dmf-1`](processes/dmf-1/) | N,N-Dimethylformamide by carbonylation of dimethylamine (50 kt/a, sodium methoxide in methanol) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`e-fuels-1`](processes/e-fuels-1/) | Fischer-Tropsch e-fuel from CO2 and hydrogen by RWGS and cobalt FT (one open simulation) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`ethanol-1`](processes/ethanol-1/) | Ethanol by direct hydration of ethylene (100 000 t/a anhydrous, phosphoric acid catalyst) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
-| [`ethylbenzene-1`](processes/ethylbenzene-1/) | Ethylbenzene by liquid-phase zeolite alkylation (LVOC BREF ranges) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
+| [`ethylbenzene-1`](processes/ethylbenzene-1/) | Ethylbenzene by liquid-phase zeolite alkylation of benzene with ethylene, with transalkylation (400 kt/a, DWSIM-simulated concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`ethylene-1`](processes/ethylene-1/) | Ethylene and propylene by ethane steam cracking (1000 kt/a ethylene, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`ethylene-glycol-1`](processes/ethylene-glycol-1/) | Ethylene glycol by ethylene oxide hydration (glycols-only EO/EG plant, 1200 t/d MEG) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`fcc-1`](processes/fcc-1/) | Fluid catalytic cracking of vacuum gas oil, full-combustion regenerator (REF BREF ranges, five co-products) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
@@ -122,7 +122,7 @@ The table is generated from each folder's `process.yaml` and `checks/maturity.js
 | [`sodium-azide-1`](processes/sodium-azide-1/) | Sodium azide by the hydrazine / methyl nitrite route: semi-batch absorption with gas vents, batch still, precipitation from the reaction liquor, filter-dryer and mother-liquor recycle (670 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`sodium-cyanide-1`](processes/sodium-cyanide-1/) | Solid sodium cyanide from Andrussow HCN (6.25 t/h, 50 kt/a) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`sodium-nitrite-1`](processes/sodium-nitrite-1/) | Sodium nitrite from ammonia oxidation and soda absorption (with sodium nitrate by inversion) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
-| [`styrene-1`](processes/styrene-1/) | Styrene by dehydrogenation of ethylbenzene (LVOC BREF ranges) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
+| [`styrene-1`](processes/styrene-1/) | Styrene by adiabatic dehydrogenation of ethylbenzene (300 kt/a, concept) | concept (DWSIM cross-check with an unqualified property package; not reviewed) | yes (BFD/PFD, flowsheet, simulation, LCI dataset) |
 | [`sulfur-recovery-1`](processes/sulfur-recovery-1/) | Sulfur recovery by the modified Claus process with a catalytic oxidation tail gas unit (REF BREF ranges, EPA factors) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`sulfuric-acid-1`](processes/sulfuric-acid-1/) | Sulfuric acid from sulfur burning, double contact / double absorption (1000 t/d, 98.5 wt%) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`terephthalic-acid-1`](processes/terephthalic-acid-1/) | Purified terephthalic acid by air oxidation of p-xylene and hydropurification (patent, MIDDEN, IEA and AP-42 figures) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |

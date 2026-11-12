@@ -1,0 +1,137 @@
+# Goal and scope of the styrene-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme assess lca
+# --write` (lca/inventory.csv, results.csv, results.md, gaps.csv, dataset.yaml, manifest.json);
+# never edit those by hand.
+#
+# A cradle-to-gate study with the foreground inventory only (DESIGN.md D-013): every exchange
+# comes from the balanced flowsheet (process/flowsheet.yaml, design case), plus the catalyst and
+# inhibitor as consumables and the superheater's minor pollutants as estimates. No background is
+# linked here: every feed, utility and waste treatment is `missing:` with the activity it should
+# connect to, so the study's own result has gaps (never 0) and process.yaml keeps `lca.source:
+# none`. The library's LCI build links the exported dataset to the Atlas (ethylbenzene by its
+# registry slug to ethylbenzene-1; lca/mappings.yaml and lci/mappings.yaml for the rest). The
+# steam superheater is inside the boundary: its CO2 is a foreground emission. No values from
+# licensed databases are used.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Cradle-to-gate life cycle inventory of styrene monomer by adiabatic dehydrogenation of
+  ethylbenzene at the concept stage (process-library#313): the foreground exchanges per kg of
+  styrene at the plant gate with their provenance, derived from the flowsheet. It replaces the
+  pilot's Tier 1 dataset from the LVOC BREF, which stays the cross-check in DESIGN.md (D-014).
+functional_unit: {product: STYRENE, amount: 1, unit: kg}
+boundary: cradle-to-gate
+case: design
+location: RER   # EU technology of the LVOC BREF; generic site, country not chosen
+year: 2026
+technology: "adiabatic dehydrogenation of ethylbenzene over iron oxide in two radial beds at 893 K inlet and 85-60 kPa(a), steam/EB 1.3 kg/kg, steam superheater fired with the off-gas and natural gas, effluent condensation and decanting, vacuum fractionation with EB recycle; 300 kt/a, concept design"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+# system_model unset (cut-off, the Atlas default).
+allocation:
+  # method: mass is the default and is left unset on purpose, as acetone-1: core does not write a
+  # default method into lca/dataset.yaml, and scripts/build_lci.py would flag an explicit 'mass'
+  # here as differing from the dataset's None.
+  coproducts: [STYRENE, BENZENE, TOLUENE]
+  source: >-
+    D-013: mass allocation between styrene, benzene and toluene, as the pilot dataset; the tar is
+    a by-product burned at the site (treatment below), the off-gas is burned inside the boundary.
+  deviation: >-
+    No sourced prices, so the WBCSD price ratio cannot be computed. Mass is the preliminary
+    choice; benzene and toluene together are about 3.3 % of the product mass, so the choice moves
+    styrene's share by about 3 points at most (D-013).
+flows:
+  # ---- raw materials
+  - {key: feed:EB, missing: "background: ethylbenzene, per kg; in the library's Atlas build the registry slug ethylbenzene links it to ethylbenzene-1 (zeolite liquid-phase alkylation)", source: "fresh ethylbenzene S1 (D-003)"}
+  - {key: feed:DSTEAM, missing: "background: steam, MP 11 bar(a), from a natural gas boiler at the site, per kg (the library's utility-steam-ng-boiler or heat from steam in the chemical industry)", source: "dilution steam S3 (D-003, D-004)"}
+  - {key: feed:NG, missing: "background: natural gas, high pressure, market for the site's region, per kg (taken as methane); its combustion is in the foreground", source: "superheater make-up fuel S36 (D-009)"}
+  - {key: feed:AIR, free: true, source: "ambient combustion air S37: a resource taken from nature without burden"}
+  # ---- utilities
+  - {key: feed:POWER, missing: "background: electricity, medium voltage, market for the site's grid (site not chosen), per kWh", source: "K-101, P-201, P-302 (Q1-Q3; D-010)"}
+  - {key: feed:LPS, missing: "background: heat from steam in the chemical industry, LP 450 kPa(a), per kWh of condensing heat", source: "column reboilers Q6, Q8, Q10, Q12 (D-010)"}
+  - {key: product:CW, missing: "background: cooling water from a recirculating evaporative cooling tower, per kWh of heat rejected (the library's utility-cooling-tower)", source: "E-103, E-104 and the column condensers (Q4, Q5, Q7, Q9, Q11, Q13; D-010)"}
+  # ---- by-product, wastes and emissions
+  - key: product:TAR
+    treatment:
+      kind: waste
+      route: "burned as fuel at the site with energy recovery, as in three of the four BREF plants (LVOC BREF Table 5.11, p. 285): under cut-off an energy recovery stays a waste treatment of the producer"
+    missing: "background: combustion of liquid heavy aromatic residue (tar) with energy recovery, per kg; no open dataset chosen"
+    source: "C-303 bottoms S35 (D-008, D-013)"
+  - key: product:PCOND
+    treatment:
+      kind: waste
+      route: "steam stripping of the aromatics and treatment of the process condensate (LVOC BREF 5.3.3.2, pp. 276-277); one BREF plant reuses it as boiler feed water"
+    missing: "background: treatment of industrial wastewater with aromatics (about 0.03 wt% dissolved styrene, EB, benzene, toluene), per kg (the library's utility-wwtp)"
+    source: "decanter water S24 (D-008)"
+  - key: product:STACK
+    emission: true
+    source: "steam superheater flue gas S41: off-gas and natural gas burned completely (D-009)"
+  - key: emission:CO2
+    elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}
+    source: "CO2 of the burned off-gas (carbon from the fossil ethylbenzene) and natural gas (D-009)"
+  - {key: emission:H2O, free: true, source: "water vapour of the flue gas (combustion water)"}
+  - {key: emission:N2, free: true, source: "nitrogen of the combustion air returned to the atmosphere"}
+  - {key: emission:O2, free: true, source: "excess oxygen of the combustion air returned to the atmosphere"}
+  # Unburned fuel components: 0 kg under complete combustion (D-009); mapped so that a later
+  # slip estimate is characterised. CH4 carries the BREF estimate below.
+  - {key: emission:CH4, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "methane slip of the superheater: the BREF estimate (ssh-pollutants); 0 kg from the flowsheet"}
+  - {key: emission:H2, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "unburned hydrogen, 0 kg under complete combustion (D-009)"}
+  - {key: emission:C2H4, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "unburned ethylene, 0 kg under complete combustion (D-009)"}
+  - {key: emission:BZ, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "unburned benzene, 0 kg under complete combustion (D-009)"}
+  - {key: emission:TOL, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "unburned toluene, 0 kg under complete combustion (D-009)"}
+  - {key: emission:EB, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "unburned ethylbenzene, 0 kg under complete combustion (D-009)"}
+  - {key: emission:SM, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "unburned styrene, 0 kg under complete combustion (D-009)"}
+  - {key: emission:BIPH, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "tar proxy, not in the fuel; 0 kg"}
+consumables:
+  - id: catalyst
+    title: Iron oxide dehydrogenation catalyst (potassium-promoted)
+    unit: kg
+    per_replacement: 140000
+    every_years: 2
+    missing: "background: iron oxide based catalyst (Fe2O3 with K2CO3 and promoters), per kg; no open dataset chosen"
+    source: "LVOC BREF 5.2.3.1.1, p. 255: 120-160 t for a 300 kt/a plant (midpoint), a lifetime of two years achievable; 12-40 months in 5.3.6.2, p. 286 (D-013)"
+    disposal:
+      kind: waste
+      route: "landfill or metal recovery of the spent iron oxide catalyst"
+      missing: "background: disposal or metal recovery of spent iron oxide catalyst, per kg"
+      source: "spent catalyst equal to the charge (BREF: up to 0.45 kg/t SM spent, 5.3.6.2, p. 285)"
+  - id: inhibitor
+    title: Polymerisation inhibitor (phenolic)
+    unit: kg
+    per_year: 22500
+    missing: "background: a phenolic polymerisation inhibitor (e.g. tert-butylcatechol), per kg; no open dataset chosen"
+    source: "LVOC BREF Table 5.12, p. 285: median of three plants 0.075 kg/t SM (0.01-0.58) x 300 kt/a (D-011); it leaves with the tar"
+emission_estimates:
+  - id: ssh-pollutants
+    title: Steam superheater NOx, CO, SO2 and CH4
+    method: combustion
+    equipment: [H-101]
+    source: "LVOC BREF 5.3.1.2.1, pp. 269-270: one plant (Plant #5), whose fuel differs from this design's; midpoints of its ranges (D-013)"
+    add: true   # the flowsheet burns completely (0 kg CH4); the slip is a path it does not carry
+    activity: {value: 37.5, unit: t, source: "styrene product per hour (37.5 t/h, D-002): the BREF reports the superheater emissions per t of styrene"}
+    factors:
+      NOX: {value: 61, unit: g/t, source: "LVOC BREF 5.3.1.2.1, pp. 269-270, Plant #5: 39-83 g/t SM, midpoint"}
+      CO: {value: 6, unit: g/t, source: "LVOC BREF 5.3.1.2.1, p. 270, Plant #5: 4-8 g/t SM, midpoint"}
+      SO2: {value: 2.4, unit: g/t, source: "LVOC BREF 5.3.1.2.1, p. 270, Plant #5: 0.8-4 g/t SM, midpoint"}
+      CH4: {value: 1.8, unit: g/t, source: "LVOC BREF 5.3.1.2.1, p. 269, Plant #5: 1.3-2.3 g/t SM, midpoint"}
+    cas: {NOX: "11104-93-1", CO: "630-08-0", SO2: "7446-09-5", CH4: "74-82-8"}
+    elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}
+emission_exclusions:
+  - {id: fugitive-leaks, method: equipment-leaks, reason: "fugitive VOC from flanges, seals and valves are not estimated here: an equipment-leak estimate needs the P&ID component counts, which do not exist at the concept stage; the LVOC BREF reports 3-16 g/t SM (5.3.1.6, p. 273), about 0.01 g per kg styrene (I-07)", source: "LVOC BREF 5.3.1.6"}
+  - {id: ssh-pm-nmvoc, method: combustion, equipment: [H-101], reason: "superheater particulates (0.6-1.9 g/t SM) and NMVOC (0.5-2 g/t SM) of one BREF plant are not written as exchanges: neither is a single substance with a CAS number, which an elementary flow here needs; together about 0.0025 g per kg styrene (D-013)", source: "LVOC BREF 5.3.1.2.1, p. 270"}
+  - {id: storage-tanks, method: storage-tank, reason: "EB, styrene, benzene, toluene and tar tanks are outside the battery limit (design basis)", source: "design basis"}
+  - {id: vacuum-vents, method: non-routine, reason: "the column vacuum systems vent non-condensables with some aromatics to the superheater or a shared abatement (LVOC BREF 5.3.1.2.3, pp. 270-271); not quantified at the concept stage (I-07)", source: "LVOC BREF 5.3.1.2.3"}
+cutoff:
+  - {id: vacuum-systems-power, title: "Column vacuum systems power", unit: kWh, per_year: 4000000, reason: "dry vacuum pumps or ejector systems of C-301 to C-304, about 500 kW x 8000 h/a (ASSUMED order of magnitude, not sized; the BREF's electricity of 50-170 kWh/t SM includes them, D-010); not in the flowsheet's power feed", source: "D-010"}
+  - {id: small-machines-power, title: "Combustion air fan, reflux, product and condensate pumps power", unit: kWh, per_year: 4000000, reason: "about 500 kW x 8000 h/a together (ASSUMED upper estimate, D-010); not in the flowsheet's power feed", source: "D-010"}
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 25 a service life ASSUMED; no construction inventory at this stage (D-013)"
+dataset:
+  version: 0.1.0
+  geography: {description: "One concept design for a generic EU site; no regional background"}
+  system_model: cutoff
+  technology_level: current
+  classification: {isic: "2011", cpc: "34110"}
+  modelling: {principle: attributional}
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library, styrene-1 concept run (agent-generated, unreviewed)"

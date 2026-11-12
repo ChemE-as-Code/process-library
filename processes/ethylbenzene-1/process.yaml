@@ -1,30 +1,81 @@
-# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
-# dataset is lca/datasets/*.yaml, Tier 1 form, so maturity stays at concept
-# (core's cheme.lci-tier-maturity). See README.md.
+# Process Atlas manifest of ethylbenzene-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
 schema: cheme-as-code/process/v1
 id: ethylbenzene-1
-title: Ethylbenzene by liquid-phase zeolite alkylation of benzene with ethylene
+title: Ethylbenzene by liquid-phase zeolite alkylation of benzene with ethylene (400 kt/a)
 summary: >-
-  Sourced conceptual inventory per tonne of ethylbenzene: feeds from stoichiometry with the sourced
-  tar, utilities as midpoints of EU LVOC BREF ranges. No flowsheet; not reviewed.
+  Liquid-phase alkylation of benzene with ethylene on a fixed-bed zeolite with transalkylation of
+  the polyethylbenzenes: alkylator with interbed steam raising, transalkylator, benzene recycle,
+  benzene, EB and vacuum PEB columns, flux oil by-product. Concept stage, assumed basis,
+  preliminary LCI derived from the flowsheet (cradle-to-gate study, foreground inventory only).
+description: |
+  Fresh and recycled benzene (benzene/ethylene 4.0 mol/mol) is pumped to 3.9 MPa, preheated to
+  473 K against the alkylator effluent and alkylated with polymer-grade ethylene in fixed zeolite
+  beds (MCM-22 or beta type) at 453 to 513 K in the liquid phase; the reaction heat raises
+  200 kPa(a) steam. All ethylene is converted; its split between ethylbenzene, the
+  polyethylbenzenes and the flux oil follows a patent example and the BREF's tar rate. The
+  polyethylbenzenes are transalkylated with recycle benzene at 503 K. The benzene column
+  (450 kPa(a), its condenser raising steam) returns benzene to both reactors, the EB column
+  (150 kPa(a), also raising steam) delivers 99.94 mol% ethylbenzene, and the vacuum PEB column
+  returns the polyethylbenzenes and leaves 4.3 kg flux oil per t EB.
+
+  All values are concept estimates. The stream values and duties come from a DWSIM simulation of
+  the whole plant (Peng-Robinson). ChemE-as-Code has not qualified that property package for
+  aromatics, so the simulation is a cross-check of an independent balance script, not validated
+  data; DESIGN.md of the engineering files (D-014, D-015) compares both with the EU LVOC BREF
+  (2017) ranges. No DWSIM or FOSSEE flowsheet file is used.
 families: [styrenics]
-keywords: [ethylbenzene, alkylation, transalkylation, zeolite, benzene, ethylene]
-facets: {feedstock_basis: [fossil], product_classes: [chemicals], unit_operations: [reaction, distillation], region: EU}
+keywords: [ethylbenzene, alkylation, transalkylation, zeolite, benzene, ethylene, polyethylbenzene, flux oil, distillation]
+facets:
+  feedstock_basis: [fossil]
+  product_classes: [chemicals]
+  unit_operations: [reaction, heat-exchange, distillation]
+  region: EU
+# Honest claim: concept is the lowest level of the manifest; cheme maturity reports no higher
+# level (the feeds and the capacity are assumed, the property package is not qualified).
 maturity: concept
-validation: {status: unreviewed}
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances (cheme validate, cheme process
+    streams, cheme assess lca --balance) and an independent balance script
+    (scripts/eb_balance.py, energy closure exact to 1e-12). The whole plant is simulated in DWSIM
+    9.0.5 with Peng-Robinson (converged, plant enthalpy closure -0.1 kW), but core has not
+    qualified that package for aromatics (predictive.property-regime fails): the simulation is an
+    unqualified cross-check of the script, not validated data. Reactor heat and all column duties
+    agree with the script within about 1 % (C-202 compared at the reflux DWSIM needs); two DWSIM
+    mixer temperatures are 13 to 16 K higher than the script's and are not resolved (DESIGN.md
+    D-014, I-07). Against the EU LVOC BREF (2017): benzene 0.737 t/t, steam 521 kWh/t and heat
+    recovered 742 kWh/t inside its ranges; ethylene 0.267 t/t 0.7 % above (flux-oil model
+    compound), electricity 6.4 kWh/t below (pumps only) (D-015). The ethylene shares are
+    transferred from a patent lab example and the transalkylation conversion is assumed. The LCI
+    is a cradle-to-gate study with the foreground inventory only, every background open: no
+    impact result, and no LCA result passed to the catalog (lca.source none). Not reviewed.
 chemistry:
   inputs:
-    - {chemical: benzene, role: feedstock, inventory_key: "feed:benzene"}
-    - {chemical: ethylene, role: feedstock, inventory_key: "feed:ethylene"}
-    - {chemical: water, role: feedstock, inventory_key: "feed:water", note: "ASSUMED equal to the net effluent"}
+    - {chemical: benzene, role: feedstock, inventory_key: "feed:benzene", note: "fresh benzene S1, 0.737 kg/kg EB"}
+    - {chemical: ethylene, role: feedstock, inventory_key: "feed:ethylene", note: "polymer-grade ethylene S6, 0.267 kg/kg EB, converted completely (ASSUMED)"}
   outputs:
-    - {chemical: ethylbenzene, role: main-product, inventory_key: "product:ethylbenzene"}
-    - {chemical: wastewater, role: waste, inventory_key: "output:wastewater"}
+    - {chemical: ethylbenzene, role: main-product, inventory_key: "product:ethylbenzene", note: "Ethylbenzene 99.94 mol% to storage or a styrene unit (styrene-1 links it)"}
   utilities:
-    - {chemical: electricity, role: utility, inventory_key: "feed:electricity"}
-    - {chemical: steam, role: utility, inventory_key: "feed:steam", note: "counted as heat delivered, gross of heat recovery"}
-basis: {capacity: "per tonne of ethylbenzene (the dataset's basis); no plant size"}
-publication: {status: public, license: CC-BY-4.0}
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity", note: "Feed and recycle pumps (ASSUMED electric drives)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:steam", note: "HP steam 4200 kPa(a), counted as heat delivered: reboilers and the transalkylator feed heater"}
+    - {chemical: steam, role: utility, inventory_key: "product:steam_export", note: "200 kPa(a) steam raised from the reaction heat and two condensers, exported (co-product, allocation share 0)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:cw", note: "25/35 C (ASSUMED)"}
+basis:
+  capacity: "400 kt/a ethylbenzene (ASSUMED)"
+  operating_hours_per_year: 8000
+  location: generic EU site (not chosen)
 references:
   - {title: "Falcke, H. et al. (2017) Best Available Techniques (BAT) Reference Document for the Production of Large Volume Organic Chemicals. JRC Science for Policy Report EUR 28882 EN (JRC109279), chapter 5", doi: 10.2760/77304}
+  - {title: "US5493065A (1996) Liquid phase ethylbenzene synthesis with MCM-49, Example 7 (product distribution on MCM-22)", url: "https://patents.google.com/patent/US5493065A/en"}
+# source: none while every background is a gap: the all-gap total of lca/results.csv must not
+# reach the catalog as a 0 kg CO2-eq result (as hda-1, DESIGN.md D-013). Back to auto once linked.
+lca:
+  source: none
+  notes: "Foreground LCI only (lca/inventory.csv, per kg ethylbenzene), every background a gap (D-013): no impact result. A cradle-to-gate study whose upstream is not yet linked."
+maintainers:
+  - {name: Artur Schweidtmann}
 repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/ethylbenzene-1, access: public}
+publication: {status: public, license: CC-BY-4.0}

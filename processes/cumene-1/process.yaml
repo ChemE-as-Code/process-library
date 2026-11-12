@@ -1,30 +1,98 @@
-# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
-# dataset is lca/datasets/*.yaml, Tier 0 form, so maturity stays at concept
-# (core's cheme.lci-tier-maturity). See README.md.
+# Process Atlas manifest of cumene-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here. Until 2026-11-03 a
+# manifest-only pilot with a hand-written Tier 0 dataset; that dataset is retired in favour of
+# the flowsheet-derived lca/dataset.yaml (DESIGN.md D-013).
 schema: cheme-as-code/process/v1
 id: cumene-1
-title: Cumene by zeolite alkylation of benzene with propylene
+title: Cumene by zeolite alkylation of benzene with propylene (272 kt/a)
 summary: >-
-  Tier 0 screening per tonne of cumene: stoichiometry with a licensor's benzene figure and net steam,
-  US EPA facility air emissions, electricity from core's default. No flowsheet; not reviewed.
+  Liquid-phase alkylation of benzene with chemical-grade propylene on a beta-type zeolite,
+  transalkylation of the diisopropylbenzenes, depropaniser on a benzene slipstream, benzene,
+  cumene and vacuum DIPB columns, LP steam raised by the alkylator. Concept stage, assumed
+  basis, simulated PFD, preliminary LCI (cradle-to-gate study, foreground inventory only).
+description: |
+  Fresh and recycled benzene is pumped to 4.2 MPa and split between the alkylator, the
+  transalkylator and a slipstream to the depropaniser. The alkylator feed (benzene/propylene
+  4 mol/mol) is preheated against the effluent to 413 K and converts all the propylene in the
+  liquid phase on a beta-type zeolite (outlet 436 K); the heat of reaction raises LP steam for
+  export. The recycled diisopropylbenzene (DIPB) is transalkylated with benzene at 433 K
+  (40 % per pass). The effluents go to the benzene column, whose overhead benzene (5 mol%
+  propane) returns to the drum; the depropaniser takes the propane out of the slipstream as LPG.
+  The cumene column gives 99.97 wt% cumene, and the vacuum DIPB column returns DIPB to the
+  transalkylator and leaves the heavy ends (triisopropylbenzene surrogate) as fuel.
+
+  All values are concept estimates. The stream values and duties come from a DWSIM simulation of
+  the whole plant (Peng-Robinson). ChemE-as-Code has not qualified that property package for
+  aromatics with light hydrocarbons, so the simulation is a cross-check of an independent balance
+  script, not validated data; see DESIGN.md of the engineering files (D-007, D-011) for every
+  assumption. Designed independently: no data of DWSIM/FOSSEE flowsheets or of Luyben's cumene
+  studies are used.
 families: [aromatics]
-keywords: [cumene, isopropylbenzene, alkylation, transalkylation, zeolite, benzene, propylene]
-facets: {feedstock_basis: [fossil], product_classes: [chemicals], unit_operations: [reaction, distillation], region: generic}
+keywords: [cumene, isopropylbenzene, alkylation, transalkylation, zeolite, zeolite beta, benzene, propylene, diisopropylbenzene, depropaniser, distillation]
+facets:
+  feedstock_basis: [fossil]
+  product_classes: [chemicals]
+  unit_operations: [reaction, heat-exchange, distillation]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest; the feeds, the capacity and the
+# selectivity split are assumed, and the property package is not qualified, see
+# validation.notes and DESIGN.md D-007, D-011.
 maturity: concept
-validation: {status: unreviewed}
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances (cheme validate, cheme process
+    streams). The whole plant is simulated in DWSIM 9.0.5 (Peng-Robinson, converged; the benzene
+    loop closed at the drum, whose balance closes within 3 kg/h of 135 t/h), but core has not
+    qualified that package for aromatics with light hydrocarbons (predictive.property-regime
+    covers N2/O2/Ar and ethanol-water only): the simulation is an unqualified cross-check of the
+    independent balance script scripts/cumene_balance.py (thermo Peng-Robinson), with which it
+    agrees within about 1 % on the product, the recycles and the column duties and within 6 % on
+    the heater and pump duties; the depropaniser's reflux differs by design (D-011). The heavy
+    ends (TIPB) are simulated with a property surrogate (1-tetradecene; DWSIM has no TIPB). The
+    reactors are conversion reactors with an assumed selectivity split, informed by a patent
+    example at a higher benzene ratio (process/reaction-evidence.yaml, D-005). Yields and
+    consumptions agree with a licensor's figures (Versalis brochure); the steam use is about six
+    times the licensor's net figure (no heat integration, D-012). The LCI is a cradle-to-gate
+    study with the foreground inventory only, every background open (6 gaps): no impact result,
+    and no LCA result passed to the catalog (lca.source none). Not reviewed.
 chemistry:
   inputs:
-    - {chemical: benzene, role: feedstock, inventory_key: "feed:benzene"}
-    - {chemical: propylene, role: feedstock, inventory_key: "feed:propylene"}
+    - {chemical: benzene, role: feedstock, inventory_key: "feed:BZF", note: "Fresh benzene, 0.652 kg/kg cumene (ASSUMED pure)"}
+    - {chemical: propylene, role: feedstock, inventory_key: "feed:PRF", note: "Chemical-grade propylene 95 mol% with 5 mol% propane (ASSUMED); 0.352 kg propylene per kg cumene"}
   outputs:
-    - {chemical: cumene, role: main-product, inventory_key: "product:cumene"}
+    - {chemical: cumene, role: main-product, inventory_key: "product:CUMENE", note: "Cumene 99.97 wt% to storage or acetone-1"}
+    # No inventory_key: the export (product:LPSX, 250 kPa(a) saturated, counted in kWh) is not
+    # offered as an Atlas steam producer (the aniline-1 precedent, its D-013).
+    - {chemical: steam, role: co-product, note: "LP steam 250 kPa(a) raised from the alkylation heat (product:LPSX)"}
   utilities:
-    - {chemical: electricity, role: utility, inventory_key: "feed:electricity", note: "core's Tier 0 default (ASSUMED, dated)"}
-    - {chemical: steam, role: utility, inventory_key: "feed:steam", note: "net of LP export, so it embeds a credit for exported steam (deviation in the dataset); pressure not stated by the source"}
-basis: {capacity: "per tonne of cumene (the dataset's basis); no plant size"}
-publication: {status: public, license: CC-BY-4.0}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Benzene, propylene and DIPB recycle pumps (ASSUMED electric drives)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "MP steam 1500 kPa(a), transalkylator feed heater and benzene column reboiler"}
+    - {chemical: steam, role: utility, inventory_key: "feed:HPS", note: "HP steam 4200 kPa(a), depropaniser, cumene and DIPB column reboilers"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED)"}
+basis:
+  capacity: "272 kt/a cumene, 34.0 t/h (ASSUMED: covers acetone-1's fresh cumene)"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
 references:
   - {title: "Versalis (2018) Cumene: proprietary process technology, licensing brochure 11-2018 (manufacturer literature)", url: "https://versalis.eni.com/assets/documents/versalis/it/documentazione/licensing/2022/Cumene.pdf"}
+  - {title: "Innes, R.A., Zones, S.I., Nacamuli, G.J. (1990) Liquid phase alkylation or transalkylation process using zeolite beta. US 4,891,458 A (Chevron Research)", url: "https://patents.google.com/patent/US4891458A/en"}
+  - {title: "Dandekar, A.B., Hryniszak, M., Stern, D.L. (2005) Process for producing cumene. US 6,888,037 B2 (ExxonMobil Chemical Patents)", url: "https://patents.google.com/patent/US6888037B2/en"}
   - {title: "Meyer, D.E., Cashman, S., Gaglione, A. (US EPA) Data mining applied to life cycle inventory modeling for cumene and sodium hydroxide manufacturing, dataset (public domain)", doi: 10.23719/1503030}
   - {title: "Falcke, H. et al. (2017) Best Available Techniques (BAT) Reference Document for the Production of Large Volume Organic Chemicals. JRC Science for Policy Report EUR 28882 EN (JRC109279), section 2.1.1.5", doi: 10.2760/77304}
-repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/cumene-1, access: public}
+  - {title: "Szargut, J., Morris, D.R., Steward, F.R. (1988) Exergy Analysis of Thermal, Chemical, and Metallurgical Processes. Hemisphere (standard element exergies for the exergy allocation)"}
+# source: none until a background is linked: every LCA contribution is a gap (ADR 0029; the
+# hda-1 precedent, its D-013). Back to auto once linked.
+lca:
+  source: none
+  notes: "Foreground LCI only (lca/dataset.yaml, per kg cumene by exergy allocation), every background a gap (D-013): no impact result. A cradle-to-gate study whose upstream is not yet linked."
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/cumene-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0
