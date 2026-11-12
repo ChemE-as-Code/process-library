@@ -239,7 +239,8 @@ raised to at least 4 (the lognormal widens), `datapackage.json` `estimate` on th
 product it names is, preview unless all of them are public), and the dataset's `data_quality`
 recomputed with the penalty (`proxy_penalty`, below). The proxy's library products are Atlas
 links with their check (`atlas_links`, kind `proxy`). A public build that does not hold a product
-a proxy names leaves the exchange a gap.
+a proxy names leaves the exchange a gap. First use: chlorosulfonic acid for
+p-toluenesulfonyl-chloride-1 (SO3 from the background, HCl from hydrogen-chloride-1).
 
 Everything else stays an error or warning for every process: a unit mismatch with a mapping, an
 override naming an unknown entry, dataset or `chemical`, an override key matching no exchange of a

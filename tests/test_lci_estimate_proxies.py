@@ -304,3 +304,12 @@ def test_a_public_build_without_the_product_leaves_a_gap(library: Path, tmp_path
     assert "atlas gap" in solvent and "database" not in solvent
     assert not any(a["code"] == "proxy:solvent" for a in _json(out / "lci" / "datapackage.json")["activities"])
 
+
+def test_the_library_proxy_for_chlorosulfonic_acid_conserves_mass() -> None:
+    mappings = build_lci.load_mappings(KIT / "lci" / "mappings.yaml")
+    proxy = mappings["proxies"]["chlorosulfonic-acid"]
+    assert (proxy["chemical"], proxy["basis"]) == ("chlorosulfonic-acid", "stoichiometric")
+    assert build_lci._proxy_mass(proxy) == pytest.approx(1.0, abs=1e-5)
+    hcl = next(i for i in proxy["inputs"] if "dataset" in i)
+    assert hcl["dataset"] == {"path": "processes/hydrogen-chloride-1/lca/dataset.yaml", "product": "product:HCLACID"}
+    assert hcl["amount"] * hcl["content"]["fraction"] == pytest.approx(36.458 / 116.515, rel=1e-5)
