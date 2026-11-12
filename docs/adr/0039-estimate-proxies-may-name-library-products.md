@@ -62,22 +62,27 @@ only, no estimate marking. Per-process mappings do not get proxies of their own:
 reactants of the stated `reaction`, from molar masses) conserve mass: the proxy is in kilogram,
 every input is in kilogram, and the inputs' masses on the basis (amount times the content's
 fraction) sum to 1 kg per kg within 0.001. `basis: non-mass` declares another basis in
-`basis_reason` and is not mass-checked. A content fraction must agree with the composition the
-linked product states. The build refuses (an error) a mass that is not conserved and a unit
+`basis_reason` and is not mass-checked. A content is checked, never taken on trust: its component
+must be in the composition the linked product states, with that fraction (within 0.0001); a
+component the composition does not contain, or a product that states no composition, is refused. The build refuses (an error) a mass that is not conserved and a unit
 that does not fit the basis (when it loads the mappings), and, once an exchange uses the proxy
 (so that a library holding part of the processes still builds), an unregistered `chemical`, a
-content its product contradicts, and:
+content its product does not state or contradicts, and:
 
 - **a missing product**: a `dataset` input that is not a product of the library;
 - **a circular link**: an estimate proxy whose inputs reach back to it, through the library
   products it names, their datasets' links inside the Atlas (pinned, market, plant, a market's
   suppliers) and the exchanges linked to proxies.
 
-**A dedicated producer takes precedence.** When the build holds a library producer of the
+**A dedicated producer always takes precedence.** When the build holds a library producer of the
 proxy's `chemical` (by the same rules as any Atlas link: the market of the grade, else the
 plant, refused for another grade), an exchange mapped to the proxy links that producer directly
 inside the Atlas instead, and the build advises (a warning that does not fail `--strict`) that
-the proxy can be removed. The proxy is then not exported unless another consumer still uses it.
+the proxy can be removed. This holds whatever the state of the proxy: also when the build
+refuses it (no error then, since nothing uses it; the advisory names the refusal) or cannot use
+it (a public build without a product it names). Only without a producer does the proxy's state
+matter: a refused proxy is an error and the exchange a gap, an unavailable one leaves the gap the
+exchange had before the proxy. The proxy is not exported unless an exchange links it.
 
 **A proxy stays visibly an estimate.** Every exchange linked to an estimate proxy is marked in
 the exported dataset:
@@ -98,11 +103,41 @@ the exported dataset:
   the proxy's own entry `estimate` (the chemical, the basis), `preliminary` when a library
   product it names is preliminary, and `publication: preview` unless every one of them is
   public. A library product is linked inside the Atlas with its compatibility check
-  (`atlas_links`, kind `proxy`).
+  (`atlas_links`, kind `proxy`);
+- per process: `datapackage.json` `processes[]` `estimates` (dataset, exchange, proxy, chemical,
+  basis), `estimate_count` and `estimated`; `lci/index.json` `estimated` (the process ids),
+  `estimates` (the count per process) and `estimated: true` on the process's activities; an
+  `ESTIMATED` caveat naming the processes. `preliminary` in these LCI files keeps its ADR 0026
+  meaning (mapping gaps, which `install()` refuses): an estimate links, so it is a separate flag;
+- the **catalog** (`catalog.json` and `processes/<id>.json`, which the Atlas process list and
+  process pages read): `estimated`, `estimate_count` and, on the process page, `lci_estimates`
+  (dataset, exchange, proxy, chemical, basis); and the process stays **`preliminary`** (also its
+  LCA headline's `preliminary`, with `estimated` beside it) while any exchange is estimated, even
+  when its last gap is closed by a proxy. `gap_count` still counts gaps only.
+
+**How the Atlas shows it.** A page must never show a proxied chain as fully modelled:
+
+- the process list and a process page keep the *Preliminary* badge (the catalog's
+  `preliminary`), and show an *Estimated* badge beside it when `estimated` is true, with the text
+  "N exchange(s) link to an estimate proxy: their supply chain is estimated from other products,
+  not modelled", where N is `estimate_count`;
+- the badge's explanation names gaps and estimates separately: "unmapped exchanges" only for
+  `gap_count`, never for an estimate;
+- a process page lists `lci_estimates` (the exchange, the substance it stands for, the proxy's
+  `/lci/<code>/` page and its basis) beside the gap list; an LCI activity page shows the
+  exchange's `estimate` text and the activity's `estimates` count, and the proxy's page its
+  `estimate` (substance and basis);
+- the LCI download's install note stays gap-based (`index.json` `preliminary`): an estimated
+  process installs, and the note says so through the `ESTIMATED` caveat.
+
+Until the Atlas reads `estimated`, the catalog's `preliminary` keeps the existing badge on such
+an entry; the badge text and the list are a change of the website (ChemE-as-Code/website), not
+of this library.
 
 **The public build stays fail-closed.** A public build that does not hold a library product an
 estimate proxy names (its process is not public) cannot use the proxy: an exchange mapped to it
-is a gap there (ADR 0026), never linked to a partial proxy.
+is a gap there (ADR 0026), never linked to a partial proxy, unless a library producer of the
+proxy's chemical is linked instead (above).
 
 ## Consequences
 
@@ -135,11 +170,14 @@ is a gap there (ADR 0026), never linked to a partial proxy.
 - Issue #419 (this decision), #418 (the KOtBu case, option 1 taken there with a dedicated entry).
 - `schemas/lci-mappings.schema.json` `$defs/proxy` and `$defs/dataset_ref`;
   `scripts/build_lci.py` (`_proxy_basis_problem`, `check_estimate_proxies`, `_supersede_proxy`,
-  `_estimate`, `circular_proxies`, `penalised_rating`, `ESTIMATE_TECHNOLOGY_SCORE`);
-  `scripts/lci_activities.py` (`estimate`, `estimated`, `estimates`).
+  `_estimate`, `circular_proxies`, `penalised_rating`, `ESTIMATE_TECHNOLOGY_SCORE`,
+  `Report.estimates`); `scripts/lci_activities.py` (`estimate`, `estimated`, `estimates`);
+  `scripts/build_catalog.py` (`_lci_gaps`: `estimated`, `estimate_count`, `lci_estimates`).
 - `tests/test_lci_estimate_proxies.py`: mass on the basis, a declared non-mass basis, a missing
-  product, a content its product contradicts, a circular link, a dedicated producer's
-  precedence, the estimate marked with its penalty and recomputed DQR, the public build's gap,
-  and the library's chlorosulfonic-acid proxy.
+  product, a content its product contradicts or does not state, a circular link, a dedicated
+  producer's precedence (also over a refused and an unavailable proxy, in the preview and the
+  public build), the estimate marked with its penalty and recomputed DQR, the estimates per
+  process and in the catalog, the public build's gap, and the library's chlorosulfonic-acid
+  proxy.
 - `lci/mappings.yaml` `proxies.chlorosulfonic-acid`, `technosphere.sulfur-trioxide`;
   `processes/p-toluenesulfonyl-chloride-1/lca/mappings.yaml` and its `DESIGN.md` D-016.

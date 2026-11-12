@@ -260,6 +260,29 @@ def test_a_content_the_product_does_not_state_is_refused(library: Path, tmp_path
     assert any("content HCl 0.4, but the product's composition states 0.3" in e for e in report.errors), report.errors
 
 
+@pytest.mark.parametrize("composition", [{"fractions": {"HCl": 0.3, "H2O": 0.7}, "formulas": {"HCl": "HCl", "H2O": "H2O"}}, None], ids=["other-components", "no-composition"])
+def test_a_content_component_the_product_does_not_contain_is_refused(library: Path, tmp_path: Path, composition: dict | None) -> None:
+    # the fraction is checked, never taken on trust: NaCl is not in the acid's composition (or it has none)
+    product = {"key": "product:acid", "title": "Acid 30 %", "type": "product", "amount": 1000.0, "unit": "kg"}
+    if composition:
+        product["composition"] = composition
+    _process(library, "fixture-acid", [{"key": "feed:electricity", "title": "Power", "type": "input", "amount": 1.0, "unit": "kWh"}, product],
+             [{"chemical": "water", "role": "main-product", "inventory_key": "product:acid"}])
+    _consumer(library)
+    acid = "processes/fixture-acid/lca/datasets/blend.yaml"
+    _proxy(library, inputs=[{"dataset": {"path": acid, "product": "product:acid"}, "amount": 0.5, "content": {"component": "NaCl", "fraction": 0.4}, "source": "fixture"},
+                            {"use": "water", "amount": 0.8, "source": "fixture"}])
+    report = _build(library, tmp_path / "out")
+    stated = "states H2O, HCl, not NaCl" if composition else "states no composition, not NaCl"
+    assert any("proxies.solvent" in e and f"content NaCl 0.4, but the product's composition {stated}: the fraction cannot be checked" in e for e in report.errors), report.errors
+    assert not any(e.get("atlas proxy") for e in _activities_or_empty(tmp_path / "out").get(USER, {}).get("exchanges", []))
+
+
+def _activities_or_empty(out: Path) -> dict[str, dict]:
+    xlsx = out / "lci" / f"{DB}.xlsx"
+    return _activities(xlsx) if xlsx.is_file() else {}
+
+
 def test_a_circular_link_is_refused(library: Path, tmp_path: Path) -> None:
     # the proxy rests on fixture-user's own blend, which consumes the proxy
     _consumer(library)
@@ -313,3 +336,81 @@ def test_the_library_proxy_for_chlorosulfonic_acid_conserves_mass() -> None:
     hcl = next(i for i in proxy["inputs"] if "dataset" in i)
     assert hcl["dataset"] == {"path": "processes/hydrogen-chloride-1/lca/dataset.yaml", "product": "product:HCLACID"}
     assert hcl["amount"] * hcl["content"]["fraction"] == pytest.approx(36.458 / 116.515, rel=1e-5)
+
+
+def _producer(library: Path, public: bool = False) -> str:
+    """fixture-solvent: a dedicated library producer of unused-solvent (the proxy's chemical)."""
+    _process(library, "fixture-solvent", [{"key": "feed:electricity", "title": "Power", "type": "input", "amount": 50.0, "unit": "kWh"},
+                                          {"key": "product:solvent", "title": "Solvent", "type": "product", "amount": 1000.0, "unit": "kg"}],
+             [{"chemical": "unused-solvent", "role": "main-product", "inventory_key": "product:solvent"}], public)
+    return "fixture-solvent:fixture-solvent-blend:product:solvent"
+
+
+def _linked_to_producer(report: build_lci.Report, out: Path, producer: str) -> None:
+    assert report.errors == [] and report.gaps == [] and report.estimates == [], (report.errors, report.gaps, report.estimates)
+    activities = _activities(out / "lci" / f"{DB}.xlsx")
+    solvent = _exchange(activities[USER], "feed:SOLVENT")
+    assert (solvent["database"], solvent["atlas code"], solvent["atlas link"]) == (DB, producer, "plant")
+    assert "atlas proxy" not in solvent and "atlas estimate" not in solvent and "atlas gap" not in solvent
+    assert "proxy:solvent" not in activities
+    assert any("estimate proxy 'solvent' is not used" in w and producer in w for w in report.advisories), report.warnings
+
+
+@pytest.mark.parametrize("public", [False, True], ids=["preview", "public"])
+def test_a_dedicated_producer_takes_precedence_over_an_unavailable_proxy(library: Path, tmp_path: Path, public: bool) -> None:
+    # the proxy names fixture-ammonia's ammonia, which a public build does not hold; a public producer exists
+    _proxy(library, inputs=[{"dataset": {"path": NH3_PATH, "product": "product:ammonia"}, "amount": 1.0, "source": "fixture"}])
+    _consumer(library, public=True)
+    producer = _producer(library, public=True)
+    out = tmp_path / "out"
+    report = _build(library, out, public=public)
+    _linked_to_producer(report, out, producer)
+    if public:
+        assert any("unavailable in this build" in w for w in report.advisories), report.advisories
+
+
+@pytest.mark.parametrize("public", [False, True], ids=["preview", "public"])
+def test_a_dedicated_producer_takes_precedence_over_a_refused_proxy(library: Path, tmp_path: Path, public: bool) -> None:
+    # a refused proxy (a missing product) is no error while a library producer is linked instead
+    _proxy(library, inputs=[{"dataset": {"path": H2_PATH, "product": "product:NOPE"}, "amount": 0.2, "source": "fixture"}, {"use": "water", "amount": 0.8, "source": "fixture"}])
+    _consumer(library, public=True)
+    producer = _producer(library, public=True)
+    out = tmp_path / "out"
+    report = _build(library, out, public=public)
+    _linked_to_producer(report, out, producer)
+    assert any("it is also refused" in w for w in report.advisories), report.advisories
+
+
+def test_the_estimates_are_listed_per_process_and_in_the_catalog(library: Path, tmp_path: Path) -> None:
+    import build_catalog
+
+    _proxy(library)
+    _consumer(library, public=True)
+    out = tmp_path / "out"
+    report = _build(library, out)
+    assert report.errors == [] and report.gaps == [], (report.errors, report.gaps)
+    assert [(e["process"], e["key"], e["proxy"]) for e in report.estimates] == [("fixture-user", "feed:SOLVENT", "proxy:solvent")]
+    package = _json(out / "lci" / "datapackage.json")
+    entry = next(p for p in package["processes"] if p["id"] == "fixture-user")
+    assert (entry["estimated"], entry["estimate_count"], entry["preliminary"]) == (True, 1, False)  # install() links it: not a gap
+    assert entry["estimates"][0]["chemical"] == "unused-solvent" and entry["estimates"][0]["basis"] == "mass"
+    index = _json(out / "lci" / "index.json")
+    assert index["estimated"] == ["fixture-user"] and index["estimates"] == {"fixture-user": 1} and "fixture-user" not in index["preliminary"]
+    assert all(a.get("estimated") is True for a in index["processes"]["fixture-user"])
+    assert any(c.startswith("ESTIMATED: 1 exchange(s) of 1 process(es)") for c in index["caveats"])
+
+    # the catalog: no gap is left, but the entry stays preliminary and says it is estimated
+    manifest = library / "processes" / "fixture-user" / "process.yaml"
+    data = yaml.safe_load(manifest.read_text())
+    data["chemistry"]["inputs"] = [{"chemical": "unused-solvent", "role": "feedstock", "inventory_key": "feed:SOLVENT"}]
+    manifest.write_text(yaml.safe_dump(data, sort_keys=False))
+    for public in (False, True):
+        catalog = tmp_path / f"catalog-{public}"
+        assert not build_catalog.build(library, catalog, None, commit="fixture", public=public).errors
+        summary = next(p for p in _json(catalog / "catalog.json")["processes"] if p["id"] == "fixture-user")
+        assert (summary["preliminary"], summary["gap_count"], summary["estimated"], summary["estimate_count"]) == (True, 0, True, 1)
+        detail = _json(catalog / "processes" / "fixture-user.json")
+        assert (detail["preliminary"], detail["estimated"], detail["estimate_count"]) == (True, True, 1)
+        assert detail["lci_estimates"] == [{"dataset": "fixture-user-blend", "key": "feed:SOLVENT", "proxy": "proxy:solvent", "chemical": "unused-solvent", "basis": "mass"}]
+        other = next(p for p in _json(catalog / "catalog.json")["processes"] if p["id"] == "fixture-electrolysis")
+        assert (other["preliminary"], other["estimated"], other["estimate_count"]) == (False, False, 0)

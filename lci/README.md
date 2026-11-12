@@ -228,18 +228,25 @@ library process makes (`chemical`, a registry slug) by other products: backgroun
 proxy and, for a mixture, the `content` (component and mass fraction) that counts on the basis.
 `basis: mass` and `basis: stoichiometric` (with its `reaction`) must sum to 1 kg per kg on the
 basis, in kilogram throughout; `basis: non-mass` states its `basis_reason`. The build refuses a
-mass that is not conserved and, once an exchange uses the proxy, a missing product, a content the
-product's composition contradicts and a circular link (the proxy's products reaching back to an activity that consumes it). A
-library producer of the proxy's `chemical` in the build takes precedence: the exchange links it
-inside the Atlas and the build advises that the proxy can go. Otherwise the exchange links the
+mass that is not conserved and, once an exchange uses the proxy, a missing product, a content
+whose component the product's composition does not state (or states with another fraction) and a
+circular link (the proxy's products reaching back to an activity that consumes it). A library
+producer of the proxy's `chemical` in the build always takes precedence, also over a proxy the
+build refuses or cannot use: the exchange links it inside the Atlas and the build advises that
+the proxy can go. Otherwise the exchange links the
 proxy and is marked an **estimate**: columns `atlas proxy` and `atlas estimate`, the activity's
 `atlas estimates` and an `ESTIMATE:` comment line, its further technological correlation pedigree
 raised to at least 4 (the lognormal widens), `datapackage.json` `estimate` on the exchange,
 `estimated` and `estimates` on the activity, the proxy's own `estimate` entry (preliminary when a
 product it names is, preview unless all of them are public), and the dataset's `data_quality`
 recomputed with the penalty (`proxy_penalty`, below). The proxy's library products are Atlas
-links with their check (`atlas_links`, kind `proxy`). A public build that does not hold a product
-a proxy names leaves the exchange a gap. First use: chlorosulfonic acid for
+links with their check (`atlas_links`, kind `proxy`). Each such exchange is listed per process
+(`datapackage.json` `processes[].estimates`, `estimate_count`, `estimated`; `index.json`
+`estimated` and `estimates`; an `ESTIMATED` caveat) and in the catalog (`estimated`,
+`estimate_count`, `lci_estimates`), where the process stays `preliminary` even with no gap left.
+`preliminary` in the LCI files keeps meaning gaps (install() links an estimate). A public build
+that does not hold a product a proxy names leaves the exchange a gap, unless a producer is
+linked. First use: chlorosulfonic acid for
 p-toluenesulfonyl-chloride-1 (SO3 from the background, HCl from hydrogen-chloride-1).
 
 Everything else stays an error or warning for every process: a unit mismatch with a mapping, an
