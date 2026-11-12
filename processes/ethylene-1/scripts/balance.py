@@ -520,7 +520,11 @@ def main():
     flowsheet = {sid: {"flow": {"value": o["kg_h"], "basis": "mass"},
                        "composition": {"values": o["y"], "basis": "mole_fraction"}}
                  for sid, o in out.items()}
+    # Q102 is written by cheme (H102's conversion-step duty less Q105, D-019): the script's
+    # value stays a printed cross-check and in build/balance.json, not a cited one
     for k, v in q.items():
+        if k == "Q102":
+            continue
         flowsheet.setdefault(k, {})["duty"] = v
     write_balance_output({"design": flowsheet})
     (ROOT / "build" / "states.yaml").write_text("\n".join(lines) + "\n")

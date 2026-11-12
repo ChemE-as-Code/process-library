@@ -228,7 +228,8 @@ Decision: the hand value holds a loss the model leaves out, so the stream is spl
 loss is its own assumed energy stream Q105 (H102 to a new terminal AMBIENT, utility kind
 `other`, so it is not a heat utility), 9 163.8 kW from scripts/balance.py. H102 names
 `energy_port: hps`, and the model's heat less the coils and Q105 goes on Q102. The typed Q102
-is removed and `cheme process propagate --fill` writes it.
+is removed and `cheme process propagate --fill` writes it; scripts/balance.py keeps its
+convection steam as a printed cross-check and no longer gives Q102 in its balance output.
 Result: Q102 = 586 554.2 - 381 708.7 - 9 163.8 = 195 681.7 kW, written as 195 682.0 kW
 (calculated), the same as before. SHP steam export, fuel and CO2 are unchanged. The inventory
 gains the casing loss, product:AMBIENT, 0.0671 kWh per kg ethylene, free (heat to the air
