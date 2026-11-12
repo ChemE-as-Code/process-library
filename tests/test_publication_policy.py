@@ -9,9 +9,10 @@ explicitly, and the public build stays fail-closed.
 - ``scripts/publication.py`` includes only ``status: public`` with a licence: a manifest without
   a publication block, without a status, with ``internal`` or ``candidate``, or public without a
   licence is not public.
-- values a package computes from coefficients taken from Perry's handbook or DIPPR 801 are single
-  facts with their source, never open data (ADR 0037): no source register row of a ``DESIGN.md``
-  that names DIPPR or Perry's calls its values open data.
+- values a package computes from coefficients or tables taken from a licensed handbook (Perry's,
+  drawing on DIPPR 801; the CRC Handbook; the VDI Heat Atlas) are single facts with their source,
+  never open data (ADR 0037): no source register row of a ``DESIGN.md`` that names DIPPR, Perry's,
+  CRC or VDI calls its values open data.
 """
 
 from __future__ import annotations
@@ -115,33 +116,39 @@ def test_the_schema_requires_a_licence_on_a_public_entry():
 
 
 DESIGNS = sorted((KIT / "processes").glob("*/DESIGN.md"))
-_DIPPR_OR_PERRY = re.compile(r"DIPPR|Perry's", re.IGNORECASE)
+# DIPPR and Perry's in any case; CRC and VDI as written (the packaged tables and thermo's methods:
+# CRC_standard_data, Hvap_data_CRC, VDI_PPDS, VDI_TABULAR), so no ordinary word matches them.
+_PACKAGED_HANDBOOK = re.compile(r"(?i:DIPPR|Perry's)|CRC|VDI")
 _NEGATED = re.compile(r"\b(?:not|no)\s+open data", re.IGNORECASE)
-# Rows whose fix waits for an open pull request; strict, so the entry leaves this list once fixed.
-_PENDING: dict[str, str] = {}
+# Rows whose fix waits for an open pull request or issue; strict, so the entry leaves this list once
+# fixed.
+_PENDING: dict[str, str] = {
+    "formic-acid-1": "SRC-7 calls its packaged CRC values open data: issue #433 (left out of #426 "
+    "while #396 changed the entry)",
+}
 
 
 def _open_data_claims(text: str) -> list[int]:
-    """Line numbers of source register rows that name DIPPR or Perry's and call something open data
-    other than in 'not open data' / 'no open data'."""
+    """Line numbers of source register rows that name DIPPR, Perry's, CRC or VDI and call something
+    open data other than in 'not open data' / 'no open data'."""
     return [
         number
         for number, line in enumerate(text.splitlines(), 1)
         if line.startswith("|")
-        and _DIPPR_OR_PERRY.search(line)
+        and _PACKAGED_HANDBOOK.search(line)
         and "open data" in _NEGATED.sub("", line).lower()
     ]
 
 
 @pytest.mark.parametrize("path", DESIGNS, ids=lambda p: p.parent.name)
-def test_dippr_and_perry_values_are_not_called_open_data(path):
+def test_packaged_handbook_values_are_not_called_open_data(path):
     claims = _open_data_claims(path.read_text(encoding="utf-8"))
     if path.parent.name in _PENDING:
         assert claims, f"{path.parent.name} is fixed: remove it from _PENDING"
         pytest.xfail(_PENDING[path.parent.name])
     assert not claims, (
-        f"{path.parent.name}/DESIGN.md lines {claims}: values computed from DIPPR or Perry's coefficients are "
-        "single facts with their source, not open data (ADR 0037)"
+        f"{path.parent.name}/DESIGN.md lines {claims}: values a package computes from DIPPR/Perry's, CRC or "
+        "VDI coefficients and tables are single facts with their source, not open data (ADR 0037)"
     )
 
 
@@ -150,3 +157,9 @@ def test_the_open_data_check_reads_negation():
     assert _open_data_claims("| SRC-1 | thermo DIPPR_PERRY_8E | the values are not open data |") == []
     assert _open_data_claims("| SRC-1 | NIST WebBook | open data |") == []
     assert _open_data_claims("thermo's DIPPR fits are open data (prose, not a register row)") == []
+    assert _open_data_claims("| S4 | chemicals: dHf (CRC, ATcT) | tool output | open data |") == [1]
+    assert _open_data_claims("| SRC-1 | chemicals `Hvap_data_CRC` | open data packages |") == [1]
+    assert _open_data_claims("| SRC-1 | thermo VDI_PPDS (VDI Heat Atlas) | open data |") == [1]
+    assert _open_data_claims("| SRC-1 | chemicals `CRC_standard_data` | single values; not open data |") == []
+    assert _open_data_claims("| SRC-1 | Wikipedia: no open data on the CRC value |") == []
+    assert _open_data_claims("| SRC-1 | PubChem | REST query | open data |") == []
