@@ -1,0 +1,503 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Methanesulfonyl chloride from methanesulfonic acid and thionyl chloride (DESIGN.md D-001), a
+# batch plant: the acid is charged to R-101 and warmed to 368 K, thionyl chloride (fresh with
+# the recovered forerun) is dosed into it over 4 h (a semi-batch, reactor: semibatch) and the
+# SO2 and HCl leave as they form (batch.vent) saturated with the liquid's vapour, through the
+# vent condenser E-102 on brine, whose condensate returns, to a caustic scrubber; the crude is
+# distilled at 4 kPa(a) in the batch still C-101 with its column K-101: first the excess thionyl
+# chloride as a forerun over the brine condenser E-103 (recycled to the next dose, a tenth
+# purged), then the product over the water-cooled condenser E-104, the unreacted acid left in
+# the residue. The flows are the year averages of the batch recipe (process/recipe.yaml, `cheme
+# process recipe`, D-003).
+# Where the values come from:
+# - feeds, temperatures, pressures, ratios: design basis and D-002..D-010, ASSUMED or from
+#   Organic Syntheses, Coll. Vol. 4, 571 (D-004);
+# - R101: cheme's semi-batch model with its vent, the vent's vapour and its condenser (core ADRs
+#   0050, 0054, 0062) and the acid's heat-up (ADR 0063), from the ASSUMED rate laws (D-005);
+# - ST101, ST102: cheme's batch still with the column K-101 on Diwekar's shortcut (core ADRs
+#   0055, 0061), Raoult's law with the vapour-pressure lines of materials.yaml (D-007, D-008);
+# - A101: a conversion step with the neutralisations of reactions.yaml (D-010);
+# - M101, M102, M103 (mixers), SP101 (splitter), E101 (pass-through): `cheme process propagate
+#   --fill`; the forerun's recycle converges at its tear S3 (core ADR 0060);
+# - the duties: R101's Q1 (its reactions' heat, the dose warmed, the acid's heat-up with the
+#   vessel's metal and the vent's vapour; supplied by R-101's jacket and the heating loop E-105,
+#   D-009), its vent condenser's Q2, the stills' reboilers Q3 and Q5 and condensers Q4 and Q6,
+#   and the scrubber's Q8 are written by `cheme process propagate --fill` from the models (core
+#   ADRs 0059, 0061, 0062, 0063); the product cooler's Q7, the caustic's dilution Q9 and the
+#   crude's flash Q10 come from scripts/balance.py (D-006, D-009, L-4, L-5);
+# - the power P1, P2, P3: ASSUMED from the recipe's times (D-009);
+# - the feeds S1, S2, S14 and S15: scripts/balance.py (D-006).
+schema: cheme/process/v1
+kind: flowsheet
+title: Methanesulfonyl chloride by semi-batch reaction of methanesulfonic acid with thionyl chloride and batch vacuum distillation (1000 t/a)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: 1000 t/a distilled methanesulfonyl chloride, year averages of the batch recipe in 7920 h on a dedicated train (D-002, D-003)", default: true}
+tolerance: {abs: 0.05, rel: 0.002}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+# The thionyl chloride loop (the dose, R-101, the still's forerun, its recycle) is torn at the
+# recycle S3 and converged by `cheme process propagate` (Wegstein, core ADR 0060); nine tenths of
+# the forerun return, so the loop's gain is about 0.9.
+tears:
+  - stream: S3
+    initial: {flow: 37.0, unit: kg/h, basis: mass_fraction, composition: {SOCL2: 1.0}}
+convergence: {method: wegstein, max_iterations: 500, tolerance: {abs: 1.0e-6, rel: 1.0e-9}}
+
+feeds:
+  - {id: MSA, title: "Methanesulfonic acid, anhydrous grade (no library process)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: SOCL2, title: Thionyl chloride (thionyl-chloride-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: NAOH, title: Caustic soda 50 wt% (chlor-alkali-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: PW, title: Process water (scrubber caustic dilution), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: r101, direction: out, kind: energy}
+      - {id: st101, direction: out, kind: energy}
+      - {id: a101, direction: out, kind: energy}
+  - id: LPS
+    title: LP steam let down to 140 kPa(a) (R-101's jacket and the still's reboiler)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 140, provenance: assumed, source: "design basis (D-009): the site's LP steam let down, so that no heated wall exceeds Organic Syntheses' 115 C bath limit for the product"}
+      supply_temperature: {value: 382.44, provenance: given, source: "saturation at 140 kPa(a), IAPWS-IF97"}
+      min_approach: {value: 10, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: r101, direction: out, kind: energy}
+      - {id: st101, direction: out, kind: energy}
+      - {id: st102, direction: out, kind: energy}
+products:
+  - {id: MSCL, title: Methanesulfonyl chloride to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: RES, title: Still residue and forerun purge to hazardous-waste incineration, category: by_product, ports: [{id: in, direction: in}]}
+  - {id: EFF, title: Spent scrubber liquor to wastewater treatment, category: wastewater, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis (D-009)"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis (D-009)"}
+      min_approach: {value: 10, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: st102, direction: in, kind: energy}
+      - {id: e101, direction: in, kind: energy}
+      - {id: a101, direction: in, kind: energy}
+      - {id: m102, direction: in, kind: energy}
+  - id: BRINE
+    title: Refrigerated brine return (253 K)
+    category: utility
+    utility:
+      kind: refrigerant
+      supply_temperature: {value: 253.15, provenance: assumed, source: "design basis (D-009): 13 K above methanesulfonyl chloride's freezing point, 240.15 K"}
+      return_temperature: {value: 258.15, provenance: assumed, source: "design basis (D-009)"}
+      min_approach: {value: 10, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: e102, direction: in, kind: energy}
+      - {id: st101, direction: in, kind: energy}
+      - {id: flash, direction: in, kind: energy}
+
+blocks:
+  - id: DOSE
+    title: Thionyl chloride dose tank
+    class: Mixing
+    ports:
+      - {id: fresh, direction: in}
+      - {id: rec, direction: in}
+      - {id: out, direction: out}
+  - id: REACT
+    title: Semi-batch reaction with SO2 and HCl off-gas
+    class: ReactingChemicals
+    ports:
+      - {id: msa, direction: in}
+      - {id: dose, direction: in}
+      - {id: out, direction: out}
+      - {id: vent, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: brine, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: PURIFY
+    title: Batch vacuum distillation (forerun recycled)
+    class: Distilling
+    ports:
+      - {id: in, direction: in}
+      - {id: rec, direction: out}
+      - {id: product, direction: out}
+      - {id: waste, direction: out}
+      - {id: steam1, direction: in, kind: energy}
+      - {id: steam2, direction: in, kind: energy}
+      - {id: brine, direction: out, kind: energy}
+      - {id: flash, direction: out, kind: energy}
+      - {id: cond, direction: out, kind: energy}
+      - {id: cooler, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: SCRUB
+    title: Caustic scrubbing of the off-gas
+    class: Absorbing
+    ports:
+      - {id: gas, direction: in}
+      - {id: naoh, direction: in}
+      - {id: water, direction: in}
+      - {id: liquor, direction: out}
+      - {id: q, direction: out, kind: energy}
+      - {id: qd, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+
+steps:
+  - id: M101
+    block: DOSE
+    title: Dose tank T-101 (fresh thionyl chloride with the recovered forerun)
+    class: Mixing
+    links: [{target: equipment, ref: T-101}]
+    ports:
+      - {id: fresh, direction: in, delegates: fresh}
+      - {id: rec, direction: in, delegates: rec}
+      - {id: out, direction: out, delegates: out}
+  - id: R101
+    block: REACT
+    title: Reactor (thionyl chloride dosed into the acid at 368 K, SO2 and HCl vented)
+    class: ReactingChemicals
+    reactions: [MSCL, HYD]
+    reactor: semibatch
+    energy_port: q
+    batch:
+      dosing: [{stream: S4, time: 14400}]
+      target: {key: MSA, conversion: 0.99}
+      heat: isothermal
+      heat_up: true
+      vent:
+        stream: S6
+        components: [SO2, HCL]
+        vapour: {components: [SOCL2, MSCL], source: "D-010: the SO2 and HCl leave the liquid saturated with its thionyl chloride and methanesulfonyl chloride at 368.15 K and 101.3 kPa(a) (Raoult, an ideal liquid ASSUMED, the vapour-pressure lines of materials.yaml); the acid's vapour pressure, about 0.02 kPa there, and the water, which the dose's first thionyl chloride takes, are left out"}
+        condenser: {temperature: 263.15, returns: vessel, energy_port: qv, provenance: assumed, source: "E-102, R-101's vent condenser on brine at 253.15 K, its gas outlet 10 K above the brine's supply (the design basis' minimum approach); the brine stays 13 K above methanesulfonyl chloride's freezing point (240.15 K, PubChem), so nothing freezes on the tubes; the condensate runs back into R-101 (D-010)"}
+      provenance: assumed
+      source: "the acid charged at 298.15 K and warmed to 368.15 K (heat_up); thionyl chloride dosed at a constant rate over 4 h at 95 C, the addition time and temperature of Organic Syntheses, Coll. Vol. 4, 571; then the post-reaction to 0.99 conversion of the acid; the SO2 and HCl leave as gas as they form, none taken as dissolved (no solubility data for a Henry split, D-005)"
+    hazard:
+      mtt: 388.15
+      vent_capacity: 400.0
+      provenance: assumed
+      source: "mtt: Organic Syntheses, Coll. Vol. 4, 571, Note 5: the heating bath should not exceed 115 C (388.15 K) at the end of the distillation, as local overheating chars and decomposes the product; taken as the highest temperature the reaction mass may reach (R-101's let-down steam condenses at 382.44 K, below it); the content's bubble point at 101.3 kPa(a) never falls below 390.6 K over the batch (at the end of the dosing, 27 mol% thionyl chloride; Raoult with materials.yaml over the model's profile), while core's default, thionyl chloride's normal boiling point 348.8 K, is one component's, not the mixture's (D-011, L-2). vent_capacity: ASSUMED design of R-101's vent line, E-102 and A-101 (D-010, D-014): the model's normal peak of SO2 and HCl, 0.001682 kmol/s at 1.1 h into the dosing (cheme process recipe; 130.8 m3/h at E-102's 263.15 K outlet), is 182.9 m3/h at R-101's 368.15 K and 101.3 kPa(a), and 322 m3/h with the liquid's vapour at its largest share over the batch (0.432 of the gas, cheme process reactors), rounded up to 400 m3/h. The reaction is endothermic (D-005), so a cooling failure releases nothing at the MTSR (T_p); the slower-kinetics cases stay below the normal peak (k/10: 82.6 m3/h, D-011); a stoichiometric dose accumulated unreacted (heating lost) and then warmed back to 368.15 K releases about 1280 m3/h, 3.2 times the capacity, and the k/10 content at the end of the dosing warmed to the base rate about 680 m3/h: a design finding (D-014). No TD24 (never estimated)"
+    links: [{target: equipment, ref: R-101}, {target: equipment, ref: E-102}, {target: equipment, ref: E-105}]
+    ports:
+      - {id: charge, direction: in, delegates: msa}
+      - {id: dose, direction: in, delegates: dose}
+      - {id: out, direction: out, delegates: out}
+      - {id: gas, direction: out, delegates: vent}
+      - {id: q, direction: in, kind: energy, delegates: steam}
+      - {id: qv, direction: out, kind: energy, delegates: brine}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: ST101
+    block: PURIFY
+    title: Batch still C-101 at 4 kPa(a), the forerun (excess thionyl chloride) over K-101 to the brine condenser E-103
+    class: Distilling
+    energy_port: steam
+    still:
+      pressure: 4.0
+      volatility: {model: raoult, provenance: assumed, source: "ideal liquid, ASSUMED (D-007): the vapour-pressure lines of materials.yaml; no VLE data of the three liquids found"}
+      boilup: {value: 120, unit: kW, provenance: assumed, source: "the reboiler's heat input, C-101's jacket on the let-down LP steam (D-007, D-009)"}
+      heat_up: true
+      column:
+        stages: 8
+        reflux: constant
+        ratio: 1
+        provenance: assumed
+        source: "K-101, a packed column of 8 theoretical stages, the still included, at a constant reflux ratio of 1 for the forerun, ASSUMED (D-008)"
+      condenser_port: cond
+      end: {residue: {key: SOCL2, mole_fraction: 0.0005}}
+      outlets: {distillate: top, residue: bottom}
+      provenance: assumed
+      source: "take the forerun until thionyl chloride is 0.05 mol% of the still's liquid, ASSUMED (D-007)"
+    links: [{target: equipment, ref: C-101}, {target: equipment, ref: K-101}, {target: equipment, ref: E-103}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: top, direction: out}
+      - {id: bottom, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam1}
+      - {id: cond, direction: out, kind: energy, delegates: brine}
+      - {id: flash, direction: out, kind: energy, delegates: flash}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: SP101
+    block: PURIFY
+    title: Forerun receiver T-102 (nine tenths to the dose tank, a tenth purged)
+    class: SplittingMaterial
+    # a tenth of the recovered thionyl chloride purged each batch so that its impurities do not
+    # build up in the loop, ASSUMED (D-008)
+    split: {purge: 0.1}
+    links: [{target: equipment, ref: T-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: rec, direction: out, delegates: rec}
+      - {id: purge, direction: out}
+  - id: ST102
+    block: PURIFY
+    title: Batch still C-101 at 4 kPa(a), the product over K-101 to the water-cooled condenser E-104
+    class: Distilling
+    energy_port: steam
+    still:
+      pressure: 4.0
+      volatility: {model: raoult, provenance: assumed, source: "ideal liquid, ASSUMED (D-007): the vapour-pressure lines of materials.yaml; no VLE data of the three liquids found"}
+      boilup: {value: 120, unit: kW, provenance: assumed, source: "the reboiler's heat input, C-101's jacket on the let-down LP steam (D-007, D-009)"}
+      column:
+        stages: 8
+        reflux: constant
+        ratio: 0.5
+        provenance: assumed
+        source: "K-101 as in ST101, at a constant reflux ratio of 0.5 for the product, ASSUMED (D-008)"
+      condenser_port: cond
+      end: {residue: {key: MSCL, mole_fraction: 0.5}}
+      outlets: {distillate: top, residue: bottom}
+      provenance: assumed
+      source: "distil until methanesulfonyl chloride is 50 mol% of the residue, so that the pot stays below the 115 C bath limit of Organic Syntheses, ASSUMED (D-007)"
+    links: [{target: equipment, ref: C-101}, {target: equipment, ref: K-101}, {target: equipment, ref: E-104}]
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out}
+      - {id: bottom, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam2}
+      - {id: cond, direction: out, kind: energy, delegates: cond}
+  - id: E101
+    block: PURIFY
+    title: Product cooler E-101 (the distillate subcooled to storage)
+    class: Cooling
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: product}
+      - {id: q, direction: out, kind: energy, delegates: cooler}
+  - id: M103
+    block: PURIFY
+    title: Waste drum D-101 (residue and forerun purge)
+    class: Mixing
+    links: [{target: equipment, ref: D-101}]
+    ports:
+      - {id: res, direction: in}
+      - {id: purge, direction: in}
+      - {id: out, direction: out, delegates: waste}
+  - id: M102
+    block: SCRUB
+    title: Caustic dilution to 15 wt% (with its cooler)
+    class: Mixing
+    links: [{target: equipment, ref: T-201}]
+    ports:
+      - {id: naoh, direction: in, delegates: naoh}
+      - {id: water, direction: in, delegates: water}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: qd}
+  - id: A101
+    block: SCRUB
+    title: Caustic scrubber A-101 (SO2, HCl and the vapour past E-102 neutralised)
+    class: Absorbing
+    reactions: [NEU_HCL, NEU_SO2, NEU_SOCL2, NEU_MSCL]
+    links: [{target: equipment, ref: A-101}]
+    ports:
+      - {id: gas, direction: in, delegates: gas}
+      - {id: liq, direction: in}
+      - {id: out, direction: out, delegates: liquor}
+      - {id: q, direction: out, kind: energy, delegates: q}
+      - {id: power, direction: in, kind: energy, delegates: power}
+
+streams:
+  - id: S1
+    title: Methanesulfonic acid
+    from: MSA.out
+    to: R101.charge
+    template: organics
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 109.4391, provenance: assumed, source: "scripts/balance.py: the acid that makes 1000 t/a of S10 (D-002, D-006)"}
+        composition: {basis: mass_fraction, values: {MSA: 0.995, H2O: 0.005}, provenance: assumed, source: "anhydrous grade, 99.5 wt% with 0.5 wt% water, ASSUMED (D-004)"}
+  - id: S2
+    title: Thionyl chloride (fresh)
+    from: SOCL2.out
+    to: M101.fresh
+    template: organics
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 147.2872, provenance: assumed, source: "scripts/balance.py: the fresh thionyl chloride that, with the recycle S3, doses 4/3 mol per mol of acid (D-004, D-006)"}
+        composition: {basis: mass_fraction, values: {SOCL2: 1.0}, provenance: assumed, source: "thionyl chloride of thionyl-chloride-1 (99.7 wt%), its impurities not modelled (D-004)"}
+  - id: S3
+    title: Recovered thionyl chloride (recycle)
+    from: SP101.rec
+    to: M101.rec
+    template: organics
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "the forerun receiver T-102 at ambient temperature, ASSUMED (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 41.4067, provenance: calculated, source: 'cheme process propagate: recycle SP101 from S7 (tear, wegstein)', fingerprint: 1b9a5e61dd191559}
+        composition: {basis: mole_fraction, values: {SOCL2: 0.777304, MSA: 4.04715e-07, MSCL: 0.222696, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle SP101 from S7 (tear, wegstein)', fingerprint: 1b9a5e61dd191559}
+  - id: S4
+    title: Thionyl chloride dosed
+    from: M101.out
+    to: R101.dose
+    template: organics
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "the mixed temperature of its inlets: the fresh thionyl chloride S2 and the recovered forerun S3 both at 298.15 K (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 188.694, provenance: calculated, source: 'cheme process propagate: mixer M101 from S2 S3', fingerprint: af6574eda9a38175}
+        composition: {basis: mole_fraction, values: {SOCL2: 0.950814, MSA: 8.93873e-08, MSCL: 0.0491857, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S2 S3', fingerprint: bdc0b21896d63388}
+  - id: S5
+    title: Crude methanesulfonyl chloride
+    from: R101.out
+    to: ST101.in
+    template: crude
+    state:
+      design:
+        temperature: {value: 368.15, provenance: assumed, source: "R-101's batch temperature, 95 C (Organic Syntheses, Coll. Vol. 4, 571), which the isothermal model holds (D-005)"}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S1 S4', fingerprint: 589b372f317c9d4b}
+        flow: {value: 174.657, provenance: calculated, source: 'cheme process propagate: reactor R101 from S1 S4', fingerprint: 589b372f317c9d4b}
+        composition: {basis: mole_fraction, values: {SOCL2: 0.200461, MSA: 0.00748009, MSCL: 0.792059, H2O: 0.0, SO2: 0.0, HCL: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S1 S4', fingerprint: 589b372f317c9d4b}
+  - id: S6
+    title: Off-gas past the vent condenser E-102
+    from: R101.gas
+    to: A101.gas
+    template: offgas
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {SO2: 0.482119, HCL: 0.494829, SOCL2: 0.0230119, MSCL: 4.01641e-05}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S1 S4', fingerprint: 589b372f317c9d4b}
+        flow: {value: 123.478, provenance: calculated, source: 'cheme process propagate: reactor R101 from S1 S4', fingerprint: 589b372f317c9d4b}
+        temperature: {value: 263.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S1 S4', fingerprint: 589b372f317c9d4b}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S1 S4', fingerprint: 589b372f317c9d4b}
+  - id: S7
+    title: Forerun (thionyl chloride)
+    from: ST101.top
+    to: SP101.in
+    template: organics
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "the forerun receiver T-102 at ambient temperature, ASSUMED (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "receiver broken to atmospheric pressure with nitrogen (D-008)"}
+        flow: {value: 46.0074, provenance: calculated, source: 'cheme process propagate: still ST101 from S5', fingerprint: e5e105bce383483f}
+        composition: {basis: mole_fraction, values: {SOCL2: 0.777304, MSA: 4.04715e-07, MSCL: 0.222696}, provenance: calculated, source: 'cheme process propagate: still ST101 from S5', fingerprint: e5e105bce383483f}
+  - id: S8
+    title: Stripped crude (still C-101 after the forerun)
+    from: ST101.bottom
+    to: ST102.in
+    template: organics
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {SOCL2: 0.0005, MSA: 0.0100729, MSCL: 0.989427}, provenance: calculated, source: 'cheme process propagate: still ST101 from S5', fingerprint: e5e105bce383483f}
+        flow: {value: 128.65, provenance: calculated, source: 'cheme process propagate: still ST101 from S5', fingerprint: e5e105bce383483f}
+  - id: S9
+    title: Distillate (from the condenser E-104)
+    from: ST102.top
+    to: E101.in
+    template: organics
+    state:
+      design:
+        temperature: {value: 345.79, provenance: assumed, source: "scripts/balance.py: the bubble point of its composition at the still's 4 kPa(a), E-104 a total condenser without subcooling (Raoult, materials.yaml, D-008)"}
+        pressure: {value: 4.0, provenance: assumed, source: "still pressure (D-007)"}
+        flow: {value: 126.263, provenance: calculated, source: 'cheme process propagate: still ST102 from S8', fingerprint: 15a7f6a56bcdc4a0}
+        composition: {basis: mole_fraction, values: {SOCL2: 0.00051028, MSA: 2.08335e-08, MSCL: 0.99949}, provenance: calculated, source: 'cheme process propagate: still ST102 from S8', fingerprint: 15a7f6a56bcdc4a0}
+  - id: S10
+    title: Methanesulfonyl chloride
+    from: E101.out
+    to: MSCL.in
+    template: organics
+    state:
+      design:
+        temperature: {value: 308.15, provenance: assumed, source: "distillate subcooled to storage in E-101 on cooling water, 10 K above its 298.15 K supply (the minimum approach, D-009)"}
+        pressure: {value: 101.325, provenance: assumed, source: "receiver broken to atmospheric pressure with nitrogen (D-008)"}
+        flow: {value: 126.263, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S9', fingerprint: 882cce6161a751dd}
+        composition: {basis: mole_fraction, values: {SOCL2: 0.00051028, MSA: 2.08335e-08, MSCL: 0.99949}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S9', fingerprint: 882cce6161a751dd}
+  - id: S11
+    title: Still residue
+    from: ST102.bottom
+    to: M103.res
+    template: organics
+    state:
+      design:
+        temperature: {value: 361.95, provenance: assumed, source: "scripts/balance.py: the still's end, the bubble point of the residue at 4 kPa(a) (Raoult, materials.yaml), drained at it to the waste drum under nitrogen (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "vacuum broken with nitrogen (D-008)"}
+        flow: {value: 2.38686, provenance: calculated, source: 'cheme process propagate: still ST102 from S8', fingerprint: 15a7f6a56bcdc4a0}
+        composition: {basis: mole_fraction, values: {SOCL2: 0.0, MSA: 0.5, MSCL: 0.5}, provenance: calculated, source: 'cheme process propagate: still ST102 from S8', fingerprint: 15a7f6a56bcdc4a0}
+  - id: S12
+    title: Forerun purge
+    from: SP101.purge
+    to: M103.purge
+    template: organics
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {SOCL2: 0.777304, MSA: 4.04715e-07, MSCL: 0.222696}, provenance: calculated, source: 'cheme process propagate: splitter SP101 from S7', fingerprint: 7e3d6791b5248e13}
+        flow: {value: 4.60074, provenance: calculated, source: 'cheme process propagate: splitter SP101 from S7', fingerprint: 93a23caeb9a6d7c1}
+  - id: S13
+    title: Residue and purge to incineration
+    from: M103.out
+    to: RES.in
+    template: organics
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {SOCL2: 0.491603, MSA: 0.183777, MSCL: 0.32462, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M103 from S11 S12', fingerprint: e88edbfe9ab24257}
+        flow: {value: 6.9876, provenance: calculated, source: 'cheme process propagate: mixer M103 from S11 S12', fingerprint: 861c7f315a2f57ff}
+  - id: S14
+    title: Caustic soda 50 wt%
+    from: NAOH.out
+    to: M102.naoh
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 326.1923, provenance: assumed, source: "scripts/balance.py: 1.10 x the NaOH the off-gas S6 takes to chloride, sulfite and methanesulfonate (reactions.yaml NEU_*, D-010)"}
+        composition: {basis: mass_fraction, values: {NAOH: 0.5, H2O: 0.5}, provenance: assumed, source: "commercial 50 wt% grade, as chlor-alkali-1 makes it"}
+  - id: S15
+    title: Dilution water
+    from: PW.out
+    to: M102.water
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 761.1154, provenance: assumed, source: "scripts/balance.py: the 50 wt% caustic diluted to 15 wt% NaOH (D-010)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "process water"}
+  - id: S16
+    title: Scrubber caustic 15 wt%
+    from: M102.out
+    to: A101.liq
+    template: liquor
+    state:
+      design:
+        temperature: {value: 308.15, provenance: assumed, source: "the diluted caustic off its cooler on cooling water, 10 K above the water's 298.15 K supply (the minimum approach; Q9, D-009, D-010)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        composition: {basis: mole_fraction, values: {NAOH: 0.0736314, H2O: 0.926369, NACL: 0.0, NA2SO3: 0.0, MSNA: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M102 from S14 S15', fingerprint: 59cec8e5202660e5}
+        flow: {value: 1087.31, provenance: calculated, source: 'cheme process propagate: mixer M102 from S14 S15', fingerprint: bd61127840372526}
+  - id: S17
+    title: Spent scrubber liquor
+    from: A101.out
+    to: EFF.in
+    template: spent
+    state:
+      design:
+        temperature: {value: 308.15, provenance: assumed, source: "scrubber liquor held at 308 K by its cooler on cooling water, ASSUMED (D-010)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 1210.79, provenance: calculated, source: 'cheme process propagate: reactor A101 from S6 S16', fingerprint: 551c280adba6542b}
+        composition: {basis: mole_fraction, values: {HCL: 0.0, SO2: 0.0, SOCL2: 0.0, MSCL: 0.0, NAOH: 0.00654756, H2O: 0.949299, NACL: 0.0228305, NA2SO3: 0.021321, MSNA: 1.69528e-06}, provenance: calculated, source: 'cheme process propagate: reactor A101 from S6 S16', fingerprint: 9e2757f3eaaf68b4}
+  # energy
+  - {id: Q1, title: R-101's jacket (let-down LP steam), kind: energy, from: LPS.r101, to: R101.q, state: {design: {duty: {value: 41.6021, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S1 S4', fingerprint: 3fb56d597cecc222}}}}
+  - {id: Q2, title: R-101's vent condenser E-102 to brine, kind: energy, from: R101.qv, to: BRINE.e102, state: {design: {duty: {value: 16.0438, provenance: calculated, source: 'cheme process propagate: vent condenser duty R101 from S1 S4', fingerprint: 0b5d2552e6bea533}}}}
+  - {id: Q3, title: Still reboiler during the forerun (let-down LP steam), kind: energy, from: LPS.st101, to: ST101.steam, state: {design: {duty: {value: 7.63644, provenance: calculated, source: 'cheme process propagate: still duty ST101 from S5', fingerprint: cbda804593f612a1}}}}
+  - {id: Q4, title: Forerun condenser E-103 to brine, kind: energy, from: ST101.cond, to: BRINE.st101, state: {design: {duty: {value: 7.63644, provenance: calculated, source: 'cheme process propagate: still condenser duty ST101 from S5', fingerprint: 894a5f4857f91ca5}}}}
+  - {id: Q5, title: Still reboiler during the product cut (let-down LP steam), kind: energy, from: LPS.st102, to: ST102.steam, state: {design: {duty: {value: 20.7557, provenance: calculated, source: 'cheme process propagate: still duty ST102 from S8', fingerprint: 443bd640055173db}}}}
+  - {id: Q6, title: Product condenser E-104 to cooling water, kind: energy, from: ST102.cond, to: CW.st102, state: {design: {duty: {value: 20.7557, provenance: calculated, source: 'cheme process propagate: still condenser duty ST102 from S8', fingerprint: 92581847c4b053c8}}}}
+  - {id: Q7, title: Product cooler E-101 to cooling water, kind: energy, from: E101.q, to: CW.e101, state: {design: {duty: {value: 1.7285, provenance: assumed, source: "scripts/balance.py: the distillate S9 from its bubble point at 4 kPa(a) to 308.15 K, 10 K above the cooling water's supply (materials.yaml's liquid heat capacities, D-009)"}}}}
+  - {id: Q8, title: Scrubber cooler to cooling water, kind: energy, from: A101.q, to: CW.a101, state: {design: {duty: {value: 101.277, provenance: calculated, source: 'cheme process propagate: conversion duty A101 from S6 S16 S17', fingerprint: 7f04366d6a8cf1cd}}}}
+  - {id: Q9, title: Caustic dilution cooler to cooling water, kind: energy, from: M102.q, to: CW.m102, state: {design: {duty: {value: 11.2492, provenance: assumed, source: "scripts/balance.py: 50 wt% caustic diluted to 15 wt%, -20 kJ per mol NaOH ASSUMED (the order of the published integral heats of solution), less what warms the diluted caustic S16 from 298.15 to 308.15 K, where its cooler leaves it (D-009, D-010, L-5)"}}}}
+  - {id: Q10, title: The crude's flash on evacuation to the forerun condenser E-103 (brine), kind: energy, from: ST101.flash, to: BRINE.flash, state: {design: {duty: {value: 4.0249, provenance: assumed, source: "scripts/balance.py: the crude S5's sensible heat from R-101's 368.15 K down to its bubble point at 4 kPa(a), which flashes into E-103 as C-101 is evacuated; core's still models no flash of a charge above its bubble point (L-4, D-007, D-009)"}}}}
+  - {id: P1, title: "R-101's agitator and the heating loop's pump", kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 2.3, provenance: assumed, source: "ASSUMED (D-009): R-101's agitator 1.5 kW (about 1 kW per m3 of the 1.6 m3 vessel) while R-101 is occupied, the whole cycle, and the pump of the heating loop E-105, 1.1 kW over the dosing and the post-reaction, 7.28 of the 9.531 h cycle (process/recipe.yaml): 1.5 + 1.1 x 0.76 = 2.3 kW year average"}}}}
+  - {id: P2, title: "C-101's agitator and the vacuum pump", kind: energy, from: POWER.st101, to: ST101.power, state: {design: {duty: {value: 1.65, provenance: assumed, source: "ASSUMED (D-009): C-101's agitator 1.1 kW over the still's 4.26 h a batch and a dry vacuum pump of 4 kW over the evacuation and the two cuts, 2.76 h a batch, in the 9.531 h cycle (process/recipe.yaml): 1.1 x 0.45 + 4 x 0.29 = 1.65 kW year average"}}}}
+  - {id: P3, title: The scrubber's circulation pump and fan, kind: energy, from: POWER.a101, to: A101.power, state: {design: {duty: {value: 2.6, provenance: assumed, source: "ASSUMED (D-009, D-010): the scrubber's circulation pump 1.5 kW and its fan 1.1 kW, both running all year (the scrubber also takes the tanks' breathing)"}}}}
+layout: {bfd: {}, pfd: {}}

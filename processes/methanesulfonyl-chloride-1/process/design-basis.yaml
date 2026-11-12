@@ -1,0 +1,48 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Methanesulfonyl chloride from methanesulfonic acid and thionyl chloride, a batch plant, issue
+# ChemE-as-Code/process-library#159. Values marked ASSUMED are engineering choices of this
+# concept study, not client or licensor data; every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: distilled methanesulfonyl chloride to storage at the battery limit
+  methanesulfonyl_chloride_t_per_year: 1000   # ASSUMED (D-002): a fine-chemical batch scale, no open market figure used
+  operating_hours_per_year: 7920              # ASSUMED (D-002): 330 days of 24 h, batch operation
+  batch_kg: 1203.4                            # ASSUMED (D-003): one batch of distilled product every 9.531 h
+  batches_per_year: 831                       # from the recipe (process/recipe.yaml, D-003)
+feeds:
+  - name: Methanesulfonic acid, anhydrous grade (merchant; no library producer)
+    source_of_values: "ASSUMED grade 99.5 wt% with 0.5 wt% water (D-004); Organic Syntheses, Coll. Vol. 4, 571 used a 95 % acid with 2 % water"
+    composition: "methanesulfonic acid 99.5 wt%, water 0.5 wt%"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Thionyl chloride (thionyl-chloride-1)
+    source_of_values: "thionyl-chloride-1's product, 99.7 wt% (its impurities not modelled, D-004); 4/3 mol per mol of acid with the recovered forerun (Organic Syntheses: 2.0 mol on 1.5 mol)"
+    composition: "thionyl chloride 100 % as modelled"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Caustic soda 50 wt% (chlor-alkali-1), diluted to 15 wt% for the scrubber
+    source_of_values: ASSUMED (D-010)
+  - name: Process water (caustic dilution)
+    source_of_values: ASSUMED (D-010)
+products:
+  - name: Methanesulfonyl chloride
+    purity: "modelled 99.95 wt% with 530 ppm thionyl chloride, an upper bound of the ideal-liquid still model (D-007); no open source states a purity for this route; specification at least 99.5 wt% ASSUMED (D-002)"
+    delivery: {temperature_K: 308.15, pressure_kPa_a: 101.325, battery_limit: storage under nitrogen}
+  - name: Still residue and forerun purge to hazardous-waste incineration
+    note: "thionyl chloride, methanesulfonyl chloride and methanesulfonic acid, 55 g per kg of product (D-008)"
+  - name: Spent scrubber liquor to wastewater treatment
+    note: "about 12.6 wt% sodium sulfite, 6.2 wt% sodium chloride, 1.2 wt% NaOH; 9.6 kg per kg of product (D-010)"
+utilities:
+  - {name: Electric power, use: "agitators of R-101 and C-101, the heating loop's pump, the vacuum pump, the scrubber's pump and fan (D-009)"}
+  - {name: LP steam, pressure_kPa_a: 140, use: "let down from the site's LP steam: R-101's jacket and heating loop E-105, the still C-101's jacket (D-009)", note: "ASSUMED; condensing at 382.44 K, below the 388.15 K limit for the product's heated wall"}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "the product condenser E-104, the product cooler, the scrubber's cooler, the caustic dilution cooler", note: ASSUMED}
+  - {name: Refrigerated brine, supply_K: 253.15, return_K: 258.15, use: "the vent condenser E-102 and the forerun condenser E-103", note: "ASSUMED; 13 K above methanesulfonyl chloride's freezing point"}
+  - {name: Nitrogen, use: "inerting R-101, the still and the receivers, breaking the vacuum (per batch, lca/lca.yaml)", note: ASSUMED}
+site:
+  location: ASSUMED generic fine-chemicals site with thionyl chloride and caustic soda supply, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Route of Organic Syntheses, Coll. Vol. 4, p. 571 (Hearst and Noller): thionyl chloride added over 4 h to methanesulfonic acid at 95 C (2.0 mol on 1.5 mol), held 3.5 h at 95 C, the product distilled under vacuum with the heating bath kept at or below 115 C (D-001, D-004)."
+  - "ASSUMED second-order rate law, k 7.5e-5 m3/(kmol s) at 368 K, Ea 60 kJ/mol, sized so that the post-reaction to 0.99 conversion of the acid takes 3.3 h, about the source's 3.5 h hold; heat of reaction +65 kJ/mol (endothermic) ASSUMED by analogy (D-005)."
+  - "All SO2 and HCl leave R-101 as they form (no solubility data, D-005); the gas carries the liquid's vapour through the brine condenser E-102, which returns the condensate (core ADR 0062)."
+  - "Still: a batch still with a column of 8 theoretical stages at 4 kPa(a), the forerun at reflux ratio 1, the product at 0.5, on Raoult's law (an ideal liquid ASSUMED, D-007, D-008); the forerun's thionyl chloride recycled, a tenth purged."
+  - "All flows are year averages of the recipe (D-003); the duties and power concept estimates (D-009); accuracy +/-30 % not demonstrated."

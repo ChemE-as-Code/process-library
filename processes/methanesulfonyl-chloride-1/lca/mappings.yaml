@@ -1,0 +1,18 @@
+# methanesulfonyl-chloride-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR
+# 0022). Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# The preliminary LCI leaves most backgrounds unmapped (DESIGN.md D-012): the build reports each
+# as a gap (lci/gaps.json). Linked here, kg for kg: the thionyl chloride to thionyl-chloride-1
+# (99.7 wt%, the grade this feed takes), the caustic soda to chlor-alkali-1 (50 wt% solution per
+# kg of solution, as this exchange counts it), the nitrogen consumable to asu-1's gaseous
+# nitrogen, and the LP steam counted as heat delivered (kWh), as acetyl-chloride-1 does.
+# Methanesulfonic acid stays a gap: no library process makes it; a proxy is recorded in lca.yaml
+# and DESIGN.md D-012, not linked (CONTRIBUTING, "Gaps").
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:SOCL2": {dataset: {path: processes/thionyl-chloride-1/lca/dataset.yaml, product: "product:SOCL2"}, source: "the Atlas producer thionyl-chloride-1, liquid thionyl chloride 99.7 wt% (sulfur, chlorine and SO2 over activated carbon, distilled with sulfur), per kg, the grade this feed takes (D-004)"}
+  "feed:NAOH": {dataset: {path: processes/chlor-alkali-1/lca/dataset.yaml, product: "product:NAOH"}, source: "the Atlas producer chlor-alkali-1, caustic soda 50 wt-%, per kg of solution as this exchange counts it (D-010)"}
+  "consumable:nitrogen": {dataset: {path: processes/asu-1/lca/dataset.yaml, product: "product:GANP"}, source: "the Atlas producer asu-1, gaseous nitrogen to the battery limit (99.97 mol% N2, 9 bar(a)); the purges and the vacuum breaks need only a few hundred kPa"}
+  "feed:LPS": {use: steam-heat, source: "LP steam let down to 140 kPa(a) to R-101's jacket and heating loop (Q1) and the still's jacket (Q3, Q5, from core's still model with its column), counted as heat delivered (kWh), D-009"}

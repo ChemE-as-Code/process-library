@@ -1,0 +1,119 @@
+# Process Atlas manifest of methanesulfonyl-chloride-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: methanesulfonyl-chloride-1
+title: Methanesulfonyl chloride from methanesulfonic acid and thionyl chloride, semi-batch, vacuum distillation (1000 t/a)
+summary: >-
+  A batch plant: thionyl chloride is dosed over 4 h into methanesulfonic acid at 368 K, the SO2
+  and HCl leave through a brine vent condenser to a caustic scrubber, and the crude is distilled
+  at 4 kPa(a), the excess thionyl chloride recycled. Concept stage, 1203 kg per batch every 9.53 h
+  on a dedicated train, gas-release screening with a rate-constant sensitivity, preliminary
+  gate-to-gate LCI.
+description: |
+  Methanesulfonic acid (99.5 wt%) is charged to an enamelled reactor and warmed to 368 K;
+  thionyl chloride, fresh from thionyl-chloride-1 with the recovered forerun, is dosed into it
+  over 4 h at 4/3 mol per mol and held until 99 % of the acid is converted, CH3SO3H + SOCl2 ->
+  CH3SO2Cl + SO2 + HCl, the procedure of Organic Syntheses, Coll. Vol. 4, p. 571 (95 C, 4 h
+  addition, 3.5 h hold). Both gases leave as they form, saturated with the liquid's vapour,
+  through a brine vent condenser that returns the condensate, to a scrubber with circulating
+  15 wt% caustic (from chlor-alkali-1). The crude is distilled at 4 kPa(a) in a batch still with
+  an 8-stage column: the excess thionyl chloride as a forerun at reflux ratio 1, nine tenths
+  recycled to the dose tank and a tenth purged; then the product at reflux ratio 0.5, to 50 mol%
+  of methanesulfonyl chloride in the residue. The pot ends at 362 K and the let-down steam
+  condenses at 382 K, below the 115 C the source sets for the product's heated wall. Product
+  99.95 wt% with 530 ppm thionyl chloride, an upper bound of the shortcut column on an ideal
+  liquid. Yield 97.2 % of theory on the acid: a model result and an upper bound (the
+  laboratory source reports 71-83 %).
+
+  The batch is modelled with cheme-as-code's semi-batch reactor with a gas vent, its vapour and a
+  vent condenser (reactor: semibatch, batch.vent, core ADRs 0050, 0054, 0062), its batch still
+  with a rectifying column (still.column, ADRs 0055, 0061), a recycle tear (ADR 0060) and the
+  batch recipe (process/recipe.yaml, ADRs 0051, 0052, 0057): the dosing, post-reaction, warming
+  and distillation times come from the models, R-101 is the bottleneck (cycle 9.53 h, 831
+  batches a year), the recipe sizes R-101 (1.6 m3), and the flowsheet's flows are the recipe's
+  year averages. The models write their duties (ADR 0059). The kinetics and the heat of reaction
+  are ASSUMED (no open calorimetry): the reaction is endothermic by analogy, so a cooling failure
+  releases nothing and the MTSR is the process temperature; the hazard is the gas. A dose
+  accumulated during a heating failure releases about 1280 m3/h when it reacts, 3.2 times R-101's
+  400 m3/h vent, and the jacket alone cannot supply the dosing's heat, so an external heating
+  loop is part of the design: design findings for basic engineering. See DESIGN.md for every
+  assumption.
+families: [chlorinated-organics]
+keywords: [methanesulfonyl chloride, mesyl chloride, MsCl, methanesulfonic acid, thionyl chloride, sulfonyl chloride, acid chloride, semi-batch, batch, dosing, SO2 vent, HCl vent, vent condenser, caustic scrubber, batch distillation, vacuum distillation, recycle, thermal screening, gas release, fine chemicals]
+facets:
+  feedstock_basis: [fossil, mineral, electricity]
+  product_classes: [chemicals]
+  unit_operations: [reaction, distillation, absorption]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Capacity, kinetics, the heat of
+# reaction, the still's ideal liquid and the column's stages and reflux are assumed; ratios,
+# times and conditions from the Organic Syntheses procedure (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept batch PFD with closed mass, component and element balances (cheme validate, cheme
+    process streams: 4 blocks and 9 steps within tolerance) and the thionyl chloride recycle
+    converged at its tear S3. The semi-batch R101 with its vent, vapour and vent condenser (from
+    its ASSUMED rate laws), the batch still with its column (8 theoretical stages, reflux ratios
+    1 and 0.5, Diwekar's shortcut on Raoult's law with NIST and two-point vapour-pressure lines,
+    the ideal liquid ASSUMED; the forerun 78.4 wt% thionyl chloride, the product 99.95 wt% at
+    99.0 % recovery from the stripped crude), the scrubber and the mixers are calculated by cheme
+    process propagate; scripts/balance.py gives the feeds for 1000 t/a with the recycle, the
+    scrubber's caustic, the still's stream temperatures and the duties core's models do not
+    write (the product cooler, the caustic's dilution, the crude's flash on evacuation). The
+    recipe's year-average rate of the product agrees with the flowsheet (no cheme.recipe-basis
+    finding); the recipe sizes R-101 (1.6 m3); its jacket check is a cooling check, and the
+    heating the endothermic dosing needs (about 80 kW at the peak) is checked by hand from the
+    model's profile against the jacket's 15 to 21 kW (DESIGN.md D-009, L-3). Thermal and gas
+    screening (cheme process reactor-hazards): dT_ad 0 K (endothermic), accumulation 0.297 at
+    the end of the dosing (most of it the planned excess), MTSR 368.15 K against an MTT of 388.15
+    K (hazard.mtt: the source's 115 C limit for the product's heated wall; the batch's own
+    bubble point stays above 390.6 K); criticality without a TD24: 1 if the TD24 lies above the
+    MTT, 2 if between the MTSR and the MTT, 5 if below the MTSR. With k/10 the accumulation is
+    0.683, with k/100 0.935 and the content within 2.4 K of boiling (DESIGN.md D-011). The
+    normal vent peak, 322 m3/h with the vapour, lies within R-101's vent capacity of 400 m3/h
+    (ASSUMED); an accumulated dose (a heating failure) releasing about 1280 m3/h and water
+    ingress beyond about 15 kg/h are design findings for the relief study (DESIGN.md D-014).
+    Preliminary gate-to-gate LCI with the per-batch nitrogen; thionyl chloride linked to
+    thionyl-chloride-1, caustic soda to chlor-alkali-1, nitrogen to asu-1, methanesulfonic acid
+    a gap with a recorded proxy, the other backgrounds gaps. cheme maturity reaches no level
+    (assumed feeds, kinetics and separations); the claim `maturity: concept` is the lowest value
+    of the schema, not an evidenced level. Not reviewed. Needs cheme-as-code 1.11.0.
+chemistry:
+  inputs:
+    - {chemical: methanesulfonic-acid, role: feedstock, inventory_key: "feed:MSA", note: "Methanesulfonic acid 99.5 wt% with 0.5 wt% water (no library process; proxy recorded, D-012), 0.867 kg/kg MsCl (stoichiometric 0.839)"}
+    - {chemical: thionyl-chloride, role: feedstock, inventory_key: "feed:SOCL2", note: "Thionyl chloride (thionyl-chloride-1, 99.7 wt%), 1.167 kg/kg MsCl fresh (stoichiometric 1.039), dosed at 4/3 mol per mol with the recycled forerun"}
+    - {chemical: sodium-hydroxide, role: feedstock, inventory_key: "feed:NAOH", note: "Caustic soda 50 wt% (chlor-alkali-1) for the SO2/HCl scrubber, 2.58 kg/kg of solution"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Process water diluting the scrubber's caustic to 15 wt%, 6.03 kg/kg"}
+    - {chemical: nitrogen, role: feedstock, inventory_key: "consumable:nitrogen", note: "Nitrogen (asu-1) for inerting R-101, the still and the receivers and breaking the vacuum, 11.3 kg per batch, 9.4 g/kg (ASSUMED)"}
+  outputs:
+    - {chemical: methanesulfonyl-chloride, role: main-product, inventory_key: "product:MSCL", note: "Distilled methanesulfonyl chloride, modelled 99.95 wt% with 530 ppm thionyl chloride (an upper bound; specification at least 99.5 wt% ASSUMED), to storage under nitrogen; no source states a purity for this route"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:EFF", note: "Spent scrubber liquor, 9.59 kg/kg: about 12.6 wt% sodium sulfite, 6.2 wt% sodium chloride, 1.2 wt% NaOH, to wastewater treatment"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.052 kWh/kg: agitators of R-101 and C-101, the heating loop's pump, the vacuum pump, the scrubber's pump and fan (ASSUMED)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.554 kWh/kg of LP steam let down to 140 kPa(a): R-101's jacket and heating loop (the endothermic reaction, the dose's warming, the acid's heat-up, the vented vapour; core's semi-batch model) and the still's reboiler (core's still model with its column)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "1.069 kWh/kg removed by cooling water: the product condenser (core's still model), the scrubber's cooler (core's conversion model), the caustic dilution cooler, the product cooler"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:BRINE", note: "0.219 kWh/kg removed by brine at 253 K: the vent condenser E-102 (core's vent model), the forerun condenser E-103 (core's still model) and the crude's flash into it (the registry has chilled water, not brine: closest entry)"}
+basis:
+  capacity: "1000 t/a distilled methanesulfonyl chloride: 831 batches/a of 1203.4 kg in 7920 h on a dedicated train (126.26 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-013)"
+  operating_hours_per_year: 7920
+  location: generic fine-chemicals site with thionyl chloride and caustic soda supply (not chosen)
+references:
+  - {title: "Hearst, P. J.; Noller, C. R. (1950) Methanesulfonyl chloride, Organic Syntheses 30, 58; Coll. Vol. 4, 571 (1963) (1.5 mol methanesulfonic acid at 95 C, 2.0 mol thionyl chloride over 4 h, 3.5 h at 95 C, vacuum distillation at 64-66 C and 20 mmHg, 71-83 %; the heating bath not above 115 C, as overheating decomposes the product)", doi: 10.15227/orgsyn.030.0058}
+  - {title: "Huebenett, F. (Merck Patent GmbH, 1981) EP 0 010 162 B1: Verfahren zur Herstellung von Alkansulfonsaeurechloriden (alkanethiols or dialkyl disulfides with chlorine and water in the product as the medium; the rejected alternative route)", url: "https://patents.google.com/patent/EP0010162B1/en"}
+  - {title: "NIST Chemistry WebBook, SRD 69: thionyl chloride, water, methanesulfonic acid (Antoine constants, heats of vaporization)", url: "https://webbook.nist.gov/chemistry/"}
+  - {title: "PubChem CIDs 31297 (methanesulfonyl chloride) and 6395 (methanesulfonic acid) (identity; boiling points, freezing point, densities, vapour pressures, decomposition products, HSDB and ICSC)", url: "https://pubchem.ncbi.nlm.nih.gov/"}
+  - {title: "Stoessel, F. (2008) Thermal Safety of Chemical Processes, Wiley-VCH (accumulation and MTSR of a semi-batch; method reference, not data)", doi: 10.1002/9783527621606}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/methanesulfonyl-chloride-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0
