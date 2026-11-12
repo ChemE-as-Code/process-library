@@ -91,8 +91,8 @@ Options considered:
   wording, not in substance; they are corrected when the entry is next touched. The library test
   `tests/test_publication_policy.py` pins the narrower rule that no source register row naming
   DIPPR or Perry's calls its values open data. Update 2026-11-12 (issue #426): the older registers
-  are corrected (formic-acid-1 follows, issue #433), and the test covers rows naming CRC or VDI
-  as well.
+  are corrected (formic-acid-1 follows, issue #433), and the test covers rows naming Yaws, CRC or
+  VDI as well, and variants of the claim such as "open software data" or "open-source data".
 - The rule does not open the door to licensed databases: a value from a commercial property
   database, or from ecoinvent, is still not taken (ADR 0013); the packages' bundled handbook
   coefficients are accepted only as the Decision's bullet "Where the line to licensed databases
@@ -106,5 +106,6 @@ Options considered:
 - processes/methylmagnesium-bromide-1 SRC-7, processes/sodium-azide-1 SRC-5 and
   processes/phosphorus-tribromide-1 SRC-3 record the package, version, method and underlying
   work; methyltriphenylphosphonium-bromide-1 SRC-6 follows when PR #406 has landed.
-- `tests/test_publication_policy.py`: no source register row that names DIPPR, Perry's, CRC or VDI
-  calls its values open data (CRC and VDI since issue #426).
+- `tests/test_publication_policy.py`: no source register row that names DIPPR, Perry's, Yaws, CRC
+  or VDI calls its values open data, "open software data" or the like (Yaws, CRC, VDI and the
+  variants since issue #426).

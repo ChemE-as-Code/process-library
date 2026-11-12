@@ -12,7 +12,7 @@ explicitly, and the public build stays fail-closed.
 - values a package computes from coefficients or tables taken from a licensed handbook (Perry's,
   drawing on DIPPR 801; the CRC Handbook; the VDI Heat Atlas) are single facts with their source,
   never open data (ADR 0037): no source register row of a ``DESIGN.md`` that names DIPPR, Perry's,
-  CRC or VDI calls its values open data.
+  Yaws, CRC or VDI calls its values open data (or "open software data" and the like).
 """
 
 from __future__ import annotations
@@ -116,10 +116,16 @@ def test_the_schema_requires_a_licence_on_a_public_entry():
 
 
 DESIGNS = sorted((KIT / "processes").glob("*/DESIGN.md"))
-# DIPPR and Perry's in any case; CRC and VDI as written (the packaged tables and thermo's methods:
-# CRC_standard_data, Hvap_data_CRC, VDI_PPDS, VDI_TABULAR), so no ordinary word matches them.
-_PACKAGED_HANDBOOK = re.compile(r"(?i:DIPPR|Perry's)|CRC|VDI")
-_NEGATED = re.compile(r"\b(?:not|no)\s+open data", re.IGNORECASE)
+# DIPPR, Perry's and Yaws in any case (chemicals' YAWS methods and tables); CRC and VDI as written
+# (the packaged tables and thermo's methods: CRC_standard_data, Hvap_data_CRC, VDI_PPDS,
+# VDI_TABULAR), so no ordinary word matches them.
+_PACKAGED_HANDBOOK = re.compile(r"(?i:DIPPR|Perry's|Yaws)|CRC|VDI")
+# "open data" and its variants with up to two words between, "open software data",
+# "open-source data", "open source software data"; punctuation ends the phrase, so "open-source
+# packages queried; single values" does not match.
+_OPEN_DATA = r"\bopen(?:[\s-]+[a-z]+){0,2}?[\s-]+data\b"
+_OPEN = re.compile(_OPEN_DATA, re.IGNORECASE)
+_NEGATED = re.compile(r"\b(?:not|no)\s+" + _OPEN_DATA, re.IGNORECASE)
 # Rows whose fix waits for an open pull request or issue; strict, so the entry leaves this list once
 # fixed.
 _PENDING: dict[str, str] = {
@@ -129,14 +135,15 @@ _PENDING: dict[str, str] = {
 
 
 def _open_data_claims(text: str) -> list[int]:
-    """Line numbers of source register rows that name DIPPR, Perry's, CRC or VDI and call something
-    open data other than in 'not open data' / 'no open data'."""
+    """Line numbers of source register rows that name DIPPR, Perry's, Yaws, CRC or VDI and call
+    something open data (or open software data, open-source data, ...) other than in 'not open
+    data' / 'no open software data' and the like."""
     return [
         number
         for number, line in enumerate(text.splitlines(), 1)
         if line.startswith("|")
         and _PACKAGED_HANDBOOK.search(line)
-        and "open data" in _NEGATED.sub("", line).lower()
+        and _OPEN.search(_NEGATED.sub("", line))
     ]
 
 
@@ -147,8 +154,8 @@ def test_packaged_handbook_values_are_not_called_open_data(path):
         assert claims, f"{path.parent.name} is fixed: remove it from _PENDING"
         pytest.xfail(_PENDING[path.parent.name])
     assert not claims, (
-        f"{path.parent.name}/DESIGN.md lines {claims}: values a package computes from DIPPR/Perry's, CRC or "
-        "VDI coefficients and tables are single facts with their source, not open data (ADR 0037)"
+        f"{path.parent.name}/DESIGN.md lines {claims}: values a package computes from DIPPR/Perry's, Yaws, "
+        "CRC or VDI coefficients and tables are single facts with their source, not open data (ADR 0037)"
     )
 
 
@@ -163,3 +170,25 @@ def test_the_open_data_check_reads_negation():
     assert _open_data_claims("| SRC-1 | chemicals `CRC_standard_data` | single values; not open data |") == []
     assert _open_data_claims("| SRC-1 | Wikipedia: no open data on the CRC value |") == []
     assert _open_data_claims("| SRC-1 | PubChem | REST query | open data |") == []
+
+
+def test_the_open_data_check_reads_variants():
+    # acetaldehyde-1 SRC-7 before #426: "open software data" in a row naming CRC and Yaws
+    row = "| SRC-7 | chemicals / thermo (ATcT, CRC, Yaws formation enthalpies) | per component | open software data | MIT |"
+    assert _open_data_claims(row) == [1]
+    assert _open_data_claims("| SRC-1 | chemicals YAWS `Tb_data_Yaws` | open data |") == [1]
+    assert _open_data_claims("| SRC-1 | chemicals `CRC_organic_data` | open-source data |") == [1]
+    assert _open_data_claims("| SRC-1 | thermo VDI_PPDS | Open Source software data |") == [1]
+    assert _open_data_claims("| SRC-1 | thermo DIPPR_PERRY_8E | open\tsoftware data |") == [1]
+    # negated variants, and an access column that only calls the packages open-source
+    assert _open_data_claims("| SRC-1 | chemicals YAWS | facts; not open software data |") == []
+    assert _open_data_claims("| SRC-1 | chemicals `CRC_standard_data` | no open-source data |") == []
+    assert _open_data_claims(
+        "| SRC-1 | chemicals CRC | open-source packages queried; single values, facts only; not open data |"
+    ) == []
+    # a negation does not clear a second, unnegated claim in the same row
+    assert _open_data_claims("| SRC-1 | CRC table | not open data | open software data |") == [1]
+    # "open" and "data" far apart, or "openly", are not the claim
+    assert _open_data_claims("| SRC-1 | Yaws table | open, read | data per component |") == []
+    assert _open_data_claims("| SRC-1 | CRC table | openly cited data |") == []
+    assert _open_data_claims("| SRC-1 | Yaws (open software) | the CRC values used as single facts |") == []
