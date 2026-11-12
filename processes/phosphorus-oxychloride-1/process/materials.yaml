@@ -9,6 +9,10 @@
 # liquor without ideal-gas data. No property package of core covers PCl3, POCl3, P4 or the
 # caustic liquor: the vent condensers, columns and scrubber come from
 # scripts/balance.py (DESIGN.md D-006).
+# liquid_heat_capacity, kJ/(kmol K), for the liquid oxidation R201 (core's conversion-step duty,
+# DESIGN.md D-016): POCl3 138.8 (CRC Handbook, its table CRC_standard_data as packaged in
+# chemicals 1.5.2); PCl3 123.6, ASSUMED: the 0.9 kJ/(kg K) of scripts/balance.py (D-008), as
+# neither package has a liquid value for it (acetyl-chloride-1 assumes 120).
 schema: cheme/process/v1
 kind: materials
 components:
@@ -48,6 +52,7 @@ components:
     cas: 7719-12-2
     molar_mass: 137.333
     normal_boiling_point: 349.15
+    liquid_heat_capacity: 123.6
     critical: {Tc: 563.0, Pc: 5670.0, omega: 0.2344, source: "chemicals: Tc MATTHEWS, Pc PINAMARTINES, omega YAWS"}
     ideal_gas: {dHf_298: -287000.0, S_298: 311.8, cp_R: [3.75911, 0.0286196, -5.39235e-05, 4.64811e-08, -1.51167e-11], temperature_range: [298.15, 1000], source: "chemicals: dHf_298 CRC, S_298 CRC, cp_R fitted to thermo WEBBOOK_SHOMATE 298.15-1000 K (max deviation 0.30 %)"}
   - id: POCL3
@@ -56,6 +61,7 @@ components:
     cas: 10025-87-3
     molar_mass: 153.332
     normal_boiling_point: 378.65   # chemicals (CRC); melting point 274.4 K (1.2 C)
+    liquid_heat_capacity: 138.8
     critical: {Tc: 601.0, Pc: 4960.0, omega: 0.0832, source: "chemicals: Tc WEBBOOK, Pc WEBBOOK, omega YAWS"}
     ideal_gas: {dHf_298: -558500.0, S_298: 325.5, cp_R: [4.79881, 0.0290793, -4.59712e-05, 3.51225e-08, -1.04897e-11], temperature_range: [298.15, 1000], source: "chemicals: dHf_298 CRC, S_298 CRC, cp_R fitted to thermo WEBBOOK_SHOMATE 298.15-1000 K (max deviation 0.18 %)"}
   - id: H2O
