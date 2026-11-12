@@ -369,7 +369,8 @@ def duties(st, r, fb):
     q = {}
     q["Q101"] = fb["q_coil"] * kw
     q["Q104"] = fb["q_coil3"] * kw
-    q["Q102"] = fb["q_conv_steam"] * kw
+    q["Q102"] = fb["q_conv_steam"] * kw   # written by cheme from H102's model less Q105 (D-019)
+    q["Q105"] = CASING_LOSS * fb["fired"] * kw   # firebox casing loss to the ambient air (D-013)
     q["Q103"] = fb["q_tle"] * kw
     # quench: sensible cooling 350 -> 40 C and condensation of the dilution steam
     cond = st["S202"]["H2O"]
