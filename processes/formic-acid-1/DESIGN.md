@@ -25,7 +25,7 @@ the section).
 | SRC-4 | US4299981: preparation of formic acid by hydrolysis of methyl formate | claims and abstract as returned by a web search (liquid-phase hydrolysis 90-140 C, 5-18 atm, a molar ratio of ester and water of 1.5-10 whose direction the search text leaves unclear (the reactions.yaml entry had it as MF/water; it covers the design's water/MF 1.5 only if it is water/ester); reactor sized for at least 95 % of equilibrium) | full text not read: an unverified lead, no value is taken from it as given (review R-05) | D-008 (95 % approach, ASSUMED) |
 | SRC-5 | MDPI *Catalysts* 11 (2021) 869 (open access) | introduction, as summarised by a web search: conventional carbonylation with 2.5 wt% sodium methoxide at 80 C and 4.5 MPa, about 30 % methanol conversion, high selectivity | identified, not read in full | corroborates D-005 |
 | SRC-6 | Formic Acid, *Ullmann's Encyclopedia of Industrial Chemistry*, doi:10.1002/14356007.a12_013.pub3 | - | not read (licensed); the issue's reference lead | none |
-| SRC-7 | cheme chemistry thermo / props (chemicals and thermo packages: ATcT, CRC, Poling 5th ed., Thermo vapour pressures and heats of vaporization) | printed per component in process/materials.yaml and scripts/balance.py | open data packages | ideal-gas data, boiling points, vapour pressures at 313 K, heats of vaporization |
+| SRC-7 | `chemicals` 1.5.2 and `thermo` 0.6.1 (Caleb Bell, MIT licence; the versions core pins), queried through `cheme chemistry thermo`, `cheme chemistry props --source Thermo` and in scripts/balance.py | ideal-gas formation enthalpies (Active Thermochemical Tables, ATCT_G; formic acid from the CRC Handbook), standard entropies (CRC Handbook, `CRC_standard_data`; formic acid from the NIST WebBook) and heat-capacity polynomials (Poling, Prausnitz and O'Connell, The Properties of Gases and Liquids, 5th ed.); liquid formation enthalpies (CRC Handbook, `CRC_standard_data`, D-015); normal boiling points (CRC Handbook, `CRC_organic_data`, for methyl formate and formic acid; HEOS fits for methanol and water); vapour pressures at 313 K and heats of vaporisation (DIPPR_PERRY_8E for methyl formate and formic acid: Perry's Chemical Engineers' Handbook, 8th ed., drawing on DIPPR 801; HEOS_FIT for methanol) | package values used as single facts with their source (ADR 0037); the handbooks were not read here | ideal-gas data, boiling points, vapour pressures at 313 K, heats of vaporization, heat of hydrolysis (D-015) |
 | SRC-8 | processes/methanol-1 (this library) | its methanol product | library, internal | methanol make-up link (D-003) |
 
 The issue's handoff asked not to search for published "answers"; no benchmark plant figures or
@@ -244,8 +244,8 @@ materials.yaml: -4.17 kW, as the products' heat capacity is lower than the react
 Decision: the model is right; the typed duty is removed and `cheme process propagate --fill`
 writes Q10. A standard heat of reaction is a 298.15 K value, and the liquid formation
 enthalpies confirm that the ASSUMED +8 kJ/mol was one: from the CRC values packaged in
-chemicals 1.5.2 (Hfl, method CRC; HCOOH -425.0, CH3OH -239.2, HCOOCH3 -386.1, H2O -285.8 kJ/mol)
-the hydrolysis takes +7.7 kJ/mol at 298.15 K. That value replaces the assumption in
+chemicals 1.5.2 (SRC-7: Hfl, method CRC, table `CRC_standard_data`; HCOOH -425.0, CH3OH
+-239.2, HCOOCH3 -386.1, H2O -285.8 kJ/mol) the hydrolysis takes +7.7 kJ/mol at 298.15 K. That value replaces the assumption in
 reactions.yaml, with its temperature stated, and closes the open input of D-008 and D-014.
 Result: Q10 = 115.428 x 7.7 / 3.6 = 246.887 kW of reaction heat, less 4.174 kW of sensible
 heat = 242.712 kW (calculated), 13.8 kW (5.4 %) below the typed 256.5 kW. LP steam falls from
