@@ -47,7 +47,7 @@ with an ADR in the same pull request.
 | [0006](0006-unallocated-datasets-allocated-at-build.md) | LCI data enters as unallocated datasets; the build allocates per co-product | Accepted, 2026-10-23 |
 | [0007](0007-cut-off-system-model-and-allocation-hierarchy.md) | Attributional cut-off system model, substitution as a separate database, allocation hierarchy | **Proposed**, 2026-10-25 |
 | [0008](0008-brightway-workbook-linked-by-name.md) | Brightway Excel workbook and installer, background linked by name, no licensed data | Accepted, 2026-10-23 |
-| [0009](0009-ci-validates-every-plant-and-the-library.md) | CI validates every engineering project with cheme and builds the library | Accepted, 2026-10-23 |
+| [0009](0009-ci-validates-every-plant-and-the-library.md) | CI validates every engineering project with cheme and builds the library | Accepted, 2026-10-23; extended by 0038 (the per-plant LCA check) |
 | [0010](0010-public-and-preview-builds-fail-closed.md) | Preview and public builds; the public build fails closed | Accepted, 2026-10-23; partly superseded by 0036 (the default status and the separate publishing change) |
 | [0011](0011-benchmark-registry-with-cited-ranges.md) | Benchmark registry of KPIs with cited open reference ranges | Accepted, 2026-10-25 |
 | [0012](0012-versioning-releases-and-dois.md) | Semantic versions; releases drafted by CI, decided by the owner | **Proposed**, 2026-10-25 |
@@ -76,3 +76,4 @@ with an ADR in the same pull request.
 | [0035](0035-batch-processes-on-a-dedicated-train.md) | A batch process folder describes a dedicated train; campaigns on a multipurpose plant are out of scope | **Proposed**, 2026-11-05 |
 | [0036](0036-public-is-the-default-publication-status.md) | Public is the default publication status; the public build stays fail-closed | Accepted, 2026-11-06 |
 | [0037](0037-package-property-values-are-single-facts.md) | Property values an open-source package computes from bundled coefficients (thermo's DIPPR_PERRY_8E, chemicals' CRC tables) are single facts with their source; no tables copied, no open-data claim | Accepted, 2026-11-06 |
+| [0038](0038-ci-checks-each-plants-lca-files.md) | CI fails a plant whose LCA files are not current (`cheme assess lca --check` per plant) | **Proposed**, 2026-11-12 |
