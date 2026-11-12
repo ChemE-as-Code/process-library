@@ -6,13 +6,15 @@
 # The preliminary LCI leaves most backgrounds unmapped (DESIGN.md D-012): the build reports each
 # as a gap (lci/gaps.json). Linked here: the toluene to btx-1's reformate extraction (the library
 # entry whose dataset makes toluene), the caustic soda to chlor-alkali-1, the nitrogen consumable
-# to asu-1's gaseous nitrogen, and the LP steam counted as heat delivered (kWh), as
-# n-bromosuccinimide-1 does. Chlorosulfonic acid and ammonium chloride stay gaps: no library
-# process makes them, and the shared vocabulary has no entry for them; a stoichiometric proxy
-# (SO3 + HCl) is recorded in lca.yaml and DESIGN.md D-012, not linked (CONTRIBUTING, "Gaps").
+# to asu-1's gaseous nitrogen, the LP steam counted as heat delivered (kWh), as
+# n-bromosuccinimide-1 does, and the chlorosulfonic acid to the shared estimate proxy
+# chlorosulfonic-acid (library ADR 0039, DESIGN.md D-016): SO3 from the background and HCl from
+# hydrogen-chloride-1 by stoichiometry, marked as an estimate in the exported dataset. Ammonium
+# chloride stays a gap: no library process makes it and the shared vocabulary has no entry for it.
 schema: cheme-as-code/lci-process-mappings/v1
 exchanges:
   "feed:TOL": {dataset: {path: processes/btx-1/lca/datasets/btx-reformate-extraction.yaml, product: "product:toluene"}, source: "the Atlas producer btx-1, toluene from the solvent extraction of catalytic reformate, a co-product of that dataset (its mass allocation)"}
   "feed:NAOH": {dataset: {path: processes/chlor-alkali-1/lca/dataset.yaml, product: "product:NAOH"}, source: "the Atlas producer chlor-alkali-1, caustic soda 50 wt-%, per kg of solution as this exchange counts it"}
   "consumable:nitrogen": {dataset: {path: processes/asu-1/lca/dataset.yaml, product: "product:GANP"}, source: "the Atlas producer asu-1, gaseous nitrogen to the battery limit (99.97 mol% N2, 9 bar(a)); the purges and the filter pressing need only a few hundred kPa"}
   "feed:LPS": {use: steam-heat, source: "LP steam 350 kPa(a) to R-101's jacket (Q1) and the dryer's hot-water circuit (Q6), counted as heat delivered (kWh), D-009"}
+  "feed:CSA": {chemical: chlorosulfonic-acid, source: "technical chlorosulfonic acid (merchant), linked through the shared estimate proxy chlorosulfonic-acid (lci/mappings.yaml, library ADR 0039): 0.687 kg SO3 (background; sulfuric-acid-1 makes no SO3 product) and 0.313 kg HCl as hydrogen-chloride-1's 33 wt-% acid per kg, by stoichiometry (D-012, D-016); a library producer of chlorosulfonic acid would take precedence"}
