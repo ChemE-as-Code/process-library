@@ -4,6 +4,7 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-11-12 | process/reactions.yaml, process/flowsheet.yaml, scripts/balance.py, DESIGN.md D-015, BFD/PFD, lca/ | Heat of hydrolysis +7.7 kJ/mol at 298.15 K from the CRC liquid formation enthalpies (chemicals 1.5.2), was +8 kJ/mol ASSUMED; Q10 written by core's conversion-step model, 256.5 -> 242.712 kW (-13.8 kW); LP steam 4.4627 -> 4.4605 kWh/kg | #396: the typed duty took the heat at 393 K, the model at 298.15 K (cheme.process-duty) |
 | 2026-10-28 | Response 2026-10-28-pfd-lci-review#1 (R-01) | scripts/c301_rmin.py (new): C-301 minimum reflux 1.96 (feed pinch, Margules fitted to the SRC-3 azeotrope); R 1.0 -> 2.4 = 1.2 R_min; Q15/Q16 13.3 MW, LP steam 4.46 kWh/kg, cooling water 4.49 kWh/kg; D-011 no longer calls the steam figure conservative (d0e5f25) | R = 1.0 was below the minimum reflux |
 | 2026-10-28 | Response 2026-10-28-pfd-lci-review#2 (R-02) | balance.py E-201 from 340 K (S19); Q9 2016.9 -> 1696.7 kW (d0e5f25) | Script and stream table disagreed |
 | 2026-10-28 | Response 2026-10-28-pfd-lci-review#3 (R-03) | D-007 sizes the dissolved CO (ASSUMED about 5 kmol/h, 22 g/kg) and makes routing the C-101 condenser vent to X-101 a requirement; lca.yaml column-vents states it (d0e5f25) | Dissolved CO was neglected without a size |

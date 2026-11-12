@@ -138,9 +138,9 @@ SRC-3's 28-32 % at 1.42-1.82 and 25-30 % generally. The recycled ester (C-201 di
 17.0 t/h MF) is 3.2 t per t HCOOH, inside SRC-3's 3-4 t/t; the hydrolyser sees 24.0 t/h MF. Core confirms ln(Q/K) = -0.11
 at the outlet with the given Kx. C-201 takes all the ester overhead with 2 wt% methanol (SRC-2),
 C-202 dry methanol overhead (100 ppm water, SRC-1) back to the carbonylation; the 48.9 wt% acid
-goes to C-301. Heat of hydrolysis +8 kJ/mol ASSUMED (nearly thermoneutral; core's ideal-gas
-value is +20.1 kJ/mol, which does not apply to the liquid; no sourced liquid value was read:
-open input, 0.26 MW of 27.9 MW steam either way).
+goes to C-301. Heat of hydrolysis +7.7 kJ/mol, liquid, at 298.15 K (D-015; it was +8 kJ/mol
+ASSUMED until 2026-11-12; core's ideal-gas value is +20.1 kJ/mol, which does not apply to the
+liquid); 0.24 MW of 27.9 MW steam.
 Assumptions: reverse esterification in C-201/C-202 and decomposition of formic acid are
 neglected (SRC-2 reports both as losses of earlier processes: an open risk for the yield);
 splits sharp otherwise.
@@ -227,8 +227,31 @@ Gated: predictive simulation and energy closure (no qualified package for
 methanol / methyl formate / water / formic acid with acid association; liquid-reactor energy).
 `cheme maturity` reaches no calculation level: feeds, the hydrolysis and oxidiser conversions
 and the column splits are assumed (only the carbonylation conversion is given with a source).
-Next stage (concept, continued): a source audit of SRC-2/3/4 full texts and an open source for
-the liquid heat of hydrolysis; a rigorous VLE basis for the formic acid / water azeotrope across
+Next stage (concept, continued): a source audit of SRC-2/3/4 full texts (the liquid heat of
+hydrolysis is sourced since D-015); a rigorous VLE basis for the formic acid / water azeotrope across
 pressure (to replace the patent table and the shortcut duties); a heat-integration pass (feed-
 effluent exchange, double-effect C-301/C-302); the CO supply link (a syngas cold box process);
 then the review of this stage and P&IDs (basic).
+
+## D-015 Hydrolyser duty from core's conversion-step model (2026-11-12)
+Context: since core 1.9.0 (its ADR 0059) a conversion step's model gives the duty of its heat
+stream. R-201's Q10 was typed as 256.5 kW (scripts/balance.py: extent 115.428 kmol/h x
++8 kJ/mol), the model gave 252.331 kW, and `cheme.process-duty` warned (issue #396). The gap
+was the temperature of the heat: the script took +8 kJ/mol as the heat at the reactor's
+393.15 K; the model takes a heat without a temperature at 298.15 K and brings the feed S20
+(393.15 K) down to it and the hydrolysate S21 back up at the liquid heat capacities of
+materials.yaml: -4.17 kW, as the products' heat capacity is lower than the reactants'.
+Decision: the model is right; the typed duty is removed and `cheme process propagate --fill`
+writes Q10. A standard heat of reaction is a 298.15 K value, and the liquid formation
+enthalpies confirm that the ASSUMED +8 kJ/mol was one: from the CRC values packaged in
+chemicals 1.5.2 (Hfl, method CRC; HCOOH -425.0, CH3OH -239.2, HCOOCH3 -386.1, H2O -285.8 kJ/mol)
+the hydrolysis takes +7.7 kJ/mol at 298.15 K. That value replaces the assumption in
+reactions.yaml, with its temperature stated, and closes the open input of D-008 and D-014.
+Result: Q10 = 115.428 x 7.7 / 3.6 = 246.887 kW of reaction heat, less 4.174 kW of sensible
+heat = 242.712 kW (calculated), 13.8 kW (5.4 %) below the typed 256.5 kW. LP steam falls from
+27 891.8 to 27 878.0 kW, 4.4627 to 4.4605 kWh/kg product (4.46 kWh/kg as before). The script
+keeps the reaction term only and no longer gives Q10.
+Rejected: keeping 256.5 kW with +8 kJ/mol declared at 393.15 K (no source puts it there);
+splitting the stream (the hand value holds no heat the model leaves out).
+Assumptions: no heat of mixing of the water / ester / acid / methanol liquid (the model has
+none); constant liquid heat capacities between 298 and 393 K.
