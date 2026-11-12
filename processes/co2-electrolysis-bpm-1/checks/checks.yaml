@@ -73,9 +73,11 @@ checks:
     kind: validate
     # info: cheme.line-not-orthogonal (a slanted line) is an info finding
     fail_on: info
+    # cheme.offpage-not-on-edge (core 1.11, ADR 0049): an off-page connector sits on the drawing
+    # area's edge unless its note makes it an open end (P&ID revisions E and F, D-071, D-072)
     rules: [cheme.line-through-label, cheme.line-crossing, cheme.label-overlap,
             cheme.label-far-from-owner, cheme.line-through-valve, cheme.line-on-pipe,
-            cheme.line-not-orthogonal]
+            cheme.line-not-orthogonal, cheme.offpage-not-on-edge]
     # A sheet kept from the DEXPI reference P&ID (pyDEXPI's sample, e.g. as a worked example)
     # fails this gate by design: the reference has crossings and labels on its lines. Accept
     # its findings here, naming the sheet:
@@ -91,6 +93,10 @@ checks:
     # the design review confirms or redraws. P&ID revision C renumbered CO2-x01's segments (the
     # relief tee): the crossing of AN-x03 S2 with the feed header is now with ..._S7_P1, the same
     # crossing at the same place, its id corrected (review 2026-11-06-design-r2#4, D-067).
+    # P&ID revision F (D-072): CD-x01 goes to a system (the vented condensate collection), so
+    # its connector sits on the bottom edge; V-x21's outlet lies inside the cathode gas loop,
+    # and the route down from XV-x25 crosses the CO2 feed header once (the owner's decision of
+    # 2026-11-12 on review 2026-11-11-design-r4#1, core ADR 0049). No other acceptance.
     accept:
       - {id: "pid/P-01.xml#line-crossing:Line_AN104_S1_P1+Line_CG101C_S1_P1", reason: "D-017: parallel stack manifolds (agent draft #330, for the design review)"}
       - {id: "pid/P-01.xml#line-crossing:Line_AN104_S2_P1+Line_CG101B_S1_P1", reason: "D-017: parallel stack manifolds (agent draft #330, for the design review)"}
@@ -104,6 +110,8 @@ checks:
       - {id: "pid/P-02.xml#line-crossing:Line_AN203_S2_P1+Line_CO2201_S7_P1", reason: "D-017: parallel stack manifolds (agent draft #330, for the design review)"}
       - {id: "pid/P-02.xml#line-crossing:Line_AN203_S3_P1+Line_CO2201B_S1_P1", reason: "D-017: parallel stack manifolds (agent draft #330, for the design review)"}
       - {id: "pid/P-02.xml#line-crossing:Line_AN203_S4_P1+Line_CO2201C_S1_P1", reason: "D-017: parallel stack manifolds (agent draft #330, for the design review)"}
+      - {id: "pid/P-01.xml#line-crossing:Line_CD101_S1_P3+Line_CO2101_S3_P1", reason: "ADR 0049, D-072: CD-101 to the bottom edge crosses the CO2 feed header once (the owner, 2026-11-12)"}
+      - {id: "pid/P-02.xml#line-crossing:Line_CD201_S1_P3+Line_CO2201_S3_P1", reason: "ADR 0049, D-072: CD-201 to the bottom edge crosses the CO2 feed header once (the owner, 2026-11-12)"}
   # The skid P&IDs of #330 (D-017): every piped item and every loop of the skid is drawn and
   # connected. The rectifier U-x01, JIC-x01 and the gas detectors AIA-x41/42 are drawn without
   # a process connection by design and are left out of this list (the extract fan K-x41 is
