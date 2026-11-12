@@ -208,7 +208,8 @@ duty["C302"] = reb(prod, REFLUX["C302"])
 duty["R101"] = r["e_carb"] * 37.7 / 3.6
 # R-201: +7.7 kJ/mol at 298.15 K (CRC liquid formation enthalpies, chemicals 1.5.2), supplied by
 # LP steam. The reaction term only: the flowsheet's Q10 is core's conversion-step duty, which
-# also brings the streams to and from 298.15 K (D-015), so it is not cited from this script
+# also brings the liquid streams to and from 298.15 K at the liquid heat capacities of
+# materials.yaml (-43.6 kW, D-015), so it is not cited from this script
 duty["R201"] = r["e_hyd"] * 7.7 / 3.6
 # E-101: reactor effluent 353 -> 313 K, liquid cp 2.5 kJ/(kg K) ASSUMED
 duty["E101"] = mass(r["s7"]) * 2.5 * 40 / 3600

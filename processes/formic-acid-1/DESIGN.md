@@ -25,7 +25,7 @@ the section).
 | SRC-4 | US4299981: preparation of formic acid by hydrolysis of methyl formate | claims and abstract as returned by a web search (liquid-phase hydrolysis 90-140 C, 5-18 atm, a molar ratio of ester and water of 1.5-10 whose direction the search text leaves unclear (the reactions.yaml entry had it as MF/water; it covers the design's water/MF 1.5 only if it is water/ester); reactor sized for at least 95 % of equilibrium) | full text not read: an unverified lead, no value is taken from it as given (review R-05) | D-008 (95 % approach, ASSUMED) |
 | SRC-5 | MDPI *Catalysts* 11 (2021) 869 (open access) | introduction, as summarised by a web search: conventional carbonylation with 2.5 wt% sodium methoxide at 80 C and 4.5 MPa, about 30 % methanol conversion, high selectivity | identified, not read in full | corroborates D-005 |
 | SRC-6 | Formic Acid, *Ullmann's Encyclopedia of Industrial Chemistry*, doi:10.1002/14356007.a12_013.pub3 | - | not read (licensed); the issue's reference lead | none |
-| SRC-7 | `chemicals` 1.5.2 and `thermo` 0.6.1 (Caleb Bell, MIT licence; the versions core pins), queried through `cheme chemistry thermo`, `cheme chemistry props --source Thermo` and in scripts/balance.py | ideal-gas formation enthalpies (Active Thermochemical Tables, ATCT_G; formic acid from the CRC Handbook), standard entropies (CRC Handbook, `CRC_standard_data`; formic acid from the NIST WebBook) and heat-capacity polynomials (Poling, Prausnitz and O'Connell, The Properties of Gases and Liquids, 5th ed.); liquid formation enthalpies (CRC Handbook, `CRC_standard_data`, D-015); normal boiling points (CRC Handbook, `CRC_organic_data`, for methyl formate and formic acid; HEOS fits for methanol and water); vapour pressures at 313 K and heats of vaporisation (DIPPR_PERRY_8E for methyl formate and formic acid: Perry's Chemical Engineers' Handbook, 8th ed., drawing on DIPPR 801; HEOS_FIT for methanol) | package values used as single facts with their source (ADR 0037); the handbooks were not read here | ideal-gas data, boiling points, vapour pressures at 313 K, heats of vaporization, heat of hydrolysis (D-015) |
+| SRC-7 | `chemicals` 1.5.2 and `thermo` 0.6.1 (Caleb Bell, MIT licence; the versions core pins), queried through `cheme chemistry thermo`, `cheme chemistry props --source Thermo` and in scripts/balance.py | ideal-gas formation enthalpies (Active Thermochemical Tables, ATCT_G; formic acid from the CRC Handbook), standard entropies (CRC Handbook, `CRC_standard_data`; formic acid from the NIST WebBook) and heat-capacity polynomials (Poling, Prausnitz and O'Connell, The Properties of Gases and Liquids, 5th ed.); liquid formation enthalpies and liquid heat capacities at 298.15 K (CRC Handbook, `CRC_standard_data`, D-015); normal boiling points (CRC Handbook, `CRC_organic_data`, for methyl formate and formic acid; HEOS fits for methanol and water); vapour pressures at 313 K and heats of vaporisation (DIPPR_PERRY_8E for methyl formate and formic acid: Perry's Chemical Engineers' Handbook, 8th ed., drawing on DIPPR 801; HEOS_FIT for methanol) | package values used as single facts with their source (ADR 0037); the handbooks were not read here | ideal-gas data, boiling points, vapour pressures at 313 K, heats of vaporization, heat of hydrolysis and liquid heat capacities (D-015) |
 | SRC-8 | processes/methanol-1 (this library) | its methanol product | library, internal | methanol make-up link (D-003) |
 
 The issue's handoff asked not to search for published "answers"; no benchmark plant figures or
@@ -140,7 +140,7 @@ at the outlet with the given Kx. C-201 takes all the ester overhead with 2 wt% m
 C-202 dry methanol overhead (100 ppm water, SRC-1) back to the carbonylation; the 48.9 wt% acid
 goes to C-301. Heat of hydrolysis +7.7 kJ/mol, liquid, at 298.15 K (D-015; it was +8 kJ/mol
 ASSUMED until 2026-11-12; core's ideal-gas value is +20.1 kJ/mol, which does not apply to the
-liquid); 0.24 MW of 27.9 MW steam.
+liquid); 0.20 MW of 27.8 MW steam.
 Assumptions: reverse esterification in C-201/C-202 and decomposition of formic acid are
 neglected (SRC-2 reports both as losses of earlier processes: an open risk for the yield);
 splits sharp otherwise.
@@ -179,7 +179,7 @@ saturated liquid feed. Relative volatility 1.69 at the feed (49 wt%); both secti
 feed, R_min = 1.96 (the earlier R = 1.0 was below it); R = 2.4 = 1.2 R_min ASSUMED. The estimate
 is a shortcut on a fitted activity model, uncertain in both directions; a rigorous VLE basis
 replaces it (D-014). E-201 duty from the S19 temperature 340 K (review R-02).
-Result: 27.9 MW LP steam heat (4.46 kWh/kg product; C-301 13.3 MW of it), 28.0 MW to cooling
+Result: 27.8 MW LP steam heat (4.45 kWh/kg product; C-301 13.3 MW of it), 28.0 MW to cooling
 water, 0.53 MW power.
 Cross-check: SRC-2 quotes about 2400 kWh/t of 85 % acid for the reboilers of prior art; the
 shortcut is about 1.9 times that, plausibly because there is no heat integration (a feed-effluent
@@ -203,7 +203,7 @@ Result (`cheme assess lca --coverage`): mass, element and carbon-origin balances
 1.3009 kg = outputs 1.3009 kg per kg product); no impact totals (every background a gap).
 Per kg product: stoichiometric 0.517 kg CO; 0.568 kg of 99 mol% gas at 92 % CO yield; methanol
 12.5 g, NaOMe solution 2.3 g, water 0.483 kg (0.333 kg reacted + 0.150 kg in the product), air
-0.235 kg, power 0.084 kWh, LP steam 4.46 kWh, cooling water 4.49 kWh, purge 14.1 g, CO2 72.4 g.
+0.235 kg, power 0.084 kWh, LP steam 4.45 kWh, cooling water 4.49 kWh, purge 14.1 g, CO2 72.4 g.
 Exclusions with ASSUMED bounds (review R-07, in `lca/lca.yaml`): oxidiser NOx about 0.02 g/kg,
 decomposition CO at most about 2.6 g/kg (burnt in X-101), column vents about 22 g/kg CO but
 routed to X-101 and so already counted as CO2 (D-007); fugitives cannot be bounded before P&IDs.
@@ -236,22 +236,27 @@ then the review of this stage and P&IDs (basic).
 ## D-015 Hydrolyser duty from core's conversion-step model (2026-11-12)
 Context: since core 1.9.0 (its ADR 0059) a conversion step's model gives the duty of its heat
 stream. R-201's Q10 was typed as 256.5 kW (scripts/balance.py: extent 115.428 kmol/h x
-+8 kJ/mol), the model gave 252.331 kW, and `cheme.process-duty` warned (issue #396). The gap
-was the temperature of the heat: the script took +8 kJ/mol as the heat at the reactor's
-393.15 K; the model takes a heat without a temperature at 298.15 K and brings the feed S20
-(393.15 K) down to it and the hydrolysate S21 back up at the liquid heat capacities of
-materials.yaml: -4.17 kW, as the products' heat capacity is lower than the reactants'.
-Decision: the model is right; the typed duty is removed and `cheme process propagate --fill`
-writes Q10. A standard heat of reaction is a 298.15 K value, and the liquid formation
-enthalpies confirm that the ASSUMED +8 kJ/mol was one: from the CRC values packaged in
-chemicals 1.5.2 (SRC-7: Hfl, method CRC, table `CRC_standard_data`; HCOOH -425.0, CH3OH
--239.2, HCOOCH3 -386.1, H2O -285.8 kJ/mol) the hydrolysis takes +7.7 kJ/mol at 298.15 K. That value replaces the assumption in
-reactions.yaml, with its temperature stated, and closes the open input of D-008 and D-014.
-Result: Q10 = 115.428 x 7.7 / 3.6 = 246.887 kW of reaction heat, less 4.174 kW of sensible
-heat = 242.712 kW (calculated), 13.8 kW (5.4 %) below the typed 256.5 kW. LP steam falls from
-27 891.8 to 27 878.0 kW, 4.4627 to 4.4605 kWh/kg product (4.46 kWh/kg as before). The script
-keeps the reaction term only and no longer gives Q10.
++8 kJ/mol, ASSUMED, taken as the heat at the reactor's 393.15 K), the model gave 252.331 kW,
+and `cheme.process-duty` warned (issue #396). The model takes a heat of reaction without a
+temperature at 298.15 K and brings the feed S20 (393.15 K) down to it and the hydrolysate S21
+back up. materials.yaml had no liquid heat capacities, so core 1.11.0 used the ideal-gas ones
+for these two liquid streams (-4.17 kW): wrong data for a liquid step, as in
+phosphorus-oxychloride-1 (its D-016).
+Decision: correct the data and let the model write the duty. materials.yaml gives the liquid
+heat capacities at 298.15 K of the CRC Handbook as packaged in chemicals 1.5.2 (SRC-7: Cpl,
+table `CRC_standard_data`; MF 119.1, MEOH 81.1, H2O 75.3, FA 99.0 kJ/(kmol K)); the products'
+heat capacity is 14.3 kJ/(kmol K) below the reactants'. The heat of hydrolysis comes from the
+liquid formation enthalpies of the same table (Hfl, method CRC; HCOOH -425.0, CH3OH -239.2,
+HCOOCH3 -386.1, H2O -285.8 kJ/mol): +7.7 kJ/mol at 298.15 K. That value replaces the
+assumption in reactions.yaml, with its temperature stated, and closes the open input of D-008
+and D-014. The typed duty is removed and `cheme process propagate --fill` writes Q10.
+Result: Q10 = 115.428 x 7.7 / 3.6 = 246.887 kW of reaction heat, less
+115.428 x 14.3 x 95 / 3600 = 43.56 kW of sensible heat = 203.329 kW (calculated), 53.2 kW
+(20.7 %) below the typed 256.5 kW. LP steam falls from 27 891.8 to 27 838.6 kW, 4.4627 to
+4.4542 kWh/kg product (4.46 -> 4.45 kWh/kg in D-011 and D-012). The script keeps the reaction
+term only and no longer gives Q10.
 Rejected: keeping 256.5 kW with +8 kJ/mol declared at 393.15 K (no source puts it there);
+keeping the ideal-gas heat capacities (S20 and S21 are liquid under 550-600 kPa(a));
 splitting the stream (the hand value holds no heat the model leaves out).
 Assumptions: no heat of mixing of the water / ester / acid / methanol liquid (the model has
-none); constant liquid heat capacities between 298 and 393 K.
+none); the 298.15 K liquid heat capacities held constant to 393.15 K.
