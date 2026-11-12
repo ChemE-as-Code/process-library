@@ -65,6 +65,9 @@ HV-4162 (lines N-4003 / N-4004) between their blocks, PI-4155..PI-4158 either si
 which are drawn as restriction orifices (lng_pid.to_orifice), and the spec break SB at their
 battery-limit flange (austenitic from there); ~4,000 Nm3/h. The platform crossovers LNG-4003 /
 LNG-4010 are bottom-of-line takeoffs and the trestle lines fall to them without a pocket (notes).
+
+Migration to core 1.11.0 (D-038), drawing only: the circulation returns LNG-4005 / LNG-4009 end on
+the left edge. N-4002's "N2 (BL)" stays in the field between the loading lines (D-038).
 """
 
 import sys
@@ -73,7 +76,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from dataclasses import replace  # noqa: E402
 
-from lng_pid import Lists, Sheet, label, note, offpage, tee, to_orifice, valve  # noqa: E402
+from lng_pid import Lists, Sheet, edge_offpage, label, note, offpage, tee, to_orifice, valve  # noqa: E402
 
 target = Path(sys.argv[1])
 sheet = Sheet.load(target)
@@ -225,14 +228,15 @@ xv5 = valve("XV4105", "BallValve", tag="XV-4105", at=(80, 140))
 tr_r = tee("T4R2", at=(80, 150), branch="right", branch_dn=25)
 lr = L.line(sheet, "LNG-4005", dn=250, fluid="LNG", frm="LNG-4002", to="T-2101",
             notes="Circulation return from line B to the tanks (holding, S10); to T-2101 or, via LNG-4009, T-3101 (D-008); thermal relief PSV-4114 between XV-4105 and the tank valves.",
-            route=[tb_r.branch, xv5, tr_r, tr2, (80, 172),
-                   offpage("out", at=(80, 178), note="to T-2101 (P-02)", note_at=(66, 182), rotation=DOWN)],
+            route=[tb_r.branch, xv5, tr_r, tr2, (80, 181),
+                   edge_offpage("out", "left", 181, note="to T-2101 (P-02)", note_at=(32, 176))],
             label_at=(66, 128))
+# both circulation returns end on the left edge (core 1.11 cheme.offpage-not-on-edge, D-038), below
+# LNG-4002 and above the vapour return BOG-4001 coming in from the left edge
 L.line(sheet, "LNG-4009", dn=250, fluid="LNG", frm="LNG-4005", to="T-3101",
        notes="Circulation return branch to T-3101.",
-       route=[tr2.branch, (50, 158), (50, 172),
-              offpage("out", at=(50, 178), note="to T-3101 (P-03)", note_at=(36, 182), rotation=DOWN)],
-       label_at=(36, 150))
+       route=[tr2.branch, edge_offpage("out", "left", 158, note="to T-3101 (P-03)", note_at=(32, 153))],
+       label_at=(36, 164))
 
 # ---- thermal relief of the blocked-in lines (D-017) ------------------------------------------
 # PSV-4111 / PSV-4112 on the underside of the loading lines; their outlets BOG-4011 / BOG-4012

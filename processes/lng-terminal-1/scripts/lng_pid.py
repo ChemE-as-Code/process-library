@@ -5,7 +5,8 @@ from cheme-as-code's authoring API with ISO 6708 sizes (DIN 2448 in DEXPI stops 
 three shapes the catalogue lacks (a full-containment LNG tank, a marine loading arm, a
 restriction orifice, D-036), built from
 cheme-as-code's own XML element helpers; the relief valves drawn as globe valves and turned
-into spring-loaded safety valves (as ammonia-1 D-027 does). Each draft records the lines,
+into spring-loaded safety valves (as ammonia-1 D-027 does); the off-page connectors put on an
+edge of the drawing area (`edge_offpage`, core 1.11, D-038). Each draft records the lines,
 instruments and relief devices it draws (`Lists`), so the lists are written from the same
 values as the sheet (`scripts/build_lists.py`, DESIGN.md D-021).
 """
@@ -34,6 +35,23 @@ equipment = partial(authoring.equipment, standard="Iso6708")
 _line = partial(authoring.line, standard="Iso6708")
 
 BLACK = (0, 0, 0)
+
+# Off-page connectors on an edge of the drawing area (core 1.11 cheme.offpage-not-on-edge, core ADR
+# 0049; D-038). The drawing area of every frame is the inside of the border, x 4..416 and y 4..258 mm
+# (down to the top of the title block); a connector is on an edge within 10 mm of it. Its node sits
+# here, so that its 7 mm arrow (scale 0.7) ends 3 mm (left, top, right) or 9 mm (bottom) inside it.
+EDGE = {"left": 14, "right": 405, "top": 14, "bottom": 242}
+_EDGE_FLOW = {("in", "left"): 0, ("out", "left"): 180, ("in", "right"): 180, ("out", "right"): 0,
+              ("in", "top"): 90, ("out", "top"): 270, ("in", "bottom"): 270, ("out", "bottom"): 90}
+
+
+def edge_offpage(direction: str, side: str, at: float, note: str | None = None, note_at=None):
+    """An off-page connector on the *side* edge (left, right, top, bottom) of the drawing area: *at*
+    is its place along that edge (y on the left or right edge, x on the top or bottom one), its arrow
+    points across the edge, into the sheet for ``in`` and out of it for ``out`` (D-038). Give
+    *note_at* (the centre of the note): the default would put the note beyond the edge."""
+    xy = (EDGE[side], at) if side in ("left", "right") else (at, EDGE[side])
+    return offpage(direction, at=xy, note=note, note_at=note_at, rotation=_EDGE_FLOW[(direction, side)])
 
 
 def _polyline(pid: str, pts, width=0.35, closed=False):

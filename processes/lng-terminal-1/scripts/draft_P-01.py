@@ -32,25 +32,38 @@ sheet notes name every cause of I-102 and the selection-valve permissive (#7b).
 
 Revision after review 2026-11-05-basic-design-6 (#8, D-032): line notes only; the rundown lines
 LNG-1001..1004 and LNG-1012..1014 carry HOLD H-05 on their class and design pressure.
+
+Migration to core 1.11.0 (D-038), drawing only: the four fill connectors on the bottom edge (the
+T-3101 fill lines 34 mm apart, XV-1108 / XV-1109 with them, BOG-1010 between the arrows and the
+sheet notes, which start at y 257, its tee T1114 at x 270); BOG-1003 and FG-1001 in from the right
+edge, the two PIC / FO notes below BOG-1003.
 """
 
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lng_pid import Lists, Sheet, label, note, offpage, tee, to_orifice, valve  # noqa: E402
+from lng_pid import Lists, Sheet, edge_offpage, label, note, offpage, tee, to_orifice, valve  # noqa: E402
 
 target = Path(sys.argv[1])
 sheet = Sheet.load(target)
 L = Lists("P-01")
 UP, DOWN = 270, 90
 ROWS = {1: 35, 2: 60, 3: 85, 4: 110}
+# Off-page connectors on the edge of the drawing area (core 1.11 cheme.offpage-not-on-edge, D-038): the
+# four fill connectors on the bottom edge, their notes 6 mm above the arrows, right of their lines (the
+# first one left of it); the T-3101 bottom fill and the T-3101 top fill lines 34 mm apart to take them;
+# the thermal relief outlet BOG-1010 runs between the arrows and the sheet notes. BOG-1003 and FG-1001
+# come in on the right edge.
+FILL_X = {"LNG-1002": 150, "LNG-1004": 172, "LNG-1003": 206, "LNG-1001": 240}
+FILL_NOTE_Y = 236
+BOG1010_Y = 252.5
 
 # ---- rundown header LNG-1001: train 1 tie-in, trains 2-4 join, branches to the tanks ----------
 tt = {k: tee(f"T101{k}", at=(95, ROWS[k]), branch="left", branch_dn=500) for k in (2, 3, 4)}
 trv = tee("T1021", at=(95, 122), branch="right", branch_dn=25)
 tk1 = tee("T1002", at=(150, 150), branch="down", branch_dn=900)
-tk2b = tee("T1003", at=(205, 150), branch="down", branch_dn=900)
+tk2b = tee("T1003", at=(FILL_X["LNG-1003"], 150), branch="down", branch_dn=900)
 trv3 = tee("T1023", at=(193, 150), branch="up", branch_dn=25)  # PSV-1123 (review #5)
 # review 2026-11-05-basic-design-6 #8 (D-032): the rundown lines' class and design pressure are not final
 HOLD = (" HOLD H-05: the pressure class (Class 150) and the 15 barg design pressure (ASSUMED) of the rundown "
@@ -62,9 +75,10 @@ hdr = L.line(sheet, "LNG-1001", dn=900, fluid="LNG", frm="BL (train 1)", to="T-3
                     valve("XV1111", "BallValve", tag="XV-1111", at=(40, 35)),
                     valve("CV1111", "SwingCheckValve", at=(58, 35)), (95, 35), tt[2], tt[3], tt[4],
                     trv, (95, 150), tk1, valve("XV1103", "BallValve", tag="XV-1103", at=(180, 150)),
-                    trv3, tk2b, (230, 150), valve("XV1108", "BallValve", tag="XV-1108", at=(230, 198)),
-                    offpage("out", at=(230, 226), note="to T-3101 top fill (P-03)",
-                            note_at=(232, 242), rotation=DOWN)],
+                    trv3, tk2b, (FILL_X["LNG-1001"], 150),
+                    valve("XV1108", "BallValve", tag="XV-1108", at=(FILL_X["LNG-1001"], 198)),
+                    edge_offpage("out", "bottom", FILL_X["LNG-1001"], note="to T-3101 top fill (P-03)",
+                                 note_at=(FILL_X["LNG-1001"] + 14.3, FILL_NOTE_Y))],
              label_at=(120, 158))
 for k in (2, 3, 4):
     y = ROWS[k]
@@ -94,8 +108,8 @@ L.line(sheet, "LNG-1002", dn=900, fluid="LNG", frm="LNG-1001", to="T-2101 (top f
        notes="Fill to T-2101; top fill (rundown heavier than the tank's top layer) or bottom fill via LNG-1004, chosen from AI-1102 against LTD-2103 (rollover, D-007)." + HOLD,
        route=[tk1.branch, valve("XV1102", "BallValve", tag="XV-1102", at=(150, 163)), trv2,
               tsplit, valve("XV1106", "BallValve", tag="XV-1106", at=(150, 210)),
-              offpage("out", at=(150, 226), note="to T-2101 top fill (P-02)", note_at=(126, 234),
-                      rotation=DOWN)],
+              edge_offpage("out", "bottom", FILL_X["LNG-1002"], note="to T-2101 top fill (P-02)",
+                           note_at=(FILL_X["LNG-1002"] - 14.3, FILL_NOTE_Y))],
        label_at=(139, 196))
 psv1122 = L.relief("PSV1122", "PSV-1122", "BOG-1010", 15.0,
                    "thermal expansion of the blocked-in fill branch" + NOT_SURGE,
@@ -104,15 +118,15 @@ psv1122 = L.relief("PSV1122", "PSV-1122", "BOG-1010", 15.0,
 L.line(sheet, "LNG-1004", dn=900, fluid="LNG", frm="LNG-1002", to="T-2101 (bottom fill)",
        notes="T-2101 bottom fill (D-007)." + HOLD,
        route=[tsplit.branch, (172, 188), valve("XV1107", "BallValve", tag="XV-1107", at=(172, 210)),
-              offpage("out", at=(172, 226), note="to T-2101 bottom fill (P-02)", note_at=(160, 242),
-                      rotation=DOWN)],
+              edge_offpage("out", "bottom", FILL_X["LNG-1004"], note="to T-2101 bottom fill (P-02)",
+                           note_at=(FILL_X["LNG-1004"] + 16.4, FILL_NOTE_Y))],
        label_at=(181, 174))
 L.line(sheet, "LNG-1003", dn=900, fluid="LNG", frm="LNG-1001", to="T-3101 (bottom fill)",
        notes="T-3101 bottom fill (D-007); the top fill is the end of LNG-1001." + HOLD,
-       route=[tk2b.branch, valve("XV1109", "BallValve", tag="XV-1109", at=(205, 210)),
-              offpage("out", at=(205, 226), note="to T-3101 bottom fill (P-03)", note_at=(196, 242),
-                      rotation=DOWN)],
-       label_at=(214, 174))
+       route=[tk2b.branch, valve("XV1109", "BallValve", tag="XV-1109", at=(FILL_X["LNG-1003"], 210)),
+              edge_offpage("out", "bottom", FILL_X["LNG-1003"], note="to T-3101 bottom fill (P-03)",
+                           note_at=(FILL_X["LNG-1003"] + 16.4, FILL_NOTE_Y))],
+       label_at=(FILL_X["LNG-1003"] + 9, 174))
 psv1123 = L.relief("PSV1123", "PSV-1123", "BOG-1011", 15.0,
                    "thermal expansion of the blocked-in fill branch" + NOT_SURGE,
                    "Thermal relief of the T-3101 fill branch LNG-1001 / LNG-1003 between XV-1103 and XV-1108 / XV-1109, to the BOG header (D-017; review 2026-11-05 #5).",
@@ -172,7 +186,8 @@ L.inst(sheet, "ZSC-1103", "XV-1103 closed position",
        at=(193, 158), sensing="XV1103", sensing_at=(180, 150),
        sensing_points=[(180, 158)])
 for tag, vid, x, y in [("HS-1106", "XV1106", 135, 210), ("HS-1107", "XV1107", 187, 210),
-                       ("HS-1109", "XV1109", 219, 210), ("HS-1108", "XV1108", 245, 198)]:
+                       ("HS-1109", "XV1109", FILL_X["LNG-1003"] + 14, 210),
+                       ("HS-1108", "XV1108", FILL_X["LNG-1001"] + 15, 198)]:
     L.inst(sheet, tag, f"Fill selection valve XV-{vid[2:]}",
            "Operator selection (DCS), top or bottom fill (SEQ-FILL-CHANGE, make-before-break). Fail last; closure "
            "time at least 30 s (ASSUMED, D-023.3), set by a speed controller on the actuator exhaust, like the fill "
@@ -192,7 +207,7 @@ bf = tee("T1108", at=(380, 40), branch="down", branch_dn=900)
 # tie-ins of the thermal relief outlets (D-026.11): BOG-1004, BOG-1011, BOG-1010, left to right
 r4 = tee("T1112", at=(255, 40), branch="down", branch_dn=25)
 r11 = tee("T1113", at=(260, 40), branch="down", branch_dn=25)
-r10 = tee("T1114", at=(265, 40), branch="down", branch_dn=25)
+r10 = tee("T1114", at=(270, 40), branch="down", branch_dn=25)  # right of the T-3101 top fill note (D-038)
 bog = L.line(sheet, "BOG-1001", dn=750, fluid="Boil-off gas", frm="T-2101", to="D-7101",
              notes="Tank vapour header from T-2101 (P-02) with T-3101, the vapour return lines and the make-up (P-01) to the BOG suction drum with the desuperheater spray (P-07); holding 21.9 t/h (S8), loading 56.5 t/h with the return (S6) and the spray (D-009, D-034); receives the P-01 thermal relief outlets BOG-1004, BOG-1010 and BOG-1011 (D-026). Drawn on P-02, P-01 and P-07.",
              route=[offpage("in", at=(250, 40), note="from T-2101 (P-02)", note_at=(254, 32)),
@@ -201,8 +216,8 @@ bog = L.line(sheet, "BOG-1001", dn=750, fluid="Boil-off gas", frm="T-2101", to="
              label_at=(305, 52))
 L.line(sheet, "BOG-1003", dn=600, fluid="Boil-off gas", frm="T-3101", to="BOG-1001",
        notes="T-3101 vapour outlet to the tank vapour header. Drawn on P-03 and P-01.",
-       route=[offpage("in", at=(285, 92), note="from T-3101 (P-03)", note_at=(285, 103),
-                      rotation=UP), b3.branch],
+       route=[edge_offpage("in", "right", 140, note="from T-3101 (P-03)", note_at=(391, 135)), (285, 140),
+              b3.branch],
        label_at=(296, 70))
 # thermal relief outlets into BOG-1001 on this sheet (D-026.11), each with its own tee
 L.line(sheet, "BOG-1004", dn=25, fluid="Boil-off gas", frm="LNG-1001 (PSV-1121)", to="BOG-1001",
@@ -215,7 +230,7 @@ L.line(sheet, "BOG-1011", dn=25, fluid="Boil-off gas", frm="LNG-1001 (PSV-1123)"
        label_at=(204, 134))
 L.line(sheet, "BOG-1010", dn=25, fluid="Boil-off gas", frm="LNG-1002 (PSV-1122)", to="BOG-1001",
        notes="Thermal relief outlet of the T-2101 fill branch to the tank vapour header BOG-1001 (tee T1114), drawn below the fill off-page connectors (D-026).",
-       route=[trv2.branch, psv1122, (104, 175), (104, 247), (265, 247), r10.branch],
+       route=[trv2.branch, psv1122, (104, 175), (104, BOG1010_Y), (270, BOG1010_Y), r10.branch],
        label_at=(95, 205))
 for k, tb, x, side, nx in [("6", b6, 305, "A", 282), ("7", b7, 320, "B", 344)]:
     L.line(sheet, f"BOG-400{int(k) - 5}", dn=750, fluid="Boil-off gas", frm=f"BOG-{'5' if side == 'A' else '6'}001 (Berth {'2' if side == 'A' else '1'})",
@@ -230,8 +245,8 @@ pv1111 = valve("PV1111", "GlobeValve", tag="PV-1111", at=(340, 66))
 fo1117 = valve("FO1117", "GlobeValve", tag="FO-1117", at=(340, 82))
 L.line(sheet, "FG-1001", dn=150, fluid="Fuel gas", frm="BL (trains' fuel gas system)", to="BOG-1001",
        notes="Make-up fuel gas from the trains' fuel gas system (BL) against tank vacuum, PV-1111 under PIC-1111; independent of the BOG compressors, which I-204 / I-304 stop (D-017; review 2026-11-05 #13).",
-       route=[offpage("in", at=(340, 92), note="from trains' fuel gas (BL)", note_at=(322, 100),
-                      rotation=UP), fo1117, pv1111, bm.branch],
+       route=[edge_offpage("in", "right", 125, note="from trains' fuel gas (BL)", note_at=(388, 120)),
+              (340, 125), fo1117, pv1111, bm.branch],
        label_at=(326, 72))
 label(sheet, "FO1117", "PipingComponentNumber", at=(331, 84))
 to_orifice(sheet, "FO1117")   # drawn as a restriction orifice (checker of D-036)
@@ -267,15 +282,17 @@ L.inst(sheet, "PIC-1110", "Tank vapour header pressure, high split: BOG compress
        at=(396, 56), sensing=bog.segments[8], sensing_at=(396, 40), signal_to=pv1110,
        fail_action="FC")
 
-note(sheet, "Rundown subcooled -161.5 degC, 215 kPa(a) at the tanks (D-005). Top or bottom fill", at=(12, 254))
-note(sheet, "from AI-1102 against the tank's density profile LTD-2103 / LTD-3103 (rollover, D-007).", at=(12, 259.5))
-note(sheet, "UZ-111x: see C&E I-101, I-102. UZ-1102: C&E I-201, I-203. UZ-1103: C&E I-301, I-303.", at=(12, 265))
-note(sheet, "I-102: ZSC-1102 / -1103 both closed, PZT-1105, I-201 / I-203 or I-301 / I-303 with the other fill valve closed, I-804. UZ-1115: I-203, I-303.", at=(12, 270.5))
-note(sheet, "XV-1115: SIS, energise-to-trip with its own air accumulator (D-017). Thermal relief BOG-1004 / -1010 / -1011 into BOG-1001.", at=(12, 276))
-note(sheet, "PIC-1110 / PIC-1111: split-range tank pressure control (D-017).", at=(275, 118))
-note(sheet, "FO-1117: restriction orifice limiting the make-up flow (H-04 A1).", at=(275, 124))
+# the sheet notes 5 mm apart from y 257, below BOG-1010 (D-038; were 5.5 mm apart from y 254)
+note(sheet, "Rundown subcooled -161.5 degC, 215 kPa(a) at the tanks (D-005). Top or bottom fill", at=(12, 257))
+note(sheet, "from AI-1102 against the tank's density profile LTD-2103 / LTD-3103 (rollover, D-007).", at=(12, 262))
+note(sheet, "UZ-111x: see C&E I-101, I-102. UZ-1102: C&E I-201, I-203. UZ-1103: C&E I-301, I-303.", at=(12, 267))
+note(sheet, "I-102: ZSC-1102 / -1103 both closed, PZT-1105, I-201 / I-203 or I-301 / I-303 with the other fill valve closed, I-804. UZ-1115: I-203, I-303.", at=(12, 272))
+note(sheet, "XV-1115: SIS, energise-to-trip with its own air accumulator (D-017). Thermal relief BOG-1004 / -1010 / -1011 into BOG-1001.", at=(12, 277))
+# below BOG-1003, which comes in on the right edge (D-038)
+note(sheet, "PIC-1110 / PIC-1111: split-range tank pressure control (D-017).", at=(292, 150))
+note(sheet, "FO-1117: restriction orifice limiting the make-up flow (H-04 A1).", at=(292, 156))
 # rundown closure order and closure time (D-023.3, D-028), after the existing notes (ids kept)
-note(sheet, "XV-1102, XV-1103, XV-1111..1114: closure at least 30 s (speed controller, non-return valve, air accumulator); XV-1106..1109 at least 30 s;", at=(12, 281.5))
+note(sheet, "XV-1102, XV-1103, XV-1111..1114: closure at least 30 s (speed controller, non-return valve, air accumulator); XV-1106..1109 at least 30 s;", at=(12, 282))
 note(sheet, "XS-1100 trips the trains' rundown as the closure starts (C&E I-101, I-102). HS-1106..1109: last open fill branch not closed (I-103, D-030).", at=(12, 287))
 
 L.finish(sheet, target)

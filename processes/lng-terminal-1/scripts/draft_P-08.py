@@ -48,6 +48,10 @@ detection TSL-8118 on the P-8103 discharge head (W-8003 upstream of CV-8116), vo
 I-808; TSL-8104's tip stated at 0.40 m in the pocket (above the pump start level); CV-8116 with a drain-back
 hole in its disc so that nothing stands above the cover when the pump stops (freezing, -20 degC design
 ambient); LZT-8106 a guided-wave radar in a stilling pipe down to the pocket.
+
+Migration to core 1.11.0 (D-038), drawing only: LNG-8001 ends on the right edge; the N2 header comes in
+on the right edge above its two outlets to the berths (tee T8N1 at x 300, PI-8121 on its drop); W-8002
+and W-8003 go down to the bottom edge (TSL-8104 6 mm higher); IA-8001's outlet turns down onto it.
 """
 
 import sys
@@ -56,7 +60,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from chemeascode.domains.piping.authoring import label  # noqa: E402
-from lng_pid import Lists, Nozzle, Sheet, equipment, note, offpage, tee, to_orifice, valve  # noqa: E402
+from lng_pid import (  # noqa: E402
+    Lists, Nozzle, Sheet, edge_offpage, equipment, note, offpage, tee, to_orifice, valve)
 
 target = Path(sys.argv[1])
 sheet = Sheet.load(target)
@@ -151,7 +156,7 @@ L.line(sheet, "LNG-8001", dn=80, fluid="LNG", frm="P-8101A", to="BL (liquid burn
              "disc and the HV-8106A cavity vent into D-8101 (review 2026-11-05-basic-design-4 #5, D-028).",
        route=[pa["N2"], (145, 165), valve("CV8102A", "SwingCheckValve", tag="CV-8102A", at=(145, 172)),
               valve("HV8108A", "BallValve", tag="HV-8108A", at=(145, 182)), (145, 190), t_d, t_m,
-              t_r, offpage("out", at=(285, 190), note="to liquid burner (BL)", note_at=(268, 196))],
+              t_r, edge_offpage("out", "right", 190, note="to liquid burner (BL)", note_at=(388, 185))],
        label_at=(257, 184))
 psv8109 = L.relief("PSV8109", "PSV-8109", "LNG-8006", 15.0,
                    "thermal expansion of LNG blocked in the common discharge LNG-8001 between the discharge "
@@ -201,9 +206,10 @@ w_cv = valve("CV8114", "SwingCheckValve", tag="CV-8114", at=(70, 209))
 w_hv = valve("HV8115", "BallValve", tag="HV-8115", at=(84, 209))
 L.line(sheet, "W-8002", dn=100, fluid="Rainwater", frm="P-8102", to="BL (oily water)", insulation="none",
        notes="Riser of the submersible rainwater pump P-8102 from the T-8101 pit floor up through the pit cover, then to the site oily water system; interlocked off on LNG in the sump (C&E I-801, the feeder isolated). Static lift ~26.6 m from the 19.5 m pit floor to the PR8 rack (review 2026-11-05-basic-design-8 #3, D-036; was 12.5 m). Check valve CV-8114 and isolation valve HV-8115 above the pit cover (no back-flow into the impoundment, the pump pulled with the riser isolated). Austenitic stainless steel from the pump to the isolation valve, design -170 degC (the first item a spill reaches, D-036), ASSUMED.",
-       route=[spump["N2"], (46, 209), w_cv, w_hv, (120, 209),
-              offpage("out", at=(130, 209), note="to oily water (BL)", note_at=(128, 204))],
-       label_at=(104, 215))
+       # down to the bottom edge (core 1.11 cheme.offpage-not-on-edge, D-038), left of W-8003's drop
+       route=[spump["N2"], (46, 209), w_cv, w_hv, (96, 209),
+              edge_offpage("out", "bottom", 96, note="to oily water (BL)", note_at=(79, 245.5))],
+       label_at=(83, 218))
 for v in (w_cv, w_hv):
     label(sheet, v.id, "PipingComponentNumber", at=(v.at[0], 204))
 jsump = equipment(sheet, "Tank", "T-8102", shape="TANK_OPEN_SHAPE", at=(160, 225),
@@ -231,22 +237,25 @@ L.line(sheet, "W-8003", dn=80, fluid="Rainwater", frm="P-8103", to="BL (jetty dr
              "first), ASSUMED. Started and stopped by LZT-8106 in the pocket (C&E I-806 / I-807), locked out on LNG "
              "by TSL-8104 in the pocket or TSL-8118 on the discharge head (1oo2, C&E I-808); D-037.15 (a), "
              "D-037.16, D-037.17.",
-       route=[dpump["N2"], (166, 211), d_cv, d_hv, (140, 211), (140, 222),
-              offpage("out", at=(132, 222), note="jetty drain (BL)", note_at=(127, 229), rotation=LEFT)],
+       # down to the bottom edge between W-8002's drop and TSL-8104 (core 1.11, D-038)
+       route=[dpump["N2"], (166, 211), d_cv, d_hv, (113, 211),
+              edge_offpage("out", "bottom", 113, note="jetty drain (BL)", note_at=(128, 245.5))],
        label_at=(155.5, 219))
 for v in (d_cv, d_hv):
     label(sheet, v.id, "PipingComponentNumber", at=(v.at[0], 206.5))
 
 # ---- N2 and instrument-air headers ----------------------------------------------------------------
-tn = tee("T8N1", at=(240, 210), branch="down", branch_dn=50)
+# The site N2 comes in on the right edge above the two outlets to the berths, so that all three
+# connectors sit on the edge without a crossing (core 1.11 cheme.offpage-not-on-edge, D-038)
+tn = tee("T8N1", at=(300, 214), branch="down", branch_dn=50)
 n2 = L.line(sheet, "N-8001", dn=80, fluid="Nitrogen", frm="BL (site N2)", to="LNG-5001", insulation="none",
             notes="Terminal N2 header from the site system, 7 barg, to Berth 2 (and via N-8002 to Berth 1): purging the arms and headers to < 1 % O2 before and < 2 % HC after loading and the leak test at 5 bar (liquid) / 2.5 bar (vapour arm) (S-01); these are its only users (D-020, D-028). Drawn on P-08 and P-05.",
-            route=[offpage("in", at=(205, 210), note="N2 (BL)", note_at=(210, 204)), tn,
-                   offpage("out", at=(285, 210), note="to Berth 2 (P-05)", note_at=(270, 204))],
-            label_at=(260, 216))
+            route=[edge_offpage("in", "right", 202, note="N2 (BL)", note_at=(394, 197)), (250, 202), (250, 214),
+                   tn, edge_offpage("out", "right", 214, note="to Berth 2 (P-05)", note_at=(388, 209))],
+            label_at=(272, 220))
 L.line(sheet, "N-8002", dn=50, fluid="Nitrogen", frm="N-8001", to="LNG-6001", insulation="none",
-       notes="N2 to Berth 1. Drawn on P-08 and P-06.", route=[tn.branch, (240, 228),
-                                     offpage("out", at=(285, 228), note="to Berth 1 (P-06)", note_at=(270, 234))],
+       notes="N2 to Berth 1. Drawn on P-08 and P-06.", route=[tn.branch, (300, 226),
+                                     edge_offpage("out", "right", 226, note="to Berth 1 (P-06)", note_at=(388, 221))],
        labels=False)
 IA_X = 178  # IA-8001 starts left of the N2 header to take PI-8122 and PZT-8123A/B/C (D-028)
 ia = L.line(sheet, "IA-8001", dn=50, fluid="Instrument air", frm="BL (site instrument air)", to="instrument users",
@@ -254,8 +263,9 @@ ia = L.line(sheet, "IA-8001", dn=50, fluid="Instrument air", frm="BL (site instr
             notes="Instrument-air header of the terminal, 7 barg (D-020); low-low pressure trip PZT-8123A/B/C (2oo3, "
                   "C&E I-804) initiates ESD-1 of both berths and the rundown trip before the fail-closed valves "
                   "move (D-016, D-028).",
+            # its outlet turns down onto the bottom edge (core 1.11 cheme.offpage-not-on-edge, D-038)
             route=[offpage("in", at=(IA_X, 246), note="IA (BL)", note_at=(IA_X + 5, 240)),
-                   offpage("out", at=(285, 246), note="to users", note_at=(280, 240))],
+                   offpage("out", at=(288, 246), note="to users", note_at=(277, 250), rotation=DOWN)],
             label_at=(264, 240))
 
 # ---- instruments ----------------------------------------------------------------------------------
@@ -326,7 +336,7 @@ L.inst(sheet, "TSL-8104", "Jetty sump low temperature (LNG in the sump)",
        "the -20 degC design ambient of an empty pocket in winter, far above LNG). Alarm and high-expansion foam on the "
        "platform (D-018); C&E I-808 locks the dry-sump pump P-8103 out (its feeder opened, latching), 1oo2 with "
        "TSL-8118 on the discharge head, and the portable pump may be used only while it reads no LNG (D-034, D-036, "
-       "D-037.16, D-037.17).", at=(130, 240), sensing=jsump["N1"])
+       "D-037.16, D-037.17).", at=(130, 234), sensing=jsump["N1"])  # above the W-8003 note (D-038)
 L.inst(sheet, "TSL-8118", "P-8103 discharge head low temperature (LNG drawn by the dry-sump pump)",
        "Second, independent LNG detection of the dry-sump pump (D-037.17): a fast-response probe with its tip in the "
        "flow of the discharge head, upstream of CV-8116 (ASSUMED, no thermowell), own SIS input and cable. Trips at "
@@ -351,7 +361,7 @@ L.inst(sheet, "LZT-8106", "Jetty sump T-8102 pocket level: P-8103 start / stop, 
        "(D-037.15 (a); the 0.7 m / ~20 m3 and 1.6 m / ~45 m3 of D-036 are withdrawn). One transmitter serves the pump "
        "control and I-805: a separate trip transmitter if the SIL screening asks for it (H-06).",
        at=(192, 219), sensing=jsump["N2"])
-L.inst(sheet, "PI-8121", "N2 header pressure", at=(225, 220), sensing=n2.segments[0], sensing_at=(225, 210))
+L.inst(sheet, "PI-8121", "N2 header pressure", at=(238, 208), sensing=n2.segments[0], sensing_at=(250, 208))
 L.inst(sheet, "PI-8122", "Instrument-air header pressure",
        "Indication and low alarm only; the trip is PZT-8123A/B/C (C&E I-804, D-028).", at=(199, 236),
        sensing=ia.segments[0], sensing_at=(199, 246))

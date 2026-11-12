@@ -80,6 +80,10 @@ Round 9, checker of D-036: the carrier manifold protection moves to the arms' ou
 PZT-n184 on LNG-n011 / LNG-n014 (1oo2, PAHH 5.0 barg, C&E I-n02), where the normal pressure is the
 carrier's manifold pressure; PZT-n103 stays as the header indication and an uncredited backstop. FO-n118
 is drawn as a restriction orifice (lng_pid.to_orifice).
+
+Migration to core 1.11.0 (D-038), drawing only: the vapour arm's carrier connection BOG-n012 comes in on
+the right edge above the vapour line's instruments; the three liquid arms' carrier connections stay
+under their arms, inside the berth header (D-038).
 """
 
 import sys
@@ -88,7 +92,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from chemeascode.domains.piping.authoring import label  # noqa: E402
 from lng_pid import (  # noqa: E402
-    Lists, Nozzle, Sheet, arm_shape, equipment, note, offpage, set_dn, tee, to_orifice, valve)
+    Lists, Nozzle, Sheet, arm_shape, edge_offpage, equipment, note, offpage, set_dn, tee, to_orifice, valve)
 
 target, n = Path(sys.argv[1]), sys.argv[2]
 berth, line_in, vap_out = ("2", "LNG-4001", "BOG-4001") if n == "5" else ("1", "LNG-4002", "BOG-4002")
@@ -169,7 +173,9 @@ for k, x in X.items():
     if KIND[k] == "vapour":
         L.line(sheet, f"BOG-{n}01{k}", dn=400, fluid="Boil-off gas", frm="carrier vapour manifold",
                to=f"LA-{n}10{k}", notes="Vapour arm outboard: carrier manifold, ERS (XV-%s14%s, coupler, XV-%s13%s), arm." % (n, k, n, k),
-               route=[offpage("in", at=(sx, 156), note="from carrier", note_at=(sx + 13, 160), rotation=UP),
+               # from the right edge, above the vapour line's instruments (core 1.11
+               # cheme.offpage-not-on-edge, D-038); the liquid arms' carrier connections stay under their arms
+               route=[edge_offpage("in", "right", 160, note="from carrier", note_at=(392, 155)), (sx, 160),
                       *ers[::-1], arms[k]["N2"]], labels=False)
     else:
         outb = L.line(sheet, f"LNG-{n}01{k}", dn=400, fluid="LNG", frm=f"LA-{n}10{k}", to="carrier manifold",

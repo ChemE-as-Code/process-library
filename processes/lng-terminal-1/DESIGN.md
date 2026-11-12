@@ -2856,6 +2856,62 @@ platform ~2.15 km, the flare ~561 m east of tank 1).
    engineer); the restamp of H-05 against P-08 and the C&E, and the SIL screening of I-805 / I-808 (H-06),
    their owners'.
 
+**D-038 Migration to core 1.11.0.** (2026-11-12) The library pins cheme-as-code 1.11.0. Under it
+`cheme validate` gave 0 errors and 50 warnings: the BFD and PFD were written by process generator 6
+(1.11 writes 7), and 48 off-page connectors were reported by the new rule `cheme.offpage-not-on-edge`
+(core ADR 0049: a connection to another sheet or the battery limit sits within 10 mm of an edge of the
+drawing area, or within 35 mm with nothing else drawn between it and the edge; an open end whose own text
+says atm., vent, drain or hose, and names no system, sheet or B/L, may stay at its valve). Decision, a
+drawing-only change: no item, nozzle, line number, segment or list entry changes (`cheme diff HEAD`: graphics
+only; `scripts/build_lists.py` writes the lists unchanged), no engineering change.
+1. BFD and PFD rebuilt by `cheme process build` (provenance and generator version only);
+   `cheme process propagate --check` clean.
+2. The connectors are put on the edges in the generators (D-021), through one helper,
+   `edge_offpage` in `scripts/lng_pid.py` (the node positions on the frame's left, right, top and bottom
+   edges and the arrow across the edge), and the sheets regenerated. No new crossing and no new accept;
+   every other drawing count stays 0 (the accepted crossings of P-04 (2), P-07 (2) and P-08 (1) unchanged).
+   (a) P-01: the four fill connectors on the bottom edge, their notes above the arrows; the T-3101 fill
+   lines move right to take them (tee T1003 x 205 to 206, the end of LNG-1001 with XV-1108 x 230 to 240,
+   HS-1108 / HS-1109 with their valves). The thermal relief outlet BOG-1010 of PSV-1122 still passes under
+   the fill lines, now between the arrows and the sheet notes (y 252.5; the notes 5 mm apart from y 257),
+   its tee T1114 x 265 to 270: PSV-1122's section lies inside the rundown header, so this is its only way
+   to BOG-1001 without a crossing. BOG-1003 (from T-3101) and FG-1001 (make-up fuel gas, BL) come in on the
+   right edge, the PIC / FO notes below BOG-1003.
+   (b) P-02 / P-03: the loading header, the circulation header and the vapour outlet end on the right edge.
+   The column vent / N2 connections BOG-n011..n015 (blind-flanged, to the roof), the PSV tailpipes
+   BOG-n002..n004 and the vacuum relief inlets A-n001..n003 are open ends drawn at their valves; each now
+   carries its own text (vent, to atm., from atmosphere), where only the first of each group had one.
+   (c) P-04: the circulation returns LNG-4005 / LNG-4009 end on the left edge.
+   (d) P-05 / P-06: the vapour arm's carrier connection BOG-n012 comes in on the right edge.
+   (e) P-08: LNG-8001 to the liquid burner ends on the right edge; the N2 header comes in on the right edge
+   above its two outlets to the berths (tee T8N1 x 240 to 300, PI-8121 on its drop); W-8002 and W-8003 go
+   down to the bottom edge (TSL-8104 6 mm higher); IA-8001's outlet turns down onto the bottom edge.
+3. Left as warnings, 10, each because every route to an edge crosses a line; none is accepted (a crossing
+   or an accept is the owner's call, as co2-electrolysis-bpm-1 D-071 and asu-1, process-library#430, leave it):
+   (a) P-04 N-4002 "N2 (BL)" (the tank-end N2 station of line B, D-036): it stands in the field between
+   LNG-4001 and LNG-4002, closed by PSV-4111's outlet BOG-4011 (x 200) and the crossover LNG-4010 (x 290).
+   Drawn below LNG-4002 to the right edge, the double block and bleed station would have to be redrawn
+   through the sheet notes and PI-4106 / TI-4104; for the owner.
+   (b) P-05 / P-06 LNG-n011, LNG-n013, LNG-n014 "to carrier": the liquid and hybrid arms' presentation
+   flanges hang under their arms, inside the berth header LNG-n001 (from the left edge to x 230), the risers
+   and the vapour line; every route to an edge crosses one of them.
+   (c) P-07 LNG-4008 "spray from P-04": inside the anti-surge recycle BOG-7012, which runs over the top of
+   the sheet to BOG-1001 at x 28, upstream of the spray (D-010); FL-7002 (PSV-7111 to the flare) inside
+   BOG-7009, BOG-7006, the discharge header BOG-7002 and FL-7003; DR-7001 (the D-7101 drain) inside the
+   recycle BOG-7008, which loops under D-7101 to BOG-1001.
+   `checks/checks.yaml` drawing-clean does not list the rule, so the gate passes with them.
+4. Other outputs brought current under 1.11: `layout/plant-model.yaml` rebuilt (the P&ID hashes of its
+   provenance only; findings as before), `lca/dataset.yaml` and `lca/manifest.json` rewritten (the
+   `process.yaml` hash and the generator version 1.7 to 1.11; results unchanged). The take-off, the
+   estimate, the cable schedule and the datasheet outline drawings are current.
+5. Left open, not part of this change: the HAZOP studies H-01 to H-05 report `cheme.hazop-input-changed`
+   for the regenerated sheets; the change is drawing only (`cheme diff`: graphics), and the restamp
+   (`cheme safety hazop stamp`) is the study owner's. The title-block revisions stay A (D-037.17 (g)).
+
+Why: the owner's convention (core ADR 0049) puts connections on the sheet's edges; the sheets are the
+scripts' (D-021), so the fix is in the generators; the brief of the migration was no engineering change,
+no new crossing and no new accept.
+
 ## 3. Results (concept)
 
 `cheme run scripts/terminal_sizing.py` prints the sizing summary. Headline numbers:
