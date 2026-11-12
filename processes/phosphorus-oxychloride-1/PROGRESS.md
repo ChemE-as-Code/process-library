@@ -4,6 +4,7 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-11-12 | DESIGN.md | source register SRC-6 no longer calls the package values open data: it names chemicals 1.5.2 and thermo 0.6.1 and the table or method of each value (the packaged CRC tables, ATcT, the NIST WebBook data, Poling's polynomials, WEBBOOK_SHOMATE, and thermo's VDI_PPDS correlation, VDI Heat Atlas 2nd ed., behind PCl3's vapour pressure and heat of vaporisation), the underlying works not read | issue #426: ADR 0037 sweep of the older source registers; text only, no number changes |
 | 2026-10-28 | branch | Response 2026-10-28-pfd-lci-review#5(b): left open. Merging or rebasing origin/main is a branch operation for the maintainer (this session may not push or change files outside the folder); the PR diff against the merge base already holds only this folder | review #5(b) |
 | 2026-10-28 | checks/checks.yaml | Response 2026-10-28-pfd-lci-review#5(a): template comment no longer cites D-023 (commit 7a52242) | review #5(a) |
 | 2026-10-28 | lca/lca.yaml, lca/ outputs | Response 2026-10-28-pfd-lci-review#4: functional unit purity 99.998 wt% as D-002; phosphorus-mud exclusion restates SRC-3's 0.2-0.5 wt%, wash water named once (commit 7a52242) | review #4 |
