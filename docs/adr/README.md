@@ -42,13 +42,13 @@ with an ADR in the same pull request.
 | [0001](0001-record-architecture-decisions.md) | Record architecture decisions | Accepted, 2026-10-25 |
 | [0002](0002-one-folder-per-process-single-source.md) | One folder per process; the library is the single source of the Atlas and its LCI database | Accepted, 2026-10-23 |
 | [0003](0003-move-example-asu-into-processes-asu-1.md) | Turn example-asu into the library by moving the ASU to processes/asu-1 with its history | Accepted, 2026-10-23 |
-| [0004](0004-process-manifest-and-entry-kinds.md) | process.yaml: an Atlas manifest with honest maturity, review and publication status | Accepted, 2026-10-23 |
+| [0004](0004-process-manifest-and-entry-kinds.md) | process.yaml: an Atlas manifest with honest maturity, review and publication status | Accepted, 2026-10-23; partly superseded by 0036 (the default publication status) |
 | [0005](0005-chemicals-registry-and-family-taxonomy.md) | Chemicals registry with slugs and grades; family taxonomy mapped to ISIC/NACE | Accepted, 2026-10-25 |
 | [0006](0006-unallocated-datasets-allocated-at-build.md) | LCI data enters as unallocated datasets; the build allocates per co-product | Accepted, 2026-10-23 |
 | [0007](0007-cut-off-system-model-and-allocation-hierarchy.md) | Attributional cut-off system model, substitution as a separate database, allocation hierarchy | **Proposed**, 2026-10-25 |
 | [0008](0008-brightway-workbook-linked-by-name.md) | Brightway Excel workbook and installer, background linked by name, no licensed data | Accepted, 2026-10-23 |
 | [0009](0009-ci-validates-every-plant-and-the-library.md) | CI validates every engineering project with cheme and builds the library | Accepted, 2026-10-23 |
-| [0010](0010-public-and-preview-builds-fail-closed.md) | Preview and public builds; the public build fails closed | Accepted, 2026-10-23 |
+| [0010](0010-public-and-preview-builds-fail-closed.md) | Preview and public builds; the public build fails closed | Accepted, 2026-10-23; partly superseded by 0036 (the default status and the separate publishing change) |
 | [0011](0011-benchmark-registry-with-cited-ranges.md) | Benchmark registry of KPIs with cited open reference ranges | Accepted, 2026-10-25 |
 | [0012](0012-versioning-releases-and-dois.md) | Semantic versions; releases drafted by CI, decided by the owner | **Proposed**, 2026-10-25 |
 | [0013](0013-licences-and-no-third-party-content.md) | MIT for code, CC BY 4.0 for data; never copy third-party content | Superseded by 0024 for the code licence, 2026-11-01 |
@@ -68,9 +68,11 @@ with an ADR in the same pull request.
 | [0027](0027-balance-scripts-reproduce-the-flowsheet.md) | Balance scripts write the values the flowsheet cites; CI re-runs them and compares | **Proposed**, 2026-10-31 |
 | [0028](0028-registry-covers-main-products-and-feeds.md) | Register every process's main product and feeds with verified identities; label functional units by product name | **Accepted**, 2026-10-31 |
 | [0029](0029-no-total-when-every-contribution-is-a-gap.md) | Give no total, with the reason, when every contribution to a category is a gap | **Proposed**, 2026-10-30 |
-| [0030](0030-reference-reproduction-benchmarks.md) | Keep reference reproductions in benchmarks/reproductions/, tolerances committed before the run | **Proposed**, 2026-11-01 |
-| [0031](0031-case-studies-reproduction-plus-design-extension.md) | A case study is a reference reproduction plus one labelled design extension, rerun by one command | **Proposed**, 2026-11-04 |
-| [0032](0032-measured-series-as-design-inputs.md) | A process may use measured series from a pinned dataset; reproduction results stay held out | **Proposed**, 2026-11-04 |
-| [0033](0033-engineering-regeneration-tests-own-ci-job.md) | A process's regeneration test runs in its own CI job, marked `engineering` | **Proposed**, 2026-11-05 |
-| [0034](0034-design-case-lci-datasets.md) | An engineering project may export a design case's own LCI dataset beside its study's | **Proposed**, 2026-11-05 |
+| [0030](0030-reference-reproduction-benchmarks.md) | Keep reference reproductions in benchmarks/reproductions/, tolerances committed before the run | Accepted, 2026-11-06 |
+| [0031](0031-case-studies-reproduction-plus-design-extension.md) | A case study is a reference reproduction plus one labelled design extension, rerun by one command | Accepted, 2026-11-06 |
+| [0032](0032-measured-series-as-design-inputs.md) | A process may use measured series from a pinned dataset; reproduction results stay held out | Accepted, 2026-11-06 |
+| [0033](0033-engineering-regeneration-tests-own-ci-job.md) | A process's regeneration test runs in its own CI job, marked `engineering` | Accepted, 2026-11-06 |
+| [0034](0034-design-case-lci-datasets.md) | An engineering project may export a design case's own LCI dataset beside its study's | Accepted, 2026-11-06 |
 | [0035](0035-batch-processes-on-a-dedicated-train.md) | A batch process folder describes a dedicated train; campaigns on a multipurpose plant are out of scope | **Proposed**, 2026-11-05 |
+| [0036](0036-public-is-the-default-publication-status.md) | Public is the default publication status; the public build stays fail-closed | Accepted, 2026-11-06 |
+| [0037](0037-package-property-values-are-single-facts.md) | Property values an open-source package computes from bundled coefficients (thermo's DIPPR_PERRY_8E, chemicals' CRC tables) are single facts with their source; no tables copied, no open-data claim | Accepted, 2026-11-06 |

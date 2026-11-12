@@ -1,0 +1,33 @@
+# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
+# dataset is lca/datasets/*.yaml, Tier 1 form, so maturity stays at concept
+# (core's cheme.lci-tier-maturity). See README.md.
+schema: cheme-as-code/process/v1
+id: plastic-pyrolysis-1
+title: Raw pyrolysis oil by continuous thermal pyrolysis of mixed polyolefin plastic waste
+summary: >-
+  Sourced conceptual inventory per tonne of raw (not upgraded) pyrolysis oil from sorted PE/PP waste:
+  yield and process heat from a 2026 JRC review, electricity from a US company survey, part of the gas
+  fired for heat. The oil is a steam-cracker feed after upgrading. No flowsheet; not reviewed.
+families: [chemical-recycling]
+keywords: [pyrolysis, chemical recycling, plastic waste, polyolefins, pyrolysis oil, steam cracker feed]
+facets: {feedstock_basis: [recycled, electricity], product_classes: [chemicals, fuels], unit_operations: [reaction, condensation], region: EU}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: mixed-polyolefin-waste, role: feedstock, inventory_key: "feed:mixed-polyolefin-waste", note: "sorted and pretreated; burden-free under cut-off"}
+  outputs:
+    - {chemical: plastic-pyrolysis-oil, role: main-product, inventory_key: "product:plastic-pyrolysis-oil"}
+    - {chemical: plastic-pyrolysis-gas, role: co-product, inventory_key: "product:plastic-pyrolysis-gas", note: "the gas not fired for process heat"}
+    - {chemical: pyrolysis-char, role: waste, inventory_key: "output:pyrolysis-char"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity", note: "a US survey median that includes pretreatment and on-site upgrading"}
+basis: {capacity: "per tonne of raw pyrolysis oil (the dataset's basis); no plant size"}
+publication: {status: public, license: CC-BY-4.0}
+references:
+  - {title: "Gaudillat, P., Marschinski, R., Saveyn, H. (2026) Economic viability of chemical recycling: current and future perspectives. JRC147061, EUR 40766, Annex A.5 and Tables 3, 5 and 7", doi: 10.2760/6105801}
+  - {title: "Garcia-Gutierrez, P. et al. (2023) Environmental and economic assessment of plastic waste recycling. JRC132067, EUR 31423 EN, sections 3.2.2.1 and 3.4", doi: 10.2760/0472}
+  - {title: "Benavides, P.T., Sun, P., Han, J., Dunn, J.B., Wang, M. (2017) Life-cycle analysis of fuels from post-use non-recycled plastics. Fuel 203:11-22 (accepted manuscript, OSTI 1353191)", doi: 10.1016/j.fuel.2017.04.070}
+  - {title: "IPCC (2006) Guidelines for National Greenhouse Gas Inventories, Vol. 2 Energy, ch. 1 Table 1.2 and ch. 2 Table 2.3", url: "https://www.ipcc-nggip.iges.or.jp/public/2006gl/vol2.html"}
+  - {title: "Channiwala, S.A., Parikh, P.P. (2002) A unified correlation for estimating HHV of solid, liquid and gaseous fuels. Fuel 81(8):1051-1063 (the LHV of the modelled (CH2)n feed)", doi: 10.1016/S0016-2361(01)00131-4}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/plastic-pyrolysis-1, access: public}

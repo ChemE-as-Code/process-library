@@ -1,0 +1,116 @@
+# Goal and scope of the benzyl-bromide-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme assess
+# lca --write` (lca/inventory.csv, gaps.csv, dataset.yaml, manifest.json, results); never edit
+# those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the batch
+# plant with its amount per kg of distilled benzyl bromide, from the flowsheet's year averages of
+# the recipe (D-003). Per batch: multiply by 887.3 kg. The backgrounds are left unmapped
+# (`missing:` with the activity each should connect to), except where lca/mappings.yaml links a
+# library producer or a shared entry: a gap, never zero, and no values from licensed databases.
+# The HBr off-gas is absorbed whole in the balance, with the toluene and bromine it still carries
+# past the vent condenser (in the acid, an upper bound, D-008); where those go from the acid, the
+# absorber's tail gas and the vacuum pump's exhaust are not estimated (emission_exclusions).
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of benzyl bromide made by the light-driven
+  semi-batch side-chain bromination of toluene with bromine, the HBr off-gas absorbed to 48 wt%
+  hydrobromic acid, the toluene stripped and recycled and the product distilled under vacuum, at
+  the concept stage: which raw materials, utilities and wastes the batch plant exchanges per kg
+  of distilled benzyl bromide, as the foreground for a later cradle-to-gate study. No impact
+  results: most backgrounds are not mapped yet (D-012).
+functional_unit: {product: BNBR, amount: 1, unit: kg, source: "1 kg of distilled benzyl bromide (modelled 99.85 wt%, an upper bound: ring-brominated and condensation by-products not modelled) at the plant gate to storage, stream S15 (D-002, D-012)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
+# being mapped free (the schema's gate-to-gate maps every feed free), as n-bromosuccinimide-1 and
+# benzoyl-chloride-1 do.
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Batch plant: bromine dosed over 5 h into 4 mol of toluene per mol at 363 K under lamps (semi-batch), the HBr vented as it forms through a reflux and a brine vent condenser and absorbed to 48 wt% acid; the crude stripped of toluene at 15 kPa(a) and distilled at 2 kPa(a) in one batch still with a packed column of 5 theoretical stages (forerun at reflux 2 recycled with the toluene, 2 % purged; main cut at reflux 0.5); 887.3 kg per batch, 1127 batches a year on a dedicated train"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+system_model: cutoff
+# Two products: the benzyl bromide and the 48 wt% hydrobromic acid, 1.094 kg of acid (0.522 kg of
+# HBr) per kg of benzyl bromide.
+allocation:
+  method: shares
+  coproducts: [BNBR, HBRACID]
+  shares: {BNBR: 0.6572, HBRACID: 0.3428}
+  source: >-
+    D-012 (agent proposal, for the LCA practitioner to confirm): mass allocation written as its
+    shares, the hydrobromic acid counted by the HBr it contains (as acid datasets count a
+    solution): 126.263 kg/h of benzyl bromide (S15) and 65.864 kg/h of HBr in the 138.125 kg/h
+    of acid (S11), 0.6572 and 0.3428. Written as shares because cheme omits the default method
+    mass from the generated dataset (as sodium-nitrite-1 does).
+  deviation: >-
+    No physical relationship is clear (the acid carries no energy content; no exergy, since no
+    property package covers HBr-water), so the WBCSD rule of docs/system-model.md applies. No
+    price of either product is sourced (docs/registry.md, "Missing prices"), so the rule's
+    fallback is mass. Shares 1/0 (all to the benzyl bromide, as benzoyl-chloride-1 gives its
+    hydrochloric acid) were rejected: half the bromine leaves in the acid, which is a saleable
+    bromine product. Substitution of hydrogen-bromide-1's acid (system expansion) belongs to the
+    substitution variant database, not to this cut-off dataset (library ADR 0007).
+flows:
+  # raw materials
+  - key: feed:BR2
+    missing: "linked to processes/bromine-1 (lca/mappings.yaml): dry bromine from brine by chlorine oxidation and steam stripping"
+    source: "flowsheet stream S5 (D-004)"
+  - key: feed:TOL
+    missing: "linked to processes/btx-1 (lca/mappings.yaml): toluene, a co-product of the solvent extraction of catalytic reformate (mass allocation of that dataset)"
+    source: "flowsheet stream S1, the make-up (D-004)"
+  - key: feed:PW
+    missing: "not mapped yet (D-012); connect to: process (demineralised) water from the site water treatment, for the HBr absorber"
+    source: "flowsheet stream S10 (D-008)"
+  # utilities
+  - key: feed:POWER
+    missing: "not mapped yet (D-012); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy streams P1 (the lamps), P2 (R-101 agitator) and P3 (still agitator and vacuum pump), D-005, D-009"
+  - key: feed:LPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 450 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
+    source: "flowsheet energy streams Q1 (R-101 heat-up), Q7 (strip), Q9 (forerun) and Q14 (main cut), Q7, Q9 and Q14 the boil-up's latent heat from core's still and column models, the column's with its reflux (the charges' sensible heat, 2.84 kW less steam, left out: D-009), D-009"
+  - key: product:CW
+    missing: "not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
+    source: "flowsheet energy streams Q2 (R-101 jacket: the light and the agitator less the heat R101's model takes in), Q3 (lamp wells), Q4 (reflux condenser E-102, R101's vent condenser duty from core's model: the off-gas vapour condensed and cooled, the HBr cooled), Q6 (absorber), Q8 (strip condenser), Q11 (the column's condenser during the main cut, core's) and Q15 (product cooler and residue cool-down), D-009"
+  - key: product:BRINE
+    missing: "not mapped yet (D-012); connect to: refrigeration at 258 K (brine) from an electric vapour-compression unit (e.g. processes/utility-chiller), per kWh of heat removed: compressor electricity at its COP, condenser cooling water, refrigerant losses"
+    source: "flowsheet energy streams Q5 (vent condenser E-103), Q10 (the column's condenser during the forerun, core's) and Q16 (forerun cooler), D-009"
+  # wastes
+  - key: product:RES
+    treatment: {kind: waste, route: "hazardous-waste incineration of the still residue (benzal bromide with benzyl bromide) with flue-gas scrubbing (HBr and bromine captured); not recycled in this concept (D-007)"}
+    missing: "not mapped yet (D-012); connect to: incineration of hazardous liquid brominated organic waste, per kg"
+    source: "flowsheet stream S16 (D-007)"
+  - key: product:PURGE
+    treatment: {kind: waste, route: "hazardous-waste incineration of the toluene purge (toluene with 9 wt% benzyl bromide) with flue-gas scrubbing; its heat may be recovered at the incinerator (D-007)"}
+    missing: "not mapped yet (D-012); connect to: incineration of hazardous halogenated solvent waste, per kg"
+    source: "flowsheet stream S18 (D-007)"
+# What the batch plant uses per batch and the flowsheet does not carry (library ADR 0035, core
+# ADR 0053): the nitrogen that inerts R-101 and the still, breaks the still's vacuum and pads the
+# receivers, converted with the recipe's batches per year (process/recipe.yaml). It leaves
+# through the absorber's tail scrubber and the vacuum pump to air (nitrogen: no burden, no
+# disposal exchange). There is no rinse between batches: the train makes one product and is kept
+# dry (benzyl bromide hydrolyses slowly to HBr).
+consumables:
+  - id: nitrogen
+    title: Nitrogen for inerting R-101 and C-101, breaking the vacuum and padding the receivers
+    unit: kg
+    per_batch: 25.0
+    source: "20 Nm3 per batch x 1.2506 kg/Nm3, ASSUMED (D-012): R-101's 4 m3 purged with 3 volumes (12 Nm3), C-101's 4 m3 vacuum broken once (4 Nm3), the receivers and T-201 padded and the crude transfer pressed (4 Nm3)"
+    missing: "linked to processes/asu-1 (lca/mappings.yaml): gaseous nitrogen to the battery limit"
+operation:
+  hours_per_year: 7920
+  life_years: 20
+  source: "design basis operating_hours_per_year 7920 (ASSUMED, the recipe's hours); 20 a service life ASSUMED"
+emission_exclusions:
+  - {id: vent-toluene, method: storage-tank, equipment: [E-103, A-101], reason: "The toluene and bromine the HBr still carries past the vent condenser at 268 K (0.0061 and 0.0034 mol per mol of HBr, the vent's vapour of core 1.10.0 and E-103's flash, D-008), 3.2 kg of toluene and 3.1 kg of bromine a batch (3.6 and 3.5 g per kg of product), are in the balance and stay in the acid S11 in the model, an upper bound on the acid's organics. Where they go from there is not estimated: the toluene separates as a film on the acid or passes to the tail scrubber and the caustic guard scrubber, the bromine dissolves in the acid or is taken by the caustic (open for basic engineering)."}
+  - {id: absorber-tail-gas, method: storage-tank, equipment: [R-101, A-101], reason: "No P&ID yet: R-101 vents only through the condensers and the absorber; its tail gas (the nitrogen of the purges with HBr, bromine and toluene traces) goes through a water tail scrubber and a caustic guard scrubber to air. The balance absorbs all HBr (D-008); not estimated."}
+  - {id: toluene-tank, method: storage-tank, equipment: [T-201], reason: "No P&ID yet: T-201 (the recovered toluene with 9 wt% benzyl bromide, at about 300 K) is nitrogen-padded and breathes to the vent scrubber; its working and breathing losses are not estimated (open for basic engineering, D-007)."}
+  - {id: vacuum-vent, method: storage-tank, equipment: [C-101], reason: "The vacuum pump's exhaust (air in-leakage with toluene at its vapour pressure over the condensates, the HBr the crude holds dissolved, benzyl bromide traces) to the vent scrubber is not estimated: the in-leakage rate is not known at the concept stage (D-007)."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals
+  modelling: {principle: attributional}
+  geography: {description: "Generic fine-chemicals site with bromine and toluene supplies, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #139, unreviewed"

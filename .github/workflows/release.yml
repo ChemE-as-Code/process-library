@@ -34,16 +34,12 @@ jobs:
       PREVIOUS_REF: ${{ inputs.previous_ref }}
       PREVIOUS_VERSION: ${{ inputs.previous_version }}
       # benchmarks convert units through core's foundation.units (validate.yml, docs/benchmarks.md)
-      # core v1.7.0 bd6cef7 (batch: core#158), pinned with validate.yml (same commit; tests/test_workflows.py)
-      CORE: "cheme-as-code[units] @ git+https://github.com/ChemE-as-Code/core.git@bd6cef703d4fe34d3c4f2f58bffd17bdb18877ab"
+      # core v1.11.0 c21e6c7 (generator 7 sheets, offpage-not-on-edge lint: core#159/#160), pinned with validate.yml (same commit; tests/test_workflows.py)
+      CORE: "cheme-as-code[units] @ git+https://github.com/ChemE-as-Code/core.git@c21e6c7f35d9debcfd5b2589fcaddee438bb1e7e"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           fetch-depth: 0  # the previous release is built from its own commit
-      - run: |
-          git config --global url."https://x-access-token:${PLANTCODE_READ_TOKEN}@github.com/ChemE-as-Code/core".insteadOf "https://github.com/ChemE-as-Code/core"
-        env:
-          PLANTCODE_READ_TOKEN: ${{ secrets.PLANTCODE_READ_TOKEN }}
       - uses: astral-sh/setup-uv@v6
       - name: version is semantic
         run: |

@@ -4,8 +4,8 @@ on: [pull_request, push]
 permissions:
   contents: read
 
-# core is pinned to a commit (bd6cef7: core v1.7.0, 2026-11-05, batch and semi-batch processes,
-# core#158: reactor semibatch, process/recipe.yaml, batch vessels, per-batch LCA). An unpinned
+# core is pinned to a commit (c21e6c7: core v1.11.0, 2026-11-06, generator 7 BFD/PFD written without
+# indentation, core ADR 0048, and the cheme.offpage-not-on-edge drawing lint, core ADR 0049, core#159/#160). An unpinned
 # install turned validate red when core changed its generated LCA records (#91). Bump the pin
 # deliberately, in every URL of validate.yml and release.yml at once, together with the records
 # that core regenerates (cheme assess lca-scenarios --write); tests/test_workflows.py checks that
@@ -38,15 +38,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           fetch-depth: 1  # the files only, no history (see "Repository size" in README.md)
-      # cheme-as-code is read with the fine-grained token in the secret PLANTCODE_READ_TOKEN
-      # (contents: read on ChemE-as-Code/core); pyDEXPI comes from PyPI.
-      - run: |
-          git config --global url."https://x-access-token:${PLANTCODE_READ_TOKEN}@github.com/ChemE-as-Code/core".insteadOf "https://github.com/ChemE-as-Code/core"
-        env:
-          PLANTCODE_READ_TOKEN: ${{ secrets.PLANTCODE_READ_TOKEN }}
+      # core and pyDEXPI are public: no credentials.
       - uses: astral-sh/setup-uv@v6
-      # core v1.7.0 bd6cef7 (batch: core#158) (pinned by commit, tests/test_workflows.py)
-      - run: uv tool install "git+https://github.com/ChemE-as-Code/core.git@bd6cef703d4fe34d3c4f2f58bffd17bdb18877ab"
+      # core v1.11.0 c21e6c7 (generator 7 sheets, offpage-not-on-edge lint: core#159/#160) (pinned by commit, tests/test_workflows.py)
+      - run: uv tool install "git+https://github.com/ChemE-as-Code/core.git@c21e6c7f35d9debcfd5b2589fcaddee438bb1e7e"
       - run: cheme fmt --check
       - run: cheme validate
       # core's per-scenario LCA records (lca/scenarios/<id>.json) must be current
@@ -63,8 +58,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      # core v1.7.0 bd6cef7 (batch: core#158)
-      CORE: "cheme-as-code[units] @ git+https://github.com/ChemE-as-Code/core.git@bd6cef703d4fe34d3c4f2f58bffd17bdb18877ab"
+      # core v1.11.0 c21e6c7 (generator 7 sheets, offpage-not-on-edge lint: core#159/#160)
+      CORE: "cheme-as-code[units] @ git+https://github.com/ChemE-as-Code/core.git@c21e6c7f35d9debcfd5b2589fcaddee438bb1e7e"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         # Full history here only: the catalog records each process folder's last commit
@@ -73,11 +68,7 @@ jobs:
         with:
           fetch-depth: 0
       # The benchmarks (benchmarks/, docs/benchmarks.md) convert units through core's
-      # foundation.units: core is read with the token of the validate job.
-      - run: |
-          git config --global url."https://x-access-token:${PLANTCODE_READ_TOKEN}@github.com/ChemE-as-Code/core".insteadOf "https://github.com/ChemE-as-Code/core"
-        env:
-          PLANTCODE_READ_TOKEN: ${{ secrets.PLANTCODE_READ_TOKEN }}
+      # foundation.units.
       - uses: astral-sh/setup-uv@v6
       - name: tooling tests
         run: uv run --python 3.12 --with pytest --with pyyaml --with jsonschema --with openpyxl --with ./python --with bw2calc --with olca-schema==2.6.2 --with multifunctional==1.1.2 --with chemicals==1.5.2 --with "$CORE" pytest -q tests -m "not engineering"
@@ -111,16 +102,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     env:
-      # core v1.7.0 bd6cef7 (batch: core#158) (the same commit as every job, tests/test_workflows.py)
-      CORE: "cheme-as-code[units,props,png] @ git+https://github.com/ChemE-as-Code/core.git@bd6cef703d4fe34d3c4f2f58bffd17bdb18877ab"
+      # core v1.11.0 c21e6c7 (generator 7 sheets, offpage-not-on-edge lint: core#159/#160) (the same commit as every job, tests/test_workflows.py)
+      CORE: "cheme-as-code[units,props,png] @ git+https://github.com/ChemE-as-Code/core.git@c21e6c7f35d9debcfd5b2589fcaddee438bb1e7e"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           fetch-depth: 1  # the files only, no history (see "Repository size" in README.md)
-      - run: |
-          git config --global url."https://x-access-token:${PLANTCODE_READ_TOKEN}@github.com/ChemE-as-Code/core".insteadOf "https://github.com/ChemE-as-Code/core"
-        env:
-          PLANTCODE_READ_TOKEN: ${{ secrets.PLANTCODE_READ_TOKEN }}
       - uses: astral-sh/setup-uv@v6
       - name: engineering regeneration tests
         # the library job's test dependencies too: pytest collects every module of tests/
@@ -138,14 +125,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           fetch-depth: 1  # the files only, no history (see "Repository size" in README.md)
-      - run: |
-          git config --global url."https://x-access-token:${PLANTCODE_READ_TOKEN}@github.com/ChemE-as-Code/core".insteadOf "https://github.com/ChemE-as-Code/core"
-        env:
-          PLANTCODE_READ_TOKEN: ${{ secrets.PLANTCODE_READ_TOKEN }}
       - uses: astral-sh/setup-uv@v6
-      # core v1.7.0 bd6cef7 (batch: core#158) with the property extras the balance scripts import (thermo,
+      # core v1.11.0 c21e6c7 (generator 7 sheets, offpage-not-on-edge lint: core#159/#160) with the property extras the balance scripts import (thermo,
       # CoolProp, scipy through thermo, Cantera); the same commit as the validate job
-      - run: uv tool install --python 3.12 "cheme-as-code[props,units,cantera] @ git+https://github.com/ChemE-as-Code/core.git@bd6cef703d4fe34d3c4f2f58bffd17bdb18877ab"
+      - run: uv tool install --python 3.12 "cheme-as-code[props,units,cantera] @ git+https://github.com/ChemE-as-Code/core.git@c21e6c7f35d9debcfd5b2589fcaddee438bb1e7e"
       - name: balance scripts reproduce the flowsheet
         run: |
           uv run --python 3.12 scripts/check_balance_scripts.py --library . --strict --jobs 4 \

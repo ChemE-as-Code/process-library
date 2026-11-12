@@ -39,7 +39,7 @@ Comparability (structured factor scope, docs/framework/lci-comparison-basis.md):
 | flow | phase | per functional unit | provenance | background |
 |---|---|---|---|---|
 | feed:CO2 (input) | operation | 3.53707 kg | assumed | missing: no open factor for merchant liquefied CO2 (capture, purification, liquefaction and delivery of a fossil industrial by-product CO2) |
-| feed:KOH-FILL (input) | operation | 12.1535 kg | assumed | missing: no open factor for potassium hydroxide (KOH 100 %, membrane-cell electrolysis of KCl); the exchange counts the 1 M fill solution, its KOH mass fraction in the composition; its dilution water (about 95 % of the mass) is inside this gap, not in feed:WATER |
+| feed:KOH-FILL (input) | operation | 12.2577 kg | assumed | missing: no open factor for potassium hydroxide (KOH 100 %, membrane-cell electrolysis of KCl); the exchange counts the 1 M fill solution, its KOH mass fraction in the composition; its dilution water (about 95 % of the mass) is inside this gap, not in feed:WATER |
 | feed:KOH-DOSE (input) | operation | 0 kg | assumed | missing: no open factor for potassium hydroxide (KOH 100 %); the exchange counts the 5 M dosing solution, its KOH mass fraction in the composition; its dilution water (about 77 % of the mass) is inside this gap, not in feed:WATER |
 | feed:WATER (input) | operation | 2.59305 kg | assumed | factor:water-supply-gb-kg |
 | feed:AIR (input) | operation | 8.47457 kg | assumed | free |
@@ -48,7 +48,7 @@ Comparability (structured factor scope, docs/framework/lci-comparison-basis.md):
 | product:VENT (output) | operation | 10.665 kg | assumed | emission |
 | product:O2VENT (output) | operation | 1.56386 kg | assumed | emission |
 | product:BLEED (output) | operation | 0 kg | assumed | missing: no open factor for the neutralisation of an alkaline potassium carbonate solution; its K2CO3 carbon (fossil, from the CO2 feed) is released as CO2 when it is neutralised and is not counted |
-| product:SPENT (output) | operation | 12.2292 kg | assumed | missing: no open factor for the neutralisation of a spent alkaline potassium carbonate solution; its K2CO3 carbon (fossil, from the CO2 feed) is released as CO2 when it is neutralised and is not counted |
+| product:SPENT (output) | operation | 12.3334 kg | assumed | missing: no open factor for the neutralisation of a spent alkaline potassium carbonate solution; its K2CO3 carbon (fossil, from the CO2 feed) is released as CO2 when it is neutralised and is not counted |
 | product:CONDENSATE (output) | operation | 1.29941 kg | assumed | missing: no open factor for the neutralisation of the cathode's potassium carbonate condensate; its K2CO3 carbon (fossil, from the CO2 feed) is released as CO2 when it is neutralised and is not counted |
 | product:CW (output) | operation | 22.105 kWh | assumed | missing: heat rejected to the site cooling water: no open factor for the circuit's pumps, fans, make-up water and treatment; the skids' own power counts the anolyte pump only |
 | emission:CO2 (output) | operation | 1.71183 kg | assumed | elementary:air, fossil |
@@ -74,10 +74,10 @@ These exchanges have no burden in the category: the totals exclude them (they ar
 | category | flow | quantity | why |
 |---|---|---|---|
 | climate-change | feed:CO2 | 3.53707 kg | declared missing: no background available (no open factor for merchant liquefied CO2 (capture, purification, liquefaction and delivery of a fossil industrial by-product CO2)) |
-| climate-change | feed:KOH-FILL | 12.1535 kg | declared missing: no background available (no open factor for potassium hydroxide (KOH 100 %, membrane-cell electrolysis of KCl); the exchange counts the 1 M fill solution, its KOH mass fraction in the composition; its dilution water (about 95 % of the mass) is inside this gap, not in feed:WATER) |
+| climate-change | feed:KOH-FILL | 12.2577 kg | declared missing: no background available (no open factor for potassium hydroxide (KOH 100 %, membrane-cell electrolysis of KCl); the exchange counts the 1 M fill solution, its KOH mass fraction in the composition; its dilution water (about 95 % of the mass) is inside this gap, not in feed:WATER) |
 | climate-change | feed:KOH-DOSE | 0 kg | declared missing: no background available (no open factor for potassium hydroxide (KOH 100 %); the exchange counts the 5 M dosing solution, its KOH mass fraction in the composition; its dilution water (about 77 % of the mass) is inside this gap, not in feed:WATER) |
 | climate-change | product:BLEED | 0 kg | declared missing: no background available (no open factor for the neutralisation of an alkaline potassium carbonate solution; its K2CO3 carbon (fossil, from the CO2 feed) is released as CO2 when it is neutralised and is not counted) |
-| climate-change | product:SPENT | 12.2292 kg | declared missing: no background available (no open factor for the neutralisation of a spent alkaline potassium carbonate solution; its K2CO3 carbon (fossil, from the CO2 feed) is released as CO2 when it is neutralised and is not counted) |
+| climate-change | product:SPENT | 12.3334 kg | declared missing: no background available (no open factor for the neutralisation of a spent alkaline potassium carbonate solution; its K2CO3 carbon (fossil, from the CO2 feed) is released as CO2 when it is neutralised and is not counted) |
 | climate-change | product:CONDENSATE | 1.29941 kg | declared missing: no background available (no open factor for the neutralisation of the cathode's potassium carbonate condensate; its K2CO3 carbon (fossil, from the CO2 feed) is released as CO2 when it is neutralised and is not counted) |
 | climate-change | product:CW | 22.105 kWh | declared missing: no background available (heat rejected to the site cooling water: no open factor for the circuit's pumps, fans, make-up water and treatment; the skids' own power counts the anolyte pump only) |
 | climate-change | consumable:membrane-bpm | 0.000138976 kg | declared missing: no background available (no open factor for a bipolar ion-exchange membrane) |

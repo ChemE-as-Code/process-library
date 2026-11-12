@@ -1,0 +1,62 @@
+# Reactions of benzyl-bromide-1. Schema cheme/reactions/v1 (`cheme schema process-reactions`).
+#
+# The free-radical side-chain bromination of toluene, run with light: bromine dosed into excess
+# toluene, the HBr leaving as gas as it forms (R101's batch.vent, core ADR 0054). Two series
+# reactions: BNBR (toluene to benzyl bromide) and BALBR (benzyl bromide on to benzal bromide);
+# the selectivity follows from how much bromine is dosed into how much toluene (DESIGN.md D-005).
+# The third step, benzal bromide to benzotribromide, is not modelled (D-005: below 0.2 % of the
+# bromine at this conversion).
+#
+# The rate is photon-limited in a real photoreactor: a radical chain started by the light the
+# bromine absorbs. Core has no photochemical rate law (lamp power, absorbed photon flux, quantum
+# yield, light path), so both reactions take an explicit ASSUMED effective rate law, first order
+# in the organic and in bromine, on concentrations (core limit L-1, D-005). k1 was chosen so
+# that the bromine reacts about as fast as the lamps the design basis states can drive it (the
+# dosing is the photon budget's, D-005); k2/k1 = 0.2 ASSUMED (the benzylic hydrogens of benzyl
+# bromide are less reactive towards a bromine atom than those of toluene). Neither is a
+# measured value; the k/10 and k/100 sensitivity is DESIGN.md D-011.
+# Heat of BNBR from the formation enthalpies (298 K): benzyl bromide liquid 16 +/- 2 kJ/mol
+# (NIST WebBook, Ashcroft, Carson et al. 1963), toluene liquid 12.0 (NIST WebBook, Prosen et
+# al. 1945), HBr gas -36.3 (CRC table in chemicals 1.5.2), bromine liquid 0: -32.3 kJ/mol with
+# HBr as gas, as core takes a vented component (SRC-2, SRC-4). The Ashcroft value is the
+# lowest of the three NIST lists for benzyl bromide (16, 22, 30), so the heat is the largest of
+# them (not optimistic). BALBR: no formation enthalpy of benzal bromide is open, so the same
+# -32.3 kJ/mol is ASSUMED.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: BNBR
+    title: Toluene to benzyl bromide (side-chain bromination)
+    equation: C7H8 + Br2 -> C7H7Br + HBr
+    stoichiometry: {TOL: -1, BR2: -1, BNBR: 1, HBR: 1}
+    phase: liquid
+    heat_of_reaction: {value: -32300, provenance: given, source: "formation enthalpies at 298 K, HBr as gas: benzyl bromide (l) 16 +/- 2 kJ/mol (Ashcroft, Carson et al. 1963), toluene (l) 12.0 (Prosen et al. 1945), NIST WebBook (SRC-2); HBr (g) -36.3 (CRC table in chemicals 1.5.2, SRC-4) (D-005)"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # k1 = 5.0e-4 m3/(kmol s) at 363.15 K (Ea 30 kJ/mol): an effective rate for the lamp
+      # power of the design basis (D-005), not an intrinsic rate
+      k: {A: 10.33, Ea: 30000}
+      orders: {TOL: 1, BR2: 1}
+      temperature_range: [343.15, 383.15]
+      provenance: assumed
+      source: "ASSUMED effective photochemical rate (D-005, core limit L-1): no open kinetics of the light-driven bromination of toluene at plant scale found (2026-11-06); sized so that the bromine keeps up with a 5 h dosing at the lamps' photon budget; to be replaced by a photoreactor test with calorimetry"
+    sources: ["PubChem CID 7498 (HSDB, Methods of Manufacturing): bromination of toluene under light (SRC-3)", "US 3 528 899 A (1970): bromine dosed at the rate it reacts, so that little leaves with the HBr; product cut by distillation (SRC-1)"]
+  - id: BALBR
+    title: Benzyl bromide to benzal bromide (series bromination)
+    equation: C7H7Br + Br2 -> C7H6Br2 + HBr
+    stoichiometry: {BNBR: -1, BR2: -1, BALBR: 1, HBR: 1}
+    phase: liquid
+    heat_of_reaction: {value: -32300, provenance: assumed, source: "ASSUMED equal to BNBR's (D-005): no open formation enthalpy of benzal bromide"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # k2 = 0.2 k1 = 1.0e-4 m3/(kmol s) at 363.15 K (Ea 30 kJ/mol)
+      k: {A: 2.066, Ea: 30000}
+      orders: {BNBR: 1, BR2: 1}
+      temperature_range: [343.15, 383.15]
+      provenance: assumed
+      source: "ASSUMED k2/k1 = 0.2 (D-005): the series bromination is slower per molecule; no open relative rate at these conditions found (2026-11-06)"
+    sources: ["US 3 528 899 A (1970): the light-driven side-chain bromination is a series of successive reactions, the degree of side-chain bromination set by the moles of bromine introduced (Example II, xylene: 41 % mono- and 46 % dibromoxylene); no rate for toluene, so k2 stays ASSUMED (SRC-1, D-005)"]

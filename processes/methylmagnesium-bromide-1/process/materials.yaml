@@ -1,0 +1,60 @@
+# Components and templates of methylmagnesium-bromide-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol (IUPAC 2021
+# standard atomic weights applied to the formula), normal_boiling_point in K at 101.325 kPa.
+#
+# The Grignard solution is carried as molecular pseudo-components (MeMgBr and MgBr2 dissolved in
+# 2-MeTHF), an inventory basis: the Schlenk equilibrium (2 MeMgBr = Me2Mg + MgBr2) does not
+# change the balance and is not modelled (DESIGN.md D-006). Magnesium is a solid component (the
+# turnings in the slurry, phase: solid). Ethane, formed by the Wurtz coupling, leaves by the vent
+# as it forms (batch.vent, core ADR 0054) and needs no liquid data. The liquid data the
+# semi-batch R101 needs (D-005, D-006):
+# - liquid_molar_volume, m3/kmol: 2-MeTHF from 0.853 g/cm3 at 20 C (PubChem CID 7301, HSDB);
+#   methyl bromide from its liquid density at 298 K, 1.663 g/cm3 (thermo); magnesium from
+#   1.738 g/cm3 at 20 C (PubChem CID 5462224, HSDB), the turnings' own volume in the slurry;
+#   MeMgBr 0.0501, the apparent molar volume that gives the TDS density of the product, about
+#   1.1 g/cm3 for 35 wt% in 2-MeTHF (Albemarle TDS 10000303), with ideal mixing (my arithmetic,
+#   D-006); MgBr2 from the solid's density, 3.72 g/cm3 (ASSUMED as its volume in solution);
+# - liquid_heat_capacity, kJ/(kmol K): 2-MeTHF 173.2 and methyl bromide 71.0 (thermo, both at
+#   318 K; methyl bromide's is 67.1 at 298 K); magnesium 24.9 (the solid, NIST WebBook); MeMgBr
+#   95.9, ASSUMED as the sum of solid Mg and liquid MeBr (Kopp's rule: no measured value found);
+#   MgBr2 104.6 (thermo, the solid, standing for the dissolved salt). The product's heat capacity
+#   is then 1.58 kJ/(kg K) (S9's composition with these values, my arithmetic; S6 with the
+#   magnesium 1.58 too, the value that gives the screening's 548 K), lower than the 1.9-2.0 an
+#   ether solution would have: conservative for the adiabatic rise.
+# - normal boiling points: 2-MeTHF 351.15 K (78 C, the TDS; thermo gives 353.15 K) and methyl
+#   bromide 276.55 K (thermo); ethane 184.57 K (thermo). Magnesium and the dissolved salts have
+#   none in the liquid.
+# - heat_of_vaporization of 2-MeTHF, kJ/kmol: 34.0 kJ/mol, the NIST WebBook's value (CID C96479,
+#   phase change data: Stephenson and Malanowski 1987, from vapour pressures of 283 to 353 K, so
+#   it holds at the boiling point); core 1.9.0 takes the default MTT at R-101's 120 kPa(a) from it
+#   by Clausius-Clapeyron (ADR 0058, DESIGN.md D-011). thermo's correlations give 29.5 to 30.8
+#   kJ/mol at 351 K; the larger, measured-based value gives the lower boiling point at 120 kPa(a),
+#   the conservative side.
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: METHF, name: 2-Methyltetrahydrofuran, formula: C5H10O, cas: 96-47-9, molar_mass: 86.134, normal_boiling_point: 351.15, liquid_molar_volume: 0.10098, liquid_heat_capacity: 173.2, heat_of_vaporization: 34000}
+  - id: MEBR
+    name: Methyl bromide (bromomethane)
+    formula: CH3Br
+    cas: 74-83-9
+    molar_mass: 94.939
+    normal_boiling_point: 276.55
+    liquid_molar_volume: 0.05709
+    liquid_heat_capacity: 71.0
+    # the dosed gas's share that passes through to the vent is warmed to R-101's temperature
+    # with this heat capacity (core ADR 0054); constant over 293-320 K (42.5 to 43.9 kJ/(kmol K))
+    ideal_gas: {dHf_298: -36380, S_298: 246.4, cp_R: [5.19], temperature_range: [250.0, 350.0], provenance: given, source: "chemicals package (CRC/NIST gas data): Hf -36.38 kJ/mol, S0 246.4 J/(mol K); thermo's ideal-gas cp 43.2 kJ/(kmol K) at 308 K, taken as constant (cp/R 5.19)"}
+  - {id: MG, name: Magnesium (turnings), formula: Mg, cas: 7439-95-4, molar_mass: 24.305, phase: solid, liquid_molar_volume: 0.013985, liquid_heat_capacity: 24.9}
+  - {id: MEMGBR, name: Methylmagnesium bromide (dissolved), formula: CH3BrMg, cas: 75-16-1, molar_mass: 119.244, liquid_molar_volume: 0.0501, liquid_heat_capacity: 95.9}
+  - {id: MGBR2, name: Magnesium bromide (dissolved), formula: MgBr2, cas: 7789-48-2, molar_mass: 184.113, liquid_molar_volume: 0.0495, liquid_heat_capacity: 104.6}
+  - {id: C2H6, name: Ethane, formula: C2H6, cas: 74-84-0, molar_mass: 30.07, normal_boiling_point: 184.57}
+templates:
+  # C2H6 is listed because propagate writes the vent component into the liquid outlet with a
+  # mole fraction of 0 (DESIGN.md L-3); it never holds any
+  - {id: liquor, title: Grignard slurry and solution, components: [METHF, MEBR, MG, MEMGBR, MGBR2, C2H6]}
+  - {id: solid, title: Magnesium turnings, components: [MG]}
+  - {id: gas, title: Methyl bromide and off-gas, components: [MEBR, C2H6]}
+property_method:
+  adapter: thermo
+  status: placeholder

@@ -20,12 +20,25 @@
 
 | study | what | sheet | nodes | scenarios | worst band high / medium / low | actions |
 |---|---|---|---:|---:|---|---:|
-| `H-01` | Skid A: one-fill anolyte reservoir | P-01 | 8 | 77 | 39 / 30 / 8 | 54 |
-| `H-02` | Skid B: KOH dosing, bleed and make-up | P-02 | 9 | 92 | 50 / 28 / 14 | 57 |
+| `H-01` | Skid A: one-fill anolyte reservoir | P-01 | 8 | 78 | 15 / 40 / 23 | 54 |
+| `H-02` | Skid B: KOH dosing, bleed and make-up | P-02 | 9 | 94 | 25 / 40 / 29 | 57 |
 
 The node numbers mean the same part of each skid (N1 anolyte loop, N2 stacks and DC supply, N3
 cathode CO2 feed, N4 cathode gas outlet, N5 gas conditioning, N6 tail gas and vents, N7 Skid B's
-dosing, bleed and make-up, N8 fill and drain, N9 the enclosure). The two studies were drafted
+dosing, bleed and make-up, N8 fill and drain, N9 the open, naturally ventilated skid and its gas
+detection: the enclosure and its extract fan of the first drafts are deleted, DESIGN.md D-050).
+Both studies were revised by an agent on 2026-11-06 for the owner's decisions D-050 to D-058
+(open skid, Ex marking, tempered water, tail-gas arrester and trip valve, drains, the rectifier
+and oxidiser off the frames, the pH 12.2 trip), every revised entry proposed for the team, and
+re-stamped (safety/hazop/SESSION.md section 3.6), and again for P&ID revision C, the fixes of
+the agent design review 2026-11-06-design (relief, the compressor and instrument-air trips, the
+H2-in-O2 analyser and the membrane's pressure difference, the total CO2, the condensate, the
+stack monitoring, the check valves; DESIGN.md D-060 to D-066, SESSION.md section 3.6.1), and
+again for P&ID revision D, the fixes of the agent reviews 2026-11-06-design-r2 and
+2026-11-06-layout-r4 (the trip valves drawn actuated, the stop sequences, the membrane's
+pressure difference at each end, the cathode relief's trip and outlet, the tail gas's drip legs;
+DESIGN.md D-067 to D-070, SESSION.md section 3.6.2). The
+two studies were drafted
 apart and then integrated, so that the hardware both skids share is examined alike and rated by
 one convention, and then reviewed against the plant as drawn and their own credit rules
 (DESIGN.md D-030). The actions the drafting agent considers most important are

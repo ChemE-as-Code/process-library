@@ -2,7 +2,11 @@
 
 processes/co2-electrolysis-bpm-1/scripts/regen.py regenerates both skids for one campaign
 duration; results/expected.yaml holds the hand values E1 to E9 (tests/skid_formulas.py, frozen in
-their own commit before the first regeneration, ADR 0030). Three kinds of test:
+their own commit before the first regeneration, ADR 0030). A basis changed after the freezing is
+a basis erratum of results/expected-errata.yaml (X-2: the pH 12.2 trip, DESIGN.md D-058): the
+items it supersedes are compared with its values under the frozen tolerances (``with_errata``),
+and tests/test_skid_errata.py recomputes those values from the frozen closed forms. Three kinds
+of test:
 
 - fast, without core: the design basis is what the stacks and duties carry, no script reads the
   library's held-out benchmarks (ADR 0032), the frozen-expectations commit precedes every
@@ -96,9 +100,34 @@ def expected() -> dict:
     return f.load_expected()
 
 
+def superseded(frozen_file: str) -> dict[str, float]:
+    """The values a basis erratum of results/expected-errata.yaml (ADR 0030; X-2, the pH 12.2
+    trip of DESIGN.md D-058) puts in place of the frozen ones of *frozen_file*, by key; the
+    frozen file itself is never edited and its tolerances stand."""
+    doc = _yaml(PROCESS / "results" / "expected-errata.yaml")
+    out = {}
+    for e in doc.get("errata") or []:
+        for s in (e.get("supersedes") or {}).get(frozen_file) or []:
+            assert s["key"] not in out, f"{s['key']} superseded twice"
+            out[s["key"]] = s["value"]
+    return out
+
+
+def with_errata(items: dict[str, dict], frozen_file: str) -> dict[str, dict]:
+    new = superseded(frozen_file)
+    assert set(new) <= set(items), f"errata supersede keys {sorted(set(new) - set(items))} not in {frozen_file}"
+    return {k: ({**i, "value": new[k]} if k in new else i) for k, i in items.items()}
+
+
 @pytest.fixture(scope="module")
 def items(expected) -> dict[str, dict]:
-    return {i["key"]: i for block in expected["expectations"].values() for i in block.get("items") or []}
+    frozen = {i["key"]: i for block in expected["expectations"].values() for i in block.get("items") or []}
+    return with_errata(frozen, "results/expected.yaml")
+
+
+def trip_ph() -> float:
+    """The pH the duties run to and T-101 is sized at (design basis threshold.trip, D-058)."""
+    return float(_yaml(PROCESS / "process" / "design-basis.yaml")["capacity"]["pilot_skid"]["threshold"]["trip"]["ph"])
 
 
 @pytest.fixture(scope="module")
@@ -155,7 +184,7 @@ def assert_e1_to_e7(records: dict[int, dict], items: dict, hand: dict) -> None:
         close(s["final_carbon_mol_l"], items[f"E2.{h}.final.carbon"], at)
         close(s["final_cation_mol_l"], items[f"E2.{h}.final.cation"], at)
         assert s["dosed_solution_l"] == s["bleed_l"] == s["makeup_water_l"] == 0.0, at
-        assert s["duty_feasible"] and s["reservoir_limited_by"] == "the pH threshold 12", at
+        assert s["duty_feasible"] and s["reservoir_limited_by"] == f"the pH threshold {trip_ph():g}", at
         fits_height = not any("above the envelope" in r for r in s["reasons"])
         close(fits_height, items[f"E2.{h}.fits_height"], at)
         if h == 10000:
@@ -356,6 +385,10 @@ def assert_layout(root: Path, records: dict[int, dict]) -> None:
             assert r["reach_ok"] and r["reach_m"] <= r["reach_limit_m"] and not r["lane_blocked_by"], r
         assert {g["tag"][0] for g in skid["ignition_clearance"]} == {"U", "X"}, skid["ignition_clearance"]
         assert all(g["ok"] for g in skid["ignition_clearance"]), skid["ignition_clearance"]
+        # the rectifier and the oxidiser off the frame, 2 m or more in plan from the feet of the
+        # frame's stairs (D-057, review 2026-11-05-layout-r2#1, #3)
+        assert {g["tag"][0] for g in skid["stair_foot_clearance"]} == {"U", "X"}, skid["stair_foot_clearance"]
+        assert all(g["ok"] for g in skid["stair_foot_clearance"]), skid["stair_foot_clearance"]
     lifts = {u["id"]: u for u in records[1000]["lifting"]["unit_lifts"]}
     assert lifts["T-101"]["method"].startswith("mobile crane") and lifts["T-101"]["laydown"] == "LD-R", lifts["T-101"]
     # 10,000 h: reported in the record, the run not failed (its record exists)
@@ -372,7 +405,8 @@ def assert_layout(root: Path, records: dict[int, dict]) -> None:
 
 
 def _lca_items() -> dict[str, dict]:
-    return {i["key"]: i for i in lf.load_expected()["expectations"]["E10"]["items"]}
+    frozen = {i["key"]: i for i in lf.load_expected()["expectations"]["E10"]["items"]}
+    return with_errata(frozen, "results/expected-lca.yaml")
 
 
 def _lca_close(value: float, items: dict, key: str, where: str) -> None:
@@ -537,9 +571,15 @@ def test_design_basis_is_what_the_stacks_and_duties_carry():
     assert design in basis["duration"]["scenarios"]
     for did in ("D-A", "D-B"):
         assert duties[did]["horizon"] == {"value": design, "unit": "h"}, did
-    # every duty, the comparison duties too, ends at the same criterion (E5 and E6 compare them)
+    # every duty, the comparison duties too, ends at the same trip value (E5 and E6 compare
+    # them): the design basis' trip, above the stability criterion it protects (D-003, D-058),
+    # and the basis of erratum X-2
+    trip = basis["threshold"]["trip"]["ph"]
+    assert trip > basis["threshold"]["ph"]
+    x2 = next(e for e in _yaml(PROCESS / "results" / "expected-errata.yaml")["errata"] if e["id"] == "X-2")
+    assert x2["basis"]["threshold_ph"] == trip
     for did, duty in duties.items():
-        assert duty["threshold"]["ph"] == basis["threshold"]["ph"], did
+        assert duty["threshold"]["ph"] == trip, did
     for did in ("D-A-ONOFF", "D-A-PART"):
         assert duties[did]["horizon"] == {"value": 3 * design, "unit": "h"}, did
         assert duties[did]["stack"] == "STK-A", did
@@ -572,6 +612,10 @@ def test_calculated_setpoints_follow_the_model():
     for key, loop in (("A", "JIC-101"), ("B", "JIC-201")):
         assert loops[loop]["targets"][0]["value"] == rec["skids"][key]["bus_current_a"], loop
     assert loops["AIC-201"]["targets"][0]["value"] == round(rec["skids"]["B"]["final_ph"], 2)
+    # the total cathode CO2 (DESIGN.md D-062): the fresh CO2 plus the PSA recycle of the case
+    for loop, case, streams in (("FIC-104", "skid-a", ("S101", "S103")), ("FIC-204", "skid-b", ("S201", "S203"))):
+        want = sum(flowsheet[s]["state"][case]["flow"]["value"] for s in streams)
+        assert math.isclose(loops[loop]["targets"][0]["value"], want, rel_tol=1e-9), (loop, want)
 
 
 def _docstrings(tree: ast.AST) -> set[int]:
@@ -718,7 +762,7 @@ def test_committed_lca_datasets_are_the_design():
     assert b["title"].endswith(", case skid-b") and b["id"] == f"{a['id']}-skid-b"
     assert b["uuid"] != a["uuid"] and b["parent"] == a["uuid"]
     process = _yaml(PROCESS / "process.yaml")
-    assert process["publication"]["status"] == "internal"  # build_lci --public leaves it out
+    assert process["publication"] == {"status": "public", "license": "CC-BY-4.0"}  # D-048, ADR 0036
     keys = {i.get("inventory_key") for g in process["chemistry"].values() for i in g}
     assert {"feed:CO2", "feed:KOH-FILL", "feed:KOH-DOSE", "feed:POWER", "product:CO"} <= keys
 
@@ -742,6 +786,46 @@ def test_committed_lca_reports_are_the_records():
     life = json.loads((PROCESS / "lca" / "sensitivity-membrane-life.json").read_text())
     assert life["impact"].startswith("not computable: gap") and life["datasets_match"]
     assert [r["membrane_life_h"] for r in life["rows"]] == [1000.0, 4000.0, 20000.0]
+
+
+def test_committed_ranking_states_whether_it_changes():
+    """#331 (DESIGN.md D-049): the order of the totals does not change under any electricity mix
+    or duration, the membrane life cannot change it, and the construction difference that would
+    reverse it is |B - A| x the CO of one skid's life (design rate x lca.yaml's operation), per kg
+    of Skid A's extra tank mass from the equipment list."""
+    ranking = json.loads((PROCESS / "lca" / "ranking.json").read_text())
+    assert ranking["verdict"] == "ranking not determined"
+    sens = ranking["by_sensitivity"]
+    mix = {r["case"]: r for r in sens["rows"] if r["sensitivity"] == "electricity mix"}
+    grids = json.loads((PROCESS / "lca" / "sensitivity-electricity-mix.json").read_text())["rows"]
+    assert set(mix) == {g["grid"] for g in grids if g.get("b_minus_a") is not None} and len(mix) == 5
+    for g in grids:
+        if g["grid"] in mix:
+            assert mix[g["grid"]]["b_minus_a"] == g["b_minus_a"]
+    assert {r["case"] for r in sens["rows"] if r["sensitivity"] == "campaign duration"} == {f"{h} h" for h in DURATIONS}
+    for r in sens["rows"]:
+        assert r["order_changes"] is False and r["higher"] == "B" and r["b_minus_a_with_solution_water"] > 0, r
+    assert sens["order_changes"] is False
+    life = json.loads((PROCESS / "lca" / "sensitivity-membrane-life.json").read_text())
+    assert life["same_for_both_skids"] and life["datasets_match"]
+    assert ranking["membrane_life"]["common_to_both_skids"] is True
+    assert ranking["membrane_life"]["can_change_ranking"] is False
+    # the break-even, recomputed from the design basis, lca.yaml and the equipment list
+    basis = _yaml(PROCESS / "process" / "design-basis.yaml")["capacity"]["pilot_skid"]["product"]["rate"]
+    op = _yaml(PROCESS / "lca" / "lca.yaml")["operation"]
+    assert basis["unit"] == "kg/h"
+    co_life = basis["value"] * op["hours_per_year"] * op["life_years"]
+    diff = ranking["characterised"]["with_solution_water"]["B_minus_A"]
+    bec = ranking["break_even_construction"]
+    assert bec["skid_with_more_construction"] == "A" and bec["can_reverse"] is True
+    assert bec["kg_co2e_per_skid_life"] > 0
+    assert rel(bec["kg_co2e_per_skid_life"], diff * co_life, 1e-9)
+    weights = {e["tag"]: e["dimensions"]["weight"] * 1000.0 for e in _yaml(PROCESS / "equipment" / "equipment-list.yaml")["equipment"]}
+    extra = weights["T-101"] - weights["T-201"] - weights["T-202"]
+    assert rel(bec["extra_tank_mass_kg"], extra, 1e-9) and bec["weights_assumed"] is True
+    assert rel(bec["kg_co2e_per_kg_extra_tank_mass"], diff * co_life / extra, 1e-9)
+    assert ranking["ranking_changes"].startswith("The order does not change")
+    assert "break-even" in ranking["ranking_changes"]
 
 
 # -- slow: regenerate in a copy ---------------------------------------------------------------

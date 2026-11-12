@@ -10,13 +10,13 @@ draft: true
 operating: {}
 design:
   pressure_barg:
-    value: TBD
+    value: 0.0
     unit: barg
-    source: 'TBD: no design_pressure_barg in the equipment list'
+    source: equipment/equipment-list.yaml
   temperature_degc:
-    value: TBD
+    value: 40.0
     unit: degC
-    source: 'TBD: no design_temperature_degc in the equipment list'
+    source: equipment/equipment-list.yaml
 materials:
   main:
     value: PP
@@ -24,17 +24,17 @@ materials:
 dimensions:
   orientation: vertical
   outside_diameter:
-    value: 1.074
+    value: 1.077
     unit: m
     source: 'equipment/equipment-list.yaml dimensions.diameter: cheme process stack: stack STK-A, duty
-      D-A at 7 cells x 4 stacks, campaign 1000 h: 1457.5 L (working volume (the largest over the duty)
-      1166 L with its margin)'
+      D-A at 7 cells x 4 stacks, campaign 1000 h: 1470 L (working volume (the largest over the duty) 1176
+      L with its margin)'
     assumed: true
   overall_height:
-    value: 1.611
+    value: 1.615
     unit: m
     source: 'equipment/equipment-list.yaml dimensions.height: cheme process stack: stack STK-A, duty D-A
-      at 7 cells x 4 stacks, campaign 1000 h: 1457.5 L (working volume (the largest over the duty) 1166
+      at 7 cells x 4 stacks, campaign 1000 h: 1470 L (working volume (the largest over the duty) 1176
       L with its margin)'
     assumed: true
   head:
@@ -50,7 +50,7 @@ dimensions:
       source: 'layout/plant-model.yaml T-101 position z (layout/equipment-placement.yaml): the base above
         grade'
   tangent_length:
-    value: 1.611
+    value: 1.615
     unit: m
     source: 'layout/plant-model.yaml part T-101/shell: the generated shell between the heads (the 3D model''s
       proportions, not a vessel design)'
@@ -90,22 +90,27 @@ nozzles:
 - name: N7
   lines: []
   source: pid/P-01.xml
+- name: N11
+  dn: 15
+  lines:
+  - PO-101
+  source: pid/P-01.xml
 - name: N6
   lines: []
   source: pid/P-01.xml
 type_specific:
   diameter_m:
-    value: 1.074
+    value: 1.077
     unit: m
     source: 'equipment/equipment-list.yaml dimensions: cheme process stack: stack STK-A, duty D-A at 7
-      cells x 4 stacks, campaign 1000 h: 1457.5 L (working volume (the largest over the duty) 1166 L with
+      cells x 4 stacks, campaign 1000 h: 1470 L (working volume (the largest over the duty) 1176 L with
       its margin)'
     assumed: true
   height_m:
-    value: 1.611
+    value: 1.615
     unit: m
     source: 'equipment/equipment-list.yaml dimensions: cheme process stack: stack STK-A, duty D-A at 7
-      cells x 4 stacks, campaign 1000 h: 1457.5 L (working volume (the largest over the duty) 1166 L with
+      cells x 4 stacks, campaign 1000 h: 1470 L (working volume (the largest over the duty) 1176 L with
       its margin)'
     assumed: true
   weight_t:
@@ -114,13 +119,13 @@ type_specific:
     source: equipment/equipment-list.yaml dimensions
     assumed: true
   volume_m3:
-    value: 1.459
+    value: 1.471
     unit: m3
-    source: 'cheme datasheets fill: pi/4 D^2 L, D 1.074 m (dimensions.outside_diameter), L 1.611 m (dimensions.tangent_length);
+    source: 'cheme datasheets fill: pi/4 D^2 L, D 1.077 m (dimensions.outside_diameter), L 1.615 m (dimensions.tangent_length);
       the cylindrical shell between the tangent lines, heads not included; over the outside diameter:
       an upper bound of the shell'
     assumed: true
-    fingerprint: d9606392bc6580a9
+    fingerprint: 25f3c67503d77350
     inputs:
     - datasheet:dimensions.orientation
     - datasheet:dimensions.inside_diameter
@@ -180,4 +185,9 @@ sizing_basis:
   reference: 'cheme datasheets fill: the values it writes are preliminary process sizing (short-cut methods,
     declared or typical parameters), not a rating or a design to a code; not calculated: rating, mechanical
     code, materials corrosion, relief, dynamics controls (docs/framework/sizing.md)'
-notes: ''
+notes: 'atmospheric PP tank, vented (design 0 bar(g) with the static head of the tank full of liquid,
+  40 degC: ASSUMED, above the tempered water''s 30 degC heating limit, D-060); against electrostatic charge
+  (IEC TS 60079-32-1, D-051 as corrected by D-063): the liquid earthed through an earthed metal element
+  in contact with it at the bottom (a stainless dip electrode or metal bottom nozzle), every metal fitting
+  bonded; the PP wall cannot be earthed: its charging in or beside the IIC zone is the competent person''s
+  to assess, or the wall is specified in a conductive or dissipative PP'

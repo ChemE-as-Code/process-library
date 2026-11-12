@@ -1,0 +1,15 @@
+# benzoyl-chloride-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# The preliminary LCI leaves most backgrounds unmapped (DESIGN.md D-012): the build reports each
+# as a gap (lci/gaps.json). Linked here: the nitrogen consumable to asu-1's gaseous nitrogen, and
+# the MP and LP steam counted as heat delivered (kWh), as n-bromosuccinimide-1 and
+# phosphorus-tribromide-1 do. The shared vocabulary has no entry yet for benzotrichloride,
+# benzoic acid, zinc chloride or hazardous-waste incineration of a chlorinated organic residue.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "consumable:nitrogen": {dataset: {path: processes/asu-1/lca/dataset.yaml, product: "product:GANP"}, source: "the Atlas producer asu-1, gaseous nitrogen to the battery limit (99.97 mol% N2, 9 bar(a)); the purges need only a few hundred kPa"}
+  "feed:MPS": {use: steam-heat, source: "MP steam 1100 kPa(a) to the benzoic acid melter (Q1), counted as heat delivered (kWh), D-009"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a) to the still's reboiler (Q4, from core's still model with its column, core 1.10.0), counted as heat delivered (kWh), D-009"}

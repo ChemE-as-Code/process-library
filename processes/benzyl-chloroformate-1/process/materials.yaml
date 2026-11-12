@@ -1,0 +1,88 @@
+# Components and templates of benzyl-chloroformate-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol (IUPAC 2021
+# standard atomic weights applied to the formula), normal_boiling_point in K at 101.325 kPa.
+#
+# The reaction mass is neat benzyl alcohol turning into neat benzyl chloroformate, with phosgene
+# and some HCl dissolved (DESIGN.md D-005). The liquid data the semi-batch R101 needs:
+# - liquid_molar_volume, m3/kmol: COSTALD at 278.15 K from the critical constants of the
+#   chemicals 1.5.2 package (`chemicals.volume.COSTALD`); dibenzyl carbonate ASSUMED (density
+#   1.15 g/cm3, no open value found; it is 0.3 wt% of the product);
+# - liquid_heat_capacity, kJ/(kmol K): `cheme chemistry props --source Thermo -p cp_liquid
+#   --temperature 278.15` (thermo 0.4, chemicals 1.5.2) for benzyl alcohol, benzyl chloroformate
+#   and benzyl chloride; phosgene 100 and dissolved HCl 60 ASSUMED (thermo gives phosgene 51,
+#   below its own ideal-gas cp, which is not plausible for the liquid; none found for HCl);
+#   dibenzyl carbonate 330 ASSUMED;
+# - CO2 is vented whole as it forms and never charged or dosed (batch.vent, core ADR 0054): it
+#   needs no liquid data. HCl leaves 95 % as it forms; the 5 % that stays dissolved needs them.
+# - ideal_gas of phosgene, HCl and CO2 as in processes/phosgene-1/process/materials.yaml
+#   (`cheme chemistry thermo`: ATcT formation enthalpies, CRC entropies, fitted cp): the
+#   passing phosgene is warmed to the vessel with it (ADR 0054); the formation enthalpies give
+#   the gas-basis heats from which reactions.yaml writes the dissolved basis (D-015).
+# - normal boiling points: chemicals 1.5.2 (`chemicals.Tb`); benzyl chloroformate's 425 K is
+#   that package's value (the substance decomposes before it boils at atmospheric pressure,
+#   D-008). Dibenzyl carbonate: none found.
+# - heat_of_vaporization, kJ/kmol, of the gases the degassing T101 draws off: `cheme chemistry
+#   props --source Thermo -p heat_of_vaporization --temperature 278.15` (phosgene 24.8, HCl 10.9,
+#   CO2 9.5 kJ/mol), standing for their unknown heats of desorption from the crude (D-006);
+#   minus phosgene's is R101's dose heat_of_solution and HCl's the retained share's dissolution
+#   in the heats of reaction (core ADR 0063, D-015).
+# The scrubber species (NaOH, NaCl, Na2CO3 dissolved) are molecular pseudo-components of the
+# aqueous liquor, an inventory basis, not a speciation (no property package of core covers it).
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: BNOH, name: Benzyl alcohol, formula: C7H8O, cas: 100-51-6, molar_mass: 108.140, normal_boiling_point: 478.45, liquid_molar_volume: 0.10228, liquid_heat_capacity: 171.0}
+  - id: COCL2
+    name: Phosgene
+    formula: CCl2O
+    cas: 75-44-5
+    molar_mass: 98.915
+    normal_boiling_point: 280.65
+    liquid_molar_volume: 0.07049
+    liquid_heat_capacity: 100.0
+    heat_of_vaporization: 24800
+    critical: {Tc: 455.0, Pc: 5674.2, omega: 0.204, source: "chemicals: Tc MATTHEWS, Pc MATTHEWS, omega PSRK"}
+    ideal_gas: {dHf_298: -219030.0, S_298: 283.5, cp_R: [3.57477, 0.0158369, -1.73691e-05, 9.14793e-09, -1.87533e-12], temperature_range: [298.15, 1500], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo WEBBOOK_SHOMATE 298.15-1500 K (as processes/phosgene-1)"}
+  - id: HCL
+    name: Hydrogen chloride
+    formula: HCl
+    cas: 7647-01-0
+    molar_mass: 36.458
+    normal_boiling_point: 188.15
+    liquid_molar_volume: 0.04047
+    liquid_heat_capacity: 60.0
+    heat_of_vaporization: 10910
+    critical: {Tc: 324.68, Pc: 8313.5, omega: 0.129, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -92173.0, S_298: 186.9, cp_R: [3.72699, -0.00134502, 2.41915e-06, -1.18644e-09, 1.87246e-13], temperature_range: [298.15, 1500], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 298.15-1500 K (as processes/phosgene-1)"}
+  - {id: BCF, name: Benzyl chloroformate, formula: C8H7ClO2, cas: 501-53-1, molar_mass: 170.592, normal_boiling_point: 425.15, liquid_molar_volume: 0.13979, liquid_heat_capacity: 207.6}
+  - {id: DBC, name: Dibenzyl carbonate, formula: C15H14O3, cas: 3459-92-5, molar_mass: 242.274, liquid_molar_volume: 0.2107, liquid_heat_capacity: 330.0}
+  - {id: BNCL, name: Benzyl chloride, formula: C7H7Cl, cas: 100-44-7, molar_mass: 126.583, normal_boiling_point: 447.15, liquid_molar_volume: 0.11390, liquid_heat_capacity: 169.1}
+  - id: CO2
+    name: Carbon dioxide
+    formula: CO2
+    cas: 124-38-9
+    molar_mass: 44.009
+    normal_boiling_point: 194.67
+    heat_of_vaporization: 9461
+    critical: {Tc: 304.128, Pc: 7377.3, omega: 0.22394, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -393474.0, S_298: 213.8, cp_R: [2.35127, 0.00919285, -7.99057e-06, 3.68269e-09, -7.05913e-13], temperature_range: [298.15, 1500], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo HEOS_FIT 298.15-1500 K (as processes/phosgene-1)"}
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.015, normal_boiling_point: 373.12}
+  - {id: NAOH, name: Sodium hydroxide (dissolved), formula: NaOH, cas: 1310-73-2, molar_mass: 39.997}
+  - {id: NACL, name: Sodium chloride (dissolved), formula: NaCl, cas: 7647-14-5, molar_mass: 58.443}
+  - {id: NA2CO3, name: Sodium carbonate (dissolved), formula: Na2CO3, cas: 497-19-8, molar_mass: 105.988}
+templates:
+  - {id: alcohol, title: Benzyl alcohol, components: [BNOH]}
+  - {id: phosgene, title: Phosgene, components: [COCL2]}
+  - {id: process, title: "Reaction mass: benzyl alcohol to benzyl chloroformate, phosgene and HCl dissolved", components: [BNOH, COCL2, HCL, BCF, DBC, BNCL, CO2]}
+  # The still T101 writes every component of its charge into the distillate, the non-volatile
+  # benzyl compounds at 0: the off-gas and liquor templates carry them too.
+  - {id: offgas, title: "Off-gas: HCl, phosgene and CO2", components: [HCL, COCL2, CO2, BNOH, BCF, DBC, BNCL]}
+  - {id: caustic, title: Caustic soda solution, components: [NAOH, H2O]}
+  - {id: water, title: Process water, components: [H2O]}
+  - {id: liquor, title: Spent scrubber liquor, components: [NAOH, NACL, NA2CO3, H2O, HCL, COCL2, CO2, BNOH, BCF, DBC, BNCL]}
+# No benchmarked property package covers the reaction mass or the caustic liquor (cheme process
+# props --coverage): the liquid data above are the semi-batch's; the duties of R101 and T101 are
+# the models' (core ADR 0059), the others hand arithmetic (DESIGN.md D-009).
+property_method:
+  adapter: thermo
+  status: placeholder

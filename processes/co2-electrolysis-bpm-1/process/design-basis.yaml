@@ -36,10 +36,19 @@ capacity:
     # the pressure loss across the PSA X-x31: the compressor K-x31 discharges at the product
     # pressure plus this (scripts/skid_balance.py writes both into process/flowsheet.yaml)
     psa_pressure_loss: {value: 1.0, unit: bar, provenance: assumed, source: "ASSUMED pressure loss of the PSA package (DESIGN.md D-012); TBD vendor"}
+    # `ph` is the stability criterion the design reports against (D-003); `trip` is the value
+    # the plant stops at (C&E I-101, I-201) and the duties run to, so that T-101 is sized to
+    # reach the trip, not the criterion, at the horizon (D-058; scripts/regen.py step 3 writes
+    # trip.ph into every duty's threshold)
     threshold:
       ph: 12
       basis: concentration
       source: "DESIGN.md D-003 and core ADR 0043: the time to a specified pH threshold (a design criterion, not a corrosion onset)"
+      trip:
+        ph: 12.2
+        basis: concentration
+        provenance: assumed
+        source: "DESIGN.md D-058 (owner decision 2026-11-06): ASSUMED trip margin of 0.2 pH above the criterion, the same as Skid B's I-201; the margin is to be set from the probe's uncertainty after the titration calibration (H01-A109)"
     duration:
       design: {value: 1000, unit: h}
       scenarios: [1000, 10000]

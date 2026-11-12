@@ -1,0 +1,10 @@
+# ammonium-sulfate-1's own exchange overrides for the Atlas LCI build (ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Both feeds link their Atlas producers explicitly.
+# Water, electricity and cooling water resolve by their registry slugs.
+# The dust emission (emission:PM) has no biosphere entry in lci/mappings.yaml yet and stays a
+# reported gap.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:ammonia": {dataset: {path: processes/ammonia-1/lca/dataset.yaml, product: "product:NH3"}, source: "the Atlas producer ammonia-1, liquid anhydrous ammonia, which this feed names (as sodium-nitrite-1 links it)"}
+  "feed:sulfuric-acid": {dataset: {path: processes/sulfuric-acid-1/lca/dataset.yaml, product: "product:ACID"}, source: "the Atlas producer sulfuric-acid-1, sulfuric acid 98.5 wt%, the strong acid this route takes, counted by mass of the 98.5 wt% acid as the producer counts it (the model acid (H2SO4)12(H2O) is 98.49 wt%)"}
+  "feed:steam": {use: steam-heat, source: "steam to the dryer's air heater, counted as heat delivered (kWh), as hda-1 does"}

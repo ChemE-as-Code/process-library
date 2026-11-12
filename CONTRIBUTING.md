@@ -31,6 +31,10 @@ process's URL in the Atlas.
 
 ### 2. Fill in `process.yaml`
 
+Keep the template's `publication: {status: public, license: CC-BY-4.0}`: a new entry is public
+([Publishing a process](#publishing-a-process)), so write its `README.md` and `DESIGN.md` for the
+public.
+
 Be honest about two fields:
 
 - **`maturity`: the design maturity.** How far the design is taken. It is a claim, capped by
@@ -82,7 +86,8 @@ warning. A dosed exothermic step is `reactor: semibatch`, so that `cheme process
 reactor-hazards` screens its accumulation. Cleaning, rinses and purges between its own batches
 that the flowsheet does not carry are `lca/lca.yaml` consumables with `per_batch`; those it
 carries are streams at their year-average rate (per-batch amount x batches / hours, the
-arithmetic in the `source`). Changeovers between products are outside the boundary.
+arithmetic in the `source`). Changeovers between products are outside the boundary. Like every
+entry, a batch entry is written public with CC-BY-4.0 in the change that adds it.
 
 #### A balance script whose numbers go into the flowsheet
 
@@ -157,9 +162,8 @@ uv run scripts/build_lci.py ... --strict   # with an LCI dataset
 
 CI runs the same, and the public build (`--public`, see [Publishing a process](#publishing-a-process)).
 
-CI needs a secret to read core, and GitHub gives a pull request from a fork no secrets. Its
-`validate` and `library` jobs therefore fail when they install core, whatever you changed, and only
-the docs build tells you anything. Run the commands above yourself and say so in the pull request.
+CI installs core and pyDEXPI anonymously (both are public), so a pull request from a fork runs
+every job too. Run the commands above yourself as well and say so in the pull request.
 
 ---
 
@@ -173,7 +177,7 @@ Contribute only what may be published under these licences.
 | | |
 | --- | --- |
 | ❌ **Never copy third-party content** | Tables, figures, drawings, P&IDs, datasheet or manual text, screenshots or text from papers, books, standards, vendor documents or websites. No values from licensed databases (ecoinvent factors or results, commercial property data). |
-| ✅ **Facts and numbers in your own form, with their source** | `source:` / `provenance:` fields, `references:` in `process.yaml`, `DESIGN.md`. Estimates are marked ASSUMED. |
+| ✅ **Facts and numbers in your own form, with their source** | `source:` / `provenance:` fields, `references:` in `process.yaml`, `DESIGN.md`. Estimates are marked ASSUMED. A value an open-source package computes from its bundled coefficients or tables (thermo's DIPPR_PERRY_8E, the CRC tables of `chemicals`) is such a fact, even where the coefficients go back to DIPPR 801: name the package, its version, the method and the underlying work, do not call it open data, and copy no table or coefficient set ([ADR 0037](docs/adr/0037-package-property-values-are-single-facts.md)). |
 | ✅ **Draw and write everything yourself** | Drawings are generated from the library's own files. |
 | ⚠️ **Openly licensed material** | Only with its licence and attribution in a `NOTICE.md` next to it, and only if that licence is compatible with the licence of the place it goes (see above). |
 
@@ -191,12 +195,22 @@ The Atlas has two builds:
 
 What the public build contains:
 
-- **Only public processes.** Only processes with `publication.status: public` in `process.yaml`
-  are in it; `internal` (the default) and `candidate` are left out entirely. Every process of
-  the library is public today; a new one stays out until `public` is set, which is the
-  maintainers' decision, made in its own change.
+- **Every entry is public, and a new one is written public.** Write
+  `publication: {status: public, license: CC-BY-4.0}` in a new `process.yaml` (the template has
+  it); the pull request that adds the entry publishes it, with no separate maintainer change
+  ([ADR 0036](docs/adr/0036-public-is-the-default-publication-status.md)).
+- **Only public processes, and the build fails closed.** Only processes with
+  `publication.status: public` and a `publication.license` in `process.yaml` are in the public
+  build; `internal`, `candidate`, a missing status and a public status without a licence are left
+  out entirely, so a forgotten field never publishes
+  ([ADR 0010](docs/adr/0010-public-and-preview-builds-fail-closed.md)). Use `internal` only for an
+  entry that must not be published (data whose licence does not allow it, an unfinished private
+  study), and state its own reason in its `process.yaml`, in a comment beside the status (the
+  template's generic comment is not a reason).
 - **A stated licence.** `publication.license` names the licence it is published under (an SPDX
-  id, e.g. `CC-BY-4.0`). There is no default: state it when you set `public`.
+  id). For data and designs it is `CC-BY-4.0`, the library's licence (`LICENSE-DATA`), still
+  written explicitly and has no default: the schema requires it on a public entry, the public
+  build leaves a public entry without one out, and the library tests fail on it.
 - **The repository** is shown only when its `access` is `public`.
 - **LCA results only when publishable.** An LCA's footprint values are shown only when core's
   committed run manifest (`lca/manifest.json`) says the result is publishable under its sources'
@@ -217,7 +231,9 @@ What the public build contains:
   example `DESIGN.md` or `docs/private/**`).
 
 > **Important:** everything else in the folder, including `README.md` and `DESIGN.md`, is
-> published as text: write it for the public, or exclude it.
+> published as text from the entry's first pull request: write it for the public, or exclude it.
+> The rules on [sources and licences](#sources-licences-and-what-may-not-be-copied) apply in
+> full.
 
 ```yaml
 publication: {status: public, license: CC-BY-4.0, exclude: ["docs/private/**"]}
@@ -307,6 +323,7 @@ The `issue-labels` workflow turns the form fields into labels:
   [tracker #306](https://github.com/ChemE-as-Code/process-library/issues/306) for issue links,
   reference records, labels and GitHub Project setup.
 - Workflow status, entry tier, calculation maturity, design maturity, review status and
-  publication approval are separate.
+  publication status are separate; a new entry is public by default
+  ([ADR 0036](docs/adr/0036-public-is-the-default-publication-status.md)).
 - The existing engineering forms and gate-label workflow remain in use for engineering action
   items.

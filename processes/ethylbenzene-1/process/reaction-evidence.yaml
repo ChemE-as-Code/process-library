@@ -1,0 +1,126 @@
+# Reaction evidence for ethylbenzene-1 (skill reaction-evidence-search). Schema
+# cheme/reaction-evidence/v1. Facts and numbers in our own form, each with its locator; no text,
+# table or figure of the sources is copied. The model basis that reactions.yaml takes from it is
+# at the end (skill route-selection, DESIGN.md D-005).
+schema: cheme/reaction-evidence/v1
+kind: reaction-evidence
+product: EB
+question: >-
+  Ethylbenzene from benzene and high-purity ethylene at world scale (hundreds of kt/a), concept
+  stage: which alkylation route, and which per-pass ethylene conversion and product shares
+  (EB, polyethylbenzenes, heavies) at liquid-phase conditions around 450 to 530 K and 3 to 4 MPa
+  on a zeolite; transalkylation of the polyethylbenzenes with benzene.
+searches:
+  - {query: "EU LVOC BREF 2017 chapter 5 ethylbenzene styrene (JRC109279)", tool: direct download of the JRC PDF, date: "2026-11-03", status: done, found: [S1]}
+  - {query: "liquid phase alkylation benzene ethylene zeolite beta MCM-22 ethylbenzene selectivity diethylbenzene open access", tool: web search, date: "2026-11-03", status: done, found: [S2], notes: "also returned journal articles (Micropor. Mesopor. Mater., J. Catal.) not read: access not confirmed"}
+sources:
+  - id: S1
+    kind: report
+    title: Best Available Techniques (BAT) Reference Document for the Production of Large Volume Organic Chemicals, chapter 5 (ethylbenzene and styrene)
+    authors: Falcke, H. et al. (EU JRC)
+    year: 2017
+    doi: 10.2760/77304
+    url: https://bureau-industrial-transformation.jrc.ec.europa.eu/sites/default/files/2019-11/JRC109279_LVOC_Bref.pdf
+    accessed: "2026-11-03"
+    access: full-text
+    reuse: "EU publication (Commission reuse policy, CC BY 4.0 for JRC reports); facts and numbers used in our own form with locators"
+  - id: S2
+    kind: patent
+    title: Liquid phase ethylbenzene synthesis with MCM-49
+    patent: US5493065A
+    year: 1996
+    url: https://patents.google.com/patent/US5493065A/en
+    accessed: "2026-11-03"
+    access: full-text
+    reuse: "patent text; facts and numbers only, with the example as locator"
+    notes: "read through a web fetch of the Google Patents full text (first 100 000 of 111 000 characters, which include the examples)"
+routes:
+  - id: LIQ-ZEO
+    title: Liquid-phase alkylation on a large-pore zeolite (MCM-22, beta, Y) with separate transalkylation
+    equations: ["C6H6 + C2H4 -> C8H10", "C8H10 + C2H4 -> C10H14", "C10H14 + C6H6 -> 2 C8H10"]
+    reactants: [BZ, ETY]
+    products: [EB, DEB, PETB]
+    reactions: [ALK, DIALK, PENTA, TRANS]
+    catalysts: ["MCM-22", "beta", "Y"]
+    status: selected
+    rationale: >-
+      The issue's route; in the BREF data collection four of five EB plants use zeolites (S1
+      Table 5.9), and large-pore zeolites are named as preferred for the liquid phase (S1
+      5.2.2.1.3.4). Carbon-steel equipment and no catalyst handling units, unlike AlCl3 (S1
+      5.2.2.1.2). Decided in DESIGN.md D-001.
+    gaps:
+      - "G1: ethylene conversion and product shares at the design benzene/ethylene ratio of 4 and at industrial multi-bed conditions: only a lab example at ratio 5.5 was read (O1)"
+      - "G2: transalkylation conversion per pass and its approach to equilibrium: no source with numbers read"
+      - "G3: composition of the flux oil (the BREF says C10+ mono- and polycyclic aromatics); the model compound is an assumption"
+      - "G4: catalyst deactivation over a cycle and its effect on selectivity"
+  - id: VAP-ZEO
+    title: Vapour-phase alkylation on ZSM-5
+    reactants: [BZ, ETY]
+    products: [EB]
+    catalysts: ["ZSM-5"]
+    status: rejected
+    rationale: "Not the issue's route; higher temperature and more xylene make than the liquid phase (S1 5.2.2.1.3.4 names ZSM-5 for the vapour phase only)."
+  - id: ALCL3
+    title: AlCl3-catalysed alkylation
+    reactants: [BZ, ETY]
+    products: [EB]
+    catalysts: ["AlCl3 complex"]
+    status: rejected
+    rationale: "Catalyst handling, acid and caustic washes and their effluents (S1 5.2.2.1.3.1 to 5.2.2.1.3.3); one of five BREF plants; not the issue's route."
+observations:
+  - id: O1
+    source: S2
+    route: LIQ-ZEO
+    location: "Example 7, product distribution table at 97 % ethylene conversion (catalyst of Example 5, MCM-22)"
+    kind: operating-example
+    scale: patent-example
+    conditions:
+      temperature: {value: 220, unit: °C}
+      phase: liquid
+      catalyst_formulation: "MCM-22 extrudate, 65 % zeolite and 35 % alumina (Example 5), in an isothermal fixed bed"
+      feed: {BZ: {value: 5.5, unit: "1", note: "benzene/ethylene molar ratio"}}
+      notes: "pressure given as 500 psi in the source, not converted here; the gauge or absolute basis is not stated in what was read"
+    conversion: [{component: ETY, value: {value: 97, unit: "%"}, basis: per-pass}]
+    outlet:
+      EB: {value: 94.0, unit: "%", note: "mol% of the alkylated aromatic products as the source tabulates them; not a selectivity relative to ethylene"}
+      DEB: {value: 5.7, unit: "%", note: "diethylbenzenes, mol% of the alkylated aromatic products"}
+    byproducts: [triethylbenzenes 0.2 mol%, sec-butylbenzene 0.07 mol%, other C9+ aromatics 0.02 mol%]
+    missing: [weight hourly space velocity at the comparison point, catalyst life, data at benzene/ethylene 4]
+    notes: "Derived for the model (D-005): ethylene in polyethylbenzenes (2 x 5.7 + 3 x 0.2) / (94.0 + 11.4 + 0.6) = 0.1132 of the ethylene converted."
+  - id: O2
+    source: S1
+    route: LIQ-ZEO
+    location: "Table 5.9, p. 280 (plants #2 to #5, zeolites)"
+    kind: operating-example
+    scale: industrial
+    conditions:
+      phase: liquid
+      catalyst_formulation: "zeolite (type not stated per plant)"
+      feed: {BZ: {range: [3.27, 8.0], unit: "1", note: "excess benzene as benzene/ethylene molar ratio, plants #2, #3, #5"}}
+      notes: "feeds of 99.5 to 99.95 % purity"
+    missing: [reactor temperature and pressure, per-pass conversion, selectivities]
+    notes: "Specific consumption 0.735 to 0.746 t benzene and 0.254 to 0.265 t ethylene per t EB (section 5.3.4.1); tar 3 to 5.6 kg/t EB for zeolite plants (section 5.3.6.1.2, p. 284)."
+  - id: O3
+    source: S1
+    route: LIQ-ZEO
+    location: "section 5.2.2.1.3.4, p. 249"
+    kind: review-summary
+    scale: industrial
+    conditions:
+      phase: liquid
+      catalyst_formulation: "MCM-22 (MWW), beta (BEA), Y (FAU)"
+      feed: {BZ: {range: [3.0, 7.0], unit: "1", note: "benzene/ethylene feed ratio the source names: Y about 7, beta about 4, MCM-22 3 to 4"}}
+    missing: [temperatures, conversions, selectivities]
+model_basis:
+  route: LIQ-ZEO
+  reactions: [ALK, DIALK, PENTA, TRANS]
+  evidence: [O1, O2, O3]
+  assumptions:
+    - "Ethylene converted completely in the multi-bed alkylator (O1 reaches 97 % in one lab bed); to be checked against a licensor or plant figure."
+    - "The ethylene shares of O1 (ratio 5.5, 220 C, lab) hold at ratio 4.0 and 453 to 513 K; a lower ratio makes more polyethylbenzenes, so DEB is likely under-predicted."
+    - "Flux oil 4.3 kg/t EB (O2, BREF midpoint) represented by pentaethylbenzene (G3)."
+    - "Transalkylation DEB conversion 0.65 per pass at benzene/DEB 3 (G2)."
+  validation: "Basic engineering: licensor or open plant data at the design ratio; an equilibrium check of the transalkylator."
+  decision: D-005
+  decided_by: agent proposal (Claude Code), for the process owner to confirm
+  date: "2026-11-03"

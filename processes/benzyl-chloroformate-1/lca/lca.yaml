@@ -1,0 +1,93 @@
+# Goal and scope of the benzyl-chloroformate-1 LCI. Schema: `cheme schema lca`. Outputs:
+# `cheme assess lca --write` (lca/inventory.csv, gaps.csv, dataset.yaml, manifest.json, results);
+# never edit those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the batch
+# plant with its amount per kg of neat benzyl chloroformate, from the flowsheet's year averages
+# of the recipe (D-003). Per batch: multiply by 1770 kg. The backgrounds are left unmapped
+# (`missing:` with the activity each should connect to), except where lca/mappings.yaml links a
+# library producer: a gap, never zero, and no values from licensed databases. The plant has no
+# emission to air in the balance: the HCl, the excess phosgene and the CO2 go from the reactor's
+# vent and the degassing through the vacuum pump to the caustic scrubber, whose one outlet in the
+# balance is the spent liquor (D-007); the scrubbed vent's traces are not estimated
+# (emission_exclusions).
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of benzyl chloroformate made by the semi-batch
+  phosgenation of benzyl alcohol at reduced pressure, degassed and not distilled, with the HCl
+  and the excess phosgene destroyed in a caustic scrubber, at the concept stage: which raw
+  materials, utilities and wastes the batch plant exchanges per kg of product, as the foreground
+  for a later cradle-to-gate study. No impact results: most backgrounds are not mapped yet
+  (D-012).
+functional_unit: {product: BCF, amount: 1, unit: kg, source: "1 kg of neat benzyl chloroformate (99.2 wt%) at the plant gate to cold storage, stream S8 (D-002, D-012)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
+# being mapped free (the schema's gate-to-gate maps every feed free), as n-bromosuccinimide-1 and
+# phosphorus-tribromide-1 do.
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Batch plant: phosgene gas dosed over 10 h into neat benzyl alcohol at 278 K and 50 kPa(a) (semi-batch, 1.27 mol per mol), the HCl vented as it forms, the crude degassed at 20 kPa(a) in the same enamelled vessel and not distilled; the HCl and the excess phosgene destroyed in a caustic scrubber; 1770 kg per batch, 565 batches a year on a dedicated train"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+flows:
+  # raw materials
+  - key: feed:BNOH
+    missing: "linked to processes/benzyl-alcohol-1 (lca/mappings.yaml): reagent-grade benzyl alcohol (at least 99.8 wt%) from the continuous hydrolysis of benzyl chloride with soda solution, kg for kg; S1 is 100 wt% in the model, so up to 0.2 % of its burden is not counted (D-012)"
+    source: "flowsheet stream S1 (D-004)"
+  - key: feed:PHOS
+    missing: "linked to processes/phosgene-1 (lca/mappings.yaml): liquid phosgene from CO and chlorine over activated carbon, a captive supply on the same site"
+    source: "flowsheet stream S3 (D-004)"
+  - key: feed:NAOH
+    missing: "linked to processes/chlor-alkali-1 (lca/mappings.yaml): caustic soda 50 wt% from membrane chlor-alkali electrolysis"
+    source: "flowsheet stream S10 (D-007)"
+  - key: feed:PW
+    missing: "not mapped yet (D-012); connect to: process water from the site water treatment"
+    source: "flowsheet stream S11 (D-007)"
+  # utilities
+  - key: feed:POWER
+    missing: "not mapped yet (D-012); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy streams P1 (R-101 agitator), P2 (vacuum pump) and P3 (scrubber pump), D-009"
+  - key: feed:LPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 350 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
+    source: "flowsheet energy streams Q3 (phosgene evaporator) and Q4 (degassing), D-009"
+  - key: product:BRINE
+    missing: "not mapped yet (D-012); connect to: refrigeration at 248 K (brine) from an electric vapour-compression unit (e.g. processes/utility-chiller), per kWh of heat removed: compressor electricity at its COP, condenser cooling water, refrigerant losses"
+    source: "flowsheet energy streams Q1 (charge cooling) and Q2 (heat of phosgenation and of the phosgene's absorption, the semi-batch model's, core ADR 0063), D-009, D-015"
+  - key: product:CW
+    missing: "not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
+    source: "flowsheet energy stream Q5 (scrubber cooler), D-009"
+  # waste
+  - key: product:WW
+    treatment: {kind: waste, route: "site wastewater treatment of a saline effluent: NaCl and Na2CO3 with excess NaOH, neutralised and discharged as dissolved salt"}
+    missing: "not mapped yet (D-012); connect to: treatment of a saline process effluent (sodium chloride, sodium carbonate) in an industrial wastewater treatment plant (e.g. processes/utility-wwtp), per kg"
+    source: "flowsheet stream S13 (D-007)"
+# What the batch plant uses per batch and the flowsheet does not carry (library ADR 0035, core
+# ADR 0053): the nitrogen that inerts R-101 before the charge, breaks its vacuum after the
+# degassing and pads the transfer to the cold tank, converted with the recipe's batches per year
+# (process/recipe.yaml). It leaves through the scrubber to air (nitrogen: no burden, no disposal
+# exchange). There is no rinse between batches: the train is kept dry (the chloroformate and
+# phosgene hydrolyse) and the next charge follows on the heel of the last.
+consumables:
+  - id: nitrogen
+    title: Nitrogen for inerting R-101, breaking its vacuum and padding the transfer
+    unit: kg
+    per_batch: 15.0
+    source: "12 Nm3 per batch (3 vessel volumes of the 2.5 m3 R-101 purged, the vacuum broken once, the transfer padded) x 1.2506 kg/Nm3, ASSUMED (D-012)"
+    missing: "linked to processes/asu-1 (lca/mappings.yaml): gaseous nitrogen to the battery limit"
+operation:
+  hours_per_year: 7920
+  life_years: 20
+  source: "design basis operating_hours_per_year 7920 (ASSUMED, the recipe's hours); 20 a service life ASSUMED"
+emission_exclusions:
+  - {id: scrubber-vent, method: storage-tank, equipment: [R-101, T-201], reason: "The scrubbed vent (nitrogen of the purges, the unabsorbed CO2 and traces of HCl and phosgene) is not split from the liquor in the balance: core has no specified component separator, so S101's one outlet carries the traces (D-007); its emission is not estimated (open for basic engineering)."}
+  - {id: phosgene-fugitive, method: equipment-leaks, equipment: [R-101, E-102], reason: "Fugitive phosgene from the evaporator, the dosing line and the reactor is not estimated: no P&ID yet; a phosgene unit is fully contained with a monitored enclosure (D-011)."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals
+  modelling: {principle: attributional}
+  geography: {description: "Generic fine-chemicals site with a captive phosgene unit, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #153, unreviewed"

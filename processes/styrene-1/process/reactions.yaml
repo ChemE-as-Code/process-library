@@ -1,0 +1,93 @@
+# Reactions of adiabatic ethylbenzene dehydrogenation and of the steam superheater burners
+# (DESIGN.md D-004, D-005, D-009). Schema cheme/reactions/v1.
+# Heats of reaction from the ideal-gas formation enthalpies of process/materials.yaml (298.15 K).
+#
+# Dehydrogenation (R-101, R-102): no rate law. Each bed is a conversion reactor keyed on
+# ethylbenzene: per bed 40 % of the inlet EB converts (ASSUMED, D-005; two beds give 64 %
+# overall, inside the LVOC BREF's 60-65 %), split over four reactions by the ASSUMED molar
+# selectivities of D-005 (styrene 0.952, toluene 0.028, benzene 0.012, tar 0.008, per mol EB
+# converted). A conversion here is the fraction of the inlet EB taken by that reaction; the
+# four add up to 0.40 on the inlet EB (DWSIM convention, one conversion per reaction).
+#
+# Burners (B-101): complete combustion of every fuel component, conversion 1.0 (ASSUMED, D-009).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: DH
+    equation: C8H10 <=> C8H8 + H2
+    stoichiometry: {EB: -1.0, SM: 1.0, H2: 1.0}
+    reversible: true
+    conversion: {key: EB, value: 0.3808, provenance: assumed, source: "D-005: 0.40 per bed (ASSUMED) x styrene selectivity 0.952 (ASSUMED, inside the LVOC BREF's selectivity above 90 %, section 5.2.3.1.1, p. 255)"}
+    heat_of_reaction: {value: 118000.0, provenance: calculated, source: "ideal-gas formation enthalpies of process/materials.yaml at 298.15 K (147900 - 29900 kJ/kmol)"}
+    catalyst: "iron oxide, potassium-promoted (LVOC BREF 5.2.1.2, p. 240; 5.2.3.1.1, p. 255)"
+    sources: ["EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, sections 5.2.1.2 and 5.2.3.1.1"]
+  - id: TOL
+    equation: C8H10 + H2 -> C7H8 + CH4
+    stoichiometry: {EB: -1.0, H2: -1.0, TOL: 1.0, CH4: 1.0}
+    reversible: false
+    conversion: {key: EB, value: 0.0112, provenance: assumed, source: "D-005: 0.40 per bed x toluene selectivity 0.028 (ASSUMED, sized against the LVOC BREF's 16-94 kg toluene per t styrene, 5.3.6.2, p. 285)"}
+    heat_of_reaction: {value: -54024.0, provenance: calculated, source: "ideal-gas formation enthalpies of process/materials.yaml at 298.15 K (50410 - 74534 - 29900 kJ/kmol)"}
+    catalyst: "iron oxide (hydrodealkylation side reaction; the BREF names toluene and methane from styrene hydrogenation, 5.2.1.2, p. 240: written here from EB, the same net change with the main reaction)"
+    sources: ["EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, section 5.2.1.2"]
+  - id: BZ
+    equation: C8H10 -> C6H6 + C2H4
+    stoichiometry: {EB: -1.0, BZ: 1.0, C2H4: 1.0}
+    reversible: false
+    conversion: {key: EB, value: 0.0048, provenance: assumed, source: "D-005: 0.40 per bed x benzene selectivity 0.012 (ASSUMED, sized below the LVOC BREF's bound of 20 kg benzene per t styrene, 5.3.6.2, p. 285)"}
+    heat_of_reaction: {value: 105840.0, provenance: calculated, source: "ideal-gas formation enthalpies of process/materials.yaml at 298.15 K (83180 + 52560 - 29900 kJ/kmol)"}
+    catalyst: "thermal and catalytic dealkylation"
+    sources: ["EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, section 5.2.1.2 (benzene by-product)"]
+  # TAR: a lumped, element-balanced model reaction, not a mechanism (D-005): it puts the tar
+  # make on the biphenyl proxy at the ASSUMED selectivity, so that the tar leaving C-303 is near
+  # the LVOC BREF's midpoint (Table 5.11, p. 285).
+  - id: TAR
+    equation: 2 C8H10 -> C12H10 + 2 C2H4 + H2
+    stoichiometry: {EB: -2.0, BIPH: 1.0, C2H4: 2.0, H2: 1.0}
+    reversible: false
+    conversion: {key: EB, value: 0.0032, provenance: assumed, source: "D-005: 0.40 per bed x tar selectivity 0.008 mol EB per mol EB converted (ASSUMED, lumped proxy)"}
+    heat_of_reaction: {value: 226720.0, provenance: calculated, source: "ideal-gas formation enthalpies of process/materials.yaml at 298.15 K (181400 + 2 x 52560 - 2 x 29900 kJ/kmol)"}
+    catalyst: "none claimed (lumped model reaction)"
+    sources: ["EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, Table 5.11 and section 5.3.6.2 (tar amount and nature)"]
+  # ---- steam superheater burners B-101 (D-009): complete combustion, water as vapour
+  - id: CB_H2
+    equation: H2 + 0.5 O2 -> H2O
+    stoichiometry: {H2: -1.0, O2: -0.5, H2O: 1.0}
+    reversible: false
+    conversion: {key: H2, value: 1.0, provenance: assumed, source: "D-009: complete combustion"}
+    heat_of_reaction: {value: -241822.0, provenance: calculated, source: "formation enthalpies of process/materials.yaml"}
+  - id: CB_CH4
+    equation: CH4 + 2 O2 -> CO2 + 2 H2O
+    stoichiometry: {CH4: -1.0, O2: -2.0, CO2: 1.0, H2O: 2.0}
+    reversible: false
+    conversion: {key: CH4, value: 1.0, provenance: assumed, source: "D-009: complete combustion"}
+    heat_of_reaction: {value: -802584.0, provenance: calculated, source: "formation enthalpies of process/materials.yaml"}
+  - id: CB_C2H4
+    equation: C2H4 + 3 O2 -> 2 CO2 + 2 H2O
+    stoichiometry: {C2H4: -1.0, O2: -3.0, CO2: 2.0, H2O: 2.0}
+    reversible: false
+    conversion: {key: C2H4, value: 1.0, provenance: assumed, source: "D-009: complete combustion"}
+    heat_of_reaction: {value: -1323152.0, provenance: calculated, source: "formation enthalpies of process/materials.yaml"}
+  - id: CB_BZ
+    equation: C6H6 + 7.5 O2 -> 6 CO2 + 3 H2O
+    stoichiometry: {BZ: -1.0, O2: -7.5, CO2: 6.0, H2O: 3.0}
+    reversible: false
+    conversion: {key: BZ, value: 1.0, provenance: assumed, source: "D-009: complete combustion"}
+    heat_of_reaction: {value: -3169490.0, provenance: calculated, source: "formation enthalpies of process/materials.yaml"}
+  - id: CB_TOL
+    equation: C7H8 + 9 O2 -> 7 CO2 + 4 H2O
+    stoichiometry: {TOL: -1.0, O2: -9.0, CO2: 7.0, H2O: 4.0}
+    reversible: false
+    conversion: {key: TOL, value: 1.0, provenance: assumed, source: "D-009: complete combustion"}
+    heat_of_reaction: {value: -3772016.0, provenance: calculated, source: "formation enthalpies of process/materials.yaml"}
+  - id: CB_EB
+    equation: C8H10 + 10.5 O2 -> 8 CO2 + 5 H2O
+    stoichiometry: {EB: -1.0, O2: -10.5, CO2: 8.0, H2O: 5.0}
+    reversible: false
+    conversion: {key: EB, value: 1.0, provenance: assumed, source: "D-009: complete combustion"}
+    heat_of_reaction: {value: -4386802.0, provenance: calculated, source: "formation enthalpies of process/materials.yaml"}
+  - id: CB_SM
+    equation: C8H8 + 10 O2 -> 8 CO2 + 4 H2O
+    stoichiometry: {SM: -1.0, O2: -10.0, CO2: 8.0, H2O: 4.0}
+    reversible: false
+    conversion: {key: SM, value: 1.0, provenance: assumed, source: "D-009: complete combustion"}
+    heat_of_reaction: {value: -4262980.0, provenance: calculated, source: "formation enthalpies of process/materials.yaml"}

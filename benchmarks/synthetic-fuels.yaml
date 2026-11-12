@@ -1,0 +1,98 @@
+# Benchmarks of synthetic fuels from H2 and CO2. Schema: schemas/benchmarks.schema.json; rules:
+# docs/benchmarks.md. Values are facts from the cited source, in our own form.
+#
+# The references come from Zang et al. 2021 (Argonne, Aspen Plus, kinetic RWGS at 600 degC with
+# 36 % CO2 conversion per pass, glycol CO2 recycle, PSA H2 recycle, residues burned in a Rankine
+# cycle). The dataset e-fuels-1 comes from König et al. 2015 (DLR, equilibrium RWGS at 900 degC
+# with external recycle, residues burned in the RWGS reformer). The two are independent, but they
+# are single simulations, not ranges of plants: each reference is one value, recorded as a
+# zero-width range and not widened. The designs differ, so every KPI is outside and explained;
+# the KPIs show how far the two concepts lie apart, not whether the dataset is right.
+schema: cheme-as-code/benchmarks/v1
+family: synthetic-fuels
+
+kpis:
+  ft-specific-co2:
+    title: CO2 fed per t of Fischer-Tropsch liquid fuel
+    unit: t/t
+    references:
+      - id: zang-2021-ft-co2
+        range: [6.81, 6.81]
+        basis: unallocated
+        note: "Our derivation from the source's per-GJ figures: 153.8 kg CO2 into 22.6 kg (1 GJ) of FT fuel, 6.805 t/t, rounded. The figures are for the integrated corn-ethanol case, whose FT plant is the stand-alone one with H2 recycle; the stand-alone capacity statement (2390 t/d CO2 for 350 t/d fuel, Methodology p. B) gives 6.83 t/t."
+        conditions: {technology: "RWGS 600 degC and 24.5 bar, cobalt fixed-bed FT 220 degC, wax hydroprocessing, H2 recycle by PSA", product: "naphtha, jet and diesel blend, LHV 44.3 MJ/kg", capacity: 350 t/d fuel, region: US, year: 2020}
+        source:
+          citation: "Zang, G., Sun, P., Elgowainy, A., Bafana, A., Wang, M. (2021) Life Cycle Analysis of Electrofuels: Fischer-Tropsch Fuel Production from Hydrogen and Corn Ethanol Byproduct CO2. Environ. Sci. Technol. 55:3888-3897, doi:10.1021/acs.est.0c05893"
+          url: https://www.osti.gov/biblio/1807679
+          locator: Results, integrated system, pp. E-F (Figure 3 text)
+          kind: peer-reviewed
+          accessed: "2026-11-05"
+  ft-carbon-conversion:
+    title: Share of the CO2 carbon fed that ends in the liquid fuel
+    unit: kg/kg
+    references:
+      - id: zang-2021-ft-carbon
+        range: [0.455, 0.455]
+        basis: unallocated
+        note: "Carbon in liquid fuels over carbon in the CO2 fed. The dataset's value uses its ASSUMED model fuel (C12H26, 0.8461 kg C/kg) in the expression; König et al. 2015 state 73.7 % for the same flows."
+        conditions: {technology: "RWGS 600 degC, kinetic, 36 % CO2 conversion per pass, glycol CO2 recycle (81 % recovery)", region: US, year: 2020}
+        source:
+          citation: "Zang, G., Sun, P., Elgowainy, A., Bafana, A., Wang, M. (2021) Life Cycle Analysis of Electrofuels: Fischer-Tropsch Fuel Production from Hydrogen and Corn Ethanol Byproduct CO2. Environ. Sci. Technol. 55:3888-3897, doi:10.1021/acs.est.0c05893"
+          url: https://www.osti.gov/biblio/1807679
+          locator: Results, integrated system, p. F, and Discussion, p. H (45 % in the abstract)
+          kind: peer-reviewed
+          accessed: "2026-11-05"
+  ft-fuel-per-h2-energy:
+    title: Liquid fuel LHV per LHV of the hydrogen fed
+    unit: MJ/MJ
+    references:
+      - id: zang-2021-ft-h2-energy
+        range: [0.582, 0.582]
+        basis: unallocated
+        note: "Our ratio of the source's Table 2 (with H2 recycle): 647 GJ/h of naphtha, jet fuel and diesel over 1112 GJ/h of H2, both LHV. The source's own 'FT fuel production efficiency', 57.5 %, also counts the 13 GJ/h of grid power. The dataset's expression uses the fuel LHV of König et al. (67.1 MW over 5.5 t/h, 43.92 MJ/kg) and the registry's H2 LHV (119.95 MJ/kg)."
+        conditions: {technology: "RWGS-FT with H2 recycle, residues to a Rankine cycle", region: US, year: 2020}
+        source:
+          citation: "Zang, G., Sun, P., Elgowainy, A., Bafana, A., Wang, M. (2021) Life Cycle Analysis of Electrofuels: Fischer-Tropsch Fuel Production from Hydrogen and Corn Ethanol Byproduct CO2. Environ. Sci. Technol. 55:3888-3897, doi:10.1021/acs.est.0c05893"
+          url: https://www.osti.gov/biblio/1807679
+          locator: Table 2, p. D
+          kind: peer-reviewed
+          accessed: "2026-11-05"
+  ft-specific-electricity:
+    title: Electricity used by the synthesis plant per t of FT liquid fuel (electrolysis excluded)
+    unit: kWh/t
+    references:
+      - id: zang-2021-ft-power
+        range: [1369, 1369]
+        basis: unallocated
+        note: "Our derivation: 72 GJ/h of compressor and pump power (gross; 13 GJ/h of it bought from the grid, the rest made from the residues) over 647 GJ/h / 44.3 MJ/kg = 14.6 t/h of fuel. It includes H2 compression from 20 bar, which the dataset's source does not need (H2 delivered at plant pressure)."
+        conditions: {technology: "RWGS-FT with H2 recycle; H2 at 20 bar and CO2 at 1 bar to the plant", region: US, year: 2020}
+        source:
+          citation: "Zang, G., Sun, P., Elgowainy, A., Bafana, A., Wang, M. (2021) Life Cycle Analysis of Electrofuels: Fischer-Tropsch Fuel Production from Hydrogen and Corn Ethanol Byproduct CO2. Environ. Sci. Technol. 55:3888-3897, doi:10.1021/acs.est.0c05893"
+          url: https://www.osti.gov/biblio/1807679
+          locator: Results, stand-alone system, p. D, and Methodology, p. B (feed pressures)
+          kind: peer-reviewed
+          accessed: "2026-11-05"
+
+datasets:
+  - process: e-fuels-1
+    dataset: fischer-tropsch-fuel-rwgs-co2-h2
+    conditions: {technology: "RWGS 900 degC and 2.5 MPa (equilibrium) with external recycle, cobalt LTFT 225 degC, hydrocracking; H2 at plant pressure", basis: "one simulation (König et al. 2015), conceptual inventory"}
+    kpis:
+      ft-specific-co2:
+        expression: feed:CO2 / product:fischer-tropsch-fuel
+        per: product:fischer-tropsch-fuel
+        reference: zang-2021-ft-co2
+        out_of_range_reason: "Different design: König et al. reach 73.7 % carbon conversion with an equilibrium RWGS at 900 degC and an external recycle, against 45.5 % in Zang et al. (kinetic RWGS at 600 degC), so less CO2 is fed per t of fuel."
+      ft-carbon-conversion:
+        expression: product:fischer-tropsch-fuel * 0.84614 / (feed:CO2 * 0.272921)
+        reference: zang-2021-ft-carbon
+        out_of_range_reason: "Same design difference as ft-specific-co2 (73.7 % in the dataset's source against 45.5 %). The dataset's 74.5 % is above its source's 73.7 % because its model fuel C12H26 carries a little more carbon than the source's product."
+      ft-fuel-per-h2-energy:
+        expression: product:fischer-tropsch-fuel * 43.92 / (feed:H2 * 119.95)
+        reference: zang-2021-ft-h2-energy
+        out_of_range_reason: "Higher carbon conversion means less H2 is burned with the residues: 66.9 % here, the source's 66.8 % chemical conversion efficiency, against 58.2 % in Zang et al."
+      ft-specific-electricity:
+        expression: feed:electricity / product:fischer-tropsch-fuel
+        per: product:fischer-tropsch-fuel
+        reference: zang-2021-ft-power
+        out_of_range_reason: "The dataset's source delivers H2 at the plant pressure (no H2 compressor) and has no CO2 separator or PSA: its large recycle (total recycle about 5 times the fresh feed, section 4.3) is only recompressed across the 0.3 MPa loop pressure drop (sections 3 and 4.1). Zang et al. compress H2 from 20 bar and run a glycol CO2 recycle and a PSA. The dataset's value is also recovered from a rounded efficiency (lca dataset, feed:electricity)."

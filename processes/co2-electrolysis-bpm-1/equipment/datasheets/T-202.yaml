@@ -24,7 +24,7 @@ operating:
     value: 0.5113977798
     unit: kg/h
     source: 'process/flowsheet.yaml stream S219 (case skid-b), assumed: scripts/skid_balance.py: duty
-      D-B (run e0c9c8aad55b5d1b) at 7 x 4 over 1000 h: the KOH dosed, 0.419179 L/h'
+      D-B (run eee5143171b47fb9) at 7 x 4 over 1000 h: the KOH dosed, 0.419179 L/h'
     assumed: true
   outlet_pressure:
     value: 101.3
@@ -42,17 +42,17 @@ operating:
     value: 0.5113977798
     unit: kg/h
     source: 'process/flowsheet.yaml stream S220 (case skid-b), assumed: scripts/skid_balance.py: duty
-      D-B (run e0c9c8aad55b5d1b) at 7 x 4 over 1000 h: the KOH dosed, 0.419179 L/h'
+      D-B (run eee5143171b47fb9) at 7 x 4 over 1000 h: the KOH dosed, 0.419179 L/h'
     assumed: true
 design:
   pressure_barg:
-    value: TBD
+    value: 0.0
     unit: barg
-    source: 'TBD: no design_pressure_barg in the equipment list'
+    source: equipment/equipment-list.yaml
   temperature_degc:
-    value: TBD
+    value: 40.0
     unit: degC
-    source: 'TBD: no design_temperature_degc in the equipment list'
+    source: equipment/equipment-list.yaml
 materials:
   main:
     value: PP
@@ -117,6 +117,11 @@ nozzles:
   dn: 15
   lines:
   - KV-202
+  source: pid/P-02.xml
+- name: N5
+  dn: 15
+  lines:
+  - PO-202
   source: pid/P-02.xml
 type_specific:
   diameter_m:
@@ -195,4 +200,9 @@ sizing_basis:
   reference: 'cheme datasheets fill: the values it writes are preliminary process sizing (short-cut methods,
     declared or typical parameters), not a rating or a design to a code; not calculated: rating, mechanical
     code, materials corrosion, relief, dynamics controls (docs/framework/sizing.md)'
-notes: ''
+notes: 'atmospheric PP tank, vented (design 0 bar(g) with the static head of the tank full of liquid,
+  40 degC: ASSUMED, above the tempered water''s 30 degC heating limit, D-060); against electrostatic charge
+  (IEC TS 60079-32-1, D-051 as corrected by D-063): the liquid earthed through an earthed metal element
+  in contact with it at the bottom (a stainless dip electrode or metal bottom nozzle), every metal fitting
+  bonded; the PP wall cannot be earthed: its charging in or beside the IIC zone is the competent person''s
+  to assess, or the wall is specified in a conductive or dissipative PP'

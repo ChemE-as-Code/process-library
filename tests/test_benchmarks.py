@@ -62,6 +62,11 @@ def _library(tmp_path: Path, dataset: Path = KIT / "processes" / "asu-1" / "lca"
         data = yaml.safe_load(path.read_text(encoding="utf-8"))
         data["exchanges"] = {k: v for k, v in (data.get("exchanges") or {}).items() if k.removeprefix(prefix) in keys}
         path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
+    # registry grades of other processes' flows would warn as unused (build_catalog, --strict)
+    registry = library / "chemicals" / "chemicals.yaml"
+    data = yaml.safe_load(registry.read_text(encoding="utf-8"))
+    data["flow_grades"] = {k: v for k, v in (data.get("flow_grades") or {}).items() if k.startswith("asu-1/")}
+    registry.write_text(yaml.safe_dump(data, sort_keys=False, allow_unicode=True), encoding="utf-8")
     return library
 
 

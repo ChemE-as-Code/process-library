@@ -1,0 +1,96 @@
+# Components and templates of potassium-tert-butoxide-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol (IUPAC 2021
+# abridged standard atomic weights applied to the formula), normal_boiling_point in K at 101.325
+# kPa. Sources are the register rows of DESIGN.md (SRC-n).
+#
+# The liquid data the semi-batch R101 needs (DESIGN.md D-005), at its 348 K:
+# - liquid_molar_volume, m3/kmol: tert-butanol 0.1023 at 348 K (thermo 0.6.1's default method
+#   DIPPR_PERRY_8E, its coefficients from Perry's Chemical Engineers' Handbook, 8th ed., drawing
+#   on DIPPR 801, not read here; a single fact with its source, library ADR 0037, SRC-9); molten potassium
+#   0.04744 at 353 K (thermo's CRC_INORG_L, the CRC liquid density packaged in chemicals 1.5.2,
+#   824 kg/m3, SRC-9); water 0.01807 (as di-tert-butyl-dicarbonate-1). The dissolved potassium
+#   tert-butoxide at its crystal volume, ASSUMED 1.0 g/cm3 (as di-tert-butyl-dicarbonate-1), and
+#   KOH at its solid density (2.044 g/cm3, CRC table in chemicals). Ideal mixing.
+# - liquid_heat_capacity, kJ/(kmol K): tert-butanol 257.0 at 348 K (thermo's default
+#   ZABRANSKY_SPLINE_C, Zabransky et al.'s critically evaluated liquid heat capacities, SRC-9;
+#   229.1 at 308 K, 265.5 at 365 K); molten potassium 32.03 at 353 K (thermo's
+#   WEBBOOK_SHOMATE, NIST WebBook Shomate data, SRC-9); water 75.3 (CRC table in chemicals);
+#   KOH 68.9 (solid, CRC table in chemicals); KOtBu 150, ASSUMED (no open measured value, as
+#   di-tert-butyl-dicarbonate-1).
+# - The vent (core ADR 0054, 0062): hydrogen leaves as it forms, saturated with tert-butanol
+#   vapour (Raoult, the Antoine constants below), through the vent condenser; its ideal-gas cp
+#   cools the gas there.
+# The batch still (core ADR 0055, Raoult's law) and the vent's vapour: Antoine constants of the
+# NIST WebBook (log10(P/bar) = A - B/(T/K + C), fitted by NIST to Brown, Fock et al. 1969 over
+# 312.66-355.56 K, used from 308 to 375 K: Beynon and McKetta's fit (330.6-363 K) gives 10.4
+# kPa at 308 K and 203 kPa at 374 K against 10.3 and 202 kPa here, SRC-9). The heat of
+# vaporization 39070 kJ/kmol is Majer and Svoboda's at the normal boiling point (NIST WebBook):
+# 40.0 kJ/mol at 349 K (R101) and 37.2 at 368 K (the still) lie within 5 % of it (D-007).
+schema: cheme/process/v1
+kind: materials
+components:
+  - id: K
+    name: Potassium (molten)
+    formula: K
+    cas: 7440-09-7
+    molar_mass: 39.098
+    normal_boiling_point: 1032.15
+    liquid_molar_volume: 0.04744
+    liquid_heat_capacity: 32.03
+  - id: TBA
+    name: tert-Butanol
+    formula: C4H10O
+    cas: 75-65-0
+    molar_mass: 74.123
+    normal_boiling_point: 355.45
+    liquid_molar_volume: 0.1023
+    liquid_heat_capacity: 257.0
+    heat_of_vaporization: 39070
+    vapour_pressure: {a: 4.49774, b: 1174.869, c: -93.92, temperature_range: [308.0, 376.0], provenance: given, source: "NIST WebBook (C75650), coefficients fitted by NIST to Brown, Fock et al. (1969) over 312.66-355.56 K (SRC-9); used from 308 K (the vent condenser) to 375 K (the still's end), within 1 % of Beynon and McKetta's fit (330.6-363 K) at both ends (D-007)"}
+  - id: KOTBU
+    name: Potassium tert-butoxide (dissolved)
+    formula: C4H9KO
+    cas: 865-47-4
+    molar_mass: 112.213
+    liquid_molar_volume: 0.1122
+    liquid_heat_capacity: 150.0
+  - id: KOH
+    name: Potassium hydroxide (dissolved)
+    formula: KOH
+    cas: 1310-58-3
+    molar_mass: 56.105
+    liquid_molar_volume: 0.02745
+    liquid_heat_capacity: 68.9
+  - id: H2O
+    name: Water
+    formula: H2O
+    cas: 7732-18-5
+    molar_mass: 18.015
+    normal_boiling_point: 373.12
+    liquid_molar_volume: 0.01807
+    liquid_heat_capacity: 75.3
+    heat_of_vaporization: 43990
+    vapour_pressure: {a: 4.6543, b: 1435.264, c: -64.848, temperature_range: [255.9, 373.0], provenance: given, source: "NIST WebBook (C7732185), coefficients fitted by NIST to Stull (1947) (SRC-9)"}
+  - id: H2
+    name: Hydrogen
+    formula: H2
+    cas: 1333-74-0
+    molar_mass: 2.016
+    normal_boiling_point: 20.37
+    ideal_gas: {dHf_298: 0.0, S_298: 130.7, cp_R: [3.29621, 0.00115759, -2.3324e-06, 2.10906e-09, -5.98313e-13], temperature_range: [298.15, 1500], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 298.15-1500 K (max deviation 0.50%), as the library's other hydrogen entries"}
+templates:
+  - {id: metal, title: Potassium, components: [K]}
+  - {id: alcohol, title: "tert-Butanol, the make-up's water and what the recycle carries", components: [TBA, H2O]}
+  - {id: water, title: Water, components: [H2O]}
+  # R101 and the still write every component of their charge into their outlets, the
+  # non-volatile ones at 0: the process template carries them all.
+  - {id: process, title: "Reaction mass, solution, residue and product", components: [K, TBA, KOTBU, KOH, H2O, H2]}
+  - {id: offgas, title: "Hydrogen with tert-butanol vapour", components: [H2, TBA, H2O]}
+  - {id: regen, title: "Molecular sieve regeneration condensate", components: [H2O, TBA]}
+# No benchmarked property package covers the alkoxide solution (cheme process props
+# --coverage): the liquid data above are the semi-batch's and the still's; the duties of R101,
+# its vent condenser and the still are the models' (core ADRs 0059, 0061, 0062), the dryer's
+# core's dryer model, the others hand arithmetic (DESIGN.md D-009).
+property_method:
+  adapter: thermo
+  status: placeholder

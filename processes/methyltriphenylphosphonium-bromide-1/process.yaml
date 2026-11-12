@@ -1,0 +1,127 @@
+# Process Atlas manifest of methyltriphenylphosphonium-bromide-1. Schema:
+# schemas/process.schema.json (cheme-as-code/process/v1). plant.yaml stays the engineering
+# manifest; sheets and results are derived from the ChemE-as-Code files by the catalog builder
+# and not repeated here.
+schema: cheme-as-code/process/v1
+id: methyltriphenylphosphonium-bromide-1
+title: Methyltriphenylphosphonium bromide by semi-batch quaternisation of PPh3 with methyl bromide in toluene (820 t/a)
+summary: >-
+  A batch plant: liquid methyl bromide is dosed into triphenylphosphine dissolved in toluene in a
+  closed pressure vessel at 333 K, the salt precipitates, is filtered, washed with recovered
+  toluene and vacuum-dried in a filter-dryer, and the toluene is recovered in a batch still.
+  Concept stage, 1057.1 kg per batch every 10.20 h on a dedicated train, preliminary
+  gate-to-gate LCI.
+description: |
+  The route is the quaternisation of triphenylphosphine (PPh3) with methyl bromide,
+  Ph3P + CH3Br -> [Ph3PCH3]Br, with no co-product (Wikipedia, which cites Wittig and Schoellkopf,
+  Org. Synth. 40, 66 (1960): that procedure could not be read). US 3 334 144 A (read) states in
+  its background that the salt is made by heating the phosphine with methyl bromide, usually in
+  benzene, in a pressure vessel, at 50 C or above for a reasonable rate. Here toluene replaces
+  benzene (ASSUMED): PPh3 at 20 wt% is dissolved in recovered toluene in the glass-lined pressure
+  vessel R-101 and heated to 333 K, and liquefied methyl bromide is pumped into the closed,
+  nitrogen-padded vessel over 3 h, 1.05 mol per mol PPh3 with the recycled excess. The salt
+  separates from toluene (as from benzene in US 3 334 144 A, Example 1). After a post-reaction to
+  0.99 conversion of the PPh3 the slurry is cooled to 313 K, R-101 is depressurised and swept with
+  nitrogen to the site's thermal oxidiser (90 % of the excess methyl bromide, with F-101's
+  pressing gas, ASSUMED), and the salt is filtered, reslurry-washed with recovered toluene and
+  vacuum-dried at 333 K in the agitated filter-dryer F-101. The mother liquor, the wash filtrate
+  and the dryer's condensate are distilled in the batch still C-101: 98.5 % of the liquor's mass
+  comes over as toluene with the remaining methyl bromide and is reused for the next charge and
+  the wash; the residue (the unconverted PPh3, the dissolved salt and fines in toluene) goes to
+  incineration.
+
+  The modelled yield is 98.5 % on PPh3 and the product 99.87 wt% salt (0.1 wt% toluene). Both are
+  ASSUMED upper bounds: they follow from the ASSUMED 0.99 conversion and solubility, no open
+  source of this route gives a yield, and triphenylphosphine oxide, water and other impurities
+  are not modelled.
+
+  The batch is modelled with cheme-as-code 1.10.0: R101 is a semi-batch (reactor: semibatch) with
+  the liquid methyl bromide as the dose; the precipitation CR101 and the reslurry wash W101 are
+  crystallizers with the dissolved PPh3 and methyl bromide as spectators (core ADR 0056); the
+  filter-dryer is one recipe vessel over four steps with Ruth filtration times and core's dryer
+  to a residual moisture (core ADR 0057); the toluene recovery is core's batch still on Raoult's
+  law (core ADR 0055). The recovered toluene's recycle is converged by propagate at the tear S11
+  (core ADR 0060), and the semi-batch, the crystallizer and the still write their duties (core
+  ADR 0059), the still's with the charge's heat-up and C-101's metal and the crystallizer's with
+  R-101's metal (core ADR 0063). The recipe gives the cycle (10.20 h, the filter-dryer the
+  bottleneck, 776.6 batches a year), R-101's heating and cooling times with its metal, sizes
+  R-101, F-101 and the still C-101 (6.3 m3 each) and checks R-101's jacket against
+  the cooling water's log-mean temperature. Kinetics and the heat of reaction are ASSUMED (no
+  open data): 14.7 % of the methyl bromide accumulates, the cooling-failure temperature reaches
+  339.1 K, and the MTT of the closed vessel (the temperature at which it reaches its relief set
+  pressure, 415.3 K) is far above it; at k/100 the MTSR is 371.9 K, still below its MTT of
+  401.3 K. Without a TD24 core's criticality gives class 1, 2 or 5. See DESIGN.md for every
+  assumption.
+families: [chlorinated-organics]   # the halogenated organics, as carbon-tetrabromide-1; no organophosphorus family in taxonomy/families.yaml
+keywords: [methyltriphenylphosphonium bromide, MTPPB, Wittig reagent, phosphonium salt, triphenylphosphine, methyl bromide, bromomethane, quaternisation, toluene, semi-batch, batch, dosing, pressure vessel, precipitation, filter-dryer, vacuum dryer, batch still, solvent recovery, fine chemicals]
+facets:
+  feedstock_basis: [fossil, mineral, electricity]
+  product_classes: [chemicals]
+  unit_operations: [reaction, crystallization, filtration, drying, distillation]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Capacity, kinetics, heat of
+# reaction, solubility, filtration, drying and the still's basis are assumed (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept batch PFD with closed mass, component and element balances (cheme validate: 3 blocks,
+    14 steps). Every material stream is calculated by cheme process propagate from the feeds and
+    the recycle: the semi-batch R101 from its ASSUMED rate law, the precipitation CR101 and the
+    wash W101 as crystallizers with spectators on an ASSUMED solubility with no salting-out
+    correction, the filters as specified splits, the dryer D101 to an ASSUMED residual moisture,
+    the still ST101 by Rayleigh on Raoult's law; the vent losses DG101 and the vacuum condenser
+    E201 are hand splits; the recycled toluene is converged by propagate at the tear S11
+    (Wegstein, 3 iterations; core 1.9.0). The duties of R101, CR101 and ST101 are written by
+    their models (energy_port), the still's with the charge's heat-up and C-101's metal and
+    CR101's with R-101's metal (core 1.10.0); R-101's heat-up with the PPh3's heat of solution
+    and its metal, F-101's cool-down and the condensers are hand arithmetic from the stream table
+    on their own streams; the dryer's is core's model. The recipe takes the dosing,
+    post-reaction, heating and cooling (with R-101's metal), filtration, drying and boil-up times
+    from the models (cheme process recipe, no cheme.recipe-basis finding); the still's heat-up
+    time is hand arithmetic at its boil-up rate.
+    Thermal screening (cheme process reactor-hazards): dT_ad 46.0 K, accumulation 14.7 %, MTSR
+    339.1 K against a hand MTT of 415.3 K for the closed vessel (core 1.9.0's default, 307.3 K,
+    its Clausius-Clapeyron estimate of pure methyl bromide's boiling point at 230 kPa(a) with the
+    384 K heat of vaporization of the materials, 300.0 K by their vapour pressure, does not
+    describe it); no vent and no gas
+    formed, so no gas release; no criticality class without a TD24 from calorimetry (never
+    estimated). The kinetics are assumed: at k/100 the accumulation is 85 % and the cycle 293 h.
+    Preliminary gate-to-gate LCI with nitrogen as a per-batch consumable; toluene and nitrogen
+    linked to btx-1 and asu-1, PPh3 and methyl bromide gaps with their proxy recorded. Not
+    reviewed. Needs cheme-as-code 1.10.0.
+chemistry:
+  inputs:
+    - {chemical: triphenylphosphine, role: feedstock, inventory_key: "feed:PPH3", note: "Triphenylphosphine (merchant), 0.744 kg/kg salt; no library process makes it (proxy PCl3 + chlorobenzene + sodium recorded, D-012)"}
+    - {chemical: bromomethane, role: feedstock, inventory_key: "feed:MEBR", note: "Liquefied methyl bromide (merchant), 0.281 kg/kg salt, 1.045 mol per mol PPh3 fed; no library process makes it (proxy methanol + HBr recorded, as methylmagnesium-bromide-1, D-012)"}
+    - {chemical: toluene, role: feedstock, inventory_key: "feed:TOL", note: "Toluene make-up (btx-1), 0.056 kg/kg salt; the still recovers the rest of the 4.0 kg per kg PPh3 charged"}
+    - {chemical: nitrogen, role: feedstock, inventory_key: "consumable:nitrogen", note: "Nitrogen (asu-1) for inerting, padding, sweeping and pressing, 103 kg per batch, 0.097 kg/kg salt (ASSUMED)"}
+  outputs:
+    - {chemical: methyltriphenylphosphonium-bromide, role: main-product, inventory_key: "product:PROD", note: "Dried salt to packing under nitrogen; modelled 99.87 wt%, an ASSUMED upper bound (no specification or impurity profile found, PPh3 oxide and water not modelled)"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.154 kWh/kg salt: agitators of R-101, F-101 and C-101, the dosing pump, the vacuum pump and transfer pumps (ASSUMED)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.767 kWh (2.76 MJ)/kg salt of LP steam: the still (boil-up, the charge's heat-up and its metal, 0.585 kWh), the dryer (0.100 kWh) and R-101's heat-up with the PPh3's heat of solution (0.083 kWh)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.703 kWh/kg salt removed by cooling water: the still's condenser and distillate cooler (0.544 kWh), the heat of quaternisation, the slurry's cool-down and the product's in F-101"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:BRINE", note: "0.042 kWh/kg salt removed by brine at 258 K: F-101's vacuum condenser (the registry has chilled water, not brine: closest entry)"}
+basis:
+  capacity: "820.9 t/a dried salt: 776.6 batches/a of 1057.10 kg in 7920 h on a dedicated train (103.66 kg/h year average), from one 6.3 m3 R-101 and the recipe's cycle, ASSUMED (DESIGN.md D-002, D-003, D-013)"
+  operating_hours_per_year: 7920
+  location: generic fine-chemicals site with a methyl bromide supply and a thermal oxidiser (not chosen)
+references:
+  - {title: "Monsanto Research Corp. (1967) US3334144A: Process for making alkyltriaryl-phosphonium compounds (background: the phosphine heated with methyl bromide, usually in benzene, in a pressure vessel, 50 C or above; Example 1: PPh3 and dibromomethane in methanol, about 30 % conversion in 24 h, the salt precipitated with benzene, mp 224-226 C; a variant, not used)", url: "https://patents.google.com/patent/US3334144A/en"}
+  - {title: "Wikipedia, Methyltriphenylphosphonium bromide (the route Ph3P + CH3Br; cites Wittig, G.; Schoellkopf, U. (1960) Org. Synth. 40, 66, not read: blocked by a browser check)", url: "https://en.wikipedia.org/wiki/Methyltriphenylphosphonium_bromide"}
+  - {title: "PubChem CID 74505, Methyltriphenylphosphonium bromide (identity; white hygroscopic powder)", url: "https://pubchem.ncbi.nlm.nih.gov/compound/74505"}
+  - {title: "PubChem CID 11776, Triphenylphosphine (identity; HSDB: mp 80.5 C, density 1.075 at 80 C, soluble in benzene)", url: "https://pubchem.ncbi.nlm.nih.gov/compound/11776"}
+  - {title: "Wikipedia, Bromomethane (boiling point, vapour pressure 190 kPa at 20 C, toxicity, the Montreal Protocol phase-out)", url: "https://en.wikipedia.org/wiki/Bromomethane"}
+  - {title: "Stoessel, F. (2008) Thermal Safety of Chemical Processes, Wiley-VCH (accumulation, MTSR and the MTT of a closed system; method reference, not data)", doi: 10.1002/9783527621606}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/methyltriphenylphosphonium-bromide-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0

@@ -1,0 +1,39 @@
+# The root of this plant repository. Schema: `cheme schema plant`.
+schema: cheme/plant/v1
+name: "Acetyl chloride"
+# The oldest cheme-as-code this repository works with; an older one stops with an upgrade hint.
+# reactor: semibatch with batch.vent and hazard.mtt, the batch still (still:), process/recipe.yaml
+# with units over several steps and distil from: need cheme-as-code 1.8.0 (core ADRs 0050 to
+# 0055, 0057); the model duties with energy_port (Q2, Q3) and hazard.vent_capacity need 1.9.0
+# (core ADRs 0058, 0059; core#178, core#180); the still's column (still.column, its
+# condenser_port and still.heat_up, the reboiler's and condenser's duties) needs 1.10.0 (core
+# ADRs 0061, 0063; core#173, core#191).
+requires: cheme-as-code>=1.10
+description: "Acetyl chloride from acetic acid and phosphorus trichloride, semi-batch with an HCl vent, phase split and batch distillation, a batch plant, concept stage (issue ChemE-as-Code/process-library#142)"
+units: SI
+stage: concept
+stages:
+  - {id: concept, title: Concept and feasibility}
+  - {id: basic, title: Basic engineering}
+  - {id: detail, title: Detail engineering}
+# Where the plant's issues are tracked (optional): actions, engineering holds, technical
+# queries and design changes as GitHub issues with the engineering labels of cheme-as-code's
+# docs/framework/issues.md; `cheme issues` lists them, the gates of kind issues use them.
+# issues: {repository: your-org/your-plant, label: "process:your-plant",
+#          forms: {action: 1-action-item.yml, hold: 2-engineering-hold.yml}}
+# Title-block data for `cheme sheet new` (optional):
+# project: {number: "24-017", client: "", site: "", revision: A}
+# P&ID sheets, DEXPI 2.0.1 XML. Empty: every pid/*.xml. A sheet not drawn yet is
+# `status: planned` (no file needed); `cheme sheet new P-01` starts it.
+sheets:
+  - {id: BFD, kind: bfd, file: process/BFD.xml, title: Block flow diagram}
+  - {id: PFD, kind: pfd, file: process/PFD.xml, title: Process flow diagram}
+#  - {id: P-01, file: pid/P-01.xml, title: Feed and reaction, status: planned}
+# The block and process flow diagrams are generated from process/flowsheet.yaml by
+# `cheme process build` (skill `process-design`); declare them by kind:
+#  - {id: BFD, kind: bfd, file: process/BFD.xml, title: Block flow diagram}
+#  - {id: PFD, kind: pfd, file: process/PFD.xml, title: Process flow diagram}
+# A generated sheet names its generator (script and the frame it starts from, a commit or a
+# file); it is then rebuilt with `cheme regen P-02`, never edited by hand:
+#  - {id: P-02, file: pid/P-02.xml, title: Utilities,
+#     generator: {script: scripts/draft_P-02.py, frame: 1a2b3c4}}

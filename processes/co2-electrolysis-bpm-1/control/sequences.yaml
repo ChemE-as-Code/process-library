@@ -5,8 +5,22 @@
 #
 # The two pilot skids of #330 (DESIGN.md D-018): for each skid the fill, the start-up, the
 # normal end of the campaign at H (SEQ-x-STOP), the response to a process trip (SEQ-x-TRIP)
-# and to a gas detection trip, which isolates the cathode gas train (SEQ-x-GAS), and the
-# end-of-run drain.
+# and to a gas detection or tail-gas trip, which isolates the cathode gas train (SEQ-x-GAS), and
+# the end-of-run drain. Revision B (the owner's decisions of 2026-11-06): the tail-gas trip
+# valve XV-x33 opens only once the oxidiser fires and closes with it (D-054); the loop is brought
+# to temperature and kept from freezing by the tempered-water unit (D-052, D-056); the drain
+# vents the loop, empties the tank by gravity, the loop's low point and the tank's heel by the
+# pump-out, flushes with demineralised water and closes and caps every drain (D-055).
+# Revision C (the design review 2026-11-06-design, D-060 to D-063): the start-up gives the train
+# its outlet first (oxidiser, tail gas, PSA and recycle) and then purges with K-x31 and the CO2
+# together on the total feed FIC-x04; every stop depressurises CG-x03 and the PSA through the
+# PSA's own stop into the tail gas while the oxidiser still fires (PIA-x32), before XV-x33 closes;
+# the compressor-stop, instrument-air and condensate high-high trips isolate the train as a gas
+# trip does (SEQ-x-GAS, whose reset now includes the burner management trip I-x10).
+# Revision D (the design review 2026-11-06-design-r2#2, D-067): every stop step (SEQ-x-STOP S3,
+# SEQ-x-TRIP S2, SEQ-x-GAS S4) closes the fresh CO2 FV-x02 and the recycle XV-x34 FIRST, lets
+# K-x31 draw the cathode side down to a stated residual 0.05 bar(g) on PIC-x21, and only then
+# stops K-x31: no feed into a blocked cathode, and an end condition the plant can reach.
 # A campaign is one run of duration H (process/design-basis.yaml capacity.pilot_skid): Skid A
 # on one fill, Skid B on a fill kept by dosing, bleed and make-up (D-009, D-010).
 schema: cheme/sequences/v1
@@ -19,14 +33,15 @@ sequences:
     equipment: [T-101, P-101]
     permissives:
       - {tag: HV-103, state: closed}
+      - {all: [{tag: HV-106, state: closed}, {tag: HV-107, state: closed}, {tag: HV-108, state: closed}]}
       - {tag: U-101, state: "off"}
     steps:
       - id: S1
         title: Fill T-101 through HV-102
         actions:
           - {tag: HV-102, action: open, by: operator}
-        complete: {tag: LIA-101, state: "at the working volume of the duty D-A (the T-101 level of 1166 L at 1000 h, process/duties.yaml)"}
-        operator: Fill with fresh 1 M KOH only (the measured series' electrolyte, D-014); record the volume filled.
+        complete: {tag: LIA-101, state: "at the working volume of the duty D-A (the T-101 level of 1176 L at 1000 h, sized to the pH 12.2 trip, D-058; process/duties.yaml): LIA-101's LAH"}
+        operator: "Fill with fresh 1 M KOH only (the measured series' electrolyte, D-014); the volume delivered is checked against the working volume before the fill (the delivery's metered or counted volume), and the filling operator stops the delivery at LIA-101's LAH; its LAHH sounds at the fill connection (review 2026-11-06-design #13, D-061). Record the volume filled."
       - id: S2
         title: Close the fill
         actions:
@@ -51,51 +66,55 @@ sequences:
     title: Start Skid A
     mode: startup
     cases: [skid-a]
-    equipment: [E-101A, E-101B, E-101C, E-101D, U-101, V-121, K-131, X-131, X-132, K-141]
+    equipment: [E-101A, E-101B, E-101C, E-101D, U-101, V-121, K-131, X-131, X-132]
     permissives:
       - {sequence: SEQ-A-FILL, state: complete}
-      - {all: [{interlock: I-101, state: reset}, {interlock: I-102, state: reset}, {interlock: I-103, state: reset}, {interlock: I-104, state: reset}, {interlock: I-105, state: reset}, {interlock: I-106, state: reset}]}
+      - {all: [{interlock: I-101, state: reset}, {interlock: I-102, state: reset}, {interlock: I-103, state: reset}, {interlock: I-104, state: reset}, {interlock: I-105, state: reset}, {interlock: I-106, state: reset}, {interlock: I-109, state: reset}, {interlock: I-111, state: reset}, {interlock: I-112, state: reset}, {interlock: I-113, state: reset}, {interlock: I-114, state: reset}, {interlock: I-115, state: reset}, {interlock: I-116, state: reset}, {interlock: I-117, state: reset}, {interlock: I-118, state: reset}, {interlock: I-119, state: reset}, {interlock: I-120, state: reset}]}
       - {loop: FIC-101, state: at setpoint}
-      - {text: "cooling water, CO2, air and demineralised water available at the battery limit"}
-    interlocks: [I-101, I-102, I-103, I-104, I-105, I-106]
+      - {text: "tempered water, CO2, air and demineralised water available at the battery limit"}
+    interlocks: [I-101, I-102, I-103, I-104, I-105, I-106, I-109, I-110, I-111, I-112, I-113, I-114, I-115, I-116, I-117, I-118, I-119, I-120]
     steps:
       - id: S1
-        title: Ventilate and cool
+        title: Check the air at the skid and bring the loop to temperature
         actions:
-          - {tag: K-141, action: start, by: operator}
+          - {text: "check CO2 (and O2) at grade and at the low points round the open skid with a portable meter, and wear a personal CO monitor (D-050)", by: operator}
           - {loop: TIC-111, action: auto, by: operator}
         complete: {loop: TIC-111, state: at setpoint}
+        operator: In cold weather the tempered-water unit heats the anolyte to 25 degC before the current, TIC-111 in the unit's heating mode (D-052, D-062); TIC-111 low alarm clear.
       - id: S2
-        title: Purge the cathodes with CO2 and humidify
+        title: Start the oxidiser and the PSA, open the tail gas and the recycle
         actions:
-          - {loop: FIC-102, action: auto, by: operator}
-          - {tag: HV-104, action: open, by: operator}
-          - {loop: PIC-121, action: auto, by: operator}
-          - {loop: LIC-122, action: auto, by: operator}
-        complete: {loop: FIC-102, state: at setpoint, delay: {value: 15, unit: min}}
-        operator: Set the water on FI-103 to the cathode's water (process/flowsheet.yaml S102).
+          - {tag: X-132, action: start, by: operator}
+          - {tag: XV-133, action: open, by: operator}
+          - {tag: X-131, action: start, by: operator}
+          - {tag: XV-134, action: open, by: operator}
+          - {loop: PIC-131, action: auto, by: operator}
+        complete: {all: [{text: X-131 and X-132 report ready (package signals)}, {tag: XV-133, state: open}, {tag: XV-134, state: open}]}
+        operator: "The cathode gas train needs its outlet before any CO2 flows (review 2026-11-06-design #4, D-061): the oxidiser runs (pre-purged and firing, its burner management system's ready signal, so I-110 resets) before XV-133 opens and anything reaches it (no CO or H2 vented, D-012, D-054)."
       - id: S3
-        title: Start the gas conditioning
+        title: Purge the cathodes with CO2 through the compressor and humidify
         actions:
           - {tag: K-131, action: start, by: operator}
-          - {tag: X-132, action: start, by: operator}
-          - {tag: X-131, action: start, by: operator}
-          - {loop: PIC-131, action: auto, by: operator}
-        complete: {text: X-131 and X-132 report ready (package signals)}
-        operator: The oxidiser runs before the PSA sends tail gas (no CO or H2 vented, D-012).
+          - {loop: PIC-121, action: auto, by: operator}
+          - {loop: LIC-122, action: auto, by: operator}
+          - {loop: FIC-102, action: cascade, by: operator}
+          - {loop: FIC-104, action: auto, by: operator}
+          - {tag: HV-104, action: open, by: operator}
+        complete: {loop: FIC-104, state: at setpoint, delay: {value: 15, unit: min}}
+        operator: "K-131 and the CO2 together: the purge sweeps the air from the cathodes through K-131 and X-131 to the oxidiser. FIC-104 holds the total feed, so with the PSA not yet recycling FV-102 supplies the whole of it (about 3.3 kg/h, D-062); watch PIA-123 and the pressure difference to PIA-113. Set the water on FI-103 to the cathode's water (process/flowsheet.yaml S102)."
       - id: S4
         title: Ramp the current
         actions:
           - {loop: JIC-101, action: auto, by: operator}
         complete: {loop: JIC-101, state: at setpoint, delay: {value: 30, unit: min}}
-        operator: Ramp to the 80 A of the duty in steps; watch the stack voltage, TIC-111 and the CO2 flow.
+        operator: "Ramp to the 80 A of the duty in steps; watch each stack's voltage EIA-105A to D and current IIA-106A to D (D-063), TIC-111, FIC-104 and AIA-114."
         next: end
     abort:
-      condition: {any: [{interlock: I-101, state: tripped}, {interlock: I-102, state: tripped}, {interlock: I-103, state: tripped}, {interlock: I-104, state: tripped}, {interlock: I-105, state: tripped}, {interlock: I-106, state: tripped}]}
+      condition: {any: [{interlock: I-101, state: tripped}, {interlock: I-102, state: tripped}, {interlock: I-103, state: tripped}, {interlock: I-104, state: tripped}, {interlock: I-105, state: tripped}, {interlock: I-106, state: tripped}, {interlock: I-109, state: tripped}, {interlock: I-110, state: tripped}, {interlock: I-111, state: tripped}, {interlock: I-112, state: tripped}, {interlock: I-113, state: tripped}, {interlock: I-114, state: tripped}, {interlock: I-115, state: tripped}, {interlock: I-116, state: tripped}, {interlock: I-117, state: tripped}, {interlock: I-119, state: tripped}, {interlock: I-120, state: tripped}]}
       actions:
         - {tag: U-101, action: stop}
       then: SEQ-A-TRIP
-    reset: {latching: true, manual: true, condition: {all: [{interlock: I-103, state: reset}, {interlock: I-104, state: reset}]}}
+    reset: {latching: true, manual: true, condition: {all: [{interlock: I-103, state: reset}, {interlock: I-104, state: reset}, {interlock: I-109, state: reset}, {interlock: I-110, state: reset}, {interlock: I-112, state: reset}, {interlock: I-113, state: reset}, {interlock: I-114, state: reset}, {interlock: I-119, state: reset}]}}
   - id: SEQ-A-STOP
     title: End of the Skid A campaign at H (normal stop)
     mode: shutdown
@@ -103,119 +122,154 @@ sequences:
     equipment: [U-101, K-131, X-131, X-132]
     permissives:
       - {text: "the campaign's H hours on stream (process/design-basis.yaml capacity.pilot_skid.duration), or AI-101 at its low alarm with the run to be ended"}
-    interlocks: [I-101, I-102, I-103, I-104, I-105, I-106]
+    interlocks: [I-101, I-102, I-103, I-104, I-105, I-106, I-109, I-110, I-111, I-112, I-114, I-115, I-116, I-117, I-119, I-120]
     steps:
       - id: S1
         title: Ramp the current down
         actions:
           - {loop: JIC-101, action: manual, by: operator}
         complete: {tag: U-101, state: "off"}
-        operator: "Ramp down in steps; record the hours on stream, the charge and AI-101 for the campaign record (at the measured WDE the anolyte is at pH 12.02 at H, D-009)."
+        operator: "Ramp down in steps; record the hours on stream, the charge and AI-101 for the campaign record (at the measured WDE the anolyte is at the pH 12.2 trip value at H, 0.2 above the criterion, D-009, D-058)."
       - id: S2
         title: Purge the cathodes
         actions:
-          - {text: "keep FIC-102, PIC-121, the PSA and the oxidiser in automatic", by: operator}
+          - {text: "keep FIC-104 (with FIC-102 in cascade), PIC-121, the PSA and the oxidiser in automatic", by: operator}
         complete: {text: "cathode gas free of CO and H2 (sampled)", delay: {value: 15, unit: min}}
       - id: S3
-        title: Stop the gas conditioning
+        title: Close the feed, draw the cathode down with the compressor, then stop it and depressurise through the PSA to the oxidiser
         actions:
+          - {loop: FIC-104, action: manual, by: operator}
+          - {loop: FIC-102, action: manual, by: operator}
+          - {tag: FV-102, action: close, by: operator}
+          - {tag: XV-134, action: close, by: operator}
+          - {loop: PIC-121, action: setpoint, setpoint: {value: 106, unit: kPa(a), provenance: assumed, source: "ASSUMED residual 0.05 bar(g): above atmospheric so no air is drawn in, below PIC-121's PAH and the I-111 trip (D-067)"}, by: operator}
           - {tag: K-131, action: stop, by: operator}
           - {tag: X-131, action: stop, by: operator}
+        complete: {all: [{text: "before K-131 stops: FV-102 closed and PIA-123 and PIA-116 at the residual 0.05 bar(g) (106 kPa(a)), the cathode side drawn down"}, {text: "PIA-132 at about 0 bar(g): CG-103 and X-131 depressurised", delay: {value: 5, unit: min}}]}
+        operator: "Review 2026-11-06-design-r2#2 (D-067): the fresh CO2 closes FIRST (FIC-104 and FIC-102 in manual at 0 % output, FV-102 closed) and the recycle XV-134 with it, so no CO2 feeds a cathode whose outlet is about to stop; K-131 keeps running on PIC-121, its set point lowered to the residual 106 kPa(a), and draws the cathode side (the stacks' cathodes, CG-101, V-121, CG-102) down to it in a few minutes (about 30 L of gas); only then K-131 stops. The cathode side is left closed under CO2 at that small positive pressure, below PIC-121's PAH and the I-111 trip, so no air enters and nothing vents; the next start-up purges it to the oxidiser (SEQ-A-START S3). The membrane's pressure difference stays inside I-117's window (anolyte minus cathode about +35 kPa at the inlet end and -5 kPa at the outlet end while P-101 circulates). Then the PSA's own stop sequence depressurises its beds and the feed line CG-103 into the tail gas, through the open XV-133 to the oxidiser still firing (D-061, a requirement of the package specification, the vendor's to confirm); PIA-132 shows it. The current is off, so I-113 is not armed."
+      - id: S4
+        title: Close the tail gas, stop the oxidiser
+        actions:
+          - {tag: XV-133, action: close, by: operator}
           - {tag: X-132, action: stop, by: operator}
-          - {loop: FIC-102, action: manual, by: operator}
-        complete: {text: cathode gas train purged and depressurised}
-        operator: Then drain the spent anolyte with SEQ-A-DRAIN.
+        complete: {all: [{text: cathode gas train purged and depressurised}, {tag: XV-133, state: closed}]}
+        operator: "XV-133 closes before the oxidiser stops (no tail gas to a burner that is not firing, D-054). Then drain the spent anolyte with SEQ-A-DRAIN. A skid left filled and idle (the on/off duty D-A-ONOFF, or a stop in frost) keeps P-101 circulating and the tempered-water unit heating, on TIC-111's low alarm (D-052)."
         next: end
     abort:
-      condition: {any: [{interlock: I-101, state: tripped}, {interlock: I-102, state: tripped}, {interlock: I-103, state: tripped}, {interlock: I-104, state: tripped}, {interlock: I-105, state: tripped}, {interlock: I-106, state: tripped}]}
+      condition: {any: [{interlock: I-101, state: tripped}, {interlock: I-102, state: tripped}, {interlock: I-103, state: tripped}, {interlock: I-104, state: tripped}, {interlock: I-105, state: tripped}, {interlock: I-106, state: tripped}, {interlock: I-109, state: tripped}, {interlock: I-110, state: tripped}, {interlock: I-111, state: tripped}, {interlock: I-112, state: tripped}, {interlock: I-114, state: tripped}, {interlock: I-115, state: tripped}, {interlock: I-116, state: tripped}, {interlock: I-117, state: tripped}, {interlock: I-119, state: tripped}, {interlock: I-120, state: tripped}]}
       actions:
         - {tag: U-101, action: stop}
       then: SEQ-A-TRIP
     reset: {latching: false, manual: true}
   - id: SEQ-A-TRIP
-    title: Skid A after a process trip of the rectifier (pH, level, temperature, flow)
+    title: Skid A after a process trip of the rectifier (pH, level, temperature, flow, cathode pressure, CO2 feed, H2 in O2, membrane, stack current)
     mode: abnormal
     cases: [skid-a]
     equipment: [U-101, P-101, K-131, X-131, X-132]
-    interlocks: [I-101, I-102, I-103, I-104, I-105, I-106]
+    interlocks: [I-101, I-102, I-103, I-104, I-105, I-106, I-109, I-110, I-111, I-112, I-113, I-114, I-115, I-116, I-117, I-119, I-120]
     steps:
       - id: S1
         title: Current off, keep the purge
         actions:
           - {loop: JIC-101, action: manual, by: automatic}
-          - {loop: FIC-102, action: auto, by: automatic}
+          - {loop: FIC-104, action: auto, by: automatic}
+          - {loop: FIC-102, action: cascade, by: automatic}
         complete: {tag: U-101, state: "off"}
-        operator: Keep the CO2 purge and the oxidiser until the cathode gas is free of CO and H2; P-101 runs unless I-102 stopped it. A process trip leaves FV-102 and K-131 free (only I-103 and I-104 close and stop them, SEQ-A-GAS).
+        operator: "Keep the CO2 purge and the oxidiser until the cathode gas is free of CO and H2; P-101 runs unless I-102 stopped it. A process trip (I-101, I-102, I-105, I-106, I-115, I-116, I-117, I-120) leaves FV-102, K-131, XV-133 and XV-134 free; I-111 closes FV-102 until it is reset, so the purge waits for the cause (the pressure, or a burst PSE-101) to be found. The trips that stop K-131 or close XV-133 (I-103, I-104, I-109, I-110, I-112, I-113, I-114, I-119) isolate the train: SEQ-A-GAS."
       - id: S2
-        title: Stop the gas conditioning
+        title: Close the feed, draw the cathode down with the compressor, then stop it and depressurise through the PSA to the oxidiser
         actions:
+          - {loop: FIC-104, action: manual, by: operator}
+          - {loop: FIC-102, action: manual, by: operator}
+          - {tag: FV-102, action: close, by: operator}
+          - {tag: XV-134, action: close, by: operator}
+          - {loop: PIC-121, action: setpoint, setpoint: {value: 106, unit: kPa(a), provenance: assumed, source: "ASSUMED residual 0.05 bar(g), as SEQ-A-STOP S3 (D-067)"}, by: operator}
           - {tag: K-131, action: stop, by: operator}
           - {tag: X-131, action: stop, by: operator}
-          - {tag: X-132, action: stop, by: operator}
-        complete: {text: cathode gas train purged and depressurised}
+        complete: {all: [{text: "before K-131 stops: FV-102 closed and PIA-123 and PIA-116 at the residual 0.05 bar(g) (106 kPa(a)), the cathode side drawn down"}, {text: "PIA-132 at about 0 bar(g): CG-103 and X-131 depressurised", delay: {value: 5, unit: min}}]}
+        operator: "As SEQ-A-STOP S3 (D-067): FV-102 closes first, K-131 draws the cathode side down to the residual pressure and only then stops; the PSA's stop depressurises it through XV-133 to the oxidiser still firing (D-061). After I-111 FV-102 is already closed by the trip."
       - id: S3
+        title: Close the tail gas, stop the oxidiser
+        actions:
+          - {tag: XV-133, action: close, by: operator}
+          - {tag: X-132, action: stop, by: operator}
+        complete: {all: [{text: cathode gas train purged and depressurised}, {tag: XV-133, state: closed}]}
+      - id: S4
         title: Decide
         actions:
-          - {text: "after I-101 (pH low-low): the anolyte reached the threshold before H (WDE below the measured, or an overrun): the campaign is over, go to SEQ-A-DRAIN; after any other trip: find the cause, reset, restart with SEQ-A-START", by: operator}
+          - {text: "after I-101 (pH low-low): the anolyte reached the threshold before H (WDE below the measured, or an overrun): the campaign is over, go to SEQ-A-DRAIN; after I-116 (H2 in O2) or I-117 (membrane pressure difference): the stacks are checked for a membrane failure before any restart; after any other trip: find the cause, reset, restart with SEQ-A-START", by: operator}
         complete: {text: operator decision recorded}
         next: end
     abort:
-      condition: {any: [{interlock: I-103, state: tripped}, {interlock: I-104, state: tripped}]}
-      actions:
-        - {tag: K-141, action: start}
+      condition: {any: [{interlock: I-103, state: tripped}, {interlock: I-104, state: tripped}, {interlock: I-109, state: tripped}, {interlock: I-110, state: tripped}, {interlock: I-112, state: tripped}, {interlock: I-113, state: tripped}, {interlock: I-114, state: tripped}, {interlock: I-119, state: tripped}]}
       then: SEQ-A-GAS
-      notes: "A gas trip closes FV-102 and stops K-131, so the purge of S1 is not possible: SEQ-A-GAS takes over (also when the sequence is entered from a gas trip)."
+      notes: "A gas, tail-gas, compressor or instrument-air trip closes FV-102 (or XV-133) and stops K-131, so the purge of S1 is not possible: SEQ-A-GAS takes over (also when the sequence is entered from such a trip). The open skid has no fan to start (D-050)."
     reset: {latching: true, manual: true}
   - id: SEQ-A-GAS
-    title: Skid A after a CO or H2 detection trip (cathode gas train isolated)
+    title: Skid A after a gas, tail-gas, compressor or instrument-air trip (cathode gas train isolated)
     mode: abnormal
     cases: [skid-a]
-    equipment: [U-101, FV-102, K-131, X-131, X-132, K-141]
-    interlocks: [I-103, I-104]
+    equipment: [U-101, FV-102, K-131, X-131, X-132]
+    interlocks: [I-103, I-104, I-109, I-110, I-112, I-113, I-114, I-119]
     steps:
       - id: S1
-        title: Isolated and ventilated
+        title: Isolated, the release dispersing in the open
         actions:
           - {loop: JIC-101, action: manual, by: automatic}
+          - {loop: FIC-104, action: manual, by: automatic}
           - {loop: FIC-102, action: manual, by: automatic}
-          - {tag: K-141, action: start, by: automatic}
-        complete: {all: [{tag: U-101, state: "off"}, {tag: FV-102, state: closed}, {tag: K-131, state: stopped}, {tag: K-141, state: running}]}
-        operator: "The CO and H2 stay in the closed cathode gas train (FV-102 closed, K-131 stopped by I-103 or I-104). Nobody enters the enclosure until AIA-141 and AIA-142 are clear."
+        complete: {all: [{tag: U-101, state: "off"}, {tag: FV-102, state: closed}, {tag: K-131, state: stopped}, {tag: XV-134, state: closed}]}
+        operator: "The CO and H2 stay in the closed cathode gas train (FV-102 and XV-134 closed, K-131 stopped; XV-133 closed as well after I-103, I-104, I-109, I-110 and on air loss I-114); the open skid is naturally ventilated (D-050). After a gas trip nobody approaches the skid until AIA-141 and AIA-142 are clear, and then only with a personal CO monitor; check CO2 at grade and at the low points."
       - id: S2
-        title: Find the leak, reset
+        title: Find the cause, reset
         actions:
-          - {text: "with the detectors clear, find and isolate the leak; then reset I-103 and I-104", by: operator}
-        complete: {all: [{interlock: I-103, state: reset}, {interlock: I-104, state: reset}]}
+          - {text: "after I-103 or I-104: with the detectors clear, find and isolate the leak; after I-109: the arrester FA-133 is inspected (and its element replaced) as its vendor's instruction says after a flame held on it; after I-110: the oxidiser's fault is found by its burner management system; after I-112 or I-113: the compressor's or the PSA's fault; after I-114: the instrument air restored; after I-119: V-121 drained and LV-122 checked; then reset the tripped interlocks", by: operator}
+        complete: {all: [{interlock: I-103, state: reset}, {interlock: I-104, state: reset}, {interlock: I-109, state: reset}, {interlock: I-110, state: reset}, {interlock: I-112, state: reset}, {interlock: I-113, state: reset}, {interlock: I-114, state: reset}, {interlock: I-119, state: reset}]}
+        operator: "I-110 is reset with the others (review 2026-11-06-design #16, D-061), so the purge of S3 cannot start with the burner management trip still standing."
       - id: S3
         title: Purge the cathode gas train to the oxidiser
         actions:
           - {tag: X-132, action: start, by: operator}
+          - {tag: XV-133, action: open, by: operator}
           - {tag: X-131, action: start, by: operator}
+          - {tag: XV-134, action: open, by: operator}
           - {tag: K-131, action: start, by: operator}
           - {loop: PIC-121, action: auto, by: operator}
-          - {loop: FIC-102, action: auto, by: operator}
+          - {loop: FIC-102, action: cascade, by: operator}
+          - {loop: FIC-104, action: auto, by: operator}
         complete: {text: "cathode gas free of CO and H2 (sampled)", delay: {value: 15, unit: min}}
-        operator: The oxidiser runs before the purge reaches it (no CO or H2 vented, D-012); stop at once if AIA-141 or AIA-142 alarms again.
+        operator: The oxidiser fires (I-110 reset) before XV-133 opens and the purge reaches it (no CO or H2 vented, D-012, D-054); K-131 starts with the CO2, as in SEQ-A-START S3; stop at once if AIA-141, AIA-142 or TSHH-133 alarms again.
       - id: S4
-        title: Stop the gas conditioning
+        title: Close the feed, draw the cathode down with the compressor, then stop it and depressurise through the PSA to the oxidiser
         actions:
+          - {loop: FIC-104, action: manual, by: operator}
+          - {loop: FIC-102, action: manual, by: operator}
+          - {tag: FV-102, action: close, by: operator}
+          - {tag: XV-134, action: close, by: operator}
+          - {loop: PIC-121, action: setpoint, setpoint: {value: 106, unit: kPa(a), provenance: assumed, source: "ASSUMED residual 0.05 bar(g), as SEQ-A-STOP S3 (D-067)"}, by: operator}
           - {tag: K-131, action: stop, by: operator}
           - {tag: X-131, action: stop, by: operator}
+        complete: {all: [{text: "before K-131 stops: FV-102 closed and PIA-123 and PIA-116 at the residual 0.05 bar(g) (106 kPa(a)), the cathode side drawn down"}, {text: "PIA-132 at about 0 bar(g): CG-103 and X-131 depressurised", delay: {value: 5, unit: min}}]}
+        operator: "As SEQ-A-STOP S3 (D-061, D-067): FV-102 closes first, K-131 draws the cathode side down to the residual pressure and only then stops."
+      - id: S5
+        title: Close the tail gas, stop the oxidiser
+        actions:
+          - {tag: XV-133, action: close, by: operator}
           - {tag: X-132, action: stop, by: operator}
-          - {loop: FIC-102, action: manual, by: operator}
-        complete: {text: cathode gas train purged and depressurised}
+        complete: {all: [{text: cathode gas train purged and depressurised}, {tag: XV-133, state: closed}]}
         operator: Then restart with SEQ-A-START, or end the campaign with SEQ-A-DRAIN.
         next: end
     abort:
-      condition: {text: "CO or H2 detected again during the purge (S3, S4)"}
+      condition: {text: "CO or H2 detected, or the arrester hot, again during the purge (S3 to S5)"}
       actions:
         - {tag: FV-102, action: close}
+        - {tag: XV-133, action: close}
+        - {tag: XV-134, action: close}
         - {tag: K-131, action: stop}
-        - {tag: K-141, action: start}
-      notes: "The gas trips I-103 and I-104 act again as well; back to S1."
+      notes: "The trips I-103, I-104, I-109 and I-110 act again as well; back to S1."
     reset: {latching: true, manual: true}
   - id: SEQ-A-DRAIN
-    title: End of run - drain the spent anolyte of Skid A
+    title: End of run - drain the spent anolyte of Skid A, flush and close
     mode: shutdown
     cases: [skid-a]
     equipment: [T-101, P-101, U-101]
@@ -230,22 +284,56 @@ sequences:
           - {loop: TIC-111, action: manual, by: operator}
         complete: {tag: P-101, state: stopped}
       - id: S2
+        title: Vent the loop at its high point
+        actions:
+          - {tag: HV-107, action: open, by: operator}
+        complete: {tag: HV-107, state: open}
+        operator: Remove the cap of AV-111 at the cooler's anolyte outlet first; the vent lets the loop drain (D-055).
+      - id: S3
         title: Drain T-101 to the spent anolyte collection
         actions:
           - {tag: HV-103, action: open, by: operator}
-        complete: {tag: LIA-101, state: empty}
+        complete: {tag: LIA-101, state: "at the gravity drain's level (the heel left)"}
         operator: Sample the spent anolyte (pH, carbonate) for the campaign record; it is the SPENT stream of the flowsheet (D-011).
-      - id: S3
-        title: Rinse and close
+      - id: S4
+        title: Drain the loop's low point
+        actions:
+          - {text: "connect a closed IBC to the low-point drain DR-101 (cap removed)", by: operator}
+          - {tag: HV-106, action: open, by: operator}
+        complete: {text: "no more flow at DR-101: the supply header and the stacks drained"}
+        operator: The supply header's east end is the loop's low point below the tank drain (D-047 item 4); drain it before a stack is opened.
+      - id: S5
+        title: Pump out the heel
+        actions:
+          - {text: "connect a portable pump and a closed IBC to the camlock of PO-101 (cap removed)", by: operator}
+          - {tag: HV-108, action: open, by: operator}
+        complete: {tag: LIA-101, state: empty}
+        operator: The bottom outlet N11 empties what the gravity drain leaves (the heel, D-043); 1 M KOH, wear the chemical protection of the fill.
+      - id: S6
+        title: Flush with demineralised water
         actions:
           - {tag: HV-103, action: close, by: operator}
-        complete: {tag: HV-103, state: closed}
-        operator: Rinse with demineralised water to the effluent; the stacks are replaced per their interval (process/cells.yaml).
+          - {tag: HV-106, action: close, by: operator}
+          - {tag: HV-108, action: close, by: operator}
+          - {text: "fill T-101 with demineralised water through the fill connection and HV-102, circulate it with P-101 for a few minutes, then drain it as in S3 to S5", by: operator}
+        complete: {text: "the last flush water near neutral (sampled) and drained"}
+      - id: S7
+        title: Close and cap
+        actions:
+          - {tag: HV-102, action: close, by: operator}
+          - {tag: HV-103, action: close, by: operator}
+          - {tag: HV-106, action: close, by: operator}
+          - {tag: HV-107, action: close, by: operator}
+          - {tag: HV-108, action: close, by: operator}
+        complete: {all: [{tag: HV-106, state: closed}, {tag: HV-107, state: closed}, {tag: HV-108, state: closed}]}
+        operator: Refit the caps of DR-101, AV-111 and PO-101; the stacks are replaced per their interval (process/cells.yaml). The drained loop cannot freeze.
         next: end
     abort:
       condition: {text: operator stops the drain}
       actions:
         - {tag: HV-103, action: close}
+        - {tag: HV-106, action: close}
+        - {tag: HV-108, action: close}
     reset: {latching: false, manual: true}
   # -- Skid B (P-02) ----------------------------------------------------------------------
   - id: SEQ-B-FILL
@@ -255,6 +343,7 @@ sequences:
     equipment: [T-201, T-202, P-201]
     permissives:
       - {tag: HV-203, state: closed}
+      - {all: [{tag: HV-206, state: closed}, {tag: HV-207, state: closed}, {tag: HV-208, state: closed}, {tag: HV-209, state: closed}]}
       - {tag: U-201, state: "off"}
     steps:
       - id: S1
@@ -263,7 +352,7 @@ sequences:
           - {tag: HV-202, action: open, by: operator}
           - {tag: HV-205, action: open, by: operator}
         complete: {all: [{tag: LIC-201, state: "at the 50 L working volume (duty D-B)"}, {tag: LIA-203, state: full}]}
-        operator: Fresh 1 M KOH in T-201, 5 M KOH in T-202 (ASSUMED density 1.22 kg/L, D-010).
+        operator: "Fresh 1 M KOH in T-201, 5 M KOH in T-202 (ASSUMED density 1.22 kg/L, D-010); the volumes delivered checked against the working volumes before the fill; the filling operator stops each delivery at the level's LAH, the LAHH of LIA-202 and LIA-203 sounds at the fill connection (D-061)."
       - id: S2
         title: Close the fills
         actions:
@@ -289,46 +378,53 @@ sequences:
     title: Start Skid B
     mode: startup
     cases: [skid-b]
-    equipment: [E-201A, E-201B, E-201C, E-201D, U-201, V-221, K-231, X-231, X-232, K-241, P-202]
+    equipment: [E-201A, E-201B, E-201C, E-201D, U-201, V-221, K-231, X-231, X-232, P-202]
     permissives:
       - {sequence: SEQ-B-FILL, state: complete}
-      - {all: [{interlock: I-201, state: reset}, {interlock: I-202, state: reset}, {interlock: I-203, state: reset}, {interlock: I-204, state: reset}, {interlock: I-205, state: reset}, {interlock: I-206, state: reset}, {interlock: I-208, state: reset}]}
+      - {all: [{interlock: I-201, state: reset}, {interlock: I-202, state: reset}, {interlock: I-203, state: reset}, {interlock: I-204, state: reset}, {interlock: I-205, state: reset}, {interlock: I-206, state: reset}, {interlock: I-208, state: reset}, {interlock: I-209, state: reset}, {interlock: I-211, state: reset}, {interlock: I-212, state: reset}, {interlock: I-213, state: reset}, {interlock: I-214, state: reset}, {interlock: I-215, state: reset}, {interlock: I-216, state: reset}, {interlock: I-217, state: reset}, {interlock: I-218, state: reset}, {interlock: I-219, state: reset}, {interlock: I-220, state: reset}, {interlock: I-221, state: reset}]}
       - {loop: FIC-201, state: at setpoint}
-      - {text: "cooling water, CO2, air and demineralised water available at the battery limit"}
-    interlocks: [I-201, I-202, I-203, I-204, I-205, I-206, I-207, I-208]
+      - {text: "tempered water, CO2, air and demineralised water available at the battery limit"}
+    interlocks: [I-201, I-202, I-203, I-204, I-205, I-206, I-207, I-208, I-209, I-210, I-211, I-212, I-213, I-214, I-215, I-216, I-217, I-218, I-219, I-220, I-221]
     steps:
       - id: S1
-        title: Ventilate and cool
+        title: Check the air at the skid and bring the loop to temperature
         actions:
-          - {tag: K-241, action: start, by: operator}
+          - {text: "check CO2 (and O2) at grade and at the low points round the open skid with a portable meter, and wear a personal CO monitor (D-050)", by: operator}
           - {loop: TIC-211, action: auto, by: operator}
         complete: {loop: TIC-211, state: at setpoint}
+        operator: As SEQ-A-START S1 (the tempered-water unit heats in cold weather, TIC-211 in its heating mode, D-052, D-062).
       - id: S2
-        title: Purge the cathodes with CO2 and humidify
+        title: Start the oxidiser and the PSA, open the tail gas and the recycle
         actions:
-          - {loop: FIC-202, action: auto, by: operator}
-          - {tag: HV-204, action: open, by: operator}
-          - {loop: PIC-221, action: auto, by: operator}
-          - {loop: LIC-222, action: auto, by: operator}
-        complete: {loop: FIC-202, state: at setpoint, delay: {value: 15, unit: min}}
-        operator: Set the water on FI-203 to the cathode's water (process/flowsheet.yaml S202).
+          - {tag: X-232, action: start, by: operator}
+          - {tag: XV-233, action: open, by: operator}
+          - {tag: X-231, action: start, by: operator}
+          - {tag: XV-234, action: open, by: operator}
+          - {loop: PIC-231, action: auto, by: operator}
+        complete: {all: [{text: X-231 and X-232 report ready (package signals)}, {tag: XV-233, state: open}, {tag: XV-234, state: open}]}
+        operator: As SEQ-A-START S2 (the train's outlet before any CO2 flows; XV-233 opens once X-232 fires, I-210 reset, D-054, D-061).
       - id: S3
-        title: Start the gas conditioning
+        title: Purge the cathodes with CO2 through the compressor and humidify
         actions:
           - {tag: K-231, action: start, by: operator}
-          - {tag: X-232, action: start, by: operator}
-          - {tag: X-231, action: start, by: operator}
-          - {loop: PIC-231, action: auto, by: operator}
-        complete: {text: X-231 and X-232 report ready (package signals)}
+          - {loop: PIC-221, action: auto, by: operator}
+          - {loop: LIC-222, action: auto, by: operator}
+          - {loop: FIC-202, action: cascade, by: operator}
+          - {loop: FIC-204, action: auto, by: operator}
+          - {tag: HV-204, action: open, by: operator}
+        complete: {loop: FIC-204, state: at setpoint, delay: {value: 15, unit: min}}
+        operator: As SEQ-A-START S3 (FIC-204 holds the total feed, D-062). Set the water on FI-203 to the cathode's water (process/flowsheet.yaml S202).
       - id: S4
         title: Ramp the current
         actions:
           - {loop: JIC-201, action: auto, by: operator}
         complete: {loop: JIC-201, state: at setpoint, delay: {value: 30, unit: min}}
+        operator: "As SEQ-A-START S4: each stack's voltage EIA-205A to D and current IIA-206A to D, TIC-211, FIC-204 and AIA-214 (D-063)."
       - id: S5
         title: Dosing and bleed in automatic
         entry: {interlock: I-207, state: reset}
         actions:
+          - {tag: HV-210, action: open, by: operator}
           - {tag: P-202, action: start, by: operator}
           - {loop: AIC-201, action: auto, by: operator}
           - {loop: FIC-203, action: auto, by: operator}
@@ -336,11 +432,11 @@ sequences:
         operator: "The fresh 1 M KOH fill is above the setpoints at start; the anolyte reaches its steady state in a few residence times (V / b, about 27 h, D-010): watch AIC-201 and the bleed, do not chase the pH by hand."
         next: end
     abort:
-      condition: {any: [{interlock: I-201, state: tripped}, {interlock: I-202, state: tripped}, {interlock: I-203, state: tripped}, {interlock: I-204, state: tripped}, {interlock: I-205, state: tripped}, {interlock: I-206, state: tripped}]}
+      condition: {any: [{interlock: I-201, state: tripped}, {interlock: I-202, state: tripped}, {interlock: I-203, state: tripped}, {interlock: I-204, state: tripped}, {interlock: I-205, state: tripped}, {interlock: I-206, state: tripped}, {interlock: I-209, state: tripped}, {interlock: I-210, state: tripped}, {interlock: I-211, state: tripped}, {interlock: I-212, state: tripped}, {interlock: I-213, state: tripped}, {interlock: I-214, state: tripped}, {interlock: I-215, state: tripped}, {interlock: I-216, state: tripped}, {interlock: I-217, state: tripped}, {interlock: I-219, state: tripped}, {interlock: I-220, state: tripped}]}
       actions:
         - {tag: U-201, action: stop}
       then: SEQ-B-TRIP
-    reset: {latching: true, manual: true, condition: {all: [{interlock: I-203, state: reset}, {interlock: I-204, state: reset}]}}
+    reset: {latching: true, manual: true, condition: {all: [{interlock: I-203, state: reset}, {interlock: I-204, state: reset}, {interlock: I-209, state: reset}, {interlock: I-210, state: reset}, {interlock: I-212, state: reset}, {interlock: I-213, state: reset}, {interlock: I-214, state: reset}, {interlock: I-219, state: reset}]}}
   - id: SEQ-B-STOP
     title: End of the Skid B campaign at H (normal stop)
     mode: shutdown
@@ -348,7 +444,7 @@ sequences:
     equipment: [U-201, P-202, K-231, X-231, X-232]
     permissives:
       - {text: "the campaign's H hours on stream (process/design-basis.yaml capacity.pilot_skid.duration)"}
-    interlocks: [I-201, I-202, I-203, I-204, I-205, I-206, I-207]
+    interlocks: [I-201, I-202, I-203, I-204, I-205, I-206, I-207, I-209, I-210, I-211, I-212, I-214, I-215, I-216, I-217, I-219, I-220]
     steps:
       - id: S1
         title: Ramp the current down; dosing and bleed off
@@ -362,30 +458,40 @@ sequences:
       - id: S2
         title: Purge the cathodes
         actions:
-          - {text: "keep FIC-202, PIC-221, the PSA and the oxidiser in automatic", by: operator}
+          - {text: "keep FIC-204 (with FIC-202 in cascade), PIC-221, the PSA and the oxidiser in automatic", by: operator}
         complete: {text: "cathode gas free of CO and H2 (sampled)", delay: {value: 15, unit: min}}
       - id: S3
-        title: Stop the gas conditioning
+        title: Close the feed, draw the cathode down with the compressor, then stop it and depressurise through the PSA to the oxidiser
         actions:
+          - {loop: FIC-204, action: manual, by: operator}
+          - {loop: FIC-202, action: manual, by: operator}
+          - {tag: FV-202, action: close, by: operator}
+          - {tag: XV-234, action: close, by: operator}
+          - {loop: PIC-221, action: setpoint, setpoint: {value: 106, unit: kPa(a), provenance: assumed, source: "ASSUMED residual 0.05 bar(g), as SEQ-A-STOP S3 (D-067)"}, by: operator}
           - {tag: K-231, action: stop, by: operator}
           - {tag: X-231, action: stop, by: operator}
+        complete: {all: [{text: "before K-231 stops: FV-202 closed and PIA-223 and PIA-216 at the residual 0.05 bar(g) (106 kPa(a)), the cathode side drawn down"}, {text: "PIA-232 at about 0 bar(g): CG-203 and X-231 depressurised", delay: {value: 5, unit: min}}]}
+        operator: "As SEQ-A-STOP S3 (D-061, D-067): FV-202 closes first, K-231 draws the cathode side down to the residual pressure and only then stops; the PSA's stop depressurises it through XV-233 to the oxidiser still firing."
+      - id: S4
+        title: Close the tail gas, stop the oxidiser
+        actions:
+          - {tag: XV-233, action: close, by: operator}
           - {tag: X-232, action: stop, by: operator}
-          - {loop: FIC-202, action: manual, by: operator}
-        complete: {text: cathode gas train purged and depressurised}
-        operator: Then drain the anolyte with SEQ-B-DRAIN.
+        complete: {all: [{text: cathode gas train purged and depressurised}, {tag: XV-233, state: closed}]}
+        operator: As SEQ-A-STOP S4 (XV-233 before the oxidiser; an idle filled skid circulated and heated, D-052, D-054). Then drain the anolyte with SEQ-B-DRAIN.
         next: end
     abort:
-      condition: {any: [{interlock: I-201, state: tripped}, {interlock: I-202, state: tripped}, {interlock: I-203, state: tripped}, {interlock: I-204, state: tripped}, {interlock: I-205, state: tripped}, {interlock: I-206, state: tripped}]}
+      condition: {any: [{interlock: I-201, state: tripped}, {interlock: I-202, state: tripped}, {interlock: I-203, state: tripped}, {interlock: I-204, state: tripped}, {interlock: I-205, state: tripped}, {interlock: I-206, state: tripped}, {interlock: I-209, state: tripped}, {interlock: I-210, state: tripped}, {interlock: I-211, state: tripped}, {interlock: I-212, state: tripped}, {interlock: I-214, state: tripped}, {interlock: I-215, state: tripped}, {interlock: I-216, state: tripped}, {interlock: I-217, state: tripped}, {interlock: I-219, state: tripped}, {interlock: I-220, state: tripped}]}
       actions:
         - {tag: U-201, action: stop}
       then: SEQ-B-TRIP
     reset: {latching: false, manual: true}
   - id: SEQ-B-TRIP
-    title: Skid B after a process trip of the rectifier (pH, level, temperature, flow)
+    title: Skid B after a process trip of the rectifier (pH, level, temperature, flow, cathode pressure, CO2 feed, H2 in O2, membrane, stack current)
     mode: abnormal
     cases: [skid-b]
     equipment: [U-201, P-201, P-202, K-231, X-231, X-232]
-    interlocks: [I-201, I-202, I-203, I-204, I-205, I-206, I-207]
+    interlocks: [I-201, I-202, I-203, I-204, I-205, I-206, I-207, I-209, I-210, I-211, I-212, I-213, I-214, I-215, I-216, I-217, I-219, I-220]
     steps:
       - id: S1
         title: Current off, dosing and bleed off, keep the purge
@@ -393,83 +499,109 @@ sequences:
           - {loop: JIC-201, action: manual, by: automatic}
           - {tag: P-202, action: stop, by: automatic}
           - {tag: FV-203, action: close, by: automatic}
+          - {loop: FIC-204, action: auto, by: automatic}
+          - {loop: FIC-202, action: cascade, by: automatic}
         complete: {all: [{tag: U-201, state: "off"}, {interlock: I-207, state: tripped}]}
-        operator: Keep the CO2 purge and the oxidiser until the cathode gas is free of CO and H2. A process trip leaves FV-202 and K-231 free (only I-203 and I-204 close and stop them, SEQ-B-GAS).
+        operator: "As SEQ-A-TRIP S1: keep the CO2 purge and the oxidiser until the cathode gas is free of CO and H2. A process trip (I-201, I-202, I-205, I-206, I-215, I-216, I-217, I-220) leaves FV-202, K-231, XV-233 and XV-234 free; I-211 closes FV-202 until it is reset. The trips that stop K-231 or close XV-233 (I-203, I-204, I-209, I-210, I-212, I-213, I-214, I-219) isolate the train: SEQ-B-GAS."
       - id: S2
-        title: Stop the gas conditioning
+        title: Close the feed, draw the cathode down with the compressor, then stop it and depressurise through the PSA to the oxidiser
         actions:
+          - {loop: FIC-204, action: manual, by: operator}
+          - {loop: FIC-202, action: manual, by: operator}
+          - {tag: FV-202, action: close, by: operator}
+          - {tag: XV-234, action: close, by: operator}
+          - {loop: PIC-221, action: setpoint, setpoint: {value: 106, unit: kPa(a), provenance: assumed, source: "ASSUMED residual 0.05 bar(g), as SEQ-A-STOP S3 (D-067)"}, by: operator}
           - {tag: K-231, action: stop, by: operator}
           - {tag: X-231, action: stop, by: operator}
-          - {tag: X-232, action: stop, by: operator}
-        complete: {text: cathode gas train purged and depressurised}
+        complete: {all: [{text: "before K-231 stops: FV-202 closed and PIA-223 and PIA-216 at the residual 0.05 bar(g) (106 kPa(a)), the cathode side drawn down"}, {text: "PIA-232 at about 0 bar(g): CG-203 and X-231 depressurised", delay: {value: 5, unit: min}}]}
+        operator: "As SEQ-A-TRIP S2 (D-061, D-067)."
       - id: S3
+        title: Close the tail gas, stop the oxidiser
+        actions:
+          - {tag: XV-233, action: close, by: operator}
+          - {tag: X-232, action: stop, by: operator}
+        complete: {all: [{text: cathode gas train purged and depressurised}, {tag: XV-233, state: closed}]}
+      - id: S4
         title: Decide
         actions:
-          - {text: "after I-201 (pH low-low): check the dosing (P-202, T-202, AIC-201) before a restart; at the end of the campaign go to SEQ-B-DRAIN; after any other trip: find the cause, reset, restart with SEQ-B-START", by: operator}
+          - {text: "after I-201 (pH low-low): check the dosing (P-202, T-202, AIC-201) before a restart; after I-216 or I-217: the stacks are checked for a membrane failure before any restart; at the end of the campaign go to SEQ-B-DRAIN; after any other trip: find the cause, reset, restart with SEQ-B-START", by: operator}
         complete: {text: operator decision recorded}
         next: end
     abort:
-      condition: {any: [{interlock: I-203, state: tripped}, {interlock: I-204, state: tripped}]}
-      actions:
-        - {tag: K-241, action: start}
+      condition: {any: [{interlock: I-203, state: tripped}, {interlock: I-204, state: tripped}, {interlock: I-209, state: tripped}, {interlock: I-210, state: tripped}, {interlock: I-212, state: tripped}, {interlock: I-213, state: tripped}, {interlock: I-214, state: tripped}, {interlock: I-219, state: tripped}]}
       then: SEQ-B-GAS
-      notes: "A gas trip closes FV-202 and stops K-231, so the purge of S1 is not possible: SEQ-B-GAS takes over (also when the sequence is entered from a gas trip)."
+      notes: "A gas, tail-gas, compressor or instrument-air trip closes FV-202 (or XV-233) and stops K-231, so the purge of S1 is not possible: SEQ-B-GAS takes over (also when the sequence is entered from such a trip). The open skid has no fan to start (D-050)."
     reset: {latching: true, manual: true}
   - id: SEQ-B-GAS
-    title: Skid B after a CO or H2 detection trip (cathode gas train isolated)
+    title: Skid B after a gas, tail-gas, compressor or instrument-air trip (cathode gas train isolated)
     mode: abnormal
     cases: [skid-b]
-    equipment: [U-201, P-202, FV-202, K-231, X-231, X-232, K-241]
-    interlocks: [I-203, I-204, I-207]
+    equipment: [U-201, P-202, FV-202, K-231, X-231, X-232]
+    interlocks: [I-203, I-204, I-207, I-209, I-210, I-212, I-213, I-214, I-219]
     steps:
       - id: S1
-        title: Isolated and ventilated, dosing and bleed off
+        title: Isolated, dosing and bleed off, the release dispersing in the open
         actions:
           - {loop: JIC-201, action: manual, by: automatic}
+          - {loop: FIC-204, action: manual, by: automatic}
           - {loop: FIC-202, action: manual, by: automatic}
           - {tag: P-202, action: stop, by: automatic}
           - {tag: FV-203, action: close, by: automatic}
-          - {tag: K-241, action: start, by: automatic}
-        complete: {all: [{tag: U-201, state: "off"}, {tag: FV-202, state: closed}, {tag: K-231, state: stopped}, {tag: K-241, state: running}, {interlock: I-207, state: tripped}]}
-        operator: "The CO and H2 stay in the closed cathode gas train (FV-202 closed, K-231 stopped by I-203 or I-204). Nobody enters the enclosure until AIA-241 and AIA-242 are clear."
+        complete: {all: [{tag: U-201, state: "off"}, {tag: FV-202, state: closed}, {tag: K-231, state: stopped}, {tag: XV-234, state: closed}, {interlock: I-207, state: tripped}]}
+        operator: "The CO and H2 stay in the closed cathode gas train (FV-202 and XV-234 closed, K-231 stopped; XV-233 closed as well after I-203, I-204, I-209, I-210 and on air loss I-214); the open skid is naturally ventilated (D-050). After a gas trip nobody approaches the skid until AIA-241 and AIA-242 are clear, and then only with a personal CO monitor; check CO2 at grade and at the low points."
       - id: S2
-        title: Find the leak, reset
+        title: Find the cause, reset
         actions:
-          - {text: "with the detectors clear, find and isolate the leak; then reset I-203 and I-204", by: operator}
-        complete: {all: [{interlock: I-203, state: reset}, {interlock: I-204, state: reset}]}
+          - {text: "as SEQ-A-GAS S2: the leak after I-203 or I-204, the arrester FA-233 after I-209, the oxidiser after I-210, the compressor or the PSA after I-212 or I-213, the instrument air after I-214, V-221 after I-219; then reset the tripped interlocks", by: operator}
+        complete: {all: [{interlock: I-203, state: reset}, {interlock: I-204, state: reset}, {interlock: I-209, state: reset}, {interlock: I-210, state: reset}, {interlock: I-212, state: reset}, {interlock: I-213, state: reset}, {interlock: I-214, state: reset}, {interlock: I-219, state: reset}]}
+        operator: "I-210 is reset with the others (review 2026-11-06-design #16, D-061)."
       - id: S3
         title: Purge the cathode gas train to the oxidiser
         actions:
           - {tag: X-232, action: start, by: operator}
+          - {tag: XV-233, action: open, by: operator}
           - {tag: X-231, action: start, by: operator}
+          - {tag: XV-234, action: open, by: operator}
           - {tag: K-231, action: start, by: operator}
           - {loop: PIC-221, action: auto, by: operator}
-          - {loop: FIC-202, action: auto, by: operator}
+          - {loop: FIC-202, action: cascade, by: operator}
+          - {loop: FIC-204, action: auto, by: operator}
         complete: {text: "cathode gas free of CO and H2 (sampled)", delay: {value: 15, unit: min}}
-        operator: The oxidiser runs before the purge reaches it (no CO or H2 vented, D-012); stop at once if AIA-241 or AIA-242 alarms again.
+        operator: The oxidiser fires (I-210 reset) before XV-233 opens and the purge reaches it (no CO or H2 vented, D-012, D-054); stop at once if AIA-241, AIA-242 or TSHH-233 alarms again.
       - id: S4
-        title: Stop the gas conditioning
+        title: Close the feed, draw the cathode down with the compressor, then stop it and depressurise through the PSA to the oxidiser
         actions:
+          - {loop: FIC-204, action: manual, by: operator}
+          - {loop: FIC-202, action: manual, by: operator}
+          - {tag: FV-202, action: close, by: operator}
+          - {tag: XV-234, action: close, by: operator}
+          - {loop: PIC-221, action: setpoint, setpoint: {value: 106, unit: kPa(a), provenance: assumed, source: "ASSUMED residual 0.05 bar(g), as SEQ-A-STOP S3 (D-067)"}, by: operator}
           - {tag: K-231, action: stop, by: operator}
           - {tag: X-231, action: stop, by: operator}
+        complete: {all: [{text: "before K-231 stops: FV-202 closed and PIA-223 and PIA-216 at the residual 0.05 bar(g) (106 kPa(a)), the cathode side drawn down"}, {text: "PIA-232 at about 0 bar(g): CG-203 and X-231 depressurised", delay: {value: 5, unit: min}}]}
+        operator: "As SEQ-A-GAS S4 (D-061, D-067)."
+      - id: S5
+        title: Close the tail gas, stop the oxidiser
+        actions:
+          - {tag: XV-233, action: close, by: operator}
           - {tag: X-232, action: stop, by: operator}
-          - {loop: FIC-202, action: manual, by: operator}
-        complete: {text: cathode gas train purged and depressurised}
+        complete: {all: [{text: cathode gas train purged and depressurised}, {tag: XV-233, state: closed}]}
         operator: Then restart with SEQ-B-START, or end the campaign with SEQ-B-DRAIN.
         next: end
     abort:
-      condition: {text: "CO or H2 detected again during the purge (S3, S4)"}
+      condition: {text: "CO or H2 detected, or the arrester hot, again during the purge (S3 to S5)"}
       actions:
         - {tag: FV-202, action: close}
+        - {tag: XV-233, action: close}
+        - {tag: XV-234, action: close}
         - {tag: K-231, action: stop}
-        - {tag: K-241, action: start}
-      notes: "The gas trips I-203 and I-204 act again as well; back to S1."
+      notes: "The trips I-203, I-204, I-209 and I-210 act again as well; back to S1."
     reset: {latching: true, manual: true}
   - id: SEQ-B-DRAIN
-    title: End of run - drain the anolyte of Skid B
+    title: End of run - drain the anolyte of Skid B, flush and close
     mode: shutdown
     cases: [skid-b]
-    equipment: [T-201, P-201, U-201]
+    equipment: [T-201, T-202, P-201, U-201]
     permissives:
       - {tag: U-201, state: "off"}
       - {any: [{sequence: SEQ-B-STOP, state: complete}, {sequence: SEQ-B-TRIP, state: complete}, {sequence: SEQ-B-GAS, state: complete}]}
@@ -483,19 +615,58 @@ sequences:
           - {loop: TIC-211, action: manual, by: operator}
         complete: {tag: P-201, state: stopped}
       - id: S2
+        title: Vent the loop at its high point
+        actions:
+          - {tag: HV-207, action: open, by: operator}
+        complete: {tag: HV-207, state: open}
+        operator: Remove the cap of AV-211 at the cooler's anolyte outlet first (D-055).
+      - id: S3
         title: Drain T-201 to the spent anolyte collection
         actions:
           - {tag: HV-203, action: open, by: operator}
-        complete: {tag: LIA-202, state: empty}
+        complete: {tag: LIA-202, state: "at the gravity drain's level (the heel left)"}
         operator: The 50 L at the steady state is the SPENT stream of the flowsheet (D-011).
-      - id: S3
-        title: Close
+      - id: S4
+        title: Drain the loop's low point
+        actions:
+          - {text: "connect a closed IBC to the low-point drain DR-201 (cap removed)", by: operator}
+          - {tag: HV-206, action: open, by: operator}
+        complete: {text: "no more flow at DR-201: the supply header and the stacks drained"}
+      - id: S5
+        title: Pump out the heels of T-201 and the day tank
+        actions:
+          - {text: "connect a portable pump and a closed IBC to the camlock of PO-201 (cap removed)", by: operator}
+          - {tag: HV-208, action: open, by: operator}
+          - {text: "at the end of the campaign or before a lift, pump out the 5 M KOH day tank T-202 the same way through PO-202", by: operator}
+          - {tag: HV-209, action: open, by: operator}
+        complete: {all: [{tag: LIA-202, state: empty}, {tag: LIA-203, state: empty}]}
+        operator: "5 M KOH in T-202 (ASSUMED 1.22 kg/L): wear the chemical protection of the refill; keep the two tanks' contents apart, the day tank's goes back to the KOH supplier or into the next fill."
+      - id: S6
+        title: Flush with demineralised water
         actions:
           - {tag: HV-203, action: close, by: operator}
-        complete: {tag: HV-203, state: closed}
+          - {tag: HV-206, action: close, by: operator}
+          - {tag: HV-208, action: close, by: operator}
+          - {tag: HV-209, action: close, by: operator}
+          - {text: "fill T-201 with demineralised water through the fill connection and HV-202, circulate it with P-201 for a few minutes, then drain it as in S3 to S5", by: operator}
+        complete: {text: "the last flush water near neutral (sampled) and drained"}
+      - id: S7
+        title: Close and cap
+        actions:
+          - {tag: HV-202, action: close, by: operator}
+          - {tag: HV-203, action: close, by: operator}
+          - {tag: HV-206, action: close, by: operator}
+          - {tag: HV-207, action: close, by: operator}
+          - {tag: HV-208, action: close, by: operator}
+          - {tag: HV-209, action: close, by: operator}
+        complete: {all: [{tag: HV-206, state: closed}, {tag: HV-207, state: closed}, {tag: HV-208, state: closed}, {tag: HV-209, state: closed}]}
+        operator: Refit the caps of DR-201, AV-211, PO-201 and PO-202. The drained loop cannot freeze.
         next: end
     abort:
       condition: {text: operator stops the drain}
       actions:
         - {tag: HV-203, action: close}
+        - {tag: HV-206, action: close}
+        - {tag: HV-208, action: close}
+        - {tag: HV-209, action: close}
     reset: {latching: false, manual: true}

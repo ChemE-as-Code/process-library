@@ -4,13 +4,21 @@
 # process/flowsheet.yaml is one line (its `links`); a manifold to the four stacks is one line to
 # the last stack with a branch line to each of the others. Nominal diameters ASSUMED at the
 # concept stage (D-017): the anolyte loop DN 25 (11.2 L/min, about 0.3 m/s), the gas and the
-# small liquid lines DN 15, the vents DN 25.
+# small liquid lines DN 15, the vents DN 25. Revision B (the owner's decisions of 2026-11-06):
+# the cooler on a tempered-water unit off the skid (TWS/TWR, D-052, D-056), the tail gas through
+# its trip valve, check valve and detonation arrester (TG, D-054), and the drains, vent and
+# pump-outs of the anolyte loop and the tanks (DR, AV, PO, D-055), each DN 15, valved and capped.
+# Revision C (the design review 2026-11-06-design, D-060 to D-064): the cathode side's relief line
+# RL-x01 to a safe location, DN 15; the condensate to a vented collection.
+# Revision D (the layout review 2026-11-06-layout-r4, D-068): the tail gas's two drip legs
+# DR-x02 and DR-x03, DN 15, valved and capped; RL-x01 and the condensate collection's vent to
+# one vent outlet per skid reserved west of the frame.
 schema: cheme/lines/v1
 lines:
   # -- Skid A (P-01) ----------------------------------------------------------------------
   - {number: AN-101, from: "T-101", to: "P-101", nominal_diameter: DN25, fluid: Anolyte, sheet: P-01, notes: "recirculation pump suction; HV-101"}
   - {number: AN-102, from: "P-101", to: "E-111", nominal_diameter: DN25, fluid: Anolyte, sheet: P-01, notes: "FIC-101 flow element"}
-  - {number: AN-103, from: "E-111", to: "E-101D", nominal_diameter: DN25, fluid: Anolyte, sheet: P-01, notes: "supply manifold under the stacks; branches AN-103A to C; TIC-111"}
+  - {number: AN-103, from: "E-111", to: "E-101D", nominal_diameter: DN25, fluid: Anolyte, sheet: P-01, notes: "supply manifold under the stacks; branches AN-103A to C; TIC-111; the low-point drain DR-101 branches off at its level east end (D-055)"}
   - {number: AN-103A, from: "AN-103", to: "E-101A", nominal_diameter: DN25, fluid: Anolyte, sheet: P-01, notes: "supply manifold branch"}
   - {number: AN-103B, from: "AN-103", to: "E-101B", nominal_diameter: DN25, fluid: Anolyte, sheet: P-01, notes: "supply manifold branch"}
   - {number: AN-103C, from: "AN-103", to: "E-101C", nominal_diameter: DN25, fluid: Anolyte, sheet: P-01, notes: "supply manifold branch"}
@@ -21,29 +29,35 @@ lines:
   - {number: O2V-101, from: "T-101", to: "atmosphere (safe location)", nominal_diameter: DN25, fluid: Oxygen, sheet: P-01, notes: "reservoir vent, anode O2 and vapour; vent sizing and H2 crossover open (D-017)"}
   - {number: KOH-101, from: "battery limit (1 M KOH fill)", to: "T-101", nominal_diameter: DN25, fluid: KOH solution, sheet: P-01, notes: "initial fill, once per campaign; HV-102"}
   - {number: SP-101, from: "T-101", to: "site effluent (spent anolyte)", nominal_diameter: DN25, fluid: Anolyte, sheet: P-01, notes: "end-of-run drain; HV-103"}
-  - {number: CWS-101, from: "battery limit (cooling water)", to: "E-111", nominal_diameter: DN15, fluid: Cooling water, sheet: P-01, notes: "TV-111"}
-  - {number: CWR-101, from: "E-111", to: "battery limit (cooling water return)", nominal_diameter: DN15, fluid: Cooling water return, sheet: P-01}
-  - {number: CO2-101, from: "battery limit (CO2 supply)", to: "E-101A", nominal_diameter: DN15, fluid: CO2, sheet: P-01, notes: "FV-102 on the fresh CO2, then the recycle CO2-102 and the humidification water W-101 join; feed manifold under the stacks; branches CO2-101B to D"}
+  - {number: PO-101, from: "T-101", to: "pump-out connection (closed IBC)", nominal_diameter: DN15, fluid: Anolyte, sheet: P-01, notes: "bottom outlet N11, HV-108, capped camlock coupling for a portable pump: empties the heel below the gravity drain SP-101 (SEQ-A-DRAIN, D-055)"}
+  - {number: DR-101, from: "AN-103", to: "closed IBC (low-point drain)", nominal_diameter: DN15, fluid: Anolyte, sheet: P-01, notes: "low-point drain of the anolyte loop at the supply header's level east end; HV-106, capped (D-047 item 4, D-055)"}
+  - {number: AV-111, from: "E-111", to: "atmosphere (vent, capped)", nominal_diameter: DN15, fluid: Anolyte, sheet: P-01, notes: "high-point vent of the cooler's anolyte outlet channel N5, the supply side's high point; HV-107, capped (D-055)"}
+  - {number: TWS-101, from: "battery limit (tempered-water unit, off the skid)", to: "E-111", nominal_diameter: DN15, fluid: Tempered water, sheet: P-01, notes: "TV-111; the unit heats and cools, outside the zone (D-052, D-056)"}
+  - {number: TWR-101, from: "E-111", to: "battery limit (tempered-water unit)", nominal_diameter: DN15, fluid: Tempered water return, sheet: P-01}
+  - {number: CO2-101, from: "battery limit (CO2 supply)", to: "E-101A", nominal_diameter: DN15, fluid: CO2, sheet: P-01, notes: "FV-102 on the fresh CO2 and a check valve, then the recycle CO2-102 joins, FIC-104 measures the total, the humidification water W-101 joins and the relief RL-101 branches off; feed manifold under the stacks; branches CO2-101B to D; the CO2 supply delivers at up to 3 bar(g) from the supplier's regulator, which has its own relief at 4 bar(g) (ASSUMED, D-060)"}
+  - {number: RL-101, from: "CO2-101", to: "atmosphere (safe location, vent at height)", nominal_diameter: DN15, fluid: CO2, sheet: P-01, notes: "the cathode side's relief through the bursting disc PSE-101 (D-060), its burst indicator XS-101 (D-067); to the vent outlet reserved west of the frame at (3.5, 10.0), 5.5 m above grade, with the condensate collection's vent (zone Z-VENT-A, D-068); its size, back-pressure and final outlet the relief and vent study's"}
   - {number: CO2-101B, from: "CO2-101", to: "E-101B", nominal_diameter: DN15, fluid: CO2, sheet: P-01, notes: "feed manifold branch"}
   - {number: CO2-101C, from: "CO2-101", to: "E-101C", nominal_diameter: DN15, fluid: CO2, sheet: P-01, notes: "feed manifold branch"}
   - {number: CO2-101D, from: "CO2-101", to: "E-101D", nominal_diameter: DN15, fluid: CO2, sheet: P-01, notes: "feed manifold branch"}
-  - {number: CO2-102, from: "X-131", to: "CO2-101", nominal_diameter: DN15, fluid: CO2, sheet: P-01, notes: "PSA CO2 recycle to the cathode feed"}
-  - {number: W-101, from: "battery limit (demineralised water)", to: "CO2-101", nominal_diameter: DN15, fluid: Water, sheet: P-01, notes: "cathode feed humidification; HV-104, FI-103"}
+  - {number: CO2-102, from: "X-131", to: "CO2-101", nominal_diameter: DN15, fluid: CO2, sheet: P-01, notes: "PSA CO2 recycle to the cathode feed; the tight shut-off XV-134 (fail closed) and a check valve (D-062)"}
+  - {number: W-101, from: "battery limit (demineralised water)", to: "CO2-101", nominal_diameter: DN15, fluid: Water, sheet: P-01, notes: "cathode feed humidification; HV-104, a check valve, FI-103 (D-062)"}
   - {number: CG-101, from: "E-101A", to: "V-121", nominal_diameter: DN15, fluid: Cathode gas, sheet: P-01, notes: "cathode outlet manifold above the stacks; branches CG-101B to D"}
   - {number: CG-101B, from: "E-101B", to: "CG-101", nominal_diameter: DN15, fluid: Cathode gas, sheet: P-01, notes: "cathode outlet manifold branch"}
   - {number: CG-101C, from: "E-101C", to: "CG-101", nominal_diameter: DN15, fluid: Cathode gas, sheet: P-01, notes: "cathode outlet manifold branch"}
   - {number: CG-101D, from: "E-101D", to: "CG-101", nominal_diameter: DN15, fluid: Cathode gas, sheet: P-01, notes: "cathode outlet manifold branch"}
   - {number: CG-102, from: "V-121", to: "K-131", nominal_diameter: DN15, fluid: Cathode gas, sheet: P-01, notes: "cathode back-pressure PV-121 (PIC-121)"}
-  - {number: CG-103, from: "K-131", to: "X-131", nominal_diameter: DN15, fluid: Cathode gas, sheet: P-01, notes: "check valve on the discharge; relief of K-131 not sized (D-017)"}
-  - {number: CD-101, from: "V-121", to: "site effluent (condensate)", nominal_diameter: DN15, fluid: Cathode condensate, sheet: P-01, notes: "LV-122 (LIC-122)"}
+  - {number: CG-103, from: "K-131", to: "X-131", nominal_diameter: DN15, fluid: Cathode gas, sheet: P-01, notes: "check valve on the discharge; PIA-132, whose high-high stops K-131 (I-112); no relief device on the line: K-131's own hydraulic pressure limit and the PSA vendor's relief of its vessels (D-060)"}
+  - {number: CD-101, from: "V-121", to: "vented condensate collection (then site effluent)", nominal_diameter: DN15, fluid: Cathode condensate, sheet: P-01, notes: "LV-122 (LIC-122), then the tight shut-off XV-125 on the independent low-low level (I-118); the collection drum vented to a safe location (D-061): to the vent outlet RL-101 goes to, west of the frame (Z-VENT-A, D-068)"}
   - {number: CO-101, from: "X-131", to: "battery limit (CO product)", nominal_diameter: DN15, fluid: CO, sheet: P-01, notes: "product pressure PV-131 (PIC-131)"}
-  - {number: TG-101, from: "X-131", to: "X-132", nominal_diameter: DN15, fluid: Tail gas, sheet: P-01}
+  - {number: TG-101, from: "X-131", to: "X-132", nominal_diameter: DN15, fluid: Tail gas, sheet: P-01, notes: "at X-131's outlet, inside Z-HAZ-A: the trip valve XV-133 (fail closed), a check valve and the in-line detonation arrester FA-133 (EN ISO 16852, IIC, unstable detonation, protected side towards X-131), TSHH-133 on its unprotected side; all-welded from there to the burner, rated for the detonation pressure, protected where it crosses grade, off the escape way (D-054); overhead from the riser at 2.4 m falling 1:100 to the drop 1.0 m from the flue riser, a drip leg with a valved, capped drain at each low point (DR-102 at the riser's foot, DR-103 before X-132), trace-heated and insulated against freezing (D-068)"}
+  - {number: DR-102, from: "TG-101", to: "capped (drained to a closed container by hand)", nominal_diameter: DN15, fluid: Tail gas condensate, sheet: P-01, notes: "drip leg at the foot of TG-101's riser, upstream of XV-133; HV-111, capped; trace-heated (D-068)"}
+  - {number: DR-103, from: "TG-101", to: "capped (drained to a closed container by hand)", nominal_diameter: DN15, fluid: Tail gas condensate, sheet: P-01, notes: "drip leg at the foot of TG-101's drop before X-132's N1; HV-112, capped; trace-heated (D-068)"}
   - {number: AIR-101, from: "battery limit (air)", to: "X-132", nominal_diameter: DN15, fluid: Air, sheet: P-01}
   - {number: FG-101, from: "X-132", to: "atmosphere", nominal_diameter: DN25, fluid: Flue gas, sheet: P-01}
   # -- Skid B (P-02) ----------------------------------------------------------------------
   - {number: AN-201, from: "T-201", to: "P-201", nominal_diameter: DN25, fluid: Anolyte, sheet: P-02, notes: "recirculation pump suction; HV-201"}
   - {number: AN-202, from: "P-201", to: "E-211", nominal_diameter: DN25, fluid: Anolyte, sheet: P-02, notes: "FIC-201 flow element"}
-  - {number: AN-203, from: "E-211", to: "E-201D", nominal_diameter: DN25, fluid: Anolyte, sheet: P-02, notes: "supply manifold under the stacks; branches AN-203A to C; TIC-211"}
+  - {number: AN-203, from: "E-211", to: "E-201D", nominal_diameter: DN25, fluid: Anolyte, sheet: P-02, notes: "supply manifold under the stacks; branches AN-203A to C; TIC-211; the low-point drain DR-201 branches off at its level east end (D-055)"}
   - {number: AN-203A, from: "AN-203", to: "E-201A", nominal_diameter: DN25, fluid: Anolyte, sheet: P-02, notes: "supply manifold branch"}
   - {number: AN-203B, from: "AN-203", to: "E-201B", nominal_diameter: DN25, fluid: Anolyte, sheet: P-02, notes: "supply manifold branch"}
   - {number: AN-203C, from: "AN-203", to: "E-201C", nominal_diameter: DN25, fluid: Anolyte, sheet: P-02, notes: "supply manifold branch"}
@@ -54,28 +68,35 @@ lines:
   - {number: O2V-201, from: "T-201", to: "atmosphere (safe location)", nominal_diameter: DN25, fluid: Oxygen, sheet: P-02, notes: "reservoir vent, anode O2 and vapour; vent sizing and H2 crossover open (D-017)"}
   - {number: KOH-201, from: "battery limit (1 M KOH fill)", to: "T-201", nominal_diameter: DN25, fluid: KOH solution, sheet: P-02, notes: "initial fill, once per campaign; HV-202"}
   - {number: SP-201, from: "T-201", to: "site effluent (spent anolyte)", nominal_diameter: DN25, fluid: Anolyte, sheet: P-02, notes: "end-of-run drain; HV-203; the bleed BL-201 branches off upstream of HV-203 (DN 15 branch)"}
-  - {number: CWS-201, from: "battery limit (cooling water)", to: "E-211", nominal_diameter: DN15, fluid: Cooling water, sheet: P-02, notes: "TV-211"}
-  - {number: CWR-201, from: "E-211", to: "battery limit (cooling water return)", nominal_diameter: DN15, fluid: Cooling water return, sheet: P-02}
-  - {number: CO2-201, from: "battery limit (CO2 supply)", to: "E-201A", nominal_diameter: DN15, fluid: CO2, sheet: P-02, notes: "FV-202 on the fresh CO2, then the recycle CO2-202 and the humidification water W-201 join; feed manifold under the stacks; branches CO2-201B to D"}
+  - {number: PO-201, from: "T-201", to: "pump-out connection (closed IBC)", nominal_diameter: DN15, fluid: Anolyte, sheet: P-02, notes: "bottom outlet N11, HV-208, capped camlock coupling for a portable pump (SEQ-B-DRAIN, D-055)"}
+  - {number: DR-201, from: "AN-203", to: "closed IBC (low-point drain)", nominal_diameter: DN15, fluid: Anolyte, sheet: P-02, notes: "low-point drain of the anolyte loop, as DR-101; HV-206, capped (D-055)"}
+  - {number: AV-211, from: "E-211", to: "atmosphere (vent, capped)", nominal_diameter: DN15, fluid: Anolyte, sheet: P-02, notes: "high-point vent of the cooler's anolyte outlet channel N5, as AV-111; HV-207, capped (D-055)"}
+  - {number: TWS-201, from: "battery limit (tempered-water unit, off the skid)", to: "E-211", nominal_diameter: DN15, fluid: Tempered water, sheet: P-02, notes: "TV-211; as TWS-101 (D-052, D-056)"}
+  - {number: TWR-201, from: "E-211", to: "battery limit (tempered-water unit)", nominal_diameter: DN15, fluid: Tempered water return, sheet: P-02}
+  - {number: CO2-201, from: "battery limit (CO2 supply)", to: "E-201A", nominal_diameter: DN15, fluid: CO2, sheet: P-02, notes: "as CO2-101: FV-202 and a check valve, the recycle CO2-202, FIC-204 on the total, the humidification water W-201, the relief RL-201; feed manifold under the stacks; branches CO2-201B to D (D-060, D-062)"}
+  - {number: RL-201, from: "CO2-201", to: "atmosphere (safe location, vent at height)", nominal_diameter: DN15, fluid: CO2, sheet: P-02, notes: "as RL-101, through PSE-201 (D-060), XS-201; to the vent outlet reserved west of Skid B's frame at (18.3, 9.6), 5.5 m above grade (zone Z-VENT-B, D-068)"}
   - {number: CO2-201B, from: "CO2-201", to: "E-201B", nominal_diameter: DN15, fluid: CO2, sheet: P-02, notes: "feed manifold branch"}
   - {number: CO2-201C, from: "CO2-201", to: "E-201C", nominal_diameter: DN15, fluid: CO2, sheet: P-02, notes: "feed manifold branch"}
   - {number: CO2-201D, from: "CO2-201", to: "E-201D", nominal_diameter: DN15, fluid: CO2, sheet: P-02, notes: "feed manifold branch"}
-  - {number: CO2-202, from: "X-231", to: "CO2-201", nominal_diameter: DN15, fluid: CO2, sheet: P-02, notes: "PSA CO2 recycle to the cathode feed"}
-  - {number: W-201, from: "battery limit (demineralised water)", to: "CO2-201", nominal_diameter: DN15, fluid: Water, sheet: P-02, notes: "cathode feed humidification; HV-204, FI-203"}
+  - {number: CO2-202, from: "X-231", to: "CO2-201", nominal_diameter: DN15, fluid: CO2, sheet: P-02, notes: "PSA CO2 recycle to the cathode feed; XV-234 (fail closed) and a check valve (D-062)"}
+  - {number: W-201, from: "battery limit (demineralised water)", to: "CO2-201", nominal_diameter: DN15, fluid: Water, sheet: P-02, notes: "cathode feed humidification; HV-204, a check valve, FI-203 (D-062)"}
   - {number: CG-201, from: "E-201A", to: "V-221", nominal_diameter: DN15, fluid: Cathode gas, sheet: P-02, notes: "cathode outlet manifold above the stacks; branches CG-201B to D"}
   - {number: CG-201B, from: "E-201B", to: "CG-201", nominal_diameter: DN15, fluid: Cathode gas, sheet: P-02, notes: "cathode outlet manifold branch"}
   - {number: CG-201C, from: "E-201C", to: "CG-201", nominal_diameter: DN15, fluid: Cathode gas, sheet: P-02, notes: "cathode outlet manifold branch"}
   - {number: CG-201D, from: "E-201D", to: "CG-201", nominal_diameter: DN15, fluid: Cathode gas, sheet: P-02, notes: "cathode outlet manifold branch"}
   - {number: CG-202, from: "V-221", to: "K-231", nominal_diameter: DN15, fluid: Cathode gas, sheet: P-02, notes: "cathode back-pressure PV-221 (PIC-221)"}
-  - {number: CG-203, from: "K-231", to: "X-231", nominal_diameter: DN15, fluid: Cathode gas, sheet: P-02, notes: "check valve on the discharge; relief of K-231 not sized (D-017)"}
-  - {number: CD-201, from: "V-221", to: "site effluent (condensate)", nominal_diameter: DN15, fluid: Cathode condensate, sheet: P-02, notes: "LV-222 (LIC-222)"}
+  - {number: CG-203, from: "K-231", to: "X-231", nominal_diameter: DN15, fluid: Cathode gas, sheet: P-02, notes: "as CG-103: check valve, PIA-232 (I-212), no relief device on the line (D-060)"}
+  - {number: CD-201, from: "V-221", to: "vented condensate collection (then site effluent)", nominal_diameter: DN15, fluid: Cathode condensate, sheet: P-02, notes: "LV-222 (LIC-222), then XV-225 (I-218), as CD-101 (D-061)"}
   - {number: CO-201, from: "X-231", to: "battery limit (CO product)", nominal_diameter: DN15, fluid: CO, sheet: P-02, notes: "product pressure PV-231 (PIC-231)"}
-  - {number: TG-201, from: "X-231", to: "X-232", nominal_diameter: DN15, fluid: Tail gas, sheet: P-02}
+  - {number: TG-201, from: "X-231", to: "X-232", nominal_diameter: DN15, fluid: Tail gas, sheet: P-02, notes: "as TG-101: XV-233, a check valve, FA-233 and TSHH-233 at X-231's outlet inside Z-HAZ-B, all-welded to the burner (D-054); overhead falling to the drop, drip legs DR-202 and DR-203, trace-heated and insulated (D-068)"}
+  - {number: DR-202, from: "TG-201", to: "capped (drained to a closed container by hand)", nominal_diameter: DN15, fluid: Tail gas condensate, sheet: P-02, notes: "as DR-102; HV-211 (D-068)"}
+  - {number: DR-203, from: "TG-201", to: "capped (drained to a closed container by hand)", nominal_diameter: DN15, fluid: Tail gas condensate, sheet: P-02, notes: "as DR-103; HV-212 (D-068)"}
   - {number: AIR-201, from: "battery limit (air)", to: "X-232", nominal_diameter: DN15, fluid: Air, sheet: P-02}
   - {number: FG-201, from: "X-232", to: "atmosphere", nominal_diameter: DN25, fluid: Flue gas, sheet: P-02}
   - {number: KOH-202, from: "battery limit (5 M KOH)", to: "T-202", nominal_diameter: DN15, fluid: KOH solution, sheet: P-02, notes: "weekly refill of the day tank; HV-205"}
-  - {number: KOH-203, from: "T-202", to: "P-202", nominal_diameter: DN15, fluid: KOH solution, sheet: P-02}
+  - {number: KOH-203, from: "T-202", to: "P-202", nominal_diameter: DN15, fluid: KOH solution, sheet: P-02, notes: "HV-210, P-202's suction isolation at T-202's outlet (D-064)"}
   - {number: KV-202, from: "T-202", to: "atmosphere (safe location)", nominal_diameter: DN15, fluid: Air, sheet: P-02, notes: "breather of the 5 M KOH day tank: the weekly fill and the continuous draw by P-202 (caustic mist; the breather type with the vendor)"}
-  - {number: KOH-204, from: "P-202", to: "T-201", nominal_diameter: DN15, fluid: KOH solution, sheet: P-02, notes: "continuous 5 M KOH dose (duty D-B)"}
-  - {number: W-202, from: "battery limit (demineralised water)", to: "T-201", nominal_diameter: DN15, fluid: Water, sheet: P-02, notes: "make-up water on level, LV-201 (LIC-201)"}
+  - {number: PO-202, from: "T-202", to: "pump-out connection (closed IBC)", nominal_diameter: DN15, fluid: KOH solution, sheet: P-02, notes: "bottom outlet N5 of the 5 M KOH day tank, HV-209, capped camlock coupling for a portable pump (T-202 had no drain; D-055)"}
+  - {number: KOH-204, from: "P-202", to: "T-201", nominal_diameter: DN15, fluid: KOH solution, sheet: P-02, notes: "continuous 5 M KOH dose (duty D-B); the back-pressure and anti-siphon valve BPV-202 (1.5 bar, ASSUMED) before it enters T-201's roof above the liquid; P-202's integral relief valve (3 bar(g), ASSUMED) returns to its suction (D-064)"}
+  - {number: W-202, from: "battery limit (demineralised water)", to: "T-201", nominal_diameter: DN15, fluid: Water, sheet: P-02, notes: "make-up water on level, LV-201 (LIC-201), then a check valve; the tie-in's backflow preventer of the category the water supplier requires (EN 1717) is the site's (D-062)"}
   - {number: BL-201, from: "SP-201", to: "site effluent (bleed)", nominal_diameter: DN15, fluid: Anolyte, sheet: P-02, notes: "continuous bleed from the reservoir bottom, FV-203 (FIC-203); gravity flow at about 1.9 L/h, a metering pump is the alternative (D-017)"}

@@ -18,8 +18,9 @@ Steps (design spec #330, section 6):
 2. Sync from the design basis: stacks[].product (rate, recovery, purity, pressure) and
    stacks[].replacement.operating_hours.
 3. Write the horizons and thresholds: D-A and D-B to H, the comparison duties to 3 H, every
-   duty's pH threshold from the design basis, and D-A-PART's step points (12 h at 200, 12 h
-   at 100 mA/cm2) over 3 H.
+   duty's pH threshold from the design basis' trip value (threshold.trip.ph, the pH the plant
+   stops at, D-058; threshold.ph is the stability criterion D-003 it protects), and D-A-PART's
+   step points (12 h at 200, 12 h at 100 mA/cm2) over 3 H.
 4. Check the cell: `cheme process cell --json`; a refused cell stops the run.
 5. Size Skid A: `cheme process stack --write` writes D-A's reservoir volume (core's
    `reservoir.size: to_horizon`, exact: V = V0 Q(H) / Q*, rounded up to 4 significant
@@ -71,8 +72,10 @@ Steps (design spec #330, section 6):
     replacement by hand (D-047, layout/layout-checks.yaml stack_removal): its far end plate
     within reach of a person at grade at the frame's south side and its slide lane at deck
     level out over that edge clear (each a reason when it fails); the ignition sources U-x01 and
-    X-x32 against every hazardous zone source's outline (sphere radius plus a margin, an error
-    finding when short) and the cable trays against the vent and flue outlets (a warning); the
+    X-x32 against every hazardous zone source's outline, its box joined with its nozzle points
+    (sphere radius plus a margin, an error finding when short; D-057), the same sources against
+    the feet of the frame's stairs (layout/layout-checks.yaml stair_feet, an error finding when
+    short; D-057) and the cable trays against the vent and flue outlets (a warning); the
     generated details (tank roof handrails, ladders, hose valves) above the envelope or outside
     the frame in plan and the pipes above it are reported apart. Then the validate findings.
 
@@ -293,7 +296,12 @@ CALCULATED_SETPOINTS = {
     "JIC-201": ("bus_current", "B"),
     "AIC-201": ("steady_ph", "B"),
     "LIC-201": ("working_level", "B"),
+    # the total cathode CO2 (D-062): the fresh CO2 and the PSA recycle of the case's flowsheet
+    "FIC-104": ("stream_sum", "A"),
+    "FIC-204": ("stream_sum", "B"),
 }
+#: the streams whose flows a "stream_sum" setpoint adds, per loop (the fresh CO2 and the recycle)
+SUMMED_STREAMS = {"FIC-104": ("S101", "S103"), "FIC-204": ("S201", "S203")}
 
 
 class Refused(RuntimeError):
@@ -325,6 +333,15 @@ class Run:
 
     def basis(self) -> dict:
         return self.load("process/design-basis.yaml")["capacity"]["pilot_skid"]
+
+    def trip_ph(self) -> float:
+        """The pH the duties run to and T-101 is sized at: the trip of I-101 and I-201, above
+        the stability criterion threshold.ph (D-003) by the margin of D-058."""
+        threshold = self.basis()["threshold"]
+        trip = float(threshold["trip"]["ph"])
+        if trip < float(threshold["ph"]):
+            raise SystemExit(f"design basis: the trip pH {trip:g} is below the criterion {threshold['ph']:g}")
+        return trip
 
     def setpoints(self) -> dict[str, float]:
         """Skid B's ASSUMED steady state (design basis skid_b_setpoints, DESIGN.md D-010)."""
@@ -401,7 +418,7 @@ class Run:
     # -- 3 ----------------------------------------------------------------------------------
     def horizons(self) -> None:
         duties = self.load("process/duties.yaml")
-        threshold = self.basis()["threshold"]["ph"]
+        threshold = self.trip_ph()
         changes = []
         for did, h in [(d, self.h) for d in SKID_DUTIES.values()] + [
             (d, 3 * self.h) for d in COMPARISON
@@ -723,8 +740,9 @@ class Run:
     def control_setpoints(self) -> None:
         """The calculated setpoints of control/loops.yaml: a target linked to a stream from the
         flowsheet (its case's value), the stack current from `cheme process stack`, the Skid B
-        pH setpoint from D-B's steady state (2 decimals) and its level setpoint from the
-        reservoir margin (CALCULATED_SETPOINTS)."""
+        pH setpoint from D-B's steady state (2 decimals), its level setpoint from the
+        reservoir margin and the total cathode CO2 as the sum of the fresh and the recycle
+        streams (CALCULATED_SETPOINTS, SUMMED_STREAMS, D-062)."""
         loops = self.load("control/loops.yaml")
         flowsheet = self.load("process/flowsheet.yaml")
         streams = {s["id"]: s for s in flowsheet["streams"]}
@@ -762,6 +780,16 @@ class Run:
                         )
                         margin = float(stack["equipment"]["reservoir"]["margin"]["value"])
                         want = round(100.0 / (1.0 + margin), 1)
+                    elif what == "stream_sum":
+                        case = (target.get("cases") or loop.get("cases") or [None])[0]
+                        flows = [
+                            (((streams.get(s) or {}).get("state") or {}).get(case) or {}).get("flow") or {}
+                            for s in SUMMED_STREAMS[loop["id"]]
+                        ]
+                        if any("value" not in f for f in flows):
+                            self.note("9", "warning", f"{loop['id']}: a summed stream has no flow in case {case}")
+                            continue
+                        want = sum(float(f["value"]) for f in flows)
                     else:
                         want = round(float(self.summary["skid_b"]["final_ph"]), 2)
                 if want is None:
@@ -1155,6 +1183,20 @@ class Run:
                         f"the outline of zone source {g['nearest_source']} ({g['zone']}), under the "
                         f"{g['required_m']:.3f} m of its sphere radius plus the margin",
                     )
+            # the ignition and hot sources against the feet of the frame's stairs, where the
+            # ways off the deck land (D-057, review 2026-11-05-layout-r2#3)
+            stair_feet = _stair_foot_clearance(
+                model, checks["stair_feet"], skid["frame"], {i["tag"] for i in items}
+            )
+            for g in stair_feet:
+                if not g["ok"]:
+                    self.note(
+                        "13",
+                        "error",
+                        f"Skid {key}: ignition or hot source {g['tag']} ({g['kind']}) is {g['clearance_m']:.3f} m "
+                        f"in plan from the foot of stair {g['stair']}, under the {g['required_m']:g} m of "
+                        f"layout/layout-checks.yaml stair_feet",
+                    )
             # generated details outside the frame in plan (ladders, nozzles, hose valves):
             # reported, not counted, as the details above the envelope
             outside = []
@@ -1217,6 +1259,7 @@ class Run:
                 "stack_access_m": access,
                 "stack_removal": removals,
                 "ignition_clearance": ignition,
+                "stair_foot_clearance": stair_feet,
                 "pipes_above_envelope": [{"id": p["id"], "line": p["line"], "top_m": p["top_m"]} for p in pipes],
                 "trays_above_envelope": trays_above,
                 "trays_under_headroom": trays_low,
@@ -1247,6 +1290,13 @@ class Run:
                     f"[13] Skid {key}: ignition sources {', '.join(g['tag'] for g in ignition)}: least clearance "
                     f"{tight['clearance_m']:.3f} m ({tight['tag']} to {tight['nearest_source']}, "
                     f"{tight['required_m']:.3f} m required)"
+                )
+            if stair_feet:
+                tight = min(stair_feet, key=lambda g: g["clearance_m"])
+                print(
+                    f"[13] Skid {key}: ignition and hot sources to the stair feet: least "
+                    f"{tight['clearance_m']:.3f} m ({tight['tag']} to {tight['stair']}, "
+                    f"{tight['required_m']:g} m required)"
                 )
             if details or pipes:
                 self.note(
@@ -1868,6 +1918,7 @@ class Run:
             "stack_access_m": env["stack_access_m"],
             "stack_removal": env["stack_removal"],
             "ignition_clearance": env["ignition_clearance"],
+            "stair_foot_clearance": env["stair_foot_clearance"],
             "invariants": s["invariants"][key],
             "duty_result": final["duty"],
         }
@@ -1877,7 +1928,8 @@ class Run:
             "reservoir_margin": margin,
             "reservoir_aspect_ratio": float(reservoir_cfg["aspect_ratio"]["value"]),
             "usable_height_m": s["envelope"]["basis"]["usable_height"],
-            "threshold_ph": float(self.basis()["threshold"]["ph"]),
+            "threshold_ph": self.trip_ph(),
+            "stability_ph": float(self.basis()["threshold"]["ph"]),
             "max_stack_voltage_v": float(stacks_cfg["electrical"]["max_stack_voltage"]["value"]),
         }
         if key == "A":
@@ -2294,31 +2346,60 @@ def _box_gap(a: list[float], b: list[float]) -> float:
     return math.sqrt(sum(v * v for v in d))
 
 
+def _outline(item: dict) -> list[float]:
+    """A zone source item's outline for the ignition check: its body box joined with the points
+    of its nozzles, whose flanges stand outside the box (review 2026-11-05-layout-r2#1, D-057)."""
+    box = [float(v) for v in item["bbox"]]
+    for n in item.get("nozzles") or []:
+        p = [float(v) for v in n["point"]]
+        box = [min(box[k], p[k]) for k in range(3)] + [max(box[k + 3], p[k]) for k in range(3)]
+    return box
+
+
+def _in_train(tag: str, on_frame: set[str]) -> bool:
+    """Whether *tag* is on this frame or belongs to the frame's train standing off it (the
+    third character of the tag is the train digit: X-132 and U-101 of Skid A's 1xx)."""
+    trains = {t[2] for t in on_frame if len(t) > 2}
+    return tag in on_frame or (len(tag) > 2 and tag[2] in trains)
+
+
+def _source_box(entry: dict, equipment: dict) -> list[float] | None:
+    """An ignition or hot source's box: the model item of its tag, or the outline its entry
+    declares (``box``, a vendor part the model does not hold, D-065); None when neither."""
+    if entry.get("box"):
+        return [float(v) for v in entry["box"]]
+    item = equipment.get(entry["tag"])
+    return [float(v) for v in item["bbox"]] if item else None
+
+
 def _ignition_clearance(model: dict, cfg: dict, on_frame: set[str]) -> list[dict]:
     """Per ignition source of layout/layout-checks.yaml on this frame or standing beside it
     (the items of *on_frame*, or a tag of the frame's train standing off it): the least
-    clearance from its outline to the outline of any source item of a hazardous zone (to the
-    point of a nozzle source), against that sphere's radius plus ``margin_m`` (D-047)."""
+    clearance from its outline (a model item's box, or the entry's declared ``box``) to the
+    outline of any source item of a hazardous zone, its body box joined with its nozzle points
+    (to the point of a nozzle source), against that sphere's radius plus ``margin_m`` (D-047,
+    D-057, D-065)."""
     equipment = {e["tag"]: e for e in model.get("equipment") or []}
     nozzles = {n["id"]: n for e in equipment.values() for n in e.get("nozzles") or []}
-    trains = {t[2] for t in on_frame if len(t) > 2}
     margin = float(cfg.get("margin_m", 0.0))
     found = []
     for entry in cfg.get("items") or []:
         tag = entry["tag"]
-        if tag not in equipment or not (tag in on_frame or (len(tag) > 2 and tag[2] in trains)):
+        box = _source_box(entry, equipment)
+        if box is None or not _in_train(tag, on_frame):
             continue
-        box = [float(v) for v in equipment[tag]["bbox"]]
         best = None
         for zone in model.get("zones") or []:
             if zone.get("kind") != "hazardous":
                 continue
             for v in zone.get("volumes") or []:
-                if v.get("shape") != "sphere" or v.get("item") in (None, tag):
+                if v.get("shape") != "sphere" or (v.get("item") is not None and v.get("item") == tag):
                     continue
-                src = v["item"]
+                # an explicit sphere (a declared release point, the reserved vent outlets of
+                # D-068) counts by its centre, under the zone's id
+                src = v.get("item") or zone["id"]
                 if src in equipment:
-                    other = [float(x) for x in equipment[src]["bbox"]]
+                    other = _outline(equipment[src])
                 elif src in nozzles:
                     p = [float(x) for x in nozzles[src]["point"]]
                     other = p + p
@@ -2339,6 +2420,50 @@ def _ignition_clearance(model: dict, cfg: dict, on_frame: set[str]) -> list[dict
         if best is not None:
             best["ok"] = best["clearance_m"] >= best["required_m"] - 1e-6
             found.append(best)
+    return found
+
+
+def _stair_feet(model: dict, structure_id: str) -> list[dict]:
+    """The feet of the stairs from grade of one structure: per stair the plan box of its base
+    landing at grade (core's ``<stair>/landing-base``), else the stair's own plan box."""
+    entry = next((s for s in model.get("structures") or [] if s.get("id") == structure_id), None)
+    feet = []
+    for stair in (entry or {}).get("stairs") or []:
+        if stair.get("from") != "grade":
+            continue
+        base = next((p for p in stair.get("parts") or [] if str(p.get("id", "")).endswith("/landing-base")), None)
+        plan = _core._part_plan(base) if base else None
+        if plan is None:
+            b = [float(v) for v in stair["box"]]
+            plan = [b[0], b[1], b[3], b[4]]
+        feet.append({"id": stair["id"], "plan": [round(float(v), 3) for v in plan]})
+    return feet
+
+
+def _stair_foot_clearance(model: dict, cfg: dict, structure_id: str, on_frame: set[str]) -> list[dict]:
+    """Per ignition or hot source of layout/layout-checks.yaml on this frame or standing beside
+    it (as _ignition_clearance): the least plan distance from its outline to the foot of any
+    stair of the frame from grade, where the ways off the deck land, against ``clearance_m``
+    (review 2026-11-05-layout-r2#3, D-057; a declared ``box`` for a vendor part the model does
+    not hold, review 2026-11-06-layout-r3#1, D-065)."""
+    equipment = {e["tag"]: e for e in model.get("equipment") or []}
+    clearance = float(cfg["clearance_m"])
+    feet = _stair_feet(model, structure_id)
+    found = []
+    for entry in cfg.get("items") or []:
+        tag = entry["tag"]
+        b = _source_box(entry, equipment)
+        if b is None or not _in_train(tag, on_frame) or not feet:
+            continue
+        best = None
+        for foot in feet:
+            p = foot["plan"]
+            gap = math.hypot(max(p[0] - b[3], b[0] - p[2], 0.0), max(p[1] - b[4], b[1] - p[3], 0.0))
+            if best is None or gap < best["clearance_m"]:
+                best = {"tag": tag, "kind": entry.get("kind", ""), "stair": foot["id"], "foot_plan": p,
+                        "clearance_m": round(gap, 3), "required_m": clearance}
+        best["ok"] = best["clearance_m"] >= clearance - 1e-6
+        found.append(best)
     return found
 
 
@@ -2366,6 +2491,10 @@ def _vent_tray_clearance(model: dict, cfg: dict) -> list[dict]:
         if "end" not in (pipe.get("open_ends") or []):
             continue
         outlets.append((pipe["line"], [float(v) for v in pipe["points"][-1]]))
+    # outlets declared by point, of lines the model does not route (the reserved vent outlets
+    # of the cathode relief and the condensate collection, D-068)
+    for entry in cfg.get("outlets") or []:
+        outlets.append((str(entry["id"]), [float(v) for v in entry["point"]]))
     found = []
     for tray in model.get("trays") or []:
         half = max(float(tray.get("width") or 0.0), float(tray.get("depth") or 0.0)) / 2

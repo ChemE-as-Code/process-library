@@ -50,9 +50,11 @@ loops:
     modes: [manual, auto]
     normal_mode: auto
     alarms:
-      - {tag: TIC-111, condition: TAH, response: "check the cooling water and TV-111; the stack outlet high-high trip I-105 stops the current"}
+      - {tag: TIC-111, condition: TAH, response: "check the tempered-water unit and TV-111; the stack outlet high-high trip I-105 stops the current"}
+      - {tag: TIC-111, condition: TAL, response: "the anolyte is cooling below the measured series' 25 degC (outdoors, idle or at start-up): check that the tempered-water unit is in its heating mode (TIC-111 then reverse acting) and supplying; on the idle skid keep P-101 circulating or drain the loop (SEQ-A-DRAIN) before it can freeze (D-052)"}
     interlocks: [I-105]
-    rationale: "Sensor on the outlet of the target stream, valve on the utility (skill control-loops). The cooler removes the stack heat (about 2.2 kW, cheme process stack); the duty model is isothermal by assumption."
+    rationale: "Sensor on the outlet of the target stream, valve on the utility (skill control-loops). The cooler removes the stack heat (about 2.2 kW, cheme process stack); the duty model is isothermal by assumption. The utility is a tempered-water unit off the skid, outside the zone, that heats and cools (D-052): in operation it cools at its own supply temperature (the flowsheet's 20 degC cooling water, ASSUMED), at start-up and when the skid stands idle it heats, so that the open skid outdoors holds 25 degC and does not freeze. The action follows the unit's mode (review 2026-11-06-design #5, D-062): direct in cooling (a warmer anolyte opens TV-111), reversed in heating (a colder anolyte opens TV-111), switched by the unit's heating/cooling mode signal, never by hand alone; the action given here is the cooling mode's. The fail-open TV-111 is safe in both: in cooling it gives full cooling with the current tripped by TSHH-112 if needed, in heating it brings the loop to the unit's supply temperature, which the unit limits to 30 degC (ASSUMED; its own high-temperature cut-out), below the 40 degC design of the PP tanks and the 50 degC of the stacks (D-060). The stack outlet's 25 degC is held through the inlet setpoint at the duty's stack heat; TSHH-112 measures the outlet."
+    unresolved: ["the tempered-water unit's duty, its supply temperature control, its 30 degC heating limit and its frost-protection mode (vendor, D-052, D-062)"]
   - id: JIC-101
     title: Skid A stack current
     purpose: Hold the bus current of the four stacks at the duty's current density.
@@ -67,10 +69,27 @@ loops:
       - {kind: setpoint, value: 80, unit: A, provenance: calculated, source: "cheme process stack STK-A bus_current_a, written by scripts/regen.py step 9 (the stacks in parallel at 200 mA/cm2 on 100 cm2)", cases: [skid-a]}
     modes: [manual, auto]
     normal_mode: auto
-    interlocks: [I-101, I-102, I-103, I-104, I-105, I-106]
-    rationale: "The current sets the CO rate (Faraday); the rectifier runs constant current, its voltage follows the stacks (37.6 V at the measured point)."
+    interlocks: [I-101, I-102, I-103, I-104, I-105, I-106, I-109, I-110, I-111, I-112, I-113, I-114, I-115, I-116, I-117, I-119, I-120]
+    rationale: "The current sets the CO rate (Faraday); the rectifier runs constant current, its voltage follows the stacks (37.6 V at the measured point). The four stacks share the bus by their resistance: each stack's voltage EIA-105A to D and current IIA-106A to D are measured and alarmed on a deviation, and a stack's current high-high trips U-101 (I-120, D-063)."
     operator: "Ramp the current up only with the permissives of SEQ-A-START met; end the campaign at H with SEQ-A-STOP."
     notes: "J: the electrical quantity at the rectifier output, as the spec of #330 names it."
+  - id: FIC-104
+    title: Skid A total cathode CO2 feed
+    purpose: Hold the total CO2 to the cathodes (fresh and PSA recycle) at the 10 sccm/cm2 the FE was measured at, by resetting the fresh CO2's setpoint.
+    cases: [skid-a]
+    variable: flow
+    measurement: [{tag: FIC-104}]
+    controller: FIC-104
+    action: reverse
+    targets:
+      - {kind: setpoint, value: 3.298617849, unit: kg/h, provenance: calculated, source: "process/flowsheet.yaml S101 plus S103 (the fresh CO2 and the PSA recycle, the cathode feed of design basis co2_feed_per_area at 10 sccm/cm2), written by scripts/regen.py step 9", cases: [skid-a]}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: FIC-104, condition: FAL, response: "check the PSA recycle (XV-134, X-131) and the CO2 supply; the low-low I-115 trips the current"}
+    interlocks: [I-115]
+    rationale: "Review 2026-11-06-design #8 (D-062): FIC-102 sees only the 11 % of the cathode CO2 that is fresh; the performance and the sizing rest on the total. The flow element on CO2-101 downstream of the recycle tee and upstream of the humidification water measures the dry total; the start-up purge is set on it. Its output is the setpoint of FIC-102 (the cascade link is on the slave): the fresh CO2 makes up what the recycle does not return, from about 0.36 kg/h in operation to the whole 3.3 kg/h in the start-up purge with the PSA not yet recycling."
+    unresolved: ["the PSA's own recycle control and how it shares the loop's CO2 inventory with the make-up (vendor)"]
   - id: FIC-102
     title: Skid A fresh CO2 feed
     purpose: Feed the fresh CO2 that, with the PSA recycle, gives the cathode its 10 sccm/cm2.
@@ -83,13 +102,14 @@ loops:
       - {tag: FV-102, kind: valve, actuator: pneumatic, fail: closed}
     targets:
       - {kind: setpoint, value: 0.3563130156, unit: kg/h, provenance: assumed, source: "process/flowsheet.yaml S101 (scripts/skid_balance.py: the cathode feed less the PSA recycle)", cases: [skid-a], stream: S101, property: flow}
-    modes: [manual, auto]
-    normal_mode: auto
+    modes: [manual, auto, cascade]
+    normal_mode: cascade
+    links:
+      - {type: cascade, loop: FIC-104, notes: "the slave of the total feed FIC-104 (D-062); in auto on its own setpoint only for tests"}
     alarms:
-      - {tag: FIC-102, condition: FAL, response: "check the CO2 supply; without CO2 the stacks make H2 only: reduce the current"}
-    interlocks: [I-103, I-104]
-    rationale: "The flow element upstream of its valve on the fresh CO2. The total cathode feed is the fresh CO2 plus the recycle; the measured FE holds at 10 sccm/cm2 (D-012)."
-    unresolved: ["the total cathode feed is not controlled directly: a ratio of the fresh CO2 to the current, or a flow measurement of the total feed with FIC-102 as its slave, is open"]
+      - {tag: FIC-102, condition: FAL, response: "check the CO2 supply; without CO2 the stacks make H2 only: the total feed low-low I-115 trips the current"}
+    interlocks: [I-103, I-104, I-109, I-110, I-111, I-112, I-113, I-119]
+    rationale: "The flow element upstream of its valve on the fresh CO2, the slave of the total cathode feed FIC-104 (D-062): the measured FE holds at 10 sccm/cm2 of the total (D-012). FV-102 is sized for the start-up purge's whole feed as well as the make-up."
   - id: PIC-121
     title: Skid A cathode back-pressure
     purpose: Hold the cathode outlet pressure upstream of the compressor.
@@ -106,9 +126,9 @@ loops:
     modes: [manual, auto]
     normal_mode: auto
     alarms:
-      - {tag: PIC-121, condition: PAH, response: "check K-131 and PV-121; the membrane's pressure difference is limited (vendor)"}
-    rationale: "Back-pressure control (sensor upstream of the valve). The fail-open valve keeps the stack cathode from pressurising against a stopped compressor."
-    unresolved: ["the allowed cathode-anode pressure difference of the stack (vendor)", "the suction control of K-131 (recycle or speed) is the package's"]
+      - {tag: PIC-121, condition: PAH, response: "check K-131 and PV-121; the membrane's pressure difference is limited (vendor): the independent PIA-116 and PIA-123 high-high (I-111) and the pressure difference at each end of the stacks, PIA-113 to PIA-116 and PIA-115 to PIA-123 (I-117, D-067), trip the current"}
+    rationale: "Back-pressure control (sensor upstream of the valve). Fail open (corrected after review 2026-11-06-design #2, D-060): with K-131 running on a loss of air, an open PV-121 keeps the cathode connected to the compressor's suction, so the cathode is not shut in against the stacks' own gas; with K-131 stopped it relieves nothing, since it is upstream of a stopped positive-displacement compressor: then the cathode is protected by the current trip on K-131 not running (I-113) and on air loss (I-114), the cathode pressure high-high I-111 and the bursting disc PSE-101 on the feed header."
+    unresolved: ["the allowed cathode-anode pressure difference of the stack (vendor, #332)", "the suction control of K-131 (recycle or speed) is the package's"]
   - id: LIC-122
     title: Skid A cathode condensate level
     purpose: Drain the carbonate condensate from V-121 without blowing gas through to the effluent.
@@ -124,8 +144,10 @@ loops:
     modes: [manual, auto]
     normal_mode: auto
     alarms:
-      - {tag: LIC-122, condition: LAH, response: "check LV-122 and the effluent line; liquid must not reach K-131"}
-    rationale: "The fail-closed drain keeps CO out of the effluent line."
+      - {tag: LIC-122, condition: LAH, response: "check LV-122 and the condensate line; liquid must not reach K-131: the independent LIA-124 high-high stops K-131 (I-119)"}
+      - {tag: LIC-122, condition: LAL, response: "check LV-122; the independent LIA-124 low-low closes XV-125 against gas blow-by (I-118)"}
+    interlocks: [I-118, I-119]
+    rationale: "The fail-closed drain keeps CO out of the condensate line; the independent level LIA-124 with the tight shut-off XV-125 and the stop of K-131 are the protection, not this loop (D-061). The condensate goes to a vented collection."
   - id: PIC-131
     title: Skid A CO product pressure
     purpose: Hold the CO product at the boundary pressure of the design basis.
@@ -151,13 +173,13 @@ loops:
     variable: other
     measurement: [{tag: AI-101}]
     targets:
-      - {kind: low, value: 12.5, unit: pH, provenance: assumed, source: "ASSUMED notice ahead of the pH 12 threshold (D-003), concentration basis: about 27 h before H at the measured WDE (D-018)", cases: [skid-a]}
+      - {kind: low, value: 12.5, unit: pH, provenance: assumed, source: "ASSUMED notice ahead of the pH 12.2 trip (D-058), concentration basis: about 19 h before H and the trip, 28 h before the pH 12 criterion (D-003), at the measured WDE (D-018)", cases: [skid-a]}
     modes: [manual]
     normal_mode: manual
     alarms:
-      - {tag: AI-101, condition: AAL, response: "the campaign approaches its pH threshold: plan the end of run at H (SEQ-A-STOP, then SEQ-A-DRAIN); the low-low pH trip I-101 stops the current at the threshold itself"}
+      - {tag: AI-101, condition: AAL, response: "the campaign approaches its trip value: plan the end of run at H (SEQ-A-STOP, then SEQ-A-DRAIN); the low-low pH trip I-101 stops the current at pH 12.2, 0.2 above the criterion"}
     interlocks: [I-101]
-    rationale: "Skid A has no dosing: nothing is manipulated on pH, the end of the run is the operator's (D-009). The duty's threshold is the design criterion, not a corrosion limit (D-003)."
+    rationale: "Skid A has no dosing: nothing is manipulated on pH, the end of the run is the operator's (D-009). The duty runs to the trip value pH 12.2 and T-101 is sized to it (D-058); the criterion pH 12 is the design criterion, not a corrosion limit (D-003)."
     unresolved: ["indication with an alarm only: no controller action and no final element, since Skid A has nothing to manipulate on pH (D-009)", "probe (activity) pH against the model's concentration-basis pH: offset or calibration before the alarm and trip values are set"]
   # -- Skid B (P-02) ----------------------------------------------------------------------
   - id: FIC-201
@@ -194,9 +216,11 @@ loops:
     modes: [manual, auto]
     normal_mode: auto
     alarms:
-      - {tag: TIC-211, condition: TAH, response: "check the cooling water and TV-211; the stack outlet high-high trip I-205 stops the current"}
+      - {tag: TIC-211, condition: TAH, response: "check the tempered-water unit and TV-211; the stack outlet high-high trip I-205 stops the current"}
+      - {tag: TIC-211, condition: TAL, response: "as TIC-111: tempered-water unit in its heating mode (TIC-211 reverse acting), P-201 circulating or the loop drained (SEQ-B-DRAIN) before it can freeze (D-052)"}
     interlocks: [I-205]
-    rationale: "As TIC-111."
+    rationale: "As TIC-111: the action follows the tempered-water unit's heating or cooling mode, the action given is the cooling mode's; fail open is safe in both modes with the unit's 30 degC heating limit (D-062)."
+    unresolved: ["the tempered-water unit's duty, its supply temperature control, its 30 degC heating limit and its frost-protection mode (vendor, D-052, D-062)"]
   - id: JIC-201
     title: Skid B stack current
     purpose: Hold the bus current of the four stacks at the duty's current density.
@@ -211,9 +235,26 @@ loops:
       - {kind: setpoint, value: 80, unit: A, provenance: calculated, source: "cheme process stack STK-B bus_current_a, written by scripts/regen.py step 9 (the stacks in parallel at 200 mA/cm2 on 100 cm2)", cases: [skid-b]}
     modes: [manual, auto]
     normal_mode: auto
-    interlocks: [I-201, I-202, I-203, I-204, I-205, I-206, I-207]
-    rationale: "As JIC-101. Its current-off signal stops the dosing and the bleed (I-207): the model doses and bleeds only while the current is on (D-010)."
+    interlocks: [I-201, I-202, I-203, I-204, I-205, I-206, I-207, I-209, I-210, I-211, I-212, I-213, I-214, I-215, I-216, I-217, I-219, I-220]
+    rationale: "As JIC-101 (each stack's voltage EIA-205A to D and current IIA-206A to D, I-220). Its current-off signal stops the dosing and the bleed (I-207): the model doses and bleeds only while the current is on (D-010)."
     notes: "J: the electrical quantity at the rectifier output, as the spec of #330 names it."
+  - id: FIC-204
+    title: Skid B total cathode CO2 feed
+    purpose: Hold the total CO2 to the cathodes (fresh and PSA recycle) at 10 sccm/cm2, by resetting the fresh CO2's setpoint.
+    cases: [skid-b]
+    variable: flow
+    measurement: [{tag: FIC-204}]
+    controller: FIC-204
+    action: reverse
+    targets:
+      - {kind: setpoint, value: 3.298617849, unit: kg/h, provenance: calculated, source: "process/flowsheet.yaml S201 plus S203 (the fresh CO2 and the PSA recycle), written by scripts/regen.py step 9", cases: [skid-b]}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: FIC-204, condition: FAL, response: "check the PSA recycle (XV-234, X-231) and the CO2 supply; the low-low I-215 trips the current"}
+    interlocks: [I-215]
+    rationale: "As FIC-104 (D-062): its output is FIC-202's setpoint."
+    unresolved: ["the PSA's own recycle control (vendor)"]
   - id: FIC-202
     title: Skid B fresh CO2 feed
     purpose: Feed the fresh CO2 that, with the PSA recycle, gives the cathode its 10 sccm/cm2.
@@ -226,13 +267,14 @@ loops:
       - {tag: FV-202, kind: valve, actuator: pneumatic, fail: closed}
     targets:
       - {kind: setpoint, value: 0.3563130156, unit: kg/h, provenance: assumed, source: "process/flowsheet.yaml S201 (scripts/skid_balance.py: the cathode feed less the PSA recycle)", cases: [skid-b], stream: S201, property: flow}
-    modes: [manual, auto]
-    normal_mode: auto
+    modes: [manual, auto, cascade]
+    normal_mode: cascade
+    links:
+      - {type: cascade, loop: FIC-204, notes: "the slave of the total feed FIC-204 (D-062)"}
     alarms:
-      - {tag: FIC-202, condition: FAL, response: "check the CO2 supply; without CO2 the stacks make H2 only: reduce the current"}
-    interlocks: [I-203, I-204]
+      - {tag: FIC-202, condition: FAL, response: "check the CO2 supply; without CO2 the stacks make H2 only: the total feed low-low I-215 trips the current"}
+    interlocks: [I-203, I-204, I-209, I-210, I-211, I-212, I-213, I-219]
     rationale: "As FIC-102."
-    unresolved: ["the total cathode feed is not controlled directly (as FIC-102)"]
   - id: PIC-221
     title: Skid B cathode back-pressure
     purpose: Hold the cathode outlet pressure upstream of the compressor.
@@ -249,9 +291,9 @@ loops:
     modes: [manual, auto]
     normal_mode: auto
     alarms:
-      - {tag: PIC-221, condition: PAH, response: "check K-231 and PV-221; the membrane's pressure difference is limited (vendor)"}
-    rationale: "As PIC-121."
-    unresolved: ["the allowed cathode-anode pressure difference of the stack (vendor)", "the suction control of K-231 (recycle or speed) is the package's"]
+      - {tag: PIC-221, condition: PAH, response: "check K-231 and PV-221; PIA-223's high-high (I-211) and the pressure difference PIA-213 to PIA-223 (I-217) trip the current"}
+    rationale: "As PIC-121 (the corrected fail-open rationale, D-060)."
+    unresolved: ["the allowed cathode-anode pressure difference of the stack (vendor, #332)", "the suction control of K-231 (recycle or speed) is the package's"]
   - id: LIC-222
     title: Skid B cathode condensate level
     purpose: Drain the carbonate condensate from V-221 without blowing gas through to the effluent.
@@ -267,8 +309,10 @@ loops:
     modes: [manual, auto]
     normal_mode: auto
     alarms:
-      - {tag: LIC-222, condition: LAH, response: "check LV-222 and the effluent line; liquid must not reach K-231"}
-    rationale: "As LIC-122."
+      - {tag: LIC-222, condition: LAH, response: "check LV-222 and the condensate line; liquid must not reach K-231: the independent LIA-224 high-high stops K-231 (I-219)"}
+      - {tag: LIC-222, condition: LAL, response: "check LV-222; the independent LIA-224 low-low closes XV-225 (I-218)"}
+    interlocks: [I-218, I-219]
+    rationale: "As LIC-122 (D-061)."
   - id: PIC-231
     title: Skid B CO product pressure
     purpose: Hold the CO product at the boundary pressure of the design basis.
@@ -344,5 +388,6 @@ loops:
     normal_mode: auto
     alarms:
       - {tag: LIC-201, condition: LAL, response: "check LV-201 and the water supply; the independent low-low level trip I-202 (LIA-202) stops the skid"}
-    interlocks: [I-202]
+      - {tag: LIC-201, condition: LAH, response: "check LV-201; the independent high-high (LIA-202) closes LV-201 (I-221, D-061)"}
+    interlocks: [I-202, I-221]
     rationale: "The make-up water closes the reservoir's water balance: in the model it is the bleed less the dose, a fixed rate (D-010); on the skid the level sets it."

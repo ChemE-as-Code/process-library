@@ -44,7 +44,7 @@ CCR is the route modelled. The REF BREF (section 2.6) says that only continuous 
 
 ## Linking
 
-The main product has the registry slug `reformate`, and the co-products `hydrogen`, `liquefied-petroleum-gas` and `refinery-fuel-gas`. Naphtha (`naphtha`) stays a reported gap: `refinery-distillation-1` makes untreated full-range naphtha, not the hydrotreated heavy naphtha this feed names. The catalyst stays a gap too. The hydrogen co-product is one more Atlas producer of `hydrogen`, beside `hydrogen-1`, `chlor-alkali-1` and `hda-1`; consumers that pin `hydrogen-1` keep it. Its net gas is counted as pure H2 but carries light hydrocarbons, so `hydrotreating-1` and `hydrocracking-1` take the purified SMR hydrogen of `hydrogen-1` instead. Fired heat links to the shared natural-gas heat entry (`lca/mappings.yaml`).
+The main product has the registry slug `reformate`, and the co-products `hydrogen`, `liquefied-petroleum-gas` and `refinery-fuel-gas`. Naphtha (`naphtha`) stays a reported gap: `refinery-distillation-1` makes untreated full-range naphtha, not the hydrotreated heavy naphtha this feed names. The catalyst stays a gap too. `btx-1` links the reformate. The hydrogen co-product is one more Atlas producer of `hydrogen`, beside `hydrogen-1`, `chlor-alkali-1` and `hda-1`; consumers that pin `hydrogen-1` keep it. Its net gas is counted as pure H2 but carries light hydrocarbons, so `hydrotreating-1` and `hydrocracking-1` take the purified SMR hydrogen of `hydrogen-1` instead. Fired heat links to the shared natural-gas heat entry (`lca/mappings.yaml`).
 
 ## Not counted yet (TODO)
 
