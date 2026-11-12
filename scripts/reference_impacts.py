@@ -9,8 +9,9 @@ none (no ecoinvent factors or results). The reference is therefore stated as:
   inside the Atlas (an exchange of the Atlas database, or an ``atlas activity`` alternative,
   as ``install(prefer_atlas=True)`` links it), those of the Atlas activities it draws on, per
   1 unit of its reference product (the workbook's production amount). Every input linked to a
-  background activity (electricity, materials, transport, treatment, ...) and the inputs of the
-  screening proxies are **left out**: they contribute nothing here, and the report lists them;
+  background activity (electricity, materials, transport, treatment, ...), the background inputs
+  of the proxies among them, is **left out**: it contributes nothing here, and the report lists
+  them; an estimate proxy's library products (ADR 0039) are Atlas links and are followed;
 - **method: core's packaged characterisation of direct emissions** (``CATEGORIES``; today
   ``ipcc2021-gwp100``, IPCC 2021 AR6 GWP100 as ``chemeascode/domains/assessment/lca/data/
   methods.yaml`` states it with its source). An elementary flow is matched by its biosphere3
@@ -39,7 +40,7 @@ BACKGROUND = {
     "label": "No background database: Atlas foreground only (direct emissions of each activity and of the Atlas activities it links to, prefer_atlas)",
     "excluded": [
         "every input linked to a background activity (electricity, fuels, materials, construction, transport, waste treatment, ...): its supply chain contributes 0",
-        "the inputs of the screening proxies (proxy:*), which link to the background",
+        "the background inputs of the proxies (proxy:*); an estimate proxy's library products (ADR 0039) are followed",
         "exchanges the build leaves out (cut-off exclusions, free inputs, pass-through emissions; datapackage.json system_model.excluded and the activity comments)",
         "elementary flows that are not characterised (listed per activity: not in core's crosswalk, or an origin the method does not characterise)",
     ],

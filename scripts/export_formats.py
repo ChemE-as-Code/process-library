@@ -236,6 +236,8 @@ def _description(entry: dict, note: str) -> str | None:
         parts.append(f"Pedigree (reliability, completeness, temporal, geographical, technological): {entry['atlas pedigree']}.")
     if entry.get("atlas carrier"):
         parts.append(f"Carrier: {entry['atlas carrier']}.")
+    if entry.get("atlas estimate"):
+        parts.append(f"{entry['atlas estimate']}.")
     if entry.get("amount") and entry["amount"] < 0 and entry.get("uncertainty type") == 2:
         parts.append("Lognormal uncertainty of the magnitude not exported (negative amount).")
     if note:
