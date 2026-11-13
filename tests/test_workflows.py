@@ -30,3 +30,8 @@ def test_lca_files_checked_per_plant():
     assert step, "validate job has no 'LCA files current' step"
     assert "cheme assess lca --check" in step["run"] and "lca/lca.yaml" in step["run"]
     assert not step.get("continue-on-error"), "the LCA check must fail the job"
+    # a case dataset (lca/datasets/*-<case>.yaml) is checked with --case (core ADR 0045)
+    case = next((s for s in steps if s.get("name") == "LCA case datasets current"), None)
+    assert case, "validate job has no 'LCA case datasets current' step"
+    assert "cheme assess lca --check --case" in case["run"] and "lca/datasets/" in case["run"]
+    assert not case.get("continue-on-error"), "the case dataset check must fail the job"

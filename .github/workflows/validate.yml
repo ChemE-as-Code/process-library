@@ -49,6 +49,17 @@ jobs:
       # public Atlas (scripts/publication.py lca_withheld, #422, ADR 0038)
       - name: LCA files current
         run: if [ -f lca/lca.yaml ]; then cheme assess lca --check; fi
+      # A case dataset (lca/datasets/<id>-<case>.yaml, core ADR 0045) is not seen by the plain
+      # check: check every flowsheet case other than lca.yaml's that has one.
+      - name: LCA case datasets current
+        run: |
+          [ -f lca/lca.yaml ] && [ -f process/flowsheet.yaml ] || exit 0
+          main=$(grep -m1 -E '^case:' lca/lca.yaml | awk '{print $2}')
+          for c in $(sed -n '/^cases:/,/^[a-z]/p' process/flowsheet.yaml | grep -oE '(^|[ {,])id: *[A-Za-z0-9_.-]+' | sed -E 's/.*id: *//'); do
+            [ "$c" = "$main" ] && continue
+            ls lca/datasets/*-"$c".yaml >/dev/null 2>&1 || continue
+            cheme assess lca --check --case "$c"
+          done
       # core's per-scenario LCA records (lca/scenarios/<id>.json) must be current
       - name: LCA scenario records current
         run: if [ -d lca/scenarios ]; then cheme assess lca-scenarios --check; fi

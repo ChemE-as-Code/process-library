@@ -37,6 +37,10 @@ Options considered:
 - **The per-plant `validate` job runs `cheme assess lca --check`** (step "LCA files current")
   in every process folder that has `lca/lca.yaml`, with the pinned core, after `cheme validate`
   and before `cheme assess lca-scenarios --check`.
+- **Case datasets are checked too** (step "LCA case datasets current"): for every flowsheet
+  case other than the one `lca/lca.yaml` studies that has a dataset `lca/datasets/*-<case>.yaml`
+  ([0034](0034-design-case-lci-datasets.md), core ADR 0045), the job runs
+  `cheme assess lca --check --case <case>`. Today that is co2-electrolysis-bpm-1's `skid-b`.
 - **A failure fails the job** (no `continue-on-error`). The fix is `cheme assess lca --write` in
   the process folder, with the diff read before committing: hashes and the version string only is
   a refresh, a changed result is a design change and is reviewed as one.
@@ -59,9 +63,10 @@ Options considered:
 - The check adds one LCA run per plant to the job (seconds per plant with the factors backend).
   A plant with a Brightway backend would need core's `lca` extra in this job; none has one
   today.
-- `cheme assess lca --check` only covers the case of `lca/lca.yaml`. A design case's own
-  dataset is kept current by that plant's `kind: command` gate (`--case <case>`,
-  [0034](0034-design-case-lci-datasets.md)), which stays informational.
+- Plain `cheme assess lca --check` only covers the case of `lca/lca.yaml`, so the case datasets
+  get their own step. A case dataset is found by its file name ending in `-<case>.yaml`; one
+  written under another name is not checked, and the plant's `kind: command` gate (`--case
+  <case>`, [0034](0034-design-case-lci-datasets.md)) stays its informational check.
 
 ## Evidence
 
