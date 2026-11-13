@@ -348,22 +348,47 @@ def test_screening_reproduces_d011(model):
     assert abs(release["rate_m3_h"] - _d011_gas()["base"]) < 0.05, release["rate_m3_h"]
 
 
+# Each reactor's agitated operations, split into those whose agitator work ends in contents held
+# on brine (Q12, Q13) and those D-009 excludes with their size; together they are every operation
+# the agitator runs in (L-12, D-009).
+_AGITATION = {
+    "REACT": ("P1", "Q12", ("dose", "react", "sample", "transfer"),
+              ("inert", "charge-mg", "charge-solvent", "warm")),
+    "SILYL": ("P4", "Q13", ("charge", "dose", "react", "sample", "transfer"), ("inert",)),
+}
+
+
 def test_agitators_heat_to_brine(model, schedule):
     """Q12 and Q13: the reactors' agitator work, which ends in contents held on brine, over the
-    recipe's operations (L-12, D-009)."""
+    recipe's operations; the rest is excluded in D-009 with its size, and both add up to P1 and P4
+    (L-12, D-009)."""
     report, steps = schedule
     cycle = report.cycle_time
-    p1 = _duty(model, "P1")
-    q12 = p1 * _hours(steps, "REACT", "dose", "react", "sample", "transfer") / cycle
-    assert abs(_duty(model, "Q12") - q12) < 0.01, q12
     p4 = model["streams"]["P4"]["state"]["design"]["duty"]
-    kw = _number(r"([\d.]+) kW for the 8 m3 vessel", p4["source"])
-    occupancy = next(u.occupancy for u in report.units if u.procedure == "SILYL")
-    running = occupancy - _hours(steps, "SILYL", "wait")
-    assert abs(p4["value"] - kw * running / cycle) < 0.01, (p4["value"], kw * running / cycle)
-    q13 = kw * _hours(steps, "SILYL", "charge", "dose", "react", "sample") / cycle
-    assert abs(_duty(model, "Q13") - q13) < 0.01, q13
+    kw = {"REACT": _duty(model, "P1"), "SILYL": _number(r"([\d.]+) kW for the 8 m3 vessel", p4["source"])}
+    occupancy = {u.procedure: u.occupancy for u in report.units}
+    running = occupancy["SILYL"] - _hours(steps, "SILYL", "wait")
+    assert abs(p4["value"] - kw["SILYL"] * running / cycle) < 0.01, (p4["value"], kw["SILYL"] * running / cycle)
     d009 = _section("D-009")
+    for proc, (power, heat, counted, excluded) in _AGITATION.items():
+        ops = {op for (p, op) in steps if p == proc}
+        agitated = ops - {"wait"}
+        assert set(counted) | set(excluded) == agitated, (proc, sorted(agitated))
+        assert not set(counted) & set(excluded), proc
+        q = kw[proc] * _hours(steps, proc, *counted) / cycle
+        assert abs(_duty(model, heat) - q) < 0.01, (heat, q)
+        hours = _hours(steps, proc, *excluded)
+        rest = kw[proc] * hours / cycle
+        assert abs(_duty(model, power) - _duty(model, heat) - rest) < 0.015, (power, rest)
+        tag = {"REACT": "R-101", "SILYL": "R-102"}[proc]
+        m = re.search(rf"{tag}'s agitator work [^(]*?\((?:[\d.+ ]+= )?([\d.]+) h, about ([\d.]+) MJ a batch, "
+                      rf"([\d.]+) kW", d009)
+        assert m, f"D-009 does not exclude {tag}'s agitator work with its size"
+        stated_h, stated_mj, stated_kw = (float(x) for x in m.groups())
+        assert abs(stated_h - hours) < 0.001, (tag, hours)
+        assert abs(stated_mj - kw[proc] * hours * 3.6) < 0.6, (tag, kw[proc] * hours * 3.6)
+        assert abs(stated_kw - rest) < 0.005, (tag, rest)
+        assert f"{_duty(model, power):g} = {_duty(model, heat):.2f} + {stated_kw:.2f} kW" in d009
     assert f"{_duty(model, 'Q12'):.2f} kW, and R-102's" in d009
     assert f"{_duty(model, 'Q13'):.2f} kW; they do not change the jacket checks" in d009
 

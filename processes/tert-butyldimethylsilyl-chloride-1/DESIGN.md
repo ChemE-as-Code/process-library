@@ -325,8 +325,8 @@ typed with their arithmetic in the stream's `source`, all ASSUMED where not stat
   E-201 5.10 kW (the dryer's vapour condensed at 268 K, 3.98 kW, and the vacuum pump's 1.12 kW);
   Q12 and Q13, the agitators' work, which ends as heat in contents held on brine and which no
   model counts (L-12): R-101's 5 kW over its dosing, post-reaction, sampling and transfer (6.944
-  of 9.86 h), 3.52 kW, and R-102's 6 kW over its charge, dosing, post-reaction and sampling (5.86
-  h), 3.57 kW; they do not change the jacket checks (R-101 178.1 + 5 = 183 kW against 233.8 kW,
+  of 9.86 h), 3.52 kW, and R-102's 6 kW over its charge, dosing, post-reaction, sampling and
+  transfer (6.36 h), 3.87 kW; they do not change the jacket checks (R-101 178.1 + 5 = 183 kW against 233.8 kW,
   R-102 95.1 + 6 = 101 kW against 128.1 kW, D-010);
 - LP steam 350 kPa(a) through hot-water loops: Q4, R-101's warm-up 3.014 kW (the recipe's heat
   of the warm operation with the vessel's metal, 107 MJ a batch); Q8, the dryer 12.23 kW
@@ -342,17 +342,23 @@ typed with their arithmetic in the stream's `source`, all ASSUMED where not stat
 Mixed-stream temperatures are taken from their inlets with the liquid heat capacities of
 materials.yaml: S6 302.9 K, S12 302.4 K, S21 301.4 K, S26 336.6 K (from S22 at its bubble point,
 340.3 K, and S19 at 268.15 K), S33 301.3 K.
-Per kg of TBSCl (73.18 kg/h): chilled brine 1.20 kWh removed (Q12 and Q13 0.097 of it), LP steam
+Per kg of TBSCl (73.18 kg/h): chilled brine 1.21 kWh removed (Q12 and Q13 0.101 of it), LP steam
 0.236 kWh, MP steam 2.62 kWh, tempered water 2.31 kWh, cooling water 0.185 kWh, electricity 0.196
 kWh.
 Not counted, with their size: the warm salt's and the filter-dryer's heat after the drying (the
 salt, 562 kg at about 0.75 kJ/(kg K), leaves at about 343 K into the quench drum, about 19
 MJ a batch, 0.5 kW, and the steel cools on the next slurry, whose filtrate the still heats
 anyway); the pipes' and tanks' heat losses other than the product's tracing; R-101's agitator
-work over the solvent charge and the warm-up (1.415 h, about 25 MJ a batch, 0.72 kW year
-average), which warms the charge and would shorten the warm-up on hot water, so Q4 (107 MJ a
-batch) is high by at most that; F-101's agitator work (4 kW), which ends in the cake and the
-filtrate, whose heat the dryer and the still supply anyway.
+work before its dosing, over the inerting, the magnesium charge, the solvent charge and the
+warm-up (1 + 0.5 + 1 + 0.415 = 2.915 h, about 52 MJ a batch, 1.48 kW year average), which goes
+to the steel, the dry turnings and the charge before the warm-up and would shorten the warm-up on
+hot water, so Q4 (107 MJ a batch) is high by at most that (in the empty vessel and the dry
+turnings the agitator draws far less than 5 kW, so P1 is high there rather than the brine low);
+R-102's agitator work over the inerting of the empty vessel (0.5 h, about 11 MJ a batch, 0.30 kW),
+before its charge, likewise far below 6 kW unloaded, so P4 is high by up to that; F-101's agitator
+work (4 kW), which ends in the cake and the filtrate, whose heat the dryer and the still supply
+anyway. With these, Q12 and Q13 and the exclusions add up to P1 and P4 (5 = 3.52 + 1.48 kW,
+4.17 = 3.87 + 0.30 kW).
 Reason: the models give the reactions', the vent condenser's, the still's and the dryer's
 duties; the rest are small sensible and latent heats from the stream table (L-7, L-12). The
 refrigeration unit and the tempered-water loop are outside the boundary (LCA gaps, D-012).
@@ -507,7 +513,7 @@ residue (8.1 g/kg) and the solvent purge (0.141 kg/kg, D-014) to incineration wi
 scrubbing; the vent gas (0.135 kg/kg) to the thermal oxidiser with an acid-gas scrubber.
 Per kg of TBSCl: magnesium 0.215 kg, tert-butyl chloride 0.819 kg, dichlorodimethylsilane 0.873
 kg, THF 0.122 kg, n-hexane 0.034 kg, nitrogen 0.233 kg, sodium thiocyanate 5.7 g, electricity
-0.196 kWh, LP steam 0.236 kWh, MP steam 2.62 kWh, brine 1.20 kWh removed, tempered water 2.31 kWh,
+0.196 kWh, LP steam 0.236 kWh, MP steam 2.62 kWh, brine 1.21 kWh removed, tempered water 2.31 kWh,
 cooling water 0.185 kWh. The stoichiometric floors are 0.614 kg of tert-butyl chloride, 0.161 kg
 of magnesium and 0.856 kg of the silane per kg.
 KPIs (`benchmarks/inorganic-chemicals.yaml`): tert-butyl chloride and dichlorodimethylsilane per
@@ -606,8 +612,9 @@ otherwise from building up.
   warm-up of a charge that is not the batch's first step (R-102 before its dosing) has no model
   of its own apart from `batch.heat_up`, which nets the heating into the cooling duty.
 - L-12 (as potassium-tert-butoxide-1 L-12): the agitators' power is not part of any model's energy
-  balance: the reactors' agitator heat to brine is typed by hand as Q12 and Q13 (7.09 kW, 0.097
-  kWh/kg, 8 % of the brine), the rest excluded with its size (D-009).
+  balance: the reactors' agitator heat to brine is typed by hand as Q12 and Q13 (7.39 kW, 0.101
+  kWh/kg, 8 % of the brine), the rest (R-101's inerting, charges and warm-up, R-102's inerting)
+  excluded with its size (1.78 kW, D-009), so that both add up to P1 and P4.
 - L-13 (library, not core): the taxonomy has no organosilicon or organometallics family;
   inorganic-chemicals is the nearest (coverage.yaml).
 - L-14: **a semi-batch cannot name the dosed reactant whose accumulation it reports.** Core takes
