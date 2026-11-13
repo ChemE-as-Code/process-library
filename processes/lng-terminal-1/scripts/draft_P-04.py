@@ -68,6 +68,15 @@ LNG-4010 are bottom-of-line takeoffs and the trestle lines fall to them without 
 
 Migration to core 1.11.0 (D-038), drawing only: the circulation returns LNG-4005 / LNG-4009 end on
 the left edge. N-4002's "N2 (BL)" stays in the field between the loading lines (D-038).
+
+Revision after review 2026-11-05-basic-design-9 #3, #5, #6 (D-039): each N2 station takes a self-acting
+pressure regulator PCV-4159 / PCV-4160 between its orifice and its check valve, set at 3.0 barg (ASSUMED),
+so the line being emptied and then held under N2 (SEQ-LINE-EMPTY S3) never sees more than ~3 barg instead
+of the 7 barg site N2; the bleeds HV-4161 / HV-4162 are locked closed (opened only under permit with a gas
+test), and the new local gauges PI-4163 / PI-4164 between the blocks show a passing block on rounds and,
+with the inner block opened (outer block and bleed closed, the check valve holding), the pressure of the
+isolated trestle line at its tank end (SEQ-ESD S2, SEQ-LINE-EMPTY permissive). The station valves are
+spaced closer to take the regulator; LNG-4010's label moves right.
 """
 
 import sys
@@ -122,7 +131,7 @@ lb = L.line(sheet, "LNG-4002", dn=800, fluid="LNG", frm="LNG-3001 (P-03)", to="L
 xv7 = valve("XV4107", "BallValve", tag="XV-4107", at=(290, 95))
 L.line(sheet, "LNG-4010", dn=800, fluid="LNG", frm="LNG-4001", to="LNG-4002",
        notes="Platform crossover DN 800 (review 2026-11-05-basic-design-7 #1, D-034): open in loading, so both DN 800 lines reach the loading berth at 6,000 m3/h each (3.4 m/s, ~6 kPa across it); ESD valve XV-4107 (UZ-4107, fail closed, closed by ESD-1 of either berth after the pumps have stopped, 25-30 s), closed in holding. Butt-weld ends on the valve and tees, ASSUMED (no gasketed joint on the trestle side of the shore ESD valves, D-034). Its tees T4A5 / T4B5 take it off the bottom of both loading lines, so it is also a crossover of SEQ-LINE-EMPTY when XV-4103 is the leaking item (D-036).",
-       route=[ta_k.branch, xv7, tb_k.branch], label_at=(280, 107))
+       route=[ta_k.branch, xv7, tb_k.branch], label_at=(282, 107))
 xv3 = valve("XV4103", "BallValve", tag="XV-4103", at=(330, 95))
 L.line(sheet, "LNG-4003", dn=250, fluid="LNG", frm="LNG-4001", to="LNG-4002",
        notes="Platform crossover DN 250, the holding circulation bypass (~314 m3/h, S10; 500 m3/h at 2.7 m/s): open in holding, closed in loading, when the DN 800 crossover LNG-4010 carries line B to Berth 2 or line A to Berth 1 (D-008, D-034; 6,000 m3/h in DN 250 would be ~33 m/s, review 2026-11-05-basic-design-7 #1); the crossover of SEQ-LINE-EMPTY (~450 m3/h at ~2.5 m/s, D-036), so its tees T4A4 / T4B4 take it off the bottom of both loading lines, at the low point of the trestle run above the drops to the berth headers (checker of D-036: with a side or top takeoff the liquid below it, a stratified wedge of up to ~500 m at the line's ~0.16 % fall, would stay in the line and drain to the leak). Butt-weld ends, no tapping: the jetty drain pump returns enter the berth headers downstream of XV-5101 / XV-6101 since D-036 (layout review 2026-11-05-basic-layout-6 #2).",
@@ -146,66 +155,94 @@ N2_NOTE = ("Tank-end N2 connection of loading line {side} for SEQ-LINE-EMPTY (la
            "D-036): site N2 at 7 barg into the trestle side of {xv} at the PR1 joint (the high end of the line), "
            "~4,000 Nm3/h set by the restriction orifice {fo} (choked, ~39 mm bore, ASSUMED), ~3.7 bar(a) at the line, so "
            "the line's ~1,030 m3 return downhill through the bottom-of-line platform crossover and the other loading line "
-           "to the tanks in ~2.3 h (D-036); {pu} upstream of {fo} reads the site N2 at the station, {pd} downstream of it "
-           "the injection pressure (choked while {pu} is at least ~1.9 times {pd} in absolute terms). Double block {hv2} "
-           "(outer) / {hv1} (inner) with the check valve {cv} and the bleed {hb} between them (line {bl}, open while the "
-           "station is isolated, so LNG passing {hv1} cannot reach the N2 system); no blind. Spec break at the "
+           "to the tanks in ~2.3 h (D-036); at least 3,500 Nm3/h (site N2 at 6 barg or more at {pu}) keeps the leak within "
+           "the 240 min PFP and the 40 m3 kept in T-8102 (D-039). {pu} upstream of {fo} reads the site N2 at the station, "
+           "{pd} downstream of the regulator {pcv} the injection pressure (choked while {pu} is at least ~1.9 times {pd} "
+           "in absolute terms). {pcv}: self-acting pressure regulator between {fo} and {cv}, set at 3.0 barg (ASSUMED; "
+           "review 2026-11-05-basic-design-9 #3, D-039): wide open during the displacement (the line takes ~2.7 barg), it "
+           "holds the emptied line at ~3 barg in SEQ-LINE-EMPTY S3 instead of the 7 barg site N2, so the leak is never "
+           "driven harder than in the displacement; failed open it leaves 7 barg, below the 15 barg line design. Double "
+           "block {hv2} (outer) / {hv1} (inner) with the check valve {cv} and the bleed {hb} between them (line {bl}); no "
+           "blind. Since D-039 (review 2026-11-05-basic-design-9 #5, #6) the bleed is locked closed and the local gauge "
+           "{pb} between the blocks is read on rounds (a rising reading: a passing block) and, with {hv1} opened and {hv2} "
+           "and {hb} closed ({cv} holding), gives the pressure of the isolated line at its tank end; the bleed is opened "
+           "only under permit with a gas test, to depressurise the section before maintenance. Spec break at the "
            "battery-limit flange upstream of {hv2}: the station is austenitic stainless steel, Class 150 (the material "
            "of the LNG service, piping/pipe-specs.yaml), because the section from {hv1} to the tee holds LNG at "
            "-160 degC and the bleed section can; that section takes cold insulation (PIR, as the loading lines' "
            "branches), the rest of the station may stay bare (piping detail). Drawn on P-04 only (the site N2 at the "
            "battery limit).")
-n2_a = [valve("HV4152", "BallValve", tag="HV-4152", at=(185, 20)),
-        valve("FO4151", "GlobeValve", tag="FO-4151", at=(185, 28)),
-        valve("CV4151", "SwingCheckValve", tag="CV-4151", at=(185, 36))]
-t_ba = tee("T4N1", at=(185, 44), branch="left", branch_dn=25)        # bleed HV-4161
-hv_a = valve("HV4151", "BallValve", tag="HV-4151", at=(185, 54))
+n2_a = [valve("HV4152", "BallValve", tag="HV-4152", at=(185, 19)),
+        valve("FO4151", "GlobeValve", tag="FO-4151", at=(185, 25.5)),
+        valve("PCV4159", "GlobeValve", tag="PCV-4159", at=(185, 32)),     # D-039: line held at ~3 barg in S3
+        valve("CV4151", "SwingCheckValve", tag="CV-4151", at=(185, 40))]
+t_ba = tee("T4N1", at=(185, 47), branch="left", branch_dn=25)        # bleed HV-4161 (locked closed, D-039)
+hv_a = valve("HV4151", "BallValve", tag="HV-4151", at=(185, 57))
 n2a = L.line(sheet, "N-4001", dn=80, fluid="Nitrogen", frm="BL (site N2)", to="LNG-4001", insulation="cold (PIR)",
              notes=N2_NOTE.format(side="A", xv="XV-4101", fo="FO-4151", hv1="HV-4151", hv2="HV-4152", cv="CV-4151",
-                                  pu="PI-4155", pd="PI-4156", hb="HV-4161", bl="N-4003"),
+                                  pu="PI-4155", pd="PI-4156", hb="HV-4161", bl="N-4003", pcv="PCV-4159", pb="PI-4163"),
              route=[offpage("in", at=(185, 12), note="N2 (BL)", note_at=(172, 10), rotation=DOWN), *n2_a, t_ba, hv_a,
                     ta_n.branch], labels=False)
 L.line(sheet, "N-4003", dn=25, fluid="Nitrogen", frm="N-4001 (between HV-4152 and HV-4151)", to="atmosphere",
        insulation="none",
-       notes="Bleed of the N2 double block and bleed HV-4152 / HV-4161 / HV-4151 of N-4001: open while the station is "
-             "isolated, so LNG passing the inner block HV-4151 vents here instead of reaching the N2 system; closed "
-             "before the blocks open in SEQ-LINE-EMPTY S2 (D-036). Austenitic stainless steel as N-4001.",
-       route=[t_ba.branch, valve("HV4161", "BallValve", tag="HV-4161", at=(177, 44)),
-              offpage("out", at=(169, 44), note="to atm.", note_at=(160, 49), rotation=LEFT)], labels=False)
-n2_b = [valve("HV4154", "BallValve", tag="HV-4154", at=(250, 84)),
-        valve("FO4152", "GlobeValve", tag="FO-4152", at=(250, 91)),
-        valve("CV4152", "SwingCheckValve", tag="CV-4152", at=(250, 98))]
-t_bb = tee("T4N2", at=(250, 105), branch="left", branch_dn=25)       # bleed HV-4162
-hv_b = valve("HV4153", "BallValve", tag="HV-4153", at=(250, 112))
+       notes="Bleed of the N2 double block and bleed HV-4152 / HV-4161 / HV-4151 of N-4001. Locked closed since D-039 "
+             "(review 2026-11-05-basic-design-9 #5: open, it vented any LNG passing the inner block continuously at "
+             "grade): PI-4163 between the blocks shows a passing block on rounds instead, and the bleed is opened only "
+             "under permit with a gas test, to depressurise the section before maintenance, its outlet at 2.5 m over the "
+             "PR1 trough collection (D-037.15 (g)). A passing inner block then connects the section to the line, not to "
+             "the N2 system (CV-4151 and the outer block hold; the station is Class 150 austenitic stainless). "
+             "Austenitic stainless steel as N-4001.",
+       route=[t_ba.branch, valve("HV4161", "BallValve", tag="HV-4161", at=(177, 47)),
+              offpage("out", at=(169, 47), note="to atm.", note_at=(160, 52), rotation=LEFT)], labels=False)
+n2_b = [valve("HV4154", "BallValve", tag="HV-4154", at=(250, 83.5)),
+        valve("FO4152", "GlobeValve", tag="FO-4152", at=(250, 89)),
+        valve("PCV4160", "GlobeValve", tag="PCV-4160", at=(250, 94.5)),   # D-039
+        valve("CV4152", "SwingCheckValve", tag="CV-4152", at=(250, 100))]
+t_bb = tee("T4N2", at=(250, 105.5), branch="left", branch_dn=25)     # bleed HV-4162 (locked closed, D-039)
+hv_b = valve("HV4153", "BallValve", tag="HV-4153", at=(250, 114))
 n2b = L.line(sheet, "N-4002", dn=80, fluid="Nitrogen", frm="BL (site N2)", to="LNG-4002", insulation="cold (PIR)",
              notes=N2_NOTE.format(side="B", xv="XV-4102", fo="FO-4152", hv1="HV-4153", hv2="HV-4154", cv="CV-4152",
-                                  pu="PI-4157", pd="PI-4158", hb="HV-4162", bl="N-4004"),
+                                  pu="PI-4157", pd="PI-4158", hb="HV-4162", bl="N-4004", pcv="PCV-4160", pb="PI-4164"),
              route=[offpage("in", at=(250, 79), note="N2 (BL)", note_at=(238, 78), rotation=DOWN), *n2_b, t_bb, hv_b,
                     tb_n.branch], labels=False)
 L.line(sheet, "N-4004", dn=25, fluid="Nitrogen", frm="N-4002 (between HV-4154 and HV-4153)", to="atmosphere",
        insulation="none",
-       notes="Bleed of the N2 double block and bleed HV-4154 / HV-4162 / HV-4153 of N-4002, as N-4003 (D-036).",
-       route=[t_bb.branch, valve("HV4162", "BallValve", tag="HV-4162", at=(243, 105)),
-              offpage("out", at=(236, 105), note="to atm.", note_at=(227, 110), rotation=LEFT)], labels=False)
+       notes="Bleed of the N2 double block and bleed HV-4154 / HV-4162 / HV-4153 of N-4002, as N-4003: locked closed, "
+             "PI-4164 between the blocks read on rounds (D-039).",
+       route=[t_bb.branch, valve("HV4162", "BallValve", tag="HV-4162", at=(243, 105.5)),
+              offpage("out", at=(236, 105.5), note="to atm.", note_at=(227, 110.5), rotation=LEFT)], labels=False)
 for v in n2_a + n2_b + [hv_a, hv_b]:
     x, y = v.at
     label(sheet, v.id, "PipingComponentNumber", at=(x + 10, y))
 to_orifice(sheet, "FO4151")
 to_orifice(sheet, "FO4152")
-label(sheet, "HV4161", "PipingComponentNumber", at=(177, 39))
-label(sheet, "HV4162", "PipingComponentNumber", at=(243, 109.5))
+label(sheet, "HV4161", "PipingComponentNumber", at=(177, 42))
+label(sheet, "HV4162", "PipingComponentNumber", at=(243, 110))
 note(sheet, "SB", at=(190, 12))
 note(sheet, "SB", at=(255, 79))
 PI_N2 = ("Local pressure gauge of the SEQ-LINE-EMPTY N2 station (checker of D-036): {what}; read in S2 to confirm that "
          "the orifice {fo} is choked (upstream at least ~1.9 times downstream, absolute) and that the line takes the "
-         "~3.7 bar(a) of the displacement.")
+         "~3.7 bar(a) of the displacement; the upstream gauge at 6 barg or more is the ~3,500 Nm3/h minimum rate (D-039).")
+PI_BB = ("Local pressure gauge between the blocks of the N2 station of loading line {side} (review 2026-11-05-basic-design-9 "
+         "#5, #6, D-039), at the PR1 joint over the trough collection: with both blocks closed it is read on rounds, a "
+         "rising reading showing a passing block (the bleed {hb} is locked closed); with the inner block {hv1} opened and "
+         "the outer block and the bleed closed ({cv} holding) it reads the pressure of the isolated loading line at its "
+         "tank end: SEQ-ESD S2 and the SEQ-LINE-EMPTY permissive (the line below the site N2 pressure). Class 150, "
+         "rated for LNG at -160 degC (ASSUMED).")
 for tag, what, fo, seg, at, sense in [
-        ("PI-4155", "site N2 pressure upstream of FO-4151", "FO-4151", n2a.segments[0], (167, 24), (185, 24)),
-        ("PI-4156", "injection pressure downstream of FO-4151", "FO-4151", n2a.segments[0], (167, 32), (185, 32)),
-        ("PI-4157", "site N2 pressure upstream of FO-4152", "FO-4152", n2b.segments[0], (231, 86.8), (250, 86.8)),
-        ("PI-4158", "injection pressure downstream of FO-4152", "FO-4152", n2b.segments[0], (231, 94.6), (250, 94.6))]:
+        ("PI-4155", "site N2 pressure upstream of FO-4151", "FO-4151", n2a.segments[0], (167, 22.25), (185, 22.25)),
+        ("PI-4156", "injection pressure downstream of FO-4151 and PCV-4159", "FO-4151", n2a.segments[0], (167, 36),
+         (185, 36)),
+        ("PI-4157", "site N2 pressure upstream of FO-4152", "FO-4152", n2b.segments[0], (231, 86.25), (250, 86.25)),
+        ("PI-4158", "injection pressure downstream of FO-4152 and PCV-4160", "FO-4152", n2b.segments[0], (231, 97.25),
+         (250, 97.25))]:
     L.inst(sheet, tag, f"N2 to loading line {'A' if fo == 'FO-4151' else 'B'}, {what}",
            PI_N2.format(what=what, fo=fo), at=at, sensing=seg, sensing_at=sense)
+for tag, side, hb, hv1, cv, seg, at, sense in [
+        ("PI-4163", "A", "HV-4161", "HV-4151", "CV-4151", n2a.segments[-1], (206, 51.5), (185, 51.5)),
+        ("PI-4164", "B", "HV-4162", "HV-4153", "CV-4152", n2b.segments[-1], (266, 109), (250, 109))]:
+    L.inst(sheet, tag, f"N2 to loading line {side}, pressure between the blocks (line pressure with {hv1} open)",
+           PI_BB.format(side=side, hb=hb, hv1=hv1, cv=cv), at=at, sensing=seg, sensing_at=sense)
 
 # ---- circulation header, spray take-off, circulation return ------------------------------------
 tc3 = tee("T4C1", at=(40, YC), branch="up", branch_dn=250)

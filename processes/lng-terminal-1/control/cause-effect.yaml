@@ -1,7 +1,7 @@
 # Cause and effect list: interlocks and trips. Schema: `cheme schema interlocks`.
 # On a sheet, refer to an interlock ("see C&E I-201") instead of spelling out what it trips.
 # Revised after the design review 2026-11-05-basic-design and the HAZOP H-01..H-05 (D-025), and the
-# follow-up reviews (D-026, D-028, D-030, D-032, D-034, D-036, D-037.16). Written by build/gen_ce.py.
+# follow-up reviews (D-026, D-028, D-030, D-032, D-034, D-036, D-037.16, D-039). Written by build/gen_ce.py.
 # SIL from the screening in detail engineering (null until then).
 schema: cheme/interlocks/v1
 interlocks:
@@ -437,7 +437,7 @@ interlocks:
     is regulatory and not credited; the vacuum relief valves PSV-3133A/B/C are the last protection (D-017, D-025).'
 - id: I-501
   title: Berth 2 ESD-1 (ship-shore link, arm envelope stage 1, ESD-2, instrument-air header low-low, manual, fire and gas,
-    vapour path, O2, ERS supply, other berth's ESD-1, jetty sump high-high)
+    vapour path, O2, ERS supply, other berth's ESD-1, jetty or tank-area sump high-high)
   cause:
     tag: XS-5100
     condition: trip
@@ -503,6 +503,8 @@ interlocks:
           state: tripped
         - interlock: I-805
           state: tripped (jetty sump T-8102 water high-high, D-036)
+        - interlock: I-809
+          state: tripped (tank-area sump T-8101 water high-high, D-039)
   effects:
   - tag: P-2101A
     action: stop
@@ -519,6 +521,8 @@ interlocks:
   - tag: P-3101C
     action: stop
   - tag: P-3101D
+    action: stop
+  - tag: P-5101
     action: stop
   - tag: XS-5100
     action: trip
@@ -592,8 +596,14 @@ interlocks:
     of the berth, stays open at least to the tanks (review 2026-11-05-basic-design-2#1, D-026); XV-4131 then closes by I-513
     once ZSO-4135 proves XV-4135 open. The jetty sump high-high I-805 is a transfer cause since the checker of D-036, so a
     sump filling with rain ends the transfer with the carrier tripped through its own link, as D-016 asks of every stop of
-    the shared pumps during a transfer. After the trip the close outputs on XV-4101 / XV-4102 / XV-4107 may be overridden
-    for SEQ-LINE-EMPTY only (bypass field).'
+    the shared pumps during a transfer; the tank-area sump high-high I-809 (T-8101 kept dry, review 2026-11-05-basic-design-9
+    #1, D-039) is one in the same way, since the governing tank-area spill is the loading pumps'' run-out (D-034.3). The drain
+    pump P-5101 is stopped too (review 2026-11-05-basic-design-9 #7, D-039): it returns into the header downstream of XV-5101
+    and would otherwise dead-head on its minimum flow once XV-5101 has closed. After ESD-1 the berth header and the arms stay
+    open, through the arm isolations and the ERS valves, to the carrier''s manifold spool behind its closed ESD valve; that
+    shared section warms, and its lowest-set relief is the arm thermal reliefs PSV-5171 / 5173 / 5174 at 8.0 barg into D-5101,
+    below the carrier''s 10 barg (ASSUMED, D-016, D-039; was 15.0 barg, review 2026-11-05-basic-design-9 #2). After the trip
+    the close outputs on XV-4101 / XV-4102 / XV-4107 may be overridden for SEQ-LINE-EMPTY only (bypass field).'
 - id: I-502
   title: Berth 2 carrier manifold back-pressure high-high (arm outboard 5.0 barg, 1oo2) - carrier piping protected against
     the shore shut-off
@@ -655,7 +665,13 @@ interlocks:
     its 25-30 s stroke; a valve that throttles only in its last seconds raises any closure, link or not, and is the carrier''s
     closure characteristic for the compatibility study; the transient analysis (hold H-01, the pumps'' run-down H-02) checks
     this bound, it is not the fallback of the design. PZT-5103 on the berth header stays in the logic at PAHH 7.0 barg as
-    an uncredited backstop (e.g. a closure at the hybrid arm alone, where the header rises with two arms still flowing).'
+    an uncredited backstop (e.g. a closure at the hybrid arm alone, where the header rises with two arms still flowing). After
+    an ESD-1 (review 2026-11-05-basic-design-9 #2, D-039): the section from XV-5101 to the carrier''s closed valve stays blocked
+    in and warms; the arm thermal reliefs PSV-5171 / 5173 / 5174 at 8.0 barg into D-5101 keep it below the carrier''s 10 barg,
+    and PZT-5181 / 5184 may then trip this function again: with the pumps stopped, the carrier tripped and XV-5101 closed
+    it has no further effect. It is reset only once both read below 5.0 barg: after the reset of I-501 the operator vents
+    the section into D-5101 through XV-5161 before the restart from SEQ-LOAD S3, or drains the arms and the header as in SEQ-LOAD
+    S6 if the transfer will not resume (SEQ-ESD S2).'
 - id: I-503
   title: Berth 2 ESD-2 (arm envelope stage 2, 35 kn disconnect)
   cause:
@@ -1105,7 +1121,7 @@ interlocks:
     voting is confirmed in the SIL screening (H-06).'
 - id: I-601
   title: Berth 1 ESD-1 (ship-shore link, arm envelope stage 1, ESD-2, instrument-air header low-low, manual, fire and gas,
-    vapour path, O2, ERS supply, other berth's ESD-1, jetty sump high-high)
+    vapour path, O2, ERS supply, other berth's ESD-1, jetty or tank-area sump high-high)
   cause:
     tag: XS-6100
     condition: trip
@@ -1171,6 +1187,8 @@ interlocks:
           state: tripped
         - interlock: I-805
           state: tripped (jetty sump T-8102 water high-high, D-036)
+        - interlock: I-809
+          state: tripped (tank-area sump T-8101 water high-high, D-039)
   effects:
   - tag: P-2101A
     action: stop
@@ -1187,6 +1205,8 @@ interlocks:
   - tag: P-3101C
     action: stop
   - tag: P-3101D
+    action: stop
+  - tag: P-6101
     action: stop
   - tag: XS-6100
     action: trip
@@ -1260,8 +1280,14 @@ interlocks:
     of the berth, stays open at least to the tanks (review 2026-11-05-basic-design-2#1, D-026); XV-4132 then closes by I-613
     once ZSO-4136 proves XV-4136 open. The jetty sump high-high I-805 is a transfer cause since the checker of D-036, so a
     sump filling with rain ends the transfer with the carrier tripped through its own link, as D-016 asks of every stop of
-    the shared pumps during a transfer. After the trip the close outputs on XV-4101 / XV-4102 / XV-4107 may be overridden
-    for SEQ-LINE-EMPTY only (bypass field).'
+    the shared pumps during a transfer; the tank-area sump high-high I-809 (T-8101 kept dry, review 2026-11-05-basic-design-9
+    #1, D-039) is one in the same way, since the governing tank-area spill is the loading pumps'' run-out (D-034.3). The drain
+    pump P-6101 is stopped too (review 2026-11-05-basic-design-9 #7, D-039): it returns into the header downstream of XV-6101
+    and would otherwise dead-head on its minimum flow once XV-6101 has closed. After ESD-1 the berth header and the arms stay
+    open, through the arm isolations and the ERS valves, to the carrier''s manifold spool behind its closed ESD valve; that
+    shared section warms, and its lowest-set relief is the arm thermal reliefs PSV-6171 / 6173 / 6174 at 8.0 barg into D-6101,
+    below the carrier''s 10 barg (ASSUMED, D-016, D-039; was 15.0 barg, review 2026-11-05-basic-design-9 #2). After the trip
+    the close outputs on XV-4101 / XV-4102 / XV-4107 may be overridden for SEQ-LINE-EMPTY only (bypass field).'
 - id: I-602
   title: Berth 1 carrier manifold back-pressure high-high (arm outboard 5.0 barg, 1oo2) - carrier piping protected against
     the shore shut-off
@@ -1323,7 +1349,13 @@ interlocks:
     its 25-30 s stroke; a valve that throttles only in its last seconds raises any closure, link or not, and is the carrier''s
     closure characteristic for the compatibility study; the transient analysis (hold H-01, the pumps'' run-down H-02) checks
     this bound, it is not the fallback of the design. PZT-6103 on the berth header stays in the logic at PAHH 7.0 barg as
-    an uncredited backstop (e.g. a closure at the hybrid arm alone, where the header rises with two arms still flowing).'
+    an uncredited backstop (e.g. a closure at the hybrid arm alone, where the header rises with two arms still flowing). After
+    an ESD-1 (review 2026-11-05-basic-design-9 #2, D-039): the section from XV-6101 to the carrier''s closed valve stays blocked
+    in and warms; the arm thermal reliefs PSV-6171 / 6173 / 6174 at 8.0 barg into D-6101 keep it below the carrier''s 10 barg,
+    and PZT-6181 / 6184 may then trip this function again: with the pumps stopped, the carrier tripped and XV-6101 closed
+    it has no further effect. It is reset only once both read below 5.0 barg: after the reset of I-601 the operator vents
+    the section into D-6101 through XV-6161 before the restart from SEQ-LOAD S3, or drains the arms and the header as in SEQ-LOAD
+    S6 if the transfer will not resume (SEQ-ESD S2).'
 - id: I-603
   title: Berth 1 ESD-2 (arm envelope stage 2, 35 kn disconnect)
   cause:
@@ -2040,10 +2072,19 @@ interlocks:
   notes: 'Prevents back-flow from the trains'' fuel gas system into the stopped machines and the tanks (HAZOP H-04 A8/A9,
     review #11).'
 - id: I-801
-  title: Tank-area sump low temperature (LNG in the sump) - P-8102 feeder isolated
+  title: Tank-area sump LNG detected (TSL-8102 in the pocket, TSL-8120 on the P-8102 discharge, gas at the pit rim AT-8124;
+    any) - P-8102 feeder isolated
   cause:
     tag: TSL-8102
-    condition: TSL
+    condition: TSL (-60 degC, ASSUMED; any of TSL-8102, TSL-8120, AT-8124)
+  logic:
+    any:
+    - tag: TSL-8102
+      state: TSL (-60 degC)
+    - tag: TSL-8120
+      state: TSL (-60 degC)
+    - tag: AT-8124
+      state: gas at the pit rim (F&G voted, ASSUMED)
   effects:
   - tag: P-8102
     action: stop
@@ -2051,19 +2092,33 @@ interlocks:
   sil: null
   latching: true
   reset: manual
-  notes: 'Keeps LNG out of the oily water system; starts the high-expansion foam (D-018). Since review 2026-11-05-basic-design-8
-    #3 (D-036) the stop is the opening of P-8102''s motor feeder breaker by the SIS, latching, not a control stop through
-    the MCC start circuit, so the submersible motor in the pit (Ex-certified, zone 1 taken for it) is de-energised before
-    LNG or its vapour reaches it; TSL-8102''s tip sits at the pit floor, below the pump intake, so LNG on a dry pit trips
-    before the pump can draw it, and the check valve CV-8114 with HV-8115 on the riser keeps the oily water system from flowing
-    back. A burnt PR8 cable de-energises the pump too (D-035.4).'
-- id: I-805
-  title: Jetty sump T-8102 water over the floor high-high - no transfer started; in a transfer ESD-1 of the transferring berth
+  notes: 'T-8101 kept dry (review 2026-11-05-basic-design-9 #1 and its adversarial check, D-039): the pit floor falls to a
+    floor pocket (~1.5 x 1.5 m, 1.2 m deep, ~2.7 m3, ASSUMED) in which the submersible P-8102 stands with its ~0.5 m submergence,
+    started at 0.90 m and stopped at 0.60 m by LI-8103 through HS-8103 (loop LC-8103); the alarms and trips are on the independent
+    LZT-8113; levels from the pocket floor. D-035''s 100 m3 (0.5 m) of rain allowed on the pit floor is withdrawn, so the
+    2,761 m3 below the trough inlet hold the 2,400 m3 design spill with no rain. Keeps LNG out of the oily water system. The
+    stop is the opening of P-8102''s motor feeder breaker by the SIS, latching, not a control stop through the MCC start circuit,
+    so the submersible motor (Ex-certified, zone 1 taken for it) is de-energised before LNG or its vapour reaches it (D-036).
+    Detection that sees LNG in a wet pocket (review 2026-11-05-basic-design-9 #1; D-036 had the tip at the pit floor, under
+    the water the pump''s submergence keeps): TSL-8102''s tip 1.0 m above the pocket floor, above the pump''s start level,
+    so in normal service it stands in air and sees LNG flowing into the pocket or lying on its water; TSL-8120, a fast-response
+    probe in the P-8102 discharge upstream of CV-8114, sees LNG the pump has drawn from under the water within seconds, before
+    it passes the check valve in any quantity; both at -60 degC (ASSUMED), on their own SIS inputs, voted 1oo2 (either trips).
+    The rim gas detection AT-8124 (F&G voted output, ASSUMED) is a third cause, never under water. The fire and gas system
+    starts the T-8101 high-expansion foam on any of the three (D-018), so the foam start no longer waits for a probe under
+    water. Residual: the water in the pocket up to the start level (~2 m3 at most) is the first standing water a spill meets
+    after falling ~13 m from the trough inlet (rapid phase transition and boil-off at that small mass in the open pit, for
+    the siting study and the HAZOP restamp, H-05). Reset by hand only once all three read normal and the pit is confirmed
+    free of LNG. The check valve CV-8114 with HV-8115 on the riser keeps the oily water system from flowing back. A burnt
+    PR8 cable de-energises the pump too (D-035.4).'
+- id: I-809
+  title: Tank-area sump T-8101 water over the floor high-high - no transfer started; in a transfer ESD-1 of the transferring
+    berth
   cause:
-    tag: LZT-8106
-    condition: LAHH (0.60 m above the pocket floor, 0.1 m over the sump floor, ~3 m3, ASSUMED)
+    tag: LZT-8113
+    condition: LAHH (1.30 m above the pocket floor, 0.1 m over the pit floor, ~20 m3, ASSUMED)
   logic:
-    tag: LZT-8106
+    tag: LZT-8113
     state: LAHH
   effects:
   - tag: P-2101A
@@ -2082,7 +2137,82 @@ interlocks:
     action: stop
   - tag: P-3101D
     action: stop
-  - tag: LZT-8106
+  - tag: LZT-8113
+    action: alarm
+  sheet: P-08
+  sil: null
+  latching: true
+  reset: manual
+  notes: 'T-8101 kept dry (review 2026-11-05-basic-design-9 #1 and its adversarial check, D-039): the pit floor falls to a
+    floor pocket (~1.5 x 1.5 m, 1.2 m deep, ~2.7 m3, ASSUMED) in which the submersible P-8102 stands with its ~0.5 m submergence,
+    started at 0.90 m and stopped at 0.60 m by LI-8103 through HS-8103 (loop LC-8103); the alarms and trips are on the independent
+    LZT-8113; levels from the pocket floor. D-035''s 100 m3 (0.5 m) of rain allowed on the pit floor is withdrawn, so the
+    2,761 m3 below the trough inlet hold the 2,400 m3 design spill with no rain. The binding basis is no LNG on standing water
+    (D-018, D-037.15 (a)): with water on the T-8101 floor a tank-area spill would land on it. The high alarm of LZT-8113 at
+    the pocket rim (1.20 m: water on the pit floor, P-8102 failed, W-8002 blocked or the inflow above its 50 m3/h) is a transfer
+    hold: a start permissive of SEQ-LOAD (S0) and, during a transfer, the pause of SEQ-LOAD S4 while P-8102 is restored from
+    road R13 (outside the transfer area) or the portable spare pump is lowered through the cover. At high-high, 0.1 m over
+    the floor (~1 h after the LAH at the ~20 m3/h of the ASSUMED design rain on the troughs and the pit with P-8102 stopped),
+    before a transfer it blocks the start of SEQ-LOAD; during a transfer it is a transfer cause of ESD-1 of the transferring
+    berth (I-501 / I-601), as I-805, because the governing tank-area spill is the loading pumps'' run-out into one line (D-034.3),
+    so the carrier is tripped through its own link (D-016). Reset once the level is back below the high alarm. Outside a transfer
+    the rundown is not stopped (the trains set it): water on the floor in holding, after a pump failure in rain, is a residual
+    for the siting study (the rundown spill of 1,260 m3, D-034.3) with the LAH calling the repair. LZT-8113 is independent
+    of LI-8103, so a failure of the control transmitter (P-8102 not started) does not defeat the alarm and the trip; a deviation
+    between the two alarms (review 2026-11-05-basic-design-9 #4 applied to T-8101).'
+- id: I-810
+  title: Tank-area sump level rising at a spill rate - P-8102 inhibited
+  cause:
+    tag: LZT-8113
+    condition: rate of rise above ~250 m3/h of inflow (ASSUMED)
+  logic:
+    tag: LZT-8113
+    state: rate of rise above the spill threshold
+  effects:
+  - tag: P-8102
+    action: stop
+  sheet: P-08
+  sil: null
+  latching: true
+  reset: manual
+  notes: 'T-8101 kept dry (review 2026-11-05-basic-design-9 #1 and its adversarial check, D-039): the pit floor falls to a
+    floor pocket (~1.5 x 1.5 m, 1.2 m deep, ~2.7 m3, ASSUMED) in which the submersible P-8102 stands with its ~0.5 m submergence,
+    started at 0.90 m and stopped at 0.60 m by LI-8103 through HS-8103 (loop LC-8103); the alarms and trips are on the independent
+    LZT-8113; levels from the pocket floor. D-035''s 100 m3 (0.5 m) of rain allowed on the pit floor is withdrawn, so the
+    2,761 m3 below the trough inlet hold the 2,400 m3 design spill with no rain. Rate-of-rise inhibit (review 2026-11-05-basic-design-9
+    #1, D-039): a spill raises the level metres in minutes (the 4.0 m3/s run-out of D-034.3 ~1.2 m/min over the 201 m2 floor),
+    the design rain millimetres (~20 m3/h, ASSUMED). A rise of LZT-8113 faster than an inflow of ~250 m3/h (ASSUMED, ~10 x
+    the design rain; the DCS converts the level rate with the pocket and floor areas) stops P-8102 through its control circuit
+    (HS-8103) and blocks its start, latching, before the probes have cooled, so the pump does not draw the first LNG of a
+    large spill from the pocket. Not the credited LNG protection (that is I-801 on the feeder); reset by hand once TSL-8102,
+    TSL-8120 and AT-8124 read normal and the operator has confirmed water, not LNG (CCTV, the rim gas reading). A fire-water
+    run into the troughs may trip it too: P-8102 then stays stopped until the operator has confirmed it.'
+- id: I-805
+  title: Jetty sump T-8102 water over the floor high-high - no transfer started; in a transfer ESD-1 of the transferring berth
+  cause:
+    tag: LZT-8119
+    condition: LAHH (0.60 m above the pocket floor, 0.1 m over the sump floor, ~3 m3, ASSUMED)
+  logic:
+    tag: LZT-8119
+    state: LAHH
+  effects:
+  - tag: P-2101A
+    action: stop
+  - tag: P-2101B
+    action: stop
+  - tag: P-2101C
+    action: stop
+  - tag: P-2101D
+    action: stop
+  - tag: P-3101A
+    action: stop
+  - tag: P-3101B
+    action: stop
+  - tag: P-3101C
+    action: stop
+  - tag: P-3101D
+    action: stop
+  - tag: LZT-8119
     action: alarm
   sheet: P-08
   sil: null
@@ -2094,16 +2224,22 @@ interlocks:
     the inlet holding the ~170 m3 platform spill of D-034.3 and the trestle drain-down bounded by SEQ-LINE-EMPTY (~36 m3,
     40 m3 kept, D-036) with no rain allowance. Rain collects in the ~0.25 m3 floor pocket and the dry-sump pump P-8103 takes
     it out (I-806 / I-807, locked out on LNG by I-808), so no one goes to A9 during a transfer (S-CW-A9, D-037.3). The high
-    alarm of LZT-8106 at the pocket rim (0.50 m, water on the sump floor: P-8103 failed or the inflow above its ~20 m3/h)
+    alarm of LZT-8119 at the pocket rim (0.50 m, water on the sump floor: P-8103 failed or the inflow above its ~20 m3/h)
     is a transfer hold: a start permissive of SEQ-LOAD (S0) and, during a transfer, the pause of SEQ-LOAD S4 (rate to zero
     with the carrier, loading pumps stopped, XV-5101 / XV-6101 closed) until the level is back below it. At high-high, 0.1
     m over the floor (~15 min after the LAH at the ~10.5 m3/h of the ASSUMED design rain with P-8103 stopped), before a transfer
     it blocks the start of SEQ-LOAD; during a transfer it is a transfer cause of ESD-1 of the transferring berth (I-501 /
     I-601, checker of D-036): the pumps stop and the carrier is tripped through its own link, so its return-gas compressor
     never runs against a stopped transfer (D-016). Reset once the level is back below the high alarm. D-036''s LAH 0.7 m (~20
-    m3) and LAHH 1.6 m (~45 m3) with their rain allowance are withdrawn (D-037.15 (a)). LZT-8106 also drives P-8103 (I-806
-    / I-807): one transmitter for the control and this trip, a separate trip transmitter if the SIL screening asks for it
-    (H-06).'
+    m3) and LAHH 1.6 m (~45 m3) with their rain allowance are withdrawn (D-037.15 (a)). Own transmitter since D-039 (review
+    2026-11-05-basic-design-9 #4): the LAH hold and this trip are on LZT-8119, a second guided-wave radar in its own stilling
+    pipe with its own SIS input, independent of LZT-8106, which drives P-8103 (I-806 / I-807) and is now the control alone;
+    so LZT-8106 failing low or frozen (P-8103 never started, the initiating event of water on the floor) no longer also silences
+    the hold and this trip. A deviation between the two alarms. Bad signal of LZT-8119 (layout review 2026-11-05-basic-layout-7
+    #5, D-039): alarmed and taken as its LAH, a transfer hold (no transfer starts, a transfer in progress is paused, SEQ-LOAD
+    S0 / S4), not as a trip: a spurious ESD-1 with the carrier trip on a transmitter fault is not taken; a cable burnt by
+    a fire at the header bay comes with the confirmed fire and gas cause of ESD-1 (XS-5108 / XS-6108) itself. Its SIL target
+    from the screening (H-06).'
 - id: I-806
   title: Jetty sump pocket level high - dry-sump pump P-8103 started (TSL-8104 and TSL-8118 reading no LNG)
   cause:
@@ -2128,14 +2264,15 @@ interlocks:
   reset: automatic
   notes: 'Dry-sump pump of T-8102 (D-037.15 (a), D-037.16): P-8103, a vertical line-shaft pump with its bowl in the floor
     pocket (~0.8 m across, 0.5 m deep, ~0.25 m3, ASSUMED) and its motor on the sump cover (no motor in the sump), 20 m3/h
-    (ASSUMED) against the ~10.5 m3/h of the ASSUMED design rain; levels of LZT-8106 from the pocket floor. Starts P-8103 only
-    while TSL-8104 and TSL-8118 read no LNG and the lockout I-808 is reset; I-807 has priority. Between the start and the
-    stop the pump''s speed follows the level (VSD, ASSUMED), so in steady rain it runs on. When it stops, the column, the
-    discharge head and the riser drain back into the pocket (~0.08 m3, ~0.16 m of pocket level; the drain-back hole of CV-8116,
-    D-037.17), so nothing above the cover can freeze; in light rain below the ~6 m3/h minimum flow (ASSUMED) the pump then
-    cycles at most ~18 times an hour (worst at ~2.2 m3/h of inflow; ~12 without the drain-back), each a VSD ramp with no starting
-    inrush, and a non-reverse ratchet holds the line shaft during the drain-back (vendor to confirm the duty). Not a safety
-    function: the safeguards are the LAH transfer hold and I-805.'
+    (ASSUMED) against the ~10.5 m3/h of the ASSUMED design rain; levels of LZT-8106 from the pocket floor. LZT-8106 is the
+    control transmitter alone since D-039 (the hold and I-805 are on LZT-8119; loop LC-8106). Starts P-8103 only while TSL-8104
+    and TSL-8118 read no LNG and the lockout I-808 is reset; I-807 has priority. Between the start and the stop the pump''s
+    speed follows the level (VSD, ASSUMED), so in steady rain it runs on. When it stops, the column, the discharge head and
+    the riser drain back into the pocket (~0.08 m3, ~0.16 m of pocket level; the drain-back hole of CV-8116, D-037.17), so
+    nothing above the cover can freeze; in light rain below the ~6 m3/h minimum flow (ASSUMED) the pump then cycles at most
+    ~18 times an hour (worst at ~2.2 m3/h of inflow; ~12 without the drain-back), each a VSD ramp with no starting inrush,
+    and a non-reverse ratchet holds the line shaft during the drain-back (vendor to confirm the duty). Not a safety function:
+    the safeguards are the LAH transfer hold and I-805.'
 - id: I-807
   title: Jetty sump pocket level low - dry-sump pump P-8103 stopped
   cause:
@@ -2182,7 +2319,7 @@ interlocks:
     pocket and head, far above LNG), on their own SIS inputs and cables. Either opens P-8103''s motor feeder through the SIS,
     latching, not a control stop; TSL-8104 also starts the high-expansion foam (D-018). With both healthy the pump is locked
     out before it can draw LNG; with TSL-8104 failed, TSL-8118 stops it within seconds of LNG reaching the head, a residual
-    of those seconds of flow to the open drain (for the HAZOP restamp, H-05). Its SIL target, with I-805''s on LZT-8106, from
+    of those seconds of flow to the open drain (for the HAZOP restamp, H-05). Its SIL target, with I-805''s on LZT-8119, from
     the SIL screening (H-06); sil stays null until then. Reset by hand only once both read normal again and the sump is confirmed
     free of LNG (boiled off, ASSUMED). A burnt cable on the catwalk de-energises the pump too (fail safe).'
 - id: I-802
@@ -2277,3 +2414,39 @@ interlocks:
     arm isolations XV-5122 / XV-6122 have no accumulator and are the first jetty valves to move, and their loss of the open
     position during a liquid transfer trips ESD-1 (I-501 / I-601) while the liquid-path valves still hold on their accumulators
     (review 2026-11-05-basic-design-5 #2, D-030); voted transmitters at the platform end stay a detail-engineering hold.'
+- id: I-811
+  title: B-SUB AHU-1 outdoor-air intake gas high-high (2oo3) - AHU-1 stopped, intake and exhaust dampers closed
+  cause:
+    tag: AT-8141A
+    condition: 25 % LFL (2oo3, ASSUMED)
+  logic:
+    vote:
+      k: 2
+      of:
+      - tag: AT-8141A
+        state: 25 % LFL
+      - tag: AT-8141B
+        state: 25 % LFL
+      - tag: AT-8141C
+        state: 25 % LFL
+  effects:
+  - tag: UZ-8144
+    action: trip
+  - tag: UZ-8142
+    action: close
+  - tag: UZ-8143
+    action: close
+  sheet: P-08
+  sil: null
+  latching: true
+  reset: manual
+  notes: 'B-SUB, the substation and control building, is the temporary refuge (layout/building.yaml, D-037.5) and its gas-tightness
+    rests on this trip (layout/hvac.yaml AHU-1 notes, D-035.10; layout review 2026-11-05-basic-layout-5 #6 and the adversarial
+    check of layout review 7, D-039): flammable gas detectors AT-8141A/B/C in the LV1 intake duct (point IR, ASSUMED, F&G
+    vendor), alarm at 10 % LFL on any one, trip at 25 % LFL voted 2oo3 (ASSUMED; a detector fault counts as tripped, so the
+    vote degrades to 1oo2). The trip stops the AHU-1 fan (UZ-8144, SIS output to its starter) and closes the gas-tight dampers
+    of the outdoor-air intake LV1 (UZ-8142) and the exhaust LV2 (UZ-8143), spring-return, fail closed (ASSUMED, HVAC vendor),
+    so the building is held on its stored overpressure and no gas is drawn in; the occupants stay inside (refuge) or leave
+    by the exit the screening names (D-037). Latching; reset by hand once all three read below the alarm, then the dampers
+    are reopened and AHU-1 restarted. The SIL target from the screening (H-06); the hold time of the closed building is the
+    HVAC engineer''s (ASSUMED).'

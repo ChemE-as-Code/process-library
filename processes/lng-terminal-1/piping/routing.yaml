@@ -30,10 +30,14 @@ rules:
     # back north on its bottom tier (4.5 m since D-037, level with the header bay frame PR10)
     - {rack: PR9, elevation: 7, lines: [LNG-4001, LNG-4002]}
     - {rack: PR9, elevation: 4.5, fluids: [LNG]}
-    # header bay frame PR10 (D-037): loading lines and crossovers on the top tier, the berth
-    # headers with the shore ESD valves and strainers on the bottom tier
-    - {rack: PR10, elevation: 7, lines: [LNG-4001, LNG-4002, LNG-4010, LNG-4003]}
+    # header bay frame PR10 (D-040, was D-037's 4.5 / 7 m frame): the loading lines' low runs
+    # with the bottom-of-line crossover tees on the 1.9 m tier, the crossovers on shoe stubs on
+    # the 0.20 m cradle beams, the berth headers with the shore ESD valves and strainers on the
+    # 4.5 m tier; PR11 carries the loading lines from PR9's top tier to their drops west of the bay
+    - {rack: PR10, elevation: 1.9, lines: [LNG-4001, LNG-4002]}
+    - {rack: PR10, elevation: 0.2, lines: [LNG-4010, LNG-4003]}
     - {rack: PR10, elevation: 4.5, fluids: [LNG]}
+    - {rack: PR11, elevation: 7, lines: [LNG-4001, LNG-4002]}
   local_max_m: 20
   # tank relief valve tailpipes on the pump platform: the outlet rises until the 3 m zone 1
   # sphere (Z-HA-TANK-PSV) clears the platform floor and its 2.1 m headroom (D-027, ASSUMED)
@@ -99,8 +103,12 @@ rules:
     # drops, so the berth headers start on the bottom tier and run back west with the shore ESD
     # valve and the strainer horizontal on them (y 858.9 / 861.1), beside the aisle S-HDR
     # (layout/structures.yaml), then north onto PR9's bottom tier (lanes x 1152.45 / 1156.1)
-    - {id: J-Berth2-liquid, lines: [LNG-4001, LNG-5001], point: [1162.0, 858.9, 4.9865]}
-    - {id: J-Berth1-liquid, lines: [LNG-4002, LNG-6001], point: [1162.0, 861.1, 4.9865]}
+    # D-040 (review 2026-11-05-basic-layout-7 #1 / #2): the loading lines drop west of the bay to
+    # low runs on PR10's 1.9 m tier (lanes y 858.2 / 861.8) and turn up at the bay's east end in
+    # a 180 deg return (x 1163.4); the sheet junctions are at the top elbow of each return, so the
+    # berth headers run west from there on PR10's 4.5 m tier directly above the low runs
+    - {id: J-Berth2-liquid, lines: [LNG-4001, LNG-5001], point: [1163.4, 858.2, 4.9865]}
+    - {id: J-Berth1-liquid, lines: [LNG-4002, LNG-6001], point: [1163.4, 861.8, 4.9865]}
     # carrier manifolds: the outboard arm (ERS, couplers) ends at the ship's manifold flange,
     # 3.15 m outboard of the arm's outboard nozzle at the arm apex, clear of the ship envelope
     # boxes of layout/zones.yaml (ASSUMED, D-014; the arm vendor's envelope replaces it)
@@ -238,10 +246,21 @@ lines:
   # tier and run back west with the shore ESD valve and the strainer horizontal on them (beside
   # the aisle S-HDR), turn north onto PR9's bottom tier with the N2 tie-in T50N / T60N on the
   # turn north of the bay (y 864.4), and run on to the arm tees at y 887.5, welded
-  - {line: LNG-5001, segment: P-05/Line_LNG5001_S1, route: [[1162.0, 858.9, 4.9865], [1152.45, 858.9, 4.9865], [1152.45, 864.4, 4.9865]]}
+  # D-040 (review 2026-11-05-basic-layout-7 #1 / #2): the berth header starts on PR10's 4.5 m tier
+  # at the top elbow of the 180 deg return at the bay's east end (the sheet junction at x 1163.4),
+  # runs west directly above its loading line's low run (lane y 858.2 Berth 2 / 861.8 Berth 1) with
+  # XV-n101 (real body x 1160.3-1161.9, east of it the elbow's tangent at x 1162.18) and SR-n102
+  # (x 1157.8-1160.0) under open sky beside the aisle S-HDR, then north as before (Berth 1: 4.86 m
+  # of straight between the return's tangent and the north elbow's at x 1157.32, for the 1.6 m
+  # valve, the 2.2 m strainer and two spools; the run is 7.3 m centre to centre, D-040). The
+  # model's XV-n101 symbol sits 1.5 m along the segment (cheme-as-code 1.11's in-line pitch) at
+  # x 1161.9, the valve's east flange; the SR-n102 symbol 2.5 m along at x 1160.9, 2.0 m east of
+  # the real strainer centre x 1158.9 (the model draws no body; the real envelopes are the zones
+  # Z-MNT-XV5101 / -SR5102 and the Berth 1 pair in layout/zones.yaml, D-040)
+  - {line: LNG-5001, segment: P-05/Line_LNG5001_S1, route: [[1163.4, 858.2, 4.9865], [1152.45, 858.2, 4.9865], [1152.45, 864.4, 4.9865]]}
   - {line: LNG-5001, segment: P-05/Line_LNG5001_S2, route: [[1152.45, 864.4, 4.9865], [1152.45, 869.2, 4.9865]]}
   - {line: LNG-5001, segment: P-05/Line_LNG5001_S3, route: [[1152.45, 869.2, 4.9865], [1152.45, 890.2, 4.9865], [1149.66, 890.2, 4.9865], [1149.66, 890.2, 3.99], [1149.66, 887.5, 3.99], [1149.28, 887.5, 3.99]]}
-  - {line: LNG-6001, segment: Line_LNG6001_S1, route: [[1162.0, 861.1, 4.9865], [1156.1, 861.1, 4.9865], [1156.1, 864.4, 4.9865]]}
+  - {line: LNG-6001, segment: Line_LNG6001_S1, route: [[1163.4, 861.8, 4.9865], [1156.1, 861.8, 4.9865], [1156.1, 864.4, 4.9865]]}
   - {line: LNG-6001, segment: Line_LNG6001_S2, route: [[1156.1, 864.4, 4.9865], [1156.1, 869.2, 4.9865]]}
   # (D-035.1: from PSV-6118's tee T60Y, now at y 884 on the drain pump discharge, east at 5.62 m
   # south of DR-6005's run)
@@ -390,9 +409,13 @@ lines:
   - {line: N-4002, segment: P-04/Line_N4002_S2, route: [[1082.6, 2946.5, 1.2], [1082.6, 2945.0, 1.2], [1082.6, 2945.0, 2.2], [1082.6, 2946.0, 2.2], [1082.6, 2946.0, 7.6065]]}
   - {line: N-4004, segment: P-04/Line_N4004_S1, route: [[1082.6, 2946.5, 1.2], [1082.6, 2948.3, 1.2], [1082.6, 2948.3, 2.5]]}
   # (D-037.15: the crossover tees at x 1156.1 / 1158.4, over PR10's top-tier beams)
-  - {line: LNG-4002, segment: P-04/Line_LNG4002_S5, route: [[1082.6, 2946.0, 7.6065], [1097.12, 2946.0, 7.6065], [1097.12, 2872.03, 7.6065], [1155.675, 905.0, 7.6065], [1155.83, 900.0, 7.6065], [1153.95, 900.0, 7.6065], [1153.95, 862.1, 7.6065], [1156.1, 862.1, 7.6065]]}
-  - {line: LNG-4002, segment: P-04/Line_LNG4002_S6, route: [[1156.1, 862.1, 7.6065], [1158.4, 862.1, 7.6065]]}
-  - {line: LNG-4002, segment: P-04/Line_LNG4002_S7, route: [[1158.4, 862.1, 7.6065], [1162.0, 862.1, 7.6065], [1162.0, 861.1, 7.6065], [1162.0, 861.1, 4.9865]]}
+  # D-040: from PR9's top tier onto PR11 to its drop at (1153.95, 861.8), welded, down to the low
+  # run at 2.51 m on PR10's 1.9 m tier (lane y 861.8), east past the bottom-of-line tees T4B5
+  # (x 1155.75) and T4B4 (x 1159.05) to the 180 deg return at x 1163.4 (outside the recess), up
+  # to the sheet junction at the return's top elbow (1163.4, 861.8, 4.99)
+  - {line: LNG-4002, segment: P-04/Line_LNG4002_S5, route: [[1082.6, 2946.0, 7.6065], [1097.12, 2946.0, 7.6065], [1097.12, 2872.03, 7.6065], [1155.675, 905.0, 7.6065], [1155.83, 900.0, 7.6065], [1153.95, 900.0, 7.6065], [1153.95, 861.8, 7.6065], [1153.95, 861.8, 2.5065], [1155.75, 861.8, 2.5065]]}
+  - {line: LNG-4002, segment: P-04/Line_LNG4002_S6, route: [[1155.75, 861.8, 2.5065], [1159.05, 861.8, 2.5065]]}
+  - {line: LNG-4002, segment: P-04/Line_LNG4002_S7, route: [[1159.05, 861.8, 2.5065], [1163.4, 861.8, 2.5065], [1163.4, 861.8, 4.9865]]}
   # circulation return: up out of loading line B under PR6 (T4B1), the PSV-4114 (T4R2) and the
   # T-3101 branch LNG-4009 (T4R1) on the riser, then up PR6 (x 987.3) to the T-2101 roof.
   - {line: LNG-4005, segment: P-04/Line_LNG4005_S1, route: [[987.3, 2946.0, 7.6065], [987.3, 2946.0, 8.6]]}
@@ -415,9 +438,14 @@ lines:
   # the header bay frame PR10, east along the bay's south edge (y 857.9) to the DN 800 crossover
   # tee T4A5 (x 1156.1), the DN 250 crossover tee T4A4 (x 1158.4; D-037.15 (b)) and the Berth 2 junction drop
   # at the bay's east end (x 1162.0, onto y 858.9)
-  - {line: LNG-4001, segment: P-04/Line_LNG4001_S5, route: [[1070.0, 2940.0, 7.6065], [1090.68, 2940.0, 7.6065], [1090.68, 2871.94, 7.6065], [1149.232, 905.0, 7.6065], [1149.41, 899.0, 7.6065], [1152.45, 899.0, 7.6065], [1152.45, 857.9, 7.6065], [1156.1, 857.9, 7.6065]]}
-  - {line: LNG-4001, segment: P-04/Line_LNG4001_S6, route: [[1156.1, 857.9, 7.6065], [1158.4, 857.9, 7.6065]]}
-  - {line: LNG-4001, segment: P-04/Line_LNG4001_S7, route: [[1158.4, 857.9, 7.6065], [1162.0, 857.9, 7.6065], [1162.0, 858.9, 7.6065], [1162.0, 858.9, 4.9865]]}
+  # D-040: from PR9's top tier onto PR11, west on its north bent (y 864.0) to x 1151.0, clear of
+  # the Berth 2 header's north leg at x 1152.45, south to its drop at (1151.0, 858.2), welded,
+  # down to the low run at 2.51 m on PR10's 1.9 m tier (lane y 858.2), east past the
+  # bottom-of-line tees T4A5 (x 1155.75) and T4A4 (x 1159.05) to the 180 deg return at x 1163.4,
+  # up to the sheet junction at the return's top elbow (1163.4, 858.2, 4.99)
+  - {line: LNG-4001, segment: P-04/Line_LNG4001_S5, route: [[1070.0, 2940.0, 7.6065], [1090.68, 2940.0, 7.6065], [1090.68, 2871.94, 7.6065], [1149.232, 905.0, 7.6065], [1149.41, 899.0, 7.6065], [1152.45, 899.0, 7.6065], [1152.45, 864.0, 7.6065], [1151.0, 864.0, 7.6065], [1151.0, 858.2, 7.6065], [1151.0, 858.2, 2.5065], [1155.75, 858.2, 2.5065]]}
+  - {line: LNG-4001, segment: P-04/Line_LNG4001_S6, route: [[1155.75, 858.2, 2.5065], [1159.05, 858.2, 2.5065]]}
+  - {line: LNG-4001, segment: P-04/Line_LNG4001_S7, route: [[1159.05, 858.2, 2.5065], [1163.4, 858.2, 2.5065], [1163.4, 858.2, 4.9865]]}
   # the crossovers between the loading lines in the header bay (D-035.1), north-south on PR10's
   # top tier over the aisle (D-037). D-037.15 (independent check of D-037, the open part of
   # review 6 #1 (a)): they ran between PR10's north-south top-tier beams, parallel to them, and
@@ -429,8 +457,19 @@ lines:
   # Known modelling limitation (D-037.16 (d)): the design takes both crossovers off the bottom of the
   # loading lines (P-04, D-036.11 (b)); cheme-as-code 1.7.0 gives a tee no orientation, so these pins
   # leave at the lines' centreline
-  - {line: LNG-4010, segment: P-04/Line_LNG4010_S1, route: [[1156.1, 857.9, 7.6065], [1156.1, 862.1, 7.6065]], notes: "Drawn intent: bottom-of-line equal tees T4A5 / T4B5 at the low point of the trestle run (P-04, D-036.11 (b)). Modelled at the centreline because cheme-as-code 1.7.0 gives a tee no orientation; for this DN 800 equal tee the side branch's invert is the run's invert, so the drain path is as designed (D-037.16 (d))."}
-  - {line: LNG-4003, segment: P-04/Line_LNG4003_S1, route: [[1158.4, 857.9, 7.6065], [1158.4, 862.1, 7.6065]], notes: "Drawn intent: bottom-of-line tees T4A4 / T4B4 (DN 250 on DN 800) at the low point of the trestle run (P-04, D-036.11 (b)). Modelled at the centreline because cheme-as-code 1.7.0 gives a tee no orientation, so the model's branch invert is ~0.27 m above the run's ((813 - 273) / 2 mm): the model understates the drain path, not the T-8102 budget; a modelled bottom takeoff needs the header bay rearranged (D-037.15 (k), D-037.16 (d))."}
+  # D-040 (review 2026-11-05-basic-layout-7 #2, the adversarial high): rearranged so the bottom
+  # takeoffs are built and modelled. The tees sit on the low runs at 2.51 m, the low point of the
+  # trestle side; each crossover leaves its tee vertically down (the model's pin starts at the
+  # tee on the run's axis and drops, which is the bottom takeoff's geometry; cheme-as-code 1.11
+  # still records no tee orientation), turns north on short-radius elbows (equal tee ~0.6 m +
+  # SR elbow 0.81 m below the run's axis, ASSUMED ASME B16.9 sizes), crosses between the lanes on
+  # two shoe stubs (one under each elbow) on PR10's 0.20 m cradle beam, the valve body clear of
+  # the beam, and rises into the other line's bottom tee. The valve sits between
+  # the lanes under open sky, so it is lifted out vertically (zones Z-MNT-XV4107 / -XV4103). The
+  # model draws XV-4107 / XV-4103 1.5 m along the segment (cheme-as-code 1.11's in-line pitch),
+  # i.e. at the foot of the first drop instead of mid-span (real centres y 860.0)
+  - {line: LNG-4010, segment: P-04/Line_LNG4010_S1, route: [[1155.75, 858.2, 2.5065], [1155.75, 858.2, 1.0965], [1155.75, 861.8, 1.0965], [1155.75, 861.8, 2.5065]], notes: "Bottom-of-line equal tees T4A5 / T4B5 at the low point of the trestle side (P-04, D-036.11 (b)), built and modelled as a vertical drop from the low run's axis (D-040). Real XV-4107 centre (1155.75, 860.0, 1.10): body ~1.6 x 1.6 m, actuator ~2.6 m above the axis across the pipe (ASSUMED); the model's symbol sits at the in-line pitch, 1.5 m along."}
+  - {line: LNG-4003, segment: P-04/Line_LNG4003_S1, route: [[1159.05, 858.2, 2.5065], [1159.05, 858.2, 0.8265], [1159.05, 861.8, 0.8265], [1159.05, 861.8, 2.5065]], notes: "Bottom-of-line tees T4A4 / T4B4 (DN 250 on DN 800) at the low point of the trestle side (P-04, D-036.11 (b)), built and modelled as a vertical drop from the low run's axis, so the branch invert is below the run's (the ~0.27 m wedge of the centreline model is gone, D-040). Real XV-4103 centre (1159.05, 860.0, 0.83); the model's symbol sits at the in-line pitch, 1.5 m along."}
   # tank-end crossover between the loading lines with the PSV-4113 take-off (T4X7) in its
   # middle
   - {line: LNG-4006, segment: P-04/Line_LNG4006_S1, route: [[1051.1, 2940.0, 7.6065], [1051.1, 2943.0, 7.6065]]}
@@ -624,7 +663,7 @@ operators:
   # on the header bay frame PR10 over the aisle S-HDR (layout/structures.yaml)
   # (D-037.15: the portable work platform on the aisle was not a declared means of access; the
   # crossovers have no local duty and their actuator packages are maintained by exchange)
-  - {item: XV-4103, kind: remote_operator, basis: &hdrx "Actuated crossover valve resting on a top-tier beam of PR10 over the header bay (fail-safe actuator, operated from the DCS / SIS, no local duty; position proven by its switches before every transfer; one opening stroke in SEQ-LINE-EMPTY within ~0.5 h of an ESD-1, D-036 item 5, D-037.15): its actuator, solenoids, position switches and stored-energy supply are one fire-rated package (piping/pipe-specs.yaml Class 150 (e)) maintained by exchange, unbolted from the basket of a mobile elevating work platform on the deck east of the bay (Z-LAY-A4SE, outside the recess), lifted by the mobile crane on Z-PAD-A4E and bench-maintained; the valve is removed the same way; no transfer on either berth meanwhile (D-035.14 (e), D-037, D-037.15, ASSUMED)"}
+  - {item: XV-4103, kind: remote_operator, basis: &hdrx "Actuated crossover valve on the bottom-of-line crossover between the loading lines' low runs, between its two shoe stubs on PR10's 0.20 m cradle beam in the header bay (D-040; fail-safe actuator, operated from the DCS / SIS, no local duty; position proven by its switches before every transfer; one opening stroke in SEQ-LINE-EMPTY within ~0.5 h of an ESD-1, D-036 item 5, D-037.15): its actuator, solenoids, position switches and stored-energy supply are one fire-rated package (piping/pipe-specs.yaml Class 150 (e)) maintained by exchange: nothing stands over it between the lanes, so the package or the whole valve is lifted vertically by the mobile crane on Z-PAD-A4SE (lift path Z-MNT-XV4103 / -XV4107, D-040) and bench-maintained; no transfer on either berth meanwhile (D-035.14 (e), D-040, ASSUMED)"}
   - {item: XV-4107, kind: remote_operator, basis: *hdrx}
   - {item: XV-4105, kind: remote_operator, basis: *act}
   - {item: XV-4106, kind: remote_operator, basis: *act}
@@ -632,7 +671,7 @@ operators:
   - {item: XV-4132, kind: remote_operator, basis: *act}
   - {item: XV-4135, kind: remote_operator, basis: *act}
   - {item: XV-4136, kind: remote_operator, basis: *act}
-  - {item: XV-5101, kind: remote_operator, basis: &hdrn "Shore ESD valve on the berth header on PR10's bottom tier, horizontal beside the header bay aisle S-HDR (fail-closed actuator, operated by the SIS, no manual duty): its actuator, solenoids and the position switch ZSC-n101 ~1.2 m above the aisle floor at 4.5 m and 0.7 m from its edge, operated and maintained from the aisle; removed by the mobile crane on Z-PAD-A4E (Berth 1) or Z-PAD-A4W (Berth 2) with no transfer on either berth (D-035.14 (e), D-037, ASSUMED)"}
+  - {item: XV-5101, kind: remote_operator, basis: &hdrn "Shore ESD valve on the berth header on PR10's 4.5 m tier beside the header bay aisle S-HDR, stem vertical, nothing above it (D-040; fail-closed actuator, operated by the SIS, no manual duty): its solenoids, local reset and the position switch ZSC-n101 on the actuator 1.0-1.8 m above the aisle floor, its body edge on the aisle edge; the actuator or the whole valve (~12 t, ASSUMED) lifted vertically by the mobile crane on Z-PAD-A4SE (~9.5 m radius, lift path Z-MNT-XV5101 / -XV6101) with no transfer on either berth (D-035.14 (e), D-040, ASSUMED)"}
   - {item: XV-5121, kind: remote_operator, basis: *act}
   - {item: XV-5122, kind: remote_operator, basis: *act}
   - {item: XV-5123, kind: remote_operator, basis: *act}

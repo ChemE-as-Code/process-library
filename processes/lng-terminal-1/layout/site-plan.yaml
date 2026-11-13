@@ -40,8 +40,10 @@ roads:
   - {id: R6, title: "Link from the jetty road R5 under PR2's straight north end to R3 (ASSUMED)", points: [[1083, 2925], [1116.4, 2925]], width: 6}
   - {id: R7, title: "BOG area access from R3 under PR3 to the crane pad Z-PAD-A2E (fire and crane access from the east, ASSUMED)", points: [[1116.4, 2995], [1082, 2995]], width: 6}
   - {id: R8, title: "Road from R3 along the north side of the substation and control building B-SUB to R11 (ASSUMED, D-033)", points: [[1116.4, 2980], [1205, 2980]], width: 6}
-  - {id: R9, title: "Loading platform roadway from the trestle road onto the deck to the Berth 2 crane strip Z-PAD-A4W (ASSUMED)", points: [[1140.5, 925], [1142, 912], [1142, 901]], width: 6}
-  - {id: R10, title: "Loading platform roadway under the PR2 end (between its bents at y 906 / 914) to the Berth 1 crane strip Z-PAD-A4E (ASSUMED)", points: [[1142, 910], [1164, 910], [1164, 901]], width: 6}
+  # D-040: the strips at the roads' south ends are part-lift maintenance strips Z-MNT-A4W / -A4E
+  # (no crane pads of the lifting study); the deck pads Z-PAD-A4SW / -A4SE are reached from them
+  - {id: R9, title: "Loading platform roadway from the trestle road onto the deck to the Berth 2 maintenance strip Z-MNT-A4W and on to the deck pad Z-PAD-A4SW (ASSUMED, D-040)", points: [[1140.5, 925], [1142, 912], [1142, 901]], width: 6}
+  - {id: R10, title: "Loading platform roadway under the PR2 end (between its bents at y 906 / 914) to the Berth 1 maintenance strip Z-MNT-A4E and on to the deck pad Z-PAD-A4SE (ASSUMED, D-040)", points: [[1142, 910], [1164, 910], [1164, 901]], width: 6}
   # D-035.4 (review 2026-11-05-basic-layout-5 #4): the basin A8 had no road. R12 runs north off
   # R2 west of the basin, outside the 8 kW/m2 band of the design fire (7.5 kW/m2 or less on its
   # east edge), to the hardstanding Z-LAY-A8W, the fire approach to the basin and the trough's
@@ -124,7 +126,96 @@ racks:
   # hydrocarbon pool fire (the bounded trestle drain-down of D-036, D-037), and its valves are
   # fire-tested (piping/pipe-specs.yaml Class 150 (d), (e)); structural design and the deck
   # connection the marine engineer's (ASSUMED)
-  - {id: PR10, title: "Header bay frame over the header bay at the platform's south end: loading lines and crossovers on the top tier, berth headers with the shore ESD valves and strainers on the bottom tier (ASSUMED, D-037)", points: [[1151.5, 860.0], [1163.0, 860.0]], width: 5.3, levels: [4.5, 7], bent_spacing_m: 11.5, intermediate_supports: {spacing_m: 2.3}, ladders: []}
+  # D-040 (review 2026-11-05-basic-layout-7 #1 / #2 and the high of its adversarial check): at
+  # real size the shore ESD valves, strainers and crossover valves did not fit under the 7 m tier,
+  # and the crossovers could not leave the bottom of the loading lines there. Rearranged so that
+  # nothing stands over the bay above the berth headers: the loading lines leave PR9's top tier on
+  # the short frame PR11 west of the bay and drop (welded) to a low run at 2.5 m, the low point of
+  # the trestle side, which crosses the bay east on PR10's 1.9 m tier carrying the bottom-of-line
+  # tees of both crossovers; at the bay's east end each line turns up (a welded 180 deg return of
+  # two long-radius elbows, x 1163.4, outside the recess) and comes back west as the berth header
+  # on PR10's 4.5 m tier directly above its low run, with XV-n101 and SR-n102 under open sky, then
+  # north onto PR9 as before. The crossovers leave the low runs' bottom tees and rest, at their two
+  # elbows either side of the valve, on shoe stubs (HB-LNG4010-1/-2, HB-LNG4003-1/-2,
+  # layout/structures.yaml) on the 0.20 m cradle beams between the lanes; the beam lies 0.1 m
+  # under the real XV-4107 body (its bottom ~0.30 m), so no valve rests on it and either valve
+  # lifts out between its two supports. PR10's bents stand only where nothing has to be lifted
+  # through them (x 1147.5 / 1152.45 / 1157.4 / 1162.35, 4.95 m: between the crossover valves,
+  # and clear of the XV-n101 bodies and the strainer flanges); the cradle beams at 0.20 m only
+  # (x 1154.1 / 1155.75 under XV-4107 / 1159.05 under XV-4103 / 1160.7). Columns on the bay's
+  # south wall and north kerb (y 857.35 / 862.65) and on the deck west of the bay: no foot in the
+  # recess. Lanes: line A / Berth 2 y 858.2, line B / Berth 1 y 861.8 (3.6 m apart; the aisle
+  # S-HDR between them). PFP 240 min as before (piping/pipe-specs.yaml Class 150 (d), (g)).
+  # The Berth 2 header's north leg (x 1152.45) crosses the north stringer at bent-1's column head
+  # and rests on it there (a support at the node; the model reports the contact as a clash,
+  # accepted in checks/checks.yaml). East of bent-3 (x 1162.35) only the 180 deg returns stand
+  # (x 1163.4), each the junction of its loading line and berth header at its top elbow
+  # (piping/routing.yaml), so the 200 mm insulated loading line does not lie on bent-3's 4.5 m beam
+  - {id: PR10, title: "Header bay frame (D-040): low runs of the loading lines with the bottom-of-line crossover tees on the 1.9 m tier, the crossovers on stubs on the 0.20 m cradle beams, the berth headers with XV-5101 / XV-6101 and SR-5102 / SR-6102 on the 4.5 m tier under open sky (ASSUMED)", points: [[1147.5, 860.0], [1162.35, 860.0]], width: 5.0, levels: [0.2, 1.9, 4.5], bent_spacing_m: 4.95, intermediate_supports: {spacing_m: 1.65, levels: [0.2], notes: "crossover cradle beams only, the crossovers on shoe stubs at their elbows (D-040)"}, ladders: []}
+  # PR11 (D-040): the 7 m tier that carries the two loading lines from PR9's end south to their
+  # drops west of the recess (line A jogs west on its north bent to x 1151.0, clear of the Berth 2
+  # header's north leg at x 1152.45; line B drops at x 1153.95), a single tier, so no 7 m steel
+  # stands over the bay; its north bent at y 864.0 stays south of the N-8002 riser (y 864.4), its
+  # south bent at y 856.9 south of PR10's stringers; one beam between them at y 860.45, between
+  # the two drops (line A at y 858.2, line B at y 861.8), so no beam crosses a drop. Columns and
+  # stringers at x 1150.15 / 1154.4: the west ones just clear of line A's drop insulation, the
+  # east ones 0.15 m west of XV-4107's lift path (x 1154.75, checked by build/r14_env.py)
+  # D-040.11 (independent check of D-040, #1): two bents only, no stringers and no mid beam. An
+  # east stringer from the north bent south (x 1154.25-1154.55) cut line B's drop insulation (to
+  # x 1154.56 at y 861.19-862.41), and there is no room for a member between that drop and
+  # XV-4107's lift path (x 1154.75). The north bent (y 864.0) carries both loading lines (line A
+  # along its beam where it jogs west, line B crossing it); each drop stands on its own base stub
+  # under the bottom elbow (posts HB-LNG4001-D / HB-LNG4002-D from the deck west of the recess,
+  # layout/structures.yaml), so no span from the north bent to PR10 exceeds 11.0 m. Widened to
+  # 4.4 m (columns x 1150.1 / 1154.8) so the north bent's east column and its tray-tier post
+  # stand east of line B's insulation (to x 1154.56) instead of under it, and the instrument tray
+  # lane (x 1150.56) keeps the tray spacing from line A below it; the east column of the
+  # south bent is south of XV-4107's lift path (y 859.2-860.8). The south bent moved from y 856.9
+  # to 856.55 with PR13 (below), so the two strips still touch; it carries the cable trays to
+  # PR13. Lateral bracing between the bents is structural design (marine engineer, ASSUMED).
+  # PR11's entry follows PR12's below: the rack order sets where the tray link between them
+  # lands (D-040.11)
+  # PR12 (D-040, review 2026-11-05-basic-layout-7 #5): a 2.5 m cable link from PR9's south bent to
+  # PR11, on PR9's column lines (x 1151.65 / 1156.85, clear of every line: outermost insulation
+  # x 1151.84 / 1156.59), one beam level at 6.5 m under the loading lines and over the berth
+  # headers and the N2 tie-ins; its north bent is PR9's south bent (geometry superseded by
+  # D-040.11 below: the model drew neither). It joins PR9 to PR11 / PR10 in the rack network, so the feeder of the T-8102
+  # dry-sump pump P-8103 runs in rack trays to the header bay (PR10's tray at 3.3 m between the low
+  # runs and the berth headers) instead of a direct branch from MCC-2 (D-037.16 (c) had no rack
+  # path: PR10 was 3.35 m from PR9). Structural design the marine engineer's (ASSUMED)
+  # D-040.11 (independent check of D-040, #1): as first declared (x 1154.25, 4.9 m wide, y 866 to
+  # 863.5) PR12's strip held the end bents of PR9 (y 866) and PR11 (y 864), and theirs held its
+  # own, so cheme-as-code 1.11 left out all four (an end bent inside another rack's strip is taken
+  # as carried by that rack) and the loading lines hung from cantilevered stringers. Now PR12 is
+  # the 2.0 m between PR9's last bent and PR11's north bent, x 1152.5-1154.2: its strip touches
+  # both racks' strips (the rack network joins) but holds neither rack's end-bent centre (x 1154.25
+  # / 1152.45), so both bents are built. Its own two end bents fall inside PR9 / PR11 and are
+  # left out, and its one level is its tray level (8.5 m), so it has no steel of its own: its
+  # trays span the 2 m between the tray tiers of PR9's bent at y 866 and PR11's at y 864, and no
+  # post stands among the two loading lines that cross under it at 7.0-8.21 m. It reaches 1.1 m
+  # past PR11's north bent (to y 862.9) and is listed before PR11, so the trays' link to PR11's
+  # lanes lands at y 862.9, clear of PR11's tray-tier beam at y 864 (along that beam the
+  # instrument link found no clear way)
+  - {id: PR12, title: "Cable link from PR9's south bent to PR11's north bent (trays only, on those two bents' tray tiers, D-040, ASSUMED)", points: [[1153.35, 866.0], [1153.35, 862.5]], width: 1.7, levels: [8.5], bent_spacing_m: 3.5, ladders: []}
+  - {id: PR11, title: "Loading line drop frame west of the header bay (D-040): the two loading lines from PR9's top tier to their drops (ASSUMED)", points: [[1152.45, 864.0], [1152.45, 856.55]], width: 4.4, levels: [7], bent_spacing_m: 7.45, ladders: []}
+  # PR13 (D-040, review 2026-11-05-basic-layout-7 #5): a cable rack from PR11's south end (its
+  # strip meets PR11's at y 857.0, so the rack network reaches A9) east along the deck south of
+  # the header bay (y 856.4, posts at y 855.8 / 857.0, clear of PR10's south columns at y 857.35
+  # and of the recess) to the catwalk, then a cable canopy over the catwalk S-CW-A9's west walkway
+  # to A9 north of the sump's zone (y 820.5), posts on the walkway's edges (x 1161.0 / 1162.2,
+  # ~1.0 m clear between them). One beam level at 2.5 m (2.2 m over the 0.3 m walkway); a power
+  # tray for the P-8103 feeder and an instrument tray for the sump's SIS multicore from JB-A9 on
+  # opposite sides, ~1.0 m apart (electrical/tray-rules.yaml, separation 0.3 m): the two trays the
+  # review asked for. No tray crosses the header bay or a lift path of it. Posts on the deck and
+  # the catwalk, none in a recess; structural design the marine engineer's (ASSUMED)
+  # D-040.11 (independent check of D-040, lows): the north posts (y 857.0-857.3) overlapped PR10's
+  # south columns and stringers (y 857.2-857.5), so the rack's line moved 0.35 m south to y 856.05
+  # (north posts y 856.65-856.95, 0.25 m clear of PR10); and its beam level raised from 2.5 to
+  # 2.6 m, so the HEB200 underside (2.4 m) leaves 2.1 m clear over the 0.3 m catwalk walkway (it
+  # was 2.0 m, not the 2.2 m stated). PR10 bent-3's south column and PR13's posts east of x
+  # 1158.5 stand on the cover of the header bay outlet channel Z-KC-CHANNEL-JETTY-HDR: those
+  # cover loads are on the marine engineer's load list with the S-HDR posts' (ASSUMED)
+  - {id: PR13, title: "Cable rack from PR11 along the header bay's south side and canopy over the catwalk to the sump deck A9: P-8103 feeder and the sump instrument trays, apart (D-040, ASSUMED)", points: [[1153.0, 856.05], [1161.6, 856.05], [1161.6, 820.5]], width: 1.2, levels: [2.6], bent_spacing_m: 4.3, ladders: []}
 rack_reach: 60
 # the in-tank pump removal crane on the pads north of the tanks works at up to ~75 m radius
 # (D-029, ASSUMED until the lifting contractor's crane selection); every pad still states its
