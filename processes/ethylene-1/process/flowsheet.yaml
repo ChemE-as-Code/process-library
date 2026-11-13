@@ -7,8 +7,10 @@
 #   S804 and the mixer/pass-through streams are calculated by `cheme process propagate --fill`
 #   from the reactions in process/reactions.yaml (furnace: conversions from the sourced BREF
 #   yields, D-005);
-# - feeds, separator and column outlets, the recycles and all duties come from the independent
-#   balance scripts/balance.py (D-006), given here as ASSUMED: the separations are specified
+# - feeds, separator and column outlets, the recycles and all duties but Q102 come from the
+#   independent balance scripts/balance.py (D-006), given here as ASSUMED (Q102 is the firebox
+#   H102's conversion-step duty less its casing loss Q105, written by `cheme process propagate
+#   --fill`, D-019): the separations are specified
 #   splits, not a rigorous simulation, because core has no qualified property package for the
 #   C2+ hydrocarbons yet (D-012);
 # - temperatures and pressures are design choices (D-004, D-007, D-008), ASSUMED.
@@ -75,6 +77,11 @@ products:
       supply_temperature: {value: 793.15, provenance: assumed, source: "D-007"}
       min_approach: {value: 20, provenance: assumed, source: "D-007"}
     ports: [{id: tle, direction: in, kind: energy}, {id: conv, direction: in, kind: energy}]
+  - id: AMBIENT
+    title: Heat lost from the furnace fireboxes' casings to the ambient air
+    category: utility
+    utility: {kind: other}
+    ports: [{id: h102, direction: in, kind: energy}]
   - id: CW
     title: Cooling water return
     category: utility
@@ -111,6 +118,7 @@ blocks:
       - {id: hps_tle, direction: out, kind: energy}
       - {id: hps_conv, direction: out, kind: energy}
       - {id: heat3, direction: out, kind: energy}
+      - {id: loss, direction: out, kind: energy}
   - id: CRK3
     title: Propane recycle cracking coil
     class: ReactingChemicals
@@ -267,6 +275,7 @@ steps:
     class: ReactingChemicals
     reactor: conversion
     reactions: [COMB_H2, COMB_CH4, COMB_C2H4, COMB_C2H6]
+    energy_port: hps   # the model's heat less the coils' Q101, Q104 and the casing loss Q105 (D-019)
     links: [{target: equipment, ref: H-101}]
     ports:
       - {id: fuel, direction: in}
@@ -275,6 +284,7 @@ steps:
       - {id: coil, direction: out, kind: energy}
       - {id: coil3, direction: out, kind: energy, delegates: heat3}
       - {id: hps, direction: out, kind: energy, delegates: hps_conv}
+      - {id: loss, direction: out, kind: energy, delegates: loss}
   # --- QW
   - id: T201
     block: QW
@@ -621,7 +631,15 @@ streams:
     to: HPS.conv
     state:
       design:
-        duty: {value: 195682.0, provenance: assumed, source: "scripts/balance.py, D-007"}
+        duty: {value: 195682.0, provenance: calculated, source: 'cheme process propagate: conversion duty H102 from S802 S803 S804', fingerprint: a0a33c879dbfdfb0}
+  - id: Q105
+    title: Firebox casing loss to the ambient air
+    kind: energy
+    from: H102.loss
+    to: AMBIENT.h102
+    state:
+      design:
+        duty: {value: 9163.8, provenance: assumed, source: "scripts/balance.py: 1.5 % of the fired duty, 610.92 MW LHV (D-013, D-019)"}
   - id: Q103
     title: TLE duty (SHP steam generation)
     kind: energy

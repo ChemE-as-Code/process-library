@@ -131,8 +131,8 @@ not at equilibrium, section 3); inventing a rate law for the carbon bed.
 
 ## D-006 Balance method: independent script for the absorption section (2026-10-28)
 Decision: `scripts/balance.py` (run `cheme run scripts/balance.py`) gives the flows and
-compositions of S1-S3 and S6-S12 and the duties Q1-Q6, entered as `assumed` with
-`source: scripts/balance.py`; S4 and S5 are calculated by cheme (propagate) and agree with the
+compositions of S1-S3 and S6-S12 and the duties Q1 and Q3-Q6, entered as `assumed` with
+`source: scripts/balance.py` (Q2 is R101's conversion-step duty, written by cheme, D-014); S4 and S5 are calculated by cheme (propagate) and agree with the
 script (1 000.805 kg/h). Reason: cheme cannot solve the absorber or the scrubber (electrolyte,
 core's electrolyte support) nor the bromine vaporiser (no package for Br2 liquid). The script closes mass
 (2 084.27 kg/h) and Br and H; cheme validate confirms every block, step and element balance.
@@ -182,6 +182,7 @@ ASSUMED, as hydrogen-chloride-1. R-101, E-102 and C-201 are cooled: Q2 + Q3 + Q4
 ## D-011 Electric power (2026-10-28)
 Decision: Q5 product pump 0.08 kW (100 kPa, 1 490 kg/m3 (SRC-4), efficiency 0.5); Q6 3 kW for
 burner management, instruments and analysers. Both ASSUMED; 3.08 kW in total (3.1 kWh/t HBr).
+Q6 goes to its own step U101 in block SYN, not to the burner R101 (D-014).
 No blower and no bromine pump inside the boundary: the feed pressures drive the gas through
 the unit to the vent (SRC-1 runs the burner above 1.8 bar(a)).
 
@@ -210,6 +211,27 @@ velocity of 1 000 1/h, so 0.29 m3 of carbon, 450 kg/m3 bulk density, one change-
 That is 1.6e-5 kg per kg HBr and 0.0008 % of the input mass, far below the 1 % rule. Rejected:
 a `missing:` carbon feed and a waste output in the inventory (a gap for a flow this small would
 only add noise to the coverage; revisit when the bed is sized with a vendor).
+
+## D-014 Burner duty from core's conversion-step model; R-101's auxiliaries on their own step (2026-11-12)
+Context: since core 1.9.0 (its ADR 0059) a conversion step's model gives the duty of its heat
+stream and counts the step's other energy streams as work into its fluid. R101 took Q6, the
+3.0 kW for burner management, instruments and analysers, so the model gave 166.39 + 3.0 =
+169.39 kW for the chamber cooling water Q2 against the typed 166.4 kW, and `cheme.process-duty`
+warned (issue #396). The enthalpy terms agree: both give 166.39 kW on the elements basis, ideal
+gas, from the feeds at 378.15 / 313.15 K to the outlet at 448.15 K. The 3.0 kW was the only
+gap.
+Decision: the hand value is right, and the model's input (where Q6 ends) was wrong. That power
+never reaches the gas: it heats cabinets and analysers in the air. As core's ADR 0059 asks, Q6
+now ends at its own step U101 (burner management, instruments and analysers of R-101, class
+ProcessStep, in block SYN, linked to R-101) through the block's same port `aux`, so the BFD and
+the electricity total are unchanged. R101 has no other energy stream left. The typed Q2 is
+removed and `cheme process propagate --fill` writes it from the model; scripts/balance.py keeps
+its own value as a cross-check and no longer gives Q2.
+Result: Q2 = 166.391 kW (calculated), 0.009 kW below the typed 166.4 kW; cooling water and
+electricity as before at the shown precision.
+Rejected: keeping Q6 on R101 and splitting Q2 (it would invent a second heat stream for power
+that never was heat in the gas); a heat-loss stream of 3.0 kW out of R101 to cancel Q6 (the
+same number twice).
 
 ## 5. Results of this stage
 

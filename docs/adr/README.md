@@ -76,3 +76,4 @@ with an ADR in the same pull request.
 | [0035](0035-batch-processes-on-a-dedicated-train.md) | A batch process folder describes a dedicated train; campaigns on a multipurpose plant are out of scope | **Proposed**, 2026-11-05 |
 | [0036](0036-public-is-the-default-publication-status.md) | Public is the default publication status; the public build stays fail-closed | Accepted, 2026-11-06 |
 | [0037](0037-package-property-values-are-single-facts.md) | Property values an open-source package computes from bundled coefficients (thermo's DIPPR_PERRY_8E, chemicals' CRC tables) are single facts with their source; no tables copied, no open-data claim | Accepted, 2026-11-06 |
+| [0039](0039-estimate-proxies-may-name-library-products.md) | An LCI proxy may name library products with an amount on a checked basis; a dedicated producer takes precedence and every proxied exchange is marked an estimate with a pedigree and DQR penalty | **Proposed**, 2026-11-12 |

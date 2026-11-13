@@ -1,0 +1,57 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Oxalyl chloride from anhydrous oxalic acid and phosphorus pentachloride made in situ (Bayer's
+# one-pot route, US 4 341 720 A), a batch plant, issue ChemE-as-Code/process-library#144.
+# Values marked ASSUMED are engineering choices of this concept study, not client or licensor
+# data; every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: distilled oxalyl chloride (the product cut, at least 99.5 wt%) to storage at the battery limit
+  oxalyl_chloride_t_per_year: 500        # ASSUMED (D-002): a fine-chemical batch scale, no open market figure used
+  operating_hours_per_year: 7920         # ASSUMED (D-002): 330 days of 24 h, batch operation
+  batch_kg: 1642.1                       # ASSUMED (D-003): one batch of the product cut every 26.01 h
+  batches_per_year: 304                  # from the recipe (process/recipe.yaml: 304.5, D-003)
+feeds:
+  - name: Phosphorus trichloride (merchant; no library producer)
+    source_of_values: "ASSUMED (D-004): 1.915 mol per mol of oxalic acid, chlorinated in the heel to PCl5"
+    composition: "phosphorus trichloride 100 %"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Chlorine, dry (chlor-alkali-1)
+    source_of_values: "ASSUMED (D-004): 1.005 mol per mol of fresh PCl3"
+    composition: "chlorine 100 % (the supply's traces of oxygen not modelled)"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Oxalic acid, anhydrous (merchant; no library producer)
+    source_of_values: "ASSUMED (D-004): dried to the anhydrous acid by the supplier, the plant's only water-sensitive solids feed"
+    composition: "oxalic acid 100 % (anhydrous)"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: 2,4-Dimethylpyridine (catalyst make-up)
+    source_of_values: "ASSUMED (D-004): the heel's purged catalyst made up, 3.137 g per kg of PCl3; US 4 341 720 A uses 0.01 to 0.05 part per part of PCl5"
+  - name: Process water (HCl absorber)
+    source_of_values: ASSUMED (D-010)
+products:
+  - name: Oxalyl chloride
+    purity: "specification at least 99.5 wt% (ASSUMED, D-002); modelled 99.50 wt% with 0.43 wt% POCl3 and 0.07 wt% PCl3 on an ideal liquid (D-008); US 4 341 720 A states high purity without a number"
+    delivery: {temperature_K: 303.15, pressure_kPa_a: 101.325, battery_limit: storage under nitrogen}
+  - name: Phosphoryl chloride (co-product)
+    note: "99.8 wt% POCl3 with 0.17 wt% oxalyl chloride, the still's residue less the share that suspends the next acid charge (D-008)"
+  - name: Hydrochloric acid, 30 wt% (by-product)
+    note: "from the absorber, with about 1.4 wt% phosphoric acid from the hydrolysed POCl3 vapour (D-010)"
+  - name: Heel purge to hazardous-waste incineration
+    note: "5 % of the heel per batch: PCl5, POCl3 and the catalyst (D-004, D-007)"
+  - name: Absorber tail gas to the site's thermal oxidiser
+    note: "CO, CO2 and chlorine traces; the oxidiser with a caustic flue-gas scrubber (D-010)"
+utilities:
+  - {name: Electric power, use: "agitators of R-101 and C-201, the strip's vacuum pump, reflux and transfer pumps, the absorber's pump and fan (D-009)"}
+  - {name: LP steam, pressure_kPa_a: 350, use: "R-101's hot-water loop at 353/348 K (warming, the strip) and C-201's jacket (D-009)", note: ASSUMED}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "R-101's jacket, the column's condenser, the product cooler, C-201's jacket for the POCl3, the absorber", note: ASSUMED}
+  - {name: Chilled water, supply_K: 278.15, return_K: 283.15, use: "the vent condenser E-102 and the strip's condenser E-103; above the 274.33 K melting point of POCl3", note: ASSUMED}
+  - {name: Nitrogen, use: "inerting and vacuum breaks of R-101, C-201 and the receivers (per batch, lca/lca.yaml)", note: ASSUMED}
+site:
+  location: ASSUMED generic fine-chemicals site with PCl3, chlorine and oxalic acid supply and a thermal oxidiser, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Route of US 4 341 720 A (Bayer, priority 1978), Examples 19 and 20: PCl3 chlorinated to PCl5 in POCl3 with 2,4-dimethylpyridine, oxalic acid suspended in POCl3 dosed in, the residue chlorinated again for the next batch (D-001)."
+  - "ASSUMED rate laws (no open kinetics), the selectivity to oxalyl chloride 0.85 calibrated to the crude distillate of Examples 19 and 20; heats of reaction from CRC formation enthalpies (D-005, D-006)."
+  - "Reaction at 101.325 kPa(a), the crude then stripped off the heel at 15 kPa(a) in the same vessel; the patent distils it off at 250 mbar while the acid reacts (D-001, D-007)."
+  - "Stills on Raoult's law with Antoine lines (ideal liquid ASSUMED); oxalyl chloride's line a Clausius-Clapeyron line through its boiling point (D-007, D-008)."
+  - "All flows are year averages of the recipe (D-003); the duties and powers concept estimates; accuracy +/-30 % not demonstrated."

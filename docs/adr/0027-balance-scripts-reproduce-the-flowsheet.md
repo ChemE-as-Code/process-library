@@ -62,6 +62,14 @@ Options considered:
   `tolerance` (default abs 1.0, rel 0.005, as `cheme validate` uses for its balances); for
   `temperature` abs 0.5 K; `pressure` abs 0.5 kPa + rel 0.001; each composition component abs 1e-4
   + rel 0.005, a component on one side only compared with zero; `phase` equal.
+- **One source per number (added 2026-11-13, #396).** Since core 1.9.0 (core ADR 0059)
+  `cheme process propagate --fill` writes the duty of a conversion step's heat stream
+  (`provenance: calculated`, `source` starting `cheme process propagate: conversion duty`). A
+  script that still gives such a duty in its balance output is a second source of that number:
+  the checker reports it as `duplicate`, which fails like a drift. The script keeps its own value
+  as a printed cross-check. Only scripts the flowsheet cites are run, so only their output is
+  checked; `tests/test_conversion_step_duties.py` asserts that every migrated script of a process
+  with such a duty is cited, and runs the same check where the scripts' imports are installed.
 - **CI.** The `balance-scripts` job of `validate.yml` installs the core commit that the other
   jobs pin, with the property extras the scripts import (`props,units,cantera`), runs the
   checker over the library with `--strict` and puts its table in the job summary. It fails on
@@ -106,7 +114,8 @@ Options considered:
 
 ## Evidence
 
-- `scripts/check_balance_scripts.py`, `tests/test_check_balance_scripts.py`
+- `scripts/check_balance_scripts.py`, `tests/test_check_balance_scripts.py`,
+  `tests/test_conversion_step_duties.py`
 - `.github/workflows/validate.yml`, job `balance-scripts`
 - Migrated scripts: `processes/{hydrogen-1,methanol-1,hda-1,nitric-acid-1}/scripts/` first,
   then every other process whose flowsheet cites a script (branch

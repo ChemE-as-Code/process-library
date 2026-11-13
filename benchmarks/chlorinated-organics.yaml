@@ -71,6 +71,12 @@
 # of 95-96 % but not on which feed, so no specific consumption follows from it. The
 # stoichiometric floors are 0.894 kg iodine and 0.226 kg methanol per kg (6 CH3OH + 2 P + 3 I2 ->
 # 6 CH3I + 2 H3PO3); they are limits, not ranges.
+#
+# Oxalyl chloride (oxalyl-chloride-1, #144): US 4 341 720 A, the dataset's basis, states yields
+# of 62 to 91 % of theory on the acid as oxalyl chloride in the crude distillate of its
+# laboratory Examples 1 to 17, which bound the acid's use; the dataset's selectivity is calibrated to the crude of its Examples 19 and 20,
+# so the reference is not independent. No open source gives a PCl3 use per kg beyond one
+# laboratory charge; the stoichiometric floor is 2.164 kg/kg.
 schema: cheme-as-code/benchmarks/v1
 family: chlorinated-organics
 
@@ -237,6 +243,33 @@ kpis:
     title: Methanol consumption per kg of iodomethane (red phosphorus route)
     unit: kg/kg
     no_open_reference: "No open source with a plant's methanol use per kg of iodomethane found (searched as for mei-specific-iodine): CN 114195616 B gives the charges of its examples, which the dataset takes as its ratio, so they are no independent reference. Only the stoichiometric floor, 0.226 kg/kg, is known."
+  oxcl-specific-oxalic-acid:
+    title: Oxalic acid (anhydrous) consumption per kg of oxalyl chloride (PCl5 route)
+    unit: kg/kg
+    references:
+      - id: us4341720-yields-oxa
+        range: [0.7795, 1.1442]
+        basis: unallocated
+        note: "The oxalyl chloride in the crude distillate (mixed with mostly POCl3) of the patent's Examples 1 to 17, 62 to 91 % of theory on the acid, with PCl5 in POCl3 and an amine or amide catalyst ((COOH)2 -> (COCl)2, 90.034 / 126.92 = 0.7094 kg/kg at 100 %, divided by 0.91 and 0.62); the 2,4-dimethylpyridine Examples 8 and 9 give 85 and 91 %. Examples 19 and 20 (PCl5 made in situ, the residue re-used) give 85.0 % in the crude (2052 g at 21.9 wt%) and 84.2 % isolated (445 g from 375 g of acid, 0.843 kg/kg). Laboratory examples; not independent of oxalyl-chloride-1, which takes its ratios and its selectivity from the same patent."
+        conditions: {technology: "oxalic acid with PCl5 in POCl3 and a tertiary amine, pyridine or carboxamide catalyst, 40-80 C at 0.15-0.5 bar, the product distilled off and rectified; laboratory batch and one continuous example", region: DE, year: 1982}
+        source:
+          citation: "Vogel, A.; Steffan, G.; Mannes, K.; Trescher, V. (Bayer AG) (1982) Process for the preparation of oxalyl chloride. US Patent 4,341,720 A"
+          url: https://patents.google.com/patent/US4341720A/en
+          locator: "Description (yields of Examples 1 to 17) and Examples 19 and 20"
+          kind: other
+          accessed: "2026-11-12"
+  oxcl-specific-pcl3:
+    title: Phosphorus trichloride consumption per kg of oxalyl chloride (PCl5 made in situ)
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's PCl3 use per kg of oxalyl chloride found (searched 2026-11-12: Google Patents US 4 341 720 A read, whose Example 20 adds 1025 g of PCl3 to the previous batch's residue for 445 g of product, 2.30 kg/kg, one laboratory value with the heel not at steady state; US 4 390 708 A and US 2 816 141 A use other routes). Only the stoichiometric floor, 2.164 kg/kg at 2 mol per mol, is known."
+  mscl-specific-thionyl-chloride:
+    title: Thionyl chloride consumption per kg of methanesulfonyl chloride (methanesulfonic acid route)
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's or a pilot's thionyl chloride use per kg of methanesulfonyl chloride found (searched 2026-11-12/13: Organic Syntheses, Coll. Vol. 4, 571, the dataset's basis, read: 238 g of thionyl chloride for 122-143 g of product, about 1.7-2.0 kg/kg in the laboratory without recovering the excess, so no independent reference; EP 0 010 162 B1 read, another route; web search for production consumption figures gave no plant data). Only the stoichiometric floor, 1.039 kg/kg, is known."
+  mscl-specific-methanesulfonic-acid:
+    title: Methanesulfonic acid consumption per kg of methanesulfonyl chloride
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's methanesulfonic acid use per kg of methanesulfonyl chloride found (searched as for mscl-specific-thionyl-chloride): Organic Syntheses' 71-83 % yield on a 95 % acid in the laboratory is the dataset's own source, not an independent reference. Only the stoichiometric floor, 0.839 kg/kg, is known."
 datasets:
   - process: vcm-1
     dataset: vcm-balanced-oxygen
@@ -304,3 +337,16 @@ datasets:
     kpis:
       mei-specific-iodine: {expression: feed:IOD / product:MEI, per: product:MEI}
       mei-specific-methanol: {expression: feed:MEOH / product:MEI, per: product:MEI}
+
+  - process: oxalyl-chloride-1
+    dataset: oxalyl-chloride-from-oxalic-acid-and-phosphorus-pentachloride-made-in-situ-batch-reaction-with-gas-evolution-and-batch-distillation-500-t-a
+    conditions: {technology: "PCl3 chlorinated to PCl5 in a recycled heel at 333 K, anhydrous oxalic acid in POCl3 dosed at 333 K and 101 kPa(a), gases vented through a chilled-water condenser to a water absorber, the crude stripped at 15 kPa(a) and rectified through a packed column on the still", basis: "concept balance, the patent's Examples 19 and 20 ratios, the selectivity calibrated to their crude, ASSUMED kinetics, still ends, column stages and reflux (DESIGN.md D-004 to D-008)"}
+    kpis:
+      oxcl-specific-oxalic-acid: {expression: feed:OXAF / product:OXCLP, per: product:OXCLP, reference: us4341720-yields-oxa}
+      oxcl-specific-pcl3: {expression: feed:PCL3F / product:OXCLP, per: product:OXCLP}
+  - process: methanesulfonyl-chloride-1
+    dataset: methanesulfonyl-chloride-by-semi-batch-reaction-of-methanesulfonic-acid-with-thionyl-chloride-and-batch-vacuum-distillation-1000-t-a
+    conditions: {technology: "thionyl chloride dosed into methanesulfonic acid at 368 K (semi-batch, 4/3 mol per mol), SO2 and HCl to a caustic scrubber, batch vacuum distillation at 4 kPa(a) through an 8-stage column, the forerun's thionyl chloride recycled (a tenth purged)", basis: "concept balance, the Organic Syntheses procedure's ratio, times and temperature, ASSUMED kinetics, still ends and column (DESIGN.md D-004 to D-008)"}
+    kpis:
+      mscl-specific-thionyl-chloride: {expression: feed:SOCL2 / product:MSCL, per: product:MSCL}
+      mscl-specific-methanesulfonic-acid: {expression: feed:MSA / product:MSCL, per: product:MSCL}
