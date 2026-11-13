@@ -24,7 +24,7 @@ in this session (through the Google Patents text, which has no paragraph numbers
 | SRC-3 | CN115259114B (2023) Continuous production process of phosphorus trichloride, https://patents.google.com/patent/CN115259114B/en | disclosure items 1-8, example 1: molten yellow phosphorus held at 55-60 C under a water seal, phosphorus mud 0.2-0.5 wt%; P:Cl2 mass ratio 1:3.40-3.45 (slight P excess, against PCl5); reactor outlet 140-157 C under pressure, flash to PCl3 at 74-78 C; condenser outlet 30-35 C; tail-gas condenser on brine at -7 to -5 C, then water and alkali washing of the remaining gas; PCl3 99.5-99.8 wt%; 50 kt/a plant in example 1 | read; patent document (facts only) | D-003, D-004, D-007 |
 | SRC-4 | Ullmann's Encyclopedia of Industrial Chemistry, Phosphorus Compounds, Inorganic, doi:10.1002/14356007.a19_527 | - | not read (licensed); listed by the issue as route reference lead | reference lead only |
 | SRC-5 | PubChem CID 24813 (phosphoryl chloride), https://pubchem.ncbi.nlm.nih.gov/compound/24813 | identity | listed by the issue; identity only | component identity |
-| SRC-6 | cheme chemistry thermo; chemicals/thermo packages (CRC, ATcT, Poling 5th ed., NIST WebBook Shomate fits) | printed per component in process/materials.yaml; scripts/balance.py: liquid formation enthalpies PCl3(l) -319.7, POCl3(l) -597.1 kJ/mol, white P(l) +0.62 kJ/mol per atom; vapour pressures and heats of vaporisation of PCl3 and POCl3 | open data packages | reaction heats, vent condensers, column duties |
+| SRC-6 | chemicals 1.5.2 and thermo 0.6.1 packages of core's environment (open-source, MIT; the versions core pins), through `cheme chemistry thermo` and `thermo.Chemical` in scripts/balance.py: the gas and liquid formation enthalpies of PCl3 and POCl3 and the standard entropies of every gas from chemicals' packaged CRC Handbook table `heat_capacity.CRC_standard_data` (from the CRC Handbook of Chemistry and Physics, 2014 edition as chemicals cites it; a licensed book, not read here); the gas formation enthalpies of Cl2, O2, Ar and water from its Active Thermochemical Tables 1.112 data (`ATCT_G`); white phosphorus's liquid formation enthalpy from its NIST WebBook data (`WEBBOOK`); the normal boiling points of white phosphorus, PCl3 and POCl3 from its packaged CRC inorganic table (`miscdata.CRC_inorganic_data`); ideal-gas cp from its `heat_capacity.Cp_data_Poling` polynomials (Poling, Prausnitz and O'Connell, The Properties of Gases and Liquids, 5th ed.; a licensed book, not read here: Cl2, O2) or fitted to thermo's WEBBOOK_SHOMATE (PCl3, POCl3) and HEOS_FIT (water) correlations; critical constants by the methods printed per component in process/materials.yaml; PCl3's vapour pressure and heat of vaporisation from thermo's VDI_PPDS correlation, whose coefficients thermo takes from the VDI Heat Atlas, 2nd ed. (Springer 2010; a licensed book, not read here); POCl3's vapour pressure from thermo's ANTOINE_WEBBOOK (NIST WebBook Antoine constants) and its heat of vaporisation by Clausius-Clapeyron from that; water's vapour pressure from IAPWS-95 | printed per component in process/materials.yaml; scripts/balance.py: liquid formation enthalpies PCl3(l) -319.7, POCl3(l) -597.1 kJ/mol, white P(l) +0.62 kJ/mol per atom; vapour pressures and heats of vaporisation of PCl3 and POCl3 | open-source packages queried; single values, facts only. PCl3's VDI_PPDS values are not open data; they are single facts from coefficients a package bundles, with their source named (library ADR 0037) | reaction heats, vent condensers, column duties |
 | SRC-7 | processes/chlor-alkali-1 (this library) | process/flowsheet.yaml stream S42: dry chlorine, 400 kPa(a), 313 K, 99.19 wt% Cl2, 0.81 wt% O2 | library, internal | chlorine feed (D-003) |
 | SRC-8 | processes/asu-1 (this library) | process/flowsheet.yaml streams S7/S8: GOX 99.71 mol% O2, 0.29 mol% Ar, pipeline at 31 bar(a) | library, internal | oxygen feed (D-003) |
 
@@ -97,9 +97,10 @@ atmospheric); the liquid circulates through the cooler E-201 (cooling water) wit
 aims at substantially complete conversion in one reactor); the unconverted PCl3 is recycled from
 C-301.
 Heat: 277.4 kJ per mol PCl3 (liquid phase, SRC-6), within the 255-320 kJ/mol implied by
-SRC-1's 800-1000 BTU/lb; 1912.3 kW. Core's conversion reactor gives -1861.6 kW on its ideal-gas
-basis (dHr -271.5 kJ/mol): the 2.7 % difference is the vaporisation terms that the ideal-gas
-basis cannot carry.
+SRC-1's 800-1000 BTU/lb; 1912.3 kW of reaction heat. E-201 removes 1932.9 kW, the reaction heat
+less the feeds' warming plus the loop pump's work (core's conversion-step duty, D-016). Core's
+ideal-gas reactor report gives -1861.6 kW (dHr -271.5 kJ/mol): the 2.7 % difference is the
+vaporisation terms that the ideal-gas basis cannot carry.
 Circulation: 382 t/h through E-201 (scripts/balance.py), pump power 36 kW, the largest
 electricity user.
 Not a kinetic model: residence time, oxygen mass transfer and reactor volume are not set (no
@@ -180,7 +181,7 @@ inventory kept to the pipeline. Fugitive emissions and storage are not counted (
 Decision: lca/lca.yaml, functional unit 1 kg distilled POCl3 at the gate (stream S14),
 attributional, cut-off, design case. Every foreground exchange from the balanced flowsheet:
 P4 0.2031 kg, Cl2 feed 0.7036 kg, O2 feed 0.1046 kg, NaOH 50 wt% 3.87 g, process water 6.88 g,
-electricity 12.9 Wh, LP steam 90.7 Wh (0.327 MJ), cooling water 1.170 kWh rejected, chilled
+electricity 12.9 Wh, LP steam 90.7 Wh (0.327 MJ), cooling water 1.208 kWh rejected (since D-016), chilled
 water 0.09 Wh; residue 5.03 g (incineration), spent liquor 11.5 g (wastewater), scrubbed vent
 5.52 g with Cl2 3.5e-8 kg, PCl3 7.7e-9 kg, POCl3 5.0e-8 kg as elementary emissions to air
 (O2, Ar, H2O free). Every background is left unmapped (`missing:` with the activity it should
@@ -202,6 +203,36 @@ hazardous-waste incineration of chlorinated liquids, and no biosphere identity f
 POCl3 to air. The disodium phosphite component has no CAS in materials.yaml (not verified in
 this session). The families taxonomy has no phosphorus-chemicals family; `inorganic-chemicals`
 is used.
+
+## D-016 R-201 cooler duty from core's conversion-step model (2026-11-12)
+Context: since core 1.9.0 (its ADR 0059) a conversion step's model gives the duty of its heat
+stream. Q3 (E-201 to cooling water) was typed as 1912.3 kW, the reaction heat alone
+(scripts/balance.py: 24.817 kmol/h PCl3 x 277.4 kJ/mol); the model gave 1938.8 kW, and
+`cheme.process-duty` warned (issue #396). Two terms made the gap. (1) The loop pump's work: the
+model counts R201's other energy stream Q11 (36.6 kW) as work into the liquid, which E-201 must
+remove; the script left it out. That is right for P-201's 36.2 kW, whose work ends as heat in the
+circulating liquid. (2) The feeds' warming: PCl3 at 308.15 K and oxygen at 303.15 K leave at
+323.15 K, which takes heat the reaction gives and E-201 does not remove. The model counted it
+with the ideal-gas heat capacities of PCl3 and POCl3 (+10.1 kW), because materials.yaml had no
+liquid ones: wrong data for a liquid step.
+Decision: correct the data and take the model's duty. materials.yaml now gives the liquids'
+heat capacities: POCl3 138.8 kJ/(kmol K) (CRC Handbook, its table `CRC_standard_data` as
+packaged in chemicals 1.5.2) and PCl3 123.6 kJ/(kmol K), ASSUMED, the 0.9 kJ/(kg K) that D-008
+already assumes for both liquids (neither package has a liquid value for PCl3;
+acetyl-chloride-1 assumes 120). The typed duty is removed and `cheme process propagate --fill`
+writes Q3.
+Result: Q3 = 1912.29 kW of reaction heat - 15.95 kW of sensible heat + 36.6 kW of pump work =
+1932.94 kW (calculated), 20.6 kW (1.1 %) above the typed 1912.3 kW. Cooling water rises from
+4811.6 to 4832.2 kW, 1.2029 to 1.2081 kWh per kg POCl3. The script keeps the reaction heat
+and no longer gives Q3.
+Accepted: Q11 also holds P-202's 0.4 kW, which works on V-201's liquid outside the loop, and the
+motor losses of both pumps (the 0.55 wire-to-water efficiency is not split; at a motor
+efficiency of 0.92-0.95, ASSUMED, about 2-3 kW). Both reach the air, not the liquid. Together
+they are about 3 kW, 0.15 % of Q3, inside the flowsheet's 0.5 % tolerance, so the stream is not
+split. The circulation stays sized on the reaction heat (D-005). Sizing it on the cooler duty
+would give 1.1 % more flow and 0.4 kW more pump power, also inside the tolerance.
+Rejected: keeping 1912.3 kW (it leaves out heat the cooler must remove); splitting Q11 into loop
+and transfer pumps (a 0.02 % effect).
 
 ## Calculation maturity (2026-10-28)
 `cheme maturity`: calculation maturity none; the claim `concept` (the lowest level of the

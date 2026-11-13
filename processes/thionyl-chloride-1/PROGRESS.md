@@ -4,6 +4,8 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-11-13 | DESIGN.md | source register SRC-7 names the work behind the YAWS critical constants as chemicals 1.5.2 cites it, Yaws, Thermophysical Properties of Chemicals and Hydrocarbons, 2nd ed. (2014), where the row named only the author (not read) | PR #434 review: same wording fix as acetaldehyde-1 SRC-7; text only, no number changes |
+| 2026-11-12 | DESIGN.md | source register SRC-7 no longer calls the package values open data: it names chemicals 1.5.2 and thermo 0.6.1 and the table or method of each value (the packaged CRC tables, the NIST WebBook data, ATcT, Poling's polynomials, YAWS, thermo's ANTOINE_WEBBOOK, LANDOLT, HEOS_FIT and MORGAN_KOBAYASHI), the underlying works not read | issue #426: ADR 0037 sweep of the older source registers; text only, no number changes |
 | 2026-10-28 | lca/mappings.yaml | CI fix: `feed:LPS` (kWh) mapped to the shared `steam-heat` entry instead of the default `steam` (kg); the strict library build and `test_jsonld_identifiers` failed on the unit (41e6e8d) | PR #234 CI `library` job |
 | 2026-10-28 | scripts/balance.py, process/flowsheet.yaml, equipment list, DESIGN.md D-007, BFD/PFD, lca/ | Response R-01 (medium, closed): T-201 bottoms at the Raoult bubble point of the lights-free crude at 125 kPa(a), 350.12 K (was 345 K); Q9 471.01 kW, Q13 678.05 kW; LP steam 0.4219 kWh/kg (b1877e7) | review 2026-10-28-pfd-lci-review#1 |
 | 2026-10-28 | PROGRESS.md | Response R-02 (low, closed): the plant balance of run 20261028-161945-design is 3778.01 kg/h in (S1+S2+S3) against 3778.00 kg/h out (S31+S25), not the 3805.00/3804.99 kg/h of its report; the run record stays unedited (this entry) | review #2 |

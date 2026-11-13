@@ -9,7 +9,8 @@
 #   feeds and its assumed outlet temperature;
 # - the absorption streams, the vent and the duties come from the independent balance
 #   scripts/balance.py (D-006), run with `cheme run scripts/balance.py`, given as ASSUMED; its
-#   inputs are sourced or ASSUMED in DESIGN.md;
+#   inputs are sourced or ASSUMED in DESIGN.md; the steam duty Q1 is R101's conversion-step
+#   duty less the furnace's heat loss Q5, written by `cheme process propagate --fill` (D-014);
 # - the acid is an electrolyte: its enthalpy is not calculated by cheme; the
 #   absorber duty rests on a heat of solution in scripts/balance.py (D-009).
 schema: cheme/process/v1
@@ -58,6 +59,11 @@ products:
       return_temperature: {value: 308.15, provenance: assumed, source: D-010}
       min_approach: {value: 5, provenance: assumed, source: D-010}
     ports: [{id: c201, direction: in, kind: energy}]
+  - id: AMBIENT
+    title: Heat lost from the synthesis furnace to the ambient air
+    category: utility
+    utility: {kind: other}
+    ports: [{id: r101, direction: in, kind: energy}]
 
 blocks:
   - id: SYN
@@ -68,6 +74,7 @@ blocks:
       - {id: h2, direction: in}
       - {id: gas, direction: out}
       - {id: steam, direction: out, kind: energy}
+      - {id: loss, direction: out, kind: energy}
       - {id: aux, direction: in, kind: energy}
   - id: ABS
     title: Absorption and tail gas scrubbing
@@ -90,12 +97,22 @@ steps:
     # complete conversion of Cl2 and O2: the equilibrium limit at the outlet (D-005); the
     # equilibrium reactor itself does not converge with K of order 1e19 and 1e40
     reactor: conversion
+    energy_port: steam   # the model's heat less the heat loss Q5 (core ADR 0059, D-014)
     links: [{target: equipment, ref: R-101}]
     ports:
       - {id: cl2, direction: in, delegates: cl2}
       - {id: h2, direction: in, delegates: h2}
       - {id: out, direction: out, delegates: gas}
       - {id: steam, direction: out, kind: energy, delegates: steam}
+      - {id: loss, direction: out, kind: energy, delegates: loss}
+  # R-101's electrical auxiliaries: their power never reaches the furnace gas, so it is not R101's
+  # work (core ADR 0059: an instrument's power belongs on a stream to another node), D-014
+  - id: U101
+    block: SYN
+    title: Boiler feed water pump, burner management and analysers of R-101
+    class: ProcessStep
+    links: [{target: equipment, ref: R-101}]
+    ports:
       - {id: aux, direction: in, kind: energy, delegates: aux}
   # ABS: isothermal falling-film absorber, tail gas scrubber, product pump (D-008)
   - id: C201
@@ -153,8 +170,9 @@ streams:
   - {id: S8, title: Vent to atmosphere, from: C202.vent, to: VENT.in, template: gas, state: {design: {temperature: {value: 303.15, provenance: assumed, source: D-008}, pressure: {value: 105.0, provenance: assumed, source: D-008}, flow: {value: 13.02, basis: mass, provenance: assumed, source: "scripts/balance.py: excess H2, water-saturated at 30 degC, 10 mg HCl/Nm3 (D-008)"}, composition: {basis: mass_fraction, values: {HCl: 0.0000842, H2: 0.7263262, H2O: 0.2735896}, provenance: assumed, source: scripts/balance.py}}}}
   - {id: S9, title: Hydrochloric acid 33 wt-% product, from: P201.out, to: HCLACID.in, template: aqueous, state: {design: {temperature: {value: 313.15, provenance: assumed, source: D-008}, pressure: {value: 250.0, provenance: assumed, source: D-008}, flow: {value: 10000.0, basis: mass, provenance: assumed, source: "design basis, D-002"}, composition: {basis: mass_fraction, values: {HCl: 0.33, H2O: 0.67}, provenance: assumed, source: "design basis, D-002"}}}}
   # Energy streams (duties from scripts/balance.py, D-006, D-007, D-010, D-011)
-  - {id: Q1, title: Steam raised in the furnace, kind: energy, from: R101.steam, to: STEAM.r101, state: {design: {duty: {value: 2195.1, provenance: assumed, source: "scripts/balance.py: heat released less outlet sensible heat and 3 % loss; 3 383 kg/h steam 1000 kPa(a) from BFW at 378 K (D-007)"}}}}
-  - {id: Q2, title: "Boiler feed water pump, burner management and analysers", kind: energy, from: POWER.r101, to: R101.aux, state: {design: {duty: {value: 4.98, provenance: assumed, source: "scripts/balance.py: BFW pump eta 0.5 plus 3 kW ASSUMED (D-011)"}}}}
+  - {id: Q1, title: Steam raised in the furnace, kind: energy, from: R101.steam, to: STEAM.r101, state: {design: {duty: {value: 2195.05, provenance: calculated, source: 'cheme process propagate: conversion duty R101 from S1 S2 S3', fingerprint: 51b5f923eb772bbd}}}}
+  - {id: Q5, title: Furnace heat loss to the ambient air, kind: energy, from: R101.loss, to: AMBIENT.r101, state: {design: {duty: {value: 72.83, provenance: assumed, source: "scripts/balance.py: 3 % of the reaction heat at 298.15 K (D-007, D-014)"}}}}
+  - {id: Q2, title: "Boiler feed water pump, burner management and analysers", kind: energy, from: POWER.r101, to: U101.aux, state: {design: {duty: {value: 4.98, provenance: assumed, source: "scripts/balance.py: BFW pump eta 0.5 plus 3 kW ASSUMED (D-011)"}}}}
   - {id: Q3, title: Absorber cooling water duty, kind: energy, from: C201.cw, to: CW.c201, state: {design: {duty: {value: 1671.6, provenance: assumed, source: "scripts/balance.py: gas cooling, condensation and heat of solution -61.4 kJ/mol HCl (D-009)"}}}}
   - {id: Q4, title: Product acid pump power, kind: energy, from: POWER.p201, to: P201.power, state: {design: {duty: {value: 0.62, provenance: assumed, source: "scripts/balance.py: 130 kPa, eta 0.5 (D-011)"}}}}
 layout: {bfd: {}, pfd: {}}

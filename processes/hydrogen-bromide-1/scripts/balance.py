@@ -206,6 +206,7 @@ def write_balance_output(cases):
 
 # the values process/flowsheet.yaml cites from this script (balance-output contract): the
 # streams as printed by show(), the duties as printed under "energy"
-SHOWN.update({"Q1": {"duty": q_e101 / 3600}, "Q2": {"duty": q_r101 / 3600},
+# (Q2 is R101's conversion-step duty, written by cheme; q_r101 above is its cross-check, D-014)
+SHOWN.update({"Q1": {"duty": q_e101 / 3600},
               "Q3": {"duty": q_e102 / 3600}, "Q4": {"duty": q_c201 / 3600}, "Q5": {"duty": p_acid}})
 write_balance_output({"design": SHOWN})

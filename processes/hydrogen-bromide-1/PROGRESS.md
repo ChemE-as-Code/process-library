@@ -4,6 +4,7 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-11-12 | process/flowsheet.yaml (step U101, Q2, Q6), scripts/balance.py, DESIGN.md D-006/D-011/D-014, BFD/PFD, lca/ | Q6 (burner management, instruments, analysers, 3.0 kW) moved from R101 to its own step U101; Q2 written by core's conversion-step model: 166.4 -> 166.391 kW | #396: the model counted Q6 as work into the burner gas (cheme.process-duty) |
 | 2026-10-28 | PROGRESS.md | Response to review 2026-10-28-pfd-lci-review: #1 (medium) left open: the HBr integral heat of solution still needs reading at source (NBS tables, Wagman et al. 1982 or Parker 1965) before Q4 and the LCI are re-run; not a quick fix (D-009, gate core's electrolyte support) | review responses |
 | 2026-10-28 | PROGRESS.md | Response to review #8 (low) left open by design: the `maturity-claim-exceeds` disclosure stays in process.yaml until the feeds and absorber recoveries are sourced, as the review proposes | review responses |
 | 2026-10-28 | process.yaml, equipment/equipment-list.yaml | Response to review #7 (low): R-101's 300 degC design temperature applies to the chamber shell and jacket; the burner tube gets its own (TBD) at the datasheet stage (commit 9eebaf5) | review responses |
