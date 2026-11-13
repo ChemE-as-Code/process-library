@@ -15,6 +15,9 @@ objectives:
   - id: OBJ-4
     title: Keep the compressor suction cold and dry
     loops: [TIC-7103, LIC-7102]
+  - id: OBJ-5
+    title: Keep the spill sumps dry, so spilled LNG never meets standing water, and empty the drain and knock-out drums
+    loops: [LC-8103, LC-8106, LIC-5111, LIC-6111, LIC-8101]
 failures:
   - id: F-AIR
     title: Loss of instrument air
@@ -33,8 +36,14 @@ failures:
     interlocks: [I-203, I-303, I-701, I-702]
   - id: F-LINK
     title: Loss of the ship-shore link
-    response: "ESD-1 of the berth (I-501 / I-601): loading pumps stop, the shore ESD valve closes against the surge limit, the carrier's ESD trips."
-    interlocks: [I-501, I-601]
+    response: "ESD-1 of the berth (I-501 / I-601): loading pumps stop, the shore ESD valve closes against the surge limit, the carrier's ESD trips. A carrier ESD valve closing while its link signal is lost (link healthy-looking or lost at the same time, review 2026-11-05-basic-design-9 #7) is answered by the back-pressure trip at the arms: PZT-n181 / n184 at the outboard ends of the two liquid arms, 1oo2 at 5.0 barg (I-502 / I-602), stop the pumps, trip the carrier and close XV-n101, so the carrier's manifold stays below its 10 barg (ASSUMED) design (D-016, D-023 (6), D-036). After any ESD-1 the berth header and the arms stay open to the carrier's closed manifold valve; the arm thermal reliefs at 8.0 barg keep that shared section below the carrier's limit, and the operator lets it down into the drain drum after the reset (SEQ-ESD S2, D-039)."
+    sequences: [SEQ-ESD]
+    interlocks: [I-501, I-601, I-502, I-602]
+  - id: F-TRESTLE-LEAK
+    title: Leak on the trestle side of a shore ESD valve after ESD-1
+    response: "After ESD-1 only the stem and bonnet seals of XV-n101, XV-4107 and XV-4103 are left on the trestle side (D-036). A leak there, found by the header bay detection and CCTV, is ended by SEQ-LINE-EMPTY: the I-n01 close outputs of XV-4101 / XV-4102 / XV-4107 are overridden for that sequence only (key-protected, every loading pump proven stopped), the leaking line is opened through the bottom-of-line platform crossover and the other line to a tank, and site N2 from the station at its tank end displaces it in ~2.3 h at ~4,000 Nm3/h; the leak is fed for ~3.5 h at most, inside the 240 min PFP of the header bay and the 40 m3 kept in T-8102. On low site N2 the displacement goes on at the reduced rate (at least ~3,500 Nm3/h keeps both limits); with no N2 entering (the displaced return flow on the line-in-service meter falling away), the leaking line is held pressurised and isolated under its N2 (crossover and return closed, the N2 blocks open behind the check valve and the 4.5 barg regulator), never vented and never left open to the full line, and the sequence is restarted from S1 (crossover and return reopened) as soon as the cause clears (the other tank, the N2 back-up); the leak ends ~3 h after the restart, so the 240 min are kept only if an early abort is cleared within ~0.45 h, and a longer hold is a residual of the N2 hold H-07 (~65 m3 of T-8102's 87 m3 at a restart 3.5 h after the ESD-1) (D-036, D-039, D-039.9)."
+    sequences: [SEQ-ESD, SEQ-LINE-EMPTY]
+    interlocks: [I-501, I-601, I-201]
 unresolved: []
 ---
 
@@ -57,10 +66,21 @@ take cold, dry gas (OBJ-4).
 Regulatory control holds the operating point: the tank vapour header pressure (one split-range
 controller for both tanks), the loading rate per line and the machine protections. Sequences
 change modes: holding with the lines circulating (SEQ-HOLD), loading a carrier (SEQ-LOAD),
-starting a compressor (SEQ-BOG-START) and the response to an ESD (SEQ-ESD). The protective
-layer is the cause and effect list: the independent tank level and pressure trips, ESD-1 and
-ESD-2 of each berth, the drum level trip and the machine protection. No regulatory loop is
-counted as a safeguard.
+starting a compressor (SEQ-BOG-START), changing a tank's fill point make-before-break
+(SEQ-FILL-CHANGE), the response to an ESD (SEQ-ESD) and emptying a leaking trestle line back to a
+tank with N2 (SEQ-LINE-EMPTY, F-TRESTLE-LEAK). The protective layer is the cause and effect list:
+the independent tank level and pressure trips, ESD-1 and ESD-2 of each berth, the carrier's
+back-pressure trip at the arms (I-502 / I-602, F-LINK), the drum level trips, the sump trips and
+the machine protection. One override exists, on the ESD-1 close outputs of XV-4101 / XV-4102 /
+XV-4107 for SEQ-LINE-EMPTY only (key-protected, with every loading pump proven stopped, removed by
+the SIS itself). No regulatory loop is counted as a safeguard: where a level controls a pump, its
+alarms and trips are on an independent transmitter (LZT-n112, LZT-8105, LZT-8113, LZT-8119).
+
+Both spill sumps are kept dry (D-018, D-037.15 (a), D-039): rain collects in a floor pocket and a
+pump on the pocket level takes it out (P-8102 in T-8101, P-8103 in T-8102, OBJ-5); LNG detection
+that never stands under water (a probe above the pump's start level, a fast probe in the pump's
+discharge and, at T-8101, gas at the pit rim) locks the pump out, and the sump's high level on the
+independent transmitter is a transfer hold, its high-high an ESD-1 of the transferring berth.
 
 ## Normal operation and disturbances
 
@@ -75,11 +95,15 @@ falling pressure admits make-up gas before the vacuum trips.
 
 The operator lines up the fill and the circulation, starts and stops the loading pumps and the
 compressors by case, and ramps the loading rate with the carrier. The trips act automatically
-and are reset by hand once the cause is cleared.
+and are reset by hand once the cause is cleared. Occupancy rules of the layout (D-018 (o),
+D-035.14 (e), D-037.6; SEQ-LOAD S4): while a transfer runs on either berth nobody works at the
+south end of the platform (the drain pumps and drums, the header bay's valves and strainers) or on
+the jetty sump deck A9, and the arm work positions are occupied for connection, cooldown and
+disconnection only; the strainers' differential pressure is read in the control room.
 
 ## Equipment and utility failures
 
-See F-AIR, F-POWER, F-BOG and F-LINK in the front matter.
+See F-AIR, F-POWER, F-BOG, F-LINK and F-TRESTLE-LEAK in the front matter.
 
 ## Assumptions and open points
 

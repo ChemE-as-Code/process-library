@@ -33,7 +33,11 @@
 # back through LNG-2002 with P-2102 / P-3102 at 15 barg held on their check valves; the TV-7103
 # drip-tray detector TSL-7115 on P-07; the post-reset hold of I-n11 / I-n12 ended on AI-4133 /
 # AI-4134; SEQ-LINE-EMPTY, whose N2 reaches the receiving tank and the BOG; on P-01 FO-1117 drawn
-# as a restriction orifice, the same tag).
+# as a restriction orifice, the same tag), then to those of commit ae718797 (DESIGN.md D-038 and
+# D-039.9 (i), drawing only: the off-page connectors of P-07 and P-01 on the sheet edge, LNG-4008 on
+# the top edge across BOG-7012, DR-7001 and FL-7002 on the bottom edge with their crossings accepted,
+# PSV-7111 kept on top of the gas header; D-039 item 3, D-039.9 (b), (j): SEQ-LINE-EMPTY's end seen
+# on the return flow, its abort, restart from S1 and the line held at ~4.5 barg).
 # Every entry is a proposal for the team.
 schema: cheme/hazop-study/v1
 kind: hazop-study
@@ -63,12 +67,12 @@ modes:
   - {id: cooldown, title: Cooldown, description: "Carrier and arm cooldown vapour, warmer and variable, through the vapour return."}
   - {id: startup, title: Start-up and shutdown, description: "Compressor start on full recycle and loading (SEQ-BOG-START), stop and trip."}
 analysed:
-  - {path: pid/P-07.xml, revision: 'sha256:ab86cc3ee54ed55194a795dd48ad0f005f5669c4a7c2797053c9f8f40617de84', relation: analyses}
-  - {path: pid/P-01.xml, revision: 'sha256:e47fed36a98b17c37a7ef9d503cc115fda2d2bda768cdd695a212f110850c064', relation: analyses}
-  - {path: control/cause-effect.yaml, revision: 'sha256:987f6b095ca0aabafa9e93d4a22d8e5c22ec766a1798d1fafee63726534bf321', relation: analyses}
-  - {path: control/loops.yaml, revision: 'sha256:a7417294d1288704b77fac600cc7963a95b21a3dcaa295aef23e52e0cf9a7b30', relation: analyses}
-  - {path: control/sequences.yaml, revision: 'sha256:de967e12a155e5c74344b503ad656043f2b1e072bd0ed79cff4adc148aabad85', relation: analyses}
-  - {path: piping/special-items.yaml, revision: 'sha256:694a02f0585b8b21d5067e857062362ea391b8a53759a0a6acca95f08e510597', relation: analyses}
+  - {path: pid/P-07.xml, revision: 'sha256:320e5246f4577c8c99b9c0a4b789edefa0aa6a74f6aa31b66529bb04529a45ba', relation: analyses}
+  - {path: pid/P-01.xml, revision: 'sha256:55d877c4ea5f570d1834062f29c5203f447c414bd0506dda0b367f4a20f5389d', relation: analyses}
+  - {path: control/cause-effect.yaml, revision: 'sha256:cdadc6e40f88e0d8046656c39a9843a7cb3bdc1e432cfae854e197be0534a93b', relation: analyses}
+  - {path: control/loops.yaml, revision: 'sha256:378d0e7b9e278dea5e998ca1db0b457b55c945324a1a2883a64b9ce407b2c11c', relation: analyses}
+  - {path: control/sequences.yaml, revision: 'sha256:6c6506a1710f28621999e3c8a36dde3b3dc6f2d7b20ac227db7f97702986b8ad', relation: analyses}
+  - {path: piping/special-items.yaml, revision: 'sha256:c5f07c1e0d9a0c04bf5d7b34262533f336705c31d802d48bef53ff16a2b73ee6', relation: analyses}
 risk_matrix: safety/risk-matrix.yaml
 assessment_basis: >-
   Each scenario is rated per category before its safeguards (initial): severity is the credible
@@ -102,7 +106,12 @@ assessment_basis: >-
   changes the margins of S2 (two machines now carry the envelope), S5 (a larger over-draw), S15
   (one larger machine further into recycle in holding) and S16, which are re-described with their
   codes kept; the spray source (S10, A7), the hold (S7) and the TV-7103 tray detector TSL-7115 (S8,
-  analysed in H-05 S29) are re-described in place.
+  analysed in H-05 S29) are re-described in place. The revision for commit ae718797 (D-038, D-039)
+  adds no scenario and changes no code: the changes of P-07 and P-01 are drawing only (connectors on
+  the sheet edge, the same items, lines and connections), and S26 is re-described for the
+  SEQ-LINE-EMPTY changes (the end seen on the return flow, a restart from S1 after an abort, which
+  can send a second breakthrough of N2 to the tank); the new loops and trips of D-039 are outside
+  this study's nodes (H-03, H-05).
 team: []            # to be named by the project; no team has sat on this draft yet
 notes: >-
   Drafted by an agent (skills hazop-study, hazop-equipment-causes, relief-scenarios,
@@ -410,7 +419,15 @@ nodes:
               BOG is not in the files (as for the inert gas of the carrier's return, H-02 A16), and
               no N2 or composition measurement is drawn on the BOG header (A5). PIC-1110 / PV-1110
               keep the tank pressure; they do not limit the N2 to the trains. Band proposed for the
-              team.
+              team. Revised for ae718797 (D-039 item 3, D-039.9 (b), (j); SEQ-LINE-EMPTY S2, S3, abort):
+              the N2 per line is unchanged (~9,500 Nm3, ASSUMED); the station rate is ~3,400-4,000
+              Nm3/h (the regulators PCV-4159 / PCV-4160 wide open), and the end is now seen in the
+              control room as the return flow on FIC-4102 / FIC-4101 falling away, after which the
+              operator closes XV-4103; in S3 the emptied line is held at ~4.5 barg and its N2 leaves
+              through the leak, not into the tank; after an abort the sequence is restarted from S1,
+              so a second displacement may end with a second breakthrough into the tank. The
+              compressors' and the trains' tolerance of the N2 is still not in the files (A23). Codes
+              kept.
       - id: N1-LP2
         guide_word: less
         parameter: pressure (SIS vent open)
@@ -1001,5 +1018,5 @@ actions:
   - {id: A19, status: proposed, by: agent, text: "Sequence / C&E change: make 'recycle isolation XV-7125A..C open' (a position switch) a start permissive of SEQ-BOG-START, and add the opening of the discharge isolation XV-7123A..C and the trip I-703A..C to its steps and abort conditions.", response: "Partly answered by commit fac0bbb5 (control/sequences.yaml SEQ-BOG-START): S1 now begins with 'XV-7125A (recycle isolation) proven open' by the operator before XV-7121A opens and K-7101A starts, and I-703A and I-705A are in its interlocks and abort condition. Still open: the check is procedural (no position switch on XV-7125A..C is drawn, and it is not a permissive), and the opening of XV-7123A..C is not a step. Commit f5d925f6 (D-028 item 10) makes the opening of XV-7123x (proven by the actuator's feedback, vendor) and of XV-7130 a step of S2 with a time-out. Still open: a position switch and a start permissive for XV-7125A..C, and a position switch for XV-7123A..C. Still proposed."}
   - {id: A22, status: proposed, by: agent, text: "C&E / instrument list: consider voting the suction header low-low of I-705A..C (two or three transmitters instead of the single PZT-7113, which stops every running machine on one fault), a short confirmation delay on the ZSO-7121x 'not open' signal against contact bounce, and state how the SEQ-BOG-START S1 bypass of I-705x is removed (automatically once ZSO-7121x proves open) (S25).", response: "Partly answered by commit 886b0ad5 (review 2026-11-05-basic-design-3#6): the bypass is no longer needed, since I-705A..C act only while their machine runs; the PZT-7113 path has a 5 s on-delay. Still open: the voting of the suction header low-low (PZT-7113 stays 1oo1, its voting set in the SIL screening) and a confirmation delay on the ZSO-7121x 'not open' path (none in the C&E). Still proposed."}
   - {id: A20, status: proposed, by: agent, text: "Lock or car-seal the depressurising vents HV-7124A..C closed in operation and put them on the maintenance isolation list of each machine."}
-  - {id: A23, status: proposed, by: agent, text: "Agree with the trains the N2 content of the BOG they accept at the end flash and the fuel gas, and state in SEQ-LINE-EMPTY how the N2 of a line displacement (up to ~4,000 Nm3/h, ~9,500 Nm3 per line, ASSUMED) is handled: closing XV-4103 at the gas breakthrough within a stated time, the compressors' response to the heavier gas (discharge pressure, the vendor trip and PSV-7111), and the flare as the outlet if the trains cannot take it; consider a composition or N2 measurement on the BOG header (with A5) (S26; H-02 S32, A27)."}
+  - {id: A23, status: proposed, by: agent, text: "Agree with the trains the N2 content of the BOG they accept at the end flash and the fuel gas, and state in SEQ-LINE-EMPTY how the N2 of a line displacement (up to ~4,000 Nm3/h, ~9,500 Nm3 per line, ASSUMED) is handled: closing XV-4103 at the gas breakthrough within a stated time, the compressors' response to the heavier gas (discharge pressure, the vendor trip and PSV-7111), and the flare as the outlet if the trains cannot take it; consider a composition or N2 measurement on the BOG header (with A5) (S26; H-02 S32, A27).", response: "Partly answered by commit ae718797 (D-039.9 (b); SEQ-LINE-EMPTY S2): the gas breakthrough is seen in the control room as the return flow on FIC-4102 / FIC-4101 falling away with ~1,030 m3 returned, the operator then closing XV-4103. Still open: the time within which XV-4103 is closed, the trains' N2 tolerance at the end flash and the fuel gas, the compressors' response to the heavier gas, the flare as the outlet, and a composition or N2 measurement on the BOG header. Still proposed."}
   - {id: A21, status: proposed, by: agent, text: "C&E / relief study: limit the consequence of a spurious opening of XV-1115 - close XV-1115 on low tank pressure (I-204 / I-304 overriding I-203) or limit its capacity, consider 2oo3 transmitters for I-203 / I-303 against spurious trips, and include 'XV-1115 open with the make-up limited by FO-1117' in the vacuum relief case of PSV-2133A/B/C / PSV-3133A/B/C (H-01 A13)."}

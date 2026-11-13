@@ -50,7 +50,17 @@
 # XV-4102 / XV-4107; the post-reset hold of I-n11 / I-n12 ended on AI-4133 / AI-4134 instead of a
 # 30 min timer; and DESIGN.md D-037 from the layout, not an analysed input: the header bay frame
 # PR10 with the aisle S-HDR, 240 min PFP of the bay, fire-tested valves, the crossover actuator
-# packages qualified to stroke in the fire, T-8102 kept dry by P-8103 with 170 + 40 = 210 of 257 m3).
+# packages qualified to stroke in the fire, T-8102 kept dry by P-8103 with 170 + 40 = 210 of 257 m3),
+# then to those of commit ae718797 (DESIGN.md D-038, drawing only: the off-page connectors of P-02,
+# P-03 and P-04 on the sheet edge; D-039 items 3, 5, 6 (e) and D-039.9 (a), (b), (d), (j): the N2
+# stations re-arranged (outer block, orifice, self-acting regulator PCV-4159 / PCV-4160 at 4.5 barg,
+# locked-closed bleed, inner block, check valve on the line side of the inner block, PI-4163 / PI-4164
+# beyond the check valve reading the line), SEQ-LINE-EMPTY no longer aborting on low site N2, the
+# no-N2 abort on the return flow, the abort holding the leaking line pressurised and isolated with a
+# restart from S1, the S2 timeout 5 h, the emptied line held at ~4.5 barg; ESD-1 also caused by the
+# tank-area sump high-high I-809 and stopping the drain pumps; and DESIGN.md D-040 from the layout,
+# not an analysed input: the header bay at real size, the bottom-of-line crossover takeoffs at the
+# low runs, the crane pads and the MEWP duty).
 # Every entry is a proposal for the team: status proposed.
 schema: cheme/hazop-study/v1
 kind: hazop-study
@@ -79,13 +89,13 @@ modes:
   - {id: cooldown, title: Cooldown, description: "Cooldown of the trestle lines from warm (commissioning, after a long outage) and of the arms and berth header at 500 m3/h (SEQ-LOAD S3)."}
   - {id: startup, title: Start-up and shutdown, description: "Pump start and stop, ramp-up and topping-off (SEQ-LOAD S4, S5), ESD-1 and its reset (SEQ-ESD), restart of the circulation (SEQ-HOLD)."}
 analysed:
-  - {path: pid/P-02.xml, revision: 'sha256:2e2b6061eda04d17c9380f54aeee96a5c0e24a03fd7736fe3137851bf9689d98', relation: analyses}
-  - {path: pid/P-03.xml, revision: 'sha256:14c60066ab45caac7562d21fe1a03d310c89cb1a3d120cdadde365a8933e8f65', relation: analyses}
-  - {path: pid/P-04.xml, revision: 'sha256:18e6cbb1caeba161e923a2b75d88474964576bef53d013ab0a7c7871f2ac6608', relation: analyses}
-  - {path: control/cause-effect.yaml, revision: 'sha256:987f6b095ca0aabafa9e93d4a22d8e5c22ec766a1798d1fafee63726534bf321', relation: analyses}
-  - {path: control/loops.yaml, revision: 'sha256:a7417294d1288704b77fac600cc7963a95b21a3dcaa295aef23e52e0cf9a7b30', relation: analyses}
-  - {path: control/sequences.yaml, revision: 'sha256:de967e12a155e5c74344b503ad656043f2b1e072bd0ed79cff4adc148aabad85', relation: analyses}
-  - {path: piping/special-items.yaml, revision: 'sha256:694a02f0585b8b21d5067e857062362ea391b8a53759a0a6acca95f08e510597', relation: analyses}
+  - {path: pid/P-02.xml, revision: 'sha256:4df34203d03be8a2aa2b7c29cd8b5017206ca7791e5da5bec0b7c7f361870c2c', relation: analyses}
+  - {path: pid/P-03.xml, revision: 'sha256:6329cfabd0f0a5b53356db9b1b289bc950a137f9d663772985c79b967e392213', relation: analyses}
+  - {path: pid/P-04.xml, revision: 'sha256:1e2647f431d40f9c14fc74ffcd37760374401ae2297fdcd038153b88d683c170', relation: analyses}
+  - {path: control/cause-effect.yaml, revision: 'sha256:cdadc6e40f88e0d8046656c39a9843a7cb3bdc1e432cfae854e197be0534a93b', relation: analyses}
+  - {path: control/loops.yaml, revision: 'sha256:378d0e7b9e278dea5e998ca1db0b457b55c945324a1a2883a64b9ce407b2c11c', relation: analyses}
+  - {path: control/sequences.yaml, revision: 'sha256:6c6506a1710f28621999e3c8a36dde3b3dc6f2d7b20ac227db7f97702986b8ad', relation: analyses}
+  - {path: piping/special-items.yaml, revision: 'sha256:c5f07c1e0d9a0c04bf5d7b34262533f336705c31d802d48bef53ff16a2b73ee6', relation: analyses}
 risk_matrix: safety/risk-matrix.yaml
 assessment_basis: >-
   Each scenario is rated per category before its safeguards (initial): severity is the credible
@@ -130,7 +140,16 @@ assessment_basis: >-
   the existing codes are kept: S27 (the circulation pumps now at 15 barg answer the overpressure
   part, A24), S24 (the spray now fed from the loading header while the loading pumps run), S26
   (the hold ended on a measurement), S28 / S30 (ZSC-4107 / ZSO-4107) and S29 (the fewer leak sources
-  and the drain-down bound) are re-described in place, with the actions they answer.
+  and the drain-down bound) are re-described in place, with the actions they answer. The revision
+  for commit ae718797 (D-038, D-039, D-040) rates the new scenarios S34 (the station regulator
+  PCV-4159 / PCV-4160 failing open, closed or with a larger offset) and S35 (the leaking line held
+  under N2 after an abort for longer than the ~0.45 h that keeps the PFP, or the sequence resumed
+  at S2 instead of S1) before safeguards only; S31 (the regulator now limits a blocked line to its
+  lock-up, and the hold after an abort is the design's), S32 (the end seen on the return flow) and
+  S33 (the check valve on the line side of the inner block, the bleed locked closed, no abort on low
+  N2, so the reverse flow during S2 rests on the check valve) are re-described in place with their
+  codes kept; S29 and SG2 record the D-040 bottom takeoffs and the new ESD-1 cause and effect. The
+  drawing-only changes of P-02 / P-03 / P-04 (D-038) touch no scenario.
 team: []            # to be named by the project; no team has sat on this draft yet
 notes: >-
   Drafted by an agent (skills hazop-study, hazop-equipment-causes, relief-scenarios,
@@ -1418,7 +1437,16 @@ nodes:
       bay and every line, valve body, actuator and cable there take 240 min PFP; XV-n101 / XV-4107 /
       XV-4103 are fire-tested to API 607 or ISO 10497, and the crossover actuator packages are to
       stroke once after at least 60 min of pool fire (ASSUMED, valve vendor); T-8102 is kept dry by
-      P-8103, so 170 + 40 = 210 of its 257 m3 below the inlet with no rain allowance.
+      P-8103, so 170 + 40 = 210 of its 257 m3 below the inlet with no rain allowance. Since
+      ae718797 (D-038 drawing only: the circulation returns LNG-4005 / LNG-4009 end on P-04's left
+      edge; D-040 items 1, 2, 13 from the layout, not an analysed input): the loading lines drop to
+      low runs at 2.51 m on PR10, the crossover tees T4A5 / T4B5 (LNG-4010) and T4A4 / T4B4 (LNG-4003)
+      sit at their bottom with the crossovers dropping from them, so no wedge of liquid is left
+      above a takeoff; XV-4107, XV-4103 and XV-n101 are top-entry trunnion ball valves with butt-weld
+      ends (ASSUMED), their actuator and bonnet lifted vertically from the deck pad Z-PAD-A4SE and
+      their tops reached by a MEWP, with no transfer on either berth; the LNG on the T-8102 pool in
+      rain is H-05 S36. ESD-1 also stops the drain pumps P-5101 / P-6101 and is caused by the
+      tank-area sump high-high I-809 (D-039).
     members: [LNG-4010, XV-4107, UZ-4107, ZSC-4107, ZSO-4107, LNG-4003, XV-4103, HS-4103, PI-4105, PI-4106, TI-4103, TI-4104, LNG-4001, LNG-4002]
     modes: [loading, holding]
     status: proposed
@@ -1531,7 +1559,18 @@ nodes:
               (siting study). T-8102 is now kept dry by P-8103 (H-05 S13, S32, S33), so the 40 m3
               drain-down allowance does not compete with rain. The bound's inputs are open, so no
               residual is proposed and the codes are kept; the people consequence rated (a fire fed
-              for hours) is that of the bound too.
+              for hours) is that of the bound too. Revised for ae718797 (D-039 item 3, D-039.9 (b),
+              (d), (j); D-040 items 1, 2, 3, 12, 13, layout not an analysed input): the bound is
+              restated against the N2 rate (4,000 Nm3/h ~3.5 h and ~36 m3; 3,500 Nm3/h ~3.9 h and
+              ~39 m3, the minimum inside the 240 min and the 40 m3; ~3,400 Nm3/h with every bound at
+              once ~4.0 h and ~40 m3, no margin; 2,000 Nm3/h ~5.9 h and ~55 m3, beyond the PFP); low
+              N2 no longer abandons the displacement; an abort holds the line isolated and a late
+              restart lengthens the leak (S35). The crossover tees sit at the bottom of the low runs,
+              so the ~11 m3 wedge of the centreline model is gone; XV-n101, XV-4107, XV-4103 and SR-n102
+              are top-entry or permanent items at real size under open sky, lifted from the deck pad
+              Z-PAD-A4SE with no transfer on either berth; rain on the T-8102 pool and rain under the
+              drain-down are H-05 S36 (SC-3). The header bay detection named in SEQ-ESD S2 is still
+              not drawn (A23). Codes kept.
           - id: S30
             cause: >-
               As S29, with both trestle lines feeding the leak: XV-4107 fails to close on ESD-1
@@ -1598,8 +1637,39 @@ nodes:
       open while the station is isolated; no blind (line B: HV-4154 / HV-4153, CV-4152, FO-4152,
       HV-4162 / N-4004, PI-4157 / PI-4158). From the layout (D-037.15 (g), not an analysed input):
       N-4001 / N-4002 run at 1.2 m beside the XV-4101 pit and the trough, the inner blocks over the
-      collection, the bleeds venting at 2.5 m about 1.8 m away.
-    members: [N-4001, N-4002, N-4003, N-4004, HV-4151, HV-4152, HV-4153, HV-4154, HV-4161, HV-4162, FO-4151, FO-4152, CV-4151, CV-4152, PI-4155, PI-4156, PI-4157, PI-4158, XV-4101, XV-4102, XV-4103, XV-4105, XV-4106, XV-2123, XV-3123, LNG-4001, LNG-4002, LNG-4003]
+      collection, the bleeds venting at 2.5 m about 1.8 m away. Since ae718797 (D-039 items 3, 5,
+      D-039.9 (a), (b), (d), (g), (j); P-04, instrument and line lists, SEQ-LINE-EMPTY, SEQ-ESD S2):
+      each station runs, in the flow direction, outer block HV-4152, orifice FO-4151, self-acting
+      regulator PCV-4159 (set 4.5 barg, ~0.5 bar offset at the design rate, lock-up ~4.7 barg, all
+      ASSUMED; a sheet note, no regulator symbol in the library), the bleed HV-4161 locked closed
+      (opened only under permit with a gas test before maintenance), inner block HV-4151, the check
+      valve CV-4151 on the line side of the inner block, the tee (line B: HV-4154, FO-4152, PCV-4160,
+      HV-4162, HV-4153, CV-4152). PI-4163 / PI-4164 beyond the check valve read the line at its tank
+      end with no valve opened (SEQ-ESD S2, the permissive: S1 complete with PI-4163 below 4.0
+      barg); PI-4155 / PI-4157 read the site N2 with the outer block open, PI-4156 / PI-4158 the
+      regulator side of the inner block, and the passing-block check on rounds is made between the
+      blocks. The section between the inner block and the check valve takes LNG only back through
+      the check valve's seat and relieves forward through it into the line; the inner block's cavity
+      is vented to the line side (vendor). S2: with the inner block closed the outer block
+      pressurises the station to the regulator's lock-up, then the inner block is opened; the
+      regulator is wide open in the displacement (~2.7 barg in the line, ~2.8 on PI-4156); the
+      station flow is followed in the control room as the displaced LNG returning on FIC-4102
+      (FIC-4101 for line B leaking; bidirectional ultrasonic meters, ASSUMED), ~450 m3/h at 4,000
+      Nm3/h, ~390 m3/h at 3,500 Nm3/h; low site N2 is not an abort (the displacement continues at
+      the reduced rate, the N2 back-up called; at least ~3,500 Nm3/h at 6 barg keeps the 240 min
+      PFP and the 40 m3, hold H-07); timeout 5 h. S3: the emptied line held at ~4.5 barg, its dead
+      legs pushed into the leak at up to ~1.3 times the displacement's rate (~0.6 h); left with the
+      blocks closed with N2 in the station. Abort on I-201, a high receiving-tank pressure or no N2
+      entering (the return flow below ~100 m3/h for 5 min before ~1,030 m3 have returned, the cause
+      read at the station): the crossover in use and the return closed, the N2 blocks left open
+      behind the check valve with the regulator limiting the line, the bleed locked closed, so the
+      leaking line is held pressurised and isolated and the leak fed only by what is left in it
+      (~1.3 kg/s, ~10 m3/h, at the lock-up after a tank-limit abort, falling after a no-N2 abort);
+      the sequence is restarted from S1 as soon as the cause clears, within ~0.45 h of an early abort
+      to keep the 240 min PFP (a longer hold a residual of H-07). From the layout (D-040, not an
+      analysed input): the crossover tees are at the bottom of the low runs at 2.51 m, so XV-4103
+      stays the first crossover and the drain-down bound holds.
+    members: [N-4001, N-4002, N-4003, N-4004, HV-4151, HV-4152, HV-4153, HV-4154, HV-4161, HV-4162, FO-4151, FO-4152, CV-4151, CV-4152, PI-4155, PI-4156, PI-4157, PI-4158, XV-4101, XV-4102, XV-4103, XV-4105, XV-4106, XV-2123, XV-3123, LNG-4001, LNG-4002, LNG-4003, PCV-4159, PCV-4160, PI-4163, PI-4164]
     modes: [holding, loading]
     status: proposed
     by: agent
@@ -1629,10 +1699,17 @@ nodes:
               transition) and the header bay fire outlasts its 240 min PFP (S29). With the wrong
               line, the N2 pushes the healthy line through the crossover into the leaking one, or
               flows through its open tank-end valve straight into the tank (S32), while the leaking
-              line keeps draining by gravity.
-            refs: [HV-4151, HV-4152, HV-4153, HV-4154, FO-4151, PI-4156, PI-4158, XV-4103, XV-4102, FV-4102, XV-4105, XV-2123, LNG-4001, LNG-4002, T-8102, N-4001, N-4002]
+              line keeps draining by gravity. Since ae718797 (D-039 item 3, D-039.9 (b), (d)) the
+              regulator PCV-4159 (PCV-4160) limits a blocked line to its ~4.7 barg lock-up (7 barg
+              only with the regulator failed open, S34), so the leak is driven at ~1.3 kg/s
+              (~10 m3/h) rather than ~1.5 kg/s; the design's own abort now closes the crossover and
+              the return with the N2 blocks left open, the same state, as a stated residual (up to
+              ~1,030 m3 left if the abort comes early; the 240 min PFP reached ~3.5 h after the
+              earliest abort with ~40 m3 in T-8102, T-8102 itself lasting ~8.5 h), ended by the
+              restart from S1 (S35).
+            refs: [HV-4151, HV-4152, HV-4153, HV-4154, FO-4151, PI-4156, PI-4158, XV-4103, XV-4102, FV-4102, XV-4105, XV-2123, LNG-4001, LNG-4002, T-8102, N-4001, N-4002, PCV-4159, PCV-4160, PI-4163, PI-4164, FIC-4102]
             modes: [holding, loading]
-            safeguards: [SG30, SG29]
+            safeguards: [SG30, SG29, SG31]
             actions: [A26]
             status: proposed
             by: agent
@@ -1647,7 +1724,14 @@ nodes:
               the operator, and nothing interlocks the manual N2 blocks to it; a blocked return shows
               on PI-4156 rising toward PI-4155 (the orifice no longer choked) and the receiving tank
               level not rising (SG30). The 7 barg site N2 is below the 15 barg design, so the
-              deviation is the leak, not the line. Bands proposed for the team.
+              deviation is the leak, not the line. Bands proposed for the team. Revised for ae718797
+              (D-039 item 3, D-039.9 (a), (b), (d), (j); P-04, SEQ-LINE-EMPTY): a blocked return now
+              shows in the control room as the displaced LNG not returning on FIC-4102 (FIC-4101),
+              which is also the no-N2 abort (below ~100 m3/h for 5 min), and at the station as PI-4163
+              rising to the regulator's ~4.0 barg; the S1 completion includes PI-4163 below 4.0 barg.
+              XV-4103 / XV-4105 still have no position switch and the N2 blocks are not interlocked to
+              the line-up. Codes kept: the cause class is unchanged, the regulator lowers the drive of
+              the leak but not the volume.
       - id: N5-OC
         guide_word: other-than
         parameter: composition (N2 breaking through to the crossover, the other line and the tank)
@@ -1670,7 +1754,7 @@ nodes:
               S11), and the N2 goes with the boil-off to the compressors and the trains' end flash
               and fuel gas (H-04 S26); the other line, which carried the return, is left with gas at
               its platform end and is cooled and refilled before the next transfer.
-            refs: [XV-4103, LNG-4003, LNG-4005, XV-4105, XV-2123, XV-3123, T-2101, T-3101, PIC-1110, TI-4103, PI-4156, FO-4151, N-4001]
+            refs: [XV-4103, LNG-4003, LNG-4005, XV-4105, XV-2123, XV-3123, T-2101, T-3101, PIC-1110, TI-4103, PI-4156, FO-4151, N-4001, FIC-4102]
             modes: [holding, loading]
             safeguards: [SG30]
             actions: [A27]
@@ -1686,7 +1770,14 @@ nodes:
               breakthrough into the DN 250 crossover and the return is part of it. The N2 reaching the
               tank at the end is by design ('the N2 that reaches the tank at the end goes to the BOG
               system', SEQ-LINE-EMPTY S2); the abort on a high receiving-tank pressure limits the tank
-              side. Bands proposed for the team.
+              side. Bands proposed for the team. Revised for ae718797 (D-039.9 (b); D-040 item 2,
+              layout): the end of the displacement is now also seen in the control room, the return
+              flow on FIC-4102 (FIC-4101) falling away with ~1,030 m3 returned; the crossover tees sit
+              at the bottom of the low runs at 2.51 m with the crossovers dropping from them, so the
+              ~11 m3 wedge of the centreline model is gone and XV-4103 stays the first crossover; in
+              S3 the line is held at ~4.5 barg, and its dead legs are pushed into the leak, not into
+              the tank. A restart after an abort runs the displacement again from S1, a second
+              breakthrough. Codes kept.
       - id: N5-RF
         guide_word: reverse
         parameter: flow (LNG into the N2 station and out of its bleed)
@@ -1702,7 +1793,21 @@ nodes:
               falls below the line's ~3.7 bar(a) (the site N2 drawn down by the ~4,000 Nm3/h, a
               generator trip; the abort on PI-4155 below 5 barg not made in time) and CV-4151 passes,
               so LNG flows back through FO-4151 to the outer block and the site N2 line upstream of
-              the spec break.
+              the spec break. Since ae718797 (D-039 items 3, 5, D-039.9 (a), (b)) the arrangement
+              is outer block, orifice, regulator PCV-4159, the bleed locked closed, inner block, check
+              valve CV-4151 on the line side of the inner block: (a) in normal service the line
+              reaches the station only through CV-4151 passing, then the inner block passing; the LNG
+              then stands between the blocks with the bleed closed, seen on rounds on PI-4156 /
+              PI-4155 (the passing-block check), and reaches the site N2 line only through the outer
+              block too, or the bleed when it is opened under permit for maintenance with a person
+              at it; (b) during S2 the low-N2 abort is withdrawn, so a site N2 falling below the line
+              pressure (the 2.7-4.0 barg the line takes, the regulator wide open below its set point)
+              leaves CV-4151 as the only barrier against the reverse flow through the open inner
+              block, regulator and orifice, and the no-N2 abort (the return flow below ~100 m3/h for
+              5 min, PI-4155 within ~1 bar of PI-4163) keeps the N2 blocks open behind CV-4151 by
+              design, so the check valve stays the only barrier for as long as the line is held; and
+              the section between a closed inner block and CV-4151, filled through
+              a passing check valve, warms and relieves forward through CV-4151 into the line.
             consequence: >-
               (a) A small continuous LNG and cold vapour release from the DN 25 bleed at ~2.5 m at
               the PR1 joint, beside PR1 and the XV-4101 pit, unseen until frost or the smell of a
@@ -1710,7 +1815,7 @@ nodes:
               valve station. (b) LNG in the site N2 line beyond the stainless station, which is not
               rated for it: cold embrittlement and rupture, a cold release at the battery limit, and
               LNG or vapour carried toward the other site N2 users.
-            refs: [HV-4151, HV-4152, HV-4161, N-4003, CV-4151, FO-4151, PI-4155, N-4001, HV-4153, HV-4154, HV-4162, N-4004, CV-4152, N-4002]
+            refs: [HV-4151, HV-4152, HV-4161, N-4003, CV-4151, FO-4151, PI-4155, N-4001, HV-4153, HV-4154, HV-4162, N-4004, CV-4152, N-4002, PCV-4159, PCV-4160, PI-4156, PI-4163]
             modes: [holding, loading]
             safeguards: [SG29, SG30]
             actions: [A26]
@@ -1725,10 +1830,98 @@ nodes:
               in case (a) the release goes to atmosphere at the station by design; the inner block
               stands over the collection (layout D-037.15 (g)), the bleed outlet 1.8 m away at 2.5 m.
               The site N2 capacity and pressure for the displacement are a hold of the trains'
-              utility owner (H-05 S34). Band proposed for the team.
+              utility owner (H-05 S34). Band proposed for the team. Revised for ae718797 (D-039
+              items 3, 5, D-039.9 (a), (b); P-04, SEQ-LINE-EMPTY, SEQ-ESD S2): the bleed is locked
+              closed, so case (a) no longer vents at grade in normal service (no release source added
+              at the PR1 joint); the check valve on the line side of the inner block keeps LNG out of
+              the station unless it passes, and no valve is opened to read the line; the withdrawn
+              low-N2 abort moves the reverse-flow protection of case (b) onto CV-4151 / CV-4152 alone
+              (its cracking pressure and seat tightness from the vendor, D-039.8). Codes kept: the
+              case with a person at the opened bleed and the check valve as a single barrier during
+              S2 remain.
+      - id: N5-PR
+        guide_word: other-than
+        parameter: pressure (the station regulator PCV-4159 / PCV-4160 not at its set point)
+        description: Created by the self-acting regulators PCV-4159 / PCV-4160 added in ae718797 (D-039 item 3 (b), D-039.9 (b)).
+        scenarios:
+          - id: S34
+            cause: >-
+              The self-acting regulator PCV-4159 (PCV-4160) does not hold its 4.5 barg set point:
+              (a) failed open (diaphragm, spring, ice on the pilot or the seat), so the station
+              passes the full site N2 behind the orifice; (b) failed closed or frozen shut, or its
+              set point or offset larger than the ~0.5 bar ASSUMED, so it delivers less than the
+              ~3.4 barg the displacement needs in the bounding case (the receiving tank at its design
+              pressure, the two-phase friction); (c) set wrong after maintenance.
+            consequence: >-
+              (a) In S2 nothing changes while the line takes ~2.7 barg (the regulator is wide open by
+              design), but a blocked return (S31), the abort's hold and S3 drive the leak at up to the
+              7 barg site N2 instead of ~4.7 barg, ~1.6 kg/s against ~1.3 kg/s (agent arithmetic,
+              square root of the gauge pressure as D-039.9 (d)), so the line's remaining contents
+              reach the leak and T-8102 sooner; inside the 15 barg line design and PSV-4111 / 4112.
+              (b) The displacement slows or stops: below the line pressure no N2 enters, the return
+              flow falls below ~100 m3/h and the no-N2 abort holds the line isolated with its N2
+              cushion falling (S35); throttled, the displacement takes longer than the ~2.3 h and the
+              leak is fed beyond the 240 min PFP and the 40 m3 kept in T-8102 (H-05 S34), within the
+              5 h S2 timeout and unseen except as a lower return flow on FIC-4102.
+            refs: [PCV-4159, PCV-4160, FO-4151, FO-4152, PI-4156, PI-4158, PI-4163, PI-4164, FIC-4101, FIC-4102, LNG-4001, LNG-4002, T-8102]
+            modes: [holding, loading]
+            safeguards: [SG30, SG10]
+            actions: [A28]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: A, status: proposed, by: agent, basis: "The header bay leak fed faster or for longer than the PFP and the sump allowance (as S31); matrix 4 = permanent injury or fatality. A: the trestle-side leak that calls SEQ-LINE-EMPTY (once in the plant life) with the regulator failing in that sequence, not expected in the plant life.", evidence: [control/sequences.yaml, control/instrument-list.yaml, DESIGN.md D-039], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ddcedc61b5d20d1a, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: A}}}
+            notes: >-
+              New scenario for ae718797 (D-039 item 3 (b), D-039.9 (b), (d), (g); P-04 sheet note,
+              SEQ-LINE-EMPTY). The design states that failed open the regulator leaves 7 barg, below
+              the 15 barg design and PSV-4111 (so the deviation is the leak, not the line), and puts
+              its offset and lock-up with the vendor (D-039.9 (j) left open). The station gauges are
+              local; the return flow on FIC-4102 / FIC-4101 is the control-room view of the station
+              flow. No safeguard is credited. Band proposed for the team.
+      - id: N5-LT
+        guide_word: late
+        parameter: sequence (restart of SEQ-LINE-EMPTY after an abort)
+        description: Created by the abort of SEQ-LINE-EMPTY that holds the leaking line pressurised and isolated, and its restart from S1, added in ae718797 (D-039 item 3 (a), D-039.9 (d), (j)).
+        scenarios:
+          - id: S35
+            cause: >-
+              SEQ-LINE-EMPTY aborts early in S2 (I-201 on the receiving tank, a high receiving-tank
+              pressure, or no N2 entering) and the leaking line is held isolated under N2 for longer
+              than the ~0.45 h after an early abort that keeps the 240 min PFP: the other tank not
+              available (T-3101 without 1,100 m3 below its high-high, XV-3123 not opening), PIC-1110
+              slow to recover (BOG compressors, PV-1110), the N2 back-up not arriving (a trailer at
+              the station flange), the operator not at the station; or the sequence resumed at S2
+              instead of from S1, so the crossover and the return stay closed while N2 enters.
+            consequence: >-
+              The leak takes the line's remaining contents (up to ~1,030 m3 after an early abort) at
+              ~1.3 kg/s (~10 m3/h) at the regulator's lock-up after a tank-limit abort, falling after a
+              no-N2 abort (at most ~8 m3/h); held to 3.5 h after the ESD-1 the leak lasts to ~6.5 h,
+              ~2.5 h beyond the PFP of the header bay, with ~65 m3 of T-8102's 87 m3 above the
+              platform spill used (D-039.9 (j)); held longer, T-8102 is exceeded after ~8.5 h and
+              overflows onto the deck and the water. Resumed at S2, N2 is admitted to a line whose
+              return is closed (S31).
+            refs: [XV-4103, XV-4107, XV-2123, XV-3123, LZT-3102, PIC-1110, PCV-4159, PI-4163, FIC-4102, T-8102, LNG-4001, LNG-4002]
+            modes: [holding, loading]
+            safeguards: [SG30]
+            actions: [A28]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: A, status: proposed, by: agent, basis: "A header bay fire beyond its PFP duration and the sump allowance; matrix 4 = permanent injury or fatality. A: the trestle-side leak (once in the plant life) with an abort of the line-empty and a restart later than ~0.45 h, not expected in the plant life.", evidence: [control/sequences.yaml, DESIGN.md D-039], band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ddcedc61b5d20d1a, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: A}}}
+            notes: >-
+              New scenario for ae718797 (D-039 item 3 (a), D-039.9 (d), (j); SEQ-LINE-EMPTY abort,
+              reset 'restart from S1'). The design states a hold longer than ~0.45 h after an early
+              abort as a residual of the N2 hold H-07 for the siting study, not a design case, with
+              the header bay and the platform's south end cleared and kept clear from the abort on;
+              the tank-limit causes are made unlikely by the permissive (1,100 m3 below the
+              high-high of the receiving tank, the other tank as the alternative). The restart from
+              S1 is the reset's text, not an interlock. No safeguard is credited. Band proposed for
+              the team.
 safeguards:
   - {id: SG1, title: "FIC-2111A..D (FIC-3111A..D) minimum-flow control, FV-2111A..D fail open", kind: control, refs: [FIC-2111A, FIC-2111B, FIC-2111C, FIC-2111D, FV-2111A], status: proposed, by: agent}
-  - {id: SG2, title: "Interlock I-501 (I-601): ESD-1 stops the loading pumps and trips the carrier through XS-5100 (XS-6100)", kind: interlock, interlock: I-501, refs: [XS-5100, P-2101A, P-2101B, P-2101C, P-2101D], status: proposed, by: agent, notes: "Since f5d925f6 the carrier trip is an effect and the air-header trip I-804 is a cause (D-028 items 1, 4). Since 79d5c7ad (D-030 items 4, 7, 8, 9) the manual push buttons and the confirmed platform fire and gas are causes in the logic, and during a liquid transfer also ZSO-5122 not open, the 2oo2 O2 high-high of AI-4133, the loss of the ERS solenoid supply and the other berth's ESD-1 (I-601). Since 709fcf20 (D-032) the causes are tags (HS-5100, XS-5108), the transfer state is ZSC-5101 not closed or UZ-5101 energised, the O2 high-high is that of AI-5126 or AI-4133 and the supply causes are XA-5130A / B; P-2102 / P-3102 are not stopped (D-016). Since aedd8dbd (D-034 items 1, 5, 7, 9) the manual causes are one tag per station, HS-5100A / B / C (control room, jetty head, platform), each a normally closed, line-monitored input; XA-5130A / B also take the line monitoring of every solenoid circuit of their channel; the link's 'no carrier connected' mode ends by itself on a healthy link or an unstowed arm, after which XS-5100 not healthy trips; and the effects include the DN 800 platform crossover XV-4107. Since c257902c (D-036 items 6, 11 (d), (e); D-037.16) during a transfer the jetty sump high-high I-805 is also a cause, and after a trip the close outputs on XV-4101 / XV-4102 / XV-4107 may be overridden for SEQ-LINE-EMPTY only (bypass field: key per valve, permitted with every loading pump proven stopped and XV-5101 / XV-6101 proven closed, removed by the SIS)."}
+  - {id: SG2, title: "Interlock I-501 (I-601): ESD-1 stops the loading pumps and trips the carrier through XS-5100 (XS-6100)", kind: interlock, interlock: I-501, refs: [XS-5100, P-2101A, P-2101B, P-2101C, P-2101D], status: proposed, by: agent, notes: "Since f5d925f6 the carrier trip is an effect and the air-header trip I-804 is a cause (D-028 items 1, 4). Since 79d5c7ad (D-030 items 4, 7, 8, 9) the manual push buttons and the confirmed platform fire and gas are causes in the logic, and during a liquid transfer also ZSO-5122 not open, the 2oo2 O2 high-high of AI-4133, the loss of the ERS solenoid supply and the other berth's ESD-1 (I-601). Since 709fcf20 (D-032) the causes are tags (HS-5100, XS-5108), the transfer state is ZSC-5101 not closed or UZ-5101 energised, the O2 high-high is that of AI-5126 or AI-4133 and the supply causes are XA-5130A / B; P-2102 / P-3102 are not stopped (D-016). Since aedd8dbd (D-034 items 1, 5, 7, 9) the manual causes are one tag per station, HS-5100A / B / C (control room, jetty head, platform), each a normally closed, line-monitored input; XA-5130A / B also take the line monitoring of every solenoid circuit of their channel; the link's 'no carrier connected' mode ends by itself on a healthy link or an unstowed arm, after which XS-5100 not healthy trips; and the effects include the DN 800 platform crossover XV-4107. Since c257902c (D-036 items 6, 11 (d), (e); D-037.16) during a transfer the jetty sump high-high I-805 is also a cause, and after a trip the close outputs on XV-4101 / XV-4102 / XV-4107 may be overridden for SEQ-LINE-EMPTY only (bypass field: key per valve, permitted with every loading pump proven stopped and XV-5101 / XV-6101 proven closed, removed by the SIS). Since ae718797 (D-039 items 1, 5 #7; C&E I-501 / I-601) the tank-area sump high-high I-809 is also a transfer cause, and ESD-1 also stops the jetty drain pump P-5101 (P-6101), which would otherwise dead-head against the closed berth header."}
   - {id: SG3, title: Pump column check valves CV2121A..D (CV3121A..D), kind: check-valve, refs: [{sheet: P-02, object: CV2121A}, {sheet: P-02, object: CV2121B}, {sheet: P-02, object: CV2121C}, {sheet: P-02, object: CV2121D}, {sheet: P-03, object: CV3121A}], status: proposed, by: agent}
   - {id: SG4, title: Installed second circulation pump P-3102 (and P-2102 for T-3101), kind: other, refs: [P-3102, P-2102], status: proposed, by: agent, notes: "Started by the operator; no auto-start is in the files."}
   - {id: SG5, title: "Temperature indications TI-4102 (return), TI-4103 / TI-4104 (lines at the platform)", kind: other, refs: [TI-4102, TI-4103, TI-4104], status: proposed, by: agent, notes: "Indications; no alarm limits are in the files."}
@@ -1747,10 +1940,11 @@ safeguards:
   - {id: SG24, title: "Platform crossover ESD valve XV-4107: closure in 25-30 s by a speed controller on the actuator exhaust, with a non-return valve and a local air accumulator on the supply (UZ-4107)", kind: mechanical, refs: [XV-4107, UZ-4107], status: proposed, by: agent, notes: "Added in aedd8dbd (D-016, D-034 item 1; instrument list UZ-4107); closure and hold times ASSUMED; no position switch and no proof test in the files; its fast closure is a check case of the transient analysis (hold H-01, S28)."}
   - {id: SG25, title: "Interlocks I-501 / I-601: ESD-1 of either berth closes the DN 800 platform crossover XV-4107 with XV-4101 / XV-4102, so a leak upstream of a shore ESD valve is fed by one trestle line", kind: interlock, interlock: I-501, refs: [XV-4107, UZ-4107, XV-4101, XV-4102], status: proposed, by: agent, notes: "Added in aedd8dbd (D-034 items 1, 3; C&E I-501 / I-601 effects); with XV-4103 closed in loading (SEQ-LOAD S0); limits the inventory, does not stop the leak (S29); SIL null; its failure to close is S30."}
   - {id: SG26, title: "Platform header bay and jetty sump T-8102 (13.0 m deep, ~257 m3 below the inlet) with the low-temperature alarm TSL-8104", kind: mechanical, refs: [T-8102, TSL-8104], status: proposed, by: agent, notes: "Layout, not an analysed input (D-034.3, D-035 items 1, 8): the header bay (36 m2, recessed 3.4 m, 122 m3) drains through two open floor outlets into the catwalk collector and T-8102, a sealed caisson sized for the ~170 m3 platform spill with ~87 m3 left for rain; no fixed pump; TSL-8104 is in the sump only (S29, S30). Since c257902c (D-036 item 6, D-037.15 (a), .16, .17; P-08, C&E I-805..I-808): the sump is kept dry by the fixed dry-sump pump P-8103 on LZT-8106 (pocket level, LAH 0.50 m a transfer hold, LAHH 0.60 m I-805), locked out on LNG by TSL-8104 / TSL-8118 (1oo2, I-808), so 170 + 40 = 210 of the 257 m3 below the inlet hold the platform spill and the bounded drain-down of SEQ-LINE-EMPTY with no rain allowance (analysed in H-05 S13, S32, S33)."}
-  - {id: SG27, title: "SEQ-LINE-EMPTY: the leaking trestle line emptied back to a tank with site N2 through N-4001 / N-4002 (FO-4151 / FO-4152, ~4,000 Nm3/h), the bottom-of-line platform crossover, the other loading line and the circulation return, after ESD-1 (D-036)", kind: procedural, refs: [N-4001, N-4002, FO-4151, FO-4152, XV-4103, XV-4105, XV-2123, XV-3123], status: proposed, by: agent, notes: "Added in c257902c (D-036 item 5 (b), 11 (b)-(d); control/sequences.yaml, C&E I-501 / I-601 bypass). An operator sequence with key-protected SIS output overrides of XV-4101 / XV-4102 / XV-4107; the bound of ~3.5 h and ~36 m3 into T-8102 rests on the N2 flowing within ~0.5 h, the site N2 rate (a hold of the trains' utility owner, with its liquid N2 back-up), one opening stroke of the crossover valve in the burning bay (actuator package qualified for at least 60 min of pool fire, D-037.15 (c), ASSUMED, not confirmed) and the two-phase displacement (a check case of hold H-01); not credited (S29, S31 to S33)."}
+  - {id: SG27, title: "SEQ-LINE-EMPTY: the leaking trestle line emptied back to a tank with site N2 through N-4001 / N-4002 (FO-4151 / FO-4152, ~4,000 Nm3/h), the bottom-of-line platform crossover, the other loading line and the circulation return, after ESD-1 (D-036)", kind: procedural, refs: [N-4001, N-4002, FO-4151, FO-4152, XV-4103, XV-4105, XV-2123, XV-3123], status: proposed, by: agent, notes: "Added in c257902c (D-036 item 5 (b), 11 (b)-(d); control/sequences.yaml, C&E I-501 / I-601 bypass). An operator sequence with key-protected SIS output overrides of XV-4101 / XV-4102 / XV-4107; the bound of ~3.5 h and ~36 m3 into T-8102 rests on the N2 flowing within ~0.5 h, the site N2 rate (a hold of the trains' utility owner, with its liquid N2 back-up), one opening stroke of the crossover valve in the burning bay (actuator package qualified for at least 60 min of pool fire, D-037.15 (c), ASSUMED, not confirmed) and the two-phase displacement (a check case of hold H-01); not credited (S29, S31 to S33). Since ae718797 (D-039 item 3, D-039.9): the minimum rate keeping the bound is ~3,500 Nm3/h (6 barg site N2, hold H-07; ~3,400 Nm3/h with every bound at once, no margin), the regulators PCV-4159 / PCV-4160 limit the line to 4.5 barg, low N2 is no abort, the abort holds the line isolated and is followed by a restart from S1; still not credited (S34, S35)."}
   - {id: SG28, title: "Position switches ZSC-4107 / ZSO-4107 on the platform crossover XV-4107 with a discrepancy alarm against UZ-4107; 'proven open' completes SEQ-LOAD S0 / S3, 'proven closed' SEQ-HOLD S1 and SEQ-ESD S1", kind: alarm, refs: [ZSC-4107, ZSO-4107, XV-4107, UZ-4107], status: proposed, by: agent, notes: "Added in c257902c (D-036 item 8 #5; instrument list, sequences); no trip on 'not open' during a transfer (S28); a failure to close on ESD-1 is shown and the operator recloses from UZ-4107 (SEQ-ESD S2, S30)."}
-  - {id: SG29, title: "N2 station double block and bleed: HV-4152 / HV-4161 / HV-4151 (HV-4154 / HV-4162 / HV-4153) with the check valve CV-4151 (CV-4152), the bleed N-4003 (N-4004) open while the station is isolated; austenitic stainless steel from the spec break at the battery-limit flange", kind: mechanical, refs: [HV-4151, HV-4152, HV-4161, CV-4151, N-4003, HV-4153, HV-4154, HV-4162, CV-4152, N-4004], status: proposed, by: agent, notes: "Added in c257902c (D-036 item 11 (c); P-04, line list); manual valves, no interlock; no blind; no proof test in the files (S31, S33)."}
-  - {id: SG30, title: "SEQ-LINE-EMPTY line-up checks and abort: S1 completion (XV-4103, XV-4105, XV-4102 open, ZSC-2123 not closed, XV-4106 closed), the station gauges PI-4155..PI-4158 (choked flow: upstream at least ~1.9 times downstream, absolute), the receiving tank level, the abort on I-201, PI-4155 below 5 barg or a high receiving-tank pressure", kind: procedural, refs: [PI-4155, PI-4156, PI-4157, PI-4158, XV-4103, XV-4105, ZSC-2123, XV-4106, LT-2101], status: proposed, by: agent, notes: "Added in c257902c (D-036 item 11 (c); SEQ-LINE-EMPTY, instrument list); the PI are local gauges read by the operator at the station, XV-4103 / XV-4105 have no position switch, the completion is the operator's (S31 to S33)."}
+  - {id: SG29, title: "N2 station double block and bleed: HV-4152 / HV-4161 / HV-4151 (HV-4154 / HV-4162 / HV-4153) with the check valve CV-4151 (CV-4152), the bleed N-4003 (N-4004) open while the station is isolated; austenitic stainless steel from the spec break at the battery-limit flange", kind: mechanical, refs: [HV-4151, HV-4152, HV-4161, CV-4151, N-4003, HV-4153, HV-4154, HV-4162, CV-4152, N-4004], status: proposed, by: agent, notes: "Added in c257902c (D-036 item 11 (c); P-04, line list); manual valves, no interlock; no blind; no proof test in the files (S31, S33). Since ae718797 (D-039 item 5, D-039.9 (a), (g)): the check valve CV-4151 (CV-4152) is on the line side of the inner block, the bleeds HV-4161 / HV-4162 are locked closed (LC on the sheet; opened under permit with a gas test before maintenance), so the bleed is no longer open while the station is isolated; the passing-block check is made on rounds between the blocks (PI-4155 / PI-4156, PI-4157 / PI-4158); the inner block's cavity is vented to the line side (vendor)."}
+  - {id: SG31, title: "Self-acting regulators PCV-4159 / PCV-4160 (set 4.5 barg, lock-up ~4.7 barg, ASSUMED) between the orifice and the inner block of each N2 station, limiting an emptied, blocked or held line to below the site N2 pressure", kind: mechanical, refs: [PCV-4159, PCV-4160], status: proposed, by: agent, notes: "Added in ae718797 (D-039 item 3 (b), D-039.9 (b), (g); P-04 sheet note, SEQ-LINE-EMPTY); wide open in the displacement; failed open leaves 7 barg, inside the 15 barg design; offset and lock-up from the vendor; no proof test in the files; its failure is S34."}
+  - {id: SG30, title: "SEQ-LINE-EMPTY line-up checks and abort: S1 completion (XV-4103, XV-4105, XV-4102 open, ZSC-2123 not closed, XV-4106 closed), the station gauges PI-4155..PI-4158 (choked flow: upstream at least ~1.9 times downstream, absolute), the receiving tank level, the abort on I-201, PI-4155 below 5 barg or a high receiving-tank pressure (since ae718797: the S1 completion with PI-4163 below 4.0 barg, the station flow read as the return on FIC-4102 / FIC-4101, the abort on I-201, a high receiving-tank pressure or no N2 entering, holding the line isolated, restart from S1)", kind: procedural, refs: [PI-4155, PI-4156, PI-4157, PI-4158, XV-4103, XV-4105, ZSC-2123, XV-4106, LT-2101, PI-4163, PI-4164, FIC-4101, FIC-4102], status: proposed, by: agent, notes: "Added in c257902c (D-036 item 11 (c); SEQ-LINE-EMPTY, instrument list); the PI are local gauges read by the operator at the station, XV-4103 / XV-4105 have no position switch, the completion is the operator's (S31 to S33). Since ae718797 (D-039 item 3, D-039.9 (b), (d), (j)): the PI-4155 abort below 5 barg is withdrawn (low N2 runs on at the reduced rate, timeout 5 h); the no-N2 abort is on the return flow (below ~100 m3/h for 5 min before ~1,030 m3 have returned), a control-room reading on FIC-4102 / FIC-4101 (bidirectional meters, ASSUMED); the abort closes the crossover and the return and keeps the N2 blocks open; still an operator sequence with no interlock (S31 to S35)."}
   - {id: SG18, title: "Interlocks I-204 / I-304: tank PALL stops the loading pumps and the BOG compressors", kind: interlock, interlock: I-204, refs: [PZT-2112, PZT-3112], status: proposed, by: agent, notes: "Does not close XV-4131 / XV-4132 (S16)."}
   - {id: SG19, title: "PIC-1111 / PV-1111 make-up from the trains' fuel gas FG-1001 (FO-1117)", kind: control, refs: [PIC-1111, PV-1111, FG-1001], status: proposed, by: agent, notes: "Regulatory, not credited in the C&E (H-01 SG19)."}
   - {id: SG20, title: "Tank vacuum relief valves PSV-2133A/B/C and PSV-3133A/B/C", kind: relief, refs: [PSV-2133A, PSV-2133B, PSV-2133C, PSV-3133A, PSV-3133B, PSV-3133C], status: proposed, by: agent, notes: "Admit air: protect the structure, create the O2 ingress consequence. Their locked-open inlet isolations HV-2135A/B/C (HV-3135A/B/C), mechanically interlocked two of three in service, are drawn since fac0bbb5 (D-026 item 11; analysed in H-01 S19)."}
@@ -1780,8 +1974,9 @@ actions:
   - {id: A20, status: proposed, by: agent, text: "Consider confirming the 'not closed' of ZSC-2123 / ZSC-3123 against the valve command or a second switch before I-205 / I-305 stop the circulation pumps in loading, or a spray source for TV-7103 that does not depend on the circulation pump, so that a single switch fault at a tank high-high does not trip the BOG compressors during a loading (S24, H-04 S10); include the switches in the proof test (H-01 A23).", response: "Not answered by commit 709fcf20: D-032 item 7 (#3) moves the 15 s on-delay onto 'I-201 / I-301 tripped' and adds a command discrepancy alarm for a switch reading closed while its valve is commanded open (the false 'closed', H-01 S25); a false 'not closed' still stops the circulation and drain pumps on one switch, now also on a momentary one once the trip has stood 15 s, and no spray source independent of the circulation pump is added. Still proposed. Partly answered by commit c257902c (D-036 items 4, 5 (a); SEQ-LOAD S0, C&E I-201 / I-205 notes): in loading the spray is fed from the loading header back through LNG-2002, so while the loading pumps run it no longer depends on the circulation pump, and I-205 / I-305 no longer stop the drain pumps; the spray is still lost at the end of a loading if the circulation pump was stopped by a false 'not closed' (S24). Still open: the confirmation of the 'not closed' against the command or a second switch, and the proof test. Still proposed."}
   - {id: A21, status: proposed, by: agent, text: "Confirm with the analyser vendor the response and 2oo2 vote time of AI-5126 / AI-6126 and with the valve vendor the stroke of XV-n122 / XV-n125 that together set the ~40 s and the ~200 m3 slug of D-026.1, and the transit of the return against the stroke of XV-4135 / XV-4136 and I-513 / I-613 that keeps the slug off the flare; alarm a reject whose tank-side valve is not proven open within its stroke time (S25).", response: "Partly answered by commit aedd8dbd (D-034 item 4; C&E I-511 / I-512 / I-514): after a reset of I-514 / I-614 the return is held on the tanks for 30 min and while the tank-end analyser reads O2 at or above 5 vol %, so the slug trapped behind the closed vapour isolations no longer depends on the transit time to stay off the flare (S26). Still open: the analyser response and vote time, the valve strokes behind the ~40 s and ~200 m3, and the alarm on a reject whose tank-side valve is not proven open. Still proposed. Commit c257902c (D-036 item 8 #7) ends the hold when AI-4133 / AI-4134 has seen the slug pass or on the operator's release after the carrier's delivered return volume, instead of after 30 min (S26); the open items above are unchanged. Still proposed."}
   - {id: A22, status: proposed, by: agent, text: "Give XV-4107 an open- and a closed-position switch with a command discrepancy alarm, make 'XV-4107 proven open' the completion of SEQ-LOAD S0 / S3 and decide whether XV-4107 not open during a liquid transfer trips ESD-1 (as ZSO-5122) or only alarms, and whether XV-4103 needs a closed-position switch for the S0 completion; put the non-return valve, accumulator and speed controller of XV-4107 in the proof test and include its closure at set and at spring speed with the pumps running in the transient analysis (hold H-01) (S28, S30).", response: "Partly answered by commit c257902c (D-036 item 8 #5; P-04, instrument list, sequences): XV-4107 has ZSC-4107 / ZSO-4107 on the valve itself with a discrepancy alarm against UZ-4107; 'proven open' completes SEQ-LOAD S0 / S3, 'proven closed' SEQ-HOLD S1 and SEQ-ESD S1, and SEQ-ESD S2 recloses it from UZ-4107 if it is not proven closed. Decided: an alarm, not an ESD-1 trip, on XV-4107 not open during a transfer. Still open: a closed-position switch on XV-4103 (its closure in S0 is still the operator's), the proof test of the switches and of the non-return valve, accumulator and speed controller, and the closures in the transient analysis (hold H-01). Still proposed."}
-  - {id: A23, status: proposed, by: agent, text: "Design owner / siting study: state how a trestle line leaking at the platform end after ESD-1 is emptied (N2 displacement back to the tanks, ASSUMED in D-035.14 (g)) and in what time, against the ~11 h (1 kg/s seal) and ~1 h (DN 80 tapping) to fill the ~87 m3 left in T-8102; add low-temperature or gas detection in the platform header bay with an alarm and the response (TSL-8104 is in the sump only), the T-8102 level indication with a high alarm of D-035.14 (j), and the escalation of a header bay fire to PR9 and the unisolable trestle inventory (~1,020 m3 per line, ~2,050 m3 in holding) in the siting study (S29, S30).", response: "Mostly answered in the design by commit c257902c (D-036 items 5, 6, 11 (b)-(d); D-037 items 2, 15 (a), (c), 16; P-04, P-08, C&E I-n01 bypass, I-805..I-808, SEQ-ESD S2, SEQ-LINE-EMPTY): the leaking line is emptied back to a tank with N2 from tank-end stations through the bottom-of-line crossover and the other line, the leak fed at ~1 kg/s for ~3.5 h at most, ~36 m3 into T-8102 within the 40 m3 kept; the DN 25 tappings and the drain pump tie-ins are no longer on the trestle side; T-8102 has LZT-8106 (LAH a transfer hold, LAHH I-805) and the dry-sump pump P-8103, so 170 + 40 = 210 of 257 m3 with no rain; the header bay takes 240 min PFP and fire-tested valves (layout). Still open: header bay low-temperature or gas detection with an alarm (named in SEQ-ESD S2, not drawn), the site N2 rate and its back-up (hold), the qualification of the crossover actuator package to stroke in the fire, the two-phase displacement in the transient analysis (hold H-01), the residual leak at XV-4107 / XV-4103 themselves and the escalation to the trestle inventory in the siting study; the failures of the new sequence are S31 to S33 (A26, A27). Still proposed."}
+  - {id: A23, status: proposed, by: agent, text: "Design owner / siting study: state how a trestle line leaking at the platform end after ESD-1 is emptied (N2 displacement back to the tanks, ASSUMED in D-035.14 (g)) and in what time, against the ~11 h (1 kg/s seal) and ~1 h (DN 80 tapping) to fill the ~87 m3 left in T-8102; add low-temperature or gas detection in the platform header bay with an alarm and the response (TSL-8104 is in the sump only), the T-8102 level indication with a high alarm of D-035.14 (j), and the escalation of a header bay fire to PR9 and the unisolable trestle inventory (~1,020 m3 per line, ~2,050 m3 in holding) in the siting study (S29, S30).", response: "Mostly answered in the design by commit c257902c (D-036 items 5, 6, 11 (b)-(d); D-037 items 2, 15 (a), (c), 16; P-04, P-08, C&E I-n01 bypass, I-805..I-808, SEQ-ESD S2, SEQ-LINE-EMPTY): the leaking line is emptied back to a tank with N2 from tank-end stations through the bottom-of-line crossover and the other line, the leak fed at ~1 kg/s for ~3.5 h at most, ~36 m3 into T-8102 within the 40 m3 kept; the DN 25 tappings and the drain pump tie-ins are no longer on the trestle side; T-8102 has LZT-8106 (LAH a transfer hold, LAHH I-805) and the dry-sump pump P-8103, so 170 + 40 = 210 of 257 m3 with no rain; the header bay takes 240 min PFP and fire-tested valves (layout). Still open: header bay low-temperature or gas detection with an alarm (named in SEQ-ESD S2, not drawn), the site N2 rate and its back-up (hold), the qualification of the crossover actuator package to stroke in the fire, the two-phase displacement in the transient analysis (hold H-01), the residual leak at XV-4107 / XV-4103 themselves and the escalation to the trestle inventory in the siting study; the failures of the new sequence are S31 to S33 (A26, A27). Still proposed. Commit ae718797 (D-039 item 3, D-039.9; D-040 layout) restates the bound against the N2 rate (~3,500 Nm3/h the minimum, the acceptance value of hold H-07), removes the low-N2 abort, holds the line isolated on an abort with a restart from S1, and carries rain on the T-8102 pool as SC-3 (H-05 S36). Still open as before (the header bay detection is still not drawn or listed); the new failures are S34, S35 (A28). Still proposed."}
   - {id: A24, status: proposed, by: agent, text: "Confirm the design pressure of the circulation pumps P-2102 / P-3102, their columns and the check valves CV2122 / CV3122 against the loading line pressure since D-034 (949.5 kPa(a) at the pump header, about 11 barg at the circulation pump depth and about 13 barg at the loading pumps' shut-off, agent estimates), or re-rate them as the loading pumps (15 barg); confirm the ASSUMED 1.25 x shut-off of the loading pumps with the vendor's curve and the surge margin of the 15 barg lines on top of it in the transient analysis (hold H-01) (S27).", response: "Answered in the design by commit c257902c (D-036 items 4, 11 (e); equipment list, datasheets P-2102 / P-3102): the circulation pumps, their columns, discharge heads and minimum-flow tees are designed for 15 barg, the loading system's class, against one shut-off basis of ~12.2 barg at the pump with a full tank (scripts/terminal_sizing.py), so a passing check valve is no overpressure case. For the team to verify and close; still open: the vendor's curve for the 1.25 x shut-off and the surge margin on top of it in the transient analysis (hold H-01). Still proposed."}
   - {id: A25, status: proposed, by: agent, text: "C&E / operating philosophy: state the volume and the O2 and N2 of the carrier's return the tanks receive during the 30 min post-reset hold of I-n11 / I-n12 (about 1.5 line volumes, ~1,650 m3, up to ~80 m3 of O2 at 5 vol %, agent estimate) and add it to the D-026.1 bound, or have the carrier hold its return for that time; and put the hold's timer and AI-4133 / AI-4134 condition in the proof test, since a lost hold sends the trapped slug to the flare (S26, H-05 S18).", response: "Partly answered by commit c257902c (D-036 item 8 #7; C&E I-511 / I-512 / I-514, SEQ-LOAD S1): the hold ends on AI-4133 / AI-4134 having seen the slug pass (O2 above 1 vol % and back below for 5 min) or on the operator's release after the carrier confirms 1.5 return-line volumes (~1,600 m3 of the ~1,060 m3 line) delivered, no longer on a timer; the reset condition of I-n14 is written in its notes and SEQ-LOAD S1. Still open: the volume and O2 / N2 the tanks receive during the hold added to the D-026.1 bound, the end of the hold on a partial slug (spread out in the 2.45 km line) and the proof test of the AI-4133 / AI-4134 condition. Still proposed."}
-  - {id: A26, status: proposed, by: agent, text: "SEQ-LINE-EMPTY / P-04 / C&E: prove the return path open before the N2 blocks can be opened (closed- and open-position switches on XV-4103 / XV-4105, or a permissive in the sequence logic instead of an operator's completion), give PI-4156 / PI-4158 a remote high alarm (orifice no longer choked: return blocked) and the receiving tank level a 'not rising' alarm during S2, tag the station, the override key and the valves to the leaking line so the wrong line or station cannot be opened, and state what is done with an open N2 station when I-201 or the operator closes the return; detect a passing inner block HV-4151 / HV-4153 (low temperature or flow at the bleed) and route the bleeds N-4003 / N-4004 away from work positions; put CV-4151 / CV-4152 and the blocks in the proof test; confirm the site N2 pressure stays above the line pressure for the whole displacement, with the abort on PI-4155 / PI-4157 acted on in time (S31, S33; H-05 S34)."}
-  - {id: A27, status: proposed, by: agent, text: "Transient analysis (hold H-01) and SEQ-LINE-EMPTY: include the gas breakthrough at the end of the displacement (slug flow in the DN 250 crossover LNG-4003, the other loading line and the return LNG-4005 into the tank roof inlet) in the check case of the two-phase displacement; state the end-of-displacement criterion, who closes XV-4103 (XV-4107) within what time, and the N2 the receiving tank and the BOG system take (~9,500 Nm3 per line, ASSUMED) against the compressors and the trains' fuel gas tolerance (S32; H-04 S26, A23)."}
+  - {id: A26, status: proposed, by: agent, text: "SEQ-LINE-EMPTY / P-04 / C&E: prove the return path open before the N2 blocks can be opened (closed- and open-position switches on XV-4103 / XV-4105, or a permissive in the sequence logic instead of an operator's completion), give PI-4156 / PI-4158 a remote high alarm (orifice no longer choked: return blocked) and the receiving tank level a 'not rising' alarm during S2, tag the station, the override key and the valves to the leaking line so the wrong line or station cannot be opened, and state what is done with an open N2 station when I-201 or the operator closes the return; detect a passing inner block HV-4151 / HV-4153 (low temperature or flow at the bleed) and route the bleeds N-4003 / N-4004 away from work positions; put CV-4151 / CV-4152 and the blocks in the proof test; confirm the site N2 pressure stays above the line pressure for the whole displacement, with the abort on PI-4155 / PI-4157 acted on in time (S31, S33; H-05 S34).", response: "Partly answered by commit ae718797 (D-039 items 3, 5, D-039.9 (a), (b), (d); P-04, SEQ-LINE-EMPTY, SEQ-ESD S2): a blocked return or no N2 entering is seen in the control room on the return flow (FIC-4102 / FIC-4101, the no-N2 abort), and PI-4163 / PI-4164 read the line beyond the check valve; what is done with an open station when the return closes is written (the abort holds the line isolated, blocks open behind the check valve, the regulator limiting it, restart from S1); the bleeds are locked closed, so a passing inner block no longer vents at the station (the check on rounds between the blocks); the check valve sits on the line side of the inner block; the low-N2 abort is withdrawn and the reduced-rate case written. Still open: position switches on XV-4103 / XV-4105 or a sequence permissive before the N2 blocks open, a remote alarm of the station (PI-4156 / PI-4163 are local), the tagging of station, key and valves to the leaking line, the proof test of CV-4151 / CV-4152, the blocks and the regulators, the check valve's tightness as the only reverse-flow barrier during S2 (S33), and the site N2 confirmation (H-05 A30). Still proposed."}
+  - {id: A27, status: proposed, by: agent, text: "Transient analysis (hold H-01) and SEQ-LINE-EMPTY: include the gas breakthrough at the end of the displacement (slug flow in the DN 250 crossover LNG-4003, the other loading line and the return LNG-4005 into the tank roof inlet) in the check case of the two-phase displacement; state the end-of-displacement criterion, who closes XV-4103 (XV-4107) within what time, and the N2 the receiving tank and the BOG system take (~9,500 Nm3 per line, ASSUMED) against the compressors and the trains' fuel gas tolerance (S32; H-04 S26, A23).", response: "Partly answered by commit ae718797 (D-039.9 (b); SEQ-LINE-EMPTY S2): the end is now seen in the control room as the return flow on FIC-4102 / FIC-4101 falling away with ~1,030 m3 returned, the operator then closing XV-4103; D-040.2 (layout) puts the crossover tees at the bottom of the low runs. Still open: the breakthrough in the transient analysis (hold H-01), the time within which XV-4103 is closed, and the N2 tolerance of the BOG system and the trains (H-04 A23). Still proposed."}
+  - {id: A28, status: proposed, by: agent, text: "SEQ-LINE-EMPTY and the N2 stations (regulator vendor, operating owner, siting study): confirm the offset, lock-up and failure modes of PCV-4159 / PCV-4160 against the ~3.4 barg the displacement needs and the leak rate they set in the hold and S3, put them in the proof test and the maintenance setting list, and show the expected return flow for the site N2 pressure in the operator's display so a throttling regulator is seen (S34); write the restart after an abort as a sequence step with its time limit (within ~0.45 h of an early abort to keep the 240 min PFP), the alternative receiving tank lined up in advance, and a block on resuming at S2 (S35); carry the longer hold as a residual of hold H-07 in the siting study."}

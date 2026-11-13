@@ -80,6 +80,18 @@ Round 9, checker of D-036: the carrier manifold protection moves to the arms' ou
 PZT-n184 on LNG-n011 / LNG-n014 (1oo2, PAHH 5.0 barg, C&E I-n02), where the normal pressure is the
 carrier's manifold pressure; PZT-n103 stays as the header indication and an uncredited backstop. FO-n118
 is drawn as a restriction orifice (lng_pid.to_orifice).
+
+Migration to core 1.11.0 (D-038), drawing only: the vapour arm's carrier connection BOG-n012 comes in on
+the right edge above the vapour line's instruments; the three liquid arms' carrier connections stay
+under their arms, inside the berth header (D-038).
+
+Round 10 (review 2026-11-05-basic-design-9 #2 and the P&ID part of layout review 2026-11-05-basic-layout-7,
+D-039): the arm thermal reliefs PSV-n171 / n173 / n174 are set at 8.0 barg (was 15.0), below the carrier's
+10 barg manifold design (ASSUMED, D-016), because after ESD-1 the berth header and the arms stay open to the
+carrier's manifold spool and they are the lowest-set relief of that shared section; the strainer SR-n102
+is a permanent T-type strainer with a top cover (DEXPI Strainer, was a ConicalStrainer, a temporary one),
+the type the layout's basket removal path assumes (D-037.1 (c)), with PDI-n102 transmitted to the control
+room (PDAH).
 """
 
 import sys
@@ -88,7 +100,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from chemeascode.domains.piping.authoring import label  # noqa: E402
 from lng_pid import (  # noqa: E402
-    Lists, Nozzle, Sheet, arm_shape, equipment, note, offpage, set_dn, tee, to_orifice, valve)
+    Lists, Nozzle, Sheet, arm_shape, edge_offpage, equipment, note, offpage, set_dn, tee, to_orifice, valve)
 
 target, n = Path(sys.argv[1]), sys.argv[2]
 berth, line_in, vap_out = ("2", "LNG-4001", "BOG-4001") if n == "5" else ("1", "LNG-4002", "BOG-4002")
@@ -123,9 +135,9 @@ t_l2 = tee(f"T{n}04", at=(X["4"], HDR_Y), branch="up", branch_dn=400)
 t_rh = tee(f"T{n}R3", at=(X["3"], RLF_Y), branch="left", branch_dn=25)
 xv_esd = valve(f"XV{n}101", "BallValve", tag=f"XV-{n}101", at=(28, HDR_Y))
 hdr = L.line(sheet, f"LNG-{n}001", dn=800, fluid="LNG", frm=f"{line_in} (P-04)", to=f"LA-{n}103",
-             notes=f"Berth {berth} liquid header on the loading platform, 12,000 m3/h at loading (S3); shore ESD valve XV-{n}101 and strainer SR-{n}102 (S-01: shore strainers; D-016).",
+             notes=f"Berth {berth} liquid header on the loading platform, 12,000 m3/h at loading (S3); shore ESD valve XV-{n}101 and strainer SR-{n}102 (S-01: shore strainers; D-016). SR-{n}102 is a permanent horizontal T-type strainer with a top cover (ASSUMED, vendor; was drawn as a conical temporary strainer): its basket lifts vertically through the gap between PR10's top-tier beams (the layout's removal path, D-037.1 (c)), the cover takes the PFP jacket of Class 150 (d); PDI-{n}102 across it is transmitted to the control room with a PDAH (D-039). After ESD-1 the header and the arms stay open to the carrier's manifold spool behind its closed ESD valve: the lowest-set relief of that section is the arm thermal reliefs PSV-{n}171 / {n}173 / {n}174 at 8.0 barg, below the carrier's 10 barg (D-016, D-039).",
              route=[offpage("in", at=(12, HDR_Y), note=f"from trestle line {'A' if n == '5' else 'B'} (P-04)", note_at=(24, HDR_Y + 7)), xv_esd,
-                    valve(f"SR{n}102", "ConicalStrainer", tag=f"SR-{n}102", at=(46, HDR_Y)), t_n2, t_dk, t_srg,
+                    valve(f"SR{n}102", "Strainer", tag=f"SR-{n}102", at=(46, HDR_Y)), t_n2, t_dk, t_srg,
                     t_dr, t_l1, t_l2, (X["3"], HDR_Y),
                     valve(f"XV{n}123", "BallValve", tag=f"XV-{n}123", at=(X["3"], 181)),
                     tee(f"T{n}0H", at=(X["3"], 172), branch="right", branch_dn=400), t_rh,
@@ -169,7 +181,9 @@ for k, x in X.items():
     if KIND[k] == "vapour":
         L.line(sheet, f"BOG-{n}01{k}", dn=400, fluid="Boil-off gas", frm="carrier vapour manifold",
                to=f"LA-{n}10{k}", notes="Vapour arm outboard: carrier manifold, ERS (XV-%s14%s, coupler, XV-%s13%s), arm." % (n, k, n, k),
-               route=[offpage("in", at=(sx, 156), note="from carrier", note_at=(sx + 13, 160), rotation=UP),
+               # from the right edge, above the vapour line's instruments (core 1.11
+               # cheme.offpage-not-on-edge, D-038); the liquid arms' carrier connections stay under their arms
+               route=[edge_offpage("in", "right", 160, note="from carrier", note_at=(392, 155)), (sx, 160),
                       *ers[::-1], arms[k]["N2"]], labels=False)
     else:
         outb = L.line(sheet, f"LNG-{n}01{k}", dn=400, fluid="LNG", frm=f"LA-{n}10{k}", to="carrier manifold",
@@ -283,9 +297,11 @@ for k in ("1", "4", "3"):
     iso, ers = ARM_VALVES[k]
     extra = f", XV-{n}125" if k == "3" else ""
     psv_arm[k] = L.relief(
-        f"PSV{n}17{k}", f"PSV-{n}17{k}", {"1": f"DR-{n}004", "4": f"DR-{n}005", "3": f"DR-{n}003"}[k], 15.0,
-        f"thermal expansion of LNG blocked in LA-{n}10{k} between XV-{n}{iso}{extra} and the inboard ERS valve XV-{n}{ers} (instrument air failure, isolated arm after ESD-2)",
-        f"Thermal relief of the {KIND[k]} arm section LA-{n}10{k} into D-{n}101 (review #7); DN 25, set at the 15 barg design of the arm; cavity relief of the ERS ball valves to be confirmed with the arm vendor.",
+        f"PSV{n}17{k}", f"PSV-{n}17{k}", {"1": f"DR-{n}004", "4": f"DR-{n}005", "3": f"DR-{n}003"}[k], 8.0,
+        f"thermal expansion of LNG blocked in LA-{n}10{k} between XV-{n}{iso}{extra} and the inboard ERS valve XV-{n}{ers} (instrument air failure, isolated arm after ESD-2); "
+        f"since D-039 (review 2026-11-05-basic-design-9 #2) also the section left blocked in after ESD-1 from XV-{n}101 through the berth header, the open arm isolations and ERS valves to the carrier's closed manifold ESD valve, "
+        f"which includes the carrier's manifold spool (10 barg design, ASSUMED, D-016): at 8.0 barg with a small thermal accumulation and up to ~0.9 bar of static to the lowest manifold position the spool stays below ~9.7 barg",
+        f"Thermal relief of the {KIND[k]} arm section LA-{n}10{k} into D-{n}101 (review #7), and with the arm isolation and the ERS valves open after ESD-1 the lowest-set relief of the berth section shared with the carrier's manifold; DN 25, set at 8.0 barg (ASSUMED; was 15.0, the arm design), below the carrier's 10 barg manifold design and ~2.5 bar above the highest normal arm-base pressure (~5.5 barg at 12,000 m3/h), so it lifts only on a closure transient (into D-{n}101, on the carrier's side of safety) or a blocked-in warm-up (D-039); cavity relief of the ERS ball valves to be confirmed with the arm vendor.",
         label_at={"1": (99, 144), "4": (159.25, 144), "3": (219.25, 144)}[k])
 L.line(sheet, f"DR-{n}004", dn=25, fluid="LNG", frm=f"LNG-{n}002 (PSV-{n}171)", to=f"DR-{n}001",
        notes=f"Thermal relief of LA-{n}101 through PSV-{n}171 into DR-{n}001 downstream of XV-{n}161.",
@@ -357,8 +373,15 @@ L.inst(sheet, f"ZSC-{n}101", f"XV-{n}101 closed position",
        f"longer than its stroke time raises a discrepancy alarm.",
        at=(39, 205), sensing=xv_esd.id, sensing_at=(28, HDR_Y + 1.5),
        sensing_points=[(28, HDR_Y + 3.5), (39, HDR_Y + 3.5)])
-L.inst(sheet, f"PDI-{n}102", f"Strainer SR-{n}102 differential pressure", at=(56, 202),
-       sensing=hdr.segments[0], sensing_at=(56, HDR_Y))
+L.inst(sheet, f"PDI-{n}102", f"Strainer SR-{n}102 differential pressure, indicated and alarmed (PDAH) in the control room",
+       f"The tag names the control-room function, as for the plant's other transmitted indications (LI-8103, PI-4105): "
+       f"a differential pressure transmitter on the strainer (round-10 design check, D-039.9), its PDAH a DCS alarm of "
+       f"the same loop, no local indicator. Differential pressure across the permanent T-type strainer SR-{n}102 (D-039), transmitted to the control room "
+       f"with a PDAH (ASSUMED ~0.2 bar at 12,000 m3/h: the loss coefficient 2.0 the D-034 hydraulics take for the strainer "
+       f"at its PDI alarm, on ~10 kPa of velocity head at 6.8 m/s in DN 800) "
+       f"so the strainer is watched without anyone at the header bay during a transfer (south-end occupancy rule, "
+       f"D-035.14 (e); layout review 2026-11-05-basic-layout-6 #14); the basket is cleaned with no transfer on the berth.",
+       at=(56, 202), sensing=hdr.segments[0], sensing_at=(56, HDR_Y))
 L.inst(sheet, f"PZT-{n}103", f"Berth {berth} header pressure (high back-pressure)",
        f"Berth header pressure downstream of XV-{n}101: indication, the PAH, and in C&E I-{n}02 an uncredited backstop "
        f"at PAHH 7.0 barg (ASSUMED). Normal ~5.2-5.5 barg at 12,000 m3/h (S3, 647.9 kPa(a) at XV-{n}101, less the "
@@ -488,7 +511,10 @@ L.inst(sheet, f"LIC-{n}111", f"Jetty drain drum D-{n}101 level",
        f"Starts and stops P-{n}101 (level control, D-016); the high-high level is the independent LZT-{n}112. Since "
        f"D-036 P-{n}101 returns into the berth header downstream of XV-{n}101, so its start is permitted only with "
        f"XV-{n}101 open and the cooldown or loading flow established (SEQ-LOAD S3 / S4): the drum is emptied into the "
-       f"flow to the arms and the carrier at the start of the next transfer, never against the closed header.",
+       f"flow to the arms and the carrier at the start of the next transfer, never against the closed header. Since "
+       f"D-039 (review 2026-11-05-basic-design-9 #7) the permissive is in the loop register (LIC-{n}111, auto only with "
+       f"ZSC-{n}101 not closed and FIC-410x at its cooldown or loading rate, back to manual and P-{n}101 stopped when "
+       f"ZSC-{n}101 reads closed) and ESD-1 (I-{n}01) stops P-{n}101, so it no longer dead-heads on its minimum flow.",
        at=(20, 66), sensing=drum["N4"])
 L.inst(sheet, f"LZT-{n}112", f"Jetty drain drum D-{n}101 independent high-high level",
        f"Own nozzle, independent of LIC-{n}111: stops the drain (closes XV-{n}161) and alarms (C&E; review #21, H-03 A5).",
@@ -504,7 +530,7 @@ NOTES = [
     f"ESD-2 trips ESD-1 at once (C&E I-{n}03 into I-{n}01); the ERS valves (two ball valves either side of the emergency release coupler) close 5 s later by I-{n}07, not on ESD-1;",
     # Round 6 (D-030), round 7 (D-032): the trip principle of the ERS valves and couplers, continuing the note above
     f"ERS valves de-energise-to-trip on 2oo2 solenoids, channels A / B (XA-{n}130A / B, either lost: ESD-1); couplers UY-{n}135..{n}138 release on ERS closed or timeout (D-034).",
-    f"Thermal relief (15.0 barg) to D-{n}101: PSV-{n}171 / {n}173 / {n}174 per liquid arm section, PSV-{n}118 on the drain pump discharge. Vapour arm connected first, disconnected last (S-01).",
+    f"Thermal relief to D-{n}101: PSV-{n}171 / {n}173 / {n}174 per arm section 8.0 barg (below the carrier, D-039), PSV-{n}118 15.0 barg. Vapour arm first, last off (S-01).",
     f"D-{n}101 sits at the platform low point (drawn above the header). Its vent BOG-{n}002 has no valve: it is the drum's relief path and stays open.",
     f"XV-{n}123 / XV-{n}125: open-command permissives, each opens only with the other proven closed (ZSC-{n}123 / ZSC-{n}125, C&E I-{n}04 / I-{n}05), never trip an open valve; key interlock at the arm (vendor).",
     f"Arm purge (D-026): before loading the N2 goes into the carrier's manifold (S-01); after loading the arms drain to D-{n}101 and the purge N2 leaves by the drum vent BOG-{n}002 into the vapour return.",

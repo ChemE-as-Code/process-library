@@ -32,6 +32,9 @@ trip and names the command discrepancy alarm of a switch stuck closed.
 Review 2026-11-05-basic-design-8 and layout review 2026-11-05-basic-layout-6 #9 (D-036): on P-03 the
 drip tray under XV-3123 takes its low-temperature detector TSL-3124; the HS-n123 note no longer counts
 the jetty drain pumps among the sources of the return and names the spray source in loading.
+Migration to core 1.11.0 (D-038), drawing only: the loading header, the circulation header and the
+vapour outlet end on the right edge; the column vents, the PSV tailpipes and the vacuum relief inlets
+are open ends drawn at their valves, each with its own text (vent, to atm., from atmosphere).
 """
 
 import sys
@@ -40,7 +43,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from chemeascode.domains.piping.authoring import label  # noqa: E402
 from lng_pid import (  # noqa: E402
-    Lists, Nozzle, Sheet, equipment, note, offpage, set_dn, tank_shape, tee, valve)
+    Lists, Nozzle, Sheet, edge_offpage, equipment, note, offpage, set_dn, tank_shape, tee, valve)
 
 target, n = Path(sys.argv[1]), sys.argv[2]
 phase = "Phase 1, as built" if n == "2" else "Phase 2"
@@ -134,8 +137,8 @@ line_a = L.line(sheet, f"LNG-{n}001", dn=800, fluid="LNG", frm=f"P-{n}101A", to=
                 route=[pumps["A"]["N2"], mfs["A"], vents["A"],
                        valve(f"CV{n}121A", "SwingCheckValve", tag=f"CV-{n}121A", at=(COLS["A"], CV_Y)), hvs["A"],
                        (COLS["A"], HEADER_Y), heads["B"], heads["C"], heads["D"], tr_hdr,
-                       offpage("out", at=(285, HEADER_Y), note=f"to trestle line {side} (P-04)",
-                               note_at=(272, HEADER_Y + 6))],
+                       edge_offpage("out", "right", HEADER_Y, note=f"to trestle line {side} (P-04)",
+                                    note_at=(390, HEADER_Y + 6))],
                 label_at=(225, HEADER_Y - 8))
 # the column of P-n101A (segments S1-S3) is DN 450 like the others
 set_dn(sheet, [f"T{n}1MA_N1", f"T{n}1MA_N2", f"T{n}1VA_N1", f"T{n}1VA_N2", f"CV{n}121A_N1",
@@ -153,8 +156,8 @@ L.line(sheet, f"LNG-{n}002", dn=250, fluid="LNG", frm=f"P-{n}102", to="LNG-4001"
               if n == "2" else f"{TK} circulation pump discharge into the circulation header LNG-2002. Thermal relief PSV-{n}142 (review #6). Drawn on P-03 and P-04."),
        route=[pumps["R"]["N2"], mfs["R"], vents["R"],
               valve(f"CV{n}122", "SwingCheckValve", tag=f"CV-{n}122", at=(CIRC_X, CV_Y)), hvs["R"], tr_circ,
-              (CIRC_X, CIRC_Y), offpage("out", at=(285, CIRC_Y), note="to circulation and spray (P-04)",
-                                         note_at=(262, CIRC_Y - 6))],
+              (CIRC_X, CIRC_Y), edge_offpage("out", "right", CIRC_Y, note="to circulation and spray (P-04)",
+                                              note_at=(384, CIRC_Y - 6))],
        label_at=(200, CIRC_Y - 8))
 for k, x in [("R", CIRC_X), *COLS.items()]:
     label(sheet, hvs[k].id, "PipingComponentNumber", at=(x + 9, HV_Y))
@@ -181,7 +184,8 @@ for k in "ABCDR":
            notes=f"{pump_tag} column vent and N2 purge connection HV-{n}16{j} (ball valve, blind-flanged). Opened only after the column has been displaced with N2 into {TK} through the hose connection (foot valve open, pump lowered on its seat); it then releases N2 with traces of methane at the tank roof, inside the roof hazardous area; the vendor's lifting procedure governs (D-026.9, H-02 A3). Number and size in the sheet note.",
            route=[vents[k].branch,
                   valve(f"HV{n}16{j}", "BallValve", tag=f"HV-{n}16{j}", at=(x + 5, VENT_Y)),
-                  offpage("out", at=(x + 10, VENT_Y))])
+                  # an open end, its text says so (core 1.11 cheme.offpage-not-on-edge, D-038)
+                  offpage("out", at=(x + 10, VENT_Y), note="vent", note_at=(x + 13.5, VENT_Y - 6.5))])
 L.inst(sheet, f"PI-{n}117", f"{TK} loading header pressure", at=(250, HEADER_Y + 12),
        sensing=line_a.segments[-1], sensing_at=(250, HEADER_Y))
 
@@ -258,8 +262,8 @@ if n == "3":
 L.line(sheet, "BOG-1001" if n == "2" else "BOG-1003", dn=750 if n == "2" else 600,
        fluid="Boil-off gas", frm=TK, to="D-7101" if n == "2" else "BOG-1001",
        notes=("see P-01" if n == "2" else "T-3101 vapour outlet to the tank vapour header. Drawn on P-03 and P-01."),
-       route=[tank["N3"], (CX + BOG_DX, 100), (285, 100),
-              offpage("out", at=(290, 100), note="to BOG header (P-01)", note_at=(276, 94))],
+       route=[tank["N3"], (CX + BOG_DX, 100),
+              edge_offpage("out", "right", 100, note="to BOG header (P-01)", note_at=(390, 94))],
        label_at=(212, 93))
 
 # ---- relief: 3 PSVs to atmosphere, 3 vacuum relief valves, N+1 each (D-017, review #15) -------
@@ -295,8 +299,8 @@ for i, (nz, y) in enumerate(zip(["N4", "N5", "N11"], PSV_Y)):
            notes=f"PSV-{n}131{s} inlet, with the locked-open inlet isolation {iso_tag} (D-026.11), and tailpipe to atmosphere.",
            insulation="none",
            route=[tank[nz], (205, y), iso, v, (riser, y),
-                  offpage("out", at=(riser, 125), note="to atmosphere" if i == 0 else None,
-                          note_at=(248, 116), rotation=UP)],
+                  # an open end, each with its own text (core 1.11 cheme.offpage-not-on-edge, D-038)
+                  offpage("out", at=(riser, 125), note="to atm.", note_at=(riser, 115), rotation=UP)],
            label_at=(202, y - 7))
     after.append(labels_)
 for i, (nz, y) in enumerate(zip(["N6", "N7", "N12"], VAC_Y)):
@@ -311,8 +315,8 @@ for i, (nz, y) in enumerate(zip(["N6", "N7", "N12"], VAC_Y)):
     L.line(sheet, f"A-{n}00{1 + i}", dn=250, fluid="Air", frm="atmosphere", to=TK,
            notes=f"Vacuum relief inlet of {TK} (PSV-{n}133{s}), with the locked-open isolation {iso_tag} between the valve and the tank nozzle (D-026.11).",
            insulation="none",
-           route=[offpage("in", at=(285, y), note="from atmosphere" if i == 0 else None,
-                          note_at=(276, y - 6), rotation=180), v, iso, tank[nz]],
+           route=[offpage("in", at=(285, y), note="from atmosphere", note_at=(276, y - 6), rotation=180),
+                  v, iso, tank[nz]],
            label_at=(256, y - 7))
     after.append(labels_)
 for labels_ in after:

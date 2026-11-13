@@ -731,3 +731,270 @@ loops:
     condition: FAL
     response: Recycle opening; check the load of K-7101C.
   rationale: Vendor anti-surge controller; UV fails open (machine protection first).
+- id: LIC-5111
+  title: D-5101 jetty drain drum level (P-5101 start / stop)
+  purpose: Empty the Berth 2 jetty drain drum D-5101 with P-5101 into the berth header downstream of XV-5101, into
+    the cooldown or loading flow of the next transfer.
+  section: JETTY
+  cases:
+  - loading
+  variable: level
+  measurement:
+  - tag: LIC-5111
+  controller: LIC-5111
+  action: direct
+  final_elements:
+  - tag: P-5101
+    kind: drive
+    actuator: electric
+    fail: stop
+  targets:
+  - kind: high
+    unresolved: drum start level from the D-n101 datasheet (detail)
+  - kind: low
+    unresolved: drum stop level above the pump's NPSH required (vendor)
+  modes:
+  - manual
+  - auto
+  normal_mode: auto
+  transitions:
+  - from: manual
+    to: auto
+    by: operator
+    condition:
+      all:
+      - tag: ZSC-5101
+        state: not closed
+      - text: cooldown or loading flow established through XV-5101 (FIC-4101 / FIC-4102 at its rate)
+  - from: auto
+    to: manual
+    by: automatic
+    condition:
+      any:
+      - tag: ZSC-5101
+        state: closed
+      - interlock: I-501
+        state: tripped
+    notes: P-5101 stopped with it
+  alarms:
+  - tag: LIC-5111
+    condition: LAH
+    response: 'Drum filling with no transfer to empty it into: hold the header drain (XV-5161 closed); the independent
+      LZT-5112 closes XV-5161 at high-high (I-506).'
+  interlocks:
+  - I-501
+  - I-506
+  rationale: 'Since D-036 P-5101 returns into the berth header downstream of XV-5101, so it can run only into a
+    flow that leaves the platform: the loop goes to auto only with XV-5101 open and the flow established (permissive
+    below), and P-5101 is stopped by ESD-1 (I-501, D-039), so it never dead-heads against the closed header.'
+  operator: 'SEQ-LOAD S3: put LIC-5111 in auto once the cooldown flow runs through XV-5101; D-5101 below its low
+    level before S4.'
+- id: LIC-6111
+  title: D-6101 jetty drain drum level (P-6101 start / stop)
+  purpose: Empty the Berth 1 jetty drain drum D-6101 with P-6101 into the berth header downstream of XV-6101, into
+    the cooldown or loading flow of the next transfer.
+  section: JETTY
+  cases:
+  - loading
+  variable: level
+  measurement:
+  - tag: LIC-6111
+  controller: LIC-6111
+  action: direct
+  final_elements:
+  - tag: P-6101
+    kind: drive
+    actuator: electric
+    fail: stop
+  targets:
+  - kind: high
+    unresolved: drum start level from the D-n101 datasheet (detail)
+  - kind: low
+    unresolved: drum stop level above the pump's NPSH required (vendor)
+  modes:
+  - manual
+  - auto
+  normal_mode: auto
+  transitions:
+  - from: manual
+    to: auto
+    by: operator
+    condition:
+      all:
+      - tag: ZSC-6101
+        state: not closed
+      - text: cooldown or loading flow established through XV-6101 (FIC-4101 / FIC-4102 at its rate)
+  - from: auto
+    to: manual
+    by: automatic
+    condition:
+      any:
+      - tag: ZSC-6101
+        state: closed
+      - interlock: I-601
+        state: tripped
+    notes: P-6101 stopped with it
+  alarms:
+  - tag: LIC-6111
+    condition: LAH
+    response: 'Drum filling with no transfer to empty it into: hold the header drain (XV-6161 closed); the independent
+      LZT-6112 closes XV-6161 at high-high (I-606).'
+  interlocks:
+  - I-601
+  - I-606
+  rationale: 'Since D-036 P-6101 returns into the berth header downstream of XV-6101, so it can run only into a
+    flow that leaves the platform: the loop goes to auto only with XV-6101 open and the flow established (permissive
+    below), and P-6101 is stopped by ESD-1 (I-601, D-039), so it never dead-heads against the closed header.'
+  operator: 'SEQ-LOAD S3: put LIC-6111 in auto once the cooldown flow runs through XV-6101; D-6101 below its low
+    level before S4.'
+- id: LIC-8101
+  title: D-8101 flare knock-out drum level (P-8101A/B duty start / stop)
+  purpose: Empty the flare knock-out drum D-8101 to the liquid burner with the duty pump P-8101A/B on a level band.
+  section: BOG
+  cases:
+  - average
+  - loading
+  - holding
+  variable: level
+  measurement:
+  - tag: LIC-8101
+  controller: LIC-8101
+  action: direct
+  final_elements:
+  - tag: P-8101A
+    kind: drive
+    actuator: electric
+    fail: stop
+  targets:
+  - kind: high
+    unresolved: start level from the D-8101 datasheet (detail)
+  - kind: low
+    unresolved: stop level above the pumps' NPSH required (vendor)
+  modes:
+  - manual
+  - auto
+  normal_mode: auto
+  alarms:
+  - tag: LIC-8101
+    condition: LAH
+    response: Check the duty pump and the liquid burner line-up; the independent LZT-8105 starts both pumps at high-high
+      (I-802).
+  interlocks:
+  - I-802
+  - I-803
+  rationale: 'The duty pump is started and stopped on the level band through HS-8101A; the final element is the
+    duty pump, P-8101A shown: when P-8101B is selected as the duty pump the same output acts on it through HS-8101B
+    instead (a duty selection, not a split range, so one element). I-802 (high-high, both pumps) and I-803 (low-low,
+    both stopped, priority) on the independent LZT-8105 are the protection (D-026.14).'
+  operator: Select the duty pump at HS-8101A; the standby takes over through I-802 at high-high.
+- id: LC-8103
+  title: T-8101 pocket level (P-8102 start / stop, speed)
+  purpose: 'Keep the tank-area sump T-8101 dry: take rainwater out of its floor pocket with the submersible P-8102
+    to the oily water system.'
+  section: STORAGE
+  cases:
+  - average
+  - loading
+  - holding
+  variable: level
+  measurement:
+  - tag: LI-8103
+  controller: null
+  action: direct
+  final_elements:
+  - tag: P-8102
+    kind: drive
+    actuator: electric
+    fail: stop
+  targets:
+  - kind: high
+    value: 0.9
+    unit: m
+    provenance: assumed
+    source: 'D-039: levels above the pocket floor; the stop keeps the ~0.5 m submergence of the submersible pump
+      (vendor), ASSUMED'
+  - kind: low
+    value: 0.6
+    unit: m
+    provenance: assumed
+    source: 'D-039: levels above the pocket floor; the stop keeps the ~0.5 m submergence of the submersible pump
+      (vendor), ASSUMED'
+  modes:
+  - manual
+  - auto
+  normal_mode: auto
+  alarms:
+  - tag: LZT-8113
+    condition: LAH
+    response: 'Water on the T-8101 floor: restore P-8102 (from road R13) or lower the portable spare pump; a transfer
+      hold (SEQ-LOAD S0 / S4); I-809 at high-high.'
+  - tag: LZT-8113
+    condition: deviation
+    response: 'LI-8103 and LZT-8113 disagree: check both radars; the alarms stay on LZT-8113.'
+  interlocks:
+  - I-801
+  - I-809
+  - I-810
+  rationale: 'Start and stop of P-8102 by LI-8103 through HS-8103 (signal line on P-08), no controller bubble: the
+    DCS level band of LI-8103, the speed following the level between them through the VSD in MCC-1 (round-10 design
+    check, D-039.9; as LC-8106). Minimum speed ~85 % (ASSUMED), where P-8102 still delivers ~20 m3/h against its
+    ~38 m fixed head (27.8 m static plus ~10.2 m at the oily water battery limit; no flow below ~80 %, D-039.9 (j)):
+    above that inflow it runs on, below it it cycles at most ~9 times an hour (worst at ~9 m3/h of inflow, refill
+    (0.675 - 0.23) / q plus run 0.675 / (20 - q) h with the riser''s 0.23 m3 drain-back), each a VSD ramp; on/off
+    direct-on-line over the 0.30 m band it was ~22 starts an hour at the ~20 m3/h design rain (worst ~22.6 at ~22
+    m3/h), against a vendor limit taken as 15 evenly spaced starts an hour for a submersible motor of this size
+    (ASSUMED, vendor to confirm). The alarms and trips are on the independent LZT-8113 (I-809, I-810), the LNG lockout
+    on TSL-8102 / TSL-8120 / AT-8124 (I-801), so the control transmitter is not a safeguard (review 2026-11-05-basic-design-9
+    #1, #4, D-039).'
+  operator: After an I-801 or I-810 trip P-8102 restarts only after the reset by hand (pit confirmed free of LNG).
+- id: LC-8106
+  title: T-8102 pocket level (P-8103 start / stop, speed)
+  purpose: 'Keep the jetty sump T-8102 dry: take rainwater out of its floor pocket with the line-shaft P-8103 to
+    the jetty drain.'
+  section: JETTY
+  cases:
+  - loading
+  - holding
+  variable: level
+  measurement:
+  - tag: LZT-8106
+  controller: null
+  action: direct
+  final_elements:
+  - tag: P-8103
+    kind: drive
+    actuator: electric
+    fail: stop
+  targets:
+  - kind: high
+    value: 0.35
+    unit: m
+    provenance: assumed
+    source: 'D-037.16: levels above the pocket floor; the stop is the bowl''s submergence (vendor), ASSUMED'
+  - kind: low
+    value: 0.1
+    unit: m
+    provenance: assumed
+    source: 'D-037.16: levels above the pocket floor; the stop is the bowl''s submergence (vendor), ASSUMED'
+  modes:
+  - manual
+  - auto
+  normal_mode: auto
+  alarms:
+  - tag: LZT-8119
+    condition: LAH
+    response: 'Water on the T-8102 floor: a transfer hold (SEQ-LOAD S0 / S4), P-8103 restored from the control room;
+      I-805 at high-high.'
+  - tag: LZT-8119
+    condition: deviation
+    response: 'LZT-8106 and LZT-8119 disagree: check both guided-wave radars; the hold and the trip stay on LZT-8119.'
+  interlocks:
+  - I-805
+  - I-806
+  - I-807
+  - I-808
+  rationale: 'Start and stop by C&E I-806 / I-807 on LZT-8106 (BPCS functions recorded in the C&E), the speed following
+    the level between them (VSD). LZT-8106 is the control transmitter alone since D-039: the hold and I-805 are
+    on LZT-8119, the LNG lockout on TSL-8104 / TSL-8118 (I-808), so the control is not a safeguard (review 2026-11-05-basic-design-9
+    #4, #7).'
+  operator: After an I-808 lockout P-8103 restarts only after the reset by hand (sump confirmed free of LNG).

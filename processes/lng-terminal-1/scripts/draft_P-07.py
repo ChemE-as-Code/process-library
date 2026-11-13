@@ -33,6 +33,13 @@ recycle tree and the vent tree each reach the third machine across one line at l
 layout keeps that minimum of two right-angle crossings: the K-7101B recycle BOG-7009 crosses the
 suction header BOG-7001 to reach BOG-7012 on top, the K-7101B/C vent FL-7004 crosses the
 discharge header BOG-7002 to reach FL-7003 below it.
+
+Round-10 design check (D-039.9, D-038.3): the three other-sheet connectors left inside the sheet by
+D-038 go on the edges, each adding the crossings accepted in checks/checks.yaml: the spray LNG-4008
+from the top edge across the recycle BOG-7012 (one), the D-7101 drain DR-7001 to the bottom edge across
+the K-7101A recycle BOG-7008 (one), and the PSV-7111 outlet FL-7002 to the bottom edge across the
+discharge header BOG-7002 and the vent header FL-7003 (two; the relief valve stays on top of the gas
+header).
 """
 
 import sys
@@ -40,7 +47,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from chemeascode.domains.piping.authoring import label  # noqa: E402
-from lng_pid import Lists, Nozzle, Sheet, equipment, note, offpage, set_dn, tee, valve  # noqa: E402
+from lng_pid import Lists, Nozzle, Sheet, edge_offpage, equipment, note, offpage, set_dn, tee, valve  # noqa: E402
 
 target = Path(sys.argv[1])
 sheet = Sheet.load(target)
@@ -86,7 +93,7 @@ inlet = L.line(sheet, "BOG-1001", dn=750, fluid="Boil-off gas", frm="T-2101", to
 tv = valve("TV7103", "GlobeValve", tag="TV-7103", at=(72, 80))
 L.line(sheet, "LNG-4008", dn=80, fluid="LNG", frm="LNG-2002", to="BOG-1001 (TV-7103)",
        notes="see P-04",
-       route=[offpage("in", at=(72, 40), note="spray from P-04", note_at=(86, 36), rotation=DOWN),
+       route=[edge_offpage("in", "top", 72, note="spray from P-04", note_at=(86, 17)),
               tv, t_spr.branch], label_at=(86, 60))
 
 # ---- suction header and branches -----------------------------------------------------------------
@@ -203,12 +210,13 @@ psv11 = L.relief("PSV7111", "PSV-7111", "FL-7002", 7.5,
                  label_at=(228, 181))
 L.line(sheet, "FL-7002", dn=200, fluid="Flare gas", frm="BOG-7002 (PSV-7111)", to="FL-8001",
        notes="PSV-7111 outlet to the flare header. Drawn on P-07 and P-08.", insulation="none",
-       route=[t_dp.branch, psv11, offpage("out", at=(214, 166), note="to flare (P-08)", note_at=(214, 155), rotation=UP)],
+       route=[t_dp.branch, psv11, (214, 172), (208, 172),
+              edge_offpage("out", "bottom", 208, note="to flare (P-08)", note_at=(222, 247))],
        labels=False)
 lv = valve("LV7102", "GlobeValve", tag="LV-7102", at=(100, 182))
 L.line(sheet, "DR-7001", dn=50, fluid="LNG", frm="D-7101", to="D-8101",
        notes="D-7101 liquid (spray carry-over) to the flare knock-out drum. Drawn on P-07 and P-08.",
-       route=[drum["N3"], lv, offpage("out", at=(100, 205), note="to D-8101 (P-08)", note_at=(114, 210), rotation=DOWN)],
+       route=[drum["N3"], lv, edge_offpage("out", "bottom", 100, note="to D-8101 (P-08)", note_at=(114, 247))],
        label_at=(86, 198))
 
 # ---- valve tags of the hand valves -------------------------------------------------------------------
